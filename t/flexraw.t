@@ -12,11 +12,12 @@ use warnings;
 # Load the testing harness and PDL
 use Test::More tests => 12;
 use PDL;
+use File::Temp qw(tempdir);
 
 # Get a temporary directory and file name, which obviously we'll need for testing
 # saving and reading of data.
 use PDL::Config;
-my $tmpdir = $PDL::Config{TEMPDIR};
+my $tmpdir = tempdir( CLEANUP=>1 );
 my $name = $tmpdir . "/tmp0";
 unlink $name, $name . '.hdr';	# just to be absolutely sure
 

@@ -11,6 +11,7 @@ use strict;
 use PDL;
 use PDL::Config;
 use Test::More;
+use File::Temp qw(tempdir);
 
 BEGIN
 {
@@ -47,7 +48,7 @@ use ExtUtils::testlib;
 use PDL::IO::GD;
 
 # Test Files:
-my $tempdir = $PDL::Config{TEMPDIR} || "/tmp";
+my $tempdir = tempdir( CLEANUP=>1 );
 
 my $lutfile = "$tempdir/default.rcols";
 my $testfile1 = "$tempdir/test.png";

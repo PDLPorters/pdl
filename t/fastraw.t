@@ -13,7 +13,9 @@ use PDL;
 # Get a temporary directory and file name, which obviously we'll need for testing
 # saving and reading of data.
 use PDL::Config;
-my $tmpdir = $PDL::Config{TEMPDIR};
+use File::Temp qw(tempdir);
+
+my $tmpdir = tempdir( CLEANUP=>1 );
 my $name = $tmpdir . "/tmp0";
 my $header = $tmpdir . "/headerfile" . $$;
 unlink $name, $name . '.hdr', $header;	# just to be absolutely sure
