@@ -629,9 +629,9 @@ sub trylink {
   my ($txt,$inc,$body,$libs,$cflags) = @_;
   $cflags ||= '';
   require File::Spec;
-  my $fs = 'File::Spec';
-  my $cdir = sub { return $fs->catdir(@_)};
-  my $cfile = sub { return $fs->catfile(@_)};
+  require File::Temp;
+  my $cdir = sub { return File::Spec->catdir(@_)};
+  my $cfile = sub { return File::Spec->catfile(@_)};
   use Config;
 
   # check if MakeMaker should be used to preprocess the libs
@@ -658,11 +658,11 @@ sub trylink {
 
   my $tempd;
 
-  if($^O =~ /MSWin32/i) {$tempd = File::Spec->tmpdir()}
-  else {
-    $tempd = $PDL::Config{TEMPDIR} ||
-    die "TEMPDIR not found in \%PDL::CONFIG";
-    }
+  $tempd = File::Temp->newdir() || die "trylink: could not make TEMPDIR";
+  ### if($^O =~ /MSWin32/i) {$tempd = File::Spec->tmpdir()}
+  ### else {
+  ###    $tempd = $PDL::Config{TEMPDIR} ||
+  ### }
 
   my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
   open FILE,">$tc" or die "trylink: couldn't open testfile `$tc' for writing, $!";
