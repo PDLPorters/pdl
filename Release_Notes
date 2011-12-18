@@ -42,6 +42,18 @@ Highlights:
    from TMPDIR in perldl.conf by calls to File::Temp
    tempfile and/or tempdir.  Fixes to tests and trylink
    command.
+ 
+ * Update minimum version of ExtUtils::MakeMaker to
+   6.31 which is the first version supporting the
+   INSTALL_BASE option for local module repo locations.
+   This is the same location as the Module::Build
+   --install-base option and is much easier to
+   understand where things go than the PREFIX + LIB.
+
+   NOTE: If you've been using PREFIX + LIB for your
+   standalone repository configuration, you'll need
+   to reinstall with the new option.  Mix and matching
+   the two is liable to cause problems.
 
 
 

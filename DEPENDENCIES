@@ -31,9 +31,19 @@ PDL (all)         perl >= 5.8.x           PDL requires at least this version
                                           of perl to build and run.
 
                   File::Spec  >= 0.6      perl5 core module.
+                  File::Temp  >= 0        perl5 core module.
                   Pod::Parser >= 0        perl5 core module.
                   Pod::Select >= 0        perl5 core module.
 
+                  ExtUtils::MakeMaker >= 6.31
+
+		                          This version of EU::MM is the first
+					  with support for INSTALL_BASE for
+					  non-system install locations.  If
+					  you edit the top level Makefile.PL
+					  and change the 6.31 to 0 in two
+					  spots, you can build with older
+					  versions---not recommended.
 
 PDL::NiceSlice    Text::Balanced          A nicer way to index piddles.
                   Filter::Util::Call
