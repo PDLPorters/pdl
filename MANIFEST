@@ -774,6 +774,8 @@ t/plplot.t
 t/pnm.t
 t/poly.t
 t/polyroots.t
+t/pp_croaking.t
+t/pp_line_numbers.t
 t/pptest.t
 t/primitive.t
 t/primitive2.t
