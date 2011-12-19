@@ -24,6 +24,8 @@ pp_done;
 
 unlink 'foobar.pm';
 
+$^W = 0;
+
 # Analyze the output of pp_line_numbers by checking the line numbering in
 # foobar.xs. Note that the line *after* the #line directive is assigned the
 # number of the #line directive. See http://gcc.gnu.org/onlinedocs/cpp/Line-Control.html
