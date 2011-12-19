@@ -126,6 +126,8 @@ pdldoc - shell interface to PDL documentation
 
 B<pdldoc> <text>
 
+=cut
+
 !NO!SUBS!
 
     if ( $bvalflag ) {
@@ -144,6 +146,9 @@ print $fh <<'!NO!SUBS!';
 
 The aim of B<pdldoc> is to provide the same functionality
 as the C<apropos>, C<help>, C<sig>, 
+
+=cut
+
 !NO!SUBS!
 
     print $fh "C<badinfo>, \n" if $bvalflag;
@@ -167,12 +172,16 @@ This is the default option.
 
 Regex search PDL documentation database.
 
+=cut
+
 !NO!SUBS!
 
 print $fh <<'!NO!SUBS!' if $bvalflag;
 =item B<-b> badinfo
 
 Information on the support for bad values provided by the function.
+
+=cut
 
 !NO!SUBS!
 
