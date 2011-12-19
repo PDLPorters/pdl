@@ -2603,8 +2603,6 @@ sub PDL::convert {
 
 =for ref
 
-=cut
-
 !NO!SUBS!
 
 print OUT "$convertalts convert shorthands\n";
