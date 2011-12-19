@@ -39,17 +39,17 @@ Fit 1D Gassian to data piddle
 
 =for example
 
-($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
+  ($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
 
 =for usage
 
-($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
+  ($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
 
 =for signature
 
-xval(n); data(n); [o]xcentre();[o]peak_ht(); [o]fwhm(); 
-[o]background();int [o]err(); [o]datafit(n); 
-[t]sig(n);  [t]xtmp(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
+  xval(n); data(n); [o]xcentre();[o]peak_ht(); [o]fwhm(); 
+  [o]background();int [o]err(); [o]datafit(n); 
+  [t]sig(n);  [t]xtmp(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
 
 Fits a 1D Gaussian robustly free parameters are the centre, peak height,
 FWHM. The background is NOT fit, because I find this is generally
@@ -69,17 +69,17 @@ Fit 1D Gassian to radial data piddle
 
 =for example
 
-($pk, $fwhm2, $back, $err, $fit) = fitgauss1dr($r, $data);
+  ($pk, $fwhm2, $back, $err, $fit) = fitgauss1dr($r, $data);
 
 =for usage
 
-($pk, $fwhm2, $back, $err, $fit) = fitgauss1dr($r, $data);
+  ($pk, $fwhm2, $back, $err, $fit) = fitgauss1dr($r, $data);
 
 =for signature
 
-xval(n); data(n); [o]peak_ht(); [o]fwhm(); 
-[o]background();int [o]err(); [o]datafit(n); 
-[t]sig(n);  [t]xtmp(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
+  xval(n); data(n); [o]peak_ht(); [o]fwhm(); 
+  [o]background();int [o]err(); [o]datafit(n); 
+  [t]sig(n);  [t]xtmp(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
 
 Fits a 1D radial Gaussian robustly free parameters are the peak height,
 FWHM. Centre is assumed to be X=0 (i.e. start of piddle).

@@ -505,7 +505,6 @@ ND convolution using real ffts from the FFTW library
 
 =cut
 
-
 *PDL::rfftwconv = \&rfftwconv;
 sub rfftwconv {
   my ($a,$b) = @_;
@@ -530,7 +529,6 @@ Assumes real input!
   $conv = fftwconv $im, kernctr $im, $k; # kernctr is from PDL::FFT
 
 =cut
-
 
 *PDL::fftwconv = \&fftconv;
 sub fftwconv {

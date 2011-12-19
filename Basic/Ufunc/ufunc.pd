@@ -69,6 +69,8 @@ I<any> dimension.
 
 $extras
 
+=cut
+
 EOD
 
 } # sub: projectdocs()
@@ -101,6 +103,8 @@ is the first element of the parameter.
  \$spectrum = $op \$image->xchg(0,1)
 
 $extras
+
+=cut
 
 EOD
 
@@ -881,6 +885,8 @@ Return the $text of all elements in a piddle
 
  \$x = $name(\$data);
 
+=cut
+
 EOD
 
     if ( $bvalflag ) {
@@ -895,11 +901,12 @@ has the same type as the input piddle OR
 perhaps we should die - makes sense for the conditional
 ops but not things like sum)
 
+=cut
+
 EOD
 } # if: bvalflag
 
    pp_addpm(<<"EOD");
-=cut
 
 *$name = \\&PDL::$name;
 sub PDL::$name {
@@ -926,6 +933,8 @@ Useful in conditional expressions:
 
  if (any $a>15) { print "some values are greater than 15\n" }
 
+=cut
+
 EOPM
 
     if ( $bvalflag ) {
@@ -935,12 +944,12 @@ EOPM
 See L<or|/or> for comments on what happens when all elements
 in the check are bad.
 
+=cut
+
 EOPM
 } # if: bvalflag
 
 pp_addpm(<<'EOPM');
-=cut
-
 *any = \&or;
 *PDL::any = \&PDL::or;
 
@@ -956,6 +965,8 @@ Useful in conditional expressions:
 
  if (all $a>15) { print "all values are greater than 15\n" }
 
+=cut
+
 EOPM
 
     if ( $bvalflag ) {
@@ -965,11 +976,12 @@ EOPM
 See L<and|/and> for comments on what happens when all elements
 in the check are bad.
 
+=cut
+
 EOPM
 } # IF: BVALFLAG
 
 pp_addpm(<<'EOPM');
-=cut
 
 *all = \&and;
 *PDL::all = \&PDL::and;
@@ -1045,6 +1057,8 @@ Quicksort a vector into ascending order.
 
  print qsort random(10);
 
+=cut
+
 ',
     BadDoc =>
 '
@@ -1102,6 +1116,8 @@ Quicksort a vector and return index of elements in ascending order.
  $ix = qsorti $a;
  print $a->index($ix); # Sorted list
 
+=cut
+
 '
        ); # pp_def: qsorti
 
@@ -1140,6 +1156,8 @@ the 1st dimension is list order.  Higher dimensions are threaded over.
   [  4   2]
  ]
  
+
+=cut
 
 ',
     BadDoc =>
@@ -1182,6 +1200,8 @@ sorted list.
 
 Additional dimensions are threaded over: each plane is sorted separately,
 so qsortveci may be thought of as a collapse operator of sorts (groan).
+
+=cut
 
 ',
     BadDoc =>
@@ -1361,6 +1381,8 @@ Find minimum and maximum and their indices for a given piddle;
  [-2 0] [4 3] [0 1] [2 2]
 
 See also L<minmax|/minmax>, which clumps the piddle together.
+
+=cut
 
 ',
 	BadDoc =>

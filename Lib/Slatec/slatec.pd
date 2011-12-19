@@ -67,6 +67,8 @@ data using L<chcm|/chcm>.
 
 =back
  
+=cut
+
 EOD
 # ' un-confuse emacs
 
@@ -122,18 +124,18 @@ results (in C<$r> corresponding to the rows of $y.
 
  where on input:
 
- C<x> and C<y> are the values to fit to a polynomial.
- C<w> are weighting factors
- C<maxdeg> is the maximum degree of polynomial to use and 
- C<eps> is the required degree of fit.
+ $x and $y are the values to fit to a polynomial.
+ $w are weighting factors
+ $maxdeg is the maximum degree of polynomial to use and 
+ $eps is the required degree of fit.
 
  and on output:
 
- C<ndeg> is the degree of polynomial actually used
- C<r> is the values of the fitted polynomial 
- C<ierr> is a return status code, and
- C<a> is some working array or other
- C<eps> is modified to contain the rms error of the fit.
+ $ndeg is the degree of polynomial actually used
+ $r is the values of the fitted polynomial 
+ $ierr is a return status code, and
+ $a is some working array or other
+ $ps is modified to contain the rms error of the fit.
 
 =for bad
 
@@ -861,6 +863,8 @@ monotonicity (data still valid).
 
 =back
 
+=cut
+
 ',
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
@@ -998,6 +1002,8 @@ for monotonicity.
 
 =back
 
+=cut
+
 ',
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
@@ -1104,6 +1110,8 @@ for the interior derivative values.
 
 =back
 
+=cut
+
 ',
 'Calculate the derivatives of (x,f(x)) using cubic spline interpolation.'
 );	  
@@ -1160,6 +1168,8 @@ which should never happen.
 
 =back
 
+=cut
+
 ',
 'Interpolate function and derivative values.'
 );	  
@@ -1209,6 +1219,8 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 -4 if C<nelem($xe) E<lt> 1>.
 
 =back
+
+=cut
 
 ',
 'Interpolate function values.'
@@ -1273,6 +1285,8 @@ which should never happen.
 
 =back
 
+=cut
+
 ',
 'Integrate (x,f(x)) over arbitrary limits.'
 );
@@ -1322,6 +1336,8 @@ Error status returned by C<$ierr>:
 -4 if C<$ia> or C<$ib> is out of range.
 
 =back
+
+=cut
 
 ',
 'Integrate (x,f(x)) between data points.'
@@ -1400,6 +1416,8 @@ Error status returned by C<$ierr>:
 
 =back
 
+=cut
+
 ',
 'Check the given piecewise cubic Hermite function for monotonicity.'
 );	  
@@ -1407,6 +1425,8 @@ Error status returned by C<$ierr>:
 =pod
 
 ignore function for now although code is in slatec/ directory
+
+=cut
 
 # XXX tsize = 2*n+4
 #     bsize = 2*n
@@ -1500,11 +1520,11 @@ Error status returned by C<$ierr>:
 
 =back
 
+=cut
+
 ',
 'Piecewise Cubic Hermite function to B-Spline converter.'
 );	  
-
-=cut
 
 ##################################################################
 ##################################################################
