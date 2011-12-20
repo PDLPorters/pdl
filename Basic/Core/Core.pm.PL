@@ -1963,7 +1963,8 @@ sub PDL::approx {
   my ($a,$b,$eps) = @_;
   $eps = $approx unless defined $eps;  # the default eps
   $approx = $eps;    # remember last eps
-  return ($a-$b)->abs < $eps;
+  # NOTE: ($a-$b)->abs breaks for non-piddle inputs
+  return abs($a-$b) < $eps;
 }
 
 =head2 mslice

@@ -6,7 +6,7 @@ BEGIN {
   eval "use PDL::Slatec;";
   if ( !$@ ) {
     eval "use PDL::Graphics::Limits;";
-    plan tests => 3;
+    plan tests => 6;
   } else {
     plan skip_all => 'PDL::Slatec not available';
   }
@@ -26,7 +26,7 @@ $y2 = pdl( -1, 2, 4 );
 			   Clean => 'None',
 			   Trans => [ \&log10 ],
 			 } );
-ok( eq_array( \@range, [ log10(1-0.5), log10(4),
+ok( is_deeply( \@range, [ log10(1-0.5), log10(4),
 			 -1, 10 ] ), 'x symmetric trans' );
 
 @udsets = ( [ [ $x1, $xn ], $y1], [ [ $x2, undef, $xp ], $y2 ] );
@@ -34,7 +34,7 @@ ok( eq_array( \@range, [ log10(1-0.5), log10(4),
 			   Clean => 'None',
 			   Trans => [ \&log10 ],
 			 } );
-ok( eq_array( \@range, [ log10(1-0.5), log10(4+0.25),
+ok( is_deeply( \@range, [ log10(1-0.5), log10(4+0.25),
 			 -1, 10 ] ), 'x asymmetric trans' );
 
 $y1 = pdl( 0.5, 1, 5 );
@@ -44,7 +44,7 @@ $ys = pdl( 0.5, 0.5, 0.5 );
 			   Clean => 'None',
 			   Trans => [ \&log10 ],
 			 } );
-ok( eq_array( \@range, [ log10(0.5), log10(5+0.5) ] ), 
+ok( is_deeply( \@range, [ log10(0.5), log10(5+0.5) ] ), 
     'illegal errbar lower bounds' );
 
 
