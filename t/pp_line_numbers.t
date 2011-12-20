@@ -1,5 +1,7 @@
 # DO NOT MODIFY - IT IS VERY FINICKY; see notes below.
 
+$^W = 0;
+
 # Five tests for each of seven types:
 use Test::More tests => 35;
 use PDL::PP qw(foo::bar foo::bar foobar);
@@ -8,15 +10,15 @@ use PDL::PP qw(foo::bar foo::bar foobar);
 pp_def(test1 =>
   Pars => 'a(n)',
   Code => pp_line_numbers (__LINE__, q{
-    /* line 11, First line */
+    /* line 13, First line */
     threadloop %{
-      /* line 13, Line after threadloop */
+      /* line 15, Line after threadloop */
       loop (n) %{
-        /* line 15, Line after loop */
+        /* line 17, Line after loop */
       %}
-      /* line 17, Line after close of loop */
+      /* line 19, Line after close of loop */
     %}
-    /* line 19, Line after close of threadloop */
+    /* line 21, Line after close of threadloop */
   })
 );
 
@@ -24,7 +26,6 @@ pp_done;
 
 unlink 'foobar.pm';
 
-$^W = 0;
 
 # Analyze the output of pp_line_numbers by checking the line numbering in
 # foobar.xs. Note that the line *after* the #line directive is assigned the
