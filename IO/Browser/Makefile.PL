@@ -2,7 +2,7 @@
 # Makefile.PL for PDL::IO module.
 #
 # - check for win32 systems is now done in ../Makefile.PL
-$| = 1;
+local $| = 1;
 
 use ExtUtils::MakeMaker;
 use File::Spec;
@@ -10,15 +10,18 @@ use File::Spec;
 my $libdir;
 
 BEGIN {
-   print STDERR "IO/Browser: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
-   $libdir = File::Spec->catfile($PDL::Config{PDL_BUILD_DIR},'inc');
-   print STDERR "IO/Browser: adding $libdir\n";
+   if (defined $PDL::Config{PDL_BUILD_DIR}) {
+      print STDERR "IO/Browser: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
+      $libdir = File::Spec->catfile($PDL::Config{PDL_BUILD_DIR},'inc');
+      print STDERR "IO/Browser: adding $libdir\n";
+   }
 }
 
 use lib $libdir;
-use Devel::CheckLib;
-require PDL::Core::Dev;
 
+use Devel::CheckLib;
+
+require PDL::Core::Dev;
 PDL::Core::Dev->import();
 
 @pack = (["browser.pd",Browser,PDL::IO::Browser]);

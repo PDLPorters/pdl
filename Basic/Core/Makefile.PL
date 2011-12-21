@@ -1,5 +1,20 @@
 
 # Makefile.PL for PDL::Core module
+my $libdir;
+
+use File::Spec;
+
+BEGIN {
+   if (defined $PDL::Config{PDL_BUILD_DIR}) {
+      print STDERR "Basic/Core/Makefile.PL: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
+      $libdir = File::Spec->catfile($PDL::Config{PDL_BUILD_DIR},'inc');
+      print STDERR "Basic/Core/Makefile.PL: adding $libdir\n";
+   }
+}
+
+use lib $libdir;
+
+use Devel::CheckLib;
 
 #require '../Core/Dev.pm';
 PDL::Core::Dev->import();
@@ -7,7 +22,7 @@ PDL::Core::Dev->import();
 use Config;
 use IO::File;
 
-# $DB::single = 1;  # uncomment to have debugger stop here
+$DB::single = 1;  # uncomment to have debugger stop here
 
 my $pthread_include = $Config::Config{usrinc};  # not good for win32
 my $pthread_library = '-lpthread';                                  # not good for MSVC
@@ -75,8 +90,13 @@ if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THRE
     }
  } else {
     print "\tNope, your perl was not linked against pthread library\n";
-    if ($^O =~ /mswin/i) {
-       $pthread_library = '';
+    if ($^O =~ /mswin/i or $^O =~ /cygwin/i) {
+       if (check_lib(LIB=>'-lpthread',header=>'pthread.h')) {
+          print "\tWe found -lpthread and pthread.h so will build anyway\n";
+          $pthread_library = '-lpthread';
+       } else {
+          $pthread_library = '';
+       }
     } else {
        print "\tWe'll try the default -lpthread anyway\n";
        # $pthread_library = '';
