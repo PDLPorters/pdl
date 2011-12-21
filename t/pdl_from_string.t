@@ -325,6 +325,14 @@ eval{ pdl q[1 po 3] };
 isnt($@, '', 'Croaks when invalid characters are specified');
 like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation of problem');
 
+# XXX TODO after 2.4.10: Add checks for croaking behavior for consecutive
+# symbols like +-2:
+#eval{ pdl q[1 +-2 3] };
+#isnt($@, '', 'Croaks when it finds consecutive signs');
+#like($@, qr/found a \w+ sign/, 'Gives meaningful explanation of problem');
+#eval{ pdl q[1 -+2 3] };
+#isnt($@, '', 'Croaks when it finds consecutive signs');
+#like($@, qr/found a \w+ sign/, 'Gives meaningful explanation of problem');
 
 # Basic 2D array
 # pdl> p $a = pdl q[ [ 1, 2, 3 ], [ 4, 5, 6 ] ];

@@ -844,14 +844,14 @@ use Scalar::Util;       # for looks_like_number test
 use Carp 'carp';        # for carping (warnings in caller's context)
 
 # This is the code that handles string arguments. It has now gotten quite large,
-# so here's the basic explanation. I want to allow expressions like 2, 1e3, 1+4,
-# bad, nan, and inf. However, I also need to protect from executing arbitrary
-# code when I run the eval. So, I croak when I find:
+# so here's the basic explanation. I want to allow expressions like 2, 1e3, +4,
+# bad, nan, inf, and more. Checking this can get tricky. This croaks when it
+# finds:
 # 1) strings of e or E that are longer than 1 character long (like eeee)
-# 2) non-supported characters
-# 3) the characer e that evaluates as a function (as in '1 2 3 e 5')
-# 4) expressions that are syntactically erroneous, like '1 2 3 ]', which has an
+# 2) non-supported characters or strings
+# 3) expressions that are syntactically erroneous, like '1 2 3 ]', which has an
 #    extra bracket
+# 4) use of inf when the data type does not support inf (i.e. the integers)
 
 sub PDL::Core::new_pdl_from_string {
    my ($new, $original_value, $this, $type) = @_;
@@ -957,6 +957,8 @@ sub PDL::Core::new_pdl_from_string {
          . "You originally gave me $original_value\n");
    }
    
+   # XXX TODO after 2.4.10: simplify by using local $SIG{__WARN__} 
+   
    # Install the warnings handler:
    my $old_warn_handler = $SIG{__WARN__};
 	
@@ -1047,10 +1049,16 @@ sub PDL::Core::parse_basic_string {
 			next SYMBOL;
 		}
 		elsif (s/^\+//) {
+			# XXX TODO after 2.4.10: uncomment this:
+			#die "Expected number but found a plus sign at ... ", substr ($_, 0, 10), "...\n"
+			#	if $expects_number;
 			$expects_number = 1;
 			redo SYMBOL;
 		}
 		elsif (s/^\-//) {
+			# XXX TODO after 2.4.10: uncomment this:
+			#die "Expected number but found a minus sign at ... ", substr ($_, 0, 10), "...\n"
+			#	if $expects_number;
 			$sign = -1;
 			$expects_number = 1;
 			redo SYMBOL;
