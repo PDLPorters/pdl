@@ -1,14 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #ifdef bool
 #undef bool
 #endif
+
 #ifdef CURSES
-#include <curses.h>
+#define CURSES_INC CURSES
+#else
+#define CURSES_INC "ncurses/curses.h"
 #endif
-#ifdef NCURSES
-#include <ncurses.h>
-#endif
+
+#include CURSES_INC
+
 #include <string.h>
 
 #include "EXTERN.h"
