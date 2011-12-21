@@ -55,6 +55,8 @@ Highlights:
      pdl q[1 pie 3]
    The new parsing will croak with a much more useful error:
      found 'e' as part of a larger word in 1 pie 2
+ 
+ * Improved pthread detection for windows with Devel::CheckLib
 
 
 
