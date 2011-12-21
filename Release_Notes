@@ -26,7 +26,17 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Better corner-case handling when creating a pdl from a string.
+   For example, this doesn't make sense:
+     pdl q[1 +-2 3]
+   but it used to give a piddle with values [1, -2, 3], basically
+   ignoring the first plus sign. That now croaks.
+   
+   Additionally, this used to croak, but the error message was
+   useless:
+     pdl q[1 pie 3]
+   The new parsing will croak with a much more useful error:
+     found 'e' as part of a larger word in 1 pie 2
 
 
 
