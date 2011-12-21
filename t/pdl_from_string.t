@@ -7,7 +7,7 @@
 # for scripts and programs
 #
 
-use Test::More tests => 65;
+use Test::More tests => 111;
 use strict;
 use warnings;
 
@@ -314,9 +314,9 @@ isnt($@, '', 'croaks with non-interpolated strings');
 
 }
 
-##############################
-# Useful croaking output - 4 #
-##############################
+###############################
+# Useful croaking output - 36 #
+###############################
 
 eval{ pdl q[1 l 3] };
 isnt($@, '', 'Croaks when invalid character is specified');
@@ -325,14 +325,34 @@ eval{ pdl q[1 po 3] };
 isnt($@, '', 'Croaks when invalid characters are specified');
 like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation of problem');
 
-# XXX TODO after 2.4.10: Add checks for croaking behavior for consecutive
-# symbols like +-2:
-#eval{ pdl q[1 +-2 3] };
-#isnt($@, '', 'Croaks when it finds consecutive signs');
-#like($@, qr/found a \w+ sign/, 'Gives meaningful explanation of problem');
-#eval{ pdl q[1 -+2 3] };
-#isnt($@, '', 'Croaks when it finds consecutive signs');
-#like($@, qr/found a \w+ sign/, 'Gives meaningful explanation of problem');
+# checks for croaking behavior for consecutive signs like +-2:
+eval{ pdl q[1 +-2 3] };
+isnt($@, '', 'Croaks when it finds consecutive signs');
+like($@, qr/found a \w+ sign/, 'Gives meaningful explanation of problem');
+eval{ pdl q[1 -+2 3] };
+isnt($@, '', 'Croaks when it finds consecutive signs');
+like($@, qr/found a \w+ sign/, 'Gives meaningful explanation of problem');
+
+# 'larger word' croak checks (36)
+foreach my $special (qw(bad inf pi)) {
+	foreach my $append (qw(2 e l)) {
+		eval "pdl q[1 $special$append 2]";
+		isnt($@, '', "Croaks when it finds $special$append");
+		like($@, qr/larger word/, 'Gives meaningful explanation of problem');
+		eval "pdl q[1 $append$special 2]";
+		isnt($@, '', "Croaks when it finds $append$special");
+		like($@, qr/larger word/, 'Gives meaningful explanation of problem');
+	}
+}
+
+# e croaks (6)
+my $special = 'e';
+foreach my $append (qw(2 e l)) {
+		eval "pdl q[1 $special$append 2]";
+		isnt($@, '', "Croaks when it finds $special$append");
+		eval "pdl q[1 $append$special 2]";
+		isnt($@, '', "Croaks when it finds $append$special");
+}
 
 # Basic 2D array
 # pdl> p $a = pdl q[ [ 1, 2, 3 ], [ 4, 5, 6 ] ];
