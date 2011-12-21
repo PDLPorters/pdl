@@ -84,7 +84,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_016 release:
+  PDL-2.4.9_991 release:
 
   3462924    bogus "dimension mismatch" for Nx0 index piddles
   3460886    t/flexraw_fortran.t test failures

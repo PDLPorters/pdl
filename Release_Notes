@@ -1,3 +1,28 @@
+Release Notes for PDL 2.4.9_991 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.10 release candidate 1
+
+ * All focus now is on testing, documentation, web page
+   updates, and writing the PDL Book...
+ 
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_991.tar.gz
+       cpan> make CHM/PDL-2.4.9_991.tar.gz
+       cpan> test CHM/PDL-2.4.9_991.tar.gz
+       cpan> look CHM/PDL-2.4.9_991.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
 Release Notes for PDL 2.4.9_016 --------------------------
 
 General Notes:
