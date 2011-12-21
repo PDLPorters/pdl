@@ -34,7 +34,7 @@ BEGIN {
 
 	# Look for FFTW includes/libs
 	# default locations:
-	@FFTW_inc_locations = ('/usr/local/include', $Config{usrinc}); 
+	@FFTW_inc_locations = ('/usr/include', '/usr/local/include', $Config{usrinc}); 
 	@FFTW_lib_locations = ('/lib','/usr/lib','/usr/local/lib',split(/ /, $Config{libpth}));
 
 	# get locations from perldl.conf, if specified there:

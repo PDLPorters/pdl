@@ -86,15 +86,10 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.9_016 release:
 
+  3462924    bogus "dimension mismatch" for Nx0 index piddles
   3460886    t/flexraw_fortran.t test failures
 
                Candidate fix in this release.
-
-  3408529    pthread support fails to build for win32
-             
-	       We have partial support for cygwin/win32
-	       with manual perldl.conf configuration and
-	       build and now all tests pass for win32.
 
   3363406    PDL::Minuit build can't make libminuit.a
 
@@ -107,8 +102,9 @@ The following issues have been reported with this version of PDL:
   3161459    online docs don't link to functions in other PDL modules 
   3018731    NiceSlice affects code where it should not
 
-               Support for new and improved NiceSlice engine.
-	       See Release_notes for details.
+               Support for new and improved NiceSlice engine
+	       works for files.  See Release_notes for details.
+	       Implementation for interactive shells is TBD.
 
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
