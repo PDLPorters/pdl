@@ -2,7 +2,10 @@ Release Notes for PDL 2.4.9_016 --------------------------
 
 General Notes:
 
- * Another quick CPAN developers release
+ * This is the final CPAN developers release for PDL
+   code changes.  The next release will be release
+   candidate 1 and all focus will be on documentation,
+   web page updates, and writing the PDL Book...
  
    - It is a snapshot of the current git development tree
      and everything may not work correctly or have complete
@@ -26,7 +29,20 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Updated win32/INSTALL instructions.
+
+ * Added curses library detection for PDL::IO::Browser using
+   Devel::CheckLib.  This is untested and disabled by
+   default but if you set WITH_IO_BROWSER => 1 in the
+   perldl.conf, it should build if your platform supports
+   curses.
+   
+   NOTE: PDL::IO:Browser is not available for win32 perls
+   since we still need to sort out an appropriate add-on
+   curses implementation and verify it works.
+ 
+ * Rework some tests to quiet warnings and to reduce
+   false fails (usually from floating point == tests).
 
 
 
