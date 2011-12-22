@@ -3,7 +3,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 	      NAME => "PDL::IO::FITS",
 	      'VERSION_FROM' => '../../Basic/Core/Version.pm',
-	      );
+	       'NO_MYMETA' => 1,
+);
 
 #
 # Check whether FITS modules are available (external to PDL)

@@ -10,6 +10,7 @@ WriteMakefile(
 			CallExt Slatec GSL FFTW GIS Transform Minuit Compression
 			/ ],
 #			Interpolate
+             'NO_MYMETA' => 1,
 );
 
 sub MY::postamble { '' }

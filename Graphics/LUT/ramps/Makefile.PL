@@ -15,6 +15,7 @@ WriteMakefile(
   'VERSION_FROM' => '../../../Basic/Core/Version.pm',
   'PM' => {
       (map {($_,'$(INST_LIBDIR)/'.$_)} @tables)
-   }
+   },
+    'NO_MYMETA' => 1,
 );
 

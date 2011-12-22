@@ -14,6 +14,7 @@ WriteMakefile(NAME => "PDL::PP",
 	PM => {@pms},
 	'EXE_FILES' => ['pptemplate'],
 	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate pptemplate.pod"},
+	'NO_MYMETA' => 1,
 );
 
 sub MY::postamble {

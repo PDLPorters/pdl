@@ -9,4 +9,5 @@ WriteMakefile(
       'PDLCommands.pm' => '$(INST_LIBDIR)/Plugin/PDLCommands.pm',
       'PrintControl.pm' => '$(INST_LIBDIR)/Plugin/PrintControl.pm',
    },
+    'NO_MYMETA' => 1,
 );

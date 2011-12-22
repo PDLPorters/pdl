@@ -24,6 +24,7 @@ WriteMakefile(
         COMPRESS => 'gzip', 
         SUFFIX => 'gz', 
     }, 
+   'NO_MYMETA' => 1,
 );
 
 sub MY::postamble { pdlpp_postamble_int($package); }        

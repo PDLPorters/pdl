@@ -23,4 +23,5 @@ WriteMakefile(
 # map {s/[.]PL$//; m/^Makefile$/ ?
 #					  () : $_}
 #			<*.PL>, <Doc/*.PL> },
+    'NO_MYMETA' => 1,
 );

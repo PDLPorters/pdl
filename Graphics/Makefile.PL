@@ -41,4 +41,5 @@ WriteMakefile(
                'PM'           => \%pm,
                'MAN3PODS'     => \%man3pods,
                'DIR'          => [@subdirs],
+               'NO_MYMETA' => 1,
 );

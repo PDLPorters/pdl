@@ -161,6 +161,7 @@ WriteMakefile(
 		   'mymalloc.p badsupport.p'
 		   },
  'INC'          => "$pthread_include $mallocinc",
+ 'NO_MYMETA' => 1,
 );
 
 # Extra targets to build

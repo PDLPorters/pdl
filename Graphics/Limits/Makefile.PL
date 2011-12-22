@@ -10,5 +10,6 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 	      'NAME'  	=> 'PDL::Graphics::Limits',
 	      'VERSION_FROM' => '../../Basic/Core/Version.pm',
+              'NO_MYMETA' => 1,
 );
 

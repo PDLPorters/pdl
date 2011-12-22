@@ -5,6 +5,7 @@ WriteMakefile(
         'NAME' => 'PDL::Transform::Cartography',
         VERSION_FROM => '../../../Basic/Core/Version.pm',
 	      PM => { (map {($_ => '$(INST_LIBDIR)/'.$_)}  <*.pm>), 
-		      (map {($_ => '$(INST_LIBDIR)/Cartography/'.$_)} <*.fits *.jpg>)}
+		      (map {($_ => '$(INST_LIBDIR)/Cartography/'.$_)} <*.fits *.jpg>)},
+    'NO_MYMETA' => 1,
 );
 

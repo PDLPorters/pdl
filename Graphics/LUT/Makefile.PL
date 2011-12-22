@@ -5,5 +5,6 @@ WriteMakefile(
  'NAME'         => 'PDL::Graphics::LUT',
  'VERSION_FROM' => '../../Basic/Core/Version.pm',
  'DIR'          => [ 'tables', 'ramps' ],
+ 'NO_MYMETA' => 1,
 );
 

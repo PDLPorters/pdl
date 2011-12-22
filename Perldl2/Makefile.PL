@@ -20,7 +20,8 @@ if (!defined $PDL::Config{WITH_DEVEL_REPL}) {
          'EXE_FILES' => [ 'pdl2' ],
          'DIR' => [ qw(Profile Plugin) ],
          'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm', @podpms },
-      );
+	  'NO_MYMETA' => 1,
+);
    } else {
       # Devel::REPL was not found
       $PDL::Config{WITH_DEVEL_REPL} = 0;
@@ -37,7 +38,8 @@ elsif ($PDL::Config{WITH_DEVEL_REPL}) {
 	 'EXE_FILES' => [ 'pdl2' ],
 	 'DIR' => [ qw(Profile Plugin) ],
          'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm', @podpms },
-  );
+         'NO_MYMETA' => 1,
+);
 }
 else {
 	# they don't want it, so generate a dummy
