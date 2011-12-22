@@ -660,7 +660,7 @@ sub trylink {
 
   my $tempd;
 
-  $tempd = $File::Temp::tempdir(CLEANUP=>1) || die "trylink: could not make TEMPDIR";
+  $tempd = File::Temp::tempdir(CLEANUP=>1) || die "trylink: could not make TEMPDIR";
   ### if($^O =~ /MSWin32/i) {$tempd = File::Spec->tmpdir()}
   ### else {
   ###    $tempd = $PDL::Config{TEMPDIR} ||
