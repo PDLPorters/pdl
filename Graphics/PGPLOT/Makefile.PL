@@ -10,7 +10,6 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 	      'NAME'  	=> 'PDL::Graphics::PGPLOT',
 	      'VERSION_FROM' => '../../Basic/Core/Version.pm',
-	      'DIR' => ['Window'],
-              'NO_MYMETA' => 1,
+	      'DIR' => ['Window']
 );
 

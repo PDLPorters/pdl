@@ -63,7 +63,6 @@ if (! $new_enough) {
    $PDL::Config{WITH_GSL} = 1;
    WriteMakefile(
       'NAME'	=> 'PDL::GSL',
-      'NO_MYMETA' => 1,
-);
+   );
 }
 sub MY::postamble {}

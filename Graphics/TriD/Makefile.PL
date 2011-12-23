@@ -31,5 +31,4 @@ WriteMakefile (
      'NAME'         => "PDL::Graphics::TriD",
      'VERSION_FROM' => '../../Basic/Core/Version.pm',
      'DIR'          => [ @subdirs ],
-     'NO_MYMETA' => 1,
 );

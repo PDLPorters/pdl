@@ -29,7 +29,6 @@ WriteMakefile(
  'PM'    =>     { @pms },
  'clean' => {FILES => "PP-Inline.pod"},
  'linkext' =>   {LINKTYPE => ''},  # No linking required in this directory
- 'NO_MYMETA' => 1,
 );
 
 sub MY::postamble {

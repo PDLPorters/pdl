@@ -459,7 +459,6 @@ my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
 	 'INC'          => &PDL_INCLUDE()." $inc $mallocinc",
 	 'LIBS'         => $libsarg ? [$libsarg] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
-         'NO_MYMETA'    => 1,
  );
 }
 
@@ -476,7 +475,6 @@ sub pdlpp_stdargs {
 	 'INC'          => &PDL_INST_INCLUDE()." $inc",
 	 'LIBS'         => $libs ? ["$libs "] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
-         'NO_MYMETA'    => 1,
  );
 }
 

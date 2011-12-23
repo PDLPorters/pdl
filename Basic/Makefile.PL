@@ -33,7 +33,6 @@ WriteMakefile(
 	      'MAN3PODS' => \%man3pods,
      'DIR'      => ['Pod','Gen','SourceFilter','Core','Bad','Ops','Ufunc',
 		    'Primitive','Slices','Test','Math','MatrixOps','Complex'],
-              'NO_MYMETA' => 1,
 );
 
 # modify clean method not to delete files named 'core' 

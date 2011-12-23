@@ -8,7 +8,6 @@ WriteMakefile(
 	      PM  => { 'NDF.pm' => '$(INST_LIBDIR)/NDF.pm' },
 #     'VERSION_FROM' => 'NDF.pm',
 	      clean => { FILES => 'NDF.pm' },
-    'NO_MYMETA' => 1,
 );
 
 # try and get NDF.pm to be re-created if Basic/Core/badsupport.p is changed

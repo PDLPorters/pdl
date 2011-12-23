@@ -14,5 +14,4 @@ WriteMakefile(
 	 map {$_ => '$(INST_LIBDIR)/'.$_}
 	 	<*.pm>
 	},
-    'NO_MYMETA' => 1,
 );

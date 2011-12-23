@@ -184,7 +184,6 @@ WriteMakefile(     NAME => 'PDL::IO::HDF',
         SUFFIX => 'gz', 
     },
     DIR => [ 'SD', 'VS' ],
-    'NO_MYMETA' => 1,
 );
 
 sub MY::postamble { pdlpp_postamble_int($package); }

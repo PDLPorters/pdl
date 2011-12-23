@@ -25,8 +25,7 @@ WriteMakefile(
                     'Cartography_demo.pm' => '$(INST_LIBDIR)/Demos/Cartography_demo.pm',
                     '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
 		   },
-     'clean' => { 'FILES' => 'BAD_demo.pm BAD2_demo.pm' },
-    'NO_MYMETA' => 1,
+     'clean' => { 'FILES' => 'BAD_demo.pm BAD2_demo.pm' }
 );
 
 # For the lazy people

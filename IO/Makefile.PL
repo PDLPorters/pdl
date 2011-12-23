@@ -24,5 +24,4 @@ WriteMakefile(
                     'IO.pod' => '$(INST_LIB)/PDL/IO.pod',
                    },
      'DIR'      => [ @dirs ],
-    'NO_MYMETA' => 1,
 );
