@@ -156,7 +156,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    Add support for Known_problems to tests
    * Use skip for tests with segfault fails
    * All bug reports should have a test in PDL/t
-   * Convert t/dumper.t to use TODO block
 
 
    Clean up and triage for tickets prior to release.
@@ -203,8 +202,8 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Convert PDL::Minuit to use C with f2c of source 
    
 
-   Fix IO/Browser build to properly check for the curses
-   library and build if available.
+   P Fix IO/Browser build to properly check for the curses
+       library and build if available.
 
 
 +-------------------------------------------------------+
@@ -215,7 +214,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Review current documentation (underway)
-   * Verify correctness and consistency with PDL-2.4.9+
+   * Verify correctness and consistency with PDL-2.4.10
    * Update documentation where needed.
    * Add web searchable versions of the docs.
    * Maybe a wiki format could be used to improve docs 
@@ -265,7 +264,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Document how to set up a local sandbox for PDL build
-   * no more PREFIX and LIB for ExtUtils::MakeMaker
    * INSTALL_BASE for EU::MM > 6.31 and --install_base for M:B 
    * Build with CPAN shell 
    * Check out brewperl
@@ -323,13 +321,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Unix OSes: Various package managers
    
 
-T  Clean up build output from make process to reduce cruft
-   * Collect build output into build log file by default
-   * Add -s to $MAKE if gnu make is running
-   * Add an output filter to the text collected from the
-       CPAN build process.  (e.g. Text::Filter et al)
-
-
    
 +-------------------------------------------------------+
 |                    INSTALLATION                       |
@@ -376,6 +367,7 @@ T  Clean up build output from make process to reduce cruft
    * Fix Ctrl-C handling for win32 systems
    * Update documentation
    * See Perldl2/TODO for the pdl2-specific list.
+   * Strip PDL shell prompts from cut-n-pasted lines
 
 
    Add support for 64bit data:
