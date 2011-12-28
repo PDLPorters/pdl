@@ -4,6 +4,10 @@ General Notes:
 
  * A.k.a. PDL-2.4.10 release candidate 2
 
+ * This release is to fix an issue with IO::Browser build
+   defaults that is causing a bunch of UNKNOWN reports
+   from CPAN Testers.
+
  * All focus now is on testing, documentation, web page
    updates, and writing the PDL Book...
  
@@ -19,7 +23,9 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fix IO::Browser build default
+
+ * Clean up of perldl.conf.
 
 
 
