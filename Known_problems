@@ -84,7 +84,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_992 release:
+  PDL-2.4.9_993 release:
 
   3465663    perldl.conf OPTIMIZE option doesn't work
   3462924    bogus "dimension mismatch" for Nx0 index piddles
