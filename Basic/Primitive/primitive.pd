@@ -2634,10 +2634,10 @@ Converts a one dimensional index piddle to a set of ND coordinates
  @coords=one2nd($a, $indices)
 
 returns an array of piddles containing the ND indexes corresponding to
-the one dimensional list indices. The indices are assumed to correspond
-to array C<$a> clumped using C<clump(-1)>. This routine is used in 
-L<whichND|/whichND>,
-but is useful on its own occasionally.
+the one dimensional list indices. The indices are assumed to
+correspond to array C<$a> clumped using C<clump(-1)>. This routine is
+used in the old vector form of L<whichND|/whichND>, but is useful on
+its own occasionally.
 
 =for example
 
@@ -3006,13 +3006,10 @@ Return the coordinates of non-zero values in a mask.
 
 =for usage
 
-WhichND returns the N-dimensional coordinates of each nonzero value in a
-mask PDL with any number of dimensions. 
-
-For historical reasons the return value is different in list and scalar
-context.  In scalar context, you get back a PDL containing coordinates suitable
-for use in L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>;
-in list context, the coordinates are broken out into separate PDLs.
+WhichND returns the N-dimensional coordinates of each nonzero value in
+a mask PDL with any number of dimensions.  The returned values arrive
+as an array-of-vectors suitable for use in
+L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>.
 
  $coords = whichND($mask);
 
@@ -3022,13 +3019,26 @@ full coordinate listing of each point; the 1st dimension lists all the points.
 For example, if $mask has rank 4 and 100 matching elements, then $coords has
 dimension 4x100.
 
- @coords=whichND($mask);
+If no such elements exist, then whichND returns a structured empty PDL:
+an Nx0 PDL that contains no values (but matches, threading-wise, with 
+the vectors that would be produced if such elements existed).
 
-returns a perl list of piddles containing the coordinates of the
-elements that are non-zero in C<$mask>.  Each element corresponds to a
-particular index dimension.  For example, if $mask has rank 4 and 100
-matching elements, then @coords has 4 elements, each of which is a pdl
-of size 100.
+DEPRECATED BEHAVIOR IN LIST CONTEXT:
+
+whichND once delivered different values in list context than in scalar
+context, for historical reasons.  In list context, it returned the 
+coordinates transposed, as a collection of 1-PDLs (one per dimension) 
+in a list.  This usage is deprecated in PDL 2.4.10, and will cause a 
+warning to be issued every time it is encountered.  To avoid the
+warning, you can set the global variable "$PDL::whichND" to 's' to 
+get scalar behavior in all contexts, or to 'l' to get list behavior in
+list context.  
+
+In later versions of PDL, the deprecated behavior will disappear.  Deprecated
+list context whichND expressions can be replaced with:
+
+    @list = $a->whichND->mv(0,-1)->dog;
+    
 
 SEE ALSO:
 
@@ -3050,28 +3060,35 @@ with nonzero values in a mask PDL.
 *whichND = \&PDL::whichND;
 sub PDL::whichND {
   my $mask = shift;
+  $mask = PDL::pdl('PDL',$mask) unless(UNIVERSAL::isa($mask,'PDL'));
 
   # List context: generate a perl list by dimension
   if(wantarray) {
-  	  unless(1 && $PDL::whichND_no_warning) { # masked out for the moment
-	    printf STDERR "WARNING - deprecated list context for whichND (may switch to scalar case soon)\n";
-	  }
+      if(!defined($PDL::whichND)) {
+	  printf STDERR "whichND: WARNING - list context deprecated. Set $PDL::whichND. Details in pod.";
+      } elsif($PDL::whichND =~ m/l/i) {
+	  # old list context enabled by setting $PDL::whichND to 'l'
 	  my $ind=($mask->clump(-1))->which;
 	  return $mask->one2nd($ind);
-  } 
+      }
+      # if $PDL::whichND does not contain 'l' or 'L', fall through to scalar context
+  }
 
   # Scalar context: generate an N-D index piddle
 
   unless($mask->nelem) {
-    return PDL::which(PDL::pdl('PDL',0));
+      return PDL::new_from_specification('PDL',$mask->ndims,0);
   }
   
   unless($mask->getndims) {
-    return $mask ? pdl(0) : PDL::which(PDL::pdl('PDL',0));
+    return $mask ? pdl(0) : PDL::new_from_specification('PDL',0);
   }
   
   $ind = $mask->flat->which->dummy(0,$mask->getndims)->long->make_physical;
-  return PDL::which(PDL::pdl('PDL',0)) if($ind->nelem==0); # explicitly return Empty for empty case
+  if($ind->nelem==0) {
+      # In the empty case, explicitly return the correct type of structured empty
+      return PDL::new_from_specification('PDL',$mask->ndims, 0);
+  }
 
   my $mult = ones($mask->getndims)->long;
   my @mdims = $mask->dims;

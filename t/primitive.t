@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test::More;
 
-plan tests => 40;
+plan tests => 46;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -82,16 +82,33 @@ ok(tapprox($r1, $r2), "grandom and srand");                    #11
 my $r = xvals(10,10)+10*yvals(10,10);
 $a = whichND( $r % 12 == 0 );
 
+# Nontrivial case gives correct coordinates
 ok(eval 'sum($a != pdl([0,0],[2,1],[4,2],[6,3],[8,4],[0,6],[2,7],[4,8],[6,9]))==0', "whichND");  #12
 
+# Empty case gives matching Empty
+$a = whichND( $r*0 );
+ok($a->nelem==0, "whichND( 0*\$r ) gives an Empty PDL");           #13
+ok($a->ndims==2, "whichND( 0*\$r ) has 2 dims");                   #14
+ok(($a->dim(0)==2 and $a->dim(1)==0), "whichND( 0*\$r ) is 2x0");  #15
+
+# Scalar PDLs are treated as 1-PDLs
 $a = whichND(pdl(5));
-ok($a->nelem==1 && $a==0, "whichND");                          #13
+ok($a->nelem==1 && $a==0, "whichND");                             #16
 
+# Scalar empty case returns a 1-D vector of size 0
 $a = whichND(pdl(0));
-ok($a->nelem==0, "whichND of 0 mask");                         #14
+ok($a->nelem==0,  "whichND of 0 scalar is empty");                 #17
+ok($a->ndims==1,  "whichND of 0 scalar has 1 dim");                #18
+ok($a->dim(0)==0, "whichND of 0 scalar: return 0 dim size is 0");  #19
 
-$a = whichND( which(pdl(0)) );
-ok($a->nelem==0, "whichND of Empty mask");                     #15
+# Empty case returns Empty
+$b = whichND( which(pdl(0)) );                              
+ok($b->nelem==0, "whichND of Empty mask");                         #20
+
+# Nontrivial empty mask case returns matching Empty -- whichND(Empty[2x0x2]) should return Empty[3x0]
+$b = whichND(zeroes(2,0,2));
+ok(($b->ndims==2 and $b->dim(0)==3 and $b->dim(1)==0), "whichND(Empty[2x0x2]) returns Empty[3x0]"); # 21
+
 
 ##############################
 # Simple test case for interpND
