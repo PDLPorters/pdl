@@ -61,7 +61,7 @@ print OUT <<'!NO!SUBS!';
 
 =head1 NAME
 
-PDL::Core - fundamental PDL functionality
+PDL::Core - fundamental PDL functionality and vectorization/threading
 
 =head1 DESCRIPTION
 
@@ -72,6 +72,142 @@ type conversion, threading etc.
 
  use PDL::Core;             # Normal routines
  use PDL::Core ':Internal'; # Hairy routines
+
+=head1 VECTORIZATION/THREADING: METHOD AND NOMENCLATURE
+
+PDL provides vectorized operations via a built-in engine.
+Vectorization is called "threading" for historical reasons.
+The threading engine implements simple rules for each operation.
+
+Each PDL object has a "shape" that is a generalized N-dimensional
+rectangle defined by a "dim list" of sizes in an arbitrary 
+set of dimensions.  A PDL with shape 2x3 has 6 elements and is 
+said to be two-dimensional, or may be referred to as a 2x3-PDL. 
+The dimensions are indexed numerically starting at 0, so a 
+2x3-PDL has a dimension 0 (or "dim 0") with size 2 and a 1 dimension
+(or "dim 1") with size 3. 
+
+PDL generalizes *all* mathematical operations with the notion of
+"active dims": each operator has zero or more active dims that are
+used in carrying out the operation.  Simple scalar operations like
+scalar multiplication ('*') have 0 active dims.  More complicated
+operators can have more active dims.  For example, matrix
+multiplication ('x') has 2 active dims.  Additional dims are
+automatically vectorized across -- e.g. multiplying a 2x5-PDL with a
+2x5-PDL requires 10 simple multiplication operations, and yields a
+2x5-PDL result.
+
+=head2 Threading rules
+
+In any PDL expression, the active dims appropriate for each operator
+are used starting at the 0 dim and working forward through the dim
+list of each object.  All additional dims after the active dims are
+"thread dims".  The thread dims do not have to agree exactly: they are
+coerced to agree according to simple rules:
+
+=over 3 
+
+=item * Null PDLs match any dim list (see below).
+
+=item * Dims with sizes other than 1 must all agree in size.
+
+=item * Dims of size 1 are expanded as necessary.
+
+=item * Missing dims are expanded appropriately.
+
+=back
+
+The "size 1" rule implements "generalized scalar" operation, by
+analogy to scalar multiplication.  The "missing dims" rule
+acknowledges the ambiguity between a missing dim and a dim of size 1.
+
+=head2 Null PDLs
+
+PDLs on the left-hand side of assignment can have the special value
+"Null".  A null PDL has no dim list and no set size; its shape is
+determined by the computed shape of the expression being assigned to
+it.   Null PDLs contain no values and can only be assigned to.  When
+assigned to (e.g. via the C<.=> operator), they cease to be null PDLs.
+
+To create a null PDL, use C<PDL->null()>.
+
+=head2 Empty PDLs
+
+PDLs can represent the empty set using "structured Empty" variables.
+An empty PDL is not a null PDL.
+
+Any dim of a PDL can be set explicitly to size 0.  If so, the PDL
+contains zero values (because the total number of values is the
+product of all the sizes in the PDL's shape or dimlist).
+
+Scalar PDLs are zero-dimensional and have no entries in the dim list,
+so they cannot be empty.  1-D and higher PDLs can be empty.  Empty
+PDLs are useful for set operations, and are most commonly encountered
+in the output from selection operators such as L<which|PDL::Primitive>
+and L<whichND|PDL::Primitive>.  Not all empty PDLs have the same
+threading properties -- e.g. a 2x0-PDL represents a collection of
+2-vectors that happens to contain no elements, while a simple 0-PDL
+represents a collection of scalar values (that also happens to contain
+no elements).
+
+Note that 0 dims are not adjustable via the threading rules -- a dim
+with size 0 can only match a corresponding dim of size 0 or 1.
+
+=head2 Thread rules and assignments
+
+Versions of PDL through 2.4.10 have some irregularity with threading and
+assignments.  Currently the threading engine performs a full expansion of
+both sides of the computed assignment operator C<.=> (which assigns values
+to a pre-existing PDL).  This leads to counter-intuitive behavior in
+some cases:
+
+=over 3
+
+=item * Generalized scalars and computed assignment
+
+If the PDL on the left-hand side of C<.=> has a dim of size 1, it can be 
+treated as a generalized scalar, as in:
+
+    $a = sequence(2,3);
+    $b = zeroes(1,3);
+    $b .= $a;
+
+In this case, C<$b> is automatically treated as a 2x3-PDL during the
+threading operation, but half of the values from C<$a> silently disappear.
+The output is, as Kernighan and Ritchie would say, "undefined".
+
+Further, if the value on the right of C<.=> is empty, then C<.=> becomes
+a silent no-op:
+
+    $a = zeroes(0);
+    $b = zeroes(1);
+    $b .= $a+1;
+    print $b;
+
+will print C<[0]>.  In this case, "$a+1" is empty, and "$b" is a generalized
+scalar that is adjusted to be empty, so the assignment is carried out for 
+zero elements (a no-op).  
+
+Both of these behaviors are considered harmful and should not be relied upon:
+they may be patched away in a future version of PDL.
+
+
+=item * Empty PDLs and generalized scalars
+
+Generalized scalars (PDLs with a dim of size 1) can match any size in the
+corresponding dim, including 0.  Thus,
+
+    $a = ones(2,0);
+    $b = sequence(2,1);
+    $c = $a * $b;
+    print $c;
+ 
+prints C<Empty[2,0]>.  
+
+This behavior is counterintuitive but desirable, and will be preserved
+in future versions of PDL.
+
+=back
 
 =head1 VARIABLES
 
