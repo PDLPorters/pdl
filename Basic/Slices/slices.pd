@@ -304,13 +304,19 @@ sub PDL::range {
   my($source,$ind,$sz,$bound) = @_;
   my $index = PDL->pdl($ind);
 
-  # Handle null PDL case
-  if($index->nelem == 0) {
-      return $index->copy;
+  my $size = defined($sz) ? PDL->pdl($sz) : undef;
+
+
+  # Handle empty PDL case: return a properly constructed Empty.
+  if($index->isempty) {
+      my @sdims= $source->dims;
+      splice(@sdims, 0, $index->dim(0) + ($index->dim(0)==0)); # added term is to treat Empty[0] like a single empty coordinate
+      unshift(@sdims, $size->list) if(defined($size));
+      return PDL->new_from_specification(0 x ($index->ndims-1), @sdims);
   }
 
+
   $index = $index->dummy(0,1) unless $index->ndims;
-  my $size = defined($sz) ? PDL->pdl($sz) : undef;
 
 	
   # Pack boundary string if necessary
