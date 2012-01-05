@@ -4,7 +4,6 @@
 #
 
 
-
 use strict;
 
 use Config;
@@ -55,7 +54,6 @@ print OUT <<'!HEADER!'
 /*** Turn on definitions to print lots of fencepost information in the constructor ***/
 //#define DEBUG_SETAV_TYPE  1
 //#define DEBUG_KLUDGE_COPY 1
-
 
 /***************
  * Paranoid check is commented out because SvPOK breaks some kinds of perl scalars.
@@ -639,17 +637,28 @@ GEN_PDL_BARF_OR_WARN_LEGACY(warn, 1)
  *  omitted values will be set to zero in the resulting piddle,
  *  i.e. we can make piddles from 'sparse' array refs.
  *
- *  As a special case, empty PDLs are treated as empty but not missing --
- *  i.e. they are treated as scalars for the purposes of dimensioning.
+ *  Empty PDLs are treated like any other dimension -- i.e. their 
+ *  0-length dimensions are thrown into the mix just like nonzero 
+ *  dimensions would be.
  *
+ *  The possible presence of empty PDLs forces us to pad out dimensions
+ *  to unity explicitly in cases like
+ *         [ Empty[2x0x2], 5 ]
+ *  where simple parsing would yield a dimlist of 
+ *         [ 2,0,2,2 ]
+ *  which is still Empty.
  */
 
 int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 {
   int i, len, oldlen, newdepth, depth = 0;
-  int hasref = 0, hasnonref=0;
+  int n_scalars = 0;
   SV *el, **elp;
   pdl *pdl;           /* Stores PDL argument */
+
+  if(dims==NULL) {
+    pdl_barf("av_ndcheck - got a null dim array! This is a bug in PDL.");
+  }
 
   /* Start with a clean slate */
    if(level==0) {
@@ -658,98 +667,171 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 
   len = av_len(av);                         /* Loop over elements of the AV */
   for (i=0; i<= len; i++) {
-
+    
     newdepth = 0;                           /* Each element - find depth */
     elp = av_fetch(av,i,0);
+    
     el = elp ? *elp : 0;                    /* Get the ith element */
-
-    if (el && SvROK(el)) {                        /* It is a reference */
+    if (el && SvROK(el)) {                  /* It is a reference */
       if (SvTYPE(SvRV(el)) == SVt_PVAV) {   /* It is an array reference */
-        hasref = 1;
-
-         /* Recurse to find depth inside the array reference */
-         newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
-
+	
+	/* Recurse to find depth inside the array reference */
+	newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
+	
       } else if ( pdl = SvPDLV(el) ) {
 	/* It is a PDL - walk down its dimension list, exactly as if it
-         * were a bunch of nested array refs.  We pull the ndims and dims
+	 * were a bunch of nested array refs.  We pull the ndims and dims
 	 * fields out to local variables so that nulls can be treated specially.
-         */
+	 */
 	int j;
 	short pndims;
 	PDL_Long *pdims;
 	PDL_Long pnvals;
-
+	
 #ifdef DEBUG_SETAV_TYPE
 	printf("av_ndcheck - found a PDL....\n");
 #endif
-
+	
 	pdl_make_physdims(pdl);
-
-        if(pdl->nvals==0) {
-	  pndims = 0;
-	  pnvals = 1;
-        } else {
-	  pndims = pdl->ndims;
-	  pdims = pdl->dims;
-	  pnvals = pdl->nvals;
-	}
-
+	
+	pndims = pdl->ndims;
+	pdims = pdl->dims;
+	pnvals = pdl->nvals;
+	
 #ifdef DEBUG_SETAV_TYPE
 	{
-	  printf("nvals is %d; ndims is %d; dims are (",pdl->nvals, pdl->ndims);
+	  printf("av_ndcheck: nvals is %d; ndims is %d; dims are (",pdl->nvals, pdl->ndims);
 	  for(j=0;j<pdl->ndims; j++) {
 	    printf("%s%d",j?", ":"",pdl->dims[j]);
 	  }
-	  printf(")\n");
+	  printf("); level is %d\n",level);
 	}
 #endif
-
+	
 	for(j=0;j<pndims;j++) {
 	  int jl = pndims-j+level;
+	  
+	  int siz = pdims[j];
+	  
 	  if(  av_len(dims) >= jl &&
 	       av_fetch(dims,jl,0) != NULL &&
 	       SvIOK(*(av_fetch(dims,jl,0)))) {
-
+	    
+	    /* We have already found something that specifies this dimension -- so */ 
+	    /* we keep the size if possible, or enlarge if necessary.              */
 	    oldlen=(int)SvIV(*(av_fetch(dims,jl,0)));
-
-	    if(pdims[j] > oldlen) {
+	    if(siz > oldlen) {
 	      sv_setiv(*(av_fetch(dims,jl,0)),(IV)(pdims[j]));
 	    }
+	    
 	  } else {
-	    av_store(dims, jl, newSViv((IV)pdims[j]));
+	    /* Breaking new dimensional ground here -- if this is the first element */
+	    /* in the arg list, then we can keep zero elements -- but if it is not  */
+	    /* the first element, we have to pad zero dims to unity (because the    */
+	    /* prior object had implicit size of 1 in all implicit dimensions)      */
+	    av_store(dims, jl, newSViv((IV)(siz?siz:(i?1:0))));
 	  }
 	}
+	
+	/* We have specified all the dims in this PDL.  Now pad out the implicit */
+	/* dims of size unity, to wipe out any dims of size zero we have already */
+	/* marked. */
+	
+	for(j=pndims+1; j <= av_len(dims); j++) {
+	  SV **svp = av_fetch(dims,j,0);
 
+	  if(!svp){
+	    av_store(dims, j, newSViv((IV)1));
+	  } else if( (int)SvIV(*svp) == 0 ) {
+	    sv_setiv(*svp, (IV)1);
+	  }
+	}
+	
 	newdepth= pndims;
-
+	
       } else {
 	croak("av_ndcheck: non-array, non-PDL ref in structure\n\t(this is usually a problem with a pdl() call)");
       }
+
+    } else { 
+      /* got a scalar (not a ref) */
+      n_scalars++;
+
     }
-    if (newdepth > depth)
-    depth = newdepth;
+
+      if (newdepth > depth)
+	depth = newdepth;
   }
+  
+  len++; // convert from funky av_len return value to real count
+  
+#ifdef DEBUG_SETAV_TYPE
+  {
+      int i,dim;
+      if(dims != NULL) {
+	  dim = av_len(dims) + 1;
+      } else {
+	  dim =0 ;
+      }
 
-  len++; /* Increment from last-element address to number of elements */
+      printf("av_ndcheck:  depth=%d, length is %d; derived dim list is [",depth, dim);
+      fflush(stdout);
+      for( i=0; i<dim; i++ ) {
+	  SV **svp = av_fetch(dims, i, 0);
+	  int k;
 
-  if (dims != NULL) {
+	  if(svp != NULL) {
+	      k = SvIV (*svp);
+	  } else {
+	      k = -1;
+	  }
+
+	  printf(" %d",k);
+      }
+      printf(" ]\n");
+  }
+#endif
+  
     if (av_len(dims) >= level && av_fetch(dims, level, 0) != NULL
-	&& SvIOK(*(av_fetch(dims, level, 0)))) {
-      oldlen = (int) SvIV(*(av_fetch(dims, level, 0)));
-
-      if (len > oldlen)
-	sv_setiv(*(av_fetch(dims, level, 0)), (IV) len);
+      && SvIOK(*(av_fetch(dims, level, 0)))) {
+    oldlen = (int) SvIV(*(av_fetch(dims, level, 0)));
+    
+    if (len > oldlen)
+      sv_setiv(*(av_fetch(dims, level, 0)), (IV) len);
     }
     else
       av_store(dims,level,newSViv((IV) len));
+  
+  /* We found at least one element -- so pad dims to unity at levels earlier than this one */
+#ifdef DEBUG_SETAV_TYPE
+    printf("n_scalars=%d\n",n_scalars);
+#endif
+
+  if(n_scalars) {
+    for(i=0;i<level;i++) {
+      SV **svp = av_fetch(dims, i, 0);
+      if(!svp) {
+	av_store(dims, i, newSViv((IV)1));
+      } else if( (int)SvIV(*svp) == 0) {
+	sv_setiv(*svp, (IV)1);
+      }
+    }
+    
+    for(i=level+1; i <= av_len(dims); i++) {
+      SV **svp = av_fetch(dims, i, 0);
+      if(!svp) {
+	av_store(dims, i, newSViv((IV)1));
+      } else if( (int)SvIV(*svp) == 0) {
+	sv_setiv(*svp, (IV)1);
+      }
+    }
   }
 
 #ifdef DEBUG_SETAV_TYPE
   {
       int i,dim;
       if(dims != NULL) {
-	  dim = av_len(dims);
+	  dim = av_len(dims) + 1;
       } else {
 	  dim =0 ;
       }
@@ -785,9 +867,6 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
   pdims = (PDL_Long *) pdl_malloc( (ndims) * sizeof(*pdims) );
   for (i=0; i<ndims; i++) {
      pdims[i] = SvIV(*(av_fetch(dims, ndims-1-i, 0))); /* reverse order */
-     if(pdims[i]<=0 && ndims>1) {
-       fprintf(stderr,"WARNING - constructor found a 0 dim in pdl_from_array.  This is likely a bug.  Please report it.\n");
-     }
   }
 
 #ifdef DEBUG_SETAV_TYPE
@@ -936,18 +1015,11 @@ long pdl_kludge_copy_$type(long poff,
       pdlsiz = 1;
     } else {
       pdlsiz = pdl->dims[pdldim];
-      if(pdlsiz==0 && (pptr != 0)) {  /* size of zero but a non-null data pointer -- probably an error. */
-	int ii;
-	fprintf(stderr,"pdl_kludge_copy level=%d; ndims=%d; dims=(",level,pdl->ndims);
-	for(ii=0;ii<pdl->ndims;ii++)
-	  fprintf(stderr,"%s%d", (ii?", ":""), pdl->dims[ii]);
-        fprintf(stderr,") - dim %d has size 0.  This is probably an error.  Continuing anyway (treating as an Empty).\\n",pdldim);
-      }
     }
 
 
 #ifdef DEBUG_KLUDGE_COPY
-    printf("     pdldim_expr=%d, pdldim=%d, pdlsiz=%d, pdims[0]=%d\\n",pdl->ndims-1-plevel,pdldim, pdlsiz,pdims[0]);
+    fprintf(stderr,"     pdldim_expr=%d, pdldim=%d, pdlsiz=%d, pdims[0]=%d\\n",pdl->ndims-1-plevel,pdldim, pdlsiz,pdims[0]);
 #endif
 
     switch(pdl->datatype) {
@@ -965,26 +1037,25 @@ long pdl_kludge_copy_$type(long poff,
 
       case ${switch_type}:
 #ifdef DEBUG_KLUDGE_COPY
-      if(pptr) {
-        printf("*** kludge Assigning to %d (num - %g)\\n",pdata, (double)( *((${ctype} *)pptr) ));
+      if(pptr && pdata) {
+        fprintf(stderr,"*** kludge Assigning to %d (num - %g); pdlsiz=%d\\n",pdata, (double)( *((${ctype} *)pptr)),pdlsiz);
       } else {
-	printf("*** kludge Skipping assignment (null pointer in source)\\n");
+	fprintf(stderr,"*** kludge Skipping assignment (null pointer in source)\\n");
       }
 #endif
 	   /* copy data (unless the source pointer is null) */
       i=0;
-      if(pptr && pdlsiz) {
+      if(pptr && pdata && pdlsiz) {
 	for(; i<pdlsiz; i++)
 	  pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];
       } else {
-	/* special case for NULL input piddles
-         * set the current value to the padding value.
-         */
-	pdata[i] = undefval;
+	if(pdata) 
+	  pdata[i] = undefval;
       }
 	/* pad out, in the innermost dimension */
 #ifdef DEBUG_KLUDGE_COPY
-      printf("padding; ndims-1-level=%d; ndims=%d, level=%d; plevel=%d; pdl->ndims=%d; poff=%d; oob=%d\\n", ndims-1-level,ndims, level, plevel, pdl->ndims, poff, oob);
+      fprintf(stderr,"padding; "); fflush(stderr);
+      fprintf(stderr," ndims-1-level=%d; ndims=%d, level=%d; plevel=%d; pdl->ndims=%d; poff=%d; oob=%d\\n", ndims-1-level,ndims, level, plevel, pdl->ndims, poff, oob);
 #endif
       if( !oob ) {
 	for(;  i< pdims[0]-poff; i++) {
@@ -992,10 +1063,10 @@ long pdl_kludge_copy_$type(long poff,
 	  pdata[i] = undefval;
 	}
 #ifdef DEBUG_KLUDGE_COPY
-      printf("      filled in row: ");
+      fprintf(stderr,"      filled in row: ");
       for(i=0;i<pdims[0] - poff; i++)
-	printf("%g ",pdata[i]);
-      printf("\\n");
+	fprintf(stderr,"%g ",pdata[i]);
+      fprintf(stderr,"\\n");
 #endif
       }
 
@@ -1038,17 +1109,17 @@ long pdl_kludge_copy_$type(long poff,
 	if(ii) strcat(buf,",");
 	strcat(buf,sb);
       }
-      printf("pdl_kludge_copy: level=%d, i=%d, pdata=%d, pdims=(%s), ndims=%d, stride=%d, plevel=%d, pptr=%d\\n",
+      printf("pdl_kludge_copy: pushing... level=%d, i=%d, pdata=%d, pdims=(%s), ndims=%d, stride=%d, plevel=%d, pptr=%d\\n",
 	     level, i, pdata, buf, ndims, stride, plevel, pptr);
 
+      printf("  (pdims[ndims-2-level] is %d)\\n",pdims[ndims-2-level]);
     }
 #endif
-
     undef_count += pdl_kludge_copy_$type(0, pdata + stride * i,
 			  pdims,
 			  ndims,
 			  level+1,
-			  stride / pdims[ndims-2-level],
+			  stride / ((pdims[ndims-2-level]) ? (pdims[ndims-2-level]) : 1),
 			  pdl,
 			  plevel+1,
 			  ((PDL_Byte *) pptr) + pdl->dimincs[pdl->ndims-1-plevel] * i * pdl_howbig(pdl->datatype),
@@ -1098,7 +1169,7 @@ long pdl_kludge_copy_$type(long poff,
 
 /*
  * pdl_setav_type loads a new PDL with values from a Perl AV, another PDL, or
- * a mix of both.  Heterogeneous sizes are handled by padding the new PDL's
+ * a mix of both.  Heterogeneous sizes are handled by padding the new PDLs
  * values out to size with the undefval.  It is called by pdl_setav only.
  *
  *
@@ -1109,7 +1180,7 @@ long pdl_kludge_copy_$type(long poff,
  *    determined by pdl_av_ndcheck (it comes in as the ndims parameter), so other
  *    depths are descended to and extra elements are filled in with zeroes.
  *    In the Best of All Possible Worlds this would be badval compliant and
- *    the extra elements would get filled in with BAD.  Soon, soon.
+ *    the extra elements would get filled in with BAD.  
  * --CED, 17-Jun-2004
  *
  * - Check for undef values and set the PDL element to PDL::undefval for those
@@ -1200,18 +1271,7 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	printf("source pdl has %d vals...\\n",pdl->nvals);
 #endif
 
-#if 0
-           // if(pdl->nvals==0) { /* Ignore null PDLs */
-           //
-           //#ifdef DEBUG_SETAV_TYPE
-           //	  printf("Found a null PDL - ignoring\\n");
-           //#endif
-           //
-           //	  pdata -= stride;
-           //
-           //	} else
-#endif
-	  {                     /* PDLs must be recursively copied/padded */
+	{ // convenience block.. recursively copy/pad each PDL.
 
 #ifdef DEBUG_SETAV_TYPE
 	  {
@@ -1263,7 +1323,7 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	PDL_$type *target = pdata + stride;
 
 #ifdef DEBUG_SETAV_TYPE
-	printf("\\tPadding: level=%d; ndims-1=%d.  pdata is %d, stride is %d, target is %d\\n",level,ndims-1,pdata,stride);
+	printf("\\tPadding: level=%d; ndims-1=%d.  pdata is %d, stride is %d, target is %d\\n",level,ndims-1,pdata,stride, target);
 #endif
 	for( cursor++;  cursor < target; cursor++ ) {
 	  *cursor = (PDL_$type)undefval;

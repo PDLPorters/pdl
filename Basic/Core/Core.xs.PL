@@ -82,7 +82,7 @@ print OUT <<'!NO!SUBS!';
 Core PDL; /* Struct holding pointers to shared C routines */
 
 #ifdef FOO
-Core *pdl__Core_get_Core() /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
+Core *pdl__Core_get_Core() /* INTERNAL TO CORE! DONT CALL FROM OUTSIDE */
 {
 	return PDL;
 }
@@ -1218,14 +1218,21 @@ pdl_avref(array_ref, class, type)
      pdl* p;
   CODE:
      /* make a piddle from a Perl array ref */
+
+
      if (!SvROK(array_ref))
        croak("pdl_avref: not a reference");
+
+
      if (SvTYPE(SvRV(array_ref)) != SVt_PVAV)
        croak("pdl_avref: not an array reference");
+
+     // Expand the array ref to a list, and allocate a Perl list to hold the dimlist
      av = (AV *) SvRV(array_ref);
      dims = (AV *) sv_2mortal( (SV *) newAV());
 
      av_store(dims,0,newSViv((IV) av_len(av)+1));
+
      /* even if we contain nothing depth is one */
      depth = 1 + av_ndcheck(av,dims,0,&datalevel);
 

@@ -2312,7 +2312,7 @@ sub PDL::new_from_specification{
               if $_->nelem > 10;
          for my $dim ($_->list) {$nelems *= $dim; push @dims, $dim}
        } else {
-         barf "Dimensions must be positive" if $_<=0;
+         barf "Dimensions must be non-negative" if $_<0;  
          $nelems *= $_; push @dims, $_
        }
     }

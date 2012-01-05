@@ -4,7 +4,7 @@
 # Separate from core.t because the problem crashes perl
 # and I'd like to keep the granularity of the core.t tests
 #
-use Test::More tests => 73;
+use Test::More tests => 80;
 use PDL::LiteF;
 use PDL::Config;
 
@@ -16,8 +16,6 @@ my $pdl_vec2 = pdl([9,10]);
 my $pdl_m = pdl([5,6],[7,8]);
 my $pdl_row = pdl([[10,11]]);
 my $pdl_col = pdl([[12],[13]]);
-
-
 
 
 ##############################
@@ -156,22 +154,33 @@ $p = pdl($pdl_e);
 is $p->nelem, 0, "piddlifying an empty piddle yields 0 elements";
 
 $p = pdl($pdl_e, $pdl_e);
-is $p->ndims, 1, "piddlifying two empty piddles yields a linear array";
-is $p->dim(0),2, "piddlifying two empty piddles yields a 2-array";
-is $p->at(0),$PDL::undefval, "padding OK (0)";
-is $p->at(1),$PDL::undefval, "padding OK (1)";
+is $p->ndims, 2, "piddlifying two 0-PDLs makes a 2D-PDL";
+is $p->dim(0),0, "piddlifying two empty piddles makes a 0x2-PDL";
+is $p->dim(1),2, "piddlifying two empty piddles makes a 0x2-PDL";
+eval { $p->at(0,0) };
+ok( $@ =~ m/^Position out of range/ , "can't index an empty PDL with at" );
+
+$p = pdl(pdl([4]),5);
+is $p->ndims, 2,  "catenating a 1-PDL and a scalar yields a 2D PDL";
+is $p->dim(0), 1, "catenating a 1-PDL and a scalar yields a 1x2-PDL";
+is $p->dim(1), 2, "catenating a 1-PDL and a scalar yields a 1x2-PDL";
+is $p->at(0,0), 4, "catenating a 1-PDL and a scalar does the Right Thing";
+is $p->at(0,1), 5, "catenating a 1-PDL and a scalar does the Right Thing, redux";
 
 $p = pdl($pdl_e, 5);
-is $p->ndims, 1,  "empty & scalar";
-is $p->dim(0), 2, "empty & scalar -> 2-pdl";
-is $p->at(0), $PDL::undefval, "padding OK for empty & scalar";
-is $p->at(1), 5, "scalar OK for empty & scalar";
+is $p->ndims, 2,  "catenating an empty and a scalar yields a 2D PDL";
+is $p->dim(0), 1, "catenating an empty and a scalar yields a 1x2-PDL";
+is $p->dim(1), 2, "catenating an empty and a scalar yields a 1x2-PDL";
+is $p->at(0,0), $PDL::undefval, "padding OK for empty & scalar case";
+is $p->at(0,1), 5, "scalar OK for empty & scalar";
+
 
 $p = pdl(5, $pdl_e);
-is $p->ndims, 1,  "scalar & empty";
-is $p->dim(0), 2, "scalar & empty -> 2-pdl";
-is $p->at(0), 5, "scalar OK for scalar & empty";
-is $p->at(1), $PDL::undefval, "padding OK for scalar & empty";
+is $p->ndims, 2,  "catenating a scalar and an empty yields a 2D PDL";
+is $p->dim(0), 1, "catenating a scalar and an empty yields a 1x2-PDL";
+is $p->dim(1), 2, "catenating a scalar and an empty yields a 1x2-PDL";
+is $p->at(0,0), 5, "scalar OK for scalar & empty";
+is $p->at(0,1), $PDL::undefval, "padding OK for scalar & empty";
 
 
 

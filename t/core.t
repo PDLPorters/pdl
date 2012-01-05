@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 39;
+use Test::More tests => 46;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -70,7 +70,6 @@ ok eq_array( [ $b->dims ], [3,4] ), "reshape(-1)";
 ok all( $b == $c ), "squeeze";
 
 $c++; # check dataflow
-print "a: $a\nb: $b\nc: $c\n";
 ok all( $b == $c ), "dataflow"; # should flow back to b
 ok all( $a == 2 ), "dataflow";
 
@@ -124,20 +123,34 @@ TODO: {
 $a = pdl( [[9,9],[8,8]], xvals(3)+1 );
 ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can catenate mixed-dim piddles" or diag("a=$a\n");
 
-TODO: {
-   local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
+# pdl of mixed-dim pdls: a hairier case
+$c = pdl [1], pdl[2,3,4], pdl[5];
+ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can catenate mixed-dim piddles: hairy case" or diag("c=$c\n");
 
-   # pdl of mixed-dim pdls: a hairier case
-   $c = pdl [1], pdl[2,3,4], pdl[5];
-   ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can catenate mixed-dim piddles: hairy case" or diag("c=$c\n");;
+# same thing, with undefval set differently
+do {
+    local($PDL::undefval) = 99;
+    $c = pdl [1], pdl[2,3,4], pdl[5];
+    ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "undefval works for padding" or diag("c=$c\n");;
+} while(0);
 
-   # same thing, with undefval set differently
-   do {
-      local($PDL::undefval) = 99;
-      $c = pdl [1], pdl[2,3,4], pdl[5];
-      ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "undefval works for padding" or diag("c=$c\n");;
-   } while(0);
-}
+# empty pdl cases
+eval {$a = zeroes(2,0,1);};
+ok(!$@,"zeroes accepts empty PDL specification");
+
+eval { $b = pdl($a,sequence(2,0,1)); };
+ok((!$@ and all(pdl($b->dims) == pdl(2,0,1,2))), "catenating two empties gives an empty");
+
+eval { $b = pdl($a,sequence(2,1,1)); };
+ok((!$@ and all(pdl($b->dims) == pdl(2,1,1,2))), "catenating an empty and a nonempty treats the empty as a filler");
+
+eval { $b = pdl($a,5) };
+ok((!$@ and all(pdl($b->dims)==pdl(2,1,1,2))), "catenating an empty and a scalar on the right works");
+ok( all($b==pdl([[[0,0]]],[[[5,0]]])), "catenating an empty and a scalar on the right gives the right answer");
+
+eval { $b = pdl(5,$a) };
+ok((!$@ and all(pdl($b->dims)==pdl(2,1,1,2))), "catenating an empty and a scalar on the left works");
+ok( all($b==pdl([[[5,0]]],[[[0,0]]])), "catenating an empty and a scalar on the left gives the right answer");
     
 # end
 
