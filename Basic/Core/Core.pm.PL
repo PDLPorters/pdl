@@ -2745,7 +2745,7 @@ sub PDL::string {
 		}
 		}
 		return "Null" if $self->isnull;
-		return "Empty" if $self->isempty; # Empty piddle
+		return "Empty[".join("x",$self->dims)."]" if $self->isempty; # Empty piddle
 		local $sep  = $PDL::use_commas ? "," : " ";
 		local $sep2 = $PDL::use_commas ? "," : "";
 		if ($ndims==1) {
