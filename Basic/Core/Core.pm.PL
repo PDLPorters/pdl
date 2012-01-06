@@ -558,7 +558,7 @@ subclassed) PDL objects.
 
 For the above usage:
 If C<$arg> is a PDL, or a derived PDL, then C<$arg-E<gt>null> is returned. 
-If C<$arg> is a scalar (i.e. a zero-dimensional PDL) then C<$PDL-E<gt>null> 
+If C<$arg> is a scalar (i.e. a zero-dimensional PDL) then C<PDL-E<gt>null> 
 is returned.
 
 =for example
@@ -617,7 +617,7 @@ Return piddle dimensions as a perl list
 =for example
 
  pdl> p $shape = shape zeroes 10,3,22
- 10 3 22
+ [10 3 22]
 
 =head2 ndims
 
