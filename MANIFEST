@@ -287,7 +287,6 @@ Graphics/TriD/POGL/OpenGL.pm
 Graphics/TriD/POGL/README
 Graphics/TriD/POGL/ignore.txt
 Graphics/TriD/POGL/t/00-load.t
-Graphics/TriD/README
 Graphics/TriD/Rout/Makefile.PL
 Graphics/TriD/Rout/rout.pd
 Graphics/TriD/TriD.pm
@@ -342,17 +341,14 @@ IO/GD/typemap
 IO/HDF/Changes
 IO/HDF/HDF.pm
 IO/HDF/Makefile.PL
-IO/HDF/README
 IO/HDF/SD/Changes
 IO/HDF/SD/MANIFEST
 IO/HDF/SD/Makefile.PL
-IO/HDF/SD/README
 IO/HDF/SD/SD.pd
 IO/HDF/TODO
 IO/HDF/VS/Changes
 IO/HDF/VS/MANIFEST
 IO/HDF/VS/Makefile.PL
-IO/HDF/VS/README
 IO/HDF/VS/VS.pd
 IO/HDF/buildfunc.pm
 IO/HDF/typemap
@@ -681,7 +677,6 @@ pdl.PL
 pdldoc.PL
 perldl.PL
 perldl.conf
-t/README
 t/aaa_load.t
 t/argtest.t
 t/autoload.t

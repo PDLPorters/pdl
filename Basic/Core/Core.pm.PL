@@ -338,12 +338,13 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *threadids    = \&PDL::threadids; *listindices  = \&PDL::listindices;
 *null	      = \&PDL::null;	  *set  	= \&PDL::set;
 *at		= \&PDL::at;	  *flows	= \&PDL::flows;
-*sclr           = \&PDL::sclr;
+*sclr           = \&PDL::sclr;    *shape        = \&PDL::shape;
 !NO!SUBS!
 
 print OUT "$typealiases\n";
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 *thread_define = \&PDL::thread_define;
 *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
@@ -601,6 +602,21 @@ Return piddle dimensions as a perl list
 =for example
 
  pdl> p @tmp = dims zeroes 10,3,22
+ 10 3 22
+
+=head2 shape
+
+=for ref
+
+Return piddle dimensions as a perl list
+
+=for usage
+
+ $shape = $piddle->shape;  $shape = shape($piddle);
+
+=for example
+
+ pdl> p $shape = shape zeroes 10,3,22
  10 3 22
 
 =head2 ndims
@@ -867,6 +883,13 @@ sub PDL::dims {  # Return dimensions as @list
    my @dims = ();
    for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
    return @dims;
+}
+
+sub PDL::shape {  # Return dimensions as a pdl
+   my $pdl = PDL->topdl (shift);
+   my @dims = ();
+   for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
+   return pdl(@dims);
 }
 
 sub PDL::howbig {
@@ -2038,7 +2061,8 @@ if ( $bvalflag ) {
 } else {
    print OUT "Some internal flags (P=physical,V=Vaffine,C=changed)\n";
 }
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 =item C
 
@@ -2755,7 +2779,8 @@ sub PDL::convert {
 
 print OUT "$convertalts convert shorthands\n";
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 =for usage
 
@@ -2822,7 +2847,8 @@ Convert to $conv datatype - see 'Datatype_conversions'
 print OUT "for (
 $typearray";
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 ) {
 	eval ('sub PDL::'.$_->[0]." { ".
@@ -2937,7 +2963,8 @@ list converts any bad values into the string 'BAD'.
 !NO!SUBS!
 }
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 # No threading, just the ordinary dims.
 sub PDL::list{ # pdl -> @list
@@ -3047,7 +3074,8 @@ at converts any bad values into the string 'BAD'.
 !NO!SUBS!
 }
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 =cut
 
 sub PDL::at {     # Return value at ($x,$y,$z...)
@@ -3157,7 +3185,8 @@ The output piddle is set bad if any input piddles have their bad flag set.
 !NO!SUBS!
 } # if: $bvalflag
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 Similar functions include L<append|PDL::Primitive/append> and
 L<glue|PDL::Primitive/glue>.
@@ -3314,7 +3343,8 @@ The output piddles are set bad if the original piddle has its bad flag set.
 !NO!SUBS!
 } # if: $bvalflag
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 sub PDL::dog {
   my $opt = pop @_ if ref($_[-1]) eq 'HASH';
   my $p = shift;
