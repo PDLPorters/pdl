@@ -281,7 +281,7 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 
 print OUT <<"!WITH!SUBS!";
 
-\@EXPORT_OK = qw( howbig threadids topdl nelem dims null
+\@EXPORT_OK = qw( howbig threadids topdl nelem dims shape null
    $convertfuncs
    convert inplace zeroes zeros ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
@@ -291,7 +291,7 @@ print OUT <<"!WITH!SUBS!";
    );
 
 \%EXPORT_TAGS = (
-   Func=>[qw/nelem dims null
+   Func=>[qw/nelem dims shape null
     $convertfuncs
     convert inplace zeroes zeros ones list listindices
     set at flows thread_define over reshape pdl piddle null dog cat barf type
