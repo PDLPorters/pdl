@@ -202,7 +202,7 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *threadids    = \&PDL::threadids; *listindices  = \&PDL::listindices;
 *null	      = \&PDL::null;	  *set  	= \&PDL::set;
 *at		= \&PDL::at;	  *flows	= \&PDL::flows;
-*sclr           = \&PDL::sclr;
+*sclr           = \&PDL::sclr;    *shape        = \&PDL::shape;
 !NO!SUBS!
 
 print OUT "$typealiases\n";
@@ -466,6 +466,21 @@ Return piddle dimensions as a perl list
 =for example
 
  pdl> p @tmp = dims zeroes 10,3,22
+ 10 3 22
+
+=head2 shape
+
+=for ref
+
+Return piddle dimensions as a perl list
+
+=for usage
+
+ $shape = $piddle->shape;  $shape = shape($piddle);
+
+=for example
+
+ pdl> p $shape = shape zeroes 10,3,22
  10 3 22
 
 =head2 ndims
@@ -732,6 +747,13 @@ sub PDL::dims {  # Return dimensions as @list
    my @dims = ();
    for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
    return @dims;
+}
+
+sub PDL::shape {  # Return dimensions as a pdl
+   my $pdl = PDL->topdl (shift);
+   my @dims = ();
+   for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
+   return pdl(@dims);
 }
 
 sub PDL::howbig {
