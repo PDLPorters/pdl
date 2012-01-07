@@ -3065,7 +3065,7 @@ sub PDL::whichND {
   # List context: generate a perl list by dimension
   if(wantarray) {
       if(!defined($PDL::whichND)) {
-	  printf STDERR "whichND: WARNING - list context deprecated. Set $PDL::whichND. Details in pod.";
+	  printf STDERR "whichND: WARNING - list context deprecated. Set \$PDL::whichND. Details in pod.";
       } elsif($PDL::whichND =~ m/l/i) {
 	  # old list context enabled by setting $PDL::whichND to 'l'
 	  my $ind=($mask->clump(-1))->which;
