@@ -172,7 +172,9 @@ PDL::GSL modules
 
 PDL::IO::Browser
                   Requires a 'curses'-compatible library.
-                  Build appears to be broken.
+		  You'll need to enable in perldl.conf if you
+		  wish to try the new configure and build,
+		  no guarantees...
 
                                           Not built by default.
 

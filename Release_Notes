@@ -19,6 +19,9 @@ General Notes:
 
 Highlights:
 
+ * whichND list context is now deprecated.  Please set the
+   $PDL::whichND to re-enable the old behavior.
+ 
  * TBD
 
 
