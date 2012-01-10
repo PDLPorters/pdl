@@ -193,7 +193,7 @@ Highlights:
    makes pdldoc give the same output as the help command in the
    PDL shells.
  
- * Many updates and addition to the PDL documentation.
+ * Many updates and additions to the PDL documentation.
  
  * Devel::CheckLib is being used in more places during the
    PDL configuration stage.  We plan to make this the standard
