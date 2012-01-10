@@ -2,7 +2,6 @@
 
 PDL::IO::Pic -- image I/O for PDL
 
-
 =head1 DESCRIPTION
 
 =head2 Image I/O for PDL based on the netpbm package.
@@ -508,8 +507,8 @@ sub PDL::wpic {
 
 =for usage
 
-  $a = rim($file);
-  rim($a,$file);
+ Usage: $a = rim($file);
+ or       rim($a,$file);
 
 =for ref
 
@@ -595,12 +594,14 @@ sub rim {
 
 =head2 wim
 
+=for ref
+
+Write a pdl to an image file with selected type (or using filename extensions)
+
 =for usage
 
   wim $pdl,$file;
   $pdl->wim("foo.gif",{LUT=>$lut});
-
-=for ref
 
 Write out an image file.  You can specify the format explicitly as an
 option, or the function will try to guess the correct image
@@ -687,6 +688,10 @@ sub PDL::wim {
 =for ref
 
 Write an image sequence (a (3,x,y,n) byte pdl) as an animation.
+
+=for usage
+
+  $piddle->wmpeg('movie.mpg'); # $piddle is (3,x,y,nframes) byte
 
 Writes a stack of RGB images as a movie.  While the
 format generated is nominally MPEG, the file extension
