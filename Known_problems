@@ -28,6 +28,11 @@ The following issues have been reported with this version of PDL:
   been replaced by a warning for perl-5.15.1.  NOTE: the work-
   around is 100% effective---but ugly.
 
+- Changes in perl-5.16.x break some existing PDL usage of lvalue
+  subs for this release.  It is planned to incorporate the needed
+  fixes in the next PDL release.  See the perldl mailing list
+  for status updates and other announcements.
+
 
 - Multiline q'' constructs in the pdl2 shell now work correctly
   but you'll need to avoid using the q abbreviation for quit
