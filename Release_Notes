@@ -21,17 +21,17 @@ Highlights:
 
  * General cleanup of code, including restructuring for clarity.
  
- * List output from whichND is now deprecated.  whichND now returns
+ * List output from whichND() is now deprecated.  whichND() now returns
    a piddle of coordinates in all cases with a warning when a list
    context is detected.  See the docs for work-arounds to your code.
  
  * PDL::IO::Misc now has better support for handles that are not
-   files (e.g., pipes or standard input) for rgrep, rcols,...
+   files (e.g., pipes or standard input) for rgrep(), rcols(),...
  
- * Added bad value support to pctover and oddpctover.
+ * Added bad value support to pctover() and oddpctover().
    This was sf.net feature #3328001.
  
- * New whereND routine provides the same functionality as where
+ * New whereND() routine provides the same functionality as where
    but with support for multi-dimensional masks and implicit
    threading over higher dimensions.  This was sf.net feature
    request #3390043.
@@ -58,11 +58,11 @@ Highlights:
      3428356  PDL::Transform::map output FITS header is slightly wrong
      3434842  Error in definition of gsl_sf_laguerre_n function
  
- * PDL::Constants now provides: E, PI, I and J and is loaded but the
-   default.perldlrc.  You'll need to add it by hand if you wish to
-   use the new constants.
+ * PDL::Constants now provides: E, PI, I and J and is loaded by the
+   default.perldlrc.  It is not yet part of 'use PDL' so you'll need
+   to 'use PDL::Constants ...' by hand for now.
  
- * default.perldlrc now sets $PDL::IO::FlexRaw::writeflexhdr by
+ * default.perldlrc sets $PDL::IO::FlexRaw::writeflexhdr=1 by
    default so that writeflex() to a filename automatically writes
    the header file.  This is different from the previous behavior
    but it seems to "do what you mean".  Feedback welcome!
@@ -73,36 +73,39 @@ Highlights:
    new implementation is available for *files* by setting the
    PDL_NICESLICE_ENGINE environment variable to 'Filter::Simple'.
  
-   Work is underway to port the new implementation to the PDL shells.
-   Once this task is completed, the new engine will become the
-   default source filter and the PDL_NICESLICE_ENGINE environment
-   variable check will be removed.
+   Work is underway to port the new niceslice filter implementation
+   to perldl/pdl2.  Once this task is completed, the new engine will
+   become the default source filter and the PDL_NICESLICE_ENGINE
+   environment variable will be removed.
  
  * There is experimental support for PDL::NiceSlice syntax in the
    perl debugger (i.e., perl -d).  Just set the PERL5DB environment
    variable to 'BEGIN { require "PDLdb.pl" }' to use niceslice
-   from the debugger command line.  NOTE: if PERL5DB is already
-   set, you'll need to adjust the above recipe accordingly.
+   from the debugger command line.  If PERL5DB is already set,
+   you'll need to adjust the above recipe accordingly.
  
  * Better handling of build configuration options from perldl.conf
    as well as improvements in the detection of external dependencies.
  
- * PDL::IO::Browser now builds in many cases (but not all, which
-   is why the default is not to build).  If you try it, let us know
-   how it goes.  Just edit the value of WITH_IO_BROWSER in your
-   perldl.conf before configuring the build.
+ * perldl.conf has some new fields added:
+    - POSIX_THREADS_INC and POSIX_THREADS_LIBS to specify
+          locations of your pthread header file and library
+    - PDL_CONFIG_VERSION to track the perldl.conf VERSION
+    - PDLDOC_IGNORE_AUTOLOADER to control pdldoc behavior
+    - PDL_BUILD_DIR provides the build directory path
+    - PDL_BUILD_VERSION provides the PDL build version
+          (to help with ambiguity from multiple PDL installs)
  
- * perldl.conf has some new fields added: POSIX_THREADS_INC and
-   POSIX_THREADS_LIBS to specify locations of your pthread header
-   file and library, PDL_CONFIG_VERSION to track future changes
-   to this file, PDLDOC_IGNORE_AUTOLOADER to control pdldoc behavior,
-   and PDL_BUILD_DIR/PDL_BUILD_VERSION to provide a way to query
-   this information at run-time post-install.
- 
-   If you are using a private perldl.conf file, please be
-   sure to update with the additional fields as we don't yet
-   detect that automatically.
+   NOTE: If you are using a private or customized perldl.conf
+   file, please be sure to update with these additional fields
+   as the perl Makefile.PL doesn't yet detect version skew
+   automatically.
   
+ * PDL::IO::Browser now builds in many cases (but not all).
+   If you try it, please let us know how it goes.  Just edit
+   the value of WITH_IO_BROWSER in your perldl.conf before
+   configuring the build (i.e., perl Makefile.PL).
+ 
  * PDL::PP has seen some significant improvements including
    code cleanup, improved documentation, and code refactoring
    for comprehension.  There is a new PDL::PP::pp_line_numbers()
@@ -136,15 +139,15 @@ Highlights:
    cc4compt() for 4-component labeling of a binary image.
  
  * PDL now supports pdls larger than 2GiB.  The element count
-   is still an int internally so the number of elements must
-   be less than 2**31.
+   is still an int type internally so the total number of elements
+   per-piddle must be less than 2**31.
  
  * POSIX threads (pthreads) are supported for win32 and cygwin
    platforms.  Pthreads are now available for all PDL platforms.
  
- * New PDL::ParallelCPU module provided automatic distribution
+ * New PDL::ParallelCPU module provides automatic distribution
    of implicit thread loops across a number of processors.  Now
-   you can watch a heavy PDL computation maximize the load for
+   you can watch your PDL computations maximize the load on
    *all* your processors.  See the docs for how to configure this
    feature and how to adjust your calculations to best take
    advantage of this feature.
@@ -153,31 +156,35 @@ Highlights:
    PLplot library and has improved configuration and build
    handling.  Feedback welcome.
  
- * rcols and wcols now use the same convention for multi-column
+ * rcols() and wcols() now use the same convention for multi-column
    input and output: dim0 is *always* the data dimension and
    dim1 corresponds to the columns in the file.  This adjustment
-   makes them the inverse operation for 2-D piddles.
- 
+   makes them their inverse operations.
  
  * The ADEV calculation in statsover has been corrected along
    with the documentation.
  
- * PDL::Graphics::TriD now builds with the perl OpenGL configured
-   for the native win32 OpenGL API, cygwin+w32api.  The software
-   Mesa/X11 render is not required although you will need to rebuild
-   your PDL if you change the underlying POGL install interface.
-   Also, a new demo by Mark Baker has been added to 'demo 3dgal',
+ * PDL::Graphics::TriD changes:
+    - PDL::Graphics::TriD now builds using the perl OpenGL
+          module (POGL) when configured on cygwin with the
+          interface=W32API option.  By default, POGL used
+          interface=GLX on cygwin which does software rendering
+          via Mesa/X11 (slower!).  If you reinstall POGL with
+          the W32API setting, you will need to rebuild PDL and
+          PDL::Graphics::TriD to pick up the new configuration.
+    - A new 4-line graphics demo contributed by Mark Baker has
+          been added to 'demo 3dgal'.  Take a look.
  
  * Various enhancements to FITS handling, including:
    - add map() fix for nonlinear FITS headers
-   - Enable hdrpcy in rfits for Rice-compressed images
+   - Enable hdrpcy() in rfits() for Rice-compressed images
  
  * Test suite improvements to provide better diagnostics from
-   failures and to make tests more correct to avoid "false fails"
+   failures and to make tests more correct avoiding "false fails"
    in the test reports.  Various tests have been migrated to use
-   File::Temp::tempdir and File::Temp::tempfile to improved the
-   robustness for temporary files and directories used for
-   testing.
+   File::Temp::tempdir and File::Temp::tempfile to improve the
+   robustness for temporary files and directories naming and
+   creation during tests.
  
  * Update ExtUtils::MakeMaker required version to 6.31 to support
    the new standard of INSTALL_BASE to configure for a local
@@ -200,15 +207,16 @@ Highlights:
    baseline for dependency library detection going forwards.
    The included copy of Devel::CheckLib has been updated to 0.95.
  
- * A new unified implementation of barf/warn for PDL removed code
-   duplication.  barf is now defined in both PDL::Core and in PDL.
-   PDL::cluck is added as an analog of Carp::cluck (as PDL::barf
-   is an analog of Carp::confess).  barf() now generates its stack
-   trace by hooking into Carp::confess on both the Perl and C sides.
+ * A new unified implementation of barf()/warn() for PDL removes
+   code duplication.  barf() is now defined in both PDL::Core and
+   the PDL packages.  PDL::cluck is added as an analog of Carp::cluck
+   (as PDL::barf is an analog of Carp::confess).  barf() now
+   generates its stack trace by hooking into Carp::confess on
+   both the Perl and C sides.
  
  * Various fixes for PDL::Transform
    - fix inverse in perspective()
-   - fix t_cubic parameter parsing
+   - fix t_cubic() parameter parsing
    - fix handling of multiple PCi_j systems in the piddle header
  
  * Added SIGPIPE handlers to cases where PDL uses pipes to/from
