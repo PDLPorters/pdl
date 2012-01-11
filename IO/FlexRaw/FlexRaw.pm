@@ -473,10 +473,11 @@ sub _read_flexhdr {
 
 sub readchunk {
     my ($d, $pdl, $len, $name) = @_;
+    my ($nread);
     print "Reading $len at $offset from $name\n"
       if $PDL::IO::FlexRaw::verbose;
-    read($d, ${$pdl->get_dataref}, $len) == $len
-	or barf "Couldn't read enough data from '$name'";
+    ($nread = read($d, ${$pdl->get_dataref}, $len)) == $len
+	or barf "Couldn't read $len bytes at offset $offset from '$name', got $nread";
     $pdl->upd_data();
     $offset += $len;
     return 1;
