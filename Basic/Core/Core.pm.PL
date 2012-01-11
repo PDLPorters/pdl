@@ -2472,8 +2472,12 @@ sub PDL::new_from_specification{
               if $_->nelem > 10;
          for my $dim ($_->list) {$nelems *= $dim; push @dims, $dim}
        } else {
-         barf "Dimensions must be non-negative" if($_ and ($_<0));  
-         $nelems *= $_; push @dims, $_
+          if ($_) {  # quiet warnings when $_ is the empty string
+             barf "Dimensions must be non-negative" if $_<0;  
+             $nelems *= $_; push @dims, $_
+          } else {
+             $nelems *= 0; push @dims, 0;
+          }    
        }
     }
     my $pdl = $class->initialize();
