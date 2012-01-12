@@ -36,6 +36,14 @@ The ratio of a circle's circumference to its diameter
 
 use constant PI    => 4 * atan2(1, 1);
 
+=head2 DEGRAD
+
+The The number of degrees of arc per radian (180/PI)
+
+=cut
+
+use constant DEGRAD => 180/PI;
+
 =head2 E
 
 The base of the natural logarithms or Euler's number
