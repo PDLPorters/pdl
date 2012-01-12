@@ -336,9 +336,9 @@ sub _read_frawhdr {
 	my $hname = $opts->{Header} || "$name.hdr";
 	my $h = new FileHandle "$hname"
 	 or barf "Couldn't open '$hname' for reading";
-	my $tid = <$h>;
-	my $ndims = <$h>;
-	my $str = <$h>; if(!defined $str) {barf("Format error in '$hname'");}
+	chomp(my $tid = <$h>);
+	chomp(my $ndims = <$h>);
+	chomp(my $str = <$h>); if(!defined $str) {barf("Format error in '$hname'");}
 	my @dims = split ' ',$str;
 	if($#dims != $ndims-1) {
 		barf("Format error reading fraw header file '$hname'");

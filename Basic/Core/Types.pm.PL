@@ -269,6 +269,17 @@ print OUT gentypehashcode @types;
 
 print OUT <<'!NO!SUBS!';
 
+# Cross-reference by common names
+%PDL::Types::typenames = ();
+for my $k(keys %PDL::Types::typehash) {
+    my $n = $PDL::Types::typehash{$k}->{'numval'};
+    $PDL::Types::typenames{$k} = $n;
+    $PDL::Types::typenames{$n} = $n;
+    $PDL::Types::typenames{$PDL::Types::typehash{$k}->{ioname}} = $n;
+    $PDL::Types::typenames{$PDL::Types::typehash{$k}->{ctype}} = $n;
+}
+
+
 =head1 NAME
 
 PDL::Types - define fundamental PDL Datatypes
@@ -513,7 +524,16 @@ print OUT <<'!NO!SUBS!';
         }
       PDL::Core::barf("Can't make a type out of non-scalar $val!".
           (ref $val)."!") if ref $val;
-        return bless [$val],$type;
+
+	if(length($PDL::Types::typenames{$val})) {
+	    $val =~ s/^\s*//o;
+	    $val =~ s/\s*$//o;
+	    return bless [$PDL::Types::typenames{$val}],$type;
+	} else {
+	    die("Unknown type string '$val' (should be one of ".
+                            join(",",map { $PDL::Types::typehash{$_}->{ioname} } @names).
+			    ")\n");
+	}
     }
 
 sub enum   { return $_[0]->[0]; }
@@ -574,6 +594,12 @@ sub shortctype { my $txt = $_[0]->ctype; $txt =~ s/PDL_//; return $txt; }
 # make life a bit easier
 use overload (
 	      "\"\""  => sub { lc $_[0]->shortctype },
+              "eq"    => sub { my($self, $other, $swap) = @_;
+          		     return ("$self" eq $other);
+              },
+              "cmp"   => sub { my($self, $other, $swap) = @_;
+          		     return ($swap ? $other cmp "$self" : "$self" cmp $other);
+              },
 	      "<=>"   => sub { $_[2] ? $_[1]->enum <=> $_[0]->enum :
 	                               $_[0]->enum <=> $_[1]->enum },
 	     );
