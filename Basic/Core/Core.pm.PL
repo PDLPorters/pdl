@@ -2394,15 +2394,42 @@ conveniently.
 Return back either the argument pdl or a copy of it depending on whether
 it be flagged in-place or no.  Handy for building inplace-aware functions.
 
+If you specify a preferred type (must be one of the usual PDL type strings,
+a list ref containing several of them, or a string containing several of them), 
+then the copy is coerced into the first preferred type listed if it is not 
+already one of the preferred types.  
+
+Note that if the inplace flag is set, no coersion happens even if you specify
+a preferred type.
+
 =cut
 
 sub new_or_inplace {
 	my $pdl = shift;
+	my $preferred = shift;
+	my $force = shift;
 	if($pdl->is_inplace) {
-		$pdl->set_inplace(0); $pdl;
+		$pdl->set_inplace(0); 
+		return $pdl;
 	} else {
-		$pdl->copy();
+	    unless(defined($preferred)) {
+		return $pdl->copy;
+	    } else {
+		$preferred = join(",",@$preferred) if(ref($preferred) eq 'ARRAY');
+		my $s = "".$pdl->type;
+		if($preferred =~ m/(^|\,)$s(\,|$)/i) {
+		    # Got a match - the PDL is one of the preferred types.
+		    return $pdl->copy();
+		} else {
+		    # No match - promote it to the first in the list.
+		    $preferred =~ s/\,.*//;
+		    my $out = PDL::new_from_specification('PDL',new PDL::Type($preferred),$pdl->dims);
+		    $out .= $pdl;
+		    return $out;
+		}
+	    }
 	}
+	barf "PDL::Core::new_or_inplace - This can never happen!";
 }
 *PDL::new_or_inplace = \&new_or_inplace;
 
@@ -2472,8 +2499,9 @@ sub PDL::new_from_specification{
               if $_->nelem > 10;
          for my $dim ($_->list) {$nelems *= $dim; push @dims, $dim}
        } else {
-         barf "Dimensions must be non-negative" if($_ and ($_<0));  
-         $nelems *= $_; push @dims, $_
+	   $_=0 unless(length($_));
+	   barf "Dimensions must be non-negative" if($_ and ($_<0));  
+	   $nelems *= $_; push @dims, $_
        }
     }
     my $pdl = $class->initialize();

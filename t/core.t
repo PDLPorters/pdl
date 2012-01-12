@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 46;
+use Test::More tests => 51;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -183,3 +183,22 @@ like($@, qr/arguments 2 and 6 do not match/
 like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual piddle in combined screw-ups');
 $@ = '';
+
+# new_or_inplace
+$a = sequence(byte,5);
+
+
+$b = $a->new_or_inplace;
+ok( all($b==$a) && ($b->get_datatype ==  $a->get_datatype), "new_or_inplace with no pref returns something like the orig.");
+
+$b++;
+ok(all($b!=$a),"new_or_inplace with no inplace flag returns something disconnected from the orig.");
+
+$b = $a->new_or_inplace("float,long");
+ok($b->type eq 'float',"new_or_inplace returns the first type in case of no match");
+
+$b = $a->inplace->new_or_inplace;
+$b++;
+ok(all($b==$a),"new_or_inplace returns the original thing if inplace is set");
+ok(!($b->is_inplace),"new_or_inplace clears the inplace flag");
+
