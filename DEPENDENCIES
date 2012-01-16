@@ -45,7 +45,7 @@ PDL (all)         perl >= 5.8.x           PDL requires at least this version
 					  spots, you can build with older
 					  versions---not recommended.
 
-PDL::NiceSlice    Text::Balanced          A nicer way to index piddles.
+PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
                   Filter::Util::Call
 
 
@@ -59,11 +59,10 @@ Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
 
 PDL::ParallelCPU  pthreads library        Multi-CPU support will be enabled
                                           if libpthreads is detected and
-                                          built against.
+                                          built against.  A pthreads for
+					  win32 can be found at
+					  http://sourceware.org/pthreads-win32/
 
-                                          NOTE: Currently works for posix
-                                          OSes.  Work is underway to add
-                                          support for MS Windows perls.
 
 
 PDL::IO::Dumper   Data::Dumper >= 2.121
