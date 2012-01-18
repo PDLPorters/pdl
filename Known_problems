@@ -98,8 +98,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_994 release:
+  PDL-2.4.9_995 release:
 
+  3475075    Tests for PDL::IO::Pic fails
   3465663    perldl.conf OPTIMIZE option doesn't work
   3460886    t/flexraw_fortran.t test failures
   3363406    PDL::Minuit build can't make libminuit.a
