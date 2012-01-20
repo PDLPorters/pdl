@@ -242,7 +242,12 @@ Whether to insert commas when printing pdls
 
 =over 4
 
-The default print format for floats and doubles, repectively
+The default print format for floats and doubles, repectively.
+The default default values are:
+
+  $PDL::floatformat  = "%7g";
+  $PDL::doubleformat = "%10.8g";
+
 
 =back
 
