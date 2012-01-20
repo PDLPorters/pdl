@@ -45,7 +45,7 @@ PDL (all)         perl >= 5.8.x           PDL requires at least this version
 					  spots, you can build with older
 					  versions---not recommended.
 
-PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
+PDL::NiceSlice    Text::Balanced          A nicer way to index piddles.
                   Filter::Util::Call
 
 
@@ -59,10 +59,11 @@ Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
 
 PDL::ParallelCPU  pthreads library        Multi-CPU support will be enabled
                                           if libpthreads is detected and
-                                          built against.  A pthreads for
-					  win32 can be found at
-					  http://sourceware.org/pthreads-win32/
+                                          built against.
 
+                                          NOTE: Currently works for posix
+                                          OSes.  Work is underway to add
+                                          support for MS Windows perls.
 
 
 PDL::IO::Dumper   Data::Dumper >= 2.121
@@ -114,18 +115,13 @@ PDL::Transform::Proj
 
 PDL::Graphics::TriD
                   Requires the perl OpenGL module be installed.
-		  See the POGL_VERSION entry in perldl.conf for
-		  the minimum required version.
-
                   Perl OpenGL requires you have the OpenGL graphics
                   library and FreeGLUT (Apple GLUT on Mac OS X)
-                  installed.
+                  installed.  See perldl.conf file for the minimum
+                  required version of Perl OpenGL.
 
                                           PDL::Graphics::TriD will be
-                                          built if Perl OpenGL is detected
-					  and of version greater than the
-					  POGL_VERSION in perldl.conf.
-
+                                          built if Perl OpenGL is detected.
                                           To disable the build, edit
                                           perldl.conf and set WITH_3D => 0.
 
@@ -176,9 +172,7 @@ PDL::GSL modules
 
 PDL::IO::Browser
                   Requires a 'curses'-compatible library.
-		  You'll need to enable in perldl.conf if you
-		  wish to try the new configure and build,
-		  no guarantees...
+                  Build appears to be broken.
 
                                           Not built by default.
 

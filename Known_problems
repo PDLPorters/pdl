@@ -1,13 +1,5 @@
 The following issues have been reported with this version of PDL:
 
-
-- On MS Windows, perl 5.14 (and perhaps later), it is reported that
-  PDL::Graphics::PLplot cannot be sucessfully built as part of the
-  PDL build. It compiles ok, but the resultant binary files are
-  unusable. Workaround is to build PDL first, then build
-  PDL::Graphics::PLplot separately.
-
-
 - The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
   don't work the same with the perl's new "safe signals".  A
   workaround to the problem is to set the PERL_SIGNALS environment
@@ -37,12 +29,6 @@ The following issues have been reported with this version of PDL:
   around is 100% effective---but ugly.
 
 
-- Changes in perl-5.16.x break some existing PDL usage of lvalue
-  subs for this release.  It is planned to incorporate the needed
-  fixes in the next PDL release.  See the perldl mailing list
-  for status updates and other announcements.
-
-
 - Multiline q'' constructs in the pdl2 shell now work correctly
   but you'll need to avoid using the q abbreviation for quit
   in pdl2 (at least until the multiline plugin in Devel::REPL
@@ -61,9 +47,9 @@ The following issues have been reported with this version of PDL:
 
 - PDL::FFTW is based on version 2 of the FFTW API.  The current
   release of the FFTW library is version 3.2.2.  To use PDL::FFTW
-  you will need to install FFTW version 2.1.5, use the built-in
+  you will need to install FFTW version 2.1.5, use the built-in 
   PDL::FFT routines instead, or (better yet) submit a patch to
-  update PDL::FFTW to the version 3 API.
+  update PDL::FFTW to the version 3 API. 
 
 
 - Extremely verbose but not particularly helpful text output from
@@ -98,17 +84,17 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_995 release:
+  PDL-2.4.9_993 release:
 
-  3475075    Tests for PDL::IO::Pic fails
   3465663    perldl.conf OPTIMIZE option doesn't work
+  3462924    bogus "dimension mismatch" for Nx0 index piddles
   3460886    t/flexraw_fortran.t test failures
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
   3299615    PLplot still unusable with X
   3234141    max() fails on nan
-  3161459    online docs don't link to functions in other PDL modules
+  3161459    online docs don't link to functions in other PDL modules 
   3018731    NiceSlice affects code where it should not
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
@@ -118,7 +104,7 @@ The following issues have been reported with this version of PDL:
 
 
 For more information on these and other PDL issues, and for
-submissions of patches (bug patches are always welcome!),
+submissions of patches (bug patches are always welcome!), 
 see the PDL mailing lists. Links to archive list discussions
 and how to register for the mailing lists can be found at
 http://pdl.sourceforge.net/maillists/ .
