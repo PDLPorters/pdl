@@ -114,13 +114,18 @@ PDL::Transform::Proj
 
 PDL::Graphics::TriD
                   Requires the perl OpenGL module be installed.
+		  See the POGL_VERSION entry in perldl.conf for
+		  the minimum required version.
+
                   Perl OpenGL requires you have the OpenGL graphics
                   library and FreeGLUT (Apple GLUT on Mac OS X)
-                  installed.  See perldl.conf file for the minimum
-                  required version of Perl OpenGL.
+                  installed.
 
                                           PDL::Graphics::TriD will be
-                                          built if Perl OpenGL is detected.
+                                          built if Perl OpenGL is detected
+					  and of version greater than the
+					  POGL_VERSION in perldl.conf.
+
                                           To disable the build, edit
                                           perldl.conf and set WITH_3D => 0.
 
