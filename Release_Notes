@@ -1,8 +1,8 @@
-Release Notes for PDL 2.4.9_995 --------------------------
+Release Notes for PDL 2.4.9_996 --------------------------
 
 General Notes:
 
- * A.k.a. PDL-2.4.10 release candidate 5
+ * A.k.a. PDL-2.4.10 release candidate 6
 
  * All focus now is on testing, documentation, web page
    updates, and writing the PDL Book...
@@ -11,26 +11,15 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  CHM/PDL-2.4.9_995.tar.gz
-       cpan> make CHM/PDL-2.4.9_995.tar.gz
-       cpan> test CHM/PDL-2.4.9_995.tar.gz
-       cpan> look CHM/PDL-2.4.9_995.tar.gz
+       cpan> get  CHM/PDL-2.4.9_996.tar.gz
+       cpan> make CHM/PDL-2.4.9_996.tar.gz
+       cpan> test CHM/PDL-2.4.9_996.tar.gz
+       cpan> look CHM/PDL-2.4.9_996.tar.gz
 
 
 Specific Updates:
 
- * Add error reporting and diags to t/flexraw_fortran.t
-   to help track down remaining tester fails from the
-   PDL-2.4.10 pre-release candidates.
- 
- * Add values of $PDL::floatformat and $PDL::doubleformat
-   to PDL::Core docs.
- 
- * PDL::Graphics2D now exports imag2d_update in addition
-   to imag2d and twiddle.
- 
- * Clear and clean up POGL dependency information
-   and perl Makefile.PL configure error messages.
+ * TBD
 
 
 Highlights:
@@ -240,6 +229,47 @@ Highlights:
    converter programs).  This should make PDL "SIGPIPE safe" by not
    exiting when a PDL piped IO output process quits (e.g., as when
    called from within the perldl/pdl2 shell).
+
+
+
+Release Notes for PDL 2.4.9_995 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.10 release candidate 5
+
+ * All focus now is on testing, documentation, web page
+   updates, and writing the PDL Book...
+ 
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_995.tar.gz
+       cpan> make CHM/PDL-2.4.9_995.tar.gz
+       cpan> test CHM/PDL-2.4.9_995.tar.gz
+       cpan> look CHM/PDL-2.4.9_995.tar.gz
+
+
+Specific Updates:
+
+ * Add error reporting and diags to t/flexraw_fortran.t
+   to help track down remaining tester fails from the
+   PDL-2.4.10 pre-release candidates.
+ 
+ * Add values of $PDL::floatformat and $PDL::doubleformat
+   to PDL::Core docs.
+ 
+ * PDL::Graphics2D now exports imag2d_update in addition
+   to imag2d and twiddle.
+ 
+ * Clear and clean up POGL dependency information
+   and perl Makefile.PL configure error messages.
+
+
+Highlights:
+
+ * See above.
 
 
 
