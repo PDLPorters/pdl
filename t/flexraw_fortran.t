@@ -564,14 +564,14 @@ SKIP: {
 
 # Try compressed data
    $ok = 1;
-   system "$compress -c $data > ${data}.Z";
+   0 == system "$compress -c $data > ${data}.Z" or diag "system $compress -c $data >${data}.Z failed: $?";
    unlink( $data );
    @a = readflex($data);
    $ok &&= $#a==6;
    @a = readflex("${data}.Z");
    $ok &&= $#a==6;
-   system "gunzip -q ${data}.Z";
-   system "gzip -q $data";
+   0 == system "gunzip -q ${data}.Z" or diag "system gunzip -q ${data}.Z failed: $?";
+   0 == system "gzip -q $data" or diag "system gzip -q $data failed: $?";
    @a = readflex($data);
    $ok &&= $#a==6;
    @a = readflex("${data}.gz");
