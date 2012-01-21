@@ -625,6 +625,11 @@ doc_perl_install ::
 
 $text .= << "EOPS" ;
 
+changes : Changes
+
+Changes ::
+\tgit log --stat --since='29 Apr 2009' > Changes
+
 perldl.pod : perldl subdirs
 \t\$(PERLRUN) -MPod::Select -e "podselect('perldl');" > perldl.pod
 
