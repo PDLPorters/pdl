@@ -448,7 +448,7 @@ if (!defined($PDL::Config{USE_POGL}) or +$PDL::Config{USE_POGL}) {
          warn "Makefile.PL: DEPENDENCY ERROR: USE_POGL requires at least OpenGL version $PDL::Config{POGL_VERSION}!\n";
          exit 0;
       } else {
-         warn "Makefile.PL: acceptable OpenGL not found, setting \$PDL::Config{USE_POGL} => 0\n";
+         warn "Makefile.PL: OpenGL-$PDL::Config{POGL_VERSION} not found, setting \$PDL::Config{USE_POGL} => 0\n";
          $PDL::Config{USE_POGL} = 0;
       }
    } else {
