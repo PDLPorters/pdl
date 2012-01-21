@@ -12,6 +12,7 @@ my ($data,$head,$hdr);
 
 BEGIN {
    (undef, $data) = tempfile("rawXXXX", SUFFIX=>'_data', TMPDIR=>1);
+   $data =~ s/\\/\//g if $^O =~ /MSWin32/;
    $hdr = $data . '.hdr';
    ($head = $data) =~ s/_data$//;
 }
@@ -202,8 +203,8 @@ sub createData {
     # system with $head as the argument
     #
     if($^O =~ /mswin32/i) {
-      die '$head [' . $head . '] should match /^[A-Z]:\\/'
-            unless $head =~ /^[A-Z]:\\/;
+      die '$head [' . $head . '] should match /^[A-Z]:\//'
+            unless $head =~ /^[A-Z]:\//;
       }      
     else {
       die '$head [' . $head . '] must start with a / or ./'
