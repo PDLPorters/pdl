@@ -98,8 +98,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_996 release:
+  PDL-2.4.10 release:
 
+  3479009    Slice does not like whitespace
   3476648    PDL build of HTML docs fails on recent bleed Perl
   3475075    t/pic_16bit.t subtest fails
   3465663    perldl.conf OPTIMIZE option doesn't work
