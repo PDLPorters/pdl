@@ -2,8 +2,50 @@ Release Notes for PDL 2.4.10 --------------------------
 
 General Notes:
 
- * TBD
+ New Stuff:
 
+  * PDL::Constants module provides E, PI, I (or J) and more.
+
+  * PDL::NiceSlice has a new engine based on Filter::Simple
+    which is more selective about where the PDL::NiceSlice
+    sourcefilter is applied.
+
+  * pdl() constructor now accepts a string argument which
+    can include MATLAB-style [ ; ] syntax, bad values,
+    inf values, and nan values.  This makes it much easier
+    to specify pdl values in programs and scripts.
+
+  * PDL now supports pthreads on all platforms as well
+    as a new, auto-parallelization capability for PDL
+    threadloops across multiple processors using the
+    PDL::ParallelCPU module.
+
+  * Many(!) bug fixes.
+
+
+ Incompatible Changes:
+
+  * List output from whichND is now deprecated.
+
+  * The default.perldlrc uses PDL::Constants to
+    provide E and PI.
+
+  * perldl.conf has new fields so be sure to update
+    any local versions you use with the new fields.
+
+  * rcols and wcols always use dim0 for the data
+    dimension and dim1 for the column dimension.
+    This only matters if you use the support for
+    reading multiple columns into a 2D pdl.
+
+  * Makefile.PL now requires at least version 6.31
+    of ExtUtils::MakeMaker to support the new standard
+    INSTALL_BASE option matching Module::Build usage.
+
+  * Prerequisite Text::Balanced minimum version is
+    now 1.89 although this is not expected to be an
+    issue because it is provided in the perl core
+    since 5.8.0.
 
 
 Highlights:
