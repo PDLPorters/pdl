@@ -12,7 +12,7 @@ use strict;
 #use PDL;
 use vars qw( $VERSION );
 
-$VERSION = "2.0";
+$VERSION = "2.1";
 
 #####################################
 # Start the General Interface Docs: #
@@ -784,6 +784,18 @@ for( ind = 0; ind < 256; ind++ )
 gdImageDestroy(im);
 EOC
 
+
+pp_addxs( <<'ENDXS' );
+void 
+_gdImageDestroy( im )
+                gdImagePtr              im
+        CODE:
+                 /* fprintf( stderr, "_gdImageDestroy(): gdImagePtr = %p (d=%d x=%x)\n", im, im, im ); */
+                 gdImageDestroy ( im );
+        OUTPUT:
+ENDXS
+
+
 ####################
 # NEW OO Interface #
 ####################
@@ -1204,9 +1216,14 @@ sub apply_lut
 
 sub DESTROY
 {
+    my $self = shift;
+    my $sub = _pkg_name( "DESTROY" );
+    
+    #print STDERR sprintf("$sub: destroying gdImagePtr: 0x%p (%d)!\n", $self->{IMG_PTR}, $self->{IMG_PTR});
+    
     if( defined( $self->{IMG_PTR} ) )
     {
-        gdImageDestroy( $self->{IMG_PTR} );
+        _gdImageDestroy( $self->{IMG_PTR} );
         delete( $self->{IMG_PTR} );
     }
 } # End of DESTROY()...
@@ -1265,8 +1282,8 @@ void *gdImageGd2Ptr (gdImagePtr im, int cs, int fmt, int *size);
 ENDDATAPTR
 
 
+#void gdImageDestroy (gdImagePtr im);
 generate_member_functions( <<'ENDMEMBERS' );
-void gdImageDestroy (gdImagePtr im);
 void gdImageSetPixel (gdImagePtr im, int x, int y, int color);
 int gdImageGetPixel (gdImagePtr im, int x, int y);
 void gdImageAABlend (gdImagePtr im);
