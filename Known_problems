@@ -19,11 +19,6 @@ The following issues have been reported with this version of PDL:
   work-arounds.
 
 
-- The OO interface to the GD library fails to free memory.  The
-  problem has been fixed in the pdl git and will be available
-  in the first post-2.4.10 CPAN developers release to come.
-
-
 - On MS Windows, perl 5.14 (and perhaps later), it is reported that
   PDL::Graphics::PLplot cannot be sucessfully built as part of the
   PDL build. It compiles ok, but the resultant binary files are
@@ -58,11 +53,6 @@ The following issues have been reported with this version of PDL:
   The problem is understood and it appears that the error has
   been replaced by a warning for perl-5.15.1.  NOTE: the work-
   around is 100% effective---but ugly.
-
-- Changes in perl-5.16.x break some existing PDL usage of lvalue
-  subs for this release.  It is planned to incorporate the needed
-  fixes in the next PDL release.  See the perldl mailing list
-  for status updates and other announcements.
 
 
 - Changes in perl-5.16.x break some existing PDL usage of lvalue
@@ -126,8 +116,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.10 release:
+  PDL-2.4.10_001 release:
 
+  3483926    PDL::IO::GD OO interface doesn't free memory
   3479009    Slice does not like whitespace
   3476648    PDL build of HTML docs fails on recent bleed Perl
   3475075    t/pic_16bit.t subtest fails
@@ -142,7 +133,6 @@ The following issues have been reported with this version of PDL:
   3018731    NiceSlice affects code where it should not
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
-  1994584    PDL Has no signed 8-bit integer data type
   1507054    closing TriD window kills perldl shell
   1205359    PGPLOT Window does not store full state info
 
