@@ -1,10 +1,35 @@
 The following issues have been reported with this version of PDL:
 
+
+- A change in perl-5.14 on how the 'x' operator works affects
+  PDL's overload of that operator for matrix multiplication.
+  An example that shows the problem is code like:
+
+     f( ($pdl0 * $pdl1) x $pdl2 )
+
+  which gives an error.  The fix is to force the element-wise
+  operation in parentheses to be treated in scalar context
+  rather than list context.  E.g.,
+
+    f( scalar($p0 * $p1) x $p2 );
+
+  Please see
+  http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2012-February/004426.html
+  for a more detailed discussion and additional alternative
+  work-arounds.
+
+
+- The OO interface to the GD library fails to free memory.  The
+  problem has been fixed in the pdl git and will be available
+  in the first post-2.4.10 CPAN developers release to come.
+
+
 - On MS Windows, perl 5.14 (and perhaps later), it is reported that
   PDL::Graphics::PLplot cannot be sucessfully built as part of the
   PDL build. It compiles ok, but the resultant binary files are
   unusable. Workaround is to build PDL first, then build
   PDL::Graphics::PLplot separately.
+
 
 - The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
   don't work the same with the perl's new "safe signals".  A
@@ -40,9 +65,15 @@ The following issues have been reported with this version of PDL:
   for status updates and other announcements.
 
 
+- Changes in perl-5.16.x break some existing PDL usage of lvalue
+  subs for this release.  It is planned to incorporate the needed
+  fixes in the next PDL release.  See the perldl mailing list
+  for status updates and other announcements.
+
+
 - Multiline q'' constructs in the pdl2 shell now work correctly
   but you'll need to avoid using the q abbreviation for quit
-  in pdl2 (at least until the multiline plugin in Devel::REPL
+  in pdl2 (at least until the multi-line plugin in Devel::REPL
   can be updated appropriately).  If you do get "stuck" in a q
   quit attempt, just type Ctrl-D to exit the shell.
 
@@ -80,7 +111,7 @@ The following issues have been reported with this version of PDL:
 
 
 - minimum/maximum/min/max inconsistently handle NaN values.
-  NaN's for the first element of a pdl will propagate to the
+  NaNs for the first element of a pdl will propagate to the
   result while if the first element is a number, then the
   result will be a number.  The answer for max/min should not
   depend on the order of the input values.
@@ -90,13 +121,16 @@ The following issues have been reported with this version of PDL:
   handle byte order issues.  The intermediate PNM data piped
   through the converter programs is not adjusted to network
   byte order per the NetPBM convention/standard.  This is not
-  an issue for big-endian systems or for 8-bit/chanel image
+  an issue for big-endian systems or for 8-bit/channel image
   data.
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_993 release:
+  PDL-2.4.10 release:
 
+  3479009    Slice does not like whitespace
+  3476648    PDL build of HTML docs fails on recent bleed Perl
+  3475075    t/pic_16bit.t subtest fails
   3465663    perldl.conf OPTIMIZE option doesn't work
   3460886    t/flexraw_fortran.t test failures
   3363406    PDL::Minuit build can't make libminuit.a

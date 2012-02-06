@@ -1,7 +1,7 @@
 package PDL::Graphics2D;
 
 use Exporter 'import'; # gives you Exporter's import() method directly
-@EXPORT = qw(imag2d twiddle);  # symbols to export on request
+@EXPORT = qw(imag2d imag2d_update twiddle);     # symbols to export on request
 @EXPORT_OK = qw(imag2d imag2d_update twiddle);  # symbols to export on request
 
 =head1 NAME
@@ -653,6 +653,28 @@ the sub, only the imag2d() windows will update correctly.
   $w2 = imag2d $a->sqrt;   # or without
   $w3 = imag2d $a**2;
 
+
+=head2 imag2d_update
+
+=for ref
+
+Update an existing imag2d window with new piddle data
+
+=for usage
+
+  $image = random(3,64,48)/2 + 0.25;  # random pixel image
+  $win = imag2d($image);              # create original image display
+
+  imag2d_update($win, $image->sequence/$image->nelem);  # update data
+
+C<imag2d_update> allows one to update an C<imag2d> display window
+by replacing the associated image data with new contents.  The
+new image data must be the same type and shape as the previous.
+
+Eventually, we would like to implement this via some sort of
+dataflow that would be transparent to the user.
+
+=cut
 
 =head2 twiddle
 

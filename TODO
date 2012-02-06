@@ -436,7 +436,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Transition into 'use PDL;'
    * Add other constants of interest
      * Units
-     * Complex i,j
+     D Complex i,j
      * Inf
      * To import or not to import
    

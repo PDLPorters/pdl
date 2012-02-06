@@ -202,6 +202,8 @@ Read a binary file with flexible format specification
 
 =for usage
 
+    Usage:
+    
     ($x,$y,...) = readflex("filename" [, $hdr])
     ($x,$y,...) = readflex(FILEHANDLE [, $hdr])
 
@@ -214,9 +216,11 @@ Write a binary file with flexible format specification
 
 =for usage
 
+    Usage:
+    
     $hdr = writeflex($file, $pdl1, $pdl2,...) # or
     $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
-    # now you must save call writeflexhdr()
+    # now you must call writeflexhdr()
     writeflexhdr($file, $hdr)
 
 or
@@ -234,6 +238,8 @@ Write the header file corresponding to a previous writeflex call
 
 =for usage
 
+    Usage:
+    
     writeflexhdr($file, $hdr)
 
     $file or "filename" is the filename used in a previous writeflex
@@ -249,6 +255,12 @@ Write the header file corresponding to a previous writeflex call
 
 Memory map a binary file with flexible format specification
 
+=for usage
+
+    Usage:
+    
+    ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
+
 =for options
 
     All of these options default to false unless set true:
@@ -258,17 +270,15 @@ Memory map a binary file with flexible format specification
     Trunc    - File should be truncated to a length that conforms
                with the header
 
-=for usage
-
-   ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
-
 =head2 _read_flexhdr
 
 Read a FlexRaw header file and return a header structure.
 
 =for usage
 
-   $hdr = PDL::IO::FlexRaw::_read_flexhdr($file)
+    Usage:
+    
+    $hdr = PDL::IO::FlexRaw::_read_flexhdr($file)
 
 Note that C<_read_flexhdr> is supposed to be an internal function.  It
 was not originally documented and it is not tested.  However, there
@@ -463,10 +473,11 @@ sub _read_flexhdr {
 
 sub readchunk {
     my ($d, $pdl, $len, $name) = @_;
+    my ($nread);
     print "Reading $len at $offset from $name\n"
       if $PDL::IO::FlexRaw::verbose;
-    read($d, ${$pdl->get_dataref}, $len) == $len
-	or barf "Couldn't read enough data from '$name'";
+    ($nread = read($d, ${$pdl->get_dataref}, $len)) == $len
+	or barf "Couldn't read $len bytes at offset $offset from '$name', got $nread";
     $pdl->upd_data();
     $offset += $len;
     return 1;
