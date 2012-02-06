@@ -129,7 +129,7 @@ determined by the computed shape of the expression being assigned to
 it.   Null PDLs contain no values and can only be assigned to.  When
 assigned to (e.g. via the C<.=> operator), they cease to be null PDLs.
 
-To create a null PDL, use C<PDL->null()>.
+To create a null PDL, use C<PDL-E<gt>null()>.
 
 =head2 Empty PDLs
 

@@ -338,6 +338,9 @@ pp_def(
        Doc => projectdocs('integral','intover',
 q~Notes:
 
+C<intover> uses a point spacing of one (i.e., delta-h==1).  You will
+need to scale the result to correct for the true point delta).
+
 For C<n E<gt> 3>, these are all C<O(h^4)> (like Simpson's rule), but are
 integrals between the end points assuming the pdl gives values just at
 these centres: for such `functions', sumover is correct to C<O(h)>, but
