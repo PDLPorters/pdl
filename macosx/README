@@ -1,7 +1,7 @@
-The PDL::Graphics::TriD window controls are based on
+NOTE: The PDL::Graphics::TriD window controls are based on
 having a mouse with 2 or more buttons.
 
-For Macs with one button, you can use Ctrl+Click to
-generate the needed Right-click.  It is also possible
-to configure the Macbook tracpad to generate a secondary
-click via the control panel.
+For Macs with one button, you can use Ctrl+Click to generate
+the needed Right-click. It is also possible to configure
+the Macbook tracpad to generate a secondary click via the
+control panel.

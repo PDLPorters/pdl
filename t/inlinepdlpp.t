@@ -26,7 +26,7 @@ BEGIN {
    }
 }
 
-sub shape { join ',', $_[0]->dims }
+sub myshape { join ',', $_[0]->dims }
 
 # use Inline 'INFO'; # use to generate lots of info
 use Inline 'Pdlpp';
@@ -38,7 +38,7 @@ $a = sequence(3,3);
 
 $b = $a->testinc;
 
-ok(shape($a) eq shape($b));
+ok(myshape($a) eq myshape($b));
 
 ok(all $b == $a+1);
 

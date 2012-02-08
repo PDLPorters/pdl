@@ -92,6 +92,10 @@ sub gettmpfile {
 
 Read a pnm (portable bitmap/pixmap, pbm/ppm) file into a piddle.
 
+=for usage
+
+  Usage:  $im = rpnm $file;
+
 Reads a file in pnm format (ascii or raw) into a pdl (magic numbers P1-P6).
 Based on the input format it returns pdls with arrays of size (width,height)
 if binary or grey value data (pbm and pgm) or (3,width,height) if rgb
@@ -107,10 +111,6 @@ when you want to read a sequence of images into a datacube.
 
 For details about the formats see appropriate manpages that come with the
 netpbm/pbmplus packages.
-
-=for usage
-
-    $im = rpnm $file;
 
 =for example
 
@@ -219,6 +219,10 @@ TYPES:	{  my $pdlt;
 
 Write a pnm (portable bitmap/pixmap, pbm/ppm) file into a file.
 
+=for usage
+
+  Usage:  $im = wpnm $pdl, $file, $format[, $raw];
+
 Writes data in a pdl into pnm format (ascii or raw) (magic numbers P1-P6).
 The $format is required (normally produced by B<wpic>) and routine just
 checks if data is compatible with that format. All conversions should
@@ -231,10 +235,6 @@ format if the data range allows (but maybe it should reduce to a RAW
 supported type when RAW == 'RAW'?). For details about the formats
 consult appropriate manpages that come with the netpbm/pbmplus
 packages.
-
-=for usage
-
-    $im = wpnm $pdl, $file, $format[, $raw];
 
 =cut
 

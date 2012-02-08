@@ -3224,7 +3224,7 @@ If this is impossible the best approach is to make a temporary:
 This creates an index vector the size of the universe of the sets and
 set all elements in C<$b> to 0
 
-  pdl> $tmp = ones($n_universe); $tmp($b)=0;
+  pdl> $tmp = ones($n_universe); $tmp($b) .= 0;
 
 This then finds the complement of C<$b>
 

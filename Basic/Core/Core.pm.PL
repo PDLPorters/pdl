@@ -129,7 +129,7 @@ determined by the computed shape of the expression being assigned to
 it.   Null PDLs contain no values and can only be assigned to.  When
 assigned to (e.g. via the C<.=> operator), they cease to be null PDLs.
 
-To create a null PDL, use C<PDL->null()>.
+To create a null PDL, use C<PDL-E<gt>null()>.
 
 =head2 Empty PDLs
 
@@ -242,7 +242,12 @@ Whether to insert commas when printing pdls
 
 =over 4
 
-The default print format for floats and doubles, repectively
+The default print format for floats and doubles, repectively.
+The default default values are:
+
+  $PDL::floatformat  = "%7g";
+  $PDL::doubleformat = "%10.8g";
+
 
 =back
 
@@ -2499,9 +2504,12 @@ sub PDL::new_from_specification{
               if $_->nelem > 10;
          for my $dim ($_->list) {$nelems *= $dim; push @dims, $dim}
        } else {
-	   $_=0 unless(length($_));
-	   barf "Dimensions must be non-negative" if($_ and ($_<0));  
-	   $nelems *= $_; push @dims, $_
+          if ($_) {  # quiet warnings when $_ is the empty string
+             barf "Dimensions must be non-negative" if $_<0;  
+             $nelems *= $_; push @dims, $_
+          } else {
+             $nelems *= 0; push @dims, 0;
+          }    
        }
     }
     my $pdl = $class->initialize();

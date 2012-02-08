@@ -6,23 +6,32 @@ Last saved: Tue 11 Oct 2011 12:53:55 PM
 =================================================================
                         GENERAL NOTES
 =================================================================
- NOTE: These install notes have been partially reviewed
- for the PDL-2.4.9 release.  It is recommended that you
- build and install PDL based on a full cygwin 1.7.9 or
- later install.  Please post to the perldl mailing list
- for help or questions regarding a cygwin install.
+NOTE: These install notes have been partially reviewed
+for the PDL-2.4.9 release.  It is recommended that you
+build and install PDL based on a full cygwin 1.7.9 or
+later install.  Please post to the perldl mailing list
+for help or questions regarding a cygwin install.
 
- By default, Cygwin has an ~300MB process memory limit.
- If you work with large data sets, you may wish to
- use the native win32 PDL with either ActiveState Perl
- or Strawberry Perl.  Otherwise, you'll want to set the
- value of heap_chunk_in_mb to allow for bigger data as
- described in the Cygwin Users Guide:
- http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html
+By default, Cygwin has an ~300MB process memory limit.
+If you work with large data sets, you may wish to
+use the native win32 PDL with either ActiveState Perl
+or Strawberry Perl.  Otherwise, you'll want to set the
+value of heap_chunk_in_mb to allow for bigger data as
+described in the Cygwin Users Guide:
+http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html
 
- Work is underway to improve the native win32 perl PDL 
- support for external dependencies so that it may be
- used, feature for feature, instead of the cygwin port.
+Work is underway to improve the native win32 perl PDL 
+support for external dependencies so that it may be
+used, feature for feature, instead of the cygwin port.
+
+WARNING: There is a known problem with windows DLL base
+addresses being scrambled causing mysterious failures
+for cygwin builds.  See the REBASEALL directions below
+for the current work around.  Development for recent
+cygwins appear to be making progress towards fixing
+this problem.
+
+
 
 
 
