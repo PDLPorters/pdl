@@ -586,7 +586,7 @@ RCOLS_IO: {
          # strip out perl cols in explicit col list for return at end
          @end_perl_cols = @perl_cols;
          foreach my $col (@explicit_cols) {
-            if ( defined($is_perl_col[$col]) ) {
+            if ( ref($col) ne "ARRAY" and defined($is_perl_col[$col]) ) {
                @end_perl_cols = grep { $_ != $col } @end_perl_cols;
             }
          };
