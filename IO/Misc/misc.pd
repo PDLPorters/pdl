@@ -168,8 +168,12 @@ sub _burp_1D {
    if (ref $data eq 'ARRAY') {
       push @{$data}, @{$databox};
    } elsif ( ref($databox->[0]) eq "ARRAY" ) {
+      # could add POSIX::strtol for hex and octal support but
+      # can't break float conversions (how?)
       ($tmp = $data->slice(":,$start:$index")) .= pdl($databox);
    } else {
+      # could add POSIX::strtol for hex and octal support but
+      # can't break float conversions (how?)
       ($tmp = $data->slice("$start:$index")) .= pdl($databox);
    }
    $_[0] = [ $data, [] ];
