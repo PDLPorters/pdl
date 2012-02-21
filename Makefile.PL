@@ -625,9 +625,11 @@ doc_perl_install ::
 
 $text .= << "EOPS" ;
 
-changes : Changes
+Changes : GITCHANGES
 
-Changes ::
+changes : GITCHANGES
+
+GITCHANGES :
 \tgit log --stat --since='29 Apr 2009' > Changes
 
 perldl.pod : perldl subdirs
