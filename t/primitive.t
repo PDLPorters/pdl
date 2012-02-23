@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test::More;
 
-plan tests => 46;
+plan tests => 48;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -203,7 +203,7 @@ ok(!$@ && $c && $b->ndims==1, "uniqind, SF bug 3076570");      #34
 # Test whereND
 SKIP: {
    do 'whereND.pdl' if -e 'whereND.pdl';  # for development
-   skip "have no whereND", 6 unless defined(&whereND);
+   skip "have no whereND", 8 unless defined(&whereND);
 
    $a = sequence(4,3,2);
    $b = pdl(0,1,1,0);
@@ -227,4 +227,17 @@ SKIP: {
    $b = zeros(4);
    $c = whereND($a,$b);
    ok($c->isempty, 'whereND of all-zeros mask');               #40
+   
+   # Make sure whereND functions as an lvalue:
+   $a = sequence(4,3);
+   $b = pdl(0, 1, 1, 1);
+
+   eval q{
+   	  $a->whereND($b) *= -1;
+   };
+   is($@, '', 'using whereND in lvalue context does not croak');
+                                                               #41
+   ok(all($a->slice("1:-1") < 0), 'whereND in lvalue context works');
+                                                               #42
+   
 }
