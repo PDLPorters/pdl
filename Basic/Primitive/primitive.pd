@@ -2957,9 +2957,18 @@ to the original data PDLs, for the purpose of dataflow.
   $sdat4  = whereND $data, $mask4;   # $sdat4 is a [$n4,3,2] pdl
   $sdat43 = whereND $data, $mask43;  # $sdat43 is a [$n43,2] pdl
 
+Just as with C<where>, you can use the returned value in an
+assignment. That means that both of these examples are valid:
+
+  # Used to create a new slice stored in $sdat4:
+  $sdat4 = $data->whereND($mask4);
+  $sdat4 .= 0;
+  # Used in lvalue context:
+  $data->whereND($mask4) .= 0;
+
 =cut
 
-sub PDL::whereND {
+sub PDL::whereND :lvalue {
    barf "Usage: whereND( \$pdl1, ..., \$pdlN, \$mask )\n" if $#_ == 0;
 
    my $mask = pop @_;  # $mask has 0==false, 1==true
