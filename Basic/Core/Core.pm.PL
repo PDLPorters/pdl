@@ -3260,11 +3260,13 @@ sub PDL::cat {
 		# non-piddles and/or dimension mismatch.  The first argument is
 		# ok unless we have the "initialize" error:
 		if ($@ =~ /"initialize"/) {
-			while ($i < @_ and ref($_[$i]) !~ /PDL/) {
+			# Handle the special case that there are *no* args passed:
+			barf("Called PDL::cat without any arguments") unless @_;
+			
+			while ($i < @_ and not eval{ $_[$i]->isa('PDL')}) {
 				push (@not_a_piddle, $i);
 				$i++;
 			}
-				
 		}
 
 		# Get the dimensions of the first actual piddle in the argument
@@ -3276,7 +3278,7 @@ sub PDL::cat {
 		while ($i < @_) {
 			my $arg = $_[$i];
 			# Check if not a piddle
-			if (ref($arg) !~ /PDL/) {
+			if (not eval{$arg->isa('PDL')}) {
 				push @not_a_piddle, $i;
 			}
 			# Check if different number of dimensions
@@ -3319,6 +3321,11 @@ sub PDL::cat {
 			$message .= "Argument $not_a_piddle[0] is not a piddle.\n";
 		}
 		
+		# Handle the edge case that something else happened:
+		if (@not_a_piddle == 0 and @mismatched_dims == 0) {
+			barf("cat: unknown error from the internals:\n$@");
+		}
+               
 		$message .= "(Argument counting starts from zero.)";
 		barf($message);
 	}
