@@ -920,6 +920,8 @@ sub pp_line_numbers ($$) {
 	$line++;
 	# Get the source filename using caller()
 	my (undef, $filename) = caller;
+	# Escape backslashes:
+	$filename =~ s/\\/\\\\/g;
 	my @to_return = "#line $line \"$filename\"";
 	
 	# Look for threadloops and loops and add # line directives
