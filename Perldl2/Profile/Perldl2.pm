@@ -95,8 +95,10 @@ sub apply_profile {
       $PERLDL::TERM = $_REPL->term;
       ] );
 
+   #autoflush STDOUT
+   $repl->eval('$|=1;');
    # print alias
-   $repl->eval('sub p { local $, = " "; print @_, "\n" };');
+   $repl->eval('sub p { local $, = " "; print @_ };');
 
    # list history command
    $repl->eval('sub l {
