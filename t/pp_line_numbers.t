@@ -2,8 +2,8 @@
 
 $^W = 0;
 
-# Five tests for each of seven types:
-use Test::More tests => 35;
+# Five tests for each of two types:
+use Test::More tests => 10;
 use PDL::PP qw(foo::bar foo::bar foobar);
 
 # Add some tests for pp_line_numbers:
@@ -19,7 +19,8 @@ pp_def(test1 =>
       /* line 19, Line after close of loop */
     %}
     /* line 21, Line after close of threadloop */
-  })
+  }),
+  GenericTypes => [qw(F D)],
 );
 
 pp_done;
@@ -46,7 +47,7 @@ LINE: while(<$fh>) {
   }
   $line++;
 }
-
+close $fh;
 unlink 'foobar.xs';
 
 __END__
