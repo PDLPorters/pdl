@@ -1,0 +1,25 @@
+=head1 NAME
+
+Test::PDL - test piddles for equality
+
+=head1 DESCRIPTION
+
+This module and its test are candidates for being included in the PDL
+distribution.
+
+=head1 AUTHOR
+
+Edward Baudrez C<< <ebaudrez@cpan.org> >>
+
+Placed on Github by David Mertens
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2010 -- 2012 Edward Baudrez. All rights reserved.
+
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+
