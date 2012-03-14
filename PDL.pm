@@ -49,11 +49,9 @@ scripts.
 
 Test::PDL exports only one function: is_pdl().
 
-=head2 Functions
+=head1 FUNCTIONS
 
-=over 4
-
-=item _fail_comparison()
+=head2 _fail_comparison
 
 Internal function which does the real work of comparing two piddles. If the
 comparison fails, _fail_comparison() returns a string containing the reason for
@@ -61,7 +59,7 @@ failure. If the comparison succeeds, _fail_comparison() returns zero.
 
 The criteria for equality are the following:
 
-=over 8
+=over 4
 
 =item *
 
@@ -143,7 +141,14 @@ sub _fail_comparison
 	return 0;
 }
 
-=item is_pdl()
+=head2 is_pdl
+
+=for ref
+
+Run a test comparing a piddle to an expected piddle, and fail with detailed
+diagnostics if they don't compare equal.
+
+=for usage
 
 	is_pdl( $got, $expected, $test_name );
 
@@ -175,12 +180,7 @@ sub is_pdl
 	}
 }
 
-=back
-
-=cut
-
 1;
-
 __END__
 
 =head1 BUGS
