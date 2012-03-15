@@ -50,11 +50,11 @@ Test::PDL exports only one function: is_pdl().
 
 =head1 FUNCTIONS
 
-=head2 _fail_comparison
+=head2 _comparison_fails
 
 Internal function which does the real work of comparing two piddles. If the
-comparison fails, _fail_comparison() returns a string containing the reason for
-failure. If the comparison succeeds, _fail_comparison() returns zero.
+comparison fails, _comparison_fails() returns a string containing the reason for
+failure. If the comparison succeeds, _comparison_fails() returns zero.
 
 The criteria for equality are the following:
 
@@ -101,7 +101,7 @@ previous call to approx(), or the default tolerance if none was set before.
 
 =cut
 
-sub _fail_comparison
+sub _comparison_fails
 {
 	my ( $got, $expected ) = @_;
 	if( not eval { $got->isa('PDL') } ) {
@@ -176,7 +176,7 @@ diagnostics if they don't compare equal.
 Yields ok if the first two arguments are piddles that compare equal, not ok if
 the piddles are different, or if at least one is not a piddle. Prints a
 diagnostic when the comparison fails, with the reason and a brief printout of
-both arguments. See the documentation of _fail_comparison() for the comparison
+both arguments. See the documentation of _comparison_fails() for the comparison
 criteria. $test_name is optional.
 
 Named after is() from L<Test::More>.
@@ -188,10 +188,10 @@ sub is_pdl
 	my ( $got, $expected, $name ) = @_;
 	$name ||= "piddles are equal";
 	my $tb = __PACKAGE__->builder;
-	if( my $fail = _fail_comparison $got, $expected ) {
+	if( my $reason = _comparison_fails $got, $expected ) {
 		my $rc = $tb->ok( 0, $name );
 		my $fmt = '%-8T %-12D (%-5S) ';
-		$tb->diag( "    $fail\n",
+		$tb->diag( "    $reason\n",
 			   "         got: ", eval { $got->isa('PDL') }      ? $got->info( $fmt )      : '', $got, "\n",
 			   "    expected: ", eval { $expected->isa('PDL') } ? $expected->info( $fmt ) : '', $expected );
 		return $rc;
