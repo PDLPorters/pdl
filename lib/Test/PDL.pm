@@ -35,7 +35,6 @@ Test::PDL -- test piddles for equality
 use strict;
 use warnings;
 use base qw( Test::Builder::Module );
-use List::MoreUtils qw( pairwise );
 use PDL::Lite;
 our @EXPORT = qw( is_pdl );
 our $VERSION = '0.01';
@@ -117,7 +116,7 @@ sub _fail_comparison
 	if( $got->ndims != $expected->ndims ) {
 		return 'dimensions do not match in number';
 	}
-	if( List::MoreUtils::any { $_ } pairwise { $a != $b } @{ [ $got->dims ] }, @{ [ $expected->dims ] } ) {
+	if( not _dimensions_match( [$got->dims], [$expected->dims] ) ) {
 		return 'dimensions do not match in extent';
 	}
 	# evaluating these only makes sense for piddles that conform in shape
@@ -139,6 +138,28 @@ sub _fail_comparison
 	}
 	# if we get here, we didn't fail
 	return 0;
+}
+
+=head2 _dimensions_match
+
+Internal function which compares the extent of each of the dimensions of two
+piddles, one by one. The dimensions must be passed in as two array references.
+Returns 1 if all dimensions match pairwise. Returns 0 otherwise.
+
+This function will not operate correctly if the number of dimensions does not
+match between the piddles, so be sure to check that before calling this
+function.
+
+=cut
+
+sub _dimensions_match
+{
+	my @A = @{ +shift };
+	my @B = @{ +shift };
+	while( my $a = shift @A and my $b = shift @B ) {
+		if( $a != $b ) { return 0 }
+	}
+	return 1;
 }
 
 =head2 is_pdl
