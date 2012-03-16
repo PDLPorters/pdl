@@ -3,8 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 22;
 use Test::Builder::Tester;
+use Test::Exception;
 
 BEGIN {
 	use_ok( 'PDL' ) or BAIL_OUT( 'need PDL' );
@@ -87,20 +88,29 @@ test_test( 'catches value mismatches for floating-point data' );
 
 $expected = pdl( 4,5,6,7,8,9 );
 $got = pdl( 4,5,6,7,8.001,9 );
-# remember that approx remembers the tolerance across invocations
-ok( all( approx $got, $expected, 1e-2 ), "differ by less than 0.01" );
-test_out( "ok 1 - piddles are equal" );
-is_pdl( $got, $expected );
-test_test( 'approximate comparison for floating-point data succeeds correctly at 1e-2' );
-
-$expected = pdl( 4,5,6,7,8,9 );
-$got = pdl( 4,5,6,7,8.001,9 );
+# remember that approx() remembers the tolerance across invocations, so we
+# explicitly specify the tolerance at each invocation
 ok( !all( approx $got, $expected, 1e-6 ), "differ by more than 0.000001" );
 test_out( "not ok 1 - piddles are equal" );
 test_fail( +2 );
 test_err( '/#\s+values do not match\n(.|\n)*/' );
 is_pdl( $got, $expected );
-test_test( 'approximate comparison for floating-point data fails correctly at 1e-6' );
+test_test( 'approximate comparison for floating-point data fails correctly at documented default tolerance of 1e-6' );
+
+$expected = pdl( 4,5,6,7,8,9 );
+$got = pdl( 4,5,6,7,8.0000001,9 );
+ok( all( approx $got, $expected, 1e-6 ), "differ by less than 0.000001" );
+test_out( "ok 1 - piddles are equal" );
+is_pdl( $got, $expected );
+test_test( 'approximate comparison for floating-point data succeeds correctly at documented default tolerance of 1e-6' );
+
+Test::PDL::set_options( TOLERANCE => 1e-2 );
+$expected = pdl( 4,5,6,7,8,9 );
+$got = pdl( 4,5,6,7,8.001,9 );
+ok( all( approx $got, $expected, 1e-2 ), "differ by less than 0.01" );
+test_out( "ok 1 - piddles are equal" );
+is_pdl( $got, $expected );
+test_test( 'approximate comparison for floating-point data succeeds correctly at user-specified tolerance of 1e-2' );
 
 $expected = pdl( 0,1,2,3,4 );
 $got = sequence 5;
@@ -121,3 +131,8 @@ $got->badflag( 0 );
 test_out( "ok 1 - piddles are equal" );
 is_pdl( $got, $expected );
 test_test( "isn't fooled by differing badflags" );
+
+throws_ok { Test::PDL::set_options( SOME_INVALID_OPTION => 1 ) }
+	qr/invalid option SOME_INVALID_OPTION\b/, 'does not accept unknown options';
+throws_ok { Test::PDL::set_options( 'TOLERANCE' ) }
+	qr/undefined value for TOLERANCE/, 'refuses options without a value';

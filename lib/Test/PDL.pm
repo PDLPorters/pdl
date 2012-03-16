@@ -43,12 +43,53 @@ our $VERSION = '0.01';
 
 With Test::PDL, you can compare two piddles for equality. The comparison is
 performed as thoroughly as possible, comparing types, dimensions, bad value
-patterns, and finally the values themselves. Test::PDL is mostly useful in test
-scripts.
+patterns, and finally the values themselves. The exact behaviour can be
+configured by setting certain options (see set_options() and %OPTIONS below).
+Test::PDL is mostly useful in test scripts.
 
 Test::PDL exports only one function: is_pdl().
 
+=head1 VARIABLES
+
+=head2 %OPTIONS
+
+The comparison criteria used by is_pdl() can be configured by setting the
+values in the %OPTIONS hash. This can be done directly, by addressing
+%Test::PDL::OPTIONS directly. However, it is preferred that set_options() is
+used instead.
+
+=over 4
+
+=item TOLERANCE
+
+The tolerance used to compare floating-point values. Initially set to 1e-6.
+This is currently an absolute tolerance, meaning that two values compare equal
+if the absolute value of their difference is below the tolerance.
+
+=back
+
+=cut
+
+our %OPTIONS = (
+	TOLERANCE => 1e-6,
+);
+
 =head1 FUNCTIONS
+
+=head2 _approx
+
+Internal function reimplementing the functionality of PDL::approx(), but with a
+tolerance that is not remembered across invocations. Rather, the tolerance can
+be set by the user (see set_options() and $OPTIONS{TOLERANCE}), and defaults to
+1e-6.
+
+=cut
+
+sub _approx
+{
+	my( $a, $b ) = @_;
+	return abs( $a - $b ) < $OPTIONS{ TOLERANCE };
+}
 
 =head2 _comparison_fails
 
@@ -94,8 +135,8 @@ bad flag is different, if there are no bad values.
 And last but not least, the values themselves are examined one by one. For
 integer types, the comparison is performed exactly, whereas an approximate
 equality is used for floating-point types. The approximate comparison is
-implemented using approx(). Note that approx() will use the tolerance set by a
-previous call to approx(), or the default tolerance if none was set before.
+implemented using a private reimplementation of PDL::approx(). See _approx()
+for more information.
 
 =back
 
@@ -132,7 +173,7 @@ sub _comparison_fails
 	}
 	else {
 		# floating-point comparison must be approximate
-		if( not eval { PDL::all( PDL::approx $got, $expected ) } ) {
+		if( not eval { PDL::all( _approx $got, $expected ) } ) {
 			return 'values do not match';
 		}
 	}
@@ -198,6 +239,37 @@ sub is_pdl
 	}
 	else {
 		return $tb->ok( 1, $name );
+	}
+}
+
+=head2 set_options
+
+=for ref
+
+Configure the comparison carried out by is_pdl().
+
+=for example
+
+	# e.g., if a tolerance of 1e-6 is too tight
+	Test::PDL::set_options( TOLERANCE => 1e-4 );
+
+The preferred way to set the options to this module. See %OPTIONS for all
+allowed options. set_options() dies with an error if an unknown option is
+passed. Note that sensible default values are provided for all options, so you
+needn't use this routine if you are fine with the defaults.
+
+This function is not exported. Rather, it must be called as
+
+	Test::PDL::set_options( KEY => VALUE, ... );
+
+=cut
+
+sub set_options
+{
+	while( my( $key, $value ) = splice @_, 0, 2 ) {
+		barf( "invalid option $key" ) unless grep { $key eq $_ } keys %OPTIONS;
+		barf( "undefined value for $key" ) unless defined $value;
+		$OPTIONS{ $key } = $value;
 	}
 }
 
