@@ -66,12 +66,24 @@ The tolerance used to compare floating-point values. Initially set to 1e-6.
 This is currently an absolute tolerance, meaning that two values compare equal
 if the absolute value of their difference is below the tolerance.
 
+=item EQUAL_TYPES
+
+If true, only piddles with equal type can be considered equal. If false, the
+types of the piddles being compared is not taken into consideration. Defaults
+to false. The default allows to write tests like
+
+	is_pdl( $got, pdl([ 1, 3, 5, 6 ]) );
+
+without having to worry about the type of the piddle being exactly I<double>
+(which is the default type of the pdl() constructor).
+
 =back
 
 =cut
 
 our %OPTIONS = (
 	TOLERANCE => 1e-6,
+	EQUAL_TYPES => 0,
 );
 
 =head1 FUNCTIONS
@@ -151,7 +163,7 @@ sub _comparison_fails
 	if( not eval { $expected->isa('PDL') } ) {
 		return 'expected value is not a PDL';
 	}
-	if( $got->type != $expected->type ) {
+	if( $OPTIONS{ EQUAL_TYPES } && $got->type != $expected->type ) {
 		return 'types do not match';
 	}
 	if( $got->ndims != $expected->ndims ) {
@@ -165,8 +177,8 @@ sub _comparison_fails
 		not eval { PDL::all( PDL::isbad($got) == PDL::isbad($expected) ) } ) {
 		return 'bad value patterns do not match';
 	}
-	# if we get here, types and bad value patterns are sure to match
-	if( $got->type < PDL::float ) {
+	# if we get here, bad value patterns are sure to match
+	if( $got->type < PDL::float && $expected->type < PDL::float ) {
 		if( not eval { PDL::all( $got == $expected ) } ) {
 			return 'values do not match';
 		}
