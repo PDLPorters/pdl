@@ -2,7 +2,7 @@ package Test::PDL;
 
 =head1 NAME
 
-Test::PDL -- test piddles for equality
+Test::PDL - test piddles for equality
 
 =head1 SYNOPSIS
 
