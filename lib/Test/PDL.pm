@@ -34,10 +34,14 @@ Test::PDL - test piddles for equality
 
 use strict;
 use warnings;
-use base qw( Test::Builder::Module );
+use Test::Builder;
 use PDL::Lite;
+
+use base 'Exporter';
 our @EXPORT = qw( is_pdl );
 our $VERSION = '0.01';
+
+my $tb = Test::Builder->new;
 
 =head1 DESCRIPTION
 
@@ -240,7 +244,6 @@ sub is_pdl
 {
 	my ( $got, $expected, $name ) = @_;
 	$name ||= "piddles are equal";
-	my $tb = __PACKAGE__->builder;
 	if( my $reason = _comparison_fails $got, $expected ) {
 		my $rc = $tb->ok( 0, $name );
 		my $fmt = '%-8T %-12D (%-5S) ';
