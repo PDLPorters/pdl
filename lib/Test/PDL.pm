@@ -40,6 +40,7 @@ use PDL::Lite;
 use base 'Exporter';
 our @EXPORT = qw( is_pdl );
 our $VERSION = '0.01';
+$VERSION = eval $VERSION;
 
 my $tb = Test::Builder->new;
 
