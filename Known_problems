@@ -118,7 +118,8 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.10_001 release:
 
-  3483926    PDL::IO::GD OO interface doesn't free memory
+  3509400    pp_def, pp_line_numbers,..not found by pdldoc
+  3503566    pdl2 enters infinite loop on DWIMPerl
   3479009    Slice does not like whitespace
   3476648    PDL build of HTML docs fails on recent bleed Perl
   3475075    t/pic_16bit.t subtest fails
