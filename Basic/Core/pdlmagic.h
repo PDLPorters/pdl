@@ -58,8 +58,8 @@ typedef struct pdl_magic_changetrans {
 
 typedef struct pdl_magic_deletedata {
 	PDL_MAGICSTART;
-	void (*func)(pdl *p, int param);
-	int param;
+	void (*func)(pdl *p, Size_t param);
+	Size_t param;
 } pdl_magic_deletedata;
 
 /* #define PDL_PTHREAD */
@@ -134,7 +134,7 @@ void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thr
 int pdl_pthreads_enabled(void);
 
 /* Delete data magic */
-void pdl_delete_mmapped_data(pdl *p, int param) ;
-void pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, int param), int param);
+void pdl_delete_mmapped_data(pdl *p, Size_t param) ;
+void pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, Size_t param), Size_t param);
 
 #endif /* _pdlmagic_H_  */

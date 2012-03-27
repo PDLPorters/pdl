@@ -21,6 +21,7 @@ use vars qw( %PDL_DATATYPES );
 # version 7 introduced for some changes to function prototypes
 #   for pthreading (i.e. multi-threading) capabilities
 # version 8 for beginning support for >2GiB piddles
+# version 9 for STRLEN/Size_t/Off_t for mmap delete magic
 #
 use vars qw( $pdl_core_version );
 $pdl_core_version = 8;

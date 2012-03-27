@@ -601,7 +601,7 @@ int
 set_data_by_mmap(it,fname,len,writable,shared,creat,mode,trunc)
 	pdl *it
 	char *fname
-	Size_t len
+	STRLEN len
 	int writable
 	int shared
 	int creat
@@ -660,7 +660,7 @@ int
 set_data_by_offset(it,orig,offset)
       pdl *it
       pdl *orig
-      Off_t offset
+      STRLEN offset
       CODE:
               pdl_freedata(it);
               it->data = ((char *) orig->data) + offset;

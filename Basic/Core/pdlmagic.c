@@ -502,7 +502,7 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args){ return
  */
 
 
-void pdl_delete_mmapped_data(pdl *p, int param)
+void pdl_delete_mmapped_data(pdl *p, Size_t param)
 {
 	if(!p) {return;}
 	if(!p->data) {return;}
@@ -526,7 +526,7 @@ struct pdl_magic_vtable deletedatamagic_vtable = {
 	NULL
 };
 
-void pdl_add_deletedata_magic(pdl *it, void (*func)(pdl *, int param), int param)
+void pdl_add_deletedata_magic(pdl *it, void (*func)(pdl *, Size_t param), Size_t param)
 {
 	pdl_magic_deletedata *ptr = malloc(sizeof(pdl_magic_deletedata));
 	ptr->what = PDL_MAGIC_DELETEDATA;
