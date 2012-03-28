@@ -83,29 +83,29 @@ come across!
 The complex constant five is equal to C<pdl(1,0)>:
 
    pdl> p $x = r2C 5
-   5 +0i 
+   5 +0i
 
 Now calculate the three roots of of five:
 
-   pdl> p $r = Croots $x, 3 
-   [1.70998 +0i  -0.854988 +1.48088i  -0.854988 -1.48088i] 
+   pdl> p $r = Croots $x, 3
+   [1.70998 +0i  -0.854988 +1.48088i  -0.854988 -1.48088i]
 
 Check that these really are the roots of unity:
 
    pdl> p $r ** 3
-   [5 +0i  5 -1.22465e-15i  5 -7.65714e-15i] 
+   [5 +0i  5 -1.22465e-15i  5 -7.65714e-15i]
 
 Duh! Could be better. Now try by multiplying C<$r> three times with itself:
 
    pdl> p $r*$r*$r
-   [5 +0i  5 -4.72647e-15i  5 -7.53694e-15i] 
+   [5 +0i  5 -4.72647e-15i  5 -7.53694e-15i]
 
 Well... maybe C<Cpow> (which is used by the C<**> operator) isn't as
 bad as I thought. Now multiply by C<i> and negate, which is just a very
 expensive way of swapping real and imaginary parts.
 
    pdl> p -($r*i)
-   [0 -1.70998i  1.48088 +0.854988i  -1.48088 +0.854988i] 
+   [0 -1.70998i  1.48088 +0.854988i  -1.48088 +0.854988i]
 
 Now plot the magnitude of (part of) the complex sine. First generate the
 coefficients:
@@ -408,7 +408,7 @@ pp_def 'Ccmp',
         Doc => 'Complex comparison oeprator (spaceship). It orders by real first, then by imaginary. Hm, but it is mathematical nonsense! Complex numbers cannot be ordered.',
         Code => q^
            $GENERIC() a, b;
-           
+
            a = $a(m=>0), b = $b(m=>0);
            if (a != b)
              $c() = (a > b) * 2 - 1;
@@ -860,7 +860,7 @@ sub _gen_biop {
    } else {
       die;
    }
-   return ($1, $sub) if $1 eq "atan2";
+   if($1 eq "atan2" || $1 eq "<=>") { return ($1, $sub) }
    ($1, $sub, "$1=", $sub);
 }
 
@@ -884,7 +884,7 @@ sub initialize {
 use overload
    (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 <=>-Ccmp)),
    (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt abs@Cabs)),
-   (map _gen_cpop($_), qw(< <= == != => >)),
+   (map _gen_cpop($_), qw(< <= == != >= >)),
    '++' => sub { $_[0] += 1 },
    '--' => sub { $_[0] -= 1 },
    '""' => \&PDL::Complex::string
@@ -897,13 +897,13 @@ use overload
         # warning messages get disabled and enabled in the
         # proper order. Without the BEGIN's the 'use overload'
         #  would be called first.
-        BEGIN {$warningFlag = $^W; # Temporarily disable warnings caused by 
+        BEGIN {$warningFlag = $^W; # Temporarily disable warnings caused by
                $^W = 0;            # redefining PDL's subs
               }
 
 
 sub cp(;@) {
-	my $foo; 
+	my $foo;
 	if (ref $_[1]
 		&& (ref $_[1] ne 'PDL')
 		&& defined ($foo = overload::Method($_[1],'+')))
@@ -912,7 +912,7 @@ sub cp(;@) {
 }
 
 sub cm(;@) {
-	my $foo; 
+	my $foo;
 	if (ref $_[1]
 		&& (ref $_[1] ne 'PDL')
 		&& defined ($foo = overload::Method($_[1],'*')))
@@ -921,7 +921,7 @@ sub cm(;@) {
 }
 
 sub cmi(;@) {
-	my $foo; 
+	my $foo;
 	if (ref $_[1]
 		&& (ref $_[1] ne 'PDL')
 		&& defined ($foo = overload::Method($_[1],'-')))
@@ -930,7 +930,7 @@ sub cmi(;@) {
 }
 
 sub cd(;@) {
-	my $foo; 
+	my $foo;
 	if (ref $_[1]
 		&& (ref $_[1] ne 'PDL')
 		&& defined ($foo = overload::Method($_[1],'/')))
@@ -949,7 +949,7 @@ sub cd(;@) {
 
 
 
-        BEGIN{ $^W = $warningFlag;} # Put Back Warnings  
+        BEGIN{ $^W = $warningFlag;} # Put Back Warnings
 };
 
 
@@ -1049,7 +1049,7 @@ sub cd(;@) {
                $t = sprintf $dformat,$t;
             }
          }
-         $ret .= $i % 2 ? 
+         $ret .= $i % 2 ?
          $i<$#$x ? $t."i$sep" : $t."i"
          : substr($$x[$i+1],0,1) eq "-" ?  "$t " : $t." +";
       }
@@ -1070,15 +1070,15 @@ sub cd(;@) {
 
       my $findmax = 0;
 
-      if (!defined $format1 || !defined $format2 || 
-         $format1 eq '' || $format2 eq '') { 
+      if (!defined $format1 || !defined $format2 ||
+         $format1 eq '' || $format2 eq '') {
          $len1= $len2 = 0;
 
          if ( $badflag ) {
             for ($i=0; $i<=$#$x; $i++) {
-               if ( $$x[$i] eq "BAD" ) { 
+               if ( $$x[$i] eq "BAD" ) {
                   $f = 3;
-               } 
+               }
                else {
                   $f = length($$x[$i]);
                }
@@ -1088,10 +1088,10 @@ sub cd(;@) {
                else {
                   $len1 = $f if $f > $len1;
                }
-            } 
+            }
          } else {
             for ($i=0; $i<=$#$x; $i++) {
-               $f = length($$x[$i]); 
+               $f = length($$x[$i]);
                if ($i % 2){
                   $len2 = $f if $f > $len2;
                }
@@ -1134,9 +1134,9 @@ sub cd(;@) {
          if ( $badflag ) {
             for($i=0; $i<=$#$x; $i++){
                $findmax = $i % 2;
-               if ( $$x[$i] eq 'BAD' ){ 
+               if ( $$x[$i] eq 'BAD' ){
                   $f = 3;
-               } 
+               }
                else{
                   $f = $findmax ? length(sprintf $format2,$$x[$i]) :
                   length(sprintf $format1,$$x[$i]);
@@ -1147,15 +1147,15 @@ sub cd(;@) {
                else{
                   $len1 = $f if $f > $len1;
                }
-            } 
+            }
          } else {
             for ($i=0; $i<=$#$x; $i++) {
                if ($i % 2){
-                  $f = length(sprintf $format2,$$x[$i]); 
+                  $f = length(sprintf $format2,$$x[$i]);
                   $len2 = $f if $f > $len2;
                }
                else{
-                  $f = length(sprintf $format1,$$x[$i]); 
+                  $f = length(sprintf $format1,$$x[$i]);
                   $len1 = $f if $f > $len1;
                }
             }
@@ -1165,7 +1165,7 @@ sub cd(;@) {
       } # if: $findmax
 
       $ret = "\n" . ' 'x$level . "[\n";
-      { 
+      {
          my $level = $level+1;
          $ret .= ' 'x$level .'[';
          $len2 += 2;
@@ -1174,7 +1174,7 @@ sub cd(;@) {
             $findmax = $i % 2;
             if ($findmax){
                if ( $badflag and  $$x[$i] eq 'BAD' ){
-                  #|| 
+                  #||
                   #($findmax && $$x[$i - 1 ] eq 'BAD') ||
                   #(!$findmax && $$x[$i +1 ] eq 'BAD')){
                   $f = "BAD";
@@ -1225,7 +1225,7 @@ sub cd(;@) {
 
 =head1 AUTHOR
 
-Copyright (C) 2000 Marc Lehmann <pcg@goof.com>. 
+Copyright (C) 2000 Marc Lehmann <pcg@goof.com>.
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation as described
 in the file COPYING in the PDL distribution.
