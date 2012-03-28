@@ -33,10 +33,10 @@ part of the Transform object to keep track of arbitrary functions
 mapping R^N -> R^M with or without inverses.
 
 The simplest way to use a Transform object is to transform vector
-data between coordinate systems.  The L<apply|/apply> method 
+data between coordinate systems.  The L<apply|/apply> method
 accepts a PDL whose 0th dimension is coordinate index (all other
 dimensions are threaded over) and transforms the vectors into the new
-coordinate system.  
+coordinate system.
 
 Transform also includes image resampling, via the L<map|/map> method.
 You define a coordinate transform using a Transform object, then use
@@ -102,9 +102,9 @@ at first.  Here are some examples of transforms in action:
 The bang is a unary inversion operator.  It binds exactly as
 tightly as the normal bang operator.
 
-=item 'x' 
+=item 'x'
 
-By analogy to matrix multiplication, 'x' is the compose operator, so these 
+By analogy to matrix multiplication, 'x' is the compose operator, so these
 two expressions are equivalent:
 
   $f->inverse()->compose($g)->compose($f) # long way
@@ -115,7 +115,7 @@ f^-1 o g o f, or f^-1(g(f(x))).
 
 =item '**'
 
-By analogy to numeric powers, you can apply an operator a positive 
+By analogy to numeric powers, you can apply an operator a positive
 integer number of times with the ** operator:
 
   $f->compose($f)->compose($f)  # long way
@@ -137,8 +137,8 @@ springboarding is done via explicit ref rather than by subclassing,
 for convenience both in coding new transforms (just add the
 appropriate sub to the module) and in adding custom transforms at
 run-time. Note that, if possible, new C<func>s should support
-L<inplace|PDL::Core/inplace> operation to save memory when the data are flagged 
-inplace.  But C<func> should always return its result even when 
+L<inplace|PDL::Core/inplace> operation to save memory when the data are flagged
+inplace.  But C<func> should always return its result even when
 flagged to compute in-place.
 
 C<func> should treat the 0th dimension of its input as a dimensional
@@ -154,7 +154,7 @@ key can be left undefined in cases where there is no inverse.
 =item idim, odim
 
 Number of useful dimensions for indexing on the input and output sides
-(ie the order of the 0th dimension of the coordinates to be fed in or 
+(ie the order of the 0th dimension of the coordinates to be fed in or
 that come out).  If this is set to 0, then as many are allocated as needed.
 
 =item name
@@ -174,7 +174,7 @@ the transform.  This is analogous to the CTYPEn field used in FITS headers.
 
 =item oname
 
-Same as itype, but reporting what quantity is delivered for each 
+Same as itype, but reporting what quantity is delivered for each
 dimension.
 
 =item iunit
@@ -189,7 +189,7 @@ Same as iunit, but reporting what quantity is delivered for each dimension.
 
 =item params
 
-Hash ref containing relevant parameters or anything else the func needs to 
+Hash ref containing relevant parameters or anything else the func needs to
 work right.
 
 =item is_inverse
@@ -206,8 +206,8 @@ memory usage.
 If you define a new type of transform, consider generating a new stringify
 method for it.  Just define the sub "stringify" in the subclass package.
 It should call SUPER::stringify to generate the first line (though
-the PDL::Transform::Composition bends this rule by tweaking the 
-top-level line), then output (indented) additional lines as necessary to 
+the PDL::Transform::Composition bends this rule by tweaking the
+top-level line), then output (indented) additional lines as necessary to
 fully describe the transformation.
 
 =head1 NOTES
@@ -225,9 +225,9 @@ pixel-to-pixel.
 
 =head1 FUNCTIONS
 
-There are both operators and constructors.  The constructors are all 
+There are both operators and constructors.  The constructors are all
 exported, all begin with "t_", and all return objects that are subclasses
-of PDL::Transform.  
+of PDL::Transform.
 
 The L<apply|/apply>, L<invert|/invert>, L<map|/map>,
 and L<unmap|/unmap> methods are also exported to the C<PDL> package: they
@@ -322,12 +322,12 @@ pp_addpm(<<'+======EOD_apply======');
   $out = $data->apply($t);
   $out = $t->apply($data);
 
-=for ref 
+=for ref
 
 Apply a transformation to some input coordinates.
 
 In the example, C<$t> is a PDL::Transform and C<$data> is a PDL to
-be interpreted as a collection of N-vectors (with index in the 0th 
+be interpreted as a collection of N-vectors (with index in the 0th
 dimension).  The output is a similar but transformed PDL.
 
 For convenience, this is both a PDL method and a Transform method.
@@ -346,7 +346,7 @@ sub apply {
       $from = $me;
       $me = $a;
   }
-      
+
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL')){
       return &{$me->{func}}($from,$me->{params})
 	  if defined($me->{func});
@@ -378,8 +378,8 @@ pp_addpm(<<'+======EOD_invert======');
 Apply an inverse transformation to some input coordinates.
 
 In the example, C<$t> is a PDL::Transform and C<$data> is a piddle to
-be interpreted as a collection of N-vectors (with index in the 0th 
-dimension).  The output is a similar piddle.  
+be interpreted as a collection of N-vectors (with index in the 0th
+dimension).  The output is a similar piddle.
 
 For convenience this is both a PDL method and a PDL::Transform method.
 
@@ -409,8 +409,8 @@ sub invert {
 pp_addhdr(<<'+==EOD_map_auxiliary==');
 
 
-/* 
- * Singular-value decomposition code is borrowed from 
+/*
+ * Singular-value decomposition code is borrowed from
  * MatrixOps -- cut-and-pasted here because of linker trouble.
  * It's used by the auxiliary matrix manipulation code, below.
  *
@@ -484,24 +484,24 @@ void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCol)
 }
 
 
-/* 
- * PDL_xform_aux: 
+/*
+ * PDL_xform_aux:
  *  This handles the matrix manipulation part of the Jacobian filtered
- *  mapping code.  It's separate from the main code because it's 
+ *  mapping code.  It's separate from the main code because it's
  *  independent of the data type of the original arrays.
  *
- *Given a pre-allocated workspace  and 
- * an integer set of coordinates, generate the discrete Jacobian 
+ *Given a pre-allocated workspace  and
+ * an integer set of coordinates, generate the discrete Jacobian
  * from the map, pad the singular values, and return the inverse
  * Jacobian, the largest singular value of the Jacobian itself, and
- * the determinant of the original Jacobian.  Boundary values use the 
+ * the determinant of the original Jacobian.  Boundary values use the
  * asymmetric discrete Jacobian; others use the symmetric discrete Jacobian.
  *
- * The map and workspace must be of type PDL_D.  If the dimensionality is 
- * d, then the workspace must have at least 3*n^2+n elements.  The 
+ * The map and workspace must be of type PDL_D.  If the dimensionality is
+ * d, then the workspace must have at least 3*n^2+n elements.  The
  * inverse of the padded Jacobian is returned in the first n^2 elements.
- * The determinant of the original Jacobian gets stuffed into the n^2 
- * element of the workspace. The largest padded singular value is returned.  
+ * The determinant of the original Jacobian gets stuffed into the n^2
+ * element of the workspace. The largest padded singular value is returned.
  *
  */
 
@@ -516,10 +516,10 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
   PDL_Double max_sv = 0.0;
 
   ndims = map->ndims-1;
-	
+
   /****** Accumulate the Jacobian */
   /* Accumulate the offset into the map array */
-  for( i=offset=0; i<ndims; i++) 
+  for( i=offset=0; i<ndims; i++)
     offset += coords[i] * map->dimincs[i+1];
 
   jptr = tmp + ndims*ndims;
@@ -532,22 +532,22 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
     PDL_Long diff = map->dimincs[i+1];
     ohi = ((PDL_Double *)map->data) + ( offset + ( top ? 0 : diff ));
     olo = ((PDL_Double *)map->data) + ( offset - ( bot ? 0 : diff ));
-    
+
     for( j=0; j<ndims; j++) {                 /* Loop over dimension */
        PDL_Double jel =   *ohi - *olo;
 
        ohi += map->dimincs[0];
        olo += map->dimincs[0];
 
-       if(symmetric)      
+       if(symmetric)
          jel /= 2;
        *(jptr++) = jel;
     }
   }
 
-  /****** Singular-value decompose the Jacobian 
+  /****** Singular-value decompose the Jacobian
    * The svd routine produces the squares of the singular values,
-   * and requires normalization for one of the rotation matrices. 
+   * and requires normalization for one of the rotation matrices.
    */
 
   jptr =   tmp + ndims*ndims;
@@ -578,7 +578,7 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
 	max_sv = *aptr;
     aptr++;
   }
- 
+
   /****** Generate the inverse matrix */
   /* Multiply B-transpose times 1/S times A-transpose. */
   /* since S is diagonal we just divide by the appropriate element. */
@@ -591,15 +591,15 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
     for(j=0;j<ndims;j++) {
 	*jptr = 0;
 
-	for(k=0;k<ndims;k++) 
-	  *jptr += aptr[j*ndims + k] * bptr[k*ndims + i] / *svptr; 
+	for(k=0;k<ndims;k++)
+	  *jptr += aptr[j*ndims + k] * bptr[k*ndims + i] / *svptr;
 
 	jptr++;
     }
     svptr++;
   }
 
- *jptr = det; 
+ *jptr = det;
   return max_sv;
 }
 
@@ -613,12 +613,12 @@ pp_def('map',
 	Code=><<'+==EOD_map_c_code==',
 /*
  * Pixel interpolation & averaging code
- * 
+ *
  * Calls a common coordinate-transformation block (see following hdr)
  * that isn't dependent on the type of the input variable.
  *
- * The inputs are SVs to avoid hassling with threadloops; threading 
- * is handled internally.  To simplify the threading business, any 
+ * The inputs are SVs to avoid hassling with threadloops; threading
+ * is handled internally.  To simplify the threading business, any
  * thread dimensions should all be collapsed to a single one by the
  * perl front-end.
  *
@@ -673,17 +673,17 @@ pp_def('map',
   /**/   barf("%s", "Bug in map:  thread dimension error\n");              /**/
   /***************************************************************************/
 
- /* 
+ /*
   * Allocate all our dynamic workspaces at once...
  /* */
  ovec = (PDL_Long *)(PDL->smalloc( (STRLEN)
 	          	      ( sizeof(PDL_Long)   * 3 * ndims
                               + sizeof(PDL_Double) * (3*ndims*ndims + 3*ndims)
-                              + sizeof(PDL_Double) * in->dims[ndims] 
+                              + sizeof(PDL_Double) * in->dims[ndims]
                               + sizeof(char) * ndims )
 		             )
 		);
- ivec =            &(ovec[ndims]); 
+ ivec =            &(ovec[ndims]);
  ibvec =           &(ivec[ndims]);
  dvec = (PDL_Double *)(&(ibvec[ndims]));
  tvec =            &(dvec[ndims]);
@@ -704,7 +704,7 @@ pp_def('map',
   if(blen == 0) {
     /* If no boundary is specified then every dim gets truncated */
     int i;
-    for (i=0;i<ndims;i++) 
+    for (i=0;i<ndims;i++)
       bounds[i] = 1;
   } else {
     int i;
@@ -735,7 +735,7 @@ pp_def('map',
       }
     }
   }
- }  
+ }
 
 /***
  * Parse out the 'method', 'big', 'blur', and 'sv_min' arguments
@@ -745,15 +745,15 @@ pp_def('map',
   STRLEN mlen;
   mstr = SvPV($COMP(method),mlen);
 
-  if(mlen==0) 
+  if(mlen==0)
 	method = 'h';
   else switch(*mstr) {
-	case 'h': case 'H': 
+	case 'h': case 'H':
 		method = 'h'; break;
-        case 'g': case 'G': 
-	case 'j': case 'J': 
+        case 'g': case 'G':
+	case 'j': case 'J':
 		method = 'g'; break;
-        default: 
+        default:
 	   {
             char err[80];
             sprintf(err,"Bug in map: unknown method '%c'",*mstr);
@@ -762,7 +762,7 @@ pp_def('map',
            break;
 	}
  }
- big    = labs((PDL_Long)   (SvNV($COMP(big)))); 
+ big    = labs((PDL_Long)   (SvNV($COMP(big))));
  blur   = fabs((PDL_Double) (SvNV($COMP(blur))));
  sv_min = fabs((PDL_Double) (SvNV($COMP(sv_min))));
  flux   = (SvNV($COMP(flux)) != 0);
@@ -770,7 +770,7 @@ pp_def('map',
  /* End of initialization */
  /*************************************************************/
  /* Start of Real Work */
- 	
+
  /* Initialize coordinate vector and map offset
   */
  for(i=0;i<ndims;i++)
@@ -785,9 +785,9 @@ pp_def('map',
    /* Prefrobnicate the transformation matrix  */
    psize = (PDL_Long)(blur * PDL_xform_aux(map, ovec, tmp, sv_min) + 0.5 )+1;
    if(psize <= big) {
-     /* 
-      * Use the prefrobnicated matrix to generate a local linearization 
-      * dvec gets the delta; ibvec gets the base. 
+     /*
+      * Use the prefrobnicated matrix to generate a local linearization
+      * dvec gets the delta; ibvec gets the base.
       */
      {
        PDL_Double *mp = map_ptr;
@@ -796,14 +796,14 @@ pp_def('map',
   	mp += map->dimincs[0];
        }
      }
-  
-     /* 
+
+     /*
       * Initialize input delta vector
       */
      for(i=0;i<ndims;i++)
   	ivec[i] = - psize;
-  
-     /* 
+
+     /*
       * Initialize accumulators
       */
      {
@@ -812,13 +812,13 @@ pp_def('map',
   	*(ac++) = 0.0;
      }
      wgt = 1.0e-9;  /* negligible but nonzero */
-    
+
      do {  /* Input accumulation loop */
        int bound_ok = 1;
        PDL_Long i_off = 0;
-  
+
        /* Find the offset for the current input point, applying boundaries */
-  
+
        for(i=0; i<ndims && bound_ok; i++) {
          j = ivec[i] + ibvec[i];
          if(j < 0 || j >= in->dims[i]) {
@@ -843,7 +843,7 @@ pp_def('map',
              case 4: /* mirror -- reflect off the edges */
                j += in->dims[i];
                j %= (in->dims[i] * 2);
-               if(j < 0) 
+               if(j < 0)
                  j += in->dims[i] * 2;
                j -= in->dims[i];
                if(j < 0) {
@@ -858,26 +858,26 @@ pp_def('map',
          }
          i_off += in->dimincs[i] * j;
        }
-  
+
        {  /* convenience block for bounds handling and data weighting */
          PDL_Double alpha = 1.0;
          PDL_Double *ap = tvec;
          PDL_Double *bp = dvec;
          PDL_Double *cp;
          PDL_Long *ip   = ivec;
-  
+
          for(i=0; i<ndims; i++)
            *(ap++) = *(ip++) - *(bp++);
-       
-       /* Calculate the linearization-transformed point, and 
-        * infer a weighting from it.  Use the per-dimension Hanning 
+
+       /* Calculate the linearization-transformed point, and
+        * infer a weighting from it.  Use the per-dimension Hanning
         * window or a radial Gaussian.
         */
          cp = tmp;
-        
+
          switch(method) {
             PDL_Double dd;
-  
+
   	case 'h':
   	       for(i=0; i<ndims; i++) {
   	         dd = 0;
@@ -888,13 +888,13 @@ pp_def('map',
   	         if( dd > 1 ) {
   	             alpha = 0;
   	             i = ndims;
-  	         } else 
-  	             alpha *= (0.5 + 0.5 * cos( dd * 3.1415926536 ));            
+  	         } else
+  	             alpha *= (0.5 + 0.5 * cos( dd * 3.1415926536 ));
   	       }
    	      break;
   	case 'g':
                 {PDL_Double sum = 0;
-  
+
   	       for(i=0; i<ndims; i++) {
   	         dd = 0;
   	         ap = tvec;
@@ -905,27 +905,27 @@ pp_def('map',
   		  if(sum > 4) /* 2 pixels -- four half-widths */
   		    i = ndims; /* exit early if this pixel is too far outside the footprint of the ideal point */
   	       }
-  	       
-   	       if(sum > 4)	
+
+   	       if(sum > 4)
   		  alpha = 0;
   	       else
   		  alpha = exp(-sum * 1.386294); /* Gaussian, rt(2)-pix HWHM */
   	     }
    	      break;
-  	 default: 
+  	 default:
   	     {
                  char buf[80];
                   sprintf(buf,"This can't happen: method='%c'",method);
   	        barf("%s", buf);
   	     }
   	}
-  
-  
+
+
         /* We've got the weighting, now accumulate the values as needed... */
          wgt += alpha;
-       
+
        if(bound_ok)
-         { 
+         {
           PDL_Double *ac = acc;
           $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
           for( i=0; i < out->dims[ndims]; i++ ) {
@@ -935,24 +935,24 @@ pp_def('map',
          }/* end of bound_ok check */
 
        }  /* end of data collection convenience block */
-       
+
        /* Advance input accumulation loop */
-       for(i=0; 
+       for(i=0;
              (i < ndims) &&
              (++(ivec[i]) > psize);
            i++) {
           ivec[i] = -psize;
        }
      } while(i<ndims);  /* end of total data accumulation loop */
-     
+
      {
        PDL_Double *ac = acc;
        $GENERIC() *dat = out->data;
-       
-       for(i=0;i<ndims;i++) 
+
+       for(i=0;i<ndims;i++)
          dat += out->dimincs[i] * ovec[i];
 
-       if(flux) {       
+       if(flux) {
 	  PDL_Double det = tmp[ndims*ndims];
           for(i=0; i < out->dims[ndims]; i++) {
             *dat = *(ac++) / wgt * det;
@@ -967,7 +967,7 @@ pp_def('map',
      }
 
      /* End of code for normal pixels */
-   } else {       
+   } else {
      /* The pixel was ludicrously huge -- just set this pixel to nan */
      $GENERIC() *dat = out->data;
       for(i=0;i<ndims;i++)
@@ -1000,14 +1000,14 @@ pp_def('map',
 =head2 PDL::match
 
 =for usage
-	
+
   $b = $a->match($c);
 
 =for ref
 
 Resample a scientific image to the same coordinate system as another.
 
-The example above is syntactic sugar for 
+The example above is syntactic sugar for
 
  $b = $a->map(t_identity, $c, ...);
 
@@ -1027,7 +1027,7 @@ $c's FITS header.
 Resample an image or N-D dataset using a coordinate transform.
 
 The data are resampled so that the new pixel indices are proportional
-to the transformed coordinates rather than the original ones.  
+to the transformed coordinates rather than the original ones.
 
 The operation uses the inverse transform: each output pixel location
 is inverse-transformed back to a location in the original dataset, and
@@ -1039,13 +1039,13 @@ For convenience, this is both a PDL method and a PDL::Transform method.
 
 C<map> is FITS-aware: if there is a FITS header in the input data,
 then the coordinate transform acts on the scientific coordinate system
-rather than the pixel coordinate system. 
+rather than the pixel coordinate system.
 
 By default, the output coordinates are separated from pixel coordinates
 by a single layer of indirection.  You can specify the mapping between
 output transform (scientific) coordinates to pixel coordinates using
-the C<orange> and C<irange> options (see below), or by supplying a 
-FITS header in the template.  
+the C<orange> and C<irange> options (see below), or by supplying a
+FITS header in the template.
 
 If you don't specify an output transform, then the output is
 autoscaled: C<map> transforms a few vectors in the forward direction
@@ -1054,8 +1054,8 @@ plane, for most transformations.  The calculated mapping gets stuck in the
 output's FITS header.
 
 Autoscaling is especially useful for rescaling images -- if you specify
-the identity transform and allow autoscaling, you duplicate the 
-functionality of L<rescale2d|PDL::Image2D/rescale2d>, but with more 
+the identity transform and allow autoscaling, you duplicate the
+functionality of L<rescale2d|PDL::Image2D/rescale2d>, but with more
 options for interpolation.
 
 You can operate in pixel space, and avoid autoscaling of the output,
@@ -1129,12 +1129,12 @@ as in the L<PGPLOT|PDL::Graphics::PGPLOT>interface.)
 
 =item ir, irange, input_range, Input_Range
 
-This is a way to modify the autoscaling.  It specifies the range of 
+This is a way to modify the autoscaling.  It specifies the range of
 input scientific (not necessarily pixel) coordinates that you want to be
-mapped to the output image.  It can be either a nested array ref or 
+mapped to the output image.  It can be either a nested array ref or
 a piddle.  The 0th dim (outside coordinate in the array ref) is
 dimension index in the data; the 1st dim should have order 2.
-For example, passing in either [[-1,2],[3,4]] or pdl([[-1,2],[3,4]]) 
+For example, passing in either [[-1,2],[3,4]] or pdl([[-1,2],[3,4]])
 limites the map to the quadrilateral in input space defined by the
 four points (-1,3), (-1,4), (2,4), and (2,3).
 
@@ -1146,7 +1146,7 @@ This parameter is overridden by C<orange>, below.
 
 =item or, orange, output_range, Output_Range
 
-This sets the window of output space that is to be sampled onto the 
+This sets the window of output space that is to be sampled onto the
 output array.  It works exactly like C<irange>, except that it specifies
 a quadrilateral in output space.  Since the output pixel array is itself
 a quadrilateral, you get pretty much exactly what you asked for.
@@ -1167,13 +1167,13 @@ options, in order from fastest to slowest, are:
 =item * s, sample (default for ints)
 
 Pixel values in the output plane are sampled from the closest data value
-in the input plane.  This is very fast but not very accurate for either 
+in the input plane.  This is very fast but not very accurate for either
 magnification or decimation (shrinking).  It is the default for templates
 of integer type.
 
 =item * l, linear (default for floats)
 
-Pixel values are linearly interpolated from the closest data value in the 
+Pixel values are linearly interpolated from the closest data value in the
 input plane.  This is reasonably fast but only accurate for magnification.
 Decimation (shrinking) of the image causes aliasing and loss of photometry
 as features fall between the samples.  It is the default for floating-point
@@ -1210,7 +1210,7 @@ introducing the fewest artifacts into a properly sampled data set.
 
 =back
 
-=item blur, Blur (default = 1.0) 
+=item blur, Blur (default = 1.0)
 
 This value scales the input-space footprint of each output pixel in
 the gaussian and hanning methods. It's retained for historical
@@ -1237,13 +1237,13 @@ provide for photometric accuracy in more pathological cases.  Numbers larer
 than 1.0 are silly, because they allow the entire input array to be compressed
 into a region smaller than a single pixel.
 
-Wherever an output pixel would require averaging over an area that is too 
+Wherever an output pixel would require averaging over an area that is too
 big in input space, it instead gets NaN or the equivalent (bad values are
 not yet supported).
 
 =item phot, photometry, Photometry
 
-This lets you set the style of photometric conversion to be used in the 
+This lets you set the style of photometric conversion to be used in the
 hanning or gaussian methods.  You may choose:
 
 =over 3
@@ -1270,8 +1270,8 @@ The 'hanning' and 'gaussian' methods of interpolation give
 photometrically accurate resampling of the input data for arbitrary
 transformations.  At each pixel, the code generates a linear
 approximation to the input transformation, and uses that linearization
-to estimate the "footprint" of the output pixel in the input space.  
-The output value is a weighted average of the appropriate input spaces.  
+to estimate the "footprint" of the output pixel in the input space.
+The output value is a weighted average of the appropriate input spaces.
 
 A caveat about these methods is that they assume the transformation is
 continuous.  Transformations that contain discontinuities will give
@@ -1293,7 +1293,7 @@ use PDL::NiceSlice;
 sub PDL::match {
   t_identity()->map(@_);
 }
-    
+
 
 *PDL::map = \&map;
 sub map {
@@ -1311,7 +1311,7 @@ sub map {
 
   my($tmp) = shift;
   my($opt) = shift;
-     
+
   # Check for options-but-no-template case
   if(ref $tmp eq 'HASH' && !(defined $opt)) {
     if(!defined($tmp->{NAXIS})) {  # FITS headers all have NAXIS.
@@ -1330,7 +1330,7 @@ sub map {
   my($ohdr);
   if(UNIVERSAL::isa($tmp,'PDL')) {
     @odims = $tmp->dims;
-    
+
     my($a);
     if(defined ($a = $tmp->gethdr)) {
       my(%b) = %{$a};
@@ -1359,16 +1359,16 @@ sub map {
   $out->sethdr($ohdr) if defined($ohdr);
 
   ##############################
-  ## Figure out the dimensionality of the 
+  ## Figure out the dimensionality of the
   ## transform itself (extra dimensions come along for the ride)
   my $nd = $me->{odim} || $me->{idim} || 2;
   my @sizes = $out->dims;
   my @dd = @sizes;
-  
+
   splice @dd,$nd; # Cut out dimensions after the end
 
   # Check that there are elements in the output fields...
-  barf "map: output has no dims!\n" 
+  barf "map: output has no dims!\n"
 	unless(@dd);
   my $ddtotal = 1;
   map {$ddtotal *= $_} @dd;
@@ -1408,7 +1408,7 @@ sub map {
 	barf "map: orange must be 2xN for an N-D transform"
 	  unless ( (($orange->dim(1)) == $nd )
 		   && $orange->ndims == 2);
-	
+
 	$omin = $orange->((0));
 	$omax = $orange->((1));
 	$osize = $omax - $omin;
@@ -1417,19 +1417,19 @@ sub map {
 
 	my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
 
-	my $coords = ndcoords(($samps + 1)->list); 
+	my $coords = ndcoords(($samps + 1)->list);
 
 	my $t;
 	my $irange = _opt($opt, ['ir','irange','input_range','Input_Range'],
 			  undef);
 
-	# If input range is defined, sample that quadrilateral -- else 
+	# If input range is defined, sample that quadrilateral -- else
 	# sample the quad defined by the boundaries of the input image.
 	if(defined $irange) {
 	  print "using user's irange..." if($PDL::Transform::debug);
 	  $irange = pdl($irange) unless(UNIVERSAL::isa($irange,'PDL'));
 	  barf "map: irange must be 2xN for an N-D transform"
-	    unless ( (($irange->dim(1)) == $nd ) 
+	    unless ( (($irange->dim(1)) == $nd )
 		     && $irange->ndims == 2);
 
 	  $coords *= ($irange->((1)) - $irange->((0))) / $samps;
@@ -1479,8 +1479,8 @@ sub map {
 	  $out->hdr->{"CDELT$d"} = $scale->at($d-1);
 	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
 	  $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
-	  $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ? 
-				      $me->{otype}->[$d-1] : "") 
+	  $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
+				      $me->{otype}->[$d-1] : "")
 				     || $in->hdr->{"CTYPE$d"}
 				     || "");
 	  $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
@@ -1498,13 +1498,13 @@ sub map {
       ### These are the CROTA<n>, PCi_j, and CDi_j.
       for $k(keys %{$out->hdr})	 {
 	  if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+$)/ ){
-	      delete $out->hdr->{$k} 
+	      delete $out->hdr->{$k}
 	  }
       }
-      
-      
+
+
     }
-  
+
   $out->hdrcpy(1);
 
   ##############################
@@ -1527,14 +1527,14 @@ sub map {
   my $idx = $me->invert($ndc->double);
 
   barf "map: Transformation had no inverse\n" unless defined($idx);
-	
+
   ##############################
-  ## Integrate ?  (Jacobian, Gaussian, Hanning)  
+  ## Integrate ?  (Jacobian, Gaussian, Hanning)
   my $integrate = ($method =~ m/^[jghJGH]/) if defined($method);
 
   ##############################
   ## Sampling code:
-  ## just transform and interpolate. 
+  ## just transform and interpolate.
   ##  ( Kind of an anticlimax after all that, eh? )
   if(!$integrate) {
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
@@ -1552,14 +1552,14 @@ sub map {
 	if($in->ndims < $idx->ndims-1);
 
   ####################
-  ## Condition the threading -- pixelwise interpolator only threads 
+  ## Condition the threading -- pixelwise interpolator only threads
   ## in 1 dimension, so squish all thread dimensions into 1, if necessary
   my @iddims = $idx->dims;
   if($in->ndims == $#iddims) {
 	$in2 = $in->dummy(-1,1);
   } else {
-	$in2 = ( $in 
-	        ->reorder($nd..$in->ndims-1, 0..$nd-1)	
+	$in2 = ( $in
+	        ->reorder($nd..$in->ndims-1, 0..$nd-1)
 		->clump($in->ndims - $nd)
 		->mv(0,-1)
 	       );
@@ -1567,8 +1567,8 @@ sub map {
 
   ####################
   # Allocate the output array
-  my $o2 = PDL->new_from_specification($in2->type, 
-				    @iddims[1..$#iddims], 
+  my $o2 = PDL->new_from_specification($in2->type,
+				    @iddims[1..$#iddims],
 	 			    $in2->dim(-1)
 				   );
 
@@ -1601,13 +1601,13 @@ sub map {
   $big = $big * max(pdl(@idims[0..$nd])) / 2;
   $blur = $blur->at(0) if(ref $blur);
   $svmin =  $svmin->at(0)  if(ref $svmin);
-  
+
 
 
   ### The first argument is a dummy to set $GENERIC.
   $idx = double($idx) unless($idx->type == double);
-  &PDL::_map_int( $in2->flat->index(0), 
-	$in2, $o2, $idx, 
+  &PDL::_map_int( $in2->flat->index(0),
+	$in2, $o2, $idx,
 	$bound, $method, $big, $blur, $svmin, $flux );
 
   my @rdims = (@iddims[1..$#iddims], @idims[$#iddims..$#idims]);
@@ -1615,15 +1615,15 @@ sub map {
      my $tmp; # work around perl -d "feature"
      ($tmp = $out->(:)) .= $o2->reshape(@rdims);
   }
- 
-}  
+
+}
 
 +==EOD_map_perlcode==
 
 );
 
 
-pp_add_exported('unmap');  
+pp_add_exported('unmap');
 pp_addpm(<<'+======EOD_unmap======');
 
 ######################################################################
@@ -1669,7 +1669,7 @@ sub unmap {
 pp_add_exported('t_inverse');
 pp_addpm(<<'+======EOD_t_inverse======');
 
-=head2 t_inverse 
+=head2 t_inverse
 
 =for usage
 
@@ -1708,7 +1708,7 @@ sub inverse {
   my(%out) = %$me; # force explicit copy of top-level
   my($out) = \%out;
 
-  $out->{inv}  = $me->{func}; 
+  $out->{inv}  = $me->{func};
   $out->{func} = $me->{inv};
 
   $out->{idim} = $me->{odim};
@@ -1716,7 +1716,7 @@ sub inverse {
 
   $out->{otype} = $me->{itype};
   $out->{itype} = $me->{otype};
-  
+
   $out->{ounit} = $me->{iunit};
   $out->{iunit} = $me->{ounit};
 
@@ -1733,7 +1733,7 @@ sub inverse {
 pp_add_exported('t_compose');
 pp_addpm(<<'+======EOD_t_compose======');
 
-=head2 t_compose 
+=head2 t_compose
 
 =for usage
 
@@ -1741,7 +1741,7 @@ pp_addpm(<<'+======EOD_t_compose======');
   $f2 = $f->compose($g[,$h,$i,...]);
   $f2 = $f x $g x ...;
 
-=for ref 
+=for ref
 
 Function composition: f(g(x)), f(g(h(x))), ...
 
@@ -1750,7 +1750,7 @@ You can also compose transforms using the overloaded matrix-multiplication
 
 This is accomplished by inserting a splicing code ref into the C<func>
 and C<inv> slots.  It combines multiple compositions into a single
-list of transforms to be executed in order, fram last to first (in 
+list of transforms to be executed in order, fram last to first (in
 keeping with standard mathematical notation).  If one of the functions is
 itself a composition, it is interpolated into the list rather than left
 separate.  Ultimately, linear transformations may also be combined within
@@ -1812,7 +1812,7 @@ sub compose {
 
   $me->{otype} = $funcs[0]->{otype};
   $me->{ounit} = $funcs[0]->{ounit};
-  
+
   $me->{itype} = $funcs[-1]->{itype};
   $me->{iunit} = $funcs[-1]->{iunit};
 
@@ -1863,7 +1863,7 @@ Shift a transform into a different space by 'wrapping' it with a second.
 This is just a convenience function for two
 L<t_compose|/t_compose> calls. C<< $a->wrap($b) >> is the same as
 C<(!$b) x $a x $b>: the resulting transform first hits the data with
-$b, then with $a, then with the inverse of $b.  
+$b, then with $a, then with the inverse of $b.
 
 For example, to shift the origin of rotation, do this:
 
@@ -1880,7 +1880,7 @@ For example, to shift the origin of rotation, do this:
 sub wrap {
   my($f) = shift;
   my($g) = shift;
-  
+
   return $g->inverse->compose($f,$g);
 }
 
@@ -1898,7 +1898,7 @@ sub _compose_op {
 
 sub _pow_op {
     my($a,$b,$c) = @_;
-    
+
     barf("%s", "Can't raise anything to the power of a transform")
 	if($c || UNIVERSAL::isa($b,'PDL::Transform')) ;
 
@@ -1933,7 +1933,7 @@ pp_addpm(<<'+======EOD_t_identity======');
 
 Generic constructor generates the identity transform.
 
-This constructor really is trivial -- it is mainly used by the other transform 
+This constructor really is trivial -- it is mainly used by the other transform
 constructors.  It takes no parameters and returns the identity transform.
 
 =cut
@@ -1943,20 +1943,20 @@ sub t_identity { new PDL::Transform(@_) };
 
 sub new {
   my($class) = shift;
-  my $me = {name=>'identity', 
+  my $me = {name=>'identity',
 	    idim => 0,
 	    odim => 0,
-	    func=>\&PDL::Transform::_identity, 
+	    func=>\&PDL::Transform::_identity,
 	    inv=>\&PDL::Transform::_identity,
 	    params=>{}
 	  };
-  
+
   return bless $me,$class;
 }
 
 +======EOD_t_identity======
 
-  
+
 pp_add_exported('t_lookup');
 pp_addpm(<<'+======EOD_t_lookup======');
 
@@ -1994,7 +1994,7 @@ single dimension containing the column vector to be output for each
 set of other dimensions -- ie to output 2-vectors from 2 input
 parameters, each of which can range from 0 to 49, you want an index
 that has dimension list (50,50,2).  For the identity lookup table
-you could use  C<cat(xvals(50,50),yvals(50,50))>.  
+you could use  C<cat(xvals(50,50),yvals(50,50))>.
 
 If you want to output a single value per input vector, you still need
 that last index threading dimension -- if necessary, use C<dummy(-1,1)>.
@@ -2014,15 +2014,15 @@ Options are listed below; there are several synonyms for each.
 
 =item s, scale, Scale
 
-(default 1.0) Specifies the linear amount of scaling to be done before 
+(default 1.0) Specifies the linear amount of scaling to be done before
 lookup.  You can feed in a scalar or an N-vector; other values may cause
-trouble.  If you want to save space in your table, then specify smaller 
-scale numbers. 
+trouble.  If you want to save space in your table, then specify smaller
+scale numbers.
 
 =item o, offset, Offset
 
-(default 0.0) Specifies the linear amount of offset before lookup.  
-This is only a scalar, because it is intended to let you switch to 
+(default 0.0) Specifies the linear amount of offset before lookup.
+This is only a scalar, because it is intended to let you switch to
 corner-centered coordinates if you want to (just feed in o=-0.25).
 
 =item b, bound, boundary, Boundary
@@ -2050,13 +2050,13 @@ To do the same thing but with a smaller lookup table, try:
   $t = t_lookup($lookup,{scale=>1/16.0});
   $b = $t->map($a);
 
-(Notice that, although the lookup table coordinates are is divided by 16, 
+(Notice that, although the lookup table coordinates are is divided by 16,
 it is a 17x17 -- so linear interpolation works right to the edge of the original
 domain.)
 
 NOTES
 
-Inverses are not yet implemented -- the best way to do it might be by 
+Inverses are not yet implemented -- the best way to do it might be by
 judicious use of map() on the forward transformation.
 
 the type/unit fields are ignored.
@@ -2096,11 +2096,11 @@ sub t_lookup {
       }
     };
 
-  
+
    my $lookup_func = sub {
      my($data,$p,$table,$scale,$offset) = @_;
 
-    $data = pdl($data) 
+    $data = pdl($data)
       unless ((ref $data) && (UNIVERSAL::isa($data,'PDL')));
       $main::foo = $data;
 
@@ -2113,12 +2113,12 @@ sub t_lookup {
 			$p->{interpND_opt}
 			)
 	     );
-    
+
 
     # Put the index dimension (and threaded indices) back at the front of
     # the dimension list.
     my($dnd) = $data->ndims - 1;
-    return ($a -> ndims > $data->ndims - 1) ? 
+    return ($a -> ndims > $data->ndims - 1) ?
       ($a->reorder( $dnd..($dnd + $table->ndims - $data->dim(0)-1)
 		    , 0..$data->ndims-2
 		    )
@@ -2140,19 +2140,19 @@ sub t_lookup {
         my $itable = zeroes($p->{table});
 	my $minvals = $p->{table}->clump($me->{idim})->minimum;
 	my $maxvals = $p->{table}->clump($me->{idim})->maximum;
-	
+
 	# Scale so that the range runs from 0 through the top pixel in the table
-	my $scale = (  pdl(  $itable->dims  )->(0:-2)-1  ) / 
+	my $scale = (  pdl(  $itable->dims  )->(0:-2)-1  ) /
 	   	    (($maxvals - $minvals)+ (($maxvals-$minvals) == 0));
         my $offset = - ($minvals * $scale);
 
 	$p->{iscale} = $scale;
 	$p->{ioffset} = $offset;
-		      
+
      	my $enl_scale = $p->{'enl_scale'} || 10;
 	my $smallcoords = ndcoords((pdl($enl_scale * 2 + 1)->at(0)) x $me->{idim})/ $enl_scale - 1;
 
-	# $oloop runs over (point, index) for all points in the output table, in 
+	# $oloop runs over (point, index) for all points in the output table, in
 	# $p->{table} output space
 	$oloop = ndcoords($itable->mv(-1,0)->((0)))->
 	    double->
@@ -2164,8 +2164,8 @@ sub t_lookup {
 	    ($tmp = $oloop->mv(-1,0)) /= $scale;
         }
 
-	# The Right Thing to do here is to take the outer product of $itable and $otable, then collapse 
-	# to find minimum distance.  But memory demands for that would be HUGE.  Instead we do an 
+	# The Right Thing to do here is to take the outer product of $itable and $otable, then collapse
+	# to find minimum distance.  But memory demands for that would be HUGE.  Instead we do an
 	# elementwise calculation.
 
 	print "t_lookup: inverting ".$oloop->dim(0)." points...\n" if($PDL::verbose || $PDL::debug || $PDL::Transform::debug);
@@ -2186,14 +2186,14 @@ sub t_lookup {
 	    $diff = $neighborhood - $olp;        # diff runs (index, dx, dy, ...)
 	    $r2 = ($diff * $diff)->sumover;      # r2 runs (dx,dy,...)
 	    my $dc = $smallcoords->mv(0,-1)->indexND(0+whichND($r2==$r2->min)->(:,(0)));
-	    
+
 
 	    my $coord = $c + $dc;
 	    # At last, we've found the best-fit to an enl_scale'th of an input-table pixel.
 	    # Back it out to input-science coordinates, and stuff it in the inverse table.
             my $tmp; # work around perl -d "feature"
 	    ($tmp = $itable_flattened->(($i))) .= $coord;
-	    
+
 	    print " $i..." if( ($i%1000==0) && ( $PDL::verbose || $PDL::debug || $PDL::Transform::debug));
         }
 
@@ -2224,14 +2224,14 @@ pp_addpm(<<'+======EOD_t_linear======');
 
 =for usage
 
-$f = t_linear({options});  
+$f = t_linear({options});
 
 =for ref
 
 Linear (affine) transformations with optional offset
 
 t_linear implements simple matrix multiplication with offset,
-also known as the affine transformations.  
+also known as the affine transformations.
 
 You specify the linear transformation with pre-offset, a mixing
 matrix, and a post-offset.  That overspecifies the transformation, so
@@ -2240,7 +2240,7 @@ The inverse transform is automagically generated, provided that it
 actually exists (the transform matrix is invertible).  Otherwise, the
 inverse transform just croaks.
 
-Extra dimensions in the input vector are ignored, so if you pass a 
+Extra dimensions in the input vector are ignored, so if you pass a
 3xN vector into a 3-D linear transformation, the final dimension is passed
 through unchanged.
 
@@ -2281,25 +2281,25 @@ the rotation happens after the more general operation -- though that is
 deprecated.
 
 Of course, you can duplicate this functionality -- and get more
-general -- by generating your own rotation matrix and feeding it in 
+general -- by generating your own rotation matrix and feeding it in
 with the C<matrix> option.
 
 =item m, matrix, Matrix
 
 The transformation matrix.  It does not even have to be square, if you want
-to change the dimensionality of your input.  If it is invertible (note: 
+to change the dimensionality of your input.  If it is invertible (note:
 must be square for that), then you automagically get an inverse transform too.
 
 =item pre, preoffset, offset, Offset
 
 The vector to be added to the data before they get multiplied by the matrix
-(equivalent of CRVAL in FITS, if you are converting from scientific to 
+(equivalent of CRVAL in FITS, if you are converting from scientific to
 pixel units).
 
 =item post, postoffset, shift, Shift
 
 The vector to be added to the data after it gets multiplied by the matrix
-(equivalent of CRPIX-1 in FITS, if youre converting from scientific to pixel 
+(equivalent of CRPIX-1 in FITS, if youre converting from scientific to pixel
 units).
 
 =item d, dim, dims, Dims
@@ -2308,7 +2308,7 @@ Most of the time it is obvious how many dimensions you want to deal
 with: if you supply a matrix, it defines the transformation; if you
 input offset vectors in the C<pre> and C<post> options, those define
 the number of dimensions.  But if you only supply scalars, there is no way
-to tell and the default number of dimensions is 2.  This provides a way 
+to tell and the default number of dimensions is 2.  This provides a way
 to do, e.g., 3-D scaling: just set C<{s=><scale-factor>, dims=>3}> and
 you are on your way.
 
@@ -2334,23 +2334,23 @@ sub PDL::Transform::Linear::new {
   if(!(ref $o)) {
     $o = {@_};
   }
-  
+
   my($me) = PDL::Transform::new($class);
-  
+
   $me->{name} = "linear";
-  
+
   $me->{params}->{pre} = _opt($o,['pre','Pre','preoffset','offset',
 				  'Offset','PreOffset','Preoffset'],0);
-  $me->{params}->{pre} = pdl($me->{params}->{pre}) 
+  $me->{params}->{pre} = pdl($me->{params}->{pre})
     if(defined $me->{params}->{pre});
-  
+
   $me->{params}->{post} = _opt($o,['post','Post','postoffset','PostOffset',
 				   'shift','Shift'],0);
-  $me->{params}->{post} = pdl($me->{params}->{post}) 
+  $me->{params}->{post} = pdl($me->{params}->{post})
     if(defined $me->{params}->{post});
 
   $me->{params}->{matrix} = _opt($o,['m','matrix','Matrix','mat','Mat']);
-  $me->{params}->{matrix} = pdl($me->{params}->{matrix}) 
+  $me->{params}->{matrix} = pdl($me->{params}->{matrix})
     if(defined $me->{params}->{matrix});
 
   $me->{params}->{rot} = _opt($o,['r','rot','rota','rotation','Rotation']);
@@ -2362,35 +2362,35 @@ sub PDL::Transform::Linear::new {
     if defined($o_dims);
 
   my $scale  = _opt($o,['s','scale','Scale']);
-  $scale = pdl($scale) 
+  $scale = pdl($scale)
     if defined($scale);
-  
-  # Figure out the number of dimensions to transform, and, 
+
+  # Figure out the number of dimensions to transform, and,
   # if necessary, generate a new matrix.
-   
+
   if(defined($me->{params}->{matrix})) {
     my $mat = $me->{params}->{matrix} = $me->{params}->{matrix}->(:,:);
     $me->{idim} = $mat->dim(0);
     $me->{odim} = $mat->dim(1);
 
   } else {
-    if(defined($me->{params}->{rot}) && 
+    if(defined($me->{params}->{rot}) &&
 	UNIVERSAL::isa($me->{params}->{rot},'PDL')) {
 	  $me->{idim} = $me->{odim} = 2 if($me->{params}->{rot}->nelem == 1);
 	  $me->{idim} = $me->{odim} = 3 if($me->{params}->{rot}->nelem == 3);
-    } 	
+    }
 
-    if(defined($scale) && 
-       UNIVERSAL::isa($scale,'PDL') && 
+    if(defined($scale) &&
+       UNIVERSAL::isa($scale,'PDL') &&
        $scale->getndims > 0) {
       $me->{idim} = $me->{odim} = $scale->dim(0);
       $me->{odim} = $scale->dim(0);
-      
-    } elsif(defined($me->{params}->{pre}) && 
+
+    } elsif(defined($me->{params}->{pre}) &&
 	    UNIVERSAL::isa($me->{params}->{pre},'PDL') &&
 	    $me->{params}->{pre}->getndims > 0) {
       $me->{idim} = $me->{odim} = $me->{params}->{pre}->dim(0);
-      
+
     } elsif(defined($me->{params}->{post}) &&
 	    UNIVERSAL::isa($me->{params}->{post},'PDL') &&
 	    $me->{params}->{post}->getndims > 0) {
@@ -2408,11 +2408,11 @@ sub PDL::Transform::Linear::new {
 
   }
 
-  ### Handle rotation option 
+  ### Handle rotation option
   my $rot = $me->{params}->{rot};
   if(defined($rot)) {
     # Subrotation closure -- rotates from axis $d->(0) --> $d->(1).
-    my $subrot = sub { 
+    my $subrot = sub {
                        my($d,$angle,$m)=@_;
 		       my($i) = identity($m->dim(0));
 		       my($subm) = $i->dice($d,$d);
@@ -2424,7 +2424,7 @@ sub PDL::Transform::Linear::new {
 		       $subm .= $subm x pdl([cos($a),-sin($a)],[sin($a),cos($a)]);
 		       $m .= $m x $i;
 		     };
-    
+
     if(UNIVERSAL::isa($rot,'PDL') && $rot->nelem > 1) {
       if($rot->ndims == 2) {
 	$me->{params}->{matrix} x= $rot;
@@ -2456,7 +2456,7 @@ sub PDL::Transform::Linear::new {
   my $tmp; # work around perl -d "feature"
   ($tmp = $me->{params}->{matrix}->diagonal(0,1)) *= $scale
     if defined($scale);
-  
+
   #
   # Check for an inverse and apply it if possible
   #
@@ -2466,7 +2466,7 @@ sub PDL::Transform::Linear::new {
   } else {
     delete $me->{params}->{inverse};
   }
-  
+
   $me->{params}->{idim} = $me->{idim};
   $me->{params}->{odim} = $me->{odim};
 
@@ -2489,8 +2489,8 @@ sub PDL::Transform::Linear::new {
 
     return $out;
   };
-  
-  
+
+
   $me->{inv} = (defined $me->{params}->{inverse}) ? sub {
     my($in,$opt) = @_;
 
@@ -2506,7 +2506,7 @@ sub PDL::Transform::Linear::new {
 
     $out;
   } : undef;
-  
+
   return $me;
 }
 
@@ -2514,17 +2514,17 @@ sub PDL::Transform::Linear::stringify {
   package PDL::Transform::Linear;
   my($me) = shift;  my($out) = SUPER::stringify $me;
   my $mp = $me->{params};
-  
+
   if(!($me->{is_inverse})){
     $out .= "Pre-add: ".($mp->{pre})."\n"
       if(defined $mp->{pre});
-    
+
     $out .= "Post-add: ".($mp->{post})."\n"
       if(defined $mp->{post});
-    
+
     $out .= "Forward matrix:".($mp->{matrix})
       if(defined $mp->{matrix});
-    
+
     $out .= "Inverse matrix:".($mp->{inverse})
       if(defined $mp->{inverse});
   } else {
@@ -2533,14 +2533,14 @@ sub PDL::Transform::Linear::stringify {
 
     $out .= "Post-add: ".(-$mp->{pre})."\n"
       if(defined $mp->{pre});
-    
+
     $out .= "Forward matrix:".($mp->{inverse})
       if(defined $mp->{inverse});
-    
+
     $out .= "Inverse matrix:".($mp->{matrix})
       if(defined $mp->{matrix});
   }
-    
+
   $out =~ s/\n/\n  /go;
   $out;
 }
@@ -2553,7 +2553,7 @@ pp_addpm(<<'+======EOD_t_scale======');
 
 =head2 t_scale
 
-=for usage 
+=for usage
 
   $f = t_scale(<scale>)
 
@@ -2566,7 +2566,7 @@ amount.  It acts exactly the same as C<t_linear(Scale=>\<scale\>)>.
 
 =cut
 
-sub t_scale { 
+sub t_scale {
     my($scale) = shift;
     my($b) = shift;
     return t_linear(scale=>$scale,%{$b})
@@ -2579,7 +2579,7 @@ sub t_scale {
 pp_add_exported('t_offset ');
 pp_addpm(<<'+======EOD_t_offset ======');
 
-=head2 t_offset 
+=head2 t_offset
 
 =for usage
 
@@ -2597,9 +2597,9 @@ It acts exactly the same as C<t_linear(Pre=>\<shift\>)>.
 sub t_offset {
     my($pre) = shift;
     my($b) = shift;
-    return t_linear(pre=>$pre,%{$b}) 
+    return t_linear(pre=>$pre,%{$b})
 	if(ref $b eq 'HASH');
-    
+
     t_linear(pre=>$pre,$b,@_);
 }
 
@@ -2624,8 +2624,8 @@ N-D (matrix).  It acts exactly the same as C<t_linear(Rot=>\<shift\>)>.
 =cut
 
 *t_rot = \&t_rotate;
-sub t_rotate    { 
-    my $rot = shift; 
+sub t_rotate    {
+    my $rot = shift;
     my($b) = shift;
     return t_linear(rot=>$rot,%{$b})
 	if(ref $b eq 'HASH');
@@ -2646,7 +2646,7 @@ pp_addpm(<<'+======EOD_t_fits======');
 
   $f = t_fits($fits,[option]);
 
-=for ref 
+=for ref
 
 FITS pixel-to-scientific transformation with inverse
 
@@ -2658,10 +2658,10 @@ applying the inverse goes the other way.  This is just a convenience
 subclass of PDL::Transform::Linear, but with unit/type support
 using the FITS header you supply.
 
-For now, this transform is rather limited -- it really ought to 
+For now, this transform is rather limited -- it really ought to
 accept units differences and stuff like that, but they are just
 ignored for now.  Probably that would require putting units into
-the whole transform framework.  
+the whole transform framework.
 
 This transform implements the linear transform part of the WCS FITS
 standard outlined in Greisen & Calabata 2002 (A&A in press; find it at
@@ -2683,15 +2683,15 @@ sub t_fits {
     $opt = defined $opt ? {$opt,@_} : {} ;
   }
 
-  $hdr = $hdr->gethdr  
+  $hdr = $hdr->gethdr
     if(defined $hdr && UNIVERSAL::isa($hdr,'PDL'));
 
   croak('PDL::Transform::FITS::new requires a FITS header hash\n')
     if(!defined $hdr || ref $hdr ne 'HASH' || !defined($hdr->{NAXIS}));
-  
+
   my($n) = $hdr->{NAXIS}; $n = $n->at(0) if(UNIVERSAL::isa($n,'PDL'));
 
-  $n = 2 
+  $n = 2
     if($opt->{ignore_rgb} && $n==3 && $hdr->{NAXIS3} == 3);
 
   my($matrix) = PDL->zeroes($hdr->{NAXIS},$hdr->{NAXIS});
@@ -2700,7 +2700,7 @@ sub t_fits {
 
   ##############################
   # Scaling: Use CDi_j formalism if present (mostly in Hubble
-  # datasets); otherwise use PCi_j + CDELTi formalism.  
+  # datasets); otherwise use PCi_j + CDELTi formalism.
 
   my(@hgrab);
 
@@ -2716,15 +2716,15 @@ sub t_fits {
     }
     print "PDL::Transform::FITS: Detected CDi_j matrix: \n",$matrix,"\n"
       if($PDL::Transform::debug);
-  
+
   } else {
-    
+
     #
     # PCi_j + CDELTi formalism
     # If PCi_j aren't present, and N=2, then try using CROTA or
-    # CROTA2 to generate a rotation matrix instea.  
+    # CROTA2 to generate a rotation matrix instea.
     #
-  
+
     my($cdm) = PDL->zeroes($n,$n);
     my($cd) = $cdm->diagonal(0,1);
 
@@ -2746,10 +2746,10 @@ sub t_fits {
 
     } elsif($n==2 && ( defined $hdr->{CROTA} || defined $hdr->{CROTA1} || defined $hdr->{CROTA2}) ) {
 
-	## CROTA is deprecated; CROTA1 was used for a while but is unofficial; 
+	## CROTA is deprecated; CROTA1 was used for a while but is unofficial;
 	## CROTA2 is encouraged instead.
       my $cr;
-      $cr = $hdr->{CROTA2} unless defined $cr;		
+      $cr = $hdr->{CROTA2} unless defined $cr;
       $cr = $hdr->{CROTA} unless defined $cr;
       $cr = $hdr->{CROTA1} unless defined $cr;
 
@@ -2759,7 +2759,7 @@ sub t_fits {
       $cpm .= pdl( [cos($cr), sin($cr)],[-sin($cr),cos($cr)] );
 
     }
-      
+
     for my $i(1..$n) {
       my $tmp; # work around perl -d "feature"
       ($tmp = $cd->(($i-1))) .= $hdr->{"CDELT$i"};
@@ -2788,7 +2788,7 @@ sub t_fits {
   $me->{name} = 'FITS';
 
   my (@otype,@ounit,@itype,@iunit);
-  our (@names) = ('X','Y','Z') unless defined(@names);
+  our (@names) = ('X','Y','Z') unless @names;
 
   for my $i(1..$hdr->{NAXIS}) {
     push(@otype,$hdr->{"CTYPE$i"});
@@ -2805,7 +2805,7 @@ sub t_fits {
   # Check for nonlinear projection...
   if($hdr->{CTYPE1} =~ m/(\w\w\w\w)\-(\w\w\w)/) {
       print "Nonlinear transformation found... ignoring nonlinear part...\n";
-  }      
+  }
 
   return $me;
 
@@ -2815,13 +2815,13 @@ sub t_fits {
 +======EOD_t_fits======
 
 
-  
+
 
 
 pp_add_exported('t_code ');
 pp_addpm(<<'+======EOD_t_code ======');
 
-=head2 t_code 
+=head2 t_code
 
 =for usage
 
@@ -2829,7 +2829,7 @@ pp_addpm(<<'+======EOD_t_code ======');
 
 =for ref
 
-Transform implementing arbitrary perl code.  
+Transform implementing arbitrary perl code.
 
 This is a way of getting quick-and-dirty new transforms.  You pass in
 anonymous (or otherwise) code refs pointing to subroutines that
@@ -2858,9 +2858,9 @@ unchanged)
 
 =item o, odim (default 2)
 
-The number of output dimensions 
+The number of output dimensions
 
-=item itype 
+=item itype
 
 The type of the input dimensions, in an array ref (optional and advisiory)
 
@@ -2908,7 +2908,7 @@ sub t_code {
   $me->{otype} = _opt($o,['otype']) || [];
   $me->{iunit} = _opt($o,['iunit']) || [];
   $me->{ounit} = _opt($o,['ounit']) || [];
-  
+
   $me;
 }
 
@@ -2943,7 +2943,7 @@ equivalent to a simple offset of the transformed image plane.
 If you use three or more dimensions, the higher dimensions are ignored,
 yielding a conversion from Cartesian to cylindrical coordinates, which
 is why there are two aliases for the same transform.  If you use higher
-dimensionality than 2, you must manually specify the origin or you will 
+dimensionality than 2, you must manually specify the origin or you will
 get dimension mismatch errors when you apply the transform.
 
 Theta runs B<clockwise> instead of the more usual counterclockwise; that is
@@ -2953,10 +2953,10 @@ OPTIONS:
 
 =over 3
 
-=item d, direct, Direct 
+=item d, direct, Direct
 
 Generate (theta,r) coordinates out (this is the default); incompatible
-with Conformal.  Theta is in radians, and the radial coordinate is 
+with Conformal.  Theta is in radians, and the radial coordinate is
 in the units of distance in the input plane.
 
 =item r0, c, conformal, Conformal
@@ -2965,7 +2965,7 @@ If defined, this floating-point value causes t_radial to generate
 (theta, ln(r/r0)) coordinates out.  Theta is in radians, and the
 radial coordinate varies by 1 for each e-folding of the r0-scaled
 distance from the input origin.  The logarithmic scaling is useful for
-viewing both large and small things at the same time, and for keeping 
+viewing both large and small things at the same time, and for keeping
 shapes of small things preserved in the image.
 
 =item o, origin, Origin [default (0,0,0)]
@@ -2974,14 +2974,14 @@ This is the origin of the expansion.  Pass in a PDL or an array ref.
 
 =item u, unit, Unit [default 'radians']
 
-This is the angular unit to be used for the azimuth.  
+This is the angular unit to be used for the azimuth.
 
 =back
 
 EXAMPLES
 
 These examples do transformations back into the same size image as they
-started from; by suitable use of the "transform" option to 
+started from; by suitable use of the "transform" option to
 L<unmap|/unmap> you can send them to any size array you like.
 
 Examine radial structure in M51:
@@ -2992,12 +2992,12 @@ to a diameter in the vertical direction.
   $a = rfits('m51.fits');
   $ts = t_linear(s => [250/2.0/3.14159, 2]); # Scale to fill orig. image
   $tu = t_radial(o => [130,130]);            # Expand around galactic core
-  $b = $a->map($ts x $tu);  
+  $b = $a->map($ts x $tu);
 
 Examine radial structure in M51 (conformal):
 Here, we scale the output to stretch 2*pi radians out to the full image width
 in the horizontal direction, and scale the vertical direction by the exact
-same amount to preserve conformality of the operation.  Notice that 
+same amount to preserve conformality of the operation.  Notice that
 each piece of the image looks "natural" -- only scaled and not stretched.
 
   $a = rfits('m51.fits')
@@ -3009,7 +3009,7 @@ each piece of the image looks "natural" -- only scaled and not stretched.
 =cut
 
 *t_cylindrical = \&t_radial;
-sub t_radial { 
+sub t_radial {
   my($class) = 'PDL::Transform';
   my($o) = $_[0];
   if(ref $o ne 'HASH') {
@@ -3019,11 +3019,11 @@ sub t_radial {
   my($me) = PDL::Transform::new($class);
 
   $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
-  $me->{params}->{origin} = pdl(0,0) 
+  $me->{params}->{origin} = pdl(0,0)
     unless defined($me->{params}->{origin});
   $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
-  
-  
+
+
   $me->{params}->{r0} = _opt($o,['r0','R0','c','conformal','Conformal']);
   $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
 
@@ -3031,7 +3031,7 @@ sub t_radial {
   ### Replace this kludge with a units call
   $me->{params}->{angunit} = ($me->{params}->{u} =~ m/^d/i) ? $RAD2DEG : 1.0;
   print "radial: conversion is $me->{params}->{angunit}\n" if($PDL::Transform::debug);
-  
+
   $me->{name} = "radial (direct)";
 
   $me->{idim} = 2;
@@ -3044,7 +3044,7 @@ sub t_radial {
     $me->{otype} = ["Azimuth","Radius"];
     $me->{ounit} = [$me->{params}->{u},''];  # false value copies prev. unit
   }
-  
+
   $me->{func} = sub {
 
       my($data,$o) = @_;
@@ -3086,8 +3086,8 @@ sub t_radial {
 
     $out;
   };
-  
-  
+
+
   $me;
 }
 
@@ -3113,16 +3113,16 @@ different axes, use L<t_wrap|/t_wrap> and L<t_linear|/t_linear> to rotate
 them to the correct angle.  The scaling options may be scalars or
 vectors; if they are scalars then the expansion is isotropic.
 
-The formula for the expansion is: 
+The formula for the expansion is:
 
     f(a) = ( <a> + <strength> * a^2/<L_0> ) / (abs(<strength>) + 1)
 
 where <strength> is a scaling coefficient and <L_0> is a fundamental
-length scale.   Negative values of <strength> result in a pincushion 
+length scale.   Negative values of <strength> result in a pincushion
 contraction.
 
 Note that, because quadratic scaling does not have a strict inverse for
-coordinate systems that cross the origin, we cheat slightly and use 
+coordinate systems that cross the origin, we cheat slightly and use
 $x * abs($x)  rather than $x**2.  This does the Right thing for pincushion
 and barrel distortion, but means that t_quadratic does not behave exactly
 like t_cubic with a null cubic strength coefficient.
@@ -3154,7 +3154,7 @@ which is not mirror-symmetric about the origin.
 
 =item d, dim, dims, Dims
 
-The number of dimensions to quadratically scale (default is the 
+The number of dimensions to quadratically scale (default is the
 dimensionality of your input vectors)
 
 
@@ -3162,20 +3162,20 @@ dimensionality of your input vectors)
 
 =cut
 
-sub t_quadratic { 
+sub t_quadratic {
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
 	$o = {@_};
     }
     my($me) = PDL::Transform::new($class);
-    
+
     $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
     $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
     $me->{params}->{str} = _opt($o,['s','str','strength','Strength'],pdl(0.1));
     $me->{params}->{dim} = _opt($o,['d','dim','dims','Dims']);
     $me->{name} = "quadratic";
-    
+
     $me->{func} = sub {
 	my($data,$o) = @_;
 	my($dd) = $data->copy - $o->{origin};
@@ -3189,7 +3189,7 @@ sub t_quadratic {
 	}
 	$dd;
     };
-    
+
     $me->{inv} = sub {
 	my($data,$opt) = @_;
 	my($dd) = $data->copy ;
@@ -3226,7 +3226,7 @@ pp_addpm(<<'+======EOD_t_cubic=======');
 Cubic scaling - cubic pincushion (n-d; with inverse)
 
 Cubic scaling is a generalization of t_quadratic to a purely
-cubic expansion. 
+cubic expansion.
 
 The formula for the expansion is:
 
@@ -3238,7 +3238,7 @@ origin.
 
 Because there is no quadratic term the result is always invertible with
 one real root, and there is no mucking about with complex numbers or
-multivalued solutions.  
+multivalued solutions.
 
 
 OPTIONS
@@ -3257,7 +3257,7 @@ unchanged.  (default=1)
 
 =item d, dim, dims, Dims
 
-The number of dimensions to treat (default is the 
+The number of dimensions to treat (default is the
 dimensionality of your input vectors)
 
 =back
@@ -3277,7 +3277,7 @@ sub t_cubic {
     $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
     $me->{params}->{st} = _opt($o,['s','st','str'],pdl(0));
     $me->{name} = "cubic";
-    
+
     $me->{params}->{cuberoot} = sub {
 	my $a = shift;
 	my $as = 1 - 2*($a<0);
@@ -3293,12 +3293,12 @@ sub t_cubic {
 
 	my $dl0 = $d / $o->{l0};
 
-	# f(x) = x + x**3 * ($o->{st} / $o->{l0}**2): 
+	# f(x) = x + x**3 * ($o->{st} / $o->{l0}**2):
 	#     A = ($o->{st}/$dl0**2)
 	#     B = 0
 	#     C = 1
 	#     D = -f(x)
-	$d += $o->{st} * $d * $dl0 * $dl0; 
+	$d += $o->{st} * $d * $dl0 * $dl0;
 	$d /= ($o->{st}**2 + 1);
 
 	$d += $o->{origin};
@@ -3316,10 +3316,10 @@ sub t_cubic {
 
 	my($dd) = $data->copy;
 	my($d) = (defined $o->{dim}) ? $dd->(0:($o->{dim}-1)) : $dd;
-	
+
 	$d -= $o->{origin};
 	$d *= ($o->{st}+1);
-	
+
 	# Now we have to solve:
 	#  A x^3 + B X^2 + C x + D dd = 0
 	# with the assignments above for A,B,C,D.
@@ -3328,7 +3328,7 @@ sub t_cubic {
 	#
 	# The only real hassle is creating a symmetric cube root; for convenience
 	# is stashed in the params hash.
-	
+
 	# First: create coefficients for mnemonics.
 	my ($A, $C, $D) = ( $o->{st} / $l / $l, 1, - $d );
 	my $alpha =  27 * $A * $A * $D;
@@ -3336,10 +3336,10 @@ sub t_cubic {
 
 	my $inner_root = sqrt( $alpha * $alpha   +   4 * $beta * $beta * $beta );
 
-	$d .= (-1 / (3 * $A)) * 
-	    ( 
-	      + &{$o->{cuberoot}}( 0.5 * ( $alpha + $inner_root ) ) 
-	      + &{$o->{cuberoot}}( 0.5 * ( $alpha - $inner_root ) ) 
+	$d .= (-1 / (3 * $A)) *
+	    (
+	      + &{$o->{cuberoot}}( 0.5 * ( $alpha + $inner_root ) )
+	      + &{$o->{cuberoot}}( 0.5 * ( $alpha - $inner_root ) )
 	    );
 
 	$d += $origin;
@@ -3351,7 +3351,7 @@ sub t_cubic {
 	    return $dd;
 	}
     };
-    
+
     $me;
 }
 
@@ -3382,16 +3382,16 @@ L<t_linear|/t_linear> to rotate them to the correct angle.  The
 scaling options may be scalars or vectors; if they are scalars then
 the expansion is isotropic.
 
-The formula for the expansion is: 
+The formula for the expansion is:
 
     f(a) = ( <a> + <strength> * a^2/<L_0> ) / (abs(<strength>) + 1)
 
 where <strength> is a scaling coefficient and <L_0> is a fundamental
-length scale.   Negative values of <strength> result in a pincushion 
+length scale.   Negative values of <strength> result in a pincushion
 contraction.
 
 Note that, because quadratic scaling does not have a strict inverse for
-coordinate systems that cross the origin, we cheat slightly and use 
+coordinate systems that cross the origin, we cheat slightly and use
 $x * abs($x)  rather than $x**2.  This does the Right thing for pincushion
 and barrel distortion, but means that t_quadratic does not behave exactly
 like t_cubic with a null cubic strength coefficient.
@@ -3423,7 +3423,7 @@ which is not mirror-symmetric about the origin.
 
 =item d, dim, dims, Dims
 
-The number of dimensions to quadratically scale (default is the 
+The number of dimensions to quadratically scale (default is the
 dimensionality of your input vectors)
 
 
@@ -3431,20 +3431,20 @@ dimensionality of your input vectors)
 
 =cut
 
-sub t_quartic { 
+sub t_quartic {
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
 	$o = {@_};
     }
     my($me) = PDL::Transform::new($class);
-    
+
     $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
     $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
     $me->{params}->{str} = _opt($o,['s','str','strength','Strength'],pdl(0.1));
     $me->{params}->{dim} = _opt($o,['d','dim','dims','Dims']);
     $me->{name} = "quadratic";
-    
+
     $me->{func} = sub {
 	my($data,$o) = @_;
 	my($dd) = $data->copy - $o->{origin};
@@ -3458,7 +3458,7 @@ sub t_quartic {
 	}
 	$dd;
     };
-    
+
     $me->{inv} = sub {
 	my($data,$opt) = @_;
 	my($dd) = $data->copy ;
@@ -3518,7 +3518,7 @@ OPTIONS:
 =item o, origin, Origin [default (0,0,0)]
 
 This is the Cartesian origin of the spherical expansion.  Pass in a PDL
-or an array ref.  
+or an array ref.
 
 =item e, euler, Euler [default (0,0,0)]
 
@@ -3540,7 +3540,7 @@ comes online (a la Math::Units) any angular unit should be OK.
 
 =cut
 
-sub t_spherical { 
+sub t_spherical {
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
@@ -3556,22 +3556,22 @@ sub t_spherical {
     $me->{params}->{origin} = PDL->zeroes(3)
 	unless defined($me->{params}->{origin});
     $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
-    
+
     $me->{params}->{deg} = _opt($o,['d','degrees','Degrees']);
-    
+
     my $unit = _opt($o,['u','unit','Unit']);
-    $me->{params}->{angunit} = ($unit =~ m/^d/i) ? 
+    $me->{params}->{angunit} = ($unit =~ m/^d/i) ?
 	$DEG2RAD : undef;
-    
+
     $me->{name} = "spherical";
-    
+
     $me->{func} = sub {
 	my($data,$o) = @_;
 	my($d) = $data->copy - $o->{origin};
 
 	my($d0,$d1,$d2) = ($d->((0)),$d->((1)),$d->((2)));
 	my($out) =   ($d->is_inplace) ? $data : $data->copy;
- 
+
         my $tmp; # work around perl -d "feature"
 	($tmp = $out->((0))) .= atan2($d1, $d0);
 	($tmp = $out->((2))) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
@@ -3579,21 +3579,21 @@ sub t_spherical {
 
 	($tmp = $out->(0:1)) /= $o->{angunit}
 	  if(defined $o->{angunit});
-	
+
 	$out;
       };
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	
-	my($theta,$phi,$r,$out) = 
-    ( ($d->is_inplace) ? 
+
+	my($theta,$phi,$r,$out) =
+    ( ($d->is_inplace) ?
 	      ($d->((0))->copy, $d->((1))->copy, $d->((2))->copy, $d) :
 	      ($d->((0)),       $d->((1)),       $d->((2)),       $d->copy)
 	      );
 
-	
-	my($x,$y,$z) = 
+
+	my($x,$y,$z) =
 	    ($out->((0)),$out->((1)),$out->((2)));
 
 	my($ph,$th);
@@ -3633,7 +3633,7 @@ pp_addpm(<<'+======EOD_t_projective======');
 Projective transformation
 
 Projective transforms are simple quadratic, quasi-linear
-transformations.  They are the simplest transformation that 
+transformations.  They are the simplest transformation that
 can continuously warp an image plane so that four arbitrarily chosen
 points exactly map to four other arbitrarily chosen points.  They
 have the property that straight lines remain straight after transformation.
@@ -3665,19 +3665,19 @@ OPTIONS:
 =item m, mat, matrix, Matrix
 
 If specified, this is the homogeneous-coordinate matrix to use.  It must
-be N+1 x N+1, for an N-dimensional transformation.  
+be N+1 x N+1, for an N-dimensional transformation.
 
 =item p, point, points, Points
 
 If specified, this is the set of four points that should be mapped one to the other.
-The homogeneous-coordinate matrix is calculated from them.  You should feed in a 
+The homogeneous-coordinate matrix is calculated from them.  You should feed in a
 2x2x4 PDL, where the 0 dimension runs over coordinate, the 1 dimension runs between input
 and output, and the 2 dimension runs over point.  For example, specifying
 
   p=> pdl([ [[0,1],[0,1]], [[5,9],[5,8]], [[9,4],[9,3]], [[0,0],[0,0]] ])
 
-maps the origin and the point (0,1) to themselves, the point (5,9) to (5,8), and 
-the point (9,4) to (9,3).  
+maps the origin and the point (0,1) to themselves, the point (5,9) to (5,8), and
+the point (9,4) to (9,3).
 
 This is similar to the behavior of fitwarp2d with a quadratic polynomial.
 
@@ -3707,18 +3707,18 @@ sub t_projective {
     die "t_projective: needs a square matrix"
       if($matrix->dims != 2 || $matrix->dim(0) != $matrix->dim(1));
 
-    $me->{params}->{idim} = $matrix->dim(0)-1 
+    $me->{params}->{idim} = $matrix->dim(0)-1
       unless(defined($me->{params}->{idim}));
 
     $me->{idim} = $me->{params}->{idim};
 
     die "t_projective: matrix not compatible with given dimension (should be N+1xN+1)\n"
       unless($me->{params}->{idim}==$matrix->dim(0)-1);
-    
+
     my $inv = $matrix->inv;
     print STDERR "t_projective: warning - received non-invertible matrix\n"
       unless(all($inv*0 == 0));
-    
+
     $me->{params}->{matrix} = $matrix;
     $me->{params}->{matinv} = $inv;
 
@@ -3749,13 +3749,13 @@ sub t_projective {
 
     $me->{params}->{matinv} = $matrix->inv;
   }
-    
+
 
   $me->{params}->{idim} = 2 unless defined $me->{params}->{idim};
   $me->{params}->{odim} = $me->{params}->{idim};
   $me->{idim} = $me->{params}->{idim};
   $me->{odim} = $me->{params}->{odim};
-  
+
   $me->{func} = sub {
     my($data,$o) = @_;
     my($id) = $data->dim(0);
