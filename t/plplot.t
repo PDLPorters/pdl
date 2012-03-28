@@ -494,35 +494,42 @@ for my $i (1 .. 120) {
 }
 ok ($count == 120, "Opening/closing of > 100 streams");
 
+$pltfile = "test28.$dev";
+
 SKIP: {
   skip 'Not compiled with POSIX threads', 1 unless ($PDL::Config{WITH_POSIX_THREADS} == 1);
 
   my $pltfile = "test28.$dev";
-  if($pid = fork()) {
-    $a = waitpid($pid,0);
-  } else {
+  if($^O =~ /MSWin32/i) {
+     system "$^X", '-Mblib -e "do \"t/plplot_no_fork.win32\""';
+  }
+  else {
+    if($pid = fork()) {
+      $a = waitpid($pid,0);
+    } else {
 
-    # Breakage seems to be a function of the grid size. For me, 34 did the trick.
-    # You may need to fiddle with it to reproduce trouble, so it's read from the
-    # command-line.
-    my $grid_size = 34;
+      # Breakage seems to be a function of the grid size. For me, 34 did the trick.
+      # You may need to fiddle with it to reproduce trouble, so it's read from the
+      # command-line.
+      my $grid_size = 34;
 
-    # PThreads settings, uncomment to break:
-    set_autopthread_targ($grid_size); # large number to increase likelihood of trouble
-    set_autopthread_size(0);  # zero ensures we get threading
+      # PThreads settings, uncomment to break:
+      set_autopthread_targ($grid_size); # large number to increase likelihood of trouble
+      set_autopthread_size(0);  # zero ensures we get threading
 
-    # Add DEV unless you want it to prompt you:
-    my $pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => $pltfile);
+      # Add DEV unless you want it to prompt you:
+      my $pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => $pltfile);
 
-    # Some simple sequential data
-    my $xs = sequence($grid_size);
-    my $ys = sequence($grid_size)->transpose;
+      # Some simple sequential data
+      my $xs = sequence($grid_size);
+      my $ys = sequence($grid_size)->transpose;
 
-    # Plot data so that increasing y-values have different colors:
-    $pl->xyplot($xs, $ys, PLOTTYPE => 'POINTS', COLORMAP => $ys);
+      # Plot data so that increasing y-values have different colors:
+      $pl->xyplot($xs, $ys, PLOTTYPE => 'POINTS', COLORMAP => $ys);
 
-    $pl->close;
-    exit(0);
+      $pl->close;
+      exit(0);
+    }
   }
 
   # If pthreads are working wrongly, the .svg file is messed up and much larger than usual
