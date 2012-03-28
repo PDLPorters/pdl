@@ -1,0 +1,31 @@
+# This file run by plplot.t (MS Windows only).
+# We can't use fork() with plplot on Win32
+# as the Win32 fork() uses threading, and plplot is not thread-safe.
+# By instead running this separate script for the final test, we avoid the issue.
+use warnings;
+use blib;
+use PDL;
+use PDL::Graphics::PLplot;
+
+my $dev = 'svg';
+
+my $pltfile = "test28.$dev";
+
+my $grid_size = 34;
+
+# PThreads settings, uncomment to break:
+set_autopthread_targ($grid_size); # large number to increase likelihood of trouble
+set_autopthread_size(0);  # zero ensures we get threading
+
+# Add DEV unless you want it to prompt you:
+my $pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => $pltfile);
+
+# Some simple sequential data
+my $xs = sequence($grid_size);
+my $ys = sequence($grid_size)->transpose;
+
+# Plot data so that increasing y-values have different colors:
+$pl->xyplot($xs, $ys, PLOTTYPE => 'POINTS', COLORMAP => $ys);
+
+$pl->close;
+exit(0);
