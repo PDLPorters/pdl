@@ -598,7 +598,7 @@ sever(src)
 		RETVAL
 
 int
-set_data_by_mmap(it,fname,len,writable,shared,creat,mode,trunc)
+set_data_by_mmap(it,fname,len,shared,writable,creat,mode,trunc)
 	pdl *it
 	char *fname
 	STRLEN len
