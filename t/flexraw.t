@@ -61,11 +61,15 @@ unlink $cdname, $cdname . '.hdr';	# just to be absolutely sure
 # some mapflex tests
 SKIP: {
 
-   # should not be run on Windows
-   skip( 'no mmap support on win32 (yet?)', 5) if ($^O =~ /win32/i);
+   my $c = eval { mapflex($name) };
+   if ($@) {
+      diag("$@");
+      if ($@ =~ m/mmap not supported/) {
+         skip('no mmap support', 5);
+      }
+   }
 
    # **TEST 8** compare mapfraw piddle with original piddle	
-   my $c = mapflex($name);
    ok(all(approx($a,$c)), "A piddle and it's mapflex representation should be about equal");
 
    # **TEST 9** modifications should be saved when $c goes out of scope
@@ -107,10 +111,6 @@ SKIP: {
    # **TEST 12** test the created type
    ok($b->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
 
-   TODO: {
-      local $TODO = 'Known_problems sf.net bug #3031068';  # Don't fail; ticket not assigned
-
-   }
 }
 
 # Clean things up a bit

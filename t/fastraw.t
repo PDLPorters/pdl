@@ -44,11 +44,15 @@ ok(tapprox($a,$b), "A piddle and it's saved copy should be about equal");
 # some mapfraw tests
 SKIP:
 {
-	# should not be run on Windows
-	skip( 'no mmap support on win32 (yet?)', 4) if ($^O =~ /win32/i);
+	my $c = eval { mapfraw($name) };
+        if ($@) {
+           diag("$@");
+           if ($@ =~ m/mmap not supported/) {
+              skip('no mmap support', 4);
+           }
+        }
 
 	# **TEST 4** compare mapfraw piddle with original piddle	
-	my $c = mapfraw($name);
 	ok(tapprox($a,$c), "A piddle and it's mapfraw representation should be about equal");
 	
 	# **TEST 5** modifications should be saved when $c goes out of scope
@@ -98,11 +102,15 @@ ok(tapprox($a,$b), "Should be able to read given a specified header");
 # mapfraw custom header tests
 SKIP: 
 {
-	# should not be run on Windows
-	skip( 'no mmap support on win32 (yet?)', 1) if ($^O =~ /win32/i);
-	
+	my $c = eval { mapfraw($name,{Header => $header}) };
+        if ($@) {
+           diag("$@");
+           if ($@ =~ m/mmap not supported/) {
+              skip('no mmap support', 1);
+           }
+        }
+
 	# **TEST 10** test custom headers for mapfraw
-	my $c = mapfraw($name,{Header => $header});
 	ok(tapprox($a,$c), "mapfraw should be able to work with a specified header");
 }
 
