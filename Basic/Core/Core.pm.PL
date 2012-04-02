@@ -4008,7 +4008,53 @@ sub PDL::fhdr {
     return \%hdr;
 }
     
-	
+use Fcntl;
+use File::Map qw(:all);
+
+sub PDL::set_data_by_file_map {
+   my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
+   my $pdl_dataref = $pdl->get_dataref();
+
+   # Assume we have no data to free for now
+   # pdl_freedata($pdl);
+
+   sysopen(my $fh, $name, ($writable && $shared ? O_RDWR : O_RDONLY) | ($creat ? O_CREAT : 0), $mode)
+      or die "Error opening file '$name'\n";
+
+   if ($trunc) {
+      truncate($fh,0) or die "set_data_by_mmap: truncate('$name',0) failed, $!";
+      truncate($fh,$len) or die "set_data_by_mmap: truncate('$name',$len) failed, $!";
+   }
+
+   if ($len) {
+
+      #eval {
+         sys_map(  # will croak if the mapping fails
+            ${$pdl_dataref},
+            $len,
+            PROT_READ | ($writable ?  PROT_WRITE : 0),
+            ($shared ? MAP_SHARED : MAP_PRIVATE),
+            $fh,
+            0
+         );
+         #};
+
+         #if ($@) {
+         #die("Error mmapping!, '$@'\n");
+         #}
+
+      $pdl->upd_data;
+      $pdl->set_state_and_add_deletedata_magic( length ${$pdl_dataref} );
+
+   } else {
+
+      #  Special case: zero-length file
+      $_[0] = undef;
+   }
+
+   # PDLDEBUG_f(printf("PDL::MMap: mapped to %p\n",$pdl->data));
+   close $fh ;
+}
 
 1;# Exit with OK status
 

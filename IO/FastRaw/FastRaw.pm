@@ -420,15 +420,25 @@ sub PDL::mapfraw {
 	$pdl->setdims($hdr->{Dims});
 
         if ($have_file_map and not defined($PDL::force_use_mmap_code) ) {
-           my $pdl_dataref = $pdl->get_dataref;
-           map_file ${$pdl_dataref}, $name, ($opts->{ReadOnly}?'<':'+<');
-           $pdl->upd_data;
-           $pdl->set_state_and_add_deletedata_magic(length(${$pdl_dataref}));
-        } else {
-           $pdl->set_data_by_mmap($name,$s,1,($opts->{ReadOnly}?0:1),
+           $pdl->set_data_by_file_map(
+              $name,
+              $s,
+              1,
+              ($opts->{ReadOnly}?0:1),
               ($opts->{Creat}?1:0),
               (0644),
-              ($opts->{Creat} || $opts->{Trunc} ? 1:0));
+              ($opts->{Creat} || $opts->{Trunc} ? 1:0)
+           );
+        } else {
+           $pdl->set_data_by_mmap(
+              $name,
+              $s,
+              1,
+              ($opts->{ReadOnly}?0:1),
+              ($opts->{Creat}?1:0),
+              (0644),
+              ($opts->{Creat} || $opts->{Trunc} ? 1:0)
+           );
         }
 
 	if($opts->{Creat}) {

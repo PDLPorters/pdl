@@ -708,7 +708,14 @@ sub mapflex {
     # use Data::Dumper;
     # print "Options: ", Dumper(\%opts), "\n";
     if ($have_file_map and not defined($PDL::force_use_mmap_code) ) {
-       die "mapflex: need to use File::Map here\n";
+       $d->set_data_by_file_map($name,
+                            $size,
+                            1,
+                            ($opts{ReadOnly}?0:1),
+                            ($opts{Creat}?1:0),
+                            (0644),
+                            ($opts{Creat} || $opts{Trunc} ? 1:0)
+                         );
     } else {
        $d->set_data_by_mmap($name,
                             $size,
