@@ -312,7 +312,14 @@ the copyright notice should be included in the file.
 
 package PDL::IO::FastRaw;
 
-use version; our $VERSION = qv('0.0.2');
+use version; our $VERSION = qv('0.0.3');
+
+BEGIN {
+   our $have_file_map = 0;
+
+   eval "use File::Map qw(:all)";
+   $have_file_map = 1 unless $@;
+}
 
 require Exporter;
 use PDL::Core '';
@@ -410,14 +417,20 @@ sub PDL::mapfraw {
 		$s *= $_;
 	}
 	my $pdl = $class->zeroes(new PDL::Type($hdr->{Type}));
-#	$pdl->dump();
 	$pdl->setdims($hdr->{Dims});
-#	$pdl->dump();
-	$pdl->set_data_by_mmap($name,$s,1,($opts->{ReadOnly}?0:1),
-		($opts->{Creat}?1:0),
-		(0644),
-		($opts->{Creat} || $opts->{Trunc} ? 1:0));
-#	$pdl->dump();
+
+        if ($have_file_map and not defined($PDL::force_use_mmap_code) ) {
+           my $pdl_dataref = $pdl->get_dataref;
+           map_file ${$pdl_dataref}, $name, ($opts->{ReadOnly}?'<':'+<');
+           $pdl->upd_data;
+           $pdl->set_state_and_add_deletedata_magic(length(${$pdl_dataref}));
+        } else {
+           $pdl->set_data_by_mmap($name,$s,1,($opts->{ReadOnly}?0:1),
+              ($opts->{Creat}?1:0),
+              (0644),
+              ($opts->{Creat} || $opts->{Trunc} ? 1:0));
+        }
+
 	if($opts->{Creat}) {
 		_writefrawhdr($pdl,$name,$opts);
 	}
