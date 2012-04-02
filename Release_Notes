@@ -23,10 +23,42 @@ General Notes:
        cpan> test CHM/PDL-2.4.10_001.tar.gz
        cpan> look CHM/PDL-2.4.10_001.tar.gz
 
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API and will require that you re-build all the    |
+ | PP modules.  Do not install over an existing PDL installation |
+ | unless you are prepared to do so!!!                           |
+ +---------------------------------------------------------------+
+
 
 Highlights:
 
- * TBD
+ * mapflex and mapfraw routines for memory-mapped IO have been
+   refactored to use the File::Map module.  The new routines
+   should work for all platforms having File::Map installed.
+   The new implementation should work for 32- and 64-bit perls
+   as well as 64-bit file offsets.  Please test and report.
+
+   NOTE: There is a known problem in File-Map-0.46 where the
+   $fd argument is not calculated correctly before calling
+   the _mmap_impl() routine.  Until a new release of File::Map,
+   you can fix the problem by editing the Map.pm file and
+   changing line #114 from this:
+
+      my $fd = ($flags & MAP_ANONYMOUS) ? $ANON_FH : $fh;
+
+   to this (by adding fileno() around the $fh):
+
+      my $fd = ($flags & MAP_ANONYMOUS) ? $ANON_FH : fileno($fh);
+
+   The bug has been reported and a developers release of
+   PDL with the fixed version as a dependency will be
+   released to CPAN for testing.
+
+ * Various cleanup to existing code to fix warnings generated
+   by perl-5.15.
+ 
+ * Other cleanup and bugs fixed (sf.net bug #3487569).
 
 
 
