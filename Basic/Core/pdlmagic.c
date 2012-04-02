@@ -509,7 +509,7 @@ void pdl_delete_mmapped_data(pdl *p, Size_t param)
 #ifdef USE_MMAP
 	munmap(p->data, param);
 #else
-        croak("internal error: trying to delete mmaped data on unsupported platform");
+      /*  croak("internal error: trying to delete mmaped data on unsupported platform"); */
 #endif
 	p->data = 0;
 }

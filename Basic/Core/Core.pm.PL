@@ -4021,6 +4021,8 @@ sub PDL::set_data_by_file_map {
    sysopen(my $fh, $name, ($writable && $shared ? O_RDWR : O_RDONLY) | ($creat ? O_CREAT : 0), $mode)
       or die "Error opening file '$name'\n";
 
+   binmode $fh;
+
    if ($trunc) {
       truncate($fh,0) or die "set_data_by_mmap: truncate('$name',0) failed, $!";
       truncate($fh,$len) or die "set_data_by_mmap: truncate('$name',$len) failed, $!";
