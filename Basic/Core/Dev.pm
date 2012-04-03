@@ -75,7 +75,7 @@ sub PDL_BOOT {
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
    $symname = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if ($symname->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
+     Perl_croak(aTHX_ "[$symname->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] The code needs to be recompiled against the newly installed PDL", $symname->Version, PDL_CORE_VERSION, XS_VERSION);
 
 EOR
 }
@@ -199,13 +199,13 @@ perl's C<%Config> array.
 # big/little endian?
 sub isbigendian {
     use Config;
-    my $byteorder = $Config{byteorder} || 
+    my $byteorder = $Config{byteorder} ||
 	die "ERROR: Unable to find 'byteorder' in perl's Config\n";
     return 1 if $byteorder eq "4321";
     return 1 if $byteorder eq "87654321";
     return 0 if $byteorder eq "1234";
     return 0 if $byteorder eq "12345678";
-    die "ERROR: PDL does not understand your machine's byteorder ($byteorder)\n"; 
+    die "ERROR: PDL does not understand your machine's byteorder ($byteorder)\n";
 }
 
 #################### PDL Generic PreProcessor ####################
@@ -396,9 +396,9 @@ sub pdlpp_postamble_int {
 	my $core = "$w/Basic/Core";
 	my $gen = "$w/Basic/Gen";
 
-## I diked out a "$gen/pm_to_blib" dependency (between $core/badsupport.p and 
+## I diked out a "$gen/pm_to_blib" dependency (between $core/badsupport.p and
 # $core/Types.pm below), because it appears to be causing excessive recompiles.
-# I don't think that the .pm files themselves should depend on Gen/pm_to_blib, 
+# I don't think that the .pm files themselves should depend on Gen/pm_to_blib,
 # so this should be OK.  But perhaps the requirement had to do with the build chaing
 # itself???  If so, we'll have to put it back in, but then modify the build order
 # so that Gen is built first.  CED 28-Oct-2008
@@ -554,7 +554,7 @@ a perl configure clone
   } else {
     $have_GL = 0;
   }
-  $maybe = 
+  $maybe =
     trylink 'libwhatever', $inc, $body, $libs, $cflags,
         {MakeMaker=>1, Hide=>0, Clean=>1};
 
@@ -686,7 +686,7 @@ EOF
   open(T, ">$te") or die( "unable to write to test executable `$te'");
   close T;
   print "$Config{cc} $cflags -o $te $tc $libs $HIDE ...\n" unless $hide;
-  my $success = (system("$Config{cc} $cflags -o $te $tc $libs $HIDE") == 0) && 
+  my $success = (system("$Config{cc} $cflags -o $te $tc $libs $HIDE") == 0) &&
     -e $te ? 1 : 0;
   unlink "$te","$tc" if $clean;
   print $success ? "\t\tYES\n" : "\t\tNO\n" unless $txt =~ /^\s*$/;
