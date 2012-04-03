@@ -51,9 +51,10 @@ Highlights:
 
       my $fd = ($flags & MAP_ANONYMOUS) ? $ANON_FH : fileno($fh);
 
-   The bug has been reported and a developers release of
-   PDL with the fixed version as a dependency will be
-   released to CPAN for testing.
+   An already edited version of this file can be found
+   in inc/File/Map.pm.  The bug has been reported and a
+   developers release of PDL with the fixed version as a
+   dependency will be released to CPAN for testing.
 
  * Various cleanup to existing code to fix warnings generated
    by perl-5.15.
