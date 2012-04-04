@@ -4022,6 +4022,18 @@ BEGIN {
    }
 }
 
+# Implement File::Map::sys_map bug fix.  Also, might be possible
+# to implement without so many external (non-Core perl) modules.
+#
+sub pdl_do_sys_map {
+        my (undef, $length, $protection, $flags, $fh, $offset) = @_;
+        my $utf8 = File::Map::_check_layers($fh); 
+        my $fd = ($flags & MAP_ANONYMOUS) ? (-1) : fileno($fh);
+        $offset ||= 0;
+        File::Map::_mmap_impl($_[0], $length, $protection, $flags, $fd, $offset, $utf8);
+        return;
+}
+
 sub PDL::set_data_by_file_map {
    my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
    my $pdl_dataref = $pdl->get_dataref();
@@ -4041,17 +4053,8 @@ sub PDL::set_data_by_file_map {
 
    if ($len) {
 
-# sub sys_map {
-#         my (undef, $length, $protection, $flags, $fh, $offset) = @_;
-#         my $utf8 = _check_layers($fh); 
-#         my $fd = ($flags & MAP_ANONYMOUS) ? $ANON_FH : $fh;
-#         $offset ||= 0;
-#         _mmap_impl($_[0], $length, $protection, $flags, $fd, $offset, $utf8);
-#         return;
-# }
-
       #eval {
-         sys_map(  # will croak if the mapping fails
+         pdl_do_sys_map(  # will croak if the mapping fails
             ${$pdl_dataref},
             $len,
             PROT_READ | ($writable ?  PROT_WRITE : 0),
