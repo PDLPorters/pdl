@@ -4009,7 +4009,18 @@ sub PDL::fhdr {
 }
     
 use Fcntl;
-use File::Map qw(:all);
+
+BEGIN {
+   eval 'use File::Map qw(:all)';
+   if ($@) {
+      carp "No File::Map found, using legacy mmap (if available)\n" if $PDL::verbose;
+      sub sys_map;
+      sub PROT_READ();
+      sub PROT_WRITE();
+      sub MAP_SHARED();
+      sub MAP_PRIVATE();
+   }
+}
 
 sub PDL::set_data_by_file_map {
    my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
@@ -4029,6 +4040,15 @@ sub PDL::set_data_by_file_map {
    }
 
    if ($len) {
+
+# sub sys_map {
+#         my (undef, $length, $protection, $flags, $fh, $offset) = @_;
+#         my $utf8 = _check_layers($fh); 
+#         my $fd = ($flags & MAP_ANONYMOUS) ? $ANON_FH : $fh;
+#         $offset ||= 0;
+#         _mmap_impl($_[0], $length, $protection, $flags, $fd, $offset, $utf8);
+#         return;
+# }
 
       #eval {
          sys_map(  # will croak if the mapping fails
