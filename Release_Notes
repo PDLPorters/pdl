@@ -35,26 +35,16 @@ Highlights:
 
  * mapflex and mapfraw routines for memory-mapped IO have been
    refactored to use the File::Map module.  The new routines
-   should work for all platforms having File::Map installed.
-   The new implementation should work for 32- and 64-bit perls
-   as well as 64-bit file offsets.  Please test and report.
+   should work for all platforms having File::Map version
+   0.46 or later installed.  This new implementation should
+   work for 32- and 64-bit perls as well as with 64-bit file
+   offsets.  Please test and report.
 
-   NOTE: There is a known problem in File-Map-0.46 where the
+   NOTE: There is a reported bug in File-Map-0.46 where the
    $fd argument is not calculated correctly before calling
-   the _mmap_impl() routine.  Until a new release of File::Map,
-   you can fix the problem by editing the Map.pm file and
-   changing line #114 from this:
-
-      my $fd = ($flags & MAP_ANONYMOUS) ? $ANON_FH : $fh;
-
-   to this (by adding fileno() around the $fh):
-
-      my $fd = ($flags & MAP_ANONYMOUS) ? $ANON_FH : fileno($fh);
-
-   An already edited version of this file can be found
-   in inc/File/Map.pm.  The bug has been reported and a
-   developers release of PDL with the fixed version as a
-   dependency will be released to CPAN for testing.
+   the _mmap_impl() routine.  A work-around has been made
+   in our mapflex and mapfraw routines and a fix should be
+   available shortly on CPAN.
 
  * Various cleanup to existing code to fix warnings generated
    by perl-5.15.
