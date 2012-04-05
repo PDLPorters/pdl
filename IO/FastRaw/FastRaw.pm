@@ -317,7 +317,7 @@ use version; our $VERSION = qv('0.0.3');
 BEGIN {
    our $have_file_map = 0;
 
-   eval "use File::Map qw(:all)";
+   eval "use File::Map 0.47 qw(:all)";
    $have_file_map = 1 unless $@;
 }
 

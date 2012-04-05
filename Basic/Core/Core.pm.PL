@@ -4011,7 +4011,7 @@ sub PDL::fhdr {
 use Fcntl;
 
 BEGIN {
-   eval 'use File::Map qw(:all)';
+   eval 'use File::Map 0.47 qw(:all)';
    if ($@) {
       carp "No File::Map found, using legacy mmap (if available)\n" if $PDL::verbose;
       sub sys_map;
@@ -4025,14 +4025,14 @@ BEGIN {
 # Implement File::Map::sys_map bug fix.  Also, might be possible
 # to implement without so many external (non-Core perl) modules.
 #
-sub pdl_do_sys_map {
-        my (undef, $length, $protection, $flags, $fh, $offset) = @_;
-        my $utf8 = File::Map::_check_layers($fh); 
-        my $fd = ($flags & MAP_ANONYMOUS) ? (-1) : fileno($fh);
-        $offset ||= 0;
-        File::Map::_mmap_impl($_[0], $length, $protection, $flags, $fd, $offset, $utf8);
-        return;
-}
+# sub pdl_do_sys_map {
+#         my (undef, $length, $protection, $flags, $fh, $offset) = @_;
+#         my $utf8 = File::Map::_check_layers($fh); 
+#         my $fd = ($flags & MAP_ANONYMOUS) ? (-1) : fileno($fh);
+#         $offset ||= 0;
+#         File::Map::_mmap_impl($_[0], $length, $protection, $flags, $fd, $offset, $utf8);
+#         return;
+# }
 
 sub PDL::set_data_by_file_map {
    my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
@@ -4054,15 +4054,16 @@ sub PDL::set_data_by_file_map {
    if ($len) {
 
       #eval {
-         pdl_do_sys_map(  # will croak if the mapping fails
-            ${$pdl_dataref},
-            $len,
-            PROT_READ | ($writable ?  PROT_WRITE : 0),
-            ($shared ? MAP_SHARED : MAP_PRIVATE),
-            $fh,
-            0
-         );
-         #};
+      # pdl_do_sys_map(  # will croak if the mapping fails
+      sys_map(  # will croak if the mapping fails
+         ${$pdl_dataref},
+         $len,
+         PROT_READ | ($writable ?  PROT_WRITE : 0),
+         ($shared ? MAP_SHARED : MAP_PRIVATE),
+         $fh,
+         0
+      );
+      #};
 
          #if ($@) {
          #die("Error mmapping!, '$@'\n");

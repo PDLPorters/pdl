@@ -338,7 +338,7 @@ package PDL::IO::FlexRaw;
 BEGIN {
    our $have_file_map = 0;
 
-   eval "use File::Map qw(map_file)";
+   eval "use File::Map 0.47 qw(map_file)";
    $have_file_map = 1 unless $@;
 }
 
