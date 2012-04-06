@@ -2,7 +2,9 @@ Release Notes for PDL 2.4.10_002 --------------------------
 
 General Notes:
 
- * Another quick CPAN developers release
+ * Rerelease of PDL-2.4.10_001 with reverted PROJ commit
+   to enable build to complete for File::Map testing to
+   occur.
  
    - It is a snapshot of the current git development tree
      and everything may not work correctly or have complete
@@ -26,7 +28,7 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * See notes for PDL-2.4.10_001 below.
 
 
 
