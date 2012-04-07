@@ -309,7 +309,7 @@ int (*iterthreadloop)(pdl_thread *thread,int which);
 void (*freethreadloop)(pdl_thread *thread);
 void (*thread_create_parameter)(pdl_thread *thread,int j,int *dims,
 				int temp);
-void (*add_deletedata_magic) (pdl *it,void (*func)(pdl *, int param), int param); /* Automagic destructor */
+void (*add_deletedata_magic) (pdl *it,void (*func)(pdl *, Size_t param), Size_t param); /* Automagic destructor */
 
 /* XXX NOT YET IMPLEMENTED */
 void (*setdims_careful)(pdl *pdl);
