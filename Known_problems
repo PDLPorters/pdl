@@ -1,6 +1,10 @@
 The following issues have been reported with this version of PDL:
 
 
+- Multiple subtest failures in t/gd_oo_tests.t have been
+  seen in CPAN Testers reports.
+
+
 - A change in perl-5.14 on how the 'x' operator works affects
   PDL's overload of that operator for matrix multiplication.
   An example that shows the problem is code like:
@@ -118,6 +122,7 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.10_003 release:
 
+  3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3503566    pdl2 enters infinite loop on DWIMPerl
   3479009    Slice does not like whitespace

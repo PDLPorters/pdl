@@ -26,7 +26,13 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fix a missing declaration for add_deletedata_magic()
+   which is believed to be the cause of the warning messages
+   like:
+   
+     (in cleanup) Could not unmap: Invalid argument at t/fastraw.t line 63.
+     (in cleanup) Could not unmap: Invalid argument at t/fastraw.t line 80.
+     ...
 
 
 
