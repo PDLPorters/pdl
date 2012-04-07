@@ -41,8 +41,8 @@ judd dot t at orbitalsystems dot com
 
 =head2 1.32 (29 March 2006) Judd Taylor
 
-    - Getting ready to merge this into the PDL CVS.
-
+    - Getting ready to merge this into the PDL CVS. 
+    
 =head2 1.31 (???) Judd Taylor
 
     - Can't remember what was in that version
@@ -85,14 +85,9 @@ EODOC
 # Header files:
 #
 pp_addhdr(<<'EOHDR');
+#include "projects.h"
 #include "proj_api.h"
 #include <string.h>
-
-struct PDL_PJ_LIST {
-	char	*id;		/* projection keyword */
-	struct PJconsts	*(*proj)(struct PJconsts*);/* projection entry point */
-	char 	* const *descr;	/* description text */
-};
 
 EOHDR
 
@@ -106,7 +101,7 @@ parameters.
 Returns two pdls for x and y values respectively. The units are dependant on Proj4
 behavior. They will be PDL->null if an error has occurred.
 
-BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements
+BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements 
 of $x and $y to BAD
 
 =cut
@@ -133,7 +128,7 @@ parameters.
 Returns two pdls for lat and lon values respectively. The units are dependant on Proj4
 behavior. They will be PDL->null if an error has occurred.
 
-BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements
+BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements 
 of $x and $y to BAD
 
 =cut
@@ -154,7 +149,7 @@ sub inv_transform
 =head2 get_proj_info($params_string)
 
 Returns a string with information about what parameters proj will
-actually use, this includes defaults, and +init=file stuff. It's
+actually use, this includes defaults, and +init=file stuff. It's 
 the same as running 'proj -v'. It uses the proj command line, so
 it might not work with all shells. I've tested it with bash.
 
@@ -274,14 +269,14 @@ EOBAD
 pp_addpm( <<'ENDPM' );
 #
 # Wrapper sub for _fwd_trans_inplace that sets a default for the quiet variable.
-#
+# 
 sub fwd_trans_inplace
 {
     my $lon = shift;
     my $lat = shift;
     my $params = shift;
     my $quiet = shift || 0;
-
+    
     _fwd_trans_inplace( $lon, $lat, $params, $quiet );
 } # End of fwd_trans_inplace()...
 
@@ -374,7 +369,7 @@ threadloop
                 sprintf(errstr, "%s: Projection conversion failed at (%f, %f): %s\n",
                         func, $lon(), $lat(), pj_strerrno(pj_errno));
                 fprintf( stderr, "%s", errstr );
-                fprintf( stderr, "%s: NOTE: Subsequent errors may have occured, but I'm only reporting the first!\n", func );
+                fprintf( stderr, "%s: NOTE: Subsequent errors may have occured, but I'm only reporting the first!\n", func );   
             }
         }
     }
@@ -482,14 +477,14 @@ EOBAD
 pp_addpm( <<'ENDPM' );
 #
 # Wrapper sub for _fwd_trans_inplace that sets a default for the quiet variable.
-#
+# 
 sub inv_trans_inplace
 {
     my $lon = shift;
     my $lat = shift;
     my $params = shift;
     my $quiet = shift || 0;
-
+    
     _inv_trans_inplace( $lon, $lat, $params, $quiet );
 } # End of fwd_trans_inplace()...
 
@@ -597,14 +592,14 @@ EOBAD
 
 pp_addxs('', <<'ENDXS' );
 
-HV*
+HV* 
 load_projection_descriptions()
     CODE:
-        struct PDL_PJ_LIST *lp;
+        struct PJ_LIST *lp;
         SV* scalar_val;
         RETVAL = newHV();
 
-        for (lp = pj_get_list_ref() ; lp->id ; ++lp)
+        for (lp = pj_get_list_ref() ; lp->id ; ++lp) 
         {
             scalar_val  = newSVpv( *lp->descr, 0 );
             hv_store( RETVAL, lp->id, strlen( lp->id ), scalar_val, 0 );
@@ -625,24 +620,24 @@ pp_addpm( <<'ENDPM' );
 sub load_projection_information
 {
     my $descriptions = PDL::GIS::Proj::load_projection_descriptions();
-
+    
     my $info = {};
-
+    
     foreach my $projection ( keys %$descriptions )
     {
         my $description = $descriptions->{$projection};
-
+    
         my $hash = {};
         $hash->{CODE} = $projection;
-
-
-
+        
+        
+        
         my @lines = split( /\n/, $description );
         chomp @lines;
-
+        
         # Full name of this projection:
         $hash->{NAME} = $lines[0];
-
+        
         # The second line is usually a list of projection types this one is:
         my $temp = $lines[1];
         $temp =~ s/no inv\.*,*//;
@@ -650,17 +645,17 @@ sub load_projection_information
         my @temp_types = split(/[,&\s]/, $temp );
         my @types = grep( /.+/, @temp_types );
         $hash->{CATEGORIES} = \@types;
-
+        
         # If there's more than 2 lines, then it usually is a listing of parameters:
-
+        
         # General parameters for all projections:
-        $hash->{PARAMS}->{GENERAL} =
+        $hash->{PARAMS}->{GENERAL} = 
             [ qw( x_0 y_0 lon_0 units init no_defs geoc over ) ];
-
+        
         # Earth Figure Parameters:
-        $hash->{PARAMS}->{EARTH} =
+        $hash->{PARAMS}->{EARTH} = 
             [ qw( ellps b f rf e es R R_A R_V R_a R_g R_h R_lat_g ) ];
-
+        
         # Projection Specific Parameters:
         my @proj_params = ();
         if( $#lines >= 2 )
@@ -685,22 +680,22 @@ sub load_projection_information
                     next if $param =~ /^CH1903$/;
                     push(@proj_params, $param);
                 }
-            }
+            }    
         }
         $hash->{PARAMS}->{PROJ} = \@proj_params;
-
+        
         # Can this projection do inverse?
         $hash->{INVERSE} = ( $description =~ /no inv/ ) ? 0 : 1;
-
+        
         $info->{$projection} = $hash;
     }
-
+    
     # A couple of overrides:
     #
-    $info->{ob_tran}->{PARAMS}->{PROJ} =
-        [ 'o_proj', 'o_lat_p', 'o_lon_p', 'o_alpha', 'o_lon_c',
+    $info->{ob_tran}->{PARAMS}->{PROJ} = 
+        [ 'o_proj', 'o_lat_p', 'o_lon_p', 'o_alpha', 'o_lon_c', 
           'o_lat_c', 'o_lon_1', 'o_lat_1', 'o_lon_2', 'o_lat_2' ];
-
+          
     $info->{nzmg}->{CATEGORIES} = [ 'fixed Earth' ];
 
     return $info;

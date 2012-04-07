@@ -1,6 +1,79 @@
+Release Notes for PDL 2.4.10_003 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.10_003.tar.gz
+       cpan> make CHM/PDL-2.4.10_003.tar.gz
+       cpan> test CHM/PDL-2.4.10_003.tar.gz
+       cpan> look CHM/PDL-2.4.10_003.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.4.10_002 --------------------------
+
+General Notes:
+
+ * Rerelease of PDL-2.4.10_001 with reverted PROJ commit
+   to enable build to complete for File::Map testing to
+   occur.
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.10_002.tar.gz
+       cpan> make CHM/PDL-2.4.10_002.tar.gz
+       cpan> test CHM/PDL-2.4.10_002.tar.gz
+       cpan> look CHM/PDL-2.4.10_002.tar.gz
+
+
+Highlights:
+
+ * See notes for PDL-2.4.10_001 below.
+
+
+
 Release Notes for PDL 2.4.10_001 --------------------------
 
 General Notes:
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API and will require that you re-build all the    |
+ | PP modules.  Do not install over an existing PDL installation |
+ | unless you are prepared to do so!!!                           |
+ +---------------------------------------------------------------+
 
  * Another quick CPAN developers release
  
@@ -23,28 +96,22 @@ General Notes:
        cpan> test CHM/PDL-2.4.10_001.tar.gz
        cpan> look CHM/PDL-2.4.10_001.tar.gz
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API and will require that you re-build all the    |
- | PP modules.  Do not install over an existing PDL installation |
- | unless you are prepared to do so!!!                           |
- +---------------------------------------------------------------+
+ * File::Map 0.47 has been added as a dependency for
+   testing purposes so an automated build will need
+   this dependency installed.
+   
+   For systems having POSIX mmap, the build should
+   still pass using the legacy implementation.
 
 
 Highlights:
 
  * mapflex and mapfraw routines for memory-mapped IO have been
    refactored to use the File::Map module.  The new routines
-   should work for all platforms having File::Map version
-   0.46 or later installed.  This new implementation should
-   work for 32- and 64-bit perls as well as with 64-bit file
+   should work for all platforms having File::Map version 0.47
+   or later installed.  This new implementation should work
+   for both 32-bit and 64-bit perls as well as with 64-bit file
    offsets.  Please test and report.
-
-   NOTE: There is a reported bug in File-Map-0.46 where the
-   $fd argument is not calculated correctly before calling
-   the _mmap_impl() routine.  A work-around has been made
-   in our mapflex and mapfraw routines and a fix should be
-   available shortly on CPAN.
 
  * Various cleanup to existing code to fix warnings generated
    by perl-5.15.

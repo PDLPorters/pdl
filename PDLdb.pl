@@ -5,14 +5,18 @@ PDLdb.pl - the perl debugger with PDL support
 
 =head1 SYNOPSIS
 
+    export PERL5DB='BEGIN { require "PDLdb.pl" }'    # e.g., with sh/bash
+    
     perl -d  your_Perl_script
 
 =head1 DESCRIPTION
 
-C<perl5db.pl> is the perl debugger. It is loaded automatically by Perl when
-you invoke a script with C<perl -d>. This documentation tries to outline the
-structure and services provided by C<perl5db.pl>, and to describe how you
-can use them.
+C<PDLdb.pl> is an enhanced version of the perl debugger which supports
+PDL::NiceSlice constructs. Set the PERL5DB environment variable as
+shown above and it will be loaded automatically by Perl when you invoke
+a script with C<perl -d>. This documentation tries to outline the
+structure and services provided by C<PDLdb.pl>, i.e., C<perl5db.pl>,
+and to describe how you can use them.
 
 =head1 GENERAL NOTES
 
