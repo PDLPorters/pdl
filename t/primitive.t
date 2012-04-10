@@ -202,8 +202,7 @@ ok(!$@ && $c && $b->ndims==1, "uniqind, SF bug 3076570");      #34
 ##############################
 # Test whereND
 SKIP: {
-   do 'whereND.pdl' if -e 'whereND.pdl';  # for development
-   skip "have no whereND", 8 unless defined(&whereND);
+   skip "have no whereND", 8 unless defined(&PDL::whereND);
 
    $a = sequence(4,3,2);
    $b = pdl(0,1,1,0);
@@ -239,5 +238,4 @@ SKIP: {
                                                                #41
    ok(all($a->slice("1:-1") < 0), 'whereND in lvalue context works');
                                                                #42
-   
 }
