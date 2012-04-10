@@ -4055,6 +4055,17 @@ sub PDL::set_data_by_file_map {
 
       #eval {
       # pdl_do_sys_map(  # will croak if the mapping fails
+      if ($PDL::debug) {
+         printf STDERR
+         "set_data_by_file_map: calling sys_map(%s,%d,%d,%d,%s,%d)\n",
+         $pdl_dataref,
+         $len,
+         PROT_READ | ($writable ?  PROT_WRITE : 0),
+         ($shared ? MAP_SHARED : MAP_PRIVATE),
+         $fh,
+         0;
+      }
+
       sys_map(  # will croak if the mapping fails
          ${$pdl_dataref},
          $len,
@@ -4070,6 +4081,10 @@ sub PDL::set_data_by_file_map {
          #}
 
       $pdl->upd_data;
+
+      if ($PDL::debug) {
+         printf STDERR "set_data_by_file_map: length \${\$pdl_dataref} is %d.\n", length ${$pdl_dataref};
+      }
       $pdl->set_state_and_add_deletedata_magic( length ${$pdl_dataref} );
 
    } else {
