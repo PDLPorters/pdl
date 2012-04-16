@@ -289,6 +289,7 @@ sub get_xsnormdimchecks {
 		my $size = $iref->[$_-1]->get_size();      
 		"      if (($pdl)->ndims < $_ && $size <= 1) $size = 1;\n"
 		} (1..$ninds)) 
+# XXX why is this here, commented, and not removed? If re-inserted, be sure to use PDL_COMMENT
 ##		."      /* \$CROAK(\"Too few dimensions for argument \'$this->{Name}\'\\n\"); */\n"
 		. "   }\n";
     }
@@ -302,6 +303,7 @@ sub get_xsnormdimchecks {
 	$str .= "   if($siz == -1 || ($ndims > $no && $siz == 1)) {\n" .
 	        "      $siz = $dim;\n" .
 		"   } else if($ndims > $no && $siz != $dim) {\n" .
+# XXX should these lines simply be removed? If re-inserted, be sure to use PDL_COMMENT
 #		"      if($dim == 1) {\n" .
 #		"         /* Do nothing */ /* XXX Careful, increment? */" .
 #		"      } else {\n" .
@@ -317,7 +319,7 @@ sub get_xsnormdimchecks {
 	$str .= "} else {\n";
 	
 	# We are creating this pdl.
-	$str .= " int dims[".($ninds+1)."]; /* Use ninds+1 to avoid smart (stupid) compilers */";
+	$str .= " int dims[".($ninds+1)."]; PDL_COMMENT(\"Use ninds+1 to avoid smart (stupid) compilers\")";
 	$str .= join "",
 	(map {"dims[$_] = ".$iref->[$_]->get_size().";"} 0 .. $#$iref);
 	my $istemp = $this->{FlagTemp} ? 1 : 0;
@@ -395,7 +397,7 @@ sub do_access {
 	if(scalar(keys %subst) != 0) {
 		confess("Substitutions left: ".(join ',',keys %subst)."\n");
 	}
-       return "$text /* ACCESS($access) */ ";
+       return "$text PDL_COMMENT(\"ACCESS($access)\") ";
 }
 
 sub has_dim {
