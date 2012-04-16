@@ -156,28 +156,49 @@ ok(all($got == $expected), 'Empty bracket is correctly interpreted');
 # Bad, inf, nan checks - 13 #
 #############################
 
-# First term should be -inf
 my $bad_values = pdl q[nan inf -inf bad];
-my $skip = 0;
+
+# Bad value testing depends on whether nan and inf are represented as bad
+# values
+require PDL::Config;
+
 # nan test: nan is never considered equal to itself ... unless perl itself is buggy.
-if($bad_values->at(0) == $bad_values->at(0) && pdl($bad_values->at(0)) != pdl($bad_values->at(0))) {
-  warn "Looks like your perl asserts (incorrectly) that NaN == NaN\n";
-  $skip = 1;
+my $skip = 0;
+if (	not $PDL::Config{BADVAL_USENAN}
+	and $bad_values->at(0) == $bad_values->at(0)
+	and pdl($bad_values->at(0)) != pdl($bad_values->at(0))
+) {
+	warn "Looks like your perl asserts (incorrectly) that NaN == NaN\n";
+	$skip = 1;
 }
 SKIP: {
-skip "because perl's handling of NaN seems buggy", 1 if $skip;
-ok($bad_values->at(0) != $bad_values->at(0), 'properly handles nan')
-	or diag("Zeroeth bad value should be nan but it describes itself as " . $bad_values->at(0));
+	skip "because perl's handling of NaN seems buggy", 1 if $skip;
+	if ($PDL::Config{BADVAL_USENAN}) {
+		ok($bad_values->isbad->at(0), 'sets nan to bad')
+			or diag("Zeroeth bad value should be bad but it describes itself as "
+				. $bad_values->at(0));
+	}
+	else {
+		ok($bad_values->at(0) != $bad_values->at(0), 'properly handles nan')
+			or diag("Zeroeth bad value should be nan but it describes itself as "
+				. $bad_values->at(0));
+	}
 }
 # inf test: inf == inf but inf * 0 != 0
-ok(($bad_values->at(1) == $bad_values->at(1)
+ok((	$PDL::Config{BADVAL_USENAN} and $bad_values->isbad->at(1)
+		or  $bad_values->at(1) == $bad_values->at(1)
 		and $bad_values->at(1) * 0.0 != 0.0), 'properly handles inf')
 	or diag("First bad value should be inf but it describes itself as " . $bad_values->at(1));
 # inf test: -inf == -1 * inf
-ok(($bad_values->at(2) == $bad_values->at(2)
+ok((	$PDL::Config{BADVAL_USENAN} and $bad_values->isbad->at(2)
+		or  $bad_values->at(2) == $bad_values->at(2)
 		and $bad_values->at(2) * 0.0 != 0.0), 'properly handles -inf')
 	or diag("Second bad value should be -inf but it describes itself as " . $bad_values->at(2));
-ok($bad_values->at(2) == -$bad_values->at(1), "negative inf is numerically equal to -inf");
+SKIP: {
+	skip "because BADVAL_USENAN makes -inf and inf both bad, "
+		. "so checking signs is silly", 1 if $PDL::Config{BADVAL_USENAN};
+	ok($bad_values->at(2) == -$bad_values->at(1), "negative inf is numerically equal to -inf");
+}
 # bad test
 ok($bad_values->isbad->at(3), 'properly handles bad values')
 	or diag("Third bad value should be BAD but it describes itself as " . $bad_values->slice(3));
@@ -187,23 +208,41 @@ my $min_inf = pdl '-inf';
 my $nan = pdl 'nan';
 my $nan2 = pdl '-nan';
 my $bad = pdl 'bad';
-ok(($infty == $infty and $infty * 0.0 != 0.0), "pdl 'inf' works by itself")
+ok((	$PDL::Config{BADVAL_USENAN} and $infty->isbad
+		or $infty == $infty and $infty * 0.0 != 0.0), "pdl 'inf' works by itself")
 	or diag("pdl 'inf' gave me $infty");
-ok(($min_inf == $min_inf and $min_inf * 0.0 != 0.0), "pdl '-inf' works by itself")
+ok((	$PDL::Config{BADVAL_USENAN} and $min_inf->isbad
+		or $min_inf == $min_inf and $min_inf * 0.0 != 0.0), "pdl '-inf' works by itself")
 	or diag("pdl '-inf' gave me $min_inf");
-ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
-ok($nan != $nan, "pdl 'nan' works by itself")
-	or diag("pdl 'nan' gave me $nan");
-ok($nan2 != $nan2, "pdl '-nan' works by itself")
-	or diag("pdl '-nan' gave me $nan2");
+SKIP: {
+	skip "because BADVAL_USENAN makes -inf and inf both bad, "
+		. "so checking signs is silly", 1 if $PDL::Config{BADVAL_USENAN};
+	ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
+}
+SKIP: {
+	skip "because perl's handling of NaN seems buggy", 2 if $skip;
+	ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+			or $nan != $nan), "pdl 'nan' works by itself")
+		or diag("pdl 'nan' gave me $nan");
+	ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+			or $nan2 != $nan2), "pdl '-nan' works by itself")
+		or diag("pdl '-nan' gave me $nan2");
+}
 ok($bad->isbad, "pdl 'bad' works by itself")
 	or diag("pdl 'bad' gave me $bad");
 
 # Checks for windows strings:
 $infty = pdl q[1.#INF];
 $nan = pdl q[-1.#IND];
-ok(($infty == $infty and $infty * 0 != 0), "pdl '1.#INF' works");
-ok($nan != $nan, "pdl '-1.#IND' works");
+ok((	$PDL::Config{BADVAL_USENAN} and $infty->isbad
+		or $infty == $infty and $infty * 0 != 0), "pdl '1.#INF' works")
+	or diag("pdl '1.#INF' gave me $infty");
+SKIP: {
+	skip "because perl's handling of NaN seems buggy", 1 if $skip;
+	ok(($PDL::Config{BADVAL_USENAN} and $nan->isbad
+		or $nan != $nan), "pdl '-1.#IND' works")
+	or diag("pdl '-1.#IND' gave me $nan");
+}
 
 ########################
 # Pi and e checks - 10 #
