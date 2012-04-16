@@ -18,7 +18,7 @@ pp_def('inc',
 
 # a cumulative product
 # essentially the same functionality that is
-# already implemented by cumuprodover
+# already implemented by prodover
 # in the base distribution
 pp_def('tcumul',
        Pars => 'in(n); float+ [o] mul()',
