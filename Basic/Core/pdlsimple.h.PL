@@ -47,11 +47,11 @@ $PDL_DATATYPES
 */
 
 struct pdlsimple {
-   int    datatype;  /* whether byte/int/float etc. */
-   void  *data;      /* Generic pointer to the data block */
-   int    nvals;     /* Number of data values */
-   PDL_Long   *dims; /* Array of data dimensions */
-   int    ndims;     /* Number of data dimensions */
+   int     datatype;  /* whether byte/int/float etc. */
+   void       *data;  /* Generic pointer to the data block */
+   PDL_Index  nvals;  /* Number of data values */
+   PDL_Index  *dims;  /* Array of data dimensions */
+   PDL_Long   ndims;  /* Number of data dimensions */
 };
 
 typedef struct pdlsimple pdlsimple;

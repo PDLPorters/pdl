@@ -72,6 +72,23 @@ my @types = (
 	      defaultbadval => 'INT_MIN',
 	     },
 
+#
+# The PDL_Index type will be either the same as PDL_Long or, probably,
+# the same as PDL_LongLong depending on the platform.  Will need to
+# determine the actual type at build time.
+#
+#            {
+#             identifier => 'IND',
+#	      onecharident => 'N',   # only needed if different from identifier
+#             pdlctype => 'PDL_Index',
+#             realctype => &typeofPDLIndex,
+#             ppforcetype => 'TBD',
+#             usenan => 0,
+#             packtype => 'TBD',
+#             defaultbadval => 'TBD',
+#            },
+#
+
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
 #

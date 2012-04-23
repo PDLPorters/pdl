@@ -201,7 +201,7 @@ int pdl_whichdatatype_double (double nv) {
 void pdl_makescratchhash(pdl *ret,double data, int datatype) {
     STRLEN n_a;
 	HV *hash;
-	SV *dat; PDL_Long fake[1];
+	SV *dat; PDL_Index fake[1];
 
 	 /* Compress to smallest available type. This may have strange
 	    results sometimes :( */
@@ -240,7 +240,7 @@ void pdl_makescratchhash(pdl *ret,double data, int datatype) {
 pdl* SvPDLV ( SV* sv ) {
 
    pdl* ret;
-   int fake[1];
+   PDL_Index fake[1];
    SV *sv2;
 
    if ( !SvROK(sv) ) {   /* Coerce scalar */
@@ -469,12 +469,12 @@ SV* pdl_copy( pdl* a, char* option ) {
 
 /* Pack dims array - returns dims[] (pdl_malloced) and ndims */
 
-PDL_Long* pdl_packdims ( SV* sv, int *ndims ) {
+PDL_Index* pdl_packdims ( SV* sv, int *ndims ) {
 
    SV*  bar;
    AV*  array;
    int i;
-   PDL_Long *dims;
+   PDL_Index *dims;
 
    if (!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))  /* Test */
        return NULL;
@@ -483,20 +483,20 @@ PDL_Long* pdl_packdims ( SV* sv, int *ndims ) {
 
    *ndims = (int) av_len(array) + 1;  /* Number of dimensions */
 
-   dims = (PDL_Long *) pdl_malloc( (*ndims) * sizeof(*dims) ); /* Array space */
+   dims = (PDL_Index *) pdl_malloc( (*ndims) * sizeof(*dims) ); /* Array space */
    if (dims == NULL)
       croak("Out of memory");
 
    for(i=0; i<(*ndims); i++) {
       bar = *(av_fetch( array, i, 0 )); /* Fetch */
-      dims[i] = (int) SvIV(bar);
+      dims[i] = (PDL_Index) SvIV(bar);
    }
    return dims;
 }
 
 /* unpack dims array into PDL SV* */
 
-void pdl_unpackdims ( SV* sv, PDL_Long *dims, int ndims ) {
+void pdl_unpackdims ( SV* sv, PDL_Index *dims, int ndims ) {
 
    AV*  array;
    HV* hash;
@@ -513,7 +513,7 @@ void pdl_unpackdims ( SV* sv, PDL_Long *dims, int ndims ) {
          av_store( array, i, newSViv( (IV)dims[i] ) );
 }
 
-PDL_Long pdl_safe_indterm( PDL_Long dsz, PDL_Long at, char *file, int lineno)
+PDL_Index pdl_safe_indterm( PDL_Index dsz, PDL_Index at, char *file, int lineno)
 {
   if (at >= 0 && at < dsz) return at;
   pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
@@ -651,7 +651,8 @@ GEN_PDL_BARF_OR_WARN_LEGACY(warn, 1)
 
 int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 {
-  int i, len, oldlen, newdepth, depth = 0;
+  PDL_Index i, len, oldlen;
+  int newdepth, depth = 0;
   int n_scalars = 0;
   SV *el, **elp;
   pdl *pdl;           /* Stores PDL argument */
@@ -685,8 +686,8 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 	 */
 	int j;
 	short pndims;
-	PDL_Long *pdims;
-	PDL_Long pnvals;
+	PDL_Index *pdims;
+	PDL_Index pnvals;
 	
 #ifdef DEBUG_SETAV_TYPE
 	printf("av_ndcheck - found a PDL....\n");
@@ -711,7 +712,7 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 	for(j=0;j<pndims;j++) {
 	  int jl = pndims-j+level;
 	  
-	  int siz = pdims[j];
+	  PDL_Index siz = pdims[j];
 	  
 	  if(  av_len(dims) >= jl &&
 	       av_fetch(dims,jl,0) != NULL &&
@@ -778,7 +779,7 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
       fflush(stdout);
       for( i=0; i<dim; i++ ) {
 	  SV **svp = av_fetch(dims, i, 0);
-	  int k;
+	  PDL_Index k;
 
 	  if(svp != NULL) {
 	      k = SvIV (*svp);
@@ -794,7 +795,7 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
   
     if (av_len(dims) >= level && av_fetch(dims, level, 0) != NULL
       && SvIOK(*(av_fetch(dims, level, 0)))) {
-    oldlen = (int) SvIV(*(av_fetch(dims, level, 0)));
+    oldlen = (PDL_Index) SvIV(*(av_fetch(dims, level, 0)));
     
     if (len > oldlen)
       sv_setiv(*(av_fetch(dims, level, 0)), (IV) len);
@@ -812,7 +813,7 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
       SV **svp = av_fetch(dims, i, 0);
       if(!svp) {
 	av_store(dims, i, newSViv((IV)1));
-      } else if( (int)SvIV(*svp) == 0) {
+      } else if( (PDL_Index)SvIV(*svp) == 0) {
 	sv_setiv(*svp, (IV)1);
       }
     }
@@ -821,7 +822,7 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
       SV **svp = av_fetch(dims, i, 0);
       if(!svp) {
 	av_store(dims, i, newSViv((IV)1));
-      } else if( (int)SvIV(*svp) == 0) {
+      } else if( (PDL_Index)SvIV(*svp) == 0) {
 	sv_setiv(*svp, (IV)1);
       }
     }
@@ -840,7 +841,7 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
       fflush(stdout);
       for( i=0; i<dim; i++ ) {
 	  SV **svp = av_fetch(dims, i, 0);
-	  int k;
+	  PDL_Index k;
 
 	  if(svp != NULL) {
 	      k = SvIV (*svp);
@@ -860,11 +861,11 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 {
   int ndims, i, level=0;
-  PDL_Long *pdims;
+  PDL_Index *pdims;
      double undefval;
 
   ndims = av_len(dims)+1;
-  pdims = (PDL_Long *) pdl_malloc( (ndims) * sizeof(*pdims) );
+  pdims = (PDL_Index *) pdl_malloc( (ndims) * sizeof(*pdims) );
   for (i=0; i<ndims; i++) {
      pdims[i] = SvIV(*(av_fetch(dims, ndims-1-i, 0))); /* reverse order */
   }
@@ -977,19 +978,19 @@ print OUT <<"!WITH!SUBS!";
  * block of memory.
  */
 
-long pdl_kludge_copy_$type(long poff,
+PDL_Index pdl_kludge_copy_$type(PDL_Index poff,
 			   PDL_$type* pdata,
-                           PDL_Long* pdims,
-                           PDL_Long ndims,
+                           PDL_Index* pdims,
+                           PDL_Index ndims,
                            int level,
-                           long stride,
+                           PDL_Index stride,
                            pdl* pdl,
                            int plevel,
                            void* pptr,
 			   double undefval
 			   ) {
-  int i;
-  long undef_count = 0;
+  PDL_Index i;
+  PDL_Index undef_count = 0;
 
 #ifdef DEBUG_KLUDGE_COPY
   printf("entering pdl_kludge_copy: level=%d, ndims=%d, plevel=%d; pdl->ndims=%d\\n",level,ndims,plevel,pdl->ndims);
@@ -1003,7 +1004,7 @@ long pdl_kludge_copy_$type(long poff,
   if(level >= ndims - 1) {
     /* In this case we are in as far as we can go in the destination PDL, so direct copying is in order. */
     int pdldim = pdl->ndims - 1 - plevel;
-    int pdlsiz;
+    PDL_Index pdlsiz;
     int oob = (ndims-1-level < 0);
 
     /* Do bounds checking on the source dimension -- if we wander off the end, we
@@ -1198,16 +1199,16 @@ long pdl_kludge_copy_$type(long poff,
  *   -  level is the recursion level, which is also the dimension that we are filling
  */
 
-long pdl_setav_$type(PDL_$type* pdata, AV* av,
-		     PDL_Long* pdims, PDL_Long ndims, int level, double undefval)
+PDL_Index pdl_setav_$type(PDL_$type* pdata, AV* av,
+		     PDL_Index* pdims, PDL_Long ndims, int level, double undefval)
 {
-  int cursz = pdims[ndims-1-level]; /* we are starting from the highest dim
+  PDL_Index cursz = pdims[ndims-1-level]; /* we are starting from the highest dim
                                        inwards */
-  int len = av_len(av);
-  int i,stride=1;
+  PDL_Index len = av_len(av);
+  PDL_Index i,stride=1;
 
   SV *el, **elp;
-  long undef_count = 0;
+  PDL_Index undef_count = 0;
 
   fflush(stdout);
 
@@ -1292,7 +1293,7 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	  }
 #endif
 	  {
-	    int pd = pdims[ ndims - 2 - level];
+	    PDL_Index pd = pdims[ ndims - 2 - level];
 	    if(!pd)
 	      pd = 1;
 	    undef_count += pdl_kludge_copy_$type(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data,undefval);
