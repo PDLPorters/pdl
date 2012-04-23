@@ -26,7 +26,7 @@ void pdl_freedata (pdl *a) {
 
 /*  Utility to change the size of the data compt of a pdl */
 
-void pdl_grow (pdl* a, int newsize) {
+void pdl_grow (pdl* a, STRLEN newsize) {
 
    SV* foo;
    HV* hash;

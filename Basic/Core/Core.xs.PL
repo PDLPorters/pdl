@@ -1020,7 +1020,7 @@ print OUT <<'!NO!SUBS!';
     if ( $bvalflag ) {
 
 	my $condition;
-	if ( $usenan ) {  /* NOTE: dangerous use of hardwired datatype value 4!!! */
+	if ( $usenan ) {  # NOTE: dangerous use of hardwired datatype value 4!
 	    $condition = '( (x->datatype < 4 && pdl_val == pdl_badval) ||
 			(x->datatype >= 4 && finite(pdl_val) == 0) )';
 	} else {
