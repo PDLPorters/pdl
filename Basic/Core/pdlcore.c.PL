@@ -620,7 +620,7 @@ GEN_PDL_BARF_OR_WARN_LEGACY(warn, 1)
  * They are all called by pdl_avref in Core.xs, which in turn is called by the constructors
  * in Core.pm.PL.
  *
- *
+ */
 
 /******************************
  * av_ndcheck -
