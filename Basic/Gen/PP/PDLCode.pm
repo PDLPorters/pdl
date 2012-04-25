@@ -250,9 +250,9 @@ sub get_str {
     my $good = $this->[0];
     my $bad  = $this->[1];
 
-    my $str = "if ( \$PRIV(bvalflag) ) { /*** do 'bad' Code ***/\n";
+    my $str = "if ( \$PRIV(bvalflag) ) { PDL_COMMENT(\"** do 'bad' Code **\")\n";
     $str .= $bad->get_str($parent,$context);
-    $str .= "} else { /*** else do 'good' Code ***/\n";
+    $str .= "} else { PDL_COMMENT(\"** else do 'good' Code **\")\n";
     $str .= $good->get_str($parent,$context);
     $str .= "}\n";
 
@@ -284,7 +284,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 	push @$context, map {
 		$i = $parent->make_loopind($_);
 # Used to be $PRIV(.._size) but now we have it in a register.
-		$text .= "{/* Open $_ */ register int $_;
+		$text .= "{PDL_COMMENT(\"Open $_\") register int $_;
 			for($_=0; $_<(__$i->[0]_size); $_++) {";
 		$i;
 	} @{$this->[0]};
@@ -292,7 +292,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 }
 sub mypostlude { my($this,$parent,$context) = @_;
 	splice @$context, - ($#{$this->[0]}+1);
-	return join '',map {"}} /* Close $_ */"} @{$this->[0]};
+	return join '',map {"}} PDL_COMMENT(\"Close $_\")"} @{$this->[0]};
 }
 
 ###########################
@@ -337,8 +337,11 @@ sub myprelude {
 	(ppdefs);
     }
 
-    return "/* Start generic loop */\n$thisis_loop\n" .
-	"\tswitch($this->[3]) { case -42: /* Warning eater */ {1;\n";
+    return <<WARNING_EATER;
+PDL_COMMENT("Start generic loop")
+$thisis_loop
+	switch($this->[3]) { case -42: PDL_COMMENT("Warning eater") {1;
+WARNING_EATER
 }
 
 sub myitem { 
@@ -408,7 +411,7 @@ sub myoffs { return 0; }
 sub myprelude {my($this,$parent,$context) = @_;
  my $no;
  my ($ord,$pdls) = $parent->get_pdls();
-'	/* THREADLOOPBEGIN */
+'	PDL_COMMENT("THREADLOOPBEGIN")
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
  	__privtrans))) return;
    do {
@@ -420,7 +423,7 @@ sub myprelude {my($this,$parent,$context) = @_;
 sub mypostlude {my($this,$parent,$context) = @_;
  my $no;
  my ($ord,$pdls) = $parent->get_pdls();
-'	/* THREADLOOPEND */
+'	PDL_COMMENT("THREADLOOPEND")
  '.(join '',map {"${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
  		@$ord).'
       } while(PDL->iterthreadloop(&$PRIV(__pdlthread),0));
@@ -456,7 +459,7 @@ sub myprelude {
     my $no; my $no2=-1; my $no3=-1;
     my ($ord,$pdls) = $parent->get_pdls();
 
-'	/* THREADLOOPBEGIN */
+'	PDL_COMMENT("THREADLOOPBEGIN")
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.',
  	__tr)) return;
    do { register int __tind1=0,__tind2=0;
@@ -474,7 +477,7 @@ sub myprelude {
  		@$ord).'
 	for(__tind2=0; __tind2<__tdims1 ; __tind2++) {
 	 for(__tind1=0; __tind1<__tdims0 ; __tind1++) {
-	  /* This is the tightest threadloop. Make sure inside is optimal. */
+	  PDL_COMMENT("This is the tightest threadloop. Make sure inside is optimal.")
 ';
 }
 
@@ -482,7 +485,7 @@ sub myprelude {
 sub mypostlude {my($this,$parent,$context) = @_;
  my $no; my $no0; my $no1; my $no2; my $no3; my $no4; my $no5;
  my ($ord,$pdls) = $parent->get_pdls();
-'	/* THREADLOOPEND */
+'	PDL_COMMENT("THREADLOOPEND")
 	 '.(join '',map {"${_}_datap += __tinc0_".(0+$no0++).";\n"}
  		@$ord).'
 	 } '
@@ -1150,8 +1153,8 @@ sub print_xscoerce { my($this) = @_;
 		$this->printxs("\telse if(__priv->datatype <= $_->[2]) __priv->datatype = $_->[2];\n");
 	}
 	$this->{Types} =~ /F/ and (
-		$this->printxs("\telse if(__priv->datatype == PDL_D) {__priv->datatype = PDL_F; /* Cast double to float */}\n"));
-	$this->printxs("\telse {croak(\"Too high type %d given!\\n\",__priv->datatype);}");
+		$this->printxs("\telse if(__priv->datatype == PDL_D) {__priv->datatype = PDL_F; PDL_COMMENT(\"Cast double to float\")}\n"));
+	$this->printxs(qq[\telse {croak("Too high type \%d given!\\n",__priv->datatype);}]);
 # Then, coerce everything to this type.
 	for(@{$this->{PdlOrder}}) {
 		$this->printxs($this->{Pdls}{$_}->get_xscoerce());
