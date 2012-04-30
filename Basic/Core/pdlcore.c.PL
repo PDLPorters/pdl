@@ -649,7 +649,7 @@ GEN_PDL_BARF_OR_WARN_LEGACY(warn, 1)
  *  which is still Empty.
  */
 
-int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
+PDL_Index av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 {
   PDL_Index i, len, oldlen;
   int newdepth, depth = 0;

@@ -20,9 +20,9 @@
 
 /* Compute offset of (x,y,z,...) position in row-major list */
 
-int pdl_get_offset(PDL_Long* pos, PDL_Long* dims, PDL_Long *incs, PDL_Long offset, int ndims) {
+PDL_Index pdl_get_offset(PDL_Index* pos, PDL_Index* dims, PDL_Index *incs, PDL_Index offset, int ndims) {
    int i;
-   int result;
+   PDL_Index result;
    result = offset;
    for (i=0; i<ndims; i++) {
        result = result + (pos[i]+((pos[i]<0)?dims[i]:0))*incs[i];
@@ -32,9 +32,9 @@ int pdl_get_offset(PDL_Long* pos, PDL_Long* dims, PDL_Long *incs, PDL_Long offse
 
 /* Check validity of section - return number of elements in it */
 
-int pdl_validate_section( int* sec, int* dims, int ndims ){
+PDL_Index pdl_validate_section( PDL_Index* sec, PDL_Index* dims, int ndims ){
 
-   int i,start,end,count;
+   PDL_Index i,start,end,count;
 
    count=1;
 
@@ -56,7 +56,7 @@ int pdl_validate_section( int* sec, int* dims, int ndims ){
 
 /* Increrement a position pointer array by one row */
 
-void pdl_row_plusplus ( int* pos, int* dims, int ndims ) {
+void pdl_row_plusplus ( PDL_Index* pos, PDL_Index* dims, int ndims ) {
 
     int i, noescape;
 
@@ -83,19 +83,20 @@ void pdl_row_plusplus ( int* pos, int* dims, int ndims ) {
 
 #ifdef FOOBAR
 
-void pdl_subsection( char *y, char*x, int datatype, int* sec,
-                     int* dims, int *incs, int offs, int* ndims) {
+void pdl_subsection( char *y, char*x, int datatype, PDL_Index* sec,
+                     PDL_Index* dims, PDL_Index *incs, PDL_Index offs, int* ndims) {
 
 
    /* Note dims, ndims are altered and returned to reflect the new section */
 
-   int *start,*end;
+   PDL_Index *start,*end;
    int i,n1,n2,nrow,count,dsize;
+   PDL_Index n1,n2,nrow,count;
 
    /* Seperate section into start and end arrays - KISS! */
 
-   start = (int *) pdl_malloc( (*ndims)*sizeof(int) );
-   end   = (int *) pdl_malloc( (*ndims)*sizeof(int) );
+   start = (PDL_Index *) pdl_malloc( (*ndims)*sizeof(PDL_Index) );
+   end   = (PDL_Index *) pdl_malloc( (*ndims)*sizeof(PDL_Index) );
 
    if (start == NULL || end == NULL)
        croak("Out of memory");
@@ -145,13 +146,14 @@ void pdl_subsection( char *y, char*x, int datatype, int* sec,
 
 /* Insert one N-dimensional array in another */
 
-void pdl_insertin( char*y, int* ydims, int nydims,
-                   char*x, int* xdims, int nxdims,
-                   int datatype, int* pos) {
+void pdl_insertin( char*y, PDL_Index* ydims, int nydims,
+                   char*x, PDL_Index* xdims, int nxdims,
+                   int datatype, PDL_Index* pos) {
 
    /* Note inserts x[] in y[] */
 
-   int i,nyvals,nxvals,n1,n2,nrow,ntran,dsize;
+   int i,dsize;
+   PDL_Index nyvals,nxvals,n1,n2,nrow,ntran;
 
    nyvals = 1; nxvals = 1;
 
@@ -202,10 +204,11 @@ void pdl_insertin( char*y, int* ydims, int nydims,
 
 /* Return value at position (x,y,z...) */
 
-double pdl_at( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, 
-	PDL_Long *incs, PDL_Long offset, int ndims) {
+double pdl_at( void* x, int datatype, PDL_Index* pos, PDL_Index* dims, 
+	PDL_Index* incs, PDL_Index offset, int ndims) {
 
     int i;
+    PDL_Index ioff;
     double result;
 
     for(i=0; i<ndims; i++) { /* Check */
@@ -217,12 +220,12 @@ double pdl_at( void* x, int datatype, PDL_Long* pos, PDL_Long* dims,
           croak("Position out of range");
     }
 
-   i = pdl_get_offset(pos, dims, incs, offset, ndims);
+   ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
 
    GENERICLOOP (datatype)
 
       generic *xx = (generic *) x;
-      result = (double)xx[i];
+      result = (double)xx[ioff];
 
    ENDGENERICLOOP
 
@@ -236,9 +239,10 @@ double pdl_at( void* x, int datatype, PDL_Long* pos, PDL_Long* dims,
 
 /* Set value at position (x,y,z...) */
 
-void pdl_set( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, PDL_Long *incs, PDL_Long offs, int ndims, double value){
+void pdl_set( void* x, int datatype, PDL_Index* pos, PDL_Index* dims, PDL_Index* incs, PDL_Index offs, int ndims, double value){
 
     int i;
+    PDL_Index ioff;
 
     for(i=0; i<ndims; i++) { /* Check */
 
@@ -246,12 +250,12 @@ void pdl_set( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, PDL_Long *in
           croak("Position out of range");
     }
 
-   i = pdl_get_offset(pos, dims, incs, offs, ndims);
+   ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
 
    GENERICLOOP (datatype)
 
       generic *xx = (generic *) x;
-      xx[i] = value;
+      xx[ioff] = value;
 
    ENDGENERICLOOP
 }

@@ -462,16 +462,16 @@ sub myprelude {
 '	PDL_COMMENT("THREADLOOPBEGIN")
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.',
  	__tr)) return;
-   do { register int __tind1=0,__tind2=0;
-        register int __tnpdls = $PRIV(__pdlthread).npdls;
-      register int __tdims1 = $PRIV(__pdlthread.dims[1]);
-      register int __tdims0 = $PRIV(__pdlthread.dims[0]);
-      register int *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));
+   do { register PDL_Index __tind1=0,__tind2=0;
+        register PDL_Index __tnpdls = $PRIV(__pdlthread).npdls;
+      register PDL_Index __tdims1 = $PRIV(__pdlthread.dims[1]);
+      register PDL_Index __tdims0 = $PRIV(__pdlthread.dims[0]);
+      register PDL_Index *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));
  '.(join '',map {$no2++;
-            "register int __tinc0_".($no2)." = \$PRIV(__pdlthread).incs[$no2];"}
+            "register PDL_Index __tinc0_".($no2)." = \$PRIV(__pdlthread).incs[$no2];"}
 	     @$ord).
    (join '',map {$no3++;
-            "register int __tinc1_".($no3)." = \$PRIV(__pdlthread).incs[__tnpdls+$no3];"}
+            "register PDL_Index __tinc1_".($no3)." = \$PRIV(__pdlthread).incs[__tnpdls+$no3];"}
 	     @$ord).
    (join '',map {"${_}_datap += __offsp[".(0+$no++)."];\n"}
  		@$ord).'

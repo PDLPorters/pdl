@@ -70,7 +70,7 @@ void pdl_grow (pdl* a, STRLEN newsize) {
 
 /* unpack dims array into Hash */
 
-void pdl_unpackarray ( HV* hash, char *key, int *dims, int ndims ) {
+void pdl_unpackarray ( HV* hash, char *key, PDL_Index *dims, int ndims ) {
 
    AV*  array;
    int i;

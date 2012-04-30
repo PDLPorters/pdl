@@ -192,10 +192,10 @@ void pdl_print(pdl *it);
 void pdl_dump(pdl *it);
 void pdl_allocdata(pdl *it);
 
-int *pdl_get_threadoffsp(pdl_thread *thread); /* For pthreading */
+PDL_Index *pdl_get_threadoffsp(pdl_thread *thread); /* For pthreading */
 void pdl_thread_copy(pdl_thread *from,pdl_thread *to);
 void pdl_clearthreadstruct(pdl_thread *it);
-void pdl_initthreadstruct(int nobl,pdl **pdls,PDL_Index *realdims,int *creating,int npdls,
+void pdl_initthreadstruct(int nobl,pdl **pdls,PDL_Index *realdims,PDL_Index *creating,int npdls,
 	pdl_errorinfo *info,pdl_thread *thread,char *flags, int noPthreadFlag );
 int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),pdl_trans *);
 int pdl_iterthreadloop(pdl_thread *thread,int which);
@@ -301,10 +301,10 @@ struct Core {
 
 void (*thread_copy)(pdl_thread *from,pdl_thread *to);
 void (*clearthreadstruct)(pdl_thread *it);
-void (*initthreadstruct)(int nobl,pdl **pdls,PDL_Index *realdims,int *creating,int npdls,
+void (*initthreadstruct)(int nobl,pdl **pdls,PDL_Index *realdims,PDL_Index *creating,int npdls,
 	pdl_errorinfo *info,pdl_thread *thread,char *flags, int noPthreadFlag );
 int (*startthreadloop)(pdl_thread *thread,void (*func)(pdl_trans *),pdl_trans *);
-int *(*get_threadoffsp)(pdl_thread *thread); /* For pthreading */
+PDL_Index *(*get_threadoffsp)(pdl_thread *thread); /* For pthreading */
 int (*iterthreadloop)(pdl_thread *thread,int which);
 void (*freethreadloop)(pdl_thread *thread);
 void (*thread_create_parameter)(pdl_thread *thread,int j,PDL_Index *dims,

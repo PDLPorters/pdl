@@ -1589,7 +1589,7 @@ threadover_n(...)
     {
 	    int i,sd;
 	    pdl **pdls = malloc(sizeof(pdl *) * npdls);
-	    int *realdims = malloc(sizeof(int) * npdls);
+	    PDL_Index *realdims = malloc(sizeof(PDL_Index) * npdls);
 	    pdl_thread pdl_thr;
 	    SV *code = ST(items-1);
 	    for(i=0; i<npdls; i++) {
@@ -1634,7 +1634,8 @@ threadover(...)
     	croak("Usage: threadover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
     npdls = targs-nothers;
     {
-	    int i,j,nd1,nd2,dtype=0,nc=npdls;
+	    int i,nd1,nd2,dtype=0;
+	    PDL_Index j,nc=npdls;
 	    SV* rdimslist = ST(items-3);
 	    SV* cdimslist = ST(items-2);
 	    SV *code = ST(items-1);
@@ -1645,8 +1646,8 @@ threadover(...)
 	    SV **dims = malloc(sizeof(SV *) * npdls);
 	    SV **incs = malloc(sizeof(SV *) * npdls);
 	    SV **others = malloc(sizeof(SV *) * nothers);
-	    int *creating = pdl_packint(cdimslist,&nd2);
-	    int *realdims = pdl_packint(rdimslist,&nd1);
+	    PDL_Index *creating = pdl_packint(cdimslist,&nd2);
+	    PDL_Index *realdims = pdl_packint(rdimslist,&nd1);
 	    CHECKP(pdls); CHECKP(child); CHECKP(dims);
 	    CHECKP(incs); CHECKP(csv);
 
@@ -1682,7 +1683,7 @@ threadover(...)
 				NULL,&pdl_thr,NULL, 1);
 	    for(i=0, nc=npdls; i<npdls; i++)  /* create as necessary */
               if (creating[i]) {
-		int *cp = creating+nc;
+		PDL_Index *cp = creating+nc;
 		pdls[i]->datatype = dtype;
 		pdl_thread_create_parameter(&pdl_thr,i,cp,0);
 		nc += realdims[i];

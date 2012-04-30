@@ -7,7 +7,7 @@ require 'Types.pm';
 # pdl.h and pdlsimple.h
 
 $enum = '';
-$typedefs = "typedef int PDL_Index;\n";
+$typedefs = "typedef long long PDL_Index;\n";
 for (sort { $T{$a}{'numval'}<=>$T{$b}{'numval'} }  keys %T) {
  $enum .= $T{$_}{'sym'}.", ";
  $typedefs .= "typedef $T{$_}{'realctype'}              $T{$_}{'ctype'};\n";

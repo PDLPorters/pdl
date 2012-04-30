@@ -319,7 +319,7 @@ sub get_xsnormdimchecks {
 	$str .= "} else {\n";
 	
 	# We are creating this pdl.
-	$str .= " int dims[".($ninds+1)."]; PDL_COMMENT(\"Use ninds+1 to avoid smart (stupid) compilers\")";
+	$str .= " PDL_Index dims[".($ninds+1)."]; PDL_COMMENT(\"Use ninds+1 to avoid smart (stupid) compilers\")";
 	$str .= join "",
 	(map {"dims[$_] = ".$iref->[$_]->get_size().";"} 0 .. $#$iref);
 	my $istemp = $this->{FlagTemp} ? 1 : 0;
