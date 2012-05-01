@@ -2830,7 +2830,7 @@ $PDL::PP::deftbl =
 # Same number of dimensions is assumed, though.
 #
    PDL::PP::Rule->new("AffinePriv", "XCHGOnly", sub { return @_; }),
-   PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Long incs[$CHILD(ndims)];PDL_Long offs; '),
+   PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Index incs[$CHILD(ndims)];PDL_Index offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
 
    PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr","FHdrInfo","_EquivDimCheck"],

@@ -639,15 +639,15 @@ EOD
 # boundary: Array containing all the boundary condition specs
 # indord: Order/size of the indexing dim (0th dim of $index)
 
-	Comp => 'PDL_Long rdim; 
-                 PDL_Long nitems;
-                 PDL_Long itdim;
-                 PDL_Long ntsize;
-                 PDL_Long bsize;
-		 PDL_Long nsizes;
-		 PDL_Long sizes[$COMP(rdim)];
-		 PDL_Long itdims[$COMP(itdim)];
-		 PDL_Long corners[$COMP(rdim) * $COMP(nitems)];
+	Comp => 'PDL_Index rdim; 
+                 PDL_Index nitems;
+                 PDL_Index itdim;
+                 PDL_Index ntsize;
+                 PDL_Index bsize;
+		 PDL_Index nsizes;
+		 PDL_Index sizes[$COMP(rdim)];
+		 PDL_Index itdims[$COMP(itdim)];
+		 PDL_Index corners[$COMP(rdim) * $COMP(nitems)];
 	         char boundary[$COMP(rdim)];
 		 ',
 	MakeComp => <<'EOD-MakeComp',
@@ -687,7 +687,7 @@ switch(ind_pdl->datatype) {
  * Figure sizes of the COMP arrrays and allocate them.
  */
 {
-  PDL_Long i,nitems;
+  PDL_Index i,nitems;
 
   $COMP(rdim) = ind_pdl->ndims ? ind_pdl->dims[0] : 1;
   for(i=nitems=1; i < ind_pdl->ndims; i++)  /* Accumulate item list size */
@@ -747,8 +747,8 @@ switch(ind_pdl->datatype) {
  * Store the sizes of the index-thread dims
  */
 {
-  PDL_Long i;
-  PDL_Long nd = ind_pdl->ndims - 1;
+  PDL_Index i;
+  PDL_Index nd = ind_pdl->ndims - 1;
   for(i=0; i < nd ; i++)
     $COMP(itdims[i]) = ind_pdl->dims[i+1];
 }
@@ -757,7 +757,7 @@ switch(ind_pdl->datatype) {
  * Check and condition the size piddle, and store sizes of the ranges
  */
 {
-  PDL_Long i,ntsize;
+  PDL_Index i,ntsize;
 
   if( (size == NULL) || (size == &PL_sv_undef) ) {
     // NO size was passed in (not normally executed even if you passed in no size to range(), 
@@ -794,7 +794,7 @@ switch(ind_pdl->datatype) {
       /* Copy the sizes, or die if they're the wrong shape */
       if(size_pdl->nvals == 1) {
 	for(i=0;i<$COMP(rdim);i++) {
-	  $COMP(sizes[i]) = *((PDL_Long *)(size_pdl->data));
+	  $COMP(sizes[i]) = *((PDL_Index *)(size_pdl->data));
 	}
 	
 	/* Check for nonnegativity of sizes.  The rdim>0 mask ensures that */
@@ -806,7 +806,7 @@ switch(ind_pdl->datatype) {
       else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) {
 	for(i=0;i<$COMP(rdim);i++) {
 	  $COMP(sizes[i]) = ( 	(i < size_pdl->nvals) ? 
-	                    	((PDL_Long *)(size_pdl->data))[i] :
+	                    	((PDL_Index *)(size_pdl->data))[i] :
 		                0
 			    );
 	  if($COMP(sizes[i]) < 0) 
@@ -832,9 +832,9 @@ switch(ind_pdl->datatype) {
  */
 
 {
-  PDL_Long i,j,k,ioff;
-  PDL_Long *cptr;
-  PDL_Long *iter = (PDL_Long *)(PDL->smalloc((STRLEN) (sizeof(PDL_Long) * ($COMP(itdim)))));
+  PDL_Index i,j,k,ioff;
+  PDL_Index *cptr;
+  PDL_Index *iter = (PDL_Index *)(PDL->smalloc((STRLEN) (sizeof(PDL_Index) * ($COMP(itdim)))));
   
   /* initialize iterator to loop over index threads */
   cptr = iter;
@@ -852,7 +852,7 @@ switch(ind_pdl->datatype) {
     /* bad we don't have access to the parent piddle here... */
 	
     for(j=0;j<$COMP(rdim);j++) 
-        *(cptr++) = ((PDL_Long *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
+        *(cptr++) = ((PDL_Index *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
     
     /* Increment the iterator -- the test increments, the body carries. */
     for(k=0; k<$COMP(itdim) && (++(iter[k]))>=($COMP(itdims)[k]) ;k++)
@@ -870,9 +870,9 @@ EOD-MakeComp
 
 	RedoDims => <<'EOD-RedoDims' ,
 {		      
-  PDL_Long stdim = $PARENT(ndims) - $COMP(rdim);
-  PDL_Long dim,inc;
-  PDL_Long i;
+  PDL_Index stdim = $PARENT(ndims) - $COMP(rdim);
+  PDL_Index dim,inc;
+  PDL_Index i;
 
     // Speed bump for ludicrous cases
     if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
@@ -929,21 +929,21 @@ EOD-RedoDims
 
 	EquivCPOffsCode => <<'EOD-EquivCPOffsCode',
 {
-  PDL_Long *iter, *ip;  /* vector iterator */
-  PDL_Long *sizes, *sp; /* size vector including stdims */
-  PDL_Long *coords;     /* current coordinates */
+  PDL_Index *iter, *ip;  /* vector iterator */
+  PDL_Index *sizes, *sp; /* size vector including stdims */
+  PDL_Index *coords;     /* current coordinates */
 
-  PDL_Long k;           /* index */
-  PDL_Long item;        /* index thread iterator */
-  PDL_Long pdim = $PARENT_P(ndims);
-  PDL_Long rdim = $COMP(rdim);
-  PDL_Long prdim = (rdim < pdim) ? rdim : pdim;
-  PDL_Long stdim = pdim - prdim;
+  PDL_Index k;           /* index */
+  PDL_Index item;        /* index thread iterator */
+  PDL_Index pdim = $PARENT_P(ndims);
+  PDL_Index rdim = $COMP(rdim);
+  PDL_Index prdim = (rdim < pdim) ? rdim : pdim;
+  PDL_Index stdim = pdim - prdim;
 
   /* Allocate iterator and larger size vector -- do it all in one foop 
    * to avoid extra calls to smalloc.
    */
-    if(!(iter = (PDL_Long *)(PDL->smalloc((STRLEN) (sizeof(PDL_Long) * ($PARENT_P(ndims) * 2 + rdim)))))) {
+    if(!(iter = (PDL_Index *)(PDL->smalloc((STRLEN) (sizeof(PDL_Index) * ($PARENT_P(ndims) * 2 + rdim)))))) {
     barf("couldn't get memory for range iterator");
   }
   sizes  = iter + $PARENT_P(ndims);
@@ -964,15 +964,15 @@ EOD-RedoDims
       *(ip++) = 0;
     
     do {
-      PDL_Long poff = 0;
-      PDL_Long coff;
-      PDL_Long k2;
+      PDL_Index poff = 0;
+      PDL_Index coff;
+      PDL_Index k2;
       char trunc = 0;       /* Flag used to skip truncation case */
 
       /* Collect and boundary-check the current N-D coords */
       for(k=0; k < prdim; k++){
 
-	PDL_Long ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
+	PDL_Index ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
 
      	/* normal case */
     	  if(ck < 0 || ck >= $PARENT_P(dims[k])) {
@@ -1016,7 +1016,7 @@ EOD-RedoDims
       for( ; k < rdim ; k++) {
         /* Check for indexing off the end of the dimension list */
 
-	PDL_Long ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
+	PDL_Index ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
 
   	switch($COMP(boundary[k])) {
 	    case 0: /* No boundary breakage allowed -- nonzero corners cause barfage */
@@ -1053,8 +1053,8 @@ EOD-RedoDims
 
       /* Loop the copy over all the source thread dims (above rdim). */
       do {
-	PDL_Long poff1 = poff;
-	PDL_Long coff1 = coff;
+	PDL_Index poff1 = poff;
+	PDL_Index coff1 = coff;
 	
 	/* Accumulate the offset due to source threading */
 	for(k2 = $COMP(itdim) + $COMP(ntsize), k = rdim; 
@@ -2004,7 +2004,7 @@ pp_add_exported('', 'using');
 
 pp_addhdr(<<END
 static int cmp_pdll(const void *a_,const void *b_) {
-	PDL_Long *a = (PDL_Long *)a_; PDL_Long *b=(PDL_Long *)b_;
+	PDL_Index *a = (PDL_Index *)a_; PDL_Index *b=(PDL_Index *)b_;
 	if(*a>*b) return 1;
 	else if(*a==*b) return 0;
 	else return -1;
@@ -2020,13 +2020,13 @@ pp_def( 'affine',
 	Reversible => 1,
 	AffinePriv => 1,
 	GlobalNew => 'affine_new',
-	OtherPars => 'int offspar; SV *dimlist; SV *inclist;',
-	Comp => 'int nd; PDL_Long offset; PDL_Long sdims[$COMP(nd)];
-		PDL_Long sincs[$COMP(nd)];',
+	OtherPars => 'PDL_Index offspar; SV *dimlist; SV *inclist;',
+	Comp => 'int nd; PDL_Index offset; PDL_Index sdims[$COMP(nd)];
+		PDL_Index sincs[$COMP(nd)];',
 	MakeComp => '
 		int i,n2;
-		PDL_Long *tmpi;
-		PDL_Long *tmpd = PDL->packdims(dimlist,&($COMP(nd)));
+		PDL_Index *tmpi;
+		PDL_Index *tmpd = PDL->packdims(dimlist,&($COMP(nd)));
 		tmpi = PDL->packdims(inclist,&n2);		
 		if ($COMP(nd) < 0) {
 		      $CROAK("Affine: can not have negative no of dims");
@@ -2041,7 +2041,7 @@ pp_def( 'affine',
 		}
 		',
 	RedoDims => '
-		int i;
+		PDL_Index i;
 		$SETNDIMS($COMP(nd));
 		$DOPRIVDIMS();
 		$PRIV(offs) = $COMP(offset);
@@ -2065,17 +2065,17 @@ pp_def(
 	Reversible => 1,
 	AffinePriv => 1,
 	OtherPars => 'SV *list',
-	Comp => 'int nwhichdims; PDL_Long whichdims[$COMP(nwhichdims)];',
+	Comp => 'int nwhichdims; PDL_Index whichdims[$COMP(nwhichdims)];',
 	MakeComp => '
 		int i,j;
-		PDL_Long *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
+		PDL_Index *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
 		if($COMP(nwhichdims) < 1) {
 			$CROAK("Diagonal: must have at least 1 dimension");
 		}
 		$DOCOMPDIMS();
 		for(i=0; i<$COMP(nwhichdims); i++)
 			$COMP(whichdims)[i] = tmp[i];
-		qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(PDL_Long),
+		qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(PDL_Index),
 			cmp_pdll);
 	',
 	RedoDims => '
@@ -2345,11 +2345,11 @@ EOD
 	CallCopy => 0,  # Don't CallCopy for subclassed objects because PDL::Copy calls ThreadI
 			#  (Wouldn't cause recursive loop otherwise)
 	OtherPars => 'int id; SV *list',
-	Comp => 'int id; int nwhichdims; PDL_Long whichdims[$COMP(nwhichdims)];
+	Comp => 'int id; int nwhichdims; PDL_Index whichdims[$COMP(nwhichdims)];
 			int nrealwhichdims; ',
 	MakeComp => '
 		int i,j;
-		PDL_Long *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
+		PDL_Index *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
 		$DOCOMPDIMS();
 		for(i=0; i<$COMP(nwhichdims); i++)
 			$COMP(whichdims)[i] = tmp[i];

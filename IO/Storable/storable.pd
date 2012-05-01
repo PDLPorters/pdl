@@ -43,7 +43,7 @@ make_null(sv)
         SV *sv
         CODE:
         SV *newref, *dat;
-        PDL_Long fake[1] = {0};
+        PDL_Index fake[1] = {0};
         STRLEN n_a;
 
         /* we basically mimick pdl_null but without letting

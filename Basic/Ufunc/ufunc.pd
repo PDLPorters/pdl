@@ -1083,16 +1083,16 @@ sub generic_qsort_ind {
 pp_def(
        'qsorti',
        HandleBad => 1,
-       Pars => 'a(n); int [o]indx(n);',
+       Pars => 'a(n); longlong [o]indx(n);',
        Code => 
-       'int nn = $COMP(__n_size)-1;
+       'long long nn = $COMP(__n_size)-1;
         if ($SIZE(n) == 0) return;
         loop(n) %{ 
            $indx() = n; 
         %}
        ' . generic_qsort_ind(),
        BadCode =>
-       'register int nn = 0, nb = $SIZE(n) - 1;
+       'register long long nn = 0, nb = $SIZE(n) - 1;
         if ($SIZE(n) == 0) return;
         loop(n) %{ 
            if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
@@ -1179,10 +1179,10 @@ sub generic_qsortvec_ind {
 pp_def(
     'qsortveci',
     HandleBad => 1,
-    Pars => 'a(n,m); int [o]indx(m);',
+    Pars => 'a(n,m); longlong [o]indx(m);',
     Code => 
-    'int nd;
-     int nn=$COMP(__m_size)-1;
+    'long long nd;
+     long long nn=$COMP(__m_size)-1;
      loop(m) %{
         $indx()=m;
      %}
