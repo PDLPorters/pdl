@@ -670,16 +670,16 @@ if(ind_pdl->dims[0] == 0)
     { $CROAK("rangeb: can't handle Empty indices -- call range instead"); }
 
 /***
- * Ensure that the index is a long.  If there's no loss of information,
+ * Ensure that the index is a PDL_Index.  If there's no loss of information,
  * just upgrade it -- otherwise, make a temporary copy.
  */
 switch(ind_pdl->datatype) {
  default:                              /* Most types: */
    ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
- case PDL_B: case PDL_S: case PDL_US:  
-   PDL->converttype(&ind_pdl,PDL_L,1); /* convert in place. */
+ case PDL_B: case PDL_S: case PDL_US: case PDL_L: 
+   PDL->converttype(&ind_pdl,PDL_LL,1); /* convert in place. */
    break;
- case PDL_L:                           
+ case PDL_LL:                           
    break;
 }
 
@@ -782,10 +782,10 @@ switch(ind_pdl->datatype) {
       switch(size_pdl->datatype) {
       default:                              /* Most types: */
 	size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
-      case PDL_B: case PDL_S: case PDL_US:  
-	PDL->converttype(&size_pdl,PDL_L,1); /* convert in place. */
+      case PDL_B: case PDL_S: case PDL_US: case PDL_L:  
+	PDL->converttype(&size_pdl,PDL_LL,1); /* convert in place. */
 	break;
-      case PDL_L:                           
+      case PDL_LL:                           
 	break;
       }
       
