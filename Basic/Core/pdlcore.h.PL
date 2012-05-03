@@ -246,7 +246,7 @@ void   pdl_swap(pdl** a, pdl** b);             /* Swap two pdl ptrs */
 void   pdl_converttype( pdl** a, int targtype, /* Change type of a pdl */
                         Logical changePerl );
 void   pdl_coercetypes( pdl** a, pdl **b, Logical changePerl ); /* Two types to same */
-void   pdl_grow  ( pdl* a, STRLEN newsize);   /* Change pdl 'Data' size */
+void   pdl_grow  ( pdl* a, PDL_Index newsize);   /* Change pdl 'Data' size */
 void   pdl_retype( pdl* a, int newtype);      /* Change pdl 'Datatype' value */
 void** pdl_twod( pdl* x );                    /* Return 2D pointer to data array */
 
@@ -293,7 +293,7 @@ struct Core {
     void   (*setdims)     ( pdl* it, PDL_Index* dims, int ndims );
     void   (*unpackdims)  ( SV* sv, PDL_Index *dims,    /* Unpack */
                             int ndims );
-    void   (*grow)        ( pdl* a, STRLEN newsize); /* Change pdl 'Data' size */
+    void   (*grow)        ( pdl* a, PDL_Index newsize); /* Change pdl 'Data' size */
     void (*flushcache)( pdl *thepdl );	     /* flush cache */
     void (*reallocdims) ( pdl *it,int ndims );  /* reallocate dims and incs */
     void (*reallocthreadids) ( pdl *it,int ndims );

@@ -77,7 +77,7 @@ pdl *pdl_get_convertedpdl(pdl *old,int type) {
 
 void pdl_allocdata(pdl *it) {
 	int i;
-	int nvals=1;
+	PDL_Index nvals=1;
 	SV *bar;
 	for(i=0; i<it->ndims; i++) {
 			nvals *= it->dims[i];
