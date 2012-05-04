@@ -89,7 +89,7 @@ pp_def(
        MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
        RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
        EquivCPOffsCode => '
-		int i; int poffs=$PRIV(offs); int nd;
+		PDL_Index i; PDL_Index poffs=$PRIV(offs); int nd;
 		for(i=0; i<$CHILD_P(nvals); i++) {
 			$EQUIVCPOFFS(i,poffs);
 			for(nd=0; nd<$CHILD_P(ndims); nd++) {
@@ -174,13 +174,13 @@ L<indexND|/indexND>.
 EOD
 
 my $index_init_good = 
-       'register int foo = $ind(); 
+       'register PDL_Index foo = $ind(); 
         if( foo<0 || foo>=$SIZE(n) ) {
 	   barf("PDL::index: invalid index %d (valid range 0..%d)",
                 foo,$SIZE(n)-1);
         }';
 my $index_init_bad = 
-       'register int foo = $ind(); 
+       'register PDL_Index foo = $ind(); 
         if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
 	   barf("PDL::index: invalid index %d (valid range 0..%d)",
                 foo,$SIZE(n)-1);
@@ -191,7 +191,7 @@ pp_def(
        HandleBad => 1,
        DefaultFlow => 1,
        Reversible => 1,	
-       Pars => 'a(n); int ind(); [oca] c();',
+       Pars => 'a(n); longlong ind(); [oca] c();',
        Code => 
        $index_init_good . ' $c() = $a(n => foo);',
        BadCode => 
@@ -206,7 +206,7 @@ pp_def(
        );
 
 my $index2d_init_good =
-       'register int fooa,foob;
+       'register PDL_Index fooa,foob;
 	fooa = $inda(); 
         if( fooa<0 || fooa>=$SIZE(na) ) {
            barf("PDL::index: invalid x-index %d (valid range 0..%d)",
@@ -218,7 +218,7 @@ my $index2d_init_good =
                 foob,$SIZE(nb)-1);
         }';
 my $index2d_init_bad =
-       'register int fooa,foob;
+       'register PDL_Index fooa,foob;
 	fooa = $inda(); 
         if( $ISBADVAR(fooa,inda) || fooa<0 || fooa>=$SIZE(na) ) {
            barf("PDL::index: invalid index 1");
@@ -233,7 +233,7 @@ pp_def(
        HandleBad => 1,
        DefaultFlow => 1,
        Reversible => 1,	
-       Pars => 'a(na,nb); int inda(); int indb(); [oca] c();',
+       Pars => 'a(na,nb); longlong inda(); longlong indb(); [oca] c();',
        Code => 
        $index2d_init_good . ' $c() = $a(na => fooa, nb => foob);',
        BadCode => 
@@ -1097,7 +1097,7 @@ EOD-EquivCPOffsCode
 
 pp_def(
 	'rld',
-	Pars=>'int a(n); b(n); [o]c(m);',
+	Pars=>'longlong a(n); b(n); [o]c(m);',
 	PMCode =><<'EOD',
 sub PDL::rld {
   my ($a,$b) = @_;
@@ -1116,7 +1116,7 @@ sub PDL::rld {
 }
 EOD
 	Code=>'
-	  int i,j=0,an;
+	  PDL_Index i,j=0,an;
 	  $GENERIC(b) bv;
 	  loop (n) %{
 	    an = $a();
@@ -1148,9 +1148,9 @@ EOD
 
 pp_def(
 	'rle',
-	Pars=>'c(n); int [o]a(n); [o]b(n);',
+	Pars=>'c(n); longlong [o]a(n); [o]b(n);',
 	Code=>'
-	  int j=0,sn=$SIZE(n);
+	  PDL_Index j=0,sn=$SIZE(n);
 	  $GENERIC(c) cv, clv;
 	  clv = $c(n=>0);
 	  $b(n=>0) = clv;
@@ -1247,7 +1247,7 @@ pp_def(
 	OtherPars => 'int n',
 	P2Child => 1,
 	Priv => 'int nnew; int nrem;',
-	RedoDims => 'int i; int d1;
+	RedoDims => 'int i; PDL_Index d1;
 		if($COMP(n) > $PARENT(ndims)) 
 			/* Now with more flavor: truncate overly long clumps to 
 			   just clump existing dimensions...  (CED 17-Mar-2002) */
@@ -1273,7 +1273,7 @@ pp_def(
 		 $SETDELTATHREADIDS(1-$COMP(nrem));
 		 ',
 	EquivCPOffsCode => '
-		int i;
+		PDL_Index i;
 		for(i=0; i<$CHILD_P(nvals); i++) {
 			$EQUIVCPOFFS(i,i);
 		}
@@ -1294,7 +1294,7 @@ pp_def(
 	Reversible => 1,
 	AffinePriv => 1,
 	OtherPars => 'int n',
-	RedoDims => 'int i; int d1;
+	RedoDims => 'int i; PDL_Index d1;
 		int nrem; int nnew;
 		if($COMP(n) > $PARENT(ndims)) {
 			/* Now with more flavor:  truncate clumping in this case to 
@@ -1591,9 +1591,9 @@ EOD
 	AffinePriv => 1,
 	RedoDims => '
 		int nth = $PRIV(nth);
-		int from = $PRIV(from);
-		int step = $PRIV(step);
-		int nsteps = $PRIV(nsteps);
+		PDL_Index from = $PRIV(from);
+		PDL_Index step = $PRIV(step);
+		PDL_Index nsteps = $PRIV(nsteps);
 		int i;
 		printf("ONESLICE_REDODIMS %d %d %d %d\n",nth,from,step,nsteps);
 		if(nth >= $PARENT(ndims)) {
@@ -1735,8 +1735,8 @@ EOD
 	DefaultFlow => 1,
 	OtherPars => 'char* str',
 	Comp => 'int nnew; int nthintact; int intactnew; int ndum;
-	         int corresp[$COMP(intactnew)]; int start[$COMP(intactnew)];
-		 int inc[$COMP(intactnew)]; int end[$COMP(intactnew)];
+	         int corresp[$COMP(intactnew)]; PDL_Index start[$COMP(intactnew)];
+		 PDL_Index inc[$COMP(intactnew)]; PDL_Index end[$COMP(intactnew)];
 		 int nolddims;
 		 int whichold[$COMP(nolddims)]; int oldind[$COMP(nolddims)];
 		 ',
@@ -1744,7 +1744,7 @@ EOD
 	MakeComp => q~
 		int i;
 		int nthnew; int nthold; int nthreal;
-		int dumsize;
+		PDL_Index dumsize;
 		char *s; char *ns;
 		int nums[3]; int nthnum;
 		$COMP(nnew)=0;
@@ -1836,7 +1836,7 @@ EOD
 		$SETREVERSIBLE(1); /* XXX Only if incs>0, no dummies */
 	~,
 	RedoDims => '
-		int i; int start; int end; int inc;
+		int i; PDL_Index start; PDL_Index end; PDL_Index inc;
 		if ($COMP(nthintact) > $PARENT(ndims)) {
 
 	/* Slice has more dims than parent.  Check that the extra dims are 		
@@ -1935,7 +1935,7 @@ EOD
 			} else {
 				$PRIV(incs[i]) = 0;
 			}
-			$CHILD(dims[i]) = ((int)((end-start)/inc))+1;
+			$CHILD(dims[i]) = ((PDL_Index)((end-start)/inc))+1;
                         if ($CHILD(dims[i]) <= 0)
                            barf("slice internal error: computed slice dimension must be positive");
 		}
@@ -2020,7 +2020,7 @@ pp_def( 'affine',
 	Reversible => 1,
 	AffinePriv => 1,
 	GlobalNew => 'affine_new',
-	OtherPars => 'PDL_Index offspar; SV *dimlist; SV *inclist;',
+	OtherPars => 'int offspar; SV *dimlist; SV *inclist;',
 	Comp => 'int nd; PDL_Index offset; PDL_Index sdims[$COMP(nd)];
 		PDL_Index sincs[$COMP(nd)];',
 	MakeComp => '
@@ -2065,7 +2065,7 @@ pp_def(
 	Reversible => 1,
 	AffinePriv => 1,
 	OtherPars => 'SV *list',
-	Comp => 'int nwhichdims; PDL_Index whichdims[$COMP(nwhichdims)];',
+	Comp => 'int nwhichdims; int whichdims[$COMP(nwhichdims)];',
 	MakeComp => '
 		int i,j;
 		PDL_Index *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
@@ -2075,7 +2075,7 @@ pp_def(
 		$DOCOMPDIMS();
 		for(i=0; i<$COMP(nwhichdims); i++)
 			$COMP(whichdims)[i] = tmp[i];
-		qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(PDL_Index),
+		qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(int),
 			cmp_pdll);
 	',
 	RedoDims => '
@@ -2286,12 +2286,12 @@ pp_def('rotate',
 Shift vector elements along with wrap. Flows data back&forth.
 =cut
 EOD
- 	Pars=>'x(n); int shift(); [oca]y(n)',
+ 	Pars=>'x(n); longlong shift(); [oca]y(n)',
         DefaultFlow => 1,
         Reversible => 1,
         Code=>'
-        int i,j;
-        int n_size = $SIZE(n);
+        PDL_Index i,j;
+        PDL_Index n_size = $SIZE(n);
 	if (n_size == 0)
           barf("can not shift zero size piddle (n_size is zero)");
         j = ($shift()) % n_size;
@@ -2303,8 +2303,8 @@ EOD
             $y(n=>j) = $x(n=>i);
         }',
         BackCode=>'
-        int i,j;
-        int n_size = $SIZE(n);
+        PDL_Index i,j;
+        PDL_Index n_size = $SIZE(n);
         j = ($shift()) % n_size;
         if (j < 0)
                 j += n_size;
@@ -2345,7 +2345,7 @@ EOD
 	CallCopy => 0,  # Don't CallCopy for subclassed objects because PDL::Copy calls ThreadI
 			#  (Wouldn't cause recursive loop otherwise)
 	OtherPars => 'int id; SV *list',
-	Comp => 'int id; int nwhichdims; PDL_Index whichdims[$COMP(nwhichdims)];
+	Comp => 'int id; int nwhichdims; int whichdims[$COMP(nwhichdims)];
 			int nrealwhichdims; ',
 	MakeComp => '
 		int i,j;
