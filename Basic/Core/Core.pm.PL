@@ -2772,7 +2772,7 @@ Falls through if argument already E<lt>= 1D.
 
 *flat = \&PDL::flat;
 sub PDL::flat { # fall through if < 2D
-  return $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
+  return my $dummy = $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
 }
 
 =head2 convert
