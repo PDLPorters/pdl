@@ -1776,7 +1776,7 @@ EOD
 				nthnew++; nthreal++;
 				$COMP(inc[nthnew-1]) = 1;
 				$COMP(corresp[nthnew-1]) = nthreal-1;
-				$COMP(start[nthnew-1]) = strtol(s,&s,10);
+				$COMP(start[nthnew-1]) = strtoll(s,&s,10);
 				if(*s != ':') {
 					$COMP(end[nthnew-1]) =
 						$COMP(start[nthnew-1]);
@@ -1786,13 +1786,13 @@ EOD
 				if(!isdigit(*s) && !(*s == '-')) {
 					barf("Invalid slice str ind1 '%s': '%s'",str,s);
 				}
-				$COMP(end[nthnew-1]) = strtol(s,&s,10);
+				$COMP(end[nthnew-1]) = strtoll(s,&s,10);
 				if(*s != ':') {goto outlab;}
 				s++;
 				if(!isdigit(*s) && !(*s == '-')) {
 					barf("Invalid slice str ind2 '%s': '%s'",str,s);
 				}
-				$COMP(inc[nthnew-1]) = strtol(s,&s,10);
+				$COMP(inc[nthnew-1]) = strtoll(s,&s,10);
 			} else switch(*s) {
 			case ':':
 				s++;
@@ -1808,7 +1808,7 @@ EOD
 				break;
 			case '(':
 				s++;
-				$COMP(oldind[nthold]) = strtol(s,&s,10);
+				$COMP(oldind[nthold]) = strtoll(s,&s,10);
 				$COMP(whichold[nthold]) = nthreal;
 				nthold++; nthreal++;
 				if(*s != ')') {
@@ -1819,7 +1819,7 @@ EOD
 			case '*':
 				s++;
 				if(isdigit(*s)) {
-					dumsize = strtol(s,&s,10);
+					dumsize = strtoll(s,&s,10);
 				} else {dumsize = 1;}
 				$COMP(corresp[nthnew]) = -1;
 				$COMP(start[nthnew]) = 0;
