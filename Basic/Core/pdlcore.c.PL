@@ -720,7 +720,7 @@ PDL_Index av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 	    
 	    /* We have already found something that specifies this dimension -- so */ 
 	    /* we keep the size if possible, or enlarge if necessary.              */
-	    oldlen=(int)SvIV(*(av_fetch(dims,jl,0)));
+	    oldlen=(PDL_Index)SvIV(*(av_fetch(dims,jl,0)));
 	    if(siz > oldlen) {
 	      sv_setiv(*(av_fetch(dims,jl,0)),(IV)(pdims[j]));
 	    }

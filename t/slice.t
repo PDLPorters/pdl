@@ -34,17 +34,17 @@ my ($a, $b, $c, $d, $e, $f);
 
 $a = (1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
 
-print "FOO\n";
+diag("FOO\n");
 
-print $a;
+diag($a);
 
-print "BAR\n";
+diag("BAR\n");
 
 is($a->at(2,2), 23);
 
 $b = $a->slice('1:3:2,2:4:2');
 
-# print $a; print $b;
+# diag($a); diag($b);
 
 is($b->at(0,0), 22);
 is($b->at(1,0), 24);
@@ -57,7 +57,7 @@ $b .= 0.5 * ones(2,2);
 is($b->at(1,0), 0.5);
 is($b->at(0,1), 0.5);
 
-print $a;
+diag($a);
 
 is($a->at(1,2), 0.5);
 
@@ -68,7 +68,7 @@ $a = pdl (1,2);
 $b = pdl [[1,2],[1,2],[1,2]];
 $c = $a->slice(',*3');
 
-print $a,$b,$c;
+diag($a); diag($b), diag($c);
 
 # check dimensions, sum of elements and correct order of els (using tapprox)
 
@@ -105,24 +105,24 @@ $c = $b->slice(":,:,1");
 
 is(join(',',$c->dims), "5,3,1");
 
-eval { my $d = $c->slice(":,:,2"); print $d; };
+eval { my $d = $c->slice(":,:,2"); diag($d); };
 
 like($@, qr/Slice cannot start or end/, 'check slice bounds error handling') or diag "ERROR WAS: '$@'\n" if $@;
 
 $a = zeroes 3,3;
-print $a;
+diag($a);
 
 $b = $a->slice("1,1:2");
 
-# print $b;
+# diag($b);
 
 $b .= 1;
 
-print $b;
-print $a;
+diag($b);
+diag($a);
 
 $a = xvals zeroes 20,20;
-print $a;
+diag($a);
 
 $b = $a->slice("1:18:2,:");
 $c = $b->slice(":,1:18:2");
@@ -130,11 +130,11 @@ $d = $c->slice("3:5,:");
 $e = $d->slice(":,(0)");
 $f = $d->slice(":,(1)");
 
-print "TOPRINT\n";
+diag("TOPRINT\n");
 
-# print $b;
-print $e,$f;
-print $d,$c,$b,$a;
+# diag($b);
+diag($e), diag($f);
+diag($d),diag($c), diag($b), diag($a);
 
 is("$e", "[7 9 11]");
 is("$f", "[7 9 11]");
@@ -147,7 +147,7 @@ $b = (xvals $a) + 0.1 * (yvals $a) + 0.01 * (zvals $a);
 
 $b = $b->copy;
 
-print $b;
+diag($b);
 
 $c = $b->slice("2:3");
 
@@ -158,16 +158,16 @@ $d = $c->copy;
 
 $e = $c-$d;
 
-print $e;
+diag($e);
 
-print $c;
-print $d;
+diag($c);
+diag($d);
 
 # $c->dump; $d->dump;
 
 is(max(abs($e)), 0);
 
-print "OUTOUTOUT!\n";
+diag("OUTOUTOUT!\n");
 
 use PDL::Dbg;
 
@@ -175,14 +175,13 @@ my ($im, $im1, $im2, $lut, $in);
 
 $im = byte [[0,1,255],[0,0,0],[1,1,1]];
 ($im1 = null) .= $im->dummy(0,3);
-# print("1..2\n");
-print $im1;
-print ($im2 = $im1->clump(2)->slice(':,0:2')->px);
+diag($im1);
+diag($im2 = $im1->clump(2)->slice(':,0:2')->px);
 
 ok(!tapprox(ones(byte,9,3),$im2));
 
 # here we encounter the problem
-print ($im2 = $im1->clump(2)->slice(':,-1:0')->px);
+diag($im2 = $im1->clump(2)->slice(':,-1:0')->px);
 ok(!tapprox(ones(byte,9,3),$im2));
 
 $a = xvals( zeroes 10,10) + 0.1*yvals(zeroes 10,10);
@@ -217,7 +216,7 @@ $b = $a->slice('0:-10');
 is("$b", "[0]", "slice 0:-n picks first element");
 
 $b = $a->slice('0:-14');
-eval 'print $b';
+eval 'diag($b)';
 like($@, qr/Negative slice cannot start or end above limit/);
 
 # Test of dice and dice_axis
@@ -240,7 +239,7 @@ $b = $a->dummy(-1,2);
 is(join(',',$b->dims), '3,4,2');
 
 $a = pdl(2);
-print "a\n";
+diag("a\n");
 $b = $a->slice('');
 ok(tapprox($a, $b), "Empty slice");
 
