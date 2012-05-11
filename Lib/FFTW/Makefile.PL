@@ -2,6 +2,7 @@
 # Makefile.PL for a package defined by PP code.
 
 use ExtUtils::MakeMaker;
+use Config;
 
 PDL::Core::Dev->import();
 
@@ -33,8 +34,8 @@ BEGIN {
 
 	# Look for FFTW includes/libs
 	# default locations:
-	@FFTW_inc_locations = ('/usr/local/include'); 
-	@FFTW_lib_locations = ('/lib','/usr/lib','/usr/local/lib');
+	@FFTW_inc_locations = ('/usr/include', '/usr/local/include', $Config{usrinc}); 
+	@FFTW_lib_locations = ('/lib','/usr/lib','/usr/local/lib',split(/ /, $Config{libpth}));
 
 	# get locations from perldl.conf, if specified there:
 	@FFTW_inc_locations = @{$PDL::Config{FFTW_INC}} if( defined $PDL::Config{FFTW_INC} );
@@ -139,8 +140,10 @@ skip:
 	    $msg =~ s/\n//g;
 	    write_dummy_make( $msg );
 	    $donot = 1;
+	    $PDL::Config{WITH_FFTW}=0;
 	} else {
-		print "\n   Building PDL::FFTW. Turn off WITH_FFTW if there are any problems\n\n";
+	    $PDL::Config{WITH_FFTW}=1;
+            print "\n   Building PDL::FFTW. Turn off WITH_FFTW if there are any problems\n\n";
 	}
 
 	# Sub to find libs

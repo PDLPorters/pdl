@@ -10,7 +10,7 @@
 use strict;
 use Test::More;
 
-plan tests => 66;
+plan tests => 74;
 
 use PDL::LiteF;
 
@@ -107,8 +107,7 @@ is(join(',',$c->dims), "5,3,1");
 
 eval { my $d = $c->slice(":,:,2"); print $d; };
 
-print "ERROR WAS: '$@'\n";
-like($@, qr/Slice cannot start or end/);
+like($@, qr/Slice cannot start or end/, 'check slice bounds error handling') or diag "ERROR WAS: '$@'\n" if $@;
 
 $a = zeroes 3,3;
 print $a;
@@ -304,7 +303,7 @@ ok(eval '$d->ndims == 3 && ((pdl($d->dims) == pdl(1,2,2))->sumover == 3)' && !$@
 eval '$e = $a->dummy(6,2)';
 ok(!$@, "dummy");
 
-ok(eval '$e->ndims == 6 && ((pdl($e->dims) == pdl(5,5,1,1,1,2))->sumover==6)' && !$@);
+ok(eval '$e->ndims == 7 && ((pdl($e->dims) == pdl(5,5,1,1,1,1,2))->sumover==7)' && !$@);
 
 ##############################
 # Tests of indexND (Nowadays this is just another call to range)
@@ -362,3 +361,28 @@ ok(zcheck($z->slice("(1),(1)") != pdl([[89,99,0],[80,90,0],[81,91,0]])));
 eval '$z = $source->range($index,3,["e","p"]);';
 ok(zcheck($z->slice("(1),(1)") != pdl([[89,99,99],[80,90,90],[81,91,91]])));
 
+our $mt;
+eval 'our $mt = which(pdl(0))';
+ok("$mt" =~ m/^Empty/);
+
+our $dex = pdl(5,4,3);
+$z = $dex->range(zeroes(0));  # scalar Empties are autopromoted like scalar nonempties
+ok("$z" eq 'Empty[0]', "scalar Empty[0] indices handled correctly by range");
+
+$z = $dex->range(zeroes(1,0)); # 1-vector Empties are handled right.
+ok("$z" eq 'Empty[0]', "1-vector Empty[1,0] indices handled correctly by range");
+
+
+$z = $mt->range($dex,undef,'e');
+ok(all($z==0),"empty source arrays handled correctly by range");
+
+$z = $mt->range($mt);
+ok("$z" eq 'Empty[0]', "ranging an empty array with an empty index gives Empty[0]");
+
+$a = pdl(5,5,5,5);
+$z = $a->range($mt);
+ok("$z" eq 'Empty[0]');
+
+$z .= 2;
+ok(1);            # should *not* segfault!
+ok(all($a==5));   # should *not* change $a!

@@ -1,21 +1,75 @@
 The following issues have been reported with this version of PDL:
 
-- The perl debugger for perls 5.10.1 through 5.12 have a new
+
+- Multiple subtest failures in t/gd_oo_tests.t have been
+  seen in CPAN Testers reports.
+
+
+- A change in perl-5.14 on how the 'x' operator works affects
+  PDL's overload of that operator for matrix multiplication.
+  An example that shows the problem is code like:
+
+     f( ($pdl0 * $pdl1) x $pdl2 )
+
+  which gives an error.  The fix is to force the element-wise
+  operation in parentheses to be treated in scalar context
+  rather than list context.  E.g.,
+
+    f( scalar($p0 * $p1) x $p2 );
+
+  Please see
+  http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2012-February/004426.html
+  for a more detailed discussion and additional alternative
+  work-arounds.
+
+
+- On MS Windows, perl 5.14 (and perhaps later), it is reported that
+  PDL::Graphics::PLplot cannot be sucessfully built as part of the
+  PDL build. It compiles ok, but the resultant binary files are
+  unusable. Workaround is to build PDL first, then build
+  PDL::Graphics::PLplot separately.
+
+
+- The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
+  don't work the same with the perl's new "safe signals".  A
+  workaround to the problem is to set the PERL_SIGNALS environment
+  variable to "unsafe".  See sf.net feature request #3308168
+  for details and any future status.
+
+
+- The PDL build process checks for white space in the build
+  directory as that is known to cause problems for some modules
+  and asks you if you wish to continue [default is yes].
+
+  NOTE: You can avoid the interactive prompts by setting the
+  environment variable PERL_MM_USE_DEFAULT to true (e.g., 1).
+
+
+- The Perl debugger for perls 5.10.1 through 5.14.x has a new
   "feature" leading to false fails for lvalue subroutines when
   run under the debugger.  If you need to debug such code with
-  an affected perl version, the work around is to make an
-  explicit temp as in:
+  an affected perl version, the work around is to use an
+  intermediate temporary variable assignment as in:
 
-    $piddle->slice('0:10') .= 100;
+    $piddle->slice('0:10') .= 100;           # original slice code
+    ($tmp = $piddle->slice('0:10')) .= 100;  # work around perl -d "feature"
 
-  becomes
+  The problem is understood and it appears that the error has
+  been replaced by a warning for perl-5.15.1.  NOTE: the work-
+  around is 100% effective---but ugly.
 
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $piddle->slice('0:10')) .= 100;
 
-  The problem is understood and it is hoped that an official
-  fix will become available soon.  NOTE: the work around is
-  100% effective---but ugly.
+- Changes in perl-5.16.x break some existing PDL usage of lvalue
+  subs for this release.  It is planned to incorporate the needed
+  fixes in the next PDL release.  See the perldl mailing list
+  for status updates and other announcements.
+
+
+- Multiline q'' constructs in the pdl2 shell now work correctly
+  but you'll need to avoid using the q abbreviation for quit
+  in pdl2 (at least until the multi-line plugin in Devel::REPL
+  can be updated appropriately).  If you do get "stuck" in a q
+  quit attempt, just type Ctrl-D to exit the shell.
 
 
 - The demo 3d and 3d2 windows do not close (can not be closed)
@@ -27,77 +81,70 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- Label artifacts have been reported for the TriD demos with a 64bit
-  linux system.  It has not been determined if the problem is in
-  PDL or the host system OpenGL software/configuration.
-
-
-- The default TriD controls are based on having 2+ button mouse.
-
-  For Macs with one button, you can use Ctrl+Click to generate
-  the needed Right-click.  It is also possible to configure the
-  Macbook tracpad to generate a secondary click via the control panel.
-
-
 - PDL::FFTW is based on version 2 of the FFTW API.  The current
   release of the FFTW library is version 3.2.2.  To use PDL::FFTW
-  you will need to install FFTW version 2.1.5, use the built-in 
+  you will need to install FFTW version 2.1.5, use the built-in
   PDL::FFT routines instead, or (better yet) submit a patch to
-  update PDL::FFTW to the version 3 API. 
-
-
-- Various make command issues during build:
-
-  - Using parallel make causes the build to fail; so don't use -j # options.
-  - make fails with message like.
-      "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
-    The cause is unknown.  If you have this problem, *please* let the developers
-    know via the perldl mailing list.
+  update PDL::FFTW to the version 3 API.
 
 
 - Extremely verbose but not particularly helpful text output from
   the configure-build-test process.
 
 
-- PDL configuration failures have come about because needed temp
-  files can not be created.  This appears to be a result of platform
-  misconfiguration of TEMPDIR and not PDL per se.
+- Directory completion in the interactive PDL shells (perldl and pdl2)
+  using Term::ReadLine::Perl adds a space after each directory expansion.
+  To continue to complete, one must delete the space before typing <TAB>
+  again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
 
-- 16bit image file IO fails in t/pic_16bit.t apparently due to
-  an older version of NetPBM which does not support the raw 16bit
-  formats.  If this test fails, try upgrading your NetPBM library.
+- PDL on Cygwin has (by default) a 300MB process memory limit which can
+  cause out of memory crashes with large data sets.  See the cygwin users
+  guide: http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html for how
+  to increase the memory limit.
 
 
-- PDL on Cygwin has a 300MB process memory limit which can
-  cause out of memory crashes with large data sets.
+- minimum/maximum/min/max inconsistently handle NaN values.
+  NaNs for the first element of a pdl will propagate to the
+  result while if the first element is a number, then the
+  result will be a number.  The answer for max/min should not
+  depend on the order of the input values.
+
+
+- 16-bit image IO via rpic/wpic and rim/wim do not correctly
+  handle byte order issues.  The intermediate PNM data piped
+  through the converter programs is not adjusted to network
+  byte order per the NetPBM convention/standard.  This is not
+  an issue for big-endian systems or for 8-bit/channel image
+  data.
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_010 release:
+  PDL-2.4.10_004 release:
 
-  3013751    t/proj_transform.t fails for cygwin 1.7
-  3011879    pdl() constructor crashes for mixed array ref/piddle args
-  3011659    uniq fails when pdl contains nan
+  3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
+  3509400    pp_def, pp_line_numbers,..not found by pdldoc
+  3503566    pdl2 enters infinite loop on DWIMPerl
+  3479009    Slice does not like whitespace
+  3476648    PDL build of HTML docs fails on recent bleed Perl
+  3475075    t/pic_16bit.t subtest fails
+  3465663    perldl.conf OPTIMIZE option doesn't work
+  3460886    t/flexraw_fortran.t test failures
+  3363406    PDL::Minuit build can't make libminuit.a
+  3316394    'help funname' fails to show multiple function names
+  3314708    PDL install does not install scantree.pl
+  3299615    PLplot still unusable with X
+  3234141    max() fails on nan
+  3161459    online docs don't link to functions in other PDL modules
+  3018731    NiceSlice affects code where it should not
   2995500    perl -d chokes on lvalue functions
-  2989905    PDL PROJ4 does not build on win32
-  2946119    TriD garbled axis text
-  2901814    Arrow keys don't work in perldl on win32 console
-  2901810    Ctrl-C kills perldl in win32 console
-  2901170    many warnings w TriD and perl -w
-  2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
-  1994610    TriD build problem w pthreads
-  1994584    PDL Has no signed 8-bit integer datatype
-  1582350    badflag called in PDL::Core and PDL::Complex
-  1505171    failure in MatrixOps::eigens in CVS
-  1435189    Installation with cpan2rpm
+  1507054    closing TriD window kills perldl shell
   1205359    PGPLOT Window does not store full state info
-  1059020    Problem with FFTW version 3.0.1
 
 
 For more information on these and other PDL issues, and for
-submissions of patches (bug patches are always welcome!), 
+submissions of patches (bug patches are always welcome!),
 see the PDL mailing lists. Links to archive list discussions
 and how to register for the mailing lists can be found at
 http://pdl.sourceforge.net/maillists/ .

@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 
 #
-# Tests for the OO interface: PDL::IO::GDImage;
+# Tests for the OO interface of PDL::IO::GD.
 #
-# Judd Taylor, USF IMaRS
+# Judd Taylor, Orbital Sytstems, Ltd.
 # 07 Apr 2006
 #
 
@@ -13,20 +13,29 @@ use Test::More;
 
 BEGIN
 {
-    eval( " use PDL::IO::GD; " );
-    if( $@ )
+    use PDL::Config;
+    if ( $PDL::Config{WITH_GD} ) 
     {
-        plan skip_all => "Skipped: PDL::IO::GD requires the gd image library.";
-    }  
+        eval( " use PDL::IO::GD; " );
+        if( $@ )
+        {
+            plan skip_all => "PDL::IO::GD requires the gd image library.";
+        }  
+        else
+        {
+            plan tests => 28;
+        }
+    }
     else
     {
-        plan tests => 27;
+        plan skip_all => "PDL::IO::GD not compiled.";
     }
 }
 
 use ExtUtils::testlib;
 
 use PDL::IO::GD;
+use PDL::Config;
 
 
 sub tapprox
@@ -173,7 +182,7 @@ $im->DESTROY(); $im = undef;
 
 # TEST 21:
 # Create from a RGB PDL:
-my $pic3d = $pic->dummy(3,3);
+my $pic3d = $pic->dummy(2,3);
 $im = PDL::IO::GD->new({ pdl => $pic3d });
 ok( defined( $im ) );
 $im->DESTROY(); $im = undef;
@@ -212,6 +221,11 @@ my $blob3d = <TF3>;
 close( TF3 );
 $im = PDL::IO::GD->new({ data => $blob3d });
 ok( defined( $im ) );
+
+# TEST 28:
+# Get a PNG data glob from a created 
+my $png_blob = $im->get_Png_data();
+ok( $blob3d eq $png_blob );
 $im->DESTROY(); $im = undef;
 
 

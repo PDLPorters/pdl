@@ -18,7 +18,6 @@ if (!$@ && $] >= 5.005 ) {
 
 
 my @man1 = map { $_.".pod", '$(INST_MAN1DIR)/PDL::' . $_ . '.$(MAN1EXT)' } @pods;
-push @man1,  'Intro.pod', '$(INST_MAN1DIR)/pdl'.'.$(MAN1EXT)';
 
 my @pms  = map { $_.".pod", '$(INST_LIBDIR)/' . $_ .".pod"} @pods;
 
@@ -36,18 +35,13 @@ sub MY::postamble {
   my $text = '';
   eval 'require Pod::Select';
   if (!$@ && $] >= 5.005 ) {
-     $text .= $^O !~ /MSWin32/i ? "
+     $text .= << "EOPS" ;
 
 PP-Inline.pod: ../Gen/Inline/Pdlpp.pm
-\tPERL5OPT='' podselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
+\t\$(PERLRUN) -MPod::Select -e "podselect('../Gen/Inline/Pdlpp.pm');" > PP-Inline.pod
 
-"
-: "
+EOPS
 
-PP-Inline.pod: ../Gen/Inline/Pdlpp.pm
-\tpodselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
-
-"
   }
   $text;
 }

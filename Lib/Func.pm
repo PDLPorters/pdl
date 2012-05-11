@@ -923,7 +923,7 @@ in the SLATEC library.
 
 In the documentation, the methods are preceeded by C<PDL::Func::>
 to avoid clashes with functions such as C<set> when using
-the C<help> or C<apropos> commands within I<perldl>.
+the C<help> or C<apropos> commands within I<perldl> or I<pdl2>.
 
 =head1 HISTORY
 

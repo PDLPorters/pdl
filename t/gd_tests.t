@@ -9,18 +9,28 @@
 
 use strict;
 use PDL;
+use PDL::Config;
 use Test::More;
+use File::Temp qw(tempdir);
 
 BEGIN
 {
-    eval( " use PDL::IO::GD; " );
-    if( $@ )
+    use PDL::Config;
+    if ( $PDL::Config{WITH_GD} ) 
     {
-        plan skip_all => "Skipped: PDL::IO::GD requires the gd image library: $!";
-    }  
+        eval( " use PDL::IO::GD; " );
+        if( $@ )
+        {
+            plan skip_all => "PDL::IO::GD requires the gd image library.";
+        }  
+        else
+        {
+            plan tests => 13;
+        }
+    }
     else
     {
-        plan tests => 13;
+        plan skip_all => "PDL::IO::GD not compiled.";
     }
 }
 
@@ -38,7 +48,7 @@ use ExtUtils::testlib;
 use PDL::IO::GD;
 
 # Test Files:
-my $tempdir = $PDL::Config{TEMPDIR} || "/tmp";
+my $tempdir = tempdir( CLEANUP=>1 );
 
 my $lutfile = "$tempdir/default.rcols";
 my $testfile1 = "$tempdir/test.png";

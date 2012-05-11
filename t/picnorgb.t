@@ -1,10 +1,14 @@
 # we need tests with index shuffling once vaffines are fixed
 
+my $numbad = 0;
+
 sub ok {
 	my $no = shift ;
 	my $result = shift ;
 	print "not " unless $result ;
 	print "ok $no\n" ;
+        $numbad++ unless $result;
+        $result;
 }
 
 sub tapprox {
@@ -122,3 +126,11 @@ foreach $format (sort @allowed) {
       print $in3->px;
     }
 }
+
+use Data::Dumper;
+if ($numbad > 0) {
+   local $Data::Dumper::Pad = '#';
+   print "# Dumping diagnostic PDL::IO::Pic converter data...\n";
+   print Dumper(\%PDL::IO::Pic::converter);
+}
+

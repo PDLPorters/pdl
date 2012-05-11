@@ -8,19 +8,22 @@
 #  do not want to duplicate that effort here.
 
 use PDL::LiteF;
-use Test;
+use Test::More;
 
-BEGIN {
-        eval " use PDL::GSLSF::BESSEL; ";
-  unless ($@) {
-    plan tests => 1;
-  } else {
-    plan tests => 1;
-    print "ok 1 # Skipped: PDL::GSLSF not installed\n";
-    exit;
-  }
+BEGIN
+{
+   use PDL::Config;
+   if ( $PDL::Config{WITH_GSL} ) {
+      eval " use PDL::GSLSF::BESSEL; ";
+      unless ($@) {
+         plan tests => 1;
+      } else {
+         plan skip_all => "PDL::GSLSF::BESSEL not installed.";
+      }
+   } else {
+      plan skip_all => "PDL::GSLSF::BESSEL not compiled.";
+   }
 }
-
 
 $arg = 5.0;
 $expected = -0.17759677131433830434739701;

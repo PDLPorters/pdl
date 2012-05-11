@@ -4,14 +4,14 @@ PDL::Graphics::PGPLOT::Window - A OO interface to PGPLOT windows
 
 =head1 SYNOPSIS
 
- perldl> use PDL::Graphics::PGPLOT::Window
- perldl> $win = pgwin(Device => '/xs');
- perldl> $a = pdl [1..100]
- perldl> $b = sqrt($a)
- perldl> $win->line($b)
- perldl> $win->hold()
- perldl> $c = sin($a/10)*2 + 4
- perldl> $win->line($c)
+ pdl> use PDL::Graphics::PGPLOT::Window
+ pdl> $win = pgwin(Device => '/xs');
+ pdl> $a = pdl [1..100]
+ pdl> $b = sqrt($a)
+ pdl> $win->line($b)
+ pdl> $win->hold()
+ pdl> $c = sin($a/10)*2 + 4
+ pdl> $win->line($c)
 
 In the following documentation the commands are not shown in their OO
 versions. This is for historical reasons and should not cause too much
@@ -613,7 +613,7 @@ Recording is off by default. To turn it on when you create a new
 device you can set the C<Recording> option to true, or you can set
 the C<$PDL::Graphics::PGPLOT::RECORDING> variable to 1. I recommend doing the
 latter in your C<.perldlrc> file at least since you will often have use
-for recording in the perldl script.
+for recording in the perldl or pdl2 script.
 
 =head2 Use of recording
 
@@ -706,9 +706,9 @@ The solution is to call C<clear> on the state variable:
   $s->clear()
 
 (This is done automatically if the variable goes out of scope). I forsee
-this problem to most acute when working on the C<perldl> command line,
-but since this is exactly where the recording is most useful the best
-advice is just to be careful and call clear on state variables.
+this problem to most acute when working on the C<perldl> or C<pdl2>
+command line, but since this is exactly where the recording is most useful
+the best advice is just to be careful and call clear on state variables.
 
 If you are working with scripts and use large images for instance I would
 instead recommend that you do not turn on recording unless you need it.
@@ -1647,8 +1647,8 @@ Plot vector as histogram (e.g. C<bin(hist($data))>)
 
 Options recognised:
 
- CENTRE - if true, the x values denote the centre of the bin 
-          otherwise they give the lower-edge (in x) of the bin
+ CENTRE - (default=1) if true, the x values denote the centre of the
+          bin otherwise they give the lower-edge (in x) of the bin
  CENTER - as CENTRE
 
 The following standard options influence this command:
@@ -3885,7 +3885,7 @@ sub initenv{
     # Pixel aspect ratio is always overridden by the pix option
     $pix = $o->{'Justify'} if $o->{'Justify'};     # Only override if nonzero!
     $pix = $o->{'Pix'}     if defined $o->{'Pix'}; # Override if set.
-    
+
     ###
     # Figure out the stretched pitch, if it isn't set.
     #
@@ -6043,7 +6043,7 @@ sub rgbi {
 	# 'alternative' WCS mappings (DJB)
 	#
 	$opt2{Pix}=1.0 
-	    if( (!defined($opt2{Justify}) || !$opt{Justify}) &&
+	    if( (!defined($opt2{Justify}) || !$opt2{Justify}) &&
 		(!defined($opt2{Pix})) && 
 		( $hdr->{"CUNIT1$wcs"} ?
 		  ($hdr->{"CUNIT1$wcs"} eq $hdr->{"CUNIT2$wcs"}) :

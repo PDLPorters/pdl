@@ -40,7 +40,7 @@ void DFF(int* n, double* xval, double* vector){
   SAVETMPS;
 
   ndims = 1;
-  pdims = (PDL_Long *)  PDL->smalloc( (ndims) * sizeof(*pdims) );
+  pdims = (PDL_Long *)  PDL->smalloc((STRLEN) ((ndims) * sizeof(*pdims)) );
   
   pdims[0] = (PDL_Long) ene;
 
@@ -206,7 +206,8 @@ int fsolver (double *xfree, int  nelem, double epsabs, int method)
     }
   while (status == GSL_CONTINUE && iter < 1000);
   
-  printf ("Final status = %s\n", gsl_strerror (status));
+  if (status) 
+      warn ("Final status = %s\n", gsl_strerror (status));
 
   for (iloop=0;iloop<nelem; iloop++) {
     xfree[iloop] = gsl_vector_get (s->x, iloop);

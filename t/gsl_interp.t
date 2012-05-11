@@ -9,13 +9,19 @@ use PDL;
 use PDL::Config;
 use Test::More;
 	
-BEGIN{
-  eval " use PDL::GSL::INTERP; ";
-  if ($@) {
-    plan skip_all => "PDL::GSL::INTERP not installed";
-  } else {
-    plan tests => 11;
-  }
+BEGIN
+{
+   use PDL::Config;
+   if ( $PDL::Config{WITH_GSL} ) {
+      eval " use PDL::GSL::INTERP; ";
+      unless ($@) {
+         plan tests => 12;
+      } else {
+         plan skip_all => "PDL::GSL::INTERP not installed";
+      }
+   } else {
+      plan skip_all => "PDL::GSL::INTERP not compiled.";
+   }
 }
 
 my $x = sequence(10);
@@ -43,3 +49,10 @@ SKIP: {
     skip "Test not valid without bad value support", 1 unless $PDL::Bad::Status;
     ok ($spl->eval(pdl(0)->setbadat(0))->isbad, 'cspline eval w badvalue');
 }
+
+# Exception handling test added 10/18/2010 Jason Lin
+
+my $nx = ($x)*($x<=3) + ($x-1)*($x>3); # x value not monotonically increasing
+my $i; eval { $i = PDL::GSL::INTERP->init('cspline',$nx, $y) };
+
+like($@,qr/invalid argument supplied by user/,"module exception handling");

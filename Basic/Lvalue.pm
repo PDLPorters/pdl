@@ -30,7 +30,7 @@ package PDL::Lvalue;
 
 # list of functions that can be used as lvalue subs
 # extend as necessary
-my @funcs = qw/slice mslice nslice index where px diagonal clump
+my @funcs = qw/slice mslice nslice nslice_if_pdl index where px diagonal clump
   dummy index2d dice dice_axis xchg mv flat sever polyfillv range rangeb 
   indexND indexNDb reshape/;
 
@@ -71,8 +71,9 @@ sub subs {
 # print "defining lvalue subs:\n$prots\n";
 
 eval << "EOV" if ($^V and $^V >= 5.006007);
-{package PDL;
-$prots
+{ package PDL;
+  no warnings qw(misc);
+  $prots
 }
 EOV
 

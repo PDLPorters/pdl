@@ -64,9 +64,11 @@ BEGIN {
        warn $msg . "\n";
        $msg =~ s/\n//g;
        write_dummy_make( $msg );
+      $PDL::Config{WITH_MINUIT} = 0;
        $donot = 1;
    } else {
-   print "\n   Building PDL::Minuit. Turn off WITH_MINUIT if there are any problems\n\n";
+      print "\n   Building PDL::Minuit. Turn off WITH_MINUIT if there are any problems\n\n";
+      $PDL::Config{WITH_MINUIT} = 1;
    }
 }
 
@@ -124,15 +126,15 @@ $g2cbased = ($f77->runtime =~ /-lg2c/) unless $f2cbased;
 
 $hash{DEFINE} .= $f77->trail_ ? "" : "-DNO_TRAILING_USCORE";
 
-unless($^O =~ /mswin32/i) {
-  if (defined($PDL::Config{MINUIT_LIB})){
-      $hash{MYEXTLIB} .= (" ".$PDL::Config{MINUIT_LIB}." ");
-  }
-  else{
-      $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
-      $hash{clean}{FILES} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
-  }
-}
+### unless($^O =~ /mswin32/i) {
+###   if (defined($PDL::Config{MINUIT_LIB})){
+###       $hash{MYEXTLIB} .= (" ".$PDL::Config{MINUIT_LIB}." ");
+###   }
+###   else{
+###       $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
+###       $hash{clean}{FILES} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
+###   }
+### }
 
 
 WriteMakefile(

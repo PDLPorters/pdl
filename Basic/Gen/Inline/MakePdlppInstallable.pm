@@ -2,7 +2,9 @@ package Inline::MakePdlppInstallable;
 
 # just a dummy package
 
-package Inline;
+package   # have to break this up so the
+          # CPAN indexer doesn't barf
+          Inline;
 
 #==============================================================================
 # override the original Inline::install method

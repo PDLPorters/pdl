@@ -70,6 +70,8 @@ using the module this will guarantee correct file names!
 =head1 FUNCTIONS
 
 =cut
+
+
 EOD
 
 use Config;
@@ -209,7 +211,7 @@ L<PDL::PP|PDL::PP> threading you can supply lists of points via
 
 An amusing PDL idiom is:
 
- perldl> iiscirc iiscur
+ pdl> iiscirc iiscur
 
 Note the colours are the same as IRAF, viz:
 
@@ -261,8 +263,8 @@ e.g.:
 
 =for example
 
- perldl> saoimage
- perldl> saoimage( -geometry => '800x800' )
+ pdl> saoimage
+ pdl> saoimage( -geometry => '800x800' )
 
 =cut
 
@@ -293,8 +295,8 @@ e.g.
 
 =for example
 
- perldl> ximtool
- perldl> ximtool (-maxColors => 64)
+ pdl> ximtool
+ pdl> ximtool (-maxColors => 64)
 
 =cut
 
@@ -645,6 +647,8 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
+
+
 EOD
 
 pp_done();

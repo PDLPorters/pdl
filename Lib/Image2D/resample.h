@@ -8,6 +8,7 @@
 #ifndef _PDL_RESAMPLE_H_
 #define _PDL_RESAMPLE_H_
 
+#include <stdlib.h>
 #include <math.h>
 
 #ifndef NULL

@@ -193,10 +193,13 @@ Read a raw format binary file
 The C<readfraw> command
 supports the following option:
 
+=over 8
+
 =item Header
 
 Specify the header file name.
 
+=back
 
 =head2 writefraw
 
@@ -214,10 +217,13 @@ Write a raw format binary file
 The C<writefraw> command
 supports the following option:
 
+=over 8
+
 =item Header
 
 Specify the header file name.
 
+=back
 
 =head2 mapfraw
 
@@ -306,7 +312,14 @@ the copyright notice should be included in the file.
 
 package PDL::IO::FastRaw;
 
-use version; our $VERSION = qv('0.0.2');
+use version; our $VERSION = qv('0.0.3');
+
+BEGIN {
+   our $have_file_map = 0;
+
+   eval "use File::Map 0.47 qw(:all)";
+   $have_file_map = 1 unless $@;
+}
 
 require Exporter;
 use PDL::Core '';
@@ -330,9 +343,9 @@ sub _read_frawhdr {
 	my $hname = $opts->{Header} || "$name.hdr";
 	my $h = new FileHandle "$hname"
 	 or barf "Couldn't open '$hname' for reading";
-	my $tid = <$h>;
-	my $ndims = <$h>;
-	my $str = <$h>; if(!defined $str) {barf("Format error in '$hname'");}
+	chomp(my $tid = <$h>);
+	chomp(my $ndims = <$h>);
+	chomp(my $str = <$h>); if(!defined $str) {barf("Format error in '$hname'");}
 	my @dims = split ' ',$str;
 	if($#dims != $ndims-1) {
 		barf("Format error reading fraw header file '$hname'");
@@ -404,14 +417,30 @@ sub PDL::mapfraw {
 		$s *= $_;
 	}
 	my $pdl = $class->zeroes(new PDL::Type($hdr->{Type}));
-#	$pdl->dump();
 	$pdl->setdims($hdr->{Dims});
-#	$pdl->dump();
-	$pdl->set_data_by_mmap($name,$s,1,($opts->{ReadOnly}?0:1),
-		($opts->{Creat}?1:0),
-		(0644),
-		($opts->{Creat} || $opts->{Trunc} ? 1:0));
-#	$pdl->dump();
+
+        if ($have_file_map and not defined($PDL::force_use_mmap_code) ) {
+           $pdl->set_data_by_file_map(
+              $name,
+              $s,
+              1,
+              ($opts->{ReadOnly}?0:1),
+              ($opts->{Creat}?1:0),
+              (0644),
+              ($opts->{Creat} || $opts->{Trunc} ? 1:0)
+           );
+        } else {
+           $pdl->set_data_by_mmap(
+              $name,
+              $s,
+              1,
+              ($opts->{ReadOnly}?0:1),
+              ($opts->{Creat}?1:0),
+              (0644),
+              ($opts->{Creat} || $opts->{Trunc} ? 1:0)
+           );
+        }
+
 	if($opts->{Creat}) {
 		_writefrawhdr($pdl,$name,$opts);
 	}

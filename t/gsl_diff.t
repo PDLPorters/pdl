@@ -6,18 +6,21 @@
 #  do not want to duplicate that effort here.
 
 use PDL;
-use Test;
+use Test::More;
 	
-BEGIN{
-  eval " use PDL::GSL::DIFF; ";
-  unless ($@){
-    plan tests => 4;
-  }
-  else {
-    plan tests => 1;
-    print "ok 1 # Skipped: PDL::GSL::DIFF not installed\n";
-    exit;
-  }
+BEGIN
+{
+   use PDL::Config;
+   if ( $PDL::Config{WITH_GSL} ) {
+      eval " use PDL::GSL::DIFF; ";
+      unless ($@) {
+         plan tests => 4;
+      } else {
+         plan skip_all => "PDL::GSL::DIFF not installed.";
+      }
+   } else {
+      plan skip_all => "PDL::GSL::DIFF not compiled.";
+   }
 }
 
 @res = gsldiff(\&myf,1.5);

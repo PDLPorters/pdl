@@ -1,0 +1,11 @@
+TODO
+
+PDL currently does not have internationalization support for
+its error messages although perl itself does support i18n
+and locales.  Some of the tests for names and strings are
+specific to ASCII and English.  Please report any issues
+regarding internationalization to the perldl mailing lists.
+
+Of course, volunteers to implement this or help with the
+translations would be welcome.  We need to see how other
+perl modules handle this.

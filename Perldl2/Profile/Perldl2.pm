@@ -1,16 +1,19 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sun 13 Jun 2010 09:56:55 PM
+# Last saved: Fri 16 Dec 2011 03:19:27 PM 
 #
 
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.006;
+
 with 'Devel::REPL::Profile';
 
 sub plugins {
    qw(
+      CleanErrors
       Commands
       Completion
       CompletionDriver::INC
@@ -25,16 +28,36 @@ sub plugins {
       NiceSlice
       PrintControl
       ReadLineHistory
+      PDLCommands
    ); # CompletionDriver::Globals
 }
 
 sub apply_profile {
    my ($self, $repl) = @_;
 
+   # check for Term::ReadLine::Stub
+   if ($repl->term->ReadLine =~ /Stub/) {
+      $repl->print("WARNING:\n Term::ReadLine::Stub does not support pdl2 features.\n");
+      $repl->print(" Please install either Term::ReadLine::Perl or Term::ReadLine::Gnu.\n");
+      $repl->print(" Falling back to perldl in the meantime...\n");
+      $repl->print("------------------------------------------\n\n");
+      exec 'perldl';
+   }
+
    # add PDL::Perldl2 for plugin search
    push @{$repl->_plugin_app_ns}, 'PDL::Perldl2';
 
-   $repl->load_plugin($_) for $self->plugins;
+   foreach my $plug ($self->plugins) {
+      if ($plug =~ 'CompletionDriver::INC') {
+         eval 'use File::Next';
+         next if $@;
+      }
+      if ($plug =~ 'CompletionDriver::Keywords') {
+         eval 'use B::Keywords';
+         next if $@;
+      }
+      $repl->load_plugin($plug);
+   }
 
    # these plugins don't work on win32
    unless ($^O =~ m/win32/i) {
@@ -68,11 +91,14 @@ sub apply_profile {
       $PERLDL::PAGE   = 0;
       $PERLDL::PAGER  = ((exists $ENV{PAGER}) ? $ENV{PAGER} : 'more');
       $PERLDL::PAGING = 0;
-      $PERLDL::PROMPT = "PDL> ";                          # string or code reference
+      $PERLDL::PROMPT = "pdl> ";                          # string or code reference
+      $PERLDL::TERM = $_REPL->term;
       ] );
 
+   #autoflush STDOUT
+   $repl->eval('$|=1;');
    # print alias
-   $repl->eval('sub p { local $, = " "; print @_, "\n" };');
+   $repl->eval('sub p { local $, = " "; print @_ };');
 
    # list history command
    $repl->eval('sub l {
@@ -90,21 +116,20 @@ sub apply_profile {
       if(/^$/) {
       print <<EOD;
       Use:
-      demo 'pdl'         # general demo
+      demo pdl         # general demo
 
-      demo '3d'          # 3d demo (requires TriD with OpenGL or Mesa)
-      demo '3d2'         # 3d demo, part 2. (Somewhat memory-intensive)
-      demo '3dgal'       # the 3D gallery: make cool images with 3-line scripts
-      demo 'Tk3d'        # Requires the perl Tk module
+      demo 3d          # 3d demo (requires TriD with OpenGL or Mesa)
+      demo 3d2         # 3d demo, part 2. (Somewhat memory-intensive)
+      demo 3dgal       # the 3D gallery: make cool images with 3-line scripts
 
-      demo 'pgplot'      # PGPLOT graphics output (Req.: PGPLOT)
-      demo 'OOplot'      # PGPLOT OO interface    (Req.: PGPLOT)
+      demo pgplot      # PGPLOT graphics output (Req.: PGPLOT)
+      demo OOplot      # PGPLOT OO interface    (Req.: PGPLOT)
 
-      demo 'transform'   # Coordinate transformations (Req.: PGPLOT)
-      demo 'cartography' # Cartographic projections (Req.: PGPLOT)
+      demo transform   # Coordinate transformations (Req.: PGPLOT)
+      demo cartography # Cartographic projections (Req.: PGPLOT)
 
-      demo 'bad'         # Bad-value demo (Req.: bad value support)
-      demo 'bad2'        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
+      demo bad         # Bad-value demo (Req.: bad value support)
+      demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
 
 EOD
       return;
@@ -115,7 +140,6 @@ EOD
          '3d' => 'PDL::Demos::TriD1',
          '3d2' => 'PDL::Demos::TriD2',
          '3dgal' => 'PDL::Demos::TriDGallery',
-         'tk3d' => 'PDL::Demos::TkTriD_demo',
          'pgplot' => 'PDL::Demos::PGPLOT_demo',
          'ooplot' => 'PDL::Demos::PGPLOT_OO_demo', # note: lowercase
          'bad' => 'PDL::Demos::BAD_demo',
@@ -137,70 +161,74 @@ EOD
 
    } } );
 
-      if ($repl->can('exit_repl')) {
-         $repl->eval('sub quit { $_REPL->exit_repl(1) };');
-      } else {
-         $repl->eval('sub quit { $_REPL->print("Use Ctrl-D or exit to quit" };');
-      }
-
-      $repl->prompt($PERLDL::PROMPT);  # new prompt
-
-      if ( defined $ENV{TERM} and $ENV{TERM} eq 'dumb' ) {
-         $repl->print("\n");
-         $repl->print("******************************************\n");
-         $repl->print("* Warning: TERM type is dumb!            *\n");
-         $repl->print("* Limited ReadLine functionality will be *\n");
-         $repl->print("* available.  Please unset TERM or use a *\n");
-         $repl->print("* different terminal type.               *\n");
-         $repl->print("******************************************\n");
-         $repl->print("\n");
-      }
-
-      $repl->print("perlDL shell v2.000
-         PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
-         'COPYING' in the PDL distribution. This is free software and you
-         are welcome to redistribute it under certain conditions, see
-         the same file for details.\n");
-
-      $repl->print("Loaded plugins:\n");
-      {
-         my @plugins = ();
-         foreach my $pl ( $repl->_plugin_locator->plugins ) {
-            # print names of ones that have been loaded
-            my $plug = $pl;
-            $plug =~ s/^.*Plugin::/  /;
-            push @plugins, $plug if $repl->does($pl);
-         }
-         $repl->print(join "\n", sort(@plugins));
-         $repl->print("\n");
-      }
-
-      $repl->print("Type 'help' for online help\n");
-      $repl->print("Type Ctrl-D or quit to exit\n");
-      $repl->print("Loaded PDL v$PDL::VERSION\n");
+   if ($repl->can('do_print')) {
+      $repl->eval('sub do_print { $_REPL->do_print(@_) };');
    }
 
-   1;
+   if ($repl->can('exit_repl')) {
+      $repl->eval('sub quit { $_REPL->exit_repl(1) };');
+   } else {
+      $repl->eval('sub quit { $_REPL->print("Use Ctrl-D or exit to quit" };');
+   }
 
-   __END__
+   $repl->prompt($PERLDL::PROMPT);  # new prompt
+
+   if ( defined $ENV{TERM} and $ENV{TERM} eq 'dumb' ) {
+      $repl->print("\n");
+      $repl->print("******************************************\n");
+      $repl->print("* Warning: TERM type is dumb!            *\n");
+      $repl->print("* Limited ReadLine functionality will be *\n");
+      $repl->print("* available.  Please unset TERM or use a *\n");
+      $repl->print("* different terminal type.               *\n");
+      $repl->print("******************************************\n");
+      $repl->print("\n");
+   }
+
+   $repl->print("Perldl2 Shell v$PDL::Perldl2::Profile::Perldl2::VERSION
+      PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+      'COPYING' in the PDL distribution. This is free software and you
+      are welcome to redistribute it under certain conditions, see
+      the same file for details.\n");
+
+   $repl->print("Loaded plugins:\n");
+   {
+      my @plugins = ();
+      foreach my $pl ( $repl->_plugin_locator->plugins ) {
+         # print names of ones that have been loaded
+         my $plug = $pl;
+         $plug =~ s/^.*Plugin::/  /;
+         push @plugins, $plug if $repl->does($pl);
+      }
+      $repl->print(join "\n", sort(@plugins));
+      $repl->print("\n");
+   }
+
+   $repl->print("Type 'help' for online help\n");
+   $repl->print("Type Ctrl-D or quit to exit\n");
+   $repl->print("Loaded PDL v$PDL::VERSION\n");
+}
+
+1;
+
+__END__
 
 =head1 NAME
 
-Devel::REPL::Profile::Perldl2 - profile for Perldl2 shell
+PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
 
 =head1 SYNOPSIS
 
-    system> re.pl --profile=Perldl2     # unixen shell
-    system> re --profile=Perldl2        # win32 CMD shell
+    system> re.pl --profile=PDL::Perldl2::Profile::Perldl2  # unix-ish shell
+    system> re    --profile=PDL::Perldl2::Profile::Perldl2  # win32 CMD shell
 
-    perlDL shell v2.000
-             PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
-             'COPYING' in the PDL distribution. This is free software and you
-             are welcome to redistribute it under certain conditions, see
-             the same file for details.
-
+    Perldl2 Shell v0.004
+          PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+          'COPYING' in the PDL distribution. This is free software and you
+          are welcome to redistribute it under certain conditions, see
+          the same file for details.
+    
     Loaded plugins:
-
+      CleanErrors
       Commands
       Completion
       CompletionDriver::INC
@@ -214,22 +242,27 @@ Devel::REPL::Profile::Perldl2 - profile for Perldl2 shell
       LexEnv
       MultiLine::PPI
       NiceSlice
+      PDLCommands
       Packages
       PrintControl
       ReadLineHistory
-
+    
+    
     Type 'help' for online help
+    
     Type Ctrl-D or quit to exit
-    Loaded PDL v2.4.6_009
-
-    PDL> 
+    
+    Loaded PDL v2.4.9
+    
+    pdl> 
 
 
 =head1 DESCRIPTION
 
-This profile is for development of the new PDL shell version 2.
-After development is complete, the C<Devel::REPL> implementation
-will be folded into a script to start the shell directly.
+This profile is for development of the new PDL shell (version 2).
+The preferred method to start the new shell is via the C<pdl2>
+command.  This documentation is provided for C<Devel::REPL> coders
+that may wish to use this profile directly for their development.
 
 =head1 SEE ALSO
 

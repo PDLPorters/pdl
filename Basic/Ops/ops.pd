@@ -128,6 +128,9 @@ This function is used to overload the binary C<$optxt> operator.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
+
+=cut
+
 EOD
 } # sub: biop()
 
@@ -208,6 +211,9 @@ This function is used to overload the binary C<$funcovp> function.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
+
+=cut
+
 EOD
 } # sub: bifunc()
 
@@ -254,6 +260,9 @@ $doc
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the unary C<$funcovp> operator/function.
+
+=cut
+
 EOD
 } # sub: ufunc()
 

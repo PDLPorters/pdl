@@ -18,7 +18,8 @@ function C<func()> is called, PDL looks for a file called C<func.pdl>.
 If it finds one, it compiles the file and calls the function C<func>.
 
 The list of directories to search in is given by the shell environment
-variable C<PDLLIB>. This is a colon-separated list of directories.
+variable C<PDLLIB>. This is a colon-separated list of directories. On
+MSWindows systems, is it a I<semicolon> -separated list of directories.
 
 For example, in csh:
 
@@ -40,18 +41,18 @@ will search /home/joe/PDL and all its subdirectories for .pdl files.
 =head2 AUTO-SCANNING
 
 The variable C<$PDL::AutoLoader::Rescan> controls whether files
-are automatically re-scanned for changes at the C<perldl> command
-line.
+are automatically re-scanned for changes at the C<perldl> or
+C<pdl2> command line.
 
 If C<$PDL::AutoLoader::Rescan == 1> and the file is changed
 then the new definition is reloaded auto-matically before
-executing the C<perldl> command line. Which means in practice
-you can edit files, save changes and have C<perldl> see the
-changes automatically.
+executing the C<perldl> or C<pdl2> command line. Which means
+in practice you can edit files, save changes and have C<perldl>
+or C<pdl2> see the changes automatically.
 
 The default is '0' - i.e. to have this feature disabled.
 
-As this feature is only pertinent to the C<perldl> shell it imposes
+As this feature is only pertinent to the PDL shell it imposes
 no overhead on PDL scripts. Yes Bob you can have your cake and
 eat it too!
 
@@ -99,7 +100,15 @@ modules and functions, see L<local::lib>.
 =cut
 
 BEGIN{
-  @PDLLIB = (".",split(':',$ENV{"PDLLIB"})) if defined $ENV{"PDLLIB"};
+   if (defined $ENV{"PDLLIB"}) {
+      if ( $^O eq 'MSWin32' ) { # win32 flavors
+         @PDLLIB = (".",split(';',$ENV{"PDLLIB"}));
+         s/"//g for @PDLLIB;
+      } else {                  # unixen systems
+         @PDLLIB = (".",split(':',$ENV{"PDLLIB"}));
+      }
+      @PDLLIB = grep length, @PDLLIB;
+   }
   $PDL::AutoLoader::Rescan=0;
   %PDL::AutoLoader::FileInfo = ();
 }
@@ -279,10 +288,11 @@ sub PDL::AutoLoader::expand_path {
 		$_= $1 . ($ENV{'PWD'} || '.');
 	    } elsif(!$2) {
 		# No name mentioned -- use current user.
-		$_ = $1 . ( $ENV{'HOME'} ||((getpwnam($2 || getlogin || getpwuid($<)))[7])  )  . $_;
+                #   Ideally would use File::HomeDir->my_home() here
+		$_ = $1 . ( $ENV{'HOME'} || (( getpwnam( getlogin || getpwuid($<) ))[7]) )  . $_;
 	    } else {
 		# Name mentioned - try to get that user's home directory.
-		$_ = $1 . (getpwnam(getpwuid($<)))[7];
+		$_ = $1 . ( (getpwnam($2))[7] ) . $_;
 	    }
 	}
 	

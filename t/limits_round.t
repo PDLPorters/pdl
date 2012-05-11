@@ -1,4 +1,5 @@
 
+use PDL::LiteF;
 use Test::More;
 
 BEGIN {
@@ -60,9 +61,5 @@ for my $test ( @round_tests )
   my $down = round_pow( down => $test->[0] );
   my $up   = round_pow( up   => $test->[0] );
 
-  ok( $test->[1] == $down && $test->[2] == $up, 
-      'round_pow(' . $test->[0] . ')' );
+  ok( approx($test->[1],$down) && approx($test->[2],$up), 'round_pow('. $test->[0] .')' );
 }
-
-
-

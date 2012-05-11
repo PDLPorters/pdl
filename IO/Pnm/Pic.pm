@@ -2,7 +2,6 @@
 
 PDL::IO::Pic -- image I/O for PDL
 
-
 =head1 DESCRIPTION
 
 =head2 Image I/O for PDL based on the netpbm package.
@@ -26,10 +25,7 @@ here for 'portable any map' meaning any of the PBM/PGM/PPM formats.
 As it appeared to be a reasonable place this package also contains the
 routine wmpeg to write mpeg movies from PDLs representing image
 stacks (the image stack is first written as a sequence of PPM images into some
-temporary directory). For this to work you additionally need the program
-mpeg_encode from the Berkeley multimedia package.
-
-You find mpeg_encode at ftp://mm-ftp.cs.berkeley.edu/pub/multimedia/mpeg/encode (they even have binaries for a number of platforms).
+temporary directory). For this to work you need the program ffmpeg also.
 
 =cut
 
@@ -106,8 +102,8 @@ sub init_converter_table {
       my $pbmplus;
 
       for (@path) {
-	  $jpeg_conv="cjpeg" if(-x "$_/cjpeg");
-	  $jpeg_conv="pnmtojpeg" if(-x "$_/pnmtojpeg" . $ext);
+	  $jpeg_conv="cjpeg" if ( -x "$_/cjpeg" . $ext );
+	  $jpeg_conv="pnmtojpeg" if (  -x "$_/pnmtojpeg" . $ext );
       }
   }
 
@@ -258,8 +254,8 @@ This is especially useful if the particular format isn't identified by
 a magic number and doesn't have the 'typical' extension or you want to
 avoid the check of the magic number if your data comes in from a pipe.
 The function returns a pdl of the appropriate type upon completion.
-Option parsing uses the L<PDL::Options> module and therefore supports
-minimal options matching.
+Option parsing uses the L<PDL::Options|PDL::Options> module and
+therefore supports minimal options matching.
 
 You can also read directly into an existing pdl that has to have the
 right size(!). This can come in handy when you want to read a sequence
@@ -369,8 +365,9 @@ the image format that is being written. Valid options are (key
    COLOR      => 'bw',         # specify color conversion
    LUT        => $lut,         # use color table information
 
-Option parsing uses the L<PDL::Options> module and therefore supports
-minimal options matching. A detailed explanation of supported options follows.
+Option parsing uses the L<PDL::Options|PDL::Options> module and
+therefore supports minimal options matching. A detailed explanation of
+supported options follows.
 
 =over 7
 
@@ -499,8 +496,9 @@ sub PDL::wpic {
     print "built the command $cmd to write image\n" if $PDL::IO::Pic::debug>10;
 
     $iraw = 1 if (defined($$hints{IFORM}) && $$hints{IFORM} =~ /RAW/);
-    $iraw = 0 if (defined($$hints{IFORM}) &&
-			$$hints{IFORM} =~ /ASCII/);
+    $iraw = 0 if (defined($$hints{IFORM}) && $$hints{IFORM} =~ /ASCII/);
+
+    local $SIG{PIPE}= sub {}; # Prevent crashing if converter dies
 
     wpnm($pdl, $cmd, $iform , $iraw);
 }
@@ -509,8 +507,8 @@ sub PDL::wpic {
 
 =for usage
 
-  $a = rim($file);
-  rim($a,$file);
+ Usage: $a = rim($file);
+ or       rim($a,$file);
 
 =for ref
 
@@ -524,7 +522,7 @@ If the image is in one of the standard RGB formats, then you get back
 data in (<X>,<Y>,<RGB-index>) format -- that is to say, the third dim
 contains the color information.  That allows you to do simple indexing
 into the image without knowing whether it is color or not -- if present,
-the RGB information is silently threaded over.  (Contrast L<rpic>, which
+the RGB information is silently threaded over.  (Contrast L<rpic|rpic>, which
 munges the information by putting the RGB index in the 0th dim, screwing
 up subsequent threading operations).
 
@@ -537,7 +535,7 @@ automatically uncompressed before reading.
 
 OPTIONS
 
-The same as L<rpic>, which is used as an engine:
+The same as L<rpic|rpic>, which is used as an engine:
 
 =over 3
 
@@ -596,12 +594,14 @@ sub rim {
 
 =head2 wim
 
+=for ref
+
+Write a pdl to an image file with selected type (or using filename extensions)
+
 =for usage
 
   wim $pdl,$file;
   $pdl->wim("foo.gif",{LUT=>$lut});
-
-=for ref
 
 Write out an image file.  You can specify the format explicitly as an
 option, or the function will try to guess the correct image
@@ -687,33 +687,64 @@ sub PDL::wim {
 
 =for ref
 
-Write an image sequence ((x,y,n) piddle) as an MPEG animation.
+Write an image sequence (a (3,x,y,n) byte pdl) as an animation.
+
+=for usage
+
+  $piddle->wmpeg('movie.mpg'); # $piddle is (3,x,y,nframes) byte
+
+Writes a stack of RGB images as a movie.  While the
+format generated is nominally MPEG, the file extension
+is used to determine the video encoder type.
+
+  E.g.:
+    .mpg for MPEG-1 encoding
+    .mp4 for MPEG-4 encoding
+   
+  And even:
+    .gif for GIF animation (uncompressed)
+
+C<wmpeg> requires a 4-D pdl of type B<byte> as
+input.  The first dim B<has> to be of size 3 since
+it will be interpreted as RGB pixel data.
+C<wmpeg> returns 1 on success and undef on failure.
 
 =for example
 
-   $anim->wmpeg("GreatAnimation.mpg");
+  $anim->wmpeg("GreatAnimation.mpg")
+      or die "can't create mpeg1 output";
 
-Writes a stack of rgb images as an mpeg movie. Expects a 4-D pdl of type byte
-as input. First dim has to be 3 since it is interpreted as interlaced RGB.
-Some of the input data restrictions will have to be relaxed in the future but
-routine serves as a proof of principle at the moment. It uses the program
-mpeg_encode from the Berkeley multimedia package (see also text at the top of
-this package). Mpeg parameters written by this routines haven't been tweaked
-in any way yet (in other words, lots of room for improvement). For an example
-how to use the routine see appropriate test that comes with this package.
-Currently, wmpeg doesn't allow modification of the parameters written through
-its calling interface. This will change in the future as needed.
+  $anim->wmpeg("GreatAnimation.mp4")
+      or die "can't create mpeg4 output";
 
-In the future it might be much nicer to implement a movie perl object that
-supplies methods for manipulating the image stack (insert, cut,
-append commands) and a final movie->make() call would invoke mpeg_encode on the
-picture stack (which will only be held on disk). This should get around the
-problem of having to hold a huge amount of data in memory to be passed into
-wmpeg (when you are, e.g. writing a large animation from PDL3D rendered
-fly-throughs). Having said that, the actual storage requirements might not be
-so big in the future any more if you could pass 'virtual' transform pdls into
-wmpeg  that will only be actually calculated when accessed by the wpic
-routines, you know what I mean...
+Some of the input data restrictions will have to
+be relaxed in the future but routine serves as
+a proof of principle at the moment. It uses the
+program ffmpeg to encode the frames into video.
+The arguments and parameters used for ffmpeg have
+not been tuned. This is a first implementation
+replacing mpeg_encode by ffmpeg. Currently, wmpeg
+doesn't allow modification of the parameters
+written through its calling interface. This will
+change in the future as needed.
+
+In the future it might be much nicer to implement
+a movie perl object that supplies methods for
+manipulating the image stack (insert, cut, append
+commands) and a final movie->make() call would
+invoke ffmpeg on the picture stack (which will
+only be held on disk). This should get around the
+problem of having to hold a huge amount of data
+in memory to be passed into wmpeg (when you are,
+e.g. writing a large animation from PDL3D rendered
+fly-throughs).
+
+Having said that, the actual storage requirements
+might not be so big in the future any more if
+you could pass 'virtual' transform pdls into
+wmpeg that will only be actually calculated when
+accessed by the wpic routines, you know what I
+mean...
 
 
 =cut
@@ -721,71 +752,58 @@ routines, you know what I mean...
 *wmpeg = \&PDL::wmpeg;
 
 sub PDL::wmpeg {
-    barf 'Usage: wmpeg($pdl,$filename) ' .
-	'or $pdl->wmpeg($filename)' if $#_ != 1;
+   barf 'Usage: wmpeg($pdl,$filename) ' .
+   'or $pdl->wmpeg($filename)' if $#_ != 1;
 
-    my ($pdl,$file) = @_;
-    my @Dims = $pdl->dims;
-    # too strict in general but alright for the moment
-    # especially restriction to byte will have to be relaxed
-    barf "input must be byte (3,x,y,z)" if (@Dims != 4) || ($Dims[0] != 3)
-	|| ($pdl->get_datatype != $PDL_B);
-    my $nims = $Dims[3];
-    my $tmp = gettmpdir();
-    my $tmpdir = "$tmp/wmpeg$$";
-    barf "directory $tmpdir already exists, clear up first" if -d $tmpdir;
-    mkdir $tmpdir,0700;
-    # check the pdl for correct dimensionality
+   my ($pdl,$file) = @_;
 
-    # write all the images as ppms and write the appropriate parameter file
-    my ($i,$fname);
-    # add blank cells to each image to fit with 16N x 16N mpeg standard
-    # $frame is full frame, insert each image in as $inset
-    my (@MDims) = (3,map(16*int(($_+15)/16),@Dims[1..2]));
-    my ($frame) = zeroes(@MDims);
-    my ($inset) = $frame->slice(join(',',
-                              map(int(($MDims[$_]-$Dims[$_])/2).':'.
-                                  int(($MDims[$_]+$Dims[$_])/2-1),0..2)));
-    my $range = sprintf "[%d-%d]",0,$nims-1;
-    # write the parameter file
-    open PAR,">$tmpdir/mpeg.params" or barf "can't open mpeg parameter file";
-    print PAR <<"EOT";
-PATTERN		IBBBBBBBBBBP
-OUTPUT		$file
-GOP_SIZE	16
-SLICES_PER_FRAME	5
-BASE_FILE_FORMAT	PPM
-INPUT_CONVERT *
-INPUT_DIR	stdin
-INPUT
-frame.*.ppm $range
-END_INPUT
-PIXEL		FULL
-RANGE		5
-PSEARCH_ALG	LOGARITHMIC
-BSEARCH_ALG	SIMPLE
-IQSCALE		6
-PQSCALE		6
-BQSCALE		6
-REFERENCE_FRAME	ORIGINAL
-FORCE_ENCODE_LAST_FRAME
-EOT
-    close PAR;
-    open MPEG, "| mpeg_encode $tmpdir/mpeg.params" or
-          barf "spawning mpeg_encode failed: $?";
-    binmode MPEG;
-    my (@slices) = $pdl->dog;
-    for ($i=0; $i<$nims; $i++) {
-      print STDERR "Writing frame $i\n";
+   # return undef if no ffmpeg in path
+   if (! inpath('ffmpeg')) {
+      warn("wmpeg: ffmpeg not found in PATH");
+      return;
+   }
+
+   my @Dims = $pdl->dims;
+   # too strict in general but alright for the moment
+   # especially restriction to byte will have to be relaxed
+   barf "input must be byte (3,x,y,z)" if (@Dims != 4) || ($Dims[0] != 3)
+   || ($pdl->get_datatype != $PDL_B);
+   my $nims = $Dims[3];
+   my $tmp = gettmpdir();
+
+   # get tmpdir for parameter file
+   # see PDL-2.4.6 version for original code
+
+   # check the pdl for correct dimensionality
+
+   # write all the images as ppms and write the appropriate parameter file
+   my ($i,$fname);
+   # add blank cells to each image to fit with 16N x 16N mpeg standard
+   # $frame is full frame, insert each image in as $inset
+   my (@MDims) = (3,map(16*int(($_+15)/16),@Dims[1..2]));
+   my ($frame) = zeroes(byte,@MDims);
+   my ($inset) = $frame->slice(join(',',
+         map(int(($MDims[$_]-$Dims[$_])/2).':'.
+            int(($MDims[$_]+$Dims[$_])/2-1),0..2)));
+   my $range = sprintf "[%d-%d]",0,$nims-1;
+   local $SIG{PIPE} = 'IGNORE';
+   open MPEG, "| ffmpeg -f image2pipe -vcodec ppm -i -  $file"
+      or barf "spawning ffmpeg failed: $?";
+   binmode MPEG;
+   # select ((select (MPEG), $| = 1)[0]);  # may need for win32
+   my (@slices) = $pdl->dog;
+   for ($i=0; $i<$nims; $i++) {
+      local $PDL::debug = 1;
+      print STDERR "Writing frame $i, " . $frame->slice(':,:,-1:0')->clump(2)->info . "\n";
       $inset .= $slices[$i];
       print MPEG "P6\n$MDims[1] $MDims[2]\n255\n";
-      pnmout($frame->slice(':,:,-1:0')->clump(2),
-             1, 0, 'PDL::IO::Pic::MPEG');
-    }
-    # clean up
-    close MPEG;
-    unlink <$tmpdir/*>;
-    rmdir $tmpdir or barf "couldn't delete temporary dir $tmpdir";
+      pnmout($frame->slice(':,:,-1:0')->clump(2), 1, 0, 'PDL::IO::Pic::MPEG');
+   }
+   # clean up
+   close MPEG;
+
+   # rm tmpdir and files if needed
+   return 1;
 }
 
 

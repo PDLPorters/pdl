@@ -77,7 +77,8 @@ act q&
   }
   print "\n";
 
-  $w = pgwin(Dev=>"/xw",size=>[8,6]);
+  $dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
+  $w = pgwin(Dev=> $dev, size=>[8,6]);
   $w->fits_imag($map, {Title=>"NASA/MODIS Earth Map (Plate Caree)",J=>0});
 &;
 
@@ -95,10 +96,14 @@ act q&
 
 act q&
 ### There are a large number of map projections -- to list them all, 
-### say "??cartography" in the perldl shell.  Here are four of them:
+### say "??cartography" in the perldl or pdl2 shell.  Here are four
+### of them:
 
-undef $w;   # Close old window
-$w = pgwin( Dev=>"/xw", size=>[8,6], nx=>2, ny=>2 ) ;
+$w->close;   # Close old window
+undef $w;
+
+$dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
+$w = pgwin( Dev=> $dev, size=>[8,6], nx=>2, ny=>2 ) ;
 
 sub draw {
  ($tx, $t, $px, $opt ) = @_;

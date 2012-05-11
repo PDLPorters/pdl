@@ -1,8 +1,8 @@
       subroutine abre(n,nombre,mode)
 
       integer n
-      character(*) nombre
-      character(*) mode
+      character*(*) nombre
+      character*(*) mode
 
       open(unit=n,file=nombre,status=mode)
 

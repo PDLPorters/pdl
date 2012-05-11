@@ -207,6 +207,7 @@ sub init_vars {
 } # sub: init_vars()
 
 pp_def('conv2d', Doc=><<'EOD',
+
 =for ref
 
 2D convolution of an array with a kernel (smoothing)
@@ -231,6 +232,8 @@ will be quicker.
                           (i.e. wrap around axis)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
+
+=cut
 
 EOD
        BadDoc =>
@@ -313,6 +316,7 @@ sub PDL::conv2d {
 ); # pp_def: conv2d
 
 pp_def('med2d', Doc=> <<'EOD',
+
 =for ref
 
 2D median-convolution of an array with a kernel (smoothing)
@@ -336,6 +340,8 @@ is rather pointless)
  	    => Default  - periodic boundary conditions (i.e. wrap around axis)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
+
+=cut
 
 EOD
        BadDoc => 
@@ -443,6 +449,7 @@ sub PDL::med2d {
 ); # pp_def: med2d
 
 pp_def('med2df', Doc=> <<'EOD',
+
 =for ref
 
 2D median-convolution of an array in a pxq window (smoothing)
@@ -466,6 +473,8 @@ Note: this routine does the median over all points in a rectangular
  	    => Default  - periodic boundary conditions (i.e. wrap around axis)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
+
+=cut
 
 EOD
         Pars => 'a(m,n); [o]b(m,n);',
@@ -583,6 +592,7 @@ pp_def('box2d',
 		  }
 		%}',
        Doc => << 'EOD',
+
 =for ref
 
 fast 2D boxcar average
@@ -601,11 +611,19 @@ Boxcar averaging is a pretty crude way of filtering. For serious stuff
 better filters are around (e.g., use L<conv2d|conv2d> with the appropriate
 kernel). On the other hand it is fast and computational cost grows only
 approximately linearly with window size.
+
+=cut
+
 EOD
 ); # pp_def box2d
 
+=head2 patch2d
+
+=cut
+
 pp_def('patch2d', 
        Doc=><<'EOD',
+
 =for ref
 
 patch bad pixels out of 2D images using a mask
@@ -618,6 +636,8 @@ C<$bad> is a 2D mask array where 1=bad pixel 0=good pixel.
 Pixels are replaced by the average of their non-bad neighbours;
 if all neighbours are bad, the original data value is
 copied across.
+
+=cut
 
 EOD
        BadDoc => 
@@ -671,6 +691,7 @@ EOD
 
 pp_def('patchbad2d', 
        Doc=><<'EOD',
+
 =for ref
 
 patch bad pixels out of 2D images containing bad values
@@ -683,6 +704,8 @@ Pixels are replaced by the average of their non-bad neighbours;
 if all neighbours are bad, the output is set bad.
 If the input piddle contains I<no> bad values, then a straight copy
 is performed (see L<patch2d|/patch2d>).
+
+=cut
 
 EOD
        BadDoc => 
@@ -752,11 +775,14 @@ bad values, depending on the pattern of bad values in the input piddle.',
 
 pp_def('max2d_ind',
       Doc=><<'EOD',
+
 =for ref
 
 Return value/position of maximum value in 2D image
 
 Contributed by Tim Jeness
+
+=cut
 
 EOD
 
@@ -809,12 +835,15 @@ EOD
 pp_def('centroid2d',
 
         Doc=><<'EOD',
+
 =for ref
 
 Refine a list of object positions in 2D image by centroiding in a box
 
 C<$box> is the full-width of the box, i.e. the window
 is C<+/- $box/2>.
+
+=cut
 
 EOD
 
@@ -889,7 +918,7 @@ EOD
 
 pp_addhdr('
 
-/* Add an equivalence to a list - used by pdl_cc8compt */
+/* Add an equivalence to a list - used by pdl_ccNcompt */
 
 void AddEquiv ( PDL_Long* equiv, PDL_Long i, PDL_Long j) {
 
@@ -912,22 +941,79 @@ void AddEquiv ( PDL_Long* equiv, PDL_Long i, PDL_Long j) {
 
 ');
 
+pp_add_exported('', 'cc8compt','cc4compt');
+pp_addpm(<<'EOPM');
 
-pp_def('cc8compt',Doc=>'
+=head2 cc8compt
+
 =for ref
 
 Connected 8-component labeling of a binary image.
 
-Connected 8-component labeling of 0,1 image - i.e. find seperate
-segmented objects and fill object pixels with object number
+Connected 8-component labeling of 0,1 image - i.e. find separate
+segmented objects and fill object pixels with object number.
+8-component labeling includes all neighboring pixels.
+This is just a front-end to ccNcompt.  See also L<cc4compt>.
 
 =for example
 
  $segmented = cc8compt( $image > $threshold );
 
+=head2 cc4compt
+
+=for ref
+
+Connected 4-component labeling of a binary image.
+
+Connected 4-component labeling of 0,1 image - i.e. find separate
+segmented objects and fill object pixels with object number.
+4-component labling does not include the diagonal neighbors.
+This is just a front-end to ccNcompt.  See also L<cc8compt>.
+
+=for example
+
+ $segmented = cc4compt( $image > $threshold );
+
+=cut
+
+sub PDL::cc8compt{
+return ccNcompt(shift,8);
+}
+*cc8compt = \&PDL::cc8compt;
+
+sub PDL::cc4compt{
+return ccNcompt(shift,4);
+}
+*cc4compt = \&PDL::cc4compt;
+
+EOPM
+
+pp_def('ccNcompt',Doc=>'
+
+=for ref
+
+Connected component labeling of a binary image.
+
+Connected component labeling of 0,1 image - i.e. find separate
+segmented objects and fill object pixels with object number.
+See also L<cc4compt> and L<cc8compt>.
+
+The connectivity parameter must be 4 or 8.
+
+=for example
+
+ $segmented = ccNcompt( $image > $threshold, 4);
+
+ $segmented2 = ccNcompt( $image > $threshold, 8);
+
+where the second parameter specifies the connectivity (4 or 8) of the labeling.
+
+=cut
+
 ',
        HandleBad => 0, # a marker
         Pars => 'a(m,n); [o]b(m,n);',
+        OtherPars => 'int con',
         Code => '
 
       PDL_Long i,j,k;
@@ -940,6 +1026,8 @@ segmented objects and fill object pixels with object number
       PDL_Long nx = $SIZE(m);
       PDL_Long ny = $SIZE(n);
 
+      if ($COMP(con)!=4 && $COMP(con)!=8)
+         barf("In ccNcompt, connectivity must be 4 or 8, you gave %d",$COMP(con));
       loop(n) %{ loop(m) %{ /* Copy */
          $b() = $a();
       %} %}
@@ -962,17 +1050,17 @@ segmented objects and fill object pixels with object number
 
             nfound = 0; /* Number of neighbour >0 */
 
-            i1 = i-1; j1 = j-1; i2 = i+1;
+            i1 = i-1; j1 = j-1; i2 = i+1; /*West x, North y, East x*/
 
             if ($b(m=>i, n=>j) > 0) { /* Check 4 neighbour already seen */
 
-               if (i>0 && $b(m=>i1, n=>j)>0)
+               if (i>0 && $b(m=>i1, n=>j)>0) /*West*/
                    neighbour[nfound++] = $b(m=>i1, n=>j); /* Store label of it */
-               if (j>0 && $b(m=>i, n=>j1)>0)
+               if (j>0 && $b(m=>i, n=>j1)>0) /*North*/
                    neighbour[nfound++] = $b(m=>i, n=>j1);
-               if (j>0 && i>0  && $b(m=>i1, n=>j1)>0)
+               if (j>0 && i>0  && $b(m=>i1, n=>j1)>0 && $COMP(con)==8) /*North-West*/
                    neighbour[nfound++] = $b(m=>i1, n=>j1);
-               if (j>0 && i<(nx-1) && $b(m=>i2, n=>j1)>0)
+               if (j>0 && i<(nx-1) && $b(m=>i2, n=>j1)>0 && $COMP(con)==8) /*North-East*/
                    neighbour[nfound++] = $b(m=>i2, n=>j1);
 
                if (nfound==0)  { /* Assign new label */
@@ -1092,6 +1180,70 @@ void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n,
 
 ');
 
+pp_add_exported('', 'pnpoly');
+pp_addpm(<<'EOPM');
+
+=head2 pnpoly
+
+=for ref
+
+'points in a polygon' selection from a 2-D piddle
+
+=for usage
+
+  $mask = pnpoly($x, $y, $px, $py);
+
+For a closed polygon determined by the sequence of points in {$py,$py}
+the output of pnpoly is a mask corresponding to whether or not each
+coordinate (x,y) in the set of test points, {$x,$y}, is in the interior
+of the polygon.  This is the 'points in a polygon' algorithm from
+L<http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html>
+and vectorized for PDL by Karl Glazebrook.
+
+=for example
+
+  # define a 3-sided polygon (a triangle)
+  $px = pdl( 3, 20, 34 );
+  $py = pdl( 3, 20,  3 );
+  
+  $img = zeros(40, 40);  # create test image
+  $x = $img->xvals;      # get x pixel coords
+  $y = $img->yvals;      # get y pixel coords
+  
+  # $tri is 0 everywhere except for points in polygon interior
+  $tri = pnpoly($x,$y,$px,$py);
+
+=cut
+
+# From: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+#
+# Fixes needed to pnpoly code:
+# 
+# Use topdl() to ensure piddle args
+# 
+# Add POD docs for usage
+# 
+# Calculate first term in & expression to use to fix divide-by-zero when
+#   the test point is in line with a vertical edge of the polygon.
+#   By adding the value of $mask we prevent a divide-by-zero since the &
+#   operator does not "short circuit".
+
+sub PDL::pnpoly {
+   my ($tx, $ty, $vertx, $verty) = @_;
+   my $testx = PDL::Core::topdl($tx)->dummy(0);
+   my $testy = PDL::Core::topdl($ty)->dummy(0);
+   my $vertxj = PDL::Core::topdl($vertx)->rotate(1);
+   my $vertyj = PDL::Core::topdl($verty)->rotate(1);
+   my $mask = ( ($verty>$testy) == ($vertyj>$testy) );
+   my $c = sumover( ! $mask & ( $testx < ($vertxj-$vertx) * ($testy-$verty)
+                                / ($vertyj-$verty+$mask) + $vertx) ) % 2;
+   return $c;
+}
+
+*pnpoly = \&PDL::pnpoly;
+
+EOPM
+
 pp_def('polyfill',
        HandleBad => 0, # a marker
 	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
@@ -1103,11 +1255,14 @@ pp_def('polyfill',
 		 if (ierr) warn("errors during polygonfilling");
 		 ',
 	Doc => << 'EOD',
+
 =for ref
 
 fill the area inside the given polygon with a given colour
 
 This function works inplace, i.e. modifies C<im>.
+
+=cut
 
 EOD
 );
@@ -1185,6 +1340,7 @@ pp_def('rot2d',
 			$SIZE(q) = nrows;',
 	GenericTypes => ['B'],
 	Doc => << 'EOD',
+
 =for ref
 
 rotate an image by given C<angle>
@@ -1211,6 +1367,8 @@ L<PDL::Transform|PDL::Transform> offers a more general interface to
 distortions, including rotation, with various types of sampling; but 
 rot2d is faster.
 
+=cut
+
 EOD
 );
 
@@ -1218,11 +1376,14 @@ pp_def('bilin2d',
        HandleBad => 0,
     Pars => 'I(n,m); O(q,p)',
     Doc=><<'EOD',
+
 =for ref
 
 Bilinearly maps the first piddle in the second. The
 interpolated values are actually added to the second
 piddle which is supposed to be larger than the first one.
+
+=cut
 
 EOD
 ,
@@ -1262,6 +1423,7 @@ pp_def('rescale2d',
        HandleBad => 0,
     Pars => 'I(m,n); O(p,q)',
     Doc=><<'EOD',
+
 =for ref
 
 The first piddle is rescaled to the dimensions of the second
@@ -1272,6 +1434,8 @@ If you want photometric accuracy or automatic FITS header metadata
 tracking, consider using L<PDL::Transform::map|PDL::Transform/map>
 instead: it does these things, at some speed penalty compared to 
 rescale2d.
+
+=cut
 
 EOD
 ,

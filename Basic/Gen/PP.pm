@@ -131,6 +131,7 @@ package PDL::PP::Rule;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 use overload ("\"\"" => \&PDL::PP::Rule::stringify);
 sub stringify {
@@ -148,7 +149,9 @@ sub stringify {
     return $str;
 }
 
-sub report ($) { print $_[0] if $::PP_VERBOSE; }
+# Takes two args: the calling object and the message, but we only care
+# about the message:
+sub report ($$) { print $_[1] if $::PP_VERBOSE; }
 
 # Very limited error checking.
 # Allow scalars for targets and conditions to be optional
@@ -177,19 +180,19 @@ sub new {
     $self->{targets} = $targets;
 
     if ($#_ != -1) {
-	if (ref $_[-1] eq "CODE") {
-	    $self->{ref} = pop;
-	}
+        if (ref $_[-1] eq "CODE") {
+            $self->{ref} = pop;
+        }
 
-	my ($conditions,$doc) = @_;
+        my ($conditions,$doc) = @_;
 
-	if (defined $conditions) {
-	    $conditions = [$conditions] unless ref $conditions eq "ARRAY";
-	} else {
-	    $conditions = [];
-	}
-	$self->{conditions} = $conditions;
-	$self->{doc} = $doc if defined $doc;
+        if (defined $conditions) {
+            $conditions = [$conditions] unless ref $conditions eq "ARRAY";
+        } else {
+            $conditions = [];
+        }
+        $self->{conditions} = $conditions;
+        $self->{doc} = $doc if defined $doc;
     }
 
     return $self;
@@ -210,7 +213,7 @@ sub check_if_targets_exist {
 
     foreach my $target (@$targets) {
 	if (exists $pars->{$target}) {
-	    report("--skipping since TARGET $target exists\n");
+	    $self->report("--skipping since TARGET $target exists\n");
 	    return 1;
 	}
     }
@@ -236,7 +239,7 @@ sub check_if_conditions_exist {
 	next if substr($condition,0,1) eq "_";
 
 	unless (exists $pars->{$condition}) {
-	    report("--skipping since CONDITION $condition does not exist\n");
+	    $self->report("--skipping since CONDITION $condition does not exist\n");
 	    return 0;
 	}
     }
@@ -272,27 +275,16 @@ sub extract_args {
     my $conditions = $self->{conditions};
 
     my @args;
-    foreach my $label (@$conditions) {
-	# copy $label so that any changes to it are not
-	# also made to the original array!
-	#
-	my $condition = $label;
-	$condition = substr($condition, 1) if substr($condition,0,1) eq "_";
+    foreach (@$conditions) {
+		# make a copy of each condition so that any changes to it are not
+		# also made to the original array!
+		my $condition = $_;
+		# Remove any possible underscores (which indicate optional conditions):
+		$condition =~ s/^_//;
 
-	# The original version of the code just pushed on
-	# $pars->{$condition} whether it existed or not. I think
-	# this would mean that the condition would be created in $pars
-	# then (and set to undef), which is probably not really
-	# wanted, although some code could rely on this. Try the
-	# following explicit approach for now. Thinking about this
-	# a bit more suggests that it is an unnescessary code
-	# change, but keep in for now.
-	#
-	if (exists $pars->{$condition}) {
-	    push @args, $pars->{$condition};
-	} else {
-	    push @args, undef;
-	}
+		# Note: This will *not* create $pars->{$condition} if it did not already
+		# exist:
+		push @args, $pars->{$condition};
     }
 
     return @args;
@@ -311,7 +303,7 @@ sub apply {
     my $conditions = $self->{conditions};
     my $ref = $self->{ref};
 
-    report("Applying: $self\n");
+    $self->report("Applying: $self\n");
 
     # Is the rule valid?
     #
@@ -321,28 +313,31 @@ sub apply {
     #
     my @args = $self->extract_args($pars);
 
-    my @retval = &{$ref}(@args);
-    confess "Internal error: rule '$self' returned " . (1+$#retval) .
-      " items and expected " . (1+$#$targets)
-	unless $#retval == $#$targets;
+    # Run this rule's subroutine:
+    my @retval = $self->{ref}(@args);
 
-    report "--setting:";
+    # Check for any inconsistencies:
+    confess "Internal error: rule '$self' returned " . (1+$#retval)
+      . " items and expected " . (1+$#$targets)
+		unless $#retval == $#$targets;
+
+    $self->report("--setting:");
     foreach my $target (@$targets) {
-	report " $target";
-	confess "Cannot have multiple meanings for target $target!"
-	  if exists $pars->{$target};
-	my $res = shift @retval;
+		$self->report(" $target");
+		confess "Cannot have multiple meanings for target $target!"
+		  if exists $pars->{$target};
+		my $result = shift @retval;
 
-	# The following test suggests that things could/should be
-	# improved in the code generation.
-	#
-	if ($res eq 'DO NOT SET!!') {
-	    report (" is 'DO NOT SET!!'");
-	} else {
-	    $pars->{$target} = $res;
+		# The following test suggests that things could/should be
+		# improved in the code generation.
+		#
+		if (defined $result and $result eq 'DO NOT SET!!') {
+			$self->report (" is 'DO NOT SET!!'");
+		} else {
+			$pars->{$target} = $result;
+		}
 	}
-    }
-    report("\n");
+	$self->report("\n");
 }
 
 package PDL::PP::Rule::Returns;
@@ -350,6 +345,7 @@ package PDL::PP::Rule::Returns;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
@@ -460,6 +456,7 @@ package PDL::PP::Rule::InsertName;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
@@ -476,6 +473,12 @@ sub new {
     my $self  = $class->SUPER::new(@args);
     bless $self, $class;
     $self->{"insertname.value"} = $value;
+
+    # Generate a defaul doc string
+    unless (exists $self->{doc}) {
+        $self->{doc} = 'Sets ' . $self->{targets}->[0]
+            . ' to "' . $value . '"';
+    }
 
     my $targets = $self->{targets};
     croak "There can only be 1 target for a $self, not " . (1+$#$targets) . "!"
@@ -525,6 +528,7 @@ package PDL::PP::Rule::Substitute;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
@@ -538,7 +542,7 @@ sub dosubst_private {
 		((ref $src) ? %{$src->[1]} : ()),
 		PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
 			       "->$_[0]"},
-		CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
+		CROAK => sub {return "PDL->pdl_barf(\"Error in $name:\" $_[0])"},
 		NAME => sub {return $name},
 		MODULE => sub {return $::PDLMOD},
 
@@ -601,6 +605,7 @@ package PDL::PP::Rule::Substitute::Usual;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule::Substitute);
@@ -661,6 +666,7 @@ package PDL::PP::Rule::MakeComp;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
@@ -759,7 +765,7 @@ our @ISA = qw(Exporter);
 @PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
 		      pp_core_importList pp_beginwrap pp_setversion
-                      pp_addbegin pp_boundscheck /;
+                      pp_addbegin pp_boundscheck pp_line_numbers/;
 
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
@@ -772,6 +778,7 @@ END {
 }
 
 use Carp;
+our @CARP_NOT;
 
 # check for bad value support
 use PDL::Config;
@@ -786,7 +793,7 @@ sub import {
 	# Allow for users to not specify the packname
 	($packname, $prefix, $callpack) = ($modname, $packname, $prefix)
 		if ($packname =~ m|/|);
-	
+
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
 	$::CALLPACK = defined $callpack ? $callpack : $::PDLMOD;
 	$::PDLOBJ = "PDL"; # define pp-funcs in this package
@@ -901,6 +908,36 @@ sub pp_addxs {
                          "\nMODULE = $::PDLMOD PACKAGE = $::PDLOBJ\n\n");
 }
 
+# inserts #line directives into source text. Use like this:
+#   ...
+#   FirstKey => ...,
+#   Code => pp_line_numbers (__LINE__, $a . $b . $c),
+#   OtherKey => ...
+
+sub pp_line_numbers ($$) {
+	my ($line, $string) = @_;
+	# The line needs to be incremented by one for the bookkeeping to work
+	$line++;
+	# Get the source filename using caller()
+	my (undef, $filename) = caller;
+	# Escape backslashes:
+	$filename =~ s/\\/\\\\/g;
+	my @to_return = "#line $line \"$filename\"";
+
+	# Look for threadloops and loops and add # line directives
+	foreach (split (/(\n)/, $string)) {
+		# Always add the current line.
+		push @to_return, $_;
+
+		# If we need to add a # line directive, do so before incrementing
+		push (@to_return, "\n#line $line \"$filename\"") if (/%{/ or /%}/);
+
+		$line++ if /\n/;
+	}
+
+	return join('', @to_return);
+}
+
 sub printxsc {
 	shift;
 	$::PDLXSC .= join '',@_;
@@ -919,20 +956,31 @@ $fh->print(qq%
 /*
  * THIS FILE WAS GENERATED BY PDL::PP! Do not modify!
  */
+
+#define PDL_COMMENT(comment)
+PDL_COMMENT("This preprocessor symbol is used to add commentary in the PDL  ")
+PDL_COMMENT("autogenerated code. Normally, one would use typical C-style    ")
+PDL_COMMENT("multiline comments (i.e. /* comment */). However, because such ")
+PDL_COMMENT("comments do not nest, it's not possible for PDL::PP users to   ")
+PDL_COMMENT("comment-out sections of code using multiline comments, as is   ")
+PDL_COMMENT("often the practice when debugging, for example. So, when you   ")
+PDL_COMMENT("see something like this:                                       ")
+PDL_COMMENT("                                                               ")
+                PDL_COMMENT("Memory access")
+PDL_COMMENT("                                                               ")
+PDL_COMMENT("just think of it as a C multiline comment like:                ")
+PDL_COMMENT("                                                               ")
+PDL_COMMENT("   /* Memory access */                                         ")
+
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
 #include "pdl.h"
 #include "pdlcore.h"
-static Core* PDL; /* Structure hold core C functions */
+static Core* PDL; PDL_COMMENT("Structure hold core C functions")
 static int __pdl_debugging = 0;
 static int __pdl_boundscheck = 0;
-static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
-
-/* we need to handle croak ourserlves */
-/* #undef croak
-   #define croak barf
- */
+static SV* CoreSV;       PDL_COMMENT("Gets pointer to perl var holding core structure")
 
 #if ! $PP::boundscheck
 # define PP_INDTERM(max, at) at
@@ -973,22 +1021,22 @@ $::PDLXS
 
 BOOT:
 
-   /* Get pointer to structure of core shared C routines */
-   /* make sure PDL::Core is loaded */
+   PDL_COMMENT("Get pointer to structure of core shared C routines")
+   PDL_COMMENT("make sure PDL::Core is loaded")
    perl_require_pv("PDL::Core");
-   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
+   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  PDL_COMMENT("SV* value")
 #ifndef aTHX_
 #define aTHX_
 #endif
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "Can't load PDL::Core module");
-   PDL = INT2PTR(Core*, SvIV( CoreSV ));  /* Core* value */
+   PDL = INT2PTR(Core*, SvIV( CoreSV ));  PDL_COMMENT("Core* value")
    if (PDL->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "$::PDLMOD needs to be recompiled against the newly installed PDL");
+     Perl_croak(aTHX_ "[PDL->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] $::PDLMOD needs to be recompiled against the newly installed PDL", PDL->Version, PDL_CORE_VERSION, XS_VERSION);
    $::PDLXSBOOT
 %);
 
-unless (nopm) {	
+unless (nopm) {
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
@@ -1060,12 +1108,7 @@ sub pp_def {
 	PDL::PP->pp_add_exported($name);
 	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
 	PDL::PP::pp_addpm($obj{PMCode});
-	if(defined($obj{PMFunc})) {
-		pp_addpm($obj{PMFunc}."\n");
-	}else{
-                pp_addpm($::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
-                         '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]);
-	}
+	PDL::PP::pp_addpm($obj{PMFunc}."\n");
 
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;
 }
@@ -1181,7 +1224,7 @@ sub TidyType
 #
 #--------- END OF THE OLD CODE ---------------
 #
-# The code loads the typemap from the Perl typemap using the loading logic of 
+# The code loads the typemap from the Perl typemap using the loading logic of
 # xsubpp. Do note that I  made the assumption that
 # $Config{}installprivlib}/ExtUtils was the right root directory for the search.
 # This could break on some systems?
@@ -1452,12 +1495,12 @@ sub NewParentChildPars {
 sub mkstruct {
 	my($pnames,$pobjs,$comp,$priv,$name) = @_;
 	my $npdls = $#$pnames+1;
-	my $decl = "typedef struct $name {
+	my $decl = qq{typedef struct $name {
 		PDL_TRANS_START($npdls);
 		$priv
 		$comp
-		char __ddone; /* Dims done */
-		} $name;";
+		char __ddone; PDL_COMMENT("Dims done")
+		} $name;};
 	return $decl;
 }
 
@@ -1502,13 +1545,14 @@ sub wrap_vfn {
 
 #	print "$rout\_$name: $p2child\n";
     my $p2decl = '';
-    if ( $p2child == 1 ) {
-	$p2decl = 
+    # Put p2child in simple boolean context rather than strict numerical equality
+    if ( $p2child ) {
+	$p2decl =
 	    "pdl *__it = __tr->pdls[1]; pdl *__parent = __tr->pdls[0];";
 	if ( $name eq "redodims" ) {
 	    $p2decl .= '
 	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) {
-                  /* call the perl routine _hdr_copy. */
+                  PDL_COMMENT("call the perl routine _hdr_copy.")
                   int count;
 
                   dSP;
@@ -1519,13 +1563,13 @@ sub wrap_vfn {
                   PUTBACK ;
                   count = call_pv("PDL::_hdr_copy",G_SCALAR);
                   SPAGAIN ;
-                  if(count != 1) 
+                  if(count != 1)
                       croak("PDL::_hdr_copy didn\'t return a single value - please report this bug (B).");
-  
-                  { /* convenience block for tmp var */
+
+                  { PDL_COMMENT("convenience block for tmp var")
                     SV *tmp = (SV *) POPs ;
 		    __it->hdrsv = (void*) tmp;
-                    if(tmp != &PL_sv_undef ) 
+                    if(tmp != &PL_sv_undef )
                        SvREFCNT_inc(tmp);
                   }
 
@@ -1570,33 +1614,33 @@ sub CopyOtherPars {
 }
 
 sub mkxscat {
-	my($glb,$chdrs,$hdr,@bits) = @_;
-	my($xscode,$boot,$prel,$str);
+	my($glb,$xs_c_headers,$hdr,@bits) = @_;
+	my($boot,$prelude,$str);
 	if($glb) {
-		$prel = $chdrs->[0] . "@bits" . $chdrs->[1];
-		$boot = $chdrs->[3];
+		$prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
+		$boot = $xs_c_headers->[3];
 		$str = "$hdr\n";
 	} else {
-		$xscode = join '',@bits;
+		my $xscode = join '' => @bits;
 		$str = "$hdr CODE:\n { $xscode XSRETURN(0);\n}\n\n";
 	}
 	$str =~ s/(\s*\n)+/\n/g;
-	($str,$boot,$prel)
+	($str,$boot,$prelude)
 }
 
 sub mkVarArgsxscat {
-	my($glb,$chdrs,$hdr,@bits) = @_;
-	my($xscode,$boot,$prel,$str);
+	my($glb,$xs_c_headers,$hdr,@bits) = @_;
+	my($boot,$prelude,$str);
 	if($glb) {
-		$prel = $chdrs->[0] . "@bits" . $chdrs->[1];
-		$boot = $chdrs->[3];
+		$prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
+		$boot = $xs_c_headers->[3];
 		$str = "$hdr\n";
 	} else {
-		$xscode = join '',@bits;
+		my $xscode = join '' => @bits;
 		$str = "$hdr \n { $xscode \n}\n\n";
 	}
 	$str =~ s/(\s*\n)+/\n/g;
-	($str,$boot,$prel)
+	($str,$boot,$prelude)
 }
 
 
@@ -1652,11 +1696,11 @@ sub callPerlInit {
     my $ci    = shift; # current indenting
     my $callcopy = $#_ > -1 ? shift : 0;
     my $ret = '';
-  
+
     foreach my $name (@$names) {
 	unless ($callcopy) { $ret .= << "EOC"}
 
-if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
+if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL")
    $name\_SV = sv_newmortal();
    $name = PDL->null();
    PDL->SetSV_PDL($name\_SV,$name);
@@ -1666,8 +1710,8 @@ if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
    XPUSHs(sv_2mortal(newSVpv(objname, 0)));
    PUTBACK;
    perl_call_method(\"initialize\", G_SCALAR);
-   SPAGAIN;                                                
-   $name\_SV = POPs; 
+   SPAGAIN;
+   $name\_SV = POPs;
    PUTBACK;
    $name = PDL->SvPDLV($name\_SV);
 }
@@ -1676,22 +1720,23 @@ EOC
 
     else { $ret .= << "EOD" }
 
-if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
+if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL")
    $name\_SV = sv_newmortal();
    $name = PDL->null();
    PDL->SetSV_PDL($name\_SV,$name);
    if (bless_stash) $name\_SV = sv_bless($name\_SV, bless_stash);
 } else {
+   /* XXX should these commented lines be removed? See also a 8 lines down */
    /* warn("possibly relying on deprecated automatic copy call in derived class\n")
-   warn("please modify your initialize method to avoid future problems\n"); 
+   warn("please modify your initialize method to avoid future problems\n");
    */
    PUSHMARK(SP);
-   XPUSHs(parent); 
+   XPUSHs(parent);
    PUTBACK;
    perl_call_method(\"copy\", G_SCALAR);
    /* perl_call_method(\"initialize\", G_SCALAR); */
-   SPAGAIN;                                                
-   $name\_SV = POPs; 
+   SPAGAIN;
+   $name\_SV = POPs;
    PUTBACK;
    $name = PDL->SvPDLV($name\_SV);
 }
@@ -1704,21 +1749,22 @@ EOD
 } #sub callPerlInit()
 
 # This subroutine is called when no 'otherpars' exist.
-# This writes an XS header which handles variable argument lists, 
+# This writes an XS header which handles variable argument lists,
 # thus avoiding the perl layer in calling the routine. D. Hunt 4/11/00
 #
 # The use of 'DO NOT SET!!' looks ugly.
 #
+# Removing useless use of hasp2child in this function. DCM Sept 12, 2011
 sub VarArgsXSHdr {
-  my($name,$xsargs,$parobjs,$optypes,$hasp2child,$pmcode,
-     $hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
+  my($name,$xsargs,$parobjs,$optypes,#$hasp2child,
+     $pmcode,$hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
 
   # Don't do var args processing if the user has pre-defined pmcode
   return 'DO NOT SET!!' if ($pmcode);
 
   # don't generate a HDR if globalnew is set
   # globalnew implies internal usage, not XS
-  return undef if $globalnew; 
+  return undef if $globalnew;
 
   my $ci = '  ';  # current indenting
   my $pars = join "\n",map {$ci.$_->[1]->get_decl($_->[0]).";"} @$xsargs;
@@ -1746,17 +1792,17 @@ sub VarArgsXSHdr {
   my $ninout = $nin + $nout;
   my $nallout = $nout + $noutca;
   my $usageargs = join (",", @args);
-  
+
   $ci = '  ';  # Current indenting
 
   # Generate declarations for SV * variables corresponding to pdl * output variables.
   # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
   # is needed for each output and output create always argument
-  my $svdecls = join ("\n", map { "$ci\SV *$_\_SV;" } grep { $out{$_} || $outca{$_} || $tmp{$_} } @args);
+  my $svdecls = join ("\n", map { "${ci}SV *${_}_SV;" } grep { $out{$_} || $outca{$_} || $tmp{$_} } @args);
 
-  my @create = ();  # The names of variables which need to be created by calling 
+  my @create = ();  # The names of variables which need to be created by calling
                     # the 'initialize' perl routine from the correct package.
-  
+
   $ci = '    ';  # Current indenting
 
   # clause for reading in all variables
@@ -1764,12 +1810,12 @@ sub VarArgsXSHdr {
   foreach my $i ( 0 .. $#args ) {
       my $x = $args[$i];
       if ($other{$x}) {  # other par
-	  $clause1 .= "$ci$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n"; 
+	  $clause1 .= "$ci$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n";
 	  $cnt++;
       } elsif ($outca{$x}) {
 	  push (@create, $x);
       } else {
-	  $clause1 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n"; 
+	  $clause1 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
 	  $cnt++;
       }
   }
@@ -1781,10 +1827,10 @@ sub VarArgsXSHdr {
   # clause for reading in input and output vars and creating temps
   my $clause2;
   # skip this clause if there are no temps
-  if ($nmaxonstack == $ninout) {  
+  if ($nmaxonstack == $ninout) {
       $clause2 = '';
   } else {
-      $clause2 = "\n  else if (items == $ninout) { /* all but temps on stack, read in output, create temps */" .
+      $clause2 = "\n  else if (items == $ninout) { PDL_COMMENT(\"all but temps on stack, read in output, create temps\")" .
 	  "    nreturn = $noutca;\n";
 
       $cnt = 0;
@@ -1796,7 +1842,7 @@ sub VarArgsXSHdr {
 	  } elsif ($tmp{$x} || $outca{$x}) {
 	      # a temporary or always create variable
 	      push (@create, $x);
-	  } else { # an input or output variable 
+	  } else { # an input or output variable
 	      $clause2 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
 	      $cnt++;
 	  }
@@ -1833,7 +1879,7 @@ sub VarArgsXSHdr {
 void
 $name(...)
  PREINIT:
-  char *objname = "PDL"; /* maybe that class should actually depend on the value set
+  char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set
                             by pp_bless ? (CS) */
   HV *bless_stash = 0;
   SV *parent = 0;
@@ -1844,22 +1890,24 @@ $pars
  PPCODE:
 
 {
-  /* Check if you can get a package name for this input value.  It can be either a PDL (SVt_PVMG) or 
-     a hash which is a derived PDL subclass (SVt_PVHV) */
+  PDL_COMMENT("Check if you can get a package name for this input value.  ")
+  PDL_COMMENT("It can be either a PDL (SVt_PVMG) or a hash which is a     ")
+  PDL_COMMENT("derived PDL subclass (SVt_PVHV)                            ")
+  
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
     parent = ST(0);
     if (sv_isobject(parent))
-      objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  /* The package to bless output vars into is taken from the first input var */
+      objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  PDL_COMMENT("The package to bless output vars into is taken from the first input var")
   }
-  if (items == $nmaxonstack) { /* all variables on stack, read in output and temp vars */
+  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output and temp vars")
     nreturn = $noutca;
 $clause1
-  } 
+  }
 $clause2
-  else if (items == $nin) { /* only input variables on stack, create outputs and temps */
+  else if (items == $nin) { PDL_COMMENT("only input variables on stack, create outputs and temps")
     nreturn = $nallout;
 $clause3
-  } 
+  }
 
   else {
     croak (\"Usage:  PDL::$name($usageargs) (you may leave temporaries or output variables out of list)\");
@@ -1897,7 +1945,7 @@ sub VarArgsXSReturn {
 
     my $clause1 = '';
     foreach my $i ( 0 .. $#outs ) {
-	$clause1 .= "$ci\ST($i) = $outs[$i]\_SV;\n";
+	$clause1 .= "${ci}ST($i) = $outs[$i]_SV;\n";
     }
 
 return <<"END"
@@ -1974,19 +2022,19 @@ sub findbadstatus {
     my $sname = $symtab->get_symname('_PDL_ThisTrans');
 
     my @args   = map { $_->[0] } @$xsargs;
-    my %out    = map { 
-	$_ => 
-	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut}) 
+    my %out    = map {
+	$_ =>
+	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut})
 		&& !exists($$parobjs{$_}{FlagCreateAlways})
 	    } @args;
-    my %outca = map { 
-	$_ => 
-	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut}) 
+    my %outca = map {
+	$_ =>
+	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut})
 		&& exists($$parobjs{$_}{FlagCreateAlways})
 	    } @args;
-    my %tmp    = map { 
-	$_ => 
-	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagTemp}) 
+    my %tmp    = map {
+	$_ =>
+	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagTemp})
 	    } @args;
     my %other  = map { $_ => exists($$optypes{$_}) } @args;
 
@@ -2023,9 +2071,9 @@ sub findbadstatus {
     }
 
     if ( defined($badflag) and $badflag == 0 ) {
-	$str .= 
+	$str .=
 "  if ( $get_bad ) {
-      printf(\"WARNING: routine does not handle bad values.\\n\");
+      printf(\"WARNING: $name does not handle bad values.\\n\");
       $clear_bad
   }\n";
 	print "\nNOTE: $name does not handle bad values.\n\n" if $::PP_VERBOSE;
@@ -2096,7 +2144,7 @@ sub copybadstatus {
 
 # insert code, after the autogenerated xs argument processing code
 # produced by VarArgsXSHdr and AFTER any in HdrCode
-# - this code flags the routine as working inplace, 
+# - this code flags the routine as working inplace,
 #
 # Inplace can be supplied several values
 #   => 1
@@ -2146,18 +2194,18 @@ sub InplaceCode {
 	die "ERROR: Inplace rule [$ppname] must be sent either an array ref or a scalar.\n";
     }
 
-    die "ERROR: Inplace [$ppname] does not know name of input piddle\n" 
+    die "ERROR: Inplace [$ppname] does not know name of input piddle\n"
 	unless defined $in;
-    die "ERROR: Inplace [$ppname] does not know name of output piddle\n" 
+    die "ERROR: Inplace [$ppname] does not know name of output piddle\n"
 	unless defined $out;
 
     my $instate = $in . "->state";
     return
-	"\tif ( $instate & PDL_INPLACE ) {
-              $instate &= ~PDL_INPLACE; /* unset */
-              $out = $in;             /* discard output value, leak ? */
+	qq{\tif ( $instate & PDL_INPLACE ) {
+              $instate &= ~PDL_INPLACE; PDL_COMMENT("unset")
+              $out = $in;             PDL_COMMENT("discard output value, leak ?")
               PDL->SetSV_PDL(${out}_SV,${out});
-          }",
+          }},
 
 } # sub: InplaceCode
 
@@ -2167,7 +2215,7 @@ sub InplaceCode {
 #      if ( $PRIV(bvalflag) ) { bad-EquivCPOffsCode }
 #      else                   { good-EquivCPOffsCode }
 #
-#  Note: since EquivCPOffsCOde doesn't (or I haven't seen any that 
+#  Note: since EquivCPOffsCOde doesn't (or I haven't seen any that
 #  do) use 'loop %{' or 'threadloop %{', we can't rely on
 #  PDLCode to automatically write code like above, hence the
 #  explicit definition here.
@@ -2182,20 +2230,20 @@ sub InplaceCode {
 # of bad values, hence the expansion for the $bad code
 #
 # Some operators (notably range) also have an out-of-range flag; they use
-# the macro EQUIVCPTRUNC instead of EQUIVCPOFFS. 
+# the macro EQUIVCPTRUNC instead of EQUIVCPOFFS.
 # $EQUIVCPTRUNC does the same as EQUIVCPOFFS but accepts a child-out-of-bounds
-# flag.  If the out-of-bounds flag is set, the forward code puts BAD/0 into 
-# the child, and reverse code refrains from copying. 
+# flag.  If the out-of-bounds flag is set, the forward code puts BAD/0 into
+# the child, and reverse code refrains from copying.
 #                    --CED 27-Jan-2003
 #
 # sent [EquivCPOffsCode,BadFlag]
 
 #
 # NOTE: EQUIVCPOFFS and EQUIVCPTRUNC both suffer from the macro-block
-# wart of C preprocessing.  They look like statements but sometimes 
+# wart of C preprocessing.  They look like statements but sometimes
 # process into blocks, so if/then/else constructs can get broken.
-# Either (1) use blocks for if/then/else, or (2) get excited and 
-# use the "do {BLOCK} while(0)" block-to-statement conversion construct 
+# Either (1) use blocks for if/then/else, or (2) get excited and
+# use the "do {BLOCK} while(0)" block-to-statement conversion construct
 # in the substitution.  I'm too Lazy. --CED 27-Jan-2003
 #
 sub CodefromEquivCPOffsCode {
@@ -2262,7 +2310,7 @@ sub GenDocs {
 
   # If the doc string is one line let's have to for the
   # reference card information as well
-  my @splitRes; # temp split variable to get rid of 
+  my @splitRes; # temp split variable to get rid of
                 #  'implicit split to @_ is deprecated' messages
   $doc = "=for ref\n\n".$doc if( scalar(@splitRes = split("\n", $doc)) <= 1);
 
@@ -2325,18 +2373,18 @@ sub coerce_types {
     if ( $hasp2child ) {
 	my $child = $$parnames[1];
 	return "" if $ignore->{$child};
-	
+
 	die "ERROR: expected $child to be [oca]\n"
 	    unless $parobjs->{$child}{FlagCreateAlways};
-	
+
 	return "$child\->datatype = \$PRIV(__datatype);\n$child\->has_badvalue = \$PRIV(has_badvalue);\n$child\->badvalue = \$PRIV(badvalue);\n" if $hasp2child;
     }
 
     my $str = "";
     foreach ( @$parnames ) {
 	next if $ignore->{$_};
-	
-	my $po = $parobjs->{$_}; 
+
+	my $po = $parobjs->{$_};
 
 	my $dtype;
 	if ( $po->{FlagTyped} ) {
@@ -2350,10 +2398,10 @@ sub coerce_types {
 	if ( $po->{FlagCreateAlways} ) {
 	    $str .= "$_->datatype = $dtype; ";
 	} else {
-	    $str .= 
+	    $str .=
 	 "if( ($_->state & PDL_NOMYDIMS) && $_->trans == NULL ) {
 	     $_->datatype = $dtype;
-	  } else " 
+	  } else "
 	      if $po->{FlagCreat};
 	    $str .= "if($dtype != $_->datatype) {
 	     $_ = PDL->get_convertedpdl($_,$dtype);
@@ -2382,15 +2430,15 @@ sub find_datatype {
     #  what I'm doing (DJB)
     die "ERROR: gentypes != $ntypes with p2child\n"
 	if $hasp2child and $#$gentypes != $ntypes;
-    
+
     return "$dtype = $$parnames[0]\->datatype;\n\$PRIV(has_badvalue) = $$parnames[0]\->has_badvalue;\n\$PRIV(badvalue) = $$parnames[0]\->badvalue;\n"
 	if $hasp2child;
-    
+
     my $str = "$dtype = 0;";
     foreach ( @$parnames ) {
 	my $po = $parobjs->{$_};
 	next if $ignore->{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
-	
+
 	$str .= "if(";
 	$str .= "!(($_->state & PDL_NOMYDIMS) &&
 		       $_->trans == NULL) && "
@@ -2399,7 +2447,7 @@ sub find_datatype {
 		 	$dtype = $_->datatype;
 		    }\n";
     } # foreach: @$parnames
-    
+
     $str .= join '', map { "if($dtype == PDL_$_) {}\nelse " }(@$gentypes);
 
     return $str .= "$dtype = PDL_$gentypes->[-1];\n";
@@ -2414,7 +2462,7 @@ sub NT2Free_p {&NT2Free__({ToPtrs=>1},@_);}
 sub NT2Decls {&NT2Decls__({},@_);}
 
 sub NT2Decls__ {
-    my($opts,$onames,$otypes) = @_; 
+    my($opts,$onames,$otypes) = @_;
     my $decl;
     my $dopts = {};
     $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
@@ -2425,7 +2473,7 @@ sub NT2Decls__ {
 }
 
 sub NT2Copies__ {
-    my($opts,$onames,$otypes,$copyname) = @_; 
+    my($opts,$onames,$otypes,$copyname) = @_;
     my $decl;
     my $dopts = {};
     $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
@@ -2437,7 +2485,7 @@ sub NT2Copies__ {
 }
 
 sub NT2Free__ {
-    my($opts,$onames,$otypes) = @_; 
+    my($opts,$onames,$otypes) = @_;
     my $decl;
     my $dopts = {};
     $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
@@ -2500,30 +2548,30 @@ sub make_parnames {
 }
 
 ##############################
-# 
+#
 # hdrcheck -- examine the various PDLs that form the output PDL,
 # and copy headers as necessary.  The last header found with the hdrcpy
-# bit set is used.  This used to do just a simple ref copy but now 
+# bit set is used.  This used to do just a simple ref copy but now
 # it uses the perl routine PDL::_hdr_copy to do the dirty work.  That
 # routine makes a deep copy of the header.  Copies of the deep copy
 # are distributed to all the names of the piddle that are not the source
 # of the header.  I believe that is the Right Thing to do but I could be
 # wrong.
 #
-# It's hard to read this sort of macro stuff so here's the flow: 
+# It's hard to read this sort of macro stuff so here's the flow:
 #   - Check the hdrcpy flag.  If it's set, then check the header
-#     to see if it exists.  If it doees, we need to call the 
+#     to see if it exists.  If it doees, we need to call the
 #     perl-land PDL::_hdr_copy routine.  There are some shenanigans
-#     to keep the return value from evaporating before we've had a 
+#     to keep the return value from evaporating before we've had a
 #     chance to do our bit with it.
-#   - For each output argument in the function signature, try to put 
+#   - For each output argument in the function signature, try to put
 #     a reference to the new header into that argument's header slot.
 #     (For functions with multiple outputs, this produces multiple linked
-#     headers -- that could be Wrong; fixing it would require making 
-#     yet more explicit copies!) 
+#     headers -- that could be Wrong; fixing it would require making
+#     yet more explicit copies!)
 #   - Remortalize the return value from PDL::_hdr_copy, so that we don't
 #     leak memory.
-#     
+#
 #   --CED 12-Apr-2003
 #
 
@@ -2537,19 +2585,19 @@ sub hdrcheck {
   # ...{FlagCreat} is true
   #
   my $str = "
-{ /* convenience block */
+{ PDL_COMMENT(\"convenience block\")
   void *hdrp = NULL;
   char propagate_hdrcpy = 0;
   SV *hdr_copy = NULL;
 ";
 
-  # Find a header among the possible names 
+  # Find a header among the possible names
   foreach ( 0 .. $nn ) {
     my $aux = $pobjs->{$pnames->[$_]}{FlagCreat} ? "!__creating[$_] && \n" : "";
     $str .= <<"HdRCHECK1"
-      if(!hdrp && 
-	 $aux     $names[$_]\->hdrsv && 
-	 ($names[$_]\->state & PDL_HDRCPY) 
+      if(!hdrp &&
+	 $aux     $names[$_]\->hdrsv &&
+	 ($names[$_]\->state & PDL_HDRCPY)
 	 ) {
 	hdrp = $names[$_]\->hdrsv;
 	propagate_hdrcpy = (($names[$_]\->state & PDL_HDRCPY) != 0);
@@ -2560,11 +2608,11 @@ HdRCHECK1
 
   $str .= << 'DeePcOPY'
 if (hdrp) {
-  if(hdrp == &PL_sv_undef) 
+  if(hdrp == &PL_sv_undef)
     hdr_copy = &PL_sv_undef;
-  else  {  /* Call the perl routine _hdr_copy... */
+  else  {  PDL_COMMENT("Call the perl routine _hdr_copy...")
     int count;
-    /* Call the perl routine PDL::_hdr_copy(hdrp) */
+    PDL_COMMENT("Call the perl routine PDL::_hdr_copy(hdrp)")
     dSP;
     ENTER ;
     SAVETMPS ;
@@ -2573,19 +2621,19 @@ if (hdrp) {
     PUTBACK ;
     count = call_pv("PDL::_hdr_copy",G_SCALAR);
     SPAGAIN ;
-    if(count != 1) 
+    if(count != 1)
 	croak("PDL::_hdr_copy didn't return a single value - please report this bug (A).");
-    
+
     hdr_copy = (SV *)POPs;
 
     if(hdr_copy && hdr_copy != &PL_sv_undef)
-       SvREFCNT_inc(hdr_copy); /*Keep hdr_copy from vanishing during FREETMPS*/
+       SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS")
 
     FREETMPS ;
     LEAVE ;
 
 
-  } /* end of callback  block */
+  } PDL_COMMENT("end of callback  block")
 
 DeePcOPY
     ;
@@ -2595,10 +2643,10 @@ DeePcOPY
   foreach ( 0 .. $nn ) {
      $str .= <<"HdRCHECK2"
        if ( $names[$_]\->hdrsv != hdrp ){
-	 if( $names[$_]\->hdrsv && $names[$_]\->hdrsv != &PL_sv_undef)  
-             SvREFCNT_dec( $names[$_]\->hdrsv ); 
-	 if( hdr_copy != &PL_sv_undef ) 
-             SvREFCNT_inc(hdr_copy); 
+	 if( $names[$_]\->hdrsv && $names[$_]\->hdrsv != &PL_sv_undef)
+             SvREFCNT_dec( $names[$_]\->hdrsv );
+	 if( hdr_copy != &PL_sv_undef )
+             SvREFCNT_inc(hdr_copy);
 	 $names[$_]\->hdrsv = hdr_copy;
        }
      if(propagate_hdrcpy)
@@ -2610,24 +2658,28 @@ HdRCHECK2
       if ( $pobjs->{$pnames->[$_]}{FlagCreat} );
    }
 
-  $str .= 
-"    if(hdr_copy != &PL_sv_undef) \n".
-"      SvREFCNT_dec(hdr_copy); /* make hdr_copy mortal again */\n".
-"   } /* end of if(hdrp) block */\n} /* end of conv. block */\n";
-
+  $str .= '
+         if(hdr_copy != &PL_sv_undef)
+            SvREFCNT_dec(hdr_copy); PDL_COMMENT("make hdr_copy mortal again")
+      } PDL_COMMENT("end of if(hdrp) block")
+   } PDL_COMMENT("end of conv. block")
+';
   return $str;
 
 } # sub: hdrcheck()
 
 sub make_redodims_thread {
-    my($pnames,$pobjs,$dobjs,$dpars,$pcode) = @_;
+    #my($pnames,$pobjs,$dobjs,$dpars,$pcode ) = @_;
+    my($pnames,$pobjs,$dobjs,$dpars,$pcode, $noPthreadFlag) = @_;
     my $str; my $npdls = @$pnames;
-    
+
+    $noPthreadFlag = 0 unless( defined $noPthreadFlag ); # assume we can pthread, unless indicated otherwise
+
     my $nn = $#$pnames;
     my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
     $str .= $npdls ? "int __creating[$npdls];\n" : "int __creating[1];\n";
     $str .= join '',map {$_->get_initdim."\n"} values %$dobjs;
-    
+
     # if FlagCreat is NOT true, then we set __creating[] to 0
     # and we can use this knowledge below, and in hdrcheck()
     # and in PP/PdlParObj (get_xsnormdimchecks())
@@ -2640,11 +2692,11 @@ sub make_redodims_thread {
 	    $str .= "0;\n";
 	}
     } # foreach: 0 .. $nn
- 
+
 ##############################
 #
 # These tests don't appear to do anything useful,
-#  and they cause trouble with null PDLs ... 
+#  and they cause trouble with null PDLs ...
 #  so I've commented them out.
 #    --CED 4-Nov-2003 (re: bug 779312)
 #
@@ -2661,7 +2713,8 @@ sub make_redodims_thread {
 		 PDL->initthreadstruct(2,\$PRIV(pdls),
 			__realdims,__creating,$npdls,
                       &__einfo,&(\$PRIV(__pdlthread)),
-                        \$PRIV(vtable->per_pdl_flags));
+                        \$PRIV(vtable->per_pdl_flags),
+			$noPthreadFlag );
 		}\n";
     $str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
     $str .= hdrcheck($pnames,$pobjs);
@@ -2686,29 +2739,33 @@ $PDL::PP::deftbl =
    # 0     - no, maybe issue a warning
    # undef - we're not compiling with bad value support
    #
-   PDL::PP::Rule->new("BadFlag", ["_HandleBad"],
+   PDL::PP::Rule->new("BadFlag", "_HandleBad",
+		      "Sets BadFlag based upon HandleBad key and PDL's ability to handle bad values",
 		      sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }),
 
-   PDL::PP::Rule::Returns->new("CopyName", "__copy"),
 
-   PDL::PP::Rule::Returns::Zero->new("DefaultFlow"),
 
-   # Why bother with $_[0] in the comment as it will be null/0?
-   #
-   PDL::PP::Rule->new("DefaultFlowCodeNS", "DefaultFlow",
-		      sub { $_[0] ? 
+
+   PDL::PP::Rule::Returns->new("CopyName", [],
+       'Sets the CopyName key to the default: __copy', "__copy"),
+
+   PDL::PP::Rule->new("DefaultFlowCodeNS", "_DefaultFlow",
+       'Sets the code to handle dataflow flags, if applicable',
+		      sub { $_[0] ?
 			      '$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;'
-				: "/* No flow: $_[0] */"}),
+				: 'PDL_COMMENT("No flow")'}),
 
 # no docs by default
 #
-   PDL::PP::Rule::Returns->new("Doc", "\n=for ref\n\ninfo not available\n"),
+   PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
+    "\n=for ref\n\ninfo not available\n"),
 
 # try and automate the docs
 # could be really clever and include the sig to see about
 # input/output params, for instance
 #
    PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
+              'Sets the default documentation for handling of bad values',
 		      sub {
 			  return undef unless $bvalflag;
 			  my ( $bf, $name, $code ) = @_;
@@ -2733,8 +2790,15 @@ $PDL::PP::deftbl =
 # P2Child implicitly means "no data type changes".
 # No p2child by default.
 #
-   PDL::PP::Rule->new("HASP2Child", "P2Child", sub {return $_[0] != 0}),
-   PDL::PP::Rule::Returns::Zero->new("HASP2Child"),
+#   PDL::PP::Rule->new("HASP2Child", "_P2Child",
+#      'Sets HASP2Child to a defined boolean value, even if P2Child is not defined',
+#      sub {
+#         my ($p2child) = @_;
+#         if (defined $p2child) {
+#            return $p2child != 0;
+#         }
+#         return 0;
+#      }),
 
 # Default: no otherpars
 #
@@ -2743,11 +2807,17 @@ $PDL::PP::deftbl =
 # some defaults
 #
 # Question: where is ppdefs defined?
+# Answer: Core/Types.pm
 #
-   PDL::PP::Rule->new("GenericTypes", sub {[ppdefs]}),
+   PDL::PP::Rule->new("GenericTypes", [],
+       'Sets GenericTypes flag to all types known to PDL::Types',
+       sub {[ppdefs]}),
 
-   PDL::PP::Rule->new("ExtraGenericLoops", "FTypes", sub {return $_[0]}),
-   PDL::PP::Rule::Returns->new("ExtraGenericLoops", {}),
+   PDL::PP::Rule->new("ExtraGenericLoops", "FTypes",
+       'Makes ExtraGenericLoops identical to FTypes if the latter exists and the former does not',
+       sub {return $_[0]}),
+   PDL::PP::Rule::Returns->new("ExtraGenericLoops", [],
+		'Sets ExtraGenericLoops to an empty hash if it does not already exist', {}),
 
    PDL::PP::Rule::InsertName->new("StructName", 'pdl_${name}_struct'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
@@ -2835,7 +2905,7 @@ $PDL::PP::deftbl =
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
  #
-   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "USParObjs", "Name", "HASP2Child"],
+   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "USParObjs", "Name", "_P2Child"],
 		      sub {
 			  my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
 			  return 0 if $hasp2c;
@@ -2879,9 +2949,8 @@ $PDL::PP::deftbl =
  # Create header for variable argument list.  Used if no 'other pars' specified.
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
- #
    PDL::PP::Rule->new("VarArgsXSHdr",
-		      ["Name","NewXSArgs","USParObjs","OtherParTypes","HASP2Child",
+		      ["Name","NewXSArgs","USParObjs","OtherParTypes",
 		       "PMCode","HdrCode","InplaceCode","_GlobalNew","_CallCopy"],
 		      'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
 		      \&VarArgsXSHdr),
@@ -2908,7 +2977,7 @@ $PDL::PP::deftbl =
 ##
 ## why have I got a "_HandleBad" condition here? it isn't used in the routine
 ## and isn't required to fire the rule. Or should we actually check the value of
-## HandleBad (ie to optimize for code that explicitly doesn't handle bad code)? 
+## HandleBad (ie to optimize for code that explicitly doesn't handle bad code)?
 ## TO DO: Check assgn in ops for this? Not obvious, or at least we need other
 ## bits of code work with us (eg the checking of $BADFLAGCACHE in some other
 ## rule)
@@ -2944,14 +3013,14 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCode", "DefaultFlowCodeNS"),
 
    PDL::PP::Rule->new("NewXSFindDatatypeNS",
-		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","GenericTypes","HASP2Child"],
+		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","GenericTypes","_P2Child"],
 		      \&find_datatype),
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSTypeCoerce", "NoConversion"),
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS",
-		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","HASP2Child"],
+		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","_P2Child"],
 		      \&coerce_types),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
@@ -2966,7 +3035,7 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("ParsedBackCode",
 		      ["BackCode","_BadBackCode","ParNames","ParObjs","DimObjs","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
-		      sub { return PDL::PP::Code->new(@_); }),
+		      sub { return PDL::PP::Code->new(@_, undef, undef, 'BackCode2'); }),
 
 # Compiled representations i.e. what the xsub function leaves
 # in the trans structure. By default, copies of the parameters
@@ -3016,17 +3085,17 @@ $PDL::PP::deftbl =
 
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output piddles dynamically based on input piddles; is parsed',
-			       "/* none */"),
+			       'PDL_COMMENT("none")'),
    PDL::PP::Rule->new("RedoDimsParsedCode",
 		      ["RedoDimsCode","_BadRedoDimsCode","ParNames","ParObjs","DimObjs",
 		       "GenericTypes","ExtraGenericLoops","HaveThreading","Name"],
 		      'makes the parsed representation from the supplied RedoDimsCode',
 		      sub {
-			  return "/* no RedoDimsCode */"
+			  return 'PDL_COMMENT("no RedoDimsCode")'
 			    if $_[0] =~ m|^/[*] none [*]/$|;
 			  PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-		      ["ParNames","ParObjs","DimObjs","DimmedPars","RedoDimsParsedCode"],
+		      ["ParNames","ParObjs","DimObjs","DimmedPars","RedoDimsParsedCode", '_NoPthread'],
 		      'makes the redodims function from the various bits and pieces',
 		      \&make_redodims_thread),
 
@@ -3109,7 +3178,7 @@ $PDL::PP::deftbl =
     # - left around in case we move to per-piddle bad values
     # - NOTE: now we have the experimental per-piddle bad values I need to remember
     #         what I was doing here
-# [[NewXSCopyBadValues], [BadFlag,NewXSSymTab], 
+# [[NewXSCopyBadValues], [BadFlag,NewXSSymTab],
 #    "copybadvalues",
 #    "Rule to copy the default bad values into the trnas structure"],
 
@@ -3193,13 +3262,13 @@ $PDL::PP::deftbl =
 		      }),
    PDL::PP::Rule::Substitute->new("RedoDimsSubd", "RedoDimsSub"),
    PDL::PP::Rule->new("RedoDimsFunc",
-		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","HASP2Child"],
+		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"redodims")}),
 
    PDL::PP::Rule::MakeComp->new("ReadDataSub", "ParsedCode", "FOO"),
    PDL::PP::Rule::Substitute->new("ReadDataSubd", "ReadDataSub"),
    PDL::PP::Rule->new("ReadDataFunc",
-		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","HASP2Child"],
+		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"readdata")}),
 
    PDL::PP::Rule::MakeComp->new("WriteBackDataSub", "ParsedBackCode", "FOO"),
@@ -3209,18 +3278,18 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
 
    PDL::PP::Rule->new("WriteBackDataFunc",
-		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","HASP2Child"],
+		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"writebackdata")}),,
 
    PDL::PP::Rule->new("CopyFunc",
-		      ["CopyCode","FHdrInfo","CopyFuncName","HASP2Child"],
+		      ["CopyCode","FHdrInfo","CopyFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"copy")}),
    PDL::PP::Rule->new("FreeFunc",
-		      ["FreeCode","FHdrInfo","FreeFuncName","HASP2Child"],
+		      ["FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"free")}),
 
    PDL::PP::Rule::Returns->new("FoofName", "FooCodeSub", "foomethod"),
-   PDL::PP::Rule->new("FooFunc", ["FooCodeSub","FHdrInfo","FoofName","HASP2Child"],
+   PDL::PP::Rule->new("FooFunc", ["FooCodeSub","FHdrInfo","FoofName","_P2Child"],
 		      sub {wrap_vfn(@_,"foo")}),
 
    PDL::PP::Rule::Returns::NULL->new("FoofName"),
@@ -3230,6 +3299,17 @@ $PDL::PP::deftbl =
 		       "WriteBackDataFuncName","CopyFuncName","FreeFuncName",
 		       "ParNames","ParObjs","Affine_Ok","FoofName"],
 		      \&def_vtable),
+
+   # Maybe accomplish this with an InsertName rule?
+   PDL::PP::Rule->new('PMFunc', 'Name',
+           'Sets PMFunc to default symbol table manipulations',
+           sub {
+               my ($name) = @_;
+               $::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
+                         '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]
+           }
+    ),
+
 ];
 
 sub printtrans {

@@ -53,7 +53,7 @@ BEGIN {
 
   package PDL::IO::FITS;
 
-  $PDL::IO::FITS::VERSION = 0.9; # Will be 1.0 when ascii table read/write works.
+  $PDL::IO::FITS::VERSION = 0.91; # Will be 1.0 when ascii table read/write works.
 
   our @EXPORT_OK = qw( rfits rfitshdr wfits );
   our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -268,12 +268,16 @@ that contains the number of elements in each table row.
 CFITSIO and several large projects (including NASA's Solar Dynamics
 Observatory) now support an unofficial extension to FITS that stores
 images as a collection of individually compressed tiles within a
-BINTABLE extension.  Such images are detected and can be read
-"successfully" as binary tables that contain the compressed tiles.
-Unpacking/uncompression code is in the works but requires either 
-linking to CFITSIO or reverse-engineering it.
+BINTABLE extension.  These images are automagically uncompressed by
+default, and delivered as if they were normal image files.  You can 
+override this behavior by supplying the "expand" key in the options hash.
+
+Currently, only Rice compression is supported, though there is a framework
+in place for adding other compression schemes.
 
 =for bad
+
+=head3 BAD VALUE HANDLING
 
 If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>), 
 the piddle will have its bad flag set, and those elements which equal the
@@ -593,8 +597,6 @@ sub _rfits_image($$$$) {
   my @dims; # Store the dimenions 1..N, compute total number of pixels
   my $i = 1;
   my $size = 1; 
-  my $bscale;
-  my $bzero;
 
 ##second part of the conditional guards against a poorly-written hdr.
   while(defined( $$foo{"NAXIS$i"} ) && $i <= $$foo{"NAXIS"}) {
@@ -627,7 +629,25 @@ sub _rfits_image($$$$) {
     bswap8($pdl) if $pdl->get_datatype == $PDL_D;
   }
   
-  if($opt->{bscale}) {
+  if(exists $opt->{bscale}) {
+      $pdl = treat_bscale($pdl, $foo);
+  }
+  
+  # Header
+  
+  $pdl->sethdr($foo);
+
+  $pdl->hdrcpy($opt->{hdrcpy});
+
+  return $pdl;
+} 
+
+sub treat_bscale($$){
+    my $pdl = shift;
+    my $foo = shift;
+
+    print "treating bscale...\n" if($PDL::debug);
+
     if ( $PDL::Bad::Status ) {
       # do we have bad values? - needs to be done before BSCALE/BZERO
       # (at least for integers)
@@ -652,6 +672,7 @@ sub _rfits_image($$$$) {
 	if $pdl->badflag() and $PDL::verbose;
     } # if: PDL::Bad::Status
     
+    my ($bscale, $bzero);
     $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
     print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
     $bscale = 1 if (!defined($bscale) || $bscale eq "");
@@ -689,16 +710,9 @@ sub _rfits_image($$$$) {
     $pdl += $bzero  if $bzero  != 0;
     
     delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
-  }
-  
-  # Header
-  
-  $pdl->sethdr($foo);
+    return $pdl;
+}
 
-  $pdl->hdrcpy($opt->{hdrcpy});
-
-  return $pdl;
-} 
 
 ##########
 # 
@@ -890,7 +904,7 @@ sub _rdP {
     $tbl->{"len_".$tbl->{hdr}->{"TTYPE$i"}}->($row) .= $oflen->at(0);
 
     print "_rdP: pdl is ",join("x",$pdl->dims),"; reading row $row - readlen is $readlen\n"
-	if($PDL::verbose);
+	if($PDL::debug);
 
     # Copy the data into the output PDL.
     my $of = $oflen->at(1);
@@ -1454,13 +1468,11 @@ sub _rfits_unpack_zimage($$$) {
     undef $cutup;     # sever connection to prevent expensive future dataflow.
 
     ##########
-    # Perform scaling if necessary
+    # Perform scaling if necessary ( Just the ZIMAGE quantization step )
+    # bscaling is handled farther down with treat_bscale.
+
     $pdl *= $hdr->{ZSCALE} if defined($hdr->{ZSCALE});
     $pdl += $hdr->{ZZERO} if defined($hdr->{ZZERO});
-
-    $pdl *= $hdr->{BSCALE} if defined($hdr->{BSCALE});
-    $pdl += $hdr->{BZERO} if defined($hdr->{BZERO});
-				     
 
     ##########
     # Put the FITS header into the newly reconstructed image.
@@ -1484,7 +1496,12 @@ sub _rfits_unpack_zimage($$$) {
 	    $k =~ m/^TFORM/
 	    );
     }
+
+    if(exists $hdr->{BSCALE}) {
+	$pdl = treat_bscale($pdl, $hdr);
+    }
     $pdl->sethdr($hdr);
+    $pdl->hdrcpy($opt->{hdrcpy});
 
     return $pdl;
 }
@@ -1727,10 +1744,11 @@ sub wheader ($$) {
     my $fh = shift;
     my $k = shift;
   
-    if ($k =~ m/HISTORY/) {
+    if ($k =~ m/(HISTORY|COMMENT)/) {
+	my $hc = $1;
 	return unless ref($hdr{$k}) eq 'ARRAY';
 	foreach my $line (@{$hdr{$k}}) {
-	    $fh->printf( "HISTORY %-72s", substr($line,0,72) );
+	    $fh->printf( "$hc %-72s", substr($line,0,72) );
 	    $nbytes += 80;
 	}
 	delete $hdr{$k};
@@ -1798,6 +1816,9 @@ sub PDL::wfits {
   barf 'Usage: wfits($pdl,$file,[$BITPIX],[{options}])' if $#_<1 || $#_>3;
   my ($pdl,$file,$a,$b) = @_;
   my ($opt, $BITPIX);
+
+  local $\ = undef;  # fix sf.net bug #3394327 
+
   if(ref $a eq 'HASH') {
       $a = $opt;
       $BITPIX = $b;
@@ -1808,10 +1829,14 @@ sub PDL::wfits {
 
   my ($k, $buff, $off, $ndims, $sz);
   
+  local $SIG{PIPE};
+
   if ($file =~ /\.gz$/) {            # Handle suffix-style compression
+    $SIG{PIPE}= sub {}; # Prevent crashing if gzip dies
     $file = "|gzip -9 > $file";
   }
   elsif ($file =~ /\.Z$/) {
+    $SIG{PIPE}= sub {}; # Prevent crashing if compress dies
     $file = "|compress > $file";
   }
   else{
@@ -1890,6 +1915,40 @@ sub PDL::wfits {
   ## Check header and prepare to write it out
   
   my($h) = $pdl->gethdr();
+
+  # Extra logic: if we got handed a vanilla hash that that is *not* an Astro::FITS::Header, but 
+  # looks like it's a FITS header encoded in a hash, then attempt to process it with 
+  # Astro::FITS::Header before writing it out -- this helps with cleanup of tags.
+  if($PDL::Astro_FITS_Header and 
+     defined($h) and
+     ref($h) eq 'HASH' and
+     !defined( tied %$h )
+      ) {
+
+      my $all_valid_fits = 1;
+      for my $k(keys %$h) {
+	  if(length($k) > 8 or
+	     $k !~ m/^[A-Z_][A-Z\d\_]*$/i
+	      ) {
+	      $all_valid_fits = 0;
+	      last;
+	  }
+      }
+
+      if($all_valid_fits) {
+	  # All the keys look like valid FITS header keywords -- so 
+	  # create a tied FITS header object and use that instead.
+	  my $afh = new Astro::FITS::Header( );
+	  my %hh;
+	  tie %hh, "Astro::FITS::Header", $afh;
+	  for (keys %$h) {
+	      $hh{$_} = $h->{$_};
+	  }
+	  $h = \%hh;
+      }
+  }
+
+  # Now decide whether to emit a hash or an AFH object
   if(defined($h) && 
      ( (defined (tied %$h)) && 
        (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header")))
@@ -2018,7 +2077,7 @@ sub PDL::wfits {
     if (defined($h)) {
       for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
     }
-    
+
     delete $hdr{SIMPLE}; delete $hdr{'END'};
     
     $hdr{BITPIX} =  $BITPIX;
@@ -2075,7 +2134,7 @@ sub PDL::wfits {
   
   # Write FITS data
   
-  my $p1d = $pdl->clump(-1); # Data as 1D stream
+  my $p1d = $pdl->copy->reshape($pdl->nelem); # Data as 1D stream;
   
   $off = 0;
   $sz  = PDL::Core::howbig(&$convert($p1d->slice('0:0'))->get_datatype);
@@ -2402,6 +2461,8 @@ sub _prep_table {
 	my $dims = pdl($var->dims); 
 	($t = $dims->(0)) .= 1;
 	$rpt = $dims->prod;
+
+=pod
 
 =begin WHENCOMPLEXVALUESWORK
 	

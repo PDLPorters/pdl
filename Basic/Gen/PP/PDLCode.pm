@@ -6,6 +6,7 @@
 
 package PDL::PP::Code;
 use Carp;
+our @CARP_NOT;
 
 use strict;
 
@@ -26,7 +27,7 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 sub new { 
     my($type,$code,$badcode,$parnames,$parobjs,$indobjs,$generictypes,
        $extrageneric,$havethreading,$name,
-       $dont_add_thrloop, $nogeneric_loop) = @_;
+       $dont_add_thrloop, $nogeneric_loop, $backcode ) = @_;
 
     die "Error: missing name argument to PDL::PP::Code->new call!\n"
       unless defined $name;
@@ -35,11 +36,15 @@ sub new {
     $badcode = undef unless $bvalflag;
     my $handlebad = defined($badcode);
 
-    # last two arguments may not be supplied
+    # last three arguments may not be supplied
     # (in fact, the nogeneric_loop argument may never be supplied now?)
     #
+    # "backcode" is a flag to the PDL::PP::Threadloop class indicating thre threadloop
+    #   is for writeback code (typically used for writeback of data from child to parent PDL
+    
     $dont_add_thrloop = 0 unless defined $dont_add_thrloop;
     $nogeneric_loop = 0 unless defined $nogeneric_loop;
+    
 
     # C++ style comments
     #
@@ -84,7 +89,12 @@ sub new {
     if(!$threadloops && !$dont_add_thrloop && $havethreading) {
 	print "Adding threadloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
-	$coderef = PDL::PP::ThreadLoop->new();
+	if( !$backcode ){ # Normal readbackdata threadloop
+		$coderef = PDL::PP::ThreadLoop->new();
+	}
+	else{  # writebackcode threadloop
+		$coderef = PDL::PP::BackCodeThreadLoop->new();
+	}
 	push @{$coderef},$nc;
     }
 
@@ -102,7 +112,12 @@ sub new {
 	if(!$bad_threadloops && !$dont_add_thrloop && $havethreading) {
 	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;
 	    my $nc = $bad_coderef;
-	    $bad_coderef = PDL::PP::ThreadLoop->new();
+	    if( !$backcode ){ # Normal readbackdata threadloop
+		    $bad_coderef = PDL::PP::ThreadLoop->new();
+	    }
+	    else{  # writebackcode threadloop
+		    $bad_coderef = PDL::PP::BackCodeThreadLoop->new();
+	    }
 	    push @{$bad_coderef},$nc;
 	}
 
@@ -235,9 +250,9 @@ sub get_str {
     my $good = $this->[0];
     my $bad  = $this->[1];
 
-    my $str = "if ( \$PRIV(bvalflag) ) { /*** do 'bad' Code ***/\n";
+    my $str = "if ( \$PRIV(bvalflag) ) { PDL_COMMENT(\"** do 'bad' Code **\")\n";
     $str .= $bad->get_str($parent,$context);
-    $str .= "} else { /*** else do 'good' Code ***/\n";
+    $str .= "} else { PDL_COMMENT(\"** else do 'good' Code **\")\n";
     $str .= $good->get_str($parent,$context);
     $str .= "}\n";
 
@@ -269,7 +284,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 	push @$context, map {
 		$i = $parent->make_loopind($_);
 # Used to be $PRIV(.._size) but now we have it in a register.
-		$text .= "{/* Open $_ */ register int $_;
+		$text .= "{PDL_COMMENT(\"Open $_\") register int $_;
 			for($_=0; $_<(__$i->[0]_size); $_++) {";
 		$i;
 	} @{$this->[0]};
@@ -277,7 +292,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 }
 sub mypostlude { my($this,$parent,$context) = @_;
 	splice @$context, - ($#{$this->[0]}+1);
-	return join '',map {"}} /* Close $_ */"} @{$this->[0]};
+	return join '',map {"}} PDL_COMMENT(\"Close $_\")"} @{$this->[0]};
 }
 
 ###########################
@@ -322,8 +337,11 @@ sub myprelude {
 	(ppdefs);
     }
 
-    return "/* Start generic loop */\n$thisis_loop\n" .
-	"\tswitch($this->[3]) { case -42: /* Warning eater */ {1;\n";
+    return <<WARNING_EATER;
+PDL_COMMENT("Start generic loop")
+$thisis_loop
+	switch($this->[3]) { case -42: PDL_COMMENT("Warning eater") {1;
+WARNING_EATER
 }
 
 sub myitem { 
@@ -386,13 +404,14 @@ sub new {
 package PDL::PP::SimpleThreadLoop;
 use Carp;
 @PDL::PP::SimpleThreadLoop::ISA = "PDL::PP::Block";
+our @CARP_NOT;
 
 sub new { my($type) = @_; bless [],$type; }
 sub myoffs { return 0; }
 sub myprelude {my($this,$parent,$context) = @_;
  my $no;
  my ($ord,$pdls) = $parent->get_pdls();
-'	/* THREADLOOPBEGIN */
+'	PDL_COMMENT("THREADLOOPBEGIN")
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
  	__privtrans))) return;
    do {
@@ -404,7 +423,7 @@ sub myprelude {my($this,$parent,$context) = @_;
 sub mypostlude {my($this,$parent,$context) = @_;
  my $no;
  my ($ord,$pdls) = $parent->get_pdls();
-'	/* THREADLOOPEND */
+'	PDL_COMMENT("THREADLOOPEND")
  '.(join '',map {"${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
  		@$ord).'
       } while(PDL->iterthreadloop(&$PRIV(__pdlthread),0));
@@ -419,17 +438,29 @@ sub mypostlude {my($this,$parent,$context) = @_;
 package PDL::PP::ComplexThreadLoop;
 use Carp;
 @PDL::PP::ComplexThreadLoop::ISA = "PDL::PP::Block";
+our @CARP_NOT;
 
 
-sub new { my($type) = @_; bless [],$type; }
+sub new { 
+	my $type   = shift;
+	bless [],$type;
+}
 sub myoffs { return 0; }
 sub myprelude {
-    my($this,$parent,$context) = @_;
+    my($this,$parent,$context, $backcode) = @_;
+
+    #  Set appropriate function from the vtable to supply to threadthreadloop.
+    #    Function name from the vtable is readdata for normal code
+    #    function name for backcode is writebackdata
+    my $funcName = "readdata";
+    $funcName = "writebackdata" if( $backcode );
+    
+    
     my $no; my $no2=-1; my $no3=-1;
     my ($ord,$pdls) = $parent->get_pdls();
 
-'	/* THREADLOOPBEGIN */
- if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
+'	PDL_COMMENT("THREADLOOPBEGIN")
+ if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.',
  	__tr)) return;
    do { register int __tind1=0,__tind2=0;
         register int __tnpdls = $PRIV(__pdlthread).npdls;
@@ -446,7 +477,7 @@ sub myprelude {
  		@$ord).'
 	for(__tind2=0; __tind2<__tdims1 ; __tind2++) {
 	 for(__tind1=0; __tind1<__tdims0 ; __tind1++) {
-	  /* This is the tightest threadloop. Make sure inside is optimal. */
+	  PDL_COMMENT("This is the tightest threadloop. Make sure inside is optimal.")
 ';
 }
 
@@ -454,7 +485,7 @@ sub myprelude {
 sub mypostlude {my($this,$parent,$context) = @_;
  my $no; my $no0; my $no1; my $no2; my $no3; my $no4; my $no5;
  my ($ord,$pdls) = $parent->get_pdls();
-'	/* THREADLOOPEND */
+'	PDL_COMMENT("THREADLOOPEND")
 	 '.(join '',map {"${_}_datap += __tinc0_".(0+$no0++).";\n"}
  		@$ord).'
 	 } '
@@ -466,11 +497,30 @@ sub mypostlude {my($this,$parent,$context) = @_;
      (join '',map {"${_}_datap -= __tinc1_".(0+$no3++)." *
      				  __tdims1;"}
  		@$ord).'
- '.(join '',map {"${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
+ '.(join '',map {"${_}_datap -= __offsp[".(0+$no++)."];\n"}
  		@$ord).'
       } while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));
  '
 }
+
+# Simple subclass of ComplexThreadLoop to implement writeback code
+#
+#
+package PDL::PP::BackCodeThreadLoop;
+use Carp;
+@PDL::PP::BackCodeThreadLoop::ISA = "PDL::PP::ComplexThreadLoop";
+our @CARP_NOT;
+
+sub myprelude {
+    my($this,$parent,$context, $backcode) = @_;
+    
+    # Set backcode flag if not defined. This will make the parent
+    #   myprelude emit proper writeback code
+    $backcode = 1 unless defined($backcode);
+    
+    $this->SUPER::myprelude($parent, $context, $backcode);
+}
+
 
 ###########################
 #
@@ -484,6 +534,7 @@ package PDL::PP::Types;
 use Carp;
 use PDL::Types ':All';
 @PDL::PP::Types::ISA = "PDL::PP::Block";
+our @CARP_NOT;
 
 sub new { 
     my($type,$ts,$parent) = @_;
@@ -508,6 +559,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 
 package PDL::PP::Access;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$str,$parent) = @_;
 	$str =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/ or
@@ -672,6 +724,7 @@ sub convert ($$$$$) {
 
 package PDL::PP::BadAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { 
     my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
@@ -685,7 +738,7 @@ sub new {
     return bless [$opcode, $pdl_name, $inds], $type;
 }
 
-my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
 
 sub get_str {
     my($this,$parent,$context) = @_;
@@ -733,6 +786,7 @@ sub get_str {
 
 package PDL::PP::BadVarAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { 
     my ( $type, $opcode, $var_name, $pdl_name, $parent ) = @_;
@@ -746,7 +800,7 @@ sub new {
     bless [$opcode, $var_name, $pdl_name], $type;
 }
 
-my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
 
 sub get_str {
     my($this,$parent,$context) = @_;
@@ -796,6 +850,7 @@ sub get_str {
 
 package PDL::PP::PPBadAccess; 
 use Carp;
+our @CARP_NOT;
 
 sub new { 
     my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
@@ -805,7 +860,7 @@ sub new {
 }
 
 # PP is stripped in new()
-my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
 
 sub get_str {
     my($this,$parent,$context) = @_;
@@ -849,6 +904,7 @@ sub get_str {
 
 package PDL::PP::PDLStateBadAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { 
     my ( $type, $op, $val, $pdl_name, $parent ) = @_;
@@ -865,7 +921,7 @@ sub new {
     bless [$op, $val, $pdl_name], $type;
 }
 
-my %ops  = ( 
+our %ops  = ( 
 	     IS  => { GOOD => '== 0', BAD => '> 0' },
 	     SET => { GOOD => '&= ~', BAD => '|= ' },
 	     );
@@ -908,6 +964,7 @@ sub get_str {
 
 package PDL::PP::PointerAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -926,6 +983,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::PhysPointerAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -940,6 +998,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::PdlAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -957,6 +1016,7 @@ package PDL::PP::MacroAccess;
 use Carp;
 use PDL::Types ':All';
 my $types = join '',ppdefs;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds,$gentypes,$name) = @_; 
 	  $pdl =~ /^\s*T([A-Z]+)\s*$/ or confess("Macroaccess wrong: $pdl\n");
@@ -997,6 +1057,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::SizeAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -1012,6 +1073,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::ReSizeAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -1048,6 +1110,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::GentypeAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -1090,8 +1153,8 @@ sub print_xscoerce { my($this) = @_;
 		$this->printxs("\telse if(__priv->datatype <= $_->[2]) __priv->datatype = $_->[2];\n");
 	}
 	$this->{Types} =~ /F/ and (
-		$this->printxs("\telse if(__priv->datatype == PDL_D) {__priv->datatype = PDL_F; /* Cast double to float */}\n"));
-	$this->printxs("\telse {croak(\"Too high type %d given!\\n\",__priv->datatype);}");
+		$this->printxs("\telse if(__priv->datatype == PDL_D) {__priv->datatype = PDL_F; PDL_COMMENT(\"Cast double to float\")}\n"));
+	$this->printxs(qq[\telse {croak("Too high type \%d given!\\n",__priv->datatype);}]);
 # Then, coerce everything to this type.
 	for(@{$this->{PdlOrder}}) {
 		$this->printxs($this->{Pdls}{$_}->get_xscoerce());
@@ -1128,12 +1191,20 @@ package PDL::PP::Code;
 # hence moved to end of file
 # (rather ugly...)
 #
+# XXX The above statement is almost certainly false. This module is parsed
+#     before separate_code is ever called, so all of the class definitions
+#     should exist. -- David Mertens, Dec 2 2011
+#
 # separates the code into an array of C fragments (strings),
 # variable references (strings starting with $) and
 # loops (array references, 1. item = variable.
 #
 sub separate_code {
+	$DB::single=1;
     my ( $this, $code ) = @_;
+    
+    # First check for standard code errors:
+    catch_code_errors($code);
 
     my $coderef = new PDL::PP::Block;
  
@@ -1141,7 +1212,7 @@ sub separate_code {
     my $threadloops = 0;
     my $sizeprivs = {};
 
-    $_ = $code;
+    local $_ = $code;
 ##    print "Code to parse = [$_]\n" if $::PP_VERBOSE; 
     while($_) {
 	# Parse next statement
@@ -1151,8 +1222,8 @@ sub separate_code {
 	# of them
 
 	s/^(.*?) # First, some noise is allowed. This may be bad.
-	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]+\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
-                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]+\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
+	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
+                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]\w*\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
 ###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
                 |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
 	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
@@ -1162,56 +1233,93 @@ sub separate_code {
 		|%}                        # %}
 		|$)//xs
 		    or confess("Invalid program $_");
-	my $control = $2;
-	# Store the user code.
-	# Some day we shall parse everything.
-	push @{$stack[-1]},$1;
+		my $control = $2;
+		# Store the user code.
+		# Some day we shall parse everything.
+		push @{$stack[-1]},$1;
 
-if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
+		if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
 
-	# Then, our control.
-	if($control) {
-	    if($control =~ /^loop\s*\(([^)]+)\)\s*%{/) {
-		my $ob = new PDL::PP::Loop([split ',',$1],
-					   $sizeprivs,$this);
-		print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-		push @{$stack[-1]},$ob;
-		push @stack,$ob;
-	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
-		my $ob = new PDL::PP::Types($1,$this);
-		push @{$stack[-1]},$ob;
-		push @stack,$ob;
-	    } elsif($control =~ /^threadloop\s*%{/) {
-		my $ob = new PDL::PP::ThreadLoop();
-		push @{$stack[-1]},$ob;
-		push @stack,$ob;
-		$threadloops ++;
-	    } elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]+)\s*,\s*([^)]*)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
-#	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-#		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
-		push @{$stack[-1]},new PDL::PP::Access($control,$this);
-	    } elsif($control =~ /^%}/) {
-	        pop @stack;
-	    } else {
-		confess("Invalid control: $control\n");
-	    }
-	} else {
-	    print("No \$2!\n") if $::PP_VERBOSE;
-	}
+		# Then, our control.
+		if($control) {
+			if($control =~ /^loop\s*\(([^)]+)\)\s*%{/) {
+				my $ob = new PDL::PP::Loop([split ',',$1],
+						   $sizeprivs,$this);
+				print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+			} elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
+				my $ob = new PDL::PP::Types($1,$this);
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+			} elsif($control =~ /^threadloop\s*%{/) {
+				my $ob = new PDL::PP::ThreadLoop();
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+				$threadloops ++;
+			} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
+			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
+			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
+				push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
+	#	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+	#		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
+			} elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
+			} elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
+				push @{$stack[-1]},new PDL::PP::Access($control,$this);
+			} elsif($control =~ /^%}/) {
+			    pop @stack;
+			} else {
+				confess("Invalid control: $control\n");
+			}
+		} else {
+			print("No \$2!\n") if $::PP_VERBOSE;
+		}
     } # while: $_
 
     return ( $threadloops, $coderef, $sizeprivs );
 
 } # sub: separate_code()
 
+# This is essentially a collection of regexes that look for standard code
+# errors and croaks with an explanation if they are found.
+sub catch_code_errors {
+	my $code_string = shift;
+	
+	# Look for constructs like
+	#   loop %{
+	# which is invalid - you need to specify the dimension over which it
+	# should loop
+	report_error('Expected dimension name after "loop" and before "%{"', $1)
+		if $code_string =~ /(.*\bloop\s*%{)/s;
+	
+}
+
+# Report an error as precisely as possible. If they have #line directives
+# in the code string, use that in the reporting; otherwise, use standard
+# Carp mechanisms
+my $line_re = qr/#\s*line\s+(\d+)\s+"([^"]*)"/;
+sub report_error {
+	my ($message, $code) = @_;
+
+	# Just croak if they didn't supply a #line directive:
+	croak($message) if $code !~ $line_re;
+
+	# Find the line at which the error occurred:
+	my $line = 0;
+	my $filename;
+	LINE: foreach (split /\n/, $code) {
+		$line++;
+		if (/$line_re/) {
+			$line = $1;
+			$filename = $2;
+		}
+	}
+	
+	die "$message at $filename line $line\n";
+}
 
 # return true
 1;

@@ -53,6 +53,8 @@ EOD
 
 =head2 inner
 
+=for sig
+
   Signature: (a(n); b(n); [o]c())
 
 =cut
@@ -100,6 +102,8 @@ as it will not contain any bad values.
 
 =head2 outer
 
+=for sig
+
   Signature: (a(n); b(m); [o]c(n,m))
 
 =cut
@@ -139,7 +143,9 @@ pp_addpm(<<'EOD');
 
 =head2 x
 
- Signature: (a(i,x), b(z,i),[o]c(x,z))
+=for sig
+
+ Signature: (a(i,z), b(x,i),[o]c(x,z))
 
 =for ref
 
@@ -162,40 +168,40 @@ EXAMPLES
 
 Here are some simple ways to define vectors and matrices:
 
- perldl> $r = pdl(1,2);                # A row vector 
- perldl> $c = pdl([[3],[4]]);          # A column vector 
- perldl> $c = pdl(3,4)->(*1);          # A column vector, using NiceSlice
- perldl> $m = pdl([[1,2],[3,4]]);      # A 2x2 matrix
+ pdl> $r = pdl(1,2);                # A row vector 
+ pdl> $c = pdl([[3],[4]]);          # A column vector 
+ pdl> $c = pdl(3,4)->(*1);          # A column vector, using NiceSlice
+ pdl> $m = pdl([[1,2],[3,4]]);      # A 2x2 matrix
 
 Now that we have a few objects prepared, here is how to
 matrix-multiply them:
 
- perldl> print $r x $m                 # row x matrix = row
+ pdl> print $r x $m                 # row x matrix = row
  [
   [ 7 10]
  ]
 
- perldl> print $m x $r                 # matrix x row = ERROR
+ pdl> print $m x $r                 # matrix x row = ERROR
  PDL: Dim mismatch in matmult of [2x2] x [2x1]: 2 != 1
 
- perldl> print $m x $c                 # matrix x column = column
+ pdl> print $m x $c                 # matrix x column = column
  [
   [ 5]
   [11]
  ]
 
- perldl> print $m x 2                  # Trivial case: scalar mult.
+ pdl> print $m x 2                  # Trivial case: scalar mult.
  [
   [2 4]
   [6 8]
  ]
 
- perldl> print $r x $c                 # row x column = scalar
+ pdl> print $r x $c                 # row x column = scalar
  [
   [11]
  ]
 
- perldl> print $c x $r                 # column x row = matrix
+ pdl> print $c x $r                 # column x row = matrix
  [
   [3 6]
   [4 8]
@@ -220,8 +226,8 @@ pp_def('matmult',
 sub PDL::matmult {
     my ($a,$b,$c) = @_;
 
-    $b = pdl($b) unless(UNIVERSAL::isa($b,'PDL'));
-    $c = PDL->null unless(UNIVERSAL::isa($c,'PDL'));
+    $b = pdl($b) unless eval { $b->isa('PDL') };
+    $c = PDL->null unless eval { $c->isa('PDL') };
 
     while($a->getndims < 2) {$a = $a->dummy(-1)}
     while($b->getndims < 2) {$b = $b->dummy(-1)}
@@ -229,11 +235,11 @@ sub PDL::matmult {
     return ($c .= $a * $b) if( ($a->dim(0)==1 && $a->dim(1)==1) ||
     	       	       	       ($b->dim(0)==1 && $b->dim(1)==1) );
     if($b->dim(1) != $a->dim(0)) {
-	barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
+        barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
     }
     PDL::_matmult_int($a,$b,$c);
     $c;
-    }
+}
 EOPM
 	Code => <<'EOC',
 	long ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
@@ -321,6 +327,8 @@ EOD
 
 =head2 innerwt
 
+=for sig
+
   Signature: (a(n); b(n); c(n); [o]d())
 
 =cut
@@ -361,6 +369,8 @@ Weighted (i.e. triple) inner product
        );
 
 =head2 inner2
+
+=for sig
 
   Signature: (a(n); b(n,m); c(m); [o]d())
 
@@ -405,6 +415,8 @@ very wasteful. Instead, you should use a temporary for C<b*c>.
 
 =head2 inner2d
 
+=for sig
+
   Signature: (a(n,m); b(n,m); [o]c())
 
 =cut
@@ -446,6 +458,8 @@ Equivalent to
        );
 
 =head2 inner2t
+
+=for sig
 
   Signature: (a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k)))
 
@@ -527,6 +541,8 @@ sub crassgn {
 
 =head2 crossp
 
+=for sig
+
   Signature: (a(tri=3); b(tri); [o] c(tri))
 
 =cut
@@ -558,6 +574,8 @@ EOD
        );
 
 =head2 norm
+
+=for sig
 
   Signature: (vec(n); [o] norm(n))
 
@@ -615,6 +633,8 @@ pp_def('norm',
 # see PDL::ImageND for info about the circ_mean function
 
 =head2 indadd
+
+=for sig
 
   Signature: (a(); int ind(); [o] sum(m))
 
@@ -681,6 +701,8 @@ Threaded Example:
 ');
 
 =head2 conv1d
+
+=for sig
 
   Signature: (a(m); kern(p); [o]b(m); int reflect)
 
@@ -787,6 +809,8 @@ sub PDL::conv1d {
 
 =head2 in
 
+=for sig
+
   Signature: (a(); b(n); [o] c())
 
 =cut
@@ -838,11 +862,17 @@ The unique elements are returned in ascending order.
 
 =for example
 
-  print pdl(2,2,2,4,0,-1,6,6)->uniq;
- [-1 0 2 4 6]
+  PDL> p pdl(2,2,2,4,0,-1,6,6)->uniq
+  [-1 0 2 4 6]     # 0 is returned 2nd (sorted order) 
+
+  PDL> p pdl(2,2,2,4,nan,-1,6,6)->uniq
+  [-1 2 4 6 nan]   # NaN value is returned at end
 
 Note: The returned pdl is 1D; any structure of the input
-piddle is lost. C<NaN> values are ignored.
+piddle is lost.  C<NaN> values are never compare equal to
+any other values, even themselves.  As a result, they are
+always unique. C<uniq> returns the NaN values at the end
+of the result piddle.  This follows the Matlab usage.
 
 See L<uniqind|uniqind> if you need the indices of the unique
 elements rather than the values.
@@ -875,14 +905,20 @@ pp_addpm(<<'EOPM');
 # find as jumps in the sorted array
 # flattens in the process
 sub PDL::uniq {
-  use PDL::Core 'barf';
-  my ($arr) = @_;
-  return $arr if($arr->nelem == 0); # The null list is unique (CED)
-  my $srt = $arr->clump(-1)->qsort;
-  $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
-  my $uniq = $srt->where($srt != $srt->rotate(-1));
-  # make sure we return something if there is only one value
-  return $uniq->nelem == 0 ? $srt->index(0) : $uniq;
+   use PDL::Core 'barf';
+   my ($arr) = @_;
+   return $arr if($arr->nelem == 0); # The null list is unique (CED)
+   my $srt  = $arr->clump(-1)->where($arr==$arr)->qsort;  # no NaNs or BADs for qsort
+   my $nans = $arr->clump(-1)->where($arr!=$arr);
+   my $uniq = ($srt->nelem > 0) ? $srt->where($srt != $srt->rotate(-1)) : $srt;
+   # make sure we return something if there is only one value
+   my $answ = $nans;  # NaN values always uniq
+   if ( $uniq->nelem > 0 ) {
+      $answ = $uniq->append($answ);
+   } else {
+      $answ = ( ($srt->nelem == 0) ?  $srt : pdl( [$srt->index(0)] ) )->append($answ);
+   }
+   return $answ;
 }
 
 EOPM
@@ -896,12 +932,18 @@ pp_addpm (<< 'EOPM');
 
 Return the indices of all unique elements of a piddle
 The order is in the order of the values to be consistent
-with uniq. C<NaN> values are ignored.
+with uniq. C<NaN> values never compare equal with any
+other value and so are always unique.  This follows the
+Matlab usage.
 
 =for example
 
-  print pdl(2,2,2,4,0,-1,6,6)->uniqind;
-	 [5, 4, 1, 3, 6]
+  PDL> p pdl(2,2,2,4,0,-1,6,6)->uniqind
+  [5 4 1 3 6]     # the 0 at index 4 is returned 2nd, but...
+
+  PDL> p pdl(2,2,2,4,nan,-1,6,6)->uniqind
+  [5 1 3 6 4]     # ...the NaN at index 4 is returned at end
+
 
 Note: The returned pdl is 1D; any structure of the input
 piddle is lost.
@@ -937,16 +979,25 @@ sub PDL::uniqind {
   return $arr if($arr->nelem == 0); # The null list is unique (CED)
   # Different from uniq we sort and store the result in an intermediary
   my $aflat = $arr->flat;
-  my $good = $aflat->sequence->long->where($aflat==$aflat);
-  my $i_srt = $aflat->where($aflat==$aflat)->qsorti;
-  my $srt = $aflat->where($arr==$arr)->index($i_srt);
-  # The following works because BAD sorts to the end of the piddle
-  $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
-  my $uniqind = which($srt != $srt->rotate(-1));
+  my $nanind = which($aflat!=$aflat);                        # NaN indexes
+  my $good = $aflat->sequence->long->where($aflat==$aflat);  # good indexes
+  my $i_srt = $aflat->where($aflat==$aflat)->qsorti;         # no BAD or NaN values for qsorti
+  my $srt = $aflat->where($aflat==$aflat)->index($i_srt);
+  my $uniqind;
+  if ($srt->nelem > 0) {
+     $uniqind = which($srt != $srt->rotate(-1));
+     $uniqind = $i_srt->slice('0') if $uniqind->isempty;
+  } else {
+     $uniqind = which($srt);
+  }
   # Now map back to the original space
-  $uniqind = $good->index($i_srt->index($uniqind));   
-  # make sure we return something if there is only one value
-  return $uniqind->nelem == 0 ? 0 : $uniqind;
+  my $ansind = $nanind;
+  if ( $uniqind->nelem > 0 ) {
+     $ansind = ($good->index($i_srt->index($uniqind)))->append($ansind);   
+  } else {
+     $ansind = $uniqind->append($ansind);
+  }
+  return $ansind;
 }
 
 EOPM
@@ -958,18 +1009,22 @@ pp_addpm (<< 'EOPM');
 
 =for ref
 
-return all unique vectors out of a collection
+Return all unique vectors out of a collection
 
-  NOTE: Arguments to uniqvec must not have NaN values as support
-  for that "feature" is not complete.  Use $a = $a->where($a==$a)
-  to strip out the NaNs before calling uniqvec.
+  NOTE: If any vectors in the input piddle have NaN values
+  they are returned at the end of the non-NaN ones.  This is
+  because, by definition, NaN values never compare equal with
+  any other value.
+
+  NOTE: The current implementation does not sort the vectors
+  containing NaN values.
 
 The unique vectors are returned in lexicographically sorted
-ascending order.  The 0th dimension of the input PDL is treated
-as a dimensional index within each vector, and the 1st and any higher
-dimensions are taken to run across vectors.  The return value is always
-2D; any structure of the input PDL (beyond using the 0th dimension 
-for vector index) is lost.  
+ascending order. The 0th dimension of the input PDL is treated
+as a dimensional index within each vector, and the 1st and any
+higher dimensions are taken to run across vectors. The return
+value is always 2D; any structure of the input PDL (beyond using
+the 0th dimension for vector index) is lost.
 
 See also L<uniq|uniq> for a uniqe list of scalars; and
 L<qsortvec|PDL::Ufunc/qsortvec> for sorting a list of vectors
@@ -987,7 +1042,9 @@ pp_addpm(<<'EOPM');
 If a vector contains all bad values, it is ignored as in L<uniq|uniq>.
 If some of the values are good, it is treated as a normal vector. For
 example, [1 2 BAD] and [BAD 2 3] could be returned, but [BAD BAD BAD] 
-could not.
+could not.  Vectors containing BAD values will be returned after any
+non-NaN and non-BAD containing vectors, followed by the NaN vectors.
+
 
 =cut
 
@@ -997,31 +1054,61 @@ EOPM
 pp_addpm(<<'EOPM');
 
 sub PDL::uniqvec {
-  my($pdl) = shift;
-  return $pdl if($pdl->nelem == 0 || $pdl->ndims <2 || $pdl->slice("(0)")->nelem < 2);  # slice is not cheap but uniqvec isn't either -- shouldn't cost too much.
 
-    if ( &PDL::or($pdl!=$pdl) ) {  # use PDL::or since any() is in Ufunc, not Primitive
-        # NaN handling for uniqvec not yet implemented (see uniq and uniqind for approach)
-        barf("uniqvec: ERROR, NaN values not supported!\n  Do \$a .= \$a->where(\$a==\$a) to strip them out.\n");
-    }
+   my($pdl) = shift;
 
-  my $srt = $pdl->mv(0,-1)->
-	clump($pdl->ndims - 1)->
-	mv(-1,0)->qsortvec->
-	mv(0,-1);
-  $srt=$srt->dice($srt->mv(0,-1)->ngoodover->which) if ($PDL::Bad::Status && $srt->badflag);
-##use dice instead of nslice since qsortvec might be packing the badvals to the front of the array instead of the end like the docs say. If that is the case and it gets fixed, it won't bust uniqvec. DAL 14-March 2006
-  my $uniq = ($srt != $srt->rotate(-1)) -> mv(0,-1) -> orover->which;
+   return $pdl if ( $pdl->nelem == 0 || $pdl->ndims < 2 );
+   return $pdl if ( $pdl->slice("(0)")->nelem < 2 );                     # slice isn't cheap but uniqvec isn't either
 
-  return $uniq->nelem==0 ? 
-	$srt->slice("0,:")->mv(0,-1) :
-	$srt->dice($uniq)->mv(0,-1);
+   my $pdl2d = null;
+   $pdl2d = $pdl->mv(0,-1)->clump($pdl->ndims-1)->mv(-1,0);              # clump all but dim(0)
+
+   my $ngood = null;
+   $ngood = $pdl2d->ones->sumover;
+   $ngood = $pdl2d->ngoodover if  ($PDL::Bad::Status && $pdl->badflag);  # number of good values each vector
+   my $ngood2 = null;
+   $ngood2 = $ngood->where($ngood);                                      # number of good values with no all-BADs
+
+   $pdl2d = $pdl2d->mv(0,-1)->dice($ngood->which)->mv(-1,0);             # remove all-BAD vectors
+
+
+   my $numnan = null;
+   $numnan = ($pdl2d!=$pdl2d)->sumover;                                  # works since no all-BADs to confuse
+
+   my $presrt = null;
+   $presrt = $pdl2d->mv(0,-1)->dice($numnan->not->which)->mv(0,-1);      # remove vectors with any NaN values
+   my $nanvec = null;
+   $nanvec = $pdl2d->mv(0,-1)->dice($numnan->which)->mv(0,-1);           # the vectors with any NaN values
+
+   # use dice instead of nslice since qsortvec might be packing
+   # the badvals to the front of the array instead of the end like
+   # the docs say. If that is the case and it gets fixed, it won't
+   # bust uniqvec. DAL 14-March 2006
+
+   my $srt = null;
+   $srt = $presrt->qsortvec->mv(0,-1);                                   # BADs are sorted by qsortvec
+   my $srtdice = $srt;
+   my $somebad = null;
+   if  ($PDL::Bad::Status && $srt->badflag) {
+      $srtdice = $srt->dice($srt->mv(0,-1)->nbadover->not->which);
+      $somebad = $srt->dice($srt->mv(0,-1)->nbadover->which);
+   }
+
+   my $uniq = null;
+   if ($srtdice->nelem > 0) {
+      $uniq = ($srtdice != $srtdice->rotate(-1))->mv(0,-1)->orover->which;
+   } else {
+      $uniq = $srtdice->orover->which;
+   }
+
+   my $ans = null;
+   if ( $uniq->nelem > 0 ) {
+      $ans = $srtdice->dice($uniq);
+   } else {
+      $ans = ($srtdice->nelem > 0) ? $srtdice->slice("0,:") : $srtdice;
+   }
+   return $ans->append($somebad)->append($nanvec->mv(0,-1))->mv(0,-1);
 }
-
-	
-  
-  
-	
 
 EOPM
 
@@ -1033,11 +1120,15 @@ EOPM
 
 =head2 hclip
 
+=for sig
+
   Signature: (a(); b(); [o] c())
 
 clip (threshold) C<$a> by C<$b> (C<$b> is upper bound)
 
 =head2 lclip
+
+=for sig
 
   Signature: (a(); b(); [o] c())
 
@@ -1137,6 +1228,8 @@ EOD
 ############################################################
 
 =head2 wtstat
+
+=for sig
 
   Signature: (a(n); wt(n); avg(); [o]b(); int deg)
 
@@ -1239,7 +1332,7 @@ pp_def('statsover',
          %}
 	 $rms()  = sqrt ( tmp/norm );
 	 $prms() = (norm>1) ? sqrt( tmp/(norm-1) ) : 0;
-         $adev() = tmp1/norm;
+         $adev() = tmp1/norm ;
 ',
 	BadCode => 
 	'$GENERIC(avg) tmp = 0;
@@ -1281,7 +1374,7 @@ pp_def('statsover',
 	   	   $prms() =  sqrt( tmp/(norm-1) );
 	   else
 	           $SETBAD(prms());
-           $adev() = sqrt ( tmp1 / norm );
+           $adev() = tmp1 / norm ;
          } else       { 
            $SETBAD(avg()); 
            $SETBAD(rms());
@@ -1332,12 +1425,12 @@ quantities of a piddle. These are:
 
 with C<N> being the number of elements in x
 
-=item * RMS deviation from the mean:
+=item * the population RMS deviation from the mean:
 
-  RMS = sqrt(sum( (x-mean(x))^2 )/N)
+  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
 
-(also known as the root-mean-square deviation, or the square root of the
-variance)
+The population deviation is the best-estimate of the deviation 
+of the population from which a sample is drawn.
 
 =item * the median
 
@@ -1348,18 +1441,16 @@ L<medover|PDL::Ufunc/medover>, so WEIGHTING IS IGNORED FOR THE MEDIAN CALCULATIO
 
 =item * the maximum
 
-=item * the absolute deviation:
+=item * the average absolute deviation:
 
-  ADEV = sqrt(sum( abs(x-mean(x)) )/N)
+  AADEV = sum( abs(x-mean(x)) )/N
 
-(This is also called the standard deviation)
+=item * RMS deviation from the mean:
 
-=item * the population RMS deviation from the mean:
+  RMS = sqrt(sum( (x-mean(x))^2 )/N)
 
-  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
-
-The population deviation is the best-estimate of the deviation 
-of the population from which a sample is drawn.
+(also known as the root-mean-square deviation, or the square root of the
+variance)
 
 =back
 
@@ -1477,7 +1568,7 @@ For a higher-level interface, see L<hist|PDL::Basic/hist>.
 
 =for example
 
- perldl> p histogram(pdl(1,1,2),1,0,3)
+ pdl> p histogram(pdl(1,1,2),1,0,3)
  [0 2 1]
 
 =cut
@@ -1485,6 +1576,8 @@ For a higher-level interface, see L<hist|PDL::Basic/hist>.
 EOD
 
 =head2 whistogram
+
+=for sig
 
   Signature: (in(n); float+ wt(n);float+[o] hist(m); double step; double min; int msize => m)
 
@@ -1515,7 +1608,7 @@ you want.
 
 =for example
 
- perldl> p whistogram(pdl(1,1,2), pdl(0.1,0.1,0.5), 1, 0, 4)
+ pdl> p whistogram(pdl(1,1,2), pdl(0.1,0.1,0.5), 1, 0, 4)
  [0 0.2 0.5 0]
 
 =cut
@@ -1582,6 +1675,8 @@ pp_def($_->{Name},
 
 =head2 histogram2d
 
+=for sig
+
   Signature: (ina(n); inb(n); int+[o] hist(ma,mb); double stepa; double mina; int masize => ma;
 	             double stepb; double minb; int mbsize => mb;)
 
@@ -1612,7 +1707,7 @@ upper limit is put in the last bin.
 
 =for example
 
- perldl> p histogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),1,0,3,1,0,3)
+ pdl> p histogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),1,0,3,1,0,3)
  [
   [0 0 0]
   [0 2 2]
@@ -1624,6 +1719,8 @@ upper limit is put in the last bin.
 EOD
 
 =head2 whistogram2d
+
+=for sig
 
   Signature: (ina(n); inb(n); float+ wt(n);float+[o] hist(ma,mb); double stepa; double mina; int masize => ma;
 	             double stepb; double minb; int mbsize => mb;)
@@ -1655,7 +1752,7 @@ upper limit is put in the last bin.
 
 =for example
 
- perldl> p whistogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),pdl(0.1,0.2,0.3,0.4,0.5),1,0,3,1,0,3)
+ pdl> p whistogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),pdl(0.1,0.2,0.3,0.4,0.5),1,0,3,1,0,3)
  [
   [  0   0   0]
   [  0 0.5 0.9]
@@ -1748,6 +1845,8 @@ pp_def($_->{Name},
 
 =head2 fibonacci
 
+=for sig
+
   Signature: ([o]x(n))
 
 Constructor - a vector with Fibonacci's sequence
@@ -1783,6 +1882,8 @@ EOD
 ');
 
 =head2 append
+
+=for sig
 
   Signature: (a(n); b(m); [o] c(mn))
 
@@ -1912,6 +2013,8 @@ EOD
 
 =head2 axisvalues
 
+=for sig
+
   Signature: ([o,nc]a(n))
 
 =cut
@@ -1998,6 +2101,7 @@ pp_def(
 	PMFunc => '',
 	Code =>
 	'$a() = Drand01();',
+	'NoPthread' => 1, # random isn't threadsafe
 	Doc=>undef,
 	PMCode=><<'EOD',
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
@@ -2012,6 +2116,7 @@ EOD
 
 pp_def(
 	'randsym',
+	'NoPthread' => 1, # random isn't threadsafe
 	Pars=>'a();',
 	PMFunc => '',
 	Code =>
@@ -2074,6 +2179,8 @@ pp_add_exported('','grandom');
 ###############################################################
 
 =head2 vsearch
+
+=for sig
 
   Signature: (i(); x(n); int [o]ip())
 
@@ -2142,6 +2249,8 @@ function to obtain cumulative probabilities from absolute probabilities.
 EOD
 
 =head2 interpolate
+
+=for sig
 
   Signature: (xi(); x(n); y(n); [o] yi(); int [o] err())
 
@@ -2525,19 +2634,19 @@ Converts a one dimensional index piddle to a set of ND coordinates
  @coords=one2nd($a, $indices)
 
 returns an array of piddles containing the ND indexes corresponding to
-the one dimensional list indices. The indices are assumed to correspond
-to array C<$a> clumped using C<clump(-1)>. This routine is used in 
-L<whichND|/whichND>,
-but is useful on its own occasionally.
+the one dimensional list indices. The indices are assumed to
+correspond to array C<$a> clumped using C<clump(-1)>. This routine is
+used in the old vector form of L<whichND|/whichND>, but is useful on
+its own occasionally.
 
 =for example
 
- perldl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
- perldl> $maxind=maximum_ind($c); p $maxind;
+ pdl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
+ pdl> $maxind=maximum_ind($c); p $maxind;
  6
- perldl> print one2nd($a, maximum_ind($c))
+ pdl> print one2nd($a, maximum_ind($c))
  0 1 1
- perldl> p $a->at(0,1,1)
+ pdl> p $a->at(0,1,1)
  3
 
 =cut
@@ -2559,6 +2668,8 @@ sub PDL::one2nd {
 EOD
 
 =head2 which
+
+=for sig
 
   Signature: (mask(n); int [o] inds(m))
 
@@ -2600,9 +2711,9 @@ L<whichND|/whichND> returns N-D indices into a multidimensional PDL.
 
 =for example
 
- perldl> $x = sequence(10); p $x
+ pdl> $x = sequence(10); p $x
  [0 1 2 3 4 5 6 7 8 9]
- perldl> $indx = which($x>6); p $indx
+ pdl> $indx = which($x>6); p $indx
  [7 8 9]
 
 =cut
@@ -2610,6 +2721,8 @@ L<whichND|/whichND> returns N-D indices into a multidimensional PDL.
 EOD
 
 =head2 which_both
+
+=for sig
 
   Signature: (mask(n); int [o] inds(m); int [o]notinds(q))
 
@@ -2630,9 +2743,9 @@ C<$c_i>.
 
 =for example
 
- perldl> $x = sequence(10); p $x
+ pdl> $x = sequence(10); p $x
  [0 1 2 3 4 5 6 7 8 9]
- perldl> ($small, $big) = which_both ($x >= 5); p "$small\n $big"
+ pdl> ($small, $big) = which_both ($x >= 5); p "$small\n $big"
  [5 6 7 8 9]
  [0 1 2 3 4]
 
@@ -2752,10 +2865,9 @@ into a single operation.
 
 BUGS:
 
-There is no C<whereND>, and probably should be.  While C<where> works
-OK for most N-dimensional cases, it does not thread properly over (for
-example) the (N+1)th dimension in data that is compared to an
-N-dimensional mask.
+While C<where> works OK for most N-dimensional cases, it does not
+thread properly over (for example) the (N+1)th dimension in data
+that is compared to an N-dimensional mask.  Use C<whereND> for that.
 
 =for usage
 
@@ -2806,6 +2918,95 @@ pp_add_exported("", 'where');
 
 pp_addpm(<<'EOD'
 
+=head2 whereND
+
+=for ref
+
+C<where> with support for ND masks and threading
+
+C<whereND> accepts one or more data piddles and a
+mask piddle.  It returns a list of output piddles,
+corresponding to the input data piddles.  The values
+are drawn from locations where the mask is nonzero.
+
+C<whereND> differs from C<where> in that the mask
+dimensionality is preserved which allows for
+proper threading of the selection operation over
+higher dimensions.
+
+As with C<where> the output PDLs are still connected
+to the original data PDLs, for the purpose of dataflow.
+
+=for usage
+
+  $sdata = whereND $data, $mask
+  ($s1, $s2, ..., $sn) = whereND $d1, $d2, ..., $dn, $mask
+
+  where
+
+    $data is M dimensional
+    $mask is N < M dimensional
+    dims($data) 1..N == dims($mask) 1..N
+    with threading over N+1 to M dimensions
+
+=for example
+
+  $data   = sequence(4,3,2);   # example data array
+  $mask4  = (random(4)>0.5);   # example 1-D mask array, has $n4 true values
+  $mask43 = (random(4,3)>0.5); # example 2-D mask array, has $n43 true values
+  $sdat4  = whereND $data, $mask4;   # $sdat4 is a [$n4,3,2] pdl
+  $sdat43 = whereND $data, $mask43;  # $sdat43 is a [$n43,2] pdl
+
+Just as with C<where>, you can use the returned value in an
+assignment. That means that both of these examples are valid:
+
+  # Used to create a new slice stored in $sdat4:
+  $sdat4 = $data->whereND($mask4);
+  $sdat4 .= 0;
+  # Used in lvalue context:
+  $data->whereND($mask4) .= 0;
+
+=cut
+
+sub PDL::whereND :lvalue {
+   barf "Usage: whereND( \$pdl1, ..., \$pdlN, \$mask )\n" if $#_ == 0;
+
+   my $mask = pop @_;  # $mask has 0==false, 1==true
+   my @to_return;
+
+   my $n = PDL::sum($mask);
+
+   foreach my $arr (@_) {
+
+      my $sub_i = $mask * ones($arr);
+      my $where_sub_i = PDL::where($arr, $sub_i);
+
+      # count the number of dims in $mask and $arr
+      # $mask = a b c d e f.....
+      my @idims = dims($arr);
+
+      # ...and pop off the number of dims in $mask
+      foreach ( dims($mask) ) { shift(@idims) };
+
+      my $ndim = 0;
+      foreach my $id ($n, @idims[0..($#idims-1)]) {
+         $where_sub_i = $where_sub_i->splitdim($ndim++,$id) if $n>0;
+      }
+
+      push @to_return, $where_sub_i;
+   }
+
+   return (@to_return == 1) ? $to_return[0] : @to_return;
+}
+*whereND = \&PDL::whereND;
+
+EOD
+);
+
+pp_add_exported("", 'whereND');
+
+pp_addpm(<<'EOD'
+
 =head2 whichND
 
 =for ref
@@ -2814,13 +3015,10 @@ Return the coordinates of non-zero values in a mask.
 
 =for usage
 
-WhichND returns the N-dimensional coordinates of each nonzero value in a
-mask PDL with any number of dimensions. 
-
-For historical reasons the return value is different in list and scalar
-context.  In scalar context, you get back a PDL containing coordinates suitable
-for use in L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>;
-in list context, the coordinates are broken out into separate PDLs.
+WhichND returns the N-dimensional coordinates of each nonzero value in
+a mask PDL with any number of dimensions.  The returned values arrive
+as an array-of-vectors suitable for use in
+L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>.
 
  $coords = whichND($mask);
 
@@ -2830,13 +3028,26 @@ full coordinate listing of each point; the 1st dimension lists all the points.
 For example, if $mask has rank 4 and 100 matching elements, then $coords has
 dimension 4x100.
 
- @coords=whichND($mask);
+If no such elements exist, then whichND returns a structured empty PDL:
+an Nx0 PDL that contains no values (but matches, threading-wise, with 
+the vectors that would be produced if such elements existed).
 
-returns a perl list of piddles containing the coordinates of the
-elements that are non-zero in C<$mask>.  Each element corresponds to a
-particular index dimension.  For example, if $mask has rank 4 and 100
-matching elements, then @coords has 4 elements, each of which is a pdl
-of size 100.
+DEPRECATED BEHAVIOR IN LIST CONTEXT:
+
+whichND once delivered different values in list context than in scalar
+context, for historical reasons.  In list context, it returned the 
+coordinates transposed, as a collection of 1-PDLs (one per dimension) 
+in a list.  This usage is deprecated in PDL 2.4.10, and will cause a 
+warning to be issued every time it is encountered.  To avoid the
+warning, you can set the global variable "$PDL::whichND" to 's' to 
+get scalar behavior in all contexts, or to 'l' to get list behavior in
+list context.  
+
+In later versions of PDL, the deprecated behavior will disappear.  Deprecated
+list context whichND expressions can be replaced with:
+
+    @list = $a->whichND->mv(0,-1)->dog;
+    
 
 SEE ALSO:
 
@@ -2847,10 +3058,10 @@ with nonzero values in a mask PDL.
 
 =for example
 
- perldl> $a=sequence(10,10,3,4)
- perldl> ($x, $y, $z, $w)=whichND($a == 203); p $x, $y, $z, $w
+ pdl> $a=sequence(10,10,3,4)
+ pdl> ($x, $y, $z, $w)=whichND($a == 203); p $x, $y, $z, $w
  [3] [0] [2] [0]
- perldl> print $a->at(list(cat($x,$y,$z,$w)))
+ pdl> print $a->at(list(cat($x,$y,$z,$w)))
  203
 
 =cut
@@ -2858,19 +3069,35 @@ with nonzero values in a mask PDL.
 *whichND = \&PDL::whichND;
 sub PDL::whichND {
   my $mask = shift;
+  $mask = PDL::pdl('PDL',$mask) unless(UNIVERSAL::isa($mask,'PDL'));
 
   # List context: generate a perl list by dimension
   if(wantarray) {
+      if(!defined($PDL::whichND)) {
+	  printf STDERR "whichND: WARNING - list context deprecated. Set \$PDL::whichND. Details in pod.";
+      } elsif($PDL::whichND =~ m/l/i) {
+	  # old list context enabled by setting $PDL::whichND to 'l'
 	  my $ind=($mask->clump(-1))->which;
 	  return $mask->one2nd($ind);
-  } 
+      }
+      # if $PDL::whichND does not contain 'l' or 'L', fall through to scalar context
+  }
 
   # Scalar context: generate an N-D index piddle
 
-
-  return null() unless ($mask->getndims);
-
+  unless($mask->nelem) {
+      return PDL::new_from_specification('PDL',$mask->ndims,0);
+  }
+  
+  unless($mask->getndims) {
+    return $mask ? pdl(0) : PDL::new_from_specification('PDL',0);
+  }
+  
   $ind = $mask->flat->which->dummy(0,$mask->getndims)->long->make_physical;
+  if($ind->nelem==0) {
+      # In the empty case, explicitly return the correct type of structured empty
+      return PDL::new_from_specification('PDL',$mask->ndims, 0);
+  }
 
   my $mult = ones($mask->getndims)->long;
   my @mdims = $mask->dims;
@@ -2958,41 +3185,41 @@ we will find all squares that are also cubes below 10000.
 
 Create a sequence vector:
 
-  perldl> $x = sequence(10000)
+  pdl> $x = sequence(10000)
 
 Find all odd and even elements:
 
-  perldl> ($even, $odd) = which_both( ($x % 2) == 0)
+  pdl> ($even, $odd) = which_both( ($x % 2) == 0)
 
 Find all squares
 
-  perldl> $squares= which(ceil(sqrt($x)) == floor(sqrt($x)))
+  pdl> $squares= which(ceil(sqrt($x)) == floor(sqrt($x)))
 
 Find all cubes (being careful with roundoff error!)
 
-  perldl> $cubes= which(ceil($x**(1.0/3.0)) == floor($x**(1.0/3.0)+1e-6))
+  pdl> $cubes= which(ceil($x**(1.0/3.0)) == floor($x**(1.0/3.0)+1e-6))
 
 Then find all squares that are cubes:
 
-  perldl> $both = setops($squares, 'AND', $cubes)
+  pdl> $both = setops($squares, 'AND', $cubes)
 
 And print these (assumes that C<PDL::NiceSlice> is loaded!)
 
-  perldl> p $x($both)
+  pdl> p $x($both)
    [0 1 64 729 4096]
 
 Then find all numbers that are either cubes or squares, but not both:
 
-  perldl> $cube_xor_square = setops($squares, 'XOR', $cubes)
+  pdl> $cube_xor_square = setops($squares, 'XOR', $cubes)
 
-  perldl> p $cube_xor_square->nelem()
+  pdl> p $cube_xor_square->nelem()
    112
 
 So there are a total of 112 of these!
 
 Finally find all odd squares:
 
-  perldl> $odd_squares = setops($squares, 'AND', $odd)
+  pdl> $odd_squares = setops($squares, 'AND', $odd)
 
 
 Another common occurance is to want to get all objects that are
@@ -3006,15 +3233,15 @@ If this is impossible the best approach is to make a temporary:
 This creates an index vector the size of the universe of the sets and
 set all elements in C<$b> to 0
 
-  perldl> $tmp = ones($n_universe); $tmp($b)=0;
+  pdl> $tmp = ones($n_universe); $tmp($b) .= 0;
 
 This then finds the complement of C<$b>
 
-  perldl> $C_b = which($tmp == 1);
+  pdl> $C_b = which($tmp == 1);
 
 and this does the final selection:
 
-  perldl> $set = setops($a, 'AND', $C_b)
+  pdl> $set = setops($a, 'AND', $C_b)
 
 =cut
 
@@ -3108,17 +3335,12 @@ that for more information
 
 Find all numbers less that 100 that are of the form 2*y and 3*x
 
- perldl> $x=sequence(100)
- 
- perldl> $factor2 = which( ($x % 2) == 0)
- 
- perldl> $factor3 = which( ($x % 3) == 0)
- 
- perldl> $ii=intersect($factor2, $factor3)
- 
- perldl> p $x($ii)
- 
-   [0 6 12 18 24 30 36 42 48 54 60 66 72 78 84 90 96]
+ pdl> $x=sequence(100)
+ pdl> $factor2 = which( ($x % 2) == 0)
+ pdl> $factor3 = which( ($x % 3) == 0)
+ pdl> $ii=intersect($factor2, $factor3)
+ pdl> p $x($ii)
+ [0 6 12 18 24 30 36 42 48 54 60 66 72 78 84 90 96]
 
 =cut
 

@@ -1,30 +1,43 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Mon 21 Dec 2009 04:18:20 PM
+Last saved: Tue 11 Oct 2011 12:53:55 PM 
+
 
 
 =================================================================
                         GENERAL NOTES
 =================================================================
+NOTE: These install notes have been partially reviewed
+for the PDL-2.4.9 release.  It is recommended that you
+build and install PDL based on a full cygwin 1.7.9 or
+later install.  Please post to the perldl mailing list
+for help or questions regarding a cygwin install.
 
-  These notes have not been fully reviewed since PDL-2.4.5
-  or for the recent release of version 1.7.1 of cygwin however
-  they are believed to be generally correct.  Please post to
-  the perldl mailing list for help or questions.
+By default, Cygwin has an ~300MB process memory limit.
+If you work with large data sets, you may wish to
+use the native win32 PDL with either ActiveState Perl
+or Strawberry Perl.  Otherwise, you'll want to set the
+value of heap_chunk_in_mb to allow for bigger data as
+described in the Cygwin Users Guide:
+http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html
 
-  Cygwin seems to have a 300MB process memory limit
-  that we have not determined how to work around.
-  If you work with large data sets, you may wish to
-  use the native win32 PDL.
+Work is underway to improve the native win32 perl PDL 
+support for external dependencies so that it may be
+used, feature for feature, instead of the cygwin port.
 
-  Work is underway to improve the native win32 PDL port on
-  support for external dependencies so that it might be used
-  instead of cygwin.
+WARNING: There is a known problem with windows DLL base
+addresses being scrambled causing mysterious failures
+for cygwin builds.  See the REBASEALL directions below
+for the current work around.  Development for recent
+cygwins appear to be making progress towards fixing
+this problem.
+
+
+
 
 
 =================================================================
                  Installing with CPAN on Cygwin
 =================================================================
-
 If you already have a full cygwin install on your PC, the
 simplest way to get a basic PDL is to use the cpan shell.
 
@@ -41,21 +54,28 @@ Just start up an xterm and run cpan from the bash prompt:
   bash$ cpan
   cpan> install ExtUtils::F77
   cpan> install OpenGL
+  cpan> force install Inline
   cpan> install PDL
 
 This installs the Perl OpenGL (a.k.a POGL) module, ExtUtils::F77,
-and should pull in installs for the following dependencies:
+and Inline (the force here is necessary to work around a taint
+bug in the current release---should be no problem unless you
+need to run Inline programs with taint enabled), and should pull
+in installs for the following dependencies:
 
   Astro::FITS::Header
+  Convert::UU
   Data::Dumper
   File::Spec
   Filter::Util::Call
+  Pod::Parser
+  Pod::Select
+  Storable
   Text::Balanced
-  Inline
 
 if they are not already installed or of a recent enough version.
 
-This should finish with a PDL with the following functionality:
+You should finish with a PDL having the following functionality:
 
   - base PDL modules
 
@@ -63,6 +83,7 @@ This should finish with a PDL with the following functionality:
   - PDL::GIS::Proj
   - PDL::Graphics::TriD
   - PDL::GSL::*
+  - PDL::Minuit
   - PDL::Slatec
   - PDL::Transform::Proj4
 
@@ -88,16 +109,15 @@ The manual configure/build/install process is:
 
  Edit the PDL/perldl.conf file as desired
 
-
  From the bash$ prompt in the top level PDL/ directory:
 
-   perl Makefile.PL	# configures all the Makefile
-
-   make		        # builds/compiles everything
-
-   make test            # run test suite
-
-   make doctest         # builds online documentation
+  perl Makefile.PL	# configures all the Makefile
+  
+  make		        # builds/compiles everything
+  
+  make test            # run test suite
+  
+  make doctest         # builds online documentation
                         # and html docs
 
 
@@ -116,21 +136,22 @@ The manual configure/build/install process is:
 
    These test failures with the number of planned tests not
    equal to the number of tests run (1) or if a test died
-   before it could output anything indicate a problem with
-   the DLL base addresses.  See the instructions for REBASEALL
-   below.
+   before it could output anything usually indicates a problem
+   with the DLL base addresses.  See the instructions for
+   REBASEALL below.
 
 
  If PDL built ok and passed tests, you can test the interactive
  PDL shell before actually installing PDL by running from the
  PDL/ top level directory:
 
-   perl -Mblib perldl   # quit to exit the PDL shell
+  perl -Mblib Perldl2/pdl2   # type quit to exit the PDL shell
 
 
  To finally install the PDL into your system run:
 
-   make install
+  make install
+
 
 
 =================================================================
@@ -158,21 +179,21 @@ The FFTW library built without a hitch and installed in
 /usr/local as the default (/usr/local/lib, /usr/local/include,
 and /usr/local/info). A clean build of PDL should pick it up.
 
-NOTE: if problems see rebaseall below.
+NOTE: if problems see REBASEALL below.
  
+
 
 =================================================================
                              PGPLOT
 =================================================================
-
-NOTE: cygwin 1.7.1 has new include locations so the following
+NOTE: cygwin 1.7.9 has new include locations so the following
       will not work without changing the various paths!!
 
 1. build the pgplot library and install.
 
   Download from http://astro.caltech.edu/~tjp/pgplot
 
-  # Extract the archive file into a source location, I used ~
+  # Extract the archive file into a source location, I used ~/
   $ tar xzf pgplot5.2.tar.gz 
   $ cd ~/pgplot
 
@@ -239,7 +260,7 @@ NOTE: cygwin 1.7.1 has new include locations so the following
   perl. Download from www.cpan.org if needed.
 
 2. Now install the PGPLOT perl module. This is used by
-PDL::Graphics::PGPLOT.
+   PDL::Graphics::PGPLOT.
 
   $ tar xzf PGPLOT-2.19.tar.gz
   $ cd PGPLOT-2.19
@@ -281,7 +302,61 @@ PDL::Graphics::PGPLOT.
    If your pgplot installation worked, it should be picked up
    automatically.
 
-NOTE: if problems see rebaseall below.
+NOTE: if problems see REBASEALL below.
+
+
+
+=================================================================
+                             FFMPEG
+=================================================================
+ffmpeg later than 0.6.1 (i.e, gotten by git clone of
+the ffmpeg.git repository) builds out-of-the-box with
+the standard directions on cygwin 1.7.7+. You'll need
+the latest version because of a namespace conflict with
+the bswap_16, bswap_32, and bswap_64 macros.  See
+this page for the git clone information:
+
+  http://ffmpeg.org/download.html
+
+An alternative is to download the latest GIT snapshot
+following these directions.  You'll need to have the
+various dependencies for ffmpeg install to build
+successfully.  A full cygwin install should work.
+
+(1) Download the git snapshot of the ffmpeg tree from:
+      http://git.videolan.org/?p=ffmpeg.git;a=snapshot;h=HEAD;sf=tgz
+
+(2) The file will be named something like ffmpeg-HEAD-xxxxxxx.tar.gz
+    where the xxxxxxx is a hexadecimal number related to the commit.
+    Extract the tar file and change to that directory:
+    
+      bash$ tar xzf ffmpeg-HEAD-xxxxxxx.tar.gz
+      bash$ cd ffmpeg-HEAD-xxxxxxx/
+
+(3) Configure, build, and install ffmpeg:
+
+      bash$ ./configure --enable-static --disable-shared
+      bash$ make                         # build
+      bash$ make check                   # test
+      bash$ make install                 # install
+
+      bash$ type ffmpeg                  # check install
+      ffmpeg is /usr/local/bin/ffmpeg
+
+(4) Now you should be able to run the wmpeg.pl demo
+    in Example/IO of the PDL source distribution
+    directory.  If the check install does not work,
+    check that /usr/local/bin (or wherever the ffmpeg
+    installed) is in the PATH.
+
+NOTE: wmpeg('file.gif') can be used to generate
+an uncompressed GIF animation (BIG!). You can
+build/install gifsicle on cygwin with the default
+instructions to use to optimize the memory usage of
+the GIF animations.  See the gifsicle site for the
+source and build instructions:
+
+  http://www.lcdf.org/gifsicle/
 
 
 
@@ -298,13 +373,13 @@ by hand (for example):
 
   perl -Mblib t/plplot.t
 
-You'll see no error but only 1 test run or even a message saying
+You may see no error but only 1 test run or even a message saying
 that the test failed before generating any output.  If so, you'll
 need to run rebaseall:
 
   0. Generate a list of additional DLLs to check:
 
-     find /usr/lib/perl5 /usr/local /pdl_build_dir/blib -iname '*.dll' > /bin/fixit.list
+     find /usr/lib/perl5 /usr/bin /usr/local /pdl_build_dir/blib -iname '*.dll' > /bin/fixit.list
 
   1. Exit all cygwin processes, windows, shells, X server,...
 
@@ -320,9 +395,25 @@ need to run rebaseall:
        folder to begin with.  If you put it elsewhere, you'll need
        to use the appropriate pathnames.
 
+  6. Run peflagsall (./peflagsall -T fixit.list)
+
+  7. Restart cygwin
+
 After the rebaseall command has completed, you should be able to
 start up X windows and rerun the failed tests (perl -Mblib t/testname.t)
 or all tests (make test).
+
+NOTE: From the cygwin-xfree mailing list:
+
+> Also, I've found that using a different base address with rebaseall
+> seems to help with some X problems:
+>
+> dash -c "rebaseall -b 0x77000000"
+>
+> http://cygwin.com/ml/cygwin/2011-04/msg00306.html
+>
+> cgf
+
 
 
 

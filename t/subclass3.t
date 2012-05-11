@@ -156,8 +156,11 @@ ok($testNo++, $main::OVERRIDEWORKED == 1 );
 $main::OVERRIDEWORKED = 0;
 # which ND test
 my $a= PDL::Derived->sequence(10,10,3,4);     
-my ($x, $y, $z, $w)=whichND($a == 203);
-ok($testNo++, $main::OVERRIDEWORKED == 2 );
+# $PDL::whichND_no_warning = 1;
+# my ($x, $y, $z, $w)=whichND($a == 203);
+# ok($testNo++, $main::OVERRIDEWORKED == 2 );
+my ($x, $y, $z, $w) = whichND($a == 203)->mv(0,-1)->dog;  # quiet deprecation warning
+ok($testNo++, $main::OVERRIDEWORKED == 1 );               # whitebox test condition, uugh!
 
 # Check to see if the clip functions return a derived object:
 ok( $testNo++, ref( $im->clip(5,7) ) eq "PDL::Derived");

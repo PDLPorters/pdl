@@ -117,10 +117,11 @@ L<PDL::IO::Dicom documentation|PDL::IO::Dicom>.
 
 =head2 PDL::IO::Dumper
 
-Provides functionality similar to L<Data::Dumper> for piddles.
-L<Data::Dumper> stringifies a data structure, creating a string that
-can be C<eval>ed to reproduce the original data structure.  It's also
-usually suitable for printing, to visualize the structure.
+Provides functionality similar to L<Data::Dumper|Data::Dumper> for
+piddles.  L<Data::Dumper|Data::Dumper> stringifies a data structure,
+creating a string that can be C<eval>ed to reproduce the original data
+structure.  It's also usually suitable for printing, to visualize the
+structure.
 
 To read more, check the L<PDL::IO::Dumper documentation|PDL::IO::Dumper>.
 See also PDL::IO::Storable for a more comprehensive structured

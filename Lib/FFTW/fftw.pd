@@ -46,6 +46,8 @@ Note that complex numbers are represented as piddles with leading
 dimension size 2 (real/imaginary pairs).
 
 =cut
+
+
 EOD
 
 pp_addpm(<<'EOD');
@@ -159,6 +161,7 @@ ONLY an even first dimension size! (complex input, real output)
   $pdl_real = infftw $pdl_cplx;
 
 =cut
+
 
 EOD
 
@@ -555,6 +558,8 @@ $c(n => 1)= $a(n => 0)*$b(n => 1) + $a(n => 1)*$b(n => 0);
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cmul
+
 =for ref
 
 Complex multiplication
@@ -562,6 +567,8 @@ Complex multiplication
 =for usage
 
    $out_pdl_cplx = Cmul($a_pdl_cplx,$b_pdl_cplx);
+
+=cut
 
 EOD
       );
@@ -576,13 +583,18 @@ $c(n => 1)= $a(n => 1)*$b();
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cscale
+
 =for ref
 
 Complex by real multiplation.
 
 =for usage
 
-  Cscale($a_pdl_cplx,$b_pdl_real);
+  $out_pdl_cplx = Cscale($a_pdl_cplx,$b_pdl_real);
+
+=cut
+
 EOD
       );
 
@@ -600,6 +612,8 @@ $c(n => 1)= ( $a(n => 1)*$b(n => 0) - $a(n => 0)*$b(n => 1) ) / divi;
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cdiv
+
 =for ref
 
 Complex division.
@@ -607,6 +621,8 @@ Complex division.
 =for usage
 
   $out_pdl_cplx = Cdiv($a_pdl_cplx,$b_pdl_cplx);
+
+=cut
 
 EOD
       );
@@ -625,6 +641,8 @@ $a(n => 1)= tmp * $b(n => 1) + tmp1 * $b(n => 0);
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cbmul
+
 =for ref
 
 Complex inplace multiplication.
@@ -632,6 +650,9 @@ Complex inplace multiplication.
 =for usage
 
    Cbmul($a_pdl_cplx,$b_pdl_cplx);
+
+=cut
+
 EOD
       );
 
@@ -647,6 +668,8 @@ $a(n => 1) *= $b();
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cbscale
+
 =for ref
 
 Complex inplace multiplaction by real.
@@ -654,6 +677,9 @@ Complex inplace multiplaction by real.
 =for usage
 
    Cbscale($a_pdl_cplx,$b_pdl_real);
+
+=cut
+
 EOD
       );
 
@@ -667,6 +693,8 @@ $c(n => 1)= -$a(n => 1);
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cconj
+
 =for ref
 
 Complex conjugate.
@@ -674,6 +702,9 @@ Complex conjugate.
 =for usage
 
    $out_pdl_cplx = Cconj($a_pdl_cplx);
+
+=cut
+
 EOD
       );
 
@@ -686,6 +717,8 @@ $a(n => 1)= -$a(n => 1);
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cbconj
+
 =for ref
 
 Complex inplace conjugate.
@@ -693,6 +726,9 @@ Complex inplace conjugate.
 =for usage
 
    Cbconj($a_pdl_cplx);
+
+=cut
+
 EOD
       );
 
@@ -706,6 +742,8 @@ $c(n => 1)= exp($a(n => 0)) * sin($a(n => 1));
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cexp
+
 =for ref
 
 Complex exponentation.
@@ -713,6 +751,9 @@ Complex exponentation.
 =for usage
 
    $out_pdl_cplx = Cexp($a_pdl_cplx);
+
+=cut
+
 EOD
       );
 
@@ -729,13 +770,18 @@ $a(n => 1)= exp(re) * sin(im);
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cbexp
+
 =for ref
 
 Complex inplace exponentation.
 
 =for usage
 
-   $out_pdl_cplx = Cexp($a_pdl_cplx);
+   $out_pdl_cplx = Cbexp($a_pdl_cplx);
+
+=cut
+
 EOD
       );
 
@@ -748,6 +794,8 @@ $c()= sqrt ( $a(n => 0)*$a(n => 0) + $a(n => 1)*$a(n => 1) );
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cmod
+
 =for ref
 
 modulus of a complex piddle.
@@ -755,6 +803,9 @@ modulus of a complex piddle.
 =for usage
 
   $out_pdl_real = Cmod($a_pdl_cplx);
+
+=cut
+
 EOD
       );
 
@@ -767,6 +818,8 @@ $c()= atan2($a(n=>1),$a(n=>0));
 %}
 ',
 	Doc => <<'EOD',
+=head2 Carg
+
 =for ref
 
 argument of a complex number.
@@ -774,6 +827,9 @@ argument of a complex number.
 =for usage
 
    $out_pdl_real = Carg($a_pdl_cplx);
+
+=cut
+
 EOD
       );
 
@@ -786,6 +842,8 @@ $c()= ( $a(n => 0)*$a(n => 0) + $a(n => 1)*$a(n => 1) );
 %}
 ',
 	Doc => <<'EOD',
+=head2 Cmod2
+
 =for ref
 
 Returns squared modulus of a complex number.
@@ -793,6 +851,9 @@ Returns squared modulus of a complex number.
 =for usage
 
    $out_pdl_real = Cmod2($a_pdl_cplx);
+
+=cut
+
 EOD
       );
 
@@ -802,7 +863,7 @@ EOD
 pp_addxs('','
 MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
-int
+void *
 PDL_rfftwnd_create_plan(dims, dir, flag)
   pdl* dims
   int dir
@@ -836,7 +897,7 @@ CODE:
   }
  
   RETVAL = 
-  (int) rfftwnd_create_plan( dims->dims[0], 
+      (void *) rfftwnd_create_plan( dims->dims[0], 
 			    ( int *) dims->data,
 			    fdir,
 			    fflag);
@@ -852,7 +913,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_rfftwnd_one_real_to_complex(plan, in, out)
-  int plan
+  void * plan
   pdl* in
   pdl* out
  CODE:
@@ -866,7 +927,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_rfftwnd_one_complex_to_real(plan, in, out)
-  int plan
+  void * plan
   pdl* in
   pdl* out
  CODE:
@@ -884,7 +945,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_inplace_rfftwnd_one_real_to_complex(plan, in)
-  int plan
+  void * plan
   pdl* in
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
@@ -902,7 +963,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_inplace_rfftwnd_one_complex_to_real(plan, in)
-  int plan
+  void * plan
   pdl* in
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
@@ -921,7 +982,7 @@ PDL_inplace_rfftwnd_one_complex_to_real(plan, in)
 pp_addxs('','
 MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
-int
+void *
 PDL_fftwnd_create_plan(dims, dir, flag)
   pdl* dims
   int dir
@@ -955,7 +1016,7 @@ CODE:
   }
  
   RETVAL = 
-  (int) fftwnd_create_plan( dims->dims[0], 
+  (void *) fftwnd_create_plan( dims->dims[0], 
 			    ( int *) dims->data,
 			    fdir,
 			    fflag);
@@ -971,7 +1032,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_fftwnd_one(plan, in, out)
-  int plan
+  void * plan
   pdl* in
   pdl* out
  CODE:
@@ -985,7 +1046,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_inplace_fftwnd_one(plan, in)
-  int plan
+  void * plan
   pdl* in
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
@@ -1041,6 +1102,8 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
+
+
 EOD
 
 pp_done();

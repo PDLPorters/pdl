@@ -31,10 +31,12 @@ BEGIN
         '/usr/local/netcdf/lib',
         '/usr/local/lib',
         '/usr/local/lib64',
+	'/usr/lib64/hdf',
         '/opt/local/lib',
         '/usr/lib',
         '/usr/lib/hdf',
-        '/opt/lib'
+        '/opt/lib',
+	split(/ /, $Config{libpth}),
     );
     @HDF_inc_locations = (
         '/usr/local/include',
@@ -42,7 +44,8 @@ BEGIN
         '/opt/local/include',
         '/usr/include',
         '/usr/include/hdf',
-        '/opt/include'
+        '/opt/include',
+	$Config{usrinc},
     ); 
     
     # get locations from perldl.conf, if specified there:
@@ -77,10 +80,11 @@ BEGIN
         }
     
         # Look for the szip library, which HDF >= 4.2r0 needs, but older versions don't!
-        if (-e "$libdir/libsz.so" && !$found_sz) 
+
+        if (-e "$libdir/libsz.$Config{so}" && !$found_sz) 
         {
             $found_sz = 1;
-            print "Found libsz.so at $libdir/libsz.so\n";
+            print "Found libsz.$Config{so} at $libdir/libsz.$Config{so}\n";
         }
     } # foreach $libdir...
 
@@ -91,6 +95,7 @@ BEGIN
         
     }
 
+    warn "Warning: Did not find libsz, necessary for HDF >= 4.2r0\n" unless $found_sz;
     $szip = $found_sz ? "-lsz" : "";
 
     # Look for the include files:
@@ -152,9 +157,11 @@ skip:
         $msg =~ s/\n//g;
         write_dummy_make( $msg );
         $donot = 1;
+        $PDL::Config{WITH_HDF}=0;
     } 
     else 
     {
+       $PDL::Config{WITH_HDF}=1;
         print "\n   Building PDL::IO::HDF. Turn off WITH_HDF if there are any problems\n\n";
     }
 } # End of BEGIN...

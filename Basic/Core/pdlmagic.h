@@ -58,13 +58,23 @@ typedef struct pdl_magic_changetrans {
 
 typedef struct pdl_magic_deletedata {
 	PDL_MAGICSTART;
-	void (*func)(pdl *p, int param);
-	int param;
+	void (*func)(pdl *p, Size_t param);
+	Size_t param;
 } pdl_magic_deletedata;
 
 /* #define PDL_PTHREAD */
 /* Defined by MakeMaker */
 #ifdef PDL_PTHREAD
+
+/* This is a workaround to a perl CORE "feature" where they define a
+ * macro PTHREAD_CREATE_JOINABLE with the same name as POSIX threads
+ * which works as long as the implementation of POSIX threads also
+ * uses macros.  As is, the use of the same name space breaks for
+ * win32 pthreads where the identifiers are enums and not #defines
+ */
+#ifdef PTHREAD_CREATE_JOINABLE
+#undef  PTHREAD_CREATE_JOINABLE
+#endif
 
 #include <pthread.h>
 
@@ -112,16 +122,19 @@ pdl_trans *pdl_find_mutatedtrans(pdl *it);
 
 /* Threading magic */
 
+/* Deferred barfing and warning when pthreading  */
+int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args);
+
 void pdl_add_threading_magic(pdl *,int nthdim,int nthreads);
 
 int pdl_magic_thread_nthreads(pdl *,int *nthdim);
 int pdl_magic_get_thread(pdl *); /* XXX -> only one thread can handle pdl at once */
 
-void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t);
+void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);
 int pdl_pthreads_enabled(void);
 
 /* Delete data magic */
-void pdl_delete_mmapped_data(pdl *p, int param) ;
-void pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, int param), int param);
+void pdl_delete_mmapped_data(pdl *p, Size_t param) ;
+void pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, Size_t param), Size_t param);
 
 #endif /* _pdlmagic_H_  */

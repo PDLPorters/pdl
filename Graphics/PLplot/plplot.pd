@@ -1,33 +1,21 @@
 use Config;
-use vars qw/$nomem $debug $plpoly3 $novect/;
-my $ptrsize = length($Config{'byteorder'}); # 4 or 8 bytes
-my $int_ptr_type = ($ptrsize == 4) ? 'I32' : 'long';
 
-$debug = 0; # show generated pp_defs and other debug info
+my $ptrsize = $Config{'ptrsize'};
+my $int_ptr_type = ($ptrsize == 4) ? $Config{i32type} : $Config{i64type}; # pointer type in C code
+my $pp_ptr_type  = ($ptrsize == 4) ? 'int' : 'longlong';    # pointer type in pp_def Pars sections
+
+# User can set this global variable to 1 if he wants
+# to use the normal plplot order of arguments, not the PP-required
+# order for functions with OtherPars.
+$PDL::Graphics::PLplot::standard_order = 0;
 
 # Read in options determined by Makefile.PL and written to the OPTIONS! file
-open (OPT, 'OPTIONS!');
-my @opts = <OPT>;
-close OPT;
-$nomem = 0;
-$nomem = 1 if (grep /NOMEM!/, @opts);
-
-$novect = 0;
-$novect = 1 if (grep /NOVECT!/, @opts);
-
-$plpoly3 = 5;
-$plpoly3 = 6 if (grep /PLPOLY3 = 6/, @opts);
-
-$noalpha = 0;
-$noalpha = 1 if (grep /NOALPHA!/, @opts);
-
-$v59_or_earlier = 0;
-$v59_or_earlier = 1 if (grep /NOPLSEED!/, @opts);
-
+my $plversion = do 'OPTIONS!';
 pp_addpm({At => Top}, <<'EOD');
 
+our $VERSION;
 BEGIN {
-$VERSION = '0.52'
+$VERSION = '0.61'
 };
 
 =head1 NAME
@@ -349,6 +337,16 @@ Add a title on top of a plot.
 
  # Plot text on top of plot
  $pl->xyplot ($x, $y, TITLE => 'X vs. Y');
+
+=head3 UNFILLED_BARS
+
+For 'bargraph', if set to true then plot the bars as outlines
+in the current color and not as filled boxes
+
+=for example
+
+ # Plot text on top of plot
+ $pl->bargraph($labels, $values, UNFILLED_BARS => 1);
 
 =head3 VIEWPORT
 
@@ -736,6 +734,9 @@ specifies the maximum number of labels to allow on the X axis.
 The default is 20.  If this value is exceeded, then every other
 label is plotted.  If twice MAXBARLABELS is exceeded, then only
 every third label is printed, and so on.
+
+if UNFILLED_BARS is set to true, then plot the bars as outlines
+and not as filled rectangles.
 
 =for usage
 
@@ -1162,6 +1163,13 @@ sub cc2t { [map {hex} split ' ', shift] }
      my $self = shift;
      my $text = shift;
      $self->{TITLE} = $text;
+   },
+
+   # Specify outline bars for bargraph
+   UNFILLED_BARS => sub {
+     my $self = shift;
+     my $val  = shift;
+     $self->{UNFILLED_BARS} = $val;
    },
 
    # set the location of the plotting window on the page
@@ -1907,7 +1915,11 @@ sub bargraph {
   plwid  ($self->{LINEWIDTH});
 
   # draw bars
-  plfbox (PDL->sequence($xmax)+0.5, $values);
+  if ($self->{UNFILLED_BARS}) {
+    plunfbox (PDL->sequence($xmax)+0.5, $values);
+  } else {
+    plfbox (PDL->sequence($xmax)+0.5, $values);
+  }
 
   # set line width back
   plwid  (0);
@@ -2057,6 +2069,11 @@ DRAW_SIDES
 FACETED
 MESH
 
+# fonts
+
+PL_FCI_SANS
+PL_FCI_MONO
+
 # Input event (especially keyboard) definitions for use from plplot
 # event handlers.
 
@@ -2091,176 +2108,83 @@ GRID_NNAIDW
 
 EODEF
 
+create_low_level_constants (<<'EODEF') if ($plversion->{'c_pllegend'});
 
-# Read in a modified plplot.h file.  Define
-# a low-level perl interface to PLplot from these definitions.
-# This could be cleaner!!
-#
-# A sample output for one PLplot function:
-#
-# Input:
-#
-# void c_plenv(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLINT just, PLINT axis);
-#
-# Output:
-#
-# pp_def ('plenv',
-#	  Pars => 'xmin(); xmax(); ymin(); ymax(); int just(); int axis();',
-#	  GenericTypes => [D],
-#	  Code => 'c_plenv($xmin(),$xmax(),$ymin(),$ymax(),$just(),$axis());',
-#
-# In 'get' routines, (prefix = plg) all parameters have [o] added before, ie:
-#
-# void c_plglevel(PLINT *p_level);
-#
-# leads to:
-# pp_def ('plglevel',
-#	  Pars => 'int [o]p_level;',
-#	  GenericTypes => [D],
-#	  Code => 'c_plglevel($P(p_level));',
-#
-sub create_low_level {
+# Definitions for plslabelfunc
 
-# return; # use to short circuit creation of rest of interface for testing new additions.
+PL_X_AXIS
+PL_Y_AXIS
+PL_Z_AXIS
 
-# The input lines below are cut from plplot.h, but:
-# -- Only needed functions are included (none of the C/C++ only stuff)
-# -- all C function declarations are put onto one line for ease of parsing
+# Definitions for colorbar
 
-  my $defn = shift;
-  my @lines = split (/\n/, $defn);
+PL_COLORBAR_SHADE
+PL_COLORBAR_SHADE_LABEL
+PL_COLORBAR_IMAGE
+PL_COLORBAR_GRADIENT
+PL_COLORBAR_CAP_LOW
+PL_COLORBAR_CAP_HIGH
+PL_COLORBAR_LABEL_LEFT
+PL_COLORBAR_LABEL_RIGHT
+PL_COLORBAR_LABEL_TOP
+PL_COLORBAR_LABEL_BOTTOM
 
-  foreach (@lines) {
+# Definitions for pllegend
 
-    next if (/^\#/);  # Skip commented out lines
-    next if (/^\s*$/); # Skip blank lines
+PL_LEGEND_BACKGROUND
+PL_LEGEND_BOUNDING_BOX
+PL_LEGEND_COLOR_BOX
+PL_LEGEND_LINE
+PL_LEGEND_NONE
+PL_LEGEND_ROW_MAJOR
+PL_LEGEND_SYMBOL
+PL_LEGEND_TEXT_LEFT
+PL_POSITION_BOTTOM
+PL_POSITION_INSIDE
+PL_POSITION_LEFT
+PL_POSITION_OUTSIDE
+PL_POSITION_RIGHT
+PL_POSITION_SUBPAGE
+PL_POSITION_TOP
+PL_POSITION_VIEWPORT
 
-    # some functions change with plplot version.  If this function
-    # has a version specified, note it down.
-    my $req_vers = '';
-    if (/PLPLOT VERSION = (.*)/) {
-      $req_vers = $1;
-      print "This line: $_ only applies to version $req_vers\n" if ($debug);
-    }
+EODEF
 
-    print "$_\n" if ($debug);
-
-    my ($return_type, $func_name, $parms) = /^(\w+\**)\s+(\w+)\((.+)\)\;/;
-    (my $pfunc_name = $func_name) =~ s/c_//; # get rid of c_ in perl func names
-
-    my @parms = split (/,/, $parms);
-
-    my @vars  = ();
-    my @types = ();
-    my %output = ();
-    foreach $parm (@parms) {
-
-      my ($varname) = ($parm =~ /(\w+)$/);
-      $parm =~ s/$varname//; # parm now contains the full C type
-      $varname =~ s/0/zero/;
-      $varname =~ s/1/one/;
-      $varname =~ s/2/two/;
-      $varname =~ s/3/three/; # PP doe not like variable names containing numbers
-      $varname =~ s/int/in/;  # PP has trouble with variables starting with 'int'
-      $parm =~ s/const //;    # get rid of 'const' in C type
-      $parm =~ s/^\s+//;
-      $parm =~ s/\s+$//;      # get rid of white space from 'parm'
-
-      next if ($varname eq 'void');
-      push (@vars, $varname);
-      push (@types, $parm);
-
-    }
-
-    # skip bad version of plpoly3
-    next if (($pfunc_name eq 'plpoly3') and (@vars != $plpoly3));
-
-    # Now we have enough info to write out the dd_def.  All variables names are in
-    # @vars.  Matching types are in @types.  The name of the function is in
-    # $func_name and the perl name to call it is in $pfunc_name.
-
-    my @pars      = ();
-    my @code      = ();
-    my @otherpars = ();
-    my $output = ($pfunc_name =~ /^plg/); # flag: 1 = output routine.
-    for (my $i=0;$i<@vars;$i++) {
-
-      # determine Pars and OtherPars sections
-      my $var  = $vars[$i];
-      $var = "[o]$var" if ($output);
-      my $type = $types[$i];
-      my $dim  = ($type =~ tr/*/*/); # count of stars in type (PLFLT ** = 2D)
-      my $dimstr;
-      if    ($output || $dim == 0) { $dimstr = '()'; }
-      elsif ($dim == 1) { $dimstr = '(dima)'; }
-      elsif ($dim == 2) { $dimstr = '(dima,dimb)'; }
-
-      if ($type =~ /PLFLT/) {
-        push (@pars, "double $var$dimstr"); # double input variable
-      } elsif ($type =~ /PLINT/) {
-        push (@pars, "int $var$dimstr");    # integer input variable
-      } elsif ($type =~ /char\s*\*/) {  # char * input or output
-	push (@otherpars, "char *$vars[$i]");
-      } else {
-        die "unsupported type: $type";
-      }
-
-      # Determine Code section
-      if      ($type =~ /char\s*\*/) { # char * input or output
-        push (@code, "\$COMP($vars[$i])");
-      } elsif ($dim == 0) { # pass by value
-        push (@code, "\$$vars[$i]()");
-      } else {
-        push (@code, "\$P($vars[$i])");
-      }
-
-    }
-
-    # if there are no PDL parameters, some compilers cannot handle the
-    # pp_def ('foo', Pars => '') type definition.
-    # For these cases, we use plain XS.
-    if (@pars == 0) {
-      my $pars = join (',', @vars);
-      my $decl = '';
-      for (my $i=0;$i<@vars;$i++) {
-        $decl .= "\n\t$types[$i]\t$vars[$i]";
-      }
-      my $xsout = <<"EOC";
-void
-$pfunc_name($pars)$decl
-CODE:
-	$func_name($pars);
-EOC
-      print "$xsout" if ($debug);
-      pp_addxs ('', $xsout);
-      pp_add_exported('', $pfunc_name);
-
-    } else {
-
-      my $pars      = join (';', @pars);
-      my $otherpars = join (';', @otherpars);
-      my $code      = "$func_name(" . join (',', @code) . ");";
-
-      # do the definition
-      print "pp_def (\'$pfunc_name\',
-             GenericTypes => [D],
-             Pars => \'$pars\',
-             OtherPars => \'$otherpars\',
-             Code => \'$code\'
-            );
-
-            " if ($debug);
-
-      pp_def ($pfunc_name,
- 	      GenericTypes => [D],
-              Pars => $pars,
-              OtherPars => $otherpars,
-              Code => $code);
-    }
-
+# This subroutine is used to reorder PP_DEF arguments into the
+# standard plplot order.  This is necessary for some plplot functions
+# with a mixture of PDL and non-PDL arguments, since pp_def requires
+# all non-PDL (OtherPars) arguments to go at the end of the argument list
+pp_addpm (<<'EOPM');
+sub reorder {
+  my $name = shift;
+  my %reorder = (
+                 plaxes       => [0,1,6,2,3,7,4,5],
+		 plbox        => [4,0,1,5,2,3], # 4th arg -> 0th arg, 0th arg -> 1st arg, etc
+                 plbox3       => [6,7,0,1,8,9,2,3,10,11,4,5],
+                 plmtex       => [3,0,1,2,4],
+                 plmtex3      => [3,0,1,2,4],
+                 plstart      => [2,0,1],
+                 plstripc     => [13,14,0,1,2,3,4,5,6,7,8,9,10,11,12,15,16,17,18],
+                 plmap        => [4,5,0,1,2,3],
+                 plmeridians  => [6,0,1,2,3,4,5],
+                 plshades     => [0,10,1,2,3,4,5,6,7,8,9,11,12],
+                 plshade1     => [0,15,1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,17],
+		);
+  my $ordering = $reorder{$name};
+  die "Cannot find argument reordering for $name" if (!defined($ordering));
+  my @out;
+  for (my $i=0;$i<@_;$i++) {
+    $out[$$ordering[$i]] = $_[$i];
   }
-
+  return @out;
 }
+
+# Routine for users to set normal plplot argument order
+sub plplot_use_standard_argument_order {
+  $PDL::Graphics::PLplot::standard_order = shift;
+}
+EOPM
+pp_add_exported('plplot_use_standard_argument_order');
 
 =head1 LOW-LEVEL INTERFACE
 =cut
@@ -2274,46 +2198,61 @@ Users are referred to the PLplot User's Manual, distributed with the source
 PLplot tarball.  This manual is also available on-line at the PLplot web
 site (L<http://www.plplot.org/>).
 
-There are though two differences in way the functions are called.  The first
+There are three differences in the way the functions are called.  The first
 one is due to a limitation in the pp_def wrapper of PDL, which forces all
 the non-piddle arguments to be at the end of the arguments list.  It is
 the case of strings (C<char *>) arguments in the C API.  This affects the
-following functions [shown below with their prototypes in PDL, with
-arguments preceded by "(pdl)" are piddle-convertible; see the PLplot manual
-for the meaning of the arguments]:
+following functions:
 
-  plaxes ((pdl) x0, (pdl) y0, (pdl) xtick, (pdl) nxsub, (pdl) ytick,
-          (pdl) nysub, (string) xopt, (string (yopt))
-  plbox ((pdl) xtick, (pdl) nxsub, (pdl) ytick, (pdl) nysub,
-         (string) xopt, (string) yopt)
-  plbox3 ((pdl) xtick, (pdl) nsubx, (pdl) ytick, (pdl) nsuby,
-          (pdl) ztick, (pdl) nsubz, (string) xopt, (string) xlabel,
-	  (string) yopt, (string) ylabel, (string) zopt,
-	  (string) zlabel)
-  plmtex ((pdl) disp, (pdl) pos, (pdl) just, (string) side),
-          (string) text);
-  plstart ((pdl) nx, (pdl) ny, (string) devname);
+plaxes
+plbox
+plbox3
+plmtex
+plmtex3
+plstart
+plstripc
+plmap
+plmeridians
+plshades
+plshade1
+
+This difference can be got around by a call to
+
+plplot_use_standard_argument_order(1);
+
+This re-arranges the string arguments to their proper/intuitive position
+compared with the C plplot interface.  This can be restored to it's default
+by calling:
+
+plplot_use_standard_argument_order(0);
 
 The second notable different between the C and the PDL APIs is that many of
 the PDL calls do not need arguments to specify the size of the the vectors
-and/or matrices being passed.  This size parameters are deduced from the
-size of the piddles, when possible.  For now, the following interfaces are
-affected:
+and/or matrices being passed.  These size parameters are deduced from the
+size of the piddles, when possible and are just omitted from the C call
+when translating it to perl.
 
-  plcont (f, kx, lx, ky, ly, clevel)
-  plfill (x, y)
-  plhist (data, datmin, datmax, nbin, oldwin)
-  plline (x, y)
-  plline3 (x, y, z)
-  plpoly3 (x, y, z, draw, ifcc)
-  plmesh (x, y, z, opt)
-  plmeshc (x, y, z, opt, clevel)
-  plot3d (x, y, z, opt, side)
-  plpoin (x, y, code)
-  plpoin3 (x, y, z, code)
-  plscmap1l (itype, intensity, coord1, coord2, coord3, rev)
-  plstyl (mark, space)
-  plsym (x, y, code)
+The third difference has to do with output parameters.  In C these are
+passed in with the input parameters.  In the perl interface, they are omitted.
+For example:
+
+C:
+
+  pllegend(&p_legend_width, &p_legend_height,
+           opt, position, x, y, plot_width, bg_color, bb_color, bb_style, nrow, ncolumn, nlegend,
+           opt_array,
+           text_offset, text_scale, text_spacing, text_justification,
+           text_colors, (const char **)text, box_colors, box_patterns, box_scales, box_line_widths,
+           line_colors, line_styles, line_widths, symbol_colors, symbol_scales, symbol_numbers, (const char **)symbols);
+
+perl:
+
+  my ($legend_width, $legend_height) = 
+    pllegend ($position, $opt, $x, $y, $plot_width, $bg_color, $nlegend,
+    \@opt_array,
+    $text_offset, $text_scale, $text_spacing, $test_justification,
+    \@text_colors, \@text, \@box_colors, \@box_patterns, \@box_scales, \@line_colors,
+    \@line_styles, \@line_widths, \@symbol_colors, \@symbol_scales, \@symbol_numbers, \@symbols);
 
 Some of the API functions implemented in PDL have other specificities in
 comparison with the C API and will be discussed below.
@@ -2322,145 +2261,818 @@ comparison with the C API and will be discussed below.
 
 EOPM
 
-#-------------------------------------------------------------------------
-# Create low level interface from edited PLplot header file.
-#-------------------------------------------------------------------------
+pp_def ('pladv',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int page()',
+	OtherPars => '',
+	Code => 'c_pladv($page());'
+       );
 
-create_low_level (<<'EODEF');
-void c_pladv(PLINT page);
-void plarrows(PLFLT *u, PLFLT *v, PLFLT *x, PLFLT *y, PLINT n, PLFLT scale, PLFLT dx, PLFLT dy);
-void c_plaxes(PLFLT x0, PLFLT y0, const char *xopt, PLFLT xtick, PLINT nxsub, const char *yopt, PLFLT ytick, PLINT nysub);
-void c_plbin(PLINT nbin, PLFLT *x, PLFLT *y, PLINT center);
-void c_plbop(void);
-void c_plbox(const char *xopt, PLFLT xtick, PLINT nxsub, const char *yopt, PLFLT ytick, PLINT nysub);
-void c_plbox3(const char *xopt, const char *xlabel, PLFLT xtick, PLINT nsubx, const char *yopt, const char *ylabel, PLFLT ytick, PLINT nsuby, const char *zopt, const char *zlabel, PLFLT ztick, PLINT nsubz);
-#void c_plxormod(PLINT mode, PLINT *status);
-void c_plclear(void);
-void c_plcol0(PLINT icol0);
-void c_plcol1(PLFLT col1);
-void c_plcpstrm(PLINT iplsr, PLINT flags);
-void pldid2pc(PLFLT *xmin, PLFLT *ymin, PLFLT *xmax, PLFLT *ymax);
-void pldip2dc(PLFLT *xmin, PLFLT *ymin, PLFLT *xmax, PLFLT *ymax);
-void c_plend(void);
-void c_plend1(void);
-void c_plenv(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLINT just, PLINT axis);
-void c_plenv0(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLINT just, PLINT axis);
-void c_pleop(void);
-void c_plerrx(PLINT n, PLFLT *xmin, PLFLT *xmax, PLFLT *y);
-void c_plerry(PLINT n, PLFLT *x, PLFLT *ymin, PLFLT *ymax);
-void c_plfamadv(void);
-#void c_plfill(PLINT n, PLFLT *x, PLFLT *y);
-void c_plfill3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z);
-void c_plflush(void);
-void c_plfont(PLINT ifont);
-void c_plfontld(PLINT fnt);
-void c_plgchr(PLFLT *p_def, PLFLT *p_ht);
-void c_plgcompression(PLINT *compression);
-#void c_plgdev(char *p_dev);
-void c_plgdidev(PLFLT *p_mar, PLFLT *p_aspect, PLFLT *p_jx, PLFLT *p_jy);
-void c_plgdiori(PLFLT *p_rot);
-void c_plgdiplt(PLFLT *p_xmin, PLFLT *p_ymin, PLFLT *p_xmax, PLFLT *p_ymax);
-void c_plgfam(PLINT *p_fam, PLINT *p_num, PLINT *p_bmax);
-#void c_plgfnam(char *fnam);
-void c_plglevel(PLINT *p_level);
-void c_plgpage(PLFLT *p_xp, PLFLT *p_yp,PLINT *p_xleng, PLINT *p_yleng, PLINT *p_xoff, PLINT *p_yoff);
-void c_plgra(void);
-void c_plgspa(PLFLT *xmin, PLFLT *xmax, PLFLT *ymin, PLFLT *ymax);
-void c_plgvpd(PLFLT *p_xmin, PLFLT *p_xmax, PLFLT *p_ymin, PLFLT *p_ymax);
-void c_plgvpw(PLFLT *p_xmin, PLFLT *p_xmax, PLFLT *p_ymin, PLFLT *p_ymax);
-#void c_plgstrm(PLINT *p_strm);
-#void c_plgver(char *p_ver);
-void c_plgxax(PLINT *p_digmax, PLINT *p_digits);
-void c_plgyax(PLINT *p_digmax, PLINT *p_digits);
-void c_plgzax(PLINT *p_digmax, PLINT *p_digits);
-#void c_plhist(PLINT n, PLFLT *data, PLFLT datmin, PLFLT datmax, PLINT nbin, PLINT oldwin);
-void c_plhls(PLFLT h, PLFLT l, PLFLT s);
-#void c_plhlsrgb(PLFLT h, PLFLT l, PLFLT s, PLFLT *p_r, PLFLT *p_g, PLFLT *p_b); # implemented below
-void c_plinit(void);
-void c_pljoin(PLFLT x1, PLFLT y1, PLFLT x2, PLFLT y2);
-void c_pllab(const char *xlabel, const char *ylabel, const char *tlabel);
-void c_pllightsource(PLFLT x, PLFLT y, PLFLT z);
-#void c_plline(PLINT n, PLFLT *x, PLFLT *y); # defined below with bad value support
-#void c_plline3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z);
-void c_pllsty(PLINT lin);
-#void c_plmesh(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT opt); # must handle ** parms separately
-#void c_plmkstrm(PLINT *p_strm);
-void c_plmtex(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *text);
-void c_plmtex3(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *text);
-#void c_plot3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT opt, PLINT side); # must handle ** parms separately
-#void c_plotsh3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT side); # must handle ** parms separately
-void c_plpat(PLINT nlin, PLINT *inc, PLINT *del);
-#void c_plpoin(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
-#void c_plpoin3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT code);
-#void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw, PLINT ifcc);
-void c_plprec(PLINT setp, PLINT prec);
-void c_plpsty(PLINT patt);
-void c_plptex(PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just, const char *text);
-void c_plptex3(PLFLT x, PLFLT y, PLFLT z, PLFLT dx, PLFLT dy, PLFLT dz, PLFLT sx, PLFLT sy, PLFLT sz, PLFLT just, const char *text);
-void c_plreplot(void);
-void c_plrgb(PLFLT r, PLFLT g, PLFLT b);
-void c_plrgb1(PLINT r, PLINT g, PLINT b);
-void c_plschr(PLFLT def, PLFLT scale);
-void c_plscmap0n(PLINT ncol0);
-void c_plscmap1n(PLINT ncol1);
-void c_plscol0(PLINT icol0, PLINT r, PLINT g, PLINT b);
-void c_plscolbg(PLINT r, PLINT g, PLINT b);
-void c_plscolor(PLINT color);
-void c_plscompression(PLINT compression);
-void c_plsdev(const char *devname);
-void c_plsdidev(PLFLT mar, PLFLT aspect, PLFLT jx, PLFLT jy);
-void c_plsdimap(PLINT dimxmin, PLINT dimxmax, PLINT dimymin, PLINT dimymax, PLFLT dimxpmm, PLFLT dimypmm);
-void c_plsdiori(PLFLT rot);
-void c_plsdiplt(PLFLT xmin, PLFLT ymin, PLFLT xmax, PLFLT ymax);
-void c_plsdiplz(PLFLT xmin, PLFLT ymin, PLFLT xmax, PLFLT ymax);
-void c_pl_setcontlabelparam(PLFLT offset, PLFLT size, PLFLT spacing, PLINT active);
-void c_pl_setcontlabelformat(PLINT lexp, PLINT sigdig);
-void c_plsfam(PLINT fam, PLINT num, PLINT bmax);
-void c_plsfnam(const char *fnam);
-void c_plsmaj(PLFLT def, PLFLT scale);
-void c_plsmin(PLFLT def, PLFLT scale);
-void c_plsori(PLINT ori);
-void c_plspage(PLFLT xp, PLFLT yp, PLINT xleng, PLINT yleng, PLINT xoff, PLINT yoff);
-void c_plspause(PLINT pause);
-void c_plsstrm(PLINT strm);
-void c_plssub(PLINT nx, PLINT ny);
-void c_plssym(PLFLT def, PLFLT scale);
-void c_plstar(PLINT nx, PLINT ny);
-void c_plstart(const char *devname, PLINT nx, PLINT ny);
-void c_plstripa(PLINT id, PLINT pen, PLFLT x, PLFLT y);
-void c_plstripd(PLINT id);
-#void c_plstyl(PLINT nms, PLINT *mark, PLINT *space);
-void c_plsvpa(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax);
-void c_plsxax(PLINT digmax, PLINT digits);
-void plsxwin(PLINT window_id);
-void c_plsyax(PLINT digmax, PLINT digits);
-#void c_plsym(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
-void c_plszax(PLINT digmax, PLINT digits);
-void c_pltext(void);
-void c_plvasp(PLFLT aspect);
-void c_plvpas(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLFLT aspect);
-void c_plvpor(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax);
-void c_plvsta(void);
-void c_plw3d(PLFLT basex, PLFLT basey, PLFLT height, PLFLT xmin0, PLFLT xmax0, PLFLT ymin0, PLFLT ymax0, PLFLT zmin0, PLFLT zmax0, PLFLT alt, PLFLT az);
-void c_plwid(PLINT width);
-void c_plwind(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax);
-void c_plsetopt(char *opt, char *optarg);
-void plP_gpixmm(PLFLT *p_x, PLFLT *p_y);
-#void c_pltimefmt(const char *fmt);
-EODEF
+sub plaxes { plaxes_pp ($standard_order ? reorder ('plaxes', @_) : @_) } pp_add_exported('plaxes');
+pp_def ('plaxes_pp',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xzero();double yzero();double xtick();int nxsub();double ytick();int nysub()',
+	OtherPars => 'char *xopt;char *yopt',
+	Code => 'c_plaxes($xzero(),$yzero(),$COMP(xopt),$xtick(),$nxsub(),$COMP(yopt),$ytick(),$nysub());'
+       );
 
-#-------------------------------------------------------------------------
-# take care of low-level funcs available in 5.9.0 (not all are
-# alpha-specific, but it's an adequate canary. Eliminate this chunk
-# and uncomment the lines above when we require at least PLplot 5.9.0.
-# -------------------------------------------------------------------------
-unless ($noalpha){
-  create_low_level (<<'EODEF');
-void c_pltimefmt(const char *fmt);
-void c_plscolbga(PLINT r, PLINT g, PLINT b, PLFLT a);
-void c_plscol0a(PLINT icol0, PLINT r, PLINT g, PLINT b, PLFLT a);
-EODEF
-}
+pp_def ('plbin',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int nbin();double x(dima);double y(dima);int center()',
+	OtherPars => '',
+	Code => 'c_plbin($nbin(),$P(x),$P(y),$center());'
+       );
+
+pp_addxs (<<"EOC");
+void
+plbop()
+CODE:
+	c_plbop();
+
+EOC
+pp_add_exported('plbop');
+
+pp_addpm ('sub plbox { plbox_pp ($standard_order ? reorder ("plbox", @_) : @_) }'); pp_add_exported('plbox');
+pp_def ('plbox_pp',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xtick();int nxsub();double ytick();int nysub()',
+	OtherPars => 'char *xopt;char *yopt',
+	Code => 'c_plbox($COMP(xopt),$xtick(),$nxsub(),$COMP(yopt),$ytick(),$nysub());'
+       );
+
+pp_addpm ('sub plbox3 { plbox3_pp ($standard_order ? reorder ("plbox3", @_) : @_) }'); pp_add_exported('plbox3');
+pp_def ('plbox3_pp',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xtick();int nsubx();double ytick();int nsuby();double ztick();int nsubz()',
+	OtherPars => 'char *xopt;char *xlabel;char *yopt;char *ylabel;char *zopt;char *zlabel',
+	Code => 'c_plbox3($COMP(xopt),$COMP(xlabel),$xtick(),$nsubx(),$COMP(yopt),$COMP(ylabel),$ytick(),$nsuby(),$COMP(zopt),$COMP(zlabel),$ztick(),$nsubz());'
+       );
+
+pp_addxs (<<"EOC");
+void
+plclear()
+CODE:
+	c_plclear();
+
+EOC
+pp_add_exported('plclear');
+
+pp_def ('plcol0',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int icolzero()',
+	OtherPars => '',
+	Code => 'c_plcol0($icolzero());'
+       );
+
+pp_def ('plcol1',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double colone()',
+	OtherPars => '',
+	Code => 'c_plcol1($colone());'
+       );
+
+pp_def ('plcpstrm',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int iplsr();int flags()',
+	OtherPars => '',
+	Code => 'c_plcpstrm($iplsr(),$flags());'
+       );
+
+pp_def ('pldid2pc',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin(dima);double ymin(dima);double xmax(dima);double ymax(dima)',
+	OtherPars => '',
+	Code => 'pldid2pc($P(xmin),$P(ymin),$P(xmax),$P(ymax));'
+       );
+
+pp_def ('pldip2dc',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin(dima);double ymin(dima);double xmax(dima);double ymax(dima)',
+	OtherPars => '',
+	Code => 'pldip2dc($P(xmin),$P(ymin),$P(xmax),$P(ymax));'
+       );
+
+pp_addxs (<<"EOC");
+void
+plend()
+CODE:
+	c_plend();
+
+EOC
+pp_add_exported('plend');
+
+pp_addxs (<<"EOC");
+void
+plend1()
+CODE:
+	c_plend1();
+
+EOC
+pp_add_exported('plend1');
+
+pp_def ('plenv',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin();double xmax();double ymin();double ymax();int just();int axis()',
+	OtherPars => '',
+	Code => 'c_plenv($xmin(),$xmax(),$ymin(),$ymax(),$just(),$axis());'
+       );
+
+pp_def ('plenv0',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin();double xmax();double ymin();double ymax();int just();int axis()',
+	OtherPars => '',
+	Code => 'c_plenv0($xmin(),$xmax(),$ymin(),$ymax(),$just(),$axis());'
+       );
+
+pp_addxs (<<"EOC");
+void
+pleop()
+CODE:
+	c_pleop();
+
+EOC
+pp_add_exported('pleop');
+
+pp_def ('plerrx',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int n();double xmin(dima);double xmax(dima);double y(dima)',
+	OtherPars => '',
+	Code => 'c_plerrx($n(),$P(xmin),$P(xmax),$P(y));'
+       );
+
+pp_def ('plerry',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int n();double x(dima);double ymin(dima);double ymax(dima)',
+	OtherPars => '',
+	Code => 'c_plerry($n(),$P(x),$P(ymin),$P(ymax));'
+       );
+
+pp_addxs (<<"EOC");
+void
+plfamadv()
+CODE:
+	c_plfamadv();
+
+EOC
+pp_add_exported('plfamadv');
+
+pp_def ('plfill3',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int n();double x(dima);double y(dima);double z(dima)',
+	OtherPars => '',
+	Code => 'c_plfill3($n(),$P(x),$P(y),$P(z));'
+       );
+
+pp_addxs (<<"EOC");
+void
+plflush()
+CODE:
+	c_plflush();
+
+EOC
+pp_add_exported('plflush');
+
+pp_def ('plfont',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int ifont()',
+	OtherPars => '',
+	Code => 'c_plfont($ifont());'
+       );
+
+pp_def ('plfontld',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int fnt()',
+	OtherPars => '',
+	Code => 'c_plfontld($fnt());'
+       );
+
+pp_def ('plgchr',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double [o]p_def();double [o]p_ht()',
+	OtherPars => '',
+	Code => 'c_plgchr($P(p_def),$P(p_ht));'
+       );
+
+pp_def ('plgcompression',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int [o]compression()',
+	OtherPars => '',
+	Code => 'c_plgcompression($P(compression));'
+       );
+
+pp_def ('plgdidev',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double [o]p_mar();double [o]p_aspect();double [o]p_jx();double [o]p_jy()',
+	OtherPars => '',
+	Code => 'c_plgdidev($P(p_mar),$P(p_aspect),$P(p_jx),$P(p_jy));'
+       );
+
+pp_def ('plgdiori',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double [o]p_rot()',
+	OtherPars => '',
+	Code => 'c_plgdiori($P(p_rot));'
+       );
+
+pp_def ('plgdiplt',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double [o]p_xmin();double [o]p_ymin();double [o]p_xmax();double [o]p_ymax()',
+	OtherPars => '',
+	Code => 'c_plgdiplt($P(p_xmin),$P(p_ymin),$P(p_xmax),$P(p_ymax));'
+       );
+
+pp_def ('plgfam',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int [o]p_fam();int [o]p_num();int [o]p_bmax()',
+	OtherPars => '',
+	Code => 'c_plgfam($P(p_fam),$P(p_num),$P(p_bmax));'
+       );
+
+pp_def ('plglevel',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int [o]p_level()',
+	OtherPars => '',
+	Code => 'c_plglevel($P(p_level));'
+       );
+
+pp_def ('plgpage',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double [o]p_xp();double [o]p_yp();int [o]p_xleng();int [o]p_yleng();int [o]p_xoff();int [o]p_yoff()',
+	OtherPars => '',
+	Code => 'c_plgpage($P(p_xp),$P(p_yp),$P(p_xleng),$P(p_yleng),$P(p_xoff),$P(p_yoff));'
+       );
+
+pp_addxs (<<"EOC");
+void
+plgra()
+CODE:
+	c_plgra();
+
+EOC
+pp_add_exported('plgra');
+
+pp_def ('plgspa',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double [o]xmin();double [o]xmax();double [o]ymin();double [o]ymax()',
+	OtherPars => '',
+	Code => 'c_plgspa($P(xmin),$P(xmax),$P(ymin),$P(ymax));'
+       );
+
+pp_def ('plgvpd',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double [o]p_xmin();double [o]p_xmax();double [o]p_ymin();double [o]p_ymax()',
+	OtherPars => '',
+	Code => 'c_plgvpd($P(p_xmin),$P(p_xmax),$P(p_ymin),$P(p_ymax));'
+       );
+
+pp_def ('plgvpw',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double [o]p_xmin();double [o]p_xmax();double [o]p_ymin();double [o]p_ymax()',
+	OtherPars => '',
+	Code => 'c_plgvpw($P(p_xmin),$P(p_xmax),$P(p_ymin),$P(p_ymax));'
+       );
+
+pp_def ('plgxax',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int [o]p_digmax();int [o]p_digits()',
+	OtherPars => '',
+	Code => 'c_plgxax($P(p_digmax),$P(p_digits));'
+       );
+
+pp_def ('plgyax',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int [o]p_digmax();int [o]p_digits()',
+	OtherPars => '',
+	Code => 'c_plgyax($P(p_digmax),$P(p_digits));'
+       );
+
+pp_def ('plgzax',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int [o]p_digmax();int [o]p_digits()',
+	OtherPars => '',
+	Code => 'c_plgzax($P(p_digmax),$P(p_digits));'
+       );
+
+pp_addxs (<<"EOC");
+void
+plinit()
+CODE:
+	c_plinit();
+
+EOC
+pp_add_exported('plinit');
+
+pp_def ('pljoin',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xone();double yone();double xtwo();double ytwo()',
+	OtherPars => '',
+	Code => 'c_pljoin($xone(),$yone(),$xtwo(),$ytwo());'
+       );
+
+pp_addxs (<<"EOC");
+void
+pllab(xlabel,ylabel,tlabel)
+	char *	xlabel
+	char *	ylabel
+	char *	tlabel
+CODE:
+	c_pllab(xlabel,ylabel,tlabel);
+
+EOC
+pp_add_exported('pllab');
+
+pp_def ('pllightsource',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double x();double y();double z()',
+	OtherPars => '',
+	Code => 'c_pllightsource($x(),$y(),$z());'
+       );
+
+pp_def ('pllsty',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int lin()',
+	OtherPars => '',
+	Code => 'c_pllsty($lin());'
+       );
+
+pp_addpm ('sub plmtex { plmtex_pp ($standard_order ? reorder ("plmtex", @_) : @_) }'); pp_add_exported('plmtex');
+pp_def ('plmtex_pp',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double disp();double pos();double just()',
+	OtherPars => 'char *side;char *text',
+	Code => 'c_plmtex($COMP(side),$disp(),$pos(),$just(),$COMP(text));'
+       );
+
+pp_addpm ('sub plmtex3 { plmtex3_pp ($standard_order ? reorder ("plmtex3", @_) : @_) }'); pp_add_exported('plmtex3');
+pp_def ('plmtex3_pp',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double disp();double pos();double just()',
+	OtherPars => 'char *side;char *text',
+	Code => 'c_plmtex3($COMP(side),$disp(),$pos(),$just(),$COMP(text));'
+       );
+
+pp_def ('plpat',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int nlin();int inc(dima);int del(dima)',
+	OtherPars => '',
+	Code => 'c_plpat($nlin(),$P(inc),$P(del));'
+       );
+
+pp_def ('plprec',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int setp();int prec()',
+	OtherPars => '',
+	Code => 'c_plprec($setp(),$prec());'
+       );
+
+pp_def ('plpsty',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int patt()',
+	OtherPars => '',
+	Code => 'c_plpsty($patt());'
+       );
+
+pp_def ('plptex',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double x();double y();double dx();double dy();double just()',
+	OtherPars => 'char *text',
+	Code => 'c_plptex($x(),$y(),$dx(),$dy(),$just(),$COMP(text));'
+       );
+
+pp_def ('plptex3',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double x();double y();double z();double dx();double dy();double dz();double sx();double sy();double sz();double just()',
+	OtherPars => 'char *text',
+	Code => 'c_plptex3($x(),$y(),$z(),$dx(),$dy(),$dz(),$sx(),$sy(),$sz(),$just(),$COMP(text));'
+       );
+
+pp_addxs (<<"EOC");
+void
+plreplot()
+CODE:
+	c_plreplot();
+
+EOC
+pp_add_exported('plreplot');
+
+pp_def ('plschr',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double def();double scale()',
+	OtherPars => '',
+	Code => 'c_plschr($def(),$scale());'
+       );
+
+pp_def ('plscmap0n',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int ncolzero()',
+	OtherPars => '',
+	Code => 'c_plscmap0n($ncolzero());'
+       );
+
+pp_def ('plscmap1n',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int ncolone()',
+	OtherPars => '',
+	Code => 'c_plscmap1n($ncolone());'
+       );
+
+pp_def ('plscol0',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int icolzero();int r();int g();int b()',
+	OtherPars => '',
+	Code => 'c_plscol0($icolzero(),$r(),$g(),$b());'
+       );
+
+pp_def ('plscolbg',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int r();int g();int b()',
+	OtherPars => '',
+	Code => 'c_plscolbg($r(),$g(),$b());'
+       );
+
+pp_def ('plscolor',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int color()',
+	OtherPars => '',
+	Code => 'c_plscolor($color());'
+       );
+
+pp_def ('plscompression',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int compression()',
+	OtherPars => '',
+	Code => 'c_plscompression($compression());'
+       );
+
+pp_addxs (<<"EOC");
+void
+plsdev(devname)
+	char *	devname
+CODE:
+	c_plsdev(devname);
+
+EOC
+pp_add_exported('plsdev');
+
+pp_def ('plsdidev',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double mar();double aspect();double jx();double jy()',
+	OtherPars => '',
+	Code => 'c_plsdidev($mar(),$aspect(),$jx(),$jy());'
+       );
+
+pp_def ('plsdimap',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int dimxmin();int dimxmax();int dimymin();int dimymax();double dimxpmm();double dimypmm()',
+	OtherPars => '',
+	Code => 'c_plsdimap($dimxmin(),$dimxmax(),$dimymin(),$dimymax(),$dimxpmm(),$dimypmm());'
+       );
+
+pp_def ('plsdiori',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double rot()',
+	OtherPars => '',
+	Code => 'c_plsdiori($rot());'
+       );
+
+pp_def ('plsdiplt',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin();double ymin();double xmax();double ymax()',
+	OtherPars => '',
+	Code => 'c_plsdiplt($xmin(),$ymin(),$xmax(),$ymax());'
+       );
+
+pp_def ('plsdiplz',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin();double ymin();double xmax();double ymax()',
+	OtherPars => '',
+	Code => 'c_plsdiplz($xmin(),$ymin(),$xmax(),$ymax());'
+       );
+
+pp_def ('pl_setcontlabelparam',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double offset();double size();double spacing();int active()',
+	OtherPars => '',
+	Code => 'c_pl_setcontlabelparam($offset(),$size(),$spacing(),$active());'
+       );
+
+pp_def ('pl_setcontlabelformat',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int lexp();int sigdig()',
+	OtherPars => '',
+	Code => 'c_pl_setcontlabelformat($lexp(),$sigdig());'
+       );
+
+pp_def ('plsfam',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int fam();int num();int bmax()',
+	OtherPars => '',
+	Code => 'c_plsfam($fam(),$num(),$bmax());'
+       );
+
+pp_addxs (<<"EOC");
+void
+plsfnam(fnam)
+	char *	fnam
+CODE:
+	c_plsfnam(fnam);
+
+EOC
+pp_add_exported('plsfnam');
+
+pp_def ('plsmaj',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double def();double scale()',
+	OtherPars => '',
+	Code => 'c_plsmaj($def(),$scale());'
+       );
+
+pp_def ('plsmin',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double def();double scale()',
+	OtherPars => '',
+	Code => 'c_plsmin($def(),$scale());'
+       );
+
+pp_def ('plsori',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int ori()',
+	OtherPars => '',
+	Code => 'c_plsori($ori());'
+       );
+
+pp_def ('plspage',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xp();double yp();int xleng();int yleng();int xoff();int yoff()',
+	OtherPars => '',
+	Code => 'c_plspage($xp(),$yp(),$xleng(),$yleng(),$xoff(),$yoff());'
+       );
+
+pp_def ('plspause',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int pause()',
+	OtherPars => '',
+	Code => 'c_plspause($pause());'
+       );
+
+pp_def ('plsstrm',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int strm()',
+	OtherPars => '',
+	Code => 'c_plsstrm($strm());'
+       );
+
+pp_def ('plssub',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int nx();int ny()',
+	OtherPars => '',
+	Code => 'c_plssub($nx(),$ny());'
+       );
+
+pp_def ('plssym',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double def();double scale()',
+	OtherPars => '',
+	Code => 'c_plssym($def(),$scale());'
+       );
+
+pp_def ('plstar',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int nx();int ny()',
+	OtherPars => '',
+	Code => 'c_plstar($nx(),$ny());'
+       );
+
+pp_addpm ('sub plstart { plstart_pp ($standard_order ? reorder ("plstart", @_) : @_) }'); pp_add_exported('plstart');
+pp_def ('plstart_pp',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int nx();int ny()',
+	OtherPars => 'char *devname',
+	Code => 'c_plstart($COMP(devname),$nx(),$ny());'
+       );
+
+pp_def ('plstripa',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int id();int pen();double x();double y()',
+	OtherPars => '',
+	Code => 'c_plstripa($id(),$pen(),$x(),$y());'
+       );
+
+pp_def ('plstripd',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int id()',
+	OtherPars => '',
+	Code => 'c_plstripd($id());'
+       );
+
+pp_def ('plsvpa',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin();double xmax();double ymin();double ymax()',
+	OtherPars => '',
+	Code => 'c_plsvpa($xmin(),$xmax(),$ymin(),$ymax());'
+       );
+
+pp_def ('plsxax',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int digmax();int digits()',
+	OtherPars => '',
+	Code => 'c_plsxax($digmax(),$digits());'
+       );
+
+pp_def ('plsxwin',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int window_id()',
+	OtherPars => '',
+	Code => 'plsxwin($window_id());'
+       );
+
+pp_def ('plsyax',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int digmax();int digits()',
+	OtherPars => '',
+	Code => 'c_plsyax($digmax(),$digits());'
+       );
+
+pp_def ('plszax',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int digmax();int digits()',
+	OtherPars => '',
+	Code => 'c_plszax($digmax(),$digits());'
+       );
+
+pp_addxs (<<"EOC");
+void
+pltext()
+CODE:
+	c_pltext();
+
+EOC
+pp_add_exported('pltext');
+
+pp_def ('plvasp',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double aspect()',
+	OtherPars => '',
+	Code => 'c_plvasp($aspect());'
+       );
+
+pp_def ('plvpas',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin();double xmax();double ymin();double ymax();double aspect()',
+	OtherPars => '',
+	Code => 'c_plvpas($xmin(),$xmax(),$ymin(),$ymax(),$aspect());'
+       );
+
+pp_def ('plvpor',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin();double xmax();double ymin();double ymax()',
+	OtherPars => '',
+	Code => 'c_plvpor($xmin(),$xmax(),$ymin(),$ymax());'
+       );
+
+pp_addxs (<<"EOC");
+void
+plvsta()
+CODE:
+	c_plvsta();
+EOC
+
+pp_add_exported('plvsta');
+
+pp_def ('plw3d',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double basex();double basey();double height();double xminzero();double xmaxzero();double yminzero();double ymaxzero();double zminzero();double zmaxzero();double alt();double az()',
+	OtherPars => '',
+	Code => 'c_plw3d($basex(),$basey(),$height(),$xminzero(),$xmaxzero(),$yminzero(),$ymaxzero(),$zminzero(),$zmaxzero(),$alt(),$az());'
+       );
+
+pp_def ('plwid',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int width()',
+	OtherPars => '',
+	Code => 'c_plwid($width());'
+       );
+
+pp_def ('plwind',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double xmin();double xmax();double ymin();double ymax()',
+	OtherPars => '',
+	Code => 'c_plwind($xmin(),$xmax(),$ymin(),$ymax());'
+       );
+
+pp_addxs (<<"EOC");
+void
+plsetopt(opt,optarg)
+	char *	opt
+	char *	optarg
+CODE:
+	c_plsetopt(opt,optarg);
+
+EOC
+pp_add_exported('plsetopt');
+
+pp_def ('plP_gpixmm',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'double p_x(dima);double p_y(dima)',
+	OtherPars => '',
+	Code => 'plP_gpixmm($P(p_x),$P(p_y));'
+       );
+
+pp_def ('plscolbga',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int r();int g();int b();double a()',
+	OtherPars => '',
+	Code => 'c_plscolbga($r(),$g(),$b(),$a());'
+       );
+
+pp_def ('plscol0a',
+        NoPthread => 1,
+	GenericTypes => [D],
+	Pars => 'int icolzero();int r();int g();int b();double a()',
+	OtherPars => '',
+	Code => 'c_plscol0a($icolzero(),$r(),$g(),$b(),$a());'
+       );
 
 # C routine to draw lines with gaps.  This is useful for map continents and other things.
 =head2 plline
@@ -2500,16 +3112,16 @@ For example:
  plline($x, $y);
 
 =cut
-
 EOD
 
 pp_def ('plline',
-         Pars => 'x(n); y(n)',
-         GenericTypes => [D],
-         HandleBad => 1,
-         NoBadifNaN => 1,
-         Code => 'c_plline($SIZE(n),$P(x),$P(y));',
-         BadCode => 'int i;
+        NoPthread => 1,
+	Pars => 'x(n); y(n)',
+	GenericTypes => [D],
+	HandleBad => 1,
+	NoBadifNaN => 1,
+	Code => 'c_plline($SIZE(n),$P(x),$P(y));',
+	BadCode => 'int i;
                      int j;
                      for (i=1;i<$SIZE(n);i++) {
                        j = i-1;	/* PP does not like using i-1 in a PDL ref.  Use j instead. */
@@ -2517,8 +3129,8 @@ pp_def ('plline',
                          c_pljoin ($x(n=>j), $y(n=>j), $x(n=>i), $y(n=>i));
                        }
                      }',
-         Doc => $doc,
-        );
+	Doc => $doc,
+       );
 
 =head2 plcolorpoints
 =cut
@@ -2557,6 +3169,7 @@ EOD
 
 # C routine to draw points with a color scale
 pp_def ('plcolorpoints',
+        NoPthread => 1,
          Pars => 'x(n); y(n); z(n); int sym(); minz(); maxz()',
          GenericTypes => [D],
          HandleBad => 1,
@@ -2597,16 +3210,18 @@ pp_def ('plcolorpoints',
 
 
 pp_def ('plsmem',
+        NoPthread => 1,
 	     GenericTypes => [B],
              Pars => 'int maxx();int maxy();image(3,x,y)',
              Code => 'c_plsmem($maxx(),$maxy(),$P(image));'
-            ) unless ($nomem);
+            ) if ($plversion->{'plsmem'});
 
 #
 ## Box drawing primitive, taken from PLPLOT bar graph example
 #
 
 pp_def ('plfbox',
+        NoPthread => 1,
          Pars => 'xo(); yo()',
          GenericTypes => [D],
          Code => 'PLFLT x[4], y[4];
@@ -2622,16 +3237,37 @@ pp_def ('plfbox',
         );
 
 #
+## Similar box drawing primitive, but without fill (just draw outline of box)
+#
+pp_def ('plunfbox',
+        NoPthread => 1,
+         Pars => 'xo(); yo()',
+         GenericTypes => [D],
+         Code => 'PLFLT x[4], y[4];
+                  x[0] = $xo() - 0.5;
+                  y[0] = 0.;
+                  x[1] = $xo() - 0.5;
+                  y[1] = $yo();
+                  x[2] = $xo() + 0.5;
+                  y[2] = $yo();
+                  x[3] = $xo() + 0.5;
+                  y[3] = 0.;
+                  plline(4, x, y);',
+        );
+
+#
 ## Parse PLplot options given in @ARGV-like arrays
 #
 
 pp_def ('plParseOpts',
+        NoPthread => 1,
         GenericTypes => [D],
         Pars => 'int [o] retval()',
         OtherPars => 'SV* argv; int mode',
         Doc => 'FIXME: documentation here!',
         Code => '
                 SV* sv = $COMP (argv);
+                SV* dummy;
                 AV* arr;
                 int argc, newargc, i, retval;
                 char** args;
@@ -2643,22 +3279,23 @@ pp_def ('plParseOpts',
                 arr = (AV*) SvRV (sv);
                 newargc = argc = av_len (arr) + 1;
                 if (argc > 0) {
-                  args = calloc (argc , sizeof (char*));
+                  New(1, args, argc, char *);
+                  if(args == NULL) croak("Failed to allocate memory in plParseOpts");
 
                   for (i = 0; i < argc; i++) {
                           STRLEN len;
                           args[i] = SvPV (* av_fetch (arr, i, 0), len);
                   }
 
-                  $retval() = c_plparseopts (&newargc, args, $COMP (mode));
+                  $retval() = c_plparseopts (&newargc, (const char **)args, $COMP (mode));
 
                   for (i = 0; i < newargc; i++)
                           av_push (arr, newSVpv (args[i], 0));
 
                   for (i = 0; i < argc; i++)
-                          av_shift (arr);
+                          dummy = av_shift (arr); /* assign to dummy to suppress compile warning */
 
-                  free (args);
+                  Safefree (args);
                 }
         ',
 );
@@ -2666,6 +3303,7 @@ pp_def ('plParseOpts',
 # Plots a character at the specified points
 
 pp_def ('plpoin',
+        NoPthread => 1,
          Pars => 'x(n); y(n); int code()',
          GenericTypes => [D],
          Code => 'c_plpoin($SIZE(n),$P(x),$P(y),$code());'
@@ -2674,6 +3312,7 @@ pp_def ('plpoin',
 # Plots a character at the specified points in 3 space
 
 pp_def ('plpoin3',
+        NoPthread => 1,
          Pars => 'x(n); y(n); z(n); int code()',
          GenericTypes => [D],
          Code => 'c_plpoin3($SIZE(n),$P(x),$P(y),$P(z),$code());'
@@ -2682,46 +3321,55 @@ pp_def ('plpoin3',
 # Draw a line in 3 space
 
 pp_def ('plline3',
+        NoPthread => 1,
          Pars => 'x(n); y(n); z(n)',
          GenericTypes => [D],
          Code => 'c_plline3($SIZE(n),$P(x),$P(y),$P(z));'
         );
 
 # Draws a polygon in 3 space
-
 pp_def ('plpoly3',
+        NoPthread => 1,
          Pars => 'x(n); y(n); z(n); int draw(m); int ifcc()',
          GenericTypes => [D],
          Code => 'c_plpoly3($SIZE(n),$P(x),$P(y),$P(z),$P(draw),$ifcc());'
         );
 
 # Plot a histogram from unbinned data
-
 pp_def ('plhist',
+        NoPthread => 1,
          Pars => 'data(n); datmin(); datmax(); int nbin(); int oldwin()',
          GenericTypes => [D],
          Code => 'c_plhist($SIZE(n),$P(data),$datmin(),$datmax(),$nbin(),$oldwin());'
         );
 
 # Area fill
-
 pp_def ('plfill',
+        NoPthread => 1,
          Pars => 'x(n); y(n)',
          GenericTypes => [D],
          Code => 'c_plfill($SIZE(n),$P(x),$P(y));'
         );
 
-# Plots a symbol at the specified points
+# Area fill with color gradient
+pp_def ('plgradient',
+        NoPthread => 1,
+         Pars => 'x(n); y(n); angle();',
+         GenericTypes => [D],
+         Code => 'c_plgradient($SIZE(n),$P(x),$P(y),$angle());'
+        ) if ($plversion->{'c_pllegend'});
 
+# Plots a symbol at the specified points
 pp_def ('plsym',
+        NoPthread => 1,
          Pars => 'x(n); y(n); int code()',
          GenericTypes => [D],
          Code => 'c_plsym($SIZE(n),$P(x),$P(y),$code());'
         );
 
 # Plot shaded 3-d surface plot
-
 pp_def ('plsurf3d',
+        NoPthread => 1,
          Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel);',
          GenericTypes => [D],
          Code => '
@@ -2734,7 +3382,7 @@ pp_def ('plsurf3d',
            for (i = 0; i < size_x; i++)
              for (j = 0; j < size_y; j++)
                zz[i][j] = $z(nx => i, ny => j);
-           c_plsurf3d ($P(x), $P(y), zz, size_x, size_y, $opt(),
+           c_plsurf3d ($P(x), $P(y), (const PLFLT **)zz, size_x, size_y, $opt(),
                        $P(clevel), $SIZE(nlevel));
            plFree2dGrid (zz, size_x, size_y);'
         );
@@ -2742,6 +3390,7 @@ pp_def ('plsurf3d',
 # Set line style
 
 pp_def ('plstyl',
+        NoPthread => 1,
          Pars => 'int mark(nms); int space(nms)',
          GenericTypes => [D],
          Code => 'c_plstyl ($SIZE(nms), $P(mark), $P(space));'
@@ -2750,17 +3399,21 @@ pp_def ('plstyl',
 # PLplot standard random number generation.  Using this
 # helps to keep the demo plots identical.
 
-if (!$v59_or_earlier) {
+if ($plversion->{'c_plseed'}) {
+
   pp_def ('plseed',
+          NoPthread => 1,
           Pars => 'int seed()',
           Code => 'unsigned int useed = (unsigned int)$seed(); c_plseed(useed);'
         );
 
   pp_def ('plrandd',
+          NoPthread => 1,
           Pars => 'double [o]rand()',
           Code => '$rand() = c_plrandd();'
         );
-}
+
+} # $plversion->{'c_plseed'}
 
 # Plot contours
 
@@ -2794,7 +3447,8 @@ EOC
 # Allocates a PLcGrid object for use in pltr1
 
 pp_def ('plAllocGrid',
-        Pars => 'double xg(nx); double yg(ny); int [o] grid()',
+        NoPthread => 1,
+        Pars => "double xg(nx); double yg(ny); $pp_ptr_type [o] grid()",
         GenericTypes => [D],
         Doc => 'FIXME: documentation here!',
         Code => '
@@ -2842,7 +3496,8 @@ pp_add_exported (plFreeGrid);
 # Allocates a PLcGrid2 object for use in pltr2
 
 pp_def ('plAlloc2dGrid',
-        Pars => 'double xg(nx,ny); double yg(nx,ny); int [o] grid()',
+        NoPthread => 1,
+        Pars => "double xg(nx,ny); double yg(nx,ny); $pp_ptr_type [o] grid()",
         GenericTypes => [D],
         Doc => 'FIXME: documentation here!',
         Code => '
@@ -3038,6 +3693,86 @@ mapform_callback (PLINT n, PLFLT* x, PLFLT* y)
   FREETMPS;
   LEAVE;
 }
+EOH
+
+pp_addhdr (<<'EOH') if ($plversion->{'c_pllegend'});
+
+// Subroutines for adding transforms via plstransform
+static SV* xform_subroutine;
+
+static void
+xform_callback ( PLFLT x, PLFLT y, PLFLT *xt, PLFLT *yt, PLPointer data )
+{
+  SV *x_sv, *y_sv; // Perl scalars for the input x and y
+  I32 count, ax;
+  dSP;
+
+  ENTER;
+  SAVETMPS;
+
+  x_sv = newSVnv((double)x);
+  y_sv = newSVnv((double)y);
+
+  PUSHMARK (SP);
+  XPUSHs (x_sv);
+  XPUSHs (y_sv);
+  PUTBACK;
+
+  count = call_sv (xform_subroutine, G_ARRAY);
+
+  SPAGAIN;
+  SP -= count ;
+  ax = (SP - PL_stack_base) + 1;
+
+  if (count != 2)
+    croak ("xform: must return two perl scalars");
+
+  *xt = (PLFLT) SvNV(ST(0));
+  *yt = (PLFLT) SvNV(ST(1));
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+}
+
+// Subroutines for adding label formatting via plslabelfunc
+static SV* labelfunc_subroutine;
+
+void labelfunc_callback (PLINT axis, PLFLT value, char *label_text, PLINT length, void *data )
+{
+  SV *axis_sv, *value_sv, *length_sv; // Perl scalars for inputs
+  I32 count, ax;
+  dSP;
+
+  ENTER;
+  SAVETMPS;
+
+  axis_sv   = newSViv((IV)axis);
+  value_sv  = newSVnv((double)value);
+  length_sv = newSViv((IV)length);
+
+  PUSHMARK (SP);
+  XPUSHs (axis_sv);
+  XPUSHs (value_sv);
+  XPUSHs (length_sv);
+  PUTBACK;
+
+  count = call_sv (labelfunc_subroutine, G_ARRAY);
+
+  SPAGAIN;
+  SP -= count ;
+  ax = (SP - PL_stack_base) + 1;
+
+  if (count != 1)
+    croak ("labelfunc: must return one perl scalar");
+
+  // Copy label into output string
+  snprintf( label_text, length, "%s", (char *)SvPV_nolen(ST(0)) );
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+}
 
 EOH
 
@@ -3049,6 +3784,7 @@ EOH
 # transformation functions are used.
 
 pp_def ('init_pltr',
+        NoPthread => 1,
          GenericTypes => [D],
          Pars => '',
          OtherPars => 'SV* p0; SV* p1; SV* p2;',
@@ -3064,24 +3800,47 @@ EOPM
 
 # plot continental outline in world coordinates
 
-pp_def ('plmap',
-        Pars => 'minlong(); maxlong(); minlat(); maxlat();',
-	OtherPars => 'SV* mapform; char* type;',
+pp_addpm ('sub plmap { plmap_pp ($standard_order ? reorder ("plmap", @_) : @_) }'); pp_add_exported('plmap');
+pp_def ('plmap_pp',
+        NoPthread => 1,
+        Pars => 'minlong(); maxlong(); minlat(); maxlat();', # 0-3
+	OtherPars => 'SV* mapform; char* type;', # 4,5
         GenericTypes => [D],
         Code => '
+           int use_xform;
            mapform_subroutine = $COMP(mapform);
 	   check_sub_pointer (mapform_subroutine,
 	     "plmap: mapform must be either 0 or a subroutine pointer");
 
-           plmap (SvTRUE ($COMP(mapform)) ? mapform_callback : NULL,
-	     $COMP(type), $minlong(), $maxlong(), $minlat(), $maxlat());'
+           use_xform = SvTRUE ($COMP(mapform));
+           plmap (use_xform ? mapform_callback : NULL,
+	     $COMP(type), $minlong(), $maxlong(), $minlat(), $maxlat());',
        );
 
-# Plot the latitudes and longitudes on the background
+# plot a string along a line
+pp_def ('plstring',
+        NoPthread => 1,
+        Pars         => 'x(na); y(na);',
+	OtherPars    => 'char* string;',
+        GenericTypes => [D],
+        Code         => 'c_plstring($SIZE(na), $P(x), $P(y), $COMP(string));',
+       ) if ($plversion->{'c_pllegend'});
 
-pp_def ('plmeridians',
-        Pars => 'dlong(); dlat(); minlong(); maxlong(); minlat(); maxlat();',
-	OtherPars => 'SV* mapform;',
+# plot a string along a 3D line
+pp_def ('plstring3',
+        NoPthread => 1,
+        Pars         => 'x(na); y(na); z(na)',
+	OtherPars    => 'char* string;',
+        GenericTypes => [D],
+        Code         => 'c_plstring3($SIZE(na), $P(x), $P(y), $P(z), $COMP(string));',
+       ) if ($plversion->{'c_pllegend'});
+
+# Plot the latitudes and longitudes on the background
+pp_addpm ('sub plmeridians { plmeridians_pp ($standard_order ? reorder ("plmeridians", @_) : @_) }'); pp_add_exported('plmeridians');
+pp_def ('plmeridians_pp',
+        NoPthread => 1,
+        Pars => 'dlong(); dlat(); minlong(); maxlong(); minlat(); maxlat();', # 0-5
+	OtherPars => 'SV* mapform;', # 6
         GenericTypes => [D],
         Code => '
            mapform_subroutine = $COMP(mapform);
@@ -3092,13 +3851,17 @@ pp_def ('plmeridians',
 	     $dlong(), $dlat(), $minlong(), $maxlong(), $minlat(), $maxlat());'
        );
 
+# Set the global coordinate transform
+
 # Shade regions on the basis of value
 
-pp_def ('plshades',
+pp_addpm ('sub plshades { plshades_pp ($standard_order ? reorder ("plshades", @_) : @_) }'); pp_add_exported('plshades');
+pp_def ('plshades_pp',
+        NoPthread => 1,
          Pars => 'z(x,y); xmin(); xmax(); ymin(); ymax();
                   clevel(l); int fill_width(); int cont_color();
-                  int cont_width(); int rectangular()',
-         OtherPars => 'SV* defined; SV* pltr; SV* pltr_data;',
+                  int cont_width(); int rectangular()', # 0-9
+         OtherPars => 'SV* defined; SV* pltr; SV* pltr_data;', # 10-12
          GenericTypes => [D],
          Code => '
            int nx    = $SIZE(x);
@@ -3129,7 +3892,7 @@ pp_def ('plshades',
            else
              pltrdt = $COMP(pltr_data);
 
-           c_plshades (z, nx, ny,
+           c_plshades ((const PLFLT **)z, nx, ny,
              SvTRUE ($COMP(defined)) ? defined_callback : NULL,
              $xmin(), $xmax(), $ymin(), $ymax(),
              $P(clevel), nlvl, $fill_width(), $cont_color(), $cont_width(),
@@ -3139,10 +3902,11 @@ pp_def ('plshades',
        );
 
 pp_def ('plcont',
+        NoPthread => 1,
          GenericTypes => [D],
          Pars => 'f(nx,ny); int kx(); int lx(); int ky(); int ly(); '
-                 . 'clevel(nlevel)',
-         OtherPars => 'SV* pltr; SV* pltr_data;',
+                 . 'clevel(nlevel)', # 0-5
+         OtherPars => 'SV* pltr; SV* pltr_data;', # 6,7
          Doc => 'FIXME: documentation here!',
          Code => '
            int i, j, size_x, size_y;
@@ -3169,7 +3933,7 @@ pp_def ('plcont',
            else
              pltrdt = $COMP(pltr_data);
 
-           c_plcont (ff, size_x, size_y, $kx(), $lx(), $ky(), $ly(),
+           c_plcont ((const PLFLT **)ff, size_x, size_y, $kx(), $lx(), $ky(), $ly(),
                      $P(clevel), $SIZE(nlevel),
                      pltrcb, pltrdt);
 
@@ -3180,6 +3944,7 @@ pp_def ('plcont',
 # Surface mesh
 
 pp_def ('plmesh',
+        NoPthread => 1,
          Pars => 'x(nx); y(ny); z(nx,ny); int opt()',
          GenericTypes => [D],
          Doc => 'FIXME: documentation here!',
@@ -3196,7 +3961,7 @@ pp_def ('plmesh',
              for (j = 0; j < size_y; j++)
                zz[i][j] = $z(nx => i, ny => j);
 
-           c_plmesh ($P(x), $P(y), zz, size_x, size_y, $opt());
+           c_plmesh ($P(x), $P(y), (const PLFLT **)zz, size_x, size_y, $opt());
 
            plFree2dGrid (zz, size_x, size_y);'
         );
@@ -3204,6 +3969,7 @@ pp_def ('plmesh',
 # Magnitude colored plot surface mesh with contour
 
 pp_def ('plmeshc',
+        NoPthread => 1,
          Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel)',
          GenericTypes => [D],
          Doc => 'FIXME: documentation here!',
@@ -3220,7 +3986,7 @@ pp_def ('plmeshc',
              for (j = 0; j < size_y; j++)
                zz[i][j] = $z(nx => i, ny => j);
 
-           c_plmeshc ($P(x), $P(y), zz, size_x, size_y, $opt(),
+           c_plmeshc ($P(x), $P(y), (const PLFLT **)zz, size_x, size_y, $opt(),
                       $P(clevel), $SIZE(nlevel));
 
            plFree2dGrid (zz, size_x, size_y);'
@@ -3229,6 +3995,7 @@ pp_def ('plmeshc',
 # 3-d surface plot
 
 pp_def ('plot3d',
+        NoPthread => 1,
          Pars => 'x(nx); y(ny); z(nx,ny); int opt(); int side()',
          GenericTypes => [D],
          Doc => 'FIXME: documentation here!',
@@ -3245,7 +4012,7 @@ pp_def ('plot3d',
              for (j = 0; j < size_y; j++)
                zz[i][j] = $z(nx => i, ny => j);
 
-           c_plot3d ($P(x), $P(y), zz, size_x, size_y, $opt(), $side());
+           c_plot3d ($P(x), $P(y), (const PLFLT **)zz, size_x, size_y, $opt(), $side());
 
            plFree2dGrid (zz, size_x, size_y);'
         );
@@ -3254,6 +4021,7 @@ pp_def ('plot3d',
 # Plots a 3-d representation of the function z[x][y] with contour
 
 pp_def ('plot3dc',
+        NoPthread => 1,
          Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel)',
          GenericTypes => [D],
          Doc => 'FIXME: documentation here!',
@@ -3270,7 +4038,7 @@ pp_def ('plot3dc',
              for (j = 0; j < size_y; j++)
                zz[i][j] = $z(nx => i, ny => j);
 
-           c_plot3dc ($P(x), $P(y), zz, size_x, size_y, $opt(),
+           c_plot3dc ($P(x), $P(y), (const PLFLT **)zz, size_x, size_y, $opt(),
                       $P(clevel), $SIZE(nlevel));
 
            plFree2dGrid (zz, size_x, size_y);'
@@ -3280,6 +4048,7 @@ pp_def ('plot3dc',
 # Set color map1 colors using a piece-wise linear relationship
 
 pp_def ('plscmap1l',
+        NoPthread => 1,
          Pars => 'int itype(); isty(n); coord1(n); coord2(n); coord3(n);'
 	         . ' int rev(nrev)',
          GenericTypes => [D],
@@ -3300,13 +4069,15 @@ pp_def ('plscmap1l',
 
 # Shade individual region on the basis of value
 
-pp_def ('plshade1',
+pp_addpm ('sub plshade1 { plshade1_pp ($standard_order ? reorder ("plshade1", @_) : @_) }'); pp_add_exported('plshade1');
+pp_def ('plshade1_pp',
+        NoPthread => 1,
          GenericTypes => [D],
          Pars => 'a(nx,ny); left(); right(); bottom(); top(); shade_min();'
                  . 'shade_max(); sh_cmap(); sh_color(); sh_width();'
                  . 'min_color(); min_width(); max_color(); max_width();'
-                 . 'rectangular()',
-         OtherPars => 'SV* defined; SV* pltr; SV* pltr_data;',
+                 . 'rectangular()', # 0-14
+         OtherPars => 'SV* defined; SV* pltr; SV* pltr_data;',# 15-17
          Doc => 'FIXME: documentation here!',
          Code => '
            int i, j, size_x, size_y;
@@ -3317,7 +4088,8 @@ pp_def ('plshade1',
            size_x = $SIZE(nx);
            size_y = $SIZE(ny);
 
-           a = (PLFLT *) calloc (size_x * size_y, sizeof(PLFLT));
+           New(3, a, size_x * size_y, PLFLT);
+           if(a == NULL) croak("Failed to allocate memory in plshade1_pp");
 
            for (i = 0; i < size_x; i++)
              for (j = 0; j < size_y; j++)
@@ -3344,12 +4116,13 @@ pp_def ('plshade1',
              $min_color(), $min_width(), $max_color(), $max_width(),
              plfill, $rectangular(), pltrcb, pltrdt);
 
-           free ((void *) a);'
+           Safefree (a);'
         );
 
 # Plot gray-level image
 
 pp_def ('plimage',
+         NoPthread => 1,
          GenericTypes => [D],
          Pars => 'idata(nx,ny); xmin(); xmax(); ymin(); ymax();'
 	         . 'zmin(); zmax(); Dxmin(); Dxmax(); Dymin(); Dymax();',
@@ -3366,7 +4139,7 @@ pp_def ('plimage',
              for (j = 0; j < size_y; j++)
                idata[i][j] = $idata(nx => i, ny => j);
 
-           plimage (idata, size_x, size_y,
+           plimage ((const PLFLT **)idata, size_x, size_y,
 	     $xmin(), $xmax(), $ymin(), $ymax(), $zmin(), $zmax(),
              $Dxmin(), $Dxmax(), $Dymin(), $Dymax());
 
@@ -3376,15 +4149,16 @@ pp_def ('plimage',
 
 # Plot image with transformation
 
-if (!$v59_or_earlier) {
+if ($plversion->{'c_plimagefr'}) {
 
   pp_def ('plimagefr',
+          NoPthread => 1,
           GenericTypes => [D],
           #  plimagefr (idata, nx, ny, xmin, xmax, ymin, ymax, zmin, zmax, valuemin, valuemax, pltr, pltr_data);
           #  plimagefr ($img,          0,    $width, 0,  $height, 0,    0, $img_min, $img_max, \&pltr2, $grid);
           Pars => 'idata(nx,ny); xmin(); xmax(); ymin(); ymax();'
-          . 'zmin(); zmax(); valuemin(); valuemax();', # here!!!
-          OtherPars => 'SV* pltr; SV* pltr_data;',
+          . 'zmin(); zmax(); valuemin(); valuemax();', # 0-8
+          OtherPars => 'SV* pltr; SV* pltr_data;', # 9,10
           Code => '
            int i, j, size_x, size_y;
            PLFLT** idata;
@@ -3409,7 +4183,7 @@ if (!$v59_or_earlier) {
              for (j = 0; j < size_y; j++)
                idata[i][j] = $idata(nx => i, ny => j);
 
-           c_plimagefr (idata, size_x, size_y,
+           c_plimagefr ((const PLFLT **)idata, size_x, size_y,
 	     $xmin(), $xmax(), $ymin(), $ymax(), $zmin(), $zmax(),
              $valuemin(), $valuemax(),
              (SvTRUE ($COMP(pltr)) ? pltrcb : NULL),
@@ -3417,7 +4191,8 @@ if (!$v59_or_earlier) {
 
            plFree2dGrid (idata, size_x, size_y);'
 	);
-}
+
+} # $plversion->{'c_plimagefr'}
 
 # Set xor mode:
 # mode = 1-enter, 0-leave, status = 0 if not interactive device
@@ -3639,13 +4414,18 @@ EOC
 
 pp_add_exported ('plgver');
 
-pp_def ('plstripc',
+
+#----------------------------------------------------------------------------
+
+pp_addpm ('sub plstripc { plstripc_pp ($standard_order ? reorder ("plstripc", @_) : @_) }'); pp_add_exported('plstripc');
+pp_def ('plstripc_pp',
+        NoPthread => 1,
          GenericTypes => [D],
          Pars => 'xmin(); xmax(); xjump(); ymin(); ymax();'
 	         . 'xlpos(); ylpos(); int y_ascl(); int acc();'
                  . 'int colbox(); int collab();'
-                 . 'int colline(n); int styline(n);  int [o] id()',
-         OtherPars => 'char* xspec; char* yspec; SV* legline;'
+                 . 'int colline(n); int styline(n);  int [o] id()', # 0-12
+         OtherPars => 'char* xspec; char* yspec; SV* legline;' # 13-18
                       . 'char* labx; char* laby; char* labtop',
          Doc => 'FIXME: documentation here!',
          Code => '
@@ -3675,14 +4455,16 @@ pp_def ('plstripc',
            c_plstripc (&id, $COMP(xspec), $COMP(yspec),
 	     $xmin(), $xmax(), $xjump(), $ymin(), $ymax(),
 	     $xlpos(), $ylpos(),$y_ascl(), $acc(), $colbox(), $collab(),
-	     $P(colline), $P(styline), legline,
+	     $P(colline), $P(styline), (const char **)legline,
 	     $COMP(labx), $COMP(laby), $COMP(labtop));
 
            $id() = (int) id;'
         );
 
+#----------------------------------------------------------------------------
 
 pp_def ('plgriddata',
+        NoPthread => 1,
          GenericTypes => [D],
          Pars => 'x(npts); y(npts); z(npts); xg(nptsx); yg(nptsy);'
 	         . 'int type(); data(); [o] zg(nptsx,nptsy)',
@@ -3708,13 +4490,532 @@ pp_def ('plgriddata',
          '
         );
 
+#-----------------------------------------------------------------------------
+
+if ($plversion->{'c_pllegend'}) {
+
+# Draw an arc
+pp_addpm (<<'EOPM');
+=head2 plarc
+
+=for sig
+
+  plarc ($x, $y, $a, $b, $angle1, $angle2, $rotate, $fill);
+
+=for ref
+
+Draw a (possibly) filled arc centered at x, y with semimajor axis a and semiminor axis b, starting at angle1 and ending at angle2.
+See the PLplot manual for reference.
+
+=cut
+EOPM
+pp_addxs (<<"EOC");
+int
+plarc (x, y, a, b, angle1, angle2, rotate, fill)
+  double x
+  double y
+  double a
+  double b
+  double angle1
+  double angle2
+  double rotate
+  int fill
+CODE:
+  plarc (x, y, a, b, angle1, angle2, rotate, fill);
+EOC
+pp_add_exported ('plarc');
+
+#----------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 plstransform
+
+=for sig
+
+  plstransform ($subroutine_reference);
+
+=for ref
+
+Sets the default transformation routine for plotting.
+
+  sub mapform {
+    my ($x, $y) = @_;
+
+    my $radius = 90.0 - $y;
+    my $xp = $radius * cos ($x * pi / 180);
+    my $yp = $radius * sin ($x * pi / 180);
+
+    return ($xp, $yp);
+  }
+  plstransform (\&mapform);
+
+See the PLplot manual for more details.
+
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+int
+plstransform (xform)
+ SV* xform
+CODE:
+  check_sub_pointer (xform_subroutine, "plstransform: xform must be either 0 or a subroutine pointer");
+  if (SvTRUE(xform)) xform_subroutine = SvRV(xform);
+  plstransform (SvTRUE(xform) ? xform_callback : NULL, NULL);
+EOC
+pp_add_exported ('plstransform');
+
+#----------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 plslabelfunc
+
+=for sig
+
+  plslabelfunc ($subroutine_reference);
+
+=for ref
+
+  # A custom axis labeling function for longitudes and latitudes.
+  sub geolocation_labeler {
+    my ($axis, $value, $length) = @_;
+    my ($direction_label, $label_val);
+    if (($axis == PL_Y_AXIS) && $value == 0) {
+        return "Eq";
+      } elsif ($axis == PL_Y_AXIS) {
+      $label_val = $value;
+      $direction_label = ($label_val > 0) ? " N" : " S";
+    } elsif ($axis == PL_X_AXIS) {
+      my $times  = floor((abs($value) + 180.0 ) / 360.0);
+      $label_val = ($value < 0) ? $value + 360.0 * $times : $value - 360.0 * $times;
+      $direction_label = ($label_val > 0) ? " E"
+                       : ($label_val < 0) ? " W"
+                       :                    "";
+    }
+    return substr (sprintf ("%.0f%s", abs($label_val), $direction_label), 0, $length);
+  }
+  plslabelfunc(\&geolocation_labeler);
+
+See the PLplot manual for more details.
+
+=cut
+EOPM
+
+# The PDL version of plslabelfunc only has one argument--the perl subroutine
+# to do the label translation:  my $labeltext = perl_labelfunc($axis, $value, $length);
+# No 'data' argument is used, it is assumed that global data or a closure containing
+# necessary data can be used in 'perl_labelfunc'.
+pp_addxs (<<"EOC");
+int
+plslabelfunc (labelfunc)
+ SV* labelfunc
+CODE:
+  check_sub_pointer (labelfunc_subroutine, "plslabelfunc: labelfunc must be either 0 or a subroutine pointer");
+  if (SvTRUE(labelfunc)) labelfunc_subroutine = SvRV(labelfunc);
+  plslabelfunc (SvTRUE(labelfunc) ? labelfunc_callback : NULL, NULL);
+EOC
+pp_add_exported ('plslabelfunc');
+
+#----------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 pllegend
+
+=for sig
+
+my ($legend_width, $legend_height) = 
+    pllegend ($position, $opt, $x, $y, $plot_width, $bg_color, $nlegend,
+    \@opt_array,
+    $text_offset, $text_scale, $text_spacing, $test_justification,
+    \@text_colors, \@text, \@box_colors, \@box_patterns, \@box_scales, \@line_colors,
+    \@line_styles, \@line_widths, \@symbol_colors, \@symbol_scales, \@symbol_numbers, \@symbols);
+
+=for ref
+
+See the PLplot manual for more details.
+
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+void
+pllegend(opt, position, x, y, plot_width, bg_color, bb_color, bb_style, nrow, ncolumn, nlegend, opt_array_rv, text_offset, text_scale, text_spacing, text_justification, text_colors_rv, text_rv, box_colors_rv, box_patterns_rv, box_scales_rv, box_line_widths_rv, line_colors_rv, line_styles_rv, line_widths_rv, symbol_colors_rv, symbol_scales_rv, symbol_numbers_rv, symbols_rv)
+  int     opt
+  int     position
+  double  x
+  double  y
+  double  plot_width
+  int     bg_color
+  int     bb_color
+  int     bb_style
+  int     nrow
+  int     ncolumn
+  int     nlegend
+  SV*     opt_array_rv
+  double  text_offset
+  double  text_scale
+  double  text_spacing
+  double  text_justification
+  SV*     text_colors_rv
+  SV*     text_rv
+  SV*     box_colors_rv
+  SV*     box_patterns_rv
+  SV*     box_scales_rv
+  SV*     box_line_widths_rv
+  SV*     line_colors_rv
+  SV*     line_styles_rv
+  SV*     line_widths_rv
+  SV*     symbol_colors_rv
+  SV*     symbol_scales_rv
+  SV*     symbol_numbers_rv
+  SV*     symbols_rv
+PPCODE:
+  int i;
+  double p_legend_width;
+  double p_legend_height;
+  int opt_array[nlegend];
+  int text_colors[nlegend];
+  char *text[nlegend];
+  int box_colors[nlegend];
+  int box_patterns[nlegend];
+  double box_scales[nlegend];
+  int box_line_widths[nlegend];
+  int line_colors[nlegend];
+  int line_styles[nlegend];
+  int line_widths[nlegend];
+  int symbol_colors[nlegend];
+  double symbol_scales[nlegend];
+  int symbol_numbers[nlegend];
+  char *symbols[nlegend];
+  SV **elem;
+
+  for (i = 0; i < nlegend; i++) {
+
+    elem = av_fetch((AV *)SvRV(opt_array_rv),       i, 0); opt_array[i]       = (int)SvIV(*elem);
+    elem = av_fetch((AV *)SvRV(text_colors_rv),     i, 0); text_colors[i]     = (int)SvIV(*elem);
+    elem = av_fetch((AV *)SvRV(text_rv),            i, 0); text[i]            = (char *)SvPV_nolen(*elem);
+    box_colors[i] = 0;
+    if (SvROK(box_colors_rv)) {
+      elem = av_fetch((AV *)SvRV(box_colors_rv),    i, 0); 
+      if (elem && SvOK(*elem)) {
+        box_colors[i] = (int)SvIV(*elem);
+      }
+    }
+    box_patterns[i] = 0;
+    if (SvROK(box_patterns_rv)) {
+      elem = av_fetch((AV *)SvRV(box_patterns_rv),  i, 0); 
+      if (elem && SvOK(*elem)) {
+        box_patterns[i] = (int)SvIV(*elem);
+      }
+    }
+    box_scales[i] = 0.0;
+    if (SvROK(box_scales_rv)) {
+      elem = av_fetch((AV *)SvRV(box_scales_rv),    i, 0); 
+      if (elem && SvOK(*elem)) {
+        box_scales[i] = (double)SvNV(*elem);
+      }
+    }
+    box_line_widths[i] = 0;
+    if (SvROK(box_line_widths_rv)) {
+      elem = av_fetch((AV *)SvRV(box_line_widths_rv), i, 0); 
+      if (elem && SvOK(*elem)) {
+        box_line_widths[i] = (int)SvIV(*elem);
+      }
+    }
+    line_colors[i] = 0;
+    if (SvROK(line_colors_rv)) {
+      elem = av_fetch((AV *)SvRV(line_colors_rv), i, 0); 
+      if (elem && SvOK(*elem)) {
+        line_colors[i] = (int)SvIV(*elem);
+      }
+    }
+
+    line_styles[i] = 0;
+    if (SvROK(line_styles_rv)) {
+      elem = av_fetch((AV *)SvRV(line_styles_rv), i, 0); 
+      if (elem && SvOK(*elem)) {
+        line_styles[i] = (int)SvIV(*elem);
+      }
+    }
+
+    line_widths[i] = 0;
+    if (SvROK(line_widths_rv)) {
+      elem = av_fetch((AV *)SvRV(line_widths_rv), i, 0); 
+      if (elem && SvOK(*elem)) {
+        line_widths[i] = (int)SvIV(*elem);
+      }
+    }
+
+    symbol_colors[i] = 0;
+    if (SvROK(symbol_colors_rv)) {
+      elem = av_fetch((AV *)SvRV(symbol_colors_rv), i, 0); 
+      if (elem && SvOK(*elem)) {
+        symbol_colors[i] = (int)SvIV(*elem);
+      }
+    }
+
+    symbol_scales[i] = 0.0;
+    if (SvROK(symbol_scales_rv)) {
+      elem = av_fetch((AV *)SvRV(symbol_scales_rv), i, 0); 
+      if (elem && SvOK(*elem)) {
+        symbol_scales[i] = (double)SvNV(*elem);
+      }
+    }
+
+    symbol_numbers[i] = 0;
+    if (SvROK(symbol_numbers_rv)) {
+      elem = av_fetch((AV *)SvRV(symbol_numbers_rv), i, 0); 
+      if (elem && SvOK(*elem)) {
+        symbol_numbers[i] = (int)SvIV(*elem);
+      }
+    }
+
+    symbols[i] = "0";
+    if (SvROK(symbols_rv)) {
+      elem = av_fetch((AV *)SvRV(symbols_rv), i, 0); 
+      if (elem && SvOK(*elem)) {
+        symbols[i] = (char *)SvPV_nolen(*elem);
+      }
+    }
+  }
+
+  pllegend(&p_legend_width, &p_legend_height,
+           opt, position, x, y, plot_width, bg_color, bb_color, bb_style, nrow, ncolumn, nlegend,
+           opt_array,
+           text_offset, text_scale, text_spacing, text_justification,
+           text_colors, (const char **)text, box_colors, box_patterns, box_scales, box_line_widths,
+           line_colors, line_styles, line_widths, symbol_colors, symbol_scales, symbol_numbers, (const char **)symbols);
+
+  EXTEND (SP, 2);
+  PUSHs (sv_2mortal (newSVnv (p_legend_width)));
+  PUSHs (sv_2mortal (newSVnv (p_legend_height)));
+EOC
+pp_add_exported ('pllegend');
+
+#----------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 plspal0
+
+=for sig
+
+  plspal0($filename);
+
+=for ref
+
+Set color palette 0 from the input .pal file.  See the PLplot manual for more details.
+
+=cut
+EOPM
+
+# The PDL version of plspal0
+pp_addxs (<<"EOC");
+int
+plspal0 (filename)
+ char* filename
+PPCODE:
+  plspal0((const char *)filename);
+EOC
+pp_add_exported ('plspal0');
+
+#----------------------------------------------------------------------------
+
+# The PDL version of plspal1
+pp_addpm (<<'EOPM');
+=head2 plspal1
+
+=for sig
+
+  plspal1($filename);
+
+=for ref
+
+Set color palette 1 from the input .pal file.  See the PLplot manual for more details.
+
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+int
+plspal1 (filename, interpolate)
+ char* filename
+ int   interpolate
+PPCODE:
+  plspal1((const char *)filename, (PLBOOL)interpolate);
+EOC
+pp_add_exported ('plspal1');
+
+} # if $plversion->{'c_pllegend'}
+
+#-----------------------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 plbtime
+
+=for sig
+
+  my ($year, $month, $day, $hour, $min, $sec) = plbtime($ctime);
+
+=for ref
+
+  Calculate broken-down time from continuous time for current stream.
+
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+void
+plbtime (ctime)
+  double ctime 
+PPCODE:
+  PLINT year;
+  PLINT month;
+  PLINT day;
+  PLINT hour;
+  PLINT min; 
+  PLFLT sec;
+  c_plbtime(&year, &month, &day, &hour, &min, &sec, ctime);
+  EXTEND (SP, 6);
+  PUSHs (sv_2mortal (newSViv (year)));
+  PUSHs (sv_2mortal (newSViv (month)));
+  PUSHs (sv_2mortal (newSViv (day)));
+  PUSHs (sv_2mortal (newSViv (hour)));
+  PUSHs (sv_2mortal (newSViv (min)));
+  PUSHs (sv_2mortal (newSVnv (sec)));
+EOC
+pp_add_exported ('plbtime');
+
+#-----------------------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 plconfigtime
+
+=for sig
+
+  plconfigtime($scale, $offset1, $offset2, $ccontrol, $ifbtime_offset, $year, $month, $day, $hour, $min, $sec);
+
+=for ref
+
+Configure transformation between continuous and broken-down time (and                                                           
+vice versa) for current stream.
+
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+void
+plconfigtime(scale, offset1, offset2, ccontrol, ifbtime_offset, year, month, day, hour, min, sec)
+  double scale
+  double offset1
+  double offset2
+  int ccontrol
+  int ifbtime_offset
+  int year
+  int month
+  int day
+  int hour
+  int min
+  double sec
+PPCODE:
+  c_plconfigtime((PLFLT) scale, (PLFLT) offset1, (PLFLT) offset2, 
+                 (PLINT) ccontrol, (PLBOOL) ifbtime_offset, (PLINT) year, 
+                 (PLINT) month, (PLINT) day, (PLINT) hour, (PLINT) min, (PLFLT) sec);
+EOC
+pp_add_exported ('plconfigtime');
+
+#-----------------------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 plctime
+
+=for sig
+
+  my $ctime = plctime($year, $month, $day, $hour, $min, $sec);
+
+=for ref
+
+  Calculate continuous time from broken-down time for current stream.
+
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+void
+plctime(year, month, day, hour, min, sec)
+  int year
+  int month
+  int day
+  int hour
+  int min
+  double sec
+PPCODE:
+  PLFLT ctime;
+  c_plctime(year, month, day, hour, min, sec, &ctime);
+  EXTEND (SP, 1);
+  PUSHs (sv_2mortal (newSVnv (ctime)));
+EOC
+pp_add_exported ('plctime');
+
+#-----------------------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 pltimefmt
+
+=for sig
+
+  pltimefmt($fmt);
+
+=for ref
+
+Set format for date / time labels.  See the PLplot manual for more details.
+
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+void
+pltimefmt(fmt)
+  char *fmt
+PPCODE:
+  c_pltimefmt((const char *)fmt);
+EOC
+pp_add_exported ('pltimefmt');
+
+#-----------------------------------------------------------------------------------------
+
+pp_addpm (<<'EOPM');
+=head2 plsesc
+
+=for sig
+
+  plsesc($esc);
+
+=for ref
 
 
-unless ($novect) {
+Set the escape character for text strings.  See the PLplot manual for more details.
+
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+void
+plsesc (esc)
+  SV* esc
+PPCODE:
+  char *esc_c;
+  esc_c = (char *)SvPV_nolen(esc);
+  c_plsesc((char)*esc_c);
+
+EOC
+pp_add_exported ('plsesc');
+
+if ($plversion->{'plsvect'}) {
 
 # Vector field plots
 
   pp_def ('plvect',
+          NoPthread => 1,
 	  GenericTypes => [D],
 	  Pars => 'u(nx,ny); v(nx,ny); scale();',
 	  OtherPars => 'SV* pltr; SV* pltr_data;',
@@ -3748,19 +5049,22 @@ unless ($novect) {
            else
              pltrdt = $COMP(pltr_data);
 
-           plvect (u, v, size_x, size_y, $scale(), pltrcb, pltrdt);
+           plvect ((const PLFLT **)u, (const PLFLT **)v, size_x, size_y, $scale(), pltrcb, pltrdt);
 
            plFree2dGrid (u, size_x, size_y);
            plFree2dGrid (v, size_x, size_y);'
 	 );
 
   pp_def ('plsvect',
+          NoPthread => 1,
 	  Pars => 'arrowx(npts); arrowy(npts); int fill()',
 	  GenericTypes => [D],
 	  Code => 'c_plsvect ($P(arrowx), $P(arrowy), $SIZE(npts), $fill());'
 	 );
+  }
 
   pp_def ('plhlsrgb',
+          NoPthread => 1,
 	  GenericTypes => [D],
 	  Pars => 'double h();double l();double s();double [o]p_r();double [o]p_g();double [o]p_b()',
 	  Code => 'c_plhlsrgb($h(),$l(),$s(),$P(p_r),$P(p_g),$P(p_b));'
@@ -3768,24 +5072,28 @@ unless ($novect) {
 
   # void c_plgcol0(PLINT icol0, PLINT *r, PLINT *g, PLINT *b);
   pp_def ('plgcol0',
+          NoPthread => 1,
 	  Pars => 'int icolzero(); int [o]r(); int [o]g(); int [o]b()',
 	  Code => 'c_plgcol0($icolzero(),$P(r),$P(g),$P(b));'
 	 );
 
   # void c_plgcolbg(PLINT *r, PLINT *g, PLINT *b);
   pp_def ('plgcolbg',
+          NoPthread => 1,
 	  Pars => 'int [o]r(); int [o]g(); int [o]b()',
 	  Code => 'c_plgcolbg($P(r),$P(g),$P(b));'
 	 );
 
   # void c_plscmap0(PLINT *r, PLINT *g, PLINT *b, PLINT ncol0);
   pp_def ('plscmap0',
+          NoPthread => 1,
 	  Pars => 'int r(n); int g(n); int b(n)',
 	  Code => 'c_plscmap0($P(r),$P(g),$P(b), $SIZE(n));'
 	 );
 
   # void c_plscmap1(PLINT *r, PLINT *g, PLINT *b, PLINT ncol1);
   pp_def ('plscmap1',
+          NoPthread => 1,
 	  Pars => 'int r(n); int g(n); int b(n)',
 	  Code => 'c_plscmap1($P(r),$P(g),$P(b), $SIZE(n));'
 	 );
@@ -3794,24 +5102,28 @@ unless ($novect) {
 
     # void c_plgcol0a(PLINT icol0, PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
     pp_def ('plgcol0a',
+            NoPthread => 1,
 	    Pars => 'int icolzero(); int [o]r(); int [o]g(); int [o]b(); double [o]a()',
 	    Code => 'c_plgcol0a($icolzero(),$P(r),$P(g),$P(b),$P(a));'
 	   );
 
     # void c_plgcolbga(PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
     pp_def ('plgcolbga',
+            NoPthread => 1,
 	    Pars => 'int [o]r(); int [o]g(); int [o]b(); double [o]a()',
 	    Code => 'c_plgcolbga($P(r),$P(g),$P(b),$P(a));'
 	   );
 
     # void c_plscmap0a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol0);
     pp_def ('plscmap0a',
+            NoPthread => 1,
 	    Pars => 'int r(n); int g(n); int b(n); double a(n)',
 	    Code => 'c_plscmap0a($P(r),$P(g),$P(b),$P(a),$SIZE(n));'
 	   );
 
     # void c_plscmap1a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol1);
     pp_def ('plscmap1a',
+            NoPthread => 1,
 	    Pars => 'int r(n); int g(n); int b(n); double a(n)',
 	    Code => 'c_plscmap1a($P(r),$P(g),$P(b),$P(a),$SIZE(n));'
 	   );
@@ -3819,6 +5131,7 @@ unless ($novect) {
     # Set color map1 colors using a piece-wise linear relationship, include alpha channel
 
     pp_def ('plscmap1la',
+            NoPthread => 1,
 	    Pars => 'int itype(); isty(n); coord1(n); coord2(n); coord3(n); coord4(n);'
 	    . ' int rev(nrev)',
 	    GenericTypes => [D],
@@ -3836,31 +5149,33 @@ unless ($novect) {
 	      c_plscmap1la ($itype(), $SIZE(n), $P(isty), $P(coord1),
 	                    $P(coord2), $P(coord3), $P(coord4), rev);'
 	   );
+    }
 
 
     #
     ## UNICODE font manipulation
     #
 
-    if (!$v59_or_earlier) {
+    if ($plversion->{'c_plsfont'}) {
 
       # plgfont(PLINT *p_family, PLINT *p_style, PLINT *p_weight);
       pp_def ('plgfont',
+              NoPthread => 1,
 	      Pars => 'int [o]p_family(); int [o]p_style(); int [o]p_weight();',
 	      Code => 'c_plgfont($P(p_family),$P(p_style),$P(p_weight));'
 	     );
 
       #  plsfont (PLINT family, PLINT style, PLINT weight);
       pp_def ('plsfont',
+              NoPthread => 1,
 	      Pars => 'int family(); int style(); int weight();',
 	      Code => 'c_plsfont($family(),$style(),$weight());'
 	     );
-    }
-
-
+    } # $plversion->{'c_plsfont'}
 
     #  plcalc_world (PLFLT rx, PLFLT ry, PLFLT *wx, PLFLT *wy, PLINT *window);
     pp_def ('plcalc_world',
+            NoPthread => 1,
 	    Pars => 'double rx(); double ry(); double [o]wx(); double [o]wy(); int [o]window()',
 	    Code => 'c_plcalc_world($rx(), $ry(), $P(wx), $P(wy), $P(window));'
 	   );
@@ -3889,10 +5204,6 @@ plsfci(fci)
         c_plsfci(fci);
 EOC
 pp_add_exported('', 'plsfci');
-
-  }
-
-}
 
 pp_addpm (<<'EOPM');
 

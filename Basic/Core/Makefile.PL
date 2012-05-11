@@ -1,5 +1,20 @@
 
 # Makefile.PL for PDL::Core module
+my $libdir;
+
+use File::Spec;
+
+BEGIN {
+   if (defined $PDL::Config{PDL_BUILD_DIR}) {
+      print STDERR "Basic/Core/Makefile.PL: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
+      $libdir = File::Spec->catfile($PDL::Config{PDL_BUILD_DIR},'inc');
+      print STDERR "Basic/Core/Makefile.PL: adding $libdir\n";
+   }
+}
+
+use lib $libdir;
+
+use Devel::CheckLib;
 
 #require '../Core/Dev.pm';
 PDL::Core::Dev->import();
@@ -7,8 +22,10 @@ PDL::Core::Dev->import();
 use Config;
 use IO::File;
 
-my $pthread_include = '/usr/include/pthread.h';
-my $pthread_library = '-lpthread';
+$DB::single = 1;  # uncomment to have debugger stop here
+
+my $pthread_include = $Config::Config{usrinc};  # not good for win32
+my $pthread_library = '-lpthread';                                  # not good for MSVC
 my $pthread_define  = ' -DPDL_PTHREAD ';
 
 my $macos_braindamage_define = ($ENV{'OSTYPE'} eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
@@ -28,8 +45,13 @@ $fh->close;
 
 print "Trying to figure out POSIX threads support ...\n";
 
-if ( -e $pthread_include) {
+# TODO: replace directory and file checks for pthread.h by Devel::CheckLib test
+if ( exists $PDL::Config{POSIX_THREADS_INC} and  defined $PDL::Config{POSIX_THREADS_INC} ) {
+    $pthread_include = $PDL::Config{POSIX_THREADS_INC};
+    print "\t..setting \$pthread_include to $pthread_include\n";
+} elsif (-d $pthread_include) {
     print "\tSaw pthread.h. Fine.\n";
+    $pthread_include = "-I$pthread_include"
 } else {
     print "\tEhh. Didn't see include file 'pthread.h'.\n";
     $pthread_include = '';
@@ -37,33 +59,54 @@ if ( -e $pthread_include) {
 
 # For SGI, I had to link a new perl - cannot dlopen libpthread...
 require Config;
-if ($Config::Config{libs} =~ /-lpthread/) {
-	print "\tFine, your perl was linked against pthread library.\n";
+
+# TODO: need to clean up per-platform logic herer
+if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THREADS_LIBS} ) {
+    $pthread_library = $PDL::Config{POSIX_THREADS_LIBS};
+    print "\tUsing POSIX_THREADS_LIBS from perldl.conf\n";
+} elsif ($Config::Config{libs} =~ /-lpthread/) {   # wrong
+    print "\tFine, your perl was linked against pthread library.\n";
 } elsif ($^O eq 'dec_osf') {
-	if ($Config::Config{usemymalloc} eq 'n') {
-		print "\tFine pthread, works with Digital Unixs malloc\n";
-	} else {
-		#
-		print "\tPerls malloc has problems when perl is not linked with -lpthreads\n";
-		$pthread_library = '';
-	}
+    if ($Config::Config{usemymalloc} eq 'n') {
+        print "\tFine pthread, works with Digital Unixs malloc\n";
+    } else {
+        #
+        print "\tPerls malloc has problems when perl is not linked with -lpthread\n";
+        $pthread_library = '';
+    }
 } elsif ($^O eq 'freebsd'){
-	 if ($Config::Config{libs} =~ /-lc_r/) {
-		print "\tGood, found -lc_r on a freebsd system.\n";
+    if ($Config::Config{libs} =~ /-lc_r/) {
+        print "\tGood, found -lc_r on a freebsd system.\n";
     }else{
-	   print "On FreeBSD try building perl with libc_r instead of libc\n";
-		$pthread_library = '';
+        print "On FreeBSD try building perl with libc_r instead of libc\n";
+        $pthread_library = '';
     }
-   	
-} else {
-	print "\tNope, your perl was not linked against pthread library\n";
-	print "\tYou need to include -lpthread in your perl libs configuration\n";
-	$pthread_library = '';
+} elsif ($^O =~ /bsd$/i){
+    if ($Config::Config{usemymalloc} eq 'y') {
+        print "\tGood, usemymalloc=y, will build with pthread support\n";
+    }else{
+        print "\tGot usemymalloc=$Config::Config{usemymalloc} so not building with pthreads\n";
+        $pthread_library = '';
     }
+ } else {
+    print "\tNope, your perl was not linked against pthread library\n";
+    if ($^O =~ /mswin/i or $^O =~ /cygwin/i) {
+       if (check_lib(LIB=>'-lpthread',header=>'pthread.h')) {
+          print "\tWe found -lpthread and pthread.h so will build anyway\n";
+          $pthread_library = '-lpthread';
+       } else {
+          $pthread_library = '';
+       }
+    } else {
+       print "\tWe'll try the default -lpthread anyway\n";
+       # $pthread_library = '';
+    }
+ }
 
 $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_library;
 
 {
+    # TODO: use a Devel::CheckLib build/run test to verify working build params
     my $conf = $PDL::Config{WITH_POSIX_THREADS};
 
     if ((!defined($conf) or $conf)
@@ -84,7 +127,7 @@ $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_li
 
 # isbigendian() is in PDL::Dev
 print "\nTrying to figure out endian-ness of machine...";
-print " It is " . (isbigendian() ? "big" : "little") . " endian\n";
+print " It is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . " endian\n";
 
 # badsupport.p is made by the top-level Makefile, but placed
 # into Basic/Core, so we clean it up here
@@ -117,7 +160,7 @@ WriteMakefile(
 		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
 		   'mymalloc.p badsupport.p'
 		   },
- 'INC'          => "$mallocinc",
+ 'INC'          => "$pthread_include $mallocinc",
 );
 
 # Extra targets to build
@@ -201,13 +244,25 @@ q|
 pdlsections.c: pdlsections.g Types.pm
        $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
 |;
-}else { return
+} else { return
 PDL::Core::Dev::postamble().
 "
 # Bits of C code we generate from special perl scripts
 #
 # there must be a more elegant way of saying that
 # certain files have additional dependencies!
+
+pdlthread.c :: pdlcore.h\n"
+."
+
+pdlhash.c :: pdlcore.h\n"
+."
+
+pdlapi.c :: pdlcore.h\n"
+."
+
+pdlmagic.c :: pdlcore.h\n"
+."
 
 Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
 . make_from_PL('Core.pm')

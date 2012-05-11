@@ -15,7 +15,7 @@ PDL::Dbg - functions to support debugging of PDL scripts
 This packages implements a couple of functions that should come in
 handy when debugging your PDL scripts. They make a lot of sense while
 you're doing rapid prototyping of new PDL code, let's say inside the
-perldl shell.
+perldl or pdl2 shell.
 
 =cut
 
@@ -39,9 +39,13 @@ Print info about a piddle (or all known piddles)
 
 =for example
 
-    perldl> PDL->px
-    perldl> $b += $a->clump(2)->px('clumptest')->sumover
-    perldl> $a->px('%C (%A) Type: %T')
+    pdl> PDL->px
+    pdl> $b += $a->clump(2)->px('clumptest')->sumover
+    pdl> $a->px('%C (%A) Type: %T') # prints nothing unless $PDL::debug
+    pdl> $PDL::debug = 1
+    pdl>  $a->px('%C (%A) Type: %T')
+    PDL (52433464) Type: Double
+
 
 This function prints some information about piddles. It can be invoked
 as a class method (e.g. C<PDL-E<gt>px> ) or as an instance method (e.g.
@@ -59,7 +63,7 @@ about all symbols for which an C<isa($class)> is true. An optional
 string argument is interpreted as the package name for which to print
 symbols:
 
-  perldl> PDL->px('PDL::Mypack')
+  pdl> PDL->px('PDL::Mypack')
 
 The default package is that of the caller.
 

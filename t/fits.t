@@ -12,7 +12,7 @@ use PDL::Config;
 
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-use Test::More tests => 83;
+use Test::More tests => 84;
 
 BEGIN {
       use_ok( "PDL::IO::FITS" ); #1
@@ -254,5 +254,22 @@ unless($PDL::Astro_FITS_Header) {
 };
 
 }; # end of SKIP block
+
+#### Check that discontinuous data (e.g. from fftnd) get written correctly.
+#### (Sourceforge bug 3299611) it is possible to store data in a PDL non-contiguously
+#### through the C API, by manipulating dimincs; fft uses this technique, which
+#### used to hose up fits output.  
+
+SKIP:{
+    eval "use PDL::FFT";
+    skip "PDL::FFT not installed", 79 if $@;
+
+    my $a = sequence(10,10,10);
+    my $ai = zeroes($a);
+    fftnd($a,$ai);
+    wfits($a,$file);
+    my $b = rfits($file);
+    ok(all($a==$b),"fftnd output (non-contiguous in memory) is written correctly");
+}
 
 1;

@@ -1,0 +1,190 @@
+#!/usr/bin/perl
+#
+# Figure out which low-level commands are necessary to refresh an
+# interactive PLplot device
+
+use strict;
+use PDL::Graphics::PLplot;
+
+sub refresh{
+
+   my $x = sequence(10);
+   my $y = $x**2;
+
+   #  my $w=PDL::Graphics::PLplot->new(DEV=>'psc',FILE=>'plplottest.ps',JUST=>0);
+   my $w = PDL::Graphics::PLplot->new(DEV=>'xwin',FILE=>':0',JUST=>1);
+   plspause(0);
+
+   ## Either use this chunk of lines
+   #
+   #    print "before first plot BOX is ",@{$w->{BOX}},"\n";
+   #    $w->xyplot2(10*$x,$y);
+   #    print "after first plot BOX is ",@{$w->{BOX}},"\n";
+   #    $w->hold;
+   #    $w->xyplot2(10*$x,$y*2,COLOR=>'RED');
+   #    print "after second plot BOX is ",@{$w->{BOX}},"\n";
+   #    $w->release;
+   #    $w->close;
+
+   ## or use this chunk of lines
+   #
+   my $size = 50;
+   $w->imag(sequence($size,$size),PALETTE=>'GREYSCALE');
+   #    sleep 3;
+   $w->imag(random($size,2*$size));
+   $w->close;
+
+}
+
+sub PDL::Graphics::PLplot::imag {
+   my $self = shift;
+   my $img = shift;
+   my %opts = @_;
+
+   # Set PLplot to right output stream
+   plsstrm($self->{STREAMNUMBER});
+   # Advance the (sub)page unless we're being held or the window is brand new
+   pladv(0) unless $self->held or !exists($self->{BOX});
+
+   # Only process COLORMAP entries once
+   my $z = $opts{COLORMAP};
+   delete ($opts{COLORMAP});
+
+   # Set ticks to be external
+   $self->{XBOX} = $self->{XBOX} . 'i' unless exists($opts{XBOX});# =~ /i/i;
+   $self->{YBOX} = $self->{YBOX} . 'i' unless exists($opts{YBOX});# =~ /i/i;
+
+   $self->setparm(%opts);
+
+   my @borders = (-0.5,$img->dim(0)-0.5,-0.5,$img->dim(1)-0.5);
+
+   unless ( $self->held ) {
+      $self->{BOX} = \@borders;
+   }
+
+   $self->_setwindow;
+   $self->_drawlabels;
+
+   # Draw the image
+   plimage($img,@borders,0,0,@borders);
+
+   # Plot box
+   plcol0(1); # set to frame color
+   plbox($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB},
+      $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
+
+   plflush();
+}
+
+sub PDL::Graphics::PLplot::held{
+   my $self = shift;
+   return $self->{HELD};
+}
+
+sub PDL::Graphics::PLplot::hold{
+   my $self = shift;
+   $self->{HELD} = 1;
+}
+
+sub PDL::Graphics::PLplot::release{
+   my $self = shift;
+   $self->{HELD} = 0;
+}
+
+sub PDL::Graphics::PLplot::xyplot2 {
+   my $self = shift;
+   my $x    = shift;
+   my $y    = shift;
+
+   my %opts = @_;
+
+   # Set PLplot to right output stream
+   plsstrm($self->{STREAMNUMBER});
+
+   # Only process COLORMAP entries once
+   my $z = $opts{COLORMAP};
+   delete ($opts{COLORMAP});
+
+   # Handle ERRORBAR options
+   my $xeb = $opts{XERRORBAR};
+   my $yeb = $opts{YERRORBAR};
+   delete ($opts{XERRORBAR});
+   delete ($opts{YERRORBAR});
+
+
+   # Advance the (sub)page unless we're being held or the window is brand new
+   pladv(0) unless $self->held or !exists($self->{BOX});
+
+   # Apply options
+   $self->setparm(%opts);
+
+   unless ($self->held) {
+      #  unless (exists($self->{BOX})) {
+      $self->{BOX} = [$x->minmax, $y->minmax];
+   }
+
+   # Set up viewport, subpage, world coordinates
+   $self->_setwindow;
+
+   # Draw labels
+   $self->_drawlabels;
+
+   # Plot box
+   plcol0(1); # set to frame color
+   plbox($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB},
+      $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
+
+   # Set the color according to the color specified in the object
+   # (we don't do this as an option, because then the frame might
+   # get the color requested for the line/points
+   plcol0($self->{CURRENT_COLOR_IDX});
+
+   # Set line style for plot only (not box)
+   pllsty($self->{LINESTYLE});
+
+   # Set line width for plot only (not box)
+   plwid($self->{LINEWIDTH});
+
+   # Plot lines if requested
+   if  ($self->{PLOTTYPE} =~ /LINE/) {
+      plline($x, $y);
+   }
+
+   # Set line width back
+   plwid(0);
+
+   # Plot points if requested
+   if ($self->{PLOTTYPE} =~ /POINTS/) {
+      my $c = $self->{SYMBOL};
+      unless (defined($c)) {
+
+         # The default for $c is a PDL of ones with shape
+         # equal to $x with the first dimension removed
+         #
+         my $z = PDL->zeroes($x->nelem);
+         $c = PDL->ones($z->zcover) unless defined($c);
+      }
+      plssym(0, $self->{SYMBOLSIZE}) if (defined($self->{SYMBOLSIZE}));
+
+      if (defined($z)) {  # If a color range plot requested
+         my ($min, $max) = exists ($self->{ZRANGE}) ? @{$self->{ZRANGE}} : $z->minmax;
+         plcolorpoints($x, $y, $z, $c, $min, $max);
+      } else {
+         plsym($x, $y, $c);
+      }
+   }
+
+   # Plot error bars, if requested
+   if (defined($xeb)) {
+      # Horizontal (X) error bars
+      plerrx($x->nelem, $x - $xeb/2, $x + $xeb/2, $y);
+   }
+
+   if (defined($yeb)) {
+      # Vertical (Y) error bars
+      plerry($y->nelem, $x, $y - $yeb/2, $y + $yeb/2);
+   }
+
+   # Flush the PLplot stream.
+   plflush();
+}

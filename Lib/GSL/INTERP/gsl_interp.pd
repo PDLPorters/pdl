@@ -42,29 +42,17 @@ The available interpolation types are :
 
 =over 2
 
-=item 
+=item linear
 
-linear
+=item polynomial
 
-=item 
+=item cspline (natural cubic spline)
 
-polynomial
+=item cspline_periodic  (periodic cubic spline)
 
-=item 
+=item akima (natural akima spline)
 
-cspline (natural cubic spline)
-
-=item 
-
-cspline_periodic  (periodic cubic spline)
-
-=item 
-
-akima (natural akima spline)
-
-=item 
-
-akima_periodic  (periodic akima spline)
+=item akima_periodic  (periodic akima spline)
 
 =back
 
@@ -215,6 +203,7 @@ PDL distribution, the copyright notice should be included in the file.
 The GSL interpolation module was written by Gerard Jungman.
 
 =cut
+
 
 EOD
 		      

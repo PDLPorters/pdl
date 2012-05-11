@@ -69,6 +69,8 @@ I<any> dimension.
 
 $extras
 
+=cut
+
 EOD
 
 } # sub: projectdocs()
@@ -101,6 +103,8 @@ is the first element of the parameter.
  \$spectrum = $op \$image->xchg(0,1)
 
 $extras
+
+=cut
 
 EOD
 
@@ -333,6 +337,9 @@ pp_def(
       ',
        Doc => projectdocs('integral','intover',
 q~Notes:
+
+C<intover> uses a point spacing of one (i.e., delta-h==1).  You will
+need to scale the result to correct for the true point delta).
 
 For C<n E<gt> 3>, these are all C<O(h^4)> (like Simpson's rule), but are
 integrals between the end points assuming the pdl gives values just at
@@ -655,11 +662,48 @@ some circumstances.
 
 ); # pp_def: oddmedover
 
+my $find_pct_interpolate = '
+           np = nn * $p();
+           nn1 = np;
+           nn2 = nn1+1;
+           
+           nn1 = (nn1 < 0) ? 0 : nn1;
+           nn2 = (nn2 < 0) ? 0 : nn2;
+           
+           nn1 = (nn1 > nn) ? nn : nn1;
+           nn2 = (nn2 > nn) ? nn : nn2;
+           
+	   if (nn == 0) {
+	      pp1 = 0;
+	      pp2 = 0;
+	   } else {
+	      pp1 = (double)nn1/(double)(nn);
+	      pp2 = (double)nn2/(double)(nn);
+	   }
+           
+           if ( np <= 0.0 ) {
+              $b() = $tmp(n => 0);
+           } else if ( np >= nn ) {
+              $b() = $tmp(n => nn);
+           } else if ($tmp(n => nn2) == $tmp(n => nn1)) {
+              $b() = $tmp(n => nn1);
+           } else if ($p() == pp1) {
+              $b() = $tmp(n => nn1);
+           } else if ($p() == pp2) {
+              $b() = $tmp(n => nn2);
+           } else {
+              $b() = (np - nn1)*($tmp(n => nn2) - $tmp(n => nn1)) + $tmp(n => nn1);
+           }
+';
+
 pp_def('pctover',
+        HandleBad => 1,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
         Doc => '
 
-Project via percentile to N-1 dimensions
+=for ref
+
+  Project via percentile to N-1 dimensions
 
 This function reduces the dimensionality of a piddle by one by finding
 the specified percentile (p) along the 1st dimension.  The specified
@@ -667,7 +711,7 @@ percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between data points, the result is interpolated.  Values outside
 the allowed range are clipped to 0.0 or 1.0 respectively.  The algorithm
 implemented here is based on the interpolation variant described at
-L< http://en.wikipedia.org/wiki/Percentile> as used by Microsoft Excel
+L<http://en.wikipedia.org/wiki/Percentile> as used by Microsoft Excel
 and recommended by NIST.
 
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
@@ -682,50 +726,26 @@ $a = pctover($b, $p);
 $spectrum = pctover $image->xchg(0,1) $p
 
 =cut
+
+
 ',
         Code => '
-           int nn, nn1, nn2;
            double np, pp1, pp2;
-           loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size);
-           $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn-1);
-           
-           np = (nn - 1) * $p();
-           nn1 = np;
-           nn2 = nn1+1;
-           
-           nn1 = (nn1 < 0) ? 0 : nn1;
-           nn2 = (nn2 < 0) ? 0 : nn2;
-           
-           nn1 = (nn1 > nn-1) ? nn-1 : nn1;
-           nn2 = (nn2 > nn-1) ? nn-1 : nn2;
-           
-	   if (nn == 1) {
-	      pp1 = 0;
-	      pp2 = 0;
-	   } else {
-	      pp1 = (double)nn1/(double)(nn-1);
-	      pp2 = (double)nn2/(double)(nn-1);
-	   }
-           
-           if ( np <= 0.0 ) {
-              $b() = $tmp(n => 0);
-           } else if ( np >= nn-1 ) {
-              $b() = $tmp(n => nn-1);
-           } else if ($tmp(n => nn2) == $tmp(n => nn1)) {
-              $b() = $tmp(n => nn1);
-           } else if ($p() == pp1) {
-              $b() = $tmp(n => nn1);
-           } else if ($p() == pp2) {
-              $b() = $tmp(n => nn2);
-           } else {
-              $b() = (np - nn1)*($tmp(n => nn2) - $tmp(n => nn1)) + $tmp(n => nn1);
-           }
-'); 
+           int nn2;
+	   ' . $copy_to_temp_good .
+           $find_pct_interpolate,
+       BadCode =>
+       $copy_to_temp_bad .  '
+           int nn1, nn2;
+           double np, pp1, pp2;
+           nn -= 1; ' .  generic_qsort('tmp') .
+           $find_pct_interpolate . '}',
+
+); 
 
 
 pp_def('oddpctover',
+        HandleBad => 1,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
 	Doc => '
 
@@ -750,19 +770,27 @@ I<any> dimension.
  $spectrum = oddpctover $image->xchg(0,1) $p
 
 =cut
+
+
 ',
         Code => '
-           int nn, np;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size);
-           $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn-1);
-
-           np = nn*$p();
-           if (np > nn-1) np = nn-1;
+           int np;
+	   ' . $copy_to_temp_good . '
+           np = (nn+1)*$p();
+           if (np > nn) np = nn;
            if (np < 0) np = 0;
 	   $b() = $tmp(n => np);
-');
+',
+       BadCode => 'int np;
+       ' . $copy_to_temp_bad . '
+           nn -= 1;
+           ' .  generic_qsort('tmp') . '
+           np = (nn+1)*$p();
+           if (np > nn) np = nn;
+           if (np < 0) np = 0;
+	   $b() = $tmp(n => np);
+        }',
+);
 
 pp_add_exported('', 'pct');
 pp_addpm(<<"EOD");
@@ -860,6 +888,8 @@ Return the $text of all elements in a piddle
 
  \$x = $name(\$data);
 
+=cut
+
 EOD
 
     if ( $bvalflag ) {
@@ -874,11 +904,12 @@ has the same type as the input piddle OR
 perhaps we should die - makes sense for the conditional
 ops but not things like sum)
 
+=cut
+
 EOD
 } # if: bvalflag
 
    pp_addpm(<<"EOD");
-=cut
 
 *$name = \\&PDL::$name;
 sub PDL::$name {
@@ -905,6 +936,8 @@ Useful in conditional expressions:
 
  if (any $a>15) { print "some values are greater than 15\n" }
 
+=cut
+
 EOPM
 
     if ( $bvalflag ) {
@@ -914,12 +947,12 @@ EOPM
 See L<or|/or> for comments on what happens when all elements
 in the check are bad.
 
+=cut
+
 EOPM
 } # if: bvalflag
 
 pp_addpm(<<'EOPM');
-=cut
-
 *any = \&or;
 *PDL::any = \&PDL::or;
 
@@ -935,6 +968,8 @@ Useful in conditional expressions:
 
  if (all $a>15) { print "all values are greater than 15\n" }
 
+=cut
+
 EOPM
 
     if ( $bvalflag ) {
@@ -944,11 +979,12 @@ EOPM
 See L<and|/and> for comments on what happens when all elements
 in the check are bad.
 
+=cut
+
 EOPM
 } # IF: BVALFLAG
 
 pp_addpm(<<'EOPM');
-=cut
 
 *all = \&and;
 *PDL::all = \&PDL::and;
@@ -974,9 +1010,9 @@ The two values are returned as Perl scalars similar to min/max.
 
 =for example
 
- perldl> $x = pdl [1,-2,3,5,0]
- perldl> ($min, $max) = minmax($x);
- perldl> p "$min $max\n";
+ pdl> $x = pdl [1,-2,3,5,0]
+ pdl> ($min, $max) = minmax($x);
+ pdl> p "$min $max\n";
  -2 5
 
 =cut
@@ -1024,14 +1060,16 @@ Quicksort a vector into ascending order.
 
  print qsort random(10);
 
+=cut
+
 ',
     BadDoc =>
 '
 Bad values are moved to the end of the array:
 
- perldl> p $b
+ pdl> p $b
  [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
- perldl> p qsort($b)
+ pdl> p qsort($b)
  [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
 ',
     ); # pp_def qsort
@@ -1066,9 +1104,9 @@ pp_def(
        BadDoc => 
 'Bad elements are moved to the end of the array:
 
- perldl> p $b
+ pdl> p $b
  [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
- perldl> p $b->index( qsorti($b) )
+ pdl> p $b->index( qsorti($b) )
  [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
 ',
        Doc => '
@@ -1080,6 +1118,8 @@ Quicksort a vector and return index of elements in ascending order.
 
  $ix = qsorti $a;
  print $a->index($ix); # Sorted list
+
+=cut
 
 '
        ); # pp_def: qsorti
@@ -1119,6 +1159,8 @@ the 1st dimension is list order.  Higher dimensions are threaded over.
   [  4   2]
  ]
  
+
+=cut
 
 ',
     BadDoc =>
@@ -1162,6 +1204,8 @@ sorted list.
 Additional dimensions are threaded over: each plane is sorted separately,
 so qsortveci may be thought of as a collapse operator of sorts (groan).
 
+=cut
+
 ',
     BadDoc =>
 '
@@ -1178,6 +1222,7 @@ Vectors with bad components should be moved to the end of the array:
 # I have kept in the check for when Bad value support is not being compiled
 #
 my $nan_check = $bvalflag ? '' : '|| IsNaN(cur)';
+# my $nan_check = 0 ? '' : '|| IsNaN(cur)';   # This seems to work, not tested
 
 for my $which (
 	       ['minimum','<'],
@@ -1333,12 +1378,14 @@ Find minimum and maximum and their indices for a given piddle;
 
 =for usage
 
- perldl> $a=pdl [[-2,3,4],[1,0,3]]
- perldl> ($min, $max, $min_ind, $max_ind)=minmaximum($a)
- perldl> p $min, $max, $min_ind, $max_ind
+ pdl> $a=pdl [[-2,3,4],[1,0,3]]
+ pdl> ($min, $max, $min_ind, $max_ind)=minmaximum($a)
+ pdl> p $min, $max, $min_ind, $max_ind
  [-2 0] [4 3] [0 1] [2 2]
 
 See also L<minmax|/minmax>, which clumps the piddle together.
+
+=cut
 
 ',
 	BadDoc =>

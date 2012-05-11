@@ -1,3 +1,2989 @@
+Release Notes for PDL 2.4.10_004 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.10_004.tar.gz
+       cpan> make CHM/PDL-2.4.10_004.tar.gz
+       cpan> test CHM/PDL-2.4.10_004.tar.gz
+       cpan> look CHM/PDL-2.4.10_004.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.4.10_003 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.10_003.tar.gz
+       cpan> make CHM/PDL-2.4.10_003.tar.gz
+       cpan> test CHM/PDL-2.4.10_003.tar.gz
+       cpan> look CHM/PDL-2.4.10_003.tar.gz
+
+
+Highlights:
+
+ * Fix a missing declaration for add_deletedata_magic()
+   which is believed to be the cause of the warning messages
+   like:
+   
+     (in cleanup) Could not unmap: Invalid argument at t/fastraw.t line 63.
+     (in cleanup) Could not unmap: Invalid argument at t/fastraw.t line 80.
+     ...
+
+
+
+Release Notes for PDL 2.4.10_002 --------------------------
+
+General Notes:
+
+ * Rerelease of PDL-2.4.10_001 with reverted PROJ commit
+   to enable build to complete for File::Map testing to
+   occur.
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.10_002.tar.gz
+       cpan> make CHM/PDL-2.4.10_002.tar.gz
+       cpan> test CHM/PDL-2.4.10_002.tar.gz
+       cpan> look CHM/PDL-2.4.10_002.tar.gz
+
+
+Highlights:
+
+ * See notes for PDL-2.4.10_001 below.
+
+
+
+Release Notes for PDL 2.4.10_001 --------------------------
+
+General Notes:
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API and will require that you re-build all the    |
+ | PP modules.  Do not install over an existing PDL installation |
+ | unless you are prepared to do so!!!                           |
+ +---------------------------------------------------------------+
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.10_001.tar.gz
+       cpan> make CHM/PDL-2.4.10_001.tar.gz
+       cpan> test CHM/PDL-2.4.10_001.tar.gz
+       cpan> look CHM/PDL-2.4.10_001.tar.gz
+
+ * File::Map 0.47 has been added as a dependency for
+   testing purposes so an automated build will need
+   this dependency installed.
+   
+   For systems having POSIX mmap, the build should
+   still pass using the legacy implementation.
+
+
+Highlights:
+
+ * mapflex and mapfraw routines for memory-mapped IO have been
+   refactored to use the File::Map module.  The new routines
+   should work for all platforms having File::Map version 0.47
+   or later installed.  This new implementation should work
+   for both 32-bit and 64-bit perls as well as with 64-bit file
+   offsets.  Please test and report.
+
+ * Various cleanup to existing code to fix warnings generated
+   by perl-5.15.
+ 
+ * Other cleanup and bugs fixed (sf.net bug #3487569).
+
+
+
+Release Notes for PDL 2.4.10 --------------------------
+
+General Notes:
+
+ New Stuff:
+
+  * PDL::Constants module provides E, PI, I (or J) and more.
+
+  * PDL::NiceSlice has a new engine based on Filter::Simple
+    which is more selective about where the PDL::NiceSlice
+    sourcefilter is applied.
+
+  * pdl() constructor now accepts a string argument which
+    can include MATLAB-style [ ; ] syntax, bad values,
+    inf values, and nan values.  This makes it much easier
+    to specify pdl values in programs and scripts.
+
+  * PDL now supports pthreads on all platforms as well
+    as a new, auto-parallelization capability for PDL
+    threadloops across multiple processors using the
+    PDL::ParallelCPU module.
+
+  * Many(!) bug fixes.
+
+
+ Incompatible Changes:
+
+  * List output from whichND is now deprecated.
+
+  * The default.perldlrc uses PDL::Constants to
+    provide E and PI.
+
+  * perldl.conf has new fields so be sure to update
+    any local versions you use with the new fields.
+
+  * rcols and wcols always use dim0 for the data
+    dimension and dim1 for the column dimension.
+    This only matters if you use the support for
+    reading multiple columns into a 2D pdl.
+
+  * Makefile.PL now requires at least version 6.31
+    of ExtUtils::MakeMaker to support the new standard
+    INSTALL_BASE option matching Module::Build usage.
+
+  * Prerequisite Text::Balanced minimum version is
+    now 1.89 although this is not expected to be an
+    issue because it is provided in the perl core
+    since 5.8.0.
+
+
+Highlights:
+
+ * General cleanup of code, including restructuring for clarity.
+ 
+ * List output from whichND() is now deprecated.  whichND() now returns
+   a piddle of coordinates in all cases with a warning when a list
+   context is detected.  See the docs for work-arounds to your code.
+ 
+ * PDL::IO::Misc now has better support for handles that are not
+   files (e.g., pipes or standard input) for rgrep(), rcols(),...
+ 
+ * Added bad value support to pctover() and oddpctover().
+   This was sf.net feature #3328001.
+ 
+ * New whereND() routine provides the same functionality as where
+   but with support for multi-dimensional masks and implicit
+   threading over higher dimensions.  This was sf.net feature
+   request #3390043.
+ 
+ * Many bugs fixed.
+ 
+     3059083  Problems with FITS header handling
+     3080505  PLplot segfaults on plshades call on OS X
+     3285520  status message from gslmroot_fsolver
+     3294808  sever on Empty piddle causes segfault
+     3295544  NiceSlice parsing bug
+     3299611  FITS I/O obscure bug
+     3300467  NiceSlice asterisk parsing issue
+     3307121  wmpeg sometimes kills perldl if file already exists
+     3307613  indexND of Empty pdls can segfault
+     3368883  t/opengl.t fails if display type not available
+     3375837  _read_flexhdr state machine fails
+     3388862  tiny bug in PDL-2.4.3. May apply to 2.4.9
+     3391645  bad printf formats in pdlapi.c and others
+     3394327  PDL::IO::FITS::wfits corrupting FITS image
+     3396738  PDL::Core::convert default return type
+     3410905  t/pgplot.t hangs test harness for PDL
+     3415115  whereND fails to handle all zero mask case
+     3428356  PDL::Transform::map output FITS header is slightly wrong
+     3434842  Error in definition of gsl_sf_laguerre_n function
+ 
+ * PDL::Constants now provides: E, PI, I and J and is loaded by the
+   default.perldlrc.  It is not yet part of 'use PDL' so you'll need
+   to 'use PDL::Constants ...' by hand for now.
+ 
+ * default.perldlrc sets $PDL::IO::FlexRaw::writeflexhdr=1 by
+   default so that writeflex() to a filename automatically writes
+   the header file.  This is different from the previous behavior
+   but it seems to "do what you mean".  Feedback welcome!
+ 
+ * PDL::NiceSlice now has a new engine based on Filter::Simple which
+   is smarter about only applying the slicing source filter to syntax
+   occurring outside of POD, comments, and quotelike strings.  The
+   new implementation is available for *files* by setting the
+   PDL_NICESLICE_ENGINE environment variable to 'Filter::Simple'.
+ 
+   Work is underway to port the new niceslice filter implementation
+   to perldl/pdl2.  Once this task is completed, the new engine will
+   become the default source filter and the PDL_NICESLICE_ENGINE
+   environment variable will be removed.
+ 
+ * There is experimental support for PDL::NiceSlice syntax in the
+   perl debugger (i.e., perl -d).  Just set the PERL5DB environment
+   variable to 'BEGIN { require "PDLdb.pl" }' to use niceslice
+   from the debugger command line.  If PERL5DB is already set,
+   you'll need to adjust the above recipe accordingly.
+ 
+ * Better handling of build configuration options from perldl.conf
+   as well as improvements in the detection of external dependencies.
+ 
+ * perldl.conf has some new fields added:
+    - POSIX_THREADS_INC and POSIX_THREADS_LIBS to specify
+          locations of your pthread header file and library
+    - PDL_CONFIG_VERSION to track the perldl.conf VERSION
+    - PDLDOC_IGNORE_AUTOLOADER to control pdldoc behavior
+    - PDL_BUILD_DIR provides the build directory path
+    - PDL_BUILD_VERSION provides the PDL build version
+          (to help with ambiguity from multiple PDL installs)
+ 
+   NOTE: If you are using a private or customized perldl.conf
+   file, please be sure to update with these additional fields
+   as the perl Makefile.PL doesn't yet detect version skew
+   automatically.
+  
+ * PDL::IO::Browser now builds in many cases (but not all).
+   If you try it, please let us know how it goes.  Just edit
+   the value of WITH_IO_BROWSER in your perldl.conf before
+   configuring the build (i.e., perl Makefile.PL).
+ 
+ * PDL::PP has seen some significant improvements including
+   code cleanup, improved documentation, and code refactoring
+   for comprehension.  There is a new PDL::PP::pp_line_numbers()
+   routine which enables line # traceback for errors and warnings
+   from PP code.
+ 
+ * Improved error output from the pdl2 shell via the new
+   CleanErrors plugin which filters out the non-PDL part
+   of the error output leading to *much* more concise and
+   helpful reports.
+ 
+ * The pdl() constructor now accepts a string argument which
+   allows for writing pdls using a matlab/octave style
+   syntax as well as cutting and pasting from interactive
+   session output to create pdls initializations for scripts
+   and program files.
+   
+   The new constructor also allows for inf, nan, and bad to
+   generate the appropriate values (case insensitive), e.g.,
+ 
+      $bad = pdl q[1 2 3 bad 5 6];  # Set fourth element to the bad value
+      $bad = pdl q[1 2 3 BAD 5 6];  # ditto
+      $bad = pdl q[1 2 inf bad 5];  # now third element is IEEE infinite value
+      $bad = pdl q[nan 2 inf -inf]; # first value is IEEE nan value
+ 
+   This is new functionality so feedback and problem reports
+   are welcome.
+ 
+ * PDL::Image2D has new routines: pnpoly() to determine the points
+   in a polygon from the sequence of vertex coordinates, and
+   cc4compt() for 4-component labeling of a binary image.
+ 
+ * PDL now supports pdls larger than 2GiB.  The element count
+   is still an int type internally so the total number of elements
+   per-piddle must be less than 2**31.
+ 
+ * POSIX threads (pthreads) are supported for win32 and cygwin
+   platforms.  Pthreads are now available for all PDL platforms.
+ 
+ * New PDL::ParallelCPU module provides automatic distribution
+   of implicit thread loops across a number of processors.  Now
+   you can watch your PDL computations maximize the load on
+   *all* your processors.  See the docs for how to configure this
+   feature and how to adjust your calculations to best take
+   advantage of this feature.
+ 
+ * PDL::Graphics::PLplot now works with the latest release of the
+   PLplot library and has improved configuration and build
+   handling.  Feedback welcome.
+ 
+ * rcols() and wcols() now use the same convention for multi-column
+   input and output: dim0 is *always* the data dimension and
+   dim1 corresponds to the columns in the file.  This adjustment
+   makes them their inverse operations.
+ 
+ * The ADEV calculation in statsover has been corrected along
+   with the documentation.
+ 
+ * PDL::Graphics::TriD changes:
+    - PDL::Graphics::TriD now builds using the perl OpenGL
+          module (POGL) when configured on cygwin with the
+          interface=W32API option.  By default, POGL used
+          interface=GLX on cygwin which does software rendering
+          via Mesa/X11 (slower!).  If you reinstall POGL with
+          the W32API setting, you will need to rebuild PDL and
+          PDL::Graphics::TriD to pick up the new configuration.
+    - A new 4-line graphics demo contributed by Mark Baker has
+          been added to 'demo 3dgal'.  Take a look.
+ 
+ * Various enhancements to FITS handling, including:
+   - add map() fix for nonlinear FITS headers
+   - Enable hdrpcy() in rfits() for Rice-compressed images
+ 
+ * Test suite improvements to provide better diagnostics from
+   failures and to make tests more correct avoiding "false fails"
+   in the test reports.  Various tests have been migrated to use
+   File::Temp::tempdir and File::Temp::tempfile to improve the
+   robustness for temporary files and directories naming and
+   creation during tests.
+ 
+ * Update ExtUtils::MakeMaker required version to 6.31 to support
+   the new standard of INSTALL_BASE to configure for a local
+   perl/PDL module installation.
+ 
+ * Update Text::Balanced required version to 1.89.  This is the
+   version present in perl 5.8.0 (the minimum required for PDL)
+   so this change in requirement is not expected to affect any
+   PDL users.
+ 
+ * pdldoc now searches your PDLLIB path for PDL::AutoLoader docs
+   in addition to the pre-extracted documentation database.  This
+   makes pdldoc give the same output as the help command in the
+   PDL shells.
+ 
+ * Many updates and additions to the PDL documentation.
+ 
+ * Devel::CheckLib is being used in more places during the
+   PDL configuration stage.  We plan to make this the standard
+   baseline for dependency library detection going forwards.
+   The included copy of Devel::CheckLib has been updated to 0.95.
+ 
+ * A new unified implementation of barf()/warn() for PDL removes
+   code duplication.  barf() is now defined in both PDL::Core and
+   the PDL packages.  PDL::cluck is added as an analog of Carp::cluck
+   (as PDL::barf is an analog of Carp::confess).  barf() now
+   generates its stack trace by hooking into Carp::confess on
+   both the Perl and C sides.
+ 
+ * Various fixes for PDL::Transform
+   - fix inverse in perspective()
+   - fix t_cubic() parameter parsing
+   - fix handling of multiple PCi_j systems in the piddle header
+ 
+ * Added SIGPIPE handlers to cases where PDL uses pipes to/from
+   external processes (such as ffmpeg or some NetPBM image
+   converter programs).  This should make PDL "SIGPIPE safe" by not
+   exiting when a PDL piped IO output process quits (e.g., as when
+   called from within the perldl/pdl2 shell).
+
+
+
+Release Notes for PDL 2.4.9_995 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.10 release candidate 5
+
+ * All focus now is on testing, documentation, web page
+   updates, and writing the PDL Book...
+ 
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_995.tar.gz
+       cpan> make CHM/PDL-2.4.9_995.tar.gz
+       cpan> test CHM/PDL-2.4.9_995.tar.gz
+       cpan> look CHM/PDL-2.4.9_995.tar.gz
+
+
+Specific Updates:
+
+ * Add error reporting and diags to t/flexraw_fortran.t
+   to help track down remaining tester fails from the
+   PDL-2.4.10 pre-release candidates.
+ 
+ * Add values of $PDL::floatformat and $PDL::doubleformat
+   to PDL::Core docs.
+ 
+ * PDL::Graphics2D now exports imag2d_update in addition
+   to imag2d and twiddle.
+ 
+ * Clear and clean up POGL dependency information
+   and perl Makefile.PL configure error messages.
+
+
+Highlights:
+
+ * See above.
+
+
+
+Release Notes for PDL 2.4.9_994 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.10 release candidate 4
+
+ * All focus now is on testing, documentation, web page
+   updates, and writing the PDL Book...
+ 
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_994.tar.gz
+       cpan> make CHM/PDL-2.4.9_994.tar.gz
+       cpan> test CHM/PDL-2.4.9_994.tar.gz
+       cpan> look CHM/PDL-2.4.9_994.tar.gz
+
+
+Highlights:
+
+ * See above.
+
+
+
+Release Notes for PDL 2.4.9_993 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.10 release candidate 3
+
+ * All focus now is on testing, documentation, web page
+   updates, and writing the PDL Book...
+ 
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_993.tar.gz
+       cpan> make CHM/PDL-2.4.9_993.tar.gz
+       cpan> test CHM/PDL-2.4.9_993.tar.gz
+       cpan> look CHM/PDL-2.4.9_993.tar.gz
+
+
+Highlights:
+
+ * See above.
+
+
+
+Release Notes for PDL 2.4.9_992 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.10 release candidate 2
+
+ * This release is to fix an issue with IO::Browser build
+   defaults that is causing a bunch of UNKNOWN reports
+   from CPAN Testers.
+
+ * All focus now is on testing, documentation, web page
+   updates, and writing the PDL Book...
+ 
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_992.tar.gz
+       cpan> make CHM/PDL-2.4.9_992.tar.gz
+       cpan> test CHM/PDL-2.4.9_992.tar.gz
+       cpan> look CHM/PDL-2.4.9_992.tar.gz
+
+
+Highlights:
+
+ * Fix IO::Browser build default
+
+ * Clean up of perldl.conf.
+
+
+
+Release Notes for PDL 2.4.9_991 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.10 release candidate 1
+
+ * All focus now is on testing, documentation, web page
+   updates, and writing the PDL Book...
+ 
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_991.tar.gz
+       cpan> make CHM/PDL-2.4.9_991.tar.gz
+       cpan> test CHM/PDL-2.4.9_991.tar.gz
+       cpan> look CHM/PDL-2.4.9_991.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.4.9_016 --------------------------
+
+General Notes:
+
+ * This is the final CPAN developers release for PDL
+   code changes.  The next release will be release
+   candidate 1 and all focus will be on documentation,
+   web page updates, and writing the PDL Book...
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_016.tar.gz
+       cpan> make CHM/PDL-2.4.9_016.tar.gz
+       cpan> test CHM/PDL-2.4.9_016.tar.gz
+       cpan> look CHM/PDL-2.4.9_016.tar.gz
+
+
+Highlights:
+
+ * Updated win32/INSTALL instructions.
+
+ * Added curses library detection for PDL::IO::Browser using
+   Devel::CheckLib.  This is untested and disabled by
+   default but if you set WITH_IO_BROWSER => 1 in the
+   perldl.conf, it should build if your platform supports
+   curses.
+   
+   NOTE: PDL::IO:Browser is not available for win32 perls
+   since we still need to sort out an appropriate add-on
+   curses implementation and verify it works.
+ 
+ * Rework some tests to quiet warnings and to reduce
+   false fails (usually from floating point == tests).
+
+ * Better corner-case handling when creating a pdl from a string.
+   For example, this doesn't make sense:
+     pdl q[1 +-2 3]
+   but it used to give a piddle with values [1, -2, 3], basically
+   ignoring the first plus sign. That now croaks.
+   
+   Additionally, this used to croak, but the error message was
+   useless:
+     pdl q[1 pie 3]
+   The new parsing will croak with a much more useful error:
+     found 'e' as part of a larger word in 1 pie 2
+ 
+ * Improved pthread detection for windows with Devel::CheckLib
+
+
+
+Release Notes for PDL 2.4.9_015 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_015.tar.gz
+       cpan> make CHM/PDL-2.4.9_015.tar.gz
+       cpan> test CHM/PDL-2.4.9_015.tar.gz
+       cpan> look CHM/PDL-2.4.9_015.tar.gz
+
+
+Highlights:
+
+ * Cleaner error reporting from the pdl2 shell.  Stops
+   printing the callback trace once the PDL relevant
+   parts are done.
+
+ * Candidate fix for sf.net bug #
+   3460886    t/flexraw_fortran.t test failures
+ 
+ * Added PDL_BUILD_VERSION to the perldl.conf keys.
+   This value is generated by the Makefile.PL config
+   process and provides a consistency check by ensuring
+   the Config.pm is from the correct version of PDL.
+ 
+ * Replace tempfile and tempdir based on hand-rolled
+   from TMPDIR in perldl.conf by calls to File::Temp
+   tempfile and/or tempdir.  Fixes to tests and trylink
+   command.
+ 
+ * Update minimum version of ExtUtils::MakeMaker to
+   6.31 which is the first version supporting the
+   INSTALL_BASE option for local module repo locations.
+   This is the same location as the Module::Build
+   --install-base option and is much easier to
+   understand where things go than the PREFIX + LIB.
+
+   NOTE: If you've been using PREFIX + LIB for your
+   standalone repository configuration, you'll need
+   to reinstall with the new option.  Mix and matching
+   the two is liable to cause problems.
+
+
+
+Release Notes for PDL 2.4.9_014 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_014.tar.gz
+       cpan> make CHM/PDL-2.4.9_014.tar.gz
+       cpan> test CHM/PDL-2.4.9_014.tar.gz
+       cpan> look CHM/PDL-2.4.9_014.tar.gz
+
+
+Highlights:
+
+ * Add imaginary unit (either I and/or J) to PDL::Constants
+   and make all constants EXPORT_OK() rather than EXPORT().
+   Some documentation updates.
+
+ * Minor cleanups to PDL::PP and related modules to get rid
+   of warnings under new Perls during testing.
+ 
+ * Added pp_line_numbers to PDL::PP to improve line number
+   reporting when the compiler runs into an error with
+   PDL::PP code.
+ 
+ * Add pnpoly implementation and fixes to PDL::Image2D
+
+ * Candidate fix to PDL::Minuit Makefile.PL
+
+
+
+Release Notes for PDL 2.4.9_013 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_013.tar.gz
+       cpan> make CHM/PDL-2.4.9_013.tar.gz
+       cpan> test CHM/PDL-2.4.9_013.tar.gz
+       cpan> look CHM/PDL-2.4.9_013.tar.gz
+
+
+Highlights:
+
+ * Add workaround for pthread detection on *BSD systems to
+   avoid CPAN Testers failures due to miss-detection and
+   auto-configuration.
+
+ * Update t/proj_transform.t and t/proj_transform2.t test
+   data to be consistent with the new FITS coordinate
+   handling fix.
+
+ * Add a new cc4compt routine in PDL::Image2D which provides
+   4-component labeling to go with the existing cc8compt which
+   provides 8-component labeling.
+
+ * Added test time diagnostics to PDL::IO::Pic test that
+   print the converter hash values if any tests fail.
+ 
+ * Documentation additions.
+
+
+
+Release Notes for PDL 2.4.9_012 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_012.tar.gz
+       cpan> make CHM/PDL-2.4.9_012.tar.gz
+       cpan> test CHM/PDL-2.4.9_012.tar.gz
+       cpan> look CHM/PDL-2.4.9_012.tar.gz
+
+
+Highlights:
+
+ * Quick re-release to include Basic/Core/Makefile.PL fixes
+   from git
+ 
+ * Fixed new t/proj_transform2.t test failure that was a
+   side effect off the newly more correct FITS coordinate
+   handling.
+
+
+
+Release Notes for PDL 2.4.9_011 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_011.tar.gz
+       cpan> make CHM/PDL-2.4.9_011.tar.gz
+       cpan> test CHM/PDL-2.4.9_011.tar.gz
+       cpan> look CHM/PDL-2.4.9_011.tar.gz
+
+
+Highlights:
+
+ * SF.net bugs fixed:
+
+   - 3410905  t/pgplot.t hangs test harness for PDL
+              Now use the PGPLOT /NULL device if running
+              under Test::Harness.
+
+   - 3428356  PDL::Transform::map output FITS header is slightly wrong 	
+
+   - 3080505  PLplot segfaults on plshades call on OS X
+
+   - 3059083  Problems with FITS header handling
+
+ * The perl crash in t/pthreadBarf.t for win32 has been fixed.
+   The problem was that Perl's realloc was being used instead
+   of the system malloc/realloc.
+
+ * Fix build for PROJ4 submodules so that setting WITH_PROJ to
+   1 with force a build whether or not the configure type checks
+   can verify the build options.  This allows the end user to
+   work around auto-detection issues when needed.
+   
+   NOTE: Even with the override, the check are still done---just
+   ignored in the decision process.
+
+ * Various documentation and updates.
+
+
+
+Release Notes for PDL 2.4.9_010 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_010.tar.gz
+       cpan> make CHM/PDL-2.4.9_010.tar.gz
+       cpan> test CHM/PDL-2.4.9_010.tar.gz
+       cpan> look CHM/PDL-2.4.9_010.tar.gz
+
+
+Highlights:
+
+ * Experimental PDL::NiceSlice support for perl debugger.
+   Just put the PDLdb.pl file in your perl @INC path and
+   do an
+
+     export PERL5DB='BEGIN { require "PDLdb.pl" }'
+     setenv PERL5DB 'BEGIN { require "PDLdb.pl" }'
+
+   You should be able to use niceslice syntax to view
+   or modify pdl values.  Feedback welcome!
+
+ * New pdl from string functionality in pdl constructors
+   new and pdl now supports BAD, NAN, and INF values as
+   entries in the piddle being constructed.  E.g., this
+   now works:
+
+     pdl> p $a = pdl q[ inf bad 0 0 ];
+     [inf BAD 0 0]
+
+ * Fixed security vulnerability in and added functionality
+   to PDL::Core::new_pdl_from_string.
+   
+   - replaced an eval with a Perl-level parse of the string
+
+   - added support for the strings 'inf', 'nan', and 'bad',
+     as well as the Windows printouts of those values
+   
+   In the past, using new_pdl_from_string with a stringified
+   piddle worked as long as the piddle didn't have infinity,
+   not-a-number, or BAD values. Now, that works. This is also
+   useful for generating data to test edge cases.
+
+
+ * Fixed sf.net bugs:
+
+   - 3434842  Error in definition of gsl_sf_laguerre_n function
+   - 3391507  pdl2 docs not found by pdldoc
+   - 3391645  bad printf formats in pdlapi.c and others
+
+ * Resolved sf.net feature requests with clarified documentation
+   and more diagnostic error messages:
+
+   - 3396738  PDL::Core::convert default return type
+   - 3396761  fix rvals arithmetic wrap-around for byte types
+
+
+
+Release Notes for PDL 2.4.9_009 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_009.tar.gz
+       cpan> make CHM/PDL-2.4.9_009.tar.gz
+       cpan> test CHM/PDL-2.4.9_009.tar.gz
+       cpan> look CHM/PDL-2.4.9_009.tar.gz
+
+
+Highlights:
+
+ * Work underway to enable POSIX theads support for
+   win32 systems (native windows perls and cygwin).
+   Manual build is possible for cygwin and MSWin32.
+
+ * PDL segfault on Empty pdl bugs fixed:
+
+   - 3307613   indexND of Empty pdls can segfault
+   - 3294808   sever on Empty piddle causes segfault
+
+ * Other bugs fixed:
+
+   - 3415115   whereND fails to handle all zero mask case
+   - .......   rcols dies when you reading past the EOF
+   - .......   fixed readflex edge case with badvalues
+
+ * wcols can now write 2D pdls directly with the
+   column data going to dim0 and dim1 corresponding
+   to the number of colums written to the file for
+   that pdl.  rcols now uses the same convention for
+   2D pdls which makes dim0 the data dimension for
+   both 1D and 2D pdls *and* make rcols and wcols
+   the reverse operations from each other.
+
+ * Documentation and diagnostic improvements for PDL::PP
+   from investigation and study by David Mertens.
+
+ * Various clean-up and tidying of PDL as a release.
+
+ * New engine for PDL::NiceSlice offers improved
+   selectivity as a source filter regarding sf.net
+   bug #3018731 'NiceSlice affects code where it should not'.
+   The main improvement from the new code is it should
+   not filter in perl comments or quotelike constructs.
+   
+   To try the new sourcefilter "engine", set the environment
+   variable PDL_NICESLICE_ENGINE to either of:
+
+    Filter::Util::Call (for the original filter version)
+    Filter::Simple     (for the new and improved engine)
+   
+   NOTE: the current default is Filter::Util::Call although
+   that may change for some CPAN developers release testing.
+   Also, if you enter an invalid option, PDL::NiceSlice will
+   die.
+
+   NOTE: Work is underway to finish the implementation
+   for the interactive PDL shells: perldl and pdl2.  You
+   get the Filter::Util::Call behavior for the shells
+   regardless of the choice of filter engine at this time.
+  
+
+
+Release Notes for PDL 2.4.9_008 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_008.tar.gz
+       cpan> make CHM/PDL-2.4.9_008.tar.gz
+       cpan> test CHM/PDL-2.4.9_008.tar.gz
+       cpan> look CHM/PDL-2.4.9_008.tar.gz
+
+
+Highlights:
+
+ * Enabled more pnmtoxxx converters for t/pnm.t and t/picrgb.t.
+   The idea is to revisit any issues with the NetPBM installs
+   as the previous problems might be better handled by better
+   configuration and tests.
+
+ * Multiple sf.net bugs fixed:
+
+   - 3394327    PDL::IO::FITS::wfits corrupting FITS image
+   - 3392972    t/pthreadBarf.t test fails
+   - 3377113    failure to find PDL typemap
+   - 3303673    PLplot trouble with new PThreads
+
+
+
+Release Notes for PDL 2.4.9_007 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_007.tar.gz
+       cpan> make CHM/PDL-2.4.9_007.tar.gz
+       cpan> test CHM/PDL-2.4.9_007.tar.gz
+       cpan> look CHM/PDL-2.4.9_007.tar.gz
+
+
+Highlights:
+
+ * Candidate fix for sf.net bug # 3394327  (thanks to
+   kxtor).  It would be great if we had a small test
+   to add to t/fits.t showing the problem with the
+   original code.
+
+ * Candidate fix for sf.net bug # 3392972 (thanks to
+   John Cerney).  It appears that some of the cleanup
+   from the PDL_Long typemap problem had a side-effect
+   with the previous barf code.
+
+ * Candidate fix for sf.net bug # 3377113 (thanks to
+   Rob/sisyphus for following up with this).  The latest
+   spin seems to fix the problem.
+ 
+ * Ported t/pthreadBarf.t to use Test::More.
+
+
+
+Release Notes for PDL 2.4.9_006 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_006.tar.gz
+       cpan> make CHM/PDL-2.4.9_006.tar.gz
+       cpan> test CHM/PDL-2.4.9_006.tar.gz
+       cpan> look CHM/PDL-2.4.9_006.tar.gz
+
+Highlights:
+
+ * Outstanding segfault for t/pthreadBarf.t test.
+ 
+ * Fix for sf.net bug #3377113 "failure to find PDL typemap"
+ 
+ * Fix C declaration issue for MSVC 6.0 builds
+ 
+ * New addition to 'demo 3dgal' by Mark Baker
+ 
+ * pdldoc now checks $PDLLIB autoloader path for docs
+ 
+ * Documentation fixes...
+
+
+Release Notes for PDL 2.4.9_005 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_005.tar.gz
+       cpan> make CHM/PDL-2.4.9_005.tar.gz
+       cpan> test CHM/PDL-2.4.9_005.tar.gz
+       cpan> look CHM/PDL-2.4.9_005.tar.gz
+
+
+Highlights:
+
+ * Fix for missing PDL_Long * typemap in Core.xs bug
+
+
+
+Release Notes for PDL 2.4.9_004 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_004.tar.gz
+       cpan> make CHM/PDL-2.4.9_004.tar.gz
+       cpan> test CHM/PDL-2.4.9_004.tar.gz
+       cpan> look CHM/PDL-2.4.9_004.tar.gz
+
+
+Highlights:
+
+ * Add 'use PDL::Constants' to default.perldl in preparation
+   for eventual inclusion for 'use PDL'.  The PDL::Constants
+   module only defines PI and E at the moment.  I would like
+   to see a few more standard ones added such as I or J for
+   the imaginary unit value.
+
+ * Set $PDL::IO::FlexRaw::writeflexhdr=1 in PDL shell.  This
+   enables writeflex() to call writeflexhdr() automatically
+   when a filename is given as the output destination.  This
+   matches the behavior of writefraw() but is different than
+   the previous behavior so only enable the new default in
+   the interactive shells (for now).
+
+
+ * Preliminary support for pdls larger than 2GiB (but still
+   with less than 2**31 *elements*) is in the PDL core.
+   It is believed that this modification should be
+   transparent.  Please test.
+
+ * New whereND() routine added to PDL::Primitive.  Like
+   where but it properly threads the mask over higher
+   data dimensions.  This was sf.net feature #3390043.
+ 
+ * pdldoc now searches for *.pdl files in your @PDLLIB
+   path for docs on PDL::AutoLoader routines.  To disable
+   the new behavior, just set the new perldl.conf option
+   PDLDOC_IGNORE_AUTOLOADER to true.  This was sf.net
+   feature #3390042.
+
+ * Documentation fixes
+
+ * SF.net bugs fixed:
+   - 3388862  tiny bug in PDL-2.4.3. May apply to 2.4.9
+   - 3375837  _read_flexhdr state machine fails
+   - 3368883  t/opengl.t fails if display type not available
+
+
+Release Notes for PDL 2.4.9_003 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_003.tar.gz
+       cpan> make CHM/PDL-2.4.9_003.tar.gz
+       cpan> test CHM/PDL-2.4.9_003.tar.gz
+       cpan> look CHM/PDL-2.4.9_003.tar.gz
+
+
+Highlights:
+
+ * PDL now requires Text::Balanced version 1.89 or higher.
+
+   NOTE: All perls with versions 5.8.0+ have at least this
+   version of Text::Balanced in the Core module set.
+
+ * Fix wmpeg crash when ffmpeg generates an error with a
+   $SIG{PIPE}, sf.net #3307121.  Added $SIG{PIPE} fixes
+   for other PDL modules using pipes.
+ 
+ * PDL::NiceSlice being refactored to use Filter::Simple.
+ 
+ * pctover, oddpctover, pct, and oddpct now support badvalues
+   per sf.net feature request #3328001.
+
+ * Fixed t/opengl.t problem to enable support for TriD to
+   work with POGL compiled under cygwin for the w32api
+   OpenGL graphics.
+
+ * Improved diagnostic output on failure ("better barf").
+
+
+
+Release Notes for PDL 2.4.9_002 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_002.tar.gz
+       cpan> make CHM/PDL-2.4.9_002.tar.gz
+       cpan> test CHM/PDL-2.4.9_002.tar.gz
+       cpan> look CHM/PDL-2.4.9_002.tar.gz
+
+
+Highlights:
+
+ * New multi-processor support for PDL computations using
+   pthreads.  This can improve performance up to 2X-4X for
+   some problems.  See pdldoc ParallelCPU for information.
+
+ * Fix PDL::NiceSlice bugs sf.net #3295544 and #3300467
+
+ * Fix wcols() regression where file handle arguments
+   were not being handled correctly.
+ 
+ * Various documentation and distributions fixes.
+
+
+
+Release Notes for PDL 2.4.9_001 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_001.tar.gz
+       cpan> make CHM/PDL-2.4.9_001.tar.gz
+       cpan> test CHM/PDL-2.4.9_001.tar.gz
+       cpan> look CHM/PDL-2.4.9_001.tar.gz
+
+
+Highlights:
+
+ * Add support to PDL::IO::Misc for handles that are not files.
+
+ * Update PDL::PP docs and other doc fixes.
+
+ * Improved detection logic for a number of external
+   dependencies
+ 
+ * Fix double-bscale bug for rice-compressed images
+
+ * Adapt t/bad.t to use File::Temp::tempfile() instead
+   of a hand-rolled version.  Eventually we would like
+   to standardize on File::Temp for our temp file work.
+
+
+
+Release Notes for PDL 2.4.9 --------------------------
+
+General Notes:
+
+ * Fixes a couple of surprise bugs that were discovered
+   immediately with the PDL-2.4.8 release.
+
+ * See Also: the Release Notes for PDL-2.4.8 below
+
+
+Highlights:
+
+ * Fix sf.net bug #3267408 "t/slice.t crashes in tests 68-70 for BSD"
+ 
+ * Fix sf.net bug #3190227 "PDL build fails with parallel GNU make -j3 -j3"
+
+ * Fixed various tempfile name generation problems by switching
+   to File::Temp instead of hand rolled solutions.  This is the
+   recommended approach going forward.
+
+ * Force Convert::UU usage for BSD to work around a t/dumper.t
+   failure on MirBSD.
+
+
+
+Release Notes for PDL 2.4.8_004 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.9 pre-release 2.
+
+
+Highlights:
+
+ * See the PDL-2.4.9 release notes above.
+
+
+
+Release Notes for PDL 2.4.8_003 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.9 pre-release 1.
+
+
+Highlights:
+
+ * See the PDL-2.4.9 release notes above.
+
+
+
+Release Notes for PDL 2.4.8_002 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.8_002.tar.gz
+       cpan> make CHM/PDL-2.4.8_002.tar.gz
+       cpan> test CHM/PDL-2.4.8_002.tar.gz
+       cpan> look CHM/PDL-2.4.8_002.tar.gz
+
+
+Highlights:
+
+ * Fix temporary file generation problems with IO/Dumper.pm,
+   t/iotypes.t, and add temp file cleanup code to Makefile.PL
+ 
+ * Add additional dependencies in the Makefile generation
+   for Basic/Core/Makefile.PL to address the parallel make
+   failures.
+
+
+
+Release Notes for PDL 2.4.8_001 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.8_001.tar.gz
+       cpan> make CHM/PDL-2.4.8_001.tar.gz
+       cpan> test CHM/PDL-2.4.8_001.tar.gz
+       cpan> look CHM/PDL-2.4.8_001.tar.gz
+
+
+Highlights:
+
+ * Fixed sf.net bug #3267408 "t/slice.t crashes in tests 68-70 for BSD"
+
+
+
+Release Notes for PDL 2.4.8 --------------------------
+
+General Notes:
+
+ * The deprecated Karma imaging library support code
+   has been removed from the PDL distribution.
+ 
+ * Perl OpenGL (POGL) is now the only build option for
+   3-D graphics support in PDL.  The POGL build has
+   proven to be portable and reliable.  This prepares
+   TriD graphics development for the next stage of
+   re-factoring for support and new features.
+ 
+ * Many improvements to the PDL configuration, build
+   and test process make this the most robust PDL yet.
+ 
+ * PDL::IO::FlexRaw now supports automatic header file
+   creation when writeflex() is given a filename argument
+   for writing.  readflex/writeflex/mapflex now support
+   reading and writing piddles with bad values in them.
+ 
+ * New PDL::Constants module provides PI and E.
+
+ * PDL::Complex now supports in-place operations.
+
+ * Added $PDL::toolongtoprint to set the maximum piddle
+   size allowed to print as a string.  This was added
+   to the default.perldlrc to make it easier to discover
+   by users.
+
+ * wmpeg() from PDL::IO::Pic uses the new ffmpeg back-end
+   and can create many additional file formats beyond MPEG
+   alone, including MP4 and animated GIF.  See the
+   documentation for details.
+ 
+ * Lots of improvements to the documentation, overall
+   usability and many bugs fixed!
+
+Highlights:
+
+ Build and Test Enhancements:
+
+ * Karma support code has been *removed* from the PDL
+   distribution The last stable PDL distribution with
+   Karma code was be PDL-2.4.7.
+   
+ * You must use the Perl OpenGL module to build the
+   PDL 3-D graphics module, PDL::Graphics::TriD.
+   OPENGL_LIBS, OPENGL_INC and OPENGL_DEFINE are no
+   longer used by perldl.conf for the configuration
+   process.
+   
+ * Added a check for mis-installed PROJ4 libraries.  If
+   the library does not initialize (even if present) then
+   PDL will not build the PROJ4 modules.  This is sf.net
+   feature #3045456.
+   
+ * GD, HDF, PROJ4, OpenGL, and GSL tests will not be run
+   unless the corresponding module was configured to be
+   built.  This addresses the possibly mysterious test
+   failures caused by previous PDL installations in the
+   perl path at build time.
+   
+ * Use of the Test::More TODO {} blocks allows tests for
+   known bugs to be added to the test suite without 
+   causing the suite to fail.  This replaces the previous
+   SKIP_KNOWN_PROBLEMS option and should better enable
+   test first development and debugging.
+   
+ * utils/perldlpp.pl is a new script for off-line source
+   filtering to pre-filter PDL source files with NiceSlice
+   constructs.  This allows PDL to use NiceSlice constructs
+   in the core functionality while still allowing PDL to
+   work in environments where source filters are not supported.
+   
+ * The 'perl Makefile.PL' response to detecting another PDL
+   in the build path has changed.  If such a pre-existing PDL
+   installation is detected, the user is warned *but*
+   configuration and build will proceed nonetheless.
+   
+ * Clean-up and fixes to demos and tests for reliability and
+   portability.
+
+ Documentation:
+
+ * Added INTERNATIONALIZATION file with i18n notes.  PDL
+   does yet not have internationalization support beyond
+   that provided  by perl itself.
+   
+ * Cleared up the documentation on when to use lu_decomp
+   and versus lu_decomp2.  Now that lu_decomp is threaded,
+   it is the preferred implementation.
+   
+ * wmpeg() with the ffmpeg converter supports generation of
+   many different output video file formats including MPEG,
+   MP4, and animated GIF.  Documentation on these uses were
+   added.
+
+ * New example code refresh.pdl in Example/PLplot to
+   provide for PLplot, some of the same functionality
+   as in PDL::Graphics::PGPLOT.
+   
+ * Other documentation updates for clarity and correctness.
+
+ New Features or Functionality:
+
+ * New PDL::Constants module providing PI and E (so far)
+   
+ * Inplace support added for PDL::Complex operations
+   
+ * pdldoc and the pdl2/perldl help commands now print all
+   matches by default when multiple matches are found.
+
+ * A do_print command was added to the pdl2 shell which
+   toggles the input mode between printing and not
+   printing the return value of each command.
+   
+ * readflex/writeflex/mapflex now support reading and writing  
+   piddles with bad values in them. This was sf.net feature
+   request #3028127, "add badvalue support to FlexRaw".
+   
+ * writeflex now supports automatically calling the
+   writeflexhdr() routine if you have set the variable
+   $PDL::FlexRaw::writeflexhdr to a true value and are
+   writing to a file given by filename as argument.
+   
+ * Updated the error handling for GSL::INTERP to match other
+   GSL module usages.
+   
+ * Applied sf.net patch #3209075 IO::HDF square sds
+   
+ * New binary blob support in PDL::IO::GD::OO
+
+ Bugs Fixed:
+
+ * Applied Christian Soeller's patch for FFTW on 64-bit
+   systems.  This resolves bug #3203480 "t/fftw.t fails
+   on 64-bit systems".
+   
+ * Fixed sf.net bug #3172882 re broken threading in inv().
+   inv() and lu_backsub() now handle threading.  Updated
+   documentation for lu_decomp, lu_deomp2, and lu_backsub.
+   
+ * Fixed sf.net bug #3171702 "missing podselect command
+   breaks PDL build"
+   
+ * Fixed sf.net bug #3185864 (bad adev in statsover)
+   
+ * Fixed sf.net bug #3139697: fixed imag2d() to work better
+   with Mac OS X GLUT and not just FreeGLUT.
+   
+ * Fixed uniqind bug #3076570
+   
+ * Fixed SF bug #3057542: wmpeg doesn't error on missing
+   ffmpeg program.  Now wmpeg returns 1 on success and
+   undef on error.  If ffmpeg is not in PATH, it just fails
+   immediately....
+   
+ * Fixed SF bug #3056142: pdl2 fallback to perldl broken
+   on win32
+   
+ * Fixed SF bug #3042201: t/dumper.t fails mysteriously
+   
+ * Fixed SF bug #3031068: PDL::IO::FlexRaw mapflex memory
+   mapping fails
+   
+ * Fixed SF bug #3011879, "pdl() constructor crashes perl for
+   mixed ref/piddle args" and #3080505, and #3139088.  This
+   fix also includes a larger and more complete set of tests.
+   
+ * Fixed segfault in plplot.t with a work-around.
+   
+ * Fixed bug in readenvi.pdl header list value processing
+   and added support for embedded file headers.
+   
+ * Fixed bug in FlexRaw.pm support for headers with Type
+   passed  as string.
+   
+ * Fixed imag2d() in PDL::Graphics2D.  It no longer calls
+   exit on ESC if run within the pdl2/perldl shell.  Also
+   did some clean up of key controls and module mechanics.
+   
+ * Fixed upstream bug in Devel::REPL for MultiLine
+   continuation.  Now incomplete q[] and qq[] constructs
+   continue reading until properly closed.  See the
+   Known_problems file for details.
+
+
+    
+Release Notes for PDL 2.4.7_991 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.8pre1 release
+
+Highlights:
+
+ * See PDL-2.4.8 release notes above.
+
+
+    
+Release Notes for PDL 2.4.7_015 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_015.tar.gz
+       cpan> make CHM/PDL-2.4.7_015.tar.gz
+       cpan> test CHM/PDL-2.4.7_015.tar.gz
+       cpan> look CHM/PDL-2.4.7_015.tar.gz
+
+
+Highlights:
+
+ * Fix another problem with the Lib/GIS/Proj and Lib/Transform/Proj4
+   Makefile.PL files.
+
+
+    
+Release Notes for PDL 2.4.7_014 --------------------------
+
+General Notes:
+
+ * Last developers release before the PDL-2.4.8 pre-release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_014.tar.gz
+       cpan> make CHM/PDL-2.4.7_014.tar.gz
+       cpan> test CHM/PDL-2.4.7_014.tar.gz
+       cpan> look CHM/PDL-2.4.7_014.tar.gz
+
+
+Highlights:
+
+ * Added feature to check for a mis-installed PROJ4
+   library.  If such is detected, PDL will not build
+   the PROJ4 modules.  This sf.net feature #3045456.
+
+ * Applied sf.net patch #3209075 IO::HDF square sds
+ 
+ * Applied Christian Soeller's patch for FFTW on 64-bit
+   systems.  This resolves bug #3203480 "t/fftw.t fails
+   on 64-bit systems".
+ 
+ * Various clean up to tests and build process.
+
+
+    
+Release Notes for PDL 2.4.7_013 --------------------------
+
+General Notes:
+
+ * Last developers release before the 2.4.8 pre-release
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_013.tar.gz
+       cpan> make CHM/PDL-2.4.7_013.tar.gz
+       cpan> test CHM/PDL-2.4.7_013.tar.gz
+       cpan> look CHM/PDL-2.4.7_013.tar.gz
+
+
+Highlights:
+
+ * readflex/writeflex/mapflex now support reading and writing
+   piddles with bad value support enabled.  This was sf.net
+   feature request #3028127, "add badvalue support to FlexRaw".
+   
+   On writeflex, a piddle with badflag==1 will have a keyword
+   badvalue added to the header file and an additional value
+   if badvalue is != orig_badvalue for that type.
+   
+   On readflex, a piddle with the badvalue header will
+   automatically have its badflag set and its badvalue as well
+   if it is not the default.
+
+ * New PDL::Constants module providing PI and E
+
+ * New refresh.pdl in Example/PLplot.  This provides
+   some of the same functionality as in the PDL
+   PGPLOT graphics.
+
+ * Inplace support added for PDL::Complex operations
+
+ * OPENGL_LIBS, OPENGL_INC and OPENGL_DEFINE
+   no longer used in perldl.conf as the Perl
+   OpenGL binding is now required for TriD graphics.
+ 
+ * Additional code clean up now that PDL::Karma
+   graphics are no longer provided.
+ 
+ * Various bug and documentation fixes.
+
+
+    
+Release Notes for PDL 2.4.7_012 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_012.tar.gz
+       cpan> make CHM/PDL-2.4.7_012.tar.gz
+       cpan> test CHM/PDL-2.4.7_012.tar.gz
+       cpan> look CHM/PDL-2.4.7_012.tar.gz
+
+
+Highlights:
+
+ * Fixed pdl constructor bugs
+
+   - Include a larger and more-complete set of tests.
+
+   - Fixes SF.net bugs: #3011879, #3080505, and #3139088.
+
+   - Please test and verify.
+
+ * Legacy (deprecated) X11+PP build of TriD OpenGL bindings
+   has been removed
+
+     You must use the new Perl OpenGL based build which has
+     proven to be more portable and reliable.  This prepares
+     TriD graphics development for the next stage of refactoring
+     for support and functionality.
+
+ * More tests have been updated to not run unless the feature
+   they test was actually built.  This addresses the possible
+   mysterious test failures caused by previous PDL installs
+   in the perl path at build time.
+
+   - t/opengl.t will not run if TriD graphics have not been built
+
+   - t/gsl*.t tests will not run if WITH_GSL => 0
+
+ * Remove Karma support code from PDL distribution
+    
+     The last stable CPAN distribution with Karma code
+     in it (though deprecated) will be PDL-2.4.7.
+
+ * Added INTERNATIONALIZATION file with i18n notes
+
+     PDL does not have internationalization support beyond
+     that provided by perl itself.  In fact, some of the
+     code may be specific to English and ASCII for file names
+     and strings.  This file is a place holder and reminder
+     to address these issues.
+
+ * Some documentation and FAQ updates.
+
+
+    
+Release Notes for PDL 2.4.7_011 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_011.tar.gz
+       cpan> make CHM/PDL-2.4.7_011.tar.gz
+       cpan> test CHM/PDL-2.4.7_011.tar.gz
+       cpan> look CHM/PDL-2.4.7_011.tar.gz
+
+
+Highlights:
+
+ * Fixes to GD, HDF, and PROJ4 tests to not run if they
+   weren't built.
+ 
+ * New binary blob support in PDL::IO::GD::OO
+
+ * Changed from interactive prompt when duplicate PDL is
+   found at PDL config time.  Now we just warn.
+ 
+ * Fixed sf.net bug #3185864 (bad adev in statsover)
+
+ * Minor pod cleanup for lu_xxx routines in PDL::MatrixOps
+
+ * Spot fixes to usual README, docs,..
+
+
+
+    
+Release notes for PDL 2.4.7_010 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_010.tar.gz
+       cpan> make CHM/PDL-2.4.7_010.tar.gz
+       cpan> test CHM/PDL-2.4.7_010.tar.gz
+       cpan> look CHM/PDL-2.4.7_010.tar.gz
+
+
+Highlights:
+
+ * Test release to verify the fix for sf.net bug #3171702
+   "missing podselect command breaks PDL build"
+
+
+    
+Release notes for PDL 2.4.7_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_009.tar.gz
+       cpan> make CHM/PDL-2.4.7_009.tar.gz
+       cpan> test CHM/PDL-2.4.7_009.tar.gz
+       cpan> look CHM/PDL-2.4.7_009.tar.gz
+
+
+Highlights:
+
+ * Update Known_problems, Perldl2/TODO, Release_Notes
+    
+ * Fixed upstream bug in Devel::REPL for MultiLine continuation
+   so now incomplete q[] and qq[] constructs continue reading
+   until properly closed.  This was a problem for pdl2 and its
+   multiline support.
+
+ *  Fix sf.net bug #3172882 re broken threading in inv
+    - inv() and lu_backsub() now handle threading
+    - documentation updates for lu_decomp, lu_deomp2, lu_backsub
+
+ * Fix imag2d not to exit on ESC in pdl2/perldl
+   Clean up PAUSE/STEP key controls for imag2d()
+   Add imag2d_update to EXPORT_OK and fix bug
+    
+     There are preliminary key bindings for the default
+     imag2d() windows to support SPACE to toggle pause,
+     [ . or > ] to step/move forward, and [ , or < ] to
+     move backward through frame data.
+
+ * clean up tests for PLplot functions
+   - common code in tests for PLplot functions has been abstracted
+   - plsfont & plgfont interfaces are now conditional on their existence
+   - OPTIONS! file is now Perl code.
+   - all conditional code API code is now based on
+      presence of a feature rather than version
+
+ * readenvi doc/code cleanup, ignore case in hdr keys
+    
+ * wmpeg() with the ffmpeg converter supports generation
+   of many different output video file formats including
+   MPEG, MP4, and animated GIF.  Documentation on these
+   uses were added.
+
+
+
+Release notes for PDL 2.4.7_008 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_008.tar.gz
+       cpan> make CHM/PDL-2.4.7_008.tar.gz
+       cpan> test CHM/PDL-2.4.7_008.tar.gz
+       cpan> look CHM/PDL-2.4.7_008.tar.gz
+
+
+Highlights:
+
+ * Merged PDL version of Graphics/PLplot with the stand-alone
+   package from CPAN, version 0.53.
+
+ * Fixed segfault in plplot.t by avoiding the problem:  pdl($pdl->sclr).
+   Calls to pdl() with arguments that are themselves PDLs still fails.
+
+ * Fixed sf.net bug #3139697: The imag2d() routine was using
+   FreeGLUT-specific macros: GLUT_ACTION_ON_WINDOW_CLOSE and
+   GLUT_ACTION_CONTINUE_EXECUTION which was a problem on OS X
+   GLUT which does not support them.  Added check for FreeGLUT
+   to conditionalize their use.
+ 
+ * Update PDL::IO::FlexRaw POD for writeflex
+
+ * Add open MODE support to writeflex "filename"
+     
+     writeflex is documented to take as argument either a "filename"
+     or a FILEHANDLE however if passed something like ">filename" as
+     the file argument, it would quietly (and unexpectedly) open the
+     file ">$name" which would then be ">>filename" and the data would
+     be appended to the file rather than overwriting it.
+
+     This modifies the "filename" option to be used explicitly if
+     passed a perl open type MODE+filename expression which might
+     avoid someone's utter confusion in the future...
+
+
+
+Release notes for PDL 2.4.7_007 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_007.tar.gz
+       cpan> make CHM/PDL-2.4.7_007.tar.gz
+       cpan> test CHM/PDL-2.4.7_007.tar.gz
+       cpan> look CHM/PDL-2.4.7_007.tar.gz
+
+
+Highlights:
+
+ * Added do_print command to pdl2 shell which toggles the
+   input mode between printing and not printing the value
+   of each command.
+
+ * Cleaned up documentation on when to use lu_decomp and
+   lu_decomp2.  Now that lu_decomp is threaded, it is the
+   preferred implementation.
+ 
+ * pdldoc and the pdl2/perldl help commands now print
+   all matches by default when multiple matches are
+   found.  It is easier to use the pager than to re-enter
+   the help command with a [$n] on it.
+ 
+ * Fixed SF bug #3056142: pdl2 fallback to perldl broken on win32
+
+ * Fixed documentation for the PDL::hist routine where
+   use of the unix man convention of []'s around optional
+   arguements was confusing in PDL since [] are valid
+   perl delimiters/constructs.
+ 
+ * writeflex now supports automatically calling the
+   writeflexhdr routine if you have set the variable
+   $PDL::FlexRaw::writeflexhdr to a true value.
+ 
+ * Use standard abbreviations for piddle info output
+   for sizes (KB and MB rather than Kb and Mb).
+
+
+
+Release notes for PDL 2.4.7_006 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_006.tar.gz
+       cpan> make CHM/PDL-2.4.7_006.tar.gz
+       cpan> test CHM/PDL-2.4.7_006.tar.gz
+       cpan> look CHM/PDL-2.4.7_006.tar.gz
+
+
+Highlights:
+
+ * Fixed SF bug #3031068: PDL::IO::FlexRaw mapflex memory mapping fails
+
+ * Fixed SF bug #3042201: t/dumper.t fails mysteriously
+
+ * Added detection and skips for bad PROJ4 installs to t/proj_transform.t
+   and t/proj_transform2.t
+
+ * Added new global setting to control maximum PDL print size,
+   $PDL::longbigtoprint, and added POD to Core.pm.PL covering
+   these important PDL package variables.
+
+ * Fixed SF bug #3057542: wmpeg doesn't error on missing ffmpeg.
+   Now wmpeg returns 1 on success and undef on error.  If ffmpeg
+   is not in PATH, just fail immediately....
+ 
+
+
+
+Release notes for PDL 2.4.7_005 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_005.tar.gz
+       cpan> make CHM/PDL-2.4.7_005.tar.gz
+       cpan> test CHM/PDL-2.4.7_005.tar.gz
+       cpan> look CHM/PDL-2.4.7_005.tar.gz
+
+
+Highlights:
+
+ * Testing possible fixes to sf.net #3031068 and #3042201
+ 
+
+
+
+Release notes for PDL 2.4.7_004 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_004.tar.gz
+       cpan> make CHM/PDL-2.4.7_004.tar.gz
+       cpan> test CHM/PDL-2.4.7_004.tar.gz
+       cpan> look CHM/PDL-2.4.7_004.tar.gz
+
+
+
+Highlights:
+
+ * Modify the XS_PDL_address routine in Core.xs to convert
+   the pdl pointer to an IV rather than an int.  Adjusted
+   PDL::address in Core.pm to format the resulting value
+   correctly.
+
+ * Fix missing stdlib.h include for Lib/Image2D/resample.h
+
+ * Fix bug in readenvi header list value processing and
+   add support for non-zero imbedded file header size.
+ 
+ * Refactored t/complex.t to use Test::More
+
+ * Fix bug in FlexRaw.pm support for headers with
+   Type passed as string.  There was a case where
+   'double' was being pased to the PDL::howbig which
+   generated an error on some platforms.  It is not
+   clear why this did not fail on all platforms.
+ 
+
+
+
+Release notes for PDL 2.4.7_003 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_003.tar.gz
+       cpan> make CHM/PDL-2.4.7_003.tar.gz
+       cpan> test CHM/PDL-2.4.7_003.tar.gz
+       cpan> look CHM/PDL-2.4.7_003.tar.gz
+
+
+
+Highlights:
+
+ * Sf.net bug #3011879, pdl() constructor crashes perl
+   for mixed ref/piddle args has been fixed and is
+   available for general use and testing this release.
+
+ * utils/perldlpp.pl is a new PDL utility for off-line
+   source filtering to pre-filter perl source files for
+   NiceSlice constructs.  This allows the functionality
+   to be used in environments not supporting direct
+   use of source filters.
+ 
+ * Various fixes to transform.pd.
+
+ * Various clean-ups of docs, POD, and tests.
+
+ * Set the default GSL error handler for GSL/INTERP
+   to support perl exception handling rather than
+   having the interpreter exit.
+ 
+
+
+
+Release notes for PDL 2.4.7_002 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_002.tar.gz
+       cpan> make CHM/PDL-2.4.7_002.tar.gz
+       cpan> test CHM/PDL-2.4.7_002.tar.gz
+       cpan> look CHM/PDL-2.4.7_002.tar.gz
+
+
+
+Highlights:
+
+ * Replace SKIP_KNOWN_PROBLEMS by Test::More's TODO
+   blocks.
+   
+   NOTE: To avoid FAILs for the Known_Problems
+   tests, just set the environment variable
+   SKIP_KNOWN_PROBLEMS or edit the perldl.conf file
+   and set the SKIP_KNOWN_PROBLEMS to 1.
+
+
+
+
+Release notes for PDL 2.4.7_001 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_001.tar.gz
+       cpan> make CHM/PDL-2.4.7_001.tar.gz
+       cpan> test CHM/PDL-2.4.7_001.tar.gz
+       cpan> look CHM/PDL-2.4.7_001.tar.gz
+
+
+
+Highlights:
+
+ * Updated TODO, Perldl2/TODO, Known_problems and other
+     README type files.
+ 
+ * Fixed pdldoc to use PERLDOC_PAGER if set.
+ 
+ * Various minor fixed to POD documentation
+ 
+ * Fixes to t/fastraw.t to clean up working files on exit
+     and to removed intermediate files at each stage.
+     Some tests were failing because of pre-existing files
+     left from other runs.
+ 
+ * Partial fix to #3079844 where very long tmpdir pathnames
+     created invalid fortran test code.  The final fix will
+     be to skip this test for such pathalogical pathname
+     lengths and add another test with modern fortran file
+     syntax rather than f77-era 80 character lines.
+ 
+ * Updated FITS.pm to handle BSCALE/BZERO correctly for
+     tile-compressed images
+ 
+ * Add win32 workaround for pdl2->perldl exec bug #3056142.
+     Now win32 just exits pdl2 with a warning to run perldl
+     rather than trying the broken exec.
+ 
+ * Fixed uniqind bug #3076570
+ 
+ * Fixed Demos/Cartography_demo.pm and Demos/Transform_demo.pm
+     to use the /GW driver on MSWin32 systems only.
+ 
+ * Various fixes for the PDL-2.4.7 debian package.
+
+
+
+
+Release notes for PDL 2.4.7 --------------------------
+
+General Notes:
+
+ * New requirements:
+   - perl version 5.8.x and higher
+   - Convert::UU
+ 
+ * PDL::Graphics::TriD now requires OpenGL-0.63
+ 
+ * New 2-D image display routine: imag2d()
+
+ * pdl() constructor, a.k.a. PDL->new(), now
+   takes string arguments with either MATLAB type
+   concatenation syntax or PDL print output (for
+   easier cut-and-paste from PDL shell sessions).
+
+ * Improved text and comma separated value file
+   input via rcols(): faster and more flexible.
+ 
+ * A new PDL shell based on Devel::REPL (i.e.,
+   Moose technology).  The new shell supports
+   more perl syntax (lexical variables and
+   packages), is more extensible (via a system
+   of plugins), and supports many forms of file
+   and variable completion.
+   
+   Install Devel::REPL and give it a try!
+   User feedback welcome.
+
+ * More portability (builds on more platforms
+   with more features than ever).
+
+ * Many bugs fixed...
+
+
+Highlights:
+
+ * General
+
+   OpenGL-0.63 is required for PDL::Graphics::TriD.
+
+   Convert::UU is required for PDL.
+
+   Karma is DEPRECATED and NOT SUPPORTED.  Set
+   USE_KARMA=>1 in perldl.conf to force a build.
+   
+   
+ * New 2D Image Display Feature: imag2d()
+
+   See PDL::Graphics2D for documentation.
+
+   Add image pixel value display on mouse
+   click in imag2d window
+   
+   Add keyboard command shortcuts for imag2d
+   (with placeholders)
+
+   Fix a number of imag2d() usabiilty bugs
+   
+   
+ * pdl() Constructor Can Take String Input
+
+   Allows use of MATLAB-style [ ; ] syntax
+
+   Allows cut-and-paste of printed pdl values
+   as input args for pdl()
+   
+   
+ * rcols/wcols Improvements
+
+   Much faster read times
+
+   Multiple columns can read into a single
+   pdl varible
+
+   Symmetric handling of perl and pdl
+   column data
+
+   Improved format support for CSV file input
+   
+   
+ * Enhanced PDL Shell (Version 2)
+
+   Based on Devel::REPL which must be installed
+   along with either Term::ReadLine::Perl or
+   Term::ReadLine::Gnu to use the pdl2 features.
+
+   Supports Term::ReadLine::Perl and Term::ReadLine::Gnu.
+
+   Upward compatable with the original PDL shell, perldl.
+
+   Adds completion and command line editing support
+   across all PDL platforms.
+
+   Adds support for current package and lexical variables.
+
+   Toggle default print output via the do_print attribute.
+
+   Default prompt for perldl and pdl2 is now 'pdl> '
+
+   help vars now shows results alphabetically
+
+   pdl2 now runs (falls back to) perldl if Devel::REPL
+   is not installed or if Term::ReadLine::(Perl|Gnu) is
+   not installed.
+   
+   
+ * Other Features
+
+   Fix wmpeg() to use ffmpeg to generate the
+   video (sf.net feature request #3010984).
+
+   Added tiled compressed image handling to rfits
+
+   Faster matrix multiply
+
+   Preliminary support for ENVI file format data
+   in PDL/IO/ENVI/readenvi.pdl
+   
+   
+ * Build Improvements:
+
+   PDL build process now detects multiple PDL installs
+   and warns of possible conflicts.
+
+   'use PDL' now loads PDL::Config by default.
+
+   PDL "as built" configuration is now saved to %PDL::Config
+
+   Changes file is automatically updated each release
+
+   Add SKIP_KNOWN_PROBLEMS support for build
+
+   Add checks to prevent warnings from access to $HOME
+   when it is not defined.
+   
+   
+ * Portability Fixes
+
+   Multiple build improvements for debian platforms
+
+   Improved portability across perl and compiler versions
+
+   Reduced number of fortran dependencies
+
+   Improved support for win32 platforms
+   - PDL::GIS::Proj builds for win32
+   - PDL::Transform::Proj4 builds for win32
+   - PDL::Graphics::PLplot builds for win32
+   - PDL::IO::Dumper builds for win32
+   
+   
+ * 3-D Graphics
+
+   Improved PDL::Graphics::TriD demos and examples
+
+   Fixed problems with VRML support for many platforms.
+
+   Better dependency searches for OpenGL during PDL build
+
+   Removed warnings "noise" when used with perl -w
+
+   New spheres3d routine added to PDL::Graphics::TriD
+   
+   
+ * Bugs Fixed
+
+   Fix PDL::AutoLoader to handle win32 PDLLIB path
+   syntax with ; as separator. 
+
+   Fix PDL::Complex::string and sum and sumover
+   (sf.net bug #1176614)
+
+   Fix PDL::Config does not match actual build
+   configuration (sf.net bug #3030998).
+
+   Fix dimension numbering in PDL::Transform::t_fits
+
+   Fix jpegtopnm problem in proj_transform.t
+
+   Fix rt.cpan.org bug #53815 in IO/HDF/SD/SD.pd
+
+   Fix rt.cpan.org bug #59126 in isempty pod
+
+   Fix sf.net bug #2901170 re overly verbose warnings when
+   running TriD with perl -w
+
+   Fix sf.net bug #3011143 re whitespace in perl path
+
+   Fix sf.net bug #3021578 re missing xtra dummy dims
+
+   Fix threading with lu_decomp and lu_backsub
+   (sf.net bug #3021567)
+
+   Fix uniq and uniqind NaN and BAD value handling
+   (sf.net bug #3011659)
+
+   Fix uniqvec bug where it did not return a 2-D result
+   (sf.net bug #2978576)
+
+   Fix uuencode/uudecode detection logic in PDL::IO::Dumper
+   to include Convert::UU check
+
+   Make PDL prompt/warn if space in build path
+   (sf.net bug #2924854).
+
+   Fix up code to not crash on non-lazy linking systems.
+
+   Work arounds for perl-d lvalue temp bug introduced
+   in recent perls.
+
+   t/lvalue.t is skipped if run under the debugger. 
+
+   Fix format string attack errors in GSL, PGPLOT,
+   and Transform.
+   
+   
+ * Many Documentation Improvements
+
+   Completely reworked PDL web site
+   - Clearer and more helpful to new PDL users.
+   - See http://pdl.perl.org for the latest!
+      
+   New documentation:
+   - Migration guide for MATLAB users.
+   - Migration guide for Scilab users.
+   - Threading tutorial.
+
+   Major reorganization of documentation to better
+   help new users
+   - A guide to PDL's tutorial documentation.
+   - A guide to PDL's module reference documentation.
+   - A study course through all of PDL's documentation.
+   - Removed PDL::Intro
+
+   POD cleanup across many PDL modules and functions.
+
+   Update to copyright statements throughout PDL
+   to clarify licenses.
+
+   Improved on-line help and apropos features in
+   the PDL shell
+
+   Updated FAQ
+
+   Improved POD to HTML translation
+
+   DEPENDENCIES for PDL updated and checked
+   for applicability.
+
+   INSTALL guides improved in the distribution
+   and on the web site.
+
+
+
+Release notes for PDL 2.4.6_993 --------------------------
+
+General Notes:
+
+ * This is the PDL-2.4.7 pre-release 3 (final)
+
+ * TBD
+
+Highlights:
+
+ * See PDL-2.4.7 release notes above
+ 
+
+
+
+Release notes for PDL 2.4.6_992 --------------------------
+
+General Notes:
+
+ * This is PDL-2.4.7 pre-release 2
+
+ * TBD
+
+Highlights:
+
+ * See PDL-2.4.6_993 release notes above
+
+
+
+
+Release notes for PDL 2.4.6_991 --------------------------
+
+General Notes:
+
+ * This is PDL-2.4.7 pre-release 1
+
+ * TBD
+
+Highlights:
+
+ * See PDL-2.4.6_992 release notes above
+
+
+
+Release notes for PDL 2.4.6_018 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+Highlights:
+
+ * Candidate fix for the mysterious t/dumper.t failures
+   for some systems, take 2.  If you still see failures,
+   please let us know.  Thanks.
+
+
+
+Release notes for PDL 2.4.6_017 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+Highlights:
+
+ * Candidate fix for the mysterious t/dumper.t failures
+   for some systems.  If you still see failures, please
+   let us know.  Thanks.
+
+
+
+Release notes for PDL 2.4.6_016 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+Highlights:
+
+ * Add smooth shading for spheres3d()
+
+ * Fix Perl OpenGL detection to remove the OpenGL
+   PREREQ_PM if an acceptable version of OpenGL is
+   not found.
+
+ * PDL now checks for another pre-existing PDL in your
+   perl @INC path and asks you if you wish to continue
+   since mysterious failures have been observed during
+   tests in that case.
+ 
+ * PDL::AutoLoader now can handle win32 path separators
+  (semicolons) in addition to the usual colons.
+
+ * PDL::Config is now loaded by default with use PDL.
+
+ * Various documentation updates of TODO, Perldl2/TODO,
+   DEPENDENCIES, Release_Notes and more.
+
+
+
+Release notes for PDL 2.4.6_015 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+ * Perl 5.6.x is no longer supported.
+ 
+   Perl 5.8.x or higher is now required.  NOTE: PDL
+   should still build for 5.6.2 and higher if you edit
+   the line in the top level Makefile.PL from 5.008_000
+   back to 5.006_002.
+
+Highlights:
+
+ * wmpeg in PDL::IO::Pic now uses ffmpeg to generate the
+   movie file instead of the outdated mpeg_encode.  This
+   is pretty much a straight translation of the original.
+   
+   NOTE: Example/IO has a program you can run to create
+   a quick check movie.  As there is no formal test for
+   this function, feedback on whether this works on your
+   platform is most welcome.  Thanks!
+
+   NOTE: For cygwin, ffmpeg requires version 1.7.x to build.
+
+ * PDL::Fit::Polynomial has been modified to remove the
+   Slatec library dependency requesting in sf.net feature
+   request ticket #2891276.
+
+ * Other sf.net bugs fixed:
+     3030998    PDL::Config does not match actual build configuration
+     2901170    many warnings w TriD and perl -w
+
+ * sf.net bug #117661, PDL::Complex string routine, has
+   been fixed.  In addition, the sum and sumover methods
+   now support PDL::Complex piddles.
+
+ * Problem with Ctrl-C killing perldl on win32 has been
+   resolved.  The 2nd Ctrl-C was resulting in an EOF from
+   the perl readline call which caused the shell to exit.
+   Now $PERLDL::NO_EOF=1 is the default for win32.
+
+ * Set SKIP_KNOWN_PROBLEMS environment variable to skip
+   tests correspond to reported sf.net bugs.  This allows
+   the full test suite to pass which makes it easier to
+   check if a new bug has been introduced.  For releases,
+   there is a SKIP_KNOWN_PROBLEMS option in perldl.conf.
+ 
+ * Some minor doc changes.
+
+
+
+Release notes for PDL 2.4.6_014 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+ * pdl2 now runs perldl if Devel::REPL is not found so it
+   can be used instead of perldl to start the PDL shell.
+ 
+ * Fix the failure in t/opengl.t when the X display could
+   not be opened.  The tests are now skipped in that case.
+
+ * Some minor doc changes.
+
+
+
+Release notes for PDL 2.4.6_013 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+ * 'make dist' now autogenerates the Changes file from the
+   output of git log --stat --since="29 Apr 2009" which
+   should avoid the missing Changes file error in future
+   distributions.  NOTE: This only works for non-win32
+   systems since it assumes the standard git command line
+   interface is present.
+
+ *  Put fallback code to glutInitDisplay
+      
+    There have been CPAN test failures where the Perl OpenGL
+    module built and installed ok but then the t/opengl.t
+    fails for PDL.  A look at the two tests shows the main
+    difference is that POGL checks if the GLUT_ALPHA channel will
+    work and if not, tries again without GLUT_ALPHA set.
+
+ * Some minor bug fixes
+
+
+
+Release notes for PDL 2.4.6_012 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+* t/proj_transform.t has been fixed to skip the tests if
+  the input earth image is not correct.  t/proj_transform2.t
+  performs the same checks with a synthetic data set which
+  should be available on all platforms.  This should close
+  bug sf.net #3013751.
+
+* Incorrect threading in lu_backsub() and lu_decomp() has
+  been fixed.  This closes bug sf.net #3021567.
+
+
+
+Release notes for PDL 2.4.6_011 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+ * The main purpose for this release is the additional
+   diagnostics in the t/proj_transform.t which may lead
+   to an understanding of what the problem is there.
+
+
+Highlights:
+
+ * pdl2 (the new Perldl2 shell now supports all major
+   functions of perldl.  If you have installed the latest
+   Devel::REPL you should be able to use this shell as
+   an enhanced replacement for perldl.  Feedback welcome!
+
+ * Fix sf.net bug #3021578 re missing xtra dummy dims
+
+ * Add error diagnostics to dummy() in PDL::Core when the
+   required position argument is not present.  The new
+   message now mentions the dummy() method instead of just
+   a line number in Core.pm.
+
+ * Update bess[jy][01n] docs in math.pd
+   Fix refs for floor/ceil/rint to use integer
+
+ * Use is() instead of ok() in t/proj_transform.t
+
+   That should give more diagnostic output for failing tests
+   to help debug the recent test failures for cygwin 1.7 and
+   freebsd 8.0.
+
+
+
 Release notes for PDL 2.4.6_010 --------------------------
 
 General Notes:
@@ -18,7 +3004,29 @@ Highlights:
 
    TAB completion for filenames and history expansion
    using '!' syntax works with either Term::ReadLine::Gnu
-   or Term::ReadLine::Perl.
+   or Term::ReadLine::Perl.  If you use the ! operator in
+   your perl code, be sure to follow it by a space so that
+   it is not interpreted for history substitution.
+
+   pdl2 now loads your ~/.pdlrc (or ~/.perldlrc) startup
+   file and also local.pdlrc (or local.perldlrc) file if
+   there is one in the current directory.  Please report
+   any problems or missing functionality to the PDL
+   mailing list.
+
+   help|usage|apropos|sig|badinfo|demo now autoquote their args.
+
+   ? and ?? aliases for help and apropos work
+
+   Shell command escapes for lines beginning with $PERLDL::ESCAPE
+   (defaults to "#") work as well.
+
+ * uniq/uniqind/uniqvec now handle BAD values or NaN
+   values consistent with Matlab and between themselves.
+   This fixes sf.net bug #3011659.
+
+ * Many win32/win64 portability fixes for PLplot as well
+   as various other documentation and other fixes.
    
 
 

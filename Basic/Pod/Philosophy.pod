@@ -1,0 +1,148 @@
+=head1 NAME
+
+PDL::Philosophy -- Why did we write PDL?
+
+=head1 DESCRIPTION
+
+Some history from the creator of PDL, leading into the philosophy and
+motivation behind this data language.  This is an attempt to summarize
+some of the common spirit between pdl developers in order to answer the
+question "Why PDL"?
+
+=head2 The Start of PDL
+
+B<"Why is it that we entertain the belief that for every purpose odd numbers are the most effectual?"> - I<Pliny the Elder>
+
+The PDL project began in February 1996, when I decided to experiment
+with writing my own `Data Language'.  I am an astronomer. My day job
+involves a lot of analysis of digital data accumulated on many nights
+observing on telescopes around the world. Such data might for example be
+images containing millions of pixels and thousands of images of distant
+stars and galaxies. Or more abstrusely, many hundreds of digital
+spectra revealing the secrets of the composition and properties of
+these distant objects.
+
+Obviously many astronomers have dealt with these problems before, and a
+large amount of software has been constructed to facilitate their
+analysis. However, like many of my colleagues, I was constantly
+frustrated by the lack of generality and flexibility of these programs
+and the difficulty of doing anything out of the ordinary quickly and
+easily. What I wanted had a name: "Data Language", i.e. a language which
+allowed the manipulation of large amounts of data with simple arithmetic
+expressions.  In fact some commercial software worked like this, and I
+was impressed with the capabilities but not with the price tag. And I
+thought I could do better.
+
+As a fairly computer literate astronomer (read "nerd" or "geek"
+according to your local argot) I was very familiar with "Perl", a
+computer language which now seems to fill the shelves of many bookstores
+around the world.  I was impressed by its power and flexibility, and
+especially its ease of use.  I had even explored the depths of its
+internals and written an interface to allow graphics, the ease with
+which I could then create charts and graphs, for my papers, was
+refreshing.
+
+Version 5 of Perl had just been released, and I was fascinated by the
+new features available. Especially the support of arbitrary data
+structures (or "objects" in modern parlance) and the ability to
+"overload" operators - i.e. make mathematical symbols like  C<+-*/>
+do whatever you felt like.  It seemed to me it ought to be possible to
+write an extension to Perl where I could play with my data in a general
+way: for example using the maths operators manipulate whole images at
+once.
+
+Well one slow night at an observatory I just thought I would try a
+little experiment.  In a bored moment I fired up a text editor and
+started to create a file called `PDL.xs' - a Perl extension module to
+manipulate data vectors. A few hours later I actually had something half
+decent working, where I could add two images in the Perl language,
+B<fast!> This was something I could not let rest, and it probably cost me
+one or two scientific papers worth of productivity. A few weeks later
+the Perl Data Language version 1.0 was born. It was a pretty bare
+infant: very little was there apart from the basic arithmetic operators.
+But encouraged I made it available on the Internet to see what people
+thought.
+
+Well people were fairly critical - among the most vocal were Tuomas
+Lukka and Christian Soeller. Unfortunately for them they were both Perl
+enthusiasts too and soon found themselves improving my code to implement
+all the features they thought PDL ought to have and I had heinously
+neglected. PDL is a prime example of that modern phenomenon of authoring
+large free software packages via the Internet. Large numbers of people,
+most of whom have never met, have made contributions ranging for core
+functionality to large modules to the smallest of bug patches. PDL
+version 2.0 is now here (though it should perhaps have been called
+version 10 to reflect the amount of growth in size and functionality)
+and the phenomenon continues.  I firmly believe that PDL is a great tool
+for tackling general problems of data analysis. It is powerful, fast,
+easy to add too and freely available to anyone.  I wish I had had it
+when I was a graduate student!  I hope you too will find it of immense
+value, I hope it will save you from heaps of time and frustration in
+solving complex problems. Of course it can't do everything, but it
+provides the framework, the hammers and the nails for building solutions
+without having to reinvent wheels or levers.
+
+--- Karl Glazebook, the creator of PDL
+
+=head2 Major ideas
+
+The first tenet of our philosophy is the "free software" idea: software
+being free has several advantages (less bugs because more people see the
+code, you can have the source and port it to your own working
+environment with you, ... and of course, that you don't need to pay
+anything).
+
+The second idea is a pet peeve of many: many languages like Matlab are
+pretty well suited for their specific tasks but for a different
+application, you need to change to an entirely different tool and regear
+yourself mentally. Not to speak about doing an application that does two
+things at once...  Because we use Perl, we have the power and ease of
+Perl syntax, regular expressions, hash tables, etc. at our fingertips at
+all times.  By extending an existing language, we start from a much
+healthier base than languages like Matlab which have grown into
+existence from a very small functionality at first and expanded little
+by little, making things look badly planned. We stand by the Perl
+sayings: "simple things should be simple but complicated things should
+be possible" and "There is more than one way to do it" (TIMTOWTDI).
+
+The third idea is interoperability: we want to be able to use PDL to
+drive as many tools as possible, we can connect to OpenGL or Mesa for
+graphics or whatever. There isn't anything out there that's really
+satisfactory as a tool and can do everything we want easily. And be
+portable.
+
+The fourth idea is related to C<PDL::PP> and is Tuomas's personal favorite:
+code should only specify as little as possible redundant info. If you
+find yourself writing very similar-looking code much of the time, all
+that code could probably be generated by a simple Perl script. The PDL C
+preprocessor takes this to an extreme.
+
+=head2 Minor goals and purposes
+
+We want speed. Optimally, it should ultimately (e.g. with the Perl
+compiler) be possible to compile C<PDL::PP> subs to C and obtain the top
+vectorized speeds on supercomputers. Also, we want to be able to
+calculate things at near top speed from inside Perl, by using dataflow
+to avoid memory allocation and deallocation (the overhead should
+ultimately be only a little over one indirect function call plus couple
+of ifs per function in the pipe).
+
+=head2 Go on, try it!
+
+Well, that's the philosophy behind PDL - speed, conciseness, free,
+expandable, and integrated with the wide base of modules and libraries
+that Perl provides. Feel free to download it, install it, run through
+some of the tutorials and introductions and have a play with it.
+
+Enjoy!
+
+=head1 AUTHOR
+
+Added Karl Glazebrook (2001) contributions by Matthew Kenworthy
+
+Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu).
+
+Redistribution in the same form is allowed but reprinting requires
+a permission from the author.
+
+

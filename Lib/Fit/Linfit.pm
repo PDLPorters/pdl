@@ -64,9 +64,9 @@ the linear combination of 3 functions.
 
  Usage: ($yfit, [$coeffs]) = linfit1d [$xdata], $data, $fitFuncs, [Options...]
 
-=for signature
+=for sig
 
-Signature: (xdata(n); ydata(n); $fitFuncs(n,order); [o]yfit(n); [o]coeffs(order))
+  Signature: (xdata(n); ydata(n); $fitFuncs(n,order); [o]yfit(n); [o]coeffs(order))
 
 Uses a standard matrix inversion method to do a least
 squares/min chi^2 fit to data. 

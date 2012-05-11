@@ -157,6 +157,14 @@ while(max $c>1.1) {$c=smth($a/smth($d));$d*=$c;imagrgb[$d/850];}
 # imagrgb[$d]if($k++%2); $s=conv2d($d,$k)/8;$i=90*90*random(50);$t=$d->
 # clump(2)-> index($i);$t.=($s->clump(2)->index($i)>.5);}while(!twiddle3d)
 
+actnw q|
+# spherical dynamics [Mark R Baker]
+use PDL;use PDL::Graphics::TriD;for $c(1..99){$n=6.28*$c; $g=$c*rvals(
+sin(zeros(5000))*$c);$cz=-1**$g*$c;$cy=$g*cos$g*$c;$cx=$c*rvals($g)*$c;
+$g=cos($w=$cz+$cy+$cx);$r=sin$cy+$c+$cz;$b=sin$w;nokeeptwiddling3d();
+$i=$cz-$cx-$cy;$q=$i*$n;points3d[$b*sin$q,$r*cos$q,$g*sin$q],[$r,$g,$b]}
+|;
+
 actnw q~
 # Fractal mountain range [Tuomas Lukka]
 use PDL;use PDL::Image2D;use PDL::Graphics::TriD; keeptwiddling3d(); $k=ones(5,5) / 25;
@@ -196,5 +204,4 @@ $a=zeroes 300,300;$r=$a->xlinvals(-1.5,
 ->clip(-5,5)}$q,$h;imagrgb[f(($a==0)*($r/2+0.75)),f(($a==0)*($i+1)/2),$a/30]}
 
 }
-
 1;

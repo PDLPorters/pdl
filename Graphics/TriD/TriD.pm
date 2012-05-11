@@ -29,7 +29,7 @@ PDL::Graphics::TriD -- PDL 3D interface
  imagrgb([$r,$g,$b]);     # 2-d piddles
  lattice3d([$surf1]);
  points3d([$x,$y,$z]);
- spheres3d([$x,$y,$z]);
+ spheres3d([$x,$y,$z]);  # preliminary implementation
 
  hold3d(); # the following graphs are on top of each other and the previous
  line3d([$x,$y,$z]);
@@ -53,7 +53,7 @@ Points, lines and surfaces (among other objects) are supported.
 With OpenGL, it is easy to manipulate the resulting 3D objects
 with the mouse in real time - this helps data visualization a lot.
 
-= for comment
+=for comment
 With VRML, you can generate objects for everyone to see with e.g.
 Silicon Graphics' Cosmo Player. You can find out more about VRML
 at C<http://vrml.sgi.com/> or C<http://www.vrml.org/>
@@ -289,11 +289,11 @@ routines are supported:
 
 Example:
 
- perldl> line3d [sqrt(rvals(zeroes(50,50))/2)]
+ pdl> line3d [sqrt(rvals(zeroes(50,50))/2)]
  - Lines on surface
- perldl> line3d [$x,$y,$z]
+ pdl> line3d [$x,$y,$z]
  - Lines over X, Y, Z
- perldl> line3d $coords
+ pdl> line3d $coords
  - Lines over the 3D coordinates in $coords.
 
 Note: line plots differ from mesh plots in that lines
@@ -317,7 +317,7 @@ contexts and options
 
 Example:
 
- perldl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {Lines=>0};
+ pdl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {Lines=>0};
 
  - Rendered image of surface
 
@@ -339,7 +339,7 @@ contexts and options
 
 Example:
 
- perldl> mesh3d [sqrt(rvals(zeroes(50,50))/2)]
+ pdl> mesh3d [sqrt(rvals(zeroes(50,50))/2)]
 
  - mesh of surface
 
@@ -371,7 +371,7 @@ alias for mesh3d
 
 Example:
 
- perldl> points3d [sqrt(rvals(zeroes(50,50))/2)];
+ pdl> points3d [sqrt(rvals(zeroes(50,50))/2)];
  - points on surface
 
 See module documentation for more information on
@@ -392,18 +392,19 @@ contexts and options
 
 Example:
 
- PDL> spheres3d ndcoords(10,10,10)->clump(1,2,3)  
-
+ pdl> spheres3d ndcoords(10,10,10)->clump(1,2,3)  
+ 
  - lattice of spheres at coordinates on 10x10x10 grid
 
-See module documentation for more information on
-contexts and options (TBD)
+This is a preliminary implementation as a proof of
+concept.  It has fixed radii for the spheres being
+drawn and no control of color or transparency.
 
 =head2 imagrgb
 
 =for ref
 
-2D TrueColor Image plot
+2D RGB image plot (see also imag2d)
 
 =for usage
 
@@ -419,14 +420,14 @@ ways one might want to do this.
 
 e.g.
 
- perldl> $a=sqrt(rvals(zeroes(50,50))/2)
- perldl> imagrgb [0.5*sin(8*$a)+0.5,0.5*cos(8*$a)+0.5,0.5*cos(4*$a)+0.5]
+ pdl> $a=sqrt(rvals(zeroes(50,50))/2)
+ pdl> imagrgb [0.5*sin(8*$a)+0.5,0.5*cos(8*$a)+0.5,0.5*cos(4*$a)+0.5]
 
 =head2 imagrgb3d
 
 =for ref
 
-2D TrueColor Image plot as an object inside a 3D space
+2D RGB image plot as an object inside a 3D space
 
 =for usage
 
@@ -442,7 +443,7 @@ The default is [[0,0,0],[1,0,0],[1,1,0],[0,1,0]].
 
 e.g.
 
- perldl> imagrgb3d $colors, {Points => [[0,0,0],[1,0,0],[1,0,1],[0,0,1]]};
+ pdl> imagrgb3d $colors, {Points => [[0,0,0],[1,0,0],[1,0,1],[0,0,1]]};
  - plot on XZ plane instead of XY.
 
 =head2 grabpic3d
@@ -751,7 +752,7 @@ sub objplotcommand {
 }
 
 sub checkargs {
-	if(ref $_[$#_] eq "HASH") {
+	if(ref $_[$#_] eq "HASH" and $PDL::Graphics::TriD::verbose) {
 
 	  print "enter checkargs \n";
 		for([KeepTwiddling,\&keeptwiddling3d]) {
@@ -855,6 +856,18 @@ sub PDL::imag3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::SLattice_S(@_));
 }
 
+####################################################################
+################ JNK 15mar11 added section start ###################
+*STrigrid_S_imag3d=\&PDL::STrigrid_S_imag3d;
+sub PDL::STrigrid_S_imag3d { &checkargs;
+  &graph_object(new PDL::Graphics::TriD::STrigrid_S(@_)); }
+        
+*STrigrid_imag3d=\&PDL::STrigrid_imag3d;
+sub PDL::STrigrid_imag3d { &checkargs;
+  &graph_object(new PDL::Graphics::TriD::STrigrid(@_)); }
+################ JNK 15mar11 added section finis ###################
+####################################################################
+
 *mesh3d=\&PDL::mesh3d;
 *lattice3d=\&PDL::mesh3d;
 *PDL::lattice3d=\&PDL::mesh3d;
@@ -943,7 +956,8 @@ sub get_current_window {
 }
 
 # Get the current graphbox
-sub get_current_graph {
+sub get_current_graphbox {
+        die "get_current_graphbox: ERROR graphbox is not implemented! \n";
 	my $graph = $PDL::Graphics::TriD::curgraph;
 	if(!defined $graph) {
 		$graph = new PDL::Graphics::TriD::Graph();

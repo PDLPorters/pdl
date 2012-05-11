@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-Dicom.pm - a module for reading DICOM images.
+PDL::IO::Dicom - a module for reading DICOM images.
 
 =head1 DESCRIPTION
 
@@ -29,6 +29,7 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
+
 package PDL::IO::Dicom;
 
 use PDL;

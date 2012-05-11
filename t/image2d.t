@@ -3,7 +3,7 @@
 
 use Test;
 BEGIN {
-    plan tests => 16;
+    plan tests => 22;
 }
 
 use PDL;
@@ -133,3 +133,23 @@ my $boxav = $box->box2d(3,3,0);
 
 # all 2D averages should be the same
 tapprox($bav->sum,$boxav->clump(2)->sumover);
+
+# cc8compt & cc4compt
+$a = pdl([0,1,1,0,1],[1,0,1,0,0],[0,0,0,1,0],[1,0,0,0,0],[0,1,0,1,1]);
+ok(cc8compt($a)->max == 4);
+ok(cc4compt($a)->max == 7);
+eval 'ccNcompt($a,5)';
+ok($@ ne '');
+eval 'ccNcompt($a,8)';
+ok($@ eq '');
+
+# pnpoly
+my $px = pdl(0,3,1);
+my $py = pdl(0,1,4);
+my $im = zeros(5,5);
+my $x = $im->xvals;
+my $y = $im->yvals;
+my $im_mask = pnpoly($x,$y,$px,$py);
+ok(sum($im_mask) == 5);
+my $inpixels = pdl q[ 1 1 ; 1 2 ; 1 3 ; 2 1 ; 2 2 ];
+ok(sum($inpixels - qsortvec(scalar whichND($im_mask))) == 0);

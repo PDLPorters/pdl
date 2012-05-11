@@ -64,9 +64,9 @@ sub hack_html ($) {
     my $infile = shift;
     my $outfile = "${infile}.n";
 
-    my $ifh = new IO::File "<$infile" 
+    my $ifh = new IO::File "<$infile"
 	or die "ERROR: Unable to read from <$infile>\n";
-    my $ofh = new IO::File ">$outfile" 
+    my $ofh = new IO::File ">$outfile"
 	or die "ERROR: Unable to write to <$outfile>\n";
 
     # assume that links do not break across a line
@@ -94,9 +94,9 @@ sub fix_pdl_dot_html ($) {
     my $infile = shift;
     my $outfile = "${infile}.n";
 
-    my $ifh = new IO::File "<$infile" 
+    my $ifh = new IO::File "<$infile"
 	or die "ERROR: Unable to read from <$infile>\n";
-    my $ofh = new IO::File ">$outfile" 
+    my $ofh = new IO::File ">$outfile"
 	or die "ERROR: Unable to write to <$outfile>\n";
 
     # assume that links do not break across a line
@@ -116,9 +116,9 @@ sub fix_html_path ($) {
     my $infile = shift;
     my $outfile = "${infile}.n";
 
-    my $ifh = new IO::File "<$infile" 
+    my $ifh = new IO::File "<$infile"
 	or die "ERROR: Unable to read from <$infile>\n";
-    my $ofh = new IO::File ">$outfile" 
+    my $ofh = new IO::File ">$outfile"
 	or die "ERROR: Unable to write to <$outfile>\n";
 
     # assume that links do not break across a line
@@ -168,12 +168,12 @@ print "Making HTML docs...\n\n";
 
 print "Put HTML $htmldir\n" if $verbose;
 print "Scanning $startdir ... \n\n" if $verbose;
-$sub = sub { 
+$sub = sub {
     return unless $File::Find::name =~ /[.]pod$/ or
-	($File::Find::name =~ /[.]pm$/ and 
-	 $File::Find::name !~ /PP.pm/  and 
+	($File::Find::name =~ /[.]pm$/ and
+	 $File::Find::name !~ /PP.pm/  and
 	 $File::Find::dir !~ m{/PP|/Gen});
-    
+
 #    if (($File::Find::name =~ /[.]pm$/ and
 #	 $File::Find::name !~ /PP.pm/ and
 #	 $File::Find::dir !~ m#/PP|/Gen#) or
@@ -184,20 +184,20 @@ $sub = sub {
 	  if $verbose;
 	return;
     }
-    
+
     my $re = "\Q$startdir\E";  # ach: '+' in $outdir here!
-    
+
     my $outdir = $File::Find::dir;
     # $outdir =~ s/$re/$htmldir/;
     $outdir =~ s/$re//;
     $outdir =~ /(^\/)?(.*)$/;
-    
+
     my $basename = basename($File::Find::name);
     my $outfi;
-    
-    # Special case for needed for PDL.pm file since it is in a 
+
+    # Special case for needed for PDL.pm file since it is in a
     # different location than the other .pm and pod files.
-    if( $basename eq 'PDL.pm'){ 
+    if( $basename eq 'PDL.pm'){
 	$outfi = $basename;
     } else {
 	$outfi = $2.($2 =~ /^\s*$/ ? '' : '/').$basename;
@@ -207,48 +207,65 @@ $sub = sub {
 	#
 	#$outfi =~ s|/|_|g;
     }
-    
+
     # create the output directory, if required
     if ( $outdir ne "" ) {
 #	    $outdir = File::Spec->catdir( $htmldir, $outdir );
 	$outdir = "${htmldir}/${outdir}";
 	mkdir_p $outdir, 0777, $outdir;
     }
-    
+
     # print "outdir = $outdir, making $outfi\n"; return;
     # mkdir_p $outdir, 0777, $outdir;
-    
+
     my $file = $File::Find::name;
 #	my $outfile = File::Spec->catfile( $htmldir, $outfi );
     my $outfile = "${htmldir}/${outfi}";
     $outfile =~ s/[.](pm|pod)$//;
     $outfile .= ".html";
     printf STDERR "%-30s\n", $_ ."..."; #  > $outfile";
-    
+
     chdir $htmldir; # reuse our pod caches
     my $topPerlDir = $startdir;
-    
+
     # get Directory just above PDL for podroot arg
     $topPerlDir = $1 if ($startdir =~ /^(.+?)\/PDL$/);
     print "startdir: $startdir, podroot: $topPerlDir\n" if $verbose;
-    
+
     # instead of having htmlroot="../../.."
     # (or even File::Spec->catdir( $updir, $updir, $updir ) )
-    # calculate it from the known location of the 
+    # calculate it from the known location of the
     # file we're creating
     my $htmlrootdir = $htmldir;
     $htmlrootdir =~ s|PDL$||;
-    
+
     my $verbopts = $verbose ? "--verbose" : "--quiet";
 
-# Cut out "PDL" from the podpath as it crashes the podscan(!) - It doesn't 
-# seem to help either -- it looks for cached docs in .../HtmlDocs/pdl/PDL, 
-# which is silly.  I left this note because pod paths are pretty arcane to
-# me.  CED 11-Mar-2009
-#    pod2html("--podpath=PDL:.",
-
-    pod2html("--podpath=.",
-	     "--podroot=$topPerlDir",
+    if($] > 5.015) {
+    # With perl 5.15.x (for some value of x) and later, '--libpods' is invalid
+    # and hence needs to be removed.
+    # Beginning with 5.15.x, the generated PDL html docs are a little different
+    # (missing some underlining of headings and some <b></b> tagging), though
+    # this appears to have nothing to do with the removal of --libpods. Rather,
+    # it seems to be the result of some other change to pod2html. Perhaps this
+    # can be addressed over time. SIS 23-Feb-2012
+      pod2html("--podpath=.",
+  	     "--podroot=$topPerlDir",
+	     "--htmldir=$htmlrootdir",
+	     "--recurse",
+	     "--infile=$file",
+	     "--outfile=$outfile",
+	     $verbopts,
+	    );
+    }
+    else {
+    # Cut out "PDL" from the podpath as it crashes the podscan(!) - It doesn't
+    # seem to help either -- it looks for cached docs in .../HtmlDocs/pdl/PDL,
+    # which is silly.  I left this note because pod paths are pretty arcane to
+    # me.  CED 11-Mar-2009
+    #    pod2html("--podpath=PDL:.",
+      pod2html("--podpath=.",
+  	     "--podroot=$topPerlDir",
 	     "--htmldir=$htmlrootdir",
 	     "--libpods=perlfaq",
 	     "--recurse",
@@ -256,6 +273,7 @@ $sub = sub {
 	     "--outfile=$outfile",
 	     $verbopts,
 	    );
+    }
     hack_html( $outfile ) if $] < 5.006;
     fix_pdl_dot_html( $outfile);
     fix_html_path( $outfile);

@@ -6,6 +6,7 @@
 #
 
 use ExtUtils::MakeMaker;
+use Config;
 PDL::Core::Dev->import();
 
 BEGIN
@@ -26,10 +27,12 @@ BEGIN
         '/usr/lib',
         '/usr/local/lib',
         '/lib',
+        split(/ /, $Config{libpth}),
     );
     @inc_locations = (
         '/usr/include',
         '/usr/local/include',
+        $Config{usrinc},
     ); 
     
     #
@@ -51,7 +54,7 @@ BEGIN
         $forcebuild=1;
     }
     
-    # Look for Proj4 includes/libs
+    # Look for GD includes/libs
 
     # get locations from perldl.conf, if specified there:
     @lib_locations = @{$PDL::Config{$config_libs}} 
@@ -129,9 +132,11 @@ skip:
         $msg =~ s/\n//g;
         write_dummy_make( $msg );
         $donot = 1;
+        $PDL::Config{$config_flag}=0;
     } 
     else 
     {
+        $PDL::Config{$config_flag}=1;
         print "\n   Building $package_name. Turn off $config_flag if there are any problems\n\n";
     }
 

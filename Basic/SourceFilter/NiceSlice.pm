@@ -1,3 +1,26 @@
+BEGIN {
+   my %engine_ok = (
+      'Filter::Util::Call' => 'PDL/NiceSlice/FilterUtilCall.pm',
+      'Filter::Simple'     => 'PDL/NiceSlice/FilterSimple.pm',
+   );  # to validate names
+
+   $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
+
+   if ( exists $ENV{PDL_NICESLICE_ENGINE} ) {
+      my $engine = $ENV{PDL_NICESLICE_ENGINE};
+      if ( exists $engine_ok{$engine} and $engine_ok{$engine} ) {
+         $PDL::NiceSlice::engine = $engine_ok{$engine};
+         warn "PDL::NiceSlice using engine '$engine'\n" if $PDL::verbose;
+      } elsif ( exists $engine_ok{$engine} and not $engine_ok{$engine} ) {
+         warn "PDL::NiceSlice using default engine\n" if $PDL::verbose;
+      } else {
+         die "PDL::NiceSlice: PDL_NICESLICE_ENGINE set to invalid engine '$engine'\n";
+      }
+   }
+}
+
+no warnings;
+
 package PDL::NiceSlice;
 
 # replace all occurences of the form
@@ -15,84 +38,46 @@ package PDL::NiceSlice;
 #
 # Modified 5-Nov-2007: stop processing if we encounter m/^no\s+PDL\;:\;:NiceSlice\;\s*$/.
 
-$PDL::NiceSlice::VERSION = '1.0.1';
+$PDL::NiceSlice::VERSION = '1.0.3';
 $PDL::NiceSlice::debug = 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
 
 require PDL::Version; # get PDL version number
-if ("$PDL::Version::VERSION" !~ /cvs$/ and
-    "$PDL::Version::VERSION" lt '2.2.2') { # make sure we got uptodate version
-                                           # of nslice
-
-eval << 'EOF' unless PDL->can('flat');
-    sub PDL::flat { # fall through if < 2D
-      return $_[0]->dims == 1 ? $_[0] : $_[0]->clump(-1);
-    }
-EOF
-
-##
-## As near as I can tell the code in this next eval is now vestigial -- 
-## it gets overwritten by the PDL::nslice definition in Core.pm. 
-##         -- CED 08-April-2004
-##
-
-eval << 'EOH';
-  {
-    package PDL;
-    sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
-		    $_[0]->nelem == 1 ? $_[0]->flat->at(0) :
-		      die "multielement piddle where only one allowed" :
-			die "non piddle ref '".ref $_[0]."'"
-			: ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
-    sub PDL::nslice {
-      my($pdl) = shift;
-      my @args = @_;
-      my ($i,$noslice) = (0,0);
-
-      for (@args) {
-	if (UNIVERSAL::isa($_,'PDL')) {
-	  if ($_->nelem > 1) {
-	    if ($_->getndims > 1) {
-	      ## allow one multi-D arg which will imply flat addressing
-	      PDL::Core::barf 'piddle must be <= 1D' if @args > 1;
-	      $pdl = $pdl->flat->index($_);
-	      $noslice = 1;
-	    } else {
-	      ## dice this axis
-	      $pdl = $pdl->dice_axis($i,$_);
-	      ## and keep resulting dim fully in slice
-	      $_ = 'X'; 
-	    }
-	  } else { $_ = $_->flat->at(0) } ## reduce this one-element piddle
-					## to a scalar for 'slice'
-	}
-	$i++;
-      }
-
-      return $pdl if $noslice;
-      ## print STDERR 'processed arglist: ',join(',',@args);
-      my $slstr = join ',',(map {
-	!ref $_ && $_ eq "X" ? ":" :
-	  ref $_ eq "ARRAY" ? $#$_ > 1 && _intpar @$_[2] == 0 ? 
-	    "("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
-	      _intpar $_
-	    } @args);
-      print STDERR "slicestr: $slstr\n";
-      print "slicestr: '$slstr'!\n";
-      return $pdl->slice($slstr);
-    }
-  }
-EOH
-
-# mark as lvalue sub if 5.6.x and above
- eval {
-  no strict;
-  eval 'sub PDL::nslice : lvalue;' if ($^V and $^V > 5.006000);
- }
-}
+# 
+# remove code for PDL versions earlier than 2.3
+# 
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
+
+# Try overriding the current extract_quotelike() routine
+# needed before using Filter::Simple to work around a bug
+# between Text::Balanced and Filter::Simple for our purpose.
+#
+
+BEGIN {
+
+   no warnings;  # quiet warnings for this
+
+   sub Text::Balanced::extract_quotelike (;$$)
+   {
+      my $textref = $_[0] ? \$_[0] : \$_;
+      my $wantarray = wantarray;
+      my $pre  = defined $_[1] ? $_[1] : '\s*';
+   
+      my @match = Text::Balanced::_match_quotelike($textref,$pre,0,0);        # do not match // alone as m//
+      return Text::Balanced::_fail($wantarray, $textref) unless @match;
+      return Text::Balanced::_succeed($wantarray, $textref,
+                      $match[2], $match[18]-$match[2],        # MATCH
+                      @match[18,19],                          # REMAINDER
+                      @match[0,1],                            # PREFIX
+                      @match[2..17],                          # THE BITS
+                      @match[20,21],                          # ANY FILLET?
+                     );
+   };
+
+};
+
 
 # a call stack for error processing
 my @callstack = ('stackbottom');
@@ -178,7 +163,7 @@ my $prefixpat = qr/.*?  # arbitrary leading stuff
 # mslice format
 sub onearg ($) {
   my ($arg) = @_;
-  print STDERR "processing arg $arg\n" if $PDL::NiceSlice::debug;
+  print STDERR "processing arg '$arg'\n" if $PDL::NiceSlice::debug;
   return q|'X'| if $arg =~ /^\s*:??\s*$/;     # empty arg or just colon
   # recursively process args for slice syntax
   $arg = findslice($arg,$PDL::debug) if $arg =~ $prefixpat;
@@ -200,7 +185,7 @@ sub onearg ($) {
 
   # If the arg starts with '*' it's a dummy call -- force stringification
   # and prepend a '*' for handling by slice.
-  return "(q(*).($arg))" if($arg =~ s/^\*//);
+  return "(q(*).($arg))" if($arg =~ s/^\s*\*//);
 
   # this must be a simple position, leave as is
   return "$arg";
@@ -209,7 +194,7 @@ sub onearg ($) {
 # process the arg list
 sub procargs {
   my ($txt) = @_;
-  print STDERR "procargs: got $txt\n" if $PDL::NiceSlice::debug;
+  print STDERR "procargs: got '$txt'\n" if $PDL::NiceSlice::debug;
   # $txt =~ s/^\s*\((.*)\)\s*$/$1/s; # this is now done by findslice
   # push @callstack, $txt; # for later error reporting
   my $args = $txt =~ /^\s*$/s ? '' :
@@ -255,13 +240,13 @@ sub findslice {
       # to fix modifier parsing and allow >1 modifier
       # this code still needs polishing
       savearg $found; # error reporting
-      print STDERR "findslice: found $found\n" if $PDL::NiceSlice::debug;
+      print STDERR "findslice: found '$found'\n" if $PDL::NiceSlice::debug;
       $found =~ s/^\s*\((.*)\)\s*$/$1/s;
       my ($slicearg,@mods) = splitprotected ';', $found;
       filterdie "more than 1 modifier group: @mods" if @mods > 1;
       # filterdie "invalid modifier $1"
       #	if $found =~ /(;\s*[[:graph:]]{2,}?\s*)\)$/;
-      print STDERR "MODS: @mods\n" if $PDL::NiceSlice::debug;
+      print STDERR "MODS: " . join(',',@mods) . "\n" if $PDL::NiceSlice::debug;
       my @post = (); # collects all post nslice operations
       my @pre = ();
       if (@mods) {
@@ -276,7 +261,7 @@ sub findslice {
 	    if ($mod1 eq '?') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
 	      $call = 'where';
-	      $arg = "($slicearg)";
+	      $arg = "(" . findslice($slicearg) . ")";
 	      # $post = ''; # no post action required
 	    } elsif ($mod1 eq '_') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
@@ -304,9 +289,14 @@ sub findslice {
 	  # $post = '';
 	}
       } else { # no modifier block
-	$call = 'nslice';
-	$arg = procargs($slicearg);
-	# $post = '';
+         $call = 'nslice';
+         $arg = procargs($slicearg);
+         # $post = '';
+         # $call = 'nslice_if_pdl';     # handle runtime checks for $self type
+         # $arg =~ s/\)$/,q{$found})/;  # add original argument string
+                                        # in case $self is not a piddle
+                                        # and the original call must be
+                                        # generated
       }
       $pre = join '', @pre;
       # assumption here: sever should be last
@@ -344,7 +334,8 @@ sub reinstator_regexp{
     return qr/$reinstr/o; # allow trailing comments
 }
 
-# save eval of findslice that should be used within perldl as a preprocessor
+# save eval of findslice that should be used within perldl or pdl2
+# as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
 
@@ -442,54 +433,8 @@ sub perldlpp {
  return $new;
 }
 
-use Filter::Util::Call;
-
-
-##############################
-# If you mess with the import filter, please also change the pdlpp importer 
-# just above this comment!  They both do similar things, but one to an eval string
-# and one to an import file.
-#   --CED 5-Nov-2007
-#
-sub import {
-    my ($class) = @_;
-    ($file,$offset) = (caller)[1,2];  # for error reporting
-    $offset++;
-    
-    ## Parse class name into a regexp suitable for filtration
-    my $terminator = terminator_regexp($class);
-
-    filter_add(
-		sub {
-		    my ($status, $off, $end);
-		    my $count = 0;
-		    my $data = "";
-			while ($status = filter_read()) {
-				return $status if $status < 0;
-		
-				if (defined($terminator) && m/$terminator/) {
-					$off=1;
-					last;
-				}
-				if (m/^\s*(__END__|__DATA__)\s*$/) {
-				  $end=$1; $off = 1;
-				  last;
-				}
-				$data .= $_;
-				$count++;
-				$_ = "";
-			}
-			$_ = $data;
-			$_ = findslice $_ unless $status < 0; # the actual filter
-			$_ .= "no $class;\n" if $off;
-			$_ .= "$end\n" if $end;
-			return $count;
-		}
-	);
-}
-
-sub unimport {
-  filter_del();
+BEGIN {
+   require "$PDL::NiceSlice::engine";
 }
 
 =head1 NAME
@@ -521,12 +466,6 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   $b = $n(0,0;-|);          # squeeze *and* sever
   $c = $a(0,3,0;-);         # more compact way of saying $a((0),(3),(0))
 
-  # Use with perldl versions < v1.31 (or include these lines in .perldlrc)
-  perldl> use PDL::NiceSlice;
-  # next one is required, see below
-  perldl> $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
-  perldl> $a(4:5) .= xvals(2);
-
 =head1 DESCRIPTION
 
 Slicing is a basic, extremely common operation, and PDL's
@@ -535,22 +474,17 @@ cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
 syntax directly into the language via a perl I<source filter> (see
 L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient syntax.
 
-NiceSlice is loaded automatically in the perldl shell, but (to avoid
+NiceSlice is loaded automatically in the perldl or pdl2 shell, but (to avoid
 conflicts with other modules) must be loaded automatically in standalone
 perl/PDL scripts (see below).  If you prefer not to use a prefilter on
 your standalone scripts, you can use the L<slice|PDL::Slices/slice>
 method in those scripts,
 rather than the more compact NiceSlice constructs.
 
-=head1 Use in scripts and C<perldl> shell
+=head1 Use in scripts and C<perldl> or C<pdl2> shell
 
 The new slicing syntax can be switched on and off in scripts
 and perl modules by using or unloading C<PDL::NiceSlice>.
-
-Note: this will I<not> work in the L<perldl|perldl> shell E<lt> v1.31.
-Because the perldl shell uses evals, and NiceSlice is a perl source filter,
-you have to set a special variable to use it within perldl. See below
-how to enable the new slicing syntax within older L<perldl|perldl>.
 
 But now back to scripts and modules.
 Everything after C<use PDL::NiceSlice> will be translated
@@ -634,38 +568,6 @@ C<PDL::NiceSlice> is a somewhat I<funny> module in
 that respect. It is a consequence of the way source
 filtering works in Perl (see also the IMPLEMENTATION
 section below).
-
-=head2 Usage with perldl
-
-I<NOTE>: This information only applies to versions of
-L<perldl|perldl> earlier than 1.31 . From v1.31 onwards
-niceslicing is enabled by default, i.e.
-I<it should just work>. See L<perldl> for details.
-
-For pre v1.31 C<perldl>s you need to
-add the following two lines to your F<.perldlrc> file:
-
-   use PDL::NiceSlice;
-   $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
-
-A more complete tool box of commands for experimentation is
-in the file F<local.perldlrc> in the C<PDL::NiceSlice> source
-directory. Just include the code in that file in your usual
-F<~/.perldlrc> and you can switch source filtering with
-PDL::NiceSlice on and off by typing C<trans> and C<notrans>,
-respectively. To see what and how your commands are translated
-switch reporting on:
-
-  perldl> report 1;
-
-Similarly, switch reporting off as needed
-
-  perldl> report 0;
-
-Note that these commands will only work if you included
-the contents of F<local.perldlrc> in your perldl startup file.
-In C<perldl> v1.31 and later these commands are available by
-default.
 
 =head2 evals and C<PDL::NiceSlice>
 
@@ -1124,8 +1026,8 @@ compiler. C<PDL::NiceSlice> searches through your Perl source code and when
 it finds the new slicing syntax it rewrites the argument list
 appropriately and splices a call to the C<nslice> method using the
 modified arg list into your perl code. You can see how this works in
-the L<perldl|perldl> shell by switching on reporting (see above how to do
-that).
+the L<perldl|perldl> or L<pdl2|PDL::Perldl2> shells by switching on
+reporting (see above how to do that).
 
 The C<nslice> method is an extended version of L<mslice|PDL::Core/mslice> that
 knows how to deal with index piddles (and therefore combines

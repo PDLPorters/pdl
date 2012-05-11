@@ -13,12 +13,11 @@ use Test::More;
 BEGIN{
   use PDL::Config;
   if($PDL::Config{WITH_PLPLOT}) {
-    my $plplot_plan = $^O =~ /mswin/i ? 33 : 35;
     if($^O =~ /mswin/i) {
-      warn "No PLPLOT_LIB env var set - this script may exit silently after the first test if the font files are not found"
+      warn "No PLPLOT_LIB env var set - this script will die after the first test if the font files are not found"
         if !$ENV{PLPLOT_LIB};
     }
-    plan tests => $plplot_plan;
+    plan tests => 37;
     use_ok( "PDL::Graphics::PLplot" );
   }
   else {
@@ -32,21 +31,8 @@ BEGIN{
 # (correspondingly "not ok 13") depending on the success of chunk 13
 # of the test code):
 
-# Use xfig driver because it should always be installed.
-#my $dev = 'png';
-my $dev = 'xfig';
-
-# redirect STDERR to purge silly 'opened *.xfig' messages
-
-require IO::File;
-local *SAVEERR;
-*SAVEERR = *SAVEERR;  # stupid fix to shut up -w (AKA pain-in-the-...-flag)
-open(SAVEERR, ">&STDERR");
-my $tmp = new_tmpfile IO::File || die "couldn't open tmpfile";
-my $pos = $tmp->getpos;
-local *IN;
-*IN = *$tmp;  # doesn't seem to work otherwise
-open(STDERR,">&IN") or warn "couldn't redirect stdder";
+# Use svg driver because it should always be installed.
+my $dev = 'svg';
 
 my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 
@@ -57,26 +43,26 @@ my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 #   --CED
 ###
 
-unless($^O =~ /mswin/i) { # Skip on Windows - fork() doesn't work there as intended
-my $tmpdir  = $PDL::Config{TEMPDIR} || "/tmp";
-my $tmpfile = $tmpdir . "/foo$$.$dev";
+unless($^O =~ /mswin/i) { # Causes problems on Windows.
+  my $tmpdir  = $PDL::Config{TEMPDIR} || "/tmp";
+  my $tmpfile = $tmpdir . "/foo$$.$dev";
 
 # comment this out for testing!!!
-#my $pid = 0; my $a = 'foo';
+  #my $pid = 0; my $a = 'foo';
 
-if($pid = fork()) {
+  if($pid = fork()) {
 	$a = waitpid($pid,0);
-} else {
+  } else {
 	sleep 1;
 	$pl = PDL::Graphics::PLplot->new(DEV=>$dev,FILE=>$tmpfile);
 	exit(0);
-}
+  }
 
-ok( ($not_ok = $? & 0xff )==0 , "PLplot crash test"  );
-unlink $tmpfile;
+  ok( ($not_ok = $? & 0xff )==0 , "PLplot crash test"  );
+  unlink $tmpfile;
 
-if($not_ok) {
-	printf SAVEERR <<"EOERR" ;
+  if($not_ok) {
+	printf <<"EOERR" ;
 
 Return value $not_ok; a is $a; pid is $pid
 
@@ -89,9 +75,13 @@ Return value $not_ok; a is $a; pid is $pid
 
 EOERR
 
-	open(STDERR,">&SAVEERR");
+  }
 }
-} # End of Windows skip
+else { # MS Windows only
+	my $ret = system("$^X", '-Mblib -MPDL -MPDL::Graphics::PLplot -e "$pl = PDL::Graphics::PLplot->new(DEV=>\"xfig\",FILE=>\"foo.xfig\")"');
+	ok( $ret == 0 , "PLplot crash test"  );
+	unlink 'foo.xfig';
+}
 
 $pl = PDL::Graphics::PLplot->new (DEV => $dev,
 				  FILE => "test2.$dev",
@@ -250,9 +240,9 @@ plend1();
 
 ok (-s "test11.$dev" > 0, "Colored symbol plot with key, via low level interface");
 
-ok (sum(pdl(0.1, 0.85, 0.1, 0.9) - pdl($dev_xmin, $dev_xmax, $dev_ymin, $dev_ymax)) == 0,
+ok (sum(pdl(0.1, 0.85, 0.1, 0.9) - pdl($dev_xmin->sclr, $dev_xmax->sclr, $dev_ymin->sclr, $dev_ymax->sclr)) == 0,
     "plgvpd call works correctly");
-ok (abs(sum(pdl(-0.0001, 10.0001, -0.001, 100.001) - pdl($wld_xmin, $wld_xmax, $wld_ymin, $wld_ymax))) < 0.000001,
+ok (abs(sum(pdl(-0.0001, 10.0001, -0.001, 100.001) - pdl($wld_xmin->sclr, $wld_xmax->sclr, $wld_ymin->sclr, $wld_ymax->sclr))) < 0.000001,
     "plgvpw call works correctly");
 
 # Test shade plotting (low level interface)
@@ -437,6 +427,12 @@ $pl->bargraph(\@labels, 100*random(scalar(@labels)), COLOR => 'GREEN', TEXTPOSIT
 $pl->close;
 ok (-s "test23b.$dev" > 0, "Bar graph part 4");
 
+$pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => "test23c.$dev");
+@labels = ((map { sprintf ("2001.%03d", $_) } (240..365)), (map { sprintf ("2002.%03d", $_) } (1..100)));
+$pl->bargraph(\@labels, 100*random(scalar(@labels)), UNFILLED_BARS => 1, COLOR => 'GREEN', TEXTPOSITION => ['tv', 0.5, 0.0, 0.0]);
+$pl->close;
+ok (-s "test23c.$dev" > 0, "Bar graph part 5, unfilled boxes");
+
 $pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => "test24.$dev");
 $x  = sequence(10);
 $y  = $x**2;
@@ -485,31 +481,63 @@ $pl->stripplots($xs, $ys, PLOTTYPE => 'LINE', TITLE => 'functions',
 $pl->close;
 ok (-s "test26.$dev" > 0, "Multi-color stripplots");
 
-# Test calling plParseOpts with no options
-unless($^O =~ /mswin/i) { # Skip on Windows - fork() doesn't work there as intended.
-if($pid = fork()) {
-	$a = waitpid($pid,0);
-} else {
-	sleep 1;
-	plParseOpts ([], PL_PARSE_FULL);
-	exit(0);
+# test opening/closing of more than 100 streams (100 is the max number of plplot streams, close should
+# reuse plplot stream numbers).
+my $count = 0;
+for my $i (1 .. 120) {
+  my $pltfile = "test27.$dev";
+  my $win = PDL::Graphics::PLplot->new(DEV => $dev, FILE => $pltfile, PAGESIZE => [300, 300]);
+  $win->xyplot(pdl(0,1), pdl(0,1));
+  # print "Stream = ", plgstrm(), " Stream in object = ", $win->{STREAMNUMBER}, "\n";
+  $win->close();
+  if (-s $pltfile > 0) { $count++; unlink $pltfile }
 }
-ok( ($not_ok = $? & 0xff )==0 , "No segfault calling plParseOpts with no options"  );
-} # End Windows skip
+ok ($count == 120, "Opening/closing of > 100 streams");
 
-# comment this out for testing!!!
-unlink glob ("test*.$dev");
+$pltfile = "test28.$dev";
 
-# stop STDERR redirection and examine output
+SKIP: {
+  skip 'Not compiled with POSIX threads', 1 unless ($PDL::Config{WITH_POSIX_THREADS} == 1);
 
-open(STDERR, ">&SAVEERR");
-$tmp->setpos($pos);  # rewind
-my $txt = join '',<IN>;
-close IN; undef $tmp;
+  my $pltfile = "test28.$dev";
+  if($^O =~ /MSWin32/i) {
+     system "$^X", '-Mblib -e "do \"t/plplot_no_fork.win32\""';
+  }
+  else {
+    if($pid = fork()) {
+      $a = waitpid($pid,0);
+    } else {
 
-print "\ncaptured STDERR: ('Opened ...' messages are harmless)\n$txt\n";
-$txt =~ s/Opened test\d*\.$dev\n//sg;
-warn $txt unless $txt =~ /\s*/;
+      # Breakage seems to be a function of the grid size. For me, 34 did the trick.
+      # You may need to fiddle with it to reproduce trouble, so it's read from the
+      # command-line.
+      my $grid_size = 34;
+
+      # PThreads settings, uncomment to break:
+      set_autopthread_targ($grid_size); # large number to increase likelihood of trouble
+      set_autopthread_size(0);  # zero ensures we get threading
+
+      # Add DEV unless you want it to prompt you:
+      my $pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => $pltfile);
+
+      # Some simple sequential data
+      my $xs = sequence($grid_size);
+      my $ys = sequence($grid_size)->transpose;
+
+      # Plot data so that increasing y-values have different colors:
+      $pl->xyplot($xs, $ys, PLOTTYPE => 'POINTS', COLORMAP => $ys);
+
+      $pl->close;
+      exit(0);
+    }
+  }
+
+  # If pthreads are working wrongly, the .svg file is messed up and much larger than usual
+  ok( (-s $pltfile <= 600_000) && (($? & 0xff ) == 0), "Fails to crash with POSIX threads");
+
+};
+
+unlink glob "test*.$dev"; # comment out for debug...
 
 # Local Variables:
 # mode: cperl

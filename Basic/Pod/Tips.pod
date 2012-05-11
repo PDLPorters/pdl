@@ -1,0 +1,130 @@
+=head1 NAME
+
+PDL::Tips - Small tidbits of useful arcana. Programming tidbits and such.
+
+=head1 SYNOPSIS
+
+	use PDL;
+
+	# Whatever happens here.
+
+=head1 DESCRIPTION
+
+This page documents useful idioms, helpful hints and tips for using
+Perl Data Language v2.0.
+
+=head2 Help
+
+Use C<help help> within I<perldl> or I<pdl2> or use the C<pdldoc>
+program from the command line for access to the PerlDL documentation.
+HTML versions of the pages should also be present, in the
+F<HtmlDocs/PDL> directory of the PDL distribution. To find this 
+directory, try the following
+
+ pdl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
+
+=head2 Indexing idioms
+
+The following code normalizes a bunch of vectors in $a.
+This works regardless of the dimensionality of $a.
+
+	$a /= $a->sumover->dummy(0);
+
+=head2 What is actually happening?
+
+If you want to see what the code is actually doing,
+try the command
+
+	PDL::Core::set_debugging(1);
+
+somewhere. This spews out a huge amount of debug info for PDL
+into STDOUT. Plans for the future include making it possible to
+redirect the output, and also making it possible to select mesages
+with more precision.
+
+Many of the messages come from C<Basic/Core/pdlapi.c> and you
+can look at the source to see what is going on.
+
+If you have any extra time to work on these mechanisms,
+inform the pdl-porters mailing list.
+
+=head2 Memory savings
+
+If you are running recursively something that selects certain
+indices of a large piddle, like
+
+	while(1) {
+		$inds = where($a>0);
+		$a = $a->index($inds);
+		$b = $b->index($inds);
+		func($b,$a);
+	}
+
+If you are not writing to $b, it saves a lot of memory to change this
+to
+
+		$b = $b->index($inds)->sever;
+
+The new method C<sever> is a causes the write-back relation to be
+forgotten. It is like copy except it changes the original piddle
+and returns it).
+
+Of course, the probably best way to do the above is
+
+	$inds = xvals ($a->long);
+	while(1) {
+		$inds0 = where($a>0);
+		$inds1 = $inds->index($inds)->sever;
+		$a = $a0->index($inds1);
+		$b = $b->index($inds1)->sever;
+		func($b,$a);
+	}
+
+which doesn't save all the temporary instances of $a in memory.
+See C<mandel.pl> in the Demos subdirectory of the PerlDL distribution
+for an example.
+
+=head2 PP speed
+
+If you really want to write speedy PP code, the first
+thing you need to do is to make sure that your C compiler
+is allowed to do the necessary optimizations.
+
+What this means is that you have to allow as many variables
+as possible to go into registers:
+
+	loop(a) %{
+		$a() += $COMP(foo_member) * $b()
+	%}
+
+expands to
+
+	for(i=0; i<10000; i++) {
+		a[i] += __privtrans->foo_member * b[i];
+	}
+
+is about the worst you can do, since your C compiler is not
+allowed to assume that C<a> doesn't clobber C<foo_member>
+which completely inhibits vectorization. Instead, do
+
+	float foo = $COMP(foo_member);
+	loop(a) %{
+		$a() += foo * $b();
+	%}
+
+This is not a restriction caused by PP but by ANSI C semantics.
+Of course, we could copy the struct into local variables and back but that
+could cause very strange things sometimes.
+
+There are many other issues on organizing loops.
+
+We are currently planning to make PP able to do fixed-width
+things as well as physical piddles (where looping over the first
+dimensions would be cheaper as there are less distinct increments,
+which might make a difference on machines with a small number of registers).
+
+=head1 AUTHOR
+
+Copyright (C) Tuomas J. Lukka 1997. All rights reserved.
+Duplication in the same form and printing a copy for yourself allowed.
+

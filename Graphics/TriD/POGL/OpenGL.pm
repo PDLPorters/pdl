@@ -4,6 +4,7 @@ BEGIN {
    use PDL::Config;
    if ($PDL::Config{USE_POGL}) {
       eval "use OpenGL $PDL::Config{POGL_VERSION} qw()";
+      use OpenGL::Config;
    }
 }
 
@@ -11,33 +12,36 @@ BEGIN {
    eval 'OpenGL::ConfigureNotify()';
    if ($@) {
       # Set up some X11 and GLX constants for fake XEvent emulation
-      sub OpenGL::GLX_DOUBLEBUFFER    () { 5 };
-      sub OpenGL::GLX_RGBA            () { 4 };
-      sub OpenGL::GLX_RED_SIZE        () { 8 };
-      sub OpenGL::GLX_GREEN_SIZE      () { 9 };
-      sub OpenGL::GLX_BLUE_SIZE       () { 10 };
-      sub OpenGL::GLX_DEPTH_SIZE      () { 12 };
-      sub OpenGL::KeyPressMask        () { (1<<0 ) };
-      sub OpenGL::KeyReleaseMask      () { (1<<1 ) };
-      sub OpenGL::ButtonPressMask     () { (1<<2 ) };
-      sub OpenGL::ButtonReleaseMask   () { (1<<3 ) };
-      sub OpenGL::PointerMotionMask   () { (1<<6 ) };
-      sub OpenGL::Button1Mask         () { (1<<8 ) };
-      sub OpenGL::Button2Mask         () { (1<<9 ) };
-      sub OpenGL::Button3Mask         () { (1<<10) };
-      sub OpenGL::ButtonMotionMask    () { (1<<13) };
-      sub OpenGL::ExposureMask        () { (1<<15) };
-      sub OpenGL::StructureNotifyMask    { (1<<17) };
-      sub OpenGL::KeyPress            () { 2 };
-      sub OpenGL::KeyRelease          () { 3 };
-      sub OpenGL::ButtonPress         () { 4 };
-      sub OpenGL::ButtonRelease       () { 5 };
-      sub OpenGL::MotionNotify        () { 6 };
-      sub OpenGL::Expose              () { 12 };
-      sub OpenGL::GraphicsExpose      () { 13 };
-      sub OpenGL::NoExpose            () { 14 };
-      sub OpenGL::VisibilityNotify    () { 15 };
-      sub OpenGL::ConfigureNotify     () { 22 };
+      {
+         no warnings 'redefine';
+         eval "sub OpenGL::GLX_DOUBLEBUFFER    () { 5 }";
+         eval "sub OpenGL::GLX_RGBA            () { 4 }";
+         eval "sub OpenGL::GLX_RED_SIZE        () { 8 }";
+         eval "sub OpenGL::GLX_GREEN_SIZE      () { 9 }";
+         eval "sub OpenGL::GLX_BLUE_SIZE       () { 10 }";
+         eval "sub OpenGL::GLX_DEPTH_SIZE      () { 12 }";
+         eval "sub OpenGL::KeyPressMask        () { (1<<0 ) }";
+         eval "sub OpenGL::KeyReleaseMask      () { (1<<1 ) }";
+         eval "sub OpenGL::ButtonPressMask     () { (1<<2 ) }";
+         eval "sub OpenGL::ButtonReleaseMask   () { (1<<3 ) }";
+         eval "sub OpenGL::PointerMotionMask   () { (1<<6 ) }";
+         eval "sub OpenGL::Button1Mask         () { (1<<8 ) }";
+         eval "sub OpenGL::Button2Mask         () { (1<<9 ) }";
+         eval "sub OpenGL::Button3Mask         () { (1<<10) }";
+         eval "sub OpenGL::ButtonMotionMask    () { (1<<13) }";
+         eval "sub OpenGL::ExposureMask        () { (1<<15) }";
+         eval "sub OpenGL::StructureNotifyMask    { (1<<17) }";
+         eval "sub OpenGL::KeyPress            () { 2 }";
+         eval "sub OpenGL::KeyRelease          () { 3 }";
+         eval "sub OpenGL::ButtonPress         () { 4 }";
+         eval "sub OpenGL::ButtonRelease       () { 5 }";
+         eval "sub OpenGL::MotionNotify        () { 6 }";
+         eval "sub OpenGL::Expose              () { 12 }";
+         eval "sub OpenGL::GraphicsExpose      () { 13 }";
+         eval "sub OpenGL::NoExpose            () { 14 }";
+         eval "sub OpenGL::VisibilityNotify    () { 15 }";
+         eval "sub OpenGL::ConfigureNotify     () { 22 }";
+      }
    }
 }
 
@@ -104,8 +108,7 @@ my $debug = 0;
 my (@fakeXEvents) = ();
 my (@winObjects) = ();
 #
-# This is a list of all the fields of the opengl object and one could create a 
-# psuedo hash style object but I want to use multiple inheritence with Tk...
+# This is a list of all the fields of the opengl object
 #
 #use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
 
@@ -126,10 +129,8 @@ Allowed 3d window types, case insensitive, are:
 
 =for ref
 
-  pdl-legacy-x11 - use deprecated PDL::PP OpenGL interface
-  x11  - use Perl OpenGL (POGL) bindings and X11 windows
-         (supports PDL::Graphics::TriD::Tk use)
   glut - use Perl OpenGL bindings and GLUT windows (no Tk)
+  x11  - use Perl OpenGL (POGL) bindings with X11 (disabled)
 
 =cut
 
@@ -165,6 +166,19 @@ sub new {
       OpenGL::glutInitWindowPosition( $p->{x}, $p->{y} );
       OpenGL::glutInitWindowSize( $p->{width}, $p->{height} );      
       OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );        # hardwire for now
+      if ($^O ne 'MSWin32' and not $OpenGL::Config->{DEFINE} =~ /-DHAVE_W32API/) { # skip these MODE checks on win32, they don't work
+         if (not OpenGL::glutGet(OpenGL::GLUT_DISPLAY_MODE_POSSIBLE()))
+         {
+            warn "glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_ALPHA) not possible";
+            warn "...trying without GLUT_ALPHA";
+            # try without GLUT_ALPHA
+            OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );
+            if ( not OpenGL::glutGet( OpenGL::GLUT_DISPLAY_MODE_POSSIBLE() ) )
+            {
+               die "display mode not possible";
+            }
+         }
+      }
 
       my($glutwin) = OpenGL::glutCreateWindow( "GLUT TriD" );
       OpenGL::glutSetWindowTitle("GLUT TriD #$glutwin");        # add GLUT window id to title

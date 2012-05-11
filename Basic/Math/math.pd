@@ -49,10 +49,12 @@ doco (qw/cosh sinh tanh acosh asinh atanh/,
 'The standard hyperbolic function.');
 
 doco (qw/ceil floor/,
-'Round to integral values in floating-point format.');
+'Round to integer values in floating-point format.');
 
 doco ('rint',
-q/Round to integral values in floating-point format.
+q/=for ref
+
+Round to integer values in floating-point format.
 
 =for method
 
@@ -77,15 +79,28 @@ The value for which the area under the
 Gaussian probability density function (integrated from
 minus infinity) is equal to the argument (cf L<erfi|/erfi>).");
 
-doco(qw/bessj0 bessj1 bessy0 bessy1/, 
-     "The standard Bessel function." );
+doco(qw/bessj0 bessj1/, 
+     "The regular Bessel function of the first kind, J_n" );
 
-doco( qw/bessjn bessyn/, 
+doco(qw/bessy0 bessy1/, 
+     "The regular Bessel function of the second kind, Y_n." );
+
+doco( qw/bessjn/, 
 '=for ref
 
-The standard Bessel function.
-This has a second integer
-argument which gives the order of the function required.
+The regular Bessel function of the first kind, J_n
+.
+This takes a second int argument which gives the order
+of the function required.
+');
+
+doco( qw/bessyn/, 
+'=for ref
+
+The regular Bessel function of the first kind, Y_n
+.
+This takes a second int argument which gives the order
+of the function required.
 ');
 
 if ($^O !~ /win32/i) {  # doesn't seem to be in the MS VC lib

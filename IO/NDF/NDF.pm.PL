@@ -222,6 +222,8 @@ PDL does not have a signed byte datatype, so any '_BYTE' data
 is read into a C<byte> (unsigned) piddle and a warning is printed
 to C<STDOUT>.
 
+=cut
+
 !NO!SUBS!
 
     if ( $bvalflag ) {
@@ -232,12 +234,12 @@ If the starlink bad flag is set, then the bad flag on the output
 piddle is also set.  Starlink bad values are converted to the
 current bad value used by the piddle type (if they are different).
 
+=cut
+
 !NO!SUBS!
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
-=cut
-
 # This is one form of the new command
 
 sub rndf {PDL->rndf(@_)}
@@ -382,21 +384,23 @@ double on a best guess basis.  Any perl arrays are written as CHAR
 array extensions (on the assumption that numeric arrays will exist as
 PDLs).
 
+=cut
+
 !NO!SUBS!
 
     if ( $bvalflag ) {
 	print OUT <<'!NO!SUBS!';
 =for bad
 
-The bad flag is written to the file, if set. 
+The bad flag is written to the file, if set.
+
+=cut
 
 !NO!SUBS!
 
 } # if: $bvalflag
 
 print OUT<<'!NO!SUBS!';
-=cut
-
 # This is one form of the new command
 # OO version.
 

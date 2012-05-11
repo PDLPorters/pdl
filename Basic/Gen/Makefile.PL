@@ -24,18 +24,13 @@ sub MY::postamble {
 '	mv PP/Dump.pm.tmp PP/Dump.pm')."\n";
 
   if ( $] >= 5.006 ) {
-     $text .= $^O !~ /MSWin32/i ? "
+     $text .= << "EOPS" ;
 
 pptemplate.pod: pptemplate
-\tPERL5OPT='' podselect pptemplate > pptemplate.pod
+\t\$(PERLRUN) -MPod::Select -e "podselect('pptemplate');" > pptemplate.pod
 
-"
-: "
+EOPS
 
-pptemplate.pod: pptemplate
-\tpodselect pptemplate > pptemplate.pod
-
-"
   }
   $text;
 }

@@ -245,7 +245,7 @@ the C<Core> struct. It looks something like this:
 
  #include <pdlcore.h>
  static Core* PDL; /* Structure holds core C functions */
- static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
+ static SV* CoreSV;       /* Gets pointer to Perl var holding core structure */
 
 The code returned by C<PDL_BOOT> retrieves the C<$PDL::SHARE> variable
 and initializes the pointer to the C<Core> struct. For those who know
@@ -291,7 +291,7 @@ and the C<PDL_BOOT> routines:
 
 Make sure you use the same identifier with C<PDL_AUTO_INCLUDE>
 and C<PDL_BOOT> and use that same identifier in your own code.
-E.g., continuning from the example above:
+E.g., continuing from the example above:
 
   pdl *p = PDL_Corep->pdlnew();
 
@@ -372,6 +372,22 @@ C<float NaN_float> and
 C<double NaN_double>
 
 These are constants to produce the required NaN values.
+
+=item *
+
+C<void pdl_barf(const char* pat,...)> and
+C<void pdl_warn(const char* pat,...)>
+
+These are C-code equivalents of C<barf> and C<warn>. They include special handling of error or warning
+messages during pthreading (i.e. processor multi-threading) that defer the messages until after pthreading
+is completed. When pthreading is complete, perl's C<barf> or C<warn> is called with the deferred messages. This
+is needed to keep from calling perl's C<barf> or C<warn> during pthreading, which can cause segfaults. 
+
+Note that C<barf> and C<warn> have been redefined (using c-preprocessor macros) in pdlcore.h to C<< PDL->barf >>
+and C<< PDL->warn >>. This is to keep any XS or PP code from calling perl's C<barf> or C<warn> directly, which can
+cause segfaults during pthreading.
+
+See L<PDL::ParallelCPU> for more information on pthreading.
 
 =back
 

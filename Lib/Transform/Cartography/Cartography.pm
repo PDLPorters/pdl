@@ -2276,7 +2276,7 @@ sub t_hammer {
 
 ######################################################################
 
-=head2 t_vertical
+=head2 t_vertical, t_zenithal -- vertical perspective projection
 
 =for usage
 
@@ -2289,7 +2289,10 @@ sub t_hammer {
 Vertical perspective projection is a generalization of L<gnomonic|/t_gnomonic>
 and L<stereographic|/t_stereographic> projection, and a special case of 
 L<perspective|/t_perspective> projection.  It is a projection from the 
-sphere onto a focal plane at the camera location.  
+sphere onto a tangent plane from a point at the camera location.
+
+Vertical projections are also called "zenithal", and t_zenithal is an 
+alias for t_vertical.
 
 OPTIONS
 
@@ -2470,6 +2473,8 @@ sub t_vertical {
 
     $me->_finish;
   }
+
+*t_zenithal = \&t_vertical;
 
 ######################################################################
 
@@ -2744,7 +2749,7 @@ sub t_perspective {
 
       my($out) = $d->is_inplace ? $d : $d->copy;
       $out->(0:1) *= $o->{conv};
-      
+
       # If we're outside the sphere, do hemisphere filtering
       my $idx;
       if(abs($o->{r0}) < 1 ) {
@@ -2830,7 +2835,7 @@ sub t_perspective {
 	if($o->{mag} != 1.0) {
 	  my $r = ($oyz * $oyz)->sumover->sqrt;
 	  my $scale = tan( atan( $r ) / $o->{mag} ) / $r;
-	  $out->(0:1) *= $scale;
+	  $out->(0:1) *= $scale->dummy(0,1);
 	}
 	
 	## Solve for the X coordinate of the surface.  

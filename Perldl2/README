@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 15 Jun 2010 06:38:23 AM
+Last saved: Fri 18 Feb 2011 10:20:46 AM 
 
 
 +-----------------------------------------------------------+
@@ -11,34 +11,48 @@ improved perldl shell (Perldl2) that can integrate with
 the Padre IDE to support PDL development.
 
 You need to install the version 1.003011 of Devel::REPL
-in order to build/use the Perldl2 shell. A description
-of the files in this directory and how to install and
-use the Perldl2 shell follows.
+and have installed either Term::ReadLine::Perl or
+Term::ReadLine::Gnu in order to use the new Perldl2 shell
+capabilities.
 
 
 +-----------------------------------------------------------+
-|                          FILES                            |
+|                         CONTENTS                          |
 +-----------------------------------------------------------+
 
  README
-   This file.
+   This file
+
+ TODO
+   Development list for Perldl2 shell
+
+ Makefile.PL
+   Perl configuration/build script for Perldl2
+
+ Plugin/
+ Profile/
+ Script.pm
+   Perl modules and directories with modules for Perldl2
 
  pdl2
-   This is a perl script for starting the Perldl2 shell.
-
-
+   A perl script for starting the Perldl2 shell.
+   (Falls back to perldl if any of Devel::REPL or
+    Term::ReadLine::Gnu or Term::ReadLine::Perl are
+    not installed)
 
 
 +-----------------------------------------------------------+
 |                      INSTALLATION                         |
 +-----------------------------------------------------------+
 
-  Install Devel::REPL version 1.003011 or greater.
+  By default, the Perldl2 shell is always built and the
+  pdl2 script installed.  To disable this, edit the
+  WITH_DEVEL_REPL option in the perldl.conf file.
 
-  Then configure and build PDL as usual.  The presence
-  of Devel::REPL should be detected and the Perldl2
-  support built and installed.
- 
+  You will need to install Devel::REPL version 1.003011
+  or greater and either of Term::ReadLine::Gnu or
+  Term::ReadLine::Perl to access the new pdl2 capabilities.
+
 
 +-----------------------------------------------------------+
 |                           USE                             |
@@ -54,12 +68,11 @@ use the Perldl2 shell follows.
 
     pdl2
 
- To exit the Perldl2 shell from the PDL> prompt, type Ctrl-D
- or quit.
-
- WARNING: Typing exit will also quit the shell but do so by
- terminating the perl interpreter. Probably not what you
- want to do---especially if you want to keep command history.
+  To exit the Perldl2 shell from the 'pdl> ' prompt, type
+  Ctrl-D or quit, (q, x, and exit shortcuts are also
+  available).  If Devel::REPL is not installed (or you
+  don't have either TR::Gnu or TR::Perl), pdl2 will use
+  perldl instead but any new features will not be available.
 
 
 +-----------------------------------------------------------+
@@ -74,6 +87,7 @@ use the Perldl2 shell follows.
   * MultiLine::PPI (handles multiline input like perldl)
   * NiceSlice (PDL::NiceSlice works too!)
   * Packages (keeps track of current user package)
+  * PDLCommands (perldl shell v1 convenience routines)
   * ReadLineHistory
     * Save and restore command history to file
   * CompletionDrivers
@@ -93,33 +107,31 @@ use the Perldl2 shell follows.
   * PDL::Image2D
   * PDL::AutoLoader
 
- help, apropos work but
- * ? and ?? aliases don't work (use help or apropos words)
- * you need to quote the arguments (e.g.,  help 'sumover')
+ ? and ?? are aliases for help and apropos
+ 
+ Arguments to help|usage|apropos|sig|badinfo|demo are autoquoted
 
- l <num> prints the last num lines of history, default 20.
+ Shell escapes start with $PERLDL::ESCAPE as the first character
+ of a line ('#' by default).
+
+ l <num> prints the last <num> lines of history, default 20.
 
  p is an alias for print.
 
- demo works but you'll need to quote the demo name argument
- and, at the end of the demo, you may need to type Ctrl-D
- if it hangs after the final (press enter).
+ demo as a command by itself lists the possible demos available.
+ Otherwise it runs the specified demo.
 
- The Perldl2 shell, pdl2, now loads/saves from the same
- history file as perldl.  This is a new feature so, as
- always, feedback welcome.
+ By default, leading patterns matching the pdl2 shell
+ prompt ('pdl> ' with possible surrounding white space)
+ are stripped from the input.  That allows for easy
+ cut-and-paste of pdl2 sessions from examples, demos,
+ or docs.
 
+ The Perldl2 shell, pdl2, loads/saves from the same history
+ file as perldl.
 
-+-----------------------------------------------------------+
-|                        ADVANCED                           |
-+-----------------------------------------------------------+
-
- Work is underway to enable the use of the $HOME/.perldlrc
- and local.perldlrc startup files with the Perldl2 shell.
-
- If you can't wait and wish to customize your pdl2 startup
- further, you can edit the Perldl2.pm file following the
- documentation for Devel::REPL::Profile.
-
- It is probably simpler to put your customizations in a
- file and just do 'filename' at the PDL> prompt.
+ The Perldl2 shell, pdl2, loads your .perldlrc file
+ from the same location as the perldl shell does.  It also
+ accepts .pdlrc as the name---looking forward to the new
+ naming scheme for the interactive shell.  A local.pdlrc
+ or local.perldlrc are run if present as well.

@@ -33,9 +33,14 @@ $PDL::debug = 1 if defined($ARGV[0]) && $ARGV[0] =~ /-v/;
 #              [FORMAT, extension, ushort-divisor,
 #               only RGB/no RGB/any (1/-1/0), mxdiff]
 #  no test of PCX format because seems to be severely brain damaged
-@formats = (['PNM','pnm',1,0,0.01]);
+@formats = ( ['PNM', 'pnm',  1, 0, 0.01],
+	     ['GIF', 'gif',256, 0, 0.01],
+	     ['TIFF','tif',  1, 0, 0.01],);
 
-$ntests = 2 * 3 * @formats ;
+## GIF doesn't handle 16-bit so it has 2 * 2 tests
+## while the other formats have 2 * 3 tests each
+## $ntests = 2 * 3 * @formats ;
+$ntests = 16;
 print("1..$ntests\n");
 
 $im1 = pdl([[0,65535,0], [256,256,256], [65535,256,65535]])->ushort;
@@ -62,17 +67,17 @@ if ($PDL::debug) {
 $n = 1;
 for $raw (0,1) {
   foreach $form (@formats) {
-    print " ** testing $form->[0] format **\n";
+    print "# ** testing $form->[0] format **\n";
 
     wpnm ($im1,"tushort.$form->[1]",'PGM',$raw)
-      unless $form->[0] eq 'TIFF';
+      unless $form->[0] eq 'GIF';
     wpnm ($im2,"tbyte.$form->[1]",'PGM',$raw);
     wpnm ($im3,"tbin.$form->[1]",'PBM',$raw);
-    $in1 = rpnm_unlink("tushort.$form->[1]") unless $form->[0] eq 'TIFF';
+    $in1 = rpnm_unlink("tushort.$form->[1]") unless $form->[0] eq 'GIF';
     $in2 = rpnm_unlink("tbyte.$form->[1]");
     $in3 = rpnm_unlink("tbin.$form->[1]");
 
-    if ($form->[0] ne 'TIFF') {
+    if ($form->[0] ne 'GIF') {
       $scale = ($form->[3] ? $im1->dummy(0,3) : $im1);
       $comp = $scale / $form->[2];
       ok($n++,tapprox($comp,$in1,$form->[4]));

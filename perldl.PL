@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.352';
+$VERSION = '1.354_001';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
@@ -54,7 +54,8 @@ $PERLDL::ESCAPE = '#'; 		# Default shell escape
 $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
 $PERLDL::MULTI = 1;             # Enable multi-lines by default
 $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
-$PERLDL::PROMPT = "perldl> ";
+$PERLDL::NO_EOF = 1 if $^O =~ 'MSWin';  # ...but enable for windows 
+$PERLDL::PROMPT = "pdl> ";
 $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
 				# Default output paging program
 $PERLDL::PAGE   = 0;
@@ -356,6 +357,7 @@ if ($PDL_OK) {
 }else{
    warn "WARNING: Error loading PDL: '$@' - trying blib. \n";
    eval "use blib";
+   delete $INC{$startup_file};  # so require will try again!
    eval 'require "'.$startup_file.'"';
    $PDL_OK = ($@ eq "");
    if ($PDL_OK) {
@@ -398,7 +400,6 @@ my %demos =
      '3d' => 'PDL::Demos::TriD1',
      '3d2' => 'PDL::Demos::TriD2',
      '3dgal' => 'PDL::Demos::TriDGallery',
-     'tk3d' => 'PDL::Demos::TkTriD_demo',
      'pgplot' => 'PDL::Demos::PGPLOT_demo',
      'ooplot' => 'PDL::Demos::PGPLOT_OO_demo', # note: lowercase
      'bad' => 'PDL::Demos::BAD_demo',
@@ -417,7 +418,6 @@ Use:
    demo 3d          # 3d demo (requires TriD with OpenGL or Mesa)
    demo 3d2         # 3d demo, part 2. (Somewhat memory-intensive)
    demo 3dgal       # the 3D gallery: make cool images with 3-line scripts
-   demo Tk3d        # Requires the perl Tk module
 
    demo pgplot      # PGPLOT graphics output (Req.: PGPLOT)
    demo OOplot      # PGPLOT OO interface    (Req.: PGPLOT)
@@ -444,7 +444,7 @@ EOD
 
 } # sub: demo
 
-$SIG{'INT'} = sub {die "Ctrl-C detected\n"}; # Ctrl-C handler
+$SIG{'INT'} = sub { die "Ctrl-C detected\n" }; # Ctrl-C handler
 
 
 my $preproc_warned = 0;
@@ -578,6 +578,7 @@ sub process_input {
 		 if($PERLDL::NO_EOF && -t STDIN ) {
 		     print STDERR "EOF ignored. ('q' or 'exit' to quit.  \$PERLDL::NO_EOF = $PERLDL::NO_EOF)\n";
 		 } else {
+		     print STDERR "EOF detected, exiting shell.\n";
 		     exit 0;
 		 }
 	     }
@@ -716,25 +717,24 @@ __END__
 
 =head1 NAME
 
-perldl - Simple shell for PDL
-
+perldl - Simple shell for PDL (see also L<pdl2>)
 
 =head1 SYNOPSIS
 
-	Use PDL interactively:
+Use PDL interactively:
 
-		%> perldl
-		perldl> $a=sequence(10) # or any other perl or PDL command
+  bash$ perldl
+  pdl> $a = sequence(10) # or any other perl or PDL command
+  
+  bash$ pdl
+  pdl> print "Hello, world!\n"; 
 
-		%> pdl
-		perldl> print "Hello, world!\n"; 
+Run a script:
 
-	Run a script:
-
-	        %> cat > pdlscript
-	        #!/usr/bin/pdl
-                print "Hello, world!\n";
-                ...
+  bash$ cat > pdlscript
+  #!/usr/bin/pdl
+  print "Hello, world!\n";
+  ...
 
 
 =head1 DESCRIPTION
@@ -772,7 +772,7 @@ discussed near the end of this document.
 The PDL reference manual and online help are available from within 
 B<perldl>, using the B<help> and B<apropos> commands (which may also
 be abbreviated B<?> and B<??>.)   The B<help> command alone prints a summary of
-help syntax, and B<help  E<lt>module-nameE<gt>> will print POD documentation
+help syntax, and B<< help <module-name> >> will print POD documentation
 from the module you mention (POD is the Perl format for embedding 
 documentation in your perl code; see L<perlpod> for details).
 
@@ -784,7 +784,7 @@ and be able to format and display it on demand.
 
 If you have the perl modules ReadLines and ReadKeys installed, then
 B<perldl> supports a history and line-editing mechanism using editing
-keys similar to L<emacs(1)>. The last 50 commands are always stored in
+keys similar to L<emacs>. The last 500 commands are always stored in
 the file F<.perldl_hist> in your home directory between sessions.
 Set C<$PERLDL::HISTFILESIZE> to change the number of lines saved.
 The command C<l [number]> shows you the last C<number> commands you
@@ -792,21 +792,21 @@ typed where C<number> defaults to 20.
 
 e.g.:
 
-   % perldl
+   bash$ perldl
    ReadLines enabled
-   perldl> $a = rfits "foo.fits"
+   pdl> $a = rfits "foo.fits"
    BITPIX =  -32  size = 88504 pixels
    Reading  354016 bytes
    BSCALE =  &&  BZERO =
 
-   perldl> imag log($a+400)
+   pdl> imag log($a+400)
    Displaying 299 x 296 image from 4.6939525604248 to 9.67116928100586 ...
 
 =head2 Command execution
 
 If you enter a simple command at the B<perldl> command line, it is
-immediately executed in a Perl eval().  The environment is almost identical
-to that within a perl script, with some important exceptions:
+immediately executed in a Perl C<eval()>.  The environment is almost
+identical to that within a perl script, with some important exceptions:
 
 =over 3
 
@@ -825,6 +825,8 @@ is local to the particular command line on which you typed the C<my>
 command, which means that it will evaporate before the next prompt is printed.
 (You can use C<my> variables in a multi-line block or to isolate values within 
 a single command line, of course).
+
+  NOTE: pdl2 preserves lexical scope between lines.
 
 =item * Execution is immediate
 
@@ -885,11 +887,11 @@ to the process on your terminal). Provided your PDL code does not
 ignore C<sigint>s this should throw you back at the C<perldl>
 command prompt:
 
-  perldl> $result = start_lengthy_computation()
+  pdl> $result = start_lengthy_computation()
    <Ctrl-C>
  Ctrl-C detected
 
-  perldl>
+  pdl>
 
 =head2 Shortcuts and aliases
 
@@ -899,7 +901,7 @@ command prompt:
 
 The shell aliases C<p> to be a convenient short form of C<print>, e.g.
 
-   perldl> p ones 5,3
+   pdl> p ones 5,3
 
    [
     [1 1 1 1 1]
@@ -915,21 +917,21 @@ C<q> and C<x> are short-hand for C<quit>.
 
 C<l> lists the history buffer
 
-  perldl> l # list last 20 commands
+  pdl> l # list last 20 commands
 
-  perldl> l 40 # list last 40 commands
+  pdl> l 40 # list last 40 commands
 
 =item *
 
 C<?> is an alias for L<help|PDL::Doc::Perldl/help>
 
-  perldl> ? wpic
+  pdl> ? pdl2    # get help for new pdl2 shell
 
 =item *
 
 C<??> is an alias for L<apropos|PDL::Doc::Perldl/apropos>
 
-  perldl> ?? PDL::Doc
+  pdl> ?? PDL::Doc
 
 =item *
 
@@ -938,11 +940,11 @@ L<usage|PDL::Doc::Perldl/usage> and L<sig|PDL::Doc::Perldl/sig>:
 all words after these commands are used verbatim and not evaluated
 by perl. So you can write, e.g.,
 
-    help help
+  pdl> help help
 
 instead of
 
-    help 'help'
+  pdl> help 'help'
 
 =back
 
@@ -950,7 +952,7 @@ instead of
 =head2 Command-line options
 
 B<perldl> and B<pdl> support several command-line options to adjust the behavior of the
-session.  Most of them are equivalent to commands that can be entered at the B<perldlE<gt>>
+session.  Most of them are equivalent to commands that can be entered at the B<pdlE<gt>>
 prompt.  They are:
 
 =over 4
@@ -1047,7 +1049,7 @@ output generated by subsequent perldl commands (without paging).
 
 =item *
 
-$PERLDL::PROMPT - default value 'perldl> '
+$PERLDL::PROMPT - default value 'pdl> '
 
 Enough said  But can also be set to a subroutine reference, e.g.
 $PERLDL::PROMPT = sub {join(':',(gmtime)[2,1,0]).'> '} puts the
@@ -1073,7 +1075,7 @@ supported.
 
 =item *
 
-$PERLDL::NO_EOF - default value 0
+$PERLDL::NO_EOF - default value 0 / 1 on MSWin32
 
 Protects against accidental use of "^D" from the terminal.  If this is
 set to a true value, then you can't accidentally exit perldl by typing
@@ -1097,6 +1099,15 @@ This is the Term::ReadLine object associated with the perldl
 shell. It can be used by routines called from perldl if your
 command is interactive.
 
+=item *
+
+$PDL::toolongtoprint
+
+The maximal size pdls to print (defaults to 10,000 elements).
+This is not just a C<perldl> or C<pdl2> variable but it is
+something that is usually needed in an interactive debugging
+session.
+
 =back
 
 =head2 Executing scripts from the C<perldl> prompt
@@ -1104,9 +1115,10 @@ command is interactive.
 A useful idiom for developing perldl scripts or editing functions
 on-line is
 
-      perldl> # emacs script &
-		      -- add perldl code to script and save the file
-      perldl> do 'script'
+  pdl> # emacs script &
+    -- add perldl code to script and save the file
+  
+  pdl> do 'script'
 
 -- substitute your favourite window-based editor for 'emacs' (you may
 also need to change the '&' on non-Unix systems).
@@ -1154,7 +1166,7 @@ C<preproc_del> with the filter to be removed as argument.  To find out
 if a filter is currently installed in the preprocessing pipeline use
 C<preproc_registered>:
 
-  perldl> preproc_add $myfilter unless preproc_registered $myfilter;
+  pdl> preproc_add $myfilter unless preproc_registered $myfilter;
 
 Previous versions of C<perldl> used the variable C<$PERLDL::PREPROCESS>.
 This will still work but should be avoided. Please change your scripts
@@ -1163,25 +1175,25 @@ to use the C<preproc_add> etc functions.
 The following code would check for a call to function 'mysub'
 and bracket arguments with qw.
 
- $filter = preproc_add sub {
-   my $str = shift;
-   $str =~ s/^\s+//;  # Strip leading space
-   if ($str =~ /^mysub/) {
-     my ($command, $arguments) = split(/\s+/,$str, 2);
-     $str = "$command qw( $arguments )" 
-       if (defined $arguments && $arguments !~ /^qw/);
+  $filter = preproc_add sub {
+     my $str = shift;
+     $str =~ s/^\s+//;  # Strip leading space
+     if ($str =~ /^mysub/) {
+        my ($command, $arguments) = split(/\s+/,$str, 2);
+        $str = "$command qw( $arguments )" 
+        if (defined $arguments && $arguments !~ /^qw/);
+     };
+     # Return the input string, modified as required
+     return $str;
    };
-   # Return the input string, modified as required
-   return $str;
- };
 
 This would convert:
 
-  perldl> mysub arg1 arg2
+  pdl> mysub arg1 arg2
 
 to
 
-  perldl> mysub qw( arg1 arg2 )
+  pdl> mysub qw( arg1 arg2 )
 
 which Perl will understand as a list.  Obviously, a little more effort
 is required to check for cases where the caller has supplied a normal
@@ -1192,7 +1204,7 @@ You can remove this preprocessor using the C<preproc_del> function
 which takes one argument (the filter to be removed, it must be the
 same coderef that was returned from a previous C<preproc_add> call):
 
-  perldl> preproc_del $filter;
+  pdl> preproc_del $filter;
 
 An example of actual usage can be found in the C<perldl> script. Look
 at the function C<trans> to see how the niceslicing preprocessor is
@@ -1201,9 +1213,9 @@ enabled/disabled.
 =head2 C<perldl> and L<PDL::NiceSlice|PDL::NiceSlice>
 
 L<PDL::NiceSlice|PDL::NiceSlice> introduces a more convenient
-slicing syntax for piddles. In current versions of C<perldl>
-niceslicing is enabled by default (if the required CPAN modules
-are installed on your machine).
+slicing syntax for piddles. In current versions of C<perldl> and
+C<pdl2> niceslicing is enabled by default (if the required CPAN
+modules are installed on your machine).
 
 At startup C<perldl> will let you
 know if niceslicing is enabled. The startup message will contain
@@ -1222,8 +1234,8 @@ info to this end, something like this:
 When you get such a message that indicates C<NiceSlice> is enabled
 you can use the enhanced slicing syntax:
 
-  perldl> $a = sequence 10;
-  perldl> p $a(3:8:2)
+  pdl> $a = sequence 10;
+  pdl> p $a(3:8:2)
 
 For details consult L<PDL::NiceSlice>.
 
@@ -1236,27 +1248,27 @@ the substitutions that the NiceSlice filter makes.
 You can switch the L<PDL::NiceSlice|PDL::NiceSlice> filter on and off
 by typing
 
-  perldl> trans # switch niceslicing on
+  pdl> trans # switch niceslicing on
 
 and
 
-  perldl> notrans # switch niceslicing off
+  pdl> notrans # switch niceslicing off
 
 respectively. The filter is on by default.
 
 To see how your commands are translated
 switch reporting on:
 
-  perldl> report 1;
-  perldl> p $a(3:8:2)
- processed p $a->nslice([3,8,2])
- [3 5 7]
+  pdl> report 1;
+  pdl> p $a(3:8:2)
+  processed p $a->nslice([3,8,2])
+  [3 5 7]
 
 Similarly, switch reporting off as needed
 
-  perldl> report 0;
-  perldl>  p $a(3:8:2)
- [3 5 7]
+  pdl> report 0;
+  pdl>  p $a(3:8:2)
+  [3 5 7]
 
 Reporting is off by default.
 
@@ -1268,26 +1280,26 @@ executed automatically every time the user enters a new line.
 
 A simple example would be to print the time of each command:
 
- perldl> push @PERLDL::AUTO,'print scalar(gmtime),"\n"'
-
- perldl> print zeroes(3,3)
- Sun May  3 04:49:05 1998
-
- [
-  [0 0 0]
-  [0 0 0]
-  [0 0 0]
- ]
-
- perldl> print "Boo"
- Sun May  3 04:49:18 1998
- Boo
- perldl>
+  pdl> push @PERLDL::AUTO,'print scalar(gmtime),"\n"'
+  
+  pdl> print zeroes(3,3)
+  Sun May  3 04:49:05 1998
+  
+  [
+   [0 0 0]
+   [0 0 0]
+   [0 0 0]
+  ]
+  
+  pdl> print "Boo"
+  Sun May  3 04:49:18 1998
+  Boo
+  pdl>
 
 Or to make sure any changes in the file 'local.perldlrc' are
 always picked up :-
 
- perldl> push @PERLDL::AUTO,"do 'local.perldlrc'"
+  pdl> push @PERLDL::AUTO,"do 'local.perldlrc'"
 
 This code can of course be put *in* 'local.perldlrc', but
 be careful :-) [Hint: add C<unless ($started++)> to above

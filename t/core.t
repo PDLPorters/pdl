@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 61;
+use Test::More tests => 51;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -70,7 +70,6 @@ ok eq_array( [ $b->dims ], [3,4] ), "reshape(-1)";
 ok all( $b == $c ), "squeeze";
 
 $c++; # check dataflow
-print "a: $a\nb: $b\nc: $c\n";
 ok all( $b == $c ), "dataflow"; # should flow back to b
 ok all( $a == 2 ), "dataflow";
 
@@ -112,26 +111,46 @@ do {
 $a = pdl(pdl(5));
 ok all( $a== pdl(5)), "pdl() can piddlify a piddle";
 
-# pdl of mixed-dim pdls: pad within a dimension
-$a = pdl( zeroes(5), ones(3) );
-print "a=$a\n";
-ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifing two piddles catenates them and pads to length";
+TODO: {
+   local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
 
+   # pdl of mixed-dim pdls: pad within a dimension
+   $a = pdl( zeroes(5), ones(3) );
+   ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two piddles catenates them and pads to length" or diag("a=$a\n");
+}
+   
 # pdl of mixed-dim pdls: pad a whole dimension
 $a = pdl( [[9,9],[8,8]], xvals(3)+1 );
-ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can catenate mixed-dim piddles";
-print "a=$a\n";
+ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can catenate mixed-dim piddles" or diag("a=$a\n");
 
 # pdl of mixed-dim pdls: a hairier case
 $c = pdl [1], pdl[2,3,4], pdl[5];
-ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can catenate mixed-dim piddles: hairy case";
+ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can catenate mixed-dim piddles: hairy case" or diag("c=$c\n");
 
 # same thing, with undefval set differently
 do {
     local($PDL::undefval) = 99;
     $c = pdl [1], pdl[2,3,4], pdl[5];
-    ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "undefval works for padding";
+    ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "undefval works for padding" or diag("c=$c\n");;
 } while(0);
+
+# empty pdl cases
+eval {$a = zeroes(2,0,1);};
+ok(!$@,"zeroes accepts empty PDL specification");
+
+eval { $b = pdl($a,sequence(2,0,1)); };
+ok((!$@ and all(pdl($b->dims) == pdl(2,0,1,2))), "catenating two empties gives an empty");
+
+eval { $b = pdl($a,sequence(2,1,1)); };
+ok((!$@ and all(pdl($b->dims) == pdl(2,1,1,2))), "catenating an empty and a nonempty treats the empty as a filler");
+
+eval { $b = pdl($a,5) };
+ok((!$@ and all(pdl($b->dims)==pdl(2,1,1,2))), "catenating an empty and a scalar on the right works");
+ok( all($b==pdl([[[0,0]]],[[[5,0]]])), "catenating an empty and a scalar on the right gives the right answer");
+
+eval { $b = pdl(5,$a) };
+ok((!$@ and all(pdl($b->dims)==pdl(2,1,1,2))), "catenating an empty and a scalar on the left works");
+ok( all($b==pdl([[[5,0]]],[[[0,0]]])), "catenating an empty and a scalar on the left gives the right answer");
     
 # end
 
@@ -165,99 +184,21 @@ like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual piddle in combined screw-ups');
 $@ = '';
 
+# new_or_inplace
+$a = sequence(byte,5);
 
 
+$b = $a->new_or_inplace;
+ok( all($b==$a) && ($b->get_datatype ==  $a->get_datatype), "new_or_inplace with no pref returns something like the orig.");
 
+$b++;
+ok(all($b!=$a),"new_or_inplace with no inplace flag returns something disconnected from the orig.");
 
-#### pdl STRING constructor tests ####
+$b = $a->new_or_inplace("float,long");
+ok($b->type eq 'float',"new_or_inplace returns the first type in case of no match");
 
-isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns a piddle} );
-ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
+$b = $a->inplace->new_or_inplace;
+$b++;
+ok(all($b==$a),"new_or_inplace returns the original thing if inplace is set");
+ok(!($b->is_inplace),"new_or_inplace clears the inplace flag");
 
-
-my $compare = pdl([
-	[1, 0, 8],
-	[6, 3, 5],
-	[3, 0, 5],
-	[2, 4, 2]
-]);
-
-my $test_string = <<EOPDL;
-   [
-     [1, 0, 8],
-     [6, 3, 5],
-     [3, 0, 5],
-     [2, 4, 2],
-   ]
-EOPDL
-
-#diag("test string is: $test_string\n");
-
-my $t1 = pdl $test_string;
-ok(all(approx($t1, $compare)), "Unstringify properly interprets good PDL input string");
-
-# See what happens when we remove the end commas
-$test_string =~ s/\],/]/g;
-
-my $t2 = pdl $test_string;
-ok(all(approx($t2, $compare)), "Unstringify properly interprets good PDL input string sans ending commas");
-
-my $t3 = pdl '[1, 0, 8; 6, 3, 5; 3, 0, 5; 2, 4, 2]';
-ok(all(approx($t3, $compare)), "Unstringify properly handles semicolongs");
-
-my $t4 = pdl "$compare";
-ok(all(approx($t4, $compare)), "Unstringify properly interprets good PDL output string");
-
-# Now some more interesting tests
-my $t5 = pdl "[1 - 4]";
-$compare = pdl [-3];
-ok(all(approx($t5, $compare)), "Unstringify does not interfere with subtraction in statement");
-
-my $t6 = pdl "[1 -4]";
-$compare = pdl [1, -4];
-ok(all(approx($t6, $compare)), "Unstringify properly identifies negative numbers with white-space");
-
-ok(all(approx(pdl("[1 - .4]"), pdl(0.6))), "Unstringify properly handles decimals");
-
-my $t8 = pdl <<EOPDL;
-[
-	[1,2,3; 4,-5,6]
-	[7 +8, 8 + 9; 10, - .11, 12e3]
-]
-EOPDL
-
-$compare = pdl([[[1,2,3], [4,-5,6]],[[7,8,8+9],[10,-.11,12e3]]]);
-ok(all(approx($t8, $compare)), "Unstringify properly handles all sorts of stuff!");
-
-$compare = pdl [-2];
-my $t9 = pdl '[1  + 2 - 5]';
-ok(all(approx($t9, $compare)), "Another operator check for unstringify");
-
-$compare = pdl [1, 2, -5];
-my $t10 = pdl '[1  +2 -5]';
-ok(all(approx($t10, $compare)), "Yet another operator check for unstringify");
-
-$compare = pdl [[1], [2], [3]];
-my $t11 = pdl '[1;2;3]';
-ok(all(approx($t11, $compare)), "Unstringify column check");
-
-$compare = pdl([[1,2,3],[4,5,6]]);
-my $t12 = pdl q[1 2 3; 4 5 6];
-ok(all(approx($t12, $compare)), "Unstringify implicit bracketing check");
-
-$compare = pdl([1,2,3,4]);
-my $t13 = pdl q[1 2 3 4];
-my $t14 = pdl q[1,2,3,4];
-my $t15 = pdl '[1 2 3 4]';
-my $t16 = pdl '[1,2,3,4]';
-
-ok(all(approx($t13, $compare)), "Double-check implicit bracketing - no brackets");
-ok(all(approx($t14, $compare)), "Double-check implicit bracketing - no brackets and commas");
-ok(all(approx($t15, $compare)), "Double-check implicit bracketing - brackets");
-ok(all(approx($t16, $compare)), "Double-check implicit bracketing - brackets and commas");
-
-# check dimensions of tests
-ok($t13->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets");
-ok($t14->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets and commas");
-ok($t15->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets");
-ok($t16->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets and commas");

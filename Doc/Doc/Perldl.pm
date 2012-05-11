@@ -6,8 +6,8 @@ PDL::Doc::Perldl - commands for accessing PDL doc database from 'perldl' shell
 
 This module provides a simple set of functions to
 access the PDL documentation of database, for use
-from the I<perldl> shell and the I<pdldoc> command-line
-program.
+from the I<perldl> or I<pdl2> shells as well as the
+I<pdldoc> command-line program.
 
 Autoload files are also matched, via a search of the PDLLIB autoloader
 tree.  That behavior can be switched off with the variable 
@@ -136,7 +136,7 @@ Regex search PDL documentation database
 
 =for example
 
- perldl> apropos 'pic'
+ pdl> apropos 'pic'
  rpic            Read images in many formats with automatic format detection.
  rpiccan         Test which image formats can be read/written
  wmpeg           Write an image sequence ((x,y,n) piddle) as an MPEG animation.
@@ -238,36 +238,47 @@ sub finddoc  {
       }
     }
     
-    if (  @match > 1   and   !$subfield  ) {
-      print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
-      my $i=0;
-      for my $m ( @match ) {
-	printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[1]{Module} && "in ", $m->[1]{CustomFile} || $m->[1]{Module};
-      }
-      print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=head1 Displaying item 1:\n\n=head1 --------------------------------------\n\n=cut\n\n";
-    }
-    
-    my $m = shift @match;
-    
-    my $Ref = $m->[1]{Ref};
-    if ( $Ref =~ /^(Module|Manual|Script): / ) {
-      my $in = IO::File->new("<$m->[1]{File}");
-      print $out join("",<$in>);
-    } else {
-      if(defined $m->[1]{CustomFile}) {
-	
-	my $parser= new PDL::Pod::Parser;
-	print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
-	$parser->parse_from_file($m->[1]{CustomFile},$out);
-	print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";
-	
-      } else {
-	
-	print $out "=head1 Module ",$m->[1]{Module}, "\n\n";
-	$PDL::onlinedoc->funcdocs($m->[0],$out);
-	
-      }
-      
+    my $num_pdl_pod_matches = scalar @match;
+    my $pdl_pod_matchnum = 0;
+
+    while (@match) {
+       $pdl_pod_matchnum++;
+
+       if (  @match > 1   and   !$subfield  ) {
+          print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
+          my $i=0;
+          for my $m ( @match ) {
+             printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[1]{Module} && "in ", $m->[1]{CustomFile} || $m->[1]{Module};
+          }
+          print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
+       }
+
+       if (@match > 0 and $num_pdl_pod_matches > 1) {
+          print $out "\n=head1 Displaying item $pdl_pod_matchnum:\n\n=head1 --------------------------------------\n\n=cut\n\n";
+       }
+
+       my $m = shift @match;
+
+       my $Ref = $m->[1]{Ref};
+       if ( $Ref =~ /^(Module|Manual|Script): / ) {
+          my $in = IO::File->new("<$m->[1]{File}");
+          print $out join("",<$in>);
+       } else {
+          if(defined $m->[1]{CustomFile}) {
+
+             my $parser= new PDL::Pod::Parser;
+             print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
+             $parser->parse_from_file($m->[1]{CustomFile},$out);
+             print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";
+
+          } else {
+
+             print $out "=head1 Module ",$m->[1]{Module}, "\n\n";
+             $PDL::onlinedoc->funcdocs($m->[0],$out);
+
+          }
+
+       }
     }
   }
 
@@ -346,7 +357,7 @@ Prints usage information for a PDL function
 
 =for example
 
-   perldl> usage 'inner'
+   pdl> usage 'inner'
 
    inner           inner prodcuct over one dimension
                    (Module PDL::Primitive)
@@ -399,7 +410,7 @@ doesn't break -- it causes threading.  See L<PDL::PP|PDL::PP> for details.
 
 =for example
 
-  perldl> sig 'outer'
+  pdl> sig 'outer'
     Signature: outer(a(n); b(m); [o]c(n,m); )
 
 
@@ -555,9 +566,9 @@ and the remaining commands listed, along with the names of their modules.
 
 =for example
 
- perldl> help 'PDL::Slices'   # show the docs in the PDL::Slices module
- perldl> help 'PDL::Intro'    # show the PDL::Intro manual
- perldl> help 'slice'         # show docs on the 'slice' function
+ pdl> help 'PDL::Tutorials' # show the guide to PDL tutorials
+ pdl> help 'PDL::Slices'    # show the docs in the PDL::Slices module
+ pdl> help 'slice'          # show docs on the 'slice' function
 
 =cut
 
@@ -667,6 +678,8 @@ sub badinfo {
 	    unless $bvalflag;
 
     die "no online doc database" unless defined $PDL::onlinedoc;
+
+    local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
 
     my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
     if ( @match ) {

@@ -58,7 +58,7 @@ print OUT <<'!NO!SUBS!';
 
 =head1 NAME
 
-PDL::Core - fundamental PDL functionality
+PDL::Core - fundamental PDL functionality and vectorization/threading
 
 =head1 DESCRIPTION
 
@@ -69,6 +69,200 @@ type conversion, threading etc.
 
  use PDL::Core;             # Normal routines
  use PDL::Core ':Internal'; # Hairy routines
+
+=head1 VECTORIZATION/THREADING: METHOD AND NOMENCLATURE
+
+PDL provides vectorized operations via a built-in engine.
+Vectorization is called "threading" for historical reasons.
+The threading engine implements simple rules for each operation.
+
+Each PDL object has a "shape" that is a generalized N-dimensional
+rectangle defined by a "dim list" of sizes in an arbitrary 
+set of dimensions.  A PDL with shape 2x3 has 6 elements and is 
+said to be two-dimensional, or may be referred to as a 2x3-PDL. 
+The dimensions are indexed numerically starting at 0, so a 
+2x3-PDL has a dimension 0 (or "dim 0") with size 2 and a 1 dimension
+(or "dim 1") with size 3. 
+
+PDL generalizes *all* mathematical operations with the notion of
+"active dims": each operator has zero or more active dims that are
+used in carrying out the operation.  Simple scalar operations like
+scalar multiplication ('*') have 0 active dims.  More complicated
+operators can have more active dims.  For example, matrix
+multiplication ('x') has 2 active dims.  Additional dims are
+automatically vectorized across -- e.g. multiplying a 2x5-PDL with a
+2x5-PDL requires 10 simple multiplication operations, and yields a
+2x5-PDL result.
+
+=head2 Threading rules
+
+In any PDL expression, the active dims appropriate for each operator
+are used starting at the 0 dim and working forward through the dim
+list of each object.  All additional dims after the active dims are
+"thread dims".  The thread dims do not have to agree exactly: they are
+coerced to agree according to simple rules:
+
+=over 3 
+
+=item * Null PDLs match any dim list (see below).
+
+=item * Dims with sizes other than 1 must all agree in size.
+
+=item * Dims of size 1 are expanded as necessary.
+
+=item * Missing dims are expanded appropriately.
+
+=back
+
+The "size 1" rule implements "generalized scalar" operation, by
+analogy to scalar multiplication.  The "missing dims" rule
+acknowledges the ambiguity between a missing dim and a dim of size 1.
+
+=head2 Null PDLs
+
+PDLs on the left-hand side of assignment can have the special value
+"Null".  A null PDL has no dim list and no set size; its shape is
+determined by the computed shape of the expression being assigned to
+it.   Null PDLs contain no values and can only be assigned to.  When
+assigned to (e.g. via the C<.=> operator), they cease to be null PDLs.
+
+To create a null PDL, use C<PDL-E<gt>null()>.
+
+=head2 Empty PDLs
+
+PDLs can represent the empty set using "structured Empty" variables.
+An empty PDL is not a null PDL.
+
+Any dim of a PDL can be set explicitly to size 0.  If so, the PDL
+contains zero values (because the total number of values is the
+product of all the sizes in the PDL's shape or dimlist).
+
+Scalar PDLs are zero-dimensional and have no entries in the dim list,
+so they cannot be empty.  1-D and higher PDLs can be empty.  Empty
+PDLs are useful for set operations, and are most commonly encountered
+in the output from selection operators such as L<which|PDL::Primitive>
+and L<whichND|PDL::Primitive>.  Not all empty PDLs have the same
+threading properties -- e.g. a 2x0-PDL represents a collection of
+2-vectors that happens to contain no elements, while a simple 0-PDL
+represents a collection of scalar values (that also happens to contain
+no elements).
+
+Note that 0 dims are not adjustable via the threading rules -- a dim
+with size 0 can only match a corresponding dim of size 0 or 1.
+
+=head2 Thread rules and assignments
+
+Versions of PDL through 2.4.10 have some irregularity with threading and
+assignments.  Currently the threading engine performs a full expansion of
+both sides of the computed assignment operator C<.=> (which assigns values
+to a pre-existing PDL).  This leads to counter-intuitive behavior in
+some cases:
+
+=over 3
+
+=item * Generalized scalars and computed assignment
+
+If the PDL on the left-hand side of C<.=> has a dim of size 1, it can be 
+treated as a generalized scalar, as in:
+
+    $a = sequence(2,3);
+    $b = zeroes(1,3);
+    $b .= $a;
+
+In this case, C<$b> is automatically treated as a 2x3-PDL during the
+threading operation, but half of the values from C<$a> silently disappear.
+The output is, as Kernighan and Ritchie would say, "undefined".
+
+Further, if the value on the right of C<.=> is empty, then C<.=> becomes
+a silent no-op:
+
+    $a = zeroes(0);
+    $b = zeroes(1);
+    $b .= $a+1;
+    print $b;
+
+will print C<[0]>.  In this case, "$a+1" is empty, and "$b" is a generalized
+scalar that is adjusted to be empty, so the assignment is carried out for 
+zero elements (a no-op).  
+
+Both of these behaviors are considered harmful and should not be relied upon:
+they may be patched away in a future version of PDL.
+
+
+=item * Empty PDLs and generalized scalars
+
+Generalized scalars (PDLs with a dim of size 1) can match any size in the
+corresponding dim, including 0.  Thus,
+
+    $a = ones(2,0);
+    $b = sequence(2,1);
+    $c = $a * $b;
+    print $c;
+ 
+prints C<Empty[2,0]>.  
+
+This behavior is counterintuitive but desirable, and will be preserved
+in future versions of PDL.
+
+=back
+
+=head1 VARIABLES
+
+These are important variables of B<global> scope and are placed
+in the PDL namespace.
+
+=head3 C<$PDL::debug>
+
+=over 4
+
+When true, PDL debugging information is printed.
+
+=back
+
+=head3 C<$PDL::verbose>
+
+=over 4
+
+When true, PDL functions provide chatty information.
+
+=back
+
+=head3 C<$PDL::use_commas>
+
+=over 4
+
+Whether to insert commas when printing pdls
+
+=back
+
+=head3 C<$PDL::floatformat>, C<$PDL::doubleformat>
+
+=over 4
+
+The default print format for floats and doubles, repectively.
+The default default values are:
+
+  $PDL::floatformat  = "%7g";
+  $PDL::doubleformat = "%10.8g";
+
+
+=back
+
+=head3 C<$PDL::undefval>
+
+=over 4
+
+The value to use instead of C<undef> when creating pdls.
+
+=back
+
+=head3 C<$PDL::toolongtoprint>
+
+=over 4
+
+The maximal size pdls to print (defaults to 10000 elements)
+
+=back
 
 =head1 FUNCTIONS
 
@@ -89,27 +283,31 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 
 print OUT <<"!WITH!SUBS!";
 
-\@EXPORT_OK = qw( howbig threadids topdl nelem dims null
+\@EXPORT_OK = qw( howbig threadids topdl nelem dims shape null
    $convertfuncs
    convert inplace zeroes zeros ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice approx flat sclr squeeze
+   dummy mslice approx flat sclr squeeze 
+   get_autopthread_targ set_autopthread_targ get_autopthread_actual  
+   get_autopthread_size set_autopthread_size    
    );
 
 \%EXPORT_TAGS = (
-   Func=>[qw/nelem dims null
+   Func=>[qw/nelem dims shape null
     $convertfuncs
     convert inplace zeroes zeros ones list listindices
     set at flows thread_define over reshape pdl piddle null dog cat barf type
     diagonal dummy mslice approx flat sclr
+    get_autopthread_targ set_autopthread_targ get_autopthread_actual  
+    get_autopthread_size set_autopthread_size    
     /],
    Internal=>[qw/howbig threadids topdl/]
 );
 
 !WITH!SUBS!
 
-print OUT <<'!NO!SUBS!';
-
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 use PDL::Exporter;
 use DynaLoader;
 
@@ -129,8 +327,8 @@ $PDL::verbose      = 0;
 $PDL::use_commas   = 0;        # Whether to insert commas when printing arrays
 $PDL::floatformat  = "%7g";    # Default print format for long numbers
 $PDL::doubleformat = "%10.8g";
-$PDL::undefval     = 0;        # Value to use instead of undef when creating
-                               # PDLs
+$PDL::undefval     = 0;        # Value to use instead of undef when creating PDLs
+$PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 
 ################ Exportable functions of the Core ######################
 
@@ -142,12 +340,13 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *threadids    = \&PDL::threadids; *listindices  = \&PDL::listindices;
 *null	      = \&PDL::null;	  *set  	= \&PDL::set;
 *at		= \&PDL::at;	  *flows	= \&PDL::flows;
-*sclr           = \&PDL::sclr;
+*sclr           = \&PDL::sclr;    *shape        = \&PDL::shape;
 !NO!SUBS!
 
 print OUT "$typealiases\n";
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 *thread_define = \&PDL::thread_define;
 *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
@@ -158,9 +357,48 @@ print OUT <<'!NO!SUBS!';
 *mslice       = \&PDL::mslice;
 *isempty      = \&PDL::isempty;
 *string       = \&PDL::string;
-sub barf;
 
-##################################################################
+
+=head2 barf
+
+=for ref
+
+Standard error reporting routine for PDL.
+
+C<barf()> is the routine PDL modules should call to report errors. This
+is because C<barf()> will report the error as coming from the correct
+line in the module user's script rather than in the PDL module.
+
+For now, barf just calls Carp::confess()
+
+Remember C<barf()> is your friend. *Use* it!
+
+=for example
+
+At the perl level:
+
+ barf("User has too low an IQ!");
+
+In C or XS code:
+
+ barf("You have made %d errors", count);
+
+Note: this is one of the few functions ALWAYS exported
+by PDL::Core
+
+=cut
+
+use Carp;
+sub barf
+{ Carp::confess(@_); }
+sub cluck
+{ Carp::cluck  (@_); }
+*PDL::barf  = \&barf;
+*PDL::cluck = \&cluck;
+
+########## Set Auto-PThread Based On Environment Vars ############
+PDL::set_autopthread_targ( $ENV{PDL_AUTOPTHREAD_TARG} ) if( defined ( $ENV{PDL_AUTOPTHREAD_TARG} ) );
+PDL::set_autopthread_size( $ENV{PDL_AUTOPTHREAD_SIZE} ) if( defined ( $ENV{PDL_AUTOPTHREAD_SIZE} ) );
 ##################################################################
 
 =head2 pdl
@@ -196,18 +434,32 @@ You can mix and match arrays, array refs, and PDLs in your argument
 list, and C<pdl> will sort them out.  You get back a PDL whose last
 (slowest running) dim runs across the top level of the list you hand
 in, and whose first (fastest running) dim runs across the deepest
-level that you supply.
-
+level that you supply. 
 At the moment, you cannot mix and match those arguments with string
 arguments, though we can't imagine a situation in which you would
 really want to do that.
+
+The string version of pdl also allows you to use the strings C<bad>, C<inf>,
+and C<nan>, and it will insert the values that you mean (and set the bad flag
+if you use C<bad>). You can mix and match case, though you shouldn't. Here are
+some examples:
+
+ $bad = pdl q[1 2 3 bad 5 6];  # Set fourth element to the bad value
+ $bad = pdl q[1 2 3 BAD 5 6];  # ditto
+ $bad = pdl q[1 2 inf bad 5];  # now third element is IEEE infinite value
+ $bad = pdl q[nan 2 inf -inf]; # first value is IEEE nan value
+
+The default constructor uses IEEE double-precision floating point numbers. You
+can use other types, but you will get a warning if you try to use C<nan> with
+integer types (it will be replaced with the C<bad> value) and you will get a
+fatal error if you try to use C<inf>.
 
 Throwing a PDL into the mix has the same effect as throwing in a list ref:
 
   pdl(pdl(1,2),[3,4])
 
 is the same as 
-  
+
   pdl([1,2],[3,4]).
 
 All of the dimensions in the list are "padded-out" with undefval to
@@ -216,9 +468,8 @@ meet the widest dim in the list, so (e.g.)
   $a = pdl([[1,2,3],[2]])
 
 gives you the same answer as 
-  
-  $a = pdl([[1,2,3],[2,undef,undef]]);
 
+  $a = pdl([[1,2,3],[2,undef,undef]]);
 
 
 C<pdl()> is a functional synonym for the 'new' constructor,
@@ -240,6 +491,12 @@ For example:
  ]
 
 C<$PDL::undefval> defaults to zero.
+
+As a final note, if you include an Empty PDL in the list of objects to 
+construct into a PDL, it is kept as a placeholder pane -- so if you feed
+in (say) 7 objects, you get a size of 7 in the 0th dim of the output PDL.
+The placeholder panes are completely padded out.  But if you feed in only 
+a single Empty PDL, you get back the Empty PDL (no padding).
 
 =cut
 
@@ -264,7 +521,7 @@ storing a result in an existing piddle).
 
 =for example
 
- perldl> sumover sequence(10,10), $ans=null;p $ans
+ pdl> sumover sequence(10,10), $ans=null;p $ans
  [45 145 245 345 445 545 645 745 845 945]
 
 =cut
@@ -303,7 +560,7 @@ subclassed) PDL objects.
 
 For the above usage:
 If C<$arg> is a PDL, or a derived PDL, then C<$arg-E<gt>null> is returned. 
-If C<$arg> is a scalar (i.e. a zero-dimensional PDL) then C<$PDL-E<gt>null> 
+If C<$arg> is a scalar (i.e. a zero-dimensional PDL) then C<PDL-E<gt>null> 
 is returned.
 
 =for example
@@ -346,8 +603,23 @@ Return piddle dimensions as a perl list
 
 =for example
 
- perldl> p @tmp = dims zeroes 10,3,22
+ pdl> p @tmp = dims zeroes 10,3,22
  10 3 22
+
+=head2 shape
+
+=for ref
+
+Return piddle dimensions as a perl list
+
+=for usage
+
+ $shape = $piddle->shape;  $shape = shape($piddle);
+
+=for example
+
+ pdl> p $shape = shape zeroes 10,3,22
+ [10 3 22]
 
 =head2 ndims
 
@@ -368,7 +640,7 @@ Returns the number of dimensions in a piddle
 
 =for example
 
- perldl> p zeroes(10,3,22)->getndims
+ pdl> p zeroes(10,3,22)->getndims
  3
 
 =head2 dim
@@ -390,7 +662,7 @@ Returns the size of the given dimension.
 
 =for example
 
- perldl> p zeroes(10,3,22)->getdim(1)
+ pdl> p zeroes(10,3,22)->getdim(1)
  3
 
 Negative indices count from the end of the dims array.
@@ -475,7 +747,7 @@ NOTE: NOT a method! This is because get_datatype returns
 
 =for example
 
- perldl> p howbig(ushort([1..10])->get_datatype)
+ pdl> p howbig(ushort([1..10])->get_datatype)
  2
 
 
@@ -615,6 +887,13 @@ sub PDL::dims {  # Return dimensions as @list
    return @dims;
 }
 
+sub PDL::shape {  # Return dimensions as a pdl
+   my $pdl = PDL->topdl (shift);
+   my @dims = ();
+   for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
+   return pdl(@dims);
+}
+
 sub PDL::howbig {
 	my $t = shift;
 	if("PDL::Type" eq ref $t) {$t = $t->[0]}
@@ -723,75 +1002,267 @@ more examples of usage.
 =cut
 
 use Scalar::Util;       # for looks_like_number test
+use Carp 'carp';        # for carping (warnings in caller's context)
 
-# This is the code that handles string arguments.
+# This is the code that handles string arguments. It has now gotten quite large,
+# so here's the basic explanation. I want to allow expressions like 2, 1e3, +4,
+# bad, nan, inf, and more. Checking this can get tricky. This croaks when it
+# finds:
+# 1) strings of e or E that are longer than 1 character long (like eeee)
+# 2) non-supported characters or strings
+# 3) expressions that are syntactically erroneous, like '1 2 3 ]', which has an
+#    extra bracket
+# 4) use of inf when the data type does not support inf (i.e. the integers)
+
 sub PDL::Core::new_pdl_from_string {
-	my ($new, $original_value, $this, $type) = @_;
-	my $value = $original_value;
-	
-	# Wrap the string in brackets [], so that the following works:
-	# $a = new PDL q[1 2 3];
-	# We'll have to check for dimensions of size one after we've eval'd
-	# the string and built a PDL from the resulting array.
-	$value = '[' . $value . ']';
+   my ($new, $original_value, $this, $type) = @_;
+   my $value = $original_value;
+   
+   # Check for input that would generate empty piddles as output:
+   my @types = PDL::Types::types;
+   return zeroes($types[$type], 1)->where(zeroes(1) < 0)
+      if ($value eq '' or $value eq '[]');
+   
+   # I check for invalid characters later, but arbitrary strings of e will
+   # pass that check, so I'll check for that here, first.
+#   croak("PDL::Core::new_pdl_from_string: I found consecutive copies of e but\n"
+#      . "  I'm not sure what you mean. You gave me $original_value")
+#      if ($value =~ /ee/i);
+   croak("PDL::Core::new_pdl_from_string: found 'e' as part of a larger word in $original_value")
+      if $value =~ /e\p{IsAlpha}/ or $value =~ /\p{IsAlpha}e/;
+   
+   # Only a few characters are allowed in the expression, but we want to allow
+   # expressions like 'inf' and 'bad'. As such, convert those values to internal
+   # representations that will pass the invalid-character check. We'll replace
+   # them with Perl-evalute-able strings in a little bit. Here, I represent
+   #  bad => EE
+   #  nan => ee
+   #  inf => Ee
+   #  pi  => eE
+   # --( Bad )--
+   croak("PDL::Core::new_pdl_from_string: found 'bad' as part of a larger word in $original_value")
+      if $value =~ /bad\B/ or $value =~ /\Bbad/;
+   my ($has_bad) = ($value =~ s/\bbad\b/EE/gi);
+   # --( nan )--
+   my ($has_nan) = 0;
+   croak("PDL::Core::new_pdl_from_string: found 'nan' as part of a larger word in $original_value")
+      if $value =~ /\Bnan/ or $value =~ /nan\B/;
+   $has_nan++ if ($value =~ s/\bnan\b/ee/gi);
+   # Strawberry Perl compatibility:
+   croak("PDL::Core::new_pdl_from_string: found '-1.#IND' as part of a larger word in $original_value")
+      if $value =~ /IND\B/i;
+   $has_nan++ if ($value =~ s/-1\.\#IND/ee/gi);
+   # --( inf )--
+   my ($has_inf) = 0;
+   # Strawberry Perl compatibility:
+   croak("PDL::Core::new_pdl_from_string: found '1.#INF' as part of a larger word in $original_value")
+      if $value =~ /INF\B/i;
+   $has_inf++ if ($value =~ s/1\.\#INF/Ee/gi);
+   # Other platforms:
+   croak("PDL::Core::new_pdl_from_string: found 'inf' as part of a larger word in $original_value")
+      if $value =~ /inf\B/ or $value =~ /\Binf/;
+   $has_inf++ if ($value =~ s/\binf\b/Ee/gi);
+   # --( pi )--
+   croak("PDL::Core::new_pdl_from_string: found 'pi' as part of a larger word in $original_value")
+      if $value =~ /pi\B/ or $value =~ /\Bpi/;
+   $value =~ s/\bpi\b/eE/gi;
+   
+   # Some data types do not support nan and inf, so check for and warn or croak,
+   # as appropriate:
+   if ($has_nan and not $types[$type]->usenan) {
+      carp("PDL::Core::new_pdl_from_string: no nan for type $types[$type]; converting to bad value");
+      $value =~ s/ee/EE/g;
+      $has_bad += $has_nan;
+      $has_nan = 0;
+   }
+   croak("PDL::Core::new_pdl_from_string: type $types[$type] does not support inf")
+      if ($has_inf and not $types[$type]->usenan);
+   
+   # Make the white-space uniform and see if any not-allowed characters are
+   # present:
+   $value =~ s/\s+/ /g;
+   if (my ($disallowed) = ($value =~ /([^\[\]\+\-0-9;,.eE ]+)/)) {
+      croak("PDL::Core::new_pdl_from_string: found disallowed character(s) '$disallowed' in $original_value");
+   }
+   
+   # Wrap the string in brackets [], so that the following works:
+   # $a = new PDL q[1 2 3];
+   # We'll have to check for dimensions of size one after we've parsed
+   # the string and built a PDL from the resulting array.
+   $value = '[' . $value . ']';
 
-	# some basic checks that can/should be run on everything.
-	# Make sure that each closing bracket followed by an opening bracket
-	# has a comma in between them:
-	$value =~ s/\]\s*\[/],[/g;
-	
-	# Semicolons indicate 'start a new row' and require special handling:
-	if ($value =~ /;/) {
-		$value =~ s/(\[[^\]]+;[^\]]+\])/[$1]/g;
-		$value =~ s/;/],[/g;
-	}
+   # Make sure that each closing bracket followed by an opening bracket
+   # has a comma in between them:
+   $value =~ s/\]\s*\[/],[/g;
 
-	# Remove ending decimal points and insert zeroes in front of starting
-	# decimal points. This makes the white-space-to-comma replacement
-	# in the next few lines much simpler.
-	$value =~ s/(\d)\.\s+/$1 /g;
-	$value =~ s/([^\d])\./${1}0./g;
-	
-	# make unambiguous addition/subtraction (white-space on both sides
-	# of operator) by removing white-space from both sides
-	$value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
+   # Semicolons indicate 'start a new row' and require special handling:
+   if ($value =~ /;/) {
+      $value =~ s/(\[[^\]]+;[^\]]+\])/[$1]/g;
+      $value =~ s/;/],[/g;
+   }
 
-	# Replace white-space separators with commas:
-	$value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
+   # Remove ending decimal points and insert zeroes in front of starting
+   # decimal points. This makes the white-space-to-comma replacement
+   # in the next few lines much simpler.
+   $value =~ s/(\d\.)(z|[^\d])/${1}0$2/g;
+   $value =~ s/(\A|[^\d])\./${1}0./g;
+
+   # Remove whitspace between signs and the numbers that follow them:
+   $value =~ s/([+\-])\s+/$1/g;
+   
+#   # make unambiguous addition/subtraction (white-space on both sides
+#   # of operator) by removing white-space from both sides
+#   $value =~ s/([\dEe])\s+([+\-])\s+(?=[Ee\d])/$1$2/g;
+
+   # Replace white-space separators with commas:
+   $value =~ s/([.\deE])\s+(?=[+\-eE\d])/$1,/g;
+   
+   # Remove all other white space:
+   $value =~ s/\s+//g;
+
+   # Croak on operations with bad values. It might be nice to simply replace
+   # these with bad values, but that is more difficult that I like, so I'm just
+   # going to disallow that here:
+   croak("PDL::Core::new_pdl_from_string: Operations with bad values are not supported")
+      if($value =~ /EE[+\-]/ or $value =~ /[+\-]EE/);
+   
+   # Check for things that will evaluate as functions and croak if found
+   if (my ($disallowed) = ($value =~ /((\D+|\A)[eE]\d+)/)) {
+      croak("PDL::Core::new_pdl_from_string: syntax error, looks like an improper exponentiation: $disallowed\n"
+         . "You originally gave me $original_value\n");
+   }
+   
+   # Replace the place-holder strings with strings that will evaluate to their
+   # correct numerical values when we run the eval:
+   $value =~ s/\bEE\b/bad/g;
+   my $bad = $types[$type]->badvalue;
+   $value =~ s/\bee\b/nan/g;
+   my $inf = -pdl(0)->log;
+   $value =~ s/\bEe\b/inf/g;
+   my $nan = $inf - $inf;
+   $value =~ s/\beE\b/pi/g;
+   
+   my $val = eval{
+      # Install the warnings handler:
+      my $old_warn_handler = $SIG{__WARN__};
+      local $SIG{__WARN__} = sub {
+         if ($_[0] =~ /(Argument ".*" isn't numeric)/) {
+            # Send the error through die. This is *always* get caught, so keep
+            # it simple.
+            die "Incorrectly formatted input: $1\n";
+         }
+         elsif ($old_warn_handler) {
+            $old_warn_handler->(@_);
+         }
+         else {
+            warn @_;
+         }
+      };
+
+      # Let's see if we can parse it as an array-of-arrays:
+      local $_ = $value;
+      return PDL::Core::parse_basic_string ($inf, $nan, $bad);
+   };
+   
+   # Respect BADVAL_USENAN
+   require PDL::Config;
+   $has_bad += $has_inf + $has_nan if $PDL::Config{BADVAL_USENAN};
+   
+   if (ref $val eq 'ARRAY') {
+      my $to_return = PDL::Core::pdl_avref($val,$this,$type);
+      # remove potentially spurious last dimension
+      $to_return = $to_return->mv(-1,1)->clump(2)
+         if $to_return->dims > 1 and $to_return->dim(-1) == 1;
+      # Mark bad if appropriate
+      $to_return->badflag($has_bad > 0);
+      return $to_return;
+   }
+   else {
+      my @message = ("PDL::Core::new_pdl_from_string: string input='$original_value', string output='$value'" );
+      if ($@) {
+         push @message, $@;
+      } else {
+         push @message, "Internal error: unexpected output type ->$val<- is not ARRAY ref";
+      }
+      croak join("\n  ", @message);
+   }
+}
+
+sub PDL::Core::parse_basic_string {
+	# Assumes $_ holds the string of interest, and modifies that value
+	# in-place.
 	
-	# Let's see if the darn thing compiles as normal Perl code, in which
-	# case we just assume the result is a stringified bunch of nested
-	# arrays. 
-	my $val = eval $value;
-	if (ref $val eq 'ARRAY') {
-		my $to_return = PDL::Core::pdl_avref($val,$this,$type);
-		# remove potentially spurious last dimension
-		$to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
-		return $to_return;
-	}
-	else {
-		my @message = (
-			  'PDL::Core::new_pdl_from_string: I had trouble interpreting what you sent.'
-			, 'You originally sent this:'
-			, $original_value
-			, 'I worked on it and eventually obtained this:'
-			, $value
-			);
-		if ($@) {
-			push @message
-				, 'There was an error in the evaluation:'
-				, $@
-				;
+	use warnings;
+	
+	# Takes a string with proper bracketing, etc, and returns an array-of-arrays
+	# filled with numbers, suitable for use with pdl_avref. It uses recursive
+	# descent to handle the nested nature of the data. The string should have
+	# no whitespace and should be something that would evaluate into a Perl
+	# array-of-arrays (except that strings like 'inf', etc, are allowed).
+	
+	my ($inf, $nan, $bad) = @_;
+	
+	# First character should be a bracket:
+	die "Internal error: input string -->$_<-- did not start with an opening bracket\n"
+		unless s/^\[//;
+	
+	my @to_return;
+	# Loop until we run into our closing bracket:
+	my $sign = 1;
+	my $expects_number = 0;
+	SYMBOL: until (s/^\]//) {
+		# If we have a bracket, then go recursive:
+		if (/^\[/) {
+			die "Expected a number but found a bracket at ... ", substr ($_, 0, 10), "...\n"
+				if $expects_number;
+			push @to_return, PDL::Core::parse_basic_string(@_);
+			next SYMBOL;
+		}
+		elsif (s/^\+//) {
+			die "Expected number but found a plus sign at ... ", substr ($_, 0, 10), "...\n"
+				if $expects_number;
+			$expects_number = 1;
+			redo SYMBOL;
+		}
+		elsif (s/^\-//) {
+			die "Expected number but found a minus sign at ... ", substr ($_, 0, 10), "...\n"
+				if $expects_number;
+			$sign = -1;
+			$expects_number = 1;
+			redo SYMBOL;
+		}
+		elsif (s/^bad//i) {
+			push @to_return, $bad;
+		}
+		elsif (s/^inf//i or s/1\.\#INF//i) {
+			push @to_return, $sign * $inf;
+		}
+		elsif (s/^nan//i or s/^1\.\#IND//i) {
+			push @to_return, $nan;
+		}
+		elsif (s/^pi//i) {
+			push @to_return, $sign * 4 * atan2(1, 1);
+		}
+		elsif (s/^e//i) {
+			push @to_return, $sign * exp(1);
+		}
+		elsif (s/^([\d+\-e.]+)//i) {
+			# Note that improper numbers are handled by the warning signal
+			# handler
+			push @to_return, $sign * $1;
 		}
 		else {
-			push @message
-			, 'That successfully evaluated to this:'
-			, $val
-			, 'but I was expecting an array reference to come out of it.'
-			;
+			die "Incorrectly formatted input at:\n  ", substr ($_, 0, 10), "...\n";
 		}
-		barf join("\n    ", @message);
 	}
+	# Strip off any commas
+	continue {
+		$sign = 1;
+		$expects_number = 0;
+		s/^,//;
+	}
+	
+	return \@to_return;
 }
 
 sub PDL::new {
@@ -814,7 +1285,17 @@ sub PDL::new {
 
 
    if (ref(\$value) eq "SCALAR") {
-      if (PDL::Core::is_scalar_SvPOK($value) and !Scalar::Util::looks_like_number($value)) {
+      # The string processing is extremely slow. Benchmarks indicated that it
+      # takes 10x longer to process a scalar number compared with normal Perl
+      # conversion of a string to a number. So, only use the string processing
+      # if the input looks like a real string, i.e. it doesn't look like a plain
+      # number. Note that for our purposes, looks_like_number incorrectly
+      # handles the strings 'inf' and 'nan' on Windows machines. We want to send
+      # those to the string processing, so this checks for them in a way that
+      # short-circuits the looks_like_number check.
+      if (PDL::Core::is_scalar_SvPOK($value)
+            and ($value =~ /inf/i or $value =~ /nan/i
+               or !Scalar::Util::looks_like_number($value))) {
          # new was passed a string argument that doesn't look like a number
          # so we can process as a Matlab-style data entry format.
 		return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
@@ -1074,14 +1555,14 @@ positive indices.
 
 =for example
 
- perldl> p sequence(3)->dummy(0,3)
+ pdl> p sequence(3)->dummy(0,3)
  [
   [0 0 0]
   [1 1 1]
   [2 2 2]
  ]
 
- perldl> p sequence(3)->dummy(3,2)
+ pdl> p sequence(3)->dummy(3,2)
  [
   [
    [0 1 2]
@@ -1091,13 +1572,14 @@ positive indices.
   ]
  ]
 
- perldl> p sequence(3)->dummy(-3,2)
- For safety, <pos> < -(dims+1) is not allowed in dummy, allowed min=-2.
+ pdl> p sequence(3)->dummy(-3,2)
+ Runtime error: PDL: For safety, <pos> < -(dims+1) forbidden in dummy.  min=-2, pos=-3
 
 =cut
 
 sub PDL::dummy($$;$) {
    my ($pdl,$dim,$size) = @_;
+   barf("Missing position argument to dummy()") unless defined $dim;  # required argument
    $dim = $pdl->getndims+1+$dim if $dim < 0;
    $size = 1 unless defined($size);
 
@@ -1105,7 +1587,7 @@ sub PDL::dummy($$;$) {
 	 . -($pdl->getndims+1).", pos=". ($dim-1-$pdl->getndims) ) if($dim<0);
 
    my($s) = ',' x ( ($dim > $pdl->getndims) ? ($pdl->getndims) : ($dim) );
-   $s .= '*,' x ( $dim-$pdl->getndims-1 );
+   $s .= '*1,' x ( $dim-$pdl->getndims );
    $s .= "*$size";
 
    $pdl->slice($s);
@@ -1322,9 +1804,9 @@ Returns the multidimensional diagonal over the specified dimensions.
 
 =for example
 
- perldl> $a = zeroes(3,3,3);
- perldl> ($b = $a->diagonal(0,1))++;
- perldl> p $a
+ pdl> $a = zeroes(3,3,3);
+ pdl> ($b = $a->diagonal(0,1))++;
+ pdl> p $a
  [
   [
    [1 0 0]
@@ -1456,9 +1938,9 @@ my %info = (
 		  Name => 'Mem',
 		  Sub => sub { my ($size,$unit) = ($_[0]->allocated ?
 						   $_[0]->nelem*
-                      PDL::howbig($_[0]->get_datatype)/1024 : 0, 'Kb');
+                      PDL::howbig($_[0]->get_datatype)/1024 : 0, 'KB');
 			       if ($size > 0.01*1024) { $size /= 1024;
-							$unit = 'Mb' };
+							$unit = 'MB' };
 			       return sprintf "%6.2f%s",$size,$unit;
 			     },
 		 },
@@ -1468,7 +1950,10 @@ my %info = (
 		 },
 	    A => {
 		  Name => 'Address',
-		  Sub => sub { sprintf "%d", $_[0]->address }
+		  Sub => sub { use Config;
+                               my $ivdformat = $Config{ivdformat};
+                               $ivdformat =~ s/"//g;
+                               sprintf "%$ivdformat", $_[0]->address }
 		 },
 	   );
 
@@ -1582,7 +2067,8 @@ if ( $bvalflag ) {
 } else {
    print OUT "Some internal flags (P=physical,V=Vaffine,C=changed)\n";
 }
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 =item C
 
@@ -1654,7 +2140,8 @@ sub PDL::approx {
   my ($a,$b,$eps) = @_;
   $eps = $approx unless defined $eps;  # the default eps
   $approx = $eps;    # remember last eps
-  return ($a-$b)->abs < $eps;
+  # NOTE: ($a-$b)->abs breaks for non-piddle inputs
+  return abs($a-$b) < $eps;
 }
 
 =head2 mslice
@@ -1690,6 +2177,37 @@ sub PDL::mslice {
                 } @_));
 }
 
+=head2 nslice_if_pdl
+
+=for ref
+
+If C<$self> is a PDL, then calls C<nslice> with all
+but the last argument, otherwise $self->($_[-1]) is
+called where $_[-1} is the original argument string
+found during PDL::NiceSlice filtering.
+
+=for usage
+
+ $a = $x->nslice_if_pdl(...,'(args)');
+
+=cut
+
+sub PDL::nslice_if_pdl {
+   my ($pdl) = shift;
+   my ($orig_args) = pop;
+
+   # warn "PDL::nslice_if_pdl called with (@_) args, originally ($orig_args)\n";
+
+   if (ref($pdl) eq 'CODE') {
+      # barf('PDL::nslice_if_pdl tried to process a sub ref, please use &$subref() syntax')
+      @_ = eval $orig_args;
+      goto &$pdl;
+   }
+
+   unshift @_, $pdl;
+   goto &PDL::nslice;
+}
+
 =head2 nslice
 
 =for ref
@@ -1722,6 +2240,15 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		      : ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
 sub PDL::nslice {
   my($pdl) = shift;
+
+  # This is a placeholder error for the planned sub ref handling refactoring
+  # We'll need to define a UNIVERSAL::nslice() method to perform the runtime
+  # checks (the same as here).  If a non-pdl self is received then we'll use
+  # the stashed original # string to generate the original method call to eval.
+  #
+  barf('PDL::NiceSlice tried to process a sub ref, please use &$subref() syntax')
+     if Scalar::Util::reftype($pdl) eq 'CODE' and not $pdl->isa('PDL');
+
   my $h = $pdl->hdrcpy() ? PDL::_hdr_copy($pdl->hdr) : undef;
   my @args = @_;
   my ($i,$noslice) = (0,0);
@@ -1811,11 +2338,10 @@ operate array element by array element like C<log10>).
 
 =for example
 
- perldl> $x = xvals zeroes 10;
- perldl> log10(inplace $x)
- perldl> p $x
- [      -Inf 0    0.30103 0.47712125 0.60205999    0.69897
- 0.77815125 0.84509804 0.90308999 0.95424251]
+ pdl> $x = xvals zeroes 10;
+ pdl> log10(inplace $x)
+ pdl> p $x
+ [-inf 0    0.30103 0.47712125 0.60205999    0.69897 0.77815125 0.84509804 0.90308999 0.95424251] 
 
 =cut
 
@@ -1854,7 +2380,7 @@ inplace flag while testing:
 Set the in-place flag on a piddle
 
 =for usage
-  
+
   $out = ($in->is_inplace) ? $in : zeroes($in);
   $in->set_inplace(0);
 
@@ -1874,15 +2400,42 @@ conveniently.
 Return back either the argument pdl or a copy of it depending on whether
 it be flagged in-place or no.  Handy for building inplace-aware functions.
 
+If you specify a preferred type (must be one of the usual PDL type strings,
+a list ref containing several of them, or a string containing several of them), 
+then the copy is coerced into the first preferred type listed if it is not 
+already one of the preferred types.  
+
+Note that if the inplace flag is set, no coersion happens even if you specify
+a preferred type.
+
 =cut
 
 sub new_or_inplace {
 	my $pdl = shift;
+	my $preferred = shift;
+	my $force = shift;
 	if($pdl->is_inplace) {
-		$pdl->set_inplace(0); $pdl;
+		$pdl->set_inplace(0); 
+		return $pdl;
 	} else {
-		$pdl->copy();
+	    unless(defined($preferred)) {
+		return $pdl->copy;
+	    } else {
+		$preferred = join(",",@$preferred) if(ref($preferred) eq 'ARRAY');
+		my $s = "".$pdl->type;
+		if($preferred =~ m/(^|\,)$s(\,|$)/i) {
+		    # Got a match - the PDL is one of the preferred types.
+		    return $pdl->copy();
+		} else {
+		    # No match - promote it to the first in the list.
+		    $preferred =~ s/\,.*//;
+		    my $out = PDL::new_from_specification('PDL',new PDL::Type($preferred),$pdl->dims);
+		    $out .= $pdl;
+		    return $out;
+		}
+	    }
 	}
+	barf "PDL::Core::new_or_inplace - This can never happen!";
 }
 *PDL::new_or_inplace = \&new_or_inplace;
 
@@ -1952,8 +2505,12 @@ sub PDL::new_from_specification{
               if $_->nelem > 10;
          for my $dim ($_->list) {$nelems *= $dim; push @dims, $dim}
        } else {
-         barf "Dimensions must be positive" if $_<=0;
-         $nelems *= $_; push @dims, $_
+          if ($_) {  # quiet warnings when $_ is the empty string
+             barf "Dimensions must be non-negative" if $_<0;  
+             $nelems *= $_; push @dims, $_
+          } else {
+             $nelems *= 0; push @dims, 0;
+          }    
        }
     }
     my $pdl = $class->initialize();
@@ -1982,9 +2539,10 @@ useful in particular when using the indexing function which. In the
 case of no match to a specified criterion, the returned piddle has
 zero dimension.
 
- perldl> $a=sequence(10)
- perldl> $i=which($a < -1)
- perldl> print "I found no matches!\n" if ($a->isempty);
+ pdl> $a=sequence(10)
+ pdl> $i=which($a < -1)
+ pdl> print "I found no matches!\n" if ($i->isempty);
+ I found no matches!
 
 Note that having zero elements is rather different from the concept
 of being a null piddle, see the L<PDL::FAQ|PDL::FAQ> and
@@ -2022,14 +2580,14 @@ Various forms of usage,
 
 =for example
 
- perldl> $z = zeroes 4,3
- perldl> p $z
+ pdl> $z = zeroes 4,3
+ pdl> p $z
  [
   [0 0 0 0]
   [0 0 0 0]
   [0 0 0 0]
  ]
- perldl> $z = zeroes ushort, 3,2 # Create ushort array
+ pdl> $z = zeroes ushort, 3,2 # Create ushort array
  [ushort() etc. with no arg returns a PDL::Types token]
 
 See also L<new_from_specification|/PDL::new_from_specification>
@@ -2137,15 +2695,15 @@ Important: Physical piddles are changed inplace!
 
 =for example
 
- perldl> $x = sequence(10)
- perldl> reshape $x,3,4; p $x
+ pdl> $x = sequence(10)
+ pdl> reshape $x,3,4; p $x
  [
   [0 1 2]
   [3 4 5]
   [6 7 8]
   [9 0 0]
  ]
- perldl> reshape $x,5; p $x
+ pdl> reshape $x,5; p $x
  [0 1 2 3 4]
 
 =cut
@@ -2211,7 +2769,7 @@ Falls through if argument already E<lt>= 1D.
 
 *flat = \&PDL::flat;
 sub PDL::flat { # fall through if < 2D
-  return $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
+  return my $dummy = $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
 }
 
 =head2 convert
@@ -2222,14 +2780,14 @@ Generic datatype conversion function
 
 =for usage
 
- $y = convert($x, $newtype);
+ $y = convert($x, $newtypenum);
 
 =for example
 
  $y = convert $x, long
  $y = convert $x, ushort
 
-C<$newtype> is a type number, for convenience they are
+C<$newtype> is a type B<number>, for convenience they are
 returned by C<long()> etc when called without arguments.
 
 =cut
@@ -2239,10 +2797,11 @@ returned by C<long()> etc when called without arguments.
 sub PDL::convert {
   # we don't allow inplace conversion at the moment
   # (not sure what needs to be changed)
-  barf 'Usage: $y = convert($x, $newtype)'."\n" if $#_!=1;
+  barf 'Usage: $y = convert($x, $newtypenum)'."\n" if $#_!=1;
   my ($pdl,$type)= @_;
   $pdl = pdl($pdl) unless ref $pdl; # Allow normal numbers
   $type = $type->enum if ref($type) eq 'PDL::Type';
+  barf 'Usage: $y = convert($x, $newtypenum)'."\n" unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
   # make_physical-call: temporary stopgap to work around core bug
   my $conv = $pdl->flowconvert($type)->make_physical->sever;
@@ -2257,29 +2816,31 @@ sub PDL::convert {
 
 print OUT "$convertalts convert shorthands\n";
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 =for usage
 
  $y = double $x; $y = ushort [1..10];
- # all of byte|short|ushort|long|float|double behave similarly
+ # all of byte|short|ushort|long|longlong|float|double behave similarly
 
 When called with a piddle argument, they convert to the specific
 datatype.
 
-When called with a numeric or list / listref argument they construct
-a new piddle. This is a convenience to avoid having to be
+When called with a numeric, list, listref, or string argument they
+construct a new piddle. This is a convenience to avoid having to be
 long-winded and say C<$x = long(pdl(42))>
 
 Thus one can say:
 
  $a = float(1,2,3,4);           # 1D
+ $a = float q[1 2 3; 4 5 6];    # 2D
  $a = float([1,2,3],[4,5,6]);   # 2D
  $a = float([[1,2,3],[4,5,6]]); # 2D
 
-Note the last two are equivalent - a list is automatically
-converted to a list reference for syntactic convenience. i.e. you
-can omit the outer C<[]>
+Note the last three give identical results, and the last two are exactly
+equivalent - a list is automatically converted to a list reference for
+syntactic convenience. i.e. you can omit the outer C<[]>
 
 When called with no arguments return a special type token.
 This allows syntactical sugar like:
@@ -2295,9 +2856,9 @@ see the function L<pdl()|/pdl> for more details.
 
 =for example
 
- perldl> p $x=sqrt float [1..10]
+ pdl> p $x=sqrt float [1..10]
  [1 1.41421 1.73205 2 2.23607 2.44949 2.64575 2.82843 3 3.16228]
- perldl> p byte $x
+ pdl> p byte $x
  [1 1 1 2 2 2 2 2 3 3]
 
 =cut
@@ -2372,7 +2933,8 @@ sub PDL::$conv {
 !WITH!SUBS!
 } # end for loop
 
-print OUT << '!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 =head2 type
 
@@ -2412,7 +2974,7 @@ sub PDL::string {
 		}
 		local $PDL::_STRINGIZING = 1;
 		my $ndims = $self->getndims;
-		if($self->nelem > 10000) {
+		if($self->nelem > $PDL::toolongtoprint) {
 			return "TOO LONG TO PRINT";
 		}
 		if ($ndims==0) {
@@ -2424,7 +2986,7 @@ sub PDL::string {
 		}
 		}
 		return "Null" if $self->isnull;
-		return "Empty" if $self->isempty; # Empty piddle
+		return "Empty[".join("x",$self->dims)."]" if $self->isempty; # Empty piddle
 		local $sep  = $PDL::use_commas ? "," : " ";
 		local $sep2 = $PDL::use_commas ? "," : "";
 		if ($ndims==1) {
@@ -2465,19 +3027,23 @@ occasionally useful and is provied for backwards compatibility.
    # Do something on each value...
  }
 
+=cut
+
 !NO!SUBS!
 
 if ( $bvalflag ) {
-    print OUT<<'!NO!SUBS!';
+    print OUT <<'!NO!SUBS!';
 =for bad
 
 list converts any bad values into the string 'BAD'.
 
+=cut
+
 !NO!SUBS!
 }
 
-print OUT<<'!NO!SUBS!';
-=cut
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 # No threading, just the ordinary dims.
 sub PDL::list{ # pdl -> @list
@@ -2537,9 +3103,9 @@ by use of L<slice|PDL::Slices/slice> and assigment operator C<.=>.
 
 =for example
 
- perldl> $x = sequence 3,4
- perldl> set $x, 2,1,99
- perldl> p $x
+ pdl> $x = sequence 3,4
+ pdl> set $x, 2,1,99
+ pdl> p $x
  [
   [ 0  1  2]
   [ 3  4 99]
@@ -2572,14 +3138,14 @@ in a general context, quite useful too inside PDL internals.
 
 =for example
 
- perldl> $x = sequence 3,4
- perldl> p $x->at(1,2)
+ pdl> $x = sequence 3,4
+ pdl> p $x->at(1,2)
  7
 
 !NO!SUBS!
 
 if ( $bvalflag ) {
-    print OUT<<'!NO!SUBS!';
+    print OUT <<'!NO!SUBS!';
 =for bad
 
 at converts any bad values into the string 'BAD'.
@@ -2587,7 +3153,8 @@ at converts any bad values into the string 'BAD'.
 !NO!SUBS!
 }
 
-print OUT<<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 =cut
 
 sub PDL::at {     # Return value at ($x,$y,$z...)
@@ -2639,7 +3206,6 @@ When called as a class method the resulting check mode is returned
 =cut
 
 my $chkmode = 0; # default mode no checks
-use Carp;
 use PDL::Options;
 sub PDL::sclr {
   my $this = shift;
@@ -2669,7 +3235,7 @@ returns a single piddle of dimension N+1
 
 =for example
 
- perldl> $x = cat ones(3,3),zeroes(3,3),rvals(3,3); p $x
+ pdl> $x = cat ones(3,3),zeroes(3,3),rvals(3,3); p $x
  [
   [
    [1 1 1]
@@ -2698,7 +3264,8 @@ The output piddle is set bad if any input piddles have their bad flag set.
 !NO!SUBS!
 } # if: $bvalflag
 
-print OUT <<'!NO!SUBS!';
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
 Similar functions include L<append|PDL::Primitive/append> and
 L<glue|PDL::Primitive/glue>.
@@ -2736,11 +3303,13 @@ sub PDL::cat {
 		# non-piddles and/or dimension mismatch.  The first argument is
 		# ok unless we have the "initialize" error:
 		if ($@ =~ /"initialize"/) {
-			while ($i < @_ and ref($_[$i]) !~ /PDL/) {
+			# Handle the special case that there are *no* args passed:
+			barf("Called PDL::cat without any arguments") unless @_;
+			
+			while ($i < @_ and not eval{ $_[$i]->isa('PDL')}) {
 				push (@not_a_piddle, $i);
 				$i++;
 			}
-				
 		}
 
 		# Get the dimensions of the first actual piddle in the argument
@@ -2752,7 +3321,7 @@ sub PDL::cat {
 		while ($i < @_) {
 			my $arg = $_[$i];
 			# Check if not a piddle
-			if (ref($arg) !~ /PDL/) {
+			if (not eval{$arg->isa('PDL')}) {
 				push @not_a_piddle, $i;
 			}
 			# Check if different number of dimensions
@@ -2795,6 +3364,11 @@ sub PDL::cat {
 			$message .= "Argument $not_a_piddle[0] is not a piddle.\n";
 		}
 		
+		# Handle the edge case that something else happened:
+		if (@not_a_piddle == 0 and @mismatched_dims == 0) {
+			barf("cat: unknown error from the internals:\n$@");
+		}
+               
 		$message .= "(Argument counting starts from zero.)";
 		barf($message);
 	}
@@ -2816,9 +3390,9 @@ e.g.:
 
 =for example
 
- perldl> $p = ones 3,3,3
- perldl> ($a,$b,$c) = dog $p
- perldl> $b++; p $p
+ pdl> $p = ones 3,3,3
+ pdl> ($a,$b,$c) = dog $p
+ pdl> $b++; p $p
  [
   [
    [1 1 1]
@@ -2841,6 +3415,8 @@ e.g.:
 
  Break => 1   Break dataflow connection (new copy)
 
+=cut
+
 !NO!SUBS!
 	if ( $bvalflag ) {
 print OUT <<'!NO!SUBS!';
@@ -2848,12 +3424,13 @@ print OUT <<'!NO!SUBS!';
 
 The output piddles are set bad if the original piddle has its bad flag set.
 
+=cut
+
 !NO!SUBS!
 } # if: $bvalflag
 
-print OUT <<'!NO!SUBS!';
-=cut
-
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 sub PDL::dog {
   my $opt = pop @_ if ref($_[-1]) eq 'HASH';
   my $p = shift;
@@ -2864,83 +3441,6 @@ sub PDL::dog {
      $i++;
   }
   return @res;
-}
-
-# New error handling routine
-
-=head2 barf
-
-=for ref
-
-Standard error reporting routine for PDL.
-
-C<barf()> is the routine PDL modules should call to report errors. This
-is because C<barf()> will report the error as coming from the correct
-line in the module user's script rather than in the PDL module.
-
-It does this magic by unwinding the stack frames until it reaches
-a package NOT beginning with C<"PDL::">. If you DO want it to report
-errors in some module PDL::Foo (e.g. when debugging PDL::Foo) then
-set the variable C<$PDL::Foo::Debugging=1>.
-
-Additionally if you set the variable C<$PDL::Debugging=1> you will
-get a COMPLETE stack trace back up to the top level package.
-
-Finally C<barf()> will try and report usage information from the
-PDL documentation database if the error message is of the
-form 'Usage: func'.
-
-Remember C<barf()> is your friend. *Use* it!
-
-=for example
-
-At the perl level:
-
- barf("User has too low an IQ!");
-
-In C or XS code:
-
- barf("You have made %d errors", count);
-
-Note: this is one of the few functions ALWAYS exported
-by PDL::Core
-
-=cut
-
- sub barf { die barf_msg(@_) };
-use Carp;
-#sub barf { croak barf_msg(@_) };
-
-# This sub is called by Perl barf() and pdl_barf in pdlcore.c
-
-sub barf_msg {
-  my ($err) = @_;
-  my $i = 0;
-  my($pack,$file,$line);
-  my $msg="";
-  $msg .= "PDL: $err\nStack trace:\n" if $PDL::Debugging;
-  while(1) { # Unwind the stack
-    ($pack,$file,$line) = caller($i);
-    last unless $pack;
-    $msg .= " Level $i: file $file, line $line, pkg $pack\n" if $PDL::Debugging;
-    last if !$PDL::Debugging and ($pack !~ /^PDL::|^PDL$/ or eval '$'.$pack."::Debugging");
-    $i++;
-  }
-
-  if ($err =~ /^Usage:\s+(PDL.*::)_(\w+)_int/ or $err =~ /^Usage:\s+(PDL.*::)?\s*(\w+)/) {
-     local $match = $2;
-     eval << "EOD";
-     \$msg .= "PDL: incorrect usage of function '$match()'\nFile $file, line $line, pkg $pack\n" if \$pack;
-     \$msg .= "Usage information from PDL docs database:\n";
-     use PDL::Doc::Perldl;
-     \$msg .= PDL::Doc::Perldl::usage_string ('$match');
-EOD
-  }
-  else{
-     $msg .= "PDL: $err\nCaught at file $file, line $line, pkg $pack\n" if $pack;
-  }
-  $msg .= "\n" if substr($msg,-1,1) ne "\n";
-  return $msg;
 }
 
 ###################### Misc internal routines ####################
@@ -3299,9 +3799,9 @@ can use one of the following:
   $pdl->sethdr( deep_copy($h) );
 
 (which is slow but general), or 
- 
+
   $pdl->sethdr( PDL::_hdr_copy($h) )
- 
+
 (which uses the built-in sleazy deep copier), or (if you know that all
 the elements happen to be scalars):
 
@@ -3380,12 +3880,139 @@ will print:
 Switch on/off automatic header copying, with PDL pass-through
 
 =for example
-  
+
   $a = rfits('foo.fits')->hcpy(0);
   $a = rfits('foo.fits')->hcpy(1);
 
 C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL
 itself.  That makes it convenient for inline use in expressions.
+
+=head2 set_autopthread_targ
+
+=for ref
+
+Set the target number of processor threads (pthreads) for multi-threaded processing.
+
+=for usage
+
+ set_autopthread_targ($num_pthreads);
+
+C<$num_pthreads> is the target number of pthreads the auto-pthread process will try to achieve.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+=for example
+
+  # Example turning on auto-pthreading for a target of 2 pthreads and for functions involving
+  #   PDLs with greater than 1M elements
+  set_autopthread_targ(2);
+  set_autopthread_size(1);
+  
+  # Execute a pdl function, processing will split into two pthreads as long as
+  #  one of the pdl-threaded dimensions is divisible by 2.
+  $a = minimum($b);
+  
+  # Get the actual number of pthreads that were run.
+  $actual_pthread = get_autopthread_actual();
+
+=cut
+
+*set_autopthread_targ       = \&PDL::set_autopthread_targ;	  
+
+
+=head2 get_autopthread_targ
+
+=for ref
+
+Get the current target number of processor threads (pthreads) for multi-threaded processing.
+
+=for usage
+
+ $num_pthreads = get_autopthread_targ();
+
+C<$num_pthreads> is the target number of pthreads the auto-pthread process will try to achieve.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+
+=cut
+
+*get_autopthread_targ       = \&PDL::get_autopthread_targ;	  
+
+=head2 get_autopthread_actual
+
+=for ref
+
+Get the actual number of pthreads executed for the last pdl processing function.
+
+=for usage
+
+ $autopthread_actual = get_autopthread_actual();
+
+C<$autopthread_actual> is the actual number of pthreads executed for the last pdl processing function.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+
+=cut
+
+*get_autopthread_actual      = \&PDL::get_autopthread_actual;	  
+
+
+=head2 set_autopthread_size
+
+=for ref
+
+Set the minimum size (in M-elements or 2^20 elements) of the largest PDL involved in a function where auto-pthreading will
+be performed. For small PDLs, it probably isn't worth starting multiple pthreads, so this function
+is used to define a minimum threshold where auto-pthreading won't be attempted.
+
+
+=for usage
+
+ set_autopthread_size($size);
+
+C<$size> is the mimumum size, in M-elements or 2^20 elements (approx 1e6 elements) for the largest PDL involved in a function.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+=for example
+
+  # Example turning on auto-pthreading for a target of 2 pthreads and for functions involving
+  #   PDLs with greater than 1M elements
+  set_autopthread_targ(2);
+  set_autopthread_size(1);
+  
+  # Execute a pdl function, processing will split into two pthreads as long as
+  #  one of the pdl-threaded dimensions is divisible by 2.
+  $a = minimum($b);
+  
+  # Get the actual number of pthreads that were run.
+  $actual_pthread = get_autopthread_actual();
+
+=cut
+
+*set_autopthread_size       = \&PDL::set_autopthread_size;	  
+
+
+=head2 get_autopthread_size
+
+=for ref
+
+Get the current autopthread_size setting.
+
+=for usage
+
+ $autopthread_size = get_autopthread_size();
+
+C<$autopthread_size> is the mimumum size limit for auto_pthreading to occur, in M-elements or 2^20 elements (approx 1e6 elements) for the largest PDL involved in a function
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+
+=cut
+
+*get_autopthread_size       = \&PDL::get_autopthread_size;	  
 
 
 =head1 AUTHOR
@@ -3424,7 +4051,94 @@ sub PDL::fhdr {
     return \%hdr;
 }
     
-	
+use Fcntl;
+
+BEGIN {
+   eval 'use File::Map 0.47 qw(:all)';
+   if ($@) {
+      carp "No File::Map found, using legacy mmap (if available)\n" if $PDL::verbose;
+      sub sys_map;
+      sub PROT_READ();
+      sub PROT_WRITE();
+      sub MAP_SHARED();
+      sub MAP_PRIVATE();
+   }
+}
+
+# Implement File::Map::sys_map bug fix.  Also, might be possible
+# to implement without so many external (non-Core perl) modules.
+#
+# sub pdl_do_sys_map {
+#         my (undef, $length, $protection, $flags, $fh, $offset) = @_;
+#         my $utf8 = File::Map::_check_layers($fh); 
+#         my $fd = ($flags & MAP_ANONYMOUS) ? (-1) : fileno($fh);
+#         $offset ||= 0;
+#         File::Map::_mmap_impl($_[0], $length, $protection, $flags, $fd, $offset, $utf8);
+#         return;
+# }
+
+sub PDL::set_data_by_file_map {
+   my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
+   my $pdl_dataref = $pdl->get_dataref();
+
+   # Assume we have no data to free for now
+   # pdl_freedata($pdl);
+
+   sysopen(my $fh, $name, ($writable && $shared ? O_RDWR : O_RDONLY) | ($creat ? O_CREAT : 0), $mode)
+      or die "Error opening file '$name'\n";
+
+   binmode $fh;
+
+   if ($trunc) {
+      truncate($fh,0) or die "set_data_by_mmap: truncate('$name',0) failed, $!";
+      truncate($fh,$len) or die "set_data_by_mmap: truncate('$name',$len) failed, $!";
+   }
+
+   if ($len) {
+
+      #eval {
+      # pdl_do_sys_map(  # will croak if the mapping fails
+      if ($PDL::debug) {
+         printf STDERR
+         "set_data_by_file_map: calling sys_map(%s,%d,%d,%d,%s,%d)\n",
+         $pdl_dataref,
+         $len,
+         PROT_READ | ($writable ?  PROT_WRITE : 0),
+         ($shared ? MAP_SHARED : MAP_PRIVATE),
+         $fh,
+         0;
+      }
+
+      sys_map(  # will croak if the mapping fails
+         ${$pdl_dataref},
+         $len,
+         PROT_READ | ($writable ?  PROT_WRITE : 0),
+         ($shared ? MAP_SHARED : MAP_PRIVATE),
+         $fh,
+         0
+      );
+      #};
+
+         #if ($@) {
+         #die("Error mmapping!, '$@'\n");
+         #}
+
+      $pdl->upd_data;
+
+      if ($PDL::debug) {
+         printf STDERR "set_data_by_file_map: length \${\$pdl_dataref} is %d.\n", length ${$pdl_dataref};
+      }
+      $pdl->set_state_and_add_deletedata_magic( length ${$pdl_dataref} );
+
+   } else {
+
+      #  Special case: zero-length file
+      $_[0] = undef;
+   }
+
+   # PDLDEBUG_f(printf("PDL::MMap: mapped to %p\n",$pdl->data));
+   close $fh ;
+}
 
 1;# Exit with OK status
 

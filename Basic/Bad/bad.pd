@@ -871,9 +871,9 @@ probably mainly useful in test scripts!
 
 =for example
 
- perldl> $x = sequence 3,4
- perldl> $x->setbadat 2,1
- perldl> p $x
+ pdl> $x = sequence 3,4
+ pdl> $x->setbadat 2,1
+ pdl> p $x
  [
   [  0   1   2]
   [  3   4 BAD]

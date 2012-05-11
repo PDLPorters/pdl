@@ -8,18 +8,19 @@
 use PDL;
 use Test::More;
 
-BEGIN{
-  # would be nice to use the 'use_ok' routine here
-  # instead of the following logic, but that needs
-  # an easy way to find out of the GSL lib is
-  # available
-  #
-  eval " use PDL::GSL::MROOT; ";
-  if ($@) {
-    plan skip_all => "PDL::GSL::MROOT not installed";
-  } else {
-    plan tests => 2;
-  }
+BEGIN
+{
+   use PDL::Config;
+   if ( $PDL::Config{WITH_GSL} ) {
+      eval " use PDL::GSL::MROOT; ";
+      unless ($@) {
+         plan tests => 2;
+      } else {
+         plan skip_all => "PDL::GSL::MROOT not installed";
+      }
+   } else {
+      plan skip_all => "PDL::GSL::MROOT not compiled.";
+   }
 }
 
 my $init = pdl (-10.00, -5.0);
