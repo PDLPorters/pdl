@@ -392,10 +392,8 @@ by PDL::Core
 =cut
 
 use Carp;
-sub barf
-{ Carp::confess(@_); }
-sub cluck
-{ Carp::cluck  (@_); }
+sub barf { goto &Carp::confess }
+sub cluck { goto &Carp::cluck }
 *PDL::barf  = \&barf;
 *PDL::cluck = \&cluck;
 
@@ -851,18 +849,9 @@ sub topdl {PDL->topdl(@_)}
 
 		"="     =>  sub {$_[0]},          # Don't deep copy, just copy reference
 
-		".="    => sub {my @args = reverse &PDL::Core::rswap;
-						eval {
-							PDL::Ops::assgn(@args);
-						};
-						if ($@) {
-							# Remove references to this (and deeper)
-							# code before rebarfing:
-							$@ =~ s/\s*at .* line \d+\s*\.\n*/./;
-							$@ =~ s/PDL:\s+//g;
-							$@ =~ s/\s*Caught at .* pkg .+\n+//;
-							PDL::Core::barf("Problem with assignment: $@");
-						}
+		".="    => sub {
+						my @args = reverse &PDL::Core::rswap;
+						PDL::Ops::assgn(@args);
 						return $args[1];
 					},
 		 
@@ -2772,7 +2761,7 @@ Falls through if argument already E<lt>= 1D.
 
 *flat = \&PDL::flat;
 sub PDL::flat { # fall through if < 2D
-  return $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
+  return my $dummy = $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
 }
 
 =head2 convert
@@ -3331,10 +3320,10 @@ sub PDL::cat {
 		}
                
 		$message .= "(Argument counting starts from zero.)";
-		barf($message);
+		croak($message);
 	}
 	else {
-		barf("cat: unknown error from the internals:\n$@");
+		croak("cat: unknown error from the internals:\n$@");
 	}
 }
 

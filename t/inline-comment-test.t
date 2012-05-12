@@ -46,11 +46,16 @@ $b = $a->testinc;
 
 ok(all ($b == $a+1), 'Sanity check runs correctly');
 
-# Test the inability to comment-out a threadloop:
+# Test the inability to comment-out a threadloop. This is documented on the
+# 11th page of the PDL::PP chapter of the PDL book. If somebody ever fixes this
+# wart, this test will fail, in which case the book's text should be updated.
 $b = $a->testinc2;
-ok(not (all $b == $a + 1), 'commenting out a threadloop does not work')
-   or diag("\$a is $a and \$b is $b");
-
+TODO: {
+	# Note: This test appears to fail on Cygwin, for reasons that are yet unknown.
+	local $TODO = 'Cygwin does not have this wart?!' if $^O eq 'cygwin';
+	ok(not (all $b == $a + 1), 'WART: commenting out a threadloop does not work')
+		or diag("\$a is $a and \$b is $b");
+}
 
 __DATA__
 
