@@ -121,7 +121,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.10_004 release:
+  PDL-2.4.10_005 release:
 
   3524081    t/inline-comment.t subtest 3 fails for cygwin
   3518190    t/gd_oo_tests.t fails for AMD64
