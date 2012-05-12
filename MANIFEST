@@ -182,7 +182,6 @@ Example/Benchmark/Bench.xs
 Example/Benchmark/Makefile.PL
 Example/Benchmark/README
 Example/Benchmark/time.pl
-Example/Core/new_from_string.pl
 Example/Fit/lmfit_example.pl
 Example/IO/wmpeg.pl
 Example/InlinePdlpp/Module/Makefile.PL
@@ -194,11 +193,11 @@ Example/InlinePdlpp/inlppminimal.pl
 Example/PGPLOT/pgplot.pl
 Example/PGPLOT/std_pgplot.pl
 Example/PLplot/refresh.pdl
-Example/Simplex/tsimp.pl
 Example/Simplex/tsimp2.pl
+Example/Simplex/tsimp_needs_pgplot.pl
 Example/TriD/3dtest.pl
-Example/TriD/clip.pl
 Example/TriD/line3d.pl
+Example/TriD/old_trid_clip.pl
 Graphics/Graphics2D.pm
 Graphics/IIS/Makefile.PL
 Graphics/IIS/iis.pd
@@ -729,6 +728,7 @@ t/ica.t
 t/image2d.t
 t/imagend.t
 t/imagergb.t
+t/inline-comment-test.t
 t/inlinepdlpp.t
 t/interp.t
 t/interp_slatec.t
