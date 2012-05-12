@@ -2,6 +2,9 @@ Release Notes for PDL 2.4.10_004 --------------------------
 
 General Notes:
 
+ * RC-1 for PDL fixes supporting the perl 5.16 release
+   coming next week.
+
  * Another quick CPAN developers release
  
    - It is a snapshot of the current git development tree
@@ -25,6 +28,9 @@ General Notes:
 
 
 Highlights:
+
+ * Please test with perl 5.16 release candidates and report
+   any issues to the PDL developers as soon as possible.
 
  * TBD
 
