@@ -66,13 +66,13 @@ Low-level plotting commands:
 
 Device manipulation commands:
 
- new           -  Construct a new output device 
+ new           -  Construct a new output device
  pgwin         -  Exported hook to new()
  close         -  Close a PGPLOT output device.
  hold          -  Hold current plot window range - allows overlays etc.
  release       -  Release back to freshly autoscaling for each command.
  held          -  Indicates whether the current window is held.
- focus         -  Set focus to the given device. 
+ focus         -  Set focus to the given device.
  erase         -  Erase the current window (or panel).
  options       -  Get the options set for the present output device.
  id            -  The ID for the device.
@@ -112,7 +112,7 @@ structure currently look like this (there are plans to use the Options
 package to simplify the options parsing):
 
  # Extract the hash(es) on the commandline
- ($arg, $opt)=_extract_hash(@_); 
+ ($arg, $opt)=_extract_hash(@_);
  <Check the number of input parameters>
  <deal with $arg>
  checkarg($x, 3); # For a hypothetical 3D routine.
@@ -139,7 +139,7 @@ the OO interface, see below.
 =head2 Alphabetical listing of standard options
 
 The following options are always parsed. Whether they have any importance
-depend on the routine invoked - e.g. line style is irrelevant for C<imag>, 
+depend on the routine invoked - e.g. line style is irrelevant for C<imag>,
 or the C<justify> option is irrelevant if the display is on 'hold'.
 This is indicated in the help text for the commands below.
 
@@ -273,13 +273,13 @@ normal numeric labels, the options are:
   P : Extend ("Project") major tick marks outside the box.
   M : Numeric labels go in the alternate place above (X) or to the
            right (Y) of the viewport.
-  N : Numeric labels go in the usual location below (X) or to the 
+  N : Numeric labels go in the usual location below (X) or to the
            left  (Y) of the viewport
   T : Draw major tick marks at the major coordinate interval.
   S : Draw minor tick marks (subticks).
-  V : Orient numeric labels Vertically.  Only applicable to Y. 
+  V : Orient numeric labels Vertically.  Only applicable to Y.
            (The default is to write them parallel to the axis.)
-  1 : Force decimal labelling, instead of automatic choice 
+  1 : Force decimal labelling, instead of automatic choice
   2 : Force exponential labeling, instead of automatic.
 
 If you don't specify any axis value at all, the default is ['BCNST','BCNST']
@@ -288,7 +288,7 @@ handed on directly to the low-level PGPLOT routines).
 
 In addition, you can specify that your axis labels should be printed
 as days, hours, minutes, and seconds (ideal for julian dates and delta-t,
-or for angular quantities).  You do that by setting additional character 
+or for angular quantities).  You do that by setting additional character
 flags on the affected axis:
 
   X : Use HH MM SS.S time labeling rather than conventional numeric
@@ -296,9 +296,9 @@ flags on the affected axis:
   Y : Like 'X' but the hour field runs past 24 if necessary.
   Z : Like 'X' but with a days field too (only shown where nonzero).
   H : Label the numbers with superscript d, h, m, and s symbols.
-  D : Label the numbers with superscript o, ', and '' symbols.   
+  D : Label the numbers with superscript o, ', and '' symbols.
   F : Omit first (lowest/leftmost) label; useful for tight layouts.
-  O : Omit leading zeroes in numbers under 10 (e.g. " 3h 3m 1.2s" 
+  O : Omit leading zeroes in numbers under 10 (e.g. " 3h 3m 1.2s"
       rather than "03h 03m 01.2s").
 
 For example, to plot a numeric quantity versus Julian day of the year
@@ -308,9 +308,9 @@ in a standard boxed plot with tick marks, you can use ["BNCSTZHO","BCNST"].
 
 Normally the limits are
 chosen so that the plot just fits; with this option you can increase
-(or decrease) the limits by either a relative 
+(or decrease) the limits by either a relative
 (ie a fraction of the original axis width) or an absolute amount.
-Either specify a hash array, where the keys are C<TYPE> (set to 
+Either specify a hash array, where the keys are C<TYPE> (set to
 'relative' or 'absolute') and C<VALUE> (the amount to change the limits
 by), or set to 1, which is equivalent to
 
@@ -360,23 +360,23 @@ The HardColour option should be used if you are plotting to a hardcopy device
 This sets the direction of the axes of a plot or image, when you don't explitly
 set them with the XRange and YRange options.  It's particularly useful when
 you want (for example) to put long wavelengths (larger numbers) on the left
-hand side of your plot, or when you want to plot an image in (RA,dec) 
+hand side of your plot, or when you want to plot an image in (RA,dec)
 coordinates.
 
 You can use either a scalar or a two-element perl array.  If you set it to
 0 (the default) then PDL will guess which direction you want to go.  If you
-set it to a positive number, the axis will always increase to the right. If 
+set it to a positive number, the axis will always increase to the right. If
 you set it to a negative number, the axis will always increase to the left.
 
 For example, [0,0] is the default, which is usually right.  [1,1] tells
-PGPLOT to always increase the axis values up and to the right.  For a 
-plot of intensity (y-axis) versus wavelength (x-axis) you could say 
+PGPLOT to always increase the axis values up and to the right.  For a
+plot of intensity (y-axis) versus wavelength (x-axis) you could say
 [-1,1].
 
-This option is really only useful if you want to allow autoranging but 
+This option is really only useful if you want to allow autoranging but
 need to set the direction that the axis goes.  If you use the ranging
 options (C<XRange> and C<YRange>), you can change the direction by changing
-the order of the maximum and minimum values.  That direction will 
+the order of the maximum and minimum values.  That direction will
 override C<DirAxis>.
 
 =item filltype
@@ -428,7 +428,7 @@ in units of 1% of C<min(height, width)> of the view surface, and PHASE to
 set the offset the hatching. Alternatively this can be specified as a
 1x3 piddle C<$hatch=pdl[$angle, $sep, $phase]>.
 
- $opt = {FILLTYPE => 'HATCHED', 
+ $opt = {FILLTYPE => 'HATCHED',
          HATCHING => {ANGLE=>30, SEPARATION=>4}};
 
 Can also be specified as
@@ -444,7 +444,7 @@ the plot or image and it specifies the aspect ratio of pixel
 coordinates in the plot or image.  Setting justify=>1 will
 produce a correct-aspect-ratio, shrink-wrapped image or plot;
 setting justify=>0.5 will do the same thing but with a short and
-fat plot.  The difference between C<justify> and C<pix> is that 
+fat plot.  The difference between C<justify> and C<pix> is that
 C<pix> does not affect the shape of the axes themselves.
 
 =item linestyle
@@ -496,7 +496,7 @@ the C<unit> (see below) to change this to number of PGPLOT units
 (inches, millimeters, etc.) per data pixel.  C<scale> is deprecated,
 as it is not device-independent; but it does come in handy for quick
 work on digital displays, where aliasing might otherwise interfere
-with image interpretation.  For example, C<scale=E<gt>1> displays 
+with image interpretation.  For example, C<scale=E<gt>1> displays
 images at their native resolution.
 
 =item Panel
@@ -560,7 +560,7 @@ handy when you write a large program package and you do not want to import
 routines nilly-willy in which case an OO approach with method calls is a
 lot cleaner.
 
-The pgwin exported constructor, arguably, breaks this philosophy; hopefully 
+The pgwin exported constructor, arguably, breaks this philosophy; hopefully
 it will ``wither away'' when other compatible modules are available.
 
 =back
@@ -758,7 +758,7 @@ reference or as a list.
 
 See the documentation fo PDL::Graphics::PGPLOT::Window::new for details.
 
-Because pgwin is a convenience function, you can specify the device by 
+Because pgwin is a convenience function, you can specify the device by
 passing in a single non-ref parameter.  For even further convenience, you
 can even omit the '/' in the device specifier, so these two lines
 deliver the same result:
@@ -792,7 +792,7 @@ The following lists the recognised options:
 
 =item AspectRatio
 
-The aspect ratio of the image, in the sense vertical/horizontal. 
+The aspect ratio of the image, in the sense vertical/horizontal.
 See the discussion on size setting.
 
 =item Device
@@ -818,7 +818,7 @@ Yet another way to identify the plot window size -- this takes a scalar
 or an array ref containing one, two, or three numbers.  One number gives
 you a square window.  Two gives you a rectangular window C<(X,Y)>.  Three
 lets you specify the unit compactly (e.g. C<< [<X>,<Y>,1] >> for inches,
-C<< [<X>,<Y>,2] >> for mm) but is deprecated in favor of using the 
+C<< [<X>,<Y>,2] >> for mm) but is deprecated in favor of using the
 C<Unit> option.
 See the discussion on size setting.
 
@@ -839,7 +839,7 @@ It would be great if it was possible to change the title of the window frame.
 
 =item WindowWidth
 
-The width of the window in inches (or the specified Unit).  See the 
+The width of the window in inches (or the specified Unit).  See the
 discussion on size setting.
 
 =item WindowXSize and WindowYSize
@@ -868,14 +868,14 @@ keeping with TIMTOWTDI.  In general you can get away with passing any
 unique combination of an C<< <X> >> size, a C<< <Y> >>size,
 and/or an aspect ratio.
 In increasing order of precedence, the options are: (C<Units>,
-C<AspectRatio>, C<WindowWidth>, C<< Window<X,Y>Size >>, C<Size>). 
+C<AspectRatio>, C<WindowWidth>, C<< Window<X,Y>Size >>, C<Size>).
 
 So if you specify an AspectRatio *and* an X and a Y coordinate, the
 AspectRatio is ignored.  Likewise, if you specify Units and a
-three-component Size, the Units option is ignored in favor of the 
+three-component Size, the Units option is ignored in favor of the
 numeric unit in the Size.
 
-If you don't specify enough information to set the size of the window, 
+If you don't specify enough information to set the size of the window,
 you get the default pane size and shape for that device.
 
 =head2 close
@@ -892,7 +892,7 @@ Close the current window. This does not necessarily mean that the
 window is removed from your screen, but it does ensure that the
 device is closed.
 
-A message will be printed to STDOUT giving the name of the 
+A message will be printed to STDOUT giving the name of the
 file created if the plot was made to a hardcopy device and
 C<$PDL::verbose> is true.
 
@@ -933,7 +933,7 @@ Switch to a different panel
   $win->panel(<num>);
 
 Move to a different panel on the plotting surface. Note that you will need
-to erase it manually if that is what you require.  
+to erase it manually if that is what you require.
 
 This routine currently does something you probably don't want, and hence is
 deprecated for most use:  if you say
@@ -944,7 +944,7 @@ deprecated for most use:  if you say
 then $image will actually be displayed in panel B<2>.  That's because
 the main plotting routines such as line and imag all advance the panel
 when necessary.  Instead, it's better to use the Panel option within
-plotting commands, if you want to set the panel explicitly.  
+plotting commands, if you want to set the panel explicitly.
 
 =head2 release
 
@@ -997,7 +997,7 @@ C<axis>) and defaults to B<0>.
 If the second form is used, $justify and $axis can be set in the options
 hash, for example:
 
- $win->env( 0, 100, 0, 50, {JUSTIFY => 1, AXIS => 'GRID', 
+ $win->env( 0, 100, 0, 50, {JUSTIFY => 1, AXIS => 'GRID',
 			    CHARSIZE => 0.7} );
 
 In addition the following options can also be set for C<env>:
@@ -1038,7 +1038,7 @@ Label plot axes
 
   $win->label_axes(<xtitle>, <ytitle>, <plot title>, $options);
 
-Draw labels for each axis on a plot. 
+Draw labels for each axis on a plot.
 
 =head2 imag
 
@@ -1073,7 +1073,7 @@ Here's an additional complication: the "pixel" stuff refers not
 image pixels.  That is to say, if you feed in a transform matrix
 via the C<TRANSFORM> option, the C<PIX>, C<SCALE>,
 etc. options all refer to the
-transformed coordinates and not physical image pixels.  That is a Good 
+transformed coordinates and not physical image pixels.  That is a Good
 Thing because it, e.g., lets you specify plate scales of your output
 plots directly!  See fits_imag for an example application.  If you
 do not feed in a transform matrix, then the identity matrix is applied
@@ -1086,10 +1086,10 @@ Options recognised:
 
 =over 3
 
-=item ITF 
+=item ITF
 
-the image transfer function applied to the pixel values. 
-It may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
+the image transfer function applied to the pixel values.
+It may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is
 acceptable). It defaults to 'LINEAR'.
 
 =item MIN
@@ -1097,36 +1097,36 @@ acceptable). It defaults to 'LINEAR'.
 Sets the minimum value to be used for calculation of the
 color-table stretch.
 
-=item MAX 
+=item MAX
 
 Sets the maximum value for the same.
 
-=item RANGE 
+=item RANGE
 
 A more compact way to specify MIN and MAX, as a list:
 you can say "Range=>[0,10]" to scale the color table for
 brightness values between 0 and 10 in the iamge data.
 
-=item CRANGE 
+=item CRANGE
 
-Image values between MIN and MAX are scaled to an 
-interval in normalized color domain space, on the 
-interval [0,1], before lookup in the window's color 
-table. CRANGE lets you use only a part of the color 
+Image values between MIN and MAX are scaled to an
+interval in normalized color domain space, on the
+interval [0,1], before lookup in the window's color
+table. CRANGE lets you use only a part of the color
 table by specifying your own range -- e.g. if you
 say "CRange=>[0.25,0.75]" then only the middle half
-of the pseudocolor space will be used.  (See the 
+of the pseudocolor space will be used.  (See the
 writeup on ctab().)
-               
-=item TRANSFORM 
+
+=item TRANSFORM
 
 The PGPLOT transform 'matrix' as a 6x1 vector for display
 
-=item DrawWedge 
+=item DrawWedge
 
 set to 1 to draw a colour bar (default is 0)
 
-=item Wedge 
+=item Wedge
 
 see the draw_wedge() routine
 
@@ -1145,7 +1145,7 @@ The following standard options influence this command:
          $win->imag( $a, { JUSTIFY=>1 } );
    To see the same image, scaled 1:1 with device pixels, say:
          $win->imag( $a, { SCALE=>1 } );
-   To see an image made on a device with 1:2 pixel aspect ratio, with 
+   To see an image made on a device with 1:2 pixel aspect ratio, with
    X pixels the same as original image pixels, say
          $win->imag( $a, { PIX=>0.5, SCALE=>2 } );
    To display an image at 100 dpi on any device, say:
@@ -1157,24 +1157,24 @@ The following standard options influence this command:
 
 =for ref
 
-Display an image with correct aspect ratio 
+Display an image with correct aspect ratio
 
 =for usage
 
  $win->imag1 ( $image, [$min, $max, $transform], [$opt] )
 
-This is syntactic sugar for 
+This is syntactic sugar for
 
   $win->imag( { PIX=>1, ALIGN=>'CC' } );
 
 =head2 rgbi
 
-=for ref 
+=for ref
 
-Display an RGB color image 
+Display an RGB color image
 
 The calling sequence is exactly like L</imag>, except that the input
-image must have three dimensions: C<N x M x 3>.  The last dimension is the 
+image must have three dimensions: C<N x M x 3>.  The last dimension is the
 (R,G,B) color value.  This routine requires B<pgplot 5.3devel> or later.
 Calling rgbi explicitly is not necessary, as calling image with an
 appropriately dimensioned RGB triplet makes it fall through to rgbi.
@@ -1195,7 +1195,7 @@ NOTES
 
 =item Titles:
 
-Currently fits_imag also generates titles for you by default and appends the 
+Currently fits_imag also generates titles for you by default and appends the
 FITS header scientific units if they're present.  So if you say
 
   $pdl->hdr->{CTYPE1} = "Flamziness";
@@ -1204,7 +1204,7 @@ FITS header scientific units if they're present.  So if you say
 
 then you get an X title of "Flamziness (milliBleems)".  But you can (of course)
 override that by specifying the XTitle and YTitle switches:
-  
+
   $win->fits_imag($pdl,{Xtitle=>"Arbitrary"});
 
 will give you "Arbitrary" as an X axis title, regardless of what's in the
@@ -1219,14 +1219,14 @@ then the default pixel aspect ratio is adjusted automatically to
 match the plot viewport and other options you've specified.
 
 You can override the image scaling using the SCALE, PIX, or PITCH
-options just as with L<the imag() method|/imag> -- but 
-those parameters refer to the scientific coordinate system rather than 
-to the pixel coordinate system (e.g. C<PITCH=E<gt>100> means "100 scientific units 
+options just as with L<the imag() method|/imag> -- but
+those parameters refer to the scientific coordinate system rather than
+to the pixel coordinate system (e.g. C<PITCH=E<gt>100> means "100 scientific units
 per inch", and C<SCALE=E<gt>1> means "1 scientific unit per device pixel").  See
-L<the imag() writeup|/imag> for more info on these 
-options.  
+L<the imag() writeup|/imag> for more info on these
+options.
 
-The default value of the C<ALIGN> option is 'CC' -- centering the image 
+The default value of the C<ALIGN> option is 'CC' -- centering the image
 both vertically and horizontally.
 
 =item Axis direction:
@@ -1235,7 +1235,7 @@ By default, fits_imag tries to guess which direction your axes are meant
 to go (left-to-right or right-to-left) using the CDELT keywords:
 if C<< CDELT >>
 is negative, then rather than reflecting the image fits_imag will plot the
-X axis so that the highest values are on the left.  
+X axis so that the highest values are on the left.
 
 This is the most convenient behavior for folks who use calibrated
 (RA,DEC) images, but it is technically incorrect.  To force the direction,
@@ -1265,7 +1265,7 @@ coordinate system by saying:
 
   $win->fits_imag( $pdl, { wcs => 'p' } );
 
-The identity transform is used if you select a mapping for which there is 
+The identity transform is used if you select a mapping for which there is
 no information in the header.
 Please note that this suport is B<experimental> and is not guaranteed
 to work correctly; please see the documentation for the L<_FITS_tr|/_FITS_tr>
@@ -1285,7 +1285,7 @@ Display an RGB FITS image with correct axes
 
   $win->fits_rgbi( image, [$min,$max], [$opt] );
 
-Works exactly like L<fits_imag|/fits_imag>, but the image must be in 
+Works exactly like L<fits_imag|/fits_imag>, but the image must be in
 (X,Y,RGB) form.  Only the first two axes of the FITS header are examined.
 
 =head2 fits_cont
@@ -1335,23 +1335,23 @@ size. To draw within the image use a negative value. Default is B<1.5>.
 
 =item Width
 
-How wide should the wedge be, in units of character size.  Default is B<2>. 
+How wide should the wedge be, in units of character size.  Default is B<2>.
 
 =item Label
 
 A text label to be added to the wedge.  If set, it is probably worth
 increasing the C<Width> value by about 1 to keep the text readable.
-Default is B<''>.  This is equivalent to the C<WTitle> option to 
+Default is B<''>.  This is equivalent to the C<WTitle> option to
 L<imag|imag>, L<fits_imag|fits_imag>, and similar methods.
 
 =item ForeGround (synonym Fg)
 
-The pixel value corresponding to the "maximum" colour.  If C<undef>, uses the 
+The pixel value corresponding to the "maximum" colour.  If C<undef>, uses the
 value used by C<imag> (recommended choice).  Default is C<undef>.
 
 =item BackGround (synonym Bg)
 
-The pixel value corresponding to the "minimum" colour.  If C<undef>, uses the 
+The pixel value corresponding to the "minimum" colour.  If C<undef>, uses the
 value used by C<imag> (recommended choice).  Default is C<undef>.
 
 =back
@@ -1387,12 +1387,12 @@ number of colour tables.
 Notionally, all non-RGB images and vectors have their colors looked up
 in the window's color table.  Colors in images and such are scaled to
 a normalized pseudocolor domain on the line segment [0,1]; the color
-table is a piecewise linear function that maps this one-dimensional 
+table is a piecewise linear function that maps this one-dimensional
 scale to the three-dimensional normalized RGB color space [0,1]^3.
 
-You can specify specific indexed colors by appropriate use of the 
+You can specify specific indexed colors by appropriate use of the
 (levels,red,green,blue) syntax -- but that is deprecated, since the actual
-available number of colors can change depending on the output device. 
+available number of colors can change depending on the output device.
 (Someone needs to write a specific hardware-dependent lookup table interface).
 
 See also L<imag|imag> for a description of how to use only part of the
@@ -1421,7 +1421,7 @@ the L<axis option|axis>.
 
 =for example
 
-   my $win = PDL::Graphics::PGPLOT::Window->new(dev=>'/xserve'); 
+   my $win = PDL::Graphics::PGPLOT::Window->new(dev=>'/xserve');
    my $x=sequence(10);
    my $y=$x*$x+1;
 
@@ -1438,12 +1438,12 @@ Plot vector as connected points
 If the 'MISSING' option is specified, those points in the C<$y> vector
 which are equal to the MISSING value are not plotted, but are skipped
 over.  This allows one to quickly draw multiple lines with one call to
-C<line>, for example to draw coastlines for maps.  
+C<line>, for example to draw coastlines for maps.
 
 =for usage
 
  Usage: line ( [$x,] $y, [$opt] )
-        
+
 The following standard options influence this command:
 
  AXIS, BORDER, COLO(U)R, LINESTYLE, LINEWIDTH, MISSING,
@@ -1454,7 +1454,7 @@ The following standard options influence this command:
  $x = sequence(10)/10.;
  $y = sin($x)**2;
  # Draw a red dot-dashed line
- line $x, $y, {COLOR => 'RED', LINESTYLE=>3}; 
+ line $x, $y, {COLOR => 'RED', LINESTYLE=>3};
 
 =head2 lines
 
@@ -1464,31 +1464,31 @@ Plot a list of vectors as discrete sets of connected points
 
 This works much like L<line|line>, but for discrete sets of connected
 points.  There are two ways to break lines: you can pass in x/y coordinates
-just like in L<line|line>, but with an additional C<pen> piddle that 
+just like in L<line|line>, but with an additional C<pen> piddle that
 indicates whether the pen is up or down on the line segment following
 each point (so you set it to zero at the end of each line segment you
 want to draw);  or you can pass in an array ref containing a list
-of single polylines to draw.  
+of single polylines to draw.
 
 Happily, there's extra meaning packed into the C<pen> piddle: it
-multiplies the COLO(U)R that you set, so if you feed in boolean 
+multiplies the COLO(U)R that you set, so if you feed in boolean
 values you get what you expect -- but you can also feed in integer
-or floating-point values to get multicolored lines.  
+or floating-point values to get multicolored lines.
 
 Furthermore, the sign bit of C<pen> can be used to draw hairline segments:
-if C<pen> is negative, then the segment is drawn as though it were 
+if C<pen> is negative, then the segment is drawn as though it were
 positive but with LineWidth and HardLW set to 1 (the minimum).
 
-Equally happily, even if you are using the array ref mechanism 
-to break your polylines you can feed in an array ref of C<pen> values to 
+Equally happily, even if you are using the array ref mechanism
+to break your polylines you can feed in an array ref of C<pen> values to
 take advantage of the color functionality or further dice your polylines.
 
 Note that, unlike L<line|line>, C<lines> has no no specify-$y-only
 calling path.  That's because C<lines> is intended more for line art than for
-plotting, so you always have to specify both $x and $y. 
+plotting, so you always have to specify both $x and $y.
 
 Infinite or bad values are ignored -- that is to say, if your vector
-contains a non-finite point, that point breaks the vector just as if you 
+contains a non-finite point, that point breaks the vector just as if you
 set pen=0 for both that point and the point before it.
 
 =for usage
@@ -1504,8 +1504,8 @@ The following standard options influence this command:
 
 CAVEAT:
 
-Setting C<pen> elements to 0 prevents drawing altogether, so you 
-can't use that to draw in the background color.  
+Setting C<pen> elements to 0 prevents drawing altogether, so you
+can't use that to draw in the background color.
 
 =head2 points
 
@@ -1540,7 +1540,7 @@ The C<ColorValues> option allows one to plot XYZ data with the
 Z axis mapped to a color value.  For example:
 
  use PDL::Graphics::LUT;
- ctab(lut_data('idl5')); # set up color palette to 'idl5' 
+ ctab(lut_data('idl5')); # set up color palette to 'idl5'
  points ($x, $y, {ColorValues => $z});
 
 =for example
@@ -1881,8 +1881,8 @@ fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 This routine will plot a vector field. C<$a> is the horizontal component
-and C<$b> the vertical component.  The scale factor converts between 
-vector length units and scientific positional units.  You can set the 
+and C<$b> the vertical component.  The scale factor converts between
+vector length units and scientific positional units.  You can set the
 scale, position, etc. either by passing in parameters in the normal parameter
 list or by passing in options.
 
@@ -1898,8 +1898,8 @@ Options recognised:
 
 The following standard options influence this command:
 
- ARROW, ARROWSIZE, AXIS, BORDER, CHARSIZE, COLOUR, 
- LINESTYLE, LINEWIDTH, 
+ ARROW, ARROWSIZE, AXIS, BORDER, CHARSIZE, COLOUR,
+ LINESTYLE, LINEWIDTH,
 
 =for example
 
@@ -1938,7 +1938,7 @@ as arguments or pass these as an anonymous hash - see the example below.
 
 =item Angle
 
-The rotation angle of the transform, in radians.  Positive numbers rotate the 
+The rotation angle of the transform, in radians.  Positive numbers rotate the
 image clockwise on the screen.
 
 =item ImageDimensions
@@ -2041,8 +2041,8 @@ A threaded interface to circle
  Usage: tcircle($x, $y, $r, $options);
 
 This is a threaded interface to C<circle>. This is convenient if you have
-a list of circle centers and radii and want to draw every circle in one go. 
-The routine will apply any options you apply in a "reasonable" way, 
+a list of circle centers and radii and want to draw every circle in one go.
+The routine will apply any options you apply in a "reasonable" way,
 in the sense that it will loop over the options wrapping over if there are less
 options than circles.
 
@@ -2283,12 +2283,12 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 ####
 # Helper routines to handle signal avoidance:
 # cpgplot doesn't take well to being interrupted, so we mask out INT
-# signals during most of the routines.  But we do want to handle 
+# signals during most of the routines.  But we do want to handle
 # those INTs, so we need a handler that marks 'em.
 #
 # You call catch_signals with no arguments.  INT and __DIE__ signals
-# are sent to the signal_catcher, and released, not necessarily in 
-# the order they occured, by release_signals.  
+# are sent to the signal_catcher, and released, not necessarily in
+# the order they occured, by release_signals.
 #
 # To avoid problems with nested &catch_signals and &release_signals calls,
 # a variable keeps track of balancing the two.  Ideally, no signals would
@@ -2300,8 +2300,8 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 # throw it -- so remember to release signals before barfing!
 #
 # The mechanism is a little over-powered for what we need -- but, hey,
-# if you want to defer any other signal you can simply add it to the 
-# list in catch_signals.  
+# if you want to defer any other signal you can simply add it to the
+# list in catch_signals.
 #
 # Don't try to parse arguments within catch_signals -- the omitted-() call
 # is extra fast but doesn't set @_!
@@ -2314,8 +2314,8 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 =for ref Internal PDL/PGPLOT signal handlers
 
 To prevent pgplot from doing a fandango on core, we have to block interrupts
-during PGPLOT calls.  Specifically, INT needs to get caught.  These internal 
-routines provide a mechanism for that.  
+during PGPLOT calls.  Specifically, INT needs to get caught.  These internal
+routines provide a mechanism for that.
 
 You simply bracket any PGPLOT calls with C<&catch_signals> above and
 C<&release_signals> below, and the signal_catcher will queue up any
@@ -2325,10 +2325,10 @@ C<&release_signals> call.
 Any exit path from your hot code must include C<&release_signals>, or
 interrupts could be deferred indefinitely (which would be a bug).
 This includes calls to C<&barf> -- even barfs from someone you called!
-So avoid calling out of the local module if possible, and use 
+So avoid calling out of the local module if possible, and use
 release_and_barf() instead of barf() from within this module.
 
-Perl 5.6.1 interrupt handling has a bug that this code tickles -- 
+Perl 5.6.1 interrupt handling has a bug that this code tickles --
 sometimes the re-emitted signals vanish into hyperspace.  Perl 5.8
 seems NOT to have that problem.
 
@@ -2362,10 +2362,10 @@ sub signal_catcher {
     if($sig_log{$sig}==1) {
       print STDERR "PDL::Graphics::PGPLOT: deferred $sig for PGPLOT; one more aborts operation\n";
     } else {
-      print STDERR "PDL::Graphics::PGPLOT: deferred $sig signal for PGPLOT operation (l=$sig_nest)\n" 
+      print STDERR "PDL::Graphics::PGPLOT: deferred $sig signal for PGPLOT operation (l=$sig_nest)\n"
       }
   }
-  
+
   # Handle multiple INT signals (user pressing ^C a bunch)
   if(defined($sig_log{$sig}) && ($sig_log{$sig}>1) && ($sig eq 'INT')) {
     print STDERR "Aborting PGPLOT operation".($PDL::debug ? " (may mess up future PGPLOT commands)\n" : "\n");
@@ -2375,7 +2375,7 @@ sub signal_catcher {
   else {
     $sig_log{$sig}++;
   }
-}  
+}
 
 
 sub catch_signals {
@@ -2493,8 +2493,8 @@ sub pgwin {
       @a = %{$a[1]};
     }
 
-    # Furthermore, if an odd number of parameters are passed in, 
-    # then the first one is a device and the rest is intended to 
+    # Furthermore, if an odd number of parameters are passed in,
+    # then the first one is a device and the rest is intended to
     # be a parameters hash...
     if(scalar(@a) % 2) {
       $a[0] = "/$a[0]" unless($a[0] =~ m/:/);
@@ -2503,7 +2503,7 @@ sub pgwin {
 
     return PDL::Graphics::PGPLOT::Window->new(@a);
 }
-  
+
 sub new {
   my $type = shift;
 
@@ -2646,13 +2646,13 @@ $DefaultWindowWidth = 6;
 $DefaultWindowAspect=0.618;
 
 # These are thunks to handle regularizing window values in _setup_window.
-# Index is binary by validity of value.  0 = undefined (or 0), 1 = ok. 
+# Index is binary by validity of value.  0 = undefined (or 0), 1 = ok.
 # Bit 0 = aspect, bit 1 = width, bit 2 = height.  Arguments in the same order.
-# Return value is ($aspect, $height).  
+# Return value is ($aspect, $height).
 #
 # If nothing is defined we try to grab the latest values from PGPLOT itself.
 $__setup_subs = [
-  sub { my($vs_x1,$vs_x2,$vs_y1,$vs_y2);                        # 0 (000) 
+  sub { my($vs_x1,$vs_x2,$vs_y1,$vs_y2);                        # 0 (000)
 	pgqvsz(1,$vs_x1,$vs_x2,$vs_y1,$vs_y2);
 	my($w) = ($vs_x2 - $vs_x1) || $DefaultWindowWidth;
 	return ( ((($vs_y2 - $vs_y1) / $w) || $DefaultWindowAspect),
@@ -2700,7 +2700,7 @@ sub _setup_window {
     }
   }
 
-  ($aspect,$width) = &{$__setup_subs->[ ((!!($aspect))   ) | 
+  ($aspect,$width) = &{$__setup_subs->[ ((!!($aspect))   ) |
 					((!!($width ))<<1) |
 					((!!($height))<<2)
 					]}($aspect,$width,$height);
@@ -2708,7 +2708,7 @@ sub _setup_window {
   $self->{WindowWidth} = $width;
 
   #
-  # PGPLOT seems not to include full unit support in (e.g.) the pgpap 
+  # PGPLOT seems not to include full unit support in (e.g.) the pgpap
   # command -- so check here and convert mm->inches if necessary.
   # This is a real kludge that should be replaced with Real Units Conversion
   # at a future date.
@@ -2789,7 +2789,7 @@ sub _setup_window {
   my $wo = $self->{PlotOptions}->defaults();
   $self->_set_colour($wo->{Colour});
   pgask(0);
-  
+
   &release_signals;
 }
 
@@ -2849,7 +2849,7 @@ sub _reopen {
 
   release_and_barf("Opening new window (pgopen) failed: $window_nr\n")
     if ($window_nr < 0);
-  
+
   $self->{ID} = $window_nr;
 
   $self->_setup_window(@parameters);
@@ -2885,7 +2885,7 @@ sub _advance_panel {
     $self->{Hold}=0;
     print "Graphic released (panel move)\n" if $PDL::verbose;
   }
-  
+
   &release_signals;
 }
 
@@ -2916,7 +2916,7 @@ sub _check_move_or_erase {
   }
 
   $self->erase() if $erase;
-  
+
   &release_signals;
 }
 
@@ -2987,7 +2987,7 @@ sub replay {
     my ($command, $commandname, $arg, $opt)=@$arg;
     &$command($self, @$arg, $opt);
   }
-  
+
   &release_signals;
 }
 
@@ -3271,7 +3271,7 @@ EOD
     # Remove hold.
     $self->{Hold}=0;
   }
-  
+
   &release_signals;
 }
 
@@ -3436,16 +3436,16 @@ sub _checkarg {			# Check/alter arguments utility
   return $ok;
 }
 
-# a hack to store information in the object.  
+# a hack to store information in the object.
 # Currently only used by imag() for storing information
-# useful to draw_wedge().  
+# useful to draw_wedge().
 #
 # This routine needs changing:
 #  . store values using PDL::Options, so you can update rather than overwrite
 #  . associate the information with a particular window/panel/whatever
-#  . clear information when plot erased (correct for current use by imag(), 
+#  . clear information when plot erased (correct for current use by imag(),
 #    but maybe not in more general cases?)
-#   
+#
 # The API is liable to change: you have been warned (Doug Burke)
 #
 sub _store {
@@ -3456,7 +3456,7 @@ sub _store {
     my $object = shift;
 
     # create storage space, if needed
-    $self->{_horrible_storage_space} = {} 
+    $self->{_horrible_storage_space} = {}
     unless defined $self->{_horrible_storage_space};
 
     # store data
@@ -3592,7 +3592,7 @@ should be ok,  as that routine returns a rather sensible error-message.
     } else {
       # Now check if this is a name that could be recognised by pgscrn.
       # To simplify the logic we first check if $col is a digit.
-      if ($col =~ m/^\s*\d+\s*$/) { 
+      if ($col =~ m/^\s*\d+\s*$/) {
 	if ($is_textbg) {
 	  pgstbg($col);
 	} else {
@@ -3669,7 +3669,7 @@ sub _standard_options_parser {
     if (ref($o->{Arrow}) eq 'HASH') {
       while (my ($var, $value)=each %{$o->{Arrow}}) {
         # options are FS, ANGLE, VENT, SIZE
-	# but SIZE may be ARROWSIZE [see ../PGPLOTOptions.pm] 
+	# but SIZE may be ARROWSIZE [see ../PGPLOTOptions.pm]
 	$fs=$value if $var =~ m/^F/i;
 	$vent=$value if $var =~ m/^V/i;
 	$angle=$value if $var =~ m/^AN/i;
@@ -3749,7 +3749,7 @@ sub initenv{
 
   ##############################
   # If the user specifies $just or $axis these values will
-  # override any options given. 
+  # override any options given.
   $u_opt->{Justify} = $just if defined($just);
   $u_opt->{Axis} = $axis if defined($axis);
 
@@ -3773,7 +3773,7 @@ sub initenv{
       release_and_barf "plot boundaries not positive in logx-mode" if $_ <= 0;
       log($_)/log(10) } ($xmin,$xmax)
 	if $self->{Logx};
-    ($ymin,$ymax) = map { 
+    ($ymin,$ymax) = map {
       release_and_barf "plot boundaries not positive in logy-mode" if $_ <= 0;
       log($_)/log(10) } ($ymin,$ymax)
 	if $self->{Logy};
@@ -3797,7 +3797,7 @@ sub initenv{
     my ($chsz);
     pgqch($chsz);
     pgsch($o->{CharSize});
-    
+
     if (ref($o->{Border}) eq 'HASH' || $o->{Border} != 0) {
       my $type  = "REL";
       my $delta = 0.05;
@@ -3811,7 +3811,7 @@ sub initenv{
 	  }
 	}				# while: (bkey,bval)
       }				# if: ref($val) eq "HASH"
-      
+
       if ( $type =~ m/^REL/ ) {
 	my $sep = ( $xmax - $xmin ) * $delta;
 	$xmin -= $sep; $xmax += $sep;
@@ -3824,7 +3824,7 @@ sub initenv{
 	print "Warning: unknown BORDER/TYPE option '$type'.\n";
       }
     }
-    
+
     ##############################
     # pgpage doesn't behave quite right in the multi-panel case.  Hence,
     # we call erase if there are multiple panels and pgpage if there is only
@@ -3838,13 +3838,13 @@ sub initenv{
 	pgpage();
       }
     }
-    
+
     ##########
     # Set up the viewport, and get its size in physical screen units.
     # This has to be done before the PIX/SCALE/PITCH stuff below in order
-    # to make sure we can get physical dimensions of the viewport for scaling, 
+    # to make sure we can get physical dimensions of the viewport for scaling,
     # even though the JUSTIFY stuff redefines the viewport later.
-    # 
+    #
     if (!defined($o->{PlotPosition}) || $o->{PlotPosition} eq 'Default') {
       # Set standard viewport
       pgvstd();
@@ -3855,33 +3855,33 @@ sub initenv{
       print "pgsvp($wx0,$wx1,$wy0,$wy1);\n" if($PDL::Graphics::PGPLOT::debug);
       pgsvp ($x0, $x1, $y0, $y1);
     }
-    
+
     ##############################
-    # Parse out scaling options.  The defaults for each value change 
+    # Parse out scaling options.  The defaults for each value change
     # based on the others (e.g. specifying "SCALE" and no unit
     # gives pixels; but specifying "PITCH" and no unit gives dpi).
     #
     my($pix,$pitch,$unit);
-    
+
     ($pix,$pitch,$unit) = (1,1.0/$o->{'Scale'},3)
       if($o->{'Scale'});
-    
+
     ($pix,$pitch,$unit) = (1,$o->{'Pitch'},1)
       if($o->{'Pitch'});
-  
+
     if(defined $o->{'Unit'}) {
       $unit = _parse_unit($o->{'Unit'});
-      release_and_barf("Unknown unit '$o->{'Unit'}'\n") 
+      release_and_barf("Unknown unit '$o->{'Unit'}'\n")
 	unless(defined $unit);
     }
-    
+
     $unit = 1 unless defined($unit); # Default to inch (any phys. unit will do)
-    
+
     ##############################
     # Get size of viewport in physical screen units
     my ($x0,$x1,$y0,$y1);
     pgqvp($unit,$x0,$x1,$y0,$y1);
-    
+
     # Pixel aspect ratio is always overridden by the pix option
     $pix = $o->{'Justify'} if $o->{'Justify'};     # Only override if nonzero!
     $pix = $o->{'Pix'}     if defined $o->{'Pix'}; # Override if set.
@@ -3897,42 +3897,42 @@ sub initenv{
 	$pitch = $p->abs->max;
     }
 
-    $pix = abs(($y1 - $y0) / ($ymax - $ymin)) * $pitch 
+    $pix = abs(($y1 - $y0) / ($ymax - $ymin)) * $pitch
       unless defined($pix);
-    
+
     ##########
-    # Figure out the actual data coordinate corners of the screen, and/or 
+    # Figure out the actual data coordinate corners of the screen, and/or
     # tweak the screen to match the data coordinate corners.  This is important
-    # because the PIX/SCALE/PITCH options set the scaling explicitly, and 
-    # the JUSTIFY option requires changing the viewport. 
-    # 
-    
+    # because the PIX/SCALE/PITCH options set the scaling explicitly, and
+    # the JUSTIFY option requires changing the viewport.
+    #
+
     if($o->{Justify}) {
       ##########
       # Justify case
-      
+
       ###
       # Work out the boundaries of the data in viewport space, given the
-      # pitch and requested pixel aspect ratio.  This is complicated a 
+      # pitch and requested pixel aspect ratio.  This is complicated a
       # little by the need to specify the viewport in surface normalized
       # coordinates: we have to retrieve surface normalized coords to tweak.
-      
-      my($ox0,$ox1,$oy0,$oy1);  
+
+      my($ox0,$ox1,$oy0,$oy1);
       pgqvp(0,$ox0,$ox1,$oy0,$oy1); # Get surface normalized dims of current vp
-      
+
       my($wxs, $wys) = ( ($ox1-$ox0) / ($x1-$x0) ,  ($oy1-$oy0) / ($y1-$y0) );
-      
+
       local($_) = $o->{Align} || "CC";
       my($wx0,$wx1,$wy0,$wy1);
-      
+
       my($xrange) = abs(($xmax-$xmin) * $wxs / $pitch );
-      ($wx0,$wx1) = 
+      ($wx0,$wx1) =
 	(m/L/i) ? ( $ox0, $ox0  +  $xrange ) :
 	(m/R/i) ? ( $ox1  -  $xrange, $ox1 ) :
 	  (0.5 * ( $ox0 + $ox1 - $xrange ), 0.5 * ( $ox0 + $ox1 + $xrange ));
 
       my($yrange) = abs(($ymax-$ymin) * $wys * $pix / $pitch );
-      ($wy0,$wy1) = 
+      ($wy0,$wy1) =
 	(m/B/i) ? ( $oy0, $oy0 + $yrange ) :
 	(m/T/i) ? ( $oy1 - $yrange, $oy1 ) :
            (0.5 * ( $oy0 + $oy1 - $yrange ), 0.5 * ( $oy0 + $oy1 + $yrange ));
@@ -3940,26 +3940,26 @@ sub initenv{
       pgsvp(minmax(pdl($wx0,$wx1)),minmax(pdl($wy0,$wy1)));
 
       pgswin($xmin,$xmax,$ymin,$ymax);
-      
+
     } elsif($have_pitch_and_pix) {
-      
+
       ##########
-      # Non-justify case with specified pitch and pixel aspect.  
-      
+      # Non-justify case with specified pitch and pixel aspect.
+
       my($xx0,$xx1,$yy0,$yy1); # These get the final data coords
-      
-      ### 
-      # Work out the boundaries of the viewport in data space, given the 
-      # pitch and requested pixel aspect ratio.  
+
+      ###
+      # Work out the boundaries of the viewport in data space, given the
+      # pitch and requested pixel aspect ratio.
       local($_) = $o->{Align} || "BL";
-      
-      ($xx0,$xx1) = 
+
+      ($xx0,$xx1) =
 	(m/L/i) ? ($xmin, $xmin+($x1-$x0)*$pitch) :
-	(m/R/i) ? ($xmax-($x1-$x0)*$pitch, $xmax) : 
+	(m/R/i) ? ($xmax-($x1-$x0)*$pitch, $xmax) :
 	      (0.5*($xmin+$xmax - ($x1-$x0)*$pitch),
 	       0.5*($xmin+$xmax + ($x1-$x0)*$pitch));
 
-      ($yy0,$yy1) = 
+      ($yy0,$yy1) =
 	(m/B/i) ? ($ymin, $ymin+($y1-$y0)*$pitch/$pix) :
 	(m/T/i) ? ($ymax-($y1-$y0)*$pitch/$pix, $ymax) :
    	      (0.5*($ymin+$ymax - ($y1-$y0)*$pitch/$pix),
@@ -3980,18 +3980,18 @@ sub initenv{
       }
 
       ##print "dax=$dax; day=$day\n";
-      ( $xx0, $xx1 ) = ( $xx1, $xx0 ) 
+      ( $xx0, $xx1 ) = ( $xx1, $xx0 )
 	if (  ( $dax==0   and   ($xmin-$xmax)*($xx0-$xx1)<0 )
-	      or ( $dax < 0 ) 
+	      or ( $dax < 0 )
 	      );
 
-      ( $yy0, $yy1 ) = ( $yy1, $yy0 ) 
+      ( $yy0, $yy1 ) = ( $yy1, $yy0 )
 	if (  ( $day==0   and   ($ymin-$ymax)*($yy0-$yy1)<0 )
-	      or ( $day < 0 ) 
+	      or ( $day < 0 )
 	      );
 
       pgswin($xx0, $xx1, $yy0, $yy1);
-      
+
   } else {
       ###
       # Simplest case -- just do what the user originally said.
@@ -3999,24 +3999,24 @@ sub initenv{
       pgswin($xmin,$xmax,$ymin,$ymax);
 
   }
-    
+
     if (ref($o->{Axis}) eq 'ARRAY') {
       print "found array ref axis option...\n" if($PDL::Graphics::PGPLOT::debug);
       pgtbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
     } else {
       pgtbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
     }
-    
+
     $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
     $self->label_axes($u_opt->{XTitle}, $u_opt->{YTitle}, $u_opt->{Title},
 		      $u_opt);
-    
+
     # restore settings
     $self->_set_colour($col);
     pgsch($chsz);
 
   } # end of not-held case
-  
+
   &release_signals;
 
   1;
@@ -4034,9 +4034,9 @@ sub _set_env_options {
 
 sub redraw_axes {
   my $self = shift;
-  
+
   &catch_signals;
-  
+
   my $o;
   if (defined($self->{_env_options})) {
     # Use the previous settings for the plot box.
@@ -4071,11 +4071,11 @@ sub redraw_axes {
 
 =head2 _image_xyrange
 
-Given a PGPLOT tr matrix and an image size, calculate the 
+Given a PGPLOT tr matrix and an image size, calculate the
 data world coordinates over which the image ranges.  This is
 used in L<imag|imag> and L<cont|cont>.  It keeps track of the
 required half-pixel offset to display images properly -- eg
-feeding in no tr matrix at all, nx=20, and ny=20 will 
+feeding in no tr matrix at all, nx=20, and ny=20 will
 will return (-0.5,19.5,-0.5,19.5).  It also checks the options
 hash for XRange/YRange specifications and, if they are present, it
 overrides the appropriate output with the exact ranges in those fields.
@@ -4085,20 +4085,20 @@ overrides the appropriate output with the exact ranges in those fields.
 sub _image_xyrange {
   my($tr,$nx,$ny,$opt) = @_;
 
-  # Set identity $tr if no $tr is passed in.  This looks funny 
-  # because it's designed for use with evil Fortran coordinates. 
+  # Set identity $tr if no $tr is passed in.  This looks funny
+  # because it's designed for use with evil Fortran coordinates.
   if(!defined($tr)) {
     $tr = float [-1,1,0,-1,0,1];
   }
 
-  
+
   ##############################
   ## Because the transform is an inhomogeneous scale-and-rotate,
   ## the limiting points are always the corners of the original
   ## physical data plane after transformation.  We just tranform
-  ## the four corners of the data (in evil homogeneous FORTRAN 
-  ## origin-at-1 coordinates) and find the minimum and maximum 
-  ## X and Y values of 'em all. 
+  ## the four corners of the data (in evil homogeneous FORTRAN
+  ## origin-at-1 coordinates) and find the minimum and maximum
+  ## X and Y values of 'em all.
 
   my @xvals;
   if(ref $opt eq 'HASH' and defined $opt->{XRange}) {
@@ -4130,7 +4130,7 @@ sub _image_xyrange {
 
   if ( $tr->at(1) < 0 ) { @xvals = ( $xvals[1], $xvals[0] ); }
   if ( $tr->at(5) < 0 ) { @yvals = ( $yvals[1], $yvals[0] ); }
-  
+
   return (@xvals,@yvals);
 }
 
@@ -4138,7 +4138,7 @@ sub _image_xyrange {
 =head2 _FITS_tr
 
 Given a FITS image, return the PGPLOT transformation matrix to convert
-pixel coordinates to scientific coordinates.   Used by 
+pixel coordinates to scientific coordinates.   Used by
 L<fits_imag|/fits_imag>, L<fits_rgbi|/fits_rgbi>, and
 L<fits_cont|/fits_cont>, but may come in handy for other methods.
 
@@ -4158,7 +4158,7 @@ one key (any others are ignored):
 
 Both the key name and value are case insensitive. If left as C<undef>
 or C<""> then the primary coordinate mapping from the header is used, otherwise
-use the additional WCS mapping given by the appropriate letter. 
+use the additional WCS mapping given by the appropriate letter.
 We make B<no> checks that the given mapping is available; the routine
 falls back to the unit mapping if the specified system is not available.
 
@@ -4189,8 +4189,8 @@ information on the Representation of World Coordinate Systems in FITS.
 	#
 	my $isapdl = UNIVERSAL::isa($pdl,'PDL');
 	my $hdr = $isapdl ? $pdl->hdr() : $pdl->hdr;
-    
-	print STDERR 
+
+	print STDERR
 	    "Warning: null FITS header in _FITS_tr (do you need to set hdrcpy?)\n"
 	    unless (scalar(keys %$hdr) || (!$PDL::debug));
 
@@ -4233,7 +4233,7 @@ information on the Representation of World Coordinate Systems in FITS.
 	    # keyword but that is not in the WCS standard
 	    # - I hope this doesn't break things
 	    # -- This broke a few things because CROTA is a pseudostandard
-	    #    in the solar physics community.  I added a fallback to 
+	    #    in the solar physics community.  I added a fallback to
 	    #    CROTA in case CROTA2 doesn't exist. --CED
 	    # 13-Apr-2010: changed sign of CROTA2 to match update to PDL::Transform in 2.4.3 --CED
 	    $angle  = - ( (defined $hdr->{"CROTA2$id"}) ? $hdr->{"CROTA2$id"} :
@@ -4251,7 +4251,7 @@ information on the Representation of World Coordinate Systems in FITS.
 	    Pixinc => [ $cdelt1, $cdelt2 ],
 	    RefPos => [ [$cpix1-1, $cpix2-1], [$cval1,$cval2] ]
 	    } );
-	# 
+	#
 	# Here's a failed attempt to compensate for the PGPLOT-induced jitter
 	# (look closely at the "demo transform" rotating screens and you'll
 	# see a small movement...)
@@ -4266,7 +4266,7 @@ information on the Representation of World Coordinate Systems in FITS.
 
 
     } # sub: _FITS_tr
-  
+
 } # "closure" around _FITS_tr
 
 sub label_axes {
@@ -4321,11 +4321,11 @@ sub label_axes {
   }
 
   # pglab by default goes too far from the plot!  If NYPanels > 1
-  # then the bottom label of a higher plot tends to squash the plot 
+  # then the bottom label of a higher plot tends to squash the plot
   # title for the plot below it.   To remedy this problem I've
   # replaced the pglab call with a set of calls to pgmtxt, cribbed
-  # from the pglab.f file.  The parameters are shrunk inward if NYPanel > 1 
-  # or if the option "TightLabels" is set.  You can also explicitly set 
+  # from the pglab.f file.  The parameters are shrunk inward if NYPanel > 1
+  # or if the option "TightLabels" is set.  You can also explicitly set
   # it to 0 to get the original broken  behavior.  [CED 2002 Aug 29]
 
   $label_params = [ [2.0,  3.2, 2.2], # default
@@ -4334,16 +4334,16 @@ sub label_axes {
 		      unless defined($label_params);
 
   my($p) = $label_params->[ ( ($self->{NY} > 1 && !defined $o->{TightLabels})
-			      || $o->{TightLabels} 
+			      || $o->{TightLabels}
 			      ) ? 1 : 0 ];
   my($sz);
   pgqch($sz);
 
   pgbbuf(); # Begin a buffered batch output to the device
   pgsch($sz * ( $o->{TitleSize} || 1 ));
-             # The 'T' offset is computed so that the original 
+             # The 'T' offset is computed so that the original
              # vertical center is maintained.
-  pgmtxt('T', ($p->[0]+0.5)/( $o->{TitleSize} || 1 ) - 0.5 , 0.5, 0.5, $o->{Title});  
+  pgmtxt('T', ($p->[0]+0.5)/( $o->{TitleSize} || 1 ) - 0.5 , 0.5, 0.5, $o->{Title});
 
   pgebuf();  # Flush the buffer to avoid a pgplot bug that produced
   pgbbuf();  # doubled titles for some devices (notably the ppm device).
@@ -4405,7 +4405,7 @@ sub env {
   }
 
   release_and_barf 'Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis, $opt] )'
-    if ($#_==-1 && !defined($self->{_env_options}) && !defined($PREVIOUS_ENV)) || 
+    if ($#_==-1 && !defined($self->{_env_options}) && !defined($PREVIOUS_ENV)) ||
       ($#_>=0 && $#_<=2) || $#_>6;
   my(@args);
 
@@ -4413,7 +4413,7 @@ sub env {
   # previous setting of the plot env variables regardless of device
   # if the current device does not have a setting for env etc.
   if ($#_ == -1) {
-    if (defined(@{$self->{_env_options}})) {
+    if (@{$self->{_env_options}}) {
       @args = @{$self->{_env_options}};
     } elsif (defined($PREVIOUS_ENV)) {
       @args = @{$PREVIOUS_ENV};
@@ -4508,7 +4508,7 @@ sub env {
 	my $self = shift;
 
 	if (!defined($transform_options)) {
-	  $transform_options = 
+	  $transform_options =
 	    $self->{PlotOptions}->extend({Angle => undef,
 					  ImageDims => undef,
 					  Pixinc => undef,
@@ -4524,7 +4524,7 @@ sub env {
 
 	# parse the input
 	my ($in, $opt)=_extract_hash(@_);
-	my ($x_pix, $y_pix)= @$in; 
+	my ($x_pix, $y_pix)= @$in;
 
 	# handle options
 	$opt = {} if !defined($opt);
@@ -4558,8 +4558,8 @@ sub env {
 	    else {
 		release_and_barf "Image dimensions must be given as an array reference!";
 	    }
-	} 
-	
+	}
+
 	# The user has to pass the dimensions of the image somehow, so this
 	# is a good point to check whether he/she/it has done so.
 	unless (defined($x_pix) && defined($y_pix)) {
@@ -4567,7 +4567,7 @@ sub env {
 	}
 
 	# The RefPos option gives more flexibility than
-	# ImageCentre, since ImageCentre => [ a, b ] is the same 
+	# ImageCentre, since ImageCentre => [ a, b ] is the same
 	# as PosReference => [ [(nx-1)/2,(ny-1/2)], [a,b] ].
 	# We use ImageCentre in preference to PosReference
 	#
@@ -4609,10 +4609,10 @@ sub env {
 	# The elements of the transform piddle,
 	# here labelled t0 to t5, relate to the
 	# following maxtix equation:
-	#   
+	#
 	#   world = zp + matrix * pixel
 	#
-	# world  - the position of the point in the world, 
+	# world  - the position of the point in the world,
 	#          ie plot, coordinate system
 	# pixel  - the position of the point in pixel
 	#          coordinates (bottom-left is 0,0 pixel)
@@ -4628,12 +4628,12 @@ sub env {
 	my $t4 = -$x_pixinc * $sa;
 	my $t5 = $y_pixinc * $ca;
 
-	return pdl( 
+	return pdl(
 		   $xref_wrld - $t1 * $xref_pix - $t2 * $yref_pix,
 		   $t1, $t2,
 		   $yref_wrld - $t4 * $xref_pix - $t5 * $yref_pix,
 		   $t4, $t5
-		   ); 
+		   );
     }
 }
 
@@ -4841,7 +4841,7 @@ EOD
 
     # it's possible the user slipped in undefs as the data position.
     # that's illegal and won't be caught in next loop
-    barf "Must specify data position" 
+    barf "Must specify data position"
       if ! defined $t[0] || ( @t > 2 && ! defined $t[1] );
 
     # loop over input data; skip undefined values, as they are
@@ -4850,26 +4850,26 @@ EOD
     for ( my $i = 0 ; $i < @t ; $i++ )
       {
 	next if ! defined $t[$i];
-	
+
 	$self->_checkarg($t[$i], 1);
-	
+
 	$n = nelem($t[$i]) if $i == 0;
 	barf "Args must have same size" if nelem($t[$i]) != $n;
       }
-    
+
     my $x = @t < 3 ? float(sequence($n)) : shift @t;
     my $y = shift @t;
-    
+
     # store data in a hash to automate operations
     my %d;
     $d{x}{data} = $x;
     $d{y}{data} = $y;
-    
+
     ( $d{y}{err} ) = @t if @t == 1;
     ( $d{x}{err}, $d{y}{err} ) = @t if @t == 2;
-    ( $d{x}{loerr}, $d{x}{hierr}, 
+    ( $d{x}{loerr}, $d{x}{hierr},
       $d{y}{loerr}, $d{y}{hierr} ) = @t if @t == 4;
-    
+
     my ($o, $u_opt) = $self->_parse_options($errb_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     unless( $self->held() ) {
@@ -4899,23 +4899,23 @@ EOD
 	{
 	  $axis = $d{$ax};
 	  $range = uc $ax . 'range';
-	  
+
 	  # user may have specified range limits already; pull them in
-	  ($axis->{min},$axis->{max}) = @{$o->{$range}} 
+	  ($axis->{min},$axis->{max}) = @{$o->{$range}}
  	  if ref $o->{$range} eq 'ARRAY';
-	  
+
 	  # skip if user specified range limits
 	  unless ( exists $axis->{min} )
 	    {
 	      my ( $min, $max );
-	      
+
 	      # symmetric error bars
 	      if ( defined $axis->{err} )
 		{
 		  $min = min( $axis->{data} - $axis->{err} );
 		  $max = max( $axis->{data} + $axis->{err} );
 		}
-	      
+
 	      # assymetric error bars
 	      else
 		{
@@ -4924,26 +4924,26 @@ EOD
 		    {
 		      $min = min( $axis->{data} - $axis->{loerr} );
 		    }
-		  
+
 		  # hi error bar specified
 		  if ( defined $axis->{hierr} )
 		    {
 		      $max = max( $axis->{data} + $axis->{hierr} );
 		    }
-		}	  
-	      
+		}
+
 	      # handle the case where there is no error bar.
 	      $min = $axis->{data}->min unless defined $min;
 	      $max = $axis->{data}->max unless defined $max;
-	      
+
 	      # default range for infinitesimal data range
 	      if ($min == $max) { $min -= 0.5; $max += 0.5; }
-	      
+
 	      $axis->{min} = $min;
 	      $axis->{max} = $max;
 	    }
 	}
- 
+
        $self->initenv( $d{x}{min}, $d{x}{max}, $d{y}{min}, $d{y}{max}, $opt );
     }
 
@@ -5046,7 +5046,7 @@ sub tline {
   unless ( $self->held() ) {
     my ($o, $u_opt) = $self->_parse_options($line_options,$opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
-    
+
     # use Data::Dumper;
     # print Dumper $o;
     # print Dumper $u_opt;
@@ -5054,7 +5054,7 @@ sub tline {
     my ($ymin, $ymax, $xmin, $xmax);
     # Make sure the missing value is used as the min or max value
     if (defined $o->{Missing} ) {
-      ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? 
+      ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
 	@{$o->{YRange}} : minmax($y->where($y != $o->{Missing}));
       ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
 	@{$o->{XRange}} : minmax($x->where($x != $o->{Missing}));
@@ -5073,7 +5073,7 @@ sub tline {
   }
   _tline($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
   $self->release unless $tmp_hold;
-  
+
   &release_signals;
 }
 
@@ -5129,7 +5129,7 @@ sub tpoints {
     my ($ymin, $ymax, $xmin, $xmax);
     # Make sure the missing value is used as the min or max value
     if (defined $o->{Missing} ) {
-      ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? 
+      ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
 	@{$o->{YRange}} : minmax($y->where($y != $o->{Missing}));
       ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
 	@{$o->{XRange}} : minmax($x->where($x != $o->{Missing}));
@@ -5167,83 +5167,83 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 
   #
   # lines: CED 17-Dec-2002
-  # 
+  #
   sub lines {
     my $self = shift;
-    
+
     if(!defined($line_options)) {
       $line_options = $self->{PlotOptions}->extend({Missing=>undef});
     }
     my($in,$opt) = _extract_hash(@_);
-    
+
     # Parse out the options and figure out which syntax is being used
-    # This is a pain to look at but the computer does it behind your back so 
+    # This is a pain to look at but the computer does it behind your back so
     # what do you care? --CED
     my($x,$y,$p);
-    
+
     if(@$in == 3) {
       release_and_barf "lines: inconsistent array refs in \$x,\$y,\$p call\n"
 	if((ref $in->[0] eq 'ARRAY') ^ (ref $in->[1] eq 'ARRAY'));
-      
-      ($x,$y) =   (ref $in->[0] eq 'ARRAY') ? 
+
+      ($x,$y) =   (ref $in->[0] eq 'ARRAY') ?
 	($in->[0],$in->[1]) : ([$in->[0]],[$in->[1]]);
-      
+
       $p = (ref $in->[2] eq 'ARRAY') ? $in->[2] : [$in->[2]];
     }
     elsif(@$in == 2) { # $xy, $p  or $x,$y (no-$p)
       my($a) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
       my($b) = (ref $in->[1] eq 'ARRAY') ? $in->[1] : [$in->[1]];
-      
+
       release_and_barf " lines: \$xy must be a piddle\n"
 	unless(UNIVERSAL::isa($a->[0],'PDL'));
-      
-      if(  ( ref $in->[0] ne ref $in->[1] ) ||   
+
+      if(  ( ref $in->[0] ne ref $in->[1] ) ||
 	   ( ! UNIVERSAL::isa($b->[0],'PDL') ) ||
 	   ( $a->[0]->ndims > $b->[0]->ndims )
 	   ) { # $xy, $p case -- split $xy into $x and $y.
-	
+
 	foreach $_(@$a){
 	  push(@$x,$_->((0)));
 	  push(@$y,$_->((1)));
 	}
 	$p = $b;
-	
+
       } else {  # $x,$y,(omitted $p) case -- make default $p.
 	$x = $a;
 	$y = $b;
 	$p = [1];
       }
     }
-    
-    elsif(@$in == 1) { # $xyp or $xy,(omitted $p) case 
+
+    elsif(@$in == 1) { # $xyp or $xy,(omitted $p) case
       my($a) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
-      
+
       foreach $_(@$a) {
 	push(@$x,$_->((0)));
 	push(@$y,$_->((1)));
 	push(@$p, ($_->dim(0) >= 3) ? $_->((2)) : 1);
       }
     }
-    
+
     else {
       release_and_barf " lines: ".scalar(@$in)." is not a valid number of args\n";
     }
 
-    release_and_barf "lines: x and y lists have different numbers of elements" 
+    release_and_barf "lines: x and y lists have different numbers of elements"
       if($#$x != $#$y);
 
     release_and_barf "lines: \$o->\{Missing\} must be an array ref if specified\n" if (defined $o->{Missing} && ref $o->{Missing} ne 'ARRAY');
-    
+
     ##############################
     # Now $x, $y, and $p all have array refs containing their respective
     # vectors.  Set up pgplot (copy-and-pasted from line; this is probably
     # the Wrong thing to do -- we probably ought to call line directly).
     #
     &catch_signals;
-    
+
     $opt = {} unless defined($opt);
     my($o,$u_opt) = $self->_parse_options($line_options,$opt);
-    
+
     $self->_check_move_or_erase($o->{Panel},$o->{Erase});
 
     my $held = $self->held();
@@ -5255,10 +5255,10 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 				     zeroes(scalar(@$y))
 				     );
       my $thunk = sub {
-	my($range) = shift; 
+	my($range) = shift;
 	my($vals,$missing,$min,$max,$pp) = @_;
-	if(ref $range eq 'ARRAY') { 
-	    $min .= $range->[0]; 
+	if(ref $range eq 'ARRAY') {
+	    $min .= $range->[0];
 	    $max .= $range->[1];
 	    return;
 	}
@@ -5282,10 +5282,10 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       $xmax = $xmax->max;
       $ymin = $ymin->min;
       $ymax = $ymax->max;
-      
+
       if($xmin==$xmax) { $xmin -= 0.5; $xmax += 0.5; }
       if($ymin==$ymax) { $ymin -= 0.5; $ymax += 0.5; }
-      
+
       print "lines: xmin=$xmin; xmax=$xmax; ymin=$ymin; ymax=$ymax\n"
 	if($PDL::verbose);
       $self->initenv($xmin,$xmax,$ymin,$ymax,$opt);
@@ -5309,9 +5309,9 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 
       $pp = pdl($pp) unless UNIVERSAL::isa($pp,'PDL');
 
-      $pp = zeroes($xx)+$pp 
+      $pp = zeroes($xx)+$pp
 	if($pp->nelem == 1);
-      
+
       $pp = $pp->copy; # Make a duplicate to scribble on
       $pp->(0:-2) *= ($xx->(0:-2) + $xx->(1:-1))->isfinite;
       $pp->(0:-2) *= ($yy->(0:-2) + $yy->(1:-1))->isfinite;
@@ -5327,9 +5327,9 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	      my $top = $pos+$rl;   $top-- if($top == $xx->dim(0));
 	      my $x0 = float $xx->($pos:$top);
 	      my $y0 = float $yy->($pos:$top);
-	      
+
 	      $self->_set_colour(abs($pv)*(defined $o->{Colour} ? $o->{Colour}:1));
-	      
+
 	      ($x0,$y0) = $self->checklog($x0,$y0) if $self->autolog;
 
 	      if($pv > 0) {
@@ -5337,25 +5337,25 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	      } else {
 		  pgslw(1);
 	      }
-		  
+
 	      if(defined($miss)) {
 		  my $mpt = defined $miss ? $miss->($pos:$top) : undef;
 		  pggapline($x0->nelem,$miss->($pos:$top),$x0->get_dataref, $y0->get_dataref);
 	      } else {
 		  pgline($x0->nelem,$x0->get_dataref,$y0->get_dataref,);
 	      }
-	      
+
 	      $self->hold() unless $hh++;
 	  }
-	  
+
 	  $pos += $rl;
 	  $run++;
       } # end of within-piddle polyline loop
   } # end of array ref loop
-    
+
     pgslw($lw); # undo incredible shrinking line width$
 
-    $self->release() unless($held);    
+    $self->release() unless($held);
     $self->_restore_status();
     $self->_add_to_state(\&lines,$in,$opt);
 
@@ -5383,7 +5383,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       if (!$is_1D) {
 	$is_2D = $self->_checkarg($y,2,undef,1);
 	release_and_barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
-	
+
 	# Ok, let us use the threading possibility.
 	$self->tline(@$in, $opt);
 
@@ -5406,7 +5406,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       # Make sure the missing value is used as the min or max value.
       # Also, do autoscaling but avoid infinities.
       my ($ymin, $ymax, $xmin, $xmax);
-      
+
       # Thunk for finding max and min X and Y ranges
       my($thunk) = sub {
 	my($range) = shift;  return @{$range} if(ref $range eq 'ARRAY');
@@ -5459,7 +5459,7 @@ sub arrow {
   release_and_barf 'Usage: arrow($x1, $y1, $x2, $y2 [, $options])' if $#$in != 3;
 
   my ($x1, $y1, $x2, $y2)=@$in;
-  
+
   &catch_signals;
 
   my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
@@ -5502,7 +5502,7 @@ sub arrow {
       if (!$is_1D) {
 	$is_2D = $self->_checkarg($y,2,undef,1);
 	release_and_barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
-	
+
 	# Ok, let us use the threading possibility.
 	$self->tpoints(@$in, $opt);
 	return;
@@ -5551,9 +5551,9 @@ sub arrow {
       # Set symbol if specified in the options hash.
       ## $sym ||= $o->{Symbol};
       $sym = $o->{Symbol} unless defined $sym;
-      
+
       $self->_checkarg($sym,1); my $ns = nelem($sym); $sym = long($sym);
-      
+
       pgpnts($n, $x->get_dataref, $y->get_dataref, $sym->get_dataref, $ns);
 
     }
@@ -5574,7 +5574,7 @@ sub arrow {
 # - since this can be called from imag() as well as by the user,
 #   we make all parameters defined as options
 #
-#   Wedge => { 
+#   Wedge => {
 #              Side         => one of B L T R,
 #              Displacement => default = 2,
 #              Width        => default = 3,
@@ -5582,11 +5582,11 @@ sub arrow {
 #              Label        => default ''
 #            }
 #
-# - uses horrible _store()/_retrieve() routines, which need to 
+# - uses horrible _store()/_retrieve() routines, which need to
 #   know (but don't) about changing window focus/erasing/...
 #
 # Want to be able to specify a title (optional)
-# - also, by default want to use the axes colour/size, but want to be able to 
+# - also, by default want to use the axes colour/size, but want to be able to
 #   over-ride this
 #
 # initial version by Doug Burke (11/20/00 ish)
@@ -5597,7 +5597,7 @@ sub arrow {
     sub draw_wedge {
 	my $self = shift;
 	if ( !defined($wegde_options) ) {
-	    $wedge_options = 
+	    $wedge_options =
 		$self->{PlotOptions}->extend({
 		    Side => 'R',
 		    Displacement => 1.5,
@@ -5677,7 +5677,7 @@ sub arrow {
 # The longish routine '_imag' handles the meat and potatoes of the setup,
 # but hands off the final plot to the PGPLOT routines pgimag() or pgrgbi().
 # It expects a ref to the appropriate function to be passed in.  The
-# userland methods 'imag' and 'rgbi' are just trampolines that call _imag 
+# userland methods 'imag' and 'rgbi' are just trampolines that call _imag
 # with the appropriate function ref.
 #
 # This gets pretty sticky for fits_imag, which is itself a trampoline for
@@ -5694,7 +5694,7 @@ sub arrow {
   # user to set global defaults when opening a new window.
   #
   #
-  # 
+  #
 
   my $im_options = undef;
 
@@ -5716,8 +5716,8 @@ sub arrow {
     }
 
     ##############################
-    # Unwrap first two arguments:  the PGPLOT call and the 
-    # dimensions of the image variable (2 or 3 depending 
+    # Unwrap first two arguments:  the PGPLOT call and the
+    # dimensions of the image variable (2 or 3 depending
     # on whether this is called by imag or rgbi)
     my $pgcall = shift;
     my $image_dims = shift;
@@ -5731,8 +5731,8 @@ sub arrow {
 
     ##########
     # Default to putting tick marks outside the box, so that you don't
-    # scrozzle images.  
-    
+    # scrozzle images.
+
     $o->{Axis} = 'BCINST'
       unless (defined($opt->{Axis}) || ($o->{Axis} ne 'BCNST'));
 
@@ -5768,7 +5768,7 @@ sub arrow {
 	if( ref ($opt->{$name}) ne 'ARRAY' );
       ($$min,$$max) = @{$opt->{$name}} if defined($min);
     } unless(defined $checker);
-  
+
     &$checker("Range",  $u_opt,  \$min,  \$max);
     &$checker("CRange", $u_opt, \$cmin, \$cmax);
     &$checker("XRange", $u_opt);
@@ -5776,7 +5776,7 @@ sub arrow {
 
     $min = min($image) unless defined $min;
     $max = max($image) unless defined $max;
-      
+
     if (defined($tr)) {
 	$self->_checkarg($tr,1);
 	release_and_barf '$transform incorrect' if nelem($tr)!=6;
@@ -5787,27 +5787,27 @@ sub arrow {
 
 
     &catch_signals;
-    
+
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     $self->initenv( _image_xyrange($tr,$nx,$ny,$o), $o );
 
 
     #
-    # Commented out, CED, 5-Dec-2003 -- 
+    # Commented out, CED, 5-Dec-2003 --
     # this is handled by redraw_axes, at the bottom.
     #
     #if (!$self->held()) {
     #  # Label axes if necessary
-    #  if(defined ($u_opt->{Title} || 
-    #		  $u_opt->{XTitle} || 
+    #  if(defined ($u_opt->{Title} ||
+    #		  $u_opt->{XTitle} ||
     #		  $u_opt->{YTitle})) {
     #	$self->label_axes($u_opt->{XTitle},
     #			  $u_opt->{YTitle},
     #			  $u_opt->{Title},
     #			  $u_opt);
     #  }
-    # } 
+    # }
 
     pgsitf( $itf );
     my ($i1, $i2);
@@ -5822,13 +5822,13 @@ sub arrow {
 
 
     # Disable PS pggray output because the driver is busted in pgplot-2.3
-    # (haven't tested later versions). pgimag seems to work OK for that 
+    # (haven't tested later versions). pgimag seems to work OK for that
     # output tho'.
     if ($c2-$c1<16 || $self->{Device} =~ /^v?ps$/i) {
-      print STDERR "_imag: Under 16 colors available; reverting to pggray\n" 
+      print STDERR "_imag: Under 16 colors available; reverting to pggray\n"
 	if($PDL::debug || $PDL::verbose);
-      pggray( $image->get_dataref, 
-	      $nx,$ny,1,$nx,1,$ny, $min, $max, 
+      pggray( $image->get_dataref,
+	      $nx,$ny,1,$nx,1,$ny, $min, $max,
 	      $tr->get_dataref);
       $self->_store( imag => { routine => "G", min => $min, max => $max } );
     } else {
@@ -5836,8 +5836,8 @@ sub arrow {
 
       pgscir($c1,$c2);
 
-      &$pgcall( $image->get_dataref, 
-	      $nx,$ny,1,$nx,1,$ny, $min, $max, 
+      &$pgcall( $image->get_dataref,
+	      $nx,$ny,1,$nx,1,$ny, $min, $max,
 	      $tr->get_dataref);
 
       pgscir($i1,$i2);
@@ -5865,7 +5865,7 @@ sub arrow {
 
 ######################################################################
 # Here are the `top-level' imaging routines -- they call _imag to get
-# the job done.  
+# the job done.
 
 
 ##########
@@ -5891,7 +5891,7 @@ sub imag {
 sub imag1 {
   my $self = shift;
   my ($in,$opt)=_extract_hash(@_);
-  
+
   if (!defined($im_options)) {
     $im_options = $self->{PlotOptions}->extend({
       Min => undef,
@@ -5904,11 +5904,11 @@ sub imag1 {
       Justify => 1
       });
   }
-  
+
   # Let us parse the options if any.
   $opt = {} if !defined($opt);
   my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
-  
+
   release_and_barf 'Usage: imag1 ( $image, [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
   $o->{Pix} = 1 unless defined($o->{Pix});
   $self->imag (@$in,$o);
@@ -6032,7 +6032,7 @@ sub rgbi {
 	}
 
 	$opt2{Align} = 'CC' unless defined($opt2{Align});
-	$opt2{DrawWedge} = 1 unless defined($opt2{DrawWedge}); 
+	$opt2{DrawWedge} = 1 unless defined($opt2{DrawWedge});
 
 	my $min  = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
 	my $max  = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
@@ -6042,9 +6042,9 @@ sub rgbi {
 	# I am assuming here that CUNIT1<A-Z> is a valid keyword for
 	# 'alternative' WCS mappings (DJB)
 	#
-	$opt2{Pix}=1.0 
+	$opt2{Pix}=1.0
 	    if( (!defined($opt2{Justify}) || !$opt2{Justify}) &&
-		(!defined($opt2{Pix})) && 
+		(!defined($opt2{Pix})) &&
 		( $hdr->{"CUNIT1$wcs"} ?
 		  ($hdr->{"CUNIT1$wcs"} eq $hdr->{"CUNIT2$wcs"}) :
 		  ($hdr->{"CTYPE1$wcs"} eq $hdr->{"CTYPE2$wcs"})
@@ -6053,7 +6053,7 @@ sub rgbi {
 
 	my $o2 = \%opt2;
 
-	my $cmdstr =   '$pane->' . $cmd . 
+	my $cmdstr =   '$pane->' . $cmd .
 	    '($pdl,' . (scalar(@rest) ? '@rest,' : '') .
 	    '$o2);';
 
@@ -6067,11 +6067,11 @@ sub rgbi {
 	  $s =~ s/\%t/$typ/;
 	  $s;
 	};
-	
+
 	$pane->label_axes(
-			  $opt->{XTitle} || 
+			  $opt->{XTitle} ||
 			  &$mkaxis($hdr->{"CTYPE1$wcs"},$hdr->{"CUNIT1$wcs"}),
-			  $opt->{YTitle} || 
+			  $opt->{YTitle} ||
 			  &$mkaxis($hdr->{"CTYPE2$wcs"},$hdr->{"CUNIT2$wcs"}),
 			  $opt->{Title}, $opt
 			  );
@@ -6199,7 +6199,7 @@ EOD
 
     &catch_signals;
 
-    focus( $self ); 
+    focus( $self );
 
     pgctab( $levels->get_dataref, $red->get_dataref, $green->get_dataref,
 	    $blue->get_dataref, $n, $contrast, $brightness );
@@ -6279,7 +6279,7 @@ EOD
 
     $self->_restore_status();
     $self->_add_to_state(\&hi2d, $in, $opt);
-    
+
     &release_signals;
     1;
   }
@@ -6431,7 +6431,7 @@ sub tcircle {
 
     &catch_signals;
 
-    my $o = _thread_options($x->nelem,$opt); 
+    my $o = _thread_options($x->nelem,$opt);
     my $tmp_hold = $self->held();
 
     unless ( $self->held() ) {
@@ -6441,7 +6441,7 @@ sub tcircle {
     my ($ymin, $ymax, $xmin, $xmax);
 
     if ( defined $o->{Missing} ) {
-	($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? 
+	($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
 	    @{$o->{YRange}} : minmax($y->where($y != $o->{Missing}));
 	($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
 	    @{$o->{XRange}} : minmax($x->where($x != $o->{Missing}));
@@ -6464,7 +6464,7 @@ sub tcircle {
 
 }
 
-PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2', 
+PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
    PDL::over {
      my ($x,$y,$r,$ind,$self,$opt)=@_;
      $self->circle($x,$y,$r,$opt->[$ind->at(0)] || {} );
@@ -6662,7 +6662,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
     $self->_add_to_state(\&vect, $in, $opt);
-    
+
     &release_signals;
     1;
   }
@@ -6696,7 +6696,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
     # Extract the options hash and separate it from the other input
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
-    release_and_barf 'Usage: text ($text, $x, $y, [,$opt])' if 
+    release_and_barf 'Usage: text ($text, $x, $y, [,$opt])' if
       (!defined($opt) && $#$in < 2) || ($#$in > 3) || ($#$in < 0);
     my ($text, $x, $y)=@$in;
 
@@ -7069,7 +7069,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
 		       $o->{YRef}, $x, $y, $ch);
 
     $self->_add_to_state(\&cursor, [], $opt);
-    
+
     &release_signals;
     return ($x, $y, $ch, $o->{XRef}, $o->{YRef});
 
