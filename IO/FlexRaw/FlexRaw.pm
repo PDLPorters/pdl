@@ -6,18 +6,18 @@ PDL::IO::FlexRaw -- A flexible binary I/O format for PerlDL
 
     use PDL;
     use PDL::IO::FlexRaw;
-    
+
     # To obtain the header for reading (if multiple files use the
     # same header, for example):
     #
     $hdr = PDL::IO::FlexRaw::_read_flexhdr("filename.hdr")
-    
+
     ($x,$y,...) = readflex("filename" [, $hdr])
     ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
-    
+
     $hdr = writeflex($file, $pdl1, $pdl2,...)
     writeflexhdr($file, $hdr)
-    
+
     # if $PDL::IO::FlexRaw::writeflexhdr is true and
     #    $file is a filename, writeflexhdr() is called automatically
     #
@@ -109,11 +109,11 @@ to a single file -- e.g.
 
     use PDL;
     use PDL::IO::FlexRaw;
-    
+
     @pdls = ($pdl1, $pdl2, ...);
     $hdr = writeflex("fname",@pdls);
     @pdl2 = readflex("fname",$hdr);
-    
+
     writeflexhdr("fname",$hdr);  # not needed if $PDL::IO::FlexRaw::writeflexhdr is set
     @pdl3 = readflex("fname");
 
@@ -138,13 +138,13 @@ volume, as in the following example:
 
     use PDL;
     use PDL::IO::FastRaw;
-    
+
     open(DATA, "raw3d.dat");
     binmode(DATA);
-    
+
     # assume we know the data size from an external source
     ($width, $height, $data_size) = (256,256, 4);
-    
+
     my $slice_num = 64;   # slice to look at
     # Seek to slice
     seek(DATA, $width*$height*$data_size * $slice_num, 0);
@@ -203,7 +203,7 @@ Read a binary file with flexible format specification
 =for usage
 
     Usage:
-    
+
     ($x,$y,...) = readflex("filename" [, $hdr])
     ($x,$y,...) = readflex(FILEHANDLE [, $hdr])
 
@@ -217,7 +217,7 @@ Write a binary file with flexible format specification
 =for usage
 
     Usage:
-    
+
     $hdr = writeflex($file, $pdl1, $pdl2,...) # or
     $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
     # now you must call writeflexhdr()
@@ -226,7 +226,7 @@ Write a binary file with flexible format specification
 or
 
     $PDL::IO::FlexRaw::writeflexhdr = 1;  # set so we don't have to call writeflexhdr
-    
+
     $hdr = writeflex($file, $pdl1, $pdl2,...)  # remember, $file must be filename
     writeflex($file, $pdl1, $pdl2,...)         # remember, $file must be filename
 
@@ -239,7 +239,7 @@ Write the header file corresponding to a previous writeflex call
 =for usage
 
     Usage:
-    
+
     writeflexhdr($file, $hdr)
 
     $file or "filename" is the filename used in a previous writeflex
@@ -258,13 +258,13 @@ Memory map a binary file with flexible format specification
 =for usage
 
     Usage:
-    
+
     ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
 
 =for options
 
     All of these options default to false unless set true:
-  
+
     ReadOnly - Data should be readonly
     Creat    - Create file if it doesn't exist
     Trunc    - File should be truncated to a length that conforms
@@ -277,7 +277,7 @@ Read a FlexRaw header file and return a header structure.
 =for usage
 
     Usage:
-    
+
     $hdr = PDL::IO::FlexRaw::_read_flexhdr($file)
 
 Note that C<_read_flexhdr> is supposed to be an internal function.  It
@@ -312,7 +312,7 @@ reference the current C<$hdr> looks like this:
              BadFlag => 1,      # is set/set badflag
              BadValue => undef, # undef==default
            };
-    
+
     $badpdl = readflex('badpdl', [$hdr]);
 
 If you use bad values and try the new L<PDL::IO::FlexRaw|PDL::IO::FlexRaw> bad value
@@ -502,7 +502,7 @@ sub mapchunk {
     # print "linking $len bytes from $offset\n";
     $pdl->set_data_by_offset($orig,$offset);
     local ($flexmapok)=1;
-    local $SIG{BUS} = \&myhandler;
+    local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;
     local $SIG{FPE} = \&myhandler;
     eval {$pdl->clump(-1)->at(0)};
     $offset += $len;
@@ -521,7 +521,7 @@ sub readflex {
     # Test if $name is a file handle
     if (defined fileno($name)) {
 		$d = $name;
-		binmode($d); 
+		binmode($d);
     }
     else {
 		if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
