@@ -2,7 +2,8 @@ The following issues have been reported with this version of PDL:
 
 
 - Multiple subtest failures in t/gd_oo_tests.t have been
-  seen in CPAN Testers reports.
+  seen in CPAN Testers reports, they appear to be on 64bit
+  BSD operating systems compiled for AMD processors.
 
 
 - A change in perl-5.14 on how the 'x' operator works affects
@@ -31,7 +32,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
-  don't work the same with the perl's new "safe signals".  A
+  doesn't work the same with the perl's new "safe signals".  A
   workaround to the problem is to set the PERL_SIGNALS environment
   variable to "unsafe".  See sf.net feature request #3308168
   for details and any future status.
@@ -59,10 +60,10 @@ The following issues have been reported with this version of PDL:
   around is 100% effective---but ugly.
 
 
-- Changes in perl-5.16.x break some existing PDL usage of lvalue
-  subs for this release.  It is planned to incorporate the needed
-  fixes in the next PDL release.  See the perldl mailing list
-  for status updates and other announcements.
+- Changes in perl-5.16.x may break some existing PDL usage of
+  lvalue subs for this release.  It appears that the issue may
+  have been avoided upstream by the perl developer.  Need to 
+  check.
 
 
 - Multiline q'' constructs in the pdl2 shell now work correctly
@@ -120,13 +121,19 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.10_004 release:
+  PDL-2.4.10_005 release:
 
+  3524081    t/inline-comment.t subtest 3 fails for cygwin
+  3518190    t/gd_oo_tests.t fails for AMD64
+  3516600    pdl_from_string.t fails w/ BADVAL_USENAN=1
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3503566    pdl2 enters infinite loop on DWIMPerl
   3479009    Slice does not like whitespace
   3476648    PDL build of HTML docs fails on recent bleed Perl
+
+               Believed to be fixed as of PDL-2.4.10_005
+
   3475075    t/pic_16bit.t subtest fails
   3465663    perldl.conf OPTIMIZE option doesn't work
   3460886    t/flexraw_fortran.t test failures

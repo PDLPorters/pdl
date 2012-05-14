@@ -52,8 +52,8 @@ PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
 Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
                                           PP code inline in your scripts.
 
-                                          NOTE: Inline is listed as as PDL
-                                          prerequisite for CPAN, you can
+                                          NOTE: Though Inline is listed as as
+					  PDL prerequisite for CPAN, you can
                                           build PDL manually without it.
 
 
