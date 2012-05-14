@@ -23,8 +23,10 @@ BEGIN {
    eval 'use Inline (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1)';
    if ( ! $@ ) {       # have Inline
       eval 'use Inline 0.43';
-      if ( ! $@ ) {
+      if ( ! $@ and $^O !~  /(bsd|dragonfly)$/i ) {
          plan tests => 3;
+      } else {
+         plan skip_all => "Known problem: sf.net bug #3518190, t/inline-comment-test.t fails for BSD";
       }
    }
    else {
