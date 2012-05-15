@@ -14,7 +14,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw(
-	limits 
+	limits
 );
 
 our $VERSION = '0.01';
@@ -40,12 +40,12 @@ sub set_mask
 {
   my ( $mask, $data ) = @_;
 
-  if ( $PDL::Bad::Status ) 
+  if ( $PDL::Bad::Status )
   {
     my $badflag = $data->badflag();
     $data->badflag(1);
 
-    $mask .= $PDL::Bad::UseNaN ? (! $data->isbad ) : ( $data->isfinite & ! $data->isbad ); 
+    $mask .= $PDL::Bad::UseNaN ? (! $data->isbad ) : ( $data->isfinite & ! $data->isbad );
 
     $data->badflag($badflag);
   } else
@@ -105,8 +105,8 @@ sub set_mask
 	   "inconsistent number of elements",
 	   "expected $n, got ", $vec->{$_}->nelem, "\n" )
 	foreach
-	  grep { exists $vec->{$_} && 
-		   defined $vec->{$_} && 
+	  grep { exists $vec->{$_} &&
+		   defined $vec->{$_} &&
 		     $vec->{$_}->nelem != $n }
 	    qw( data en ep );
     }
@@ -267,9 +267,9 @@ sub round_pow
 
     $what = $flip{$what} if $x < 0 ;
 
-    $ilog-- 
+    $ilog--
       if ( $xlog <= 0 && ( 'down' eq $what || $xlog != $ilog ) )
-	|| 
+	||
 	  ( $xlog >  0 && 'down' eq $what && $xlog == $ilog ) ;
 
     my $pwr = 10 ** $ilog;
@@ -282,6 +282,8 @@ sub round_pow
       $i = 2 if $frac < $nice[2];
       $i = 1 if $frac < $nice[1];
       $i = 0 if $frac < $nice[0];
+      my $t = ( $x < 0 ? -1 : 1 ) * $pwr * $nice[$i];
+      if(abs($t - $x) < 0.0000001) {$i++}
     }
 
     elsif ( 'down' eq $what )
@@ -329,7 +331,7 @@ sub setup_multi
 # normalize_dsets
 #
 # transform the user's heterogeneous list of data sets into a regular
-# list of data sets, each with the form 
+# list of data sets, each with the form
 #  { Vectors => \@vectors }
 # where each vector is a hashref with the following keys:
 #   { data => $data,
@@ -355,8 +357,8 @@ sub normalize_dsets
     # scalar or piddle, turn it into its own data set
     if ( ! $ref || UNIVERSAL::isa($ds, 'PDL') )
     {
-      push @dsets, 
-	PDL::Graphics::Limits::DSet->new( $attr->{Min}, $attr->{Max}, 
+      push @dsets,
+	PDL::Graphics::Limits::DSet->new( $attr->{Min}, $attr->{Max},
 			    { data => PDL::Core::topdl( $ds ) } );
     }
 
@@ -404,7 +406,7 @@ sub normalize_dsets
 
 # array refs in data set lists may be just a plain ol' data set, or
 # it may contain a bunch of other stuff.  here we deal with a single
-# array ref.  we tear it apart and (re)build data sets. 
+# array ref.  we tear it apart and (re)build data sets.
 sub normalize_array
 {
   my ( $dsets, $attr, $aref ) = @_;
@@ -459,15 +461,15 @@ sub normalize_array
       for my $vec ( @$aref )
       {
 	my $ref = ref $vec;
-	
+
 	eval
 	{
 	  # naked scalar or piddle: data vector with no attributes
 	  if ( ! $ref || UNIVERSAL::isa($vec, 'PDL') )
 	  {
-	    push @vecs, { data => PDL::Core::topdl( $vec ) }; 
+	    push @vecs, { data => PDL::Core::topdl( $vec ) };
 	  }
-	
+
 	  # array: data vector with attributes
 	  elsif ( 'ARRAY' eq $ref )
 	  {
@@ -486,8 +488,8 @@ sub normalize_array
 	  die( 'vector ', @vecs+1, ": $@\n" );
 	}
       }
-	
-      push @$dsets, 
+
+      push @$dsets,
 	PDL::Graphics::Limits::DSet->new( $attr->{Min}, $attr->{Max}, @vecs )
 	    if @vecs;
     }
@@ -507,7 +509,7 @@ sub normalize_array_vec
 {
   my ( $vec ) = @_;
 
-  # we should have 
+  # we should have
   #  [ $data, [ $err | $err_n, $err_p ], [ \&func ] ]
 
   my @el = @$vec;
@@ -553,7 +555,7 @@ sub normalize_array_vec
 #####################################################################
 
 # this takes a hash and a hash key spec and generates a regularized
-# data set array of the form 
+# data set array of the form
 # [ { data => $data, ep => ..., en => ..., trans => }, ... ]
 sub normalize_hash_dset
 {
@@ -879,7 +881,7 @@ sub limits
     VecKeys => [],
     KeyCroak => 1,
     Limits => [],
-    Trans => [],			
+    Trans => [],
   }, $attr );
 
   # turn Trans and VecKeys into arrays if necessary; may be scalars for 1D
@@ -1143,14 +1145,14 @@ errors:
 
   %ds1 = ( x => $x, xnerr => $xn, xperr => $xp,
            y => $y );
-  limits( [ \%ds1 ], { VecKeys => [ 'x <xnerr >xperr', 'y' ] } ); 
+  limits( [ \%ds1 ], { VecKeys => [ 'x <xnerr >xperr', 'y' ] } );
 
 For one-sided error bars, specify a column just for the side to
 be plotted:
 
   %ds1 = ( x => $x, xnerr => $xn,
            y => $y, yperr => $yp );
-  limits( [ \%ds1 ], { VecKeys => [ 'x <xnerr', 'y >yperr' ] } ); 
+  limits( [ \%ds1 ], { VecKeys => [ 'x <xnerr', 'y >yperr' ] } );
 
 
 Data in hashes with different keys follow the same paradigm:
@@ -1223,7 +1225,7 @@ set transformations, the latter will override it.  To explicitly
 indicate that a specific data set element has no transformation
 (normally only needed if C<Trans> is used to specify a default) set
 the transformation subroutine reference to C<undef>.  In this case,
-the entire quad of data element, negative error, positive error, and 
+the entire quad of data element, negative error, positive error, and
 transformation subroutine must be specified to avoid confusion:
 
   [ $x, $xn, $xp, undef ]
@@ -1238,7 +1240,7 @@ of keys, preceded by the C<&> character:
   %ds1 = ( x => $x, xerr => $xerr, xtrans => \&log10,
            y => $y, yerr => $yerr );
 
-  limits( [ \%ds1, \%ds2 ], 
+  limits( [ \%ds1, \%ds2 ],
          { VecKeys => [ 'x =xerr &xtrans',  'y =yerr' ] });
   limits( [ \%ds1 => 'x =xerr &xtrans', 'y =yerr' ] );
 
@@ -1253,11 +1255,11 @@ element, the latter will take precedence.  For example,
   limits( [ \%ds1 ], { Trans => [ \&exp ] });
 
   # resolves to sqrt
-  limits( [ \%ds1 ], { Trans => [ \&exp ], 
+  limits( [ \%ds1 ], { Trans => [ \&exp ],
                       VecKeys => [ 'x =xerr &trans2' ] });
 
   # resolves to log10
-  limits( [ \%ds1 => '&trans1' ], { Trans => [ \&exp ], 
+  limits( [ \%ds1 => '&trans1' ], { Trans => [ \&exp ],
                                    VecKeys => [ 'x =xerr &trans2' ] });
 
 
@@ -1321,7 +1323,7 @@ the bounds (determined above) by a fractional amount:
     $max = $axis->{max} + $expand;
 
 The fraction may be specified in the C<%attr> hash with the
-C<RangeFrac> key.  It defaults to C<0.05>.  
+C<RangeFrac> key.  It defaults to C<0.05>.
 
 Because this is a symmetric expansion, a limit of C<0.0> may be
 transformed into a negative number, which may be inappropriate.  If
@@ -1436,13 +1438,13 @@ but there are data sets which don't have the data and you'd rather
 not have to explicitly indicate that, set the C<KeyCroak> attribute
 to zero.  For example,
 
-  limits( [ { x => $x }, { x => $x1, xerr => $xerr } ], 
+  limits( [ { x => $x }, { x => $x1, xerr => $xerr } ],
          { VecKeys => [ 'x =xerr' ] } );
 
 will generate an error because the first data set does not have
 an C<xerr> key.  Resetting C<KeyCroak> will fix this:
 
-  limits( [ { x => $x }, { x => $x1, xerr => $xerr } ], 
+  limits( [ { x => $x }, { x => $x1, xerr => $xerr } ],
          { VecKeys => [ 'x =xerr' ], KeyCroak => 0 } );
 
 
