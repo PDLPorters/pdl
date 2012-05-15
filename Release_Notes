@@ -42,7 +42,7 @@ Highlights:
    force automated testing so an automated build will need
    this dependency installed.
    
-   However, or systems having POSIX mmap, a manual build
+   However, for systems having POSIX mmap, a manual build
    will automatically use the legacy implementation.
 
  * Various cleanup to existing code to fix warnings generated
