@@ -3,7 +3,9 @@ The following issues have been reported with this version of PDL:
 
 - Multiple subtest failures in t/gd_oo_tests.t have been
   seen in CPAN Testers reports, they appear to be on 64bit
-  BSD operating systems compiled for AMD processors.
+  BSD operating systems compiled for AMD processors.  Sf.net
+  bug #3518190 "t/gd_oo_tests.t fails for AMD64" tracks this
+  issue.
 
 
 - A change in perl-5.14 on how the 'x' operator works affects
@@ -20,8 +22,7 @@ The following issues have been reported with this version of PDL:
 
   Please see
   http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2012-February/004426.html
-  for a more detailed discussion and additional alternative
-  work-arounds.
+  for a more detailed discussion and additional work-arounds.
 
 
 - On MS Windows, perl 5.14 (and perhaps later), it is reported that
@@ -36,14 +37,6 @@ The following issues have been reported with this version of PDL:
   workaround to the problem is to set the PERL_SIGNALS environment
   variable to "unsafe".  See sf.net feature request #3308168
   for details and any future status.
-
-
-- The PDL build process checks for white space in the build
-  directory as that is known to cause problems for some modules
-  and asks you if you wish to continue [default is yes].
-
-  NOTE: You can avoid the interactive prompts by setting the
-  environment variable PERL_MM_USE_DEFAULT to true (e.g., 1).
 
 
 - The Perl debugger for perls 5.10.1 through 5.14.x has a new
@@ -62,8 +55,8 @@ The following issues have been reported with this version of PDL:
 
 - Changes in perl-5.16.x may break some existing PDL usage of
   lvalue subs for this release.  It appears that the issue may
-  have been avoided upstream by the perl developer.  Need to 
-  check.
+  have been avoided upstream by the perl developer and may be
+  fixed for the 5.16 release this May.
 
 
 - Multiline q'' constructs in the pdl2 shell now work correctly
