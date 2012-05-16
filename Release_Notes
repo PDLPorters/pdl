@@ -1,3 +1,71 @@
+Release Notes for PDL 2.4.11  -----------------------------
+
+General Notes:
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API and will require that you re-build all the    |
+ | PP modules.  Do not install over an existing PDL installation |
+ | unless you are prepared to do so!!!                           |
+ +---------------------------------------------------------------+
+
+ * TBD
+
+
+Highlights:
+
+ * A new implementation mapflex and mapfraw routines provides
+   memory-mapped IO for all platforms including win32 systems.
+
+ * The new memory mapped IO support is implemented using File::Map
+   so version 0.47 has been added as a required dependency to
+   force automated testing so an automated build will need
+   this dependency installed.
+   
+   However, for systems having POSIX mmap, a manual build
+   will automatically use the legacy implementation.
+
+ * Various cleanup to existing code to fix warnings generated
+   by perl versions 5.15.x and higher.
+ 
+    Remove deprecation warning in PGPLOT/Window/Window.pm
+    complex.pd - fix attempts to overload '<=>=' and '=>'
+
+ * Sf.net bugs fixed:
+
+    3487569  PDL::IO::Misc : rcols problem (thanks bperret!)
+    3518253  Make PDL::flat work under perl 5.16 (thanks sprout!)
+    3476648  PDL build of HTML docs fails on recent bleed Perl
+    
+ * Other bugs fixed:
+
+    Fixed pdl-from-string handling of inf/nan
+    Fix check for glutRunning logic for imag2d
+    Fixed a bug in cat's error reporting.
+    Added lvalue awareness to whereND
+
+ * Test suite improvements:
+
+    skip t/gd_oo_tests.t on BSD OS to avoid sf.net #3518190
+    skip t/inline-comment-test.t on BSD to avoid sf.net #3524081
+    Force $eps for approx() in t/limits_round.t
+    Updated tests for t/pdl-from-string.t for inf/nan handling
+    Avoid the fork() call in t/plplot.t for win32 only.
+    Made t/pp_line_numbers.t more robust
+    Added lvalue whereND tests to t/primitive.t
+
+ * New support for multiline comments in PP code.  See docs for
+   PDL::PP for details (e.g., pdldoc PP).
+    
+ * Various enhancements to barf/croak output and messages to make
+   error reports and stack traces more useful and readable.
+
+ * There is a new changes (or Changes) target for the PDL Makefile
+   which is a convenience target that allows one to regenerat the
+   Changes file from git.
+
+
+
 Release Notes for PDL 2.4.10_005 --------------------------
 
 General Notes:

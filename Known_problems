@@ -32,6 +32,12 @@ The following issues have been reported with this version of PDL:
   PDL::Graphics::PLplot separately.
 
 
+- Some versions of MinGW gcc (used to compile for win32 perls)
+  crash in compilation of large, PP-generated files.  The work-
+  around is to disable optimization for those file.  See the
+  INSTALL file for a hand fix.
+
+
 - The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
   doesn't work the same with the perl's new "safe signals".  A
   workaround to the problem is to set the PERL_SIGNALS environment
@@ -114,7 +120,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.10_005 release:
+  PDL-2.4.10_006 release:
 
   3524081    t/inline-comment.t subtest 3 fails for cygwin
   3518190    t/gd_oo_tests.t fails for AMD64
