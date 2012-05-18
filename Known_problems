@@ -1,6 +1,14 @@
 The following issues have been reported with this version of PDL:
 
 
+- Some systems have reported build failures that appear to be
+  a result of missing pthread_getspecific in library calls.
+  If you see this, please contact the perldl mailing list so
+  we can determine the origin of the probem and fix it.  A
+  workaround is to set WITH_POSIX_THREADS => 0, by editing
+  the perldl.conf file.
+
+
 - Multiple subtest failures in t/gd_oo_tests.t have been
   seen in CPAN Testers reports, they appear to be on 64bit
   BSD operating systems compiled for AMD processors.  Sf.net
@@ -128,11 +136,6 @@ The following issues have been reported with this version of PDL:
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3503566    pdl2 enters infinite loop on DWIMPerl
-  3479009    Slice does not like whitespace
-  3476648    PDL build of HTML docs fails on recent bleed Perl
-
-               Believed to be fixed as of PDL-2.4.10_005
-
   3475075    t/pic_16bit.t subtest fails
   3465663    perldl.conf OPTIMIZE option doesn't work
   3460886    t/flexraw_fortran.t test failures
