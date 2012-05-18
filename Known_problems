@@ -138,7 +138,6 @@ The following issues have been reported with this version of PDL:
   3503566    pdl2 enters infinite loop on DWIMPerl
   3475075    t/pic_16bit.t subtest fails
   3465663    perldl.conf OPTIMIZE option doesn't work
-  3460886    t/flexraw_fortran.t test failures
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl

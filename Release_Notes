@@ -54,14 +54,14 @@ Highlights:
     Made t/pp_line_numbers.t more robust
     Added lvalue whereND tests to t/primitive.t
 
- * New support for multiline comments in PP code.  See docs for
+ * New support for multi-line comments in PP code.  See docs for
    PDL::PP for details (e.g., pdldoc PP).
     
  * Various enhancements to barf/croak output and messages to make
    error reports and stack traces more useful and readable.
 
  * There is a new changes (or Changes) target for the PDL Makefile
-   which is a convenience target that allows one to regenerat the
+   which is a convenience target that allows one to regenerate the
    Changes file from git.
 
 
@@ -121,9 +121,10 @@ Highlights:
 
  * Sf.net bugs fixed:
 
-    3487569  PDL::IO::Misc : rcols problem (thanks bperret!)
-    3518253  Make PDL::flat work under perl 5.16 (thanks sprout!)
+    3460886  t/flexraw_fortran.t test failures
     3476648  PDL build of HTML docs fails on recent bleed Perl
+    3487569  PDL::IO::Misc::rcols problem (thanks bperret!)
+    3518253  Make PDL::flat work under perl 5.16 (thanks sprout!)
     
  * Other bugs fixed:
 
@@ -142,14 +143,14 @@ Highlights:
     Made t/pp_line_numbers.t more robust
     Added lvalue whereND tests to t/primitive.t
 
- * New support for multiline comments in PP code.  See docs for
+ * New support for multi-line comments in PP code.  See docs for
    PDL::PP for details (e.g., pdldoc PP).
     
  * Various enhancements to barf/croak output and messages to make
    error reports and stack traces more useful and readable.
 
  * There is a new changes (or Changes) target for the PDL Makefile
-   which is a convenience target that allows one to regenerat the
+   which is a convenience target that allows one to regenerate the
    Changes file from git.
 
 
