@@ -128,11 +128,11 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.10_006 release:
+  PDL-2.4.11 release:
 
+  3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
   3524081    t/inline-comment.t subtest 3 fails for cygwin
   3518190    t/gd_oo_tests.t fails for AMD64
-  3516600    pdl_from_string.t fails w/ BADVAL_USENAN=1
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3503566    pdl2 enters infinite loop on DWIMPerl
