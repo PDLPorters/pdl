@@ -13,7 +13,7 @@ BEGIN {
 };
 
 ## TODO: {  # I think this has been fixed
-   local $TODO = 'Needs to use approx() for float tests';
+## local $TODO = 'Needs to use approx() for float tests';
 
    $x1 = pdl( 1, 2, 3 );
    $x2 = pdl( 2, 3, 4 );
