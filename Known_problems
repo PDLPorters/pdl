@@ -121,7 +121,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.11 release:
+  PDL-2.4.11_001 release:
 
   3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
   3524081    t/inline-comment.t subtest 3 fails for cygwin
