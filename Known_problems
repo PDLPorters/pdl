@@ -3,9 +3,10 @@ The following issues have been reported with this version of PDL:
 
 - Some systems have reported build failures that appear to be
   a result of missing pthread_getspecific in library calls.
-  If you see this, please contact the perldl mailing list so
-  we can determine the origin of the probem and fix it.  A
-  workaround is to set WITH_POSIX_THREADS => 0, by editing
+
+  If you see this, please report via the perldl mailing list to
+  help us determine the origin of the probem and fix it.
+  A workaround is to set WITH_POSIX_THREADS => 0, by editing
   the perldl.conf file.
 
 
@@ -63,21 +64,13 @@ The following issues have been reported with this version of PDL:
     ($tmp = $piddle->slice('0:10')) .= 100;  # work around perl -d "feature"
 
   The problem is understood and it appears that the error has
-  been replaced by a warning for perl-5.15.1.  NOTE: the work-
-  around is 100% effective---but ugly.
+  been replaced by a warning with perl-5.15.1 and is fixed in
+  perl-5.16.0.  NOTE: the work-around is ugly but effective.
 
 
-- Changes in perl-5.16.x may break some existing PDL usage of
-  lvalue subs for this release.  It appears that the issue may
-  have been avoided upstream by the perl developer and may be
-  fixed for the 5.16 release this May.
-
-
-- Multiline q'' constructs in the pdl2 shell now work correctly
-  but you'll need to avoid using the q abbreviation for quit
-  in pdl2 (at least until the multi-line plugin in Devel::REPL
-  can be updated appropriately).  If you do get "stuck" in a q
-  quit attempt, just type Ctrl-D to exit the shell.
+- Multiline q'' constructs are broken in the Devel::REPL versions
+  1.003012 and 1.003013 so you'll need to use perldl or avoid
+  splitting quoted strings across lines.  A fix is being investigated.
 
 
 - The demo 3d and 3d2 windows do not close (can not be closed)

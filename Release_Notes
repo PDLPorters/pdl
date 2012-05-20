@@ -2,14 +2,15 @@ Release Notes for PDL 2.4.11  -----------------------------
 
 General Notes:
 
+ * This is a point release of PDL to support the coming perl
+   5.16.0 release.
+
  +---------------------------------------------------------------+
  | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API and will require that you re-build all the    |
- | PP modules.  Do not install over an existing PDL installation |
- | unless you are prepared to do so!!!                           |
+ | C-level PDL API and will require that you re-build any PP or  |
+ | XS modules.  Do not upgrade or install over an existing PDL   |
+ | installation unless you are prepared to do so!!!              |
  +---------------------------------------------------------------+
-
- * TBD
 
 
 Highlights:
@@ -17,19 +18,19 @@ Highlights:
  * A new implementation mapflex and mapfraw routines provides
    memory-mapped IO for all platforms including win32 systems.
 
- * The new memory mapped IO support is implemented using File::Map
-   so version 0.47 has been added as a required dependency to
-   force automated testing so an automated build will need
-   this dependency installed.
+ * The new memory mapped IO support is implemented using
+   File::Map so version 0.47 has been added as a required
+   dependency to force automated testing so an automated build
+   will need this dependency installed.
    
-   However, for systems having POSIX mmap, a manual build
-   will automatically use the legacy implementation.
+    NOTE: For systems having POSIX mmap, a manual build of
+    PDL will automatically use the legacy implementation.
 
  * Various cleanup to existing code to fix warnings generated
    by perl versions 5.15.x and higher.
  
-    Remove deprecation warning in PGPLOT/Window/Window.pm
-    complex.pd - fix attempts to overload '<=>=' and '=>'
+   Remove deprecation warning in PGPLOT/Window/Window.pm
+   complex.pd - fix attempts to overload '<=>=' and '=>'
 
  * Sf.net bugs fixed:
 
@@ -44,15 +45,11 @@ Highlights:
     Fixed a bug in cat's error reporting.
     Added lvalue awareness to whereND
 
- * Test suite improvements:
+ * New and improved tests have been added to the test suite.
 
-    skip t/gd_oo_tests.t on BSD OS to avoid sf.net #3518190
-    skip t/inline-comment-test.t on BSD to avoid sf.net #3524081
-    Force $eps for approx() in t/limits_round.t
-    Updated tests for t/pdl-from-string.t for inf/nan handling
-    Avoid the fork() call in t/plplot.t for win32 only.
-    Made t/pp_line_numbers.t more robust
-    Added lvalue whereND tests to t/primitive.t
+    Tests t/gd_oo_tests.t and t/inline-comment-test.t are
+    skipped for BSD platforms (see sf.net bugs #3518190 and
+    #3524081 to track their issues).
 
  * New support for multi-line comments in PP code.  See docs for
    PDL::PP for details (e.g., pdldoc PP).
