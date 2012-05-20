@@ -7,7 +7,7 @@ package PDL::Perldl2::Profile::Perldl2;
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
-$PDL::Perldl2::Profile::Perldl2::VERSION = 0.006;
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.007;
 
 with 'Devel::REPL::Profile';
 
@@ -71,6 +71,7 @@ sub apply_profile {
    $repl->eval('package main');
 
    $repl->eval('use PDL');
+   $repl->eval('use PDL::Config');
    $repl->eval('use PDL::Dbg');
    $repl->eval('use PDL::Doc::Perldl');
    $repl->eval('use PDL::IO::Dumper');
@@ -199,6 +200,8 @@ EOD
          $plug =~ s/^.*Plugin::/  /;
          push @plugins, $plug if $repl->does($pl);
       }
+      # Need smarter display of plugins, fill out the line
+      # and list CompletionDrivers under Completion
       $repl->print(join "\n", sort(@plugins));
       $repl->print("\n");
    }
