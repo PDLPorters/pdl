@@ -197,3 +197,21 @@ a bug report (see the BUGS file for directions).
   configure process (e.g., the perl Makefile.PL stage),
   you can set the environment variable PERL_MM_USE_DEFAULT
   to 1 so the default values are taken automatically.
+
+* For some versions of MinGW gcc (on win32 perl platforms),
+  gcc crashes during the build of Primitive.o (or Ufunc.o).
+  The problem appears to be related to the -O3 optimize
+  option.  If you edit the Makefile created in the affected
+  code directory to change '-O3' to '-g3' that should allow
+  the build to complete successfully.  E.g.:
+
+    cd PDL-2.4.11      # or whatever the build dir is
+    perl Makefile.PL   # configure the build
+    make
+    # ... gcc dies building Primitive.o ...
+    cd Basic/Primitive
+    vi Makefile        # change -O3 to -g3 w favorite editor
+    cd ../..
+    make
+    # ... gcc should now succeed in building Primitive.o ...
+

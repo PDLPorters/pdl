@@ -30,25 +30,27 @@ my $null = $^O =~ /win32/i ? ' 2>nul' : ' 2>/dev/null';
 
 BEGIN{
 
-    my $ntests = 29;
-    my $datalen;
-    $datalen = length($data);
+   my $ntests = 29;
+   my $datalen;
+   $datalen = length($data);
 
-    unless ( $PDL::Config{WITH_SLATEC} ) {
-       plan skip_all => "Skipped tests as F77 compiler not found";
-    } elsif ($Config{archname} =~ /(x86_64|ia64)/) {
-       plan skip_all => "Skipped tests for 64 bit architecture: $1";
-    } elsif ($datalen > 70) {
-       plan skip_all => "TEMPDIR path too long for f77 ($datalen chars), skipping all tests";
-    } else {
-       eval " use ExtUtils::F77; ";
-       if ( $@ ) {
-          plan skip_all => "Skip all tests as ExtUtils::F77 not found"; 
-          exit 0;
-       } else {
-          plan tests => $ntests;
-       }
-    }
+   eval " use PDL::Slatec; ";
+   my $loaded = ($@ ? 0 : 1);
+   unless ( $loaded ) {
+      plan skip_all => "Skipped tests as F77 compiler not found";
+   } elsif ($Config{archname} =~ /(x86_64|ia64)/) {
+      plan skip_all => "Skipped tests for 64 bit architecture: $1";
+   } elsif ($datalen > 70) {
+      plan skip_all => "TEMPDIR path too long for f77 ($datalen chars), skipping all tests";
+   } else {
+      eval " use ExtUtils::F77; ";
+      if ( $@ ) {
+         plan skip_all => "Skip all tests as ExtUtils::F77 not found"; 
+         exit 0;
+      } else {
+         plan tests => $ntests;
+      }
+   }
 
     # Configuration
     # Get ExtUtils::F77 if run in either PDL/t/ or PDL/

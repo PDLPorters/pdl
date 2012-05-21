@@ -14,7 +14,7 @@ use Test::More tests => 12;
 use PDL;
 use File::Temp qw(tempdir);
 
-$PDL::debug = 1;
+$PDL::debug = 0;
 
 # Get a temporary directory and file name, which obviously we'll need for testing
 # saving and reading of data.

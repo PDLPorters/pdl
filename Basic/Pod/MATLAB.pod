@@ -522,7 +522,7 @@ For that, use I<piddles>:
   $pdl = ones 600, 600;
 
 For example:
- 
+
   $points =  pdl  1..10_000_000    # 4.7 seconds
   $points = sequence 10_000_000    # milliseconds
 
@@ -657,6 +657,15 @@ So, in the previous examples:
 5) The "B<return>" statement gives the return value of the function, if any.
 
 =head1 ADDITIONAL FEATURES
+
+=head2 ASCII File IO
+
+To read data files containing whitespace separated columns of
+numbers (as would be read using the MATLAB I<load> command)
+one uses the PDL I<rcols> in L<PDL::IO::Misc>.  For a general
+review of the IO functionality available in PDL, see the
+documentation for L<PDL::IO>, e.g., C<help PDL::IO> in the I<pdl2>
+shell or C< pdldoc PDL::IO > from the shell command line.
 
 =head2 Data structures
 

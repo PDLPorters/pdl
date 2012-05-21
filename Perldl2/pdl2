@@ -22,8 +22,12 @@ BEGIN {
    if ($@) {
       my ($perldl) = $0;
       $perldl =~ s/pdl2$/perldl/;
-      warn "pdl2: Devel::REPL version $minversion not found, running perldl instead...\n";
+      warn "pdl2: Devel::REPL version $minversion not found, running '$perldl' instead...\n";
       do $perldl;
+      warn "pdl2: could not 'do $perldl'\n";
+      $perldl =~ s{^[^/\\]*[/\\]}{};
+      do $perldl;
+      die "pdl2: could not 'do $perldl'\n";
    }
 }
 

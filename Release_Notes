@@ -1,9 +1,114 @@
-Release Notes for PDL 2.4.10_005 --------------------------
+Release Notes for PDL 2.4.11_001 --------------------------
 
 General Notes:
 
  * Another quick CPAN developers release
  
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.11_001.tar.gz
+       cpan> make CHM/PDL-2.4.11_001.tar.gz
+       cpan> test CHM/PDL-2.4.11_001.tar.gz
+       cpan> look CHM/PDL-2.4.11_001.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.4.11  -----------------------------
+
+General Notes:
+
+ * This is a point release of PDL to support the coming perl
+   5.16.0 release.
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API and will require that you re-build any PP or  |
+ | XS modules.  Do not upgrade or install over an existing PDL   |
+ | installation unless you are prepared to do so!!!              |
+ +---------------------------------------------------------------+
+
+
+Highlights:
+
+ * A new implementation mapflex and mapfraw routines provides
+   memory-mapped IO for all platforms including win32 systems.
+
+ * The new memory mapped IO support is implemented using
+   File::Map so version 0.47 has been added as a required
+   dependency to force automated testing so an automated build
+   will need this dependency installed.
+   
+    NOTE: For systems having POSIX mmap, a manual build of
+    PDL will automatically use the legacy implementation.
+
+ * Various cleanup to existing code to fix warnings generated
+   by perl versions 5.15.x and higher.
+ 
+   Remove deprecation warning in PGPLOT/Window/Window.pm
+   complex.pd - fix attempts to overload '<=>=' and '=>'
+
+ * Sf.net bugs fixed:
+
+    3518253  Make PDL::flat work under perl 5.16 (thanks sprout!)
+    3516600  pdl_from_string.t fails w/ BADVAL_USENAN=1
+    3487569  PDL::IO::Misc : rcols problem (thanks bperret!)
+    3476648  PDL build of HTML docs fails on recent bleed Perl
+    
+ * Other bugs fixed:
+
+    Fix check for glutRunning logic for imag2d
+    Fixed a bug in cat's error reporting.
+    Added lvalue awareness to whereND
+
+ * New and improved tests have been added to the test suite.
+
+    Tests t/gd_oo_tests.t and t/inline-comment-test.t are
+    skipped for BSD platforms (see sf.net bugs #3518190 and
+    #3524081 to track their issues).
+
+ * New support for multi-line comments in PP code.  See docs for
+   PDL::PP for details (e.g., pdldoc PP).
+    
+ * Various enhancements to barf/croak output and messages to make
+   error reports and stack traces more useful and readable.
+
+ * There is a new changes (or Changes) target for the PDL Makefile
+   which is a convenience target that allows one to regenerate the
+   Changes file from git.
+
+
+
+Release Notes for PDL 2.4.10_005 --------------------------
+
+General Notes:
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API and will require that you re-build all the    |
+ | PP modules.  Do not install over an existing PDL installation |
+ | unless you are prepared to do so!!!                           |
+ +---------------------------------------------------------------+
+
+ * A.k.a. PDL-2.4.11 release candidate 2 with support for
+   perl 5.16.0.  Please test!
+
    - It is a snapshot of the current git development tree
      and everything may not work correctly or have complete
      documentation.
@@ -26,7 +131,7 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * See PDL-2.4.11 release notes above
 
 
 

@@ -1,9 +1,20 @@
 The following issues have been reported with this version of PDL:
 
 
+- Some systems have reported build failures that appear to be
+  a result of missing pthread_getspecific in library calls.
+
+  If you see this, please report via the perldl mailing list to
+  help us determine the origin of the probem and fix it.
+  A workaround is to set WITH_POSIX_THREADS => 0, by editing
+  the perldl.conf file.
+
+
 - Multiple subtest failures in t/gd_oo_tests.t have been
   seen in CPAN Testers reports, they appear to be on 64bit
-  BSD operating systems compiled for AMD processors.
+  BSD operating systems compiled for AMD processors.  Sf.net
+  bug #3518190 "t/gd_oo_tests.t fails for AMD64" tracks this
+  issue.
 
 
 - A change in perl-5.14 on how the 'x' operator works affects
@@ -20,8 +31,7 @@ The following issues have been reported with this version of PDL:
 
   Please see
   http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2012-February/004426.html
-  for a more detailed discussion and additional alternative
-  work-arounds.
+  for a more detailed discussion and additional work-arounds.
 
 
 - On MS Windows, perl 5.14 (and perhaps later), it is reported that
@@ -31,19 +41,17 @@ The following issues have been reported with this version of PDL:
   PDL::Graphics::PLplot separately.
 
 
+- Some versions of MinGW gcc (used to compile for win32 perls)
+  crash in compilation of large, PP-generated files.  The work-
+  around is to disable optimization for those file.  See the
+  INSTALL file for a hand fix.
+
+
 - The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
   doesn't work the same with the perl's new "safe signals".  A
   workaround to the problem is to set the PERL_SIGNALS environment
   variable to "unsafe".  See sf.net feature request #3308168
   for details and any future status.
-
-
-- The PDL build process checks for white space in the build
-  directory as that is known to cause problems for some modules
-  and asks you if you wish to continue [default is yes].
-
-  NOTE: You can avoid the interactive prompts by setting the
-  environment variable PERL_MM_USE_DEFAULT to true (e.g., 1).
 
 
 - The Perl debugger for perls 5.10.1 through 5.14.x has a new
@@ -56,21 +64,13 @@ The following issues have been reported with this version of PDL:
     ($tmp = $piddle->slice('0:10')) .= 100;  # work around perl -d "feature"
 
   The problem is understood and it appears that the error has
-  been replaced by a warning for perl-5.15.1.  NOTE: the work-
-  around is 100% effective---but ugly.
+  been replaced by a warning with perl-5.15.1 and is fixed in
+  perl-5.16.0.  NOTE: the work-around is ugly but effective.
 
 
-- Changes in perl-5.16.x may break some existing PDL usage of
-  lvalue subs for this release.  It appears that the issue may
-  have been avoided upstream by the perl developer.  Need to 
-  check.
-
-
-- Multiline q'' constructs in the pdl2 shell now work correctly
-  but you'll need to avoid using the q abbreviation for quit
-  in pdl2 (at least until the multi-line plugin in Devel::REPL
-  can be updated appropriately).  If you do get "stuck" in a q
-  quit attempt, just type Ctrl-D to exit the shell.
+- Multiline q'' constructs are broken in the Devel::REPL versions
+  1.003012 and 1.003013 so you'll need to use perldl or avoid
+  splitting quoted strings across lines.  A fix is being investigated.
 
 
 - The demo 3d and 3d2 windows do not close (can not be closed)
@@ -121,19 +121,16 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.10_005 release:
+  PDL-2.4.11_001 release:
 
+  3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
   3524081    t/inline-comment.t subtest 3 fails for cygwin
   3518190    t/gd_oo_tests.t fails for AMD64
-  3516600    pdl_from_string.t fails w/ BADVAL_USENAN=1
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3503566    pdl2 enters infinite loop on DWIMPerl
-  3479009    Slice does not like whitespace
-  3476648    PDL build of HTML docs fails on recent bleed Perl
   3475075    t/pic_16bit.t subtest fails
   3465663    perldl.conf OPTIMIZE option doesn't work
-  3460886    t/flexraw_fortran.t test failures
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
