@@ -1,4 +1,16 @@
-pdl (1:2.4.10-1) unstable; urgency=low
+pdl (1:2.4.10+dfsg-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Remove deprecated dpatch and upgrade to packaging format "3.0 quilt".
+  * Update to Standards-Version to 3.9.3 and debhelper to 9.
+  * Add build-arch and build-indep targets; use dh_prep in rules file.
+  * Fix copyright-refers-to-symlink-license (Lintian).
+  * Fix duplicate-in-relation-field libastro-fits-header-perl (Lintian).
+  * Fix unused-override (Lintian).
+
+ -- Jari Aalto <jari.aalto@cante.net>  Sat, 28 Apr 2012 08:44:59 +0300
+
+pdl (1:2.4.10+dfsg-1) unstable; urgency=low
 
   * new upstream release
   * sync debian/perldl.conf with perldl.conf

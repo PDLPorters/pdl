@@ -1,4 +1,0 @@
-# it is ok if there are no patches in the debian source
-# I usually use dpatch to backport fixes in upstream git
-# to the released version's debian package
-pdl source: dpatch-build-dep-but-no-patch-list

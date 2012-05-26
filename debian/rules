@@ -10,7 +10,6 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-include /usr/share/dpatch/dpatch.make
 unexport DISPLAY
 
 CFLAGS = -Wall -g
@@ -22,13 +21,17 @@ else
 endif
 
 configure: configure-stamp
-configure-stamp: patch-stamp
+configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package
 	PERL_MM_USE_DEFAULT=1 perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
 
 	touch configure-stamp
 
+
+
+build-arch: build
+build-indep: build
 
 build: build-stamp
 build-stamp: configure-stamp 
@@ -50,8 +53,7 @@ test-stamp: build-stamp
 	@echo "END test verbose"
 	touch test-stamp
 
-clean: clean-patched unpatch
-clean-patched:
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp test-stamp
@@ -60,10 +62,8 @@ clean-patched:
 
 	# Add here commands to clean up after the build process.
 	[ ! -f Makefile ] || $(MAKE) distclean
-	rm -f t/callext.o t/callext.so Graphics/TriD/OpenGL/tmp*.h-out
-	mkdir -p debian/patches
-	-chmod a-x debian/patches/*
-
+	rm -f t/callext.o t/callext.so Graphics/TriD/OpenGL/tmp*.h-out \
+	 	Perldl2/pdl2.pod
 
 install: build test
 	dh_testdir
