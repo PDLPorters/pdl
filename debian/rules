@@ -24,6 +24,8 @@ export DEB_LDFLAGS_MAINT_APPEND:=-Wl,--as-needed
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/buildflags.mk
 
+subst_pdlapi  = -Vpdlapi:Provides="`perl -Mblib -MPDL::Config::Debian -e 'print \"pdlapi-$$PDL::Config::Debian::pdl_core_version\n\"'`"
+
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
@@ -43,6 +45,8 @@ build-stamp: configure-stamp
 
 	# Add here commands to compile the package.
 	$(MAKE) LD_RUN_PATH=""
+	mkdir -p blib/lib/PDL/Config
+	perl -Mblib debian/write_config_debian.pl > blib/lib/PDL/Config/Debian.pm
 
 	touch build-stamp
 
@@ -115,7 +119,7 @@ binary-arch: build install
 #	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
-	dh_gencontrol
+	dh_gencontrol -- $(subst_pdlapi)
 	dh_md5sums
 	dh_builddeb
 

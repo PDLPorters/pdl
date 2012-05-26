@@ -52,6 +52,8 @@ Suggests:
  libdevel-repl-perl (>=1.003011)
 Conflicts: r-pdl
 Replaces: r-pdl
+Provides:
+ ${pdlapi:Provides}
 Description: perl data language: Perl extensions for numerics
  PDL gives standard perl the ability to COMPACTLY
  store and SPEEDILY manipulate the large N-dimensional data arrays 
