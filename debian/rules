@@ -12,13 +12,17 @@
 
 unexport DISPLAY
 
-CFLAGS = -Wall -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
+	export DEB_CFLAGS_MAINT_APPEND:=-Wall
 else
-	CFLAGS += -O2 -ffunction-sections
+	export DEB_CFLAGS_MAINT_APPEND:=-Wall -ffunction-sections
 endif
+
+export DEB_LDFLAGS_MAINT_APPEND:=-Wl,--as-needed
+
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
 
 configure: configure-stamp
 configure-stamp:
