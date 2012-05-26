@@ -47,6 +47,7 @@ build-stamp: configure-stamp
 	$(MAKE) LD_RUN_PATH=""
 	mkdir -p blib/lib/PDL/Config
 	perl -Mblib debian/write_config_debian.pl > blib/lib/PDL/Config/Debian.pm
+	pod2man debian/dh_pdl > debian/dh_pdl.1
 
 	touch build-stamp
 
@@ -71,7 +72,7 @@ clean:
 	# Add here commands to clean up after the build process.
 	[ ! -f Makefile ] || $(MAKE) distclean
 	rm -f t/callext.o t/callext.so Graphics/TriD/OpenGL/tmp*.h-out \
-	 	Perldl2/pdl2.pod
+	 	Perldl2/pdl2.pod debian/dh_pdl.1
 
 install: build test
 	dh_testdir

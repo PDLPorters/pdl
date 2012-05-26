@@ -1,2 +1,3 @@
 Doc/scantree.pl usr/lib/perl5/PDL/Doc/
 Doc/mkhtmldoc.pl usr/lib/perl5/PDL/Doc/
+debian/dh_pdl usr/bin
