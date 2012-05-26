@@ -1,3 +1,20 @@
+pdl (1:2.4.11-1) unstable; urgency=low
+
+  * new upstream release
+  * acknowledge NMU (closes: #670693), thanks to Jari Aalto
+  * switch to 3.0 quilt packaging format, the +dfsg repackaging
+    of upstream source is not needed anymore
+  * provide pdlapi-$version virtual package to keep binary extension
+    modules from breaking silently
+  * introduce dh_pdl providing ${pdl:Depends} for extension packages
+  * use dpkg-buildflags in debian/rules to determine flags
+  * link with --as-needed to avoid spurious dependencies
+  * switch to dh_auto_configure to call EU::MM with the proper flags
+  * read LDFLAGS and FFLAGS in f77conf.pl from env
+  * depend on newer dpkg-dev due to buildflags options
+
+ -- Henning Glawe <glaweh@debian.org>  Sat, 26 May 2012 10:30:55 +0200
+
 pdl (1:2.4.10+dfsg-1.1) unstable; urgency=low
 
   * Non-maintainer upload.
