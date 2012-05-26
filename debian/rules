@@ -28,7 +28,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package
-	PERL_MM_USE_DEFAULT=1 perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
+	dh_auto_configure -- F77CONF=debian/f77conf.pl PDLCONF=debian/perldl.conf
 
 	touch configure-stamp
 
@@ -42,7 +42,7 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# Add here commands to compile the package.
-	$(MAKE) LD_RUN_PATH="" OPTIMIZE="$(CFLAGS)"
+	$(MAKE) LD_RUN_PATH=""
 
 	touch build-stamp
 
