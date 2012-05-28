@@ -1,3 +1,11 @@
+pdl (1:2.4.11-2) unstable; urgency=low
+
+  * fix calls to croak in Lib/GIS/Proj/Proj.pd and IO/GD/GD.pd (croak was
+    not called with a format string literal, causing 
+    -Werror=format-security to abort the compilation)
+
+ -- Henning Glawe <glaweh@debian.org>  Sun, 27 May 2012 16:01:22 +0200
+
 pdl (1:2.4.11-1) unstable; urgency=low
 
   * new upstream release
