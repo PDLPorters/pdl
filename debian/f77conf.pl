@@ -34,6 +34,8 @@ sub compiler {
 sub cflags {
   my $fflags = '';
   $fflags = $ENV{FFLAGS} if (defined $ENV{FFLAGS});
+  $fflags.=' -fPIC';
+  return($fflags);
 }
 
 sub testcompiler {
