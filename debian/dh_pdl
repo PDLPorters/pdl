@@ -62,7 +62,7 @@ foreach (@ARGV) {
 	s#^/##;
 }
 
-my $pdl = 'perl';
+my $pdl = 'pdl';
 my $version;
 
 # dependency types
