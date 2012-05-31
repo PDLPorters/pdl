@@ -1,3 +1,16 @@
+pdl (1:2.4.11-4) unstable; urgency=low
+
+  * fix pdl versioned dep in dh_pdl
+
+ -- Henning Glawe <glaweh@debian.org>  Wed, 30 May 2012 16:06:03 +0200
+
+pdl (1:2.4.11-3) unstable; urgency=low
+
+  * fix the building of pdl wrapper
+  * set -fPIC when compiling fortran extensions
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 28 May 2012 20:44:46 +0200
+
 pdl (1:2.4.11-2) unstable; urgency=low
 
   * fix calls to croak in Lib/GIS/Proj/Proj.pd and IO/GD/GD.pd (croak was
