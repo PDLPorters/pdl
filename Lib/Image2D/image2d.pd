@@ -1285,7 +1285,7 @@ return the (dataflown) area of an image within a polygon
 
 =cut
 
-sub PDL::polyfillv {
+sub PDL::polyfillv :lvalue {
   my ($im, $ps) = @_;
   my $msk = zeroes(long,$im->dims);
   polyfill($msk, $ps, 1);
