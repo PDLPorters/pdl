@@ -1036,6 +1036,7 @@ pp_add_exported('', 'minmax');
 pp_def(
     'qsort',
     HandleBad => 1,
+    Inplace => 1,
     Pars => 'a(n); [o]b(n);',
     Code => 
     'int nn;
@@ -1131,6 +1132,7 @@ Quicksort a vector and return index of elements in ascending order.
 pp_def(
     'qsortvec',
     HandleBad => 1,
+    Inplace => 1,
     Pars => 'a(n,m); [o]b(n,m);',
     Code => 
     'int nn;

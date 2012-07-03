@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 15;
+use Test::More tests => 19;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -28,6 +28,10 @@ my $b = pdl(55);
 my $b_sort = $b->qsort;
 my $c = cat($a,$a);
 my $c_sort = $c->qsort;
+my $d = sequence(10)->rotate(1);
+my $d_sort = $d->qsort;
+my $e = pdl([[1,2],[0,500],[2,3],[4,2],[3,4],[3,5]]);
+my $e_sort = $e->qsortvec;
 
 # Test a range of values
 ok( tapprox($a->pctover(-0.5), $a_sort->at(0)), "pct below 0 for 25-elem pdl" );
@@ -45,6 +49,26 @@ ok( tapprox($x->pctover(0.23), 2.07), "23rd percential of 10-elem piddle [SF bug
 # test for sf.net bug report 2110074
 #
 ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
+
+# Test inplace sorting
+$d->inplace->qsort;
+ok(all($d == $d_sort));
+
+# Test inplace sorting with bad values
+$d->setbadat(3);
+$d_sort = $d->qsort;
+$d->inplace->qsort;
+ok(all($d == $d_sort));
+
+# Test inplace lexicographical sorting
+$e->inplace->qsortvec;
+ok(all($e == $e_sort));
+
+# Test inplace lexicographical sorting with bad values
+$e->setbadat(1,3);
+$e_sort = $e->qsortvec;
+$e->inplace->qsortvec;
+ok(all($e == $e_sort));
 
 # test bad value handling with pctover
 #
