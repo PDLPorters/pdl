@@ -1041,9 +1041,9 @@ sub PDL::Core::new_pdl_from_string {
       if $value =~ /\Bnan/ or $value =~ /nan\B/;
    $has_nan++ if ($value =~ s/\bnan\b/ee/gi);
    # Strawberry Perl compatibility:
-   croak("PDL::Core::new_pdl_from_string: found '-1.#IND' as part of a larger word in $original_value")
+   croak("PDL::Core::new_pdl_from_string: found '1.#IND' as part of a larger word in $original_value")
       if $value =~ /IND\B/i;
-   $has_nan++ if ($value =~ s/-1\.\#IND/ee/gi);
+   $has_nan++ if ($value =~ s/1\.\#IND/ee/gi);
    # --( inf )--
    my ($has_inf) = 0;
    # Strawberry Perl compatibility:
@@ -1131,7 +1131,12 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/\bee\b/nan/g;
    my $inf = -pdl(0)->log;
    $value =~ s/\bEe\b/inf/g;
-   my $nan = $inf - $inf;
+   my $nnan = $inf - $inf;
+   my $nan= $this->initialize();
+   $nan->set_datatype(6);
+   $nan->setdims([]);
+   ${$nan->get_dataref}     = pack( "d*", "nan" );
+   $nan->upd_data();
    $value =~ s/\beE\b/pi/g;
    
    my $val = eval{
@@ -1153,7 +1158,7 @@ sub PDL::Core::new_pdl_from_string {
 
       # Let's see if we can parse it as an array-of-arrays:
       local $_ = $value;
-      return PDL::Core::parse_basic_string ($inf, $nan, $bad);
+      return PDL::Core::parse_basic_string ($inf, $nan, $nnan, $bad);
    };
    
    # Respect BADVAL_USENAN
@@ -1165,6 +1170,9 @@ sub PDL::Core::new_pdl_from_string {
       # remove potentially spurious last dimension
       $to_return = $to_return->mv(-1,1)->clump(2)
          if $to_return->dims > 1 and $to_return->dim(-1) == 1;
+      # fix scalar values
+      $to_return->setdims([])
+         if $to_return->dims == 1 and $to_return->dim(-1) == 1;
       # Mark bad if appropriate
       $to_return->badflag($has_bad > 0);
       return $to_return;
@@ -1192,7 +1200,7 @@ sub PDL::Core::parse_basic_string {
 	# no whitespace and should be something that would evaluate into a Perl
 	# array-of-arrays (except that strings like 'inf', etc, are allowed).
 	
-	my ($inf, $nan, $bad) = @_;
+	my ($inf, $nan, $nnan, $bad) = @_;
 	
 	# First character should be a bracket:
 	die "Internal error: input string -->$_<-- did not start with an opening bracket\n"
@@ -1230,7 +1238,11 @@ sub PDL::Core::parse_basic_string {
 			push @to_return, $sign * $inf;
 		}
 		elsif (s/^nan//i or s/^1\.\#IND//i) {
-			push @to_return, $nan;
+                        if ($sign == -1) {
+                          push @to_return, $nnan;
+                        } else {
+                          push @to_return, $nan;
+                        }
 		}
 		elsif (s/^pi//i) {
 			push @to_return, $sign * 4 * atan2(1, 1);
