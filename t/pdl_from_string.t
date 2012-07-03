@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 #
 # This tests the new PDL constructor with a string argument.
-# There are two goals from the new functionality: (1) allow
-# MATLAB to use familiar syntax to create arrays, and
-# (2) to allow cut-n-paste of PDL print output as input
-# for scripts and programs
+# There are three goals from the new functionality: (1) to allow
+# MATLAB to use familiar syntax to create arrays, (2) to allow
+# cut-n-paste of PDL print output as input for scripts and programs,
+# and (3) to allow easy ways to construct nan and inf values in piddles.
 #
 
 use Test::More tests => 111;
