@@ -2746,7 +2746,7 @@ sub PDL::squeeze { return $_[0]->reshape(-1) }
 
 =for ref
 
-flatten a piddle (alias for C<$pdl->clump(-1)>)
+flatten a piddle (alias for C<< $pdl->clump(-1) >>)
 
 =for example
 
