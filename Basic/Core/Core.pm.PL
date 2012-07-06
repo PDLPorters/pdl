@@ -1041,9 +1041,9 @@ sub PDL::Core::new_pdl_from_string {
       if $value =~ /\Bnan/ or $value =~ /nan\B/;
    $has_nan++ if ($value =~ s/\bnan\b/ee/gi);
    # Strawberry Perl compatibility:
-   croak("PDL::Core::new_pdl_from_string: found '-1.#IND' as part of a larger word in $original_value")
+   croak("PDL::Core::new_pdl_from_string: found '1.#IND' as part of a larger word in $original_value")
       if $value =~ /IND\B/i;
-   $has_nan++ if ($value =~ s/-1\.\#IND/ee/gi);
+   $has_nan++ if ($value =~ s/1\.\#IND/ee/gi);
    # --( inf )--
    my ($has_inf) = 0;
    # Strawberry Perl compatibility:
@@ -1131,7 +1131,12 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/\bee\b/nan/g;
    my $inf = -pdl(0)->log;
    $value =~ s/\bEe\b/inf/g;
-   my $nan = $inf - $inf;
+   my $nnan = $inf - $inf;
+   my $nan= $this->initialize();
+   $nan->set_datatype(6);
+   $nan->setdims([]);
+   ${$nan->get_dataref}     = pack( "d*", "nan" );
+   $nan->upd_data();
    $value =~ s/\beE\b/pi/g;
    
    my $val = eval{
@@ -1153,7 +1158,7 @@ sub PDL::Core::new_pdl_from_string {
 
       # Let's see if we can parse it as an array-of-arrays:
       local $_ = $value;
-      return PDL::Core::parse_basic_string ($inf, $nan, $bad);
+      return PDL::Core::parse_basic_string ($inf, $nan, $nnan, $bad);
    };
    
    # Respect BADVAL_USENAN
@@ -1165,6 +1170,9 @@ sub PDL::Core::new_pdl_from_string {
       # remove potentially spurious last dimension
       $to_return = $to_return->mv(-1,1)->clump(2)
          if $to_return->dims > 1 and $to_return->dim(-1) == 1;
+      # fix scalar values
+      $to_return->setdims([])
+         if $to_return->dims == 1 and $to_return->dim(-1) == 1;
       # Mark bad if appropriate
       $to_return->badflag($has_bad > 0);
       return $to_return;
@@ -1192,7 +1200,7 @@ sub PDL::Core::parse_basic_string {
 	# no whitespace and should be something that would evaluate into a Perl
 	# array-of-arrays (except that strings like 'inf', etc, are allowed).
 	
-	my ($inf, $nan, $bad) = @_;
+	my ($inf, $nan, $nnan, $bad) = @_;
 	
 	# First character should be a bracket:
 	die "Internal error: input string -->$_<-- did not start with an opening bracket\n"
@@ -1230,7 +1238,11 @@ sub PDL::Core::parse_basic_string {
 			push @to_return, $sign * $inf;
 		}
 		elsif (s/^nan//i or s/^1\.\#IND//i) {
-			push @to_return, $nan;
+                        if ($sign == -1) {
+                          push @to_return, $nnan;
+                        } else {
+                          push @to_return, $nan;
+                        }
 		}
 		elsif (s/^pi//i) {
 			push @to_return, $sign * 4 * atan2(1, 1);
@@ -2053,12 +2065,27 @@ Dataflow status
 
 =item S
 
+=cut
+
 !NO!SUBS!
+
+# Document for CPAN folks
+=pod
+
+Some internal flags (P=physical,V=Vaffine,C=changed,B=may contain bad data)
+
+=cut
+
+print OUT "=pod\n\n";
+
 if ( $bvalflag ) {
-   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed,B=may\ncontain bad data)\n";
+   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed,B=may\ncontain bad data)";
 } else {
-   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed)\n";
+   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed)";
 }
+
+print OUT "\n\n=cut\n\n";
+
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
  "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
@@ -2802,11 +2829,19 @@ sub PDL::convert {
 
 =head2 Datatype_conversions
 
-=for ref
+=cut
 
 !NO!SUBS!
 
-print OUT "$convertalts convert shorthands\n";
+# CPAN-only docs
+# XXX Be sure to update these when new types are added!
+=pod
+
+byte|short|ushort|long|longlong|float|double convert shorthands
+
+=cut
+
+print OUT "=for ref\n\n$convertalts convert shorthands\n\n=cut\n\n";
 
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
  "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
@@ -2814,7 +2849,7 @@ print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
 =for usage
 
  $y = double $x; $y = ushort [1..10];
- # all of byte|short|ushort|long|longlong|float|double behave similarly
+ # all of the above listed shorthands behave similarly
 
 When called with a piddle argument, they convert to the specific
 datatype.
@@ -2834,7 +2869,7 @@ Note the last three give identical results, and the last two are exactly
 equivalent - a list is automatically converted to a list reference for
 syntactic convenience. i.e. you can omit the outer C<[]>
 
-When called with no arguments return a special type token.
+When called with no arguments, these functions return a special type token.
 This allows syntactical sugar like:
 
  $x = ones byte, 1000,1000;
@@ -2857,29 +2892,69 @@ see the function L<pdl()|/pdl> for more details.
 
 !NO!SUBS!
 
-# generate type conversion docs
-for my $type (typesrtkeys()) {
-  my $conv = typefld($type,'convertfunc');
-  print OUT << "!WITH!SUBS!";
+#!!!!!!!!!!!! CPAN-specific docs; UPDATE if the types are updated !!!!!!!!!!!#
 
-=head2 $conv
+=head2 byte
 
-=for ref
+Convert to byte datatype
 
-Convert to $conv datatype - see 'Datatype_conversions'
+=head2 short
+
+Convert to short datatype
+
+=head2 ushort
+
+Convert to ushort datatype
+
+=head2 long
+
+Convert to long datatype
+
+=head2 longlong
+
+Convert to longlong datatype
+
+=head2 float
+
+Convert to float datatype
+
+=head2 double
+
+Convert to double datatype
 
 =cut
 
+#!!!!!!!!!!!! CPAN-specific docs; UPDATE if the types are updated !!!!!!!!!!!#
+
+# generate type conversion docs for each type
+for my $type (typesrtkeys()) {
+  my $conv = typefld($type,'convertfunc');
+  
+  # This produces the auto-generated docs on the user's machine of the list
+  # given above. The leading white-space is necessary to prevent CPAN from
+  # thinking it should render the next six lines as documentation on cpan.org
+  # Thus, I must remove it before printing it to the module file.
+  my $doc_string = << "!WITH!SUBS!";
+ =head2 $conv
+ 
+ =for ref
+ 
+ Convert to $conv datatype - see 'Datatype_conversions'
+ 
 !WITH!SUBS!
+  
+  # Remove the leading white space
+  $doc_string =~ s/^ //mg;
+  print OUT $doc_string
+
 } # end for loop
 
-print OUT "for (
-$typearray";
+print OUT "\n=cut\n\nfor ( $typearray )\n";
 
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
  "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
-) {
+{
 	eval ('sub PDL::'.$_->[0]." { ".
 		'return bless ['.$_->[1].'], "PDL::Type" unless @_;
                 convert(alltopdl(\'PDL\', (scalar(@_)>1 ? [@_] : shift)),'.$_->[1].')
@@ -2981,8 +3056,16 @@ occasionally useful and is provied for backwards compatibility.
 
 !NO!SUBS!
 
+=pod
+
+If you compile PDL with bad value support (the default), your machine's
+docs will also say this:
+
+=cut
+
 if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
+
 =for bad
 
 list converts any bad values into the string 'BAD'.
@@ -3092,20 +3175,31 @@ in a general context, quite useful too inside PDL internals.
  pdl> p $x->at(1,2)
  7
 
+=cut
+
 !NO!SUBS!
+
+=pod
+
+If you compile PDL with bad value support (the default), your machine's
+docs will also say this:
+
+=cut
 
 if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
+
 =for bad
 
 at converts any bad values into the string 'BAD'.
+
+=cut
 
 !NO!SUBS!
 }
 
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
  "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
-=cut
 
 sub PDL::at {     # Return value at ($x,$y,$z...)
     barf 'Usage: at($pdl, $x, $y, ...)' if $#_<0;
@@ -3204,18 +3298,33 @@ returns a single piddle of dimension N+1
   ]
  ]
 
+=cut
+
 !NO!SUBS!
+
+=pod
+
+If you compile PDL with bad value support (the default), your machine's
+docs will also say this:
+
+=cut
+
 	if ( $bvalflag ) {
 print OUT <<'!NO!SUBS!';
+
 =for bad
 
 The output piddle is set bad if any input piddles have their bad flag set.
+
+=cut
 
 !NO!SUBS!
 } # if: $bvalflag
 
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
  "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
+
+=pod
 
 Similar functions include L<append|PDL::Primitive/append> and
 L<glue|PDL::Primitive/glue>.
@@ -3368,8 +3477,17 @@ e.g.:
 =cut
 
 !NO!SUBS!
+
+=pod
+
+If you compile PDL with bad value support (the default), your machine's
+docs will also say this:
+
+=cut
+
 	if ( $bvalflag ) {
 print OUT <<'!NO!SUBS!';
+
 =for bad
 
 The output piddles are set bad if the original piddle has its bad flag set.

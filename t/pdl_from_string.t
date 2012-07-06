@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 #
 # This tests the new PDL constructor with a string argument.
-# There are two goals from the new functionality: (1) allow
-# MATLAB to use familiar syntax to create arrays, and
-# (2) to allow cut-n-paste of PDL print output as input
-# for scripts and programs
+# There are three goals from the new functionality: (1) to allow
+# MATLAB to use familiar syntax to create arrays, (2) to allow
+# cut-n-paste of PDL print output as input for scripts and programs,
+# and (3) to allow easy ways to construct nan and inf values in piddles.
 #
 
-use Test::More tests => 111;
+use Test::More tests => 113;
 use strict;
 use warnings;
 
@@ -153,7 +153,7 @@ $got = pdl q[[]];
 ok(all($got == $expected), 'Empty bracket is correctly interpreted');
 
 #############################
-# Bad, inf, nan checks - 13 #
+# Bad, inf, nan checks - 15 #
 #############################
 
 my $bad_values = pdl q[nan inf -inf bad];
@@ -220,13 +220,19 @@ SKIP: {
 	ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
 }
 SKIP: {
-	skip "because perl's handling of NaN seems buggy", 2 if $skip;
+	skip "because perl's handling of NaN seems buggy", 4 if $skip;
 	ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
 			or $nan != $nan), "pdl 'nan' works by itself")
 		or diag("pdl 'nan' gave me $nan");
 	ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
 			or $nan2 != $nan2), "pdl '-nan' works by itself")
 		or diag("pdl '-nan' gave me $nan2");
+	ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+			or $nan !~ /-/), "pdl 'nan' has a positive sign")
+		or diag("pdl 'nan' gave me $nan");
+	ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+			or $nan2 =~ /-/), "pdl '-nan' has a negative sign")
+		or diag("pdl '-nan' gave me $nan");
 }
 ok($bad->isbad, "pdl 'bad' works by itself")
 	or diag("pdl 'bad' gave me $bad");

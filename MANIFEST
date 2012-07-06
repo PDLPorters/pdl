@@ -734,6 +734,7 @@ t/interp.t
 t/interp_slatec.t
 t/interpol.t
 t/iotypes.t
+t/lgamma.t
 t/limits_00.t
 t/limits_errb.t
 t/limits_keyspecs.t
