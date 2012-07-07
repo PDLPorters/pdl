@@ -21,10 +21,10 @@ BEGIN
         {
             plan skip_all => "PDL::IO::GD requires the gd image library.";
         }  
-        elsif( $^O =~ /(bsd|dragonfly)$/i)
-        {
-            plan skip_all => "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for AMD64";
-        }  
+        # elsif( $^O =~ /(bsd|dragonfly)$/i)
+        # {
+        #     plan skip_all => "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for AMD64";
+        # }  
         else
         {
             plan tests => 28;
@@ -66,15 +66,15 @@ write_lut($lutfile);
 # Start the tests:
 #
 
-print "Test writing byte (8bit) PNG image...\n";
+diag "Test writing byte (8bit) PNG image...\n";
 my $pdl = sequence(byte, 30, 30);
 
 # TEST 1:
 # Load a lut from an ASCII file:
-#print "\$pdl:\n$pdl\n";
+#diag "\$pdl:\n$pdl\n";
 my $lut = load_lut( $lutfile );
-#print "\$lut info(): " . $lut->info() . "\n";
-#print "\$lut:\n$lut\n";
+#diag "\$lut info(): " . $lut->info() . "\n";
+#diag "\$lut:\n$lut\n";
 ok( ($lut->dim(0) == 3 && $lut->dim(1) == 256) );
 
 # TEST 2:
@@ -84,7 +84,7 @@ ok(1);
 
 # TEST 3:
 # write a truecolor PNG with the old interface:
-print "Testing writing true color (32 bit) PNG image...\n";
+diag "Testing writing true color (32 bit) PNG image...\n";
 write_true_png(sequence(100, 100, 3), $testfile3);
 ok(1);
 
@@ -95,7 +95,7 @@ ok(1);
 # TEST 4:
 # Create a new object:
 my $gd = PDL::IO::GD->new( { filename => $testfile1 } );
-print "Object created!\n";
+diag "Object created!\n";
 ok( defined( $gd ) );
 
 # TEST 5 & 6:
@@ -104,7 +104,7 @@ my $x = $gd->gdImageSX();
 ok( $x );
 my $y = $gd->gdImageSY();
 ok( $y );
-print "\$x = $x\t\$y = $y\n";
+diag "\$x = $x\t\$y = $y\n";
 
 # TEST 7:
 # Read it into a PDL, and make sure it matches:
@@ -114,7 +114,7 @@ ok( tapprox( $pdl, $pdl2 ) );
 # TEST 8:
 # Kill it:
 $gd->DESTROY();
-print "Object destroyed!\n";
+diag "Object destroyed!\n";
 ok( 1 );
 
 #
