@@ -728,7 +728,7 @@ t/ica.t
 t/image2d.t
 t/imagend.t
 t/imagergb.t
-# t/inline-comment-test.t
+t/inline-comment-test.t
 t/inlinepdlpp.t
 t/interp.t
 t/interp_slatec.t
@@ -800,6 +800,7 @@ t/thread_def.t
 t/transform.t
 t/trig.t
 t/ufunc.t
+t/unpdl.t
 t/vaffine.t
 t/xvals.t
 utils/perldlpp.pl
