@@ -668,8 +668,6 @@ Several new files have been added:
   Basic/Bad/Makefile.PL
             bad.pd
 
-  IO/NDF/NDF.xs.PL
-
 etc
 
 =head1 TODO/SUGGESTIONS
