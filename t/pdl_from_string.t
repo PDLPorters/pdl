@@ -206,7 +206,18 @@ ok($bad_values->isbad->at(3), 'properly handles bad values')
 my $infty = pdl 'inf';
 my $min_inf = pdl '-inf';
 my $nan = pdl 'nan';
-my $nan2 = pdl '-nan';
+
+# On MS Windows, perls built by gcc numify the strings '-nan' and 'nan' to the same value (-1.#IND).
+# To get the correct '-nan' value for such perls (1.#QNAN) we need to numify -'nan'.
+# Even that doesn't work on some older versions of perl. It's ok for 5.14.0 and 5.16.0, but not (eg)
+# 5.12.0, 5.10.0 and 5.8.9, and those earlier versions will therefore fail the test for -nan
+# (test 40, at time of writing).
+# MS Windows perls built by MS compilers won't numify 'nan'/'inf' strings at all, so more of these
+# tests will fail if perl has been built by an MS compiler. Sisyphus 14.7.2012
+
+my $nan2 = $^O =~ /MSWin32/i ? pdl -'nan'
+                             : pdl '-nan';
+
 my $bad = pdl 'bad';
 ok((	$PDL::Config{BADVAL_USENAN} and $infty->isbad
 		or $infty == $infty and $infty * 0.0 != 0.0), "pdl 'inf' works by itself")
@@ -227,12 +238,25 @@ SKIP: {
 	ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
 			or $nan2 != $nan2), "pdl '-nan' works by itself")
 		or diag("pdl '-nan' gave me $nan2");
-	ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
-			or $nan !~ /-/), "pdl 'nan' has a positive sign")
+
+      # On MS Windows, nan is -1.#IND and -nan is 1.#QNAN. IOW, nan has
+      # a leading minus sign, and -nan is not signed.
+      if($^O =~ /MSWin32/i) {
+	  ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+	  		or $nan =~ /-/), "pdl 'nan' has a negative sign (MS Windows only)")
 		or diag("pdl 'nan' gave me $nan");
-	ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
-			or $nan2 =~ /-/), "pdl '-nan' has a negative sign")
-		or diag("pdl '-nan' gave me $nan");
+	  ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+	  		or $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
+	  	or diag("pdl -'nan' gave me $nan2");
+      }
+      else {
+	  ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+	  		or $nan !~ /-/), "pdl 'nan' has a positive sign")
+	  	or diag("pdl 'nan' gave me $nan");
+	  ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+	  		or $nan2 =~ /-/), "pdl '-nan' has a negative sign")
+	  	or diag("pdl '-nan' gave me $nan2");
+      }
 }
 ok($bad->isbad, "pdl 'bad' works by itself")
 	or diag("pdl 'bad' gave me $bad");
