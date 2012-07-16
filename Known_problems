@@ -41,6 +41,14 @@ The following issues have been reported with this version of PDL:
   PDL::Graphics::PLplot separately.
 
 
+- For perl 5.14.0 and later, the perldl shell fails to print
+  tracebacks from barf called from subordinate evals.  This
+  is because of changes in exception handling for $@ and the
+  associated XS parameters G_EVAL and G_KEEPERR.  Please see
+  http://search.cpan.org/~jesse/perl-5.14.0/pod/perldelta.pod
+  for details.
+
+
 - Some versions of MinGW gcc (used to compile for win32 perls)
   crash in compilation of large, PP-generated files.  The work-
   around is to disable optimization for those file.  See the
@@ -123,15 +131,16 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.11_001 release:
 
+  3544682    perldl doesn't print stacktrace from barf
+  3543056    propagate badflag with .=
+  3539685    pdldoc can't handle SPP mount location change
+  3535203    polyfill/polyfillv includes boundary pixels
   3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
-  3524081    t/inline-comment.t subtest 3 fails for cygwin
   3518190    t/gd_oo_tests.t fails for AMD64
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3503566    pdl2 enters infinite loop on DWIMPerl
   3475075    t/pic_16bit.t subtest fails
-  3465663    perldl.conf OPTIMIZE option doesn't work
-  3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
   3299615    PLplot still unusable with X
