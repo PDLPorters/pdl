@@ -1180,8 +1180,8 @@ void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n,
 
 ');
 
-pp_def('polyfill',
-       HandleBad => 0, # a marker
+pp_def('polyfill_pp',
+    HandleBad => 0, # a marker
 	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
 	Code => 'int ierr = 0, nerr;
 	         threadloop %{
@@ -1189,8 +1189,12 @@ pp_def('polyfill',
 		   ierr = ierr < nerr ? nerr : ierr;
 		 %}
 		 if (ierr) warn("errors during polygonfilling");
-		 ',
-	Doc => << 'EOD',
+		 '
+);
+
+pp_add_exported('polyfill');
+pp_addpm(<<'EOPM');
+=head1 polyfill
 
 =for ref
 
@@ -1200,22 +1204,50 @@ This function works inplace, i.e. modifies C<im>.
 
 =for usage
 
-  polyfill($im,$ps,$colour);
+  polyfill($im,$ps,$colour,[\%options]);
   
-The method of determining which points lie inside of the polygon used here
+The default method of determining which points lie inside of the polygon used
 is not as strict as the method used in L<pnpoly|pnpoly>. Often, it includes vertices
-and edge points. See also L<pnpolyfill|pnpolyfill>.
+and edge points. Set the C<Method> option to change this behaviour.
+
+=for option
+
+Method   -  Set the method used to determine which points lie in the polygon.
+            => Default - internal PDL algorithm
+            => pnpoly  - use the L<pnpoly|pnpoly> algorithm
   
 =for example
 
-  # Make a convex 3x3 square of 1s in an image
+  # Make a convex 3x3 square of 1s in an image using the pnpoly algorithm
   $ps = pdl([3,3],[3,6],[6,6],[6,3]);
-  polyfill($im,$ps,1);
+  polyfill($im,$ps,1,{'Method' =>'pnpoly'});
 
 =cut
+sub PDL::polyfill {
+	my $opt;
+	$opt = pop @_ if ref($_[-1]) eq 'HASH';
+	barf('Usage: polyfill($im,$ps,$colour,[\%options])') unless @_==3;
+	my ($im,$ps,$colour) = @_;
+	
+	if($opt) {
+		use PDL::Options qw();
+		my $parsed = PDL::Options->new({'Method' => undef});
+		$parsed->options($opt);
+		if( $parsed->current->{'Method'} eq 'pnpoly' ) {
+			pnpolyfill_pp($im,$ps,$colour);
+		}
+	}
+	else
+	{
+		polyfill_pp($im,$ps,$colour);
+	}
+	return $im;
+	
+}
 
-EOD
-);
+*polyfill = \&PDL::polyfill;
+
+EOPM
 
 pp_add_exported('', 'pnpoly');
 pp_addpm(<<'EOPM');
@@ -1227,7 +1259,10 @@ pp_addpm(<<'EOPM');
 'points in a polygon' selection from a 2-D piddle
 
 =for usage
-
+  
+  $mask = $img->pnpoly($ps);
+  
+  # Old style, do not use
   $mask = pnpoly($x, $y, $px, $py);
 
 For a closed polygon determined by the sequence of points in {$px,$py}
@@ -1240,10 +1275,16 @@ and vectorized for PDL by Karl Glazebrook.
 =for example
 
   # define a 3-sided polygon (a triangle)
+  $ps = pdl([3, 3], [20, 20], [34, 3]);
+  
+  # $tri is 0 everywhere except for points in polygon interior
+  $tri = $img->pnpoly($ps);
+
+  With the second form, the x and y coordinates must also be specified.
+  B< I<THIS IS MAINTAINED FOR BACKWARD COMPATIBILITY ONLY> >.
+ 
   $px = pdl( 3, 20, 34 );
   $py = pdl( 3, 20,  3 );
-  
-  $img = zeros(40, 40);  # create test image
   $x = $img->xvals;      # get x pixel coords
   $y = $img->yvals;      # get y pixel coords
   
@@ -1266,15 +1307,26 @@ and vectorized for PDL by Karl Glazebrook.
 #   operator does not "short circuit".
 
 sub PDL::pnpoly {
-   my ($tx, $ty, $vertx, $verty) = @_;
-   my $testx = PDL::Core::topdl($tx)->dummy(0);
-   my $testy = PDL::Core::topdl($ty)->dummy(0);
-   my $vertxj = PDL::Core::topdl($vertx)->rotate(1);
-   my $vertyj = PDL::Core::topdl($verty)->rotate(1);
-   my $mask = ( ($verty>$testy) == ($vertyj>$testy) );
-   my $c = sumover( ! $mask & ( $testx < ($vertxj-$vertx) * ($testy-$verty)
-                                / ($vertyj-$verty+$mask) + $vertx) ) % 2;
-   return $c;
+	barf('Usage: $mask = pnpoly($img, $px, $py);') unless(@_==2 || @_==4);
+ 	my ($tx, $ty, $vertx, $verty) = @_;
+ 	
+ 	# if only two inputs, use the pure PP version
+ 	# Input mapping:
+ 	#	$img => $tx
+ 	#	$ps  => $ty
+ 	unless( defined $vertx ) {
+		barf("ps must contain pairwise points.\n") unless $ty->getdim(0) == 2;
+		return pnpoly_pp($tx,$ty);
+	}
+	
+	my $testx = PDL::Core::topdl($tx)->dummy(0);
+	my $testy = PDL::Core::topdl($ty)->dummy(0);
+	my $vertxj = PDL::Core::topdl($vertx)->rotate(1);
+	my $vertyj = PDL::Core::topdl($verty)->rotate(1);
+	my $mask = ( ($verty>$testy) == ($vertyj>$testy) );
+	my $c = sumover( ! $mask & ( $testx < ($vertxj-$vertx) * ($testy-$verty)
+	                             / ($vertyj-$verty+$mask) + $vertx) ) % 2;
+	return $c;
 }
 
 *pnpoly = \&PDL::pnpoly;
@@ -1317,42 +1369,6 @@ for my $name (keys %pnpolyFields) {
 	);
 }
 
-pp_add_exported('', 'pnpolyfill');
-pp_addpm(<<'EOPM');
-=head2 pnpolyfill
-
-=for ref
-
-fill the area of the given polygon with the given colour.
-
-This function works inplace, i.e. modifies C<im>.
-
-=for usage
-
-  pnpolyfill($im,$ps,$colour);
-  
-This uses the L<pnpoly|pnpoly> method of determining points interior to the set $ps.
-
-=for example
-
-  # Make a convex 3x3 square of 1s in an image
-  $ps = pdl([3,3],[3,6],[6,6],[6,3]);
-  pnpolyfill($im,$ps,1);
-
-=cut
-
-sub PDL::pnpolyfill {
-	my ($im, $ps, $col) = @_;
-	barf("ps must contain pairwise points.\n") unless $ps->getdim(0) == 2;
-	barf("color not specified.\n") unless $col;
-	pnpolyfill_pp($im,$ps,$col);
-	return $im;
-}
-
-*pnpolyfill = \&PDL::pnpolyfill;
-
-EOPM
-
 pp_add_exported('', 'polyfillv');
 pp_addpm(<<'EOPM');
 
@@ -1364,63 +1380,48 @@ return the (dataflown) area of an image described by a polygon
 
 =for usage
 
-  polyfillv($im,$ps);
+  polyfillv($im,$ps,[\%options]);
   
-The method of determining which points lie inside of the polygon used here
+The default method of determining which points lie inside of the polygon used
 is not as strict as the method used in L<pnpoly|pnpoly>. Often, it includes vertices
-and edge points. See also L<pnpolyfillv|pnpolyfillv>.
+and edge points. Set the C<Method> option to change this behaviour.
+
+=for option
+
+Method   -  Set the method used to determine which points lie in the polygon.
+            => Default - internal PDL algorithm
+            => pnpoly  - use the L<pnpoly|pnpoly> algorithm
 
 =for example
 
-  # increment intensity in area bounded by $poly
-  $im->polyfillv($poly)++; # legal in perl >= 5.6
-  # compute average intensity within area bounded by $poly
+  # increment intensity in area bounded by $poly using the pnpoly algorithm
+  $im->polyfillv($poly,{'Method'=>'pnpoly'})++; # legal in perl >= 5.6
+  
+  # compute average intensity within area bounded by $poly using the default algorithm
   $av = $im->polyfillv($poly)->avg;
 
 =cut
 
 sub PDL::polyfillv :lvalue {
-  my ($im, $ps) = @_;
-  my $msk = zeroes(long,$im->dims);
-  polyfill($msk, $ps, 1);
-  return $im->where($msk == 1);
+	my $opt;
+	$opt = pop @_ if ref($_[-1]) eq 'HASH';
+	barf('Usage: polyfillv($im,$ps,[\%options])') unless @_==2;
+	
+	my ($im,$ps) = @_;
+	barf("ps must contain pairwise points.\n") unless $ps->getdim(0) == 2;
+	
+	if($opt) {
+		use PDL::Options qw();
+		my $parsed = PDL::Options->new({'Method' => undef});
+		$parsed->options($opt);
+		return $im->where(pnpoly_pp($im, $ps)) if $parsed->current->{'Method'} eq 'pnpoly';
+	}
+
+	my $msk = zeroes(long,$im->dims);
+	polyfill_pp($msk, $ps, 1);
+	return $im->where($msk);
 }
 *polyfillv = \&PDL::polyfillv;
-
-EOPM
-
-pp_add_exported('','pnpolyfillv');
-pp_addpm(<<'EOPM');
-
-=head2 pnpolyfillv
-
-=for ref
-
-return the (dataflown) area of an image described by a polygon
-
-=for usage
-
-  pnpolyfillv($im,$ps);
-  
-This uses the L<pnpoly|pnpoly> method of determining points interior to the set $ps.
-
-=for example
-
-  # increment intensity in area bounded by $poly
-  $im->pnpolyfillv($poly)++; # legal in perl >= 5.6
-  # compute average intensity within area bounded by $poly
-  $av = $im->pnpolyfillv($poly)->avg;
-
-=cut
-
-sub PDL::pnpolyfillv :lvalue {
-	my ($im, $ps) = @_;
-	barf("ps must contain pairwise points.\n") unless $ps->getdim(0) == 2;
-	return $im->where(pnpoly_pp($im, $ps));
-}
-
-*pnpolyfillv = \&PDL::pnpolyfillv;
-=cut
 
 EOPM
 

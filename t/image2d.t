@@ -157,12 +157,13 @@ my $inpixels = pdl q[ 1 1 ; 1 2 ; 1 3 ; 2 1 ; 2 2 ];
 ok(sum($inpixels - qsortvec(scalar whichND($im_mask))) == 0);
 
 # Make sure the PDL pnpoly and the PP pnpoly give the same result
-ok(all($im_mask == pnpolyfill($im,$ps,1)));
+ok(all($im_mask == $im->pnpoly($ps)));
 
-# Trivial test to make sure the pnpolyfills are working
+# Trivial test to make sure the polyfills using the pnpoly algorithm are working
 $im .= 0;
-pnpolyfillv($im2,$ps) .= 22;
-ok(all(pnpolyfill($im,$ps,22) == $im2));
+polyfillv($im2,$ps,{'Method'=>'pnpoly'}) .= 22;
+ok(all(polyfill($im,$ps,22,{'Method'=>'pnpoly'}) == $im2));
+
 
 # Trivial test to make sure the polyfills are working
 $im .= 0;
