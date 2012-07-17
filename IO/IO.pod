@@ -49,7 +49,8 @@ use PDL::DiskCache, which can use any desired IO read/write functionality
 =item * General Data Storage Formats
 
 PDL has a number of modules that interface general data storage libraries.
-They include PDL::IO::HDF and PDL::IO::NDF.  There is a PDL::IO::IDL,
+They include PDL::IO::HDF and PDL::IO::NDF (the latter is now a separate
+CPAN module).  There is a PDL::IO::IDL,
 though at the moment it is not distributed with PDL.  PDL::IO::FITS is
 something of a general data format, since piddle data can be stored to a
 FITS file without loss.  PDL::IO::FlexRaw and PDL::IO::FastRaw read and
