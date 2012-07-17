@@ -423,8 +423,7 @@ sub _read_flexhdr {
                    next ITEM;
                 }
              }
-             barf("Bad typename '$token' in readflex")
-             if (!exists($flextypes{$token}));
+             barf("Bad typename '$token' in readflex") if (!exists($flextypes{$token}));
              $tid = $flextypes{$token};
              $numtokens--;
              $newfile = 0;
