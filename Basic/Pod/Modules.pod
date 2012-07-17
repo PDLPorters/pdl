@@ -310,7 +310,8 @@ PDL interface to the NetPBM image library.
 
 =item L<PDL::IO::NDF|PDL::IO::NDF>
 
-PDL interface to the Starlink image library.
+PDL interface to the Starlink image library. Available
+as a separate CPAN download.
 
 =back
 

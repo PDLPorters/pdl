@@ -288,7 +288,7 @@ print OUT <<"!WITH!SUBS!";
 
 \@EXPORT_OK = qw( howbig threadids topdl nelem dims shape null
    $convertfuncs
-   convert inplace zeroes zeros ones list listindices
+   convert inplace zeroes zeros ones list listindices unpdl
    set at flows thread_define over reshape dog cat barf type diagonal
    dummy mslice approx flat sclr squeeze 
    get_autopthread_targ set_autopthread_targ get_autopthread_actual  
@@ -298,7 +298,7 @@ print OUT <<"!WITH!SUBS!";
 \%EXPORT_TAGS = (
    Func=>[qw/nelem dims shape null
     $convertfuncs
-    convert inplace zeroes zeros ones list listindices
+    convert inplace zeroes zeros ones list listindices unpdl
     set at flows thread_define over reshape pdl piddle null dog cat barf type
     diagonal dummy mslice approx flat sclr
     get_autopthread_targ set_autopthread_targ get_autopthread_actual  
@@ -337,7 +337,7 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 
 # log10() is now defined in ops.pd
 
-*howbig       = \&PDL::howbig;	  
+*howbig       = \&PDL::howbig;	  *unpdl	= \&PDL::unpdl;
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
 *dims	      = \&PDL::dims;	  *list 	= \&PDL::list;
 *threadids    = \&PDL::threadids; *listindices  = \&PDL::listindices;
@@ -2773,7 +2773,7 @@ sub PDL::squeeze { return $_[0]->reshape(-1) }
 
 =for ref
 
-flatten a piddle (alias for C<$pdl->clump(-1)>)
+flatten a piddle (alias for C<< $pdl->clump(-1) >>)
 
 =for example
 
@@ -3084,6 +3084,68 @@ sub PDL::list{ # pdl -> @list
      my $pdl = PDL->topdl(shift);
      return () if nelem($pdl)==0;
      @{listref_c($pdl)};
+}
+
+=head2 unpdl
+
+=for ref
+
+Convert piddle to nested Perl array references
+
+=for usage
+
+ $arrayref = unpdl $x;
+
+Obviously this is grossly inefficient for the large datasets PDL is designed to
+handle. Sometimes, however, you really want to move your data back to Perl, and
+with proper dimensionality, unlike C<list>. This function attempts to do this for you, returning 
+a reference to a Perl equivalent to the input piddle. 
+
+=for example
+
+ use JSON;
+ my $json = encode_json unpdl $pdl;
+
+=cut
+
+!NO!SUBS!
+
+=pod
+
+If you compile PDL with bad value support (the default), your machine's
+docs will also say this:
+
+=cut
+
+if ( $bvalflag ) {
+    print OUT <<'!NO!SUBS!';
+
+=for bad
+
+unpdl converts any bad values into the string 'BAD'.
+
+=cut
+
+!NO!SUBS!
+}
+
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
+
+sub PDL::unpdl {
+    barf 'Usage: unpdl($pdl)' if $#_ != 0;
+    my $pdl = PDL->topdl(shift);
+    return [] if $pdl->nelem == 0;
+    return _unpdl_int($pdl);
+}
+
+sub _unpdl_int {
+    my $pdl = shift;
+    if ($pdl->ndims > 1) {
+        return [ map { _unpdl_int($_) } dog $pdl ];
+    } else {
+        return listref_c($pdl);
+    }
 }
 
 =head2 listindices
