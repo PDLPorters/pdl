@@ -1105,7 +1105,7 @@ sub pp_def {
 		);
 	PDL::PP->printxs($obj{NewXSCode});
 	pp_add_boot($obj{XSBootCode} . $obj{BootSetNewXS});
-	PDL::PP->pp_add_exported($name);
+	PDL::PP->pp_add_exported($name) unless $obj{'NoExport'};
 	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
 	PDL::PP::pp_addpm($obj{PMCode});
 	PDL::PP::pp_addpm($obj{PMFunc}."\n");

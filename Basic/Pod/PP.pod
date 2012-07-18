@@ -1594,6 +1594,8 @@ the end of the .pd file):
   pp_export_nothing();
   pp_done();
 
+To prevent a single function from being exported, see L<NoExport|NoExport>.
+
 =head3 pp_core_importList
 
 By default, PP.pm puts the 'use Core;' line into the output .pm file. This imports Core's
@@ -1634,6 +1636,32 @@ two. To use this, simply have the following line at some point in your
 
 However, don't use this if you use L<Module::Build::PDL>. See that
 module's documentation for details.
+
+=head1 Making your PP function "private"
+
+Let's say that you have a function in your module called PDL::foo that
+uses the PP function C<bar_pp> to do the heavy lifting. But you don't
+want to advertise that C<bar_pp> exists. To do this, you need to set
+a few of the keys in pp_def.
+
+To ensure that no documentation (even the default PP docs) are not
+generated, set
+
+ Doc => undef,
+ 
+To prevent the function from being added to the symbol table, set
+ 
+ PMFunc => '',
+ 
+To prevent the function from being added to the C<EXPORT> list, set
+ 
+ NoExport => 1
+ 
+These three keys will effectively make your PP function "private."
+However, it is I<always> accessible via PDL::bar due to Perl's
+module design. But making it private will cause the user to go very
+far out of his or her way to use it, so he or she shoulders
+the consequences!
 
 =head1 Slice operation
 
@@ -1951,10 +1979,30 @@ for pp_bless), but that's the gist of it. If you don't care to import the
 function into your current package's symbol table, you can specify
 
  PMFunc => '',
+ 
+To remove your function's name from the C<EXPORT> list, see L<NoExport|NoExport>.
+
+B<Please note> that it is possible to use PMFunc to do silly things. For example,
+
+  C<pp_def('foo', Code => 'printf("%s\n", "Hello, world!");', PMFunc => '*bar = \&PDL::foo;');>
+
+will have an entry in @EXPORT called 'foo' (because PP puts it there by default), but
+the symbol table will contain 'bar'. If you insist on using a different name for
+your function in the symbol table than what is in the C<EXPORT> list, please also
+use the L<NoExport|NoExport> key to prevent users from being confused.
 
 PMFunc has no other side-effects, so you could use it to insert arbitrary
 Perl code into your module if you like. However, you should use pp_addpm
 if you want to add Perl code to your module.
+
+=item NoExport
+
+By default, PP will add your function's name to the C<EXPORT> list. You can
+prevent this by setting
+
+ NoExport => 1
+ 
+during a pp_def declaration.
 
 =back
 
@@ -2246,7 +2294,8 @@ This resets the list of exported symbols to nothing. This is probably better
 called C<pp_export_clear>, since you can add exported symbols after calling
 C<pp_export_nothing>. When called just before calling pp_done, this ensures
 that your module does not export anything, for example, if you only want
-programmers to use your functions as methods.
+programmers to use your functions as methods. To prevent a single function 
+from being exported, see L<NoExport|NoExport>.
 
 =back
 
