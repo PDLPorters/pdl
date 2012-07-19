@@ -45,7 +45,7 @@ the copyright notice should be included in the file.
 EOD
 
 #################################################
-#		BEGIN INTERNAL FUNCTION DECLARATIONS    #
+#     BEGIN INTERNAL FUNCTION DECLARATIONS      #
 #################################################
 pp_def('polyfill_pp',
     HandleBad => 0, # a marker
@@ -102,7 +102,7 @@ for my $name (keys %pnpolyFields) {
 pp_export_nothing();   # Clear the export list
 
 #################################################
-#		END INTERNAL FUNCTION DECLARATIONS      #
+#      END INTERNAL FUNCTION DECLARATIONS       #
 #################################################
 
 
