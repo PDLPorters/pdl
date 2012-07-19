@@ -15,7 +15,7 @@ sub tapprox {
 	return $d < 0.01;
 }
 
-print "1..42\n";
+print "1..43\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -150,5 +150,13 @@ ok(40,sum($b != pdl(2,0,1,2,0,1,2,0,1,2,0,1,2,0,1)) == 0);
 $b = $a % -3;
 ok(41,sum($b != pdl(-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2))==0);
 $b = $a % 0;
-ok(42,sum($b != 0) == 0)
+ok(42,sum($b != 0) == 0);
 
+# Check badflag propagation with .= (Ops::assgn) sf.net bug 3543056
+$a = sequence(10);
+$b = sequence(5);
+$b->inplace->setvaltobad(3);
+$a->slice('0:4') .= $b;
+$a->badflag(1);
+$a->check_badflag();
+ok(43,$a->badflag == 1 && $a->nbad == 1);
