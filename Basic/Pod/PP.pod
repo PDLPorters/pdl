@@ -1635,6 +1635,30 @@ two. To use this, simply have the following line at some point in your
 However, don't use this if you use L<Module::Build::PDL>. See that
 module's documentation for details.
 
+=head1 Making your PP function "private"
+
+Let's say that you have a function in your module called PDL::foo that
+uses the PP function C<bar_pp> to do the heavy lifting. But you don't
+want to advertise that C<bar_pp> exists. To do this, you must move your
+PP function to the top of your module file, then call
+
+ pp_export_nothing()
+
+to clear the C<EXPORT> list. To ensure that no documentation (even the
+default PP docs) is generated, set
+
+ Doc => undef
+ 
+and to prevent the function from being added to the symbol table, set
+ 
+ PMFunc => ''
+ 
+in your pp_def declaration (see Image2D.pd for an example). This will
+effectively make your PP function "private." However, it is I<always>
+accessible via PDL::bar_pp due to Perl's module design. But making
+it private will cause the user to go very far out of his or her way
+to use it, so he or she shoulders the consequences!
+
 =head1 Slice operation
 
 The slice operation section of this manual is provided using
