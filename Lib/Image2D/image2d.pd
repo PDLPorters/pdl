@@ -44,6 +44,67 @@ the copyright notice should be included in the file.
 
 EOD
 
+#################################################
+#		BEGIN INTERNAL FUNCTION DECLARATIONS    #
+#################################################
+pp_def('polyfill_pp',
+    HandleBad => 0, # a marker
+	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
+	Code => 'int ierr = 0, nerr;
+	         threadloop %{
+		   polyfill($P(im), $SIZE(m), $SIZE(n), $P(ps), $SIZE(np), $col(), &nerr);
+		   ierr = ierr < nerr ? nerr : ierr;
+		 %}
+		 if (ierr) warn("errors during polygonfilling");
+		 ',
+	Doc => undef,
+	PMFunc => ''
+);
+
+my %pnpolyFields = (
+	'pnpoly_pp' => {'pars' => 'a(m,n); ps(k,l); int [o] msk(m,n)', 'special' => '$msk() = c;'},
+	'pnpolyfill_pp' => {'pars' => '[o,nc] a(m,n); ps(k,l); int col()', 'special' => 'if(c) { $a() = $col(); }'}
+);
+
+for my $name (keys %pnpolyFields) {
+	pp_def($name,
+		HandleBad => 0,
+		PMFunc => '',
+		Doc => undef,
+		Pars => $pnpolyFields{$name}->{'pars'},
+		Code => '
+	        int i, j, c, nvert;
+	        nvert = $SIZE(l);
+	
+	        #define VERTX(q) $ps(k=>0,l=>q)
+	        #define VERTY(q) $ps(k=>1,l=>q)
+	
+			threadloop %{
+				loop(n) %{
+					loop(m) %{
+	                	c = 0;
+	                    for(i=0,j=nvert-1;i<nvert;j=i++) {
+	                        if( ((VERTY(i)>n) != (VERTY(j)>n)) &&
+	                            (m < (VERTX(j)-VERTX(i)) * (n-VERTY(i)) / (VERTY(j)-VERTY(i)) + VERTX(i)) )
+	                            c = !c;
+	                    }
+	                   ' . $pnpolyFields{$name}->{'special'} .'
+					%}
+				%}
+			%}
+	
+	        #undef VERTX
+	        #undef VERTY
+	 '
+	);
+}
+
+pp_export_nothing();   # Clear the export list
+
+#################################################
+#		END INTERNAL FUNCTION DECLARATIONS      #
+#################################################
+
 
 pp_addhdr('
 
@@ -1180,21 +1241,6 @@ void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n,
 
 ');
 
-pp_def('polyfill_pp',
-    HandleBad => 0, # a marker
-	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
-	Code => 'int ierr = 0, nerr;
-	         threadloop %{
-		   polyfill($P(im), $SIZE(m), $SIZE(n), $P(ps), $SIZE(np), $col(), &nerr);
-		   ierr = ierr < nerr ? nerr : ierr;
-		 %}
-		 if (ierr) warn("errors during polygonfilling");
-		 ',
-	Doc => undef,
-	PMFunc => '',
-	NoExport => 1
-);
-
 pp_add_exported('polyfill');
 pp_addpm(<<'EOPM');
 =head1 polyfill
@@ -1310,7 +1356,7 @@ and vectorized for PDL by Karl Glazebrook.
 #   operator does not "short circuit".
 
 sub PDL::pnpoly {
-	barf('Usage: $mask = pnpoly($img, $px, $py);') unless(@_==2 || @_==4);
+	barf('Usage: $mask = pnpoly($img, $ps);') unless(@_==2 || @_==4);
  	my ($tx, $ty, $vertx, $verty) = @_;
  	
  	# if only two inputs, use the pure PP version
@@ -1334,45 +1380,6 @@ sub PDL::pnpoly {
 *pnpoly = \&PDL::pnpoly;
 
 EOPM
-
-my %pnpolyFields = (
-	'pnpoly_pp' => {'pars' => 'a(m,n); ps(k,l); int [o] msk(m,n)', 'special' => '$msk() = c;'},
-	'pnpolyfill_pp' => {'pars' => '[o,nc] a(m,n); ps(k,l); int col()', 'special' => 'if(c) { $a() = $col(); }'}
-);
-
-for my $name (keys %pnpolyFields) {
-	pp_def($name,
-		HandleBad => 0,
-		PMFunc => '',
-		Doc => undef,
-		NoExport => 1,
-		Pars => $pnpolyFields{$name}->{'pars'},
-		Code => '
-	        int i, j, c, nvert;
-	        nvert = $SIZE(l);
-	
-	        #define VERTX(q) $ps(k=>0,l=>q)
-	        #define VERTY(q) $ps(k=>1,l=>q)
-	
-			threadloop %{
-				loop(n) %{
-					loop(m) %{
-	                	c = 0;
-	                    for(i=0,j=nvert-1;i<nvert;j=i++) {
-	                        if( ((VERTY(i)>n) != (VERTY(j)>n)) &&
-	                            (m < (VERTX(j)-VERTX(i)) * (n-VERTY(i)) / (VERTY(j)-VERTY(i)) + VERTX(i)) )
-	                            c = !c;
-	                    }
-	                   ' . $pnpolyFields{$name}->{'special'} .'
-					%}
-				%}
-			%}
-	
-	        #undef VERTX
-	        #undef VERTY
-	 '
-	);
-}
 
 pp_add_exported('', 'polyfillv');
 pp_addpm(<<'EOPM');
