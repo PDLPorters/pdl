@@ -969,7 +969,7 @@ print OUT <<"!WITH!SUBS!";
  *   It is offset to account for the difference in dimensionality between the input and
  *   output PDLs. It is allowed to be negative (which is equivalent to the "permissive
  *   slicing" that treats missing dimensions as present and having size 1), but should
- *   not match or exceed pdl->ndims.
+ *   not match or exceed pdl->ndims. 
  * pptr is the current offset data pointer into pdl->data.
  *
  * Kludge-copy works backward through the dim lists, so that padding is simpler:  if undefval
@@ -1292,7 +1292,9 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	  }
 #endif
 	  {
-	    int pd = pdims[ ndims - 2 - level];
+	    int pd,pddex;
+	    pddex = ndims - 2 - level;
+	    pd = (pddex >= 0 && pddex < ndims ? pdims[ pddex ] : 0);
 	    if(!pd)
 	      pd = 1;
 	    undef_count += pdl_kludge_copy_$type(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data,undefval);
