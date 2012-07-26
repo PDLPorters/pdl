@@ -1055,7 +1055,7 @@ long pdl_kludge_copy_$type(long poff,
 	/* pad out, in the innermost dimension */
 #ifdef DEBUG_KLUDGE_COPY
       fprintf(stderr,"padding; "); fflush(stderr);
-      fprintf(stderr," ndims-1-level=%d; ndims=%d, level=%d; plevel=%d; pdl->ndims=%d; poff=%d; oob=%d\\n", ndims-1-level,ndims, level, plevel, pdl->ndims, poff, oob);
+      fprintf(stderr," ndims-1-level=%d; ndims=%d, level=%d; plevel=%d; pdl->ndims=%d; poff=%ld; oob=%d\\n", ndims-1-level,ndims, level, plevel, pdl->ndims, poff, oob);
 #endif
       if( !oob ) {
 	for(;  i< pdims[0]-poff; i++) {
@@ -1087,7 +1087,7 @@ long pdl_kludge_copy_$type(long poff,
   /* If we're here we're not at the bottom level yet... */
 #ifdef DEBUG_KLUDGE_COPY
   printf("Entering PKC recursion loop.  imax is %d (plevel=%d; pdl->dims[%d-1-%d] = %d)\\n",
-	 (   (plevel >= 0)   ?   (pdl->dims[ pdl->ndims - 1 - level ])   :   1    ),
+	 (   (plevel >= 0 && (pdl->ndims - 1 - plevel >= 0) && (pdl->ndims - 1 - plevel < pdl->ndims))   ?   (pdl->dims[ pdl->ndims - 1 - plevel ])   :   1    ),
 	 plevel,
 	 ndims,
 	 plevel,
@@ -1133,7 +1133,7 @@ long pdl_kludge_copy_$type(long poff,
   /* pad tree to zero if there are not enough elements... */
 #ifdef DEBUG_KLUDGE_COPY
   printf("   pdl_kludge_copy - finished recursion  loop at level %d... i is %d, pdims[%d]=%d...\\n",
-	 level, i, ndims - 1 - level);
+	 level, i, ndims - 1 - level,pdims[ndims - 1 - level]);
 #endif
 
   if(i < pdims[ndims - 1 - level]) {
