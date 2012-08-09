@@ -2539,9 +2539,25 @@ sub PDL::new_from_specification{
     return $pdl;
 }
 
-# is there such a beast?
-# L<PDL::Primitive::isnull|PDL::Primitive/isnull> 
-#
+=head2 isnull
+
+=for ref
+
+Test whether a piddle is null
+
+=for usage
+
+ croak("Input piddle mustn't be null!")
+     if $input_piddle->isnull;
+
+This function returns 1 if the piddle is null, zero if it is not. The purpose
+of null piddles is to "tell" any PDL::PP methods to allocate new memory for
+an output piddle, but only when that PDL::PP method is called in full-arg
+form. Of course, there's no reason you couldn't commandeer the special value
+for your own purposes, for which this test function would prove most helpful.
+But in general, you shouldn't need to test for a piddle's nullness.
+
+See L</Null PDLs> for more information.
 
 =head2 isempty
 
