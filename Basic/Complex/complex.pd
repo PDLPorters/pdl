@@ -560,13 +560,27 @@ pp_def 'Cpow',
            double logr, logi, x, y;
            double  s, c;
 
-           CLOG (ar, ai, logr, logi);
-           x = exp (logr*br - logi*bi);
-           y =      logr*bi + logi*br;
+           if(ar == 0 && ai == 0){
+             if(br == 0 && bi == 0) {
+               $c(m=>0) = 1;
+               $c(m=>1) = 0;
+             }
+             else {
+               $c(m=>0) = 0;
+               $c(m=>1) = 0;
+             }
+           }
+           else {
+             CLOG (ar, ai, logr, logi);
+             x = exp (logr*br - logi*bi);
+             y =      logr*bi + logi*br;
 
-           SINCOS (y, s, c);
-           $c(m=>0) = x * c;
-           $c(m=>1) = x * s;
+             SINCOS (y, s, c);
+
+             $c(m=>0) = x * c;
+             if(ai == 0 && bi == 0) $c(m=>1) = 0;
+             else $c(m=>1) = x * s;
+           }
         ^
 ;
 
