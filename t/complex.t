@@ -3,7 +3,7 @@ use PDL::Complex;
 use PDL::Config;
 
 BEGIN {
-   use Test::More tests => 13;
+   use Test::More tests => 17;
 }
 
 sub tapprox {
@@ -15,6 +15,7 @@ sub tapprox {
 
 $ref = pdl([[-2,1],[-3,1]]);
 $a = i - pdl(2,3);
+
 ok(ref $a eq PDL::Complex, 'type promotion i - piddle');
 ok(tapprox($a->real,$ref), 'value from i - piddile');
 
@@ -48,6 +49,25 @@ ok(tapprox($cabs**2, Cabs2 $a), 'Cabs2 value');
 $b = $a->copy + 1;
 my $bigArray = $a->cat($b);
 ok(abs($bigArray->sum() +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
+
+my $z = pdl(0) + i*pdl(0);
+$z **= 2;
+
+ok($z->at(0) == 0 && $z->at(1) == 0, 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
+
+my $zz = $z ** 0;
+
+ok($zz->at(0) == 1 && $zz->at(1) == 0, 'check that 0+0i ** 0 is 1+0i');
+
+$z **= $z;
+
+ok($z->at(0) == 1 && $z->at(1) == 0, 'check that 0+0i ** 0+0i is 1+0i');
+
+my $r = pdl(-10) + i*pdl(0);
+$r **= 2;
+
+ok($r->at(0) < 100.000000001 && $r->at(0) > 99.999999999 && $r->at(1) == 0,
+  'check that imaginary part is exactly zero'); # Wasn't always so
 
 TODO: {
    local $TODO = "Known_problems sf.net bug #1176614" if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} );
