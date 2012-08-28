@@ -608,6 +608,8 @@ Lib/Slatec/slatec/xermsg.f
 Lib/Slatec/slatec/xerprn.f
 Lib/Slatec/slatec/xersve.f
 Lib/Slatec/slatec/xgetua.f
+Lib/Test/Makefile.PL
+Lib/Test/PDL.pm
 Lib/Transform/Cartography/Cartography.pm
 Lib/Transform/Cartography/Makefile.PL
 Lib/Transform/Cartography/earth_coast.vec.fits
@@ -732,6 +734,7 @@ t/interp.t
 t/interp_slatec.t
 t/interpol.t
 t/iotypes.t
+t/is_pdl.t
 t/lgamma.t
 t/limits_00.t
 t/limits_errb.t
