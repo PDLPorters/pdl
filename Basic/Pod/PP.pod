@@ -1707,7 +1707,7 @@ pthreading (i.e. processor multi-threading).
 PDL's own versions of C<barf> and C<warn> will queue-up warning or barf messages until after pthreading
 is completed, and then call the perl versions of these routines.
 
-See L<PDL::ParallelCPU> for more information on pthreading.
+See L<PDL::Parallel::CPU> for more information on pthreading.
 
 =head1 USEFUL ROUTINES
 

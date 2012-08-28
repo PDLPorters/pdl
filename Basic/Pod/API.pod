@@ -387,7 +387,7 @@ Note that C<barf> and C<warn> have been redefined (using c-preprocessor macros) 
 and C<< PDL->warn >>. This is to keep any XS or PP code from calling perl's C<barf> or C<warn> directly, which can
 cause segfaults during pthreading.
 
-See L<PDL::ParallelCPU> for more information on pthreading.
+See L<PDL::Parallel::CPU> for more information on pthreading.
 
 =back
 

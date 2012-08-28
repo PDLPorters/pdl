@@ -17,16 +17,19 @@ if (!$@ && $] >= 5.005 ) {
 # push @pods, 'Export';
 
 
-my @man1 = map { $_.".pod", '$(INST_MAN1DIR)/PDL::' . $_ . '.$(MAN1EXT)' } @pods;
+my %man1 = map { $_.".pod", '$(INST_MAN1DIR)/PDL::' . $_ . '.$(MAN1EXT)' } @pods;
+my %pms  = map { $_.".pod", '$(INST_LIBDIR)/' . $_ .".pod"} @pods;
 
-my @pms  = map { $_.".pod", '$(INST_LIBDIR)/' . $_ .".pod"} @pods;
+# Hand-fix Parallel::CPU
+$man1{'ParallelCPU.pod'} = '$(INST_MAN1DIR)/PDL::Parallel::CPU.$(MAN1EXT)';
+$pms{'ParallelCPU.pod'} = '$(INST_LIBDIR)/Parallel/CPU.pod';
 
 WriteMakefile(
  'NAME' =>      'PDL::pod',
 
- 'MAN1PODS' =>  { @man1 },
+ 'MAN1PODS' =>  \%man1,
  'MAN3PODS' =>  { },
- 'PM'    =>     { @pms },
+ 'PM'    =>     \%pms,
  'clean' => {FILES => "PP-Inline.pod"},
  'linkext' =>   {LINKTYPE => ''},  # No linking required in this directory
 );

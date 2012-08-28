@@ -4045,7 +4045,7 @@ Set the target number of processor threads (pthreads) for multi-threaded process
 
 C<$num_pthreads> is the target number of pthreads the auto-pthread process will try to achieve.
 
-See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+See L<PDL::Parallel::CPU> for an overview of the auto-pthread process.
 
 =for example
 
@@ -4078,7 +4078,7 @@ Get the current target number of processor threads (pthreads) for multi-threaded
 
 C<$num_pthreads> is the target number of pthreads the auto-pthread process will try to achieve.
 
-See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+See L<PDL::Parallel::CPU> for an overview of the auto-pthread process.
 
 
 =cut
@@ -4097,7 +4097,7 @@ Get the actual number of pthreads executed for the last pdl processing function.
 
 C<$autopthread_actual> is the actual number of pthreads executed for the last pdl processing function.
 
-See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+See L<PDL::Parallel::CPU> for an overview of the auto-pthread process.
 
 
 =cut
@@ -4120,7 +4120,7 @@ is used to define a minimum threshold where auto-pthreading won't be attempted.
 
 C<$size> is the mimumum size, in M-elements or 2^20 elements (approx 1e6 elements) for the largest PDL involved in a function.
 
-See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+See L<PDL::Parallel::CPU> for an overview of the auto-pthread process.
 
 =for example
 
@@ -4153,7 +4153,7 @@ Get the current autopthread_size setting.
 
 C<$autopthread_size> is the mimumum size limit for auto_pthreading to occur, in M-elements or 2^20 elements (approx 1e6 elements) for the largest PDL involved in a function
 
-See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+See L<PDL::Parallel::CPU> for an overview of the auto-pthread process.
 
 
 =cut

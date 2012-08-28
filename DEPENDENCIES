@@ -57,7 +57,7 @@ Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
                                           build PDL manually without it.
 
 
-PDL::ParallelCPU  pthreads library        Multi-CPU support will be enabled
+PDL::Parallel::CPU  pthreads library      Multi-CPU support will be enabled
                                           if libpthreads is detected and
                                           built against.  A pthreads for
 					  win32 can be found at

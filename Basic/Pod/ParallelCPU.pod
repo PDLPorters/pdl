@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::ParallelCPU - Parallel Processor MultiThreading Support in PDL (Experimental)
+PDL::Parallel::CPU - Parallel Processor MultiThreading Support in PDL (Experimental)
 
 
 =head1 DESCRIPTION

@@ -74,7 +74,7 @@ external dependencies:
 
 and also
 
- PDL::ParallelCPU
+ PDL::Parallel::CPU
   (Parallel pthread support will build and install by default
    since the cygwin DLL includes POSIX threads)
 
