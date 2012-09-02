@@ -87,7 +87,7 @@ $PDL::IO::Pic::debug = $PDL::IO::Pic::debug || 0;
 
 sub init_converter_table {
   # default flag to be used with any converter unless overridden with FLAGS
-  $Dflags = '-quiet';
+  $Dflags = '';
   %converter = ();
 
   # Pbmplus systems have cjpeg/djpeg; netpbm systems have pnmtojpeg and
