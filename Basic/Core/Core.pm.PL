@@ -1585,7 +1585,7 @@ sub PDL::dummy($$;$) {
    my ($pdl,$dim,$size) = @_;
    barf("Missing position argument to dummy()") unless defined $dim;  # required argument
    $dim = $pdl->getndims+1+$dim if $dim < 0;
-   $size = 1 unless defined($size);
+   $size = defined($size) ? (1 * $size) : 1;  # make $size a number (sf feature # 3479009)
 
    barf("For safety, <pos> < -(dims+1) forbidden in dummy.  min="
 	 . -($pdl->getndims+1).", pos=". ($dim-1-$pdl->getndims) ) if($dim<0);

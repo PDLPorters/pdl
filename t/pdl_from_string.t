@@ -255,53 +255,53 @@ SKIP: {
 	ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
 }
 
-if($ActivePerl::VERSION || $Config{cc} eq 'cl') {
- TODO: {
+TODO: {
 
-	local $TODO = 'ActivePerl and/or perls built using MS compilers might fail this test';
+   local $TODO = 'Cygwin perl/ActivePerl and/or perls built using MS compilers might fail these tests';
 
-	ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
-		or $nan != $nan), "pdl 'nan' works by itself")
-		or diag("pdl 'nan' gave me $nan");
-	ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
-		or $nan2 != $nan2), "pdl '-nan' works by itself")
-		or diag("pdl '-nan' gave me $nan2");
-	ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
-		or $nan =~ /-/), "pdl 'nan' has a negative sign (MS Windows only)")
-		or diag("pdl 'nan' gave me $nan");
-	ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
-		or $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
-		or diag("pdl -'nan' gave me $nan2");
+   if($ActivePerl::VERSION || $Config{cc} eq 'cl') {
+      ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+               or $nan != $nan), "pdl 'nan' works by itself")
+         or diag("pdl 'nan' gave me $nan");
+      ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+               or $nan2 != $nan2), "pdl '-nan' works by itself")
+         or diag("pdl '-nan' gave me $nan2");
+      ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+               or $nan =~ /-/), "pdl 'nan' has a negative sign (MS Windows only)")
+         or diag("pdl 'nan' gave me $nan");
+      ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+               or $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
+         or diag("pdl -'nan' gave me $nan2");
 
- } #close TODO
-}
-else {
-	ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
-		or $nan != $nan), "pdl 'nan' works by itself")
-		or diag("pdl 'nan' gave me $nan");
-	ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
-		or $nan2 != $nan2), "pdl '-nan' works by itself")
-		or diag("pdl '-nan' gave me $nan2");
+   }
+   else {
+      ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+               or $nan != $nan), "pdl 'nan' works by itself")
+         or diag("pdl 'nan' gave me $nan");
+      ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+               or $nan2 != $nan2), "pdl '-nan' works by itself")
+         or diag("pdl '-nan' gave me $nan2");
 
-	# On MS Windows, nan is -1.#IND and -nan is 1.#QNAN. IOW, nan has
-	# a leading minus sign, and -nan is not signed.
-	if($^O =~ /MSWin32/i) {
-		ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
-			or $nan =~ /-/), "pdl 'nan' has a negative sign (MS Windows only)")
-			or diag("pdl 'nan' gave me $nan");
-		ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
-			or $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
-			or diag("pdl -'nan' gave me $nan2");
-	}
-	else {
-		ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
-			or $nan !~ /-/), "pdl 'nan' has a positive sign")
-			or diag("pdl 'nan' gave me $nan");
-		ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
-			or $nan2 =~ /-/), "pdl '-nan' has a negative sign")
-			or diag("pdl '-nan' gave me $nan2");
-	}
-}
+      # On MS Windows, nan is -1.#IND and -nan is 1.#QNAN. IOW, nan has
+      # a leading minus sign, and -nan is not signed.
+      if($^O =~ /MSWin32/i) {
+         ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+                  or $nan =~ /-/), "pdl 'nan' has a negative sign (MS Windows only)")
+            or diag("pdl 'nan' gave me $nan");
+         ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+                  or $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
+            or diag("pdl -'nan' gave me $nan2");
+      }
+      else {
+         ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
+                  or $nan !~ /-/), "pdl 'nan' has a positive sign")
+            or diag("pdl 'nan' gave me $nan");
+         ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
+                  or $nan2 =~ /-/), "pdl '-nan' has a negative sign")
+            or diag("pdl '-nan' gave me $nan2");
+      }
+   }
+} #close TODO
 
 ok($bad->isbad, "pdl 'bad' works by itself")
 	or diag("pdl 'bad' gave me $bad");
