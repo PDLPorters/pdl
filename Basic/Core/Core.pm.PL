@@ -3112,10 +3112,16 @@ Convert piddle to nested Perl array references
 
  $arrayref = unpdl $x;
 
-Obviously this is grossly inefficient for the large datasets PDL is designed to
-handle. Sometimes, however, you really want to move your data back to Perl, and
-with proper dimensionality, unlike C<list>. This function attempts to do this for you, returning 
-a reference to a Perl equivalent to the input piddle. 
+This function returns a reference to a Perl list-of-lists structure
+equivalent to the input piddle (within the limitation that while values
+of elements should be preserved, the detailed datatypes will not as
+perl itself basically has "number" data rather than byte, short, int...
+E.g., C<< sum($x - pdl( $x->unpdl )) >> should equal 0.
+
+Obviously this is grossly inefficient in memory and processing for the
+large datasets PDL is designed to handle. Sometimes, however, you really
+want to move your data back to Perl, and with proper dimensionality,
+unlike C<list>.
 
 =for example
 
