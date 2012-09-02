@@ -876,6 +876,7 @@ sub chkform {
     my ($format, $magic, $len, $ext) = ("","",0,"");
 
     open(IMG, $file) or barf "Can't open image file";
+    binmode IMG;
     # should first check if file is long enough
     $len = read(IMG, $magic,12);
     if (!defined($len) ||$len != 12) {

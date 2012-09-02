@@ -842,6 +842,7 @@ sub writeflexhdr {
     my $hname = "$name.hdr";
     my $h = new FileHandle ">$hname"
 	or barf "Couldn't open '$hname' for writing";
+    binmode $h;
     print $h
 	"# Output from PDL::IO::writeflex, data in $name\n";
     foreach (@$hdr) {
