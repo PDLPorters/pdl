@@ -300,6 +300,12 @@ sub init_map {
           if (${loop2}<0 || ${loop2} >= $size)
              $loop2 = -1;
           break;
+       case 3:      /* REPLICATE */
+          if (${loop2}<0)
+             $loop2 = 0;
+          if (${loop2} >= $size)
+             $loop2 = $size-1;
+          break;
        default:
            REALMOD($loop2,$size);
     }
@@ -360,10 +366,11 @@ will be quicker.
 
  Boundary - controls what values are assumed for the image when kernel
             crosses its edge:
- 	    => Default  - periodic boundary conditions
-                          (i.e. wrap around axis)
- 	    => Reflect  - reflect at boundary
- 	    => Truncate - truncate at boundary
+ 	    => Default   - periodic boundary conditions
+                           (i.e. wrap around axis)
+ 	    => Reflect   - reflect at boundary
+ 	    => Truncate  - truncate at boundary
+ 	    => Replicate - repeat boundary pixel values
 
 =cut
 
@@ -384,7 +391,8 @@ sub PDL::conv2d {
    &PDL::_conv2d_int($a,$kern,$c,
 	(!(defined $opt && exists $$opt{Boundary}))?0:
 	(($$opt{Boundary} eq "Reflect") +
-	2*($$opt{Boundary} eq "Truncate")));
+	2*($$opt{Boundary} eq "Truncate") +
+	3*($$opt{Boundary} eq "Replicate")));
    return $c;
 }
 
@@ -469,9 +477,10 @@ is rather pointless)
 
  Boundary - controls what values are assumed for the image when kernel
             crosses its edge:
- 	    => Default  - periodic boundary conditions (i.e. wrap around axis)
- 	    => Reflect  - reflect at boundary
- 	    => Truncate - truncate at boundary
+ 	    => Default   - periodic boundary conditions (i.e. wrap around axis)
+ 	    => Reflect   - reflect at boundary
+ 	    => Truncate  - truncate at boundary
+ 	    => Replicate - repeat boundary pixel values
 
 =cut
 
@@ -493,9 +502,10 @@ sub PDL::med2d {
        if all( $kern <= 0 );
    my $c = $#_ == 2 ? $_[2] : $a->nullcreate;
    &PDL::_med2d_int($a,$kern,$c,
-	(!(defined $opt && exists $opt->{Boundary}))?0:
+	(!(defined $opt && exists $$opt{Boundary}))?0:
 	(($$opt{Boundary} eq "Reflect") +
-	2*($$opt{Boundary} eq "Truncate")));
+	2*($$opt{Boundary} eq "Truncate") +
+	3*($$opt{Boundary} eq "Replicate")));
    return $c;
 }
 
@@ -602,9 +612,10 @@ Note: this routine does the median over all points in a rectangular
 
  Boundary - controls what values are assumed for the image when kernel
             crosses its edge:
- 	    => Default  - periodic boundary conditions (i.e. wrap around axis)
- 	    => Reflect  - reflect at boundary
- 	    => Truncate - truncate at boundary
+ 	    => Default   - periodic boundary conditions (i.e. wrap around axis)
+ 	    => Reflect   - reflect at boundary
+ 	    => Truncate  - truncate at boundary
+ 	    => Replicate - repeat boundary pixel values
 
 =cut
 
@@ -623,9 +634,10 @@ sub PDL::med2df {
        if $p == 0 && $q == 0;
    my $c = $#_ == 3 ? $_[3] : $a->nullcreate;
    &PDL::_med2df_int($a,$c,$p,$q,
-	(!(defined $opt && exists $opt->{Boundary}))?0:
+	(!(defined $opt && exists $$opt{Boundary}))?0:
 	(($$opt{Boundary} eq "Reflect") +
-	2*($$opt{Boundary} eq "Truncate")));
+	2*($$opt{Boundary} eq "Truncate") +
+	3*($$opt{Boundary} eq "Replicate")));
    return $c;
 }
 
