@@ -780,6 +780,7 @@ t/pthreadBarf.t
 t/pthread_auto.t
 t/reduce.t
 t/refs.t
+t/rim.t
 t/requiredmods.t
 t/round.t
 t/scope.t
