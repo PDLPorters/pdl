@@ -120,37 +120,19 @@ The following issues have been reported with this version of PDL:
   depend on the order of the input values.
 
 
-- 16-bit image IO via rpic/wpic and rim/wim do not correctly
-  handle byte order issues.  The intermediate PNM data piped
-  through the converter programs is not adjusted to network
-  byte order per the NetPBM convention/standard.  This is not
-  an issue for big-endian systems or for 8-bit/channel image
-  data.
-
-
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.11_001 release:
 
-  3563903    PNG fomat detection fails for perl 5.16.0
-
-               Pending: fixed in git.
-
+  3570236    clip() edge case not handled right
+  3570235    Wrong results in corner empty-set cases
   3547302    t/pdl_from_string.t fails subtest for MSVC build
   3544682    perldl doesn't print stacktrace from barf
   3543056    propagate badflag with .=
   3539685    pdldoc can't handle SPP mount location change
-  3535203    polyfill/polyfillv includes boundary pixels
-
-               Pending: fixed in git.
-
   3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
   3518190    t/gd_oo_tests.t fails for AMD64
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
-  3475075    t/pic_16bit.t subtest fails
-
-               Pending: possible fix for ushort/long raw PNMs
-
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
   3299615    PLplot still unusable with X

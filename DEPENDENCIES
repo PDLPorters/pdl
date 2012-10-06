@@ -1,5 +1,5 @@
 +----------------------------------------------------------------------------+
-|                        PPDL Module Dependencies                            | 
+|                        PDL Module Dependencies                            | 
 +----------------------------------------------------------------------------+
 
 This file lists dependencies of PDL modules on external programs
@@ -223,17 +223,9 @@ PDL::IO::HDF      PDL interface to HDF4 library.  See
                                           HDF4 libraries are detected.
 
 
-PDL::IO::NDF      NOTE: These refs/URLs may be incorrect or outdated.
-
-                  Requires the perl/NDF interface, NDFPERL, which
-                  also requires a fortran compiler and the fortran
-                  NDF library.  Get the STARPERL package from
-                  http://starlink.jach.hawaii.edu/starlink where
-                  there appears to be a git repository for STARPERL at
-                  http://starlink.jach.hawaii.edu/git/?p=starperl.git;a=summary .
-
-                                          Module builds ok without
-                                          NDF module and library
+PDL::IO::NDF      This module is no longer part of the PDL
+                  core distribution but may be installed
+                  separately from CPAN.
 
 
 PDL::IO::Pic      rpic/wpic: PBM+ or NetPBM converters
