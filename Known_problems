@@ -10,13 +10,6 @@ The following issues have been reported with this version of PDL:
   the perldl.conf file.
 
 
-- Multiple subtest failures in t/gd_oo_tests.t have been
-  seen in CPAN Testers reports, they appear to be on 64bit
-  BSD operating systems compiled for AMD processors.  Sf.net
-  bug #3518190 "t/gd_oo_tests.t fails for AMD64" tracks this
-  issue.
-
-
 - A change in perl-5.14 on how the 'x' operator works affects
   PDL's overload of that operator for matrix multiplication.
   An example that shows the problem is code like:
@@ -130,7 +123,6 @@ The following issues have been reported with this version of PDL:
   3543056    propagate badflag with .=
   3539685    pdldoc can't handle SPP mount location change
   3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
-  3518190    t/gd_oo_tests.t fails for AMD64
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3316394    'help funname' fails to show multiple function names
@@ -142,7 +134,6 @@ The following issues have been reported with this version of PDL:
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
   1507054    closing TriD window kills perldl shell
-  1205359    PGPLOT Window does not store full state info
 
 
 For more information on these and other PDL issues, and for

@@ -26,6 +26,44 @@ General Notes:
 
 Highlights:
 
+ * The p shortcut to display output in the PDL shells has
+   been reverted to its previous 2.4.10 behavior.  If you
+   wish it to be an exact alias for print just override in
+   your .perldlrc or local.perldlrc file.
+
+ * Added Boundary=>'Replicate' option to conv2d and med2d.
+
+ * Fixed 16-bit PNM raw format handling (sf.net bug #3475075)
+
+ * Fixed dummy() to generate a valid syntax for the underlying
+   call to slice().  This was sf.net bug #3479009.
+ 
+ * Fixed bug in PNG format detection on win32 platforms.
+   Sf.net bug #3563903.
+
+ * Fix handling of complex 0 values.
+
+ * Update polyfill and polyfillv routines to the algorithm
+   from pnpoly: faster and more accurate on edge pixels.
+ 
+ * PDL::IO::NDF has been moved to its own distribution on
+   CPAN.
+
+ * Added an unpdl method which is (roughly) the inverse
+   operation of pdl in the sense that it generates a
+   perl structure corresponding to the input piddle.
+ 
+ * Add lgamma support for MinGW-built perls with tests
+   to match.
+ 
+ * Fix NaN sign issues as reported (and fixed!) by Matthew 
+   McGillis.
+
+ * Support for additional random number generators to PDL::GSL
+   thanks to John Lapeyre.
+
+ * Many debian distribution fixes.
+
  * TBD
 
 
