@@ -2020,7 +2020,7 @@ pp_def( 'affine',
 	Reversible => 1,
 	AffinePriv => 1,
 	GlobalNew => 'affine_new',
-	OtherPars => 'int offspar; SV *dimlist; SV *inclist;',
+	OtherPars => 'PDL_Index offspar; SV *dimlist; SV *inclist;',
 	Comp => 'int nd; PDL_Index offset; PDL_Index sdims[$COMP(nd)];
 		PDL_Index sincs[$COMP(nd)];',
 	MakeComp => '
