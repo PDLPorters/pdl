@@ -18,7 +18,7 @@ sub clean_error_string {
    $bigerr =~ s/^\s+Class::MOP.*$//ms;
    $bigerr =~ s/^\s+Lexical::Persistence.*$//ms;
    $bigerr =~ s/^\s+main::.*$//ms;
-   $bigerr =~ s/^\s+eval {.*$//ms;
+   $bigerr =~ s/^\s+eval \{.*$//ms;
    $bigerr =~ s/^\s+PDL::Core::barf.*$//ms;
    return $bigerr;
 }

@@ -10,31 +10,36 @@ use blib;  # otherwise possible error on virgin systems not finding PDL::Core
 
 use PDL::LiteF;
 
+# First some Inline administivia.
 BEGIN {
-   # clean out the _Inline directory on every test
-   # (may be OTT but ensures that we're always testing the latest code)
-   #
-   # require File::Path;
-   # File::Path::rmtree (["_Inline", ".Inline"], 0, 0);
+   # Check for BSD platforms
+   plan skip_all => 'Known problem: sf.net bug #3518190, t/inline-comment-test.t fails for BSD'
+      if $^O =~ /(bsd|dragonfly)$/i;
 
    # Test for Inline and set options
    my $inline_test_dir = './.inlinepdlpp';
    mkdir $inline_test_dir unless -d $inline_test_dir;
-   eval 'use Inline (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1)';
-   if ( ! $@ ) {       # have Inline
-      eval 'use Inline 0.43';
-      if ( ! $@ and $^O !~  /(bsd|dragonfly)$/i ) {
-         plan tests => 3;
-      } else {
-         plan skip_all => "Known problem: sf.net bug #3518190, t/inline-comment-test.t fails for BSD";
-      }
-   }
-   else {
+   
+   # See if Inline loads without trouble, or bail out
+   eval {
+      require Inline;
+      Inline->import (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1);
+      1;
+   } or do {
       plan skip_all => "Skipped: Inline not installed";
-   }
-}
+   };
+   
+   # Make sure we have a recent enough version of Inline
+   eval q{
+      use Inline 0.43;
+      1;
+   } or do {
+      plan skip_all => 'Unable to load a new enough version of Inline';
+   };
 
-sub myshape { join ',', $_[0]->dims }
+   # All clear, so declare the three tests
+   plan tests => 3;
+}
 
 # use Inline 'INFO'; # use to generate lots of info
 use Inline 'Pdlpp';
@@ -53,8 +58,8 @@ ok(all ($b == $a+1), 'Sanity check runs correctly');
 # wart, this test will fail, in which case the book's text should be updated.
 $b = $a->testinc2;
 TODO: {
-	# Note: This test appears to fail on Cygwin, for reasons that are yet unknown.
-	local $TODO = 'Cygwin does not have this wart?!' if $^O eq 'cygwin';
+	# Note: This test appears to fail on Cygwin and some flavors of Linux.
+	local $TODO = 'This test inexplicably passes on some machines';
 	ok(not (all $b == $a + 1), 'WART: commenting out a threadloop does not work')
 		or diag("\$a is $a and \$b is $b");
 }

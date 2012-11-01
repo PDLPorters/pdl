@@ -105,9 +105,8 @@ FILE *out;
 
 if ($SIZE(i) != 3 || $SIZE(j) > 256)
 {
-    sprintf(str, "Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+    croak("Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
             $SIZE(i), $SIZE(j) );
-    croak(str);
 }
 
 xsize = $SIZE(x);
@@ -121,8 +120,7 @@ for(ind = 0; ind < $SIZE(j); ind++)
     tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
     {
-        sprintf(str, "palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-        croak(str);
+        croak("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
     }
 }
 
@@ -163,16 +161,14 @@ FILE *out;
 
 if( $COMP(level) < -1 || $COMP(level) > 9 )
 {
-    sprintf(str, "Invalid compression level %d, should be [-1,9]!\n", 
+    croak("Invalid compression level %d, should be [-1,9]!\n", 
         $COMP(level) );
-    croak(str);
 }
 
 if ($SIZE(i) != 3 || $SIZE(j) > 256)
 {
-    sprintf(str, "Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+    croak("Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
             $SIZE(i), $SIZE(j) );
-    croak(str);
 }
 
 xsize = $SIZE(x);
@@ -186,8 +182,7 @@ for(ind = 0; ind < $SIZE(j); ind++)
     tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
     {
-        sprintf(str, "palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-        croak(str);
+        croak("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
     }
 }
 
@@ -229,9 +224,8 @@ FILE *out;
 
 if ($SIZE(z) != 3)
 {
-    sprintf(str, "Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+    croak("Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
             $SIZE(x), $SIZE(y), $SIZE(z) );
-    croak(str);
 }
 
 xsize = $SIZE(x);
@@ -276,16 +270,14 @@ FILE *out;
 
 if( $COMP(level) < -1 || $COMP(level) > 9 )
 {
-    sprintf(str, "Invalid compression level %d, should be [-1,9]!\n", 
+    croak("Invalid compression level %d, should be [-1,9]!\n", 
         $COMP(level) );
-    croak(str);
 }
 
 if ($SIZE(z) != 3)
 {
-    sprintf(str, "Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+    croak("Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
             $SIZE(x), $SIZE(y), $SIZE(z) );
-    croak(str);
 }
 
 xsize = $SIZE(x);
@@ -489,15 +481,13 @@ FILE *in = NULL;
 in = fopen($COMP(filename), "rb");
 if ( in == NULL )
 {
-    sprintf(str, "%sError opening %s!\n", func, $COMP(filename));
-    croak(str);
+    croak("%sError opening %s!\n", func, $COMP(filename));
 }
 
 im = gdImageCreateFromPng(in);
 if ( im == NULL )
 {
-    sprintf(str, "%sError reading PNG data!\n", func);
-    croak(str);
+    croak("%sError reading PNG data!\n", func);
 }
 fclose(in);
 
@@ -507,9 +497,8 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    sprintf(str, "%sDims of %s (%dx%d) and piddle (%dx%d) do not match!\n",
+    croak("%sDims of %s (%dx%d) and piddle (%dx%d) do not match!\n",
             func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
-    croak(str);
 }
 
 /* read the data */
@@ -541,15 +530,13 @@ FILE *in = NULL;
 in = fopen($COMP(filename), "rb");
 if ( in == NULL )
 {
-    sprintf(str, "%sError opening %s!\n", func, $COMP(filename));
-    croak(str);
+    croak("%sError opening %s!\n", func, $COMP(filename));
 }
 
 im = gdImageCreateFromPng(in);
 if ( im == NULL )
 {
-    sprintf(str, "%sError reading PNG data!\n", func);
-    croak(str);
+    croak("%sError reading PNG data!\n", func);
 }
 fclose(in);
 
@@ -559,9 +546,8 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    sprintf(str, "%sDims of %s (%dx%d) and piddle (%dx%d) do not match!\n",
+    croak("%sDims of %s (%dx%d) and piddle (%dx%d) do not match!\n",
             func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
-    croak(str);
 }
 
 /* read the data */
@@ -592,9 +578,8 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    sprintf(str, "%sDims of gdImage (%dx%d) and piddle (%dx%d) do not match!\n",
+    croak("%sDims of gdImage (%dx%d) and piddle (%dx%d) do not match!\n",
             func, xsize, ysize, $SIZE(x), $SIZE(y));
-    croak(str);
 }
 
 /* read the data */
@@ -626,9 +611,8 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    sprintf(str, "%sDims of gdImage (%dx%d) and piddle (%dx%d) do not match!\n",
+    croak("%sDims of gdImage (%dx%d) and piddle (%dx%d) do not match!\n",
             func, xsize, ysize, $SIZE(x), $SIZE(y));
-    croak(str);
 }
 
 /* read the data */
@@ -651,9 +635,8 @@ char str[255];
 
 if ($SIZE(z) != 3)
 {
-    sprintf(str, "Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+    croak("Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
             $SIZE(x), $SIZE(y), $SIZE(z) );
-    croak(str);
 }
 
 xsize = $SIZE(x);
@@ -688,9 +671,8 @@ char str[255];
 
 if ($SIZE(i) != 3 || $SIZE(j) > 256)
 {
-    sprintf(str, "Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+    croak("Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
             $SIZE(i), $SIZE(j) );
-    croak(str);
 }
 
 xsize = $SIZE(x);
@@ -704,8 +686,7 @@ for(ind = 0; ind < $SIZE(j); ind++)
     tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
     if (tmp != ind)
     {
-        sprintf(str, "palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
-        croak(str);
+        croak("palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
     }
 }
 
@@ -755,22 +736,19 @@ FILE *in = NULL;
 /* Check dims: */
 if ( $SIZE(c) != 3 )
 {
-    sprintf(str, "%sLUT dims should be 3,256!\n", func);
-    croak(str);
+    croak("%sLUT dims should be 3,256!\n", func);
 }
 
 in = fopen($COMP(filename), "rb");
 if ( in == NULL )
 {
-    sprintf(str, "%sError opening %s!\n", func, $COMP(filename));
-    croak(str);
+    croak("%sError opening %s!\n", func, $COMP(filename));
 }
 
 im = gdImageCreateFromPng(in);
 if ( im == NULL )
 {
-    sprintf(str, "%sError reading PNG data!\n", func);
-    croak(str);
+    croak("%sError reading PNG data!\n", func);
 }
 fclose(in);
 

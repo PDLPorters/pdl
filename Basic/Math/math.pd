@@ -1,5 +1,6 @@
 
 use strict;
+use Config;
 
 pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
@@ -16,12 +17,12 @@ PDL::Math - extended mathematical operations and special functions
 =head1 DESCRIPTION
 
 This module extends PDL with more advanced mathematical functions than
-provided by standard Perl.  
+provided by standard Perl.
 
 All the functions have one input pdl, and one output, unless otherwise
 stated.
 
-Many of the functions are linked from the system maths library or the 
+Many of the functions are linked from the system maths library or the
 Cephes maths library (determined when PDL is compiled); a few are implemented
 entirely in PDL.
 
@@ -79,13 +80,13 @@ The value for which the area under the
 Gaussian probability density function (integrated from
 minus infinity) is equal to the argument (cf L<erfi|/erfi>).");
 
-doco(qw/bessj0 bessj1/, 
+doco(qw/bessj0 bessj1/,
      "The regular Bessel function of the first kind, J_n" );
 
-doco(qw/bessy0 bessy1/, 
+doco(qw/bessy0 bessy1/,
      "The regular Bessel function of the second kind, Y_n." );
 
-doco( qw/bessjn/, 
+doco( qw/bessjn/,
 '=for ref
 
 The regular Bessel function of the first kind, J_n
@@ -94,7 +95,7 @@ This takes a second int argument which gives the order
 of the function required.
 ');
 
-doco( qw/bessyn/, 
+doco( qw/bessyn/,
 '=for ref
 
 The regular Bessel function of the first kind, Y_n
@@ -103,7 +104,7 @@ This takes a second int argument which gives the order
 of the function required.
 ');
 
-if ($^O !~ /win32/i) {  # doesn't seem to be in the MS VC lib
+if ($^O !~ /win32/i || $Config{cc} =~ /\bgcc/i) {  # doesn't seem to be in the MS VC lib
 doco( 'lgamma' ,<<'EOD');
 =for ref
 
@@ -158,11 +159,11 @@ pp_addhdr('
 my (@ufuncs1) = qw(acos asin atan cosh sinh tan tanh); # F,D only
 my (@ufuncs1g) = qw(ceil floor rint); # Any type
 
-# Note: 
+# Note:
 #  ops.pd has a power() function that does the same thing
 #  (although it has OtherPars => 'int swap;' as well)
 #  - left this in for now.
-# 
+#
 my (@bifuncs1) = qw(pow); # Any type
 
 # Extended `-lm'
@@ -172,21 +173,21 @@ my (@besbifuncs) = qw(jn yn); # "
 # Need igamma, ibeta, and a fall-back implementation of the above
 
 sub code_ufunc    { return '$b() = ' . $_[0] . '($a());'; }
-sub badcode_ufunc { 
+sub badcode_ufunc {
     my $name = $_[0];
-    return 'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = ' . $name . '($a()); }'; 
+    return 'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = ' . $name . '($a()); }';
 }
 
-sub code_bifunc { 
+sub code_bifunc {
     my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
     my $c = $_[3] || 'c';
-    return "\$$c() = $name(\$$a(),\$$b());"; 
+    return "\$$c() = $name(\$$a(),\$$b());";
 }
-sub badcode_bifunc { 
+sub badcode_bifunc {
     my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
     my $c = $_[3] || 'c';
     return 'if ( $ISBAD('.$a.'()) || $ISBAD('.$b.'()) ) { $SETBAD('.$c.'()); } else { ' .
-	"\$$c() = $name(\$$a(),\$$b()); }"; 
+	"\$$c() = $name(\$$a(),\$$b()); }";
 }
 
 sub inplace_doc {
@@ -283,7 +284,7 @@ if ($^O !~ /win32/i) {
 	   'extern int signgam;
 	    $b() = lgamma($a());
 	    $s() = signgam;',     # what happens to signgam if $a() is bad?
-	   BadCode => 
+	   BadCode =>
 	   'extern int signgam;
             if ( $ISBAD(a()) ) {
                $SETBAD(b()); $SETBAD(s());
@@ -294,21 +295,39 @@ if ($^O !~ /win32/i) {
 	   );
 } # if: os !~ win32
 
+elsif ($Config{cc} =~ /\bgcc/i) {
+    pp_def("lgamma",
+	   HandleBad => 1,
+	   Pars => 'a(); [o]b(); int[o]s()',
+	   Doc => $doco{"lgamma"},
+	   Code =>
+	   '$b() = lgamma($a());
+	    $s() = tgamma($a()) < 0 ? -1 : 1;',     # what happens to signgam if $a() is bad?
+	   BadCode =>
+	   'if ( $ISBAD(a()) ) {
+               $SETBAD(b()); $SETBAD(s());
+            } else {
+               $b() = lgamma($a());
+               $s() = tgamma($a()) < 0 ? -1 : 1;
+            }',
+	   );
+} # elsif: cc =~ /\bgcc/i
+
 pp_def(
        'badmask',
        Pars => 'a(); b(); [o]c();',
        Inplace => [ 'a' ],
        HandleBad => 1,
-       Code => 
+       Code =>
        '$c() = finite($a()) ? $a() : $b();',
-       BadCode => 
+       BadCode =>
        '$c() = ( finite($a()) && $ISGOOD(a()) ) ? $a() : $b();',
-       CopyBadStatusCode => 
+       CopyBadStatusCode =>
        'if ( a == c && $ISPDLSTATEBAD(a) )
            PDL->propogate_badflag( c, 0 );  /* propogate badflag if inplace AND its changed */
         $SETPDLSTATEGOOD(c);          /* always make sure the output is "good" */
        ',
-       Doc => 
+       Doc =>
 '=for ref
 
 Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>.
@@ -319,7 +338,7 @@ badmask can be run with C<$a> inplace:
   $a->inplace->badmask(0);
 
 ',
-       BadDoc => 
+       BadDoc =>
        'If bad values are present, these are also cleared.',
        );
 
@@ -328,16 +347,16 @@ pp_def(
        Pars => 'a(); int [o]mask();',
        Inplace => 1,
        HandleBad => 1,
-       Code => 
+       Code =>
        '$mask() = finite((double) $a()) != 0;',
-       BadCode => 
+       BadCode =>
        '$mask() = finite((double) $a()) != 0 && $ISGOOD($a());',
-       CopyBadStatusCode => 
+       CopyBadStatusCode =>
        'if ( a == mask && $ISPDLSTATEBAD(a) )
            PDL->propogate_badflag( mask, 0 );  /* propogate badflag if inplace AND its changed */
         $SETPDLSTATEGOOD(mask);          /* always make sure the output is "good" */
        ',
-       Doc => 
+       Doc =>
 'Sets C<$mask> true if C<$a> is not a C<NaN> or C<inf> (either positive or negative). Works inplace.',
        BadDoc =>
 'Bad values are treated as C<NaN> or C<inf>.',
@@ -352,10 +371,10 @@ pp_def(
        Pars => 'a(); [o]b()',
        Inplace => 1,
        Doc => inplace_doc( "erfi" ),
-       Code => 
+       Code =>
        'extern double ndtri(double), SQRTH;
 	$b() = SQRTH*ndtri((1+(double)$a())/2);',
-       BadCode => 
+       BadCode =>
        'extern double ndtri(double), SQRTH;
         if ( $ISBAD(a()) ) { $SETBAD(b()); }
         else { $b() = SQRTH*ndtri((1+(double)$a())/2); }',
@@ -369,10 +388,10 @@ pp_def(
        Pars => 'a(); [o]b()',
        Inplace => 1,
        Doc => inplace_doc( "ndtri" ),
-       Code => 
+       Code =>
        'extern double ndtri(double);
 	$b() = ndtri((double)$a());',
-       BadCode => 
+       BadCode =>
        'extern double ndtri(double);
         if ( $ISBAD(a()) ) { $SETBAD(b()); }
 	else { $b() = ndtri((double)$a()); }',

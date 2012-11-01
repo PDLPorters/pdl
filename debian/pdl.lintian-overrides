@@ -2,3 +2,8 @@
 #     just does not see it
 pdl: doc-base-file-references-missing-file pdl:12 /var/lib/pdl/html/Index.html
 pdl: doc-base-file-references-missing-file pdl:13 /var/lib/pdl/html/*.html
+# there is one long code line in the manpage, which cannot be broken
+pdl: manpage-has-errors-from-man usr/share/man/man3/PDL::FFT.3pm.gz 215: warning [p 2, 2.0i]: can't break line
+# these two images neeed to be in usr/lib
+pdl: image-file-in-usr-lib usr/lib/perl5/PDL/Transform/Cartography/earth_day.jpg
+pdl: image-file-in-usr-lib usr/lib/perl5/PDL/Transform/Cartography/earth_night.jpg

@@ -60,6 +60,7 @@ use PDL::ImageRGB;
 use PDL::Dbg;
 
 $PDL::debug = 0;
+$PDL::IO::Pic::debug = 0;
 $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
                    # output format
 
@@ -69,8 +70,9 @@ $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
 %formats = ('PNM'  => ['pnm',1,0,0.01],
 	    'GIF'  => ['gif',256,0,1.01],
 	    'TIFF' => ['tif',1,0,0.01],
-#  	    'RAST' => ['rast',256,0,0.01],
+	    'RAST' => ['rast',256,0,0.01],
 #	    'SGI'  => ['rgb',1,1,0.01],
+ 	    'PNG'  => ['png',1,1,0.01],
 	   );
 
 # only test PNM format

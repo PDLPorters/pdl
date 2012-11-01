@@ -56,7 +56,7 @@ $|++;
 use PDL::Config;
 
 BEGIN {
-   if ( not defined $PDL::Config{PDLDOC_IGNORE_AUTOLOADER} ) {
+   if ( not $PDL::Config{PDLDOC_IGNORE_AUTOLOADER} ) {
       require PDL::AutoLoader;
    }
 }

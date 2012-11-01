@@ -6,7 +6,7 @@ Devel::CheckLib;
 use 5.00405; #postfix foreach
 use strict;
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '0.95';
+$VERSION = '0.98';
 use Config qw(%Config);
 use Text::ParseWords 'quotewords';
 
@@ -214,7 +214,7 @@ sub assert_lib {
         }
     }
 
-    my @cc = _findcc();
+    my ($cc, $ld) = _findcc();
     my @missing;
     my @wrongresult;
     my @use_headers;
@@ -236,21 +236,25 @@ sub assert_lib {
         if ( $Config{cc} eq 'cl' ) {                 # Microsoft compiler
             require Win32;
             @sys_cmd = (
-                @cc,
+                @$cc,
                 $cfile,
                 "/Fe$exefile",
-                (map { '/I'.Win32::GetShortPathName($_) } @incpaths)
+                (map { '/I'.Win32::GetShortPathName($_) } @incpaths),
+		"/link",
+		@$ld
             );
         } elsif($Config{cc} =~ /bcc32(\.exe)?/) {    # Borland
             @sys_cmd = (
-                @cc,
+                @$cc,
+                @$ld,
                 (map { "-I$_" } @incpaths),
                 "-o$exefile",
                 $cfile
             );
         } else { # Unix-ish: gcc, Sun, AIX (gcc, cc), ...
             @sys_cmd = (
-                @cc,
+                @$cc,
+                @$ld,
                 $cfile,
                 (map { "-I$_" } @incpaths),
                 "-o", "$exefile"
@@ -283,32 +287,35 @@ sub assert_lib {
             } @libpaths; 
             # this is horribly sensitive to the order of arguments
             @sys_cmd = (
-                @cc,
+                @$cc,
                 $cfile,
                 "${lib}.lib",
                 "/Fe$exefile", 
                 (map { '/I'.Win32::GetShortPathName($_) } @incpaths),
                 "/link",
+                @$ld,
                 (map {'/libpath:'.Win32::GetShortPathName($_)} @libpaths),
             );
         } elsif($Config{cc} eq 'CC/DECC') {          # VMS
         } elsif($Config{cc} =~ /bcc32(\.exe)?/) {    # Borland
             @sys_cmd = (
-                @cc,
+                @$cc,
+                @$ld,
                 "-o$exefile",
-                "-l$lib",
                 (map { "-I$_" } @incpaths),
                 (map { "-L$_" } @libpaths),
+                "-l$lib",
                 $cfile);
         } else {                                     # Unix-ish
                                                      # gcc, Sun, AIX (gcc, cc)
             @sys_cmd = (
-                @cc,
+                @$cc,
+                @$ld,
                 $cfile,
                 "-o", "$exefile",
-                "-l$lib",
                 (map { "-I$_" } @incpaths),
-                (map { "-L$_" } @libpaths)
+                (map { "-L$_" } @libpaths),
+                "-l$lib",
             );
         }
         warn "# @sys_cmd\n" if $args{debug};
@@ -347,16 +354,25 @@ sub _cleanup_exe {
     return
 }
     
+# return ($cc, $ld)
+# where $cc is an array ref of compiler name, compiler flags
+# where $ld is an array ref of linker flags
 sub _findcc {
     # Need to use $keep=1 to work with MSWin32 backslashes and quotes
-    my @Config_ccflags_ldflags =  @Config{qw(ccflags ldflags)};  # use copy so ASPerl will compile
-    my @flags = grep { length } map { quotewords('\s+', 1, $_ || ()) } @Config_ccflags_ldflags;
+    my $Config_ccflags =  $Config{ccflags};  # use copy so ASPerl will compile
+    my @Config_ldflags = ();
+    for my $config_val ( @Config{qw(ldflags perllibs)} ){
+        push @Config_ldflags, $config_val if ( $config_val =~ /\S/ );
+    }
+    my @ccflags = grep { length } quotewords('\s+', 1, $Config_ccflags||'');
+    my @ldflags = grep { length } quotewords('\s+', 1, @Config_ldflags);
     my @paths = split(/$Config{path_sep}/, $ENV{PATH});
     my @cc = split(/\s+/, $Config{cc});
-    return (@cc, @flags) if -x $cc[0];
+    return ( [ @cc, @ccflags ], \@ldflags ) if -x $cc[0];
     foreach my $path (@paths) {
         my $compiler = File::Spec->catfile($path, $cc[0]) . $Config{_exe};
-        return ($compiler, @cc[1 .. $#cc], @flags) if -x $compiler;
+        return ([ $compiler, @cc[1 .. $#cc], @ccflags ], \@ldflags)
+            if -x $compiler;
     }
     die("Couldn't find your C compiler\n");
 }

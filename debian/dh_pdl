@@ -1,0 +1,127 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+dh_pdl - calculates pdl dependencies
+
+=cut
+
+use strict;
+use Config;
+use File::Find;
+use Debian::Debhelper::Dh_Lib;
+use PDL::Config::Debian;
+
+=head1 SYNOPSIS
+
+B<dh_pdl> [S<I<debhelper options>>] [B<-d>] [S<I<library dirs ...>>]
+
+=head1 DESCRIPTION
+
+dh_pdl is a debhelper program that is responsible for generating
+the ${pdl:Depends} substitutions and adding them to substvars files.
+
+The program will look at perl scripts and modules in your package,
+and will use this information to generate a dependency on pdl or
+pdlapi. The dependency will be substituted into your package's control
+file wherever you place the token "${pdl:Depends}".
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-V>
+
+By default, scripts and architecture independent modules don't depend
+on any specific version of pdl.  The -V option causes the current
+version of the pdl package to be specified.
+
+=item I<library dirs>
+
+If your package installs perl modules in non-standard
+directories, you can make dh_perl check those directories by passing their
+names on the command line. It will only check the vendorlib and vendorarch
+directories by default.
+
+=back
+
+=head1 CONFORMS TO
+
+Debian policy, version 3.8.3
+
+=cut
+
+init();
+
+my $vendorlib = substr $Config{vendorlib}, 1;
+my $vendorarch = substr $Config{vendorarch}, 1;
+
+# Cleaning the paths given on the command line
+foreach (@ARGV) {
+	s#/$##;
+	s#^/##;
+}
+
+my $pdl = 'pdl';
+my $version;
+
+# dependency types
+use constant PROGRAM   => 1;
+use constant PM_MODULE => 2;
+use constant XS_MODULE => 4;
+
+foreach my $package (@{$dh{DOPACKAGES}}) {
+	my $tmp=tmpdir($package);
+
+	# Check also for alternate locations given on the command line
+	my @dirs = grep -d, map "$tmp/$_", $vendorlib, $vendorarch, @ARGV;
+
+	# Look for perl modules and check where they are installed
+	my $deps = 0;
+	find sub {
+		return unless -f;
+		$deps |= PM_MODULE if /\.pm$/;
+		$deps |= XS_MODULE if /\.so$/;
+	}, @dirs if @dirs;
+
+	# find scripts
+	find sub {
+		return unless -f and (-x or /\.pl$/);
+		return if $File::Find::dir=~/\/usr\/share\/doc\//;
+		
+		local *F;
+		return unless open F, $_;
+		if (read F, local $_, 32 and m%^#!\s*(/usr/bin/perl|/usr/bin/env\s+perl)\s%) {
+			$deps |= PROGRAM;
+		}
+		close F;
+	}, $tmp;
+
+	if ($deps) {
+		my $version="";
+		if ($deps & XS_MODULE or $dh{V_FLAG_SET}) {
+			($version) = `dpkg -s $pdl` =~ /^Version:\s*(\S+)/m
+				unless $version;
+			$version = ">= $version";
+		}
+		
+		addsubstvar($package, "pdl:Depends", $pdl, $version);
+
+		# add pdlapi-<ver> for XS modules
+		addsubstvar($package, "pdl:Depends",
+			"pdlapi-$PDL::Config::Debian::pdl_core_version")
+			if $deps & XS_MODULE;
+	}
+}
+
+=head1 SEE ALSO
+
+L<debhelper(7)>
+
+=head1 AUTHOR
+
+Henning Glawe <glaweh@debian.org>
+
+Based on dh_perl by Brendan O'Dea <bod@debian.org>
+
+=cut

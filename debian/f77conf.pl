@@ -17,7 +17,10 @@ sub runtime {
   my $libpath = `gfortran -print-libgcc-file-name`;
   $libpath =~ s/libgcc[.]a$//;
   chomp $libpath;
-  "-L$libpath -L/usr/lib -lgcc -lgfortran";
+  my $ldflags = '';
+  $ldflags .= $ENV{LDFLAGS} if (defined $ENV{LDFLAGS});
+  $ldflags .= " -L$libpath -lgcc -lgfortran";
+  return($ldflags);
 }
 
 sub trail_ {
@@ -29,7 +32,10 @@ sub compiler {
 }
 
 sub cflags {
-  return '-O -fPIC';
+  my $fflags = '';
+  $fflags = $ENV{FFLAGS} if (defined $ENV{FFLAGS});
+  $fflags.=' -fPIC';
+  return($fflags);
 }
 
 sub testcompiler {

@@ -98,8 +98,8 @@ sub apply_profile {
 
    #autoflush STDOUT
    $repl->eval('$|=1;');
-   # print alias
-   $repl->eval('sub p { local $, = " "; print @_ };');
+   # p command (NOTE: this is not an alias for print)
+   $repl->eval('sub p { local $, = " "; print @_,"\n" };');
 
    # list history command
    $repl->eval('sub l {

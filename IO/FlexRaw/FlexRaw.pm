@@ -395,6 +395,10 @@ sub _read_flexhdr {
     my ($newfile) = 1;
     my ($tid, @str);
     my (@ret);
+    # check for ENVI files and bail (for now)
+    my $line1 = scalar <$hfile>;
+    barf "This is an ENVI format file, please use readenvi()\n" if $line1 =~ /^ENVI\r?$/;
+    seek $hfile, 0, 0;  # reset file pointer to beginning
  ITEM:
  while (!eof($hfile)) {
     my (@dims) = (); my ($ndims) = -1, ($mode) = -2;
@@ -423,8 +427,7 @@ sub _read_flexhdr {
                    next ITEM;
                 }
              }
-             barf("Bad typename '$token' in readflex")
-             if (!exists($flextypes{$token}));
+             barf("Bad typename '$token' in readflex") if (!exists($flextypes{$token}));
              $tid = $flextypes{$token};
              $numtokens--;
              $newfile = 0;
@@ -839,6 +842,7 @@ sub writeflexhdr {
     my $hname = "$name.hdr";
     my $h = new FileHandle ">$hname"
 	or barf "Couldn't open '$hname' for writing";
+    binmode $h;
     print $h
 	"# Output from PDL::IO::writeflex, data in $name\n";
     foreach (@$hdr) {

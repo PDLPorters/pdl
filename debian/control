@@ -2,17 +2,58 @@ Source: pdl
 Section: math
 Priority: optional
 Maintainer: Henning Glawe <glaweh@debian.org>
-Standards-Version: 3.9.1
-Build-Depends: gfortran, x11proto-core-dev, libncurses-dev, perl (>= 5.8.0-3), debhelper (>= 7.0.0), libplplot-dev, libinline-perl (>= 0.43), libgsl0-dev, fftw-dev, dpatch, libxext-dev, libhdf4-alt-dev | libhdf4g-dev, libproj-dev | proj, proj-bin | proj, libgd2-xpm-dev, libastro-fits-header-perl, sharutils, libopengl-perl (>= 0.62), libxi-dev, libxmu-dev, freeglut3-dev, libextutils-f77-perl, netpbm, libdevel-repl-perl (>=1.003011)
+Standards-Version: 3.9.3
+Build-Depends:
+ gfortran,
+ dpkg-dev (>= 1.16.1~),
+ x11proto-core-dev,
+ libncurses-dev,
+ perl (>= 5.8.0-3),
+ debhelper (>= 9),
+ libplplot-dev,
+ libinline-perl (>= 0.43),
+ libgsl0-dev,
+ fftw-dev,
+ libxext-dev,
+ libhdf4-alt-dev | libhdf4g-dev,
+ libproj-dev | proj,
+ proj-bin | proj,
+ libgd2-xpm-dev,
+ libastro-fits-header-perl,
+ sharutils,
+ libopengl-perl (>= 0.65),
+ libxi-dev,
+ libxmu-dev,
+ freeglut3-dev,
+ libextutils-f77-perl,
+ netpbm,
+ libdevel-repl-perl (>=1.003011)
 Homepage: http://pdl.perl.org/
 
 Package: pdl
 Architecture: any
-Depends:  ${perl:Depends}, libterm-readkey-perl, ${shlibs:Depends}, libopengl-perl (>=0.62), ${misc:Depends}
-Recommends: libterm-readline-gnu-perl | libterm-readline-perl-perl
-Suggests: libpgplot-perl, netpbm | imagemagick, libastro-fits-header-perl, libinline-perl, libplplot-dev, doc-base, libextutils-f77-perl, libastro-fits-header-perl, proj-bin | proj, libdevel-repl-perl (>=1.003011)
+Depends:
+ ${perl:Depends},
+ libterm-readkey-perl,
+ ${shlibs:Depends},
+ libopengl-perl (>=0.62),
+ ${misc:Depends}
+Recommends:
+ libterm-readline-gnu-perl | libterm-readline-perl-perl
+Suggests:
+ libpgplot-perl,
+ netpbm | imagemagick,
+ libastro-fits-header-perl,
+ libinline-perl,
+ libplplot-dev,
+ doc-base,
+ libextutils-f77-perl,
+ proj-bin | proj,
+ libdevel-repl-perl (>=1.003011)
 Conflicts: r-pdl
 Replaces: r-pdl
+Provides:
+ ${pdlapi:Provides}
 Description: perl data language: Perl extensions for numerics
  PDL gives standard perl the ability to COMPACTLY
  store and SPEEDILY manipulate the large N-dimensional data arrays 

@@ -356,8 +356,6 @@ IO/IO.pod
 IO/Makefile.PL
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
-IO/NDF/Makefile.PL
-IO/NDF/NDF.pm.PL
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/pnm.pd
@@ -728,12 +726,13 @@ t/ica.t
 t/image2d.t
 t/imagend.t
 t/imagergb.t
-# t/inline-comment-test.t
+t/inline-comment-test.t
 t/inlinepdlpp.t
 t/interp.t
 t/interp_slatec.t
 t/interpol.t
 t/iotypes.t
+t/lgamma.t
 t/limits_00.t
 t/limits_errb.t
 t/limits_keyspecs.t
@@ -752,7 +751,6 @@ t/matrix.t
 t/matrixops.t
 t/minuit.t
 t/misc.t
-t/ndf.t
 t/niceslice.t
 t/nsdatahandle.t
 t/ones.t
@@ -782,6 +780,7 @@ t/pthreadBarf.t
 t/pthread_auto.t
 t/reduce.t
 t/refs.t
+t/rim.t
 t/requiredmods.t
 t/round.t
 t/scope.t
@@ -799,6 +798,7 @@ t/thread_def.t
 t/transform.t
 t/trig.t
 t/ufunc.t
+t/unpdl.t
 t/vaffine.t
 t/xvals.t
 utils/perldlpp.pl

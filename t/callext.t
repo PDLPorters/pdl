@@ -1,5 +1,8 @@
 #!/usr/local/bin/perl
 
+END { unlink 't/callext.pdb';}; # In case we build a 2nd time,
+                                # but using a different Microsoft compiler
+
 # Example of how to use callext() - also see callext.c
 
 use strict;
@@ -66,7 +69,7 @@ sub loglog {
    print "X = $x\n";
    print "Y = $y\n";
 
-   my $ldfile = 
+   my $ldfile =
    callext($out, "loglog_ext", $ret, $y);
 
    return $ret;

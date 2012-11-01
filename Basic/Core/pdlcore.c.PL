@@ -970,7 +970,7 @@ print OUT <<"!WITH!SUBS!";
  *   It is offset to account for the difference in dimensionality between the input and
  *   output PDLs. It is allowed to be negative (which is equivalent to the "permissive
  *   slicing" that treats missing dimensions as present and having size 1), but should
- *   not match or exceed pdl->ndims.
+ *   not match or exceed pdl->ndims. 
  * pptr is the current offset data pointer into pdl->data.
  *
  * Kludge-copy works backward through the dim lists, so that padding is simpler:  if undefval
@@ -1056,7 +1056,7 @@ PDL_Index pdl_kludge_copy_$type(PDL_Index poff,
 	/* pad out, in the innermost dimension */
 #ifdef DEBUG_KLUDGE_COPY
       fprintf(stderr,"padding; "); fflush(stderr);
-      fprintf(stderr," ndims-1-level=%d; ndims=%d, level=%d; plevel=%d; pdl->ndims=%d; poff=%d; oob=%d\\n", ndims-1-level,ndims, level, plevel, pdl->ndims, poff, oob);
+      fprintf(stderr," ndims-1-level=%d; ndims=%d, level=%d; plevel=%d; pdl->ndims=%d; poff=%ld; oob=%d\\n", ndims-1-level,ndims, level, plevel, pdl->ndims, poff, oob);
 #endif
       if( !oob ) {
 	for(;  i< pdims[0]-poff; i++) {
@@ -1088,7 +1088,7 @@ PDL_Index pdl_kludge_copy_$type(PDL_Index poff,
   /* If we're here we're not at the bottom level yet... */
 #ifdef DEBUG_KLUDGE_COPY
   printf("Entering PKC recursion loop.  imax is %d (plevel=%d; pdl->dims[%d-1-%d] = %d)\\n",
-	 (   (plevel >= 0)   ?   (pdl->dims[ pdl->ndims - 1 - level ])   :   1    ),
+	 (   (plevel >= 0 && (pdl->ndims - 1 - plevel >= 0) && (pdl->ndims - 1 - plevel < pdl->ndims))   ?   (pdl->dims[ pdl->ndims - 1 - plevel ])   :   1    ),
 	 plevel,
 	 ndims,
 	 plevel,
@@ -1134,7 +1134,7 @@ PDL_Index pdl_kludge_copy_$type(PDL_Index poff,
   /* pad tree to zero if there are not enough elements... */
 #ifdef DEBUG_KLUDGE_COPY
   printf("   pdl_kludge_copy - finished recursion  loop at level %d... i is %d, pdims[%d]=%d...\\n",
-	 level, i, ndims - 1 - level);
+	 level, i, ndims - 1 - level,pdims[ndims - 1 - level]);
 #endif
 
   if(i < pdims[ndims - 1 - level]) {
@@ -1293,7 +1293,10 @@ PDL_Index pdl_setav_$type(PDL_$type* pdata, AV* av,
 	  }
 #endif
 	  {
-	    PDL_Index pd = pdims[ ndims - 2 - level];
+	    PDL_Index pd;
+	    int pddex;
+	    pddex = ndims - 2 - level;
+	    pd = (pddex >= 0 && pddex < ndims ? pdims[ pddex ] : 0);
 	    if(!pd)
 	      pd = 1;
 	    undef_count += pdl_kludge_copy_$type(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data,undefval);

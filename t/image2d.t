@@ -3,7 +3,7 @@
 
 use Test;
 BEGIN {
-    plan tests => 22;
+    plan tests => 26;
 }
 
 use PDL;
@@ -43,11 +43,15 @@ tapprox( conv2d($a,$b), $b );    # 2
 # conv2d: boundary => reflect
 $a=ones(3,3);  
 $ans = pdl ([12,18,24],[30,36,42],[48,54,60]);
-tapprox( conv2d($b,$a,{Boundary => 'Reflect'}), $ans );
+tapprox( conv2d($b,$a,{Boundary => 'Reflect'}), $ans );  #3
+
+# conv2d: boundary => replicate
+$ans = pdl ([12,18,24],[30,36,42],[48,54,60]);
+tapprox( conv2d($b,$a,{Boundary => 'Replicate'}), $ans ); #4
 
 # conv2d: boundary => truncate
 $ans = pdl ([8,15,12],[21,36,27],[20,33,24]);
-tapprox( conv2d($b,$a,{Boundary => 'Truncate'}), $ans );
+tapprox( conv2d($b,$a,{Boundary => 'Truncate'}), $ans ); #5
 
 # max2d_ind
 $a = 100 / (1.0 + rvals(5,5));
@@ -147,9 +151,27 @@ ok($@ eq '');
 my $px = pdl(0,3,1);
 my $py = pdl(0,1,4);
 my $im = zeros(5,5);
+my $im2 = zeroes(5,5);
 my $x = $im->xvals;
 my $y = $im->yvals;
+my $ps = $px->cat($py)->xchg(0,1);
 my $im_mask = pnpoly($x,$y,$px,$py);
 ok(sum($im_mask) == 5);
 my $inpixels = pdl q[ 1 1 ; 1 2 ; 1 3 ; 2 1 ; 2 2 ];
 ok(sum($inpixels - qsortvec(scalar whichND($im_mask))) == 0);
+
+# Make sure the PDL pnpoly and the PP pnpoly give the same result
+ok(all($im_mask == $im->pnpoly($ps)));
+
+# Trivial test to make sure the polyfills using the pnpoly algorithm are working
+$im .= 0;
+polyfillv($im2,$ps,{'Method'=>'pnpoly'}) .= 22;
+ok(all(polyfill($im,$ps,22,{'Method'=>'pnpoly'}) == $im2));
+
+
+# Trivial test to make sure the polyfills are working
+$im .= 0;
+$im2 .= 0;
+polyfillv($im2,$ps) .= 25;
+polyfill($im,$ps,25);
+ok(all($im == $im2));

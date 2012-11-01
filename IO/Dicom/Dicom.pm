@@ -197,6 +197,7 @@ sub rdcm {
     }
 
     open(IN, $file) || die "Failed opening image $file!\n";
+    binmode IN;
     # read the whole image
     my $header;
     read(IN, $header, -s $file);

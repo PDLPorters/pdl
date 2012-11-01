@@ -10,32 +10,44 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-include /usr/share/dpatch/dpatch.make
 unexport DISPLAY
 
-CFLAGS = -Wall -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
+	export DEB_CFLAGS_MAINT_APPEND:=-Wall
 else
-	CFLAGS += -O2 -ffunction-sections
+	export DEB_CFLAGS_MAINT_APPEND:=-Wall -ffunction-sections
 endif
 
+export DEB_LDFLAGS_MAINT_APPEND:=-Wl,--as-needed
+
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
+
+subst_pdlapi  = -Vpdlapi:Provides="`perl -Mblib -MPDL::Config::Debian -e 'print \"pdlapi-$$PDL::Config::Debian::pdl_core_version\n\"'`"
+
 configure: configure-stamp
-configure-stamp: patch-stamp
+configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package
-	PERL_MM_USE_DEFAULT=1 perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
+	dh_auto_configure -- F77CONF=debian/f77conf.pl PDLCONF=debian/perldl.conf
 
 	touch configure-stamp
 
+
+
+build-arch: build
+build-indep: build
 
 build: build-stamp
 build-stamp: configure-stamp 
 	dh_testdir
 
 	# Add here commands to compile the package.
-	$(MAKE) LD_RUN_PATH="" OPTIMIZE="$(CFLAGS)"
+	$(MAKE) LD_RUN_PATH=""
+	mkdir -p blib/lib/PDL/Config
+	perl -Mblib debian/write_config_debian.pl > blib/lib/PDL/Config/Debian.pm
+	pod2man debian/dh_pdl > debian/dh_pdl.1
 
 	touch build-stamp
 
@@ -50,8 +62,7 @@ test-stamp: build-stamp
 	@echo "END test verbose"
 	touch test-stamp
 
-clean: clean-patched unpatch
-clean-patched:
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp test-stamp
@@ -60,10 +71,8 @@ clean-patched:
 
 	# Add here commands to clean up after the build process.
 	[ ! -f Makefile ] || $(MAKE) distclean
-	rm -f t/callext.o t/callext.so Graphics/TriD/OpenGL/tmp*.h-out
-	mkdir -p debian/patches
-	-chmod a-x debian/patches/*
-
+	rm -f t/callext.o t/callext.so Graphics/TriD/OpenGL/tmp*.h-out \
+	 	Perldl2/pdl2.pod debian/dh_pdl.1
 
 install: build test
 	dh_testdir
@@ -87,7 +96,7 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	[ -f Changes ] && dh_installchangelogs Changes || dh_installchangelogs
+	dh_installchangelogs
 	dh_installdocs
 	dh_installexamples
 	dh_install
@@ -111,7 +120,7 @@ binary-arch: build install
 #	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
-	dh_gencontrol
+	dh_gencontrol -- $(subst_pdlapi)
 	dh_md5sums
 	dh_builddeb
 

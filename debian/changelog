@@ -1,4 +1,76 @@
-pdl (1:2.4.7-1) unstable; urgency=low
+pdl (1:2.4.11-4) unstable; urgency=low
+
+  * fix pdl versioned dep in dh_pdl
+
+ -- Henning Glawe <glaweh@debian.org>  Wed, 30 May 2012 16:06:03 +0200
+
+pdl (1:2.4.11-3) unstable; urgency=low
+
+  * fix the building of pdl wrapper
+  * set -fPIC when compiling fortran extensions
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 28 May 2012 20:44:46 +0200
+
+pdl (1:2.4.11-2) unstable; urgency=low
+
+  * fix calls to croak in Lib/GIS/Proj/Proj.pd and IO/GD/GD.pd (croak was
+    not called with a format string literal, causing 
+    -Werror=format-security to abort the compilation)
+
+ -- Henning Glawe <glaweh@debian.org>  Sun, 27 May 2012 16:01:22 +0200
+
+pdl (1:2.4.11-1) unstable; urgency=low
+
+  * new upstream release
+  * acknowledge NMU (closes: #670693), thanks to Jari Aalto
+  * switch to 3.0 quilt packaging format, the +dfsg repackaging
+    of upstream source is not needed anymore
+  * provide pdlapi-$version virtual package to keep binary extension
+    modules from breaking silently
+  * introduce dh_pdl providing ${pdl:Depends} for extension packages
+  * use dpkg-buildflags in debian/rules to determine flags
+  * link with --as-needed to avoid spurious dependencies
+  * switch to dh_auto_configure to call EU::MM with the proper flags
+  * read LDFLAGS and FFLAGS in f77conf.pl from env
+  * depend on newer dpkg-dev due to buildflags options
+
+ -- Henning Glawe <glaweh@debian.org>  Sat, 26 May 2012 10:30:55 +0200
+
+pdl (1:2.4.10+dfsg-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Remove deprecated dpatch and upgrade to packaging format "3.0 quilt".
+  * Update to Standards-Version to 3.9.3 and debhelper to 9.
+  * Add build-arch and build-indep targets; use dh_prep in rules file.
+  * Fix copyright-refers-to-symlink-license (Lintian).
+  * Fix duplicate-in-relation-field libastro-fits-header-perl (Lintian).
+  * Fix unused-override (Lintian).
+
+ -- Jari Aalto <jari.aalto@cante.net>  Sat, 28 Apr 2012 08:44:59 +0300
+
+pdl (1:2.4.10+dfsg-1) unstable; urgency=low
+
+  * new upstream release
+  * sync debian/perldl.conf with perldl.conf
+
+ -- Henning Glawe <glaweh@debian.org>  Sun, 19 Feb 2012 10:42:56 +0100
+
+pdl (1:2.4.7+dfsg-2) unstable; urgency=low
+
+  * remove left-over file 'test.log', which slipped into the 1:2.4.7+dfsg-1
+    debian diff
+  * include upstream release notes in deb
+  * fix Pod of PDL::IO::FastRaw
+  * add lintian override: it is OK to have dpatch dependency with an empty
+    patch list. Usually I am adding fixes as dpatch patches, and it is useless
+    to add/remove the dpatch support in case there are no patches for one
+    particular revision.
+  * add a lintian override for a long code line in a manpage, which cannot be
+    easily broken
+
+ -- Henning Glawe <glaweh@debian.org>  Sun, 22 Aug 2010 21:19:32 +0200
+
+pdl (1:2.4.7+dfsg-1) unstable; urgency=low
 
   * new upstream version
     - much improved documentation (closes: #132900)
