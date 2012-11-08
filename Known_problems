@@ -1,24 +1,16 @@
 The following issues have been reported with this version of PDL:
 
 
-- Some systems have reported build failures that appear to be
-  a result of missing pthread_getspecific in library calls.
-
-  If you see this, please report via the perldl mailing list to
-  help us determine the origin of the probem and fix it.
-  A workaround is to set WITH_POSIX_THREADS => 0, by editing
-  the perldl.conf file.
-
-
 - A change in perl-5.14 on how the 'x' operator works affects
   PDL's overload of that operator for matrix multiplication.
-  An example that shows the problem is code like:
+  This can affect code using parentheses to group.  An example
+  that shows the problem is code like:
 
      f( ($pdl0 * $pdl1) x $pdl2 )
 
-  which gives an error.  The fix is to force the element-wise
-  operation in parentheses to be treated in scalar context
-  rather than list context.  E.g.,
+  which now gives an error.  The fix is to force the element-wise
+  operation in parentheses to be treated in scalar context rather
+  than list context.  E.g.,
 
     f( scalar($p0 * $p1) x $p2 );
 
