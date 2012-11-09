@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-PDL::Func - useful functions
+PDL::Func - interpolation, integration, & gradient estimation (differentiation) of functions
 
 =head1 SYNOPSIS
 
@@ -480,8 +480,8 @@ sub _get_value {
 
 =for usage
 
- my $nset = $obj->set( x => $newx, $y => $newy );
- my $nset = $obj->set( { x => $newx, $y => $newy } );
+ my $nset = $obj->set( x => $newx, y => $newy );
+ my $nset = $obj->set( { x => $newx, y => $newy } );
 
 =for ref
 
@@ -932,11 +932,6 @@ to form C<PDL::Func>. Comments greatly appreciated on the
 current implementation, as it is not too sensible.
 
 Thanks to Robin Williams, Halldór Olafsson, and Vince McIntyre.
-
-=head1 THE FUTURE
-
-Robin is working on a new version, that improves on the current version
-a lot. No time scale though!
 
 =head1 AUTHOR
 
