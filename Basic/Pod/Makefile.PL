@@ -29,6 +29,7 @@ WriteMakefile(
  'PM'    =>     { @pms },
  'clean' => {FILES => "PP-Inline.pod"},
  'linkext' =>   {LINKTYPE => ''},  # No linking required in this directory
+ (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
 
 sub MY::postamble {

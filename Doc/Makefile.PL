@@ -23,4 +23,5 @@ WriteMakefile(
 # map {s/[.]PL$//; m/^Makefile$/ ?
 #					  () : $_}
 #			<*.PL>, <Doc/*.PL> },
+    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
