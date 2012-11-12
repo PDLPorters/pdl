@@ -61,7 +61,7 @@ I<any> dimension.
 
 =for usage
 
- \$a = $op(\$b);
+ \$b = $op(\$a);
 
 =for example
 
@@ -96,7 +96,7 @@ is the first element of the parameter.
 
 =for usage
 
- \$a = $op(\$b);
+ \$b = $op(\$a);
 
 =for example
 
@@ -703,7 +703,7 @@ pp_def('pctover',
 
 =for ref
 
-  Project via percentile to N-1 dimensions
+Project via percentile to N-1 dimensions
 
 This function reduces the dimensionality of a piddle by one by finding
 the specified percentile (p) along the 1st dimension.  The specified
@@ -719,11 +719,11 @@ I<any> dimension.
 
 =for usage
 
-$a = pctover($b, $p);
+ $b = pctover($a, $p);
 
 =for example
 
-$spectrum = pctover $image->xchg(0,1) $p
+ $spectrum = pctover $image->xchg(0,1), $p
 
 =cut
 
@@ -763,11 +763,11 @@ I<any> dimension.
 
 =for usage
 
- $a = oddpctover($b, $p);
+ $b = oddpctover($a, $p);
 
 =for example
 
- $spectrum = oddpctover $image->xchg(0,1) $p
+ $spectrum = oddpctover $image->xchg(0,1), $p
 
 =cut
 
