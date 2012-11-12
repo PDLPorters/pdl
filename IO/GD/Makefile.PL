@@ -15,7 +15,7 @@ BEGIN
     $ppfile = "GD.pd";
     $package_name = "PDL::IO::GD";
     $lib_name = "GD";
-    $find_libs = [ 'libgd.so', 'libgd.a', 'bgd.dll' ];
+    $find_libs = [ 'libgd.so', 'libgd.a', 'libgd.dll.a', 'bgd.dll' ];
     $find_incs = [ 'gd.h' ];
     $config_flag = 'WITH_GD';
     $config_libs = 'GD_LIBS';
@@ -76,7 +76,7 @@ BEGIN
                 $lib_path = $libdir;
                 $found = 1;
                 # The lib name is different on windows, so we need to adjust the LIBS, below:
-                $linkname = ( $find_lib =~ /bgd.dll/ ) ? 'bgd' : 'gd';
+                $linkname = ( $find_lib =~ /bgd.dll$/ ) ? 'bgd' : 'gd';
             }
             last if $found;
         }
