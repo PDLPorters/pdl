@@ -1387,6 +1387,10 @@ sub map {
   # Autoscale by transforming a subset of the input points' coordinates
   # to the output range, and pick a FITS header that fits the output
   # coordinates into the given template.
+  #
+  # Autoscaling always produces a simple, linear mapping in the FITS header.
+  # We support more complex mappings (via t_fits) but only to match a pre-existing
+  # FITS header (which doesn't use autoscaling).
   unless((defined $out->gethdr && $out->hdr->{NAXIS})  or  $nofits) {
       print "generating output FITS header..." if($PDL::Transform::debug);
 
@@ -1488,6 +1492,7 @@ sub map {
 				     || $in->hdr->{"CUNIT$d"}
 				     || $in->hdr->{"CTYPE$d"}
 				     || "");
+	  
       }
       $out->hdr->{"NAXIS"} = $nd;
 
@@ -1497,7 +1502,7 @@ sub map {
       ### Eliminate fancy newfangled output header pointing tags if they exist
       ### These are the CROTA<n>, PCi_j, and CDi_j.
       for $k(keys %{$out->hdr})	 {
-	  if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+$)/ ){
+	  if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+[A-Z]?$)/ ){
 	      delete $out->hdr->{$k}
 	  }
       }
