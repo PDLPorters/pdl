@@ -373,9 +373,7 @@ DESTROY(sv)
   PREINIT:
     pdl *self;
   CODE:
-    if (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVHV)
-       1; /* Do nothing */
-    else {
+    if (  !(  (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVHV) )  ) {
        self = SvPDLV(sv);
        PDLDEBUG_f(printf("DESTROYING %p\n",(void*)self);)
        if (self != NULL)

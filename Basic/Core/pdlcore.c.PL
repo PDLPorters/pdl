@@ -678,7 +678,7 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 	/* Recurse to find depth inside the array reference */
 	newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
 	
-      } else if ( pdl = SvPDLV(el) ) {
+      } else if ( (pdl = SvPDLV(el)) ) {
 	/* It is a PDL - walk down its dimension list, exactly as if it
 	 * were a bunch of nested array refs.  We pull the ndims and dims
 	 * fields out to local variables so that nulls can be treated specially.

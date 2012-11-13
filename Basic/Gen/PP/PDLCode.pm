@@ -340,7 +340,7 @@ sub myprelude {
     return <<WARNING_EATER;
 PDL_COMMENT("Start generic loop")
 $thisis_loop
-	switch($this->[3]) { case -42: PDL_COMMENT("Warning eater") {1;
+	switch($this->[3]) { case -42: PDL_COMMENT("Warning eater") {(void)1;
 WARNING_EATER
 }
 

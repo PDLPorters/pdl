@@ -2626,8 +2626,9 @@ if (hdrp) {
 
     hdr_copy = (SV *)POPs;
 
-    if(hdr_copy && hdr_copy != &PL_sv_undef)
-       SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS")
+    if(hdr_copy && hdr_copy != &PL_sv_undef) {
+       (void)SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS") 
+    }
 
     FREETMPS ;
     LEAVE ;
@@ -2644,9 +2645,9 @@ DeePcOPY
      $str .= <<"HdRCHECK2"
        if ( $names[$_]\->hdrsv != hdrp ){
 	 if( $names[$_]\->hdrsv && $names[$_]\->hdrsv != &PL_sv_undef)
-             SvREFCNT_dec( $names[$_]\->hdrsv );
+             (void)SvREFCNT_dec( $names[$_]\->hdrsv );
 	 if( hdr_copy != &PL_sv_undef )
-             SvREFCNT_inc(hdr_copy);
+             (void)SvREFCNT_inc(hdr_copy);
 	 $names[$_]\->hdrsv = hdr_copy;
        }
      if(propagate_hdrcpy)
