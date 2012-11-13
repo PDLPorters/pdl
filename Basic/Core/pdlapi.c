@@ -1265,7 +1265,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
 	}
 
-	if(flag & PDL_PARENTDATACHANGED | flag & PDL_PARENTDIMSCHANGED) {
+	if(flag & (PDL_PARENTDATACHANGED | PDL_PARENTDIMSCHANGED)) {
 		int i;
 
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
@@ -1274,8 +1274,8 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 		  /* is it correct to also unset PDL_PARENTREPRCHANGED? */
 		        trans->pdls[1]->state &= ~(PDL_PARENTDIMSCHANGED |
 						  PDL_PARENTREPRCHANGED);
-			pdl_make_physvaffine(trans->pdls[1]);
-			pdl_readdata_vaffine(trans->pdls[1]);
+			pdl_make_physvaffine(((pdl_trans_affine *)(trans))->pdls[1]);
+			pdl_readdata_vaffine(((pdl_trans_affine *)(trans))->pdls[1]);
 		} else {
 #ifdef DONT_VAFFINE
 			for(i=0; i<trans->vtable->npdls; i++) {
@@ -1326,7 +1326,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 
 	PDL_TR_CHKMAGIC(trans);
 	if(!trans->vtable) {
-		die("ZERO VTABLE DESTTRAN 0x%x %d\n",trans,ensure);
+	  die("ZERO VTABLE DESTTRAN 0x%x %d\n",(int)trans,ensure);
 	}
 	if(ensure) {
 		PDLDEBUG_f(printf("pdl_destroytransform: ensure\n"));
@@ -1485,7 +1485,7 @@ void pdl_make_physvaffine(pdl *it)
 		goto mkphys_vaff_end;
 	}
 
-	PDL_ENSURE_VAFFTRANS(it);
+	(void)PDL_ENSURE_VAFFTRANS(it);
 	incsleft = malloc(sizeof(*incsleft)*it->ndims);
         PDLDEBUG_f(printf("vaff_malloc: got %p\n",(void*)incsleft));
         for(i=0; i<it->ndims; i++) {

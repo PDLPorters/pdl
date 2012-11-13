@@ -619,7 +619,7 @@ set_data_by_mmap(it,fname,len,shared,writable,creat,mode,trunc)
                
                if(error)
                {
-					fprintf(stderr,"Failed to set length of '%s' to %d. errno=%d",fname,len,error);
+					fprintf(stderr,"Failed to set length of '%s' to %d. errno=%d",fname,(int)len,(int)error);
 					croak("set_data_by_mmap: first ftruncate failed");
                }
                
@@ -627,7 +627,7 @@ set_data_by_mmap(it,fname,len,shared,writable,creat,mode,trunc)
                
                if(error)
                {
-					fprintf(stderr,"Failed to set length of '%s' to %d. errno=%d",fname,len,error);
+					fprintf(stderr,"Failed to set length of '%s' to %d. errno=%d",fname,(int)len,(int)error);
 					croak("set_data_by_mmap: second ftruncate failed");
                }
        }
@@ -676,7 +676,7 @@ set_data_by_offset(it,orig,offset)
               pdl_freedata(it);
               it->data = ((char *) orig->data) + offset;
 	      it->datasv = orig->sv;
-              SvREFCNT_inc(it->datasv);
+              (void)SvREFCNT_inc(it->datasv);
               it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
               RETVAL = 1;
       OUTPUT:
@@ -1594,7 +1594,7 @@ threadover_n(...)
 		}
 	    	PUTBACK;
 		perl_call_sv(code,G_DISCARD);
-	    } while(sd = pdl_iterthreadloop(&pdl_thr,0));
+	    } while( (sd = pdl_iterthreadloop(&pdl_thr,0)) );
 	    pdl_freethreadloop(&pdl_thr);
 	    free(pdls);
 	    free(realdims);

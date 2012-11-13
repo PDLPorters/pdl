@@ -504,7 +504,7 @@ void pdl_unpackdims ( SV* sv, PDL_Long *dims, int ndims ) {
 
    hash = (HV*) SvRV( sv );
    array = newAV();
-   hv_store(hash, "Dims", strlen("Dims"), newRV( (SV*) array), 0 );
+   (void)hv_store(hash, "Dims", strlen("Dims"), newRV( (SV*) array), 0 );
 
    if (ndims==0 )
       return;
@@ -518,6 +518,7 @@ PDL_Long pdl_safe_indterm( PDL_Long dsz, PDL_Long at, char *file, int lineno)
   if (at >= 0 && at < dsz) return at;
   pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
           at, dsz-1, file?file:"?", lineno);
+  return at; // This can never happen - placed to avoid a compiler warning.
 }
 
 /*
@@ -620,7 +621,7 @@ GEN_PDL_BARF_OR_WARN_LEGACY(warn, 1)
  * They are all called by pdl_avref in Core.xs, which in turn is called by the constructors
  * in Core.pm.PL.
  *
- *
+ */
 
 /******************************
  * av_ndcheck -
@@ -1262,7 +1263,7 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 
     } else if( el && SvROK(el) ) {
       pdl *pdl;
-      if( pdl = SvPDLV(el) ) {
+      if( (pdl = SvPDLV(el)) ) {
 
 	pdl_make_physical(pdl);
 

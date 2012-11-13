@@ -76,7 +76,7 @@ void pdl_unpackarray ( HV* hash, char *key, int *dims, int ndims ) {
    int i;
 
    array = newAV();
-   hv_store(hash, key, strlen(key), newRV( (SV*) array), 0 );
+   (void)hv_store(hash, key, strlen(key), newRV( (SV*) array), 0 );
 
    if (ndims==0 )
       return;

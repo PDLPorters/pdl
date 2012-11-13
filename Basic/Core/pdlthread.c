@@ -190,7 +190,6 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, int * realdims, int* creating
 	/* Remove any existing threading magic */
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
-		nthrd;
 
 		/* Remove thread magic, if there is some set for this pdl */
 		if( pdls[j]->magic &&
