@@ -565,22 +565,27 @@ use PDL::IO::Pic;
 sub rim {
   my(@args) = @_;
 
-  if(@args == 2) {
-    my($dest) = $args[0];
-    if($dest->dim(0) == 3) {
-      $args[0] = $dest->reorder(1,2,0);
-    }
-    return rpic(@args);
+  my $out;
+
+  ## Handle dest-PDL-first case
+  if(@args >= 2 and (UNIVERSAL::isa($args[0],'PDL'))) {
+      my $dest = shift @args;
+      my $rpa = PDL->null;
+      $out = rpic(@args);
+
+      if($out->ndims == 3 && $out->dim(0) == 3 &&
+	 !( defined($out->gethdr) && $out->gethdr->{SIMPLE} )
+	  ) {
+	  $out =  $out->reorder(1,2,0);
+      }
+      
+      $dest .= $out;
+      return $out;
   }
 
-  my $out = rpic(@args);
+  # Handle no-first-PDL case
+  $out = rpic(@args);
 
-  #
-  # Check for RGB and reorder dims if necessary.  The SIMPLE test is to check
-  # if the image has a FITS header.
-  #
-  # (What a kludge -- but rpic is historical and has to be kept at this point)
-  #
   if($out->ndims == 3 && $out->dim(0) == 3 &&
      !( defined($out->gethdr) && $out->gethdr->{SIMPLE} )
      ) {
