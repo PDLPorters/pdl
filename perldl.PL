@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.354_001';
+$VERSION = '1.355';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
