@@ -1548,7 +1548,7 @@ sub wrap_vfn {
     # Put p2child in simple boolean context rather than strict numerical equality
     if ( $p2child ) {
 	$p2decl =
-	    "pdl *__it = __tr->pdls[1]; pdl *__parent = __tr->pdls[0];";
+	    "pdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1]; pdl *__parent = __tr->pdls[0];";
 	if ( $name eq "redodims" ) {
 	    $p2decl .= '
 	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) {
@@ -1570,7 +1570,7 @@ sub wrap_vfn {
                     SV *tmp = (SV *) POPs ;
 		    __it->hdrsv = (void*) tmp;
                     if(tmp != &PL_sv_undef )
-                       SvREFCNT_inc(tmp);
+                       (void)SvREFCNT_inc(tmp);
                   }
 
                   __it->state |= PDL_HDRCPY;

@@ -2713,8 +2713,9 @@ pp_addpm({At => 'Bot'},<< 'EOD');
 
 =head1 BUGS 
 
-For the moment, you can't slice the empty piddle.  This should probably
-change:  slices of the empty piddle should probably return the empty piddle.
+For the moment, you can't slice one of the zero-length dims of an
+empty piddle.  It is not clear how to implement this in a way that makes
+sense.
 
 Many types of index errors are reported far from the indexing
 operation that caused them.  This is caused by the underlying architecture:
