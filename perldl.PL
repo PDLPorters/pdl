@@ -693,9 +693,11 @@ sub eval_and_report {
 EOD
 ;
 
-  %@ = (); # Workaround to prevent spurious loss of $@
-  PDL::Core::myeval( $__coderef )  # Do command with $@ keeping
-    unless($@);  # Check that sub compiled (avoids null coderef bug in myeval).
+  %@ = (); # Workaround to prevent spurious loss of $@ in early (pre-5.14 anyway) versions of perl
+
+  if( (!$@) and (ref $__coderef eq 'CODE')) { 
+      eval { &$__coderef(); die $@ if($@); };
+  }
 
   if ($@) {
       my $mess = $@;

@@ -1197,22 +1197,6 @@ print OUT <<'!NO!SUBS!';
 
    sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));
 
-# version of eval() which propogates errors encountered in
-# any internal eval(). Must be passed a code reference - could
-# be use perl_eval_sv() but that is still buggy. This subroutine is
-# primarily for the perlDL shell to use.
-#
-# Thanks to Sarathy (gsar@engin.umich.edu) for suggesting this, though
-# it needs to be wrapped up in the stack stuff to avoid certain SEGVs!
-
-void
-myeval(code)
-  SV *	code;
-  PROTOTYPE: $
-  CODE:
-   PUSHMARK(sp) ;
-   perl_call_sv(code, G_EVAL|G_KEEPERR|GIMME_V);
-
 
 # make piddle belonging to 'class' and of type 'type'
 # from avref 'array_ref' which is checked for being
