@@ -692,7 +692,7 @@ sub MY::processPL {
 	                 : [$self->{PL_FILES}->{$plfile}];
 	    my $target;
 
-	    
+
 	    if($Config{make} =~ /\bdmake/i) {
 		foreach $target (@$list) {
 		    push @m, "
@@ -711,12 +711,12 @@ $target :
 	    # after post-processing.  This used to happen automagically; it's not clear
 	    # why it still doesn't. (CED 2012-11-12)
 		    my $compilestr;
-		    if($plfile eq "pdl.PL") {
+		    if($plfile eq "pdl.PL" && $Config{make} !~ /\bnmake/i) {
 			$compilestr = "\n\t\$(CC) -o pdl pdl.c\n";
 		    } else {
 			$compilestr = "";
 		    }
-		    
+
 		    push @m, "
 all :: $target
 	\$(NOECHO) \$(NOOP)
@@ -724,7 +724,7 @@ all :: $target
 $target ::
 	\$(PERLRUNINST) $plfile $target$compilestr
 ";
-		    
+
 		} # close foreach
 	    }
 	}
