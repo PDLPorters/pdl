@@ -30,9 +30,10 @@ package PDL::Lvalue;
 
 # list of functions that can be used as lvalue subs
 # extend as necessary
-my @funcs = qw/slice mslice nslice nslice_if_pdl index where px diagonal clump
-  dummy index2d dice dice_axis xchg mv flat sever polyfillv range rangeb 
-  indexND indexNDb reshape/;
+my @funcs = qw/ clump diagonal dice dice_axis dummy flat
+                index index2d indexND indexNDb mslice mv
+                nslice nslice_if_pdl polyfillv px range
+                rangeb reshape sever slice where whereND xchg /;
 
 my $prots = join "\n", map {"use attributes 'PDL', \\&PDL::$_, 'lvalue';"}
   @funcs;
