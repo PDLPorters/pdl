@@ -930,7 +930,7 @@ sub pp_line_numbers ($$) {
 		push @to_return, $_;
 
 		# If we need to add a # line directive, do so before incrementing
-		push (@to_return, "\n#line $line \"$filename\"") if (/%{/ or /%}/);
+		push (@to_return, "\n#line $line \"$filename\"") if (/%\{/ or /%}/);
 
 		$line++ if /\n/;
 	}
@@ -1893,7 +1893,7 @@ $pars
   PDL_COMMENT("Check if you can get a package name for this input value.  ")
   PDL_COMMENT("It can be either a PDL (SVt_PVMG) or a hash which is a     ")
   PDL_COMMENT("derived PDL subclass (SVt_PVHV)                            ")
-  
+
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
     parent = ST(0);
     if (sv_isobject(parent))
@@ -2627,7 +2627,7 @@ if (hdrp) {
     hdr_copy = (SV *)POPs;
 
     if(hdr_copy && hdr_copy != &PL_sv_undef) {
-       (void)SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS") 
+       (void)SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS")
     }
 
     FREETMPS ;
