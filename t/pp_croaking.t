@@ -21,7 +21,7 @@ eval {
 
 my $err_msg = $@;
 isnt($@, undef, 'loop without dim name should throw an error');
-like($@, qr/Expected.*loop.*%{/, 'loop without dim name should explain the error')
+like($@, qr/Expected.*loop.*%\{/, 'loop without dim name should explain the error')
 	or diag("Got this error: $@");
 
 TODO: {
