@@ -207,13 +207,6 @@ special way. The C<=for> directive is used to flag to the PDL Pod
 parser that information is following that will be used to generate
 online help.
 
-The PDL podparser is derived from the PDL::Pod::Parser class that had
-to be patched in a few places, partly to fix minor bugs, partly
-to enhance functionality for perusal by PDL::Doc. Since the PDL::Doc
-module is still experimental the patched Pod-Parser distribution is
-included with the current PDL-Doc distribution. Note that PDL::Doc
-will I<not> work correctly with the released Pod-Parser distribution.
-
 The PDL Pod parser recognises the following C<=for> directives:
 
 =over 5
