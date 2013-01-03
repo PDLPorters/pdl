@@ -39,7 +39,7 @@ sub command {
     $this->{Parmode} = 'Body';
     $this->{Parmode} = 'NAME' if $txt =~ /NAME/;
   } elsif ($this->{Mode} =~ /NAME/) {
-    last;
+    # do nothing (was 'last' but that was probably a mistake)
   } elsif ($cmd eq 'head2') {
     # A function can have multiple names (ex: zeros and zeroes),
     # so split at the commas
