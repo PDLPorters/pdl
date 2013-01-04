@@ -730,7 +730,7 @@ pp_def 'Cacosh',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '',
+        Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
