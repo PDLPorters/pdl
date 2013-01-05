@@ -765,8 +765,8 @@ data directly (e.g. for file I/O).  If you modify the string, you'll
 need to call L<upd_data|upd_data> afterward, to make sure that the
 piddle points to the new location of the underlying perl variable.
 
-You shouldn't mess with the SV unless you've called
-L<make_physical|/PDL::make_physical> or something similar.  You definitely
+Calling C<get_dataref> automatically physicalizes your piddle (see
+L<make_physical|/PDL::make_physical>).  You definitely
 don't want to do anything to the SV to truncate or deallocate the
 string, unless you correspondingly call L<reshape|/reshape> to make the
 PDL match its new data dimension.

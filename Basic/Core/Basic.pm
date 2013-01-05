@@ -407,7 +407,8 @@ or
  $hist = hist($data,$min,$max,$step);
  ($xvals,$hist) = hist($data,[$min,$max,$step]);
 
-If C<hist> is run in list context, C<$xvals> gives the computed bin centres
+If C<hist> is run in list context, C<$xvals> gives the
+computed bin centres as double values.
 
 A nice idiom (with 
 L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
@@ -455,8 +456,9 @@ Create a weighted histogram of a piddle
  $hist = whist($data, $wt, [$min,$max,$step]);
  ($xvals,$hist) = whist($data, $wt, [$min,$max,$step]);
 
-If requested, C<$xvals> gives the computed bin centres.
-C<$data> and C<$wt> should have the same dimensionality and extents.
+If requested, C<$xvals> gives the computed bin centres
+as type double values.  C<$data> and C<$wt> should have
+the same dimensionality and extents.
 
 A nice idiom (with 
 L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
@@ -496,16 +498,16 @@ sub _hist_bin_calc {
     my $ntype = $pdl->get_datatype;
     barf "empty piddle, no values to work with" if $pdl->nelem == 0;
     unless (defined $step) {
-	my $defbins = 100 < $pdl->nelem ? 100 : $pdl->nelem;
+	my $defbins = sqrt($pdl->nelem);
+	$defbins = ($defbins>100) ? 100 : $defbins;
 	$step = ($max-$min)/$defbins;
-	$step = int($step) > 0 ? int($step) : 1 if $ntype < $PDL_F;
     }
     barf "step is zero (or all data equal to one value)" if $step == 0;
-    my $bins = int(($max-$min)/$step);
+    my $bins = int(($max-$min)/$step+0.5);
     print "hist with step $step, min $min and $bins bins\n"
-      if $PDL::debug;
-    my $xvals = $min + $step/2 + sequence(PDL::Type->new($ntype),$bins)*
-        PDL::convert($step,$ntype) if $wantarray;
+	if $PDL::debug;
+    # Need to use double for $xvals here
+    my $xvals = $min + $step/2 + sequence(PDL::Core::double,$bins)*$step if $wantarray;
 
     return ( $step, $min, $bins, $xvals );
 }
