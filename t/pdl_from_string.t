@@ -222,7 +222,7 @@ my $nan = pdl 'nan';
 # As usual MS compilers are non-compliant, so we skip some of these tests for ActivePerl.
 # Sisyphus 14.7.2012
 
-my $nan2 = $^O =~ /MSWin32/i && !$ActivePerl::VERSION && $Config{cc} ne 'cl' ? pdl (-('inf' / 'inf'))
+my $nan2 = $^O =~ /MSWin32/i && !$ActivePerl::VERSION && $Config{cc} ne 'cl' ? pdl (-((-1) ** 0.5))
                              : pdl '-nan';
 
 my $bad = pdl 'bad';
@@ -255,11 +255,11 @@ SKIP: {
 	ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
 }
 
-TODO: {
 
-   local $TODO = 'Cygwin perl/ActivePerl and/or perls built using MS compilers might fail these tests';
+   if($ActivePerl::VERSION || $^O =~ /cygwin/i) {
+     TODO: {
+      local $TODO = 'Cygwin perl and/or ActivePerl might fail these tests';
 
-   if($ActivePerl::VERSION || $Config{cc} eq 'cl') {
       ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
                or $nan != $nan), "pdl 'nan' works by itself")
          or diag("pdl 'nan' gave me $nan");
@@ -272,7 +272,7 @@ TODO: {
       ok((	$PDL::Config{BADVAL_USENAN} and $nan2->isbad
                or $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
          or diag("pdl -'nan' gave me $nan2");
-
+     } #close TODO
    }
    else {
       ok((	$PDL::Config{BADVAL_USENAN} and $nan->isbad
@@ -301,7 +301,6 @@ TODO: {
             or diag("pdl '-nan' gave me $nan2");
       }
    }
-} #close TODO
 
 ok($bad->isbad, "pdl 'bad' works by itself")
 	or diag("pdl 'bad' gave me $bad");
