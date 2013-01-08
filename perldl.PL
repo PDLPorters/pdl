@@ -272,7 +272,7 @@ if ( $readlines ){
                 my $rvec = '';
                 vec($rvec, $fileno, 1) = 1;
                 while(1) {
-                   select my $rout = $rvec, undef, undef, 1.0;
+                   select my $rout = $rvec, undef, undef, 0;
                    last if vec($rout, $fileno, 1);
                    OpenGL::glutMainLoopEvent();
                 }
