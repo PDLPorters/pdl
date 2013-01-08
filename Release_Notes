@@ -63,7 +63,10 @@ Highlights:
    thanks to John Lapeyre.
 
  * Many debian distribution fixes.
-
+ 
+ * Update docs database system to use Pod parsing modules
+   distributed with Perl instead of the old PDL::Pod modules.
+ 
  * TBD
 
 
