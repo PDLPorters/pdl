@@ -798,9 +798,7 @@ sub imag2d {
    glFlush();
 
    # we don't twiddle if in PDL shell and glutRunning is on
-   twiddle() unless defined $PERLDL::TERM
-      and exists($PERLDL::TERM->Features->{glutRunning})
-      and $PERLDL::TERM->glutRunning;
+   twiddle() unless defined $PERLDL::TERM and ref $Term::ReadLine::toloop;
 
    return $window_id;
 }
