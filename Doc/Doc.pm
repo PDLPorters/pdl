@@ -484,6 +484,7 @@ sub savedb {
   open OUT, ">$this->{Outfile}" or barf "can't write to symdb $this->{Outfile}";
   binmode OUT;
   while (my ($key,$val) = each %$hash) {
+    next if 0 == scalar(%$val);
     my $txt = "$key".chr(0).join(chr(0),%$val);
     print OUT pack("S",length($txt)).$txt;
   }
