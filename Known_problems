@@ -26,14 +26,6 @@ The following issues have been reported with this version of PDL:
   PDL::Graphics::PLplot separately.
 
 
-- For perl 5.14.0 and later, the perldl shell fails to print
-  tracebacks from barf called from subordinate evals.  This
-  is because of changes in exception handling for $@ and the
-  associated XS parameters G_EVAL and G_KEEPERR.  Please see
-  http://search.cpan.org/~jesse/perl-5.14.0/pod/perldelta.pod
-  for details.
-
-
 - Some versions of MinGW gcc (used to compile for win32 perls)
   crash in compilation of large, PP-generated files.  The work-
   around is to disable optimization for those file.  See the
@@ -106,12 +98,16 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.11_001 release:
+  PDL-2.4.11_002 release:
 
+  3599815    pic_16bit.t failure when building pdl
+  3599516    plplot.t failure when building 2.4.11
   3570236    clip() edge case not handled right
   3570235    Wrong results in corner empty-set cases
   3547302    t/pdl_from_string.t fails subtest for MSVC build
-  3544682    perldl doesn't print stacktrace from barf
+
+               Pending fix.  Please test.
+
   3543056    propagate badflag with .=
   3539685    pdldoc can't handle SPP mount location change
   3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
@@ -124,6 +120,9 @@ The following issues have been reported with this version of PDL:
   3161459    online docs don't link to functions in other PDL modules
   3018731    NiceSlice affects code where it should not
   2995500    perl -d chokes on lvalue functions
+
+               Fixed in perl 5.16.x or use work around.
+
   2153898    default PDL build output too long
   1507054    closing TriD window kills perldl shell
 
