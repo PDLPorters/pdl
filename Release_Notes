@@ -26,12 +26,35 @@ General Notes:
 
 Highlights:
 
+ * perldl -glut support for the FreeGLUT or Apple GLUT
+   has been modified to use the new Term::ReadLine
+   event_loop method instead of previous custom code.
+   If you install Term::ReadLine version 1.09 or
+   greater, the GLUT event loop will run while the
+   command line text interface is still active.  The
+   imag2d routine will detect the feature and will not
+   require twiddling to work with the display windows.
+
  * The p shortcut to display output in the PDL shells has
    been reverted to its previous 2.4.10 behavior.  If you
    wish it to be an exact alias for print just override in
    your .perldlrc or local.perldlrc file.
 
  * Added Boundary=>'Replicate' option to conv2d and med2d.
+
+ * Added warning if conv1d is used on a piddle with the
+   badflag set.  This prevents the unintentional corruption
+   of numeric data by treating the badvalue as a number for
+   convolution processing.
+
+ * Fixed hist() handling of the case of fractional steps
+   in integral input data types.  Sf.net bug #3588182
+
+ * Fixed error report bug in perldl that resulted from a
+   change in the way perl handles eval exception reporting.
+
+ * Fix rim() 3-arg form.  Added tests to support and verify
+   the development.
 
  * Fixed 16-bit PNM raw format handling (sf.net bug #3475075)
 
@@ -40,6 +63,8 @@ Highlights:
  
  * Fixed bug in PNG format detection on win32 platforms.
    Sf.net bug #3563903.
+
+ * qsort[vec] are now inplace aware
 
  * Fix handling of complex 0 values.
 
@@ -57,7 +82,8 @@ Highlights:
    to match.
  
  * Fix NaN sign issues as reported (and fixed!) by Matthew 
-   McGillis.
+   McGillis with contributions by Sisyphus to resolve windows
+   MVSC compiler/runtime issues.
 
  * Support for additional random number generators to PDL::GSL
    thanks to John Lapeyre.
