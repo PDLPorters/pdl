@@ -98,7 +98,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.11_001 release:
+  PDL-2.4.11_002 release:
 
   3599815    pic_16bit.t failure when building pdl
   3599516    plplot.t failure when building 2.4.11
