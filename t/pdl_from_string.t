@@ -216,12 +216,6 @@ my $infty = pdl 'inf';
 my $min_inf = pdl '-inf';
 my $nan = pdl 'nan';
 
-# On MS Windows, perls built by gcc numify the strings '-nan' and 'nan' to the same value (-1.#IND).
-# To get the correct '-nan' value for such perls (1.#QNAN) we need to numify -('inf'/'inf').
-# We can't do that with MS compilers, however, because 0.0/0.0 is an illegal operation there.
-# As usual MS compilers are non-compliant, so we skip some of these tests for ActivePerl.
-# Sisyphus 14.7.2012
-
 my $nan2 = $^O =~ /MSWin32/i && !$ActivePerl::VERSION && $Config{cc} ne 'cl' ? pdl (-((-1) ** 0.5))
                              : pdl '-nan';
 
