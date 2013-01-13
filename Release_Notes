@@ -26,7 +26,10 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Make the failing sign of NaN tests in t/pdl_from_string.t
+   TODO until all the platform specific issues are fixed.
+
+ * Add test names to t/gd_oo_tests.t subtests.
 
 
 
