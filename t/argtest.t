@@ -37,7 +37,7 @@ ok(1,$@ =~ /Error - tried to use an unknown/);
 eval { PDL::Ufunc::sumover({}) };
 eprint $@;
 
-ok 2, $@ =~ /Hash given as a pdl - but not {PDL} key/;
+ok 2, $@ =~ /Hash given as a pdl - but not \{PDL} key/;
 
 
 $c = 0;
