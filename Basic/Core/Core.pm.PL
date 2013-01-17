@@ -729,7 +729,7 @@ type object, unlike L<type|/type>.
 
 =for ref
 
-Returns the size of a piddle datatype in bytes.
+Returns the sizeof a piddle datatype in bytes.
 
 Note that C<howbig()> is not exported by default (see example
 below for usage).
