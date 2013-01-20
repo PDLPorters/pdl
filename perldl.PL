@@ -125,6 +125,10 @@ my $read_from_file;
 
 while(defined($_ = shift @ARGV)) {
 	if($_ eq "-tk") {
+                if ($^O eq 'MSWin32') {
+                   print "-tk option not supported for windows\n";
+                   next;
+                }
 		print "Using Tk";
 		eval "use Tk;";
                 if ($@ eq "") {
@@ -135,6 +139,10 @@ while(defined($_ = shift @ARGV)) {
                 }
 		next;
         } elsif($_ eq "-glut") {
+                if ($^O eq 'MSWin32') {
+                   print "-glut option not supported for windows\n";
+                   next;
+                }
 		print "Using OpenGL for GLUT support";
 		eval "use OpenGL;";
                 if ($@ eq "") {
