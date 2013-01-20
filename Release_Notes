@@ -26,7 +26,13 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * t/gd_oo_tests.t now reports problems rather than failing
+   for the known problem sf.net bug #3518190.  Help debugging
+   this problem is welcome.
+
+ * Minor doc fix to PDL::howbig so pdldoc apropos command
+   will show that routine when given the string 'sizeof'.
+
 
 
 

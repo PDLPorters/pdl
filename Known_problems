@@ -1,6 +1,10 @@
 The following issues have been reported with this version of PDL:
 
 
+- GLUT readline support in perldl with the -glut option not
+  yet implemented for win32.  Work in progress.
+
+
 - A change in perl-5.14 on how the 'x' operator works affects
   PDL's overload of that operator for matrix multiplication.
   This can affect code using parentheses to group.  An example
@@ -100,17 +104,18 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.11_003 release:
 
+  3601064    Need INSTALLSITEBIN for recent Macports Perls
   3599815    pic_16bit.t failure when building pdl
   3599516    plplot.t failure when building 2.4.11
   3570236    clip() edge case not handled right
   3570235    Wrong results in corner empty-set cases
-  3547302    t/pdl_from_string.t fails subtest for MSVC build
-
-               Pending fix.  Please test.
-
   3543056    propagate badflag with .=
   3539685    pdldoc can't handle SPP mount location change
   3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
+  3518190    t/gd_oo_tests.t fails for AMD64
+
+               This appears to affect OpenBSD AMD64 only
+
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3316394    'help funname' fails to show multiple function names
