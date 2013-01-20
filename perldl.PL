@@ -192,9 +192,9 @@ while(defined($_ = shift @ARGV)) {
             print << 'EOP';
 Usage: perldl [options]
   -glut       try to load OpenGL module (Enables
-              readline event-loop processing).
+                readline event-loop processing).
   -tk         try to load Tk module (Enables
-              readline event-loop processing).
+                readline event-loop processing).
   -f <file>   execute file <file> before starting perldl
   -w          run with warning messages turned-on 
   -m <module> unload module <module>
@@ -991,11 +991,17 @@ prompt.  They are:
 
 =over 4
 
+=item -glut
+
+Load OpenGL when starting the shell (the perl OpenGL module,
+which is available from CPAN must be installed).  This enables
+readline event loop processing.  Don't use with -tk.
+
 =item -tk
 
 Load Tk when starting the shell (the perl Tk module, which is
-available from CPAN must be installed). This enables readline
-event loop processing.
+available from CPAN must be installed).  This enables readline
+event loop processing.  Don't use with -glut.
 
 =item -f file
 
