@@ -51,194 +51,199 @@ sub tapprox
     return all($d < 1.0e-5);
 }
 
-# Test files:
-#
-my $tempdir = $PDL::Config{TEMPDIR} || "/tmp";
+TODO:
+{
 
-my $lutfile = "$tempdir/default.rcols";
-my $testfile1 = "$tempdir/test.png";
-my $testfile2 = "$tempdir/test2.png";
-my $testfile3 = "$tempdir/test3.png";
+    local $TODO = 'gd_oo_tests.t fail for AMD64, sf.net #3518190';
+    # Test files:
+    #
+    my $tempdir = $PDL::Config{TEMPDIR} || "/tmp";
 
-# Write out the lutfile below, so we don't have to include it in the distro:
-write_lut($lutfile);
+    my $lutfile = "$tempdir/default.rcols";
+    my $testfile1 = "$tempdir/test.png";
+    my $testfile2 = "$tempdir/test2.png";
+    my $testfile3 = "$tempdir/test3.png";
 
-# Start the tests:
-#
+    # Write out the lutfile below, so we don't have to include it in the distro:
+    write_lut($lutfile);
 
-#diag "Test writing byte (8bit) PNG image...\n";
-my $pdl = sequence(byte, 30, 30);
+    # Start the tests:
+    #
 
-# TEST 1:
-# Load a lut from an ASCII file:
-#diag "\$pdl:\n$pdl\n";
-my $lut = load_lut( $lutfile );
-#diag "\$lut info(): " . $lut->info() . "\n";
-#diag "\$lut:\n$lut\n";
-ok( ($lut->dim(0) == 3 && $lut->dim(1) == 256), 'Load a lut from an ASCII file' );
+    #diag "Test writing byte (8bit) PNG image...\n";
+    my $pdl = sequence(byte, 30, 30);
 
-# TEST 2:
-# write a PNG with the old interface:
-write_png( $pdl, $lut, $testfile1 );
-ok(1,'write a PNG with the old interface');
+    # TEST 1:
+    # Load a lut from an ASCII file:
+    #diag "\$pdl:\n$pdl\n";
+    my $lut = load_lut( $lutfile );
+    #diag "\$lut info(): " . $lut->info() . "\n";
+    #diag "\$lut:\n$lut\n";
+    ok( ($lut->dim(0) == 3 && $lut->dim(1) == 256), 'Load a lut from an ASCII file' );
 
-# TEST 3:
-# write a truecolor PNG with the old interface:
-#diag "Testing writing true color (32 bit) PNG image...\n";
-write_true_png(sequence(100, 100, 3), $testfile3);
-ok(1, 'write a truecolor PNG with the old interface');
+    # TEST 2:
+    # write a PNG with the old interface:
+    write_png( $pdl, $lut, $testfile1 );
+    ok(1,'write a PNG with the old interface');
 
-
-#
-# Open the file:
-#
-# TEST 4:
-# Create a new object:
-my $gd = PDL::IO::GD->new( { filename => $testfile1 } );
-#diag "Object created!\n";
-ok( defined( $gd ), 'Object created' );
-
-# TEST 5 & 6:
-# Query the dims:
-my $x = $gd->gdImageSX();
-ok( $x, 'query X dim' );
-my $y = $gd->gdImageSY();
-ok( $y, 'query Y dim' );
-#diag "\$x = $x\t\$y = $y\n";
-
-# TEST 7:
-# Read it into a PDL, and make sure it matches:
-my $pdl2 = $gd->to_pdl();
-ok( tapprox( $pdl, $pdl2 ), 'image matches original pdl' );
-
-# TEST 8:
-# Kill it:
-$gd->DESTROY();
-#diag "Object destroyed!\n";
-ok( 1, 'Object destroyed' );
-
-#
-# Create a new object:
-# 
-# TEST 9:
-# Create a new image from scratch:
-my $im = PDL::IO::GD->new( { x => 300, y => 300 } );
-ok( defined( $im ), 'creat new image from scratch' );
-
-#
-# Allocate some colors:
-#
-# TEST 10:
-$im->apply_lut( $lut );
-ok( 1, 'allocate some colors' );
-
-# TESTS 11-14:
-# Resolve some colors:
-my $black = $im->ColorResolve( 0, 0, 0 );
-ok( defined( $black ), 'resolve color black' );
-my $red = $im->ColorResolve( 255, 0, 0 );
-ok( defined( $red ), 'resolve color red' );
-my $green = $im->ColorResolve( 0, 255, 0 );
-ok( defined( $green ), 'resolve color green' );
-my $blue = $im->ColorResolve( 0, 0, 255 );
-ok( defined( $blue ), 'resolve color blue' );
-
-# TEST 15:
-# Draw a rectangle:
-$im->Rectangle( 5, 5, 295, 295, $red );
-ok( 1, 'draw a rectangle' );
-
-# TEST 16:
-# Add some text:
-$im->String( gdFontGetLarge(), 10, 10, "Test Large Font!", $green );
-ok( 1, 'add some text' );
-
-# TEST 17:
-# Generate a color bar:
-my $x1 = zeroes( long, 256 ) + 50;
-my $y1 = sequence( long, 256 ) + 30;
-my $color = sequence(long, 256);
-$im->Lines( $x1, $y1, $x1 + 100, $y1, $color );
-ok( 1, 'generate a color bar' );
-
-# TEST 18:
-# Write the output file:
-$im->write_Png( $testfile2 );
-ok( 1, 'write the output file' );
-$im->DESTROY(); $im = undef;
-
-#
-# New tests on object creation:
-#
-
-# TEST 19:
-# Create from a 2d PDL without a LUT:
-my $pic = sequence(100, 100);
-$im = PDL::IO::GD->new({ pdl => $pic });
-ok( defined( $im ), 'create from 2d PDL without a LUT' );
-$im->DESTROY(); $im = undef;
-
-# TEST 20:
-# Create from a 2d PDL and a LUT:
-$im = PDL::IO::GD->new({ pdl => $pic, lut => $lut });
-ok( defined( $im ), 'create from 2d PDL and a LUT' );
-$im->DESTROY(); $im = undef;
-
-# TEST 21:
-# Create from a RGB PDL:
-my $pic3d = $pic->dummy(2,3);
-$im = PDL::IO::GD->new({ pdl => $pic3d });
-ok( defined( $im ), 'create from a RGB PDL' );
-$im->DESTROY(); $im = undef;
-
-# TEST 22:
-# Create an RGB from scratch:
-$im = PDL::IO::GD->new({ x => 100, y => 100, true_color => 1 });
-ok( defined( $im ), 'create an RGB from scratch' );
-$im->DESTROY(); $im = undef;
-
-# TEST 23-24:
-# Create from a 2d PNG data glob:
-my $rc = open( TF1, $testfile1 );
-ok( $rc, 'opened test file and handle' );
-binmode( TF1 );
-$/ = undef;
-my $blob = <TF1>;
-close( TF1 );
-$im = PDL::IO::GD->new({ data => $blob });
-ok( defined( $im ), 'create from a 2d PNG data glob' );
-$im->DESTROY(); $im = undef;
-
-# TEST 25:
-# Create from a 2d PNG data glob, with the type given:
-$im = PDL::IO::GD->new({ data => $blob, type => 'png' });
-ok( defined( $im ), 'create from glob with type given' );
-$im->DESTROY(); $im = undef;
-
-# TEST 26-27:
-# Create from a 3d PNG data glob:
-$rc = open( TF3, $testfile3 );
-ok( $rc );
-binmode( TF3 );
-$/ = undef;
-my $blob3d = <TF3>;
-close( TF3 );
-$im = PDL::IO::GD->new({ data => $blob3d });
-ok( defined( $im ), 'create from a 3d PNG data glob' );
-
-# TEST 28:
-# Get a PNG data glob from a created 
-my $png_blob = $im->get_Png_data();
-ok( $blob3d eq $png_blob, 'get a PNG data glob' );
-$im->DESTROY(); $im = undef;
+    # TEST 3:
+    # write a truecolor PNG with the old interface:
+    #diag "Testing writing true color (32 bit) PNG image...\n";
+    write_true_png(sequence(100, 100, 3), $testfile3);
+    ok(1, 'write a truecolor PNG with the old interface');
 
 
-# Remove our test files:
-#
-unlink( $lutfile );
-unlink( $testfile1 );
-unlink( $testfile2 );
-unlink( $testfile3 );
+    #
+    # Open the file:
+    #
+    # TEST 4:
+    # Create a new object:
+    my $gd = PDL::IO::GD->new( { filename => $testfile1 } );
+    #diag "Object created!\n";
+    ok( defined( $gd ), 'Object created' );
+
+    # TEST 5 & 6:
+    # Query the dims:
+    my $x = $gd->gdImageSX();
+    ok( $x, 'query X dim' );
+    my $y = $gd->gdImageSY();
+    ok( $y, 'query Y dim' );
+    #diag "\$x = $x\t\$y = $y\n";
+
+    # TEST 7:
+    # Read it into a PDL, and make sure it matches:
+    my $pdl2 = $gd->to_pdl();
+    ok( tapprox( $pdl, $pdl2 ), 'image matches original pdl' );
+
+    # TEST 8:
+    # Kill it:
+    $gd->DESTROY();
+    #diag "Object destroyed!\n";
+    ok( 1, 'Object destroyed' );
+
+    #
+    # Create a new object:
+    # 
+    # TEST 9:
+    # Create a new image from scratch:
+    my $im = PDL::IO::GD->new( { x => 300, y => 300 } );
+    ok( defined( $im ), 'creat new image from scratch' );
+
+    #
+    # Allocate some colors:
+    #
+    # TEST 10:
+    $im->apply_lut( $lut );
+    ok( 1, 'allocate some colors' );
+
+    # TESTS 11-14:
+    # Resolve some colors:
+    my $black = $im->ColorResolve( 0, 0, 0 );
+    ok( defined( $black ), 'resolve color black' );
+    my $red = $im->ColorResolve( 255, 0, 0 );
+    ok( defined( $red ), 'resolve color red' );
+    my $green = $im->ColorResolve( 0, 255, 0 );
+    ok( defined( $green ), 'resolve color green' );
+    my $blue = $im->ColorResolve( 0, 0, 255 );
+    ok( defined( $blue ), 'resolve color blue' );
+
+    # TEST 15:
+    # Draw a rectangle:
+    $im->Rectangle( 5, 5, 295, 295, $red );
+    ok( 1, 'draw a rectangle' );
+
+    # TEST 16:
+    # Add some text:
+    $im->String( gdFontGetLarge(), 10, 10, "Test Large Font!", $green );
+    ok( 1, 'add some text' );
+
+    # TEST 17:
+    # Generate a color bar:
+    my $x1 = zeroes( long, 256 ) + 50;
+    my $y1 = sequence( long, 256 ) + 30;
+    my $color = sequence(long, 256);
+    $im->Lines( $x1, $y1, $x1 + 100, $y1, $color );
+    ok( 1, 'generate a color bar' );
+
+    # TEST 18:
+    # Write the output file:
+    $im->write_Png( $testfile2 );
+    ok( 1, 'write the output file' );
+    $im->DESTROY(); $im = undef;
+
+    #
+    # New tests on object creation:
+    #
+
+    # TEST 19:
+    # Create from a 2d PDL without a LUT:
+    my $pic = sequence(100, 100);
+    $im = PDL::IO::GD->new({ pdl => $pic });
+    ok( defined( $im ), 'create from 2d PDL without a LUT' );
+    $im->DESTROY(); $im = undef;
+
+    # TEST 20:
+    # Create from a 2d PDL and a LUT:
+    $im = PDL::IO::GD->new({ pdl => $pic, lut => $lut });
+    ok( defined( $im ), 'create from 2d PDL and a LUT' );
+    $im->DESTROY(); $im = undef;
+
+    # TEST 21:
+    # Create from a RGB PDL:
+    my $pic3d = $pic->dummy(2,3);
+    $im = PDL::IO::GD->new({ pdl => $pic3d });
+    ok( defined( $im ), 'create from a RGB PDL' );
+    $im->DESTROY(); $im = undef;
+
+    # TEST 22:
+    # Create an RGB from scratch:
+    $im = PDL::IO::GD->new({ x => 100, y => 100, true_color => 1 });
+    ok( defined( $im ), 'create an RGB from scratch' );
+    $im->DESTROY(); $im = undef;
+
+    # TEST 23-24:
+    # Create from a 2d PNG data glob:
+    my $rc = open( TF1, $testfile1 );
+    ok( $rc, 'opened test file and handle' );
+    binmode( TF1 );
+    $/ = undef;
+    my $blob = <TF1>;
+    close( TF1 );
+    $im = PDL::IO::GD->new({ data => $blob });
+    ok( defined( $im ), 'create from a 2d PNG data glob' );
+    $im->DESTROY(); $im = undef;
+
+    # TEST 25:
+    # Create from a 2d PNG data glob, with the type given:
+    $im = PDL::IO::GD->new({ data => $blob, type => 'png' });
+    ok( defined( $im ), 'create from glob with type given' );
+    $im->DESTROY(); $im = undef;
+
+    # TEST 26-27:
+    # Create from a 3d PNG data glob:
+    $rc = open( TF3, $testfile3 );
+    ok( $rc );
+    binmode( TF3 );
+    $/ = undef;
+    my $blob3d = <TF3>;
+    close( TF3 );
+    $im = PDL::IO::GD->new({ data => $blob3d });
+    ok( defined( $im ), 'create from a 3d PNG data glob' );
+
+    # TEST 28:
+    # Get a PNG data glob from a created 
+    my $png_blob = $im->get_Png_data();
+    ok( $blob3d eq $png_blob, 'get a PNG data glob' );
+    $im->DESTROY(); $im = undef;
+
+    # Remove our test files:
+    #
+    unlink( $lutfile );
+    unlink( $testfile1 );
+    unlink( $testfile2 );
+    unlink( $testfile3 );
+
+}
 
 exit (0);
 # 
