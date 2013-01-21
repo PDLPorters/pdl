@@ -2237,7 +2237,7 @@ To select a region of the X-axis:
   ($x2, $y2, $ch) = cursor({Type => 'TwoVerticalLines', XRef => $x1});
 
 
-=head2 Internal routines
+=head1 Internal routines
 
 =cut
 

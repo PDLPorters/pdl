@@ -717,36 +717,25 @@ Also see L<isfinite|PDL::Math/isfinite>.
        );
 
 
-=head2 nbadover
-
-=cut
-
 # perhaps these should have pm code which returns the
 # answer if the bad flag is not set
-pp_def(
-       'nbadover',
-       HandleBad => 1,
-       Pars => 'a(n); int+ [o]b();',
-       Code => 
-       '$b() = 0;',
-       BadCode => 
-       '$GENERIC(b) cnt = 0;
-	loop(n) %{ 
-           if ( $ISBAD(a()) ) { cnt++; }
-        %}
-        $b() = cnt;',
-       Doc => <<'EOD',
+pp_def('nbadover' . <<'=cut',
+
+=head2 nbadover
+
+=for sig
+
+  Signature: (a(n); int+ [o] b())
 
 =for ref
 
 Find the number of bad elements along the 1st dimension.
 
-This function reduces the dimensionality of a piddle
-by one by finding the number of bad elements
-along the 1st dimension.
-
-By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
-I<any> dimension.
+This function reduces the dimensionality of a piddle by one by finding the
+number of bad elements along the 1st dimension. In this sense it shares
+much in common with the functions defined in L<PDL::Ufunc>. In particular,
+by using L<xchg|PDL::Slices/xchg> and similar dimension rearranging methods,
+it is possible to perform this calculation over I<any> dimension.
 
 =for usage
 
@@ -756,10 +745,23 @@ I<any> dimension.
 
  $spectrum = nbadover $image->xchg(0,1)
 
+=for bad
+
+nbadover processes input values that are bad. The ouput piddle will not have
+any bad values and will not have its bad flag set.
+
 =cut
 
-EOD
-       );
+    HandleBad => 1,
+    Code => '$b() = 0;',
+    BadCode => q{
+        $GENERIC(b) cnt = 0;
+        loop(n) %{ 
+            if ( $ISBAD(a()) ) { cnt++; }
+        %}
+        $b() = cnt;
+    },
+);
 
 =head2 ngoodover
 
@@ -1083,7 +1085,7 @@ if ( $usenan ) {
     pp_add_exported( '', 'setnantobad setbadtonan' );
 	my $stuff_to_add_to_the_pm = <<'!NO!SUBS!';
 
-=head3 setnantobad
+=head2 setnantobad
 
 =for ref
 
@@ -1122,7 +1124,7 @@ sub PDL::setnantobad{
     return $b; 
 }
 
-=head3 setbadtonan
+=head2 setbadtonan
 
 =for ref
 
@@ -1220,14 +1222,37 @@ Can be done inplace.
     BadDoc => 'Supports bad values.',
     ); # pp_def: setnantobad
 
+
+pp_def('setbadtonan' . <<'=cut',
+
 =head2 setbadtonan
 
-=cut
+=for sig
 
-pp_def(
-    'setbadtonan',
+  Signature: (a(); [o] b();)
+
+=for ref
+
+Sets Bad values to NaN
+
+This is only relevant for floating-point piddles. The input piddle can be
+of any type, but if done inplace, the input must be floating point.
+
+=for usage
+
+ $b = $a->setbadtonan;
+ $a->inplace->setbadtonan;
+
+=for bad
+
+This method processes input piddles with bad values. The output piddles will
+not contain bad values (insofar as NaN is not Bad as far as PDL is concerned)
+and the output piddle does not have its bad flag set. As an inplace
+operation, it clears the bad flag.
+
+=cut
+    
     HandleBad => 1,
-    Pars => 'a(); [o]b();',
     GenericTypes => [ 'F', 'D' ],
     Inplace => 1,
     CopyBadStatusCode => 
@@ -1239,23 +1264,6 @@ pp_def(
     'if ( $ISBAD(a()) ) { $b() = $TFD(_nan_float,_nan_double); }  /* _nan_xxx set up at top of file */
      else               { $b() = $a(); }
      ',
-    Doc => 
-'
-=for ref
-
-Sets Bad values to NaN
-(only relevant for floating-point piddles).
-Can be done inplace and it clears the bad flag.
-
-=for usage
-
- $b = $a->setbadtonan;
- $a->inplace->setbadtonan;
-
-=cut
-
-',
-    BadDoc => 'Supports bad values.',
     ); # pp_def: setbadtonan
 
 } # if: $usenan

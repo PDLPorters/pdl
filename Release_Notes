@@ -26,7 +26,8 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Added new FullDoc key to PDL::PP to make writing CPAN
+   friendly .pd files much, much easier.
 
 
 
