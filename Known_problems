@@ -102,7 +102,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.11_004 release:
+  PDL-2.4.11_005 release:
 
   3601064    Need INSTALLSITEBIN for recent Macports Perls
   3599815    pic_16bit.t failure when building pdl
