@@ -761,11 +761,19 @@ Compare also L<conv2d|PDL::Image2D/conv2d>, L<convolve|PDL::ImageND/convolve>,
 L<fftconvolve|PDL::FFT/fftconvolve()>, L<fftwconv|PDL::FFTW/fftwconv>,
 L<rfftwconv|PDL::FFTW/rfftwconv>
 
+=for bad
+
+WARNING: C<conv1d> processes bad values in its inputs as
+the numeric value of C<< $pdl->badvalue >> so it is not
+recommended for processing pdls with bad values in them
+unless special care is taken.
+
 =cut
 
 EOD
         Pars => 'a(m); kern(p); [o]b(m);',
         OtherPars => 'int reflect;',
+        HandleBad => 0,
         PMCode => '
         
 sub PDL::conv1d {
@@ -831,8 +839,8 @@ test if a is in the set of values b
 =for example
 
    $goodmsk = $labels->in($goodlabels);
-   print pdl(4,3,1)->in(pdl(2,3,3));
-  [0 1 0]
+   print pdl(3,1,4,6,2)->in(pdl(2,3,3));
+  [1 0 0 0 1]
 
 C<in> is akin to the I<is an element of> of set theory. In priciple,
 PDL threading could be used to achieve its functionality by using a

@@ -323,8 +323,8 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	tp = malloc(sizeof(pthread_t) * thread->mag_nthr);
 	tparg = malloc(sizeof(*tparg) * thread->mag_nthr);
 	pthread_key_create(&(ptr->key),NULL);
-	/* if(TVERB) printf("CREATING THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
-	if(TVERB) printf("CREATING THREADS, ME: TBD, key: %d\n", ptr->key);
+
+	if(TVERB) printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));
 
 	/* Get the pthread ID of this main thread we are in.
 	 *	Any barf, warn, etc calls in the spawned pthreads can use this
@@ -342,13 +342,15 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
             die("Unable to create pthreads!");
         }
     }
-	/* if(TVERB) printf("JOINING THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
-	if(TVERB) printf("JOINING THREADS, ME: TBD, key: %d\n", ptr->key);
+
+    if(TVERB) printf("JOINING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));
+
 	for(i=0; i<thread->mag_nthr; i++) {
 		pthread_join(tp[i], NULL);
 	}
-	/* if(TVERB) printf("FINISHED THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
-	if(TVERB) printf("FINISHED THREADS, ME: TBD, key: %d\n", ptr->key);
+
+	if(TVERB) printf("FINISHED THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));
+
 	pthread_key_delete((ptr->key));
 
 	/* Remove pthread magic if we created in this function */

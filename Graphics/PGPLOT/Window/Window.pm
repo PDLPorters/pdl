@@ -739,8 +739,6 @@ where C<$win> is a PDL::Graphics::PGPLOT::Window object. That is all.
 
 =head2 Window control functions.
 
-=for ref Internal
-
 =head2 pgwin
 
 =for ref
@@ -974,8 +972,6 @@ or array reference which makes it possible to specify the panel to erase when
 working with several panels.
 
 =head2 Plotting functions
-
-=for ref Internal
 
 =head2 env
 
@@ -2058,9 +2054,6 @@ Note that C<$x> and C<$y> must be the same size (>1D is OK, though meaningless a
 
 =head2 Text routines
 
-=for ref Internal
-
-
 =head2 text
 
 =for ref
@@ -2186,8 +2179,6 @@ is desired. You can also use the synonyms C<Bg> and C<BackgroundColor>.
 
 =head2 Cursor routines
 
-=for ref Internal
-
 =head2 cursor
 
 =for ref
@@ -2246,9 +2237,7 @@ To select a region of the X-axis:
   ($x2, $y2, $ch) = cursor({Type => 'TwoVerticalLines', XRef => $x1});
 
 
-=head2 Internal routines
-
-=for ref Internal
+=head1 Internal routines
 
 =cut
 
@@ -2310,8 +2299,6 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 ####
 
 =head2 signal_catcher, catch_signals, release_signals
-
-=for ref Internal PDL/PGPLOT signal handlers
 
 To prevent pgplot from doing a fandango on core, we have to block interrupts
 during PGPLOT calls.  Specifically, INT needs to get caught.  These internal

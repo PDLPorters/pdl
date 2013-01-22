@@ -614,8 +614,8 @@ doc_perl_install ::
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
 %HTML%	@echo "doc_perl_install: Building PDL documentation web pages ..."
 %HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
-
 ';
+
 
   if(defined $PDL::Config{HTML_DOCS} && !$PDL::Config{HTML_DOCS}){
     $text=~ s/\%HTML\%[^\n]*\n//og; # Remove %HTML% lines
@@ -676,12 +676,9 @@ return $text
 
 ##############################
 # processPL: generate Makefile lines for top-level components that are created by just perling a .PL file.
-# This currently (28-October) includes pdl, pdldoc, and perldl.
-#
-# Nomininally MakeMaker is supposed to just handle this, but seems to create circular dependencies when
-# left to its own devices. (CED 28-Oct-2008)
 
 #EU::MM's processPL() is continually broken on Win32 ... hence:
+
 sub MY::processPL {
     ### This fix seems necessary with current versions of MM - otherwise it creates circular
     ### dependencies to "pm_to_blib" for .PL files (!) -- CED 9-July-2008
@@ -694,6 +691,8 @@ sub MY::processPL {
                          ?  $self->{PL_FILES}->{$plfile}
 	                 : [$self->{PL_FILES}->{$plfile}];
 	    my $target;
+
+
 	    if($Config{make} =~ /\bdmake/i) {
 		foreach $target (@$list) {
 		    push @m, "
@@ -707,13 +706,25 @@ $target :
 	    }
 	    else {
 		foreach $target (@$list) {
+
+	    # Single out pdl.PL for special treatment since it needs compilation
+	    # after post-processing.  This used to happen automagically; it's not clear
+	    # why it still doesn't. (CED 2012-11-12)
+		    my $compilestr;
+		    if($plfile eq "pdl.PL" && $Config{make} !~ /\bnmake/i) {
+			$compilestr = "\n\t\$(CC) -o pdl pdl.c\n";
+		    } else {
+			$compilestr = "";
+		    }
+
 		    push @m, "
 all :: $target
 	\$(NOECHO) \$(NOOP)
 
 $target ::
-	\$(PERLRUNINST) $plfile $target
+	\$(PERLRUNINST) $plfile $target$compilestr
 ";
+
 		} # close foreach
 	    }
 	}

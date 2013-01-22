@@ -6,7 +6,7 @@ WriteMakefile(
     NAME                => 'PDL::Graphics::OpenGL::Perl::OpenGL',
     VERSION_FROM        => 'OpenGL.pm',
     ABSTRACT_FROM       => 'OpenGL.pm',
-    ($ExtUtils::MakeMaker::VERSION >= 6.3002
+    (eval($ExtUtils::MakeMaker::VERSION) >= 6.3002
       ? ('LICENSE'=> 'perl')
       : ()),
     PL_FILES            => {},

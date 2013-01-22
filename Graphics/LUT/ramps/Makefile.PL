@@ -15,6 +15,7 @@ WriteMakefile(
   'VERSION_FROM' => '../../../Basic/Core/Version.pm',
   'PM' => {
       (map {($_,'$(INST_LIBDIR)/'.$_)} @tables)
-   }
+   },
+   (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
 

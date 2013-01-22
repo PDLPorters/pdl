@@ -798,9 +798,7 @@ sub imag2d {
    glFlush();
 
    # we don't twiddle if in PDL shell and glutRunning is on
-   twiddle() unless defined $PERLDL::TERM
-      and exists($PERLDL::TERM->Features->{glutRunning})
-      and $PERLDL::TERM->glutRunning;
+   twiddle() unless defined $PERLDL::TERM and ref $Term::ReadLine::toloop;
 
    return $window_id;
 }
@@ -857,7 +855,6 @@ sub close_imag2d_window {
 
    if ($found_it) {
       @imag2d_list = grep { $_->{window_id} != $win_id } @imag2d_list;
-      $imag2d_keep_twiddling = 0 unless scalar(@imag2d_list);
    } else {
       warn "close_imag2d_window: could not find open window\n";
    }
@@ -887,6 +884,7 @@ sub twiddle {
    while ($imag2d_keep_twiddling && scalar(@imag2d_list)) {
       glutMainLoopEvent();
    }
+   glutMainLoopEvent();
    print STDERR "Stopped twiddle-ing!\n";
 }
 

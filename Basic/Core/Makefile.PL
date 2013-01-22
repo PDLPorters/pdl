@@ -161,6 +161,7 @@ WriteMakefile(
 		   'mymalloc.p badsupport.p'
 		   },
  'INC'          => "$pthread_include $mallocinc",
+ (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
 
 # Extra targets to build

@@ -25,17 +25,17 @@ print FOO <<'nosubs';
 #include <sys/types.h>
 #include <sys/wait.h>
 
-main(int argc, char **argv) {
+int main(int argc, char **argv) {
   char perldl[BUFSIZ];
   int pipes[2];
   int pid,i;
   int status;
 
-  if(pipe(pipes)) {perror; exit(1);}
+  if(pipe(pipes)) {perror("pdl (perldl spawn wrapper)"); exit(1);}
   pid = fork();
   if(pid==0) {
     dup2(pipes[1],1);
-    dup2(pipes[2],2);
+    dup2(pipes[1],2);
     system("which perldl");
     exit(0);
   }

@@ -9,4 +9,5 @@ WriteMakefile(
       'PDLCommands.pm' => '$(INST_LIBDIR)/Plugin/PDLCommands.pm',
       'PrintControl.pm' => '$(INST_LIBDIR)/Plugin/PrintControl.pm',
    },
+    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );

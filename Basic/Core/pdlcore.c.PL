@@ -504,7 +504,7 @@ void pdl_unpackdims ( SV* sv, PDL_Index *dims, int ndims ) {
 
    hash = (HV*) SvRV( sv );
    array = newAV();
-   hv_store(hash, "Dims", strlen("Dims"), newRV( (SV*) array), 0 );
+   (void)hv_store(hash, "Dims", strlen("Dims"), newRV( (SV*) array), 0 );
 
    if (ndims==0 )
       return;
@@ -518,6 +518,7 @@ PDL_Index pdl_safe_indterm( PDL_Index dsz, PDL_Index at, char *file, int lineno)
   if (at >= 0 && at < dsz) return at;
   pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
           at, dsz-1, file?file:"?", lineno);
+  return at; // This can never happen - placed to avoid a compiler warning.
 }
 
 /*
@@ -679,7 +680,7 @@ PDL_Index av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 	/* Recurse to find depth inside the array reference */
 	newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
 	
-      } else if ( pdl = SvPDLV(el) ) {
+      } else if ( (pdl = SvPDLV(el)) ) {
 	/* It is a PDL - walk down its dimension list, exactly as if it
 	 * were a bunch of nested array refs.  We pull the ndims and dims
 	 * fields out to local variables so that nulls can be treated specially.
@@ -1263,7 +1264,7 @@ PDL_Index pdl_setav_$type(PDL_$type* pdata, AV* av,
 
     } else if( el && SvROK(el) ) {
       pdl *pdl;
-      if( pdl = SvPDLV(el) ) {
+      if( (pdl = SvPDLV(el)) ) {
 
 	pdl_make_physical(pdl);
 

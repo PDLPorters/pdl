@@ -1,41 +1,11 @@
-# the following two packages can be used to collect podparser
-# output into a string or simulate a portable null device
-
-package StrHandle;
-
-sub new {
-  my $type = shift;
-  my $this = bless {},$type;
-  $this->{Text} = "";
-  return $this;
-}
-
-sub print {
-  my $this = shift;
-  $this->{Text} .= "@_";
-}
-
-sub text {
-  $_[0]->{Text} .= $_[1] if $#_ > 0;
-  return $_[0]->{Text};
-}
-
-
-package NullHandle;
-
-@ISA = qw/ StrHandle/;
-
-sub print {} # do nothing
-
-
 # the filter for the PDL pod format (which is a valid general perl
 # pod format but with special interpretation of some =for directives)
 
 package PDL::PodParser;
 use PDL::Core '';
-use PDL::Pod::Parser;
+use Pod::Select;
 
-@ISA = qw(PDL::Pod::Parser);
+@ISA = qw(Pod::Select);
 
 %Title = ('Example' => 'Example',
 	  'Ref'     => 'Reference',
@@ -46,8 +16,10 @@ use PDL::Pod::Parser;
 	 );
 
 sub new {
-  my ($type) = @_;
-  my $parser = new PDL::Pod::Parser;
+  my $class = shift;
+  my $parser = $class->SUPER::new(@_);
+  bless $parser,$class; # just in case
+
   $parser->select("METHODS|OPERATORS|CONTRUCTORS|FUNCTIONS|NAME");
   $parser->{CURFUNC} = undef;
   $parser->{SYMHASH} = {};
@@ -55,12 +27,11 @@ sub new {
   $parser->{Mode} = "";
   $parser->{verbose} = 0;
   $parser->{NAME} = 'UNKNOWN';
-  bless $parser,$type;
   return $parser;
 }
 
 sub command {
-  my ($this,$cmd,$txt,$sep) = @_;
+  my ($this,$cmd,$txt,$line_num,$pod_para) = @_;
   $this->{Parmode} = 'Body';
 
   if ($cmd eq 'head1') {
@@ -68,7 +39,7 @@ sub command {
     $this->{Parmode} = 'Body';
     $this->{Parmode} = 'NAME' if $txt =~ /NAME/;
   } elsif ($this->{Mode} =~ /NAME/) {
-    last;
+    # do nothing (was 'last' but that was probably a mistake)
   } elsif ($cmd eq 'head2') {
     # A function can have multiple names (ex: zeros and zeroes),
     # so split at the commas
@@ -94,14 +65,14 @@ sub command {
     print "\n\tSignature: $sig\n" if defined $sig && $this->{verbose};
     $this->{CURFUNC} = $name;
   } elsif ($cmd eq 'for') {
-    $this->check_for_mode($txt,$sep) if $cmd eq 'for';
+    $this->check_for_mode($txt,$pod_para) if $cmd eq 'for';
   }
   local $this->{Parmode} = 'Body';
-  $this->SUPER::command($cmd,$txt,$sep);
+  $this->SUPER::command($cmd,$txt,$line_num,$pod_para);
 }
 
 sub check_for_mode {
-  my ($this,$txt,$sep) = @_;
+  my ($this,$txt,$pod_para) = @_;
   if ($txt =~ /^(sig|example|ref|opt|usage|bad|body)/i) {
     $this->{Parmode} = ucfirst lc $1;
     print "switched now to '$1' mode\n" if $this->{VERBOSE};
@@ -111,10 +82,11 @@ sub check_for_mode {
 }
 
 sub textblock {
-  my ($this,$txt) = @_;
+  my $this = shift;
+  my $txt = shift;
   $this->checkmode($txt);
   local $this->{INBLOCK} = 1;
-  $this->SUPER::textblock($txt);
+  $this->SUPER::textblock($txt,@_);
   $this->{Parmode} = 'Body'; # and reset parmode
 }
 
@@ -141,9 +113,10 @@ sub checkmode {
 }
 
 sub verbatim {
-  my ($this,$txt) = @_;
+  my $this = shift;
+  my $txt = shift;
   $this->checkmode($txt,1);
-  $this->SUPER::verbatim($txt);
+  $this->SUPER::verbatim($txt,@_);
 }
 
 # this needs improvement
@@ -233,13 +206,6 @@ format (see L<perlpod|perlpod>) but uses the C<=for> directive in a
 special way. The C<=for> directive is used to flag to the PDL Pod
 parser that information is following that will be used to generate
 online help.
-
-The PDL podparser is derived from the PDL::Pod::Parser class that had
-to be patched in a few places, partly to fix minor bugs, partly
-to enhance functionality for perusal by PDL::Doc. Since the PDL::Doc
-module is still experimental the patched Pod-Parser distribution is
-included with the current PDL-Doc distribution. Note that PDL::Doc
-will I<not> work correctly with the released Pod-Parser distribution.
 
 The PDL Pod parser recognises the following C<=for> directives:
 
@@ -518,6 +484,7 @@ sub savedb {
   open OUT, ">$this->{Outfile}" or barf "can't write to symdb $this->{Outfile}";
   binmode OUT;
   while (my ($key,$val) = each %$hash) {
+    next if 0 == scalar(%$val);
     my $txt = "$key".chr(0).join(chr(0),%$val);
     print OUT pack("S",length($txt)).$txt;
   }
@@ -677,7 +644,7 @@ sub scan {
   my $infile =  new IO::File $file;
   # XXXX convert to absolute path
   # my $outfile = '/tmp/'.basename($file).'.pod';
-  my $outfile = new NullHandle;
+  open my $outfile, '>', \(my $outfile_text);
 
   # Handle RPM etc. case where we are building away from the final
   # location. Alright it's a hack - KGB
@@ -707,11 +674,11 @@ sub scan {
   # and one can now find modules with 'apropos'
 
   $infile =  new IO::File $file;
-  $outfile = new StrHandle;
+  $outfile_text = '';
   $parser = new PDL::PodParser;
   $parser->select('NAME');
   $parser->parse_from_filehandle($infile,$outfile);
-  my @namelines = split("\n",$outfile->{Text});
+  my @namelines = split("\n",$outfile_text);
   my ($name,$does);
   for (@namelines) {
      if (/^(PDL) (-) (.*)/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
@@ -798,14 +765,14 @@ sub funcdocs_fromfile {
 
 sub extrdoc {
   my ($func,$file) = @_;
-  my $out = new StrHandle;
+  open my $out, '>', \(my $out_text);
   funcdocs_fromfile($func,$file,$out);
-  return $out->text;
+  return $out_text;
 }
 
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
-  my $parser = new PDL::Pod::Parser;
+  my $parser = Pod::Select->new;
 #  $parser->select("\\(METHODS\\|OPERATORS\\|CONSTRUCTORS\\|FUNCTIONS\\|METHODS\\)/$func(\\(.*\\)*\\s*");
   foreach my $foo(qw/FUNCTIONS OPERATORS CONSTRUCTORS METHODS/) {
       seek $in,0,0;

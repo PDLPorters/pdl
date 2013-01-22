@@ -1097,7 +1097,7 @@ Connected 8-component labeling of a binary image.
 Connected 8-component labeling of 0,1 image - i.e. find separate
 segmented objects and fill object pixels with object number.
 8-component labeling includes all neighboring pixels.
-This is just a front-end to ccNcompt.  See also L<cc4compt>.
+This is just a front-end to ccNcompt.  See also L<cc4compt|cc4compt>.
 
 =for example
 
@@ -1112,7 +1112,7 @@ Connected 4-component labeling of a binary image.
 Connected 4-component labeling of 0,1 image - i.e. find separate
 segmented objects and fill object pixels with object number.
 4-component labling does not include the diagonal neighbors.
-This is just a front-end to ccNcompt.  See also L<cc8compt>.
+This is just a front-end to ccNcompt.  See also L<cc8compt|cc8compt>.
 
 =for example
 
@@ -1140,7 +1140,7 @@ Connected component labeling of a binary image.
 
 Connected component labeling of 0,1 image - i.e. find separate
 segmented objects and fill object pixels with object number.
-See also L<cc4compt> and L<cc8compt>.
+See also L<cc4compt|cc4compt> and L<cc8compt|cc8compt>.
 
 The connectivity parameter must be 4 or 8.
 
@@ -1256,7 +1256,7 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 
 pp_add_exported('polyfill');
 pp_addpm(<<'EOPM');
-=head1 polyfill
+=head2 polyfill
 
 =for ref
 

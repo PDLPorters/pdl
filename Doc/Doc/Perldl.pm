@@ -39,11 +39,12 @@ use vars qw(@ISA @EXPORT);
 @EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
 
 use PDL::Doc;
+use Pod::Select;
 use IO::File;
 use Pod::PlainText;
 
 $PDL::onlinedoc = undef;
-$PDL::onlinedoc = new PDL::Doc (FindStdFile());
+$PDL::onlinedoc = PDL::Doc->new(FindStdFile());
 
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
@@ -266,7 +267,7 @@ sub finddoc  {
        } else {
           if(defined $m->[1]{CustomFile}) {
 
-             my $parser= new PDL::Pod::Parser;
+             my $parser= Pod::Select->new;
              print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
              $parser->parse_from_file($m->[1]{CustomFile},$out);
              print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";

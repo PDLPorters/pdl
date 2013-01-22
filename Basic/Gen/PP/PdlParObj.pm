@@ -5,26 +5,14 @@
 package PDL::PP::PdlParObj;
 
 use Carp;
-use SelfLoader;
-# use PDL::Core;
 use PDL::Types;
-
-@ISA = qw/ SelfLoader /;
 
 # check for bad value support
 #
 use PDL::Config;
-#my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-$usenan   = $PDL::Config{BADVAL_USENAN} || 0;
+my $usenan = $PDL::Config{BADVAL_USENAN} || 0;
 
-# need some mods in Types and Core for that
-# for (byte,short,ushort,long,float,double) {
-#   $Typemap{$_->name} = {  Ctype => $_->ctype,
-# 			  Cenum => $_->enum,
-# 			  Val => $_->val };
-# }
-
-%PDL::PP::PdlParObj::Typemap = ();
+our %Typemap = ();
 use PDL::Types ':All';
 
 # build a typemap for our translation purposes
@@ -37,30 +25,12 @@ for my $typ (typesrtkeys) {
 					 };
 }
 
-# my $type;
-# for (['Byte',$PDL_B],
-#       ['Short',$PDL_S],
-#       ['Ushort',$PDL_US],
-#       ['Long',$PDL_L],
-#       ['LongLong',$PDL_LL],
-#       ['Float',$PDL_F],
-#       ['Double',$PDL_D]) {
-#   $type = ($_->[0] =~ /^Long$/ ? 'int' : lc $_->[0]);
-#   $Typemap{$type} = { Ctype => "PDL_$_->[0]",
-# 		      Cenum => ($type =~ /ushort/ ? "PDL_US" :
-# 				$type =~ /longlong/ ? "PDL_LL" :
-# 				"PDL_".substr($_->[0],0,1)),
-# 		      Val => $_->[1]  };
-# }
-
+# Try to load Text::Balanced
 my $hasTB = 0;
-eval 'use Text::Balanced';
-if ($@) {
-  # this is too annoying
-  # warn "PDL::PP: can't load Text::Balanced, code parsing will be limited";
-} else {
-  $hasTB = 1;
-}
+eval q{
+	use Text::Balanced;
+	$hasTB = 1;
+};
 
 # split regex $re separated arglist
 # but ignore bracket-protected bits
@@ -104,26 +74,28 @@ sub splitprotected ($$) {
 
 1;
 
-__DATA__
+#__DATA__
 
 # need for $badflag is due to hacked get_xsdatapdecl() 
 # - this should disappear when (if?) things are done sensibly
 #
+my $typeregex = join '|', map {typefld($_,'ppforcetype')} typesrtkeys;
+our $pars_re = qr/^
+	\s*((?:$typeregex)[+]*|)\s*	# $1: first option
+	(?:
+	\[([^]]*)\]   	# $2: The initial [option] part
+	)?\s*
+	(\w+)          	# $3: The name
+	\(([^)]*)\)  		# $4: The indices
+/x;
 sub new {
 	my($type,$string,$number,$badflag) = @_;
-	my $typeregex = join '|', map {typefld($_,'ppforcetype')} typesrtkeys;
 	$badflag ||= 0;
 	my $this = bless {Number => $number, BadFlag => $badflag},$type;
-# Parse the parameter string
-	$string =~
-		/^
-		 \s*((?:$typeregex)[+]*|)\s*	# $1: first option
-		 (?:
-			\[([^]]*)\]   	# $2: The initial [option] part
-	         )?\s*
-		 (\w+)          	# $3: The name
-		 \(([^)]*)\)  		# $4: The indices
-		/x or confess "Invalid pdl def $string (regex $typeregex)\n";
+	# Parse the parameter string. Note that the regexes for this match were
+	# originally defined here, but were moved to PDL::PP for FullDoc parsing.
+	$string =~ $pars_re
+		 or confess "Invalid pdl def $string (regex $typeregex)\n";
 	my($opt1,$opt2,$name,$inds) = ($1,$2,$3,$4);
 	map {$_ = '' unless defined($_)} ($opt1,$opt2,$inds); # shut up -w
 	print "PDL: '$opt1', '$opt2', '$name', '$inds'\n"
@@ -494,3 +466,4 @@ sub get_xsdatapdecl {
     return "$str\n";
 }
 
+1;

@@ -262,7 +262,7 @@ typedef struct pdl_transvtable {
 #define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO
 #define PDL_TR_CLRMAGIC(it) it->magicno = 0x99876134
 #ifdef PDL_DEBUGGING
-#define PDL_TR_CHKMAGIC(it) if(it->magicno != PDL_TR_MAGICNO) croak("INVALID TRANS MAGIC NO %d %d\n",it,it->magicno); else 0
+#define PDL_TR_CHKMAGIC(it) if((it)->magicno != PDL_TR_MAGICNO) croak("INVALID TRANS MAGIC NO %d %d\n",(int)(it),(int)((it)->magicno)); else (void)0
 #else
 #define PDL_TR_CHKMAGIC(it)
 #endif
@@ -322,7 +322,7 @@ struct pdl_magic;
 struct pdl {
 #define PDL_MAGICNO 0x24645399
 #ifdef PDL_DEBUGGING
-#define PDL_CHKMAGIC(it) if(it->magicno != PDL_MAGICNO) croak("INVALID MAGIC NO %d %d\n",it,it->magicno); else 0
+#define PDL_CHKMAGIC(it) if((it)->magicno != PDL_MAGICNO) croak("INVALID MAGIC NO %d %d\n",(int)(it),(int)((it)->magicno)); else (void)0
 #else
 #define PDL_CHKMAGIC(it)
 #endif
@@ -416,8 +416,7 @@ struct pdl {
 #define ABORT_RECURSE_GUARD __nrec=0;
 #define END_RECURSE_GUARD __nrec--;
 
-#define PDL_ENSURE_ALLOCATED(it) ((it->state & PDL_ALLOCATED) ||  \
-					((pdl_allocdata(it)),1))
+#define PDL_ENSURE_ALLOCATED(it) ( (void)((it->state & PDL_ALLOCATED) || ((pdl_allocdata(it)),1)) )
 #define PDL_ENSURE_VAFFTRANS(it) \
   ( ((!it->vafftrans) || (it->vafftrans->ndims < it->ndims)) && \
     (pdl_vafftrans_alloc(it),1) )
