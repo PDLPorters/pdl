@@ -29,6 +29,19 @@ Highlights:
  * Added new FullDoc key to PDL::PP to make writing CPAN
    friendly .pd files much, much easier.
 
+ * Newly refactored docs engine using core perl modules
+   rather than local PDL ones.
+ 
+ * Enhanced doc support for PDL::PP and some doc cleanup
+
+ * Fixed a problem with multiple windows and imag2d and
+   imag2d_update.
+
+ * t/gd_oo_tests.t now skips tests for OpenBSD platforms
+   to avoid many failures on CPAN Testers smokers.  If
+   you can reproduce this problem (sf.net bug #3518190),
+   help to debug would be greatly appreciated!
+
 
 
 Release Notes for PDL 2.4.11_003 --------------------------

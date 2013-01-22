@@ -114,7 +114,11 @@ The following issues have been reported with this version of PDL:
   3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
   3518190    t/gd_oo_tests.t fails for AMD64
 
-               This appears to affect OpenBSD AMD64 only
+               This appears to affect OpenBSD AMD64 only.
+	       These tests are skipped if the AUTOMATED_TESTING
+	       environment variable is test.  If you can
+	       reproduce the error, help in debugging the
+	       problem would be welcome!
 
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
