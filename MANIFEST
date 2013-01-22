@@ -167,11 +167,6 @@ Doc/Doc.pm
 Doc/Doc/Config.pm.PL
 Doc/Doc/Perldl.pm
 Doc/Makefile.PL
-Doc/Pod/Makefile.PL
-Doc/Pod/Parser.pm
-Doc/Pod/README
-Doc/Pod/Select.pm
-Doc/Pod/Usage.pm
 Doc/README
 Doc/TODO
 Doc/mkhtmldoc.pl
