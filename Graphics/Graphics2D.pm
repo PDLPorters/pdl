@@ -823,6 +823,10 @@ sub imag2d_update {
    die "imag2d_update: callback could not find image window\n" unless defined $img;
 
    # update display window
+   # TODO: do we need to save and restore the current window?
+   # For now: calling imag2d_update makes that window current
+   glutSetWindow($win_id);
+
    $img .= $image->sever;
    glutPostRedisplay();
 
