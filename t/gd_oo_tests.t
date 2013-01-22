@@ -21,10 +21,10 @@ BEGIN
         {
             plan skip_all => "PDL::IO::GD requires the gd image library.";
         }  
-        # elsif( $^O =~ /(bsd|dragonfly)$/i)
-        # {
-        #     plan skip_all => "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for AMD64";
-        # }  
+        elsif( $^O =~ /openbsd/i and $ENV{AUTOMATED_TESTING})
+        {
+            plan skip_all => "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for OpenBSD AMD64";
+        }  
         else
         {
             plan tests => 28;
