@@ -21,9 +21,16 @@ BEGIN
         {
             plan skip_all => "PDL::IO::GD requires the gd image library.";
         }  
-        elsif( $^O =~ /openbsd/i and $ENV{AUTOMATED_TESTING})
+        elsif( $^O =~ /bsd$/i )
         {
-            plan skip_all => "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for OpenBSD AMD64";
+           if ( $ENV{AUTOMATED_TESTING} )
+           {
+              plan skip_all => "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for BSD AMD64";
+           }
+           else
+           {
+              diag "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for BSD AMD64";
+           }
         }  
         else
         {
