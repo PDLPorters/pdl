@@ -26,7 +26,12 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Make t/gd_oo_tests.t skip for ALL BSD OSes if the
+   AUTOMATED_TESTING environment variable is present.
+
+ * Set the default PDL::NiceSlice filter engine to
+   Filter::Simple.  This is to flush out any issues
+   before making the new implementation the standard.
 
 
 
