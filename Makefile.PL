@@ -397,6 +397,7 @@ BEGIN{
   # test for critical modules
   @hasnt = ();
   my @test = ( ['Filter::Util::Call','Filter'],
+	       ['Filter::Simple','Filter::Simple'],
 	       ['Text::Balanced','Text::Balanced'], );
   for my $mod (@test) {
     eval "use $mod->[0]";
@@ -485,6 +486,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'File::Spec'          => 0.6,
 	   'File::Temp'          => 0,
 	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
+	   'Filter::Simple'      => 0,         # for new PDL::NiceSlice
 	   'Inline'              => 0.43,
 	   'Pod::Parser'         => 0,         # version TBD for PDL::Doc
 	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
