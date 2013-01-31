@@ -2,6 +2,18 @@ Release Notes for PDL 2.4.11_007 --------------------------
 
 General Notes:
 
+ +--------------------------------------------------------+
+ | WARNING!                                               |
+ |   This release uses an experimental version of the     |
+ |   PDL::NiceSlice module based on Filter::Simple that   |
+ |   is being debugged for platform and module version    |
+ |   issues.  To use the legacy code, just set your       |
+ |   PDL_NICESLICE_ENGINE environment variable to the     |
+ |   value Filter::Util::Call instead of Filter::Simple   |
+ |                                                        |
+ +--------------------------------------------------------+
+
+
  * Another quick CPAN developers release
  
    - It is a snapshot of the current git development tree
