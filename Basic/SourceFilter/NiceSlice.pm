@@ -339,7 +339,7 @@ sub reinstator_regexp{
 # as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
-
+ local($_);
  ##############################
  # Backwards compatibility to before the two-parameter form. The only
  # call should be around line 206 of PDL::AutoLoader, but one never
