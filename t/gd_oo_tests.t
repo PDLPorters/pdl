@@ -21,7 +21,7 @@ BEGIN
         {
             plan skip_all => "PDL::IO::GD requires the gd image library.";
         }  
-        elsif( $^O =~ /bsd$/i )
+        elsif( $^O =~ /bsd$/i or $^O =~ /dragonfly/i )
         {
            if ( $ENV{AUTOMATED_TESTING} )
            {
