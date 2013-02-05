@@ -128,6 +128,12 @@ The following issues have been reported with this version of PDL:
   3234141    max() fails on nan
   3161459    online docs don't link to functions in other PDL modules
   3018731    NiceSlice affects code where it should not
+             
+	       The new PDL::NiceSlice engine based on Filter::Simple
+	       is now available in PDL git and CPAN developers
+	       releases.  It will be standard for the next stable
+	       PDL release.  Test feedback welcome.
+
   2995500    perl -d chokes on lvalue functions
 
                Fixed in perl 5.16.x or use work around.
