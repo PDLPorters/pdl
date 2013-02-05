@@ -2972,6 +2972,9 @@ $PDL::PP::deftbl =
          # Append a final cut if it doesn't exist due to heredoc shinanigans
          $fulldoc .= "\n\n=cut\n" unless $fulldoc =~ /\n=cut\n*$/;
          
+         # Make sure the =head1 FUNCTIONS section gets added
+         $::DOCUMENTED++;
+         
          return $fulldoc;
       }
    ),
