@@ -20,11 +20,6 @@ contains a set of methods which essentially do nothing
 (they may return 0 or undef or a copy of the input
 piddle [thankfully PDL::copy handles inplace ops])
 
-Up to, and including, v2.3.4 of PDL, this module
-added the badvalue and orig_badvalue routines to
-the PDL::Type package. They have now been moved to
-Basic/Core/Types.pm.PL where they belong.
-
 =cut
 
 
