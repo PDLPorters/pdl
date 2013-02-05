@@ -281,23 +281,6 @@ use PDL::Primitive;
 
 !WITH!SUBS!
 
-## Footer
-pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
-
-=head1 CHANGES
-
-The I<experimental> C<BADVAL_PER_PDL> configuration option,
-which - when set - allows per-piddle bad values, was added
-after the 2.4.2 release of PDL.
-The C<$PDL::Bad::PerPdl> variable can be
-inspected to see if this feature is available.
-
-=cut
-
-!WITH!SUBS!
-
-#'
-
 # we want the following to be in PDL, not PDL::Bad, hence
 my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
 
@@ -305,10 +288,6 @@ my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
 # we want badflag() to avoid unnecessary calls to PDL->propogate_badflag(),
 # since it has to recurse through all the children of a piddle
 #
-
-=head1 FUNCTIONS
-
-=cut
 
 pp_addxs( <<"!WITH!SUBS!");
 $xshdr
@@ -374,7 +353,7 @@ use the L<check_badflag|/check_badflag> method.
 =for bad
 
 This function works with piddles that have bad values. It
-always returns a Perl scalar, so it nevere returns bad values.
+always returns a Perl scalar, so it never returns bad values.
 
 =head2 badvalue
 
@@ -859,7 +838,7 @@ Returns the number of bad values in a piddle
 
 =for bad
 
-Accepts good and bad input piddles; out put is a Perl scalar
+Accepts good and bad input piddles; output is a Perl scalar
 and therefore is always good.
 
 =head2 ngood
@@ -874,7 +853,7 @@ Returns the number of good values in a piddle
 
 =for bad
 
-Accepts good and bad input piddles; out put is a Perl scalar
+Accepts good and bad input piddles; output is a Perl scalar
 and therefore is always good.
 
 =head2 setbadat
@@ -1420,7 +1399,16 @@ its bad value flag set to true.
 
 #########################################################
 
-pp_addpm({At=>'Bot'},<<'!WITH!SUBS!');
+pp_addpm({At=>'Bot'},<<'!WITHOUT!SUBS!');
+
+=head1 CHANGES
+
+The I<experimental> C<BADVAL_PER_PDL> configuration option,
+which - when set - allows per-piddle bad values, was added
+after the 2.4.2 release of PDL.
+The C<$PDL::Bad::PerPdl> variable can be
+inspected to see if this feature is available.
+
 
 =head1 CONFIGURATION
 
@@ -1457,7 +1445,7 @@ Doug Burke (djburke@cpan.org), 2000, 2001, 2003, 2006.
 
 The per-piddle bad value support is by Heiko Klein (2006).
 
-CPAN documentation fixes by David Mertens (2010).
+CPAN documentation fixes by David Mertens (2010, 2013).
 
 All rights reserved. There is no warranty. You are allowed to
 redistribute this software / documentation under certain conditions. For
@@ -1467,10 +1455,6 @@ included in the file.
 
 =cut
 
-!WITH!SUBS!
-
-
-
-
+!WITHOUT!SUBS!
 
 ## End
