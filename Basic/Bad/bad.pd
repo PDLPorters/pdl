@@ -1027,34 +1027,14 @@ pp_addhdr('
 ');
 }
 
+pp_def('setvaltobad' . <<'=cut',
+
 =head2 setvaltobad
 
-=cut
+=for sig
 
-pp_def(
-    'setvaltobad',
-    HandleBad => 1,
-    Pars => 'a(); [o]b();',
-    OtherPars => 'double value;',
-    Inplace => 1,
-    CopyBadStatusCode => 
-    'if ( a == b && $ISPDLSTATEGOOD(a) )
-       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
-     $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
-    ',
-    Code =>
-    '#if defined _MSC_VER && _MSC_VER < 1400
-$GENERIC(a) dummy1 = ($GENERIC(a)) $COMP(value);
-if ( $a() == dummy1 ) {
-#else
-if ( $a() == ($GENERIC(a)) $COMP(value) ) {
-#endif
-        $SETBAD(b());
-     } else {
-        $b() = $a();
-     }',
-    Doc => 
-'
+  Signature: (a(); [o]b(); double value)
+
 =for ref
 
 Set bad all those elements which equal the supplied value.
@@ -1070,12 +1050,7 @@ This is a simpler version of L<setbadif|/setbadif>, but this
 function can be done inplace.  See L<setnantobad|/setnantobad>
 if you want to convert NaN/Inf to the bad value.
 
-=cut
-
-',
-       BadDoc =>
-'
-=pod
+=for bad
 
 The output always has its bad flag set, even if it does not contain
 any bad values (use L<check_badflag|/check_badflag> to check
@@ -1084,8 +1059,27 @@ Any bad values in the input piddles are copied across to the output piddle.
 
 =cut
 
-',
-       ); # pp_def: setvaltobad
+    HandleBad => 1,
+    Inplace => 1,
+    CopyBadStatusCode => q{
+        if ( a == b && $ISPDLSTATEGOOD(a) )
+            PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+        $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
+    },
+    Code => q[
+        #if defined _MSC_VER && _MSC_VER < 1400
+            $GENERIC(a) dummy1 = ($GENERIC(a)) $COMP(value);
+            if ( $a() == dummy1 ) {
+        #else
+            if ( $a() == ($GENERIC(a)) $COMP(value) ) {
+        #endif
+            $SETBAD(b());
+        } else {
+            $b() = $a();
+        }
+    ],
+
+); # pp_def: setvaltobad
 
 if ($^O =~ /MSWin/) {
 pp_addhdr('
@@ -1100,8 +1094,7 @@ pp_addhdr('
 
 The behavior of these functions depend on whether C<PDL::Bad::UseNaN>
 is set to a true value. For PDL as currently distributed, this is
-typically not the case, so the documentation for that case is subdivided
-out here:
+typically not the case. That documentation is show first:
 
 =cut
 
@@ -1204,34 +1197,17 @@ On the other hand, if usenan is not true, then any number can be used
 to designate a bad value, and this must be handled with greater care.
 This is the usual case, and the documentation in that case is this:
 
-=head2 setnantobad
-
 =cut
 
     # usenan is not true, so we need to do something
-pp_def(
-    'setnantobad',
-    HandleBad => 1,
-    Pars => 'a(); [o]b();',
-    GenericTypes => [ 'F', 'D' ],
-    Inplace => 1,
-    CopyBadStatusCode => 
-    '/* note: not quite the normal check since set b bad within Code */
-     /* we propogate the bad flag even if a was originally bad since */
-     /* there is no easy way to pass this information around */
-     if ( a == b && $ISPDLSTATEBAD(b) )
-       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
-    ',
-    Code =>
-    'int flag = 0;
-     threadloop %{
-        if ( ! finite($a()) ) { $SETBAD(b()); flag = 1; }
-        else                  { $b() = $a(); }
-     %}
-     if ( flag ) { $PDLSTATESETBAD(b); }
-     ',
-    Doc => 
-'
+pp_def('setnantobad' . <<'=cut',
+
+=head2 setnantobad
+
+=for sig
+
+  Signature: (a(); [o]b())
+
 =for ref
 
 Sets NaN/Inf values in the input piddle bad
@@ -1243,11 +1219,41 @@ Can be done inplace.
  $b = $a->setnantobad;
  $a->inplace->setnantobad;
 
+=for bad
+
+This method can process piddles with bad values: those bad values
+are propogated into the output piddle. Any value that is not finite
+is also set to bad in the output piddle. If all values from the input
+piddle are good and finite, the output piddle will B<not> have its
+bad flag set. One more caveat: if done inplace, and if the input piddle's
+bad flag is set, it will no
+
 =cut
 
-',
-    BadDoc => 'Supports bad values.',
-    ); # pp_def: setnantobad
+    HandleBad => 1,
+    GenericTypes => [ 'F', 'D' ],
+    Inplace => 1,
+    CopyBadStatusCode => q{
+        /* note: not quite the normal check since set b bad within Code */
+        /* we propogate the bad flag even if a was originally bad since */
+        /* there is no easy way to pass this information around */
+        if ( a == b && $ISPDLSTATEBAD(b) )
+            PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+    },
+    Code => q{
+        int flag = 0;
+        threadloop %{
+            if ( ! finite($a()) ) {
+                $SETBAD(b());
+                flag = 1;
+            }
+            else {
+                $b() = $a();
+            }
+        %}
+        if ( flag ) $PDLSTATESETBAD(b);
+    },
+); # pp_def: setnantobad
 
 
 pp_def('setbadtonan' . <<'=cut',
@@ -1282,49 +1288,34 @@ operation, it clears the bad flag.
     HandleBad => 1,
     GenericTypes => [ 'F', 'D' ],
     Inplace => 1,
-    CopyBadStatusCode => 
-    'if ( a == b )
-       PDL->propogate_badflag( b, 0 ); /* propogate cleared badflag if inplace */
-     $SETPDLSTATEGOOD(b);          /* always make sure the output is "good" */
-    ',
-    Code =>
-    'if ( $ISBAD(a()) ) { $b() = $TFD(_nan_float,_nan_double); }  /* _nan_xxx set up at top of file */
-     else               { $b() = $a(); }
-     ',
-    ); # pp_def: setbadtonan
+    CopyBadStatusCode => q{
+        /* propogate cleared badflag if inplace */
+        if ( a == b ) PDL->propogate_badflag( b, 0 );
+        /* always make sure the output is "good" */
+        $SETPDLSTATEGOOD(b);
+    },
+    Code => q{
+        if ( $ISBAD(a()) ) {
+        	/* _nan_xxx set up at top of file */
+            $b() = $TFD(_nan_float,_nan_double);
+        }
+        else {
+            $b() = $a();
+        }
+    },
+); # pp_def: setbadtonan
 
 } # if: $usenan
 
+# renamed replacebad by setbadtoval
+pp_def('setbadtoval' . <<'=cut',
+
 =head2 setbadtoval
 
-=cut
+=for sig
 
-# renamed replacebad by setbadtoval
-pp_def(
-    'setbadtoval',
-    HandleBad => 1,
-    Pars => 'a(); [o]b();',
-    OtherPars => 'double newval;',
-    Inplace => 1,
-    Code => '$b() = $a();',
-    BadCode => 
-    '$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
-     $GENERIC(b) a_val;
-     threadloop %{
-        a_val = $a();
-        if ( $ISBADVAR(a_val,a) ) {
-           $b() = replace;
-        } else {
-           $b() = a_val;
-        }
-     %}',
-    CopyBadStatusCode => 
-    'if ( a == b && $ISPDLSTATEBAD(a) )
-       PDL->propogate_badflag( b, 0 );  /* propogate badflag if inplace AND its changed */
-     $SETPDLSTATEGOOD(b);          /* always make sure the output is "good" */
-    ',
-    Doc => 
-'
+  Signature: (a(); [o]b(); double newval)
+
 =for ref
 
 Replace any bad values by a (non-bad) value. 
@@ -1338,12 +1329,7 @@ L<badmask|PDL::Math/badmask>.
  print "a badflag: ", $a->badflag, "\n";
  a badflag: 0
 
-=cut
-
-',
-       BadDoc =>
-'
-=pod
+=for bad
 
 The output always has its bad flag cleared.
 If the input piddle does not have its bad flag set, then
@@ -1351,35 +1337,37 @@ values are copied with no replacement.
 
 =cut
 
-',
-       ); # pp_def: setbadtoval
+    HandleBad => 1,
+    Inplace => 1,
+    Code => '$b() = $a();',
+    BadCode => q{
+        $GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
+        $GENERIC(b) a_val;
+        threadloop %{
+            a_val = $a();
+            if ( $ISBADVAR(a_val,a) ) {
+                $b() = replace;
+            } else {
+                $b() = a_val;
+            }
+         %}
+    },
+    CopyBadStatusCode => q{
+        /* propogate badflag if inplace AND its changed */
+        if ( a == b && $ISPDLSTATEBAD(a) ) PDL->propogate_badflag( b, 0 );
+        /* always make sure the output is "good" */
+        $SETPDLSTATEGOOD(b);
+    },
+); # pp_def: setbadtoval
+
+pp_def('copybad'.<<'=cut',
 
 =head2 copybad
 
-=cut
+=for sig
 
-pp_def(
-    'copybad',
-    HandleBad => 1,
-    Pars => 'a(); mask(); [o]b();',
-    Inplace => [ 'a' ],
-    Code =>
-    '$b() = $a();',
-    BadCode =>
-    'if ( $ISBAD(mask()) ) {
-        $SETBAD(b());
-     } else {
-        $b() = $a();
-     }',
-    CopyBadStatusCode =>
-    'if ( $BADFLAGCACHE() ) {
-        if ( a == b && $ISPDLSTATEGOOD(a) ) {
-           PDL->propogate_badflag( b, 1 ); /* have inplace op AND badflag has changed */
-        }
-        $SETPDLSTATEBAD(b);
-     }',
-    Doc => 
-'
+  Signature: (a(); mask(); [o]b())
+
 =for ref
 
 Copies values from one piddle to another, setting them
@@ -1400,13 +1388,35 @@ It is equivalent to:
 
  $c = $a + $mask * 0
 
+=for bad
+
+This handles input piddles that are bad. If either C<$a>
+or C<$mask> have bad values, those values will be marked
+as bad in the output piddle and the output piddle will have
+its bad value flag set to true.
+
 =cut
 
-',
-    BadDoc =>
-'Handles bad values.',
-
-    ); # pp_def: copybad
+    HandleBad => 1,
+    Inplace => [ 'a' ],
+    Code => '$b() = $a();',
+    BadCode => q{
+        if ( $ISBAD(mask()) ) {
+            $SETBAD(b());
+        } else {
+            $b() = $a();
+        }
+    },
+    CopyBadStatusCode => q{
+        if ( $BADFLAGCACHE() ) {
+            if ( a == b && $ISPDLSTATEGOOD(a) ) {
+                /* have inplace op AND badflag has changed */
+                PDL->propogate_badflag( b, 1 );
+            }
+            $SETPDLSTATEBAD(b);
+        }
+    },
+); # pp_def: copybad
 
 #########################################################
 
