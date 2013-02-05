@@ -4,7 +4,8 @@ BEGIN {
       'Filter::Simple'     => 'PDL/NiceSlice/FilterSimple.pm',
    );  # to validate names
 
-   $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
+   ## $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
+   $PDL::NiceSlice::engine = $engine_ok{'Filter::Simple'};  # default engine type
 
    if ( exists $ENV{PDL_NICESLICE_ENGINE} ) {
       my $engine = $ENV{PDL_NICESLICE_ENGINE};
@@ -338,7 +339,7 @@ sub reinstator_regexp{
 # as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
-
+ local($_);
  ##############################
  # Backwards compatibility to before the two-parameter form. The only
  # call should be around line 206 of PDL::AutoLoader, but one never

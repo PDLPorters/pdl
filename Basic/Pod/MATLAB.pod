@@ -12,9 +12,9 @@ B<This document is not a tutorial>. For that, go to L<PDL::QuickStart|
 PDL::QuickStart>. This document B<complements> the Quick Start guide, as
 it highlights the key differences between MATLAB and PDL.
 
-=head1 PERL
+=head1 Perl
 
-The key difference between MATLAB and PDL is B<PERL>.
+The key difference between MATLAB and PDL is B<Perl>.
 
 Perl is a general purpose programming language with thousands of modules
 freely available on the web. PDL is an extension of Perl. This gives PDL

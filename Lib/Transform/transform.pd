@@ -52,7 +52,7 @@ FROM the destination dataspace (or image plane) TO the source dataspace;
 hence PDL::Transform keeps track of both the forward and inverse transform.
 
 For terseness and convenience, most of the constructors are exported
-into the current package with the name C<t_\<transform\>>, so the following
+into the current package with the name C<< t_<transform> >>, so the following
 (for example) are synonyms:
 
   $t = new PDL::Transform::Radial();  # Long way

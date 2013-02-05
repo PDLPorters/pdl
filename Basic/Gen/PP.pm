@@ -340,6 +340,30 @@ sub apply {
 	$self->report("\n");
 }
 
+
+package PDL::PP::Rule::Croak;
+
+# Croaks if all of the input variables are defined. Use this to identify
+# incompatible arguments.
+our @ISA = qw(PDL::PP::Rule);
+use Carp;
+our @CARP_NOT;
+
+
+sub new {
+    croak('Usage: PDL::PP::Ruel::Croak->new(["incompatible", "arguments"], "Croaking message")')
+		unless @_ == 3;
+    
+    my $class = shift;
+    my $self  = $class->SUPER::new([], @_);
+    return bless $self, $class;
+}
+
+sub apply {
+    my ($self, $pars) = @_;
+    croak($self->{doc}) if $self->is_valid($pars);
+}
+
 package PDL::PP::Rule::Returns;
 
 use strict;
@@ -1085,7 +1109,25 @@ sub pp_def {
 	my($name,%obj) = @_;
 
 	print "*** Entering pp_def for $name\n" if $::PP_VERBOSE;
-
+	
+	# See if the 'name' is multiline, in which case we extract the
+	# name and add the FullDoc field
+	if ($name =~ /\n/) {
+		my $fulldoc = $name;
+		# See if the very first thing is a word. That is going to be the
+		# name of the function under consideration
+		if ($fulldoc =~ s/^(\w+)//) {
+			$name = $1;
+		}
+		elsif ($fulldoc =~ /=head2 (\w+)/) {
+			$name = $1;
+		}
+		else {
+			croak('Unable to extract name');
+		}
+		$obj{FullDoc} = $fulldoc;
+	}
+	
 	$obj{Name} = $name;
 	translate(\%obj,$PDL::PP::deftbl);
 
@@ -2316,13 +2358,16 @@ sub GenDocs {
 
   $::DOCUMENTED++;
   $pars = "P(); C()" unless $pars;
+  # Strip leading whitespace and trailing semicolons and whitespace
   $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
   $otherpars =~ s/^\s*(.+[^;])[;\s]*$/$1/ if $otherpars;
   my $sig = "$pars".( $otherpars ? "; $otherpars" : "");
 
   $doc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m; # Strip extra =cut's
   if ( defined $baddoc ) {
+  	  # Strip leading newlines and any =cut markings
       $baddoc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m;
+      $baddoc =~ s/^\n+//;
       $baddoc = "=for bad\n\n$baddoc";
   }
 
@@ -2730,6 +2775,117 @@ sub XSHdr {
 	return XS::mkproto($xsname,$nxargs);
 }
 
+###########################################################
+# Name       : extract_signature_from_fulldoc
+# Usage      : $sig = extract_signature_from_fulldoc($fulldoc)
+# Purpose    : pull out the signature from the fulldoc string
+# Returns    : whatever is in parentheses in the signature, or undef
+# Parameters : $fulldoc
+# Throws     : never
+# Notes      : the signature must have the following form:
+#            : 
+#            : =for sig
+#            : <blank>
+#            :   Signature: (<signature can
+#            :                be multiline>)
+#            : <blank>
+#            : 
+#            : The two spaces before "Signature" are required, as are
+#            : the parentheses.
+sub extract_signature_from_fulldoc {
+	my $fulldoc = shift;
+	if ($fulldoc =~ /=for sig\n\n  Signature: \(([^\n]*)\n/g) {
+		# Extract the signature and remove the final parenthesis
+		my $sig = $1;
+		$sig .= $1 while $fulldoc =~ /\G\h+([^\n]*)\n/g;
+		$sig =~ s/\)\s*$//;
+		return $sig;
+	}
+	return;
+}
+
+
+# Build the valid-types regex and valid Pars argument only once. These are
+# also used in PDL::PP::PdlParObj, which is why they are globally available.
+use PDL::PP::PdlParObj;
+my $pars_re = $PDL::PP::PdlParObj::pars_re;
+
+###########################################################
+# Name       : build_pars_from_fulldoc
+# Usage      : $pars = build_pars_from_fulldoc($fulldoc)
+# Purpose    : extract the Pars from the signature from the fulldoc string,
+#            : the part of the signature that specifies the piddles
+# Returns    : a string appropriate for the Pars key
+# Parameters : $fulldoc
+# Throws     : if there is no signature 
+#            : if there is no extractable Pars section
+#            : if some PDL arguments come after the OtherPars arguments start
+# Notes      : This is meant to be used directly in a Rule. Therefore, it
+#            : is only called if the Pars key does not yet exist, so if it
+#            : is not possible to extract the Pars section, it dies.
+sub build_pars_from_fulldoc {
+	my $fulldoc = shift;
+	
+	# Get the signature or die
+	my $sig = extract_signature_from_fulldoc($fulldoc)
+		or croak('No Pars specified and none could be extracted from FullDoc');
+	
+	# Everything is semicolon-delimited
+	my @args = split /\s*;\s*/, $sig;
+	my @pars;
+	my $switched_to_other_pars = 0;
+	for my $arg (@args) {
+		croak('All PDL args must come before other pars in FullDoc signature')
+			if $switched_to_other_pars and $arg =~ $pars_re;
+		if ($arg =~ $pars_re) {
+			push @pars, $arg;
+		}
+		else {
+			$switched_to_other_pars = 1;
+		}
+	}
+	
+	# Make sure there's something there
+	croak('FullDoc signature contains no PDL arguments') if @pars == 0;
+	
+	# All done!
+	return join('; ', @pars);
+}
+
+###########################################################
+# Name       : build_otherpars_from_fulldoc
+# Usage      : $otherpars = build_otherpars_from_fulldoc($fulldoc)
+# Purpose    : extract the OtherPars from the signature from the fulldoc
+#            : string, the part of the signature that specifies non-piddle
+#            : arguments
+# Returns    : a string appropriate for the OtherPars key
+# Parameters : $fulldoc
+# Throws     : if some OtherPars arguments come before the last PDL argument
+# Notes      : This is meant to be used directly in a Rule. Therefore, it
+#            : is only called if the OtherPars key does not yet exist.
+sub build_otherpars_from_fulldoc {
+	my $fulldoc = shift;
+	
+	# Get the signature or do not set
+	my $sig = extract_signature_from_fulldoc($fulldoc)
+		or return 'DO NOT SET!!';
+	
+	# Everything is semicolon-delimited
+	my @args = split /\s*;\s*/, $sig;
+	my @otherpars;
+	for my $arg (@args) {
+		croak('All PDL args must come before other pars in FullDoc signature')
+			if @otherpars > 0 and $arg =~ $pars_re;
+		if ($arg !~ $pars_re) {
+			push @otherpars, $arg;
+		}
+	}
+	
+	# All done!
+	return 'DO NOT SET!!'if @otherpars == 0;
+	return join('; ', @otherpars);
+}
+
 # Set up the rules for translating the pp_def contents.
 #
 $PDL::PP::deftbl =
@@ -2744,9 +2900,89 @@ $PDL::PP::deftbl =
 		      "Sets BadFlag based upon HandleBad key and PDL's ability to handle bad values",
 		      sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }),
 
+   ####################
+   # FullDoc Handling #
+   ####################
+   
+   # Error processing: does FullDoc contain BadDoc, yet BadDoc specified?
+   PDL::PP::Rule::Croak->new(['FullDoc', 'BadDoc'],
+       'Cannot have both FullDoc and BadDoc defined'),
+   PDL::PP::Rule::Croak->new(['FullDoc', 'Doc'],
+       'Cannot have both FullDoc and Doc defined'),
+   # Note: no error processing on Pars; it's OK for the docs to gloss over
+   # the details.
+   
+   # Add the Pars section based on the signature of the FullDoc if the Pars
+   # section doesn't already exist
+   PDL::PP::Rule->new('Pars', 'FullDoc',
+      'Sets the Pars from the FullDoc if Pars is not explicitly specified',
+      \&build_pars_from_fulldoc
+   ),
+   PDL::PP::Rule->new('OtherPars', 'FullDoc',
+      'Sets the OtherPars from the FullDoc if OtherPars is not explicitly specified',
+      \&build_otherpars_from_fulldoc
+   ),
+   
+   ################################
+   # Other Documentation Handling #
+   ################################
+   
+   # no docs by default
+   PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
+    "\n=for ref\n\ninfo not available\n"),
+   
+   # try and automate the docs
+   # could be really clever and include the sig to see about
+   # input/output params, for instance
+   
+   PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
+              'Sets the default documentation for handling of bad values',
+      sub {
+         return undef unless $bvalflag;
+         my ( $bf, $name, $code ) = @_;
+         my $str;
+         if ( not defined($bf) ) {
+            $str = "$name does not process bad values.\n";
+         } elsif ( $bf ) {
+            $str = "$name processes bad values.\n";
+         } else {
+            $str = "$name ignores the bad-value flag of the input piddles.\n";
+         }
+         if ( not defined($code) ) {
+            $str .= "It will set the bad-value flag of all output piddles if " .
+            "the flag is set for any of the input piddles.\n";
+         } elsif (  $code eq '' ) {
+            $str .= "The output piddles will NOT have their bad-value flag set.\n";
+         } else {
+            $str .= "The state of the bad-value flag of the output piddles is unknown.\n";
+         }
+      }
+   ),
 
+   # Default: no otherpars
+   PDL::PP::Rule::Returns::EmptyString->new("OtherPars"),
 
+   # the docs
+   PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
+         my $fulldoc = shift;
+         
+         # Remove bad documentation if bad values are not supported
+         $fulldoc =~ s/=for bad\n\n.*?\n\n//s unless $bvalflag;
+         
+         # Append a final cut if it doesn't exist due to heredoc shinanigans
+         $fulldoc .= "\n\n=cut\n" unless $fulldoc =~ /\n=cut\n*$/;
+         
+         return $fulldoc;
+      }
+   ),
+   PDL::PP::Rule->new("PdlDoc", ["Name","_Pars","OtherPars","Doc","_BadDoc"], \&GenDocs),
+   
+   ##################
+   # Done with Docs #
+   ##################
 
+# some defaults
+#
    PDL::PP::Rule::Returns->new("CopyName", [],
        'Sets the CopyName key to the default: __copy', "__copy"),
 
@@ -2756,57 +2992,6 @@ $PDL::PP::deftbl =
 			      '$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;'
 				: 'PDL_COMMENT("No flow")'}),
 
-# no docs by default
-#
-   PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
-    "\n=for ref\n\ninfo not available\n"),
-
-# try and automate the docs
-# could be really clever and include the sig to see about
-# input/output params, for instance
-#
-   PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
-              'Sets the default documentation for handling of bad values',
-		      sub {
-			  return undef unless $bvalflag;
-			  my ( $bf, $name, $code ) = @_;
-			  my $str;
-			  if ( ! defined($bf) ) {
-			      $str = "$name does not process bad values.\n";
-			  } elsif ( $bf ) {
-			      $str = "$name does handle bad values.\n";
-			  } else {
-			      $str = "$name ignores the bad-value flag of the input piddles.\n";
-			  }
-			  if ( ! defined($code) ) {
-			      $str .= "It will set the bad-value flag of all output piddles if " .
-				"the flag is set for any of the input piddles.\n";
-			  } elsif (  $code eq '' ) {
-			      $str .= "The output piddles will NOT have their bad-value flag set.\n";
-			  } else {
-			      $str .= "The state of the bad-value flag of the output piddles is unknown.\n";
-			  }
-		      }),
-
-# P2Child implicitly means "no data type changes".
-# No p2child by default.
-#
-#   PDL::PP::Rule->new("HASP2Child", "_P2Child",
-#      'Sets HASP2Child to a defined boolean value, even if P2Child is not defined',
-#      sub {
-#         my ($p2child) = @_;
-#         if (defined $p2child) {
-#            return $p2child != 0;
-#         }
-#         return 0;
-#      }),
-
-# Default: no otherpars
-#
-   PDL::PP::Rule::Returns::EmptyString->new("OtherPars"),
-
-# some defaults
-#
 # Question: where is ppdefs defined?
 # Answer: Core/Types.pm
 #
@@ -2887,9 +3072,6 @@ $PDL::PP::deftbl =
 			       '$CTID-$PARENT(ndims)+$CHILD(ndims)'),
 
    PDL::PP::Rule::Returns::One->new("HaveThreading"),
-
-# the docs
-   PDL::PP::Rule->new("PdlDoc", ["Name","_Pars","OtherPars","Doc","_BadDoc"], \&GenDocs),
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.

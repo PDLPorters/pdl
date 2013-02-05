@@ -28,6 +28,7 @@ use PDL::Types;
 use PDL::Basic;  # for max/min
 use PDL::IO::Misc;
 use Carp;
+use File::Temp qw( tempfile );
 
 # return the upper limit of data values an integer PDL data type
 # can hold
@@ -70,17 +71,6 @@ sub rcarp {
   carp @_;
 }
 
-sub gettmpfile {
-    # in the future an os indep. way
-    # are there already VMS or Windows NT/95 users ?
-  my $tmpdir = '/tmp';
-  for ('TMP','TEMP','TMPDIR') {
-     $tmpdir  = $ENV{$_} if defined $ENV{$_};
-  }
-  $tmpdir =~ s|/$||;  # chop off a trailing '/'
-  barf "can't locate a temp dir" unless -d $tmpdir;
-  return "$tmpdir/.errors$$";
-}
 
 # public interface
 
@@ -138,7 +128,7 @@ sub PDL::rpnm {
         $pdl = $pdl->initialize;
     }
 
-    my $efile = gettmpfile();
+    my ($errfh, $efile) = tempfile();
     # catch STDERR
     open(SAVEERR, ">&STDERR");
     open(STDERR, ">$efile") || barf "Can't redirect stderr";
@@ -284,7 +274,7 @@ sub PDL::wpnm {
     $isrgb = 1 if $magic =~ /P[3,6]/;
 
     # catch STDERR and sigpipe
-    my $efile = gettmpfile();
+    my ($errfh, $efile) = tempfile();
     local $SIG{"PIPE"} = sub { show_err($efile);
 			       die "Bad write to pipe $? $!"; };
 
