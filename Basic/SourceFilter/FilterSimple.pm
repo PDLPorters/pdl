@@ -3,8 +3,8 @@
 use Filter::Simple;
 
 FILTER_ONLY
+   all => sub { s/\r\n/\n/g if $^V lt v5.14.0 and $^O eq 'MSWin32'; },
    code_no_comments =>
-   # all =>
       sub {
       my ($text1,$text2) = ($_,'');
       ## print STDERR "**************** Input: \n$text1\n";
