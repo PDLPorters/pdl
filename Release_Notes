@@ -38,7 +38,14 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Add another BSD OS type to skip t/gd_oo.tests.t in
+   automated testing.
+
+ * Add prefilter to PDL::NiceSlice to remove extra
+   \r in the module files due to text/bin mode issues.
+
+ * Fix bug sf.net #3603249 "AutoLoader leaks $_ into local
+   context".  Thanks to Craig for reporting and fixing.
 
 
 
