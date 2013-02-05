@@ -38,7 +38,12 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Switched PDL::Bad to use FullDoc:
+   CPAN friendly, works with modern Pod parser
+ 
+ * Tweaks to PDL::Bad docs
+ 
+ * Clarified desired contents of =for bad paragraphs
 
 
 
