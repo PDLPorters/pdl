@@ -1489,10 +1489,10 @@ set pen=0 for both that point and the point before it.
 
 =for usage
 
- Usage: $w->( $x, $y, [$pen], [$opt] );
-        $w->( $xy, [$pen], [$opt] );
-        $w->( \@xvects, \@yvects, [\@pen], [$opt] );
-        $w->( \@xyvects, [\@pen], [$opt] );
+ Usage: $w->lines( $x, $y, [$pen], [$opt] );
+        $w->lines( $xy, [$pen], [$opt] );
+        $w->lines( \@xvects, \@yvects, [\@pen], [$opt] );
+        $w->lines( \@xyvects, [\@pen], [$opt] );
 
 The following standard options influence this command:
  AXIS, BORDER, COLO(U)R, LINESTYLE, LINEWIDTH, MISSING,
