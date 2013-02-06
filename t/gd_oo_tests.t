@@ -30,6 +30,7 @@ BEGIN
            else
            {
               diag "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for BSD AMD64";
+              plan tests => 28;
            }
         }  
         else
