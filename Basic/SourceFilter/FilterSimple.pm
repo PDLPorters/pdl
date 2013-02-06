@@ -11,6 +11,7 @@ FILTER_ONLY
       $text2 = perldlpp('PDL::NiceSlice', $text1);
       ## print STDERR "**************** Output: $text2\n";
       $_ = $text2;
-   };
+   },
+   all => sub { print if $PDL::NiceSlice::debug_filter };
 
 1;

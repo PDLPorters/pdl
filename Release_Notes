@@ -45,6 +45,18 @@ Highlights:
  
  * Clarified desired contents of =for bad paragraphs
 
+ * Setting $PDL::NiceSlice::debug_filter will cause
+   the PDL::NiceSlice with the Filter::Simple engine
+   to print the filtered source to STDOUT.  E.g., put
+   BEGIN { $PDL::NiceSlice::debug_filter = 1; } at the
+   top of source.pm (say).  Running 
+   
+     perl -c source.pm > source.pmc
+
+   will print out the PDL::NiceSlice filtered code to
+   STDOUT in the source.pmc file.
+
+
 
 
 Release Notes for PDL 2.4.11_008 --------------------------
