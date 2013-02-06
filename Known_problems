@@ -102,7 +102,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.11_009 release:
+  PDL-2.4.11_010 release:
 
   3601064    Need INSTALLSITEBIN for recent Macports Perls
   3599815    pic_16bit.t failure when building pdl
@@ -129,10 +129,13 @@ The following issues have been reported with this version of PDL:
   3161459    online docs don't link to functions in other PDL modules
   3018731    NiceSlice affects code where it should not
              
-	       The new PDL::NiceSlice engine based on Filter::Simple
-	       is now available in PDL git and CPAN developers
-	       releases.  It will be standard for the next stable
-	       PDL release.  Test feedback welcome.
+	       The new PDL::NiceSlice engine based on
+	       Filter::Simple is now available in PDL git
+	       and CPAN developers releases.  It will
+	       be standard for the next stable PDL release.
+	       Test feedback welcome.  Please see the
+	       Release_Notes for how to generate the filtered
+	       output to help diagnose any problems.
 
   2995500    perl -d chokes on lvalue functions
 
