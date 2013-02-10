@@ -2828,14 +2828,14 @@ sub build_pars_from_fulldoc {
 	
 	# Get the signature or die
 	my $sig = extract_signature_from_fulldoc($fulldoc)
-		or croak('No Pars specified and none could be extracted from FullDoc');
+		or confess('No Pars specified and none could be extracted from FullDoc');
 	
 	# Everything is semicolon-delimited
 	my @args = split /\s*;\s*/, $sig;
 	my @pars;
 	my $switched_to_other_pars = 0;
 	for my $arg (@args) {
-		croak('All PDL args must come before other pars in FullDoc signature')
+		confess('All PDL args must come before other pars in FullDoc signature')
 			if $switched_to_other_pars and $arg =~ $pars_re;
 		if ($arg =~ $pars_re) {
 			push @pars, $arg;
@@ -2846,7 +2846,7 @@ sub build_pars_from_fulldoc {
 	}
 	
 	# Make sure there's something there
-	croak('FullDoc signature contains no PDL arguments') if @pars == 0;
+	confess('FullDoc signature contains no PDL arguments') if @pars == 0;
 	
 	# All done!
 	return join('; ', @pars);
@@ -2874,7 +2874,7 @@ sub build_otherpars_from_fulldoc {
 	my @args = split /\s*;\s*/, $sig;
 	my @otherpars;
 	for my $arg (@args) {
-		croak('All PDL args must come before other pars in FullDoc signature')
+		confess('All PDL args must come before other pars in FullDoc signature')
 			if @otherpars > 0 and $arg =~ $pars_re;
 		if ($arg !~ $pars_re) {
 			push @otherpars, $arg;
@@ -2971,6 +2971,9 @@ $PDL::PP::deftbl =
          
          # Append a final cut if it doesn't exist due to heredoc shinanigans
          $fulldoc .= "\n\n=cut\n" unless $fulldoc =~ /\n=cut\n*$/;
+         
+         # Make sure the =head1 FUNCTIONS section gets added
+         $::DOCUMENTED++;
          
          return $fulldoc;
       }

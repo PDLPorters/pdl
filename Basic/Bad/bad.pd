@@ -1,3 +1,7 @@
+' # Needed for CPAN indexing?
+package PDL::Bad;
+';
+
 =pod
 
 =head1 bad.pd
@@ -19,11 +23,6 @@ If we do not have bad support then the module just
 contains a set of methods which essentially do nothing
 (they may return 0 or undef or a copy of the input
 piddle [thankfully PDL::copy handles inplace ops])
-
-Up to, and including, v2.3.4 of PDL, this module
-added the badvalue and orig_badvalue routines to
-the PDL::Type package. They have now been moved to
-Basic/Core/Types.pm.PL where they belong.
 
 =cut
 
@@ -282,23 +281,6 @@ use PDL::Primitive;
 
 !WITH!SUBS!
 
-## Footer
-pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
-
-=head1 CHANGES
-
-The I<experimental> C<BADVAL_PER_PDL> configuration option,
-which - when set - allows per-piddle bad values, was added
-after the 2.4.2 release of PDL.
-The C<$PDL::Bad::PerPdl> variable can be
-inspected to see if this feature is available.
-
-=cut
-
-!WITH!SUBS!
-
-#'
-
 # we want the following to be in PDL, not PDL::Bad, hence
 my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
 
@@ -306,10 +288,6 @@ my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
 # we want badflag() to avoid unnecessary calls to PDL->propogate_badflag(),
 # since it has to recurse through all the children of a piddle
 #
-
-=head1 FUNCTIONS
-
-=cut
 
 pp_addxs( <<"!WITH!SUBS!");
 $xshdr
@@ -352,7 +330,7 @@ pp_addpm(<<'!NO!SUBS!');
 
 =for ref
 
-switch on/off/examine bad data flag
+getter/setter for the bad data flag
 
 =for example
 
@@ -362,6 +340,10 @@ switch on/off/examine bad data flag
   $a->badflag(1);      # set bad data flag
   $a->badflag(0);      # unset bad data flag
 
+When called as a setter, this modifies the piddle on which
+it is called. This always returns a Perl scalar with the
+final value of the bad flag.
+
 A return value of 1 does not guarantee the presence of
 bad data in a piddle; all it does is say that we need to
 I<check> for the presence of such beasties. To actually
@@ -370,7 +352,8 @@ use the L<check_badflag|/check_badflag> method.
 
 =for bad
 
-Does support bad values.
+This function works with piddles that have bad values. It
+always returns a Perl scalar, so it never returns bad values.
 
 =head2 badvalue
 
@@ -387,15 +370,14 @@ a PDL::Type object, or one of C<$PDL_B>, C<$PDL_S>, etc.
    print "The bad data value for ushort is: ",
       $a->badvalue(), "\n";
 
-If a new value is supplied via a piddle (e.g. C<$a-E<gt>badvalue(23)>),
-then the data in the supplied piddle is converted to use the new
-bad value as well if the data type is an integer
-or C<$PDL::Bad::UseNaN == 0>.
-
-Currently there is no way of automatically converting the bad
-values of already existing piddles. This could be supported - e.g.
-by having a per-piddle bad value or by storing a time index in the piddle
-structure - if required.
+This can act as a setter (e.g. C<< $a->badvalue(23) >>)
+if the data type is an integer or C<$PDL::Bad::UseNaN == 0>.
+Note that this B<never touches the data in the piddle>.
+That is, if C<$a> already has bad values, they will not
+be changed to use the given number and if any elements of
+C<$a> have that value, they will unceremoniously be marked
+as bad data. See L</setvaltobad>, L</setbadtoval>, and
+L</setbadif> for ways to actually modify the data in piddles
 
 If the C<$PDL::Bad::PerPdl> flag is set then it is possible to
 change the bad value on a per-piddle basis, so
@@ -409,11 +391,14 @@ will set $a to be C<[0 1 2 BAD 4 5 6 7 8 9]> and $b to be
 C<[0 1 2 3 BAD 5 6 7 8 9]>. If the flag is not set then both
 $a and $b will be set to C<[0 1 2 3 BAD 5 6 7 8 9]>. Please
 note that the code to support per-piddle bad values is
-I<experimental> in the current release.
+I<experimental> in the current release, and it requires that
+you modify the settings under which PDL is compiled.
 
 =for bad
 
-Does support bad values.
+This method does not care if you call it on an input piddle
+that has bad values. It always returns a Perl scalar
+with the current or new bad value.
 
 =head2 orig_badvalue
 
@@ -436,13 +421,15 @@ It also has an I<awful> name.
 
 =for bad
 
-Does support bad values.
+This method does not care if you call it on an input piddle
+that has bad values. It always returns a Perl scalar
+with the original bad value for the associated type.
 
 =head2 check_badflag
 
 =for ref
 
-clear the bad-value flag of a piddle if it does not
+Clear the bad-value flag of a piddle if it does not
 contain any bad values
 
 Given a piddle whose bad flag is set, check whether it
@@ -455,7 +442,9 @@ It returns the final state of the bad-value flag.
 
 =for bad
 
-Does support bad values.
+This method accepts piddles with or without bad values. It
+returns a Perl scalar with the final bad-value flag, so it
+never returns bad values itself.
 
 =cut
 
@@ -642,28 +631,21 @@ sub PDL::orig_badvalue {
 
 !NO!SUBS!
 
+pp_def('isbad' . <<'=cut',
+
 =head2 isbad
 
-=cut
+=for sig
 
-
-pp_def(
-       'isbad',
-       HandleBad => 1,
-       Pars => 'a(); int [o]b();',
-       Code => 
-       '$b() = 0;',
-       BadCode => 
-       '$b() = $ISBAD(a());',
-       CopyBadStatusCode => '',
-       Doc => '
+  Signature: (a(); int [o]b())
 
 =for ref
 
-Is a value bad?
+Returns a binary mask indicating which values of
+the input are bad values
 
 Returns a 1 if the value is bad, 0 otherwise.
-Also see L<isfinite|PDL::Math/isfinite>.
+Similar to L<isfinite|PDL::Math/isfinite>.
 
 =for example
 
@@ -674,26 +656,30 @@ Also see L<isfinite|PDL::Math/isfinite>.
  print $b, "\n";
  [0 1 0]
 
+=for bad
+
+This method works with input piddles that are bad. The ouptut piddle
+will never contain bad values, but its bad value flag will be the
+same as the input piddle's flag.
+
 =cut
 
-',
+       HandleBad => 1,
+       Code => 
+       '$b() = 0;',
+       BadCode => 
+       '$b() = $ISBAD(a());',
+       CopyBadStatusCode => '',
 
        );
 
+pp_def('isgood' . <<'=cut',
+
 =head2 isgood
 
-=cut
+=for sig
 
-pp_def(
-       'isgood',
-       HandleBad => 1,
-       Pars => 'a(); int [o]b();',
-       Code => 
-       '$b() = 1;',
-       BadCode => 
-       '$b() = $ISGOOD(a());',
-       CopyBadStatusCode => '',
-       Doc => '
+  Signature: (a(); int [o]b())
 
 =for ref
 
@@ -711,9 +697,20 @@ Also see L<isfinite|PDL::Math/isfinite>.
  print $b, "\n";
  [1 0 1]
 
+=for bad
+
+This method works with input piddles that are bad. The ouptut piddle
+will never contain bad values, but its bad value flag will be the
+same as the input piddle's flag.
+
 =cut
 
-',
+       HandleBad => 1,
+       Code => 
+       '$b() = 1;',
+       BadCode => 
+       '$b() = $ISGOOD(a());',
+       CopyBadStatusCode => '',
        );
 
 
@@ -748,7 +745,8 @@ it is possible to perform this calculation over I<any> dimension.
 =for bad
 
 nbadover processes input values that are bad. The ouput piddle will not have
-any bad values and will not have its bad flag set.
+any bad values, but the bad flag will be set if the input piddle had its bad
+flag set.
 
 =cut
 
@@ -763,23 +761,13 @@ any bad values and will not have its bad flag set.
     },
 );
 
+pp_def('ngoodover' . <<'=cut',
+
 =head2 ngoodover
 
-=cut
+=for sig
 
-pp_def(
-       'ngoodover',
-       HandleBad => 1,
-       Pars => 'a(n); int+ [o]b();',
-       Code => 
-       '$b() = ($GENERIC(b)) $SIZE(n);',
-       BadCode => 
-       '$GENERIC(b) cnt = 0;
-	loop(n) %{ 
-           if ( $ISGOOD(a()) ) { cnt++; }
-        %}
-        $b() = cnt;',
-       Doc => <<'EOD',
+  Signature: (a(n); int+ [o] b())
 
 =for ref
 
@@ -800,42 +788,24 @@ I<any> dimension.
 
  $spectrum = ngoodover $image->xchg(0,1)
 
+=for bad
+
+ngoodover processes input values that are bad. The ouput piddle will not have
+any bad values, but the bad flag will be set if the input piddle had its bad
+flag set.
+
 =cut
 
-EOD
+       HandleBad => 1,
+       Code => 
+       '$b() = ($GENERIC(b)) $SIZE(n);',
+       BadCode => 
+       '$GENERIC(b) cnt = 0;
+	loop(n) %{ 
+           if ( $ISGOOD(a()) ) { cnt++; }
+        %}
+        $b() = cnt;',
        );
-
-
-=head2 nbad
-
-=for ref
-
-Returns the number of bad values in a piddle
-
-=for usage
-
- $x = nbad($data);
-
-=for bad
-
-Does support bad values.
-
-=head2 ngood
-
-=for ref
-
-Returns the number of good values in a piddle
-
-=for usage
-
- $x = ngood($data);
-
-=for bad
-
-Does support bad values.
-
-=cut
-
 
 # Generate small ops functions to do entire array
 foreach my $op ( 
@@ -855,6 +825,36 @@ EOD
 } # for $op
 
 pp_addpm(<<'!NO!SUBS!');
+
+=head2 nbad
+
+=for ref
+
+Returns the number of bad values in a piddle
+
+=for usage
+
+ $x = nbad($data);
+
+=for bad
+
+Accepts good and bad input piddles; output is a Perl scalar
+and therefore is always good.
+
+=head2 ngood
+
+=for ref
+
+Returns the number of good values in a piddle
+
+=for usage
+
+ $x = ngood($data);
+
+=for bad
+
+Accepts good and bad input piddles; output is a Perl scalar
+and therefore is always good.
 
 =head2 setbadat
 
@@ -885,7 +885,10 @@ probably mainly useful in test scripts!
 
 =for bad
 
-Supports badvalues.
+This method can be called on piddles that have bad values.
+The remainder of the arguments should be Perl scalars indicating
+the position to set as bad. The ouptut piddle will have bad values
+and will have its badflag turned on.
 
 =cut
 
@@ -926,15 +929,53 @@ if ( 0 ) {
     '$SETPDLSTATEBAD(b);';
 }
 
+# note: have made the mask be an integer
+pp_def('setbadif' . <<'=cut',
+
 =head2 setbadif
+
+=for sig
+
+  Signature: (a(); int mask(); [o]b())
+
+=for ref
+
+Set elements bad based on the supplied mask, otherwise
+copy across the data.
+
+=for example
+
+ pdl> $a = sequence(5,5)
+ pdl> $a = $a->setbadif( $a % 2 )
+ pdl> p "a badflag: ", $a->badflag, "\n"
+ a badflag: 1
+ pdl> p "a is\n$a"
+ [
+  [  0 BAD   2 BAD   4]
+  [BAD   6 BAD   8 BAD]
+  [ 10 BAD  12 BAD  14]
+  [BAD  16 BAD  18 BAD]
+  [ 20 BAD  22 BAD  24]
+ ]
+
+Unfortunately, this routine can I<not> be run inplace, since the
+current implementation can not handle the same piddle used as
+C<a> and C<mask> (eg C<< $a->inplace->setbadif($a%2) >> fails).
+Even more unfortunate: we can't catch this errors and tell you.
+
+=for bad
+
+The output always has its bad flag set, even if it does not contain
+any bad values (use L<check_badflag|/check_badflag> to check
+whether there are any bad values in the output). 
+The input piddle can have bad values: any bad values in the input piddles
+are copied across to the output piddle.
+
+Also see L<setvaltobad|/setvaltobad> and L<setnantobad|/setnantobad>.
 
 =cut
 
-# note: have made the mask be an integer
-pp_def(
-    'setbadif',
     HandleBad => 1,
-    Pars => 'a(); int mask(); [o]b();',
     %setbadif_extra,
     Code =>
     'if ( $mask() ) {
@@ -949,42 +990,7 @@ pp_def(
      } else {
         $b() = $a();
      }',
-    Doc =>
-'
-=for ref
-
-Set elements bad based on the supplied mask, otherwise
-copy across the data.
-
-=for example
-
- $a = sequence(5,5);
- $a = $a->setbadif( $a % 2 );
- print "a badflag: ", $a->badflag, "\n";
- a badflag: 1
-
-Unfortunately, this routine can I<not> be run inplace, since the
-current implementation can not handle the same piddle used as
-C<a> and C<mask> (eg C<$a-E<gt>inplace-E<gt>setbadif($a%2)> fails).
-
-Also see L<setvaltobad|/setvaltobad> and L<setnantobad|/setnantobad>.
-
-=cut
-
-',
-       BadDoc =>
-'
-=pod
-
-The output always has its bad flag set, even if it does not contain
-any bad values (use L<check_badflag|/check_badflag> to check
-whether there are any bad values in the output). 
-Any bad values in the input piddles are copied across to the output piddle.
-
-=cut
-
-',
-       ); # pp_def: setbadif
+); # pp_def: setbadif
 
 # this is useful because $a->setbadif( $a == 23 )
 # is common and that can't be done inplace
@@ -1000,34 +1006,14 @@ pp_addhdr('
 ');
 }
 
+pp_def('setvaltobad' . <<'=cut',
+
 =head2 setvaltobad
 
-=cut
+=for sig
 
-pp_def(
-    'setvaltobad',
-    HandleBad => 1,
-    Pars => 'a(); [o]b();',
-    OtherPars => 'double value;',
-    Inplace => 1,
-    CopyBadStatusCode => 
-    'if ( a == b && $ISPDLSTATEGOOD(a) )
-       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
-     $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
-    ',
-    Code =>
-    '#if defined _MSC_VER && _MSC_VER < 1400
-$GENERIC(a) dummy1 = ($GENERIC(a)) $COMP(value);
-if ( $a() == dummy1 ) {
-#else
-if ( $a() == ($GENERIC(a)) $COMP(value) ) {
-#endif
-        $SETBAD(b());
-     } else {
-        $b() = $a();
-     }',
-    Doc => 
-'
+  Signature: (a(); [o]b(); double value)
+
 =for ref
 
 Set bad all those elements which equal the supplied value.
@@ -1043,12 +1029,7 @@ This is a simpler version of L<setbadif|/setbadif>, but this
 function can be done inplace.  See L<setnantobad|/setnantobad>
 if you want to convert NaN/Inf to the bad value.
 
-=cut
-
-',
-       BadDoc =>
-'
-=pod
+=for bad
 
 The output always has its bad flag set, even if it does not contain
 any bad values (use L<check_badflag|/check_badflag> to check
@@ -1057,8 +1038,27 @@ Any bad values in the input piddles are copied across to the output piddle.
 
 =cut
 
-',
-       ); # pp_def: setvaltobad
+    HandleBad => 1,
+    Inplace => 1,
+    CopyBadStatusCode => q{
+        if ( a == b && $ISPDLSTATEGOOD(a) )
+            PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+        $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
+    },
+    Code => q[
+        #if defined _MSC_VER && _MSC_VER < 1400
+            $GENERIC(a) dummy1 = ($GENERIC(a)) $COMP(value);
+            if ( $a() == dummy1 ) {
+        #else
+            if ( $a() == ($GENERIC(a)) $COMP(value) ) {
+        #endif
+            $SETBAD(b());
+        } else {
+            $b() = $a();
+        }
+    ],
+
+); # pp_def: setvaltobad
 
 if ($^O =~ /MSWin/) {
 pp_addhdr('
@@ -1073,8 +1073,7 @@ pp_addhdr('
 
 The behavior of these functions depend on whether C<PDL::Bad::UseNaN>
 is set to a true value. For PDL as currently distributed, this is
-typically not the case, so the documentation for that case is subdivided
-out here:
+typically not the case. That documentation is show first:
 
 =cut
 
@@ -1177,34 +1176,17 @@ On the other hand, if usenan is not true, then any number can be used
 to designate a bad value, and this must be handled with greater care.
 This is the usual case, and the documentation in that case is this:
 
-=head2 setnantobad
-
 =cut
 
     # usenan is not true, so we need to do something
-pp_def(
-    'setnantobad',
-    HandleBad => 1,
-    Pars => 'a(); [o]b();',
-    GenericTypes => [ 'F', 'D' ],
-    Inplace => 1,
-    CopyBadStatusCode => 
-    '/* note: not quite the normal check since set b bad within Code */
-     /* we propogate the bad flag even if a was originally bad since */
-     /* there is no easy way to pass this information around */
-     if ( a == b && $ISPDLSTATEBAD(b) )
-       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
-    ',
-    Code =>
-    'int flag = 0;
-     threadloop %{
-        if ( ! finite($a()) ) { $SETBAD(b()); flag = 1; }
-        else                  { $b() = $a(); }
-     %}
-     if ( flag ) { $PDLSTATESETBAD(b); }
-     ',
-    Doc => 
-'
+pp_def('setnantobad' . <<'=cut',
+
+=head2 setnantobad
+
+=for sig
+
+  Signature: (a(); [o]b())
+
 =for ref
 
 Sets NaN/Inf values in the input piddle bad
@@ -1216,11 +1198,41 @@ Can be done inplace.
  $b = $a->setnantobad;
  $a->inplace->setnantobad;
 
+=for bad
+
+This method can process piddles with bad values: those bad values
+are propogated into the output piddle. Any value that is not finite
+is also set to bad in the output piddle. If all values from the input
+piddle are good and finite, the output piddle will B<not> have its
+bad flag set. One more caveat: if done inplace, and if the input piddle's
+bad flag is set, it will no
+
 =cut
 
-',
-    BadDoc => 'Supports bad values.',
-    ); # pp_def: setnantobad
+    HandleBad => 1,
+    GenericTypes => [ 'F', 'D' ],
+    Inplace => 1,
+    CopyBadStatusCode => q{
+        /* note: not quite the normal check since set b bad within Code */
+        /* we propogate the bad flag even if a was originally bad since */
+        /* there is no easy way to pass this information around */
+        if ( a == b && $ISPDLSTATEBAD(b) )
+            PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+    },
+    Code => q{
+        int flag = 0;
+        threadloop %{
+            if ( ! finite($a()) ) {
+                $SETBAD(b());
+                flag = 1;
+            }
+            else {
+                $b() = $a();
+            }
+        %}
+        if ( flag ) $PDLSTATESETBAD(b);
+    },
+); # pp_def: setnantobad
 
 
 pp_def('setbadtonan' . <<'=cut',
@@ -1255,49 +1267,34 @@ operation, it clears the bad flag.
     HandleBad => 1,
     GenericTypes => [ 'F', 'D' ],
     Inplace => 1,
-    CopyBadStatusCode => 
-    'if ( a == b )
-       PDL->propogate_badflag( b, 0 ); /* propogate cleared badflag if inplace */
-     $SETPDLSTATEGOOD(b);          /* always make sure the output is "good" */
-    ',
-    Code =>
-    'if ( $ISBAD(a()) ) { $b() = $TFD(_nan_float,_nan_double); }  /* _nan_xxx set up at top of file */
-     else               { $b() = $a(); }
-     ',
-    ); # pp_def: setbadtonan
+    CopyBadStatusCode => q{
+        /* propogate cleared badflag if inplace */
+        if ( a == b ) PDL->propogate_badflag( b, 0 );
+        /* always make sure the output is "good" */
+        $SETPDLSTATEGOOD(b);
+    },
+    Code => q{
+        if ( $ISBAD(a()) ) {
+        	/* _nan_xxx set up at top of file */
+            $b() = $TFD(_nan_float,_nan_double);
+        }
+        else {
+            $b() = $a();
+        }
+    },
+); # pp_def: setbadtonan
 
 } # if: $usenan
 
+# renamed replacebad by setbadtoval
+pp_def('setbadtoval' . <<'=cut',
+
 =head2 setbadtoval
 
-=cut
+=for sig
 
-# renamed replacebad by setbadtoval
-pp_def(
-    'setbadtoval',
-    HandleBad => 1,
-    Pars => 'a(); [o]b();',
-    OtherPars => 'double newval;',
-    Inplace => 1,
-    Code => '$b() = $a();',
-    BadCode => 
-    '$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
-     $GENERIC(b) a_val;
-     threadloop %{
-        a_val = $a();
-        if ( $ISBADVAR(a_val,a) ) {
-           $b() = replace;
-        } else {
-           $b() = a_val;
-        }
-     %}',
-    CopyBadStatusCode => 
-    'if ( a == b && $ISPDLSTATEBAD(a) )
-       PDL->propogate_badflag( b, 0 );  /* propogate badflag if inplace AND its changed */
-     $SETPDLSTATEGOOD(b);          /* always make sure the output is "good" */
-    ',
-    Doc => 
-'
+  Signature: (a(); [o]b(); double newval)
+
 =for ref
 
 Replace any bad values by a (non-bad) value. 
@@ -1311,12 +1308,7 @@ L<badmask|PDL::Math/badmask>.
  print "a badflag: ", $a->badflag, "\n";
  a badflag: 0
 
-=cut
-
-',
-       BadDoc =>
-'
-=pod
+=for bad
 
 The output always has its bad flag cleared.
 If the input piddle does not have its bad flag set, then
@@ -1324,35 +1316,37 @@ values are copied with no replacement.
 
 =cut
 
-',
-       ); # pp_def: setbadtoval
+    HandleBad => 1,
+    Inplace => 1,
+    Code => '$b() = $a();',
+    BadCode => q{
+        $GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
+        $GENERIC(b) a_val;
+        threadloop %{
+            a_val = $a();
+            if ( $ISBADVAR(a_val,a) ) {
+                $b() = replace;
+            } else {
+                $b() = a_val;
+            }
+         %}
+    },
+    CopyBadStatusCode => q{
+        /* propogate badflag if inplace AND its changed */
+        if ( a == b && $ISPDLSTATEBAD(a) ) PDL->propogate_badflag( b, 0 );
+        /* always make sure the output is "good" */
+        $SETPDLSTATEGOOD(b);
+    },
+); # pp_def: setbadtoval
+
+pp_def('copybad'.<<'=cut',
 
 =head2 copybad
 
-=cut
+=for sig
 
-pp_def(
-    'copybad',
-    HandleBad => 1,
-    Pars => 'a(); mask(); [o]b();',
-    Inplace => [ 'a' ],
-    Code =>
-    '$b() = $a();',
-    BadCode =>
-    'if ( $ISBAD(mask()) ) {
-        $SETBAD(b());
-     } else {
-        $b() = $a();
-     }',
-    CopyBadStatusCode =>
-    'if ( $BADFLAGCACHE() ) {
-        if ( a == b && $ISPDLSTATEGOOD(a) ) {
-           PDL->propogate_badflag( b, 1 ); /* have inplace op AND badflag has changed */
-        }
-        $SETPDLSTATEBAD(b);
-     }',
-    Doc => 
-'
+  Signature: (a(); mask(); [o]b())
+
 =for ref
 
 Copies values from one piddle to another, setting them
@@ -1373,17 +1367,48 @@ It is equivalent to:
 
  $c = $a + $mask * 0
 
+=for bad
+
+This handles input piddles that are bad. If either C<$a>
+or C<$mask> have bad values, those values will be marked
+as bad in the output piddle and the output piddle will have
+its bad value flag set to true.
+
 =cut
 
-',
-    BadDoc =>
-'Handles bad values.',
-
-    ); # pp_def: copybad
+    HandleBad => 1,
+    Inplace => [ 'a' ],
+    Code => '$b() = $a();',
+    BadCode => q{
+        if ( $ISBAD(mask()) ) {
+            $SETBAD(b());
+        } else {
+            $b() = $a();
+        }
+    },
+    CopyBadStatusCode => q{
+        if ( $BADFLAGCACHE() ) {
+            if ( a == b && $ISPDLSTATEGOOD(a) ) {
+                /* have inplace op AND badflag has changed */
+                PDL->propogate_badflag( b, 1 );
+            }
+            $SETPDLSTATEBAD(b);
+        }
+    },
+); # pp_def: copybad
 
 #########################################################
 
-pp_addpm({At=>'Bot'},<<'!WITH!SUBS!');
+pp_addpm({At=>'Bot'},<<'!WITHOUT!SUBS!');
+
+=head1 CHANGES
+
+The I<experimental> C<BADVAL_PER_PDL> configuration option,
+which - when set - allows per-piddle bad values, was added
+after the 2.4.2 release of PDL.
+The C<$PDL::Bad::PerPdl> variable can be
+inspected to see if this feature is available.
+
 
 =head1 CONFIGURATION
 
@@ -1420,7 +1445,7 @@ Doug Burke (djburke@cpan.org), 2000, 2001, 2003, 2006.
 
 The per-piddle bad value support is by Heiko Klein (2006).
 
-CPAN documentation fixes by David Mertens (2010).
+CPAN documentation fixes by David Mertens (2010, 2013).
 
 All rights reserved. There is no warranty. You are allowed to
 redistribute this software / documentation under certain conditions. For
@@ -1430,10 +1455,6 @@ included in the file.
 
 =cut
 
-!WITH!SUBS!
-
-
-
-
+!WITHOUT!SUBS!
 
 ## End

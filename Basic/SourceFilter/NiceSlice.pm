@@ -4,7 +4,8 @@ BEGIN {
       'Filter::Simple'     => 'PDL/NiceSlice/FilterSimple.pm',
    );  # to validate names
 
-   $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
+   ## $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
+   $PDL::NiceSlice::engine = $engine_ok{'Filter::Simple'};  # default engine type
 
    if ( exists $ENV{PDL_NICESLICE_ENGINE} ) {
       my $engine = $ENV{PDL_NICESLICE_ENGINE};
@@ -39,7 +40,7 @@ package PDL::NiceSlice;
 # Modified 5-Nov-2007: stop processing if we encounter m/^no\s+PDL\;:\;:NiceSlice\;\s*$/.
 
 $PDL::NiceSlice::VERSION = '1.0.3';
-$PDL::NiceSlice::debug = 0;
+$PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debug : 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
 
@@ -338,7 +339,7 @@ sub reinstator_regexp{
 # as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
-
+ local($_);
  ##############################
  # Backwards compatibility to before the two-parameter form. The only
  # call should be around line 206 of PDL::AutoLoader, but one never

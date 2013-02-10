@@ -1,3 +1,285 @@
+Release Notes for PDL 2.4.11_010 --------------------------
+
+General Notes:
+
+ +--------------------------------------------------------+
+ | WARNING!                                               |
+ |   This release uses an experimental version of the     |
+ |   PDL::NiceSlice module based on Filter::Simple that   |
+ |   is being debugged for platform and module version    |
+ |   issues.  To use the legacy code, just set your       |
+ |   PDL_NICESLICE_ENGINE environment variable to the     |
+ |   value Filter::Util::Call instead of Filter::Simple   |
+ |                                                        |
+ +--------------------------------------------------------+
+
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.11_010.tar.gz
+       cpan> make CHM/PDL-2.4.11_010.tar.gz
+       cpan> test CHM/PDL-2.4.11_010.tar.gz
+       cpan> look CHM/PDL-2.4.11_010.tar.gz
+
+
+Highlights:
+
+ * Setting $PDL::NiceSlice::debug_filter will cause
+   the PDL::NiceSlice with the Filter::Simple engine
+   to print the filtered source to STDOUT.  E.g., put
+   BEGIN { $PDL::NiceSlice::debug_filter = 1; } at the
+   top of source.pm (say).  Running 
+   
+     perl -c source.pm > source.pmc
+
+   will print out the PDL::NiceSlice filtered code to
+   STDOUT in the source.pmc file.
+
+ * TBD
+
+
+
+Release Notes for PDL 2.4.11_009 --------------------------
+
+General Notes:
+
+ +--------------------------------------------------------+
+ | WARNING!                                               |
+ |   This release uses an experimental version of the     |
+ |   PDL::NiceSlice module based on Filter::Simple that   |
+ |   is being debugged for platform and module version    |
+ |   issues.  To use the legacy code, just set your       |
+ |   PDL_NICESLICE_ENGINE environment variable to the     |
+ |   value Filter::Util::Call instead of Filter::Simple   |
+ |                                                        |
+ +--------------------------------------------------------+
+
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.11_009.tar.gz
+       cpan> make CHM/PDL-2.4.11_009.tar.gz
+       cpan> test CHM/PDL-2.4.11_009.tar.gz
+       cpan> look CHM/PDL-2.4.11_009.tar.gz
+
+
+Highlights:
+
+ * Switched PDL::Bad to use FullDoc:
+   CPAN friendly, works with modern Pod parser
+ 
+ * Tweaks to PDL::Bad docs
+ 
+ * Clarified desired contents of =for bad paragraphs
+
+ * Setting $PDL::NiceSlice::debug_filter will cause
+   the PDL::NiceSlice with the Filter::Simple engine
+   to print the filtered source to STDOUT.  E.g., put
+   BEGIN { $PDL::NiceSlice::debug_filter = 1; } at the
+   top of source.pm (say).  Running 
+   
+     perl -c source.pm > source.pmc
+
+   will print out the PDL::NiceSlice filtered code to
+   STDOUT in the source.pmc file.
+
+
+
+
+Release Notes for PDL 2.4.11_008 --------------------------
+
+General Notes:
+
+ +--------------------------------------------------------+
+ | WARNING!                                               |
+ |   This release uses an experimental version of the     |
+ |   PDL::NiceSlice module based on Filter::Simple that   |
+ |   is being debugged for platform and module version    |
+ |   issues.  To use the legacy code, just set your       |
+ |   PDL_NICESLICE_ENGINE environment variable to the     |
+ |   value Filter::Util::Call instead of Filter::Simple   |
+ |                                                        |
+ +--------------------------------------------------------+
+
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.11_008.tar.gz
+       cpan> make CHM/PDL-2.4.11_008.tar.gz
+       cpan> test CHM/PDL-2.4.11_008.tar.gz
+       cpan> look CHM/PDL-2.4.11_008.tar.gz
+
+
+Highlights:
+
+ * Add another BSD OS type to skip t/gd_oo.tests.t in
+   automated testing.
+
+ * Add prefilter to PDL::NiceSlice to remove extra
+   \r in the module files due to text/bin mode issues.
+
+ * Fix bug sf.net #3603249 "AutoLoader leaks $_ into local
+   context".  Thanks to Craig for reporting and fixing.
+
+
+
+Release Notes for PDL 2.4.11_007 --------------------------
+
+General Notes:
+
+ +--------------------------------------------------------+
+ | WARNING!                                               |
+ |   This release uses an experimental version of the     |
+ |   PDL::NiceSlice module based on Filter::Simple that   |
+ |   is being debugged for platform and module version    |
+ |   issues.  To use the legacy code, just set your       |
+ |   PDL_NICESLICE_ENGINE environment variable to the     |
+ |   value Filter::Util::Call instead of Filter::Simple   |
+ |                                                        |
+ +--------------------------------------------------------+
+
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.11_007.tar.gz
+       cpan> make CHM/PDL-2.4.11_007.tar.gz
+       cpan> test CHM/PDL-2.4.11_007.tar.gz
+       cpan> look CHM/PDL-2.4.11_007.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.4.11_006 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.11_006.tar.gz
+       cpan> make CHM/PDL-2.4.11_006.tar.gz
+       cpan> test CHM/PDL-2.4.11_006.tar.gz
+       cpan> look CHM/PDL-2.4.11_006.tar.gz
+
+
+Highlights:
+
+ * Make Filter::Simple a dependency for PDL since this
+   release is testing the new FilterSimple engine for
+   PDL::NiceSlice.
+
+
+
+Release Notes for PDL 2.4.11_005 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.11_005.tar.gz
+       cpan> make CHM/PDL-2.4.11_005.tar.gz
+       cpan> test CHM/PDL-2.4.11_005.tar.gz
+       cpan> look CHM/PDL-2.4.11_005.tar.gz
+
+
+Highlights:
+
+ * Make t/gd_oo_tests.t skip for ALL BSD OSes if the
+   AUTOMATED_TESTING environment variable is present.
+
+ * Set the default PDL::NiceSlice filter engine to
+   Filter::Simple.  This is to flush out any issues
+   before making the new implementation the standard.
+
+
+
 Release Notes for PDL 2.4.11_004 --------------------------
 
 General Notes:
@@ -28,6 +310,19 @@ Highlights:
 
  * Added new FullDoc key to PDL::PP to make writing CPAN
    friendly .pd files much, much easier.
+
+ * Newly refactored docs engine using core perl modules
+   rather than local PDL ones.
+ 
+ * Enhanced doc support for PDL::PP and some doc cleanup
+
+ * Fixed a problem with multiple windows and imag2d and
+   imag2d_update.
+
+ * t/gd_oo_tests.t now skips tests for OpenBSD platforms
+   to avoid many failures on CPAN Testers smokers.  If
+   you can reproduce this problem (sf.net bug #3518190),
+   help to debug would be greatly appreciated!
 
 
 
