@@ -476,7 +476,7 @@ syntax directly into the language via a perl I<source filter> (see
 L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient syntax.
 
 NiceSlice is loaded automatically in the perldl or pdl2 shell, but (to avoid
-conflicts with other modules) must be loaded automatically in standalone
+conflicts with other modules) must be loaded explicitly in standalone
 perl/PDL scripts (see below).  If you prefer not to use a prefilter on
 your standalone scripts, you can use the L<slice|PDL::Slices/slice>
 method in those scripts,
