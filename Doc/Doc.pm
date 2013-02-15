@@ -15,6 +15,8 @@ use Pod::Select;
           'Bad'     => 'Bad value support',  
 	 );
 
+
+
 sub new {
   my $class = shift;
   my $parser = $class->SUPER::new(@_);
@@ -780,6 +782,59 @@ sub getfuncdocs {
       $parser->select("$foo/$func(\\(.*\\))*\\s*");
       $parser->parse_from_filehandle($in,$out);
   }
+}
+
+##############################
+# add_doc - cribbed from Maggie X's code
+# This is not a method, just a routine.  It adds the named
+# module to the doc tree if you have write permission.
+package PDL::Doc;
+sub add_module {
+    my($module) = shift;
+
+    use File::Copy qw{copy};
+
+    my($dir, $file, $pdldoc);
+    local($_);
+
+  DIRECTORY:
+    for(@INC){
+	$dir = $_;
+	$file = $dir."/PDL/pdldoc.db";
+	if( -f $file) {
+	    if(! -w "$dir/PDL") {
+		die "No write permission at $dir/PDL - not updating docs database.\n";
+	    }
+
+	    print "Found docs database $file\n";
+	    $pdldoc = new ("PDL::Doc",($file));
+	    last DIRECTORY;
+	}
+    }
+
+    die "Unable to find docs database - therefore not updating it.\n" unless($pdldoc);
+
+    my $mfile = $module;
+    $mfile =~ s/\:\:/\//g;
+    for(@INC){
+	my $postfix;
+	my $hit = 0;
+	for $postfix(".pm",".pod") {
+	    my $f = "$_/$mfile$postfix";
+	    print "testing $f\n";
+	    if( -e $f ){
+		$pdldoc->ensuredb();
+		$pdldoc->scan($f);
+		eval { $pdldoc->savedb(); };
+		warn $@ if $@;
+		print "PDL docs database updated - added $f.\n";
+		$hit = 1;
+	    }
+	}
+	return if($hit);
+    }
+    
+    die "Unable to find a .pm or .pod file in \@INC for module $module\n";
 }
 
 1;
