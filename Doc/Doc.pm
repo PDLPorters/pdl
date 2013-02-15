@@ -821,7 +821,6 @@ sub add_module {
 	my $hit = 0;
 	for $postfix(".pm",".pod") {
 	    my $f = "$_/$mfile$postfix";
-	    print "testing $f\n";
 	    if( -e $f ){
 		$pdldoc->ensuredb();
 		$pdldoc->scan($f);
