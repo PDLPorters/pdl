@@ -49,8 +49,15 @@ Highlights:
    will print out the PDL::NiceSlice filtered code to
    STDOUT in the source.pmc file.
 
- * TBD
+ * Support for reading IDL save files added (thanks
+   to Joe Hourcle)!
 
+ * New PDL::Doc::add_module() routine to add a module's
+   POD (with PDL::Doc conventions) to the PDL docs
+   on-line database.
+
+ * Work around for PDL::GIS::Proj build failures with
+   proj-4.8.0.
 
 
 Release Notes for PDL 2.4.11_009 --------------------------

@@ -115,6 +115,19 @@ BEGIN
       . "\tPlease add the correct library path to Makefile.PL or install $lib_name.\n";
    }
 
+   # Check for PROJ4 library version
+   {
+      open PJAPI, "$include_path/proj_api.h" or warn "Couldn't open '$include_path/proj_api.h': $!"; 
+      while (<PJAPI>) {
+         $PJ_VERSION = $1 if m/^\# define \s+ PJ_VERSION \s+ (\d+)/x ;
+         if (defined($PJ_VERSION)) {
+            warn " Got PJ_VERSION=$PJ_VERSION\n";
+            last;
+         }
+      }
+      close PJAPI;
+   }
+
    #
    # Make sure everything we wanted is found:
    #
@@ -125,7 +138,7 @@ BEGIN
 
    skip:
 
-   if ($msg && $forcebuild==0)
+   if ($msg && $forcebuild==0 or !defined($PJ_VERSION))
    {
       warn " Testing support libraries for $package_name:\n$msg\n";
       $msg =~ s/\n//g;
@@ -144,8 +157,6 @@ BEGIN
 
       if (trylink($infomsg,$include,$progbody,$libs,$cflags) or $forcebuild) {
          # now see if pj_init works
-         ## print STDERR "header=>$header, LIBS=>$libs, INC=>$cflags, function=>'projPJ mypj = pj_init_plus(\"+proj=eqc +lon_0=0\"); if (! mypj) return 1; else return 0;'\n";
-
          if (
             check_lib(
                function=>'projPJ mypj = pj_init_plus("+proj=eqc +lon_0=0"); if (! mypj) return 1; else return 0;',
@@ -153,7 +164,7 @@ BEGIN
                incpath=>$include_path,
                lib=>'proj',
                libpath=>$gis_proj_lib_path,
-            ) or $forcebuild) {
+            ) or $forcebuild ) {
             print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
             $PDL::Config{$config_flag}=1;
             $donot = 0;
@@ -161,13 +172,21 @@ BEGIN
          else {
             warn " PROJ4 library found but cannot initialize projection, won't build\n";
             $PDL::Config{$config_flag}=0;
-            $donot = 1;
+            $msg =~ s/\n//g;  # TODO: update $msg for tests
+            unless ($donot) {
+               write_dummy_make( $msg );
+               $donot = 1;
+            }
          }
       }
       else {
          warn " Include+Library configuration for PROJ4 does not support the projUV type\n";
          $PDL::Config{$config_flag}=0;
-         $donot = 1;
+         $msg =~ s/\n//g;  # TODO: update $msg for tests
+         unless ($donot) {
+            write_dummy_make( $msg );
+            $donot = 1;
+         }
       }
    }
 
@@ -175,13 +194,14 @@ BEGIN
 
 return if $donot;  # yes, this must be return (exit will kill Makefile.PL process)
 
+$DB::single = 1;
 $ppfile = "Proj.pd";
 $package = [$ppfile, Proj, $package_name];
 %hash = pdlpp_stdargs($package);
 $hash{VERSION_FROM} = $ppfile;
 #$hash{TYPEMAPS} = [&PDL_TYPEMAP()];
 $hash{LIBS} = ["-L$gis_proj_lib_path -lproj -lm"];
-$hash{INC} = PDL_INCLUDE() . " -I$include_path";
+$hash{INC} = PDL_INCLUDE() . " -I$include_path" . ( ($PJ_VERSION==480) ? " -Iinclude/" : '' );
 WriteMakefile(%hash);
 
 sub MY::postamble { pdlpp_postamble_int( $package ); }

@@ -1,0 +1,4 @@
+IDL has updated their status to allow reading of
+IDL SAV data files from other languages.  Many
+thanks to Joe Hourcle for a PDL implementation
+based on the 3rd party spec by Craig Markwardt.
