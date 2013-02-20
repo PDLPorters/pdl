@@ -120,7 +120,8 @@ sub caller_info {
                 = "** Incomplete caller override detected$where; \@DB::args were not set **";
         }
         else {
-            @args = map { Carp::format_arg($_) } @DB::args;
+            ## @args = map { Carp::format_arg($_) } @DB::args;
+            for my $db_arg (@DB::args) { push @args, Carp::format_arg($db_arg) };
         }
         if ( $MaxArgNums and @args > $MaxArgNums )
         {    # More than we want to show?
