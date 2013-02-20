@@ -1,6 +1,10 @@
 The following issues have been reported with this version of PDL:
 
 
+- Bugs in Netpbm versions earlier than 10.58.00 result in
+  invalid 16bit PNG image IO and failing tests.
+
+
 - GLUT readline support in perldl with the -glut option not
   yet implemented for win32.  Work in progress.
 
@@ -104,21 +108,26 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.11_011 release:
 
+  3602817    PDL::Index does not render on websites
   3601064    Need INSTALLSITEBIN for recent Macports Perls
   3599815    pic_16bit.t failure when building pdl
+
+               This is due to a bug in older NetPBM library
+	       versions.  Update to 10.58.00 or later to fix.
+
   3599516    plplot.t failure when building 2.4.11
   3570236    clip() edge case not handled right
   3570235    Wrong results in corner empty-set cases
   3543056    propagate badflag with .=
   3539685    pdldoc can't handle SPP mount location change
-  3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
   3518190    t/gd_oo_tests.t fails for AMD64
 
                This appears to affect OpenBSD AMD64 only.
 	       These tests are skipped if the AUTOMATED_TESTING
 	       environment variable is test.  If you can
 	       reproduce the error, help in debugging the
-	       problem would be welcome!
+	       problem would be welcome!  May also affect
+	       some Mac OS X installs.
 
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
 
