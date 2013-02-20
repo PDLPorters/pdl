@@ -102,7 +102,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.11_010 release:
+  PDL-2.4.11_011 release:
 
   3601064    Need INSTALLSITEBIN for recent Macports Perls
   3599815    pic_16bit.t failure when building pdl
@@ -121,6 +121,10 @@ The following issues have been reported with this version of PDL:
 	       problem would be welcome!
 
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
+
+               work around is in PDL git.  Testing in
+               PDL-2.4.11_010 developers release.
+
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
