@@ -7,6 +7,7 @@ use strict;
 
 use Test::More;
 use File::Temp qw(tempfile);
+use File::Spec;
 
 my ($data,$head,$hdr);
 
@@ -572,8 +573,9 @@ SKIP: {
    $ok &&= $#a==6;
    @a = readflex("${data}.Z");
    $ok &&= $#a==6;
-   0 == system "gunzip -q ${data}.Z" or diag "system gunzip -q ${data}.Z failed: $?";
-   0 == system "gzip -q $data" or diag "system gzip -q $data failed: $?";
+   my $NULL = File::Spec->devnull();
+   0 == system "gunzip -q ${data}.Z >$NULL 2>&1" or diag "system gunzip -q ${data}.Z failed: $?";
+   0 == system "gzip -q $data >$NULL 2>&1" or diag "system gzip -q $data failed: $?";
    @a = readflex($data);
    $ok &&= $#a==6;
    @a = readflex("${data}.gz");
