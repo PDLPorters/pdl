@@ -106,7 +106,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.004011_011 release:
+  PDL-2.004_012 release:
 
   3602817    PDL::Index does not render on websites
   3601064    Need INSTALLSITEBIN for recent Macports Perls

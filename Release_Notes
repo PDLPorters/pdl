@@ -1,3 +1,50 @@
+Release Notes for PDL 2.004_012 --------------------------
+
+General Notes:
+
+ +--------------------------------------------------------+
+ | WARNING!                                               |
+ |   This release uses an experimental version of the     |
+ |   PDL::NiceSlice module based on Filter::Simple that   |
+ |   is being debugged for platform and module version    |
+ |   issues.  To use the legacy code, just set your       |
+ |   PDL_NICESLICE_ENGINE environment variable to the     |
+ |   value Filter::Util::Call instead of Filter::Simple   |
+ |                                                        |
+ +--------------------------------------------------------+
+
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.004_012.tar.gz
+       cpan> make CHM/PDL-2.004_012.tar.gz
+       cpan> test CHM/PDL-2.004_012.tar.gz
+       cpan> look CHM/PDL-2.004_012.tar.gz
+
+
+Highlights:
+
+ * Switch increment for CPAN developers release VERSIONs
+   to the new standard.
+ 
+ * TBD
+
+
+
 Release Notes for PDL 2.004011_011 --------------------------
 
 General Notes:
