@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 our $VERSION = '1.20';
+$VERSION = eval $VERSION;
 
 our $MaxEvalLen = 0;
 our $Verbose    = 0;

@@ -59,6 +59,7 @@ Version 0.01_10
 =cut
 
 our $VERSION = '0.01_10';
+$VERSION = eval $VERSION;
 
 
 =head1 SYNOPSIS

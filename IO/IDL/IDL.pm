@@ -95,7 +95,8 @@ IDL objects contain compiled code.
     @EXPORT = @EXPORT_OK;
     @EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 
-    $VERSION = 0.5;
+    our $VERSION = "0.5";
+    $VERSION = eval $VERSION;
     
     use PDL;
     use PDL::Exporter;

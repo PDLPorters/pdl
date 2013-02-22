@@ -312,7 +312,9 @@ the copyright notice should be included in the file.
 
 package PDL::IO::FastRaw;
 
-use version; our $VERSION = qv('0.0.3');
+## use version; our $VERSION = qv('0.0.3');
+our $VERSION = '0.000003';
+$VERSION = eval $VERSION;
 
 BEGIN {
    our $have_file_map = 0;
