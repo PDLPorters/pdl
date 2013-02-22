@@ -1,4 +1,4 @@
-Release Notes for PDL 2.4.11_011 --------------------------
+Release Notes for PDL 2.004011_011 --------------------------
 
 General Notes:
 
@@ -30,15 +30,19 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  CHM/PDL-2.4.11_011.tar.gz
-       cpan> make CHM/PDL-2.4.11_011.tar.gz
-       cpan> test CHM/PDL-2.4.11_011.tar.gz
-       cpan> look CHM/PDL-2.4.11_011.tar.gz
+       cpan> get  CHM/PDL-2.004011_011.tar.gz
+       cpan> make CHM/PDL-2.004011_011.tar.gz
+       cpan> test CHM/PDL-2.004011_011.tar.gz
+       cpan> look CHM/PDL-2.004011_011.tar.gz
 
 
 Highlights:
 
- * TBD
+ * Switch PDL distribution version numbers to single
+   decimal point string representation as discussed in
+   http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
+ 
+ * Fix compatibility issue with builds for perl 5.8.x
 
 
 
