@@ -1,4 +1,56 @@
-IDL has updated their status to allow reading of
-IDL SAV data files from other languages.  Many
-thanks to Joe Hourcle for a PDL implementation
-based on the 3rd party spec by Craig Markwardt.
+IDL has updated their status to allow reading of IDL SAV data
+files from other languages.  This implementation is based on
+a 3rd party spec by Craig Markwardt based on the IDL 4.x and 5.x
+save files.  It cannot read save files created by IDL 8.x.
+
++------------------------------------------------------------------+
+
+From Joe Hourcle, who worked to get permission to distribute
+this code:
+
+
+In January of 2011, our group had a meeting with our NASA account
+rep, Amanda O'Connor. I brought up that they had announced at
+the IDL User Meeting at either the 2009 or 2010 Fall AGU Meeting
+that there was now a python library to read IDL save files, and I
+asked what was the process to be allowed to read them from Perl.
+
+This was the response that I received. ...
+
+-Joe
+
+
+Begin forwarded message:
+
+> From: "Thomas Harris" <tharris@ittvis.com>
+> Date: February 3, 2011 12:29:18 PM EST
+> To: <oneiros@grace.nascom.nasa.gov>, ...
+> Cc: "Amanda O'Connor" <amandao@ittvis.com>
+> Subject: FW: ITT-VIS meeting Follow-up
+>
+> Hi all:
+> My name is Thomas Harris and I'm working with Amanda this year on NASA.
+> Amanda and I checked in to your questions regarding IDL SAV files with
+> our Product Management.  Here is their response:
+>
+> "...We are perfectly fine with people wanting to read IDL save files
+> with Data in them, in whatever language they want - IDL, Matlab, Perl,
+> Python.
+>
+> Finally, we are going to remove the Copyright restriction from data Save
+> files (probably in IDL 8.1), but keep it in for code Save files. That
+> way there should be no confusion."
+>
+> Let me know if you have any additional questions.
+> Best regards,
+>
+> Thomas Harris
+> Technical Account Manager - Federal Sales
+> ITT Visual Information Solutions
+>
+> tharris@ittvis.com
+> direct: 303.402.4666
+> tel: 303.786.9900
+> mobile: 720.256.1098
+> fax: 303.786.9909
+> www.ittvis.com
