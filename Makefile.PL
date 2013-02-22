@@ -256,6 +256,7 @@ package PDL::Version;
 
 
 \$VERSION='$PDL::VERSION';
+\$VERSION = eval \$VERSION;
 
 1;
 

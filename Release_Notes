@@ -30,10 +30,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  CHM/PDL-2.004011011.tar.gz
-       cpan> make CHM/PDL-2.004011011.tar.gz
-       cpan> test CHM/PDL-2.004011011.tar.gz
-       cpan> look CHM/PDL-2.004011011.tar.gz
+       cpan> get  CHM/PDL-2.004011_011.tar.gz
+       cpan> make CHM/PDL-2.004011_011.tar.gz
+       cpan> test CHM/PDL-2.004011_011.tar.gz
+       cpan> look CHM/PDL-2.004011_011.tar.gz
 
 
 Highlights:
