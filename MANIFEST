@@ -346,6 +346,8 @@ IO/HDF/VS/Makefile.PL
 IO/HDF/VS/VS.pd
 IO/HDF/buildfunc.pm
 IO/HDF/typemap
+IO/IDL/IDL.pm
+IO/IDL/Makefile.PL
 IO/IDL/README
 IO/IO.pod
 IO/Makefile.PL
@@ -387,6 +389,7 @@ Lib/GIS/Proj/Makefile.PL
 Lib/GIS/Proj/Proj.pd
 Lib/GIS/Proj/README
 Lib/GIS/Proj/TODO
+Lib/GIS/Proj/include/projects.h
 Lib/GSL/DIFF/FUNC.c
 Lib/GSL/DIFF/Makefile.PL
 Lib/GSL/DIFF/gsl_diff.pd
@@ -666,6 +669,8 @@ debian/perldl.conf
 debian/rules
 debian/source/format
 debian/write_config_debian.pl
+inc/Carp.pm
+inc/Carp/Heavy.pm
 inc/Devel/CheckLib.pm
 m51.fits
 macosx/README
@@ -779,8 +784,8 @@ t/pthreadBarf.t
 t/pthread_auto.t
 t/reduce.t
 t/refs.t
-t/rim.t
 t/requiredmods.t
+t/rim.t
 t/round.t
 t/scope.t
 t/segfault.t

@@ -45,7 +45,8 @@ require Exporter;
 
 # difference to 0.91 is that added CENTRE/CENTER as default
 # synonymns (patch by Diab Jerius [ #469110 ])
-$VERSION = '0.92';
+our $VERSION = '0.92';
+$VERSION = eval $VERSION;
 
 @ISA = qw(Exporter);
 

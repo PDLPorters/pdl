@@ -15,6 +15,8 @@ use Pod::Select;
           'Bad'     => 'Bad value support',  
 	 );
 
+
+
 sub new {
   my $class = shift;
   my $parser = $class->SUPER::new(@_);
@@ -158,6 +160,22 @@ PDL::Doc - support for PDL online documentation
 
 An implementation of online docs for PDL.
 
+=head1 Using PDL documentation
+
+PDL::Doc's main use is in the "help" (synonym "?") and "apropos"
+(synonym "??") commands in the perldl shell.  PDL:Doc provides the
+infrastrucure to index and access PDL's documentation throguh these
+commands.  There is also an API for direct access to the documentation 
+database (see below).
+
+The PDL doc system is built on Perl's pod (Plain Old Documentation),
+included inline with each module. The PDL core modules are
+automatically indexed when PDL is built and installed, and there is
+provision for indexing external modules as well.
+
+To include your module's pod into the Perl::Doc index, you should
+follow the documentation conventions below.  
+
 =head1 PDL documentation conventions
 
 For a package like PDL that has I<a lot> of functions it
@@ -187,18 +205,6 @@ use FUNCTIONS and OPERATORS as appropriate.
 Individual functions or methods in these section are introduced by
 
   =head2 funcname
-
-=cut
-
-# XXX - I don't think this is going to work for now -
-# it garbles Pod::Parser. I am changing all occurences
-# to use =for sig for now - KGB
-
-#or
-#  =head2 funcname(signature)
-
-
-=pod
 
 where signature is the argumentlist for a PP defined function as
 explained in L<PDL::PP>. Generally, PDL documentation is in valid POD
@@ -780,6 +786,73 @@ sub getfuncdocs {
       $parser->select("$foo/$func(\\(.*\\))*\\s*");
       $parser->parse_from_filehandle($in,$out);
   }
+}
+
+
+=head2 add_module
+
+=for usage
+
+ use PDL::Doc; PDL::Doc::add_module("my::module");
+
+=for ref
+
+The C<add_module> function allows you to add POD from a particular Perl
+module that you've installed somewhere in @INC.  It searches for the
+active PDL document database and the module's .pod and .pm files, and
+scans and indexes the module into the database.
+
+C<add_module> is meant to be added to your module's Makefile as part of the
+installation script.
+
+=cut
+
+package PDL::Doc;
+sub add_module {
+    my($module) = shift;
+
+    use File::Copy qw{copy};
+
+    my($dir, $file, $pdldoc);
+    local($_);
+
+  DIRECTORY:
+    for(@INC){
+	$dir = $_;
+	$file = $dir."/PDL/pdldoc.db";
+	if( -f $file) {
+	    if(! -w "$dir/PDL") {
+		die "No write permission at $dir/PDL - not updating docs database.\n";
+	    }
+
+	    print "Found docs database $file\n";
+	    $pdldoc = new ("PDL::Doc",($file));
+	    last DIRECTORY;
+	}
+    }
+
+    die "Unable to find docs database - therefore not updating it.\n" unless($pdldoc);
+
+    my $mfile = $module;
+    $mfile =~ s/\:\:/\//g;
+    for(@INC){
+	my $postfix;
+	my $hit = 0;
+	for $postfix(".pm",".pod") {
+	    my $f = "$_/$mfile$postfix";
+	    if( -e $f ){
+		$pdldoc->ensuredb();
+		$pdldoc->scan($f);
+		eval { $pdldoc->savedb(); };
+		warn $@ if $@;
+		print "PDL docs database updated - added $f.\n";
+		$hit = 1;
+	    }
+	}
+	return if($hit);
+    }
+    
+    die "Unable to find a .pm or .pod file in \@INC for module $module\n";
 }
 
 1;

@@ -777,6 +777,9 @@ package PDL::PP;
 
 use strict;
 
+our $VERSION = "2.2";
+$VERSION = eval $VERSION;
+
 use PDL::Types ':All';
 use Config;
 use FileHandle;
@@ -794,7 +797,6 @@ our @ISA = qw(Exporter);
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
 
-$PDL::PP::VERSION = 2.2;
 $PDL::PP::done = 0;  # pp_done has not been called yet
 
 END {

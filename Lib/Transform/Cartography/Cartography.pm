@@ -244,7 +244,8 @@ package PDL::Transform::Cartography;
 use PDL::Core ':Internal'; # Load 'topdl' (internal routine)
 
 @ISA = ( 'Exporter','PDL::Transform' );
-$VERSION = "0.6";
+our $VERSION = "0.6";
+$VERSION = eval $VERSION;
 
 BEGIN {
   use Exporter ();

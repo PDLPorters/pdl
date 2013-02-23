@@ -255,7 +255,8 @@ package PDL::Version;
 #  a single, consistent place to get the current PDL version.
 
 
-\$VERSION='$PDL::VERSION';
+our \$VERSION='$PDL::VERSION';
+\$VERSION = eval \$VERSION;
 
 1;
 

@@ -19,7 +19,8 @@ E seem to be fundamental.
 =cut
 
 package PDL::Constants;
-our $VERSION = 0.02;
+our $VERSION = "0.02";
+$VERSION = eval $VERSION;
 
 require Exporter;
 @ISA = qw(Exporter);
