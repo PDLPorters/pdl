@@ -24,6 +24,10 @@ no warnings;
 
 package PDL::NiceSlice;
 
+our $VERSION = '1.000_003';
+$VERSION = eval $VERSION;
+
+$PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debug : 0;
 # replace all occurences of the form
 #
 #   $pdl(args);
@@ -39,8 +43,6 @@ package PDL::NiceSlice;
 #
 # Modified 5-Nov-2007: stop processing if we encounter m/^no\s+PDL\;:\;:NiceSlice\;\s*$/.
 
-$PDL::NiceSlice::VERSION = '1.0.3';
-$PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debug : 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
 
