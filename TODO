@@ -44,7 +44,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 +-------------------------------------------------------+
 
 
-   Refactor these PDL tests to use Test::More:
+   Refactor to use Test::More
    * aaa_load.t
    * argtest.t
    * bool.t
@@ -66,8 +66,31 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * linfit.t
    * magic.t
    * matmult.t
+   * ones.t
+   * ops.t
+   * pdlchar.t
+   * physical.t
+   * picnorgb.t
+   * picrgb.t
+   * pnm.t
+   * poly.t
+   * polyroots.t
+   * primitive2.t
+   * pthread.t
+   * pthread_auto.t
+   * reduce.t
+   * refs.t
+   * scope.t
+   * segfault.t
+   * subclass.t
+   * subclass2.t
+   * subclass3.t
+   * subclass4.t
+   * thread.t
+   * thread_def.t
+   * vaffine.t
 
-   Convert these PDL tests from Test to Test::More:
+   Convert from Test to Test::More
    * basic.t
    * bess.t
    * callext.t
@@ -87,7 +110,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * misc.t
    * niceslice.t
    * nsdatahandle.t
-   * pptest.t
    * requiredmods.t
    * round.t
    * simplex.t
@@ -214,7 +236,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Review current documentation (underway)
-   * Verify correctness and consistency with PDL-2.4.10
+   * Verify correctness and consistency with PDL-2.006
    * Update documentation where needed.
    * Add web searchable versions of the docs.
    * Maybe a wiki format could be used to improve docs 
@@ -265,6 +287,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
    Document how to set up a local sandbox for PDL build
    * INSTALL_BASE for EU::MM > 6.31 and --install_base for M:B 
+   * Need to cover adding bin to paths and any library issues
    * Build with CPAN shell 
    * Check out brewperl
 
@@ -281,12 +304,9 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Update PDL Book (in progress)
-   * Needs updating to match PDL-2.4.10 from PDL-2.4.3
+   * Needs updating to match PDL-2.006 from PDL-2.4.10
    * make a web version available on-line if possible
    
-     Matt Kenworthy has been working on web-izing
-     the previous manuscript based on Tex/LaTeX.
-
 
    Better document the PDL help system
    * Requirements and usage
@@ -327,6 +347,10 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 +-------------------------------------------------------+
    
    Switch from ExtUtils::MakeMaker to Module::Build
+   * May be better to go with Module::Install
+     * More flexible
+     * More familiar
+     * Builds faster
    * Removes portability problems from shell and make
    * Easier to extend
 
