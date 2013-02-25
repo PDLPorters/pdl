@@ -2,6 +2,7 @@ BEGIN {
    my %engine_ok = (
       'Filter::Util::Call' => 'PDL/NiceSlice/FilterUtilCall.pm',
       'Filter::Simple'     => 'PDL/NiceSlice/FilterSimple.pm',
+      'Module::Compile'     => 'PDL/NiceSlice/ModuleCompile.pm',
    );  # to validate names
 
    ## $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
