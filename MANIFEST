@@ -124,6 +124,7 @@ Basic/SourceFilter/Changes
 Basic/SourceFilter/FilterSimple.pm
 Basic/SourceFilter/FilterUtilCall.pm
 Basic/SourceFilter/Makefile.PL
+Basic/SourceFilter/ModuleCompile.pm
 Basic/SourceFilter/NiceSlice.pm
 Basic/SourceFilter/example
 Basic/SourceFilter/local.perldlrc
@@ -651,7 +652,6 @@ debian/dh_pdl
 debian/f77conf.pl
 debian/fix_man_encoding.sed
 debian/fix_man_name.sed
-debian/patches/00list
 debian/patches/series
 debian/pdl.dirs
 debian/pdl.doc-base
