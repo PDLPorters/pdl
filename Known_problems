@@ -108,6 +108,8 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.004_012 release:
 
+  3605814    PDL::Demos system needs overhaul
+  3605476    Several core modules do not have man pages
   3602817    PDL::Index does not render on websites
   3601064    Need INSTALLSITEBIN for recent Macports Perls
   3599815    pic_16bit.t failure when building pdl
@@ -131,8 +133,9 @@ The following issues have been reported with this version of PDL:
 
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
 
-               work around is in PDL git.  Testing in
-               PDL-2.4.11_010 developers release.
+               A partial work around is in place so this
+	       bug is technically resolved.  Leaving open
+	       until a less fragile solution is completed.
 
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3316394    'help funname' fails to show multiple function names
@@ -141,15 +144,6 @@ The following issues have been reported with this version of PDL:
   3234141    max() fails on nan
   3161459    online docs don't link to functions in other PDL modules
   3018731    NiceSlice affects code where it should not
-             
-	       The new PDL::NiceSlice engine based on
-	       Filter::Simple is now available in PDL git
-	       and CPAN developers releases.  It will
-	       be standard for the next stable PDL release.
-	       Test feedback welcome.  Please see the
-	       Release_Notes for how to generate the filtered
-	       output to help diagnose any problems.
-
   2995500    perl -d chokes on lvalue functions
 
                Fixed in perl 5.16.x or use work around.

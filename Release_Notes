@@ -2,18 +2,6 @@ Release Notes for PDL 2.004_012 --------------------------
 
 General Notes:
 
- +--------------------------------------------------------+
- | WARNING!                                               |
- |   This release uses an experimental version of the     |
- |   PDL::NiceSlice module based on Filter::Simple that   |
- |   is being debugged for platform and module version    |
- |   issues.  To use the legacy code, just set your       |
- |   PDL_NICESLICE_ENGINE environment variable to the     |
- |   value Filter::Util::Call instead of Filter::Simple   |
- |                                                        |
- +--------------------------------------------------------+
-
-
  * Another quick CPAN developers release
  
    - It is a snapshot of the current git development tree
@@ -41,7 +29,11 @@ Highlights:
  * Switch increment for CPAN developers release VERSIONs
    to the new standard.
  
- * TBD
+ * Remove PDL::NiceSlice constructs from PDL::IO::FITS
+   and PDL::Transform to reduce load time.
+
+ * Revert PDL::NiceSlice engine to the original default
+   in preparation for the coming stable release.
 
 
 
