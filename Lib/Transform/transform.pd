@@ -259,7 +259,6 @@ use overload '!'  => \&t_inverse;
 
 use PDL;
 use PDL::MatrixOps;
-use PDL::NiceSlice;
 
 our $PI = 3.1415926535897932384626;
 our $DEG2RAD = $PI / 180;
@@ -1288,8 +1287,6 @@ Maybe that someone is you.
 +==EOD_map_doc==
 	PMCode => <<'+==EOD_map_perlcode=='
 
-use PDL::NiceSlice;
-
 sub PDL::match {
   t_identity()->map(@_);
 }
@@ -1413,8 +1410,8 @@ sub map {
 	  unless ( (($orange->dim(1)) == $nd )
 		   && $orange->ndims == 2);
 
-	$omin = $orange->((0));
-	$omax = $orange->((1));
+	$omin = $orange->slice("(0)");
+	$omax = $orange->slice("(1)");
 	$osize = $omax - $omin;
 
       } else {
@@ -1436,8 +1433,8 @@ sub map {
 	    unless ( (($irange->dim(1)) == $nd )
 		     && $irange->ndims == 2);
 
-	  $coords *= ($irange->((1)) - $irange->((0))) / $samps;
-	  $coords += $irange->((0));
+	  $coords *= ($irange->slice("(1)") - $irange->slice("(0)")) / $samps;
+	  $coords += $irange->slice("(0)");
 	  $coords -= 0.5; # offset to pixel corners...
 	  $t = $me;
 	} else {
@@ -1472,9 +1469,9 @@ sub map {
       my $justify = _opt($opt,['j','J','just','justify','Justify'],0);
       if($justify) {
         my $tmp; # work around perl -d "feature"
-	($tmp = $scale->(0)) *= $justify;
+	($tmp = $scale->slice("0")) *= $justify;
 	$scale .= $scale->max;
-	$scale->(0) /= $justify;
+	$scale->slice("0") /= $justify;
       }
 
       my $d;
@@ -1544,7 +1541,7 @@ sub map {
   if(!$integrate) {
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
     my $tmp; # work around perl -d "feature"
-    ($tmp = $out->(:)) .= $a; # trivial slice prevents header overwrite...
+    ($tmp = $out->slice(":")) .= $a; # trivial slice prevents header overwrite...
     return $out;
   }
 
@@ -1618,7 +1615,7 @@ sub map {
   my @rdims = (@iddims[1..$#iddims], @idims[$#iddims..$#idims]);
   {
      my $tmp; # work around perl -d "feature"
-     ($tmp = $out->(:)) .= $o2->reshape(@rdims);
+     ($tmp = $out->slice(":")) .= $o2->reshape(@rdims);
   }
 
 }
@@ -2147,7 +2144,7 @@ sub t_lookup {
 	my $maxvals = $p->{table}->clump($me->{idim})->maximum;
 
 	# Scale so that the range runs from 0 through the top pixel in the table
-	my $scale = (  pdl(  $itable->dims  )->(0:-2)-1  ) /
+	my $scale = (  pdl(  $itable->dims  )->slice("0:-2")-1  ) /
 	   	    (($maxvals - $minvals)+ (($maxvals-$minvals) == 0));
         my $offset = - ($minvals * $scale);
 
@@ -2159,7 +2156,7 @@ sub t_lookup {
 
 	# $oloop runs over (point, index) for all points in the output table, in
 	# $p->{table} output space
-	$oloop = ndcoords($itable->mv(-1,0)->((0)))->
+	$oloop = ndcoords($itable->mv(-1,0)->slice("(0)"))->
 	    double->
 	    mv(0,-1)->
 	    clump($itable->ndims-1);  # oloop: (pixel, index)
@@ -2180,24 +2177,24 @@ sub t_lookup {
 
 	for $i(0..$oloop->dim(0)-1) {
 
-	    my $olp = $oloop->(($i));                # olp runs (index)
+	    my $olp = $oloop->slice("($i)");                # olp runs (index)
 	    my $diff = ($pt - $olp);                 # diff runs (index, x, y, ...)
 	    my $r2 = ($diff * $diff)->sumover;       # r2 runs (x,y,...)
-	    my $c = whichND($r2==$r2->min)->(:,(0)); # c runs (index)
+	    my $c = whichND($r2==$r2->min)->slice(":,(0)"); # c runs (index)
 
 	    # Now zero in on the neighborhood around the point of closest approach.
 	    my $neighborhood = $p->{table}->interpND($c + $smallcoords,{method=>'linear',bound=>'t'})->
 	             mv(-1,0); # neighborhood runs (index, dx, dy,...)
 	    $diff = $neighborhood - $olp;        # diff runs (index, dx, dy, ...)
 	    $r2 = ($diff * $diff)->sumover;      # r2 runs (dx,dy,...)
-	    my $dc = $smallcoords->mv(0,-1)->indexND(0+whichND($r2==$r2->min)->(:,(0)));
+	    my $dc = $smallcoords->mv(0,-1)->indexND(0+whichND($r2==$r2->min)->slice(":,(0)"));
 
 
 	    my $coord = $c + $dc;
 	    # At last, we've found the best-fit to an enl_scale'th of an input-table pixel.
 	    # Back it out to input-science coordinates, and stuff it in the inverse table.
             my $tmp; # work around perl -d "feature"
-	    ($tmp = $itable_flattened->(($i))) .= $coord;
+	    ($tmp = $itable_flattened->slice("($i)")) .= $coord;
 
 	    print " $i..." if( ($i%1000==0) && ( $PDL::verbose || $PDL::debug || $PDL::Transform::debug));
         }
@@ -2374,7 +2371,7 @@ sub PDL::Transform::Linear::new {
   # if necessary, generate a new matrix.
 
   if(defined($me->{params}->{matrix})) {
-    my $mat = $me->{params}->{matrix} = $me->{params}->{matrix}->(:,:);
+    my $mat = $me->{params}->{matrix} = $me->{params}->{matrix}->slice(":,:");
     $me->{idim} = $mat->dim(0);
     $me->{odim} = $mat->dim(1);
 
@@ -2457,7 +2454,7 @@ sub PDL::Transform::Linear::new {
   #
   # Apply scaling
   #
-  $me->{params}->{matrix} = $me->{params}->{matrix}->(:,:);
+  $me->{params}->{matrix} = $me->{params}->{matrix}->slice(":,:");
   my $tmp; # work around perl -d "feature"
   ($tmp = $me->{params}->{matrix}->diagonal(0,1)) *= $scale
     if defined($scale);
@@ -2486,11 +2483,11 @@ sub PDL::Transform::Linear::new {
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
 	if($in->dim(0) < $d);
 
-    my($a) = $in->(0:$d)->copy + $opt->{pre};
+    my($a) = $in->slice("0:$d")->copy + $opt->{pre};
     my($out) = $in->is_inplace ? $in : $in->copy;
 
     my $tmp; # work around perl -d "feature"
-    ($tmp = $out->(0:$d)) .= $a x $opt->{matrix} + $opt->{post};
+    ($tmp = $out->slice("0:$d")) .= $a x $opt->{matrix} + $opt->{post};
 
     return $out;
   };
@@ -2503,11 +2500,11 @@ sub PDL::Transform::Linear::new {
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
 	if($in->dim(0) < $d);
 
-    my($a) = $in->(0:$d)->copy - $opt->{post};
+    my($a) = $in->slice("0:$d")->copy - $opt->{post};
     my($out) = $in->is_inplace ? $in : $in->copy;
 
     my $tmp; # work around perl -d "feature"
-    ($tmp = $out->(0:$d)) .= $a x $opt->{inverse} - $opt->{pre};
+    ($tmp = $out->slice("0:$d")) .= $a x $opt->{inverse} - $opt->{pre};
 
     $out;
   } : undef;
@@ -2717,7 +2714,7 @@ sub t_fits {
     for my $h(@hgrab) {
       $h =~ m/CD(\d{1,3})_(\d{1,3})/;  # Should always match
       my $tmp; # work around perl -d "feature"
-      ($tmp = $matrix->(($1-1),($2-1))) .= $hdr->{h};
+      ($tmp = $matrix->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{h};
     }
     print "PDL::Transform::FITS: Detected CDi_j matrix: \n",$matrix,"\n"
       if($PDL::Transform::debug);
@@ -2744,7 +2741,7 @@ sub t_fits {
       for my $h(@hgrab) {
 	$h =~ m/PC(\d{1,3})_(\d{1,3})$/ || die "t_fits - match failed! This should never happen!";
         my $tmp; # work around perl -d "feature"
-	($tmp = $cpm->(($1-1),($2-1))) .= $hdr->{$h};
+	($tmp = $cpm->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{$h};
       }
       print "PDL::Transform::FITS: Detected PCi_j matrix: \n",$cpm,"\n"
 	if($PDL::Transform::debug && @hgrab);
@@ -2767,7 +2764,7 @@ sub t_fits {
 
     for my $i(1..$n) {
       my $tmp; # work around perl -d "feature"
-      ($tmp = $cd->(($i-1))) .= $hdr->{"CDELT$i"};
+      ($tmp = $cd->slice("(".($i-1).")")) .= $hdr->{"CDELT$i"};
     }
 #If there are no CDELTs, then we assume they are all 1.0,
 #as in PDL::Graphics::PGPLOT::Window::_FITS_tr.
@@ -2779,8 +2776,8 @@ sub t_fits {
   my($i1) = 0;
   for my $i(1..$n) {
     my $tmp; # work around perl -d "feature"
-    ($tmp = $pre->(($i1)))  .= 1 - $hdr->{"CRPIX$i"};
-    ($tmp = $post->(($i1))) .= $hdr->{"CRVAL$i"};
+    ($tmp = $pre->slice("($i1)"))  .= 1 - $hdr->{"CRPIX$i"};
+    ($tmp = $post->slice("($i1)")) .= $hdr->{"CRVAL$i"};
     $i1++;
   }
 
@@ -3058,15 +3055,15 @@ sub t_radial {
 
       my($d) = $data->copy;
       my $tmp; # work around perl -d "feature"
-      ($tmp = $d->(0:1)) -= $o->{origin};
+      ($tmp = $d->slice("0:1")) -= $o->{origin};
 
-      my($d0) = $d->((0));
-      my($d1) = $d->((1));
+      my($d0) = $d->slice("(0)");
+      my($d1) = $d->slice("(1)");
 
       # (mod operator on atan2 puts everything in the interval [0,2*PI).)
-      ($tmp = $out->((0))) .= (atan2(-$d1,$d0) % (2*$PI)) * $me->{params}->{angunit};
+      ($tmp = $out->slice("(0)")) .= (atan2(-$d1,$d0) % (2*$PI)) * $me->{params}->{angunit};
 
-      ($tmp = $out->((1))) .= (defined $o->{r0}) ?
+      ($tmp = $out->slice("(1)")) .= (defined $o->{r0}) ?
 	      0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
 	      sqrt($d1*$d1 + $d0*$d0);
 
@@ -3078,13 +3075,13 @@ sub t_radial {
     my($d,$o) = @_;
     my($d0,$d1,$out)=
 	( ($d->is_inplace) ?
-	  ($d->((0))->copy, $d->((1))->copy->dummy(0,2), $d) :
-	  ($d->((0)),       $d->((1))->dummy(0,2),       $d->copy)
+	  ($d->slice("(0)")->copy, $d->slice("(1)")->copy->dummy(0,2), $d) :
+	  ($d->slice("(0)"),       $d->slice("(1)")->dummy(0,2),       $d->copy)
 	  );
 
     $d0 /= $me->{params}->{angunit};
 
-    my($os) = $out->(0:1);
+    my($os) = $out->slice("0:1");
     $os .= append(cos($d0)->dummy(0,1),-sin($d0)->dummy(0,1));
     $os *= defined $o->{r0}  ?  ($o->{r0} * exp($d1))  :  $d1;
     $os += $o->{origin};
@@ -3184,7 +3181,7 @@ sub t_quadratic {
     $me->{func} = sub {
 	my($data,$o) = @_;
 	my($dd) = $data->copy - $o->{origin};
-	my($d) =  (defined $o->{dim}) ? $dd->(0:($o->{dim}-1)) : $dd;
+	my($d) =  (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
 	$d += $o->{str} * ($d * abs($d)) / $o->{l0};
 	$d /= (abs($o->{str}) + 1);
 	$d += $o->{origin};
@@ -3198,7 +3195,7 @@ sub t_quadratic {
     $me->{inv} = sub {
 	my($data,$opt) = @_;
 	my($dd) = $data->copy ;
-	my($d) = (defined $opt->{dim}) ? $dd->(0:($opt->{dim}-1)) : $dd;
+	my($d) = (defined $opt->{dim}) ? $dd->slice("0:".($opt->{dim}-1)) : $dd;
 	my($o) = $opt->{origin};
 	my($s) = $opt->{str};
 	my($l) = $opt->{l0};
@@ -3292,7 +3289,7 @@ sub t_cubic {
     $me->{func} = sub {
 	my($data,$o) = @_;
 	my($dd) = $data->copy;
-	my($d) = (defined $o->{dim}) ? $dd->(0:($o->{dim}-1)) : $dd;
+	my($d) = (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
 
 	$d -= $o->{origin};
 
@@ -3320,7 +3317,7 @@ sub t_cubic {
 	my($l) = $o->{l0};
 
 	my($dd) = $data->copy;
-	my($d) = (defined $o->{dim}) ? $dd->(0:($o->{dim}-1)) : $dd;
+	my($d) = (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
 
 	$d -= $o->{origin};
 	$d *= ($o->{st}+1);
@@ -3453,7 +3450,7 @@ sub t_quartic {
     $me->{func} = sub {
 	my($data,$o) = @_;
 	my($dd) = $data->copy - $o->{origin};
-	my($d) =  (defined $o->{dim}) ? $dd->(0:($o->{dim}-1)) : $dd;
+	my($d) =  (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
 	$d += $o->{str} * ($d * abs($d)) / $o->{l0};
 	$d /= (abs($o->{str}) + 1);
 	$d += $o->{origin};
@@ -3467,7 +3464,7 @@ sub t_quartic {
     $me->{inv} = sub {
 	my($data,$opt) = @_;
 	my($dd) = $data->copy ;
-	my($d) = (defined $opt->{dim}) ? $dd->(0:($opt->{dim}-1)) : $dd;
+	my($d) = (defined $opt->{dim}) ? $dd->slice("0:".($opt->{dim}-1)) : $dd;
 	my($o) = $opt->{origin};
 	my($s) = $opt->{str};
 	my($l) = $opt->{l0};
@@ -3574,15 +3571,15 @@ sub t_spherical {
 	my($data,$o) = @_;
 	my($d) = $data->copy - $o->{origin};
 
-	my($d0,$d1,$d2) = ($d->((0)),$d->((1)),$d->((2)));
+	my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
 	my($out) =   ($d->is_inplace) ? $data : $data->copy;
 
         my $tmp; # work around perl -d "feature"
-	($tmp = $out->((0))) .= atan2($d1, $d0);
-	($tmp = $out->((2))) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
-	($tmp = $out->((1))) .= asin($d2 / $out->((2)));
+	($tmp = $out->slice("(0)")) .= atan2($d1, $d0);
+	($tmp = $out->slice("(2)")) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
+	($tmp = $out->slice("(1)")) .= asin($d2 / $out->slice("(2)"));
 
-	($tmp = $out->(0:1)) /= $o->{angunit}
+	($tmp = $out->slice("0:1")) /= $o->{angunit}
 	  if(defined $o->{angunit});
 
 	$out;
@@ -3593,13 +3590,13 @@ sub t_spherical {
 
 	my($theta,$phi,$r,$out) =
     ( ($d->is_inplace) ?
-	      ($d->((0))->copy, $d->((1))->copy, $d->((2))->copy, $d) :
-	      ($d->((0)),       $d->((1)),       $d->((2)),       $d->copy)
+	      ($d->slice("(0)")->copy, $d->slice("(1)")->copy, $d->slice("(2)")->copy, $d) :
+	      ($d->slice("(0)"),       $d->slice("(1)"),       $d->slice("(2)"),       $d->copy)
 	      );
 
 
 	my($x,$y,$z) =
-	    ($out->((0)),$out->((1)),$out->((2)));
+	    ($out->slice("(0)"),$out->slice("(1)"),$out->slice("(2)"));
 
 	my($ph,$th);
 	if(defined $o->{angunit}){
@@ -3732,8 +3729,8 @@ sub t_projective {
       unless($p->dims==3 && all(pdl($p->dims)==pdl(2,2,4)));
 
     # Solve the system of N equations to find the projective transform
-    my ($p0,$p1,$p2,$p3) = ( $p(:,(0),(0)), $p(:,(0),(1)), $p(:,(0),(2)), $p(:,(0),(3)) );
-    my ($P0,$P1,$P2,$P3) = ( $p(:,(1),(0)), $p(:,(1),(1)), $p(:,(1),(2)), $p(:,(1),(3)) );
+    my ($p0,$p1,$p2,$p3) = ( $p->slice(":,(0),(0)"), $p->slice(":,(0),(1)"), $p->slice(":,(0),(2)"), $p->slice(":,(0),(3)") );
+    my ($P0,$P1,$P2,$P3) = ( $p->slice(":,(1),(0)"), $p->slice(":,(1),(1)"), $p->slice(":,(1),(2)"), $p->slice(":,(1),(3)") );
 #print "declaring PDL...\n"    ;
     my $M = pdl( [ [$p0->at(0), $p0->at(1), 1,        0,        0, 0,  -$P0->at(0)*$p0->at(0), -$P0->at(0)*$p0->at(1)],
 		   [       0,        0, 0, $p0->at(0), $p0->at(1), 1,  -$P0->at(1)*$p0->at(0), -$P0->at(1)*$p0->at(1)],
@@ -3745,11 +3742,11 @@ sub t_projective {
 		   [       0,        0, 0, $p3->at(0), $p3->at(1), 1,  -$P3->at(1)*$p3->at(0), -$P3->at(1)*$p3->at(1)]
 		   ] );
 #print "ok.  Finding inverse...\n";
-    my $h = ($M->inv x $p(:,(1),:)->flat->(*1))->((0));
+    my $h = ($M->inv x $p->slice(":,(1),:")->flat->slice("*1"))->slice("(0)");
 #    print "ok\n";
     my $matrix = ones(3,3);
     my $tmp; # work around perl -d "feature"
-    ($tmp = $matrix->flat->(0:7)) .= $h;
+    ($tmp = $matrix->flat->slice("0:7")) .= $h;
     $me->{params}->{matrix} = $matrix;
 
     $me->{params}->{matinv} = $matrix->inv;
@@ -3764,17 +3761,17 @@ sub t_projective {
   $me->{func} = sub {
     my($data,$o) = @_;
     my($id) = $data->dim(0);
-    my($d) = $data->glue(0,ones($data->(0)));
-    my($out) = ($o->{matrix} x $d->(*1))->((0));
-    return ($out->(0:$id-1)/$out->($id));
+    my($d) = $data->glue(0,ones($data->slice("0")));
+    my($out) = ($o->{matrix} x $d->slice("*1"))->slice("(0)");
+    return ($out->slice("0:".($id-1))/$out->slice("$id"));
   };
 
   $me->{inv} = sub {
     my($data,$o) = @_;
     my($id) = $data->dim(0);
-    my($d) = $data->glue(0,ones($data->(0)));
-    my($out) = ($o->{matinv} x $d->(*1))->((0));
-    return ($out->(0:$id-1)/$out->($id));
+    my($d) = $data->glue(0,ones($data->slice("0")));
+    my($out) = ($o->{matinv} x $d->slice("*1"))->slice("(0)");
+    return ($out->slice("0:".($id-1))/$out->slice("$id"));
   };
 
   $me;
