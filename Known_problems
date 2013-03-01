@@ -1,6 +1,10 @@
 The following issues have been reported with this version of PDL:
 
+- A bug in Netpbm from versions 10.56.00 through 10.61.2 may result in a
+  an invalid conversion of RAST images to PNM format on some platforms,
+  resulting in a failed picrgb test.
 
+  
 - Bugs in Netpbm versions earlier than 10.58.00 result in
   invalid 16bit PNG image IO and failing tests.
 
