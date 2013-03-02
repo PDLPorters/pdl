@@ -1,8 +1,8 @@
 The following issues have been reported with this version of PDL:
 
-- A bug in Netpbm from versions 10.56.00 through 10.61.2 may result in a
-  an invalid conversion of RAST images to PNM format on some platforms,
-  resulting in a failed picrgb test.
+- A bug in Netpbm from versions 10.56.00 through 10.61.2 may
+  result in a an invalid conversion of RAST images to PNM
+  format on some platforms, resulting in a failed picrgb test.
 
   
 - Bugs in Netpbm versions earlier than 10.58.00 result in
@@ -128,18 +128,16 @@ The following issues have been reported with this version of PDL:
   3539685    pdldoc can't handle SPP mount location change
   3518190    t/gd_oo_tests.t fails for AMD64
 
-               This appears to affect OpenBSD AMD64 only.
-	       These tests are skipped if the AUTOMATED_TESTING
-	       environment variable is test.  If you can
-	       reproduce the error, help in debugging the
-	       problem would be welcome!  May also affect
-	       some Mac OS X installs.
-
+               A candidate fix is in the current relese but
+               the tests are skipped by default if the
+               AUTOMATED_TESTING environment variable is set.
+               If you have an AMD64 platform, please let us
+               know if the test passes "by hand".  Thanks.
+               
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
 
-               A partial work around is in place so this
-	       bug is technically resolved.  Leaving open
-	       until a less fragile solution is completed.
+               A partial work around is in place.  Please
+               report any on-going problems.
 
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3316394    'help funname' fails to show multiple function names

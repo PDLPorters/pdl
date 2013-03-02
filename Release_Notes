@@ -28,7 +28,14 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Potential fix for sf.net bug #3518190 where
+   t/gd_oo_tests.t crashes.  If you have an AMD64 platform,
+   please test.
+
+   NOTE: the tests will be skipped if AUTOMATED_TESTING is
+   set to avoid false fails by CPAN Testers.
+
+ * Updates to the PLplot Makefile.PL and test file.
 
 
 
