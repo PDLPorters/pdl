@@ -132,6 +132,8 @@ sub apply_profile {
       demo bad         # Bad-value demo (Req.: bad value support)
       demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
 
+      demo gnuplot     # Gnuplot graphics (requires PDL::Graphics::Gnuplot)
+
 EOD
       return;
       } # if: /^$/
@@ -146,7 +148,8 @@ EOD
          'bad' => 'PDL::Demos::BAD_demo',
          'bad2' => 'PDL::Demos::BAD2_demo',
          'transform' => 'PDL::Demos::Transform_demo',
-         'cartography' => 'PDL::Demos::Cartography_demo'
+         'cartography' => 'PDL::Demos::Cartography_demo',
+         'gnuplot' => 'PDL::Demos::Gnuplot_demo',
       );
 
       if ( exists $demos{$_} ) {
