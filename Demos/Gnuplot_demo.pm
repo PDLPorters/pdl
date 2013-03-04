@@ -11,7 +11,21 @@
 package PDL::Demos::Gnuplot_demo;
 
 use PDL;
-use PDL::Graphics::Gnuplot;
+
+BEGIN {
+    eval 'use PDL::Graphics::Gnuplot;';
+    if ($@ or !defined($PDL::Graphics::Gnuplot::VERSION)) {
+	die qq{
+
+PDL::Graphics::Gnuplot is required for this demo, but didn't load.  You may have
+to go get it from CPAN (http://search.cpan.org).  You might also need to get the 
+external "gnuplot" app (http://www.gnuplot.info).
+
+$@
+};
+    }
+}
+
 use PDL::ImageND;
 
 use PDL::Demos::Screen;   # This is awful but seems to be needed since Screen.pm is where the Routines are located. -CED 2/2013
