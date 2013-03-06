@@ -134,8 +134,8 @@ Here are some ways of creating a PDL variable:
    [1 2 3]
    [4 5 6]
  NEWPDL
- $edge1 = pdl q[1 -2];             # 2-element piddle containing  1 and -2
- $edge2 = pdl q[1 - 2];            # 1-element piddle containing -1
+ $c = pdl q[1 -2];             # 2-element piddle containing 1 and -2
+ $c = pdl q[1 - 2];            # 2-element piddle containing 1 and -2
  $b = pdl 42                   # 0-dimensional scalar
  $c = pdl $a;                  # Make a new copy
  
