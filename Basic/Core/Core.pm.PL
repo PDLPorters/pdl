@@ -2859,11 +2859,13 @@ sub PDL::convert {
 # XXX Be sure to update these when new types are added!
 =pod
 
-byte|short|ushort|long|longlong|float|double convert shorthands
+=for ref
+
+byte|short|ushort|long|longlong|float|double (shorthands to convert datatypes)
 
 =cut
 
-print OUT "=for ref\n\n$convertalts convert shorthands\n\n=cut\n\n";
+print OUT "=for ref\n\n$convertalts (shorthands to convert datatypes)\n\n=cut\n\n";
 
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
  "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
