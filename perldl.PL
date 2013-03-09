@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.356';
+$VERSION = '1.357';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
@@ -56,6 +56,7 @@ $PERLDL::MULTI = 1;             # Enable multi-lines by default
 $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
 $PERLDL::NO_EOF = 1 if $^O =~ 'MSWin';  # ...but enable for windows 
 $PERLDL::PROMPT = "pdl> ";
+$PERLDL::PREFIX_RE = qr(^\s*(?:pdl|perldl)>\s*); # RE for shell prompts
 $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
 				# Default output paging program
 $PERLDL::PAGE   = 0;
@@ -328,7 +329,7 @@ sub END {
     my @a= $PERLDL::TERM->GetHistory() if $PERLDL::TERM->can('GetHistory');
 
     $#a-- if $a[-1] =~ /^(q$|x$|\s*exit\b|\s*quit\b)/; # chop off the exit command
-    @a= @a[($#a-$PERLDL::HISTFILESIZE)..($#a)] if $#a > $PERLDL::HISTFILESIZE ;
+    @a= @a[($#a-$PERLDL::HISTFILESIZE+1)..($#a)] if $#a > $PERLDL::HISTFILESIZE-1 ;
     if( open HIST, ">$HOME/.perldl_hist" ) {
 	print HIST join("\n",@a);
 	close HIST;
@@ -639,6 +640,13 @@ sub process_input {
   for my $c (@PERLDL::AUTO) {
       my $mess = eval_and_report($c);
       warn $mess if $mess;
+  }
+
+  # Filter out PDL shell prefixes from cut-n-pasted lines
+  if ( $lines =~ s/$PERLDL::PREFIX_RE// and $readlines ) {
+     my @hist = $PERLDL::TERM->GetHistory();
+     foreach my $entry (@hist) { $entry =~ s/$PERLDL::PREFIX_RE//; }
+     $PERLDL::TERM->SetHistory(@hist);
   }
   
   if(!defined $lines || lc $lines eq 'q' || lc $lines eq 'x' || lc $lines eq 'quit') {exit};
