@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 51;
+use Test::More tests => 54;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -183,6 +183,12 @@ like($@, qr/arguments 2 and 6 do not match/
 like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual piddle in combined screw-ups');
 $@ = '';
+
+eval {$a = cat(pdl(1),pdl(2,3));};
+ok(!$@, 'cat(pdl(1),pdl(2,3)) succeeds');
+ok( ($a->ndims==2 and $a->dim(0)==2 and $a->dim(1)==2), 'weird cat case has the right shape');
+ok( all( $a == pdl([1,1],[2,3]) ), "cat does the right thing with catting a 0-pdl and 2-pdl together");
+$@='';
 
 # new_or_inplace
 $a = sequence(byte,5);
