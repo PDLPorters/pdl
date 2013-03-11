@@ -28,7 +28,22 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fixed bug in cat() threading with tests to verify fix.
+
+ * Update pod for Datatype_conversions so 'apropos types'
+   will find it in the PDL shells or with pdldoc -a.
+ 
+ * Fix pdl-from-string doc error in QuickStart
+
+ * New feature in perldl and pdl2 where a pattern
+   matching the PDL shell prompt (in $PERLDL::PREFIX_RE)
+   will get stripped off of input lines before eval.
+   
+   That makes it easier to cut-and-paste example text
+   from PDL shell sessions or the  PDL Book into an
+   active session.
+
+ * Added a demo for gnuplot to the PDL shells.
 
 
 
