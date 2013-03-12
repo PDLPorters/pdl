@@ -1,3 +1,37 @@
+Release Notes for PDL 2.004_997 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.006 release candidate 3 (code freeze)
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.004_997.tar.gz
+       cpan> make CHM/PDL-2.004_997.tar.gz
+       cpan> test CHM/PDL-2.004_997.tar.gz
+       cpan> look CHM/PDL-2.004_997.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
 Release Notes for PDL 2.004_996 --------------------------
 
 General Notes:
@@ -28,7 +62,22 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fixed bug in cat() threading with tests to verify fix.
+
+ * Update pod for Datatype_conversions so 'apropos types'
+   will find it in the PDL shells or with pdldoc -a.
+ 
+ * Fix pdl-from-string doc error in QuickStart
+
+ * New feature in perldl and pdl2 where a pattern
+   matching the PDL shell prompt (in $PERLDL::PREFIX_RE)
+   will get stripped off of input lines before eval.
+   
+   That makes it easier to cut-and-paste example text
+   from PDL shell sessions or the  PDL Book into an
+   active session.
+
+ * Added a demo for gnuplot to the PDL shells.
 
 
 

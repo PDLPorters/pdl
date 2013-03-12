@@ -142,6 +142,7 @@ Demos/BAD2_demo.pm.PL
 Demos/BAD_demo.pm.PL
 Demos/Cartography_demo.pm
 Demos/General.pm
+Demos/Gnuplot_demo.pm
 Demos/Makefile.PL
 Demos/PGPLOT_OO_demo.pm
 Demos/PGPLOT_demo.pm

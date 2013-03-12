@@ -110,17 +110,13 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.004_996 release:
+  PDL-2.004_997 release:
 
+  3606774    PDL re-install wipes out non-core docs
   3605814    PDL::Demos system needs overhaul
   3605476    Several core modules do not have man pages
   3602817    PDL::Index does not render on websites
   3601064    Need INSTALLSITEBIN for recent Macports Perls
-  3599815    pic_16bit.t failure when building pdl
-
-               This is due to a bug in older NetPBM library
-	       versions.  Update to 10.58.00 or later to fix.
-
   3599516    plplot.t failure when building 2.4.11
   3570236    clip() edge case not handled right
   3570235    Wrong results in corner empty-set cases
