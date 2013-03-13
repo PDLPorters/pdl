@@ -2245,7 +2245,7 @@ sub InplaceCode {
 
     my $instate = $in . "->state";
     return
-	qq{\tif ( $instate & PDL_INPLACE ) {
+	qq{\tif ( $instate & PDL_INPLACE && ($out != $in)) {
               $instate &= ~PDL_INPLACE; PDL_COMMENT("unset")
               $out = $in;             PDL_COMMENT("discard output value, leak ?")
               PDL->SetSV_PDL(${out}_SV,${out});

@@ -87,8 +87,6 @@ EOH
     # handle exceptions
     my $badcode = '$ISBAD(a()) || $ISBAD(b())';
     if ( exists $extra{Exception} ) {
-#	$badcode .= " || $extra{Exception}";
-#	print "Warning: ignored exception for $name\n";
 	delete $exists{Exception};
     }
 
