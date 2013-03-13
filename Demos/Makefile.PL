@@ -25,6 +25,7 @@ WriteMakefile(
                     'Cartography_demo.pm' => '$(INST_LIBDIR)/Demos/Cartography_demo.pm',
 		    'Gnuplot_demo.pm'   =>  '$(INST_LIBDIR)/Demos/Gnuplot_demo.pm',
                     '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
+                    'Prima.pm' => '$(INST_LIBDIR)/Demos/Prima.pm',
 		   },
      'clean' => { 'FILES' => 'BAD_demo.pm BAD2_demo.pm' },
     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),

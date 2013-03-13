@@ -448,6 +448,7 @@ my %demos =
      'transform' => 'PDL::Demos::Transform_demo',
      'cartography' => 'PDL::Demos::Cartography_demo',
      'gnuplot' => 'PDL::Demos::Gnuplot_demo',
+     'prima' => 'PDL::Demos::Prima',
      );
 
 sub demo {
@@ -465,6 +466,7 @@ Use:
    demo OOplot      # PGPLOT OO interface    (Req.: PGPLOT)
 
    demo gnuplot     # Gnuplot graphics (requires PDL::Graphics::Gnuplot)
+   demo prima       # Prima graphics (requires PDL::Graphics::Prima)
 
    demo transform   # Coordinate transformations (Req.: PGPLOT)
    demo cartography # Cartographic projections (Req.: PGPLOT)
