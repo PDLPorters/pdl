@@ -44,8 +44,11 @@ library written on top of the L<Prima|Prima/> GUI toolkit.
 # Check load status of Prima #
 ##############################
 
+my $min_version = 0.13;
 my $loaded_prima = eval {
-  require PDL::Graphics::Prima::Simple;
+	require PDL::Graphics::Prima;
+	return 0 if $PDL::Graphics::Prima::VERSION < $min_version;
+	require PDL::Graphics::Prima::Simple;
 	PDL::Graphics::Prima::Simple->import();
 	require Prima::Application;
 	Prima::Application->import();
@@ -120,11 +123,16 @@ sub run {
 	
 	# Make sure they have it. Otherwise, bail out.
 	if (not $loaded_prima) {
+		my $reason =
+"I couldn't load the library, either because it's not installed on your
+machine or it's broken.";
+		$reason = 
+"your version of PDL::Graphics::Prima (v$PDL::Graphics::Prima::VERSION) is out of data. This demo
+requires at least v$min_version." if defined $loaded_prima;
 		print <<SORRY;
 
 Thanks for trying to learn more about PDL::Graphics::Prima. Unfortunately,
-I couldn't load the library. Either it's not installed on your machine, or
-it's broken.
+$reason
 
 If you really want to get this working, the fastest way to get help is to
 join the live chat on the PDL irc channel. If you have an IRC client, check
@@ -329,8 +337,9 @@ sub setup_slide {
 	
 	# Load the pod
 	$text_pod->open_read;
+print "About to render [[$demo[$number+1]]]\n";
 	$text_pod->read("=pod\n\n$demo[$number+1]\n\n=cut");
-	my $rendered = $text_pod->close_read;
+	$text_pod->close_read;
 }
 
 # This way, it can be invoked as "perl -MPDL::Demos::Prima" or as
