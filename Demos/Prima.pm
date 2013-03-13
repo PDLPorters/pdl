@@ -172,7 +172,10 @@ SORRY
 		sizeMin => [600, 800],
 		text => 'PDL::Graphics::Prima Demo',
 		onDestroy => sub {
-			die 'time to exit the event loop';
+			require Prima::Utils;
+			# Throw an exception after destruction is complete so that we
+			# break out of the $::application->go loop.
+			Prima::Utils::post(sub { die 'time to exit the event loop' });
 		},
 	);
 																		# Title
