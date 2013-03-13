@@ -347,8 +347,11 @@ sub apply {
   }
 
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL')){
-      return &{$me->{func}}($from,$me->{params})
-	  if defined($me->{func});
+      if(defined($me->{func})) {
+	  my $result = &{$me->{func}}($from,$me->{params});
+	  $result->is_inplace(0); # clear inplace flag, just in case.
+	  return $result;
+      }
       croak "PDL::Transform with no defined func -- this is a bug.\n";
   } else {
       croak "apply requires both a PDL and a PDL::Transform.\n";
@@ -397,7 +400,9 @@ sub invert {
 
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($data,'PDL')){
       return undef unless defined($me->{inv});
-      return &{$me->{inv}}($data, $me->{params});
+      my $result = &{$me->{inv}}($data, $me->{params});
+      $result->is_inplace(0);  # make sure inplace flag is clear.
+      return $result;
   } else {
       croak("invert requires a PDL and a PDL::Transform (did you want 'inverse' instead?)\n");
   }
@@ -1828,6 +1833,7 @@ sub compose {
       $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
       print "... ok.\n" if($PDL::Transform::debug);
     }
+    $data->is_inplace(0); # clear inplace flag (avoid core bug with inplace)
     $data;
   };
 

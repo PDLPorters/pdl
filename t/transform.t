@@ -2,7 +2,7 @@ use PDL::LiteF;
 use Test;
 
 BEGIN {
-  plan tests => 4;
+  plan tests => 5;
 }
 
 use PDL::Transform;
@@ -32,4 +32,15 @@ ok( all($a==$b) );
 $b = $a->map(t_scale(2),{pix=>1});
 ok(all($b == $a*0.5));
 
+##############################
+# diab jerius' t_scale crash
+# (this is due to a problem with inplace flag handling in PDL <= 2.6; transform works around it)
 
+$a = pdl(49,49);
+$t = t_linear({scale=>pdl([1,3]), offset=>pdl([12,8])});
+$b = pdl( double, 2.2, 9.3);
+print "apply\n";
+$a->inplace->apply($t);
+print "add q\n";
+$a += $q;
+ok(1);  # still here!
