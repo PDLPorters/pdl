@@ -30,6 +30,14 @@ Highlights:
 
  * Added a demo for PDL::Graphics::Prima to the PDL shells.
 
+ * Tweak gnuplot demo to not require a specific font which
+   may not be available on all platforms.
+ 
+ * Fixed a bug causing crashes due to using inplace with
+   a duplicate argument.
+ 
+ * Fixed image overwrite problem in imag2d and imag2d_update.
+
 
 
 Release Notes for PDL 2.004_996 --------------------------

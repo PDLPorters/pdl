@@ -146,6 +146,7 @@ Demos/Gnuplot_demo.pm
 Demos/Makefile.PL
 Demos/PGPLOT_OO_demo.pm
 Demos/PGPLOT_demo.pm
+Demos/Prima.pm
 Demos/Screen.pm
 Demos/Transform_demo.pm
 Demos/TriD/mandel.pl
