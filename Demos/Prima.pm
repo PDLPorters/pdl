@@ -100,7 +100,7 @@ text will appear here; code samples will appear below. Tip: you can modify and
 re-run the code samples. When you are done, simply close the window.',
 '### HEY, EDIT ME! ###
 use Prima::MsgBox;
-Prima::MsgBox::message( "Hello, there", mb::Ok);'
+Prima::MsgBox::message( "Hello, there. :-)", mb::Ok);'
 }
 
 ##################################
@@ -118,7 +118,7 @@ sub run {
 "I couldn't load the library, either because it's not installed on your
 machine or it's broken.";
 		$reason = 
-"your version of PDL::Graphics::Prima (v$PDL::Graphics::Prima::VERSION) is out of data. This demo
+"your version of PDL::Graphics::Prima (v$PDL::Graphics::Prima::VERSION) is out of date. This demo
 requires at least v$min_version." if defined $loaded_prima;
 		print <<SORRY;
 
