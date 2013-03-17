@@ -5,10 +5,6 @@ use warnings;
                          package PDL::Demos::Prima;
 ############################################################################
 
-# It's a shame that PDL::Demos::Routines is in a file called
-# PDL::Demos::Screen. Oh well.
-use PDL::Demos::Screen;
-PDL::Demos::Routines->import;
 use PDL;
 
 =head1 NAME
@@ -59,7 +55,6 @@ my $loaded_prima = eval {
 # Pull the demo pod into a data structure #
 ###########################################
 
-my @demo;
 # Pull the pod apart into the following sort of array structure
 # @demo = (
 #   'Introduction' => $first_paragraph => $first_code,
@@ -69,13 +64,8 @@ my @demo;
 #     ...
 # );
 
-my ($curr_section, $curr_par, $curr_code);
+my (@demo, $curr_section, $curr_par, $curr_code);
 my $curr_state = 'section_title';
-my %states = (
-	section_title => 'title',
-	title => 'paragraph',
-	empty => ''
-);
 while(my $line = <DATA>) {
 	# Only =head2s in this documentation
 	last if $line =~ /=head1/;
@@ -118,7 +108,8 @@ Prima::MsgBox::message( "Hello, there", mb::Ok);'
 ##################################
 
 # These are widgts I will need across multiple functions, so they are globals.
-my ($section_title_label, $text_pod, $code_eval, $prev_button, $next_button, $help_window);
+my ($section_title_label, $text_pod, $code_eval, $prev_button, $next_button,
+	$run_button, $help_window);
 sub run {
 	
 	# Make sure they have it. Otherwise, bail out.
@@ -217,7 +208,7 @@ SORRY
 			setup_slide($current_slide);
 		},
 	);
-	$window->insert(Button =>
+	$run_button = $window->insert(Button =>
 		place => {
 			relx => 0.333, relwidth => 0.333, anchor => 'sw',
 			y => 0, height => $button_height,
@@ -304,6 +295,7 @@ SORRY
 	);
 	
 	setup_slide(0);
+	$window->bring_to_front;
 	
 	# Run this sucker
 	local $@;
@@ -337,9 +329,11 @@ sub setup_slide {
 	
 	# Load the pod
 	$text_pod->open_read;
-print "About to render [[$demo[$number+1]]]\n";
 	$text_pod->read("=pod\n\n$demo[$number+1]\n\n=cut");
 	$text_pod->close_read;
+	
+	# Run the demo
+	$run_button->notify('Click');
 }
 
 # This way, it can be invoked as "perl -MPDL::Demos::Prima" or as
