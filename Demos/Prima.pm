@@ -95,12 +95,12 @@ while(my $line = <DATA>) {
 # Add some extra content for Prima viewing only
 if ($loaded_prima) {
 	unshift @demo, 'Introduction',
-'This is the demo fo L<PDL::Graphics::Prima|PDL::Graphics::Prima/>. Explanatory
+'This is the demo for L<PDL::Graphics::Prima|PDL::Graphics::Prima/>. Explanatory
 text will appear here; code samples will appear below. Tip: you can modify and 
 re-run the code samples. When you are done, simply close the window.',
 '### HEY, EDIT ME! ###
 use Prima::MsgBox;
-Prima::MsgBox::message( "Hello, there. :-)", mb::Ok);'
+Prima::MsgBox::message( "Hello, this is the PDL::Graphics::Prima demo.", mb::Ok);'
 }
 
 ##################################
@@ -109,7 +109,7 @@ Prima::MsgBox::message( "Hello, there. :-)", mb::Ok);'
 
 # These are widgts I will need across multiple functions, so they are globals.
 my ($section_title_label, $text_pod, $code_eval, $prev_button, $next_button,
-	$run_button, $help_window);
+	$run_button, $help_window, $window, $is_evaling);
 sub run {
 	
 	# Make sure they have it. Otherwise, bail out.
@@ -162,7 +162,7 @@ SORRY
 	# ---( Build the Demo Window )--- #
 	
 																	# Window
-	my $window = Prima::Window->create(
+	$window = Prima::Window->create(
 		place => {
 			relx => 0.15, relwidth => 0.7, relheight => 0.7, rely => 0.15,
 			anchor => 'sw',
@@ -176,8 +176,12 @@ SORRY
 			# break out of the $::application->go loop.
 			Prima::Utils::post(sub { die 'time to exit the event loop' });
 		},
+		onKeyUp => \&keypress_handler,
 	);
 																		# Title
+	# ---( Build list of windows that we don't want to close )---
+	my @dont_touch = $::application->get_widgets;
+	
 	my $title_height = 50;
 	$section_title_label = $window->insert(Label =>
 		place => {
@@ -192,6 +196,7 @@ SORRY
 		font => {
 			size => 24,
 		},
+		onKeyUp => \&keypress_handler,
 	);
 																	# Buttons
 	my $button_height = 35;
@@ -216,8 +221,30 @@ SORRY
 		height => $button_height,
 		text => 'Run',
 		onClick => sub {
+			# Clear out old windows
+			for my $curr_window ($::application->get_widgets) {
+				next if grep { $curr_window == $_ } @dont_touch
+					or defined $help_window and $curr_window == $help_window;
+				$curr_window->destroy;
+			}
+			
+			# Disable the buttons
+			my $prev_state = $prev_button->enabled;
+			$prev_button->enabled(0);
+			$run_button->enabled(0);
+			my $next_state = $next_button->enabled;
+			$next_button->enabled(0);
+			
+			# Run the eval
 			eval 'no strict; no warnings; ' . $code_eval->text;
-			warn $@ if $@;
+			if ($@ and $@ !~ /time to exit the event loop/		) {
+				warn $@;
+				Prima::MsgBox::message($@);
+			}
+			
+			$prev_button->enabled($prev_state);
+			$run_button->enabled(1);
+			$next_button->enabled($next_state);
 		},
 	);
 	$next_button = $window->insert(Button =>
@@ -266,6 +293,7 @@ SORRY
 		backColor => cl::White(),
 		borderWidth => 0,
 		autoVScroll => 1,
+		onKeyUp => \&keypress_handler,
 	);
 	
 																		# Code
@@ -294,14 +322,28 @@ SORRY
 		font => { name => 'monospace' },
 	);
 	
-	setup_slide(0);
 	$window->bring_to_front;
+	setup_slide(0);
 	
 	# Run this sucker
 	local $@;
 	eval { $::application->go };
 	$help_window->close if defined $help_window and $help_window->alive;
 }
+
+sub keypress_handler {
+	my ($self, $code, $key, $mod) = @_;
+	if ($key == kb::Down() or $key == kb::Right() or $key == kb::PgDn()) {
+		$next_button->notify('Click');
+	}
+	elsif ($key == kb::Up() or $key == kb::Left() or $key == kg::PgUp()) {
+		$prev_button->notify('Click');
+	}
+	else {
+		$code_eval->notify('KeyUp', $code, $key, $mod);
+	}
+}
+
 
 #############################################################
 # Function that transitions between paragraphs and sections #
@@ -316,10 +358,17 @@ sub setup_slide {
 		$prev_button->enabled(1);
 	}
 	if ($number == @demo/3 - 1) {
-		$next_button->enabled(0);
+		$next_button->enabled(1);
+		$next_button->text('Finish');
+	}
+	elsif ($number == @demo/3) {
+		# Close the window
+		$window->notify('Destroy');
+		return;
 	}
 	else {
 		$next_button->enabled(1);
+		$next_button->text('Next');
 	}
 	
 	$number *= 3;
