@@ -178,6 +178,7 @@ SORRY
 		},
 		onKeyUp => \&keypress_handler,
 	);
+	$window->font->size(12);
 																		# Title
 	# ---( Build list of windows that we don't want to close )---
 	my @dont_touch = $::application->get_widgets;
@@ -319,7 +320,7 @@ SORRY
 		wordWrap => 0,
 		autoIndent => 1,
 		cursorWrap => 1,
-		font => { name => 'monospace' },
+		font => { name => 'monospace', size => 12 },
 	);
 	
 	$window->bring_to_front;
