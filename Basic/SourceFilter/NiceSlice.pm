@@ -2,10 +2,12 @@ BEGIN {
    my %engine_ok = (
       'Filter::Util::Call' => 'PDL/NiceSlice/FilterUtilCall.pm',
       'Filter::Simple'     => 'PDL/NiceSlice/FilterSimple.pm',
+      'Module::Compile'     => 'PDL/NiceSlice/ModuleCompile.pm',
    );  # to validate names
 
-   ## $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
-   $PDL::NiceSlice::engine = $engine_ok{'Filter::Simple'};  # default engine type
+   ## $PDL::NiceSlice::engine = $engine_ok{'Filter::Simple'};  # default engine type
+   ## TODO: Add configuration argument to perldl.conf
+   $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
 
    if ( exists $ENV{PDL_NICESLICE_ENGINE} ) {
       my $engine = $ENV{PDL_NICESLICE_ENGINE};
@@ -24,6 +26,10 @@ no warnings;
 
 package PDL::NiceSlice;
 
+our $VERSION = '1.000_003';
+$VERSION = eval $VERSION;
+
+$PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debug : 0;
 # replace all occurences of the form
 #
 #   $pdl(args);
@@ -39,8 +45,6 @@ package PDL::NiceSlice;
 #
 # Modified 5-Nov-2007: stop processing if we encounter m/^no\s+PDL\;:\;:NiceSlice\;\s*$/.
 
-$PDL::NiceSlice::VERSION = '1.0.3';
-$PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debug : 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
 

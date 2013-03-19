@@ -2859,11 +2859,13 @@ sub PDL::convert {
 # XXX Be sure to update these when new types are added!
 =pod
 
-byte|short|ushort|long|longlong|float|double convert shorthands
+=for ref
+
+byte|short|ushort|long|longlong|float|double (shorthands to convert datatypes)
 
 =cut
 
-print OUT "=for ref\n\n$convertalts convert shorthands\n\n=cut\n\n";
+print OUT "=for ref\n\n$convertalts (shorthands to convert datatypes)\n\n=cut\n\n";
 
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
  "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
@@ -3426,9 +3428,19 @@ sub PDL::cat {
 	my $old_err = $@;
 	$@ = '';
 	eval {
-		$res = $_[0]->initialize; $res->set_datatype($_[0]->get_datatype);
-		$res->setdims([$_[0]->dims,scalar(@_)]);
-		my ($i,$t); my $s = ":,"x$_[0]->getndims;
+		$res = $_[0]->initialize; 
+		$res->set_datatype($_[0]->get_datatype);
+		
+		my @resdims = $_[0]->dims;
+		for my $i(0..$#_){
+		    my @d = $_[$i]->dims;
+		    for my $j(0..$#d) {
+			$resdims[$j] = $d[$j] if( !defined($resdims[$j]) or $resdims[$j]==1 );
+			die "mismatched dims\n" if($d[$j] != 1 and $resdims[$j] != $d[$j]);
+		    }
+		}
+		$res->setdims( [@resdims,scalar(@_) ]);
+		my ($i,$t); my $s = ":,"x@resdims;
 		for (@_) { $t = $res->slice($s."(".$i++.")"); $t .= $_}
 
 		# propogate any bad flags
@@ -3443,7 +3455,7 @@ sub PDL::cat {
 	# If we've gotten here, then there's been an error, so check things
 	# and barf out a meaningful message.
 
-	if  ($@ =~ /PDL::Ops::assgn/
+	if  ($@ =~ /PDL::Ops::assgn|mismatched/
 	  or $@ =~ /"badflag"/
 	  or $@ =~ /"initialize"/) {
 		my (@mismatched_dims, @not_a_piddle);

@@ -22,7 +22,7 @@ PDL::Core::Dev->import();
 use Config;
 use IO::File;
 
-$DB::single = 1;  # uncomment to have debugger stop here
+## $DB::single = 1;  # uncomment to have debugger stop here
 
 my $pthread_include = $Config::Config{usrinc};  # not good for win32
 my $pthread_library = '-lpthread';                                  # not good for MSVC

@@ -194,7 +194,7 @@ BEGIN
 
 return if $donot;  # yes, this must be return (exit will kill Makefile.PL process)
 
-$DB::single = 1;
+## $DB::single = 1;  # uncomment to have debugger stop here
 $ppfile = "Proj.pd";
 $package = [$ppfile, Proj, $package_name];
 %hash = pdlpp_stdargs($package);

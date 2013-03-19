@@ -115,9 +115,8 @@ sub init_converter_table {
 				       get => "$conv".'topnm'} }
 
   my @special = (['PNM','NONE','NONE'],
-		 ['PS','pnmtops',
-		  'gs -sDEVICE=ppmraw -sOutputFile=- -q -dNOPAUSE -dBATCH'],
-
+		 ['PS','pnmtops -dpi=100',
+		  'pstopnm -stdout -xborder=0 -yborder=0 -quiet -dpi=100'],
 		 ['GIF','ppmtogif','giftopnm'],
 		 ['IFF','ppmtoilbm','ilbmtoppm']
 		 );

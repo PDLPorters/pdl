@@ -7,7 +7,7 @@ package PDL::Perldl2::Profile::Perldl2;
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
-$PDL::Perldl2::Profile::Perldl2::VERSION = 0.007;
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.008;
 
 with 'Devel::REPL::Profile';
 
@@ -93,6 +93,7 @@ sub apply_profile {
       $PERLDL::PAGER  = ((exists $ENV{PAGER}) ? $ENV{PAGER} : 'more');
       $PERLDL::PAGING = 0;
       $PERLDL::PROMPT = "pdl> ";                          # string or code reference
+      $PERLDL::PREFIX_RE = qr(^\s*(?:pdl|perldl)>\s*);    # RE for shell prompts
       $PERLDL::TERM = $_REPL->term;
       ] );
 
@@ -132,6 +133,9 @@ sub apply_profile {
       demo bad         # Bad-value demo (Req.: bad value support)
       demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
 
+      demo gnuplot     # Gnuplot graphics (requires PDL::Graphics::Gnuplot)
+      demo prima       # Prima graphics (requires PDL::Graphics::Prima)
+
 EOD
       return;
       } # if: /^$/
@@ -146,7 +150,9 @@ EOD
          'bad' => 'PDL::Demos::BAD_demo',
          'bad2' => 'PDL::Demos::BAD2_demo',
          'transform' => 'PDL::Demos::Transform_demo',
-         'cartography' => 'PDL::Demos::Cartography_demo'
+         'cartography' => 'PDL::Demos::Cartography_demo',
+         'gnuplot' => 'PDL::Demos::Gnuplot_demo',
+         'prima' => 'PDL::Demos::Prima',
       );
 
       if ( exists $demos{$_} ) {
@@ -224,7 +230,7 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
     system> re.pl --profile=PDL::Perldl2::Profile::Perldl2  # unix-ish shell
     system> re    --profile=PDL::Perldl2::Profile::Perldl2  # win32 CMD shell
 
-    Perldl2 Shell v0.004
+    Perldl2 Shell v0.008
           PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
           'COPYING' in the PDL distribution. This is free software and you
           are welcome to redistribute it under certain conditions, see
@@ -255,7 +261,7 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
     
     Type Ctrl-D or quit to exit
     
-    Loaded PDL v2.4.9
+    Loaded PDL v2.006
     
     pdl> 
 

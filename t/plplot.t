@@ -84,7 +84,7 @@ else { # MS Windows only
 }
 
 $pl = PDL::Graphics::PLplot->new (DEV => $dev,
-				  FILE => "test2.$dev",
+				  FILE => "test02.$dev",
 				  BACKGROUND => [255,255,255]);
 isa_ok( $pl, "PDL::Graphics::PLplot" ) or die;
 
@@ -94,28 +94,28 @@ $pl->xyplot($x, $y,
 	    BOX => [-5,10,0,200],
 	    PLOTTYPE => 'LINE');
 $pl->close;
-ok (-s "test2.$dev" > 0, "Simple line plot");
+ok (-s "test02.$dev" > 0, "Simple line plot");
 
 $pl = PDL::Graphics::PLplot->new (DEV => $dev,
-				  FILE => "test2a.$dev",
+				  FILE => "test02a.$dev",
 				  LINEWIDTH => 10,
 				  BACKGROUND => [255,255,255]);
 $pl->xyplot($x, $y,
 	    BOX => [-5,10,0,200],
 	    PLOTTYPE => 'LINE');
 $pl->close;
-ok (-s "test2a.$dev" > 0, "Simple line plot with LINEWIDTH specified");
+ok (-s "test02a.$dev" > 0, "Simple line plot with LINEWIDTH specified");
 
-$pl = PDL::Graphics::PLplot->new (DEV => $dev, FILE => "test3.$dev",
+$pl = PDL::Graphics::PLplot->new (DEV => $dev, FILE => "test03.$dev",
 				       BACKGROUND => 'WHITE');
 $pl->xyplot($x, $y, PLOTTYPE => 'POINTS', COLOR => 'BLUEVIOLET', SYMBOL => 1, SYMBOLSIZE => 4);
 $pl->close;
-ok (-s "test3.$dev" > 0, "Symbol plot");
+ok (-s "test03.$dev" > 0, "Symbol plot");
 
-$pl = PDL::Graphics::PLplot->new (DEV => $dev, FILE => "test4.$dev", FRAMECOLOR => 'BLUE');
+$pl = PDL::Graphics::PLplot->new (DEV => $dev, FILE => "test04.$dev", FRAMECOLOR => 'BLUE');
 $pl->xyplot($x, $y, PLOTTYPE => 'LINEPOINTS', COLOR => [50,230,30]);
 $pl->close;
-ok (-s "test4.$dev" > 0, "Lines and symbols");
+ok (-s "test04.$dev" > 0, "Lines and symbols");
 
 $y = sequence(30)+1;
 my $m = (50* (exp(1/$y**2) - 1) * random (30,20))->xchg(0,1);
@@ -127,9 +127,9 @@ my $n  = 500 - exp($y/5);
 #$pl = PDL::Graphics::PLplot->new (DEV => "xwin", FILE => "trillian.cosmic.ucar.edu:0");
 
 # Setting text to 1 like this does not work.  text is hard coded in ps.c ;(
-#$pl = PDL::Graphics::PLplot->new (DEV => "psc", FILE => "test5.ps", OPTS => {'text' => '1'});
+#$pl = PDL::Graphics::PLplot->new (DEV => "psc", FILE => "test05.ps", OPTS => {'text' => '1'});
 
-$pl = PDL::Graphics::PLplot->new (DEV => $dev, FILE => "test5.$dev");
+$pl = PDL::Graphics::PLplot->new (DEV => $dev, FILE => "test05.$dev");
 $pl->xyplot($x1,   $y, COLOR => 'GREEN',
 	               BOX   => [($mean - $rms)->minmax, $y->minmax],
 	               XBOX  => 'bnst', # bottom line, bottom numbers, ticks, subticks
@@ -149,43 +149,43 @@ $pl->text("Count", COLOR => 'PINK',
                                                         # center of string, middle of axis
 
 $pl->close;
-ok (-s "test5.$dev" > 0, "Sample layer statistics plot");
+ok (-s "test05.$dev" > 0, "Sample layer statistics plot");
 
 # test of setting page size.
 $pl = PDL::Graphics::PLplot->new (DEV => $dev,
-				       FILE => "test6.$dev",
+				       FILE => "test06.$dev",
 				       PAGESIZE => [50,80]);
 $x  = sequence(10);
 $y  = $x**2;
 $pl->xyplot($x, $y, PLOTTYPE => 'LINE');
 $pl->close;
-ok (-s "test6.$dev" > 0, "Setting pagesize");
+ok (-s "test06.$dev" > 0, "Setting pagesize");
 
 # test of lines with gaps (plgapline)
 $pl = PDL::Graphics::PLplot->new (DEV => $dev,
-				  FILE => "test7.$dev");
+				  FILE => "test07.$dev");
 $x  = sequence(10);
 $y  = $x**2;
 $x->inplace->setbadat(5); # insert gap
 $y->inplace->setbadat(5); # insert gap
 $pl->xyplot($x, $y, PLOTTYPE => 'LINE');
 $pl->close;
-ok (-s "test7.$dev" > 0, "Line plot with gaps (plgapline)");
+ok (-s "test07.$dev" > 0, "Line plot with gaps (plgapline)");
 
 # test of setting JUSTify = 1
-$pl = PDL::Graphics::PLplot->new (DEV => $dev, FILE => "test8.$dev");
+$pl = PDL::Graphics::PLplot->new (DEV => $dev, FILE => "test08.$dev");
 $x  = sequence(10);
 $y  = $x**2;
 $pl->xyplot($x, $y, PLOTTYPE => 'LINEPOINTS', JUST => 1);
 $pl->close;
-ok (-s "test8.$dev" > 0, "Setting JUSTify = 1");
+ok (-s "test08.$dev" > 0, "Setting JUSTify = 1");
 
-$pl = PDL::Graphics::PLplot->new (DEV  => $dev, FILE => "test9.$dev");
+$pl = PDL::Graphics::PLplot->new (DEV  => $dev, FILE => "test09.$dev");
 
 $pl->text("Test string outside of window", TEXTPOSITION => ['T', 1, 0, 0]);
 $pl->text("Test string inside window",     TEXTPOSITION => [0, 0, 0.5, 0.5, 0]);
 $pl->close;
-ok (-s "test9.$dev" > 0, "Printing text inside and outside of plot window");
+ok (-s "test09.$dev" > 0, "Printing text inside and outside of plot window");
 
 my $pi = atan2(1,1)*4;
 my $a  = (sequence(20)/20) * 2 * $pi;
@@ -494,10 +494,9 @@ for my $i (1 .. 120) {
 }
 ok ($count == 120, "Opening/closing of > 100 streams");
 
-$pltfile = "test28.$dev";
 
 SKIP: {
-  skip 'Not compiled with POSIX threads', 1 unless ($PDL::Config{WITH_POSIX_THREADS} == 1);
+  skip 'Not compiled with POSIX threads', 1 if (($PDL::Config{WITH_POSIX_THREADS} == 0) || ($^O =~/darwin/i));
 
   my $pltfile = "test28.$dev";
   if($^O =~ /MSWin32/i) {

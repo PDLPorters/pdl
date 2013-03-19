@@ -124,6 +124,7 @@ Basic/SourceFilter/Changes
 Basic/SourceFilter/FilterSimple.pm
 Basic/SourceFilter/FilterUtilCall.pm
 Basic/SourceFilter/Makefile.PL
+Basic/SourceFilter/ModuleCompile.pm
 Basic/SourceFilter/NiceSlice.pm
 Basic/SourceFilter/example
 Basic/SourceFilter/local.perldlrc
@@ -141,9 +142,11 @@ Demos/BAD2_demo.pm.PL
 Demos/BAD_demo.pm.PL
 Demos/Cartography_demo.pm
 Demos/General.pm
+Demos/Gnuplot_demo.pm
 Demos/Makefile.PL
 Demos/PGPLOT_OO_demo.pm
 Demos/PGPLOT_demo.pm
+Demos/Prima.pm
 Demos/Screen.pm
 Demos/Transform_demo.pm
 Demos/TriD/mandel.pl
@@ -651,7 +654,6 @@ debian/dh_pdl
 debian/f77conf.pl
 debian/fix_man_encoding.sed
 debian/fix_man_name.sed
-debian/patches/00list
 debian/patches/series
 debian/pdl.dirs
 debian/pdl.doc-base

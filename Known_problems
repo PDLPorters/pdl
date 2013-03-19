@@ -1,6 +1,10 @@
 The following issues have been reported with this version of PDL:
 
+- A bug in Netpbm from versions 10.56.00 through 10.61.2 may
+  result in a an invalid conversion of RAST images to PNM
+  format on some platforms, resulting in a failed picrgb test.
 
+  
 - Bugs in Netpbm versions earlier than 10.58.00 result in
   invalid 16bit PNG image IO and failing tests.
 
@@ -106,15 +110,22 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.004_012 release:
+  PDL-2.004_997 release:
 
+  3608123    topdl ignores list elements after the first
+  3607936    inplace(), misused, causes crashes!
+
+               Discovered and fixed this release.
+
+  3607927    hang/segv after applying inplace transform
+
+               Discovered and fixed this release.
+
+  3606774    PDL re-install wipes out non-core docs
+  3605814    PDL::Demos system needs overhaul
+  3605476    Several core modules do not have man pages
   3602817    PDL::Index does not render on websites
   3601064    Need INSTALLSITEBIN for recent Macports Perls
-  3599815    pic_16bit.t failure when building pdl
-
-               This is due to a bug in older NetPBM library
-	       versions.  Update to 10.58.00 or later to fix.
-
   3599516    plplot.t failure when building 2.4.11
   3570236    clip() edge case not handled right
   3570235    Wrong results in corner empty-set cases
@@ -122,17 +133,16 @@ The following issues have been reported with this version of PDL:
   3539685    pdldoc can't handle SPP mount location change
   3518190    t/gd_oo_tests.t fails for AMD64
 
-               This appears to affect OpenBSD AMD64 only.
-	       These tests are skipped if the AUTOMATED_TESTING
-	       environment variable is test.  If you can
-	       reproduce the error, help in debugging the
-	       problem would be welcome!  May also affect
-	       some Mac OS X installs.
-
+               A candidate fix is in the current relese but
+               the tests are skipped by default if the
+               AUTOMATED_TESTING environment variable is set.
+               If you have an AMD64 platform, please let us
+               know if the test passes "by hand".  Thanks.
+               
   3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
 
-               work around is in PDL git.  Testing in
-               PDL-2.4.11_010 developers release.
+               A partial work around is in place.  Please
+               report any on-going problems.
 
   3509400    pp_def, pp_line_numbers,..not found by pdldoc
   3316394    'help funname' fails to show multiple function names
@@ -141,15 +151,6 @@ The following issues have been reported with this version of PDL:
   3234141    max() fails on nan
   3161459    online docs don't link to functions in other PDL modules
   3018731    NiceSlice affects code where it should not
-             
-	       The new PDL::NiceSlice engine based on
-	       Filter::Simple is now available in PDL git
-	       and CPAN developers releases.  It will
-	       be standard for the next stable PDL release.
-	       Test feedback welcome.  Please see the
-	       Release_Notes for how to generate the filtered
-	       output to help diagnose any problems.
-
   2995500    perl -d chokes on lvalue functions
 
                Fixed in perl 5.16.x or use work around.

@@ -1,18 +1,138 @@
-Release Notes for PDL 2.004_012 --------------------------
+Release Notes for PDL 2.004_997 --------------------------
 
 General Notes:
 
- +--------------------------------------------------------+
- | WARNING!                                               |
- |   This release uses an experimental version of the     |
- |   PDL::NiceSlice module based on Filter::Simple that   |
- |   is being debugged for platform and module version    |
- |   issues.  To use the legacy code, just set your       |
- |   PDL_NICESLICE_ENGINE environment variable to the     |
- |   value Filter::Util::Call instead of Filter::Simple   |
- |                                                        |
- +--------------------------------------------------------+
+ * A.k.a. PDL-2.006 release candidate 3 (code freeze)
 
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.004_997.tar.gz
+       cpan> make CHM/PDL-2.004_997.tar.gz
+       cpan> test CHM/PDL-2.004_997.tar.gz
+       cpan> look CHM/PDL-2.004_997.tar.gz
+
+
+Highlights:
+
+ * Added a demo for PDL::Graphics::Prima to the PDL shells.
+
+ * Tweak gnuplot demo to not require a specific font which
+   may not be available on all platforms.
+ 
+ * Fixed a bug causing crashes due to using inplace with
+   a duplicate argument.
+ 
+ * Fixed image overwrite problem in imag2d and imag2d_update.
+
+
+
+Release Notes for PDL 2.004_996 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.006 release candidate 2 (code freeze)
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.004_996.tar.gz
+       cpan> make CHM/PDL-2.004_996.tar.gz
+       cpan> test CHM/PDL-2.004_996.tar.gz
+       cpan> look CHM/PDL-2.004_996.tar.gz
+
+
+Highlights:
+
+ * Fixed bug in cat() threading with tests to verify fix.
+
+ * Update pod for Datatype_conversions so 'apropos types'
+   will find it in the PDL shells or with pdldoc -a.
+ 
+ * Fix pdl-from-string doc error in QuickStart
+
+ * New feature in perldl and pdl2 where a pattern
+   matching the PDL shell prompt (in $PERLDL::PREFIX_RE)
+   will get stripped off of input lines before eval.
+   
+   That makes it easier to cut-and-paste example text
+   from PDL shell sessions or the  PDL Book into an
+   active session.
+
+ * Added a demo for gnuplot to the PDL shells.
+
+
+
+Release Notes for PDL 2.004_995 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.006 release candidate 1 (code freeze)
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.004_995.tar.gz
+       cpan> make CHM/PDL-2.004_995.tar.gz
+       cpan> test CHM/PDL-2.004_995.tar.gz
+       cpan> look CHM/PDL-2.004_995.tar.gz
+
+
+Highlights:
+
+ * Potential fix for sf.net bug #3518190 where
+   t/gd_oo_tests.t crashes.  If you have an AMD64 platform,
+   please test.
+
+   NOTE: the tests will be skipped if AUTOMATED_TESTING is
+   set to avoid false fails by CPAN Testers.
+
+ * Updates to the PLplot Makefile.PL and test file.
+
+
+
+Release Notes for PDL 2.004_012 --------------------------
+
+General Notes:
 
  * Another quick CPAN developers release
  
@@ -41,7 +161,11 @@ Highlights:
  * Switch increment for CPAN developers release VERSIONs
    to the new standard.
  
- * TBD
+ * Remove PDL::NiceSlice constructs from PDL::IO::FITS
+   and PDL::Transform to reduce load time.
+
+ * Revert PDL::NiceSlice engine to the original default
+   in preparation for the coming stable release.
 
 
 

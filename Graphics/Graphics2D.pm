@@ -696,7 +696,7 @@ sub imag2d {
    my ($img, $name, $zoom, $off_r, $off_c) = (undef,"Figure $cur_fig_num", undef, 0, 0);
 
    # need to add error checking here
-   $img = shift;
+   $img = (shift)->copy;
    $name  = shift if scalar(@_);
    $zoom  = shift if scalar(@_);
    $off_r = shift if scalar(@_);

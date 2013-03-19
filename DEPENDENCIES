@@ -48,6 +48,9 @@ PDL (all)         perl >= 5.8.x           PDL requires at least this version
 PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
                   Filter::Util::Call
 
+                  Filter::Simple          Required for new PDL::NiceSlice
+                  Module::Compile         implementation under development.
+
 
 Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
                                           PP code inline in your scripts.
@@ -223,21 +226,16 @@ PDL::IO::HDF      PDL interface to HDF4 library.  See
                                           HDF4 libraries are detected.
 
 
-PDL::IO::NDF      This module is no longer part of the PDL
-                  core distribution but may be installed
-                  separately from CPAN.
-
-
-PDL::IO::Pic      rpic/wpic: PBM+ or NetPBM converters
+PDL::IO::Pic      rpic/wpic: NetPBM converters
                   See http://netpbm.sourceforge.net/
 
                   wmpeg: requires the ffmpeg program
                   See http://ffmpeg.org/
 
                                           Module builds ok without
-                                          converters but t/pic_16bit
-                                          will fail without a recent
-                                          enough version of NetPBM.
+                                          converters.  Recommend at
+                                          least version 10.58.00 of
+                                          NetPBM.
 
 
 PDL::Minuit       PDL interface to Minuit minimization routines in
