@@ -1,3 +1,47 @@
+Release Notes for PDL 2.006 --------------------------
+
+General Notes:
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.4.10 and earlier.  This    |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+ * Change to the version number scheme used for PDL from the 
+   dotted-integers format back to plain old decimal numbers.
+   Unfortunately, PDL has used both alternatives already and
+   in an inconsistent, out-of-order way.  With this release,
+   the current version will also be the most recent version
+   with respect to both numbering schemes.  For more details
+   see David Goldens blob post on the topic:
+
+     http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
+
+ * Showcases demos of two new PDL graphics modules:
+   PDL::Graphics::Gnuplot and PDL::Graphics::Prima that are
+   installable on all PDL platforms via cpan or cpanm.
+
+ * Fixes some build issues for PDL on the ASPerl build farm.
+ 
+
+
+Highlights:
+
+ * Added a demo for PDL::Graphics::Prima to the PDL shells.
+
+ * Tweak gnuplot demo to not require a specific font which
+   may not be available on all platforms.
+ 
+ * Fixed a bug causing crashes due to using inplace with
+   a duplicate argument.
+ 
+ * Fixed image overwrite problem in imag2d and imag2d_update.
+
+
+
 Release Notes for PDL 2.004_997 --------------------------
 
 General Notes:
