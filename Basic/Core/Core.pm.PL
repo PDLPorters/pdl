@@ -2323,6 +2323,7 @@ sub blessed {
 # Convert numbers to PDL if not already
 
 sub PDL::topdl {
+    return $_[0]->new(@_[1..$#_]) if($#_ > 1); # PDLify an ARRAY
     return $_[1] if blessed($_[1]); # Fall through
     return $_[0]->new($_[1]) if ref(\$_[1]) eq  'SCALAR' or
            ref($_[1]) eq 'ARRAY';

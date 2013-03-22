@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 54;
+use Test::More tests => 56;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -77,6 +77,10 @@ ok all( $a == 2 ), "dataflow";
 
 isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns a piddle" );
 isa_ok( PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns a piddle" );
+isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns a piddle" );
+$a=PDL->topdl(1,2,3);
+ok (($a->nelem == 3  and  all($a == pdl(1,2,3))), "topdl(1,2,3) returns a 3-piddle containing (1,2,3)");
+
 
 # test $PDL::undefval support in pdl (bug #886263)
 #
