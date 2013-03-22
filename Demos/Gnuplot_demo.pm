@@ -40,17 +40,6 @@ sub run {
     local($PDL::debug) = 0;
     local($PDL::verbose) = 0;
     
-    unless( `which gnuplot`) {
-	comment q|
-This demo illustrates PDL::Graphics::Gnuplot, the PDL interface to the Gnuplot 
-plotting language.  It requires the gnuplot executable, which isn't currently
-in your path. 
-
-Please install gnuplot (available from http://gnuplot.sourceforge.net) and 
-re-run.
-|;
-	return;
-    }
 
     $s = q|
   # ensure that the module is loaded 
@@ -295,7 +284,7 @@ act q|
   
     $s =  q|
 
-   $m51 = rfits('%%m51%%')->slice('0:-1:2,0:-1:2');
+   $m51 = rfits('%%m51%%')->slice('0:-1:4,0:-1:4');
 
    $m51s = $m51->convolveND(ones(11,11)/11**2);
 
@@ -306,14 +295,14 @@ act q|
    $w->multiplot(layout=>[2,2,'columnsfirst']);
 
    $w->plot({title=>"M51 in 3-D (default view)"}, 
-             with=>'pm3d',xvals($m51), yvals($m51), $m51s, $m51 );
+             with=>'pm3d',xvals($m51s), yvals($m51s), $m51s, $m51s );
    $w->plot({title=>"M51 in 3-D (ortho view)",            view=>'equal xy'},
-             with=>'pm3d',xvals($m51), yvals($m51), $m51s, $m51 );
+             with=>'pm3d',xvals($m51s), yvals($m51s), $m51s, $m51s );
 
    $w->plot({title=>"M51 in 3-D (near-vertical view)",    view=>[ 0, 80, 'equal xy' ]},
-             with=>'pm3d',xvals($m51), yvals($m51), $m51s, $m51 );
+             with=>'pm3d',xvals($m51s), yvals($m51s), $m51s, $m51s );
    $w->plot({title=>"M51 in 3-D (nearly along X axis)",   view=>[ 85, 5 ]},
-             with=>'pm3d',xvals($m51), yvals($m51), $m51s, $m51 );
+             with=>'pm3d',xvals($m51s), yvals($m51s), $m51s, $m51s );
    
    $w->end_multi;
 
