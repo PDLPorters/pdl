@@ -81,6 +81,23 @@ and also
 
 
 =================================================================
+               GRAPHICS (non-CORE DISTRIBUTION)
+=================================================================
+These graphics modules are known to work but are not in the
+core PDL distribution.  You'll need to install from CPAN
+separately:
+
+ PDL::Graphics::Gnuplot  Needs the gnuplot executable
+  
+ PDL::Graphics::Prima    Install Prima and PDL::Graphics::Prima
+                         via the cpan shells cpan, cpanm...
+			 Give interactive plotting support and
+			 a full GUI toolkit that can be used to
+			 implement graphical perl/PDL/Prima apps.
+
+
+
+=================================================================
                            NOT WORKING
 =================================================================
 These modules with external dependencies are not yet available
