@@ -230,7 +230,7 @@ TODO:
     # TEST 26-27:
     # Create from a 3d PNG data glob:
     $rc = open( TF3, $testfile3 );
-    ok( $rc );
+    ok( $rc , 'testfile3 successfully opened');
     binmode( TF3 );
     $/ = undef;
     my $blob3d = <TF3>;

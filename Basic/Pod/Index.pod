@@ -1,0 +1,615 @@
+
+=head1 NAME
+
+PDL::Index - an index of PDL documentation
+
+=head1 DESCRIPTION
+
+A meta document listing the documented PDL modules and
+the PDL manual documents
+
+=head1 PDL manuals
+
+=over 4
+
+=item *
+
+L<PDL::API|PDL::API> - making piddles from Perl and C/XS code
+
+=item *
+
+L<PDL::BadValues|PDL::BadValues> - Discussion of bad value support in PDL
+
+=item *
+
+L<PDL::Course|PDL::Course> - A journey through PDL's documentation, from beginner to advanced.
+
+=item *
+
+L<PDL::Dataflow|PDL::Dataflow> - description of the dataflow philosophy
+
+=item *
+
+L<PDL::Delta|PDL::Delta> - PDL changes between V1.0 and V2.0
+
+=item *
+
+L<PDL::FAQ|PDL::FAQ> - Frequently asked questions about PDL
+
+=item *
+
+L<PDL::IO|PDL::IO> - An overview of the modules in the PDL::IO namespace.
+
+=item *
+
+L<PDL::Indexing|PDL::Indexing> - Introduction to indexing and slicing piddles.
+
+=item *
+
+L<PDL::Internals|PDL::Internals> - description of some aspects of the current internals
+
+=item *
+
+L<PDL::MATLAB|PDL::MATLAB> - A guide for MATLAB users.
+
+=item *
+
+L<PDL::Modules|PDL::Modules> - A guide to PDL's module reference.
+
+=item *
+
+L<PDL::Objects|PDL::Objects> - Object-Orientation, what is it and how to exploit it
+
+=item *
+
+L<PDL::PP|PDL::PP> - Generate PDL routines from concise descriptions
+
+=item *
+
+L<PDL::ParallelCPU|PDL::ParallelCPU> - Parallel Processor MultiThreading Support in PDL (Experimental)
+
+=item *
+
+L<PDL::Philosophy|PDL::Philosophy> - Why did we write PDL?
+
+=item *
+
+L<PDL::QuickStart|PDL::QuickStart> - Quick introduction to PDL features.
+
+=item *
+
+L<PDL::Scilab|PDL::Scilab> - A guide for Scilab users.
+
+=item *
+
+L<PDL::Threading|PDL::Threading> - Tutorial for PDL's Threading feature
+
+=item *
+
+L<PDL::Tips|PDL::Tips> - Small tidbits of useful arcana. Programming tidbits and such.
+
+=item *
+
+L<PDL::Tutorials|PDL::Tutorials> - A guide to PDL's tutorial documentation.
+
+
+=back
+
+=head1 PDL scripts
+
+=over 4
+
+=item *
+
+L<pdl2|PDL::pdl2> - Simple shell (version 2) for PDL
+
+=item *
+
+L<pdldoc|PDL::pdldoc> - shell interface to PDL documentation
+
+=item *
+
+L<perldl|PDL::perldl> - Simple shell for PDL (see also L<pdl2>)
+
+=item *
+
+L<pptemplate|PDL::pptemplate> - script to generate Makefile.PL and PP file skeleton
+
+
+=back
+
+=head1 PDL modules
+
+=over 4
+
+=item *
+
+L<PDL::PDL|PDL::PDL> - the Perl Data Language
+
+=item *
+
+L<PDL::AutoLoader|PDL::AutoLoader> - MatLab style AutoLoader for PDL
+
+=item *
+
+L<PDL::Bad|PDL::Bad> - PDL does process bad values
+
+=item *
+
+L<PDL::Basic|PDL::Basic> - Basic utility functions for PDL
+
+=item *
+
+L<PDL::CallExt|PDL::CallExt> - call functions in external shared libraries
+
+=item *
+
+L<PDL::Char|PDL::Char> - PDL subclass which allows reading and writing of fixed-length character strings as byte PDLs
+
+=item *
+
+L<PDL::Complex|PDL::Complex> - handle complex numbers
+
+=item *
+
+L<PDL::Compression|PDL::Compression> - compression utilities
+
+=item *
+
+L<PDL::Constants|PDL::Constants> - basic compile time constants for PDL
+
+=item *
+
+L<PDL::Core|PDL::Core> - fundamental PDL functionality and vectorization/threading
+
+=item *
+
+L<PDL::Core::Dev|PDL::Core::Dev> - PDL development module
+
+=item *
+
+L<PDL::Dbg|PDL::Dbg> - functions to support debugging of PDL scripts
+
+=item *
+
+L<PDL::DiskCache|PDL::DiskCache> - Non-memory-resident array object
+
+=item *
+
+L<PDL::Doc|PDL::Doc> - support for PDL online documentation
+
+=item *
+
+L<PDL::Doc::Perldl|PDL::Doc::Perldl> - commands for accessing PDL doc database from 'perldl' shell
+
+=item *
+
+L<PDL::Exporter|PDL::Exporter> - PDL export control
+
+=item *
+
+L<PDL::FFT|PDL::FFT> - FFTs for PDL
+
+=item *
+
+L<PDL::FFTW|PDL::FFTW> - PDL interface to the Fastest Fourier Transform in the West v2.x
+
+=item *
+
+L<PDL::Filter::LinPred|PDL::Filter::LinPred> - Linear predictive filtering
+
+=item *
+
+L<PDL::Filter::Linear|PDL::Filter::Linear> - linear filtering for PDL
+
+=item *
+
+L<PDL::Fit::Gaussian|PDL::Fit::Gaussian> - routines for fitting gaussians
+
+=item *
+
+L<PDL::Fit::LM|PDL::Fit::LM> - Levenberg-Marquardt fitting routine for PDL
+
+=item *
+
+L<PDL::Fit::Linfit|PDL::Fit::Linfit> - routines for fitting data with linear combinations of functions.
+
+=item *
+
+L<PDL::Fit::Polynomial|PDL::Fit::Polynomial> - routines for fitting with polynomials
+
+=item *
+
+L<PDL::Func|PDL::Func> - interpolation, integration, & gradient estimation (differentiation) of functions
+
+=item *
+
+L<PDL::GIS::Proj|PDL::GIS::Proj> - PDL interface to the Proj4 projection library.
+
+=item *
+
+L<PDL::GSL::DIFF|PDL::GSL::DIFF> - PDL interface to numerical differentiation routines in GSL
+
+=item *
+
+L<PDL::GSL::INTEG|PDL::GSL::INTEG> - PDL interface to numerical integration routines in GSL
+
+=item *
+
+L<PDL::GSL::INTERP|PDL::GSL::INTERP> - PDL interface to Interpolation routines in GSL
+
+=item *
+
+L<PDL::GSL::MROOT|PDL::GSL::MROOT> - PDL interface to multidimensional root-finding routines in GSL
+
+=item *
+
+L<PDL::GSL::RNG|PDL::GSL::RNG> - PDL interface to RNG and randist routines in GSL
+
+=item *
+
+L<PDL::GSLSF::AIRY|PDL::GSLSF::AIRY> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::BESSEL|PDL::GSLSF::BESSEL> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::CLAUSEN|PDL::GSLSF::CLAUSEN> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::COULOMB|PDL::GSLSF::COULOMB> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::COUPLING|PDL::GSLSF::COUPLING> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::DAWSON|PDL::GSLSF::DAWSON> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::DEBYE|PDL::GSLSF::DEBYE> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::DILOG|PDL::GSLSF::DILOG> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::ELEMENTARY|PDL::GSLSF::ELEMENTARY> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::ELLINT|PDL::GSLSF::ELLINT> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::ELLJAC|PDL::GSLSF::ELLJAC> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::ERF|PDL::GSLSF::ERF> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::EXP|PDL::GSLSF::EXP> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::EXPINT|PDL::GSLSF::EXPINT> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::FERMI_DIRAC|PDL::GSLSF::FERMI_DIRAC> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::GAMMA|PDL::GSLSF::GAMMA> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::GEGENBAUER|PDL::GSLSF::GEGENBAUER> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::HYPERG|PDL::GSLSF::HYPERG> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::LAGUERRE|PDL::GSLSF::LAGUERRE> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::LEGENDRE|PDL::GSLSF::LEGENDRE> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::LOG|PDL::GSLSF::LOG> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::POLY|PDL::GSLSF::POLY> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::POW_INT|PDL::GSLSF::POW_INT> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::PSI|PDL::GSLSF::PSI> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::SYNCHROTRON|PDL::GSLSF::SYNCHROTRON> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::TRANSPORT|PDL::GSLSF::TRANSPORT> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::TRIG|PDL::GSLSF::TRIG> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::GSLSF::ZETA|PDL::GSLSF::ZETA> - PDL interface to GSL Special Functions
+
+=item *
+
+L<PDL::Gaussian|PDL::Gaussian> - Gaussian distributions.
+
+=item *
+
+L<PDL::Graphics2D|PDL::Graphics2D> - An object oriented interface to PDL graphics
+
+=item *
+
+L<PDL::Graphics::IIS|PDL::Graphics::IIS> - Display PDL images on IIS devices (saoimage/ximtool)
+
+=item *
+
+L<PDL::Graphics::LUT|PDL::Graphics::LUT> - provides access to a number of look-up tables
+
+=item *
+
+L<PDL::Graphics::Limits|PDL::Graphics::Limits> - derive limits for display purposes
+
+=item *
+
+L<PDL::Graphics::OpenGL::Perl::OpenGL|PDL::Graphics::OpenGL::Perl::OpenGL> - PDL TriD OpenGL interface using POGL
+
+=item *
+
+L<PDL::Graphics::OpenGLQ|PDL::Graphics::OpenGLQ> - quick routines to plot lots of stuff from piddles.
+
+=item *
+
+L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT> - PGPLOT enhanced interface for PDL
+
+=item *
+
+L<PDL::Graphics::PGPLOT::Window|PDL::Graphics::PGPLOT::Window> - A OO interface to PGPLOT windows
+
+=item *
+
+L<PDL::Graphics::PGPLOTOptions|PDL::Graphics::PGPLOTOptions> - Setting PGPLOT options
+
+=item *
+
+L<PDL::Graphics::PLplot|PDL::Graphics::PLplot> - Object-oriented interface from perl/PDL to the PLPLOT plotting library
+
+=item *
+
+L<PDL::Graphics::TriD|PDL::Graphics::TriD> - PDL 3D interface
+
+=item *
+
+L<PDL::Graphics::TriD::ButtonControl|PDL::Graphics::TriD::ButtonControl> - default event handler subroutines
+
+=item *
+
+L<PDL::Graphics::TriD::Contours|PDL::Graphics::TriD::Contours> - 3D Surface contours for TriD
+
+=item *
+
+L<PDL::Graphics::TriD::Labels|PDL::Graphics::TriD::Labels> - Text tools
+
+=item *
+
+L<PDL::Graphics::TriD::MathGraph|PDL::Graphics::TriD::MathGraph> - Mathematical Graph objects for PDL
+
+=item *
+
+L<PDL::Graphics::TriD::Objects|PDL::Graphics::TriD::Objects> - Simple Graph Objects for TriD
+
+=item *
+
+L<PDL::Graphics::TriD::Rout|PDL::Graphics::TriD::Rout> - Helper routines for Three-dimensional graphics
+
+=item *
+
+L<PDL::Graphics::TriD::Tk|PDL::Graphics::TriD::Tk> - A Tk widget interface to the PDL::Graphics::TriD.
+
+=item *
+
+L<PDL::Graphics::TriD::VRML|PDL::Graphics::TriD::VRML> - TriD VRML backend
+
+=item *
+
+L<PDL::IO::Dicom|PDL::IO::Dicom> - a module for reading DICOM images.
+
+=item *
+
+L<PDL::IO::Dumper|PDL::IO::Dumper> - data dumping for structs with PDLs
+
+=item *
+
+L<PDL::IO::FITS|PDL::IO::FITS> - Simple FITS support for PDL
+
+=item *
+
+L<PDL::IO::FastRaw|PDL::IO::FastRaw> - A simple, fast and convenient io format for PerlDL.
+
+=item *
+
+L<PDL::IO::FlexRaw|PDL::IO::FlexRaw> - A flexible binary I/O format for PerlDL
+
+=item *
+
+L<PDL::IO::GD|PDL::IO::GD> - Interface to the GD image library.
+
+=item *
+
+L<PDL::IO::HDF|PDL::IO::HDF> - An interface library for HDF4 files.
+
+=item *
+
+L<PDL::IO::HDF::SD|PDL::IO::HDF::SD> - PDL interface to the HDF4 SD library.
+
+=item *
+
+L<PDL::IO::IDL|PDL::IO::IDL> - I/O of IDL Save Files
+
+=item *
+
+L<PDL::IO::Misc|PDL::IO::Misc> - misc IO routines for PDL
+
+=item *
+
+L<PDL::IO::Pic|PDL::IO::Pic> - image I/O for PDL
+
+=item *
+
+L<PDL::IO::Pnm|PDL::IO::Pnm> - pnm format I/O for PDL
+
+=item *
+
+L<PDL::IO::Storable|PDL::IO::Storable> - helper functions to make PDL usable with Storable
+
+=item *
+
+L<PDL::Image2D|PDL::Image2D> - Miscellaneous 2D image processing functions
+
+=item *
+
+L<PDL::ImageND|PDL::ImageND> - useful image processing in N dimensions
+
+=item *
+
+L<PDL::ImageRGB|PDL::ImageRGB> - some utility functions for RGB image data handling
+
+=item *
+
+L<PDL::Lite|PDL::Lite> - minimum PDL module OO loader
+
+=item *
+
+L<PDL::LiteF|PDL::LiteF> - minimum PDL module function loader
+
+=item *
+
+L<PDL::Lvalue|PDL::Lvalue> - declare PDL lvalue subs
+
+=item *
+
+L<PDL::Math|PDL::Math> - extended mathematical operations and special functions
+
+=item *
+
+L<PDL::Matrix|PDL::Matrix> - a convenience matrix class for column-major access
+
+=item *
+
+L<PDL::MatrixOps|PDL::MatrixOps> - Some Useful Matrix Operations
+
+=item *
+
+L<PDL::Minuit|PDL::Minuit> - a PDL interface to the Minuit library
+
+=item *
+
+L<PDL::NiceSlice|PDL::NiceSlice> - toward a nicer slicing syntax for PDL
+
+=item *
+
+L<PDL::Ops|PDL::Ops> - Fundamental mathematical operators
+
+=item *
+
+L<PDL::Opt::Simplex|PDL::Opt::Simplex> - Simplex optimization routines
+
+=item *
+
+L<PDL::Options|PDL::Options> - simplifies option passing by hash in PerlDL
+
+=item *
+
+L<PDL::Perldl2::Plugin::CleanErrors|PDL::Perldl2::Plugin::CleanErrors> - filter out Moose cruft
+
+=item *
+
+L<PDL::Perldl2::Plugin::NiceSlice|PDL::Perldl2::Plugin::NiceSlice> - enable PDL NiceSlice syntax
+
+=item *
+
+L<PDL::Perldl2::Plugin::PDLCommands|PDL::Perldl2::Plugin::PDLCommands> - implement perldl aliases/escapes
+
+=item *
+
+L<PDL::Perldl2::Plugin::PrintControl|PDL::Perldl2::Plugin::PrintControl> - disable default print output
+
+=item *
+
+L<PDL::Perldl2::Profile::Perldl2|PDL::Perldl2::Profile::Perldl2> - profile for Perldl2 shell
+
+=item *
+
+L<PDL::Primitive|PDL::Primitive> - primitive operations for pdl
+
+=item *
+
+L<PDL::Reduce|PDL::Reduce> - a C<reduce> function for PDL
+
+=item *
+
+L<PDL::Slatec|PDL::Slatec> - PDL interface to the slatec numerical programming library
+
+=item *
+
+L<PDL::Slices|PDL::Slices> - Indexing, slicing, and dicing
+
+=item *
+
+L<PDL::Tests|PDL::Tests> - tests for some PP features
+
+=item *
+
+L<PDL::Transform|PDL::Transform> - Coordinate transforms, image warping, and N-D functions
+
+=item *
+
+L<PDL::Transform::Cartography|PDL::Transform::Cartography> - Useful cartographic projections
+
+=item *
+
+L<PDL::Transform::Proj4|PDL::Transform::Proj4> - PDL::Transform interface to the Proj4 projection library
+
+=item *
+
+L<PDL::Types|PDL::Types> - define fundamental PDL Datatypes
+
+=item *
+
+L<PDL::Ufunc|PDL::Ufunc> - primitive ufunc operations for pdl
+
+
+=back
+
+=head1 HISTORY
+
+Automatically generated by scantree.pl for PDL version 2.004_995.
+

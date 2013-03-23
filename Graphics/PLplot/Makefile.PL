@@ -259,8 +259,11 @@ sub compileAndRun {
   system "$cc $ccflags $flags temp.c $flags -o temp > $devnull 2>&1";
   unlink('./temp.c');
   die "Cannot compile test program: $code" unless (-e 'temp' or -e 'temp.exe');
-  return unless ($run);
-
+  unless ($run){
+      unlink './temp';
+      unlink './temp.exe';
+      return;
+  }
   my $res = `./temp`;
   unlink ('./temp');
   return $res;

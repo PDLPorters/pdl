@@ -399,7 +399,9 @@ BEGIN{
   @hasnt = ();
   my @test = ( ['Filter::Util::Call','Filter'],
 	       ['Filter::Simple','Filter::Simple'],
+	       ## ['Module::Compile','Module::Compile'], # don't do this, fails (why?)
 	       ['Text::Balanced','Text::Balanced'], );
+  ## $DB::single = 1; # uncomment to have debugger stop here
   for my $mod (@test) {
     eval "use $mod->[0]";
     push @hasnt, $mod->[1] if $@;
@@ -489,6 +491,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
 	   'Filter::Simple'      => 0.88,      # for new PDL::NiceSlice
 	   'Inline'              => 0.43,
+	   'Module::Compile'     => 0.23,      # for new PDL::NiceSlice
 	   'Pod::Parser'         => 0,         # version TBD for PDL::Doc
 	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
            'Storable'            => 1.03,      # for PDL::IO::Storable
@@ -501,7 +504,7 @@ push @prereq, ('OpenGL' => $PDL::Config{POGL_VERSION}) if $PDL::Config{USE_POGL}
 # push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
 my @exe_files = ('perldl', 'pdldoc');
-my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
+my $cleanup = 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
 
 if($^O !~ /mswin32/i) {
       $cleanup = 'pdl.c ' . $cleanup;

@@ -7,6 +7,7 @@ WriteMakefile(
       'NiceSlice.pm' => '$(INST_LIBDIR)/NiceSlice.pm',
       'FilterUtilCall.pm' => '$(INST_LIBDIR)/NiceSlice/FilterUtilCall.pm',
       'FilterSimple.pm' => '$(INST_LIBDIR)/NiceSlice/FilterSimple.pm',
+      'ModuleCompile.pm' => '$(INST_LIBDIR)/NiceSlice/ModuleCompile.pm',
    },
    PREREQ_PM => {
       Filter::Util::Call => 0,

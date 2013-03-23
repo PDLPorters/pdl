@@ -626,8 +626,8 @@ sub new {
     my($l) = _opt($o,['l','L']);
     my($b) = _opt($o,['b','B']);
 
-    $or->(0) .= topdl($l) if defined($l);
-    $or->(1) .= topdl($b) if defined($b);
+    $or->(0) .= $l if defined($l);
+    $or->(1) .= $b if defined($b);
 
     my $roll = topdl(_opt($o,['r','roll','Roll','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');
@@ -657,7 +657,7 @@ sub new {
     $me->{params}->{roll} = $roll * $conv;
 
     $me->{params}->{bad} = _opt($o,['b','bad','Bad','missing','Missing'],
-			      asin(topdl(1.2)));
+			      asin(pdl(1.1)));
 
     # Get the standard parallel (in general there's only one; the conics
     # have two but that's handled by _c_new)
@@ -1142,7 +1142,7 @@ sub t_mercator {
 	$p->{c} = topdl($p->{c});
 	$p->{c} *= $p->{conv};
     } else {
-	$p->{c} = topdl($DEG2RAD * 75);
+	$p->{c} = pdl($DEG2RAD * 75);
     }
     $p->{c} = abs($p->{c}) * pdl(-1,1) if($p->{c}->nelem == 1);
 
@@ -1767,7 +1767,7 @@ sub t_lambert {
     if(defined($p->{c})) {
 	$p->{c} = topdl($p->{c});
     } else {
-	$p->{c} = topdl(-75,75);
+	$p->{c} = topdl([-75,75]);
     }
     $p->{c} = abs($p->{c}) * topdl([-1,1]) if($p->{c}->nelem == 1);
     $p->{c} = [$p->{c}->list];

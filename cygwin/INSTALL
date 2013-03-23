@@ -8,7 +8,7 @@ Last saved: Tue 11 Oct 2011 12:53:55 PM
 =================================================================
 NOTE: These install notes have been partially reviewed
 for the PDL-2.4.9 release.  It is recommended that you
-build and install PDL based on a full cygwin 1.7.9 or
+build and install PDL based on a full cygwin 1.7.17 or
 later install.  Please post to the perldl mailing list
 for help or questions regarding a cygwin install.
 

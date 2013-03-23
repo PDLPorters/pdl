@@ -24,9 +24,14 @@ around 'read' => sub {
    ##     warn $mess if $mess;
    ## }
 
-   # filter out default PDL shell prompt for easier
-   # cut-and-paste of demo code
-   $lines =~ s/\s*(?:pdl|perldl)>\s*//i if defined $lines;
+   # Filter out PDL shell prefixes from cut-n-pasted lines
+   if ( defined($lines) and $lines =~ s/$PERLDL::PREFIX_RE// ) {
+      if ($PERLDL::TERM->can('GetHistory') and $PERLDL::TERM->can('SetHistory')) {
+         my @hist = $PERLDL::TERM->GetHistory();
+         foreach my $entry (@hist) { $entry =~ s/$PERLDL::PREFIX_RE//; }
+         $PERLDL::TERM->SetHistory(@hist);
+      }
+   }
 
    return $lines unless defined $lines;
 

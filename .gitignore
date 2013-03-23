@@ -318,4 +318,4 @@ perldl.conf-orig
 perldl.pod
 Perldl2/pdl2.pod
 t/*.dll*
-
+pdl

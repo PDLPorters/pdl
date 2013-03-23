@@ -1,18 +1,325 @@
-Release Notes for PDL 2.004_012 --------------------------
+Release Notes for PDL 2.006_01 --------------------------
 
 General Notes:
 
- +--------------------------------------------------------+
- | WARNING!                                               |
- |   This release uses an experimental version of the     |
- |   PDL::NiceSlice module based on Filter::Simple that   |
- |   is being debugged for platform and module version    |
- |   issues.  To use the legacy code, just set your       |
- |   PDL_NICESLICE_ENGINE environment variable to the     |
- |   value Filter::Util::Call instead of Filter::Simple   |
- |                                                        |
- +--------------------------------------------------------+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
 
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.006_01.tar.gz
+       cpan> make CHM/PDL-2.006_01.tar.gz
+       cpan> test CHM/PDL-2.006_01.tar.gz
+       cpan> look CHM/PDL-2.006_01.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.006 --------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.4.10 and earlier.  This    |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+General Notes:
+
+ * Change to the version number scheme used for PDL
+   from the dotted-integers format back to plain old
+   decimal numbers.
+
+   Unfortunately, PDL has used both alternatives before
+   and in an inconsistent, out-of-order way.  With this
+   release, the current version will also be the most
+   recent version with respect to both numbering schemes.
+   
+   For more details see David Goldens blob post on
+   the topic and the pdl-porters list discussion:
+
+     http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
+     http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2013-February/005343.html
+ 
+
+ * PDL-2.006 also showcases the demos of two new PDL graphics
+   modules in the perldl/pdl2 shells:
+   
+    - PDL::Graphics::Gnuplot
+      http://search.cpan.org/~zowie/PDL-Graphics-Gnuplot-1.4/
+
+    - PDL::Graphics::Prima
+      http://search.cpan.org/~dcmertens/PDL-Graphics-Prima-0.13/
+
+   Both modules install on all supported PDL platforms.  A
+   recent addition is PDL::Graphics::Simple which provides
+   a uniform presentation to the variety off available PDL
+   plot/view/print options.
+   
+    - PDL::Graphics::Simple
+      http://search.cpan.org/~zowie/PDL-Graphics-Simple-1.004/README.pod
+      
+   Let us know how they work for you.  As they are 
+   relatively "young" contributions your feedback and
+   questions are always welcome.
+
+
+ * PDL Distribution related updates:
+
+    - Fixes a build issue for PDL at ASPerl
+    
+    - Many fixes for debian distributions.
+    
+    - PDL::IO::NDF has been moved to its own
+      distribution on CPAN.  This could affect
+      upgrades from older PDL installs.
+ 
+
+Highlights:
+
+ * New support for reading IDL format files via PDL::IO::IDL.
+
+ * Added an unpdl method which is (roughly) the inverse
+   operation of pdl (Joel Berger).
+
+ * Updated polyfill and polyfillv routines to the algorithm
+   from pnpoly: more accurate on edge pixels and faster due
+   to its PP implementation (Tim Haines).
+
+ * Added Boundary=>'Replicate' option to conv2d and med2d (chm).
+
+ * Support for new additional random number generators to
+   PDL::GSL (John Lapeyre).
+
+ * Add lgamma support for MinGW-built perls with tests
+   to match (sisyphus).
+
+ * Many improvments to docs and their generation from
+   PDL sources.  Specific new functionality support:
+
+    - Newly refactored docs engine using core perl
+      modules rather than PDL-only ones (Joel Berger)
+
+    - New FullDoc key added to PDL::PP makes writing CPAN
+      friendly .pd files much, much easier (David Mertens).
+
+    - New PDL::Doc::add_module() routine to add an external
+      module's POD (with PDL::Doc conventions) to the PDL
+      docs on-line database (Craig DeForest).
+
+ * Many bugs fixed, some even before a ticket could be opened!
+
+    - Sf.net bug #3607936: Fixed a bug causing crashes
+      due to using inplace with a duplicate argument.
+
+    - Sf.net bug #3603249: AutoLoader leaks $_ into local
+      context, reported and fixed by Craig.
+
+    - Sf.net bug #3588182: Fixed hist() handling of the case
+      of fractional steps in integral input data types.
+
+    - Sf.net bug #3563903: Fixed bug in PNG format detection
+      on win32 platforms.  
+
+    - Sf.net bug #3544682: Fixed error report bug in perldl
+      that resulted from a change in the way perl handles
+      eval exception reporting.
+
+    - Sf.net bug #3539760: qsort[vec] are now inplace aware.
+
+    - Sf.net bug #3518190: Potential fix for t/gd_oo_tests.t
+      test crashes.
+
+    - Sf.net bug #3515759: Work around for PDL::GIS::Proj
+      build failures with proj-4.8.0.
+
+    - Sf.net bug #3479009: Fixed dummy() to generate a
+      valid syntax for the underlying call to slice().
+
+    - Sf.net bug #3475075: Fixed 16-bit PNM raw format handling.
+
+    - Added warning if conv1d is used on a piddle with
+      the badflag set.
+
+    - Fix NaN sign issues as reported (and fixed!) by
+      Matthew McGillis with contributions by Sisyphus.
+
+    - Fix rim() 3-arg form.  Added tests to support and
+      verify the development.
+
+    - Fixed a problem with multiple windows and imag2d
+      and imag2d_update.
+
+ * The PDL shells keep getting better:
+
+    - New feature in perldl and pdl2 where a pattern matching
+      the PDL shell prompt (in $PERLDL::PREFIX_RE) will get
+      stripped off of input lines before eval.  This makes it
+      easier to cut-and-paste example text from PDL shell
+      sessions or from the PDL Book into an active session.
+
+    -  Added a demo for PDL::Graphics::Prima to the PDL shells.
+
+    -  Added a demo for gnuplot to the PDL shells.
+
+    -  The p shortcut to display output in the PDL shells has
+       been reverted to its previous 2.4.10 behavior.  If you
+       wish it to be an exact alias for print just override
+       in your .perldlrc or local.perldlrc file.
+
+
+
+Release Notes for PDL 2.004_997 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.006 release candidate 3 (code freeze)
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.004_997.tar.gz
+       cpan> make CHM/PDL-2.004_997.tar.gz
+       cpan> test CHM/PDL-2.004_997.tar.gz
+       cpan> look CHM/PDL-2.004_997.tar.gz
+
+
+Highlights:
+
+ * Added a demo for PDL::Graphics::Prima to the PDL shells.
+
+ * Tweak gnuplot demo to not require a specific font which
+   may not be available on all platforms.
+ 
+ * Fixed a bug causing crashes due to using inplace with
+   a duplicate argument.
+ 
+ * Fixed image overwrite problem in imag2d and imag2d_update.
+
+
+
+Release Notes for PDL 2.004_996 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.006 release candidate 2 (code freeze)
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.004_996.tar.gz
+       cpan> make CHM/PDL-2.004_996.tar.gz
+       cpan> test CHM/PDL-2.004_996.tar.gz
+       cpan> look CHM/PDL-2.004_996.tar.gz
+
+
+Highlights:
+
+ * Fixed bug in cat() threading with tests to verify fix.
+
+ * Update pod for Datatype_conversions so 'apropos types'
+   will find it in the PDL shells or with pdldoc -a.
+ 
+ * Fix pdl-from-string doc error in QuickStart
+
+ * New feature in perldl and pdl2 where a pattern
+   matching the PDL shell prompt (in $PERLDL::PREFIX_RE)
+   will get stripped off of input lines before eval.
+   
+   That makes it easier to cut-and-paste example text
+   from PDL shell sessions or the  PDL Book into an
+   active session.
+
+ * Added a demo for gnuplot to the PDL shells.
+
+
+
+Release Notes for PDL 2.004_995 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.006 release candidate 1 (code freeze)
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.004_995.tar.gz
+       cpan> make CHM/PDL-2.004_995.tar.gz
+       cpan> test CHM/PDL-2.004_995.tar.gz
+       cpan> look CHM/PDL-2.004_995.tar.gz
+
+
+Highlights:
+
+ * Potential fix for sf.net bug #3518190 where
+   t/gd_oo_tests.t crashes.  If you have an AMD64 platform,
+   please test.
+
+   NOTE: the tests will be skipped if AUTOMATED_TESTING is
+   set to avoid false fails by CPAN Testers.
+
+ * Updates to the PLplot Makefile.PL and test file.
+
+
+
+Release Notes for PDL 2.004_012 --------------------------
+
+General Notes:
 
  * Another quick CPAN developers release
  
@@ -41,7 +348,11 @@ Highlights:
  * Switch increment for CPAN developers release VERSIONs
    to the new standard.
  
- * TBD
+ * Remove PDL::NiceSlice constructs from PDL::IO::FITS
+   and PDL::Transform to reduce load time.
+
+ * Revert PDL::NiceSlice engine to the original default
+   in preparation for the coming stable release.
 
 
 

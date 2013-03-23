@@ -76,6 +76,9 @@
 # it does not need to be supplied, and the return value should be
 # given as a single-quoted string and use the $name variable
 #
+# The Substitute rule replaces dollar-signed macros ($P(), $ISBAD(), ect)
+# with the low-level C code to perform the macro.
+#
 # The Substitute class replaces the dosubst rule. The old rule
 #   [["NewXSCoerceMustSubs"], ["NewXSCoerceMustSub1","NewXSSymTab","Name"],
 #	 	      \&dosubst]
@@ -91,7 +94,7 @@
 #   [["CacheBadFlagInit"], ["CacheBadFlagInitNS","NewXSSymTab","Name"],
 #		      \&dousualsubsts],
 # becomes
-#   PDL::PP::Rule::Substityte::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS")
+#   PDL::PP::Rule::Substitute::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS")
 #
 # PDL::PP::Rule::Substitute::Usual->new($target, $condition)
 #   $target and $condition must be scalars.
@@ -2245,7 +2248,7 @@ sub InplaceCode {
 
     my $instate = $in . "->state";
     return
-	qq{\tif ( $instate & PDL_INPLACE ) {
+	qq{\tif ( $instate & PDL_INPLACE && ($out != $in)) {
               $instate &= ~PDL_INPLACE; PDL_COMMENT("unset")
               $out = $in;             PDL_COMMENT("discard output value, leak ?")
               PDL->SetSV_PDL(${out}_SV,${out});
@@ -2985,6 +2988,11 @@ $PDL::PP::deftbl =
    ##################
    # Done with Docs #
    ##################
+   
+   # Notes
+   # Suffix 'NS' means, "Needs Substitution". In other words, the string
+   # associated with a key that has the suffix "NS" must be run through a
+   # Substitute or Substitute::Usual
 
 # some defaults
 #

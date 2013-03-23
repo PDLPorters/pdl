@@ -53,7 +53,7 @@ BEGIN {
 
   package PDL::IO::FITS;
 
-  $PDL::IO::FITS::VERSION = 0.91; # Will be 1.0 when ascii table read/write works.
+  $PDL::IO::FITS::VERSION = 0.92; # Will be 1.0 when ascii table read/write works.
 
   our @EXPORT_OK = qw( rfits rfitshdr wfits );
   our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -67,7 +67,7 @@ BEGIN {
   use PDL::Types;
   use PDL::Options;
   use PDL::Bad;
-  use PDL::NiceSlice;
+#  use PDL::NiceSlice;
   use Carp;
   use strict;
 
@@ -776,7 +776,7 @@ $PDL::IO::FITS_bintable_handlers = {
            , sub { 
                my( $pdl, $row ) = @_;  # Ignore extra and rpt
                my $n = $pdl->dim(0);
-               my $p2 = byte(($pdl->(($row)) != 0));
+               my $p2 = byte(($pdl->slice("($row)") != 0));
                my $s = ${$p2->get_dataref};
                $s =~ tr/[\000\001]/[01]/;
                pack(  "B".$pdl->dim(0), $s );
@@ -901,7 +901,7 @@ sub _rdP {
     my $readlen = $oflen->at(0) * PDL::Core::howbig($type);
 
     # Store the length of this row in the header field.
-    $tbl->{"len_".$tbl->{hdr}->{"TTYPE$i"}}->($row) .= $oflen->at(0);
+    $tbl->{"len_".$tbl->{hdr}->{"TTYPE$i"}}->dice_axis(0,$row) .= $oflen->at(0);
 
     print "_rdP: pdl is ",join("x",$pdl->dims),"; reading row $row - readlen is $readlen\n"
 	if($PDL::debug);
@@ -1454,7 +1454,7 @@ sub _rfits_unpack_zimage($$$) {
 	if($tbl->{UNCOMPRESSED_DATA}->dim(1) != $tilesize) {
 	    die "rfits: tile size is $tilesize, but uncompressed data rows have size ".$tbl->{UNCOMPRESSED_DATA}->dim(1)."\n";
 	}
-	$tiles->(:,$patchup) .= $tbl->{UNCOMPRESSED_DATA}->($patchup,:)->xchg(0,1);
+	$tiles->dice_axis(1,$patchup) .= $tbl->{UNCOMPRESSED_DATA}->dice_axis(0,$patchup)->xchg(0,1);
     }
 
     ##########
@@ -2459,7 +2459,7 @@ sub _prep_table {
 	my $t;
 
 	my $dims = pdl($var->dims); 
-	($t = $dims->(0)) .= 1;
+	($t = $dims->slice("(0)")) .= 1;
 	$rpt = $dims->prod;
 
 =pod
@@ -2560,7 +2560,7 @@ FOO
 	      if(ref $len eq 'ARRAY') {
 		  $l = $len->[$row];
 	      } elsif( UNIVERSAL::isa($len,'PDL') ) {
-		  $l = $len->($row);
+		  $l = $len->dice_axis(0,$row);
 	      } elsif( ref $len ) {
 		  die "wfits: Couldn't understand length spec 'len_".$keysbyname{$colnames[$i]}."' in bintable output (length spec must be a PDL or array ref).\n";
 	      } else {
@@ -2577,7 +2577,7 @@ FOO
 		  # This echoes the normal-table swap and accumulation 
 		  # stuff below, except we're accumulating into the heap.
 		  my $tmp = $csub ? &$csub($var, $row, $col) : $var;
-		  $tmp = $tmp->(0:$l-1)->sever;
+		  $tmp = $tmp->slice("0:".($l-1))->sever;
 		  
 		  if(!isbigendian()) {
 		      bswap2($tmp) if($tmp->get_datatype == $PDL_S);
@@ -2603,7 +2603,7 @@ FOO
       $hdr->{"TFORM$i"} = "$rpt$tstr";
 
       if(UNIVERSAL::isa($var, 'PDL') and $var->ndims > 1) {
-	  $hdr->{"TDIM$i"} = "(".join(",",$var->((0))->dims).")";
+	  $hdr->{"TDIM$i"} = "(".join(",",$var->slice("(0)")->dims).")";
       }
 
       $rowlen += ($field_len[$i] = $rpt * $bytes);
@@ -2623,8 +2623,8 @@ FOO
        
 	if($internaltype[$c] eq 'P') {  # PDL handling
 	  $tmp = $converters[$c]
-	    ? &{$converters[$c]}($a->($r)->flat->sever, $r, $c) 
-	      : $a->($r)->flat->sever ;
+	    ? &{$converters[$c]}($a->slice("$r")->flat->sever, $r, $c) 
+	      : $a->slice("$r")->flat->sever ;
 
 	  ## This would go faster if moved outside the loop but I'm too
 	  ## lazy to do it Right just now.  Perhaps after it actually works.
