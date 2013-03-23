@@ -15,15 +15,19 @@ use PDL;
 BEGIN {
     eval 'use PDL::Graphics::Gnuplot;';
     if ($@ or !defined($PDL::Graphics::Gnuplot::VERSION)) {
-	die qq{
+	eval <<'EOF';
+	    sub run {
+	    print qq{
 
 PDL::Graphics::Gnuplot is required for this demo, but didn't load.  You may have
 to go get it from CPAN (http://search.cpan.org).  You might also need to get the 
 external "gnuplot" app (http://www.gnuplot.info).
 
-$@
 };
+	}
+EOF
     }
+    return 1;
 }
 
 use PDL::ImageND;
@@ -55,6 +59,18 @@ sub run {
   $y = $x/1000 * sin($x/10);
 
 |;
+    if(!defined($PDL::Graphics::Gnuplot::VERSION)) {
+	die q{
+
+*******************************************************************************
+This demo requires both the external "gnuplot" application and the module 
+"PDL::Graphics::Gnuplot".  You don't seem to have the module installed on your 
+system.  You might want to get it from CPAN and try again.
+*******************************************************************************
+
+};
+    }
+
     if(!defined($PDL::Graphics::Gnuplot::valid_terms)) {
 	my $ww = new PDL::Graphics::Gnuplot;
     }
