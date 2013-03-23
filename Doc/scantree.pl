@@ -43,6 +43,7 @@ $onldc->savedb();
 $outdir = "$dir/PDL";
 # ($outdir = $INC{'PDL.pm'}) =~ s/\.pm$//i;
 $outindex="$outdir/Index.pod" unless (defined $outindex);
+unlink $outindex if -e $outindex;  # Handle read only file
 open POD, ">$outindex"
   or die "couldn't open $outindex";
 print POD <<'EOPOD';
