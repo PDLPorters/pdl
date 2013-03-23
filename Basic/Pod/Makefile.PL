@@ -5,7 +5,8 @@ BEGIN{if ($^O =~ /MSWin/) {
 }
 use ExtUtils::MakeMaker;
 
-@pods = map { $_=~s/.pod//; $_ } glob("*.pod");
+@pods = map { $_=~s/.pod//; $_ } grep { ! m/Index.pod/ } glob("*.pod");
+
 
 # do we want to create PP-Inline?
 eval 'require Pod::Select';
