@@ -12,7 +12,7 @@ use PDL::Config;
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 use Test;
-BEGIN { plan tests => 18; }
+BEGIN { plan tests => 19; }
 
 sub tapprox {
         my($a,$b) = @_;
@@ -29,6 +29,26 @@ sub cfile { return $fs->catfile(@_)}
 my $tempd = $PDL::Config{TEMPDIR} or
   die "TEMPDIR not found in %PDL::Config";
 my $file = cfile $tempd, "iotest$$";
+
+############# Test rcols with colsep and missing fields ###################
+
+open(OUT, ">$file") || die "Can not open $file for writing\n";
+print OUT <<EOD;
+1,6,11
+2,7,
+3,8,13
+4,,14
+5,10,15
+EOD
+close(OUT);
+
+{
+   local $PDL::undefval = -1;
+   $a = rcols $file, [], { colsep=>',' };
+}
+
+ok( (sum($a<0)==2 && $a->getdim(0)==5 && $a->getdim(1)==3), 1, "rcols with undefval and missing cols" );
+unlink $file;
 
 ############# Test rcols with filename and pattern #############
 
