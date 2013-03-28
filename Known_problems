@@ -110,16 +110,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.004_997 release:
-
-  3608123    topdl ignores list elements after the first
-  3607936    inplace(), misused, causes crashes!
-
-               Discovered and fixed this release.
-
-  3607927    hang/segv after applying inplace transform
-
-               Discovered and fixed this release.
+  PDL-2.006_01 release:
 
   3606774    PDL re-install wipes out non-core docs
   3605814    PDL::Demos system needs overhaul

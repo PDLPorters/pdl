@@ -544,6 +544,9 @@ RCOLS_IO: {
       $index++;
       my @v = defined($usecolsep) ? split($usecolsep,$fhline) : split(' ',$fhline);
 
+      # map empty fields '' to undef value
+      @v = map { $_ eq '' ? undef : $_ } @v;
+
       # if the first line, set up the output piddles using all the columns
       # if the user doesn't specify anything
       if ( $index == 0 ) {

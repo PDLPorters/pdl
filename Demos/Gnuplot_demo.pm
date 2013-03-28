@@ -15,15 +15,19 @@ use PDL;
 BEGIN {
     eval 'use PDL::Graphics::Gnuplot;';
     if ($@ or !defined($PDL::Graphics::Gnuplot::VERSION)) {
-	die qq{
+	eval <<'EOF';
+	    sub run {
+	    print qq{
 
 PDL::Graphics::Gnuplot is required for this demo, but didn't load.  You may have
 to go get it from CPAN (http://search.cpan.org).  You might also need to get the 
 external "gnuplot" app (http://www.gnuplot.info).
 
-$@
 };
+	}
+EOF
     }
+    return 1;
 }
 
 use PDL::ImageND;
@@ -40,17 +44,6 @@ sub run {
     local($PDL::debug) = 0;
     local($PDL::verbose) = 0;
     
-    unless( `which gnuplot`) {
-	comment q|
-This demo illustrates PDL::Graphics::Gnuplot, the PDL interface to the Gnuplot 
-plotting language.  It requires the gnuplot executable, which isn't currently
-in your path. 
-
-Please install gnuplot (available from http://gnuplot.sourceforge.net) and 
-re-run.
-|;
-	return;
-    }
 
     $s = q|
   # ensure that the module is loaded 
@@ -66,6 +59,18 @@ re-run.
   $y = $x/1000 * sin($x/10);
 
 |;
+    if(!defined($PDL::Graphics::Gnuplot::VERSION)) {
+	die q{
+
+*******************************************************************************
+This demo requires both the external "gnuplot" application and the module 
+"PDL::Graphics::Gnuplot".  You don't seem to have the module installed on your 
+system.  You might want to get it from CPAN and try again.
+*******************************************************************************
+
+};
+    }
+
     if(!defined($PDL::Graphics::Gnuplot::valid_terms)) {
 	my $ww = new PDL::Graphics::Gnuplot;
     }
@@ -295,7 +300,7 @@ act q|
   
     $s =  q|
 
-   $m51 = rfits('%%m51%%')->slice('0:-1:2,0:-1:2');
+   $m51 = rfits('%%m51%%')->slice('0:-1:4,0:-1:4');
 
    $m51s = $m51->convolveND(ones(11,11)/11**2);
 
@@ -306,14 +311,14 @@ act q|
    $w->multiplot(layout=>[2,2,'columnsfirst']);
 
    $w->plot({title=>"M51 in 3-D (default view)"}, 
-             with=>'pm3d',xvals($m51), yvals($m51), $m51s, $m51 );
+             with=>'pm3d',xvals($m51s), yvals($m51s), $m51s, $m51s );
    $w->plot({title=>"M51 in 3-D (ortho view)",            view=>'equal xy'},
-             with=>'pm3d',xvals($m51), yvals($m51), $m51s, $m51 );
+             with=>'pm3d',xvals($m51s), yvals($m51s), $m51s, $m51s );
 
    $w->plot({title=>"M51 in 3-D (near-vertical view)",    view=>[ 0, 80, 'equal xy' ]},
-             with=>'pm3d',xvals($m51), yvals($m51), $m51s, $m51 );
+             with=>'pm3d',xvals($m51s), yvals($m51s), $m51s, $m51s );
    $w->plot({title=>"M51 in 3-D (nearly along X axis)",   view=>[ 85, 5 ]},
-             with=>'pm3d',xvals($m51), yvals($m51), $m51s, $m51 );
+             with=>'pm3d',xvals($m51s), yvals($m51s), $m51s, $m51s );
    
    $w->end_multi;
 

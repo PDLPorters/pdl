@@ -92,7 +92,7 @@ If it's a developer release that you're trying to install
 then you'll need to specify the full distribution path info,
 e.g.:
 
-   cpan -i CHM/PDL-2.4.11_001.tar.gz
+   cpan -i CHM/PDL-2.004_997.tar.gz
 
 
 
