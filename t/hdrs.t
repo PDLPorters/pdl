@@ -16,7 +16,11 @@ sub hdrcmp {
   my ($ah,$bh) = map {$_->gethdr} @_;
 # Copy-by-reference test is obsolete; check contents instead (CED 12-Apr-2003)
 #   return $ah==$bh
-  return join("",%{$ah}) eq join("",%{$bh});
+  my %ahh = %{$ah};
+  my (@ahhkeys) = sort keys %ahh;
+  my %bhh = %{$bh};
+  my (@bhhkeys) =  sort keys %bhh;
+  return join("",@bhh{@bhhkeys}) eq join("",@ahh{@ahhkeys});
 }
 
 print "1..9\n";

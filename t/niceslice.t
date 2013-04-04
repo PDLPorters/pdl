@@ -6,7 +6,7 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 43,
+	plan tests => 44,
 	# todo => [37..40],
     } else {
 	plan tests => 1;
@@ -208,7 +208,13 @@ eval translate_and_show '$b = $a(1:2,pdl(0,2));';
 # Old hdrcpy test (for copy-by-reference); this is obsolete
 # with quasi-deep copying.  --CED 11-Apr-2003
 #   ok (!$@ and $b->gethdr() == $h);
-ok(!$@ and join("",%{$b->gethdr}) eq join("",%{$h}));
+if ( ok(!$@) ) {
+   my %bh = %{$b->gethdr};
+   my (@bhkeys) = sort keys %bh;
+   my %hh = %{$h};
+   my (@hhkeys) =  sort keys %hh;
+   ok(join("",@bh{@bhkeys}) eq join("",@hh{@hhkeys}));
+}
 
 $a = ones(10);
 my $i = which $a < 0;
