@@ -44,6 +44,7 @@ print "add q\n";
 $a += $q;
 ok(1);  # still here!
 
+<<<<<<< HEAD
 ##############################
 # bad value handling...
 
@@ -68,4 +69,14 @@ if($PDL::Bad::Status) {
 }
 
 
+=======
+use PDL::IO::FITS;
+$m51 = rfits('m51.fits');
+$m51map = $m51->map(t_identity,{method=>'s'}); #SHOULD be a no-op
+ok(all($m51==$m51map));
+
+$m51_coords = pdl(0,0)->apply(t_fits($m51));
+$m51map_coords = pdl(0,0)->apply(t_fits($m51map));
+ok(all(approx($m51_coords, $m51map_coords,1e-8)));
+>>>>>>> 6961caafb349a78aa163dc7cf1c36f3cb75e00fd
 
