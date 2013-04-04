@@ -613,7 +613,7 @@ pp_add_exported('map');
 pp_def('map',
 	Pars=>'k0()',  # Dummy to set type (should match the type of "in").
 	OtherPars=>'SV *in; SV *out; SV *map; SV *boundary; SV *method;
-	            SV *big; SV *blur; SV *sv_min; SV *flux',
+	            SV *big; SV *blur; SV *sv_min; SV *flux; SV *badval',
 	Code=><<'+==EOD_map_c_code==',
 /*
  * Pixel interpolation & averaging code
@@ -644,7 +644,7 @@ pp_def('map',
  char flux;             /* Flag to indicate flux conservation       */
  PDL_Double *map_ptr;
  PDL_Long i, j;
- $GENERIC() badval = sqrt(-1);
+ $GENERIC() badval = SvNV($COMP(badval));
 
  pdl *in  = PDL->SvPDLV($COMP(in));
  pdl *out = PDL->SvPDLV($COMP(out));
@@ -658,7 +658,7 @@ pp_def('map',
 
   /***************************************************************************/
   /**  Check that the dimensionalities are consistent.  This is             **/
-  /**  allegedly done already in the perl part, but shouldn't cost more     **/
+  /**  allegedly done already in the perl part, but should not cost more     **/
   /**  than a few hundred clock cycles -- cheap at twice the price.         **/
   /**                                                                       **/
   /**/ if(map->ndims != out->ndims)                                        /**/
@@ -679,7 +679,7 @@ pp_def('map',
 
  /*
   * Allocate all our dynamic workspaces at once...
- /* */
+  * */
  ovec = (PDL_Long *)(PDL->smalloc( (STRLEN)
 	          	      ( sizeof(PDL_Long)   * 3 * ndims
                               + sizeof(PDL_Double) * (3*ndims*ndims + 3*ndims)
@@ -815,7 +815,7 @@ pp_def('map',
        for(i=0; i < in->dims[ndims]; i++)
   	*(ac++) = 0.0;
      }
-     wgt = 1.0e-9;  /* negligible but nonzero */
+     wgt = 0; 
 
      do {  /* Input accumulation loop */
        int bound_ok = 1;
@@ -925,19 +925,18 @@ pp_def('map',
   	}
 
 
-        /* We've got the weighting, now accumulate the values as needed... */
-         wgt += alpha;
-
+        /* We have the weighting, now accumulate the values as needed... */
        if(bound_ok)
          {
+	  wgt += alpha;
           PDL_Double *ac = acc;
           $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
           for( i=0; i < out->dims[ndims]; i++ ) {
                *(ac++) += *dat * alpha;
                dat += in->dimincs[ndims];
           }
-         }/* end of bound_ok check */
-
+	  /* end of bound_ok check */
+         } 
        }  /* end of data collection convenience block */
 
        /* Advance input accumulation loop */
@@ -959,12 +958,22 @@ pp_def('map',
        if(flux) {
 	  PDL_Double det = tmp[ndims*ndims];
           for(i=0; i < out->dims[ndims]; i++) {
-            *dat = *(ac++) / wgt * det;
+	      if(wgt==0) {
+		  *dat = badval;
+		  ac++;
+	      } else {
+		  *dat = *(ac++) / wgt * det;
+	      }
             dat += out->dimincs[ndims];
 	  }
        } else {
 	  for(i=0; i < out->dims[ndims]; i++) {
-           *dat = *(ac++) / wgt;
+	      if(wgt==0){
+		  *dat = badval;
+		  ac++;
+	      } else {
+		  *dat = *(ac++) / wgt;
+	      }
            dat += out->dimincs[ndims];
           }
        }
@@ -1610,12 +1619,22 @@ sub map {
   $svmin =  $svmin->at(0)  if(ref $svmin);
 
 
+  my $bv;
+  if($PDL::Bad::Status  and  $in->badflag) {
+      $bv = $in->badvalue;
+  } else {
+      $bv = 0;
+  }
 
   ### The first argument is a dummy to set $GENERIC.
   $idx = double($idx) unless($idx->type == double);
   &PDL::_map_int( $in2->flat->index(0),
 	$in2, $o2, $idx,
-	$bound, $method, $big, $blur, $svmin, $flux );
+	$bound, $method, $big, $blur, $svmin, $flux, $bv );
+
+  if($PDL::Bad::Status and $in->badflag) {
+      $out->badflag(1);
+  }
 
   my @rdims = (@iddims[1..$#iddims], @idims[$#iddims..$#idims]);
   {

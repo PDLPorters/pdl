@@ -8,8 +8,7 @@ BEGIN {
 use PDL::Transform;
 
 ##############################
-# Just simple testing of the map autoscaling -- more complete tests should be
-# included... -CED 13-Oct-2006
+# Simple testing of the map autoscaling
 
 $a = sequence(5,5);
 
@@ -44,3 +43,16 @@ $a->inplace->apply($t);
 print "add q\n";
 $a += $q;
 ok(1);  # still here!
+
+##############################
+# bad value handling...
+
+$a = sequence(5,5);
+$t1 = t_linear(pre=>[-1,2]);
+$t2 = t_linear(pre=>[-1.5,2]);
+
+eval q{$b = $a->map($t,{pix=>1,method=>'h'});};
+ok(!$@);
+
+
+
