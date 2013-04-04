@@ -2530,11 +2530,17 @@ sub PDL::interpND {
 
     # Use 1/0 corners to select which multiplier happens, multiply
     # 'em all together to get sample weights, and sum to get the answer.
-    my $out =  ( ($a * ($crnr==1) + $b * ($crnr==0)) #index, clst, ith
+    my $out0 =  ( ($a * ($crnr==1) + $b * ($crnr==0)) #index, clst, ith
 		 -> prodover                          #clst, ith
 		 );
 
-    $out = ($out * $samp)->sumover; # ith, sth
+    my $out = ($out0 * $samp)->sumover; # ith, sth
+
+    # Work around BAD-not-being-contagious bug in PDL <= 2.6 bad handling code  --CED 3-April-2013
+    if($PDL::Bad::Status and $source->badflag) {
+	my $baddies = $samp->isbad->orover;
+	$out = $out->setbadif($baddies);
+    }
 
     return $out;
 

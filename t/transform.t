@@ -2,14 +2,13 @@ use PDL::LiteF;
 use Test;
 
 BEGIN {
-  plan tests => 5;
+  plan tests => 8;
 }
 
 use PDL::Transform;
 
 ##############################
-# Just simple testing of the map autoscaling -- more complete tests should be
-# included... -CED 13-Oct-2006
+# Simple testing of the map autoscaling
 
 $a = sequence(5,5);
 
@@ -44,3 +43,29 @@ $a->inplace->apply($t);
 print "add q\n";
 $a += $q;
 ok(1);  # still here!
+
+##############################
+# bad value handling...
+
+if($PDL::Bad::Status) {
+    $a = sequence(5,5);
+    $t1 = t_linear(pre=>[1.5,2]);
+    $t2 = t_linear(pre=>[1,2]);
+
+    $a->badflag(1);
+
+    eval q{$b = $a->map($t1,{pix=>1,method=>'l'});};
+    ok(!$@);
+
+    ok($b->slice("0:1")->isbad->all  and  $b->slice(":,0:1")->isbad->all  and $b->isbad->sum==16, "Bad values happen");
+
+    eval q{$b = $a->map($t1,{pix=>1,method=>'h'});};
+    ok($b->slice("0")->isbad->all  and  $b->slice(":,0:1")->isbad->all and $b->isbad->sum==13, "Bad values happen with 'h' method"); 
+    
+
+} else {
+    skip(3, "Bad value support not included");
+}
+
+
+
