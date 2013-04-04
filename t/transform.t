@@ -2,7 +2,7 @@ use PDL::LiteF;
 use Test;
 
 BEGIN {
-  plan tests => 5;
+  plan tests => 7;
 }
 
 use PDL::Transform;
@@ -44,3 +44,13 @@ $a->inplace->apply($t);
 print "add q\n";
 $a += $q;
 ok(1);  # still here!
+
+use PDL::IO::FITS;
+$m51 = rfits('m51.fits');
+$m51map = $m51->map(t_identity,{method=>'s'}); #SHOULD be a no-op
+ok(all($m51==$m51map));
+
+$m51_coords = pdl(0,0)->apply(t_fits($m51));
+$m51map_coords = pdl(0,0)->apply(t_fits($m51map));
+ok(all(approx($m51_coords, $m51map_coords,1e-8)));
+
