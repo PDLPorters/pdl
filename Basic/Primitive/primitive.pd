@@ -2534,7 +2534,7 @@ sub PDL::interpND {
 		 -> prodover                          #clst, ith
 		 );
 
-    $out = ($out0 * $samp)->sumover; # ith, sth
+    my $out = ($out0 * $samp)->sumover; # ith, sth
 
     # Work around BAD-not-being-contagious bug in PDL <= 2.6 bad handling code  --CED 3-April-2013
     if($PDL::Bad::Status and $source->badflag) {
