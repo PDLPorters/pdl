@@ -2826,9 +2826,9 @@ sub t_fits {
   $me->{iunit} = \@iunit;
 
   # Check for nonlinear projection...
-  if($hdr->{CTYPE1} =~ m/(\w\w\w\w)\-(\w\w\w)/) {
-      print "Nonlinear transformation found... ignoring nonlinear part...\n";
-  }
+#  if($hdr->{CTYPE1} =~ m/(\w\w\w\w)\-(\w\w\w)/) {
+#      print "Nonlinear transformation found... ignoring nonlinear part...\n";
+#  }
 
   return $me;
 
