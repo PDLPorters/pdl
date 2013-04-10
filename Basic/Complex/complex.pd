@@ -85,12 +85,12 @@ The complex constant five is equal to C<pdl(1,0)>:
    pdl> p $x = r2C 5
    5 +0i
 
-Now calculate the three roots of of five:
+Now calculate the three cubic roots of of five:
 
    pdl> p $r = Croots $x, 3
    [1.70998 +0i  -0.854988 +1.48088i  -0.854988 -1.48088i]
 
-Check that these really are the roots of unity:
+Check that these really are the roots:
 
    pdl> p $r ** 3
    [5 +0i  5 -1.22465e-15i  5 -7.65714e-15i]
@@ -115,13 +115,51 @@ coefficients:
 Now plot the imaginary part, the real part and the magnitude of the sine
 into the same diagram:
 
-   pdl> line im sin $sin; hold
-   pdl> line re sin $sin
-   pdl> line abs sin $sin
+   pdl> use PDL::Graphics::Gnuplot
+   pdl> gplot( with => 'lines',
+              PDL::cat(im ( sin $sin ),
+                       re ( sin $sin ),
+                       abs( sin $sin ) ))
 
-Sorry, but I didn't yet try to reproduce the diagram in this
-text. Just run the commands yourself, making sure that you have loaded
-C<PDL::Complex> (and C<PDL::Graphics::PGPLOT>).
+An ASCII version of this plot looks like this:
+
+  30 ++-----+------+------+------+------+------+------+------+------+-----++
+     +      +      +      +      +      +      +      +      +      +      +
+     |                                                                   $$|
+     |                                                                  $  |
+  25 ++                                                               $$  ++
+     |                                                              ***    |
+     |                                                            **   *** |
+     |                                                         $$*        *|
+  20 ++                                                       $**         ++
+     |                                                     $$$*           #|
+     |                                                  $$$   *          # |
+     |                                                $$     *           # |
+  15 ++                                            $$$       *          # ++
+     |                                          $$$        **           #  |
+     |                                      $$$$          *            #   |
+     |                                  $$$$              *            #   |
+  10 ++                            $$$$$                 *            #   ++
+     |                        $$$$$                     *             #    |
+     |                 $$$$$$$                         *             #     |
+   5 ++       $$$############                          *             #    ++
+     |*****$$$###            ###                      *             #      |
+     *    #*****                #                     *             #      |
+     | ###      ***              ###                **              #      |
+   0 ##            ***              #              *               #      ++
+     |                *              #             *              #        |
+     |                 ***            #          **               #        |
+     |                    *            #        *                #         |
+  -5 ++                    **           #      *                 #        ++
+     |                       ***         ##  **                 #          |
+     |                          *          #*                  #           |
+     |                           ****    ***##                #            |
+ -10 ++                              ****     #              #            ++
+     |                                         #             #             |
+     |                                          ##         ##              |
+     +      +      +      +      +      +      +  ### + ###  +      +      +
+ -15 ++-----+------+------+------+------+------+-----###-----+------+-----++
+     0      5      10     15     20     25     30     35     40     45     50
 
 =cut
 
