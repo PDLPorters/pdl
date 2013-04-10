@@ -154,7 +154,7 @@ BEGIN
       my $header = 'proj_api.h';
       my $include = "#include <$header>";
       my $progbody = 'projUV puv = { 5.0, 10.0 };';
-      my $libs = "-L$gis_proj_lib_path -lproj -lm";
+      my $libs = "-L$transform_proj4_lib_path -lproj -lm";
       my $cflags = "-I$include_path";
 
       if (trylink($infomsg,$include,$progbody,$libs,$cflags) or $forcebuild) {
@@ -167,7 +167,7 @@ BEGIN
                header=>$header,
                incpath=>$include_path,
                lib=>'proj',
-               libpath=>$gis_proj_lib_path,
+               libpath=>$transform_proj4_lib_path,
             ) or $forcebuild) {
             print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
             $PDL::Config{$config_flag}=1;
