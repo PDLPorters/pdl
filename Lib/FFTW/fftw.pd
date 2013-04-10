@@ -241,11 +241,12 @@ sub check_for_datatype_conversion
   my $in_ref = shift;
 
   if ($datatype != $$in_ref->get_datatype) {
-    $$in_ref = convert $$in_ref, ' . $fftwtype . ';
     if ($warn_conv != 1) {
-      print STDERR "PDL::FFTW Warning! doing conversion.\n";
+      print STDERR "PDL::FFTW Warning: mismatched data type! I wanted type $datatype, but got type " .
+        $$in_ref->get_datatype . ". Converting\n";
       $warn_conv = 1;
     }
+    $$in_ref = convert $$in_ref, ' . $fftwtype . ';
   }
 }
 
