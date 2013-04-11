@@ -407,7 +407,7 @@ sub ifftw {
   my @newdims;
   my ($out,$name,$i);
 
-  check_for_datatype_convesion( \$in );
+  check_for_datatype_conversion( \$in );
   $i = shift @dims;
   if ($i != 2) {
      barf("Working only on complex numbers!");
