@@ -1,0 +1,125 @@
+package PDL::Graphics;
+
+=head1 NAME
+
+PDL::Graphics - Introduction to the PDL::Graphics modules
+
+=head1 DESCRIPTION
+
+PDL has full-featured plotting abilities. Unlike MATLAB, PDL relies
+more on third-party libraries  for its plotting features: Prima,
+Gnuplot, OpenGL, PLplot and PGplot. PDL has several plotting modules
+that you can choose from, each of them with their particular
+strength and weaknesses. In this page, you will find a short review
+of each of the main PDL::Graphics::* modules.
+
+=head1 GRAPHIC MODULES REVIEWS
+
+=head2 The newest generation of PDL::Graphics modules
+
+=head3 L<PDL::Graphics::Simple>
+
+Best for: backend-independent output: you get the same plots,
+whichever of the graphical module you manage to install.
+
+A unified backend-independent plotting interface
+for PDL. It implements all the functionality used in the
+L<PDL::Book> examples, and it will probably be the easiest L<PDL::Graphics>
+module for you to install, as it relies on any of the other ones.
+Because it is backend-independent, the
+plot you get will always be what you asked for, regardless of which
+plotting engine you have installed on your system.
+
+Only a small subset of PDL's complete graphics functionality is
+supported -- each individual plotting module has unique advantages and
+functionality that are beyond what L<PDL::Graphics::Simple> can do.
+
+=head3 L<PDL::Graphics::Gnuplot>
+
+Best for: publication-quality 2D and 3D plots
+
+Gnuplot is widely used and produces publication-quality plots. It is
+also interactive: you can pan, scale, and rotate both 2-D and 3-D
+plots. And its API is powerful, simple and intuitive.
+
+A L<video tutorial|http://www.youtube.com/watch?v=hUXDQL3rZ_0> is
+available.
+
+Notice: you must install gnuplot on your computer first.
+
+=head3 L<PDL::Graphics::Prima>
+
+Best for: Integration of your plots into your application GUI.
+Possibility to create a dedicated GUI to let your application users
+interact with the plotted data.
+
+Lets you focus on what you want to visualize rather than the details
+of how you would draw it. Its killer feature is that it belongs to the
+the Prima GUI environment (an alternative to Tk, Gtk, Wx, etc). Prima
+provides an array of useful interactive widgets and a simple but powerful
+event-based programming model. These tools allow you to build interactive
+data visualization and analysis applications with sophisticated plotting
+and intuitive user interaction in only a few hundred lines of code. Or
+more simply, to include a plot into an application.
+
+For this reason, L<PDL::Graphics::Prima>'s API is more complex than
+L<PDL::Graphics::Gnuplot>'s. It is advised to start with
+L<PDL::Graphics::Prima::Simple>, which focuses on the plotting
+functions and does not mess with Widgets. A tutorial is available here:
+http://search.cpan.org/~chm/PDL-2.006/Demos/Prima.pm
+As well as a L<video tutorial|http://www.youtube.com/watch?v=WILd2XTz3F4>.
+
+=head3 L<PDL::Graphics::TriD>
+
+Best for: Plotting heavy 3D images, fast.
+
+The native PDL 3D graphics library using OpenGL as a backend for 3D
+plots and data visualization. With OpenGL, it is easy to manipulate
+the resulting 3D objects with the mouse in real time.
+
+OpenGL makes L<PDL::Graphics::TriD> a lot faster than Gnuplot to
+manipulate 3D images. But Gnuplot's output is publication quality, and
+Gnuplot is in general easier to manipulate. If you manipulate
+heavy images, L<PDL::Graphics::TriD> might be the thing for you.
+
+=head2 Good old PDL::Graphics modules
+
+Still well maintained, documented, and widely used.
+
+=head3 L<PDL::Graphics::PLplot>
+
+Best for: Plotting 2D functions as well as 2D and 3D data sets.
+
+This is an interface to the PLplot plotting library. PLplot is a
+modern, open source library for making scientific plots. It supports
+plots of both 2D and 3D data sets. PLplot is best supported for
+unix/linux/macosx platforms. It has an active developers community and
+support for win32 platforms is improving.
+
+=head3 L<PDL::Graphics::PGPLOT>
+
+Best for: Plotting 2D functions. More widely used in the scientific community
+
+This is an interface to the venerable PGPLOT library. PGPLOT has been
+widely used in the academic and scientific communities for many years.
+In part because of its age, PGPLOT has some limitations compared to
+newer packages such as PLplot (e.g. no RGB graphics). But it has many
+features that still make it popular in the scientific community.
+
+=head1 SEE ALSO
+
+L<PDL::Graphics::Simple>
+
+L<PDL::Graphics::Gnuplot>
+
+L<PDL::Graphics::Prima>
+
+L<PDL::Graphics::TriD>
+
+L<PDL::Graphics::PGPLOT>
+
+L<PDL::Graphics::PLplot>
+
+=head1 AUTHOR
+
+Pierre Masci, 2013
