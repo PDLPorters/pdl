@@ -883,7 +883,7 @@ sub PDL::shape {  # Return dimensions as a pdl
    my $pdl = PDL->topdl (shift);
    my @dims = ();
    for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
-   return pdl(@dims);
+   return pdl(\@dims);
 }
 
 sub PDL::howbig {
