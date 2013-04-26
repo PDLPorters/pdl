@@ -4,6 +4,10 @@
 # Judd Taylor, USF IMaRS
 # 18 March 2003
 #
+use strict;
+use warnings;
+
+use Config;
 
 BEGIN {
    print STDERR join "\n", sort grep { m/Carp/ } keys %INC;
@@ -27,17 +31,22 @@ BEGIN {
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
+my $package_name;
+my $transform_proj4_lib_path;
+my $include_path;
+my $donot;
+
 BEGIN
 {
    # Generic descripton of how to optionally add this package to the PDL Tree:
    $package_name = "PDL::Transform::Proj4";
-   $lib_name = "Proj4";
-   $find_libs = [ 'libproj.so', 'libproj.a' ];
-   $find_incs = [ 'proj_api.h' ];
-   $config_flag = 'WITH_PROJ';
-   $config_libs = 'PROJ_LIBS';
-   $config_incs = 'PROJ_INC';
-   @lib_locations = (
+   my $lib_name = "Proj4";
+   my $find_libs = [ 'libproj.so', 'libproj.a' ];
+   my $find_incs = [ 'proj_api.h' ];
+   my $config_flag = 'WITH_PROJ';
+   my $config_libs = 'PROJ_LIBS';
+   my $config_incs = 'PROJ_INC';
+   my @lib_locations = (
       '/usr/lib64',
       '/usr/local/lib64',
       '/lib64',
@@ -46,7 +55,7 @@ BEGIN
       '/lib',
       split(/ /, $Config{libpth}),
    );
-   @inc_locations = (
+   my @inc_locations = (
       '/usr/include',
       '/usr/local/include',
       $Config{usrinc},
@@ -56,8 +65,8 @@ BEGIN
    # You probably won't need to edit anything below here (until the very end):
    #
 
-   $msg = "";
-   $forcebuild=0;  # Note: forcebuild not used
+   my $msg = "";
+   my $forcebuild=0;  # Note: forcebuild not used
 
    if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==0)
    {
@@ -154,7 +163,7 @@ BEGIN
       my $header = 'proj_api.h';
       my $include = "#include <$header>";
       my $progbody = 'projUV puv = { 5.0, 10.0 };';
-      my $libs = "-L$gis_proj_lib_path -lproj -lm";
+      my $libs = "-L$transform_proj4_lib_path -lproj -lm";
       my $cflags = "-I$include_path";
 
       if (trylink($infomsg,$include,$progbody,$libs,$cflags) or $forcebuild) {
@@ -167,7 +176,7 @@ BEGIN
                header=>$header,
                incpath=>$include_path,
                lib=>'proj',
-               libpath=>$gis_proj_lib_path,
+               libpath=>$transform_proj4_lib_path,
             ) or $forcebuild) {
             print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
             $PDL::Config{$config_flag}=1;
@@ -190,9 +199,9 @@ BEGIN
 
 return if $donot;  # yes, this must be return (exit will kill Makefile.PL process)
 
-$ppfile = "Proj4.pd";
-$package = [$ppfile, Proj4, $package_name];
-%hash = pdlpp_stdargs($package);
+my $ppfile = "Proj4.pd";
+my $package = [$ppfile, 'Proj4', $package_name];
+my %hash = pdlpp_stdargs($package);
 $hash{VERSION_FROM} = $ppfile;
 #$hash{TYPEMAPS} = [&PDL_TYPEMAP()];
 $hash{LIBS} = ["-L$transform_proj4_lib_path -lproj -lm"];

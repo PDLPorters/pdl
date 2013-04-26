@@ -12,7 +12,7 @@ WriteMakefile(
    PREREQ_PM => {
       Filter::Util::Call => 0,
       Text::Balanced => 0,
-      PDL => 2.3,
+      PDL => 2.003000,
    },
 );
 

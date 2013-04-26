@@ -236,6 +236,20 @@ if (defined $PDL::FFT::wisdom) {
     print "loading wisdom from $PDL::FFT::wisdom\n" if $PDL::debug;
 }
 
+sub check_for_datatype_conversion
+{
+  my $in_ref = shift;
+
+  if ($datatype != $$in_ref->get_datatype) {
+    if ($warn_conv != 1) {
+      print STDERR "PDL::FFTW Warning: mismatched data type! I wanted type $datatype, but got type " .
+        $$in_ref->get_datatype . ". Converting\n";
+      $warn_conv = 1;
+    }
+    $$in_ref = convert $$in_ref, ' . $fftwtype . ';
+  }
+}
+
 # real fftw
 *PDL::rfftw = \&rfftw;
 sub rfftw {
@@ -245,13 +259,7 @@ sub rfftw {
   my ($out,$name,$i);
 
  
-  if ($datatype != $in->get_datatype) {
-    $in = convert $in, ' . $fftwtype . ';
-    if ($warn_conv != 1) {
-      print STDERR "PDL::FFTW Warning! doing conversion.\n";
-      $warn_conv = 1;
-    }
-  }
+  check_for_datatype_conversion( \$in );
   foreach $i (@dims) {
     unshift @newdims, $i;
   }
@@ -281,13 +289,7 @@ sub irfftw {
   if ($i != 2) {
      barf("Working only on complex numbers!");
   } 
-  if ($datatype != $in->get_datatype) {
-    $in = convert $in, ' . $fftwtype . ';
-    if ($warn_conv != 1) {
-      print STDERR "PDL::FFTW Warning! doing conversion.\n";
-      $warn_conv = 1;
-    }
-  }
+  check_for_datatype_conversion( \$in );
   $i= shift @dims;
   unshift @newdims, 2*($i-1);
   foreach $i (@dims) {
@@ -378,13 +380,7 @@ sub fftw {
   my @newdims;
   my ($out,$name,$i);
 
-  if ($datatype != $in->get_datatype) {
-    $in = convert $in, ' . $fftwtype . ';
-    if ($warn_conv != 1) {
-      print STDERR "PDL::FFTW Warning! doing conversion.\n";
-      $warn_conv = 1;
-    }
-  }
+  check_for_datatype_conversion( \$in );
   $i=shift @dims;
   if ($i!=2) {
     barf("It works only on complex!");
@@ -411,13 +407,7 @@ sub ifftw {
   my @newdims;
   my ($out,$name,$i);
 
-  if ($datatype != $in->get_datatype) {
-    $in = convert $in, ' . $fftwtype . ';
-    if ($warn_conv != 1) {
-      print STDERR "PDL::FFTW Warning! doing conversion.\n";
-      $warn_conv = 1;
-    }
-  } 
+  check_for_datatype_conversion( \$in );
   $i = shift @dims;
   if ($i != 2) {
      barf("Working only on complex numbers!");

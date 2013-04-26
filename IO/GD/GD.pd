@@ -988,7 +988,13 @@ sub _img_ptr_from_data
 
 Creates a new PDL::IO::GD object.
 
-Accepts an anonymous hash describing how to create it. Use curly braces here!
+Accepts a hash describing how to create the object. Accepts a single hash ( with
+curly braces ), an inline hash (the same, but without the braces) or a single
+string interpreted as a filename. Thus the following are all equivalent:
+
+ PDL::IO::GD->new( {filename => 'image.png'} );
+ PDL::IO::GD->new( filename => 'image.png' );
+ PDL::IO::GD->new( 'image.png' );
 
 If the hash has:
 
@@ -1039,8 +1045,41 @@ sub new
     my $sub = _pkg_name( "new" );
     
     # Figure out our options:
-    #
-    my $options = shift;
+
+    # I want a single hash. I handle several cases here
+    my $options;
+    if( @_ == 1 && ref $_[0] eq 'HASH' ) {
+      # single hash argument. Just take it
+      $options = shift;
+    }
+    elsif( @_ == 1 && ! ref $_[0] ) {
+      # single scalar argument. Treat it as a filename by default
+      my $filename = shift;
+      $options = { filename => $filename };
+    }
+    else {
+      # the only other acceptable option is an inline hash. This is valid if I
+      # have an even number of arguments, and the even-indexed ones (the keys)
+      # are scalars
+      if( @_ % 2 == 0 ) {
+        my $Npairs = scalar(@_)/2;
+
+        use List::MoreUtils 'none';
+        if( List::MoreUtils::none { ref $_[2*$_] } 0..$Npairs-1 ) {
+          # treat the arguments as a hash
+          $options = { @_ }
+        }
+      }
+    }
+
+    if( !defined $options ) {
+      die <<EOF;
+PDL::IO::GD::new couldn't parse its arguments.
+Expected a hash-ref or an inline hash or just a filename
+EOF
+    }
+
+
     
     if( defined( $options->{pdl} ) )
     {   # Create it from a PDL variable:

@@ -13,6 +13,8 @@ use Test::More;
 
 BEGIN
 {
+    my $Ntests = 32;
+
     use PDL::Config;
     if ( $PDL::Config{WITH_GD} ) 
     {
@@ -30,12 +32,12 @@ BEGIN
            else
            {
               diag "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for BSD AMD64";
-              plan tests => 28;
+              plan tests => $Ntests;
            }
         }  
         else
         {
-            plan tests => 28;
+            plan tests => $Ntests;
         }
     }
     else
@@ -243,6 +245,29 @@ TODO:
     my $png_blob = $im->get_Png_data();
     ok( $blob3d eq $png_blob, 'get a PNG data glob' );
     $im->DESTROY(); $im = undef;
+
+    # TEST 29:
+    # Try a nicer way to make an object. Just pass in a filename:
+    my $gd_new_just_filename = PDL::IO::GD->new( $testfile1 );
+    ok( defined( $gd_new_just_filename ), 'initialize an object from JUST the filename' );
+
+    # TEST 30:
+    # Try another nicer way to make an object: Pass in an inline hash:
+    my $gd_new_inline_hash = PDL::IO::GD->new( filename => $testfile1 );
+    ok( defined( $gd_new_inline_hash ), 'initialize an object from an inline hash' );
+
+    # TEST 31:
+    # Make sure bogus inline hashes generate complaints. First, give an odd
+    # number of args
+    my $gd_new_inline_hash_broken1;
+    eval { $gd_new_inline_hash_broken1 = PDL::IO::GD->new( filename => $testfile1, 34 ) };
+    ok( $@ && !defined( $gd_new_inline_hash_broken1 ), 'incorrectly initialize an object from an inline hash: odd Nargs' );
+    # TEST 32:
+    # Make sure bogus inline hashes generate complaints. Give a non-string key
+    my $gd_new_inline_hash_broken2;
+    eval { $gd_new_inline_hash_broken2 = PDL::IO::GD->new( filename => $testfile1, [34] => 12 ) };
+    ok( $@ && !defined( $gd_new_inline_hash_broken2 ), 'incorrectly initialize an object from an inline hash: non-string key' );
+
 
     # Remove our test files:
     #
