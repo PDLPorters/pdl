@@ -324,7 +324,7 @@ open( PROTOS, "> SlatecProtos.h" );
 #
 sub defslatec {
 
-    my $debug = 0;  # print out calls to pp_def
+    my $debug = 1;  # print out calls to pp_def
 
     my($pname,$fnames,$argstr,$docstring,$funcref) = @_;
     my @args = map {/^\s*$/ ? () : $_} split ';', $argstr;
