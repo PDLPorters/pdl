@@ -209,7 +209,7 @@ foreach my $test ( @tests )
   my ( $msg, $limits, $exp ) = @$test;
 
   my @range = limits( @udsets_arr, { %attr, Limits => $limits } );
-  ok( mostly_eq_array( \@range, $exp ), "array: $msg" );
+  ok( mostly_eq_array( \@range, $exp ), "array: $msg" ) or diag "(@range), [@$exp]\n";
 }
 
 # check equality of array refs up to a tolerance

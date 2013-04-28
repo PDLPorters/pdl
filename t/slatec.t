@@ -11,7 +11,7 @@ BEGIN {
 		$ntests -= 3 unless ($PDL::Config{WITH_BADVAL}); # two fewer tests if no bad val support
 		plan tests => $ntests;
 	} else { 
-		print "$@\n";
+           ## print STDERR "$@\n";
 		plan skip_all => 'PDL::Slatec not available';
 	}
 }
@@ -31,7 +31,7 @@ my $mat = pdl [1,0.1],[0.1,2];
 
 ($eigvals,$eigvecs) = eigsys($mat);
 
-print $eigvecs,$eigvals,"\n";
+## print STDERR $eigvecs,$eigvals,"\n";
 
 ok(tapprox($eigvals,pdl(0.9901,2.009)));
 ok(!tapprox($eigvals,pdl(0.99,2.5)));
@@ -44,17 +44,17 @@ $inv = matinv($mat);
 
 inner($mat->dummy(2),$inv->xchg(0,1)->dummy(1),($uni=null));
 
-print $mat;
-print $inv;
+## print STDERR $mat;
+## print STDERR $inv;
 
-print $uni;
+## print STDERR $uni;
 
 ok(tapprox($uni,pdl[1,0],[0,1]));
 
 $det = $mat->det;
-$det->dump;
+## $det->dump;
 $deti = $inv->det;
-$deti->dump;
+## $deti->dump;
 
 ok(tapprox($det,-2));
 ok(tapprox($deti,-0.5));
@@ -77,8 +77,8 @@ if ($PDL::Config{WITH_BADVAL}) {
   $y->inplace->setbadat(3);
   ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
 
-  print "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-  print "poly = $r\n";
+  ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
+  ## print STDERR "poly = $r\n";
 
   ok(($ierr == 1));
 
@@ -86,8 +86,8 @@ if ($PDL::Config{WITH_BADVAL}) {
   $y = zeroes(9)->setbadif(1);
   ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
 
-  print "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-  print "poly = $r\n";
+  ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
+  ## print STDERR "poly = $r\n";
 
   ok(($ierr == 2));
 
@@ -105,8 +105,8 @@ if ($PDL::Config{WITH_BADVAL}) {
 
   ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
 
-  print "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-  print "poly = $r\n";
+  ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
+  ## print STDERR "poly = $r\n";
 
   ok((sum($ierr == 1) == 2));
 
@@ -122,8 +122,8 @@ $eps = pdl(0);
 # Do the fit
 my ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
 
-print "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-print "poly = $r\n";
+## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
+## print STDERR "poly = $r\n";
 
 ok(($ierr == 1));
 
@@ -145,7 +145,7 @@ foreach my $xpos ($x->list) {
     $ypos += $bit * ($xpos- (($c->list)[0]))**$n;
     $n++;
   }
-  print "$xpos, $ypos, $r[$i]\n";
+  ## print STDERR "$xpos, $ypos, $r[$i]\n";
 
   # Compare with answers from polyfit
   ok(sprintf("%5.2f", $ypos) == sprintf("%5.2f", $r[$i]));
@@ -159,7 +159,7 @@ my $nder = 3;
 
 my ($yfit, $yp) = polyvalue($ndeg, $nder, $xx, $a);
 
-print "At $xx, $yfit and $yp\n";
+## print STDERR "At $xx, $yfit and $yp\n";
 ok(int($yp->at(0)) == 8);
 
 # Test polyvalue
@@ -168,7 +168,7 @@ $xx    = pdl(12,4,6.25,1.5); # Ask for multiple positions at once
 
 ($yfit, $yp) = polyvalue($ndeg, $nder, $xx, $a);
 
-print "At $xx is $yfit and $yp\n";
+## print STDERR "At $xx is $yfit and $yp\n";
 
 # Simple test of expected value                                               
 ok(int($yfit->at(1)) == 15);            
@@ -257,8 +257,8 @@ $ans = ($hi**3 - $lo**3) / 3;
 ( $int, $err ) = chid( $x, $f, $d, 1, pdl(0,1), pdl(9,7) );
 ok(all($err == 0));
 ok(all( abs($int-$ans) < 0.06 ) );
-print "int=$int; ans=$ans; int-ans=".($int-$ans)."\n";
-print "ref ans=".(ref $ans)."\n";
+## print STDERR "int=$int; ans=$ans; int-ans=".($int-$ans)."\n";
+## print STDERR "ref ans=".(ref $ans)."\n";
 
 =pod ignore as have commented out chbs interface
 
