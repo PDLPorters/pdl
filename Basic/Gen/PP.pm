@@ -795,7 +795,8 @@ our @ISA = qw(Exporter);
 @PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
 		      pp_core_importList pp_beginwrap pp_setversion
-                      pp_addbegin pp_boundscheck pp_line_numbers/;
+                      pp_addbegin pp_boundscheck pp_line_numbers
+                      pp_deprecate_module/;
 
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
@@ -1160,6 +1161,55 @@ sub pp_def {
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;
 }
 
+# marks this module as deprecated. This handles the user warnings, and adds a
+# notice into the documentation. Can take a {infavor => "newmodule"} option
+sub pp_deprecate_module
+{
+  my $options;
+  if( ref $_[0] eq 'HASH' )  { $options = shift;  }
+  else                       { $options = { @_ }; }
+
+  my $infavor;
+
+  if( $options && ref $options eq 'HASH' && $options->{infavor} )
+  {
+    $infavor = $options->{infavor};
+  }
+
+  my $mod = $::PDLMOD;
+  my $envvar = 'PDL_SUPPRESS_DEPRECATION_WARNING__' . uc $mod;
+  $envvar =~ s/::/_/g;
+
+  my $warning_main =
+    "$mod is deprecated.";
+  $warning_main .=
+    " Please use $infavor instead." if $infavor;
+
+  my $warning_suppression_runtime =
+    "This module will be removed in the future; please update your code.\n" .
+    "Set the environment variable $envvar\n" .
+    "to suppress this warning\n";
+
+  my $warning_suppression_pod =
+    "A warning will be generated at runtime upon a C<use> of this module\n" .
+    "This warning can be suppressed by setting the $envvar\n" .
+    "environment variable\n";
+
+  pp_addpm {At => 'Top'}, <<EOF;
+=head1 DEPRECATION NOTICE
+
+$warning_main
+$warning_suppression_pod
+
+=cut
+
+EOF
+
+  pp_addpm {At => 'Top'}, <<EOF;
+warn \"$warning_main\n$warning_suppression_runtime\" unless \$ENV{$envvar};
+EOF
+
+}
 
 # Worst memleaks: not freeing things at redodims or
 # final free time (thread, dimmed things).

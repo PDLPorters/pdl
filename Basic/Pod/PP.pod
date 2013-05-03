@@ -1635,6 +1635,17 @@ two. To use this, simply have the following line at some point in your
 However, don't use this if you use L<Module::Build::PDL>. See that
 module's documentation for details.
 
+=head3 pp_deprecate_module
+
+If a particular module is deemed obsolete, this function can be used to mark it
+as deprecated. This has the effect of emitting a warning when a user tries to
+C<use> the module. The generated POD for this module also carries a deprecation
+notice. The replacement module can be passed as an argument like this:
+
+ pp_deprecate_module( infavor => "PDL::NewNonDeprecatedModule" );
+
+Note that function affects I<only> the runtime warning and the POD.
+
 =head1 Making your PP function "private"
 
 Let's say that you have a function in your module called PDL::foo that
