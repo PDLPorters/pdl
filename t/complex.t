@@ -17,7 +17,7 @@ $ref = pdl([[-2,1],[-3,1]]);
 $a = i - pdl(2,3);
 
 ok(ref $a eq PDL::Complex, 'type promotion i - piddle');
-ok(tapprox($a->real,$ref), 'value from i - piddile');
+ok(tapprox($a->real,$ref), 'value from i - piddle');
 
 $a = pdl(2,3) - i;
 ok(ref $a eq PDL::Complex, 'type promption piddle - i');
