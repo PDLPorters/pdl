@@ -496,6 +496,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
            'Storable'            => 1.03,      # for PDL::IO::Storable
 	   'Text::Balanced'      => 1.89,      # for PDL::NiceSlice
+           'Test::Warn'          => 0,         # for t/pptest.t
 	  );
 
 # add OpenGL version dependency for CPAN to follow

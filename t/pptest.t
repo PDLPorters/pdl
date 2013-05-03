@@ -1,9 +1,17 @@
-use Test::More tests => 23;
+use Test::More tests => 24;
+use Test::Warn;
 
 use PDL::LiteF;
-use PDL::Tests;
 use PDL::Types;
 use PDL::Dbg;
+
+BEGIN
+{
+  warning_like{ require PDL::Tests; PDL::Tests->import; }
+    qr/deprecated.*PDL::Test::Fancy/,
+    "PP deprecation should emit warnings";
+}
+
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 

@@ -27,7 +27,8 @@ Build-Depends:
  freeglut3-dev,
  libextutils-f77-perl,
  netpbm,
- libdevel-repl-perl (>=1.003011)
+ libdevel-repl-perl (>=1.003011),
+ libtest-warn-perl
 Homepage: http://pdl.perl.org/
 
 Package: pdl

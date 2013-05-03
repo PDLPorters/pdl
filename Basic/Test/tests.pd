@@ -22,6 +22,9 @@ Strictly speaking this module shouldn't be installed with a
 
 EOPM
 
+# make sure the deprecation mechanism throws warnings
+pp_deprecate_module( infavor => "PDL::Test::Fancy" );
+
 sub pp_deft {
     my ($name,%hash) = @_;
 ##    $hash{Doc} = "=for ref\n\ninternal\n\nonly for internal testing purposes\n";
