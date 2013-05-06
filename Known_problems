@@ -34,7 +34,7 @@ The following issues have been reported with this version of PDL:
     f( scalar($p0 * $p1) x $p2 );
 
   Please see
-  http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2012-February/004426.html
+  http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2012-February/004423.html
   for a more detailed discussion and additional work-arounds.
 
 
