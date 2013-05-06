@@ -1440,7 +1440,7 @@ sub pdimexpr2priv {
 #
 sub equivcpoffscode {
     return
-	'int i;
+	'PDL_Index i;
          for(i=0; i<$CHILD_P(nvals); i++)  {
             $EQUIVCPOFFS(i,i);
          }';
