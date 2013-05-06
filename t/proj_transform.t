@@ -121,7 +121,8 @@ SKIP: {
    foreach my $i ( 0 .. $#slices )
    {
       my $str = $slices[$i];
-      my $slice = $eqc->slice($str);
+      my $slice = $eqc->slice($str)->copy;
+      $slice->badflag(0);
       # ok( "$slice" eq $ref_eqc_slices[$i], "check ref_eqc for slices[$i]" );
       is( "$slice", $ref_eqc_slices[$i], "check ref_eqc for slices[$i]" );
    }
@@ -138,7 +139,8 @@ SKIP: {
    foreach my $i ( 0 .. $#slices )
    {
       my $str = $slices[$i];
-      my $slice = $ortho->slice($str);
+      my $slice = $ortho->slice($str)->copy;
+      $slice->badflag(0);
       # ok( "$slice" eq $ref_ortho_slices[$i], "check ref_ortho for slices[$i]" );
       is( "$slice", $ref_ortho_slices[$i], "check ref_ortho for slices[$i]" );
    }
@@ -153,7 +155,8 @@ SKIP: {
    foreach my $i ( 0 .. $#slices )
    {
       my $str = $slices[$i];
-      my $slice = $ortho2->slice($str);
+      my $slice = $ortho2->slice($str)->copy;
+      $slice->badflag(0);
       # ok( "$slice" eq $ref_ortho_slices[$i], "check ref_ortho2 for slices[$i]" );
       is( "$slice", $ref_ortho_slices[$i], "check ref_ortho2 for slices[$i]" );
    }

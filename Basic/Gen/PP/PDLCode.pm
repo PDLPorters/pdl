@@ -272,7 +272,7 @@ sub new { my($type,$args,$sizeprivs,$parent) = @_;
 		print "SIZP $sizeprivs, $_\n" if $::PP_VERBOSE;
 		my $i = $parent->make_loopind($_);
 		$sizeprivs->{$i->[0]} =
-		  "register int __$i->[0]_size = \$PRIV(__$i->[0]_size);\n";
+		  "register PDL_Index __$i->[0]_size = \$PRIV(__$i->[0]_size);\n";
 		print "SP :",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 	}
 	return $this;
@@ -284,7 +284,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 	push @$context, map {
 		$i = $parent->make_loopind($_);
 # Used to be $PRIV(.._size) but now we have it in a register.
-		$text .= "{PDL_COMMENT(\"Open $_\") register int $_;
+		$text .= "{PDL_COMMENT(\"Open $_\") register PDL_Index $_;
 			for($_=0; $_<(__$i->[0]_size); $_++) {";
 		$i;
 	} @{$this->[0]};
