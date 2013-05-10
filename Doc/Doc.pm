@@ -688,8 +688,8 @@ sub scan {
   my @namelines = split("\n",$outfile_text);
   my ($name,$does);
   for (@namelines) {
-     if (/^(PDL) (-) (.*)/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
-       $name = $1; $does = $3;
+     if (/^(PDL) (-) (.*)/ or  /^\s*(Inline::Pdlpp)\s*(-*)?\s*(.*)\s*$/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
+	$name = $1; $does = $3;
      }
      if (/^\s*([a-z][a-z0-9]*) (-+) (.*)/) { # lowercase shell script name
        $name = $1; $does = $3;
