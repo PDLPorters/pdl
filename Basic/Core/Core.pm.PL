@@ -607,11 +607,13 @@ Return piddle dimensions as a perl list
  pdl> p @tmp = dims zeroes 10,3,22
  10 3 22
 
+See also L<shape|shape> which returns a piddle instead.
+
 =head2 shape
 
 =for ref
 
-Return piddle dimensions as a perl list
+Return piddle dimensions as a piddle
 
 =for usage
 
@@ -621,6 +623,8 @@ Return piddle dimensions as a perl list
 
  pdl> p $shape = shape zeroes 10,3,22
  [10 3 22]
+
+See also L<dims|dims> which returns a perl list.
 
 =head2 ndims
 
