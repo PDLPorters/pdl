@@ -2,6 +2,9 @@ Release Notes for PDL 2.006_01 --------------------------
 
 General Notes:
 
+ * Make new 64bit index support PDL available for more
+   widespread testing and evaluation.
+
  * Another quick CPAN developers release
  
    - It is a snapshot of the current git development tree
@@ -26,7 +29,10 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * By default, this release will build PDL with the new
+   PDL_Index support and that type will be determined by
+   the type of IV for your perl.  If $Config{ivsize}==8
+   then you have 64bit indexing.
 
 
 

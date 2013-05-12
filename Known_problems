@@ -103,10 +103,9 @@ The following issues have been reported with this version of PDL:
   again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
 
-- PDL on Cygwin has (by default) a 300MB process memory limit which can
-  cause out of memory crashes with large data sets.  See the cygwin users
-  guide: http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html for how
-  to increase the memory limit.
+- PDL on Cygwin+32bit windows has only about 300MB which can cause
+  out of memory crashes with large data sets.  For 64bit windows hosts
+  2GB is available.
 
 
 - minimum/maximum/min/max inconsistently handle NaN values.
