@@ -34,6 +34,9 @@ Highlights:
    the type of IV for your perl.  If $Config{ivsize}==8
    then you have 64bit indexing.
 
+ * By default, the perldl.conf does not build modules
+   requiring external dependencies.
+
 
 
 Release Notes for PDL 2.006 --------------------------
