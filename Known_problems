@@ -116,7 +116,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.006_01 release:
+  PDL-2.006_02 release:
 
   3606774    PDL re-install wipes out non-core docs
   3605814    PDL::Demos system needs overhaul
