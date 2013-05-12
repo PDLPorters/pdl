@@ -1,6 +1,41 @@
+Release Notes for PDL 2.006_02 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.006_02.tar.gz
+       cpan> make CHM/PDL-2.006_02.tar.gz
+       cpan> test CHM/PDL-2.006_02.tar.gz
+       cpan> look CHM/PDL-2.006_02.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
 Release Notes for PDL 2.006_01 --------------------------
 
 General Notes:
+
+ * Make new 64bit index support PDL available for more
+   widespread testing and evaluation.
 
  * Another quick CPAN developers release
  
@@ -23,10 +58,15 @@ General Notes:
        cpan> test CHM/PDL-2.006_01.tar.gz
        cpan> look CHM/PDL-2.006_01.tar.gz
 
-
 Highlights:
 
- * TBD
+ * By default, this release will build PDL with the new
+   PDL_Index support and that type will be determined by
+   the type of IV for your perl.  If $Config{ivsize}==8
+   then you have 64bit indexing.
+
+ * By default, the perldl.conf does not build modules
+   requiring external dependencies.
 
 
 
