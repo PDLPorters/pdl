@@ -308,8 +308,8 @@ biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)');
 ## bit ops
 # those need to be limited to the right types
 my $T = [B,U,S,L]; # the sensible types here
-biop('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
-biop('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop('shiftleft','<<',1,'leftshift C<$a> by C<$b>',GenericTypes => $T);
+biop('shiftright','>>',1,'rightshift C<$a> by C<$b>',GenericTypes => $T);
 biop('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
 biop('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
 biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
@@ -318,7 +318,7 @@ biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
+bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<$b>',GenericTypes => [D]);
 bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
 bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation',unsigned=>1);
 bifunc('spaceship',['SPACE','op<=>'],1,'elementwise "<=>" operation');

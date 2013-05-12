@@ -164,7 +164,7 @@ An implementation of online docs for PDL.
 
 PDL::Doc's main use is in the "help" (synonym "?") and "apropos"
 (synonym "??") commands in the perldl shell.  PDL:Doc provides the
-infrastrucure to index and access PDL's documentation throguh these
+infrastrucure to index and access PDL's documentation through these
 commands.  There is also an API for direct access to the documentation 
 database (see below).
 
@@ -558,7 +558,7 @@ that should be matched against the regex. Valid fields are
   Ref,     # the one-line reference description
   Example, # the example for this function
   Opt,     # options
-  File,    # the path to the source file this docs have been extracted from
+  File,    # the path to the source file these docs have been extracted from
 
 If you wish to have your results sorted by function name, pass a true
 value for C<$sort>.
@@ -688,8 +688,8 @@ sub scan {
   my @namelines = split("\n",$outfile_text);
   my ($name,$does);
   for (@namelines) {
-     if (/^(PDL) (-) (.*)/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
-       $name = $1; $does = $3;
+     if (/^(PDL) (-) (.*)/ or  /^\s*(Inline::Pdlpp)\s*(-*)?\s*(.*)\s*$/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
+	$name = $1; $does = $3;
      }
      if (/^\s*([a-z][a-z0-9]*) (-+) (.*)/) { # lowercase shell script name
        $name = $1; $does = $3;
@@ -880,7 +880,7 @@ own code.
  print $pdldoc->gethash->{zeroes}->{Ref};
  
  # See which examples use zeroes
- $pdldoc->search('zeroes', 'Examples', 1);
+ $pdldoc->search('zeroes', 'Example', 1);
  
  # All the functions that use zeroes in their example:
  my @entries = $pdldoc->search('zeroes', 'Example', 1);
