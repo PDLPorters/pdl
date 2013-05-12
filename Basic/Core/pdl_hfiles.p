@@ -1,4 +1,8 @@
 
+use Config;
+$PDL_Index_type = $Config{'ivtype'};
+warn "Using new 64bit index support\n" if $Config{'ivsize'}==8;
+
 use lib ".";
 require 'Types.pm';
 *T = *PDL::Types::typehash; # Alias
@@ -7,7 +11,6 @@ require 'Types.pm';
 # pdl.h and pdlsimple.h
 
 $enum = '';
-$typedefs = "typedef long long PDL_Index;\n";
 for (sort { $T{$a}{'numval'}<=>$T{$b}{'numval'} }  keys %T) {
  $enum .= $T{$_}{'sym'}.", ";
  $typedefs .= "typedef $T{$_}{'realctype'}              $T{$_}{'ctype'};\n";
@@ -27,6 +30,9 @@ enum pdl_datatypes { $enum };
 /* Define the pdl data types */
 
 $typedefs
+
+typedef $PDL_Index_type    PDL_Index;
+
 
 /*****************************************************************************/
 

@@ -11,6 +11,11 @@ use File::Basename qw(&basename &dirname);
 
 # Figure out the 4 byte integer type on this machine
 
+sub typeofPDLIndex {
+   warn "Using typedef $Config{'ivtype'} PDL_Index\n";
+   return $Config{'ivtype'} 
+}
+
 sub typeofPDLLong {
    return 'int'  if $Config{'intsize'}==4;
    return 'long' if $Config{'longsize'}==4;
@@ -77,18 +82,18 @@ my @types = (
 # the same as PDL_LongLong depending on the platform.  Will need to
 # determine the actual type at build time.
 #
-#            {
-#             identifier => 'IND',
-#	      onecharident => 'N',   # only needed if different from identifier
-#             pdlctype => 'PDL_Index',
-#             realctype => &typeofPDLIndex,
-#             ppforcetype => 'TBD',
-#             usenan => 0,
-#             packtype => 'TBD',
-#             defaultbadval => 'TBD',
-#            },
+#             {
+#              identifier => 'IND',
+#              onecharident => 'N',   # only needed if different from identifier
+#              pdlctype => 'PDL_Index',
+#              realctype => &typeofPDLIndex,
+#              ppforcetype => &typeofPDLIndex,
+#              usenan => 0,
+#              packtype => 'q*',
+#              defaultbadval => 'LONG_MIN',
+#             },
 #
-
+#
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
 #
