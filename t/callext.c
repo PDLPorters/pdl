@@ -74,7 +74,7 @@ DLLEXPORT int loglog_ext(int nargs, pdlsimple **args) {
 
    /* Now do the buisness! */
 
-   loglog_doit( (float*) x->data, (float*) y->data, x->nvals);
+   loglog_doit( (float*) x->data, (float*) y->data, (int) x->nvals);
 
    return(1);  /* Success! */
 }
