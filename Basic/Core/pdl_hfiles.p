@@ -31,7 +31,7 @@ enum pdl_datatypes { $enum };
 
 $typedefs
 
-typedef $PDL_Index_type    PDL_Index;
+/* typedef $PDL_Index_type    PDL_Index; */
 
 
 /*****************************************************************************/

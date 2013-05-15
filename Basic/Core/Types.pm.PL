@@ -81,17 +81,17 @@ my @types = (
 # The PDL_Index type will be either the same as PDL_Long or, probably,
 # the same as PDL_LongLong depending on the platform.  Will need to
 # determine the actual type at build time.
-#
-#             {
-#              identifier => 'IND',
-#              onecharident => 'N',   # only needed if different from identifier
-#              pdlctype => 'PDL_Index',
-#              realctype => &typeofPDLIndex,
-#              ppforcetype => &typeofPDLIndex,
-#              usenan => 0,
-#              packtype => 'q*',
-#              defaultbadval => 'LONG_MIN',
-#             },
+
+       {
+        identifier => 'IND',
+        onecharident => 'N',   # only needed if different from identifier
+        pdlctype => 'PDL_Index',
+        realctype => &typeofPDLIndex,
+        ppforcetype => 'index',
+        usenan => 0,
+        packtype => 'q*',
+        defaultbadval => 'LONG_MIN',
+       },
 #
 #
 # note that the I/O routines have *not* been updated to be aware of
