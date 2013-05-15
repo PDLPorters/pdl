@@ -69,6 +69,14 @@ FUNCTIONS
 
 # $::PP_VERBOSE=1;
 
+pp_addhdr(<<'EOH');
+
+#ifdef _MSC_VER
+#define strtoll _strtoi64
+#endif
+
+EOH
+
 pp_add_boot(
 "  PDL->readdata_affine = pdl_readdata_affineinternal;\n" . 
 "     PDL->writebackdata_affine = pdl_writebackdata_affineinternal;\n"
