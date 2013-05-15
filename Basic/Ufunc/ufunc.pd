@@ -580,15 +580,15 @@ FOO
 
 sub generic_qsort {
     my $pdl = shift;
-    return '$TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
+    return '$TBSULNQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
+             pdl_qsort_L,pdl_qsort_N,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
 }
 
 sub generic_qsortvec {
     my $pdl = shift;
     my $ndim = shift;
-    return '$TBSULQFD(pdl_qsortvec_B,pdl_qsortvec_S,pdl_qsortvec_U,
-             pdl_qsortvec_L,pdl_qsortvec_Q,pdl_qsortvec_F,pdl_qsortvec_D) ($P(' . $pdl . '), '. $ndim.', 0, nn);';
+    return '$TBSULNQFD(pdl_qsortvec_B,pdl_qsortvec_S,pdl_qsortvec_U,
+             pdl_qsortvec_L,pdl_qsortvec_N,pdl_qsortvec_Q,pdl_qsortvec_F,pdl_qsortvec_D) ($P(' . $pdl . '), '. $ndim.', 0, nn);';
 }
 
 
@@ -1076,24 +1076,24 @@ Bad values are moved to the end of the array:
     ); # pp_def qsort
 
 sub generic_qsort_ind {
-    return '$TBSULQFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
-            pdl_qsort_ind_L,pdl_qsort_ind_Q,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
+    return '$TBSULNQFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
+            pdl_qsort_ind_L,pdl_qsort_ind_N,pdl_qsort_ind_Q,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
             0, nn);';
 }
 
 pp_def(
        'qsorti',
        HandleBad => 1,
-       Pars => 'a(n); longlong [o]indx(n);',
+       Pars => 'a(n); index [o]indx(n);',
        Code => 
-       'long long nn = $COMP(__n_size)-1;
+       'PDL_Index nn = $COMP(__n_size)-1;
         if ($SIZE(n) == 0) return;
         loop(n) %{ 
            $indx() = n; 
         %}
        ' . generic_qsort_ind(),
        BadCode =>
-       'register long long nn = 0, nb = $SIZE(n) - 1;
+       'register PDL_Index nn = 0, nb = $SIZE(n) - 1;
         if ($SIZE(n) == 0) return;
         loop(n) %{ 
            if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
@@ -1174,17 +1174,17 @@ Vectors with bad components should be moved to the end of the array:
 sub generic_qsortvec_ind {
     my $pdl = shift;
     my $ndim = shift;
-    return '$TBSULQFD(pdl_qsortvec_ind_B,pdl_qsortvec_ind_S,pdl_qsortvec_ind_U,
-             pdl_qsortvec_ind_L,pdl_qsortvec_ind_Q,pdl_qsortvec_ind_F,pdl_qsortvec_ind_D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
+    return '$TBSULNQFD(pdl_qsortvec_ind_B,pdl_qsortvec_ind_S,pdl_qsortvec_ind_U,
+             pdl_qsortvec_ind_L,pdl_qsortvec_ind_N,pdl_qsortvec_ind_Q,pdl_qsortvec_ind_F,pdl_qsortvec_ind_D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
 }
 
 pp_def(
     'qsortveci',
     HandleBad => 1,
-    Pars => 'a(n,m); longlong [o]indx(m);',
+    Pars => 'a(n,m); index [o]indx(m);',
     Code => 
-    'long long nd;
-     long long nn=$COMP(__m_size)-1;
+    'PDL_Index nd;
+     PDL_Index nn=$COMP(__m_size)-1;
      loop(m) %{
         $indx()=m;
      %}

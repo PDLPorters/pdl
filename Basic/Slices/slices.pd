@@ -199,7 +199,7 @@ pp_def(
        HandleBad => 1,
        DefaultFlow => 1,
        Reversible => 1,	
-       Pars => 'a(n); longlong ind(); [oca] c();',
+       Pars => 'a(n); index ind(); [oca] c();',
        Code => 
        $index_init_good . ' $c() = $a(n => foo);',
        BadCode => 
@@ -241,7 +241,7 @@ pp_def(
        HandleBad => 1,
        DefaultFlow => 1,
        Reversible => 1,	
-       Pars => 'a(na,nb); longlong inda(); longlong indb(); [oca] c();',
+       Pars => 'a(na,nb); index inda(); index indb(); [oca] c();',
        Code => 
        $index2d_init_good . ' $c() = $a(na => fooa, nb => foob);',
        BadCode => 
@@ -1105,7 +1105,7 @@ EOD-EquivCPOffsCode
 
 pp_def(
 	'rld',
-	Pars=>'longlong a(n); b(n); [o]c(m);',
+	Pars=>'index a(n); b(n); [o]c(m);',
 	PMCode =><<'EOD',
 sub PDL::rld {
   my ($a,$b) = @_;
@@ -1156,7 +1156,7 @@ EOD
 
 pp_def(
 	'rle',
-	Pars=>'c(n); longlong [o]a(n); [o]b(n);',
+	Pars=>'c(n); index [o]a(n); [o]b(n);',
 	Code=>'
 	  PDL_Index j=0,sn=$SIZE(n);
 	  $GENERIC(c) cv, clv;
@@ -2294,7 +2294,7 @@ pp_def('rotate',
 Shift vector elements along with wrap. Flows data back&forth.
 =cut
 EOD
- 	Pars=>'x(n); longlong shift(); [oca]y(n)',
+ 	Pars=>'x(n); index shift(); [oca]y(n)',
         DefaultFlow => 1,
         Reversible => 1,
         Code=>'
