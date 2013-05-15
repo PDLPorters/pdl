@@ -368,7 +368,7 @@ pp_def(
 
 	BadCode => 
 	'$GENERIC(b) tmp = 0;
-         long cnt = 0;
+         PDL_Index cnt = 0;
 	 loop(n) %{ 
             if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
          %}
@@ -391,7 +391,7 @@ pp_def(
 	  else { $b() = 0; }',
 	BadCode => 
 	'double tmp = 0;
-         long cnt = 0;
+         PDL_Index cnt = 0;
 	 loop(n) %{ 
             if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
          %}
@@ -629,10 +629,10 @@ pp_def(
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('median','medover',''),
        Code => 
-       "int nn2;\n" . $copy_to_temp_good . $find_median_average,
+       "PDL_Index nn2;\n" . $copy_to_temp_good . $find_median_average,
        BadCode =>
        $copy_to_temp_bad . 
-       '   int nn1, nn2;
+       '   PDL_Index nn1, nn2;
            nn -= 1; ' .
        generic_qsort('tmp') .
        $find_median_average . '}',
@@ -656,7 +656,7 @@ some circumstances.
        $copy_to_temp_good . $find_median_lower,
        BadCode =>
        $copy_to_temp_bad . 
-       '   int nn1;
+       '   PDL_Index nn1;
            nn -= 1; '.
        $find_median_lower . '}',
 
@@ -731,12 +731,12 @@ I<any> dimension.
 ',
         Code => '
            double np, pp1, pp2;
-           int nn2;
+           PDL_Index nn2;
 	   ' . $copy_to_temp_good .
            $find_pct_interpolate,
        BadCode =>
        $copy_to_temp_bad .  '
-           int nn1, nn2;
+           PDL_Index nn1, nn2;
            double np, pp1, pp2;
            nn -= 1; ' .  generic_qsort('tmp') .
            $find_pct_interpolate . '}',
@@ -774,7 +774,7 @@ I<any> dimension.
 
 ',
         Code => '
-           int np;
+           PDL_Index np;
 	   ' . $copy_to_temp_good . '
            np = (nn+1)*$p();
            if (np > nn) np = nn;
@@ -1039,12 +1039,12 @@ pp_def(
     Inplace => 1,
     Pars => 'a(n); [o]b(n);',
     Code => 
-    'int nn;
+    'PDL_Index nn;
      loop(n) %{ $b() = $a(); %}
      nn = $COMP(__n_size)-1;
     ' . generic_qsort('b'),
     BadCode =>
-    'register int nn = 0, nb = $SIZE(n) - 1;
+    'register PDL_Index nn = 0, nb = $SIZE(n) - 1;
      loop(n) %{ 
         if ( $ISGOOD(a()) ) { $b(n=>nn) = $a(); nn++; }
         else                { $SETBAD(b(n=>nb)); nb--; }
@@ -1084,7 +1084,7 @@ sub generic_qsort_ind {
 pp_def(
        'qsorti',
        HandleBad => 1,
-       Pars => 'a(n); index [o]indx(n);',
+       Pars => 'a(n); ind [o]indx(n);',
        Code => 
        'PDL_Index nn = $COMP(__n_size)-1;
         if ($SIZE(n) == 0) return;
@@ -1181,7 +1181,7 @@ sub generic_qsortvec_ind {
 pp_def(
     'qsortveci',
     HandleBad => 1,
-    Pars => 'a(n,m); index [o]indx(m);',
+    Pars => 'a(n,m); ind [o]indx(m);',
     Code => 
     'PDL_Index nd;
      PDL_Index nn=$COMP(__m_size)-1;
@@ -1266,10 +1266,10 @@ for ways of masking NaNs.
     pp_def( 
 	    "${name}_ind",
 	    HandleBad => 1,
-	    Pars => 'a(n); int [o] c();', 
+	    Pars => 'a(n); ind [o] c();', 
 	    Code => 
 	    '$GENERIC() cur;
-             int curind;
+             PDL_Index curind;
 	     loop(n) %{
 	 	if(!n || $a() '.$op.' cur ' . $nan_check . ')
 		   {cur = $a(); curind = n;}
@@ -1277,7 +1277,7 @@ for ways of masking NaNs.
 	     $c() = curind;',
 	    BadCode => 
 	    '$GENERIC() cur;
-             int curind, flag = 0; /* should set curind to -1 and check for that, then do not need flag */
+             PDL_Index curind; int flag = 0; /* should set curind to -1 and check for that, then do not need flag */
 	     loop(n) %{
 	 	if( $ISGOOD(a()) && (!flag || $a() '.$op.' cur)) 
                    {cur = $a(); curind = n; flag = 1;}
@@ -1294,14 +1294,14 @@ otherwise the bad flag is cleared for the output piddle.',
     pp_def( 
 	    "${name}_n_ind",
 	    HandleBad => 0,   # just a marker 
-	    Pars => 'a(n); int[o]c(m);',
+	    Pars => 'a(n); ind [o]c(m);',
 	    Code =>
-	    '$GENERIC() cur; int curind; register int ns = $SIZE(n);
+	    '$GENERIC() cur; PDL_Index curind; register PDL_Index ns = $SIZE(n);
 	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
 	     loop(m) %{
 		 curind = ns;
 		 loop(n) %{
-		 	int nm; int flag=0;
+		 	PDL_Index nm; int flag=0;
 		 	for(nm=0; nm<m; nm++) {
 				if($c(m=>nm) == n) {flag=1; break;}
 			}
@@ -1328,10 +1328,10 @@ otherwise the bad flag is cleared for the output piddle.',
 pp_def( 
 	'minmaximum',
 	HandleBad => 1,
-	Pars => 'a(n); [o]cmin(); [o] cmax(); int [o]cmin_ind(); int [o]cmax_ind();',
+	Pars => 'a(n); [o]cmin(); [o] cmax(); ind [o]cmin_ind(); ind [o]cmax_ind();',
 	Code => 
 	'$GENERIC() curmin, curmax;
-         int curmin_ind, curmax_ind;
+         PDL_Index curmin_ind, curmax_ind;
 
  	 curmin = curmax = 0; /* Handle null piddle --CED */
 
@@ -1349,7 +1349,7 @@ pp_def(
 	CopyBadStatusCode => '',
 	BadCode => 
 	'$GENERIC() curmin, curmax;
-         int curmin_ind, curmax_ind, flag = 0;
+         PDL_Index curmin_ind, curmax_ind; int flag = 0;
 	
 	 loop(n) %{
             if ( $ISGOOD(a()) ) {

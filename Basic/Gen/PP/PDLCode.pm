@@ -617,7 +617,9 @@ use PDL::Types ':All'; # typefld et al.
 #
 my %use_nan =
     map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
+$use_nan{ind} = 0;
 $use_nan{int} = 0;
+$use_nan{index} = 0;
 
 # original try
 ##my %use_nan =
@@ -1200,7 +1202,7 @@ package PDL::PP::Code;
 # loops (array references, 1. item = variable.
 #
 sub separate_code {
-	$DB::single=1;
+   ## $DB::single=1;
     my ( $this, $code ) = @_;
 
     # First check for standard code errors:

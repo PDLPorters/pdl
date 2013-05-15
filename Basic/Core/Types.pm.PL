@@ -87,9 +87,10 @@ my @types = (
         onecharident => 'N',   # only needed if different from identifier
         pdlctype => 'PDL_Index',
         realctype => &typeofPDLIndex,
-        ppforcetype => 'index',
+        ppforcetype => 'ind',
         usenan => 0,
-        packtype => 'q*',
+        'convertfunc' => ($Config{ivsize}==4  ? 'long' : 'longlong'),
+        packtype => 'q*',      # needs to be generated
         defaultbadval => 'LONG_MIN',
        },
 #
@@ -169,6 +170,7 @@ sub genpacktypes {
 
 sub convertfunc {
   my ($type) = @_;
+  return $type->{'convertfunc'} if exists $type->{'convertfunc'};
   checktypehas 'pdlctype', $type;
   my $cfunc = $type->{pdlctype};
   $cfunc =~ s/PDL_//;
