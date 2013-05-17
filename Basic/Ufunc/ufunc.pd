@@ -295,7 +295,7 @@ pp_def(
        Pars => 'a(n); int+ [o]b();',
        Code =>
        '$GENERIC(b) tmp = 0;
-       int ns = $SIZE(n), nn;
+       PDL_Index ns = $SIZE(n), nn;
        /* Integration formulae from Press et al 2nd Ed S 4.1 */
        switch (ns) {
       case 1:
@@ -504,7 +504,7 @@ for (keys %PDL::Types::typehash) {
 	  while( pdl_cmpvec_$ppsym( &(xx[n*j]), &(xx[n*median_ind]), n )  >  0 ) 
 		j--;
 	  if(i<=j) {
-		int k;
+		PDL_Index k;
 		$ctype *aa = &xx[n*i];
 	        $ctype *bb = &xx[n*j];
 		for( k=0; k<n; aa++,bb++,k++ ) {
@@ -547,7 +547,7 @@ for (keys %PDL::Types::typehash) {
 	  while( pdl_cmpvec_$ppsym( &(xx[n*ix[j]]), &(xx[n*ix[median_ind]]), n )  >  0 ) 
 		j--;
 	  if(i<=j) {
-		int k;
+		PDL_Index k;
 	        k = ix[i];
 	        ix[i] = ix[j];
 		ix[j] = k;	        
@@ -595,13 +595,13 @@ sub generic_qsortvec {
 # should use threadloop ?
 #
 my $copy_to_temp_good = '
-           int nn, nn1;
+           PDL_Index nn, nn1;
 	   loop(n) %{ $tmp() = $a(); %}
            nn = $COMP(__n_size)-1; ' .
        generic_qsort('tmp');
 
 my $copy_to_temp_bad = '
-        register int nn = 0;
+        register PDL_Index nn = 0;
 	loop(n) %{ 
            if ( $ISGOOD(a()) ) { $tmp(n=>nn) = $a(); nn++; }
         %}
@@ -781,7 +781,7 @@ I<any> dimension.
            if (np < 0) np = 0;
 	   $b() = $tmp(n => np);
 ',
-       BadCode => 'int np;
+       BadCode => 'PDL_Index np;
        ' . $copy_to_temp_bad . '
            nn -= 1;
            ' .  generic_qsort('tmp') . '
@@ -1135,8 +1135,8 @@ pp_def(
     Inplace => 1,
     Pars => 'a(n,m); [o]b(n,m);',
     Code => 
-    'int nn;
-     int nd;
+    'PDL_Index nn;
+     PDL_Index nd;
      loop(n,m) %{ $b() = $a(); %}
      nn = ($COMP(__m_size))-1;
      nd = $COMP(__n_size);
