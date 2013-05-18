@@ -22,9 +22,10 @@ use vars qw( %PDL_DATATYPES );
 #   for pthreading (i.e. multi-threading) capabilities
 # version 8 for beginning support for >2GiB piddles
 # version 9 for STRLEN/Size_t/Off_t for mmap delete magic
+# version 10 for 64bit index support (PDL index datatype)
 #
 use vars qw( $pdl_core_version );
-$pdl_core_version = 8;
+$pdl_core_version = 10;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
