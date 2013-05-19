@@ -264,3 +264,5 @@ pure_all
 so_locations
 subdirs
 ~$
+^work
+^pdl.*-log.txt$

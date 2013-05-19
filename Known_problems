@@ -116,19 +116,23 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.006_03 release:
+  PDL-2.006_04 release:
 
-  3606774    PDL re-install wipes out non-core docs
-  3605814    PDL::Demos system needs overhaul
-  3605476    Several core modules do not have man pages
-  3602817    PDL::Index does not render on websites
-  3601064    Need INSTALLSITEBIN for recent Macports Perls
-  3599516    plplot.t failure when building 2.4.11
-  3570236    clip() edge case not handled right
-  3570235    Wrong results in corner empty-set cases
-  3543056    propagate badflag with .=
-  3539685    pdldoc can't handle SPP mount location change
-  3518190    t/gd_oo_tests.t fails for AMD64
+  331    uniq does not always return proper object
+  330    NiceSlice can get confused by comments to cause compilation errors
+  326    inplace(), misused, causes crashes!
+  325    hang/#segv after applying inplace transform
+  324    PDL re-install wipes out non-core docs
+  322    PDL::Demos system needs overhaul
+  321    Several core modules do not have man pages
+  319    PDL::Index does not render on websites
+  318    Need INSTALLSITEBIN for recent Macports Perls
+  316    plplot.t failure when building 2.4.11
+  313    clip() edge case not handled right
+  312    Wrong results in corner empty-set cases
+  310    t/#pdl_from_string.t fails subtest for MSVC build
+  308    propagate badflag with .=
+  301    t/#gd_oo_tests.t fails for AMD64
 
                A candidate fix is in the current relese but
                the tests are skipped by default if the
@@ -136,24 +140,23 @@ The following issues have been reported with this version of PDL:
                If you have an AMD64 platform, please let us
                know if the test passes "by hand".  Thanks.
                
-  3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
+  299    PDL::GIS::Proj doesn't buidl with proj-4.8.0
 
                A partial work around is in place.  Please
                report any on-going problems.
 
-  3509400    pp_def, pp_line_numbers,..not found by pdldoc
-  3316394    'help funname' fails to show multiple function names
-  3314708    PDL install does not install scantree.pl
-  3299615    PLplot still unusable with X
-  3234141    max() fails on nan
-  3161459    online docs don't link to functions in other PDL modules
-  3018731    NiceSlice affects code where it should not
-  2995500    perl -d chokes on lvalue functions
+  298    pp_def, pp_line_numbers,..not found by pdldoc
+  274    'help funname' fails to show multiple function names
+  268    PLplot still unusable with X
+  261    max() fails on nan
+  254    online docs don't link to functions in other PDL modules
+  238    NiceSlice affects code where it should not
+  232    perl -d chokes on lvalue functions
 
                Fixed in perl 5.16.x or use work around.
 
-  2153898    default PDL build output too long
-  1507054    closing TriD window kills perldl shell
+  210    default PDL build output too long
+  147    closing TriD window kills perldl shell
 
 
 For more information on these and other PDL issues, and for

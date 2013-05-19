@@ -1,4 +1,51 @@
+Release Notes for PDL 2.006_04 --------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.006 and earlier.  This     |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+General Notes:
+
+ * Another quick CPAN developers release
+
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.006_04.tar.gz
+       cpan> make CHM/PDL-2.006_04.tar.gz
+       cpan> test CHM/PDL-2.006_04.tar.gz
+       cpan> look CHM/PDL-2.006_04.tar.gz
+
+Highlights:
+
+ * TBD
+
+
+
 Release Notes for PDL 2.006_03 --------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.4.10 and earlier.  This    |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
 
 General Notes:
 
@@ -25,7 +72,18 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * 64bit index support is now configured if your OS and
+   perl support 64bit integer data (IV size is 8 bytes).
+
+   This is important technology for the coming PDL3
+   release at the end of this Summer.  Please test/use
+   and report any problems to the PDL mailing list or
+   open a bug on our sourceforge.net project site.  If
+   you open a bug ticket, please read the BUGS file in
+   the PDL distribution for the essential information
+   to include.
+ 
+ * Some cleanup of Known_problems and Release_Notes.
 
 
 
