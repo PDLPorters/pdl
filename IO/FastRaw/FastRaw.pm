@@ -319,7 +319,7 @@ $VERSION = eval $VERSION;
 BEGIN {
    our $have_file_map = 0;
 
-   eval "use File::Map 0.47 qw(:all)";
+   eval "use File::Map 0.57 qw(:all)";
    $have_file_map = 1 unless $@;
 }
 
@@ -432,6 +432,7 @@ sub PDL::mapfraw {
               ($opts->{Creat} || $opts->{Trunc} ? 1:0)
            );
         } else {
+           warn "mapfraw: direct mmap support will be deprecated, please install File::Map\n";
            $pdl->set_data_by_mmap(
               $name,
               $s,

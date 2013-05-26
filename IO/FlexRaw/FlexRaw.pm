@@ -338,7 +338,7 @@ package PDL::IO::FlexRaw;
 BEGIN {
    our $have_file_map = 0;
 
-   eval "use File::Map 0.47 qw(map_file)";
+   eval "use File::Map 0.57 qw(map_file)";
    $have_file_map = 1 unless $@;
 }
 
@@ -720,6 +720,7 @@ sub mapflex {
                             ($opts{Creat} || $opts{Trunc} ? 1:0)
                          );
     } else {
+       warn "mapflex: direct mmap support being deprecated, please install File::Map\n";
        $d->set_data_by_mmap($name,
                             $size,
                             1,

@@ -44,8 +44,6 @@ ok(tapprox($a,$b), "A piddle and it's saved copy should be about equal");
 # some mapfraw tests
 SKIP:
 {
-   # $PDL::force_use_mmap_code = 1;
-
 	my $c = eval { mapfraw($name) };
         if ($@) {
            diag("$@");
