@@ -190,8 +190,10 @@ sub callext_cc {
 	my $eo = ( $^O =~ /MSWin/i ? '"' : '' );
 
 	# Compiler command
+        # Placing $ccflags *before* installsitelib/PDL/Core enables us to include
+        # the appropriate 'pdlsimple.h' during 'make test'.
 	my $cc_cmd = join(' ', map { $Config{$_} } qw(cc ccflags cccdlflags)) .
-		" -I$Config{installsitelib}/PDL/Core $ccflags -c $src $do$cc_obj$eo";
+		" $ccflags -I$Config{installsitelib}/PDL/Core -c $src $do$cc_obj$eo";
 
 	# The linker output flag is -o on cc and gcc, and -out: on MS Visual Studio
 	my $o = ( $Config{cc} eq 'cl' ? '-out:' : '-o ');
@@ -199,7 +201,7 @@ sub callext_cc {
 	# Setup the LD command. Do not want the env var on Windows
 	my $ld_cmd = ( $^O =~ /MSWin/i ? ' ' : 'LD_RUN_PATH="" ');
 
-	my $libs = $^O =~ /MSWin/i ? 
+	my $libs = $^O =~ /MSWin/i ?
                  $Config{libs} :
                  ''; # used to be $Config{libs} but that bombs
 	               # on recent debian platforms
