@@ -29,7 +29,8 @@ sub tapprox {
 
 # Create the filenames
 my $cfile = File::Spec->catfile('t', 'callext.c');
-my $inc   = File::Spec->catdir('Basic', 'Core');
+# include the pdlsimple.h that's in blib.
+my $inc = File::Spec->catdir('blib', 'lib', 'PDL', 'Core');
 my $out   = File::Spec->catfile('t', 'callext.'.$Config{dlext});
 
 # Compile the code
