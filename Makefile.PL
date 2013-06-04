@@ -531,8 +531,8 @@ if($Config{archname}=~m/x86_64/) {
               'META_MERGE' => {
                  resources => {
                     homepage => 'http://pdl.perl.org/',
-                    bugtracker  => 'http://sourceforge.net/tracker/?func=browse&group_id=612&atid=100612',
-                    repository  => 'http://pdl.git.sourceforge.net/git/gitweb.cgi?p=pdl/pdl',
+                    bugtracker  => 'http://sourceforge.net/p/pdl/bugs/',
+                    repository  => 'http://sourceforge.net/p/pdl/code/',
                  },
               },
               'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',

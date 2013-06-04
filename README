@@ -84,7 +84,7 @@ Bug Reports
 -----------
 You can check the existing PDL bugs on sourceforge at
 
-	http://sourceforge.net/tracker/?group_id=612&atid=100612
+	http://sourceforge.net/p/pdl/bugs/
 
 The mailing list archives can be searched/read at
 
@@ -100,7 +100,7 @@ If you need to post a problem report, and after checking with
 the perldl list that it *is* a bug, please use the sourceforge.net
 tracker system following the guidance in the BUGS file:
 
-	http://sourceforge.net/tracker/?group_id=612&atid=100612
+	http://sourceforge.net/p/pdl/bugs/
 
 
 

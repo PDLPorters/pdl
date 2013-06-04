@@ -4,10 +4,10 @@ REPORTING BUGS
 Please submit bug reports via the sourceforge bug tracker
 interface at
 
-   http://sourceforge.net/tracker/?group_id=612&atid=100612
+   http://sourceforge.net/p/pdl/bugs/
 
 where you can review the previously submitted bug reports.
-Click on "Add new" to generate a bug report.  If you do not
+Click on "Create Ticket" to generate a bug report.  If you do not
 already have a sourceforge.net account, you will need to
 get one to submit the report:
 
@@ -59,7 +59,7 @@ Alternatively, send an e-mail report with the above
 information (including the output of 'perldl -V')
 to pdl-porters@jach.hawaii.edu . See
 
-   http://pdl.sourceforge.net/maillists/
+   http://pdl.perl.org/?page=mailing-lists
 
 for info on how to subscribe to this list.
 
@@ -71,11 +71,11 @@ BEFORE YOU SEND A REPORT
 BEFORE you report a bug make sure you got the latest
 release version of PDL (always available from CPAN,
 check http://search.cpan.org/search?dist=PDL). Also
-check the FAQ (http://pdl.sourceforge.net/FAQ) and
+check the FAQ (http://pdl.perl.org/?docs=FAQ&title=PDL::FAQ) and
 the mailing list archives for hints. You can find
 links to the searchable archives at
 
-   http://pdl.sourceforge.net/maillists/
+   http://pdl.perl.org/?page=mailing-lists
 
 
 
@@ -86,13 +86,13 @@ Patches can be sent to the pdl-porters mailing list
 (see above) or can be directly submitted to the
 patch manager
 
-   http://sourceforge.net/tracker/?atid=300612&group_id=612
+   http://sourceforge.net/p/pdl/patches/
 
 Patches should be made against the latest released
 PDL or, ideally, against the current git sources
 which you can browse and check out at
 
-   git://pdl.git.sourceforge.net/gitroot/pdl/pdl
+   git://git.code.sf.net/p/pdl/code
 
 
 Thanks,
