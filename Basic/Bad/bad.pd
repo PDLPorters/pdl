@@ -961,7 +961,7 @@ copy across the data.
 Unfortunately, this routine can I<not> be run inplace, since the
 current implementation can not handle the same piddle used as
 C<a> and C<mask> (eg C<< $a->inplace->setbadif($a%2) >> fails).
-Even more unfortunate: we can't catch this errors and tell you.
+Even more unfortunate: we can't catch this error and tell you.
 
 =for bad
 
