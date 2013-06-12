@@ -1,6 +1,7 @@
-
+#!/usr/bin/perl
+#
 use PDL::LiteF;
-
+use Test::More tests => 8;
 
 
 ########### Test of Subclassed-object copying for simple function cases ###########
@@ -9,7 +10,6 @@ use PDL::LiteF;
 ##  First define a PDL-derived object:
 package PDL::Derived;
 @PDL::Derived::ISA = qw/PDL/;
-
 
 sub new {
    my $class = shift;
@@ -61,9 +61,6 @@ sub copy {
 package main;
 
 ###### Testing Begins #########
-print "1..8\n";   
-
-my $testNo = 1;
 
 # Create New PDL::Derived Object
 #   (Initialize sets 'someThingElse' data member
@@ -88,14 +85,5 @@ foreach my $op( @simpleFuncs){
 	
 	$w = $im->$op(); 
 
-	ok($testNo++, $w->{someThingElse} == 24 ); 
-}
-
-
-
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
+	ok($w->{someThingElse} == 24, "$op subclassed object correctly"); 
 }
