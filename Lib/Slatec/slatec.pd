@@ -1546,8 +1546,8 @@ pp_def('polfit',
               $GENERIC() icoeffs[64];
               $GENERIC() *coeffs;
 
-              if($maxdeg() > 64) {
-                coeffs = pdl_malloc( sizeof($GENERIC()) * $maxdeg() );
+              if($maxdeg() >= 63) {
+                coeffs = pdl_malloc( sizeof($GENERIC()) * (1 + $maxdeg()) );
                 if(!coeffs) {
                   barf("Could not allocate memory for coefficients");
                 }
@@ -1560,7 +1560,7 @@ pp_def('polfit',
               }
 
               for (i=0;i<ns;i++) {   /* get rid of bad values.  Call polfit with [xyw]tmp instead of [xyz]. */
-                if ($ISGOOD(y(n=>i))) {
+                if ($ISGOOD(y(n=>i)) && $ISGOOD(x(n=>i)) && $ISGOOD(w(n=>i))) {
                   $xtmp(n=>j) = $x(n=>i);
                   $ytmp(n=>j) = $y(n=>i);
                   $wtmp(n=>j) = $w(n=>i);
@@ -1573,12 +1573,21 @@ pp_def('polfit',
                 }
                 $ierr() = 2;
               } else {
+		  int kk;
+		  int ord;
+		  int maxord;
                 $GENERIC() zero = 0;
+
                 /* Do the fit */
                 $TFD(polfit_,dpolft_)  (&j,$P(xtmp),$P(ytmp),$P(wtmp),$P(maxdeg),$P(ndeg),$P(eps),$P(rtmp),$P(ierr),$P(a));
 
-                /* Extract the polynomial coefficients into coeffs -- used for bad values */
-                $TFD(pcoef_,dpcoef_) ( &($maxdeg()), &zero, coeffs, $P(a));
+		maxord = ($P(a))[0]+0.5;
+		ord = ($P(a))[maxord * 3+2];
+		if(ord >= $maxdeg()) {
+		  ord = $maxdeg();
+		}
+		/* Extract the polynomial coefficients into coeffs -- used for bad values */
+                $TFD(pcoef_,dpcoef_) ( &(ord), &zero, coeffs, $P(a));
 
                 j=0;
                 for (i=0;i<ns;i++) {  /* replace bad values */
@@ -1587,14 +1596,18 @@ pp_def('polfit',
                     j++;
                   } else if($ISGOOD(x(n=>i))) {
 		     /* Bad values are omitted from the call to polfit, so we must reconstitute them on return */
-		     /* (just because a value is bad in y, does not mean the fit itself is bad there) */
-		     /* --CED */
+	             /* (just because a value is bad in y, does not mean the fit itself is bad there) */
+                     /* */
+                     /* The number in ord is not the number of coefficients in the polynomial, it's the highest */
+                     /* order coefficient -- so 3 for a cubic, which has 4 coefficients. */
+	             /* --CED */
 		     int ii;
                      $GENERIC() acc = 0;
-                     for( ii=$maxdeg()-1; ii>0; ii-- ) {
+                     for( ii=ord; ii>0; ii-- ) {
                         acc += coeffs[ii];
                         acc *= $x(n=>i);
                      }
+
                      acc += coeffs[0];
                      $r(n=>i) = acc;
                   } else {
