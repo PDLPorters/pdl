@@ -586,7 +586,7 @@ sub PDL::polyfit {
   my $sz = ((3 * $x_in->getdim(0)) + (3*$maxdeg_in) + 3); # Buffer size called for by Slatec
   my @otherdims = $_[0]->dims; shift @otherdims;          # Thread dims
   my $a =      PDL::new_from_specification('PDL',$x_in->type,$sz,@otherdims);
-  my $coeffs = PDL::new_from_specification('PDL',$x_in->type, $maxdeg_in, @otherdims);
+  my $coeffs = PDL::new_from_specification('PDL',$x_in->type, $maxdeg_in + 1, @otherdims);
 
   my $ierr = PDL->null;
   my $ndeg = PDL->null;
