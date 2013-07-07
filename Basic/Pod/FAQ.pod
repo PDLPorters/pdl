@@ -400,7 +400,7 @@ I<very> good reason for doing that.
 As of this writing (FAQ version 1.003 of 19 Dec 2011) the latest stable version
 is 2.4.9.  The latest stable version should always be available from a CPAN
 mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?"> for
-info on where to get PDL.
+info on where to get PDL).
 
 The most current (possibly unstable) version of PDL can be obtained 
 from the Git repository, see L<Question 4.10|"Q: 4.9    How do I get PDL via Git?">
@@ -589,12 +589,12 @@ Assume you have Git installed on your system and want to download the
 project source code into the directory C<PDL>. To get read-only access
 to the repository, you type at the command line
 
-   git clone git://pdl.git.sourceforge.net/gitroot/pdl/pdl PDL
+   git clone git://git.code.sf.net/p/pdl/code pdl-code
 
 For official PDL developers, to get read/write access to the repository
 type at the command line
 
-   git clone ssh://USERNAME@pdl.git.sourceforge.net/gitroot/pdl/pdl PDL
+   git clone ssh://USERNAME@git.code.sf.net/p/pdl/code pdl-code
 
 
 =head2 Q: 4.10   I had a problem with the Git version, how do I check if someone has submitted a patch?  
@@ -602,21 +602,20 @@ type at the command line
 
 The Sourceforge system contains a patch-manager which contains patches
 that have not yet been applied to the distribution. This can be
-accessed via the Tracker at PDL's Sourceforge project page
+accessed via the Tickets menu at PDL's Sourceforge project page
 L<http://sourceforge.net/projects/pdl> .
 
 In addition, if you are not subscribing to the mailing list,
 check the archive of the C<pdl-porters> and C<perldl> mailing lists.
-See Q: 3.2 for details.
+See L<Question 3.2|"Q: 3.2 Are there other PDL information sources on the Internet?"> for details.
 
 
 =head2 Q: 4.11   I have gotten developer access to Git, how do I upload my changes?
 
 
 The first thing you should do is to read the Git documentation and
-learn the basics about Git. There are links to this information from
-PDL's SF Git page L<http://sourceforge.net/scm/?type=git&group_id=612>
-. But here are the basics:
+learn the basics about Git. There are many sources available online.
+But here are the basics:
 
 Before you upload your changes, commit them to YOUR repository
 
