@@ -118,28 +118,17 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.006_04 release:
 
+  332    "isn't numeric in null operation" warning could be more helpfull
   331    uniq does not always return proper object
   330    NiceSlice can get confused by comments to cause compilation errors
-  326    inplace(), misused, causes crashes!
-  325    hang/#segv after applying inplace transform
   324    PDL re-install wipes out non-core docs
   322    PDL::Demos system needs overhaul
   321    Several core modules do not have man pages
   319    PDL::Index does not render on websites
   318    Need INSTALLSITEBIN for recent Macports Perls
-  316    plplot.t failure when building 2.4.11
   313    clip() edge case not handled right
   312    Wrong results in corner empty-set cases
-  310    t/#pdl_from_string.t fails subtest for MSVC build
   308    propagate badflag with .=
-  301    t/#gd_oo_tests.t fails for AMD64
-
-               A candidate fix is in the current relese but
-               the tests are skipped by default if the
-               AUTOMATED_TESTING environment variable is set.
-               If you have an AMD64 platform, please let us
-               know if the test passes "by hand".  Thanks.
-               
   299    PDL::GIS::Proj doesn't buidl with proj-4.8.0
 
                A partial work around is in place.  Please
