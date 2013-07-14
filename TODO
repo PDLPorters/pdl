@@ -1,5 +1,5 @@
 What follows is that task list and description of
-the work planned for the future  PDL-2.4.x releases.
+the work planned for the future  PDL-2.x releases.
 
 The main goal we are working towards is to have a
 baseline PDL working on *all* PDL OS platforms:
@@ -9,13 +9,13 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
 +-------------------------------------------------------+
-|      Candidate Tasks for PDL-2.4.x Development        |
+|       Candidate Tasks for PDL-2.x Development         |
 +-------------------------------------------------------+
 
    This section documents the top level tasks from
    the more detailed list below.  The first column
    of the line indicates the priority of that item
-   (and those below it) for the PDL-2.4.x release:
+   (and those below it) for the PDL-2.x release:
 
      T -- TBD
      R -- required for release to occur
@@ -26,13 +26,13 @@ support for 2-D graphics (via PLplot) and 3-D graphics
   Each item has some task description based on the
   current status.
 
-  Update task list after PDL-2.4.x release.
+  Update task list after PDL-2.x release.
 
   
 
 +-------------------------------------------------------+
 |                                                       |
-|             PDL-2.4.x BULLET TASK LISTING             |
+|              PDL-2.x BULLET TASK LISTING              |
 |                   ( BY CATEGORY )                     |
 |                                                       |
 +-------------------------------------------------------+
@@ -82,10 +82,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * refs.t
    * scope.t
    * segfault.t
-   * subclass.t
-   * subclass2.t
-   * subclass3.t
-   * subclass4.t
    * thread.t
    * thread_def.t
    * vaffine.t
@@ -119,6 +115,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Need to test PDL build from scratch both WITH_BADVAL and without
+   * Find a way to automate this process for release testing
    * Unix/Linux/BSD
    * Windows
      - cygwin
@@ -137,19 +134,18 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
    These modules aren't tested by CPAN Testers because of dependencies:
    * PDL::FFTW
-     - FFTW2 is out-of-date and not typically installed
-     - need to migrate to FFTW3
-     - Alien::FFTW
+     - Deprecate PDL::FFTW since it is largely out-of-date and
+       has unresolved bugs with wisdom
+     - Alien::FFTW3 and add PDL::FFTW3
    * PDL::Slatec
    * PDL::Minuit
      - need Fortran compilter and ExtUtils::F77
-     - f2c conversion of code
    * PDL::IO::GD
      - needs libgd
      - Alien::GD
    * PDL::IO::HDF
      - based on HDF4
-     - need to migrate to allow HDF5
+     - Alien::HDF
      - Alien::HDF5
      - add binding to libhdf5
    * PDL::GSL::XXX
@@ -173,6 +169,8 @@ support for 2-D graphics (via PLplot) and 3-D graphics
      - need curses/ncurses
      - Alien::Curses
      - maybe OpenGL terminal or widget
+     - need something lightweight
+     - add support for pdls having >2 dims
 
 
    Add support for Known_problems to tests
@@ -195,15 +193,9 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Alien::PLplot
    * Alien::PROJ4
 
-     This is the first step to get PDL::Graphics::PLplot
-     working cross-platform: be able to have the PLplot
-     lib checked for or even installed as a dependency.
-     Work based on the approach in Alien::SDL might be a
-     good starting point.
-
 
    Define standard paths for external dependency libraries for PDL
-   * Local to PDL (not system-wide)
+   * See File::ShareDir::Install and File::ShareDir
    * Can skip install if system-wide is available
    * Relocatable with package-config or Alien info
    * Document any PDL-specific install locations
@@ -224,8 +216,8 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Convert PDL::Minuit to use C with f2c of source 
    
 
-   P Fix IO/Browser build to properly check for the curses
-       library and build if available.
+   Fix IO/Browser build to properly check for the curses
+     library and build if available.
 
 
 +-------------------------------------------------------+
@@ -236,7 +228,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Review current documentation (underway)
-   * Verify correctness and consistency with PDL-2.006
+   * Verify correctness and consistency with PDL-2.x
    * Update documentation where needed.
    * Add web searchable versions of the docs.
    * Maybe a wiki format could be used to improve docs 
@@ -258,16 +250,8 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Add CPAN shell start-up info to PDL wiki or web page
-   * Basic CPAN
-   * CPANminus
-   * Others
-
-     Recent list queries and new user discussions
-     suggest that we need to revisit the beginner
-     documentation for how to get started with PDL.
-     We definitely need clear instructions for how
-     to start from scratch with cpan to install
-     PDL (verify on all PDL platforms).
+   * CPANminus/perlbrew seems to be best approach
+   - Basic CPAN more complicated
 
 
    Add CPAN Testers start up info to PDL wiki
@@ -288,7 +272,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    Document how to set up a local sandbox for PDL build
    * INSTALL_BASE for EU::MM > 6.31 and --install_base for M:B 
    * Need to cover adding bin to paths and any library issues
-   * Build with CPAN shell 
+   * Build with CPAN shell or cpanm
    * Check out brewperl
 
      A number of PDL users are configuring their
@@ -304,7 +288,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Update PDL Book (in progress)
-   * Needs updating to match PDL-2.006 from PDL-2.4.10
+   * Needs updating to match PDL-2.x
    * make a web version available on-line if possible
    
 
@@ -322,7 +306,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 +-------------------------------------------------------+
    
    Improve PDL usability for first time users
-   * Work out-of-the-box via cpan shell
+   * Work out-of-the-box via cpan[m] shell
      * Fully automatic
      * Semi-manual
    * Easy install via 1-click or package managers 
@@ -381,7 +365,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
    Need PLplot and PDL::Graphics::PLplot to build all platforms
    * MS Windows
-   * Cygwin/XP
+   * Cygwin
    * Linux/unix
    * Mac OS X 
 
@@ -391,12 +375,11 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Fix Ctrl-C handling for win32 systems
    * Update documentation
    * See Perldl2/TODO for the pdl2-specific list.
-   * Strip PDL shell prompts from cut-n-pasted lines
 
 
    Add support for 64bit data:
    * Add safe pdl allocation option to prevent OOM death
-   * Update allocation and types to support 64bit data
+   D Update allocation and types to support 64bit data
    * Add info in PDL::Config for level of 64bit support
      (e.g. STRLEN size vs ptrsize...)
    
@@ -431,6 +414,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
   Refactor TriD/PDL for better animation
   * interoperate better with OpenGL display
+  * clean up OO structure and document (use Moo[se])
   * implement pipeline stream to wmpeg
   * stream PDL slice (with no make-physical)
   * add dataflow callback to support display updates
@@ -439,6 +423,9 @@ support for 2-D graphics (via PLplot) and 3-D graphics
   NiceSlice cleanup
   * refactor to use Module::Compile / Filter::Simple
   * implement string processing version for REPL use
+    - .pmc generation via Module::Compile
+    - Smarter parsing via Filter::Simple
+    - Optimize sourcecode filter for speed
   * document nslice
   * implement a niceslice method
   * enhance nslice() to handle CODE refs
@@ -473,21 +460,25 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
    
    Fix external dependency processing
-   * Use Devel::CheckLib to directly detect headers and libraries
+   * Implement Alien::Base::CheckLib
+     - provides detection part of Alien manifesto
+     - based on Devel::CheckLib to detect headers and libraries
+     - need to be fully cross-platform
    * Remove dependencies on external commands (e.g. clear in Demos)
-   * Make missing functionality detectable at run time (a la PGPLOT)
+   * Make missing functionality detectable at run time
    * Could use warning/error stubs if functionality not available
    * Alien modules for the external PDL dependencies
      * Alien::Curses
-     * Alien::FFTW2
+     * Alien::FFTW
      * Alien::FFTW3
      * Alien::GSL
      * Alien::GD
      * Alien::GLUI
      * Alien::HDF
+     * Alien::HDF5
      * Alien::JPEG
      * Alien::NetPBM
-     * Alien::OpenGL, Alien::GLUT, Alien::GLX
+     * Alien::OpenGL, Alien::GLUT, Alien::GLX, Alien::GLEW
      * Alien::PGPLOT
      * Alien::PNG
      * Alien::TIFF
@@ -509,7 +500,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
      * Add cleaner use of complex values to FFT routines
    * Make non-inplace versions of FFT
      * Make default FFT library match FFTW calling conventions
-     * But, use symmetric scaling (no factors of N) 
    * Document FFT/FFTW
      * The computational algorithms
      * The input/output locations 

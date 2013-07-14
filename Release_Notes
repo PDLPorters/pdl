@@ -33,7 +33,15 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Update debian/perldl.conf to track top level perldl.conf.
+
+ * Fix sf.net bug #331 "uniq does not always return proper object"
+
+ * Fix polyfit() handling of BAD values and various edge cases.
+
+ * Tests, docs, code cleanup...
+
+ * Added pp_deprecate_module() to PDL::PP
 
 
 
