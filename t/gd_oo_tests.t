@@ -23,18 +23,18 @@ BEGIN
         {
             plan skip_all => "PDL::IO::GD requires the gd image library.";
         }  
-        elsif( $^O =~ /bsd$/i or $^O =~ /dragonfly/i )
-        {
-           if ( $ENV{AUTOMATED_TESTING} )
-           {
-              plan skip_all => "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for BSD AMD64";
-           }
-           else
-           {
-              diag "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for BSD AMD64";
-              plan tests => $Ntests;
-           }
-        }  
+#        elsif( $^O =~ /bsd$/i or $^O =~ /dragonfly/i )
+#        {
+#           if ( $ENV{AUTOMATED_TESTING} )
+#           {
+#              plan skip_all => "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for BSD AMD64";
+#           }
+#           else
+#           {
+#              diag "Known problem: sf.net bug #3518190, t/gd_oo_tests.t fails for BSD AMD64";
+#              plan tests => $Ntests;
+#           }
+#        }  
         else
         {
             plan tests => $Ntests;
@@ -61,10 +61,10 @@ sub tapprox
     return all($d < 1.0e-5);
 }
 
-TODO:
-{
+#TODO:
+#{
 
-    local $TODO = 'gd_oo_tests.t fail for AMD64, sf.net #3518190';
+#    local $TODO = 'gd_oo_tests.t fail for AMD64, sf.net #3518190';
     # Test files:
     #
     my $tempdir = $PDL::Config{TEMPDIR} || "/tmp";
@@ -276,7 +276,7 @@ TODO:
     unlink( $testfile2 );
     unlink( $testfile3 );
 
-}
+#}
 
 exit (0);
 # 
