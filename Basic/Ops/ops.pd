@@ -163,7 +163,7 @@ EOH
   types(BU) %{
   \$c() = BU_$func(\$a(),\$b());
   %}
-  types(SLFD) %{
+  types(SLNFD) %{
   \$c() = $func(\$a(),\$b());
   %}
 ENDCODE
