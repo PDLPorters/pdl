@@ -242,11 +242,11 @@ sub PDL::matmult {
 }
 EOPM
 	Code => <<'EOC',
-	long ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
+	PDL_Index ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
         $GENERIC() *ad, *bd, *cd;
-        long atdi, btdi;
-	long resh, resw, rest;
-	long tsiz = 64;
+        PDL_Index atdi, btdi;
+	PDL_Index resh, resw, rest;
+	PDL_Index tsiz = 64;
 
 	// Zero the output
 	loop(w) %{
@@ -2202,8 +2202,8 @@ pp_def('vsearch',
 	GenericTypes => ['F','D'], # too restrictive ?
 	Code => 'int carp=0;
 		 threadloop %{
-		   long n1 = $SIZE(n)-1;
-                   long jl=-1, jh=n1, m;
+		   PDL_Index n1 = $SIZE(n)-1;
+                   PDL_Index jl=-1, jh=n1, m;
 		   int up = ($x(n => n1) > $x(n => 0));
 		   $GENERIC() d;
   		   while (jh-jl > 1)  /* binary search */
@@ -2271,10 +2271,10 @@ pp_def('interpolate',
 	GenericTypes => ['F','D'], # too restrictive ?
 	Code => '
 		 $GENERIC() d;
-		 long n  = $SIZE(n);
-		 long n1 = n-1;
+		 PDL_Index n  = $SIZE(n);
+		 PDL_Index n1 = n-1;
 		 int up = ($x(n => n1) > $x(n => 0));
-                 long jl, jh, m;
+                 PDL_Index jl, jh, m;
                  int carp;
 
                  threadloop %{
