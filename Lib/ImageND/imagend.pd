@@ -49,9 +49,9 @@ pp_addhdr('
 
 /* Compute offset of (x,y,z,...) position in row-major list */
 
-PDL_Long ndim_get_offset(PDL_Long* pos, PDL_Long* dims, PDL_Long ndims) {
+PDL_Index ndim_get_offset(PDL_Index* pos, PDL_Index* dims, PDL_Long ndims) {
    PDL_Long i;
-   PDL_Long result,size;
+   PDL_Index result,size;
    size = 1;
    result = 0;
    for (i=0; i<ndims; i++) {
@@ -64,9 +64,10 @@ PDL_Long ndim_get_offset(PDL_Long* pos, PDL_Long* dims, PDL_Long ndims) {
 
 /* Increrement a position pointer array by one row */
 
-void ndim_row_plusplus ( PDL_Long* pos, PDL_Long* dims, PDL_Long ndims ) {
+void ndim_row_plusplus ( PDL_Index* pos, PDL_Index* dims, PDL_Long ndims ) {
 
-    PDL_Long i, noescape;
+    PDL_Long  noescape;
+    PDL_Index i;
 
     i=1; noescape=1;
 
@@ -120,7 +121,7 @@ it runs faster and handles a variety of boundary conditions.
 
 
 EOD
-        Pars => 'a(m); b(n); int adims(p); int bdims(q); [o]c(m);',
+        Pars => 'a(m); b(n); ind adims(p); ind bdims(q); [o]c(m);',
         PMCode => '
 
 # Custom Perl wrapper
@@ -145,16 +146,16 @@ sub PDL::convolve{
 
 ',
         Code => '
-   PDL_Long *dimsa = $P(adims);
-   PDL_Long *dimsb = $P(bdims);
-   PDL_Long andims = $SIZE(p);
-   PDL_Long bndims = $SIZE(q);
-   PDL_Long anvals = $SIZE(m);
-   PDL_Long bnvals = $SIZE(n);
-   PDL_Long *pos,*off;
+   PDL_Index *dimsa = $P(adims);
+   PDL_Index *dimsb = $P(bdims);
+   PDL_Index andims = $SIZE(p);
+   PDL_Index bndims = $SIZE(q);
+   PDL_Index anvals = $SIZE(m);
+   PDL_Index bnvals = $SIZE(n);
+   PDL_Index *pos,*off;
    double cc;
 
-   PDL_Long i,i2,j,k,n,offcen,cen,ncen,nrow;
+   PDL_Index i,i2,j,k,n,offcen,cen,ncen,nrow;
 
    if (andims != bndims)
       barf("Arguments do not have the same dimensionality");
@@ -163,7 +164,7 @@ sub PDL::convolve{
              barf("Second argument must be smaller in all dimensions that first"
 );
 
-   pos = (PDL_Long*) malloc( andims * sizeof(PDL_Long) ); /* Init pos[] */
+   pos = (PDL_Index*) malloc( andims * sizeof(PDL_Index) ); /* Init pos[] */
    if (pos==NULL)
       barf("Out of Memory\n");
    for (i=0; i<andims; i++) /* Zero */
@@ -191,7 +192,7 @@ getout_$GENERIC():    i++;
 
    /* Initialise offset array to handle the relative coords efficiently */
 
-   off = (PDL_Long*) malloc(bnvals*sizeof(PDL_Long)); /* Offset array */
+   off = (PDL_Index*) malloc(bnvals*sizeof(PDL_Index)); /* Offset array */
    if (off==NULL)
       barf("Out of Memory\n");
 
@@ -741,18 +742,18 @@ Code => <<'EOD'
 
   short ndims;
 
-  PDL_Long   *koffs, *koff;        /* the "s<foo>" variables are static  */
+  PDL_Index   *koffs, *koff;        /* the "s<foo>" variables are static  */
   $GENERIC() *kvals, *kval;        /* scratchspace designed to avoid dynamic */
-  static PDL_Long skoffs[256];     /* allocation.  The cost ia about 2k per */
+  static PDL_Index skoffs[256];     /* allocation.  The cost ia about 2k per */
   static $GENERIC() skvals[256];   /* datatype, or about 20k of memory. */
 
   $GENERIC() *aptr;
   $GENERIC() *aaptr;
 
-  PDL_Long *ivec;
-  static PDL_Long sivec[16];
+  PDL_Index *ivec;
+  static PDL_Index sivec[16];
 
-  PDL_Long i,j;
+  PDL_Index i,j;
 
   pdl *k     = PDL->SvPDLV($COMP(k));
   pdl *a =     PDL->SvPDLV($COMP(a));
@@ -777,14 +778,14 @@ Code => <<'EOD'
 	koffs = skoffs;
 	kvals = skvals;
   } else {	
-	koffs = (PDL_Long *)  (PDL->smalloc((STRLEN) (k->nvals * sizeof(PDL_Long))));
+	koffs = (PDL_Index *)  (PDL->smalloc((STRLEN) (k->nvals * sizeof(PDL_Index))));
 	kvals = ($GENERIC() *)(PDL->smalloc((STRLEN) (k->nvals * sizeof($GENERIC()))));
   }
 
   if(ndims < 16) {
 	ivec = sivec;
   } else {
-	ivec = (PDL_Long *) (PDL->smalloc((STRLEN) (ndims * sizeof(PDL_Long))));
+	ivec = (PDL_Index *) (PDL->smalloc((STRLEN) (ndims * sizeof(PDL_Index))));
   }
 
   if(!ivec || !koffs || !kvals) 
@@ -802,7 +803,7 @@ Code => <<'EOD'
 
 
   do {
-	PDL_Long acc; 
+	PDL_Index acc; 
 
 	*(kval++) = *aptr;     /* Copy kernel value into kernel list */
 

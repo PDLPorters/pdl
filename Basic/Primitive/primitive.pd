@@ -1875,7 +1875,7 @@ sub PDL::fibonacci{
 }
 EOD
      Code => '
-        PDL_Long i=0;
+        PDL_Index i=0;
         $GENERIC() x1, x2;
 
         x1 = 1; x2 = 0;
@@ -1908,8 +1908,8 @@ pp_def('append',
                 $SIZE(mn) = (dpdla->ndims > 0 ? dpdla->dims[0] : 1) + 
                         (dpdlb->ndims > 0 ? dpdlb->dims[0] : 1);
 		',
-	Code => 'register PDL_Long mnp;
-		 PDL_Long ns = $SIZE(n);
+	Code => 'register PDL_Index mnp;
+		 PDL_Index ns = $SIZE(n);
                  threadloop %{
                        loop(n) %{ $c(mn => n) = $a(); %}
 		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
@@ -2827,12 +2827,12 @@ EOD
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
 	   RedoDimsCode => '
-		PDL_Long sum = 0;
+		PDL_Index sum = 0;
 		/* not sure if this is necessary */
 		pdl * dpdl = $PDL(mask);
 		$GENERIC() *m_datap = (($GENERIC() *)(PDL_REPRP(dpdl)));
-		PDL_Long inc = PDL_REPRINC(dpdl,0);
-		PDL_Long offs = PDL_REPROFFS(dpdl);
+		PDL_Index inc = PDL_REPRINC(dpdl,0);
+		PDL_Index offs = PDL_REPROFFS(dpdl);
 		int i;
 
 		if (dpdl->ndims != 1)
