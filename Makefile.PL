@@ -532,7 +532,11 @@ if($Config{archname}=~m/x86_64/) {
                  resources => {
                     homepage => 'http://pdl.perl.org/',
                     bugtracker  => 'http://sourceforge.net/p/pdl/bugs/',
-                    repository  => 'http://sourceforge.net/p/pdl/code/',
+                    repository  => {
+                       url => 'git://git.code.sf.net/p/pdl/code',
+                       type => 'git',
+                       web => 'http://sourceforge.net/p/pdl/code/ci/master/tree/',
+                    },
                  },
               },
               'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
