@@ -19,7 +19,9 @@ BEGIN{
    }
 }
 
-my $tempd = $PDL::Config{TEMPDIR} or die "TEMPDIR not found in %PDL::Config";
+use File::Temp qw( tempfile tempdir );
+my $tempd = tempdir( CLEANUP => 1 ) or die "Couldn't get tempdir\n";
+
 require File::Spec;
 my $logfile = File::Spec->catfile($tempd, 'minuit.log.' . $$);
 
