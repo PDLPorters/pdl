@@ -353,7 +353,7 @@ sub mn_init{
   if (defined (my $logfile = $mn_options->{Log})){ 
     if (-e $logfile) { unlink $logfile; }   
     PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'new\');
-    print "Opening file $logfile....\n";
+    print STDERR "# Opening file $logfile....\n";
   }
  			
   PDL::Minuit::mninit(5,$mn_options->{Unit},$mn_options->{Unit});
