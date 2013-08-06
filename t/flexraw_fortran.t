@@ -58,8 +58,8 @@ BEGIN{
     #
     if(-e 'flexraw.t') {
 	unshift @INC, '../Lib/Slatec/' if -e 'flexraw.t';
-    } elsif(-e 'Changes') {
-	unshift @INC, 'Lib/Slatec/' if -e 'Changes';
+    } elsif(-e 'INTERNATIONALIZATION') {
+	unshift @INC, 'Lib/Slatec/' if -e 'INTERNATIONALIZATION';
     } else {
 	print "I'm not in PDL now, right? Still trying\n";
     }
@@ -597,7 +597,7 @@ SKIP: {
 
 # Try writing data
 my $flexhdr = writeflex($data,@req);
-writeflexhdr($data,$flexhdr);
+writeflexhdr($data,$flexhdr) unless $PDL::IO::FlexRaw::writeflexhdr;
 @a = readflex($data);
 unlink $hdr;
 $ok = 1;
@@ -626,20 +626,21 @@ $flexhdr = [ {Type => 'byte',   NDims => 1, Dims => 10},
 	     {Type => 'float',  NDims => 1, Dims => 10},
 	     {Type => 'double', NDims => 1, Dims => 10} ];
 @a = readflex($data, $flexhdr);
+unlink $data;
 $ok = 1;
 foreach (@req) {
     # print "$_ vs ",@a[0],"\n";
     $ok &&= tapprox($_,slice(shift @a,"(0)"));
 }
 ok( $ok, "writeflex combined types[10], readflex explicit hdr array");
-unlink $data;
 
 # Writing multidimensional data
 map {$_ = $_->dummy(0,10)} @req;
 $flexhdr = writeflex($data,@req);
-writeflexhdr($data,$flexhdr);
+writeflexhdr($data,$flexhdr) unless $PDL::IO::FlexRaw::writeflexhdr;
 @a = readflex($data);
-unlink $data, $hdr;
+unlink $data;
+unlink $hdr;
 $ok = 1;
 foreach (@req) {
     # print "$_ vs ",@a[0],"\n";
