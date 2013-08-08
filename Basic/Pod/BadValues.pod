@@ -163,7 +163,7 @@ but it will run slower since you are going to have to handle the presence of bad
 
 If you create a piddle, it will have its bad-value flag set to 0. To change 
 this, use C<$pdl-E<gt>badflag($new_bad_status)>, where C<$new_bad_status> can be 0 or 1.
-When a routine creates a piddle, it's bad-value flag will depend on the input
+When a routine creates a piddle, its bad-value flag will depend on the input
 piddles: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), the 
 bad-value flag will be set true if any of the input piddles contain bad values.
 To check that a piddle really contains bad data, use the C<check_badflag> method.
@@ -588,7 +588,7 @@ routine C<PDL::Core::Dev::isbigendian()>.
 
 =head1 WHAT ABOUT DOCUMENTATION?
 
-One of the strengths of PDL is it's on-line documentation. The aim is to use
+One of the strengths of PDL is its on-line documentation. The aim is to use
 this system to provide information on how/if a routine supports bad values:
 in many cases C<pp_def()> contains all the information anyway, so the 
 function-writer doesn't need to do anything at all! For the cases when this is
@@ -702,7 +702,7 @@ as well. However, not sure what to do with parents, since:
   $b = $a->slice(); 
   $b->baddata(0)
 
-doesn't mean that C<$a> shouldn't have it's badvalue cleared.
+doesn't mean that C<$a> shouldn't have its badvalue cleared.
 however, after
 
   $b->baddata(1)
