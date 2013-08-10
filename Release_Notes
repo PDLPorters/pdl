@@ -33,6 +33,12 @@ General Notes:
 
 Highlights:
 
+ * PDL::FFTW in core distribution is deprecated and not
+   indexed on CPAN.  To install, please use the stand-alone
+   PDL::FFTW on CPAN.
+
+ * More 64bit index support fixes and bugs resolved.
+ 
  * Update debian/perldl.conf to track top level perldl.conf.
 
  * Fix sf.net bug #331 "uniq does not always return proper object"
