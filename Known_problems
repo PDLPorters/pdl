@@ -90,13 +90,6 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- PDL::FFTW is based on version 2 of the FFTW API.  The current
-  release of the FFTW library is version 3.2.2.  To use PDL::FFTW
-  you will need to install FFTW version 2.1.5, use the built-in
-  PDL::FFT routines instead, or (better yet) submit a patch to
-  update PDL::FFTW to the version 3 API.
-
-
 - Extremely verbose but not particularly helpful text output from
   the configure-build-test process.
 
@@ -120,7 +113,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.006_04 release:
+  PDL-2.006_05 release:
 
   334    Test coverage is incomplete
   332    "isn't numeric in null operation" warning could be more helpful
