@@ -94,17 +94,6 @@ perldl (shell)    Term::ReadLine::Perl
                                           or Term::ReadLine::Gnu is not installed.
 
 
-PDL::FFTW         Needs the FFTW library version 2 installed.
-                  FFTW is a free C FFT library including multi-
-                  dimensional, real, and parallel transforms.
-                  See http://www.fftw.org/ 
-
-                  NOTE: The latest version of FFTW is FFTW3.
-
-                                          Will *not* be built unless
-                                          FFTW version 2 is detected.
-
-
 PDL::GIS::Proj
 PDL::Transform::Proj
                   A PDL interface to the PROJ4 geographic projection
