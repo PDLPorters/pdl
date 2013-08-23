@@ -183,7 +183,7 @@ See L<xlinvals|/xlinvals> for more information.
 
 =for ref
 
-X axis values logarithmicly spaced between endpoints (see L<xvals|/xvals>).
+X axis values logarithmically spaced between endpoints (see L<xvals|/xvals>).
 
 =for usage
 
@@ -195,14 +195,14 @@ X axis values logarithmicly spaced between endpoints (see L<xvals|/xvals>).
  $z = f($x,$y);            
 
 C<xlogvals>, C<ylogvals> and C<zlogvals> return a piddle with the same shape
-as their first argument and logarithmicly scaled values between the two other
+as their first argument and logarithmically scaled values between the two other
 arguments along the given axis.
 
 =head2 ylogvals
 
 =for ref
 
-Y axis values logarithmicly spaced between endpoints (see L<yvals|/yvals>).
+Y axis values logarithmically spaced between endpoints (see L<yvals|/yvals>).
 
 See L<xlogvals|/xlogvals> for more information.
 
@@ -210,7 +210,7 @@ See L<xlogvals|/xlogvals> for more information.
 
 =for ref
 
-Z axis values logarithmicly spaced between endpoints (see L<zvals|/zvals>).
+Z axis values logarithmically spaced between endpoints (see L<zvals|/zvals>).
 
 See L<xlogvals|/xlogvals> for more information.
 
