@@ -33,6 +33,8 @@ General Notes:
 
 Highlights:
 
+ * Made exception handling in slices more robust.
+ 
  * PDL::FFTW is now in a separate PDL::FFTW distribution
    available directly from CPAN.  Files and most references
    to PDL::FFTW have been removed from the distribution.
