@@ -57,7 +57,7 @@ void DFF(int* n, double* xval, double* vector){
   PDL->children_changesoon(px,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
   PDL->setdims (px,pdims,ndims);
   px->state &= ~PDL_NOMYDIMS;
-  px->state |= PDL_ALLOCATED;
+  px->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
   PDL->changed(px,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
 
   px->data = (void *) xval;
