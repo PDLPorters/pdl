@@ -1,5 +1,9 @@
 The following issues have been reported with this version of PDL:
 
+- 64bit index support still has bugs for 32bit perls but
+  are "hidden" for 64bit perls since the ivtype is already
+  64bit (long long).
+
 
 - PDL::NiceSlice filtering of multi-line constructs results
   in a single line output which makes line numbers in error
@@ -86,13 +90,6 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- PDL::FFTW is based on version 2 of the FFTW API.  The current
-  release of the FFTW library is version 3.2.2.  To use PDL::FFTW
-  you will need to install FFTW version 2.1.5, use the built-in
-  PDL::FFT routines instead, or (better yet) submit a patch to
-  update PDL::FFTW to the version 3 API.
-
-
 - Extremely verbose but not particularly helpful text output from
   the configure-build-test process.
 
@@ -116,10 +113,10 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.006_04 release:
+  PDL-2.006_05 release:
 
-  332    "isn't numeric in null operation" warning could be more helpfull
-  331    uniq does not always return proper object
+  334    Test coverage is incomplete
+  332    "isn't numeric in null operation" warning could be more helpful
   330    NiceSlice can get confused by comments to cause compilation errors
   324    PDL re-install wipes out non-core docs
   322    PDL::Demos system needs overhaul
@@ -130,10 +127,6 @@ The following issues have been reported with this version of PDL:
   312    Wrong results in corner empty-set cases
   308    propagate badflag with .=
   299    PDL::GIS::Proj doesn't buidl with proj-4.8.0
-
-               A partial work around is in place.  Please
-               report any on-going problems.
-
   298    pp_def, pp_line_numbers,..not found by pdldoc
   274    'help funname' fails to show multiple function names
   268    PLplot still unusable with X

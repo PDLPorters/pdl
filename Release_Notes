@@ -1,3 +1,49 @@
+Release Notes for PDL 2.006_05 --------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.006 and earlier.  This     |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+General Notes:
+
+ * Another quick CPAN developers release
+
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.006_05.tar.gz
+       cpan> make CHM/PDL-2.006_05.tar.gz
+       cpan> test CHM/PDL-2.006_05.tar.gz
+       cpan> look CHM/PDL-2.006_05.tar.gz
+
+Highlights:
+
+ * PDL::FFTW is now in a separate PDL::FFTW distribution
+   available directly from CPAN.  Files and most references
+   to PDL::FFTW have been removed from the distribution.
+
+ * Fixed PDL::FFT to use the standard -1/+1 convention for
+   forward and reverse FFT.  If your use of PDL::FFT
+   relied upon the previous, backward convention, expect
+   your results to be different.
+
+
+
 Release Notes for PDL 2.006_04 --------------------------
 
  +---------------------------------------------------------------+
@@ -33,6 +79,12 @@ General Notes:
 
 Highlights:
 
+ * PDL::FFTW in core distribution is deprecated and not
+   indexed on CPAN.  To install, please use the stand-alone
+   PDL::FFTW on CPAN.
+
+ * More 64bit index support fixes and bugs resolved.
+ 
  * Update debian/perldl.conf to track top level perldl.conf.
 
  * Fix sf.net bug #331 "uniq does not always return proper object"
