@@ -1926,6 +1926,12 @@ EOD
 			if(parentdim!=-1) {
 				if(-start > $PARENT(dims[parentdim]) ||
 				   -end > $PARENT(dims[parentdim])) {
+				   	/* set a state flag to re-trip the RedoDims code later, in
+				   	 * case this barf is caught in an eval. This slice will
+				   	 * always croak, so it may be smarter to find a way to
+				   	 * replace this whole piddle with a "barf" piddle, but this
+				   	 * will work for now. */
+				   	PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
 					barf("Negative slice cannot start or end above limit");
                                 }
 				if(start < 0)
@@ -1934,6 +1940,12 @@ EOD
 					end = $PARENT(dims[parentdim]) + end;
 				if(start >= $PARENT(dims[parentdim]) ||
 				   end >= $PARENT(dims[parentdim])) {
+				   	/* set a state flag to re-trip the RedoDims code later, in
+				   	 * case this barf is caught in an eval. This slice will
+				   	 * always croak, so it may be smarter to find a way to
+				   	 * replace this whole piddle with a "barf" piddle, but this
+				   	 * will work for now. */
+				   	PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
 					barf("Slice cannot start or end above limit");
 				}
 				if(sign(end-start)*sign(inc) < 0)
