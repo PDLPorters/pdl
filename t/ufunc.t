@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 19;
+use Test::More tests => 29;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -16,7 +16,7 @@ $| = 1;
 sub tapprox ($$) {
     my ( $a, $b ) = @_;
     my $d = abs( $a - $b );
-    print "diff = [$d]\n";
+    diag "diff = [$d]\n";
     return $d <= 0.0001;
 }
 
@@ -101,3 +101,30 @@ TODO: {
    ok($a->min == $b->min, "min with NaNs");
    ok($a->max == $b->max, "max with NaNs");
 }
+
+
+#Test subroutines directly.
+
+#set up piddles
+my $f=pdl(1,2,3,4,5);
+my $g=pdl (0,1);
+my $h=pdl(1, 0,-1);
+my $i=pdl (1,0);
+my $j=pdl(-3, 3, -5, 10);
+
+#Test percentile routines
+#Test PDL::pct
+ok (PDL::pct($f, .5) == 3, 'PDL::pct 50th percentile');
+ok (PDL::pct($g, .76)==.76, 'PDL::pct interpolation test');
+ok (PDL::pct($i, .76)==.76,'PDL::pct interpolation not in order test');
+
+#Test PDL::oddpct
+ok (PDL::oddpct($f, .5)==3, 'PDL::oddpct 50th percentile');
+ok (PDL::oddpct($f, .79)==4, 'PDL::oddpct intermediate value test');
+ok (PDL::oddpct($h, .5)==0, 'PDL::oddpct 3-member 50th percentile with negative value');
+ok (PDL::oddpct($j, .1)==-5, 'PDL::oddpct negative values in-between test');
+
+#Test oddmedian
+ok (PDL::oddmedian($g)==0, 'Oddmedian 2-value piddle test');
+ok (PDL::oddmedian($h)==0, 'Oddmedian 3-value not in order test');
+ok (PDL::oddmedian($j)==-3, 'Oddmedian negative values even cardinality test');
