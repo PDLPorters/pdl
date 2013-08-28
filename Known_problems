@@ -113,7 +113,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.006_05 release:
+  PDL-2.006_06 release:
 
   337    rangeb() broken for 64bit index support on 32bit perl
   334    Test coverage is incomplete
