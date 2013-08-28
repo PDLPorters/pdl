@@ -43,6 +43,8 @@ Highlights:
    forward and reverse FFT.  If your use of PDL::FFT
    relied upon the previous, backward convention, expect
    your results to be different.
+ 
+ * Improved docs and t/ufunc.t
 
 
 
