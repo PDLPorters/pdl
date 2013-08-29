@@ -348,12 +348,13 @@ sub PDL::range {
 }
 EOD-range
 
-=head2 rangeb
+=head2 range
 
 =cut
 
 pp_def(
 	'rangeb',
+	OtherPars => 'SV *index; SV *size; SV *boundary',
 	Doc => <<'EOD',
 =for ref
 
@@ -627,8 +628,6 @@ EOD
 	Reversible => 1,
 	P2Child => 1,
         NoPdlThread => 1,
-	OtherPars => 'SV *index; SV *size; SV *boundary',
-
 
 #
 # rdim: dimensionality of each range (0 dim of index PDL)
@@ -1851,7 +1850,7 @@ EOD
          * all zero, and if they are then give back What You Probably Wanted,
 	 * which is a slice with dummy dimensions of order 1 in place of each excessive 
 	 * dimension.  (Note that there are two ways to indicate a zero index: "0" and "-<w>",
-	 * where <w> happens to be the order of that dimension in the original
+	 * where <w> happens to be the size of that dim in the original
 	 * piddle.  The latter case still causes an error.  That is a feature.)
 	 *    --CED 15-March-2002
 	 */
@@ -1985,6 +1984,7 @@ EOD
 		$SETDIMS();
 	',
 );
+
 
 pp_addpm(<<'EOD'
 
@@ -2680,54 +2680,392 @@ sub PDL::dice_axis {
 
 EOD
 
-pp_done();
-__DATA__
+pp_addpm(<<'EOD-nnslice');
+=for ref
 
-# A very useful transformation for e.g. axis values: hexagonal
-# arrays can be made like this.
+New nslice - EXPERIMENTAL drop-in replacement for C<nslice>, that doesn't simply
+assemble its arguments for disassembly by C<slice>.  Hopefully the
+leading 'n' will be dropped soon -- use only for testing. Intended as
+a drop-in replacement for C<nslice>, this implements a strict superset
+of the arguments supported by C<mslice> (as does C<nslice).
 
-if(0) {
-deftrans(
-	Name => 'repeat',
-	Pars => 'int whichind, int howmany',
-	MakeComp => '
-		$COMP(howmany) = howmany;
-		$COMP(whichind) = whichind;
-		$SETREVERSIBLE($COMP(howmany)==1);
-		',
-	Dims => '
-		$SETNDIMS($PARENT(ndims));
-		LOOPDIMS %{
-			$CHILD(dims[$DIM]) = $PARENT(dims[$DIM]);
-		%}
-		$CHILD(dims[$COMP(whichind)]) *= $PRIV(howmany);
+Basic slicing-and-dicing with a regular argument list instead of a
+control string.  You feed in an original PDL followed by an argument
+list that describes how to slice it.
+
+Each parameter in the list applies to one dimension of the source PDL,
+and is interpreted as follows:
+
+=over 3
+
+=item ARRAY ref
+
+Array refs are the normal way to specify ranges to slice.  You can
+specify zero, one or two fields.  The first field is the start of the
+range of positions to slice out of the dimension; the second field is
+the end of the range of positions (inclusive); and the third field 
+is the increment to use while stepping through the source array.
+
+You can index using nonnegative values, which count up from the start
+of the dim, or using negative values, which count down from the 
+end of the dim. 
+
+If you don't specify an inc, it defaults to 1 or -1 depending on the
+order of the indices (after regularization to nonnegative indices).
+
+Some special cases apply:
+
+If the array ref is empty, or if the first element is 'x' or 'X', 
+then the entire dimension is kept intact.  
+
+If the first element of the array ref is '*', then a dummy dimension
+is generated.  The second element is the index of the highest value
+along the dummy dimension, for consistency with normal use (e.g. 
+['*'] and ['*',0] both create dummy dimensions of size 1).
+
+If the second element of the array is 'X' or 'x', or if the third
+element is explicitly set to 0, then the dimension is indexed but 
+squished from the output -- similar to the '($n)' syntax in C<slice>.
+
+=item Perl scalar 
+
+=item 'X' or 'x'
+
+The string 'X' or 'x' forces the entire dimension to be kept.
+
+=item '*<num>'
+
+A perl scalar that starts with the character '*' is treated as a dummy
+dimension whose size is the following number.  If you leave out the number,
+the size defaults to 1.  (Note that '*0' gives size 0, which means the 
+result is an Empty PDL).
+
+=back
+
+=cut
+
+## This is implemented as a two-step (like range/rangeb) as a cheesy
+## varargs...
+
+sub PDL::nnslice {
+    my ($source, @others) = @_;
+    PDL::nnsliceb($source,\@others);
+}
+
+EOD-nnslice
+
+
+##############################
+# nnsliceb keeps track of the same stuff that slice does, but wastes a little bit of space in the
+# comp array (allocating as many spaces in each index array as there are arguments in the original
+# call) so that we only have to make one pass through the Perl data structure.
+#
+pp_def(
+	'nnsliceb',
+	P2Child => 1,
+	NoPdlThread => 1,
+	DefaultFlow => 1,
+	OtherPars => 'SV *args;',
+#
+# Comp stash definitions:
+#  nargs - number of args in original call
+#  odim[]   - maps argno to output dim (or -1 for squished dims)
+#  idim[]   - maps argno to input dim  (or -1 for squished dims)
+#  odim_top - one more than the highest odim encountered
+#  idim_top - one more than the highest idim encountered
+#  start[]  - maps argno to start index of slice range (inclusive)
+#  inc[]    - maps argno to increment of slice range
+#  end[]    - maps argno to end index of slice range (inclusive) 
+#
+	Comp => 'int nargs;
+	         int odim[$COMP(nargs)];
+		 int idim[$COMP(nargs)];
+		 int idim_top;
+		 int odim_top;
+		 PDL_Index start[$COMP(nargs)];
+		 PDL_Index inc[$COMP(nargs)];
+		 PDL_Index end[$COMP(nargs)];
+		 ',
+        AffinePriv => 1,
+	MakeComp => q{
+	        int i;
+		int idim;
+		int odim;
+		int imax;
+		AV *arglist;
+
+		/*** Make sure we got an array ref as input and turn it into an AV ***/
+		if(!(  args   &&   
+		       SvROK(args)   &&   
+		       SvTYPE(SvRV(args))==SVt_PVAV  )){
+		     barf("nnsliceb requires an ARRAY ref containing zero or more arguments");
+		}
+    
+		arglist = (AV *)(SvRV(args));
+		$COMP(nargs) = av_len( arglist ) + 1;
+		$DOCOMPDIMS();
+
+		/**********************************************************************/
+		/**** Loop over the elements of the AV input and parse into values ****/
+		/**** into the start/inc/end array                                 ****/
+
+		for(odim=idim=i=0; i<$COMP(nargs); i++) {
+		   SV *this;
+		   SV **thisp;
+		   SV *sv, **svp;
+		   char all_flag = 0;
+		   char squish_flag = 0;
+		   char dummy_flag = 0;
+		   char *str;
+		   PDL_Index n0 = 0;
+		   PDL_Index n1 = -1;
+		   PDL_Index n2 = 0;  /* n2 is inc - defaults to 0 (i.e. calc in RedoDims) */
+
+		   thisp = av_fetch( arglist, i, 0 );
+		   this = (thisp  ?  *thisp  : 0 );
+
+		   /** Keep the whole dimension if the element is undefined or missing **/
+		   all_flag = (  (!this)   ||   (this==&PL_sv_undef)  );
+
+		   if(!all_flag) {
+		   
+		     if(SvROK(this)) {         /* It's a reference - it better be an array ref */
+		       int nelem;
+		       AV *sublist;
+
+		       if( SvTYPE(SvRV(this)) != SVt_PVAV ) {
+		         barf("nnsliceb: non-ARRAY ref in the argument list!");
+		       }
+
+		       /* Expand the parameter into an AV so we can read its elements */
+		       sublist = (AV *)(SvRV(this));
+		       if(!sublist) {
+		         nelem = 0;
+		       } else {
+  		         nelem = av_len(sublist) + 1;
+		       }
+			
+		       if(nelem > 3) {
+		         barf("nnsliceb: array refs can have at most 3 elements!");
+		       }
+
+		       if(nelem==0) {      /* No elements - keep it all */
+		         all_flag = 1;
+
+		       } else /* Got at least one element */{
+
+
+		         /* Load the first into n0 and check for dummy or all-clear */
+			 /* (if element is missing use the default value already in n0) */
+
+			 svp = av_fetch(sublist, 0, 0);
+			 if(svp && *svp && *svp != &PL_sv_undef) {
+			    /* Got a 0 element - check for '*' or 'X' */
+			    if( SvPOKp(*svp) ) {
+			       char *str = SvPVbyte_nolen(*svp);
+			       switch(*str) {
+			         case 'X':
+				      all_flag = 1; break;
+			         case '*': 
+				      dummy_flag = 1; 
+				      n0 = 0;         /* size defaults to 1 for dummy dims */   
+				      n1 = 0;
+				      break;
+		 		 default:             /* Doesn't start with '*' or 'X' */
+				      n0 = SvIV(*svp);
+				      n1 = n0;         /* n1 defaults to n0 if n0 is present */
+				      break;
+			       }
+			    } else /* the element has no associated string - just parse */{
+			      n0 = SvIV(*svp);
+			      n1 = n0;           /* n1 defaults to n0 if n0 is present */
+			    }
+			}
+
+			/* Read the second element into n1 and check for alternate squish syntax */
+			if( (nelem > 1) && (!all_flag) ) {
+			  svp = av_fetch(sublist, 1, 0);
+			  if( svp && *svp && *svp != &PL_sv_undef ) {
+			    /* Got a n1 element - check for '-' */
+			    if( SvPOKp(*svp) ) {
+			      char *str = SvPVbyte_nolen(*svp);
+			      if(*str == 'X') {
+			        squish_flag = 1;
+				n1 = n0;
+			      }
+			    }
+			    if(!squish_flag) {
+			      n1 = SvIV(*svp);
+			    }
+			  }
+			}
+
+			/*** Now try to read the third element (inc).  ***/
+			if( (nelem > 2) && !(all_flag) && !(squish_flag) && !(dummy_flag) ) {
+			  svp = av_fetch(sublist, 2, 0);
+			  if( svp && *svp && *svp != &PL_sv_undef ) {
+			    STRLEN len;
+			    SvPV( *svp, len );
+			    if(len>0) {           /* nonzero length -> actual value given */
+			      n2 = SvIV(*svp);    /* if the length is passed in as 0, it is a squish */
+			      if(n2==0) {
+			        n1 = n0;
+			        squish_flag = 1;
+			      }
+			    }
+                          } /* end of nontrivial third-element parsing */
+			} /* end of third-element parsing  */
+		       } /* end of nontrivial sublist parsing */
+
+		     } else /* this argument is not an ARRAY ref - parse as a scalar */ {
+		        /* string handling goes here */
+			barf("FIXME - scalar handling not yet implemented");
+
+		     } /* end of string handling */
+
+		  } /* end of defined-element handling */
+
+		  if( (!all_flag) + (!squish_flag) + (!dummy_flag) < 2 ) {
+		    barf("Looks like you triggered a bug in  nnsliceb.  two flags set in dim %d",i);
+		  }
+
+		  /* Force all_flag case to be a "normal" slice */
+		  if(all_flag) {
+		    n0 = 0;
+		    n1 = -1;
+		    n2 = 1;
+		  }
+
+		  /* Copy parsed values into the limits */
+		  $COMP(start[i]) = n0;
+		  $COMP(end[i])   = n1;
+		  $COMP(inc[i])   = n2;
+
+		  /* Deal with dimensions */
+		  if(squish_flag) {
+		    $COMP(odim[i]) = -1;
+		  } else {
+		    $COMP(odim[i]) = odim++;
+		  }
+		  if(dummy_flag) {
+		    $COMP(idim[i]) = -1;
+		  } else {
+		    $COMP(idim[i]) = idim++;
+		  }
+
+		} /* end of arg-parsing loop */
+
+		$COMP(idim_top) = idim;
+		$COMP(odim_top) = odim;
+
+		$SETREVERSIBLE(1);
+
+	     /*** End of MakeComp for nnsliceb       */
+             /****************************************/
+
+           },
+	   RedoDims => q{
+	          int o_ndims_extra = 0;
+		  PDL_Index i;
+
+		  if( $COMP(idim_top) < $PARENT(ndims) ) {
+		    o_ndims_extra = $PARENT(ndims) - $COMP(idim_top);
+		  }
+		  
+		  /* slurped dims from the arg parsing, plus any extra thread dims */
+		  $SETNDIMS( $COMP(odim_top) + o_ndims_extra );
+		  $DOPRIVDIMS();
+		  $PRIV(offs) = 0;  /* Offset vector to start of slice */
+
+		  for(i=0; i<$COMP(nargs); i++) {
+		      PDL_Index start, end;
+		      
+		      printf("RedoDims: arg %d...\n",i); fflush(stdout);
+
+		      /** Belt-and-suspenders **/
+		      if( ($COMP(idim[i]) < 0)  && ($COMP(odim[i]) < 0)  ) {
+    		        PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+		        barf("nnslice: Hmmm, both dummy and squished -- this can never happen.  I quit.");
+		      }
+
+		      /** First handle dummy dims since there's no input from the parent **/
+		      if( $COMP(idim[i]) < 0 ) {
+		         /* dummy dim - offset or diminc. */
+			 printf("DUMMY..."); fflush(stdout);
+		         $CHILD( dims[ $COMP(odim[i]) ] ) = $COMP(end[i]) - $COMP(start[i]) + 1;
+		         $PRIV( incs[ $COMP(odim[i]) ] ) = 0;
+	              } else {
+		        PDL_Index pdsize;
+
+		        /** Get parent dim size for this idim, and/or allow permissive slicing **/
+		        if( $COMP(idim[i]) < $PARENT(ndims)) {	
+		          pdsize = $PARENT(dims[$COMP(idim[i])]);
+		        } else { 
+		          pdsize = 1; 
+		        }
+
+		      	/** Regularize and bounds-check the start location **/
+		        start = $COMP(start[i]); 
+		        if(start < 0)
+		          start += pdsize;
+		        if( (start < 0) || (start >= pdsize) ) {
+		          PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+			  barf("nnslice: slice starts out of bounds in pos %d (val %d; source dim %d is 0-%d)",i,start,$COMP(idim[i]),pdsize-1);
+		        }
+		      		      
+		        if( $COMP(odim[i]) < 0) {
+		         /* squished dim - just update the offset. */
+			 printf("SQUISHED..."); fflush(stdout);
+			 $PRIV(offs) += $COMP( start[i] ) * $PARENT( dimincs[ $COMP(idim[i]) ] );
+
+                        } else /* normal operation */ {
+		      	  PDL_Index siz;
+			  PDL_Index inc;
+
+			  printf("NORMAL (i=%d)...",i);fflush(stdout);
+
+		          /** Regularize and bounds-check the end location **/
+		          end = $COMP(end[i]);
+		          if(end<0) 
+		            end += pdsize;
+  		          if( (end < 0) || (end >= pdsize) ) {	
+			    printf("error\n");
+		            PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+			    barf("nnslice: slice ends out of bounds in pos %d (val %d; source dim %d 0-%d)",i,end,$COMP(idim[i]),pdsize-1);
+		          }
+			  printf("end=%d...",end); fflush(stdout);
+			 
+			  /* regularize inc */
+			  inc = $COMP(inc[i]);
+			  if(!inc) 
+			    inc = (start <= end) ? 1 : -1;	
+			  printf("inc=%d...",inc); fflush(stdout);
+			 
+			  siz = (end - start + inc) / inc ;
+			  if(siz<0)
+			    siz=0;
+			  printf("dim %d: start-end is %d-%d; inc is %d, siz is %d\n",i,start, end, inc,siz);
+		          $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
+			  $PRIV( incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * $COMP(inc[i]);
+			  $PRIV(offs) += $COMP(start[i]) * $PARENT( dimincs[ $COMP(idim[i]) ] );
+                        } /* end of normal slice case */
+		      } /* end of non-dummy slice case */
+		  } /* end of nargs loop */
+
+		  /* Now fill in thread dimensions as needed.  idim and odim persist from the parsing loop */
+		  /* up above. */
+		  for(i=0; i<o_ndims_extra; i++) {
+		    $CHILD( dims   [ $COMP(odim_top) + i ] ) = $PARENT( dims   [ $COMP(idim_top) + i ] );
+		    $PRIV( incs[ $COMP(odim_top) + i ] ) = $PARENT( dimincs[ $COMP(idim_top) + i ] ); 
+		  }
+		  
 		$SETDIMS();
-		',
-	ParentInds =>
-		'$COPYINDS();
-		 $PARENTINDS($COMP(whichind)) %= $PARENT(dims[$PRIV(whichind)]);',
-	Print => 'printf("REPEAT: %d, %d\n",
-			$COMP(whichind), $COMP(howmany));'
-);
-}
 
-# Parent's first index is value of indices.
+		printf("end of RedoDims\n");
 
-if(0) {
-deftrans(
-	Name => 'indexed',
-	Pars => 'pdl* indices',
-	Dims => '
-		$SETNDIMS($COMP(indices)->ndims);
-		LOOPDIMS %{
-			$CHILD(dims[$DIM]) = $COMP(indices)->dims[$DIM];
-		%}
-		',
-	ParentInds =>
-		'$COPYINDS();
-		 $PARENTINDS(0) = PDL->get($COMP(indices),&($MYINDS(0)));'
+	} # end of RedoDims
 );
-}
+
 
 pp_addpm({At => 'Bot'},<< 'EOD');
 
@@ -2756,3 +3094,6 @@ the copyright notice should be included in the file.
 =cut
 
 EOD
+
+
+pp_done();
