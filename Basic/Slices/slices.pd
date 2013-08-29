@@ -2980,8 +2980,6 @@ pp_def(
 		  for(i=0; i<$COMP(nargs); i++) {
 		      PDL_Index start, end;
 		      
-		      printf("RedoDims: arg %d...\n",i); fflush(stdout);
-
 		      /** Belt-and-suspenders **/
 		      if( ($COMP(idim[i]) < 0)  && ($COMP(odim[i]) < 0)  ) {
     		        PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
@@ -2991,7 +2989,6 @@ pp_def(
 		      /** First handle dummy dims since there's no input from the parent **/
 		      if( $COMP(idim[i]) < 0 ) {
 		         /* dummy dim - offset or diminc. */
-			 printf("DUMMY..."); fflush(stdout);
 		         $CHILD( dims[ $COMP(odim[i]) ] ) = $COMP(end[i]) - $COMP(start[i]) + 1;
 		         $PRIV( incs[ $COMP(odim[i]) ] ) = 0;
 	              } else {
@@ -3015,36 +3012,30 @@ pp_def(
 		      		      
 		        if( $COMP(odim[i]) < 0) {
 		         /* squished dim - just update the offset. */
-			 printf("SQUISHED..."); fflush(stdout);
 			 $PRIV(offs) += $COMP( start[i] ) * $PARENT( dimincs[ $COMP(idim[i]) ] );
 
                         } else /* normal operation */ {
 		      	  PDL_Index siz;
 			  PDL_Index inc;
 
-			  printf("NORMAL (i=%d)...",i);fflush(stdout);
 
 		          /** Regularize and bounds-check the end location **/
 		          end = $COMP(end[i]);
 		          if(end<0) 
 		            end += pdsize;
   		          if( (end < 0) || (end >= pdsize) ) {	
-			    printf("error\n");
 		            PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
 			    barf("nnslice: slice ends out of bounds in pos %d (val %d; source dim %d 0-%d)",i,end,$COMP(idim[i]),pdsize-1);
 		          }
-			  printf("end=%d...",end); fflush(stdout);
-			 
+
 			  /* regularize inc */
 			  inc = $COMP(inc[i]);
 			  if(!inc) 
 			    inc = (start <= end) ? 1 : -1;	
-			  printf("inc=%d...",inc); fflush(stdout);
 			 
 			  siz = (end - start + inc) / inc ;
 			  if(siz<0)
 			    siz=0;
-			  printf("dim %d: start-end is %d-%d; inc is %d, siz is %d\n",i,start, end, inc,siz);
 		          $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
 			  $PRIV( incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * $COMP(inc[i]);
 			  $PRIV(offs) += $COMP(start[i]) * $PARENT( dimincs[ $COMP(idim[i]) ] );
@@ -3060,8 +3051,6 @@ pp_def(
 		  }
 		  
 		$SETDIMS();
-
-		printf("end of RedoDims\n");
 
 	} # end of RedoDims
 );
