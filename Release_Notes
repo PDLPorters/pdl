@@ -10,6 +10,9 @@ Release Notes for PDL 2.006_06 --------------------------
 
 General Notes:
 
+ * 64bit index support is broken for 32bit perls.
+   Seems ok for 64bit perls.
+
  * Another quick CPAN developers release
 
    - It is a snapshot of the current git development tree
