@@ -3163,7 +3163,7 @@ pp_def(
 
 		        /** Get parent dim size for this idim, and/or allow permissive slicing **/
 		        if( $COMP(idim[i]) < $PARENT(ndims)) {	
-		          pdsize = $PARENT(dims[$COMP(idim[i])]);
+		          pdsize = $PARENT( dims[$COMP(idim[i])] );
 		        } else { 
 		          pdsize = 1; 
 		        }
@@ -3174,7 +3174,11 @@ pp_def(
 		          start += pdsize;
 		        if( (start < 0) || (start >= pdsize) ) {
 		          PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-			  barf("nnslice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0-%d)",i,start,$COMP(idim[i]),pdsize-1);
+			  if(i >= $PARENT( ndims )) {
+			    barf("nnslice: slice has too many dims (indexes dim %d; highest is %d)",i,$PARENT( ndims )-1);
+			  } else {
+			    barf("nnslice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0-%d)",i,start,$COMP(idim[i]),pdsize-1);
+			  }
 		        }
 		      		      
 		        if( $COMP(odim[i]) < 0) {
