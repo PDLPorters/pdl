@@ -2686,12 +2686,15 @@ pp_addpm(<<'EOD-nnslice');
 New nslice - EXPERIMENTAL drop-in replacement for C<nslice>, that doesn't simply
 assemble its arguments for disassembly by C<slice>.  Hopefully the
 leading 'n' will be dropped soon -- use only for testing. Intended as
-a drop-in replacement for C<nslice>, this implements a strict superset
-of the arguments supported by C<mslice> (as does C<nslice).
+a drop-in replacement for any of C<nslice>, C<mslice>, or C<slice>, 
+nnslice currently supports: nslice/mslice style calls with the exception
+of dicing; and slice-style specification strings.  If you use slice-style
+specs, you can either use one string per dim (and mix/match with nslice
+style specs), or one complete comma-deliminated string (and limit yourself
+to a single string slice argument).
 
-Basic slicing-and-dicing with a regular argument list instead of a
-control string.  You feed in an original PDL followed by an argument
-list that describes how to slice it.
+The single slice-style string case is detected as a special case and 
+split on ','.
 
 Each parameter in the list applies to one dimension of the source PDL,
 and is interpreted as follows:
@@ -2729,9 +2732,9 @@ squished from the output -- similar to the '($n)' syntax in C<slice>.
 
 =item Perl scalar 
 
-=item 'X' or 'x'
+=item 'X' or 'x' or ':'
 
-The string 'X' or 'x' forces the entire dimension to be kept.
+The string 'X' or 'x' or ':' forces the entire dimension to be kept.
 
 =item '*<num>'
 
@@ -2756,9 +2759,9 @@ EOD-nnslice
 
 
 ##############################
-# nnsliceb keeps track of the same stuff that slice does, but wastes a little bit of space in the
-# comp array (allocating as many spaces in each index array as there are arguments in the original
-# call) so that we only have to make one pass through the Perl data structure.
+# nnsliceb is the core of nnslice.  The "foo/foob" nomenclature is used to avoid the argument 
+# counting inherent in a PP PMCode section -- "nnslice" is a front-end that just rolls up a
+# whole variable-length argument list into a single AV reference.
 #
 pp_def(
 	'nnsliceb',
@@ -2792,6 +2795,7 @@ pp_def(
 		int idim;
 		int odim;
 		int imax;
+		int nargs;
 		AV *arglist;
 
 		/*** Make sure we got an array ref as input and turn it into an AV ***/
@@ -2802,14 +2806,57 @@ pp_def(
 		}
     
 		arglist = (AV *)(SvRV(args));
-		$COMP(nargs) = av_len( arglist ) + 1;
+		
+		/* Detect special case of a single comma-delimited string; in that case, */
+		/* split out our own arglist */
+
+		if( (av_len(arglist) == 0) ) {
+		  /* single-element list: pull first element */
+		  SV **svp;
+		  svp = av_fetch(arglist, 0, 0);
+
+		  if(svp && *svp && *svp != &PL_sv_undef && SvPOKp(*svp)) {
+
+		    /* The element exists and is not undef and has a cached string value */
+		    char *s,*ss;
+		    s = ss = SvPVbyte_nolen(*svp);
+		    for(;  *ss && *ss != ',';  ss++) {}
+
+		    if(*ss == ',') {
+
+		      /* the string contains at least one comma.  ATTACK!    */
+		      /* We make a temporary array and populate it with      */
+		      /* SVs containing substrings -- basically split(/\,/), */
+		      /* but without the overhead of a perl call             */
+
+		      AV *al = (AV *)sv_2mortal((SV *)(newAV())); 
+
+		      do {
+		        SV *sv;
+		        char *s1;
+			for(s1=s; *s1 && *s1 != ','; s1++);
+
+			av_push(al, newSVpvn(s, s1-s));
+			if(*s1==',')
+			  s = ++s1;
+			else
+			  s = s1;
+		      } while(*s);
+		      
+		      arglist = al;  /* al is ephemeral and will evaporate at the next perl gc */
+
+		    } /* end of contains-comma case */
+		  } /* end of nontrivial single-element detection */
+		}/* end of single-element detection */
+		
+		nargs = $COMP(nargs) = av_len( arglist ) + 1;
 		$DOCOMPDIMS();
 
 		/**********************************************************************/
 		/**** Loop over the elements of the AV input and parse into values ****/
-		/**** into the start/inc/end array                                 ****/
+		/**** in the start/inc/end array                                   ****/
 
-		for(odim=idim=i=0; i<$COMP(nargs); i++) {
+		for(odim=idim=i=0; i<nargs; i++) {
 		   SV *this;
 		   SV **thisp;
 		   SV *sv, **svp;
@@ -2827,7 +2874,7 @@ pp_def(
 		   /** Keep the whole dimension if the element is undefined or missing **/
 		   all_flag = (  (!this)   ||   (this==&PL_sv_undef)  );
 
-		   if(!all_flag) {
+		   if(!all_flag)  /* not an empty string */ {
 		   
 		     if(SvROK(this)) {         /* It's a reference - it better be an array ref */
 		       int nelem;
@@ -2868,8 +2915,9 @@ pp_def(
 				      all_flag = 1; break;
 			         case '*': 
 				      dummy_flag = 1; 
-				      n0 = 0;         /* size defaults to 1 for dummy dims */   
-				      n1 = 0;
+				      n0 = 1;         /* n0 is 1 so 2nd field is element count */
+				      n1 = 1;         /* size defaults to 1 for dummy dims */   
+				      n2 = 1;         /* n2 is forced to 1 so ['*',0] gives an empty */
 				      break;
 		 		 default:             /* Doesn't start with '*' or 'X' */
 				      n0 = SvIV(*svp);
@@ -2918,8 +2966,127 @@ pp_def(
 		       } /* end of nontrivial sublist parsing */
 
 		     } else /* this argument is not an ARRAY ref - parse as a scalar */ {
-		        /* string handling goes here */
-			barf("FIXME - scalar handling not yet implemented");
+
+		        /*************************************************/
+			/*************************************************/
+			/*** String handling part of nnsliceb is here  ***/
+			/*** This is allegedly just to do simple       ***/
+			/*** extractions - but also does a full slice- ***/
+			/*** style string parse of each term.          ***/
+
+			if(SvPOKp(this)) {
+			  /* this argument has a cached string */
+			  
+			  char *s;
+			  IV len;
+			  int subargno = 0;
+			  int flagged = 0;
+			  int squish_closed = 0;
+			  char buf[161];
+			  char ii;
+			  s = SvPVbyte(this, len);
+
+			  /* Very stoopid parsing - should probably make some calls to perl string utilities... */
+			  while(*s) {
+			    if( isspace( *s ) ) {
+			      s++;  /* ignore and loop again */
+			    } else {
+			      /* not whitespace */
+
+			      switch(*(s++)) {
+			        case '*': 
+				  if(flagged || subargno)
+				    barf("nnslice: Erroneous '*' (arg %d)",i);
+				  dummy_flag = flagged = 1;
+				  n0 = 1;  /* default this number to 1 (size 1); '*0' yields an empty */ 
+				  n1 = 1;  /* no second arg allowed - default to 1 so n0 is element count */
+				  n2 = -1; /* -1 so we count down to n1 from n0 */
+				  break;
+
+				case '(':
+				  if(flagged || subargno)
+				    barf("nnslice: Erroneous '(' (arg %d)",i);
+				  squish_flag = flagged = 1;
+				  
+				  break;
+
+				case 'X': case 'x':
+				  if(flagged || subargno > 1)
+				    barf("nnslice: Erroneous 'X' (arg %d)",i);
+				    if(subargno==0) {
+				      all_flag = flagged = 1;
+				    }
+				    else /* subargno is 1 - squish */ {
+				      squish_flag = squish_closed = flagged = 1;
+				    }
+				  break;
+
+			        case '+': case '-': 
+				case '0': case '1': case '2': case '3': case '4': 
+				case '5': case '6': case '7': case '8': case '9':
+				 switch(subargno) {
+
+				   case 0: /* first arg - change default to 1 element */
+				           n0 = strtoll(--s, &s, 10); 
+				           n1 = n0; 
+					   if(dummy_flag) {
+					     n0 = 1;
+					   }
+					   break;
+
+				   case 1: /* second arg - parse and keep end */
+				           n1 = strtoll(--s, &s, 10); 
+				           break;
+					   
+				   case 2: /* third arg - parse and keep inc */
+				           if( squish_flag || dummy_flag ) {
+					    barf("nnslice: erroneous third field in slice specifier (arg %d)",i);
+					   }
+				           n2 = strtoll(--s, &s, 10); break;
+
+				   default: /* oops */
+				     barf("nnslice: too many subargs in scalar slice specifier %d",i);
+				     break;
+				 }
+				 break;
+				 
+ 				case ')':
+				 if( squish_closed || !squish_flag || subargno > 0) {
+				  barf("nslice: erroneous ')' (arg %d)",i);
+				 }
+				 squish_closed = 1;
+				 break;
+
+				case ':': 
+				 if(squish_flag && !squish_closed) {
+				   barf("nnslice: must close squishing parens (arg %d)",i);
+				 }
+				 if( subargno > 1 ) {
+				   barf("nnslice: too many ':'s in scalar slice specifier %d",i);
+				 }
+				 subargno++;
+				 break;
+				 
+			        case ',':
+ 				 barf("nnslice: ','  not allowed (yet) in scalar slice specifiers!");
+				 break;
+				
+				default:
+				 barf("nnslice: unexpected '%c' in slice specifier (arg %d)",*s,i);
+				 break;
+			      }
+ 			    } /* end of conditional in parse loop */
+			    
+			  } /* end of parse loop */
+
+			} else /* end of string parsing */ {
+			  /* Simplest case -- there's no cached string, so it   */
+			  /* must be a number.  In that case it's a simple      */
+			  /* extraction.  Treated as a separate case for speed. */
+			  n0 = SvNV(this);
+			  n1 = SvNV(this);
+			  n2 = 0;
+			}
 
 		     } /* end of string handling */
 
@@ -2952,7 +3119,7 @@ pp_def(
 		  } else {
 		    $COMP(idim[i]) = idim++;
 		  }
-
+		  
 		} /* end of arg-parsing loop */
 
 		$COMP(idim_top) = idim;
@@ -3007,7 +3174,7 @@ pp_def(
 		          start += pdsize;
 		        if( (start < 0) || (start >= pdsize) ) {
 		          PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-			  barf("nnslice: slice starts out of bounds in pos %d (val %d; source dim %d is 0-%d)",i,start,$COMP(idim[i]),pdsize-1);
+			  barf("nnslice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0-%d)",i,start,$COMP(idim[i]),pdsize-1);
 		        }
 		      		      
 		        if( $COMP(odim[i]) < 0) {
@@ -3025,20 +3192,20 @@ pp_def(
 		            end += pdsize;
   		          if( (end < 0) || (end >= pdsize) ) {	
 		            PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-			    barf("nnslice: slice ends out of bounds in pos %d (val %d; source dim %d 0-%d)",i,end,$COMP(idim[i]),pdsize-1);
+			    barf("nnslice: slice ends out of bounds in pos %d (end is %d; source dim %d runs 0-%d)",i,end,$COMP(idim[i]),pdsize-1);
 		          }
 
 			  /* regularize inc */
 			  inc = $COMP(inc[i]);
 			  if(!inc) 
 			    inc = (start <= end) ? 1 : -1;	
-			 
+
 			  siz = (end - start + inc) / inc ;
 			  if(siz<0)
 			    siz=0;
 		          $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
-			  $PRIV( incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * $COMP(inc[i]);
-			  $PRIV(offs) += $COMP(start[i]) * $PARENT( dimincs[ $COMP(idim[i]) ] );
+			  $PRIV( incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * inc;
+			  $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
                         } /* end of normal slice case */
 		      } /* end of non-dummy slice case */
 		  } /* end of nargs loop */
@@ -3052,7 +3219,7 @@ pp_def(
 		  
 		$SETDIMS();
 
-	} # end of RedoDims
+	} # end of RedoDims for nnsliceb
 );
 
 

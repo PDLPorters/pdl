@@ -1,16 +1,11 @@
 # -*-perl-*-
 #
-# Test ->slice(). This is not yet good enough: we need
-# nasty test cases
-#
-# Okay -- here're a couple (CED 3-apr-2002).
-#	 Added permissive-slicing tests
-#
 
 use strict;
 use Test::More;
 
-plan tests => 74;
+plan tests => 74    # everything else
+              + 25; # nnslice 
 
 use PDL::LiteF;
 
@@ -385,3 +380,65 @@ ok("$z" eq 'Empty[0]');
 $z .= 2;
 ok(1);            # should *not* segfault!
 ok(all($a==5));   # should *not* change $a!
+
+
+######################################################################
+######################################################################
+##  nnslice tests -- work it out
+
+$a = sequence(10,10);
+eval { $b = $a->nnslice(); };  # should not segfault
+ok(1, 'nnsliceb MakeComps does not segfault for simple case');
+ok(!$@, 'nnsliceb does not throw an error for simple case');
+
+eval { $c = $b->at(0,0); }; # force redodims
+ok(1, 'nnsliceb RedoDims does not segfault for simple case');
+ok(!$@, 'nnsliceb does not throw an error on redodims');
+
+ok( ($a->ndims == $b->ndims) && (all($a->shape==$b->shape)), 'trivial nnslice duplicates array');
+
+$b = $a->nnslice([2],[3,'X']); # column slice one way; squish the other
+ok( ($b->ndims==1) && ($b->dim(0)==1), 'column-pick / squish yields right shape');
+ok( $b==32 , 'column-pick / squish extracts the right value');
+
+$b = $a->nnslice([2,4],['X']); # three-column slice one way; full-column the other
+ok( ($b->ndims==2) && all($b->shape==pdl(3,10)), 'three-column / full-column has the right shape');
+ok( all($b== 2 + xvals(3,10) + 10*yvals(3,10)), 'three-column / full-column slice gets the right values');
+
+$b = $a->nnslice([2,4,0]); # alternate way to squish a dim -- element 1 (4) is ignored
+ok( ($b->ndims==1) && ($b->dim(0)==10), 'alternate squish works' );
+ok( all($b==2+10*xvals(10)), 'squish works okay');
+
+$b = $a->nnslice([4,2],[2,4,2]); # descending three-column slice one way; alternate two-column slice the other
+ok( ($b->ndims==2) && ($b->dim(0)==3) && ($b->dim(1)==2), 'descending/alternating slice has the right shape');
+ok( all($b==4-xvals(3,2) + 20 + yvals(3,2)*20), 'descending/alternating slice gets the right values');
+
+$b = $a->nnslice([4,4,1],[4,2,1]); # check weird specified cases -- 1x0 empty
+ok( ($b->ndims==2) && ($b->dim(0)==1) && ($b->dim(1)==0) , '1x0 extended empty');
+
+$b = $a->nnslice([2],[3],['*',5]); # dummy dimension
+ok( ($b->ndims==3) && all($b->shape==pdl(1,1,5)), 'dummy dimension works');
+ok( all($b==32), 'dummy dimension works for content' );
+
+$b = $a->nnslice([2],[3],['*9',5,7]); # everything after the '*' and in element 2 should be ignored
+ok( ($b->ndims==3) && all($b->shape==pdl(1,1,5)), 'dummy dimension works if abused');
+
+$b = $a->nnslice(['*'],[3],[4]);
+ok( ($b->ndims==3) && all($b->shape==pdl(1,1,1)), 'default dummy dim works');
+ok( $b==43, 'default dummy dims gets correct values');
+
+$b = $a->nnslice([0,-8],[-4,5]); # resolve negatives (resolves to [0,2] and [6,5]);
+ok( ($b->ndims==2) && all($b->shape==pdl(3,2)), 'negative counts work okay' );
+ok( all( $b== xvals(3,2) + 60 - yvals(3,2)*10 ), 'negative counts get right values');
+
+# out-of-bounds checks
+eval { $b = $a->nnslice([10,3]); };
+ok(!$@, 'out-of-bounds slice succeeds right away');
+eval { "$b" };
+ok($@, "out-of-bounds slice fails on eval");
+
+eval { $b = $a->nnslice([-11,3]); };
+ok(!$@, "negative oob slice succeeds");
+eval { "$b" };
+ok($@, "negative out-of-bounds fails on eval");
+
