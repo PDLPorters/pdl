@@ -616,10 +616,6 @@ DEVEL NOTES
 makes it easier to loop over the index array but a little more brain-bending 
 to tease out the algorithm.
 
-* Currently the index threads really do run fastest in memory; this is 
-probably the wrong direction to thread, for fastest behavior -- modifying 
-the appropriate dimincs in RedoDims ought to take care of it.
-
 =cut 
 
 EOD
