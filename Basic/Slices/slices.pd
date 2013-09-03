@@ -2744,7 +2744,12 @@ result is an Empty PDL).
 
 =item a PDL
 
-
+A PDL with more than one element causes a more expensive dice call, 
+selecting one element from the corresponding axis for each element 
+of the PDL.  If you feed in a single-element PDL, it's treated as 
+a perl scalar and sliced in the usual way.  A zero-element (empty) PDL
+causes the axis to have length 0 (i.e. the slice returns an extended
+Empty PDL).
 
 =back
 
