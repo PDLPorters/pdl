@@ -202,7 +202,7 @@ pp_def(
        Pars => 'a(n); ind ind(); [oca] c();',
        Code => 
        $index_init_good . ' $c() = $a(n => foo);',
-       BadCode => 
+$a =        BadCode => 
        $index_init_bad . ' $c() = $a(n => foo);',
        BackCode => 
        $index_init_good . ' $a(n => foo) = $c();',
@@ -2742,6 +2742,10 @@ dimension whose size is the following number.  If you leave out the number,
 the size defaults to 1.  (Note that '*0' gives size 0, which means the 
 result is an Empty PDL).
 
+=item a PDL
+
+
+
 =back
 
 =cut
@@ -2751,6 +2755,29 @@ result is an Empty PDL).
 
 sub PDL::nnslice {
     my ($source, @others) = @_;
+    
+    # Deal with dicing.  This is really lame and should go into the 
+    # C code, but works for now (and is as fast as dice_axis, which
+    # is okay).  
+    for my $i(0..$#others) {
+      if( ref $others[$i] eq 'PDL' ) {
+        my $idx = $others[$i];
+        if($idx->ndims > 1) {
+	  barf("nnslice: dicing parameters must be at most 1D (arg $i)\n");
+	}
+        if($idx->nelem > 1) {
+	   my $n = $source->getndims;
+	   for (1..$n){ $idx = $idx->dummy(0); }
+	   $source = $source->mv($i,0)->index($idx)->mv($n-1,$i);
+	   $others[$i] = '';
+	} elsif($idx->nelem==0) {
+	   $others[$i] = "1:0:1";
+	} else {
+	   $others[$i] = $idx->flat->at(0);
+	}
+      }
+    }
+    
     PDL::nnsliceb($source,\@others);
 }
 
