@@ -673,6 +673,7 @@ if(!(ind_pdl = PDL->SvPDLV(index))) /* assignment */
   
 PDL->make_physdims(ind_pdl);
 
+/* Generalized empties are ok, but not in the special 0 dim (the index vector) */
 if(ind_pdl->dims[0] == 0) 
     { $CROAK("rangeb: can't handle Empty indices -- call range instead"); }
 
@@ -683,10 +684,11 @@ if(ind_pdl->dims[0] == 0)
 switch(ind_pdl->datatype) {
  default:                              /* Most types: */
    ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
- case PDL_B: case PDL_S: case PDL_US: case PDL_L: 
-   PDL->converttype(&ind_pdl,PDL_LL,1); /* convert in place. */
+ case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_LL: 
+   PDL->converttype(&ind_pdl,PDL_IND,1); /* convert in place. */
    break;
- case PDL_LL:                           
+ case PDL_IND:
+   /* do nothing */
    break;
 }
 
@@ -785,14 +787,14 @@ switch(ind_pdl->datatype) {
 
     } else {
       
-      // Convert size PDL to long
+      // Convert size PDL to PDL_IND to support indices
       switch(size_pdl->datatype) {
       default:                              /* Most types: */
 	size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
-      case PDL_B: case PDL_S: case PDL_US: case PDL_L:  
-	PDL->converttype(&size_pdl,PDL_LL,1); /* convert in place. */
+      case PDL_B: case PDL_S: case PDL_US: case PDL_L:  case PDL_LL:
+	PDL->converttype(&size_pdl,PDL_IND,1); /* convert in place. */
 	break;
-      case PDL_LL:                           
+      case PDL_IND:   
 	break;
       }
       
@@ -879,7 +881,7 @@ EOD-MakeComp
 {		      
   PDL_Index stdim = $PARENT(ndims) - $COMP(rdim);
   PDL_Index dim,inc;
-  PDL_Index i;
+  PDL_Index i,rdvalid;
 
     // Speed bump for ludicrous cases
     if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
@@ -892,24 +894,26 @@ EOD-MakeComp
     /* Set dimensionality of child */
     $CHILD(ndims) = $COMP(itdim) + $COMP(ntsize) + stdim;
     $SETNDIMS($COMP(itdim)+$COMP(ntsize)+stdim);
-    
-    /* Copy index thread dimensions to child */
+
     inc = 1;
-    for(dim=0; dim<$COMP(itdim); dim++) {
-      $CHILD(dimincs[dim]) = inc;
-      inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
-      
-    }
-    
     /* Copy size dimensions to child, crunching as we go. */
-    for(i=0;i<$COMP(rdim);i++) {
+    dim = $COMP(itdim);
+    for(i=rdvalid=0;i<$COMP(rdim);i++) {
       if($COMP(sizes[i])) {
+        rdvalid++;
 	$CHILD(dimincs[dim]) = inc;
 	inc *= ($CHILD(dims[dim++]) = $COMP(sizes[i])); /* assignment */
       }
     }
+
+    /* Copy index thread dimensions to child */
+    for(dim=0; dim<$COMP(itdim); dim++) {
+      $CHILD(dimincs[dim]) = inc;
+      inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
+    }
     
     /* Copy source thread dimensions to child */
+    dim = $COMP(itdim) + rdvalid;
     for(i=0;i<stdim;i++) {
       $CHILD(dimincs[dim]) = inc;
       inc *= ($CHILD(dims[dim++]) = $PARENT(dims[i+$COMP(rdim)])); /* assignment */
@@ -924,7 +928,6 @@ EOD-MakeComp
 	  $COMP(boundary[dim]) = 1; // force truncation
       }
     }
-
 
 
   $CHILD(datatype) = $PARENT(datatype);
