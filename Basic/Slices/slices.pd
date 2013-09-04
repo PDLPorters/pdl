@@ -2758,7 +2758,7 @@ Empty PDL).
 ## This is implemented as a two-step (like range/rangeb) as a cheesy
 ## varargs...
 
-sub PDL::nnslice {
+sub PDL::nnslice (;@) {
     my ($source, @others) = @_;
     
     # Deal with dicing.  This is really lame and should go into the 
@@ -3214,7 +3214,10 @@ pp_def(
 		      		      
 		        if( $COMP(odim[i]) < 0) {
 		         /* squished dim - just update the offset. */
-			 $PRIV(offs) += $COMP( start[i] ) * $PARENT( dimincs[ $COMP(idim[i]) ] );
+			 /* start is always defined and regularized if we are here here, since both 
+			    idim[i] and odim[i] can't be <0 */
+			 
+			 $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
 
                         } else /* normal operation */ {
 		      	  PDL_Index siz;
