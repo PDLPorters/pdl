@@ -5,7 +5,7 @@ use strict;
 use Test::More;
 
 plan tests => 74    # everything else
-              + 25  # nnslice
+              + 27  # nnslice
               + 52  # copied slice tests to nnslice
     ;
 use PDL::LiteF;
@@ -442,6 +442,11 @@ eval { $b = $a->nnslice([-11,3]); };
 ok(!$@, "negative oob slice succeeds");
 eval { "$b" };
 ok($@, "negative out-of-bounds fails on eval");
+
+$b = $a->nnslice([-1,0,0]); # squish X, select last element
+ok( ($b->ndims==1) && ($b->dim(0)==10), "squish gives correct dimensions");
+ok( all($b == 9 + 10*xvals(10)), "squished regularized dim gives correct answer");
+
 
 ###
 ###
