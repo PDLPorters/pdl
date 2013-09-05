@@ -16,8 +16,9 @@ $| = 1;
 sub tapprox ($$) {
     my ( $a, $b ) = @_;
     my $d = abs( $a - $b );
-    diag "diff = [$d]\n";
-    return $d <= 0.0001;
+    my $check = ($d <= 0.0001);
+    diag "diff = [$d]\n" unless $check;
+    return $check;
 }
 
 # set up test arrays
