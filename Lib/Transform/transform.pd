@@ -301,8 +301,8 @@ sub stringify {
   my($mestr) = (ref $me);
   $mestr =~ s/PDL::Transform:://;
   my $out = $mestr . " (" . $me->{name} . "): ";
-  $out .= "fwd ". ((defined ($me->{func})) ? "ok" : "missing")."; ";
-  $out .= "inv ". ((defined ($me->{inv})) ? "ok" : "missing").".\n";
+  $out .= "fwd ". ((defined ($me->{func})) ? ( (ref($me->{func}) eq 'CODE') ? "ok" : "non-CODE(!!)" ): "missing")."; ";
+  $out .= "inv ". ((defined ($me->{inv})) ?  ( (ref($me->{inv}) eq 'CODE') ? "ok" : "non-CODE(!!)" ):"missing").".\n";
 }
 
 +======EOD======
@@ -347,12 +347,10 @@ sub apply {
   }
 
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL')){
-      if(defined($me->{func})) {
-	  my $result = &{$me->{func}}($from,$me->{params});
-	  $result->is_inplace(0); # clear inplace flag, just in case.
-	  return $result;
-      }
-      croak "PDL::Transform with no defined func -- this is a bug.\n";
+      croak "Applying a PDL::Transform with no func! Oops.\n" unless(defined($me->{func}) and ref($me->{func}) eq 'CODE');
+      my $result = &{$me->{func}}($from,$me->{params});		
+      $result->is_inplace(0); # clear inplace flag, just in case.	
+      return $result;
   } else {
       croak "apply requires both a PDL and a PDL::Transform.\n";
   }
@@ -399,7 +397,7 @@ sub invert {
   }
 
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($data,'PDL')){
-      return undef unless defined($me->{inv});
+      croak "Inverting a PDL::Transform with no inverse! Oops.\n" unless(defined($me->{inv}) and ref($me->{inv}) eq 'CODE');
       my $result = &{$me->{inv}}($data, $me->{params});
       $result->is_inplace(0);  # make sure inplace flag is clear.
       return $result;
@@ -1011,7 +1009,9 @@ pp_def('map',
 
 =for usage
 
-  $b = $a->match($c);
+  $b = $a->match($c);                  # Match $c's header and size
+  $b = $a->match([100,200]);           # Rescale to 100x200 pixels
+  $b = $a->match([100,200],{rect=>1}); # Rescale and remove rotation/skew.
 
 =for ref
 
@@ -1024,6 +1024,13 @@ The example above is syntactic sugar for
 it resamples the input PDL with the identity transformation in
 scientific coordinates, and matches the pixel coordinate system to
 $c's FITS header.
+
+There is one difference between match and map: match makes the
+C<rectify> option to C<map> default to 0, not 1.  This only affects
+matching where autoscaling is required (i.e. the array ref example
+above).  By default, that example simply scales $a to the new size and
+maintains any rotation or skew in its scientiic-to-pixel coordinate
+transform.
 
 =head2 map
 
@@ -1161,7 +1168,20 @@ output array.  It works exactly like C<irange>, except that it specifies
 a quadrilateral in output space.  Since the output pixel array is itself
 a quadrilateral, you get pretty much exactly what you asked for.
 
-This parameter overrides C<irange>, if both are specified.
+This parameter overrides C<irange>, if both are specified.  It forces
+rectification of the output (so that scientific axes align with the pixel
+grid).
+
+=item r, rect, rectify
+
+This option defaults TRUE and controls how autoscaling is performed.  If
+it is true or undefined, then autoscaling adjusts so that pixel coordinates
+in the output image are proportional to individual scientific coordinates.
+If it is false, then autoscaling automatically applies the inverse of any
+input FITS transformation *before* autoscaling the pixels.  In the special
+case of linear transformations, this preserves the rectangular shape of the
+original pixel grid and makes output pixel coordinate proportional to input
+coordinate.
 
 =item m, method, Method
 
@@ -1299,6 +1319,14 @@ Maybe that someone is you.
 	PMCode => <<'+==EOD_map_perlcode=='
 
 sub PDL::match {
+  # Set default for rectification to 0 for simple matching...
+  if( ref($_[$#_]) ne 'HASH' ) {
+      push(@_,{})
+  }
+  my @k = grep(m/^r(e(c(t)?)?)?/,keys %{$_[$#_]});
+  unless(@k) {
+      $_[$#_]->{rectify} = 0;
+  }
   t_identity()->map(@_);
 }
 
@@ -1390,10 +1418,8 @@ sub map {
 
   ##############################
   # If necessary, generate an appropriate FITS header for the output.
+
   my $nofits = _opt($opt, ['nf','nofits','NoFITS','pix','pixel','Pixel']);
-  my $f_tr = ($nofits || !defined($in->hdr->{NAXIS})) ?
-    $me :
-    $me x t_fits($in,{ignore_rgb=>1});
 
   ##############################
   # Autoscale by transforming a subset of the input points' coordinates
@@ -1403,6 +1429,11 @@ sub map {
   # Autoscaling always produces a simple, linear mapping in the FITS header.
   # We support more complex mappings (via t_fits) but only to match a pre-existing
   # FITS header (which doesn't use autoscaling).
+  # 
+  # If the rectify option is set (the default) then the image is rectified 
+  # in scientific coordinates; if it is clear, then the existing matrix 
+  # is used, preserving any shear or rotation in the coordinate system. 
+  # Since we eschew CROTA whenever possible, the CDi_j formalism is used instead.
   unless((defined $out->gethdr && $out->hdr->{NAXIS})  or  $nofits) {
       print "generating output FITS header..." if($PDL::Transform::debug);
 
@@ -1418,7 +1449,15 @@ sub map {
       my $omax;
       my $osize;
 
+
+      my $rectify = _opt($opt,['r','rect','rectify','Rectify'],1);
+      my $f_in = (defined($in->hdr->{NAXIS}) ? t_fits($in,{ignore_rgb=>1}) : t_identity);
+
+
       if (defined $orange) {
+	  # orange always rectifies the coordinates -- the output scientific
+	  # coordinates *must* align with the axes, or orange wouldn't make
+	  # sense.
 	print "using user's orange..." if($PDL::Transform::debug);
 	$orange = pdl($orange) unless(UNIVERSAL::isa($orange,'PDL'));
 	barf "map: orange must be 2xN for an N-D transform"
@@ -1428,96 +1467,168 @@ sub map {
 	$omin = $orange->slice("(0)");
 	$omax = $orange->slice("(1)");
 	$osize = $omax - $omin;
+	
+	$rectify = 1;
 
       } else {
 
-	my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
+	  ##############################
+	  # Real autoscaling happens here.
 
-	my $coords = ndcoords(($samps + 1)->list);
 
-	my $t;
-	my $irange = _opt($opt, ['ir','irange','input_range','Input_Range'],
-			  undef);
+	  if(!$rectify and ref( $f_in ) !~ /Linear/) {
+	      print STDERR "Warning: map can't preserve nonlinear FITS distortions while autoscaling.\n";
+	      $rectify=1;
+	  }
+	  if(!$rectify and $f_in->{name} eq 'identity') {
+	      $rectify = 1;
+	  }
 
-	# If input range is defined, sample that quadrilateral -- else
-	# sample the quad defined by the boundaries of the input image.
-	if(defined $irange) {
-	  print "using user's irange..." if($PDL::Transform::debug);
-	  $irange = pdl($irange) unless(UNIVERSAL::isa($irange,'PDL'));
-	  barf "map: irange must be 2xN for an N-D transform"
-	    unless ( (($irange->dim(1)) == $nd )
-		     && $irange->ndims == 2);
+	  my $f_tr = ( $rectify ? 
+		       $me x $f_in :
+		       (  ($me->{name} eq 'identity') ?  # Simple optimization for match()
+			  $me :                        # identity -- just matching
+			  !$f_in x $me x $f_in         # common case
+		       )
+		       );
 
-	  $coords *= ($irange->slice("(1)") - $irange->slice("(0)")) / $samps;
-	  $coords += $irange->slice("(0)");
-	  $coords -= 0.5; # offset to pixel corners...
-	  $t = $me;
-	} else {
-	  $coords *= pdl(($in->dims)[0..$nd-1]) / $samps;
-  	  $coords -= 0.5; # offset to pixel corners...
-	  $t = $f_tr;
-	}
-
-	my $ocoords = $t->apply($coords)->mv(0,-1)->clump($nd);
-	# discard non-finite entries
-
-	my $oc2  = $ocoords->range(
-				   which(
-					 $ocoords->
-					 xchg(0,1)->
-					 sumover->
-					 isfinite
-					 )
-				   ->dummy(0,1)
-				   );
-
-	$omin = $oc2->minimum;
-	$omax = $oc2->maximum;
-
-	$osize = $omax - $omin;
-	my $tosize;
-	($tosize = $osize->where($osize == 0)) .= 1.0;
+	  my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
+	  
+	  my $coords = ndcoords(($samps + 1)->list);
+	  
+	  my $t;
+	  my $irange = _opt($opt, ['ir','irange','input_range','Input_Range'],
+			    undef);
+	  
+	  # If input range is defined, sample that quadrilateral -- else
+	  # sample the quad defined by the boundaries of the input image.
+	  if(defined $irange) {
+	      print "using user's irange..." if($PDL::Transform::debug);
+	      $irange = pdl($irange) unless(UNIVERSAL::isa($irange,'PDL'));
+	      barf "map: irange must be 2xN for an N-D transform"
+		  unless ( (($irange->dim(1)) == $nd )
+			   && $irange->ndims == 2);
+	      
+	      $coords *= ($irange->slice("(1)") - $irange->slice("(0)")) / $samps;
+	      $coords += $irange->slice("(0)");
+	      $coords -= 0.5; # offset to pixel corners...
+	      $t = $me;
+	  } else {
+	      $coords *= pdl(($in->dims)[0..$nd-1]) / $samps;
+	      $coords -= 0.5; # offset to pixel corners...
+	      $t = $f_tr;
+	  }
+	  my $ocoords = $t->apply($coords)->mv(0,-1)->clump($nd);
+	  
+	  # discard non-finite entries
+	  my $oc2  = $ocoords->range(
+	      which(
+		  $ocoords->
+		  xchg(0,1)->
+		  sumover->
+		  isfinite
+	      )
+	      ->dummy(0,1)
+	      );
+	  
+	  $omin = $oc2->minimum;
+	  $omax = $oc2->maximum;
+	  
+	  $osize = $omax - $omin;
+	  my $tosize;
+	  ($tosize = $osize->where($osize == 0)) .= 1.0;
       }
-
+      
       my ($scale) = $osize / pdl(($out->dims)[0..$nd-1]);
-
+      
       my $justify = _opt($opt,['j','J','just','justify','Justify'],0);
       if($justify) {
-        my $tmp; # work around perl -d "feature"
-	($tmp = $scale->slice("0")) *= $justify;
-	$scale .= $scale->max;
-	$scale->slice("0") /= $justify;
+	  my $tmp; # work around perl -d "feature"
+	  ($tmp = $scale->slice("0")) *= $justify;
+	  $scale .= $scale->max;
+	  $scale->slice("0") /= $justify;
       }
 
-      my $d;
-      for $d(1..$nd) {
-	  $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2 ;
-	  $out->hdr->{"CDELT$d"} = $scale->at($d-1);
-	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
-	  $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
-	  $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
-				      $me->{otype}->[$d-1] : "")
-				     || $in->hdr->{"CTYPE$d"}
-				     || "");
-	  $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
-				      $me->{ounit}->[$d-1] : "")
-				     || $in->hdr->{"CUNIT$d"}
-				     || $in->hdr->{"CTYPE$d"}
-				     || "");
+      print "done with autoscale. Making fits header....\n" if($PDL::Transform::debug);
+      if( $rectify ) {
+	  # Rectified header generation -- make a simple coordinate header with no 
+	  # rotation or skew.
+	  print "rectify\n" if($PDL::Transform::debug);
+	  for my $d(1..$nd) {
+	      $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2 ;
+	      $out->hdr->{"CDELT$d"} = $scale->at($d-1);
+	      $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
+	      $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
+	      $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
+					  $me->{otype}->[$d-1] : "")
+					 || $in->hdr->{"CTYPE$d"}
+					 || "");
+	      $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
+					  $me->{ounit}->[$d-1] : "")
+					 || $in->hdr->{"CUNIT$d"}
+					 || $in->hdr->{"CTYPE$d"}
+					 || "");
+	  }
+	  $out->hdr->{"NAXIS"} = $nd;
 	  
-      }
-      $out->hdr->{"NAXIS"} = $nd;
+	  $out->hdr->{"SIMPLE"} = 'T';
+	  $out->hdr->{"HISTORY"} .= "Header written by PDL::Transform::Cartography::map";
+	  
+	  ### Eliminate fancy newfangled output header pointing tags if they exist
+	  ### These are the CROTA<n>, PCi_j, and CDi_j.
+	  for $k(keys %{$out->hdr})	 {
+	      if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+[A-Z]?$)/ ){
+		  delete $out->hdr->{$k};
+	      }
+	  }
+      } else {
+	  # Non-rectified output -- generate a CDi_j matrix instead of the simple formalism.
+	  # We have to deal with a linear transformation: we've got:  (scaling) x !input x (t x input),
+	  # where input is a linear transformation with offset and scaling is a simple scaling. We have
+	  # the scaling parameters and the matrix for !input -- we have only to merge them and then we 
+	  # can write out the FITS header in CDi_j form.
+	  print "non-rectify\n" if($PDL::Transform::debug);
+	  my $midpoint_val = (pdl(($out->dims)[0..$nd-1])/2 * $scale)->apply( $f_in );
+	  print "midpoint_val is $midpoint_val\n" if($PDL::Transform::debug);
+	  # linear transformation
+	  unless(ref($f_in) =~ m/Linear/) {
+	      croak("Whups -- got a nonlinear t_fits transformation.  Can't deal with it.");
+	  }
 
-      $out->hdr->{"SIMPLE"} = 'T';
-      $out->hdr->{"HISTORY"} .= "Header written by PDL::Transform::Cartography::map";
+	  my $inv_sc_mat = zeroes($nd,$nd);
+	  $inv_sc_mat->diagonal(0,1) .= $scale;
+	  my $mat = $f_in->{params}->{matrix} x $inv_sc_mat;
+	  print "scale is $scale; mat is $mat\n" if($PDL::Transform::debug);
 
-      ### Eliminate fancy newfangled output header pointing tags if they exist
-      ### These are the CROTA<n>, PCi_j, and CDi_j.
-      for $k(keys %{$out->hdr})	 {
-	  if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+[A-Z]?$)/ ){
-	      delete $out->hdr->{$k}
+	  print "looping dims 1..$nd: " if($PDL::Transform::debug);
+	  for my $d(1..$nd) {
+	      print "$d..." if($PDL::Transform::debug);
+	      $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2;
+	      $out->hdr->{"CRVAL$d"} = $midpoint_val->at($d-1);
+	      $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
+	      $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
+					  $me->{otype}->[$d-1] : "")
+					 || $in->hdr->{"CTYPE$d"}
+					 || "");
+	      $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
+					  $me->{ounit}->[$d-1] : "")
+					 || $in->hdr->{"CUNIT$d"}
+					 || $in->hdr->{"CTYPE$d"}
+					 || "");
+	      for my $e(1..$nd) {
+		  $out->hdr->{"CD${d}_${e}"} = $mat->at($d-1,$e-1);
+		  print "setting CD${d}_${e} to ".$mat->at($d-1,$e-1)."\n" if($PDL::Transform::debug);
+	      }
+	  }
+
+	  ## Eliminate competing header pointing tags if they exist
+	  for $k(keys %{$out->hdr}) {
+	      if( $k =~ m/(^CROTA\d*$)|(^(PC)\d+_\d+[A-Z]?$)|(CDELT\d*$)/ ) {
+		  delete $out->hdr->{$k};
+	      }
 	  }
       }
+
 
 
     }
@@ -1526,11 +1637,9 @@ sub map {
 
   ##############################
   # Sandwich the transform between the input and output plane FITS headers.
-  $me = $f_tr; # Pre-composed input FITS from above.
-
-  $me = !(t_fits($out,{ignore_rgb=>1})) x $me
-    unless($nofits);
-
+  unless($nofits) {
+      $me = !(t_fits($out,{ignore_rgb=>1})) x $me x t_fits($in,{ignore_rgb=>1});
+  }
 
   ##############################
   ## Figure out the interpND options
@@ -1845,6 +1954,8 @@ sub compose {
     my ($ip) = $data->is_inplace;
     for my $t ( reverse @{$p->{clist}} ) {
       print "applying $t\n" if($PDL::Transform::debug);
+      croak("Error: tried to apply a PDL::Transform with no function inside a composition!\n  offending transform: $t\n")
+	  unless(defined($t->{func}) and ref($t->{func}) eq 'CODE');
       $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
       print "... ok.\n" if($PDL::Transform::debug);
     }
@@ -1857,6 +1968,8 @@ sub compose {
     my($ip) = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
       print "inverting $t..." if($PDL::Transform::debug);
+      croak("Error: tried to invert a non-invertible PDL::Transform inside a composition!\n  offending transform: $t\n") 
+	  unless(defined($t->{inv}) and ref($t->{inv}) eq 'CODE');
       $data = &{$t->{inv}}($ip ? $data->inplace : $data, $t->{params});
       print "... ok.\n" if($PDL::Transform::debug);
     }
@@ -2722,20 +2835,19 @@ sub t_fits {
   my($post) = PDL->zeroes($n);
 
   ##############################
-  # Scaling: Use CDi_j formalism if present (mostly in Hubble
-  # datasets); otherwise use PCi_j + CDELTi formalism.
+  # Scaling: Use CDi_j formalism if present; otherwise use the 
+  # older PCi_j + CDELTi formalism.
 
   my(@hgrab);
 
   if(@hgrab = grep(m/^CD\d{1,3}_\d{1,3}$/,keys %$hdr)) {   # assignment
-
     #
     # CDi_j formalism
     #
     for my $h(@hgrab) {
       $h =~ m/CD(\d{1,3})_(\d{1,3})/;  # Should always match
       my $tmp; # work around perl -d "feature"
-      ($tmp = $matrix->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{h};
+      ($tmp = $matrix->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{$h};
     }
     print "PDL::Transform::FITS: Detected CDi_j matrix: \n",$matrix,"\n"
       if($PDL::Transform::debug);
