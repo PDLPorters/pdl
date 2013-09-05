@@ -10,8 +10,9 @@ Release Notes for PDL 2.006_06 --------------------------
 
 General Notes:
 
- * 64bit index support is broken for 32bit perls.
-   Seems ok for 64bit perls.
+ * 64bit index support code now working except for some issues
+   based on type names.  Depending on the platform, the PDL_Index
+   type is actually the PDL_Long or PDL_LongLong type.  
 
  * Another quick CPAN developers release
 
@@ -36,7 +37,9 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Candidate fix for 64bit index bug in rangeb.
+
+ * New nnslice() routine introduced.
 
 
 
