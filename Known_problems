@@ -108,7 +108,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.006_06 release:
+  PDL-2.006_07 release:
 
   340    orover of byte data returns long type
   339    PDL::Complex support is inconsistent and incomplete
