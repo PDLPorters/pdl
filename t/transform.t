@@ -14,7 +14,7 @@ $a = sequence(5,5);
 
 # Identity transformation should be an expensive no-op
 # (autoscaled correctly)
-$b = $a->map(t_identity);
+$b = $a->map(t_identity());
 ok( all($a==$b) );
 
 # Identity transformation on pixels should be a slightly less expensive

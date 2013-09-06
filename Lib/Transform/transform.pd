@@ -656,7 +656,7 @@ pp_def('map',
 
   /***************************************************************************/
   /**  Check that the dimensionalities are consistent.  This is             **/
-  /**  allegedly done already in the perl part, but shouldn't cost more     **/
+  /**  allegedly done already in the perl part, but should not cost more    **/
   /**  than a few hundred clock cycles -- cheap at twice the price.         **/
   /**                                                                       **/
   /**/ if(map->ndims != out->ndims)                                        /**/
@@ -1434,6 +1434,8 @@ sub map {
   # in scientific coordinates; if it is clear, then the existing matrix 
   # is used, preserving any shear or rotation in the coordinate system. 
   # Since we eschew CROTA whenever possible, the CDi_j formalism is used instead.
+  my $f_in = (defined($in->hdr->{NAXIS}) ? t_fits($in,{ignore_rgb=>1}) : t_identity());
+
   unless((defined $out->gethdr && $out->hdr->{NAXIS})  or  $nofits) {
       print "generating output FITS header..." if($PDL::Transform::debug);
 
@@ -1451,7 +1453,6 @@ sub map {
 
 
       my $rectify = _opt($opt,['r','rect','rectify','Rectify'],1);
-      my $f_in = (defined($in->hdr->{NAXIS}) ? t_fits($in,{ignore_rgb=>1}) : t_identity);
 
 
       if (defined $orange) {
@@ -1638,7 +1639,7 @@ sub map {
   ##############################
   # Sandwich the transform between the input and output plane FITS headers.
   unless($nofits) {
-      $me = !(t_fits($out,{ignore_rgb=>1})) x $me x t_fits($in,{ignore_rgb=>1});
+      $me = !(t_fits($out,{ignore_rgb=>1})) x $me x $f_in;
   }
 
   ##############################
@@ -1953,11 +1954,9 @@ sub compose {
     my ($data,$p) = @_;
     my ($ip) = $data->is_inplace;
     for my $t ( reverse @{$p->{clist}} ) {
-      print "applying $t\n" if($PDL::Transform::debug);
       croak("Error: tried to apply a PDL::Transform with no function inside a composition!\n  offending transform: $t\n")
 	  unless(defined($t->{func}) and ref($t->{func}) eq 'CODE');
       $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
-      print "... ok.\n" if($PDL::Transform::debug);
     }
     $data->is_inplace(0); # clear inplace flag (avoid core bug with inplace)
     $data;
@@ -1967,11 +1966,9 @@ sub compose {
     my($data,$p) = @_;
     my($ip) = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
-      print "inverting $t..." if($PDL::Transform::debug);
       croak("Error: tried to invert a non-invertible PDL::Transform inside a composition!\n  offending transform: $t\n") 
 	  unless(defined($t->{inv}) and ref($t->{inv}) eq 'CODE');
       $data = &{$t->{inv}}($ip ? $data->inplace : $data, $t->{params});
-      print "... ok.\n" if($PDL::Transform::debug);
     }
     $data;
   };
