@@ -233,8 +233,8 @@ void pdl_makescratchhash(pdl *ret,double data, int datatype) {
 
 /*
   "Convert" a perl SV into a pdl (alright more like a mapping as
-   the data block is not actually copied)  - scalars are automatically
-   converted.
+   the data block is not actually copied in the most common case
+   of a single scalar) scalars are automatically converted to PDLs.
 */
 
 pdl* SvPDLV ( SV* sv ) {
@@ -243,72 +243,71 @@ pdl* SvPDLV ( SV* sv ) {
    PDL_Index fake[1];
    SV *sv2;
 
-   if ( !SvROK(sv) ) {   /* Coerce scalar */
+   if ( !SvROK(sv) ) {  
+      /* The scalar is not a ref, so we can use direct conversion. */
+
       SV *dat;
       double data;
       int datatype;
 
       ret = pdl_new();  /* Scratch pdl */
 
-/* Scratch hash for the pdl :( - slow but safest. */
+      /* Scratch hash for the pdl :( - slow but safest. */
 
-	/* handle undefined values */
-        if( sv_undef(sv) ) {
-            sv = get_sv("PDL::undefval",1);
-	    if(SvIV(get_sv("PDL::debug",1))){
-		fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%g).\n",SvNV(sv));
-		}
-	}
-
-       /* Figure datatype to use */
-       if ( !SvIOK(sv) && SvNOK(sv) && SvNIOK(sv)  )  {/* Perl Double (e.g. 2.0) */
-          data = SvNV(sv);
-
-!NO!SUBS!
-
-# XXX HACK this may not be sensible (DJB 08/31/00)
-# - only relevant if BADVAL_USENAN is true in config file
-#
-
-if ( $bvalflag and $usenan ) {
-   print OUT <<'!NO!SUBS!';
-
-          /*
-           * default NaN/Infs to double
-           * XXX sensible ?
-           */
-          if ( finite(data) == 0 ) {
-             datatype = PDL_D;
-          } else {
-             datatype = pdl_whichdatatype_double(data);
+      /* handle undefined values */
+      if( sv_undef(sv) ) {
+          sv = get_sv("PDL::undefval",1);
+          if(SvIV(get_sv("PDL::debug",1))){
+            fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%g).\n",SvNV(sv));
           }
+      }
+
+      /* Figure datatype to use */
+      if ( !SvIOK(sv) && SvNOK(sv) && SvNIOK(sv)  )  {/* Perl Double (e.g. 2.0) */
+         data = SvNV(sv);
 
 !NO!SUBS!
+
+##########
+# If badvals and usenan are true, we default NaNs to type double. 
+if ( $bvalflag and $usenan ) {
+    print OUT q{
+      /*
+       * default NaN/Infs to double
+       *
+       */
+      if ( finite(data) == 0 ) {
+        datatype = PDL_D;
+      } else {
+        datatype = pdl_whichdatatype_double(data);
+      }
+   }
 } else {
+   print OUT q{
+      datatype = pdl_whichdatatype_double(data);
 
-   print OUT "\tdatatype = pdl_whichdatatype_double(data);\n";
-
+   }
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
+     } /* end of Perl Double case for data type */
+     else { /* Perl Int (e.g. 2) */
+        data = SvNV(sv);
+        datatype = pdl_whichdatatype(data);
+     }
 
-	  }
-       else { /* Perl Int (e.g. 2) */
-          data = SvNV(sv);
-          datatype = pdl_whichdatatype(data);
-       }
-       pdl_makescratchhash(ret,data,datatype);
 
-       return ret;
+     pdl_makescratchhash(ret,data,datatype);
+
+     return ret;
+
    } /* End of scalar case */
 
+   /* If execution reaches here, then sv is NOT a scalar
+    * (i.e. it is a ref).
+    */
 
-#ifdef FOODEB
-	printf("SvPDLV\n");
-	printf("SV: %d\n",sv);
-	printf("SvRV: %d\n",SvRV(sv));
-	printf("SvTYPE: %d\n",SvTYPE(SvRV(sv)));
-#endif
+
 
    if(SvTYPE(SvRV(sv)) == SVt_PVHV) {
    	HV *hash = (HV*)SvRV(sv);
@@ -332,14 +331,18 @@ print OUT <<'!NO!SUBS!';
 	   dSP;
 	   int count;
 	   ENTER ;
-	   SAVETMPS;
+	   SAVETMPS ;
 	   PUSHMARK(sp) ;
+
 	   count = perl_call_sv(*svp, G_SCALAR|G_NOARGS);
+
 	   SPAGAIN ;
+
 	   if (count != 1)
               croak("Execution of PDL structure failed to return one value\n") ;
 
 	   sv=newSVsv(POPs);
+
 	   PUTBACK ;
 	   FREETMPS ;
 	   LEAVE ;
@@ -347,70 +350,46 @@ print OUT <<'!NO!SUBS!';
 	else {
    	   sv = *svp;
 	}
-#ifdef FOODEB
-	printf("SvPDLV2\n");
-	printf("SV2: %d\n",sv);
-	printf("SvTYPE2: %d\n",SvTYPE(sv));
-	printf("SvFLAGS2: %d\n",SvFLAGS(sv));
-	printf("SvANY: %d\n",SvANY(sv));
-#endif
+
 	if(SvGMAGICAL(sv)) {
 		mg_get(sv);
 	}
-#ifdef FOODEB
-	printf("SvPDLV3\n");
-	printf("SV3: %d\n",sv);
-	printf("SvTYPE3: %d\n",SvTYPE(sv));
-	printf("SvFLAGS3: %d\n",SvFLAGS(sv));
-	printf("SvANY: %d\n",SvANY(sv));
-#endif
+
         if ( !SvROK(sv) ) {   /* Got something from a hash but not a ref */
 		croak("Hash given as pdl - but PDL key is not a ref!");
         }
-#ifdef FOODEB
-	printf("SvRV2: %d\n",SvRV(sv));
-	printf("SvTYPE2: %d\n",SvTYPE(SvRV(sv)));
-#endif
     }
+      
+    if(SvTYPE(SvRV(sv)) == SVt_PVAV) {
+	/* This is similar to pdl_avref in Core.xs.PL -- we do the same steps here. */
+	AV *dims, *av;
+	int i, depth; 
+	int datalevel = -1;
+	pdl *p;
 
+	av = (AV *)SvRV(sv);
+	dims = (AV *)sv_2mortal((SV *)newAV());
+	av_store(dims,0,newSViv( (IV) av_len(av)+1 ) );
+	
+	/* Pull sizes using av_ndcheck */
+	depth = 1 + av_ndcheck(av,dims,0,&datalevel);
+
+	return pdl_from_array(av,dims,PDL_D,NULL);
+
+    } /* end of AV code */
+    
     if (SvTYPE(SvRV(sv)) != SVt_PVMG)
       croak("Error - tried to use an unknown data structure as a PDL");
     else if( !( sv_derived_from( sv, "PDL") ) )
       croak("Error - tried to use an unknown Perl object type as a PDL");
 
-   sv2 = (SV*) SvRV(sv);
+    sv2 = (SV*) SvRV(sv);
 
-
-/* The below "CRUFTY" code is, I believe, intended to make (e.g.)
- * "$a = $b" copy the underlying PDL for $b, rather than simply
- * generating a reference to the same PDL.  It is commented out because
- * dataflow is the current default (you have to ask for a copy explicitly,
- * if you want one).
- *   --CED 16-Jan-2005
- */
-#ifdef OLD_CRUFTY_CODE_FOR_ASSIGNMENT_AVOIDANCE
-   /* Now, do magic: check if there are more than this one ref
-      to this internal sv. If there are, we've been "="'ed
-      (assigned) elsewhere and therefore must copy to keep
-      the semantics clear. This may at the moment be slightly
-      inefficient but as a future optimization, SvPDLV may be replaced
-      by SvPDLV_nodup in places where it is sure that this is ok. */
-
-   if(SvREFCNT(sv2) > 1) {
-   	pdl *tmp = (pdl *)SvIV(sv2);
-	pdl *pnew = pdl_hard_copy(tmp);
-   	printf("More than one ref; copying\n");
-
-	SetSV_PDL(sv,pnew);
-	ret = pnew;
-   } else {
-	   ret = INT2PTR(pdl *,SvIV(sv2));
-   }
-#else
+    /* Return the pdl * pointer */
     ret = INT2PTR(pdl *, SvIV(sv2));
-#endif
 
-   if(ret->magicno != PDL_MAGICNO) {
+    /* Final check -- make sure it has the right magic number */
+    if(ret->magicno != PDL_MAGICNO) {
    	croak("Fatal error: argument is probably not a piddle, or\
  magic no overwritten. You're in trouble, guv: %p %p %lu\n",sv2,ret,ret->magicno);
    }

@@ -18,32 +18,37 @@ sub ok {
 #         return $d < 0.01;
 # }
 
+
 sub eprint {
 	print "EXPECT ERROR NEXT:\n-----\n";
 	print $_[0];
 	print "-----\n";
 }
 
-print "1..3\n";
+print "1..4\n";
 
 $b=pdl([1,2,3])->long;
 $a=[1,2,3];
 eval 'PDL::Ufunc::sumover($a,$b)';
 
-eprint $@;
+ok(1,!$@);
 
-ok(1,$@ =~ /Error - tried to use an unknown/);
+$aa=3;
+$a=\$aa;
+eval 'PDL::Ufunc::sumover($a,$b)';
+eprint $@;
+ok(2,$@ =~ /Error - tried to use an unknown/);
 
 eval { PDL::Ufunc::sumover({}) };
 eprint $@;
 
-ok 2, $@ =~ /Hash given as a pdl - but not \{PDL} key/;
+ok 3, $@ =~ /Hash given as a pdl - but not \{PDL} key/;
 
 
 $c = 0;
 eval { PDL::Ufunc::sumover(\$c) };
 eprint $@;
 
-ok 3, $@ =~ /Error - tried to use an unknown/;
+ok 4, $@ =~ /Error - tried to use an unknown/;
 
 
