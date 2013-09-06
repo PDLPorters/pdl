@@ -146,17 +146,38 @@ pp_def(
 $doc = <<'EOD';
 =for ref
 
-C<index> and C<index2d> provide rudimentary index indirection.
+C<index>, C<index1d>, and C<index2d> provide rudimentary index indirection.
 
 =for example
 
  $c = index($source,$ind);
+ $c = index($source,$ind);
  $c = index2d($source2,$ind1,$ind2);
 
 use the C<$ind> variables as indices to look up values in C<$source>.  
-C<index2d> uses separate piddles for X and Y coordinates.  For more
-general N-dimensional indexing, see L<PDL::Slices> or the L<PDL::NiceSlice>
-syntax.
+The three routines thread slightly differently.
+
+=over 3
+
+=item C<index> uses direct threading for 1-D indexing across the 0 dim
+of C<$source>.  It can thread over source thread dims or index thread
+dims dims not not (easily) both: If <$source> has more than 1
+dimension and C<$ind> has more than 0 dimensions, they must agree in
+a threading sense.  
+
+C<index1d> uses a single active dim in C<$ind> to produce a list of
+indexed values in the 0 dim of the output - it is useful for
+collapsing C<$source> by indexing with a single row of values long
+C<$source>'s 0 dimension.  The output has the same number of dims as
+C<$source>.  The 0 dim of the output has size 1 if C<$ind> is a
+scalar, and the same size as the 0 dim of C<$ind> if it is not. If 
+C<$ind> and $<source> both have more than 1 dim, then all dims higher
+than 0 must agree in a threading sense.
+
+C<index2d> works like C<index> but uses separate piddles for X and Y
+coordinates.  For more general N-dimensional indexing, see the
+L<PDL::NiceSlice> syntax or L<PDL::Slices> (in particular C<slice>,
+C<indexND>, and C<range>).
 
 These functions are two-way, i.e. after
 
@@ -211,6 +232,71 @@ $a =        BadCode =>
        Doc => $doc,
        BadDoc =>
        'index barfs if any of the index values are bad.',
+       );
+
+pp_def(
+       'index1d',
+       HandleBad => 1,
+       DefaultFlow => 1,
+       Reversible => 1,	
+       Pars => 'a(n); ind ind(m); [oca] c(m);',
+       Code => 
+       q{
+         PDL_Index i;
+	 for(i=0;i<$SIZE(m);i++) {
+	          PDL_Index foo = $ind(m=>i);
+		  if( foo<0 || foo >= $SIZE(n) ) {
+		   barf("PDL::index1d: invalid index %d at pos %d (valid range 0..%d)",
+		     foo, i, $SIZE(n)-1);
+		  }
+		  $c(m=>i) = $a(n=>foo);
+         }
+	},
+	BadCode => 
+	q{
+	 PDL_Index i;
+	 for(i=0;i<$SIZE(m);i++) {
+	 	 PDL_Index foo = $ind(m=>i);
+		 if( $ISBADVAR(foo, ind) ) {
+		     $SETBAD(c(m=>i));
+		 } else {
+		   if( foo<0 || foo >= $SIZE(n) ) {
+		     barf("PDL::index1d: invalid/bad index %d at pos %d (valid range 0..%d)",
+		      foo, i, $SIZE(n)-1);
+		   }
+		   $c(m=>i) = $a(n=>foo);
+		 }
+	 }
+	},
+       BackCode => q{
+         PDL_Index i;
+	 for(i=0;i<$SIZE(m);i++) {	
+	 	PDL_Index foo = $ind(m=>i);
+		if( foo<0 || foo >= $SIZE(n) ) {
+		 barf("PDL::index1d: invalid index %d at pos %d (valid range 0..%d)",
+		   foo, i, $SIZE(n)-1);
+		}
+		$a(n=>foo) = $c(m=>i);
+	 }
+	},
+       BadBackCode => q{
+         PDL_Index i;
+	 for(i=0;i<$SIZE(m);i++) {
+	 	 PDL_Index foo = $ind(m=>i);
+		 if( $ISBADVAR(foo, ind) ) {
+		   /* do nothing */
+		 } else {
+		   if( foo<0 || foo >= $SIZE(n) ) {
+		     barf("PDL::index1d: invalid/bad index %d at pos %d (valid range 0..%d)",
+		      foo, i, $SIZE(n)-1);
+		   }
+		   $a(n=>foo) = $c(m=>i);
+		 }
+	 }
+	},
+       Doc => $doc,
+       BadDoc =>
+       'index1d propagates BAD index elements to the output variable.'
        );
 
 my $index2d_init_good =
@@ -2668,11 +2754,7 @@ sub PDL::dice_axis {
   my $n = $self->getndims;
   my $a = $ix->getndims;
   barf("index_axis: index must be <=1D") if $a>1;
-  for ($a..$n-1) {
-     $ix = $ix->dummy(0);
-  }
-  	
-  return $self->mv($axis,0)->index($ix)->mv($n-1,$axis);
+  return $self->mv($axis,0)->index1d($ix)->mv(0,$axis);
 }  
 *dice_axis = \&PDL::dice_axis;
 
@@ -2680,17 +2762,21 @@ sub PDL::dice_axis {
 EOD
 
 pp_addpm(<<'EOD-nnslice');
+
+=head2 nnslice - slice and dice your way (EXPERIMENTAL)
+
 =for ref
 
-New nslice - EXPERIMENTAL drop-in replacement for C<nslice>, that doesn't simply
-assemble its arguments for disassembly by C<slice>.  Hopefully the
-leading 'n' will be dropped soon -- use only for testing. Intended as
-a drop-in replacement for any of C<nslice>, C<mslice>, or C<slice>, 
-nnslice currently supports: nslice/mslice style calls with the exception
-of dicing; and slice-style specification strings.  If you use slice-style
-specs, you can either use one string per dim (and mix/match with nslice
-style specs), or one complete comma-deliminated string (and limit yourself
-to a single string slice argument).
+"New nslice" - EXPERIMENTAL drop-in replacement for C<nslice>, that
+doesn't simply assemble its arguments for disassembly by C<slice>.
+Hopefully the leading 'n's will be dropped soon -- use only for
+testing. Intended as a drop-in replacement for any of C<nslice>,
+C<mslice>, or C<slice>, nnslice currently supports: nslice/mslice
+style calls with the exception of dicing; and slice-style
+specification strings.  If you use slice-style specs, you can either
+use one string per dim (and mix/match with nslice style specs), or one
+complete comma-deliminated string (and limit yourself to a single
+string slice argument).
 
 The single slice-style string case is detected as a special case and 
 split on ','.
@@ -2702,7 +2788,7 @@ and is interpreted as follows:
 
 =item ARRAY ref
 
-Array refs are the normal way to specify ranges to slice.  You can
+Array refs are the normal way to specify how to slice.  You can
 specify zero, one or two fields.  The first field is the start of the
 range of positions to slice out of the dimension; the second field is
 the end of the range of positions (inclusive); and the third field 
@@ -2761,24 +2847,27 @@ Empty PDL).
 sub PDL::nnslice (;@) {
     my ($source, @others) = @_;
     
-    # Deal with dicing.  This is really lame and should go into the 
-    # C code, but works for now (and is as fast as dice_axis, which
-    # is okay).  
+    # Deal with dicing.  This is lame and slow compared to the 
+    # faster slicing, but works okay.  It uses the same technique
+    # as dice_axis().  
+
     for my $i(0..$#others) {
       if( ref $others[$i] eq 'PDL' ) {
         my $idx = $others[$i];
         if($idx->ndims > 1) {
 	  barf("nnslice: dicing parameters must be at most 1D (arg $i)\n");
 	}
-        if($idx->nelem > 1) {
+	my $nlm = $idx->nelem;
+        if($nlm > 1) {
 	   my $n = $source->getndims;
-	   for (1..$n){ $idx = $idx->dummy(0); }
-	   $source = $source->mv($i,0)->index($idx)->mv($n-1,$i);
+	   $source = $source->mv($i,0)->index($idx)->mv(0,$i);
 	   $others[$i] = '';
-	} elsif($idx->nelem==0) {
-	   $others[$i] = "1:0:1";
-	} else {
+	} elsif($nlm) {
+	   # One element - convert to a regular slice.
 	   $others[$i] = $idx->flat->at(0);
+	} else {
+	   # Zero elements -- force an extended empty.
+	   $others[$i] = "1:0:1";
 	}
       }
     }
