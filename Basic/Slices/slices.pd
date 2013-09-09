@@ -2763,7 +2763,11 @@ EOD
 
 pp_addpm(<<'EOD-nnslice');
 
-=head2 nnslice - slice and dice your way (EXPERIMENTAL)
+=head2 nnslice
+
+=for usage
+
+  $slice = $data->nnslice([2,3],'x',[2,2,0],"-1:1:-1");
 
 =for ref
 
