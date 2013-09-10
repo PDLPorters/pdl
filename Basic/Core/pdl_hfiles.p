@@ -25,7 +25,7 @@ $PDL_DATATYPES = <<"EOD";
 
 /* Data types/sizes [must be in order of complexity] */
 
-enum pdl_datatypes { $enum };
+enum pdl_datatypes { $enum }; 
 
 /* Define the pdl data types */
 
@@ -40,4 +40,4 @@ EOD
 
 $PDL_DATATYPES .= "\n".PDL::Types::typesynonyms()."\n";
 
-1; # OK
+$PDL_DATATYPES; # OK

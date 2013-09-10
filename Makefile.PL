@@ -278,11 +278,14 @@ sub make_badval_dependencies {
   # loaded via require.
   #
   if ( -e $badFile ) {
-    require $badFile;
+      eval { require( $badFile ) };
+
     $create_badFile = 0
-      if $bvalflag == $PDL::Config{WITH_BADVAL} and
-	 $usenan   == $PDL::Config{BADVAL_USENAN} and
-	 $bvalPerPdl == $PDL::Config{BADVAL_PER_PDL};
+      if( !$@  and
+	  $bvalflag == $PDL::Config{WITH_BADVAL} and
+	  $usenan   == $PDL::Config{BADVAL_USENAN} and
+	  $bvalPerPdl == $PDL::Config{BADVAL_PER_PDL});
+
   }
 
   if ( $create_badFile ) {
@@ -292,7 +295,7 @@ sub make_badval_dependencies {
     print $fh "\$bvalflag = $PDL::Config{WITH_BADVAL};\n";
     print $fh "\$usenan   = $PDL::Config{BADVAL_USENAN};\n";
     print $fh "\$bvalPerPdl   = $PDL::Config{BADVAL_PER_PDL};\n";
-    print $fh "1;  # return true\n";
+    print $fh "1; # return true.";
     $fh->close;
   }
 }

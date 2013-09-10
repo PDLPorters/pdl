@@ -3,15 +3,15 @@
 use Config;
 use File::Basename qw(&basename &dirname);
 
-require "pdl_hfiles.p";   
-require "mymalloc.p";
-require "badsupport.p";
+# These files pre-load some C logic that is used in multiple places, into 
+# global variables.
+require "pdl_hfiles.p";   # Set $PDL_DATATYPES 
+require "mymalloc.p";     # Set $mymalloc
+require "badsupport.p";   # Set $bvalflag, $usenan, and $bvalPerPdl
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';
 my $ntypes = $#PDL::Types::names;
-
-
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -23,6 +23,7 @@ my $ntypes = $#PDL::Types::names;
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
+
 my $file;
 ($file = basename($0)) =~ s/\.PL$//;
 $file =~ s/\.pl$//
@@ -58,11 +59,12 @@ extern int pdl_debugging;
 /*  Target number of pthreads: Actual will be this number or less. 
     A 0 here means no pthreading */
 extern int pdl_autopthread_targ;
+
 /*  Actual number of pthreads: This is the number of pthreads created for the last
     operation where pthreading was used 
     A 0 here means no pthreading */
 extern int pdl_autopthread_actual;
-/* Minimum size of the larget PDL involved in pdl function to attempt pthreading (in MBytes )
+/* Minimum size of the target PDL involved in pdl function to attempt pthreading (in MBytes )
     For small PDLs, it probably isn't worth starting multiple pthreads, so this variable
     is used to define that threshold (in M-elements, or 2^20 elements ) */
 extern int pdl_autopthread_size;
@@ -82,92 +84,81 @@ foreach my $i ( reverse(0 .. $ntypes) ) {
     my $realctype = $PDL::Types::typehash{$name}->{realctype};
     my $cname     = $PDL::Types::typehash{$name}->{ctype};
     $cname =~ s/^PDL_//;
-    printf OUT "   %18s   %s\n",$realctype,$cname;
-    printf OUT "   %18s   default_%s\n",$realctype,$cname;\n";
+    printf OUT "   %18s   %s;\n",$realctype,$cname;
+    printf OUT "   %18s   default_%s;\n",$realctype,$cname;
 }
 print OUT "} badvals;\n";
 
 print OUT <<'!NO!SUBS!';
 
 /*
-   Define the pdl C data structure which maps onto the original PDL
-   perl data structure.
-
-   Note: in above pdl.sv is defined as a void pointer to avoid
-   having to include perl.h in C code which just needs the pdl
-   data.
+ * Define the pdl C data structure which maps onto the original PDL
+ * perl data structure.
+ *
+ * Note: pdl.sv is defined as a void pointer to avoid having to 
+ * include perl.h in C code which just needs the pdl data.
 */
 
-#define PDL_NDIMS 6  /* Number of dims[] to preallocate */
-#define PDL_NCHILDREN 8 /* Number of children ptrs to preallocate */
-
+#define PDL_NDIMS      6 /* Number of dims[] to preallocate */
+#define PDL_NCHILDREN  8 /* Number of children ptrs to preallocate */
 #define PDL_NTHREADIDS 4 /* Number of different threadids/pdl to preallocate */
 
 /* Constants for pdl.state - not all combinations make sense */
-        /* data allocated for this pdl.  this implies that the data
-           is up to date if !PDL_PARENTCHANGED */
-#define         PDL_ALLOCATED           0x0001
-        /* Parent's data has been altered at some point without changing
-           this pdl. */
-#define         PDL_PARENTDATACHANGED   0x0002
-        /* Parent's dims or incs or whatever has been altered at some
-           point without changing this pdl. */
-#define         PDL_PARENTDIMSCHANGED   0x0004
-        /* The physical data representation of the parent has changed,
-           e.g. by copying from its parent to itself as COW.
-           This means that (incs) etc. should be recalculated when used.
-           "parent was allocated" */
-#define         PDL_PARENTREPRCHANGED   0x0008
 
-#define PDL_ANYCHANGED (PDL_PARENTDATACHANGED|PDL_PARENTDIMSCHANGED|PDL_PARENTREPRCHANGED)
-
-        /* What kinds of dataflows do we want to track starting from
-           this PDL (B only for transformations which make it possible).
-           All children inherit an 'or' from the parents */
-#define PDL_DATAFLOW_F       0x0010
-#define PDL_DATAFLOW_B       0x0020
-
-#define PDL_DATAFLOW_ANY (PDL_DATAFLOW_F|PDL_DATAFLOW_B)
-
-        /* Was this pdl null originally? */
-#define PDL_NOMYDIMS            0x0040
-        /* This means that dims are received through "trans" */
-#define PDL_MYDIMS_TRANS        0x0080
-
-#define PDL_OPT_VAFFTRANSOK             0x0100
-
-#define PDL_OPT_ANY_OK                  (PDL_OPT_VAFFTRANSOK)
-
-#define PDL_HDRCPY                              0x0200
-
-#define PDL_BADVAL                              0x0400
-
-#define PDL_TRACEDEBUG                          0x0800
-
+  /* data allocated for this pdl.  this implies that the data               */
+  /* is up to date if !PDL_PARENTCHANGED                                    */
+#define  PDL_ALLOCATED           0x0001
+  /* Parent data has been altered without changing this pdl                 */
+#define  PDL_PARENTDATACHANGED   0x0002
+  /* Parent dims or incs has been altered without changing this pdl.        */
+#define  PDL_PARENTDIMSCHANGED   0x0004
+  /* Physical data representation of the parent has changed (e.g.           */
+  /* physical transposition), so incs etc. need to be recalculated.         */
+#define  PDL_PARENTREPRCHANGED   0x0008
+#define  PDL_ANYCHANGED          (PDL_PARENTDATACHANGED|PDL_PARENTDIMSCHANGED|PDL_PARENTREPRCHANGED)
+  /* Dataflow tracking flags -- F/B for forward/back.  These get set        */
+  /* by transformations when they are set up.                               */
+#define  PDL_DATAFLOW_F          0x0010
+#define  PDL_DATAFLOW_B          0x0020
+#define  PDL_DATAFLOW_ANY        (PDL_DATAFLOW_F|PDL_DATAFLOW_B)
+  /* Was this PDL null originally?                                          */
+#define  PDL_NOMYDIMS            0x0040
+  /* Dims should be received via trans.                                     */
+#define  PDL_MYDIMS_TRANS        0x0080
+  /* OK to attach a vaffine transformation (i.e. a slice)                   */
+#define  PDL_OPT_VAFFTRANSOK     0x0100
+#define  PDL_OPT_ANY_OK          (PDL_OPT_VAFFTRANSOK)
+  /* This is the hdrcpy flag                                                */
+#define  PDL_HDRCPY              0x0200
+  /* This is a badval flag for this PDL (hmmm -- there is also a flag       */
+  /* in the struct itself -- must be clearer about what this is for. --CED) */
+#define  PDL_BADVAL              0x0400
+  /* Debugging flag                                                         */
+#define  PDL_TRACEDEBUG          0x0800
+  /* inplace flag                                                           */
+#define  PDL_INPLACE             0x1000
+  /* Flag indicating destruction in progress                                */
+#define         PDL_DESTROYING          0x2000
+  /* If this flag is set, you must not alter the data pointer nor           */
+  /* free this piddle nor use datasv (which should be null).                */
+  /* This means e.g. that the piddle is mmapped from a file                 */
+#define         PDL_DONTTOUCHDATA       0x4000
+  /* Not sure what this does, but PP uses it a lot. -- CED                  */
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
                 && (pdl)->trans == (pdl_trans *)(wtrans))
 
-#define         PDL_INPLACE             0x1000
-
-        /* Destroying this now */
-#define         PDL_DESTROYING          0x2000
-
-/* You mustn't alter the data pointer nor free this
- * piddle nor use datasv (which is nothing).
- * This means e.g. that the piddle is mmapped from a file
- */
-#define         PDL_DONTTOUCHDATA       0x4000
 
 /**************************************************
  *
  * Transformation structure
+ *
+ * The structure is general enough to deal with functional transforms
+ * (which were originally intended) but only slices and retype transforms
+ * were implemented.
+ *
  */
 
-/*  Only slice and retype to be supported in the near future.
-    when FUNCTION is supported, it must be considered how that is going
-    to be implemented in terms of COW etc.
- */
-typedef enum pdl_transtype { PDL_SLICE, PDL_FUNCTION, PDL_RETYPE }
+typedef enum pdl_transtype { PDL_SLICE, PDL_RETYPE }
         pdl_transtype;
 
 /* Transformation flags */
@@ -184,22 +175,17 @@ typedef struct pdl_transvtable {
         int nparents;
         int npdls;
         char *per_pdl_flags;
-        void (*redodims)(pdl_trans *tr);  /* Only dims and internal trans
-                (makes phys) */
-        void (*readdata)(pdl_trans *tr);  /* Only data, to "data" ptr  */
+        void (*redodims)(pdl_trans *tr);      /* Only dims and internal trans (makes phys) */
+        void (*readdata)(pdl_trans *tr);      /* Only data, to "data" ptr  */
         void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
-        void (*freetrans)(pdl_trans *tr); /* Free both the contents and it of
-                                        the trans member */
-        void (*dump)(pdl_trans *tr); /* Dump this transformation */
-                                /* Find a virtual parent and make ready
-                                          for readdata etc. */
-        void (*findvparent)(pdl_trans *tr);
-        pdl_trans *(*copy)(pdl_trans *tr); /* Full copy */
-        void (*can_do)(pdl_trans *tr);
-  /* XXX Here should be a "writebackdims" for changed dimensions */
+        void (*freetrans)(pdl_trans *tr);     /* Free both the contents and it of
+                                                 the trans member */
+        void (*dump)(pdl_trans *tr);          /* Dump this transformation */
+        void (*findvparent)(pdl_trans *tr);   /* Find a virtual parent and make ready for
+                                                 readdata etc. */
+        pdl_trans *(*copy)(pdl_trans *tr);    /* Full copy */
         int structsize;
-        char *name; /* For debuggers, mostly */
-        void (*foomethod)(pdl_trans *tr,int i1,int i2,int i3); /* Stupid */
+        char *name;                           /* For debuggers, mostly */
 } pdl_transvtable;
 
 /* All trans must start with this */

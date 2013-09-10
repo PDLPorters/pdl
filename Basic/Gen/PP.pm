@@ -1618,8 +1618,7 @@ sub def_vtable {
 		0,0, $nparents, $npdls, ${vname}_flags,
 		$rdname, $rfname, $wfname,
 		$ffname,NULL,NULL,$cpfname,NULL,
-		sizeof($sname),\"$vname\",
-		$foofname
+		sizeof($sname),\"$vname\"
 	 };";
 }
 

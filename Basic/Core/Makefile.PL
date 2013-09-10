@@ -35,12 +35,18 @@ my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
 my $fh = IO::File->new( "> mymalloc.p" )
   or die "couldn't open mymalloc.p";
+$fh->print(<<'FOO');
+##############################
+# mymalloc.p - generated from Makefile.PL (DO NOT EDIT BY HAND)
+# This generates some C logic that declares a local malloc if necessary.
+# It is used in pdl.h.PL and pdlsimple.h.PL.
+FOO
 if ( defined $PDL::Config{MALLOCDBG}->{define} ) {
-    $fh->print( "\$mymalloc = <<'EOM';\n$PDL::Config{MALLOCDBG}->{define}\nEOM\n" );
+    $fh->print( "\$mymalloc = \" \".<<'EOM';\n$PDL::Config{MALLOCDBG}->{define}\nEOM\n" );
 } else {
-    $fh->print( "\$mymalloc = '';\n" );
+    $fh->print( '$mymalloc = "\n";'."\n" );
 }
-$fh->print( "1;\n" );
+$fh->print( "$mymalloc;\n" );
 $fh->close;
 
 print "Trying to figure out POSIX threads support ...\n";
