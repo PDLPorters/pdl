@@ -191,30 +191,27 @@ typedef struct pdl_transvtable {
 /* All trans must start with this */
 
 /* Trans flags */
+
         /* Single-valued slice i.e. only one image of each parent thing allowed.
            This is critical in routines that both input from and output to
            a non-single-valued pdl: updating must occur :(
          */
-#define PDL_ITRANS_REVERSIBLE 0x0001
-        /* Whether, if a child is changed, this trans should be destroyed
-           or not */
-#define PDL_ITRANS_DO_DATAFLOW_F 0x0002
-#define PDL_ITRANS_DO_DATAFLOW_B 0x0004
+#define  PDL_ITRANS_REVERSIBLE        0x0001
+        /* Whether, if a child is changed, this trans should be destroyed or not */
+#define  PDL_ITRANS_DO_DATAFLOW_F     0x0002
+#define  PDL_ITRANS_DO_DATAFLOW_B     0x0004
 
-#define PDL_ITRANS_DO_DATAFLOW_ANY \
-                (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
+#define  PDL_ITRANS_DO_DATAFLOW_ANY   (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
 
-#define PDL_ITRANS_FORFAMILY 0x0008
+#define  PDL_ITRANS_FORFAMILY         0x0008
+#define  PDL_ITRANS_ISAFFINE          0x1000
+#define  PDL_ITRANS_VAFFINEVALID      0x2000
+#define  PDL_ITRANS_NONMUTUAL         0x4000  /* flag for destruction */
 
-#define PDL_ITRANS_ISAFFINE 0x1000
-#define PDL_ITRANS_VAFFINEVALID 0x2000
-#define PDL_ITRANS_NONMUTUAL 0x4000  /* flag for destruction */
-
-/* vparent is the "virtual parent" which is either
- the parent or grandparent or whatever. The trans -structure must store
- both the relationship with our current parent and, if necessary, the
- virtual parent. */
-
+/* vparent is the "virtual parent" which is either the parent or grandparent 
+ * or whatever. The trans structure must store both the relationship with our 
+ * current parent and, if necessary, the virtual parent. 
+ */
 #ifdef _MSC_VER
 #define PDL_TRANS_START(np) \
         int magicno; \
@@ -243,15 +240,15 @@ typedef struct pdl_transvtable {
 
 #endif
 
-#define PDL_TR_MAGICNO 0x91827364
+#define PDL_TR_MAGICNO      0x91827364
 #define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO
 #define PDL_TR_CLRMAGIC(it) it->magicno = 0x99876134
+
 #ifdef PDL_DEBUGGING
 #define PDL_TR_CHKMAGIC(it) if((it)->magicno != PDL_TR_MAGICNO) croak("INVALID TRANS MAGIC NO %d %d\n",(int)(it),(int)((it)->magicno)); else (void)0
 #else
 #define PDL_TR_CHKMAGIC(it)
 #endif
-
 
 struct pdl_trans {
         PDL_TRANS_START(1);
@@ -291,56 +288,38 @@ typedef struct pdl_children {
         struct pdl_children *next;
 } pdl_children;
 
-/* Family stuff */
 
-typedef struct pdl_family_trans {
-        PDL_TRANS_START(2);
-        pdl_trans *realtrans;
-        pdl *mutateto;
-        pdl *mutatefrom;
-} pdl_family_trans;
+/****************************************
+ * PDL structure 
+ * Should be kept under 250 bytes if at all possible, for 
+ * easier segmentation...
+ */
 
 struct pdl_magic;
 
-/* We should try to keep this under 256-foo bytes at all costs */
-
-struct pdl {
 #define PDL_MAGICNO 0x24645399
 #ifdef PDL_DEBUGGING
 #define PDL_CHKMAGIC(it) if((it)->magicno != PDL_MAGICNO) croak("INVALID MAGIC NO %d %d\n",(int)(it),(int)((it)->magicno)); else (void)0
 #else
 #define PDL_CHKMAGIC(it)
 #endif
-   unsigned long magicno; /* Always stores PDL_MAGICNO as a sanity check */
-     /* This is first so most pointer accesses to wrong type are caught */
-   int state;        /* What's in this pdl */
 
-   pdl_trans *trans; /* Opaque pointer to internals of transformation from
-                        parent */
 
-   pdl_vaffine *vafftrans; /* pointer to vaffine transformation
-                              a vafftrans is an optimization that is possible
-                              for some types of trans (slice etc)
-                              - unused for non-affine transformations
-                            */
-
-   void*    sv;      /* (optional) pointer back to original sv.
-                          ALWAYS check for non-null before use.
-                          We cannot inc refcnt on this one or we'd
-                          never get destroyed */
-
-   void *datasv;        /* Pointer to SV containing data. Refcnt inced */
-   void *data;            /* Null: no data alloced for this one */
-
-   /* bad value stored as double, since get_badvalue returns a double */
-   double badvalue;
-   int has_badvalue;    /* required by pdlapi.c */
-
-   PDL_Index nvals;             /* How many values allocated */
-   int datatype;
-   PDL_Index   *dims;      /* Array of data dimensions */
-   PDL_Index   *dimincs;   /* Array of data default increments */
-   short    ndims;     /* Number of data dimensions */
+struct pdl {
+   unsigned long  magicno;     /* Always stores PDL_MAGICNO as a sanity check                     */
+   int            state;       /* What's in this pdl                                              */
+   pdl_trans *    trans;       /* Transformation structure from this PDL's parent (if non-NULL)   */
+   pdl_vaffine *  vafftrans;   /* Affine transformation from parent if this PDL is a slice        */
+   void *         sv;          /* Pointer back to containing SV * (can be NULL). Don't inc refct. */
+   void *         datasv;      /* Pointer to SV containing data. We own one inc of refcnt         */
+   void *         data;        /* Pointer to actual data (in SV), or NULL if we have no data      */
+   double         badvalue;    /* BAD value is stored as a double for portability                 */
+   int            has_badvalue;/* flag is required by pdlapi.c (compare to PDL_BADVAL above -- why two? --CED) */
+   PDL_Index      nvals;       /* Actual size of data (not quite nelem in case of dummy)          */
+   int            datatype;    /* One of the usual suspects (PDL_L, PDL_D, etc.)                  */
+   PDL_Index *    dims;        /* Array of data dims - could point below or to an allocated array */
+   PDL_Index *    dimincs;     /* Array of strides through memory for each dim (0 for dummies)    */
+   short          ndims;       /* Number of data dimensions in dims and dimincs                   */
 
    unsigned char *threadids;  /* Starting index of the thread index set n */
    unsigned char nthreadids;
