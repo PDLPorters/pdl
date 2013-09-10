@@ -107,7 +107,7 @@ EOH
 	   CopyBadStatusCode =>
 	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
-                  PDL->propogate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
+                  PDL->propagate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
                }
                $SETPDLSTATEBAD(c);
             }',
@@ -193,7 +193,7 @@ ENDCODE
 	   CopyBadStatusCode =>
 	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
-                  PDL->propogate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
+                  PDL->propagate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
                }
                $SETPDLSTATEBAD(c);
             }',
@@ -235,7 +235,7 @@ sub ufunc {
 	delete $exists{Exception};
     }
 
-    # do not have to worry about propogation of the badflag when
+    # do not have to worry about propagation of the badflag when
     # inplace since only input piddle is a, hence its badflag
     # won't change
     # UNLESS an exception occurs...

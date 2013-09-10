@@ -324,7 +324,7 @@ pp_def(
        '$c() = ( finite($a()) && $ISGOOD(a()) ) ? $a() : $b();',
        CopyBadStatusCode =>
        'if ( a == c && $ISPDLSTATEBAD(a) )
-           PDL->propogate_badflag( c, 0 );  /* propogate badflag if inplace AND its changed */
+           PDL->propagate_badflag( c, 0 );  /* propagate badflag if inplace AND its changed */
         $SETPDLSTATEGOOD(c);          /* always make sure the output is "good" */
        ',
        Doc =>
@@ -353,7 +353,7 @@ pp_def(
        '$mask() = finite((double) $a()) != 0 && $ISGOOD($a());',
        CopyBadStatusCode =>
        'if ( a == mask && $ISPDLSTATEBAD(a) )
-           PDL->propogate_badflag( mask, 0 );  /* propogate badflag if inplace AND its changed */
+           PDL->propagate_badflag( mask, 0 );  /* propagate badflag if inplace AND its changed */
         $SETPDLSTATEGOOD(mask);          /* always make sure the output is "good" */
        ',
        Doc =>

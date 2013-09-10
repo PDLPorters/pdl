@@ -285,7 +285,7 @@ use PDL::Primitive;
 my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
 
 #
-# we want badflag() to avoid unnecessary calls to PDL->propogate_badflag(),
+# we want badflag() to avoid unnecessary calls to PDL->propagate_badflag(),
 # since it has to recurse through all the children of a piddle
 #
 
@@ -302,11 +302,11 @@ badflag(x,newval=0)
         if ( !newval && oldval ) { 
 	    /* asked to unset, present value is set */
 	    x->state &= ~PDL_BADVAL;
-            PDL->propogate_badflag( x, 0 );
+            PDL->propagate_badflag( x, 0 );
         } else if ( newval && !oldval ) {
 	    /* asked to set, present value is unset */
 	    x->state |= PDL_BADVAL;
-            PDL->propogate_badflag( x, 1 );
+            PDL->propagate_badflag( x, 1 );
 	}
     }
     RETVAL = ((x->state & PDL_BADVAL) > 0);
@@ -527,7 +527,7 @@ _badvalue_per_pdl_int${i}(pdl_val, val=0)
     if ( items > 1 ) {
        pdl_val->badvalue = val;
        pdl_val->has_badvalue = 1;
-       PDL->propogate_badvalue( pdl_val );
+       PDL->propagate_badvalue( pdl_val );
     }
 
     if (pdl_val->has_badvalue == 0) {
@@ -565,7 +565,7 @@ pp_addpm(<<'!NO!SUBS!');
 #  if sent a piddle, we have to change it's bad values
 #  (but only if it contains bad values)
 #  - there's a slight overhead in that the badflag is
-#    cleared and then set (hence propogating to all
+#    cleared and then set (hence propagating to all
 #    children) but we'll ignore that)
 #  - we can ignore this for float/double types
 #    since we can't change the bad value
@@ -920,7 +920,7 @@ if ( 0 ) {
     $setbadif_extra{Inplace} = [ 'a' ];
     $setbadif_extra{CopyBadStatusCode} =
     'if ( a == b && $ISPDLSTATEGOOD(a) )
-       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+       PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
      $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
     ';
 } else {
@@ -1042,7 +1042,7 @@ Any bad values in the input piddles are copied across to the output piddle.
     Inplace => 1,
     CopyBadStatusCode => q{
         if ( a == b && $ISPDLSTATEGOOD(a) )
-            PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+            PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
         $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
     },
     Code => q[
@@ -1201,7 +1201,7 @@ Can be done inplace.
 =for bad
 
 This method can process piddles with bad values: those bad values
-are propogated into the output piddle. Any value that is not finite
+are propagated into the output piddle. Any value that is not finite
 is also set to bad in the output piddle. If all values from the input
 piddle are good and finite, the output piddle will B<not> have its
 bad flag set. One more caveat: if done inplace, and if the input piddle's
@@ -1214,10 +1214,10 @@ bad flag is set, it will no
     Inplace => 1,
     CopyBadStatusCode => q{
         /* note: not quite the normal check since set b bad within Code */
-        /* we propogate the bad flag even if a was originally bad since */
+        /* we propagate the bad flag even if a was originally bad since */
         /* there is no easy way to pass this information around */
         if ( a == b && $ISPDLSTATEBAD(b) )
-            PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+            PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
     },
     Code => q{
         int flag = 0;
@@ -1268,8 +1268,8 @@ operation, it clears the bad flag.
     GenericTypes => [ 'F', 'D' ],
     Inplace => 1,
     CopyBadStatusCode => q{
-        /* propogate cleared badflag if inplace */
-        if ( a == b ) PDL->propogate_badflag( b, 0 );
+        /* propagate cleared badflag if inplace */
+        if ( a == b ) PDL->propagate_badflag( b, 0 );
         /* always make sure the output is "good" */
         $SETPDLSTATEGOOD(b);
     },
@@ -1332,8 +1332,8 @@ values are copied with no replacement.
          %}
     },
     CopyBadStatusCode => q{
-        /* propogate badflag if inplace AND its changed */
-        if ( a == b && $ISPDLSTATEBAD(a) ) PDL->propogate_badflag( b, 0 );
+        /* propagate badflag if inplace AND its changed */
+        if ( a == b && $ISPDLSTATEBAD(a) ) PDL->propagate_badflag( b, 0 );
         /* always make sure the output is "good" */
         $SETPDLSTATEGOOD(b);
     },
@@ -1390,7 +1390,7 @@ its bad value flag set to true.
         if ( $BADFLAGCACHE() ) {
             if ( a == b && $ISPDLSTATEGOOD(a) ) {
                 /* have inplace op AND badflag has changed */
-                PDL->propogate_badflag( b, 1 );
+                PDL->propagate_badflag( b, 1 );
             }
             $SETPDLSTATEBAD(b);
         }
