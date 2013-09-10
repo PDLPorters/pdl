@@ -4,13 +4,17 @@
 #
 
 use strict;
-use Test::More tests => 59;
+use Test::More;
 
 BEGIN {
     # if we've got this far in the tests then 
     # we can probably assume PDL::LiteF works!
     #
-    use_ok( "PDL::LiteF" );
+    eval {
+        require PDL::LiteF;
+    } or BAIL_OUT("PDL::LiteF failed: $@");
+    plan tests => 58;
+    PDL::LiteF->import;
 }
 $| = 1;
 
