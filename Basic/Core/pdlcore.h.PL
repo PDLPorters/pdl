@@ -25,7 +25,7 @@ use vars qw( %PDL_DATATYPES );
 # version 10 for 64bit index support (PDL index datatype)
 #
 use vars qw( $pdl_core_version );
-$pdl_core_version = 10;
+$pdl_core_version = 11;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -174,7 +174,6 @@ pdl *pdl_null();
 pdl *pdl_get_convertedpdl(pdl *pdl,int type);
 
 void pdl_destroytransform(pdl_trans *trans,int ensure);
-pdl *pdl_make_now(pdl *it);
 
 pdl *pdl_hard_copy(pdl *src);
 
@@ -231,12 +230,6 @@ pdl*    pdl_fillcache( HV* hash, SV* ref);       /* Fill/create $$x{PDL} cache *
 void    pdl_fillcache_partial( HV *hash, pdl *thepdl ) ;
 SV*     pdl_getKey( HV* hash, char* key );  /* Get $$x{Key} SV* with deref */
 void pdl_flushcache( pdl *thepdl );	     /* flush cache */
-
-/* pdlfamily.c */ /* DOES NOT APPEAR TO EXIST ANY MORE!!! */
-
-void pdl_family_create(pdl *from,pdl_trans *trans,int ind1,int ind2);
-pdl *pdl_family_clone2now(pdl *from); /* Use pdl_make_now instead */
-
 
 /* pdlconv.c */
 

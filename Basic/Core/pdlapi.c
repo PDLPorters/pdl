@@ -140,10 +140,6 @@ pdl* pdl_create(int type) {
      for(i=0; i<PDL_NCHILDREN; i++) {it->children.trans[i]=NULL;}
      it->children.next = NULL;
 
-     it->living_for = 0;
-     it->progenitor = 0;
-     it->future_me = 0;
-
      it->magic = 0;
      it->hdrsv = 0;
 
@@ -214,9 +210,6 @@ void pdl__destroy_childtranses(pdl *it,int ensure) {
 
 /*
 
-  *Note*: the mutator/progenitor/family stuff is disabled and will
-  be ignored for the foreseeable future.
-
   A piddle may be
    - a parent of something - just ensure & destroy
    - a child of something - just ensure & destroy
@@ -225,21 +218,10 @@ void pdl__destroy_childtranses(pdl *it,int ensure) {
   Therefore, simple rules:
    - allowed to destroy if
       1. a parent with max. 1 backwards propagating transformation
-      2. a child with no children & this is not the mutator of the family
-         (otherwise the mutator might be my child).
+      2. a child with no children 
 
-  When the mutator or progenitor of a family is destroyed, it must check
-  whether the other is also destroyed and if it is, destroy the family.
-
-  Also, when a piddle is destroyed, it must tell its children and/or
-  parent so that
-
-  XXX Currently, will not destroy if any back-propagating children.
-
-  Family may be destroyed, if either
-   -nothing flowing out, in which case both mutated_to and
-    futureprogenitor hash = 0
-   -nothing flowing in
+  When a piddle is destroyed, it must tell its children and/or
+  parent.
 
 */
 void pdl_destroy(pdl *it) {
@@ -259,20 +241,6 @@ void pdl_destroy(pdl *it) {
 	    sv_setiv(it->sv,0x4242);
 	    it->sv = NULL;
     }
-
-    /* the progenitor etc stuff is not really implemented
-       so we comment it out; this should not affect anything
-       -- we'll see ;)
-       Note: the memleak comment refers to the original code
-       which is now disabled!
-    */
-    /* XXXXXXXXX Shouldn't do this! BAD MEMLEAK */
-    /* 
-       if(it->progenitor || it->living_for || it->future_me) {
-           PDLDEBUG_f(printf("Family, not Destr. 0x%x\n",it);)
-           goto soft_destroy;
-       }
-    */
 
     /* 1. count the children that do flow */
     PDL_START_CHILDLOOP(it)
@@ -340,19 +308,7 @@ void pdl_destroy(pdl *it) {
 
 
    hard_destroy:
-#ifdef OIFSJEFLESJF
-/* Now, check for progenitor-stuff. */
-    if(it->progenitor) {
-      if(!(it->progenitor->sv)) {
-	      pdl__family_destroy_if(it->progenitor);
-      } else
-       	goto soft_destroy;
-    } else if(it->living_for) {
-    	pdl__family_fut_destroy_if(it);
-    }
-#endif
 
-/* ... and now we drink */
    pdl__free(it);
    PDLDEBUG_f(printf("End destroy %p\n",(void*)it);)
 
@@ -943,16 +899,6 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 
 } /* pdl_make_trans_mutual() */
 
-
-pdl *pdl_make_now(pdl *it) {
-  return it;
-  /* the family stuff is not really implemented
-     so we'll ignore it and get rid of pdlfamily.c
-	if(it->future_me) return it->future_me;
-	if(!it->progenitor) return it;
-	return pdl_family_clone2now(it);
-  */
-}
 
 void pdl_make_physical(pdl *it) {
 	int i, vaffinepar=0;

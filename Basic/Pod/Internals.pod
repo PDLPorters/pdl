@@ -79,14 +79,7 @@ of the file F<pdlcore.h>. So what does the structure look like:
 	   unsigned char *threadids;  /* Starting index of the thread index set n */
 	   unsigned char nthreadids;
 
-	   pdl *progenitor; /* I'm in a mutated family. make_physical_now must
-			       copy me to the new generation. */
-	   pdl *future_me;  /* I'm the "then" pdl and this is my "now" (or more modern
-			       version, anyway */
-
 	   pdl_children children;
-
-	   short living_for; /* Perl side not referenced; delete me when */
 
 	   PDL_Long   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
 	   PDL_Long   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
