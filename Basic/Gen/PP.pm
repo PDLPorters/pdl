@@ -1618,9 +1618,8 @@ sub def_vtable {
 	 pdl_transvtable $vname = {
 		0,0, $nparents, $npdls, ${vname}_flags,
 		$rdname, $rfname, $wfname,
-		$ffname,NULL,NULL,$cpfname,NULL,
-		sizeof($sname),\"$vname\",
-		$foofname
+		$ffname,NULL,NULL,$cpfname,
+		sizeof($sname),\"$vname\"
 	 };";
 }
 

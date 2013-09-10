@@ -312,25 +312,6 @@ get_trans(self)
                ST(0) = &PL_sv_undef;
 	}
 
-# This will change in the future, as can be seen from the name ;)
-# the argument passing is a real quick hack: you can pass 3 integers
-# and nothing else.
-
-MODULE = PDL::Core	PACKAGE = PDL::Trans
-void
-call_trans_foomethod(trans,i1,i2,i3)
-	pdl_trans *trans
-	int i1
-	int i2
-	int i3
-	CODE:
-	PDL_TR_CHKMAGIC(trans);
-	pdl_trans_changesoon(trans,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
-	if(trans->vtable->foomethod == NULL) {
-		croak("This transformation doesn't have a foomethod!");
-	}
-	(trans->vtable->foomethod)(trans,i1,i2,i3);
-	pdl_trans_changed(trans,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
 
 MODULE = PDL::Core	PACKAGE = PDL
 
@@ -343,7 +324,7 @@ iscontig(x)
 	if PDL_VAFFOK(x) {
 	   int i;
            PDL_Indx inc=1;
-	   printf("vaff check...\n");
+	   PDLDEBUG_f(printf("vaff check...\n");)
   	   for (i=0;i<x->ndims;i++) {
      	      if (PDL_REPRINC(x,i) != inc) {
 		     RETVAL = 0;
