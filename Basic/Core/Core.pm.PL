@@ -3448,7 +3448,7 @@ sub PDL::cat {
 		my ($i,$t); my $s = ":,"x@resdims;
 		for (@_) { $t = $res->slice($s."(".$i++.")"); $t .= $_}
 
-		# propogate any bad flags
+		# propagate any bad flags
 		for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
 	};
 	if ($@ eq '') {

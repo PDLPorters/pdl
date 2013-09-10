@@ -363,8 +363,8 @@ for (keys %PDL::Types::typehash) {
 print OUT <<'!NO!SUBS!';
 
   badvals bvals;  /* store the default bad values */
-  void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
-  void (*propogate_badvalue) (pdl *it);
+  void (*propagate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
+  void (*propagate_badvalue) (pdl *it);
   void (*children_changesoon)(pdl *it, int what);
   void (*changed)(pdl *it, int what, int recursing);
   void (*vaffinechanged)(pdl *it, int what);

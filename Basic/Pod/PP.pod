@@ -724,7 +724,7 @@ This flags a pp-routine as I<NOT> handling bad values. If this routine
 is sent piddles with their C<badflag> set, then a warning message is
 printed to STDOUT and the piddles are processed as if the value used to
 represent bad values is a valid number. The C<badflag> value is
-not propogated to the output piddles.
+not propagated to the output piddles.
 
 An example of when this is used is for FFT routines, which generally
 do not have a way of ignoring part of the data.
@@ -1392,9 +1392,9 @@ consider this excerpt from F<Basic/Bad/bad.pd>:
     OtherPars => 'double newval',
     Inplace => 1,
     CopyBadStatusCode => 
-    '/* propogate badflag if inplace AND it has changed */
+    '/* propagate badflag if inplace AND it has changed */
      if ( a == b && $ISPDLSTATEBAD(a) )
-       PDL->propogate_badflag( b, 0 );
+       PDL->propagate_badflag( b, 0 );
 
      /* always make sure the output is "good" */
      $SETPDLSTATEGOOD(b);
@@ -1404,7 +1404,7 @@ consider this excerpt from F<Basic/Bad/bad.pd>:
 Since this routine removes all bad values, then the output piddle had
 its bad flag cleared. If run inplace (so C<a == b>), then we have to
 tell all the children of C<a> that the bad flag has been cleared (to
-save time we make sure that we call C<PDL-E<gt>propogate_badgflag> only
+save time we make sure that we call C<PDL-E<gt>propagate_badgflag> only
 if the input piddle had its bad flag set).
 
 NOTE: one idea is that the documentation for the routine could be 

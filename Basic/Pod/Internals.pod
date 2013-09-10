@@ -350,13 +350,13 @@ so be also I<bad>), so that I get a 'B' in the I<State> field:
  $a           Double D [7,7]                PB           0.38Kb 
  $b           Double D [3,3]                VCB          0.00Kb 
 
-This bit of magic is performed by the C<propogate_badflag> function,
+This bit of magic is performed by the C<propagate_badflag> function,
 which is listed below:
 
  /* newval = 1 means set flag, 0 means clear it */
  /* thanks to Christian Soeller for this */
 
- void propogate_badflag( pdl *it, int newval ) {
+ void propagate_badflag( pdl *it, int newval ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
     {
@@ -370,13 +370,13 @@ which is listed below:
 	    if ( newval ) child->state |=  PDL_BADVAL;
             else          child->state &= ~PDL_BADVAL;
 
-	    /* make sure we propogate to grandchildren, etc */
-	    propogate_badflag( child, newval );
+	    /* make sure we propagate to grandchildren, etc */
+	    propagate_badflag( child, newval );
 
         } /* for: i */
     }
     PDL_END_CHILDLOOP(it)
- } /* propogate_badflag */
+ } /* propagate_badflag */
 
 Given a piddle (C<pdl *it>), the routine loops through each 
 C<pdl_trans> structure, where access to this structure is provided by the 
@@ -387,7 +387,7 @@ C<i = ...nparents - 1>.
 Once we have the pointer to the child piddle, we can do what we want to 
 it; here we change the value of the C<state> variable, but the details
 are unimportant).
-What B<is> important is that we call C<propogate_badflag> on this
+What B<is> important is that we call C<propagate_badflag> on this
 piddle, to ensure we loop through its children. This recursion
 ensures we get to all the I<offspring> of a particular piddle.
 

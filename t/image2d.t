@@ -96,7 +96,7 @@ if ( $PDL::Bad::Status ) {
     # patchbad2d: bad data
     $m = $a->slice('1:3,1:3');
     $m .= $a->badvalue;
-    $a->badflag(1);        # should sort out propogation of badflag
+    $a->badflag(1);        # should sort out propagation of badflag
 
     $ans = ones(5,5);
     $ans->set(2,2,$ans->badvalue);

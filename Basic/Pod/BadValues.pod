@@ -168,7 +168,7 @@ piddles: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), 
 bad-value flag will be set true if any of the input piddles contain bad values.
 To check that a piddle really contains bad data, use the C<check_badflag> method.
 
-I<NOTE>: propogation of the badflag
+I<NOTE>: propagation of the badflag
 
 If you change the badflag of a piddle, this change is propagated to all
 the I<children> of a piddle, so
