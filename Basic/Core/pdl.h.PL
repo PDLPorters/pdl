@@ -333,6 +333,9 @@ struct pdl {
 };
 
 
+/*************
+ * Some macros for looping over the children of a given PDL
+ */
 #define PDL_DECL_CHILDLOOP(p) \
                 int p##__i; pdl_children *p##__c;
 #define PDL_START_CHILDLOOP(p) \
@@ -350,9 +353,11 @@ struct pdl {
                 } while(1);
 
 
-
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 
+/***************
+ * Some macros to guard against dataflow infinite recursion.
+ */
 #define DECL_RECURSE_GUARD static int __nrec=0;
 #define START_RECURSE_GUARD __nrec++; if(__nrec > 1000) {__nrec=0; die("PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");}
 #define ABORT_RECURSE_GUARD __nrec=0;
