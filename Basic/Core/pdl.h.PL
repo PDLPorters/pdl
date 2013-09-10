@@ -175,24 +175,22 @@ typedef struct pdl_transvtable {
 /* All trans must start with this */
 
 /* Trans flags */
+
         /* Single-valued slice i.e. only one image of each parent thing allowed.
            This is critical in routines that both input from and output to
            a non-single-valued pdl: updating must occur :(
          */
-#define PDL_ITRANS_REVERSIBLE 0x0001
-        /* Whether, if a child is changed, this trans should be destroyed
-           or not */
-#define PDL_ITRANS_DO_DATAFLOW_F 0x0002
-#define PDL_ITRANS_DO_DATAFLOW_B 0x0004
+#define  PDL_ITRANS_REVERSIBLE        0x0001
+        /* Whether, if a child is changed, this trans should be destroyed or not */
+#define  PDL_ITRANS_DO_DATAFLOW_F     0x0002
+#define  PDL_ITRANS_DO_DATAFLOW_B     0x0004
 
-#define PDL_ITRANS_DO_DATAFLOW_ANY \
-                (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
+#define  PDL_ITRANS_DO_DATAFLOW_ANY   (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
 
-#define PDL_ITRANS_FORFAMILY 0x0008
-
-#define PDL_ITRANS_ISAFFINE 0x1000
-#define PDL_ITRANS_VAFFINEVALID 0x2000
-#define PDL_ITRANS_NONMUTUAL 0x4000  /* flag for destruction */
+#define  PDL_ITRANS_FORFAMILY         0x0008
+#define  PDL_ITRANS_ISAFFINE          0x1000
+#define  PDL_ITRANS_VAFFINEVALID      0x2000
+#define  PDL_ITRANS_NONMUTUAL         0x4000  /* flag for destruction */
 
 // These define struct pdl_trans and all derived structures. There are many
 // structures that defined in other parts of the code that can be referenced
@@ -234,11 +232,10 @@ typedef struct pdl_transvtable {
 #define PDL_CHKMAGIC_GENERAL(it,this_magic,type)
 #endif
 
-#define PDL_TR_MAGICNO 0x91827364
+#define PDL_TR_MAGICNO      0x91827364
 #define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO
 #define PDL_TR_CLRMAGIC(it) it->magicno = 0x99876134
 #define PDL_TR_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it, PDL_TR_MAGICNO, "TRANS ")
-
 
 // This is a generic parent of all the trans structures. It is a flexible array
 // (can store an arbitrary number of pdl objects). Thus this can NOT be
@@ -281,22 +278,18 @@ typedef struct pdl_children {
         struct pdl_children *next;
 } pdl_children;
 
-/* Family stuff */
-
-typedef struct pdl_family_trans {
-        PDL_TRANS_START(2);
-        pdl_trans *realtrans;
-        pdl *mutateto;
-        pdl *mutatefrom;
-} pdl_family_trans;
-
 struct pdl_magic;
 
-/* We should try to keep this under 256-foo bytes at all costs */
+/****************************************
+ * PDL structure
+ * Should be kept under 250 bytes if at all possible, for
+ * easier segmentation...
+ */
 
-struct pdl {
 #define PDL_MAGICNO 0x24645399
 #define PDL_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it,PDL_MAGICNO,"")
+
+struct pdl {
    unsigned long magicno; /* Always stores PDL_MAGICNO as a sanity check */
      /* This is first so most pointer accesses to wrong type are caught */
    int state;        /* What's in this pdl */
@@ -314,19 +307,16 @@ struct pdl {
                           ALWAYS check for non-null before use.
                           We cannot inc refcnt on this one or we'd
                           never get destroyed */
-
-   void *datasv;        /* Pointer to SV containing data. Refcnt inced */
-   void *data;            /* Null: no data alloced for this one */
-
+   void *datasv;        /* Pointer to SV containing data. We own one inc of refcnt */
+   void *data;            /* Pointer to actual data (in SV), or NULL if we have no data      */
    /* bad value stored as double, since get_badvalue returns a double */
-   double badvalue;
-   int has_badvalue;    /* required by pdlapi.c */
-
-   PDL_Indx nvals;		/* How many values allocated */
-   int datatype;
-   PDL_Indx   *dims;      /* Array of data dimensions */
-   PDL_Indx   *dimincs;   /* Array of data default increments */
-   short    ndims;     /* Number of data dimensions */
+   double badvalue; /* BAD value is stored as a double for portability */
+   int has_badvalue;     /* flag is required by pdlapi.c (compare to PDL_BADVAL above -- why two? --CED) */
+   PDL_Indx nvals; /* Actual size of data (not quite nelem in case of dummy) */
+   int datatype; /* One of the usual suspects (PDL_L, PDL_D, etc.) */
+   PDL_Indx   *dims;      /* Array of data dimensions - could point below or to an allocated array */
+   PDL_Indx   *dimincs;   /* Array of data default increments, aka strides through memory for each dim (0 for dummies) */
+   short    ndims;     /* Number of data dimensions in dims and dimincs */
 
    unsigned char *threadids;  /* Starting index of the thread index set n */
    unsigned char nthreadids;
