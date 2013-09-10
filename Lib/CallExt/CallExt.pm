@@ -27,15 +27,16 @@ PDL::CallExt - call functions in external shared libraries
 
 =head1 DESCRIPTION
 
-callext() loads in a shareable object (i.e. compiled code) using Perl's
-dynamic loader, calls the named function and passes a list of piddle arguments
-to it.
+callext() loads in a shareable object (i.e. compiled code) using
+Perl's dynamic loader, calls the named function and passes a list of
+piddle arguments to it.
 
-It provides a reasonably portable way of doing this, including compiling the
-code with the right flags, though it requires simple perl and C wrapper
-routines to be written. You may prefer to use PP, which is much more
-portable. See L<PDL::PP>. You should definitely use the latter for a 'proper'
-PDL module, or if you run in to the limitations of this module.
+It provides a reasonably portable way of doing this, including
+compiling the code with the right flags, though it requires simple
+perl and C wrapper routines to be written. You may prefer to use PP,
+which is much more portable. See L<PDL::PP>. You should definitely use
+the latter for a 'proper' PDL module, or if you run in to the
+limitations of this module.
 
 =head1 API
 
@@ -70,11 +71,11 @@ pdlsimple.h defines a simple N-dimensional data structure which looks like this:
 
 (PDL_Long is always a 4 byte int and is defined in pdlsimple.h)
 
-This is a simplification of the internal reprensation of piddles in PDL which is
+This is a simplification of the internal representation of piddles in PDL which is
 more complicated because of threading, dataflow, etc. It will usually be found
 somewhere like /usr/local/lib/perl5/site_perl/PDL/pdlsimple.h
 
-Thus to actually use this to call real functions one would need to right a wrapper.
+Thus to actually use this to call real functions one would need to write a wrapper.
 e.g. to call a 2D image processing routine:
 
  void myimage_processer(double* image, int nx, int ny);

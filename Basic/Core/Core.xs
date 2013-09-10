@@ -97,7 +97,7 @@ static void pdl_freedata (pdl *a) {
 
 #if BADVAL
 
-#ifdef FOOFOO_PROPOGATE_BADFLAG
+#ifdef FOOFOO_PROPAGATE_BADFLAG
 
 /*
  * this seems to cause an infinite loop in between tests 42 & 43 of
@@ -115,9 +115,9 @@ static void pdl_freedata (pdl *a) {
  *
  */
 
-/* used by propogate_badflag() */
+/* used by propagate_badflag() */
 
-void propogate_badflag_children( pdl *it, int newval ) {
+void propagate_badflag_children( pdl *it, int newval ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
     {
@@ -133,17 +133,17 @@ void propogate_badflag_children( pdl *it, int newval ) {
 	    if ( newval ) child->state |=  PDL_BADVAL;
             else          child->state &= ~PDL_BADVAL;
 
-	    /* make sure we propogate to grandchildren, etc */
-	    propogate_badflag_children( child, newval );
+	    /* make sure we propagate to grandchildren, etc */
+	    propagate_badflag_children( child, newval );
 
         } /* for: i */
     }
     PDL_END_CHILDLOOP(it)
-} /* propogate_badflag_children */
+} /* propagate_badflag_children */
 
-/* used by propogate_badflag() */
+/* used by propagate_badflag() */
 
-void propogate_badflag_parents( pdl *it ) {
+void propagate_badflag_parents( pdl *it ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
     {
@@ -159,13 +159,13 @@ void propogate_badflag_parents( pdl *it ) {
 	    /* only sets allowed here */
 	    parent->state |= PDL_BADVAL;
 
-	    /* make sure we propogate to grandparents, etc */
-	    propogate_badflag_parents( parent );
+	    /* make sure we propagate to grandparents, etc */
+	    propagate_badflag_parents( parent );
 
         } /* for: i */
     }
     PDL_END_CHILDLOOP(it)
-} /* propogate_badflag_parents */
+} /* propagate_badflag_parents */
 
 /*
  * we want to change the bad flag of the children
@@ -176,28 +176,28 @@ void propogate_badflag_parents( pdl *it ) {
  * thanks to Christian Soeller for this
  */
 
-void propogate_badflag( pdl *it, int newval ) {
+void propagate_badflag( pdl *it, int newval ) {
    /* only do anything if the flag has changed - do we need this check ? */
    if ( newval ) {
       if ( (it->state & PDL_BADVAL) == 0 ) {
-         propogate_badflag_parents( it );
-         propogate_badflag_children( it, newval );
+         propagate_badflag_parents( it );
+         propagate_badflag_children( it, newval );
       }
    } else {
       if ( (it->state & PDL_BADVAL) > 0 ) {
-         propogate_badflag_children( it, newval );
+         propagate_badflag_children( it, newval );
       }
 
    }
 
-} /* propogate_badflag */
+} /* propagate_badflag */
 
-#else        /* FOOFOO_PROPOGATE_BADFLAG */
+#else        /* FOOFOO_PROPAGATE_BADFLAG */
 
 /* newval = 1 means set flag, 0 means clear it */
 /* thanks to Christian Soeller for this */
 
-void propogate_badflag( pdl *it, int newval ) {
+void propagate_badflag( pdl *it, int newval ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
     {
@@ -212,17 +212,17 @@ void propogate_badflag( pdl *it, int newval ) {
 	    if ( newval ) child->state |=  PDL_BADVAL;
             else          child->state &= ~PDL_BADVAL;
 
-	    /* make sure we propogate to grandchildren, etc */
-	    propogate_badflag( child, newval );
+	    /* make sure we propagate to grandchildren, etc */
+	    propagate_badflag( child, newval );
 
         } /* for: i */
     }
     PDL_END_CHILDLOOP(it)
-} /* propogate_badflag */
+} /* propagate_badflag */
 
-#endif    /* FOOFOO_PROPOGATE_BADFLAG */
+#endif    /* FOOFOO_PROPAGATE_BADFLAG */
 
-void propogate_badvalue( pdl *it ) {
+void propagate_badvalue( pdl *it ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
     {
@@ -237,13 +237,13 @@ void propogate_badvalue( pdl *it ) {
             child->has_badvalue = 1;
             child->badvalue = it->badvalue;
 
-	    /* make sure we propogate to grandchildren, etc */
-	    propogate_badvalue( child );
+	    /* make sure we propagate to grandchildren, etc */
+	    propagate_badvalue( child );
 
         } /* for: i */
     }
     PDL_END_CHILDLOOP(it)
-} /* propogate_badvalue */
+} /* propagate_badvalue */
 
 
 /* this is horrible - the routines from bad should perhaps be here instead ? */
@@ -957,8 +957,8 @@ BOOT:
    PDL.NaN_float  = union_nan_float.f;
    PDL.NaN_double = union_nan_double.d;
 #if BADVAL
-   PDL.propogate_badflag = propogate_badflag;
-   PDL.propogate_badvalue = propogate_badvalue;
+   PDL.propagate_badflag = propagate_badflag;
+   PDL.propagate_badvalue = propagate_badvalue;
    PDL.get_pdl_badvalue = pdl_get_pdl_badvalue;
 #include "pdlbadvalinit.c"
 #endif

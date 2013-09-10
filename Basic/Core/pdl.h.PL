@@ -35,17 +35,17 @@ print OUT <<"!GROK!THIS!";
 
 #ifdef PDL_DEBUGGING
 extern int pdl_debugging;
-#define PDLDEBUG_f(a)		if(pdl_debugging) a
+#define PDLDEBUG_f(a)           if(pdl_debugging) a
 #else
 #define PDLDEBUG_f(a)
 #endif
 
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
-/*  Target number of pthreads: Actual will be this number or less. 
+/*  Target number of pthreads: Actual will be this number or less.
     A 0 here means no pthreading */
 extern int pdl_autopthread_targ;
 /*  Actual number of pthreads: This is the number of pthreads created for the last
-    operation where pthreading was used 
+    operation where pthreading was used
     A 0 here means no pthreading */
 extern int pdl_autopthread_actual;
 /* Minimum size of the larget PDL involved in pdl function to attempt pthreading (in MBytes )
@@ -56,7 +56,6 @@ extern int pdl_autopthread_size;
 typedef struct pdl pdl;
 
 $PDL_DATATYPES
-
 $mymalloc
 !GROK!THIS!
 
@@ -69,8 +68,8 @@ foreach my $i ( reverse(0 .. $ntypes) ) {
     my $realctype = $PDL::Types::typehash{$name}->{realctype};
     my $cname     = $PDL::Types::typehash{$name}->{ctype};
     $cname =~ s/^PDL_//;
-    print OUT "   $realctype $cname;\n";
-    print OUT "   $realctype default_$cname;\n";
+    printf OUT "   %18s   %s;\n",$realctype,$cname;
+    printf OUT "   %18s   default_%s;\n",$realctype,$cname;
 }
 print OUT "} badvals;\n";
 
@@ -91,59 +90,59 @@ print OUT <<'!NO!SUBS!';
 #define PDL_NTHREADIDS 4 /* Number of different threadids/pdl to preallocate */
 
 /* Constants for pdl.state - not all combinations make sense */
-	/* data allocated for this pdl.  this implies that the data
-	   is up to date if !PDL_PARENTCHANGED */
-#define		PDL_ALLOCATED		0x0001
-	/* Parent's data has been altered at some point without changing
-	   this pdl. */
-#define		PDL_PARENTDATACHANGED	0x0002
-	/* Parent's dims or incs or whatever has been altered at some
-	   point without changing this pdl. */
-#define		PDL_PARENTDIMSCHANGED	0x0004
-	/* The physical data representation of the parent has changed,
-	   e.g. by copying from its parent to itself as COW.
-	   This means that (incs) etc. should be recalculated when used.
-	   "parent was allocated" */
-#define		PDL_PARENTREPRCHANGED	0x0008
+        /* data allocated for this pdl.  this implies that the data
+           is up to date if !PDL_PARENTCHANGED */
+#define         PDL_ALLOCATED           0x0001
+        /* Parent's data has been altered at some point without changing
+           this pdl. */
+#define         PDL_PARENTDATACHANGED   0x0002
+        /* Parent's dims or incs or whatever has been altered at some
+           point without changing this pdl. */
+#define         PDL_PARENTDIMSCHANGED   0x0004
+        /* The physical data representation of the parent has changed,
+           e.g. by copying from its parent to itself as COW.
+           This means that (incs) etc. should be recalculated when used.
+           "parent was allocated" */
+#define         PDL_PARENTREPRCHANGED   0x0008
 
 #define PDL_ANYCHANGED (PDL_PARENTDATACHANGED|PDL_PARENTDIMSCHANGED|PDL_PARENTREPRCHANGED)
 
-	/* What kinds of dataflows do we want to track starting from
-	   this PDL (B only for transformations which make it possible).
-	   All children inherit an 'or' from the parents */
-#define		PDL_DATAFLOW_F		0x0010
-#define		PDL_DATAFLOW_B		0x0020
+        /* What kinds of dataflows do we want to track starting from
+           this PDL (B only for transformations which make it possible).
+           All children inherit an 'or' from the parents */
+#define PDL_DATAFLOW_F       0x0010
+#define PDL_DATAFLOW_B       0x0020
 
 #define PDL_DATAFLOW_ANY (PDL_DATAFLOW_F|PDL_DATAFLOW_B)
 
-	/* Was this pdl null originally? */
-#define		PDL_NOMYDIMS		0x0040
-	/* This means that dims are received through "trans" */
-#define 	PDL_MYDIMS_TRANS	0x0080
+        /* Was this pdl null originally? */
+#define PDL_NOMYDIMS            0x0040
+        /* This means that dims are received through "trans" */
+#define PDL_MYDIMS_TRANS        0x0080
 
-#define PDL_OPT_VAFFTRANSOK		0x0100
+#define PDL_OPT_VAFFTRANSOK             0x0100
 
-#define PDL_OPT_ANY_OK			(PDL_OPT_VAFFTRANSOK)
+#define PDL_OPT_ANY_OK                  (PDL_OPT_VAFFTRANSOK)
 
-#define PDL_HDRCPY				0x0200
+#define PDL_HDRCPY                              0x0200
 
 #define PDL_BADVAL                              0x0400
 
 #define PDL_TRACEDEBUG                          0x0800
 
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
-		&& (pdl)->trans == (pdl_trans *)(wtrans))
+                && (pdl)->trans == (pdl_trans *)(wtrans))
 
-#define 	PDL_INPLACE		0x1000
+#define         PDL_INPLACE             0x1000
 
-	/* Destroying this now */
-#define		PDL_DESTROYING		0x2000
+        /* Destroying this now */
+#define         PDL_DESTROYING          0x2000
 
 /* You must not alter the data pointer nor free this
  * piddle nor use datasv (which is nothing).
  * This means e.g. that the piddle is mmapped from a file
  */
-#define		PDL_DONTTOUCHDATA	0x4000
+#define         PDL_DONTTOUCHDATA       0x4000
 
 /**************************************************
  *
@@ -155,55 +154,55 @@ print OUT <<'!NO!SUBS!';
     to be implemented in terms of COW etc.
  */
 typedef enum pdl_transtype { PDL_SLICE, PDL_FUNCTION, PDL_RETYPE }
-	pdl_transtype;
+        pdl_transtype;
 
 /* Transformation flags */
-#define 	PDL_TRANS_AFFINE	0x0001
+#define         PDL_TRANS_AFFINE        0x0001
 
 /* Transpdl flags */
-#define		PDL_TPDL_VAFFINE_OK	0x01
+#define         PDL_TPDL_VAFFINE_OK     0x01
 
 typedef struct pdl_trans pdl_trans;
 
 typedef struct pdl_transvtable {
-	pdl_transtype transtype;
-	int flags;
-	int nparents;
-	int npdls;
-	char *per_pdl_flags;
-	void (*redodims)(pdl_trans *tr);  /* Only dims and internal trans
-		(makes phys) */
-	void (*readdata)(pdl_trans *tr);  /* Only data, to "data" ptr  */
-	void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
-	void (*freetrans)(pdl_trans *tr); /* Free both the contents and it of
-					the trans member */
-	void (*dump)(pdl_trans *tr); /* Dump this transformation */
-				/* Find a virtual parent and make ready
-					  for readdata etc. */
-	void (*findvparent)(pdl_trans *tr);
-	pdl_trans *(*copy)(pdl_trans *tr); /* Full copy */
-	void (*can_do)(pdl_trans *tr);
+        pdl_transtype transtype;
+        int flags;
+        int nparents;
+        int npdls;
+        char *per_pdl_flags;
+        void (*redodims)(pdl_trans *tr);  /* Only dims and internal trans
+                (makes phys) */
+        void (*readdata)(pdl_trans *tr);  /* Only data, to "data" ptr  */
+        void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
+        void (*freetrans)(pdl_trans *tr); /* Free both the contents and it of
+                                        the trans member */
+        void (*dump)(pdl_trans *tr); /* Dump this transformation */
+                                /* Find a virtual parent and make ready
+                                          for readdata etc. */
+        void (*findvparent)(pdl_trans *tr);
+        pdl_trans *(*copy)(pdl_trans *tr); /* Full copy */
+        void (*can_do)(pdl_trans *tr);
   /* XXX Here should be a "writebackdims" for changed dimensions */
-  	int structsize;
-	char *name; /* For debuggers, mostly */
-	void (*foomethod)(pdl_trans *tr,int i1,int i2,int i3); /* Stupid */
+        int structsize;
+        char *name; /* For debuggers, mostly */
+        void (*foomethod)(pdl_trans *tr,int i1,int i2,int i3); /* Stupid */
 } pdl_transvtable;
 
 /* All trans must start with this */
 
 /* Trans flags */
-	/* Single-valued slice i.e. only one image of each parent thing allowed.
-	   This is critical in routines that both input from and output to
-	   a non-single-valued pdl: updating must occur :(
-	 */
+        /* Single-valued slice i.e. only one image of each parent thing allowed.
+           This is critical in routines that both input from and output to
+           a non-single-valued pdl: updating must occur :(
+         */
 #define PDL_ITRANS_REVERSIBLE 0x0001
-	/* Whether, if a child is changed, this trans should be destroyed
-	   or not */
+        /* Whether, if a child is changed, this trans should be destroyed
+           or not */
 #define PDL_ITRANS_DO_DATAFLOW_F 0x0002
 #define PDL_ITRANS_DO_DATAFLOW_B 0x0004
 
 #define PDL_ITRANS_DO_DATAFLOW_ANY \
-		(PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
+                (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
 
 #define PDL_ITRANS_FORFAMILY 0x0008
 
@@ -265,7 +264,7 @@ struct pdl_trans {
 } ;
 
 typedef struct pdl_trans_affine {
-	PDL_TRANS_START(2);
+        PDL_TRANS_START(2);
 /* affine relation to parent */
 	PDL_Indx *incs; PDL_Indx offs;
 } pdl_trans_affine;
@@ -281,7 +280,7 @@ typedef struct pdl_vaffine {
 
 #define PDL_VAFFOK(pdl) (pdl->state & PDL_OPT_VAFFTRANSOK)
 #define PDL_REPRINC(pdl,which) (PDL_VAFFOK(pdl) ? \
-		pdl->vafftrans->incs[which] : pdl->dimincs[which])
+                pdl->vafftrans->incs[which] : pdl->dimincs[which])
 
 #define PDL_REPROFFS(pdl) (PDL_VAFFOK(pdl) ? pdl->vafftrans->offs : 0)
 
@@ -291,20 +290,20 @@ typedef struct pdl_vaffine {
       (flag & PDL_TPDL_VAFFINE_OK)) ? pdl->vafftrans->from->data : pdl->data)
 
 #define VAFFINE_FLAG_OK(flags,i) ((flags == NULL) ? 1 : (flags[i] & \
-				  PDL_TPDL_VAFFINE_OK))
+                                  PDL_TPDL_VAFFINE_OK))
 
 typedef struct pdl_children {
-	pdl_trans *trans[PDL_NCHILDREN];
-	struct pdl_children *next;
+        pdl_trans *trans[PDL_NCHILDREN];
+        struct pdl_children *next;
 } pdl_children;
 
 /* Family stuff */
 
 typedef struct pdl_family_trans {
-	PDL_TRANS_START(2);
-	pdl_trans *realtrans;
-	pdl *mutateto;
-	pdl *mutatefrom;
+        PDL_TRANS_START(2);
+        pdl_trans *realtrans;
+        pdl *mutateto;
+        pdl *mutatefrom;
 } pdl_family_trans;
 
 struct pdl_magic;
@@ -319,7 +318,7 @@ struct pdl {
    int state;        /* What's in this pdl */
 
    pdl_trans *trans; /* Opaque pointer to internals of transformation from
-   			parent */
+                        parent */
 
    pdl_vaffine *vafftrans; /* pointer to vaffine transformation
                               a vafftrans is an optimization that is possible
@@ -328,12 +327,12 @@ struct pdl {
                             */
 
    void*    sv;      /* (optional) pointer back to original sv.
-   			  ALWAYS check for non-null before use.
-			  We cannot inc refcnt on this one or we'd
-			  never get destroyed */
+                          ALWAYS check for non-null before use.
+                          We cannot inc refcnt on this one or we'd
+                          never get destroyed */
 
-   void *datasv;	/* Pointer to SV containing data. Refcnt inced */
-   void *data;		  /* Null: no data alloced for this one */
+   void *datasv;        /* Pointer to SV containing data. Refcnt inced */
+   void *data;            /* Null: no data alloced for this one */
 
    /* bad value stored as double, since get_badvalue returns a double */
    double badvalue;
@@ -361,20 +360,20 @@ struct pdl {
 
 
 #define PDL_DECL_CHILDLOOP(p) \
-		int p##__i; pdl_children *p##__c;
+                int p##__i; pdl_children *p##__c;
 #define PDL_START_CHILDLOOP(p) \
-		p##__c = &p->children; \
-		do { \
-			for(p##__i=0; p##__i<PDL_NCHILDREN; p##__i++) { \
-				if(p##__c->trans[p##__i]) {
+                p##__c = &p->children; \
+                do { \
+                        for(p##__i=0; p##__i<PDL_NCHILDREN; p##__i++) { \
+                                if(p##__c->trans[p##__i]) {
 #define PDL_CHILDLOOP_THISCHILD(p) p##__c->trans[p##__i]
 #define PDL_END_CHILDLOOP(p) \
-				} \
-			} \
-			if(!p##__c) break; \
-			if(!p##__c->next) break; \
-			p##__c=p##__c->next; \
-		} while(1);
+                                } \
+                        } \
+                        if(!p##__c) break; \
+                        if(!p##__c->next) break; \
+                        p##__c=p##__c->next; \
+                } while(1);
 
 
 
