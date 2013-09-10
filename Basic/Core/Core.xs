@@ -938,7 +938,6 @@ BOOT:
    PDL.get = pdl_get;
    PDL.set_trans_childtrans = pdl_set_trans_childtrans;
    PDL.set_trans_parenttrans = pdl_set_trans_parenttrans;
-   PDL.make_now = pdl_make_now;
 
    PDL.get_convertedpdl = pdl_get_convertedpdl;
 
