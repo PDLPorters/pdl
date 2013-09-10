@@ -295,7 +295,7 @@ typedef struct pdl_children {
  * easier segmentation...
  */
 
-struct pdl_magic;
+typedef struct pdl_magic pdl_magic;
 
 #define PDL_MAGICNO 0x24645399
 #ifdef PDL_DEBUGGING
@@ -320,22 +320,20 @@ struct pdl {
    PDL_Index *    dims;        /* Array of data dims - could point below or to an allocated array */
    PDL_Index *    dimincs;     /* Array of strides through memory for each dim (0 for dummies)    */
    short          ndims;       /* Number of data dimensions in dims and dimincs                   */
-
-   unsigned char *threadids;  /* Starting index of the thread index set n */
-   unsigned char nthreadids;
-
-   pdl_children children;
-
-   PDL_Index   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
-   PDL_Index   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
-   unsigned char def_threadids[PDL_NTHREADIDS];
-
-   struct pdl_magic *magic;
-
-   void *hdrsv; /* "header", settable from Perl */
+   unsigned char *threadids;   /* Array of threadid's for explicit threading (REMOVE?)            */
+   unsigned char  nthreadids;  /* Number of threadid's allocated for explicit threading (REMOVE?) */
+   pdl_children   children;    /* Structure containing children of this PDL                       */
+   PDL_Index      def_dims[PDL_NDIMS];    /* Preallocated space (efficient in common cases)       */
+   PDL_Index      def_dimincs[PDL_NDIMS]; /* Preallocated space (efficient in common cases)       */
+   unsigned char  def_threadids[PDL_NTHREADIDS]; /* Preallocated space (REMOVE?)                  */
+   pdl_magic *    magic;       /* Perl-style magic - do stuff when this PDL is manipulated        */
+   void *         hdrsv;       /* SV points to the PDL's "header", settable from Perl             */
 };
 
 
+/*************
+ * Some macros for looping over the children of a given PDL 
+ */
 #define PDL_DECL_CHILDLOOP(p) \
                 int p##__i; pdl_children *p##__c;
 #define PDL_START_CHILDLOOP(p) \
@@ -353,9 +351,11 @@ struct pdl {
                 } while(1);
 
 
-
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 
+/***************
+ * Some macros to guard against dataflow infinite recursion.
+ */
 #define DECL_RECURSE_GUARD static int __nrec=0;
 #define START_RECURSE_GUARD __nrec++; if(__nrec > 1000) {__nrec=0; die("PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");}
 #define ABORT_RECURSE_GUARD __nrec=0;
