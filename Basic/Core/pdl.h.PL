@@ -348,26 +348,7 @@ struct pdl {
    unsigned char *threadids;  /* Starting index of the thread index set n */
    unsigned char nthreadids;
 
-   /* the progenitor, future_me and living_for members
-      are unused. They are related to one of Tuomas' ideas about
-      pervasive dataflow for PDL and the concept of families that
-      he thought up. This was never implemented and Tuomas gave up
-      on the idea (and later PDL as a whole). We keep those members
-      as a hangover for the moment but they might go at a later time
-      -- although that might result in backward compatibility problems
-    */
-
-   pdl *progenitor; /* I'm in a mutated family. make_physical_now must
-   		       copy me to the new generation. */
-   pdl *future_me;  /* I'm the "then" pdl and this is my "now" (or more modern
-                       version, anyway */
-
    pdl_children children;
-
-#define PDL_LIVINGFOR_FAMILY_NEWPROGENITOR   0x0002
-#define PDL_LIVINGFOR_FAMILY_NEWMUTATED      0x0004
-#define PDL_LIVINGFOR_FAMILY_SRCFORMUTATION  0x0008
-   short living_for; /* perl side not referenced; delete me when */
 
    PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
    PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
