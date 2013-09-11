@@ -255,21 +255,13 @@ void pdl_destroy(pdl *it) {
 		 * must always be soft-destroyed */
 		if(curt->vtable->npdls > 2) nback2++;
 	}
-	if(PDL_CHILDLOOP_THISCHILD(it)->flags & PDL_ITRANS_FORFAMILY)
-		nundest ++;
-/*	pdl_make_physdims(PDL_CHILDLOOP_THISCHILD(it); */
+
 	if(PDL_CHILDLOOP_THISCHILD(it)->flags & PDL_ITRANS_ISAFFINE) {
 		if(!(curt->pdls[1]->state & PDL_ALLOCATED)) {
 			nafn ++;
 		}
 	}
     PDL_END_CHILDLOOP(it)
-
-    if(it->trans && (it->trans->flags & PDL_ITRANS_FORFAMILY))
-    	nundestp ++;
-
-/* XXX FIX */
-    if(nundest || nundestp) goto soft_destroy;
 
 /* First case where we may not destroy */
     if(nback2 > 0) goto soft_destroy;
@@ -383,14 +375,14 @@ void pdl_dump_flags_fixspace(int flags, int nspac, int type)
 
 	int transflagval[] = {
 	  PDL_ITRANS_REVERSIBLE, PDL_ITRANS_DO_DATAFLOW_F,
-	  PDL_ITRANS_DO_DATAFLOW_B, PDL_ITRANS_FORFAMILY,
+	  PDL_ITRANS_DO_DATAFLOW_B,
 	  PDL_ITRANS_ISAFFINE, PDL_ITRANS_VAFFINEVALID,
 	  PDL_ITRANS_NONMUTUAL, 0
 	};
 
 	char *transflagchar[] = {
 	  "REVERSIBLE", "DO_DATAFLOW_F",
-	  "DO_DATAFLOW_B", "FORFAMILY",
+	  "DO_DATAFLOW_B",
 	  "ISAFFINE", "VAFFINEVALID",
 	  "NONMUTUAL"	  
 	};

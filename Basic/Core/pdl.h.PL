@@ -176,18 +176,17 @@ typedef struct pdl_transvtable {
 
 /* Trans flags */
 
-        /* Single-valued slice i.e. only one image of each parent thing allowed.
-           This is critical in routines that both input from and output to
-           a non-single-valued pdl: updating must occur :(
-         */
+        /* Reversible transform -- flag indicates data can flow both ways.  */
+        /* This is critical in routines that both input from and output to  */
+        /* a non-single-valued pdl: updating must occur.  (Note that the    */         
+        /* transform is not necessarily mathematically reversible)          */
 #define  PDL_ITRANS_REVERSIBLE        0x0001
         /* Whether, if a child is changed, this trans should be destroyed or not */
+        /* (flow if set; sever if clear) */
 #define  PDL_ITRANS_DO_DATAFLOW_F     0x0002
 #define  PDL_ITRANS_DO_DATAFLOW_B     0x0004
-
 #define  PDL_ITRANS_DO_DATAFLOW_ANY   (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
 
-#define  PDL_ITRANS_FORFAMILY         0x0008
 #define  PDL_ITRANS_ISAFFINE          0x1000
 #define  PDL_ITRANS_VAFFINEVALID      0x2000
 #define  PDL_ITRANS_NONMUTUAL         0x4000  /* flag for destruction */
