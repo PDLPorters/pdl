@@ -55,7 +55,7 @@ static int is_parent_of(pdl *it,pdl_trans *trans) {
 }
 
 pdl *pdl_null() {
-	PDL_Index d[1] = {0};
+	PDL_Indx d[1] = {0};
 	pdl *it = pdl_new();
 	pdl_makescratchhash(it,0.0,PDL_B);
 	pdl_setdims(it,d,1);
@@ -77,7 +77,7 @@ pdl *pdl_get_convertedpdl(pdl *old,int type) {
 
 void pdl_allocdata(pdl *it) {
 	int i;
-	PDL_Index nvals=1;
+	PDL_Indx nvals=1;
 	SV *bar;
 	for(i=0; i<it->ndims; i++) {
 			nvals *= it->dims[i];
@@ -621,7 +621,7 @@ void pdl_reallocthreadids(pdl *it,int n) {
 /* Calculate default increments and grow the PDL data */
 
 void pdl_resize_defaultincs(pdl *it) {
-	PDL_Index inc = 1;
+	PDL_Indx inc = 1;
 	int i=0;
 	for(i=0; i<it->ndims; i++) {
 		it->dimincs[i] = inc; inc *= it->dims[i];
@@ -635,7 +635,7 @@ void pdl_resize_defaultincs(pdl *it) {
 
 /* Init dims & incs - if *incs is NULL ignored (but space is always same for both)  */
 
-void pdl_setdims(pdl* it, PDL_Index * dims, int ndims) {
+void pdl_setdims(pdl* it, PDL_Indx * dims, int ndims) {
    int i;
 
    pdl_reallocdims(it,ndims);
@@ -672,23 +672,23 @@ void pdl_print(pdl *it) {
 }
 
 /* pdl_get is now vaffine aware */
-double pdl_get(pdl *it,PDL_Index *inds) {
+double pdl_get(pdl *it,PDL_Indx *inds) {
         int i;
-        PDL_Index *incs;
-        PDL_Index offs=PDL_REPROFFS(it);
+        PDL_Indx *incs;
+        PDL_Indx offs=PDL_REPROFFS(it);
         incs = PDL_VAFFOK(it) ? it->vafftrans->incs : it->dimincs;
         for(i=0; i<it->ndims; i++)
                 offs += incs[i] * inds[i];
         return pdl_get_offs(PDL_REPRP(it),offs);
 }
 
-double pdl_get_offs(pdl *it, PDL_Index offs) {
-	PDL_Index dummy1=offs+1; PDL_Index dummy2=1;
+double pdl_get_offs(pdl *it, PDL_Indx offs) {
+	PDL_Indx dummy1=offs+1; PDL_Indx dummy2=1;
 	return pdl_at(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1);
 }
 
-void pdl_put_offs(pdl *it, PDL_Index offs, double value) {
-	PDL_Index dummy1=offs+1; PDL_Index dummy2=1;
+void pdl_put_offs(pdl *it, PDL_Indx offs, double value) {
+	PDL_Indx dummy1=offs+1; PDL_Indx dummy2=1;
 	pdl_set(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1, value);
 }
 
@@ -1466,8 +1466,8 @@ void pdl_make_physvaffine(pdl *it)
 	pdl *current;
 	int *incsleft = 0;
 	int i,j;
-	PDL_Index inc;
-	PDL_Index newinc;
+	PDL_Indx inc;
+	PDL_Indx newinc;
 	int ninced;
 	int flag;
 	int incsign;

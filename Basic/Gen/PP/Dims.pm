@@ -59,7 +59,7 @@ sub set_from { my($this,$otherpar) = @_;
 sub name {return (shift)->{Name}}
 
 sub get_decldim { my($this) = @_;
-	return "PDL_Index __$this->{Name}_size;";
+	return "PDL_Indx __$this->{Name}_size;";
 }
 
 sub get_initdim { my($this) = @_;

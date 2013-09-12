@@ -1490,7 +1490,7 @@ sub pdimexpr2priv {
 #
 sub equivcpoffscode {
     return
-	'PDL_Index i;
+	'PDL_Indx i;
          for(i=0; i<$CHILD_P(nvals); i++)  {
             $EQUIVCPOFFS(i,i);
          }';
@@ -2639,7 +2639,7 @@ sub make_parnames {
          $join__realdims = '0' if $join__realdims eq '';
       }
 	return("static char *__parnames[] = {". $join__parnames ."};
-		static PDL_Index __realdims[] = {". $join__realdims . "};
+		static PDL_Indx __realdims[] = {". $join__realdims . "};
 		static char __funcname[] = \"\$MODULE()::\$NAME()\";
 		static pdl_errorinfo __einfo = {
 			__funcname, __parnames, $npdls
@@ -2778,7 +2778,7 @@ sub make_redodims_thread {
 
     my $nn = $#$pnames;
     my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
-    $str .= $npdls ? "PDL_Index __creating[$npdls];\n" : "PDL_Index __creating[1];\n";
+    $str .= $npdls ? "PDL_Indx __creating[$npdls];\n" : "PDL_Indx __creating[1];\n";
     $str .= join '',map {$_->get_initdim."\n"} values %$dobjs;
 
     # if FlagCreat is NOT true, then we set __creating[] to 0
@@ -3079,7 +3079,7 @@ $PDL::PP::deftbl =
 # Same number of dimensions is assumed, though.
 #
    PDL::PP::Rule->new("AffinePriv", "XCHGOnly", sub { return @_; }),
-   PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Index incs[$CHILD(ndims)];PDL_Index offs; '),
+   PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$CHILD(ndims)];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
 
    PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr","FHdrInfo","_EquivDimCheck"],

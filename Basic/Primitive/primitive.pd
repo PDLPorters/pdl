@@ -242,11 +242,11 @@ sub PDL::matmult {
 }
 EOPM
 	Code => <<'EOC',
-	PDL_Index ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
+	PDL_Indx ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
         $GENERIC() *ad, *bd, *cd;
-        PDL_Index atdi, btdi;
-	PDL_Index resh, resw, rest;
-	PDL_Index tsiz = 64;
+        PDL_Indx atdi, btdi;
+	PDL_Indx resh, resw, rest;
+	PDL_Indx tsiz = 64;
 
 	// Zero the output
 	loop(w) %{
@@ -636,22 +636,22 @@ pp_def('norm',
 
 =for sig
 
-  Signature: (a(); int ind(); [o] sum(m))
+  Signature: (a(); indx ind(); [o] sum(m))
 
 =cut
 
 pp_def(
     'indadd',
     HandleBad => 1,
-    Pars => 'a(); int ind(); [o] sum(m)',
+    Pars => 'a(); indx ind(); [o] sum(m)',
     Code => 
-    'register int foo = $ind();
+    'register PDL_Indx foo = $ind();
      if( foo<0 || foo>=$SIZE(m) ) {
        barf("PDL::indadd: invalid index");
      }
      $sum(m => foo) += $a();',
     BadCode => 
-    'register int foo = $ind();
+    'register PDL_Indx foo = $ind();
      if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
        barf("PDL::indadd: invalid index");
      }
@@ -1875,7 +1875,7 @@ sub PDL::fibonacci{
 }
 EOD
      Code => '
-        PDL_Index i=0;
+        PDL_Indx i=0;
         $GENERIC() x1, x2;
 
         x1 = 1; x2 = 0;
@@ -1908,8 +1908,8 @@ pp_def('append',
                 $SIZE(mn) = (dpdla->ndims > 0 ? dpdla->dims[0] : 1) + 
                         (dpdlb->ndims > 0 ? dpdlb->dims[0] : 1);
 		',
-	Code => 'register PDL_Index mnp;
-		 PDL_Index ns = $SIZE(n);
+	Code => 'register PDL_Indx mnp;
+		 PDL_Indx ns = $SIZE(n);
                  threadloop %{
                        loop(n) %{ $c(mn => n) = $a(); %}
 		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
@@ -2202,8 +2202,8 @@ pp_def('vsearch',
 	GenericTypes => ['F','D'], # too restrictive ?
 	Code => 'int carp=0;
 		 threadloop %{
-		   PDL_Index n1 = $SIZE(n)-1;
-                   PDL_Index jl=-1, jh=n1, m;
+		   PDL_Indx n1 = $SIZE(n)-1;
+                   PDL_Indx jl=-1, jh=n1, m;
 		   int up = ($x(n => n1) > $x(n => 0));
 		   $GENERIC() d;
   		   while (jh-jl > 1)  /* binary search */
@@ -2271,10 +2271,10 @@ pp_def('interpolate',
 	GenericTypes => ['F','D'], # too restrictive ?
 	Code => '
 		 $GENERIC() d;
-		 PDL_Index n  = $SIZE(n);
-		 PDL_Index n1 = n-1;
+		 PDL_Indx n  = $SIZE(n);
+		 PDL_Indx n1 = n-1;
 		 int up = ($x(n => n1) > $x(n => 0));
-                 PDL_Index jl, jh, m;
+                 PDL_Indx jl, jh, m;
                  int carp;
 
                  threadloop %{
@@ -2827,12 +2827,12 @@ EOD
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
 	   RedoDimsCode => '
-		PDL_Index sum = 0;
+		PDL_Indx sum = 0;
 		/* not sure if this is necessary */
 		pdl * dpdl = $PDL(mask);
 		$GENERIC() *m_datap = (($GENERIC() *)(PDL_REPRP(dpdl)));
-		PDL_Index inc = PDL_REPRINC(dpdl,0);
-		PDL_Index offs = PDL_REPROFFS(dpdl);
+		PDL_Indx inc = PDL_REPRINC(dpdl,0);
+		PDL_Indx offs = PDL_REPROFFS(dpdl);
 		int i;
 
 		if (dpdl->ndims != 1)

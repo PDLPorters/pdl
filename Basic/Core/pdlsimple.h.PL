@@ -49,8 +49,8 @@ $PDL_DATATYPES
 struct pdlsimple {
    int     datatype;  /* whether byte/int/float etc. */
    void       *data;  /* Generic pointer to the data block */
-   PDL_Index  nvals;  /* Number of data values */
-   PDL_Index  *dims;  /* Array of data dimensions */
+   PDL_Indx  nvals;  /* Number of data values */
+   PDL_Indx  *dims;  /* Array of data dimensions */
    PDL_Long   ndims;  /* Number of data dimensions */
 };
 

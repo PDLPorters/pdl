@@ -272,7 +272,7 @@ sub new { my($type,$args,$sizeprivs,$parent) = @_;
 		print "SIZP $sizeprivs, $_\n" if $::PP_VERBOSE;
 		my $i = $parent->make_loopind($_);
 		$sizeprivs->{$i->[0]} =
-		  "register PDL_Index __$i->[0]_size = \$PRIV(__$i->[0]_size);\n";
+		  "register PDL_Indx __$i->[0]_size = \$PRIV(__$i->[0]_size);\n";
 		print "SP :",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 	}
 	return $this;
@@ -284,7 +284,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 	push @$context, map {
 		$i = $parent->make_loopind($_);
 # Used to be $PRIV(.._size) but now we have it in a register.
-		$text .= "{PDL_COMMENT(\"Open $_\") register PDL_Index $_;
+		$text .= "{PDL_COMMENT(\"Open $_\") register PDL_Indx $_;
 			for($_=0; $_<(__$i->[0]_size); $_++) {";
 		$i;
 	} @{$this->[0]};
@@ -462,16 +462,16 @@ sub myprelude {
 '	PDL_COMMENT("THREADLOOPBEGIN")
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.',
  	__tr)) return;
-   do { register PDL_Index __tind1=0,__tind2=0;
-        register PDL_Index __tnpdls = $PRIV(__pdlthread).npdls;
-      register PDL_Index __tdims1 = $PRIV(__pdlthread.dims[1]);
-      register PDL_Index __tdims0 = $PRIV(__pdlthread.dims[0]);
-      register PDL_Index *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));
+   do { register PDL_Indx __tind1=0,__tind2=0;
+        register PDL_Indx __tnpdls = $PRIV(__pdlthread).npdls;
+      register PDL_Indx __tdims1 = $PRIV(__pdlthread.dims[1]);
+      register PDL_Indx __tdims0 = $PRIV(__pdlthread.dims[0]);
+      register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));
  '.(join '',map {$no2++;
-            "register PDL_Index __tinc0_".($no2)." = \$PRIV(__pdlthread).incs[$no2];"}
+            "register PDL_Indx __tinc0_".($no2)." = \$PRIV(__pdlthread).incs[$no2];"}
 	     @$ord).
    (join '',map {$no3++;
-            "register PDL_Index __tinc1_".($no3)." = \$PRIV(__pdlthread).incs[__tnpdls+$no3];"}
+            "register PDL_Indx __tinc1_".($no3)." = \$PRIV(__pdlthread).incs[__tnpdls+$no3];"}
 	     @$ord).
    (join '',map {"${_}_datap += __offsp[".(0+$no++)."];\n"}
  		@$ord).'

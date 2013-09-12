@@ -291,7 +291,7 @@ sub get_xsnormdimchecks {
 	$str .= "} else {\n";
 	
 	# We are creating this pdl.
-	$str .= " PDL_Index dims[".($ninds+1)."]; PDL_COMMENT(\"Use ninds+1 to avoid smart (stupid) compilers\")";
+	$str .= " PDL_Indx dims[".($ninds+1)."]; PDL_COMMENT(\"Use ninds+1 to avoid smart (stupid) compilers\")";
 	$str .= join "",
 	(map {"dims[$_] = ".$iref->[$_]->get_size().";"} 0 .. $#$iref);
 	my $istemp = $this->{FlagTemp} ? 1 : 0;
@@ -315,7 +315,7 @@ sub get_incdecls {
 	my($this) = @_;
 	if(scalar(@{$this->{IndObjs}}) == 0) {return "";}
 	(join '',map {
-		"PDL_Index ".($this->get_incname($_)).";";
+		"PDL_Indx ".($this->get_incname($_)).";";
 	} (0..$#{$this->{IndObjs}}) ) . ";"
 }
 
@@ -323,7 +323,7 @@ sub get_incregisters {
 	my($this) = @_;
 	if(scalar(@{$this->{IndObjs}}) == 0) {return "";}
 	(join '',map {
-		"register PDL_Index ".($this->get_incname($_))." = \$PRIV(".
+		"register PDL_Indx ".($this->get_incname($_))." = \$PRIV(".
 			($this->get_incname($_)).");\n";
 	} (0..$#{$this->{IndObjs}}) )
 }

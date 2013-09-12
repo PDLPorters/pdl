@@ -275,15 +275,15 @@ struct pdl_trans {
 typedef struct pdl_trans_affine {
 	PDL_TRANS_START(2);
 /* affine relation to parent */
-	PDL_Index *incs; PDL_Index offs;
+	PDL_Indx *incs; PDL_Indx offs;
 } pdl_trans_affine;
 
 /* Need to make compatible with pdl_trans_affine */
 typedef struct pdl_vaffine {
 	PDL_TRANS_START(2);
-	PDL_Index *incs; PDL_Index offs;
+	PDL_Indx *incs; PDL_Indx offs;
 	int ndims;
-	PDL_Index def_incs[PDL_NDIMS];
+	PDL_Indx def_incs[PDL_NDIMS];
 	pdl *from;
 } pdl_vaffine;
 
@@ -351,10 +351,10 @@ struct pdl {
    double badvalue;
    int has_badvalue;    /* required by pdlapi.c */
 
-   PDL_Index nvals;		/* How many values allocated */
+   PDL_Indx nvals;		/* How many values allocated */
    int datatype;
-   PDL_Index   *dims;      /* Array of data dimensions */
-   PDL_Index   *dimincs;   /* Array of data default increments */
+   PDL_Indx   *dims;      /* Array of data dimensions */
+   PDL_Indx   *dimincs;   /* Array of data default increments */
    short    ndims;     /* Number of data dimensions */
 
    unsigned char *threadids;  /* Starting index of the thread index set n */
@@ -381,8 +381,8 @@ struct pdl {
 #define PDL_LIVINGFOR_FAMILY_SRCFORMUTATION  0x0008
    short living_for; /* perl side not referenced; delete me when */
 
-   PDL_Index   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
-   PDL_Index   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
+   PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
+   PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
    unsigned char def_threadids[PDL_NTHREADIDS];
 
    struct pdl_magic *magic;

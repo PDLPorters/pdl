@@ -20,9 +20,9 @@
 
 /* Compute offset of (x,y,z,...) position in row-major list */
 
-PDL_Index pdl_get_offset(PDL_Index* pos, PDL_Index* dims, PDL_Index *incs, PDL_Index offset, int ndims) {
+PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, int ndims) {
    int i;
-   PDL_Index result;
+   PDL_Indx result;
    result = offset;
    for (i=0; i<ndims; i++) {
        result = result + (pos[i]+((pos[i]<0)?dims[i]:0))*incs[i];
@@ -32,9 +32,9 @@ PDL_Index pdl_get_offset(PDL_Index* pos, PDL_Index* dims, PDL_Index *incs, PDL_I
 
 /* Check validity of section - return number of elements in it */
 
-PDL_Index pdl_validate_section( PDL_Index* sec, PDL_Index* dims, int ndims ){
+PDL_Indx pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims, int ndims ){
 
-   PDL_Index i,start,end,count;
+   PDL_Indx i,start,end,count;
 
    count=1;
 
@@ -56,7 +56,7 @@ PDL_Index pdl_validate_section( PDL_Index* sec, PDL_Index* dims, int ndims ){
 
 /* Increrement a position pointer array by one row */
 
-void pdl_row_plusplus ( PDL_Index* pos, PDL_Index* dims, int ndims ) {
+void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, int ndims ) {
 
     int i, noescape;
 
@@ -83,20 +83,20 @@ void pdl_row_plusplus ( PDL_Index* pos, PDL_Index* dims, int ndims ) {
 
 #ifdef FOOBAR
 
-void pdl_subsection( char *y, char*x, int datatype, PDL_Index* sec,
-                     PDL_Index* dims, PDL_Index *incs, PDL_Index offs, int* ndims) {
+void pdl_subsection( char *y, char*x, int datatype, PDL_Indx* sec,
+                     PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offs, int* ndims) {
 
 
    /* Note dims, ndims are altered and returned to reflect the new section */
 
-   PDL_Index *start,*end;
+   PDL_Indx *start,*end;
    int i,n1,n2,nrow,count,dsize;
-   PDL_Index n1,n2,nrow,count;
+   PDL_Indx n1,n2,nrow,count;
 
    /* Seperate section into start and end arrays - KISS! */
 
-   start = (PDL_Index *) pdl_malloc( (*ndims)*sizeof(PDL_Index) );
-   end   = (PDL_Index *) pdl_malloc( (*ndims)*sizeof(PDL_Index) );
+   start = (PDL_Indx *) pdl_malloc( (*ndims)*sizeof(PDL_Indx) );
+   end   = (PDL_Indx *) pdl_malloc( (*ndims)*sizeof(PDL_Indx) );
 
    if (start == NULL || end == NULL)
        croak("Out of memory");
@@ -146,14 +146,14 @@ void pdl_subsection( char *y, char*x, int datatype, PDL_Index* sec,
 
 /* Insert one N-dimensional array in another */
 
-void pdl_insertin( char*y, PDL_Index* ydims, int nydims,
-                   char*x, PDL_Index* xdims, int nxdims,
-                   int datatype, PDL_Index* pos) {
+void pdl_insertin( char*y, PDL_Indx* ydims, int nydims,
+                   char*x, PDL_Indx* xdims, int nxdims,
+                   int datatype, PDL_Indx* pos) {
 
    /* Note inserts x[] in y[] */
 
    int i,dsize;
-   PDL_Index nyvals,nxvals,n1,n2,nrow,ntran;
+   PDL_Indx nyvals,nxvals,n1,n2,nrow,ntran;
 
    nyvals = 1; nxvals = 1;
 
@@ -204,11 +204,11 @@ void pdl_insertin( char*y, PDL_Index* ydims, int nydims,
 
 /* Return value at position (x,y,z...) */
 
-double pdl_at( void* x, int datatype, PDL_Index* pos, PDL_Index* dims, 
-	PDL_Index* incs, PDL_Index offset, int ndims) {
+double pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, 
+	PDL_Indx* incs, PDL_Indx offset, int ndims) {
 
     int i;
-    PDL_Index ioff;
+    PDL_Indx ioff;
     double result;
 
     for(i=0; i<ndims; i++) { /* Check */
@@ -239,10 +239,10 @@ double pdl_at( void* x, int datatype, PDL_Index* pos, PDL_Index* dims,
 
 /* Set value at position (x,y,z...) */
 
-void pdl_set( void* x, int datatype, PDL_Index* pos, PDL_Index* dims, PDL_Index* incs, PDL_Index offs, int ndims, double value){
+void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, int ndims, double value){
 
     int i;
-    PDL_Index ioff;
+    PDL_Indx ioff;
 
     for(i=0; i<ndims; i++) { /* Check */
 

@@ -327,7 +327,7 @@ void pdl_coercetypes( pdl** aa, pdl** bb, Logical changePerl ) {
 
 void ** pdl_twod( pdl* x ) {
 
-   PDL_Index i,nx,ny;
+   PDL_Indx i,nx,ny;
    int size;
    long *p;
    char *xx;
