@@ -2926,61 +2926,6 @@ direct slicing even though the syntax is convenient.
  $a->slice([3,1]);
  $a->slice([-2,1]);
 
-
-
-=item ARRAY ref
-
-Array refs are the normal way to specify how to slice.  You can
-specify zero, one or two fields.  The first field is the start of the
-range of positions to slice out of the dimension; the second field is
-the end of the range of positions (inclusive); and the third field 
-is the increment to use while stepping through the source array.
-
-You can index using nonnegative values, which count up from the start
-of the dim, or using negative values, which count down from the 
-end of the dim. 
-
-If you don't specify an inc, it defaults to 1 or -1 depending on the
-order of the indices (after regularization to nonnegative indices).
-
-Some special cases apply:
-
-If the array ref is empty, or if the first element is 'x' or 'X', 
-then the entire dimension is kept intact.  
-
-If the first element of the array ref is '*', then a dummy dimension
-is generated.  The second element is the index of the highest value
-along the dummy dimension, for consistency with normal use (e.g. 
-['*'] and ['*',0] both create dummy dimensions of size 1).
-
-If the second element of the array is 'X' or 'x', or if the third
-element is explicitly set to 0, then the dimension is indexed but 
-squished from the output -- similar to the '($n)' syntax in C<slice>.
-
-=item Perl scalar 
-
-=item 'X' or 'x' or ':'
-
-The string 'X' or 'x' or ':' forces the entire dimension to be kept.
-
-=item '*<num>'
-
-A perl scalar that starts with the character '*' is treated as a dummy
-dimension whose size is the following number.  If you leave out the number,
-the size defaults to 1.  (Note that '*0' gives size 0, which means the 
-result is an Empty PDL).
-
-=item a PDL
-
-A PDL with more than one element causes a more expensive dice call, 
-selecting one element from the corresponding axis for each element 
-of the PDL.  If you feed in a single-element PDL, it's treated as 
-a perl scalar and sliced in the usual way.  A zero-element (empty) PDL
-causes the axis to have length 0 (i.e. the slice returns an extended
-Empty PDL).
-
-=back
-
 =cut
 
 
