@@ -179,7 +179,7 @@ sub onearg ($) {
       if @args > 3;
     $args[0] = 0 if !defined $args[0] || $args[0] =~ /^\s*$/;
     $args[1] = -1 if !defined $args[1] || $args[1] =~ /^\s*$/;
-    $args[2] = 1  if !defined $args[2] || $args[2] =~ /^\s*$/;
+    $args[2] = undef if !defined $args[2] || $args[2] =~ /^\s*$/;
     return "[".join(',',@args)."]"; # replace single ':' with ','
   }
   # the (pos) syntax, i.e. 0D slice

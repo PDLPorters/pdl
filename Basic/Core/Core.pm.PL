@@ -2210,10 +2210,13 @@ sub PDL::mslice {
 
 =for ref
 
-If C<$self> is a PDL, then calls C<nslice> with all
-but the last argument, otherwise $self->($_[-1]) is
-called where $_[-1} is the original argument string
-found during PDL::NiceSlice filtering.
+If C<$self> is a PDL, then calls C<slice> with all but the last
+argument, otherwise $self->($_[-1]) is called where $_[-1} is the
+original argument string found during PDL::NiceSlice filtering.
+
+DEVELOPER'S NOTE: this routine is found in Core.pm.PL but would be
+better placed in Slices/slices.pd.  It is likely to be moved there
+and/or changed to "slice_if_pdl" for PDL 3.0.
 
 =for usage
 
@@ -2234,90 +2237,25 @@ sub PDL::nslice_if_pdl {
    }
 
    unshift @_, $pdl;
-   goto &PDL::nslice;
+   goto &PDL::slice;
 }
 
 =head2 nslice
 
 =for ref
 
-Internally used interface to L<slice|PDL::Slices/slice>
-and L<dice|PDL::Slices/dice> that is the runtime part of
-the L<PDL::NiceSlice|PDL::NiceSlice> implementation.
-
-=for usage
-
- $a = $x->nslice(...);
-
-=for example
-
- # below is the same as $x->slice("5:7,:,3:4:2")
- $a = $x->nslice([5,7],X,[3,4,2]);
-
-It implements a superset of L<mslice|PDL::Core/mslice>'s
-features. Should probably not be used in your scripts. Rather
-resort to the L<PDL::NiceSlice|PDL::NiceSlice> interface.
+c<nslice> was an internally used interface for L<PDL::NiceSlice|PDL::NiceSlice>, 
+but is now merely a springboard to L<PDL::Slice|PDL::Slice>.  It is deprecated
+and likely to disappear in PDL 3.0.
 
 =cut
-
-#' get quotes right for emacs
-
-sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
-		$_[0]->nelem == 1 ? $_[0]->flat->at(0) :
-		  die "multielement piddle where only one allowed" :
-		    die "non piddle ref '".ref $_[0]."'"
-		      : ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
 sub PDL::nslice {
-  my($pdl) = shift;
-
-  # This is a placeholder error for the planned sub ref handling refactoring
-  # We'll need to define a UNIVERSAL::nslice() method to perform the runtime
-  # checks (the same as here).  If a non-pdl self is received then we'll use
-  # the stashed original # string to generate the original method call to eval.
-  #
-  barf('PDL::NiceSlice tried to process a sub ref, please use &$subref() syntax')
-     if Scalar::Util::reftype($pdl) eq 'CODE' and not $pdl->isa('PDL');
-
-  my $h = $pdl->hdrcpy() ? PDL::_hdr_copy($pdl->hdr) : undef;
-  my @args = @_;
-  my ($i,$noslice) = (0,0);
-  for (@args) {
-    if (UNIVERSAL::isa($_,'PDL')) {
-      if ($_->nelem > 1) {
-	if ($_->getndims > 1) {
-	  # allow one multi-D arg which will imply flat addressing
-	  PDL::Core::barf 'piddle must be <= 1D' if @args > 1;
-	  $pdl = $pdl->flat->index($_);
-	  $noslice = 1;
-	} else {
-	  # dice this axis
-	  $pdl = $pdl->dice_axis($i,$_);
-	  # and keep resulting dim fully in slice
-	  $_ = 'X';
-	}
-      } elsif ($_->nelem > 0) # only if piddle is not empty
-        { $_ = $_->flat->at(0) } # reduce this one-element piddle
-                                      # to a scalar for 'slice'
-        else { return $_->copy } # $_ is empty, return empty copy
+    unless($PDL::nslice_warning_issued) {
+	$PDL::nslice_warning_issued = 1;
+	warn "WARNING: deprecated call to PDL::nslice detected.  Use PDL::slice instead.\n (Warning will be issued only once per session)\n";
     }
-    $i++;
-  }
-  unless ($noslice) {
-   # print STDERR 'processed arglist: ',join(',',@args);
-   my $slstr = join ',',(map {
-    !ref $_ && $_ eq "X" ? ":" :
-      ref $_ eq "ARRAY" ? $#$_ > 1 && _intpar @$_[2] == 0 ?
-	"("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
-	  _intpar $_
-	} @args);
-   # print STDERR "slicestr: $slstr\n";
-   $pdl = $pdl->slice($slstr);
-  }
-  $pdl->sethdr($h) if $h;
-  return $pdl;
+    goto &PDL::slice;
 }
-
-# Utility to determine if argument is blessed object
 
 sub blessed {
     my $ref = ref(shift);
