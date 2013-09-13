@@ -1,5 +1,10 @@
 The following issues have been reported with this version of PDL:
 
+
+- Build/test failures for OpenBSD 5.3 on AMD64 platforms.  See:
+  http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2013-September/005883.html
+
+
 - PDL::NiceSlice filtering of multi-line constructs results
   in a single line output which makes line numbers in error
   messages off.  This can make the location of errors in the
@@ -117,9 +122,6 @@ The following issues have been reported with this version of PDL:
            Fixed in this release.
 
   337    rangeb() broken for 64bit index support on 32bit perl
-
-           Candidate fix in this release.
-
   334    Test coverage is incomplete
   332    "isn't numeric in null operation" warning could be more helpful
   330    NiceSlice can get confused by comments to cause compilation errors

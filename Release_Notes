@@ -33,7 +33,18 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Renamed new PDL index data type to PDL_Indx to fix problem
+   with confusion between the new indx() type conversion function
+   and the existing PDL::index and perl core index().  This
+   appears to resolve the remaining type name ambiguity.  Once
+   documentation and config entries in PDL::Config are done, we
+   should be ready for a stable release.
+ 
+ * Multiple fixes to the various slice routines for performance
+   and to support 64bit indexing.
+ 
+ * Test suite improvements continue based on Devel::Cover
+   analysis by Derek Lamb.
 
 
 
