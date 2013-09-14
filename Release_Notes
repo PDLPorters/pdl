@@ -33,6 +33,12 @@ General Notes:
 
 Highlights:
 
+ * Candidate fix for pthread detection and resulting build
+   failures for non-threaded perls on OpenBSD 5.3 amd64
+   platforms.
+ 
+ * New multiple extension writing support for wfits.
+
  * Renamed new PDL index data type to PDL_Indx to fix problem
    with confusion between the new indx() type conversion function
    and the existing PDL::index and perl core index().  This
