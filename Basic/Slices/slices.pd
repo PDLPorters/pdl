@@ -2937,6 +2937,7 @@ direct slicing even though the syntax is convenient.
 # front-end), but it is serviceable. 
 #  --CED 12-Sep-2013
 
+*slice = \&PDL::slice;
 sub PDL::slice (;@) {
     my ($source, @others) = @_;
     
@@ -2969,6 +2970,8 @@ sub PDL::slice (;@) {
 }
 
 EOD-slice
+
+pp_add_exported('', 'slice');
 
 ##########
 # This is a kludge to pull arbitrary data out of a single-element PDL, using the Types.pm stuff,
