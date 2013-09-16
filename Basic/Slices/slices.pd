@@ -2806,9 +2806,10 @@ backwards compatible with C<slice> calls from before PDL 2.006.
 
 B<STRING SYNTAX>
 
-If a particular argument to C<slice> is a string, it is parsed as
-a selection, an affine slice, or a dummy dimension depending on the
-form, as follows:
+If a particular argument to C<slice> is a string, it is parsed as a
+selection, an affine slice, or a dummy dimension depending on the
+form.  Leading or trailing whitespace in any part of each specifier is
+ignored (though it is not ignored within numbers).  
 
 =over 3
 
