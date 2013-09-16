@@ -37,7 +37,7 @@ $PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debu
 #   $pdl->(args);
 # with
 #
-#   $pdl->nslice(processed_args);
+#   $pdl->slice(processed_args);
 #
 #
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
@@ -164,8 +164,7 @@ my $prefixpat = qr/.*?  # arbitrary leading stuff
 		    \s*          # more whitespace
                    (?=\()/smx;   # directly followed by open '(' (look ahead)
 
-# translates a single arg into corresponding
-# mslice format
+# translates a single arg into corresponding slice format
 sub onearg ($) {
   my ($arg) = @_;
   print STDERR "processing arg '$arg'\n" if $PDL::NiceSlice::debug;
@@ -184,7 +183,7 @@ sub onearg ($) {
   }
   # the (pos) syntax, i.e. 0D slice
   return "[$arg,0,0]" if $arg =~ s/^\s*\((.*)\)\s*$/$1/; # use the new [x,x,0]
-  # we don't allow [] syntax (although that's what nslice internally uses)
+  # we don't allow [] syntax (although that's what slice uses)
   filterdie "invalid slice expression containing '[', expression was '".
     curarg()."'" if $arg =~ /^\s*\[/;
 
@@ -210,7 +209,7 @@ sub procargs {
 }
 
 # this is the real workhorse that translates occurences
-# of $a(args) into $args->nslice(processed_arglist)
+# of $a(args) into $args->slice(processed_arglist)
 #
 sub findslice {
   my ($src,$verb) = @_;
@@ -226,7 +225,7 @@ sub findslice {
       if $verb;
 
 #  Do final check for "for $var(LIST)" and "foreach $var(LIST)" syntax. 
-#  Process into an 'nslice' call only if it's not that.
+#  Process into an 'slice' call only if it's not that.
 
     if ($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+(\s|$RE_cmt)*$/s ||
       # foreach statement: Don't translate
@@ -252,7 +251,7 @@ sub findslice {
       # filterdie "invalid modifier $1"
       #	if $found =~ /(;\s*[[:graph:]]{2,}?\s*)\)$/;
       print STDERR "MODS: " . join(',',@mods) . "\n" if $PDL::NiceSlice::debug;
-      my @post = (); # collects all post nslice operations
+      my @post = (); # collects all post slice operations
       my @pre = ();
       if (@mods) {
 	(my $mod = $mods[0]) =~ s/\s//sg; # eliminate whitespace
@@ -271,17 +270,17 @@ sub findslice {
 	    } elsif ($mod1 eq '_') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
 	      push @pre, 'flat->';
-	      $call ||= 'nslice';       # do only once
+	      $call ||= 'slice';       # do only once
 	      $arg = procargs($slicearg);
 	      # $post = ''; # no post action required
 	    } elsif ($mod1 eq '|') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
-	      $call ||= 'nslice';
+	      $call ||= 'slice';
 	      $arg ||= procargs($slicearg);
 	      push @post, '->sever';
 	    } elsif ($mod1 eq '-') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
-	      $call ||= 'nslice';
+	      $call ||= 'slice';
 	      $arg ||= procargs($slicearg);
 	      push @post, '->reshape(-1)';
 	    } else {
@@ -289,15 +288,15 @@ sub findslice {
 	    }
 	  }
 	} else { # empty modifier block
-	  $call = 'nslice';
+	  $call = 'slice';
 	  $arg = procargs($slicearg);
 	  # $post = '';
 	}
       } else { # no modifier block
-         $call = 'nslice';
+         $call = 'slice';
          $arg = procargs($slicearg);
          # $post = '';
-         # $call = 'nslice_if_pdl';     # handle runtime checks for $self type
+         # $call = 'slice_if_pdl';     # handle runtime checks for $self type
          # $arg =~ s/\)$/,q{$found})/;  # add original argument string
                                         # in case $self is not a piddle
                                         # and the original call must be
@@ -1029,15 +1028,10 @@ C<PDL::NiceSlice> exploits the ability of Perl to use source filtering
 rewrites) your perl code before it is seen by the
 compiler. C<PDL::NiceSlice> searches through your Perl source code and when
 it finds the new slicing syntax it rewrites the argument list
-appropriately and splices a call to the C<nslice> method using the
+appropriately and splices a call to the C<slice> method using the
 modified arg list into your perl code. You can see how this works in
 the L<perldl|perldl> or L<pdl2|PDL::Perldl2> shells by switching on
 reporting (see above how to do that).
-
-The C<nslice> method is an extended version of L<mslice|PDL::Core/mslice> that
-knows how to deal with index piddles (and therefore combines
-slicing and dicing). Full documentation of C<nslice> will
-be in the next PDL release.
 
 =head1 BUGS
 
