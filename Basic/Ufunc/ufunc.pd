@@ -662,6 +662,49 @@ some circumstances.
 
 ); # pp_def: oddmedover
 
+
+pp_def('modover',
+       HandleBad=>undef,
+       Pars => 'data(n); [o]out(); [t]sorted(n);',
+       GenericTypes=>['B','S','U','L','Q','N'],
+       Doc=>projectdocs('mode','modover','
+
+The mode is the single element most frequently found in a 
+discrete data set.  It only makes sense for integer data
+types, so floating-point types are demoted to integer before
+the mode is calculated.
+
+C<modover> treats BAD the same as any other value:  if
+BAD is the most common element, the returned value is also BAD.
+'),
+	 Code => <<'EOCODE',
+	       PDL_Indx i = 0;
+	       PDL_Indx most = 0;
+	       $GENERIC() curmode;
+               $GENERIC() curval;
+
+               /* Copy input to buffer for sorting, and sort it */
+               loop(n) %{ $sorted() = $data(); %}
+               PDL->$TBSULNQ(qsort_B,qsort_S,qsort_U,qsort_L,qsort_N,qsort_Q)($P(sorted),0,$SIZE(n)-1);
+      
+               /* Walk through the sorted data and find the most common elemen */
+               loop(n) %{
+                   if( n==0 || curval != $sorted() ) {
+	             curval = $sorted();
+	             i=0;
+	           } else {
+	             i++;
+	             if(i>most){
+	                most=i;
+                        curmode = curval;
+	             }
+	          }
+               %}
+               $out() = curmode;
+EOCODE
+    );
+
+
 my $find_pct_interpolate = '
            np = nn * $p();
            nn1 = np;
@@ -870,6 +913,7 @@ for my $op ( ['avg','average','average'],
 	     ['min','minimum','minimum'],
 	     ['max','maximum','maximum'],
 	     ['median', 'medover', 'median'],
+	     ['mode', 'modover', 'mode'],
 	     ['oddmedian','oddmedover','oddmedian']) {
     my $name = $op->[0];
     my $func = $op->[1];
@@ -882,7 +926,9 @@ for my $op ( ['avg','average','average'],
 
 =for ref
 
-Return the $text of all elements in a piddle
+Return the $text of all elements in a piddle.
+
+See the documentation for L<$func|/$func> for more information.
 
 =for usage
 
@@ -896,13 +942,7 @@ EOD
 	pp_addpm(<<"EOD");
 =for bad
 
-This routine handles bad values (see the
-documentation for L<$func|/$func>).
-I still need to decide how to handle the case when 
-the return value is a bad value (eg to make sure it
-has the same type as the input piddle OR 
-perhaps we should die - makes sense for the conditional
-ops but not things like sum)
+This routine handles bad values.
 
 =cut
 
