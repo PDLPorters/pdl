@@ -79,7 +79,7 @@ Save this file as C<myprogram.pl> and run it with:
 
 =head2 New: Flexible syntax
 
-In very recent versions of PDL (version 2.4.6_006 or later) there is
+In very recent versions of PDL (version 2.4.7 or later) there is
 a flexible matrix syntax that can look extremely similar to Scilab:
 
 1) Use a ';' to delimit rows:

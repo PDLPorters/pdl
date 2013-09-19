@@ -87,7 +87,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * vaffine.t
 
    Convert from Test to Test::More
-   * basic.t
    * bess.t
    * callext.t
    * conv.t
@@ -98,12 +97,10 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * func.t
    * hist.t
    * image2d.t
-   * iotypes.t
    * lut.t
    * lvalue.t
    * matrix.t
    * matrixops.t
-   * misc.t
    * niceslice.t
    * nsdatahandle.t
    * requiredmods.t
@@ -325,6 +322,20 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Unix OSes: Various package managers
    
 
+   Replace inconsistent minimum and maximum subs in Ufunc
+   by maxover and minover which is consistent with all the
+   other usages:
+
+       average       -> avgover
+       daverage      -> davgover
+       maximum       -> maxover
+       maximum_ind   -> maxover_ind
+       maximum_n_ind -> maxover_n_ind
+       minimum       -> minover
+       minimum_ind   -> minover_ind
+       minimum_n_ind -> minover_n_ind
+       minmaximum    -> minmaxover
+
    
 +-------------------------------------------------------+
 |                    INSTALLATION                       |
@@ -340,6 +351,9 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Fix the test problems with preexisting PDL installs
+   * Add warning if binary api has changed or if there
+       are other dependent PDL modules that would need
+       to be updated.
    * Develop test methodology
    * Add PDL::Core::Dev utility to perform check
    * Automate detection/test skip if not built logic
