@@ -667,14 +667,16 @@ pp_def('modover',
        HandleBad=>undef,
        Pars => 'data(n); [o]out(); [t]sorted(n);',
        GenericTypes=>['B','S','U','L','Q','N'],
-       Doc=>projectdocs('mode','modover','
+       Doc=>projectdocs('mode','modeover','
 
 The mode is the single element most frequently found in a 
-discrete data set.  It only makes sense for integer data
-types, so floating-point types are demoted to integer before
-the mode is calculated.
+discrete data set.
 
-C<modover> treats BAD the same as any other value:  if
+It I<only> makes sense for integer data types, since
+floating-point types are demoted to integer before the
+mode is calculated.
+
+C<modeover> treats BAD the same as any other value:  if
 BAD is the most common element, the returned value is also BAD.
 '),
 	 Code => <<'EOCODE',
