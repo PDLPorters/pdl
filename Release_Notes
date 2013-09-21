@@ -35,7 +35,17 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * This is pre-release 1 for PDL-2.007
+
+ * Add new mode/modeover functions
+
+ * Fix for MSVC++ 6.0 to build on 32bit systems.
+   MSVC++ 6.0 cannot be used to build 64bit index support
+   due to lack of 64bit functionality.  This fix allows
+   PDL to build for perls built with that compiler.
+ 
+ * More documentation updates for slice and indexing
+   features.
 
 
 
