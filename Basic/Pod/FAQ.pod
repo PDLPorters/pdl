@@ -545,7 +545,7 @@ If someone is interested in providing binary distributions for other
 architectures, that would be very welcome. Let us know on the 
 pdl-porters@jach.hawaii.edu mailing list. Also check your Linux
 distribution's package manager as many now include PDL.  PPMs
-for win32 versions are also available.
+for win32 versions (both 32bit and 64bit) are also available.
 
 
 =head2 Q: 4.6    Does PDL run on Linux? (And what about packages?)  
