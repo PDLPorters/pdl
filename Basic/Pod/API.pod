@@ -364,9 +364,10 @@ C<void qsort_X(PDL_Xtype *data, PDL_Indx a, PDL_Indx b)> and
 C<void qsort_ind_X(PDL_Xtype *data, PDL_Indx *ix, PDL_Indx a, PDL_Indx b)>
 
 where X is one of B,S,U,L,F,D and Xtype is one of Byte, Short, Ushort,
-Long, Float or Double.  PDL_Indx is the index type corresponding to
-the perl configuration (ivsize and ivtype).  It can be either 'long'
-or 'long long' depending on whether your perl is 64bit enabled.
+Long, Float or Double.  PDL_Indx is the C integer type corresponding to
+appropriate indexing size for the perl configuration (ivsize and ivtype).
+It can be either 'long' or 'long long' depending on whether your perl
+is 32bit or 64bit enabled.
 
 =item *
 

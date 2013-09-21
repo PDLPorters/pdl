@@ -246,9 +246,13 @@ Default for pdl() is double. Conversions are:
  $c = long($d);   # "long" is generally a 4 byte int
  $d = byte($a);
 
-Also double(), short(), ushort().  The indx() routine is
-for a PDL index value which is either a 32bit or 64bit
-quantity depending on whether your perl is 32bit or 64bit.
+Also double(), short(), ushort(), indx().  
+
+  NOTE: The indx() routine is a special integer type that
+  is the correct size for a PDL index value (dimension size,
+  index, or offest) which can be either a 32bit (long) or
+  64bit (longlong) quantity depending on whether the perl
+  is built with 32bit or 64bit support.
 
 These routines also automatically convert Perl lists to
 allow the convenient shorthand:
