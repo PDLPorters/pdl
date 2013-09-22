@@ -663,7 +663,7 @@ some circumstances.
 ); # pp_def: oddmedover
 
 
-pp_def('modover',
+pp_def('modeover',
        HandleBad=>undef,
        Pars => 'data(n); [o]out(); [t]sorted(n);',
        GenericTypes=>['B','S','U','L','Q','N'],
@@ -915,7 +915,7 @@ for my $op ( ['avg','average','average'],
 	     ['min','minimum','minimum'],
 	     ['max','maximum','maximum'],
 	     ['median', 'medover', 'median'],
-	     ['mode', 'modover', 'mode'],
+	     ['mode', 'modeover', 'mode'],
 	     ['oddmedian','oddmedover','oddmedian']) {
     my $name = $op->[0];
     my $func = $op->[1];
