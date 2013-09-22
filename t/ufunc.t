@@ -130,7 +130,7 @@ ok (PDL::oddmedian($g)==0, 'Oddmedian 2-value piddle test');
 ok (PDL::oddmedian($h)==0, 'Oddmedian 3-value not in order test');
 ok (PDL::oddmedian($j)==-3, 'Oddmedian negative values even cardinality test');
 
-#Test mode and modover
+#Test mode and modeover
 my $a = pdl([1,2,3,3,4,3,2],1);
 ok( $a->mode == 0, "mode test" );
-ok( all($a->modover == pdl(3,0)), "modover test");
+ok( all($a->modeover == pdl(3,0)), "modeover test");
