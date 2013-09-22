@@ -123,11 +123,6 @@ The following issues have been reported with this version of PDL:
 
            Fixed in this release.
 
-  337    rangeb() broken for 64bit index support on 32bit perl
-
-           Fixed in PDL-2.006_06 and up.  Need to verify
-	   before we can close ticket.
-
   334    Test coverage is incomplete
   332    "isn't numeric in null operation" warning could be more helpful
   330    NiceSlice can get confused by comments to cause compilation errors
