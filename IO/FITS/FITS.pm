@@ -165,6 +165,17 @@ time, unpacking such images transparently and returning the data and header
 as if they were part of a normal IMAGE extension.  Setting "expand" to 0
 delivers the binary table, rather than unpacking it into an image.
 
+=item afh (default=1)
+
+By default rfits uses Astro::FITS::Header tied-hash objects to contain
+the FITS header information.  This permits explicit control over FITS
+card information, and conforms well with the FITS specification.  But
+Astro::FITS::Header objects are about 40-60x more memory intensive
+than comparable perl hashes, and also use ~10x more CPU to manage.
+For jobs where header processing performance is important (e.g. reading 
+just the headers of 1,000 FITS files), set afh to 0 to use the legacy parser
+and get a large boost in speed.
+
 =back
 
 FITS image headers are stored in the output PDL and can be retrieved
@@ -302,7 +313,7 @@ reading in a data structure as well.
 
 =cut
 
-our $rfits_options = new PDL::Options( { bscale=>1, data=>1, hdrcpy=>0, expand=>1 } );
+our $rfits_options = new PDL::Options( { bscale=>1, data=>1, hdrcpy=>0, expand=>1, afh=>1 } );
 
 sub PDL::rfitshdr {
   my $class = shift;
@@ -418,7 +429,7 @@ sub PDL::rfits {
    # does not exist.
    # 
 
-   if($PDL::Astro_FITS_Header) { 
+   if($PDL::Astro_FITS_Header and $opt->{afh}) { 
 
      ## Astro::FITS::Header parsing.  Snarf lines to the END card,
      ## and pass them to Astro::FITS::Header.
@@ -438,7 +449,7 @@ sub PDL::rfits {
    } else {
      
      ## Legacy (straight header-to-hash-ref) parsing.  
-     ## Deprecated but preserved.
+     ## Cheesy but fast.
      
      hdr_legacy: { do {
        no strict 'refs';
