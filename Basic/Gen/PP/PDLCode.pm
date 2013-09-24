@@ -617,9 +617,7 @@ use PDL::Types ':All'; # typefld et al.
 #
 my %use_nan =
     map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
-$use_nan{ind} = 0;
 $use_nan{int} = 0;
-$use_nan{index} = 0;
 
 # original try
 ##my %use_nan =
