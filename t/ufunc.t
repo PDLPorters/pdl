@@ -115,20 +115,20 @@ my $j=pdl(-3, 3, -5, 10);
 
 #Test percentile routines
 #Test PDL::pct
-ok (PDL::pct($f, .5) == 3, 'PDL::pct 50th percentile');
-ok (PDL::pct($g, .76)==.76, 'PDL::pct interpolation test');
-ok (PDL::pct($i, .76)==.76,'PDL::pct interpolation not in order test');
+ok (tapprox(PDL::pct($f, .5),     3), 'PDL::pct 50th percentile');
+ok (tapprox(PDL::pct($g, .76), 0.76), 'PDL::pct interpolation test');
+ok (tapprox(PDL::pct($i, .76), 0.76), 'PDL::pct interpolation not in order test');
 
 #Test PDL::oddpct
-ok (PDL::oddpct($f, .5)==3, 'PDL::oddpct 50th percentile');
-ok (PDL::oddpct($f, .79)==4, 'PDL::oddpct intermediate value test');
-ok (PDL::oddpct($h, .5)==0, 'PDL::oddpct 3-member 50th percentile with negative value');
-ok (PDL::oddpct($j, .1)==-5, 'PDL::oddpct negative values in-between test');
+ok (tapprox(PDL::oddpct($f, .5),  3), 'PDL::oddpct 50th percentile');
+ok (tapprox(PDL::oddpct($f, .79), 4), 'PDL::oddpct intermediate value test');
+ok (tapprox(PDL::oddpct($h, .5),  0), 'PDL::oddpct 3-member 50th percentile with negative value');
+ok (tapprox(PDL::oddpct($j, .1), -5), 'PDL::oddpct negative values in-between test');
 
 #Test oddmedian
-ok (PDL::oddmedian($g)==0, 'Oddmedian 2-value piddle test');
-ok (PDL::oddmedian($h)==0, 'Oddmedian 3-value not in order test');
-ok (PDL::oddmedian($j)==-3, 'Oddmedian negative values even cardinality test');
+ok (PDL::oddmedian($g) ==  0, 'Oddmedian 2-value piddle test');
+ok (PDL::oddmedian($h) ==  0, 'Oddmedian 3-value not in order test');
+ok (PDL::oddmedian($j) == -3, 'Oddmedian negative values even cardinality test');
 
 #Test mode and modeover
 my $a = pdl([1,2,3,3,4,3,2],1);
