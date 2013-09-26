@@ -2190,7 +2190,7 @@ pp_add_exported('','grandom');
 
 =for sig
 
-  Signature: (i(); x(n); int [o]ip())
+  Signature: (i(); x(n); indx [o]ip())
 
 =cut
 
@@ -2198,7 +2198,7 @@ pp_add_exported('','grandom');
 pp_def('vsearch',
        HandleBad => 0,
        BadDoc => 'needs major (?) work to handles bad values',
-	Pars => 'i(); x(n); int [o]ip()',
+	Pars => 'i(); x(n); indx [o]ip()',
 	GenericTypes => ['F','D'], # too restrictive ?
 	Code => 'int carp=0;
 		 threadloop %{
@@ -2685,7 +2685,7 @@ EOD
 
 =for sig
 
-  Signature: (mask(n); int [o] inds(m))
+  Signature: (mask(n); indx [o] inds(m))
 
 =cut
 
@@ -2738,7 +2738,7 @@ EOD
 
 =for sig
 
-  Signature: (mask(n); int [o] inds(m); int [o]notinds(q))
+  Signature: (mask(n); indx [o] inds(m); indx [o]notinds(q))
 
 =cut
 
@@ -2769,7 +2769,7 @@ EOD
 
     for (
 	 {Name=>'which',
-	  Pars => 'mask(n); int [o] inds(m);',
+	  Pars => 'mask(n); indx [o] inds(m);',
 	  Variables => 'int dm=0;',
 	  Elseclause => "",
 	  Autosize => '$SIZE(m) = sum;',
@@ -2785,7 +2785,7 @@ EOD
 EOD
 	  },
 	 {Name => 'which_both',
-	  Pars => 'mask(n); int [o] inds(m); int [o]notinds(q)',
+	  Pars => 'mask(n); indx [o] inds(m); indx [o]notinds(q)',
 	  Variables => 'int dm=0; int dm2=0;',
 	  Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
 	  Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
@@ -2833,7 +2833,7 @@ EOD
 		$GENERIC() *m_datap = (($GENERIC() *)(PDL_REPRP(dpdl)));
 		PDL_Indx inc = PDL_REPRINC(dpdl,0);
 		PDL_Indx offs = PDL_REPROFFS(dpdl);
-		int i;
+		PDL_Indx i;
 
 		if (dpdl->ndims != 1)
 		  barf("dimflag currently works only with 1D pdls");
