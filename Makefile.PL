@@ -484,7 +484,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'Astro::FITS::Header' => 0,
            'Convert::UU'         => 0,         # for PDL::IO::Dumper
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
-           'ExtUtils::MakeMaker' => 6.31,      # for INSTALL_BASE support
+           'ExtUtils::MakeMaker' => 6.56,      # for CONFIGURE_REQUIRES support
 	   'File::Map'           => 0.57,      # test new mmap implementation
 	   'File::Spec'          => 0.6,
 	   'File::Temp'          => 0,
@@ -524,6 +524,7 @@ if($Config{archname}=~m/x86_64/) {
 
 %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
+              'CONFIGURE_REQUIRES' => { 'Devel::CheckLib' => 1.01, },
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
