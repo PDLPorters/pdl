@@ -35,7 +35,21 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * ExtUtils::MakeMaker required version is now 6.56 to enable
+   use of the CONFIGURE_REQUIRES option (which has been standard
+   in perl Core modules since perl-5.12.0 in 4/2010.
+ 
+ * Fixed some missing conversions to 64bit index support in
+   PDL::Primative: vsearch, which, which_both.  Thanks to
+   Edward Baudrez for reporting the problem.
+ 
+ * Replace equality tests by tapprox() ones for some failing
+   floating point tests in t/ufunc.t.
+ 
+ * Code cleanup of some leftover 64bit index experiments.
+
+ * Added 'afh" option to rfits to allow explicit use of legacy hash
+   parser for performance reasons.  
 
 
 

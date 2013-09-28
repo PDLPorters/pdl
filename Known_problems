@@ -1,12 +1,6 @@
 The following issues have been reported with this version of PDL:
 
 
-- Build/test failures for OpenBSD 5.3 on AMD64 platforms for
-  non-threaded perls.  A work-around fix is being tested which
-  disables pthreads if the perl has not been built with thread
-  support and pthreads.
-
-
 - PDL::NiceSlice filtering of multi-line constructs results
   in a single line output which makes line numbers in error
   messages off.  This can make the location of errors in the
@@ -119,10 +113,6 @@ The following issues have been reported with this version of PDL:
 
   340    orover of byte data returns long type
   339    PDL::Complex support is inconsistent and incomplete
-  338    PDL::FFT uses backwards sign convention from FFTW
-
-           Fixed in this release.
-
   334    Test coverage is incomplete
   332    "isn't numeric in null operation" warning could be more helpful
   330    NiceSlice can get confused by comments to cause compilation errors
