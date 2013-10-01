@@ -1,16 +1,26 @@
 TYPEMAP
 pdl*	T_PDL
 pdl *	T_PDL
+pdl_trans * T_PDLTRANS
+pdl_trans* T_PDLTRANS
 Logical	T_IV
+PDL_Indx  T_IV
 float	T_NV
 
 INPUT
 
 T_PDL
 	$var = PDL->SvPDLV($arg)
+T_PDLTRANS
+	if(sv_isa($arg,\"PDL::Trans\"))
+		$var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
+	else
+	        croak(\"$var is not of type PDL::Trans\")
 
 
 OUTPUT
 
 T_PDL
 	PDL->SetSV_PDL($arg,$var);
+T_PDLTRANS
+	sv_setref_pv($arg, \"PDL::Trans\", (void*)$var);
