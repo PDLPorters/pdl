@@ -203,7 +203,12 @@ sub procargs {
   # push @callstack, $txt; # for later error reporting
   my $args = $txt =~ /^\s*$/s ? '' :
     join ',', map {onearg $_} splitprotected ',', $txt;
-  $args =~ s/\s//sg; # get rid of whitespace
+    ## Leave whitespace/newlines in so line count
+    ## is preserved in error messages.  Makes the
+    ## filtered output ugly---iffi the input was
+    ## ugly...
+    ## 
+    ## $args =~ s/\s//sg; # get rid of whitespace
   # pop @callstack; # remove from call stack
   print STDERR "procargs: returned '($args)'\n" if $PDL::NiceSlice::debug;
   return "($args)";
