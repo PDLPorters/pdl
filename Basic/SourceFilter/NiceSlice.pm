@@ -205,6 +205,7 @@ sub procargs {
     join ',', map {onearg $_} splitprotected ',', $txt;
   $args =~ s/\s//sg; # get rid of whitespace
   # pop @callstack; # remove from call stack
+  print STDERR "procargs: returned '($args)'\n" if $PDL::NiceSlice::debug;
   return "($args)";
 }
 
