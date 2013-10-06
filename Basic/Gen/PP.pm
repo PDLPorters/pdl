@@ -1195,13 +1195,13 @@ sub pp_deprecate_module
     "This warning can be suppressed by setting the $envvar\n" .
     "environment variable\n";
 
-  pp_addpm {At => 'Top'}, <<EOF;
-=head1 DEPRECATION NOTICE
+  pp_addpm {At => 'Top'}, map { s/^XXX=/=/m } <<EOF;
+XXX=head1 DEPRECATION NOTICE
 
 $warning_main
 $warning_suppression_pod
 
-=cut
+XXX=cut
 
 EOF
 
@@ -2426,11 +2426,11 @@ sub GenDocs {
       $baddoc = "=for bad\n\n$baddoc";
   }
 
-  return << "EOD";
+  return map { s/^XXX=/=/m } << "EOD";
 
-=head2 $name
+XXX=head2 $name
 
-=for sig
+XXX=for sig
 
   Signature: ($sig)
 
@@ -2438,7 +2438,7 @@ $doc
 
 $baddoc
 
-=cut
+XXX=cut
 
 EOD
 }
