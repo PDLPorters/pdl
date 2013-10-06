@@ -478,7 +478,7 @@ my %notestsifmodulesmissing = @hasnt ? # are any required modules missing ?
   (test => {TESTS => 't/requiredmods.t'}) : ();
 
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
-  qw/perldl pdldoc/;
+  qw/Bugs perldl pdldoc/;
 
 @prereq = (
 	   'Astro::FITS::Header' => 0,
