@@ -1195,7 +1195,7 @@ sub pp_deprecate_module
     "This warning can be suppressed by setting the $envvar\n" .
     "environment variable\n";
 
-  pp_addpm( {At => 'Top'}, map { s/^XXX=/=/m } <<EOF );
+  my $deprecation_notice = <<EOF ;
 XXX=head1 DEPRECATION NOTICE
 
 $warning_main
@@ -1204,10 +1204,13 @@ $warning_suppression_pod
 XXX=cut
 
 EOF
+  $deprecation_notice =~ s/^XXX=/=/gms;
+  pp_addpm( {At => 'Top'}, $deprecation_notice );
 
   pp_addpm {At => 'Top'}, <<EOF;
 warn \"$warning_main\n$warning_suppression_runtime\" unless \$ENV{$envvar};
 EOF
+
 
 }
 
@@ -2426,7 +2429,7 @@ sub GenDocs {
       $baddoc = "=for bad\n\n$baddoc";
   }
 
-  return (map { s/^XXX=/=/m } << "EOD");
+  my $baddoc_function_pod = <<"EOD" ;
 
 XXX=head2 $name
 
@@ -2441,6 +2444,9 @@ $baddoc
 XXX=cut
 
 EOD
+
+  $baddoc_function_pod =~ s/^XXX=/=/gms;
+  return $baddoc_function_pod;
 }
 
 sub ToIsReversible {
