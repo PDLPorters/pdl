@@ -2012,6 +2012,11 @@ pp_addhdr(<<'EOH');
 #include <plplotP.h>
 #include <plevent.h>
 #include <stdio.h>
+
+#ifdef plwidth
+#define c_plwid c_plwidth
+#endif
+
 EOH
 
 # The create_low_level_constants function is used to make the #define'd
@@ -2247,7 +2252,7 @@ C:
 
 perl:
 
-  my ($legend_width, $legend_height) = 
+  my ($legend_width, $legend_height) =
     pllegend ($position, $opt, $x, $y, $plot_width, $bg_color, $nlegend,
     \@opt_array,
     $text_offset, $text_scale, $text_spacing, $test_justification,
@@ -4623,7 +4628,7 @@ pp_addpm (<<'EOPM');
 
 =for sig
 
-my ($legend_width, $legend_height) = 
+my ($legend_width, $legend_height) =
     pllegend ($position, $opt, $x, $y, $plot_width, $bg_color, $nlegend,
     \@opt_array,
     $text_offset, $text_scale, $text_spacing, $test_justification,
@@ -4696,35 +4701,35 @@ PPCODE:
     elem = av_fetch((AV *)SvRV(text_rv),            i, 0); text[i]            = (char *)SvPV_nolen(*elem);
     box_colors[i] = 0;
     if (SvROK(box_colors_rv)) {
-      elem = av_fetch((AV *)SvRV(box_colors_rv),    i, 0); 
+      elem = av_fetch((AV *)SvRV(box_colors_rv),    i, 0);
       if (elem && SvOK(*elem)) {
         box_colors[i] = (int)SvIV(*elem);
       }
     }
     box_patterns[i] = 0;
     if (SvROK(box_patterns_rv)) {
-      elem = av_fetch((AV *)SvRV(box_patterns_rv),  i, 0); 
+      elem = av_fetch((AV *)SvRV(box_patterns_rv),  i, 0);
       if (elem && SvOK(*elem)) {
         box_patterns[i] = (int)SvIV(*elem);
       }
     }
     box_scales[i] = 0.0;
     if (SvROK(box_scales_rv)) {
-      elem = av_fetch((AV *)SvRV(box_scales_rv),    i, 0); 
+      elem = av_fetch((AV *)SvRV(box_scales_rv),    i, 0);
       if (elem && SvOK(*elem)) {
         box_scales[i] = (double)SvNV(*elem);
       }
     }
     box_line_widths[i] = 0;
     if (SvROK(box_line_widths_rv)) {
-      elem = av_fetch((AV *)SvRV(box_line_widths_rv), i, 0); 
+      elem = av_fetch((AV *)SvRV(box_line_widths_rv), i, 0);
       if (elem && SvOK(*elem)) {
         box_line_widths[i] = (int)SvIV(*elem);
       }
     }
     line_colors[i] = 0;
     if (SvROK(line_colors_rv)) {
-      elem = av_fetch((AV *)SvRV(line_colors_rv), i, 0); 
+      elem = av_fetch((AV *)SvRV(line_colors_rv), i, 0);
       if (elem && SvOK(*elem)) {
         line_colors[i] = (int)SvIV(*elem);
       }
@@ -4732,7 +4737,7 @@ PPCODE:
 
     line_styles[i] = 0;
     if (SvROK(line_styles_rv)) {
-      elem = av_fetch((AV *)SvRV(line_styles_rv), i, 0); 
+      elem = av_fetch((AV *)SvRV(line_styles_rv), i, 0);
       if (elem && SvOK(*elem)) {
         line_styles[i] = (int)SvIV(*elem);
       }
@@ -4740,7 +4745,7 @@ PPCODE:
 
     line_widths[i] = 0;
     if (SvROK(line_widths_rv)) {
-      elem = av_fetch((AV *)SvRV(line_widths_rv), i, 0); 
+      elem = av_fetch((AV *)SvRV(line_widths_rv), i, 0);
       if (elem && SvOK(*elem)) {
         line_widths[i] = (int)SvIV(*elem);
       }
@@ -4748,7 +4753,7 @@ PPCODE:
 
     symbol_colors[i] = 0;
     if (SvROK(symbol_colors_rv)) {
-      elem = av_fetch((AV *)SvRV(symbol_colors_rv), i, 0); 
+      elem = av_fetch((AV *)SvRV(symbol_colors_rv), i, 0);
       if (elem && SvOK(*elem)) {
         symbol_colors[i] = (int)SvIV(*elem);
       }
@@ -4756,7 +4761,7 @@ PPCODE:
 
     symbol_scales[i] = 0.0;
     if (SvROK(symbol_scales_rv)) {
-      elem = av_fetch((AV *)SvRV(symbol_scales_rv), i, 0); 
+      elem = av_fetch((AV *)SvRV(symbol_scales_rv), i, 0);
       if (elem && SvOK(*elem)) {
         symbol_scales[i] = (double)SvNV(*elem);
       }
@@ -4764,7 +4769,7 @@ PPCODE:
 
     symbol_numbers[i] = 0;
     if (SvROK(symbol_numbers_rv)) {
-      elem = av_fetch((AV *)SvRV(symbol_numbers_rv), i, 0); 
+      elem = av_fetch((AV *)SvRV(symbol_numbers_rv), i, 0);
       if (elem && SvOK(*elem)) {
         symbol_numbers[i] = (int)SvIV(*elem);
       }
@@ -4772,7 +4777,7 @@ PPCODE:
 
     symbols[i] = "0";
     if (SvROK(symbols_rv)) {
-      elem = av_fetch((AV *)SvRV(symbols_rv), i, 0); 
+      elem = av_fetch((AV *)SvRV(symbols_rv), i, 0);
       if (elem && SvOK(*elem)) {
         symbols[i] = (char *)SvPV_nolen(*elem);
       }
@@ -4866,13 +4871,13 @@ EOPM
 pp_addxs (<<"EOC");
 void
 plbtime (ctime)
-  double ctime 
+  double ctime
 PPCODE:
   PLINT year;
   PLINT month;
   PLINT day;
   PLINT hour;
-  PLINT min; 
+  PLINT min;
   PLFLT sec;
   c_plbtime(&year, &month, &day, &hour, &min, &sec, ctime);
   EXTEND (SP, 6);
@@ -4896,7 +4901,7 @@ pp_addpm (<<'EOPM');
 
 =for ref
 
-Configure transformation between continuous and broken-down time (and                                                           
+Configure transformation between continuous and broken-down time (and
 vice versa) for current stream.
 
 =cut
@@ -4917,8 +4922,8 @@ plconfigtime(scale, offset1, offset2, ccontrol, ifbtime_offset, year, month, day
   int min
   double sec
 PPCODE:
-  c_plconfigtime((PLFLT) scale, (PLFLT) offset1, (PLFLT) offset2, 
-                 (PLINT) ccontrol, (PLBOOL) ifbtime_offset, (PLINT) year, 
+  c_plconfigtime((PLFLT) scale, (PLFLT) offset1, (PLFLT) offset2,
+                 (PLINT) ccontrol, (PLBOOL) ifbtime_offset, (PLINT) year,
                  (PLINT) month, (PLINT) day, (PLINT) hour, (PLINT) min, (PLFLT) sec);
 EOC
 pp_add_exported ('plconfigtime');
