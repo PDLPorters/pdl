@@ -1,5 +1,9 @@
 The following issues have been reported with this version of PDL:
 
+- PDL doesn't build on Debian/Testing AMD64.  The problem appears
+  to be with the specific configuration for the build---perhaps
+  the OS version.
+
 
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM
@@ -103,7 +107,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.006_92 release:
+  PDL-2.006_93 release:
 
   340    orover of byte data returns long type
   339    PDL::Complex support is inconsistent and incomplete
