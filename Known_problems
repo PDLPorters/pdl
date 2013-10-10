@@ -1,12 +1,6 @@
 The following issues have been reported with this version of PDL:
 
 
-- PDL::NiceSlice filtering of multi-line constructs results
-  in a single line output which makes line numbers in error
-  messages off.  This can make the location of errors in the
-  source code confusing.
-
-
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM
   format on some platforms, resulting in a failed picrgb test.
@@ -120,11 +114,9 @@ The following issues have been reported with this version of PDL:
   322    PDL::Demos system needs overhaul
   321    Several core modules do not have man pages
   319    PDL::Index does not render on websites
-  318    Need INSTALLSITEBIN for recent Macports Perls
   313    clip() edge case not handled right
   312    Wrong results in corner empty-set cases
   308    propagate badflag with .=
-  298    pp_def, pp_line_numbers,..not found by pdldoc
   274    'help funname' fails to show multiple function names
   268    PLplot still unusable with X
   261    max() fails on nan

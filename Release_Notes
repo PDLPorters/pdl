@@ -35,7 +35,19 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * PP.pm no longer generates false POD due to detection
+   of the documentation generation templates by perldoc.
+
+ * PDL::PP routines now documented in a pdldoc index-able
+   format: "apropos pp_" should work now in the PDL shells.
+
+ * BUGS has moved to PDL::Bugs with POD and is indexed in
+   the pdldoc database.
+ 
+ * PDL::NiceSlice no longer strips out newlines and now
+   preserves line numbering in error messages.
+ 
+ * PDL::CLONE_SKIP added for better ithread support.
 
 
 
