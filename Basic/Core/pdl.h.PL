@@ -258,14 +258,16 @@ typedef struct pdl_transvtable {
 
 #endif
 
+#ifdef PDL_DEBUGGING
+#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) croak("INVALID " #type "MAGIC NO %d %d\n",(int)(it),(int)((it)->magicno)); else (void)0
+#else
+#define PDL_CHKMAGIC_GENERAL(it,this_magic,type)
+#endif
+
 #define PDL_TR_MAGICNO 0x91827364
 #define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO
 #define PDL_TR_CLRMAGIC(it) it->magicno = 0x99876134
-#ifdef PDL_DEBUGGING
-#define PDL_TR_CHKMAGIC(it) if((it)->magicno != PDL_TR_MAGICNO) croak("INVALID TRANS MAGIC NO %d %d\n",(int)(it),(int)((it)->magicno)); else (void)0
-#else
-#define PDL_TR_CHKMAGIC(it)
-#endif
+#define PDL_TR_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it, PDL_TR_MAGICNO, "TRANS ")
 
 
 struct pdl_trans {
@@ -321,11 +323,7 @@ struct pdl_magic;
 
 struct pdl {
 #define PDL_MAGICNO 0x24645399
-#ifdef PDL_DEBUGGING
-#define PDL_CHKMAGIC(it) if((it)->magicno != PDL_MAGICNO) croak("INVALID MAGIC NO %d %d\n",(int)(it),(int)((it)->magicno)); else (void)0
-#else
-#define PDL_CHKMAGIC(it)
-#endif
+#define PDL_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it,PDL_MAGICNO,"")
    unsigned long magicno; /* Always stores PDL_MAGICNO as a sanity check */
      /* This is first so most pointer accesses to wrong type are caught */
    int state;        /* What's in this pdl */
