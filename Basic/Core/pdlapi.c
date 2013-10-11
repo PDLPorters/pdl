@@ -1327,7 +1327,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 
 	PDL_TR_CHKMAGIC(trans);
 	if(!trans->vtable) {
-	  die("ZERO VTABLE DESTTRAN 0x%x %d\n",(int)trans,ensure);
+	  die("ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
 	}
 	if(ensure) {
 		PDLDEBUG_f(printf("pdl_destroytransform: ensure\n"));
