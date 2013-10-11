@@ -259,7 +259,7 @@ typedef struct pdl_transvtable {
 #endif
 
 #ifdef PDL_DEBUGGING
-#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) croak("INVALID " #type "MAGIC NO %d %d\n",(int)(it),(int)((it)->magicno)); else (void)0
+#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) croak("INVALID " #type "MAGIC NO 0x%p %d\n",it,(int)((it)->magicno)); else (void)0
 #else
 #define PDL_CHKMAGIC_GENERAL(it,this_magic,type)
 #endif
