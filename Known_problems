@@ -5,6 +5,17 @@ The following issues have been reported with this version of PDL:
   the OS version.
 
 
+- There are unresolved platform-specific build failures for some
+  linux platforms which appear to be related but has not been
+  better localized.  The consistent error message seems to be
+
+   > $ perl -MPDL -E'$x=ones(2); print $x+1'
+   > *** Error in `perl': realloc(): invalid next size: 0x09f13010 ***
+
+  Help to diagnose, debug, and fix this problem will be
+  gratefully accepted.
+
+
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM
   format on some platforms, resulting in a failed picrgb test.
@@ -109,6 +120,7 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.006_93 release:
 
+  343    longlong constructor and display lose digits due to implicit double precision conversions
   340    orover of byte data returns long type
   339    PDL::Complex support is inconsistent and incomplete
   334    Test coverage is incomplete

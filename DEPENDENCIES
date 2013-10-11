@@ -83,6 +83,11 @@ PDL::IO::Storable Storable >=1.03
 pdl2   (shell)    Devel::REPL >= 1.003011
                   and Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
+		                          
+					  Devel::REPL requires Data::Dump::Streamer
+					  to support pdl2.  This may need to be
+					  hand-installed if you are doing a manual
+					  PDL build.
 
 perldl (shell)    Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
