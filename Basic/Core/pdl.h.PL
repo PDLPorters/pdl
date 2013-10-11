@@ -231,32 +231,22 @@ typedef struct pdl_transvtable {
  virtual parent. */
 
 #ifdef _MSC_VER
-#define PDL_TRANS_START(np) \
-	int magicno; \
-	short flags; \
-	pdl_transvtable *vtable; \
-	void (*freeproc)(struct pdl_trans *);  /* Call to free this  \
-					(means whether malloced or not) */ \
-        pdl *pdls[np ? np : 1]; /* The pdls involved in the transformation */ \
-        int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
-        int has_badvalue; \
-        double badvalue; \
-	int __datatype
-
+  #define DUMMY_PDL_COUNT_IN_TRANS(np) (np ? np : 1)
 #else
+  #define DUMMY_PDL_COUNT_IN_TRANS(np) (np)
+#endif
+
 #define PDL_TRANS_START(np) \
 	int magicno; \
 	short flags; \
 	pdl_transvtable *vtable; \
 	void (*freeproc)(struct pdl_trans *);  /* Call to free this  \
 					(means whether malloced or not) */ \
-        pdl *pdls[np]; /* The pdls involved in the transformation */ \
+        pdl *pdls[DUMMY_PDL_COUNT_IN_TRANS(np)]; /* The pdls involved in the transformation */ \
         int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
         int has_badvalue; \
         double badvalue; \
 	int __datatype
-
-#endif
 
 #ifdef PDL_DEBUGGING
 #define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) croak("INVALID " #type "MAGIC NO 0x%p %d\n",it,(int)((it)->magicno)); else (void)0
