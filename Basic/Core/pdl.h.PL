@@ -225,28 +225,39 @@ typedef struct pdl_transvtable {
 #define PDL_ITRANS_VAFFINEVALID 0x2000
 #define PDL_ITRANS_NONMUTUAL 0x4000  /* flag for destruction */
 
-/* vparent is the "virtual parent" which is either
- the parent or grandparent or whatever. The trans -structure must store
- both the relationship with our current parent and, if necessary, the
- virtual parent. */
+// These define struct pdl_trans and all derived structures. There are many
+// structures that defined in other parts of the code that can be referenced
+// like a pdl_trans* because all of these structures have the same pdl_trans
+// initial piece. These structures can contain multiple pdl* elements in them.
+// Thus pdl_trans itself ends with a flexible pdl*[] array, which can be used to
+// reference any number of pdl objects. As a result pdl_trans itself can NOT be
+// instantiated
 
-#ifdef _MSC_VER
-  #define DUMMY_PDL_COUNT_IN_TRANS(np) (np ? np : 1)
-#else
-  #define DUMMY_PDL_COUNT_IN_TRANS(np) (np)
-#endif
+// vparent is the "virtual parent" which is either
+// the parent or grandparent or whatever. The trans -structure must store
+// both the relationship with our current parent and, if necessary, the
+// virtual parent.
+
+#define PDL_TRANS_START_COMMON                                          \
+  int magicno;                                                          \
+  short flags;                                                          \
+  pdl_transvtable *vtable;                                              \
+  void (*freeproc)(struct pdl_trans *);  /* Call to free this           \
+                                          (means whether malloced or not) */ \
+  int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
+  int has_badvalue;                                                     \
+  double badvalue;                                                      \
+  int __datatype
 
 #define PDL_TRANS_START(np) \
-	int magicno; \
-	short flags; \
-	pdl_transvtable *vtable; \
-	void (*freeproc)(struct pdl_trans *);  /* Call to free this  \
-					(means whether malloced or not) */ \
-        pdl *pdls[DUMMY_PDL_COUNT_IN_TRANS(np)]; /* The pdls involved in the transformation */ \
-        int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
-        int has_badvalue; \
-        double badvalue; \
-	int __datatype
+  PDL_TRANS_START_COMMON; \
+  /* The pdls involved in the transformation */ \
+  pdl *pdls[np]
+
+#define PDL_TRANS_START_FLEXIBLE() \
+  PDL_TRANS_START_COMMON; \
+  /* The pdls involved in the transformation */ \
+  pdl *pdls[]
 
 #ifdef PDL_DEBUGGING
 #define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) croak("INVALID " #type "MAGIC NO 0x%p %d\n",it,(int)((it)->magicno)); else (void)0
@@ -260,8 +271,11 @@ typedef struct pdl_transvtable {
 #define PDL_TR_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it, PDL_TR_MAGICNO, "TRANS ")
 
 
+// This is a generic parent of all the trans structures. It is a flexible array
+// (can store an arbitrary number of pdl objects). Thus this can NOT be
+// instantiated, only "child" structures can
 struct pdl_trans {
-	PDL_TRANS_START(1);
+  PDL_TRANS_START_FLEXIBLE();
 } ;
 
 typedef struct pdl_trans_affine {
