@@ -103,7 +103,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007 release:
+  PDL-2.007_01 release:
 
   343    longlong constructor and display lose digits due to implicit double precision conversions
   340    orover of byte data returns long type
