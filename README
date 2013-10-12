@@ -17,7 +17,7 @@ Release_Notes		A list of features or issues with regard to the
 
 Known_problems	 	Check before you report problems
 
-BUGS			How to make a bug report
+BUGS.pod		How to make a bug report, PDL::Bugs
 
 perldl.conf		PDL configuration options
 

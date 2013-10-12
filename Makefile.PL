@@ -13,7 +13,7 @@ check_lib_or_exit(
 
 use 5.008_000;      # explicitly require 5.8.x or above
 
-use ExtUtils::MakeMaker 6.31;  # for INSTALL_BASE support
+use ExtUtils::MakeMaker 6.56;  # for CONFIGURE_REQUIRES support
 
 $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
