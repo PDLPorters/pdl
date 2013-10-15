@@ -143,7 +143,7 @@ pp_def(
         Doc => $doc,
 );
 
-=head2 index, index2d
+=head2 index, index1d, index2d
 
 =cut
 
@@ -155,7 +155,7 @@ C<index>, C<index1d>, and C<index2d> provide rudimentary index indirection.
 =for example
 
  $c = index($source,$ind);
- $c = index($source,$ind);
+ $c = index1d($source,$ind);
  $c = index2d($source2,$ind1,$ind2);
 
 use the C<$ind> variables as indices to look up values in C<$source>.
@@ -163,25 +163,33 @@ The three routines thread slightly differently.
 
 =over 3
 
-=item C<index> uses direct threading for 1-D indexing across the 0 dim
+=item * 
+
+C<index> uses direct threading for 1-D indexing across the 0 dim
 of C<$source>.  It can thread over source thread dims or index thread
-dims dims not not (easily) both: If <$source> has more than 1
+dims, but not (easily) both: If C<$source> has more than 1
 dimension and C<$ind> has more than 0 dimensions, they must agree in
 a threading sense.
 
+=item * 
+
 C<index1d> uses a single active dim in C<$ind> to produce a list of
 indexed values in the 0 dim of the output - it is useful for
-collapsing C<$source> by indexing with a single row of values long
+collapsing C<$source> by indexing with a single row of values along
 C<$source>'s 0 dimension.  The output has the same number of dims as
 C<$source>.  The 0 dim of the output has size 1 if C<$ind> is a
 scalar, and the same size as the 0 dim of C<$ind> if it is not. If
-C<$ind> and $<source> both have more than 1 dim, then all dims higher
+C<$ind> and C<$source> both have more than 1 dim, then all dims higher
 than 0 must agree in a threading sense.
+
+=item * 
 
 C<index2d> works like C<index> but uses separate piddles for X and Y
 coordinates.  For more general N-dimensional indexing, see the
-L<PDL::NiceSlice> syntax or L<PDL::Slices> (in particular C<slice>,
+L<PDL::NiceSlice|PDL::NiceSlice> syntax or L<PDL::Slices|PDL::Slices> (in particular C<slice>,
 C<indexND>, and C<range>).
+
+=back 
 
 These functions are two-way, i.e. after
 
