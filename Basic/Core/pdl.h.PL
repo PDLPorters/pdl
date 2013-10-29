@@ -191,7 +191,6 @@ typedef struct pdl_transvtable {
 /* All trans must start with this */
 
 /* Trans flags */
-<<<<<<< HEAD
 
         /* Reversible transform -- flag indicates data can flow both ways.  */
         /* This is critical in routines that both input from and output to  */
@@ -323,16 +322,16 @@ struct pdl {
    void *         data;        /* Pointer to actual data (in SV), or NULL if we have no data      */
    double         badvalue;    /* BAD value is stored as a double for portability                 */
    int            has_badvalue;/* flag is required by pdlapi.c (compare to PDL_BADVAL above -- why two? --CED) */
-   PDL_Index      nvals;       /* Actual size of data (not quite nelem in case of dummy)          */
+   PDL_Indx       nvals;       /* Actual size of data (not quite nelem in case of dummy)          */
    int            datatype;    /* One of the usual suspects (PDL_L, PDL_D, etc.)                  */
-   PDL_Index *    dims;        /* Array of data dims - could point below or to an allocated array */
-   PDL_Index *    dimincs;     /* Array of strides through memory for each dim (0 for dummies)    */
+   PDL_Indx *     dims;        /* Array of data dims - could point below or to an allocated array */
+   PDL_Indx *     dimincs;     /* Array of strides through memory for each dim (0 for dummies)    */
    short          ndims;       /* Number of data dimensions in dims and dimincs                   */
    unsigned char *threadids;   /* Array of threadid's for explicit threading (REMOVE?)            */
    unsigned char  nthreadids;  /* Number of threadid's allocated for explicit threading (REMOVE?) */
    pdl_children   children;    /* Structure containing children of this PDL                       */
-   PDL_Index      def_dims[PDL_NDIMS];    /* Preallocated space (efficient in common cases)       */
-   PDL_Index      def_dimincs[PDL_NDIMS]; /* Preallocated space (efficient in common cases)       */
+   PDL_Indx       def_dims[PDL_NDIMS];    /* Preallocated space (efficient in common cases)       */
+   PDL_Indx       def_dimincs[PDL_NDIMS]; /* Preallocated space (efficient in common cases)       */
    unsigned char  def_threadids[PDL_NTHREADIDS]; /* Preallocated space (REMOVE?)                  */
    pdl_magic *    magic;       /* Perl-style magic - do stuff when this PDL is manipulated        */
    void *         hdrsv;       /* SV points to the PDL's "header", settable from Perl             */
