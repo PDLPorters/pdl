@@ -39,12 +39,12 @@ typedef struct pdl_thread {
 	int nimpl;	/* Number of these that are implicit */
 	int npdls;	/* Number of pdls involved */
 	int nextra;
-	PDL_Index *inds;	/* Indices for each of the dimensions */
-	PDL_Index *dims;	/* Dimensions of each dimension */
-	PDL_Index *offs;	/* Offsets for each of the pdls */
-	PDL_Index *incs;	/* npdls * ndims array of increments. Fast because
+	PDL_Indx *inds;	/* Indices for each of the dimensions */
+	PDL_Indx *dims;	/* Dimensions of each dimension */
+	PDL_Indx *offs;	/* Offsets for each of the pdls */
+	PDL_Indx *incs;	/* npdls * ndims array of increments. Fast because
 	 		               of constant indices for first loops */
-	PDL_Index *realdims;  /* realdims for each pdl (e.g., specified by PP signature) */
+	PDL_Indx *realdims;  /* realdims for each pdl (e.g., specified by PP signature) */
 	pdl **pdls;
         char *flags;    /* per pdl flags */
         int mag_nth;    /* magicked thread dim */

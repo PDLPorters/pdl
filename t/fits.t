@@ -12,7 +12,7 @@ use PDL::Config;
 
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-use Test::More tests => 84;
+use Test::More tests => 90;
 
 BEGIN {
       use_ok( "PDL::IO::FITS" ); #1
@@ -274,6 +274,29 @@ SKIP:{
     wfits($a,$file);
     my $b = rfits($file);
     ok(all($a==$b),"fftnd output (non-contiguous in memory) is written correctly");
+    unlink $file;
 }
+
+##############################
+# Check multi-HDU read/write
+
+$a = sequence(5,5);
+$b = rvals(5,5);
+
+our @aa;
+
+eval { wfits([$a,$b],$file); };
+ok(!$@, "wfits with multiple HDUs didn't fail");
+
+eval { @aa = rfits($file); };
+ok(!$@, "rfits in list context didn't fail");
+
+ok( $aa[0]->ndims == $a->ndims && all($aa[0]->shape == $a->shape), "first element has right shape");
+ok( all($aa[0] == $a), "first element reproduces written one");
+
+ok( $aa[1]->ndims == $b->ndims && all($aa[1]->shape == $b->shape), "second element has right shape");
+ok( all($aa[1] == $b), "Second element reproduces written one");
+
+unlink $file;
 
 1;

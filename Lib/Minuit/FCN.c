@@ -55,7 +55,7 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   SV* pxvalsv;
   
   int ndims;
-  PDL_Index *pdims;
+  PDL_Indx *pdims;
 
   dSP;
   ENTER;
@@ -65,9 +65,9 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   funname = mnfunname;
 
   ndims = 1;
-  pdims = (PDL_Index *)  PDL->smalloc( (STRLEN) ((ndims) * sizeof(*pdims)) );
+  pdims = (PDL_Indx *)  PDL->smalloc( (STRLEN) ((ndims) * sizeof(*pdims)) );
   
-  pdims[0] = (PDL_Index) ene;
+  pdims[0] = (PDL_Indx) ene;
 
   PUSHMARK(SP);
   XPUSHs(sv_2mortal(newSVpv("PDL", 0)));

@@ -26,7 +26,7 @@ void pdl_freedata (pdl *a) {
 
 /*  Utility to change the size of the data compt of a pdl */
 
-void pdl_grow (pdl* a, PDL_Index newsize) {
+void pdl_grow (pdl* a, PDL_Indx newsize) {
 
    SV* foo;
    HV* hash;
@@ -70,7 +70,7 @@ void pdl_grow (pdl* a, PDL_Index newsize) {
 
 /* unpack dims array into Hash */
 
-void pdl_unpackarray ( HV* hash, char *key, PDL_Index *dims, int ndims ) {
+void pdl_unpackarray ( HV* hash, char *key, PDL_Indx *dims, int ndims ) {
 
    AV*  array;
    int i;

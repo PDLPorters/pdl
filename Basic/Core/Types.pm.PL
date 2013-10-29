@@ -11,18 +11,30 @@ use File::Basename qw(&basename &dirname);
 
 # Figure out the 4 byte integer type on this machine
 
-sub typeofPDLIndex {
-   warn "Using typedef $Config{'ivtype'} PDL_Index\n";
+sub packtypeof_PDL_Indx {
+   if ($Config{'ivsize'} == 8) {
+      return 'q*';
+   }
+   elsif ($Config{'ivsize'} == 4 ) {
+      return 'l*';
+   }
+   else {
+      die "Types.pm.PL: packtype for ivsize==$Config{'ivsize'} not handled\n";
+   }
+}
+
+sub typeof_PDL_Indx {
+   warn "Types.pm.PL: using typedef $Config{'ivtype'} PDL_Indx\n";
    return $Config{'ivtype'} 
 }
 
-sub typeofPDLLong {
+sub typeof_PDL_Long {
    return 'int'  if $Config{'intsize'}==4;
    return 'long' if $Config{'longsize'}==4;
    die "Can not find an integer datatype of size 4 bytes!!!\n";
 }
 
-sub typeofPDLi64 {
+sub typeof_PDL_i64 {
   return $Config{i64type} or
     die "Can not find an integer 64 bit type";
 }
@@ -70,7 +82,7 @@ my @types = (
 	     {
 	      identifier => 'L',
 	      pdlctype => 'PDL_Long',
-	      realctype => &typeofPDLLong,
+	      realctype => &typeof_PDL_Long,
 	      ppforcetype => 'int',
 	      usenan => 0,
 	      packtype => 'l*',
@@ -78,19 +90,18 @@ my @types = (
 	     },
 
 #
-# The PDL_Index type will be either the same as PDL_Long or, probably,
+# The PDL_Indx type will be either the same as PDL_Long or, probably,
 # the same as PDL_LongLong depending on the platform.  Will need to
 # determine the actual type at build time.
 
        {
         identifier => 'IND',
         onecharident => 'N',   # only needed if different from identifier
-        pdlctype => 'PDL_Index',
-        realctype => &typeofPDLIndex,
-        ppforcetype => 'ind',
+        pdlctype => 'PDL_Indx',
+        realctype => &typeof_PDL_Indx,
+        ppforcetype => 'indx',
         usenan => 0,
-        'convertfunc' => ($Config{ivsize}==4  ? 'long' : 'longlong'),
-        packtype => 'q*',      # needs to be generated
+        packtype => &packtypeof_PDL_Indx,
         defaultbadval => 'LONG_MIN',
        },
 #
@@ -102,7 +113,7 @@ my @types = (
 	identifier => 'LL',
 	onecharident => 'Q',   # only needed if different from identifier
 	pdlctype => 'PDL_LongLong',
-	realctype => &typeofPDLi64,
+	realctype => &typeof_PDL_i64,
 	ppforcetype => 'longlong',
 	usenan => 0,
 	packtype => 'q*',

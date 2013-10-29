@@ -37,6 +37,9 @@ debian/*.substvars
 tmp*
 tmp_*
 
+# MATLAB files
+*.m
+
 # PDL temp files
 ppcode.out
 

@@ -35,15 +35,11 @@ PDL (all)         perl >= 5.8.x           PDL requires at least this version
                   Pod::Parser >= 0        perl5 core module.
                   Pod::Select >= 0        perl5 core module.
 
-                  ExtUtils::MakeMaker >= 6.31
+                  ExtUtils::MakeMaker >= 6.56
 
 		                          This version of EU::MM is the first
-					  with support for INSTALL_BASE for
-					  non-system install locations.  If
-					  you edit the top level Makefile.PL
-					  and change the 6.31 to 0 in two
-					  spots, you can build with older
-					  versions---not recommended.
+					  with support for CONFIGURE_REQUIRES.
+
 
 PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
                   Filter::Util::Call
@@ -83,6 +79,11 @@ PDL::IO::Storable Storable >=1.03
 pdl2   (shell)    Devel::REPL >= 1.003011
                   and Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
+		                          
+					  Devel::REPL requires Data::Dump::Streamer
+					  to support pdl2.  This may need to be
+					  hand-installed if you are doing a manual
+					  PDL build.
 
 perldl (shell)    Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 

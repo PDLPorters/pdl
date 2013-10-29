@@ -31,7 +31,7 @@ $b = pdl [[1,1,1],[2,2,2]];
 $i = 1;
 eval {$c = $b->slice(':,:,:,(1)'); $c->make_physical();};
 print "ERROR WAS: '$@'\n";
-ok(1,$@ =~ /error/i);
+ok(1,$@ =~ /too many dims/i);
 
 $i++;
 # now see if we survive the destruction of this invalid trans

@@ -1,4 +1,4 @@
-Release Notes for PDL 2.006_07 --------------------------
+Release Notes for PDL 2.007_01 --------------------------
 
  +---------------------------------------------------------------+
  | BE WARNED:  This release includes an update to the internal,  |
@@ -26,10 +26,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  CHM/PDL-2.006_07.tar.gz
-       cpan> make CHM/PDL-2.006_07.tar.gz
-       cpan> test CHM/PDL-2.006_07.tar.gz
-       cpan> look CHM/PDL-2.006_07.tar.gz
+       cpan> get  CHM/PDL-2.007_01.tar.gz
+       cpan> make CHM/PDL-2.007_01.tar.gz
+       cpan> test CHM/PDL-2.007_01.tar.gz
+       cpan> look CHM/PDL-2.007_01.tar.gz
 
 Highlights:
 
@@ -37,7 +37,7 @@ Highlights:
 
 
 
-Release Notes for PDL 2.006_06 --------------------------
+Release Notes for PDL 2.007 --------------------------
 
  +---------------------------------------------------------------+
  | BE WARNED:  This release includes an update to the internal,  |
@@ -49,266 +49,114 @@ Release Notes for PDL 2.006_06 --------------------------
 
 General Notes:
 
- * 64bit index support code now working except for some issues
-   based on type names.  Depending on the platform, the PDL_Index
-   type is actually the PDL_Long or PDL_LongLong type.  
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
+ * PDL computations now use 64bit indexing/addressing if
+   your platform supports it (i.e., your perl configuration
+   has $Config{ivsize} == 8).
    
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
+   - You can process with pdls with more then 2**32 elements.
 
-       cpan> get  CHM/PDL-2.006_06.tar.gz
-       cpan> make CHM/PDL-2.006_06.tar.gz
-       cpan> test CHM/PDL-2.006_06.tar.gz
-       cpan> look CHM/PDL-2.006_06.tar.gz
+   - Memory mapped file IO supports up to 8TB files which
+     allows much simpler processing of large data files.
+     (See mapflex in PDL::IO::FlexRaw for details)
+
+ * PDL-2.007 has a new, unified slicing engine and syntax
+   that consolidates the multiple slicing variants into
+   a backward compatible but now 64bit aware slice.  See
+   the PDL::Slices for the new syntax that is enabled.
+
+ * PDL::FFTW has moved to its own distribution on CPAN
+   and is no longer in the PDL core distribution.  Look
+   for PDL::FFTW3 coming to CPAN soon.
+
+ * Some required dependencies have been update to more
+   recent versions:
+
+   - ExtUtils::MakeMaker now requires version 6.56 or
+     higher, the minimum version with CONFIGURE_REQUIRES
+     support.
+
+   - Perl OpenGL 0.6702 is now required for PDL::Graphics::TriD
+     to build.  This fixes a number of critical bugs and should
+     be a seamless upgrade.
+
+   - File::Map version 0.57 is required.  This fixes map_anonymous
+     support for the >2**32 sizes needed for 64bit support.
+     Legacy mmap support for unix platforms is no longer
+     supported.  The distribution requires File::Map so you
+     should not notice the change.
+
+ * Incompatible Changes:
+
+   - PDL::FFT now uses the same sign convention as FFTW and
+     the rest of the world, -1/+1 for forward and reverse
+     FFT respectively.
+
+   - C/XS API of PDL-2.007 is incompatible with previous
+     PDL releases.  If you upgrade to PDL-2.007, you *will*
+     need to re-install or upgrade *all* dependent XS or PP
+     based modules.
+
+   - PDL now auto-promotes array refs in many places that
+     previously required a piddle (so you can say, e.g.,
+     "$a->index([2,3])" instead of "$a->index(pdl(2,3))").
+
+   - String syntax for slice() specifications now ignore
+     white space.
+
+ * The clean up of the PDL core distribution continues and
+   PDL-2.007 is no exception.  Many bug fixes, documentation
+   updates, code and implementation improvements make this
+   the best testing PDL release to date.
+
 
 Highlights:
 
- * Candidate fix for 64bit index bug in rangeb.
+ * FITS IO improvements and fixes:
 
- * New nnslice() routine introduced.
+   - Added 'afh" option to rfits to allow explicit use of
+     legacy hash parser for performance reasons.  
 
-
-
-Release Notes for PDL 2.006_05 --------------------------
-
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
-General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.006_05.tar.gz
-       cpan> make CHM/PDL-2.006_05.tar.gz
-       cpan> test CHM/PDL-2.006_05.tar.gz
-       cpan> look CHM/PDL-2.006_05.tar.gz
-
-Highlights:
-
- * Made exception handling in slices more robust.
- 
- * PDL::FFTW is now in a separate PDL::FFTW distribution
-   available directly from CPAN.  Files and most references
-   to PDL::FFTW have been removed from the distribution.
-
- * Fixed PDL::FFT to use the standard -1/+1 convention for
-   forward and reverse FFT.  If your use of PDL::FFT
-   relied upon the previous, backward convention, expect
-   your results to be different.
- 
- * Improved docs and t/ufunc.t
-
-
-
-Release Notes for PDL 2.006_04 --------------------------
-
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
-General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.006_04.tar.gz
-       cpan> make CHM/PDL-2.006_04.tar.gz
-       cpan> test CHM/PDL-2.006_04.tar.gz
-       cpan> look CHM/PDL-2.006_04.tar.gz
-
-Highlights:
-
- * PDL::FFTW in core distribution is deprecated and not
-   indexed on CPAN.  To install, please use the stand-alone
-   PDL::FFTW on CPAN.
-
- * More 64bit index support fixes and bugs resolved.
- 
- * Update debian/perldl.conf to track top level perldl.conf.
-
- * Fix sf.net bug #331 "uniq does not always return proper object"
-
- * Fix polyfit() handling of BAD values and various edge cases.
-
- * Tests, docs, code cleanup...
+   - New multiple extension writing support for wfits.
 
  * Added pp_deprecate_module() to PDL::PP
 
+ * New mode/modeover functions in PDL::Ufunc
 
+ * Made exception handling in slices more robust.
 
-Release Notes for PDL 2.006_03 --------------------------
+ * PDL::CLONE_SKIP added for improved ithread support.
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.4.10 and earlier.  This    |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
+ * Updated graticule() in PDL::Transform::Cartography to
+   support NaN-delimited output.
 
-General Notes:
+ * Bugs fixes:
 
- * Another quick CPAN developers release
+   - Fix %hash randomization bugs in PDL tests
 
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
+   - Fix OpenBSD pthread build problem for non-threaded perls
 
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
+   - Fix PDL::shape to return vector for 1-D piddles
 
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
+   - Fix badvalue-on-truncate support for map and for interpND
 
-       cpan> get  CHM/PDL-2.006_03.tar.gz
-       cpan> make CHM/PDL-2.006_03.tar.gz
-       cpan> test CHM/PDL-2.006_03.tar.gz
-       cpan> look CHM/PDL-2.006_03.tar.gz
+   - Fix for MSVC++ 6.0 to build on 32bit systems.
+     MSVC++ 6.0 cannot be used to build 64bit index support.
 
-Highlights:
+   - Fix polyfit() handling of BAD values and various edge cases.
 
- * 64bit index support is now configured if your OS and
-   perl support 64bit integer data (IV size is 8 bytes).
+   - Fix rare "Bizarre copy of HASH in scalar assignment"
 
-   This is important technology for the coming PDL3
-   release at the end of this Summer.  Please test/use
-   and report any problems to the PDL mailing list or
-   open a bug on our sourceforge.net project site.  If
-   you open a bug ticket, please read the BUGS file in
-   the PDL distribution for the essential information
-   to include.
- 
- * Some cleanup of Known_problems and Release_Notes.
+   - Fix rcols with colsep and $PDL::undefval
 
+   - Fix sf.net bug #331 "uniq does not always return proper object"
 
+   - Fix sf.net bug #338 PDL::FFT uses backwards sign convention from FFTW
 
-Release Notes for PDL 2.006_02 --------------------------
+   - Make PDL::NiceSlice preserve line numbering (sf.net feature #75)
 
-General Notes:
+   - PDL::IO::GD->new() is now less picky about it args, and no longer crashes
 
- * Another quick CPAN developers release
-
-   - This is another release for users and developers
-     to have early evaluation and testing with the new
-     64bit-index-support branch.  The current plan is
-     to merge into PDL git master this weekend.
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.006_02.tar.gz
-       cpan> make CHM/PDL-2.006_02.tar.gz
-       cpan> test CHM/PDL-2.006_02.tar.gz
-       cpan> look CHM/PDL-2.006_02.tar.gz
-
-Highlights:
-
- * Make PDL_Index a new type (PDL_N or PDL_IND) and various
-   fixes to get things to work.
-
-
-
-Release Notes for PDL 2.006_01 --------------------------
-
-General Notes:
-
- * Make new 64bit index support PDL available for more
-   widespread testing and evaluation.
-
- * Another quick CPAN developers release
- 
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.006_01.tar.gz
-       cpan> make CHM/PDL-2.006_01.tar.gz
-       cpan> test CHM/PDL-2.006_01.tar.gz
-       cpan> look CHM/PDL-2.006_01.tar.gz
-
-Highlights:
-
- * By default, this release will build PDL with the new
-   PDL_Index support and that type will be determined by
-   the type of IV for your perl.  If $Config{ivsize}==8
-   then you have 64bit indexing.
-
- * By default, the perldl.conf does not build modules
-   requiring external dependencies.
+   - Two bug fixes to transform.pd, and an augmentation
 
 
 

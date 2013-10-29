@@ -1,6 +1,6 @@
 
 use Config;
-$PDL_Index_type = $Config{'ivtype'};
+$PDL_Indx_type = $Config{'ivtype'};
 warn "Using new 64bit index support\n" if $Config{'ivsize'}==8;
 
 use lib ".";
@@ -31,7 +31,7 @@ enum pdl_datatypes { $enum };
 
 $typedefs
 
-/* typedef $PDL_Index_type    PDL_Index; */
+/* typedef $PDL_Indx_type    PDL_Indx; */
 
 
 /*****************************************************************************/

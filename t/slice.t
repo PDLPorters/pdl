@@ -4,9 +4,7 @@
 use strict;
 use Test::More;
 
-plan tests => 74    # everything else
-              + 27  # nnslice
-              + 52  # copied slice tests to nnslice
+plan tests => 86;
     ;
 use PDL::LiteF;
 
@@ -41,8 +39,8 @@ is($b->at(1,1), 44, "(3,4)->(1,1)");
 
 $b .= 0.5 * ones(2,2);
 
-is($b->at(1,0), 0.5,);
-is($b->at(0,1), 0.5,);
+is($b->at(1,0), 0.5);
+is($b->at(0,1), 0.5);
 
 is($a->at(1,2), 0.5);
 
@@ -88,10 +86,12 @@ $c = $b->slice(":,:,1");
 
 is(join(',',$c->dims), "5,3,1");
 
-eval { my $d = $c->slice(":,:,2"); " $d" };
-like($@, qr/(out of bounds)|(Slice cannot start or end)/, 'check slice bounds error handling');
+eval { my $d = $c->slice(":,:,2"); "$d" };
+
+like($@, qr/out of bounds/, 'check slice bounds error handling') or diag "ERROR WAS: '$@'\n" if $@;
 
 $a = zeroes 3,3;
+
 $b = $a->slice("1,1:2");
 
 $b .= 1;
@@ -104,7 +104,12 @@ $d = $c->slice("3:5,:");
 $e = $d->slice(":,(0)");
 $f = $d->slice(":,(1)");
 
-is("$e", "[7 9 11]");
+"$b";
+"$c"; 
+"$d";
+"$e";
+"$f";
+
 is("$f", "[7 9 11]");
 
 # Make sure that vaffining is properly working:
@@ -123,7 +128,6 @@ $d = $c->copy;
 # $d->dump;
 
 $e = $c-$d;
-
 
 is(max(abs($e)), 0);
 
@@ -174,6 +178,7 @@ $b = $a->slice('0:-10');
 is("$b", "[0]", "slice 0:-n picks first element");
 
 $b = $a->slice('0:-14');
+
 eval '"$b"';
 like($@, qr/(out of bounds)|(Negative slice cannot start or end above limit)/);
 
@@ -230,6 +235,35 @@ like($@, qr/lags: step must be positive/, "make_physdim: negative step");
 
 eval '$b = $a->lags(0,1,11)->make_physdims';
 like($@, qr/too large/, "make_pyhsdim: too large");
+
+##############################
+# Tests of some edge cases
+$a = sequence(10);
+eval '$b = $a->slice("5")';
+ok(!$@, "simple slice works");
+ok(($b->nelem==1 and $b==5), "simple slice works right");
+
+eval '$b = $a->slice("5:")';
+ok(!$@, "empty second specifier works");
+ok(($b->nelem == 5  and  all($b == pdl(5,6,7,8,9))), "empty second specifier works right");
+
+eval '$b = $a->slice(":5")';
+ok(!$@, "empty first specifier works");
+ok(($b->nelem == 6  and  all($b == pdl(0,1,2,3,4,5))), "empty first specifier works right");
+
+##############################
+# White space in slice specifier
+eval ' $b = $a->slice(" 4:");';
+ok(!$@,"slice with whitespace worked - 1");
+ok(($b->nelem==6 and all($b==pdl(4,5,6,7,8,9))),"slice with whitespace works right - 1");
+eval ' $b = $a->slice(" :4");';
+ok(!$@,"slice with whitespace worked - 2");
+ok(($b->nelem==5 and all($b==pdl(0,1,2,3,4))),"slice with whitespace works right - 2");
+eval ' $b = $a->slice(" 3: 4 ");';
+ok(!$@,"slice with whitespace worked - 3");
+ok(($b->nelem==2 and all($b==pdl(3,4))),"slice with whitespace works right - 3");
+
+
 
 ##############################
 # Tests of permissive slicing and dummying
@@ -342,7 +376,6 @@ ok("$z" eq 'Empty[0]');
 $z .= 2;
 ok(1);            # should *not* segfault!
 ok(all($a==5));   # should *not* change $a!
-
 
 ######################################################################
 ######################################################################

@@ -6,12 +6,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  1.003
+Current FAQ version:  1.004
 
 
 =head1 DESCRIPTION
 
-This is version 1.003 of the PDL FAQ, a collection of  frequently 
+This is version 1.004 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 
@@ -397,16 +397,16 @@ I<very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
 
 
-As of this writing (FAQ version 1.003 of 19 Dec 2011) the latest stable version
-is 2.4.9.  The latest stable version should always be available from a CPAN
+As of this writing (FAQ version 1.004 of 16 Sep 2013) the latest stable version
+is 2.006.  The latest stable version should always be available from a CPAN
 mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?"> for
 info on where to get PDL).
 
 The most current (possibly unstable) version of PDL can be obtained 
 from the Git repository, see L<Question 4.10|"Q: 4.9    How do I get PDL via Git?">
 and periodic CPAN developers releases of the Git code will be made for testing
-purposes and more general availability.  The current post-PDL-2.4.9 developers
-release of PDL is available as F<CHM/PDL-2.4.9_015.tar.gz> .
+purposes and more general availability.  The current post-PDL-2.006 developers
+release of PDL is available as F<CHM/PDL-2.006_07.tar.gz> .
 
 
 =head2 Q: 3.4    I want to contribute to the further development of PDL. How can I help?  
@@ -545,7 +545,7 @@ If someone is interested in providing binary distributions for other
 architectures, that would be very welcome. Let us know on the 
 pdl-porters@jach.hawaii.edu mailing list. Also check your Linux
 distribution's package manager as many now include PDL.  PPMs
-for win32 versions are also available.
+for win32 versions (both 32bit and 64bit) are also available.
 
 
 =head2 Q: 4.6    Does PDL run on Linux? (And what about packages?)  
@@ -565,7 +565,7 @@ PDL builds fine on Win32 using MinGW or Microsoft compilers.  See
 the F<win32/INSTALL> file in the PDL source distribution for details.
 Other compilers have not been tested--input is welcome.  There is
 also a distribution of PDL through ActiveState's ppm, though it
-might not always be the latest version.  PDL-2.4.9 builds out of
+might not always be the latest version.  PDL-2.006 builds out of
 the box on Strawberry Perl and ActiveState Perl.
 
 
@@ -873,7 +873,7 @@ all elements in a piddle fulfills some criterion:
     $a is not positive definite
 
 
-=head2 Q: 6.11   Logical operators and piddles -  '||' and ' & & ' doesn't work!  
+=head2 Q: 6.11   Logical operators and piddles -  '||' and '&&' don't work!  
 
 
 It is a common problem that you try to make a mask array or something 
@@ -1103,7 +1103,7 @@ and a wide variety of other video formats.
 =item *
 
 On CPAN you can find the L<PDL::NetCDF|PDL::NetCDF> module that works with the current
-released version of PDL 2.4.9.
+released version of PDL 2.006.
 
 =back
 

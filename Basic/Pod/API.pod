@@ -81,7 +81,7 @@ runtime execution.
 
    __C__
 
-   static pdl* new_pdl(int datatype, PDL_Long dims[], int ndims)
+   static pdl* new_pdl(int datatype, PDL_Indx dims[], int ndims)
    {
      pdl *p = PDL->pdlnew();
      PDL->setdims (p, dims, ndims);  /* set dims */
@@ -93,10 +93,10 @@ runtime execution.
 
    pdl* myfloatseq()
    {
-     PDL_Long dims[] = {5,5,5};
+     PDL_Indx dims[] = {5,5,5};
      pdl *p = new_pdl(PDL_F,dims,3);
      PDL_Float *dataf = (PDL_Float *) p->data;
-     int i;
+     PDL_Indx i; /* dimensions might be 64bits */
 
      for (i=0;i<5*5*5;i++)
        dataf[i] = i; /* the data must be initialized ! */
@@ -163,7 +163,7 @@ The following script demonstrates a simple example:
     */
    typedef void (*DelMagic)(pdl *, int param);
    static void default_magic(pdl *p, int pa) { p->data = 0; }
-   static pdl* pdl_wrap(void *data, int datatype, PDL_Long dims[],
+   static pdl* pdl_wrap(void *data, int datatype, PDL_Indx dims[],
 			int ndims, DelMagic delete_magic, int delparam)
    {
      pdl* npdl = PDL->pdlnew(); /* get the empty container */
@@ -188,7 +188,7 @@ The following script demonstrates a simple example:
    static PDL_Byte* mkramp(void)
    {
      PDL_Byte *data;
-     int i;
+     int i; /* should use PDL_Indx to support 64bit pdl indexing */
 
      if ((data = malloc(SZ*SZ*sizeof(PDL_Byte))) == NULL)
        croak("mkramp: Couldn't allocate memory");
@@ -208,7 +208,7 @@ The following script demonstrates a simple example:
 
    pdl* mkpiddle()
    {
-     PDL_Long dims[] = {SZ,SZ};
+     PDL_Indx dims[] = {SZ,SZ};
      pdl *p;
 
      p = pdl_wrap((void *) mkramp(), PDL_B, dims, 2, 
@@ -332,7 +332,7 @@ C<SV *copy(pdl* p, char* )>
 
 =item *
 
-C<void *smalloc(int nbytes)>
+C<void *smalloc(STRLEN nbytes)>
 
 =item *
 
@@ -360,11 +360,14 @@ C<void make_physvaffine(pdl *p)>
 
 =item *
 
-C<void qsort_X(PDL_Xtype *data, int a, int b)> and
-C<void qsort_ind_X(PDL_Xtype *data, int *ix, int a, int b)>
+C<void qsort_X(PDL_Xtype *data, PDL_Indx a, PDL_Indx b)> and
+C<void qsort_ind_X(PDL_Xtype *data, PDL_Indx *ix, PDL_Indx a, PDL_Indx b)>
 
 where X is one of B,S,U,L,F,D and Xtype is one of Byte, Short, Ushort,
-Long, Float or Double.
+Long, Float or Double.  PDL_Indx is the C integer type corresponding to
+appropriate indexing size for the perl configuration (ivsize and ivtype).
+It can be either 'long' or 'long long' depending on whether your perl
+is 32bit or 64bit enabled.
 
 =item *
 
@@ -427,6 +430,8 @@ Feedback and corrections are welcome.
 
 
 =head1 COPYRIGHT
+
+Copyright 2013 Chris Marshall (chm@cpan.org).
 
 Copyright 2010 Christian Soeller (c.soeller@auckland.ac.nz).
 You can distribute and/or modify this document under the same

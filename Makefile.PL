@@ -13,7 +13,7 @@ check_lib_or_exit(
 
 use 5.008_000;      # explicitly require 5.8.x or above
 
-use ExtUtils::MakeMaker 6.31;  # for INSTALL_BASE support
+use ExtUtils::MakeMaker 6.56;  # for CONFIGURE_REQUIRES support
 
 $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
@@ -481,13 +481,13 @@ my %notestsifmodulesmissing = @hasnt ? # are any required modules missing ?
   (test => {TESTS => 't/requiredmods.t'}) : ();
 
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
-  qw/perldl pdldoc/;
+  qw/Bugs perldl pdldoc/;
 
 @prereq = (
 	   'Astro::FITS::Header' => 0,
            'Convert::UU'         => 0,         # for PDL::IO::Dumper
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
-           'ExtUtils::MakeMaker' => 6.31,      # for INSTALL_BASE support
+           'ExtUtils::MakeMaker' => 6.56,      # for CONFIGURE_REQUIRES support
 	   'File::Map'           => 0.57,      # test new mmap implementation
 	   'File::Spec'          => 0.6,
 	   'File::Temp'          => 0,
@@ -527,6 +527,7 @@ if($Config{archname}=~m/x86_64/) {
 
 %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
+              'CONFIGURE_REQUIRES' => { 'Devel::CheckLib' => 1.01, },
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
@@ -543,7 +544,8 @@ if($Config{archname}=~m/x86_64/) {
                     },
                  },
               },
-              'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
+              'MAN1PODS' => { 'Bugs.pod' => '$(INST_MAN1DIR)/PDL::Bugs.$(MAN1EXT)',
+                              'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
                               'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)' },
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},

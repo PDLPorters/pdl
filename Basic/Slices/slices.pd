@@ -17,32 +17,32 @@ PDL::Slices -- Indexing, slicing, and dicing
 This package provides many of the powerful PerlDL core index
 manipulation routines.  These routines mostly allow two-way data flow,
 so you can modify your data in the most convenient representation.
-For example, you can make a 1000x1000 unit matrix with 
+For example, you can make a 1000x1000 unit matrix with
 
  $a = zeroes(1000,1000);
  $a->diagonal(0,1) ++;
 
 which is quite efficient. See L<PDL::Indexing> and L<PDL::Tips> for
-more examples.  
+more examples.
 
 Slicing is so central to the PDL language that a special compile-time
-syntax has been introduced to handle it compactly; see L<PDL::NiceSlice> 
+syntax has been introduced to handle it compactly; see L<PDL::NiceSlice>
 for details.
 
-PDL indexing and slicing functions usually include two-way data flow, 
+PDL indexing and slicing functions usually include two-way data flow,
 so that you can separate the actions of reshaping your data structures
 and modifying the data themselves.  Two special methods, L<copy|copy> and
-L<sever|sever>, help you control the data flow connection between related 
+L<sever|sever>, help you control the data flow connection between related
 variables.
 
  $b = $a->slice("1:3"); # Slice maintains a link between $a and $b.
- $b += 5;   		# $a is changed!
+ $b += 5;               # $a is changed!
 
 If you want to force a physical copy and no data flow, you can copy or
 sever the slice expression:
 
  $b = $a->slice("1:3")->copy;
- $b += 5;		# $a is not changed.
+ $b += 5;               # $a is not changed.
 
  $b = $a->slice("1:3")->sever;
  $b += 5;               # $a is not changed.
@@ -54,7 +54,7 @@ say
  $b = $a->slice("1:3");
  $c = $b->sever;
 
-then the variables C<$b> and C<$c> point to the same object but with 
+then the variables C<$b> and C<$c> point to the same object but with
 C<-E<gt>copy> they would not.
 
 =cut
@@ -72,13 +72,17 @@ FUNCTIONS
 pp_addhdr(<<'EOH');
 
 #ifdef _MSC_VER
+#if _MSC_VER < 1300
+#define strtoll strtol
+#else
 #define strtoll _strtoi64
+#endif
 #endif
 
 EOH
 
 pp_add_boot(
-"  PDL->readdata_affine = pdl_readdata_affineinternal;\n" . 
+"  PDL->readdata_affine = pdl_readdata_affineinternal;\n" .
 "     PDL->writebackdata_affine = pdl_writebackdata_affineinternal;\n"
 );
 
@@ -97,18 +101,18 @@ pp_def(
        MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
        RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
        EquivCPOffsCode => '
-		PDL_Index i; PDL_Index poffs=$PRIV(offs); int nd;
-		for(i=0; i<$CHILD_P(nvals); i++) {
-			$EQUIVCPOFFS(i,poffs);
-			for(nd=0; nd<$CHILD_P(ndims); nd++) {
-				poffs += $PRIV(incs[nd]);
-				if(nd<$CHILD_P(ndims)-1 &&
-				   (i+1)%$CHILD_P(dimincs[nd+1]) ||
-				   nd == $CHILD_P(ndims)-1)
-					break;
-				poffs -= $PRIV(incs[nd]) *
-					$CHILD_P(dims[nd]);
-			}
+                PDL_Indx i; PDL_Indx poffs=$PRIV(offs); int nd;
+                for(i=0; i<$CHILD_P(nvals); i++) {
+                        $EQUIVCPOFFS(i,poffs);
+                        for(nd=0; nd<$CHILD_P(ndims); nd++) {
+                                poffs += $PRIV(incs[nd]);
+                                if(nd<$CHILD_P(ndims)-1 &&
+                                   (i+1)%$CHILD_P(dimincs[nd+1]) ||
+                                   nd == $CHILD_P(ndims)-1)
+                                        break;
+                                poffs -= $PRIV(incs[nd]) *
+                                        $CHILD_P(dims[nd]);
+                        }
                 }',
        Doc => undef,    # 'internal',
 );
@@ -126,20 +130,20 @@ Internal vaffine identity function.
 DOC
 
 pp_def(
-	's_identity',
+        's_identity',
         HandleBad => 1,
-	P2Child => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	OtherPars => '',
-	Reversible => 1,
-	Dims => '$COPYDIMS();',
-	ParentInds => '$COPYINDS();',
-	Identity => 1,
-	Doc => $doc,
+        DefaultFlow => 1,
+        OtherPars => '',
+        Reversible => 1,
+        Dims => '$COPYDIMS();',
+        ParentInds => '$COPYINDS();',
+        Identity => 1,
+        Doc => $doc,
 );
 
-=head2 index, index2d
+=head2 index, index1d, index2d
 
 =cut
 
@@ -151,33 +155,41 @@ C<index>, C<index1d>, and C<index2d> provide rudimentary index indirection.
 =for example
 
  $c = index($source,$ind);
- $c = index($source,$ind);
+ $c = index1d($source,$ind);
  $c = index2d($source2,$ind1,$ind2);
 
-use the C<$ind> variables as indices to look up values in C<$source>.  
+use the C<$ind> variables as indices to look up values in C<$source>.
 The three routines thread slightly differently.
 
 =over 3
 
-=item C<index> uses direct threading for 1-D indexing across the 0 dim
+=item * 
+
+C<index> uses direct threading for 1-D indexing across the 0 dim
 of C<$source>.  It can thread over source thread dims or index thread
-dims dims not not (easily) both: If <$source> has more than 1
+dims, but not (easily) both: If C<$source> has more than 1
 dimension and C<$ind> has more than 0 dimensions, they must agree in
-a threading sense.  
+a threading sense.
+
+=item * 
 
 C<index1d> uses a single active dim in C<$ind> to produce a list of
 indexed values in the 0 dim of the output - it is useful for
-collapsing C<$source> by indexing with a single row of values long
+collapsing C<$source> by indexing with a single row of values along
 C<$source>'s 0 dimension.  The output has the same number of dims as
 C<$source>.  The 0 dim of the output has size 1 if C<$ind> is a
-scalar, and the same size as the 0 dim of C<$ind> if it is not. If 
-C<$ind> and $<source> both have more than 1 dim, then all dims higher
+scalar, and the same size as the 0 dim of C<$ind> if it is not. If
+C<$ind> and C<$source> both have more than 1 dim, then all dims higher
 than 0 must agree in a threading sense.
+
+=item * 
 
 C<index2d> works like C<index> but uses separate piddles for X and Y
 coordinates.  For more general N-dimensional indexing, see the
-L<PDL::NiceSlice> syntax or L<PDL::Slices> (in particular C<slice>,
+L<PDL::NiceSlice|PDL::NiceSlice> syntax or L<PDL::Slices|PDL::Slices> (in particular C<slice>,
 C<indexND>, and C<range>).
+
+=back 
 
 These functions are two-way, i.e. after
 
@@ -202,16 +214,16 @@ L<indexND|/indexND>.
 
 EOD
 
-my $index_init_good = 
-       'register PDL_Index foo = $ind(); 
+my $index_init_good =
+       'register PDL_Indx foo = $ind();
         if( foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index %d (valid range 0..%d)",
+           barf("PDL::index: invalid index %d (valid range 0..%d)",
                 foo,$SIZE(n)-1);
         }';
-my $index_init_bad = 
-       'register PDL_Index foo = $ind(); 
+my $index_init_bad =
+       'register PDL_Indx foo = $ind();
         if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index %d (valid range 0..%d)",
+           barf("PDL::index: invalid index %d (valid range 0..%d)",
                 foo,$SIZE(n)-1);
         }';
 
@@ -219,15 +231,15 @@ pp_def(
        'index',
        HandleBad => 1,
        DefaultFlow => 1,
-       Reversible => 1,	
-       Pars => 'a(n); ind ind(); [oca] c();',
-       Code => 
+       Reversible => 1,
+       Pars => 'a(n); indx ind(); [oca] c();',
+       Code =>
        $index_init_good . ' $c() = $a(n => foo);',
-$a =        BadCode => 
+$a =        BadCode =>
        $index_init_bad . ' $c() = $a(n => foo);',
-       BackCode => 
+       BackCode =>
        $index_init_good . ' $a(n => foo) = $c();',
-       BadBackCode => 
+       BadBackCode =>
        $index_init_bad . ' $a(n => foo) = $c();',
        Doc => $doc,
        BadDoc =>
@@ -238,103 +250,103 @@ pp_def(
        'index1d',
        HandleBad => 1,
        DefaultFlow => 1,
-       Reversible => 1,	
-       Pars => 'a(n); ind ind(m); [oca] c(m);',
-       Code => 
+       Reversible => 1,
+       Pars => 'a(n); indx ind(m); [oca] c(m);',
+       Code =>
        q{
-         PDL_Index i;
-	 for(i=0;i<$SIZE(m);i++) {
-	          PDL_Index foo = $ind(m=>i);
-		  if( foo<0 || foo >= $SIZE(n) ) {
-		   barf("PDL::index1d: invalid index %d at pos %d (valid range 0..%d)",
-		     foo, i, $SIZE(n)-1);
-		  }
-		  $c(m=>i) = $a(n=>foo);
+         PDL_Indx i;
+         for(i=0;i<$SIZE(m);i++) {
+                  PDL_Indx foo = $ind(m=>i);
+                  if( foo<0 || foo >= $SIZE(n) ) {
+                   barf("PDL::index1d: invalid index %d at pos %d (valid range 0..%d)",
+                     foo, i, $SIZE(n)-1);
+                  }
+                  $c(m=>i) = $a(n=>foo);
          }
-	},
-	BadCode => 
-	q{
-	 PDL_Index i;
-	 for(i=0;i<$SIZE(m);i++) {
-	 	 PDL_Index foo = $ind(m=>i);
-		 if( $ISBADVAR(foo, ind) ) {
-		     $SETBAD(c(m=>i));
-		 } else {
-		   if( foo<0 || foo >= $SIZE(n) ) {
-		     barf("PDL::index1d: invalid/bad index %d at pos %d (valid range 0..%d)",
-		      foo, i, $SIZE(n)-1);
-		   }
-		   $c(m=>i) = $a(n=>foo);
-		 }
-	 }
-	},
+        },
+        BadCode =>
+        q{
+         PDL_Indx i;
+         for(i=0;i<$SIZE(m);i++) {
+                 PDL_Indx foo = $ind(m=>i);
+                 if( $ISBADVAR(foo, ind) ) {
+                     $SETBAD(c(m=>i));
+                 } else {
+                   if( foo<0 || foo >= $SIZE(n) ) {
+                     barf("PDL::index1d: invalid/bad index %d at pos %d (valid range 0..%d)",
+                      foo, i, $SIZE(n)-1);
+                   }
+                   $c(m=>i) = $a(n=>foo);
+                 }
+         }
+        },
        BackCode => q{
-         PDL_Index i;
-	 for(i=0;i<$SIZE(m);i++) {	
-	 	PDL_Index foo = $ind(m=>i);
-		if( foo<0 || foo >= $SIZE(n) ) {
-		 barf("PDL::index1d: invalid index %d at pos %d (valid range 0..%d)",
-		   foo, i, $SIZE(n)-1);
-		}
-		$a(n=>foo) = $c(m=>i);
-	 }
-	},
+         PDL_Indx i;
+         for(i=0;i<$SIZE(m);i++) {
+                PDL_Indx foo = $ind(m=>i);
+                if( foo<0 || foo >= $SIZE(n) ) {
+                 barf("PDL::index1d: invalid index %d at pos %d (valid range 0..%d)",
+                   foo, i, $SIZE(n)-1);
+                }
+                $a(n=>foo) = $c(m=>i);
+         }
+        },
        BadBackCode => q{
-         PDL_Index i;
-	 for(i=0;i<$SIZE(m);i++) {
-	 	 PDL_Index foo = $ind(m=>i);
-		 if( $ISBADVAR(foo, ind) ) {
-		   /* do nothing */
-		 } else {
-		   if( foo<0 || foo >= $SIZE(n) ) {
-		     barf("PDL::index1d: invalid/bad index %d at pos %d (valid range 0..%d)",
-		      foo, i, $SIZE(n)-1);
-		   }
-		   $a(n=>foo) = $c(m=>i);
-		 }
-	 }
-	},
+         PDL_Indx i;
+         for(i=0;i<$SIZE(m);i++) {
+                 PDL_Indx foo = $ind(m=>i);
+                 if( $ISBADVAR(foo, ind) ) {
+                   /* do nothing */
+                 } else {
+                   if( foo<0 || foo >= $SIZE(n) ) {
+                     barf("PDL::index1d: invalid/bad index %d at pos %d (valid range 0..%d)",
+                      foo, i, $SIZE(n)-1);
+                   }
+                   $a(n=>foo) = $c(m=>i);
+                 }
+         }
+        },
        Doc => $doc,
        BadDoc =>
        'index1d propagates BAD index elements to the output variable.'
        );
 
 my $index2d_init_good =
-       'register PDL_Index fooa,foob;
-	fooa = $inda(); 
+       'register PDL_Indx fooa,foob;
+        fooa = $inda();
         if( fooa<0 || fooa>=$SIZE(na) ) {
            barf("PDL::index: invalid x-index %d (valid range 0..%d)",
                 fooa,$SIZE(na)-1);
         }
-	foob = $indb(); 
+        foob = $indb();
         if( foob<0 || foob>=$SIZE(nb) ) {
-	   barf("PDL::index: invalid y-index %d (valid range 0..%d)",
+           barf("PDL::index: invalid y-index %d (valid range 0..%d)",
                 foob,$SIZE(nb)-1);
         }';
 my $index2d_init_bad =
-       'register PDL_Index fooa,foob;
-	fooa = $inda(); 
+       'register PDL_Indx fooa,foob;
+        fooa = $inda();
         if( $ISBADVAR(fooa,inda) || fooa<0 || fooa>=$SIZE(na) ) {
            barf("PDL::index: invalid index 1");
         }
-	foob = $indb(); 
+        foob = $indb();
         if( $ISBADVAR(foob,indb) || foob<0 || foob>=$SIZE(nb) ) {
-	   barf("PDL::index: invalid index 2");
+           barf("PDL::index: invalid index 2");
         }';
 
 pp_def(
        'index2d',
        HandleBad => 1,
        DefaultFlow => 1,
-       Reversible => 1,	
-       Pars => 'a(na,nb); ind inda(); ind indb(); [oca] c();',
-       Code => 
+       Reversible => 1,
+       Pars => 'a(na,nb); indx inda(); indx indb(); [oca] c();',
+       Code =>
        $index2d_init_good . ' $c() = $a(na => fooa, nb => foob);',
-       BadCode => 
+       BadCode =>
        $index2d_init_bad . '$c() = $a(na => fooa, nb => foob);',
-       BackCode => 
+       BackCode =>
        $index2d_init_good . ' $a(na => fooa, nb => foob) = $c();',
-       BadBackCode => 
+       BadBackCode =>
        $index2d_init_bad . '$a(na => fooa, nb => foob) = $c();',
        Doc => $doc,
        BadDoc =>
@@ -348,7 +360,7 @@ pp_addpm(<<'EOD-indexND');
 
 =head2 indexNDb
 
-=for ref 
+=for ref
 
   Backwards-compatibility alias for indexND
 
@@ -371,11 +383,11 @@ pp_addpm(<<'EOD-indexND');
    [67 89]
   ]
 
-IndexND collapses C<$index> by lookup into C<$source>.  The 
-0th dimension of C<$index> is treated as coordinates in C<$source>, and 
+IndexND collapses C<$index> by lookup into C<$source>.  The
+0th dimension of C<$index> is treated as coordinates in C<$source>, and
 the return value has the same dimensions as the rest of C<$index>.
 The returned elements are looked up from C<$source>.  Dataflow
-works -- propagated assignment flows back into C<$source>.  
+works -- propagated assignment flows back into C<$source>.
 
 IndexND and IndexNDb were originally separate routines but they are both
 now implemented as a call to L<range|/range>, and have identical syntax to
@@ -384,8 +396,8 @@ one another.
 =cut
 
 sub PDL::indexND {
-	my($source,$index, $boundary) = @_;
-	return PDL::range($source,$index,undef,$boundary);
+        my($source,$index, $boundary) = @_;
+        return PDL::range($source,$index,undef,$boundary);
 }
 
 *PDL::indexNDb = \&PDL::indexND;
@@ -412,15 +424,15 @@ sub PDL::range {
 
   $index = $index->dummy(0,1) unless $index->ndims;
 
-	
+
   # Pack boundary string if necessary
   if(defined $bound) {
     if(ref $bound eq 'ARRAY') {
       my ($s,$el);
       foreach $el(@$bound) {
-	barf "Illegal boundary value '$el' in range"
-  	  unless( $el =~ m/^([0123fFtTeEpPmM])/ );
-	$s .= $1;
+        barf "Illegal boundary value '$el' in range"
+          unless( $el =~ m/^([0123fFtTeEpPmM])/ );
+        $s .= $1;
       }
       $bound = $s;
     }
@@ -439,9 +451,9 @@ EOD-range
 =cut
 
 pp_def(
-	'rangeb',
-	OtherPars => 'SV *index; SV *size; SV *boundary',
-	Doc => <<'EOD',
+        'rangeb',
+        OtherPars => 'SV *index; SV *size; SV *boundary',
+        Doc => <<'EOD',
 =for ref
 
 Engine for L<range|/range>
@@ -450,25 +462,25 @@ Engine for L<range|/range>
 
 Same calling convention as L<range|/range>, but you must supply all
 parameters.  C<rangeb> is marginally faster as it makes a direct PP call,
-avoiding the perl argument-parsing step. 
+avoiding the perl argument-parsing step.
 
 =cut
 
 =head2 range
 
-=for ref 
+=for ref
 
 Extract selected chunks from a source piddle, with boundary conditions
 
 =for example
 
-	$out = $source->range($index,[$size,[$boundary]])
+        $out = $source->range($index,[$size,[$boundary]])
 
-Returns elements or rectangular slices of the original piddle, indexed by 
-the C<$index> piddle.  C<$source> is an N-dimensional piddle, and C<$index> is 
-a piddle whose first dimension has size up to N.  Each row of C<$index> is 
-treated as coordinates of a single value or chunk from C<$source>, specifying 
-the location(s) to extract.  
+Returns elements or rectangular slices of the original piddle, indexed by
+the C<$index> piddle.  C<$source> is an N-dimensional piddle, and C<$index> is
+a piddle whose first dimension has size up to N.  Each row of C<$index> is
+treated as coordinates of a single value or chunk from C<$source>, specifying
+the location(s) to extract.
 
 If you specify a single index location, then range is essentially an expensive
 slice, with controllable boundary conditions.
@@ -480,27 +492,27 @@ feed to L<zeroes|PDL::Core/zeroes> and its ilk.  If C<$index>'s 0th dimension
 has size higher than the number of dimensions in C<$source>, then
 C<$source> is treated as though it had trivial dummy dimensions of
 size 1, up to the required size to be indexed by C<$index> -- so if
-your source array is 1-D and your index array is a list of 3-vectors, 
+your source array is 1-D and your index array is a list of 3-vectors,
 you get two dummy dimensions of size 1 on the end of your source array.
 
 You can extract single elements or N-D rectangular ranges from C<$source>,
 by setting C<$size>.  If C<$size> is undef or zero, then you get a single
-sample for each row of C<$index>.  This behavior is similar to 
+sample for each row of C<$index>.  This behavior is similar to
 L<indexNDb|/indexNDb>, which is in fact implemented as a call to L<range|/range>.
 
-If C<$size> is positive then you get a range of values from C<$source> at 
+If C<$size> is positive then you get a range of values from C<$source> at
 each location, and the output has extra dimensions allocated for them.
-C<$size> can be a scalar, in which case it applies to all dimensions, or an 
-N-vector, in which case each element is applied independently to the 
+C<$size> can be a scalar, in which case it applies to all dimensions, or an
+N-vector, in which case each element is applied independently to the
 corresponding dimension in C<$source>.  See below for details.
 
-C<$boundary> is a number, string, or list ref indicating the type of 
+C<$boundary> is a number, string, or list ref indicating the type of
 boundary conditions to use when ranges reach the edge of C<$source>.  If you
 specify no boundary conditions the default is to forbid boundary violations
-on all axes.  If you specify exactly one boundary condition, it applies to 
+on all axes.  If you specify exactly one boundary condition, it applies to
 all axes.  If you specify more (as elements of a list ref, or as a packed
 string, see below), then they apply to dimensions in the order in which they
-appear, and the last one applies to all subsequent dimensions.  (This is 
+appear, and the last one applies to all subsequent dimensions.  (This is
 less difficult than it sounds; see the examples below).
 
 =over 3
@@ -523,15 +535,15 @@ execution continues.
 
 =item 2 (synonyms: 'e','x','extend')
 
-Values that would be outside the original piddle point instead to the 
-nearest allowed value within the piddle.  See the CAVEAT below on 
+Values that would be outside the original piddle point instead to the
+nearest allowed value within the piddle.  See the CAVEAT below on
 mappings that are not single valued.
 
 =item 3 (synonyms: 'p','periodic')
 
 Periodic boundary conditions apply: the numbers in $index are applied,
 strict-modulo the corresponding dimensions of $source.  This is equivalent to
-duplicating the $source piddle throughout N-D space.  See the CAVEAT below 
+duplicating the $source piddle throughout N-D space.  See the CAVEAT below
 about mappings that are not single valued.
 
 =item 4 (synonyms: 'm','mirror')
@@ -541,12 +553,12 @@ below about mappings that are not single valued.
 
 =back
 
-The boundary condition identifiers all begin with unique characters, so 
-you can feed in multiple boundary conditions as either a list ref or a 
-packed string.  (The packed string is marginally faster to run).  For 
-example, the four expressions [0,1], ['forbid','truncate'], ['f','t'], 
-and 'ft' all specify that violating the boundary in the 0th dimension 
-throws an error, and all other dimensions get truncated.  
+The boundary condition identifiers all begin with unique characters, so
+you can feed in multiple boundary conditions as either a list ref or a
+packed string.  (The packed string is marginally faster to run).  For
+example, the four expressions [0,1], ['forbid','truncate'], ['f','t'],
+and 'ft' all specify that violating the boundary in the 0th dimension
+throws an error, and all other dimensions get truncated.
 
 If you feed in a single string, it is interpreted as a packed boundary
 array if all of its characters are valid boundary specifiers (e.g. 'pet'),
@@ -554,7 +566,7 @@ but as a single word-style specifier if they are not (e.g. 'forbid').
 
 B<OUTPUT>
 
-The output threads over both C<$index> and C<$source>.  Because implicit 
+The output threads over both C<$index> and C<$source>.  Because implicit
 threading can happen in a couple of ways, a little thought is needed.  The
 returned dimension list is stacked up like this:
 
@@ -571,7 +583,7 @@ the dimension list here, so that if you feed in (for example) C<$size
 = [2,0,1]> you get an index dim list of C<(2,1)>.
 
 The last few dims of the output correspond to extra dims of C<$source> beyond
-the number of dims indexed by C<$index>.  These dims act like ordinary 
+the number of dims indexed by C<$index>.  These dims act like ordinary
 thread dims, because adding more dims to C<$source> just tacks extra dims
 on the end of the output.  Each source thread dim ranges over the entire
 corresponding dim of C<$source>.
@@ -579,7 +591,7 @@ corresponding dim of C<$source>.
 B<Dataflow>: Dataflow is bidirectional.
 
 B<Examples>:
-Here are basic examples of C<range> operation, showing how to get 
+Here are basic examples of C<range> operation, showing how to get
 ranges out of a small matrix.  The first few examples show extraction
 and selection of individual chunks.  The last example shows
 how to mark loci in the original matrix (using dataflow).
@@ -624,7 +636,7 @@ how to mark loci in the original matrix (using dataflow).
   ]
  ]
  pdl> $src = xvals(5,3)*10+yvals(5,3)
- pdl> print $src->range(3,1)  # Thread over y dimension in $src 
+ pdl> print $src->range(3,1)  # Thread over y dimension in $src
  [
   [30]
   [31]
@@ -651,14 +663,14 @@ others it's not. In particular, this doesn't work:
     pdl> histogram = zeroes(10,10)
     pdl> histogram->range($photon_list,1)++;  #not what you wanted
 
-The reason is that if two photons land in the same bin, then that bin 
+The reason is that if two photons land in the same bin, then that bin
 doesn't get incremented twice.  (That may get fixed in a later version...)
 
 B<PERMISSIVE RANGING>: If C<$index> has too many dimensions compared
 to C<$source>, then $source is treated as though it had dummy
 dimensions of size 1, up to the required number of dimensions.  These
 virtual dummy dimensions have the usual boundary conditions applied to
-them.  
+them.
 
 If the 0 dimension of C<$index> is ludicrously large (if its size is
 more than 5 greater than the number of dims in the source PDL) then
@@ -676,7 +688,7 @@ B<EFFICIENCY>: Because C<range> isn't an affine transformation (it
 involves lookup into a list of N-D indices), it is somewhat
 memory-inefficient for long lists of ranges, and keeping dataflow open
 is much slower than for affine transformations (which don't have to copy
-data around).  
+data around).
 
 Doing operations on small subfields of a large range is inefficient
 because the engine must flow the entire range back into the original
@@ -688,8 +700,8 @@ labels each region in a range sequentially, using many small
 operations rather than a single xvals assignment:
 
   ### How to make a collection of small ops run fast with range...
-  $a =  $data->range($index, $sizes, $bound)->sever; 
-  $aa = $data->range($index, $sizes, $bound);        
+  $a =  $data->range($index, $sizes, $bound)->sever;
+  $aa = $data->range($index, $sizes, $bound);
   map { $a($_ - 1) .= $_; } (1..$a->nelem);    # Lots of little ops
   $aa .= $a;
 
@@ -699,16 +711,16 @@ C<rangeb> is marginally faster but requires that you include all arguments.
 DEVEL NOTES
 
 * index thread dimensions are effectively clumped internally.  This
-makes it easier to loop over the index array but a little more brain-bending 
+makes it easier to loop over the index array but a little more brain-bending
 to tease out the algorithm.
 
-=cut 
+=cut
 
 EOD
-	HandleBad => 1,
-	DefaultFlow => 1,
-	Reversible => 1,
-	P2Child => 1,
+        HandleBad => 1,
+        DefaultFlow => 1,
+        Reversible => 1,
+        P2Child => 1,
         NoPdlThread => 1,
 
 #
@@ -716,30 +728,30 @@ EOD
 #
 # ntsize: number of nonzero size dimensions
 # sizes:  array of range sizes, indexed (0..rdim-1).  A zero element means
-#	  that the dimension is omitted from the child dim list.
+#         that the dimension is omitted from the child dim list.
 # corners: parent coordinates of each corner, running fastest over coord index.
-#	(indexed 0 .. (nitems-1)*(rdim)+rdim-1)
+#       (indexed 0 .. (nitems-1)*(rdim)+rdim-1)
 # nitems: total number of list elements   (product of itdims)
 # itdim:  number of index thread dimensions
 # itdims: Size of each index thread dimension, indexed (0..itdim-1)
-# 
+#
 # bsize: Number of independently specified boundary conditions
 # nsizes: Number of independently specified range dim sizes
 # boundary: Array containing all the boundary condition specs
 # indord: Order/size of the indexing dim (0th dim of $index)
 
-	Comp => 'PDL_Index rdim; 
-                 PDL_Index nitems;
-                 PDL_Index itdim;
-                 PDL_Index ntsize;
-                 PDL_Index bsize;
-		 PDL_Index nsizes;
-		 PDL_Index sizes[$COMP(rdim)];
-		 PDL_Index itdims[$COMP(itdim)];
-		 PDL_Index corners[$COMP(rdim) * $COMP(nitems)];
-	         char boundary[$COMP(rdim)];
-		 ',
-	MakeComp => <<'EOD-MakeComp',
+        Comp => 'PDL_Indx rdim;
+                 PDL_Indx nitems;
+                 PDL_Indx itdim;
+                 PDL_Indx ntsize;
+                 PDL_Indx bsize;
+                 PDL_Indx nsizes;
+                 PDL_Indx sizes[$COMP(rdim)];
+                 PDL_Indx itdims[$COMP(itdim)];
+                 PDL_Indx corners[$COMP(rdim) * $COMP(nitems)];
+                 char boundary[$COMP(rdim)];
+                 ',
+        MakeComp => <<'EOD-MakeComp',
 pdl *ind_pdl;
 pdl *size_pdl;
 
@@ -752,21 +764,21 @@ if ((index==NULL) || (index == &PL_sv_undef))
 
 if(!(ind_pdl = PDL->SvPDLV(index))) /* assignment */
    { $CROAK("rangeb: unable to convert index variable to a PDL"); }
-  
+
 PDL->make_physdims(ind_pdl);
 
 /* Generalized empties are ok, but not in the special 0 dim (the index vector) */
-if(ind_pdl->dims[0] == 0) 
+if(ind_pdl->dims[0] == 0)
     { $CROAK("rangeb: can't handle Empty indices -- call range instead"); }
 
 /***
- * Ensure that the index is a PDL_Index.  If there's no loss of information,
+ * Ensure that the index is a PDL_Indx.  If there's no loss of information,
  * just upgrade it -- otherwise, make a temporary copy.
  */
 switch(ind_pdl->datatype) {
  default:                              /* Most types: */
    ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
- case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_LL: 
+ case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_LL:
    PDL->converttype(&ind_pdl,PDL_IND,1); /* convert in place. */
    break;
  case PDL_IND:
@@ -778,7 +790,7 @@ switch(ind_pdl->datatype) {
  * Figure sizes of the COMP arrrays and allocate them.
  */
 {
-  PDL_Index i,nitems;
+  PDL_Indx i,nitems;
 
   $COMP(rdim) = ind_pdl->ndims ? ind_pdl->dims[0] : 1;
   for(i=nitems=1; i < ind_pdl->ndims; i++)  /* Accumulate item list size */
@@ -795,119 +807,119 @@ switch(ind_pdl->datatype) {
   char *bstr;
   STRLEN blen;
   bstr = SvPV(boundary,blen);
-  
+
   if(blen == 0) {
     /* If no boundary is specified then every dim gets forbidden */
     int i;
-    for (i=0;i<$COMP(rdim);i++) 
+    for (i=0;i<$COMP(rdim);i++)
       $COMP(boundary[i]) = 0;
   } else {
     int i;
     for(i=0;i<$COMP(rdim);i++) {
       switch(bstr[i < blen ? i : blen-1 ]) {
       case '0': case 'f': case 'F':               /* forbid */
-	$COMP(boundary[i]) = 0;
-	break;
+        $COMP(boundary[i]) = 0;
+        break;
       case '1': case 't': case 'T':               /* truncate */
-	$COMP(boundary[i]) = 1;
-	break;
+        $COMP(boundary[i]) = 1;
+        break;
       case '2': case 'e': case 'E':               /* extend */
-	$COMP(boundary[i]) = 2;
-	break;
+        $COMP(boundary[i]) = 2;
+        break;
       case '3': case 'p': case 'P':               /* periodic */
-	$COMP(boundary[i]) = 3;
-	break;
+        $COMP(boundary[i]) = 3;
+        break;
       case '4': case 'm': case 'M':               /* mirror */
-	$COMP(boundary[i]) = 4;
-	break;
+        $COMP(boundary[i]) = 4;
+        break;
       default:
-	{
-	  /* No need to check if i < blen -- this will barf out the
-	   * first time it gets hit.  I didn't use $ CROAK 'coz that
-	   * macro doesn't let you pass in a string variable -- only a 
-	   * constant.
-	   */
-	  barf("Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
-	}
-	break;
+        {
+          /* No need to check if i < blen -- this will barf out the
+           * first time it gets hit.  I didn't use $ CROAK 'coz that
+           * macro doesn't let you pass in a string variable -- only a
+           * constant.
+           */
+          barf("Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
+        }
+        break;
       } // end of switch
     }
   }
-}  
+}
 /***
  * Store the sizes of the index-thread dims
  */
 {
-  PDL_Index i;
-  PDL_Index nd = ind_pdl->ndims - 1;
+  PDL_Indx i;
+  PDL_Indx nd = ind_pdl->ndims - 1;
   for(i=0; i < nd ; i++)
     $COMP(itdims[i]) = ind_pdl->dims[i+1];
 }
 
-/*** 
+/***
  * Check and condition the size piddle, and store sizes of the ranges
  */
 {
-  PDL_Index i,ntsize;
+  PDL_Indx i,ntsize;
 
   if( (size == NULL) || (size == &PL_sv_undef) ) {
-    // NO size was passed in (not normally executed even if you passed in no size to range(), 
+    // NO size was passed in (not normally executed even if you passed in no size to range(),
     // as range() generates a size array...
     for(i=0;i<$COMP(rdim);i++)
-	  $COMP(sizes[i]) = 0;
+          $COMP(sizes[i]) = 0;
 
   } else {
     /* Normal case with sizes present in a PDL */
-    
+
     if(!(size_pdl = PDL->SvPDLV(size))) /* assignment */
       $CROAK("Unable to convert size to a PDL in range");
 
     if(size_pdl->nvals == 0) {
       // no values in the size_pdl - Empty or Null.  Just copy 0s to all the range dims
       for(i=0;i<$COMP(rdim);i++)
-	$COMP(sizes[i]) = 0;
+        $COMP(sizes[i]) = 0;
 
     } else {
-      
+
       // Convert size PDL to PDL_IND to support indices
       switch(size_pdl->datatype) {
       default:                              /* Most types: */
-	size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
+        size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
       case PDL_B: case PDL_S: case PDL_US: case PDL_L:  case PDL_LL:
-	PDL->converttype(&size_pdl,PDL_IND,1); /* convert in place. */
-	break;
-      case PDL_IND:   
-	break;
+        PDL->converttype(&size_pdl,PDL_IND,1); /* convert in place. */
+        break;
+      case PDL_IND:
+        break;
       }
-      
+
       $COMP(nsizes) = size_pdl->nvals; /* Store for later permissiveness check */
 
       /* Copy the sizes, or die if they're the wrong shape */
       if(size_pdl->nvals == 1) {
-	for(i=0;i<$COMP(rdim);i++) {
-	  $COMP(sizes[i]) = *((PDL_Index *)(size_pdl->data));
-	}
-	
-	/* Check for nonnegativity of sizes.  The rdim>0 mask ensures that */
-	/* we don't barf on the Empty PDL (as an index). */
-	if( $COMP(rdim) > 0 && $COMP(sizes[0]) < 0 ) {
-	  $CROAK("  Negative range size is not allowed in range\n");
+        for(i=0;i<$COMP(rdim);i++) {
+          $COMP(sizes[i]) = *((PDL_Indx *)(size_pdl->data));
+        }
+
+        /* Check for nonnegativity of sizes.  The rdim>0 mask ensures that */
+        /* we don't barf on the Empty PDL (as an index). */
+        if( $COMP(rdim) > 0 && $COMP(sizes[0]) < 0 ) {
+          $CROAK("  Negative range size is not allowed in range\n");
         }
       }
       else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) {
-	for(i=0;i<$COMP(rdim);i++) {
-	  $COMP(sizes[i]) = ( 	(i < size_pdl->nvals) ? 
-	                    	((PDL_Index *)(size_pdl->data))[i] :
-		                0
-			    );
-	  if($COMP(sizes[i]) < 0) 
-		$CROAK("  Negative range sizes are not allowed in range\n");
+        for(i=0;i<$COMP(rdim);i++) {
+          $COMP(sizes[i]) = (   (i < size_pdl->nvals) ?
+                                ((PDL_Indx *)(size_pdl->data))[i] :
+                                0
+                            );
+          if($COMP(sizes[i]) < 0)
+                $CROAK("  Negative range sizes are not allowed in range\n");
         }
       }
       else {
-	$CROAK(" Size must match index's 0th dim in range\n");
+        $CROAK(" Size must match index's 0th dim in range\n");
       }
-	
+
     } /* end of nonempty size-piddle code */
   } /* end of defined-size-piddle code */
 
@@ -923,28 +935,28 @@ switch(ind_pdl->datatype) {
  */
 
 {
-  PDL_Index i,j,k,ioff;
-  PDL_Index *cptr;
-  PDL_Index *iter = (PDL_Index *)(PDL->smalloc((STRLEN) (sizeof(PDL_Index) * ($COMP(itdim)))));
-  
+  PDL_Indx i,j,k,ioff;
+  PDL_Indx *cptr;
+  PDL_Indx *iter = (PDL_Indx *)(PDL->smalloc((STRLEN) (sizeof(PDL_Indx) * ($COMP(itdim)))));
+
   /* initialize iterator to loop over index threads */
   cptr = iter;
   for(k=0;k<$COMP(itdim);k++)
     *(cptr++) = 0;
-  
-  cptr = $COMP(corners);  
+
+  cptr = $COMP(corners);
   do {
     /* accumulate offset into the index from the iterator */
     for(k=ioff=0;k<$COMP(itdim);k++)
       ioff += iter[k] * ind_pdl->dimincs[k+1];
-    
-    /* Loop over the 0th dim of index, copying coords. */ 
+
+    /* Loop over the 0th dim of index, copying coords. */
     /* This is the natural place to check for permissive ranging; too */
     /* bad we don't have access to the parent piddle here... */
-	
-    for(j=0;j<$COMP(rdim);j++) 
-        *(cptr++) = ((PDL_Index *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
-    
+
+    for(j=0;j<$COMP(rdim);j++)
+        *(cptr++) = ((PDL_Indx *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
+
     /* Increment the iterator -- the test increments, the body carries. */
     for(k=0; k<$COMP(itdim) && (++(iter[k]))>=($COMP(itdims)[k]) ;k++)
       iter[k] = 0;
@@ -959,20 +971,20 @@ $SETREVERSIBLE(1);
 
 EOD-MakeComp
 
-	RedoDims => <<'EOD-RedoDims' ,
-{		      
-  PDL_Index stdim = $PARENT(ndims) - $COMP(rdim);
-  PDL_Index dim,inc;
-  PDL_Index i,rdvalid;
+        RedoDims => <<'EOD-RedoDims' ,
+{
+  PDL_Indx stdim = $PARENT(ndims) - $COMP(rdim);
+  PDL_Indx dim,inc;
+  PDL_Indx i,rdvalid;
 
     // Speed bump for ludicrous cases
     if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
       barf("Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
     }
-    
-    if(stdim < 0) 
+
+    if(stdim < 0)
       stdim = 0;
-    
+
     /* Set dimensionality of child */
     $CHILD(ndims) = $COMP(itdim) + $COMP(ntsize) + stdim;
     $SETNDIMS($COMP(itdim)+$COMP(ntsize)+stdim);
@@ -983,8 +995,8 @@ EOD-MakeComp
     for(i=rdvalid=0;i<$COMP(rdim);i++) {
       if($COMP(sizes[i])) {
         rdvalid++;
-	$CHILD(dimincs[dim]) = inc;
-	inc *= ($CHILD(dims[dim++]) = $COMP(sizes[i])); /* assignment */
+        $CHILD(dimincs[dim]) = inc;
+        inc *= ($CHILD(dims[dim++]) = $COMP(sizes[i])); /* assignment */
       }
     }
 
@@ -993,7 +1005,7 @@ EOD-MakeComp
       $CHILD(dimincs[dim]) = inc;
       inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
     }
-    
+
     /* Copy source thread dimensions to child */
     dim = $COMP(itdim) + rdvalid;
     for(i=0;i<stdim;i++) {
@@ -1006,8 +1018,8 @@ EOD-MakeComp
     /* to reflect, extend, or mirror. */
     if($PARENT(dims[0])==0) {
       for(dim=0; dim<$COMP(rdim); dim++) {
-	if($COMP(boundary[dim])) 
-	  $COMP(boundary[dim]) = 1; // force truncation
+        if($COMP(boundary[dim]))
+          $COMP(boundary[dim]) = 1; // force truncation
       }
     }
 
@@ -1019,23 +1031,23 @@ EOD-MakeComp
 
 EOD-RedoDims
 
-	EquivCPOffsCode => <<'EOD-EquivCPOffsCode',
+        EquivCPOffsCode => <<'EOD-EquivCPOffsCode',
 {
-  PDL_Index *iter, *ip;  /* vector iterator */
-  PDL_Index *sizes, *sp; /* size vector including stdims */
-  PDL_Index *coords;     /* current coordinates */
+  PDL_Indx *iter, *ip;  /* vector iterator */
+  PDL_Indx *sizes, *sp; /* size vector including stdims */
+  PDL_Indx *coords;     /* current coordinates */
 
-  PDL_Index k;           /* index */
-  PDL_Index item;        /* index thread iterator */
-  PDL_Index pdim = $PARENT_P(ndims);
-  PDL_Index rdim = $COMP(rdim);
-  PDL_Index prdim = (rdim < pdim) ? rdim : pdim;
-  PDL_Index stdim = pdim - prdim;
+  PDL_Indx k;           /* index */
+  PDL_Indx item;        /* index thread iterator */
+  PDL_Indx pdim = $PARENT_P(ndims);
+  PDL_Indx rdim = $COMP(rdim);
+  PDL_Indx prdim = (rdim < pdim) ? rdim : pdim;
+  PDL_Indx stdim = pdim - prdim;
 
-  /* Allocate iterator and larger size vector -- do it all in one foop 
+  /* Allocate iterator and larger size vector -- do it all in one foop
    * to avoid extra calls to smalloc.
    */
-    if(!(iter = (PDL_Index *)(PDL->smalloc((STRLEN) (sizeof(PDL_Index) * ($PARENT_P(ndims) * 2 + rdim)))))) {
+    if(!(iter = (PDL_Indx *)(PDL->smalloc((STRLEN) (sizeof(PDL_Indx) * ($PARENT_P(ndims) * 2 + rdim)))))) {
     barf("couldn't get memory for range iterator");
   }
   sizes  = iter + $PARENT_P(ndims);
@@ -1044,7 +1056,7 @@ EOD-RedoDims
   /* Figure out size vector */
   for(ip = $COMP(sizes), sp = sizes, k=0; k<rdim; k++)
      *(sp++) = *(ip++);
-  for(; k < $PARENT_P(ndims); k++) 
+  for(; k < $PARENT_P(ndims); k++)
      *(sp++) = $PARENT_P(dims[k]);
 
 
@@ -1052,55 +1064,55 @@ EOD-RedoDims
   for(item=0; item<$COMP(nitems); item++) {
 
     /* initialize in-range iterator to loop within each range */
-    for(ip = iter, k=0; k<$PARENT_P(ndims); k++) 
+    for(ip = iter, k=0; k<$PARENT_P(ndims); k++)
       *(ip++) = 0;
-    
+
     do {
-      PDL_Index poff = 0;
-      PDL_Index coff;
-      PDL_Index k2;
+      PDL_Indx poff = 0;
+      PDL_Indx coff;
+      PDL_Indx k2;
       char trunc = 0;       /* Flag used to skip truncation case */
 
       /* Collect and boundary-check the current N-D coords */
       for(k=0; k < prdim; k++){
 
-	PDL_Index ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
+        PDL_Indx ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
 
-     	/* normal case */
-    	  if(ck < 0 || ck >= $PARENT_P(dims[k])) {
- 	    switch($COMP(boundary[k])) {
- 	    case 0: /* no boundary breakage allowed */
- 	      barf("index out-of-bounds in range");
- 	      break;
- 	    case 1: /* truncation */
-	      trunc = 1;
- 	      break;
- 	    case 2: /* extension -- crop */
- 	      ck = (ck >= $PARENT_P(dims[k])) ? $PARENT_P(dims[k])-1 : 0;
- 	      break;
- 	    case 3: /* periodic -- mod it */
- 	      ck %= $PARENT_P(dims[k]);
- 	      if(ck < 0)   /* Fix mod breakage in C */
- 	        ck += $PARENT_P(dims[k]);
- 	      break;
-	    case 4: /* mirror -- reflect off the edges */
-	      ck += $PARENT_P(dims[k]);
-	      ck %= ($PARENT_P(dims[k]) * 2);
-	      if(ck < 0) /* Fix mod breakage in C */
-		ck += $PARENT_P(dims[k])*2;
-	      ck -= $PARENT_P(dims[k]);
-	      if(ck < 0) {
-		ck *= -1;
-	        ck -= 1;
-	      }
-	      break;
- 	    default:
- 	      barf("Unknown boundary condition in range -- bug alert!");
- 	      break;
- 	    }
- 	  }
+        /* normal case */
+          if(ck < 0 || ck >= $PARENT_P(dims[k])) {
+            switch($COMP(boundary[k])) {
+            case 0: /* no boundary breakage allowed */
+              barf("index out-of-bounds in range");
+              break;
+            case 1: /* truncation */
+              trunc = 1;
+              break;
+            case 2: /* extension -- crop */
+              ck = (ck >= $PARENT_P(dims[k])) ? $PARENT_P(dims[k])-1 : 0;
+              break;
+            case 3: /* periodic -- mod it */
+              ck %= $PARENT_P(dims[k]);
+              if(ck < 0)   /* Fix mod breakage in C */
+                ck += $PARENT_P(dims[k]);
+              break;
+            case 4: /* mirror -- reflect off the edges */
+              ck += $PARENT_P(dims[k]);
+              ck %= ($PARENT_P(dims[k]) * 2);
+              if(ck < 0) /* Fix mod breakage in C */
+                ck += $PARENT_P(dims[k])*2;
+              ck -= $PARENT_P(dims[k]);
+              if(ck < 0) {
+                ck *= -1;
+                ck -= 1;
+              }
+              break;
+            default:
+              barf("Unknown boundary condition in range -- bug alert!");
+              break;
+            }
+          }
 
-	coords[k] = ck;
+        coords[k] = ck;
 
       }
 
@@ -1108,26 +1120,26 @@ EOD-RedoDims
       for( ; k < rdim ; k++) {
         /* Check for indexing off the end of the dimension list */
 
-	PDL_Index ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
+        PDL_Indx ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
 
-  	switch($COMP(boundary[k])) {
-	    case 0: /* No boundary breakage allowed -- nonzero corners cause barfage */
-	      if(ck != 0)
-		 barf("Too many dims in range index (and you've forbidden boundary violations)");
+        switch($COMP(boundary[k])) {
+            case 0: /* No boundary breakage allowed -- nonzero corners cause barfage */
+              if(ck != 0)
+                 barf("Too many dims in range index (and you've forbidden boundary violations)");
               break;
             case 1: /* truncation - just truncate if the corner is nonzero */
-	      trunc |= (ck != 0);
-	      break;
-	    case 2: /* extension -- ignore the corner (same as 3) */
-	    case 3: /* periodic  -- ignore the corner */
+              trunc |= (ck != 0);
+              break;
+            case 2: /* extension -- ignore the corner (same as 3) */
+            case 3: /* periodic  -- ignore the corner */
             case 4: /* mirror -- ignore the corner */
               ck = 0;
               break;
-	    default:
-	      barf("Unknown boudnary condition in range -- bug alert!");
-	      /* Note clever misspelling of boundary to distinguish from other case */
-	      break;
-	  }
+            default:
+              barf("Unknown boudnary condition in range -- bug alert!");
+              /* Note clever misspelling of boundary to distinguish from other case */
+              break;
+          }
       }
 
       /* Find offsets into the child and parent arrays, from the N-D coords */
@@ -1135,45 +1147,45 @@ EOD-RedoDims
       /* because the offset is trivial and/or we're truncating for virtual */
       /* dims caused by permissive ranging. */
       coff = $CHILD_P(dimincs[0]) * item;
-      for(k2 = $COMP(itdim), poff = k = 0; 
-	  k < prdim;
-	  k++) { 
-	poff += coords[k]*$PARENT_P(dimincs[k]);
-	if($COMP(sizes[k])) 
-	  coff += iter[k] * $CHILD_P(dimincs[k2++]);
+      for(k2 = $COMP(itdim), poff = k = 0;
+          k < prdim;
+          k++) {
+        poff += coords[k]*$PARENT_P(dimincs[k]);
+        if($COMP(sizes[k]))
+          coff += iter[k] * $CHILD_P(dimincs[k2++]);
       }
 
       /* Loop the copy over all the source thread dims (above rdim). */
       do {
-	PDL_Index poff1 = poff;
-	PDL_Index coff1 = coff;
-	
-	/* Accumulate the offset due to source threading */
-	for(k2 = $COMP(itdim) + $COMP(ntsize), k = rdim; 
-	    k < pdim;
-	    k++) {
-	  poff1 += iter[k] * $PARENT_P(dimincs[k]);
-	  coff1 += iter[k] * $CHILD_P(dimincs[k2++]);
-	}
+        PDL_Indx poff1 = poff;
+        PDL_Indx coff1 = coff;
 
-	/* Finally -- make the copy 
-	 * EQUIVCPTRUNC works like EQUIVCPOFFS but with checking for 
-	 * out-of-bounds conditions.  
-	 */
-	$EQUIVCPTRUNC(coff1,poff1,trunc);		
-	
-	/* Increment the source thread iterator */
-	for( k=$COMP(rdim); 
-	     k < $PARENT_P(ndims) && (++(iter[k]) >= $PARENT_P(dims[k])); 
-	     k++)
-	  iter[k] = 0;
+        /* Accumulate the offset due to source threading */
+        for(k2 = $COMP(itdim) + $COMP(ntsize), k = rdim;
+            k < pdim;
+            k++) {
+          poff1 += iter[k] * $PARENT_P(dimincs[k]);
+          coff1 += iter[k] * $CHILD_P(dimincs[k2++]);
+        }
+
+        /* Finally -- make the copy
+         * EQUIVCPTRUNC works like EQUIVCPOFFS but with checking for
+         * out-of-bounds conditions.
+         */
+        $EQUIVCPTRUNC(coff1,poff1,trunc);
+
+        /* Increment the source thread iterator */
+        for( k=$COMP(rdim);
+             k < $PARENT_P(ndims) && (++(iter[k]) >= $PARENT_P(dims[k]));
+             k++)
+          iter[k] = 0;
       } while(k < $PARENT_P(ndims)); /* end of source-thread iteration */
 
       /* Increment the in-range iterator */
       for(k = 0;
-	  k < $COMP(rdim) && (++(iter[k]) >= $COMP(sizes[k]));
-	  k++)
-	iter[k] = 0;
+          k < $COMP(rdim) && (++(iter[k]) >= $COMP(sizes[k]));
+          k++)
+        iter[k] = 0;
     } while(k < $COMP(rdim)); /* end of main iteration */
   } /* end of item do loop */
 
@@ -1188,9 +1200,9 @@ EOD-EquivCPOffsCode
 =cut
 
 pp_def(
-	'rld',
-	Pars=>'ind a(n); b(n); [o]c(m);',
-	PMCode =><<'EOD',
+        'rld',
+        Pars=>'indx a(n); b(n); [o]c(m);',
+        PMCode =><<'EOD',
 sub PDL::rld {
   my ($a,$b) = @_;
   my ($c);
@@ -1207,18 +1219,18 @@ sub PDL::rld {
   $c;
 }
 EOD
-	Code=>'
-	  PDL_Index i,j=0,an;
-	  $GENERIC(b) bv;
-	  loop (n) %{
-	    an = $a();
-	    bv = $b();
-	    for (i=0;i<an;i++) {
-	      $c(m=>j) = bv;
-	      j++;
-	    }
-	  %}',
-	Doc => <<'EOD'
+        Code=>'
+          PDL_Indx i,j=0,an;
+          $GENERIC(b) bv;
+          loop (n) %{
+            an = $a();
+            bv = $b();
+            for (i=0;i<an;i++) {
+              $c(m=>j) = bv;
+              j++;
+            }
+          %}',
+        Doc => <<'EOD'
 =for ref
 
 Run-length decode a vector
@@ -1239,30 +1251,30 @@ EOD
 =cut
 
 pp_def(
-	'rle',
-	Pars=>'c(n); ind [o]a(n); [o]b(n);',
-	Code=>'
-	  PDL_Index j=0,sn=$SIZE(n);
-	  $GENERIC(c) cv, clv;
-	  clv = $c(n=>0);
-	  $b(n=>0) = clv;
-	  $a(n=>0) = 0;
-	  loop (n) %{
-	    cv = $c();
-	    if (cv == clv) {
-	      $a(n=>j)++;
-	    } else {
-	      j++;
-	      $b(n=>j) = clv = cv;
-	      $a(n=>j) = 1;
-	    }
-	  %}
-	  for (j++;j<sn;j++) {
-	    $a(n=>j) = 0;
-	    $b(n=>j) = 0;
-	  }
-	',
-	Doc => <<'EOD'
+        'rle',
+        Pars=>'c(n); indx [o]a(n); [o]b(n);',
+        Code=>'
+          PDL_Indx j=0,sn=$SIZE(n);
+          $GENERIC(c) cv, clv;
+          clv = $c(n=>0);
+          $b(n=>0) = clv;
+          $a(n=>0) = 0;
+          loop (n) %{
+            cv = $c();
+            if (cv == clv) {
+              $a(n=>j)++;
+            } else {
+              j++;
+              $b(n=>j) = clv = cv;
+              $a(n=>j) = 1;
+            }
+          %}
+          for (j++;j<sn;j++) {
+            $a(n=>j) = 0;
+            $b(n=>j) = 0;
+          }
+        ',
+        Doc => <<'EOD'
 =for ref
 
 Run-length encode a vector
@@ -1288,23 +1300,23 @@ EOD
 pp_def('flowconvert',
        HandleBad => 1,
        DefaultFlow => 1,
-       Reversible => 1,	
+       Reversible => 1,
        Pars => 'PARENT(); [oca]CHILD()',
        OtherPars => 'int totype;',
        Reversible => 1,
        # Forced types
        FTypes => {CHILD => '$COMP(totype)'},
-       Code => 
+       Code =>
        '$CHILD() = $PARENT();',
-       BadCode => 
-       'if ( $ISBAD(PARENT()) ) { 
+       BadCode =>
+       'if ( $ISBAD(PARENT()) ) {
            $SETBAD(CHILD());
         } else {
            $CHILD() = $PARENT();
         }',
        BackCode => '$PARENT() = $CHILD();',
-       BadBackCode => 
-       'if ( $ISBAD(CHILD()) ) { 
+       BadBackCode =>
+       'if ( $ISBAD(CHILD()) ) {
            $SETBAD(PARENT());
         } else {
            $PARENT() = $CHILD();
@@ -1314,18 +1326,18 @@ pp_def('flowconvert',
 
 
 pp_def(
-	'converttypei',
+        'converttypei',
         HandleBad => 1,
-	DefaultFlow => 1,
-	GlobalNew => 'converttypei_new',
-	OtherPars => 'int totype;',
-	P2Child => 1,
+        DefaultFlow => 1,
+        GlobalNew => 'converttypei_new',
+        OtherPars => 'int totype;',
+        P2Child => 1,
         NoPdlThread => 1,
-	Identity => 1,
-	Reversible => 1,
+        Identity => 1,
+        Reversible => 1,
 # Forced types
-	FTypes => {CHILD => '$COMP(totype)'},
-	Doc => 'internal',
+        FTypes => {CHILD => '$COMP(totype)'},
+        Doc => 'internal',
 );
 
 
@@ -1334,43 +1346,43 @@ pp_def(
 if(0) {
 # Special-case
 pp_def(
-	'clump',
-	DefaultFlow => 1,
-	OtherPars => 'int n',
-	P2Child => 1,
-	Priv => 'int nnew; int nrem;',
-	RedoDims => 'int i; PDL_Index d1;
-		if($COMP(n) > $PARENT(ndims)) 
-			/* Now with more flavor: truncate overly long clumps to 
-			   just clump existing dimensions...  (CED 17-Mar-2002) */
+        'clump',
+        DefaultFlow => 1,
+        OtherPars => 'int n',
+        P2Child => 1,
+        Priv => 'int nnew; int nrem;',
+        RedoDims => 'int i; PDL_Indx d1;
+                if($COMP(n) > $PARENT(ndims))
+                        /* Now with more flavor: truncate overly long clumps to
+                           just clump existing dimensions...  (CED 17-Mar-2002) */
 
-			$COMP(n) = $PARENT(ndims);
+                        $COMP(n) = $PARENT(ndims);
 
-			/* Old croaking code: */
-			/*$CROAK("Too many dimensions %d to clump from %d", */
-			/*		$COMP(n),$PARENT(ndims)); */
+                        /* Old croaking code: */
+                        /*$CROAK("Too many dimensions %d to clump from %d", */
+                        /*              $COMP(n),$PARENT(ndims)); */
 
-		 $COMP(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
-		 $PRIV(nnew) = $PARENT(ndims) - $COMP(nrem) + 1;
-		 $SETNDIMS($PRIV(nnew));
-		 d1=1;
-		 for(i=0; i<$PRIV(nrem); i++) {
-		 	d1 *= $PARENT(dims[i]);
-		 }
-		 $CHILD(dims[0]) = d1;
-		 for(; i<$PARENT(ndims); i++) {
-		 	$CHILD(dims[i-$PRIV(nrem)+1]) = $PARENT(dims[i]);
-		 }
-		 $SETDIMS();
-		 $SETDELTATHREADIDS(1-$COMP(nrem));
-		 ',
-	EquivCPOffsCode => '
-		PDL_Index i;
-		for(i=0; i<$CHILD_P(nvals); i++) {
-			$EQUIVCPOFFS(i,i);
-		}
-		',
-	Reversible => 1,
+                 $COMP(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
+                 $PRIV(nnew) = $PARENT(ndims) - $COMP(nrem) + 1;
+                 $SETNDIMS($PRIV(nnew));
+                 d1=1;
+                 for(i=0; i<$PRIV(nrem); i++) {
+                        d1 *= $PARENT(dims[i]);
+                 }
+                 $CHILD(dims[0]) = d1;
+                 for(; i<$PARENT(ndims); i++) {
+                        $CHILD(dims[i-$PRIV(nrem)+1]) = $PARENT(dims[i]);
+                 }
+                 $SETDIMS();
+                 $SETDELTATHREADIDS(1-$COMP(nrem));
+                 ',
+        EquivCPOffsCode => '
+                PDL_Indx i;
+                for(i=0; i<$CHILD_P(nvals); i++) {
+                        $EQUIVCPOFFS(i,i);
+                }
+                ',
+        Reversible => 1,
 );
 } else {
 
@@ -1379,53 +1391,53 @@ pp_def(
 # the perl wrapper clump is now defined in Core.pm
 # this is just the low level interface
 pp_def(
-	'_clump_int',
-	P2Child => 1,
+        '_clump_int',
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	Reversible => 1,
-	AffinePriv => 1,
-	OtherPars => 'int n',
-	RedoDims => 'int i; PDL_Index d1;
-		int nrem; int nnew;
-		if($COMP(n) > $PARENT(ndims)) {
-			/* Now with more flavor:  truncate clumping in this case to 
-			 * the total number of dimensions that actually exist...
-			 *  --CED 17-Mar-2002
-			 */
- 			$COMP(n) = -1;
-			
-#ifdef older_croaking_code
-			$SETNDIMS(0);  /* fix to make sure we do not get problems later */
-			$PRIV(offs) = 0;
-			$SETDIMS();
-			$CROAK("Too many dimensions %d to clump from %d",
-				$COMP(n),$PARENT(ndims));
-#endif
-		}
-		 nrem = ($COMP(n)< 0 ? $PARENT(threadids[0]) + 1 + ($COMP(n)) : $COMP(n));
-	         if(nrem < 0) {
-			$CROAK("Too many dimensions %d to leave behind when clumping from %d",-$COMP(n),$PARENT(ndims));
-		 }
+        DefaultFlow => 1,
+        Reversible => 1,
+        AffinePriv => 1,
+        OtherPars => 'int n',
+        RedoDims => 'int i; PDL_Indx d1;
+                int nrem; int nnew;
+                if($COMP(n) > $PARENT(ndims)) {
+                        /* Now with more flavor:  truncate clumping in this case to
+                         * the total number of dimensions that actually exist...
+                         *  --CED 17-Mar-2002
+                         */
+                        $COMP(n) = -1;
 
-		 nnew = $PARENT(ndims) - nrem + 1;
-		 $SETNDIMS(nnew);
-		 $DOPRIVDIMS();
-		 $PRIV(offs) = 0;
-		 d1=1;
-		 for(i=0; i<nrem; i++) {
-		 	d1 *= $PARENT(dims[i]);
-		 }
-		 $CHILD(dims[0]) = d1;
-		 $PRIV(incs[0]) = 1;
-		 for(; i<$PARENT(ndims); i++) {
-		 	$CHILD(dims[i-nrem+1]) = $PARENT(dims[i]);
-			$PRIV(incs[i-nrem+1]) = $PARENT(dimincs[i]);
-		 }
-		 $SETDIMS();
-		 $SETDELTATHREADIDS(1-nrem);
-		 ',
-	Doc => 'internal',
+#ifdef older_croaking_code
+                        $SETNDIMS(0);  /* fix to make sure we do not get problems later */
+                        $PRIV(offs) = 0;
+                        $SETDIMS();
+                        $CROAK("Too many dimensions %d to clump from %d",
+                                $COMP(n),$PARENT(ndims));
+#endif
+                }
+                 nrem = ($COMP(n)< 0 ? $PARENT(threadids[0]) + 1 + ($COMP(n)) : $COMP(n));
+                 if(nrem < 0) {
+                        $CROAK("Too many dimensions %d to leave behind when clumping from %d",-$COMP(n),$PARENT(ndims));
+                 }
+
+                 nnew = $PARENT(ndims) - nrem + 1;
+                 $SETNDIMS(nnew);
+                 $DOPRIVDIMS();
+                 $PRIV(offs) = 0;
+                 d1=1;
+                 for(i=0; i<nrem; i++) {
+                        d1 *= $PARENT(dims[i]);
+                 }
+                 $CHILD(dims[0]) = d1;
+                 $PRIV(incs[0]) = 1;
+                 for(; i<$PARENT(ndims); i++) {
+                        $CHILD(dims[i-nrem+1]) = $PARENT(dims[i]);
+                        $PRIV(incs[i-nrem+1]) = $PARENT(dimincs[i]);
+                 }
+                 $SETDIMS();
+                 $SETDELTATHREADIDS(1-nrem);
+                 ',
+        Doc => 'internal',
 );
 }
 
@@ -1434,25 +1446,25 @@ pp_def(
 =cut
 
 pp_def(
-	'xchg',
-	OtherPars => 'int n1; int n2;',
-	DefaultFlow => 1,
-	Reversible => 1,
-	P2Child => 1,
+        'xchg',
+        OtherPars => 'int n1; int n2;',
+        DefaultFlow => 1,
+        Reversible => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	XCHGOnly => 1,
-	EquivDimCheck => 'if ($COMP(n1) <0)
-				$COMP(n1) += $PARENT(threadids[0]);
-			  if ($COMP(n2) <0)
-				$COMP(n2) += $PARENT(threadids[0]);
-			  if ($COMP(n1) <0 ||$COMP(n2) <0 ||
-			     $COMP(n1) >= $PARENT(threadids[0]) ||
-			     $COMP(n2) >= $PARENT(threadids[0]))
-		barf("One of dims %d, %d out of range: should be 0<=dim<%d",
-			$COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
-	EquivPDimExpr => '(($CDIM == $COMP(n1)) ? $COMP(n2) : ($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM)',
-	EquivCDimExpr => '(($PDIM == $COMP(n1)) ? $COMP(n2) : ($PDIM == $COMP(n2)) ? $COMP(n1) : $PDIM)',
-	Doc => <<'EOD',
+        XCHGOnly => 1,
+        EquivDimCheck => 'if ($COMP(n1) <0)
+                                $COMP(n1) += $PARENT(threadids[0]);
+                          if ($COMP(n2) <0)
+                                $COMP(n2) += $PARENT(threadids[0]);
+                          if ($COMP(n1) <0 ||$COMP(n2) <0 ||
+                             $COMP(n1) >= $PARENT(threadids[0]) ||
+                             $COMP(n2) >= $PARENT(threadids[0]))
+                barf("One of dims %d, %d out of range: should be 0<=dim<%d",
+                        $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
+        EquivPDimExpr => '(($CDIM == $COMP(n1)) ? $COMP(n2) : ($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM)',
+        EquivCDimExpr => '(($PDIM == $COMP(n1)) ? $COMP(n2) : ($PDIM == $COMP(n2)) ? $COMP(n1) : $PDIM)',
+        Doc => <<'EOD',
 =for ref
 
 exchange two dimensions
@@ -1491,10 +1503,10 @@ once.
 =for usage
 
  # Completely reverse the dimension order of a 6-Dim array.
- $reOrderedPDL = $pdl->reorder(5,4,3,2,1,0); 
+ $reOrderedPDL = $pdl->reorder(5,4,3,2,1,0);
 
 The argument to reorder is an array representing where the current dimensions
-should go in the new array. In the above usage, the argument to reorder 
+should go in the new array. In the above usage, the argument to reorder
 C<(5,4,3,2,1,0)>
 indicates that the old dimensions (C<$pdl>'s dims) should be re-arranged to make the
 new pdl (C<$reOrderPDL>) according to the following:
@@ -1503,10 +1515,10 @@ new pdl (C<$reOrderPDL>) according to the following:
    ------------   ------------
    5              0
    4              1
-   3 		  2
-   2		  3
-   1		  4
-   0		  5
+   3              2
+   2              3
+   1              4
+   0              5
 
 You do not need to specify all dimensions, only a complete set
 starting at position 0.  (Extra dimensions are left where they are).
@@ -1514,11 +1526,11 @@ This means, for example, that you can reorder() the X and Y dimensions of
 an image, and not care whether it is an RGB image with a third dimension running
 across color plane.
 
-=for example 
+=for example
 
 Example:
 
- pdl> $a = sequence(5,3,2);	  # Create a 3-d Array
+ pdl> $a = sequence(5,3,2);       # Create a 3-d Array
  pdl> p $a
  [
   [
@@ -1570,30 +1582,30 @@ result PDL will change the parent.
 =cut
 
 sub PDL::reorder {
-	my ($pdl,@newDimOrder) = @_;
-	
-	my $arrayMax = $#newDimOrder;
-  
-	#Error Checking:
-	if( $pdl->getndims < scalar(@newDimOrder) ){
-		my $errString = "PDL::reorder: Number of elements (".scalar(@newDimOrder).") in newDimOrder array exceeds\n";
-		$errString .= "the number of dims in the supplied PDL (".$pdl->getndims.")";
-		barf($errString);
-	}
-	
-	# Check to make sure all the dims are within bounds
-	for my $i(0..$#newDimOrder) {
-	  my $dim = $newDimOrder[$i];
-	  if($dim < 0 || $dim > $#newDimOrder) {
-	      my $errString = "PDL::reorder: Dim index $newDimOrder[$i] out of range in position $i\n(range is 0-$#newDimOrder)";
-	      barf($errString);
-	  }
-	}
+        my ($pdl,@newDimOrder) = @_;
 
-	# Checking that they are all present and also not duplicated is done by thread() [I think]
+        my $arrayMax = $#newDimOrder;
 
-	# a quicker way to do the reorder
-	return $pdl->thread(@newDimOrder)->unthread(0);
+        #Error Checking:
+        if( $pdl->getndims < scalar(@newDimOrder) ){
+                my $errString = "PDL::reorder: Number of elements (".scalar(@newDimOrder).") in newDimOrder array exceeds\n";
+                $errString .= "the number of dims in the supplied PDL (".$pdl->getndims.")";
+                barf($errString);
+        }
+
+        # Check to make sure all the dims are within bounds
+        for my $i(0..$#newDimOrder) {
+          my $dim = $newDimOrder[$i];
+          if($dim < 0 || $dim > $#newDimOrder) {
+              my $errString = "PDL::reorder: Dim index $newDimOrder[$i] out of range in position $i\n(range is 0-$#newDimOrder)";
+              barf($errString);
+          }
+        }
+
+        # Checking that they are all present and also not duplicated is done by thread() [I think]
+
+        # a quicker way to do the reorder
+        return $pdl->thread(@newDimOrder)->unthread(0);
 }
 
 EOD
@@ -1602,37 +1614,37 @@ EOD
 =cut
 
 pp_def(
-	'mv',
-	OtherPars => 'int n1; int n2;',
-	DefaultFlow => 1,
-	Reversible => 1,
-	P2Child => 1,
+        'mv',
+        OtherPars => 'int n1; int n2;',
+        DefaultFlow => 1,
+        Reversible => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	XCHGOnly => 1,
-	EquivDimCheck => 'if ($COMP(n1) <0)
-				$COMP(n1) += $PARENT(threadids[0]);
-			  if ($COMP(n2) <0)
-				$COMP(n2) += $PARENT(threadids[0]);
-			  if ($COMP(n1) <0 ||$COMP(n2) <0 ||
-			     $COMP(n1) >= $PARENT(threadids[0]) ||
-			     $COMP(n2) >= $PARENT(threadids[0]))
-		barf("One of dims %d, %d out of range: should be 0<=dim<%d",
-			$COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
-	EquivPDimExpr => '(($COMP(n1) < $COMP(n2)) ?
-	(($CDIM < $COMP(n1) || $CDIM > $COMP(n2)) ?
-		$CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM+1))
-	: (($COMP(n2) < $COMP(n1)) ?
-		(($CDIM > $COMP(n1) || $CDIM < $COMP(n2)) ?
-			$CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM-1))
-		: $CDIM))',
-	EquivCDimExpr => '(($COMP(n2) < $COMP(n1)) ?
-	(($PDIM < $COMP(n2) || $PDIM > $COMP(n1)) ?
-		$PDIM : (($PDIM == $COMP(n1)) ? $COMP(n2) : $PDIM+1))
-	: (($COMP(n1) < $COMP(n2)) ?
-		(($PDIM > $COMP(n2) || $PDIM < $COMP(n1)) ?
-			$PDIM : (($PDIM == $COMP(n1)) ? $COMP(n2) : $PDIM-1))
-		: $PDIM))',
-	Doc => << 'EOD',
+        XCHGOnly => 1,
+        EquivDimCheck => 'if ($COMP(n1) <0)
+                                $COMP(n1) += $PARENT(threadids[0]);
+                          if ($COMP(n2) <0)
+                                $COMP(n2) += $PARENT(threadids[0]);
+                          if ($COMP(n1) <0 ||$COMP(n2) <0 ||
+                             $COMP(n1) >= $PARENT(threadids[0]) ||
+                             $COMP(n2) >= $PARENT(threadids[0]))
+                barf("One of dims %d, %d out of range: should be 0<=dim<%d",
+                        $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
+        EquivPDimExpr => '(($COMP(n1) < $COMP(n2)) ?
+        (($CDIM < $COMP(n1) || $CDIM > $COMP(n2)) ?
+                $CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM+1))
+        : (($COMP(n2) < $COMP(n1)) ?
+                (($CDIM > $COMP(n1) || $CDIM < $COMP(n2)) ?
+                        $CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM-1))
+                : $CDIM))',
+        EquivCDimExpr => '(($COMP(n2) < $COMP(n1)) ?
+        (($PDIM < $COMP(n2) || $PDIM > $COMP(n1)) ?
+                $PDIM : (($PDIM == $COMP(n1)) ? $COMP(n2) : $PDIM+1))
+        : (($COMP(n1) < $COMP(n2)) ?
+                (($PDIM > $COMP(n2) || $PDIM < $COMP(n1)) ?
+                        $PDIM : (($PDIM == $COMP(n1)) ? $COMP(n2) : $PDIM-1))
+                : $PDIM))',
+        Doc => << 'EOD',
 =for ref
 
 move a dimension to another position
@@ -1654,20 +1666,91 @@ Negative dimension indices count from the end.
 EOD
 );
 
+
+=head2 oneslice
+=cut
+
+pp_def(
+        'oneslice',
+        Doc => <<'EOD',
+=for ref
+
+experimental function - not for public use
+
+=for example
+
+ $a = oneslice();
+
+This is not for public use currently. See the source if you have to.
+This function can be used to accomplish run-time changing of
+transformations i.e. changing the size of some piddle at run-time.
+
+However, the mechanism is not yet finalized and this is just a demonstration.
+=cut
+EOD
+        P2Child => 1,
+        NoPdlThread => 1,
+        DefaultFlow => 1,
+        Reversible => 1,
+        OtherPars => 'int nth; int from; int step; int nsteps;',
+        AffinePriv => 1,
+        RedoDims => '
+                int nth = $PRIV(nth);
+                PDL_Indx from = $PRIV(from);
+                PDL_Indx step = $PRIV(step);
+                PDL_Indx nsteps = $PRIV(nsteps);
+                int i;
+                printf("ONESLICE_REDODIMS %d %d %d %d\n",nth,from,step,nsteps);
+                if(nth >= $PARENT(ndims)) {
+                        die("Oneslice: too large nthdim");
+                }
+                if(from + step * (nsteps-1) >= $PARENT(dims[nth])) {
+                        die("Oneslice: too many, too large steps");
+                }
+                if(from < 0 || step < 0) {
+                        die("Oneslice: can only support positive from & step");
+                }
+                $PRIV(offs) = 0;
+                $SETNDIMS($PARENT(ndims));
+                $DOPRIVDIMS();
+                for(i=0; i<$PARENT(ndims); i++) {
+                        $CHILD(dims)[i] = $PARENT(dims)[i];
+                        $PRIV(incs)[i] = $PARENT(dimincs)[i];
+                }
+                $CHILD(dims)[nth] = nsteps;
+                $PRIV(incs)[nth] *= step;
+                $PRIV(offs) += from * $PARENT(dimincs)[nth];
+                $SETDELTATHREADIDS(0);
+                $SETDIMS();
+        ',
+        FooCode => # This is why we have this stupid function
+        '       $COMP(from) = i1;
+                $COMP(step) = i2;
+                $COMP(nsteps) = i3;
+                printf("ONESLICE_FOOFUNC %d %d %d %d\n",
+                    $COMP(nth),$COMP(from),$COMP(step),$COMP(nsteps));
+        ',
+);
+
+
 pp_addhdr << 'EOH';
 #define sign(x) ( (x) < 0 ? -1 : 1)
 EOH
 
-=head2 slice
+=head2 oslice
 =cut
 
 # I think the quotes in the =item ":" lines
 # confuse the perldoc stuff
 #
 pp_def(
-	'slice',
-	Doc => << 'EOD',
+        'oslice',
+        Doc => << 'EOD',
 =for ref
+
+DEPRECATED:  'oslice' is the original 'slice' routine in pre-2.006_006
+versions of PDL.  It is left here for reference but will disappear in
+PDL 3.000
 
 Extract a rectangular slice of a piddle, from a string specifier.
 
@@ -1720,6 +1803,7 @@ slices the range I<a> to I<b>, with step I<c> (i.e. C<3:7:2> gives the indices
 C<(3,5,7)>). This may be confusing to Matlab users but several other
 packages already use this syntax.
 
+
 =item '*'
 
 inserts an extra dimension of width 1 and
@@ -1739,269 +1823,269 @@ dimension that doesn't exist, but only index the 0th element, then
 C<slice> treats the source as if there were a dummy dimension there.
 The following are all equivalent:
 
-	xvals(5)->dummy(1,1)->slice('(2),0')  # Add dummy dim, then slice
-	xvals(5)->slice('(2),0')              # Out-of-bounds slice adds dim.
-	xvals(5)->slice((2),0)                # NiceSlice syntax
-	xvals(5)->((2))->dummy(0,1) 	      # NiceSlice syntax
+        xvals(5)->dummy(1,1)->slice('(2),0')  # Add dummy dim, then slice
+        xvals(5)->slice('(2),0')              # Out-of-bounds slice adds dim.
+        xvals(5)->slice((2),0)                # NiceSlice syntax
+        xvals(5)->((2))->dummy(0,1)           # NiceSlice syntax
 
 This is an error:
 
-	xvals(5)->slice('(2),1')	# nontrivial out-of-bounds slice dies
+        xvals(5)->slice('(2),1')        # nontrivial out-of-bounds slice dies
 
-Because slicing doesn't directly manipulate the source and destination 
-pdl -- it just sets up a transformation between them -- indexing errors 
+Because slicing doesn't directly manipulate the source and destination
+pdl -- it just sets up a transformation between them -- indexing errors
 often aren't reported until later.  This is either a bug or a feature,
 depending on whether you prefer error-reporting clarity or speed of execution.
 
 =cut
 
 EOD
-	P2Child => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	OtherPars => 'char* str',
-	Comp => 'int nnew; int nthintact; int intactnew; int ndum;
-	         int corresp[$COMP(intactnew)]; PDL_Index start[$COMP(intactnew)];
-		 PDL_Index inc[$COMP(intactnew)]; PDL_Index end[$COMP(intactnew)];
-		 int nolddims;
-		 int whichold[$COMP(nolddims)]; int oldind[$COMP(nolddims)];
-		 ',
-	AffinePriv => 1,
-	MakeComp => q~
-		int i;
-		int nthnew; int nthold; int nthreal;
-		PDL_Index dumsize;
-		char *s; char *ns;
-		int nums[3]; int nthnum;
-		$COMP(nnew)=0;
-		$COMP(ndum)=0;
-		$COMP(nolddims) = 0;
-		if(str[0] == '(')
-			$COMP(nolddims)++;
-		else if (str[0] == '*')
-			$COMP(ndum)++;
-		else if (str[0] != '\0') /* handle empty string */
-			$COMP(nnew)++;
-		for(i=0; str[i]; i++)
-			if(str[i] == ',') {
-				if(str[i+1] == '(')
-					$COMP(nolddims)++;
-				else if(str[i+1] == '*')
-					$COMP(ndum)++;
-				else
-					$COMP(nnew)++;
-			}
-		$COMP(nthintact) = $COMP(nolddims) + $COMP(nnew);
-		$COMP(intactnew) = $COMP(nnew)+$COMP(ndum);
-		$DOCOMPDIMS();
-		nthnew=0; nthold=0; i=0; nthreal=0;
-		s=str-1;
-		do {
-			s++;
-			if(isdigit(*s) || *s == '-') {
-				nthnew++; nthreal++;
-				$COMP(inc[nthnew-1]) = 1;
-				$COMP(corresp[nthnew-1]) = nthreal-1;
-				$COMP(start[nthnew-1]) = strtoll(s,&s,10);
-				if(*s != ':') {
-					$COMP(end[nthnew-1]) =
-						$COMP(start[nthnew-1]);
-					goto outlab;
-				}
-				s++;
-				if(!isdigit(*s) && !(*s == '-')) {
-					barf("Invalid slice str ind1 '%s': '%s'",str,s);
-				}
-				$COMP(end[nthnew-1]) = strtoll(s,&s,10);
-				if(*s != ':') {goto outlab;}
-				s++;
-				if(!isdigit(*s) && !(*s == '-')) {
-					barf("Invalid slice str ind2 '%s': '%s'",str,s);
-				}
-				$COMP(inc[nthnew-1]) = strtoll(s,&s,10);
-			} else switch(*s) {
-			case ':':
-				s++;
-				/* FALLTHRU */
-			case ',': case '\0':  /* In these cases, no inc s */
-				if ($COMP(intactnew) > 0) {
-				  $COMP(start[nthnew]) = 0;
-				  $COMP(end[nthnew]) = -1;
-				  $COMP(inc[nthnew]) = 1;
-				  $COMP(corresp[nthnew]) = nthreal;
-				  nthnew++; nthreal++;
-				}
-				break;
-			case '(':
-				s++;
-				$COMP(oldind[nthold]) = strtoll(s,&s,10);
-				$COMP(whichold[nthold]) = nthreal;
-				nthold++; nthreal++;
-				if(*s != ')') {
-					barf("Sliceoblit must end with ')': '%s': '%s'",str,s);
-				}
-				s++;
-				break;
-			case '*':
-				s++;
-				if(isdigit(*s)) {
-					dumsize = strtoll(s,&s,10);
-				} else {dumsize = 1;}
-				$COMP(corresp[nthnew]) = -1;
-				$COMP(start[nthnew]) = 0;
-				$COMP(end[nthnew]) = dumsize-1;
-				$COMP(inc[nthnew]) = 1;
-				nthnew++;
-				break;
-			}
-		   outlab:
-			if(*s != ',' && *s != '\0') {
-				barf("Invalid slice str '%s': '%s'",str,s);
-			}
-		} while(*s);
-		$SETREVERSIBLE(1); /* XXX Only if incs>0, no dummies */
-	~,
-	RedoDims => '
-		int i; PDL_Index start; PDL_Index end; PDL_Index inc;
-		if ($COMP(nthintact) > $PARENT(ndims)) {
-
-	/* Slice has more dims than parent.  Check that the extra dims are 		
-         * all zero, and if they are then give back What You Probably Wanted,
-	 * which is a slice with dummy dimensions of order 1 in place of each excessive 
-	 * dimension.  (Note that there are two ways to indicate a zero index: "0" and "-<w>",
-	 * where <w> happens to be the size of that dim in the original
-	 * piddle.  The latter case still causes an error.  That is a feature.)
-	 *    --CED 15-March-2002
-	 */
-			int ii,parentdim,ok;
-			int n_xtra_dims=0, n_xtra_olddims=0;
-
-			   /* Check index for each extra dim in the ordinary affine list */
-
-			for(ok=1, ii = 0; ok && ii < $COMP(intactnew) ; ii++) {
-				parentdim = $COMP(corresp[ii]);
-/*				fprintf(stderr,"ii=%d,parent=%d, ndum=%d, nnew=%d...",ii,parentdim,$COMP(ndum),$COMP(nnew));				*/
-				if(parentdim >= $PARENT(ndims)) {					
-
-					ok = ( ( $COMP(start[ii]) == 0 ) && 
-					  	( $COMP(end[ii]) == 0 || $COMP(end[ii])== -1 )
-					);
-					if(ok) {
-						/* Change this into a dummy dimension, rank 1 */
-						$COMP(corresp[ii]) = -1;
-						$COMP(start[ii])   = 0;
-						$COMP(end[ii])     = 0;
-						$COMP(inc[ii])     = 1;
-						$COMP(ndum)++;      /* One more dummy dimension... */
-						$COMP(nnew)--;      /* ... one less real dimension */
-						$COMP(nthintact)--; /* ... one less intact dim */
-/*						fprintf(stderr,"ok, ndum=%d, nnew=%d\n",$COMP(ndum), $COMP(nnew));*/
-					}
-/*				fflush(stderr);*/
-				}
-			}	
-			
-			  /* Check index for each indexed parent dimension */
-			for(ii=0; ok && ii < $COMP(nolddims); ii++) {
-				if($COMP(whichold[ii]) >= $PARENT(ndims)) {
-					ok = ( $COMP(whichold[ii]) < $PARENT(ndims) ) ||
-						( $COMP(oldind[ii]) == 0 ) ||
-						( $COMP(oldind[ii]) == -1) ;
-					if(ok) {
-					  int ij;
-					  /* crunch indexed dimensions -- slow but sure */
-					  $COMP(nolddims)--;
-					  for(ij=ii; ij<$COMP(nolddims); ij++) {
-						$COMP(oldind[ij]) = $COMP(oldind[ij+1]);
-					 	$COMP(whichold[ij]) = $COMP(whichold[ij+1]);
-					  }
-					  $COMP(nthintact)--;
-					}
-				}
-			}	
-/*	fprintf(stderr,"ok=%d\n",ok);fflush(stderr);*/
-			if(ok) {
-			   /* Valid slice: all extra dims are zero. Adjust indices accordingly. */
-/*			  $COMP(intactnew) -= $COMP(nthintact) - $PARENT(ndims); */
-/*			  $COMP(nthintact) = $PARENT(ndims);*/
-			} else { 	
-
-			   /* Invalid slice: nonzero extra dimension.  Clean up and die.  */
-
-  			 $SETNDIMS(0); /* dirty fix */
-			 $PRIV(offs) = 0;	
-			 $SETDIMS();
-			 $CROAK("Too many dims in slice");
-			}
- 	        }
-		$SETNDIMS($PARENT(ndims)-$COMP(nthintact)+$COMP(intactnew));
-		$DOPRIVDIMS();
-		$PRIV(offs) = 0;
-		for(i=0; i<$COMP(intactnew); i++) {
-			int parentdim = $COMP(corresp[i]);
-			start = $COMP(start[i]); end = $COMP(end[i]);
-			inc = $COMP(inc[i]);
-			if(parentdim!=-1) {
-				if(-start > $PARENT(dims[parentdim]) ||
-				   -end > $PARENT(dims[parentdim])) {
-				   	/* set a state flag to re-trip the RedoDims code later, in
-				   	 * case this barf is caught in an eval. This slice will
-				   	 * always croak, so it may be smarter to find a way to
-				   	 * replace this whole piddle with a "barf" piddle, but this
-				   	 * will work for now. */
-				   	PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-					barf("Negative slice cannot start or end above limit");
+        DefaultFlow => 1,
+        OtherPars => 'char* str',
+        Comp => 'int nnew; int nthintact; int intactnew; int ndum;
+                 int corresp[$COMP(intactnew)]; PDL_Indx start[$COMP(intactnew)];
+                 PDL_Indx inc[$COMP(intactnew)]; PDL_Indx end[$COMP(intactnew)];
+                 int nolddims;
+                 int whichold[$COMP(nolddims)]; int oldind[$COMP(nolddims)];
+                 ',
+        AffinePriv => 1,
+        MakeComp => q~
+                int i;
+                int nthnew; int nthold; int nthreal;
+                PDL_Indx dumsize;
+                char *s; char *ns;
+                int nums[3]; int nthnum;
+                $COMP(nnew)=0;
+                $COMP(ndum)=0;
+                $COMP(nolddims) = 0;
+                if(str[0] == '(')
+                        $COMP(nolddims)++;
+                else if (str[0] == '*')
+                        $COMP(ndum)++;
+                else if (str[0] != '\0') /* handle empty string */
+                        $COMP(nnew)++;
+                for(i=0; str[i]; i++)
+                        if(str[i] == ',') {
+                                if(str[i+1] == '(')
+                                        $COMP(nolddims)++;
+                                else if(str[i+1] == '*')
+                                        $COMP(ndum)++;
+                                else
+                                        $COMP(nnew)++;
+                        }
+                $COMP(nthintact) = $COMP(nolddims) + $COMP(nnew);
+                $COMP(intactnew) = $COMP(nnew)+$COMP(ndum);
+                $DOCOMPDIMS();
+                nthnew=0; nthold=0; i=0; nthreal=0;
+                s=str-1;
+                do {
+                        s++;
+                        if(isdigit(*s) || *s == '-') {
+                                nthnew++; nthreal++;
+                                $COMP(inc[nthnew-1]) = 1;
+                                $COMP(corresp[nthnew-1]) = nthreal-1;
+                                $COMP(start[nthnew-1]) = strtoll(s,&s,10);
+                                if(*s != ':') {
+                                        $COMP(end[nthnew-1]) =
+                                                $COMP(start[nthnew-1]);
+                                        goto outlab;
                                 }
-				if(start < 0)
-					start = $PARENT(dims[parentdim]) + start;
-				if(end < 0)
-					end = $PARENT(dims[parentdim]) + end;
-				if(start >= $PARENT(dims[parentdim]) ||
-				   end >= $PARENT(dims[parentdim])) {
-				   	/* set a state flag to re-trip the RedoDims code later, in
-				   	 * case this barf is caught in an eval. This slice will
-				   	 * always croak, so it may be smarter to find a way to
-				   	 * replace this whole piddle with a "barf" piddle, but this
-				   	 * will work for now. */
-				   	PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-					barf("Slice cannot start or end above limit");
-				}
-				if(sign(end-start)*sign(inc) < 0)
-					inc = -inc;
-				$PRIV(incs[i]) = $PARENT(dimincs[parentdim]) * inc;
-				$PRIV(offs) += start * $PARENT(dimincs[parentdim]);
-			} else {
-				$PRIV(incs[i]) = 0;
-			}
-			$CHILD(dims[i]) = ((PDL_Index)((end-start)/inc))+1;
+                                s++;
+                                if(!isdigit(*s) && !(*s == '-')) {
+                                        barf("Invalid slice str ind1 '%s': '%s'",str,s);
+                                }
+                                $COMP(end[nthnew-1]) = strtoll(s,&s,10);
+                                if(*s != ':') {goto outlab;}
+                                s++;
+                                if(!isdigit(*s) && !(*s == '-')) {
+                                        barf("Invalid slice str ind2 '%s': '%s'",str,s);
+                                }
+                                $COMP(inc[nthnew-1]) = strtoll(s,&s,10);
+                        } else switch(*s) {
+                        case ':':
+                                s++;
+                                /* FALLTHRU */
+                        case ',': case '\0':  /* In these cases, no inc s */
+                                if ($COMP(intactnew) > 0) {
+                                  $COMP(start[nthnew]) = 0;
+                                  $COMP(end[nthnew]) = -1;
+                                  $COMP(inc[nthnew]) = 1;
+                                  $COMP(corresp[nthnew]) = nthreal;
+                                  nthnew++; nthreal++;
+                                }
+                                break;
+                        case '(':
+                                s++;
+                                $COMP(oldind[nthold]) = strtoll(s,&s,10);
+                                $COMP(whichold[nthold]) = nthreal;
+                                nthold++; nthreal++;
+                                if(*s != ')') {
+                                        barf("Sliceoblit must end with ')': '%s': '%s'",str,s);
+                                }
+                                s++;
+                                break;
+                        case '*':
+                                s++;
+                                if(isdigit(*s)) {
+                                        dumsize = strtoll(s,&s,10);
+                                } else {dumsize = 1;}
+                                $COMP(corresp[nthnew]) = -1;
+                                $COMP(start[nthnew]) = 0;
+                                $COMP(end[nthnew]) = dumsize-1;
+                                $COMP(inc[nthnew]) = 1;
+                                nthnew++;
+                                break;
+                        }
+                   outlab:
+                        if(*s != ',' && *s != '\0') {
+                                barf("Invalid slice str '%s': '%s'",str,s);
+                        }
+                } while(*s);
+                $SETREVERSIBLE(1); /* XXX Only if incs>0, no dummies */
+        ~,
+        RedoDims => '
+                int i; PDL_Indx start; PDL_Indx end; PDL_Indx inc;
+                if ($COMP(nthintact) > $PARENT(ndims)) {
+
+        /* Slice has more dims than parent.  Check that the extra dims are
+         * all zero, and if they are then give back What You Probably Wanted,
+         * which is a slice with dummy dimensions of order 1 in place of each excessive
+         * dimension.  (Note that there are two ways to indicate a zero index: "0" and "-<w>",
+         * where <w> happens to be the size of that dim in the original
+         * piddle.  The latter case still causes an error.  That is a feature.)
+         *    --CED 15-March-2002
+         */
+                        int ii,parentdim,ok;
+                        int n_xtra_dims=0, n_xtra_olddims=0;
+
+                           /* Check index for each extra dim in the ordinary affine list */
+
+                        for(ok=1, ii = 0; ok && ii < $COMP(intactnew) ; ii++) {
+                                parentdim = $COMP(corresp[ii]);
+/*                              fprintf(stderr,"ii=%d,parent=%d, ndum=%d, nnew=%d...",ii,parentdim,$COMP(ndum),$COMP(nnew));                            */
+                                if(parentdim >= $PARENT(ndims)) {
+
+                                        ok = ( ( $COMP(start[ii]) == 0 ) &&
+                                                ( $COMP(end[ii]) == 0 || $COMP(end[ii])== -1 )
+                                        );
+                                        if(ok) {
+                                                /* Change this into a dummy dimension, rank 1 */
+                                                $COMP(corresp[ii]) = -1;
+                                                $COMP(start[ii])   = 0;
+                                                $COMP(end[ii])     = 0;
+                                                $COMP(inc[ii])     = 1;
+                                                $COMP(ndum)++;      /* One more dummy dimension... */
+                                                $COMP(nnew)--;      /* ... one less real dimension */
+                                                $COMP(nthintact)--; /* ... one less intact dim */
+/*                                              fprintf(stderr,"ok, ndum=%d, nnew=%d\n",$COMP(ndum), $COMP(nnew));*/
+                                        }
+/*                              fflush(stderr);*/
+                                }
+                        }
+
+                          /* Check index for each indexed parent dimension */
+                        for(ii=0; ok && ii < $COMP(nolddims); ii++) {
+                                if($COMP(whichold[ii]) >= $PARENT(ndims)) {
+                                        ok = ( $COMP(whichold[ii]) < $PARENT(ndims) ) ||
+                                                ( $COMP(oldind[ii]) == 0 ) ||
+                                                ( $COMP(oldind[ii]) == -1) ;
+                                        if(ok) {
+                                          int ij;
+                                          /* crunch indexed dimensions -- slow but sure */
+                                          $COMP(nolddims)--;
+                                          for(ij=ii; ij<$COMP(nolddims); ij++) {
+                                                $COMP(oldind[ij]) = $COMP(oldind[ij+1]);
+                                                $COMP(whichold[ij]) = $COMP(whichold[ij+1]);
+                                          }
+                                          $COMP(nthintact)--;
+                                        }
+                                }
+                        }
+/*      fprintf(stderr,"ok=%d\n",ok);fflush(stderr);*/
+                        if(ok) {
+                           /* Valid slice: all extra dims are zero. Adjust indices accordingly. */
+/*                        $COMP(intactnew) -= $COMP(nthintact) - $PARENT(ndims); */
+/*                        $COMP(nthintact) = $PARENT(ndims);*/
+                        } else {
+
+                           /* Invalid slice: nonzero extra dimension.  Clean up and die.  */
+
+                         $SETNDIMS(0); /* dirty fix */
+                         $PRIV(offs) = 0;
+                         $SETDIMS();
+                         $CROAK("Too many dims in slice");
+                        }
+                }
+                $SETNDIMS($PARENT(ndims)-$COMP(nthintact)+$COMP(intactnew));
+                $DOPRIVDIMS();
+                $PRIV(offs) = 0;
+                for(i=0; i<$COMP(intactnew); i++) {
+                        int parentdim = $COMP(corresp[i]);
+                        start = $COMP(start[i]); end = $COMP(end[i]);
+                        inc = $COMP(inc[i]);
+                        if(parentdim!=-1) {
+                                if(-start > $PARENT(dims[parentdim]) ||
+                                   -end > $PARENT(dims[parentdim])) {
+                                        /* set a state flag to re-trip the RedoDims code later, in
+                                         * case this barf is caught in an eval. This slice will
+                                         * always croak, so it may be smarter to find a way to
+                                         * replace this whole piddle with a "barf" piddle, but this
+                                         * will work for now. */
+                                        PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+                                        barf("Negative slice cannot start or end above limit");
+                                }
+                                if(start < 0)
+                                        start = $PARENT(dims[parentdim]) + start;
+                                if(end < 0)
+                                        end = $PARENT(dims[parentdim]) + end;
+                                if(start >= $PARENT(dims[parentdim]) ||
+                                   end >= $PARENT(dims[parentdim])) {
+                                        /* set a state flag to re-trip the RedoDims code later, in
+                                         * case this barf is caught in an eval. This slice will
+                                         * always croak, so it may be smarter to find a way to
+                                         * replace this whole piddle with a "barf" piddle, but this
+                                         * will work for now. */
+                                        PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+                                        barf("Slice cannot start or end above limit");
+                                }
+                                if(sign(end-start)*sign(inc) < 0)
+                                        inc = -inc;
+                                $PRIV(incs[i]) = $PARENT(dimincs[parentdim]) * inc;
+                                $PRIV(offs) += start * $PARENT(dimincs[parentdim]);
+                        } else {
+                                $PRIV(incs[i]) = 0;
+                        }
+                        $CHILD(dims[i]) = ((PDL_Indx)((end-start)/inc))+1;
                         if ($CHILD(dims[i]) <= 0)
                            barf("slice internal error: computed slice dimension must be positive");
-		}
-		for(i=$COMP(nthintact); i<$PARENT(ndims); i++) {
-			int cdim = i - $COMP(nthintact) + $COMP(intactnew);
-			$PRIV(incs[cdim]) = $PARENT(dimincs[i]);
-			$CHILD(dims[cdim]) = $PARENT(dims[i]);
-		}
-		for(i=0; i<$COMP(nolddims); i++) {
-			int oi = $COMP(oldind[i]);
-			int wo = $COMP(whichold[i]);
-			if(oi < 0)
-				oi += $PARENT(dims[wo]);
-			if( oi >= $PARENT(dims[wo]) )
-				$CROAK("Cannot obliterate dimension after end");
-			$PRIV(offs) += $PARENT(dimincs[wo])
-					* oi;
-		}
-	/*
-		for(i=0; i<$CHILD(ndims)-$PRIV(nnew); i++) {
-			$CHILD(dims[i+$COMP(intactnew)]) =
-				$PARENT(dims[i+$COMP(nthintact)]);
-			$PRIV(incs[i+$COMP(intactnew)]) =
-				$PARENT(dimincs[i+$COMP(nthintact)]);
-		}
-	*/
-		$SETDIMS();
-	',
+                }
+                for(i=$COMP(nthintact); i<$PARENT(ndims); i++) {
+                        int cdim = i - $COMP(nthintact) + $COMP(intactnew);
+                        $PRIV(incs[cdim]) = $PARENT(dimincs[i]);
+                        $CHILD(dims[cdim]) = $PARENT(dims[i]);
+                }
+                for(i=0; i<$COMP(nolddims); i++) {
+                        int oi = $COMP(oldind[i]);
+                        int wo = $COMP(whichold[i]);
+                        if(oi < 0)
+                                oi += $PARENT(dims[wo]);
+                        if( oi >= $PARENT(dims[wo]) )
+                                $CROAK("Cannot obliterate dimension after end");
+                        $PRIV(offs) += $PARENT(dimincs[wo])
+                                        * oi;
+                }
+        /*
+                for(i=0; i<$CHILD(ndims)-$PRIV(nnew); i++) {
+                        $CHILD(dims[i+$COMP(intactnew)]) =
+                                $PARENT(dims[i+$COMP(nthintact)]);
+                        $PRIV(incs[i+$COMP(intactnew)]) =
+                                $PARENT(dimincs[i+$COMP(nthintact)]);
+                }
+        */
+                $SETDIMS();
+        ',
 );
 
 
@@ -2043,116 +2127,116 @@ pp_add_exported('', 'using');
 
 pp_addhdr(<<END
 static int cmp_pdll(const void *a_,const void *b_) {
-	int *a = (int *)a_; int *b=(int *)b_;
-	if(*a>*b) return 1;
-	else if(*a==*b) return 0;
-	else return -1;
+        int *a = (int *)a_; int *b=(int *)b_;
+        if(*a>*b) return 1;
+        else if(*a==*b) return 0;
+        else return -1;
 }
 END
 );
-	
+
 
 pp_def( 'affine',
-	P2Child => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	Reversible => 1,
-	AffinePriv => 1,
-	GlobalNew => 'affine_new',
-	OtherPars => 'PDL_Index offspar; SV *dimlist; SV *inclist;',
-	Comp => 'int nd; PDL_Index offset; PDL_Index sdims[$COMP(nd)];
-		PDL_Index sincs[$COMP(nd)];',
-	MakeComp => '
-		int i,n2;
-		PDL_Index *tmpi;
-		PDL_Index *tmpd = PDL->packdims(dimlist,&($COMP(nd)));
-		tmpi = PDL->packdims(inclist,&n2);		
-		if ($COMP(nd) < 0) {
-		      $CROAK("Affine: can not have negative no of dims");
-		}
-		if ($COMP(nd) != n2)
-		      $CROAK("Affine: number of incs does not match dims");
-		$DOCOMPDIMS();
-		$COMP(offset) = offspar;
-		for (i=0; i<$COMP(nd); i++) {
-			$COMP(sdims)[i] = tmpd[i];
-			$COMP(sincs)[i] = tmpi[i];
-		}
-		',
-	RedoDims => '
-		PDL_Index i;
-		$SETNDIMS($COMP(nd));
-		$DOPRIVDIMS();
-		$PRIV(offs) = $COMP(offset);
-		for (i=0;i<$CHILD(ndims);i++) {
-			$PRIV(incs)[i] = $COMP(sincs)[i];
-			$CHILD(dims)[i] = $COMP(sdims)[i];
-		}
-		$SETDIMS();
-		',
-	Doc => undef,
+        DefaultFlow => 1,
+        Reversible => 1,
+        AffinePriv => 1,
+        GlobalNew => 'affine_new',
+        OtherPars => 'PDL_Indx offspar; SV *dimlist; SV *inclist;',
+        Comp => 'int nd; PDL_Indx offset; PDL_Indx sdims[$COMP(nd)];
+                PDL_Indx sincs[$COMP(nd)];',
+        MakeComp => '
+                int i,n2;
+                PDL_Indx *tmpi;
+                PDL_Indx *tmpd = PDL->packdims(dimlist,&($COMP(nd)));
+                tmpi = PDL->packdims(inclist,&n2);
+                if ($COMP(nd) < 0) {
+                      $CROAK("Affine: can not have negative no of dims");
+                }
+                if ($COMP(nd) != n2)
+                      $CROAK("Affine: number of incs does not match dims");
+                $DOCOMPDIMS();
+                $COMP(offset) = offspar;
+                for (i=0; i<$COMP(nd); i++) {
+                        $COMP(sdims)[i] = tmpd[i];
+                        $COMP(sincs)[i] = tmpi[i];
+                }
+                ',
+        RedoDims => '
+                PDL_Indx i;
+                $SETNDIMS($COMP(nd));
+                $DOPRIVDIMS();
+                $PRIV(offs) = $COMP(offset);
+                for (i=0;i<$CHILD(ndims);i++) {
+                        $PRIV(incs)[i] = $COMP(sincs)[i];
+                        $CHILD(dims)[i] = $COMP(sdims)[i];
+                }
+                $SETDIMS();
+                ',
+        Doc => undef,
 );
 
 =head2 diagonalI
 =cut
 
 pp_def(
-	'diagonalI',
-	P2Child => 1,
+        'diagonalI',
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	Reversible => 1,
-	AffinePriv => 1,
-	OtherPars => 'SV *list',
-	Comp => 'int nwhichdims; int whichdims[$COMP(nwhichdims)];',
-	MakeComp => '
-		int i,j;
-		PDL_Index *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
-		if($COMP(nwhichdims) < 1) {
-			$CROAK("Diagonal: must have at least 1 dimension");
-		}
-		$DOCOMPDIMS();
-		for(i=0; i<$COMP(nwhichdims); i++)
-			$COMP(whichdims)[i] = tmp[i];
-		qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(int),
-			cmp_pdll);
-	',
-	RedoDims => '
-		int nthp,nthc,nthd; int cd = $COMP(whichdims[0]);
-		$SETNDIMS($PARENT(ndims)-$COMP(nwhichdims)+1);
-		$DOPRIVDIMS();
-		$PRIV(offs) = 0;
-		if ($COMP(whichdims)[$COMP(nwhichdims)-1] >= $PARENT(ndims) ||
-			$COMP(whichdims)[0] < 0)
-			$CROAK("Diagonal: dim out of range");
-		nthd=0; nthc=0;
-		for(nthp=0; nthp<$PARENT(ndims); nthp++)
-			if (nthd < $COMP(nwhichdims) &&
-			    nthp == $COMP(whichdims)[nthd]) {
-				if (!nthd) {
-					$CHILD(dims)[cd] = $PARENT(dims)[cd];
-					nthc++;
-					$PRIV(incs)[cd] = 0;
-				}
-				if (nthd && $COMP(whichdims)[nthd] ==
-				    $COMP(whichdims)[nthd-1])
-				       $CROAK("Diagonal: dims must be unique");
-				nthd++; /* advance pointer into whichdims */
-				if($CHILD(dims)[cd] !=
-				    $PARENT(dims)[nthp]) {
-					$CROAK("Different dims %d and %d",
-						$CHILD(dims)[cd],
-						$PARENT(dims)[nthp]);
-				}
-				$PRIV(incs)[cd] += $PARENT(dimincs)[nthp];
-			} else {
-				$PRIV(incs)[nthc] = $PARENT(dimincs)[nthp];
-				$CHILD(dims)[nthc] = $PARENT(dims)[nthp];
-				nthc++;
-			}
-		$SETDIMS();
-	',
-	Doc => << 'EOD',
+        DefaultFlow => 1,
+        Reversible => 1,
+        AffinePriv => 1,
+        OtherPars => 'SV *list',
+        Comp => 'int nwhichdims; int whichdims[$COMP(nwhichdims)];',
+        MakeComp => '
+                int i,j;
+                PDL_Indx *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
+                if($COMP(nwhichdims) < 1) {
+                        $CROAK("Diagonal: must have at least 1 dimension");
+                }
+                $DOCOMPDIMS();
+                for(i=0; i<$COMP(nwhichdims); i++)
+                        $COMP(whichdims)[i] = tmp[i];
+                qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(int),
+                        cmp_pdll);
+        ',
+        RedoDims => '
+                int nthp,nthc,nthd; int cd = $COMP(whichdims[0]);
+                $SETNDIMS($PARENT(ndims)-$COMP(nwhichdims)+1);
+                $DOPRIVDIMS();
+                $PRIV(offs) = 0;
+                if ($COMP(whichdims)[$COMP(nwhichdims)-1] >= $PARENT(ndims) ||
+                        $COMP(whichdims)[0] < 0)
+                        $CROAK("Diagonal: dim out of range");
+                nthd=0; nthc=0;
+                for(nthp=0; nthp<$PARENT(ndims); nthp++)
+                        if (nthd < $COMP(nwhichdims) &&
+                            nthp == $COMP(whichdims)[nthd]) {
+                                if (!nthd) {
+                                        $CHILD(dims)[cd] = $PARENT(dims)[cd];
+                                        nthc++;
+                                        $PRIV(incs)[cd] = 0;
+                                }
+                                if (nthd && $COMP(whichdims)[nthd] ==
+                                    $COMP(whichdims)[nthd-1])
+                                       $CROAK("Diagonal: dims must be unique");
+                                nthd++; /* advance pointer into whichdims */
+                                if($CHILD(dims)[cd] !=
+                                    $PARENT(dims)[nthp]) {
+                                        $CROAK("Different dims %d and %d",
+                                                $CHILD(dims)[cd],
+                                                $PARENT(dims)[nthp]);
+                                }
+                                $PRIV(incs)[cd] += $PARENT(dimincs)[nthp];
+                        } else {
+                                $PRIV(incs)[nthc] = $PARENT(dimincs)[nthp];
+                                $CHILD(dims)[nthc] = $PARENT(dims)[nthp];
+                                nthc++;
+                        }
+                $SETDIMS();
+        ',
+        Doc => << 'EOD',
 =for ref
 
 Returns the multidimensional diagonal over the specified dimensions.
@@ -2166,7 +2250,7 @@ C<(5,3,5,4,6,5)> then after
 
  $b = $a->diagonal(0,2,5);
 
-the piddle C<$b> has dimensions C<(5,3,4,6)> and 
+the piddle C<$b> has dimensions C<(5,3,4,6)> and
 C<$b-E<gt>at(2,1,0,1)> refers
 to C<$a-E<gt>at(2,1,2,0,1,2)>.
 
@@ -2179,8 +2263,8 @@ EOD
 =cut
 
 pp_def(
-	'lags',
-	Doc => <<'EOD',
+        'lags',
+        Doc => <<'EOD',
 =for ref
 
 Returns a piddle of lags to parent.
@@ -2214,52 +2298,52 @@ negative and will then be counted from the last dim backwards
 in the usual way (-1 = last dim).
 =cut
 EOD
-	P2Child => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	Reversible => 1, # XXX Not really
-	AffinePriv => 1,
-	OtherPars => 'int nthdim; int step; int n;',
-	RedoDims => '
-		int i;
-		if ($PRIV(nthdim) < 0)  /* the usual conventions */
-	           $PRIV(nthdim) = $PARENT(ndims) + $PRIV(nthdim);
-		if ($PRIV(nthdim) < 0 || $PRIV(nthdim) >= $PARENT(ndims))
-		   $CROAK("lags: dim out of range");
-		if ($COMP(n) < 1)
-		   $CROAK("lags: number of lags must be positive");
-		if ($COMP(step) < 1)
-		   $CROAK("lags: step must be positive");
-		$PRIV(offs) = 0;
-		$SETNDIMS($PARENT(ndims)+1);
-		$DOPRIVDIMS();
-		for(i=0; i<$PRIV(nthdim); i++) {
-			$CHILD(dims)[i] = $PARENT(dims)[i];
-			$PRIV(incs)[i] = $PARENT(dimincs)[i];
-		}
-		$CHILD(dims)[i] = $PARENT(dims)[i] - $COMP(step) * ($COMP(n)-1);
-		if ($CHILD(dims)[i] < 1)
-		  $CROAK("lags: product of step size and "
-			 "number of lags too large");
-		$CHILD(dims)[i+1] = $COMP(n);
-		$PRIV(incs)[i] = ($PARENT(dimincs)[i]);
-		$PRIV(incs)[i+1] = - $PARENT(dimincs)[i] * $COMP(step);
+        DefaultFlow => 1,
+        Reversible => 1, # XXX Not really
+        AffinePriv => 1,
+        OtherPars => 'int nthdim; int step; int n;',
+        RedoDims => '
+                int i;
+                if ($PRIV(nthdim) < 0)  /* the usual conventions */
+                   $PRIV(nthdim) = $PARENT(ndims) + $PRIV(nthdim);
+                if ($PRIV(nthdim) < 0 || $PRIV(nthdim) >= $PARENT(ndims))
+                   $CROAK("lags: dim out of range");
+                if ($COMP(n) < 1)
+                   $CROAK("lags: number of lags must be positive");
+                if ($COMP(step) < 1)
+                   $CROAK("lags: step must be positive");
+                $PRIV(offs) = 0;
+                $SETNDIMS($PARENT(ndims)+1);
+                $DOPRIVDIMS();
+                for(i=0; i<$PRIV(nthdim); i++) {
+                        $CHILD(dims)[i] = $PARENT(dims)[i];
+                        $PRIV(incs)[i] = $PARENT(dimincs)[i];
+                }
+                $CHILD(dims)[i] = $PARENT(dims)[i] - $COMP(step) * ($COMP(n)-1);
+                if ($CHILD(dims)[i] < 1)
+                  $CROAK("lags: product of step size and "
+                         "number of lags too large");
+                $CHILD(dims)[i+1] = $COMP(n);
+                $PRIV(incs)[i] = ($PARENT(dimincs)[i]);
+                $PRIV(incs)[i+1] = - $PARENT(dimincs)[i] * $COMP(step);
                 $PRIV(offs) += ($CHILD(dims)[i+1] - 1) * (-$PRIV(incs)[i+1]);
-		i++;
-		for(; i<$PARENT(ndims); i++) {
-			$CHILD(dims)[i+1] = $PARENT(dims)[i];
-			$PRIV(incs)[i+1] = $PARENT(dimincs)[i];
-		}
-		$SETDIMS();
-	'
+                i++;
+                for(; i<$PARENT(ndims); i++) {
+                        $CHILD(dims)[i+1] = $PARENT(dims)[i];
+                        $PRIV(incs)[i+1] = $PARENT(dimincs)[i];
+                }
+                $SETDIMS();
+        '
 );
 
 =head2 splitdim
 =cut
 
 pp_def(
-	'splitdim',
-	Doc => <<'EOD',
+        'splitdim',
+        Doc => <<'EOD',
 =for ref
 
 Splits a dimension in the parent piddle (opposite of L<clump|PDL::Core/clump>)
@@ -2277,61 +2361,61 @@ the expression
 is always true (C<x> has to be less than 3).
 =cut
 EOD
-	P2Child => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	Reversible => 1, # XXX Not really
-	OtherPars => 'int nthdim; int nsp;',
-	AffinePriv => 1,
-	RedoDims => '
-		int i = $COMP(nthdim);
-		int nsp = $COMP(nsp);
-		if(nsp == 0) {die("Splitdim: Cannot split to 0\n");}
-		if(i <0 || i >= $PARENT(ndims)) {
-			die("Splitdim: nthdim (%d) must not be negative or greater or equal to number of dims (%d)\n",
-				i, $PARENT(ndims));
-		}
-		if(nsp > $PARENT(dims[i])) {
-			die("Splitdim: nsp (%d) cannot be greater than dim (%d)\n",
-				nsp, $PARENT(dims[i]));
-		}
-		$PRIV(offs) = 0;
-		$SETNDIMS($PARENT(ndims)+1);
-		$DOPRIVDIMS();
-		for(i=0; i<$PRIV(nthdim); i++) {
-			$CHILD(dims)[i] = $PARENT(dims)[i];
-			$PRIV(incs)[i] = $PARENT(dimincs)[i];
-		}
-		$CHILD(dims)[i] = $COMP(nsp);
-		$CHILD(dims)[i+1] = $PARENT(dims)[i] / $COMP(nsp);
-		$PRIV(incs)[i] = $PARENT(dimincs)[i];
-		$PRIV(incs)[i+1] = $PARENT(dimincs)[i] * $COMP(nsp);
-		i++;
-		for(; i<$PARENT(ndims); i++) {
-			$CHILD(dims)[i+1] = $PARENT(dims)[i];
-			$PRIV(incs)[i+1] = $PARENT(dimincs)[i];
-		}
-		$SETDIMS();
-	',
+        DefaultFlow => 1,
+        Reversible => 1, # XXX Not really
+        OtherPars => 'int nthdim; int nsp;',
+        AffinePriv => 1,
+        RedoDims => '
+                int i = $COMP(nthdim);
+                int nsp = $COMP(nsp);
+                if(nsp == 0) {die("Splitdim: Cannot split to 0\n");}
+                if(i <0 || i >= $PARENT(ndims)) {
+                        die("Splitdim: nthdim (%d) must not be negative or greater or equal to number of dims (%d)\n",
+                                i, $PARENT(ndims));
+                }
+                if(nsp > $PARENT(dims[i])) {
+                        die("Splitdim: nsp (%d) cannot be greater than dim (%d)\n",
+                                nsp, $PARENT(dims[i]));
+                }
+                $PRIV(offs) = 0;
+                $SETNDIMS($PARENT(ndims)+1);
+                $DOPRIVDIMS();
+                for(i=0; i<$PRIV(nthdim); i++) {
+                        $CHILD(dims)[i] = $PARENT(dims)[i];
+                        $PRIV(incs)[i] = $PARENT(dimincs)[i];
+                }
+                $CHILD(dims)[i] = $COMP(nsp);
+                $CHILD(dims)[i+1] = $PARENT(dims)[i] / $COMP(nsp);
+                $PRIV(incs)[i] = $PARENT(dimincs)[i];
+                $PRIV(incs)[i+1] = $PARENT(dimincs)[i] * $COMP(nsp);
+                i++;
+                for(; i<$PARENT(ndims); i++) {
+                        $CHILD(dims)[i+1] = $PARENT(dims)[i];
+                        $PRIV(incs)[i+1] = $PARENT(dimincs)[i];
+                }
+                $SETDIMS();
+        ',
 );
 
 =head2 rotate
 =cut
 
 pp_def('rotate',
-	Doc => <<'EOD',
+        Doc => <<'EOD',
 =for ref
 
 Shift vector elements along with wrap. Flows data back&forth.
 =cut
 EOD
- 	Pars=>'x(n); ind shift(); [oca]y(n)',
+        Pars=>'x(n); indx shift(); [oca]y(n)',
         DefaultFlow => 1,
         Reversible => 1,
         Code=>'
-        PDL_Index i,j;
-        PDL_Index n_size = $SIZE(n);
-	if (n_size == 0)
+        PDL_Indx i,j;
+        PDL_Indx n_size = $SIZE(n);
+        if (n_size == 0)
           barf("can not shift zero size piddle (n_size is zero)");
         j = ($shift()) % n_size;
         if (j < 0)
@@ -2342,8 +2426,8 @@ EOD
             $y(n=>j) = $x(n=>i);
         }',
         BackCode=>'
-        PDL_Index i,j;
-        PDL_Index n_size = $SIZE(n);
+        PDL_Indx i,j;
+        PDL_Indx n_size = $SIZE(n);
         j = ($shift()) % n_size;
         if (j < 0)
                 j += n_size;
@@ -2361,8 +2445,8 @@ EOD
 =cut
 
 pp_def(
-	'threadI',
-	Doc => <<'EOD',
+        'threadI',
+        Doc => <<'EOD',
 =for ref
 
 internal
@@ -2376,86 +2460,86 @@ Put some dimensions to a threadid.
 =cut
 
 EOD
-	P2Child => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	Reversible => 1,
-	AffinePriv => 1,
-	CallCopy => 0,  # Don't CallCopy for subclassed objects because PDL::Copy calls ThreadI
-			#  (Wouldn't cause recursive loop otherwise)
-	OtherPars => 'int id; SV *list',
-	Comp => 'int id; int nwhichdims; int whichdims[$COMP(nwhichdims)];
-			int nrealwhichdims; ',
-	MakeComp => '
-		int i,j;
-		PDL_Index *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
-		$DOCOMPDIMS();
-		for(i=0; i<$COMP(nwhichdims); i++)
-			$COMP(whichdims)[i] = tmp[i];
-		$COMP(nrealwhichdims) = 0;
-		for(i=0; i<$COMP(nwhichdims); i++) {
-			for(j=i+1; j<$COMP(nwhichdims); j++)
-				if($COMP(whichdims[i]) == $COMP(whichdims[j]) &&
-				   $COMP(whichdims[i]) != -1) {
-				$CROAK("Thread: duplicate arg %d %d %d",
-					i,j,$COMP(whichdims[i]));
-			}
-			if($COMP(whichdims)[i] != -1) {
-				$COMP(nrealwhichdims) ++;
-			}
-		}
-		$COMP(id) = id;
-		',
-	RedoDims => '
-		int nthc,i,j,flag;
-		$SETNDIMS($PARENT(ndims));
-		$DOPRIVDIMS();
-		$PRIV(offs) = 0;
-		nthc=0;
-		for(i=0; i<$PARENT(ndims); i++) {
-			flag=0;
-			if($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0 &&
-			   i == $PARENT(threadids[$COMP(id)])) {
-			   nthc += $COMP(nwhichdims);
-			}
-			for(j=0; j<$COMP(nwhichdims); j++) {
-				if($COMP(whichdims[j] == i)) {flag=1; break;}
-			}
-			if(flag) {
-				continue;
-			}
-			$CHILD(dims[nthc]) = $PARENT(dims[i]);
-			$PRIV(incs[nthc]) = $PARENT(dimincs[i]);
-			nthc++;
-		}
-		for(i=0; i<$COMP(nwhichdims); i++) {
-			int cdim,pdim;
-			cdim = i +
-			 ($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0?
-			  $PARENT(threadids[$COMP(id)]) : $PARENT(ndims))
-			  - $COMP(nrealwhichdims);
-			pdim = $COMP(whichdims[i]);
-			if(pdim == -1) {
-				$CHILD(dims[cdim]) = 1;
-				$PRIV(incs[cdim]) = 0;
-			} else {
-				$CHILD(dims[cdim]) = $PARENT(dims[pdim]);
-				$PRIV(incs[cdim]) = $PARENT(dimincs[pdim]);
-			}
-		}
-		$SETDIMS();
-		PDL->reallocthreadids($CHILD_PTR(),
-			($PARENT(nthreadids)<=$COMP(id) ?
-				$COMP(id)+1 : $PARENT(nthreadids)));
-		for(i=0; i<$CHILD(nthreadids); i++) {
-			$CHILD(threadids[i]) =
-			 ($PARENT(nthreadids) > i ?
-			  $PARENT(threadids[i]) : $PARENT(ndims)) +
-			 (i <= $COMP(id) ? - $COMP(nrealwhichdims) :
-			  $COMP(nwhichdims) - $COMP(nrealwhichdims));
-		}
-		$CHILD(threadids[$CHILD(nthreadids)]) = $CHILD(ndims);
-		',
+        DefaultFlow => 1,
+        Reversible => 1,
+        AffinePriv => 1,
+        CallCopy => 0,  # Don't CallCopy for subclassed objects because PDL::Copy calls ThreadI
+                        #  (Wouldn't cause recursive loop otherwise)
+        OtherPars => 'int id; SV *list',
+        Comp => 'int id; int nwhichdims; int whichdims[$COMP(nwhichdims)];
+                        int nrealwhichdims; ',
+        MakeComp => '
+                int i,j;
+                PDL_Indx *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
+                $DOCOMPDIMS();
+                for(i=0; i<$COMP(nwhichdims); i++)
+                        $COMP(whichdims)[i] = tmp[i];
+                $COMP(nrealwhichdims) = 0;
+                for(i=0; i<$COMP(nwhichdims); i++) {
+                        for(j=i+1; j<$COMP(nwhichdims); j++)
+                                if($COMP(whichdims[i]) == $COMP(whichdims[j]) &&
+                                   $COMP(whichdims[i]) != -1) {
+                                $CROAK("Thread: duplicate arg %d %d %d",
+                                        i,j,$COMP(whichdims[i]));
+                        }
+                        if($COMP(whichdims)[i] != -1) {
+                                $COMP(nrealwhichdims) ++;
+                        }
+                }
+                $COMP(id) = id;
+                ',
+        RedoDims => '
+                int nthc,i,j,flag;
+                $SETNDIMS($PARENT(ndims));
+                $DOPRIVDIMS();
+                $PRIV(offs) = 0;
+                nthc=0;
+                for(i=0; i<$PARENT(ndims); i++) {
+                        flag=0;
+                        if($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0 &&
+                           i == $PARENT(threadids[$COMP(id)])) {
+                           nthc += $COMP(nwhichdims);
+                        }
+                        for(j=0; j<$COMP(nwhichdims); j++) {
+                                if($COMP(whichdims[j] == i)) {flag=1; break;}
+                        }
+                        if(flag) {
+                                continue;
+                        }
+                        $CHILD(dims[nthc]) = $PARENT(dims[i]);
+                        $PRIV(incs[nthc]) = $PARENT(dimincs[i]);
+                        nthc++;
+                }
+                for(i=0; i<$COMP(nwhichdims); i++) {
+                        int cdim,pdim;
+                        cdim = i +
+                         ($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0?
+                          $PARENT(threadids[$COMP(id)]) : $PARENT(ndims))
+                          - $COMP(nrealwhichdims);
+                        pdim = $COMP(whichdims[i]);
+                        if(pdim == -1) {
+                                $CHILD(dims[cdim]) = 1;
+                                $PRIV(incs[cdim]) = 0;
+                        } else {
+                                $CHILD(dims[cdim]) = $PARENT(dims[pdim]);
+                                $PRIV(incs[cdim]) = $PARENT(dimincs[pdim]);
+                        }
+                }
+                $SETDIMS();
+                PDL->reallocthreadids($CHILD_PTR(),
+                        ($PARENT(nthreadids)<=$COMP(id) ?
+                                $COMP(id)+1 : $PARENT(nthreadids)));
+                for(i=0; i<$CHILD(nthreadids); i++) {
+                        $CHILD(threadids[i]) =
+                         ($PARENT(nthreadids) > i ?
+                          $PARENT(threadids[i]) : $PARENT(ndims)) +
+                         (i <= $COMP(id) ? - $COMP(nrealwhichdims) :
+                          $COMP(nwhichdims) - $COMP(nrealwhichdims));
+                }
+                $CHILD(threadids[$CHILD(nthreadids)]) = $CHILD(ndims);
+                ',
 );
 
 
@@ -2465,25 +2549,25 @@ EOD
 # we don't really need this one since it can be achieved with
 # a ->threadI(-1,[])
 pp_def('identvaff',
-	P2Child => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	Reversible => 1,
-	AffinePriv => 1,
-	RedoDims => '
-		int i;
-		$SETNDIMS($PARENT(ndims));
-		$DOPRIVDIMS();
-		$PRIV(offs) = 0;
-		for(i=0; i<$PARENT(ndims); i++) {
-			$CHILD(dims[i]) = $PARENT(dims[i]);
-			$PRIV(incs[i]) = $PARENT(dimincs[i]);
-		}
-		$SETDIMS();
-		$SETDELTATHREADIDS(0);
-		$CHILD(threadids[$CHILD(nthreadids)]) = $CHILD(ndims);
-		',
-	Doc => <<'EOD',
+        DefaultFlow => 1,
+        Reversible => 1,
+        AffinePriv => 1,
+        RedoDims => '
+                int i;
+                $SETNDIMS($PARENT(ndims));
+                $DOPRIVDIMS();
+                $PRIV(offs) = 0;
+                for(i=0; i<$PARENT(ndims); i++) {
+                        $CHILD(dims[i]) = $PARENT(dims[i]);
+                        $PRIV(incs[i]) = $PARENT(dimincs[i]);
+                }
+                $SETDIMS();
+                $SETDELTATHREADIDS(0);
+                $CHILD(threadids[$CHILD(nthreadids)]) = $CHILD(ndims);
+                ',
+        Doc => <<'EOD',
 =for ref
 
 A vaffine identity transformation (includes thread_id copying).
@@ -2498,8 +2582,8 @@ EOD
 =cut
 
 pp_def(
-	'unthread',
-	Doc => <<'EOD',
+        'unthread',
+        Doc => <<'EOD',
 =for ref
 
 All threaded dimensions are made real again.
@@ -2507,31 +2591,31 @@ All threaded dimensions are made real again.
 See [TBD Doc] for details and examples.
 =cut
 EOD
-	P2Child => 1,
+        P2Child => 1,
         NoPdlThread => 1,
-	DefaultFlow => 1,
-	Reversible => 1,
-	AffinePriv => 1,
-	OtherPars => 'int atind;',
-	RedoDims => '
-		int i;
-		$SETNDIMS($PARENT(ndims));
-		$DOPRIVDIMS();
-		$PRIV(offs) = 0;
-		for(i=0; i<$PARENT(ndims); i++) {
-			int corc;
-			if(i<$COMP(atind)) {
-				corc = i;
-			} else if(i < $PARENT(threadids[0])) {
-				corc = i + $PARENT(ndims)-$PARENT(threadids[0]);
-			} else {
-				corc = i - $PARENT(threadids[0]) + $COMP(atind);
-			}
-			$CHILD(dims[corc]) = $PARENT(dims[i]);
-			$PRIV(incs[corc]) = $PARENT(dimincs[i]);
-		}
-		$SETDIMS();
-	',
+        DefaultFlow => 1,
+        Reversible => 1,
+        AffinePriv => 1,
+        OtherPars => 'int atind;',
+        RedoDims => '
+                int i;
+                $SETNDIMS($PARENT(ndims));
+                $DOPRIVDIMS();
+                $PRIV(offs) = 0;
+                for(i=0; i<$PARENT(ndims); i++) {
+                        int corc;
+                        if(i<$COMP(atind)) {
+                                corc = i;
+                        } else if(i < $PARENT(threadids[0])) {
+                                corc = i + $PARENT(ndims)-$PARENT(threadids[0]);
+                        } else {
+                                corc = i - $PARENT(threadids[0]) + $COMP(atind);
+                        }
+                        $CHILD(dims[corc]) = $PARENT(dims[i]);
+                        $PRIV(incs[corc]) = $PARENT(dimincs[i]);
+                }
+                $SETDIMS();
+        ',
 );
 
 
@@ -2553,7 +2637,7 @@ figure it out each time!
 
 This method is similar in functionality to the L<slice|/slice>
 method, but L<slice|/slice> requires that contiguous ranges or ranges
-with constant offset be extracted. ( i.e. L<slice|/slice> requires 
+with constant offset be extracted. ( i.e. L<slice|/slice> requires
 ranges of the form C<1,2,3,4,5> or C<2,4,6,8,10>). Because of this
 restriction, L<slice|/slice> is more memory efficient and slightly faster
 than dice
@@ -2564,13 +2648,13 @@ than dice
 
 The arguments to dice are arrays (or 1D PDLs) for each dimension
 in the PDL. These arrays are used as indexes to which rows/columns/cubes,etc
-to dice-out (or extract) from the C<$data> PDL. 
+to dice-out (or extract) from the C<$data> PDL.
 
 Use C<X> to select all indices along a given dimension (compare also
 L<mslice|PDL::Core/mslice>). As usual (in slicing methods) trailing
 dimensions can be omitted implying C<X>'es for those.
 
-=for example 
+=for example
 
  pdl> $a = sequence(10,4)
  pdl> p $a
@@ -2603,32 +2687,32 @@ slice change the parent (use the C<.=> operator).
 
 =cut
 
-sub PDL::dice { 
+sub PDL::dice {
 
-	my $self = shift;
-	my @dim_indexes = @_;  # array of dimension indexes
-	
-	# Check that the number of dim indexes <=
-	#    number of dimensions in the PDL
-	my $no_indexes = scalar(@dim_indexes);
-	my $noDims = $self->getndims;
-	barf("PDL::dice: Number of index arrays ($no_indexes) not equal to the dimensions of the PDL ($noDims")
-			 if $no_indexes > $noDims;
-	my $index;
-	my $pdlIndex;
-	my $outputPDL=$self;
-	my $indexNo = 0;
+        my $self = shift;
+        my @dim_indexes = @_;  # array of dimension indexes
 
-	# Go thru each index array and dice the input PDL:
-	foreach $index(@dim_indexes){
-		$outputPDL = $outputPDL->dice_axis($indexNo,$index)
-			unless !ref $index && $index eq 'X';
+        # Check that the number of dim indexes <=
+        #    number of dimensions in the PDL
+        my $no_indexes = scalar(@dim_indexes);
+        my $noDims = $self->getndims;
+        barf("PDL::dice: Number of index arrays ($no_indexes) not equal to the dimensions of the PDL ($noDims")
+                         if $no_indexes > $noDims;
+        my $index;
+        my $pdlIndex;
+        my $outputPDL=$self;
+        my $indexNo = 0;
 
-		$indexNo++;
-	}
+        # Go thru each index array and dice the input PDL:
+        foreach $index(@dim_indexes){
+                $outputPDL = $outputPDL->dice_axis($indexNo,$index)
+                        unless !ref $index && $index eq 'X';
 
-	return $outputPDL;
-}  
+                $indexNo++;
+        }
+
+        return $outputPDL;
+}
 *dice = \&PDL::dice;
 
 
@@ -2680,153 +2764,279 @@ slice change the parent.
 
 =cut
 
-sub PDL::dice_axis { 
+sub PDL::dice_axis {
   my($self,$axis,$idx) = @_;
-  
+
   # Convert to PDLs: array refs using new, otherwise use topdl:
   my $ix = (ref($idx) eq 'ARRAY') ? ref($self)->new($idx) : ref($self)->topdl($idx);
   my $n = $self->getndims;
   my $a = $ix->getndims;
   barf("index_axis: index must be <=1D") if $a>1;
   return $self->mv($axis,0)->index1d($ix)->mv(0,$axis);
-}  
+}
 *dice_axis = \&PDL::dice_axis;
 
 
 EOD
 
-pp_addpm(<<'EOD-nnslice');
+pp_addpm(<<'EOD-slice');
 
-=head2 nnslice
+=head2 slice
 
 =for usage
 
-  $slice = $data->nnslice([2,3],'x',[2,2,0],"-1:1:-1");
+  $slice = $data->slice([2,3],'x',[2,2,0],"-1:1:-1", "*3");
 
 =for ref
 
-"New nslice" - EXPERIMENTAL drop-in replacement for C<nslice>, that
-doesn't simply assemble its arguments for disassembly by C<slice>.
-Hopefully the leading 'n's will be dropped soon -- use only for
-testing. Intended as a drop-in replacement for any of C<nslice>,
-C<mslice>, or C<slice>, nnslice currently supports: nslice/mslice
-style calls with the exception of dicing; and slice-style
-specification strings.  If you use slice-style specs, you can either
-use one string per dim (and mix/match with nslice style specs), or one
-complete comma-deliminated string (and limit yourself to a single
-string slice argument).
+Extract rectangular slices of a piddle, from a string specifier,
+an array ref specifier, or a combination.
 
-The single slice-style string case is detected as a special case and 
-split on ','.
+C<slice> is the main method for extracting regions of PDLs and
+manipulating their dimensionality.  You can call it directly or
+via he L<NiceSlice|PDL::NiceSlice> source prefilter that extends
+Perl syntax o include array slicing.
 
-Each parameter in the list applies to one dimension of the source PDL,
-and is interpreted as follows:
+C<slice> can extract regions along each dimension of a source PDL,
+subsample or reverse those regions, dice each dimension by selecting a
+list of locations along it, or basic PDL indexing routine.  The
+selected subfield remains connected to the original PDL via dataflow.
+In most cases this neither allocates more memory nor slows down
+subsequent operations on either of the two connected PDLs.
+
+You pass in a list of arguments.  Each term in the list controls
+the disposition of one axis of the source PDL and/or returned PDL.
+Each term can be a string-format cut specifier, a list ref that
+gives the same information without recourse to string manipulation,
+or a PDL with up to 1 dimension giving indices along that axis that
+should be selected.
+
+If you want to pass in a single string specifier for the entire
+operation, you can pass in a comma-delimited list as the first
+argument.  C<slice> detects this condition and splits the string
+into a regular argument list.  This calling style is fully
+backwards compatible with C<slice> calls from before PDL 2.006.
+
+B<STRING SYNTAX>
+
+If a particular argument to C<slice> is a string, it is parsed as a
+selection, an affine slice, or a dummy dimension depending on the
+form.  Leading or trailing whitespace in any part of each specifier is
+ignored (though it is not ignored within numbers).
 
 =over 3
 
-=item ARRAY ref
+=item C<<  >>, C<< : >>, or C<< X >> -- keep
 
-Array refs are the normal way to specify how to slice.  You can
-specify zero, one or two fields.  The first field is the start of the
-range of positions to slice out of the dimension; the second field is
-the end of the range of positions (inclusive); and the third field 
-is the increment to use while stepping through the source array.
+The empty string, C<:>, or C<X> cause the entire corresponding
+dimension to be kept unchanged.
 
-You can index using nonnegative values, which count up from the start
-of the dim, or using negative values, which count down from the 
-end of the dim. 
 
-If you don't specify an inc, it defaults to 1 or -1 depending on the
-order of the indices (after regularization to nonnegative indices).
+=item C<< <n> >> -- selection
 
-Some special cases apply:
+A single number alone causes a single index to be selected from the
+corresponding dimension.  The dimension is kept (and reduced to size
+1) in the output.
 
-If the array ref is empty, or if the first element is 'x' or 'X', 
-then the entire dimension is kept intact.  
+=item C<< (<n>) >> -- selection and collapse
 
-If the first element of the array ref is '*', then a dummy dimension
-is generated.  The second element is the index of the highest value
-along the dummy dimension, for consistency with normal use (e.g. 
-['*'] and ['*',0] both create dummy dimensions of size 1).
+A single number in parenthesis causes a single index to be selected
+from the corresponding dimension.  The dimension is discarded
+(completely eliminated) in the output.
 
-If the second element of the array is 'X' or 'x', or if the third
-element is explicitly set to 0, then the dimension is indexed but 
-squished from the output -- similar to the '($n)' syntax in C<slice>.
+=item C<< <n>:<m> >> -- select an inclusive range
 
-=item Perl scalar 
+Two numbers separated by a colon selects a range of values from the
+corresponding axis, e.g. C<< 3:4 >> selects elements 3 and 4 along the
+corresponding axis, and reduces that axis to size 2 in the output.
+Both numbers are regularized so that you can address the last element
+of the axis with an index of C< -1 >.  If, after regularization, the
+two numbers are the same, then exactly one element gets selected (just
+like the C<< <n> >> case).  If, after regulariation, the second number
+is lower than the first, then the resulting slice counts down rather
+than up -- e.g. C<-1:0> will return the entire axis, in reversed
+order.
 
-=item 'X' or 'x' or ':'
+=item C<< <n>:<m>:<s> >> -- select a range with explicit step
 
-The string 'X' or 'x' or ':' forces the entire dimension to be kept.
+If you include a third parameter, it is the stride of the extracted
+range.  For example, C<< 0:-1:2 >> will sample every other element
+across the complete dimension.  Specifying a stride of 1 prevents
+autoreversal -- so to ensure that your slice is *always* forward
+you can specify, e.g., C<< 2:$n:1 >>.  In that case, an "impossible"
+slice gets an Empty PDL (with 0 elements along the corresponding
+dimension), so you can generate an Empty PDL with a slice of the
+form C<< 2:1:1 >>.
 
-=item '*<num>'
+=item C<< *<n> >> -- insert a dummy dimension
 
-A perl scalar that starts with the character '*' is treated as a dummy
-dimension whose size is the following number.  If you leave out the number,
-the size defaults to 1.  (Note that '*0' gives size 0, which means the 
-result is an Empty PDL).
-
-=item a PDL
-
-A PDL with more than one element causes a more expensive dice call, 
-selecting one element from the corresponding axis for each element 
-of the PDL.  If you feed in a single-element PDL, it's treated as 
-a perl scalar and sliced in the usual way.  A zero-element (empty) PDL
-causes the axis to have length 0 (i.e. the slice returns an extended
-Empty PDL).
+Dummy dimensions aren't present in the original source and are
+"mocked up" to match dimensional slots, by repeating the data
+in the original PDL some number of times.  An asterisk followed
+by a number produces a dummy dimension in the output, for
+example C<< *2 >> will generate a dimension of size 2 at
+the corresponding location in the output dim list.  Omitting
+the numeber (and using just an asterisk) inserts a dummy dimension
+of size 1.
 
 =back
 
+B<ARRAY REF SYNTAX>
+
+If you feed in an ARRAY ref as a slice term, then it can have
+0-3 elements.  The first element is the start of the slice along
+the corresponding dim; the second is the end; and the third is
+the stepsize.  Different combinations of inputs give the same
+flexibility as the string syntax.
+
+=over 3
+
+=item C<< [] >> - keep dim intact
+
+An empty ARRAY ref keeps the entire corresponding dim
+
+=item C<< [ 'X' ] >> - keep dim intact
+
+=item C<< [ '*',$n ] >> - generate a dummy dim of size $n
+
+If $n is missing, you get a dummy dim of size 1.
+
+=item C<< [ $dex, , 0 ] >> - collapse and discard dim
+
+C<$dex> must be a single value.  It is used to index
+the source, and the corresponding dimension is discarded.
+
+=item C<< [ $start, $end ] >> - collect inclusive slice
+
+In the simple two-number case, you get a slice that runs
+up or down (as appropriate) to connect $start and $end.
+
+=item C<< [ $start, $end, $inc ] >> - collect inclusive slice
+
+The three-number case works exactly like the three-number
+string case above.
+
+=back
+
+B<PDL args for dicing>
+
+If you pass in a 0- or 1-D PDL as a slicing argument, the
+corresponding dimension is "diced" -- you get one position
+along the corresponding dim, per element of the indexing PDL,
+e.g. C<< $a->slice( pdl(3,4,9)) >> gives you elements 3, 4, and
+9 along the 0 dim of C<< $a >>.
+
+Because dicing is not an affine transformation, it is slower than
+direct slicing even though the syntax is convenient.
+
+
+=for example
+
+ $a->slice('1:3');  #  return the second to fourth elements of $a
+ $a->slice('3:1');  #  reverse the above
+ $a->slice('-2:1'); #  return last-but-one to second elements of $a
+
+ $a->slice([1,3]);  # Same as above three calls, but using array ref syntax
+ $a->slice([3,1]);
+ $a->slice([-2,1]);
+
 =cut
 
-## This is implemented as a two-step (like range/rangeb) as a cheesy
-## varargs...
 
-sub PDL::nnslice (;@) {
+##############################
+# 'slice' is now implemented as a small Perl wrapper around
+# a PP call.  This permits unification of the former slice,
+# dice, and nslice into a single call.  At the moment, dicing
+# is implemented a bit kludgily (it is detected in the Perl
+# front-end), but it is serviceable.
+#  --CED 12-Sep-2013
+
+*slice = \&PDL::slice;
+sub PDL::slice (;@) {
     my ($source, @others) = @_;
-    
-    # Deal with dicing.  This is lame and slow compared to the 
+
+    # Deal with dicing.  This is lame and slow compared to the
     # faster slicing, but works okay.  It uses the same technique
-    # as dice_axis().  
+    # as dice_axis().
 
     for my $i(0..$#others) {
       if( ref $others[$i] eq 'PDL' ) {
         my $idx = $others[$i];
         if($idx->ndims > 1) {
-	  barf("nnslice: dicing parameters must be at most 1D (arg $i)\n");
-	}
-	my $nlm = $idx->nelem;
+          barf("slice: dicing parameters must be at most 1D (arg $i)\n");
+        }
+        my $nlm = $idx->nelem;
         if($nlm > 1) {
-	   my $n = $source->getndims;
-	   $source = $source->mv($i,0)->index($idx)->mv(0,$i);
-	   $others[$i] = '';
-	} elsif($nlm) {
-	   # One element - convert to a regular slice.
-	   $others[$i] = $idx->flat->at(0);
-	} else {
-	   # Zero elements -- force an extended empty.
-	   $others[$i] = "1:0:1";
-	}
+           my $n = $source->getndims;
+           $source = $source->mv($i,0)->index1d($idx)->mv(0,$i);
+           $others[$i] = '';
+        } elsif($nlm) {
+           # One element - convert to a regular slice.
+           $others[$i] = $idx->flat->at(0);
+        } else {
+           # Zero elements -- force an extended empty.
+           $others[$i] = "1:0:1";
+        }
       }
     }
-    
-    PDL::nnsliceb($source,\@others);
+
+    PDL::sliceb($source,\@others);
 }
 
-EOD-nnslice
+EOD-slice
+
+pp_add_exported('', 'slice');
+
+##########
+# This is a kludge to pull arbitrary data out of a single-element PDL, using the Types.pm stuff,
+# to make it easier to slice using single-element PDL arguments inside a slice specifier.
+# The string $sliceb_data_kludge generates some code that physicalizes a PDL, ensures it has
+# only one element, and extracts that element in a type-independent manner.  It's a pain because
+# we have to generate the switch statement using information in the Config typehash.  But it saves
+# time compared to parsing out any passed-in PDLs on the Perl side.
+#
+use PDL::Types;
+$sliceb_data_kludge = <<'KLUDGE';
+    { pdl *p = PDL->SvPDLV( *svp );
+      int i;
+      PDL->make_physical(p);
+      if(p->nvals==0)
+        barf("slice: empty PDL in slice specifier");
+      if(p->nvals > 1)
+        barf("slice: multi-element PDL in slice specifier");
+      if( !(p->data) ) {
+         barf("slice: no data in slice specifier PDL! I give up.");
+      }
+      switch( p->datatype ) {
+KLUDGE
+
+for my $type(keys %PDL::Types::typehash) {
+    $sliceb_data_kludge .=
+"        case $type: nn = *( ($PDL::Types::typehash{$type}->{realctype} *)(p->data) ); break;\n";
+}
+
+$sliceb_data_kludge .= <<'KLUDGE';
+         default: barf("Unknown PDL type in slice specifier!  This should never happen."); break;
+      }
+    }
+KLUDGE
 
 
 ##############################
-# nnsliceb is the core of nnslice.  The "foo/foob" nomenclature is used to avoid the argument 
-# counting inherent in a PP PMCode section -- "nnslice" is a front-end that just rolls up a
+# sliceb is the core of slice.  The "foo/foob" nomenclature is used to avoid the argument
+# counting inherent in a PP PMCode section -- "slice" is a front-end that just rolls up a
 # whole variable-length argument list into a single AV reference.
 #
+# (The real reason for foo/foob architecture, as with range/rangeb, is that I'm too stoopid to figure
+# out how to make the PMCode+Code hack work with PP for dataflow operators... --CED)
+#
+
 pp_def(
-	'nnsliceb',
-	P2Child => 1,
-	NoPdlThread => 1,
-	DefaultFlow => 1,
-	OtherPars => 'SV *args;',
+        'sliceb',
+        P2Child => 1,
+        NoPdlThread => 1,
+        DefaultFlow => 1,
+        OtherPars => 'SV *args;',
 #
 # Comp stash definitions:
 #  nargs - number of args in original call
@@ -2836,461 +3046,519 @@ pp_def(
 #  idim_top - one more than the highest idim encountered
 #  start[]  - maps argno to start index of slice range (inclusive)
 #  inc[]    - maps argno to increment of slice range
-#  end[]    - maps argno to end index of slice range (inclusive) 
+#  end[]    - maps argno to end index of slice range (inclusive)
 #
-	Comp => 'int nargs;
-	         int odim[$COMP(nargs)];
-		 int idim[$COMP(nargs)];
-		 int idim_top;
-		 int odim_top;
-		 PDL_Index start[$COMP(nargs)];
-		 PDL_Index inc[$COMP(nargs)];
-		 PDL_Index end[$COMP(nargs)];
-		 ',
+        Comp => 'int nargs;
+                 int odim[$COMP(nargs)];
+                 int idim[$COMP(nargs)];
+                 int idim_top;
+                 int odim_top;
+                 PDL_Indx start[$COMP(nargs)];
+                 PDL_Indx inc[$COMP(nargs)];
+                 PDL_Indx end[$COMP(nargs)];
+                 ',
         AffinePriv => 1,
-	MakeComp => q{
-	        int i;
-		int idim;
-		int odim;
-		int imax;
-		int nargs;
-		AV *arglist;
+        MakeComp => <<'SLICE-MC'
+                int i;
+                int idim;
+                int odim;
+                int imax;
+                int nargs;
+                AV *arglist;
 
-		/*** Make sure we got an array ref as input and turn it into an AV ***/
-		if(!(  args   &&   
-		       SvROK(args)   &&   
-		       SvTYPE(SvRV(args))==SVt_PVAV  )){
-		     barf("nnsliceb requires an ARRAY ref containing zero or more arguments");
-		}
-    
-		arglist = (AV *)(SvRV(args));
-		
-		/* Detect special case of a single comma-delimited string; in that case, */
-		/* split out our own arglist */
+                /*** Make sure we got an array ref as input and turn it into an AV ***/
+                if(!(  args   &&
+                       SvROK(args)   &&
+                       SvTYPE(SvRV(args))==SVt_PVAV  )){
+                     barf("slice requires an ARRAY ref containing zero or more arguments");
+                }
 
-		if( (av_len(arglist) == 0) ) {
-		  /* single-element list: pull first element */
-		  SV **svp;
-		  svp = av_fetch(arglist, 0, 0);
+                arglist = (AV *)(SvRV(args));
 
-		  if(svp && *svp && *svp != &PL_sv_undef && SvPOKp(*svp)) {
+                /* Detect special case of a single comma-delimited string; in that case, */
+                /* split out our own arglist */
 
-		    /* The element exists and is not undef and has a cached string value */
-		    char *s,*ss;
-		    s = ss = SvPVbyte_nolen(*svp);
-		    for(;  *ss && *ss != ',';  ss++) {}
+                if( (av_len(arglist) == 0) ) {
+                  /* single-element list: pull first element */
+                  SV **svp;
+                  svp = av_fetch(arglist, 0, 0);
 
-		    if(*ss == ',') {
+                  if(svp && *svp && *svp != &PL_sv_undef && SvPOKp(*svp)) {
 
-		      /* the string contains at least one comma.  ATTACK!    */
-		      /* We make a temporary array and populate it with      */
-		      /* SVs containing substrings -- basically split(/\,/), */
-		      /* but without the overhead of a perl call             */
+                    /* The element exists and is not undef and has a cached string value */
+                    char *s,*ss;
+                    s = ss = SvPVbyte_nolen(*svp);
+                    for(;  *ss && *ss != ',';  ss++) {}
 
-		      AV *al = (AV *)sv_2mortal((SV *)(newAV())); 
+                    if(*ss == ',') {
 
-		      do {
-		        SV *sv;
-		        char *s1;
-			for(s1=s; *s1 && *s1 != ','; s1++);
+                      /* the string contains at least one comma.  ATTACK!    */
+                      /* We make a temporary array and populate it with      */
+                      /* SVs containing substrings -- basically split(/\,/), */
+                      /* but without the overhead of a perl call             */
 
-			av_push(al, newSVpvn(s, s1-s));
-			if(*s1==',')
-			  s = ++s1;
-			else
-			  s = s1;
-		      } while(*s);
-		      
-		      arglist = al;  /* al is ephemeral and will evaporate at the next perl gc */
+                      AV *al = (AV *)sv_2mortal((SV *)(newAV()));
 
-		    } /* end of contains-comma case */
-		  } /* end of nontrivial single-element detection */
-		}/* end of single-element detection */
-		
-		nargs = $COMP(nargs) = av_len( arglist ) + 1;
-		$DOCOMPDIMS();
+                      do {
+                        SV *sv;
+                        char *s1;
+                        for(s1=s; *s1 && *s1 != ','; s1++);
 
-		/**********************************************************************/
-		/**** Loop over the elements of the AV input and parse into values ****/
-		/**** in the start/inc/end array                                   ****/
+                        av_push(al, newSVpvn(s, s1-s));
+                        if(*s1==',')
+                          s = ++s1;
+                        else
+                          s = s1;
+                      } while(*s);
 
-		for(odim=idim=i=0; i<nargs; i++) {
-		   SV *this;
-		   SV **thisp;
-		   SV *sv, **svp;
-		   char all_flag = 0;
-		   char squish_flag = 0;
-		   char dummy_flag = 0;
-		   char *str;
-		   PDL_Index n0 = 0;
-		   PDL_Index n1 = -1;
-		   PDL_Index n2 = 0;  /* n2 is inc - defaults to 0 (i.e. calc in RedoDims) */
+                      arglist = al;  /* al is ephemeral and will evaporate at the next perl gc */
 
-		   thisp = av_fetch( arglist, i, 0 );
-		   this = (thisp  ?  *thisp  : 0 );
+                    } /* end of contains-comma case */
+                  } /* end of nontrivial single-element detection */
+                }/* end of single-element detection */
 
-		   /** Keep the whole dimension if the element is undefined or missing **/
-		   all_flag = (  (!this)   ||   (this==&PL_sv_undef)  );
+                nargs = $COMP(nargs) = av_len( arglist ) + 1;
+                $DOCOMPDIMS();
 
-		   if(!all_flag)  /* not an empty string */ {
-		   
-		     if(SvROK(this)) {         /* It's a reference - it better be an array ref */
-		       int nelem;
-		       AV *sublist;
+                /**********************************************************************/
+                /**** Loop over the elements of the AV input and parse into values ****/
+                /**** in the start/inc/end array                                   ****/
 
-		       if( SvTYPE(SvRV(this)) != SVt_PVAV ) {
-		         barf("nnsliceb: non-ARRAY ref in the argument list!");
-		       }
+                for(odim=idim=i=0; i<nargs; i++) {
+                   SV *this;
+                   SV **thisp;
+                   SV *sv, **svp;
+                   char all_flag = 0;
+                   char squish_flag = 0;
+                   char dummy_flag = 0;
+                   char *str;
+                   PDL_Indx n0 = 0;
+                   PDL_Indx n1 = -1;
+                   PDL_Indx n2 = 0;  /* n2 is inc - defaults to 0 (i.e. calc in RedoDims) */
 
-		       /* Expand the parameter into an AV so we can read its elements */
-		       sublist = (AV *)(SvRV(this));
-		       if(!sublist) {
-		         nelem = 0;
-		       } else {
-  		         nelem = av_len(sublist) + 1;
-		       }
-			
-		       if(nelem > 3) {
-		         barf("nnsliceb: array refs can have at most 3 elements!");
-		       }
+                   thisp = av_fetch( arglist, i, 0 );
+                   this = (thisp  ?  *thisp  : 0 );
 
-		       if(nelem==0) {      /* No elements - keep it all */
-		         all_flag = 1;
+                   /** Keep the whole dimension if the element is undefined or missing **/
+                   all_flag = (  (!this)   ||   (this==&PL_sv_undef)  );
 
-		       } else /* Got at least one element */{
+                   if(!all_flag)   {
+                     /*
+                      * Main branch -- this element is not an empty string
+                      */
+
+                     if(SvROK(this)) {
+
+                       /*
+                        * It's a reference - it better be an array ref.
+                        * (Note: PDLs are refs too and are allowed (they cause dicing) --
+                        * but those are parsed out in the Perl-side preprocessor
+                        * (PDL::slice, declared above).
+                        */
+                       int nelem;
+                       AV *sublist;
+
+                       if( SvTYPE(SvRV(this)) != SVt_PVAV ) {
+                         barf("slice: non-ARRAY ref in the argument list!");
+                       }
+
+                       /*
+                        * It *is* an array ref!  Expand it into an AV so we can read it.
+                        */
+                       sublist = (AV *)(SvRV(this));
+                       if(!sublist) {
+                         nelem = 0;
+                       } else {
+                         nelem = av_len(sublist) + 1;
+                       }
+
+                       if(nelem > 3) {
+                         barf("slice: array refs can have at most 3 elements!");
+                       }
+
+                       if(nelem==0) {      /* No elements - keep it all */
+                         all_flag = 1;
+
+                       } else /* Got at least one element */{
 
 
-		         /* Load the first into n0 and check for dummy or all-clear */
-			 /* (if element is missing use the default value already in n0) */
+                         /* Load the first into n0 and check for dummy or all-clear */
+                         /* (if element is missing use the default value already in n0) */
 
-			 svp = av_fetch(sublist, 0, 0);
-			 if(svp && *svp && *svp != &PL_sv_undef) {
-			    /* Got a 0 element - check for '*' or 'X' */
-			    if( SvPOKp(*svp) ) {
-			       char *str = SvPVbyte_nolen(*svp);
-			       switch(*str) {
-			         case 'X':
-				      all_flag = 1; break;
-			         case '*': 
-				      dummy_flag = 1; 
-				      n0 = 1;         /* n0 is 1 so 2nd field is element count */
-				      n1 = 1;         /* size defaults to 1 for dummy dims */   
-				      n2 = 1;         /* n2 is forced to 1 so ['*',0] gives an empty */
-				      break;
-		 		 default:             /* Doesn't start with '*' or 'X' */
-				      n0 = SvIV(*svp);
-				      n1 = n0;         /* n1 defaults to n0 if n0 is present */
-				      break;
-			       }
-			    } else /* the element has no associated string - just parse */{
-			      n0 = SvIV(*svp);
-			      n1 = n0;           /* n1 defaults to n0 if n0 is present */
-			    }
-			}
+                         svp = av_fetch(sublist, 0, 0);
+                         if(svp && *svp && *svp != &PL_sv_undef) {
 
-			/* Read the second element into n1 and check for alternate squish syntax */
-			if( (nelem > 1) && (!all_flag) ) {
-			  svp = av_fetch(sublist, 1, 0);
-			  if( svp && *svp && *svp != &PL_sv_undef ) {
-			    /* Got a n1 element - check for '-' */
-			    if( SvPOKp(*svp) ) {
-			      char *str = SvPVbyte_nolen(*svp);
-			      if(*str == 'X') {
-			        squish_flag = 1;
-				n1 = n0;
+			    /* There is a first element.  Check if it's a PDL, then a string, then an IV */
+
+                            if(SvROK(*svp) && sv_isa(*svp, "PDL")) {
+                              PDL_Indx nn;
+SLICE-MC
+. $sliceb_data_kludge  # Quick and dirty single-element parser (from above)
+. <<'SLICE-MC'
+                              n0 = nn;
+                            } else if( SvPOKp(*svp)) {
+
+                               /* Not a PDL but has associated string */
+
+                               char *str = SvPVbyte_nolen(*svp);
+                               switch(*str) {
+                                 case 'X':
+                                      all_flag = 1; break;
+                                 case '*':
+                                      dummy_flag = 1;
+                                      n0 = 1;         /* n0 is 1 so 2nd field is element count */
+                                      n1 = 1;         /* size defaults to 1 for dummy dims */
+                                      n2 = 1;         /* n2 is forced to 1 so ['*',0] gives an empty */
+                                      break;
+                                 default:             /* Doesn't start with '*' or 'X' */
+                                      n0 = SvIV(*svp);
+                                      n1 = n0;         /* n1 defaults to n0 if n0 is present */
+                                      break;
+                               }
+                           } else /* the element has no associated string - just parse */ {
+                                n0 = SvIV(*svp);
+                                n1 = n0;           /* n1 defaults to n0 if n0 is present */
+                           }
+                        } /* end of defined check.  if it's undef, leave the n's at their default value.
+
+
+                        /* Read the second element into n1 and check for alternate squish syntax */
+                        if( (nelem > 1) && (!all_flag) ) {
+                          svp = av_fetch(sublist, 1, 0);
+
+                          if( svp && *svp && *svp != &PL_sv_undef ) {
+
+			    if( SvROK(*svp) && sv_isa(*svp, "PDL")) {
+			      PDL_Indx nn;
+SLICE-MC
+. $sliceb_data_kludge
+. <<'SLICE-MC'
+                              n1 = nn;
+
+                            } else if( SvPOKp(*svp) ) {
+			      /* Second element has a string - make sure it's not 'X'. */
+                              char *str = SvPVbyte_nolen(*svp);
+                              if(*str == 'X') {
+                                squish_flag = 1;
+                                n1 = n0;
+                              } else {
+			        n1 = SvIV(*svp);
 			      }
-			    }
-			    if(!squish_flag) {
-			      n1 = SvIV(*svp);
-			    }
-			  }
-			}
+                            } else {
+			       /* Not a PDL, no string -- just get the IV */
+                               n1 = SvIV(*svp);
+                            }
+                          } /* If not defined, leave at the default */
+                        } /* End of second-element check */
 
-			/*** Now try to read the third element (inc).  ***/
-			if( (nelem > 2) && !(all_flag) && !(squish_flag) && !(dummy_flag) ) {
-			  svp = av_fetch(sublist, 2, 0);
-			  if( svp && *svp && *svp != &PL_sv_undef ) {
-			    STRLEN len;
-			    SvPV( *svp, len );
-			    if(len>0) {           /* nonzero length -> actual value given */
-			      n2 = SvIV(*svp);    /* if the length is passed in as 0, it is a squish */
-			      if(n2==0) {
-			        n1 = n0;
-			        squish_flag = 1;
-			      }
+
+                        /*** Now try to read the third element (inc).  ***/
+                        if( (nelem > 2) && !(all_flag) && !(squish_flag) && !(dummy_flag) ) {
+                          svp = av_fetch(sublist, 2, 0);
+                          if( svp && *svp && *svp != &PL_sv_undef ) {
+
+			    if(SvROK(*svp) && sv_isa(*svp, "PDL")) {
+			      PDL_Indx nn;
+SLICE-MC
+. $sliceb_data_kludge
+. << 'SLICE-MC'
+                              n2 = nn;
+			    } else {
+                              STRLEN len;
+                              SvPV( *svp, len );
+                              if(len>0) {           /* nonzero length -> actual value given */
+                                n2 = SvIV(*svp);    /* if the step is passed in as 0, it is a squish */
+                                if(n2==0) {
+                                  n1 = n0;
+                                  squish_flag = 1;
+                                }
+                              }
 			    }
                           } /* end of nontrivial third-element parsing */
-			} /* end of third-element parsing  */
-		       } /* end of nontrivial sublist parsing */
+                        } /* end of third-element parsing  */
+                       } /* end of nontrivial sublist parsing */
 
-		     } else /* this argument is not an ARRAY ref - parse as a scalar */ {
+                     } else /* this argument is not an ARRAY ref - parse as a scalar */ {
 
-		        /*************************************************/
-			/*************************************************/
-			/*** String handling part of nnsliceb is here  ***/
-			/*** This is allegedly just to do simple       ***/
-			/*** extractions - but also does a full slice- ***/
-			/*** style string parse of each term.          ***/
+                        /****************************************************************/
+                        /*** String handling part of slice is here.  Parse out each   ***/
+                        /*** term:                                                    ***/
+                        /***   <n> (or NV) - extract one element <n> from this dim    ***/
+                        /***   <n>:<m>     - extract <n> to <m>; autoreverse if nec.  ***/
+                        /***   <n>:<m>:<s> - extract <n> to <m>, stepping by <s>      ***/
+                        /***  (<n>)        - extract element and discard this dim     ***/
+                        /***  *<n>         - insert a dummy dimension of size <n>     ***/
+                        /***  :            - keep this dim in its entirety            ***/
+                        /***  X            - keep this dim in its entirety            ***/
+                        /****************************************************************/
 
-			if(SvPOKp(this)) {
-			  /* this argument has a cached string */
-			  
-			  char *s;
-			  IV len;
-			  int subargno = 0;
-			  int flagged = 0;
-			  int squish_closed = 0;
-			  char buf[161];
-			  char ii;
-			  s = SvPVbyte(this, len);
+                        if(SvPOKp(this)) {
+                          /* this argument has a cached string */
 
-			  /* Very stoopid parsing - should probably make some calls to perl string utilities... */
-			  while(*s) {
-			    if( isspace( *s ) ) {
-			      s++;  /* ignore and loop again */
-			    } else {
-			      /* not whitespace */
+                          char *s;
+                          IV len;
+                          int subargno = 0;
+                          int flagged = 0;
+                          int squish_closed = 0;
+                          char buf[161];
+                          char ii;
+                          s = SvPVbyte(this, len);
 
-			      switch(*(s++)) {
-			        case '*': 
-				  if(flagged || subargno)
-				    barf("nnslice: Erroneous '*' (arg %d)",i);
-				  dummy_flag = flagged = 1;
-				  n0 = 1;  /* default this number to 1 (size 1); '*0' yields an empty */ 
-				  n1 = 1;  /* no second arg allowed - default to 1 so n0 is element count */
-				  n2 = -1; /* -1 so we count down to n1 from n0 */
-				  break;
+                          /* Very stoopid parsing - should probably make some calls to perl string utilities... */
+                          while(*s) {
+                            if( isspace( *s ) ) {
+                              s++;  /* ignore and loop again */
+                            } else {
+                              /* not whitespace */
 
-				case '(':
-				  if(flagged || subargno)
-				    barf("nnslice: Erroneous '(' (arg %d)",i);
-				  squish_flag = flagged = 1;
-				  
-				  break;
+                              switch(*(s++)) {
+                                case '*':
+                                  if(flagged || subargno)
+                                    barf("slice: Erroneous '*' (arg %d)",i);
+                                  dummy_flag = flagged = 1;
+                                  n0 = 1;  /* default this number to 1 (size 1); '*0' yields an empty */
+                                  n1 = 1;  /* no second arg allowed - default to 1 so n0 is element count */
+                                  n2 = -1; /* -1 so we count down to n1 from n0 */
+                                  break;
 
-				case 'X': case 'x':
-				  if(flagged || subargno > 1)
-				    barf("nnslice: Erroneous 'X' (arg %d)",i);
-				    if(subargno==0) {
-				      all_flag = flagged = 1;
-				    }
-				    else /* subargno is 1 - squish */ {
-				      squish_flag = squish_closed = flagged = 1;
-				    }
-				  break;
+                                case '(':
+                                  if(flagged || subargno)
+                                    barf("slice: Erroneous '(' (arg %d)",i);
+                                  squish_flag = flagged = 1;
 
-			        case '+': case '-': 
-				case '0': case '1': case '2': case '3': case '4': 
-				case '5': case '6': case '7': case '8': case '9':
-				 switch(subargno) {
+                                  break;
 
-				   case 0: /* first arg - change default to 1 element */
-				           n0 = strtoll(--s, &s, 10); 
-				           n1 = n0; 
-					   if(dummy_flag) {
-					     n0 = 1;
-					   }
-					   break;
+                                case 'X': case 'x':
+                                  if(flagged || subargno > 1)
+                                    barf("slice: Erroneous 'X' (arg %d)",i);
+                                    if(subargno==0) {
+                                      all_flag = flagged = 1;
+                                    }
+                                    else /* subargno is 1 - squish */ {
+                                      squish_flag = squish_closed = flagged = 1;
+                                    }
+                                  break;
 
-				   case 1: /* second arg - parse and keep end */
-				           n1 = strtoll(--s, &s, 10); 
-				           break;
-					   
-				   case 2: /* third arg - parse and keep inc */
-				           if( squish_flag || dummy_flag ) {
-					    barf("nnslice: erroneous third field in slice specifier (arg %d)",i);
-					   }
-				           n2 = strtoll(--s, &s, 10); break;
+                                case '+': case '-':
+                                case '0': case '1': case '2': case '3': case '4':
+                                case '5': case '6': case '7': case '8': case '9':
+                                 switch(subargno) {
 
-				   default: /* oops */
-				     barf("nnslice: too many subargs in scalar slice specifier %d",i);
-				     break;
+                                   case 0: /* first arg - change default to 1 element */
+                                           n0 = strtoll(--s, &s, 10);
+                                           n1 = n0;
+                                           if(dummy_flag) {
+                                             n0 = 1;
+                                           }
+                                           break;
+
+                                   case 1: /* second arg - parse and keep end */
+                                           n1 = strtoll(--s, &s, 10);
+                                           break;
+
+                                   case 2: /* third arg - parse and keep inc */
+                                           if( squish_flag || dummy_flag ) {
+                                            barf("slice: erroneous third field in slice specifier (arg %d)",i);
+                                           }
+                                           n2 = strtoll(--s, &s, 10);
+                                           break;
+
+                                   default: /* oops */
+                                     barf("slice: too many subargs in scalar slice specifier %d",i);
+                                     break;
+                                 }
+                                 break;
+
+                                case ')':
+                                 if( squish_closed || !squish_flag || subargno > 0) {
+                                  barf("nslice: erroneous ')' (arg %d)",i);
+                                 }
+                                 squish_closed = 1;
+                                 break;
+
+                                case ':':
+                                 if(squish_flag && !squish_closed) {
+                                   barf("slice: must close squishing parens (arg %d)",i);
+                                 }
+				 if( subargno == 0 ) {
+				   n1 = -1;   /* Set "<n>:" default to get the rest of the range */
 				 }
-				 break;
-				 
- 				case ')':
-				 if( squish_closed || !squish_flag || subargno > 0) {
-				  barf("nslice: erroneous ')' (arg %d)",i);
-				 }
-				 squish_closed = 1;
-				 break;
+                                 if( subargno > 1 ) {
+                                   barf("slice: too many ':'s in scalar slice specifier %d",i);
+                                 }
+                                 subargno++;
+                                 break;
 
-				case ':': 
-				 if(squish_flag && !squish_closed) {
-				   barf("nnslice: must close squishing parens (arg %d)",i);
-				 }
-				 if( subargno > 1 ) {
-				   barf("nnslice: too many ':'s in scalar slice specifier %d",i);
-				 }
-				 subargno++;
-				 break;
-				 
-			        case ',':
- 				 barf("nnslice: ','  not allowed (yet) in scalar slice specifiers!");
-				 break;
-				
-				default:
-				 barf("nnslice: unexpected '%c' in slice specifier (arg %d)",*s,i);
-				 break;
-			      }
- 			    } /* end of conditional in parse loop */
-			    
-			  } /* end of parse loop */
+                                case ',':
+                                 barf("slice: ','  not allowed (yet) in scalar slice specifiers!");
+                                 break;
 
-			} else /* end of string parsing */ {
-			  /* Simplest case -- there's no cached string, so it   */
-			  /* must be a number.  In that case it's a simple      */
-			  /* extraction.  Treated as a separate case for speed. */
-			  n0 = SvNV(this);
-			  n1 = SvNV(this);
-			  n2 = 0;
-			}
+                                default:
+                                 barf("slice: unexpected '%c' in slice specifier (arg %d)",*s,i);
+                                 break;
+                              }
+                            } /* end of conditional in parse loop */
 
-		     } /* end of string handling */
+                          } /* end of parse loop */
 
-		  } /* end of defined-element handling */
+                        } else /* end of string parsing */ {
 
-		  if( (!all_flag) + (!squish_flag) + (!dummy_flag) < 2 ) {
-		    barf("Looks like you triggered a bug in  nnsliceb.  two flags set in dim %d",i);
-		  }
+                          /* Simplest case -- there's no cached string, so it   */
+                          /* must be a number.  In that case it's a simple      */
+                          /* extraction.  Treated as a separate case for speed. */
+                          n0 = SvNV(this);
+                          n1 = SvNV(this);
+                          n2 = 0;
+                        }
 
-		  /* Force all_flag case to be a "normal" slice */
-		  if(all_flag) {
-		    n0 = 0;
-		    n1 = -1;
-		    n2 = 1;
-		  }
+                     } /* end of scalar handling */
 
-		  /* Copy parsed values into the limits */
-		  $COMP(start[i]) = n0;
-		  $COMP(end[i])   = n1;
-		  $COMP(inc[i])   = n2;
+                  } /* end of defined-element handling (!all_flag) */
 
-		  /* Deal with dimensions */
-		  if(squish_flag) {
-		    $COMP(odim[i]) = -1;
-		  } else {
-		    $COMP(odim[i]) = odim++;
-		  }
-		  if(dummy_flag) {
-		    $COMP(idim[i]) = -1;
-		  } else {
-		    $COMP(idim[i]) = idim++;
-		  }
-		  
-		} /* end of arg-parsing loop */
+                  if( (!all_flag) + (!squish_flag) + (!dummy_flag) < 2 ) {
+                    barf("Looks like you triggered a bug in  slice.  two flags set in dim %d",i);
+                  }
 
-		$COMP(idim_top) = idim;
-		$COMP(odim_top) = odim;
+                  /* Force all_flag case to be a "normal" slice */
+                  if(all_flag) {
+                    n0 = 0;
+                    n1 = -1;
+                    n2 = 1;
+                  }
 
-		$SETREVERSIBLE(1);
+                  /* Copy parsed values into the limits */
+                  $COMP(start[i]) = n0;
+                  $COMP(end[i])   = n1;
+                  $COMP(inc[i])   = n2;
 
-	     /*** End of MakeComp for nnsliceb       */
+                  /* Deal with dimensions */
+                  if(squish_flag) {
+                    $COMP(odim[i]) = -1;
+                  } else {
+                    $COMP(odim[i]) = odim++;
+                  }
+                  if(dummy_flag) {
+                    $COMP(idim[i]) = -1;
+                  } else {
+                    $COMP(idim[i]) = idim++;
+                  }
+
+                } /* end of arg-parsing loop */
+
+                $COMP(idim_top) = idim;
+                $COMP(odim_top) = odim;
+
+                $SETREVERSIBLE(1);
+
+             /*** End of MakeComp for slice       */
              /****************************************/
+SLICE-MC
+           ,
+           RedoDims => q{
+                  int o_ndims_extra = 0;
+                  PDL_Indx i;
 
-           },
-	   RedoDims => q{
-	          int o_ndims_extra = 0;
-		  PDL_Index i;
+                  if( $COMP(idim_top) < $PARENT(ndims) ) {
+                    o_ndims_extra = $PARENT(ndims) - $COMP(idim_top);
+                  }
 
-		  if( $COMP(idim_top) < $PARENT(ndims) ) {
-		    o_ndims_extra = $PARENT(ndims) - $COMP(idim_top);
-		  }
-		  
-		  /* slurped dims from the arg parsing, plus any extra thread dims */
-		  $SETNDIMS( $COMP(odim_top) + o_ndims_extra );
-		  $DOPRIVDIMS();
-		  $PRIV(offs) = 0;  /* Offset vector to start of slice */
+                  /* slurped dims from the arg parsing, plus any extra thread dims */
+                  $SETNDIMS( $COMP(odim_top) + o_ndims_extra );
+                  $DOPRIVDIMS();
+                  $PRIV(offs) = 0;  /* Offset vector to start of slice */
 
-		  for(i=0; i<$COMP(nargs); i++) {
-		      PDL_Index start, end;
-		      
-		      /** Belt-and-suspenders **/
-		      if( ($COMP(idim[i]) < 0)  && ($COMP(odim[i]) < 0)  ) {
-    		        PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-		        barf("nnslice: Hmmm, both dummy and squished -- this can never happen.  I quit.");
-		      }
+                  for(i=0; i<$COMP(nargs); i++) {
+                      PDL_Indx start, end;
 
-		      /** First handle dummy dims since there's no input from the parent **/
-		      if( $COMP(idim[i]) < 0 ) {
-		         /* dummy dim - offset or diminc. */
-		         $CHILD( dims[ $COMP(odim[i]) ] ) = $COMP(end[i]) - $COMP(start[i]) + 1;
-		         $PRIV( incs[ $COMP(odim[i]) ] ) = 0;
-	              } else {
-		        PDL_Index pdsize;
+                      /** Belt-and-suspenders **/
+                      if( ($COMP(idim[i]) < 0)  && ($COMP(odim[i]) < 0)  ) {
+                        PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+                        barf("slice: Hmmm, both dummy and squished -- this can never happen.  I quit.");
+                      }
 
-		        /** Get parent dim size for this idim, and/or allow permissive slicing **/
-		        if( $COMP(idim[i]) < $PARENT(ndims)) {	
-		          pdsize = $PARENT( dims[$COMP(idim[i])] );
-		        } else { 
-		          pdsize = 1; 
-		        }
+                      /** First handle dummy dims since there's no input from the parent **/
+                      if( $COMP(idim[i]) < 0 ) {
+                         /* dummy dim - offset or diminc. */
+                         $CHILD( dims[ $COMP(odim[i]) ] ) = $COMP(end[i]) - $COMP(start[i]) + 1;
+                         $PRIV( incs[ $COMP(odim[i]) ] ) = 0;
+                      } else {
+                        PDL_Indx pdsize;
 
-		      	/** Regularize and bounds-check the start location **/
-		        start = $COMP(start[i]); 
-		        if(start < 0)
-		          start += pdsize;
-		        if( (start < 0) || (start >= pdsize) ) {
-		          PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-			  if(i >= $PARENT( ndims )) {
-			    barf("nnslice: slice has too many dims (indexes dim %d; highest is %d)",i,$PARENT( ndims )-1);
-			  } else {
-			    barf("nnslice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0-%d)",i,start,$COMP(idim[i]),pdsize-1);
-			  }
-		        }
-		      		      
-		        if( $COMP(odim[i]) < 0) {
-		         /* squished dim - just update the offset. */
-			 /* start is always defined and regularized if we are here here, since both 
-			    idim[i] and odim[i] can't be <0 */
-			 
-			 $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
+                        /** This is not a dummy dim -- deal with a regular slice along it.     **/
+                        /** Get parent dim size for this idim, and/or allow permissive slicing **/
+
+                        if( $COMP(idim[i]) < $PARENT(ndims)) {
+                          pdsize = $PARENT( dims[$COMP(idim[i])] );
+                        } else {
+                          pdsize = 1;
+                        }
+
+                        /** Regularize and bounds-check the start location **/
+                        start = $COMP(start[i]);
+                        if(start < 0)
+                          start += pdsize;
+                        if( (start < 0) || (start >= pdsize) ) {
+                          PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+                          if(i >= $PARENT( ndims )) {
+                            barf("slice: slice has too many dims (indexes dim %d; highest is %d)",i,$PARENT( ndims )-1);
+                          } else {
+                            barf("slice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0-%d)",i,start,$COMP(idim[i]),pdsize-1);
+                          }
+                        }
+
+                        if( $COMP(odim[i]) < 0) {
+
+                         /* squished dim - just update the offset. */
+                         /* start is always defined and regularized if we are here here, since */
+                         /* both idim[i] and odim[i] can't be <0 */
+
+                         $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
 
                         } else /* normal operation */ {
-		      	  PDL_Index siz;
-			  PDL_Index inc;
+                          PDL_Indx siz;
+                          PDL_Indx inc;
 
+                          /** Regularize and bounds-check the end location **/
+                          end = $COMP(end[i]);
+                          if(end<0)
+                            end += pdsize;
+                          if( (end < 0) || (end >= pdsize) ) {
+                            PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+                            barf("slice: slice ends out of bounds in pos %d (end is %d; source dim %d runs 0-%d)",i,end,$COMP(idim[i]),pdsize-1);
+                          }
 
-		          /** Regularize and bounds-check the end location **/
-		          end = $COMP(end[i]);
-		          if(end<0) 
-		            end += pdsize;
-  		          if( (end < 0) || (end >= pdsize) ) {	
-		            PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-			    barf("nnslice: slice ends out of bounds in pos %d (end is %d; source dim %d runs 0-%d)",i,end,$COMP(idim[i]),pdsize-1);
-		          }
+                          /* regularize inc */
 
-			  /* regularize inc */
-			  inc = $COMP(inc[i]);
-			  if(!inc) 
-			    inc = (start <= end) ? 1 : -1;	
+                          inc = $COMP(inc[i]);
+                          if(!inc)
+                            inc = (start <= end) ? 1 : -1;
 
-			  siz = (end - start + inc) / inc ;
-			  if(siz<0)
-			    siz=0;
-		          $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
-			  $PRIV( incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * inc;
-			  $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
+                          siz = (end - start + inc) / inc ;
+                          if(siz<0)
+                            siz=0;
+                          $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
+                          $PRIV(  incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * inc;
+                          $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
                         } /* end of normal slice case */
-		      } /* end of non-dummy slice case */
-		  } /* end of nargs loop */
+                      } /* end of non-dummy slice case */
+                  } /* end of nargs loop */
 
-		  /* Now fill in thread dimensions as needed.  idim and odim persist from the parsing loop */
-		  /* up above. */
-		  for(i=0; i<o_ndims_extra; i++) {
-		    $CHILD( dims   [ $COMP(odim_top) + i ] ) = $PARENT( dims   [ $COMP(idim_top) + i ] );
-		    $PRIV( incs[ $COMP(odim_top) + i ] ) = $PARENT( dimincs[ $COMP(idim_top) + i ] ); 
-		  }
-		  
-		$SETDIMS();
+                  /* Now fill in thread dimensions as needed.  idim and odim persist from the parsing loop */
+                  /* up above. */
+                  for(i=0; i<o_ndims_extra; i++) {
+                    $CHILD( dims   [ $COMP(odim_top) + i ] ) = $PARENT( dims   [ $COMP(idim_top) + i ] );
+                    $PRIV( incs[ $COMP(odim_top) + i ] ) = $PARENT( dimincs[ $COMP(idim_top) + i ] );
+                  }
 
-	} # end of RedoDims for nnsliceb
+                $SETDIMS();
+
+        } # end of RedoDims for slice
 );
 
 
 pp_addpm({At => 'Bot'},<< 'EOD');
 
-=head1 BUGS 
+=head1 BUGS
 
 For the moment, you can't slice one of the zero-length dims of an
 empty piddle.  It is not clear how to implement this in a way that makes
@@ -3298,7 +3566,7 @@ sense.
 
 Many types of index errors are reported far from the indexing
 operation that caused them.  This is caused by the underlying architecture:
-slice() sets up a mapping between variables, but that mapping isn't 
+slice() sets up a mapping between variables, but that mapping isn't
 tested for correctness until it is used (potentially much later).
 
 =head1 AUTHOR

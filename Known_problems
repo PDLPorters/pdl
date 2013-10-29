@@ -1,10 +1,5 @@
 The following issues have been reported with this version of PDL:
 
-- PDL::NiceSlice filtering of multi-line constructs results
-  in a single line output which makes line numbers in error
-  messages off.  This can make the location of errors in the
-  source code confusing.
-
 
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM
@@ -108,18 +103,11 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.006_07 release:
+  PDL-2.007_01 release:
 
+  343    longlong constructor and display lose digits due to implicit double precision conversions
   340    orover of byte data returns long type
   339    PDL::Complex support is inconsistent and incomplete
-  338    PDL::FFT uses backwards sign convention from FFTW
-
-           Fixed in this release.
-
-  337    rangeb() broken for 64bit index support on 32bit perl
-
-           Candidate fix in this release.
-
   334    Test coverage is incomplete
   332    "isn't numeric in null operation" warning could be more helpful
   330    NiceSlice can get confused by comments to cause compilation errors
@@ -127,12 +115,9 @@ The following issues have been reported with this version of PDL:
   322    PDL::Demos system needs overhaul
   321    Several core modules do not have man pages
   319    PDL::Index does not render on websites
-  318    Need INSTALLSITEBIN for recent Macports Perls
   313    clip() edge case not handled right
   312    Wrong results in corner empty-set cases
   308    propagate badflag with .=
-  299    PDL::GIS::Proj doesn't buidl with proj-4.8.0
-  298    pp_def, pp_line_numbers,..not found by pdldoc
   274    'help funname' fails to show multiple function names
   268    PLplot still unusable with X
   261    max() fails on nan

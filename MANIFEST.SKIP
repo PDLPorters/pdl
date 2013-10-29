@@ -231,6 +231,7 @@ RCS
 ^debian/patched/
 ^gsl.pl
 ^inc/Alien/Proj4/Makefile.PL
+^inc/Devel
 ^inv-data.pl
 ^patch
 ^pdl$

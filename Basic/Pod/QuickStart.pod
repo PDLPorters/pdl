@@ -246,7 +246,13 @@ Default for pdl() is double. Conversions are:
  $c = long($d);   # "long" is generally a 4 byte int
  $d = byte($a);
 
-Also double(), short(), ushort().
+Also double(), short(), ushort(), indx().  
+
+  NOTE: The indx() routine is a special integer type that
+  is the correct size for a PDL index value (dimension size,
+  index, or offest) which can be either a 32bit (long) or
+  64bit (longlong) quantity depending on whether the perl
+  is built with 32bit or 64bit support.
 
 These routines also automatically convert Perl lists to
 allow the convenient shorthand:
@@ -388,11 +394,6 @@ package provides allows one to display images
 in these ("IIS" is the name of an ancient item of image display
 hardware whose protocols these tools conform to.)
 
-=item Karma (B<REMOVED>) 
-
-The L<PDL::Graphics::Karma|PDL::Graphics::Karma> module has
-been removed from the PDL distribution as of version 2.4.8.
-
 =item PDL::Graphics::TriD
 
 See L<PDL::Graphics::TriD|PDL::Graphics::TriD>, this is a collection
@@ -408,7 +409,7 @@ on demand, in a way perhaps familiar to users of MatLab.
 
 One can also write PDL extensions as normal Perl modules.
 
-=head2 PDL shell
+=head2 PDL shells
 
 The Perl script C<pdl2> (or C<perldl>) provides a simple command line interface
 to PDL.  If the latest Readlines/ReadKey modules have been installed C<pdl2>

@@ -46,6 +46,7 @@ ok($b->getndims == 0 && all $b == 6);
 # the latest versions should do the 'at' automatically
 eval translate_and_show '$b = $a(($c(1)));';
 ok (!$@);
+print "ERROR is $@\n" if($@);
 ok($b->getndims == 0 && all $b == 6);
 
 eval translate_and_show '$c = $a(:);';

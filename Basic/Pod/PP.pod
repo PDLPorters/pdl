@@ -1,3 +1,7 @@
+package PDL::PP;
+
+__END__
+
 =head1 NAME
 
 PDL::PP - Generate PDL routines from concise descriptions
@@ -20,7 +24,130 @@ e.g.
 
 	pp_done();
 
-=head1 Overview
+=head1 FUNCTIONS
+
+Here is a quick reference list of the functions provided by PDL::PP.
+
+=head2 pp_add_boot
+
+=for ref
+
+Add code to the BOOT section of generated XS file
+
+
+=head2 pp_add_exported
+
+=for ref
+
+Add functions to the list of exported functions
+
+
+=head2 pp_add_isa
+
+=for ref
+
+Add entries to the @ISA list
+
+
+=head2 pp_addbegin
+
+=for ref
+
+Sets code to be added at the top of the generate .pm file
+
+
+=head2 pp_addhdr
+
+=for ref
+
+Add code and includes to C section of the generated XS file
+
+
+=head2 pp_addpm
+
+=for ref
+
+Add code to the generated .pm file
+
+
+=head2 pp_addxs
+
+=for ref
+
+Add extra XS code to the generated XS file
+
+=head2 pp_beginwrap
+
+=for ref
+
+Add BEGIN-block wrapping to code for the generated .pm file
+
+
+=head2 pp_bless
+
+=for ref
+
+Sets the package to which the XS code is added (default is PDL)
+
+
+=head2 pp_boundscheck
+
+=for ref
+
+Control state of PDL bounds checking activity
+
+
+=head2 pp_core_importList
+
+=for ref
+
+Specify what is imported from PDL::Core
+
+
+=head2 pp_def
+
+=for ref
+
+Define a new PDL function
+
+
+=head2 pp_deprecate_module
+
+=for ref
+
+Add runtime and POD warnings about a module being deprecated
+
+
+=head2 pp_done
+
+=for ref
+
+Mark the end of PDL::PP definitions in the file
+
+
+=head2 pp_export_nothing
+
+=for ref
+
+Clear out the export list for your generated module
+
+
+=head2 pp_line_numbers
+
+=for ref
+
+Add line number information to simplify debugging of PDL::PP code
+
+
+=head2 pp_setversion
+
+=for ref
+
+Set the version for .pm and .xs files
+
+
+
+=head1 OVERVIEW
 
 Why do we need PP? Several reasons: firstly, we want to be able to
 generate subroutine code for each of the PDL datatypes (PDL_Byte,
@@ -1659,11 +1786,11 @@ to clear the C<EXPORT> list. To ensure that no documentation (even the
 default PP docs) is generated, set
 
  Doc => undef
- 
+
 and to prevent the function from being added to the symbol table, set
- 
+
  PMFunc => ''
- 
+
 in your pp_def declaration (see Image2D.pd for an example). This will
 effectively make your PP function "private." However, it is I<always>
 accessible via PDL::bar_pp due to Perl's module design. But making
@@ -1856,7 +1983,10 @@ define the signature of your function
 
 =item OtherPars
 
-arguments which are not pdls. Default: nothing. This is a semi-colon separated list of arguments, e.g., C<< OtherPars=>'int k; double value; char* fd' >>. See C<$COMP(x)> and also the same entry in L<Appendix B|Appendix B: PP macros and functions>.
+arguments which are not pdls. Default: nothing. This is a semi-colon
+separated list of arguments, e.g.,
+C<< OtherPars=>'int k; double value; char* fd' >>. See C<$COMP(x)> and
+also the same entry in L<Appendix B|/Appendix B: PP macros and functions>.
 
 =item Code
 

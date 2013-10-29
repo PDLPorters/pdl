@@ -4,7 +4,7 @@ pdl *	T_PDL
 pdl_trans * T_PDLTRANS
 pdl_trans* T_PDLTRANS
 Logical	T_IV
-PDL_Index  T_IV
+PDL_Indx  T_IV
 
 INPUT
 
