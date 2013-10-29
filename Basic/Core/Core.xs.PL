@@ -404,13 +404,10 @@ iscontig(x)
       pdl_make_physvaffine( x );
 	if PDL_VAFFOK(x) {
 	   int i;
-<<<<<<< HEAD
-           PDL_Index inc=1;
-	   PDLDEBUG_f(printf("vaff check...\n");)
-=======
+
            PDL_Indx inc=1;
 	   printf("vaff check...\n");
->>>>>>> master
+
   	   for (i=0;i<x->ndims;i++) {
      	      if (PDL_REPRINC(x,i) != inc) {
 		     RETVAL = 0;
