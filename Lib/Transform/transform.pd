@@ -1442,7 +1442,13 @@ introducing the fewest artifacts into a properly sampled data set.
 This value scales the input-space footprint of each output pixel in
 the gaussian and hanning methods. It's retained for historical
 reasons.  Larger values yield blurrier images; values significantly
-smaller than unity cause aliasing.
+smaller than unity cause aliasing.  The parameter has slightly
+different meanings for Gaussian and Hanning interpolation.  For
+Hanning interpolation, numbers smaller than unity control the
+sharpness of the border at the edge of each pixel (so that blur=>0 is
+equivalent to sampling for non-decimating transforms).  For 
+Gaussian interpolation, the blur factor parameter controls the 
+width parameter of the Gaussian around the center of each pixel.
 
 =item sv, SV (default = 1.0)
 
