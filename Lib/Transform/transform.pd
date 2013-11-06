@@ -485,7 +485,6 @@ void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCol)
     }
 }
 
-
 /*
  * PDL_xform_aux:
  *  This handles the matrix manipulation part of the Jacobian filtered
@@ -645,6 +644,11 @@ pp_def('map',
  PDL_Double *map_ptr;
  PDL_Long i, j;
  $GENERIC() badval = SvNV($COMP(bv));
+ #define HANNING_LOOKUP_SIZE 2500
+ static PDL_Double hanning_lookup[HANNING_LOOKUP_SIZE + 2];
+ static int needs_hanning_calc = 1;
+ PDL_Double hanning_zeta;
+ PDL_Double hanning_offset;
 
  pdl *in  = PDL->SvPDLV($COMP(in));
  pdl *out = PDL->SvPDLV($COMP(out));
@@ -658,29 +662,28 @@ pp_def('map',
 
   /***************************************************************************/
   /**  Check that the dimensionalities are consistent.  This is             **/
-  /**  allegedly done already in the perl part, but should not cost more    **/
-  /**  than a few hundred clock cycles -- cheap at twice the price.         **/
+  /**  allegedly done already in the perl part, butcan also be done here.   **/ 
   /**                                                                       **/
-  /**/ if(map->ndims != out->ndims)                                        /**/
-  /**/  barf("%s", "Bug in map: index dims aren't consistent\n");          /**/
-  /**/ for(i=0;i<out->ndims-1;i++) {                                       /**/
-  /**/   static char buf[100];                                             /**/
-  /**/   if(map->dims[i+1] != out->dims[i]) {                              /**/
-  /**/     sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",          /**/
-  /**/                 i,map->dims[i+1],out->dims[i]);                     /**/
-  /**/     barf("%s", buf);                                                /**/
-  /**/   }                                                                 /**/
-  /**/ }                                                                   /**/
-  /**/ if(map->dims[0] != in->ndims - 1)                                   /**/
-  /**/   barf("%s", "Bug in map - index vec - input mismatch\n");          /**/
-  /**/ if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                /**/
-  /**/   barf("%s", "Bug in map:  thread dimension error\n");              /**/
+  /**  if(map->ndims != out->ndims)                                         **/
+  /**   barf("%s", "Bug in map: index dims aren't consistent\n");           **/
+  /**  for(i=0;i<out->ndims-1;i++) {                                        **/
+  /**    static char buf[100];                                              **/
+  /**    if(map->dims[i+1] != out->dims[i]) {                               **/
+  /**      sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",           **/
+  /**                  i,map->dims[i+1],out->dims[i]);                      **/
+  /**      barf("%s", buf);                                                 **/
+  /**    }                                                                  **/
+  /**  }                                                                    **/
+  /**  if(map->dims[0] != in->ndims - 1)                                    **/
+  /**    barf("%s", "Bug in map - index vec - input mismatch\n");           **/
+  /**  if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                 **/
+  /**    barf("%s", "Bug in map:  thread dimension error\n");                **/
   /***************************************************************************/
 
  /*
-  * Allocate all our dynamic workspaces at once (probably marginal but what the hey)
+  * Allocate all our dynamic workspaces at once 
   * */
- ovec = (PDL_Long *)(PDL->smalloc( (STRLEN)
+ ovec = (PDL_Indx *)(PDL->smalloc( (STRLEN)
                                    ( + sizeof(PDL_Indx)    * 3 * ndims               // ovec, ivec, ibvec
                                      + sizeof(PDL_Double) * (3*ndims)                // dvec, tvec
                                      + sizeof(PDL_Double) * in->dims[ndims]          // acc
@@ -702,7 +705,6 @@ pp_def('map',
 
 /***
  * Fill in the boundary condition array
- * (cut-and-pasted from the range() code...)
  */
  {
   char *bstr;
@@ -748,6 +750,20 @@ pp_def('map',
 /***
  * Parse out the 'method', 'big', 'blur', and 'sv_min' arguments
  */
+ big    = labs((PDL_Long)   (SvNV($COMP(big))));
+ if(big <= 0)
+   barf("%s","map: 'big' parameter must be >0");
+
+ blur   = fabs((PDL_Double) (SvNV($COMP(blur))));
+ if(blur < 0)
+   barf("%s","map: 'blur' parameter must be >= 0");
+
+ sv_min = fabs((PDL_Double) (SvNV($COMP(sv_min))));
+ if(sv_min < 0) 
+   barf("%s","map: 'sv_min' parameter must be >= 0");
+
+ flux   = (SvNV($COMP(flux)) != 0);
+
  {
   char *mstr;
   STRLEN mlen;
@@ -756,13 +772,28 @@ pp_def('map',
   if(mlen==0)
         method = 'h';
   else switch(*mstr) {
-    case 'H':                 // H - old hanning window code
+    case 'H':                 // H - rigorous hanning window 
       method='H'; break;
-    case 'h':                 // h - lookup-table hanning window code
-      method = 'h'; break;
-    case 'g': case 'G':       // Gaussian 
-    case 'j': case 'J':       // Jacobian -- same thing
+    case 'h':                 // h - lookup-table hanning window
+      method = 'h'; 
+      if( needs_hanning_calc ) {
+         int i;
+         for(i=0;i<HANNING_LOOKUP_SIZE;i++) {
+           hanning_lookup[i] = 0.5 + 0.5 * cos(3.1415926536 / HANNING_LOOKUP_SIZE * i);
+         } 
+         hanning_lookup[HANNING_LOOKUP_SIZE] =0;
+         hanning_lookup[HANNING_LOOKUP_SIZE+1] =0;
+         needs_hanning_calc = 0;
+      }
+      hanning_zeta = HANNING_LOOKUP_SIZE / blur;        
+      hanning_offset = (blur >= 1) ?  
+                0 : 
+                0.5 * (1.0 - blur);
+      break;
+    case 'g': case 'j':       // Gaussian and/or Jacobian, using lookup table
       method = 'g'; break;
+    case 'G': case 'J':       // Jacobian -- same thing, with direct calculation
+      method = 'G'; break;
     default:
       {
         char err[80];
@@ -772,10 +803,8 @@ pp_def('map',
       break;
     }
  }
- big    = labs((PDL_Long)   (SvNV($COMP(big))));
- blur   = fabs((PDL_Double) (SvNV($COMP(blur))));
- sv_min = fabs((PDL_Double) (SvNV($COMP(sv_min))));
- flux   = (SvNV($COMP(flux)) != 0);
+
+
 
  /* End of initialization */
  /*************************************************************/
@@ -789,7 +818,7 @@ pp_def('map',
  map_ptr = (PDL_Double *)(map->data);
 
 
-/* Main pixel loop */
+/* Main pixel loop (iterates over pixels in the output plane) */
  do {
    PDL_Indx psize; // Size of the region to accumulate over for this pixel
    PDL_Double wgt; // Weight accumulator for output 
@@ -797,8 +826,8 @@ pp_def('map',
    PDL_Indx j;     // Generic loop index
    char t_vio;     // counter used for truncation boundary violations
    char carry;     // flag used for multidimensional loop iteration
-   /* Prefrobnicate the transformation matrix */
 
+   /* Prefrobnicate the transformation matrix */
    psize = (PDL_Long)(blur * PDL_xform_aux(map, ovec, tmp, sv_min) + 0.5)+1; /* assignment */
 
 #ifdef DEBUG_MAP
@@ -817,9 +846,9 @@ pp_def('map',
  }
 #endif
 
+   /* Don't bother accumulating output if psize is too large */
    if(psize <= big) {
-     /*
-      * Use the prefrobnicated matrix to generate a local linearization
+     /* Use the prefrobnicated matrix to generate a local linearization.
       * dvec gets the delta; ibvec gets the base.
       */
      {
@@ -830,16 +859,11 @@ pp_def('map',
        }
      }
 
-     /*
-      * Initialize input delta vector
-      */
-
+     /* Initialize input delta vector  */
      for(i=0;i<ndims;i++)
        ivec[i] = -psize;
 
-     /*
-      * Initialize accumulators
-      */
+     /* Initialize accumulators */
      {
        PDL_Double *ac = acc;
        for(i=0; i < in->dims[ndims]; i++)
@@ -847,7 +871,7 @@ pp_def('map',
      }
      wgt = 0;
 
-     i_off = 0;
+
      /*
       * Calculate the original offset into the data array, to enable 
       * delta calculations in the pixel loop
@@ -857,8 +881,8 @@ pp_def('map',
       *
       * This code matches the incrementation code at the bottom of the accumulation loop
       */
-     t_vio = 0;
-
+     t_vio = 0; /* truncation-boundary violation count - don't bother if it is nonzero */
+     i_off = 0;
      for(i=0;i<ndims; i++) {
        j = ivec[i] + ibvec[i]; 
        if(j<0 || j >= in->dims[i]) {
@@ -900,17 +924,21 @@ pp_def('map',
      }
 
      /* Initialize index stashes for later reference as we scan the footprint */
+     /* It's a pain in the ass to deal with boundaries, and doubly so at the  */
+     /* end of a dimensional scan.  So we stash the index location at the     */
+     /* start of each dimensional scan here.  When we finish incrementing     */
+     /* through a particular dim, we pull its value back out of the stash.    */
      for(i=0;i<ndims;i++) {
        index_stash[i] = i_off;
      }
 
      /* The input accumulation loop is the hotspot for the entire operation.        */
      /* We loop over pixels in the region of interest (+/- psize in each dimension) */
-     /* input array, use the linearized transform to bring each pixel center        */
+     /* in the input array, use the linearized transform to bring each pixel center */
      /* forward to the output plane, and calculate a weighting based on the chosen  */
      /* filter function.   'h' is a fast Hanning window rolloff using a lookup      */
      /* table that is initialized the first time through the code.  'H' is the      */
-     /* same process, but explicitly calculated for each interation (~1/3 slower).  */
+     /* same process, but explicitly calculated for each interation (~2x slower).   */
      /* 'g' uses a radial Gaussian filter.  Rather than calculate the array offset  */
      /* into the input array fresh from the current input array vector each time,   */
      /* we walk through the array using dimincs and the old offset.  This saves     */
@@ -920,7 +948,9 @@ pp_def('map',
          PDL_Double *cp;
          PDL_Double alpha; // weighting coefficient for the current point 
 
-       /* Calculate the weight of the current input point.  
+       /* Calculate the weight of the current input point.  Don't bother if we're
+        * violating any truncation boundaries (in that case our value is zero, but
+        * for the interpolation we also set the weight to zero).
         */ 
        if( !t_vio ) {
 
@@ -940,49 +970,41 @@ pp_def('map',
            /* weighting calculation, so we do.  Using 2500 entries and linear  */
            /* interpolation is accurate to about 10^-7, and should preserve    */
            /* the contents of cache pretty well.                               */
-          {
-            #define HANNING_LOOKUP_SIZE 2500
-            static PDL_Double lookup[HANNING_LOOKUP_SIZE + 2];
-            static char needs_precalc = 1;
-            PDL_Double zeta = HANNING_LOOKUP_SIZE / blur;
-
-            alpha = 1;
-            if(needs_precalc) {
-              for(i=0;i<HANNING_LOOKUP_SIZE;i++) {
-                lookup[i] = 0.5 + 0.5 * cos(3.1415926536 / HANNING_LOOKUP_SIZE * i);
-              } 
-              lookup[HANNING_LOOKUP_SIZE] =0;
-              lookup[HANNING_LOOKUP_SIZE+1] =0;
-              needs_precalc = 0;
-            }
-            
-            cp = tmp;
-            for(i=0; i<ndims; i++) {
+           alpha = 1;
+           cp = tmp;
+           for(i=0; i<ndims; i++) {
+             int lodex;
+             int hidex;
+             PDL_Double beta;
               dd = 0;
-              ap = tvec;
-              /* Get the matrix-multiply element for this dimension */
-              for(j=0;j<ndims; j++)
-                dd += *(ap++) * *(cp++);
-              
-              /* Do linear interpolation from the table */
-              if(dd>1) {
-                alpha = 0;
-                i = ndims;
-              } else {
-                int lodex;
-                int hidex;
-                PDL_Double beta;
-                beta = fabs(dd) * zeta;
-                lodex = beta;
-                beta -= lodex;
-                if(lodex > HANNING_LOOKUP_SIZE)
-                  lodex = HANNING_LOOKUP_SIZE;
-                hidex = lodex+1;        
-                alpha *= lookup[hidex]*beta + lookup[lodex]*(1-beta);
-              }
-            }
-          }
-          break;
+             ap = tvec;
+             /* Get the matrix-multiply element for this dimension */
+             for(j=0;j<ndims; j++)
+               dd += *(ap++) * *(cp++);
+             
+             /* Do linear interpolation from the table */
+             /* The table captures a hanning window centered 0.5 pixel from center. */
+             /* We scale the filter by the blur parameter -- but if blur is less    */
+             /* than unity, we shrink the hanning blur window while keeping the 0.5 */
+             /* value on the pixel edge at 0.5.  For blur greater than unity, we    */
+             /* scale simply. */
+             beta = fabs(dd) - hanning_offset;
+             if(beta > 0) {
+               if(beta >= blur) {
+                 alpha = 0;      
+                 i = ndims;
+               } else {
+                 beta *= hanning_zeta;
+                 lodex = beta;
+                 beta -= lodex;
+                 if(lodex > HANNING_LOOKUP_SIZE)
+                 lodex = HANNING_LOOKUP_SIZE;
+                 hidex = lodex+1;        
+                 alpha *= hanning_lookup[hidex]*beta + hanning_lookup[lodex]*(1-beta);
+               } /* end of interpolation branch */
+             } /* end of beta > 0 branch */
+           } /* end of dimension loop */
+         break;
 
         case 'H':
           /* This is the Hanning window rolloff with explicit calculation, preserved */
@@ -994,7 +1016,7 @@ pp_def('map',
                  ap = tvec;
                  for(j=0;j<ndims; j++)
                      dd += *(ap++) * *(cp++);
-                 dd = fabs(dd) / blur;
+                 dd = (fabs(dd) - hanning_offset) / blur;
                  if( dd > 1 ) {
                      alpha = 0;
                      i = ndims;
@@ -1063,10 +1085,10 @@ pp_def('map',
             switch(bounds[i]){
             case 0: /* no breakage allowed -- treat as truncation for interpolation */
             case 1: /* truncation -- if we crossed the boundary mark ourselves out-of-bounds */
-	      if( j == 0 ) 
-		t_vio--;
-	      else if( j == in->dims[i] )
-		t_vio++;
+              if( j == 0 ) 
+                t_vio--;
+              else if( j == in->dims[i] )
+                t_vio++;
               break;
              case 2: /* extension -- do nothing (so the same input point is re-used) */
                break;
@@ -1102,18 +1124,18 @@ pp_def('map',
 
          } else { /* End of this scan -- recover the last position, and mark carry */
            i_off = index_stash[i];
-	   if(bounds[i]==1) {
-	     j = ivec[i] + ibvec[i];
-	     if( j < 0 || j >= in->dims[i] )
-	       t_vio--;
-	     ivec[i] = -psize;
-	     j = ivec[i] + ibvec[i];
-	     if( j < 0 || j >= in->dims[i] )
-	       t_vio++;
-	     carry = 1;
-	   } else {
-	     ivec[i] = -psize;
-	   }
+           if(bounds[i]==1) {
+             j = ivec[i] + ibvec[i];
+             if( j < 0 || j >= in->dims[i] )
+               t_vio--;
+             ivec[i] = -psize;
+             j = ivec[i] + ibvec[i];
+             if( j < 0 || j >= in->dims[i] )
+               t_vio++;
+             carry = 1;
+           } else {
+             ivec[i] = -psize;
+           }
          } 
        } /* End of counter-advance loop */
      } while(carry==0);  /* end of total data accumulation loop (termination condition has carry on last dim) */
@@ -1128,13 +1150,13 @@ pp_def('map',
        
        if(wgt) {
          if(!flux) {
-	   /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data./ */
+           /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data./ */
            for(i=0; i < out->dims[ndims]; i++) {
              *dat = *(ac++) / wgt;
              dat += out->dimincs[ndims];
            }
-	 } else {
-	   /* Flux flag is set - scale by the (unpadded) determinant of the Jacobian */
+         } else {
+           /* Flux flag is set - scale by the (unpadded) determinant of the Jacobian */
            PDL_Double det = tmp[ndims*ndims];
            for(i=0; i < out->dims[ndims]; i++) {
              *dat = *(ac++) / wgt * det;
@@ -1142,10 +1164,10 @@ pp_def('map',
            }
          }
        } else { 
-	 /* wgt==0 -- no hits */
+         /* wgt==0 -- no hits */
          for(i=0;i<out->dims[ndims];i++){
            *dat = badval;
-	   dat += out->dimincs[ndims];
+           dat += out->dimincs[ndims];
          }
        }
      }
@@ -1430,7 +1452,7 @@ minimum radius of influence associated with each output pixel.  Large
 numbers yield smoother interpolation in magnified parts of the image
 but don't affect reduced parts of the image.
 
-=item big, Big (default = 0.2)
+=item big, Big (default = 0.5)
 
 This is the largest allowable input spot size which may be mapped to a
 single output pixel by the hanning and gaussian methods, in units of
@@ -1901,7 +1923,7 @@ sub map {
   my @idims = $in->dims;
 
   $flux = ($flux =~ m/^[1fF]/);
-  $big = $big * max(pdl(@idims[0..$nd])) / 2;
+  $big = $big * max(pdl(@idims[0..$nd]));
   $blur = $blur->at(0) if(ref $blur);
   $svmin =  $svmin->at(0)  if(ref $svmin);
 
