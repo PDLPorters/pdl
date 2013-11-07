@@ -647,8 +647,13 @@ pp_def('map',
  #define HANNING_LOOKUP_SIZE 2500
  static PDL_Double hanning_lookup[HANNING_LOOKUP_SIZE + 2];
  static int needs_hanning_calc = 1;
- PDL_Double hanning_zeta;
+ PDL_Double zeta;
  PDL_Double hanning_offset;
+
+ #define GAUSSIAN_LOOKUP_SIZE 4000
+ #define GAUSSIAN_MAXVAL 6.25  /* 2.5 HWHMs (square it) */
+ static PDL_Double gaussian_lookup[GAUSSIAN_LOOKUP_SIZE + 2];
+ static int needs_gaussian_calc = 1;
 
  pdl *in  = PDL->SvPDLV($COMP(in));
  pdl *out = PDL->SvPDLV($COMP(out));
@@ -781,17 +786,30 @@ pp_def('map',
          for(i=0;i<HANNING_LOOKUP_SIZE;i++) {
            hanning_lookup[i] = 0.5 + 0.5 * cos(3.1415926536 / HANNING_LOOKUP_SIZE * i);
          } 
-         hanning_lookup[HANNING_LOOKUP_SIZE] =0;
-         hanning_lookup[HANNING_LOOKUP_SIZE+1] =0;
+         hanning_lookup[HANNING_LOOKUP_SIZE]   = 0;
+         hanning_lookup[HANNING_LOOKUP_SIZE+1] = 0;
          needs_hanning_calc = 0;
       }
-      hanning_zeta = HANNING_LOOKUP_SIZE / blur;        
+      zeta = HANNING_LOOKUP_SIZE / blur;        
       hanning_offset = (blur >= 1) ?  
                 0 : 
                 0.5 * (1.0 - blur);
       break;
+
     case 'g': case 'j':       // Gaussian and/or Jacobian, using lookup table
-      method = 'g'; break;
+      method = 'g';
+      if( needs_gaussian_calc ) {
+        int i;
+	zeta = GAUSSIAN_LOOKUP_SIZE / GAUSSIAN_MAXVAL;
+	for(i=0;i<GAUSSIAN_LOOKUP_SIZE;i++) {
+	  gaussian_lookup[i] = exp( - i * 1.386294 * GAUSSIAN_MAXVAL / GAUSSIAN_LOOKUP_SIZE );
+	}
+	gaussian_lookup[GAUSSIAN_LOOKUP_SIZE]   = 0;
+	gaussian_lookup[GAUSSIAN_LOOKUP_SIZE+1] = 0;
+	needs_gaussian_calc = 0;
+      }
+      break;
+
     case 'G': case 'J':       // Jacobian -- same thing, with direct calculation
       method = 'G'; break;
     default:
@@ -994,7 +1012,7 @@ pp_def('map',
                  alpha = 0;      
                  i = ndims;
                } else {
-                 beta *= hanning_zeta;
+                 beta *= zeta;
                  lodex = beta;
                  beta -= lodex;
                  if(lodex > HANNING_LOOKUP_SIZE)
@@ -1025,7 +1043,39 @@ pp_def('map',
                }
               break;
 
-        case 'g':
+	case 'g':
+	  /* This is the Gaussian rolloff.  It does lookup into a precalculated exponential. */
+	  {
+	    PDL_Double sum = 0;
+	    cp = tmp;
+	    for(i=0; i<ndims;i++) {
+	      dd = 0;
+              ap = tvec;
+	      for(j=0;j<ndims;j++)
+	        dd += *(ap++) * *(cp++);
+	      dd /= blur;
+	      sum += dd * dd;
+	      if(sum > GAUSSIAN_MAXVAL) {
+		  i = ndims; /* exit early if we're too far out */
+		  alpha = 0;
+              }
+	    }
+	    if( sum > GAUSSIAN_MAXVAL ) {
+	      alpha = 0;
+	    } else {
+	      int lodex,hidex;
+	      PDL_Double beta = fabs(zeta * sum);
+	      lodex = beta;
+	      beta -= lodex;
+	      hidex = lodex+1;
+              alpha = gaussian_lookup[hidex]*beta + gaussian_lookup[lodex]*(1 - beta);
+            }
+          }
+          break;
+
+        case 'G':
+          /* This is the Gaussian rolloff with explicit calculation, preserved */
+          /* in case someone actually wants the slower longer method. */
               {
                  PDL_Double sum = 0;
                  cp = tmp;
@@ -1040,7 +1090,7 @@ pp_def('map',
                     i = ndims; /* exit early if this pixel is too far outside the footprint of the ideal point */
                  }
 
-                 if(sum > 4)
+                 if(sum > GAUSSIAN_MAXVAL)
                    alpha = 0;
                  else
                    alpha = exp(-sum * 1.386294); /* Gaussian, rt(2)-pix HWHM */

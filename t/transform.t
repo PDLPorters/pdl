@@ -105,12 +105,13 @@ ok(all(approx($b,$b0)),1,"self-match with hanning method and blur of 2 blurs rig
 
 $b = $a->match($a,{method=>'g'});
 $b0 = zeroes($a)-9;
-$bc = pdl([-9,-9,-2.762678-4.4e-8],[-9,-1.5593078,-0.95724797],[-2.762678-4.4e-8,-0.95724797,-0.35518814]);
+$bc = pdl([-9,-3.3658615,-2.7638017],[-3.3658615,-1.5608028,-0.95874296],[-2.7638017,-0.95874296,-0.35668313]);
+#$bc = pdl([-9,-9,-2.762678-4.4e-8],[-9,-1.5593078,-0.95724797],[-2.762678-4.4e-8,-0.95724797,-0.35518814]);
+
 $b0->slice([1,3],[1,3]) .= $bc;
 $b0->slice([5,3],[1,3]) .= $bc;
 $b0->slice([1,5],[5,4]) .= $b0->slice([1,5],[1,2]);
-ok(all(approx($b->clip(1e-9)->log10,$b0)),1,"self-match with Gaussian method gives understood blur");
-
+ok(all(approx($b->clip(1e-9)->log10,$b0,1e-7)),1,"self-match with Gaussian method gives understood blur");
 
 $t = t_linear(pre=>[0.5,1]);
 $b = $a->map($t,{method=>'s',pix=>1});
