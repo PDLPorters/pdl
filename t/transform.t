@@ -3,10 +3,41 @@ use Test;
 use warnings;
 
 BEGIN {
-  plan tests => 22;
+  plan tests => 29;
 }
 
 use PDL::Transform;
+
+##############################
+##############################
+# Test basic transformation
+$t = t_linear(scale=>[2]);
+ok( $t->{idim} == 1 && $t->{odim} == 1, 1, "t_linear can make a 1-d transform" );
+
+$a = sequence(2,2)+1;
+$b = $a->apply($t);
+
+ok( all( approx( $b, pdl( [2, 2], [6, 4] ) )), 1, "1-d apply on a collection of vectors ignors higher dim");
+
+$t2 = t_linear(scale=>[2,3]);
+
+ok( $t2->{idim} == 2 && $t2->{odim} == 2, 1, "t_linear can make a 2-d transform" );
+
+$b = $a->apply($t2);
+
+ok( all( approx( $b, pdl( [2, 6], [6, 12] ) )), 1, "2-d apply treats the higher dim");
+
+eval { $b = pdl(3)->apply($t2) };
+ok( $@=~ m/can\'t/ , 1, "2-d apply dies when applied to a scalar" );
+
+eval { $b = pdl(3)->invert($t2) };
+ok( $@ =~ m/can\'t/, 1, "2-d invert dies when applied to a scalar" );
+
+$b = pdl(2,3)->invert($t2);
+ok( all( approx($b, 1) ), 1, "invert works");
+
+
+
 
 ##############################
 # Simple testing of the map autoscaling
