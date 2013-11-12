@@ -522,3 +522,15 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * HDF5 and HDF4 are entirely different beasts (and totally incompatible)
    * The PDL::IO::HDF library uses HDF4.
    * Portability issues especially re. Installs 
+
+
++------------------------------------------------------------+
+| CORE CLEANUP TASKS (for v3)                                |
++------------------------------------------------------------+
+
+ - Search-and-destroy UNIVERSAL::ISA in favor of Safe::Isa
+ - Remove all clang warnings from PP code
+ - Dike out unwanted PP features 
+ - Hose out unused cruft from the core modules (e.g. commented-out code)
+ - Hooks for multithreading?
+ 
