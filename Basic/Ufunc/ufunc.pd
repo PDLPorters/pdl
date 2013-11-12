@@ -27,13 +27,11 @@ to many of the functions in this module.
 
 use PDL::Slices;
 use Carp;
-
 EOD
 
 # check for bad value support
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
 
 # should we use the finite() routine in libm ?
 # (is the Windows version _finite() ?)
@@ -1257,9 +1255,6 @@ Vectors with bad components should be moved to the end of the array:
 ',
     ); 
 
-
-
-
 for my $which (
 	       ['minimum','<'],
 	       ['maximum','>'] 
@@ -1277,12 +1272,17 @@ for my $which (
 	     loop(n) %{
 	 	if( !flag || ($a() '.$op.' cur ) || IsNaN(cur) ) { cur = $a(); flag = 1;}
 	     %}
-	     if(flag) {
+	     if(flag && !IsNaN(cur)) {
 	     	     $c() = cur;
              } else {
+	     ' . ($bvalflag ? '
+	             $SETBAD(c());
+		     $PDLSTATESETBAD(c);
+	     ' : '
                      $c() = 0.25;
                      if($c()>0)
                        $c() = sqrt(-1);
+             ' ) . '
              }     
 		     ',
 	    BadCode => 
@@ -1312,11 +1312,27 @@ for ways of masking NaNs.
 	    Code => 
 	    '$GENERIC() cur;
              PDL_Indx curind;
+	     int flag = 0;
 	     loop(n) %{
-	 	if(!n || $a() '.$op.' cur || IsNaN(cur))
-		   {cur = $a(); curind = n;}
+	 	if(!flag || $a() '.$op.' cur || IsNaN(cur))
+		   {cur = $a(); curind = n;flag=1;}
 	     %}
-	     $c() = curind;',
+	     if(flag && !IsNaN(cur)) {
+	       $c() = curind;
+  	     } else { '
+	     . ($bvalflag ? '
+	          $SETBAD(c());
+                  $PDLSTATESETBAD(c);
+	     ' : '
+	       $c() = 0.25;      /* check for floatiness */
+	       if($c() == 0) {
+	          $c() = -1;     /* put a nonsensical value in */
+	       } else {
+	          $c() = sqrt(-1);  /* NaN if possible */
+	       }
+             ') . '
+	     }
+	       ',
 	    BadCode => 
 	    '$GENERIC() cur;
              PDL_Indx curind; int flag = 0; /* should set curind to -1 and check for that, then do not need flag */
@@ -1324,7 +1340,7 @@ for ways of masking NaNs.
 	 	if( $ISGOOD(a()) && (!flag || $a() '.$op.' cur)) 
                    {cur = $a(); curind = n; flag = 1;}
 	     %}
-             if ( flag ) { $c() = curind; }
+             if ( flag && !IsNaN(cur) ) { $c() = curind; }
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    CopyBadStatusCode => '',
 	    Doc => "Like $name but returns the index rather than the value",
