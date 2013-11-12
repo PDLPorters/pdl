@@ -23,7 +23,7 @@ use vars qw( %PDL_DATATYPES );
 # version 8 for beginning support for >2GiB piddles
 # version 9 for STRLEN/Size_t/Off_t for mmap delete magic
 # version 10 for 64bit index support (PDL index datatype)
-#
+# version 11 for core cleanup (proto-PDL-3)
 use vars qw( $pdl_core_version );
 $pdl_core_version = 11;
 
