@@ -39,7 +39,7 @@ my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 # (is the Windows version _finite() ?)
 #
 pp_addhdr(<<'EOD');
-#define IsNaN(x) (x != x)
+#define IsNaN(x) (x*0 != 0)
 EOD
 
 # helper functions
@@ -1260,14 +1260,6 @@ Vectors with bad components should be moved to the end of the array:
 
 
 
-# I don't think the old behaviour is correct in the presence of NaN's -
-# surely it will set the min/max values to NaN in this case?
-#
-# I have kept in the check for when Bad value support is not being compiled
-#
-my $nan_check = $bvalflag ? '' : '|| IsNaN(cur)';
-# my $nan_check = 0 ? '' : '|| IsNaN(cur)';   # This seems to work, not tested
-
 for my $which (
 	       ['minimum','<'],
 	       ['maximum','>'] 
@@ -1281,15 +1273,23 @@ for my $which (
 	    Pars => 'a(n); [o]c();', 
 	    Code => 
 	    '$GENERIC() cur;
+	     int flag = 0;
 	     loop(n) %{
-	 	if(!n || $a() '.$op.' cur ' . $nan_check . ') {cur = $a();}
+	 	if( !flag || ($a() '.$op.' cur ) || IsNaN(cur) ) { cur = $a(); flag = 1;}
 	     %}
-	     $c() = cur;',
+	     if(flag) {
+	     	     $c() = cur;
+             } else {
+                     $c() = 0.25;
+                     if($c()>0)
+                       $c() = sqrt(-1);
+             }     
+		     ',
 	    BadCode => 
 	    '$GENERIC() cur;
              int flag = 0;
 	     loop(n) %{
-	 	if( $ISGOOD(a()) && (!flag || $a() '.$op.' cur)) {cur = $a(); flag = 1;}
+	 	if( $ISGOOD(a()) && ($a()*0 == 0) && (!flag || $a() '.$op.' cur)) {cur = $a(); flag = 1;}
 	     %}
              if ( flag ) { $c() = cur; }
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
@@ -1313,7 +1313,7 @@ for ways of masking NaNs.
 	    '$GENERIC() cur;
              PDL_Indx curind;
 	     loop(n) %{
-	 	if(!n || $a() '.$op.' cur ' . $nan_check . ')
+	 	if(!n || $a() '.$op.' cur || IsNaN(cur))
 		   {cur = $a(); curind = n;}
 	     %}
 	     $c() = curind;',

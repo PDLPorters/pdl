@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 31;
+use Test::More tests => 35;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -71,10 +71,34 @@ $e_sort = $e->qsortvec;
 $e->inplace->qsortvec;
 ok(all($e == $e_sort));
 
-# test bad value handling with pctover
+# test for sf.net but report 3234141 "max() fails on nan"
+#   NaN values are handled inconsistently by min, minimum, max, maximum...
+#
+local $TODO = "fixing max/min NaN handling";
+
+my $inf = exp(~0>>1);
+my $nan = $inf/$inf;
+my $a = pdl($nan, 0, 1, 2);
+my $b = pdl(0, 1, 2, $nan);
+
+ok($a->min == $b->min, "min with NaNs");
+ok($a->max == $b->max, "max with NaNs");
+
+my $empty = which(ones(5)>5);
+$a = $empty->double->maximum;
+ok( $a->nelem==1, "maximum over an empty dim yields 1 value");
+ok(!($a*0==0), "max of empty nonbad float gives NaN");
+$a = $empty->byte->maximum;
+ok($a==0, "max of empty nonbad int type gives 0");
+
+# test bad value handling with pctover and max
 #
 SKIP: {
-   skip "Bad value support not compiled", 4 unless $PDL::Bad::Status;
+   skip "Bad value support not compiled", 5 unless $PDL::Bad::Status;
+
+   $empty->badflag(1);
+   $a = $empty->maximum;
+   ok( $a->isbad, "bad flag gets set on max over an empty dim");
 
    my $abad = $a;
    $abad->badflag(1);
@@ -87,21 +111,6 @@ SKIP: {
    ok( $allbad->pctover(0.1)->isbad, "pctover(0.1) all badvals" );
    ok( $allbad->pctover(0.9)->isbad, "pctover(0.9) all badvals" );
 };
-
-# test for sf.net but report 3234141 "max() fails on nan"
-#   NaN values are handled inconsistently by min, minimum, max, maximum...
-#
-TODO: {
-   local $TODO = "fixing max/min NaN handling";
-
-   my $inf = exp(~0>>1);
-   my $nan = $inf/$inf;
-   my $a = pdl($nan, 0, 1, 2);
-   my $b = pdl(0, 1, 2, $nan);
-
-   ok($a->min == $b->min, "min with NaNs");
-   ok($a->max == $b->max, "max with NaNs");
-}
 
 
 #Test subroutines directly.
@@ -134,3 +143,5 @@ ok (PDL::oddmedian($j) == -3, 'Oddmedian negative values even cardinality test')
 my $a = pdl([1,2,3,3,4,3,2],1);
 ok( $a->mode == 0, "mode test" );
 ok( all($a->modeover == pdl(3,0)), "modeover test");
+
+
