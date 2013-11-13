@@ -346,10 +346,6 @@ sub apply {
       $me = $a;
   }
 
-  if($me->{idim} > $from->dim(0)) {
-    croak "Apply: can't apply a ".$me->{idim}."-D transform to a ".($from->dim(0))."-D vector.\n";
-  }
-
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL')){
       croak "Applying a PDL::Transform with no func! Oops.\n" unless(defined($me->{func}) and ref($me->{func}) eq 'CODE');
       my $result = &{$me->{func}}($from,$me->{params});         
@@ -399,11 +395,6 @@ sub invert {
       $data = $me;
       $me = $a;
   }
-
-  if($me->{odim} > $data->dim(0)) {
-    croak "Apply: can't apply a ".$me->{odim}."-D transform to a ".($data->dim(0))."-D vector.\n";
-  }
-
 
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($data,'PDL')){
       croak "Inverting a PDL::Transform with no inverse! Oops.\n" unless(defined($me->{inv}) and ref($me->{inv}) eq 'CODE');

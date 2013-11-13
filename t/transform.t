@@ -3,7 +3,7 @@ use Test;
 use warnings;
 
 BEGIN {
-  plan tests => 29;
+  plan tests => 27;
 }
 
 use PDL::Transform;
@@ -26,12 +26,6 @@ ok( $t2->{idim} == 2 && $t2->{odim} == 2, 1, "t_linear can make a 2-d transform"
 $b = $a->apply($t2);
 
 ok( all( approx( $b, pdl( [2, 6], [6, 12] ) )), 1, "2-d apply treats the higher dim");
-
-eval { $b = pdl(3)->apply($t2) };
-ok( $@=~ m/can\'t/ , 1, "2-d apply dies when applied to a scalar" );
-
-eval { $b = pdl(3)->invert($t2) };
-ok( $@ =~ m/can\'t/, 1, "2-d invert dies when applied to a scalar" );
 
 $b = pdl(2,3)->invert($t2);
 ok( all( approx($b, 1) ), 1, "invert works");
