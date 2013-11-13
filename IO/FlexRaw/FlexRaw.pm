@@ -527,22 +527,32 @@ sub readflex {
 		binmode($d);
     }
     else {
-		if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
-			(! -e $name && (-e $name.'.gz' || -e $name.'.Z'))) {
-			$data = "gzip -dcq $name |";
-			$zipt = 1;
-		} else {
-			$data = $name;
-		}
 
-		my ($size) = (stat $name)[7];
-		$d = new FileHandle $data
-		or barf "Couldn't open '$data' for reading";
-		binmode $d;
-		$h = _read_flexhdr("$name.hdr")
-			unless $h;
+	if (  ($name =~ m/\.(gz|Z)$/)  or 
+	      (!-e $name && (
+		     (-e $name.'.gz' && ($name .= ".gz")) ||
+		     (-e $name.'.Z'  && ($name .= ".Z"))
+		     )
+	      )
+	    ) {
+	    unless(`which gzip`) {
+		barf "readflex: compressed file access requires the external 'gzip' application";
+	    }
+	    $data = "gzip -dcq $name |";
+	    $name =~ s/.(gz|Z)$//; # clear out compression suffix for header-open below
+	    $zipt = 1;
+	} else {
+	    $data = $name;
+	}
+	
+	my ($size) = (stat $name)[7];
+	$d = new FileHandle $data
+	    or barf "Couldn't open '$data' for reading";
+	binmode $d;
+	$h = _read_flexhdr("$name.hdr")
+	    unless $h;
     }
-
+    
 # Go through headers which reconfigure
     foreach $hdr (@$h) {
 		my ($type) = $hdr->{Type};
@@ -581,7 +591,6 @@ READ:
 	$pdl = PDL->zeroes ((new PDL::Type($type)),
 			    ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
 	$len = length $ {$pdl->get_dataref};
-
 	&readchunk($d,$pdl,$len,$name) or last READ;
 	$chunkread += $len;
 	if ($swapbyte) {
