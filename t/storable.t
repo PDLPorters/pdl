@@ -6,11 +6,11 @@ use Test::More;
 BEGIN { 
   eval 'use Storable 1.03';
   unless ($@) {
-    plan tests => 9;
+    plan tests => 23;
   } else {
     plan skip_all => "Storable >= 1.03 not installed\n";
   }
-  use Storable qw/freeze thaw/;
+  use Storable qw/freeze thaw retrieve/;
 }
 
 BEGIN { 
@@ -79,3 +79,54 @@ $seq2->slice('2') .= 8;
 ok(! all($seq2 == $seq2_dc), 'Initialization from dclone object') or
     diag($seq2, $seq2_dc);
 
+
+# Now test reading from files
+testLoad($_) foreach( qw(t/storable_new_amd64.dat t/storable_old_amd64.dat) );
+
+
+
+
+# tests loading some files made on different architectures. All these files were
+# made with this:
+#
+#   use PDL;
+#   use PDL::IO::Storable;
+#   use Storable qw(store);
+#   my $x = sequence(3,3)->byte * sequence(3)->byte;
+#   my $y = 50 + sequence(7)->double;
+#   store [$x, 'abcd', $y], "/tmp/tst.dat";
+#
+# I make sure these all were read correctly
+sub testLoad
+{
+  my $filename = shift;
+
+  # if we're on a big endian machine, the old-style data will be bogus so I skip
+  # the tests in that case
+SKIP:
+  {
+    if ( $filename =~ /_old_/ )
+    {
+      my ($byte0) = unpack( 'C*', pack( 'l', 1 ));
+      if ( $byte0 == 0 )
+      {
+        skip "On a big endian machine the old stored files will be bogus", 7;
+      }
+    }
+
+    my $x = retrieve $filename;
+    ok( defined $x, "Reading from file '$filename'" );
+    ok( @$x == 3, "Reading an array-ref of size 3 from file '$filename'" );
+    ok( $x->[1] eq 'abcd', "Reading a correct string from file '$filename'" );
+    isa_ok( $x->[0], 'PDL', "Reading a piddle from file '$filename'" );
+    isa_ok( $x->[2], 'PDL', "Reading another piddle from file '$filename'" );
+
+    my $diff0 = $x->[0] - pdl[[0,1,4],
+                              [0,4,10],
+                              [0,7,16]];
+    my $diff2 = $x->[2] - (50 + sequence(7));
+
+    ok( $diff0->max == 0, "Read correct data from file '$filename'" );
+    ok( $diff2->max == 0, "Read more correct data from file '$filename'" );
+  }
+}
