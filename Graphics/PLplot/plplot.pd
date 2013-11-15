@@ -3645,7 +3645,11 @@ mapform_callback (PLINT n, PLFLT* x, PLFLT* y)
   pdl *x_pdl, *y_pdl;
   PLFLT *tx, *ty;
   SV *x_sv, *y_sv;
+#if defined(PDL_CORE_VERSION) && PDL_CORE_VERSION >= 10
+  PDL_Indx dims, i;
+#else
   int dims, i;
+#endif
   I32 count, ax;
   dSP;
 

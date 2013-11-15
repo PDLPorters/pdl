@@ -569,10 +569,16 @@ SKIP: {
    $ok = 1;
    0 == system "$compress -c $data > ${data}.Z" or diag "system $compress -c $data >${data}.Z failed: $?";
    unlink( $data );
+
+   # original file doesn't exist; should find the .Z automagically and do ok
    @a = readflex($data);
    $ok &&= $#a==6;
+   
+   # read the .Z file explicitly; should do ok.
+   print "Reading ${data}.Z\n";
    @a = readflex("${data}.Z");
    $ok &&= $#a==6;
+
    my $NULL = File::Spec->devnull();
    0 == system "gunzip -q ${data}.Z >$NULL 2>&1" or diag "system gunzip -q ${data}.Z failed: $?";
    0 == system "gzip -q $data >$NULL 2>&1" or diag "system gzip -q $data failed: $?";

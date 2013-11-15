@@ -136,5 +136,4 @@ Other Options
     b) PDL::GSL::* modules (needs the gsl C library);
     c) PDL::Graphics::PLplot (needs the plplot C library);
     d) PDL::GIS::Proj & PDL::Transform::Proj4 (needs the proj4 C library);
-    e) PDL::FFTW (needs the fftw2 C library)
 

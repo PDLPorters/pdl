@@ -1,4 +1,4 @@
-
+pp_addhdr("#include <sys/time.h>\n");
 pp_addpm({At=>'Top'},<<'+======EOD======');
 
 =head1 NAME
@@ -348,8 +348,8 @@ sub apply {
 
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL')){
       croak "Applying a PDL::Transform with no func! Oops.\n" unless(defined($me->{func}) and ref($me->{func}) eq 'CODE');
-      my $result = &{$me->{func}}($from,$me->{params});		
-      $result->is_inplace(0); # clear inplace flag, just in case.	
+      my $result = &{$me->{func}}($from,$me->{params});         
+      $result->is_inplace(0); # clear inplace flag, just in case.       
       return $result;
   } else {
       croak "apply requires both a PDL and a PDL::Transform.\n";
@@ -485,7 +485,6 @@ void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCol)
     }
 }
 
-
 /*
  * PDL_xform_aux:
  *  This handles the matrix manipulation part of the Jacobian filtered
@@ -507,7 +506,7 @@ void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCol)
  *
  */
 
-PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Double sv_min) {
+PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double *tmp, PDL_Double sv_min) {
   short ndims;
   PDL_Long i, j, k;
   PDL_Long offset;
@@ -516,7 +515,7 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
   PDL_Double *svptr;
   PDL_Double *aptr,*bptr;
   PDL_Double max_sv = 0.0;
-
+  
   ndims = map->ndims-1;
 
   /****** Accumulate the Jacobian */
@@ -546,6 +545,7 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
        *(jptr++) = jel;
     }
   }
+
 
   /****** Singular-value decompose the Jacobian
    * The svd routine produces the squares of the singular values,
@@ -577,7 +577,7 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
     if(*aptr < sv_min)
       *aptr = sv_min;
     if(*aptr > max_sv )
-	max_sv = *aptr;
+        max_sv = *aptr;
     aptr++;
   }
 
@@ -591,12 +591,12 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
 
   for(i=0;i<ndims;i++) {
     for(j=0;j<ndims;j++) {
-	*jptr = 0;
+        *jptr = 0;
 
-	for(k=0;k<ndims;k++)
-	  *jptr += aptr[j*ndims + k] * bptr[k*ndims + i] / *svptr;
+        for(k=0;k<ndims;k++)
+          *jptr += aptr[j*ndims + k] * bptr[k*ndims + i] / *svptr;
 
-	jptr++;
+        jptr++;
     }
     svptr++;
   }
@@ -609,10 +609,10 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
 
 pp_add_exported('map');
 pp_def('map',
-	Pars=>'k0()',  # Dummy to set type (should match the type of "in").
-	OtherPars=>'SV *in; SV *out; SV *map; SV *boundary; SV *method;
-	            SV *big; SV *blur; SV *sv_min; SV *flux; SV *bv',
-	Code=><<'+==EOD_map_c_code==',
+        Pars=>'k0()',  # Dummy to set type (should match the type of "in").
+        OtherPars=>'SV *in; SV *out; SV *map; SV *boundary; SV *method;
+                    SV *big; SV *blur; SV *sv_min; SV *flux; SV *bv',
+        Code=><<'+==EOD_map_c_code==',
 /*
  * Pixel interpolation & averaging code
  *
@@ -628,21 +628,32 @@ pp_def('map',
 
  short ndims;           /* Number of dimensions we're working in    */
  PDL_Double *tmp;           /* Workspace for prefrobnication            */
- PDL_Long  *ovec;           /* output pixel loop vector                 */
- PDL_Long  *ivec;           /* input pixel loop vector                  */
- PDL_Long  *ibvec;          /* input pixel base offset vector           */
+ PDL_Indx  *ovec;           /* output pixel loop vector                 */
+ PDL_Indx  *ivec;           /* input pixel loop vector                  */
+ PDL_Indx  *ibvec;          /* input pixel base offset vector           */
  PDL_Double *dvec;          /* Residual vector for linearization        */
  PDL_Double *tvec;          /* Temporary floating-point vector          */
  PDL_Double *acc;           /* Threaded accumulator                     */
- char   *bounds;        /* Boundary condition packed string         */
- char   method;         /* Method identifier (gets one of 'h','g')  */
+ char   *bounds;            /* Boundary condition packed string         */
+ PDL_Indx  *index_stash;    /* Stash to store the opening index of dim sample scans */
+ char   method;             /* Method identifier (gets one of 'h','g')  */
  PDL_Long   big;            /* Max size of input footprint for each pix */
  PDL_Double blur;           /* Scaling of filter                        */
  PDL_Double sv_min;         /* minimum singular value                   */
- char flux;             /* Flag to indicate flux conservation       */
+ char flux;                 /* Flag to indicate flux conservation       */
  PDL_Double *map_ptr;
  PDL_Long i, j;
  $GENERIC() badval = SvNV($COMP(bv));
+ #define HANNING_LOOKUP_SIZE 2500
+ static PDL_Double hanning_lookup[HANNING_LOOKUP_SIZE + 2];
+ static int needs_hanning_calc = 1;
+ PDL_Double zeta;
+ PDL_Double hanning_offset;
+
+ #define GAUSSIAN_LOOKUP_SIZE 4000
+ #define GAUSSIAN_MAXVAL 6.25  /* 2.5 HWHMs (square it) */
+ static PDL_Double gaussian_lookup[GAUSSIAN_LOOKUP_SIZE + 2];
+ static int needs_gaussian_calc = 1;
 
  pdl *in  = PDL->SvPDLV($COMP(in));
  pdl *out = PDL->SvPDLV($COMP(out));
@@ -656,47 +667,49 @@ pp_def('map',
 
   /***************************************************************************/
   /**  Check that the dimensionalities are consistent.  This is             **/
-  /**  allegedly done already in the perl part, but should not cost more    **/
-  /**  than a few hundred clock cycles -- cheap at twice the price.         **/
+  /**  allegedly done already in the perl part, butcan also be done here.   **/ 
   /**                                                                       **/
-  /**/ if(map->ndims != out->ndims)                                        /**/
-  /**/  barf("%s", "Bug in map: index dims aren't consistent\n");          /**/
-  /**/ for(i=0;i<out->ndims-1;i++) {                                       /**/
-  /**/   static char buf[100];                                             /**/
-  /**/   if(map->dims[i+1] != out->dims[i]) {                              /**/
-  /**/     sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",          /**/
-  /**/                 i,map->dims[i+1],out->dims[i]);                     /**/
-  /**/     barf("%s", buf);                                                /**/
-  /**/   }                                                                 /**/
-  /**/ }                                                                   /**/
-  /**/ if(map->dims[0] != in->ndims - 1)                                   /**/
-  /**/   barf("%s", "Bug in map - index vec - input mismatch\n");          /**/
-  /**/ if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                /**/
-  /**/   barf("%s", "Bug in map:  thread dimension error\n");              /**/
+  /**  if(map->ndims != out->ndims)                                         **/
+  /**   barf("%s", "Bug in map: index dims aren't consistent\n");           **/
+  /**  for(i=0;i<out->ndims-1;i++) {                                        **/
+  /**    static char buf[100];                                              **/
+  /**    if(map->dims[i+1] != out->dims[i]) {                               **/
+  /**      sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",           **/
+  /**                  i,map->dims[i+1],out->dims[i]);                      **/
+  /**      barf("%s", buf);                                                 **/
+  /**    }                                                                  **/
+  /**  }                                                                    **/
+  /**  if(map->dims[0] != in->ndims - 1)                                    **/
+  /**    barf("%s", "Bug in map - index vec - input mismatch\n");           **/
+  /**  if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                 **/
+  /**    barf("%s", "Bug in map:  thread dimension error\n");                **/
   /***************************************************************************/
 
  /*
-  * Allocate all our dynamic workspaces at once...
+  * Allocate all our dynamic workspaces at once 
   * */
- ovec = (PDL_Long *)(PDL->smalloc( (STRLEN)
-	          	      ( sizeof(PDL_Long)   * 3 * ndims
-                              + sizeof(PDL_Double) * (3*ndims*ndims + 3*ndims)
-                              + sizeof(PDL_Double) * in->dims[ndims]
-                              + sizeof(char) * ndims )
-		             )
-		);
- ivec =            &(ovec[ndims]);
- ibvec =           &(ivec[ndims]);
- dvec = (PDL_Double *)(&(ibvec[ndims]));
- tvec =            &(dvec[ndims]);
- acc  =            &(tvec[ndims]);
- tmp  =            &(acc[in->dims[ndims]]);
- bounds = (char *)(&(tmp [3*ndims*ndims+ndims]));
+ ovec = (PDL_Indx *)(PDL->smalloc( (STRLEN)
+                                   ( + sizeof(PDL_Indx)    * 3 * ndims               // ovec, ivec, ibvec
+                                     + sizeof(PDL_Double) * (3*ndims)                // dvec, tvec
+                                     + sizeof(PDL_Double) * in->dims[ndims]          // acc
+                                     + sizeof(PDL_Double) * 3 * ndims*ndims + ndims  // tmp (for PDL_xform_aux)
+                                     + sizeof(char) * ndims                          // bounds
+                                     + sizeof(PDL_Indx)   * ndims                    // index_stash
+                                     )
+                                   )
+                );
+ ivec   =                   &(ovec[ndims]);
+ ibvec  =                   &(ivec[ndims]);
+ dvec   =    (PDL_Double *)(&(ibvec[ndims]));
+ tvec   =                   &(dvec[ndims]);
+ acc    =                   &(tvec[ndims]);
+ tmp    =                   &(acc[in->dims[ndims]]);
+ bounds =          (char *)(&(tmp [3*ndims*ndims+ndims]));
+ index_stash = (PDL_Indx *) &(bounds[ndims]);
 
 
 /***
  * Fill in the boundary condition array
- * (cut-and-pasted from the range() code...)
  */
  {
   char *bstr;
@@ -713,27 +726,27 @@ pp_def('map',
     for(i=0;i<ndims;i++) {
       switch(bstr[i < blen ? i : blen-1 ]) {
       case '0': case 'f': case 'F':               /* forbid */
-	bounds[i] = 0;
-	break;
+        bounds[i] = 0;
+        break;
       case '1': case 't': case 'T':               /* truncate */
-	bounds[i] = 1;
-	break;
+        bounds[i] = 1;
+        break;
       case '2': case 'e': case 'E':               /* extend */
-	bounds[i] = 2;
-	break;
+        bounds[i] = 2;
+        break;
       case '3': case 'p': case 'P':               /* periodic */
-	bounds[i] = 3;
-	break;
+        bounds[i] = 3;
+        break;
       case '4': case 'm': case 'M':               /* mirror */
-	bounds[i] = 4;
-	break;
+        bounds[i] = 4;
+        break;
       default:
-	{
-	  char buf[BUFSIZ];
-	  sprintf(buf,"Error in map: Unknown boundary condition '%c'",bstr[i]);
-	  barf("%s", buf);
-	}
-	break;
+        {
+          char buf[BUFSIZ];
+          sprintf(buf,"Error in map: Unknown boundary condition '%c'",bstr[i]);
+          barf("%s", buf);
+        }
+        break;
       }
     }
   }
@@ -742,32 +755,74 @@ pp_def('map',
 /***
  * Parse out the 'method', 'big', 'blur', and 'sv_min' arguments
  */
+ big    = labs((PDL_Long)   (SvNV($COMP(big))));
+ if(big <= 0)
+   barf("%s","map: 'big' parameter must be >0");
+
+ blur   = fabs((PDL_Double) (SvNV($COMP(blur))));
+ if(blur < 0)
+   barf("%s","map: 'blur' parameter must be >= 0");
+
+ sv_min = fabs((PDL_Double) (SvNV($COMP(sv_min))));
+ if(sv_min < 0) 
+   barf("%s","map: 'sv_min' parameter must be >= 0");
+
+ flux   = (SvNV($COMP(flux)) != 0);
+
  {
   char *mstr;
   STRLEN mlen;
   mstr = SvPV($COMP(method),mlen);
 
   if(mlen==0)
-	method = 'h';
+        method = 'h';
   else switch(*mstr) {
-	case 'h': case 'H':
-		method = 'h'; break;
-        case 'g': case 'G':
-	case 'j': case 'J':
-		method = 'g'; break;
-        default:
-	   {
-            char err[80];
-            sprintf(err,"Bug in map: unknown method '%c'",*mstr);
-	    barf("%s", err);
-           }
-           break;
+    case 'H':                 // H - rigorous hanning window 
+      method='H'; break;
+    case 'h':                 // h - lookup-table hanning window
+      method = 'h'; 
+      if( needs_hanning_calc ) {
+         int i;
+         for(i=0;i<HANNING_LOOKUP_SIZE;i++) {
+           hanning_lookup[i] = 0.5 + 0.5 * cos(3.1415926536 / HANNING_LOOKUP_SIZE * i);
+         } 
+         hanning_lookup[HANNING_LOOKUP_SIZE]   = 0;
+         hanning_lookup[HANNING_LOOKUP_SIZE+1] = 0;
+         needs_hanning_calc = 0;
+      }
+      zeta = HANNING_LOOKUP_SIZE / blur;        
+      hanning_offset = (blur >= 1) ?  
+                0 : 
+                0.5 * (1.0 - blur);
+      break;
+
+    case 'g': case 'j':       // Gaussian and/or Jacobian, using lookup table
+      method = 'g';
+      if( needs_gaussian_calc ) {
+        int i;
+	zeta = GAUSSIAN_LOOKUP_SIZE / GAUSSIAN_MAXVAL;
+	for(i=0;i<GAUSSIAN_LOOKUP_SIZE;i++) {
+	  gaussian_lookup[i] = exp( - i * 1.386294 * GAUSSIAN_MAXVAL / GAUSSIAN_LOOKUP_SIZE );
 	}
+	gaussian_lookup[GAUSSIAN_LOOKUP_SIZE]   = 0;
+	gaussian_lookup[GAUSSIAN_LOOKUP_SIZE+1] = 0;
+	needs_gaussian_calc = 0;
+      }
+      break;
+
+    case 'G': case 'J':       // Jacobian -- same thing, with direct calculation
+      method = 'G'; break;
+    default:
+      {
+        char err[80];
+        sprintf(err,"Bug in map: unknown method '%c'",*mstr);
+        barf("%s", err);
+      }
+      break;
+    }
  }
- big    = labs((PDL_Long)   (SvNV($COMP(big))));
- blur   = fabs((PDL_Double) (SvNV($COMP(blur))));
- sv_min = fabs((PDL_Double) (SvNV($COMP(sv_min))));
- flux   = (SvNV($COMP(flux)) != 0);
+
+
 
  /* End of initialization */
  /*************************************************************/
@@ -776,212 +831,404 @@ pp_def('map',
  /* Initialize coordinate vector and map offset
   */
  for(i=0;i<ndims;i++)
-	ovec[i] = 0;
+   ovec[i] = 0;
+ 
  map_ptr = (PDL_Double *)(map->data);
 
- /* Main pixel loop */
- do {
-   PDL_Long psize;
-   PDL_Double wgt;
 
-   /* Prefrobnicate the transformation matrix  */
-   psize = (PDL_Long)(blur * PDL_xform_aux(map, ovec, tmp, sv_min) + 0.5 )+1;
+/* Main pixel loop (iterates over pixels in the output plane) */
+ do {
+   PDL_Indx psize; // Size of the region to accumulate over for this pixel
+   PDL_Double wgt; // Weight accumulator for output 
+   PDL_Indx i_off; // Offset into the data array of the source PDL 
+   PDL_Indx j;     // Generic loop index
+   char t_vio;     // counter used for truncation boundary violations
+   char carry;     // flag used for multidimensional loop iteration
+
+   /* Prefrobnicate the transformation matrix */
+   psize = (PDL_Long)(blur * PDL_xform_aux(map, ovec, tmp, sv_min) + 0.5)+1; /* assignment */
+
+#ifdef DEBUG_MAP
+ {
+     int k; PDL_Indx foo = 0;
+     printf("ovec: [");
+     for(k=0;k<ndims;k++) {
+       foo += ovec[k] * map->dimincs[k+1];
+       printf(" %2d ",(int)(ovec[k]));
+     }
+     printf("]; psize is %d; big is %d; blur is %8.2f; ret is %8g; map is [",psize,big, blur, ret);
+     for(k=0;k<ndims;k++) {
+       printf("%8.2f",(double)((($GENERIC() *)(map->data))[foo + k*map->dimincs[0]]));
+     }
+     printf("]\n");
+ }
+#endif
+
+   /* Don't bother accumulating output if psize is too large */
    if(psize <= big) {
-     /*
-      * Use the prefrobnicated matrix to generate a local linearization
+     /* Use the prefrobnicated matrix to generate a local linearization.
       * dvec gets the delta; ibvec gets the base.
       */
      {
        PDL_Double *mp = map_ptr;
        for (i=0;i<ndims;i++) {
-  	dvec[i]  = *mp - ( ibvec[i] = (PDL_Long)(*mp + 0.5));   /* assignment */
-  	mp += map->dimincs[0];
+        dvec[i]  = *mp - ( ibvec[i] = (PDL_Long)(*mp + 0.5));   /* assignment */
+        mp += map->dimincs[0];
        }
      }
 
-     /*
-      * Initialize input delta vector
-      */
+     /* Initialize input delta vector  */
      for(i=0;i<ndims;i++)
-  	ivec[i] = - psize;
+       ivec[i] = -psize;
 
-     /*
-      * Initialize accumulators
-      */
+     /* Initialize accumulators */
      {
        PDL_Double *ac = acc;
        for(i=0; i < in->dims[ndims]; i++)
-  	*(ac++) = 0.0;
+        *(ac++) = 0.0;
      }
      wgt = 0;
 
-     do {  /* Input accumulation loop */
-       int bound_ok = 1;
-       PDL_Long i_off = 0;
 
-       /* Find the offset for the current input point, applying boundaries */
-
-       for(i=0; i<ndims && bound_ok; i++) {
-         j = ivec[i] + ibvec[i];
-         if(j < 0 || j >= in->dims[i]) {
-           switch(bounds[i]) {
-             case 0: /* no breakage allowed */
-               barf("%s", "index out-of-bounds in map");
-               break;
-             case 1: /* truncation */
-               bound_ok = 0;
-               break;
-             case 2: /* extension -- crop */
-               if(j<0)
-                 j = 0;
-               else if(j>= in->dims[i])
-                 j = in->dims[i] - 1;
-               break;
-             case 3: /* periodic -- mod it */
-               j %= in->dims[i];
-               if(j<0)
-                 j += in->dims[i];
-               break;
-             case 4: /* mirror -- reflect off the edges */
-               j += in->dims[i];
-               j %= (in->dims[i] * 2);
-               if(j < 0)
-                 j += in->dims[i] * 2;
-               j -= in->dims[i];
-               if(j < 0) {
-                 j *= -1;
-                 j -= 1;
-               }
-               break;
-             default:
-               barf("%s", "Unknown boundary condition in map -- bug alert!");
-               break;
+     /*
+      * Calculate the original offset into the data array, to enable 
+      * delta calculations in the pixel loop
+      *
+      * i runs over dims; j holds the working integer index in the 
+      * current dim.
+      *
+      * This code matches the incrementation code at the bottom of the accumulation loop
+      */
+     t_vio = 0; /* truncation-boundary violation count - don't bother if it is nonzero */
+     i_off = 0;
+     for(i=0;i<ndims; i++) {
+       j = ivec[i] + ibvec[i]; 
+       if(j<0 || j >= in->dims[i]) {
+         switch(bounds[i]) {
+         case 0: /* no breakage allowed */
+           barf("%s","index out-of-bounds in map");
+           break;
+         case 1: /* truncation */
+           t_vio++;
+           /* fall through */
+         case 2: /* extension -- crop */
+           if(j<0)
+             j=0;
+           else //if(j>=in->dims[i])
+             j = in->dims[i] - 1;
+           break;
+         case 3: /* periodic -- mod it */
+           j %= in->dims[i];
+           if(j<0)
+             j += in->dims[i];
+           break;
+         case 4: /* mirror -- reflect off the edges */
+           j += in->dims[i];
+           j %= (in->dims[i]*2);
+           if(j<0)
+             j += in->dims[i]*2;
+           j -= in->dims[i];
+           if(j<0) {
+             j *= -1;
+             j -= 1;
            }
+           break;
+         default:
+           barf("%s", "Unknown boundary condition in map -- bug alert!");
+           break;
          }
-         i_off += in->dimincs[i] * j;
        }
+       i_off += in->dimincs[i] * j;
+     }
 
-       {  /* convenience block for bounds handling and data weighting */
-         PDL_Double alpha = 1.0;
+     /* Initialize index stashes for later reference as we scan the footprint */
+     /* It's a pain in the ass to deal with boundaries, and doubly so at the  */
+     /* end of a dimensional scan.  So we stash the index location at the     */
+     /* start of each dimensional scan here.  When we finish incrementing     */
+     /* through a particular dim, we pull its value back out of the stash.    */
+     for(i=0;i<ndims;i++) {
+       index_stash[i] = i_off;
+     }
+
+     /* The input accumulation loop is the hotspot for the entire operation.        */
+     /* We loop over pixels in the region of interest (+/- psize in each dimension) */
+     /* in the input array, use the linearized transform to bring each pixel center */
+     /* forward to the output plane, and calculate a weighting based on the chosen  */
+     /* filter function.   'h' is a fast Hanning window rolloff using a lookup      */
+     /* table that is initialized the first time through the code.  'H' is the      */
+     /* same process, but explicitly calculated for each interation (~2x slower).   */
+     /* 'g' uses a radial Gaussian filter.  Rather than calculate the array offset  */
+     /* into the input array fresh from the current input array vector each time,   */
+     /* we walk through the array using dimincs and the old offset.  This saves     */
+     /* about half of the time spent on index calculation.                          */
+
+     do {  /* Input accumulation loop */
+         PDL_Double *cp;
+         PDL_Double alpha; // weighting coefficient for the current point 
+
+       /* Calculate the weight of the current input point.  Don't bother if we're
+        * violating any truncation boundaries (in that case our value is zero, but
+        * for the interpolation we also set the weight to zero).
+        */ 
+       if( !t_vio ) {
+
          PDL_Double *ap = tvec;
          PDL_Double *bp = dvec;
-         PDL_Double *cp;
-         PDL_Long *ip   = ivec;
-
+         PDL_Indx   *ip = ivec;
          for(i=0; i<ndims; i++)
            *(ap++) = *(ip++) - *(bp++);
-
-       /* Calculate the linearization-transformed point, and
-        * infer a weighting from it.  Use the per-dimension Hanning
-        * window or a radial Gaussian.
-        */
-         cp = tmp;
-
+         
          switch(method) {
-            PDL_Double dd;
+           PDL_Double dd; // tmp space for calculations in filters
+           
+         case 'h':
+           /* This is the Hanning window rolloff.  It is a product of a simple */
+           /* cos^2(theta) rolloff in each dimension.  Using a lookup table    */
+           /* is about 2x faster than using cos(theta) directly in each        */
+           /* weighting calculation, so we do.  Using 2500 entries and linear  */
+           /* interpolation is accurate to about 10^-7, and should preserve    */
+           /* the contents of cache pretty well.                               */
+           alpha = 1;
+           cp = tmp;
+           for(i=0; i<ndims; i++) {
+             int lodex;
+             int hidex;
+             PDL_Double beta;
+              dd = 0;
+             ap = tvec;
+             /* Get the matrix-multiply element for this dimension */
+             for(j=0;j<ndims; j++)
+               dd += *(ap++) * *(cp++);
+             
+             /* Do linear interpolation from the table */
+             /* The table captures a hanning window centered 0.5 pixel from center. */
+             /* We scale the filter by the blur parameter -- but if blur is less    */
+             /* than unity, we shrink the hanning blur window while keeping the 0.5 */
+             /* value on the pixel edge at 0.5.  For blur greater than unity, we    */
+             /* scale simply. */
+             beta = fabs(dd) - hanning_offset;
+             if(beta > 0) {
+               if(beta >= blur) {
+                 alpha = 0;      
+                 i = ndims;
+               } else {
+                 beta *= zeta;
+                 lodex = beta;
+                 beta -= lodex;
+                 if(lodex > HANNING_LOOKUP_SIZE)
+                 lodex = HANNING_LOOKUP_SIZE;
+                 hidex = lodex+1;        
+                 alpha *= hanning_lookup[hidex]*beta + hanning_lookup[lodex]*(1-beta);
+               } /* end of interpolation branch */
+             } /* end of beta > 0 branch */
+           } /* end of dimension loop */
+         break;
 
-  	case 'h':
-  	       for(i=0; i<ndims; i++) {
-  	         dd = 0;
-  	         ap = tvec;
-  	         for(j=0;j<ndims; j++)
-  	             dd += *(ap++) * *(cp++);
-  	         dd = fabs(dd) / blur;
-  	         if( dd > 1 ) {
-  	             alpha = 0;
-  	             i = ndims;
-  	         } else
-  	             alpha *= (0.5 + 0.5 * cos( dd * 3.1415926536 ));
-  	       }
-   	      break;
-  	case 'g':
-                {PDL_Double sum = 0;
+        case 'H':
+          /* This is the Hanning window rolloff with explicit calculation, preserved */
+          /* in case someone actually wants the slower longer method. */
+               alpha = 1;
+               cp = tmp;
+               for(i=0; i<ndims; i++) {
+                 dd = 0;
+                 ap = tvec;
+                 for(j=0;j<ndims; j++)
+                     dd += *(ap++) * *(cp++);
+                 dd = (fabs(dd) - hanning_offset) / blur;
+                 if( dd > 1 ) {
+                     alpha = 0;
+                     i = ndims;
+                 } else
+                     alpha *= (0.5 + 0.5 * cos( dd * 3.1415926536 ));
+               }
+              break;
 
-  	       for(i=0; i<ndims; i++) {
-  	         dd = 0;
-  	         ap = tvec;
-  	          for(j=0;j<ndims; j++)
-  	             dd += *(ap++) * *(cp++);
-  	          dd /= blur;
-  	 	  sum += dd * dd;
-  		  if(sum > 4) /* 2 pixels -- four half-widths */
-  		    i = ndims; /* exit early if this pixel is too far outside the footprint of the ideal point */
-  	       }
-
-   	       if(sum > 4)
-  		  alpha = 0;
-  	       else
-  		  alpha = exp(-sum * 1.386294); /* Gaussian, rt(2)-pix HWHM */
-  	     }
-   	      break;
-  	 default:
-  	     {
-                 char buf[80];
-                  sprintf(buf,"This can't happen: method='%c'",method);
-  	        barf("%s", buf);
-  	     }
-  	}
-
-
-
-       if(bound_ok)
-         {
-          PDL_Double *ac = acc;
-          $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
-          for( i=0; i < out->dims[ndims]; i++ ) {
-               *(ac++) += *dat * alpha;
-               dat += in->dimincs[ndims];
+	case 'g':
+	  /* This is the Gaussian rolloff.  It does lookup into a precalculated exponential. */
+	  {
+	    PDL_Double sum = 0;
+	    cp = tmp;
+	    for(i=0; i<ndims;i++) {
+	      dd = 0;
+              ap = tvec;
+	      for(j=0;j<ndims;j++)
+	        dd += *(ap++) * *(cp++);
+	      dd /= blur;
+	      sum += dd * dd;
+	      if(sum > GAUSSIAN_MAXVAL) {
+		  i = ndims; /* exit early if we're too far out */
+		  alpha = 0;
+              }
+	    }
+	    if( sum > GAUSSIAN_MAXVAL ) {
+	      alpha = 0;
+	    } else {
+	      int lodex,hidex;
+	      PDL_Double beta = fabs(zeta * sum);
+	      lodex = beta;
+	      beta -= lodex;
+	      hidex = lodex+1;
+              alpha = gaussian_lookup[hidex]*beta + gaussian_lookup[lodex]*(1 - beta);
+            }
           }
-         wgt += alpha;
+          break;
 
-         }/* end of bound_ok check */
+        case 'G':
+          /* This is the Gaussian rolloff with explicit calculation, preserved */
+          /* in case someone actually wants the slower longer method. */
+              {
+                 PDL_Double sum = 0;
+                 cp = tmp;
+                 for(i=0; i<ndims; i++) {
+                   dd = 0;
+                   ap = tvec;
+                   for(j=0;j<ndims; j++)
+                     dd += *(ap++) * *(cp++);
+                   dd /= blur;
+                   sum += dd * dd;
+                   if(sum > 4) /* 2 pixels -- four half-widths */
+                    i = ndims; /* exit early if this pixel is too far outside the footprint of the ideal point */
+                 }
 
-       }  /* end of data collection convenience block */
+                 if(sum > GAUSSIAN_MAXVAL)
+                   alpha = 0;
+                 else
+                   alpha = exp(-sum * 1.386294); /* Gaussian, rt(2)-pix HWHM */
+              }
+              break;
+         default:
+           {
+             char buf[80];
+             sprintf(buf,"This can't happen: method='%c'",method);
+             barf("%s", buf);
+           }
+         }
 
-       /* Advance input accumulation loop */
-       for(i=0;
-             (i < ndims) &&
-             (++(ivec[i]) > psize);
-           i++) {
-          ivec[i] = -psize;
-       }
-     } while(i<ndims);  /* end of total data accumulation loop */
+         {  /* convenience block -- accumulate the current point into the weighted sum.  */
+            /* This is more than simple assignment because we have our own explicit poor */
+            /* man's threadloop here, so we accumulate each threaded element separately. */
+            $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
+            PDL_Indx max = out->dims[ndims];
+            for( i=0; i < max; i++ ) {
+              acc[i] += *dat * alpha;
+              dat += in->dimincs[ndims];
+            }
+            wgt += alpha;
+          }
+       } /* end of t_vio check (i.e. of input accumulation) */ 
+
+
+       /* Advance input accumulation loop.  */
+       /* We both increment the total vector and also advance the index. */
+       carry = 1;
+       for(i=0; i<ndims && carry; i++) {
+         /* Advance the current element of the offset vector */
+         ivec[i]++;    
+         j = ivec[i] + ibvec[i];         
+
+         /* Advance the offset into the data array */
+         if( j > 0 && j <= in->dims[i]-1 ) {
+            /* Normal case -- just advance the input vector */
+            i_off += in->dimincs[i];
+         } else {
+            /* Busted a boundary - either before or after.  */
+            switch(bounds[i]){
+            case 0: /* no breakage allowed -- treat as truncation for interpolation */
+            case 1: /* truncation -- if we crossed the boundary mark ourselves out-of-bounds */
+              if( j == 0 ) 
+                t_vio--;
+              else if( j == in->dims[i] )
+                t_vio++;
+              break;
+             case 2: /* extension -- do nothing (so the same input point is re-used) */
+               break;
+             case 3: /* periodic  -- advance and mod into the allowed range */
+               if((j % in->dims[i]) == 0) {
+                 i_off -= in->dimincs[i] * (in->dims[i]-1);
+               } else {
+                 i_off += in->dimincs[i];
+               }
+               break;
+            case 4: /* mirror -- advance or retreat depending on phase */
+               j += in->dims[i];
+               j %= (in->dims[i]*2);
+               j -= in->dims[i];
+               if( j!=0 && j!= -in->dims[i] ) {
+                 if(j<0)
+                   i_off -= in->dimincs[i];
+                 else
+                   i_off += in->dimincs[i];
+               }
+               break;
+            }
+         }
+
+         /* Now check for carry */
+         if(ivec[i] <= psize) {
+           /* Normal case -- copy the current offset to the faster-running dim stashes */
+           int k;
+           for(k=0;k<i;k++) {
+             index_stash[k] = i_off;
+           }
+           carry = 0;
+
+         } else { /* End of this scan -- recover the last position, and mark carry */
+           i_off = index_stash[i];
+           if(bounds[i]==1) {
+             j = ivec[i] + ibvec[i];
+             if( j < 0 || j >= in->dims[i] )
+               t_vio--;
+             ivec[i] = -psize;
+             j = ivec[i] + ibvec[i];
+             if( j < 0 || j >= in->dims[i] )
+               t_vio++;
+             carry = 1;
+           } else {
+             ivec[i] = -psize;
+           }
+         } 
+       } /* End of counter-advance loop */
+     } while(carry==0);  /* end of total data accumulation loop (termination condition has carry on last dim) */
 
      {
        PDL_Double *ac = acc;
        $GENERIC() *dat = out->data;
 
+       /* Calculate output vector offset */
        for(i=0;i<ndims;i++)
          dat += out->dimincs[i] * ovec[i];
-
+       
        if(wgt) {
-	 if(flux) {
-	   PDL_Double det = tmp[ndims*ndims];
-	   for(i=0; i < out->dims[ndims]; i++) {
-	     *dat = *(ac++) / wgt * det;
-	     dat += out->dimincs[ndims];
-	   }
-	 } else {
-	   for(i=0; i < out->dims[ndims]; i++) {
-	     *dat = *(ac++) / wgt;
-	     dat += out->dimincs[ndims];
-	   }
-	 }
-       } else { /* wgt==0 */
-	 for(i=0;i<out->dims[ndims];i++){
-	   *dat = badval;
-	 }
+         if(!flux) {
+           /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data./ */
+           for(i=0; i < out->dims[ndims]; i++) {
+             *dat = *(ac++) / wgt;
+             dat += out->dimincs[ndims];
+           }
+         } else {
+           /* Flux flag is set - scale by the (unpadded) determinant of the Jacobian */
+           PDL_Double det = tmp[ndims*ndims];
+           for(i=0; i < out->dims[ndims]; i++) {
+             *dat = *(ac++) / wgt * det;
+             dat += out->dimincs[ndims];
+           }
+         }
+       } else { 
+         /* wgt==0 -- no hits */
+         for(i=0;i<out->dims[ndims];i++){
+           *dat = badval;
+           dat += out->dimincs[ndims];
+         }
        }
      }
-
      /* End of code for normal pixels */
    } else {
      /* The pixel was ludicrously huge -- just set this pixel to nan */
      $GENERIC() *dat = out->data;
       for(i=0;i<ndims;i++)
-	dat += out->dimincs[i] * ovec[i];
+        dat += out->dimincs[i] * ovec[i];
       for(i=0;i<out->dims[ndims];i++) {
-	*dat = badval;          /* Should handle bad values too -- not yet */
+        *dat = badval;          /* Should handle bad values too -- not yet */
         dat += out->dimincs[ndims];
       }
    }
@@ -990,12 +1237,12 @@ pp_def('map',
    {
      PDL_Long *aptr = ovec;
      for(i=0;
-	     (i<ndims) &&
+             (i<ndims) &&
              (map_ptr += map->dimincs[i+1]) &&  /* Funky pre-test increment */
- 	     (++(ovec[i]) >= out->dims[i]);     /* Actual carry test */
-	 i++) {
-	ovec[i] = 0;
-	map_ptr -= out->dims[i] * map->dimincs[i+1];
+             (++(ovec[i]) >= out->dims[i]);     /* Actual carry test */
+         i++) {
+        ovec[i] = 0;
+        map_ptr -= out->dims[i] * map->dimincs[i+1];
      }
     }
   } while(i<ndims);
@@ -1003,7 +1250,7 @@ pp_def('map',
 
 +==EOD_map_c_code==
 
-	Doc=><<'+==EOD_map_doc==',
+        Doc=><<'+==EOD_map_doc==',
 
 =head2 PDL::match
 
@@ -1245,7 +1492,13 @@ introducing the fewest artifacts into a properly sampled data set.
 This value scales the input-space footprint of each output pixel in
 the gaussian and hanning methods. It's retained for historical
 reasons.  Larger values yield blurrier images; values significantly
-smaller than unity cause aliasing.
+smaller than unity cause aliasing.  The parameter has slightly
+different meanings for Gaussian and Hanning interpolation.  For
+Hanning interpolation, numbers smaller than unity control the
+sharpness of the border at the edge of each pixel (so that blur=>0 is
+equivalent to sampling for non-decimating transforms).  For 
+Gaussian interpolation, the blur factor parameter controls the 
+width parameter of the Gaussian around the center of each pixel.
 
 =item sv, SV (default = 1.0)
 
@@ -1255,7 +1508,7 @@ minimum radius of influence associated with each output pixel.  Large
 numbers yield smoother interpolation in magnified parts of the image
 but don't affect reduced parts of the image.
 
-=item big, Big (default = 0.2)
+=item big, Big (default = 0.5)
 
 This is the largest allowable input spot size which may be mapped to a
 single output pixel by the hanning and gaussian methods, in units of
@@ -1316,7 +1569,7 @@ Maybe that someone is you.
 =cut
 
 +==EOD_map_doc==
-	PMCode => <<'+==EOD_map_perlcode=='
+        PMCode => <<'+==EOD_map_perlcode=='
 
 sub PDL::match {
   # Set default for rectification to 0 for simple matching...
@@ -1344,6 +1597,9 @@ sub map {
 
   barf ("PDL::Transform::map: source is not defined or is not a PDL\n")
     unless(defined $in and  UNIVERSAL::isa($in,'PDL'));
+
+  barf ("PDL::Transform::map: source is empty\n")
+    unless($in->nelem);
 
   my($tmp) = shift;
   my($opt) = shift;
@@ -1409,7 +1665,7 @@ sub map {
 
   # Check that there are elements in the output fields...
   barf "map: output has no dims!\n"
-	unless(@dd);
+        unless(@dd);
   my $ddtotal = 1;
   map {$ddtotal *= $_} @dd;
   barf "map: output has no elements (at least one dim is 0)!\n"
@@ -1440,12 +1696,12 @@ sub map {
       print "generating output FITS header..." if($PDL::Transform::debug);
 
       $out->sethdr($in->hdr_copy) # Copy extraneous fields...
-	if(defined $in->hdr);
+        if(defined $in->hdr);
 
       my $samp_ratio = 300;
 
       my $orange = _opt($opt, ['or','orange','output_range','Output_Range'],
-			undef);
+                        undef);
 
       my $omin;
       my $omax;
@@ -1456,178 +1712,176 @@ sub map {
 
 
       if (defined $orange) {
-	  # orange always rectifies the coordinates -- the output scientific
-	  # coordinates *must* align with the axes, or orange wouldn't make
-	  # sense.
-	print "using user's orange..." if($PDL::Transform::debug);
-	$orange = pdl($orange) unless(UNIVERSAL::isa($orange,'PDL'));
-	barf "map: orange must be 2xN for an N-D transform"
-	  unless ( (($orange->dim(1)) == $nd )
-		   && $orange->ndims == 2);
+          # orange always rectifies the coordinates -- the output scientific
+          # coordinates *must* align with the axes, or orange wouldn't make
+          # sense.
+        print "using user's orange..." if($PDL::Transform::debug);
+        $orange = pdl($orange) unless(UNIVERSAL::isa($orange,'PDL'));
+        barf "map: orange must be 2xN for an N-D transform"
+          unless ( (($orange->dim(1)) == $nd )
+                   && $orange->ndims == 2);
 
-	$omin = $orange->slice("(0)");
-	$omax = $orange->slice("(1)");
-	$osize = $omax - $omin;
-	
-	$rectify = 1;
+        $omin = $orange->slice("(0)");
+        $omax = $orange->slice("(1)");
+        $osize = $omax - $omin;
+        
+        $rectify = 1;
 
       } else {
 
-	  ##############################
-	  # Real autoscaling happens here.
+          ##############################
+          # Real autoscaling happens here.
 
+          if(!$rectify and ref( $f_in ) !~ /Linear/i) {
+              if( $f_in->{name} ne 'identity' ) {
+                 print STDERR "Warning: map can't preserve nonlinear FITS distortions while autoscaling.\n";
+              }
+              $rectify=1;
+          }
 
-	  if(!$rectify and ref( $f_in ) !~ /Linear/) {
-	      print STDERR "Warning: map can't preserve nonlinear FITS distortions while autoscaling.\n";
-	      $rectify=1;
-	  }
-	  if(!$rectify and $f_in->{name} eq 'identity') {
-	      $rectify = 1;
-	  }
+          my $f_tr = ( $rectify ? 
+                       $me x $f_in :
+                       (  ($me->{name} eq 'identity') ?  # Simple optimization for match()
+                          $me :                          # identity -- just matching
+                          !$f_in x $me x $f_in           # common case
+                       )
+                       );
 
-	  my $f_tr = ( $rectify ? 
-		       $me x $f_in :
-		       (  ($me->{name} eq 'identity') ?  # Simple optimization for match()
-			  $me :                        # identity -- just matching
-			  !$f_in x $me x $f_in         # common case
-		       )
-		       );
-
-	  my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
-	  
-	  my $coords = ndcoords(($samps + 1)->list);
-	  
-	  my $t;
-	  my $irange = _opt($opt, ['ir','irange','input_range','Input_Range'],
-			    undef);
-	  
-	  # If input range is defined, sample that quadrilateral -- else
-	  # sample the quad defined by the boundaries of the input image.
-	  if(defined $irange) {
-	      print "using user's irange..." if($PDL::Transform::debug);
-	      $irange = pdl($irange) unless(UNIVERSAL::isa($irange,'PDL'));
-	      barf "map: irange must be 2xN for an N-D transform"
-		  unless ( (($irange->dim(1)) == $nd )
-			   && $irange->ndims == 2);
-	      
-	      $coords *= ($irange->slice("(1)") - $irange->slice("(0)")) / $samps;
-	      $coords += $irange->slice("(0)");
-	      $coords -= 0.5; # offset to pixel corners...
-	      $t = $me;
-	  } else {
-	      $coords *= pdl(($in->dims)[0..$nd-1]) / $samps;
-	      $coords -= 0.5; # offset to pixel corners...
-	      $t = $f_tr;
-	  }
-	  my $ocoords = $t->apply($coords)->mv(0,-1)->clump($nd);
-	  
-	  # discard non-finite entries
-	  my $oc2  = $ocoords->range(
-	      which(
-		  $ocoords->
-		  xchg(0,1)->
-		  sumover->
-		  isfinite
-	      )
-	      ->dummy(0,1)
-	      );
-	  
-	  $omin = $oc2->minimum;
-	  $omax = $oc2->maximum;
-	  
-	  $osize = $omax - $omin;
-	  my $tosize;
-	  ($tosize = $osize->where($osize == 0)) .= 1.0;
+          my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
+          
+          my $coords = ndcoords(($samps + 1)->list);
+          
+          my $t;
+          my $irange = _opt($opt, ['ir','irange','input_range','Input_Range'],
+                            undef);
+          
+          # If input range is defined, sample that quadrilateral -- else
+          # sample the quad defined by the boundaries of the input image.
+          if(defined $irange) {
+              print "using user's irange..." if($PDL::Transform::debug);
+              $irange = pdl($irange) unless(UNIVERSAL::isa($irange,'PDL'));
+              barf "map: irange must be 2xN for an N-D transform"
+                  unless ( (($irange->dim(1)) == $nd )
+                           && $irange->ndims == 2);
+              
+              $coords *= ($irange->slice("(1)") - $irange->slice("(0)")) / $samps;
+              $coords += $irange->slice("(0)");
+              $coords -= 0.5; # offset to pixel corners...
+              $t = $me;
+          } else {
+              $coords *= pdl(($in->dims)[0..$nd-1]) / $samps;
+              $coords -= 0.5; # offset to pixel corners...
+              $t = $f_tr;
+          }
+          my $ocoords = $t->apply($coords)->mv(0,-1)->clump($nd);
+          
+          # discard non-finite entries
+          my $oc2  = $ocoords->range(
+              which(
+                  $ocoords->
+                  xchg(0,1)->
+                  sumover->
+                  isfinite
+              )
+              ->dummy(0,1)
+              );
+          
+          $omin = $oc2->minimum;
+          $omax = $oc2->maximum;
+          
+          $osize = $omax - $omin;
+          my $tosize;
+          ($tosize = $osize->where($osize == 0)) .= 1.0;
       }
       
       my ($scale) = $osize / pdl(($out->dims)[0..$nd-1]);
       
       my $justify = _opt($opt,['j','J','just','justify','Justify'],0);
       if($justify) {
-	  my $tmp; # work around perl -d "feature"
-	  ($tmp = $scale->slice("0")) *= $justify;
-	  $scale .= $scale->max;
-	  $scale->slice("0") /= $justify;
+          my $tmp; # work around perl -d "feature"
+          ($tmp = $scale->slice("0")) *= $justify;
+          $scale .= $scale->max;
+          $scale->slice("0") /= $justify;
       }
 
       print "done with autoscale. Making fits header....\n" if($PDL::Transform::debug);
       if( $rectify ) {
-	  # Rectified header generation -- make a simple coordinate header with no 
-	  # rotation or skew.
-	  print "rectify\n" if($PDL::Transform::debug);
-	  for my $d(1..$nd) {
-	      $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2 ;
-	      $out->hdr->{"CDELT$d"} = $scale->at($d-1);
-	      $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
-	      $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
-	      $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
-					  $me->{otype}->[$d-1] : "")
-					 || $in->hdr->{"CTYPE$d"}
-					 || "");
-	      $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
-					  $me->{ounit}->[$d-1] : "")
-					 || $in->hdr->{"CUNIT$d"}
-					 || $in->hdr->{"CTYPE$d"}
-					 || "");
-	  }
-	  $out->hdr->{"NAXIS"} = $nd;
-	  
-	  $out->hdr->{"SIMPLE"} = 'T';
-	  $out->hdr->{"HISTORY"} .= "Header written by PDL::Transform::Cartography::map";
-	  
-	  ### Eliminate fancy newfangled output header pointing tags if they exist
-	  ### These are the CROTA<n>, PCi_j, and CDi_j.
-	  for $k(keys %{$out->hdr})	 {
-	      if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+[A-Z]?$)/ ){
-		  delete $out->hdr->{$k};
-	      }
-	  }
+          # Rectified header generation -- make a simple coordinate header with no 
+          # rotation or skew.
+          print "rectify\n" if($PDL::Transform::debug);
+          for my $d(1..$nd) {
+              $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2 ;
+              $out->hdr->{"CDELT$d"} = $scale->at($d-1);
+              $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
+              $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
+              $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
+                                          $me->{otype}->[$d-1] : "")
+                                         || $in->hdr->{"CTYPE$d"}
+                                         || "");
+              $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
+                                          $me->{ounit}->[$d-1] : "")
+                                         || $in->hdr->{"CUNIT$d"}
+                                         || $in->hdr->{"CTYPE$d"}
+                                         || "");
+          }
+          $out->hdr->{"NAXIS"} = $nd;
+          
+          $out->hdr->{"SIMPLE"} = 'T';
+          $out->hdr->{"HISTORY"} .= "Header written by PDL::Transform::Cartography::map";
+          
+          ### Eliminate fancy newfangled output header pointing tags if they exist
+          ### These are the CROTA<n>, PCi_j, and CDi_j.
+          for $k(keys %{$out->hdr})      {
+              if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+[A-Z]?$)/ ){
+                  delete $out->hdr->{$k};
+              }
+          }
       } else {
-	  # Non-rectified output -- generate a CDi_j matrix instead of the simple formalism.
-	  # We have to deal with a linear transformation: we've got:  (scaling) x !input x (t x input),
-	  # where input is a linear transformation with offset and scaling is a simple scaling. We have
-	  # the scaling parameters and the matrix for !input -- we have only to merge them and then we 
-	  # can write out the FITS header in CDi_j form.
-	  print "non-rectify\n" if($PDL::Transform::debug);
-	  my $midpoint_val = (pdl(($out->dims)[0..$nd-1])/2 * $scale)->apply( $f_in );
-	  print "midpoint_val is $midpoint_val\n" if($PDL::Transform::debug);
-	  # linear transformation
-	  unless(ref($f_in) =~ m/Linear/) {
-	      croak("Whups -- got a nonlinear t_fits transformation.  Can't deal with it.");
-	  }
+          # Non-rectified output -- generate a CDi_j matrix instead of the simple formalism.
+          # We have to deal with a linear transformation: we've got:  (scaling) x !input x (t x input),
+          # where input is a linear transformation with offset and scaling is a simple scaling. We have
+          # the scaling parameters and the matrix for !input -- we have only to merge them and then we 
+          # can write out the FITS header in CDi_j form.
+          print "non-rectify\n" if($PDL::Transform::debug);
+          my $midpoint_val = (pdl(($out->dims)[0..$nd-1])/2 * $scale)->apply( $f_in );
+          print "midpoint_val is $midpoint_val\n" if($PDL::Transform::debug);
+          # linear transformation
+          unless(ref($f_in) =~ m/Linear/) {
+              croak("Whups -- got a nonlinear t_fits transformation.  Can't deal with it.");
+          }
 
-	  my $inv_sc_mat = zeroes($nd,$nd);
-	  $inv_sc_mat->diagonal(0,1) .= $scale;
-	  my $mat = $f_in->{params}->{matrix} x $inv_sc_mat;
-	  print "scale is $scale; mat is $mat\n" if($PDL::Transform::debug);
+          my $inv_sc_mat = zeroes($nd,$nd);
+          $inv_sc_mat->diagonal(0,1) .= $scale;
+          my $mat = $f_in->{params}->{matrix} x $inv_sc_mat;
+          print "scale is $scale; mat is $mat\n" if($PDL::Transform::debug);
 
-	  print "looping dims 1..$nd: " if($PDL::Transform::debug);
-	  for my $d(1..$nd) {
-	      print "$d..." if($PDL::Transform::debug);
-	      $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2;
-	      $out->hdr->{"CRVAL$d"} = $midpoint_val->at($d-1);
-	      $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
-	      $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
-					  $me->{otype}->[$d-1] : "")
-					 || $in->hdr->{"CTYPE$d"}
-					 || "");
-	      $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
-					  $me->{ounit}->[$d-1] : "")
-					 || $in->hdr->{"CUNIT$d"}
-					 || $in->hdr->{"CTYPE$d"}
-					 || "");
-	      for my $e(1..$nd) {
-		  $out->hdr->{"CD${d}_${e}"} = $mat->at($d-1,$e-1);
-		  print "setting CD${d}_${e} to ".$mat->at($d-1,$e-1)."\n" if($PDL::Transform::debug);
-	      }
-	  }
+          print "looping dims 1..$nd: " if($PDL::Transform::debug);
+          for my $d(1..$nd) {
+              print "$d..." if($PDL::Transform::debug);
+              $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2;
+              $out->hdr->{"CRVAL$d"} = $midpoint_val->at($d-1);
+              $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
+              $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ?
+                                          $me->{otype}->[$d-1] : "")
+                                         || $in->hdr->{"CTYPE$d"}
+                                         || "");
+              $out->hdr->{"CUNIT$d"} = ( (defined($me->{ounit}) ?
+                                          $me->{ounit}->[$d-1] : "")
+                                         || $in->hdr->{"CUNIT$d"}
+                                         || $in->hdr->{"CTYPE$d"}
+                                         || "");
+              for my $e(1..$nd) {
+                  $out->hdr->{"CD${d}_${e}"} = $mat->at($d-1,$e-1);
+                  print "setting CD${d}_${e} to ".$mat->at($d-1,$e-1)."\n" if($PDL::Transform::debug);
+              }
+          }
 
-	  ## Eliminate competing header pointing tags if they exist
-	  for $k(keys %{$out->hdr}) {
-	      if( $k =~ m/(^CROTA\d*$)|(^(PC)\d+_\d+[A-Z]?$)|(CDELT\d*$)/ ) {
-		  delete $out->hdr->{$k};
-	      }
-	  }
+          ## Eliminate competing header pointing tags if they exist
+          for $k(keys %{$out->hdr}) {
+              if( $k =~ m/(^CROTA\d*$)|(^(PC)\d+_\d+[A-Z]?$)|(CDELT\d*$)/ ) {
+                  delete $out->hdr->{$k};
+              }
+          }
       }
 
 
@@ -1676,28 +1930,28 @@ sub map {
   ##
 
   barf("PDL::Transform::map: Too many dims in transformation\n")
-	if($in->ndims < $idx->ndims-1);
+        if($in->ndims < $idx->ndims-1);
 
   ####################
   ## Condition the threading -- pixelwise interpolator only threads
   ## in 1 dimension, so squish all thread dimensions into 1, if necessary
   my @iddims = $idx->dims;
   if($in->ndims == $#iddims) {
-	$in2 = $in->dummy(-1,1);
+        $in2 = $in->dummy(-1,1);
   } else {
-	$in2 = ( $in
-	        ->reorder($nd..$in->ndims-1, 0..$nd-1)
-		->clump($in->ndims - $nd)
-		->mv(0,-1)
-	       );
+        $in2 = ( $in
+                ->reorder($nd..$in->ndims-1, 0..$nd-1)
+                ->clump($in->ndims - $nd)
+                ->mv(0,-1)
+               );
   }
 
   ####################
   # Allocate the output array
   my $o2 = PDL->new_from_specification($in2->type,
-				    @iddims[1..$#iddims],
-	 			    $in2->dim(-1)
-				   );
+                                    @iddims[1..$#iddims],
+                                    $in2->dim(-1)
+                                   );
 
   ####################
   # Pack boundary string if necessary
@@ -1705,9 +1959,9 @@ sub map {
     if(ref $bound eq 'ARRAY') {
       my ($s,$el);
       foreach $el(@$bound) {
-	barf "Illegal boundary value '$el' in range"
-  	  unless( $el =~ m/^([0123fFtTeEpPmM])/ );
-	$s .= $1;
+        barf "Illegal boundary value '$el' in range"
+          unless( $el =~ m/^([0123fFtTeEpPmM])/ );
+        $s .= $1;
       }
       $bound = $s;
     }
@@ -1725,7 +1979,7 @@ sub map {
   my @idims = $in->dims;
 
   $flux = ($flux =~ m/^[1fF]/);
-  $big = $big * max(pdl(@idims[0..$nd])) / 2;
+  $big = $big * max(pdl(@idims[0..$nd]));
   $blur = $blur->at(0) if(ref $blur);
   $svmin =  $svmin->at(0)  if(ref $svmin);
 
@@ -1738,9 +1992,10 @@ sub map {
 
   ### The first argument is a dummy to set $GENERIC.
   $idx = double($idx) unless($idx->type == double);
+  print "Calling _map_int...\n" if($PDL::Transform::debug);
   &PDL::_map_int( $in2->flat->index(0),
-	$in2, $o2, $idx,
-	$bound, $method, $big, $blur, $svmin, $flux, $bv);
+        $in2, $o2, $idx,
+        $bound, $method, $big, $blur, $svmin, $flux, $bv);
 
   my @rdims = (@iddims[1..$#iddims], @idims[$#iddims..$#idims]);
   {
@@ -1924,15 +2179,15 @@ sub compose {
 
     if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
       if($f->{is_inverse}) {
-	for(reverse(@{$f->{params}->{clist}})) {
-	  push(@clist,$_->inverse);
-	  $me->{name} .= " o inverse ( ".$_->{name}." )";
-	}
+        for(reverse(@{$f->{params}->{clist}})) {
+          push(@clist,$_->inverse);
+          $me->{name} .= " o inverse ( ".$_->{name}." )";
+        }
       } else {
-	for(@{$f->{params}->{clist}}) {
-	  push(@clist,$_);
-	  $me->{name} .= " o ".$_->{name};
-	}
+        for(@{$f->{params}->{clist}}) {
+          push(@clist,$_);
+          $me->{name} .= " o ".$_->{name};
+        }
       }
     } else {  # Not a composition -- just push the transform onto the list.
       push(@clist,$f);
@@ -1955,7 +2210,7 @@ sub compose {
     my ($ip) = $data->is_inplace;
     for my $t ( reverse @{$p->{clist}} ) {
       croak("Error: tried to apply a PDL::Transform with no function inside a composition!\n  offending transform: $t\n")
-	  unless(defined($t->{func}) and ref($t->{func}) eq 'CODE');
+          unless(defined($t->{func}) and ref($t->{func}) eq 'CODE');
       $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
     }
     $data->is_inplace(0); # clear inplace flag (avoid core bug with inplace)
@@ -1967,7 +2222,7 @@ sub compose {
     my($ip) = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
       croak("Error: tried to invert a non-invertible PDL::Transform inside a composition!\n  offending transform: $t\n") 
-	  unless(defined($t->{inv}) and ref($t->{inv}) eq 'CODE');
+          unless(defined($t->{inv}) and ref($t->{inv}) eq 'CODE');
       $data = &{$t->{inv}}($ip ? $data->inplace : $data, $t->{params});
     }
     $data;
@@ -2033,17 +2288,17 @@ sub _pow_op {
     my($a,$b,$c) = @_;
 
     barf("%s", "Can't raise anything to the power of a transform")
-	if($c || UNIVERSAL::isa($b,'PDL::Transform')) ;
+        if($c || UNIVERSAL::isa($b,'PDL::Transform')) ;
 
     $a = $a->inverse
-	if($b < 0);
+        if($b < 0);
 
     return $a if(abs($b) == 1);
     return new PDL::Transform if(abs($b) == 0);
 
     my(@l);
     for my $i(1..abs($b)) {
-	push(@l,$a);
+        push(@l,$a);
     }
 
     t_compose(@l);
@@ -2077,12 +2332,12 @@ sub t_identity { new PDL::Transform(@_) };
 sub new {
   my($class) = shift;
   my $me = {name=>'identity',
-	    idim => 0,
-	    odim => 0,
-	    func=>\&PDL::Transform::_identity,
-	    inv=>\&PDL::Transform::_identity,
-	    params=>{}
-	  };
+            idim => 0,
+            odim => 0,
+            func=>\&PDL::Transform::_identity,
+            inv=>\&PDL::Transform::_identity,
+            params=>{}
+          };
 
   return bless $me,$class;
 }
@@ -2223,9 +2478,9 @@ sub t_lookup {
       scale =>  _opt($o,['s','scale','Scale'],1.0),
       offset => _opt($o,['o','off','offset','Offset'],0.0),
       interpND_opt => {
-	method => $method,
+        method => $method,
         bound =>  $bound,
-	bad   => _opt($o,['bad'],0)
+        bad   => _opt($o,['bad'],0)
       }
     };
 
@@ -2242,10 +2497,10 @@ sub t_lookup {
     };
 
     my($a)= ($table
-	     ->interpND(float($data) * $scale + $offset,
-			$p->{interpND_opt}
-			)
-	     );
+             ->interpND(float($data) * $scale + $offset,
+                        $p->{interpND_opt}
+                        )
+             );
 
 
     # Put the index dimension (and threaded indices) back at the front of
@@ -2253,8 +2508,8 @@ sub t_lookup {
     my($dnd) = $data->ndims - 1;
     return ($a -> ndims > $data->ndims - 1) ?
       ($a->reorder( $dnd..($dnd + $table->ndims - $data->dim(0)-1)
-		    , 0..$data->ndims-2
-		    )
+                    , 0..$data->ndims-2
+                    )
        ) : $a;
   };
 
@@ -2267,77 +2522,77 @@ sub t_lookup {
       my $p = shift;
       if(!defined($p->{'itable'})) {
         if($me->{idim} != $me->{odim}) {
-	 barf("t_lookup: can't calculate an inverse of a projection operation! (idim != odim)");
-	}
+         barf("t_lookup: can't calculate an inverse of a projection operation! (idim != odim)");
+        }
        print "t_lookup: Warning, table inversion is only weakly supported.  \n   I'll try to invert it using a pretty boneheaded algorithm...\n  (If it takes too long, consider writing a faster algorithm!)\n   Calculating inverse table (will be cached)...\n" if($PDL::verbose || $PDL::debug || $PDL::Transform::debug);
         my $itable = zeroes($p->{table});
-	my $minvals = $p->{table}->clump($me->{idim})->minimum;
-	my $maxvals = $p->{table}->clump($me->{idim})->maximum;
+        my $minvals = $p->{table}->clump($me->{idim})->minimum;
+        my $maxvals = $p->{table}->clump($me->{idim})->maximum;
 
-	# Scale so that the range runs from 0 through the top pixel in the table
-	my $scale = (  pdl(  $itable->dims  )->slice("0:-2")-1  ) /
-	   	    (($maxvals - $minvals)+ (($maxvals-$minvals) == 0));
+        # Scale so that the range runs from 0 through the top pixel in the table
+        my $scale = (  pdl(  $itable->dims  )->slice("0:-2")-1  ) /
+                    (($maxvals - $minvals)+ (($maxvals-$minvals) == 0));
         my $offset = - ($minvals * $scale);
 
-	$p->{iscale} = $scale;
-	$p->{ioffset} = $offset;
+        $p->{iscale} = $scale;
+        $p->{ioffset} = $offset;
 
-     	my $enl_scale = $p->{'enl_scale'} || 10;
-	my $smallcoords = ndcoords((pdl($enl_scale * 2 + 1)->at(0)) x $me->{idim})/ $enl_scale - 1;
+        my $enl_scale = $p->{'enl_scale'} || 10;
+        my $smallcoords = ndcoords((pdl($enl_scale * 2 + 1)->at(0)) x $me->{idim})/ $enl_scale - 1;
 
-	# $oloop runs over (point, index) for all points in the output table, in
-	# $p->{table} output space
-	$oloop = ndcoords($itable->mv(-1,0)->slice("(0)"))->
-	    double->
-	    mv(0,-1)->
-	    clump($itable->ndims-1);  # oloop: (pixel, index)
+        # $oloop runs over (point, index) for all points in the output table, in
+        # $p->{table} output space
+        $oloop = ndcoords($itable->mv(-1,0)->slice("(0)"))->
+            double->
+            mv(0,-1)->
+            clump($itable->ndims-1);  # oloop: (pixel, index)
         {
             my $tmp; # work around perl -d "feature"
-	    ($tmp = $oloop->mv(-1,0)) -= $offset;
-	    ($tmp = $oloop->mv(-1,0)) /= $scale;
+            ($tmp = $oloop->mv(-1,0)) -= $offset;
+            ($tmp = $oloop->mv(-1,0)) /= $scale;
         }
 
-	# The Right Thing to do here is to take the outer product of $itable and $otable, then collapse
-	# to find minimum distance.  But memory demands for that would be HUGE.  Instead we do an
-	# elementwise calculation.
+        # The Right Thing to do here is to take the outer product of $itable and $otable, then collapse
+        # to find minimum distance.  But memory demands for that would be HUGE.  Instead we do an
+        # elementwise calculation.
 
-	print "t_lookup: inverting ".$oloop->dim(0)." points...\n" if($PDL::verbose || $PDL::debug || $PDL::Transform::debug);
-	my $pt = $p->{table}->mv(-1,0); # pt runs (index, x,y,...)
+        print "t_lookup: inverting ".$oloop->dim(0)." points...\n" if($PDL::verbose || $PDL::debug || $PDL::Transform::debug);
+        my $pt = $p->{table}->mv(-1,0); # pt runs (index, x,y,...)
 
-	my $itable_flattened = zeroes($oloop);
+        my $itable_flattened = zeroes($oloop);
 
-	for $i(0..$oloop->dim(0)-1) {
+        for $i(0..$oloop->dim(0)-1) {
 
-	    my $olp = $oloop->slice("($i)");                # olp runs (index)
-	    my $diff = ($pt - $olp);                 # diff runs (index, x, y, ...)
-	    my $r2 = ($diff * $diff)->sumover;       # r2 runs (x,y,...)
-	    my $c = whichND($r2==$r2->min)->slice(":,(0)"); # c runs (index)
+            my $olp = $oloop->slice("($i)");                # olp runs (index)
+            my $diff = ($pt - $olp);                 # diff runs (index, x, y, ...)
+            my $r2 = ($diff * $diff)->sumover;       # r2 runs (x,y,...)
+            my $c = whichND($r2==$r2->min)->slice(":,(0)"); # c runs (index)
 
-	    # Now zero in on the neighborhood around the point of closest approach.
-	    my $neighborhood = $p->{table}->interpND($c + $smallcoords,{method=>'linear',bound=>'t'})->
-	             mv(-1,0); # neighborhood runs (index, dx, dy,...)
-	    $diff = $neighborhood - $olp;        # diff runs (index, dx, dy, ...)
-	    $r2 = ($diff * $diff)->sumover;      # r2 runs (dx,dy,...)
-	    my $dc = $smallcoords->mv(0,-1)->indexND(0+whichND($r2==$r2->min)->slice(":,(0)"));
+            # Now zero in on the neighborhood around the point of closest approach.
+            my $neighborhood = $p->{table}->interpND($c + $smallcoords,{method=>'linear',bound=>'t'})->
+                     mv(-1,0); # neighborhood runs (index, dx, dy,...)
+            $diff = $neighborhood - $olp;        # diff runs (index, dx, dy, ...)
+            $r2 = ($diff * $diff)->sumover;      # r2 runs (dx,dy,...)
+            my $dc = $smallcoords->mv(0,-1)->indexND(0+whichND($r2==$r2->min)->slice(":,(0)"));
 
 
-	    my $coord = $c + $dc;
-	    # At last, we've found the best-fit to an enl_scale'th of an input-table pixel.
-	    # Back it out to input-science coordinates, and stuff it in the inverse table.
+            my $coord = $c + $dc;
+            # At last, we've found the best-fit to an enl_scale'th of an input-table pixel.
+            # Back it out to input-science coordinates, and stuff it in the inverse table.
             my $tmp; # work around perl -d "feature"
-	    ($tmp = $itable_flattened->slice("($i)")) .= $coord;
+            ($tmp = $itable_flattened->slice("($i)")) .= $coord;
 
-	    print " $i..." if( ($i%1000==0) && ( $PDL::verbose || $PDL::debug || $PDL::Transform::debug));
+            print " $i..." if( ($i%1000==0) && ( $PDL::verbose || $PDL::debug || $PDL::Transform::debug));
         }
 
         {
             my $tmp; # work around perl -d "feature"
-	    ($tmp = $itable->clump($itable->ndims-1)) .= $itable_flattened;
-	    ($tmp = $itable->mv(-1,0)) -= $p->{offset};
-	    ($tmp = $itable->mv(-1,0)) /= $p->{scale};
+            ($tmp = $itable->clump($itable->ndims-1)) .= $itable_flattened;
+            ($tmp = $itable->mv(-1,0)) -= $p->{offset};
+            ($tmp = $itable->mv(-1,0)) /= $p->{scale};
         }
 
-	$p->{itable} = $itable;
+        $p->{itable} = $itable;
       }
       &$lookup_func($data,$p, $p->{itable},$p->{iscale},$p->{ioffset}) ;
     };
@@ -2473,12 +2728,12 @@ sub PDL::Transform::Linear::new {
   $me->{name} = "linear";
 
   $me->{params}->{pre} = _opt($o,['pre','Pre','preoffset','offset',
-				  'Offset','PreOffset','Preoffset'],0);
+                                  'Offset','PreOffset','Preoffset'],0);
   $me->{params}->{pre} = pdl($me->{params}->{pre})
     if(defined $me->{params}->{pre});
 
   $me->{params}->{post} = _opt($o,['post','Post','postoffset','PostOffset',
-				   'shift','Shift'],0);
+                                   'shift','Shift'],0);
   $me->{params}->{post} = pdl($me->{params}->{post})
     if(defined $me->{params}->{post});
 
@@ -2508,9 +2763,9 @@ sub PDL::Transform::Linear::new {
 
   } else {
     if(defined($me->{params}->{rot}) &&
-	UNIVERSAL::isa($me->{params}->{rot},'PDL')) {
-	  $me->{idim} = $me->{odim} = 2 if($me->{params}->{rot}->nelem == 1);
-	  $me->{idim} = $me->{odim} = 3 if($me->{params}->{rot}->nelem == 3);
+        UNIVERSAL::isa($me->{params}->{rot},'PDL')) {
+          $me->{idim} = $me->{odim} = 2 if($me->{params}->{rot}->nelem == 1);
+          $me->{idim} = $me->{odim} = 3 if($me->{params}->{rot}->nelem == 3);
     }
 
     if(defined($scale) &&
@@ -2520,13 +2775,13 @@ sub PDL::Transform::Linear::new {
       $me->{odim} = $scale->dim(0);
 
     } elsif(defined($me->{params}->{pre}) &&
-	    UNIVERSAL::isa($me->{params}->{pre},'PDL') &&
-	    $me->{params}->{pre}->getndims > 0) {
+            UNIVERSAL::isa($me->{params}->{pre},'PDL') &&
+            $me->{params}->{pre}->getndims > 0) {
       $me->{idim} = $me->{odim} = $me->{params}->{pre}->dim(0);
 
     } elsif(defined($me->{params}->{post}) &&
-	    UNIVERSAL::isa($me->{params}->{post},'PDL') &&
-	    $me->{params}->{post}->getndims > 0) {
+            UNIVERSAL::isa($me->{params}->{post},'PDL') &&
+            $me->{params}->{post}->getndims > 0) {
       $me->{idim} = $me->{odim} = $me->{params}->{post}->dim(0);
     } elsif(defined($o_dims)) {
       $me->{idim} = $me->{odim} = $o_dims;
@@ -2547,37 +2802,37 @@ sub PDL::Transform::Linear::new {
     # Subrotation closure -- rotates from axis $d->(0) --> $d->(1).
     my $subrot = sub {
                        my($d,$angle,$m)=@_;
-		       my($i) = identity($m->dim(0));
-		       my($subm) = $i->dice($d,$d);
+                       my($i) = identity($m->dim(0));
+                       my($subm) = $i->dice($d,$d);
 
-		       $angle = $angle->at(0)
-			 if(UNIVERSAL::isa($angle,'PDL'));
+                       $angle = $angle->at(0)
+                         if(UNIVERSAL::isa($angle,'PDL'));
 
-		       my($a) = $angle * $DEG2RAD;
-		       $subm .= $subm x pdl([cos($a),-sin($a)],[sin($a),cos($a)]);
-		       $m .= $m x $i;
-		     };
+                       my($a) = $angle * $DEG2RAD;
+                       $subm .= $subm x pdl([cos($a),-sin($a)],[sin($a),cos($a)]);
+                       $m .= $m x $i;
+                     };
 
     if(UNIVERSAL::isa($rot,'PDL') && $rot->nelem > 1) {
       if($rot->ndims == 2) {
-	$me->{params}->{matrix} x= $rot;
+        $me->{params}->{matrix} x= $rot;
       } elsif($rot->nelem == 3) {
-	my $rm = identity(3);
+        my $rm = identity(3);
 
-	# Do these in reverse order to make it more like
-	# function composition!
-	&$subrot(pdl(0,1),$rot->at(2),$rm);
-	&$subrot(pdl(2,0),$rot->at(1),$rm);
-	&$subrot(pdl(1,2),$rot->at(0),$rm);
+        # Do these in reverse order to make it more like
+        # function composition!
+        &$subrot(pdl(0,1),$rot->at(2),$rm);
+        &$subrot(pdl(2,0),$rot->at(1),$rm);
+        &$subrot(pdl(1,2),$rot->at(0),$rm);
 
-	$me->{params}->{matrix} .= $me->{params}->{matrix} x $rm;
+        $me->{params}->{matrix} .= $me->{params}->{matrix} x $rm;
       } else {
-	barf("PDL::Transform::Linear: Got a strange rot option -- giving up.\n");
+        barf("PDL::Transform::Linear: Got a strange rot option -- giving up.\n");
       }
     } else {
-	if($rot != 0  and  $me->{params}->{matrix}->dim(0)>1) {
-	  &$subrot(pdl(0,1),$rot,$me->{params}->{matrix});
-	}
+        if($rot != 0  and  $me->{params}->{matrix}->dim(0)>1) {
+          &$subrot(pdl(0,1),$rot,$me->{params}->{matrix});
+        }
     }
   }
 
@@ -2612,7 +2867,7 @@ sub PDL::Transform::Linear::new {
     my($d) = $opt->{matrix}->dim(0)-1;
 
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
-	if($in->dim(0) < $d);
+        if($in->dim(0) < $d);
 
     my($a) = $in->slice("0:$d")->copy + $opt->{pre};
     my($out) = $in->is_inplace ? $in : $in->copy;
@@ -2629,7 +2884,7 @@ sub PDL::Transform::Linear::new {
 
     my($d) = $opt->{inverse}->dim(0)-1;
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
-	if($in->dim(0) < $d);
+        if($in->dim(0) < $d);
 
     my($a) = $in->slice("0:$d")->copy - $opt->{post};
     my($out) = $in->is_inplace ? $in : $in->copy;
@@ -2703,7 +2958,7 @@ sub t_scale {
     my($scale) = shift;
     my($b) = shift;
     return t_linear(scale=>$scale,%{$b})
-	if(ref $b eq 'HASH');
+        if(ref $b eq 'HASH');
     t_linear(Scale=>$scale,$b,@_);
 }
 
@@ -2731,7 +2986,7 @@ sub t_offset {
     my($pre) = shift;
     my($b) = shift;
     return t_linear(pre=>$pre,%{$b})
-	if(ref $b eq 'HASH');
+        if(ref $b eq 'HASH');
 
     t_linear(pre=>$pre,$b,@_);
 }
@@ -2761,7 +3016,7 @@ sub t_rotate    {
     my $rot = shift;
     my($b) = shift;
     return t_linear(rot=>$rot,%{$b})
-	if(ref $b eq 'HASH');
+        if(ref $b eq 'HASH');
 
     t_linear(rot=>$rot,$b,@_);
 }
@@ -2869,25 +3124,25 @@ sub t_fits {
     if( @hgrab = grep(m/^PC\d{1,3}_\d{1,3}$/,keys %$hdr) ) {  # assignment
 
       for my $h(@hgrab) {
-	$h =~ m/PC(\d{1,3})_(\d{1,3})$/ || die "t_fits - match failed! This should never happen!";
+        $h =~ m/PC(\d{1,3})_(\d{1,3})$/ || die "t_fits - match failed! This should never happen!";
         my $tmp; # work around perl -d "feature"
-	($tmp = $cpm->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{$h};
+        ($tmp = $cpm->slice("(".($1-1)."),(".($2-1).")")) .= $hdr->{$h};
       }
       print "PDL::Transform::FITS: Detected PCi_j matrix: \n",$cpm,"\n"
-	if($PDL::Transform::debug && @hgrab);
+        if($PDL::Transform::debug && @hgrab);
 
     } elsif($n==2 && ( defined $hdr->{CROTA} || defined $hdr->{CROTA1} || defined $hdr->{CROTA2}) ) {
 
-	## CROTA is deprecated; CROTA1 was used for a while but is unofficial;
-	## CROTA2 is encouraged instead.
+        ## CROTA is deprecated; CROTA1 was used for a while but is unofficial;
+        ## CROTA2 is encouraged instead.
       my $cr;
       $cr = $hdr->{CROTA2} unless defined $cr;
       $cr = $hdr->{CROTA} unless defined $cr;
       $cr = $hdr->{CROTA1} unless defined $cr;
 
       $cr *= $DEG2RAD;
-	# Rotation matrix rotates counterclockwise to get from sci to pixel coords
-	# (detector has been rotated ccw, according to FITS standard)
+        # Rotation matrix rotates counterclockwise to get from sci to pixel coords
+        # (detector has been rotated ccw, according to FITS standard)
       $cpm .= pdl( [cos($cr), sin($cr)],[-sin($cr),cos($cr)] );
 
     }
@@ -2912,10 +3167,10 @@ sub t_fits {
   }
 
   my($me) = PDL::Transform::Linear::new($class,
-					{'pre'=>$pre,
-					 'post'=>$post,
-					 'matrix'=>$matrix
-					 });
+                                        {'pre'=>$pre,
+                                         'post'=>$post,
+                                         'matrix'=>$matrix
+                                         });
 
   $me->{name} = 'FITS';
 
@@ -3194,8 +3449,8 @@ sub t_radial {
       ($tmp = $out->slice("(0)")) .= (atan2(-$d1,$d0) % (2*$PI)) * $me->{params}->{angunit};
 
       ($tmp = $out->slice("(1)")) .= (defined $o->{r0}) ?
-	      0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
-	      sqrt($d1*$d1 + $d0*$d0);
+              0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
+              sqrt($d1*$d1 + $d0*$d0);
 
       $out;
   };
@@ -3204,10 +3459,10 @@ sub t_radial {
 
     my($d,$o) = @_;
     my($d0,$d1,$out)=
-	( ($d->is_inplace) ?
-	  ($d->slice("(0)")->copy, $d->slice("(1)")->copy->dummy(0,2), $d) :
-	  ($d->slice("(0)"),       $d->slice("(1)")->dummy(0,2),       $d->copy)
-	  );
+        ( ($d->is_inplace) ?
+          ($d->slice("(0)")->copy, $d->slice("(1)")->copy->dummy(0,2), $d) :
+          ($d->slice("(0)"),       $d->slice("(1)")->dummy(0,2),       $d->copy)
+          );
 
     $d0 /= $me->{params}->{angunit};
 
@@ -3298,7 +3553,7 @@ sub t_quadratic {
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
-	$o = {@_};
+        $o = {@_};
     }
     my($me) = PDL::Transform::new($class);
 
@@ -3309,35 +3564,35 @@ sub t_quadratic {
     $me->{name} = "quadratic";
 
     $me->{func} = sub {
-	my($data,$o) = @_;
-	my($dd) = $data->copy - $o->{origin};
-	my($d) =  (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
-	$d += $o->{str} * ($d * abs($d)) / $o->{l0};
-	$d /= (abs($o->{str}) + 1);
-	$d += $o->{origin};
-	if($data->is_inplace) {
-	    $data .= $dd;
-	    return $data;
-	}
-	$dd;
+        my($data,$o) = @_;
+        my($dd) = $data->copy - $o->{origin};
+        my($d) =  (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
+        $d += $o->{str} * ($d * abs($d)) / $o->{l0};
+        $d /= (abs($o->{str}) + 1);
+        $d += $o->{origin};
+        if($data->is_inplace) {
+            $data .= $dd;
+            return $data;
+        }
+        $dd;
     };
 
     $me->{inv} = sub {
-	my($data,$opt) = @_;
-	my($dd) = $data->copy ;
-	my($d) = (defined $opt->{dim}) ? $dd->slice("0:".($opt->{dim}-1)) : $dd;
-	my($o) = $opt->{origin};
-	my($s) = $opt->{str};
-	my($l) = $opt->{l0};
+        my($data,$opt) = @_;
+        my($dd) = $data->copy ;
+        my($d) = (defined $opt->{dim}) ? $dd->slice("0:".($opt->{dim}-1)) : $dd;
+        my($o) = $opt->{origin};
+        my($s) = $opt->{str};
+        my($l) = $opt->{l0};
 
-	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($d-$o) * (1+abs($s))))
-	    / 2 / $s * $l) * (1 - 2*($d < $o));
-	$d += $o;
-	if($data->is_inplace) {
-	    $data .= $dd;
-	    return $data;
-	}
-	$dd;
+        $d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($d-$o) * (1+abs($s))))
+            / 2 / $s * $l) * (1 - 2*($d < $o));
+        $d += $o;
+        if($data->is_inplace) {
+            $data .= $dd;
+            return $data;
+        }
+        $dd;
     };
     $me;
 }
@@ -3400,7 +3655,7 @@ sub t_cubic {
     my ($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
-	$o = {@_};
+        $o = {@_};
     }
     my($me) = PDL::Transform::new($class);
 
@@ -3411,77 +3666,77 @@ sub t_cubic {
     $me->{name} = "cubic";
 
     $me->{params}->{cuberoot} = sub {
-	my $a = shift;
-	my $as = 1 - 2*($a<0);
-	return $as * (  abs($a) ** (1/3) );
+        my $a = shift;
+        my $as = 1 - 2*($a<0);
+        return $as * (  abs($a) ** (1/3) );
     };
 
     $me->{func} = sub {
-	my($data,$o) = @_;
-	my($dd) = $data->copy;
-	my($d) = (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
+        my($data,$o) = @_;
+        my($dd) = $data->copy;
+        my($d) = (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
 
-	$d -= $o->{origin};
+        $d -= $o->{origin};
 
-	my $dl0 = $d / $o->{l0};
+        my $dl0 = $d / $o->{l0};
 
-	# f(x) = x + x**3 * ($o->{st} / $o->{l0}**2):
-	#     A = ($o->{st}/$dl0**2)
-	#     B = 0
-	#     C = 1
-	#     D = -f(x)
-	$d += $o->{st} * $d * $dl0 * $dl0;
-	$d /= ($o->{st}**2 + 1);
+        # f(x) = x + x**3 * ($o->{st} / $o->{l0}**2):
+        #     A = ($o->{st}/$dl0**2)
+        #     B = 0
+        #     C = 1
+        #     D = -f(x)
+        $d += $o->{st} * $d * $dl0 * $dl0;
+        $d /= ($o->{st}**2 + 1);
 
-	$d += $o->{origin};
+        $d += $o->{origin};
 
-	if($data->is_inplace) {
-	    $data .= $dd;
-	    return $data;
-	}
-	return $dd;
+        if($data->is_inplace) {
+            $data .= $dd;
+            return $data;
+        }
+        return $dd;
     };
 
     $me->{inv} = sub {
-	my($data,$o) = @_;
-	my($l) = $o->{l0};
+        my($data,$o) = @_;
+        my($l) = $o->{l0};
 
-	my($dd) = $data->copy;
-	my($d) = (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
+        my($dd) = $data->copy;
+        my($d) = (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
 
-	$d -= $o->{origin};
-	$d *= ($o->{st}+1);
+        $d -= $o->{origin};
+        $d *= ($o->{st}+1);
 
-	# Now we have to solve:
-	#  A x^3 + B X^2 + C x + D dd = 0
-	# with the assignments above for A,B,C,D.
-	# Since B is zero, this is greatly simplified - the discriminant is always negative,
-	# so there is always exactly one real root.
-	#
-	# The only real hassle is creating a symmetric cube root; for convenience
-	# is stashed in the params hash.
+        # Now we have to solve:
+        #  A x^3 + B X^2 + C x + D dd = 0
+        # with the assignments above for A,B,C,D.
+        # Since B is zero, this is greatly simplified - the discriminant is always negative,
+        # so there is always exactly one real root.
+        #
+        # The only real hassle is creating a symmetric cube root; for convenience
+        # is stashed in the params hash.
 
-	# First: create coefficients for mnemonics.
-	my ($A, $C, $D) = ( $o->{st} / $l / $l, 1, - $d );
-	my $alpha =  27 * $A * $A * $D;
-	my $beta =  3 * $A * $C;
+        # First: create coefficients for mnemonics.
+        my ($A, $C, $D) = ( $o->{st} / $l / $l, 1, - $d );
+        my $alpha =  27 * $A * $A * $D;
+        my $beta =  3 * $A * $C;
 
-	my $inner_root = sqrt( $alpha * $alpha   +   4 * $beta * $beta * $beta );
+        my $inner_root = sqrt( $alpha * $alpha   +   4 * $beta * $beta * $beta );
 
-	$d .= (-1 / (3 * $A)) *
-	    (
-	      + &{$o->{cuberoot}}( 0.5 * ( $alpha + $inner_root ) )
-	      + &{$o->{cuberoot}}( 0.5 * ( $alpha - $inner_root ) )
-	    );
+        $d .= (-1 / (3 * $A)) *
+            (
+              + &{$o->{cuberoot}}( 0.5 * ( $alpha + $inner_root ) )
+              + &{$o->{cuberoot}}( 0.5 * ( $alpha - $inner_root ) )
+            );
 
-	$d += $origin;
+        $d += $origin;
 
-	if($data->is_inplace) {
-	    $data .= $dd;
-	    return $data;
-	} else {
-	    return $dd;
-	}
+        if($data->is_inplace) {
+            $data .= $dd;
+            return $data;
+        } else {
+            return $dd;
+        }
     };
 
     $me;
@@ -3567,7 +3822,7 @@ sub t_quartic {
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
-	$o = {@_};
+        $o = {@_};
     }
     my($me) = PDL::Transform::new($class);
 
@@ -3578,35 +3833,35 @@ sub t_quartic {
     $me->{name} = "quadratic";
 
     $me->{func} = sub {
-	my($data,$o) = @_;
-	my($dd) = $data->copy - $o->{origin};
-	my($d) =  (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
-	$d += $o->{str} * ($d * abs($d)) / $o->{l0};
-	$d /= (abs($o->{str}) + 1);
-	$d += $o->{origin};
-	if($data->is_inplace) {
-	    $data .= $dd;
-	    return $data;
-	}
-	$dd;
+        my($data,$o) = @_;
+        my($dd) = $data->copy - $o->{origin};
+        my($d) =  (defined $o->{dim}) ? $dd->slice("0:".($o->{dim}-1)) : $dd;
+        $d += $o->{str} * ($d * abs($d)) / $o->{l0};
+        $d /= (abs($o->{str}) + 1);
+        $d += $o->{origin};
+        if($data->is_inplace) {
+            $data .= $dd;
+            return $data;
+        }
+        $dd;
     };
 
     $me->{inv} = sub {
-	my($data,$opt) = @_;
-	my($dd) = $data->copy ;
-	my($d) = (defined $opt->{dim}) ? $dd->slice("0:".($opt->{dim}-1)) : $dd;
-	my($o) = $opt->{origin};
-	my($s) = $opt->{str};
-	my($l) = $opt->{l0};
+        my($data,$opt) = @_;
+        my($dd) = $data->copy ;
+        my($d) = (defined $opt->{dim}) ? $dd->slice("0:".($opt->{dim}-1)) : $dd;
+        my($o) = $opt->{origin};
+        my($s) = $opt->{str};
+        my($l) = $opt->{l0};
 
-	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($d-$o) * (1+abs($s))))
-	    / 2 / $s * $l) * (1 - 2*($d < $o));
-	$d += $o;
-	if($data->is_inplace) {
-	    $data .= $dd;
-	    return $data;
-	}
-	$dd;
+        $d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($d-$o) * (1+abs($s))))
+            / 2 / $s * $l) * (1 - 2*($d < $o));
+        $d += $o;
+        if($data->is_inplace) {
+            $data .= $dd;
+            return $data;
+        }
+        $dd;
     };
     $me;
 }
@@ -3676,7 +3931,7 @@ sub t_spherical {
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
-	$o = { @_ } ;
+        $o = { @_ } ;
     }
 
     my($me) = PDL::Transform::new($class);
@@ -3686,64 +3941,64 @@ sub t_spherical {
 
     $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
     $me->{params}->{origin} = PDL->zeroes(3)
-	unless defined($me->{params}->{origin});
+        unless defined($me->{params}->{origin});
     $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
 
     $me->{params}->{deg} = _opt($o,['d','degrees','Degrees']);
 
     my $unit = _opt($o,['u','unit','Unit']);
     $me->{params}->{angunit} = ($unit =~ m/^d/i) ?
-	$DEG2RAD : undef;
+        $DEG2RAD : undef;
 
     $me->{name} = "spherical";
 
     $me->{func} = sub {
-	my($data,$o) = @_;
-	my($d) = $data->copy - $o->{origin};
+        my($data,$o) = @_;
+        my($d) = $data->copy - $o->{origin};
 
-	my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
-	my($out) =   ($d->is_inplace) ? $data : $data->copy;
+        my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
+        my($out) =   ($d->is_inplace) ? $data : $data->copy;
 
         my $tmp; # work around perl -d "feature"
-	($tmp = $out->slice("(0)")) .= atan2($d1, $d0);
-	($tmp = $out->slice("(2)")) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
-	($tmp = $out->slice("(1)")) .= asin($d2 / $out->slice("(2)"));
+        ($tmp = $out->slice("(0)")) .= atan2($d1, $d0);
+        ($tmp = $out->slice("(2)")) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
+        ($tmp = $out->slice("(1)")) .= asin($d2 / $out->slice("(2)"));
 
-	($tmp = $out->slice("0:1")) /= $o->{angunit}
-	  if(defined $o->{angunit});
+        ($tmp = $out->slice("0:1")) /= $o->{angunit}
+          if(defined $o->{angunit});
 
-	$out;
+        $out;
       };
 
     $me->{inv} = sub {
-	my($d,$o) = @_;
+        my($d,$o) = @_;
 
-	my($theta,$phi,$r,$out) =
+        my($theta,$phi,$r,$out) =
     ( ($d->is_inplace) ?
-	      ($d->slice("(0)")->copy, $d->slice("(1)")->copy, $d->slice("(2)")->copy, $d) :
-	      ($d->slice("(0)"),       $d->slice("(1)"),       $d->slice("(2)"),       $d->copy)
-	      );
+              ($d->slice("(0)")->copy, $d->slice("(1)")->copy, $d->slice("(2)")->copy, $d) :
+              ($d->slice("(0)"),       $d->slice("(1)"),       $d->slice("(2)"),       $d->copy)
+              );
 
 
-	my($x,$y,$z) =
-	    ($out->slice("(0)"),$out->slice("(1)"),$out->slice("(2)"));
+        my($x,$y,$z) =
+            ($out->slice("(0)"),$out->slice("(1)"),$out->slice("(2)"));
 
-	my($ph,$th);
-	if(defined $o->{angunit}){
-	  $ph = $o->{angunit} * $phi;
-	  $th = $o->{angunit} * $theta;
-	} else {
-	  $ph = $phi;
-	  $th = $theta;
-	}
+        my($ph,$th);
+        if(defined $o->{angunit}){
+          $ph = $o->{angunit} * $phi;
+          $th = $o->{angunit} * $theta;
+        } else {
+          $ph = $phi;
+          $th = $theta;
+        }
 
-	$z .= $r * sin($ph);
-	$x .= $r * cos($ph);
-	$y .= $x * sin($th);
-	$x *= cos($th);
-	$out += $o->{origin};
+        $z .= $r * sin($ph);
+        $x .= $r * cos($ph);
+        $y .= $x * sin($th);
+        $x *= cos($th);
+        $out += $o->{origin};
 
-	$out;
+        $out;
       };
 
     $me;
@@ -3863,14 +4118,14 @@ sub t_projective {
     my ($P0,$P1,$P2,$P3) = ( $p->slice(":,(1),(0)"), $p->slice(":,(1),(1)"), $p->slice(":,(1),(2)"), $p->slice(":,(1),(3)") );
 #print "declaring PDL...\n"    ;
     my $M = pdl( [ [$p0->at(0), $p0->at(1), 1,        0,        0, 0,  -$P0->at(0)*$p0->at(0), -$P0->at(0)*$p0->at(1)],
-		   [       0,        0, 0, $p0->at(0), $p0->at(1), 1,  -$P0->at(1)*$p0->at(0), -$P0->at(1)*$p0->at(1)],
-		   [$p1->at(0), $p1->at(1), 1,        0,        0, 0,  -$P1->at(0)*$p1->at(0), -$P1->at(0)*$p1->at(1)],
-		   [       0,        0, 0, $p1->at(0), $p1->at(1), 1,  -$P1->at(1)*$p1->at(0), -$P1->at(1)*$p1->at(1)],
-		   [$p2->at(0), $p2->at(1), 1,        0,        0, 0,  -$P2->at(0)*$p2->at(0), -$P2->at(0)*$p2->at(1)],
-		   [       0,        0, 0, $p2->at(0), $p2->at(1), 1,  -$P2->at(1)*$p2->at(0), -$P2->at(1)*$p2->at(1)],
-		   [$p3->at(0), $p3->at(1), 1,        0,        0, 0,  -$P3->at(0)*$p3->at(0), -$P3->at(0)*$p3->at(1)],
-		   [       0,        0, 0, $p3->at(0), $p3->at(1), 1,  -$P3->at(1)*$p3->at(0), -$P3->at(1)*$p3->at(1)]
-		   ] );
+                   [       0,        0, 0, $p0->at(0), $p0->at(1), 1,  -$P0->at(1)*$p0->at(0), -$P0->at(1)*$p0->at(1)],
+                   [$p1->at(0), $p1->at(1), 1,        0,        0, 0,  -$P1->at(0)*$p1->at(0), -$P1->at(0)*$p1->at(1)],
+                   [       0,        0, 0, $p1->at(0), $p1->at(1), 1,  -$P1->at(1)*$p1->at(0), -$P1->at(1)*$p1->at(1)],
+                   [$p2->at(0), $p2->at(1), 1,        0,        0, 0,  -$P2->at(0)*$p2->at(0), -$P2->at(0)*$p2->at(1)],
+                   [       0,        0, 0, $p2->at(0), $p2->at(1), 1,  -$P2->at(1)*$p2->at(0), -$P2->at(1)*$p2->at(1)],
+                   [$p3->at(0), $p3->at(1), 1,        0,        0, 0,  -$P3->at(0)*$p3->at(0), -$P3->at(0)*$p3->at(1)],
+                   [       0,        0, 0, $p3->at(0), $p3->at(1), 1,  -$P3->at(1)*$p3->at(0), -$P3->at(1)*$p3->at(1)]
+                   ] );
 #print "ok.  Finding inverse...\n";
     my $h = ($M->inv x $p->slice(":,(1),:")->flat->slice("*1"))->slice("(0)");
 #    print "ok\n";
