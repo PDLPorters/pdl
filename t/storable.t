@@ -114,7 +114,9 @@ SKIP:
       }
     }
 
-    my $x = retrieve $filename;
+    my $x = eval { retrieve $filename };
+    skip "LongLong only as IV bug in Storable", 7 if $@;
+
     ok( defined $x, "Reading from file '$filename'" );
     ok( @$x == 3, "Reading an array-ref of size 3 from file '$filename'" );
     ok( $x->[1] eq 'abcd', "Reading a correct string from file '$filename'" );
