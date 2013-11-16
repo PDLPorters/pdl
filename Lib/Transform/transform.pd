@@ -1,4 +1,4 @@
-pp_addhdr("#include <sys/time.h>\n");
+# pp_addhdr("#include <sys/time.h>\n");
 pp_addpm({At=>'Top'},<<'+======EOD======');
 
 =head1 NAME
