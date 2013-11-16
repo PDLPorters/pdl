@@ -1,5 +1,9 @@
 The following issues have been reported with this version of PDL:
 
+- 64bit integer type support via PDL::IO::Storable doesn't
+  work for what appears to be an upstream issue in Storable
+  itself.
+
 
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM

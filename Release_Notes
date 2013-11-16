@@ -33,7 +33,19 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Added FAQ entry on PDL version numbering change and how
+   to specify required PDL versions.
+
+ * Corrected perldl.conf docs for WITH_PLPLOT in the comments
+
+ * Update PDL::IO::Storable to work with the new PDL_Indx
+   data type.  Also made the code backwards compatible to
+   read files written by older PDL releases.
+ 
+ * Fixed NaN handling for min/max and cleaned up handling
+   of empty sets.
+
+ * Various enhancements to PDL::Transform
 
 
 
