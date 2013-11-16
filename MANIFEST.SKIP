@@ -29,6 +29,7 @@ RCS
 \.cvsignore$
 \.inlinepdlpp
 \.lck$
+\.m$
 \.o$
 \.out$
 \.patch$
