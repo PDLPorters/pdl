@@ -141,8 +141,13 @@ sub pdlpack {
   # I'd like this to be simply
   #   my $dimhdr = pack( 'Q<*', $pdl->getndims, $pdl->dims )
   # but my pack() may not support Q, so I break it up manually
+  #
+  # if sizeof(int) == 4 here, then $_>>32 will not return 0 necessarily (this in
+  # undefined). I thus manually make sure this is the case
+  #
+  my $noMSW = (PDL::Core::howbig($PDL::Types::PDL_IND) < 8) ? 1 : 0;
   my $dimhdr = pack( 'L<*',
-                     map( { $_ & 0xFFFFFFFF, $_ >> 32 } ($pdl->getndims, $pdl->dims ) ) );
+                     map( { $_ & 0xFFFFFFFF, $noMSW ? 0 : ($_ >> 32) } ($pdl->getndims, $pdl->dims ) ) );
 
   my $dref = $pdl->get_dataref;
   return $hdr . $dimhdr . $$dref;
