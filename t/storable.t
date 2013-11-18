@@ -91,10 +91,10 @@ testLoad($_) foreach( qw(t/storable_new_amd64.dat t/storable_old_amd64.dat) );
 #
 #   use PDL;
 #   use PDL::IO::Storable;
-#   use Storable qw(store);
+#   use Storable qw(nstore);
 #   my $x = sequence(3,3)->byte * sequence(3)->byte;
 #   my $y = 50 + sequence(7)->double;
-#   store [$x, 'abcd', $y], "/tmp/tst.dat";
+#   nstore [$x, 'abcd', $y], "/tmp/tst.dat";
 #
 # I make sure these all were read correctly
 sub testLoad
