@@ -1235,7 +1235,6 @@ pp_def('map',
 
    /* Increment the pixel counter */
    {
-     PDL_Long *aptr = ovec;
      for(i=0;
              (i<ndims) &&
              (map_ptr += map->dimincs[i+1]) &&  /* Funky pre-test increment */
