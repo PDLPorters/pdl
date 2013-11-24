@@ -207,11 +207,6 @@ typedef struct pdl_transvtable {
 #define  PDL_ITRANS_VAFFINEVALID      0x2000
 #define  PDL_ITRANS_NONMUTUAL         0x4000  /* flag for destruction */
 
-/* vparent is the "virtual parent" which is either the parent or grandparent 
- * or whatever. The trans structure must store both the relationship with our 
- * current parent and, if necessary, the virtual parent. 
- */
-
 // These define struct pdl_trans and all derived structures. There are many
 // structures (defined in other parts of the code) that can be referenced
 // like a pdl_trans* because all of these structures have the same pdl_trans
@@ -255,7 +250,6 @@ typedef struct pdl_transvtable {
 #define PDL_TR_MAGICNO      0x91827364
 #define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO
 #define PDL_TR_CLRMAGIC(it) it->magicno = 0x99876134
-
 #define PDL_TR_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it, PDL_TR_MAGICNO, "TRANS ")
 
 
