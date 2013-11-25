@@ -1062,7 +1062,7 @@ BOOT:
      Perl_croak(aTHX_ "Can't load PDL::Core module");
    PDL = INT2PTR(Core*, SvIV( CoreSV ));  PDL_COMMENT("Core* value")
    if (PDL->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "[PDL->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] $::PDLMOD needs to be recompiled against the newly installed PDL", PDL->Version, PDL_CORE_VERSION, XS_VERSION);
+     Perl_croak(aTHX_ "[PDL->Version: \%ld PDL_CORE_VERSION: \%d XS_VERSION: \%s] $::PDLMOD needs to be recompiled against the newly installed PDL", PDL->Version, PDL_CORE_VERSION, XS_VERSION);
    $::PDLXSBOOT
 %);
 
@@ -1618,10 +1618,9 @@ sub def_vtable {
     return "static char ${vname}_flags[] =
 	 	{ ". $join_flags . "};
 	 pdl_transvtable $vname = {
-		0,0, $nparents, $npdls, ${vname}_flags,
-		$rdname, $rfname, $wfname,
-		$ffname,NULL,NULL,$cpfname,NULL,
-		sizeof($sname),\"$vname\"
+		0, 0, $nparents, $npdls, ${vname}_flags, 
+                $rdname, $rfname, $wfname, $ffname, NULL, NULL, $cpfname,
+                sizeof($sname),\"$vname\" 
 	 };";
 }
 
@@ -1995,8 +1994,10 @@ $pars
 
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
     parent = ST(0);
-    if (sv_isobject(parent))
-      objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  PDL_COMMENT("The package to bless output vars into is taken from the first input var")
+    if (sv_isobject(parent)) {
+	PDL_COMMENT("The package to bless output vars into is taken from the first input var");
+      bless_stash = SvSTASH(SvRV(ST(0))); objname = HvNAME(bless_stash);  
+    }
   }
   if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output and temp vars")
     nreturn = $noutca;
@@ -2798,21 +2799,6 @@ sub make_redodims_thread {
 	    $str .= "0;\n";
 	}
     } # foreach: 0 .. $nn
-
-##############################
-#
-# These tests don't appear to do anything useful,
-#  and they cause trouble with null PDLs ...
-#  so I've commented them out.
-#    --CED 4-Nov-2003 (re: bug 779312)
-#
-#    foreach ( 0 .. $nn ) {
-#	my $po = $pobjs->{$pnames->[$_]};
-#	$str .= "if(";
-#	$str .= "(!__creating[$_]) && " if $po->{FlagCreat};
-#	$str .= "($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)\n" .
-#	    "   \$CROAK(\"CANNOT CREATE PARAMETER $po->{Name}\");\n";
-#    }
 
     $str .= " {\n$pcode\n}\n";
     $str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
