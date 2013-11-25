@@ -1062,7 +1062,7 @@ BOOT:
      Perl_croak(aTHX_ "Can't load PDL::Core module");
    PDL = INT2PTR(Core*, SvIV( CoreSV ));  PDL_COMMENT("Core* value")
    if (PDL->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "[PDL->Version: \%ld PDL_CORE_VERSION: \%d XS_VERSION: \%s] $::PDLMOD needs to be recompiled against the newly installed PDL", PDL->Version, PDL_CORE_VERSION, XS_VERSION);
+     Perl_croak(aTHX_ "[PDL->Version: \%ld PDL_CORE_VERSION: \%ld XS_VERSION: \%s] $::PDLMOD needs to be recompiled against the newly installed PDL", (long)(PDL->Version), (long)(PDL_CORE_VERSION), XS_VERSION);
    $::PDLXSBOOT
 %);
 

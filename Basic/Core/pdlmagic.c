@@ -37,7 +37,7 @@ static int   pdl_pthread_warn_msgs_len = 0;
 
 void pdl__magic_add(pdl *it,pdl_magic *mag)
 {
-	pdl_magic **foo = &(it->magic);
+  pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 		foo = &((*foo)->next);
 	}
@@ -47,7 +47,7 @@ void pdl__magic_add(pdl *it,pdl_magic *mag)
 
 void pdl__magic_rm(pdl *it,pdl_magic *mag)
 {
-	pdl_magic **foo = &(it->magic);
+  pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	int found = 0;
 	while(*foo) {
 		if(*foo == mag) {
@@ -67,7 +67,7 @@ void pdl__magic_rm(pdl *it,pdl_magic *mag)
 void pdl__magic_free(pdl *it)
 {
   if (pdl__ismagic(it) && !pdl__magic_isundestroyable(it)) {
-    pdl_magic *foo = it->magic;
+    pdl_magic *foo = (pdl_magic *)(it->magic);
     while(foo) {
       pdl_magic *next = foo->next;
       free(foo);
@@ -80,7 +80,7 @@ void pdl__magic_free(pdl *it)
 
 int pdl__magic_isundestroyable(pdl *it)
 {
-	pdl_magic **foo = &(it->magic);
+        pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 		if((*foo)->what & PDL_MAGIC_UNDESTROYABLE) {return 1;}
 		foo = &((*foo)->next);
@@ -93,7 +93,7 @@ int pdl__magic_isundestroyable(pdl *it)
 void *pdl__call_magic(pdl *it,int which)
 {
 	void *ret = NULL;
-	pdl_magic **foo = &(it->magic);
+	pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 		if((*foo)->what & which) {
 			if((*foo)->what & PDL_MAGIC_DELAYED)
@@ -110,7 +110,7 @@ void *pdl__call_magic(pdl *it,int which)
 /* XXX FINDS ONLY FIRST */
 pdl_magic *pdl__find_magic(pdl *it, int which)
 {
-	pdl_magic **foo = &(it->magic);
+  pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 		if((*foo)->what & which) {
 			return *foo;
@@ -122,7 +122,7 @@ pdl_magic *pdl__find_magic(pdl *it, int which)
 
 pdl_magic *pdl__print_magic(pdl *it)
 {
-	pdl_magic **foo = &(it->magic);
+  pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 	  printf("Magic %p\ttype: ",(void*)(*foo));
 		if((*foo)->what & PDL_MAGIC_MARKCHANGED)

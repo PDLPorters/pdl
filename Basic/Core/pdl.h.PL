@@ -91,12 +91,15 @@ print OUT "} badvals;\n";
 
 print OUT <<'!NO!SUBS!';
 
-/*
+/****************************************************************
+ *
  * Define the pdl C data structure which maps onto the original PDL
  * perl data structure.
- *
- * Note: pdl.sv is defined as a void pointer to avoid having to 
- * include perl.h in C code which just needs the pdl data.
+ * 
+ * We start with the meanings of the pdl.flags bitmapped flagset, 
+ * continue with a prerequisite "trans" structure that represents
+ * transformations between linked PDLs, and finish withthe PD 
+ * structure itself.
 */
 
 #define PDL_NDIMS      6 /* Number of dims[] to preallocate */
@@ -299,9 +302,13 @@ typedef struct pdl_children {
  * PDL structure 
  * Should be kept under 250 bytes if at all possible, for 
  * easier segmentation...
+ * 
+ * The 'sv', 'datasv', and 'hdrsv' fields are all void * to avoid having to 
+ * load perl.h for C codes that only use PDLs and not the Perl API.
+ * 
+ * Similarly, the 'magic' field is void * to avoid having to typedef pdl_magic 
+ * here -- it is declared in "pdl_magic.h".
  */
-
-typedef struct pdl_magic pdl_magic;
 
 #define PDL_MAGICNO 0x24645399
 #define PDL_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it,PDL_MAGICNO,"")
@@ -327,7 +334,7 @@ struct pdl {
    PDL_Indx       def_dims[PDL_NDIMS];    /* Preallocated space (efficient in common cases)       */
    PDL_Indx       def_dimincs[PDL_NDIMS]; /* Preallocated space (efficient in common cases)       */
    unsigned char  def_threadids[PDL_NTHREADIDS]; /* Preallocated space (REMOVE?)                  */
-   pdl_magic *    magic;       /* Perl-style magic - do stuff when this PDL is manipulated        */
+   void *         magic;       /* Perl-style magic structure; see pdl_magic.h                     */
    void *         hdrsv;       /* SV points to the PDL's "header", settable from Perl             */
 };
 
