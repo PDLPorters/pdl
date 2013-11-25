@@ -82,6 +82,11 @@ print OUT <<'!NO!SUBS!';
  *
  * Note: pdl.sv is defined as a void pointer to avoid having to
  * include perl.h in C code which just needs the pdl data.
+ *
+ * We start with the meanings of the pdl.flags bitmapped flagset,
+ * continue with a prerequisite "trans" structure that represents
+ * transformations between linked PDLs, and finish withthe PD
+ * structure itself.
 */
 
 #define PDL_NDIMS      6 /* Number of dims[] to preallocate */
@@ -283,6 +288,12 @@ struct pdl_magic;
  * PDL structure
  * Should be kept under 250 bytes if at all possible, for
  * easier segmentation...
+ *
+ * The 'sv', 'datasv', and 'hdrsv' fields are all void * to avoid having to
+ * load perl.h for C codes that only use PDLs and not the Perl API.
+ *
+ * Similarly, the 'magic' field is void * to avoid having to typedef pdl_magic
+ * here -- it is declared in "pdl_magic.h".
  */
 
 #define PDL_MAGICNO 0x24645399
