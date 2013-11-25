@@ -2797,21 +2797,6 @@ sub make_redodims_thread {
 	}
     } # foreach: 0 .. $nn
 
-##############################
-#
-# These tests don't appear to do anything useful,
-#  and they cause trouble with null PDLs ...
-#  so I've commented them out.
-#    --CED 4-Nov-2003 (re: bug 779312)
-#
-#    foreach ( 0 .. $nn ) {
-#	my $po = $pobjs->{$pnames->[$_]};
-#	$str .= "if(";
-#	$str .= "(!__creating[$_]) && " if $po->{FlagCreat};
-#	$str .= "($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)\n" .
-#	    "   \$CROAK(\"CANNOT CREATE PARAMETER $po->{Name}\");\n";
-#    }
-
     $str .= " {\n$pcode\n}\n";
     $str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
 		 PDL->initthreadstruct(2,\$PRIV(pdls),
