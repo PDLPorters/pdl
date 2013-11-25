@@ -33,7 +33,14 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * This release should be a working PDL::IO::Storable that
+   is compatable with the new 64bit index support.
+ 
+ * PDL::IO::Storable now requires perl 5.10.x or greater
+   although the overall distribution requirements are not
+   planned to update to 5.10.x until the completion of
+   fixes for the longlong hidden double precision conversion
+   slash truncation bug.
 
 
 
