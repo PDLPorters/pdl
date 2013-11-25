@@ -74,6 +74,8 @@ PDL::IO::Dumper   Data::Dumper >= 2.121
 
 
 PDL::IO::Storable Storable >=1.03
+                  perl >= 5.10.x          Will build but won't work for perl
+		                          versions prior to 5.10.0
 
 
 pdl2   (shell)    Devel::REPL >= 1.003011
