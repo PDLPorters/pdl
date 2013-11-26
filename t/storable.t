@@ -4,18 +4,13 @@ use strict;
 use Test::More;
 
 BEGIN { 
-   eval 'use Storable 1.03';
-   unless ($@) {
-      eval 'require 5.010';
-      unless ($@) {
-         plan tests => 23;
-      } else {
-         plan skip_all => "PDL::IO::Storable requires perl 5.10 or greater\n";
-      }
-   } else {
-      plan skip_all => "Storable >= 1.03 not installed\n";
-   }
-   use Storable qw/freeze thaw retrieve/;
+  eval 'use Storable 1.03';
+  unless ($@) {
+    plan tests => 23;
+  } else {
+    plan skip_all => "Storable >= 1.03 not installed\n";
+  }
+  use Storable qw/freeze thaw retrieve/;
 }
 
 BEGIN { 
