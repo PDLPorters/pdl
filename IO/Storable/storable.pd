@@ -133,8 +133,8 @@ use Carp;
 sub pdlpack {
   my ($pdl) = @_;
 
-  my $hdr = pack( 'l<l<A16L<L',
-                  -1, -1,
+  my $hdr = pack( 'c8A16VL',
+                  (-1) x 8,
                   $pdl->type->symbol,
                   PDL::Core::howbig( $pdl->get_datatype ), 1 );
 
@@ -146,7 +146,7 @@ sub pdlpack {
   # undefined). I thus manually make sure this is the case
   #
   my $noMSW = (PDL::Core::howbig($PDL::Types::PDL_IND) < 8) ? 1 : 0;
-  my $dimhdr = pack( 'L<*',
+  my $dimhdr = pack( 'V*',
                      map( { $_ & 0xFFFFFFFF, $noMSW ? 0 : ($_ >> 32) } ($pdl->getndims, $pdl->dims ) ) );
 
   my $dref = $pdl->get_dataref;
@@ -223,7 +223,7 @@ sub pdlunpack {
       croak "PDL::IO::Storable couldn't parse type string '$typestring'. Giving up";
     }
 
-    my ($sizeof) = unpack( 'L<', substr( $pack, $offset ) );
+    my ($sizeof) = unpack( 'V', substr( $pack, $offset ) );
     $offset += 4;
     if( $sizeof != PDL::Core::howbig( $type ) )
     {
@@ -272,7 +272,7 @@ sub pdlunpack {
 
       return map
       {
-        my ($lsw, $msw) = unpack('L<L<', substr($$pack, $$offset));
+        my ($lsw, $msw) = unpack('VV', substr($$pack, $$offset));
         $$offset += 8;
 
         croak( "PDL::IO::Storable tried reading a file with dimensions that don't fit into 32 bits.\n" .
