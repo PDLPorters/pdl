@@ -1,3 +1,88 @@
+Release Notes for PDL 2.007_03 --------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.006 and earlier.  This     |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+General Notes:
+
+ * Another quick CPAN developers release
+
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.007_03.tar.gz
+       cpan> make CHM/PDL-2.007_03.tar.gz
+       cpan> test CHM/PDL-2.007_03.tar.gz
+       cpan> look CHM/PDL-2.007_03.tar.gz
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.007_02 --------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.006 and earlier.  This     |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+General Notes:
+
+ * Another quick CPAN developers release
+
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.007_02.tar.gz
+       cpan> make CHM/PDL-2.007_02.tar.gz
+       cpan> test CHM/PDL-2.007_02.tar.gz
+       cpan> look CHM/PDL-2.007_02.tar.gz
+
+Highlights:
+
+ * This release should be a working PDL::IO::Storable that
+   is compatable with the new 64bit index support.
+ 
+ * PDL::IO::Storable now requires perl 5.10.x or greater
+   although the overall distribution requirements are not
+   planned to update to 5.10.x until the completion of
+   fixes for the longlong hidden double precision conversion
+   slash truncation bug.
+
+
+
 Release Notes for PDL 2.007_01 --------------------------
 
  +---------------------------------------------------------------+
@@ -33,7 +118,19 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Added FAQ entry on PDL version numbering change and how
+   to specify required PDL versions.
+
+ * Corrected perldl.conf docs for WITH_PLPLOT in the comments
+
+ * Update PDL::IO::Storable to work with the new PDL_Indx
+   data type.  Also made the code backwards compatible to
+   read files written by older PDL releases.
+ 
+ * Fixed NaN handling for min/max and cleaned up handling
+   of empty sets.
+
+ * Various enhancements to PDL::Transform
 
 
 

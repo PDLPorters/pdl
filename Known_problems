@@ -1,5 +1,9 @@
 The following issues have been reported with this version of PDL:
 
+- PDL::IO::Storable requires at least perl 5.10.0.  It will
+  build and install but will not run because of missing support
+  for 64bit integer data endianness in pack/unpack.
+
 
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM
@@ -103,7 +107,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007_01 release:
+  PDL-2.007_03 release:
 
   343    longlong constructor and display lose digits due to implicit double precision conversions
   340    orover of byte data returns long type

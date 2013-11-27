@@ -133,11 +133,24 @@ use Carp;
 sub pdlpack {
   my ($pdl) = @_;
 
-  my $hdr = pack( 'q<A16L<LQ<*', -1, $pdl->type->symbol,
-                  PDL::Core::howbig( $pdl->get_datatype ), 1,
-                  $pdl->getndims, $pdl->dims);
+  my $hdr = pack( 'c8A16VL',
+                  (-1) x 8,
+                  $pdl->type->symbol,
+                  PDL::Core::howbig( $pdl->get_datatype ), 1 );
+
+  # I'd like this to be simply
+  #   my $dimhdr = pack( 'Q<*', $pdl->getndims, $pdl->dims )
+  # but my pack() may not support Q, so I break it up manually
+  #
+  # if sizeof(int) == 4 here, then $_>>32 will not return 0 necessarily (this in
+  # undefined). I thus manually make sure this is the case
+  #
+  my $noMSW = (PDL::Core::howbig($PDL::Types::PDL_IND) < 8) ? 1 : 0;
+  my $dimhdr = pack( 'V*',
+                     map( { $_ & 0xFFFFFFFF, $noMSW ? 0 : ($_ >> 32) } ($pdl->getndims, $pdl->dims ) ) );
+
   my $dref = $pdl->get_dataref;
-  return $hdr.$$dref; # header followed by dataref
+  return $hdr . $dimhdr . $$dref;
 }
 
 sub pdlunpack {
@@ -151,10 +164,11 @@ sub pdlunpack {
 
   # first I try to infer the type of this storable
   my $offset = 0;
-  my ($magicheader) = unpack( "q", substr( $pack, $offset ) );
+  my @magicheader = unpack( "ll", substr( $pack, $offset ) );
   $offset += 8;
 
-  if( $magicheader != -1 )
+  if( $magicheader[0] != -1 ||
+      $magicheader[1] != -1 )
   {
     print "PDL::IO::Storable detected an old-style pdl\n" if $PDL::verbose;
 
@@ -209,7 +223,7 @@ sub pdlunpack {
       croak "PDL::IO::Storable couldn't parse type string '$typestring'. Giving up";
     }
 
-    my ($sizeof) = unpack( 'L<', substr( $pack, $offset ) );
+    my ($sizeof) = unpack( 'V', substr( $pack, $offset ) );
     $offset += 4;
     if( $sizeof != PDL::Core::howbig( $type ) )
     {
@@ -247,13 +261,30 @@ sub pdlunpack {
       $do_swap = 1;
     }
 
-    ($ndims) = unpack('Q<', substr($pack, $offset));
-    $offset += 8;
-    if( $ndims > 0 )
+
+
+    # mostly this acts like unpack('Q<'...), but works even if my unpack()
+    # doesn't support 'Q'. This also makes sure that my PDL_Indx is large enough
+    # to read this piddle
+    sub unpack64bit
     {
-      @dims = unpack( "Q<$ndims", substr( $pack, $offset ) );
-      $offset += 8*$ndims;
+      my ($count, $pack, $offset) = @_;
+
+      return map
+      {
+        my ($lsw, $msw) = unpack('VV', substr($$pack, $$offset));
+        $$offset += 8;
+
+        croak( "PDL::IO::Storable tried reading a file with dimensions that don't fit into 32 bits.\n" .
+               "However here PDL_Indx can't store a number so large. Giving up." )
+          if( PDL::Core::howbig($PDL::Types::PDL_IND) < 8 && $msw != 0 );
+
+        (($msw << 32) | $lsw)
+      } (1..$count);
     }
+
+    ($ndims) = unpack64bit( 1, \$pack, \$offset );
+    @dims = unpack64bit( $ndims, \$pack, \$offset ) if $ndims > 0;
   }
 
   print "thawing PDL, Dims: [",join(',',@dims),"]\n" if $PDL::verbose;

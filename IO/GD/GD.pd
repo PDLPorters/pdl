@@ -1126,9 +1126,13 @@ EOF
             die "Can't create a PDL::IO::GD from a PDL with bad dims!\n";
         }
     }
-    elsif( defined( $options->{filename} ) )
+    elsif( exists( $options->{filename} ) )
     {   # Create it from a file:
-        
+
+        if( !defined $options->{filename} ) {
+          die "PDL::IO::GD::new got an undefined filename. Giving up.\n";
+        }
+
         # Figure out what type of file it is:
         $self->{input_type} = _id_image_file( $options->{filename} )
             or die "$sub: Can't determine image type of filename => \'$options->{filename}\'!\n";

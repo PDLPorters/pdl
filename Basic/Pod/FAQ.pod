@@ -6,12 +6,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  1.004
+Current FAQ version:  1.005
 
 
 =head1 DESCRIPTION
 
-This is version 1.004 of the PDL FAQ, a collection of  frequently 
+This is version 1.005 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 
@@ -397,19 +397,32 @@ I<very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
 
 
-As of this writing (FAQ version 1.004 of 16 Sep 2013) the latest stable version
-is 2.006.  The latest stable version should always be available from a CPAN
+As of this writing (FAQ version 1.005 of 16 Nov 2013) the latest stable version
+is 2.007.  The latest stable version should always be available from a CPAN
 mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?"> for
 info on where to get PDL).
 
 The most current (possibly unstable) version of PDL can be obtained 
 from the Git repository, see L<Question 4.10|"Q: 4.9    How do I get PDL via Git?">
 and periodic CPAN developers releases of the Git code will be made for testing
-purposes and more general availability.  The current post-PDL-2.006 developers
-release of PDL is available as F<CHM/PDL-2.006_07.tar.gz> .
+purposes and more general availability.  The current post-PDL-2.007 developers
+release of PDL is available as F<CHM/PDL-2.007_01.tar.gz> .
 
 
-=head2 Q: 3.4    I want to contribute to the further development of PDL. How can I help?  
+=head2 Q: 3.4  How can PDL-2.2 be older than PDL-2.007?
+
+Over its development, PDL has used both a single floating point version
+number (from the versions 1.x through 2.005) at which point it switched
+to a dotted triple version for 2.1.1 onward---EXCEPT for version 2.2
+which came out which should have been 2.2.0.  To simplify and unify
+things, PDL has reverted to a single float version representation with
+PDL-2.006.  This can cause dependency problems for modules that set a
+minimum PDL version of 2.2.  The work around, it to note that all extant
+PDL releases have version numbers greater than 2.2.1 so that just using
+0 as the minimum version will work.
+
+
+=head2 Q: 3.5    I want to contribute to the further development of PDL. How can I help?  
 
 
 Two ways that you could help almost immediately are (1) participate
@@ -429,7 +442,7 @@ instructions in L<Question 3.2|"Q: 3.2 Are there other PDL information sources o
 We are always looking for people to write code and/or documentation ;).
 
 
-=head2 Q: 3.5    I think I have found a bug in the current version of PDL. What shall I do?  
+=head2 Q: 3.6    I think I have found a bug in the current version of PDL. What shall I do?  
 
 
 First, make sure that the bug/problem you came across has not already been
@@ -565,7 +578,7 @@ PDL builds fine on Win32 using MinGW or Microsoft compilers.  See
 the F<win32/INSTALL> file in the PDL source distribution for details.
 Other compilers have not been tested--input is welcome.  There is
 also a distribution of PDL through ActiveState's ppm, though it
-might not always be the latest version.  PDL-2.006 builds out of
+might not always be the latest version.  PDL-2.007 builds out of
 the box on Strawberry Perl and ActiveState Perl.
 
 
@@ -1103,7 +1116,7 @@ and a wide variety of other video formats.
 =item *
 
 On CPAN you can find the L<PDL::NetCDF|PDL::NetCDF> module that works with the current
-released version of PDL 2.006.
+released version of PDL 2.007.
 
 =back
 

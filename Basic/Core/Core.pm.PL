@@ -286,26 +286,20 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 
 print OUT <<"!WITH!SUBS!";
 
-\@EXPORT_OK = qw( howbig threadids topdl nelem dims shape null
-   $convertfuncs
-   convert inplace zeroes zeros ones list listindices unpdl
-   set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice approx flat sclr squeeze
-   get_autopthread_targ set_autopthread_targ get_autopthread_actual
-   get_autopthread_size set_autopthread_size
-   );
+my \@exports_internal = qw(howbig threadids topdl);
+my \@exports_normal   = (\@EXPORT,
+   qw(nelem dims shape null
+      $convertfuncs
+      convert inplace zeroes zeros ones list listindices unpdl
+      set at flows thread_define over reshape dog cat barf type diagonal
+      dummy mslice approx flat sclr squeeze
+      get_autopthread_targ set_autopthread_targ get_autopthread_actual
+      get_autopthread_size set_autopthread_size) );
 
+\@EXPORT_OK = (\@exports_internal, \@exports_normal);
 \%EXPORT_TAGS = (
-   Func=>[qw/nelem dims shape null
-    $convertfuncs
-    convert inplace zeroes zeros ones list listindices unpdl
-    set at flows thread_define over reshape pdl piddle null dog cat barf type
-    diagonal dummy mslice approx flat sclr
-    get_autopthread_targ set_autopthread_targ get_autopthread_actual
-    get_autopthread_size set_autopthread_size
-    /],
-   Internal=>[qw/howbig threadids topdl/]
-);
+   Func     => [\@exports_normal],
+   Internal => [\@exports_internal] );
 
 !WITH!SUBS!
 
