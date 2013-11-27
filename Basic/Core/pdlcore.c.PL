@@ -236,7 +236,7 @@ void pdl_makescratchhash(pdl *ret, double data, int datatype) {
   sv_2mortal(getref_pdl(ret));
   
   pdl_setdims(ret, fake, 0); /* 0 dims in a scalar */
-  ret->nvals = 1;
+  ret->nvals = 1;            /* 1 val  in a scalar */
   
   /* NULLs should be ok because no dimensions. */
   pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data);
