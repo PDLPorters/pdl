@@ -520,27 +520,54 @@ sub readflex {
     local ($offset) = 0;
     my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
     my $d;
-
+    print("readflex: name is $name\n");
     # Test if $name is a file handle
     if (defined fileno($name)) {
 		$d = $name;
 		binmode($d);
     }
     else {
-		if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
-			(! -e $name && (-e $name.'.gz' || -e $name.'.Z'))) {
-			$data = "gzip -dcq $name |";
-			$zipt = 1;
-		} else {
-			$data = $name;
-		}
+	$name =~ s/\.(gz|Z)$//; # strip any trailing compression suffix
+	$data = $name;
+	if(! -e $name ) {  # If it's still not found, then...
+	  suffix: for my $suffix('gz','Z') {
+	      if( -e "$name.$suffix" ) {
 
-		my ($size) = (stat $name)[7];
-		$d = new FileHandle $data
-		or barf "Couldn't open '$data' for reading";
-		binmode $d;
-		$h = _read_flexhdr("$name.hdr")
-			unless $h;
+		  ## This little fillip detects gzip if we need it, and caches
+		  ## the version in a package-global variable.  The return string
+		  ## is undefined if there is no gzip in the path.
+                  our $gzip_version;
+		  unless(defined($gzip_version)) {
+		      # Try running gzip -V to get the version.  Redirect STDERR to STDOUT since
+		      # Apple'z gzip writes its version to STDERR.
+		      $gzip_version = `gzip -V 2>&1`;
+		      unless(defined($gzip_version)) {
+			  # That may or may not work on Microsoft Windows, so if it doesn't,
+			  # try running gzip again without the redirect.
+			  $gzip_version = `gzip -V`;
+		      }
+		      barf "FlexRaw: couldn't find the external gzip utility (to parse $name.$suffix)!" unless(defined($gzip_version));
+		  }
+		  
+		  if($gzip_version =~ m/^Apple/) {
+		      # Apple gzip requires a suffix
+		      $data = "gzip -dcq $name.$suffix |";
+		  } else {
+		      # Other gzips apparently don't require a suffix - they find it automagically.
+		      $data = "gzip -dcq $name |";
+		  }
+
+		  $zipt = 1;
+		  last suffix;
+	      }
+	  }
+	}
+	my ($size) = (stat $name)[7];
+	$d = new FileHandle $data
+	    or barf "Couldn't open '$data' for reading";
+	binmode $d;
+	$h = _read_flexhdr("$name.hdr")
+	    unless $h;
     }
 
 # Go through headers which reconfigure
