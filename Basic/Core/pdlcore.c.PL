@@ -673,62 +673,62 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
         
       } else if ( (pdl = SvPDLV(el)) ) {
-	/* It is a PDL - walk down its dimension list, exactly as if it
-	 * were a bunch of nested array refs.  We pull the ndims and dims
-	 * fields out to local variables so that nulls can be treated specially.
-	 */
-	int j;
-	short pndims;
-	PDL_Indx *pdims;
-	PDL_Indx pnvals;
-	
-	pdl_make_physdims(pdl);
-	
-	pndims = pdl->ndims;
-	pdims = pdl->dims;
-	pnvals = pdl->nvals;
-	
-	for(j=0;j<pndims;j++) {
-	  int jl = pndims-j+level;
-	  
-	  PDL_Indx siz = pdims[j];
-	  
-	  if(  av_len(dims) >= jl &&
-	       av_fetch(dims,jl,0) != NULL &&
-	       SvIOK(*(av_fetch(dims,jl,0)))) {
-	    
-	    /* We have already found something that specifies this dimension -- so */ 
-	    /* we keep the size if possible, or enlarge if necessary.              */
-	    oldlen=(PDL_Indx)SvIV(*(av_fetch(dims,jl,0)));
-	    if(siz > oldlen) {
-	      sv_setiv(*(av_fetch(dims,jl,0)),(IV)(pdims[j]));
-	    }
-	    
-	  } else {
-	    /* Breaking new dimensional ground here -- if this is the first element */
-	    /* in the arg list, then we can keep zero elements -- but if it is not  */
-	    /* the first element, we have to pad zero dims to unity (because the    */
-	    /* prior object had implicit size of 1 in all implicit dimensions)      */
-	    av_store(dims, jl, newSViv((IV)(siz?siz:(i?1:0))));
-	  }
-	}
-	
-	/* We have specified all the dims in this PDL.  Now pad out the implicit */
-	/* dims of size unity, to wipe out any dims of size zero we have already */
-	/* marked. */
-	
-	for(j=pndims+1; j <= av_len(dims); j++) {
-	  SV **svp = av_fetch(dims,j,0);
+        /* It is a PDL - walk down its dimension list, exactly as if it
+         * were a bunch of nested array refs.  We pull the ndims and dims
+         * fields out to local variables so that nulls can be treated specially.
+         */
+        int j;
+        short pndims;
+        PDL_Indx *pdims;
+        PDL_Indx pnvals;
+        
+        pdl_make_physdims(pdl);
+        
+        pndims = pdl->ndims;
+        pdims = pdl->dims;
+        pnvals = pdl->nvals;
+        
+        for(j=0;j<pndims;j++) {
+          int jl = pndims-j+level;
+          
+          PDL_Indx siz = pdims[j];
+          
+          if(  av_len(dims) >= jl &&
+               av_fetch(dims,jl,0) != NULL &&
+               SvIOK(*(av_fetch(dims,jl,0)))) {
+            
+            /* We have already found something that specifies this dimension -- so */ 
+            /* we keep the size if possible, or enlarge if necessary.              */
+            oldlen=(PDL_Indx)SvIV(*(av_fetch(dims,jl,0)));
+            if(siz > oldlen) {
+              sv_setiv(*(av_fetch(dims,jl,0)),(IV)(pdims[j]));
+            }
+            
+          } else {
+            /* Breaking new dimensional ground here -- if this is the first element */
+            /* in the arg list, then we can keep zero elements -- but if it is not  */
+            /* the first element, we have to pad zero dims to unity (because the    */
+            /* prior object had implicit size of 1 in all implicit dimensions)      */
+            av_store(dims, jl, newSViv((IV)(siz?siz:(i?1:0))));
+          }
+        }
+        
+        /* We have specified all the dims in this PDL.  Now pad out the implicit */
+        /* dims of size unity, to wipe out any dims of size zero we have already */
+        /* marked. */
+        
+        for(j=pndims+1; j <= av_len(dims); j++) {
+          SV **svp = av_fetch(dims,j,0);
 
-	  if(!svp){
-	    av_store(dims, j, newSViv((IV)1));
-	  } else if( (int)SvIV(*svp) == 0 ) {
-	    sv_setiv(*svp, (IV)1);
-	  }
-	}
-	
-	newdepth= pndims;
-	
+          if(!svp){
+            av_store(dims, j, newSViv((IV)1));
+          } else if( (int)SvIV(*svp) == 0 ) {
+            sv_setiv(*svp, (IV)1);
+          }
+        }
+        
+        newdepth= pndims;
+        
       } else {
         croak("av_ndcheck: non-array, non-PDL ref in structure\n\t(this is usually a problem with a pdl() call)");
       }
@@ -887,7 +887,7 @@ for my $in ( keys %PDL_DATATYPES ) {
 print OUT <<"!WITH!SUBS!";
 
 PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
-			   PDL_$type* pdata,  // Data pointer in the dest data array
+                           PDL_$type* pdata,  // Data pointer in the dest data array
                            PDL_Indx* pdims,   // Pointer to the dimlist for the dest pdl
                            PDL_Indx ndims,         // Number of dimensions in the dest pdl
                            int level,         // Recursion level
@@ -895,8 +895,8 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
                            pdl* pdl,          // pointer to the source pdl
                            int plevel,        // level within the source pdl
                            void* pptr,        // Data pointer in the source pdl
-			   double undefval    // undefval for the dest pdl
-			   ) {
+                           double undefval    // undefval for the dest pdl
+                           ) {
   PDL_Indx i;
   PDL_Indx undef_count = 0;
 
@@ -939,7 +939,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
         print OUT <<"!WITH!SUBS!";
 
       case ${switch_type}:
-	   /* copy data (unless the source pointer is null) */
+           /* copy data (unless the source pointer is null) */
       i=0;
       if(pptr && pdata && pdlsiz) {
         for(; i<pdlsiz; i++)
@@ -948,12 +948,12 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
         if(pdata) 
           pdata[i] = undefval;
       }
-	/* pad out, in the innermost dimension */
+        /* pad out, in the innermost dimension */
       if( !oob ) {
-	for(;  i< pdims[0]-poff; i++) {
-	  undef_count++;
-	  pdata[i] = undefval;
-	}
+        for(;  i< pdims[0]-poff; i++) {
+          undef_count++;
+          pdata[i] = undefval;
+        }
       }
 
       break;
@@ -1036,7 +1036,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
  */
 
 PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
-		     PDL_Indx* pdims, int ndims, int level, double undefval)
+                     PDL_Indx* pdims, int ndims, int level, double undefval)
 {
   PDL_Indx cursz = pdims[ndims-1-level]; /* we go from the highest dim inward */
   PDL_Indx len = av_len(av);
@@ -1098,10 +1098,10 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
         PDL_$type *cursor = pdata;
         PDL_$type *target = pdata + stride;
 
-	for( cursor++;  cursor < target; cursor++ ) {
-	  *cursor = (PDL_$type)undefval;
-	  undef_count++;
-	}
+        for( cursor++;  cursor < target; cursor++ ) {
+          *cursor = (PDL_$type)undefval;
+          undef_count++;
+        }
       }
     }
 
