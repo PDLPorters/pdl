@@ -41,12 +41,10 @@ print OUT <<"!WITH!SUBS!";
 /*           - bad value support = $bvalflag */
 
 !WITH!SUBS!
-  ;
 
 
-print OUT <<'!HEADER!'
+print OUT <<'!HEADER!';
 #undef FOODEB
-
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
@@ -61,9 +59,13 @@ print OUT <<'!HEADER!'
  */
 /*   #define sv_undef(sv) (  (!(sv) || ((sv)==&PL_sv_undef) ) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)) )  */
 #define sv_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
-
 !HEADER!
-  ;
+
+
+##############################
+# Figure out the best definition for the 'finite()' call or call-like macro
+# We short-circuit the process for the cl compiler; for other compilers we search 
+# for 'isfinite' or 'finite', with a preference for 'isfinite' (IEEE recommends this).
 
 if($Config{cc} eq 'cl') {
   # _finite in CV++ 4.0
@@ -71,26 +73,29 @@ if($Config{cc} eq 'cl') {
 #define finite _finite
 #include <float.h>
 FOO
-;
-}
-
-my $finite_inc;
-foreach my $inc ( qw/ math.h ieeefp.h / )
-{
-    if ( trylink ("finite: $inc", "#include <$inc>", 'finite(3.2);', '' ) ) {
-	$finite_inc = $inc;
-	last;
+} else {
+    my $finite_inc;
+    my $use_isfinite = 0;
+    foreach my $inc ( qw/ math.h ieeefp.h / )
+    {
+	if ( trylink ("finite: $inc", "#include <$inc>", 'isfinite(3.2);', '' ) ) {
+	    $finite_inc = $inc;
+	    $use_isfinite = 1;
+	    last;
+	}
+	if ( (!defined($finite_inc))  and  trylink ("finite: $inc", "#include <$inc>", 'finite(3.2);','') ) {
+	    $finite_inc = $inc;
+	}
     }
-}
-
-if ( defined $finite_inc )
-{
-    print OUT "#include <$finite_inc>\n";
-}
-else
-{
-    print OUT <<'!NO!SUBS!'
-
+    
+    if ( defined $finite_inc ) {
+	print OUT "#include <$finite_inc>\n";
+	print OUT "#define finite(a) (isfinite(a))\n";
+    }
+    else
+    {
+	print OUT <<'!NO!SUBS!';
+	    /* Kludgy finite/isfinite because pdlcore.c.PL was unable to find one in your math library */
 #ifndef finite
 #ifdef isfinite
 #define finite isfinite
@@ -99,8 +104,13 @@ else
 #endif
 #endif
 !NO!SUBS!
+    }
 }
 
+
+##############################
+# PDL handling stuff starts here
+#
 print OUT <<'!NO!SUBS!'
 static SV *getref_pdl(pdl *it) {
 	SV *newref;
