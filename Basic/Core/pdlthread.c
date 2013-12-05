@@ -487,7 +487,7 @@ void pdl_initthreadstruct(int nobl,
 		  buf0[0] = '\0';
 
 		  s = buf0+strlen(buf0);
-		  sprintf(s,"  Mismatched implicit thread dimension %d: size %d vs. %d\nThere are %d PDLs in the expression; %d thread dims.\n",i,thread->dims[nth],pdls[j]->dims[i+realdims[j]],thread->npdls,nimpl);
+		  sprintf(s,"  Mismatched implicit thread dimension %d: size %d vs. %d\nThere are %d PDLs in the expression; %d thread dim%s.\n",i,thread->dims[nth],pdls[j]->dims[i+realdims[j]],thread->npdls,nimpl,(nimpl==1)?"":"s");
 		  s += strlen(s);
 		  
 		  for(ii=maxrealdims=0; ii<thread->npdls; ii++)
@@ -534,7 +534,7 @@ void pdl_initthreadstruct(int nobl,
 		  }
 		  /* End of helpful error message -- now barf */
 		  
-		  pdl_croak_param(info,j,"%s \n \n.",buf0);
+		  pdl_croak_param(info,j,"%s \n..",buf0);
 		}
 
 		/* If we're still here, they're the same -- OK! */
