@@ -971,17 +971,17 @@ Since this is Perl, TMTOWTDI, so you could also write:
     }',
 
 If you want access to the value of the badflag for a given
-piddle, you can use the C<$PDLSTATExxxx()> macros:
+piddle, you can use the PDL STATE macros:
 
 =over 4
 
-=item $PDLSTATEISBAD(pdl)
+=item $ISPDLSTATEBAD(pdl)
 
-=item $PDLSTATEISGOOD(pdl)
+=item $ISPDLSTATEGOOD(pdl)
 
-=item $PDLSTATESETBAD(pdl)
+=item $SETPDLSTATEBAD(pdl)
 
-=item $PDLSTATESETGOOD(pdl)
+=item $SETPDLSTATEGOOD(pdl)
 
 =back
 
