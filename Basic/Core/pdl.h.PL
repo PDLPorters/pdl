@@ -153,7 +153,7 @@ print OUT <<'!NO!SUBS!';
 	/* Destroying this now */
 #define		PDL_DESTROYING		0x2000
 
-/* You mustn't alter the data pointer nor free this
+/* You must not alter the data pointer nor free this
  * piddle nor use datasv (which is nothing).
  * This means e.g. that the piddle is mmapped from a file
  */
