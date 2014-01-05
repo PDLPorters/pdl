@@ -1212,24 +1212,55 @@ L<lclip|/lclip>.
 EOD
 } # if: $bvalflag
 
-pp_addpm(<<'EOD');
+pp_def(
+	'clip',
+	HandleBad => 1,
+	Pars => 'a(); l(); h(); [o] c()',
+	Code => 
+	'$c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );',
+	BadCode => <<'EOBC',
+	 if( $ISBAD(a()) || $ISBAD(l()) || $ISBAD(h()) ) {
+	   $SETBAD(c());
+         } else {
+           $c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );
+         }
+EOBC
+       PMCode => <<'EOPM',
 *clip = \&PDL::clip;
 sub PDL::clip {
-  my($a, $b, $c) = @_;
-  my $d; if($a->is_inplace) {$a->set_inplace(0); $d = $a} 
-  elsif($#_ > 2) {$d=$_[3]} else {$d = PDL->nullcreate($a)}
- if(defined $b) {
-  	&PDL::_lclip_int($a,$b,$d);
-	if(defined $c) {
-		&PDL::_hclip_int($d,$c,$d);
-	}
-  } elsif(defined $c) {
-	&PDL::_hclip_int($a,$c,$d);
+  my($a, $l, $h) = @_;
+  my $d; 
+  unless(defined($l) || defined($h)) {
+      # Deal with pathological case
+      if($a->is_inplace) {
+	  $a->set_inplace(0);
+	  return $a;
+      } else {
+	  return $a->copy;
+      }
   }
+  
+  if($a->is_inplace) {
+      $a->set_inplace(0); $d = $a
+  } elsif ($#_ > 2) {
+      $d=$_[3]
+  } else {
+      $d = PDL->nullcreate($a);
+  }
+  if(defined($l) && defined($h)) {
+      &PDL::_clip_int($a,$l,$h,$d);
+  } elsif( defined($l) ) {
+      &PDL::_lclip_int($a,$l,$d);
+  } elsif( defined($h) ) {
+      &PDL::_hclip_int($a,$h,$d);
+  } else {
+      die "This can't happen (clip contingency) - file a bug";
+  }
+
   return $d;
 }
-
-EOD
+EOPM
+    ); # end of clip pp_def call
 
 ############################################################
 # elementary statistics and histograms
