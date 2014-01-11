@@ -2955,8 +2955,10 @@ sub PDL::slice (;@) {
     my ($source, @others) = @_;
 
     # Deal with dicing.  This is lame and slow compared to the
-    # faster slicing, but works okay.  It uses the same technique
-    # as dice_axis().
+    # faster slicing, but works okay.  We loop over each argument,
+    # and if it's a PDL we dispatch it in the most straightforward
+    # way.  Single-element and zero-element PDLs are trivial and get
+    # converted into slices for faster handling later.
 
     for my $i(0..$#others) {
       if( ref $others[$i] eq 'PDL' ) {
@@ -2965,15 +2967,24 @@ sub PDL::slice (;@) {
           barf("slice: dicing parameters must be at most 1D (arg $i)\n");
         }
         my $nlm = $idx->nelem;
+
         if($nlm > 1) {
+
+	   #### More than one element - we have to dice (darn it).
            my $n = $source->getndims;
            $source = $source->mv($i,0)->index1d($idx)->mv(0,$i);
            $others[$i] = '';
-        } elsif($nlm) {
-           # One element - convert to a regular slice.
+
+        } 
+	elsif($nlm) {
+
+           #### One element - convert to a regular slice.
            $others[$i] = $idx->flat->at(0);
-        } else {
-           # Zero elements -- force an extended empty.
+
+        }
+	else {
+	
+           #### Zero elements -- force an extended empty.
            $others[$i] = "1:0:1";
         }
       }
@@ -3023,12 +3034,11 @@ KLUDGE
 
 ##############################
 # sliceb is the core of slice.  The "foo/foob" nomenclature is used to avoid the argument
-# counting inherent in a PP PMCode section -- "slice" is a front-end that just rolls up a
-# whole variable-length argument list into a single AV reference.
+# counting inherent in a direct Code section call -- "slice" is a front-end that just rolls up a
+# whole variable-length argument list into a single AV reference.  
 #
-# (The real reason for foo/foob architecture, as with range/rangeb, is that I'm too stoopid to figure
-# out how to make the PMCode+Code hack work with PP for dataflow operators... --CED)
-#
+# I'm also too lazy to figure out how to make a PMCode section work right on a dataflow PP operator.
+# -- CED
 
 pp_def(
         'sliceb',
@@ -3065,7 +3075,7 @@ pp_def(
                 int nargs;
                 AV *arglist;
 
-                /*** Make sure we got an array ref as input and turn it into an AV ***/
+                /*** Make sure we got an array ref as input and extract its corresponding AV ***/
                 if(!(  args   &&
                        SvROK(args)   &&
                        SvTYPE(SvRV(args))==SVt_PVAV  )){
@@ -3075,32 +3085,33 @@ pp_def(
                 arglist = (AV *)(SvRV(args));
 
                 /* Detect special case of a single comma-delimited string; in that case, */
-                /* split out our own arglist */
+                /* split out our own arglist.                                            */
 
                 if( (av_len(arglist) == 0) ) {
-                  /* single-element list: pull first element */
+
+                  /***   single-element list: pull first element ***/
+
                   SV **svp;
                   svp = av_fetch(arglist, 0, 0);
 
                   if(svp && *svp && *svp != &PL_sv_undef && SvPOKp(*svp)) {
 
-                    /* The element exists and is not undef and has a cached string value */
+                    /*** The element exists and is not undef and has a cached string value ***/
+
                     char *s,*ss;
                     s = ss = SvPVbyte_nolen(*svp);
                     for(;  *ss && *ss != ',';  ss++) {}
 
                     if(*ss == ',') {
+		      char *s1;
 
-                      /* the string contains at least one comma.  ATTACK!    */
-                      /* We make a temporary array and populate it with      */
-                      /* SVs containing substrings -- basically split(/\,/), */
-                      /* but without the overhead of a perl call             */
+                      /* the string contains at least one comma.  ATTACK!      */
+                      /* We make a temporary array and populate it with        */
+                      /* SVs containing substrings -- basically split(/\,/)... */
 
                       AV *al = (AV *)sv_2mortal((SV *)(newAV()));
 
                       do {
-                        SV *sv;
-                        char *s1;
                         for(s1=s; *s1 && *s1 != ','; s1++);
 
                         av_push(al, newSVpvn(s, s1-s));
@@ -3116,8 +3127,10 @@ pp_def(
                   } /* end of nontrivial single-element detection */
                 }/* end of single-element detection */
 
+
                 nargs = $COMP(nargs) = av_len( arglist ) + 1;
                 $DOCOMPDIMS();
+
 
                 /**********************************************************************/
                 /**** Loop over the elements of the AV input and parse into values ****/
@@ -3148,22 +3161,16 @@ pp_def(
 
                      if(SvROK(this)) {
 
-                       /*
-                        * It's a reference - it better be an array ref.
-                        * (Note: PDLs are refs too and are allowed (they cause dicing) --
-                        * but those are parsed out in the Perl-side preprocessor
-                        * (PDL::slice, declared above).
-                        */
+                       /*** It's a reference - it better be an array ref. ***/
                        int nelem;
                        AV *sublist;
 
-                       if( SvTYPE(SvRV(this)) != SVt_PVAV ) {
-                         barf("slice: non-ARRAY ref in the argument list!");
-                       }
+                       if( SvTYPE(SvRV(this)) != SVt_PVAV ) barf("slice: non-ARRAY ref in the argument list!");
 
-                       /*
-                        * It *is* an array ref!  Expand it into an AV so we can read it.
-                        */
+
+
+                       /*** It *is* an array ref!  Expand it into an AV so we can read it. ***/
+
                        sublist = (AV *)(SvRV(this));
                        if(!sublist) {
                          nelem = 0;
@@ -3171,15 +3178,13 @@ pp_def(
                          nelem = av_len(sublist) + 1;
                        }
 
-                       if(nelem > 3) {
-                         barf("slice: array refs can have at most 3 elements!");
-                       }
+                       if(nelem > 3) barf("slice: array refs can have at most 3 elements!");
+
 
                        if(nelem==0) {      /* No elements - keep it all */
                          all_flag = 1;
 
                        } else /* Got at least one element */{
-
 
                          /* Load the first into n0 and check for dummy or all-clear */
                          /* (if element is missing use the default value already in n0) */
@@ -3456,6 +3461,7 @@ SLICE-MC
            RedoDims => q{
                   int o_ndims_extra = 0;
                   PDL_Indx i;
+		  PDL_Indx PDIMS;
 
                   if( $COMP(idim_top) < $PARENT(ndims) ) {
                     o_ndims_extra = $PARENT(ndims) - $COMP(idim_top);
@@ -3492,53 +3498,61 @@ SLICE-MC
                           pdsize = 1;
                         }
 
-                        /** Regularize and bounds-check the start location **/
                         start = $COMP(start[i]);
-                        if(start < 0)
-                          start += pdsize;
-                        if( (start < 0) || (start >= pdsize) ) {
-                          PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-                          if(i >= $PARENT( ndims )) {
-                            barf("slice: slice has too many dims (indexes dim %d; highest is %d)",i,$PARENT( ndims )-1);
-                          } else {
-                            barf("slice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0-%d)",i,start,$COMP(idim[i]),pdsize-1);
-                          }
-                        }
+			end = $COMP(end[i]);
 
-                        if( $COMP(odim[i]) < 0) {
-
-                         /* squished dim - just update the offset. */
-                         /* start is always defined and regularized if we are here here, since */
-                         /* both idim[i] and odim[i] can't be <0 */
-
-                         $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
-
-                        } else /* normal operation */ {
-                          PDL_Indx siz;
-                          PDL_Indx inc;
-
-                          /** Regularize and bounds-check the end location **/
-                          end = $COMP(end[i]);
-                          if(end<0)
+			if( pdsize==0 && start==0 && end==-1 && $COMP(inc[i])==0 ) {
+			  /** Trap special case: full slices of an empty dim are empty **/
+			  $CHILD( dims[ $COMP(odim[i]) ] ) = 0;
+                          $PRIV( incs[$COMP(odim[i]) ] ) = 0;
+			} else {
+			  
+			  /** Regularize and bounds-check the start location **/
+			  if(start < 0)
+			    start += pdsize;
+			  if( start < 0 || start >= pdsize ) {
+			    PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+			    if(i >= $PARENT( ndims )) {
+			      barf("slice: slice has too many dims (indexes dim %d; highest is %d)",i,$PARENT( ndims )-1);
+			    } else {
+			  barf("slice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0 to %d)",i,start,$COMP(idim[i]),pdsize-1);
+			    }
+			  }
+			  
+			  if( $COMP(odim[i]) < 0) {
+			    
+			    /* squished dim - just update the offset. */
+			    /* start is always defined and regularized if we are here here, since */
+			    /* both idim[i] and odim[i] can't be <0 */
+			    
+			    $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
+			    
+			  } else /* normal operation */ {
+			    PDL_Indx siz;
+			    PDL_Indx inc;
+			    
+			    /** Regularize and bounds-check the end location **/
+			    if(end<0)
                             end += pdsize;
-                          if( (end < 0) || (end >= pdsize) ) {
-                            PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-                            barf("slice: slice ends out of bounds in pos %d (end is %d; source dim %d runs 0-%d)",i,end,$COMP(idim[i]),pdsize-1);
-                          }
-
-                          /* regularize inc */
-
-                          inc = $COMP(inc[i]);
-                          if(!inc)
-                            inc = (start <= end) ? 1 : -1;
-
-                          siz = (end - start + inc) / inc ;
-                          if(siz<0)
-                            siz=0;
-                          $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
-                          $PRIV(  incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * inc;
-                          $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
-                        } /* end of normal slice case */
+			    if( end < 0 || end >= pdsize ) {
+			      PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
+			      barf("slice: slice ends out of bounds in pos %d (end is %d; source dim %d runs 0 to %d)",i,end,$COMP(idim[i]),pdsize-1);
+			    }
+			    
+			    /* regularize inc */
+			    
+			    inc = $COMP(inc[i]);
+			    if(!inc)
+			      inc = (start <= end) ? 1 : -1;
+			    
+			    siz = (end - start + inc) / inc ;
+			    if(siz<0)
+			      siz=0;
+			    $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
+			    $PRIV(  incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * inc;
+			    $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
+			  } /* end of normal slice case */
+			} /* end of trapped strange slice case */
                       } /* end of non-dummy slice case */
                   } /* end of nargs loop */
 

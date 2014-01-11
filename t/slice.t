@@ -4,7 +4,7 @@
 use strict;
 use Test::More;
 
-plan tests => 86;
+plan tests => 89;
     ;
 use PDL::LiteF;
 
@@ -382,3 +382,13 @@ $z .= 2;
 ok(1);            # should *not* segfault!
 ok(all($a==5));   # should *not* change $a!
 
+### Check slicing of a null PDL
+
+$a = PDL->null;
+
+eval '$b = $a->slice("")->nelem';
+ok(!$@);
+ok($b==0);
+
+eval '$b = $a->slice(0)->nelem';
+ok($@ =~ m/out of bounds/);
