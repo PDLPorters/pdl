@@ -3,7 +3,6 @@ use warnings;
 
 use Config;
 use Devel::CheckLib;
-
 use ExtUtils::MakeMaker;
 
 my $transform_proj4_lib_path;
