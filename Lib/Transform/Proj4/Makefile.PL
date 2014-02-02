@@ -10,21 +10,21 @@ use warnings;
 use Config;
 
 BEGIN {
-   print STDERR join "\n", sort grep { m/Carp/ } keys %INC;
-   print STDERR "*****************************************\n";
-   use lib '../../../inc';
-   if (($^V eq v5.8.8 or $] >= 5.016 and $] < 5.017) and exists $INC{'Carp.pm'}) {
-      warn "Carp initially at: $INC{'Carp.pm'}\n";
-      delete $INC{'Carp.pm'};
-      eval "use Carp";
-   }
-   if (($^V eq 'v5.8.8' or $] >= 5.016 and $] < 5.017) and exists $INC{'Carp/Heavy.pm'}) {
-      warn "Carp initially at: $INC{'Carp/Heavy.pm'}\n";
-      delete $INC{'Carp/Heavy.pm'};
-      eval "use Carp::Heavy";
-   }
    print STDERR "*****************************************\n";
    print STDERR join "\n", sort grep { m/Carp/ } keys %INC;
+   # use lib '../../../inc';
+   # if (($^V eq v5.8.8 or $] >= 5.016 and $] < 5.017) and exists $INC{'Carp.pm'}) {
+   #    warn "Carp initially at: $INC{'Carp.pm'}\n";
+   #    delete $INC{'Carp.pm'};
+   #    eval "use Carp";
+   # }
+   # if (($^V eq 'v5.8.8' or $] >= 5.016 and $] < 5.017) and exists $INC{'Carp/Heavy.pm'}) {
+   #    warn "Carp initially at: $INC{'Carp/Heavy.pm'}\n";
+   #    delete $INC{'Carp/Heavy.pm'};
+   #    eval "use Carp::Heavy";
+   # }
+   # print STDERR join "\n", sort grep { m/Carp/ } keys %INC;
+   print STDERR "*****************************************\n";
    use Devel::CheckLib;
 }
 
