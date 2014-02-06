@@ -156,6 +156,7 @@ int pdl__ismagic(pdl *it)
 static pdl_magic **delayed=NULL;
 static int ndelayed = 0;
 void pdl_add_delayed_magic(pdl_magic *mag) {
+    /* FIXME: Common realloc mistake: 'delayed' nulled but not freed upon failure */
 	delayed = realloc(delayed,sizeof(*delayed)*++ndelayed);
 	delayed[ndelayed-1] = mag;
 }
@@ -451,24 +452,24 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 		static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_lock( &mutex );
 		{
-			// In the chunk I'm adding I need to store the actual data and a trailing
-			// newline.
+			/* In the chunk I'm adding I need to store the actual data and trailing newline. */
 			int extralen = vsnprintf(NULL, 0, pat, *args) + 1;
 
-			// 1 more for the trailing '\0'. (For windows, we first #undef realloc
-			// so that the system realloc function is used instead of the PerlMem_realloc
-			// macro. This currently works fine, though could conceivably require some
-			// tweaking in the future if it's found to cause any problem.)
+			/* 1 more for the trailing '\0'. (For windows, we first #undef realloc
+			   so that the system realloc function is used instead of the PerlMem_realloc
+			   macro. This currently works fine, though could conceivably require some
+			   tweaking in the future if it's found to cause any problem.) */
 #ifdef WIN32
 #undef realloc
 #endif
+            /* FIXME: Common realloc mistake: 'msgs' nulled but not freed upon failure */
 			*msgs = realloc(*msgs, *len + extralen + 1);
 			vsnprintf( *msgs + *len, extralen + 1, pat, *args);
 
-			// update the length-so-far. This does NOT include the trailing '\0'
+			/* update the length-so-far. This does NOT include the trailing '\0' */
 			*len += extralen;
 
-			// add the newline to the end
+			/* add the newline to the end */
 			(*msgs)[*len-1] = '\n';
 			(*msgs)[*len  ] = '\0';
 		}
