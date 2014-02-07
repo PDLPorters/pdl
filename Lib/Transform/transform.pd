@@ -1,4 +1,4 @@
-# pp_addhdr("#include <sys/time.h>\n");
+ pp_addhdr("#include <sys/time.h>\n");
 pp_addpm({At=>'Top'},<<'+======EOD======');
 
 =head1 NAME
@@ -798,11 +798,12 @@ pp_def('map',
 
     case 'g': case 'j':       // Gaussian and/or Jacobian, using lookup table
       method = 'g';
+      zeta = GAUSSIAN_LOOKUP_SIZE / GAUSSIAN_MAXVAL;
+
       if( needs_gaussian_calc ) {
         int i;
-	zeta = GAUSSIAN_LOOKUP_SIZE / GAUSSIAN_MAXVAL;
 	for(i=0;i<GAUSSIAN_LOOKUP_SIZE;i++) {
-	  gaussian_lookup[i] = exp( - i * 1.386294 * GAUSSIAN_MAXVAL / GAUSSIAN_LOOKUP_SIZE );
+	  gaussian_lookup[i] = exp( - i * 1.386294 / zeta );
 	}
 	gaussian_lookup[GAUSSIAN_LOOKUP_SIZE]   = 0;
 	gaussian_lookup[GAUSSIAN_LOOKUP_SIZE+1] = 0;
