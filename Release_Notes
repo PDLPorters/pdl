@@ -41,6 +41,11 @@ Highlights:
    and strings.  Still to do: implement for command line use
    in perldl/pdl2 shells.
 
+ * Added ability to call PDL::Graphics2D twiddle() routine with
+   an argument of 0 or 1 (technically false or true) to set
+   whether the twiddle loop is run.  Also fixed a minor warning
+   generated with 'use warnings'.  This closes bug #353.
+
 
 
 Release Notes for PDL 2.007_10 --------------------------
