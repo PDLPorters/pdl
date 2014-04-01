@@ -33,7 +33,10 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Added ability to call PDL::Graphics2D twiddle() routine with
+   an argument of 0 or 1 (technically false or true) to set
+   whether the twiddle loop is run.  Also fixed a minor warning
+   generated with 'use warnings'.  This closes bug #353.
 
 
 
