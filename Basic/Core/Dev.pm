@@ -66,7 +66,7 @@ sub PDL_BOOT {
   $symname ||= 'PDL';
   return << "EOR";
 
-   perl_require_pv ("PDL::Core"); /* make sure PDL::Core is loaded */
+   perl_require_pv ("PDL/Core.pm"); /* make sure PDL::Core is loaded */
    CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
 #ifndef aTHX_
 #define aTHX_
