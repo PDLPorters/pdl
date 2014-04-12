@@ -154,6 +154,7 @@ WriteMakefile(
 			qw/Dev.pm typemap.pdl pdl.h pdlcore.h pdlmagic.h pdlsimple.h
 				pdlthread.h ppport.h/
 		)),
+		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
 		},
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
  'DEFINE' 	=> $pthread_define.$macos_braindamage_define,
