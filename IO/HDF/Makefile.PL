@@ -12,21 +12,21 @@ BEGIN
     $msg = "";
     $forcebuild=0;  # Note: forcebuild not used
 
-    if (defined $PDL::Config{WITH_HDF} && $PDL::Config{WITH_HDF}==0) 
+    if (defined $PDL::Config{WITH_HDF} && $PDL::Config{WITH_HDF}==0)
     {
         $msg = "\n   Will skip build of PDL::IO::HDF on this system   \n";
         goto skip;
     }
-    
-    if (defined $PDL::Config{WITH_HDF} && $PDL::Config{WITH_HDF}==1) 
+
+    if (defined $PDL::Config{WITH_HDF} && $PDL::Config{WITH_HDF}==1)
     {
         print "\n   Will forcibly try and build PDL::IO::HDF on this system   \n\n";
         $forcebuild=1;
     }
-    
+
     # Look for HDF4 includes/libs
     # default locations:
-    @HDF_lib_locations = (    
+    @HDF_lib_locations = (
         '/usr/lib64',
         '/usr/local/netcdf/lib',
         '/usr/local/lib',
@@ -46,12 +46,12 @@ BEGIN
         '/usr/include/hdf',
         '/opt/include',
 	$Config{usrinc},
-    ); 
-    
+    );
+
     # get locations from perldl.conf, if specified there:
-    @HDF_lib_locations = @{$PDL::Config{HDF_LIBS}} 
+    @HDF_lib_locations = @{$PDL::Config{HDF_LIBS}}
         if( defined $PDL::Config{HDF_LIBS} );
-    @HDF_inc_locations = @{$PDL::Config{HDF_INC}} 
+    @HDF_inc_locations = @{$PDL::Config{HDF_INC}}
         if( defined $PDL::Config{HDF_INC} );
 
     #
@@ -59,29 +59,37 @@ BEGIN
     #
     my $found_df = 0;
     my $found_sz = 0;
-    
+
     # Look for the libs:
-    foreach my $libdir ( @HDF_lib_locations ) 
+    foreach my $libdir ( @HDF_lib_locations )
     {
-        if (-e "$libdir/libdfalt.a" && !$found_df) 
+        if (-e "$libdir/libdfalt.a" && !$found_df)
         {
             $found_df = 1;
             $hdf_lib_path = $libdir;
 			$hdf_libs = '-lmfhdfalt -ldfalt';
             print "Found libdfalt.a at $libdir/libdfalt.a\n";
         }
-    
-        if (-e "$libdir/libdf.a" && !$found_df) 
+
+        if (-e "$libdir/libdf.a" && !$found_df)
         {
             $found_df = 1;
             $hdf_lib_path = $libdir;
 			$hdf_libs = '-lmfhdf -ldf';
             print "Found libdf.a at $libdir/libdf.a\n";
         }
-    
+
+        if (-e "$libdir/libhdf.a" && !$found_df)
+        {
+            $found_df = 1;
+            $hdf_lib_path = $libdir;
+            $hdf_libs = '-lmfhdf -lhdf';
+            print "Found libhdf.a at $libdir/libhdf.a\n";
+        }
+
         # Look for the szip library, which HDF >= 4.2r0 needs, but older versions don't!
 
-        if (-e "$libdir/libsz.$Config{so}" && !$found_sz) 
+        if (-e "$libdir/libsz.$Config{so}" && !$found_sz)
         {
             $found_sz = 1;
             print "Found libsz.$Config{so} at $libdir/libsz.$Config{so}\n";
@@ -92,16 +100,16 @@ BEGIN
     {
         $msg .= "Cannot find hdf library, libdf.a.\n"
               . "Please add the correct library path to Makefile.PL or install HDF\n";
-        
+
     }
 
     warn "Warning: Did not find libsz, necessary for HDF >= 4.2r0\n" unless $found_sz;
     $szip = $found_sz ? "-lsz" : "";
 
     # Look for the include files:
-    foreach my $incdir ( @HDF_inc_locations ) 
+    foreach my $incdir ( @HDF_inc_locations )
     {
-        if (-e "$incdir/hdf.h") 
+        if (-e "$incdir/hdf.h")
         {
             $hdf_include_path = ($incdir eq '/usr/local/include' ) ? "" : $incdir;
             print "Found hdf.h at $incdir/hdf.h\n";
@@ -114,7 +122,7 @@ BEGIN
         $msg .= "Cannot find hdf header file, hdf.h.\n"
               . "Please add the correct library path to Makefile.PL or install HDF\n";
     }
-    
+
     #
     # Set up architecture dependant stuff:
     # NOTE TO SELF: The main PDL developers may not like this...
@@ -133,8 +141,8 @@ BEGIN
         print "WARNING: Unknown cpu type $cpu! Not setting \$hdf_defs. (This may not be a bad thing)\n";
     }
     print "Final \$hdf_defs flags: \'$hdf_defs\'\n\n";
-    
-    
+
+
     #
     # Make sure everything we wanted is found:
     #
@@ -143,23 +151,23 @@ BEGIN
     {
         $donot = 0;
     }
-    
+
     if ( $donot )
     {
         $msg .= "\n Skipping build of PDL::IO::HDF.\n";
     }
-    
+
 skip:
-    
-    if ($msg ne "" && $forcebuild==0) 
+
+    if ($msg ne "" && $forcebuild==0)
     {
         warn $msg . "\n";
         $msg =~ s/\n//g;
         write_dummy_make( $msg );
         $donot = 1;
         $PDL::Config{WITH_HDF}=0;
-    } 
-    else 
+    }
+    else
     {
        $PDL::Config{WITH_HDF}=1;
         print "\n   Building PDL::IO::HDF. Turn off WITH_HDF if there are any problems\n\n";
@@ -179,9 +187,9 @@ WriteMakefile(     NAME => 'PDL::IO::HDF',
     },
     INC => &PDL_INCLUDE() . " -I$hdf_include_path",
     LIBS => [ "-L$hdf_lib_path $hdf_libs -ljpeg -lz $szip" ],
-    dist => { 
-        COMPRESS => 'gzip', 
-        SUFFIX => 'gz', 
+    dist => {
+        COMPRESS => 'gzip',
+        SUFFIX => 'gz',
     },
     DIR => [ 'SD', 'VS' ],
     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
