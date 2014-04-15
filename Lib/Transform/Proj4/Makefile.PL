@@ -172,7 +172,7 @@ BEGIN
 
          if (
             check_lib(
-               function=>'projPJ mypj = pj_init_plus("+proj=eqc +lon_0=0"); if (! mypj) return 1; else return 0;',
+               function=>'projPJ mypj = pj_init_plus("+proj=eqc +lon_0=0 +datum=WGS84"); if (! mypj) return 1; else return 0;',
                header=>$header,
                incpath=>$include_path,
                lib=>'proj',
