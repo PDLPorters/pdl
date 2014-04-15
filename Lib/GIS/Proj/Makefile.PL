@@ -117,7 +117,7 @@ BEGIN
 
    # Check for PROJ4 library version
    {
-      open PJAPI, "$include_path/proj_api.h" or warn "Couldn't open '$include_path/proj_api.h': $!"; 
+      open PJAPI, "$include_path/proj_api.h" or warn "Couldn't open '$include_path/proj_api.h': $!";
       while (<PJAPI>) {
          $PJ_VERSION = $1 if m/^\# define \s+ PJ_VERSION \s+ (\d+)/x ;
          if (defined($PJ_VERSION)) {
@@ -159,7 +159,7 @@ BEGIN
          # now see if pj_init works
          if (
             check_lib(
-               function=>'projPJ mypj = pj_init_plus("+proj=eqc +lon_0=0"); if (! mypj) return 1; else return 0;',
+               function=>'projPJ mypj = pj_init_plus("+proj=eqc +lon_0=0 +datum=WGS84"); if (! mypj) return 1; else return 0;',
                header=>$header,
                incpath=>$include_path,
                lib=>'proj',
