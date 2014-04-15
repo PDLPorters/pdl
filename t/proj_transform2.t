@@ -15,18 +15,18 @@ use PDL;
 use Test::More;
 
 BEGIN
-{   
+{
     use PDL::Config;
-    if ( $PDL::Config{WITH_PROJ} ) 
+    if ( $PDL::Config{WITH_PROJ} )
     {
         eval( " use PDL::Transform::Proj4; " );
         if( !($@) )
         {
-            if ( $PDL::Bad::Status ) 
+            if ( $PDL::Bad::Status )
             {
                 plan tests => 20;
             }
-            else 
+            else
             {
                 plan skip_all => "PDL::Transform::Proj4 module requires the PDL::Bad module!";
             }
@@ -70,12 +70,12 @@ SKIP: {
 
    my $map_size = [500,500];
 
-   my @slices = ( 
+   my @slices = (
       "245:254,68:77,(0)",
       "128:137,272:281,(0)",
       "245:254,262:271,(0)",
       "390:399,245:254,(0)",
-      "271:280,464:473,(0)" 
+      "271:280,464:473,(0)"
    );
 
 
@@ -86,7 +86,7 @@ SKIP: {
    my @ref_eqc_slices = get_ref_eqc_slices();
 
    # Check EQC map against reference:
-   my $eqc_opts = "+proj=eqc +lon_0=0";
+   my $eqc_opts = "+proj=eqc +lon_0=0 +datum=WGS84";
    my $eqc = eval '$map->map( t_proj( proj_params => $eqc_opts ), $map_size )';
    if (! defined($eqc)) {
       diag("PROJ4 error: $@\n");
