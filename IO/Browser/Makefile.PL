@@ -21,7 +21,8 @@ use lib $libdir;
 
 use Devel::CheckLib;
 
-require PDL::Core::Dev;
+#require PDL::Core::Dev;
+require Basic::Core::Dev;
 PDL::Core::Dev->import();
 
 @pack = (["browser.pd",Browser,PDL::IO::Browser]);
