@@ -59,6 +59,7 @@ unless ($found_plplot) {
 }
 
 foreach my $libdir (
+		    split(/ /, $Config{libpth}),
 		    $ENV{PLPLOT_LIBDIR},
 		    $PDL::Config{WHERE_PLPLOT_LIBS},
 		    '/usr/local/plplot/lib64',
@@ -94,6 +95,7 @@ unless (defined ($plplot_lib_path)) {
 }
 
 foreach my $incdir (
+		    "$Config{usrinc}/plplot",
 		    $ENV{PLPLOT_INCDIR},
 		    $PDL::Config{WHERE_PLPLOT_INCLUDE},
                     '/usr/local/plplot/include',
@@ -187,7 +189,7 @@ $PDL::Config{WITH_PLPLOT} = 1;
 @pack = (["plplot.pd",PLplot,PDL::Graphics::PLplot]);
 
 #%hash = pdlpp_stdargs_int(@::pack);  # use this for module inside PDL source
-%hash = pdlpp_stdargs(@::pack);          # use this for separate module          
+%hash = pdlpp_stdargs(@::pack);          # use this for separate module
 
 # $hash{'PREREQ_PM'} = { PDL => 0 };
 $hash{'OPTIMIZE'}  = '-g'; # If you want to debug, uncomment this.
