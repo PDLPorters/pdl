@@ -1,4 +1,4 @@
- pp_addhdr("#include <sys/time.h>\n");
+pp_addhdr("#include <sys/time.h>\n") unless $^O =~ /MSWin32/i;
 pp_addpm({At=>'Top'},<<'+======EOD======');
 
 =head1 NAME
@@ -348,8 +348,8 @@ sub apply {
 
   if(UNIVERSAL::isa($me,'PDL::Transform') && UNIVERSAL::isa($from,'PDL')){
       croak "Applying a PDL::Transform with no func! Oops.\n" unless(defined($me->{func}) and ref($me->{func}) eq 'CODE');
-      my $result = &{$me->{func}}($from,$me->{params});         
-      $result->is_inplace(0); # clear inplace flag, just in case.       
+      my $result = &{$me->{func}}($from,$me->{params});
+      $result->is_inplace(0); # clear inplace flag, just in case.
       return $result;
   } else {
       croak "apply requires both a PDL and a PDL::Transform.\n";
@@ -515,7 +515,7 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double *tmp, PDL_Doub
   PDL_Double *svptr;
   PDL_Double *aptr,*bptr;
   PDL_Double max_sv = 0.0;
-  
+
   ndims = map->ndims-1;
 
   /****** Accumulate the Jacobian */
@@ -667,7 +667,7 @@ pp_def('map',
 
   /***************************************************************************/
   /**  Check that the dimensionalities are consistent.  This is             **/
-  /**  allegedly done already in the perl part, butcan also be done here.   **/ 
+  /**  allegedly done already in the perl part, butcan also be done here.   **/
   /**                                                                       **/
   /**  if(map->ndims != out->ndims)                                         **/
   /**   barf("%s", "Bug in map: index dims aren't consistent\n");           **/
@@ -686,7 +686,7 @@ pp_def('map',
   /***************************************************************************/
 
  /*
-  * Allocate all our dynamic workspaces at once 
+  * Allocate all our dynamic workspaces at once
   * */
  ovec = (PDL_Indx *)(PDL->smalloc( (STRLEN)
                                    ( + sizeof(PDL_Indx)    * 3 * ndims               // ovec, ivec, ibvec
@@ -764,7 +764,7 @@ pp_def('map',
    barf("%s","map: 'blur' parameter must be >= 0");
 
  sv_min = fabs((PDL_Double) (SvNV($COMP(sv_min))));
- if(sv_min < 0) 
+ if(sv_min < 0)
    barf("%s","map: 'sv_min' parameter must be >= 0");
 
  flux   = (SvNV($COMP(flux)) != 0);
@@ -777,22 +777,22 @@ pp_def('map',
   if(mlen==0)
         method = 'h';
   else switch(*mstr) {
-    case 'H':                 // H - rigorous hanning window 
+    case 'H':                 // H - rigorous hanning window
       method='H'; break;
     case 'h':                 // h - lookup-table hanning window
-      method = 'h'; 
+      method = 'h';
       if( needs_hanning_calc ) {
          int i;
          for(i=0;i<HANNING_LOOKUP_SIZE;i++) {
            hanning_lookup[i] = 0.5 + 0.5 * cos(3.1415926536 / HANNING_LOOKUP_SIZE * i);
-         } 
+         }
          hanning_lookup[HANNING_LOOKUP_SIZE]   = 0;
          hanning_lookup[HANNING_LOOKUP_SIZE+1] = 0;
          needs_hanning_calc = 0;
       }
-      zeta = HANNING_LOOKUP_SIZE / blur;        
-      hanning_offset = (blur >= 1) ?  
-                0 : 
+      zeta = HANNING_LOOKUP_SIZE / blur;
+      hanning_offset = (blur >= 1) ?
+                0 :
                 0.5 * (1.0 - blur);
       break;
 
@@ -833,15 +833,15 @@ pp_def('map',
   */
  for(i=0;i<ndims;i++)
    ovec[i] = 0;
- 
+
  map_ptr = (PDL_Double *)(map->data);
 
 
 /* Main pixel loop (iterates over pixels in the output plane) */
  do {
    PDL_Indx psize; // Size of the region to accumulate over for this pixel
-   PDL_Double wgt; // Weight accumulator for output 
-   PDL_Indx i_off; // Offset into the data array of the source PDL 
+   PDL_Double wgt; // Weight accumulator for output
+   PDL_Indx i_off; // Offset into the data array of the source PDL
    PDL_Indx j;     // Generic loop index
    char t_vio;     // counter used for truncation boundary violations
    char carry;     // flag used for multidimensional loop iteration
@@ -892,10 +892,10 @@ pp_def('map',
 
 
      /*
-      * Calculate the original offset into the data array, to enable 
+      * Calculate the original offset into the data array, to enable
       * delta calculations in the pixel loop
       *
-      * i runs over dims; j holds the working integer index in the 
+      * i runs over dims; j holds the working integer index in the
       * current dim.
       *
       * This code matches the incrementation code at the bottom of the accumulation loop
@@ -903,7 +903,7 @@ pp_def('map',
      t_vio = 0; /* truncation-boundary violation count - don't bother if it is nonzero */
      i_off = 0;
      for(i=0;i<ndims; i++) {
-       j = ivec[i] + ibvec[i]; 
+       j = ivec[i] + ibvec[i];
        if(j<0 || j >= in->dims[i]) {
          switch(bounds[i]) {
          case 0: /* no breakage allowed */
@@ -965,12 +965,12 @@ pp_def('map',
 
      do {  /* Input accumulation loop */
          PDL_Double *cp;
-         PDL_Double alpha; // weighting coefficient for the current point 
+         PDL_Double alpha; // weighting coefficient for the current point
 
        /* Calculate the weight of the current input point.  Don't bother if we're
         * violating any truncation boundaries (in that case our value is zero, but
         * for the interpolation we also set the weight to zero).
-        */ 
+        */
        if( !t_vio ) {
 
          PDL_Double *ap = tvec;
@@ -978,10 +978,10 @@ pp_def('map',
          PDL_Indx   *ip = ivec;
          for(i=0; i<ndims; i++)
            *(ap++) = *(ip++) - *(bp++);
-         
+
          switch(method) {
            PDL_Double dd; // tmp space for calculations in filters
-           
+
          case 'h':
            /* This is the Hanning window rolloff.  It is a product of a simple */
            /* cos^2(theta) rolloff in each dimension.  Using a lookup table    */
@@ -1000,7 +1000,7 @@ pp_def('map',
              /* Get the matrix-multiply element for this dimension */
              for(j=0;j<ndims; j++)
                dd += *(ap++) * *(cp++);
-             
+
              /* Do linear interpolation from the table */
              /* The table captures a hanning window centered 0.5 pixel from center. */
              /* We scale the filter by the blur parameter -- but if blur is less    */
@@ -1010,7 +1010,7 @@ pp_def('map',
              beta = fabs(dd) - hanning_offset;
              if(beta > 0) {
                if(beta >= blur) {
-                 alpha = 0;      
+                 alpha = 0;
                  i = ndims;
                } else {
                  beta *= zeta;
@@ -1018,7 +1018,7 @@ pp_def('map',
                  beta -= lodex;
                  if(lodex > HANNING_LOOKUP_SIZE)
                  lodex = HANNING_LOOKUP_SIZE;
-                 hidex = lodex+1;        
+                 hidex = lodex+1;
                  alpha *= hanning_lookup[hidex]*beta + hanning_lookup[lodex]*(1-beta);
                } /* end of interpolation branch */
              } /* end of beta > 0 branch */
@@ -1116,7 +1116,7 @@ pp_def('map',
             }
             wgt += alpha;
           }
-       } /* end of t_vio check (i.e. of input accumulation) */ 
+       } /* end of t_vio check (i.e. of input accumulation) */
 
 
        /* Advance input accumulation loop.  */
@@ -1124,8 +1124,8 @@ pp_def('map',
        carry = 1;
        for(i=0; i<ndims && carry; i++) {
          /* Advance the current element of the offset vector */
-         ivec[i]++;    
-         j = ivec[i] + ibvec[i];         
+         ivec[i]++;
+         j = ivec[i] + ibvec[i];
 
          /* Advance the offset into the data array */
          if( j > 0 && j <= in->dims[i]-1 ) {
@@ -1136,7 +1136,7 @@ pp_def('map',
             switch(bounds[i]){
             case 0: /* no breakage allowed -- treat as truncation for interpolation */
             case 1: /* truncation -- if we crossed the boundary mark ourselves out-of-bounds */
-              if( j == 0 ) 
+              if( j == 0 )
                 t_vio--;
               else if( j == in->dims[i] )
                 t_vio++;
@@ -1187,7 +1187,7 @@ pp_def('map',
            } else {
              ivec[i] = -psize;
            }
-         } 
+         }
        } /* End of counter-advance loop */
      } while(carry==0);  /* end of total data accumulation loop (termination condition has carry on last dim) */
 
@@ -1198,7 +1198,7 @@ pp_def('map',
        /* Calculate output vector offset */
        for(i=0;i<ndims;i++)
          dat += out->dimincs[i] * ovec[i];
-       
+
        if(wgt) {
          if(!flux) {
            /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data./ */
@@ -1214,7 +1214,7 @@ pp_def('map',
              dat += out->dimincs[ndims];
            }
          }
-       } else { 
+       } else {
          /* wgt==0 -- no hits */
          for(i=0;i<out->dims[ndims];i++){
            *dat = badval;
@@ -1496,8 +1496,8 @@ smaller than unity cause aliasing.  The parameter has slightly
 different meanings for Gaussian and Hanning interpolation.  For
 Hanning interpolation, numbers smaller than unity control the
 sharpness of the border at the edge of each pixel (so that blur=>0 is
-equivalent to sampling for non-decimating transforms).  For 
-Gaussian interpolation, the blur factor parameter controls the 
+equivalent to sampling for non-decimating transforms).  For
+Gaussian interpolation, the blur factor parameter controls the
 width parameter of the Gaussian around the center of each pixel.
 
 =item sv, SV (default = 1.0)
@@ -1685,10 +1685,10 @@ sub map {
   # Autoscaling always produces a simple, linear mapping in the FITS header.
   # We support more complex mappings (via t_fits) but only to match a pre-existing
   # FITS header (which doesn't use autoscaling).
-  # 
-  # If the rectify option is set (the default) then the image is rectified 
-  # in scientific coordinates; if it is clear, then the existing matrix 
-  # is used, preserving any shear or rotation in the coordinate system. 
+  #
+  # If the rectify option is set (the default) then the image is rectified
+  # in scientific coordinates; if it is clear, then the existing matrix
+  # is used, preserving any shear or rotation in the coordinate system.
   # Since we eschew CROTA whenever possible, the CDi_j formalism is used instead.
   my $f_in = (defined($in->hdr->{NAXIS}) ? t_fits($in,{ignore_rgb=>1}) : t_identity());
 
@@ -1724,7 +1724,7 @@ sub map {
         $omin = $orange->slice("(0)");
         $omax = $orange->slice("(1)");
         $osize = $omax - $omin;
-        
+
         $rectify = 1;
 
       } else {
@@ -1739,7 +1739,7 @@ sub map {
               $rectify=1;
           }
 
-          my $f_tr = ( $rectify ? 
+          my $f_tr = ( $rectify ?
                        $me x $f_in :
                        (  ($me->{name} eq 'identity') ?  # Simple optimization for match()
                           $me :                          # identity -- just matching
@@ -1748,13 +1748,13 @@ sub map {
                        );
 
           my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
-          
+
           my $coords = ndcoords(($samps + 1)->list);
-          
+
           my $t;
           my $irange = _opt($opt, ['ir','irange','input_range','Input_Range'],
                             undef);
-          
+
           # If input range is defined, sample that quadrilateral -- else
           # sample the quad defined by the boundaries of the input image.
           if(defined $irange) {
@@ -1763,7 +1763,7 @@ sub map {
               barf "map: irange must be 2xN for an N-D transform"
                   unless ( (($irange->dim(1)) == $nd )
                            && $irange->ndims == 2);
-              
+
               $coords *= ($irange->slice("(1)") - $irange->slice("(0)")) / $samps;
               $coords += $irange->slice("(0)");
               $coords -= 0.5; # offset to pixel corners...
@@ -1774,7 +1774,7 @@ sub map {
               $t = $f_tr;
           }
           my $ocoords = $t->apply($coords)->mv(0,-1)->clump($nd);
-          
+
           # discard non-finite entries
           my $oc2  = $ocoords->range(
               which(
@@ -1785,17 +1785,17 @@ sub map {
               )
               ->dummy(0,1)
               );
-          
+
           $omin = $oc2->minimum;
           $omax = $oc2->maximum;
-          
+
           $osize = $omax - $omin;
           my $tosize;
           ($tosize = $osize->where($osize == 0)) .= 1.0;
       }
-      
+
       my ($scale) = $osize / pdl(($out->dims)[0..$nd-1]);
-      
+
       my $justify = _opt($opt,['j','J','just','justify','Justify'],0);
       if($justify) {
           my $tmp; # work around perl -d "feature"
@@ -1806,7 +1806,7 @@ sub map {
 
       print "done with autoscale. Making fits header....\n" if($PDL::Transform::debug);
       if( $rectify ) {
-          # Rectified header generation -- make a simple coordinate header with no 
+          # Rectified header generation -- make a simple coordinate header with no
           # rotation or skew.
           print "rectify\n" if($PDL::Transform::debug);
           for my $d(1..$nd) {
@@ -1825,10 +1825,10 @@ sub map {
                                          || "");
           }
           $out->hdr->{"NAXIS"} = $nd;
-          
+
           $out->hdr->{"SIMPLE"} = 'T';
           $out->hdr->{"HISTORY"} .= "Header written by PDL::Transform::Cartography::map";
-          
+
           ### Eliminate fancy newfangled output header pointing tags if they exist
           ### These are the CROTA<n>, PCi_j, and CDi_j.
           for $k(keys %{$out->hdr})      {
@@ -1840,7 +1840,7 @@ sub map {
           # Non-rectified output -- generate a CDi_j matrix instead of the simple formalism.
           # We have to deal with a linear transformation: we've got:  (scaling) x !input x (t x input),
           # where input is a linear transformation with offset and scaling is a simple scaling. We have
-          # the scaling parameters and the matrix for !input -- we have only to merge them and then we 
+          # the scaling parameters and the matrix for !input -- we have only to merge them and then we
           # can write out the FITS header in CDi_j form.
           print "non-rectify\n" if($PDL::Transform::debug);
           my $midpoint_val = (pdl(($out->dims)[0..$nd-1])/2 * $scale)->apply( $f_in );
@@ -2221,7 +2221,7 @@ sub compose {
     my($data,$p) = @_;
     my($ip) = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
-      croak("Error: tried to invert a non-invertible PDL::Transform inside a composition!\n  offending transform: $t\n") 
+      croak("Error: tried to invert a non-invertible PDL::Transform inside a composition!\n  offending transform: $t\n")
           unless(defined($t->{inv}) and ref($t->{inv}) eq 'CODE');
       $data = &{$t->{inv}}($ip ? $data->inplace : $data, $t->{params});
     }
@@ -3087,7 +3087,7 @@ sub t_fits {
   my($post) = PDL->zeroes($n);
 
   ##############################
-  # Scaling: Use CDi_j formalism if present; otherwise use the 
+  # Scaling: Use CDi_j formalism if present; otherwise use the
   # older PCi_j + CDELTi formalism.
 
   my(@hgrab);
