@@ -83,7 +83,7 @@ BEGIN
         {
             $found_df = 1;
             $hdf_lib_path = $libdir;
-            $hdf_libs = '-lmfhdf -lhdf';
+            $hdf_libs = '-lmfhdf -lhdf -lxdr';
             print "Found libhdf.a at $libdir/libhdf.a\n";
         }
 
@@ -93,6 +93,12 @@ BEGIN
         {
             $found_sz = 1;
             print "Found libsz.$Config{so} at $libdir/libsz.$Config{so}\n";
+        }
+
+        if (-e "$libdir/libsz$Config{lib_ext}" && !$found_sz)
+        {
+            $found_sz = 1;
+            print "Found libsz.$Config{lib_ext} at $libdir/libsz.$Config{lib_ext}\n";
         }
     } # foreach $libdir...
 
