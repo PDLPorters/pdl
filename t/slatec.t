@@ -4,16 +4,19 @@ use PDL::Config;
 use Test::More;
 my $ntests;
 BEGIN {
-	eval " use PDL::Slatec; ";
-	$loaded = ($@ ? 0 : 1);
-	if ($loaded) {
-		$ntests = 40;
-		$ntests -= 3 unless ($PDL::Config{WITH_BADVAL}); # two fewer tests if no bad val support
-		plan tests => $ntests;
-	} else { 
-           ## print STDERR "$@\n";
-		plan skip_all => 'PDL::Slatec not available';
-	}
+   if ($PDL::Config{WITH_SLATEC}) {
+      eval " use PDL::Slatec; ";
+      $loaded = ($@ ? 0 : 1);
+      if ($loaded) {
+         $ntests = 40;
+         $ntests -= 3 unless ($PDL::Config{WITH_BADVAL}); # two fewer tests if no bad val support
+         plan tests => $ntests;
+      } 
+   }
+   else { 
+      ## print STDERR "$@\n";
+      plan skip_all => 'PDL::Slatec not available';
+   }
 }
 
 
