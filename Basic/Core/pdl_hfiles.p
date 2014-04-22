@@ -11,12 +11,16 @@ require 'Types.pm';
 # pdl.h and pdlsimple.h
 
 $enum = '';
+$typedefs = '';
+$union = "\n";
 for (sort { $T{$a}{'numval'}<=>$T{$b}{'numval'} }  keys %T) {
  $enum .= $T{$_}{'sym'}.", ";
  $typedefs .= "typedef $T{$_}{'realctype'}              $T{$_}{'ctype'};\n";
+ $union .= "    $T{$_}{'ctype'} $T{$_}{'ppsym'};\n"
 }
 chop $enum;
 chop $enum;
+chop $typedefs;
 
 $PDL_DATATYPES = <<"EOD";
 
@@ -33,6 +37,9 @@ $typedefs
 
 /* typedef $PDL_Indx_type    PDL_Indx; */
 
+union PDL_Generic { $union };
+
+typedef union PDL_Generic PDL_Generic;
 
 /*****************************************************************************/
 
