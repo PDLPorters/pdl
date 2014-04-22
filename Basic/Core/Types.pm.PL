@@ -143,6 +143,15 @@ my @types = (
 		  packtype => 'd*',
 	          defaultbadval => '-DBL_MAX',
 	      },
+	      {
+		  identifier => 'A',
+		  pdlctype => 'PDL_Anyval',
+		  realctype => 'double',
+		  ppforcetype => 'anyval',
+		  usenan => 1,
+		  packtype => 'a8',
+	          defaultbadval => '-DBL_MAX',
+	      },
 	      );
 
 sub checktypehas {
