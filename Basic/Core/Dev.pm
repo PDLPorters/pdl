@@ -264,7 +264,7 @@ sub genpp {
 
       s/O_NONBLOCK/$O_NONBLOCK/go;   # I/O
 
-      if ( /(\s*)?\bGENERICLOOP\s*\(([^\)]*)\)(\s*;)?/ ){  # Start of generic code
+      if ( m/ (\s*)? \b GENERICLOOP \s* \( ( [^\)]* ) \) ( \s*; )? /x ){  # Start of generic code
          #print $MATCH, "=$1=\n";
 
          die "Found GENERICLOOP while searching for ENDGENERICLOOP\n" if $gotstart;
@@ -278,7 +278,7 @@ sub genpp {
          next;
       }
 
-      if ( /\bENDGENERICLOOP(\s*;)?/ ) {
+      if ( m/ \b ENDGENERICLOOP ( \s*; )? /x ) {
 
          die "Found ENDGENERICLOOP while searching for GENERICLOOP\n" unless $gotstart;
 
