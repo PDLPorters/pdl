@@ -138,7 +138,7 @@ void    pdl_unpackdims ( SV* sv, PDL_Indx *dims,  /* Unpack */
                          int ndims );
 void*   pdl_malloc ( STRLEN nbytes );           /* malloc memory - auto free()*/
 
-void pdl_makescratchhash(pdl *ret,double data, int datatype);
+void pdl_makescratchhash(pdl *ret,PDL_Anyval data, int datatype);
 PDL_Indx pdl_safe_indterm(PDL_Indx dsz, PDL_Indx at, char *file, int lineno);
 void pdl_barf(const char* pat,...); /* General croaking utility */
 void pdl_warn(const char* pat,...); /* General warn utility */
@@ -152,7 +152,7 @@ for my $in ( keys %PDL_DATATYPES ) {
   (my $type = $PDL_DATATYPES{$in}) =~ s/^PDL_//;
   print OUT <<"!WITH!SUBS!";
 PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
-	PDL_Indx* pdims, PDL_Long ndims, int level, double undefval);
+	PDL_Indx* pdims, PDL_Long ndims, int level, PDL_Anyval undefval);
 !WITH!SUBS!
 }
 
@@ -205,9 +205,9 @@ void pdl_thread_create_parameter(pdl_thread *thread,int j,PDL_Indx *dims,
 void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...);
 
 void pdl_setdims_careful(pdl *pdl);
-void pdl_put_offs(pdl *pdl,PDL_Indx offs, double val);
-double pdl_get_offs(pdl *pdl,PDL_Indx offs);
-double pdl_get(pdl *pdl,PDL_Indx *inds);
+void pdl_put_offs(pdl *pdl,PDL_Indx offs, PDL_Anyval val);
+PDL_Anyval pdl_get_offs(pdl *pdl,PDL_Indx offs);
+PDL_Anyval pdl_get(pdl *pdl,PDL_Indx *inds);
 void pdl_set_trans(pdl *it, pdl *parent, pdl_transvtable *vtable);
 
 void pdl_make_physical(pdl *it);
@@ -256,10 +256,10 @@ void pdl_subsection( char *y, char*x, int datatype,      /* Take subsection */
 void pdl_insertin( char*y, PDL_Indx* ydims, int nydims,        /* Insert pdl in pdl */
                    char*x, PDL_Indx* xdims, int nxdims,
                    int datatype, PDL_Indx* pos);
-double pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
+PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
              PDL_Indx *incs, PDL_Indx offset, int ndims);
 void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set value at x,y,z... */
-                PDL_Indx *incs, PDL_Indx offs, int ndims, double value);
+                PDL_Indx *incs, PDL_Indx offs, int ndims, PDL_Anyval value);
 void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
@@ -308,9 +308,9 @@ void (*add_deletedata_magic) (pdl *it,void (*func)(pdl *, Size_t param), Size_t 
 
 /* XXX NOT YET IMPLEMENTED */
 void (*setdims_careful)(pdl *pdl);
-void (*put_offs)(pdl *pdl,PDL_Indx offs, double val);
-double (*get_offs)(pdl *pdl,PDL_Indx offs);
-double (*get)(pdl *pdl,PDL_Indx *inds);
+void (*put_offs)(pdl *pdl,PDL_Indx offs, PDL_Anyval val);
+PDL_Anyval (*get_offs)(pdl *pdl,PDL_Indx offs);
+PDL_Anyval (*get)(pdl *pdl,PDL_Indx *inds);
 void (*set_trans_childtrans)(pdl *it, pdl_trans *trans,int nth);
 void (*set_trans_parenttrans)(pdl *it, pdl_trans *trans,int nth);
 pdl *(*make_now)(pdl *it);
@@ -368,7 +368,7 @@ print OUT <<'!NO!SUBS!';
   void (*children_changesoon)(pdl *it, int what);
   void (*changed)(pdl *it, int what, int recursing);
   void (*vaffinechanged)(pdl *it, int what);
-  double (*get_pdl_badvalue)(pdl *it);
+  PDL_Anyval (*get_pdl_badvalue)(pdl *it);
 };
 
 typedef struct Core Core;

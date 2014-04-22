@@ -620,7 +620,7 @@ void pdl_print(pdl *it) {
 }
 
 /* pdl_get is now vaffine aware */
-double pdl_get(pdl *it,PDL_Indx *inds) {
+PDL_Anyval pdl_get(pdl *it,PDL_Indx *inds) {
         int i;
         PDL_Indx *incs;
         PDL_Indx offs=PDL_REPROFFS(it);
@@ -630,12 +630,12 @@ double pdl_get(pdl *it,PDL_Indx *inds) {
         return pdl_get_offs(PDL_REPRP(it),offs);
 }
 
-double pdl_get_offs(pdl *it, PDL_Indx offs) {
+PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
 	PDL_Indx dummy1=offs+1; PDL_Indx dummy2=1;
 	return pdl_at(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1);
 }
 
-void pdl_put_offs(pdl *it, PDL_Indx offs, double value) {
+void pdl_put_offs(pdl *it, PDL_Indx offs, PDL_Anyval value) {
 	PDL_Indx dummy1=offs+1; PDL_Indx dummy2=1;
 	pdl_set(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1, value);
 }
