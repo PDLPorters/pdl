@@ -149,7 +149,7 @@ my @types = (
 		  realctype => 'double',
 		  ppforcetype => 'anyval',
 		  usenan => 1,
-		  packtype => 'a8',
+		  packtype => '(a8)*',
 	          defaultbadval => '-DBL_MAX',
 	      },
 	      );
