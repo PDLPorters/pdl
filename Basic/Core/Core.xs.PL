@@ -299,8 +299,8 @@ void propagate_badvalue( pdl *it ) {
 
 
 /* this is horrible - the routines from bad should perhaps be here instead ? */
-double pdl_get_badvalue( int datatype ) {
-    double retval;
+PDL_Anyval pdl_get_badvalue( int datatype ) {
+    PDL_Anyval retval;
     switch ( datatype ) {
 !NO!SUBS!
 
@@ -329,8 +329,8 @@ print OUT <<'!NO!SUBS!';
 } /* pdl_get_badvalue() */
 
 
-double pdl_get_pdl_badvalue( pdl *it ) {
-    double retval;
+PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
+    PDL_Anyval retval;
     int datatype;
 
 !NO!SUBS!
@@ -778,7 +778,7 @@ sclr_c(it)
 	PDL_Indx nullp = 0;
 	PDL_Indx dummyd = 1;
 	PDL_Indx dummyi = 1;
-	double result;
+	PDL_Anyval result;
    CODE:
         /* get the first element of a piddle and return as
          * Perl double scalar (NV)
@@ -804,7 +804,7 @@ at_c(x,position)
     PDL_Indx * pos;
     int npos;
     int ipos;
-    double result;
+    PDL_Anyval result;
    CODE:
     pdl_make_physvaffine( x );
 
@@ -840,7 +840,7 @@ at_bad_c(x,position)
     int npos;
     int ipos;
     int badflag;
-    double result;
+    PDL_Anyval result;
    CODE:
     pdl_make_physvaffine( x );
 
@@ -953,13 +953,13 @@ listref_c(x)
 
 if ( $bvalflag ) {
     # note:
-    #  the badvalue is stored in a double, but that's what pdl_at()
+    #  the badvalue is stored in a PDL_Anyval, but that's what pdl_at()
     #  returns
 
     print OUT
 '
    SV *sv;
-   double pdl_val, pdl_badval;
+   PDL_Anyval pdl_val, pdl_badval;
    int badflag = (x->state & PDL_BADVAL) > 0;
 
 ';
@@ -1049,7 +1049,7 @@ void
 set_c(x,position,value)
     pdl*	x
     SV*	position
-    double	value
+    PDL_Anyval	value
    PREINIT:
     PDL_Indx * pos;
     int npos;
