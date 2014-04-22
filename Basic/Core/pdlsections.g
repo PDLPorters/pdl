@@ -204,12 +204,12 @@ void pdl_insertin( char*y, PDL_Indx* ydims, int nydims,
 
 /* Return value at position (x,y,z...) */
 
-double pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, 
+PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, 
 	PDL_Indx* incs, PDL_Indx offset, int ndims) {
 
     int i;
     PDL_Indx ioff;
-    double result;
+    PDL_Anyval result;
 
     for(i=0; i<ndims; i++) { /* Check */
 
@@ -225,7 +225,7 @@ double pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
    GENERICLOOP (datatype)
 
       generic *xx = (generic *) x;
-      result = (double)xx[ioff];
+      result = (PDL_Anyval)xx[ioff];
 
    ENDGENERICLOOP
 
@@ -239,7 +239,7 @@ double pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 
 /* Set value at position (x,y,z...) */
 
-void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, int ndims, double value){
+void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, int ndims, PDL_Anyval value){
 
     int i;
     PDL_Indx ioff;

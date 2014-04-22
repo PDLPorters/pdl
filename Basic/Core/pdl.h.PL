@@ -231,7 +231,7 @@ typedef struct pdl_transvtable {
                                           (means whether malloced or not) */ \
   int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
   int has_badvalue;                                                     \
-  double badvalue;                                                      \
+  PDL_Anyval badvalue;                                                      \
   int __datatype
 
 #define PDL_TRANS_START(np) \
@@ -321,7 +321,7 @@ struct pdl {
    void *         sv;          /* Pointer back to containing SV * (can be NULL). Don't inc refct. */
    void *         datasv;      /* Pointer to SV containing data. We own one inc of refcnt         */
    void *         data;        /* Pointer to actual data (in SV), or NULL if we have no data      */
-   double         badvalue;    /* BAD value is stored as a double for portability                 */
+   PDL_Anyval         badvalue;    /* BAD value is stored as a PDL_Anyval for portability                 */
    int            has_badvalue;/* flag is required by pdlapi.c (compare to PDL_BADVAL above -- why two? --CED) */
    PDL_Indx       nvals;       /* Actual size of data (not quite nelem in case of dummy)          */
    int            datatype;    /* One of the usual suspects (PDL_L, PDL_D, etc.)                  */
