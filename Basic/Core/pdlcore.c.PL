@@ -172,7 +172,7 @@ print OUT <<'!NO!SUBS!';
 #if defined _MSC_VER && _MSC_VER < 1400
 #pragma optimize("", off)
 #endif
-int pdl_whichdatatype (double nv) {
+int pdl_whichdatatype (PDL_Anyval nv) {
 !NO!SUBS!
 
 # generate the cases for the various types
@@ -194,7 +194,7 @@ print OUT <<'!NO!SUBS!';
 
 /* Check minimum, at least float, datatype required to represent number */
 
-int pdl_whichdatatype_double (double nv) {
+int pdl_whichdatatype_double (PDL_Anyval nv) {
         TESTTYPE(PDL_F,PDL_Float)
         TESTTYPE(PDL_D,PDL_Double)
 
@@ -213,7 +213,7 @@ int pdl_whichdatatype_double (double nv) {
 
 /* Make a scratch dataspace for a scalar pdl */
 
-void pdl_makescratchhash(pdl *ret, double data, int datatype) {
+void pdl_makescratchhash(pdl *ret, PDL_Anyval data, int datatype) {
   STRLEN n_a;
   HV *hash;
   SV *dat; PDL_Indx fake[1];
@@ -259,7 +259,7 @@ pdl* SvPDLV ( SV* sv ) {
       /* The scalar is not a ref, so we can use direct conversion. */
 
       SV *dat;
-      double data;
+      PDL_Anyval data;
       int datatype;
 
       ret = pdl_new();  /* Scratch pdl */
@@ -789,7 +789,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 {
   int ndims, i, level=0;
   PDL_Indx *pdims;
-     double undefval;
+     PDL_Anyval undefval;
 
   ndims = av_len(dims)+1;
   pdims = (PDL_Indx *) pdl_malloc( (ndims) * sizeof(*pdims) );
@@ -809,7 +809,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
      * Copy the undefval to fill empty spots in the piddle...
      */
     SV *sv = get_sv("PDL::undefval",0);
-    undefval = ((!sv) || (sv==&PL_sv_undef)) ? 0 : (double)SvNV(sv);
+    undefval = ((!sv) || (sv==&PL_sv_undef)) ? 0 : (PDL_Anyval)SvNV(sv);
   }
 
   switch (type) {
@@ -895,7 +895,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
                            pdl* pdl,          // pointer to the source pdl
                            int plevel,        // level within the source pdl
                            void* pptr,        // Data pointer in the source pdl
-                           double undefval    // undefval for the dest pdl
+                           PDL_Anyval undefval    // undefval for the dest pdl
                            ) {
   PDL_Indx i;
   PDL_Indx undef_count = 0;
@@ -1036,7 +1036,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
  */
 
 PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
-                     PDL_Indx* pdims, int ndims, int level, double undefval)
+                     PDL_Indx* pdims, int ndims, int level, PDL_Anyval undefval)
 {
   PDL_Indx cursz = pdims[ndims-1-level]; /* we go from the highest dim inward */
   PDL_Indx len = av_len(av);
