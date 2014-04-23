@@ -316,8 +316,11 @@ foreach my $i ( 0 .. $ntypes ) {
     my $cname = $type->ctype;
     $cname =~ s/^PDL_//;
     my $storage = "PDL.bvals.$cname";
+    my $usym = $type->ppsym;
 
-    print OUT "\tcase $typesym: retval = $storage; break;\n";
+    next if $cname eq 'Anyval';  # only have atomic types in switch
+
+    print OUT "\tcase $typesym: retval.type = $typesym; retval.value.$usym = $storage; break;\n";
 }
 
 print OUT <<'!NO!SUBS!';

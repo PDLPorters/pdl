@@ -14,9 +14,10 @@ $enum = '';
 $typedefs = '';
 $union = "\n";
 for (sort { $T{$a}{'numval'}<=>$T{$b}{'numval'} }  keys %T) {
+ next if $T{$_}{'ctype'} eq 'PDL_Anyval';
  $enum .= $T{$_}{'sym'}.", ";
  $typedefs .= "typedef $T{$_}{'realctype'}              $T{$_}{'ctype'};\n";
- $union .= "    $T{$_}{'ctype'} $T{$_}{'ppsym'};\n"
+ $union .= "    $T{$_}{'ctype'} $T{$_}{'ppsym'};\n";
 }
 chop $enum;
 chop $enum;
@@ -37,10 +38,17 @@ $typedefs
 
 /* typedef $PDL_Indx_type    PDL_Indx; */
 
-union PDL_Generic { $union };
+union PDL_Union { $union };
 
-typedef union PDL_Generic PDL_Generic;
+struct PDL_Generic {
+    enum pdl_datatypes type;
+    union PDL_Union value;
+};
 
+typedef struct PDL_Generic PDL_Generic;
+
+typedef PDL_Generic PDL_Anyval;
+   
 /*****************************************************************************/
 
 EOD

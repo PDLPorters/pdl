@@ -81,6 +81,8 @@ $mymalloc
 print OUT "typedef struct badvals {\n";
 foreach my $i ( reverse(0 .. $ntypes) ) {
     my $name = $PDL::Types::names[$i];
+    next if $PDL::Types::typehash{$name}->{ctype} eq 'PDL_Anyval';
+
     my $realctype = $PDL::Types::typehash{$name}->{realctype};
     my $cname     = $PDL::Types::typehash{$name}->{ctype};
     $cname =~ s/^PDL_//;

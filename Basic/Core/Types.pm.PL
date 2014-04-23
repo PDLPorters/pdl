@@ -146,7 +146,7 @@ my @types = (
 	      {
 		  identifier => 'A',
 		  pdlctype => 'PDL_Anyval',
-		  realctype => 'double',
+		  realctype => 'PDL_Generic',
 		  ppforcetype => 'anyval',
 		  usenan => 1,
 		  packtype => '(a8)*',
