@@ -38,7 +38,7 @@ $typedefs
 
 /* typedef $PDL_Indx_type    PDL_Indx; */
 
-union PDL_Union { $union };
+union PDL_Union {\n    unsigned char raw[8]; $union };
 
 struct PDL_Generic {
     enum pdl_datatypes type;

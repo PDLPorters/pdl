@@ -300,7 +300,7 @@ void propagate_badvalue( pdl *it ) {
 
 /* this is horrible - the routines from bad should perhaps be here instead ? */
 PDL_Anyval pdl_get_badvalue( int datatype ) {
-    PDL_Anyval retval;
+    PDL_Anyval retval = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
     switch ( datatype ) {
 !NO!SUBS!
 
@@ -333,7 +333,7 @@ print OUT <<'!NO!SUBS!';
 
 
 PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
-    PDL_Anyval retval;
+    PDL_Anyval retval = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
     int datatype;
 
 !NO!SUBS!
@@ -781,7 +781,7 @@ sclr_c(it)
 	PDL_Indx nullp = 0;
 	PDL_Indx dummyd = 1;
 	PDL_Indx dummyi = 1;
-	PDL_Anyval result;
+	PDL_Anyval result = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
    CODE:
         /* get the first element of a piddle and return as
          * Perl double scalar (NV)
@@ -807,7 +807,7 @@ at_c(x,position)
     PDL_Indx * pos;
     int npos;
     int ipos;
-    PDL_Anyval result;
+    PDL_Anyval result = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
    CODE:
     pdl_make_physvaffine( x );
 
@@ -843,7 +843,7 @@ at_bad_c(x,position)
     int npos;
     int ipos;
     int badflag;
-    PDL_Anyval result;
+    PDL_Anyval result = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
    CODE:
     pdl_make_physvaffine( x );
 
@@ -962,7 +962,7 @@ if ( $bvalflag ) {
     print OUT
 '
    SV *sv;
-   PDL_Anyval pdl_val, pdl_badval;
+   PDL_Anyval pdl_val = { 0, 0, 0, 0, 0, 0, 0, 0, 0, }, pdl_badval = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
    int badflag = (x->state & PDL_BADVAL) > 0;
 
 ';
@@ -1156,6 +1156,9 @@ if ( $bvalflag ) {
   for my $type (PDL::Types::types) {
     my $typename = $type->ctype;
     $typename =~ s/^PDL_//;
+
+    next if $typename eq 'Anyval';  # only have atomic types in switch
+
     my $bval = $type->defbval;
     my $ctype = $type->ctype;
     if ($usenan && $type->usenan) {
