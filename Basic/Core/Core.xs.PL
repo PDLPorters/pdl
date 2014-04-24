@@ -79,6 +79,8 @@ print OUT <<'!NO!SUBS!';
 
 #define SET_RETVAL_NV(x) x->datatype<PDL_F ? (RETVAL=newSViv( (IV)result )) : (RETVAL=newSVnv( result ))
 
+#define ANYVAL_IS_EQ(x,y) ( (x.type == y.type) && memcmp((unsigned char *)&(x.value.raw[0]),(unsigned char *)&(y.value.raw[0]),8) )
+
 Core PDL; /* Struct holding pointers to shared C routines */
 
 #ifdef FOO
@@ -889,7 +891,7 @@ if ( $bvalflag ) {
        print OUT
 '
    if ( badflag &&
-        ( pdl_get_badvalue( x->datatype ) == result )
+   ANYVAL_IS_EQ( pdl_get_badvalue( x->datatype ), result )
       ) {
 	 RETVAL = newSVpvn( "BAD", 3 );
    } else
@@ -1005,10 +1007,11 @@ print OUT <<'!NO!SUBS!';
 
 	my $condition;
 	if ( $usenan ) {  # NOTE: dangerous use of hardwired datatype value 4!
+                          # NEED TO FIX FOR PDL_Anyval support!!!!!!!!!!
 	    $condition = '( (x->datatype < 4 && pdl_val == pdl_badval) ||
 			(x->datatype >= 4 && finite(pdl_val) == 0) )';
 	} else {
-	    $condition = 'pdl_val == pdl_badval';
+	    $condition = 'ANYVAL_IS_EQ(pdl_val,pdl_badval)';
 	}
 
 	print OUT <<"!WITH!SUBS!";
