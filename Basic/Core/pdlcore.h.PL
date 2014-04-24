@@ -25,7 +25,7 @@ use vars qw( %PDL_DATATYPES );
 # version 10 for 64bit index support (PDL index datatype)
 # version 11 for core cleanup (proto-PDL-3)
 use vars qw( $pdl_core_version );
-$pdl_core_version = 11;
+$pdl_core_version = 12;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
