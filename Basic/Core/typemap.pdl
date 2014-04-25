@@ -8,12 +8,22 @@ PDL_Indx  T_IV
 float	T_NV
 PDL_Anyval  T_PDL_ANYVAL
 
+
+
 INPUT
 
 T_PDL
 	$var = PDL->SvPDLV($arg)
+
 T_PDL_ANYVAL
-	$var = (double)SvNV($arg)
+	if ( SvIOK($arg) ) {
+		$var.type = PDL_N;
+		$var.value.N = (PDL_Indx) SvIV($arg);
+	} else {
+		$var.type = PDL_D;
+		$var.value.D = (PDL_Double) SvNV($arg);
+	}
+
 T_PDLTRANS
 	if(sv_isa($arg,\"PDL::Trans\"))
 		$var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
@@ -21,11 +31,39 @@ T_PDLTRANS
 	        croak(\"$var is not of type PDL::Trans\")
 
 
+
 OUTPUT
 
 T_PDL
 	PDL->SetSV_PDL($arg,$var);
+
 T_PDL_ANYVAL
-	sv_setnv($arg, (double)$var); 
+	switch (result.type) {
+	    case PDL_B:
+	        sv_setiv($arg, (IV)result.value.B );
+	        break;
+	    case PDL_S:
+	        sv_setiv($arg, (IV)result.value.S );
+	        break;
+	    case PDL_US:
+	        sv_setiv($arg, (IV)result.value.U );
+	        break;
+	    case PDL_L:
+	        sv_setiv($arg, (IV)result.value.L );
+	        break;
+	    case PDL_IND:
+	        sv_setiv($arg, (IV)result.value.N );
+	        break;
+	    case PDL_LL:
+	        sv_setiv($arg, (IV)result.value.Q );
+	        break;
+	    case PDL_F:
+	        sv_setnv($arg, (double) result.value.F );
+	        break;
+	    case PDL_D:
+	        sv_setnv($arg, (double) result.value.D );
+	        break;
+	}
+
 T_PDLTRANS
 	sv_setref_pv($arg, \"PDL::Trans\", (void*)$var);
