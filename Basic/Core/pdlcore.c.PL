@@ -173,7 +173,7 @@ print OUT <<'!NO!SUBS!';
 #if defined _MSC_VER && _MSC_VER < 1400
 #pragma optimize("", off)
 #endif
-int pdl_whichdatatype (PDL_Anyval nv) {
+int pdl_whichdatatype (PDL_Indx nv) {
 !NO!SUBS!
 
 # generate the cases for the various types
@@ -195,7 +195,7 @@ print OUT <<'!NO!SUBS!';
 
 /* Check minimum, at least float, datatype required to represent number */
 
-int pdl_whichdatatype_double (PDL_Anyval nv) {
+int pdl_whichdatatype_double (double nv) {
         TESTTYPE(PDL_F,PDL_Float)
         TESTTYPE(PDL_D,PDL_Double)
 
@@ -277,7 +277,8 @@ pdl* SvPDLV ( SV* sv ) {
 
       /* Figure datatype to use */
       if ( !SvIOK(sv) && SvNOK(sv) && SvNIOK(sv)  )  {/* Perl Double (e.g. 2.0) */
-         data = SvNV(sv);
+         data.type = PDL_D;
+         data.value.D = SvNV(sv);
 
 !NO!SUBS!
 
@@ -289,15 +290,15 @@ if ( $bvalflag and $usenan ) {
        * default NaN/Infs to double
        *
        */
-      if ( finite(data) == 0 ) {
+      if ( finite(data.value.D) == 0 ) {
         datatype = PDL_D;
       } else {
-        datatype = pdl_whichdatatype_double(data);
+        datatype = pdl_whichdatatype_double(data.value.D);
       }
    }
 } else {
    print OUT q{
-      datatype = pdl_whichdatatype_double(data);
+      datatype = pdl_whichdatatype_double(data.value.D);
 
    }
 } # if: $bvalflag
@@ -305,8 +306,9 @@ if ( $bvalflag and $usenan ) {
 print OUT <<'!NO!SUBS!';
      } /* end of Perl Double case for data type */
      else { /* Perl Int (e.g. 2) */
-        data = SvNV(sv);
-        datatype = pdl_whichdatatype(data);
+        data.type = PDL_N;  /* Using PDL_Indx here since it is same as ivtype */
+        data.value.N = SvIV(sv);
+        datatype = pdl_whichdatatype(data.value.N);
      }
 
      pdl_makescratchhash(ret,data,datatype);
