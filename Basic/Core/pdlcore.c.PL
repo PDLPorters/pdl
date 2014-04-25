@@ -146,6 +146,7 @@ int pdl_howbig (int datatype) {
 
 for my $type (typesrtkeys()) {
    my ($sym,$ctype) = map {typefld($type,$_)} qw/sym ctype/;
+   next if $ctype = 'PDL_Anyval';
    print OUT << "!WITH!SUBS!";
     case $sym:
       return sizeof($ctype);
@@ -180,6 +181,7 @@ int pdl_whichdatatype (PDL_Indx nv) {
 
 for my $type (typesrtkeys()) {
    my ($sym,$ctype) = map {typefld($type,$_)} qw/sym ctype/;
+   next if $sym eq 'PDL_A';
    print OUT << "!WITH!SUBS!";
         TESTTYPE($sym,$ctype)
 !WITH!SUBS!
@@ -388,6 +390,7 @@ print OUT <<'!NO!SUBS!';
         /* Pull sizes using av_ndcheck */
         depth = 1 + av_ndcheck(av,dims,0,&datalevel);
 
+        /* Need to fix selection of pdl type, PDL_D default for SvPDLV not good enough */
         return pdl_from_array(av,dims,PDL_D,NULL);
 
     } /* end of AV code */
@@ -792,7 +795,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 {
   int ndims, i, level=0;
   PDL_Indx *pdims;
-     PDL_Anyval undefval;
+  PDL_Anyval undefval = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
   ndims = av_len(dims)+1;
   pdims = (PDL_Indx *) pdl_malloc( (ndims) * sizeof(*pdims) );
@@ -812,7 +815,10 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
      * Copy the undefval to fill empty spots in the piddle...
      */
     SV *sv = get_sv("PDL::undefval",0);
-    undefval = ((!sv) || (sv==&PL_sv_undef)) ? 0 : (PDL_Anyval)SvNV(sv);
+    if ( (!!sv) && SvOK(sv) ) {
+       /* Need to set undefvalue from the perl scalar */
+       undefval = (PDL_Anyval)SvNV(sv);
+    }
   }
 
   switch (type) {
@@ -825,6 +831,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
   for my $type(sort keys %PDL_DATATYPES){
     my $t2 = $PDL_DATATYPES{$type};
     $t2 =~ s/PDL_//;
+    next if $t2 eq 'Anyval';
     print OUT <<"!WITH!SUBS!";
   case $type:
     pdl_setav_$t2(p->data,av,pdims,ndims,level, undefval);
