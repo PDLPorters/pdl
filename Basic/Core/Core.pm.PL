@@ -2782,7 +2782,7 @@ sub PDL::convert {
   barf 'Usage: $y = convert($x, $newtypenum)'."\n" unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
   # make_physical-call: temporary stopgap to work around core bug
-  my $conv = $pdl->flowconvert($type)->make_physical->sever;
+  my $conv = $pdl->flowconvert($type)->make_physical->sever;  # flowconvert pp_def'd in slices.pd
   return $conv;
 }
 
@@ -2910,6 +2910,10 @@ for my $type (typesrtkeys()) {
 
 } # end for loop
 
+# TODO: Need to fix datatype constructors to pass the desired type
+#       *into* the alltopdl part so that the pdl is *created* with
+#       the required type from the start.
+#
 print OUT "\n=cut\n\nfor ( $typearray )\n";
 
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
