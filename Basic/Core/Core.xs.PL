@@ -861,7 +861,7 @@ at_c(x,position)
 	x->ndims);
 
     /* SET_RETVAL_NV(x) ; */
-    SET_SVL_ANYVAL(RETVAL,result) ;
+    SET_SV_ANYVAL(RETVAL,result) ;
 
     OUTPUT:
      RETVAL
