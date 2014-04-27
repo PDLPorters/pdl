@@ -74,6 +74,8 @@ void pdl_${name}(pdl *a) {
 
 for my $in ( keys %PDL_DATATYPES ) {
 
+   next if $in eq 'PDL_A';
+
     my $intype = $PDL_DATATYPES{$in};
     print OUT <<"!WITH!SUBS!";
     case ${in}:
@@ -192,6 +194,8 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 
 for my $in ( keys %PDL_DATATYPES ) { 
 
+   next if $in eq 'PDL_A';
+
     my $intype = $PDL_DATATYPES{$in}; 
 
     print OUT <<"!WITH!SUBS!";
@@ -204,6 +208,8 @@ for my $in ( keys %PDL_DATATYPES ) {
 !WITH!SUBS!
 
     for my $targ ( keys %PDL_DATATYPES ) {
+
+       next if $targ eq 'PDL_A';
 
 	next if $in eq $targ; # Skip duplicates
 	my $targtype = $PDL_DATATYPES{$targ};

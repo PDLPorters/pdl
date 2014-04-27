@@ -57,7 +57,9 @@ static int is_parent_of(pdl *it,pdl_trans *trans) {
 pdl *pdl_null() {
 	PDL_Indx d[1] = {0};
 	pdl *it = pdl_new();
-	pdl_makescratchhash(it,0.0,PDL_B);
+    PDL_Anyval zero = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+
+	pdl_makescratchhash(it,zero,PDL_B);
 	pdl_setdims(it,d,1);
 	it->state |= PDL_NOMYDIMS;
 	return it;
