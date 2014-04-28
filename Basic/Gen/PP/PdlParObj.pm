@@ -462,7 +462,7 @@ sub get_xsdatapdecl {
 #	$str .= "\t$type   ${name}_badval = PDL->bvals.$cname;\n";
         $str .= "\t$type   ${name}_badval = 0;\n";
         $str .= "\tPDL_Anyval  ${name}_anyval_badval = PDL->get_pdl_badvalue($pdl);\n";
-        $str .= "\tSET_VALUE_FROM_ANYVAL(${name}_badval, ${name}_anyval_badval.type, ${name}_anyval_badval);\n";
+        $str .= "\tSET_VALUE_TYPE_FROM_ANYVAL(${name}_badval, ${name}_anyval_badval.type, ${name}_anyval_badval);\n";
     }	
 
     return "$str\n";

@@ -143,15 +143,15 @@ my @types = (
 		  packtype => 'd*',
 	          defaultbadval => '-DBL_MAX',
 	      },
-	      {
-		  identifier => 'A',
-		  pdlctype => 'PDL_Anyval',
-		  realctype => 'PDL_Generic',
-		  ppforcetype => 'anyval',
-		  usenan => 1,
-		  packtype => '(a8)*',
-	          defaultbadval => '-DBL_MAX',
-	      },
+              ### {
+	      ###     identifier => 'A',
+	      ###     pdlctype => 'PDL_Anyval',
+	      ###     realctype => 'PDL_Generic',
+	      ###     ppforcetype => 'anyval',
+	      ###     usenan => 1,
+	      ###     packtype => '(a8)*',
+	      ###     defaultbadval => '-DBL_MAX',
+	      ### },
 	      );
 
 sub checktypehas {
@@ -165,7 +165,7 @@ sub checktypehas {
 sub gentypevars {
   my @types = @_;
   checktypehas 'identifier', @types;
-  my @ret = map {"\$PDL_$_->{identifier}"} @types;
+  my @ret = grep { $_ ne '$PDL_A' } map {"\$PDL_$_->{identifier}"} @types;
   return wantarray ? @ret : $ret[0];
 }
 
@@ -177,7 +177,7 @@ sub genexports {
 sub gentypenames {
   my @types = @_;
   checktypehas 'identifier', @types;
-  my @ret = map {"PDL_$_->{identifier}"} @types;
+  my @ret = grep { $_ ne 'PDL_A' } map {"PDL_$_->{identifier}"} @types;
   return wantarray ? @ret : $ret[0];
 }
 
@@ -384,8 +384,10 @@ by querying type hash
 sub typefld {
   my ($type,$fld) = @_;
   croak "unknown type $type" unless exists $typehash{$type};
-  croak "unknown field $fld in type $type"
-     unless exists $typehash{$type}->{$fld};
+  unless ( exists $typehash{$type}->{$fld} ) {
+     $DB::single = 1;
+     croak "unknown field $fld in type $type";
+  }
   return $typehash{$type}->{$fld};
 }
 

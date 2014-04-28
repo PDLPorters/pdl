@@ -183,7 +183,7 @@ int pdl_howbig (int datatype) {
 
 for my $type (typesrtkeys()) {
    my ($sym,$ctype) = map {typefld($type,$_)} qw/sym ctype/;
-   next if $ctype = 'PDL_Anyval';
+   next if $ctype eq 'PDL_Anyval';
    print OUT << "!WITH!SUBS!";
     case $sym:
       return sizeof($ctype);

@@ -33,6 +33,7 @@ if ( $bvalflag ) {
 }
 
 # make the type dependent stuff
+$DB::single = 1;
 my $convertfuncs = join ' ',
   map {PDL::Types::typefld($_,'convertfunc')} PDL::Types::typesrtkeys();
 my $convertalts  = join '|',
