@@ -495,7 +495,7 @@ foreach my $i ( 0 .. $ntypes ) {
 EOC
 
     # my $set_code = "if ( items > 0 ) { $storage = ($realctype) val; }";
-    my $set_code = "if ( items > 1 ) { SET_VALUE_TYPE_FROM_ANYVAL($storage,val.type,val); }";
+    my $set_code = "if ( items > 1 && doset == 1 ) { SET_VALUE_TYPE_FROM_ANYVAL($storage,val.type,val); }";
 
     # if UseNaN is true, then we can not change the value used to
     # represent bad elements since it's a NaN. At least, not for
@@ -508,8 +508,9 @@ EOC
     $str .=
 "
 pdl *
-_badvalue_int${i}(val)
+_badvalue_int${i}(val,doset)
     PDL_Anyval val
+    int doset
   CODE:
    {
     $init_code
@@ -521,13 +522,14 @@ _badvalue_int${i}(val)
     RETVAL
 
 pdl *
-_badvalue_per_pdl_int${i}(pdl_val, val)
+_badvalue_per_pdl_int${i}(pdl_val, val, doset)
     pdl* pdl_val
     PDL_Anyval val
+    int doset
   CODE:
    {
     $init_code
-    if ( items > 1 ) {
+    if ( items > 1 && doset == 1) {
        pdl_val->badvalue = val;
        pdl_val->has_badvalue = 1;
        PDL->propagate_badvalue( pdl_val );
@@ -589,9 +591,9 @@ sub PDL::badvalue {
 	if ($PDL::Config{BADVAL_PER_PDL}) {
 	    my $name = "PDL::_badvalue_per_pdl_int$num";
 	    if ( defined $val ) {
-		return &{$name}($self, $val )->sclr;
+		return &{$name}($self, $val, 1 )->sclr;
 	    } else {
-		return &{$name}($self, 0    )->sclr;
+		return &{$name}($self, 0,    0  )->sclr;
 	    }
 	}
 
@@ -604,9 +606,9 @@ sub PDL::badvalue {
 
     my $name = "PDL::_badvalue_int$num";
     if ( defined $val ) {
-	return &{$name}( $val )->sclr;
+	return &{$name}( $val, 1 )->sclr;
     } else {
-	return &{$name}( 0    )->sclr;
+	return &{$name}( 0,    0 )->sclr;
     }
 
 } # sub: badvalue()

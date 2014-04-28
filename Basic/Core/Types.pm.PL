@@ -612,8 +612,8 @@ no strict 'refs';
 sub badvalue {
   my ( $self, $val ) = @_;
   my $name = "PDL::_badvalue_int" . $self->enum();
-  if ( defined $val ) { return &{$name}( $val )->sclr; }
-  else                { return &{$name}( 0    )->sclr; }
+  if ( defined $val ) { return &{$name}( $val, 1)->sclr; }
+  else                { return &{$name}( 0,    0)->sclr; }
 }
 
 sub orig_badvalue {
