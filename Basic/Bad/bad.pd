@@ -480,6 +480,8 @@ foreach my $i ( 0 .. $ntypes ) {
     my $realctype = $type->realctype;
     my $typesym = $type->symbol;
 
+    next if $typesym eq 'PDL_A';
+
     my $cname = $type->ctype;
     $cname =~ s/^PDL_//;
     my $storage = "PDL->bvals.$cname";

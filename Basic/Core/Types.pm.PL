@@ -371,7 +371,7 @@ return array of pp symbols for all known types
 =cut
 
 sub ppdefs {
-	return map {$typehash{$_}->{ppsym}} typesrtkeys;
+	return grep { $_ ne 'A' } map {$typehash{$_}->{ppsym}} typesrtkeys;
 }
 
 =head2 typefld

@@ -55,6 +55,35 @@ extern int pdl_debugging;
 #define PDLDEBUG_f(a)
 #endif
 
+#define SET_VALUE_TYPE_FROM_ANYVAL(pdlval,type,myany) do { switch (type) { \\
+                                          case PDL_B: \\
+                                             pdlval = myany.value.B; \\
+                                             break; \\
+                                          case PDL_S: \\
+                                             pdlval = myany.value.S; \\
+                                             break; \\
+                                          case PDL_US: \\
+                                             pdlval = myany.value.U; \\
+                                             break; \\
+                                          case PDL_L: \\
+                                             pdlval = myany.value.L; \\
+                                             break; \\
+                                          case PDL_IND: \\
+                                             pdlval = myany.value.N; \\
+                                             break; \\
+                                          case PDL_LL: \\
+                                             pdlval = myany.value.Q; \\
+                                             break; \\
+                                          case PDL_F: \\
+                                             pdlval = myany.value.F; \\
+                                             break; \\
+                                          case PDL_D: \\
+                                             pdlval = myany.value.D; \\
+                                             break; \\
+                                          } \\
+                                          } while (0)
+
+
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
 /*  Target number of pthreads: Actual will be this number or less. 
     A 0 here means no pthreading */

@@ -460,7 +460,9 @@ sub get_xsdatapdecl {
 	 ( $usenan == 0 or $type !~ /^PDL_(Float|Double)$/ ) ) {
 	my $cname = $type; $cname =~ s/^PDL_//;
 #	$str .= "\t$type   ${name}_badval = PDL->bvals.$cname;\n";
-        $str .= "\t$type   ${name}_badval = ($type) PDL->get_pdl_badvalue($pdl);\n";
+        $str .= "\t$type   ${name}_badval = 0;\n";
+        $str .= "\tPDL_Anyval  ${name}_anyval_badval = PDL->get_pdl_badvalue($pdl);\n";
+        $str .= "\tSET_VALUE_FROM_ANYVAL(${name}_badval, ${name}_anyval_badval.type, ${name}_anyval_badval);\n";
     }	
 
     return "$str\n";
