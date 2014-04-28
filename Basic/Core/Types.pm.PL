@@ -613,7 +613,7 @@ sub badvalue {
   my ( $self, $val ) = @_;
   my $name = "PDL::_badvalue_int" . $self->enum();
   if ( defined $val ) { return &{$name}( $val )->sclr; }
-  else                { return &{$name}()->sclr; }
+  else                { return &{$name}( 0    )->sclr; }
 }
 
 sub orig_badvalue {
