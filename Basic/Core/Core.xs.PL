@@ -107,7 +107,7 @@ print OUT <<'!NO!SUBS!';
                                           } \
                                           } while (0)
 
-#define ANYVAL_IS_EQ(x,y) ( (x.type == y.type) && memcmp((unsigned char *)&(x.value.raw[0]),(unsigned char *)&(y.value.raw[0]),8) )
+#define ANYVAL_IS_EQ(x,y) ( (x.type == y.type) && (memcmp((unsigned char *)&(x.value.raw[0]),(unsigned char *)&(y.value.raw[0]),8)==0) )
 
 Core PDL; /* Struct holding pointers to shared C routines */
 
@@ -911,7 +911,7 @@ if ( $bvalflag ) {
 '
    if ( badflag &&
         ( ( x->datatype < 4 && ( result == pdl_get_badvalue( x->datatype ) ) ) ||
-          ( x->datatype >= 4 && ( finite(result) == 0 ) )
+          ( x->datatype >= 4 && ( finite(result.D) == 0 ) )
         )
       ) {
 	 RETVAL = newSVpvn( "BAD", 3 );

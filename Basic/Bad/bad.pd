@@ -495,7 +495,7 @@ foreach my $i ( 0 .. $ntypes ) {
 EOC
 
     # my $set_code = "if ( items > 0 ) { $storage = ($realctype) val; }";
-    my $set_code = "if ( items > 0 ) { SET_VALUE_TYPE_FROM_ANYVAL($storage,val.type,val); }";
+    my $set_code = "if ( items > 1 ) { SET_VALUE_TYPE_FROM_ANYVAL($storage,val.type,val); }";
 
     # if UseNaN is true, then we can not change the value used to
     # represent bad elements since it's a NaN. At least, not for
