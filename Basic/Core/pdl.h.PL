@@ -80,6 +80,9 @@ extern int pdl_debugging;
                                           case PDL_D: \\
                                              pdlval = myany.value.D; \\
                                              break; \\
+                                          default: \\
+                                             croak(\"Unknown PDL type\\n\"); \\
+                                             break; \\
                                           } \\
                                           } while (0)
 

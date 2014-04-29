@@ -149,6 +149,207 @@ FOO
 # PDL handling stuff starts here
 #
 print OUT <<'!NO!SUBS!'
+int are_anyvals_equal(PDL_Anyval x, PDL_Anyval y) {
+    PDL_Byte     xB = x.value.B;
+    PDL_Short    xS = x.value.S;
+    PDL_Ushort   xU = x.value.U;
+    PDL_Long     xL = x.value.L;
+    PDL_Indx     xN = x.value.N;
+    PDL_LongLong xQ = x.value.Q;
+    PDL_Float    xF = x.value.F;
+    PDL_Double   xD = x.value.D;
+
+    PDL_Byte     yB = y.value.B;
+    PDL_Short    yS = y.value.S;
+    PDL_Ushort   yU = y.value.U;
+    PDL_Long     yL = y.value.L;
+    PDL_Indx     yN = y.value.N;
+    PDL_LongLong yQ = y.value.Q;
+    PDL_Float    yF = y.value.F;
+    PDL_Double   yD = y.value.D;
+
+    printf("x.type is %1d and x.value.raw is: %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx\n", x.type,
+            x.value.raw[0], x.value.raw[1], x.value.raw[2], x.value.raw[3],
+            x.value.raw[4], x.value.raw[5], x.value.raw[6], x.value.raw[7]);  
+
+    printf("y.type is %1d and y.value.raw is: %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx\n", y.type,
+            y.value.raw[0], y.value.raw[1], y.value.raw[2], y.value.raw[3],
+            y.value.raw[4], y.value.raw[5], y.value.raw[6], y.value.raw[7]);  
+
+    switch (x.type) {
+        case PDL_B:
+            switch (y.type) {
+                case PDL_B:
+                    return (xB == yB) ? 1 : 0;
+                case PDL_S:
+                    return (xB == yS) ? 1 : 0;
+                case PDL_US:
+                    return (xB == yU) ? 1 : 0;
+                case PDL_L:
+                    return (xB == yL) ? 1 : 0;
+                case PDL_IND:
+                    return (xB == yN) ? 1 : 0;
+                case PDL_LL:
+                    return (xB == yQ) ? 1 : 0;
+                case PDL_F:
+                    return (xB == yF) ? 1 : 0;
+                case PDL_D:
+                    return (xB == yD) ? 1 : 0;
+                default:
+                    return 0;
+            }
+        case PDL_S:
+            switch (y.type) {
+                case PDL_B:
+                    return (xS == yB) ? 1 : 0;
+                case PDL_S:
+                    return (xS == yS) ? 1 : 0;
+                case PDL_US:
+                    return (xS == yU) ? 1 : 0;
+                case PDL_L:
+                    return (xS == yL) ? 1 : 0;
+                case PDL_IND:
+                    return (xS == yN) ? 1 : 0;
+                case PDL_LL:
+                    return (xS == yQ) ? 1 : 0;
+                case PDL_F:
+                    return (xS == yF) ? 1 : 0;
+                case PDL_D:
+                    return (xS == yD) ? 1 : 0;
+                default:
+                    return 0;
+            }
+        case PDL_US:
+            switch (y.type) {
+                case PDL_B:
+                    return (xU == yB) ? 1 : 0;
+                case PDL_S:
+                    return (xU == yS) ? 1 : 0;
+                case PDL_US:
+                    return (xU == yU) ? 1 : 0;
+                case PDL_L:
+                    return (xU == yL) ? 1 : 0;
+                case PDL_IND:
+                    return (xU == yN) ? 1 : 0;
+                case PDL_LL:
+                    return (xU == yQ) ? 1 : 0;
+                case PDL_F:
+                    return (xU == yF) ? 1 : 0;
+                case PDL_D:
+                    return (xU == yD) ? 1 : 0;
+                default:
+                    return 0;
+            }
+        case PDL_L:
+            switch (y.type) {
+                case PDL_B:
+                    return (xL == yB) ? 1 : 0;
+                case PDL_S:
+                    return (xL == yS) ? 1 : 0;
+                case PDL_US:
+                    return (xL == yU) ? 1 : 0;
+                case PDL_L:
+                    return (xL == yL) ? 1 : 0;
+                case PDL_IND:
+                    return (xL == yN) ? 1 : 0;
+                case PDL_LL:
+                    return (xL == yQ) ? 1 : 0;
+                case PDL_F:
+                    return (xL == yF) ? 1 : 0;
+                case PDL_D:
+                    return (xL == yD) ? 1 : 0;
+                default:
+                    return 0;
+            }
+        case PDL_IND:
+            switch (y.type) {
+                case PDL_B:
+                    return (xN == yB) ? 1 : 0;
+                case PDL_S:
+                    return (xN == yS) ? 1 : 0;
+                case PDL_US:
+                    return (xN == yU) ? 1 : 0;
+                case PDL_L:
+                    return (xN == yL) ? 1 : 0;
+                case PDL_IND:
+                    return (xN == yN) ? 1 : 0;
+                case PDL_LL:
+                    return (xN == yQ) ? 1 : 0;
+                case PDL_F:
+                    return (xN == yF) ? 1 : 0;
+                case PDL_D:
+                    return (xN == yD) ? 1 : 0;
+                default:
+                    return 0;
+            }
+        case PDL_LL:
+            switch (y.type) {
+                case PDL_B:
+                    return (xQ == yB) ? 1 : 0;
+                case PDL_S:
+                    return (xQ == yS) ? 1 : 0;
+                case PDL_US:
+                    return (xQ == yU) ? 1 : 0;
+                case PDL_L:
+                    return (xQ == yL) ? 1 : 0;
+                case PDL_IND:
+                    return (xQ == yN) ? 1 : 0;
+                case PDL_LL:
+                    return (xQ == yQ) ? 1 : 0;
+                case PDL_F:
+                    return (xQ == yF) ? 1 : 0;
+                case PDL_D:
+                    return (xQ == yD) ? 1 : 0;
+                default:
+                    return 0;
+            }
+        case PDL_F:
+            switch (y.type) {
+                case PDL_B:
+                    return (xF == yB) ? 1 : 0;
+                case PDL_S:
+                    return (xF == yS) ? 1 : 0;
+                case PDL_US:
+                    return (xF == yU) ? 1 : 0;
+                case PDL_L:
+                    return (xF == yL) ? 1 : 0;
+                case PDL_IND:
+                    return (xF == yN) ? 1 : 0;
+                case PDL_LL:
+                    return (xF == yQ) ? 1 : 0;
+                case PDL_F:
+                    return (xF == yF) ? 1 : 0;
+                case PDL_D:
+                    return (xF == yD) ? 1 : 0;
+                default:
+                    return 0;
+            }
+        case PDL_D:
+            switch (y.type) {
+                case PDL_B:
+                    return (xD == yB) ? 1 : 0;
+                case PDL_S:
+                    return (xD == yS) ? 1 : 0;
+                case PDL_US:
+                    return (xD == yU) ? 1 : 0;
+                case PDL_L:
+                    return (xD == yL) ? 1 : 0;
+                case PDL_IND:
+                    return (xD == yN) ? 1 : 0;
+                case PDL_LL:
+                    return (xD == yQ) ? 1 : 0;
+                case PDL_F:
+                    return (xD == yF) ? 1 : 0;
+                case PDL_D:
+                    return (xD == yD) ? 1 : 0;
+                default:
+                    return 0;
+            }
+        default:
+            return 0;
+    }
+}
+
 static SV *getref_pdl(pdl *it) {
         SV *newref;
         if(!it->sv) {

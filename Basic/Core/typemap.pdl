@@ -38,30 +38,30 @@ T_PDL
 	PDL->SetSV_PDL($arg,$var);
 
 T_PDL_ANYVAL
-	switch (result.type) {
+	switch ($var.type) {
 	    case PDL_B:
-	        sv_setiv($arg, (IV)result.value.B );
+	        sv_setiv($arg, (IV)$var.value.B );
 	        break;
 	    case PDL_S:
-	        sv_setiv($arg, (IV)result.value.S );
+	        sv_setiv($arg, (IV)$var.value.S );
 	        break;
 	    case PDL_US:
-	        sv_setiv($arg, (IV)result.value.U );
+	        sv_setiv($arg, (IV)$var.value.U );
 	        break;
 	    case PDL_L:
-	        sv_setiv($arg, (IV)result.value.L );
+	        sv_setiv($arg, (IV)$var.value.L );
 	        break;
 	    case PDL_IND:
-	        sv_setiv($arg, (IV)result.value.N );
+	        sv_setiv($arg, (IV)$var.value.N );
 	        break;
 	    case PDL_LL:
-	        sv_setiv($arg, (IV)result.value.Q );
+	        sv_setiv($arg, (IV)$var.value.Q );
 	        break;
 	    case PDL_F:
-	        sv_setnv($arg, (double) result.value.F );
+	        sv_setnv($arg, (double) $var.value.F );
 	        break;
 	    case PDL_D:
-	        sv_setnv($arg, (double) result.value.D );
+	        sv_setnv($arg, (double) $var.value.D );
 	        break;
 	}
 
