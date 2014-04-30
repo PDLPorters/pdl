@@ -168,16 +168,65 @@ int are_anyvals_equal(PDL_Anyval x, PDL_Anyval y) {
     PDL_Float    yF = y.value.F;
     PDL_Double   yD = y.value.D;
 
-    /* fprintf(stderr, "x.type is %1d and x.value.raw is: %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx\n", x.type,
-            x.value.raw[0], x.value.raw[1], x.value.raw[2], x.value.raw[3],
-            x.value.raw[4], x.value.raw[5], x.value.raw[6], x.value.raw[7]);  
+    switch (x.type) {
+        case PDL_B:
+            fprintf(stderr, "x: %1d, %2hhu\t", x.type, x.value.B);
+            break;
+        case PDL_S:
+            fprintf(stderr, "x: %1d, %2hd\t",  x.type, x.value.S);
+            break;
+        case PDL_US:
+            fprintf(stderr, "x: %1d, %2hu\t",  x.type, x.value.U);
+            break;
+        case PDL_L:
+            fprintf(stderr, "x: %1d, %2d\t",   x.type, x.value.L);
+            break;
+        case PDL_IND:
+            fprintf(stderr, "x: %1d, %2ld\t",  x.type, x.value.N);
+            break;
+        case PDL_LL:
+            fprintf(stderr, "x: %1d, %2ld\t",  x.type, x.value.Q);
+            break;
+        case PDL_F:
+            fprintf(stderr, "x: %1d, %2g\t",   x.type, x.value.F);
+            break;
+        case PDL_D:
+            fprintf(stderr, "x: %1d, %2g\t",   x.type, x.value.D);
+            break;
+        default:
+            fprintf(stderr, "Uh-oh! got unexpected x.type is %1d (%x)\n", x.type, x.value.Q);
+            break;
+    }
 
-    fprintf(stderr, "y.type is %1d and y.value.raw is: %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx\n", y.type,
-            y.value.raw[0], y.value.raw[1], y.value.raw[2], y.value.raw[3],
-            y.value.raw[4], y.value.raw[5], y.value.raw[6], y.value.raw[7]);  */
-
-    fprintf(stderr, "x.type is %1d and x.value.D is: %2g\n", x.type, x.value.D);
-    fprintf(stderr, "y.type is %1d and y.value.D is: %2g\n", y.type, y.value.D);
+    switch (y.type) {
+        case PDL_B:
+            fprintf(stderr, "y: %1d, %2hhu\n", y.type, y.value.B);
+            break;
+        case PDL_S:
+            fprintf(stderr, "y: %1d, %2hd\n",  y.type, y.value.S);
+            break;
+        case PDL_US:
+            fprintf(stderr, "y: %1d, %2hu\n",  y.type, y.value.U);
+            break;
+        case PDL_L:
+            fprintf(stderr, "y: %1d, %2d\n",   y.type, y.value.L);
+            break;
+        case PDL_IND:
+            fprintf(stderr, "y: %1d, %2ld\n",  y.type, y.value.N);
+            break;
+        case PDL_LL:
+            fprintf(stderr, "y: %1d, %2ld\n",  y.type, y.value.Q);
+            break;
+        case PDL_F:
+            fprintf(stderr, "y: %1d, %2g\n",   y.type, y.value.F);
+            break;
+        case PDL_D:
+            fprintf(stderr, "y: %1d, %2g\n",   y.type, y.value.D);
+            break;
+        default:
+            fprintf(stderr, "Uh-oh! got unexpected y.type is %1d (%x)\n", y.type, y.value.Q);
+            break;
+    }
 
     switch (x.type) {
         case PDL_B:

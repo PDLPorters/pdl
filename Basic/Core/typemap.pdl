@@ -19,7 +19,7 @@ T_PDL_ANYVAL
 	if ( SvIOK($arg) ) {
 		$var.type = PDL_N;
 		$var.value.N = (PDL_Indx) SvIV($arg);
-	        fprintf(stderr, \"PDL_Anyval INPUT: (%d:%lld)\\n\", PDL_N, $var.value.N);
+	        fprintf(stderr, \"PDL_Anyval INPUT: (%d:%ld)\\n\", PDL_N, $var.value.N);
 	} else {
 		$var.type = PDL_D;
 		$var.value.D = (PDL_Double) SvNV($arg);
@@ -58,11 +58,11 @@ T_PDL_ANYVAL
 	        sv_setiv($arg, (IV)$var.value.L );
 	        break;
 	    case PDL_IND:
-	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%lld)\\n\", PDL_IND, $var.value.N);
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%ld)\\n\", PDL_IND, $var.value.N);
 	        sv_setiv($arg, (IV)$var.value.N );
 	        break;
 	    case PDL_LL:
-	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%lld)\\n\", PDL_LL, $var.value.Q);
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%ld)\\n\", PDL_LL, $var.value.Q);
 	        sv_setiv($arg, (IV)$var.value.Q );
 	        break;
 	    case PDL_F:
