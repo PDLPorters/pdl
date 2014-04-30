@@ -531,6 +531,7 @@ void pdl_makescratchhash(pdl *ret, PDL_Anyval data, int datatype) {
   ret->nvals = 1;            /* 1 val  in a scalar */
   
   /* NULLs should be ok because no dimensions. */
+  fprintf(stderr,"pdl_makescratchhash( PDL_Anyval type==%d, PDL datatype==%d )\n", data.type, datatype );
   pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data);
   
 }
@@ -596,11 +597,13 @@ if ( $bvalflag and $usenan ) {
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
+         fprintf(stderr,"SvPDLV: data.value.D == %g and got datatype==%d\n", data.value.D, datatype);
      } /* end of Perl Double case for data type */
      else { /* Perl Int (e.g. 2) */
         data.type = PDL_N;  /* Using PDL_Indx here since it is same as ivtype */
         data.value.N = SvIV(sv);
         datatype = pdl_whichdatatype(data.value.N);
+        fprintf(stderr,"SvPDLV: data.value.N == %ld and got datatype==%d\n", data.value.N, datatype);
      }
 
      pdl_makescratchhash(ret,data,datatype);

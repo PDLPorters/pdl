@@ -13,7 +13,7 @@ PDL_Anyval  T_PDL_ANYVAL
 INPUT
 
 T_PDL
-	$var = PDL->SvPDLV($arg)
+	$var = PDL->SvPDLV($arg);
 
 T_PDL_ANYVAL
 	if ( SvIOK($arg) ) {
@@ -30,7 +30,7 @@ T_PDLTRANS
 	if(sv_isa($arg,\"PDL::Trans\"))
 		$var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
 	else
-	        croak(\"$var is not of type PDL::Trans\")
+	        croak(\"$var is not of type PDL::Trans\");
 
 
 
