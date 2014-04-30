@@ -168,13 +168,16 @@ int are_anyvals_equal(PDL_Anyval x, PDL_Anyval y) {
     PDL_Float    yF = y.value.F;
     PDL_Double   yD = y.value.D;
 
-    printf("x.type is %1d and x.value.raw is: %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx\n", x.type,
+    /* fprintf(stderr, "x.type is %1d and x.value.raw is: %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx\n", x.type,
             x.value.raw[0], x.value.raw[1], x.value.raw[2], x.value.raw[3],
             x.value.raw[4], x.value.raw[5], x.value.raw[6], x.value.raw[7]);  
 
-    printf("y.type is %1d and y.value.raw is: %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx\n", y.type,
+    fprintf(stderr, "y.type is %1d and y.value.raw is: %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx %2hhx\n", y.type,
             y.value.raw[0], y.value.raw[1], y.value.raw[2], y.value.raw[3],
-            y.value.raw[4], y.value.raw[5], y.value.raw[6], y.value.raw[7]);  
+            y.value.raw[4], y.value.raw[5], y.value.raw[6], y.value.raw[7]);  */
+
+    fprintf(stderr, "x.type is %1d and x.value.D is: %2g\n", x.type, x.value.D);
+    fprintf(stderr, "y.type is %1d and y.value.D is: %2g\n", y.type, y.value.D);
 
     switch (x.type) {
         case PDL_B:

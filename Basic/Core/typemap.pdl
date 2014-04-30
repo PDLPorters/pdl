@@ -19,9 +19,11 @@ T_PDL_ANYVAL
 	if ( SvIOK($arg) ) {
 		$var.type = PDL_N;
 		$var.value.N = (PDL_Indx) SvIV($arg);
+	        fprintf(stderr, \"PDL_Anyval INPUT: (%d:%lld)\\n\", PDL_N, $var.value.N);
 	} else {
 		$var.type = PDL_D;
 		$var.value.D = (PDL_Double) SvNV($arg);
+	        fprintf(stderr, \"PDL_Anyval INPUT: (%d:%g)\\n\", PDL_D, $var.value.D);
 	}
 
 T_PDLTRANS
@@ -40,27 +42,35 @@ T_PDL
 T_PDL_ANYVAL
 	switch ($var.type) {
 	    case PDL_B:
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%d)\\n\", PDL_B, $var.value.B);
 	        sv_setiv($arg, (IV)$var.value.B );
 	        break;
 	    case PDL_S:
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%d)\\n\", PDL_S, $var.value.S);
 	        sv_setiv($arg, (IV)$var.value.S );
 	        break;
 	    case PDL_US:
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%d)\\n\", PDL_US, $var.value.U);
 	        sv_setiv($arg, (IV)$var.value.U );
 	        break;
 	    case PDL_L:
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%d)\\n\", PDL_L, $var.value.L);
 	        sv_setiv($arg, (IV)$var.value.L );
 	        break;
 	    case PDL_IND:
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%lld)\\n\", PDL_IND, $var.value.N);
 	        sv_setiv($arg, (IV)$var.value.N );
 	        break;
 	    case PDL_LL:
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%lld)\\n\", PDL_LL, $var.value.Q);
 	        sv_setiv($arg, (IV)$var.value.Q );
 	        break;
 	    case PDL_F:
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%f)\\n\", PDL_F, $var.value.F);
 	        sv_setnv($arg, (double) $var.value.F );
 	        break;
 	    case PDL_D:
+	        fprintf(stderr, \"PDL_Anyval OUTPUT: (%d:%g)\\n\", PDL_D, $var.value.D);
 	        sv_setnv($arg, (double) $var.value.D );
 	        break;
 	}
