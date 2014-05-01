@@ -116,7 +116,8 @@ sub getpdl_config {
 
   # First read in distribution config file
   #
-  require './perldl.conf';
+  # require './perldl.conf';
+  require "$pdl_conf_file";
 
   # Add BAD_VAL tests if CPAN testers
   #
@@ -439,6 +440,7 @@ unless ( $seen_pdlconf ) {
 }
 
 # needs to be called before any of the make_XX routines
+warn("Makefile.PL: have PDLCONF file '$pdl_conf_file'\n");
 getpdl_config($pdl_conf_file);
 $seen_f77conf = check_f77conf($seen_f77conf);
 
