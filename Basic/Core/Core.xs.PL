@@ -910,8 +910,8 @@ if ( $bvalflag ) {
        print OUT
 '
    if ( badflag &&
-        ( ( x->datatype < 4 && ( result == pdl_get_badvalue( x->datatype ) ) ) ||
-          ( x->datatype >= 4 && ( finite(result.D) == 0 ) )
+        ( ( x->datatype < 4 && ANYVAL_IS_EQ(result, pdl_get_badvalue( x->datatype )) ) ||
+          ( x->datatype >= 4 && ( finite(result.value.D) == 0 ) )
         )
       ) {
 	 RETVAL = newSVpvn( "BAD", 3 );
@@ -987,6 +987,8 @@ listref_c(x)
    int stop = 0;
    AV *av;
    SV *sv;
+   PDL_Anyval pdl_val =    { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+   PDL_Anyval pdl_badval = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
   CODE:
 
 !NO!SUBS!
@@ -999,7 +1001,6 @@ if ( $bvalflag ) {
     print OUT
 '
    /* SV *sv; */
-   PDL_Anyval pdl_val = { 0, 0, 0, 0, 0, 0, 0, 0, 0, }, pdl_badval = { 0, 0, 0, 0, 0, 0, 0, 0, 0, };
    int badflag = (x->state & PDL_BADVAL) > 0;
 
 ';
@@ -1043,8 +1044,8 @@ print OUT <<'!NO!SUBS!';
 	my $condition;
 	if ( $usenan ) {  # NOTE: dangerous use of hardwired datatype value 4!
                           # NEED TO FIX FOR PDL_Anyval support!!!!!!!!!!
-	    $condition = '( (x->datatype < 4 && pdl_val == pdl_badval) ||
-			(x->datatype >= 4 && finite(pdl_val) == 0) )';
+	    $condition = '( (x->datatype < 4 && ANYVAL_IS_EQ(pdl_val, pdl_badval)) ||
+			(x->datatype >= 4 && finite(pdl_val.value.D) == 0) )';
 	} else {
 	    $condition = 'ANYVAL_IS_EQ(pdl_val,pdl_badval)';
 	}
@@ -1064,7 +1065,7 @@ print OUT <<'!NO!SUBS!';
 	print OUT <<'!NO!SUBS!';
         pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
 	SET_SV_ANYVAL(sv,pdl_val);
-      av_store(av, lind, sv));
+      av_store(av, lind, sv);
 !NO!SUBS!
 
 } # bvalflag
