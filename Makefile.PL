@@ -116,8 +116,14 @@ sub getpdl_config {
 
   # First read in distribution config file
   #
-  # require './perldl.conf';
-  require "$pdl_conf_file";
+  if ( -f $pdl_conf_file ) {
+     # user specified another file
+     require "$pdl_conf_file";
+  } else {
+     # fallback to distribution perldl.conf
+     require './perldl.conf';
+  }
+
 
   # Add BAD_VAL tests if CPAN testers
   #
