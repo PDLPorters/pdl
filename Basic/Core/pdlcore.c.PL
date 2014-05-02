@@ -606,7 +606,8 @@ print OUT <<'!NO!SUBS!';
         fprintf(stderr,"SvPDLV: data.value.N == %ld and got datatype==%d\n", data.value.N, datatype);
      }
 
-     pdl_makescratchhash(ret,data,datatype);
+     /* pdl_makescratchhash(ret,data,datatype); */
+     pdl_makescratchhash(ret,data,data.type);  /* See if this works */
 
      return ret;
 

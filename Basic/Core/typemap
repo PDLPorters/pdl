@@ -17,6 +17,7 @@ T_PDL
 
 T_PDL_ANYVAL
 	if ( SvIOK($arg) ) {
+	        fprintf(stderr, \"(before) PDL_Anyval INPUT: (%d:%ld)\\n\", PDL_N, SvIOK($arg));
 		$var.type = PDL_N;
 		$var.value.N = (PDL_Indx) SvIV($arg);
 	        fprintf(stderr, \"PDL_Anyval INPUT: (%d:%ld)\\n\", PDL_N, $var.value.N);
