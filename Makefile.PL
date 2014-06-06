@@ -623,6 +623,12 @@ doc_site_install ::
 %HTML%	@echo "doc_site_install: Building PDL documentation web pages ..."
 %HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLSITEARCH)/PDL
 
+doc_vendor_install ::
+	@echo "doc_vendor_install: Building PDL documentation database ..."
+	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLVENDORARCH)
+%HTML%	@echo "doc_vendor_install: Building PDL documentation web pages ..."
+%HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLVENDORARCH)/PDL
+
 doc_perl_install ::
 	@echo "doc_perl_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
