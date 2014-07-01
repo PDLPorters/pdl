@@ -45,6 +45,7 @@ ok( tapprox( $x1->sqrt, rvals(3,3,{ceNteR=>[2,2]}) ), "ceNteR option capitalizat
 ok( tapprox( $x1, rvals(3,3,{center=>[2,2],squared=>1}) ), "both center and squared options" ); # 6
 
 # test (x|y|z)(lin|log)vals: shape and values
+{
 my $a=zeroes(101,51,26);
 my $x = $a->xlinvals(0.5,1.5);
 my $y = $a->ylinvals(-2,-1);
@@ -55,7 +56,9 @@ ok(all($a->shape==$z->shape), "zlinvals shape"); #9
 ok(tapprox($x->uniqvec->flat,pdl(50..150)/100),"xlinvals values"); #10
 ok(tapprox($y->mv(1,0)->uniqvec->flat,pdl(-100..-50)/50),"ylinvals values"); #11
 ok(tapprox($z->mv(2,0)->uniqvec->flat,pdl(0..25)/5-3),"zlinvals values"); #12
+}
 
+{
 my $a = zeroes(11,6,8);
 my $xl = $a->xlogvals(1e2,1e12);
 my $yl = $a->ylogvals(1e-3,1e2);
@@ -66,7 +69,7 @@ ok(all($a->shape==$zl->shape),"zlogvals shape"); #15
 ok(tapprox($xl->uniqvec->flat->log10,pdl(2..12)),"xlogvals values"); #16
 ok(tapprox($yl->mv(1,0)->uniqvec->flat->log10,pdl(-3..2)),"ylogvals values"); #17
 ok(tapprox($zl->mv(2,0)->uniqvec->flat->log10,pdl(-10..-3)),"zlogvals values");#18
-
+}
 #test axisvals
 my $z = axisvals(zeroes(3,4,5,6),3);
 ok(all($z==pdl(0..5)->dummy(0,5)->dummy(0,4)->dummy(0,3)),"4-dimensional axisvals");#19

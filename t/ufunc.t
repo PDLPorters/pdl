@@ -76,14 +76,14 @@ ok(all($e == $e_sort));
 #
 local $TODO = "fixing max/min NaN handling";
 
-my $inf = exp(~0>>1);
+{my $inf = exp(~0>>1);
 my $nan = $inf/$inf;
 my $a = pdl($nan, 0, 1, 2);
 my $b = pdl(0, 1, 2, $nan);
 
 ok($a->min == $b->min, "min with NaNs");
 ok($a->max == $b->max, "max with NaNs");
-
+}
 my $empty = which(ones(5)>5);
 $a = $empty->double->maximum;
 ok( $a->nelem==1, "maximum over an empty dim yields 1 value");
