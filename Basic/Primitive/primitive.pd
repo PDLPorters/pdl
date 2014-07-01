@@ -2684,6 +2684,10 @@ correspond to array C<$a> clumped using C<clump(-1)>. This routine is
 used in the old vector form of L<whichND|/whichND>, but is useful on
 its own occasionally.
 
+Returned piddles have the L<indx|PDL::Core/indx> datatype.  C<$indices> can have
+values larger than C<< $a->nelem >> but negative values in C<$indices>
+will not give the answer you expect.
+
 =for example
 
  pdl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
@@ -2701,11 +2705,12 @@ sub PDL::one2nd {
   barf "Usage: one2nd \$array \$indices\n" if $#_ != 1;
   my ($a, $ind)=@_;
   my @dimension=$a->dims;
+  $ind = indx($ind);
   my(@index);
   my $count=0;
   foreach (@dimension) {
     $index[$count++]=$ind % $_;
-    $ind=long($ind/$_);
+    $ind /= $_;
   }
   return @index;
 }
