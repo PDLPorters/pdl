@@ -2871,6 +2871,10 @@ Convert to ushort datatype
 
 Convert to long datatype
 
+=head2 indx
+
+Convert to indx datatype
+
 =head2 longlong
 
 Convert to longlong datatype
@@ -2900,7 +2904,7 @@ for my $type (typesrtkeys()) {
 
  =for ref
 
- Convert to $conv datatype - see 'Datatype_conversions'
+ Convert to $conv datatype - see L<Datatype_conversions|/Datatype_conversions>
 
 !WITH!SUBS!
 
