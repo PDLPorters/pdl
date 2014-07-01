@@ -33,7 +33,11 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fix documentation builds for installs into vendor directory.
+
+ * Fixes for library detection on MS Windows
+
+ * Fix incompatibility of PDL::IO::Storable with perl versions < 5.10.x
 
 
 
