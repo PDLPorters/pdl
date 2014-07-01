@@ -102,7 +102,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007_03 release:
+  PDL-2.007_04 release:
 
   355    dog creates 0 dim piddle which squeezes to 1 dim.
   354    filter demo list by actually available
