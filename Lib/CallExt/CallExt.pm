@@ -199,7 +199,7 @@ sub callext_cc {
 	my $o = ( $Config{cc} eq 'cl' ? '-out:' : '-o ');
 
 	# Setup the LD command. Do not want the env var on Windows
-	my $ld_cmd = ( $^O =~ /MSWin/i ? ' ' : 'LD_RUN_PATH="" ');
+	my $ld_cmd = ( $^O =~ /MSWin|android/i ? ' ' : 'LD_RUN_PATH="" ');
 
 	my $libs = $^O =~ /MSWin/i ?
                  $Config{libs} :
