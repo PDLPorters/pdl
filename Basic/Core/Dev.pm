@@ -66,11 +66,12 @@ sub PDL_BOOT {
   $symname ||= 'PDL';
   return << "EOR";
 
-   perl_require_pv ("PDL::Core"); /* make sure PDL::Core is loaded */
-   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
+   perl_require_pv ("PDL/Core.pm"); /* make sure PDL::Core is loaded */
 #ifndef aTHX_
 #define aTHX_
 #endif
+   if (SvTRUE (ERRSV)) Perl_croak(aTHX_ SvPV_nolen (ERRSV));
+   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
    $symname = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */

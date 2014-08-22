@@ -191,6 +191,12 @@ die $@ if $@;
 # properly recognizes the PDL package.
 package PDL;
 
+# support: use Inline with => 'PDL';
+sub Inline {
+    require PDL::Install::Files;
+    goto &PDL::Install::Files::Inline;
+}
+
 ##################################################
 # Rudimentary handling for multiple Perl threads #
 ##################################################
