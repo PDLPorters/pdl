@@ -53,27 +53,15 @@ required steps.
 
 The following example creates a piddle at the C level.
 We use the C<Inline> module which is really the way to interface
-Perl and C these days. Note the use of the C<PDL_INCLUDE>, C<PDL_TYPEMAP>,
-C<PDL_AUTO_INCLUDE> and C<PDL_BOOT> functions that were imported from
-C<PDL::Core::Dev>. They are used in conjunction with an Inline
-Config call to ensure that the PDL typemap, the PDL include files
-and the PDL Core routines are found during compilation and later
-runtime execution.
+Perl and C these days, using the C<with> capability in L<Inline> 0.68+.
 
    use PDL::LiteF;
-   use PDL::Core::Dev;
 
    $a = myfloatseq(); # exercise our C piddle constructor
 
    print $a->info,"\n";
 
-   # the reason for this config call is explained below
-   use Inline C => Config =>
-     INC           => &PDL_INCLUDE,  # make sure we find pdlcore.h etc
-     TYPEMAPS      => &PDL_TYPEMAP,  # use the PDL typemap
-     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE,  # global declarations and includes
-     BOOT          => &PDL_BOOT;     # boot code to load the Core struct
-
+   use Inline with => 'PDL';
    use Inline C;
    Inline->init; # useful if you want to be able to 'do'-load this script
 
@@ -124,12 +112,7 @@ The following script demonstrates a simple example:
 
    imag1 $b;
 
-   use Inline C => Config =>
-     INC           => &PDL_INCLUDE,
-     TYPEMAPS      => &PDL_TYPEMAP,
-     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE,
-     BOOT          => &PDL_BOOT;
-
+   use Inline with => 'PDL';
    use Inline C;
    Inline->init;
 
@@ -230,12 +213,15 @@ achieved using the functions C<PDL_AUTO_INCLUDE> and C<PDL_BOOT>
 that are defined and exported by C<PDL::Core::Dev>. Typical usage
 with the Inline module has already been demonstrated:
 
+   use Inline with => 'PDL';
+
+In earlier versions of C<Inline>, this was achieved like this:
+
    use Inline C => Config =>
      INC           => &PDL_INCLUDE,
      TYPEMAPS      => &PDL_TYPEMAP,
      AUTO_INCLUDE  => &PDL_AUTO_INCLUDE, # declarations
      BOOT          => &PDL_BOOT;         # code for the XS boot section
-
 
 The code returned by C<PDL_AUTO_INCLUDE> makes sure that F<pdlcore.h>
 is included and declares the static variables to hold the pointer to
@@ -251,18 +237,17 @@ The code returned by C<PDL_BOOT> retrieves the C<$PDL::SHARE> variable
 and initializes the pointer to the C<Core> struct. For those who know
 their way around the Perl API here is the code:
 
-   print PDL_BOOT;
-
-   perl_require_pv ("PDL::Core"); /* make sure PDL::Core is loaded */
+   perl_require_pv ("PDL/Core.pm"); /* make sure PDL::Core is loaded */
+#ifndef aTHX_
+#define aTHX_
+#endif
+   if (SvTRUE (ERRSV)) Perl_croak(aTHX_ SvPV_nolen (ERRSV));
    CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
- #ifndef aTHX_
- #define aTHX_
- #endif
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
    PDL = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if (PDL->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
+     Perl_croak(aTHX_ "[PDL->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] The code needs to be recompiled against the newly installed PDL", PDL->Version, PDL_CORE_VERSION, XS_VERSION);
 
 The C<Core> struct contains version info to ensure that the structure defined
 in F<pdlcore.h> really corresponds to the one obtained at runtime. The code
