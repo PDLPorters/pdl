@@ -17,4 +17,17 @@ foreach (@INC) {
   if ( -f "$_/PDL/Install/Files.pm") { $CORE = $_ . "/PDL/Install/"; last; }
 }
 
+sub deps { }
+# support: use Inline with => 'PDL';
+sub Inline {
+  my ($class, $lang) = @_;
+  return unless $lang eq 'C';
+  +{
+    TYPEMAPS      => [ &PDL::Core::Dev::PDL_TYPEMAP ],
+    INC           => &PDL::Core::Dev::PDL_INCLUDE,
+    AUTO_INCLUDE  => &PDL::Core::Dev::PDL_AUTO_INCLUDE,
+    BOOT          => &PDL::Core::Dev::PDL_BOOT,
+  };
+}
+
 1;
