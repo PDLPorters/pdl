@@ -33,8 +33,10 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * You can now: "use Inline with => 'PDL';" - see PDL::API
 
+ * You can, in your module's Makefile.PL: "$p = new ExtUtils::Depends
+   'MyMod', 'PDL'"
 
 
 Release Notes for PDL 2.007_03 --------------------------

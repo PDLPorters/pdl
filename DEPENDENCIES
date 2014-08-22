@@ -1,5 +1,5 @@
 +----------------------------------------------------------------------------+
-|                        PDL Module Dependencies                            | 
+|                        PDL Module Dependencies                             |
 +----------------------------------------------------------------------------+
 
 This file lists dependencies of PDL modules on external programs
@@ -48,8 +48,8 @@ PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
                   Module::Compile         implementation under development.
 
 
-Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
-                                          PP code inline in your scripts.
+Inline::Pdlpp     Inline >= 0.68          This module allows to define fast
+                  Inline::C >= 0.62       PP code inline in your scripts.
 
                                           NOTE: Though Inline is listed as as
 					  PDL prerequisite for CPAN, you can
