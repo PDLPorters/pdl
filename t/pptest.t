@@ -66,7 +66,7 @@ is( join(',',$a->dims), "10" );
 ok( tapprox($a,sequence(10)) );
 
 # this used to segv under solaris according to Karl
-{ local $=0; # To suppress warnings of use of uninitialized value.
+{ local $^W = 0; # To suppress warnings of use of uninitialized value.
   $ny=7;
   $a = double xvals zeroes (20,$ny);
   test_fooseg $a, $b=null;
