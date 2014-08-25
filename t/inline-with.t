@@ -25,7 +25,16 @@ BEGIN {
    };
 }
 use File::Path;
-END { rmtree $inline_test_dir if -d $inline_test_dir }
+END {
+  if ($^O =~ /MSWin32/i) {
+    for (my $i = 0; $i < @DynaLoader::dl_modules; $i++) {
+      if ($DynaLoader::dl_modules[$i] =~ /inline_with_t/) {
+        DynaLoader::dl_unload_file($DynaLoader::dl_librefs[$i]);
+      }
+    }
+  }
+  rmtree $inline_test_dir if -d $inline_test_dir;
+}
 
 # use Inline 'INFO'; # use to generate lots of info
 use Inline with => 'PDL';
