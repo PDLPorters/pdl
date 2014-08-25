@@ -75,30 +75,31 @@ my %search = (
 	   #>>> noperltidy
         },
 
-        # reverse direction in vsearch is buggy; don't run for now
-        # reverse => {
-        #     idx      => $idx,
-        #     x        => $x->mslice( [ -1, 0 ] ),
-        #     equal    => $idx,
-        #     nequal_m => $idx,
-        #     nequal_p => do { my $_ = $idx - 1; $_->set( 0, 0 ); $_ },
-        #     xdup     => {
-        #         set => $xdup->nslice( [ -1, 0 ] ),
-        #         idx => $xdup->nelem - 1 - $xdup_idx_insert_left,
-        #         values => $xdup_values,
-        #     },
-	#     #<<< noperltidy
-        #     docs => [
-	# 	'          V > xs[0]  : i = 0                      ' => [(0,  1, 0) ],
-	# 	'xs[0]  >= V > xs[-1] : i s.t. xs[i] >= V > xs[i+1]' => [(0,  0, 0),
-	# 								 (0, -1, 0),
-	# 								 (1,  0, 1),
-	# 								],
-	# 	'xs[-1] >= V          : i = $xs->nelem - 1         ' => [(-1,  0, $N-1),
-	# 								 (-1, -1, $N-1),
-	# 								],
-        #     ],
-	#    #>>> noperltidy
+        reverse => {
+            idx      => $idx,
+            x        => $x->mslice( [ -1, 0 ] ),
+            equal    => $idx,
+            nequal_m => $idx,
+            nequal_p => do { my $_ = $idx - 1; $_->set( 0, 0 ); $_ },
+            xdup     => {
+                set => $xdup->slice( [ -1, 0 ] ),
+                idx => $xdup->nelem - 1 - $xdup_idx_insert_left,
+                values => $xdup_values,
+            },
+	    #<<< noperltidy
+            docs => [
+		'          V > xs[0]  : i = 0                      ' => [(0,  1, 0) ],
+		'xs[0]  >= V > xs[-1] : i s.t. xs[i] >= V > xs[i+1]' => [(0,  0, 0),
+									 (0, -1, 0),
+									 (1,  0, 1),
+									],
+		'xs[-1] >= V          : i = $xs->nelem - 1         ' => [(-1,  0, $N-1),
+									 (-1, -1, $N-1),
+									],
+            ],
+	   #>>> noperltidy
+
+       }
 
     },
 

@@ -2225,51 +2225,78 @@ pp_add_exported('','grandom');
 
 =cut
 
-# The last x is ignored...
 pp_def('vsearch',
        HandleBad => 0,
        BadDoc => 'needs major (?) work to handles bad values',
-	Pars => 'i(); x(n); indx [o]ip()',
-	GenericTypes => ['F','D'], # too restrictive ?
-	Code => 'int carp=0;
-		 threadloop %{
-		   PDL_Indx n1 = $SIZE(n)-1;
-                   PDL_Indx jl=-1, jh=n1, m;
-		   int up = ($x(n => n1) > $x(n => 0));
-		   $GENERIC() d;
-  		   while (jh-jl > 1)  /* binary search */
-    			{
-      				m = jl + ( (jh-jl) >> 1 );  // avoid overflow error, sf.net bug #360
-      				if ($i() > $x(n => m) == up)
-					jl = m;
-      				else
-					jh = m;
-    			}
-		   if (jl == -1) {
-			jh = 0;
-                   } else if (jl == n1) {
-			if ($i() != $x(n => n1)) carp = 1;
-			jh = n1;
-		   } else {
-			jh = jl+1;
-		   }
-		   $ip() = jh;
-		%}
-		if (carp) warn("some values had to be extrapolated");
-', Doc=><<'EOD');
+        Pars => 'i(); x(n); indx [o]ip()',
+        GenericTypes => ['F','D'], # too restrictive ?
+        Code => q[threadloop %{
+
+                   PDL_Indx n1 = $SIZE(n)-1;
+                   PDL_Indx low = -1;
+                   PDL_Indx high = $SIZE(n);
+                   PDL_Indx mid;
+
+		   $GENERIC() value = $i();
+
+                   /* determine sort order of data */
+                   int up = ($x(n => n1) > $x(n => 0));
+
+                   while ( high - low > 1 ) {
+
+		       /* avoid overflow error, sf.net bug #360 */
+                       mid = low + (( high - low )>>1);
+
+                       if ( ( value > $x(n => mid ) ) == up ) low = mid;
+                       else                                   high = mid;
+                   }
+                   $ip() = low >= n1 ? n1
+                         : up        ? low + 1
+                         : low < 0   ? 0
+                         :           low ;
+                %}
+],
+         Doc => <<'EOD' );
 
 =for ref
 
-routine for searching 1D values i.e. step-function interpolation.
+Search for values in a sorted array.
 
 =for usage
 
  $inds = vsearch($vals, $xs);
 
-Returns for each value of C<$vals> the index of the least larger member
-of C<$xs> (which need to be in increasing order). If the value is larger
-than any member of C<$xs>, the index to the last element of C<$xs> is 
-returned.
+C<$xs> must be sorted, but may be in decreasing or increasing
+order.
+
+B<vsearch> returns an index I<I> for each value I<V> of C<$vals> with the
+following properties:
+
+=over
+
+=item *
+
+if xs is sorted in increasing order
+
+           V <= xs[0]  : i = 0
+  xs[0]  < V <= xs[-1] : i s.t. xs[i-1] < V <= xs[i]
+  xs[-1] < V           : i = $xs->nelem -1
+
+=item *
+
+if xs is sorted in decreasing order
+
+            V > xs[0]  : i = 0
+  xs[0]  >= V > xs[-1] : i s.t. xs[i] >= V > xs[i+1]
+  xs[-1] >= V          : i = $xs->nelem - 1
+
+
+=back
+
+If all elements of C<$xs> are equal, I<< I = $xs->nelem - 1 >>.
+
+If C<$xs> contains duplicated elements, I<I> is the index of the
+leftmost (by position in array) duplicate if I<V> matches.
 
 =for example
 
