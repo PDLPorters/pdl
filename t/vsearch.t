@@ -103,6 +103,301 @@ my %search = (
 
     },
 
+    vsearch_insert_leftmost => {
+
+        all_the_same_element => 0,
+
+        forward => {
+            idx      => $idx,
+            x        => $x,
+            equal    => $idx,
+            nequal_m => $idx,
+            nequal_p => $idx + 1,
+            xdup     => {
+                set    => $xdup,
+                idx    => $xdup_idx_insert_left,
+                values => $xdup_values,
+            },
+	    #<<< noperltidy
+	    docs => [
+		'         V <= xs[0]  : i = 0                      ' => [ ( 0, -1, 0 ),
+									  ( 0,  0,  0)
+									],
+		'xs[0]  < V <= xs[-1] : i s.t. xs[i-1] < V <= xs[i]' => [ ( 0, 1, 1 ),
+									  ( 1, 0, 1 ),
+									  ( -1, 0, $N-1 ),
+									],
+		'xs[-1] < V           : i = $xs->nelem             ' => [
+									 ( -1, 1, $N ),
+									],
+
+	    ],
+	   #>>> noperltidy
+
+        },
+
+        reverse => {
+            idx      => $idx,
+            x        => $x->mslice( [ -1, 0 ] ),
+            equal    => $idx,
+            nequal_m => $idx,
+            nequal_p => $idx - 1,
+            xdup     => {
+                set => $xdup->mslice( [ -1, 0 ] ),
+                idx => $xdup->nelem - 1 - $xdup_idx_insert_left,
+                values => $xdup_values,
+            },
+
+	    #<<< noperltidy
+           docs => [
+	       '          V >  xs[0]  : i = -1                     ' => [ ( 0,   1, -1 ), ],
+	       'xs[0]  >= V >= xs[-1] : i s.t. xs[i] >= V > xs[i+1]' => [ ( 0,   0,  0 ),
+									  ( 0,  -1,  0 ),
+									],
+	       'xs[-1] >= V           : i = $xs->nelem -1          ' => [ ( -1,  0, $N-1 ),
+									  ( -1, -1, $N-1 ),
+									],
+
+           ],
+	   #>>> noperltidy
+
+        },
+    },
+
+    vsearch_insert_rightmost => {
+
+        all_the_same_element => $N,
+
+        forward => {
+            idx      => $idx,
+            x        => $x,
+            equal    => $idx + 1,
+            nequal_m => $idx,
+            nequal_p => $idx + 1,
+            xdup     => {
+                set    => $xdup,
+                idx    => $xdup_idx_insert_right,
+                values => $xdup_values,
+                idx_offset => -1,   # returns index of element *after* the value
+            },
+	    #<<< noperltidy
+	    docs => [
+		'          V < xs[0]  : i = 0                      ' => [ ( 0, -1, 0 ) ],
+		'xs[0]  <= V < xs[-1] : i s.t. xs[i-1] <= V < xs[i]' => [ ( 0, 0, 1 ),
+									  ( 0, 1, 1 ),
+									  ( 1, 0, 2 ),
+									],
+		'xs[-1] <= V          : i = $xs->nelem             ' => [ ( -1, 0, $N ),
+									  ( -1, 1, $N ),
+									],
+            ],
+	   #>>> noperltidy
+        },
+
+        reverse => {
+            idx      => $idx,
+            x        => $x->mslice( [ -1, 0 ] ),
+            equal    => $idx - 1,
+            nequal_m => $idx,
+            nequal_p => $idx - 1,
+            xdup     => {
+                set => $xdup->mslice( [ -1, 0 ] ),
+                idx => $xdup->nelem - 1 - $xdup_idx_insert_right,
+                values => $xdup_values,
+                idx_offset => +1,   # returns index of element *after* the value
+            },
+	    #<<< noperltidy
+	    docs => [
+		'         V >= xs[0]  : i = -1                     ' => [ ( 0,   1, -1 ),
+									  ( 0,   0, -1 ),
+									],
+		'xs[0]  > V >= xs[-1] : i s.t. xs[i] >= V > xs[i+1]' => [ ( 0,  -1, 0 ),
+									  ( -1,  1, $N-2 ),
+									  ( -1,  0, $N-2 ),
+									],
+		'xs[-1] > V           : i = $xs->nelem -1          ' => [ ( -1,  -1, $N-1 ) ]
+            ],
+	   #>>> noperltidy
+        },
+    },
+
+    vsearch_match => {
+
+        all_the_same_element => ( $N ) >> 1,
+
+        forward => {
+            idx      => $idx,
+            x        => $x,
+            equal    => $idx,
+            nequal_m => -( $idx + 1 ),
+            nequal_p => -( $idx + 1 + 1 ),
+            xdup     => {
+                set    => $xdup,
+                values => $xdup_values,
+            },
+	    #<<< noperltidy
+	    docs => [
+		'V < xs[0]  : i = -1' => [ ( 0,   -1, -1 ), ],
+		'V == xs[n] : i = n' => [ ( 0,  0, 0 ),
+					  ( -1, 0, $N-1 ) ],
+		'xs[0] > V > xs[-1], V != xs[n] : -(i+1) s.t. xs[i] > V > xs[i+1]' => [ ( 0,   1, -( 1 + 1)  ),
+											( 1,  -1, -( 1 + 1 ) ),
+											( 1,   1, -( 2 + 1 ) ),
+											( -1,  -1, -( $N - 1 + 1 ) ),
+										      ],
+		' V > xs[-1] : -($xs->nelem - 1 + 1)' => [ ( -1,   1, -( $N + 1)  ), ]
+            ],
+	   #>>> noperltidy
+        },
+
+        reverse => {
+            idx      => $idx,
+            x        => $x->mslice( [ -1, 0 ] ),
+            equal    => $idx,
+            nequal_m => -( $idx + 1 ),
+            nequal_p => -( $idx + 1 - 1 ),
+            xdup     => {
+                set => $xdup->mslice( [ -1, 0 ] ),
+                values => $xdup_values,
+            },
+	    #<<< noperltidy
+	    docs => [
+		'V > xs[0]  : i = 0' => [ ( 0,  1, 0 ), ],
+		'V == xs[n] : i = n' => [ ( 0,  0, 0 ),
+					  ( -1, 0, $N-1 ) ],
+		'xs[0] < V < xs[-1], V != xs[n] : -(i+1) s.t. xs[i-1] > V > xs[i]' => [ ( 0,  -1, -( 0 + 1)  ),
+											( 1,   1, -( 0 + 1 ) ),
+											( 1,  -1, -( 1 + 1 ) ),
+											( -1,  -1, -( $N - 1 + 1 ) ),
+										      ],
+		' xs[-1] > V: -($xs->nelem - 1 + 1)' => [ ( -1,   -1, -( $N - 1 + 1)  ), ]
+            ],
+	   #>>> noperltidy
+        },
+    },
+
+    vsearch_bin_inclusive => {
+
+        all_the_same_element => $N - 1,
+
+        forward => {
+            idx      => $idx,
+            x        => $x,
+            equal    => $idx,
+            nequal_m => $idx - 1,
+            nequal_p => $idx,
+            xdup     => {
+                set    => $xdup,
+                idx    => $xdup_idx_insert_left + $ndup - 1,
+                values => $xdup_values,
+            },
+	    #<<< noperltidy
+	    docs => [
+		'          V < xs[0]  : i = -1                     ' => [ ( 0, -1, -1 ), ],
+		'xs[0]  <= V < xs[-1] : i s.t. xs[i] <= V < xs[i+1]' => [ ( 0,  0,  0 ),
+									  ( 0,  1,  0 ),
+									  ( 1, -1,  0 ),
+									  ( 1,  0,  1 ),
+									  ( -1, -1, $N-2 ),
+									],
+		'xs[-1] <= V          : i = $xs->nelem - 1         ' => [
+									  ( -1, 0,  $N-1 ),
+									  ( -1, 1,  $N-1 ),
+									]
+            ],
+	   #>>> noperltidy
+        },
+
+        reverse => {
+            idx      => $idx,
+            x        => $x->mslice( [ -1, 0 ] ),
+            equal    => $idx,
+            nequal_m => $idx + 1,
+            nequal_p => $idx,
+            xdup     => {
+                set => $xdup->mslice( [ -1, 0 ] ),
+                idx => $xdup->nelem - ( 1 + $xdup_idx_insert_left + $ndup - 1 ),
+                values => $xdup_values,
+            },
+	    #<<< noperltidy
+	    docs => [
+		'          V >= xs[0]  : i = 0                        ' => [ (0, 1, 0 ),
+									     (0, 0, 0 )
+									 ],
+		'xs[0]  >  V >= xs[-1] : i s.t. xs[i+1] > V >= xs[i]' => [ ( 0, -1, 1 ),
+									   ( 1,  1, 1 ),
+									   ( 1,  0, 1 ),
+									   ( 1, -1, 2 ),
+									   ( -1, 0, $N-1 ),
+									 ],
+		'xs[-1] >  V           : i = $xs->nelem -1          ' => [ ( -1, -1, $N ) ],
+            ],
+	   #>>> noperltidy
+        },
+    },
+
+    vsearch_bin_exclusive => {
+
+        all_the_same_element => -1,
+
+        forward => {
+            idx      => $idx,
+            x        => $x,
+            equal    => $idx - 1,
+            nequal_m => $idx - 1,
+            nequal_p => $idx,
+            xdup     => {
+                set        => $xdup,
+                idx        => $xdup_idx_insert_left - 1,
+                values     => $xdup_values,
+                idx_offset => 1,
+            },
+	    #<<< noperltidy
+	    docs => [
+		'          V <= xs[0]  : i = -1                     ' => [ ( 0, -1, -1 ),
+									   ( 0,  0, -1 ),
+									 ],
+		'xs[0]  <  V <= xs[-1] : i s.t. xs[i] < V <= xs[i+1]' => [ ( 0,  1, 0 ),
+									   ( 1, -1, 0 ),
+									   ( 1,  0, 0 ),
+									   ( 1,  1, 1 ),
+									   ( -1, -1, $N-2 ),
+									   ( -1, 0, $N-2 ),
+									],
+		'xs[-1] <  V           : i = $xs->nelem - 1         ' => [
+									  ( -1, 1, $N-1 ),
+									 ],
+            ],
+	    #>>> noperltidy
+        },
+
+        reverse => {
+            idx      => $idx,
+            x        => $x->mslice( [ -1, 0 ] ),
+            equal    => $idx + 1,
+            nequal_m => $idx + 1,
+            nequal_p => $idx,
+            xdup     => {
+                set => $xdup->mslice( [ -1, 0 ] ),
+                idx => $xdup->nelem - ( 1 + $xdup_idx_insert_left - 1 ),
+                values     => $xdup_values,
+                idx_offset => -1,
+            },
+	    #<<< noperltidy
+	    docs => [
+		'          V >  xs[0]  : i = 0                      ' => [ ( 0,  1, 0 ), ],
+		'xs[0]  >  V >  xs[-1] : i s.t. xs[i-1] >= V > xs[i]' => [ ( 0,  0, 1 ),
+									   ( 0, -1, 1 ),
+									   ( -1, 1, $N-1 ),
+									 ],
+		'xs[-1] >= V           : i = $xs->nelem -1          ' => [ ( -1, 0, $N ),
+									   ( -1, -1, $N ),
+									 ],
+	    ],
+	    #>>> noperltidy
+        },
+    },
+
 );
 
 for my $fname (
