@@ -512,6 +512,7 @@ RCOLS_IO: {
       print STDERR "rcols: processing COLIDS option\n" if $options->{VERBOSE};
       undef $!;
       if (defined($fhline = <$fh>) ) {        # grab first line's fields for column IDs
+         $fhline =~ s/\r?\n$//;               # handle DOS on unix files better
          my @v = defined($usecolsep) ? split($usecolsep,$fhline) : split(' ',$fhline);
          @{$options->{COLIDS}} = @v;
       } else {
