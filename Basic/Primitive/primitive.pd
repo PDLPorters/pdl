@@ -2239,7 +2239,7 @@ pp_def('vsearch',
 		   $GENERIC() d;
   		   while (jh-jl > 1)  /* binary search */
     			{
-      				m = (jh+jl) >> 1;
+      				m = jl + ( (jh-jl) >> 1 );  // avoid overflow error, sf.net bug #360
       				if ($i() > $x(n => m) == up)
 					jl = m;
       				else
