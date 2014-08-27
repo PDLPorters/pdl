@@ -907,10 +907,11 @@ This approach means that there is virtually no overhead when
 bad values are not present (i.e. the L<badflag|PDL::Bad/badflag> routine
 returns 0).
 
-The BadCode section can use the same macros and looping constructs
-as the Code section. 
-However, it wouldn't be much use without the following additional
-macros:
+The C preprocessor symbol C<PDL_BAD_CODE> is defined when the bad code
+is compiled, so that you can reduce the amount of code you write.  The
+BadCode section can use the same macros and looping constructs as the
+Code section.  However, it wouldn't be much use without the following
+additional macros:
 
 =over 4
 
@@ -969,6 +970,21 @@ Since this is Perl, TMTOWTDI, so you could also write:
     } else {
        $SETBAD(c());
     }',
+
+You can reduce code repition using the C C<PDL_BAD_CODE> macro,
+using the same code for both of the C<Code> and C<BadCode> sections:
+
+    #ifdef PDL_BAD_CODE
+    if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
+    #endif PDL_BAD_CODE
+
+       $c() = $a() + $b();
+
+    #ifdef PDL_BAD_CODE
+    } else {
+       $SETBAD(c());
+    }
+    #endif PDL_BAD_CODE
 
 If you want access to the value of the badflag for a given
 piddle, you can use the PDL STATE macros:

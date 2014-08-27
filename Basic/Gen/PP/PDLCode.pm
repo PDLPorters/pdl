@@ -251,7 +251,9 @@ sub get_str {
     my $bad  = $this->[1];
 
     my $str = "if ( \$PRIV(bvalflag) ) { PDL_COMMENT(\"** do 'bad' Code **\")\n";
+    $str .= "\n#define PDL_BAD_CODE\n";
     $str .= $bad->get_str($parent,$context);
+    $str .= "\n#undef PDL_BAD_CODE\n";
     $str .= "} else { PDL_COMMENT(\"** else do 'good' Code **\")\n";
     $str .= $good->get_str($parent,$context);
     $str .= "}\n";
