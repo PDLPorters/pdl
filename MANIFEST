@@ -11,6 +11,7 @@ Basic/Core/Core.xs.PL
 Basic/Core/Dbg.pm
 Basic/Core/Dev.pm
 Basic/Core/Exporter.pm
+Basic/Core/IFiles.pm
 Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
 Basic/Core/pdl.h.PL
@@ -730,6 +731,7 @@ t/image2d.t
 t/imagend.t
 t/imagergb.t
 t/inline-comment-test.t
+t/inline-with.t
 t/inlinepdlpp.t
 t/interp.t
 t/interp_slatec.t
