@@ -89,11 +89,6 @@ The following issues have been reported with this version of PDL:
   again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
 
-- PDL on Cygwin+32bit windows has only about 300MB which can cause
-  out of memory crashes with large data sets.  For 64bit windows hosts
-  2GB is available.
-
-
 - minimum/maximum/min/max inconsistently handle NaN values.
   NaNs for the first element of a pdl will propagate to the
   result while if the first element is a number, then the
@@ -104,6 +99,12 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.007_04 release:
 
+  361    vsearch bug w/# reversed list
+  360    subtle & rare bug in vsearch
+  359    Improved documentation for vsearch
+  358    one2nd() has unexpected behaviour when given a Perl scalar rather than a piddle
+  357    Android support
+  356    overload::Method() does not return coderef for stringification
   355    dog creates 0 dim piddle which squeezes to 1 dim.
   354    filter demo list by actually available
   353    imag2d not 'use warnings' safe and no way to disable twiddle
@@ -112,6 +113,7 @@ The following issues have been reported with this version of PDL:
   347    t/#pdl_from_string.t has a failure if BADVAL_NAN=1
   346    ExtUtils::F77 dependency causing problems for CPAN install
   343    longlong constructor and display lose digits due to implicit double precision conversions
+  342    BUGS file not indexable or discoverable
   340    orover of byte data returns long type
   339    PDL::Complex support is inconsistent and incomplete
   334    Test coverage is incomplete

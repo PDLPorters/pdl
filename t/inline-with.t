@@ -16,12 +16,17 @@ BEGIN {
 
    # See if Inline loads without trouble, or bail out
    eval {
-      require Inline;
+      no strict 'subs';
+      if ( require (Inline) and $Inline::VERSION < 0.68 ) {
+         plan skip_all => "Skipped: Inline not installed or correct VERSION < 0.68";
+      }
+   };
+   eval {
       Inline->import (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1);
 #      Inline->import ('NOCLEAN');
       1;
    } or do {
-      plan skip_all => "Skipped: Inline not installed";
+      plan skip_all => "Skipped: Inline->import(...) failed";
    };
 }
 use File::Path;

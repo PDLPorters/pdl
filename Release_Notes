@@ -10,6 +10,22 @@ Release Notes for PDL 2.007_04 --------------------------
 
 General Notes:
 
+ * This CPAN developers release for PDL is based on
+   work by mohawk to update the Inline support for
+   PDL and to add support for ExtUtils::Depends and
+   is available from his github mirror in the inline-eud
+   branch at
+   
+     https://github.com/mohawk2/pdl-code.git
+
+   If you make use of the new functionality, please
+   let us know via the perldl mailing list:
+
+     http://mailman.jach.hawaii.edu/mailman/listinfo/perldl
+   
+   Your feedback will help steer what features are
+   included in our next stable PDL release.  Thanks.
+
  * Another quick CPAN developers release
 
    - It is a snapshot of the current git development tree
