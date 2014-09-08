@@ -1354,17 +1354,20 @@ say something like
 but that won't work, because PP can't interpret expressions with arithmetic
 in the signature. Instead you write
 
- pp_def( "myexternalfunc",
-  Pars => " p(m);  x(n);  [o] y; [t] work(wn); ",
-    RedoDimsCode => "
-    int im = $PDL(p)->dims[0];
-    int in = $PDL(x)->dims[0];
-    int min = in + im * im;
-    int inw = $PDL(work)->dims[0];
-    $SIZE(wn) = inw >= min ? inw : min; ",
-    Code => "
-     externalfunc($P(p),$P(x),$SIZE(m),$SIZE(n),$P(work));
-       ";)
+  pp_def(
+      "myexternalfunc",
+      Pars         => ' p(m);  x(n);  [o] y(); [t] work(wn); ',
+      RedoDimsCode => '
+	int im = $PDL(p)->dims[0];
+	int in = $PDL(x)->dims[0];
+	int min = in + im * im;
+	int inw = $PDL(work)->dims[0];
+	$SIZE(wn) = inw >= min ? inw : min;
+      ',
+      Code => '
+        externalfunc( $P(p), $P(x), $SIZE(m), $SIZE(n), $P(work) );
+      '
+  );
 
 This code works as follows: The macro $PDL(p) expands to a
 pointer to the pdl struct for the piddle p.  You don't want
