@@ -1,4 +1,4 @@
-use Test::More tests => 24;
+use Test::More tests => 25;
 use Test::Warn;
 
 use PDL::LiteF;
@@ -90,3 +90,17 @@ test_fooflow2 $sl11, $sl22;
 
 ok(all $xx->slice('(0)') == 599);
 ok(all $xx->slice('(1)') == 699);
+
+# test that continues in a threadloop work
+{
+    my $in = sequence(10);
+    my $got = $in->zeroes;
+    my $exp = $in->copy;
+    my $tmp = $exp->where( ! ($in % 2) );
+    $tmp .= 0;
+
+    test_threadloop_continue( $in, $got );
+
+    ok( tapprox( $got, $exp ), "continue works in threadloop" )
+      or do { diag "got     : $got"; diag "expected: $exp" };
+}

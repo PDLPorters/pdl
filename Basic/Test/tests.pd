@@ -146,4 +146,19 @@ pp_deft('fooflow3',
 	Code => 'tinplace_c3($SIZE(n),$P(a),$P(b),$P(c));',
 	);
 
+pp_deft( 'threadloop_continue',
+	 Pars => 'in(); [o] out()',
+	 Code => q[
+	    int cnt = 0;
+	    threadloop %{
+
+	    if ( ++cnt %2 )
+	      continue;
+
+	    $out() = $in();
+	 %}
+        ],
+       );
+	 
+
 pp_done;
