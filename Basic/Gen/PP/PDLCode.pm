@@ -471,9 +471,18 @@ sub myprelude {
 	  ( map { "register PDL_Indx __tinc0_${_} = \$PRIV(__pdlthread).incs[${_}];"} 0..$#{$ord}),
 	  ( map { "register PDL_Indx __tinc1_${_} = \$PRIV(__pdlthread).incs[__tnpdls+$_];"} 0.. $#{$ord}),
 	  ( map { $ord->[$_] ."_datap += __offsp[$_];"} 0..$#{$ord} ),
-	  'for(__tind2=0; __tind2<__tdims1 ; __tind2++) {
-	     for(__tind1=0; __tind1<__tdims0 ; __tind1++) {
-	       PDL_COMMENT("This is the tightest threadloop. Make sure inside is optimal.")'
+	  'for( __tind2 = 0 ;
+                __tind2 < __tdims1 ;
+                __tind2++',
+	        ( map { "\t\t," . $ord->[$_] . "_datap += __tinc1_${_} - __tinc0_${_} * __tdims0"} 0..$#{$ord} ),
+             ')',
+	  '{
+	     for( __tind1 = 0 ;
+                  __tind1 < __tdims0 ;
+                  __tind1++',
+	          ( map { "\t\t," . $ord->[$_] . "_datap += __tinc0_${_}"} 0..$#{$ord}),
+	       ')',
+           '{  PDL_COMMENT("This is the tightest threadloop. Make sure inside is optimal.")'
 	);
 }
 
@@ -484,9 +493,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
  join( "\n	",
        '',
        'PDL_COMMENT("THREADLOOPEND")',
-       ( map { $ord->[$_] . "_datap += __tinc0_${_};"} 0..$#{$ord}),
        '}',
-       ( map { $ord->[$_] . "_datap += __tinc1_${_} - __tinc0_${_} * __tdims0;"} 0..$#{$ord} ),
        '}',
        ( map { $ord->[$_] . "_datap -= __tinc1_${_} * __tdims1 + __offsp[${_}];"} 0..$#{$ord} ),
        '} while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));'
