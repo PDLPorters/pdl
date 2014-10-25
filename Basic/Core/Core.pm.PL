@@ -1131,7 +1131,7 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/\bEe\b/inf/g;
    my $nnan = $inf - $inf;
    my $nan= $this->initialize();
-   $nan->set_datatype(6);
+   $nan->set_datatype($nnan->get_datatype);
    $nan->setdims([]);
 
    # pack("d*", "nan") will work here only on perls that numify the string "nan" to a NaN.
