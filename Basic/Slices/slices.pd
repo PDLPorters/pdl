@@ -2825,7 +2825,7 @@ ignored (though it is not ignored within numbers).
 
 =over 3
 
-=item C<<  >>, C<< : >>, or C<< X >> -- keep
+=item C<< '' >>, C<< : >>, or C<< X >> -- keep
 
 The empty string, C<:>, or C<X> cause the entire corresponding
 dimension to be kept unchanged.

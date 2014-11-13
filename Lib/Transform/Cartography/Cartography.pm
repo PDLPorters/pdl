@@ -323,7 +323,7 @@ If a third argument is given, it is a hash of options, which can be:
 
 =item dup - if true, the meridian at the far boundary is duplicated.
 
-==back 
+=back 
 
 =cut
 

@@ -347,7 +347,7 @@ would give you much more useful information:
 For the above situation, my compiler tells me:
 
  ...
- test.pd:15: error: ‘rmp’ undeclared (first use in this function)
+ test.pd:15: error: 'rmp' undeclared (first use in this function)
  ...
 
 In my example script (called test.pd), line 15 is exactly the line at which
