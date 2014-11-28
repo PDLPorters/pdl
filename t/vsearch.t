@@ -515,5 +515,20 @@ for my $fname (
 
 }
 
+# test vsearch API to ensure backwards compatibility
+{
+    my $vals = random( 100 );
+    my $xs = sequence(100) / 99;
+
+    # implicit output piddle
+    my $indx0 = vsearch( $vals, $xs );
+
+    my $ret = vsearch( $vals, $xs, my $indx1 = PDL->null() );
+
+    is( $ret, undef, "no return from explicit output piddle" );
+
+    ok ( all ( $indx0 == $indx1 ),
+	 'explicit piddle == implicit piddle' );
+}
 
 done_testing;
