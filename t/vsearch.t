@@ -53,7 +53,7 @@ my %search = (
             equal    => $idx,
             nequal_m => $idx,
             nequal_p =>
-              do { my $_ = $idx + 1; $_->set( -1, $_->at( -1 ) - 1 ); $_ },
+              do { my $t = $idx + 1; $t->set( -1, $t->at( -1 ) - 1 ); $t },
             xdup => {
                 set    => $xdup,
                 idx    => $xdup_idx_insert_left,
@@ -80,7 +80,7 @@ my %search = (
             x        => $x->mslice( [ -1, 0 ] ),
             equal    => $idx,
             nequal_m => $idx,
-            nequal_p => do { my $_ = $idx - 1; $_->set( 0, 0 ); $_ },
+            nequal_p => do { my $t = $idx - 1; $t->set( 0, 0 ); $t },
             xdup     => {
                 set => $xdup->slice( [ -1, 0 ] ),
                 idx => $xdup->nelem - 1 - $xdup_idx_insert_left,
