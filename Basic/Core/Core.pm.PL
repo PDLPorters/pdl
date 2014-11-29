@@ -345,15 +345,17 @@ print OUT "$typealiases\n";
 print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
  "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 
-*thread_define = \&PDL::thread_define;
-*convert      = \&PDL::convert;   *over 	 = \&PDL::over;
-*dog          = \&PDL::dog;       *cat 	         = \&PDL::cat;
-*type         = \&PDL::type;      *approx        = \&PDL::approx;
-*diagonal     = \&PDL::diagonal;
-*dummy        = \&PDL::dummy;
-*mslice       = \&PDL::mslice;
-*isempty      = \&PDL::isempty;
-*string       = \&PDL::string;
+BEGIN {
+    *thread_define = \&PDL::thread_define;
+    *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
+    *dog          = \&PDL::dog;       *cat 	         = \&PDL::cat;
+    *type         = \&PDL::type;      *approx        = \&PDL::approx;
+    *diagonal     = \&PDL::diagonal;
+    *dummy        = \&PDL::dummy;
+    *mslice       = \&PDL::mslice;
+    *isempty      = \&PDL::isempty;
+    *string       = \&PDL::string;
+}
 
 
 =head2 barf
