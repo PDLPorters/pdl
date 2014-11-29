@@ -43,7 +43,7 @@ my ( $xdup_idx_insert_left, $xdup_idx_insert_right, $xdup_values ) = do {
 
 my %search = (
 
-    vsearch => {
+    sample => {
 
         all_the_same_element => $N - 1,    # finds right-most element
 
@@ -103,7 +103,7 @@ my %search = (
 
     },
 
-    vsearch_insert_leftmost => {
+    insert_leftmost => {
 
         all_the_same_element => 0,
 
@@ -164,7 +164,7 @@ my %search = (
         },
     },
 
-    vsearch_insert_rightmost => {
+    insert_rightmost => {
 
         all_the_same_element => $N,
 
@@ -221,7 +221,7 @@ my %search = (
         },
     },
 
-    vsearch_match => {
+    match => {
 
         all_the_same_element => ( $N ) >> 1,
 
@@ -276,7 +276,7 @@ my %search = (
         },
     },
 
-    vsearch_bin_inclusive => {
+    bin_inclusive => {
 
         all_the_same_element => $N - 1,
 
@@ -336,7 +336,7 @@ my %search = (
         },
     },
 
-    vsearch_bin_exclusive => {
+    bin_exclusive => {
 
         all_the_same_element => -1,
 
@@ -400,21 +400,16 @@ my %search = (
 
 );
 
-for my $fname (
+for my $mode (
     keys %search
   )
 {
 
-    my $data   = $search{$fname};
+    my $data   = $search{$mode};
 
-    subtest $fname => sub {
+    subtest $mode => sub {
 
         my ( $got, $exp );
-
-        my $func = do {
-            no strict 'refs';
-            \&$fname;
-        };
 
 	#<<< no perltidy
         for my $sort_direction ( qw[ forward reverse ] ) {
@@ -426,7 +421,7 @@ for my $fname (
 
                 ok(
                     all(
-                        ( $got = $func->( $so->{x}, $so->{x} ) )
+                        ( $got = vsearch( $so->{x}, $so->{x}, { mode => $mode } ) )
 			==
 			( $exp = $so->{equal} )
                     ),
@@ -435,7 +430,7 @@ for my $fname (
 
                 ok(
                     all(
-                        ( $got = $func->( $so->{x} - 5, $so->{x} ) )
+                        ( $got = vsearch( $so->{x} - 5, $so->{x}, { mode => $mode } ) )
                         ==
 			( $exp = $so->{nequal_m} )
                     ),
@@ -444,7 +439,7 @@ for my $fname (
 
                 ok(
                     all(
-                        ( $got = $func->( $so->{x} + 5, $so->{x} ) )
+                        ( $got = vsearch( $so->{x} + 5, $so->{x}, { mode => $mode } ) )
                         ==
 			( $exp = $so->{nequal_p} )
                     ),
@@ -459,7 +454,7 @@ for my $fname (
 		# value, so we need an offset
 		ok(
 		    all(
-			( $got = $so->{xdup}{set}->index( $func ->( $so->{xdup}{values}, $so->{xdup}{set} )
+			( $got = $so->{xdup}{set}->index( vsearch( $so->{xdup}{values}, $so->{xdup}{set}, { mode => $mode } )
 							                 + ($so->{xdup}{idx_offset} || 0) ) )
 			==
 			( $exp = $so->{xdup}{values} )
@@ -472,7 +467,7 @@ for my $fname (
 
 		    ok(
 			all(
-			    ( $got = $func ->( $so->{xdup}{values}, $so->{xdup}{set} ) )
+			    ( $got = vsearch( $so->{xdup}{values}, $so->{xdup}{set}, { mode => $mode } ) )
 			    ==
 			    ( $exp = $so->{xdup}{idx} )
 			),
@@ -490,7 +485,7 @@ for my $fname (
 			    my ( $idx, $offset, $exp ) = splice( $inputs, 0, 3 );
 			    my $value = $so->{x}->at($idx) + $offset;
 
-			    is ( $got = ( $func->( $value, $so->{x} )->sclr), $exp, "$label: ($idx, $offset)" );
+			    is ( $got = ( vsearch( $value, $so->{x}, { mode => $mode } )->sclr), $exp, "$label: ($idx, $offset)" );
 
 			}
 		    }
@@ -502,7 +497,7 @@ for my $fname (
 
         ok(
             all(
-                ( $got = $func->( $ones, $ones ) )
+                ( $got = vsearch( $ones, $ones, { mode => $mode } ) )
                 ==
                 ( $exp = $data->{all_the_same_element} )
             ),

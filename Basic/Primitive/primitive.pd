@@ -2214,9 +2214,99 @@ EOD
 pp_add_exported('','grandom');
 
 ###############################################################
-# routines somehow related to interpolation
+# binary searches in a piddle; various forms
 ###############################################################
 
+pp_add_exported('','vsearch');
+
+# generic front end; defaults to vsearch_sample for backwards compatibility
+
+pp_addpm(<<'EOD');
+
+=head2 vsearch
+
+=for sig
+
+  Signature: ( vals(); xs(n); [o] indx(); [\%options] )
+
+=for ref
+
+Efficiently search for values in a sorted piddle.
+
+=for usage
+
+  $idx = vsearch( $vals, $x, [\%options] );
+  vsearch( $vals, $x, $idx, [\%options ] );
+
+B<vsearch> performs a binary search for the values from C<$vals>
+piddle in the ordered piddle C<$x>, returning indices into C<$x>.
+It is a front end to a set of routines which differ in how matches are
+determined and the meaning of the returned indices.
+
+The C<mode> option indicates which method of searching to use, and may
+be one of:
+
+=over
+
+=item C<sample>
+
+invoke B<vsearch_sample>, returning indices appropriate for sampling
+within a distribution.
+
+=item C<insert_leftmost>
+
+invoke B<vsearch_insert_leftmost>, returning the left-most possible
+insertion point.
+
+=item C<insert_rightmost>
+
+invoke B<vsearch_insert_rightmost>, returning the right-most possible
+insertion point.
+
+=item C<insert_match>
+
+invoke B<vsearch_match>, returning the index of a matching element,
+else -(insertion point + 1)
+
+=item C<insert_bin_inclusive>
+
+invoke B<vsearch_bin_inclusive>, returning an index appropriate for binning
+on a grid where the left bin edges are I<inclusive> of the bin.
+
+=item C<insert_bin_exclusive>
+
+invoke B<vsearch_bin_exclusive>, returning an index appropriate for binning
+on a grid where the left bin edges are I<exclusive> of the bin.
+
+=back
+
+The default value of C<mode> is C<sample>.
+
+=cut
+
+sub vsearch {
+    my $opt = 'HASH' eq ref $_[-1]
+            ? pop
+	    : { mode => 'sample' };
+
+    croak( "unknown options to vsearch\n" )
+	if ( ! defined $opt->{mode} && keys %$opt )
+	|| keys %$opt > 1;
+
+    my $mode = $opt->{mode};
+    goto
+        $mode eq 'sample'           ? \&vsearch_sample
+      : $mode eq 'insert_leftmost'  ? \&vsearch_insert_leftmost
+      : $mode eq 'insert_rightmost' ? \&vsearch_insert_rightmost
+      : $mode eq 'match'            ? \&vsearch_match
+      : $mode eq 'bin_inclusive'    ? \&vsearch_bin_inclusive
+      : $mode eq 'bin_exclusive'    ? \&vsearch_bin_exclusive
+      :                               croak( "unknown vsearch mode: $mode\n" );
+}
+
+*PDL::vsearch = \&vsearch;
+
+EOD
 
 use Text::Tabs qw[ expand ];
 sub undent {
@@ -2229,7 +2319,7 @@ sub undent {
 }
 
 for my $func ( [
-        vsearch => {
+        vsearch_sample => {
             low  => -1,
             high => '$SIZE(n)',
 	    up   => '($x(n => n1) > $x(n => 0))',
@@ -2239,7 +2329,7 @@ for my $func ( [
                        if ( ( value > $x(n => mid ) ) == up ) low = mid;
                        else                                   high = mid;
                    }
-                   $ip() = low >= n1 ? n1
+                   $idx() = low >= n1 ? n1
                          : up        ? low + 1
                          : low < 0   ? 0
                          :           low ;
@@ -2254,23 +2344,23 @@ for my $func ( [
 			 ----
 			 ],
             doc_incr => q[
-				    V <= xs[0]  : i = 0
-			   xs[0]  < V <= xs[-1] : i s.t. xs[i-1] < V <= xs[i]
-			   xs[-1] < V           : i = $xs->nelem -1
+				   V <= x[0]  : I = 0
+			   x[0]  < V <= x[-1] : I s.t. x[I-1] < V <= x[I]
+			   x[-1] < V          : I = $x->nelem -1
 			 ----
 			 ],
 
             doc_decr => q[
-				     V > xs[0]  : i = 0
-			   xs[0]  >= V > xs[-1] : i s.t. xs[i] >= V > xs[i+1]
-			   xs[-1] >= V          : i = $xs->nelem - 1
+				    V > x[0]  : I = 0
+			   x[0]  >= V > x[-1] : I s.t. x[I] >= V > x[I+1]
+			   x[-1] >= V         : I = $x->nelem - 1
 			 ----
 			 ],
 
             doc_post => q[
-			  If all elements of C<$xs> are equal, I<< I = $xs->nelem - 1 >>.
+			  If all elements of C<$x> are equal, I<< I = $x->nelem - 1 >>.
 
-			  If C<$xs> contains duplicated elements, I<I> is the index of the
+			  If C<$x> contains duplicated elements, I<I> is the index of the
 			  leftmost (by position in array) duplicate if I<V> matches.
 
 			  =for example
@@ -2292,7 +2382,7 @@ for my $func ( [
 
     [
         # return left-most possible insertion point.
-        # lowest index where xs[i] >= value
+        # lowest index where x[i] >= value
         vsearch_insert_leftmost => {
             low  => 0,
             high => 'n1',
@@ -2302,7 +2392,7 @@ for my $func ( [
 			if ( ( $x(n => mid) >= value ) == up ) high = mid - 1;
 			else                                   low  = mid + 1;
 		    }
-		    $ip() = up ? low : high;
+		    $idx() = up ? low : high;
 	    ],
             ref =>
               'Determine the insertion point for values in a sorted array, inserting before duplicates.',
@@ -2310,34 +2400,34 @@ for my $func ( [
             doc_pre => q[
 			 B<%FUNC%> returns an index I<I> for each value I<V> of
 			 C<$vals> equal to the leftmost position (by index in array) within
-			 C<$xs> that I<V> may be inserted and still maintain the order in
-			 C<$xs>.
+			 C<$x> that I<V> may be inserted and still maintain the order in
+			 C<$x>.
 
 			 Insertion at index I<I> involves shifting elements I<I> and higher of
-			 C<$xs> to the right by one and setting the now empty element at index
+			 C<$x> to the right by one and setting the now empty element at index
 			 I<I> to I<V>.
 			 ----
 			 ],
             doc_incr => q[
-				    V <= xs[0]  : i = 0
-			   xs[0]  < V <= xs[-1] : i s.t. xs[i-1] < V <= xs[i]
-			   xs[-1] < V           : i = $xs->nelem
+				   V <= x[0]  : I = 0
+			   x[0]  < V <= x[-1] : I s.t. x[I-1] < V <= x[I]
+			   x[-1] < V          : I = $x->nelem
 			 ----
 			 ],
 
             doc_decr => q[
-				     V >  xs[0]  : i = -1
-			   xs[0]  >= V >= xs[-1] : i s.t. xs[i] >= V > xs[i+1]
-			   xs[-1] >= V           : i = $xs->nelem -1
+				    V >  x[0]  : I = -1
+			   x[0]  >= V >= x[-1] : I s.t. x[I] >= V > x[I+1]
+			   x[-1] >= V          : I = $x->nelem -1
 			 ----
 			 ],
 
             doc_post => q[
-			  If all elements of C<$xs> are equal,
+			  If all elements of C<$x> are equal,
 
 			      i = 0
 
-			  If C<$xs> contains duplicated elements, I<I> is the index of the
+			  If C<$x> contains duplicated elements, I<I> is the index of the
 			  leftmost (by index in array) duplicate if I<V> matches.
 			  ----
 			  ],
@@ -2347,7 +2437,7 @@ for my $func ( [
 
     [
         # return right-most possible insertion point.
-        # lowest index where xs[i] > value
+        # lowest index where x[i] > value
         vsearch_insert_rightmost => {
             low  => 0,
             high => 'n1',
@@ -2357,7 +2447,7 @@ for my $func ( [
 		       if ( ( $x(n => mid) > value ) == up ) high = mid - 1;
 		       else                                  low  = mid + 1;
 		   }
-		   $ip() = up ? low : high;
+		   $idx() = up ? low : high;
             ],
             ref =>
               'Determine the insertion point for values in a sorted array, inserting after duplicates.',
@@ -2365,34 +2455,34 @@ for my $func ( [
             doc_pre => q[
 			 B<%FUNC%> returns an index I<I> for each value I<V> of
 			 C<$vals> equal to the rightmost position (by index in array) within
-			 C<$xs> that I<V> may be inserted and still maintain the order in
-			 C<$xs>.
+			 C<$x> that I<V> may be inserted and still maintain the order in
+			 C<$x>.
 
 			 Insertion at index I<I> involves shifting elements I<I> and higher of
-			 C<$xs> to the right by one and setting the now empty element at index
+			 C<$x> to the right by one and setting the now empty element at index
 			 I<I> to I<V>.
 			 ----
 			 ],
             doc_incr => q[
-				     V < xs[0]  : i = 0
-			   xs[0]  <= V < xs[-1] : i s.t. xs[i-1] <= V < xs[i]
-			   xs[-1] <= V          : i = $xs->nelem
+				    V < x[0]  : I = 0
+			   x[0]  <= V < x[-1] : I s.t. x[I-1] <= V < x[I]
+			   x[-1] <= V         : I = $x->nelem
 			 ----
 			 ],
 
             doc_decr => q[
-				    V >= xs[0]  : i = -1
-			   xs[0]  > V >= xs[-1] : i s.t. xs[i] >= V > xs[i+1]
-			   xs[-1] > V           : i = $xs->nelem -1
+				   V >= x[0]  : I = -1
+			   x[0]  > V >= x[-1] : I s.t. x[I] >= V > x[I+1]
+			   x[-1] > V          : I = $x->nelem -1
 			 ----
 			 ],
 
             doc_post => q[
-			  If all elements of C<$xs> are equal,
+			  If all elements of C<$x> are equal,
 
-			      i = $xs->nelem - 1
+			      i = $x->nelem - 1
 
-			  If C<$xs> contains duplicated elements, I<I> is the index of the
+			  If C<$x> contains duplicated elements, I<I> is the index of the
 			  leftmost (by index in array) duplicate if I<V> matches.
 			  ----
 			  ],
@@ -2428,7 +2518,7 @@ for my $func ( [
 			   else                          { done = 1; break; }
                        }
                    }
-                   $ip() = done ? mid
+                   $idx() = done ? mid
                          :   up ? - ( low  + 1 )
                          :        - ( high + 1 );
 	       ],
@@ -2436,10 +2526,10 @@ for my $func ( [
 
             doc_pre => q[
 			 B<%FUNC%> returns an index I<I> for each value I<V> of
-			 C<$vals>.  If I<V> matches an element in C<$xs>, I<I> is the
+			 C<$vals>.  If I<V> matches an element in C<$x>, I<I> is the
 			 index of that element, otherwise it is I<-( insertion_point + 1 )>,
-			 where I<insertion_point> is an index in C<$xs> where I<V>e may be
-			 inserted while maintaining the order in C<$xs>.  If C<$xs> has
+			 where I<insertion_point> is an index in C<$x> where I<V> may be
+			 inserted while maintaining the order in C<$x>.  If C<$x> has
 			 duplicated values, I<I> may refer to any of them.
 			 ----
 			 ],
@@ -2447,10 +2537,10 @@ for my $func ( [
         },
     ],
     [
-        # xs[i] is the INnclusive left edge of the bin
-        # return i, s.t. xs[i] <= value < xs[i+1].
-        # returns -1 if xs[0] > value
-        # returns N-1 if xs[-1] <= value
+        # x[i] is the INnclusive left edge of the bin
+        # return i, s.t. x[i] <= value < x[i+1].
+        # returns -1 if x[0] > value
+        # returns N-1 if x[-1] <= value
         vsearch_bin_inclusive => {
             low  => 0,
             high => 'n1',
@@ -2460,40 +2550,40 @@ for my $func ( [
                        if ( ( $x(n => mid) <= value ) == up ) low  = mid + 1;
                        else                                   high = mid - 1;
                    }
-                   $ip() = up ? high: low;
+                   $idx() = up ? high: low;
             ],
             ref =>
               'Determine the index for values in a sorted array of bins, lower bound inclusive.',
 
             doc_pre => q[
-			 C<$xs> represents the edges of contiguous bins, with the first and
+			 C<$x> represents the edges of contiguous bins, with the first and
 			 last elements representing the outer edges of the outer bins, and the
 			 inner elements the shared bin edges.
 
-			 The lower bound of a bin is inclusive to the bin, it's outer bound is exclusive to it.
+			 The lower bound of a bin is inclusive to the bin, its outer bound is exclusive to it.
                          B<%FUNC%> returns an index I<I> for each value I<V> of C<$vals>
 			 ----
 			 ],
             doc_incr => q[
-				     V < xs[0]  : i = -1
-			   xs[0]  <= V < xs[-1] : i s.t. xs[i] <= V < xs[i+1]
-			   xs[-1] <= V          : i = $xs->nelem - 1
+				    V < x[0]  : I = -1
+			   x[0]  <= V < x[-1] : I s.t. x[I] <= V < x[I+1]
+			   x[-1] <= V         : I = $x->nelem - 1
 			 ----
 			 ],
 
             doc_decr => q[
-				     V >= xs[0]  : i = 0
-			   xs[0]  >  V >= xs[-1] : i s.t. xs[i+1] > V >= xs[i]
-			   xs[-1] >  V           : i = $xs->nelem
+				    V >= x[0]  : I = 0
+			   x[0]  >  V >= x[-1] : I s.t. x[I+1] > V >= x[I]
+			   x[-1] >  V          : I = $x->nelem
 			 ----
 			 ],
 
             doc_post => q[
-			  If all elements of C<$xs> are equal,
+			  If all elements of C<$x> are equal,
 
-			      i = $xs->nelem - 1
+			      i = $x->nelem - 1
 
-			  If C<$xs> contains duplicated elements, I<I> is the index of the
+			  If C<$x> contains duplicated elements, I<I> is the index of the
 			  righmost (by index in array) duplicate if I<V> matches.
 			  ----
 			  ],
@@ -2502,10 +2592,10 @@ for my $func ( [
     ],
 
     [
-        # xs[i] is the EXclusive left edge of the bin
-        # return i, s.t. xs[i] < value <= xs[i+1].
-        # returns -1 if xs[0] >= value
-        # returns N-1 if xs[-1] < value
+        # x[i] is the EXclusive left edge of the bin
+        # return i, s.t. x[i] < value <= x[i+1].
+        # returns -1 if x[0] >= value
+        # returns N-1 if x[-1] < value
         vsearch_bin_exclusive => {
             low  => 0,
             high => 'n1',
@@ -2515,40 +2605,40 @@ for my $func ( [
                        if ( ( $x(n => mid) <  value ) == up ) low  = mid + 1;
                        else                                   high = mid - 1;
                    }
-                   $ip() = up ? high: low;
+                   $idx() = up ? high: low;
             ],
             ref =>
               'Determine the index for values in a sorted array of bins, lower bound exclusive.',
 
             doc_pre => q[
-			 C<$xs> represents the edges of contiguous bins, with the first and
+			 C<$x> represents the edges of contiguous bins, with the first and
 			 last elements representing the outer edges of the outer bins, and the
 			 inner elements the shared bin edges.
 
-			 The lower bound of a bin is exclusive to the bin, it's upper bound is inclusive to it.
+			 The lower bound of a bin is exclusive to the bin, its upper bound is inclusive to it.
 			 B<%FUNC%> returns an index I<I> for each value I<V> of C<$vals>.
 			 ----
 			 ],
             doc_incr => q[
-				     V <= xs[0]  : i = -1
-			   xs[0]  <  V <= xs[-1] : i s.t. xs[i] < V <= xs[i+1]
-			   xs[-1] <  V           : i = $xs->nelem - 1
+				    V <= x[0]  : I = -1
+			   x[0]  <  V <= x[-1] : I s.t. x[I] < V <= x[I+1]
+			   x[-1] <  V          : I = $x->nelem - 1
 			 ----
 			 ],
 
             doc_decr => q[
-				     V >  xs[0]  : i = 0
-			   xs[0]  >= V >  xs[-1] : i s.t. xs[i-1] >= V > xs[i]
-			   xs[-1] >= V           : i = $xs->nelem
+				    V >  x[0]  : I = 0
+			   x[0]  >= V >  x[-1] : I s.t. x[I-1] >= V > x[I]
+			   x[-1] >= V          : I = $x->nelem
 			 ----
 			 ],
 
             doc_post => q[
-			  If all elements of C<$xs> are equal,
+			  If all elements of C<$x> are equal,
 
-			      i = $xs->nelem - 1
+			      i = $x->nelem - 1
 
-			  If C<$xs> contains duplicated elements, I<I> is the index of the
+			  If C<$x> contains duplicated elements, I<I> is the index of the
 			  righmost (by index in array) duplicate if I<V> matches.
 			  ----
 			  ],
@@ -2590,13 +2680,13 @@ for my $func ( [
 
 		   =item *
 
-		   if xs is sorted in increasing order
+		   if C<$x> is sorted in increasing order
 
 		   %DOC_INCR%
 
 		   =item *
 
-		   if xs is sorted in decreasing order
+		   if C<$x> is sorted in decreasing order
 
 		   %DOC_DECR%
 
@@ -2627,7 +2717,7 @@ for my $func ( [
                    PDL_Indx high = %HIGH%;
                    PDL_Indx mid;
 
-		   $GENERIC() value = $i();
+		   $GENERIC() value = $vals();
 
                    /* determine sort order of data */
                    int up = %UP%;
@@ -2642,9 +2732,9 @@ for my $func ( [
 
 		   =for usage
 
-		     $inds = %FUNC%($vals, $xs);
+		     $idx = %FUNC%($vals, $x);
 
-		   C<$xs> must be sorted, but may be in decreasing or increasing
+		   C<$x> must be sorted, but may be in decreasing or increasing
 		   order.
 
                    %PRE%
@@ -2663,12 +2753,16 @@ for my $func ( [
         $func,
         HandleBad    => 0,
         BadDoc       => 'needs major (?) work to handles bad values',
-        Pars         => 'i(); x(n); indx [o]ip()',
+        Pars         => 'vals(); x(n); indx [o]idx()',
         GenericTypes => [ 'F', 'D' ],    # too restrictive ?
         Code         => $code,
 	Doc          => $doc,
     );
 }
+
+###############################################################
+# routines somehow related to interpolation
+###############################################################
 
 =head2 interpolate
 
