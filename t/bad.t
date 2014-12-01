@@ -304,8 +304,8 @@ is( $b->badflag, 1, "assgn is not a deep copy for the badflag");
 # check that at and sclr return the correct values
 $a = pdl q[BAD];
 is( PDL::Core::string($a), 'BAD', 'can convert PDL to string' );
-is( $a->at, 'BAD' );
-is( $a->sclr, 'BAD' );
+is( $a->at, 'BAD', 'at() returns BAD for a bad value' );
+is( $a->sclr, 'BAD', 'sclr() returns BAD for a bad value' );
 
 # quick look at math.pd
 use PDL::Math;
