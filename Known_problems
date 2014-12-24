@@ -102,8 +102,25 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007_04 release:
+  PDL-2.007_05 release:
 
+  368    PDL::Slatec::polyfit ignores incorrect length of weight piddle; passes garbage to slatec polfit
+  367    BAD value parsing breakage
+  366    many warnings in t/#transform.t with use strict; use warnings;
+  365    CPAN PDL install broken due to breakage in Module::Compile 0.34
+  364    type promotion in whistogram is based upon the index, not the weight
+  363    PP "OtherPars" namespace is not clean
+  362    rcols COLIDS need chomp-ing
+
+           Fixed this release, please verify if you use this feature.
+
+  361    vsearch bug w/# reversed list
+  359    Improved documentation for vsearch
+  357    Android support
+
+           Fixed this release, please verify if you use this feature.
+
+  356    overload::Method() does not return coderef for stringification 	
   355    dog creates 0 dim piddle which squeezes to 1 dim.
   354    filter demo list by actually available
   353    imag2d not 'use warnings' safe and no way to disable twiddle
@@ -119,9 +136,6 @@ The following issues have been reported with this version of PDL:
   330    NiceSlice can get confused by comments to cause compilation errors
   324    PDL re-install wipes out non-core docs
   322    PDL::Demos system needs overhaul
-  321    Several core modules do not have man pages
-  319    PDL::Index does not render on websites
-  313    clip() edge case not handled right
   308    propagate badflag with .=
   274    'help funname' fails to show multiple function names
   268    PLplot still unusable with X
