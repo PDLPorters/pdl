@@ -174,7 +174,7 @@ WriteMakefile(
 
 sub make_from_PL ($) {
     my $head = shift;
-    return "\t" . 
+    return "\t" .
 	'$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) ' .
 	    "${head}.PL $head\n";
 }
@@ -226,7 +226,11 @@ $target :
 
 sub MY::postamble {
 
-if($Config{make} =~ /\bdmake/i) { return
+if($Config{make} =~ /\bdmake/i) {
+  if($ExtUtils::MakeMaker::VERSION < 7) {
+
+#EU-MM < 7
+return
 
 PDL::Core::Dev::postamble().
 "
@@ -251,6 +255,29 @@ q|
 pdlsections.c: pdlsections.g Types.pm
        $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
 |;
+  } else {
+#EU-MM >= 7
+return
+
+PDL::Core::Dev::postamble().
+"
+
+Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
+. make_from_PL('Core.pm')
+."
+
+pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
+. make_from_PL( 'pdl.h' )
+."
+
+pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
+. make_from_PL( 'pdlsimple.h' )
+."
+
+pdlcore.h:: pdlcore.h.PL Types.pm\n"
+. make_from_PL( 'pdlcore.h' )
+
+  }
 } else { return
 PDL::Core::Dev::postamble().
 "
