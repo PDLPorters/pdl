@@ -75,7 +75,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * pnm.t
    * poly.t
    * polyroots.t
-   * primitive2.t
    * pthread.t
    * pthread_auto.t
    * reduce.t
