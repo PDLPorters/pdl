@@ -669,7 +669,9 @@ sub scan {
 
   my $parser = new PDL::PodParser;
   $parser->{verbose} = $verbose;
-  $parser->parse_from_filehandle($infile,$outfile);
+  eval { $parser->parse_from_filehandle($infile,$outfile) };
+  warn "cannot parse '$file'" if $@;
+
   $this->{SYMS} = {} unless defined $this->{SYMS};
   my $hash = $this->{SYMS};
   my @stats = stat $file;
@@ -693,7 +695,9 @@ sub scan {
   $outfile_text = '';
   $parser = new PDL::PodParser;
   $parser->select('NAME');
-  $parser->parse_from_filehandle($infile,$outfile);
+  eval { $parser->parse_from_filehandle($infile,$outfile) };
+  warn "cannot parse '$file'" if $@;
+
   my @namelines = split("\n",$outfile_text);
   my ($name,$does);
   for (@namelines) {
