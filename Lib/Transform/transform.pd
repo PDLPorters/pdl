@@ -223,7 +223,7 @@ sophisticated way so that, for example, linear transformations are
 combined at the matrix level instead of just strung together
 pixel-to-pixel.
 
-=head1 FUNCTIONS
+=head1 MODULE INTERFACE
 
 There are both operators and constructors.  The constructors are all
 exported, all begin with "t_", and all return objects that are subclasses

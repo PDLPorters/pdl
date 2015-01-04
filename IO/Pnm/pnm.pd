@@ -70,13 +70,9 @@ sub rcarp {
   show_err(shift);
   carp @_;
 }
+EOD
 
-
-# public interface
-
-=head1 FUNCTIONS
-
-
+pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
 =head2 rpnm
 
 =for ref

@@ -855,7 +855,7 @@ function names (ex: gdImageString()). I've created aliases here for all of those
 functions so you don't have to keep typing 'gdImage' in your code, but the long version are in 
 there as well.
 
-=head1 FUNCTIONS
+=head1 METHODS
 
 =cut
 

@@ -91,9 +91,12 @@ Please check the GSL documentation for more information.
      return exp(-$x**2);
    }
 
-=head1 FUNCTIONS
+EOD
 
-=head2 gslinteg_qng() -- Non-adaptive Gauss-Kronrod integration
+pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
+=head2 gslinteg_qng
+
+Non-adaptive Gauss-Kronrod integration
 
 This function applies the Gauss-Kronrod 10-point, 21-point, 43-point and 87-point 
 integration rules in succession until an estimate of the integral of f over ($a,$b) 
@@ -123,7 +126,9 @@ Example:
    }
 
 
-=head2 gslinteg_qag() -- Adaptive integration
+=head2 gslinteg_qag
+
+Adaptive integration
 
 This function applies an integration rule adaptively until an estimate of 
 the integral of f over ($a,$b) is achieved within the desired absolute and 
@@ -160,7 +165,9 @@ Example:
      return ($x**2.6)*log(1.0/$x);
    }
 
-=head2 gslinteg_qags() -- Adaptive integration with singularities
+=head2 gslinteg_qags
+
+Adaptive integration with singularities
 
 This function applies the Gauss-Kronrod 21-point integration rule 
 adaptively until an estimate of the integral of f over ($a,$b) is 
@@ -195,7 +202,9 @@ Example:
      return ($x)*log(1.0/$x);
    }
 
-=head2 gslinteg_qagp() -- Adaptive integration with known singular points
+=head2 gslinteg_qagp
+
+Adaptive integration with known singular points
 
 This function applies the adaptive integration algorithm used by 
 gslinteg_qags taking into account the location of singular points
@@ -236,7 +245,9 @@ Example:
     return $x3 * log(abs(($x2-1.0)*($x2-2.0)));
   }
 
-=head2 gslinteg_qagi() -- Adaptive integration on infinite interval
+=head2 gslinteg_qagi
+
+Adaptive integration on infinite interval
 
 This function estimates the integral of the function f over the
 infinite interval (-\infty,+\infty) within the desired absolute and 
@@ -271,7 +282,9 @@ Example:
   }
 
 
-=head2 gslinteg_qagiu() -- Adaptive integration on infinite interval
+=head2 gslinteg_qagiu
+
+Adaptive integration on infinite interval
 
 This function estimates the integral of the function f over the
 infinite interval (a,+\infty) within the desired absolute and 
@@ -308,7 +321,9 @@ Example:
     return ($x**($alfa-1))/((1+10*$x)**2);
   }
 
-=head2 gslinteg_qagil() -- Adaptive integration on infinite interval
+=head2 gslinteg_qagil
+
+Adaptive integration on infinite interval
 
 This function estimates the integral of the function f over the
 infinite interval (-\infty,b) within the desired absolute and 
@@ -342,7 +357,9 @@ Example:
     return exp($x);
   }
 
-=head2 gslinteg_qawc() -- Adaptive integration for Cauchy principal values
+=head2 gslinteg_qawc
+
+Adaptive integration for Cauchy principal values
 
 This function computes the Cauchy principal value of the integral of f over (a,b), 
 with a singularity at c, I = \int_a^b dx f(x)/(x - c). The integral is
@@ -373,7 +390,9 @@ Example:
     return 1.0 / (5.0 * $x * $x * $x + 6.0) ;
   }
 
-=head2 gslinteg_qaws() -- Adaptive integration for singular functions
+=head2 gslinteg_qaws
+
+Adaptive integration for singular functions
 
 The algorithm in gslinteg_qaws is designed for integrands with algebraic-logarithmic 
 singularities at the end-points of an integration region. 
@@ -414,7 +433,9 @@ Example:
     }
   }
 
-=head2 gslinteg_qawo() -- Adaptive integration for oscillatory functions
+=head2 gslinteg_qawo
+
+Adaptive integration for oscillatory functions
 
 This function uses an adaptive algorithm to compute the integral of f over 
 (a,b) with the weight function sin(omega*x) or cos(omega*x) -- which of 
@@ -451,7 +472,9 @@ Example:
   }
 
 
-=head2 gslinteg_qawf() -- Adaptive integration for Fourier integrals
+=head2 gslinteg_qawf
+
+Adaptive integration for Fourier integrals
 
 This function attempts to compute a Fourier integral of the function 
 f over the semi-infinite interval [a,+\infty). Specifically, it attempts
