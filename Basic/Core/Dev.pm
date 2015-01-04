@@ -20,6 +20,9 @@ PDL development and is often used from within Makefile.PL's.
 
 package PDL::Core::Dev;
 
+use File::Path;
+use File::Basename;
+use ExtUtils::Manifest;
 use English; require Exporter;
 
 @ISA    = qw( Exporter );
@@ -31,6 +34,7 @@ use English; require Exporter;
 		 pdlpp_postamble_int pdlpp_stdargs_int
 		 pdlpp_postamble pdlpp_stdargs write_dummy_make
                 unsupported getcyglib trylink
+                pdlpp_genpm
 		 );
 
 # Installation locations
@@ -477,10 +481,66 @@ sub pdlpp_stdargs {
 	 'INC'          => &PDL_INST_INCLUDE()." $inc",
 	 'LIBS'         => $libs ? ["$libs "] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
+	 'dist'         => {'PREOP'  => '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_genpm $(DISTVNAME)' },
      (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
  );
 }
 
+# pdlpp_genpm($dir)
+# - scans $dir/MANIFEST for all *.pd files and creates corresponding *.pm files
+#   in $dir/GENERATED/ subdir; needed for proper doc rendering at metacpan.org
+# - it is used in Makefile.PL like:
+#     dist => { PREOP=>'$(PERL) -MPDL::Core::Dev -e pdlpp_genpm $(DISTVNAME)' }
+#   so all the magic *.pm generation happens during "make dist"
+# - it is intended to be called as a one-liner:
+#     perl -MPDL::Core::Dev -e pdlpp_genpm DirName
+#
+sub pdlpp_genpm {
+  my $dir = @_ > 0 ? $_[0] : $ARGV[0];
+  die "pdlpp_genpm: unspecified directory" unless defined $dir && -d $dir;
+  my $file = "$dir/MANIFEST";
+  die "pdlpp_genpm: non-existing '$dir/MANIFEST'" unless -f $file;
+
+  my @pairs = ();
+  my $manifest = ExtUtils::Manifest::maniread($file);
+  for (keys %$manifest) {
+    next if $_ !~ m/\.pd$/;     # skip non-pd files
+    next if $_ =~ m/^(t|xt)\//; # skip *.pd files in test subdirs
+    next unless -f $_;
+    my $content = do { local $/; open my $in, '<', $_; <$in> };
+    if ($content =~ /=head1\s+NAME\s+(\S+)\s+/sg) {
+      push @pairs, [$_, $1];
+    }
+    else {
+      warn "pdlpp_genpm: unknown module name for '$_' (use proper '=head1 NAME' section)\n";
+    }
+  }
+
+  my %added = ();
+  for (@pairs) {
+    my ($pd, $mod) = @$_;
+    (my $prefix = $mod) =~ s|::|/|g;
+    my $manifestpm = "GENERATED/$prefix.pm";
+    $prefix = "$dir/GENERATED/$prefix";
+    File::Path::mkpath(dirname($prefix));
+    #there is no way to use PDL::PP from perl code, thus calling via system()
+    my @in = map { "-I$_" } @INC;
+    my $rv = system($^X, @in, "-MPDL::PP qw[$mod $mod $prefix]", $pd);
+    if ($rv == 0 && -f "$prefix.pm") {
+      $added{$manifestpm} = "mod=$mod pd=$pd (added by pdlpp_genpm)";
+      unlink "$prefix.xs"; #we need only .pm
+    }
+    else {
+      warn "pdlpp_genpm: cannot convert '$pd'\n";
+    }
+  }
+
+  if (scalar(keys %added) > 0) {
+    #maniadd works only with this global variable
+    local $ExtUtils::Manifest::MANIFEST = $file;
+    ExtUtils::Manifest::maniadd(\%added);
+  }
+}
 
 sub unsupported {
   my ($package,$os) = @_;
