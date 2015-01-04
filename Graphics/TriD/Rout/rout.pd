@@ -1,8 +1,7 @@
 pp_addpm({At=>Top},<<'EOD');
 =head1 NAME
 
- PDL::Graphics::TriD::Rout - Helper routines for Three-dimensional graphics
-
+PDL::Graphics::TriD::Rout - Helper routines for Three-dimensional graphics
 
 =head1 DESCRIPTION
 

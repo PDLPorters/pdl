@@ -1,6 +1,6 @@
 =head1 NAME
 
-  PDL::Graphics::TriD::Objects - Simple Graph Objects for TriD
+PDL::Graphics::TriD::Objects - Simple Graph Objects for TriD
 
 =head1 SYNOPSIS
 

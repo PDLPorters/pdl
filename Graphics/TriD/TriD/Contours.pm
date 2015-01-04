@@ -1,6 +1,6 @@
 =head1 NAME
 
-  PDL::Graphics::TriD::Contours - 3D Surface contours for TriD
+PDL::Graphics::TriD::Contours - 3D Surface contours for TriD
 
 =head1 SYNOPSIS
 

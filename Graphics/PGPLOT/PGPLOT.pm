@@ -4,7 +4,7 @@
 
 =head1 NAME
 
-  PDL::Graphics::PGPLOT - PGPLOT enhanced interface for PDL
+PDL::Graphics::PGPLOT - PGPLOT enhanced interface for PDL
 
 =head1 SYNOPSIS
 

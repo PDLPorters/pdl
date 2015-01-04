@@ -471,7 +471,7 @@ __END__
 
 =head1 NAME
 
-  Inline::Pdlpp - Write PDL Subroutines inline with PDL::PP
+Inline::Pdlpp - Write PDL Subroutines inline with PDL::PP
 
 =head1 DESCRIPTION
 
