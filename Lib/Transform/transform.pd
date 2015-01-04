@@ -3309,6 +3309,8 @@ pp_addpm(<<'+======EOD_t_cylindrical======');
 
 =head2 t_cylindrical
 
+C<t_cylindrical> is an alias for C<t_radial>
+
 =head2 t_radial
 
 =for usage

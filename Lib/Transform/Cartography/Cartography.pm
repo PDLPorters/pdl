@@ -2230,6 +2230,8 @@ sub t_az_eqa {
 
 =head2 t_aitoff
 
+C<t_aitoff> in an alias for C<t_hammer>
+
 =head2 t_hammer
 
 =for ref
