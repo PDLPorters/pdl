@@ -799,7 +799,7 @@ the specified percentile along the 1st dimension.  The specified
 percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between two values, the nearest data value is the result.
 The algorithm implemented is from the textbook version described
-first at L< http://en.wikipedia.org/wiki/Percentile>.
+first at L<http://en.wikipedia.org/wiki/Percentile>.
 
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
 I<any> dimension.

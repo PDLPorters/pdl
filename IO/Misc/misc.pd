@@ -224,7 +224,7 @@ sub _is_io_handle {
 =for ref
 
 Read specified ASCII cols from a file into piddles and perl
-arrays (also see L</rgrep()>).
+arrays (also see L</rgrep>).
 
 =for usage
 
