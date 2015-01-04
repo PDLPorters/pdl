@@ -92,7 +92,7 @@ Some notes:
 
 =over 5
 
-=item SYNOPSIS
+=item Modules loaded by default
 
 See the SYNOPSIS section at the end of this document for a list of
 modules loaded by default.
