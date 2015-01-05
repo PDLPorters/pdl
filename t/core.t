@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 56;
+use Test::More tests => 59;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -69,9 +69,17 @@ $c = $a->squeeze;
 ok eq_array( [ $b->dims ], [3,4] ), "reshape(-1)";
 ok all( $b == $c ), "squeeze";
 
-$c++; # check dataflow
+$c++; # check dataflow in reshaped PDL
 ok all( $b == $c ), "dataflow"; # should flow back to b
 ok all( $a == 2 ), "dataflow";
+
+our $d = pdl(5); # zero dim piddle and reshape/squeeze
+ok $d->reshape(-1)->ndims==0, "reshape(-1) on 0-dim PDL gives 0-dim PDL";
+ok $d->reshape(1)->ndims==1, "reshape(1) on 0-dim PDL gives 1-dim PDL";
+ok $d->reshape(1)->reshape(-1)->ndims==0, "reshape(-1) on 1-dim, 1-element PDL gives 0-dim PDL";
+
+
+
 
 # test topdl
 

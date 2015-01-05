@@ -2690,22 +2690,22 @@ Important: Physical piddles are changed inplace!
 
 *reshape = \&PDL::reshape;
 sub PDL::reshape{
-  if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
-    return $_[0]->slice(join(',',map {$_ == 1 ? '(0)' : ''} $_[0]->dims));
-  }
-  my $pdl = pdl($_[0]);
-  my $nelem = $pdl->nelem;
-  my @dims = @_[1..$#_];
-  for my $dim(@dims) { barf "reshape: invalid dim size '$dim'" if $dim < 0 }
-  @dims = grep($_ != 1, $pdl->dims) if @dims == 0; # get rid of dims of size 1
-  $pdl->setdims([@dims]);
-  $pdl->upd_data;
-  if ($pdl->nelem > $nelem) {
-     my $tmp=$pdl->clump(-1)->slice("$nelem:-1");
-     $tmp .= 0;
-  }
-  $_[0] = $pdl;
-  return $pdl;
+    if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
+	return $_[0]->slice( map { $_==1 ? [0,0,0] : [] } $_[0]->dims);
+    }
+    my $pdl = pdl($_[0]);
+    my $nelem = $pdl->nelem;
+    my @dims = @_[1..$#_];
+    for my $dim(@dims) { barf "reshape: invalid dim size '$dim'" if $dim < 0 }
+    @dims = grep($_ != 1, $pdl->dims) if @dims == 0; # get rid of dims of size 1
+    $pdl->setdims([@dims]);
+    $pdl->upd_data;
+    if ($pdl->nelem > $nelem) {
+	my $tmp=$pdl->clump(-1)->slice("$nelem:-1");
+	$tmp .= 0;
+    }
+    $_[0] = $pdl;
+    return $pdl;
 }
 
 =head2 squeeze
