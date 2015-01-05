@@ -754,6 +754,7 @@ t/magic.t
 t/matmult.t
 t/matrix.t
 t/matrixops.t
+t/minmax-behavior.t
 t/minuit.t
 t/misc.t
 t/niceslice.t
@@ -797,6 +798,7 @@ t/slice.t
 t/storable.t
 t/storable_new_amd64.dat
 t/storable_old_amd64.dat
+t/stringify.t
 t/subclass.t
 t/subclass2.t
 t/subclass3.t
@@ -808,6 +810,7 @@ t/trig.t
 t/ufunc.t
 t/unpdl.t
 t/vaffine.t
+t/vsearch.t
 t/xvals.t
 utils/perldlpp.pl
 win32/INSTALL
