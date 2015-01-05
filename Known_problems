@@ -97,7 +97,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007_06 release:
+  PDL-2.007_07 release:
 
   368    PDL::Slatec::polyfit ignores incorrect length of weight piddle; passes garbage to slatec polfit
   367    BAD value parsing breakage
