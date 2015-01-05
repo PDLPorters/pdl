@@ -10,6 +10,8 @@ Release Notes for PDL 2.007_06 --------------------------
 
 General Notes:
 
+ * Counting down to a PDL-2.008 release this January 2015
+
  * Another quick CPAN developers release
 
    - It is a snapshot of the current git development tree
@@ -33,7 +35,13 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fixed a number of bugs on the sf.net tracker
+
+ * Fix for EU-MM-7.0 and later problem with dmake
+
+ * Include generated pod in the distribution so that
+   metacpan.org and search.cpan.org have better/working
+   online docs.
 
 
 

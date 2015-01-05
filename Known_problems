@@ -89,11 +89,6 @@ The following issues have been reported with this version of PDL:
   again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
 
-- PDL on Cygwin+32bit windows has only about 300MB which can cause
-  out of memory crashes with large data sets.  For 64bit windows hosts
-  2GB is available.
-
-
 - minimum/maximum/min/max inconsistently handle NaN values.
   NaNs for the first element of a pdl will propagate to the
   result while if the first element is a number, then the
@@ -110,11 +105,6 @@ The following issues have been reported with this version of PDL:
   364    type promotion in whistogram is based upon the index, not the weight
   363    PP "OtherPars" namespace is not clean
   359    Improved documentation for vsearch
-  357    Android support
-
-           Fixed this release, please verify if you use this feature.
-
-  355    dog creates 0 dim piddle which squeezes to 1 dim.
   354    filter demo list by actually available
   353    imag2d not 'use warnings' safe and no way to disable twiddle
   350    Modules using PDL::Slatec will get installed even if Slatec is disabled
