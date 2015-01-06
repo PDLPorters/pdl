@@ -482,7 +482,7 @@ for my $mode (
 
 			while( @$inputs ) {
 
-			    my ( $idx, $offset, $exp ) = splice( $inputs, 0, 3 );
+			    my ( $idx, $offset, $exp ) = splice( @$inputs, 0, 3 );
 			    my $value = $so->{x}->at($idx) + $offset;
 
 			    is ( $got = ( vsearch( $value, $so->{x}, { mode => $mode } )->sclr), $exp, "$label: ($idx, $offset)" );
