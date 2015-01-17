@@ -9,17 +9,19 @@ undef &MY::postamble; # suppress warning
 *MY::postamble = sub { '' };
 
 WriteMakefile(
-	      'NAME' => 'PDL::Lib',
-	      VERSION_FROM => '../Basic/Core/Version.pm',
-	      DIR =>  [ qw/Opt ImageRGB Fit FFT Filter Image2D ImageND
-			CallExt Slatec GSL GIS Transform Minuit Compression
-			/ ],
-	       PM => { map {($_ => '$(INST_LIBDIR)/'.$_)}
-	       grep {
-		  !defined $PDL::Config{WITH_SLATEC} ||
-		  $PDL::Config{WITH_SLATEC}==1 ||
-		  !($_ eq 'Gaussian.pm')
-	       } <*.pm> },
-    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
-#			Interpolate
+  NAME => 'PDL::Lib',
+  VERSION_FROM => '../Basic/Core/Version.pm',
+  DIR =>  [ qw/Simplex ImageRGB Fit FFT Filter Image2D ImageND
+               CallExt Slatec GSL GIS Transform Minuit Compression
+               / ],
+  PM => { map {($_ => '$(INST_LIBDIR)/'.$_)}
+    grep {
+      !defined $PDL::Config{WITH_SLATEC} ||
+      $PDL::Config{WITH_SLATEC}==1 ||
+      !($_ eq 'Gaussian.pm')
+    } <*.pm>
+  },
+  NO_MYMETA => 1,
+#              Interpolate
+# Interpolate is broken
 );

@@ -492,8 +492,8 @@ Lib/Minuit/minuitlib/futils.f
 Lib/Minuit/minuitlib/intracfalse.f
 Lib/Minuit/minuitlib/minuit.f
 Lib/Opt/Makefile.PL
-Lib/Opt/Simplex/Makefile.PL
-Lib/Opt/Simplex/Simplex.pm
+Lib/Simplex/Makefile.PL
+Lib/Simplex/Simplex.pm
 Lib/Slatec/Makefile.PL
 Lib/Slatec/slatec.pd
 Lib/Slatec/slatec/chfcm.f

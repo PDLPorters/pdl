@@ -182,7 +182,6 @@ RCS
 ^Lib/Minuit/.*\.pm$
 ^Lib/Minuit/.*\.xs$
 ^Lib/Minuit/M.*\.c$
-^Lib/Opt/Golden
 ^Lib/PCARout/PCARout\..*
 ^Lib/Slatec/Slatec.c
 ^Lib/Slatec/Slatec.pm
