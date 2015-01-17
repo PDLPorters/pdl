@@ -638,8 +638,6 @@ Perldl2/pdl2
 README
 Release_Notes
 TODO
-TestTools/Mem/foobar
-TestTools/Mem/tmem.pl
 cygwin/INSTALL
 cygwin/README
 cygwin/drivers.list
