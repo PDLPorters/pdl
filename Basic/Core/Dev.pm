@@ -520,51 +520,12 @@ sub unsupported {
 }
 
 sub write_dummy_make {
-  require IO::File;
-    my ($msg) = @_;
-    print STDERR "writing dummy Makefile\n";
-    my $fh = new IO::File "> Makefile" or die "Can't open dummy Makefile: $!";
-
-if($^O !~ /mswin32/i) {
-    print $fh <<"EOT";
-fred:
-	\@echo \"****\"
-	\@echo \"$msg\"
-	\@echo \"****\"
-
-all: fred
-
-test: fred
-
-clean ::
-	-mv Makefile Makefile.old
-
-realclean ::
-	rm -rf Makefile Makefile.old
-
-EOT
-}
-
-else { # It's Win32
-    print $fh <<"EOT";
-fred:
-	\@echo \"****\"
-	\@echo \"$msg\"
-	\@echo \"****\"
-
-all: fred
-
-test: fred
-
-clean ::
-	-ren Makefile Makefile.old <NUL
-
-realclean ::
-	del /F /Q Makefile Makefile.old <NUL
-
-EOT
-}
-   close($fh) or die "Can't close dummy Makefile: $!";
+  my ($msg) = @_;
+  $msg =~ s#\n*\z#\n#;
+  $msg =~ s#^\s*#\n#gm;
+  print $msg;
+  require ExtUtils::MakeMaker;
+  ExtUtils::MakeMaker::WriteEmptyMakefile(NAME => 'Dummy', DIR => []);
 }
 
 sub getcyglib {
