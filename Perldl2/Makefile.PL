@@ -38,6 +38,7 @@ elsif ($PDL::Config{WITH_DEVEL_REPL}) {
 	 'EXE_FILES' => [ 'pdl2' ],
 	 'DIR' => [ qw(Profile Plugin) ],
          'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm', @podpms },
+         clean => { FILES => 'pdl2.pod' },
          (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
   );
 }

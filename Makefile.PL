@@ -490,10 +490,10 @@ push @prereq, ('OpenGL' => $PDL::Config{POGL_VERSION}) if $PDL::Config{USE_POGL}
 # push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
 my @exe_files = ('perldl', 'pdldoc');
-my $cleanup = 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
+my $cleanup = 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod Changes t/callext$(OBJ_EXT) t/callext.$(DLEXT) ';
 
 if($^O !~ /mswin32/i) {
-      $cleanup = 'pdl.c ' . $cleanup;
+      $cleanup .= 'pdl.c ';
 }
 
 
