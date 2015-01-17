@@ -166,7 +166,9 @@ WriteMakefile(
 		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
 		   'mymalloc.p badsupport.p'
 		   },
- 'INC'          => "$pthread_include $mallocinc",
+ 'INC'          => join(' ',
+   PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
+ ),
  (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
 
@@ -175,7 +177,7 @@ WriteMakefile(
 sub make_from_PL ($) {
     my $head = shift;
     return "\t" .
-	'$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) ' .
+	'$(PERLRUNINST) ' .
 	    "${head}.PL $head\n";
 }
 
@@ -184,7 +186,7 @@ sub MY::xs_o {
       return'
 .xs$(OBJ_EXT):
 	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
-	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+	$(CCCMD) $(CCCDLFLAGS) "-I$(PERL_INC)" $(DEFINE) $*.c
 '
       }
     else {
@@ -253,7 +255,6 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 q|
 
 pdlsections.c: pdlsections.g Types.pm
-       $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
 |;
   } else {
 #EU-MM >= 7
@@ -328,7 +329,6 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 ($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g Types.pm
-	$(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
 | : '');
 }
 }

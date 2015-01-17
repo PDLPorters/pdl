@@ -47,7 +47,7 @@ use English; require Exporter;
 # Return library locations
 
 
-sub PDL_INCLUDE { '-I'.whereami_any().'/Core' };
+sub PDL_INCLUDE { '"-I'.whereami_any().'/Core"' };
 sub PDL_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
 # sub PDL_INST_INCLUDE { '-I'.whereami_any().'/Core' };
 # sub PDL_INST_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
@@ -339,50 +339,22 @@ sub flushgeneric {  # Construct the generic code switch
 # Standard PDL postamble
 
 sub postamble {
-
-  if ($^O =~ /win32/i) {
-    open FI,'>./getdev.pl' or die "couldn't open getdev.pl: $!";
-    my $location = whereami_any();
-    print FI << "EOD";
-
-  require \"$location/Core/Dev.pm\";
-  PDL::Core::Dev->import();				\
-  genpp();
-  1;
-EOD
-     close FI;
-     return q~
+  my ($self) = @_;
+  require ExtUtils::MM;
+  my $MM = bless { NAME => 'Fake' }, 'MM';
+  my $devpm = whereami_any()."/Core/Dev.pm";
+  my $oneliner = sprintf $MM->oneliner(<<'EOF'), $devpm;
+require "%s"; PDL::Core::Dev->import(); genpp();
+EOF
+  sprintf <<'EOF', $oneliner;
 
 # Rules for the generic preprocessor
 
 .SUFFIXES: .g
 .g.c:
-	$(PERL) -e "require './getdev.pl'" $<  > $@
+	%s "$<" > "$@"
 
-.c$(OBJ_EXT):
-	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
-
-     ~;
-} else {
-
-q~
-
-# Rules for the generic preprocessor
-
-.SUFFIXES: .g
-.g.c:
-	$(PERL) -e 'require "~.whereami_any().q~/Core/Dev.pm"; \
-		PDL::Core::Dev->import();				\
-		genpp()' $<  > $@
-
-.g$(OBJ_EXT):
-	$(PERL) -e 'require "~.whereami_any().q~/Core/Dev.pm"; \
-		PDL::Core::Dev->import();				\
-		genpp()' $<  > $*.c
-	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
-
-~;}
-
+EOF
 }
 
 # Expects list in format:
