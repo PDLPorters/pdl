@@ -137,9 +137,6 @@ start-up modules.
    use PDL::MatrixOps;
    use PDL::Math;
    use PDL::Version;
-   use PDL::IO::Misc;
-   use PDL::IO::FITS;
-   use PDL::IO::Pic;
    use PDL::Lvalue;
 
 =cut
@@ -169,12 +166,6 @@ use PDL::Bad;
 use PDL::Math;
 use PDL::MatrixOps;
 use PDL::Lvalue;
-
-# Load these for TPJ compatibility
-
-use PDL::IO::Misc;          # Misc IO (Ascii)
-use PDL::IO::FITS;          # FITS IO (rfits/wfits; used by rpic/wpic too)
-use PDL::IO::Pic;           # rpic/wpic
 
 # Load this so config/install info is available
 

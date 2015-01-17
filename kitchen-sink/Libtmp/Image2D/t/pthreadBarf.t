@@ -2,14 +2,15 @@
 # These tests check for proper deferred handling of barf and warn messages when pthreading.
 #   
 use PDL::LiteF;
+use PDL::Image2D;
 use Test::More;
 
 use strict;
 
 if (PDL::Core::pthreads_enabled) {
-   plan tests => 1;
+   plan tests => 2;
 } else {
-   plan tests => 1;
+   plan tests => 2;
    diag "Control test: pthreads not enabled";
 }
 
@@ -53,3 +54,13 @@ my $mask = zeroes(5,5);
 # Because of the negative indexes, a warning message
 #   will be printed, which will cause segfault wheen pthreaded, if messages not deferred
 #    properly
+
+# Setup to catch warning messages
+local $SIG{__WARN__} = sub { die $_[0] }; 
+
+eval{
+   polyfill($mask, $poly, 1);
+};
+
+ok( $@ =~ /errors during polygonfilling/ , "polyfill barf" )
+   or diag "Error message should  be 'errors during polygonfilling': got\n>>>$@<<<\n";
