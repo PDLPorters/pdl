@@ -223,7 +223,7 @@ sophisticated way so that, for example, linear transformations are
 combined at the matrix level instead of just strung together
 pixel-to-pixel.
 
-=head1 MODULE INTERFACE
+=head1 FUNCTIONS
 
 There are both operators and constructors.  The constructors are all
 exported, all begin with "t_", and all return objects that are subclasses
@@ -3308,8 +3308,6 @@ pp_add_exported('t_radial');
 pp_addpm(<<'+======EOD_t_cylindrical======');
 
 =head2 t_cylindrical
-
-C<t_cylindrical> is an alias for C<t_radial>
 
 =head2 t_radial
 
