@@ -52,8 +52,6 @@ matrix:
     - perl: "5.20"
       env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=1 PDL_BADVAL_PER_PDL=1
     - perl: "5.20"
-      env: DISABLE_FORTRAN=1 # what if we don't have Fortran installed?
-    - perl: "5.20"
       env: CC="clang" # use `clang` instead of `gcc` default
   allow_failures:
     - perl: blead
@@ -71,7 +69,6 @@ before_install:
   - source ~/travis-perl-helpers/init
   - build-perl
   - perl -V
-  - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need tests
   - cpanm --quiet --notest Devel::CheckLib # specify this now because this is a CONFIGURE_REQUIRES for author-side
   - if [ "$AUTHOR_TESTING" == 1 ]; then cpanm --quiet --notest CPAN::Changes; fi # for author tests (AUTHOR_TESTING is set to true by default by init)
   - cpanm --notest --verbose ExtUtils::ParseXS # we install the latest ExtUtils::ParseXS

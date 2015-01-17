@@ -29,7 +29,7 @@ $| = 1;
 
 use PDL::Config;
 if ( $PDL::Config{WITH_BADVAL} ) {
-    plan tests => 82;
+    plan tests => 76;
 } else {
     # reduced testing
     plan tests => 10;
@@ -340,33 +340,6 @@ $b = $a->norm;
 $c = $a/sqrt(sum($a*$a));
 ok( all( approx( $b, $c, ABSTOL ) ), "norm()" );
 
-# Image2D
-my $ans = pdl(
- [ 3,  7, 11, 21, 27, 33, 39, 45, 51, 27],
- [ 3,  5, 13, 21, 27, 33, 39, 45, 51, 27],
- [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27]
-);
-
-$a = xvals zeroes 10,3;
-$a->setbadat(2,1);
-
-$b = pdl [1,2],[2,1];
-
-use PDL::Image2D;
-$c = conv2d($a, $b);
-
-is( int(at(sum($c-$ans))), 0, "conv2d()" ); 
-
-$a = zeroes(5,5);
-$a->badflag(1);
-my $t = $a->slice("1:3,1:3");
-$t .= ones(3,3);
-$a->setbadat(2,2);
-
-$b = sequence(3,3);
-$ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-is( int(at(sum(med2d($a,$b)-$ans))), 0, "med2d()" );
-
 # propagation of badflag using inplace ops (ops.pd)
 
 # test biop fns
@@ -447,25 +420,6 @@ ok( all($fa->setvaltobad(2/3)->isbad == $da->setvaltobad(2/3)->isbad), "setvalto
 $a->inplace->setnantobad;
 like( PDL::Core::string( $a->clump(-1) ), 
     qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setnantobad()" );
-
-# test r/wfits
-use PDL::IO::FITS;
-
-$a = sequence(10)->setbadat(0);
-print "Writing to fits: $a  type = (", $a->get_datatype, ")\n";
-$a->wfits($fname);
-$b = rfits($fname);
-print "Read from fits:  $b  type = (", $b->get_datatype, ")\n";
-
-ok( $b->slice('0:0')->isbad, "rfits/wfits propagated bad flag" );
-ok( sum(abs($a-$b)) < 1.0e-5, "  and values" );
-
-# now force to integer
-$a->wfits($fname,16);
-$b = rfits($fname);
-print "BITPIX 16: datatype == ", $b->get_datatype, " badvalue == ", $b->badvalue(), "\n";
-ok( $b->slice('0:0')->isbad, "wfits coerced bad flag with integer datatype" );
-ok( sum(abs(convert($a,short)-$b)) < 1.0e-5, "  and the values" );
 
 # check that we can change the value used to represent
 # missing elements for floating points (earlier tests only did integer types)
