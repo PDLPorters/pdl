@@ -384,7 +384,7 @@ my %notestsifmodulesmissing = @hasnt ? # are any required modules missing ?
   (test => {TESTS => 't/requiredmods.t'}) : ();
 
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
-  qw/Bugs perldl pdldoc/;
+  qw/Bugs/;
 
 my @prereq = (
 	   'Astro::FITS::Header' => 0,
@@ -491,12 +491,6 @@ my %makefile_hash = (
         },
      },
   },
-  MAN1PODS => {
-    'Bugs.pod' => '$(INST_MAN1DIR)/PDL::Bugs.$(MAN1EXT)',
-    'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
-    'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'
-  },
-  MAN3PODS => {}, # don't pick up the script pods again
   @optimize,
   CCFLAGS => $ccflags,
   dist => { COMPRESS => 'gzip', SUFFIX => 'gz', PREOP => $preop },
@@ -556,16 +550,6 @@ doc_perl_install ::
   } else {
     $text=~ s/\%HTML\%//og; # Remove just %HTML% markers
   }
-
-$text .= << "EOPS" ;
-
-perldl.pod : perldl
-\t\$(PERLRUN) -MPod::Select -e "podselect('perldl');" > perldl.pod
-
-pdldoc.pod : pdldoc
-\t\$(PERLRUN) -MPod::Select -e "podselect('pdldoc');" > pdldoc.pod
-
-EOPS
 
 # Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
 # support the `$<` variable in explicit rules
