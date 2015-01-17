@@ -13,7 +13,6 @@
 /tmp.*
 Benchmark/Bench.c
 Benchmark/blib/
-Lib/PCA/PCA*
 MANIFEST\.bak$
 MANIFEST\.old
 META\.json
