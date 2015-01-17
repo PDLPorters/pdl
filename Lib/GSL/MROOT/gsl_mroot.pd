@@ -77,12 +77,11 @@ to the algorithms in the GSL library that do not use derivatives.
 
      return $y;
   }
-EOD
 
-pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
-=head2 gslmroot_fsolver
+ 
+=head1 FUNCTIONS
 
-Multidimensional root finder without using derivatives
+=head2 gslmroot_fsolver -- Multidimensional root finder without using derivatives
 
 This function provides an interface to the multidimensional root finding algorithms
 in the GSL library. It takes a minimum of two argumennts: a piddle $init with an 

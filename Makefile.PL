@@ -481,7 +481,7 @@ my %makefile_hash = (
 	      'CCFLAGS' => $ccflags,
 	      'dist'     => { COMPRESS => 'gzip',
                               SUFFIX   => 'gz',
-                              PREOP    => $preop },
+                              ($preop ? (PREOP => $preop) : ()), },
 	      'clean' => {
 		'FILES' => join ' ', @cleanup, qw(
                   tbyte.tif tmp0 tmp0.hdr tushort.tif

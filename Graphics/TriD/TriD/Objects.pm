@@ -4,9 +4,9 @@ PDL::Graphics::TriD::Objects - Simple Graph Objects for TriD
 
 =head1 SYNOPSIS
 
-  Look in PDL/Demos/TkTriD_demo.pm for several examples, the code
-  in PDL/Demos/TriD1.pm and PDL/Demos/TriD2.pm also uses objects
-  but it hides them from the user.
+Look in PDL/Demos/TkTriD_demo.pm for several examples, the code
+in PDL/Demos/TriD1.pm and PDL/Demos/TriD2.pm also uses objects
+but it hides them from the user.
 
 =head1 DESCRIPTION
 
