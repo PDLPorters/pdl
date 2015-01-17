@@ -468,15 +468,16 @@ push @prereq, ('OpenGL' => $PDL::Config{POGL_VERSION}) if $PDL::Config{USE_POGL}
 
 # push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
-my @exe_files = ('perldl', 'pdldoc');
+my @exe_files = qw(perldl pdldoc);
 push @exe_files, "pdl$Config{exe_ext}" if $^O !~ /MSWin/;
-my $cleanup = 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod Changes.new t/callext$(OBJ_EXT) t/callext.$(DLEXT) pdl.c ';
-
+my @cleanup = (@exe_files, qw(
+    pdldoc.db pdldoc.pod perldl.pod Changes.new
+    t/callext$(OBJ_EXT) t/callext.$(DLEXT) pdl.c
+));
 
 ##############################
 # Hack to include fPIC on x86_64 systems -
 # use similar mods to affect CCFLAGS on other systems as needed...
-#
 
 my $ccflags =  $Config{ccflags};
 if($Config{archname}=~m/x86_64/) {
@@ -527,12 +528,12 @@ my %makefile_hash = (
                               SUFFIX   => 'gz',
                               PREOP    => $preop },
 	      'clean' => {
-		  'FILES' => $cleanup .
-      		'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
-      		'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
-      		'_Inline/ .inlinepdlpp/ ' .
-      		'*.xfig '
-		      },
+		'FILES' => join ' ', @cleanup, qw(
+                  tbyte.tif tmp0 tmp0.hdr tushort.tif
+                  MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*
+                  _Inline/ .inlinepdlpp/ *.xfig
+                ),
+              },
 	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
               'AUTHOR' => 'PerlDL Developers (perldl@jach.hawaii.edu)',
               'ABSTRACT' => 'Perl Data Language',
