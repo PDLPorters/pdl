@@ -490,11 +490,8 @@ push @prereq, ('OpenGL' => $PDL::Config{POGL_VERSION}) if $PDL::Config{USE_POGL}
 # push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
 my @exe_files = ('perldl', 'pdldoc');
-my $cleanup = 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod Changes t/callext$(OBJ_EXT) t/callext.$(DLEXT) ';
-
-if($^O !~ /mswin32/i) {
-      $cleanup .= 'pdl.c ';
-}
+push @exe_files, "pdl$Config{exe_ext}" if $^O !~ /MSWin/;
+my $cleanup = 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod Changes t/callext$(OBJ_EXT) t/callext.$(DLEXT) pdl.c ';
 
 
 ##############################
@@ -623,13 +620,11 @@ doc_perl_install ::
 %HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
 ';
 
-
   if(defined $PDL::Config{HTML_DOCS} && !$PDL::Config{HTML_DOCS}){
     $text=~ s/\%HTML\%[^\n]*\n//og; # Remove %HTML% lines
   } else {
     $text=~ s/\%HTML\%//og; # Remove just %HTML% markers
   }
-
 
 $text .= << "EOPS" ;
 
@@ -648,10 +643,9 @@ pdldoc.pod : pdldoc subdirs
 
 EOPS
 
-$text .= << 'EOT' if $^O =~ /cygwin/;
-
-pdl.exe: pdl
-
+$text .= <<EOT if $^O !~ /MSWin/;
+pdl$Config{exe_ext} : pdl.c
+	\$(CC) \$< -o \$\@
 EOT
 
 $text .= << 'EOT' if $^O =~ /MSWin/;
@@ -713,23 +707,13 @@ $target :
 	    }
 	    else {
 		foreach $target (@$list) {
-
-	    # Single out pdl.PL for special treatment since it needs compilation
-	    # after post-processing.  This used to happen automagically; it's not clear
-	    # why it still doesn't. (CED 2012-11-12)
-		    my $compilestr;
-		    if($plfile eq "pdl.PL" && $Config{make} !~ /\bnmake/i) {
-			$compilestr = "\n\t\$(CC) -o pdl pdl.c\n";
-		    } else {
-			$compilestr = "";
-		    }
-
 		    push @m, "
 all :: $target
 	\$(NOECHO) \$(NOOP)
 
 $target ::
-	\$(PERLRUNINST) $plfile $target$compilestr
+	\$(PERLRUNINST) $plfile $target
+
 ";
 
 		} # close foreach

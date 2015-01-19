@@ -673,7 +673,7 @@ inc/Carp/Heavy.pm
 inc/Devel/CheckLib.pm
 m51.fits
 macosx/README
-pdl.PL
+pdl.c.PL
 pdldoc.PL
 perldl.PL
 perldl.conf
