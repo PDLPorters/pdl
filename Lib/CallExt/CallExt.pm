@@ -193,7 +193,7 @@ sub callext_cc {
         # Placing $ccflags *before* installsitelib/PDL/Core enables us to include
         # the appropriate 'pdlsimple.h' during 'make test'.
 	my $cc_cmd = join(' ', map { $Config{$_} } qw(cc ccflags cccdlflags)) .
-		" $ccflags -I$Config{installsitelib}/PDL/Core -c $src $do$cc_obj$eo";
+		qq{ $ccflags "-I$Config{installsitelib}/PDL/Core" -c $src $do$cc_obj$eo};
 
 	# The linker output flag is -o on cc and gcc, and -out: on MS Visual Studio
 	my $o = ( $Config{cc} eq 'cl' ? '-out:' : '-o ');

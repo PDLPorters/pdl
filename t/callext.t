@@ -35,7 +35,7 @@ my $out   = File::Spec->catfile('t', 'callext.'.$Config{dlext});
 
 # Compile the code
 
-callext_cc($cfile, "-I$inc", '', $out);
+callext_cc($cfile, qq{"-I$inc"}, '', $out);
 
 my $y = sequence(5,4)+2;  # Create PDL
 my $x = $y*20+100;        # Another
