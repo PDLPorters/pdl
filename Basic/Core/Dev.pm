@@ -384,7 +384,7 @@ sub pdlpp_postamble_int {
 qq|
 
 $pref.pm: $src $core/badsupport.p $core/Types.pm
-	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
+	\$(PERLRUNINST) \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
