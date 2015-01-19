@@ -491,7 +491,7 @@ push @prereq, ('OpenGL' => $PDL::Config{POGL_VERSION}) if $PDL::Config{USE_POGL}
 
 my @exe_files = ('perldl', 'pdldoc');
 push @exe_files, "pdl$Config{exe_ext}" if $^O !~ /MSWin/;
-my $cleanup = 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod Changes t/callext$(OBJ_EXT) t/callext.$(DLEXT) pdl.c ';
+my $cleanup = 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod Changes.new t/callext$(OBJ_EXT) t/callext.$(DLEXT) pdl.c ';
 
 
 ##############################
@@ -506,7 +506,7 @@ if($Config{archname}=~m/x86_64/) {
 
 # create GENERATED subdir with *.pm files during 'make dist' (to make metacpan.org happy)
 my $preop = '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_genpm $(DISTVNAME)';
-$preop .= q[ && git log --stat --since='29 Apr 2009' > Changes] if $^O ne 'MSWin32';
+$preop .= q[ && git log --stat --since='29 Apr 2009' > Changes.new && $(MV) Changes.new $(DISTVNAME)/Changes] if $^O ne 'MSWin32';
 
 %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
@@ -627,13 +627,6 @@ doc_perl_install ::
   }
 
 $text .= << "EOPS" ;
-
-Changes : GITCHANGES
-
-changes : GITCHANGES
-
-GITCHANGES :
-\tgit log --stat --since='29 Apr 2009' > Changes
 
 perldl.pod : perldl subdirs
 \t\$(PERLRUN) -MPod::Select -e "podselect('perldl');" > perldl.pod
