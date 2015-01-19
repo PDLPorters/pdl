@@ -370,8 +370,9 @@ sub pdlpp_postamble_int {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
-	my $core = "$w/Basic/Core";
-	my $gen = "$w/Basic/Gen";
+	my $basic = File::Spec->abs2rel(File::Spec->catdir($w, 'Basic'));
+	my $core = File::Spec->catdir($basic, 'Core');
+	my $gen = File::Spec->catdir($basic, 'Gen');
 
 ## I diked out a "$gen/pm_to_blib" dependency (between $core/badsupport.p and
 # $core/Types.pm below), because it appears to be causing excessive recompiles.
