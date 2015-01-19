@@ -45,7 +45,7 @@ sub validate {
     $o->{ILSM}{MAKEFILE} ||= {};
     if (not $o->UNTAINT) {
       my $w = abs_path(PDL::Core::Dev::whereami_any());
-      $o->{ILSM}{MAKEFILE}{INC} = "-I$w/Core";
+      $o->{ILSM}{MAKEFILE}{INC} = qq{"-I$w/Core"};
     }
     $o->{ILSM}{AUTO_INCLUDE} ||= '';
     $o->{ILSM}{PPFLAGS} ||= '';
@@ -288,7 +288,7 @@ sub write_Makefile_PL {
     my $o = shift;
     $o->{ILSM}{xsubppargs} = '';
     for (@{$o->{ILSM}{MAKEFILE}{TYPEMAPS}}) {
-	$o->{ILSM}{xsubppargs} .= "-typemap $_ ";
+	$o->{ILSM}{xsubppargs} .= qq{-typemap "$_" };
     }
 
     my %options = (
@@ -345,10 +345,10 @@ sub compile {
       ($suffix1, $suffix2, $suffix3) = ('', '', '');
       } 
 
-    for $cmd ("$perl Makefile.PL $noisy $suffix1",
+    for $cmd (qq{"$perl" Makefile.PL $noisy $suffix1},
 	      \ &fix_make,   # Fix Makefile problems
-	      "$make $noisy $suffix2",
-	      "$make pure_install $noisy $suffix3",
+	      qq{"$make" $noisy $suffix2},
+	      qq{"$make" pure_install $noisy $suffix3},
 	     ) {
 	if (ref $cmd) {
 	    $o->$cmd();
@@ -404,7 +404,7 @@ sub compile_pd {
 
   my $ppflags = $o->{ILSM}{PPFLAGS};
   my $cmd = << "EOC";
-$perl $ppflags $inc "-MPDL::PP qw[$module NONE $modfname $pkg]" $modfname.pd > out.pdlpp 2>&1
+"$perl" $ppflags "$inc" "-MPDL::PP qw[$module NONE $modfname $pkg]" $modfname.pd > out.pdlpp 2>&1
 EOC
   # print STDERR "executing\n\t$cmd...\n";
   $cwd = &cwd;
