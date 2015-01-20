@@ -1,20 +1,15 @@
-
-# Makefile.PL for PDL::Primitive module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 use File::Basename;
 use Config;
 
-require File::Spec;
-$fs = 'File::Spec';
-sub cdir { return $fs->catdir(@_)}
-sub cfile { return $fs->catfile(@_)}
+use File::Spec;
+sub cdir { return File::Spec->catdir(@_)}
+sub cfile { return File::Spec->catfile(@_)}
 
 sub is_sys_func {
-  my ( $code, $libs ) = @_;
+  my ( $code, $libs, $dir ) = @_;
   trylink( '', qq{#include "$dir/mconf.h"}, $code, $libs );
 }
 
@@ -22,7 +17,7 @@ PDL::Core::Dev->import();
 
 # Files for each routine (.c assumed)
 
-%source = qw( acosh acosh
+my %source = qw( acosh acosh
 	      asinh asinh
 	      atanh atanh
 	      erf ndtr
@@ -40,8 +35,8 @@ PDL::Core::Dev->import();
 	      infinity infinity
 	      polyroots cpoly
 	    );
-@keys = sort keys %source;
-%included = ();
+my @keys = sort keys %source;
+my %included = ();
 
 # test for library features 
 my (@sfuncs) = qw(nan infinity);
@@ -97,48 +92,34 @@ if ($^O eq 'solaris' or $^O eq 'sunos') {
 # Test for absence of unary functions
 
 use Cwd;
-$mmdir = $mdir = cdir 'Basic','Math';
+my $mmdir = my $mdir = cdir 'Basic','Math';
 $mmdir =~ s/\\/\\\\/g;
-$dir = $fs->canonpath(cwd);
+my $dir = File::Spec->canonpath(cwd);
 $dir = cdir $dir, $mdir unless $dir =~ /$mmdir$/;
 
-my $tempd = $PDL::Config{TEMPDIR} ||
-  die "TEMPDIR not found in %PDL::Config";
+die "TEMPDIR not found in %PDL::Config"
+  unless $PDL::Config{TEMPDIR} && $PDL::Config{TEMPDIR}; # avoid 'only once'
 
 foreach (@sfuncs) {
-    $source{$_} = 'system' if is_sys_func( "$_();", $libs );
+    $source{$_} = 'system' if is_sys_func( "$_();", $libs, $dir );
 }
 
 foreach (@ufuncs2) {
-    $source{$_} = 'system' if is_sys_func( "$_(1.);", $libs );
+    $source{$_} = 'system' if is_sys_func( "$_(1.);", $libs, $dir );
 }
 
 # Test for absence of besfuncs
 
 foreach (@besufuncs) {
-    if ( is_sys_func( "$_(1.);", $libs ) ) {
+    if ( is_sys_func( "$_(1.);", $libs, $dir ) ) {
         $source{$_} = 'system';
         next if $_ ne 'y0';
-# Need to test for buggy glibc
-        open (RES,"$te |");
-        my ($n) = <RES>;
-        close RES;
-#        print "Done y0 test, received $n\n";
-        $n /= 0.088257;               # This _should_ be the answer
-        $n -= 1.;
-        if ($n*$n > 1e-3) {
-            delete $source{$_};
-            delete $source{'yn'};
-            $source{'fixy0'} = 'j0';
-            $source{'fixyn'} = 'yn';
-            @keys = sort keys %source;
-        }
     }
 }
 
 foreach (@besbifuncs) {
     next if ! exists $source{$_};     # May have been deleted in buggy case
-    $source{$_} = 'system' if is_sys_func( "$_(1,1.);", $libs );
+    $source{$_} = 'system' if is_sys_func( "$_(1,1.);", $libs, $dir );
 }
 
 print "Source of functions\nSystem:      ";
@@ -151,12 +132,12 @@ foreach (@keys) {
 }
 print "\n\n";
 
-@pack = (["math.pd",Math,PDL::Math]);
-%hash = pdlpp_stdargs_int(@::pack);
+my @pack = (["math.pd", qw(Math PDL::Math)]);
+my %hash = pdlpp_stdargs_int(@pack);
 
-%seen = (); # Build object file list
-foreach $func (@keys) {
-   $file = $source{$func};
+my %seen = (); # Build object file list
+foreach my $func (@keys) {
+   my $file = $source{$func};
    next if $file eq 'system';
    die "File for function $func not found\n" if $file eq '';
    $hash{OBJECT} .= " $file\$(OBJ_EXT)" unless $seen{$file}++;
@@ -167,10 +148,10 @@ foreach $func (@keys) {
 $hash{OBJECT} .= " const\$(OBJ_EXT) mtherr\$(OBJ_EXT) polevl\$(OBJ_EXT)";
 
 $hash{LIBS}->[0] .= " $libs";
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+	pdlpp_postamble_int(@pack);
+};
+
 WriteMakefile(%hash);
-
-sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
-}  # Add genpp rule
-
-
