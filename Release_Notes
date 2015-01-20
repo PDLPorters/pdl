@@ -35,7 +35,11 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Some ExtUtils::MakeMaker fixes and clean up for the PDL build
+   process.
+
+ * Fix non-portable usage bug in t/vsearch.t which prevented the
+   test from passing on perls 5.12 and earlier
 
 
 

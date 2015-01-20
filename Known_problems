@@ -1,5 +1,12 @@
 The following issues have been reported with this version of PDL:
 
+- PDL-2.007_08 is listed as UNAUTHORIZED because of a
+  missing permission for the release manager for PDL::Slatec.
+  This permission problem is not new, only visible now because
+  of the explicit use of PDL::Slatec in a package statement
+  that is now being indexed by the CPAN indexer.
+
+
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM
   format on some platforms, resulting in a failed picrgb test.
