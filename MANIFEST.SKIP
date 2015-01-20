@@ -82,12 +82,6 @@ RCS
 ^Basic/Slices/Slices\.c$
 ^Basic/Slices/Slices\.pm$
 ^Basic/Slices/Slices\.xs$
-^Basic/SourceFilter/INSTALL
-^Basic/SourceFilter/MANIFEST
-^Basic/SourceFilter/MANIFEST
-^Basic/SourceFilter/README
-^Basic/SourceFilter/README
-^Basic/SourceFilter/README\.head
 ^Basic/Test/Tests\..*
 ^Basic/Ufunc/Ufunc\.c
 ^Basic/Ufunc/Ufunc\.pm
