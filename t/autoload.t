@@ -21,10 +21,9 @@ BEGIN {
 
 }
 
-use vars qw( @PDLLIB );
 $PDL::debug = 1;
 
-@PDLLIB = ("t/"); # this means you have to run the test from ../t
+our @PDLLIB = ("t/"); # this means you have to run the test from ../t
 
 my $x = long(2 + ones(2,2));
 

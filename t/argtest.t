@@ -1,7 +1,6 @@
 # tests for error checking of input args to PP compiled function
 #
 use PDL::LiteF;
-use vars qw/$a $b/;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub ok {
@@ -27,8 +26,8 @@ sub eprint {
 
 print "1..4\n";
 
-$b=pdl([1,2,3])->long;
-$a=[1,2,3];
+my $b=pdl([1,2,3])->long;
+my $a=[1,2,3];
 eval 'PDL::Ufunc::sumover($a,$b)';
 
 ok(1,!$@);
