@@ -6,17 +6,17 @@
 .*\.0$
 .*\.orig$
 .*\.rej$
+.exe$
 /\.\#.*
 /pm_to_blib$
 /tmp.*
 Benchmark/Bench.c
 Benchmark/blib/
-^CVS
 Lib/PCA/PCA*
 MANIFEST\.bak$
 MANIFEST\.old
-META\.yml
 META\.json
+META\.yml
 Makefile$
 Makefile\.aperl
 Makefile\.old
@@ -36,7 +36,6 @@ RCS
 \.so$
 \.tar\.gz$
 \bcore$
-.exe$
 ^Basic/Bad/Bad\.c$
 ^Basic/Bad/Bad\.pm$
 ^Basic/Bad/Bad\.xs$
@@ -93,6 +92,7 @@ RCS
 ^Basic/Ufunc/Ufunc\.c
 ^Basic/Ufunc/Ufunc\.pm
 ^Basic/Ufunc/Ufunc\.xs
+^CVS
 ^Demos/BAD2_demo.pm$
 ^Demos/BAD_demo.pm$
 ^Demos/TkTriD_demo.pm$
@@ -236,6 +236,7 @@ RCS
 ^inv-data.pl
 ^patch
 ^pdl$
+^pdl.*-log.txt$
 ^pdl\.c$
 ^pdldoc$
 ^pdldoc.db$
@@ -254,6 +255,7 @@ RCS
 ^tmp.*
 ^tushort\.(tif|rgb)$
 ^win32/pbmwin32.tar.gz
+^work
 makemakerdflt
 manifypods
 pdlbasicops\.c$
@@ -266,5 +268,3 @@ pure_all
 so_locations
 subdirs
 ~$
-^work
-^pdl.*-log.txt$

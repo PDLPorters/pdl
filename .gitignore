@@ -72,7 +72,6 @@ Changes
 # These can either be in the specific directories or specified
 # with full patch in the top level directory (as here).
 
-_eumm
 .inlinepdlpp
 Basic/Bad/Bad.c
 Basic/Bad/Bad.pm
@@ -310,8 +309,11 @@ Lib/Transform/Transform.c
 Lib/Transform/Transform.pm
 Lib/Transform/Transform.xs
 MANIFEST.bak
+Perldl2/pdl2.pod
 _Inline/
+_eumm
 gsl.pl
+pdl
 pdl.c
 pdldoc
 pdldoc.pod
@@ -319,6 +321,4 @@ perldl
 perldl.conf-fast
 perldl.conf-orig
 perldl.pod
-Perldl2/pdl2.pod
 t/*.dll*
-pdl
