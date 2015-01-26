@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 BEGIN{if ($^O =~ /MSWin/) {
   print "getting dosglob...\n";
   require File::DosGlob;
@@ -5,8 +8,7 @@ BEGIN{if ($^O =~ /MSWin/) {
 }
 use ExtUtils::MakeMaker;
 
-@pods = map { $_=~s/.pod//; $_ } grep { ! m/Index.pod/ } glob("*.pod");
-
+my @pods = map { $_=~s/.pod//; $_ } grep { ! m/Index.pod/ } glob("*.pod");
 
 # do we want to create PP-Inline?
 eval 'require Pod::Select';
@@ -14,26 +16,11 @@ if (!$@ && $] >= 5.005 ) {
     push @pods, 'PP-Inline' unless grep {/PP-Inline/} @pods;
 }
 
-# DISABLED
-# push @pods, 'Export';
-
-
 my @man1 = map { $_.".pod", '$(INST_MAN1DIR)/PDL::' . $_ . '.$(MAN1EXT)' } @pods;
-
 my @pms  = map { $_.".pod", '$(INST_LIBDIR)/' . $_ .".pod"} @pods;
 
-WriteMakefile(
- 'NAME' =>      'PDL::pod',
-
- 'MAN1PODS' =>  { @man1 },
- 'MAN3PODS' =>  { },
- 'PM'    =>     { @pms },
- 'clean' => {FILES => "PP-Inline.pod"},
- 'linkext' =>   {LINKTYPE => ''},  # No linking required in this directory
- (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
-);
-
-sub MY::postamble {
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
   my $text = '';
   eval 'require Pod::Select';
   if (!$@ && $] >= 5.005 ) {
@@ -46,5 +33,14 @@ EOPS
 
   }
   $text;
-}
+};
 
+WriteMakefile(
+ 'NAME' =>      'PDL::pod',
+ 'MAN1PODS' =>  { @man1 },
+ 'MAN3PODS' =>  { },
+ 'PM'    =>     { @pms },
+ 'clean' => {FILES => "PP-Inline.pod"},
+ 'linkext' =>   {LINKTYPE => ''},  # No linking required in this directory
+ (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+);

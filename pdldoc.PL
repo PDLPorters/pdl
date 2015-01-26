@@ -1,4 +1,3 @@
-
 use strict;
 
 use Config;
@@ -24,7 +23,7 @@ unlink $file if -f $file;
 my $fh = new IO::File "> $file" or die "Can't create $file: $!";
 
 # check for bad value support
-use vars qw( $bvalflag );
+our $bvalflag;
 use File::Spec;
 require File::Spec->catfile( "Basic", "Core", "badsupport.p" );
 
@@ -64,8 +63,7 @@ BEGIN {
 use PDL::Doc::Perldl;
 use File::Basename;
 
-use vars qw( $VERSION );
-$VERSION = '0.3';
+our $VERSION = '0.3';
 
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 

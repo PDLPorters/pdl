@@ -1,4 +1,5 @@
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 
 BEGIN {
@@ -12,8 +13,8 @@ BEGIN {
 
 PDL::Core::Dev->import();
 
-@pack = (["openglq.pd",OpenGLQ,PDL::Graphics::OpenGLQ]);
-%hash = pdlpp_stdargs_int(@::pack);
+my @pack = (["openglq.pd", qw(OpenGLQ PDL::Graphics::OpenGLQ)]);
+my %hash = pdlpp_stdargs_int(@pack);
 
 if ( $PDL::Config{USE_POGL} ) {
    push @{$hash{LIBS}}, $OpenGL::Config->{LIBS};
@@ -32,10 +33,9 @@ if ( $PDL::Config{USE_POGL} ) {
 
 ${$hash{LIBS}}[0] .= ' -lm';
 
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+	pdlpp_postamble_int(@pack);
+};
+
 WriteMakefile(%hash);
-
-sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
-}  # Add genpp rule
-
-# SKIP: return;

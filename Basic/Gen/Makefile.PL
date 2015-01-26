@@ -1,23 +1,21 @@
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
+use Config;
+
 BEGIN{if ($^O =~ /MSWin/) {
   print "getting dosglob...\n";
   require File::DosGlob;
   File::DosGlob->import('glob');}
 }
 
-@pms = map {($_ => '$(INST_LIBDIR)/'.$_)}
+my @pms = map {($_ => '$(INST_LIBDIR)/'.$_)}
   (<*.pm>, <PP/*.pm>, 'PP/Dump.pm');
 push @pms, ('pptemplate.pod' => '$(INST_LIBDIR)/pptemplate.pod')
   if $] >= 5.006;
 
-use ExtUtils::MakeMaker;
-WriteMakefile(NAME => "PDL::PP",
-	PM => {@pms},
-	'EXE_FILES' => ['pptemplate'],
-	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate pptemplate.pod"},
-	(eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
-);
-
-sub MY::postamble {
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
   my $text =
 'PP/Dump.pm: PP/dump.pp
 	$(PERL) PP/dump.pp > PP/Dump.pm.tmp
@@ -34,7 +32,7 @@ EOPS
 
   }
   $text;
-}
+};
 
 #EU::MM's processPL() is continually broken on Win32 ... hence:
 sub MY::processPL {
@@ -80,3 +78,9 @@ $target ::
     }
 }
 
+WriteMakefile(NAME => "PDL::PP",
+	PM => {@pms},
+	'EXE_FILES' => ['pptemplate'],
+	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate pptemplate.pod"},
+	(eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+);

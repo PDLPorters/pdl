@@ -61,7 +61,7 @@ use ExtUtils::MakeMaker;
 $coredev;
 \@pack = (["$pdname",$name,$module]);
 
-\%hash = pdlpp_stdargs$int(\@::pack);
+\%hash = pdlpp_stdargs$int(\@pack);
 # \$hash{'OPTIMIZE'}  = '-g'; # If you want to debug, uncomment this.
 # \$hash{INC} .= " -I/usr/local/include";  # uncomment as required
 # \$hash{LIBS}[0] .= " -L/usr/local/lib -lmylib "; # uncomment as required
@@ -71,7 +71,7 @@ WriteMakefile(\%hash);
 # Add genpp rule
 # add other makefile additions as required (see also ExtUtils::MakeMaker)
 sub MY::postamble {
-	pdlpp_postamble$int(\@::pack);
+	pdlpp_postamble$int(\@pack);
 }
 
 EOM

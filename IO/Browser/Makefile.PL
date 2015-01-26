@@ -1,9 +1,5 @@
-
-# Makefile.PL for PDL::IO module.
-#
-# - check for win32 systems is now done in ../Makefile.PL
-local $| = 1;
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 use File::Spec;
 
@@ -17,7 +13,7 @@ BEGIN {
    }
 }
 
-use lib $libdir;
+use lib $libdir || ();
 
 use Devel::CheckLib;
 
@@ -25,9 +21,9 @@ use Devel::CheckLib;
 require Basic::Core::Dev;
 PDL::Core::Dev->import();
 
-@pack = (["browser.pd",Browser,PDL::IO::Browser]);
+my @pack = (["browser.pd", qw(Browser PDL::IO::Browser)]);
 
-%hash = pdlpp_stdargs_int(@::pack);
+my %hash = pdlpp_stdargs_int(@pack);
 
 $hash{'OBJECT'} .= ' browse$(OBJ_EXT)';
 $hash{'clean'}{FILES} .= ' browse$(OBJ_EXT) browse$(EXE_EXT) Browser.c Browser.pm Browser.xs Browser$(OBJ_EXT)';
@@ -61,13 +57,12 @@ foreach my $libr ( qw( curses ncurses ncursesw ) ) {
 }
 push @{$hash{LIBS}} , $libstring if defined $libstring;
 
+# Add genpp rule
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { pdlpp_postamble_int(@pack); };
+
 if (defined($incstring) && defined($libstring)) {
    WriteMakefile(%hash);
 } else {
    write_dummy_make("Curses capable library not found, not building PDL::IO::Browser");
 }
-
-# Add genpp rule
-sub MY::postamble { pdlpp_postamble_int(@::pack); }
-
-

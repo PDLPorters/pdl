@@ -1,4 +1,6 @@
 use ExtUtils::MakeMaker;
+use strict;
+use warnings;
 
 WriteMakefile(
 	      NAME => "PDL::IO::FITS",
@@ -6,9 +8,7 @@ WriteMakefile(
     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 	      );
 
-#
 # Check whether FITS modules are available (external to PDL)
-#
 BEGIN {
     $PDL::IO::FITS::wstr = '';
     # no warnings; # pre 5.6 does not like this
@@ -49,4 +49,3 @@ point your browser at http://www.cpan.org.
 EOF
     }
 } # END
-

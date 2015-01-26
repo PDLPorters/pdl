@@ -1,7 +1,6 @@
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
 
 WriteMakefile(
     'NAME'         => 'PDL::Doc',
@@ -16,12 +15,6 @@ WriteMakefile(
 		        'Doc/Perldl.pm' => '$(INST_LIBDIR)/Doc/Perldl.pm',
 			},
     'PL_FILES'     => {q[Doc/Config.pm.PL]=>q[Doc/Config.pm]},
-#	 map {s/[.]PL$//; m/^Makefile$/ ? () : ($_.".PL" => $_)}
-#	 	<*.PL>, <Doc/*.PL>
-#	},
      'clean'       => { 'FILES' => q[Doc/Config.pm] },
-# map {s/[.]PL$//; m/^Makefile$/ ?
-#					  () : $_}
-#			<*.PL>, <Doc/*.PL> },
     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );

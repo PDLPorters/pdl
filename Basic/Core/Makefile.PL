@@ -1,5 +1,6 @@
+use strict;
+use warnings;
 
-# Makefile.PL for PDL::Core module
 my $libdir;
 
 use File::Spec;
@@ -12,15 +13,12 @@ BEGIN {
    }
 }
 
-use lib $libdir;
-
+use lib $libdir || ();
 use Devel::CheckLib;
-
-#require '../Core/Dev.pm';
-PDL::Core::Dev->import();
-
 use Config;
 use IO::File;
+
+PDL::Core::Dev->import();
 
 ## $DB::single = 1;  # uncomment to have debugger stop here
 
@@ -28,7 +26,7 @@ my $pthread_include = $Config::Config{usrinc};  # not good for win32
 my $pthread_library = '-lpthread';                                  # not good for MSVC
 my $pthread_define  = ' -DPDL_PTHREAD ';
 
-my $macos_braindamage_define = ($ENV{'OSTYPE'} eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
+my $macos_braindamage_define = ($^O eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
 
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
@@ -139,38 +137,6 @@ print " It is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . " endian\
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
 use ExtUtils::MakeMaker;
-WriteMakefile(
- 'NAME'	        => 'PDL::Core',
- 'VERSION_FROM' => 'Version.pm',
- 'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) '.
-                   'pdlconv$(OBJ_EXT) pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
-  'PM'          => {
-  		(map {($_,'$(INST_LIBDIR)/'.$_)} (
-			qw/Core.pm Basic.pm Version.pm Types.pm
-						  Dbg.pm Exporter.pm Config.pm Char.pm/
-		)),
-  		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
-			qw/Dev.pm typemap.pdl pdl.h pdlcore.h pdlmagic.h pdlsimple.h
-				pdlthread.h ppport.h/
-		)),
-		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
-		},
- 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
- 'DEFINE' 	=> $pthread_define.$macos_braindamage_define,
- 'LIBS'         => ["$pthread_library $malloclib"],
- 'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlconv.c pdlsections.c pdlcore.c '.
-		   'pdl.h pdlsimple.h pdlcore.h '.
-		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
-		   'mymalloc.p badsupport.p'
-		   },
- 'INC'          => join(' ',
-   PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
- ),
- (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
-);
 
 # Extra targets to build
 
@@ -226,7 +192,8 @@ $target :
     }
 }
 
-sub MY::postamble {
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
 
 if($Config{make} =~ /\bdmake/i) {
   if($ExtUtils::MakeMaker::VERSION < 7) {
@@ -331,4 +298,37 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 pdlsections.c: pdlsections.g Types.pm
 | : '');
 }
-}
+};
+
+WriteMakefile(
+ 'NAME'	        => 'PDL::Core',
+ 'VERSION_FROM' => 'Version.pm',
+ 'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
+                   'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) '.
+                   'pdlconv$(OBJ_EXT) pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
+  'PM'          => {
+		(map {($_,'$(INST_LIBDIR)/'.$_)} (
+			qw/Core.pm Basic.pm Version.pm Types.pm
+						  Dbg.pm Exporter.pm Config.pm Char.pm/
+		)),
+		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
+			qw/Dev.pm typemap.pdl pdl.h pdlcore.h pdlmagic.h pdlsimple.h
+				pdlthread.h ppport.h/
+		)),
+		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
+		},
+ 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
+ 'DEFINE'	=> $pthread_define.$macos_braindamage_define,
+ 'LIBS'         => ["$pthread_library $malloclib"],
+ 'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
+                   'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
+                   'pdlconv.c pdlsections.c pdlcore.c '.
+		   'pdl.h pdlsimple.h pdlcore.h '.
+		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
+		   'mymalloc.p badsupport.p'
+		   },
+ 'INC'          => join(' ',
+   PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
+ ),
+ (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+);

@@ -1,12 +1,16 @@
-#
-# Makefile.PL for PDL::IO::HDF::SD module.
-#
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 
 PDL::Core::Dev->import();
 
-$package = [ "SD.pd", SD , PDL::IO::HDF::SD ];
+my $package = [ qw(SD.pd SD PDL::IO::HDF::SD) ];
+our ($hdf_include_path, $hdf_lib_path, $hdf_libs, $szip);
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { pdlpp_postamble_int($package); };
+
 WriteMakefile(
     NAME => 'PDL::IO::HDF::SD',
     TYPEMAPS => [ &PDL_TYPEMAP() ], 
@@ -25,5 +29,3 @@ WriteMakefile(
     }, 
     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
-
-sub MY::postamble { pdlpp_postamble_int($package); }

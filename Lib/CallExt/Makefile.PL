@@ -1,5 +1,6 @@
+use strict;
+use warnings;
 
-# Makefile.PL for PDL::CallExt module
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
@@ -11,4 +12,3 @@ WriteMakefile(
  'LIBS' => [$malloclib],
  (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
-

@@ -1,9 +1,9 @@
-# PDL interface to GSL interpolation routines
-# Makefile.PL for a package defined by PP code.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
+our ($GSL_includes, $GSL_libs); 
 my $msg = undef;
 my $forcebuild=0;
 my $skip = 0;
@@ -14,13 +14,13 @@ my $skip = 0;
 sub gsl_interp_links_ok {
   my($lib,$inc) = @_;
   return defined($lib) && defined($inc) &&
-    trylink 'gsl interp libraries',
+    trylink('gsl interp libraries',
       << 'EOI',
 #include <math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 EOI
-	<< 'EOB', $lib, $inc;
+	<< 'EOB', $lib, $inc);
 
   int i;
   double xi, yi, x[10], y[10];
@@ -70,14 +70,12 @@ if (($skip && !$forcebuild) ||
     "Turn off WITH_GSL if there are any problems\n\n";
 }
 
-@pack = (["gsl_interp.pd",INTERP,PDL::GSL::INTERP]);
-%hash = pdlpp_stdargs_int(@::pack);
+my @pack = (["gsl_interp.pd", qw(INTERP PDL::GSL::INTERP)]);
+my %hash = pdlpp_stdargs_int(@pack);
 
 $hash{INC} .= " $GSL_includes";
 push @{$hash{LIBS}},$GSL_libs;
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { pdlpp_postamble_int(@pack); };
 WriteMakefile(%hash);
-
-
-sub MY::postamble {
-        pdlpp_postamble_int(@::pack);
-}  # Add genpp rule

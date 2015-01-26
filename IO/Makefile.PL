@@ -1,20 +1,17 @@
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
 
 PDL::Core::Dev->import();
 
 # do we build PDL::IO::Browser ?
-#
 my @dirs = qw( FastRaw Misc FlexRaw Pnm Storable FITS HDF GD Dicom IDL );
-my $build_browser = $PDL::Config{WITH_IO_BROWSER} || 0;
-if ( $build_browser ) {
+if ($PDL::Config{WITH_IO_BROWSER} && $PDL::Config{WITH_IO_BROWSER}) {
    push @dirs, 'Browser';
    print "\n   Building PDL::IO::Browser. Turn off WITH_IO_BROWSER if this is incorrect.\n\n";
 } else {
    print "\n   Not building PDL::IO::Browser. Turn on WITH_IO_BROWSER if this is incorrect.\n\n";
 }
-
-use ExtUtils::MakeMaker;
-# # See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# # the contents of the Makefile that is written.
 
 WriteMakefile(
      'NAME'	=> 'PDL::IO',

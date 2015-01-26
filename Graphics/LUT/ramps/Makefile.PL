@@ -1,11 +1,8 @@
-#
+use strict;
+use warnings;
+
 # files ending in .fits will end up in
 # PDL/Graphics/LUT/ramps/
-#
-# WARNING: this all looks rather UNIX specific
-# (unless MakeMaker is clever enough to convert
-# UNIX file names to the system it's running on)
-#
 use ExtUtils::MakeMaker;
 
 my @tables = glob( "*.fits" );
@@ -18,4 +15,3 @@ WriteMakefile(
    },
    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
-

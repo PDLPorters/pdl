@@ -1,7 +1,9 @@
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 
-@pack = (["matrixops.pd",MatrixOps,PDL::MatrixOps]);
-%hash = pdlpp_stdargs_int(@::pack);
+my @pack = (["matrixops.pd", qw(MatrixOps PDL::MatrixOps)]);
+my %hash = pdlpp_stdargs_int(@pack);
 
 PDL::Core::Dev->import();
 
@@ -13,8 +15,9 @@ foreach my $file (qw (blas eigens simq svd eigen complex matrix sslib)) {
 
 $hash{LIBS}->[0] .= " -lm ";
 
-WriteMakefile( %hash );
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+  pdlpp_postamble_int(@pack);
+};
 
-sub MY::postamble {
-  pdlpp_postamble_int(@::pack);
-}
+WriteMakefile( %hash );

@@ -1,11 +1,10 @@
-
-# Makefile.PL for PDL::Bad module.
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
 
 # we create a Bad.pm whatever the value of
 # PDL_CONFIG - it's just the contents that will be
 # different...
-#
-use ExtUtils::MakeMaker;
 
 PDL::Core::Dev->import();
 
@@ -31,18 +30,16 @@ if ( $bvalflag ) {
 }
 print "\n\n";
 
-@pack = (["bad.pd",Bad,PDL::Bad]);
+my @pack = (["bad.pd",qw(Bad PDL::Bad)]);
 
-%hash = pdlpp_stdargs_int(@::pack);
+my %hash = pdlpp_stdargs_int(@pack);
 
 #$hash{LIBS} = ['-lm'];
 
-WriteMakefile(%hash);
-
 # we add ../Core/badsupport.p to the dependencies of Bad.pm
-# - not very elegant
-#
-sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
-}  # Add genpp rule
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+	pdlpp_postamble_int(@pack);
+};
 
+WriteMakefile(%hash);

@@ -1,5 +1,5 @@
-# Makefile.PL for a package defined by PP code.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 use File::Spec;
@@ -18,6 +18,7 @@ use Data::Dumper;
 # end comment this block out for PDL internal version
 
 my $pdl_installed = 1; # uncomment for PDL-internal version
+my ($plplot_lib_path, $plplot_include_path);
 
 if (!$pdl_installed) {
   # write dummy makefile if PDL not installed
@@ -115,7 +116,7 @@ foreach my $incdir (
   if (-e "$incdir/$incname") {
     $plplot_include_path = "-I$incdir";
     if ($incdir =~ m|/plplot$|) {
-      $inc2 = $incdir;
+      my $inc2 = $incdir;
       $inc2 =~ s|/plplot$||;
       $plplot_include_path .= " -I$inc2";
     }
@@ -182,19 +183,15 @@ close   $fh;
 
 $PDL::Config{WITH_PLPLOT} = 1;
 
+my @pack = (["plplot.pd", qw(PLplot PDL::Graphics::PLplot)]);
 
-#
-## new way to get writemakefile args...
-#
-@pack = (["plplot.pd",PLplot,PDL::Graphics::PLplot]);
-
-#%hash = pdlpp_stdargs_int(@::pack);  # use this for module inside PDL source
-%hash = pdlpp_stdargs(@::pack);          # use this for separate module
+#%hash = pdlpp_stdargs_int(@pack);  # use this for module inside PDL source
+my %hash = pdlpp_stdargs(@pack);          # use this for separate module
 
 # $hash{'PREREQ_PM'} = { PDL => 0 };
 $hash{'OPTIMIZE'}  = '-g'; # If you want to debug, uncomment this.
 $hash{'VERSION_FROM'}   = 'plplot.pd';
-$hash{'META_MERGE'}   = {provides => {PDL::Graphics::PLplot => {file => 'plplot.pd', version => 0.57}}};
+$hash{'META_MERGE'}   = {provides => {'PDL::Graphics::PLplot' => {file => 'plplot.pd', version => 0.57}}};
 
 $hash{'LIBS'}      = [$libs];
 # add this to allow one to use the /ops/tools/lib plplot libs even when
@@ -205,13 +202,14 @@ $hash{'INC'}      .= " $plplot_include_path";
 $hash{'clean'}     = {'FILES'  =>
                         'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *svg.* *.xfig temp* OPTIONS! Makefile.old'};
 
-#my $postamble = pdlpp_postamble(@::pack); # use for external module
-my $postamble = pdlpp_postamble_int(@::pack); # use for install inside PDL distro
-
-WriteMakefile(%hash);
+#my $postamble = pdlpp_postamble(@pack); # use for external module
+my $postamble = pdlpp_postamble_int(@pack); # use for install inside PDL distro
 
 # Add genpp rule
-sub MY::postamble { $postamble };
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { $postamble };
+
+WriteMakefile(%hash);
 
 sub test_func_exists {
 

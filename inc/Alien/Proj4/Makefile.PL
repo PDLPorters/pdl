@@ -23,6 +23,11 @@
 #     (b) "+proj=ortho +ellps=WGS84 +lon_0=-90 +lat_0=40"
 #     (c) Report missing files/broken install and skip build
 
+use strict;
+use warnings;
+
+my ($msg, $forcebuild, $config_flag, $package_name);
+
 BEGIN {
    #
    # You probably won't need to edit anything below here (until the very end):
@@ -30,6 +35,8 @@ BEGIN {
 
    $msg = "";
    $forcebuild=0;  # Note: forcebuild not used
+   $config_flag = 'no idea';
+   $package_name = 'PDL::NoIdea';
 
    if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==0)
    {

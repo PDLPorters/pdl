@@ -1,39 +1,20 @@
-
-BEGIN {
-  PDL::Core::Dev->import();
-  $skip = 0;
-  if ($^O =~ /win32/i) {
-    write_dummy_make(unsupported('PDL::Graphics::IIS','win32'));
-    $skip=1;
-  }
-}
-
-return if $skip;
-
-# Makefile.PL for PDL::Graphics::IIS module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
-
-#use PDL::Core::Dev;
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
-use ExtUtils::MakeMaker;
+if ($^O =~ /win32/i) {
+  write_dummy_make(unsupported('PDL::Graphics::IIS','win32'));
+  return;
+}
 
-# Replace this wit:e
-
-@pack = (["iis.pd",IIS,PDL::Graphics::IIS]);
-
-#WriteMakefile(
-# pdlpp_stdargs_int(@::pack)
-#);
-%hash = pdlpp_stdargs_int(@::pack);
+my @pack = (["iis.pd", qw(IIS PDL::Graphics::IIS)]);
+my %hash = pdlpp_stdargs_int(@pack);
 $hash{LIBS} = ['-lm'];
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+	pdlpp_postamble_int(@pack);
+};
+
 WriteMakefile(%hash);
-
-sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
-}  # Add genpp rule
-
-

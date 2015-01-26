@@ -1,21 +1,16 @@
-
-# Makefile.PL for PDL::Primitive module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 
 PDL::Core::Dev->import();
 
-@pack = (["fft.pd",FFT,PDL::FFT]);
-%hash = pdlpp_stdargs_int(@::pack);
+my @pack = (["fft.pd", qw(FFT PDL::FFT)]);
+my %hash = pdlpp_stdargs_int(@pack);
 $hash{OBJECT} .= ' fftn.o';
 $hash{DEFINE} .= ' -DFFT_FLOAT';
 $hash{LIBS} = ['-lm'] unless $^O =~ /MSWin/;
 
-WriteMakefile(%hash);
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { pdlpp_postamble_int(@pack); };
 
-sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
-}  # Add genpp rule
+WriteMakefile(%hash);

@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
@@ -30,7 +32,7 @@ EOW
 }
 
 # these will be used in the subdirs
-($GSL_includes, $GSL_libs)  = get_gsl_libs();
+our ($GSL_includes, $GSL_libs)  = get_gsl_libs();
 
 # Version check
 my $MINVERSION = "1.3";
@@ -52,6 +54,9 @@ if ($version =~ /^\s*$/) {
     last if ($new_enough);
   }
 }
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {};
 if (! $new_enough) {
    warn "\n   Not building GSL modules: GSL version $version found, need at least $MINVERSION\n\n";
    write_dummy_make("Not building GSL modules: GSL version $version found, but need at least $MINVERSION");
@@ -66,4 +71,3 @@ if (! $new_enough) {
        (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
    );
 }
-sub MY::postamble {}

@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 use Inline::MakeMaker; # to allow us to install the inlined code !
 
 # Note use of 'WriteInlineMakefile' in place of the normal

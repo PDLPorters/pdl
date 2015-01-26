@@ -1,13 +1,17 @@
-#
-# Makefile.PL for PDL::IO::HDF::VS module.
-#
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 
 PDL::Core::Dev->import();
 
-$package = [ "VS.pd" , VS , PDL::IO::HDF::VS ];
+our ($hdf_include_path, $hdf_lib_path, $hdf_libs, $szip);
+
+my $package = [ qw(VS.pd VS PDL::IO::HDF::VS) ];
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { pdlpp_postamble_int($package); };
+
 WriteMakefile(
     NAME => 'PDL::IO::HDF::VS',
     TYPEMAPS => [ &PDL_TYPEMAP() ],
@@ -26,5 +30,3 @@ WriteMakefile(
     },
     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
-
-sub MY::postamble { pdlpp_postamble_int($package); }        

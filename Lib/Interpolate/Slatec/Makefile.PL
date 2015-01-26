@@ -1,11 +1,14 @@
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 
 PDL::Core::Dev->import();                                                       
 
 # do we build PDL::Interpolate::Slatec ?
 
-$msg = "\n Will skip build of PDL::Interpolate::Slatec\n";
-$build=0;
+our %PDL_CONFIG;
+my $msg = "\n Will skip build of PDL::Interpolate::Slatec\n";
+my $build=0;
  
 if ($^O =~ /win32/i) {
     $msg = "\n Win32 systems not yet supported: no build of PDL::Interpolate::Slatec\n";
@@ -26,4 +29,3 @@ WriteMakefile(
 	      NAME => "PDL::Interpolate::Slatec",
 	      VERSION_FROM => "../../../Basic/Core/Version.pm",
 );
-

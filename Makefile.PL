@@ -1,25 +1,24 @@
+#!perl -w
+
+use strict;
+use warnings;
 use lib qw(inc);
 use Devel::CheckLib;
-
-# Prompt the user here for any paths and other configuration
-
-check_lib_or_exit(
-    # fill in what you prompted the user for here
-    lib => [qw()]
-);
-
-
-# Build the whole PDL distribtuion
-
 use 5.008_000;      # explicitly require 5.8.x or above
-
 use ExtUtils::MakeMaker 6.56;  # for CONFIGURE_REQUIRES support
-
-$::PP_VERBOSE = 0; # =1 makes PP waffle a lot
-
 use Config;
 use IO::File;
 use Cwd;
+
+$::PP_VERBOSE = $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
+
+# file globals(!)
+my ($pdl_f77conf, $forcebuild, $redhat580problem, @hasnt);
+my ($seen_pdlconf, $seen_f77conf);
+my $pdl_conf_file = ''; # apparently for users to change
+
+# build-system globals
+our ($usenan, $bvalflag, $bvalPerPdl);
 
 sub checkbuggysetup {
     # detect buggy Perl setups
@@ -61,7 +60,7 @@ EOM
 
     my($dot);
     for(@INC) {$dot += $_ eq '.'}
-    $dot-- if(@INC[-1] eq '.');
+    $dot-- if($INC[-1] eq '.');
     if($dot) {
 	$INC = join(":",@INC);
 	warn << "EOM"
@@ -116,18 +115,19 @@ sub getpdl_config {
 
   # First read in distribution config file
   #
+  our %PDL_CONFIG;
   require './perldl.conf';
 
   # Add BAD_VAL tests if CPAN testers
   #
-  if ($ENV{AUTOMATED_TESTING} == 1) {
+  if ($ENV{AUTOMATED_TESTING}) {
      # warn "Makefile.PL: Automated testing environment: enabling USE_POGL config option\n";
      # $PDL_CONFIG{USE_POGL} = 1;
   }
 
   # Save standard values
   #
-  %PDL_CONFIG_DIST = %PDL_CONFIG;
+  my %PDL_CONFIG_DIST = %PDL_CONFIG;
 
   # Now read in the users config file if specified
   # and convert y/n to 1/0
@@ -185,11 +185,11 @@ EOD
       die "ERROR: MALLOCDBG must be set to an associative array, not to a " .
 	( $rval ? $rval : "SCALAR" ) unless $rval eq "HASH";
   } else {
-      $PDL_CONFIG{MALLOCDBG} = ();
+      $PDL_CONFIG{MALLOCDBG} = undef; # exists but undef
   }
   foreach my $item ( qw( libs include ) ) {
-      $PDL_Config{MALLOCDBG}->{$item} = ""
-	unless exists $PDLConfig{MALLOCDBG}->{$item};
+      $PDL_CONFIG{MALLOCDBG}->{$item} = ""
+	unless exists $PDL_CONFIG{MALLOCDBG}->{$item};
   }
 
   # filter out incompatible options for the 'bad' code.
@@ -211,21 +211,20 @@ EOD
   #
   for my $key ( keys %PDL_CONFIG ) {
       my $val = $PDL_CONFIG{$key};
-      $val =~ s/^y.*/1/i;
-      $val =~ s/^n.*/0/i;
+      $val =~ s/^y.*/1/i if defined $val;
+      $val =~ s/^n.*/0/i if defined $val;
       $PDL::Config{$key} = $val;
   }
 
   # destroy PDL_CONFIG/PDL_CONFIG_DIST so that we can catch any accesses
   # to them in other Makefile.PL's
   #
-  %PDL_CONFIG = undef;
-  %PDL_CONFIG_DIST = undef;
+  %PDL_CONFIG = ();
 }
 
 sub check_f77conf {
-  my ($seen_f77conf) = @_;
-  return 0 unless $seen_f77conf;
+  my ($seenyet) = @_;
+  return 0 unless $seenyet;
 
   eval 'require File::Spec';
   unless ($@ eq "") {
@@ -233,7 +232,7 @@ sub check_f77conf {
       # skip if we don't have File::Spec
       return 0;
   }
-  $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
+  my $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
     unless File::Spec->file_name_is_absolute($pdl_f77conf);
   $PDL::Config{F77CONF} = $pdl_f77conf;
   return 1;
@@ -340,7 +339,7 @@ sub make_PDL_Config_pm {
 package PDL;
 use File::Spec;
 \%PDL::Config = (\n";
-  for(keys %PDL::Config) {
+  for (sort keys %PDL::Config) {
     $fh->print( "\t$_\t=>\t" );
     if(defined $PDL::Config{$_}) {
       if($PDL::Config{$_} eq 'File::Spec->tmpdir()') {$fh->print( $PDL::Config{$_} )}
@@ -391,8 +390,6 @@ EOF
     push @hasnt, $mod->[1] if $@;
   }
 } # end BEGIN
-
-$seen_pdlconf = 0;
 
 # Scan ARGV for config file argument
 @ARGV = map {
@@ -464,7 +461,7 @@ my %notestsifmodulesmissing = @hasnt ? # are any required modules missing ?
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/Bugs perldl pdldoc/;
 
-@prereq = (
+my @prereq = (
 	   'Astro::FITS::Header' => 0,
            'Convert::UU'         => 0,         # for PDL::IO::Dumper
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
@@ -508,7 +505,7 @@ if($Config{archname}=~m/x86_64/) {
 my $preop = '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_genpm $(DISTVNAME)';
 $preop .= q[ && git log --stat --since='29 Apr 2009' > Changes.new && $(MV) Changes.new $(DISTVNAME)/Changes] if $^O ne 'MSWin32';
 
-%makefile_hash = (
+my %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
               'CONFIGURE_REQUIRES' => { 'Devel::CheckLib' => 1.01, },
 	      'NAME' => 'PDL',
@@ -771,7 +768,7 @@ EOP
 
     eval "use 5.8.0";
     if($@ ne "") {
-      $vstring = sprintf("%vd",$^V);
+      my $vstring = sprintf("%vd",$^V);
     print <<"DEPRECATED-EOM"
 ******************************
 *

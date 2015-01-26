@@ -1,5 +1,6 @@
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
-
 
 WriteMakefile(
 	'NAME' => 'PDL::Fit',
@@ -8,4 +9,3 @@ WriteMakefile(
 	PM => { map {($_ => '$(INST_LIBDIR)/Fit/'.$_)} <*.pm> },
         (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
-

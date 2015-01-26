@@ -38,7 +38,7 @@ print OUT <<'!NO!SUBS!';
 
 # Simple shell for PDL
 
-use vars qw($VERSION $HOME $Modules);
+our ($VERSION, $HOME, $Modules);
 
 $VERSION = '1.357';
 
