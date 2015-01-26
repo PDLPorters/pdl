@@ -591,30 +591,28 @@ sub MY::postamble {
   my  $text =
 '
 doctest ::
-	@echo "doctest: Building PDL documentation database in blib ..."
-	@$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) \
-		Doc/scantree.pl
-%HTML%	@echo "doctest: Building PDL documentation web pages in blib ..."
-%HTML%	@$(PERL)  -I$(INST_ARCHLIB) -I$(INST_LIB) \
-%HTML%		Doc/mkhtmldoc.pl
+	$(NOECHO) $(ECHO) "doctest: Building PDL documentation database in blib ..."
+	$(NOECHO) $(PERLRUNINST) Doc/scantree.pl
+%HTML%	$(NOECHO) $(ECHO) "doctest: Building PDL documentation web pages in blib ..."
+%HTML%	$(NOECHO) $(PERLRUNINST) Doc/mkhtmldoc.pl
 
 doc_site_install ::
-	@echo "doc_site_install: Building PDL documentation database ..."
-	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLSITEARCH)
-%HTML%	@echo "doc_site_install: Building PDL documentation web pages ..."
-%HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLSITEARCH)/PDL
+	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation database ..."
+	$(NOECHO) $(PERLRUNINST) Doc/scantree.pl "$(INSTALLSITEARCH)"
+%HTML%	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation web pages ..."
+%HTML%	$(NOECHO) $(PERL) Doc/mkhtmldoc.pl "$(INSTALLSITEARCH)/PDL"
 
 doc_vendor_install ::
-	@echo "doc_vendor_install: Building PDL documentation database ..."
-	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLVENDORARCH)
-%HTML%	@echo "doc_vendor_install: Building PDL documentation web pages ..."
-%HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLVENDORARCH)/PDL
+	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation database ..."
+	$(NOECHO) $(PERLRUNINST) Doc/scantree.pl "$(INSTALLVENDORARCH)"
+%HTML%	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation web pages ..."
+%HTML%	$(NOECHO) $(PERL) Doc/mkhtmldoc.pl "$(INSTALLVENDORARCH)/PDL"
 
 doc_perl_install ::
-	@echo "doc_perl_install: Building PDL documentation database ..."
-	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
-%HTML%	@echo "doc_perl_install: Building PDL documentation web pages ..."
-%HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
+	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation database ..."
+	$(NOECHO) $(PERLRUNINST) Doc/scantree.pl "$(INSTALLARCHLIB)"
+%HTML%	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation web pages ..."
+%HTML%	$(NOECHO) $(PERL) Doc/mkhtmldoc.pl "$(INSTALLARCHLIB)/PDL"
 ';
 
   if(defined $PDL::Config{HTML_DOCS} && !$PDL::Config{HTML_DOCS}){
