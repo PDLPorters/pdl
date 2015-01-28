@@ -28,31 +28,29 @@ if (defined $PDL::Config{WITH_MINUIT} && $PDL::Config{WITH_MINUIT}==1) {
 
 if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
   print "loading F77 configuration from $PDL::Config{F77CONF}...\n";
-  eval "require '$PDL::Config{F77CONF}'";
+  eval { require $PDL::Config{F77CONF} };
   if ($@ ne "") {
-    $msg = "\n".$@.
-    "\n\tF77CONF file not loaded. Ought not build PDL::Minuit\n" ;
+    $msg = "F77CONF file not loaded: $@\nOught not build PDL::Minuit\n" ;
     goto skip unless $forcebuild;
   }
   $f77 = 'F77Conf';
 } else {
-  eval "use ExtUtils::F77";  # Might want "use ExtUtils::F77 qw(generic f2c)"
+  eval { require ExtUtils::F77; ExtUtils::F77->import; };  # Might want "ExtUtils::F77->import(qw(generic f2c))"
   if ($@ ne "") {
-    $msg = "\n".$@.
-    "\n\tExtUtils::F77 module not found. Ought not build PDL::Minuit\n" ;
+    $msg = "ExtUtils::F77 module not found. Ought not build PDL::Minuit";
     goto skip unless $forcebuild;
   } else {
     $f77 = 'ExtUtils::F77';
     print "(ExtUtils Version $ExtUtils::F77::VERSION)\n";
     if ($ExtUtils::F77::VERSION < 1.03 ) {
-      $msg = "\n\tneed a version of ExtUtils::F77 >= 1.03. Ought not build PDL::Minuit\n" ;
+      $msg = "Need a version of ExtUtils::F77 >= 1.03. Ought not build PDL::Minuit\n" ;
       goto skip unless $forcebuild;
     }
   }  # end if ($@ ne "")
 } # if (exists $PDL::Config{F77CONF}...
 
 if (!$f77->testcompiler) {
-  $msg = "\n   No f77 compiler found. Ought to skip PDL::Minuit on this system    \n";
+  $msg = "No f77 compiler found. Ought to skip PDL::Minuit on this system";
   $PDL::Config{WITH_MINUIT} = 0;
 } else {
   $PDL::Config{WITH_MINUIT} = 1;
@@ -67,7 +65,7 @@ if ($msg ne "" && !$forcebuild) {
   $PDL::Config{WITH_MINUIT} = 0;
   $donot = 1;
 } else {
-  print "\n   Building PDL::Minuit. Turn off WITH_MINUIT if there are any problems\n\n";
+  print "Building PDL::Minuit. Turn off WITH_MINUIT if there are any problems\n";
   $PDL::Config{WITH_MINUIT} = 1;
 }
 
