@@ -163,33 +163,26 @@ sub MY::xs_o {
 }
 
 undef &MY::processPL; *MY::processPL = sub {
-    if($^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
-    if($Config{make} =~ /\bnmake/i){return ''}
-    my($self) = shift;
+    package MY;
+    my ($self) = @_;
+    return $self->SUPER::processPL
+        unless $^O =~ /MSWin32/i && $Config::Config{make} =~ /\b[dn]make/i;
+    return '' if $Config::Config{make} =~ /\bnmake/i;
     return "" unless $self->{PL_FILES};
-    my(@m, $plfile);
-    foreach $plfile (sort keys %{$self->{PL_FILES}}) {
+    my @m;
+    my $alltarget = $ExtUtils::MakeMaker::VERSION >= 7.05_06 ? 'pure_nolink' : 'all';
+    my $colon = $Config::Config{make} =~ /\bdmake/i ? ':' : '::';
+    foreach my $plfile (sort keys %{$self->{PL_FILES}}) {
         my $list = ref($self->{PL_FILES}->{$plfile})
                 ? $self->{PL_FILES}->{$plfile}
                 : [$self->{PL_FILES}->{$plfile}];
-        my $target;
-        foreach $target (@$list) {
-          push @m, "
-all :: $target
-	\$(NOECHO) \$(NOOP)
-
-$target :
-	\$(PERLRUNINST) $plfile $target
-";
-          } # close foreach
+        foreach my $target (@$list) {
+            push @m,
+                "\n$alltarget :: $target\n\t\$(NOECHO) \$(NOOP)\n",
+                "\n$target $colon\n\t\$(PERLRUNINST) $plfile $target\n";
+        }
     }
     join "", @m;
-    }
-   else {
-    package MY;
-    my $self = shift;
-    return $self->SUPER::processPL;
-    }
 };
 
 undef &MY::postamble; # suppress warning

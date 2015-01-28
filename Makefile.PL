@@ -650,55 +650,29 @@ return $text
 
 ##############################
 # processPL: generate Makefile lines for top-level components that are created by just perling a .PL file.
-
 #EU::MM's processPL() is continually broken on Win32 ... hence:
-
+### This fix seems necessary with current versions of MM - otherwise it creates circular
+### dependencies to "pm_to_blib" for .PL files (!) -- CED 9-July-2008
 sub MY::processPL {
-    ### This fix seems necessary with current versions of MM - otherwise it creates circular
-    ### dependencies to "pm_to_blib" for .PL files (!) -- CED 9-July-2008
-    if(1) { ##  || $^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
-	my($self) = shift;
-	return "" unless $self->{PL_FILES};
-	my(@m, $plfile);
-	foreach $plfile (sort keys %{$self->{PL_FILES}}) {
-	    my $list = ref($self->{PL_FILES}->{$plfile})
-                         ?  $self->{PL_FILES}->{$plfile}
-	                 : [$self->{PL_FILES}->{$plfile}];
-	    my $target;
-	    if($Config{make} =~ /\bdmake/i) {
-		foreach $target (@$list) {
-		    push @m, "
-all :: $target
-	\$(NOECHO) \$(NOOP)
-
-$target :
-	\$(PERLRUNINST) $plfile $target
-";
-		} # close foreach
-	    }
-	    else {
-		foreach $target (@$list) {
-		    push @m, "
-all :: $target
-	\$(NOECHO) \$(NOOP)
-
-$target ::
-	\$(PERLRUNINST) $plfile $target
-
-";
-
-		} # close foreach
-	    }
-	}
-	return join "", @m;
+    package MY;
+    my ($self) = @_;
+    return $self->SUPER::processPL if 0; ## || $^O =~ /MSWin32/i && $Config{make} =~ /\b[dn]make/i
+    return "" unless $self->{PL_FILES};
+    my @m;
+    my $alltarget = $ExtUtils::MakeMaker::VERSION >= 7.05_06 ? 'pure_nolink' : 'all';
+    my $colon = $Config::Config{make} =~ /\bdmake/i ? ':' : '::';
+    foreach my $plfile (sort keys %{$self->{PL_FILES}}) {
+        my $list = ref($self->{PL_FILES}->{$plfile})
+                     ?  $self->{PL_FILES}->{$plfile}
+                     : [$self->{PL_FILES}->{$plfile}];
+        foreach my $target (@$list) {
+            push @m,
+                "\n$alltarget :: $target\n\t\$(NOECHO) \$(NOOP)\n",
+                "\n$target $colon\n\t\$(PERLRUNINST) $plfile $target\n";
+        }
     }
-    else {
-	package MY;
-	my $self = shift;
-	return $self->SUPER::processPL;
-    }
+    return join "", @m;
 }
-
 
 # warn if vital modules are missing
 END {

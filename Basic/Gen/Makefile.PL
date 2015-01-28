@@ -27,47 +27,26 @@ EOF
 };
 
 #EU::MM's processPL() is continually broken on Win32 ... hence:
+## Fix appears to be necessary on all MM platforms now, to avoid circular references :-( -- CED 9-July-2008
 undef &MY::processPL; *MY::processPL = sub {
-    ## Fix appears to be necessary on all MM platforms now, to avoid circular references :-( -- CED 9-July-2008
-    if(1) { ## if($^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
-    my($self) = shift;
+    package MY;
+    my ($self) = @_;
+    return $self->SUPER::processPL if 0; ## unless $^O =~ /MSWin32/i && $Config{make} =~ /\b[dn]make/i;
     return "" unless $self->{PL_FILES};
-    my(@m, $plfile);
-    foreach $plfile (sort keys %{$self->{PL_FILES}}) {
+    my @m;
+    my $alltarget = $ExtUtils::MakeMaker::VERSION >= 7.05_06 ? 'pure_nolink' : 'all';
+    my $colon = $Config::Config{make} =~ /\bdmake/i ? ':' : '::';
+    foreach my $plfile (sort keys %{$self->{PL_FILES}}) {
         my $list = ref($self->{PL_FILES}->{$plfile})
                 ? $self->{PL_FILES}->{$plfile}
                 : [$self->{PL_FILES}->{$plfile}];
-        my $target;
-        if($Config{make} =~ /\bdmake/i) {
-          foreach $target (@$list) {
-          push @m, "
-all :: $target
-	\$(NOECHO) \$(NOOP)
-
-$target :
-	\$(PERLRUNINST) $plfile $target
-";
-          } # close foreach
+        foreach my $target (@$list) {
+            push @m,
+                "\n$alltarget :: $target\n\t\$(NOECHO) \$(NOOP)\n",
+                "\n$target $colon\n\t\$(PERLRUNINST) $plfile $target\n";
         }
-        else {
-          foreach $target (@$list) {
-          push @m, "
-all :: $target
-	\$(NOECHO) \$(NOOP)
-
-$target ::
-	\$(PERLRUNINST) $plfile $target
-";
-          } # close foreach
-        }  
     }
     join "", @m;
-    }
-   else {
-    package MY;
-    my $self = shift;
-    return $self->SUPER::processPL;
-    }
 };
 
 WriteMakefile(NAME => "PDL::PP",
