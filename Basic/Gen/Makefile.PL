@@ -11,27 +11,19 @@ BEGIN{if ($^O =~ /MSWin/) {
 
 my @pms = map {($_ => '$(INST_LIBDIR)/'.$_)}
   (<*.pm>, <PP/*.pm>, 'PP/Dump.pm');
-push @pms, ('pptemplate.pod' => '$(INST_LIBDIR)/pptemplate.pod')
-  if $] >= 5.006;
+push @pms, ('pptemplate.pod' => '$(INST_LIBDIR)/pptemplate.pod');
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
-  my $text =
-'PP/Dump.pm: PP/dump.pp
+  <<'EOF';
+PP/Dump.pm: PP/dump.pp
 	$(PERL) PP/dump.pp > PP/Dump.pm.tmp
 	$(MV) PP/Dump.pm.tmp PP/Dump.pm
-';
-
-  if ( $] >= 5.006 ) {
-     $text .= << "EOPS" ;
 
 pptemplate.pod: pptemplate
-\t\$(PERLRUN) -MPod::Select -e "podselect('pptemplate');" > pptemplate.pod
+	$(PERLRUN) -MPod::Select -e "podselect('pptemplate');" > pptemplate.pod
 
-EOPS
-
-  }
-  $text;
+EOF
 };
 
 #EU::MM's processPL() is continually broken on Win32 ... hence:

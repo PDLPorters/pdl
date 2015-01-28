@@ -3,16 +3,7 @@
 #  interface, instead of specificaly setting pthread magic on individual PDLs
 
 use PDL::LiteF;
-
-BEGIN {
-   if ( $] < 5.008_008 ) {
-      require Benchmark; Benchmark->import();
-      warn "# Benchmark wallclock timings reported to the second.  You\n";
-      warn "#  may not measure a speedup with multiple CPU threads.\n";
-   } else {
-      require Benchmark; Benchmark->import(':hireswallclock');
-   }
-}
+use Benchmark ':hireswallclock';
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 

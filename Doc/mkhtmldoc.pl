@@ -53,44 +53,10 @@ sub mkdir_p ($$$) {
     mkdir $_[0], $_[1] or die "Couldn't create directory $_[0]";
 }
 
-# Replace PDL/...|PDL/... with PDL/...
-# as Pod::Html v1.01 (perlv 5.005_03 )
-# doesn't seem to be able to handle
-# L<PDL::PDL|PDL::PDL> correctly
-#
-# (not necessary for perl 5.6.0)
-#
-sub hack_html ($) {
-    my $infile = shift;
-    my $outfile = "${infile}.n";
-
-    my $ifh = new IO::File "<$infile"
-	or die "ERROR: Unable to read from <$infile>\n";
-    my $ofh = new IO::File ">$outfile"
-	or die "ERROR: Unable to write to <$outfile>\n";
-
-    # assume that links do not break across a line
-    while ( <$ifh> ) {
-	# fix the links
-	s{PDL/([^|]+)\|PDL/\1}{PDL/$1}g;
-	# fix the text of the link
-	s{PDL::([^|]+)\|PDL::\1}{PDL::$1}g;
-	# now fix any links for scripts
-	s{/([^|]+)\|PDL/\1}{/PDL/$1}g;
-	s{([^|]+)\|PDL::\1}{$1}g;
-	print $ofh $_;
-    }
-    $ifh->close;
-    $ofh->close;
-
-    rename $outfile, $infile
-	or die "ERROR: Unable to rename $outfile\n";
-}
-
 sub fix_pdl_dot_html ($) {
 ##Links to PDL.html sensibly try to go up one too many directories
 ##(e.g., to "../PDL.html" instead of "PDL.html").  This hopefully
-##fixes that. Shamelessly ripped off hack_html() above.
+##fixes that. Shamelessly ripped off hack_html().
     my $infile = shift;
     my $outfile = "${infile}.n";
 
@@ -295,7 +261,6 @@ $sub = sub {
 	     $verbopts,
 	    );
     }
-    hack_html( $outfile ) if $] < 5.006;
     fix_pdl_dot_html( $outfile);
     fix_html_path( $outfile);
     fix_pp_inline( $outfile);

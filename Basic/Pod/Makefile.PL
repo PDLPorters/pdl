@@ -12,7 +12,7 @@ my @pods = map { $_=~s/.pod//; $_ } grep { ! m/Index.pod/ } glob("*.pod");
 
 # do we want to create PP-Inline?
 eval 'require Pod::Select';
-if (!$@ && $] >= 5.005 ) {
+if (!$@) {
     push @pods, 'PP-Inline' unless grep {/PP-Inline/} @pods;
 }
 
@@ -23,7 +23,7 @@ undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
   my $text = '';
   eval 'require Pod::Select';
-  if (!$@ && $] >= 5.005 ) {
+  if (!$@) {
      $text .= << "EOPS" ;
 
 PP-Inline.pod: ../Gen/Inline/Pdlpp.pm

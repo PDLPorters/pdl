@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib qw(inc);
 use Devel::CheckLib;
-use 5.008_000;      # explicitly require 5.8.x or above
+use 5.010_000;
 use ExtUtils::MakeMaker 6.56;  # for CONFIGURE_REQUIRES support
 use Config;
 use IO::File;
@@ -13,7 +13,7 @@ use Cwd;
 $::PP_VERBOSE = $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
 # file globals(!)
-my ($pdl_f77conf, $forcebuild, $redhat580problem, @hasnt);
+my ($pdl_f77conf, $forcebuild);
 my ($seen_pdlconf, $seen_f77conf);
 my $pdl_conf_file = ''; # apparently for users to change
 
@@ -50,13 +50,6 @@ YOU HAVE BEEN WARNED!!
 
 EOM
   }
-
-    # check for red hat 5.8.0 problem described at
-    # http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=87682
-    if ($^V eq v5.8.0 &&
-	$Config{config_args} =~ m/-Dcf_by=Red Hat/) {
-	$redhat580problem = 1;
-    }
 
     my($dot);
     for(@INC) {$dot += $_ eq '.'}
@@ -362,34 +355,19 @@ use File::Spec;
 ##############################
 ##############################
 
-BEGIN{
-  # Version test.
-  # (See also warning note in the END block)
-
-  eval "use 5.6.2";
-  die "\nPDL requires Perl v5.6.2 or later\n\n" if $@ ne "";
-
-  # Check for pre-existing PDL module in @INC
-  eval { require PDL::Lite; PDL::Lite->import(); };
-  warn <<EOF unless $@;
-+------- WARNING ------------------------------------------------
-| PDL version $PDL::Version::VERSION was detected in your \@INC
-| PDL may not build/test correctly with another PDL in \@INC!
-+----------------------------------------------------------------
-EOF
-
-  # test for critical modules
-  @hasnt = ();
-  my @test = ( ['Filter::Util::Call','Filter'],
-	       ['Filter::Simple','Filter::Simple'],
-	       ## ['Module::Compile','Module::Compile'], # don't do this, fails (why?)
-	       ['Text::Balanced','Text::Balanced'], );
-  ## $DB::single = 1; # uncomment to have debugger stop here
-  for my $mod (@test) {
+# test for critical modules
+my @hasnt = ();
+my @test = (
+    ['Filter::Util::Call','Filter'],
+    ['Filter::Simple','Filter::Simple'],
+    ## ['Module::Compile','Module::Compile'], # don't do this, fails (why?)
+    ['Text::Balanced','Text::Balanced'],
+);
+## $DB::single = 1; # uncomment to have debugger stop here
+for my $mod (@test) {
     eval "use $mod->[0]";
     push @hasnt, $mod->[1] if $@;
-  }
-} # end BEGIN
+}
 
 # Scan ARGV for config file argument
 @ARGV = map {
@@ -512,7 +490,11 @@ if (-f 'pdl.c') {
 
 my %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
-              'CONFIGURE_REQUIRES' => { 'Devel::CheckLib' => 1.01, },
+              'CONFIGURE_REQUIRES' => {
+                'Devel::CheckLib' => 1.01,
+                'ExtUtils::MakeMaker' => 6.56,
+              },
+              'MIN_PERL_VERSION' => '5.010',
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
@@ -548,11 +530,9 @@ my %makefile_hash = (
       		'*.xfig '
 		      },
 	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
-	      ($] ge '5.005') ? (
-				 'AUTHOR' => 'PerlDL Developers (perldl@jach.hawaii.edu)',
-				 'ABSTRACT' => 'Perl Data Language',
-				 'BINARY_LOCATION' => 'PDL.tar.gz',
-				 ) : (),
+              'AUTHOR' => 'PerlDL Developers (perldl@jach.hawaii.edu)',
+              'ABSTRACT' => 'Perl Data Language',
+              'BINARY_LOCATION' => 'PDL.tar.gz',
 
 	      %notestsifmodulesmissing,
     );
@@ -685,8 +665,6 @@ sub MY::processPL {
                          ?  $self->{PL_FILES}->{$plfile}
 	                 : [$self->{PL_FILES}->{$plfile}];
 	    my $target;
-
-
 	    if($Config{make} =~ /\bdmake/i) {
 		foreach $target (@$list) {
 		    push @m, "
@@ -749,38 +727,4 @@ EOP
 
   }
 
-  if ($redhat580problem) {
-    print << "EOP";
-
-************************************************************
-* IMPORTANT: You seem to be on a redhat system with        *
-* a Perl 5.8.0 installation. Your Perl installation may be *
-* broken and generate broken makefiles                     *
-* see                                                      *
-*                                                          *
-* http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=87682
-*                                                          *
-* for details and workarounds.                             *
-* In particular check the setting of the LANG environment  *
-* variable:                                                *
-*             current setting LANG=$ENV{LANG}              *
-************************************************************
-
-EOP
-  }
-
-    eval "use 5.8.0";
-    if($@ ne "") {
-      my $vstring = sprintf("%vd",$^V);
-    print <<"DEPRECATED-EOM"
-******************************
-*
-* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.7,
-* perl version 5.8 or greater is required.  Most stuff will probably
-* still work, but perl versions earlier than 5.8 are deprecated and
-* no longer supported or tested against.
-*
-******************************
-DEPRECATED-EOM
-   } # end of deprecation case
 } # end of END block
