@@ -7,9 +7,9 @@ use File::Spec;
 
 BEGIN {
    if (defined $PDL::Config{PDL_BUILD_DIR}) {
-      print STDERR "Basic/Core/Makefile.PL: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
+      print "Basic/Core/Makefile.PL: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
       $libdir = File::Spec->catfile($PDL::Config{PDL_BUILD_DIR},'inc');
-      print STDERR "Basic/Core/Makefile.PL: adding $libdir\n";
+      print "Basic/Core/Makefile.PL: adding $libdir\n";
    }
 }
 

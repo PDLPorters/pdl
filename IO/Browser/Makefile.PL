@@ -7,9 +7,9 @@ my $libdir;
 
 BEGIN {
    if (defined $PDL::Config{PDL_BUILD_DIR}) {
-      print STDERR "IO/Browser: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
+      print "IO/Browser: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
       $libdir = File::Spec->catfile($PDL::Config{PDL_BUILD_DIR},'inc');
-      print STDERR "IO/Browser: adding $libdir\n";
+      print "IO/Browser: adding $libdir\n";
    }
 }
 
@@ -40,7 +40,7 @@ $hash{'clean'}{FILES} .= ' browse$(OBJ_EXT) browse$(EXE_EXT) Browser.c Browser.p
 my $incstring;
 foreach my $incl ( qw( curses.h ncurses/curses.h ncurses.h ncurses/ncurses.h ncursesw/ncurses.h ) ) {
     if (check_lib(header=>$incl)) {
-       print STDERR "IO/Browser: have '$incl'\n";
+       print "IO/Browser: have '$incl'\n";
        $incstring = $incl;
        last;
     }
@@ -50,7 +50,7 @@ $hash{DEFINE} .= ' -DCURSES=' . '\\"' . $incstring . '\\"' if defined $incstring
 my $libstring;
 foreach my $libr ( qw( curses ncurses ncursesw ) ) {
    if (check_lib(lib=>$libr)) {
-      print STDERR "IO/Browser: have -l$libr\n";
+      print "IO/Browser: have -l$libr\n";
       $libstring = '-l' . $libr;
       last;
    }

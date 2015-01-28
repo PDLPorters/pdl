@@ -221,7 +221,7 @@ sub check_f77conf {
 
   eval 'require File::Spec';
   unless ($@ eq "") {
-      print STDERR "can't load File::Spec, skipping f77conf\n";
+      warn "can't load File::Spec, skipping f77conf\n";
       # skip if we don't have File::Spec
       return 0;
   }
@@ -319,7 +319,7 @@ sub myformat {
 }
 
 sub make_PDL_Config_pm {
-  print STDERR "Writing Basic/Core/Config.pm\n";
+  print "Writing Basic/Core/Config.pm\n";
 
   $PDL::Config{PDL_BUILD_VERSION} = "$PDL::VERSION";
 
