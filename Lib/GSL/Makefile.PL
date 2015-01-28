@@ -3,6 +3,12 @@ use warnings;
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
+sub get_gsl_config {
+  my ($flags) = @_;
+  no warnings 'exec';
+  `gsl-config $flags`;
+}
+
 # the real stuff happens in the subdirs
 #
 # DJB (12/30/03)
@@ -19,10 +25,10 @@ sub get_gsl_libs {
 EOW
 
   my $lib = ($PDL::Config{GSL_LIBS} or
-	  `gsl-config --libs` or
+	  get_gsl_config('--libs') or
 	  warn "\tno GSL link info (libgsl probably not available)\n");
   my $inc = ($PDL::Config{GSL_INC} or
-	  `gsl-config --cflags` or 
+	  get_gsl_config('--cflags') or 
 	  warn "\tno GSL include info (libgsl probably not available)\n\n");
   chomp $lib; chomp $inc;
 
@@ -36,11 +42,11 @@ our ($GSL_includes, $GSL_libs)  = get_gsl_libs();
 
 # Version check
 my $MINVERSION = "1.3";
-my $version = `gsl-config --version`;
-chomp $version;
+my $version = get_gsl_config('--version');
+chomp $version if defined $version;
 my $new_enough = 0;
 
-if ($version =~ /^\s*$/) {
+if (!defined($version) or $version =~ /^\s*$/) {
   warn "\tno GSL version info found (gsl-config not installed?)\n\n";
   $version = 'UNKNOWN VERSION';
 } else {
