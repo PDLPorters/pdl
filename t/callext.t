@@ -35,6 +35,9 @@ my $out   = File::Spec->catfile('t', 'callext.'.$Config{dlext});
 
 # Compile the code
 
+my @cleanup = ();
+END { unlink @cleanup; }
+push @cleanup, File::Spec->catfile('t', 'callext'.$Config{obj_ext}), $out;
 callext_cc($cfile, qq{"-I$inc"}, '', $out);
 
 my $y = sequence(5,4)+2;  # Create PDL

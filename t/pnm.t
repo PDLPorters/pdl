@@ -1,3 +1,9 @@
+use PDL::LiteF;
+use PDL::IO::Pnm;
+use PDL::Dbg;
+use File::Temp qw(tempdir);
+use File::Spec;
+
 # we need tests with index shuffling once vaffines are fixed
 
 sub ok {
@@ -21,11 +27,6 @@ sub rpnm_unlink {
   unlink $file;
   return $pdl;
 }
-
-
-use PDL::LiteF;
-use PDL::IO::Pnm;
-use PDL::Dbg;
 
 $PDL::debug = $PDL::debug = 0;
 $PDL::debug = 1 if defined($ARGV[0]) && $ARGV[0] =~ /-v/;
@@ -65,17 +66,22 @@ if ($PDL::debug) {
 # to do the conversion for the ushort data, haven't yet tried to
 # figure out why
 $n = 1;
+my $tmpdir = tempdir( CLEANUP => 1 );
+sub tmpfile { File::Spec->catfile($tmpdir, $_[0]); }
 for $raw (0,1) {
   foreach $form (@formats) {
     print "# ** testing $form->[0] format **\n";
 
-    wpnm ($im1,"tushort.$form->[1]",'PGM',$raw)
+    my $tushort = tmpfile("tushort.$form->[0]");
+    my $tbyte = tmpfile("tbyte.$form->[0]");
+    my $tbin = tmpfile("tbin.$form->[0]");
+    wpnm ($im1,$tushort,'PGM',$raw)
       unless $form->[0] eq 'GIF';
-    wpnm ($im2,"tbyte.$form->[1]",'PGM',$raw);
-    wpnm ($im3,"tbin.$form->[1]",'PBM',$raw);
-    $in1 = rpnm_unlink("tushort.$form->[1]") unless $form->[0] eq 'GIF';
-    $in2 = rpnm_unlink("tbyte.$form->[1]");
-    $in3 = rpnm_unlink("tbin.$form->[1]");
+    wpnm ($im2,$tbyte,'PGM',$raw);
+    wpnm ($im3,$tbin,'PBM',$raw);
+    $in1 = rpnm_unlink($tushort) unless $form->[0] eq 'GIF';
+    $in2 = rpnm_unlink($tbyte);
+    $in3 = rpnm_unlink($tbin);
 
     if ($form->[0] ne 'GIF') {
       $scale = ($form->[3] ? $im1->dummy(0,3) : $im1);

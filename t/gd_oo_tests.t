@@ -10,6 +10,7 @@
 use strict;
 use PDL;
 use Test::More;
+use File::Temp qw(tempdir);
 
 BEGIN
 {
@@ -67,8 +68,7 @@ sub tapprox
 #    local $TODO = 'gd_oo_tests.t fail for AMD64, sf.net #3518190';
     # Test files:
     #
-    my $tempdir = $PDL::Config{TEMPDIR} || "/tmp";
-
+    my $tempdir = tempdir( CLEANUP => 1 );
     my $lutfile = "$tempdir/default.rcols";
     my $testfile1 = "$tempdir/test.png";
     my $testfile2 = "$tempdir/test2.png";

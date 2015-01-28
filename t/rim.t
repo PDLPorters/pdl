@@ -3,6 +3,8 @@ use warnings;
 use PDL;
 use PDL::IO::Pic;
 use Test::More tests => 3;
+use File::Temp qw(tempdir);
+use File::Spec;
 
 # The rim() function was failing badly for a number of reasons ...
 # and perhaps is still failing.
@@ -18,7 +20,8 @@ my $rows = 3;
 my $ext = 'pnm';
 my $fmt = uc($ext);
 
-my $file = "ushort.$ext";
+my $tmpdir = tempdir( CLEANUP => 1 );
+my $file = File::Spec->catfile($tmpdir, "ushort.$ext");
 
 my $in  = sequence($cols, $rows)->ushort * 213;
 $in->wpic($file, {FORMAT => $fmt});

@@ -1,3 +1,10 @@
+use PDL::LiteF;
+use PDL::IO::Pic;
+use PDL::ImageRGB;
+use PDL::Dbg;
+use File::Temp qw(tempdir);
+use File::Spec;
+
 # we need tests with index shuffling once vaffines are fixed
 
 my $numbad = 0;
@@ -38,11 +45,6 @@ sub check {
 
 sub rgb { $_[0]->getndims == 3 && $_[0]->getdim(0) == 3 }
 
-use PDL::LiteF;
-use PDL::IO::Pic;
-use PDL::ImageRGB;
-use PDL::Dbg;
-
 $PDL::debug = 1;
 $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
                    # output format
@@ -78,6 +80,7 @@ $im2 = byte $im1/256;
 
 # make the resulting file at least 12 byte long
 # otherwise we run into a problem when reading the magic (Fix!)
+# FIXME
 $im3 = PDL::byte [[0,0,255,255,12,13],[1,4,5,6,11,124],
 	     [100,0,0,0,10,10],[2,1,0,1,0,14],[2,1,0,1,0,14],
 	     [2,1,0,1,0,14]];
@@ -95,19 +98,24 @@ if ($PDL::debug) {
 # to do the conversion for the ushort data, haven't yet tried to
 # figure out why
 $n = 1;$usherr=0;
+my $tmpdir = tempdir( CLEANUP => 1 );
+sub tmpfile { File::Spec->catfile($tmpdir, $_[0]); }
 foreach $format (sort @allowed) {
     print " ** testing $format format **\n";
     $form = $formats{$format};
 
-    eval '$im1->wpic("tushort.$form->[0]",{IFORM => "$iform"})'
+    my $tushort = tmpfile("tushort.$form->[0]");
+    my $tbyte = tmpfile("tbyte.$form->[0]");
+    my $tbin = tmpfile("tbin.$form->[0]");
+    eval '$im1->wpic($tushort,{IFORM => "$iform"})'
       unless $format eq 'TIFF';
     if ($format ne 'TIFF' && $@) { check($@,$n); $usherr = 1 } else {$usherr=0}
-    $im2->wpic("tbyte.$form->[0]",{IFORM => "$iform"});
-    $im3->wpic ("tbin.$form->[0]",{COLOR => 'bw', IFORM => "$iform"});
-    $in1 = rpic_unlink("tushort.$form->[0]") unless
+    $im2->wpic($tbyte,{IFORM => "$iform"});
+    $im3->wpic($tbin,{COLOR => 'bw', IFORM => "$iform"});
+    $in1 = rpic_unlink($tushort) unless
         $usherr || $format eq 'TIFF';
-    $in2 = rpic_unlink("tbyte.$form->[0]");
-    $in3 = rpic_unlink("tbin.$form->[0]");
+    $in2 = rpic_unlink($tbyte);
+    $in3 = rpic_unlink($tbin);
 
     if ($format ne 'TIFF') {
       $scale = ($form->[2] || rgb($in1) ? $im1->dummy(0,3) : $im1);
@@ -133,4 +141,3 @@ if ($numbad > 0) {
    print "# Dumping diagnostic PDL::IO::Pic converter data...\n";
    print Dumper(\%PDL::IO::Pic::converter);
 }
-

@@ -35,7 +35,8 @@ BEGIN
 use PDL::IO::HDF::VS;
 
 use PDL::Config;
-my $tmpdir = $PDL::Config{TEMPDIR};
+use File::Temp qw(tempdir);
+my $tmpdir = tempdir( CLEANUP => 1 );
 
 my $testfile = "$tmpdir/vgroup.hdf";
 

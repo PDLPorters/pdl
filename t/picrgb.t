@@ -1,3 +1,10 @@
+use PDL;
+use PDL::IO::Pic;
+use PDL::ImageRGB;
+use PDL::Dbg;
+use File::Temp qw(tempdir);
+use File::Spec;
+
 # we need tests with index shuffling once vaffines are fixed
 my $numbad = 0;
 
@@ -54,11 +61,6 @@ sub tifftest {
   return 1;
 }
 
-use PDL;
-use PDL::IO::Pic;
-use PDL::ImageRGB;
-use PDL::Dbg;
-
 $PDL::debug = 0;
 $PDL::IO::Pic::debug = 0;
 $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
@@ -108,16 +110,20 @@ if ($PDL::debug){
 
 $n = 1;
 $usherr = 0;
+my $tmpdir = tempdir( CLEANUP => 1 );
+sub tmpfile { File::Spec->catfile($tmpdir, $_[0]); }
 foreach $form (sort @allowed) {
     print "# ** testing $form format **\n";
 
     $arr = $formats{$form};
-    eval '$im1->wpic("tushort.$arr->[0]",{IFORM => $iform});';
+    my $tushort = tmpfile("tushort.$arr->[0]");
+    my $tbyte = tmpfile("tbyte.$arr->[0]");
+    eval '$im1->wpic($tushort,{IFORM => $iform});';
     if ($@) { check($@,$n); $usherr = 1 } else { $usherr=0}
-    $im2->wpic("tbyte.$arr->[0]",{IFORM => $iform});
+    $im2->wpic($tbyte,{IFORM => $iform});
 
-    $in1 = rpic_unlink("tushort.$arr->[0]") unless $usherr;
-    $in2 = rpic_unlink("tbyte.$arr->[0]");
+    $in1 = rpic_unlink($tushort) unless $usherr;
+    $in2 = rpic_unlink($tbyte);
 
     $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
     print "# Comparison arr: $comp" if $PDL::debug;
