@@ -1,27 +1,22 @@
-
 use strict;
-
 use Test::More;
+use Config;
+
+sub inpath {
+  my ($prog) = @_;
+  for ( split $Config{path_sep}, $ENV{PATH} ) {
+    return 1 if -x "$_/$prog$Config{exe_ext}"
+  }
+  return;
+}
 
 BEGIN {
-
-   sub inpath {
-      my ($prog) = @_;
-      my $pathsep = $^O =~ /win32/i ? ';' : ':';
-      my $exe = $^O =~ /win32/i ? '.exe' : '';
-      for ( split $pathsep,$ENV{PATH} ) {
-         return 1 if -x "$_/$prog$exe"
-      }
-      return;
-   }
-
    eval "use Convert::UU;";
    my $hasuuencode = !$@ || (inpath('uuencode') && inpath('uudecode'));
 
    if ($hasuuencode) {
       plan tests => 16;
-   }
-   else {
+   } else {
       plan skip_all => "Skip neither uuencode/decode nor Convert:UU is available\n";
    }
 
