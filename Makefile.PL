@@ -505,6 +505,11 @@ if($Config{archname}=~m/x86_64/) {
 my $preop = '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_genpm $(DISTVNAME)';
 $preop .= q[ && git log --stat --since='29 Apr 2009' > Changes.new && $(MV) Changes.new $(DISTVNAME)/Changes] if $^O ne 'MSWin32';
 
+if (-f 'pdl.c') {
+    warn "WARNING: pdl.c found from previous build, deleting\n";
+    unlink 'pdl.c';
+}
+
 my %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
               'CONFIGURE_REQUIRES' => { 'Devel::CheckLib' => 1.01, },
