@@ -8,13 +8,13 @@ my @subdirs = qw(PGPLOT LUT IIS PLplot Limits);
 # we try and build unless WITH_3D == 0
 my $t = $PDL::Config{WITH_3D};
 if ( defined($t) and not $t ) {
-   print "\n   WITH_3D:  WITH_3D => 0, not building TriD or OpenGL.  Set WITH_3D => 1 if this is incorrect.\n\n";
+   print "   WITH_3D:  WITH_3D => 0, not building TriD or OpenGL.  Set WITH_3D => 1 if this is incorrect.\n";
 } elsif ( $PDL::Config{USE_POGL} ) {
-   print "\n   WITH_3D:  USE_POGL => 1, will build TriD using OpenGL.\n\n";
+   print "   WITH_3D:  USE_POGL => 1, will build TriD using OpenGL.\n";
    $PDL::Config{WITH_3D} = 1;
    unshift @subdirs,"TriD";
 } else {
-   print "\n   WITH_3D:  USE_POGL => 0, setting WITH_3D => 0.  Will not build TriD graphics.\n\n";
+   print "   WITH_3D:  USE_POGL => 0, setting WITH_3D => 0.  Will not build TriD graphics.\n";
    $PDL::Config{WITH_3D}=0; # don't build TriD if no POGL
 }
 

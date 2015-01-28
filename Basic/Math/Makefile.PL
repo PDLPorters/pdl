@@ -83,9 +83,9 @@ if ($^O eq 'solaris' or $^O eq 'sunos') {
    }
 
    if (!$ok) {
-      print "Couldn't find sunmath library in standard places\n\n";
+      print "Couldn't find sunmath library in standard places\n";
       print "If you can find libsunmath.a or libsunmath.so\n";
-      print "please let us know at pdl-porters\@jach.hawaii.edu\n\n";
+      print "please let us know at pdl-porters\@jach.hawaii.edu\n";
    }
 }
 
@@ -130,7 +130,7 @@ print "\nDistribution:";
 foreach (@keys) {
     print " $_" if $source{$_} ne 'system';
 }
-print "\n\n";
+print "\n";
 
 my @pack = (["math.pd", qw(Math PDL::Math)]);
 my %hash = pdlpp_stdargs_int(@pack);

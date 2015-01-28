@@ -102,8 +102,7 @@ unless( defined( $include_path ) && defined( $transform_proj4_lib_path ) ) {
 skip:
 
 if ($msg && $forcebuild==0) {
-  warn " Testing support libraries for $package_name:\n$msg\n";
-  $msg =~ s/\n//g;
+  print " Testing support libraries for $package_name:\n";
   write_dummy_make( $msg );
   $donot = 1;
   $PDL::Config{$config_flag}=0;

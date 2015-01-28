@@ -91,7 +91,7 @@ foreach my $libdir (
 }
 
 unless (defined ($plplot_lib_path)) {
-  buildDummy ("Cannot find plplot library ($libname), skipping PDL::Graphics::PLplot\n");
+  buildDummy ("Cannot find plplot library ($libname), skipping PDL::Graphics::PLplot");
   return if (caller); exit;
 }
 
@@ -125,7 +125,7 @@ foreach my $incdir (
 }
 
 unless (defined ($plplot_include_path)) {
-  buildDummy ("Cannot find plplot header file ($incname), skipping PDL::Graphics::PLplot\n");
+  buildDummy ("Cannot find plplot header file ($incname), skipping PDL::Graphics::PLplot");
   return if (caller); exit;
 }
 
@@ -137,7 +137,7 @@ EOC
 
 unless ($size == 8) {
   print "          Sizeof(PLFLT) must be 8. PLplot must be compiled --with-double (IE ./configure --with-double)\n";
-  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf\n");
+  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf");
   return if (caller); exit;
 }
 
@@ -157,7 +157,7 @@ foreach my $l (
 }
 
 unless (defined($libs)) {
-  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf\n");
+  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf");
   return if (caller); exit;
 }
 
@@ -271,9 +271,6 @@ sub compileAndRun {
 
 sub buildDummy {
   my $msg = shift;
-  $msg .= "\n      Not building PDL::Graphics::PLplot\n";
-  warn $msg . "\n";
-  $msg =~ s/\n//g;
-  write_dummy_make( $msg );
+  write_dummy_make( "$msg\nNot building PDL::Graphics::PLplot" );
   $PDL::Config{WITH_PLPLOT} = 0;
 }

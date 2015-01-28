@@ -142,8 +142,6 @@ if ( $donot ) {
 skip:
 
 if ($msg ne "" && $forcebuild==0) {
-    warn $msg . "\n";
-    $msg =~ s/\n//g;
     write_dummy_make( $msg );
     $donot = 1;
     $PDL::Config{WITH_HDF}=0;

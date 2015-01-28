@@ -109,8 +109,7 @@ unless( defined( $include_path ) && defined( $gis_proj_lib_path ) ) {
 skip:
 
 if ($msg && $forcebuild==0 or !defined($PJ_VERSION)) {
-   warn " Testing support libraries for $package_name:\n$msg\n";
-   $msg =~ s/\n//g;
+   print " Testing support libraries for $package_name:\n";
    write_dummy_make( $msg );
    $donot = 1;
    $PDL::Config{$config_flag}=0;
@@ -138,7 +137,6 @@ if ($msg && $forcebuild==0 or !defined($PJ_VERSION)) {
       } else {
          warn " PROJ4 library found but cannot initialize projection, won't build\n";
          $PDL::Config{$config_flag}=0;
-         $msg =~ s/\n//g;  # TODO: update $msg for tests
          unless ($donot) {
             write_dummy_make( $msg );
             $donot = 1;
@@ -147,7 +145,6 @@ if ($msg && $forcebuild==0 or !defined($PJ_VERSION)) {
    } else {
       warn " Include+Library configuration for PROJ4 does not support the projUV type\n";
       $PDL::Config{$config_flag}=0;
-      $msg =~ s/\n//g;  # TODO: update $msg for tests
       unless ($donot) {
          write_dummy_make( $msg );
          $donot = 1;

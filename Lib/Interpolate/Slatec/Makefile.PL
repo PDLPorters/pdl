@@ -17,8 +17,6 @@ if ($^O =~ /win32/i) {
 } 
 
 if ($build==0) {
-    warn $msg . "\n";
-    $msg =~ s/\n//g;
     write_dummy_make( $msg );
     return;
 } else {

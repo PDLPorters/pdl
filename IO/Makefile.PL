@@ -8,9 +8,9 @@ PDL::Core::Dev->import();
 my @dirs = qw( FastRaw Misc FlexRaw Pnm Storable FITS HDF GD Dicom IDL );
 if ($PDL::Config{WITH_IO_BROWSER} && $PDL::Config{WITH_IO_BROWSER}) {
    push @dirs, 'Browser';
-   print "\n   Building PDL::IO::Browser. Turn off WITH_IO_BROWSER if this is incorrect.\n\n";
+   print "   Building PDL::IO::Browser. Turn off WITH_IO_BROWSER if this is incorrect.\n";
 } else {
-   print "\n   Not building PDL::IO::Browser. Turn on WITH_IO_BROWSER if this is incorrect.\n\n";
+   print "   Not building PDL::IO::Browser. Turn on WITH_IO_BROWSER if this is incorrect.\n";
 }
 
 WriteMakefile(

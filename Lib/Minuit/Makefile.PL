@@ -59,8 +59,6 @@ if (!$f77->testcompiler) {
 skip:
 
 if ($msg ne "" && !$forcebuild) {
-  warn $msg . "\n";
-  $msg =~ s/\n//g;
   write_dummy_make( $msg );
   $PDL::Config{WITH_MINUIT} = 0;
   $donot = 1;

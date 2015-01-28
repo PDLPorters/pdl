@@ -45,7 +45,6 @@ if (!defined $PDL::Config{WITH_DEVEL_REPL}) {
       # Devel::REPL was not found
       $PDL::Config{WITH_DEVEL_REPL} = 0;
       my $msg = "Devel::REPL is not installed, will not build Perldl2 shell";
-      print STDERR "$msg\n";
       write_dummy_make($msg);
    }
 }

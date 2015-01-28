@@ -58,8 +58,6 @@ if (!$compiler_available) {
 skip:
 
 if ($msg ne "" && $forcebuild==0) {
-    warn $msg . "\n";
-    $msg =~ s/\n//g;
     write_dummy_make( $msg );
     $PDL::Config{WITH_SLATEC} = 0;
     $donot = 1;

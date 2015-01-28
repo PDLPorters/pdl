@@ -14,7 +14,6 @@ use File::Spec;
 require File::Spec->catfile( File::Spec->updir, "Core", "badsupport.p" );
 
 # print a banner to the screen
-print "\n\t";
 if ( $bvalflag ) {
     print "Congratulations - building PDL with bad value support (WITH_BADVAL=1)\n\t";
 
@@ -23,12 +22,12 @@ if ( $bvalflag ) {
     } else {
  	print "+ using -FLT_MAX/-DBL_MAX for floating-point bad values";
     }
-    print "\n\t+ with per-piddle bad values (EXPERIMENTAL FEATURE)"
+    print "+ with per-piddle bad values (EXPERIMENTAL FEATURE)"
       if $bvalPerPdl;
 } else {
     print "building PDL without bad value support (WITH_BADVAL!=1)";
 }
-print "\n\n";
+print "\n";
 
 my @pack = (["bad.pd",qw(Bad PDL::Bad)]);
 

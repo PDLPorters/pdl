@@ -88,8 +88,6 @@ if (($skip && !$forcebuild) ||
     "\t -- aborting GSL build\n" if $forcebuild;
   $msg ||=
     "\n GSL Libraries not found... Skipping build of PDL::GSL::MROOT.\n";
-  warn $msg . "\n";
-  $msg =~ s/\n//g;
   write_dummy_make( $msg );
   return;
 } else {
