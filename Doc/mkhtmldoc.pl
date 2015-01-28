@@ -228,39 +228,31 @@ $sub = sub {
 
     my $verbopts = $verbose ? "--verbose" : "--quiet";
 
-    if($] > 5.015) {
-    # With perl 5.15.x (for some value of x) and later, '--libpods' is invalid
-    # and hence needs to be removed.
-    # Beginning with 5.15.x, the generated PDL html docs are a little different
-    # (missing some underlining of headings and some <b></b> tagging), though
-    # this appears to have nothing to do with the removal of --libpods. Rather,
-    # it seems to be the result of some other change to pod2html. Perhaps this
-    # can be addressed over time. SIS 23-Feb-2012
-      pod2html("--podpath=.",
-  	     "--podroot=$topPerlDir",
-	     "--htmldir=$htmlrootdir",
-	     "--recurse",
-	     "--infile=$file",
-	     "--outfile=$outfile",
-	     $verbopts,
-	    );
+    my @pod2html_args = (
+      "--podpath=.",
+      "--podroot=$topPerlDir",
+      "--htmldir=$htmlrootdir",
+      "--recurse",
+      "--infile=$file",
+      "--outfile=$outfile",
+      $verbopts,
+    );
+    if($] <= 5.015) {
+      # With perl 5.15.x (for some value of x) and later, '--libpods' is invalid
+      # and hence needs to be removed.
+      # Beginning with 5.15.x, the generated PDL html docs are a little different
+      # (missing some underlining of headings and some <b></b> tagging), though
+      # this appears to have nothing to do with the removal of --libpods. Rather,
+      # it seems to be the result of some other change to pod2html. Perhaps this
+      # can be addressed over time. SIS 23-Feb-2012
+      # Cut out "PDL" from the podpath as it crashes the podscan(!) - It doesn't
+      # seem to help either -- it looks for cached docs in .../HtmlDocs/pdl/PDL,
+      # which is silly.  I left this note because pod paths are pretty arcane to
+      # me.  CED 11-Mar-2009
+      #    pod2html("--podpath=PDL:.",
+      unshift @pod2html_args, "--libpods=perlfaq";
     }
-    else {
-    # Cut out "PDL" from the podpath as it crashes the podscan(!) - It doesn't
-    # seem to help either -- it looks for cached docs in .../HtmlDocs/pdl/PDL,
-    # which is silly.  I left this note because pod paths are pretty arcane to
-    # me.  CED 11-Mar-2009
-    #    pod2html("--podpath=PDL:.",
-      pod2html("--podpath=.",
-  	     "--podroot=$topPerlDir",
-	     "--htmldir=$htmlrootdir",
-	     "--libpods=perlfaq",
-	     "--recurse",
-	     "--infile=$file",
-	     "--outfile=$outfile",
-	     $verbopts,
-	    );
-    }
+    pod2html(@pod2html_args);
     fix_pdl_dot_html( $outfile);
     fix_html_path( $outfile);
     fix_pp_inline( $outfile);
