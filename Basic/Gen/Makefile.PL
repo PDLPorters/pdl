@@ -27,7 +27,7 @@ EOF
 };
 
 #EU::MM's processPL() is continually broken on Win32 ... hence:
-sub MY::processPL {
+undef &MY::processPL; *MY::processPL = sub {
     ## Fix appears to be necessary on all MM platforms now, to avoid circular references :-( -- CED 9-July-2008
     if(1) { ## if($^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
     my($self) = shift;
@@ -68,7 +68,7 @@ $target ::
     my $self = shift;
     return $self->SUPER::processPL;
     }
-}
+};
 
 WriteMakefile(NAME => "PDL::PP",
 	PM => {@pms},

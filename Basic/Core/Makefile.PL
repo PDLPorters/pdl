@@ -162,7 +162,7 @@ sub MY::xs_o {
       }
 }
 
-sub MY::processPL {
+undef &MY::processPL; *MY::processPL = sub {
     if($^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
     if($Config{make} =~ /\bnmake/i){return ''}
     my($self) = shift;
@@ -190,7 +190,7 @@ $target :
     my $self = shift;
     return $self->SUPER::processPL;
     }
-}
+};
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
