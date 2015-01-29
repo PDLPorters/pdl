@@ -45,12 +45,16 @@ ppcode.out
 
 # Perl build files
 
+_eumm
 pm_to_blib
 blib
 *.bs
 Makefile
+Makefile.aperl
 MYMETA.yml
 MYMETA.json
+perl
+perlmain.c
 
 # Editor temp files
 
@@ -310,7 +314,6 @@ Lib/Transform/Transform.xs
 MANIFEST.bak
 Perldl2/pdl2.pod
 _Inline/
-_eumm
 gsl.pl
 pdl
 pdldoc.pod
