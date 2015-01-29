@@ -46,7 +46,7 @@ Basic/Gen/PP/SymTab.pm
 Basic/Gen/PP/Var.pm
 Basic/Gen/PP/XS.pm
 Basic/Gen/PP/dump.pp
-Basic/Gen/pptemplate.PL
+Basic/Gen/pptemplate
 Basic/Lite.pm
 Basic/LiteF.pm
 Basic/Lvalue.pm

@@ -46,6 +46,6 @@ undef &MY::processPL; *MY::processPL = sub {
 WriteMakefile(NAME => "PDL::PP",
 	PM => {@pms},
 	'EXE_FILES' => ['pptemplate'],
-	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate pptemplate.pod"},
+	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate.pod"},
 	(eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
