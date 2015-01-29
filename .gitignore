@@ -314,7 +314,6 @@ _Inline/
 _eumm
 gsl.pl
 pdl
-pdl.c
 pdldoc
 pdldoc.pod
 perldl

@@ -472,7 +472,7 @@ my @exe_files = qw(perldl pdldoc);
 push @exe_files, "pdl$Config{exe_ext}" if $^O !~ /MSWin/;
 my @cleanup = (@exe_files, qw(
     pdldoc.db pdldoc.pod perldl.pod Changes.new
-    t/callext$(OBJ_EXT) t/callext.$(DLEXT) pdl.c
+    t/callext$(OBJ_EXT) t/callext.$(DLEXT)
 ));
 
 ##############################
@@ -487,11 +487,6 @@ if($Config{archname}=~m/x86_64/) {
 # create GENERATED subdir with *.pm files during 'make dist' (to make metacpan.org happy)
 my $preop = '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)';
 $preop .= q[ && git log --stat --since='29 Apr 2009' > Changes.new && $(MV) Changes.new $(DISTVNAME)/Changes] if $^O ne 'MSWin32';
-
-if (-f 'pdl.c') {
-    warn "WARNING: pdl.c found from previous build, deleting\n";
-    unlink 'pdl.c';
-}
 
 my %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
@@ -650,6 +645,15 @@ EOT
 
 return $text
 
+}
+
+# remove pdl.c from making EUMM think this dir has XS in it
+sub MY::init_dirscan {
+    package MY;
+    my ($self) = @_;
+    $self->SUPER::init_dirscan;
+    $self->{C} = [];
+    $self->{O_FILES} = [];
 }
 
 ##############################

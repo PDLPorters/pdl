@@ -1,6 +1,3 @@
-open(FOO,">pdl.c");
-print FOO <<'nosubs';
-
 /******************************
  * pdl.c - perldl spawner
  * Works around a problem with many unices that you can't use an interpreter
@@ -16,7 +13,6 @@ print FOO <<'nosubs';
  *
  * CED 21-Jul-2004
  */
-
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -80,7 +76,3 @@ exit:
   perror("pdl (perldl trampoline)");
   exit(-1);
 }
-nosubs
-  ;
-
-exit 0;
