@@ -10,7 +10,7 @@ Release Notes for PDL 2.007_09 --------------------------
 
 General Notes:
 
- * Counting down to a PDL-2.008 release this January 2015
+ * Counting down to a PDL-2.008 release this February 2015
 
  * Another quick CPAN developers release
 
@@ -35,7 +35,10 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * perl 5.10.x is now the minimum version of perl supported for
+   this release.  Please test.
+
+ * Much clean up of the EU::MM build process by Ed.:w
 
 
 

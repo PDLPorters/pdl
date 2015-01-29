@@ -1,6 +1,6 @@
 The following issues have been reported with this version of PDL:
 
-- PDL-2.007_08 is listed as UNAUTHORIZED because of a
+- PDL-2.007_09 is listed as UNAUTHORIZED because of a
   missing permission for the release manager for PDL::Slatec.
   This permission problem is not new, only visible now because
   of the explicit use of PDL::Slatec in a package statement
@@ -106,6 +106,7 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.007_09 release:
 
+  369    slice fails with subclass index
   368    PDL::Slatec::polyfit ignores incorrect length of weight piddle; passes garbage to slatec polfit
   367    BAD value parsing breakage
   366    many warnings in t/#transform.t with use strict; use warnings;
