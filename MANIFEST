@@ -674,7 +674,7 @@ inc/Devel/CheckLib.pm
 m51.fits
 macosx/README
 pdl.c
-pdldoc.PL
+pdldoc
 perldl
 perldl.conf
 t/aaa_load.t
