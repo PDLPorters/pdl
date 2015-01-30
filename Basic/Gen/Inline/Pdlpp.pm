@@ -295,6 +295,10 @@ sub write_Makefile_PL {
 		   VERSION => $o->{API}{version} || '0.00',
 		   %{$o->{ILSM}{MAKEFILE}},
 		   NAME => $o->{API}{module},
+                   INSTALLSITEARCH => $o->{API}{install_lib},
+                   INSTALLDIRS => 'site',
+                   INSTALLSITELIB => $o->{API}{install_lib},
+                   MAN3PODS => {},
 		  );
     
     open MF, "> $o->{API}{build_dir}/Makefile.PL"
@@ -346,7 +350,6 @@ sub compile {
       } 
 
     for $cmd (qq{"$perl" Makefile.PL $noisy $suffix1},
-	      \ &fix_make,   # Fix Makefile problems
 	      qq{"$make" $noisy $suffix2},
 	      qq{"$make" pure_install $noisy $suffix3},
 	     ) {
@@ -425,44 +428,6 @@ To debug the problem, cd to the build directory, and inspect the output files.
 END
 	      };
   chdir $cwd;
-}
-
-#==============================================================================
-# This routine fixes problems with the MakeMaker Makefile.
-#==============================================================================
-my %fixes = (
-	     INSTALLSITEARCH => 'install_lib',
-	     INSTALLDIRS => 'installdirs',
-	     XSUBPPARGS => 'xsubppargs',
-	     INSTALLSITELIB => 'install_lib',
-	    );
-
-sub fix_make {
-    use strict;
-    my (@lines, $fix);
-    my $o = shift;
-    
-    $o->{ILSM}{install_lib} = $o->{API}{install_lib};
-    $o->{ILSM}{installdirs} = 'site';
-    
-    open(MAKEFILE, "< $o->{API}{build_dir}/Makefile")
-      or croak "Can't open Makefile for input: $!\n";
-    @lines = <MAKEFILE>;
-    close MAKEFILE;
-    
-    open(MAKEFILE, "> $o->{API}{build_dir}/Makefile")
-      or croak "Can't open Makefile for output: $!\n";
-    for (@lines) {
-	if (/^(\w+)\s*=\s*\S+.*$/ and
-	    $fix = $fixes{$1}
-	   ) {
-	    print MAKEFILE "$1 = $o->{ILSM}{$fix}\n"
-	}
-	else {
-	    print MAKEFILE;
-	}
-    }
-    close MAKEFILE;
 }
 
 1;
