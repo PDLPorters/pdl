@@ -158,7 +158,7 @@ return if $donot;  # yes, this must be return (exit will kill Makefile.PL proces
 
 ## $DB::single = 1;  # uncomment to have debugger stop here
 my $ppfile = "Proj.pd";
-my $package = [$ppfile, qw(Proj $package_name)];
+my $package = [$ppfile, 'Proj', $package_name];
 my %hash = pdlpp_stdargs($package);
 $hash{VERSION_FROM} = $ppfile;
 #$hash{TYPEMAPS} = [&PDL_TYPEMAP()];
