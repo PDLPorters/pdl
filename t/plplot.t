@@ -50,7 +50,7 @@ unless($^O =~ /mswin/i) { # Causes problems on Windows.
 
 # comment this out for testing!!!
   #my $pid = 0; my $a = 'foo';
-
+my ($pid,$not_ok);
   if($pid = fork()) {
 	$a = waitpid($pid,0);
   } else {
@@ -530,6 +530,7 @@ SKIP: {
   skip 'Not compiled with POSIX threads', 1 if (($PDL::Config{WITH_POSIX_THREADS} == 0) || ($^O =~/darwin/i));
 
   my $pltfile = File::Spec->catfile($tmpdir, "test28.$dev");
+  my $pid;
   if($^O =~ /MSWin32/i) {
      system "$^X", '-Mblib -e "do \"t/plplot_no_fork.win32\""';
   }
