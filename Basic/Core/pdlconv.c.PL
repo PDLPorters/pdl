@@ -329,7 +329,7 @@ void ** pdl_twod( pdl* x ) {
 
    PDL_Indx i,nx,ny;
    int size;
-   long *p;
+   void **p;
    char *xx;
 
    if (x->ndims>2)
@@ -341,11 +341,11 @@ void ** pdl_twod( pdl* x ) {
 
    size=pdl_howbig(x->datatype);
 
-   p = (long*) pdl_malloc( ny*sizeof(long) ); /* 1D array of ptrs p[i] */
+   p = pdl_malloc( ny*sizeof(void*) ); /* 1D array of ptrs p[i] */
    for (i=0;i<ny;i++)
-       p[i] = (long) &xx[i*nx*size];
+       p[i] = (void*) &xx[i*nx*size];
 
-   return (void**) p;
+   return p;
 }
 
 !NO!SUBS!
