@@ -33,16 +33,16 @@ void DFF(int* n, double* xval, double* vector){
   SV* pvectorsv;
 
   int ndims;
-  PDL_Long *pdims;
+  PDL_Indx *pdims;
 
   dSP;
   ENTER;
   SAVETMPS;
 
   ndims = 1;
-  pdims = (PDL_Long *)  PDL->smalloc((STRLEN) ((ndims) * sizeof(*pdims)) );
+  pdims = (PDL_Indx *)  PDL->smalloc((STRLEN) ((ndims) * sizeof(*pdims)) );
   
-  pdims[0] = (PDL_Long) ene;
+  pdims[0] = (PDL_Indx) ene;
 
   PUSHMARK(SP);
   XPUSHs(sv_2mortal(newSVpv("PDL", 0)));
