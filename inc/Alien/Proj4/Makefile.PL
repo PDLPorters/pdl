@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-#
 # Proj4 detection process (need to rework using Devel::CheckLib)
 # 
 # (0) check WITH_PROJ
