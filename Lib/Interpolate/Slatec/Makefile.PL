@@ -4,13 +4,12 @@ use ExtUtils::MakeMaker;
 
 # do we build PDL::Interpolate::Slatec ?
 
-our %PDL_CONFIG;
 my $msg = "\n Will skip build of PDL::Interpolate::Slatec\n";
 my $build=0;
  
 if ($^O =~ /win32/i) {
     $msg = "\n Win32 systems not yet supported: no build of PDL::Interpolate::Slatec\n";
-} elsif (defined $PDL_CONFIG{WITH_SLATEC} and $PDL_CONFIG{WITH_SLATEC} != 0 ) {
+} elsif (defined $PDL::Config{WITH_SLATEC} and $PDL::Config{WITH_SLATEC} != 0 ) {
     $build=1;
 } 
 
