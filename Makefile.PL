@@ -235,6 +235,8 @@ sub check_f77conf {
 sub make_Version_pm {
   # Get Version from Basic/PDL.pm and generated Basic/Core/Version.pm from it
   require 'Basic/PDL.pm';
+  # keep version info in $PDL::Config
+  $PDL::Config{PDL_BUILD_VERSION} = "$PDL::VERSION";
 
   my $versionFile = 'Basic/Core/Version.pm';
   my $fh = IO::File->new( ">$versionFile" ) or
@@ -321,8 +323,6 @@ sub myformat {
 
 sub make_PDL_Config_pm {
   print "Writing Basic/Core/Config.pm\n";
-
-  $PDL::Config{PDL_BUILD_VERSION} = "$PDL::VERSION";
 
   my $fh = IO::File->new( ">Basic/Core/Config.pm" )
     or die "Couldn't open Config.pm for writing";
