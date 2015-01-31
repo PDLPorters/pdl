@@ -3,12 +3,6 @@ use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 
-BEGIN{if ($^O =~ /MSWin/) {
-  print "getting dosglob...\n";
-  require File::DosGlob;
-  File::DosGlob->import('glob');}
-}
-
 my @pms = map {($_ => '$(INST_LIBDIR)/'.$_)}
   (<*.pm>, <PP/*.pm>, 'PP/Dump.pm');
 push @pms, ('pptemplate.pod' => '$(INST_LIBDIR)/pptemplate.pod');

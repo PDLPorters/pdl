@@ -1,11 +1,5 @@
 use strict;
 use warnings;
-
-BEGIN{if ($^O =~ /MSWin/) {
-  print "getting dosglob...\n";
-  require File::DosGlob;
-  File::DosGlob->import('glob');}
-}
 use ExtUtils::MakeMaker;
 
 my @pods = map { $_=~s/.pod//; $_ } grep { ! m/Index.pod/ } glob("*.pod");
