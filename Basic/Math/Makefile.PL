@@ -13,8 +13,6 @@ sub is_sys_func {
   trylink( '', qq{#include "$dir/mconf.h"}, $code, $libs );
 }
 
-PDL::Core::Dev->import();
-
 # Files for each routine (.c assumed)
 
 my %source = qw( acosh acosh

@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import();
-
 my @pack = (["fft.pd", qw(FFT PDL::FFT)]);
 my %hash = pdlpp_stdargs_int(@pack);
 $hash{OBJECT} .= ' fftn.o';

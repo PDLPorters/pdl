@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import(); # for trylink
 
 my @subdirs = qw(PGPLOT LUT IIS PLplot Limits);
 

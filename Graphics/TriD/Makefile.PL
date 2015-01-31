@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import();
-
 # do we build the OpenGL/OpenGLQ stuff
 #  (rather than have these 2 modules do it themselves)
 #

@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import;
-
 our ($GSL_includes, $GSL_libs); 
 my @pack = (['gsl_sf_synchrotron.pd', qw(SYNCHROTRON PDL::GSLSF::SYNCHROTRON)]);
 my %hash = pdlpp_stdargs_int(@pack);

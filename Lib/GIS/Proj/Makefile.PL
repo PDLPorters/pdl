@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use Config;
-use lib '../../../inc';
 use Devel::CheckLib;
 
 my ($PJ_VERSION, $gis_proj_lib_path, $include_path);
@@ -151,8 +150,6 @@ if ($msg && $forcebuild==0 or !defined($PJ_VERSION)) {
       }
    }
 }
-
-PDL::Core::Dev->import();
 
 return if $donot;  # yes, this must be return (exit will kill Makefile.PL process)
 

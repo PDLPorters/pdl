@@ -4,7 +4,6 @@ use warnings;
 # any external PDL module.
 
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 my @pack = ([qw(imagergb.pd ImageRGB PDL::ImageRGB)]);
 my %hash = pdlpp_stdargs_int(@pack);
 $hash{'OBJECT'} .= ' ppm_quant$(OBJ_EXT)';

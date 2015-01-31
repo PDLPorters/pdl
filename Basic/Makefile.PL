@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-require 'Core/Dev.pm'; PDL::Core::Dev->import();
-
 my $defstartup = 'default.perldlrc';
 if ($^O =~ /win32/i) {
   $defstartup = 'default.pdl';

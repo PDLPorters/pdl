@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import;
-
 our ($GSL_includes, $GSL_libs); 
 my @pack = (['gsl_sf_legendre.pd', qw(LEGENDRE PDL::GSLSF::LEGENDRE)]);
 my %hash = pdlpp_stdargs_int(@pack);

@@ -5,8 +5,6 @@ use ExtUtils::MakeMaker;
 my @pack = (["matrixops.pd", qw(MatrixOps PDL::MatrixOps)]);
 my %hash = pdlpp_stdargs_int(@pack);
 
-PDL::Core::Dev->import();
-
 $hash{OBJECT} = "" unless exists $hash{OBJECT};
 
 foreach my $file (qw (blas eigens simq svd eigen complex matrix sslib)) {

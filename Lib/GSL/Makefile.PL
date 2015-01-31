@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 
 sub get_gsl_config {
   my ($flags) = @_;

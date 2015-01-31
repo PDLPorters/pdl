@@ -3,8 +3,6 @@ use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 
-PDL::Core::Dev->import();
-
 my $package = [ qw(SD.pd SD PDL::IO::HDF::SD) ];
 our ($hdf_include_path, $hdf_lib_path, $hdf_libs, $szip);
 

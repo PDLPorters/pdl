@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import();                                                       
-
 # do we build PDL::Interpolate::Slatec ?
 
 our %PDL_CONFIG;

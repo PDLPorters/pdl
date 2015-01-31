@@ -3,8 +3,6 @@ use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 
-PDL::Core::Dev->import();
-
 our ($hdf_include_path, $hdf_lib_path, $hdf_libs, $szip);
 
 my $package = [ qw(VS.pd VS PDL::IO::HDF::VS) ];

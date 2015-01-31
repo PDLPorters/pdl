@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 
 my @pack = (["image2d.pd", qw(Image2D PDL::Image2D)]);
 

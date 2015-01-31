@@ -3,8 +3,6 @@ use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 
-PDL::Core::Dev->import();
-
 my @pack = (["primitive.pd", qw(Primitive PDL::Primitive)]);
 
 if ($^O eq 'dec_osf') {

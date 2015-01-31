@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 
 if ($^O =~ /win32/i) {
   write_dummy_make(unsupported('PDL::Graphics::IIS','win32'));

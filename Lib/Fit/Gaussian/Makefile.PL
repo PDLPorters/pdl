@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import();
-
 my @pack = (["gaussian.pd", qw(Gaussian PDL::Fit::Gaussian)]);
 my %hash = pdlpp_stdargs_int(@pack);
 $hash{OBJECT} .= ' ';

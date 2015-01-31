@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use Config;
-PDL::Core::Dev->import();
 
 # This mess sorts out the Fortran availability
 # Modified from Makefile.PL from Slatec

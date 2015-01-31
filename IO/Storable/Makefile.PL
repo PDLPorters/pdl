@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import;
 my @pack = (["storable.pd", qw(Storable PDL::IO::Storable)]);
 
 my %hash = pdlpp_stdargs_int(@pack);

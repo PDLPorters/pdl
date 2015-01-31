@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import();
-
 my @pack = (["tests.pd", qw(Tests PDL::Tests)]);
 
 undef &MY::postamble; # suppress warning

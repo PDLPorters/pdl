@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import();
-
 my @pack = (["ufunc.pd", qw(Ufunc PDL::Ufunc)]);
 
 if ($^O eq 'dec_osf') {

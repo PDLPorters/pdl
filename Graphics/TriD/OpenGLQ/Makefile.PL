@@ -11,8 +11,6 @@ BEGIN {
    }
 }
 
-PDL::Core::Dev->import();
-
 my @pack = (["openglq.pd", qw(OpenGLQ PDL::Graphics::OpenGLQ)]);
 my %hash = pdlpp_stdargs_int(@pack);
 

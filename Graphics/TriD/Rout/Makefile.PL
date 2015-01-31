@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 
 my @pack = (["rout.pd", qw(Rout PDL::Graphics::TriD::Rout)]);
 my %hash = pdlpp_stdargs_int(@pack);

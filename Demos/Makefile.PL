@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-require 'Core/Dev.pm'; PDL::Core::Dev->import();
 
 # For the lazy people
 undef &MY::postamble; # suppress warning

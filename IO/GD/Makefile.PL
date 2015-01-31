@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use Config;
-PDL::Core::Dev->import();
 
 my ($include_path, $lib_path, $linkname);
 my $ppfile = "GD.pd";

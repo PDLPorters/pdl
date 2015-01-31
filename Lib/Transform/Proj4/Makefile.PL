@@ -5,7 +5,6 @@ use Config;
 use Devel::CheckLib;
 
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 
 my $transform_proj4_lib_path;
 my $include_path;

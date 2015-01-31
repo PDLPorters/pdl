@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 
 my @pack = (["compression.pd", qw(Compression PDL::Compression)]);
 my %hash = pdlpp_stdargs_int(@pack);

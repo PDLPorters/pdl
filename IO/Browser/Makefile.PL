@@ -2,24 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use File::Spec;
-
-my $libdir;
-
-BEGIN {
-   if (defined $PDL::Config{PDL_BUILD_DIR}) {
-      print "IO/Browser: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
-      $libdir = File::Spec->catfile($PDL::Config{PDL_BUILD_DIR},'inc');
-      print "IO/Browser: adding $libdir\n";
-   }
-}
-
-use lib $libdir || ();
-
 use Devel::CheckLib;
-
-#require PDL::Core::Dev;
-require Basic::Core::Dev;
-PDL::Core::Dev->import();
 
 my @pack = (["browser.pd", qw(Browser PDL::IO::Browser)]);
 

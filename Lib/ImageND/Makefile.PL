@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 
 my @pack = (["imagend.pd", qw(ImageND PDL::ImageND)]);
 

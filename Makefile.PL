@@ -2,13 +2,16 @@
 
 use strict;
 use warnings;
-use lib qw(inc);
+
+# using absolute path to make it valid also for Makefile.PL files in subdirectories
+use Cwd;
+use lib Cwd::abs_path('inc');
+
 use Devel::CheckLib;
 use 5.010_000;
 use ExtUtils::MakeMaker 6.56;  # for CONFIGURE_REQUIRES support
 use Config;
 use IO::File;
-use Cwd;
 
 $::PP_VERBOSE = $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
@@ -429,7 +432,10 @@ make_badval_dependencies();
 
 make_Types_pm();
 
-# use ExtUtils::MakeMaker;
+# this will make PDL::Core::Dev's functions available
+# in Makefile.PL files in all subdirectories
+# IMPORTANT: it has to be after make_Types_pm()
+require "Basic/Core/Dev.pm"; PDL::Core::Dev->import();
 
 # only perform one test if required modules are missing
 # the test will print an informational message and fail

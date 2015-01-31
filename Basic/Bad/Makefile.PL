@@ -6,8 +6,6 @@ use ExtUtils::MakeMaker;
 # PDL_CONFIG - it's just the contents that will be
 # different...
 
-PDL::Core::Dev->import();
-
 # bad value support?
 use vars qw( $bvalflag $usenan $bvalPerPdl );
 use File::Spec;

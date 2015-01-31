@@ -2,8 +2,6 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import();
-
 # do we build PDL::IO::Browser ?
 my @dirs = qw( FastRaw Misc FlexRaw Pnm Storable FITS HDF GD Dicom IDL );
 if ($PDL::Config{WITH_IO_BROWSER} && $PDL::Config{WITH_IO_BROWSER}) {
