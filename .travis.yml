@@ -7,7 +7,7 @@ perl:
   - "5.18"
   - "5.20"
   - "blead"
-sudo: false
+sudo: true
 matrix:
   include:
     - perl: 5.18
@@ -15,6 +15,9 @@ matrix:
   allow_failures:
     - perl: blead
 before_install:
+  - sudo apt-get update
+  - sudo apt-get install gfortran build-essential libextutils-f77-perl libx11-dev pgplot5 libpgplot-perl libplplot-dev libterm-readline-gnu-perl libgd2-xpm-dev libhdf4-alt-dev libproj-dev libvpx-dev libxpm-dev proj-bin libcfitsio3-dev
+  - sudo apt-get install libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev # for OpenGL
   - eval $(curl https://travis-perl.github.io/init) --auto
 branches:
   except:
