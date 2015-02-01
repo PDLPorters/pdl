@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use Test::More tests => 25;
 use Test::Warn;
 
@@ -12,8 +14,7 @@ BEGIN
     "PP deprecation should emit warnings";
 }
 
-
-kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 # Is there any good reason we don't use PDL's approx function?
 sub tapprox {
@@ -34,7 +35,7 @@ test_foop($a->xchg(0,1),($b=null));
 ok( tapprox($a->xchg(0,1),$b) )
   or diag $b;
 
-$vaff = $a->dummy(2,3)->xchg(1,2);
+my $vaff = $a->dummy(2,3)->xchg(1,2);
 test_foop($vaff,($b=null));
 ok( tapprox($vaff,$b) )
   or diag ($vaff, $vaff->dump);
@@ -66,8 +67,8 @@ is( join(',',$a->dims), "10" );
 ok( tapprox($a,sequence(10)) );
 
 # this used to segv under solaris according to Karl
-{ local $^W = 0; # To suppress warnings of use of uninitialized value.
-  $ny=7;
+{ no warnings 'uninitialized';
+  my $ny=7;
   $a = double xvals zeroes (20,$ny);
   test_fooseg $a, $b=null;
 
@@ -80,13 +81,13 @@ ok( tapprox($a,sequence(10)) );
 # test the bug alluded to in the comments in
 # pdl_changed (pdlapi.c)
 # used to segfault
-$xx=ones(float,3,4);
-$sl1 = $xx->slice('(0)');
-$sl11 = $sl1->slice('');
-$sl2 = $xx->slice('(1)');
-$sl22 = $sl2->slice('');
+my $xx=ones(float,3,4);
+my $sl1 = $xx->slice('(0)');
+my $sl11 = $sl1->slice('');
+my $sl2 = $xx->slice('(1)');
+my $sl22 = $sl2->slice('');
 
-test_fooflow2 $sl11, $sl22;
+test_fooflow2($sl11, $sl22);
 
 ok(all $xx->slice('(0)') == 599);
 ok(all $xx->slice('(1)') == 699);
