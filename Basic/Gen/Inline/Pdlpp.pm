@@ -405,9 +405,15 @@ sub compile_pd {
     $inc = "-I$w"; # make sure we find the PP stuff
   } else { $inc = '' }
 
+  # this just to match more closely with varnames in PDL::PP::import
+  my $pp_modname = $module;
+  my $pp_packname = 'NONE';
+  my $pp_prefix = $modfname;
+  my $pp_callpack = $pkg;
+
   my $ppflags = $o->{ILSM}{PPFLAGS};
   my $cmd = << "EOC";
-"$perl" $ppflags "$inc" "-MPDL::PP qw[$module NONE $modfname $pkg]" $modfname.pd > out.pdlpp 2>&1
+"$perl" $ppflags "$inc" "-MPDL::PP qw[$pp_modname $pp_packname $pp_prefix $pp_callpack]" $modfname.pd > out.pdlpp 2>&1
 EOC
   # print STDERR "executing\n\t$cmd...\n";
   $cwd = &cwd;
