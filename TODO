@@ -54,7 +54,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * foo.t
    * gauss.t
    * hdrs.t
-   * howbig.t
    * ica.t
    * imagend.t
    * imagergb.t
