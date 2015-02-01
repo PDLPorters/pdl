@@ -241,10 +241,10 @@ END
 
 sub pd_bless {
     my $o = shift;
-    if (defined $o->{ILSM}{XS}{BLESS} and
-	$o->{ILSM}{XS}{BLESS}) {
+    if (defined $o->{ILSM}{BLESS} and
+	$o->{ILSM}{BLESS}) {
 	return <<END;
-pp_bless $o->{ILSM}{XS}{BLESS};
+pp_bless $o->{ILSM}{BLESS};
 END
     }
     return '';
