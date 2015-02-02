@@ -8,10 +8,11 @@ perl:
   - "5.20"
   - "blead"
 sudo: true
+env: PGPLOT_DEV="/NULL"
 matrix:
   include:
     - perl: 5.20
-      env: COVERAGE=1
+      env: COVERAGE=1 PGPLOT_DEV="/NULL"
   allow_failures:
     - perl: blead
 before_install:
