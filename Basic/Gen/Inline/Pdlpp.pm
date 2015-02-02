@@ -299,11 +299,11 @@ sub write_Makefile_PL {
                    INSTALLSITELIB => $o->{API}{install_lib},
                    MAN3PODS => {},
 		  );
-    
+
     open my $fh, ">", "$o->{API}{build_dir}/Makefile.PL" or croak;
     print $fh <<END;
 use ExtUtils::MakeMaker;
-my %options = %\{       
+my %options = %\{
 END
     local $Data::Dumper::Terse = 1;
     local $Data::Dumper::Indent = 1;
@@ -324,7 +324,7 @@ sub compile {
     my ($o, $perl, $make, $cmd, $cwd);
     $o = shift;
     $o->compile_pd; # generate the xs file
-    my ($module, $modpname, $modfname, $build_dir, $install_lib) = 
+    my ($module, $modpname, $modfname, $build_dir, $install_lib) =
       @{$o->{API}}{qw(module modpname modfname build_dir install_lib)};
 
     -f ($perl = $Config::Config{perlpath})
@@ -338,10 +338,10 @@ sub compile {
     my $suffix2 = '> out.make 2>&1';
     my $suffix3 = '> out.make_install 2>&1';
 
-    if($^O =~ /mswin/i && $noisy){
-      $noisy = ''; # no 'tee' on MS Windows. 
+    if($^O =~ /mswin/i && $noisy) {
+      $noisy = ''; # no 'tee' on MS Windows.
       ($suffix1, $suffix2, $suffix3) = ('', '', '');
-      } 
+    }
 
     for $cmd (qq{"$perl" Makefile.PL $noisy $suffix1},
 	      qq{"$make" $noisy $suffix2},
@@ -614,7 +614,7 @@ Specify which linker to use.
 
 =head2 LDDLFLAGS
 
-Specify which linker flags to use. 
+Specify which linker flags to use.
 
 NOTE: These flags will completely override the existing flags, instead
 of just adding to them. So if you need to use those too, you must
@@ -627,7 +627,7 @@ code. Corresponds to the MakeMaker parameter.
 
     use Inline Pdlpp => Config => LIBS => '-lyourlib';
 
-or 
+or
 
     use Inline Pdlpp => Config => LIBS => '-L/your/path -lyourlib';
 
