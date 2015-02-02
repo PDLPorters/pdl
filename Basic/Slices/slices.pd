@@ -60,6 +60,7 @@ C<-E<gt>copy> they would not.
 =cut
 
 use PDL::Core ':Internal';
+use Scalar::Util 'blessed';
 
 EOD
 
@@ -2112,7 +2113,7 @@ Plot, as a line, column 1 of C<$pdl> vs. column 2
 *using = \&PDL::using;
 sub PDL::using {
   my ($x,@ind)=@_;
-  @ind = list $ind[0] if (ref $ind[0] eq 'PDL');
+  @ind = list $ind[0] if (blessed($ind[0]) && $ind[0]->isa('PDL'));
   foreach (@ind) {
     $_ = $x->slice("($_)");
   }
@@ -2961,7 +2962,7 @@ sub PDL::slice (;@) {
     # converted into slices for faster handling later.
 
     for my $i(0..$#others) {
-      if( ref $others[$i] eq 'PDL' ) {
+      if( blessed($others[$i]) && $others[$i]->isa('PDL') ) {
         my $idx = $others[$i];
         if($idx->ndims > 1) {
           barf("slice: dicing parameters must be at most 1D (arg $i)\n");

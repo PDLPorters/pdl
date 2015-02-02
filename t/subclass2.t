@@ -9,7 +9,7 @@
 ###              then $pdlderived->sumover should return a PDL::derived object.
 ###      
 use PDL::LiteF;
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 
 # Test PDL Subclassing via hashes
@@ -131,3 +131,8 @@ ok(ref($w) eq "PDL::Derived", "check type for bifuncs operation");
 $a = PDL::Derived->new(1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
 $w = $a->slice('1:3:2,2:4:2');
 ok(ref($w) eq "PDL::Derived", "check type for slicing operation");
+
+##### Check that slicing with a subclass index works (sf.net bug #369)
+$a = sequence(10,3,2);
+$idx = PDL::Derived->new(2,5,8);
+ok(defined(eval 'my $r = $a->slice($idx,"x","x");'), "slice works with subclass index");
