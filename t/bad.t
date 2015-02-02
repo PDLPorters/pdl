@@ -186,10 +186,10 @@ is( PDL::Core::string($a),
 $a = byte->badvalue * ones(byte,3,2);
 is( $a->get_datatype, 0, "datatype remains a byte" );
 $a->badflag(1);
-is( PDL::Core::string( zcover($a) ), "[BAD BAD]", "zcover() okay" );
+is( PDL::Core::string( PDL::zcover($a) ), "[BAD BAD]", "zcover() okay" );
 $a->set(1,1,1);
 $a->set(2,1,1);
-is( PDL::Core::string( zcover($a) ), "[BAD 0]", "  and still okay" );
+is( PDL::Core::string( PDL::zcover($a) ), "[BAD 0]", "  and still okay" );
 
 # 255 is the default bad value for a byte array
 #
