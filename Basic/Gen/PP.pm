@@ -132,6 +132,7 @@
 package PDL::PP::Rule;
 
 use strict;
+require PDL::Core::Dev;
 
 use Carp;
 our @CARP_NOT;
@@ -981,6 +982,7 @@ sub pp_done {
 	print "DONE!\n" if $::PP_VERBOSE;
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
 	(my $fh = FileHandle->new(">$::PDLPREF.xs")) or die "Couldn't open xs file\n";
+        my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD); # don't hardcode in more than one place
 
 $fh->print(qq%
 /*
@@ -1053,16 +1055,7 @@ BOOT:
 
    PDL_COMMENT("Get pointer to structure of core shared C routines")
    PDL_COMMENT("make sure PDL::Core is loaded")
-   perl_require_pv("PDL::Core");
-   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  PDL_COMMENT("SV* value")
-#ifndef aTHX_
-#define aTHX_
-#endif
-   if (CoreSV==NULL)
-     Perl_croak(aTHX_ "Can't load PDL::Core module");
-   PDL = INT2PTR(Core*, SvIV( CoreSV ));  PDL_COMMENT("Core* value")
-   if (PDL->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "[PDL->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] $::PDLMOD needs to be recompiled against the newly installed PDL", PDL->Version, PDL_CORE_VERSION, XS_VERSION);
+   $pdl_boot
    $::PDLXSBOOT
 %);
 
