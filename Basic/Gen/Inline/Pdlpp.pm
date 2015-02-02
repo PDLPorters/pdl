@@ -1,7 +1,7 @@
 package Inline::Pdlpp;
 
 use strict;
-require Inline;
+use warnings;
 
 use Config;
 use Data::Dumper;
@@ -9,8 +9,8 @@ use Carp;
 use Cwd qw(cwd abs_path);
 use PDL::Core::Dev;
 
-$Inline::Pdlpp::VERSION = '0.2';
-@Inline::Pdlpp::ISA = qw(Inline);
+$Inline::Pdlpp::VERSION = '0.3';
+use base qw(Inline::C);
 
 #==============================================================================
 # Register this module as an Inline language support module
@@ -24,20 +24,9 @@ sub register {
 	   };
 }
 
-#==============================================================================
-# Validate the Pdlpp config options
-#==============================================================================
-sub usage_validate {
-    my $key = shift;
-    return <<END;
-The value of config option '$key' must be a string or an array ref
-
-END
-}
-
+# handle BLESS, INTERNAL, NOISY - pass everything else up to Inline::C
 sub validate {
     my $o = shift;
-
     $o->{ILSM} ||= {};
     $o->{ILSM}{XS} ||= {};
     # having internal on shouldn't matter
@@ -47,100 +36,28 @@ sub validate {
       my $w = abs_path(PDL::Core::Dev::whereami_any());
       $o->{ILSM}{MAKEFILE}{INC} = qq{"-I$w/Core"};
     }
-    $o->{ILSM}{AUTO_INCLUDE} ||= '';
+    $o->{ILSM}{AUTO_INCLUDE} ||= ' '; # not '' as Inline::C does ||=
+    my @pass_along;
     while (@_) {
 	my ($key, $value) = (shift, shift);
-	if ($key eq 'MAKE' or
-	    $key eq 'INTERNAL' or
-	    $key eq 'BLESS' or
-	    $key eq 'NOISY'
+	if ($key eq 'INTERNAL' or
+	    $key eq 'BLESS'
 	   ) {
 	    $o->{ILSM}{$key} = $value;
 	    next;
 	}
-	if ($key eq 'CC' or
-	    $key eq 'LD') {
-	    $o->{ILSM}{MAKEFILE}{$key} = $value;
+	if ($key eq 'NOISY') {
+            $o->{CONFIG}{BUILD_NOISY} = $value;
 	    next;
 	}
-	if ($key eq 'LIBS') {
-	    $o->add_list($o->{ILSM}{MAKEFILE}, $key, $value, []);
-	    next;
-	}
-	if ($key eq 'INC' or
-	    $key eq 'MYEXTLIB' or
-	    $key eq 'OPTIMIZE' or
-	    $key eq 'CCFLAGS' or
-	    $key eq 'LDDLFLAGS') {
-	    $o->add_string($o->{ILSM}{MAKEFILE}, $key, $value, '');
-	    next;
-	}
-	if ($key eq 'TYPEMAPS') {
-	    croak "TYPEMAPS file '$value' not found"
-	      unless -f $value;
-	    my ($path, $file) = ($value =~ m|^(.*)[/\\](.*)$|) ?
-	      ($1, $2) : ('.', $value);
-	    $value = abs_path($path) . '/' . $file;
-	    $o->add_list($o->{ILSM}{MAKEFILE}, $key, $value, []);
-	    next;
-	}
-	if ($key eq 'AUTO_INCLUDE') {
-	    $o->add_text($o->{ILSM}, $key, $value, '');
-	    next;
-	}
-	if ($key eq 'BOOT') {
-	    $o->add_text($o->{ILSM}{XS}, $key, $value, '');
-	    next;
-	}
-	my $class = ref $o; # handles subclasses correctly.
-	croak "'$key' is not a valid config option for $class\n";
+	push @pass_along, $key, $value;
     }
+    $o->SUPER::validate(@pass_along);
 }
 
-sub add_list {
-    my $o = shift;
-    my ($ref, $key, $value, $default) = @_;
-    $value = [$value] unless ref $value eq 'ARRAY';
-    for (@$value) {
-	if (defined $_) {
-	    push @{$ref->{$key}}, $_;
-	}
-	else {
-	    $ref->{$key} = $default;
-	}
-    }
-}
-
-sub add_string {
-    my $o = shift;
-    my ($ref, $key, $value, $default) = @_;
-    $value = [$value] unless ref $value;
-    croak usage_validate($key) unless ref($value) eq 'ARRAY';
-    for (@$value) {
-	if (defined $_) {
-	    $ref->{$key} .= ' ' . $_;
-	}
-	else {
-	    $ref->{$key} = $default;
-	}
-    }
-}
-
-sub add_text {
-    my $o = shift;
-    my ($ref, $key, $value, $default) = @_;
-    $value = [$value] unless ref $value;
-    croak usage_validate($key) unless ref($value) eq 'ARRAY';
-    for (@$value) {
-	if (defined $_) {
-	    chomp;
-	    $ref->{$key} .= $_ . "\n";
-	}
-	else {
-	    $ref->{$key} = $default;
-	}
-    }
-}
+sub add_list { goto &Inline::C::add_list }
+sub add_string { goto &Inline::C::add_string }
+sub add_text { goto &Inline::C::add_text }
 
 #==============================================================================
 # Parse and compile C code
@@ -160,19 +77,12 @@ sub build {
 #==============================================================================
 sub info {
     my $o = shift;
-
-#     return <<END;
-#No information is currently generated when using inline pdlpp.
-#
-#END
-
     my $txt = <<END;
 The following PP code was generated (caution, can be long)...
 
 *** start PP file ****
 
 END
-
     return $txt . $o->pd_generate . "\n*** end PP file ****\n";
 }
 
@@ -256,24 +166,7 @@ END
 
 sub get_maps {
     my $o = shift;
-
-    my $typemap = '';
-    $typemap = "$Config::Config{installprivlib}/ExtUtils/typemap"
-      if -f "$Config::Config{installprivlib}/ExtUtils/typemap";
-    $typemap = "$Config::Config{privlibexp}/ExtUtils/typemap"
-      if (not $typemap and -f "$Config::Config{privlibexp}/ExtUtils/typemap");
-    warn "Can't find the default system typemap file"
-      if (not $typemap and $^W);
-
-    unshift(@{$o->{ILSM}{MAKEFILE}{TYPEMAPS}}, $typemap) if $typemap;
-
-    if (not $o->UNTAINT) {
-	require FindBin;
-	if (-f "$FindBin::Bin/typemap") {
-	    push @{$o->{ILSM}{MAKEFILE}{TYPEMAPS}}, "$FindBin::Bin/typemap";
-	}
-    }
-
+    $o->SUPER::get_maps;
     my $w = abs_path(PDL::Core::Dev::whereami_any());
     push @{$o->{ILSM}{MAKEFILE}{TYPEMAPS}}, "$w/Core/typemap.pdl";
 }
@@ -325,67 +218,12 @@ END
 # Run the build process.
 #==============================================================================
 sub compile {
-    my ($o, $perl, $make, $cmd, $cwd);
-    $o = shift;
-    my ($module, $modpname, $modfname, $build_dir, $install_lib) =
-      @{$o->{API}}{qw(module modpname modfname build_dir install_lib)};
-
-    -f ($perl = $Config::Config{perlpath})
-      or croak "Can't locate your perl binary";
-    $make = $o->{ILSM}{MAKE} || $Config::Config{make}
-      or croak "Can't locate your make binary";
-    $cwd = &cwd;
-    ($cwd) = $cwd =~ /(.*)/ if $o->UNTAINT;
-    my $noisy = $o->{ILSM}{NOISY} || $o->{CONFIG}{BUILD_NOISY} ? '| tee' : '';
-    my $suffix1 = '> out.Makefile_PL 2>&1';
-    my $suffix2 = '> out.make 2>&1';
-    my $suffix3 = '> out.make_install 2>&1';
-
-    if($^O =~ /mswin/i && $noisy) {
-      $noisy = ''; # no 'tee' on MS Windows.
-      ($suffix1, $suffix2, $suffix3) = ('', '', '');
-    }
-
+    my $o = shift;
     local $ENV{PERL5LIB} = join $Config{path_sep}, map abs_path($_), @INC
         unless defined $ENV{PERL5LIB};
-    for $cmd (qq{"$perl" Makefile.PL $noisy $suffix1},
-	      qq{"$make" $noisy $suffix2},
-	      qq{"$make" pure_install $noisy $suffix3},
-	     ) {
-	if (ref $cmd) {
-	    $o->$cmd();
-	}
-	else {
-	    ($cmd) = $cmd =~ /(.*)/ if $o->UNTAINT;
-	    chdir $build_dir;
-	    system($cmd) and do {
-#		$o->error_copy;
-                chdir $cwd; # back to original dir
-		croak <<END;
-
-A problem was encountered while attempting to compile and install your Inline
-$o->{API}{language} code. The command that failed was:
-  $cmd
-
-The build directory was:
-$build_dir
-
-To debug the problem, cd to the build directory, and inspect the output files.
-
-END
-	    };
-	    chdir $cwd;
-	}
-    }
-
-    if ($o->{API}{cleanup}) {
-	$o->rmpath($o->{API}{directory} . '/build/', $modpname);
-	unlink "$install_lib/auto/$modpname/.packlist";
-	unlink "$install_lib/auto/$modpname/$modfname.bs";
-	unlink "$install_lib/auto/$modpname/$modfname.exp"; #MSWin32 VC++
-	unlink "$install_lib/auto/$modpname/$modfname.lib"; #MSWin32 VC++
-    }
+    $o->SUPER::compile;
 }
+sub fix_make { } # our Makefile.PL doesn't need this
 
 1;
 
@@ -412,8 +250,7 @@ Some example scripts demonstrating C<Inline::Pdlpp> usage can be
 found in the F<Example/InlinePdlpp> directory.
 
 
-C<Inline::Pdlpp> is mostly a shameless rip-off of C<Inline::C>.
-Most Kudos goes to Brian I.
+C<Inline::Pdlpp> is a subclass of L<Inline::C>. Most Kudos goes to Brian I.
 
 =head1 Usage
 
@@ -614,8 +451,8 @@ Specifies extra typemap files to use. Corresponds to the MakeMaker parameter.
 
 =head2 NOISY
 
-Show the output of any compilations going on behind the scenes. Uses
-C<tee> which must be available on your computer. Default is off.
+Show the output of any compilations going on behind the scenes. Turns
+on C<BUILD_NOISY> in L<Inline::C>.
 
 =head1 BUGS
 
