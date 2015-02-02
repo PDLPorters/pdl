@@ -7,7 +7,7 @@ use Config;
 use Data::Dumper;
 use Carp;
 use Cwd qw(cwd abs_path);
-require PDL::Core::Dev;
+use PDL::Core::Dev;
 
 $Inline::Pdlpp::VERSION = '0.2';
 @Inline::Pdlpp::ISA = qw(Inline);
@@ -48,7 +48,6 @@ sub validate {
       $o->{ILSM}{MAKEFILE}{INC} = qq{"-I$w/Core"};
     }
     $o->{ILSM}{AUTO_INCLUDE} ||= '';
-    $o->{ILSM}{PPFLAGS} ||= '';
     while (@_) {
 	my ($key, $value) = (shift, shift);
 	if ($key eq 'MAKE' or
@@ -85,8 +84,7 @@ sub validate {
 	    $o->add_list($o->{ILSM}{MAKEFILE}, $key, $value, []);
 	    next;
 	}
-	if ($key eq 'AUTO_INCLUDE' or
-            $key eq 'PPFLAGS') {
+	if ($key eq 'AUTO_INCLUDE') {
 	    $o->add_text($o->{ILSM}, $key, $value, '');
 	    next;
 	}
@@ -285,24 +283,31 @@ sub get_maps {
 #==============================================================================
 sub write_Makefile_PL {
     my $o = shift;
-    $o->{ILSM}{xsubppargs} = '';
-    for (@{$o->{ILSM}{MAKEFILE}{TYPEMAPS}}) {
-	$o->{ILSM}{xsubppargs} .= qq{-typemap "$_" };
-    }
-
+    my ($modfname,$module,$pkg) = @{$o->{API}}{qw(modfname module pkg)};
+    my $coredev_suffix = $o->{ILSM}{INTERNAL} ? '_int' : '';
+    my @pack = [ "$modfname.pd", $modfname, $module ];
+    my $stdargs_func = $o->{ILSM}{INTERNAL}
+        ? \&pdlpp_stdargs_int : \&pdlpp_stdargs;
+    my %hash = $stdargs_func->(@pack);
+    delete $hash{VERSION_FROM};
     my %options = (
-		   VERSION => $o->{API}{version} || '0.00',
-		   %{$o->{ILSM}{MAKEFILE}},
-		   NAME => $o->{API}{module},
-                   INSTALLSITEARCH => $o->{API}{install_lib},
-                   INSTALLDIRS => 'site',
-                   INSTALLSITELIB => $o->{API}{install_lib},
-                   MAN3PODS => {},
-		  );
-
+        %hash,
+        VERSION => $o->{API}{version} || "0.00",
+        %{$o->{ILSM}{MAKEFILE}},
+        NAME => $o->{API}{module},
+        INSTALLSITEARCH => $o->{API}{install_lib},
+        INSTALLDIRS => 'site',
+        INSTALLSITELIB => $o->{API}{install_lib},
+        MAN3PODS => {},
+        PM => {},
+    );
     open my $fh, ">", "$o->{API}{build_dir}/Makefile.PL" or croak;
     print $fh <<END;
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
+use PDL::Core::Dev;
+my \@pack = [ "$modfname.pd", "$modfname", "$module" ];
 my %options = %\{
 END
     local $Data::Dumper::Terse = 1;
@@ -310,9 +315,8 @@ END
     print $fh Data::Dumper::Dumper(\ %options);
     print $fh <<END;
 \};
-WriteMakefile(\%options);
-# Remove the Makefile dependency. Causes problems on a few systems.
-sub MY::makefile { '' }
+WriteMakefile(%options);
+sub MY::postamble { pdlpp_postamble$coredev_suffix(\@pack); }
 END
     close $fh;
 }
@@ -323,7 +327,6 @@ END
 sub compile {
     my ($o, $perl, $make, $cmd, $cwd);
     $o = shift;
-    $o->compile_pd; # generate the xs file
     my ($module, $modpname, $modfname, $build_dir, $install_lib) =
       @{$o->{API}}{qw(module modpname modfname build_dir install_lib)};
 
@@ -343,6 +346,8 @@ sub compile {
       ($suffix1, $suffix2, $suffix3) = ('', '', '');
     }
 
+    local $ENV{PERL5LIB} = join $Config{path_sep}, map abs_path($_), @INC
+        unless defined $ENV{PERL5LIB};
     for $cmd (qq{"$perl" Makefile.PL $noisy $suffix1},
 	      qq{"$make" $noisy $suffix2},
 	      qq{"$make" pure_install $noisy $suffix3},
@@ -380,54 +385,6 @@ END
 	unlink "$install_lib/auto/$modpname/$modfname.exp"; #MSWin32 VC++
 	unlink "$install_lib/auto/$modpname/$modfname.lib"; #MSWin32 VC++
     }
-}
-
-# compile the pd file into xs using PDL::PP
-sub compile_pd {
-  my $o = shift;
-  my ($perl,$inc,$cwd);
-  my ($modfname,$module,$pkg,$bdir) =
-    @{$o->{API}}{qw(modfname module pkg build_dir)};
-
-  -f ($perl = $Config::Config{perlpath})
-    or croak "Can't locate your perl binary";
-
-  if ($o->{ILSM}{INTERNAL}) {
-    my $w = abs_path(PDL::Core::Dev::whereami_any());
-    $w =~ s%/((PDL)|(Basic))$%%; # remove the trailing subdir
-    $w .= '/blib/lib' unless $w =~ m|/blib/lib|;
-    $inc = "-I$w"; # make sure we find the PP stuff
-  } else { $inc = '' }
-
-  # this just to match more closely with varnames in PDL::PP::import
-  my $pp_modname = $module;
-  my $pp_packname = 'NONE';
-  my $pp_prefix = $modfname;
-  my $pp_callpack = $pkg;
-
-  my $ppflags = $o->{ILSM}{PPFLAGS};
-  my $cmd = << "EOC";
-"$perl" $ppflags "$inc" "-MPDL::PP qw[$pp_modname $pp_packname $pp_prefix $pp_callpack]" $modfname.pd > out.pdlpp 2>&1
-EOC
-  # print STDERR "executing\n\t$cmd...\n";
-  $cwd = &cwd;
-  chdir $bdir;
-  system($cmd) and do {
-                chdir $cwd; # back to original dir
-		croak <<END;
-
-A problem was encountered while attempting to compile and install your Inline
-$o->{API}{language} code. The command that failed was:
-  $cmd
-
-The build directory was:
-$bdir
-
-To debug the problem, cd to the build directory, and inspect the output files.
-
-END
-	      };
-  chdir $cwd;
 }
 
 1;
