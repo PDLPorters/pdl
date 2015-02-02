@@ -190,10 +190,9 @@ sub write_PD {
     my $modfname = $o->{API}{modfname};
     my $module = $o->{API}{module};
     $o->mkpath($o->{API}{build_dir});
-    open PD, "> $o->{API}{build_dir}/$modfname.pd"
-      or croak $!;
-    print PD $o->pd_generate;
-    close PD;
+    open my $fh, ">", "$o->{API}{build_dir}/$modfname.pd" or croak $!;
+    print $fh $o->pd_generate;
+    close $fh;
 }
 
 #==============================================================================
@@ -301,26 +300,21 @@ sub write_Makefile_PL {
                    MAN3PODS => {},
 		  );
     
-    open MF, "> $o->{API}{build_dir}/Makefile.PL"
-      or croak;
-    
-    print MF <<END;
+    open my $fh, ">", "$o->{API}{build_dir}/Makefile.PL" or croak;
+    print $fh <<END;
 use ExtUtils::MakeMaker;
 my %options = %\{       
 END
-
     local $Data::Dumper::Terse = 1;
     local $Data::Dumper::Indent = 1;
-    print MF Data::Dumper::Dumper(\ %options);
-
-    print MF <<END;
+    print $fh Data::Dumper::Dumper(\ %options);
+    print $fh <<END;
 \};
 WriteMakefile(\%options);
-
 # Remove the Makefile dependency. Causes problems on a few systems.
 sub MY::makefile { '' }
 END
-    close MF;
+    close $fh;
 }
 
 #==============================================================================
