@@ -21,6 +21,7 @@ sub deps { }
 # support: use Inline with => 'PDL';
 sub Inline {
   my ($class, $lang) = @_;
+  return {} if $lang eq 'Pdlpp';
   return unless $lang eq 'C';
   +{
     TYPEMAPS      => [ &PDL::Core::Dev::PDL_TYPEMAP ],
