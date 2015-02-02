@@ -66,8 +66,9 @@ EOR
 }
 
 sub PDL_BOOT {
-  my ($symname) = @_;
+  my ($symname, $module) = @_;
   $symname ||= 'PDL';
+  $module ||= 'The code';
   return << "EOR";
 
    perl_require_pv ("PDL/Core.pm"); /* make sure PDL::Core is loaded */
@@ -80,7 +81,7 @@ sub PDL_BOOT {
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
    $symname = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if ($symname->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "[$symname->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] The code needs to be recompiled against the newly installed PDL", $symname->Version, PDL_CORE_VERSION, XS_VERSION);
+     Perl_croak(aTHX_ "[$symname->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] $module needs to be recompiled against the newly installed PDL", $symname->Version, PDL_CORE_VERSION, XS_VERSION);
 
 EOR
 }
