@@ -109,7 +109,7 @@ The following issues have been reported with this version of PDL:
   369    slice fails with subclass index
   368    PDL::Slatec::polyfit ignores incorrect length of weight piddle; passes garbage to slatec polfit
   367    BAD value parsing breakage
-  366    many warnings in t/#transform.t with use strict; use warnings;
+  366    many warnings in t/transform.t with use strict; use warnings;
   364    type promotion in whistogram is based upon the index, not the weight
   363    PP "OtherPars" namespace is not clean
   359    Improved documentation for vsearch
