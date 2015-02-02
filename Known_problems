@@ -104,7 +104,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007_10 release:
+  PDL-2.007_11 release:
 
   369    slice fails with subclass index
   368    PDL::Slatec::polyfit ignores incorrect length of weight piddle; passes garbage to slatec polfit
