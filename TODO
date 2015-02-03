@@ -45,7 +45,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Refactor to use Test::More
-   * croak.t
    * familyfree.t
    * flow.t
    * foo.t
