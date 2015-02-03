@@ -1,8 +1,10 @@
 use Test::More tests => 5;
 use PDL::LiteF;
+use strict;
+use warnings;
 
 #  PDL::Core::set_debugging(1);
-kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 $a = zeroes 1,1,1;
 isnt $a, undef;
