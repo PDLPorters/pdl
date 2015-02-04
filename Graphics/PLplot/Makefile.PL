@@ -40,7 +40,6 @@ unlink ("OPTIONS!"); # remove file used to communicate with plplot.pd
 # use $Config{"so"} to get the extension name
 #
 my $libname = "libplplotd." . $Config{"so"};
-my $libname_static = "libplplotd.a";
 my $incname = "plplot.h";
 my $devnull = File::Spec->devnull(); # Portable null device.
 
@@ -77,14 +76,20 @@ foreach my $libdir (
 		                  # Add new library paths here!!
 		    ) {
 
+  next unless $libdir;
   if (-e "$libdir/$libname") {
     $plplot_lib_path = $libdir;
     $ENV{LD_LIBRARY_PATH} .= ":$libdir";
     last;
-  } elsif (-e "$libdir/$libname_static") {
+  } elsif (-e "$libdir/libplplotd.a") {
     $plplot_lib_path = $libdir;
     $ENV{LD_LIBRARY_PATH} .= ":$libdir";
-    $libname = $libname_static;
+    $libname = 'libplplotd.a';
+    last;
+  } elsif (-e "$libdir/libplplotd.dll.a") {
+    $plplot_lib_path = $libdir;
+    $ENV{LD_LIBRARY_PATH} .= ":$libdir";
+    $libname = 'libplplotd.dll.a';
     last;
   }
 
