@@ -148,8 +148,7 @@ END
 
 # 5. Now, to the hairy stuff of generations and progenitors.
 
-# XXX DISABLED
-SKIP: {
+SKIP: { # XXX DISABLED
 	if( 0 ) {
 
 	my($pa,$a2,$pb,$pc,$pd,$pe,$pf,$pg,@ps);
@@ -295,9 +294,9 @@ END
 	}
 }
 
-SKIP: {
+SKIP: { # XXX DISABLED
 # 6. Now, what if the mutated one is actually the parent.
-	if(0) { # XXX DISABLED
+	if(0) {
 		my($pa,$pb,$pc,$pd);
 		$pa = pdl 2,3,4;
 		$pa->doflow;
