@@ -1,7 +1,18 @@
+<<<<<<< HEAD
 use Test::More;
+=======
+
+>>>>>>> e59b717... test cleanup: ica.t
 use PDL::LiteF;
 
+# TODO This file does not currently test anything beyond loading PDL::Slatec.
+
+#use strict; # TODO fix the disabled code and enable strict
+use warnings;
+use Test::More tests => 1;
+
 BEGIN {
+
         eval " use PDL::Slatec; ";
         $loaded = ($@ ? 0 : 1);
 	eval " use PDL::ICA; ";
@@ -17,20 +28,16 @@ use Carp;
 
 $SIG{__DIE__} = sub {diag Carp::longmess(@_); die FOO;};
 
-# sub tapprox {
-# 	my($a,$b,$c,$d) = @_;
-# 	$c = abs($a-$b);
-# 	$d = max($c);
-# #	note "APR: $a,$b,$c,$d;\n";
-# 	$d < 0.001;
-# }
-
 plan skip_all => "PDL::Slatec not installed. Skipping all tests.\n"
     unless $loaded;
 plan tests => 1;
 ok($loaded);
 
 #DEFERRED
+
+SKIP: { # XXX DISABLED
+	# XXX There are no tests in here.
+	# TODO change the print() to note()
 
 if(0) {
 
@@ -107,5 +114,7 @@ $newdata = $ica->get_newdata();
 note $newdata;
 
 # points $newdata->slice('(0)'),$newdata->slice('(1)');
+
+}
 
 }
