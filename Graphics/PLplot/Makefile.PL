@@ -113,7 +113,7 @@ foreach my $incdir (
 		                  # Add new header paths here!!
 		    ) {
 
-  if (-e "$incdir/$incname") {
+  if (defined($incdir) && -e "$incdir/$incname") {
     $plplot_include_path = "-I$incdir";
     if ($incdir =~ m|/plplot$|) {
       my $inc2 = $incdir;
