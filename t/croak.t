@@ -1,4 +1,3 @@
-use Test::More tests => 4;
 use PDL::LiteF;
 
 use Test::More tests => 4;

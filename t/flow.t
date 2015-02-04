@@ -1,5 +1,7 @@
 # XXX SOME TESTS DISABLED
 
+# XXX checking PDL using string equality
+
 use PDL::LiteF;
 use Test::More tests => 33;
 use strict;
