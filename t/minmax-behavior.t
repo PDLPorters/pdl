@@ -17,8 +17,8 @@ SKIP: {
 
     TODO: {
        local $TODO = "minmax and minmaximum don't return consistent values";
-       is( $bad_0dim->min, 'BAD', "does min returns 'BAD'" );
-       is( ($bad_0dim->minmax)[0],  $bad_0dim->min, "does minmax return same as min" );
-       is( ($bad_0dim->minmaximum)[0],  $bad_0dim->min, "does minmaximum return same as min" );
+       is( "". $bad_0dim->min, 'BAD', "does min returns 'BAD'" );
+       is( "". ($bad_0dim->minmax)[0],  "". $bad_0dim->min, "does minmax return same as min" );
+       is( "". ($bad_0dim->minmaximum)[0],  "". $bad_0dim->min, "does minmaximum return same as min" );
     }
 }
