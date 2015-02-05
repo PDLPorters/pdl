@@ -8,15 +8,14 @@ perl:
   - "5.20"
   - "blead"
 sudo: true
-env:
-  - PDL_USE_BADVAL=1
-  - PDL_USE_BADVAL=0
 matrix:
   include:
     - perl: 5.20
-      env: COVERAGE=1 PDL_USE_BADVAL=1
+      env: PDL_USE_BADVAL=0 # test with badval disabled
     - perl: 5.20
-      env: COVERAGE=1 PDL_USE_BADVAL=0
+      env: COVERAGE=1
+    - perl: 5.20
+      env: COVERAGE=1 PDL_USE_BADVAL=0 # test with badval disabled + coverage
   allow_failures:
     - perl: blead
 before_install:
