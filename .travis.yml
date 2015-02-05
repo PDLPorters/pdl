@@ -25,6 +25,7 @@ before_install:
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need to run tests
   - export PGPLOT_DEV=/NULL
   - perl -pi -e 's|WITH_BADVAL => 1|WITH_BADVAL => 0| if defined $ENV{PDL_USE_BADVAL} && $ENV{PDL_USE_BADVAL} == 0' perldl.conf # disable bad value support
+  - echo "-v" > $HOME/.proverc # verbose TAP
   - eval $(curl https://travis-perl.github.io/init) --auto
 after_script:
   - perl -Iblib/lib -MPDL::Config -MData::Dumper -e 'print Dumper \%PDL::Config'
