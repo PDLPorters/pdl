@@ -11,11 +11,19 @@ sudo: true
 matrix:
   include:
     - perl: 5.20
-      env: PDL_USE_BADVAL=0 # test with badval disabled
+      env: PDL_WITH_BADVAL=0 # test with badval disabled
+    - perl: 5.20
+      env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=0 PDL_BADVAL_PER_PDL=0
+    - perl: 5.20
+      env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=0 PDL_BADVAL_PER_PDL=1
+    - perl: 5.20
+      env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=1 PDL_BADVAL_PER_PDL=0
+    - perl: 5.20
+      env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=1 PDL_BADVAL_PER_PDL=1
     - perl: 5.20
       env: COVERAGE=1
     - perl: 5.20
-      env: COVERAGE=1 PDL_USE_BADVAL=0 # test with badval disabled + coverage
+      env: COVERAGE=1 PDL_WITH_BADVAL=0 # test with badval disabled + coverage
   allow_failures:
     - perl: blead
 before_install:
@@ -24,8 +32,10 @@ before_install:
   - sudo apt-get install libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev # for OpenGL
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need to run tests
   - export PGPLOT_DEV=/NULL
-  - perl -pi -e 's|WITH_BADVAL => 1|WITH_BADVAL => 0| if defined $ENV{PDL_USE_BADVAL} && $ENV{PDL_USE_BADVAL} == 0' perldl.conf # disable bad value support
   - echo "-v" > $HOME/.proverc # verbose TAP
+  - perl -pi -e 's|WITH_BADVAL => 1|WITH_BADVAL => 0|       if defined $ENV{PDL_WITH_BADVAL}    && $ENV{PDL_WITH_BADVAL}     == 0' perldl.conf # disable bad value support
+  - perl -pi -e 's|BADVAL_USENAN => 0|BADVAL_USENAN => 1|   if defined $ENV{PDL_BADVAL_USENAN}  && $ENV{PDL_BADVAL_USENAN}   == 1' perldl.conf # enable BADVAL_USENAN
+  - perl -pi -e 's|BADVAL_PER_PDL => 0|BADVAL_PER_PDL => 1| if defined $ENV{PDL_BADVAL_PER_PDL} && $ENV{PDL_BADVAL_PER_PDL}  == 1' perldl.conf # enable BADVAL_PER_PDL
   - eval $(curl https://travis-perl.github.io/init) --auto
 after_script:
   - perl -Iblib/lib -MPDL::Config -MData::Dumper -e 'print Dumper \%PDL::Config'
