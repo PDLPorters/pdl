@@ -21,6 +21,8 @@ before_install:
   - sudo apt-get install libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev # for OpenGL
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need to run tests
   - eval $(curl https://travis-perl.github.io/init) --auto
+after_script:
+  - perl -Iblib/lib -MPDL::Config -MData::Dumper -e 'print Dumper \%PDL::Config'
 branches:
   except:
     - /^wip\//
