@@ -10,19 +10,19 @@ perl:
 sudo: true
 matrix:
   include:
-    - perl: 5.20
+    - perl: "5.20"
       env: PDL_WITH_BADVAL=0 # test with badval disabled
-    - perl: 5.20
+    - perl: "5.20"
       env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=0 PDL_BADVAL_PER_PDL=0
-    - perl: 5.20
+    - perl: "5.20"
       env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=0 PDL_BADVAL_PER_PDL=1
-    - perl: 5.20
+    - perl: "5.20"
       env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=1 PDL_BADVAL_PER_PDL=0
-    - perl: 5.20
+    - perl: "5.20"
       env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=1 PDL_BADVAL_PER_PDL=1
-    - perl: 5.20
+    - perl: "5.20"
       env: COVERAGE=1
-    - perl: 5.20
+    - perl: "5.20"
       env: COVERAGE=1 PDL_WITH_BADVAL=0 # test with badval disabled + coverage
   allow_failures:
     - perl: blead
