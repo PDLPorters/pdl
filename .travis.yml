@@ -8,11 +8,15 @@ perl:
   - "5.20"
   - "blead"
 sudo: true
-env: PGPLOT_DEV=/NULL
+env:
+  - PDL_USE_BADVAL=1
+  - PDL_USE_BADVAL=0
 matrix:
   include:
     - perl: 5.20
-      env: PGPLOT_DEV=/NULL COVERAGE=1
+      env: COVERAGE=1 PDL_USE_BADVAL=1
+    - perl: 5.20
+      env: COVERAGE=1 PDL_USE_BADVAL=0
   allow_failures:
     - perl: blead
 before_install:
@@ -20,6 +24,8 @@ before_install:
   - sudo apt-get install gfortran build-essential libx11-dev pgplot5 libplplot-dev libgd2-xpm-dev libhdf4-alt-dev libproj-dev libvpx-dev libxpm-dev proj-bin libcfitsio3-dev libreadline-dev
   - sudo apt-get install libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev # for OpenGL
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need to run tests
+  - export PGPLOT_DEV=/NULL
+  - perl -pi -e 's|WITH_BADVAL => 1|WITH_BADVAL => 0| if defined $ENV{PDL_USE_BADVAL} && $ENV{PDL_USE_BADVAL} == 0' perldl.conf # disable bad value support
   - eval $(curl https://travis-perl.github.io/init) --auto
 after_script:
   - perl -Iblib/lib -MPDL::Config -MData::Dumper -e 'print Dumper \%PDL::Config'
