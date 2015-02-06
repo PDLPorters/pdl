@@ -30,15 +30,29 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install gfortran build-essential libx11-dev pgplot5 libplplot-dev libgd2-xpm-dev libhdf4-alt-dev libproj-dev libvpx-dev libxpm-dev proj-bin libcfitsio3-dev libreadline-dev
   - sudo apt-get install libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev # for OpenGL
-  - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need to run tests
+  - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need tests
   - export PGPLOT_DEV=/NULL
-  - echo "--formatter TAP::Formatter::File -v" > $HOME/.proverc # verbose TAP
   - perl -pi -e 's|WITH_BADVAL => 1|WITH_BADVAL => 0|       if defined $ENV{PDL_WITH_BADVAL}    && $ENV{PDL_WITH_BADVAL}     == 0' perldl.conf # disable bad value support
   - perl -pi -e 's|BADVAL_USENAN => 0|BADVAL_USENAN => 1|   if defined $ENV{PDL_BADVAL_USENAN}  && $ENV{PDL_BADVAL_USENAN}   == 1' perldl.conf # enable BADVAL_USENAN
   - perl -pi -e 's|BADVAL_PER_PDL => 0|BADVAL_PER_PDL => 1| if defined $ENV{PDL_BADVAL_PER_PDL} && $ENV{PDL_BADVAL_PER_PDL}  == 1' perldl.conf # enable BADVAL_PER_PDL
-  - eval $(curl https://travis-perl.github.io/init) --auto
+  - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
+  - source ~/travis-perl-helpers/init
+  - build-perl
+  - perl -V
+  - build-dist
+  - cd $BUILD_DIR             # $BUILD_DIR is set by the build-dist command
+install:
+  - cpan-install --deps       # installs prereqs, including recommends
+  - cpan-install --coverage   # installs converage prereqs, if enabled
+  - make
+before_script:
+  - coverage-setup
+script:
+  - prove -b --formatter TAP::Formatter::File -v $(test-files)
 after_script:
   - perl -Iblib/lib -MPDL::Config -MData::Dumper -e 'print Dumper \%PDL::Config'
+after_success:
+  - coverage-report
 branches:
   except:
     - /^wip\//
