@@ -232,16 +232,19 @@ PDL::Core::Dev::postamble().
 # there must be a more elegant way of saying that
 # certain files have additional dependencies!
 
-pdlthread.c :: pdlcore.h\n"
+pdlthread.c :: pdl.h pdlcore.h\n"
 ."
 
-pdlhash.c :: pdlcore.h\n"
+pdlhash.c :: pdl.h pdlcore.h\n"
 ."
 
-pdlapi.c :: pdlcore.h\n"
+pdlapi.c :: pdl.h pdlcore.h\n"
 ."
 
 pdlmagic.c :: pdlcore.h\n"
+."
+
+pdlsections.c :: pdl.h pdlcore.h\n"
 ."
 
 Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
