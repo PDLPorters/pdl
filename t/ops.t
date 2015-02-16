@@ -15,7 +15,7 @@ sub tapprox {
 	return $d < 0.01;
 }
 
-print "1..43\n";
+print "1..44\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -143,7 +143,7 @@ ok(38, all $data == 1);
 ok(39, all $data eq $data); # check eq operator
 
 
-# check proper modulus...
+# check proper modulus... really we should do this for each datatype
 $a = xvals(15)-7;
 $b = $a % 3;
 ok(40,sum($b != pdl(2,0,1,2,0,1,2,0,1,2,0,1,2,0,1)) == 0);
@@ -155,4 +155,4 @@ ok(42,sum($b != 0) == 0);
 $b = $a->qsorti;
 $c = $b % 3;
 ok(43,all($c->double==pdl("0 1 2 " x 5)));
-
+ok(44,longlong(10)%longlong(5)==0);
