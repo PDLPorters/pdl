@@ -516,8 +516,6 @@ my %makefile_hash = (
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
 	      'CCFLAGS' => $ccflags,
-	      'linkext'  => { LINKTYPE => '' },  # No linking required
-                                               # in this directory
 	      'dist'     => { COMPRESS => 'gzip',
                               SUFFIX   => 'gz',
                               PREOP    => $preop },
