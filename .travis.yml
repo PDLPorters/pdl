@@ -35,6 +35,7 @@ before_install:
   - perl -pi -e 's|BADVAL_USENAN => 0|BADVAL_USENAN => 1|   if defined $ENV{PDL_BADVAL_USENAN}  && $ENV{PDL_BADVAL_USENAN}   == 1' perldl.conf # enable BADVAL_USENAN
   - perl -pi -e 's|BADVAL_PER_PDL => 0|BADVAL_PER_PDL => 1| if defined $ENV{PDL_BADVAL_PER_PDL} && $ENV{PDL_BADVAL_PER_PDL}  == 1' perldl.conf # enable BADVAL_PER_PDL
   - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
+  - ls -lR
   - source ~/travis-perl-helpers/init
   - build-perl
   - perl -V
