@@ -21,6 +21,8 @@ matrix:
     - perl: "5.20"
       env: PDL_WITH_BADVAL=1 PDL_BADVAL_USENAN=1 PDL_BADVAL_PER_PDL=1
     - perl: "5.20"
+      env: DISABLE_FORTRAN=1 # what if we don't have Fortran installed?
+    - perl: "5.20"
       env: COVERAGE=1
     - perl: "5.20"
       env: COVERAGE=1 PDL_WITH_BADVAL=0 # test with badval disabled + coverage
@@ -28,7 +30,8 @@ matrix:
     - perl: blead
 before_install:
   - sudo apt-get update
-  - sudo apt-get install gfortran build-essential libx11-dev pgplot5 libplplot-dev libgd2-xpm-dev libhdf4-alt-dev libproj-dev libvpx-dev libxpm-dev proj-bin libcfitsio3-dev libreadline-dev
+  - sudo apt-get install build-essential libx11-dev pgplot5 libplplot-dev libgd2-xpm-dev libhdf4-alt-dev libproj-dev libvpx-dev libxpm-dev proj-bin libcfitsio3-dev libreadline-dev
+  - if [ "$DISABLE_FORTRAN" != 1 ]; then sudo apt-get install gfortran; fi # set DISABLE_FOTRAN = 1 to not install gfortran
   - sudo apt-get install libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev # for OpenGL
   - export PGPLOT_DEV=/NULL
   - perl -pi -e 's|WITH_BADVAL => 1|WITH_BADVAL => 0|       if defined $ENV{PDL_WITH_BADVAL}    && $ENV{PDL_WITH_BADVAL}     == 0' perldl.conf # disable bad value support
