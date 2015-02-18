@@ -219,7 +219,8 @@ END
 #==============================================================================
 sub compile {
     my $o = shift;
-    local $ENV{PERL5LIB} = join $Config{path_sep}, map abs_path($_), @INC
+    # grep is because on Windows, Cwd::abs_path blows up on non-exist dir
+    local $ENV{PERL5LIB} = join $Config{path_sep}, map abs_path($_), grep -e, @INC
         unless defined $ENV{PERL5LIB};
     $o->SUPER::compile;
 }
