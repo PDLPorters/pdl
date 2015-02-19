@@ -20,7 +20,7 @@ undef &MY::postamble; # suppress warning
 
    $text .= << "EOPS" ;
 
-pdl2.pod : pdl2 subdirs
+pdl2.pod : pdl2
 \t\$(PERLRUN) -MPod::Select -e "podselect('pdl2');" > pdl2.pod
 
 EOPS

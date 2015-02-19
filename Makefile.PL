@@ -605,10 +605,10 @@ doc_perl_install ::
 
 $text .= << "EOPS" ;
 
-perldl.pod : perldl subdirs
+perldl.pod : perldl
 \t\$(PERLRUN) -MPod::Select -e "podselect('perldl');" > perldl.pod
 
-pdldoc.pod : pdldoc subdirs
+pdldoc.pod : pdldoc
 \t\$(PERLRUN) -MPod::Select -e "podselect('pdldoc');" > pdldoc.pod
 
 EOPS
