@@ -11,8 +11,8 @@ undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
   <<'EOF';
 PP/Dump.pm: PP/dump.pp
-	$(PERL) PP/dump.pp > PP/Dump.pm.tmp
-	$(MV) PP/Dump.pm.tmp PP/Dump.pm
+	$(PERL) PP$(DFSEP)dump.pp > PP$(DFSEP)Dump.pm.tmp
+	$(MV) PP$(DFSEP)Dump.pm.tmp PP$(DFSEP)Dump.pm
 
 pptemplate.pod: pptemplate
 	$(PERLRUN) -MPod::Select -e "podselect('pptemplate');" > pptemplate.pod

@@ -574,27 +574,27 @@ sub MY::postamble {
 '
 doctest ::
 	$(NOECHO) $(ECHO) "doctest: Building PDL documentation database in blib ..."
-	$(NOECHO) $(PERLRUNINST) Doc/scantree.pl
+	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl
 %HTML%	$(NOECHO) $(ECHO) "doctest: Building PDL documentation web pages in blib ..."
-%HTML%	$(NOECHO) $(PERLRUNINST) Doc/mkhtmldoc.pl
+%HTML%	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)mkhtmldoc.pl
 
 doc_site_install ::
 	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Doc/scantree.pl "$(INSTALLSITEARCH)"
+	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(INSTALLSITEARCH)"
 %HTML%	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation web pages ..."
-%HTML%	$(NOECHO) $(PERL) Doc/mkhtmldoc.pl "$(INSTALLSITEARCH)/PDL"
+%HTML%	$(NOECHO) $(PERL) Doc$(DFSEP)mkhtmldoc.pl "$(INSTALLSITEARCH)$(DFSEP)PDL"
 
 doc_vendor_install ::
 	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Doc/scantree.pl "$(INSTALLVENDORARCH)"
+	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(INSTALLVENDORARCH)"
 %HTML%	$(NOECHO) $(ECHO) "doc_vendor_install: Building PDL documentation web pages ..."
-%HTML%	$(NOECHO) $(PERL) Doc/mkhtmldoc.pl "$(INSTALLVENDORARCH)/PDL"
+%HTML%	$(NOECHO) $(PERL) Doc$(DFSEP)mkhtmldoc.pl "$(INSTALLVENDORARCH)$(DFSEP)PDL"
 
 doc_perl_install ::
 	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation database ..."
-	$(NOECHO) $(PERLRUNINST) Doc/scantree.pl "$(INSTALLARCHLIB)"
+	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(INSTALLARCHLIB)"
 %HTML%	$(NOECHO) $(ECHO) "doc_perl_install: Building PDL documentation web pages ..."
-%HTML%	$(NOECHO) $(PERL) Doc/mkhtmldoc.pl "$(INSTALLARCHLIB)/PDL"
+%HTML%	$(NOECHO) $(PERL) Doc$(DFSEP)mkhtmldoc.pl "$(INSTALLARCHLIB)$(DFSEP)PDL"
 ';
 
   if(defined $PDL::Config{HTML_DOCS} && !$PDL::Config{HTML_DOCS}){
@@ -623,16 +623,16 @@ $text .= << 'EOT' if $^O =~ /MSWin/;
 DISTWIN32NAME=$(DISTVNAME)-win32
 
 ppm: doctest ppd
-	$(MV) blib/lib/PDL/HtmlDocs/PDL blib/html/lib/PDL
-	$(COMPRESS) -dc win32/pbmwin32.tar.gz | $(TAR) xf -
+	$(MV) blib$(DFSEP)lib$(DFSEP)PDL$(DFSEP)HtmlDocs$(DFSEP)PDL blib$(DFSEP)html$(DFSEP)lib$(DFSEP)PDL
+	$(COMPRESS) -dc win32$(DFSEP)pbmwin32.tar.gz | $(TAR) xf -
 	$(MKPATH) $(DISTWIN32NAME)
-	$(CP) win32/Readme $(DISTWIN32NAME)
-	$(CP) win32/install.ppm .
-	$(PERL) -pe "s|</IMPLEMENTATION>|<INSTALL EXEC=\"perl\">install.ppm</INSTALL></IMPLEMENTATION>|" PDL.ppd > PDL.ppd.new
+	$(CP) win32$(DFSEP)Readme $(DISTWIN32NAME)
+	$(CP) win32$(DFSEP)install.ppm .
+	$(PERL) -pe "s|<\x{2f}IMPLEMENTATION>|<INSTALL EXEC=\"perl\">install.ppm<\x{2f}INSTALL><\x{2f}IMPLEMENTATION>|" PDL.ppd > PDL.ppd.new
 	$(RM) PDL.ppd
 	$(MV) PDL.ppd.new PDL.ppd
 	$(CP) PDL.ppd $(DISTWIN32NAME)
-	$(TAR) cf $(DISTWIN32NAME)/PDL.tar blib install.ppm
+	$(TAR) cf $(DISTWIN32NAME)$(DFSEP)PDL.tar blib install.ppm
 	cd $(DISTWIN32NAME)
 	$(COMPRESS) PDL.tar
 	$(ZIP) $(DISTWIN32NAME).zip *
