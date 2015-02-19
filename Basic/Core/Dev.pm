@@ -352,7 +352,7 @@ EOF
 # Rules for the generic preprocessor
 
 .SUFFIXES: .g
-.g.c:
+.g.c :
 	%s "$<" > "$@"
 
 EOF
