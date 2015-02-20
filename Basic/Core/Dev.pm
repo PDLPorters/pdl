@@ -337,23 +337,28 @@ sub flushgeneric {  # Construct the generic code switch
 }
 
 
+sub genpp_cmdline {
+  my ($in, $out) = @_;
+  require ExtUtils::MM;
+  my $MM = bless { NAME => 'Fake' }, 'MM';
+  my $devpm = whereami_any()."/Core/Dev.pm";
+  sprintf($MM->oneliner(<<'EOF'), $devpm) . qq{ "$in" > "$out"};
+require "%s"; PDL::Core::Dev->import(); genpp();
+EOF
+}
+
+
 # Standard PDL postamble
 
 sub postamble {
   my ($self) = @_;
-  require ExtUtils::MM;
-  my $MM = bless { NAME => 'Fake' }, 'MM';
-  my $devpm = whereami_any()."/Core/Dev.pm";
-  my $oneliner = sprintf $MM->oneliner(<<'EOF'), $devpm;
-require "%s"; PDL::Core::Dev->import(); genpp();
-EOF
-  sprintf <<'EOF', $oneliner;
+  sprintf <<'EOF', genpp_cmdline(qw($< $@));
 
 # Rules for the generic preprocessor
 
 .SUFFIXES: .g
 .g.c :
-	%s "$<" > "$@"
+	%s
 
 EOF
 }

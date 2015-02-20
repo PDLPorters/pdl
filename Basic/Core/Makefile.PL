@@ -173,56 +173,31 @@ undef &MY::processPL; *MY::processPL = sub {
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
 
+    # nmake doesn't seem to do inference rules right so spell it out
+    my $pdlsections_g = sprintf <<'EOF', PDL::Core::Dev::genpp_cmdline(qw(pdlsections.g pdlsections.c));
+
+pdlsections.c :: pdlsections.g Types.pm
+	%s
+EOF
 if($Config{make} =~ /\bdmake/i) {
-  if($ExtUtils::MakeMaker::VERSION < 7) {
-
-#EU-MM < 7
-return
-
-PDL::Core::Dev::postamble().
-"
+    my $text = PDL::Core::Dev::postamble() . "
 
 Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
-. make_from_PL('Core.pm')
-."
+    . make_from_PL('Core.pm') . "
 
 pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
-. make_from_PL( 'pdl.h' )
-."
+    . make_from_PL( 'pdl.h' ) . "
 
 pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
-. make_from_PL( 'pdlsimple.h' )
-."
+    . make_from_PL( 'pdlsimple.h' ) . "
 
 pdlcore.h:: pdlcore.h.PL Types.pm\n"
-. make_from_PL( 'pdlcore.h' )
-.
-q|
-
-pdlsections.c: pdlsections.g Types.pm
-|;
+    . make_from_PL( 'pdlcore.h' );
+  if($ExtUtils::MakeMaker::VERSION < 7) {
+    return $text . $pdlsections_g;
   } else {
 #EU-MM >= 7
-return
-
-PDL::Core::Dev::postamble().
-"
-
-Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
-. make_from_PL('Core.pm')
-."
-
-pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
-. make_from_PL( 'pdl.h' )
-."
-
-pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
-. make_from_PL( 'pdlsimple.h' )
-."
-
-pdlcore.h:: pdlcore.h.PL Types.pm\n"
-. make_from_PL( 'pdlcore.h' )
-
+    return $text;
   }
 } else { return
 PDL::Core::Dev::postamble().
@@ -274,10 +249,7 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
     join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
     qw( Core.pm Core.xs pdlcore.c ) )
 .
-($^O =~ /MSWin/ ? q|
-
-pdlsections.c: pdlsections.g Types.pm
-| : '');
+($^O =~ /MSWin/ ? $pdlsections_g : '');
 }
 };
 
