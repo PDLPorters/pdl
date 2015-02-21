@@ -289,12 +289,7 @@ implementation.  It would almost certainly cause problems elsewhere though!
 
 =head1 IMPLEMENTATION DETAILS
 
-During a C<perl Makefile.PL>, the file F<Basic/Core/badsupport.p> is created;
-this file contains the values of the C<WITH_BADVAL>, C<BADVAL_USENAN>
-and C<BADVAL_PER_PDL> variables, and should be used by code that is
-executed before the F<PDL::Config>
-file is created (e.g. F<Basic/Core/pdlcore.c.PL>.  
-However, most PDL code will just need to access the C<%PDL::Config>
+PDL code just needs to access the C<%PDL::Config>
 array (e.g. F<Basic/Bad/bad.pd>) to find out whether bad-value support is required.
 
 A new flag has been added to the state of a piddle - C<PDL_BADVAL>. If unset, then

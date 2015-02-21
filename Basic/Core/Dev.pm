@@ -371,7 +371,6 @@ EOF
 # This is the function internal for PDL.
 # Later on, we shall provide another for use outside PDL.
 #
-# added badsupport.p as a requisite
 sub pdlpp_postamble_int {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
@@ -380,16 +379,9 @@ sub pdlpp_postamble_int {
 	my $core = File::Spec->catdir($basic, 'Core');
 	my $gen = File::Spec->catdir($basic, 'Gen');
 
-## I diked out a "$gen/pm_to_blib" dependency (between $core/badsupport.p and
-# $core/Types.pm below), because it appears to be causing excessive recompiles.
-# I don't think that the .pm files themselves should depend on Gen/pm_to_blib,
-# so this should be OK.  But perhaps the requirement had to do with the build chaing
-# itself???  If so, we'll have to put it back in, but then modify the build order
-# so that Gen is built first.  CED 28-Oct-2008
-
 qq|
 
-$pref.pm: $src $core/badsupport.p $core/Types.pm
+$pref.pm: $src $core/Types.pm
 	\$(PERLRUNINST) \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm

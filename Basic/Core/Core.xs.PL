@@ -8,9 +8,10 @@ use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
 
-# check for bad value support
-use vars qw( $bvalflag $usenan $bvalPerPdl );
-require "badsupport.p";
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL};
+my $usenan = $PDL::Config{BADVAL_USENAN};
+my $bvalPerPdl = $PDL::Config{BADVAL_PER_PDL};
 
 # are we big or little endian?
 require PDL::Core::Dev;

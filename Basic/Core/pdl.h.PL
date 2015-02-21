@@ -1,16 +1,17 @@
 # -*-perl-*-
 
+use strict;
+use warnings;
 use Config;
 use File::Basename qw(&basename &dirname);
-
-require "badsupport.p";
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';
 my $ntypes = $#PDL::Types::names;
 my $PDL_DATATYPES = PDL::Types::datatypes_header();
 
-use PDL::Config;
+require './Config.pm';
+die "No PDL::Config found" unless %PDL::Config;
 my $mymalloc = $PDL::Config{MALLOCDBG}->{define} // '';
 
 my $file = shift @ARGV;

@@ -107,8 +107,6 @@ $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_li
 print "Trying to figure out endian-ness of machine...";
 print " It is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . " endian\n";
 
-# badsupport.p is made by the top-level Makefile, but placed
-# into Basic/Core, so we clean it up here
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
 use ExtUtils::MakeMaker;
@@ -229,7 +227,7 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 . make_from_PL( 'pdlcore.h' )
 .
 
-    join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
+    join( "", map { "\n$_ :: ${_}.PL\n" . make_from_PL($_) }
     qw( Core.xs pdlcore.c ) )
 .
 ($^O =~ /MSWin/ ? $pdlsections_g : '');
@@ -260,8 +258,7 @@ WriteMakefile(
                    'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
                    'pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
-		   'Types.pm Version.pm Core.c Core.xs ' .
-		   'badsupport.p'
+		   'Types.pm Version.pm Core.c Core.xs '
 		   },
  'INC'          => join(' ',
    PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
