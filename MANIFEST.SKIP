@@ -62,7 +62,6 @@ RCS
 ^Basic/GTest/GTest\.xs$
 ^Basic/Gen/PP/Dump\.pm$
 ^Basic/Gen/PP/Dump\.pm\.tmp$
-^Basic/Gen/pptemplate$
 ^Basic/Gen/pptemplate.pod$
 ^Basic/Math/Math\.c$
 ^Basic/Math/Math\.pm$
@@ -231,12 +230,9 @@ RCS
 ^patch
 ^pdl$
 ^pdl.*-log.txt$
-^pdl\.c$
-^pdldoc$
 ^pdldoc.db$
 ^pdldoc.pod
 ^perl$
-^perldl$
 ^perldl.conf-fast
 ^perldl.conf-orig
 ^perldl.pod
