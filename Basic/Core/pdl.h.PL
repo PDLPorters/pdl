@@ -4,31 +4,16 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 require "pdl_hfiles.p";
-require "mymalloc.p";
 require "badsupport.p";
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';
 my $ntypes = $#PDL::Types::names;
 
+use PDL::Config;
+my $mymalloc = $PDL::Config{MALLOCDBG}->{define} // '';
 
-
-# List explicitly here the variables you want Configure to
-# generate.  Metaconfig only looks for shell variables, so you
-# have to mention them as if they were shell variables, not
-# %Config entries.  Thus you write
-#  $startperl
-# to ensure Configure will look for $Config{startperl}.
-
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-my $file;
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//
-	if ($Config{'osname'} eq 'VMS' or
-	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
-
+my $file = shift @ARGV;
 print "Extracting $file\n";
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;

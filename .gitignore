@@ -89,7 +89,6 @@ Basic/Core/Core.xs
 Basic/Core/Types.pm
 Basic/Core/Version.pm
 Basic/Core/badsupport.p
-Basic/Core/mymalloc.p
 Basic/Core/pdl.h
 Basic/Core/pdlconv.c
 Basic/Core/pdlcore.c

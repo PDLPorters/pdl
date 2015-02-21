@@ -16,16 +16,6 @@ my $macos_braindamage_define = ($^O eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE "
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
-my $fh = IO::File->new( "> mymalloc.p" )
-  or die "couldn't open mymalloc.p";
-if ( defined $PDL::Config{MALLOCDBG}->{define} ) {
-    $fh->print( "\$mymalloc = <<'EOM';\n$PDL::Config{MALLOCDBG}->{define}\nEOM\n" );
-} else {
-    $fh->print( "\$mymalloc = '';\n" );
-}
-$fh->print( "1;\n" );
-$fh->close;
-
 print "Trying to figure out POSIX threads support ...\n";
 
 # TODO: replace directory and file checks for pthread.h by Devel::CheckLib test
@@ -182,7 +172,7 @@ EOF
 if($Config{make} =~ /\bdmake/i) {
     my $text = PDL::Core::Dev::postamble() . "
 
-pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
+pdl.h:: pdl.h.PL Types.pm\n"
     . make_from_PL( 'pdl.h' ) . "
 
 pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
@@ -219,7 +209,7 @@ pdlmagic.c :: pdlcore.h\n"
 pdlsections.c :: pdl.h pdlcore.h\n"
 ."
 
-pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
+pdl.h:: pdl.h.PL Types.pm\n"
 . make_from_PL( 'pdl.h' )
 ."
 
@@ -271,7 +261,7 @@ WriteMakefile(
                    'pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
 		   'Types.pm Version.pm Core.c Core.xs ' .
-		   'mymalloc.p badsupport.p'
+		   'badsupport.p'
 		   },
  'INC'          => join(' ',
    PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
