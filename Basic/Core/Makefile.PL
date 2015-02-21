@@ -1,9 +1,8 @@
 use strict;
 use warnings;
-use File::Spec;
 use Devel::CheckLib;
 use Config;
-use IO::File;
+use ExtUtils::MakeMaker;
 
 ## $DB::single = 1;  # uncomment to have debugger stop here
 
@@ -29,9 +28,6 @@ if ( exists $PDL::Config{POSIX_THREADS_INC} and  defined $PDL::Config{POSIX_THRE
     print "\tEhh. Didn't see include file 'pthread.h'.\n";
     $pthread_include = '';
 }
-
-# For SGI, I had to link a new perl - cannot dlopen libpthread...
-require Config;
 
 # TODO: need to clean up per-platform logic herer
 if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THREADS_LIBS} ) {
@@ -108,8 +104,6 @@ print "Trying to figure out endian-ness of machine...";
 print " It is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . " endian\n";
 
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
-
-use ExtUtils::MakeMaker;
 
 # Extra targets to build
 
@@ -234,12 +228,11 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 }
 };
 
+my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic pdlsections);
+my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
  'VERSION_FROM' => 'Version.pm',
- 'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) '.
-                   'pdlconv$(OBJ_EXT) pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
   'PM'          => {
 		(map {($_,'$(INST_LIBDIR)/'.$_)} (
 			qw/Core.pm Basic.pm Version.pm Types.pm
@@ -252,11 +245,11 @@ WriteMakefile(
 		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
 		},
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
- 'DEFINE'	=> $pthread_define.$macos_braindamage_define,
+ 'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
+ 'DEFINE' 	=> $pthread_define.$macos_braindamage_define,
  'LIBS'         => ["$pthread_library $malloclib"],
- 'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlconv.c pdlsections.c pdlcore.c '.
+ 'clean'        => {'FILES'  => $cobj .
+                   ' pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
 		   'Types.pm Version.pm Core.c Core.xs '
 		   },
