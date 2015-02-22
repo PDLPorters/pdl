@@ -182,9 +182,6 @@ EOF
 if($Config{make} =~ /\bdmake/i) {
     my $text = PDL::Core::Dev::postamble() . "
 
-Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
-    . make_from_PL('Core.pm') . "
-
 pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
     . make_from_PL( 'pdl.h' ) . "
 
@@ -222,10 +219,6 @@ pdlmagic.c :: pdlcore.h\n"
 pdlsections.c :: pdl.h pdlcore.h\n"
 ."
 
-Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
-. make_from_PL('Core.pm')
-."
-
 pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
 . make_from_PL( 'pdl.h' )
 ."
@@ -247,7 +240,7 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 .
 
     join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
-    qw( Core.pm Core.xs pdlcore.c ) )
+    qw( Core.xs pdlcore.c ) )
 .
 ($^O =~ /MSWin/ ? $pdlsections_g : '');
 }
@@ -270,14 +263,14 @@ WriteMakefile(
 		)),
 		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
 		},
- 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
+ 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
  'DEFINE'	=> $pthread_define.$macos_braindamage_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                    'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
                    'pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
-		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
+		   'Types.pm Version.pm Core.c Core.xs ' .
 		   'mymalloc.p badsupport.p'
 		   },
  'INC'          => join(' ',

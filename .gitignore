@@ -85,7 +85,6 @@ Basic/Complex/Complex.pm
 Basic/Complex/Complex.xs
 Basic/Core/Config.pm
 Basic/Core/Core.c
-Basic/Core/Core.pm
 Basic/Core/Core.xs
 Basic/Core/Types.pm
 Basic/Core/Version.pm
