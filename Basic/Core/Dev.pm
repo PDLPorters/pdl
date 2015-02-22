@@ -690,5 +690,124 @@ EOF
   return $success;
 }
 
-1; # Return OK
+=head2 datatypes_switch
 
+=for ref
+
+prints on C<STDOUT> XS text for F<Core.xs>.
+
+=cut
+
+sub datatypes_switch {
+  my $ntypes = $#PDL::Types::names;
+  my @m;
+  foreach my $i ( 0 .. $ntypes ) {
+    my $type = PDL::Type->new( $i );
+    my $typesym = $type->symbol;
+    my $cname = $type->ctype;
+    $cname =~ s/^PDL_//;
+    push @m, "\tcase $typesym: retval = PDL.bvals.$cname; break;";
+  }
+warn "(@m)";
+  print map "$_\n", @m;
+}
+
+=head2 generate_core_flags
+
+=for ref
+
+prints on C<STDOUT> XS text with core flags, for F<Core.xs>.
+
+=cut
+
+my %flags = (
+    hdrcpy => { set => 1 },
+    fflows => { FLAG => "DATAFLOW_F" },
+    bflows => { FLAG => "DATAFLOW_B" },
+    is_inplace => { FLAG => "INPLACE", postset => 1 },
+    donttouch => { FLAG => "DONTTOUCHDATA" },
+    allocated => { },
+    vaffine => { FLAG => "OPT_VAFFTRANSOK" },
+    anychgd => { FLAG => "ANYCHANGED" },
+    dimschgd => { FLAG => "PARENTDIMSCHANGED" },
+    tracedebug => { FLAG => "TRACEDEBUG", set => 1},
+);
+#if ( $bvalflag ) { $flags{baddata} = { set => 1, FLAG => "BADVAL" }; }
+
+sub generate_core_flags {
+    # access (read, if set is true then write as well; if postset true then
+    #         read first and write new value after that)
+    # to piddle's state
+    foreach my $name ( keys %flags ) {
+        my $flag = "PDL_" . ($flags{$name}{FLAG} || uc($name));
+        if ( $flags{$name}{set} ) {
+            print <<"!WITH!SUBS!";
+int
+$name(x,mode=0)
+        pdl *x
+        int mode
+        CODE:
+        if (items>1)
+           { setflag(x->state,$flag,mode); }
+        RETVAL = ((x->state & $flag) > 0);
+        OUTPUT:
+        RETVAL
+
+!WITH!SUBS!
+        } elsif ($flags{$name}{postset}) {
+            print <<"!WITH!SUBS!";
+int
+$name(x,mode=0)
+        pdl *x
+        int mode
+        CODE:
+        RETVAL = ((x->state & $flag) > 0);
+        if (items>1)
+           { setflag(x->state,$flag,mode); }
+        OUTPUT:
+        RETVAL
+
+!WITH!SUBS!
+        } else {
+            print <<"!WITH!SUBS!";
+int
+$name(self)
+        pdl *self
+        CODE:
+        RETVAL = ((self->state & $flag) > 0);
+        OUTPUT:
+        RETVAL
+
+!WITH!SUBS!
+        }
+    } # foreach: keys %flags
+}
+
+=head2 generate_badval_init
+
+=for ref
+
+prints on C<STDOUT> XS text with badval initialisation, for F<Core.xs>.
+
+=cut
+
+sub generate_badval_init {
+  for my $type (PDL::Types::types()) {
+    my $typename = $type->ctype;
+    $typename =~ s/^PDL_//;
+    my $bval = $type->defbval;
+    if ($PDL::Config{BADVAL_USENAN} && $type->usenan) {
+      # note: no defaults if usenan
+      print "\tPDL.bvals.$typename = PDL.NaN_$type;\n"; #Core NaN value
+    } else {
+      print "\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";
+    }
+  }
+#    PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
+#    PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
+#    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
+#    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
+
+}
+
+1;

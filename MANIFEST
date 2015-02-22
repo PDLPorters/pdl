@@ -7,7 +7,7 @@ Basic/Constants.pm
 Basic/Core/Basic.pm
 Basic/Core/Char.pm
 Basic/Core/Core.pm
-Basic/Core/Core.xs.PL
+Basic/Core/Core.xs
 Basic/Core/Dbg.pm
 Basic/Core/Dev.pm
 Basic/Core/Exporter.pm
@@ -16,9 +16,11 @@ Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
 Basic/Core/pdl.h.PL
 Basic/Core/pdlapi.c
+Basic/Core/pdlbadvalinit.c.PL
 Basic/Core/pdlconv.c.PL
 Basic/Core/pdlcore.c.PL
 Basic/Core/pdlcore.h.PL
+Basic/Core/pdldataswitch.c.PL
 Basic/Core/pdlhash.c
 Basic/Core/pdlmagic.c
 Basic/Core/pdlmagic.h

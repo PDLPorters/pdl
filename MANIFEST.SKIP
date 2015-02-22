@@ -45,8 +45,6 @@ RCS
 ^Basic/Core/Config\.pm
 ^Basic/Core/Config\.pm
 ^Basic/Core/Core\.c$
-^Basic/Core/Core\.pm$
-^Basic/Core/Core\.xs$
 ^Basic/Core/Types\.pm$
 ^Basic/Core/Version\.pm
 ^Basic/Core/Version\.pm
