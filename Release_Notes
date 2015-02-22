@@ -35,7 +35,11 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * The new Filter::Simple engine for PDL::NiceSlice is now
+   the default.  This fixes problems where PDL::NiceSlice
+   was applying the sourcefilter to the content of comments
+   and strings.  Still to do: implement for command line use
+   in perldl/pdl2 shells.
 
 
 
