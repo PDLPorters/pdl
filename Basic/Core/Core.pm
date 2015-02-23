@@ -3,6 +3,7 @@ package PDL::Core;
 # Core routines for PDL module
 
 use strict;
+use warnings;
 use PDL::Exporter;
 use DynaLoader;
 our @ISA    = qw( PDL::Exporter DynaLoader );
@@ -2599,7 +2600,7 @@ sub PDL::reshape{
     }
     my $pdl = pdl($_[0]);
     my $nelem = $pdl->nelem;
-    my @dims = @_[1..$#_];
+    my @dims = grep defined, @_[1..$#_];
     for my $dim(@dims) { barf "reshape: invalid dim size '$dim'" if $dim < 0 }
     @dims = grep($_ != 1, $pdl->dims) if @dims == 0; # get rid of dims of size 1
     $pdl->setdims([@dims]);
