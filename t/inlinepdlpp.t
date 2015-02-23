@@ -15,15 +15,11 @@ BEGIN {
    my $inline_test_dir = './.inlinepdlpp';
    mkdir $inline_test_dir unless -d $inline_test_dir;
    eval 'use Inline (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1)';
-   if ( ! $@ ) {       # have Inline
-      eval 'use Inline 0.43';
-      if ( ! $@ ) {
-         plan tests => 3;
-      }
-   }
-   else {
-      plan skip_all => "Skipped: Inline not installed";
-   }
+   plan skip_all => "Skipped: Inline not installed" if $@;
+   diag "Inline Version: $Inline::VERSION\n";
+   eval 'use Inline 0.43';
+   plan skip_all => "Skipped: not got Inline >= 0.43" if $@;
+   plan tests => 3;
 }
 
 sub myshape { join ',', $_[0]->dims }
@@ -31,7 +27,6 @@ sub myshape { join ',', $_[0]->dims }
 # use Inline 'INFO'; # use to generate lots of info
 use Inline 'Pdlpp';
 
-print "Inline Version: $Inline::VERSION\n";
 ok(1); # ok, we made it so far
 
 $a = sequence(3,3);
