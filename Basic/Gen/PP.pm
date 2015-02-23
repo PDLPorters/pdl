@@ -137,6 +137,8 @@ require PDL::Core::Dev;
 use Carp;
 our @CARP_NOT;
 
+my $INVALID_OTHERPARS_RE = qr/^(?:magicno|flags|vtable|freeproc|bvalflag|has_badvalue|badvalue|pdls|__datatype)\z/;
+
 use overload ("\"\"" => \&PDL::PP::Rule::stringify);
 sub stringify {
     my $self = shift;
@@ -1538,6 +1540,9 @@ sub OtherPars_nft {
 	    $type = C::Type->new(undef,$_);
 	}
 	my $name = $type->protoname;
+        if ($name =~ /$INVALID_OTHERPARS_RE/) {
+            croak "Invalid OtherPars name: $name";
+        }
 	push @names,$name;
 	$types{$name} = $type;
     }

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Config;
 use Test::More $Config{usedl}
-    ? (tests => 2)
+    ? (tests => 5)
     : (skip_all => 'No dynaload; double-blib static build too difficult');
 use File::Spec;
 use IPC::Cmd qw(run);
@@ -251,14 +251,71 @@ EOF
 
 );
 
+my %OTHERPARSFILES = (
+    'Makefile.PL' => <<'EOF',
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
+use PDL::Core::Dev;
+my @pack = (["otherpars.pd", qw(Otherpars PDL::Otherpars)]);
+sub MY::postamble {
+	pdlpp_postamble(@pack);
+};  # Add genpp rule
+WriteMakefile(pdlpp_stdargs(@pack));
+EOF
+
+    'otherpars.pd' => <<'EOF',
+pp_core_importList( '()' );
+
+pp_def( "myexternalfunc",
+  Pars => " p(m);  x(n);  [o] y(); [t] work(wn); ",
+    RedoDimsCode => '
+    int im = $PDL(p)->dims[0];
+    int in = $PDL(x)->dims[0];
+    int min = in + im * im;
+    int inw = $PDL(work)->dims[0];
+    $SIZE(wn) = inw >= min ? inw : min;',
+	OtherPars => 'int flags;',
+    Code => 'int foo = 1;  ');
+
+pp_done();
+EOF
+
+    't/all.t' => <<'EOF',
+use strict;
+use warnings;
+use Test::More tests => 1;
+use PDL::LiteF;
+use_ok 'PDL::Otherpars';
+EOF
+
+);
+
+do_tests(\%PPTESTFILES);
 in_dir(
     sub {
-        hash2files(File::Spec->curdir, \%PPTESTFILES);
+        hash2files(File::Spec->curdir, \%OTHERPARSFILES);
         local $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
         run_ok(qq{"$^X" Makefile.PL});
-        run_ok(qq{"$Config{make}" test});
+        my $cmd = qq{"$Config{make}" test};
+        my $buffer;
+        my $res = run(command => $cmd, buffer => \$buffer);
+        ok !$res, 'Fails to build if invalid';
+        like $buffer, qr/Invalid OtherPars name/, 'Fails if given invalid OtherPars name';
     },
 );
+
+sub do_tests {
+    my ($hash) = @_;
+    in_dir(
+        sub {
+            hash2files(File::Spec->curdir, $hash);
+            local $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
+            run_ok(qq{"$^X" Makefile.PL});
+            run_ok(qq{"$Config{make}" test});
+        },
+    );
+}
 
 sub run_ok {
     my ($cmd) = @_;
