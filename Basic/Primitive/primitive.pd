@@ -2231,17 +2231,17 @@ pp_addpm(<<'EOD');
 
 =for ref
 
-Efficiently search for values in a sorted piddle.
+Efficiently search for values in a sorted piddle, returning indices.
 
 =for usage
 
   $idx = vsearch( $vals, $x, [\%options] );
   vsearch( $vals, $x, $idx, [\%options ] );
 
-B<vsearch> performs a binary search for the values from C<$vals>
-piddle in the ordered piddle C<$x>, returning indices into C<$x>.
-It is a front end to a set of routines which differ in how matches are
-determined and the meaning of the returned indices.
+B<vsearch> performs a binary search in the ordered piddle C<$x>,
+for the values from C<$vals> piddle, returning indices into C<$x>.
+What is a "match", and the meaning of the returned indices, are determined
+by the options.
 
 The C<mode> option indicates which method of searching to use, and may
 be one of:
@@ -2256,12 +2256,12 @@ within a distribution.
 =item C<insert_leftmost>
 
 invoke B<vsearch_insert_leftmost>, returning the left-most possible
-insertion point.
+insertion point which still leaves the piddle sorted.
 
 =item C<insert_rightmost>
 
 invoke B<vsearch_insert_rightmost>, returning the right-most possible
-insertion point.
+insertion point which still leaves the piddle sorted.
 
 =item C<insert_match>
 
@@ -2271,12 +2271,14 @@ else -(insertion point + 1)
 =item C<insert_bin_inclusive>
 
 invoke B<vsearch_bin_inclusive>, returning an index appropriate for binning
-on a grid where the left bin edges are I<inclusive> of the bin.
+on a grid where the left bin edges are I<inclusive> of the bin. See
+below for further explanation of the bin.
 
 =item C<insert_bin_exclusive>
 
 invoke B<vsearch_bin_exclusive>, returning an index appropriate for binning
-on a grid where the left bin edges are I<exclusive> of the bin.
+on a grid where the left bin edges are I<exclusive> of the bin. See
+below for further explanation of the bin.
 
 =back
 
