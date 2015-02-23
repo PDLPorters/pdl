@@ -23,6 +23,10 @@ BEGIN {
    } or do {
       plan skip_all => "Skipped: Inline not installed";
    };
+
+   if( $Inline::VERSION < 0.68 ) {
+      plan skip_all => "Skipped: Inline too early a version for Inline with=>'foo' form";
+   }	   
 }
 use File::Path;
 END {
@@ -33,10 +37,10 @@ END {
       }
     }
   }
-  rmtree $inline_test_dir if -d $inline_test_dir;
+#  rmtree $inline_test_dir if -d $inline_test_dir;
 }
 
-# use Inline 'INFO'; # use to generate lots of info
+use Inline 'INFO'; # use to generate lots of info
 use Inline with => 'PDL';
 use Inline 'C';
 
