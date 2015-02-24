@@ -3,7 +3,8 @@
 use Config;
 use File::Basename qw(&basename &dirname);
 
-require "pdl_hfiles.p";
+require 'Types.pm';
+my $PDL_DATATYPES = PDL::Types::datatypes_header();
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you

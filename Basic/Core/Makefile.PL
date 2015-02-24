@@ -1,9 +1,8 @@
 use strict;
 use warnings;
-use File::Spec;
 use Devel::CheckLib;
 use Config;
-use IO::File;
+use ExtUtils::MakeMaker;
 
 ## $DB::single = 1;  # uncomment to have debugger stop here
 
@@ -12,19 +11,10 @@ my $pthread_library = '-lpthread';                                  # not good f
 my $pthread_define  = ' -DPDL_PTHREAD ';
 
 my $macos_braindamage_define = ($^O eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
+my $badval_define = " -DBADVAL=$PDL::Config{WITH_BADVAL} -DBADVAL_USENAN=$PDL::Config{BADVAL_USENAN} -DBADVAL_PER_PDL=$PDL::Config{BADVAL_PER_PDL}";
 
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
-
-my $fh = IO::File->new( "> mymalloc.p" )
-  or die "couldn't open mymalloc.p";
-if ( defined $PDL::Config{MALLOCDBG}->{define} ) {
-    $fh->print( "\$mymalloc = <<'EOM';\n$PDL::Config{MALLOCDBG}->{define}\nEOM\n" );
-} else {
-    $fh->print( "\$mymalloc = '';\n" );
-}
-$fh->print( "1;\n" );
-$fh->close;
 
 print "Trying to figure out POSIX threads support ...\n";
 
@@ -39,9 +29,6 @@ if ( exists $PDL::Config{POSIX_THREADS_INC} and  defined $PDL::Config{POSIX_THRE
     print "\tEhh. Didn't see include file 'pthread.h'.\n";
     $pthread_include = '';
 }
-
-# For SGI, I had to link a new perl - cannot dlopen libpthread...
-require Config;
 
 # TODO: need to clean up per-platform logic herer
 if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THREADS_LIBS} ) {
@@ -117,11 +104,7 @@ $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_li
 print "Trying to figure out endian-ness of machine...";
 print " It is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . " endian\n";
 
-# badsupport.p is made by the top-level Makefile, but placed
-# into Basic/Core, so we clean it up here
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
-
-use ExtUtils::MakeMaker;
 
 # Extra targets to build
 
@@ -182,10 +165,7 @@ EOF
 if($Config{make} =~ /\bdmake/i) {
     my $text = PDL::Core::Dev::postamble() . "
 
-Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
-    . make_from_PL('Core.pm') . "
-
-pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
+pdl.h:: pdl.h.PL Types.pm\n"
     . make_from_PL( 'pdl.h' ) . "
 
 pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
@@ -222,11 +202,7 @@ pdlmagic.c :: pdlcore.h\n"
 pdlsections.c :: pdl.h pdlcore.h\n"
 ."
 
-Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
-. make_from_PL('Core.pm')
-."
-
-pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
+pdl.h:: pdl.h.PL Types.pm\n"
 . make_from_PL( 'pdl.h' )
 ."
 
@@ -246,19 +222,18 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 . make_from_PL( 'pdlcore.h' )
 .
 
-    join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
-    qw( Core.pm Core.xs pdlcore.c ) )
+    join( "", map { "\n$_ :: ${_}.PL\n" . make_from_PL($_) }
+    qw( pdlcore.c ) )
 .
 ($^O =~ /MSWin/ ? $pdlsections_g : '');
 }
 };
 
+my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic pdlsections);
+my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
  'VERSION_FROM' => 'Version.pm',
- 'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) '.
-                   'pdlconv$(OBJ_EXT) pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
   'PM'          => {
 		(map {($_,'$(INST_LIBDIR)/'.$_)} (
 			qw/Core.pm Basic.pm Version.pm Types.pm
@@ -270,18 +245,22 @@ WriteMakefile(
 		)),
 		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
 		},
- 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
- 'DEFINE'	=> $pthread_define.$macos_braindamage_define,
+ 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
+ 'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
+ 'DEFINE' 	=> $pthread_define.$macos_braindamage_define.$badval_define,
  'LIBS'         => ["$pthread_library $malloclib"],
- 'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlconv.c pdlsections.c pdlcore.c '.
+ 'clean'        => {'FILES'  => $cobj .
+                   ' pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
-		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
-		   'mymalloc.p badsupport.p'
+                   'pdldataswitch.c pdlbadvalinit.c '.
+		   'Types.pm Version.pm Core.c '
 		   },
  'INC'          => join(' ',
    PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
  ),
+  depend => {
+    'Core$(OBJ_EXT)' => 'config pm_to_blib pdldataswitch.c pdlbadvalinit.c pdl.h pdlcore.h',
+        # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
+  },
  (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );

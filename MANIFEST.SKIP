@@ -45,15 +45,12 @@ RCS
 ^Basic/Core/Config\.pm
 ^Basic/Core/Config\.pm
 ^Basic/Core/Core\.c$
-^Basic/Core/Core\.pm$
-^Basic/Core/Core\.xs$
 ^Basic/Core/Types\.pm$
 ^Basic/Core/Version\.pm
 ^Basic/Core/Version\.pm
 ^Basic/Core/badsupport\.p
 ^Basic/Core/check_endian$
 ^Basic/Core/isbigendian.p$
-^Basic/Core/mymalloc.p$
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlcore\.[ch]$
 ^Basic/Core/pdlsimple\.h$
@@ -182,7 +179,6 @@ RCS
 ^Lib/Minuit/.*\.pm$
 ^Lib/Minuit/.*\.xs$
 ^Lib/Minuit/M.*\.c$
-^Lib/Opt/Golden
 ^Lib/PCARout/PCARout\..*
 ^Lib/Slatec/Slatec.c
 ^Lib/Slatec/Slatec.pm

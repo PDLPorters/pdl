@@ -431,6 +431,52 @@ sub typesynonyms {
   return "$add\n";
 }
 
+=head2 datatypes_header
+
+=for ref
+
+return C header text for F<pdl.h> and F<pdlsimple.h>.
+
+=cut
+
+sub datatypes_header {
+    require Config;
+    $PDL_Indx_type = $Config::Config{'ivtype'};
+    warn "Using new 64bit index support\n" if $Config::Config{'ivsize'}==8;
+
+    my $enum = '';
+    my $typedefs = '';
+    for (sort { $typehash{$a}{'numval'}<=>$typehash{$b}{'numval'} }  keys %typehash) {
+     $enum .= $typehash{$_}{'sym'}.", ";
+     $typedefs .= "typedef $typehash{$_}{'realctype'}              $typehash{$_}{'ctype'};\n";
+    }
+    chop $enum;
+    chop $enum;
+
+    my $PDL_DATATYPES = <<"EOD";
+
+/*****************************************************************************/
+/*** This section of .h file generated automatically by ***/
+/*** PDL::Types::datatypes_header() - don't edit manually ***/
+
+/* Data types/sizes [must be in order of complexity] */
+
+enum pdl_datatypes { $enum };
+
+/* Define the pdl data types */
+
+$typedefs
+
+/* typedef $PDL_Indx_type    PDL_Indx; */
+
+/*****************************************************************************/
+
+EOD
+
+    $PDL_DATATYPES .= "\n".typesynonyms()."\n";
+    $PDL_DATATYPES;
+}
+
 =head1 PDL::Type OBJECTS
 
 This module declares one class - C<PDL::Type> - objects of this class

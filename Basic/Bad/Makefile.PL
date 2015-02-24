@@ -6,10 +6,9 @@ use ExtUtils::MakeMaker;
 # PDL_CONFIG - it's just the contents that will be
 # different...
 
-# bad value support?
-use vars qw( $bvalflag $usenan $bvalPerPdl );
-use File::Spec;
-require File::Spec->catfile( File::Spec->updir, "Core", "badsupport.p" );
+my $bvalflag = $PDL::Config{WITH_BADVAL};
+my $usenan = $PDL::Config{BADVAL_USENAN};
+my $bvalPerPdl = $PDL::Config{BADVAL_PER_PDL};
 
 # print a banner to the screen
 if ( $bvalflag ) {
@@ -33,7 +32,6 @@ my %hash = pdlpp_stdargs_int(@pack);
 
 #$hash{LIBS} = ['-lm'];
 
-# we add ../Core/badsupport.p to the dependencies of Bad.pm
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
 	pdlpp_postamble_int(@pack);
