@@ -262,8 +262,19 @@ sub finddoc  {
 
        my $Ref = $m->[1]{Ref};
        if ( $Ref =~ /^(Module|Manual|Script): / ) {
-          my $in = IO::File->new("<$m->[1]{File}");
-          print $out join("",<$in>);
+	   # We've got a file name and we have to open it.  With the relocatable db, we have to reconstitute the absolute pathname.
+	   my $relfile = $m->[1]{File};
+	   my $absfile = undef;
+	   for my $dbf(@{$PDL::onlinedoc->{Scanned}}) {
+	       $dbf =~ s:\/[^\/]*$::; # Trim file name off the end of the database file to get just the directory
+	       $dbf .= "/$relfile";
+	       $absfile = $dbf if( -e $dbf );
+	   }
+	   unless ($absfile) {
+	       die "Documentation error: couldn't find absolute path to $relfile\n";
+	   }
+	   my $in = IO::File->new("<$absfile");
+	   print $out join("",<$in>);
        } else {
           if(defined $m->[1]{CustomFile}) {
 

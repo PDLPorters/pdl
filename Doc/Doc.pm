@@ -471,7 +471,10 @@ sub ensuredb {
     while (read IN, $plen,2) {
       my ($len) = unpack "S", $plen;
       read IN, $txt, $len;
-      my ($sym, %hash) = split chr(0), $txt;
+      my (@a) =  split chr(0), $txt;
+      push(@a, "") unless(@a % 2);  # Add null string at end if necessary -- solves bug with missing REF section.
+      my ($sym, %hash) = @a;
+     
       $hash{Dbfile} = $fi; # keep the origin pdldoc.db path
       $this->{SYMS}->{$sym} = {%hash};
     }
