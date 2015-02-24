@@ -8,16 +8,11 @@
 
 #define MAX2(a,b) if((b)>(a)) a=b;
 
-/*
- * We used to use our own copy of strndup but there were
- * compiler warnings about redefining the symbol, so I have
- * changed to using the Perl C API - see 'perldoc perlapi'
- * and 'perldoc perlcapi' - and created the copy_int/pdl_array
- * routines . The returned arrays should be released using
- * Perl's Safefree call.
- *
- * DJB 2007 March 18. Previous version is v1.6 of pdlthread.c
- */
+/**** Convenience routines for moving around collections
+ **** of indices and PDL pointers.
+ **** (Note that copy_int_array is confusingly named sicne it
+ **** doesn't copy ints, it copies PDL_Indx's.)
+ ****/
 static PDL_Indx *copy_int_array (PDL_Indx *from, int size) {
   int *to;
   Newx (to, size, int);
@@ -30,6 +25,11 @@ static pdl **copy_pdl_array (pdl **from, int size) {
   return (pdl **) CopyD (from, to, size, pdl*);
 }
 
+
+/******************************
+ * dump_thread and helpers -- debugging routine used for 
+ * describing internal state 
+ */
 static void print_iarr(PDL_Indx *iarr, int n) {
   int i;
   printf("(");
@@ -70,10 +70,12 @@ void dump_thread(pdl_thread *thread) {
 }
 
 
-/* Function to get the pthread-specific offset
-   Input: thread structure
-   Outputs: Pointer to pthread-specific offset array (returned by function)
-*/
+/*******
+ * pdl_get_threadoffsp - get the pthread-specific offset arrays from a 
+ * PDL (TODO: improve function docs)
+ *  Input: thread structure
+ *  Outputs: Pointer to pthread-specific offset array (returned by function)
+ */
 PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread )
 {
   if(thread->gflags & PDL_THREAD_MAGICKED) {
@@ -381,9 +383,8 @@ void pdl_initthreadstruct(int nobl,
 	thread->mag_nthpdl = -1;
         thread->mag_nthr = -1;
 
-	nids=0;
-	mx=0;
-/* Find the max. number of threadids */
+	/* Accumulate the maximum number of thread dims across the collection of PDLs */
+	nids=mx=0;
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		MAX2(nids,pdls[j]->nthreadids);
@@ -465,34 +466,91 @@ void pdl_initthreadstruct(int nobl,
 
 /* Make implicit inds */
 
-	for(i=0; i<nimpl; i++) {
-		thread->dims[nth] = 1;
-		for(j=0; j<thread->npdls; j++) {
-			thread->incs[nth*npdls+j] = 0;
-			if(creating[j]) continue;
-			if(thread->pdls[j]->threadids[0]-
-					thread->realdims[j] <= i)
-				continue;
-			if(pdls[j]->dims[i+realdims[j]] != 1) {
-				if(thread->dims[nth] != 1) {
-					if(thread->dims[nth] !=
-						pdls[j]->dims[i+realdims[j]]) {
-                                              pdl_croak_param(info,j,"Mismatched implicit thread dimension %d: should be %d, is %d\n\t",
-							i,
-							thread->dims[nth],
-							pdls[j]->dims[i+thread->realdims[j]]);
-					}
-				} else {
-					thread->dims[nth] =
-						pdls[j]->dims[i+realdims[j]];
-				}
-				thread->incs[nth*npdls+j] =
-					PDL_TREPRINC(pdls[j],flags[j],i+realdims[j]);
-			}
-		}
-		nth++;
-	}
+	for(i=0; i<nimpl; i++) {                      // Loop over number of implicit threads
+	  thread->dims[nth] = 1;                      // Start with a size of 1 for this thread
+	  for(j=0; j<thread->npdls; j++) {            // Now loop over the PDLs to be merged
+	    thread->incs[nth*npdls+j] = 0;               
+	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
+	    if(thread->pdls[j]->threadids[0]-         // If we're off the end of the currend PDLs dimlist, 
+	       thread->realdims[j] <= i)              //    then just skip it.
+	      continue; 
+	    if(pdls[j]->dims[i+realdims[j]] != 1) {   // If the current dim in the current PDL is not 1,
+	      if(thread->dims[nth] != 1) {            //   ... and the current planned size isn't 1, 
+		if(thread->dims[nth] !=
+		   pdls[j]->dims[i+realdims[j]]) {    //   ... then check to make sure they're the same.
+		  
+		  /* Mismatch -- print a useful error message */
+		  /* This probably uses a lot more lines than necessary */
+		  int ii,jj,maxrealdims;
+		  char buf0[BUFSIZ];
+		  char *s;
+		  buf0[0] = '\0';
 
+		  s = buf0+strlen(buf0);
+		  sprintf(s,"  Mismatched implicit thread dimension %d: size %d vs. %d\nThere are %d PDLs in the expression; %d thread dims.\n",i,thread->dims[nth],pdls[j]->dims[i+realdims[j]],thread->npdls,nimpl);
+		  s += strlen(s);
+		  
+		  for(ii=maxrealdims=0; ii<thread->npdls; ii++)
+		    if(thread->realdims[ii]>maxrealdims) 
+		      maxrealdims=thread->realdims[ii];
+
+		  sprintf(s,  "   PDL IN EXPR.    "); s += strlen(s);
+		  if(maxrealdims > 0) {
+		    char format[80];
+		    sprintf(format,"%%%ds",8 * maxrealdims + 3);
+		    sprintf(s,format,"ACTIVE DIMS | ");
+		    s += strlen(s);
+		  }
+		  sprintf(s,"THREAD DIMS\n");
+		  s += strlen(s);
+
+		  for(ii=0; ii<thread->npdls; ii++) {
+		    sprintf(s,"   #%3d (%s",ii,creating[ii]?"null)\n":"normal): ");
+		    s += strlen(s);
+		    if(creating[ii])
+		      continue;
+		    if(maxrealdims == 1) {
+		      sprintf(s,"    "); 
+		      s += strlen(s);
+		    }
+		    for(jj=0; jj< maxrealdims - thread->realdims[ii]; jj++) {
+		      sprintf(s,"%8s"," "); 
+		      s += strlen(s);
+		    }
+		    for(jj=0; jj< thread->realdims[ii]; jj++) {
+		      sprintf(s,"%8ld",(long)(pdls[ii]->dims[jj]));
+		      s += strlen(s);
+		    }
+		    if(maxrealdims) {
+		      sprintf(s," | "); 
+		      s += strlen(s);
+		    }
+		    for(jj=0; jj<nimpl && jj + thread->realdims[ii] < pdls[ii]->ndims; jj++) {
+		      sprintf(s,"%8ld",(long)(pdls[ii]->dims[jj+thread->realdims[ii]]));
+		      s += strlen(s);
+		    }
+		    sprintf(s,"\n");
+		    s += strlen(s);
+		  }
+		  /* End of helpful error message -- now barf */
+		  
+		  pdl_croak_param(info,j,"%s \n \n.",buf0);
+		}
+
+		/* If we're still here, they're the same -- OK! */
+
+	      } else {                                // current planned size is 1 -- mod it to match this PDL
+		thread->dims[nth] =
+		  pdls[j]->dims[i+realdims[j]];
+	      }
+
+	      thread->incs[nth*npdls+j] =                      // Update the corresponding data stride 
+		PDL_TREPRINC(pdls[j],flags[j],i+realdims[j]);  //   from the PDL or from its vafftrans if relevant.
+	    }
+	  }
+	  nth++;
+	}
+	
 /* Go through everything again and make the real things */
 
 	for(nthid=0; nthid<nids; nthid++) {

@@ -169,6 +169,7 @@ our $draw_overlay;
 my $finished_glutInit = 0;
 my $cur_fig_num = 0;
 my $imag2d_keep_twiddling;
+my $imag2d_is_twiddling;
 
 my $show_overlay = 1;
 our $is_paused = 0;
@@ -425,7 +426,7 @@ sub key_ops {
 
    # stop twiddling
    if ($key == ord('Q') or $key == ord('q')) {
-      $imag2d_keep_twiddling = 0;
+      $imag2d_is_twiddling = 0;
       warn "Stop twiddling command, key '" . chr($key) . "', detected.\n";
       return;
    }
@@ -434,7 +435,7 @@ sub key_ops {
    if ($key == 27 or $key == 3) {          # ESC or Ctrl-C
       warn "Exit program command, key '" . (($key == 27) ? 'ESC' : 'Ctrl-C') . "', detected.\n";
       if (defined $PERLDL::TERM) {         # don't exit if in the perldl or pdl2 shell
-         $imag2d_keep_twiddling = 0;
+         $imag2d_is_twiddling = 0;
          warn "PDL shell in use, stop twiddling instead of exit...\n";
          return;
       } else {
@@ -680,15 +681,20 @@ dataflow that would be transparent to the user.
 
 =for ref
 
-Enable GUI interaction with a FreeGLUT display window.
+Enable GUI interaction with a FreeGLUT display window.  With an argument, it sets
+the default value for the auto-twiddling state. C< 0 > will disable the automatic
+twiddling and C< 1 >, or true, will enable twiddling.
 
 =for usage
 
-  twiddle();
-    
+  twiddle();     # same as twiddle(undef)
+
     Runs the FreeGLUT event loop so window GUI operations
     such as resize, expose, mouse click,.. work
 
+  twiddle(0);  # disables twiddle looping for next twiddle() call
+  twiddle(1);  # re-enables default twiddle looping for next twiddle() call
+    
 =cut
 
 
@@ -798,7 +804,10 @@ sub imag2d {
    glFlush();
 
    # we don't twiddle if in PDL shell and glutRunning is on
-   twiddle() unless defined $PERLDL::TERM and ref $Term::ReadLine::toloop;
+   {
+      no warnings 'once';
+      twiddle() unless defined $PERLDL::TERM and ref $Term::ReadLine::toloop;
+   }
 
    return $window_id;
 }
@@ -844,7 +853,7 @@ sub close_imag2d_window {
    my $win_id = glutGetWindow();
 
    if ( ! scalar(@imag2d_list) ) {
-      $imag2d_keep_twiddling = 0;
+      $imag2d_is_twiddling = 0;
       return;
    }
 
@@ -857,11 +866,13 @@ sub close_imag2d_window {
       }
    }
 
+   print STDERR "close_imag2d_window: started with  " . scalar(@imag2d_list) . " windows.\n";
    if ($found_it) {
       @imag2d_list = grep { $_->{window_id} != $win_id } @imag2d_list;
    } else {
       warn "close_imag2d_window: could not find open window\n";
    }
+   print STDERR "close_imag2d_window: finished with " . scalar(@imag2d_list) . " windows.\n";
 }
 
 #------------------------------------------------------------------------
@@ -883,13 +894,23 @@ sub close_imag2d {
 # Simple twiddle for perldl (use [qQ] to exit)
 #------------------------------------------------------------------------
 sub twiddle {
-   print STDERR "Type Q or q to stop twiddling...\n";
-   $imag2d_keep_twiddling = 1 if scalar(@imag2d_list);
-   while ($imag2d_keep_twiddling && scalar(@imag2d_list)) {
-      glutMainLoopEvent();
+   my ($keeptwiddling) = @_;
+
+   if (defined $keeptwiddling) {
+      $imag2d_keep_twiddling = $keeptwiddling;
+      return;
+   }
+
+   $imag2d_is_twiddling = (defined $imag2d_keep_twiddling) ? $imag2d_keep_twiddling : 1;
+
+   if ( $imag2d_is_twiddling ) {
+      print STDERR "Type Q or q to stop twiddling...\n";
+      while ($imag2d_is_twiddling && scalar(@imag2d_list)) {
+         glutMainLoopEvent();
+      }
+      print STDERR "Stopped twiddle-ing!\n";
    }
    glutMainLoopEvent();
-   print STDERR "Stopped twiddle-ing!\n";
 }
 
 #------------------------------------------------------------------------

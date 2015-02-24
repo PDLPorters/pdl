@@ -17,6 +17,8 @@ my $usenan = $PDL::Config{BADVAL_USENAN};
 require 'Types.pm';
 PDL::Types->import(':All');
 
+
+
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
@@ -24,15 +26,19 @@ my $file;
 ($file = basename($0)) =~ s/\.PL$//;
 $file =~ s/\.pl$//
     if ($Config{'osname'} eq 'VMS' or
-	$Config{'osname'} eq 'OS2');  # "case-forgiving"
+        $Config{'osname'} eq 'OS2');  # "case-forgiving"
 
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";
 } else {
     print "Extracting $file (NO bad value support)\n";
 }
+
+
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
+
+
 
 print OUT <<"!WITH!SUBS!";
 
@@ -40,12 +46,10 @@ print OUT <<"!WITH!SUBS!";
 /*           - bad value support = $bvalflag */
 
 !WITH!SUBS!
-  ;
 
 
-print OUT <<'!HEADER!'
+print OUT <<'!HEADER!';
 #undef FOODEB
-
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
@@ -60,9 +64,13 @@ print OUT <<'!HEADER!'
  */
 /*   #define sv_undef(sv) (  (!(sv) || ((sv)==&PL_sv_undef) ) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)) )  */
 #define sv_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
-
 !HEADER!
-  ;
+
+
+##############################
+# Figure out the best definition for the 'finite()' call or call-like macro
+# We short-circuit the process for the cl compiler; for other compilers we search 
+# for 'isfinite' or 'finite', with a preference for 'isfinite' (IEEE recommends this).
 
 if($Config{cc} eq 'cl') {
   # _finite in CV++ 4.0
@@ -70,26 +78,29 @@ if($Config{cc} eq 'cl') {
 #define finite _finite
 #include <float.h>
 FOO
-;
-}
-
-my $finite_inc;
-foreach my $inc ( qw/ math.h ieeefp.h / )
-{
-    if ( trylink ("finite: $inc", "#include <$inc>", 'finite(3.2);', '' ) ) {
-	$finite_inc = $inc;
-	last;
+} else {
+    my $finite_inc;
+    my $use_isfinite = 0;
+    foreach my $inc ( qw/ math.h ieeefp.h / )
+    {
+        if ( trylink ("finite: $inc", "#include <$inc>", 'isfinite(3.2);', '' ) ) {
+            $finite_inc = $inc;
+            $use_isfinite = 1;
+            last;
+        }
+        if ( (!defined($finite_inc))  and  trylink ("finite: $inc", "#include <$inc>", 'finite(3.2);','') ) {
+            $finite_inc = $inc;
+        }
     }
-}
-
-if ( defined $finite_inc )
-{
-    print OUT "#include <$finite_inc>\n";
-}
-else
-{
-    print OUT <<'!NO!SUBS!'
-
+    
+    if ( defined $finite_inc ) {
+        print OUT "#include <$finite_inc>\n";
+        print OUT "#define finite(a) (isfinite(a))\n";
+    }
+    else
+    {
+        print OUT <<'!NO!SUBS!';
+            /* Kludgy finite/isfinite because pdlcore.c.PL was unable to find one in your math library */
 #ifndef finite
 #ifdef isfinite
 #define finite isfinite
@@ -98,29 +109,34 @@ else
 #endif
 #endif
 !NO!SUBS!
+    }
 }
 
+
+##############################
+# PDL handling stuff starts here
+#
 print OUT <<'!NO!SUBS!'
 static SV *getref_pdl(pdl *it) {
-	SV *newref;
-	if(!it->sv) {
-		SV *ref;
-		HV *stash = gv_stashpv("PDL",TRUE);
-		SV *psv = newSViv(PTR2IV(it));
-		it->sv = psv;
-		newref = newRV_noinc(it->sv);
-		(void)sv_bless(newref,stash);
-	} else {
-		newref = newRV_inc(it->sv);
-		SvAMAGIC_on(newref);
-	}
-	return newref;
+        SV *newref;
+        if(!it->sv) {
+                SV *ref;
+                HV *stash = gv_stashpv("PDL",TRUE);
+                SV *psv = newSViv(PTR2IV(it));
+                it->sv = psv;
+                newref = newRV_noinc(it->sv);
+                (void)sv_bless(newref,stash);
+        } else {
+                newref = newRV_inc(it->sv);
+                SvAMAGIC_on(newref);
+        }
+        return newref;
 }
 
 void SetSV_PDL ( SV *sv, pdl *it ) {
-	SV *newref = getref_pdl(it); /* YUCK!!!! */
-	sv_setsv(sv,newref);
-	SvREFCNT_dec(newref);
+        SV *newref = getref_pdl(it); /* YUCK!!!! */
+        sv_setsv(sv,newref);
+        SvREFCNT_dec(newref);
 }
 
 
@@ -148,6 +164,9 @@ print OUT <<'!NO!SUBS!';
     }
 }
 
+
+
+
 /* Check minimum datatype required to represent number */
 /* Microsoft compilers do some unbelievable things - hence
    some #ifdef's inserted by Sisyphus */
@@ -167,7 +186,7 @@ int pdl_whichdatatype (double nv) {
 for my $type (typesrtkeys()) {
    my ($sym,$ctype) = map {typefld($type,$_)} qw/sym ctype/;
    print OUT << "!WITH!SUBS!";
-	TESTTYPE($sym,$ctype)
+        TESTTYPE($sym,$ctype)
 !WITH!SUBS!
 }
 
@@ -175,60 +194,60 @@ print OUT <<'!NO!SUBS!';
 
         if( !finite(nv) ) { return PDL_D; }
 
-	croak("Something's gone wrong: %lf cannot be converted by whichdatatype",
-		nv);
+        croak("Something's gone wrong: %lf cannot be converted by whichdatatype",
+                nv);
 }
 
 /* Check minimum, at least float, datatype required to represent number */
 
 int pdl_whichdatatype_double (double nv) {
-	TESTTYPE(PDL_F,PDL_Float)
-	TESTTYPE(PDL_D,PDL_Double)
+        TESTTYPE(PDL_F,PDL_Float)
+        TESTTYPE(PDL_D,PDL_Double)
 
         if( !finite(nv) ) { return PDL_D; }
-
-	croak("Something's gone wrong: %lf cannot be converted by whichdatatype_double",
-		nv);
+        croak("Something's gone wrong: %lf cannot be converted by whichdatatype_double",
+                nv);
 }
+
 
 #if defined _MSC_VER && _MSC_VER < 1400
 #pragma optimize("", on)
 #endif
 
-/* Make a scratch data existence for a pdl */
 
-void pdl_makescratchhash(pdl *ret,double data, int datatype) {
-    STRLEN n_a;
-	HV *hash;
-	SV *dat; PDL_Indx fake[1];
 
-	 /* Compress to smallest available type. This may have strange
-	    results sometimes :( */
-	ret->datatype = datatype;
-	ret->data = pdl_malloc(pdl_howbig(ret->datatype)); /* Wasteful */
 
-       dat = newSVpv(ret->data,pdl_howbig(ret->datatype));
+/* Make a scratch dataspace for a scalar pdl */
 
-       ret->data = SvPV(dat,n_a);
-       ret->datasv = dat;
-#ifdef FOO
- /* Refcnt should be 1 already... */
-       SvREFCNT_inc(ret->datasv); /* XXX MEMLEAK */
-#endif
+void pdl_makescratchhash(pdl *ret, double data, int datatype) {
+  STRLEN n_a;
+  HV *hash;
+  SV *dat; PDL_Indx fake[1];
+  
+  /* Compress to smallest available type.  */
+  ret->datatype = datatype;
 
-  /* This is an important point: it makes this whole piddle mortal
-   * so destruction will happen at the right time.
+  /* Create a string SV of apropriate size.  The string is arbitrary
+   * and just has to be larger than the largest datatype.   */
+  dat = newSVpvn("                                ",pdl_howbig(ret->datatype));
+  
+  ret->data = SvPV(dat,n_a);
+  ret->datasv = dat;
+  /* Refcnt should be 1 already... */
+    
+  /* Make the whole pdl mortal so destruction happens at the right time.
    * If there are dangling references, pdlapi.c knows not to actually
    * destroy the C struct. */
-       sv_2mortal(getref_pdl(ret));
-
-       pdl_setdims(ret, fake, 0); /* However, there are 0 dims in scalar */
-       ret->nvals = 1;
-
-       /* NULLs should be ok because no dimensions. */
-       pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data);
-
+  sv_2mortal(getref_pdl(ret));
+  
+  pdl_setdims(ret, fake, 0); /* 0 dims in a scalar */
+  ret->nvals = 1;
+  
+  /* NULLs should be ok because no dimensions. */
+  pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data);
+  
 }
+
 
 /*
   "Convert" a perl SV into a pdl (alright more like a mapping as
@@ -295,7 +314,6 @@ print OUT <<'!NO!SUBS!';
         datatype = pdl_whichdatatype(data);
      }
 
-
      pdl_makescratchhash(ret,data,datatype);
 
      return ret;
@@ -309,71 +327,71 @@ print OUT <<'!NO!SUBS!';
 
 
    if(SvTYPE(SvRV(sv)) == SVt_PVHV) {
-   	HV *hash = (HV*)SvRV(sv);
-	SV **svp = hv_fetch(hash,"PDL",3,0);
-	if(svp == NULL) {
-		croak("Hash given as a pdl - but not {PDL} key!");
-	}
-	if(*svp == NULL) {
-		croak("Hash given as a pdl - but not {PDL} key (*svp)!");
-	}
+        HV *hash = (HV*)SvRV(sv);
+        SV **svp = hv_fetch(hash,"PDL",3,0);
+        if(svp == NULL) {
+                croak("Hash given as a pdl - but not {PDL} key!");
+        }
+        if(*svp == NULL) {
+                croak("Hash given as a pdl - but not {PDL} key (*svp)!");
+        }
 
-	/* This is the magic hook which checks to see if {PDL}
-	is a code ref, and if so executes it. It should
-	return a standard piddle. This allows
-	all kinds of funky objects to be derived from PDL,
-	and allow normal PDL functions to still work so long
-	as the {PDL} code returns a standard piddle on
-	demand - KGB */
+        /* This is the magic hook which checks to see if {PDL}
+        is a code ref, and if so executes it. It should
+        return a standard piddle. This allows
+        all kinds of funky objects to be derived from PDL,
+        and allow normal PDL functions to still work so long
+        as the {PDL} code returns a standard piddle on
+        demand - KGB */
 
-	if (SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVCV) {
-	   dSP;
-	   int count;
-	   ENTER ;
-	   SAVETMPS ;
-	   PUSHMARK(sp) ;
+        if (SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVCV) {
+           dSP;
+           int count;
+           ENTER ;
+           SAVETMPS ;
+           PUSHMARK(sp) ;
 
-	   count = perl_call_sv(*svp, G_SCALAR|G_NOARGS);
+           count = perl_call_sv(*svp, G_SCALAR|G_NOARGS);
 
-	   SPAGAIN ;
+           SPAGAIN ;
 
-	   if (count != 1)
+           if (count != 1)
               croak("Execution of PDL structure failed to return one value\n") ;
 
-	   sv=newSVsv(POPs);
+           sv=newSVsv(POPs);
 
-	   PUTBACK ;
-	   FREETMPS ;
-	   LEAVE ;
-	}
-	else {
-   	   sv = *svp;
-	}
+           PUTBACK ;
+           FREETMPS ;
+           LEAVE ;
+        }
+        else {
+           sv = *svp;
+        }
 
-	if(SvGMAGICAL(sv)) {
-		mg_get(sv);
-	}
+        if(SvGMAGICAL(sv)) {
+                mg_get(sv);
+        }
 
         if ( !SvROK(sv) ) {   /* Got something from a hash but not a ref */
-		croak("Hash given as pdl - but PDL key is not a ref!");
+                croak("Hash given as pdl - but PDL key is not a ref!");
         }
     }
       
     if(SvTYPE(SvRV(sv)) == SVt_PVAV) {
-	/* This is similar to pdl_avref in Core.xs.PL -- we do the same steps here. */
-	AV *dims, *av;
-	int i, depth; 
-	int datalevel = -1;
-	pdl *p;
+        /* This is similar to pdl_avref in Core.xs.PL -- we do the same steps here. */
+        AV *dims, *av;
+        int i, depth; 
+        int datalevel = -1;
+        pdl *p;
 
-	av = (AV *)SvRV(sv);
-	dims = (AV *)sv_2mortal((SV *)newAV());
-	av_store(dims,0,newSViv( (IV) av_len(av)+1 ) );
-	
-	/* Pull sizes using av_ndcheck */
-	depth = 1 + av_ndcheck(av,dims,0,&datalevel);
+        av = (AV *)SvRV(sv);
+        dims = (AV *)sv_2mortal((SV *)newAV());
+        av_store(dims,0,newSViv( (IV) av_len(av)+1 ) );
+        
+        /* Pull sizes using av_ndcheck */
+        depth = 1 + av_ndcheck(av,dims,0,&datalevel);
 
-	return pdl_from_array(av,dims,PDL_D,NULL);
+        return pdl_from_array(av,dims,PDL_D,NULL);
 
     } /* end of AV code */
     
@@ -389,7 +407,7 @@ print OUT <<'!NO!SUBS!';
 
     /* Final check -- make sure it has the right magic number */
     if(ret->magicno != PDL_MAGICNO) {
-   	croak("Fatal error: argument is probably not a piddle, or\
+        croak("Fatal error: argument is probably not a piddle, or\
  magic no overwritten. You're in trouble, guv: %p %p %lu\n",sv2,ret,ret->magicno);
    }
 
@@ -654,10 +672,10 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
     el = elp ? *elp : 0;                    /* Get the ith element */
     if (el && SvROK(el)) {                  /* It is a reference */
       if (SvTYPE(SvRV(el)) == SVt_PVAV) {   /* It is an array reference */
-	
-	/* Recurse to find depth inside the array reference */
-	newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
-	
+        
+        /* Recurse to find depth inside the array reference */
+        newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
+        
       } else if ( (pdl = SvPDLV(el)) ) {
 	/* It is a PDL - walk down its dimension list, exactly as if it
 	 * were a bunch of nested array refs.  We pull the ndims and dims
@@ -730,7 +748,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 	newdepth= pndims;
 	
       } else {
-	croak("av_ndcheck: non-array, non-PDL ref in structure\n\t(this is usually a problem with a pdl() call)");
+        croak("av_ndcheck: non-array, non-PDL ref in structure\n\t(this is usually a problem with a pdl() call)");
       }
 
     } else { 
@@ -740,7 +758,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
     }
 
       if (newdepth > depth)
-	depth = newdepth;
+        depth = newdepth;
   }
   
   len++; // convert from funky av_len return value to real count
@@ -791,18 +809,18 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
     for(i=0;i<level;i++) {
       SV **svp = av_fetch(dims, i, 0);
       if(!svp) {
-	av_store(dims, i, newSViv((IV)1));
+        av_store(dims, i, newSViv((IV)1));
       } else if( (PDL_Indx)SvIV(*svp) == 0) {
-	sv_setiv(*svp, (IV)1);
+        sv_setiv(*svp, (IV)1);
       }
     }
     
     for(i=level+1; i <= av_len(dims); i++) {
       SV **svp = av_fetch(dims, i, 0);
       if(!svp) {
-	av_store(dims, i, newSViv((IV)1));
+        av_store(dims, i, newSViv((IV)1));
       } else if( (PDL_Indx)SvIV(*svp) == 0) {
-	sv_setiv(*svp, (IV)1);
+        sv_setiv(*svp, (IV)1);
       }
     }
   }
@@ -957,16 +975,16 @@ print OUT <<"!WITH!SUBS!";
  * block of memory.
  */
 
-PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff,
-			   PDL_$type* pdata,
-                           PDL_Indx* pdims,
-                           PDL_Indx ndims,
-                           int level,
-                           PDL_Indx stride,
-                           pdl* pdl,
-                           int plevel,
-                           void* pptr,
-			   double undefval
+PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
+			   PDL_$type* pdata,  // Data pointer in the dest data array
+                           PDL_Indx* pdims,   // Pointer to the dimlist for the dest pdl
+                           PDL_Indx ndims,    // Number of dimensions in the dest pdl
+                           int level,         // Recursion level
+                           PDL_Indx stride,   // Stride through memory for the current dim
+                           pdl* pdl,          // pointer to the source pdl
+                           int plevel,        // level within the source pdl
+                           void* pptr,        // Data pointer in the source pdl
+			   double undefval    // undefval for the dest pdl
 			   ) {
   PDL_Indx i;
   PDL_Indx undef_count = 0;
@@ -1007,12 +1025,12 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff,
 !WITH!SUBS!
 
         # perl loop to emit code for all the PDL types
-	#
-	foreach my $switch_type (keys %PDL::Types::typehash) {
+        #
+        foreach my $switch_type (keys %PDL::Types::typehash) {
 
-	my $ctype = $PDL::Types::typehash{$switch_type}{ctype};
+        my $ctype = $PDL::Types::typehash{$switch_type}{ctype};
 
-	print OUT <<"!WITH!SUBS!";
+        print OUT <<"!WITH!SUBS!";
 
 
       case ${switch_type}:
@@ -1026,11 +1044,11 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff,
 	   /* copy data (unless the source pointer is null) */
       i=0;
       if(pptr && pdata && pdlsiz) {
-	for(; i<pdlsiz; i++)
-	  pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];
+        for(; i<pdlsiz; i++)
+          pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];
       } else {
-	if(pdata) 
-	  pdata[i] = undefval;
+        if(pdata) 
+          pdata[i] = undefval;
       }
 	/* pad out, in the innermost dimension */
 #ifdef DEBUG_KLUDGE_COPY
@@ -1053,7 +1071,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff,
       break;
 !WITH!SUBS!
 
-	} # end of foreach in the perl generator code
+        } # end of foreach in the perl generator code
 
       print OUT <<"!WITH!SUBS!";
     default:
@@ -1064,58 +1082,30 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff,
     return undef_count;
   }
 
-  /* If we're here we're not at the bottom level yet... */
-#ifdef DEBUG_KLUDGE_COPY
-  printf("Entering PKC recursion loop.  imax is %d (plevel=%d; pdl->dims[%d-1-%d] = %d)\\n",
-	 (   (plevel >= 0 && (pdl->ndims - 1 - plevel >= 0) && (pdl->ndims - 1 - plevel < pdl->ndims))   ?   (pdl->dims[ pdl->ndims - 1 - plevel ])   :   1    ),
-	 plevel,
-	 ndims,
-	 plevel,
-	 pdl->dims[pdl->ndims-1-plevel]
-	 );
-#endif
-  for(i=0;
-      i    <    (   (plevel >= 0 && (pdl->ndims - 1 - plevel >= 0) && (pdl->ndims - 1 - plevel < pdl->ndims))   ?   (pdl->dims[ pdl->ndims-1-plevel ])   :   1    );
-      i++) {
+  {
+      PDL_Indx limit =  (   
+          (plevel >= 0 && 
+           (pdl->ndims - 1 - plevel >= 0) && 
+           (pdl->ndims - 1 - plevel < pdl->ndims)
+          )   
+          ?   (pdl->dims[ pdl->ndims-1-plevel ])   
+          :   1    
+          );
+      for(i=0; i < limit ; i++) {
+          undef_count += pdl_kludge_copy_$type(0, pdata + stride * i,
+                                               pdims,
+                                               ndims,
+                                               level+1,
+                                               stride / ((pdims[ndims-2-level]) ? (pdims[ndims-2-level]) : 1),
+                                               pdl,
+                                               plevel+1,
+                                               ((PDL_Byte *) pptr) + pdl->dimincs[pdl->ndims-1-plevel] * i * pdl_howbig(pdl->datatype),
+                                               undefval
+              );
+      } /* end of kludge_copy recursion loop */
+  } /* end of recursion convenience block */
 
-#ifdef DEBUG_KLUDGE_COPY
-    {
-      char buf[10240];
-      char sb[1024];
-      int ii;
-      *buf=0;
-      for(ii=0;ii<ndims;ii++) {
-	sprintf(sb,"%d",pdims[ii]);
-	if(ii) strcat(buf,",");
-	strcat(buf,sb);
-      }
-      printf("pdl_kludge_copy: pushing... level=%d, i=%d, pdata=%d, pdims=(%s), ndims=%d, stride=%d, plevel=%d, pptr=%d\\n",
-	     level, i, pdata, buf, ndims, stride, plevel, pptr);
-
-      printf("  (pdims[ndims-2-level] is %d)\\n",pdims[ndims-2-level]);
-    }
-#endif
-    undef_count += pdl_kludge_copy_$type(0, pdata + stride * i,
-			  pdims,
-			  ndims,
-			  level+1,
-			  stride / ((pdims[ndims-2-level]) ? (pdims[ndims-2-level]) : 1),
-			  pdl,
-			  plevel+1,
-			  ((PDL_Byte *) pptr) + pdl->dimincs[pdl->ndims-1-plevel] * i * pdl_howbig(pdl->datatype),
-			  undefval
-			  );
-#ifdef DEBUG_KLUDGE_COPY
-    printf("(level=%d, back from recursion)\\n",level);
-#endif
-  } /* end of kludge_copy recursion loop */
-
-  /* pad tree to zero if there are not enough elements... */
-#ifdef DEBUG_KLUDGE_COPY
-  printf("   pdl_kludge_copy - finished recursion  loop at level %d... i is %d, pdims[%d]=%d...\\n",
-	 level, i, ndims - 1 - level,pdims[ndims - 1 - level]);
-#endif
-
+  /* pad the rest of this dim to zero if there are not enough elements in the source PDL... */
   if(i < pdims[ndims - 1 - level]) {
       int cursor, target;
 
@@ -1137,9 +1127,9 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff,
 
 
       for(;
-	  cursor < target;
-	  cursor++) {
-	  pdata[cursor] = undefval;
+          cursor < target;
+          cursor++) {
+          pdata[cursor] = undefval;
       }
 
   } /* end of padding IF statement */
@@ -1243,67 +1233,35 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
     } else if( el && SvROK(el) ) {
       pdl *pdl;
       if( (pdl = SvPDLV(el)) ) {
-
-	pdl_make_physical(pdl);
-
-
-#ifdef DEBUG_SETAV_TYPE
-	printf("source pdl has %d vals...\\n",pdl->nvals);
-#endif
-
-	{ // convenience block.. recursively copy/pad each PDL.
-
-#ifdef DEBUG_SETAV_TYPE
-	  {
-	    /* Generate some debugging info */
-	    char buf[10240];
-	    char sb[1024];
-	    int ii;
-	    *buf=0;
-	    for(ii=0;ii<ndims; ii++) {
-	      sprintf(sb,"%d",pdims[ii]);
-	      if(ii) strcat(buf,",");
-	      strcat(buf,sb);
-	    }
-
-	    printf("Calling pdl_kludge_copy - pdata is %d, pdims is (%s), ndims is %d, level is %d, stride is %d, pdl->data is %d\\n",
-		   pdata, buf, ndims, level, stride, pdl->data
-		   );
-	  }
-#endif
-	  {
-	    PDL_Indx pd;
-	    int pddex;
-	    pddex = ndims - 2 - level;
-	    pd = (pddex >= 0 && pddex < ndims ? pdims[ pddex ] : 0);
-	    if(!pd)
-	      pd = 1;
-	    undef_count += pdl_kludge_copy_$type(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data,undefval);
-	  }
-	}
+          /* The element was a PDL - use pdl_kludge_copy to copy it into the destination */
+          PDL_Indx pd;
+          int pddex;
+          
+          pdl_make_physical(pdl);
+          
+          pddex = ndims - 2 - level;
+          pd = (pddex >= 0 && pddex < ndims ? pdims[ pddex ] : 0);
+          if(!pd)
+              pd = 1;
+          undef_count += pdl_kludge_copy_$type(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data,undefval);
 
       } else {
-	croak("Non-array, non-PDL element in list");
+        /* The element is a non-PDL, non-AV ref.  Not allowed. */
+        croak("Non-array, non-PDL element in list");
       }
-    } else { /* SvROK(el)==0; scalar element */
-      if( sv_undef(el) ) {
-#ifdef DEBUG_SETAV_TYPE
-	printf("undefined scalar element\\n");
-#endif
-	*pdata = (PDL_$type) undefval; /* undef case */
-	undef_count++;
+    } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */
+      if( sv_undef(el) ) {  /* undef case */
+        *pdata = (PDL_$type) undefval; 
+        undef_count++;
 
-      } else {
-#ifdef DEBUG_SETAV_TYPE
-	printf("defined scalar element %g\\n",(double)SvNV(el));
-#endif
-	*pdata = (PDL_$type) SvNV(el);
+      } else {              /* scalar case */
+        *pdata = (PDL_$type) SvNV(el);
 
       }
       /* Pad dim if we are not deep enough */
       if(level < ndims-1) {
-	PDL_$type *cursor = pdata;
-	PDL_$type *target = pdata + stride;
+        PDL_$type *cursor = pdata;
+        PDL_$type *target = pdata + stride;
 
 #ifdef DEBUG_SETAV_TYPE
 	printf("\\tPadding: level=%d; ndims-1=%d.  pdata is %d, stride is %d, target is %d\\n",level,ndims-1,pdata,stride, target);
@@ -1330,9 +1288,9 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
 #endif
 
     for( ;
-	 pdata < target;
-	 pdata++
-	 ) {
+         pdata < target;
+         pdata++
+         ) {
 
       *pdata = (PDL_$type) undefval;
       undef_count++;

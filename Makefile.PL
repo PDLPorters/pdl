@@ -395,6 +395,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 
 my @prereq = (
 	   'Astro::FITS::Header' => 0,
+           'Carp'                => 0,         # Need to run
            'Convert::UU'         => 0,         # for PDL::IO::Dumper
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
            'ExtUtils::MakeMaker' => 6.56,      # for CONFIGURE_REQUIRES support
@@ -442,6 +443,7 @@ my %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
               'CONFIGURE_REQUIRES' => {
                 'Devel::CheckLib' => 1.01,
+                'Carp'            => 1.20,    # EU::MM seems to need this not to crash
                 'ExtUtils::MakeMaker' => 6.56,
               },
               'MIN_PERL_VERSION' => '5.010',
