@@ -45,6 +45,8 @@ Highlights:
    an argument of 0 or 1 (technically false or true) to set
    whether the twiddle loop is run.  Also fixed a minor warning
    generated with 'use warnings'.  This closes bug #353.
+ 
+ * Lots of clean up and build process improvements.
 
 
 
