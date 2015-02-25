@@ -475,7 +475,7 @@ my %makefile_hash = (
 		'FILES' => join ' ', @cleanup, qw(
                   tbyte.tif tmp0 tmp0.hdr tushort.tif
                   MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*
-                  _Inline/ .inlinepdlpp/ *.xfig
+                  _Inline/ .inlinepdlpp/ .inlinewith/ *.xfig
                 ),
               },
 	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
