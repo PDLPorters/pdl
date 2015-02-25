@@ -40,7 +40,7 @@ END {
 #  rmtree $inline_test_dir if -d $inline_test_dir;
 }
 
-use Inline 'INFO'; # use to generate lots of info
+#use Inline 'INFO'; # use to generate lots of info
 use Inline with => 'PDL';
 use Inline 'C';
 
