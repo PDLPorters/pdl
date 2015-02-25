@@ -130,8 +130,6 @@ Basic/SourceFilter/ModuleCompile.pm
 Basic/SourceFilter/NiceSlice.pm
 Basic/SourceFilter/example
 Basic/SourceFilter/local.perldlrc
-Basic/Test/Makefile.PL
-Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
 Basic/default.perldlrc
@@ -492,7 +490,6 @@ Lib/Minuit/minuit.pd
 Lib/Minuit/minuitlib/futils.f
 Lib/Minuit/minuitlib/intracfalse.f
 Lib/Minuit/minuitlib/minuit.f
-Lib/Opt/Makefile.PL
 Lib/Simplex/Makefile.PL
 Lib/Simplex/Simplex.pm
 Lib/Slatec/Makefile.PL
