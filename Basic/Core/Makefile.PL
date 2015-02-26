@@ -162,8 +162,15 @@ undef &MY::postamble; # suppress warning
 pdlsections.c :: pdlsections.g Types.pm
 	%s
 EOF
-if($Config{make} =~ /\bdmake/i) {
     my $text = PDL::Core::Dev::postamble() . "
+
+pdlbadvalinit.c:: pdlbadvalinit.c.PL Types.pm\n"
+. make_from_PL( 'pdlbadvalinit.c' )
+."
+
+pdldataswitch.c:: pdldataswitch.c.PL Types.pm\n"
+. make_from_PL( 'pdldataswitch.c' )
+."
 
 pdl.h:: pdl.h.PL Types.pm\n"
     . make_from_PL( 'pdl.h' ) . "
@@ -173,6 +180,7 @@ pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
 
 pdlcore.h:: pdlcore.h.PL Types.pm\n"
     . make_from_PL( 'pdlcore.h' );
+if($Config{make} =~ /\bdmake/i) {
   if($ExtUtils::MakeMaker::VERSION < 7) {
     return $text . $pdlsections_g;
   } else {
@@ -180,7 +188,7 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
     return $text;
   }
 } else { return
-PDL::Core::Dev::postamble().
+$text.
 "
 # Bits of C code we generate from special perl scripts
 #
@@ -202,28 +210,12 @@ pdlmagic.c :: pdlcore.h\n"
 pdlsections.c :: pdl.h pdlcore.h\n"
 ."
 
-pdl.h:: pdl.h.PL Types.pm\n"
-. make_from_PL( 'pdl.h' )
-."
-
-pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
-. make_from_PL( 'pdlsimple.h' )
-."
-
 pdlconv.c:: pdlconv.c.PL Types.pm\n"
 . make_from_PL( 'pdlconv.c' )
 ."
 
 pdlcore.c:: pdlcore.c.PL Types.pm\n"
 . make_from_PL( 'pdlcore.c' )
-."
-
-pdlcore.h:: pdlcore.h.PL Types.pm\n"
-. make_from_PL( 'pdlcore.h' )
-.
-
-    join( "", map { "\n$_ :: ${_}.PL\n" . make_from_PL($_) }
-    qw( pdlcore.c ) )
 .
 ($^O =~ /MSWin/ ? $pdlsections_g : '');
 }
