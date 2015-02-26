@@ -35,7 +35,9 @@ RCS
 \.patch$
 \.so$
 \.tar\.gz$
-\bcore$
+\.travis\.yml$
+/core$
+\b_eumm/
 ^Basic/Bad/Bad\.c$
 ^Basic/Bad/Bad\.pm$
 ^Basic/Bad/Bad\.xs$
@@ -221,7 +223,6 @@ RCS
 ^debian/patched/
 ^gsl.pl
 ^inc/Alien/Proj4/Makefile.PL
-^inc/Devel
 ^inv-data.pl
 ^patch
 ^pdl$
