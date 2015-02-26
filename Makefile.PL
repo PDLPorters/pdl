@@ -9,6 +9,7 @@ use Devel::CheckLib;
 use 5.010_000;
 use ExtUtils::MakeMaker 6.56;  # for CONFIGURE_REQUIRES support
 use Config;
+use File::Spec;
 
 $::PP_VERBOSE = $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
@@ -163,8 +164,6 @@ EOD
   # up to (and including) v2.4.1
   #
 
-  require File::Spec;
-
   $PDL_CONFIG{PDL_BUILD_DIR} = File::Spec->rel2abs(File::Spec->curdir());
 
   $PDL_CONFIG{TEMPDIR} = $^O =~ /MSWin32/i ? 'File::Spec->tmpdir()' : File::Spec->tmpdir()
@@ -219,12 +218,6 @@ sub check_f77conf {
   my ($seenyet) = @_;
   return 0 unless $seenyet;
 
-  eval 'require File::Spec';
-  unless ($@ eq "") {
-      warn "can't load File::Spec, skipping f77conf\n";
-      # skip if we don't have File::Spec
-      return 0;
-  }
   my $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
     unless File::Spec->file_name_is_absolute($pdl_f77conf);
   $PDL::Config{F77CONF} = $pdl_f77conf;
@@ -520,6 +513,8 @@ make_PDL_Config_pm(); # write out config to PDL::Config
 
 # Extra build target to build the doc database
 sub MY::postamble {
+  my ($self) = @_;
+  package MY;
   my  $text =
 '
 doctest ::
@@ -564,7 +559,7 @@ pdldoc.pod : pdldoc
 EOPS
 
 $text .= <<EOT if $^O !~ /MSWin/;
-pdl$Config{exe_ext} : pdl.c
+pdl$Config::Config{exe_ext} : pdl.c
 	\$(CC) \$< -o \$\@
 EOT
 
@@ -572,7 +567,7 @@ $text .= << 'EOT' if $^O =~ /MSWin/;
 
 DISTWIN32NAME=$(DISTVNAME)-win32
 
-ppm: doctest ppd
+ppm : doctest ppd
 	$(MV) blib$(DFSEP)lib$(DFSEP)PDL$(DFSEP)HtmlDocs$(DFSEP)PDL blib$(DFSEP)html$(DFSEP)lib$(DFSEP)PDL
 	$(COMPRESS) -dc win32$(DFSEP)pbmwin32.tar.gz | $(TAR) xf -
 	$(MKPATH) $(DISTWIN32NAME)
@@ -590,6 +585,21 @@ ppm: doctest ppd
 	cd ..
 	$(RM_RF) $(DISTWIN32NAME)
 EOT
+
+my $basic_pmblib = $self->cd('Basic', "\$(MAKE) pm_to_blib");
+my $basiccore = $self->cd(File::Spec->catdir(qw(Basic Core)), "\$(MAKE)");
+my $basicgen = $self->cd(File::Spec->catdir(qw(Basic Gen)), "\$(MAKE)");
+my $coretest = File::Spec->catfile(qw(t core.t));
+$text .= <<EOF;
+
+core :
+	$basic_pmblib
+	$basiccore
+	$basicgen
+
+coretest : core
+	prove -b $coretest
+EOF
 
 return $text
 
