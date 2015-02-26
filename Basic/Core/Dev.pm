@@ -403,7 +403,7 @@ sub pdlpp_postamble {
 qq|
 
 $pref.pm: $src
-	\$(PERL) -I$w \"-MPDL::PP qw/$mod $mod $pref/\" $src
+	\$(PERL) "-I$w" \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
@@ -452,7 +452,7 @@ sub pdlpp_stdargs {
 	 'INC'          => &PDL_INST_INCLUDE()." $inc",
 	 'LIBS'         => $libs ? ["$libs "] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
-	 'dist'         => {'PREOP'  => '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' },
+	 'dist'         => {'PREOP'  => '$(PERL) "-I$(INST_ARCHLIB)" "-I$(INST_LIB)" -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' },
      (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
  );
 }
