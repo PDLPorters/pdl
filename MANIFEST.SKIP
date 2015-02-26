@@ -56,9 +56,6 @@ RCS
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlcore\.[ch]$
 ^Basic/Core/pdlsimple\.h$
-^Basic/GTest/GTest\.c$
-^Basic/GTest/GTest\.pm$
-^Basic/GTest/GTest\.xs$
 ^Basic/Gen/PP/Dump\.pm$
 ^Basic/Gen/PP/Dump\.pm\.tmp$
 ^Basic/Gen/pptemplate.pod$
@@ -153,10 +150,6 @@ RCS
 ^Lib/Compression/Compression.pm
 ^Lib/Compression/Compression.xs
 ^Lib/FFT/FFT\.*
-^Lib/FFTW/FFTW\.c
-^Lib/FFTW/FFTW\.pm
-^Lib/FFTW/FFTW\.xs
-^Lib/FFTW/typespec
 ^Lib/Fit/Gaussian/Gaussian\.c
 ^Lib/Fit/Gaussian/Gaussian\.pm
 ^Lib/Fit/Gaussian/Gaussian\.xs
