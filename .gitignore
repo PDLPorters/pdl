@@ -114,9 +114,6 @@ Basic/Primitive/Primitive.xs
 Basic/Slices/Slices.c
 Basic/Slices/Slices.pm
 Basic/Slices/Slices.xs
-Basic/Test/Tests.c
-Basic/Test/Tests.pm
-Basic/Test/Tests.xs
 Basic/Ufunc/Ufunc.c
 Basic/Ufunc/Ufunc.pm
 Basic/Ufunc/Ufunc.xs
@@ -175,10 +172,6 @@ Lib/Compression/Compression.xs
 Lib/FFT/FFT.c
 Lib/FFT/FFT.pm
 Lib/FFT/FFT.xs
-Lib/FFTW/FFTW.c
-Lib/FFTW/FFTW.pm
-Lib/FFTW/FFTW.xs
-Lib/FFTW/typespec
 Lib/Fit/Gaussian/Gaussian.c
 Lib/Fit/Gaussian/Gaussian.pm
 Lib/Fit/Gaussian/Gaussian.xs
