@@ -587,15 +587,16 @@ ppm : doctest ppd
 EOT
 
 my $basic_pmblib = $self->cd('Basic', "\$(MAKE) pm_to_blib");
-my $basiccore = $self->cd(File::Spec->catdir(qw(Basic Core)), "\$(MAKE)");
-my $basicgen = $self->cd(File::Spec->catdir(qw(Basic Gen)), "\$(MAKE)");
+# the modules in PDL::LiteF, used in t/core.t
+my $basicbuild = join "\n\t",
+  map $self->cd(File::Spec->catdir(qw(Basic), $_), "\$(MAKE)"),
+  qw(Core Gen Ops Primitive Ufunc Slices Bad);
 my $coretest = File::Spec->catfile(qw(t core.t));
 $text .= <<EOF;
 
 core :
 	$basic_pmblib
-	$basiccore
-	$basicgen
+	$basicbuild
 
 coretest : core
 	prove -b $coretest
