@@ -1523,8 +1523,10 @@ sub PDL::dummy($$;$) {
    barf("For safety, <pos> < -(dims+1) forbidden in dummy.  min="
 	 . -($pdl->getndims+1).", pos=". ($dim-1-$pdl->getndims) ) if($dim<0);
 
-   my($s) = ',' x ( ($dim > $pdl->getndims) ? ($pdl->getndims) : ($dim) );
-   $s .= '*1,' x ( $dim-$pdl->getndims );
+   # Avoid negative repeat count warning that came with 5.21 and later.
+   my $dim_diff = $dim - $pdl->getndims;
+   my($s) = ',' x ( $dim_diff > 0 ? $pdl->getndims : $dim );
+   $s .= '*1,'  x ( $dim_diff > 0 ? $dim_diff : 0 );
    $s .= "*$size";
 
    $pdl->slice($s);
@@ -2145,7 +2147,7 @@ sub PDL::nslice_if_pdl {
 
 =for ref
 
-c<nslice> was an internally used interface for L<PDL::NiceSlice|PDL::NiceSlice>, 
+c<nslice> was an internally used interface for L<PDL::NiceSlice|PDL::NiceSlice>,
 but is now merely a springboard to L<PDL::Slice|PDL::Slice>.  It is deprecated
 and likely to disappear in PDL 3.0.
 
@@ -3146,9 +3148,9 @@ sub PDL::cat {
 	my $old_err = $@;
 	$@ = '';
 	eval {
-		$res = $_[0]->initialize; 
+		$res = $_[0]->initialize;
 		$res->set_datatype($_[0]->get_datatype);
-		
+
 		my @resdims = $_[0]->dims;
 		for my $i(0..$#_){
 		    my @d = $_[$i]->dims;
