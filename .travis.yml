@@ -28,6 +28,9 @@ matrix:
       env: COVERAGE=1 PDL_WITH_BADVAL=0 # test with badval disabled + coverage
   allow_failures:
     - perl: blead
+    # currently allow Travis-CI builds without BADVAL to fail
+    - env: PDL_WITH_BADVAL=0
+    - env: COVERAGE=1 PDL_WITH_BADVAL=0
 before_install:
   - sudo apt-get update
   - sudo apt-get install build-essential libx11-dev pgplot5 libplplot-dev libgd2-xpm-dev libhdf4-alt-dev libproj-dev libvpx-dev libxpm-dev proj-bin libcfitsio3-dev libreadline-dev
