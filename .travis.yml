@@ -46,7 +46,7 @@ before_install:
   - build-perl
   - perl -V
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need tests
-  - cpanm --force --verbose ExtUtils::ParseXS
+  - cpanm --force --verbose ExtUtils::ParseXS # we install the latest ExtUtils::ParseXS
   - build-dist
   - cd $BUILD_DIR             # $BUILD_DIR is set by the build-dist command
 install:
@@ -66,3 +66,7 @@ branches:
   except:
     - /^wip\//
     - /^blocked/
+notifications:
+  irc:
+    channels:
+      - "irc.perl.org#pdl"
