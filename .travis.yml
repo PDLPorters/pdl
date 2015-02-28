@@ -46,6 +46,7 @@ before_install:
   - build-perl
   - perl -V
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need tests
+  - cpanm --force --verbose ExtUtils::ParseXS
   - build-dist
   - cd $BUILD_DIR             # $BUILD_DIR is set by the build-dist command
 install:
