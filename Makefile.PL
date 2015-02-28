@@ -439,6 +439,13 @@ my %makefile_hash = (
                 'Carp'            => 1.20,    # EU::MM seems to need this not to crash
                 'ExtUtils::MakeMaker' => 6.56,
               },
+              TEST_REQUIRES => {
+                'CPAN::Meta' => '2.120900',
+              },
+              BUILD_REQUIRES => {
+                'ExtUtils::MakeMaker' => 0,
+                'ExtUtils::ParseXS' => 0,
+              },
               'MIN_PERL_VERSION' => '5.010',
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',

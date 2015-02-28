@@ -45,6 +45,7 @@ before_install:
 install:
   - cpan-install --deps       # installs prereqs, including recommends
   - cpan-install --coverage   # installs converage prereqs, if enabled
+  - prove t/00-report-prereqs.t
   - make
 before_script:
   - coverage-setup
