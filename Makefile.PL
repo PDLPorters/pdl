@@ -450,6 +450,7 @@ my %makefile_hash = (
                 'ExtUtils::MakeMaker' => 6.56,
                 'File::Path'          => 0,
                 'ExtUtils::ParseXS'   => 3.01, # avoids 2.21, known broken
+                'ExtUtils::Depends' => '0.402',
               },
               TEST_REQUIRES => {
                 'CPAN::Meta' => '2.120900',
