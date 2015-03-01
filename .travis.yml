@@ -13,7 +13,8 @@ matrix:
     - perl: "5.16"
     - perl: "5.18"
     - perl: "blead"
-    - perl: "5.20"
+    # this is commented out because we test Perl v5.20 under all BADVAL configurations including the default below
+    #- perl: "5.20"
     - perl: "5.20"
       env: PDL_WITH_BADVAL=0 # test with badval disabled
     - perl: "5.20"
