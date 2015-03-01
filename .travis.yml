@@ -2,7 +2,7 @@ language: perl
 sudo: true
 matrix:
   include:
-	  # start the first coverage early so that it starts before everything else
+    # start the first coverage early so that it starts before everything else
     - perl: "5.20"
       env: COVERAGE=1
     - perl: "5.10"
@@ -53,11 +53,12 @@ install:
   - cpan-install --deps       # installs prereqs, including recommends
   - cpan-install --coverage   # installs converage prereqs, if enabled
   - prove t/00-report-prereqs.t
-  - make
+  # SYSTEM_CORES set by travis-perl-helpers
+  - if [ "$SERIAL_BUILD" == 1 ]; then make; else make -j$(( $SYSTEM_CORES * 2 )); fi
 before_script:
   - coverage-setup
 script:
-  - prove -b -v $(test-files) # for parallel testing, add --formatter TAP::Formatter::File -j$(test-jobs)
+  - if [ "$SERIAL_TESTING" == 1 ]; then prove -b -v $(test-files); else prove --formatter TAP::Formatter::File -j$(test-jobs) -b -v $(test-files); fi
 after_script:
   - perl -Iblib/lib -MPDL::Config -MData::Dumper -e 'print Dumper \%PDL::Config'
 after_success:
