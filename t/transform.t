@@ -1,35 +1,30 @@
 use strict;
 use warnings;
 use PDL::LiteF;
-use Test;
-
-BEGIN {
-  plan tests => 27;
-}
-
 use PDL::Transform;
+use Test::More tests => 27;
 
 ##############################
 ##############################
 # Test basic transformation
 my $t = t_linear(scale=>[2]);
-ok( $t->{idim} == 1 && $t->{odim} == 1, 1, "t_linear can make a 1-d transform" );
+ok( $t->{idim} == 1 && $t->{odim} == 1, "t_linear can make a 1-d transform" );
 
 my $a = sequence(2,2)+1;
 my $b = $a->apply($t);
 
-ok( all( approx( $b, pdl( [2, 2], [6, 4] ) )), 1, "1-d apply on a collection of vectors ignors higher dim");
+ok( all( approx( $b, pdl( [2, 2], [6, 4] ) )), "1-d apply on a collection of vectors ignors higher dim");
 
 my $t2 = t_linear(scale=>[2,3]);
 
-ok( $t2->{idim} == 2 && $t2->{odim} == 2, 1, "t_linear can make a 2-d transform" );
+ok( $t2->{idim} == 2 && $t2->{odim} == 2, "t_linear can make a 2-d transform" );
 
 $b = $a->apply($t2);
 
-ok( all( approx( $b, pdl( [2, 6], [6, 12] ) )), 1, "2-d apply treats the higher dim");
+ok( all( approx( $b, pdl( [2, 6], [6, 12] ) )), "2-d apply treats the higher dim");
 
 $b = pdl(2,3)->invert($t2);
-ok( all( approx($b, 1) ), 1, "invert works");
+ok( all( approx($b, 1) ), "invert works");
 
 
 
@@ -73,7 +68,8 @@ ok(1);  # still here!
 ##############################
 # bad value handling...
 
-if($PDL::Bad::Status) {
+SKIP: {
+    skip "Bad value support not included", 3 if !$PDL::Bad::Status;
     $a = sequence(5,5);
     no warnings;
     my $t1 = t_linear(pre=>[1.5,2]);
@@ -85,14 +81,10 @@ if($PDL::Bad::Status) {
     eval q{$b = $a->map($t1,{pix=>1,method=>'l'});};
     ok(!$@);
 
-    ok(($b->slice("0:1")->isbad->all  and  $b->slice(":,0:1")->isbad->all  and ($b->isbad->sum==16)), 1,"Bad values happen");
+    ok(($b->slice("0:1")->isbad->all  and  $b->slice(":,0:1")->isbad->all  and ($b->isbad->sum==16)), "Bad values happen");
 
     eval q{$b = $a->map($t1,{pix=>1,method=>'h'});};
-    ok(($b->slice("0")->isbad->all  and  $b->slice(":,0:1")->isbad->all and $b->isbad->sum==13), 1,"Bad values happen with 'h' method"); 
-    
-
-} else {
-    skip(3, "Bad value support not included");
+    ok(($b->slice("0")->isbad->all  and  $b->slice(":,0:1")->isbad->all and $b->isbad->sum==13), "Bad values happen with 'h' method"); 
 }
 
 use PDL::IO::FITS;
@@ -116,18 +108,18 @@ ok(all(approx($m51_coords, $m51map_coords,1e-8)));
 $a = rvals(7,7) == 0;
 
 $b = $a->match($a,{method=>'s'});
-ok(all($a==$b),1,"self-match with 's' method is a no-op");
+ok(all($a==$b),"self-match with 's' method is a no-op");
 
 $b = $a->match($a,{method=>'l'});
-ok(all(approx($a,$b)),1,"self-match with 'l' method is an approximate no-op");
+ok(all(approx($a,$b)),"self-match with 'l' method is an approximate no-op");
 
 $b = $a->match($a,{method=>'h'});
-ok(all(approx($a,$b)),1,"self-match wtih hanning method is an approximate no-op");
+ok(all(approx($a,$b)),"self-match wtih hanning method is an approximate no-op");
 
 $b = $a->match($a,{method=>'h',blur=>2});
 my $b0 = zeroes($a);
 $b0->slice([2,4],[2,4]) .= pdl([[0.0625,0.125,0.0625],[0.125,0.25,0.125],[0.0625,0.125,0.0625]]);
-ok(all(approx($b,$b0)),1,"self-match with hanning method and blur of 2 blurs right");
+ok(all(approx($b,$b0)),"self-match with hanning method and blur of 2 blurs right");
 
 $b = $a->match($a,{method=>'g'});
 $b0 = zeroes($a)-9;
@@ -137,33 +129,33 @@ my $bc = pdl([-9,-3.3658615,-2.7638017],[-3.3658615,-1.5608028,-0.95874296],[-2.
 $b0->slice([1,3],[1,3]) .= $bc;
 $b0->slice([5,3],[1,3]) .= $bc;
 $b0->slice([1,5],[5,4]) .= $b0->slice([1,5],[1,2]);
-ok(all(approx($b->clip(1e-9)->log10,$b0,1e-7)),1,"self-match with Gaussian method gives understood blur");
+ok(all(approx($b->clip(1e-9)->log10,$b0,1e-7)),"self-match with Gaussian method gives understood blur");
 
 $t = t_linear(pre=>[0.5,1]);
 $b = $a->map($t,{method=>'s',pix=>1});
 my $wndb = $b->whichND;
-ok($wndb->nelem==2 and all($wndb==pdl([[3,4]])) and approx($b->slice(3,4),1),1,'offset with sample is a simple offset');
+ok($wndb->nelem==2 and all($wndb==pdl([[3,4]])) and approx($b->slice(3,4),1),'offset with sample is a simple offset');
 
 $b = $a->map($t,{method=>'l',pix=>1});
 $wndb = $b->whichND;
-ok($wndb->nelem==4 and all($wndb==pdl([[3,4],[4,4]])) and all(approx($b->slice([3,4],4),0.5)),1,'offset with linear interpolation does the right thing');
+ok($wndb->nelem==4 and all($wndb==pdl([[3,4],[4,4]])) and all(approx($b->slice([3,4],4),0.5)),'offset with linear interpolation does the right thing');
 
 $b = $a->map($t,{method=>'h',pix=>1});
 $wndb = $b->whichND;
-ok($wndb->nelem==4 and all($wndb==pdl([[3,4],[4,4]])) and all(approx($b->slice([3,4],4),0.5)),1,'offset with hanning interpolation does the right thing');
+ok($wndb->nelem==4 and all($wndb==pdl([[3,4],[4,4]])) and all(approx($b->slice([3,4],4),0.5)),'offset with hanning interpolation does the right thing');
 
 ##############################
 # Test boundary conditions
 $a = sequence(5,5);
 $b = $a->match([10,10],{pix=>1,method=>'s'});
-ok( all($b->slice([0,4],[0,4])==$a) && all($b->slice([5,9])==0) && all($b->slice('x',[5,9])==0), 1, "truncation boundary condition works");
+ok( all($b->slice([0,4],[0,4])==$a) && all($b->slice([5,9])==0) && all($b->slice('x',[5,9])==0), "truncation boundary condition works");
 
 $b = $a->match([10,10],{pix=>1,method=>'h'});
-ok( all($b->slice([0,4],[0,4])==$a) && all($b->slice([5,9])==0) && all($b->slice('x',[5,9])==0), 1, "truncation boundary condition works for jacobian methods");
+ok( all($b->slice([0,4],[0,4])==$a) && all($b->slice([5,9])==0) && all($b->slice('x',[5,9])==0), "truncation boundary condition works for jacobian methods");
 
 $b = $a->match([10,10],{pix=>1,method=>'s',bound=>'mp'});
-ok( all($b->slice([0,4],[0,4])==$a) && all($b->slice([9,5])==$b->slice([0,4])) && all($b->slice('x',[5,9])==$b->slice('x',[0,4])), 1, "periodic and mirror boundary conditions work");
+ok( all($b->slice([0,4],[0,4])==$a) && all($b->slice([9,5])==$b->slice([0,4])) && all($b->slice('x',[5,9])==$b->slice('x',[0,4])), "periodic and mirror boundary conditions work");
 
 $b = $a->match([10,10],{pix=>1,method=>'h',bound=>'mp'});
-ok( all($b->slice([0,4],[0,4])==$a) && all($b->slice([9,5])==$b->slice([0,4])) && all($b->slice('x',[5,9])==$b->slice('x',[0,4])), 1, "periodic and mirror boundary conditions work for jacobian methods");
+ok( all($b->slice([0,4],[0,4])==$a) && all($b->slice([9,5])==$b->slice([0,4])) && all($b->slice('x',[5,9])==$b->slice('x',[0,4])), "periodic and mirror boundary conditions work for jacobian methods");
 
