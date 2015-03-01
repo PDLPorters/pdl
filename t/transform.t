@@ -1,6 +1,7 @@
+use strict;
+use warnings;
 use PDL::LiteF;
 use Test;
-use warnings;
 
 BEGIN {
   plan tests => 27;
@@ -11,15 +12,15 @@ use PDL::Transform;
 ##############################
 ##############################
 # Test basic transformation
-$t = t_linear(scale=>[2]);
+my $t = t_linear(scale=>[2]);
 ok( $t->{idim} == 1 && $t->{odim} == 1, 1, "t_linear can make a 1-d transform" );
 
-$a = sequence(2,2)+1;
-$b = $a->apply($t);
+my $a = sequence(2,2)+1;
+my $b = $a->apply($t);
 
 ok( all( approx( $b, pdl( [2, 2], [6, 4] ) )), 1, "1-d apply on a collection of vectors ignors higher dim");
 
-$t2 = t_linear(scale=>[2,3]);
+my $t2 = t_linear(scale=>[2,3]);
 
 ok( $t2->{idim} == 2 && $t2->{odim} == 2, 1, "t_linear can make a 2-d transform" );
 
@@ -65,7 +66,7 @@ $a = pdl(49,49);
 $t = t_linear({scale=>pdl([1,3]), offset=>pdl([12,8])});
 $b = pdl( double, 2.2, 9.3);
 $a->inplace->apply($t);
-$q = 0;
+my $q = 0;
 $a += $q;
 ok(1);  # still here!
 
@@ -75,8 +76,8 @@ ok(1);  # still here!
 if($PDL::Bad::Status) {
     $a = sequence(5,5);
     no warnings;
-    $t1 = t_linear(pre=>[1.5,2]);
-    $t2 = t_linear(pre=>[1,2]);
+    my $t1 = t_linear(pre=>[1.5,2]);
+    my $t2 = t_linear(pre=>[1,2]);
     use warnings;
 
     $a->badflag(1);
@@ -95,12 +96,12 @@ if($PDL::Bad::Status) {
 }
 
 use PDL::IO::FITS;
-$m51 = rfits('m51.fits');
-$m51map = $m51->map(t_identity,{method=>'s'}); #SHOULD be a no-op
+my $m51 = rfits('m51.fits');
+my $m51map = $m51->map(t_identity,{method=>'s'}); #SHOULD be a no-op
 ok(all($m51==$m51map));
 
-$m51_coords = pdl(0,0)->apply(t_fits($m51));
-$m51map_coords = pdl(0,0)->apply(t_fits($m51map));
+my $m51_coords = pdl(0,0)->apply(t_fits($m51));
+my $m51map_coords = pdl(0,0)->apply(t_fits($m51map));
 ok(all(approx($m51_coords, $m51map_coords,1e-8)));
 
 
@@ -124,13 +125,13 @@ $b = $a->match($a,{method=>'h'});
 ok(all(approx($a,$b)),1,"self-match wtih hanning method is an approximate no-op");
 
 $b = $a->match($a,{method=>'h',blur=>2});
-$b0 = zeroes($a);
+my $b0 = zeroes($a);
 $b0->slice([2,4],[2,4]) .= pdl([[0.0625,0.125,0.0625],[0.125,0.25,0.125],[0.0625,0.125,0.0625]]);
 ok(all(approx($b,$b0)),1,"self-match with hanning method and blur of 2 blurs right");
 
 $b = $a->match($a,{method=>'g'});
 $b0 = zeroes($a)-9;
-$bc = pdl([-9,-3.3658615,-2.7638017],[-3.3658615,-1.5608028,-0.95874296],[-2.7638017,-0.95874296,-0.35668313]);
+my $bc = pdl([-9,-3.3658615,-2.7638017],[-3.3658615,-1.5608028,-0.95874296],[-2.7638017,-0.95874296,-0.35668313]);
 #$bc = pdl([-9,-9,-2.762678-4.4e-8],[-9,-1.5593078,-0.95724797],[-2.762678-4.4e-8,-0.95724797,-0.35518814]);
 
 $b0->slice([1,3],[1,3]) .= $bc;
@@ -140,7 +141,7 @@ ok(all(approx($b->clip(1e-9)->log10,$b0,1e-7)),1,"self-match with Gaussian metho
 
 $t = t_linear(pre=>[0.5,1]);
 $b = $a->map($t,{method=>'s',pix=>1});
-$wndb = $b->whichND;
+my $wndb = $b->whichND;
 ok($wndb->nelem==2 and all($wndb==pdl([[3,4]])) and approx($b->slice(3,4),1),1,'offset with sample is a simple offset');
 
 $b = $a->map($t,{method=>'l',pix=>1});
