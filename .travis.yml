@@ -69,3 +69,4 @@ notifications:
   irc:
     channels:
       - "irc.perl.org#pdl"
+    skip_join: true
