@@ -60,9 +60,12 @@ after_script:
 after_success:
   - coverage-report
 branches:
+branches:
   except:
     - /^wip\//
     - /^blocked/
+  only:
+    - master
 notifications:
   irc:
     channels:
