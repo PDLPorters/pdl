@@ -5,8 +5,6 @@ matrix:
     # start the first coverage early so that it starts before everything else
     - perl: "5.20"
       env: COVERAGE=1
-    - perl: "5.20"
-      env: COVERAGE=1 PDL_WITH_BADVAL=0 # test with badval disabled + coverage
     - perl: "5.10"
     - perl: "5.12"
     - perl: "5.14"
