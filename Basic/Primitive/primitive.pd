@@ -2251,33 +2251,33 @@ be one of:
 
 =item C<sample>
 
-invoke B<vsearch_sample>, returning indices appropriate for sampling
+invoke L<B<vsearch_sample>|/vsearch_sample>, returning indices appropriate for sampling
 within a distribution.
 
 =item C<insert_leftmost>
 
-invoke B<vsearch_insert_leftmost>, returning the left-most possible
+invoke L<B<vsearch_insert_leftmost>|/vsearch_insert_leftmost>, returning the left-most possible
 insertion point which still leaves the piddle sorted.
 
 =item C<insert_rightmost>
 
-invoke B<vsearch_insert_rightmost>, returning the right-most possible
+invoke L<B<vsearch_insert_rightmost>|/vsearch_insert_rightmost>, returning the right-most possible
 insertion point which still leaves the piddle sorted.
 
 =item C<match>
 
-invoke B<vsearch_match>, returning the index of a matching element,
+invoke L<B<vsearch_match>|/vsearch_match>, returning the index of a matching element,
 else -(insertion point + 1)
 
 =item C<bin_inclusive>
 
-invoke B<vsearch_bin_inclusive>, returning an index appropriate for binning
+invoke L<B<vsearch_bin_inclusive>|/vsearch_bin_inclusive>, returning an index appropriate for binning
 on a grid where the left bin edges are I<inclusive> of the bin. See
 below for further explanation of the bin.
 
 =item C<bin_exclusive>
 
-invoke B<vsearch_bin_exclusive>, returning an index appropriate for binning
+invoke L<B<vsearch_bin_exclusive>|/vsearch_bin_exclusive>, returning an index appropriate for binning
 on a grid where the left bin edges are I<exclusive> of the bin. See
 below for further explanation of the bin.
 
@@ -2336,6 +2336,15 @@ The default value of C<mode> is C<sample>.
   # $x                     [0 0 0 1 1 1 2 2 2 3 3 3 4 4 4]
   # bin_exclusive (2)      [0 0 0 1 1 9 2 2 2 3 3 3 4 4 4]
   # bin_exclusive (1.5)    [0 0 0 1 1 9 2 2 2 3 3 3 4 4 4]
+
+
+Also see
+L<B<vsearch_sample>|/vsearch_sample>,
+L<B<vsearch_insert_leftmost>|/vsearch_insert_leftmost>,
+L<B<vsearch_insert_rightmost>|/vsearch_insert_rightmost>,
+L<B<vsearch_match>|/vsearch_match>,
+L<B<vsearch_bin_inclusive>|/vsearch_bin_inclusive>, and
+L<B<vsearch_bin_exclusive>|/vsearch_bin_exclusive>
 
 =cut
 
