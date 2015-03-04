@@ -1,37 +1,46 @@
-<<<<<<< HEAD
-use Test::More;
-=======
-
->>>>>>> e59b717... test cleanup: ica.t
 use PDL::LiteF;
 
 # TODO This file does not currently test anything beyond loading PDL::Slatec.
 
-#use strict; # TODO fix the disabled code and enable strict
+use strict; # TODO fix the disabled code and enable strict
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 2;
 
+our $HAVE_PDL_SLATEC = 0;
+our $HAVE_PDL_ICA = 0;
 BEGIN {
 
-        eval " use PDL::Slatec; ";
-        $loaded = ($@ ? 0 : 1);
-	eval " use PDL::ICA; ";
-	$loaded++ unless $@;
+        eval {
+		require PDL::Slatec;
+		$HAVE_PDL_SLATEC = 1;
+	};
+
+        eval {
+		require PDL::ICA;
+		$HAVE_PDL_ICA = 1;
+	};
+}
+
+SKIP: {
+	skip "Could not load PDL::Slatec", 1 unless $HAVE_PDL_SLATEC;
+	pass("PDL::Slatec loads");
+}
+
+SKIP: {
+	skip "Could not load PDL::ICA", 1 unless $HAVE_PDL_ICA;
+	pass("PDL::ICA loads");
 }
 
 # use PDL::Graphics::PG;
 # dev "/XSERVE",2,2;
 
-kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+$|=1;
+
+kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 use Carp;
 
-$SIG{__DIE__} = sub {diag Carp::longmess(@_); die FOO;};
-
-plan skip_all => "PDL::Slatec not installed. Skipping all tests.\n"
-    unless $loaded;
-plan tests => 1;
-ok($loaded);
+$SIG{__DIE__} = sub {print Carp::longmess(@_); die 'FOO';};
 
 #DEFERRED
 
@@ -43,32 +52,39 @@ if(0) {
 
 # Generate data: oblique lattice
 
-$pars = pdl 2,3,4;
-$rot = PDL::LinICA::_cayleygen({NVars=>3},$pars);
+{
+	my $pars = pdl 2,3,4;
+	my $rot = PDL::LinICA::_cayleygen({NVars=>3},$pars);
 
-note $rot;
+	note $rot;
 
-$inv = inv($rot);
-note $inv;
-
-if(0) {
-
-if(0) {
-$data = long zeroes(2,36);
-axisvalues($data->xchg(0,1));
-($xx = $data->slice('(0)')) %= 6;
-($xx = $data->slice('(1)')) /= 6;
-note $data;
-$data = float $data;
-} else {
-$data = long zeroes(2,9);
-axisvalues($data->xchg(0,1));
-($xx = $data->slice('(0)')) %= 3;
-($xx = $data->slice('(1)')) /= 3;
-note $data;
-$data = float $data;
+	my $inv = inv($rot);
+	note $inv;
 }
 
+if(0) {
+
+if(0) {
+	my ($data, $xx);
+
+	$data = long zeroes(2,36);
+	axisvalues($data->xchg(0,1));
+	($xx = $data->slice('(0)')) %= 6;
+	($xx = $data->slice('(1)')) /= 6;
+	print $data;
+	$data = float $data;
+} else {
+	my ($data, $xx);
+
+	$data = long zeroes(2,9);
+	axisvalues($data->xchg(0,1));
+	($xx = $data->slice('(0)')) %= 3;
+	($xx = $data->slice('(1)')) /= 3;
+	print $data;
+	$data = float $data;
+}
+
+my ($data, $xx, $ica, $newdata, $pcadata);
 $data *= 0.1;
 ($xx = $data->slice('(0)')) *= 2;
 ($xx = $data->slice('(0)')) += $data->slice('(1)') * 0.3;
@@ -97,6 +113,8 @@ pdata($newdata);
 }
 
 note "NEWLATT\n";
+
+my ($data, $data0, $ica, $newdata);
 
 $data0 = zeroes(3,4,4,4);
 axisvalues($data0->slice('(0)'));
