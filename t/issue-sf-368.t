@@ -23,31 +23,27 @@ BEGIN {
 	}
 }
 
-plan tests => 5;
+plan tests => 3;
 
+## Set up data
 my $ecf = sequence(999);
 
 my $y = $ecf->lags( 0, 9, 111 );
 my $x = sequence( 9 );
 
 my $polyfit_orig;
-
 lives_ok { $polyfit_orig = polyfit( $x, $y, $x->ones, 4, .0001 ); } 'polyfit() works when the weight $w matches the length of $x';
 
-TODO: {
-	local $TODO = q|The test dies because the weight parameter ($w) is the incorrect length for the underlying Slatec polfit function|;
+subtest 'Passing the weight in a PDL of length 1' => sub {
 	my $polyfit_pdl_len_one;
-	lives_ok
-		{ $polyfit_pdl_len_one = polyfit( $x, $y, pdl(1), 4, .0001 ); }
-		'Passing the weight in a PDL of length 1';
-
-	my $polyfit_perl_scalar;
-	lives_ok
-		{ $polyfit_perl_scalar = polyfit( $x, $y, 1, 4, .0001 ) }
-		'Passing the weight in a Perl scalar';
-
+	lives_ok { $polyfit_pdl_len_one = polyfit( $x, $y, pdl(1), 4, .0001 ); };
 	ok( approx($polyfit_orig, $polyfit_pdl_len_one)->all, 'passing a PDL of length 1 expands to the correct length' );
+};
+
+subtest 'Passing the weight in a Perl scalar' => sub {
+	my $polyfit_perl_scalar;
+	lives_ok { $polyfit_perl_scalar = polyfit( $x, $y, 1, 4, .0001 ) };
 	ok( approx($polyfit_orig, $polyfit_perl_scalar)->all, 'passing a Perl scalar expands to the correct length' );
-}
+};
 
 done_testing;
