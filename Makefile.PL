@@ -441,6 +441,7 @@ my %makefile_hash = (
               },
               TEST_REQUIRES => {
                 'CPAN::Meta' => '2.120900',
+                'Test::Exception' => 0,
               },
               BUILD_REQUIRES => {
                 'ExtUtils::MakeMaker' => 0,
