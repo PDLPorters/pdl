@@ -15,7 +15,7 @@ sub tapprox {
 	return $d < 0.01;
 }
 
-print "1..44\n";
+print "1..53\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -143,16 +143,42 @@ ok(38, all $data == 1);
 ok(39, all $data eq $data); # check eq operator
 
 
-# check proper modulus... really we should do this for each datatype
-$a = xvals(15)-7;
-$b = $a % 3;
-ok(40,sum($b != pdl(2,0,1,2,0,1,2,0,1,2,0,1,2,0,1)) == 0);
-$b = $a % -3;
-ok(41,sum($b != pdl(-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2))==0);
-$b = $a % 0;
-ok(42,sum($b != 0) == 0);
-#check that modulus works on PDL_Index types correctly
-$b = $a->qsorti;
-$c = $b % 3;
-ok(43,all($c->double==pdl("0 1 2 " x 5)));
-ok(44,longlong(10)%longlong(5)==0);
+#### Modulus checks ####
+
+#test signed modulus on small numbers
+# short/long/indx/longlong/float/double neg/0/pos % neg/0/pos
+$a = pdl(-7..7);
+$b = pdl(-3,0,3)->transpose;
+$c = cat(pdl("-1 0 -2 " x 5),zeroes(15),pdl("2 0 1 " x 5));
+ok(40, all(short($a) % short($b) == short($c)));
+ok(41, all(long($a) % long($b) ==  long($c)));
+ok(42, all(indx($a) % indx($b) == indx($c)));
+ok(43, all(longlong($a) % longlong($b) == longlong($c)));
+ok(44, all(float($a) % float($b) == float($c)));
+ok(45, all(double($a) % double($b) == double($c)));
+
+#test unsigned modulus
+# byte/ushort 0/pos % 0/pos
+$a = xvals(15);
+$b = pdl(0,3)->transpose;
+$c = cat(zeroes(15),pdl("0 1 2 " x 5));
+ok(46, all(byte($a) % byte($b)==byte($c)));
+ok(47, all(ushort($a) % ushort($b)==ushort($c)));
+
+#and for big numbers (bigger than INT_MAX=2147483647)
+#basically this is exercising the (typecast)(X)/(N) in the macros
+$INT_MAX=2147483647;
+
+ok(48,long($INT_MAX)%1 == 0);
+ok(49,indx($INT_MAX*4)%2 == 0);
+ok(50,longlong($INT_MAX*4)%2 == 0);
+#skip float intentionally here, since float($INT_MAX)!=$INT_MAX
+ok(51,double($INT_MAX*4)%2 == 0);
+
+#and do the same for byte (unsigned char) and ushort
+$BYTE_MAX = 255;
+$USHORT_MAX = 65535;
+
+ok(52,byte($BYTE_MAX)%1 == 0);
+ok(53,ushort($USHORT_MAX)%1 == 0);
+
