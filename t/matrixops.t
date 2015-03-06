@@ -16,7 +16,7 @@ sub near {
 	return ($dist <= $tol)->all;
 }
 
-BEGIN { plan tests => 30,
+BEGIN { plan tests => 34,
 }
 
 my $tol = 1e-14;
@@ -64,6 +64,15 @@ ok(defined $a1);
 ok(ref ($opt->{lu}->[0]) eq 'PDL');
 ok(near(matmult($a1,$a),$identity,$tol));
 
+### Check inv() with added thread dims (simple check)
+my $C22 = pdl([5,5],[5,7.5]);
+my $C22inv = eval { $C22->inv };
+ok(!$@);                                                    # ran OK
+ok(near($C22inv,pdl([0.6, -0.4], [-0.4, 0.4])));            # right answer
+my $C222 = $C22->dummy(2,2);
+my $C222inv = eval { $C222->inv };
+ok(!$@);                                                         # ran OK
+ok(near($C222inv,pdl([0.6, -0.4], [-0.4, 0.4])->dummy(2,2)));    # right answer
 
 ### Check inv() for matrices with added thread dims (bug #3172882 on sf.net)
 $a94 = pdl( [  1,  0,  4, -1, -1, -3,  0,  1,  0 ],
@@ -134,7 +143,7 @@ ok(!$@);
 
 ### Check that it really returns eigenvectors
 $c = float(($a x $vec) / $vec); 
-print "c is $c\n";
+#print "c is $c\n";
 ok(all($c->slice(":,0") == $c->slice(":,1")));
 
 ### Check that the eigenvalues are correct for this matrix

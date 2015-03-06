@@ -12,6 +12,10 @@ General Notes:
 
  * Counting down to a PDL-2.008 release this February 2015
 
+ * This release marks the completion of almost all the
+   priority issues needed for PDL-2.008.  Expect feature
+   freeze, final shakedown, and release to come!
+
  * Another quick CPAN developers release
 
    - It is a snapshot of the current git development tree
@@ -35,7 +39,23 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fixed sf.net bug #373  2.007_11 MANIFEST
+
+ * Implemented 'core' and 'coretest' targets for quick testing.
+
+ * Fix quote/whitespace build problems
+
+ * Fix threading problem discovered in PDL::MatrixOps::inv()
+
+ * Build improvements and support for automated commit testing
+   via the travis-ci infrastructure
+
+ * Fixed sf.net bug #368 PDL::Slatec::polyfit ignores
+   incorrect length of weight piddle
+ 
+ * Fixed sf.net bug #374 CONFIGURE_REQUIRES => Devel::CheckLib 
+
+ * Lots of tweaks and cleanup...
 
 
 

@@ -248,3 +248,6 @@ pure_all
 so_locations
 subdirs
 ~$
+
+.travis.yml
+README.md

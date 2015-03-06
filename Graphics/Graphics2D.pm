@@ -866,13 +866,13 @@ sub close_imag2d_window {
       }
    }
 
-   print STDERR "close_imag2d_window: started with  " . scalar(@imag2d_list) . " windows.\n";
+   print STDERR "close_imag2d_window: started with  " . scalar(@imag2d_list) . " windows.\n" if $debug;
    if ($found_it) {
       @imag2d_list = grep { $_->{window_id} != $win_id } @imag2d_list;
    } else {
       warn "close_imag2d_window: could not find open window\n";
    }
-   print STDERR "close_imag2d_window: finished with " . scalar(@imag2d_list) . " windows.\n";
+   print STDERR "close_imag2d_window: finished with " . scalar(@imag2d_list) . " windows.\n" if $debug;
 }
 
 #------------------------------------------------------------------------
