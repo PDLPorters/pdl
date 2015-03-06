@@ -55,6 +55,9 @@ Highlights:
  
  * Fixed sf.net bug #374 CONFIGURE_REQUIRES => Devel::CheckLib 
 
+ * Tests and fixes for modulus operator for 64bit integer
+   operands.  Tests on 32bit systems welcome.
+
  * Lots of tweaks and cleanup...
 
 
