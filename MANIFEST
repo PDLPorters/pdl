@@ -16,10 +16,12 @@ Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
 Basic/Core/pdl.h.PL
 Basic/Core/pdlapi.c
+Basic/Core/pdlbadvalinit.c
 Basic/Core/pdlbadvalinit.c.PL
 Basic/Core/pdlconv.c.PL
 Basic/Core/pdlcore.c.PL
 Basic/Core/pdlcore.h.PL
+Basic/Core/pdldataswitch.c
 Basic/Core/pdldataswitch.c.PL
 Basic/Core/pdlhash.c
 Basic/Core/pdlmagic.c
@@ -668,13 +670,13 @@ debian/source/format
 debian/write_config_debian.pl
 inc/Carp.pm
 inc/Carp/Heavy.pm
-inc/Devel/CheckLib.pm
 m51.fits
 macosx/README
 pdl.c
 pdldoc
 perldl
 perldl.conf
+t/00-report-prereqs.t
 t/aaa_load.t
 t/argtest.t
 t/autoload.t
@@ -733,6 +735,7 @@ t/interp.t
 t/interp_slatec.t
 t/interpol.t
 t/iotypes.t
+t/issue-sf-368.t
 t/lgamma.t
 t/limits_00.t
 t/limits_errb.t
