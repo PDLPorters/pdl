@@ -1100,12 +1100,15 @@ sub PDL::Core::new_pdl_from_string {
 
    if (ref $val eq 'ARRAY') {
       my $to_return = PDL::Core::pdl_avref($val,$this,$type);
-      # remove potentially spurious last dimension
-      $to_return = $to_return->mv(-1,1)->clump(2)
-         if $to_return->dims > 1 and $to_return->dim(-1) == 1;
-      # fix scalar values
-      $to_return->setdims([])
-         if $to_return->dims == 1 and $to_return->dim(-1) == 1;
+      if( $to_return->dim(-1) == 1 ) {
+	      if( $to_return->dims > 1 ) {
+		      # remove potentially spurious last dimension
+		      $to_return = $to_return->mv(-1,1)->clump(2);
+	      } elsif( $to_return->dims == 1 ) {
+		      # fix scalar values
+		      $to_return->setdims([]);
+	      }
+      }
       # Mark bad if appropriate
       $to_return->badflag($has_bad > 0);
       return $to_return;
