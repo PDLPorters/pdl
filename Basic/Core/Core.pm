@@ -719,6 +719,20 @@ sub topdl {PDL->topdl(@_)}
 
 ####################### Overloaded operators #######################
 
+# This is to used warn if an operand is non-numeric or non-PDL.
+sub warn_non_numeric_op_wrapper {
+	my ($cb, $op_name) = @_;
+	return sub {
+		my ($op1, $op2) = @_;
+		unless( Scalar::Util::looks_like_number($op2)
+			|| ( Scalar::Util::blessed($op2) && $op2->isa('PDL') )
+			) {
+			warn "'$op2' is not numeric nor a PDL in operator $op_name";
+		};
+		$cb->(@_);
+	}
+}
+
 { package PDL;
   # use UNIVERSAL 'isa'; # need that later in info function
   use Carp;
@@ -739,7 +753,8 @@ sub topdl {PDL->topdl(@_)}
 		"<="    => \&PDL::le,       # in1, in2, swap if true
 		">="    => \&PDL::ge,       # in1, in2, swap if true
 		"=="    => \&PDL::eq,       # in1, in2
-		"eq"    => \&PDL::eq,       # in1, in2
+		"eq"    => PDL::Core::warn_non_numeric_op_wrapper(\&PDL::eq, 'eq'),
+		                            # in1, in2
 		"!="    => \&PDL::ne,       # in1, in2
 
 		"<<"    => \&PDL::shiftleft,  # in1, in2, swap if true
