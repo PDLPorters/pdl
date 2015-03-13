@@ -48,7 +48,7 @@ before_install:
 install:
   - cpan-install --deps       # installs prereqs, including recommends
   - cpan-install --coverage   # installs converage prereqs, if enabled
-  - prove t/00-report-prereqs.t
+  - prove t/00-report-prereqs.t t/01-checkmanifest.t
   # SYSTEM_CORES set by travis-perl-helpers
   - if [ "$SERIAL_BUILD" == 1 ]; then make; else make -j$(( $SYSTEM_CORES * 2 )); fi
 before_script:
