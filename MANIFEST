@@ -732,7 +732,6 @@ t/interp.t
 t/interp_slatec.t
 t/interpol.t
 t/iotypes.t
-t/issue-sf-368.t
 t/lgamma.t
 t/limits_00.t
 t/limits_errb.t
