@@ -50,8 +50,9 @@ RCS
 ^Basic/Core/Types\.pm$
 ^Basic/Core/Version\.pm
 ^Basic/Core/Version\.pm
-^Basic/Core/badsupport\.p
 ^Basic/Core/check_endian$
+^Basic/Core/pdlbadvalinit\.c$
+^Basic/Core/pdldataswitch\.c$
 ^Basic/Core/isbigendian.p$
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlcore\.[ch]$

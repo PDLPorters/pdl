@@ -16,12 +16,10 @@ Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
 Basic/Core/pdl.h.PL
 Basic/Core/pdlapi.c
-Basic/Core/pdlbadvalinit.c
 Basic/Core/pdlbadvalinit.c.PL
 Basic/Core/pdlconv.c.PL
 Basic/Core/pdlcore.c.PL
 Basic/Core/pdlcore.h.PL
-Basic/Core/pdldataswitch.c
 Basic/Core/pdldataswitch.c.PL
 Basic/Core/pdlhash.c
 Basic/Core/pdlmagic.c
