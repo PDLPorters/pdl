@@ -437,7 +437,6 @@ if($Config{archname}=~m/x86_64/) {
 
 # create GENERATED subdir with *.pm files during 'make dist' (to make metacpan.org happy)
 my $preop = '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)';
-$preop .= q[ && git log --stat --since='29 Apr 2009' > Changes.new && $(MV) Changes.new $(DISTVNAME)/Changes] if $^O ne 'MSWin32';
 
 my %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
