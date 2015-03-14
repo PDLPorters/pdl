@@ -4,20 +4,20 @@ use ExtUtils::MakeMaker;
 use Config;
 
 my $package = [ qw(SD.pd SD PDL::IO::HDF::SD) ];
-our ($hdf_include_path, $hdf_lib_path, $hdf_libs, $szip);
+my $pkg = ExtUtils::Depends->new(qw(PDL::IO::HDF::SD Alien::HDF4));
+$pkg->set_inc(&PDL_INCLUDE());
+$pkg->add_typemaps(&PDL_TYPEMAP());
+$pkg->add_pm(
+    'SD.pm' => '$(INST_LIBDIR)/SD.pm',
+);
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub { pdlpp_postamble_int($package); };
 
 WriteMakefile(
     NAME => 'PDL::IO::HDF::SD',
-    TYPEMAPS => [ &PDL_TYPEMAP() ], 
     OBJECT => 'SD.o ',
-    PM => { 
-        'SD.pm' => '$(INST_LIBDIR)/SD.pm',
-    },
-    INC => &PDL_INCLUDE() . " -I$hdf_include_path", 
-    LIBS => [ "-L$hdf_lib_path $hdf_libs -ljpeg -lz $szip" ],
+    $pkg->get_makefile_vars,
     clean => {
         FILES => 'SD.pm SD.xs SD.o SD.c',
     },
