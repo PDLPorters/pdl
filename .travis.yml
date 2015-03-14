@@ -38,13 +38,14 @@ before_install:
   - perl -pi -e 's|BADVAL_PER_PDL => 0|BADVAL_PER_PDL => 1| if defined $ENV{PDL_BADVAL_PER_PDL} && $ENV{PDL_BADVAL_PER_PDL}  == 1' perldl.conf # enable BADVAL_PER_PDL
   - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
   - ls -lR
+  - export SPLIT_BUILD=0
   - source ~/travis-perl-helpers/init
   - build-perl
   - perl -V
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need tests
   - cpanm --quiet --notest Devel::CheckLib # specify this now because this is a CONFIGURE_REQUIRES for author-side
   - cpanm --force --verbose ExtUtils::ParseXS # we install the latest ExtUtils::ParseXS
-  - SPLIT_BUILD=0 build-dist
+  - build-dist
   - cd $BUILD_DIR             # $BUILD_DIR is set by the build-dist command
 install:
   - cpan-install --deps       # installs prereqs, including recommends
