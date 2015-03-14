@@ -43,11 +43,11 @@ before_install:
   - perl -V
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need tests
   - cpanm --verbose Alien::HDF4
+  - cpanm --quiet --notest Devel::CheckLib # specify this now because this is a CONFIGURE_REQUIRES for author-side
   - cpanm --force --verbose ExtUtils::ParseXS # we install the latest ExtUtils::ParseXS
-  - build-dist
-  - cd $BUILD_DIR             # $BUILD_DIR is set by the build-dist command
+  - cpanm --installdeps --notest .
+  - perl Makefile.PL          # instead of the helper's build-dist
 install:
-  - cpan-install --deps       # installs prereqs, including recommends
   - cpan-install --coverage   # installs converage prereqs, if enabled
   - prove t/00-report-prereqs.t t/01-checkmanifest.t
   # SYSTEM_CORES set by travis-perl-helpers
