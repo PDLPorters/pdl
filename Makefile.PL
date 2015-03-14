@@ -598,8 +598,12 @@ my $basic_pmblib = $self->cd('Basic', "\$(MAKE) pm_to_blib");
 # the modules in PDL::LiteF, used in t/core.t
 my $basicbuild = join "\n\t",
   map $self->cd(File::Spec->catdir(qw(Basic), $_), "\$(MAKE)"),
-  qw(Core Gen Ops Primitive Ufunc Slices Bad);
-my $coretest = File::Spec->catfile(qw(t core.t));
+  qw(Core Gen Ops Primitive Ufunc Slices Bad Math MatrixOps);
+my $coretest = join ' ', map File::Spec->catfile('t', $_), qw(core.t ops.t);
+# looking forward to EUMM better supporting parallel builds in subdirs:
+# Core deps on Gen Ops Primitive Ufunc Slices Bad
+# Primitive deps on Math
+# Math deps on MatrixOps
 $text .= <<EOF;
 
 core :
