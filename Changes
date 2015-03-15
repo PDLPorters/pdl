@@ -1,32 +1,6 @@
 Release Notes for PDL 2.011_01 -----------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.007 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-
-   - Manual build/install is possible, but easiest is to
-     use cpanm:
-
-       cpanm --dev PDL
-
 
 Highlights:
 
@@ -35,14 +9,6 @@ Highlights:
 
 
 Release Notes for PDL 2.011 -----------------------------
-
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.007 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
 
 General Notes:
 
@@ -95,32 +61,7 @@ General Notes:
 
 Release Notes for PDL 2.009_01 -----------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.007 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-
-   - Manual build/install is possible, but easiest is to
-     use cpanm:
-
-       cpanm --dev PDL
 
 Highlights:
 
@@ -148,14 +89,6 @@ General Notes:
 
 
 Release Notes for PDL 2.008 -----------------------------
-
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.007 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
 
 General Notes:
 
@@ -285,34 +218,9 @@ Highlights:
 
 Release Notes for PDL 2.007_17 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.007 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * This is PDL-2.008_rc4!
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-
-   - Manual build/install is possible, but easiest is to
-     use cpanm:
-
-       cpanm --dev PDL
 
 Highlights:
 
@@ -327,34 +235,9 @@ Highlights:
 
 Release Notes for PDL 2.007_16 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.007 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * This is PDL-2.008_rc3!
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-
-   - Manual build/install is possible, but easiest is to
-     use cpanm:
-
-       cpanm --dev PDL
 
 Highlights:
 
@@ -367,34 +250,9 @@ Highlights:
 
 Release Notes for PDL 2.007_15 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * This is PDL-2.008_rc2!
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-
-   - Manual build/install is possible, but easiest is to
-     use cpanm:
-
-       cpanm --dev PDL
 
 Highlights:
 
@@ -408,34 +266,9 @@ Highlights:
 
 Release Notes for PDL 2.007_14 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * This is PDL-2.008_rc1!
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-
-   - Manual build/install is possible, but easiest is to
-     use cpanm:
-
-       cpanm --dev PDL
 
 Highlights:
 
@@ -448,34 +281,9 @@ Highlights:
 
 Release Notes for PDL 2.007_13 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.007 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * Counting down to a PDL-2.008 release this April 2015
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-
-   - Manual build/install is possible, but easiest is to
-     use cpanm:
-
-       cpanm --dev PDL
 
 Highlights:
 
@@ -506,15 +314,6 @@ Highlights:
 
 
 Release Notes for PDL 2.007_12 --------------------------
-
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * Counting down to a PDL-2.008 release this February 2015
@@ -523,26 +322,6 @@ General Notes:
    priority issues needed for PDL-2.008.  Expect feature
    freeze, final shakedown, and release to come!
 
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_12.tar.gz
-       cpan> make CHM/PDL-2.007_12.tar.gz
-       cpan> test CHM/PDL-2.007_12.tar.gz
-       cpan> look CHM/PDL-2.007_12.tar.gz
 
 Highlights:
 
@@ -571,39 +350,10 @@ Highlights:
 
 Release Notes for PDL 2.007_11 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
 
 General Notes:
 
  * Counting down to a PDL-2.008 release this February 2015
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_11.tar.gz
-       cpan> make CHM/PDL-2.007_11.tar.gz
-       cpan> test CHM/PDL-2.007_11.tar.gz
-       cpan> look CHM/PDL-2.007_11.tar.gz
-
 Highlights:
 
  * The new Filter::Simple engine for PDL::NiceSlice is now
@@ -623,38 +373,9 @@ Highlights:
 
 Release Notes for PDL 2.007_10 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * Counting down to a PDL-2.008 release this February 2015
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_10.tar.gz
-       cpan> make CHM/PDL-2.007_10.tar.gz
-       cpan> test CHM/PDL-2.007_10.tar.gz
-       cpan> look CHM/PDL-2.007_10.tar.gz
 
 Highlights:
 
@@ -664,38 +385,9 @@ Highlights:
 
 Release Notes for PDL 2.007_09 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * Counting down to a PDL-2.008 release this February 2015
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_09.tar.gz
-       cpan> make CHM/PDL-2.007_09.tar.gz
-       cpan> test CHM/PDL-2.007_09.tar.gz
-       cpan> look CHM/PDL-2.007_09.tar.gz
 
 Highlights:
 
@@ -708,38 +400,9 @@ Highlights:
 
 Release Notes for PDL 2.007_08 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * Counting down to a PDL-2.008 release this January 2015
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_08.tar.gz
-       cpan> make CHM/PDL-2.007_08.tar.gz
-       cpan> test CHM/PDL-2.007_08.tar.gz
-       cpan> look CHM/PDL-2.007_08.tar.gz
 
 Highlights:
 
@@ -753,38 +416,9 @@ Highlights:
 
 Release Notes for PDL 2.007_07 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * Counting down to a PDL-2.008 release this January 2015
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_07.tar.gz
-       cpan> make CHM/PDL-2.007_07.tar.gz
-       cpan> test CHM/PDL-2.007_07.tar.gz
-       cpan> look CHM/PDL-2.007_07.tar.gz
 
 Highlights:
 
@@ -799,38 +433,9 @@ Highlights:
 
 Release Notes for PDL 2.007_06 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
 
  * Counting down to a PDL-2.008 release this January 2015
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_06.tar.gz
-       cpan> make CHM/PDL-2.007_06.tar.gz
-       cpan> test CHM/PDL-2.007_06.tar.gz
-       cpan> look CHM/PDL-2.007_06.tar.gz
 
 Highlights:
 
@@ -846,36 +451,7 @@ Highlights:
 
 Release Notes for PDL 2.007_05 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_05.tar.gz
-       cpan> make CHM/PDL-2.007_05.tar.gz
-       cpan> test CHM/PDL-2.007_05.tar.gz
-       cpan> look CHM/PDL-2.007_05.tar.gz
 
 Highlights:
 
@@ -892,36 +468,7 @@ Highlights:
 
 Release Notes for PDL 2.007_04 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_04.tar.gz
-       cpan> make CHM/PDL-2.007_04.tar.gz
-       cpan> test CHM/PDL-2.007_04.tar.gz
-       cpan> look CHM/PDL-2.007_04.tar.gz
 
 Highlights:
 
@@ -933,36 +480,7 @@ Highlights:
 
 Release Notes for PDL 2.007_03 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_03.tar.gz
-       cpan> make CHM/PDL-2.007_03.tar.gz
-       cpan> test CHM/PDL-2.007_03.tar.gz
-       cpan> look CHM/PDL-2.007_03.tar.gz
 
 Highlights:
 
@@ -976,36 +494,7 @@ Highlights:
 
 Release Notes for PDL 2.007_02 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_02.tar.gz
-       cpan> make CHM/PDL-2.007_02.tar.gz
-       cpan> test CHM/PDL-2.007_02.tar.gz
-       cpan> look CHM/PDL-2.007_02.tar.gz
 
 Highlights:
 
@@ -1022,36 +511,7 @@ Highlights:
 
 Release Notes for PDL 2.007_01 --------------------------
 
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
-
 General Notes:
-
- * Another quick CPAN developers release
-
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  CHM/PDL-2.007_01.tar.gz
-       cpan> make CHM/PDL-2.007_01.tar.gz
-       cpan> test CHM/PDL-2.007_01.tar.gz
-       cpan> look CHM/PDL-2.007_01.tar.gz
 
 Highlights:
 
@@ -1072,14 +532,6 @@ Highlights:
 
 
 Release Notes for PDL 2.007 --------------------------
-
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
 
 General Notes:
 
@@ -1195,14 +647,6 @@ Highlights:
 
 
 Release Notes for PDL 2.006 --------------------------
-
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.4.10 and earlier.  This    |
- | will require that you re-build any PP or XS modules.  Do not  |
- | upgrade or install over an existing PDL installation unless   |
- | you are prepared to do so!!!                                  |
- +---------------------------------------------------------------+
 
 General Notes:
 
@@ -1355,14 +799,6 @@ General Notes:
 
  * This is a point release of PDL to support the coming perl
    5.16.0 release.
-
- +---------------------------------------------------------------+
- | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API and will require that you re-build any PP or  |
- | XS modules.  Do not upgrade or install over an existing PDL   |
- | installation unless you are prepared to do so!!!              |
- +---------------------------------------------------------------+
-
 
 Highlights:
 
