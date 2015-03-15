@@ -596,9 +596,19 @@ EOT
 
 my $basic_pmblib = $self->cd('Basic', "\$(MAKE) pm_to_blib");
 # the modules in PDL::LiteF, used in t/core.t
-my $basicbuild = join "\n\t",
-  map $self->cd(File::Spec->catdir(qw(Basic), $_), "\$(MAKE)"),
-  qw(Core Gen Ops Primitive Ufunc Slices Bad Math MatrixOps);
+my @buildchunks = $self->cd(File::Spec->catdir(qw(Basic Gen)), "\$(MAKE)");
+# this contortion is due to an intermittent failure of "cd;make" to
+# actually build the SO in blib with gmake -j4, which doesn't happen if
+# give actual path. E.g. in Core it often doesn't build pdlcore.o and
+# sometimes not Core.o, then just stops and indicates success
+my $up_blib = File::Spec->catdir((File::Spec->updir) x 2, qw(blib arch auto PDL));
+push @buildchunks,
+  map $self->cd(
+    File::Spec->catdir(qw(Basic), $_),
+    "\$(MAKE) " . File::Spec->catfile($up_blib, $_, "$_.\$(DLEXT)")
+  ),
+  qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps);
+my $basicbuild = join "\n\t", @buildchunks;
 my $coretest = join ' ', map File::Spec->catfile('t', $_), qw(core.t ops.t);
 # looking forward to EUMM better supporting parallel builds in subdirs:
 # Core deps on Gen Ops Primitive Ufunc Slices Bad
