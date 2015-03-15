@@ -162,10 +162,10 @@ ok all(ushort($a) % ushort($b)==ushort($c)), 'ushort modulus';
 $INT_MAX=2147483647;
 
 ok long($INT_MAX)%1 == 0, 'big long modulus';
-ok indx($INT_MAX*4)%2 == 0, 'big indx modulus';
+cmp_ok indx($INT_MAX*4)%2, '==', 0, 'big indx modulus';
 ok longlong($INT_MAX*4)%2 == 0, 'big longlong modulus';
 #skip float intentionally here, since float($INT_MAX)!=$INT_MAX
-ok double($INT_MAX*4)%2 == 0, 'big double modulus';
+cmp_ok double($INT_MAX*4)%2, '==', 0, 'big double modulus';
 
 #and do the same for byte (unsigned char) and ushort
 $BYTE_MAX = 255;
