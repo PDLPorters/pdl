@@ -1,12 +1,6 @@
 use PDL::LiteF;
 use Test;
 use Config;
-# sub ok {
-# 	my $no = shift;
-# 	my $result = shift;
-# 	print "not " unless $result;
-# 	print "ok $no\n";
-# }
 
 sub near {
 	my($a,$b,$tol) = @_;

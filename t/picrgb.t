@@ -6,16 +6,7 @@ use File::Temp qw(tempdir);
 use File::Spec;
 
 # we need tests with index shuffling once vaffines are fixed
-my $numbad = 0;
-
-sub ok {
-	my $no = shift ;
-	my $result = shift ;
-	print "not " unless $result ;
-	print "ok $no\n" ;
-        $numbad++ unless $result;
-        $result;
-}
+use Test::More;
 
 sub tapprox {
 	my($a,$b,$mdiff) = @_;
@@ -33,20 +24,10 @@ sub rpic_unlink {
 }
 
 sub depends_on {
-  print "# ushort is ok with $_[0]\n"
+  note "ushort is ok with $_[0]\n"
 	if $PDL::IO::Pic::converter{$_[0]}->{ushortok};
   return 1 if $PDL::IO::Pic::converter{$_[0]}->{ushortok};
   return 256;
-}
-
-sub check {
-  my ($err,$i) = @_;
-  if ($err =~ /maxval is too large/) {
-    print STDERR
-       "skipping test $i (recompile pbmplus with PGM_BIGGRAYS!)\n"
-  } else {
-    print STDERR "skipping test $i (unknownm error: $err)\n"
-  }
 }
 
 sub mmax { return $_[0] > $_[1] ? $_[0] : $_[1] }
@@ -89,14 +70,12 @@ for (keys %formats) {
 
 $ntests = 2 * (@allowed);
 if ($ntests < 1) {
-  print("1..1\nok 1\n"); # dummy
-  exit;
+  plan skip_all => "No tests";
 }
 
-print("1..$ntests\n");
+plan tests => $ntests;
 
-print "# Testable formats on this platform:\n#  ".join(',',@allowed)."\n";
-
+note "Testable formats on this platform:\n".join(',',@allowed)."\n";
 
 $im1 = ushort pdl [[[0,0,0],[256,65535,256],[0,0,0]],
 		   [[256,256,256],[256,256,256],[256,256,256]],
@@ -104,42 +83,42 @@ $im1 = ushort pdl [[[0,0,0],[256,65535,256],[0,0,0]],
 $im2 = byte ($im1/256);
 
 if ($PDL::debug){
-   print $im1;
-   print $im2;
+   note $im1;
+   note $im2;
 }
 
-$n = 1;
-$usherr = 0;
 my $tmpdir = tempdir( CLEANUP => 1 );
 sub tmpfile { File::Spec->catfile($tmpdir, $_[0]); }
 foreach $form (sort @allowed) {
-    print "# ** testing $form format **\n";
+    note "** testing $form format **\n";
 
     $arr = $formats{$form};
     my $tushort = tmpfile("tushort.$arr->[0]");
     my $tbyte = tmpfile("tbyte.$arr->[0]");
     eval '$im1->wpic($tushort,{IFORM => $iform});';
-    if ($@) { check($@,$n); $usherr = 1 } else { $usherr=0}
-    $im2->wpic($tbyte,{IFORM => $iform});
+    SKIP: {
+        my $additional = '';
+        if ($@ =~ /maxval is too large/) {
+            $additional = ' (recompile pbmplus with PGM_BIGGRAYS!)';
+        }
+        skip "Error: '$@'$additional", 2 if $@;
+        $im2->wpic($tbyte,{IFORM => $iform});
 
-    $in1 = rpic_unlink($tushort) unless $usherr;
-    $in2 = rpic_unlink($tbyte);
+        $in1 = rpic_unlink($tushort) unless $usherr;
+        $in2 = rpic_unlink($tbyte);
 
-    $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
-    print "# Comparison arr: $comp" if $PDL::debug;
-    ok($n++,$usherr || tapprox($comp,$in1,$arr->[3]) || tifftest($form));
-    ok($n++,tapprox($im2,$in2) || tifftest($form));
+        $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
+        note "Comparison arr: $comp" if $PDL::debug;
+        ok($usherr || tapprox($comp,$in1,$arr->[3]) || tifftest($form));
+        ok(tapprox($im2,$in2) || tifftest($form));
+    }
 
     if ($PDL::debug) {
-      print $in1->px;
-      print $in2->px;
+      note $in1->px;
+      note $in2->px;
     }
 }
 
 use Data::Dumper;
-if ($numbad > 0) {
-   local $Data::Dumper::Pad = '#';
-   print "# Dumping diagnostic PDL::IO::Pic converter data...\n";
-   print Dumper(\%PDL::IO::Pic::converter);
-}
-
+note "PDL::IO::Pic converter data:\n";
+note Dumper(\%PDL::IO::Pic::converter);

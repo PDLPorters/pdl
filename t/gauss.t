@@ -1,20 +1,11 @@
 # Test routine for PDL::Fit::Gaussian module
 
+use Test::More tests => 2;
 use PDL;
 use PDL::Fit::Gaussian;
 
-
-print "1..2\n";
-
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-$count=1;
-sub ok {
-        my $no = $count++ ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
-}
 sub nint{int($_[0]->at+0.5)};
 
 $g1 = pdl qw[ 2.1990459  1.9464173  2.1565406  2.1672124  2.2701938   
