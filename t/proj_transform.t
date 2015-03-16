@@ -23,7 +23,8 @@ if($^O =~ /MSWin32/i) {
 plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not found."
     if !$test_jpegtopnm;
 
-plan tests => 22;
+my @projections = sort keys %{PDL::GIS::Proj::load_projection_information()};
+plan tests => 25 + 2 * @projections;
 
 # Test integration with PDL::Transform
 
@@ -32,20 +33,19 @@ use_ok('PDL::Transform::Cartography');
 ### Get the vector coastline map (and a lon/lat grid), and load the Earth
 ### RGB daytime image -- both of these are built-in to the module. The
 ### coastline map is a set of (X,Y,Pen) vectors.
-###
-### This doesn't seem to be used.  # chm 14-May-2009
-### my $coast = earth_coast()->glue( 1, graticule(15,1) );
+
+ok defined graticule(10,2)->glue(1,earth_coast());
 
 my $map = eval { earth_image( 'day' ) };
 
 SKIP: {
-   skip("earth_image() can not load test data", 21) if $@;
+   skip("earth_image() can not load test data", 23) if $@;
    pass("earth_image() loaded");
    $map->badflag(1);
    my $checksum = unpack "%16C*", ${$map->get_dataref};
    my $goodcheck = 56639;
    if ($checksum != $goodcheck) {
-      skip "earth_image() map has bad checksum: $checksum (expected $goodcheck)", 20;
+      skip "earth_image() map has bad checksum: $checksum (expected $goodcheck)", 22;
    }
 
    my $map_size = [500,500];
@@ -63,7 +63,10 @@ SKIP: {
 
    # Check EQC map against reference:
    my $eqc_opts = "+proj=eqc +lon_0=0 +datum=WGS84";
-   my $eqc = eval '$map->map( t_proj( proj_params => $eqc_opts ), $map_size )';
+   my $proj = eval { t_proj( proj_params => $eqc_opts ) };
+   isnt $proj, undef;
+   isnt $proj->proj_params, undef;
+   my $eqc = eval { $map->map( $proj, $map_size ) };
    if (! defined($eqc)) {
       diag("PROJ4 error: $@\n");
       skip "Possible bad PROJ4 install",20 if $@ =~ m/Projection initialization failed/;
@@ -115,6 +118,14 @@ SKIP: {
       # ok( "$slice" eq $ref_robin_slices[$i], "check ref_robin for slices[$i]" );
       is( "$slice", $ref_robin_slices[$i], "check ref_robin for slices[$i]" );
    }
+}
+
+my $eqc_opts = "+proj=eqc +lon_0=0 +datum=WGS84";
+for my $proj (@projections) {
+   my $alias = "t_proj_$proj";
+   my $proj = eval { no strict 'refs'; $alias->( proj_params => $eqc_opts ) };
+   is $@, '';
+   isnt $proj, undef;
 }
 
 sub get_ref_robin_slices {
