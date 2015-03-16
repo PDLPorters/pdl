@@ -1993,8 +1993,10 @@ $pars
 
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
     parent = ST(0);
-    if (sv_isobject(parent))
-      objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  PDL_COMMENT("The package to bless output vars into is taken from the first input var")
+    if (sv_isobject(parent)){
+	bless_stash = SvSTASH(SvRV(ST(0)));
+	objname = HvNAME((bless_stash));  PDL_COMMENT("The package to bless output vars into is taken from the first input var")
+    }
   }
   if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output and temp vars")
     nreturn = $noutca;
