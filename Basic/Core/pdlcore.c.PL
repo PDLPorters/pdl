@@ -902,8 +902,8 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
 
   /* Can't copy into a level deeper than the number of dims in the output PDL */
   if(level > ndims ) {
-    fprintf(stderr,"pdl_kludge_copy: level=%d; ndims=%d\\n",level,ndims);
-    croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: Assertion failed; ndims-1-level (%d) < 0!.",ndims-1-level);
+    fprintf(stderr,"pdl_kludge_copy: level=%d; ndims=%"IND_FLAG"\\n",level,ndims);
+    croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: Assertion failed; ndims-1-level (%"IND_FLAG") < 0!.",ndims-1-level);
   }
 
   if(level >= ndims - 1) {

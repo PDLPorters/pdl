@@ -83,7 +83,7 @@ void pdl_allocdata(pdl *it) {
 			nvals *= it->dims[i];
 	}
 	it->nvals = nvals;
-	PDLDEBUG_f(printf("pdl_allocdata %p, %d, %d\n",(void*)it, it->nvals,
+	PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
 		it->datatype));
 
 	pdl_grow(it,nvals);
@@ -437,13 +437,13 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 		if(it->pdls[1]->state & PDL_PARENTDIMSCHANGED) {
 			printf("%s   AFFINE, BUT DIMSCHANGED\n",spaces);
 		} else {
-			printf("%s   AFFINE: o:%d, i:(",spaces,foo->offs);
+			printf("%s   AFFINE: o:%"IND_FLAG", i:(",spaces,foo->offs);
 			for(i=0; i<foo->pdls[1]->ndims; i++) {
-				printf("%s%d",(i?" ":""),foo->incs[i]);
+				printf("%s%"IND_FLAG,(i?" ":""),foo->incs[i]);
 			}
 			printf(") d:(");
 			for(i=0; i<foo->pdls[1]->ndims; i++) {
-				printf("%s%d",(i?" ":""),foo->pdls[1]->dims[i]);
+				printf("%s%"IND_FLAG,(i?" ":""),foo->pdls[1]->dims[i]);
 			}
 			printf(")\n");
 		}
@@ -475,22 +475,22 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 	printf("%s   transvtable: %p, trans: %p, sv: %p\n",spaces,
 		(void*)(it->trans?it->trans->vtable:0), (void*)(it->trans), (void*)(it->sv));
 	if(it->datasv) {
-		printf("%s   Data SV: %p, Svlen: %d, data: %p, nvals: %d\n", spaces,
+		printf("%s   Data SV: %p, Svlen: %d, data: %p, nvals: %"IND_FLAG"\n", spaces,
 			(void*)(it->datasv), (int)SvCUR((SV*)it->datasv), (void*)(it->data), it->nvals);
 	}
 	printf("%s   Dims: %p (",spaces,(void*)(it->dims));
 	for(i=0; i<it->ndims; i++) {
-		printf("%s%d",(i?" ":""),it->dims[i]);
+		printf("%s%"IND_FLAG,(i?" ":""),it->dims[i]);
 	};
 	printf(")\n%s   ThreadIds: %p (",spaces,(void*)(it->threadids));
 	for(i=0; i<it->nthreadids+1; i++) {
 		printf("%s%d",(i?" ":""),it->threadids[i]);
 	}
 	if(PDL_VAFFOK(it)) {
-		printf(")\n%s   Vaffine ok: %p (parent), o:%d, i:(",
+		printf(")\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:(",
 			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
 		for(i=0; i<it->ndims; i++) {
-			printf("%s%d",(i?" ":""),it->vafftrans->incs[i]);
+			printf("%s%"IND_FLAG,(i?" ":""),it->vafftrans->incs[i]);
 		}
 	}
 	if(it->state & PDL_ALLOCATED) {

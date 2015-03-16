@@ -2310,7 +2310,7 @@ EOD
                                 i, $PARENT(ndims));
                 }
                 if(nsp > $PARENT(dims[i])) {
-                        die("Splitdim: nsp (%d) cannot be greater than dim (%d)\n",
+                        die("Splitdim: nsp (%d) cannot be greater than dim (%"IND_FLAG")\n",
                                 nsp, $PARENT(dims[i]));
                 }
                 $PRIV(offs) = 0;

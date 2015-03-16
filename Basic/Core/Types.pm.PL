@@ -462,6 +462,17 @@ sub datatypes_header {
     chop $enum;
     chop $enum;
 
+    my $indx_type = typefld('PDL_IND','realctype');
+    $typedefs .= '#define IND_FLAG ';
+    if ($indx_type eq 'long'){
+	$typedefs .= qq|"ld"|;
+    } elsif ($indx_type eq 'long long'){
+	$typedefs .= qq|"lld"|;
+    } else {
+	$typedefs .= qq|"d"|;
+    }
+    $typedefs .= "\n\n";
+
     my $PDL_DATATYPES = <<"EOD";
 
 /*****************************************************************************/

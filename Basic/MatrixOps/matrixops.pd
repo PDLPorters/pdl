@@ -572,7 +572,7 @@ pp_def("eigens",
 	        barf("eigens internal error...");
             }
             if($SIZE (m) != (sn * sn )) {
-		fprintf(stderr,"m=%d, sn=%d\n",$SIZE(m),sn);
+		fprintf(stderr,"m=%"IND_FLAG", sn=%d\n",$SIZE(m),sn);
 		barf("Wrong sized args for eigens");
 	    }
 

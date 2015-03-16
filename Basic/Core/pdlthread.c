@@ -34,8 +34,7 @@ static void print_iarr(PDL_Indx *iarr, int n) {
   int i;
   printf("(");
   for (i=0;i<n;i++)
-    // printf("%s%d",(i?" ":""),iarr[i]);
-    printf("%s%lld",(i?" ":""),iarr[i]);  // hardwire for test, get from %Config
+    printf("%s%"IND_FLAG,(i?" ":""),iarr[i]);  // IND_FLAG in pdl.h, at build time from Types.pm.PL
   printf(")");
 }
 
@@ -487,7 +486,7 @@ void pdl_initthreadstruct(int nobl,
 		  buf0[0] = '\0';
 
 		  s = buf0+strlen(buf0);
-		  sprintf(s,"  Mismatched implicit thread dimension %d: size %d vs. %d\nThere are %d PDLs in the expression; %d thread dim%s.\n",i,thread->dims[nth],pdls[j]->dims[i+realdims[j]],thread->npdls,nimpl,(nimpl==1)?"":"s");
+		  sprintf(s,"  Mismatched implicit thread dimension %d: size %"IND_FLAG" vs. %"IND_FLAG"\nThere are %d PDLs in the expression; %d thread dim%s.\n",i,thread->dims[nth],pdls[j]->dims[i+realdims[j]],thread->npdls,nimpl,(nimpl==1)?"":"s");
 		  s += strlen(s);
 		  
 		  for(ii=maxrealdims=0; ii<thread->npdls; ii++)

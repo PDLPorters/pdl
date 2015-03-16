@@ -105,7 +105,7 @@ FILE *out;
 
 if ($SIZE(i) != 3 || $SIZE(j) > 256)
 {
-    croak("Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+    croak("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
             $SIZE(i), $SIZE(j) );
 }
 
@@ -167,7 +167,7 @@ if( $COMP(level) < -1 || $COMP(level) > 9 )
 
 if ($SIZE(i) != 3 || $SIZE(j) > 256)
 {
-    croak("Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+    croak("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
             $SIZE(i), $SIZE(j) );
 }
 
@@ -224,7 +224,7 @@ FILE *out;
 
 if ($SIZE(z) != 3)
 {
-    croak("Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+    croak("Wrong dimensions (%"IND_FLAG", %"IND_FLAG", %"IND_FLAG")! (should be (X,Y,3))\n",
             $SIZE(x), $SIZE(y), $SIZE(z) );
 }
 
@@ -276,7 +276,7 @@ if( $COMP(level) < -1 || $COMP(level) > 9 )
 
 if ($SIZE(z) != 3)
 {
-    croak("Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+    croak("Wrong dimensions (%"IND_FLAG", %"IND_FLAG", %"IND_FLAG")! (should be (X,Y,3))\n",
             $SIZE(x), $SIZE(y), $SIZE(z) );
 }
 
@@ -497,7 +497,7 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of %s (%dx%d) and piddle (%dx%d) do not match!\n",
+    croak("%sDims of %s (%dx%d) and piddle (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
@@ -546,7 +546,7 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of %s (%dx%d) and piddle (%dx%d) do not match!\n",
+    croak("%sDims of %s (%dx%d) and piddle (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
@@ -578,7 +578,7 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of gdImage (%dx%d) and piddle (%dx%d) do not match!\n",
+    croak("%sDims of gdImage (%dx%d) and piddle (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             func, xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
@@ -611,7 +611,7 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of gdImage (%dx%d) and piddle (%dx%d) do not match!\n",
+    croak("%sDims of gdImage (%dx%d) and piddle (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             func, xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
@@ -635,7 +635,7 @@ char str[255];
 
 if ($SIZE(z) != 3)
 {
-    croak("Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+    croak("Wrong dimensions (%"IND_FLAG", %"IND_FLAG", %"IND_FLAG")! (should be (X,Y,3))\n",
             $SIZE(x), $SIZE(y), $SIZE(z) );
 }
 
@@ -671,7 +671,7 @@ char str[255];
 
 if ($SIZE(i) != 3 || $SIZE(j) > 256)
 {
-    croak("Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+    croak("Wrong LUT dimensions (%"IND_FLAG", %"IND_FLAG")! (should be (3, X), where X <= 256)\n",
             $SIZE(i), $SIZE(j) );
 }
 

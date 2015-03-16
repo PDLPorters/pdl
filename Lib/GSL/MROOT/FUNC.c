@@ -142,7 +142,7 @@ int my_f (const gsl_vector * v, void * params, gsl_vector * df)
 int
 print_state (size_t iter, gsl_multiroot_fsolver * s)
 {
-  printf ("iter = %3u x = % .3f % .3f "
+  printf ("iter = %3zu x = % .3f % .3f "
 	  "f(x) = % .3e % .3e\n",
 	  iter,
 	  gsl_vector_get (s->x, 0),
