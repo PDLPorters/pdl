@@ -404,7 +404,6 @@ my @prereq = (
 	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
            'Storable'            => 1.03,      # for PDL::IO::Storable
 	   'Text::Balanced'      => 1.89,      # for PDL::NiceSlice
-           'Test::Warn'          => 0,         # for t/pptest.t
 	  );
 
 # add OpenGL version dependency for CPAN to follow
@@ -442,6 +441,8 @@ my %makefile_hash = (
               TEST_REQUIRES => {
                 'CPAN::Meta' => '2.120900',
                 'Test::Exception' => 0,
+                'Test::Warn' => 0,  # for t/pptest.t
+                'Test::Deep' => 0,
               },
               BUILD_REQUIRES => {
                 'ExtUtils::MakeMaker' => 0,
