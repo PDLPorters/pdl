@@ -1,72 +1,33 @@
 #!/usr/bin/perl
 
-#
-# t/proj_transform.t
-#
-# Test program for the PDL::Transform::Proj4 library
-#
-# Judd Taylor, Orbital Systems, Ltd.
-# judd.t@orbtialsystems.com
-#
-# 17 April 2008
-#
-
+use strict;
+use warnings;
 use PDL;
 use Test::More;
+use PDL::Config;
+plan skip_all => "PDL::Transform::Proj4 module not compiled."
+    unless $PDL::Config{WITH_PROJ};
+eval { require PDL::Transform::Proj4; PDL::Transform::Proj4->import; };
+plan skip_all => "PDL::Transform::Proj4 module compiled, but not available."
+    if $@;
+plan skip_all => "PDL::Transform::Proj4 module requires the PDL::Bad module!"
+    unless $PDL::Bad::Status;
 
-BEGIN
-{
-    use PDL::Config;
-    if ( $PDL::Config{WITH_PROJ} )
-    {
-        eval( " use PDL::Transform::Proj4; " );
-        if( !($@) )
-        {
-            $test_jpegtopnm = 1;
-            if($^O =~ /MSWin32/i)
-            {
-                $test_jpegtopnm = `jpegtopnm --help 2>&1`;
-                $test_jpegtopnm = $test_jpegtopnm =~ /^jpegtopnm:/ ? 1 : 0;
-            }
-            elsif ( !defined( scalar( qx(jpegtopnm --help 2>&1) ) ) )
-            {
-                $test_jpegtopnm = 0;
-            }
-            if( $PDL::Bad::Status )
-            {
-                if( $test_jpegtopnm )
-                {
-                    plan tests => 22
-                }
-                else
-                {
-                    plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not found.";
-                }
-            }
-            else
-            {
-                plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module.";
-            }
-        }
-        else
-        {
-            plan skip_all => "PDL::Transform::Proj4 module compiled, but not available.";
-        }
-    }
-    else
-    {
-        plan skip_all => "PDL::Transform::Proj4 module not compiled.";
-    }
+my $test_jpegtopnm = 1;
+if($^O =~ /MSWin32/i) {
+    $test_jpegtopnm = `jpegtopnm --help 2>&1`;
+    $test_jpegtopnm = $test_jpegtopnm =~ /^jpegtopnm:/ ? 1 : 0;
+} elsif ( !defined scalar qx(jpegtopnm --help 2>&1) ) {
+    $test_jpegtopnm = 0;
 }
+plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not found."
+    if !$test_jpegtopnm;
 
-#
+plan tests => 22;
+
 # Test integration with PDL::Transform
-#
 
-BEGIN
-{
-   use_ok(PDL::Transform::Cartography);                 # TEST 1
-}
+use_ok('PDL::Transform::Cartography');
 
 ### Get the vector coastline map (and a lon/lat grid), and load the Earth
 ### RGB daytime image -- both of these are built-in to the module. The
@@ -75,19 +36,12 @@ BEGIN
 ### This doesn't seem to be used.  # chm 14-May-2009
 ### my $coast = earth_coast()->glue( 1, graticule(15,1) );
 
-eval { my $map = earth_image( 'day' ) };
-
-if ($@) {
-   skip("earth_image() can not load test data", 21);
-} else {
-   pass("earth_image() loaded");                     # TEST 2
-}
-
-my $map = earth_image( 'day' );
-$map->badflag(1);
+my $map = eval { earth_image( 'day' ) };
 
 SKIP: {
-
+   skip("earth_image() can not load test data", 21) if $@;
+   pass("earth_image() loaded");
+   $map->badflag(1);
    my $checksum = unpack "%16C*", ${$map->get_dataref};
    my $goodcheck = 56639;
    if ($checksum != $goodcheck) {
@@ -104,10 +58,6 @@ SKIP: {
       "271:280,464:473,(0)"
    );
 
-
-   ##############
-   # TESTS 3-7: #
-   ##############
    # Get EQC reference data:
    my @ref_eqc_slices = get_ref_eqc_slices();
 
@@ -127,9 +77,6 @@ SKIP: {
       is( "$slice", $ref_eqc_slices[$i], "check ref_eqc for slices[$i]" );
    }
 
-   ###############
-   # TESTS 8-12: #
-   ###############
    # Get Ortho reference data:
    my @ref_ortho_slices = get_ref_ortho_slices();
 
@@ -145,12 +92,7 @@ SKIP: {
       is( "$slice", $ref_ortho_slices[$i], "check ref_ortho for slices[$i]" );
    }
 
-   #
    # Test the auto-generated methods:
-   #
-   ################
-   # TESTS 13-17: #
-   ################
    my $ortho2 = $map->map( t_proj_ortho( ellps => 'WGS84', lon_0 => -90, lat_0 => 40 ), $map_size );
    foreach my $i ( 0 .. $#slices )
    {
@@ -161,9 +103,6 @@ SKIP: {
       is( "$slice", $ref_ortho_slices[$i], "check ref_ortho2 for slices[$i]" );
    }
 
-   ################
-   # TESTS 18-22: #
-   ################
    # Get Robinson reference data:
    my @ref_robin_slices = get_ref_robin_slices();
 
@@ -176,13 +115,9 @@ SKIP: {
       # ok( "$slice" eq $ref_robin_slices[$i], "check ref_robin for slices[$i]" );
       is( "$slice", $ref_robin_slices[$i], "check ref_robin for slices[$i]" );
    }
-
 }
-exit(0);
 
-
-sub get_ref_robin_slices
-{
+sub get_ref_robin_slices {
     my @slices = ();
     push(@slices, <<"END");
 
@@ -260,10 +195,9 @@ END
 ]
 END
     return @slices;
-} # End of get_ref_robin_slices()...
+}
 
-sub get_ref_ortho_slices
-{
+sub get_ref_ortho_slices {
     my @slices = ();
     push(@slices, <<"END");
 
@@ -341,10 +275,9 @@ END
 ]
 END
     return @slices;
-} # End of get_ref_ortho_slices()...
+}
 
-sub get_ref_eqc_slices
-{
+sub get_ref_eqc_slices {
     my @slices = ();
     push(@slices, <<"END");
 
@@ -422,4 +355,4 @@ END
 ]
 END
     return @slices;
-} # End of get_ref_eqc_slices()...
+}
