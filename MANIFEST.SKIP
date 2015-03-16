@@ -216,7 +216,6 @@ RCS
 ^debian/filter-test.pl
 ^debian/patched/
 ^gsl.pl
-^inc/Alien/Proj4/Makefile.PL
 ^inv-data.pl
 ^patch
 ^pdl$

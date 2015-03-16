@@ -129,10 +129,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    These modules aren't tested by CPAN Testers because of dependencies:
-   * PDL::FFTW
-     - Deprecate PDL::FFTW since it is largely out-of-date and
-       has unresolved bugs with wisdom
-     - Alien::FFTW3 and add PDL::FFTW3
    * PDL::Slatec
    * PDL::Minuit
      - need Fortran compilter and ExtUtils::F77
@@ -148,8 +144,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
      - need more complete libgsl bindings
      - Alien::GSL
    * PDL::GIS::Proj
-   * PDL::Transform::Proj4
-     - Alien::Proj4
+     - duplicate code with Alien::Proj4 needs de-dup-ing
    * PDL::Graphics::TriD
      - Alien::OpenGL, GLU, GLEW, GLUT, GLUI...
      - test with pixel buffer context(?)

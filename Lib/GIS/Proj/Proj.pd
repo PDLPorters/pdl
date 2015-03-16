@@ -16,6 +16,8 @@ use strict;
 use vars qw( $VERSION );
 $VERSION = "1.32";
 
+# when switch to Alien::Proj4 as separate module
+# use Alien::Proj4;
 pp_addpm(<<'EODOC');
 =head1 NAME
 
@@ -575,6 +577,12 @@ EOBAD
 # Utility functions for getting projection description information (in a general case).
 #
 
+# when switch to Alien::Proj4 as separate module, replace with:
+# pp_addpm(<<'ENDPM' );
+# sub load_projection_descriptions {
+#     return Alien::Proj4->load_projection_descriptions;
+# }
+# ENDPM
 pp_addxs('', <<'ENDXS' );
 
 HV* 
@@ -599,6 +607,12 @@ pp_add_exported('', ' load_projection_descriptions ');
 #
 # Perl code to finish loading the projetion information by parsing the descriptions:
 #
+# when switch to Alien::Proj4 as separate module, replace with:
+# pp_addpm(<<'ENDPM' );
+# sub load_projection_information {
+#     return Alien::Proj4->load_projection_information;
+# }
+# ENDPM
 
 pp_addpm( <<'ENDPM' );
 

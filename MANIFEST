@@ -666,6 +666,7 @@ debian/perldl.conf
 debian/rules
 debian/source/format
 debian/write_config_debian.pl
+inc/Alien/Proj4.pm
 inc/Carp.pm
 inc/Carp/Heavy.pm
 m51.fits
