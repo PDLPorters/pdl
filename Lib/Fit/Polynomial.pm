@@ -107,8 +107,10 @@ sub PDL::fitpoly1d {
 
    # Fitted coefficients vector
 
-   # $a = matinv($C) x $Y;
+   ## $a = matinv($C) x $Y;
+   ## print "matinv: \$C = $C, \$Y = $Y, \$a = $a\n";
    $a = inv($C) x $Y;  # use inv() instead of matinv() to avoid Slatec dependency
+   ## print "inv:    \$C = $C, \$Y = $Y, \$a = $a\n";
    
    # Fitted data
 
