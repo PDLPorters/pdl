@@ -5,6 +5,8 @@ matrix:
     # start the first coverage early so that it starts before everything else
     - perl: "5.20"
       env: COVERAGE=1
+    - perl: "5.20"
+      env: EUMM_BLEAD=1
     - perl: "5.10"
     - perl: "5.12"
     - perl: "5.14"
@@ -45,6 +47,7 @@ before_install:
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need tests
   - cpanm --quiet --notest Devel::CheckLib # specify this now because this is a CONFIGURE_REQUIRES for author-side
   - cpanm --force --verbose ExtUtils::ParseXS # we install the latest ExtUtils::ParseXS
+  - if [ "$EUMM_BLEAD" == 1 ]; then cpanm --quiet --notest --dev ExtUtils::MakeMaker; fi
   - build-dist
   - cd $BUILD_DIR             # $BUILD_DIR is set by the build-dist command
 install:
@@ -61,7 +64,6 @@ after_script:
   - perl -Iblib/lib -MPDL::Config -MData::Dumper -e 'print Dumper \%PDL::Config'
 after_success:
   - coverage-report
-branches:
 branches:
   except:
     - /^wip\//
