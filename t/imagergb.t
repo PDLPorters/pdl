@@ -1,9 +1,4 @@
-sub ok {
-	my $no = shift ;
-	my $result = shift ;
-	print "not " unless $result ;
-	print "ok $no\n" ;
-}
+use Test::More tests => 6;
 
 sub tapprox {
 	my($a,$b,$mdiff) = @_;
@@ -27,24 +22,22 @@ use PDL::Dbg;
 
 $PDL::debug = 0;
 
-print "1..6\n";
-
 $im = float [1,2,3,4,5];
 
 vars_ipv;
 
 $out = bytescl($im,100);
-ok(1,tapprox($im,bytescl($im,100)));
-ok(2,$out->get_datatype == $PDL::Types::PDL_B);
+ok(tapprox($im,bytescl($im,100)));
+ok($out->get_datatype == $PDL::Types::PDL_B);
 $out = bytescl($im,-100);
-ok(3,tapprox(pdl([0,25,50,75,100]),$out));
+ok(tapprox(pdl([0,25,50,75,100]),$out));
 
 p "$out\n";
 
 $rgb = double [[1,1,1],[1,0.5,0.7],[0.1,0.2,0.1]];
 $out = rgbtogr($rgb);
-ok(4,tapprox($out,pdl([1,0.67,0.16])));
-ok(5,$out->get_datatype == $PDL::Types::PDL_D);
+ok(tapprox($out,pdl([1,0.67,0.16])));
+ok($out->get_datatype == $PDL::Types::PDL_D);
 
 vars_ipv;
 p $out;
@@ -68,4 +61,4 @@ $tmp = 0; # -w shut up!
 $out = interlrgb($im,$lut);
 vars_ipv;
 p $out;
-ok(6,tapprox($out,$interl));
+ok(tapprox($out,$interl));
