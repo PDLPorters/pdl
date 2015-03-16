@@ -1,50 +1,21 @@
 #!/usr/bin/perl
 
-#
-# t/proj_transform.t
-#
-# Test program for the PDL::Transform::Proj4 library
-#
-# Judd Taylor, Orbital Systems, Ltd.
-# judd.t@orbtialsystems.com
-#
-# 17 April 2008
-#
-
+use strict;
+use warnings;
 use PDL;
 use Test::More;
 
-BEGIN
-{
-    use PDL::Config;
-    if ( $PDL::Config{WITH_PROJ} )
-    {
-        eval( " use PDL::Transform::Proj4; " );
-        if( !($@) )
-        {
-            if ( $PDL::Bad::Status )
-            {
-                plan tests => 20;
-            }
-            else
-            {
-                plan skip_all => "PDL::Transform::Proj4 module requires the PDL::Bad module!";
-            }
-        }
-        else
-        {
-            plan skip_all => "PDL::Transform::Proj4 module compiled, but not available.";
-        }
-    }
-    else
-    {
-        plan skip_all => "PDL::Transform::Proj4 module not compiled.";
-    }
-}
+use PDL::Config;
+plan skip_all => "PDL::Transform::Proj4 module not compiled."
+    unless $PDL::Config{WITH_PROJ};
+eval { require PDL::Transform::Proj4; PDL::Transform::Proj4->import; };
+plan skip_all => "PDL::Transform::Proj4 module compiled, but not available."
+    if $@;
+plan skip_all => "PDL::Transform::Proj4 module requires the PDL::Bad module!"
+    unless $PDL::Bad::Status;
+plan tests => 20;
 
-#
 # Test integration with PDL::Transform
-#
 
 my $im = sequence(2048,1024)/2048/1024*255.99;
 $im = $im->byte;
@@ -87,7 +58,7 @@ SKIP: {
 
    # Check EQC map against reference:
    my $eqc_opts = "+proj=eqc +lon_0=0 +datum=WGS84";
-   my $eqc = eval '$map->map( t_proj( proj_params => $eqc_opts ), $map_size )';
+   my $eqc = eval { $map->map( t_proj( proj_params => $eqc_opts ), $map_size ) };
    if (! defined($eqc)) {
       diag("PROJ4 error: $@\n");
       skip "Possible bad PROJ4 install",20 if $@ =~ m/Projection initialization failed/;
@@ -96,7 +67,6 @@ SKIP: {
    {
       my $str = $slices[$i];
       my $slice = $eqc->slice($str);
-      # ok( "$slice" eq $ref_eqc_slices[$i], "check ref_eqc for slices[$i]" );
       is( "$slice", $ref_eqc_slices[$i], "check ref_eqc for slices[$i]" );
    }
 
@@ -113,7 +83,6 @@ SKIP: {
    {
       my $str = $slices[$i];
       my $slice = $ortho->slice($str);
-      # ok( "$slice" eq $ref_ortho_slices[$i], "check ref_ortho for slices[$i]" );
       is( "$slice", $ref_ortho_slices[$i], "check ref_ortho for slices[$i]" );
    }
 
@@ -128,7 +97,6 @@ SKIP: {
    {
       my $str = $slices[$i];
       my $slice = $ortho2->slice($str);
-      # ok( "$slice" eq $ref_ortho_slices[$i], "check ref_ortho2 for slices[$i]" );
       is( "$slice", $ref_ortho_slices[$i], "check ref_ortho2 for slices[$i]" );
    }
 
@@ -144,17 +112,12 @@ SKIP: {
    {
       my $str = $slices[$i];
       my $slice = $robin->slice($str);
-      # ok( "$slice" eq $ref_robin_slices[$i], "check ref_robin for slices[$i]" );
       is( "$slice", $ref_robin_slices[$i], "check ref_robin for slices[$i]" );
    }
 
 }
 
-exit(0);
-
-
-sub get_ref_robin_slices
-{
+sub get_ref_robin_slices {
     my @slices = ();
     push(@slices, <<"END");
 
@@ -232,10 +195,9 @@ END
 ]
 END
     return @slices;
-} # End of get_ref_robin_slices()...
+}
 
-sub get_ref_ortho_slices
-{
+sub get_ref_ortho_slices {
     my @slices = ();
     push(@slices, <<"END");
 
@@ -313,10 +275,9 @@ END
 ]
 END
     return @slices;
-} # End of get_ref_ortho_slices()...
+}
 
-sub get_ref_eqc_slices
-{
+sub get_ref_eqc_slices {
     my @slices = ();
     push(@slices, <<"END");
 
@@ -394,4 +355,4 @@ END
 ]
 END
     return @slices;
-} # End of get_ref_eqc_slices()...
+}
