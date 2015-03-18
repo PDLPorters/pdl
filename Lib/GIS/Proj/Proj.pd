@@ -12,7 +12,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 use strict;
-use PDL;
 
 use vars qw( $VERSION );
 $VERSION = "1.32";
