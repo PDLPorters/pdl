@@ -34,6 +34,9 @@ EOT
 my %hash = pdlpp_stdargs_int(@pack);
 $hash{LIBS}->[0] .= ' -lm';
 
+#suppress warning from "$GENERIC(b) foo = 0.25;", which is intentional.
+$hash{CCFLAGS} .= ' -Wno-literal-conversion ';
+
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
 	pdlpp_postamble_int(@pack);
