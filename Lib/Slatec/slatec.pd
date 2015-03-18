@@ -219,11 +219,7 @@ C<detslatec> computes the determinant of an invertible matrix and barfs if
 the matrix argument provided is non-invertible. The matrix threads as usual.
 
 This routine was previously known as C<det> which clashes now with
-L<det|PDL::MatrixOps/det> which is provided by
-L<PDL::MatrixOps|PDL::MatrixOps>. For the moment
-L<PDL::Slatec|PDL::Slatec> will also load
-L<PDL::MatrixOps|PDL::MatrixOps> thereby making sure that older
-scripts work.
+L<det|PDL::MatrixOps/det> which is provided by L<PDL::MatrixOps>.
 
 =head2 PDL::Slatec::fft
 
@@ -262,7 +258,6 @@ L<PDL::Slatec::fft|/PDL::Slatec::fft>.
 
 END
 
-use PDL::MatrixOps;
 use strict;
 
 # for MDim, ld[str] is interpreted as "leading dimension of ..."
