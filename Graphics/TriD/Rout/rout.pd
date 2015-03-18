@@ -118,7 +118,7 @@ pp_def(
 				die("Invalid sv from hvfetch");
 			}
 			sv = *svp;
-			if(npv = SvIV(sv)) {
+			if((npv = SvIV(sv))) {
 				npv --;
 				$links() = $links(np => npv);
 				$links(np => npv) = np;
