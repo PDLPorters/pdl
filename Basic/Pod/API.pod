@@ -241,7 +241,7 @@ their way around the Perl API here is the code:
 #ifndef aTHX_
 #define aTHX_
 #endif
-   if (SvTRUE (ERRSV)) Perl_croak(aTHX_ SvPV_nolen (ERRSV));
+   if (SvTRUE (ERRSV)) Perl_croak(aTHX_ "%s",SvPV_nolen (ERRSV));
    CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
