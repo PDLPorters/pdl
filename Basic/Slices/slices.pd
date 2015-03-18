@@ -107,8 +107,8 @@ pp_def(
                         $EQUIVCPOFFS(i,poffs);
                         for(nd=0; nd<$CHILD_P(ndims); nd++) {
                                 poffs += $PRIV(incs[nd]);
-                                if(nd<$CHILD_P(ndims)-1 &&
-                                   (i+1)%$CHILD_P(dimincs[nd+1]) ||
+                                if( (nd<$CHILD_P(ndims)-1 &&
+                                     (i+1)%$CHILD_P(dimincs[nd+1])) ||
                                    nd == $CHILD_P(ndims)-1)
                                         break;
                                 poffs -= $PRIV(incs[nd]) *
