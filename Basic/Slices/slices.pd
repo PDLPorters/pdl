@@ -3158,7 +3158,7 @@ SLICE-MC
                                 n0 = SvIV(*svp);
                                 n1 = n0;           /* n1 defaults to n0 if n0 is present */
                            }
-                        } /* end of defined check.  if it's undef, leave the n's at their default value.
+                        } /* end of defined check.  if it's undef, leave the n's at their default value. */
 
 
                         /* Read the second element into n1 and check for alternate squish syntax */
