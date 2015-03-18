@@ -1,21 +1,9 @@
-	#
-# Proj4.pd
-#
 # PDL::PP Definition file for the PDL::Transform::Proj4 module
 #
 # Judd Taylor, USF IMaRS
 # 4 Apr 2006
-#
 
 use strict;
-
-# It won't build without this:
-# 8 Aug 2006 - JT - Well, I guess it can!
-#use lib '../../../blib/lib';
-#use lib '../../../blib/arch';
-
-use PDL;
-#use PDL::Transform; # This is not needed, and just causes trouble!
 use PDL::GIS::Proj;
 
 use vars qw( $VERSION );
@@ -24,7 +12,6 @@ $VERSION = "1.32";
 pp_add_isa( 'PDL::Transform' );
 
 # This array holds the list of functions we want to export (everything here is explicit!)
-#
 my @export_funcs = ();
 
 pp_addbegin( <<'ENDBEGIN' );

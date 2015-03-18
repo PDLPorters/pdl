@@ -364,25 +364,40 @@ EOF
 }
 
 # Expects list in format:
-# [gtest.pd, GTest, PDL::GTest], [...]
-# source,    prefix,module/package
-# The idea is to support in future several packages in same dir.
+# [gtest.pd, GTest, PDL::GTest,     ['../GIS/Proj', ...] ], [...]
+# source,    prefix,module/package, optional deps
+# The idea is to support in future several packages in same dir - EUMM
+#   7.06 supports
+# each optional dep is a relative dir that a "make" will chdir to and
+# "make" first - so the *.pd file can then "use" what it makes
 
 # This is the function internal for PDL.
-# Later on, we shall provide another for use outside PDL.
-#
+
 sub pdlpp_postamble_int {
-	join '',map { my($src,$pref,$mod) = @$_;
+	join '',map { my($src,$pref,$mod, $deps) = @$_;
+        die "If give dependencies, must be array-ref" if $deps and !ref $deps;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
-	my $basic = File::Spec->abs2rel(File::Spec->catdir($w, 'Basic'));
+	my $top = File::Spec->abs2rel($w);
+	my $basic = File::Spec->catdir($top, 'Basic');
 	my $core = File::Spec->catdir($basic, 'Core');
 	my $gen = File::Spec->catdir($basic, 'Gen');
-
+        my $depbuild = '';
+        for my $dep (@{$deps || []}) {
+            my $target = '';
+            if ($dep eq 'core') {
+                $dep = $top;
+                $target = ' core';
+            }
+            require ExtUtils::MM;
+            $dep =~ s#([\(\)])#\\$1#g; # in case of unbalanced (
+            $depbuild .= MM->oneliner("exit(!(chdir q($dep) && !system(q(\$(MAKE)$target))))");
+            $depbuild .= "\n\t";
+        }
 qq|
 
 $pref.pm: $src $core/Types.pm
-	\$(PERLRUNINST) \"-MPDL::PP qw/$mod $mod $pref/\" $src
+	$depbuild\$(PERLRUNINST) \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@

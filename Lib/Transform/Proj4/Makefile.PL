@@ -142,7 +142,7 @@ if ($msg && $forcebuild==0) {
 return if $donot;  # yes, this must be return (exit will kill Makefile.PL process)
 
 my $ppfile = "Proj4.pd";
-my $package = [$ppfile, 'Proj4', $package_name];
+my $package = [$ppfile, 'Proj4', $package_name, [ qw(core ../../GIS/Proj) ]];
 my %hash = pdlpp_stdargs($package);
 $hash{VERSION_FROM} = $ppfile;
 #$hash{TYPEMAPS} = [&PDL_TYPEMAP()];
