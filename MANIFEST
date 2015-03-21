@@ -757,8 +757,10 @@ t/misc.t
 t/niceslice.t
 t/nsdatahandle.t
 t/ones.t
+t/op-eq-warn-for-non-numeric.t
 t/opengl.t
 t/ops.t
+t/pdl-from-string-bad-values.t
 t/pdl_from_string.t
 t/pdlchar.t
 t/pgplot.t
@@ -789,6 +791,7 @@ t/round.t
 t/scope.t
 t/segfault.t
 t/simplex.t
+t/slatec-polyfit-weight.t
 t/slatec.t
 t/slice-exceptions.t
 t/slice.t
