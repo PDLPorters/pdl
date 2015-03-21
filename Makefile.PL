@@ -595,6 +595,7 @@ ppm : doctest ppd
 EOT
 
 my $basic_pmblib = $self->cd('Basic', "\$(MAKE) pm_to_blib");
+my $niceslice_pmblib = $self->cd(File::Spec->catdir(qw(Basic SourceFilter)), "\$(MAKE) pm_to_blib");
 # the modules in PDL::LiteF, used in t/core.t
 my @buildchunks = $self->cd(File::Spec->catdir(qw(Basic Gen)), "\$(MAKE)");
 # this contortion is due to an intermittent failure of "cd;make" to
@@ -605,7 +606,7 @@ my $up_blib = File::Spec->catdir((File::Spec->updir) x 2, qw(blib arch auto PDL)
 push @buildchunks,
   map $self->cd(
     File::Spec->catdir(qw(Basic), $_),
-    "\$(MAKE) " . File::Spec->catfile($up_blib, $_, "$_.\$(DLEXT)")
+    "\$(MAKE) pm_to_blib " . File::Spec->catfile($up_blib, $_, "$_.\$(DLEXT)")
   ),
   qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps);
 my $basicbuild = join "\n\t", @buildchunks;
@@ -618,6 +619,7 @@ $text .= <<EOF;
 
 core :
 	$basic_pmblib
+	$niceslice_pmblib
 	$basicbuild
 
 coretest : core
