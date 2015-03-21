@@ -51,6 +51,8 @@ $hash{VERSION_FROM} = $ppfile;
 #$hash{TYPEMAPS} = [&PDL_TYPEMAP()];
 $hash{LIBS} = ["-L$lib_path -lproj -lm"];
 $hash{INC} = PDL_INCLUDE() . " $incflags";
+$hash{realclean} = { FILES => '' } unless $hash{realclean};
+$hash{realclean}{FILES} .= ' _Inline';
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub { pdlpp_postamble_int( $package ); };
