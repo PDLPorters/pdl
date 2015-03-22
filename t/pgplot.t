@@ -16,7 +16,7 @@ sub eval_skip {
    plan skip_all => "$_[0] not installed" if $@;
 }
 
-BEGIN{
+BEGIN {
    eval_skip "PGPLOT";
    eval_skip "PDL::Graphics::PGPLOT";
    eval_skip "PDL::Graphics::PGPLOT::Window";
@@ -24,7 +24,7 @@ BEGIN{
       if !exists $ENV{'DISPLAY'} and !exists $ENV{HARNESS_ACTIVE};
 }
 
-plan tests => 20;
+plan tests => 36;
 
 sub get_answer () {
     print STDERR "Does this look OK (y/n, y is default)? :";
@@ -68,6 +68,16 @@ box and cropped at the top.        ]     and placed at lower left of plot rgn]
 300 ppi (1.25 inches wide), aligned      aspect ratio 2:1, width 0.625 inch,
 to upper right corner of rect. plot      and height 1.25 inch, shrinkwrapped
 box and cropped at the bottom.     ]     and placed at upper right of plot rgn]
+
+EOD
+    } elsif (3 == $num) {
+    print STDERR <<'EOD';
+==============================================================
+
+You should see two windows:
+
+One with two graphs, left with Fibonacci curve
+One with one graph
 
 EOD
     } else {
@@ -134,5 +144,34 @@ SKIP: {
    ok(interactive($interactive, $interactive_ctr), "interactive tests");
 }
 
-eval '$w->close';
+my $result = eval '$w->close';
 is $@, '', "close window";
+isnt $result, 0, 'returned true';
+
+my @opts = (Device => $dev, Aspect => 1, WindowWidth => 5);
+my $rate_win = PDL::Graphics::PGPLOT::Window->new(@opts, NXPanel => 2);
+my $area_win = PDL::Graphics::PGPLOT::Window->new(@opts);
+isa_ok($rate_win, "PDL::Graphics::PGPLOT::Window");
+isa_ok($area_win, "PDL::Graphics::PGPLOT::Window");
+foreach my $str ( (
+q($rate_win->env(0, 10, 0, 1000, {XTitle => 'Days', YTitle => '#Rabbits'})),
+q($rate_win->env(0, 10, 0, 100, {Xtitle=>'Days', Ytitle => 'Rabbits/day'})),
+q($area_win->env(0, 1, 0, 1, {XTitle => 'Km', Ytitle => 'Km'})),
+q($rate_win->line(sequence(10), fibonacci(10), {Panel => [1, 1]})),
+    ) ) {
+    my $result = eval $str;
+    is $@, '', "eval '$str'";
+    isnt $result, 0, 'returned true';
+}
+
+$interactive_ctr++;
+SKIP: {
+   skip $skip_interactive_msg, 1 unless $interactive;
+   ok(interactive($interactive, $interactive_ctr), "interactive tests");
+}
+
+for my $win ($rate_win, $area_win) {
+   my $result = eval { $win->close };
+   is $@, '', "close window";
+   isnt $result, 0, 'returned true';
+}
