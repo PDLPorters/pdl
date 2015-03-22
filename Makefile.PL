@@ -609,7 +609,7 @@ ppm : doctest ppd
 	$(RM_RF) $(DISTWIN32NAME)
 EOT
 
-$text .= ::coretarget($self);
+$text .= "\n" . ::coretarget($self);
 my $coretest = join ' ', map File::Spec->catfile('t', $_), qw(core.t ops.t);
 $text .= <<EOF;
 
@@ -623,33 +623,85 @@ return $text
 
 sub coretarget {
     my ($self) = @_;
-    my $basic_pmblib = $self->cd('Basic', "\$(MAKE) pm_to_blib");
-    my $niceslice_pmblib = $self->cd(File::Spec->catdir(qw(Basic SourceFilter)), "\$(MAKE) pm_to_blib");
-    # the modules in PDL::LiteF, used in t/core.t
-    my @buildchunks = $self->cd(File::Spec->catdir(qw(Basic Gen)), "\$(MAKE)");
-    # this contortion is due to an intermittent failure of "cd;make" to
-    # actually build the SO in blib with gmake -j4, which doesn't happen if
-    # give actual path. E.g. in Core it often doesn't build pdlcore.o and
-    # sometimes not Core.o, then just stops and indicates success
-    my $up_blib = File::Spec->catdir((File::Spec->updir) x 2, qw(blib arch auto PDL));
-    push @buildchunks,
-      map $self->cd(
-        File::Spec->catdir(qw(Basic), $_),
-        "\$(MAKE) pm_to_blib " . File::Spec->catfile($up_blib, $_, "$_.\$(DLEXT)")
-      ),
-      qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps);
-    my $basicbuild = join "\n\t", @buildchunks;
-    # looking forward to EUMM better supporting parallel builds in subdirs:
-    # Core deps on Gen Ops Primitive Ufunc Slices Bad
-    # Primitive deps on Math
-    # Math deps on MatrixOps
-    <<EOF;
+    # remember the fundamental ones end up far to right as much deps on them
+    # a "right" is either scalar (named target) or tuple of
+    #     [ \@dir, \@targets, \@prereqs ]
+    # @dir is dir parts for use by File::Spec
+    # @targets is make targets within that dir
+    # @prereqs are named targets - undef=[]
+    # all a left's rights are made concurrently, no sequence - list ALL prereqs
+    my @up_blib = ((File::Spec->updir) x 2, qw(blib arch auto PDL));
+    my @left2rights = (
+        [
+            basics => [
+                [ [ qw(Basic) ], [ qw(pm_to_blib) ], ],
+                [ [ qw(Basic Core) ], [ qw(pm_to_blib) ], ],
+                [ [ qw(Basic Gen) ], [ qw(all) ], ],
+            ]
+        ],
+        [
+            core => [
+                [ [ qw(Basic SourceFilter) ], [ qw(pm_to_blib) ], ],
+                map { [
+                    [ 'Basic', $_ ],
+                    # this contortion is due to an intermittent failure of
+                    # "cd;make" to actually build the SO in blib with
+                    # gmake -j4, which doesn't happen if give actual
+                    # path. E.g. in Core it often doesn't build pdlcore.o
+                    # and sometimes not Core.o, then just stops and
+                    # indicates success
+                    [ 'pm_to_blib', File::Spec->catfile(@up_blib, $_, "$_.\$(DLEXT)") ],
+                    [ 'basics' ],
+                # the modules in PDL::LiteF, used in t/core.t
+                ] } qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps),
+            ]
+        ],
+    );
+    join "\n", map flatten_parallel_target($self, $_), @left2rights;
+}
 
-core :
-\t$basic_pmblib
-\t$niceslice_pmblib
-\t$basicbuild
-EOF
+sub format_chunk {
+    my ($self, $left, $deps, $dir, $targets) = @_;
+    my @m = join ' ', $left, ':', @{$deps||[]};
+    my $fsdir = File::Spec->catdir(@$dir);
+    push @m, "\t" . $self->oneliner(
+        "die \$! unless chdir q($fsdir); exec q(\$(MAKE) @$targets)"
+    );
+    join '', map "$_\n", @m;
+}
+
+# output: list of make chunks with target, deps, recipes
+sub flatten_parallel_target {
+    my ($self, $left2rights) = @_;
+    my ($left, $rights) = @$left2rights;
+    my (@deps, @recipes, @otherchunks);
+    for my $right (@$rights) {
+        if (ref $right) {
+            #     [ \@dir, \@targets, \@prereqs ]
+            # @dir is dir parts for use by File::Spec
+            # @targets is make targets within that dir
+            # @prereqs are named targets - undef=[]
+            my ($dir, $targets, $prereqs) = @$right;
+            my $target_name = parallel_target_mangle($self, $dir, $targets);
+            push @deps, $target_name;
+            push @otherchunks, format_chunk(
+                $self, $target_name, $prereqs, $dir, $targets
+            );
+        } else {
+            push @deps, $right;
+        }
+    }
+    (
+        join(' : ', $left, join ' ', @deps) . "\n",
+        @otherchunks,
+    );
+}
+
+sub parallel_target_mangle {
+    my ($self, $dir, $targets) = @_;
+    my $target = join '_', @$dir, @$targets;
+    $target =~ s#[/\\]#_#g; # avoid ambiguity with filenames
+    $target;
 }
 
 # remove pdl.c from making EUMM think this dir has XS in it
