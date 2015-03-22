@@ -10,7 +10,7 @@ Release Notes for PDL 2.007_13 --------------------------
 
 General Notes:
 
- * Counting down to a PDL-2.008 release this February 2015
+ * Counting down to a PDL-2.008 release this April 2015
 
  * Another quick CPAN developers release
 
@@ -35,7 +35,12 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Many tests updated to use Test::More
+
+ * PDL::FFTW is now removed from the PDL core.  Use
+   PDL::FFTW3 instead.
+ 
+ * Clean up and build fixes continue...
 
 
 

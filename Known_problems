@@ -99,9 +99,19 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.007_13 release:
 
-  374    CONFIGURE_REQUIRES => Devel::CheckLib
-  368    PDL::Slatec::polyfit ignores incorrect length of weight piddle; passes garbage to slatec polfit
-  367    BAD value parsing breakage
+  377   PDL::Transform::Proj4 not building under latest dev EUMM
+  376   PDL Segmentation fault working with Storable restored PDL
+
+        Test code fails to use PDL::IO::Storable which
+	results in the crash.  This does not seem to be
+	an actual bug.  Waiting to hear back from user.
+
+  375   Storable files incorrectly processed from older versions.
+
+        The PDL git has substantial fixes for portability and
+	robustness for PDL::IO::Storable going forward.  Older
+	PDL releases are not robust/portable.
+
   366    many warnings in t/transform.t with use strict; use warnings;
   364    type promotion in whistogram is based upon the index, not the weight
   354    filter demo list by actually available
@@ -111,13 +121,11 @@ The following issues have been reported with this version of PDL:
   340    orover of byte data returns long type
   339    PDL::Complex support is inconsistent and incomplete
   334    Test coverage is incomplete
-  332    "isn't numeric in null operation" warning could be more helpful
   330    NiceSlice can get confused by comments to cause compilation errors
   324    PDL re-install wipes out non-core docs
   322    PDL::Demos system needs overhaul
   308    propagate badflag with .=
   274    'help funname' fails to show multiple function names
-  268    PLplot still unusable with X
   254    online docs don't link to functions in other PDL modules
   238    NiceSlice affects code where it should not
   210    default PDL build output too long
