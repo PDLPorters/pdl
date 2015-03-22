@@ -68,13 +68,30 @@ General Notes:
 
 Highlights:
 
- * Many tests updated to use Test::More
+ * Travis on Github now routinely tests on dev ExtUtils::MakeMaker, clang:
+   https://travis-ci.org/PDLPorters/pdl
+
+ * Coveralls on Github now lists test coverage:
+   https://coveralls.io/r/PDLPorters/pdl
+
+ * Many tests updated to use Test::More, Test::Deep, Test::Exception
 
  * PDL::FFTW is now removed from the PDL core.  Use
    PDL::FFTW3 instead.
 
- * Clean up and build fixes continue...
+ * Prototype use of Alien::Proj4 to encapsulate install/build info
 
+ * Fix warnings compiling under clang
+
+ * Addition of "core" and "coretest" targets for quicker build and dev cycle
+
+ * Make Filter::Util::Call the default engine for PDL::NiceSlice
+
+ * Make PDL_Anyval type, for 64-bit purposes
+
+ * Clean up and better-comment pdl*.h
+
+ * Make "isn't numeric in null operation" warning more helpful
 
 
 Release Notes for PDL 2.007_12 --------------------------
