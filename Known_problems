@@ -97,7 +97,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007_13 release:
+  PDL-2.007_14 release:
 
   377   PDL::Transform::Proj4 not building under latest dev EUMM
   376   PDL Segmentation fault working with Storable restored PDL
