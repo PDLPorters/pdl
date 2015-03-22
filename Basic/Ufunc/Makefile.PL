@@ -1,11 +1,11 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use Config;
 
 my @pack = (["ufunc.pd", qw(Ufunc PDL::Ufunc)]);
 
 if ($^O eq 'dec_osf') {
-       require Config;
        if ($Config::Config{cc} =~ /^cc/) {
                my $no_optimize = ($::PDL_OPTIONS{OPTIMIZE} && $::PDL_OPTIONS{OPTIMIZE})
                                 || $Config::Config{optimize}
@@ -35,7 +35,8 @@ my %hash = pdlpp_stdargs_int(@pack);
 $hash{LIBS}->[0] .= ' -lm';
 
 #suppress warning from "$GENERIC(b) foo = 0.25;", which is intentional.
-$hash{CCFLAGS} .= ' -Wno-literal-conversion ';
+# only do this for clang; gcc 4.8.2 on Win64 crashes
+$hash{CCFLAGS} .= ' -Wno-literal-conversion ' if $Config{cc} =~ /\bclang\b/;
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
