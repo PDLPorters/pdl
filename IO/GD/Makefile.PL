@@ -122,6 +122,7 @@ return if $donot;
 my $package = [$ppfile, $lib_name, $package_name];
 my %hash = pdlpp_stdargs($package);
 $hash{VERSION_FROM} = $ppfile;
+$hash{DEFINE} = $PDL::Config{GD_DEFINE};
 $hash{LIBS} = ["-L$lib_path -l$linkname"];
 $hash{INC} = PDL_INCLUDE() . " -I$include_path";
 push( @{ $hash{TYPEMAPS} }, 'typemap' );
