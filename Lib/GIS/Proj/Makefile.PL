@@ -43,11 +43,6 @@ EOF
 my $lib_path = Alien::Proj4->libdir;
 my $incflags = Alien::Proj4->incflags;
 
-if(!Alien::Proj4->installed) {
-  $lib_path = "@{$PDL::Config{$config_libs}}";
-  $incflags =  "-I" . "@{$PDL::Config{$config_incs}}" . " -Iinclude";
-}
-
 print "Building $package_name. Turn off $config_flag if there are any problems\n";
 $PDL::Config{$config_flag}=1;
 
