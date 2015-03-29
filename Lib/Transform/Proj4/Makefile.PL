@@ -38,7 +38,7 @@ EOF
   return;
 }
 
-my $lib_path = Alien::Proj4->libdir;
+my $libflags = Alien::Proj4->libflags;
 my $incflags = Alien::Proj4->incflags;
 
 print "Building $package_name. Turn off $config_flag if there are any problems\n";
@@ -49,7 +49,7 @@ my $package = [$ppfile, 'Proj4', $package_name];
 my %hash = pdlpp_stdargs($package);
 $hash{VERSION_FROM} = $ppfile;
 #$hash{TYPEMAPS} = [&PDL_TYPEMAP()];
-$hash{LIBS} = ["-L$lib_path -lproj -lm"];
+$hash{LIBS} = [ $libflags ];
 $hash{INC} = PDL_INCLUDE() . " $incflags";
 $hash{realclean} = { FILES => '' } unless $hash{realclean};
 $hash{realclean}{FILES} .= ' _Inline';

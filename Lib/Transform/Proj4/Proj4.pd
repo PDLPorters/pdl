@@ -375,9 +375,13 @@ push( @export_funcs, 't_proj' );
 
 # Add in the auto-generated projection classes:
 require Alien::Proj4;
+require PDL::Config;
+my @inc = Alien::Proj4->default_inc;
+@inc = @{$PDL::Config{PROJ_INC}}
+  if $PDL::Config{PROJ_INC} and @{$PDL::Config{PROJ_INC}};
 my $supplied = File::Spec->catdir((File::Spec->updir) x 2, qw(GIS Proj include));
-$supplied = File::Spec->rel2abs($supplied); # because Inline builds elsewhere
-Alien::Proj4->import(undef, [ Alien::Proj4->default_inc, $supplied ]);
+push @inc, File::Spec->rel2abs($supplied); # because Inline builds elsewhere
+Alien::Proj4->import($PDL::Config{PROJ_LIBS}, \@inc);
 
 my $projections = Alien::Proj4->load_projection_information();
 

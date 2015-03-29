@@ -9,8 +9,6 @@ my $transform_proj4_lib_path;
 my $include_path;
 
 my $find_libs = [ "libproj.$Config{dlext}", "libproj$Config{lib_ext}" ];
-my $config_libs = 'PROJ_LIBS';
-my $config_incs = 'PROJ_INC';
 my @NEEDED = qw(projects.h proj_api.h);
 my @DEFAULT_LIB = (
   '/usr/lib64',
@@ -49,23 +47,33 @@ sub libdir {
   my ($class) = @_;
   foreach my $libdir ( @lib_locations ) {
     foreach my $find_lib ( @$find_libs ) {
-      return $libdir if -e "$libdir/$find_lib";
+      next unless -e "$libdir/$find_lib";
+      return $libdir;
     }
   }
+}
+
+sub libflags {
+  my ($class) = @_;
+  my $lib_path = $class->libdir;
+  my $libflags = qq{"-L$lib_path" -lproj -lm};
+  $libflags;
 }
 
 sub incflags {
   my ($class) = @_;
   my %dir2true;
   my %stillneeded = map { ($_=>1) } @NEEDED;
+  my @inc; # array because need to keep ordering
   foreach my $incdir ( @inc_locations ) {
     foreach my $find_inc ( keys %stillneeded ) {
       next unless -e "$incdir/$find_inc";
+      push @inc, $incdir unless $dir2true{$incdir};
       $dir2true{$incdir} = 1;
       delete $stillneeded{$find_inc};
     }
   }
-  join ' ', map qq{"-I$_"}, sort keys %dir2true;
+  join ' ', map qq{"-I$_"}, @inc;
 }
 
 sub installed {
@@ -85,10 +93,10 @@ sub installed {
 # dup of code currently in PDL::GIS::Proj
 sub load_projection_descriptions {
   my ($class) = @_;
-  my $lib_path = $class->libdir;
+  my $libflags = $class->libflags;
   my $incflags = $class->incflags;
   require Inline;
-  Inline->bind(C => <<'EOF', inc => $incflags, libs => "-L$lib_path -lproj -lm") unless defined &list_projections;
+  Inline->bind(C => <<'EOF', inc => $incflags, libs => $libflags) unless defined &list_projections;
 #include "projects.h"
 HV *list_projections() {
   struct PJ_LIST *lp;
@@ -173,7 +181,7 @@ In Makefile.PL:
 
   use Alien::Proj4 [ 'overridelibdirs' ], [ 'overrideincdirs' ];
   my $proj4_installed = Alien::Proj4->installed;
-  my $proj4_lib = Alien::Proj4->libdir;
+  my $proj4_lib = Alien::Proj4->libflags;
   my $proj4_inc = Alien::Proj4->incflags;
 
 In a module like L<PDL::Transform::Proj4> that wants available proj4
