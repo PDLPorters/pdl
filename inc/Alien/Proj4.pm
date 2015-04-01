@@ -5,9 +5,6 @@ use warnings;
 use Config;
 use Devel::CheckLib;
 
-my $transform_proj4_lib_path;
-my $include_path;
-
 my $find_libs = [ "libproj.$Config{dlext}", "libproj$Config{lib_ext}" ];
 my @NEEDED = qw(projects.h proj_api.h);
 my @DEFAULT_LIB = (
@@ -60,7 +57,7 @@ sub libflags {
   $libflags;
 }
 
-sub incflags {
+sub incdir {
   my ($class) = @_;
   my %dir2true;
   my %stillneeded = map { ($_=>1) } @NEEDED;
@@ -73,17 +70,22 @@ sub incflags {
       delete $stillneeded{$find_inc};
     }
   }
-  join ' ', map qq{"-I$_"}, @inc;
+  @inc;
+}
+
+sub incflags {
+  my ($class) = @_;
+  join ' ', map qq{"-I$_"}, $class->incdir;
 }
 
 sub installed {
   my ($class) = @_;
   return 0 unless my $lib_path = $class->libdir;
-  return 0 unless my $incflags = $class->incflags;
+  return 0 unless my @incdirs = $class->incdir;
   return 0 unless check_lib(
     function=>'projPJ mypj = pj_init_plus("+proj=eqc +lon_0=0 +datum=WGS84"); if (! mypj) return 1; else return 0;',
     header=>'proj_api.h',
-    incpath=>$include_path,
+    incpath=>\@incdirs,
     lib=>'proj',
     libpath=>$lib_path,
   );
