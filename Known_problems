@@ -1,36 +1,33 @@
 The following issues have been reported with this version of PDL:
 
+- A bug in Netpbm from versions 10.56.00 through 10.61.2 may
+  result in a an invalid conversion of RAST images to PNM
+  format on some platforms, resulting in a failed picrgb test.
 
-- Some systems have reported build failures that appear to be
-  a result of missing pthread_getspecific in library calls.
-
-  If you see this, please report via the perldl mailing list to
-  help us determine the origin of the probem and fix it.
-  A workaround is to set WITH_POSIX_THREADS => 0, by editing
-  the perldl.conf file.
+  
+- Bugs in Netpbm versions earlier than 10.58.00 result in
+  invalid 16bit PNG image IO and failing tests.
 
 
-- Multiple subtest failures in t/gd_oo_tests.t have been
-  seen in CPAN Testers reports, they appear to be on 64bit
-  BSD operating systems compiled for AMD processors.  Sf.net
-  bug #3518190 "t/gd_oo_tests.t fails for AMD64" tracks this
-  issue.
+- GLUT readline support in perldl with the -glut option not
+  yet implemented for win32.  Work in progress.
 
 
 - A change in perl-5.14 on how the 'x' operator works affects
   PDL's overload of that operator for matrix multiplication.
-  An example that shows the problem is code like:
+  This can affect code using parentheses to group.  An example
+  that shows the problem is code like:
 
      f( ($pdl0 * $pdl1) x $pdl2 )
 
-  which gives an error.  The fix is to force the element-wise
-  operation in parentheses to be treated in scalar context
-  rather than list context.  E.g.,
+  which now gives an error.  The fix is to force the element-wise
+  operation in parentheses to be treated in scalar context rather
+  than list context.  E.g.,
 
     f( scalar($p0 * $p1) x $p2 );
 
   Please see
-  http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2012-February/004426.html
+  http://mailman.jach.hawaii.edu/pipermail//pdl-porters/2012-February/004423.html
   for a more detailed discussion and additional work-arounds.
 
 
@@ -41,17 +38,9 @@ The following issues have been reported with this version of PDL:
   PDL::Graphics::PLplot separately.
 
 
-- For perl 5.14.0 and later, the perldl shell fails to print
-  tracebacks from barf called from subordinate evals.  This
-  is because of changes in exception handling for $@ and the
-  associated XS parameters G_EVAL and G_KEEPERR.  Please see
-  http://search.cpan.org/~jesse/perl-5.14.0/pod/perldelta.pod
-  for details.
-
-
 - Some versions of MinGW gcc (used to compile for win32 perls)
   crash in compilation of large, PP-generated files.  The work-
-  around is to disable optimization for those file.  See the
+  around is to disable optimization for those files.  See the
   INSTALL file for a hand fix.
 
 
@@ -90,13 +79,6 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- PDL::FFTW is based on version 2 of the FFTW API.  The current
-  release of the FFTW library is version 3.2.2.  To use PDL::FFTW
-  you will need to install FFTW version 2.1.5, use the built-in
-  PDL::FFT routines instead, or (better yet) submit a patch to
-  update PDL::FFTW to the version 3 API.
-
-
 - Extremely verbose but not particularly helpful text output from
   the configure-build-test process.
 
@@ -107,12 +89,6 @@ The following issues have been reported with this version of PDL:
   again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
 
-- PDL on Cygwin has (by default) a 300MB process memory limit which can
-  cause out of memory crashes with large data sets.  See the cygwin users
-  guide: http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html for how
-  to increase the memory limit.
-
-
 - minimum/maximum/min/max inconsistently handle NaN values.
   NaNs for the first element of a pdl will propagate to the
   result while if the first element is a number, then the
@@ -120,41 +96,44 @@ The following issues have been reported with this version of PDL:
   depend on the order of the input values.
 
 
-- 16-bit image IO via rpic/wpic and rim/wim do not correctly
-  handle byte order issues.  The intermediate PNM data piped
-  through the converter programs is not adjusted to network
-  byte order per the NetPBM convention/standard.  This is not
-  an issue for big-endian systems or for 8-bit/channel image
-  data.
-
-
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.11_001 release:
+  PDL-2.007_14 release:
 
-  3544682    perldl doesn't print stacktrace from barf
-  3543056    propagate badflag with .=
-  3539685    pdldoc can't handle SPP mount location change
-  3535203    polyfill/polyfillv includes boundary pixels
-  3528231    t/slatec.t subtest 8 fails w/ BADVAL_USENAN=1
-  3518190    t/gd_oo_tests.t fails for AMD64
-  3515759    PDL::GIS::Proj doesn't buidl with proj-4.8.0
-  3509400    pp_def, pp_line_numbers,..not found by pdldoc
-  3503566    pdl2 enters infinite loop on DWIMPerl
-  3475075    t/pic_16bit.t subtest fails
-  3316394    'help funname' fails to show multiple function names
-  3314708    PDL install does not install scantree.pl
-  3299615    PLplot still unusable with X
-  3234141    max() fails on nan
-  3161459    online docs don't link to functions in other PDL modules
-  3018731    NiceSlice affects code where it should not
-  2995500    perl -d chokes on lvalue functions
-  2153898    default PDL build output too long
-  1507054    closing TriD window kills perldl shell
-  1205359    PGPLOT Window does not store full state info
+  377   PDL::Transform::Proj4 not building under latest dev EUMM
+  376   PDL Segmentation fault working with Storable restored PDL
+
+        Test code fails to use PDL::IO::Storable which
+	results in the crash.  This does not seem to be
+	an actual bug.  Waiting to hear back from user.
+
+  375   Storable files incorrectly processed from older versions.
+
+        The PDL git has substantial fixes for portability and
+	robustness for PDL::IO::Storable going forward.  Older
+	PDL releases are not robust/portable.
+
+  366    many warnings in t/transform.t with use strict; use warnings;
+  364    type promotion in whistogram is based upon the index, not the weight
+  354    filter demo list by actually available
+  347    t/#pdl_from_string.t has a failure if BADVAL_NAN=1
+  346    ExtUtils::F77 dependency causing problems for CPAN install
+  343    longlong constructor and display lose digits due to implicit double precision conversions
+  340    orover of byte data returns long type
+  339    PDL::Complex support is inconsistent and incomplete
+  334    Test coverage is incomplete
+  330    NiceSlice can get confused by comments to cause compilation errors
+  324    PDL re-install wipes out non-core docs
+  322    PDL::Demos system needs overhaul
+  308    propagate badflag with .=
+  274    'help funname' fails to show multiple function names
+  254    online docs don't link to functions in other PDL modules
+  238    NiceSlice affects code where it should not
+  210    default PDL build output too long
+  147    closing TriD window kills perldl shell
 
 
 For more information on these and other PDL issues, and for
 submissions of patches (bug patches are always welcome!),
 see the PDL mailing lists. Links to archive list discussions
 and how to register for the mailing lists can be found at
-http://pdl.sourceforge.net/maillists/ .
+http://pdl.perl.org/?page=mailing-lists .

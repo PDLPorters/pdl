@@ -1,26 +1,12 @@
+use Test::More;
 use PDL::LiteF;
 BEGIN {
         eval " use PDL::Fit::Polynomial; ";
-        $loaded = ($@ ? 0 : 1);
+        plan skip_all => "PDL::Fit::Polynomial: $@" if $@;
 }
-
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-print "1..1\n";
-
-unless ($loaded) {
-        for (1..1) {
-                print "ok $_ # Skipped: probably PDL::Slatec not available.\n";
-        }
-        exit;
-}
-
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
-}
+plan tests => 1;
 
 $x = sequence(20)-10;
 $y = 30-2*$x+3*$x**2-2*$x**3;
@@ -41,4 +27,4 @@ $yfit = fitpoly1d($x,$y,4);
 
 #hold; line $x, $yfit;
 
-ok(1, max(abs($y-$yfit)) < 220); # need to add 10 for windows
+ok(max(abs($y-$yfit)) < 220); # need to add 10 for windows

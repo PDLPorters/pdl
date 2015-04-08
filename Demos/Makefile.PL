@@ -1,14 +1,22 @@
-
-require 'Core/Dev.pm'; PDL::Core::Dev->import();
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
-# # See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# # the contents of the Makefile that is written.
-#
+
+# For the lazy people
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+PDL::Core::Dev::postamble().
+q~
+
+test_tjl :
+	PERL_DL_NONLAZY=1 $(FULLPERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) -e 'use Test::Harness qw(&runtests $$verbose); $$verbose=$(TEST_VERBOSE); runtests @ARGV;' *.pl
+
+~
+};
+
 # NOTE:
 #   we hijack m51.fits from the parent directory and 
 #   install that into the demos directory
-#
 WriteMakefile(
      'NAME'	=> 'PDL::Demos',
      'VERSION_FROM' => '../Basic/Core/Version.pm',
@@ -23,18 +31,10 @@ WriteMakefile(
                     'BAD2_demo.pm'      => '$(INST_LIBDIR)/Demos/BAD2_demo.pm',
                     'Transform_demo.pm' => '$(INST_LIBDIR)/Demos/Transform_demo.pm',
                     'Cartography_demo.pm' => '$(INST_LIBDIR)/Demos/Cartography_demo.pm',
+		    'Gnuplot_demo.pm'   =>  '$(INST_LIBDIR)/Demos/Gnuplot_demo.pm',
                     '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
+                    'Prima.pm' => '$(INST_LIBDIR)/Demos/Prima.pm',
 		   },
-     'clean' => { 'FILES' => 'BAD_demo.pm BAD2_demo.pm' }
+     'clean' => { 'FILES' => 'BAD_demo.pm BAD2_demo.pm' },
+    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
-
-# For the lazy people
-sub MY::postamble {
-PDL::Core::Dev::postamble().
-q~
-
-test_tjl :
-	PERL_DL_NONLAZY=1 $(FULLPERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) -e 'use Test::Harness qw(&runtests $$verbose); $$verbose=$(TEST_VERBOSE); runtests @ARGV;' *.pl
-
-~
-}

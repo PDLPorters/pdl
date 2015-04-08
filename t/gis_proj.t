@@ -16,13 +16,13 @@ use Test::More;
 BEGIN
 {
     use PDL::Config;
-    if ( $PDL::Config{WITH_PROJ} ) 
+    if ( $PDL::Config{WITH_PROJ} )
     {
         eval( " use PDL::GIS::Proj; " );
         if( $@ )
         {
             plan skip_all => "PDL::GIS::Proj compiled, but not available.";
-        }  
+        }
         else
         {
             plan tests => 15;
@@ -75,7 +75,7 @@ ok( sub { tapprox( $lat2, $lat ) } );
 
 # Do the corners of a cyl eq map, and see what we get...
 print "\nCorners of a cylindrical equidistant projection:\n";
-my $cyl_eq = "+proj=eqc +lon_0=0";
+my $cyl_eq = "+proj=eqc +lon_0=0 +datum=WGS84";
 print "Perl level params: \'$cyl_eq\'\n";
 my $lon3 = double [-180.0, -180.0,  180.0,  180.0];
 my $lat3 = double [  90.0,  -90.0,   90.0,  -90.0];
@@ -149,7 +149,7 @@ print "Result:\n\t\$lon = $lon\n\t\$lat = $lat\n";
 ok(1);
 ok(1);
 
-# TEST 14: 
+# TEST 14:
 # Get projection descriptions:
 my $projections = load_projection_descriptions();
 #use Data::Dumper;

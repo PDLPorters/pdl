@@ -369,8 +369,10 @@ int iis_chan(int frame) {
    chan[1]=CHAN1; chan[2]=CHAN2; chan[3]=CHAN3; chan[4]=CHAN4;
    if (frame>0 && frame<5)
       return chan[frame];
-   else
+   else {
       iis_error("iis_display: invalid frame number, must be 1-4\n","");
+      return -1;
+   }
 }
 
 /* Round to nearest int symmetrically about zero */

@@ -1,18 +1,5 @@
+use Test::More tests => 5;
 use PDL::LiteF;
-
-my $ctr = 1;
-sub ok {
-    my $result = shift ;
-    print "not " unless $result ;
-    print "ok $ctr\n" ;
-    $ctr++;
-#    print "[ $result ]\n";
-}
-
-my $ntests = 5;
-print "1..$ntests\n";
-
-
 use PDL::Reduce;
 
 $a = sequence 5,5;

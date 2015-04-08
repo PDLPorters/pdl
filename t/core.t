@@ -4,13 +4,17 @@
 #
 
 use strict;
-use Test::More tests => 51;
+use Test::More;
 
 BEGIN {
     # if we've got this far in the tests then 
     # we can probably assume PDL::LiteF works!
     #
-    use_ok( "PDL::LiteF" );
+    eval {
+        require PDL::LiteF;
+    } or BAIL_OUT("PDL::LiteF failed: $@");
+    plan tests => 58;
+    PDL::LiteF->import;
 }
 $| = 1;
 
@@ -69,14 +73,26 @@ $c = $a->squeeze;
 ok eq_array( [ $b->dims ], [3,4] ), "reshape(-1)";
 ok all( $b == $c ), "squeeze";
 
-$c++; # check dataflow
+$c++; # check dataflow in reshaped PDL
 ok all( $b == $c ), "dataflow"; # should flow back to b
 ok all( $a == 2 ), "dataflow";
+
+our $d = pdl(5); # zero dim piddle and reshape/squeeze
+ok $d->reshape(-1)->ndims==0, "reshape(-1) on 0-dim PDL gives 0-dim PDL";
+ok $d->reshape(1)->ndims==1, "reshape(1) on 0-dim PDL gives 1-dim PDL";
+ok $d->reshape(1)->reshape(-1)->ndims==0, "reshape(-1) on 1-dim, 1-element PDL gives 0-dim PDL";
+
+
+
 
 # test topdl
 
 isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns a piddle" );
 isa_ok( PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns a piddle" );
+isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns a piddle" );
+$a=PDL->topdl(1,2,3);
+ok (($a->nelem == 3  and  all($a == pdl(1,2,3))), "topdl(1,2,3) returns a 3-piddle containing (1,2,3)");
+
 
 # test $PDL::undefval support in pdl (bug #886263)
 #
@@ -183,6 +199,12 @@ like($@, qr/arguments 2 and 6 do not match/
 like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual piddle in combined screw-ups');
 $@ = '';
+
+eval {$a = cat(pdl(1),pdl(2,3));};
+ok(!$@, 'cat(pdl(1),pdl(2,3)) succeeds');
+ok( ($a->ndims==2 and $a->dim(0)==2 and $a->dim(1)==2), 'weird cat case has the right shape');
+ok( all( $a == pdl([1,1],[2,3]) ), "cat does the right thing with catting a 0-pdl and 2-pdl together");
+$@='';
 
 # new_or_inplace
 $a = sequence(byte,5);

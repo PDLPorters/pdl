@@ -37,17 +37,24 @@ debian/*.substvars
 tmp*
 tmp_*
 
+# MATLAB files
+*.m
+
 # PDL temp files
 ppcode.out
 
 # Perl build files
 
+_eumm
 pm_to_blib
 blib
 *.bs
 Makefile
+Makefile.aperl
 MYMETA.yml
 MYMETA.json
+perl
+perlmain.c
 
 # Editor temp files
 
@@ -69,8 +76,8 @@ Changes
 # These can either be in the specific directories or specified
 # with full patch in the top level directory (as here).
 
-
 .inlinepdlpp
+.inlinewith
 Basic/Bad/Bad.c
 Basic/Bad/Bad.pm
 Basic/Bad/Bad.xs
@@ -79,20 +86,17 @@ Basic/Complex/Complex.pm
 Basic/Complex/Complex.xs
 Basic/Core/Config.pm
 Basic/Core/Core.c
-Basic/Core/Core.pm
-Basic/Core/Core.xs
 Basic/Core/Types.pm
 Basic/Core/Version.pm
-Basic/Core/badsupport.p
-Basic/Core/mymalloc.p
 Basic/Core/pdl.h
+Basic/Core/pdlbadvalinit.c
 Basic/Core/pdlconv.c
 Basic/Core/pdlcore.c
 Basic/Core/pdlcore.h
+Basic/Core/pdldataswitch.c
 Basic/Core/pdlsections.c
 Basic/Core/pdlsimple.h
 Basic/Gen/PP/Dump.pm
-Basic/Gen/pptemplate
 Basic/Gen/pptemplate.pod
 Basic/Math/Math.c
 Basic/Math/Math.pm
@@ -110,9 +114,6 @@ Basic/Primitive/Primitive.xs
 Basic/Slices/Slices.c
 Basic/Slices/Slices.pm
 Basic/Slices/Slices.xs
-Basic/Test/Tests.c
-Basic/Test/Tests.pm
-Basic/Test/Tests.xs
 Basic/Ufunc/Ufunc.c
 Basic/Ufunc/Ufunc.pm
 Basic/Ufunc/Ufunc.xs
@@ -171,10 +172,6 @@ Lib/Compression/Compression.xs
 Lib/FFT/FFT.c
 Lib/FFT/FFT.pm
 Lib/FFT/FFT.xs
-Lib/FFTW/FFTW.c
-Lib/FFTW/FFTW.pm
-Lib/FFTW/FFTW.xs
-Lib/FFTW/typespec
 Lib/Fit/Gaussian/Gaussian.c
 Lib/Fit/Gaussian/Gaussian.pm
 Lib/Fit/Gaussian/Gaussian.xs
@@ -307,15 +304,12 @@ Lib/Transform/Transform.c
 Lib/Transform/Transform.pm
 Lib/Transform/Transform.xs
 MANIFEST.bak
+Perldl2/pdl2.pod
 _Inline/
 gsl.pl
-pdl.c
-pdldoc
+pdl
 pdldoc.pod
-perldl
 perldl.conf-fast
 perldl.conf-orig
 perldl.pod
-Perldl2/pdl2.pod
 t/*.dll*
-

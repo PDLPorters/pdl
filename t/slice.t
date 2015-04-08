@@ -1,17 +1,11 @@
 # -*-perl-*-
 #
-# Test ->slice(). This is not yet good enough: we need
-# nasty test cases
-#
-# Okay -- here're a couple (CED 3-apr-2002).
-#	 Added permissive-slicing tests
-#
 
 use strict;
 use Test::More;
 
-plan tests => 74;
-
+plan tests => 89;
+    ;
 use PDL::LiteF;
 
 # PDL::Core::set_debugging(1);
@@ -34,30 +28,19 @@ my ($a, $b, $c, $d, $e, $f);
 
 $a = (1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
 
-print "FOO\n";
-
-print $a;
-
-print "BAR\n";
-
-is($a->at(2,2), 23);
+is($a->at(2,2), 23, "a location (2,2) is 23");
 
 $b = $a->slice('1:3:2,2:4:2');
 
-# print $a; print $b;
+is($b->at(0,0), 22, "(1,2)->(0,0)");
+is($b->at(1,0), 24, "(3,2)->(1,0)");
+is($b->at(0,1), 42, "(1,4)->(0,1)");
+is($b->at(1,1), 44, "(3,4)->(1,1)");
 
-is($b->at(0,0), 22);
-is($b->at(1,0), 24);
-is($b->at(0,1), 42);
-is($b->at(1,1), 44);
-
-#$b .= 0.5 * double ones(2,2);
 $b .= 0.5 * ones(2,2);
 
 is($b->at(1,0), 0.5);
 is($b->at(0,1), 0.5);
-
-print $a;
 
 is($a->at(1,2), 0.5);
 
@@ -67,8 +50,6 @@ is($a->at(2,2), 23);
 $a = pdl (1,2);
 $b = pdl [[1,2],[1,2],[1,2]];
 $c = $a->slice(',*3');
-
-print $a,$b,$c;
 
 # check dimensions, sum of elements and correct order of els (using tapprox)
 
@@ -105,24 +86,17 @@ $c = $b->slice(":,:,1");
 
 is(join(',',$c->dims), "5,3,1");
 
-eval { my $d = $c->slice(":,:,2"); print $d; };
+eval { my $d = $c->slice(":,:,2"); "$d" };
 
-like($@, qr/Slice cannot start or end/, 'check slice bounds error handling') or diag "ERROR WAS: '$@'\n" if $@;
+like($@, qr/out of bounds/, 'check slice bounds error handling') or diag "ERROR WAS: '$@'\n" if $@;
 
 $a = zeroes 3,3;
-print $a;
 
 $b = $a->slice("1,1:2");
 
-# print $b;
-
 $b .= 1;
 
-print $b;
-print $a;
-
 $a = xvals zeroes 20,20;
-print $a;
 
 $b = $a->slice("1:18:2,:");
 $c = $b->slice(":,1:18:2");
@@ -130,11 +104,11 @@ $d = $c->slice("3:5,:");
 $e = $d->slice(":,(0)");
 $f = $d->slice(":,(1)");
 
-print "TOPRINT\n";
-
-# print $b;
-print $e,$f;
-print $d,$c,$b,$a;
+"$b";
+"$c"; 
+"$d";
+"$e";
+"$f";
 
 is("$e", "[7 9 11]");
 is("$f", "[7 9 11]");
@@ -147,8 +121,6 @@ $b = (xvals $a) + 0.1 * (yvals $a) + 0.01 * (zvals $a);
 
 $b = $b->copy;
 
-print $b;
-
 $c = $b->slice("2:3");
 
 $d = $c->copy;
@@ -158,16 +130,7 @@ $d = $c->copy;
 
 $e = $c-$d;
 
-print $e;
-
-print $c;
-print $d;
-
-# $c->dump; $d->dump;
-
 is(max(abs($e)), 0);
-
-print "OUTOUTOUT!\n";
 
 use PDL::Dbg;
 
@@ -175,14 +138,12 @@ my ($im, $im1, $im2, $lut, $in);
 
 $im = byte [[0,1,255],[0,0,0],[1,1,1]];
 ($im1 = null) .= $im->dummy(0,3);
-# print("1..2\n");
-print $im1;
-print ($im2 = $im1->clump(2)->slice(':,0:2')->px);
+$im2 = $im1->clump(2)->slice(':,0:2')->px;
 
 ok(!tapprox(ones(byte,9,3),$im2));
 
 # here we encounter the problem
-print ($im2 = $im1->clump(2)->slice(':,-1:0')->px);
+$im2 = $im1->clump(2)->slice(':,-1:0')->px;
 ok(!tapprox(ones(byte,9,3),$im2));
 
 $a = xvals( zeroes 10,10) + 0.1*yvals(zeroes 10,10);
@@ -217,8 +178,8 @@ $b = $a->slice('0:-10');
 is("$b", "[0]", "slice 0:-n picks first element");
 
 $b = $a->slice('0:-14');
-eval 'print $b';
-like($@, qr/Negative slice cannot start or end above limit/);
+eval '"$b";';
+like($@, qr/slice ends out of bounds/);
 
 # Test of dice and dice_axis
 $a = sequence(10,4);
@@ -240,7 +201,6 @@ $b = $a->dummy(-1,2);
 is(join(',',$b->dims), '3,4,2');
 
 $a = pdl(2);
-print "a\n";
 $b = $a->slice('');
 ok(tapprox($a, $b), "Empty slice");
 
@@ -274,6 +234,35 @@ like($@, qr/lags: step must be positive/, "make_physdim: negative step");
 
 eval '$b = $a->lags(0,1,11)->make_physdims';
 like($@, qr/too large/, "make_pyhsdim: too large");
+
+##############################
+# Tests of some edge cases
+$a = sequence(10);
+eval '$b = $a->slice("5")';
+ok(!$@, "simple slice works");
+ok(($b->nelem==1 and $b==5), "simple slice works right");
+
+eval '$b = $a->slice("5:")';
+ok(!$@, "empty second specifier works");
+ok(($b->nelem == 5  and  all($b == pdl(5,6,7,8,9))), "empty second specifier works right");
+
+eval '$b = $a->slice(":5")';
+ok(!$@, "empty first specifier works");
+ok(($b->nelem == 6  and  all($b == pdl(0,1,2,3,4,5))), "empty first specifier works right");
+
+##############################
+# White space in slice specifier
+eval ' $b = $a->slice(" 4:");';
+ok(!$@,"slice with whitespace worked - 1");
+ok(($b->nelem==6 and all($b==pdl(4,5,6,7,8,9))),"slice with whitespace works right - 1");
+eval ' $b = $a->slice(" :4");';
+ok(!$@,"slice with whitespace worked - 2");
+ok(($b->nelem==5 and all($b==pdl(0,1,2,3,4))),"slice with whitespace works right - 2");
+eval ' $b = $a->slice(" 3: 4 ");';
+ok(!$@,"slice with whitespace worked - 3");
+ok(($b->nelem==2 and all($b==pdl(3,4))),"slice with whitespace works right - 3");
+
+
 
 ##############################
 # Tests of permissive slicing and dummying
@@ -386,3 +375,14 @@ ok("$z" eq 'Empty[0]');
 $z .= 2;
 ok(1);            # should *not* segfault!
 ok(all($a==5));   # should *not* change $a!
+
+### Check slicing of a null PDL
+
+$a = PDL->null;
+
+eval '$b = $a->slice("")->nelem';
+ok(!$@);
+ok($b==0);
+
+eval '$b = $a->slice(0)->nelem';
+ok($@ =~ m/out of bounds/);

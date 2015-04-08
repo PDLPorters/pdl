@@ -2,89 +2,96 @@ use PDL;
 use PDL::ImageND;
 use PDL::NiceSlice;
 
-kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+use Test::More tests => 7;
+use strict;
+use warnings;
 
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
-}
+kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-print "1..7\n";
+my $eps = 1e-15;
 
 # Right answer
 
-my $ans = pdl(
- [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27],
- [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27],
- [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27]
-);
 
-my $a = xvals zeroes 10,3;
-
-my $b = pdl [1,2],[2,1];
-
-my $c=convolve ($a, $b);
-
-ok( 1, int(at(sum($c-$ans)))==0 );
-
-
-$a = zeroes(6,6); 
-
-my $ta;
-
-($ta = $a(4,:)) .= 1;
-($ta = $a(5,:)) .= 1;
-($ta = $a(1,2)) .= 1;
-($ta = $a(0,4)) .= 1;
-($ta = $a(2,0)) .= 1;
-
-$b = pdl( [-1,0],[0,1] );
-
-
-my $ans_e = pdl(
-	     [ 0,  0,  1, -1,  0,  0],
-	     [-1,  0,  0, -1,  0,  0],
-	     [ 0,  1,  0, -1,  0,  0],
-	     [ 0,  0,  0, -1,  0,  0],
-	     [ 1,  0,  0, -1,  0,  0],
-	     [ 0,  0,  0, -1,  0,  0]
+{
+	my $ans = pdl(
+	 [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27],
+	 [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27],
+	 [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27]
 	);
-$c = convolveND($a,$b,{m=>'d',b=>'e'});
-ok( 2, all( abs($c - $ans_e) < 1e-15 ) );
-
-$c = convolveND($a,$b,{m=>'f',b=>'e'});
-ok( 3, all( abs($c - $ans_e) < 1e-15 ) );
-
-$ans_p = pdl(
-	     [ 0,  0,  1, -1,  0,  1],
-	     [-1,  0,  0, -1,  0,  1],
-	     [ 0,  1,  0, -1,  0,  1],
-	     [ 0,  0,  0, -1,  0,  0],
-	     [ 1,  0,  0, -1,  0,  1],
-	     [ 0, -1,  0, -1,  0,  1]
-	);
-$c = convolveND($a,$b,{m=>'d',b=>'p'});
-ok( 4, all( abs($c - $ans_p) < 1e-15 ) );
-
-$c = convolveND($a,$b,{m=>'f',b=>'p'});
-ok( 5, all( abs($c - $ans_p) < 1e-15 ) );
+	my $pa = xvals zeroes 10,3;
+	my $pb = pdl [1,2],[2,1];
+	my $pc = convolve ($pa, $pb);
+	ok(all PDL::approx( $pc, $ans, $eps ) );
+}
 
 
-$ans_t = pdl(
-	     [ 0,  0,  1, -1,  0,  1],
-	     [-1,  0,  0, -1,  0,  1],
-	     [ 0,  1,  0, -1,  0,  1],
-	     [ 0,  0,  0, -1,  0,  1],
-	     [ 1,  0,  0, -1,  0,  1],
-	     [ 0,  0,  0,  0,  1,  1]
-	);
-$c = convolveND($a,$b,{m=>'d',b=>'t'});
-ok( 6, all( abs($c - $ans_t) < 1e-15 ) );
+my $pa = zeroes(6,6);
+my $pb = pdl( [-1,0],[0,1] );
 
-$c = convolveND($a,$b,{m=>'f',b=>'t'});
-ok( 7, all( abs($c - $ans_t) < 1e-15 ) );
+{
+	# XXX Dead code
+	my $ta;
 
-		
+	($ta = $pa(4,:)) .= 1;
+	($ta = $pa(5,:)) .= 1;
+	($ta = $pa(1,2)) .= 1;
+	($ta = $pa(0,4)) .= 1;
+	($ta = $pa(2,0)) .= 1;
+}
 
+
+{
+	my $pc;
+	my $ans_e = pdl(
+		     [ 0,  0,  1, -1,  0,  0],
+		     [-1,  0,  0, -1,  0,  0],
+		     [ 0,  1,  0, -1,  0,  0],
+		     [ 0,  0,  0, -1,  0,  0],
+		     [ 1,  0,  0, -1,  0,  0],
+		     [ 0,  0,  0, -1,  0,  0]
+		);
+	$pc = convolveND($pa,$pb,{m=>'d',b=>'e'});
+	ok( all PDL::approx($pc,$ans_e, $eps) );
+
+	$pc = convolveND($pa,$pb,{m=>'f',b=>'e'});
+	ok( all PDL::approx($pc,$ans_e, $eps) );
+}
+
+{
+	my $pc;
+	my $ans_p = pdl(
+		     [ 0,  0,  1, -1,  0,  1],
+		     [-1,  0,  0, -1,  0,  1],
+		     [ 0,  1,  0, -1,  0,  1],
+		     [ 0,  0,  0, -1,  0,  0],
+		     [ 1,  0,  0, -1,  0,  1],
+		     [ 0, -1,  0, -1,  0,  1]
+		);
+
+	$pc = convolveND($pa,$pb,{m=>'d',b=>'p'});
+	ok( all( PDL::approx($pc, $ans_p, $eps) ) );
+
+	$pc = convolveND($pa,$pb,{m=>'f',b=>'p'});
+	ok(all PDL::approx($pc, $ans_p, $eps) );
+}
+
+
+{
+	my $pc;
+	my $ans_t = pdl(
+		     [ 0,  0,  1, -1,  0,  1],
+		     [-1,  0,  0, -1,  0,  1],
+		     [ 0,  1,  0, -1,  0,  1],
+		     [ 0,  0,  0, -1,  0,  1],
+		     [ 1,  0,  0, -1,  0,  1],
+		     [ 0,  0,  0,  0,  1,  1]
+		);
+	$pc = convolveND($pa,$pb,{m=>'d',b=>'t'});
+	ok(all PDL::approx($pc,$ans_t, $eps) );
+
+	$pc = convolveND($pa,$pb,{m=>'f',b=>'t'});
+	ok( all( PDL::approx($pc, $ans_t, $eps) ) );
+}
+
+done_testing;

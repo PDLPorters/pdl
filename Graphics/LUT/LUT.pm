@@ -128,6 +128,8 @@ use Exporter;
 use File::Spec;
 use File::Basename;
 
+use autodie;
+
 use PDL::Core qw/:Func :Internal/;    # Grab the Core names
 use PDL::Basic;
 use PDL::Types;
@@ -168,26 +170,21 @@ BEGIN {
 
 ############################################################################
 
+sub _lsdir_basename {
+    my ($dir, $suffix) = @_;
+    opendir my $fh, $dir;
+    map basename($_, $suffix), grep /\Q$suffix\E\z/, readdir $fh;
+}
+
 # exported functions
 
 # Return the list of available tables
-#
-sub lut_names () { 
-    my $glob = File::Spec->catfile( $tabledir, "*${suffix}" );
-    # note: really should protect any "."'s in $suffix, but too lazy
-    return map { basename($_,$suffix); } glob( $glob );
-}
+sub lut_names () { _lsdir_basename $tabledir, $suffix }
 
 # Return the list of available ramps
-#
-sub lut_ramps () { 
-    my $glob = File::Spec->catfile( $rampdir, "*${suffix}" );
-    # note: really should protect any "."'s in $suffix, but too lazy
-    return map { basename($_,$suffix); } glob( $glob );
-}
+sub lut_ramps () { _lsdir_basename $rampdir, $suffix }
 
 # Return the requested colour table 
-#
 sub lut_data ($;$$) {
     my $table   = shift;
     my $reverse = $#_ != -1 ? shift : 0;

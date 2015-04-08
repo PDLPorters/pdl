@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 19;
+use Test::More tests => 35;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -16,8 +16,9 @@ $| = 1;
 sub tapprox ($$) {
     my ( $a, $b ) = @_;
     my $d = abs( $a - $b );
-    print "diff = [$d]\n";
-    return $d <= 0.0001;
+    my $check = ($d <= 0.0001);
+    diag "diff = [$d]\n" unless $check;
+    return $check;
 }
 
 # set up test arrays
@@ -70,10 +71,34 @@ $e_sort = $e->qsortvec;
 $e->inplace->qsortvec;
 ok(all($e == $e_sort));
 
-# test bad value handling with pctover
+# test for sf.net but report 3234141 "max() fails on nan"
+#   NaN values are handled inconsistently by min, minimum, max, maximum...
+#
+local $TODO = "fixing max/min NaN handling";
+
+{my $inf = exp(~0>>1);
+my $nan = $inf/$inf;
+my $a = pdl($nan, 0, 1, 2);
+my $b = pdl(0, 1, 2, $nan);
+
+ok($a->min == $b->min, "min with NaNs");
+ok($a->max == $b->max, "max with NaNs");
+}
+my $empty = which(ones(5)>5);
+$a = $empty->double->maximum;
+ok( $a->nelem==1, "maximum over an empty dim yields 1 value");
+ok(!($a*0==0), "max of empty nonbad float gives NaN");
+$a = $empty->byte->maximum;
+ok($a==0, "max of empty nonbad int type gives 0");
+
+# test bad value handling with pctover and max
 #
 SKIP: {
-   skip "Bad value support not compiled", 4 unless $PDL::Bad::Status;
+   skip "Bad value support not compiled", 5 unless $PDL::Bad::Status;
+
+   $empty->badflag(1);
+   $a = $empty->maximum;
+   ok( $a->isbad, "bad flag gets set on max over an empty dim");
 
    my $abad = $a;
    $abad->badflag(1);
@@ -87,17 +112,36 @@ SKIP: {
    ok( $allbad->pctover(0.9)->isbad, "pctover(0.9) all badvals" );
 };
 
-# test for sf.net but report 3234141 "max() fails on nan"
-#   NaN values are handled inconsistently by min, minimum, max, maximum...
-#
-TODO: {
-   local $TODO = "fixing max/min NaN handling";
 
-   my $inf = exp(~0>>1);
-   my $nan = $inf/$inf;
-   my $a = pdl($nan, 0, 1, 2);
-   my $b = pdl(0, 1, 2, $nan);
+#Test subroutines directly.
 
-   ok($a->min == $b->min, "min with NaNs");
-   ok($a->max == $b->max, "max with NaNs");
-}
+#set up piddles
+my $f=pdl(1,2,3,4,5);
+my $g=pdl (0,1);
+my $h=pdl(1, 0,-1);
+my $i=pdl (1,0);
+my $j=pdl(-3, 3, -5, 10);
+
+#Test percentile routines
+#Test PDL::pct
+ok (tapprox(PDL::pct($f, .5),     3), 'PDL::pct 50th percentile');
+ok (tapprox(PDL::pct($g, .76), 0.76), 'PDL::pct interpolation test');
+ok (tapprox(PDL::pct($i, .76), 0.76), 'PDL::pct interpolation not in order test');
+
+#Test PDL::oddpct
+ok (tapprox(PDL::oddpct($f, .5),  3), 'PDL::oddpct 50th percentile');
+ok (tapprox(PDL::oddpct($f, .79), 4), 'PDL::oddpct intermediate value test');
+ok (tapprox(PDL::oddpct($h, .5),  0), 'PDL::oddpct 3-member 50th percentile with negative value');
+ok (tapprox(PDL::oddpct($j, .1), -5), 'PDL::oddpct negative values in-between test');
+
+#Test oddmedian
+ok (PDL::oddmedian($g) ==  0, 'Oddmedian 2-value piddle test');
+ok (PDL::oddmedian($h) ==  0, 'Oddmedian 3-value not in order test');
+ok (PDL::oddmedian($j) == -3, 'Oddmedian negative values even cardinality test');
+
+#Test mode and modeover
+my $a = pdl([1,2,3,3,4,3,2],1);
+ok( $a->mode == 0, "mode test" );
+ok( all($a->modeover == pdl(3,0)), "modeover test");
+
+

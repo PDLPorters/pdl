@@ -327,8 +327,9 @@ void pdl_coercetypes( pdl** aa, pdl** bb, Logical changePerl ) {
 
 void ** pdl_twod( pdl* x ) {
 
-   int i,nx,ny,size;
-   long *p;
+   PDL_Indx i,nx,ny;
+   int size;
+   void **p;
    char *xx;
 
    if (x->ndims>2)
@@ -340,11 +341,11 @@ void ** pdl_twod( pdl* x ) {
 
    size=pdl_howbig(x->datatype);
 
-   p = (long*) pdl_malloc( ny*sizeof(long) ); /* 1D array of ptrs p[i] */
+   p = pdl_malloc( ny*sizeof(void*) ); /* 1D array of ptrs p[i] */
    for (i=0;i<ny;i++)
-       p[i] = (long) &xx[i*nx*size];
+       p[i] = (void*) &xx[i*nx*size];
 
-   return (void**) p;
+   return p;
 }
 
 !NO!SUBS!

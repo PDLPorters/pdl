@@ -13,7 +13,7 @@ distribution is in a publicly accessible Git
 repository. The project is hosted at the
 sourceforge site at
 
-  http://sourceforge.net/projects/pdl/pdl
+  http://sourceforge.net/projects/pdl/
 
 Starting from the above URL you will find
 directions on how to check out the current
@@ -95,7 +95,7 @@ improve or add to PDL (please do):
 See the pdl-porters email list; details for subscription and access to
 the archives can be found on the PDL web page at:
 
-  http://pdl.sourceforge.net/maillists/
+  http://pdl.perl.org/?page=mailing-lists
  
 *) Access to PDL's configuration
 

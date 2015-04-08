@@ -76,6 +76,9 @@
 # it does not need to be supplied, and the return value should be
 # given as a single-quoted string and use the $name variable
 #
+# The Substitute rule replaces dollar-signed macros ($P(), $ISBAD(), ect)
+# with the low-level C code to perform the macro.
+#
 # The Substitute class replaces the dosubst rule. The old rule
 #   [["NewXSCoerceMustSubs"], ["NewXSCoerceMustSub1","NewXSSymTab","Name"],
 #	 	      \&dosubst]
@@ -91,7 +94,7 @@
 #   [["CacheBadFlagInit"], ["CacheBadFlagInitNS","NewXSSymTab","Name"],
 #		      \&dousualsubsts],
 # becomes
-#   PDL::PP::Rule::Substityte::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS")
+#   PDL::PP::Rule::Substitute::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS")
 #
 # PDL::PP::Rule::Substitute::Usual->new($target, $condition)
 #   $target and $condition must be scalars.
@@ -129,9 +132,12 @@
 package PDL::PP::Rule;
 
 use strict;
+require PDL::Core::Dev;
 
 use Carp;
 our @CARP_NOT;
+
+my $INVALID_OTHERPARS_RE = qr/^(?:magicno|flags|vtable|freeproc|bvalflag|has_badvalue|badvalue|pdls|__datatype)\z/;
 
 use overload ("\"\"" => \&PDL::PP::Rule::stringify);
 sub stringify {
@@ -338,6 +344,30 @@ sub apply {
 		}
 	}
 	$self->report("\n");
+}
+
+
+package PDL::PP::Rule::Croak;
+
+# Croaks if all of the input variables are defined. Use this to identify
+# incompatible arguments.
+our @ISA = qw(PDL::PP::Rule);
+use Carp;
+our @CARP_NOT;
+
+
+sub new {
+    croak('Usage: PDL::PP::Ruel::Croak->new(["incompatible", "arguments"], "Croaking message")')
+		unless @_ == 3;
+    
+    my $class = shift;
+    my $self  = $class->SUPER::new([], @_);
+    return bless $self, $class;
+}
+
+sub apply {
+    my ($self, $pars) = @_;
+    croak($self->{doc}) if $self->is_valid($pars);
 }
 
 package PDL::PP::Rule::Returns;
@@ -753,6 +783,9 @@ package PDL::PP;
 
 use strict;
 
+our $VERSION = "2.2";
+$VERSION = eval $VERSION;
+
 use PDL::Types ':All';
 use Config;
 use FileHandle;
@@ -765,12 +798,12 @@ our @ISA = qw(Exporter);
 @PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
 		      pp_core_importList pp_beginwrap pp_setversion
-                      pp_addbegin pp_boundscheck pp_line_numbers/;
+                      pp_addbegin pp_boundscheck pp_line_numbers
+                      pp_deprecate_module/;
 
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
 
-$PDL::PP::VERSION = 2.2;
 $PDL::PP::done = 0;  # pp_done has not been called yet
 
 END {
@@ -930,7 +963,7 @@ sub pp_line_numbers ($$) {
 		push @to_return, $_;
 
 		# If we need to add a # line directive, do so before incrementing
-		push (@to_return, "\n#line $line \"$filename\"") if (/%{/ or /%}/);
+		push (@to_return, "\n#line $line \"$filename\"") if (/%\{/ or /%}/);
 
 		$line++ if /\n/;
 	}
@@ -951,6 +984,7 @@ sub pp_done {
 	print "DONE!\n" if $::PP_VERBOSE;
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
 	(my $fh = FileHandle->new(">$::PDLPREF.xs")) or die "Couldn't open xs file\n";
+        my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD); # don't hardcode in more than one place
 
 $fh->print(qq%
 /*
@@ -1023,16 +1057,7 @@ BOOT:
 
    PDL_COMMENT("Get pointer to structure of core shared C routines")
    PDL_COMMENT("make sure PDL::Core is loaded")
-   perl_require_pv("PDL::Core");
-   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  PDL_COMMENT("SV* value")
-#ifndef aTHX_
-#define aTHX_
-#endif
-   if (CoreSV==NULL)
-     Perl_croak(aTHX_ "Can't load PDL::Core module");
-   PDL = INT2PTR(Core*, SvIV( CoreSV ));  PDL_COMMENT("Core* value")
-   if (PDL->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "[PDL->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] $::PDLMOD needs to be recompiled against the newly installed PDL", PDL->Version, PDL_CORE_VERSION, XS_VERSION);
+   $pdl_boot
    $::PDLXSBOOT
 %);
 
@@ -1085,7 +1110,25 @@ sub pp_def {
 	my($name,%obj) = @_;
 
 	print "*** Entering pp_def for $name\n" if $::PP_VERBOSE;
-
+	
+	# See if the 'name' is multiline, in which case we extract the
+	# name and add the FullDoc field
+	if ($name =~ /\n/) {
+		my $fulldoc = $name;
+		# See if the very first thing is a word. That is going to be the
+		# name of the function under consideration
+		if ($fulldoc =~ s/^(\w+)//) {
+			$name = $1;
+		}
+		elsif ($fulldoc =~ /=head2 (\w+)/) {
+			$name = $1;
+		}
+		else {
+			croak('Unable to extract name');
+		}
+		$obj{FullDoc} = $fulldoc;
+	}
+	
 	$obj{Name} = $name;
 	translate(\%obj,$PDL::PP::deftbl);
 
@@ -1113,6 +1156,58 @@ sub pp_def {
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;
 }
 
+# marks this module as deprecated. This handles the user warnings, and adds a
+# notice into the documentation. Can take a {infavor => "newmodule"} option
+sub pp_deprecate_module
+{
+  my $options;
+  if( ref $_[0] eq 'HASH' )  { $options = shift;  }
+  else                       { $options = { @_ }; }
+
+  my $infavor;
+
+  if( $options && ref $options eq 'HASH' && $options->{infavor} )
+  {
+    $infavor = $options->{infavor};
+  }
+
+  my $mod = $::PDLMOD;
+  my $envvar = 'PDL_SUPPRESS_DEPRECATION_WARNING__' . uc $mod;
+  $envvar =~ s/::/_/g;
+
+  my $warning_main =
+    "$mod is deprecated.";
+  $warning_main .=
+    " Please use $infavor instead." if $infavor;
+
+  my $warning_suppression_runtime =
+    "This module will be removed in the future; please update your code.\n" .
+    "Set the environment variable $envvar\n" .
+    "to suppress this warning\n";
+
+  my $warning_suppression_pod =
+    "A warning will be generated at runtime upon a C<use> of this module\n" .
+    "This warning can be suppressed by setting the $envvar\n" .
+    "environment variable\n";
+
+  my $deprecation_notice = <<EOF ;
+XXX=head1 DEPRECATION NOTICE
+
+$warning_main
+$warning_suppression_pod
+
+XXX=cut
+
+EOF
+  $deprecation_notice =~ s/^XXX=/=/gms;
+  pp_addpm( {At => 'Top'}, $deprecation_notice );
+
+  pp_addpm {At => 'Top'}, <<EOF;
+warn \"$warning_main\n$warning_suppression_runtime\" unless \$ENV{$envvar};
+EOF
+
+
+}
 
 # Worst memleaks: not freeing things at redodims or
 # final free time (thread, dimmed things).
@@ -1393,7 +1488,7 @@ sub pdimexpr2priv {
 #
 sub equivcpoffscode {
     return
-	'int i;
+	'PDL_Indx i;
          for(i=0; i<$CHILD_P(nvals); i++)  {
             $EQUIVCPOFFS(i,i);
          }';
@@ -1445,6 +1540,9 @@ sub OtherPars_nft {
 	    $type = C::Type->new(undef,$_);
 	}
 	my $name = $type->protoname;
+        if ($name =~ /$INVALID_OTHERPARS_RE/) {
+            croak "Invalid OtherPars name: $name";
+        }
 	push @names,$name;
 	$types{$name} = $type;
     }
@@ -1520,9 +1618,8 @@ sub def_vtable {
 	 pdl_transvtable $vname = {
 		0,0, $nparents, $npdls, ${vname}_flags,
 		$rdname, $rfname, $wfname,
-		$ffname,NULL,NULL,$cpfname,NULL,
-		sizeof($sname),\"$vname\",
-		$foofname
+		$ffname,NULL,NULL,$cpfname,
+		sizeof($sname),\"$vname\"
 	 };";
 }
 
@@ -1548,7 +1645,7 @@ sub wrap_vfn {
     # Put p2child in simple boolean context rather than strict numerical equality
     if ( $p2child ) {
 	$p2decl =
-	    "pdl *__it = __tr->pdls[1]; pdl *__parent = __tr->pdls[0];";
+	    "pdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1]; pdl *__parent = __tr->pdls[0];";
 	if ( $name eq "redodims" ) {
 	    $p2decl .= '
 	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) {
@@ -1570,7 +1667,7 @@ sub wrap_vfn {
                     SV *tmp = (SV *) POPs ;
 		    __it->hdrsv = (void*) tmp;
                     if(tmp != &PL_sv_undef )
-                       SvREFCNT_inc(tmp);
+                       (void)SvREFCNT_inc(tmp);
                   }
 
                   __it->state |= PDL_HDRCPY;
@@ -1893,11 +1990,13 @@ $pars
   PDL_COMMENT("Check if you can get a package name for this input value.  ")
   PDL_COMMENT("It can be either a PDL (SVt_PVMG) or a hash which is a     ")
   PDL_COMMENT("derived PDL subclass (SVt_PVHV)                            ")
-  
+
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
     parent = ST(0);
-    if (sv_isobject(parent))
-      objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  PDL_COMMENT("The package to bless output vars into is taken from the first input var")
+    if (sv_isobject(parent)){
+	bless_stash = SvSTASH(SvRV(ST(0)));
+	objname = HvNAME((bless_stash));  PDL_COMMENT("The package to bless output vars into is taken from the first input var")
+    }
   }
   if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output and temp vars")
     nreturn = $noutca;
@@ -2201,7 +2300,7 @@ sub InplaceCode {
 
     my $instate = $in . "->state";
     return
-	qq{\tif ( $instate & PDL_INPLACE ) {
+	qq{\tif ( $instate & PDL_INPLACE && ($out != $in)) {
               $instate &= ~PDL_INPLACE; PDL_COMMENT("unset")
               $out = $in;             PDL_COMMENT("discard output value, leak ?")
               PDL->SetSV_PDL(${out}_SV,${out});
@@ -2316,21 +2415,24 @@ sub GenDocs {
 
   $::DOCUMENTED++;
   $pars = "P(); C()" unless $pars;
+  # Strip leading whitespace and trailing semicolons and whitespace
   $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
   $otherpars =~ s/^\s*(.+[^;])[;\s]*$/$1/ if $otherpars;
   my $sig = "$pars".( $otherpars ? "; $otherpars" : "");
 
   $doc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m; # Strip extra =cut's
   if ( defined $baddoc ) {
+  	  # Strip leading newlines and any =cut markings
       $baddoc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m;
+      $baddoc =~ s/^\n+//;
       $baddoc = "=for bad\n\n$baddoc";
   }
 
-  return << "EOD";
+  my $baddoc_function_pod = <<"EOD" ;
 
-=head2 $name
+XXX=head2 $name
 
-=for sig
+XXX=for sig
 
   Signature: ($sig)
 
@@ -2338,9 +2440,12 @@ $doc
 
 $baddoc
 
-=cut
+XXX=cut
 
 EOD
+
+  $baddoc_function_pod =~ s/^XXX=/=/gms;
+  return $baddoc_function_pod;
 }
 
 sub ToIsReversible {
@@ -2539,7 +2644,7 @@ sub make_parnames {
          $join__realdims = '0' if $join__realdims eq '';
       }
 	return("static char *__parnames[] = {". $join__parnames ."};
-		static int __realdims[] = {". $join__realdims . "};
+		static PDL_Indx __realdims[] = {". $join__realdims . "};
 		static char __funcname[] = \"\$MODULE()::\$NAME()\";
 		static pdl_errorinfo __einfo = {
 			__funcname, __parnames, $npdls
@@ -2626,8 +2731,9 @@ if (hdrp) {
 
     hdr_copy = (SV *)POPs;
 
-    if(hdr_copy && hdr_copy != &PL_sv_undef)
-       SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS")
+    if(hdr_copy && hdr_copy != &PL_sv_undef) {
+       (void)SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS")
+    }
 
     FREETMPS ;
     LEAVE ;
@@ -2644,9 +2750,9 @@ DeePcOPY
      $str .= <<"HdRCHECK2"
        if ( $names[$_]\->hdrsv != hdrp ){
 	 if( $names[$_]\->hdrsv && $names[$_]\->hdrsv != &PL_sv_undef)
-             SvREFCNT_dec( $names[$_]\->hdrsv );
+             (void)SvREFCNT_dec( $names[$_]\->hdrsv );
 	 if( hdr_copy != &PL_sv_undef )
-             SvREFCNT_inc(hdr_copy);
+             (void)SvREFCNT_inc(hdr_copy);
 	 $names[$_]\->hdrsv = hdr_copy;
        }
      if(propagate_hdrcpy)
@@ -2677,7 +2783,7 @@ sub make_redodims_thread {
 
     my $nn = $#$pnames;
     my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
-    $str .= $npdls ? "int __creating[$npdls];\n" : "int __creating[1];\n";
+    $str .= $npdls ? "PDL_Indx __creating[$npdls];\n" : "PDL_Indx __creating[1];\n";
     $str .= join '',map {$_->get_initdim."\n"} values %$dobjs;
 
     # if FlagCreat is NOT true, then we set __creating[] to 0
@@ -2692,21 +2798,6 @@ sub make_redodims_thread {
 	    $str .= "0;\n";
 	}
     } # foreach: 0 .. $nn
-
-##############################
-#
-# These tests don't appear to do anything useful,
-#  and they cause trouble with null PDLs ...
-#  so I've commented them out.
-#    --CED 4-Nov-2003 (re: bug 779312)
-#
-#    foreach ( 0 .. $nn ) {
-#	my $po = $pobjs->{$pnames->[$_]};
-#	$str .= "if(";
-#	$str .= "(!__creating[$_]) && " if $po->{FlagCreat};
-#	$str .= "($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)\n" .
-#	    "   \$CROAK(\"CANNOT CREATE PARAMETER $po->{Name}\");\n";
-#    }
 
     $str .= " {\n$pcode\n}\n";
     $str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
@@ -2729,6 +2820,117 @@ sub XSHdr {
 	return XS::mkproto($xsname,$nxargs);
 }
 
+###########################################################
+# Name       : extract_signature_from_fulldoc
+# Usage      : $sig = extract_signature_from_fulldoc($fulldoc)
+# Purpose    : pull out the signature from the fulldoc string
+# Returns    : whatever is in parentheses in the signature, or undef
+# Parameters : $fulldoc
+# Throws     : never
+# Notes      : the signature must have the following form:
+#            : 
+#            : =for sig
+#            : <blank>
+#            :   Signature: (<signature can
+#            :                be multiline>)
+#            : <blank>
+#            : 
+#            : The two spaces before "Signature" are required, as are
+#            : the parentheses.
+sub extract_signature_from_fulldoc {
+	my $fulldoc = shift;
+	if ($fulldoc =~ /=for sig\n\n  Signature: \(([^\n]*)\n/g) {
+		# Extract the signature and remove the final parenthesis
+		my $sig = $1;
+		$sig .= $1 while $fulldoc =~ /\G\h+([^\n]*)\n/g;
+		$sig =~ s/\)\s*$//;
+		return $sig;
+	}
+	return;
+}
+
+
+# Build the valid-types regex and valid Pars argument only once. These are
+# also used in PDL::PP::PdlParObj, which is why they are globally available.
+use PDL::PP::PdlParObj;
+my $pars_re = $PDL::PP::PdlParObj::pars_re;
+
+###########################################################
+# Name       : build_pars_from_fulldoc
+# Usage      : $pars = build_pars_from_fulldoc($fulldoc)
+# Purpose    : extract the Pars from the signature from the fulldoc string,
+#            : the part of the signature that specifies the piddles
+# Returns    : a string appropriate for the Pars key
+# Parameters : $fulldoc
+# Throws     : if there is no signature 
+#            : if there is no extractable Pars section
+#            : if some PDL arguments come after the OtherPars arguments start
+# Notes      : This is meant to be used directly in a Rule. Therefore, it
+#            : is only called if the Pars key does not yet exist, so if it
+#            : is not possible to extract the Pars section, it dies.
+sub build_pars_from_fulldoc {
+	my $fulldoc = shift;
+	
+	# Get the signature or die
+	my $sig = extract_signature_from_fulldoc($fulldoc)
+		or confess('No Pars specified and none could be extracted from FullDoc');
+	
+	# Everything is semicolon-delimited
+	my @args = split /\s*;\s*/, $sig;
+	my @pars;
+	my $switched_to_other_pars = 0;
+	for my $arg (@args) {
+		confess('All PDL args must come before other pars in FullDoc signature')
+			if $switched_to_other_pars and $arg =~ $pars_re;
+		if ($arg =~ $pars_re) {
+			push @pars, $arg;
+		}
+		else {
+			$switched_to_other_pars = 1;
+		}
+	}
+	
+	# Make sure there's something there
+	confess('FullDoc signature contains no PDL arguments') if @pars == 0;
+	
+	# All done!
+	return join('; ', @pars);
+}
+
+###########################################################
+# Name       : build_otherpars_from_fulldoc
+# Usage      : $otherpars = build_otherpars_from_fulldoc($fulldoc)
+# Purpose    : extract the OtherPars from the signature from the fulldoc
+#            : string, the part of the signature that specifies non-piddle
+#            : arguments
+# Returns    : a string appropriate for the OtherPars key
+# Parameters : $fulldoc
+# Throws     : if some OtherPars arguments come before the last PDL argument
+# Notes      : This is meant to be used directly in a Rule. Therefore, it
+#            : is only called if the OtherPars key does not yet exist.
+sub build_otherpars_from_fulldoc {
+	my $fulldoc = shift;
+	
+	# Get the signature or do not set
+	my $sig = extract_signature_from_fulldoc($fulldoc)
+		or return 'DO NOT SET!!';
+	
+	# Everything is semicolon-delimited
+	my @args = split /\s*;\s*/, $sig;
+	my @otherpars;
+	for my $arg (@args) {
+		confess('All PDL args must come before other pars in FullDoc signature')
+			if @otherpars > 0 and $arg =~ $pars_re;
+		if ($arg !~ $pars_re) {
+			push @otherpars, $arg;
+		}
+	}
+	
+	# All done!
+	return 'DO NOT SET!!'if @otherpars == 0;
+	return join('; ', @otherpars);
+}
+
 # Set up the rules for translating the pp_def contents.
 #
 $PDL::PP::deftbl =
@@ -2743,9 +2945,97 @@ $PDL::PP::deftbl =
 		      "Sets BadFlag based upon HandleBad key and PDL's ability to handle bad values",
 		      sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }),
 
+   ####################
+   # FullDoc Handling #
+   ####################
+   
+   # Error processing: does FullDoc contain BadDoc, yet BadDoc specified?
+   PDL::PP::Rule::Croak->new(['FullDoc', 'BadDoc'],
+       'Cannot have both FullDoc and BadDoc defined'),
+   PDL::PP::Rule::Croak->new(['FullDoc', 'Doc'],
+       'Cannot have both FullDoc and Doc defined'),
+   # Note: no error processing on Pars; it's OK for the docs to gloss over
+   # the details.
+   
+   # Add the Pars section based on the signature of the FullDoc if the Pars
+   # section doesn't already exist
+   PDL::PP::Rule->new('Pars', 'FullDoc',
+      'Sets the Pars from the FullDoc if Pars is not explicitly specified',
+      \&build_pars_from_fulldoc
+   ),
+   PDL::PP::Rule->new('OtherPars', 'FullDoc',
+      'Sets the OtherPars from the FullDoc if OtherPars is not explicitly specified',
+      \&build_otherpars_from_fulldoc
+   ),
+   
+   ################################
+   # Other Documentation Handling #
+   ################################
+   
+   # no docs by default
+   PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
+    "\n=for ref\n\ninfo not available\n"),
+   
+   # try and automate the docs
+   # could be really clever and include the sig to see about
+   # input/output params, for instance
+   
+   PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
+              'Sets the default documentation for handling of bad values',
+      sub {
+         return undef unless $bvalflag;
+         my ( $bf, $name, $code ) = @_;
+         my $str;
+         if ( not defined($bf) ) {
+            $str = "$name does not process bad values.\n";
+         } elsif ( $bf ) {
+            $str = "$name processes bad values.\n";
+         } else {
+            $str = "$name ignores the bad-value flag of the input piddles.\n";
+         }
+         if ( not defined($code) ) {
+            $str .= "It will set the bad-value flag of all output piddles if " .
+            "the flag is set for any of the input piddles.\n";
+         } elsif (  $code eq '' ) {
+            $str .= "The output piddles will NOT have their bad-value flag set.\n";
+         } else {
+            $str .= "The state of the bad-value flag of the output piddles is unknown.\n";
+         }
+      }
+   ),
 
+   # Default: no otherpars
+   PDL::PP::Rule::Returns::EmptyString->new("OtherPars"),
 
+   # the docs
+   PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
+         my $fulldoc = shift;
+         
+         # Remove bad documentation if bad values are not supported
+         $fulldoc =~ s/=for bad\n\n.*?\n\n//s unless $bvalflag;
+         
+         # Append a final cut if it doesn't exist due to heredoc shinanigans
+         $fulldoc .= "\n\n=cut\n" unless $fulldoc =~ /\n=cut\n*$/;
+         
+         # Make sure the =head1 FUNCTIONS section gets added
+         $::DOCUMENTED++;
+         
+         return $fulldoc;
+      }
+   ),
+   PDL::PP::Rule->new("PdlDoc", ["Name","_Pars","OtherPars","Doc","_BadDoc"], \&GenDocs),
+   
+   ##################
+   # Done with Docs #
+   ##################
+   
+   # Notes
+   # Suffix 'NS' means, "Needs Substitution". In other words, the string
+   # associated with a key that has the suffix "NS" must be run through a
+   # Substitute or Substitute::Usual
 
+# some defaults
+#
    PDL::PP::Rule::Returns->new("CopyName", [],
        'Sets the CopyName key to the default: __copy', "__copy"),
 
@@ -2755,57 +3045,6 @@ $PDL::PP::deftbl =
 			      '$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;'
 				: 'PDL_COMMENT("No flow")'}),
 
-# no docs by default
-#
-   PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
-    "\n=for ref\n\ninfo not available\n"),
-
-# try and automate the docs
-# could be really clever and include the sig to see about
-# input/output params, for instance
-#
-   PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
-              'Sets the default documentation for handling of bad values',
-		      sub {
-			  return undef unless $bvalflag;
-			  my ( $bf, $name, $code ) = @_;
-			  my $str;
-			  if ( ! defined($bf) ) {
-			      $str = "$name does not process bad values.\n";
-			  } elsif ( $bf ) {
-			      $str = "$name does handle bad values.\n";
-			  } else {
-			      $str = "$name ignores the bad-value flag of the input piddles.\n";
-			  }
-			  if ( ! defined($code) ) {
-			      $str .= "It will set the bad-value flag of all output piddles if " .
-				"the flag is set for any of the input piddles.\n";
-			  } elsif (  $code eq '' ) {
-			      $str .= "The output piddles will NOT have their bad-value flag set.\n";
-			  } else {
-			      $str .= "The state of the bad-value flag of the output piddles is unknown.\n";
-			  }
-		      }),
-
-# P2Child implicitly means "no data type changes".
-# No p2child by default.
-#
-#   PDL::PP::Rule->new("HASP2Child", "_P2Child",
-#      'Sets HASP2Child to a defined boolean value, even if P2Child is not defined',
-#      sub {
-#         my ($p2child) = @_;
-#         if (defined $p2child) {
-#            return $p2child != 0;
-#         }
-#         return 0;
-#      }),
-
-# Default: no otherpars
-#
-   PDL::PP::Rule::Returns::EmptyString->new("OtherPars"),
-
-# some defaults
-#
 # Question: where is ppdefs defined?
 # Answer: Core/Types.pm
 #
@@ -2830,7 +3069,7 @@ $PDL::PP::deftbl =
 # Same number of dimensions is assumed, though.
 #
    PDL::PP::Rule->new("AffinePriv", "XCHGOnly", sub { return @_; }),
-   PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Long incs[$CHILD(ndims)];PDL_Long offs; '),
+   PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$CHILD(ndims)];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
 
    PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr","FHdrInfo","_EquivDimCheck"],
@@ -2886,9 +3125,6 @@ $PDL::PP::deftbl =
 			       '$CTID-$PARENT(ndims)+$CHILD(ndims)'),
 
    PDL::PP::Rule::Returns::One->new("HaveThreading"),
-
-# the docs
-   PDL::PP::Rule->new("PdlDoc", ["Name","_Pars","OtherPars","Doc","_BadDoc"], \&GenDocs),
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.

@@ -1,16 +1,9 @@
-
+#!/usr/bin/perl
+#
 use PDL::LiteF;
+use Test::More tests => 6;
 
 # Test PDL Subclassing via hashes
-
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
-}
-
-print "1..6\n";
 
 ########### First test normal subclassing ###########
 
@@ -37,17 +30,17 @@ $z = PDL::Derived->new( ones(5,5) ) ;
 
 $z++;
 
-ok(1, sum($z)==50);
+ok(sum($z)==50, "derived object does PDL stuff");
 
 # And should also have extra bits
 
-ok(2, $$z{SomethingElse}==42 );
+ok($$z{SomethingElse}==42, "derived has extra bits" );
 
 # And survive destruction
 
 undef $z;
 
-ok(3, 1==1);
+ok(1==1, "survives distruction");  # huh?
 
 
 ########### Now test magic subclassing i.e. PDL=code ref ###########
@@ -93,16 +86,15 @@ $z = PDL::Derived2->new(5);
 
 $z++;
 
-ok(4, sum($z)==100);
+ok(sum($z)==100, "derived2 has PDL properties");
 
 # And should also have extra bits
 
-ok(5, $$z{SomethingElse}==42 );
+ok($$z{SomethingElse}==42, "derived2 has extra bits" );
 
 # And survive destruction
 
 undef $z;
 
-ok(6, 1==1);
-
+ok(1==1, "derived2 survives destruction");
 

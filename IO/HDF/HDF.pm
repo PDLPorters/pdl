@@ -36,7 +36,8 @@ interfaces, for that see the docs on those modules.
 
 =cut
 
-$VERSION = '2.0';
+our $VERSION = '2.0';
+$VERSION = eval $VERSION;
 
 use PDL::Primitive;
 use PDL::Basic;

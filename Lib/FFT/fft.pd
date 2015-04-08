@@ -6,8 +6,16 @@ PDL::FFT - FFTs for PDL
 
 =head1 DESCRIPTION
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+As of PDL-2.006_04, the direction of the FFT/IFFT has been
+reversed to match the usage in the FFTW library and the convention
+in use generally.
+!!!!!!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 FFTs for PDL.  These work for arrays of any dimension, although ones
-with small prime factors are likely to be the quickest.
+with small prime factors are likely to be the quickest.  The forward
+FFT is unnormalized while the inverse FFT is normalized so that the
+IFFT of the FFT returns the original values.
 
 For historical reasons, these routines work in-place and do not recognize
 the in-place flag.  That should be fixed.
@@ -115,7 +123,7 @@ pp_def('_fft',
 	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => [F,D],
 	Code => '$TFD(fftnf,fftn)
-	($SIZE(n), NULL , $P(real),$P(imag), 1, 1.);',
+	($SIZE(n), NULL , $P(real),$P(imag), -1, 1.);',
 	Doc=>undef
 );
 
@@ -124,7 +132,7 @@ pp_def('_ifft',
 	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => [F,D],
 	Code => '$TFD(fftnf,fftn)
-	($SIZE(n), NULL , $P(real),$P(imag), -1, -1.);',
+	($SIZE(n), NULL , $P(real),$P(imag), 1, -1.);',
 	Doc=>undef
 );
 
@@ -155,7 +163,11 @@ sub todecimal {
 
 =for ref
 
-Complex FFT of the "real" and "imag" arrays [inplace].
+Complex 1-D FFT of the "real" and "imag" arrays [inplace].
+
+=for sig
+
+  Signature: ([o,nc]real(n); [o,nc]imag(n))
 
 =for usage
 
@@ -189,7 +201,11 @@ sub PDL::fft {
 
 =for ref
 
-Complex inverse FFT of the "real" and "imag" arrays [inplace].
+Complex inverse 1-D FFT of the "real" and "imag" arrays [inplace].
+
+=for sig
+
+  Signature: ([o,nc]real(n); [o,nc]imag(n))
 
 =for usage
 
@@ -283,7 +299,7 @@ sub PDL::realifft {
 
 =for ref
 
-N-dimensional FFT (inplace)
+N-dimensional FFT over all pdl dims of input (inplace) 
 
 =for example
 
@@ -317,7 +333,7 @@ sub PDL::fftnd {
 
 =for ref
 
-N-dimensional inverse FFT
+N-dimensional inverse FFT over all pdl dims of input (inplace) 
 
 =for example
 

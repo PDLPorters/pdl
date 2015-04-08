@@ -24,8 +24,9 @@ pp_def(
 	Pars => 'a(n,m);',
 	Code => "
 	browse(\$TBSULQFD($PDL_B,$PDL_S,$PDL_US,$PDL_L,$PDL_LL,$PDL_F,$PDL_D),
-                \$SIZE(n),\$SIZE(m),\$P(a));
+	       \$SIZE(n),\$SIZE(m),\$P(a));
 	",
+	GenericTypes => [qw(B S U L Q F D)],
 Doc=><<'EOD');
 =head2 browse
 

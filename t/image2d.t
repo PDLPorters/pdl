@@ -3,7 +3,7 @@
 
 use Test;
 BEGIN {
-    plan tests => 25;
+    plan tests => 26;
 }
 
 use PDL;
@@ -43,11 +43,15 @@ tapprox( conv2d($a,$b), $b );    # 2
 # conv2d: boundary => reflect
 $a=ones(3,3);  
 $ans = pdl ([12,18,24],[30,36,42],[48,54,60]);
-tapprox( conv2d($b,$a,{Boundary => 'Reflect'}), $ans );
+tapprox( conv2d($b,$a,{Boundary => 'Reflect'}), $ans );  #3
+
+# conv2d: boundary => replicate
+$ans = pdl ([12,18,24],[30,36,42],[48,54,60]);
+tapprox( conv2d($b,$a,{Boundary => 'Replicate'}), $ans ); #4
 
 # conv2d: boundary => truncate
 $ans = pdl ([8,15,12],[21,36,27],[20,33,24]);
-tapprox( conv2d($b,$a,{Boundary => 'Truncate'}), $ans );
+tapprox( conv2d($b,$a,{Boundary => 'Truncate'}), $ans ); #5
 
 # max2d_ind
 $a = 100 / (1.0 + rvals(5,5));
@@ -92,7 +96,7 @@ if ( $PDL::Bad::Status ) {
     # patchbad2d: bad data
     $m = $a->slice('1:3,1:3');
     $m .= $a->badvalue;
-    $a->badflag(1);        # should sort out propogation of badflag
+    $a->badflag(1);        # should sort out propagation of badflag
 
     $ans = ones(5,5);
     $ans->set(2,2,$ans->badvalue);

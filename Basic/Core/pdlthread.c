@@ -8,20 +8,15 @@
 
 #define MAX2(a,b) if((b)>(a)) a=b;
 
-/*
- * We used to use our own copy of strndup but there were
- * compiler warnings about redefining the symbol, so I have
- * changed to using the Perl C API - see 'perldoc perlapi'
- * and 'perldoc perlcapi' - and created the copy_int/pdl_array
- * routines . The returned arrays should be released using
- * Perl's Safefree call.
- *
- * DJB 2007 March 18. Previous version is v1.6 of pdlthread.c
- */
-static int *copy_int_array (int *from, int size) {
+/**** Convenience routines for moving around collections
+ **** of indices and PDL pointers.
+ **** (Note that copy_int_array is confusingly named sicne it
+ **** doesn't copy ints, it copies PDL_Indx's.)
+ ****/
+static PDL_Indx *copy_int_array (PDL_Indx *from, int size) {
   int *to;
   Newx (to, size, int);
-  return (int *) CopyD (from, to, size, int);
+  return (PDL_Indx *) CopyD (from, to, size, int);
 }
 
 static pdl **copy_pdl_array (pdl **from, int size) {
@@ -30,11 +25,16 @@ static pdl **copy_pdl_array (pdl **from, int size) {
   return (pdl **) CopyD (from, to, size, pdl*);
 }
 
-static void print_iarr(int *iarr, int n) {
+
+/******************************
+ * dump_thread and helpers -- debugging routine used for 
+ * describing internal state 
+ */
+static void print_iarr(PDL_Indx *iarr, int n) {
   int i;
   printf("(");
   for (i=0;i<n;i++)
-    printf("%s%d",(i?" ":""),iarr[i]);
+    printf("%s%"IND_FLAG,(i?" ":""),iarr[i]);  // IND_FLAG in pdl.h, at build time from Types.pm.PL
   printf(")");
 }
 
@@ -69,11 +69,13 @@ void dump_thread(pdl_thread *thread) {
 }
 
 
-/* Function to get the pthread-specific offset
-   Input: thread structure
-   Outputs: Pointer to pthread-specific offset array (returned by function)
-*/
-int *pdl_get_threadoffsp(pdl_thread *thread )
+/*******
+ * pdl_get_threadoffsp - get the pthread-specific offset arrays from a 
+ * PDL (TODO: improve function docs)
+ *  Input: thread structure
+ *  Outputs: Pointer to pthread-specific offset array (returned by function)
+ */
+PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread )
 {
   if(thread->gflags & PDL_THREAD_MAGICKED) {
   	int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
@@ -92,7 +94,7 @@ int *pdl_get_threadoffsp(pdl_thread *thread )
 	    Pthread index for the current pthread   ( nthr supplied and modified by function)
 
 */
-int *pdl_get_threadoffsp_int(pdl_thread *thread, int *nthr, int **inds)
+PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *nthr, PDL_Indx **inds)
 {
   if(thread->gflags & PDL_THREAD_MAGICKED) {
   	int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
@@ -167,10 +169,11 @@ void pdl_clearthreadstruct(pdl_thread *it) {
    noPthreadFlag is a flag indicating that the pdl thread that called this function is not multiple
      processor threading safe, so no pthreading magic will be added
 */
-void 	pdl_autopthreadmagic( pdl **pdls, int npdls, int * realdims, int* creating, int noPthreadFlag ){
+void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating, int noPthreadFlag ){
 
-	int j, nthrd, totalDims, *nthreadedDims, **threadedDims, **threadedDimSizes;
-	int largest_nvals = 0;  /* The largest PDL size for all the pdls involvled */
+	int j, nthrd, totalDims, *nthreadedDims, **threadedDims;
+    PDL_Indx **threadedDimSizes;
+	PDL_Indx largest_nvals = 0;  /* The largest PDL size for all the pdls involvled */
 
 	int t;             /* Thread index for each pdl */
 	int tdimStart;    /* Start of the threaded dims for each pdl */
@@ -190,7 +193,6 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, int * realdims, int* creating
 	/* Remove any existing threading magic */
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
-		nthrd;
 
 		/* Remove thread magic, if there is some set for this pdl */
 		if( pdls[j]->magic &&
@@ -221,7 +223,7 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, int * realdims, int* creating
 	/* Build int arrays of threaded dim numbers and sizes for each pdl */
 	nthreadedDims     = (int*)  malloc(sizeof(int)   * (npdls));
 	threadedDims      = (int**) malloc(sizeof(int *) * (npdls));
-	threadedDimSizes  = (int**) malloc(sizeof(int *) * (npdls));
+	threadedDimSizes  = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
 
 
 	/* Find total number of dims and allocate */
@@ -229,7 +231,7 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, int * realdims, int* creating
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		threadedDims[j]     = (int*) malloc(sizeof(int) * pdls[j]->ndims);
-		threadedDimSizes[j] = (int*) malloc(sizeof(int) * pdls[j]->ndims);
+		threadedDimSizes[j] = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
 	}
 
 
@@ -328,7 +330,7 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, int * realdims, int* creating
  *   (i.e. don't attempt to create multiple posix threads to execute)
  */
 void pdl_initthreadstruct(int nobl,
-	pdl **pdls,int *realdims,int *creating,int npdls,
+	pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,int npdls,
 	pdl_errorinfo *info,pdl_thread *thread, char *flags, int noPthreadFlag ) {
 	int i; int j;
 	int ndims=0; int nth;
@@ -380,9 +382,8 @@ void pdl_initthreadstruct(int nobl,
 	thread->mag_nthpdl = -1;
         thread->mag_nthr = -1;
 
-	nids=0;
-	mx=0;
-/* Find the max. number of threadids */
+	/* Accumulate the maximum number of thread dims across the collection of PDLs */
+	nids=mx=0;
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		MAX2(nids,pdls[j]->nthreadids);
@@ -435,16 +436,16 @@ void pdl_initthreadstruct(int nobl,
 	thread->ndims = ndims;
 	thread->nimpl = nimpl;
 
-      Newx(thread->inds, thread->ndims * (nthr>0 ? nthr : 1), int); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
+      Newx(thread->inds, thread->ndims * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
       if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c");
 
-      Newx(thread->dims, thread->ndims, int);
+      Newx(thread->dims, thread->ndims, PDL_Indx);
       if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
 
-      Newx(thread->offs, thread->npdls * (nthr>0 ? nthr : 1), int); /* Create space for pthread-specific offs */
+      Newx(thread->offs, thread->npdls * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific offs */
       if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c");
 
-      Newx(thread->incs, thread->ndims * npdls, int);
+      Newx(thread->incs, thread->ndims * npdls, PDL_Indx);
       if(thread->incs == NULL) croak("Failed to allocate memory for thread->incs in pdlthread.c");
 
       Newx(thread->flags, npdls, char);
@@ -464,34 +465,91 @@ void pdl_initthreadstruct(int nobl,
 
 /* Make implicit inds */
 
-	for(i=0; i<nimpl; i++) {
-		thread->dims[nth] = 1;
-		for(j=0; j<thread->npdls; j++) {
-			thread->incs[nth*npdls+j] = 0;
-			if(creating[j]) continue;
-			if(thread->pdls[j]->threadids[0]-
-					thread->realdims[j] <= i)
-				continue;
-			if(pdls[j]->dims[i+realdims[j]] != 1) {
-				if(thread->dims[nth] != 1) {
-					if(thread->dims[nth] !=
-						pdls[j]->dims[i+realdims[j]]) {
-                                              pdl_croak_param(info,j,"Mismatched implicit thread dimension %d: should be %d, is %d\n\t",
-							i,
-							thread->dims[nth],
-							pdls[j]->dims[i+thread->realdims[j]]);
-					}
-				} else {
-					thread->dims[nth] =
-						pdls[j]->dims[i+realdims[j]];
-				}
-				thread->incs[nth*npdls+j] =
-					PDL_TREPRINC(pdls[j],flags[j],i+realdims[j]);
-			}
-		}
-		nth++;
-	}
+	for(i=0; i<nimpl; i++) {                      // Loop over number of implicit threads
+	  thread->dims[nth] = 1;                      // Start with a size of 1 for this thread
+	  for(j=0; j<thread->npdls; j++) {            // Now loop over the PDLs to be merged
+	    thread->incs[nth*npdls+j] = 0;               
+	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
+	    if(thread->pdls[j]->threadids[0]-         // If we're off the end of the currend PDLs dimlist, 
+	       thread->realdims[j] <= i)              //    then just skip it.
+	      continue; 
+	    if(pdls[j]->dims[i+realdims[j]] != 1) {   // If the current dim in the current PDL is not 1,
+	      if(thread->dims[nth] != 1) {            //   ... and the current planned size isn't 1, 
+		if(thread->dims[nth] !=
+		   pdls[j]->dims[i+realdims[j]]) {    //   ... then check to make sure they're the same.
+		  
+		  /* Mismatch -- print a useful error message */
+		  /* This probably uses a lot more lines than necessary */
+		  int ii,jj,maxrealdims;
+		  char buf0[BUFSIZ];
+		  char *s;
+		  buf0[0] = '\0';
 
+		  s = buf0+strlen(buf0);
+		  sprintf(s,"  Mismatched implicit thread dimension %d: size %"IND_FLAG" vs. %"IND_FLAG"\nThere are %d PDLs in the expression; %d thread dim%s.\n",i,thread->dims[nth],pdls[j]->dims[i+realdims[j]],thread->npdls,nimpl,(nimpl==1)?"":"s");
+		  s += strlen(s);
+		  
+		  for(ii=maxrealdims=0; ii<thread->npdls; ii++)
+		    if(thread->realdims[ii]>maxrealdims) 
+		      maxrealdims=thread->realdims[ii];
+
+		  sprintf(s,  "   PDL IN EXPR.    "); s += strlen(s);
+		  if(maxrealdims > 0) {
+		    char format[80];
+		    sprintf(format,"%%%ds",8 * maxrealdims + 3);
+		    sprintf(s,format,"ACTIVE DIMS | ");
+		    s += strlen(s);
+		  }
+		  sprintf(s,"THREAD DIMS\n");
+		  s += strlen(s);
+
+		  for(ii=0; ii<thread->npdls; ii++) {
+		    sprintf(s,"   #%3d (%s",ii,creating[ii]?"null)\n":"normal): ");
+		    s += strlen(s);
+		    if(creating[ii])
+		      continue;
+		    if(maxrealdims == 1) {
+		      sprintf(s,"    "); 
+		      s += strlen(s);
+		    }
+		    for(jj=0; jj< maxrealdims - thread->realdims[ii]; jj++) {
+		      sprintf(s,"%8s"," "); 
+		      s += strlen(s);
+		    }
+		    for(jj=0; jj< thread->realdims[ii]; jj++) {
+		      sprintf(s,"%8ld",(long)(pdls[ii]->dims[jj]));
+		      s += strlen(s);
+		    }
+		    if(maxrealdims) {
+		      sprintf(s," | "); 
+		      s += strlen(s);
+		    }
+		    for(jj=0; jj<nimpl && jj + thread->realdims[ii] < pdls[ii]->ndims; jj++) {
+		      sprintf(s,"%8ld",(long)(pdls[ii]->dims[jj+thread->realdims[ii]]));
+		      s += strlen(s);
+		    }
+		    sprintf(s,"\n");
+		    s += strlen(s);
+		  }
+		  /* End of helpful error message -- now barf */
+		  
+		  pdl_croak_param(info,j,"%s \n..",buf0);
+		}
+
+		/* If we're still here, they're the same -- OK! */
+
+	      } else {                                // current planned size is 1 -- mod it to match this PDL
+		thread->dims[nth] =
+		  pdls[j]->dims[i+realdims[j]];
+	      }
+
+	      thread->incs[nth*npdls+j] =                      // Update the corresponding data stride 
+		PDL_TREPRINC(pdls[j],flags[j],i+realdims[j]);  //   from the PDL or from its vafftrans if relevant.
+	    }
+	  }
+	  nth++;
+	}
+	
 /* Go through everything again and make the real things */
 
 	for(nthid=0; nthid<nids; nthid++) {
@@ -550,7 +608,7 @@ void pdl_initthreadstruct(int nobl,
 	PDLDEBUG_f(dump_thread(thread);)
 }
 
-void pdl_thread_create_parameter(pdl_thread *thread,int j,int *dims,
+void pdl_thread_create_parameter(pdl_thread *thread,int j,PDL_Indx *dims,
 				 int temp)
 {
 	int i;
@@ -582,8 +640,8 @@ See the manual for why this is impossible");
 int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 			pdl_trans *t) {
 	int i,j;
-	int *offsp; int nthr;
-	int *inds;
+	PDL_Indx *offsp; int nthr;
+	PDL_Indx *inds;
 	if(  (thread->gflags & (PDL_THREAD_MAGICKED | PDL_THREAD_MAGICK_BUSY))
 	     == PDL_THREAD_MAGICKED ) {
 
@@ -618,8 +676,8 @@ int pdl_iterthreadloop(pdl_thread *thread,int nth) {
 	int i,j;
 	int stop = 0;
 	int stopdim;
-	int *offsp; int nthr;
-	int *inds;
+	PDL_Indx *offsp; int nthr;
+	PDL_Indx *inds;
 	offsp = pdl_get_threadoffsp_int(thread,&nthr, &inds);
 	for(j=0; j<thread->npdls; j++)
 		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);

@@ -93,7 +93,8 @@ use Carp;
 
 @ISA = qw/PDL::Exporter PDL/;
 
-$VERSION = "0.5";
+our $VERSION = "0.5";
+$VERSION = eval $VERSION;
 
 #######################################################################=
 #########

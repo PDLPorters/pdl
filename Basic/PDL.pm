@@ -92,7 +92,7 @@ Some notes:
 
 =over 5
 
-=item SYNOPSIS
+=item Modules loaded by default
 
 See the SYNOPSIS section at the end of this document for a list of
 modules loaded by default.
@@ -146,7 +146,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.4.11_001'; # Go to sub numbering per git push
+$PDL::VERSION = '2.007_14';     # Go to sub numbering per git push
 
 # Main loader of standard PDL package
 
@@ -191,7 +191,35 @@ die $@ if $@;
 # properly recognizes the PDL package.
 package PDL;
 
+# support: use Inline with => 'PDL';
+# Returns a hash containing parameters accepted by recent versions of
+# Inline, to tweak compilation.  Not normally called by anyone but
+# the Inline API.
+#
+# If you're trying to debug the actual code, you're looking for "IFiles.pm"
+# which is currently in the Core directory. --CED 23-Feb-2015
+sub Inline {
+    require PDL::Install::Files;
+    goto &PDL::Install::Files::Inline;
+}
+
+##################################################
+# Rudimentary handling for multiple Perl threads #
+##################################################
+my $clone_skip_should_be_quiet = 0;
+sub CLONE_SKIP {
+    warn("* If you need to share PDL data across threads, use memory mapped data, or\n"
+		. "* check out PDL::Parallel::threads, available on CPAN.\n"
+        . "* You can silence this warning by saying `PDL::no_clone_skip_warning;'\n"
+        . "* before you create your first thread.\n")
+        unless $clone_skip_should_be_quiet;
+    PDL::no_clone_skip_warning();
+    # Whether we warned or not, always return 1 to tell Perl not to clone PDL data
+    return 1;
+}
+sub no_clone_skip_warning {
+    $clone_skip_should_be_quiet = 1;
+}
 
 # Exit with OK status
-
 1;

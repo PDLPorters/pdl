@@ -29,7 +29,7 @@ $| = 1;
 
 use PDL::Config;
 if ( $PDL::Config{WITH_BADVAL} ) {
-    plan tests => 79;
+    plan tests => 82;
 } else {
     # reduced testing
     plan tests => 10;
@@ -77,18 +77,18 @@ my $c = $a + $b;
 is( $c->badflag(), 0, "badflag not set in a copy" );
 is( $c->sum(), 21, "sum() works on non bad-flag piddles" );
 
-# is the flag propogated?
+# is the flag propagated?
 $a->badflag(1);
 ok( $a->badflag(), "bad flag is now set" );
 
 $c = $a + $b;
-ok( $c->badflag(), "bad flag is propogated" );
+ok( $c->badflag(), "bad flag is propagated" );
 is( $c->sum(), 21, "sum is still 21 with badflag set" );
 
 $a->badflag(0);
 $b->badflag(1);
 $c = $a + $b;
-ok( $c->badflag(), "badflag propogates on rhs of 'a+b'" );
+ok( $c->badflag(), "badflag propagates on rhs of 'a+b'" );
 
 # how about copies/vaffines/whatever
 $a = rvals( long, 7, 7, {Centre=>[2,2]} );
@@ -112,7 +112,7 @@ print "Info: b = ", $b->info($i), "\n";
 print "Info: c = ", $b->info($i), "\n";
 
 # let's check that it gets through to a child of a child
-ok( $c->badflag, "badflag propogated throufh to a child" );
+ok( $c->badflag, "badflag propagated throufh to a child" );
 
 # can we change bad values
 is( byte->badvalue, byte->orig_badvalue, "byte bad value is set to the default value" );
@@ -149,7 +149,7 @@ is( PDL::Core::string($b), "[1 BAD 3]", "can convert bad values to a string" );
 
 # does addition work
 $c = $a + $b;
-is( sum($c), 8, "addition propogates the bad value" );
+is( sum($c), 8, "addition propagates the bad value" );
 
 # does conversion of bad types work
 $c = float($b);
@@ -186,10 +186,10 @@ is( PDL::Core::string($a),
 $a = byte->badvalue * ones(byte,3,2);
 is( $a->get_datatype, 0, "datatype remains a byte" );
 $a->badflag(1);
-is( PDL::Core::string( zcover($a) ), "[BAD BAD]", "zcover() okay" );
+is( PDL::Core::string( PDL::zcover($a) ), "[BAD BAD]", "zcover() okay" );
 $a->set(1,1,1);
 $a->set(2,1,1);
-is( PDL::Core::string( zcover($a) ), "[BAD 0]", "  and still okay" );
+is( PDL::Core::string( PDL::zcover($a) ), "[BAD 0]", "  and still okay" );
 
 # 255 is the default bad value for a byte array
 #
@@ -257,7 +257,7 @@ is( PDL::Core::string( $a->isbad ),
 ##ok( PDL::Core::string( $a->clump(-1) ), 
 ##    "[0 BAD 2 BAD 4 BAD 6 BAD 8]" );   #
 
-## look at propogation of bad flag using inplace routines...
+## look at propagation of bad flag using inplace routines...
 $a = sequence( byte, 2, 3 );
 $a = $a->setbadif( $a == 3 );
 $b = $a->slice("(1),:");
@@ -272,7 +272,7 @@ print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
 $a->inplace->copybad( $mask );
 print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
 print "$a $b\n";
-is( $b->badflag, 1, "badflag propogated using inplace copybad()" );
+is( $b->badflag, 1, "badflag propagated using inplace copybad()" );
 
 # test some of the qsort functions
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
@@ -297,9 +297,19 @@ is( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]", "<<" );
 $a = pdl([1,2,3]);
 $a->badflag(1);
 $b = $a->assgn;
-is( $b->badflag, 1, "assgn propogated badflag");
+is( $b->badflag, 1, "assgn propagated badflag");
 $a->badflag(0);
 is( $b->badflag, 1, "assgn is not a deep copy for the badflag");
+
+# check that at and sclr return the correct values
+TODO: {
+   $a = pdl q[BAD];
+   local $TODO = 'check that at and sclr return correct values and the same';
+
+   is( PDL::Core::string($a), 'BAD', 'can convert PDL to string' );
+   is( $a->at, 'BAD', 'at() returns BAD for a bad value' );
+   is( $a->sclr, 'BAD', 'sclr() returns BAD for a bad value' );
+}
 
 # quick look at math.pd
 use PDL::Math;
@@ -357,7 +367,7 @@ $b = sequence(3,3);
 $ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
 is( int(at(sum(med2d($a,$b)-$ans))), 0, "med2d()" );
 
-# propogation of badflag using inplace ops (ops.pd)
+# propagation of badflag using inplace ops (ops.pd)
 
 # test biop fns
 $a = sequence(3,3);
@@ -403,7 +413,7 @@ is( PDL::Core::string($c->clump(-1)),
     "[0 0 0 0 2 2 0 0 0]",
   "histogram2d()" );
 
-# weird propogation of bad values
+# weird propagation of bad values
 # - or is it?
 #
 #$a = sequence( byte, 2, 3 );
@@ -447,7 +457,7 @@ $a->wfits($fname);
 $b = rfits($fname);
 print "Read from fits:  $b  type = (", $b->get_datatype, ")\n";
 
-ok( $b->slice('0:0')->isbad, "rfits/wfits propogated bad flag" );
+ok( $b->slice('0:0')->isbad, "rfits/wfits propagated bad flag" );
 ok( sum(abs($a-$b)) < 1.0e-5, "  and values" );
 
 # now force to integer
@@ -483,8 +493,8 @@ SKIP: {
     $a->badvalue(3);
     $a->badflag(1);
     $b = $a->slice('2:3');
-    is( $b->badvalue, 3, "can propogate per-piddle bad value");
-    is( $b->sum, 2, "and the propogated value is recognised as bad");
+    is( $b->badvalue, 3, "can propagate per-piddle bad value");
+    is( $b->sum, 2, "and the propagated value is recognised as bad");
 
     $a = sequence(4);
     is ($a->badvalue, double->orig_badvalue, "no long-term affects of per-piddle changes [1]");

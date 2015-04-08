@@ -1,3 +1,7 @@
+package PDL::PP;
+
+__END__
+
 =head1 NAME
 
 PDL::PP - Generate PDL routines from concise descriptions
@@ -20,7 +24,130 @@ e.g.
 
 	pp_done();
 
-=head1 Overview
+=head1 FUNCTIONS
+
+Here is a quick reference list of the functions provided by PDL::PP.
+
+=head2 pp_add_boot
+
+=for ref
+
+Add code to the BOOT section of generated XS file
+
+
+=head2 pp_add_exported
+
+=for ref
+
+Add functions to the list of exported functions
+
+
+=head2 pp_add_isa
+
+=for ref
+
+Add entries to the @ISA list
+
+
+=head2 pp_addbegin
+
+=for ref
+
+Sets code to be added at the top of the generate .pm file
+
+
+=head2 pp_addhdr
+
+=for ref
+
+Add code and includes to C section of the generated XS file
+
+
+=head2 pp_addpm
+
+=for ref
+
+Add code to the generated .pm file
+
+
+=head2 pp_addxs
+
+=for ref
+
+Add extra XS code to the generated XS file
+
+=head2 pp_beginwrap
+
+=for ref
+
+Add BEGIN-block wrapping to code for the generated .pm file
+
+
+=head2 pp_bless
+
+=for ref
+
+Sets the package to which the XS code is added (default is PDL)
+
+
+=head2 pp_boundscheck
+
+=for ref
+
+Control state of PDL bounds checking activity
+
+
+=head2 pp_core_importList
+
+=for ref
+
+Specify what is imported from PDL::Core
+
+
+=head2 pp_def
+
+=for ref
+
+Define a new PDL function
+
+
+=head2 pp_deprecate_module
+
+=for ref
+
+Add runtime and POD warnings about a module being deprecated
+
+
+=head2 pp_done
+
+=for ref
+
+Mark the end of PDL::PP definitions in the file
+
+
+=head2 pp_export_nothing
+
+=for ref
+
+Clear out the export list for your generated module
+
+
+=head2 pp_line_numbers
+
+=for ref
+
+Add line number information to simplify debugging of PDL::PP code
+
+
+=head2 pp_setversion
+
+=for ref
+
+Set the version for .pm and .xs files
+
+
+
+=head1 OVERVIEW
 
 Why do we need PP? Several reasons: firstly, we want to be able to
 generate subroutine code for each of the PDL datatypes (PDL_Byte,
@@ -220,7 +347,7 @@ would give you much more useful information:
 For the above situation, my compiler tells me:
 
  ...
- test.pd:15: error: ‘rmp’ undeclared (first use in this function)
+ test.pd:15: error: 'rmp' undeclared (first use in this function)
  ...
 
 In my example script (called test.pd), line 15 is exactly the line at which
@@ -724,7 +851,7 @@ This flags a pp-routine as I<NOT> handling bad values. If this routine
 is sent piddles with their C<badflag> set, then a warning message is
 printed to STDOUT and the piddles are processed as if the value used to
 represent bad values is a valid number. The C<badflag> value is
-not propogated to the output piddles.
+not propagated to the output piddles.
 
 An example of when this is used is for FFT routines, which generally
 do not have a way of ignoring part of the data.
@@ -780,10 +907,11 @@ This approach means that there is virtually no overhead when
 bad values are not present (i.e. the L<badflag|PDL::Bad/badflag> routine
 returns 0).
 
-The BadCode section can use the same macros and looping constructs
-as the Code section. 
-However, it wouldn't be much use without the following additional
-macros:
+The C preprocessor symbol C<PDL_BAD_CODE> is defined when the bad code
+is compiled, so that you can reduce the amount of code you write.  The
+BadCode section can use the same macros and looping constructs as the
+Code section.  However, it wouldn't be much use without the following
+additional macros:
 
 =over 4
 
@@ -843,18 +971,33 @@ Since this is Perl, TMTOWTDI, so you could also write:
        $SETBAD(c());
     }',
 
+You can reduce code repition using the C C<PDL_BAD_CODE> macro,
+using the same code for both of the C<Code> and C<BadCode> sections:
+
+    #ifdef PDL_BAD_CODE
+    if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
+    #endif PDL_BAD_CODE
+
+       $c() = $a() + $b();
+
+    #ifdef PDL_BAD_CODE
+    } else {
+       $SETBAD(c());
+    }
+    #endif PDL_BAD_CODE
+
 If you want access to the value of the badflag for a given
-piddle, you can use the C<$PDLSTATExxxx()> macros:
+piddle, you can use the PDL STATE macros:
 
 =over 4
 
-=item $PDLSTATEISBAD(pdl)
+=item $ISPDLSTATEBAD(pdl)
 
-=item $PDLSTATEISGOOD(pdl)
+=item $ISPDLSTATEGOOD(pdl)
 
-=item $PDLSTATESETBAD(pdl)
+=item $SETPDLSTATEBAD(pdl)
 
-=item $PDLSTATESETGOOD(pdl)
+=item $SETPDLSTATEGOOD(pdl)
 
 =back
 
@@ -1211,17 +1354,20 @@ say something like
 but that won't work, because PP can't interpret expressions with arithmetic
 in the signature. Instead you write
 
- pp_def( "myexternalfunc",
-  Pars => " p(m);  x(n);  [o] y; [t] work(wn); ",
-    RedoDimsCode => "
-    int im = $PDL(p)->dims[0];
-    int in = $PDL(x)->dims[0];
-    int min = in + im * im;
-    int inw = $PDL(work)->dims[0];
-    $SIZE(wn) = inw >= min ? inw : min; ",
-    Code => "
-     externalfunc($P(p),$P(x),$SIZE(m),$SIZE(n),$P(work));
-       ";)
+  pp_def(
+      "myexternalfunc",
+      Pars         => ' p(m);  x(n);  [o] y(); [t] work(wn); ',
+      RedoDimsCode => '
+	int im = $PDL(p)->dims[0];
+	int in = $PDL(x)->dims[0];
+	int min = in + im * im;
+	int inw = $PDL(work)->dims[0];
+	$SIZE(wn) = inw >= min ? inw : min;
+      ',
+      Code => '
+        externalfunc( $P(p), $P(x), $SIZE(m), $SIZE(n), $P(work) );
+      '
+  );
 
 This code works as follows: The macro $PDL(p) expands to a
 pointer to the pdl struct for the piddle p.  You don't want
@@ -1392,9 +1538,9 @@ consider this excerpt from F<Basic/Bad/bad.pd>:
     OtherPars => 'double newval',
     Inplace => 1,
     CopyBadStatusCode => 
-    '/* propogate badflag if inplace AND it has changed */
+    '/* propagate badflag if inplace AND it has changed */
      if ( a == b && $ISPDLSTATEBAD(a) )
-       PDL->propogate_badflag( b, 0 );
+       PDL->propagate_badflag( b, 0 );
 
      /* always make sure the output is "good" */
      $SETPDLSTATEGOOD(b);
@@ -1404,7 +1550,7 @@ consider this excerpt from F<Basic/Bad/bad.pd>:
 Since this routine removes all bad values, then the output piddle had
 its bad flag cleared. If run inplace (so C<a == b>), then we have to
 tell all the children of C<a> that the bad flag has been cleared (to
-save time we make sure that we call C<PDL-E<gt>propogate_badgflag> only
+save time we make sure that we call C<PDL-E<gt>propagate_badgflag> only
 if the input piddle had its bad flag set).
 
 NOTE: one idea is that the documentation for the routine could be 
@@ -1635,6 +1781,17 @@ two. To use this, simply have the following line at some point in your
 However, don't use this if you use L<Module::Build::PDL>. See that
 module's documentation for details.
 
+=head3 pp_deprecate_module
+
+If a particular module is deemed obsolete, this function can be used to mark it
+as deprecated. This has the effect of emitting a warning when a user tries to
+C<use> the module. The generated POD for this module also carries a deprecation
+notice. The replacement module can be passed as an argument like this:
+
+ pp_deprecate_module( infavor => "PDL::NewNonDeprecatedModule" );
+
+Note that function affects I<only> the runtime warning and the POD.
+
 =head1 Making your PP function "private"
 
 Let's say that you have a function in your module called PDL::foo that
@@ -1648,11 +1805,11 @@ to clear the C<EXPORT> list. To ensure that no documentation (even the
 default PP docs) is generated, set
 
  Doc => undef
- 
+
 and to prevent the function from being added to the symbol table, set
- 
+
  PMFunc => ''
- 
+
 in your pp_def declaration (see Image2D.pd for an example). This will
 effectively make your PP function "private." However, it is I<always>
 accessible via PDL::bar_pp due to Perl's module design. But making
@@ -1845,7 +2002,10 @@ define the signature of your function
 
 =item OtherPars
 
-arguments which are not pdls. Default: nothing. This is a semi-colon separated list of arguments, e.g., C<< OtherPars=>'int k; double value; char* fd' >>. See C<$COMP(x)> and also the same entry in L<Appendix B|Appendix B: PP macros and functions>.
+arguments which are not pdls. Default: nothing. This is a semi-colon
+separated list of arguments, e.g.,
+C<< OtherPars=>'int k; double value; char* fd' >>. See C<$COMP(x)> and
+also the same entry in L<Appendix B|/Appendix B: PP macros and functions>.
 
 =item Code
 

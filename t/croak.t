@@ -1,54 +1,34 @@
 use PDL::LiteF;
-sub ok {
-	my $no = shift ;
-	my $result = shift ;
-	print "not " unless $result ;
-	print "ok $no\n" ;
-}
 
-# sub tapprox {
-# 	my($a,$b) = @_;
-# 	$c = abs($a-$b);
-# 	$d = max($c);
-# 	$d < 0.01;
-# }
+use Test::More tests => 4;
+use Test::Exception;
 
-if($^O !~ /mswin32/i) {$SIG{BUS} = \&not_ok}
-$SIG{SEGV} = \&not_ok;
-
-sub not_ok {
-	print STDERR "\ngot fatal signal\n";
-	print "not ok ".$::i."\n";
-	exit;
-}
-
-print "1..4\n";
+use strict;
+use warnings;
 
 # PDL::Core::set_debugging(1);
-$b = pdl [[1,1,1],[2,2,2]];
+my $pb = pdl [[1,1,1],[2,2,2]];
 
-# we are using more dims than are available
-$i = 1;
-eval {$c = $b->slice(':,:,:,(1)'); $c->make_physical();};
-print "ERROR WAS: '$@'\n";
-ok(1,$@ =~ /error/i);
+{
+	# we are using more dims than are available
+	throws_ok { my $pc = $pb->slice(':,:,:,(1)'); $pc->make_physical(); } qr/too many dims/i;
+}
 
-$i++;
-# now see if we survive the destruction of this invalid trans
-$b = zeroes(5,3,3);
-$c = $b->slice(":,:,1");
-ok(2,1);  # if we're here we survived
+{
+	# now see if we survive the destruction of this invalid trans
+	my $pb = zeroes(5,3,3);
+	lives_ok { my $pc = $pb->slice(":,:,1") };
+}
 
-$i++;
-$b = pdl [[1,1,1],[2,2,2]];
-eval {$c = $b->dummy(5,1); $c->make_physical();};
-ok(3,!$@);
+{
+	my $pb = pdl [[1,1,1],[2,2,2]];
+	lives_ok { my $pc = $pb->dummy(5,1); $pc->make_physical(); };
+}
 
-$i++;
-$b = zeroes(5,3,3);
-$c = $b->slice(":,:,1");
-ok(4,1);  
+{
+	my $pb = zeroes(5,3,3);
+	lives_ok { my $pc = $pb->slice(":,:,1"); };
+}
 
 # if we're here we survived
-
-
+done_testing;

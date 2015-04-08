@@ -53,27 +53,15 @@ required steps.
 
 The following example creates a piddle at the C level.
 We use the C<Inline> module which is really the way to interface
-Perl and C these days. Note the use of the C<PDL_INCLUDE>, C<PDL_TYPEMAP>,
-C<PDL_AUTO_INCLUDE> and C<PDL_BOOT> functions that were imported from
-C<PDL::Core::Dev>. They are used in conjunction with an Inline
-Config call to ensure that the PDL typemap, the PDL include files
-and the PDL Core routines are found during compilation and later
-runtime execution.
+Perl and C these days, using the C<with> capability in L<Inline> 0.68+.
 
    use PDL::LiteF;
-   use PDL::Core::Dev;
 
    $a = myfloatseq(); # exercise our C piddle constructor
 
    print $a->info,"\n";
 
-   # the reason for this config call is explained below
-   use Inline C => Config =>
-     INC           => &PDL_INCLUDE,  # make sure we find pdlcore.h etc
-     TYPEMAPS      => &PDL_TYPEMAP,  # use the PDL typemap
-     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE,  # global declarations and includes
-     BOOT          => &PDL_BOOT;     # boot code to load the Core struct
-
+   use Inline with => 'PDL';
    use Inline C;
    Inline->init; # useful if you want to be able to 'do'-load this script
 
@@ -81,7 +69,7 @@ runtime execution.
 
    __C__
 
-   static pdl* new_pdl(int datatype, PDL_Long dims[], int ndims)
+   static pdl* new_pdl(int datatype, PDL_Indx dims[], int ndims)
    {
      pdl *p = PDL->pdlnew();
      PDL->setdims (p, dims, ndims);  /* set dims */
@@ -93,10 +81,10 @@ runtime execution.
 
    pdl* myfloatseq()
    {
-     PDL_Long dims[] = {5,5,5};
+     PDL_Indx dims[] = {5,5,5};
      pdl *p = new_pdl(PDL_F,dims,3);
      PDL_Float *dataf = (PDL_Float *) p->data;
-     int i;
+     PDL_Indx i; /* dimensions might be 64bits */
 
      for (i=0;i<5*5*5;i++)
        dataf[i] = i; /* the data must be initialized ! */
@@ -124,12 +112,7 @@ The following script demonstrates a simple example:
 
    imag1 $b;
 
-   use Inline C => Config =>
-     INC           => &PDL_INCLUDE,
-     TYPEMAPS      => &PDL_TYPEMAP,
-     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE,
-     BOOT          => &PDL_BOOT;
-
+   use Inline with => 'PDL';
    use Inline C;
    Inline->init;
 
@@ -163,7 +146,7 @@ The following script demonstrates a simple example:
     */
    typedef void (*DelMagic)(pdl *, int param);
    static void default_magic(pdl *p, int pa) { p->data = 0; }
-   static pdl* pdl_wrap(void *data, int datatype, PDL_Long dims[],
+   static pdl* pdl_wrap(void *data, int datatype, PDL_Indx dims[],
 			int ndims, DelMagic delete_magic, int delparam)
    {
      pdl* npdl = PDL->pdlnew(); /* get the empty container */
@@ -188,7 +171,7 @@ The following script demonstrates a simple example:
    static PDL_Byte* mkramp(void)
    {
      PDL_Byte *data;
-     int i;
+     int i; /* should use PDL_Indx to support 64bit pdl indexing */
 
      if ((data = malloc(SZ*SZ*sizeof(PDL_Byte))) == NULL)
        croak("mkramp: Couldn't allocate memory");
@@ -208,7 +191,7 @@ The following script demonstrates a simple example:
 
    pdl* mkpiddle()
    {
-     PDL_Long dims[] = {SZ,SZ};
+     PDL_Indx dims[] = {SZ,SZ};
      pdl *p;
 
      p = pdl_wrap((void *) mkramp(), PDL_B, dims, 2, 
@@ -230,12 +213,15 @@ achieved using the functions C<PDL_AUTO_INCLUDE> and C<PDL_BOOT>
 that are defined and exported by C<PDL::Core::Dev>. Typical usage
 with the Inline module has already been demonstrated:
 
+   use Inline with => 'PDL';
+
+In earlier versions of C<Inline>, this was achieved like this:
+
    use Inline C => Config =>
      INC           => &PDL_INCLUDE,
      TYPEMAPS      => &PDL_TYPEMAP,
      AUTO_INCLUDE  => &PDL_AUTO_INCLUDE, # declarations
      BOOT          => &PDL_BOOT;         # code for the XS boot section
-
 
 The code returned by C<PDL_AUTO_INCLUDE> makes sure that F<pdlcore.h>
 is included and declares the static variables to hold the pointer to
@@ -251,18 +237,17 @@ The code returned by C<PDL_BOOT> retrieves the C<$PDL::SHARE> variable
 and initializes the pointer to the C<Core> struct. For those who know
 their way around the Perl API here is the code:
 
-   print PDL_BOOT;
-
-   perl_require_pv ("PDL::Core"); /* make sure PDL::Core is loaded */
+   perl_require_pv ("PDL/Core.pm"); /* make sure PDL::Core is loaded */
+#ifndef aTHX_
+#define aTHX_
+#endif
+   if (SvTRUE (ERRSV)) Perl_croak(aTHX_ "%s",SvPV_nolen (ERRSV));
    CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
- #ifndef aTHX_
- #define aTHX_
- #endif
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
    PDL = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if (PDL->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
+     Perl_croak(aTHX_ "[PDL->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] The code needs to be recompiled against the newly installed PDL", PDL->Version, PDL_CORE_VERSION, XS_VERSION);
 
 The C<Core> struct contains version info to ensure that the structure defined
 in F<pdlcore.h> really corresponds to the one obtained at runtime. The code
@@ -332,7 +317,7 @@ C<SV *copy(pdl* p, char* )>
 
 =item *
 
-C<void *smalloc(int nbytes)>
+C<void *smalloc(STRLEN nbytes)>
 
 =item *
 
@@ -360,11 +345,14 @@ C<void make_physvaffine(pdl *p)>
 
 =item *
 
-C<void qsort_X(PDL_Xtype *data, int a, int b)> and
-C<void qsort_ind_X(PDL_Xtype *data, int *ix, int a, int b)>
+C<void qsort_X(PDL_Xtype *data, PDL_Indx a, PDL_Indx b)> and
+C<void qsort_ind_X(PDL_Xtype *data, PDL_Indx *ix, PDL_Indx a, PDL_Indx b)>
 
 where X is one of B,S,U,L,F,D and Xtype is one of Byte, Short, Ushort,
-Long, Float or Double.
+Long, Float or Double.  PDL_Indx is the C integer type corresponding to
+appropriate indexing size for the perl configuration (ivsize and ivtype).
+It can be either 'long' or 'long long' depending on whether your perl
+is 32bit or 64bit enabled.
 
 =item *
 
@@ -427,6 +415,8 @@ Feedback and corrections are welcome.
 
 
 =head1 COPYRIGHT
+
+Copyright 2013 Chris Marshall (chm@cpan.org).
 
 Copyright 2010 Christian Soeller (c.soeller@auckland.ac.nz).
 You can distribute and/or modify this document under the same

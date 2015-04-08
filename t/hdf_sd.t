@@ -10,6 +10,7 @@
 use strict;
 use PDL;
 use Test::More;
+use File::Temp qw(tempdir);
 
 BEGIN
 {
@@ -44,7 +45,7 @@ sub tapprox
 }
 
 use PDL::Config;
-my $tmpdir = $PDL::Config{TEMPDIR};
+my $tmpdir = tempdir( CLEANUP => 1 );
 
 my $testfile = "$tmpdir/sdtest.hdf";
 

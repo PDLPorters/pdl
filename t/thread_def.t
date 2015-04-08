@@ -1,11 +1,5 @@
+use Test::More tests => 5;
 use PDL::LiteF;
-
-sub ok {
-	my $no = shift ;
-	my $result = shift ;
-	print "not " unless $result ;
-	print "ok $no\n" ;
-}
 
 sub tapprox {
 	my($a,$b) = @_;
@@ -17,7 +11,6 @@ sub tapprox {
 
 $debug = $debug = 0;
 $PDL::debug = 1;
-print "1..5\n";
 
 $a = sequence(3,4);
 $b = yvals(zeroes(4,3)) + sequence(4);
@@ -45,35 +38,33 @@ thread_define 'tprint(a(n);b(n)), NOtherPars => 1', over {
 PDL::Core::set_debugging(1) if $debug;
 tline($c,$b);
 
-print $a;
-print $b;
+note $a;
+note $b;
 
-ok(1,tapprox($c,$b));
+ok(tapprox($c,$b));
 
 $c = ones(5); # produce an error
 eval('tline($a,$c)');
-print "Error was : $@\n";
-ok(2,$@ =~ /conflicting/);
+like $@, qr/conflicting/;
 
 $a = ones(2,3,4)*sequence(4)->slice('*,*,:');
-print $a;
+note $a;
 tassgn($a,($b=null));
-print "$b\n";
+note "$b\n";
 $b->dump;
-ok(3,tapprox($b,6*sequence(4)));
+ok(tapprox($b,6*sequence(4)));
 
 # test if setting named dim with '=' raises error
 # correctly at runtime
 $a = sequence(4,4);
 $text="";
 eval('ttext($a, \$text)');
-print "Error was : $@\n";
-ok(4,$@ =~ /conflicting/);
+like $@, qr/conflicting/;
 
 # test if dim=1 -> threaddim
-print "testing tprint\n";
+note "testing tprint\n";
 $a = sequence(3);
 $b = pdl [1];
 $text = "";
 tprint($a, $b, \$text);
-ok(5,$text eq '[1 1 1]');
+is $text, '[1 1 1]';

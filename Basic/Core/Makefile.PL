@@ -1,47 +1,20 @@
-
-# Makefile.PL for PDL::Core module
-my $libdir;
-
-use File::Spec;
-
-BEGIN {
-   if (defined $PDL::Config{PDL_BUILD_DIR}) {
-      print STDERR "Basic/Core/Makefile.PL: got root build dir $PDL::Config{PDL_BUILD_DIR}\n";
-      $libdir = File::Spec->catfile($PDL::Config{PDL_BUILD_DIR},'inc');
-      print STDERR "Basic/Core/Makefile.PL: adding $libdir\n";
-   }
-}
-
-use lib $libdir;
-
+use strict;
+use warnings;
 use Devel::CheckLib;
-
-#require '../Core/Dev.pm';
-PDL::Core::Dev->import();
-
 use Config;
-use IO::File;
+use ExtUtils::MakeMaker;
 
-$DB::single = 1;  # uncomment to have debugger stop here
+## $DB::single = 1;  # uncomment to have debugger stop here
 
 my $pthread_include = $Config::Config{usrinc};  # not good for win32
 my $pthread_library = '-lpthread';                                  # not good for MSVC
 my $pthread_define  = ' -DPDL_PTHREAD ';
 
-my $macos_braindamage_define = ($ENV{'OSTYPE'} eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
+my $macos_braindamage_define = ($^O eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
+my $badval_define = " -DBADVAL=$PDL::Config{WITH_BADVAL} -DBADVAL_USENAN=$PDL::Config{BADVAL_USENAN} -DBADVAL_PER_PDL=$PDL::Config{BADVAL_PER_PDL}";
 
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
-
-my $fh = IO::File->new( "> mymalloc.p" )
-  or die "couldn't open mymalloc.p";
-if ( defined $PDL::Config{MALLOCDBG}->{define} ) {
-    $fh->print( "\$mymalloc = <<'EOM';\n$PDL::Config{MALLOCDBG}->{define}\nEOM\n" );
-} else {
-    $fh->print( "\$mymalloc = '';\n" );
-}
-$fh->print( "1;\n" );
-$fh->close;
 
 print "Trying to figure out POSIX threads support ...\n";
 
@@ -56,9 +29,6 @@ if ( exists $PDL::Config{POSIX_THREADS_INC} and  defined $PDL::Config{POSIX_THRE
     print "\tEhh. Didn't see include file 'pthread.h'.\n";
     $pthread_include = '';
 }
-
-# For SGI, I had to link a new perl - cannot dlopen libpthread...
-require Config;
 
 # TODO: need to clean up per-platform logic herer
 if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THREADS_LIBS} ) {
@@ -77,16 +47,21 @@ if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THRE
 } elsif ($^O eq 'freebsd'){
     if ($Config::Config{libs} =~ /-lc_r/) {
         print "\tGood, found -lc_r on a freebsd system.\n";
-    }else{
+    } else {
         print "On FreeBSD try building perl with libc_r instead of libc\n";
         $pthread_library = '';
     }
-} elsif ($^O =~ /bsd$/i){
-    if ($Config::Config{usemymalloc} eq 'y') {
-        print "\tGood, usemymalloc=y, will build with pthread support\n";
-    }else{
-        print "\tGot usemymalloc=$Config::Config{usemymalloc} so not building with pthreads\n";
-        $pthread_library = '';
+ } elsif ($^O =~ /bsd$/i){
+    if ($Config::Config{ldflags} =~ /-pthread/) {
+       if ($Config::Config{usemymalloc} eq 'y') {
+          print "\tGood, usemymalloc=y, will build with pthread support\n";
+       } else {
+          print "\tGot usemymalloc=$Config::Config{usemymalloc} so not building with pthreads\n";
+          $pthread_library = '';
+       }
+    } else {
+          print "\tMissing '-pthread' from ldflags=$Config::Config{lddlflags} so not building with pthreads\n";
+          $pthread_library = '';
     }
  } else {
     print "\tNope, your perl was not linked against pthread library\n";
@@ -126,49 +101,17 @@ $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_li
 }
 
 # isbigendian() is in PDL::Dev
-print "\nTrying to figure out endian-ness of machine...";
+print "Trying to figure out endian-ness of machine...";
 print " It is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . " endian\n";
 
-# badsupport.p is made by the top-level Makefile, but placed
-# into Basic/Core, so we clean it up here
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
-
-use ExtUtils::MakeMaker;
-WriteMakefile(
- 'NAME'	        => 'PDL::Core',
- 'VERSION_FROM' => 'Version.pm',
- 'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) '.
-                   'pdlconv$(OBJ_EXT) pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
-  'PM'          => {
-  		(map {($_,'$(INST_LIBDIR)/'.$_)} (
-			qw/Core.pm Basic.pm Version.pm Types.pm
-						  Dbg.pm Exporter.pm Config.pm Char.pm/
-		)),
-  		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
-			qw/Dev.pm typemap.pdl pdl.h pdlcore.h pdlmagic.h pdlsimple.h
-				pdlthread.h ppport.h/
-		)),
-		},
- 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
- 'DEFINE' 	=> $pthread_define.$macos_braindamage_define,
- 'LIBS'         => ["$pthread_library $malloclib"],
- 'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlconv.c pdlsections.c pdlcore.c '.
-		   'pdl.h pdlsimple.h pdlcore.h '.
-		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
-		   'mymalloc.p badsupport.p'
-		   },
- 'INC'          => "$pthread_include $mallocinc",
-);
 
 # Extra targets to build
 
 sub make_from_PL ($) {
     my $head = shift;
-    return "\t" . 
-	'$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) ' .
+    return "\t" .
+	'$(PERLRUNINST) ' .
 	    "${head}.PL $head\n";
 }
 
@@ -177,7 +120,7 @@ sub MY::xs_o {
       return'
 .xs$(OBJ_EXT):
 	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
-	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+	$(CCCMD) $(CCCDLFLAGS) "-I$(PERL_INC)" $(DEFINE) $*.c
 '
       }
     else {
@@ -187,93 +130,84 @@ sub MY::xs_o {
       }
 }
 
-sub MY::processPL {
-    if($^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
-    if($Config{make} =~ /\bnmake/i){return ''}
-    my($self) = shift;
+undef &MY::processPL; *MY::processPL = sub {
+    package MY;
+    my ($self) = @_;
+    return $self->SUPER::processPL
+        unless $^O =~ /MSWin32/i && $Config::Config{make} =~ /\b[dn]make/i;
+    return '' if $Config::Config{make} =~ /\bnmake/i;
     return "" unless $self->{PL_FILES};
-    my(@m, $plfile);
-    foreach $plfile (sort keys %{$self->{PL_FILES}}) {
+    my @m;
+    my $alltarget = $ExtUtils::MakeMaker::VERSION >= 7.05_06 ? 'pure_nolink' : 'all';
+    my $colon = $Config::Config{make} =~ /\bdmake/i ? ':' : '::';
+    foreach my $plfile (sort keys %{$self->{PL_FILES}}) {
         my $list = ref($self->{PL_FILES}->{$plfile})
                 ? $self->{PL_FILES}->{$plfile}
                 : [$self->{PL_FILES}->{$plfile}];
-        my $target;
-        foreach $target (@$list) {
-          push @m, "
-all :: $target
-	\$(NOECHO) \$(NOOP)
-
-$target :
-	\$(PERLRUNINST) $plfile $target
-";
-          } # close foreach
+        foreach my $target (@$list) {
+            push @m,
+                "\n$alltarget :: $target\n\t\$(NOECHO) \$(NOOP)\n",
+                "\n$target $colon\n\t\$(PERLRUNINST) $plfile $target\n";
+        }
     }
     join "", @m;
-    }
-   else {
-    package MY;
-    my $self = shift;
-    return $self->SUPER::processPL;
-    }
-}
+};
 
-sub MY::postamble {
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
 
-if($Config{make} =~ /\bdmake/i) { return
+    # nmake doesn't seem to do inference rules right so spell it out
+    my $pdlsections_g = sprintf <<'EOF', PDL::Core::Dev::genpp_cmdline(qw(pdlsections.g pdlsections.c));
 
-PDL::Core::Dev::postamble().
-"
+pdlsections.c :: pdlsections.g Types.pm
+	%s
+EOF
+    my $text = PDL::Core::Dev::postamble() . "
 
-Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
-. make_from_PL('Core.pm')
+pdlbadvalinit.c:: pdlbadvalinit.c.PL Types.pm\n"
+. make_from_PL( 'pdlbadvalinit.c' )
 ."
 
-pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
-. make_from_PL( 'pdl.h' )
+pdldataswitch.c:: pdldataswitch.c.PL Types.pm\n"
+. make_from_PL( 'pdldataswitch.c' )
 ."
+
+pdl.h:: pdl.h.PL Types.pm\n"
+    . make_from_PL( 'pdl.h' ) . "
 
 pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
-. make_from_PL( 'pdlsimple.h' )
-."
+    . make_from_PL( 'pdlsimple.h' ) . "
 
 pdlcore.h:: pdlcore.h.PL Types.pm\n"
-. make_from_PL( 'pdlcore.h' )
-.
-q|
-
-pdlsections.c: pdlsections.g Types.pm
-       $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
-|;
+    . make_from_PL( 'pdlcore.h' );
+if($Config{make} =~ /\bdmake/i) {
+  if($ExtUtils::MakeMaker::VERSION < 7) {
+    return $text . $pdlsections_g;
+  } else {
+#EU-MM >= 7
+    return $text;
+  }
 } else { return
-PDL::Core::Dev::postamble().
+$text.
 "
 # Bits of C code we generate from special perl scripts
 #
 # there must be a more elegant way of saying that
 # certain files have additional dependencies!
 
-pdlthread.c :: pdlcore.h\n"
+pdlthread.c :: pdl.h pdlcore.h\n"
 ."
 
-pdlhash.c :: pdlcore.h\n"
+pdlhash.c :: pdl.h pdlcore.h\n"
 ."
 
-pdlapi.c :: pdlcore.h\n"
+pdlapi.c :: pdl.h pdlcore.h\n"
 ."
 
 pdlmagic.c :: pdlcore.h\n"
 ."
 
-Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
-. make_from_PL('Core.pm')
-."
-
-pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
-. make_from_PL( 'pdl.h' )
-."
-
-pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
-. make_from_PL( 'pdlsimple.h' )
+pdlsections.c :: pdl.h pdlcore.h\n"
 ."
 
 pdlconv.c:: pdlconv.c.PL Types.pm\n"
@@ -282,19 +216,43 @@ pdlconv.c:: pdlconv.c.PL Types.pm\n"
 
 pdlcore.c:: pdlcore.c.PL Types.pm\n"
 . make_from_PL( 'pdlcore.c' )
-."
-
-pdlcore.h:: pdlcore.h.PL Types.pm\n"
-. make_from_PL( 'pdlcore.h' )
 .
-
-    join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
-    qw( Core.pm Core.xs pdlcore.c ) )
-.
-($^O =~ /MSWin/ ? q|
-
-pdlsections.c: pdlsections.g Types.pm
-	$(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
-| : '');
+($^O =~ /MSWin/ ? $pdlsections_g : '');
 }
-}
+};
+
+my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic pdlsections);
+my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
+WriteMakefile(
+ 'NAME'	        => 'PDL::Core',
+ 'VERSION_FROM' => 'Version.pm',
+  'PM'          => {
+		(map {($_,'$(INST_LIBDIR)/'.$_)} (
+			qw/Core.pm Basic.pm Version.pm Types.pm
+						  Dbg.pm Exporter.pm Config.pm Char.pm/
+		)),
+		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
+			qw/Dev.pm typemap.pdl pdl.h pdlcore.h pdlmagic.h pdlsimple.h
+				pdlthread.h ppport.h/
+		)),
+		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
+		},
+ 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
+ 'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
+ 'DEFINE' 	=> $pthread_define.$macos_braindamage_define.$badval_define,
+ 'LIBS'         => ["$pthread_library $malloclib"],
+ 'clean'        => {'FILES'  => $cobj .
+                   ' pdlconv.c pdlsections.c pdlcore.c '.
+		   'pdl.h pdlsimple.h pdlcore.h '.
+                   'pdldataswitch.c pdlbadvalinit.c '.
+		   'Types.pm Version.pm Core.c '
+		   },
+ 'INC'          => join(' ',
+   PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
+ ),
+  depend => {
+    'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdldataswitch.c pdlbadvalinit.c pdl.h pdlcore.h',
+        # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
+  },
+ (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+);

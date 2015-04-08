@@ -1,19 +1,13 @@
-
-# Makefile.PL for PDL::Ufunc module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
+use Config;
 
-PDL::Core::Dev->import();
-
-@pack = (["ufunc.pd",Ufunc,PDL::Ufunc]);
+my @pack = (["ufunc.pd", qw(Ufunc PDL::Ufunc)]);
 
 if ($^O eq 'dec_osf') {
-       require Config;
        if ($Config::Config{cc} =~ /^cc/) {
-               my $no_optimize = $::PDL_OPTIONS{OPTIMIZE}
+               my $no_optimize = ($::PDL_OPTIONS{OPTIMIZE} && $::PDL_OPTIONS{OPTIMIZE})
                                 || $Config::Config{optimize}
                                 || '-g2';
                $no_optimize =~ s/(\s|^)(-O)\d/$1${2}0/;
@@ -37,14 +31,15 @@ EOT
        }
 }
 
-
-#WriteMakefile(
-# pdlpp_stdargs_int(@::pack)
-#);
-%hash = pdlpp_stdargs_int(@::pack);
+my %hash = pdlpp_stdargs_int(@pack);
 $hash{LIBS}->[0] .= ' -lm';
-WriteMakefile(%hash);
 
-sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
-}  # Add genpp rule
+#suppress warning from "$GENERIC(b) foo = 0.25;", which is intentional.
+$hash{INC} .= ' -Wno-literal-conversion ';
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+	pdlpp_postamble_int(@pack);
+};
+
+WriteMakefile(%hash);

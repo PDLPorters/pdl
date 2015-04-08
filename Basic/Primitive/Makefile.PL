@@ -1,20 +1,14 @@
-
-# Makefile.PL for PDL::Primitive module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 
-PDL::Core::Dev->import();
-
-@pack = (["primitive.pd",Primitive,PDL::Primitive]);
+my @pack = (["primitive.pd", qw(Primitive PDL::Primitive)]);
 
 if ($^O eq 'dec_osf') {
        require Config;
        if ($Config::Config{cc} =~ /^cc/) {
-               my $no_optimize = $::PDL_OPTIONS{OPTIMIZE}
+               my $no_optimize = ($::PDL_OPTIONS{OPTIMIZE} && $::PDL_OPTIONS{OPTIMIZE})
                                 || $Config::Config{optimize}
                                 || '-g2';
                $no_optimize =~ s/(\s|^)(-O)\d/$1${2}0/;
@@ -38,11 +32,7 @@ EOT
        }
 }
 
-
-#WriteMakefile(
-# pdlpp_stdargs_int(@::pack)
-#);
-%hash = pdlpp_stdargs_int(@::pack);
+my %hash = pdlpp_stdargs_int(@pack);
 $hash{LIBS}->[0] .= ' -lm';
 
 # If we don't do this, and Perl core is using the wrapped API, then it will
@@ -51,8 +41,9 @@ $hash{LIBS}->[0] .= ' -lm';
 $hash{CCFLAGS} ||= $Config{ccflags};
 $hash{CCFLAGS} .= ' -DPERL_REENTR_API';
 
-WriteMakefile(%hash);
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+	pdlpp_postamble_int(@pack);
+};
 
-sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
-}  # Add genpp rule
+WriteMakefile(%hash);

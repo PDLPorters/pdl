@@ -37,7 +37,7 @@ static int   pdl_pthread_warn_msgs_len = 0;
 
 void pdl__magic_add(pdl *it,pdl_magic *mag)
 {
-	pdl_magic **foo = &(it->magic);
+        pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 		foo = &((*foo)->next);
 	}
@@ -47,7 +47,7 @@ void pdl__magic_add(pdl *it,pdl_magic *mag)
 
 void pdl__magic_rm(pdl *it,pdl_magic *mag)
 {
-	pdl_magic **foo = &(it->magic);
+        pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	int found = 0;
 	while(*foo) {
 		if(*foo == mag) {
@@ -67,7 +67,7 @@ void pdl__magic_rm(pdl *it,pdl_magic *mag)
 void pdl__magic_free(pdl *it)
 {
   if (pdl__ismagic(it) && !pdl__magic_isundestroyable(it)) {
-    pdl_magic *foo = it->magic;
+    pdl_magic *foo = (pdl_magic *)(it->magic);
     while(foo) {
       pdl_magic *next = foo->next;
       free(foo);
@@ -80,7 +80,7 @@ void pdl__magic_free(pdl *it)
 
 int pdl__magic_isundestroyable(pdl *it)
 {
-	pdl_magic **foo = &(it->magic);
+        pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 		if((*foo)->what & PDL_MAGIC_UNDESTROYABLE) {return 1;}
 		foo = &((*foo)->next);
@@ -93,7 +93,7 @@ int pdl__magic_isundestroyable(pdl *it)
 void *pdl__call_magic(pdl *it,int which)
 {
 	void *ret = NULL;
-	pdl_magic **foo = &(it->magic);
+	pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 		if((*foo)->what & which) {
 			if((*foo)->what & PDL_MAGIC_DELAYED)
@@ -110,7 +110,7 @@ void *pdl__call_magic(pdl *it,int which)
 /* XXX FINDS ONLY FIRST */
 pdl_magic *pdl__find_magic(pdl *it, int which)
 {
-	pdl_magic **foo = &(it->magic);
+        pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 		if((*foo)->what & which) {
 			return *foo;
@@ -122,7 +122,7 @@ pdl_magic *pdl__find_magic(pdl *it, int which)
 
 pdl_magic *pdl__print_magic(pdl *it)
 {
-	pdl_magic **foo = &(it->magic);
+        pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	while(*foo) {
 	  printf("Magic %p\ttype: ",(void*)(*foo));
 		if((*foo)->what & PDL_MAGIC_MARKCHANGED)
@@ -156,6 +156,7 @@ int pdl__ismagic(pdl *it)
 static pdl_magic **delayed=NULL;
 static int ndelayed = 0;
 void pdl_add_delayed_magic(pdl_magic *mag) {
+    /* FIXME: Common realloc mistake: 'delayed' nulled but not freed upon failure */
 	delayed = realloc(delayed,sizeof(*delayed)*++ndelayed);
 	delayed[ndelayed-1] = mag;
 }
@@ -323,8 +324,8 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	tp = malloc(sizeof(pthread_t) * thread->mag_nthr);
 	tparg = malloc(sizeof(*tparg) * thread->mag_nthr);
 	pthread_key_create(&(ptr->key),NULL);
-	/* if(TVERB) printf("CREATING THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
-	if(TVERB) printf("CREATING THREADS, ME: TBD, key: %d\n", ptr->key);
+
+	if(TVERB) printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));
 
 	/* Get the pthread ID of this main thread we are in.
 	 *	Any barf, warn, etc calls in the spawned pthreads can use this
@@ -342,13 +343,15 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
             die("Unable to create pthreads!");
         }
     }
-	/* if(TVERB) printf("JOINING THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
-	if(TVERB) printf("JOINING THREADS, ME: TBD, key: %d\n", ptr->key);
+
+    if(TVERB) printf("JOINING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));
+
 	for(i=0; i<thread->mag_nthr; i++) {
 		pthread_join(tp[i], NULL);
 	}
-	/* if(TVERB) printf("FINISHED THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
-	if(TVERB) printf("FINISHED THREADS, ME: TBD, key: %d\n", ptr->key);
+
+	if(TVERB) printf("FINISHED THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));
+
 	pthread_key_delete((ptr->key));
 
 	/* Remove pthread magic if we created in this function */
@@ -449,24 +452,24 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 		static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_lock( &mutex );
 		{
-			// In the chunk I'm adding I need to store the actual data and a trailing
-			// newline.
+			/* In the chunk I'm adding I need to store the actual data and trailing newline. */
 			int extralen = vsnprintf(NULL, 0, pat, *args) + 1;
 
-			// 1 more for the trailing '\0'. (For windows, we first #undef realloc
-			// so that the system realloc function is used instead of the PerlMem_realloc
-			// macro. This currently works fine, though could conceivably require some
-			// tweaking in the future if it's found to cause any problem.)
+			/* 1 more for the trailing '\0'. (For windows, we first #undef realloc
+			   so that the system realloc function is used instead of the PerlMem_realloc
+			   macro. This currently works fine, though could conceivably require some
+			   tweaking in the future if it's found to cause any problem.) */
 #ifdef WIN32
 #undef realloc
 #endif
+            /* FIXME: Common realloc mistake: 'msgs' nulled but not freed upon failure */
 			*msgs = realloc(*msgs, *len + extralen + 1);
 			vsnprintf( *msgs + *len, extralen + 1, pat, *args);
 
-			// update the length-so-far. This does NOT include the trailing '\0'
+			/* update the length-so-far. This does NOT include the trailing '\0' */
 			*len += extralen;
 
-			// add the newline to the end
+			/* add the newline to the end */
 			(*msgs)[*len-1] = '\n';
 			(*msgs)[*len  ] = '\0';
 		}

@@ -1,5 +1,12 @@
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
+
+sub get_gsl_config {
+  my ($flags) = @_;
+  no warnings 'exec';
+  `gsl-config $flags`;
+}
 
 # the real stuff happens in the subdirs
 #
@@ -17,10 +24,10 @@ sub get_gsl_libs {
 EOW
 
   my $lib = ($PDL::Config{GSL_LIBS} or
-	  `gsl-config --libs` or
+	  get_gsl_config('--libs') or
 	  warn "\tno GSL link info (libgsl probably not available)\n");
   my $inc = ($PDL::Config{GSL_INC} or
-	  `gsl-config --cflags` or 
+	  get_gsl_config('--cflags') or 
 	  warn "\tno GSL include info (libgsl probably not available)\n\n");
   chomp $lib; chomp $inc;
 
@@ -30,15 +37,15 @@ EOW
 }
 
 # these will be used in the subdirs
-($GSL_includes, $GSL_libs)  = get_gsl_libs();
+our ($GSL_includes, $GSL_libs)  = get_gsl_libs();
 
 # Version check
 my $MINVERSION = "1.3";
-my $version = `gsl-config --version`;
-chomp $version;
+my $version = get_gsl_config('--version');
+chomp $version if defined $version;
 my $new_enough = 0;
 
-if ($version =~ /^\s*$/) {
+if (!defined($version) or $version =~ /^\s*$/) {
   warn "\tno GSL version info found (gsl-config not installed?)\n\n";
   $version = 'UNKNOWN VERSION';
 } else {
@@ -52,17 +59,18 @@ if ($version =~ /^\s*$/) {
     last if ($new_enough);
   }
 }
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {};
 if (! $new_enough) {
-   warn "\n   Not building GSL modules: GSL version $version found, need at least $MINVERSION\n\n";
    write_dummy_make("Not building GSL modules: GSL version $version found, but need at least $MINVERSION");
    $PDL::Config{WITH_GSL} = 0;
 } elsif ( defined($PDL::Config{WITH_GSL}) and ! $PDL::Config{WITH_GSL} ) {
-   warn "\n   Not building GSL modules: WITH_GSL=> 0\n\n";
    write_dummy_make("Not building GSL modules: WITH_GSL=> 0");
 } else {
    $PDL::Config{WITH_GSL} = 1;
    WriteMakefile(
       'NAME'	=> 'PDL::GSL',
+       (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
    );
 }
-sub MY::postamble {}

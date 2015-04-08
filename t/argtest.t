@@ -1,49 +1,33 @@
 # tests for error checking of input args to PP compiled function
-#
+
+use strict;
+use warnings;
+
+use Test::More tests => 4;
+use Test::Exception;
 use PDL::LiteF;
-use vars qw/$a $b/;
-kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
+{
+	my $pb=pdl([1,2,3])->long;
+	my $pa=[1,2,3];
+	lives_ok { PDL::Ufunc::sumover($pa,$pb) };
 }
 
-# sub tapprox {
-#         my($a,$b,$c,$d) = @_;
-#         $c = abs($a-$b);
-#         $d = max($c);
-#         return $d < 0.01;
-# }
 
-sub eprint {
-	print "EXPECT ERROR NEXT:\n-----\n";
-	print $_[0];
-	print "-----\n";
+{
+	my $paa=3;
+	my $pa=\$paa;
+	throws_ok { PDL::Ufunc::sumover($pa,$paa) } qr/Error - tried to use an unknown/;
 }
 
-print "1..3\n";
+{
+	throws_ok { PDL::Ufunc::sumover({}) } qr/Hash given as a pdl - but not \{PDL} key/;
+}
 
-$b=pdl([1,2,3])->long;
-$a=[1,2,3];
-eval 'PDL::Ufunc::sumover($a,$b)';
+{
+	my $pc = 0;
+	throws_ok { PDL::Ufunc::sumover(\$pc) } qr/Error - tried to use an unknown/;
+}
 
-eprint $@;
-
-ok(1,$@ =~ /Error - tried to use an unknown/);
-
-eval { PDL::Ufunc::sumover({}) };
-eprint $@;
-
-ok 2, $@ =~ /Hash given as a pdl - but not {PDL} key/;
-
-
-$c = 0;
-eval { PDL::Ufunc::sumover(\$c) };
-eprint $@;
-
-ok 3, $@ =~ /Error - tried to use an unknown/;
-
-
+done_testing;

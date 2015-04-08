@@ -6,7 +6,7 @@
  * by column vector V of dimension c on the right
  * to produce a (column) vector Y output of dimension r.
  */
-mvmpy( r, c, A, V, Y )
+void mvmpy( r, c, A, V, Y )
 int r, c;
 double *A, *V, *Y;
 {
@@ -33,7 +33,7 @@ for( i=0; i<r; i++ )
  * by a c (rows) by r (columns) matrix B on the right
  * to produce an r by r matrix Y.
  */
-mmmpy( r, c, A, B, Y )
+void mmmpy( r, c, A, B, Y )
 int r, c;
 double *A, *B, *Y;
 {
@@ -65,7 +65,7 @@ for( i=0; i<r; i++ )
 /* Transpose the n by n square matrix A and put the result in T.
  * T may occupy the same storage as A.
  */
-mtransp( n, A, T )
+void mtransp( n, A, T )
 int n;
 double *A, *T;
 {
@@ -132,7 +132,7 @@ return( e );
 /* Unpack symmetric matrix T stored in lower triangular form
  * into a symmetric n by n square matrix S.
  */
-tritosquare( n, T, S )
+void tritosquare( n, T, S )
 int n;
 double T[], S[];
 {

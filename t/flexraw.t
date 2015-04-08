@@ -63,8 +63,6 @@ unlink $cdname, $cdname . '.hdr';	# just to be absolutely sure
 # some mapflex tests
 SKIP: {
 
-   # $PDL::force_use_mmap_code = 1;
-
    my $c = eval { mapflex($name) };
    if ($@) {
       diag("$@");

@@ -33,16 +33,16 @@ void DFF(int* n, double* xval, double* vector){
   SV* pvectorsv;
 
   int ndims;
-  PDL_Long *pdims;
+  PDL_Indx *pdims;
 
   dSP;
   ENTER;
   SAVETMPS;
 
   ndims = 1;
-  pdims = (PDL_Long *)  PDL->smalloc((STRLEN) ((ndims) * sizeof(*pdims)) );
+  pdims = (PDL_Indx *)  PDL->smalloc((STRLEN) ((ndims) * sizeof(*pdims)) );
   
-  pdims[0] = (PDL_Long) ene;
+  pdims[0] = (PDL_Indx) ene;
 
   PUSHMARK(SP);
   XPUSHs(sv_2mortal(newSVpv("PDL", 0)));
@@ -57,7 +57,7 @@ void DFF(int* n, double* xval, double* vector){
   PDL->children_changesoon(px,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
   PDL->setdims (px,pdims,ndims);
   px->state &= ~PDL_NOMYDIMS;
-  px->state |= PDL_ALLOCATED;
+  px->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
   PDL->changed(px,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
 
   px->data = (void *) xval;
@@ -142,7 +142,7 @@ int my_f (const gsl_vector * v, void * params, gsl_vector * df)
 int
 print_state (size_t iter, gsl_multiroot_fsolver * s)
 {
-  printf ("iter = %3u x = % .3f % .3f "
+  printf ("iter = %3zu x = % .3f % .3f "
 	  "f(x) = % .3e % .3e\n",
 	  iter,
 	  gsl_vector_get (s->x, 0),

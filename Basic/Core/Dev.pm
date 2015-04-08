@@ -20,6 +20,9 @@ PDL development and is often used from within Makefile.PL's.
 
 package PDL::Core::Dev;
 
+use File::Path;
+use File::Basename;
+use ExtUtils::Manifest;
 use English; require Exporter;
 
 @ISA    = qw( Exporter );
@@ -31,6 +34,7 @@ use English; require Exporter;
 		 pdlpp_postamble_int pdlpp_stdargs_int
 		 pdlpp_postamble pdlpp_stdargs write_dummy_make
                 unsupported getcyglib trylink
+                pdlpp_mkgen
 		 );
 
 # Installation locations
@@ -43,7 +47,7 @@ use English; require Exporter;
 # Return library locations
 
 
-sub PDL_INCLUDE { '-I'.whereami_any().'/Core' };
+sub PDL_INCLUDE { '"-I'.whereami_any().'/Core"' };
 sub PDL_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
 # sub PDL_INST_INCLUDE { '-I'.whereami_any().'/Core' };
 # sub PDL_INST_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
@@ -62,20 +66,22 @@ EOR
 }
 
 sub PDL_BOOT {
-  my ($symname) = @_;
+  my ($symname, $module) = @_;
   $symname ||= 'PDL';
+  $module ||= 'The code';
   return << "EOR";
 
-   perl_require_pv ("PDL::Core"); /* make sure PDL::Core is loaded */
-   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
+   perl_require_pv ("PDL/Core.pm"); /* make sure PDL::Core is loaded */
 #ifndef aTHX_
 #define aTHX_
 #endif
+   if (SvTRUE (ERRSV)) Perl_croak(aTHX_ "%s",SvPV_nolen (ERRSV));
+   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
    $symname = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if ($symname->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "[$symname->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] The code needs to be recompiled against the newly installed PDL", $symname->Version, PDL_CORE_VERSION, XS_VERSION);
+     Perl_croak(aTHX_ "[$symname->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] $module needs to be recompiled against the newly installed PDL", $symname->Version, PDL_CORE_VERSION, XS_VERSION);
 
 EOR
 }
@@ -264,7 +270,7 @@ sub genpp {
 
       s/O_NONBLOCK/$O_NONBLOCK/go;   # I/O
 
-      if ( /(\s*)?\bGENERICLOOP\s*\(([^\)]*)\)(\s*;)?/ ){  # Start of generic code
+      if ( m/ (\s*)? \b GENERICLOOP \s* \( ( [^\)]* ) \) ( \s*; )? /x ){  # Start of generic code
          #print $MATCH, "=$1=\n";
 
          die "Found GENERICLOOP while searching for ENDGENERICLOOP\n" if $gotstart;
@@ -278,7 +284,7 @@ sub genpp {
          next;
       }
 
-      if ( /\bENDGENERICLOOP(\s*;)?/ ) {
+      if ( m/ \b ENDGENERICLOOP ( \s*; )? /x ) {
 
          die "Found ENDGENERICLOOP while searching for GENERICLOOP\n" unless $gotstart;
 
@@ -331,82 +337,67 @@ sub flushgeneric {  # Construct the generic code switch
 }
 
 
+sub genpp_cmdline {
+  my ($in, $out) = @_;
+  require ExtUtils::MM;
+  my $MM = bless { NAME => 'Fake' }, 'MM';
+  my $devpm = whereami_any()."/Core/Dev.pm";
+  sprintf($MM->oneliner(<<'EOF'), $devpm) . qq{ "$in" > "$out"};
+require "%s"; PDL::Core::Dev->import(); genpp();
+EOF
+}
+
+
 # Standard PDL postamble
 
 sub postamble {
-
-  if ($^O =~ /win32/i) {
-    open FI,'>./getdev.pl' or die "couldn't open getdev.pl: $!";
-    my $location = whereami_any();
-    print FI << "EOD";
-
-  require \"$location/Core/Dev.pm\";
-  PDL::Core::Dev->import();				\
-  genpp();
-  1;
-EOD
-     close FI;
-     return q~
+  my ($self) = @_;
+  sprintf <<'EOF', genpp_cmdline(qw($< $@));
 
 # Rules for the generic preprocessor
 
 .SUFFIXES: .g
-.g.c:
-	$(PERL) -e "require './getdev.pl'" $<  > $@
+.g.c :
+	%s
 
-.c$(OBJ_EXT):
-	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
-
-     ~;
-} else {
-
-q~
-
-# Rules for the generic preprocessor
-
-.SUFFIXES: .g
-.g.c:
-	$(PERL) -e 'require "~.whereami_any().q~/Core/Dev.pm"; \
-		PDL::Core::Dev->import();				\
-		genpp()' $<  > $@
-
-.g$(OBJ_EXT):
-	$(PERL) -e 'require "~.whereami_any().q~/Core/Dev.pm"; \
-		PDL::Core::Dev->import();				\
-		genpp()' $<  > $*.c
-	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
-
-~;}
-
+EOF
 }
 
 # Expects list in format:
-# [gtest.pd, GTest, PDL::GTest], [...]
-# source,    prefix,module/package
-# The idea is to support in future several packages in same dir.
+# [gtest.pd, GTest, PDL::GTest,     ['../GIS/Proj', ...] ], [...]
+# source,    prefix,module/package, optional deps
+# The idea is to support in future several packages in same dir - EUMM
+#   7.06 supports
+# each optional dep is a relative dir that a "make" will chdir to and
+# "make" first - so the *.pd file can then "use" what it makes
 
 # This is the function internal for PDL.
-# Later on, we shall provide another for use outside PDL.
-#
-# added badsupport.p as a requisite
+
 sub pdlpp_postamble_int {
-	join '',map { my($src,$pref,$mod) = @$_;
+	join '',map { my($src,$pref,$mod, $deps) = @$_;
+        die "If give dependencies, must be array-ref" if $deps and !ref $deps;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
-	my $core = "$w/Basic/Core";
-	my $gen = "$w/Basic/Gen";
-
-## I diked out a "$gen/pm_to_blib" dependency (between $core/badsupport.p and
-# $core/Types.pm below), because it appears to be causing excessive recompiles.
-# I don't think that the .pm files themselves should depend on Gen/pm_to_blib,
-# so this should be OK.  But perhaps the requirement had to do with the build chaing
-# itself???  If so, we'll have to put it back in, but then modify the build order
-# so that Gen is built first.  CED 28-Oct-2008
-
+	my $top = File::Spec->abs2rel($w);
+	my $basic = File::Spec->catdir($top, 'Basic');
+	my $core = File::Spec->catdir($basic, 'Core');
+	my $gen = File::Spec->catdir($basic, 'Gen');
+        my $depbuild = '';
+        for my $dep (@{$deps || []}) {
+            my $target = '';
+            if ($dep eq 'core') {
+                $dep = $top;
+                $target = ' core';
+            }
+            require ExtUtils::MM;
+            $dep =~ s#([\(\)])#\\$1#g; # in case of unbalanced (
+            $depbuild .= MM->oneliner("exit(!(chdir q($dep) && !system(q(\$(MAKE)$target))))");
+            $depbuild .= "\n\t";
+        }
 qq|
 
-$pref.pm: $src $core/badsupport.p $core/Types.pm
-	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
+$pref.pm: $src $core/Types.pm
+	$depbuild\$(PERLRUNINST) \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
@@ -427,7 +418,7 @@ sub pdlpp_postamble {
 qq|
 
 $pref.pm: $src
-	\$(PERL) -I$w \"-MPDL::PP qw/$mod $mod $pref/\" $src
+	\$(PERL) "-I$w" \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
@@ -459,6 +450,7 @@ my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
 	 'INC'          => &PDL_INCLUDE()." $inc $mallocinc",
 	 'LIBS'         => $libsarg ? [$libsarg] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
+     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
  );
 }
 
@@ -475,9 +467,66 @@ sub pdlpp_stdargs {
 	 'INC'          => &PDL_INST_INCLUDE()." $inc",
 	 'LIBS'         => $libs ? ["$libs "] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
+	 'dist'         => {'PREOP'  => '$(PERL) "-I$(INST_ARCHLIB)" "-I$(INST_LIB)" -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' },
+     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
  );
 }
 
+# pdlpp_mkgen($dir)
+# - scans $dir/MANIFEST for all *.pd files and creates corresponding *.pm files
+#   in $dir/GENERATED/ subdir; needed for proper doc rendering at metacpan.org
+# - it is used in Makefile.PL like:
+#     dist => { PREOP=>'$(PERL) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' }
+#   so all the magic *.pm generation happens during "make dist"
+# - it is intended to be called as a one-liner:
+#     perl -MPDL::Core::Dev -e pdlpp_mkgen DirName
+#
+sub pdlpp_mkgen {
+  my $dir = @_ > 0 ? $_[0] : $ARGV[0];
+  die "pdlpp_mkgen: unspecified directory" unless defined $dir && -d $dir;
+  my $file = "$dir/MANIFEST";
+  die "pdlpp_mkgen: non-existing '$dir/MANIFEST'" unless -f $file;
+
+  my @pairs = ();
+  my $manifest = ExtUtils::Manifest::maniread($file);
+  for (keys %$manifest) {
+    next if $_ !~ m/\.pd$/;     # skip non-pd files
+    next if $_ =~ m/^(t|xt)\//; # skip *.pd files in test subdirs
+    next unless -f $_;
+    my $content = do { local $/; open my $in, '<', $_; <$in> };
+    if ($content =~ /=head1\s+NAME\s+(\S+)\s+/sg) {
+      push @pairs, [$_, $1];
+    }
+    else {
+      warn "pdlpp_mkgen: unknown module name for '$_' (use proper '=head1 NAME' section)\n";
+    }
+  }
+
+  my %added = ();
+  for (@pairs) {
+    my ($pd, $mod) = @$_;
+    (my $prefix = $mod) =~ s|::|/|g;
+    my $manifestpm = "GENERATED/$prefix.pm";
+    $prefix = "$dir/GENERATED/$prefix";
+    File::Path::mkpath(dirname($prefix));
+    #there is no way to use PDL::PP from perl code, thus calling via system()
+    my @in = map { "-I$_" } @INC;
+    my $rv = system($^X, @in, "-MPDL::PP qw[$mod $mod $prefix]", $pd);
+    if ($rv == 0 && -f "$prefix.pm") {
+      $added{$manifestpm} = "mod=$mod pd=$pd (added by pdlpp_mkgen)";
+      unlink "$prefix.xs"; #we need only .pm
+    }
+    else {
+      warn "pdlpp_mkgen: cannot convert '$pd'\n";
+    }
+  }
+
+  if (scalar(keys %added) > 0) {
+    #maniadd works only with this global variable
+    local $ExtUtils::Manifest::MANIFEST = $file;
+    ExtUtils::Manifest::maniadd(\%added);
+  }
+}
 
 sub unsupported {
   my ($package,$os) = @_;
@@ -485,51 +534,12 @@ sub unsupported {
 }
 
 sub write_dummy_make {
-  require IO::File;
-    my ($msg) = @_;
-    print STDERR "writing dummy Makefile\n";
-    my $fh = new IO::File "> Makefile" or die "Can't open dummy Makefile: $!";
-
-if($^O !~ /mswin32/i) {
-    print $fh <<"EOT";
-fred:
-	\@echo \"****\"
-	\@echo \"$msg\"
-	\@echo \"****\"
-
-all: fred
-
-test: fred
-
-clean ::
-	-mv Makefile Makefile.old
-
-realclean ::
-	rm -rf Makefile Makefile.old
-
-EOT
-}
-
-else { # It's Win32
-    print $fh <<"EOT";
-fred:
-	\@echo \"****\"
-	\@echo \"$msg\"
-	\@echo \"****\"
-
-all: fred
-
-test: fred
-
-clean ::
-	-ren Makefile Makefile.old <NUL
-
-realclean ::
-	del /F /Q Makefile Makefile.old <NUL
-
-EOT
-}
-   close($fh) or die "Can't close dummy Makefile: $!";
+  my ($msg) = @_;
+  $msg =~ s#\n*\z#\n#;
+  $msg =~ s#^\s*#\n#gm;
+  print $msg;
+  require ExtUtils::MakeMaker;
+  ExtUtils::MakeMaker::WriteEmptyMakefile(NAME => 'Dummy', DIR => []);
 }
 
 sub getcyglib {
@@ -695,5 +705,124 @@ EOF
   return $success;
 }
 
-1; # Return OK
+=head2 datatypes_switch
 
+=for ref
+
+prints on C<STDOUT> XS text for F<Core.xs>.
+
+=cut
+
+sub datatypes_switch {
+  my $ntypes = $#PDL::Types::names;
+  my @m;
+  foreach my $i ( 0 .. $ntypes ) {
+    my $type = PDL::Type->new( $i );
+    my $typesym = $type->symbol;
+    my $cname = $type->ctype;
+    $cname =~ s/^PDL_//;
+    push @m, "\tcase $typesym: retval = PDL.bvals.$cname; break;";
+  }
+warn "(@m)";
+  print map "$_\n", @m;
+}
+
+=head2 generate_core_flags
+
+=for ref
+
+prints on C<STDOUT> XS text with core flags, for F<Core.xs>.
+
+=cut
+
+my %flags = (
+    hdrcpy => { set => 1 },
+    fflows => { FLAG => "DATAFLOW_F" },
+    bflows => { FLAG => "DATAFLOW_B" },
+    is_inplace => { FLAG => "INPLACE", postset => 1 },
+    donttouch => { FLAG => "DONTTOUCHDATA" },
+    allocated => { },
+    vaffine => { FLAG => "OPT_VAFFTRANSOK" },
+    anychgd => { FLAG => "ANYCHANGED" },
+    dimschgd => { FLAG => "PARENTDIMSCHANGED" },
+    tracedebug => { FLAG => "TRACEDEBUG", set => 1},
+);
+#if ( $bvalflag ) { $flags{baddata} = { set => 1, FLAG => "BADVAL" }; }
+
+sub generate_core_flags {
+    # access (read, if set is true then write as well; if postset true then
+    #         read first and write new value after that)
+    # to piddle's state
+    foreach my $name ( keys %flags ) {
+        my $flag = "PDL_" . ($flags{$name}{FLAG} || uc($name));
+        if ( $flags{$name}{set} ) {
+            print <<"!WITH!SUBS!";
+int
+$name(x,mode=0)
+        pdl *x
+        int mode
+        CODE:
+        if (items>1)
+           { setflag(x->state,$flag,mode); }
+        RETVAL = ((x->state & $flag) > 0);
+        OUTPUT:
+        RETVAL
+
+!WITH!SUBS!
+        } elsif ($flags{$name}{postset}) {
+            print <<"!WITH!SUBS!";
+int
+$name(x,mode=0)
+        pdl *x
+        int mode
+        CODE:
+        RETVAL = ((x->state & $flag) > 0);
+        if (items>1)
+           { setflag(x->state,$flag,mode); }
+        OUTPUT:
+        RETVAL
+
+!WITH!SUBS!
+        } else {
+            print <<"!WITH!SUBS!";
+int
+$name(self)
+        pdl *self
+        CODE:
+        RETVAL = ((self->state & $flag) > 0);
+        OUTPUT:
+        RETVAL
+
+!WITH!SUBS!
+        }
+    } # foreach: keys %flags
+}
+
+=head2 generate_badval_init
+
+=for ref
+
+prints on C<STDOUT> XS text with badval initialisation, for F<Core.xs>.
+
+=cut
+
+sub generate_badval_init {
+  for my $type (PDL::Types::types()) {
+    my $typename = $type->ctype;
+    $typename =~ s/^PDL_//;
+    my $bval = $type->defbval;
+    if ($PDL::Config{BADVAL_USENAN} && $type->usenan) {
+      # note: no defaults if usenan
+      print "\tPDL.bvals.$typename = PDL.NaN_$type;\n"; #Core NaN value
+    } else {
+      print "\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";
+    }
+  }
+#    PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
+#    PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
+#    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
+#    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
+
+}
+
+1;

@@ -1,20 +1,14 @@
-
-# Makefile.PL for PDL::IO module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import();
+my @pack = (["pnm.pd", qw(Pnm PDL::IO::Pnm)]);
 
-@pack = (["pnm.pd",Pnm,PDL::IO::Pnm]);
-
-%hash = pdlpp_stdargs_int(@::pack);
+my %hash = pdlpp_stdargs_int(@pack);
 $hash{'PM'}->{'Pic.pm'} = '$(INST_LIBDIR)/Pic.pm';
-WriteMakefile(%hash);
 
 # Add genpp rule
-sub MY::postamble { pdlpp_postamble_int(@::pack); }  
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { pdlpp_postamble_int(@pack); };
 
-
+WriteMakefile(%hash);

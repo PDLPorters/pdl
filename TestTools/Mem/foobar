@@ -1,7 +1,0 @@
-BEGIN{print `pwd`;};$|=1; use blib '../..'; use PDL; { 
-	my $a = zeroes(100,100);
-	my $b = $a + 1;
-	print "GOINGTOFIN\n";
-}
-;print "FINISHED\n";
-	

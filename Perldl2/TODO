@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 07 Nov 2011 03:33:22 PM 
+Last saved: Tue 09 Jul 2013 09:05:18 AM 
 
 
 +-------------------------------------------------------------------+
@@ -8,7 +8,7 @@ Last saved: Mon 07 Nov 2011 03:33:22 PM
 
   Set readline_name to 'PDL Shell' instead of the
   default 'Perl REPL' but need to figure how to do
-  so first.
+  so first (override default term?).
 
   Add syntax highlighting to help ensure correct
   entries (e.g., in matlab keywords are blue, strings
@@ -24,9 +24,6 @@ Last saved: Mon 07 Nov 2011 03:33:22 PM
   Add enhanced filter support to remove leading prompt
   strings (or other text) from input lines.  Need to be
   able to toggle on/off and set the regexp used.
-
-  Fix history line saves so that only the prefix-stripped
-  text is entered rather than the original pasted text.
 
   Allow Ctrl-C to interrupt a line but keep the entry
   in history for edit...
@@ -69,11 +66,10 @@ Last saved: Mon 07 Nov 2011 03:33:22 PM
   loaded, and plugins for the REPL.  It should be possible
   to <TAB> complete for these.
 
-  Add tracking and expansion for PGPLOT or PLplot windows for
-  reference.  (In PGPLOT there is a Window Name property and
-  a corresponding $w->name to print it out but you cannot set
-  it).  It would be nice to have a list/table of currently
-  active figures.  (What about PLplot window names/IDs?)
+  Add tracking and expansion for all graphics windows that
+  are open/active (PGPLOT, PLplot, Prima, GLUT/FreeGLUT...)
+  windows for reference.  It would be nice to have a
+  list/table of currently active figures.
 
   IDEA: Associate metadata with image or figure windows
   (e.g., the commands that generated the figure).
@@ -101,6 +97,7 @@ Last saved: Mon 07 Nov 2011 03:33:22 PM
   work here (curses based or GUI based).  Maybe there could
   be a runtime list/variable in PDL::Config that is updated
   as each module is loaded.  Override '*CORE::GLOBAL::use'?
+  It would also be possible to use MOP features of Moose.
  
   Review and integrate $PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in
@@ -143,7 +140,7 @@ Last saved: Mon 07 Nov 2011 03:33:22 PM
   Add MultiLine prompt with continuation character marking
   the open structures. (e.g. MultiLine::TextBalanced).
 
-  Add GLUT event loop support to Term::ReadLine::Perl and
+  Add generic event loop support to Term::ReadLine::Perl and
   Term::ReadLine::Gnu.  Need to figure out a clean way to
   map this into the original modules.
  
@@ -155,11 +152,14 @@ Last saved: Mon 07 Nov 2011 03:33:22 PM
 
   Be sure to add a line to history if it closes out a
   multi-line block.  This should not be an issue once we
-  have multi-line history entries supported.
+  have multi-line history entries supported.  It would
+  be nice if history entries were by blocks with the
+  ability to go by lines within if desired.
 
   Make !-syntax history more restrictive so that it does
   not conflict with perl usage for negation.  Maybe it
-  should only be good for completion?
+  should only be good for completion?  At least if it is
+  the first char and do_print(0).
  
   Add !<command>:p support to print history commands and
   fix the problem where the !<num> command is different

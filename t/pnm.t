@@ -1,11 +1,11 @@
-# we need tests with index shuffling once vaffines are fixed
+use PDL::LiteF;
+use PDL::IO::Pnm;
+use PDL::Dbg;
+use File::Temp qw(tempdir);
+use File::Spec;
 
-sub ok {
-	my $no = shift ;
-	my $result = shift ;
-	print "not " unless $result ;
-	print "ok $no\n" ;
-}
+# we need tests with index shuffling once vaffines are fixed
+use Test::More;
 
 sub tapprox {
 	my($a,$b,$mdiff) = @_;
@@ -22,11 +22,6 @@ sub rpnm_unlink {
   return $pdl;
 }
 
-
-use PDL::LiteF;
-use PDL::IO::Pnm;
-use PDL::Dbg;
-
 $PDL::debug = $PDL::debug = 0;
 $PDL::debug = 1 if defined($ARGV[0]) && $ARGV[0] =~ /-v/;
 
@@ -40,8 +35,7 @@ $PDL::debug = 1 if defined($ARGV[0]) && $ARGV[0] =~ /-v/;
 ## GIF doesn't handle 16-bit so it has 2 * 2 tests
 ## while the other formats have 2 * 3 tests each
 ## $ntests = 2 * 3 * @formats ;
-$ntests = 16;
-print("1..$ntests\n");
+plan tests => 16;
 
 $im1 = pdl([[0,65535,0], [256,256,256], [65535,256,65535]])->ushort;
 $im2 = byte($im1/256);
@@ -53,11 +47,11 @@ $im3 = byte [[0,0,255,255,12,13],[1,4,5,6,11,124],
 	     [2,1,0,1,0,14]];
 
 if ($PDL::debug) {
-  print $im1;
+  note $im1;
   $im1->px;
-  print $im2;
+  note $im2;
   $im2->px;
-  print $im3>0;
+  note $im3>0;
   $im3->px;
 }
 
@@ -65,33 +59,38 @@ if ($PDL::debug) {
 # to do the conversion for the ushort data, haven't yet tried to
 # figure out why
 $n = 1;
+my $tmpdir = tempdir( CLEANUP => 1 );
+sub tmpfile { File::Spec->catfile($tmpdir, $_[0]); }
 for $raw (0,1) {
   foreach $form (@formats) {
-    print "# ** testing $form->[0] format **\n";
+    note "testing $form->[0] format **\n";
 
-    wpnm ($im1,"tushort.$form->[1]",'PGM',$raw)
+    my $tushort = tmpfile("tushort.$form->[0]");
+    my $tbyte = tmpfile("tbyte.$form->[0]");
+    my $tbin = tmpfile("tbin.$form->[0]");
+    wpnm ($im1,$tushort,'PGM',$raw)
       unless $form->[0] eq 'GIF';
-    wpnm ($im2,"tbyte.$form->[1]",'PGM',$raw);
-    wpnm ($im3,"tbin.$form->[1]",'PBM',$raw);
-    $in1 = rpnm_unlink("tushort.$form->[1]") unless $form->[0] eq 'GIF';
-    $in2 = rpnm_unlink("tbyte.$form->[1]");
-    $in3 = rpnm_unlink("tbin.$form->[1]");
+    wpnm ($im2,$tbyte,'PGM',$raw);
+    wpnm ($im3,$tbin,'PBM',$raw);
+    $in1 = rpnm_unlink($tushort) unless $form->[0] eq 'GIF';
+    $in2 = rpnm_unlink($tbyte);
+    $in3 = rpnm_unlink($tbin);
 
     if ($form->[0] ne 'GIF') {
       $scale = ($form->[3] ? $im1->dummy(0,3) : $im1);
       $comp = $scale / $form->[2];
-      ok($n++,tapprox($comp,$in1,$form->[4]));
+      ok(tapprox($comp,$in1,$form->[4]));
     }
     $comp = ($form->[3] ? $im2->dummy(0,3) : $im2);
-    ok($n++,tapprox($comp,$in2));
+    ok(tapprox($comp,$in2));
     $comp = ($form->[3] ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0));
     $comp = $comp->ushort*65535 if $form->[0] eq 'SGI'; # yet another format quirk
-    ok($n++,tapprox($comp,$in3));
+    ok(tapprox($comp,$in3));
 
     if ($PDL::debug) {
-      print $in1->px unless $form->[0] eq 'TIFF';
-      print $in2->px;
-      print $in3->px;
+      note $in1->px unless $form->[0] eq 'TIFF';
+      note $in2->px;
+      note $in3->px;
     }
   }
 }

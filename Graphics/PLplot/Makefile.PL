@@ -1,5 +1,5 @@
-# Makefile.PL for a package defined by PP code.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 use File::Spec;
@@ -18,6 +18,7 @@ use Data::Dumper;
 # end comment this block out for PDL internal version
 
 my $pdl_installed = 1; # uncomment for PDL-internal version
+my ($plplot_lib_path, $plplot_include_path);
 
 if (!$pdl_installed) {
   # write dummy makefile if PDL not installed
@@ -39,7 +40,6 @@ unlink ("OPTIONS!"); # remove file used to communicate with plplot.pd
 # use $Config{"so"} to get the extension name
 #
 my $libname = "libplplotd." . $Config{"so"};
-my $libname_static = "libplplotd.a";
 my $incname = "plplot.h";
 my $devnull = File::Spec->devnull(); # Portable null device.
 
@@ -59,6 +59,7 @@ unless ($found_plplot) {
 }
 
 foreach my $libdir (
+		    split(/ /, $Config{libpth}),
 		    $ENV{PLPLOT_LIBDIR},
 		    $PDL::Config{WHERE_PLPLOT_LIBS},
 		    '/usr/local/plplot/lib64',
@@ -75,25 +76,32 @@ foreach my $libdir (
 		                  # Add new library paths here!!
 		    ) {
 
+  next unless $libdir;
   if (-e "$libdir/$libname") {
     $plplot_lib_path = $libdir;
     $ENV{LD_LIBRARY_PATH} .= ":$libdir";
     last;
-  } elsif (-e "$libdir/$libname_static") {
+  } elsif (-e "$libdir/libplplotd.a") {
     $plplot_lib_path = $libdir;
     $ENV{LD_LIBRARY_PATH} .= ":$libdir";
-    $libname = $libname_static;
+    $libname = 'libplplotd.a';
+    last;
+  } elsif (-e "$libdir/libplplotd.dll.a") {
+    $plplot_lib_path = $libdir;
+    $ENV{LD_LIBRARY_PATH} .= ":$libdir";
+    $libname = 'libplplotd.dll.a';
     last;
   }
 
 }
 
 unless (defined ($plplot_lib_path)) {
-  buildDummy ("Cannot find plplot library ($libname), skipping PDL::Graphics::PLplot\n");
+  buildDummy ("Cannot find plplot library ($libname), skipping PDL::Graphics::PLplot");
   return if (caller); exit;
 }
 
 foreach my $incdir (
+		    "$Config{usrinc}/plplot",
 		    $ENV{PLPLOT_INCDIR},
 		    $PDL::Config{WHERE_PLPLOT_INCLUDE},
                     '/usr/local/plplot/include',
@@ -110,10 +118,10 @@ foreach my $incdir (
 		                  # Add new header paths here!!
 		    ) {
 
-  if (-e "$incdir/$incname") {
+  if (defined($incdir) && -e "$incdir/$incname") {
     $plplot_include_path = "-I$incdir";
     if ($incdir =~ m|/plplot$|) {
-      $inc2 = $incdir;
+      my $inc2 = $incdir;
       $inc2 =~ s|/plplot$||;
       $plplot_include_path .= " -I$inc2";
     }
@@ -122,7 +130,7 @@ foreach my $incdir (
 }
 
 unless (defined ($plplot_include_path)) {
-  buildDummy ("Cannot find plplot header file ($incname), skipping PDL::Graphics::PLplot\n");
+  buildDummy ("Cannot find plplot header file ($incname), skipping PDL::Graphics::PLplot");
   return if (caller); exit;
 }
 
@@ -134,7 +142,7 @@ EOC
 
 unless ($size == 8) {
   print "          Sizeof(PLFLT) must be 8. PLplot must be compiled --with-double (IE ./configure --with-double)\n";
-  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf\n");
+  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf");
   return if (caller); exit;
 }
 
@@ -154,7 +162,7 @@ foreach my $l (
 }
 
 unless (defined($libs)) {
-  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf\n");
+  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf");
   return if (caller); exit;
 }
 
@@ -180,19 +188,15 @@ close   $fh;
 
 $PDL::Config{WITH_PLPLOT} = 1;
 
+my @pack = (["plplot.pd", qw(PLplot PDL::Graphics::PLplot)]);
 
-#
-## new way to get writemakefile args...
-#
-@pack = (["plplot.pd",PLplot,PDL::Graphics::PLplot]);
-
-#%hash = pdlpp_stdargs_int(@::pack);  # use this for module inside PDL source
-%hash = pdlpp_stdargs(@::pack);          # use this for separate module          
+#%hash = pdlpp_stdargs_int(@pack);  # use this for module inside PDL source
+my %hash = pdlpp_stdargs(@pack);          # use this for separate module
 
 # $hash{'PREREQ_PM'} = { PDL => 0 };
 $hash{'OPTIMIZE'}  = '-g'; # If you want to debug, uncomment this.
 $hash{'VERSION_FROM'}   = 'plplot.pd';
-$hash{'META_MERGE'}   = {provides => {PDL::Graphics::PLplot => {file => 'plplot.pd', version => 0.57}}};
+$hash{'META_MERGE'}   = {provides => {'PDL::Graphics::PLplot' => {file => 'plplot.pd', version => 0.57}}};
 
 $hash{'LIBS'}      = [$libs];
 # add this to allow one to use the /ops/tools/lib plplot libs even when
@@ -203,13 +207,14 @@ $hash{'INC'}      .= " $plplot_include_path";
 $hash{'clean'}     = {'FILES'  =>
                         'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *svg.* *.xfig temp* OPTIONS! Makefile.old'};
 
-#my $postamble = pdlpp_postamble(@::pack); # use for external module
-my $postamble = pdlpp_postamble_int(@::pack); # use for install inside PDL distro
-
-WriteMakefile(%hash);
+#my $postamble = pdlpp_postamble(@pack); # use for external module
+my $postamble = pdlpp_postamble_int(@pack); # use for install inside PDL distro
 
 # Add genpp rule
-sub MY::postamble { $postamble };
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { $postamble };
+
+WriteMakefile(%hash);
 
 sub test_func_exists {
 
@@ -259,8 +264,11 @@ sub compileAndRun {
   system "$cc $ccflags $flags temp.c $flags -o temp > $devnull 2>&1";
   unlink('./temp.c');
   die "Cannot compile test program: $code" unless (-e 'temp' or -e 'temp.exe');
-  return unless ($run);
-
+  unless ($run){
+      unlink './temp';
+      unlink './temp.exe';
+      return;
+  }
   my $res = `./temp`;
   unlink ('./temp');
   return $res;
@@ -268,9 +276,6 @@ sub compileAndRun {
 
 sub buildDummy {
   my $msg = shift;
-  $msg .= "\n      Not building PDL::Graphics::PLplot\n";
-  warn $msg . "\n";
-  $msg =~ s/\n//g;
-  write_dummy_make( $msg );
+  write_dummy_make( "$msg\nNot building PDL::Graphics::PLplot" );
   $PDL::Config{WITH_PLPLOT} = 0;
 }

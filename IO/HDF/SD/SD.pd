@@ -126,7 +126,8 @@ pp_addhdr(<<'EOH');
 
 EOH
 
-use lib "../";
+use FindBin;
+use lib "$FindBin::Bin/..";
 use buildfunc;
 
 #-------------------------------------------------------------------------

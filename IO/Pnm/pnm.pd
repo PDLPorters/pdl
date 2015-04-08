@@ -26,7 +26,9 @@ pnm I/O for PDL.
 use PDL::Core qw/howbig convert/;
 use PDL::Types;
 use PDL::Basic;  # for max/min
+use PDL::IO::Misc;
 use Carp;
+use File::Temp qw( tempfile );
 
 # return the upper limit of data values an integer PDL data type
 # can hold
@@ -68,24 +70,9 @@ sub rcarp {
   show_err(shift);
   carp @_;
 }
+EOD
 
-sub gettmpfile {
-    # in the future an os indep. way
-    # are there already VMS or Windows NT/95 users ?
-  my $tmpdir = '/tmp';
-  for ('TMP','TEMP','TMPDIR') {
-     $tmpdir  = $ENV{$_} if defined $ENV{$_};
-  }
-  $tmpdir =~ s|/$||;  # chop off a trailing '/'
-  barf "can't locate a temp dir" unless -d $tmpdir;
-  return "$tmpdir/.errors$$";
-}
-
-# public interface
-
-=head1 FUNCTIONS
-
-
+pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
 =head2 rpnm
 
 =for ref
@@ -137,7 +124,7 @@ sub PDL::rpnm {
         $pdl = $pdl->initialize;
     }
 
-    my $efile = gettmpfile();
+    my ($errfh, $efile) = tempfile();
     # catch STDERR
     open(SAVEERR, ">&STDERR");
     open(STDERR, ">$efile") || barf "Can't redirect stderr";
@@ -209,6 +196,14 @@ TYPES:	{  my $pdlt;
 	   $isrgb ? ", RGB data":"", $israw ? ", raw" : " ASCII"," data\n")
 	if $PDL::debug;
     unlink($efile);
+
+    # need to byte swap for little endian platforms
+    unless ( isbigendian() ) {
+       if ($israw ) {
+          $pdl->bswap2 if $type==$PDL_US or $pdl->type == ushort;
+          $pdl->bswap4 if $type==$PDL_L;  # not likely, but supported anyway
+       }
+    }
     return $pdl;
 }
 
@@ -245,6 +240,11 @@ sub PDL::wpnm {
     my ($pdl,$file,$type,$raw) = @_;
     my ($israw,$max,$isrgb,$magic) = (0,255,0,"");
 
+    # need to copy input arg since bswap[24] work inplace
+    # might be better if the bswap calls detected if run in
+    # void context
+    my $swap_inplace = $pdl->is_inplace;
+
     barf "wpnm: unknown format '$type'" if $type !~ /P[P,G,B]M/;
 
     # check the data
@@ -270,7 +270,7 @@ sub PDL::wpnm {
     $isrgb = 1 if $magic =~ /P[3,6]/;
 
     # catch STDERR and sigpipe
-    my $efile = gettmpfile();
+    my ($errfh, $efile) = tempfile();
     local $SIG{"PIPE"} = sub { show_err($efile);
 			       die "Bad write to pipe $? $!"; };
 
@@ -306,8 +306,20 @@ sub PDL::wpnm {
     # if rgb clump first two dims together
     my $out = ($isrgb ? $pdl->slice(':,:,-1:0')->clump(2)
 		 : $pdl->slice(':,-1:0'));
-    pnmout($out,$israw,$type eq "PBM",'PDL::IO::Pnm::PNM');
 
+    # handle byte swap issues for little endian platforms
+    unless ( isbigendian() ) {
+       if ($israw ) {
+          # make copy if needed
+          $out = $out->copy unless $swap_inplace;
+          if ( (255 < $max) and ($max < 65536)) {
+             $out->bswap2;
+          } elsif ($max >= 65536) {
+             $out->bswap4;
+          }
+       }
+    }
+    pnmout($out,$israw,$type eq "PBM",'PDL::IO::Pnm::PNM');
 
     # check if our child returned an error (in case of a pipe)
     if (!(close PNM)) {

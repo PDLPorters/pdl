@@ -1,22 +1,13 @@
+use Test::More;
 use PDL::LiteF;
 BEGIN {
         eval " use PDL::Fit::Linfit; ";
-        $loaded = ($@ ? 0 : 1);
+        plan skip_all => "PDL::Fit::Linfit: $@" if $@;
 }
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-print "1..2\n";
 
-unless ($loaded) {
-        for (1..2) {
-                print "ok $_ # Skipped: probably PDL::Slatec not available.\n";
-        }
-        exit;
-}
-
-
-my $testNo = 1;
-
+plan tests => 2;
 
 # Simple Test Case:
 
@@ -33,7 +24,7 @@ my ($yfit, $coeffs) = PDL::linfit1d($data,$fitFuncs);
 
 my @coefs = $coeffs->list;
 
-ok( $testNo++, tapprox( $coefs[0], 3) && tapprox( $coefs[1], 2) && tapprox( $coefs[2], 3) );
+ok( tapprox( $coefs[0], 3) && tapprox( $coefs[1], 2) && tapprox( $coefs[2], 3) );
 
 
 # More Complex Example
@@ -105,7 +96,7 @@ my $fitFuncs = new PDL( \@functions);
 
 @coefs = $coeffs->list;
 
-ok( $testNo++, tapprox( $coefs[0], $expectedCoefs[0]) && 
+ok( tapprox( $coefs[0], $expectedCoefs[0]) && 
 		tapprox( $coefs[1], $expectedCoefs[1]) &&
 		tapprox( $coefs[2], $expectedCoefs[2]) &&
 		tapprox( $coefs[3], $expectedCoefs[3]) 
@@ -119,11 +110,3 @@ sub tapprox {
 					  # with a scalar
         $d < 0.00001;
 }
-#  Testing utility functions:
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
-}
-

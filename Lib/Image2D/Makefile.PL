@@ -1,15 +1,10 @@
-
-# Makefile.PL for PDL::Image2D module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
 
-@pack = (["image2d.pd",Image2D,PDL::Image2D]);
+my @pack = (["image2d.pd", qw(Image2D PDL::Image2D)]);
 
-%hash = pdlpp_stdargs_int( @pack );
+my %hash = pdlpp_stdargs_int( @pack );
 $hash{LIBS} = [ '-lm' ];
 
 # On windows we do not have an rint function (at least on VC++)
@@ -23,14 +18,14 @@ if ($^O =~ /MSWin/i) {
 #   rotate.c is included directly into image2d.pd
 #
 #   for $file ( qw( rotate resample ) ) {
-for $file ( qw( resample ) ) {
+for my $file ( qw( resample ) ) {
     my $n = "$file\$(OBJ_EXT)";
     $hash{OBJECT} .= " $n";
     $hash{clean}{FILES} .= " $n";
 }
 
-WriteMakefile( %hash );
-
 # Add genpp rule
-sub MY::postamble { pdlpp_postamble_int(@::pack); }  
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { pdlpp_postamble_int(@pack); };
 
+WriteMakefile( %hash );

@@ -1,0 +1,177 @@
+package PDL::Bugs;
+
+# How to get help diagnosing PDL problems and
+# how to make and submit a useful bug report
+
+__END__
+
+=pod
+
+=head1 NAME
+
+PDL::Bugs - How to diagnose and report PDL problems
+
+=head1 VERSION
+
+version 1.0000
+
+=head1 DESCRIPTION
+
+This module explains how to get help with a PDL problem
+and how, when, and where to submit a bug report.  In the
+future it may be extended to provide some sort of automated
+bug reporting capability.
+
+=head1 IF YOU HAVE A PDL PROBLEM
+
+The primary resource for support for the Perl Data Language
+is via the PDL mailing lists.  The perldl list is for general
+use and discussions and is the one to use for questions about
+problems with PDL or PDL use for computation.  This
+I<is almost always> the list to post to for PDL problems.
+
+The pdl-porters list is I<specifically> for PDL development
+and often contains discussions of a rather technical nature
+relating to PDL internals.  This is I<not> the list for
+general PDL discussion or questions.
+
+   http://pdl.perl.org/?page=mailing-lists
+
+B<NOTE>: Both perldl and pdl-porters are read by the PDL
+developers so you don't save time or increase the probability
+of response by posting to pdl-porters or by cross-posting
+to pdl-porters.  Please stick to perldl list posts unless
+you want to talk PDL implementation and development.
+
+B<NOTE>: There is also a PDL IRC channel which can be useful
+for immediate questions if populated.  However, it has the
+big disadvantage of not being easily searched or routinely
+read by all PDL developers and users.  As a result, if you
+get an answer there, it may be incorrect or incomplete
+depending on who happens to be chatting at the time.  It
+is definitely not readily searchable.
+
+=head1 REPORTING BUGS
+
+Please submit bug reports via the sourceforge bug tracker
+interface at
+
+   http://sourceforge.net/p/pdl/bugs/
+
+where you can review the previously submitted bug reports.
+Click on C<Create Ticket> to generate a bug report.  If you do not
+already have a sourceforge.net account, you will need to
+get one to submit the report:
+
+   http://sourceforge.net/account/registration/
+
+Please provide a way for the PDL developers to contact you
+regarding the problem.
+
+Try to include any information you think might help someone
+isolate, reproduce, and fix your problem.
+
+At a I<minimum>, include the following information:
+
+=over
+
+=item *
+
+PDL version number (e.g. PDL-2.007)
+
+=item *
+
+Perl version information.  Output from C<perl -v> or C<perl -V> (even better!)
+
+=item *
+
+Your operating System.  You can run the C<uname -a> command on many unix systems
+
+=item *
+
+The full output of C<perldl -V> 
+
+If you are reporting a bug with an already installed PDL.  If the PDL
+has compiled and built but not been installed, you may run
+C<perl -Mblib perldl -V> from the top level of the PDL build directory.
+
+=item *
+
+The bug description and how to reproduce it.
+
+Short examples using the PDL shells, C<pdl2> or C<perldl>, are excellent!
+Don't forget to include needed input data (as small as possible) so that
+the code can be run with a cut and paste.
+
+=back
+
+Other things that are often helpful:
+
+=over
+
+=item *
+
+Details about your operating environment that might be related to the problem
+
+=item *
+
+Exact cut and pasted error or warning messages
+
+=item *
+
+The shortest, clearest code you can manage to write which reproduces the bug described.
+
+=item *
+
+A patch against the latest released version of this distribution which fixes this bug.
+
+=back
+
+Alternatively, send an e-mail report with the above
+information (including the output of C<perldl -V>)
+to C<pdl-porters@jach.hawaii.edu>. See
+
+   http://pdl.perl.org/?page=mailing-lists
+
+for info on how to subscribe to this list.
+
+
+=head1 BEFORE YOU SEND A REPORT
+
+BEFORE you report a bug make sure you got the latest
+release version of PDL, always available from CPAN,
+check
+
+   http://search.cpan.org/search?dist=PDL
+
+Also, you can check the FAQ at
+
+   http://pdl.perl.org/?docs=FAQ&title=PDL::FAQ
+
+and the mailing list archives for hints. You can find links to the
+searchable archives at 
+
+   http://pdl.perl.org/?page=mailing-lists
+
+and there is a Google enable search box on the top right of
+L<http://pdl.perl.org> which usually gives the best results.
+
+
+=head1 PATCHES
+
+Patches can be sent to the pdl-porters mailing list
+(see above) or can be directly submitted to the
+patch manager
+
+   http://sourceforge.net/p/pdl/patches/
+
+Patches should be made against the latest released
+PDL or, ideally, against the current git sources
+which you can browse and check out at
+
+   git://git.code.sf.net/p/pdl/code
+
+Thanks,
+The pdl-porters team.
+
+=cut

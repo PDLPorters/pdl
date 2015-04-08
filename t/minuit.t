@@ -4,18 +4,24 @@ use PDL::Config;
 use Test::More;
         
 BEGIN{
-  eval " use PDL::Minuit; ";
-  unless ($@){
-    plan tests => 5;
-  }
-  else {
-    print "$@\n";
-    plan skip_all => 'PDL::Minuit not available';
-    exit;
-  }
+   unless ($PDL::Config{WITH_MINUIT}) {
+      plan skip_all => 'PDL not built WITH_MINUIT';
+      exit;
+   }
+   eval " use PDL::Minuit; ";
+   unless ($@){
+      plan tests => 5;
+   }
+   else {
+      diag "$@\n";
+      plan skip_all => 'PDL::Minuit not available';
+      exit;
+   }
 }
 
-my $tempd = $PDL::Config{TEMPDIR} or die "TEMPDIR not found in %PDL::Config";
+use File::Temp qw( tempfile tempdir );
+my $tempd = tempdir( CLEANUP => 1 ) or die "Couldn't get tempdir\n";
+
 require File::Spec;
 my $logfile = File::Spec->catfile($tempd, 'minuit.log.' . $$);
 

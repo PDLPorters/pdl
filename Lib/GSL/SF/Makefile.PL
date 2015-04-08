@@ -1,17 +1,17 @@
-# PDL interface to GSL Special functions
-# Makefile.PL for a package defined by PP code.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
+
+our ($GSL_includes, $GSL_libs); 
 
 sub gsl_sf_links_ok {
   my($lib,$inc) = @_;
   return defined($lib) && defined($inc) &&
-  trylink 'gsl SF libraries',
+  trylink('gsl SF libraries',
   << 'EOI',
 #include <gsl/gsl_sf_bessel.h>
 EOI
-  << 'EOB', $lib, $inc;
+  << 'EOB', $lib, $inc);
 
   double x = 5.0;
   double expected = -0.17759677131433830434739701;
@@ -23,9 +23,9 @@ EOI
 EOB
 }
 
-$skip = 0;
-$msg = undef;
-$forcebuild=0;
+my $skip = 0;
+my $msg = undef;
+my $forcebuild=0;
 
 if (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==0) {
   $msg = "\n   Will skip build of PDL::GSLSF on this system   \n";
@@ -41,8 +41,6 @@ if (($skip && !$forcebuild) ||
     "\t -- aborting GSL build\n" if $forcebuild;
   $msg ||=
     "\n GSL Libraries not found... Skipping build of PDL::GSLSF.\n";
-  warn $msg . "\n";
-  $msg =~ s/\n//g;
   write_dummy_make( $msg );
   return;
 } else {
@@ -55,5 +53,5 @@ WriteMakefile(
 	VERSION => '0.5',
 	# VERSION_FROM => '../../Basic/Core/Version.pm',
        #DIR =>  [ qw/airy bessel chebyshev clausen coulomb coupling dawson debye dilog elementary ellint elljac erf exp expint fermi_dirac gamma gegenbauer hyperg laguerre legendre log poly pow_int psi synchrotron transport trig zeta/ ],
+    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
-

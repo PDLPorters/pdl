@@ -52,7 +52,8 @@ EOH
 #define AVRef AV
 #pp_bless ("PDL::IO::HDF::VS");
 
-use lib "../";
+use FindBin;
+use lib "$FindBin::Bin/..";
 use buildfunc;
 
 

@@ -11,13 +11,30 @@ use File::Basename qw(&basename &dirname);
 
 # Figure out the 4 byte integer type on this machine
 
-sub typeofPDLLong {
+sub packtypeof_PDL_Indx {
+   if ($Config{'ivsize'} == 8) {
+      return 'q*';
+   }
+   elsif ($Config{'ivsize'} == 4 ) {
+      return 'l*';
+   }
+   else {
+      die "Types.pm.PL: packtype for ivsize==$Config{'ivsize'} not handled\n";
+   }
+}
+
+sub typeof_PDL_Indx {
+   warn "Types.pm.PL: using typedef $Config{'ivtype'} PDL_Indx\n";
+   return $Config{'ivtype'} 
+}
+
+sub typeof_PDL_Long {
    return 'int'  if $Config{'intsize'}==4;
    return 'long' if $Config{'longsize'}==4;
    die "Can not find an integer datatype of size 4 bytes!!!\n";
 }
 
-sub typeofPDLi64 {
+sub typeof_PDL_i64 {
   return $Config{i64type} or
     die "Can not find an integer 64 bit type";
 }
@@ -65,13 +82,30 @@ my @types = (
 	     {
 	      identifier => 'L',
 	      pdlctype => 'PDL_Long',
-	      realctype => &typeofPDLLong,
+	      realctype => &typeof_PDL_Long,
 	      ppforcetype => 'int',
 	      usenan => 0,
 	      packtype => 'l*',
 	      defaultbadval => 'INT_MIN',
 	     },
 
+#
+# The PDL_Indx type will be either the same as PDL_Long or, probably,
+# the same as PDL_LongLong depending on the platform.  Will need to
+# determine the actual type at build time.
+
+       {
+        identifier => 'IND',
+        onecharident => 'N',   # only needed if different from identifier
+        pdlctype => 'PDL_Indx',
+        realctype => &typeof_PDL_Indx,
+        ppforcetype => 'indx',
+        usenan => 0,
+        packtype => &packtypeof_PDL_Indx,
+        defaultbadval => 'LONG_MIN',
+       },
+#
+#
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
 #
@@ -79,7 +113,7 @@ my @types = (
 	identifier => 'LL',
 	onecharident => 'Q',   # only needed if different from identifier
 	pdlctype => 'PDL_LongLong',
-	realctype => &typeofPDLi64,
+	realctype => &typeof_PDL_i64,
 	ppforcetype => 'longlong',
 	usenan => 0,
 	packtype => 'q*',
@@ -107,6 +141,15 @@ my @types = (
 		  ppforcetype => 'double',
 		  usenan => 1,
 		  packtype => 'd*',
+	          defaultbadval => '-DBL_MAX',
+	      },
+	      {
+		  identifier => 'A',
+		  pdlctype => 'PDL_Anyval',
+		  realctype => 'double',
+		  ppforcetype => 'anyval',
+		  usenan => 0,
+		  packtype => '(a8)*',
 	          defaultbadval => '-DBL_MAX',
 	      },
 	      );
@@ -147,6 +190,7 @@ sub genpacktypes {
 
 sub convertfunc {
   my ($type) = @_;
+  return $type->{'convertfunc'} if exists $type->{'convertfunc'};
   checktypehas 'pdlctype', $type;
   my $cfunc = $type->{pdlctype};
   $cfunc =~ s/PDL_//;
@@ -184,7 +228,7 @@ sub gentypehashcode {
   my $perlcode = '';
   $perlcode .= "%PDL::Types::typehash = (\n";
   for my $type (@types) {
-    print STDERR "making ".gentypenames($type)."...\n";
+    print STDOUT "making ".gentypenames($type)."...\n";
     $perlcode .= "\t".gentypenames($type)." =>\n";
     $perlcode .= Data::Dumper::Dumper(gentypehashentry($type, $i++));
     $perlcode .= "\t\t,\n";
@@ -394,6 +438,63 @@ sub typesynonyms {
         grep {"PDL_".typefld($_,'ppsym') ne typefld($_,'sym')} typesrtkeys;
   print "adding...\n$add\n";
   return "$add\n";
+}
+
+=head2 datatypes_header
+
+=for ref
+
+return C header text for F<pdl.h> and F<pdlsimple.h>.
+
+=cut
+
+sub datatypes_header {
+    require Config;
+    $PDL_Indx_type = $Config::Config{'ivtype'};
+    warn "Using new 64bit index support\n" if $Config::Config{'ivsize'}==8;
+
+    my $enum = '';
+    my $typedefs = '';
+    for (sort { $typehash{$a}{'numval'}<=>$typehash{$b}{'numval'} }  keys %typehash) {
+     $enum .= $typehash{$_}{'sym'}.", ";
+     $typedefs .= "typedef $typehash{$_}{'realctype'}              $typehash{$_}{'ctype'};\n";
+    }
+    chop $enum;
+    chop $enum;
+
+    my $indx_type = typefld('PDL_IND','realctype');
+    $typedefs .= '#define IND_FLAG ';
+    if ($indx_type eq 'long'){
+	$typedefs .= qq|"ld"|;
+    } elsif ($indx_type eq 'long long'){
+	$typedefs .= qq|"lld"|;
+    } else {
+	$typedefs .= qq|"d"|;
+    }
+    $typedefs .= "\n\n";
+
+    my $PDL_DATATYPES = <<"EOD";
+
+/*****************************************************************************/
+/*** This section of .h file generated automatically by ***/
+/*** PDL::Types::datatypes_header() - don't edit manually ***/
+
+/* Data types/sizes [must be in order of complexity] */
+
+enum pdl_datatypes { $enum };
+
+/* Define the pdl data types */
+
+$typedefs
+
+/* typedef $PDL_Indx_type    PDL_Indx; */
+
+/*****************************************************************************/
+
+EOD
+
+    $PDL_DATATYPES .= "\n".typesynonyms()."\n";
+    $PDL_DATATYPES;
 }
 
 =head1 PDL::Type OBJECTS

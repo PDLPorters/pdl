@@ -12,9 +12,9 @@ B<This document is not a tutorial>. For that, go to L<PDL::QuickStart|
 PDL::QuickStart>. This document B<complements> the Quick Start guide, as
 it highlights the key differences between Scilab and PDL.
 
-=head1 PERL
+=head1 Perl
 
-The key difference between Scilab and PDL is B<PERL>.
+The key difference between Scilab and PDL is B<Perl>.
 
 Perl is a general purpose programming language with thousands of modules
 freely available on the web. PDL is an extension of Perl. This gives PDL
@@ -79,7 +79,7 @@ Save this file as C<myprogram.pl> and run it with:
 
 =head2 New: Flexible syntax
 
-In very recent versions of PDL (version 2.4.6_006 or later) there is
+In very recent versions of PDL (version 2.4.7 or later) there is
 a flexible matrix syntax that can look extremely similar to Scilab:
 
 1) Use a ';' to delimit rows:

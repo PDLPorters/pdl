@@ -1,29 +1,24 @@
-
-require 'Core/Dev.pm'; PDL::Core::Dev->import();
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 
-
-$defstartup = 'default.perldlrc';
+my $defstartup = 'default.perldlrc';
 if ($^O =~ /win32/i) {
   $defstartup = 'default.pdl';
   system("copy default.perldlrc $defstartup");
 }
 
-# # See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# # the contents of the Makefile that is written.
-
 my @pm_names = qw ( PDL.pm Lite.pm LiteF.pm AutoLoader.pm Options.pm
 		    Matrix.pm Reduce.pm Lvalue.pm Constants.pm);
 
-my %pm = map { $h = '$(INST_LIBDIR)/'; 
+my %pm = map { my $h = '$(INST_LIBDIR)/';
 	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
-	       ( $_, $h . $_ ); 
+	       ( $_, $h . $_ );
 	   } ( @pm_names, $defstartup );
 
-my %man3pods = map { $h = '$(INST_MAN3DIR)/';
+my %man3pods = map { my $h = '$(INST_MAN3DIR)/';
 		     $h .= 'PDL::' if $_ !~ /PDL.pm$/;
-		     ( $_, $h . substr($_,0,length($_)-3) . '.$(MAN3EXT)' ); 
+		     ( $_, $h . substr($_,0,length($_)-3) . '.$(MAN3EXT)' );
 		 } @pm_names;
 
 WriteMakefile(
@@ -32,11 +27,12 @@ WriteMakefile(
 	      'PM'       => \%pm,
 	      'MAN3PODS' => \%man3pods,
      'DIR'      => ['Pod','Gen','SourceFilter','Core','Bad','Ops','Ufunc',
-		    'Primitive','Slices','Test','Math','MatrixOps','Complex'],
+		    'Primitive','Slices','Math','MatrixOps','Complex'],
+    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );
 
-# modify clean method not to delete files named 'core' 
-# (required for MacOSX, where "Core" and "core" are 
+# modify clean method not to delete files named 'core'
+# (required for MacOSX, where "Core" and "core" are
 # indistinguishable)
 package MY; # so that "SUPER" works right
 
@@ -46,5 +42,3 @@ sub clean {
   # print STDERR "processed list :\n$inherited\n";
   $inherited;
 }
-package main;
-

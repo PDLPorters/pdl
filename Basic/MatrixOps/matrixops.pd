@@ -299,7 +299,9 @@ sub inv {
     barf("PDL::inv: got a singular matrix or LU decomposition\n");
   }
 
-  my $out = lu_backsub($lu,$perm,$par,identity($a))->xchg(0,1)->sever;
+  my $idenA = $a->zeros;
+  $idenA->diagonal(0,1) .= 1;
+  my $out = lu_backsub($lu,$perm,$par,$idenA)->xchg(0,1)->sever;
 
   return $out
     unless($a->is_inplace);
@@ -570,7 +572,7 @@ pp_def("eigens",
 	        barf("eigens internal error...");
             }
             if($SIZE (m) != (sn * sn )) {
-		fprintf(stderr,"m=%d, sn=%d\n",$SIZE(m),sn);
+		fprintf(stderr,"m=%"IND_FLAG", sn=%d\n",$SIZE(m),sn);
 		barf("Wrong sized args for eigens");
 	    }
 

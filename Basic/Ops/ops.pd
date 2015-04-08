@@ -46,11 +46,13 @@ pp_addhdr('
 /* Note that this code causes some warning messages in the compile, because */
 /* the unsigned data types always fail the ((foo)<0) tests.  I believe that */
 /* gcc optimizes those tests away for those data types.  --CED 7-Aug-2002   */
-/* Resurrect the old MOD operator as the unsigned US_MOD to get around this. --DAL 27-Jun-2008 */
+/* Resurrect the old MOD operator as the unsigned BU_MOD to get around this. --DAL 27-Jun-2008 */
+/* Q_MOD is the same as MOD except the internal casts are to longlong.  -DAL 18-Feb-2015 */
+/* Also changed the typecast in MOD to (long), and added a N==0 conditional to BU_MOD. -DAL 06-Mar-2015 */
 
-#define MOD(X,N) (  ((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((int)((X)/(ABS(N))) + (   ( ((N) * ((int)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
-
-#define BU_MOD(X,N) ( (X)-(N)*((int)((X)/(N))) )
+#define MOD(X,N) (  ((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long     )((X)/(ABS(N))) + (   ( ((N) * ((long     )((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
+#define Q_MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long long)((X)/(ABS(N))) + (   ( ((N) * ((long long)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
+#define BU_MOD(X,N)(((N) == 0)   ?    0   :   ( (X)-(N)*((int)((X)/(N))) ))
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
 #define NOTHING
@@ -87,8 +89,6 @@ EOH
     # handle exceptions
     my $badcode = '$ISBAD(a()) || $ISBAD(b())';
     if ( exists $extra{Exception} ) {
-#	$badcode .= " || $extra{Exception}";
-#	print "Warning: ignored exception for $name\n";
 	delete $exists{Exception};
     }
 
@@ -107,7 +107,7 @@ EOH
 	   CopyBadStatusCode =>
 	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
-                  PDL->propogate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
+                  PDL->propagate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
                }
                $SETPDLSTATEBAD(c);
             }',
@@ -165,8 +165,11 @@ EOH
   types(BU) %{
   \$c() = BU_$func(\$a(),\$b());
   %}
-  types(SLFD) %{
+  types(SLNFD) %{
   \$c() = $func(\$a(),\$b());
+  %}
+  types(Q) %{
+  \$c() = Q_$func(\$a(),\$b());
   %}
 ENDCODE
 } else { 
@@ -190,7 +193,7 @@ ENDCODE
 	   CopyBadStatusCode =>
 	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
-                  PDL->propogate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
+                  PDL->propagate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
                }
                $SETPDLSTATEBAD(c);
             }',
@@ -232,7 +235,7 @@ sub ufunc {
 	delete $exists{Exception};
     }
 
-    # do not have to worry about propogation of the badflag when
+    # do not have to worry about propagation of the badflag when
     # inplace since only input piddle is a, hence its badflag
     # won't change
     # UNLESS an exception occurs...
@@ -310,8 +313,8 @@ biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)');
 ## bit ops
 # those need to be limited to the right types
 my $T = [B,U,S,L]; # the sensible types here
-biop('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
-biop('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop('shiftleft','<<',1,'leftshift C<$a> by C<$b>',GenericTypes => $T);
+biop('shiftright','>>',1,'rightshift C<$a> by C<$b>',GenericTypes => $T);
 biop('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
 biop('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
 biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
@@ -320,7 +323,7 @@ biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
+bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<$b>',GenericTypes => [D]);
 bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
 bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation',unsigned=>1);
 bifunc('spaceship',['SPACE','op<=>'],1,'elementwise "<=>" operation');

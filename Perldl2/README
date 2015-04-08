@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Fri 18 Feb 2011 10:20:46 AM 
+Last saved: Tue 09 Jul 2013 08:51:39 AM 
 
 
 +-----------------------------------------------------------+
@@ -7,8 +7,7 @@ Last saved: Fri 18 Feb 2011 10:20:46 AM
 +-----------------------------------------------------------+
 
 This directory contains development efforts for a new and
-improved perldl shell (Perldl2) that can integrate with
-the Padre IDE to support PDL development.
+improved perldl shell (Perldl2).
 
 You need to install the version 1.003011 of Devel::REPL
 and have installed either Term::ReadLine::Perl or
@@ -36,9 +35,9 @@ capabilities.
 
  pdl2
    A perl script for starting the Perldl2 shell.
-   (Falls back to perldl if any of Devel::REPL or
-    Term::ReadLine::Gnu or Term::ReadLine::Perl are
-    not installed)
+   (Falls back to the original perldl if either Devel::REPL
+   or neither Term::ReadLine::Gnu nor Term::ReadLine::Perl
+   are installed.)
 
 
 +-----------------------------------------------------------+
@@ -72,7 +71,12 @@ capabilities.
   Ctrl-D or quit, (q, x, and exit shortcuts are also
   available).  If Devel::REPL is not installed (or you
   don't have either TR::Gnu or TR::Perl), pdl2 will use
-  perldl instead but any new features will not be available.
+  perldl instead but the new Perldl2 features will not
+  be available.
+
+  The idea is that one just uses pdl2 where you used to
+  use perldl.  At some point, the development will be
+  complete and there will be only one PDL shell.
 
 
 +-----------------------------------------------------------+
@@ -116,7 +120,7 @@ capabilities.
 
  l <num> prints the last <num> lines of history, default 20.
 
- p is an alias for print.
+ p prints the following args separated by space (i.e., $,=' ')
 
  demo as a command by itself lists the possible demos available.
  Otherwise it runs the specified demo.

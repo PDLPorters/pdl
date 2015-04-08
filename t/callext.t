@@ -1,5 +1,8 @@
 #!/usr/local/bin/perl
 
+END { unlink 't/callext.pdb';}; # In case we build a 2nd time,
+                                # but using a different Microsoft compiler
+
 # Example of how to use callext() - also see callext.c
 
 use strict;
@@ -26,12 +29,16 @@ sub tapprox {
 
 # Create the filenames
 my $cfile = File::Spec->catfile('t', 'callext.c');
-my $inc   = File::Spec->catdir('Basic', 'Core');
+# include the pdlsimple.h that's in blib.
+my $inc = File::Spec->catdir('blib', 'lib', 'PDL', 'Core');
 my $out   = File::Spec->catfile('t', 'callext.'.$Config{dlext});
 
 # Compile the code
 
-callext_cc($cfile, "-I$inc", '', $out);
+my @cleanup = ();
+END { unlink @cleanup; }
+push @cleanup, File::Spec->catfile('t', 'callext'.$Config{obj_ext}), $out;
+callext_cc($cfile, qq{"-I$inc"}, '', $out);
 
 my $y = sequence(5,4)+2;  # Create PDL
 my $x = $y*20+100;        # Another
@@ -66,7 +73,7 @@ sub loglog {
    print "X = $x\n";
    print "Y = $y\n";
 
-   my $ldfile = 
+   my $ldfile =
    callext($out, "loglog_ext", $ret, $y);
 
    return $ret;

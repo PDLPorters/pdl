@@ -53,44 +53,10 @@ sub mkdir_p ($$$) {
     mkdir $_[0], $_[1] or die "Couldn't create directory $_[0]";
 }
 
-# Replace PDL/...|PDL/... with PDL/...
-# as Pod::Html v1.01 (perlv 5.005_03 )
-# doesn't seem to be able to handle
-# L<PDL::PDL|PDL::PDL> correctly
-#
-# (not necessary for perl 5.6.0)
-#
-sub hack_html ($) {
-    my $infile = shift;
-    my $outfile = "${infile}.n";
-
-    my $ifh = new IO::File "<$infile"
-	or die "ERROR: Unable to read from <$infile>\n";
-    my $ofh = new IO::File ">$outfile"
-	or die "ERROR: Unable to write to <$outfile>\n";
-
-    # assume that links do not break across a line
-    while ( <$ifh> ) {
-	# fix the links
-	s{PDL/([^|]+)\|PDL/\1}{PDL/$1}g;
-	# fix the text of the link
-	s{PDL::([^|]+)\|PDL::\1}{PDL::$1}g;
-	# now fix any links for scripts
-	s{/([^|]+)\|PDL/\1}{/PDL/$1}g;
-	s{([^|]+)\|PDL::\1}{$1}g;
-	print $ofh $_;
-    }
-    $ifh->close;
-    $ofh->close;
-
-    rename $outfile, $infile
-	or die "ERROR: Unable to rename $outfile\n";
-}
-
 sub fix_pdl_dot_html ($) {
 ##Links to PDL.html sensibly try to go up one too many directories
 ##(e.g., to "../PDL.html" instead of "PDL.html").  This hopefully
-##fixes that. Shamelessly ripped off hack_html() above.
+##fixes that. Shamelessly ripped off hack_html().
     my $infile = shift;
     my $outfile = "${infile}.n";
 
@@ -130,6 +96,27 @@ sub fix_html_path ($) {
     $ifh->close;
     $ofh->close;
 
+    rename $outfile, $infile
+	or die "ERROR: Unable to rename $outfile\n";
+}
+
+sub fix_pp_inline ($) {
+    my $infile = shift;
+    my $outfile = "${infile}.n";
+    
+    my $ifh = new IO::File "<$infile"
+	or die "ERROR Unable to read from <$infile>\n";
+    my $ofh = new IO::File ">$outfile"
+	or die "ERROR: Unable to write to <$outfile>\n";
+    
+    # assume that links do not break across a line
+    while ( <$ifh> ) {
+	#fix the links
+	s|a href="../Inline/Pdlpp.html"|a href="./PP-Inline.html"|g;
+	print $ofh $_;
+    }
+    $ifh->close;
+    $ofh->close;
     rename $outfile, $infile
 	or die "ERROR: Unable to rename $outfile\n";
 }
@@ -241,42 +228,34 @@ $sub = sub {
 
     my $verbopts = $verbose ? "--verbose" : "--quiet";
 
-    if($] > 5.015) {
-    # With perl 5.15.x (for some value of x) and later, '--libpods' is invalid
-    # and hence needs to be removed.
-    # Beginning with 5.15.x, the generated PDL html docs are a little different
-    # (missing some underlining of headings and some <b></b> tagging), though
-    # this appears to have nothing to do with the removal of --libpods. Rather,
-    # it seems to be the result of some other change to pod2html. Perhaps this
-    # can be addressed over time. SIS 23-Feb-2012
-      pod2html("--podpath=.",
-  	     "--podroot=$topPerlDir",
-	     "--htmldir=$htmlrootdir",
-	     "--recurse",
-	     "--infile=$file",
-	     "--outfile=$outfile",
-	     $verbopts,
-	    );
+    my @pod2html_args = (
+      "--podpath=.",
+      "--podroot=$topPerlDir",
+      "--htmldir=$htmlrootdir",
+      "--recurse",
+      "--infile=$file",
+      "--outfile=$outfile",
+      $verbopts,
+    );
+    if($] <= 5.015) {
+      # With perl 5.15.x (for some value of x) and later, '--libpods' is invalid
+      # and hence needs to be removed.
+      # Beginning with 5.15.x, the generated PDL html docs are a little different
+      # (missing some underlining of headings and some <b></b> tagging), though
+      # this appears to have nothing to do with the removal of --libpods. Rather,
+      # it seems to be the result of some other change to pod2html. Perhaps this
+      # can be addressed over time. SIS 23-Feb-2012
+      # Cut out "PDL" from the podpath as it crashes the podscan(!) - It doesn't
+      # seem to help either -- it looks for cached docs in .../HtmlDocs/pdl/PDL,
+      # which is silly.  I left this note because pod paths are pretty arcane to
+      # me.  CED 11-Mar-2009
+      #    pod2html("--podpath=PDL:.",
+      unshift @pod2html_args, "--libpods=perlfaq";
     }
-    else {
-    # Cut out "PDL" from the podpath as it crashes the podscan(!) - It doesn't
-    # seem to help either -- it looks for cached docs in .../HtmlDocs/pdl/PDL,
-    # which is silly.  I left this note because pod paths are pretty arcane to
-    # me.  CED 11-Mar-2009
-    #    pod2html("--podpath=PDL:.",
-      pod2html("--podpath=.",
-  	     "--podroot=$topPerlDir",
-	     "--htmldir=$htmlrootdir",
-	     "--libpods=perlfaq",
-	     "--recurse",
-	     "--infile=$file",
-	     "--outfile=$outfile",
-	     $verbopts,
-	    );
-    }
-    hack_html( $outfile ) if $] < 5.006;
+    pod2html(@pod2html_args);
     fix_pdl_dot_html( $outfile);
     fix_html_path( $outfile);
+    fix_pp_inline( $outfile);
 
     chdir $File::Find::dir; # don't confuse File::Find
 };

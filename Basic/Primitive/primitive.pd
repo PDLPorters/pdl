@@ -242,11 +242,11 @@ sub PDL::matmult {
 }
 EOPM
 	Code => <<'EOC',
-	long ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
+	PDL_Indx ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
         $GENERIC() *ad, *bd, *cd;
-        long atdi, btdi;
-	long resh, resw, rest;
-	long tsiz = 64;
+        PDL_Indx atdi, btdi;
+	PDL_Indx resh, resw, rest;
+	PDL_Indx tsiz = 64;
 
 	// Zero the output
 	loop(w) %{
@@ -636,22 +636,22 @@ pp_def('norm',
 
 =for sig
 
-  Signature: (a(); int ind(); [o] sum(m))
+  Signature: (a(); indx ind(); [o] sum(m))
 
 =cut
 
 pp_def(
     'indadd',
     HandleBad => 1,
-    Pars => 'a(); int ind(); [o] sum(m)',
+    Pars => 'a(); indx ind(); [o] sum(m)',
     Code => 
-    'register int foo = $ind();
+    'register PDL_Indx foo = $ind();
      if( foo<0 || foo>=$SIZE(m) ) {
        barf("PDL::indadd: invalid index");
      }
      $sum(m => foo) += $a();',
     BadCode => 
-    'register int foo = $ind();
+    'register PDL_Indx foo = $ind();
      if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
        barf("PDL::indadd: invalid index");
      }
@@ -761,11 +761,19 @@ Compare also L<conv2d|PDL::Image2D/conv2d>, L<convolve|PDL::ImageND/convolve>,
 L<fftconvolve|PDL::FFT/fftconvolve()>, L<fftwconv|PDL::FFTW/fftwconv>,
 L<rfftwconv|PDL::FFTW/rfftwconv>
 
+=for bad
+
+WARNING: C<conv1d> processes bad values in its inputs as
+the numeric value of C<< $pdl->badvalue >> so it is not
+recommended for processing pdls with bad values in them
+unless special care is taken.
+
 =cut
 
 EOD
         Pars => 'a(m); kern(p); [o]b(m);',
         OtherPars => 'int reflect;',
+        HandleBad => 0,
         PMCode => '
         
 sub PDL::conv1d {
@@ -831,8 +839,8 @@ test if a is in the set of values b
 =for example
 
    $goodmsk = $labels->in($goodlabels);
-   print pdl(4,3,1)->in(pdl(2,3,3));
-  [0 1 0]
+   print pdl(3,1,4,6,2)->in(pdl(2,3,3));
+  [1 0 0 0 1]
 
 C<in> is akin to the I<is an element of> of set theory. In priciple,
 PDL threading could be used to achieve its functionality by using a
@@ -916,7 +924,7 @@ sub PDL::uniq {
    if ( $uniq->nelem > 0 ) {
       $answ = $uniq->append($answ);
    } else {
-      $answ = ( ($srt->nelem == 0) ?  $srt : pdl( [$srt->index(0)] ) )->append($answ);
+      $answ = ( ($srt->nelem == 0) ?  $srt : PDL::pdl( ref($srt), [$srt->index(0)] ) )->append($answ);
    }
    return $answ;
 }
@@ -1204,24 +1212,55 @@ L<lclip|/lclip>.
 EOD
 } # if: $bvalflag
 
-pp_addpm(<<'EOD');
+pp_def(
+	'clip',
+	HandleBad => 1,
+	Pars => 'a(); l(); h(); [o] c()',
+	Code => 
+	'$c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );',
+	BadCode => <<'EOBC',
+	 if( $ISBAD(a()) || $ISBAD(l()) || $ISBAD(h()) ) {
+	   $SETBAD(c());
+         } else {
+           $c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );
+         }
+EOBC
+       PMCode => <<'EOPM',
 *clip = \&PDL::clip;
 sub PDL::clip {
-  my($a, $b, $c) = @_;
-  my $d; if($a->is_inplace) {$a->set_inplace(0); $d = $a} 
-  elsif($#_ > 2) {$d=$_[3]} else {$d = PDL->nullcreate($a)}
- if(defined $b) {
-  	&PDL::_lclip_int($a,$b,$d);
-	if(defined $c) {
-		&PDL::_hclip_int($d,$c,$d);
-	}
-  } elsif(defined $c) {
-	&PDL::_hclip_int($a,$c,$d);
+  my($a, $l, $h) = @_;
+  my $d; 
+  unless(defined($l) || defined($h)) {
+      # Deal with pathological case
+      if($a->is_inplace) {
+	  $a->set_inplace(0);
+	  return $a;
+      } else {
+	  return $a->copy;
+      }
   }
+  
+  if($a->is_inplace) {
+      $a->set_inplace(0); $d = $a
+  } elsif ($#_ > 2) {
+      $d=$_[3]
+  } else {
+      $d = PDL->nullcreate($a);
+  }
+  if(defined($l) && defined($h)) {
+      &PDL::_clip_int($a,$l,$h,$d);
+  } elsif( defined($l) ) {
+      &PDL::_lclip_int($a,$l,$d);
+  } elsif( defined($h) ) {
+      &PDL::_hclip_int($a,$h,$d);
+  } else {
+      die "This can't happen (clip contingency) - file a bug";
+  }
+
   return $d;
 }
-
-EOD
+EOPM
+    ); # end of clip pp_def call
 
 ############################################################
 # elementary statistics and histograms
@@ -1867,7 +1906,7 @@ sub PDL::fibonacci{
 }
 EOD
      Code => '
-        PDL_Long i=0;
+        PDL_Indx i=0;
         $GENERIC() x1, x2;
 
         x1 = 1; x2 = 0;
@@ -1900,8 +1939,8 @@ pp_def('append',
                 $SIZE(mn) = (dpdla->ndims > 0 ? dpdla->dims[0] : 1) + 
                         (dpdlb->ndims > 0 ? dpdlb->dims[0] : 1);
 		',
-	Code => 'register PDL_Long mnp;
-		 PDL_Long ns = $SIZE(n);
+	Code => 'register PDL_Indx mnp;
+		 PDL_Indx ns = $SIZE(n);
                  threadloop %{
                        loop(n) %{ $c(mn => n) = $a(); %}
 		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
@@ -2175,78 +2214,557 @@ EOD
 pp_add_exported('','grandom');
 
 ###############################################################
-# routines somehow related to interpolation
+# binary searches in a piddle; various forms
 ###############################################################
+
+pp_add_exported('','vsearch');
+
+# generic front end; defaults to vsearch_sample for backwards compatibility
+
+pp_addpm(<<'EOD');
 
 =head2 vsearch
 
 =for sig
 
-  Signature: (i(); x(n); int [o]ip())
-
-=cut
-
-# The last x is ignored...
-pp_def('vsearch',
-       HandleBad => 0,
-       BadDoc => 'needs major (?) work to handles bad values',
-	Pars => 'i(); x(n); int [o]ip()',
-	GenericTypes => ['F','D'], # too restrictive ?
-	Code => 'int carp=0;
-		 threadloop %{
-		   long n1 = $SIZE(n)-1;
-                   long jl=-1, jh=n1, m;
-		   int up = ($x(n => n1) > $x(n => 0));
-		   $GENERIC() d;
-  		   while (jh-jl > 1)  /* binary search */
-    			{
-      				m = (jh+jl) >> 1;
-      				if ($i() > $x(n => m) == up)
-					jl = m;
-      				else
-					jh = m;
-    			}
-		   if (jl == -1) {
-			jh = 0;
-                   } else if (jl == n1) {
-			if ($i() != $x(n => n1)) carp = 1;
-			jh = n1;
-		   } else {
-			jh = jl+1;
-		   }
-		   $ip() = jh;
-		%}
-		if (carp) warn("some values had to be extrapolated");
-', Doc=><<'EOD');
+  Signature: ( vals(); xs(n); [o] indx(); [\%options] )
 
 =for ref
 
-routine for searching 1D values i.e. step-function interpolation.
+Efficiently search for values in a sorted piddle, returning indices.
 
 =for usage
 
- $inds = vsearch($vals, $xs);
+  $idx = vsearch( $vals, $x, [\%options] );
+  vsearch( $vals, $x, $idx, [\%options ] );
 
-Returns for each value of C<$vals> the index of the least larger member
-of C<$xs> (which need to be in increasing order). If the value is larger
-than any member of C<$xs>, the index to the last element of C<$xs> is 
-returned.
+B<vsearch> performs a binary search in the ordered piddle C<$x>,
+for the values from C<$vals> piddle, returning indices into C<$x>.
+What is a "match", and the meaning of the returned indices, are determined
+by the options.
 
-=for example
+The C<mode> option indicates which method of searching to use, and may
+be one of:
 
-This function is useful e.g. when you have a list of probabilities
-for events and want to generate indices to events:
+=over
 
- $a = pdl(.01,.86,.93,1); # Barnsley IFS probabilities cumulatively
- $b = random 20;
- $c = vsearch($b, $a); # Now, $c will have the appropriate distr.
+=item C<sample>
 
-It is possible to use the L<cumusumover|PDL::Ufunc/cumusumover>
-function to obtain cumulative probabilities from absolute probabilities.
+invoke B<vsearch_sample>, returning indices appropriate for sampling
+within a distribution.
+
+=item C<insert_leftmost>
+
+invoke B<vsearch_insert_leftmost>, returning the left-most possible
+insertion point which still leaves the piddle sorted.
+
+=item C<insert_rightmost>
+
+invoke B<vsearch_insert_rightmost>, returning the right-most possible
+insertion point which still leaves the piddle sorted.
+
+=item C<insert_match>
+
+invoke B<vsearch_match>, returning the index of a matching element,
+else -(insertion point + 1)
+
+=item C<insert_bin_inclusive>
+
+invoke B<vsearch_bin_inclusive>, returning an index appropriate for binning
+on a grid where the left bin edges are I<inclusive> of the bin. See
+below for further explanation of the bin.
+
+=item C<insert_bin_exclusive>
+
+invoke B<vsearch_bin_exclusive>, returning an index appropriate for binning
+on a grid where the left bin edges are I<exclusive> of the bin. See
+below for further explanation of the bin.
+
+=back
+
+The default value of C<mode> is C<sample>.
 
 =cut
 
+sub vsearch {
+    my $opt = 'HASH' eq ref $_[-1]
+            ? pop
+	    : { mode => 'sample' };
+
+    croak( "unknown options to vsearch\n" )
+	if ( ! defined $opt->{mode} && keys %$opt )
+	|| keys %$opt > 1;
+
+    my $mode = $opt->{mode};
+    goto
+        $mode eq 'sample'           ? \&vsearch_sample
+      : $mode eq 'insert_leftmost'  ? \&vsearch_insert_leftmost
+      : $mode eq 'insert_rightmost' ? \&vsearch_insert_rightmost
+      : $mode eq 'match'            ? \&vsearch_match
+      : $mode eq 'bin_inclusive'    ? \&vsearch_bin_inclusive
+      : $mode eq 'bin_exclusive'    ? \&vsearch_bin_exclusive
+      :                               croak( "unknown vsearch mode: $mode\n" );
+}
+
+*PDL::vsearch = \&vsearch;
+
 EOD
+
+use Text::Tabs qw[ expand ];
+sub undent {
+    my $txt = expand( shift );
+
+    $txt =~ s/^([ \t]+)-{4}.*$//m;
+    $txt =~ s/^$1//mg
+      if defined $1;
+    $txt;
+}
+
+for my $func ( [
+        vsearch_sample => {
+            low  => -1,
+            high => '$SIZE(n)',
+	    up   => '($x(n => n1) > $x(n => 0))',
+            code => q[
+                   while ( high - low > 1 ) {
+                       mid = %MID%;
+                       if ( ( value > $x(n => mid ) ) == up ) low = mid;
+                       else                                   high = mid;
+                   }
+                   $idx() = low >= n1 ? n1
+                         : up        ? low + 1
+                         : low < 0   ? 0
+                         :           low ;
+                   ----
+           ],
+            ref =>
+              'Search for values in a sorted array, return index appropriate for sampling from a distribution',
+
+            doc_pre => q[
+			 B<%FUNC%> returns an index I<I> for each value I<V> of C<$vals> appropriate
+                         for sampling C<$vals>
+			 ----
+			 ],
+            doc_incr => q[
+				   V <= x[0]  : I = 0
+			   x[0]  < V <= x[-1] : I s.t. x[I-1] < V <= x[I]
+			   x[-1] < V          : I = $x->nelem -1
+			 ----
+			 ],
+
+            doc_decr => q[
+				    V > x[0]  : I = 0
+			   x[0]  >= V > x[-1] : I s.t. x[I] >= V > x[I+1]
+			   x[-1] >= V         : I = $x->nelem - 1
+			 ----
+			 ],
+
+            doc_post => q[
+			  If all elements of C<$x> are equal, I<< I = $x->nelem - 1 >>.
+
+			  If C<$x> contains duplicated elements, I<I> is the index of the
+			  leftmost (by position in array) duplicate if I<V> matches.
+
+			  =for example
+
+			  This function is useful e.g. when you have a list of probabilities
+			  for events and want to generate indices to events:
+
+			   $a = pdl(.01,.86,.93,1); # Barnsley IFS probabilities cumulatively
+			   $b = random 20;
+			   $c = %FUNC%($b, $a); # Now, $c will have the appropriate distr.
+
+			  It is possible to use the L<cumusumover|PDL::Ufunc/cumusumover>
+			  function to obtain cumulative probabilities from absolute probabilities.
+			  ----
+			  ],
+
+        },
+    ],
+
+    [
+        # return left-most possible insertion point.
+        # lowest index where x[i] >= value
+        vsearch_insert_leftmost => {
+            low  => 0,
+            high => 'n1',
+            code => q[
+		    while (low <= high ) {
+                        mid = %MID%;
+			if ( ( $x(n => mid) >= value ) == up ) high = mid - 1;
+			else                                   low  = mid + 1;
+		    }
+		    $idx() = up ? low : high;
+	    ],
+            ref =>
+              'Determine the insertion point for values in a sorted array, inserting before duplicates.',
+
+            doc_pre => q[
+			 B<%FUNC%> returns an index I<I> for each value I<V> of
+			 C<$vals> equal to the leftmost position (by index in array) within
+			 C<$x> that I<V> may be inserted and still maintain the order in
+			 C<$x>.
+
+			 Insertion at index I<I> involves shifting elements I<I> and higher of
+			 C<$x> to the right by one and setting the now empty element at index
+			 I<I> to I<V>.
+			 ----
+			 ],
+            doc_incr => q[
+				   V <= x[0]  : I = 0
+			   x[0]  < V <= x[-1] : I s.t. x[I-1] < V <= x[I]
+			   x[-1] < V          : I = $x->nelem
+			 ----
+			 ],
+
+            doc_decr => q[
+				    V >  x[0]  : I = -1
+			   x[0]  >= V >= x[-1] : I s.t. x[I] >= V > x[I+1]
+			   x[-1] >= V          : I = $x->nelem -1
+			 ----
+			 ],
+
+            doc_post => q[
+			  If all elements of C<$x> are equal,
+
+			      i = 0
+
+			  If C<$x> contains duplicated elements, I<I> is the index of the
+			  leftmost (by index in array) duplicate if I<V> matches.
+			  ----
+			  ],
+
+        },
+    ],
+
+    [
+        # return right-most possible insertion point.
+        # lowest index where x[i] > value
+        vsearch_insert_rightmost => {
+            low  => 0,
+            high => 'n1',
+            code => q[
+		   while (low <= high ) {
+		       mid = %MID%;
+		       if ( ( $x(n => mid) > value ) == up ) high = mid - 1;
+		       else                                  low  = mid + 1;
+		   }
+		   $idx() = up ? low : high;
+            ],
+            ref =>
+              'Determine the insertion point for values in a sorted array, inserting after duplicates.',
+
+            doc_pre => q[
+			 B<%FUNC%> returns an index I<I> for each value I<V> of
+			 C<$vals> equal to the rightmost position (by index in array) within
+			 C<$x> that I<V> may be inserted and still maintain the order in
+			 C<$x>.
+
+			 Insertion at index I<I> involves shifting elements I<I> and higher of
+			 C<$x> to the right by one and setting the now empty element at index
+			 I<I> to I<V>.
+			 ----
+			 ],
+            doc_incr => q[
+				    V < x[0]  : I = 0
+			   x[0]  <= V < x[-1] : I s.t. x[I-1] <= V < x[I]
+			   x[-1] <= V         : I = $x->nelem
+			 ----
+			 ],
+
+            doc_decr => q[
+				   V >= x[0]  : I = -1
+			   x[0]  > V >= x[-1] : I s.t. x[I] >= V > x[I+1]
+			   x[-1] > V          : I = $x->nelem -1
+			 ----
+			 ],
+
+            doc_post => q[
+			  If all elements of C<$x> are equal,
+
+			      i = $x->nelem - 1
+
+			  If C<$x> contains duplicated elements, I<I> is the index of the
+			  leftmost (by index in array) duplicate if I<V> matches.
+			  ----
+			  ],
+
+        },
+
+    ],
+    [
+        # return index of matching element, else -( insertion point + 1 )
+        # patterned after the Java binarySearch interface; see
+        # http://docs.oracle.com/javase/7/docs/api/java/util/Arrays.html
+        vsearch_match => {
+            low  => 0,
+            high => 'n1',
+            code => q[
+                   int done = 0;
+
+                   while (low <= high ) {
+                       $GENERIC() mid_value;
+
+                       mid = %MID%;
+
+                       mid_value = $x(n=>mid);
+
+                       if ( up ) {
+			   if      ( mid_value > value ) { high = mid - 1; }
+			   else if ( mid_value < value ) { low  = mid + 1; }
+			   else                          { done = 1; break; }
+                       }
+                       else {
+			   if      ( mid_value < value ) { high = mid - 1; }
+			   else if ( mid_value > value ) { low  = mid + 1; }
+			   else                          { done = 1; break; }
+                       }
+                   }
+                   $idx() = done ? mid
+                         :   up ? - ( low  + 1 )
+                         :        - ( high + 1 );
+	       ],
+            ref => 'Match values against a sorted array.',
+
+            doc_pre => q[
+			 B<%FUNC%> returns an index I<I> for each value I<V> of
+			 C<$vals>.  If I<V> matches an element in C<$x>, I<I> is the
+			 index of that element, otherwise it is I<-( insertion_point + 1 )>,
+			 where I<insertion_point> is an index in C<$x> where I<V> may be
+			 inserted while maintaining the order in C<$x>.  If C<$x> has
+			 duplicated values, I<I> may refer to any of them.
+			 ----
+			 ],
+
+        },
+    ],
+    [
+        # x[i] is the INnclusive left edge of the bin
+        # return i, s.t. x[i] <= value < x[i+1].
+        # returns -1 if x[0] > value
+        # returns N-1 if x[-1] <= value
+        vsearch_bin_inclusive => {
+            low  => 0,
+            high => 'n1',
+            code => q[
+                   while (low <= high ) {
+                       mid = %MID%;
+                       if ( ( $x(n => mid) <= value ) == up ) low  = mid + 1;
+                       else                                   high = mid - 1;
+                   }
+                   $idx() = up ? high: low;
+            ],
+            ref =>
+              'Determine the index for values in a sorted array of bins, lower bound inclusive.',
+
+            doc_pre => q[
+			 C<$x> represents the edges of contiguous bins, with the first and
+			 last elements representing the outer edges of the outer bins, and the
+			 inner elements the shared bin edges.
+
+			 The lower bound of a bin is inclusive to the bin, its outer bound is exclusive to it.
+                         B<%FUNC%> returns an index I<I> for each value I<V> of C<$vals>
+			 ----
+			 ],
+            doc_incr => q[
+				    V < x[0]  : I = -1
+			   x[0]  <= V < x[-1] : I s.t. x[I] <= V < x[I+1]
+			   x[-1] <= V         : I = $x->nelem - 1
+			 ----
+			 ],
+
+            doc_decr => q[
+				    V >= x[0]  : I = 0
+			   x[0]  >  V >= x[-1] : I s.t. x[I+1] > V >= x[I]
+			   x[-1] >  V          : I = $x->nelem
+			 ----
+			 ],
+
+            doc_post => q[
+			  If all elements of C<$x> are equal,
+
+			      i = $x->nelem - 1
+
+			  If C<$x> contains duplicated elements, I<I> is the index of the
+			  righmost (by index in array) duplicate if I<V> matches.
+			  ----
+			  ],
+
+        },
+    ],
+
+    [
+        # x[i] is the EXclusive left edge of the bin
+        # return i, s.t. x[i] < value <= x[i+1].
+        # returns -1 if x[0] >= value
+        # returns N-1 if x[-1] < value
+        vsearch_bin_exclusive => {
+            low  => 0,
+            high => 'n1',
+            code => q[
+                   while (low <= high ) {
+                       mid = %MID%;
+                       if ( ( $x(n => mid) <  value ) == up ) low  = mid + 1;
+                       else                                   high = mid - 1;
+                   }
+                   $idx() = up ? high: low;
+            ],
+            ref =>
+              'Determine the index for values in a sorted array of bins, lower bound exclusive.',
+
+            doc_pre => q[
+			 C<$x> represents the edges of contiguous bins, with the first and
+			 last elements representing the outer edges of the outer bins, and the
+			 inner elements the shared bin edges.
+
+			 The lower bound of a bin is exclusive to the bin, its upper bound is inclusive to it.
+			 B<%FUNC%> returns an index I<I> for each value I<V> of C<$vals>.
+			 ----
+			 ],
+            doc_incr => q[
+				    V <= x[0]  : I = -1
+			   x[0]  <  V <= x[-1] : I s.t. x[I] < V <= x[I+1]
+			   x[-1] <  V          : I = $x->nelem - 1
+			 ----
+			 ],
+
+            doc_decr => q[
+				    V >  x[0]  : I = 0
+			   x[0]  >= V >  x[-1] : I s.t. x[I-1] >= V > x[I]
+			   x[-1] >= V          : I = $x->nelem
+			 ----
+			 ],
+
+            doc_post => q[
+			  If all elements of C<$x> are equal,
+
+			      i = $x->nelem - 1
+
+			  If C<$x> contains duplicated elements, I<I> is the index of the
+			  righmost (by index in array) duplicate if I<V> matches.
+			  ----
+			  ],
+
+        }
+    ],
+
+  )
+
+{
+    my ( $func, $algo ) = @$func;
+
+    my %replace = (
+        # calculate midpoint of range; ensure we don't overflow
+        # (low+high)>>1 for large values of low + high
+	# see sf.net bug #360
+        '%MID%'  => 'low + (( high - low )>> 1);',
+
+	# determine which way the data are sorted.  vsearch_sample
+	# overrides this.
+        '%UP%' => '$x(n => n1) >= $x(n => 0)',
+
+        '%FUNC%' => $func,
+
+        '%PRE%' => undent(
+            q[
+		    %DOC_PRE%
+                    ----
+		   ]
+        ),
+
+
+
+        '%BODY%' => undent(
+            q[
+		   I<I> has the following properties:
+
+		   =over
+
+		   =item *
+
+		   if C<$x> is sorted in increasing order
+
+		   %DOC_INCR%
+
+		   =item *
+
+		   if C<$x> is sorted in decreasing order
+
+		   %DOC_DECR%
+
+		   =back
+		   ----
+                   ]
+        ),
+
+        '%POST%' => undent(
+            q[
+                   %DOC_POST%
+		   ----
+                   ]
+        ),
+
+        map { ( "%\U$_%" => undent( $algo->{$_} ) ) } keys %$algo,
+    );
+
+    $replace{'%PRE%'} = '' unless defined $replace{'%DOC_PRE%'};
+    $replace{'%BODY%'} = ''
+      unless defined $replace{'%DOC_INCR%'} || defined $replace{'%DOC_DECR%'};
+    $replace{'%POST%'} = '' unless defined $replace{'%DOC_POST%'};
+
+
+    my $code = undent q[
+                   PDL_Indx n1 = $SIZE(n)-1;
+                   PDL_Indx low = %LOW%;
+                   PDL_Indx high = %HIGH%;
+                   PDL_Indx mid;
+
+		   $GENERIC() value = $vals();
+
+                   /* determine sort order of data */
+                   int up = %UP%;
+                   %CODE%
+                   ----
+               ];
+
+    my $doc = undent q[
+		   =for ref
+
+		   %REF%
+
+		   =for usage
+
+		     $idx = %FUNC%($vals, $x);
+
+		   C<$x> must be sorted, but may be in decreasing or increasing
+		   order.
+
+                   %PRE%
+		   %BODY%
+		   %POST%
+                   ----
+		   ];
+
+
+    # redo until nothing changes
+    for my $tref ( \$code, \$doc ) {
+        1 while $$tref =~ s/(%[\w_]+%)/$replace{$1}/ge;
+    }
+
+    pp_def(
+        $func,
+        HandleBad    => 0,
+        BadDoc       => 'needs major (?) work to handles bad values',
+        Pars         => 'vals(); x(n); indx [o]idx()',
+        GenericTypes => [ 'F', 'D' ],    # too restrictive ?
+        Code         => $code,
+	Doc          => $doc,
+    );
+}
+
+###############################################################
+# routines somehow related to interpolation
+###############################################################
 
 =head2 interpolate
 
@@ -2263,10 +2781,10 @@ pp_def('interpolate',
 	GenericTypes => ['F','D'], # too restrictive ?
 	Code => '
 		 $GENERIC() d;
-		 long n  = $SIZE(n);
-		 long n1 = n-1;
+		 PDL_Indx n  = $SIZE(n);
+		 PDL_Indx n1 = n-1;
 		 int up = ($x(n => n1) > $x(n => 0));
-                 long jl, jh, m;
+                 PDL_Indx jl, jh, m;
                  int carp;
 
                  threadloop %{
@@ -2522,11 +3040,17 @@ sub PDL::interpND {
 
     # Use 1/0 corners to select which multiplier happens, multiply
     # 'em all together to get sample weights, and sum to get the answer.
-    my $out =  ( ($a * ($crnr==1) + $b * ($crnr==0)) #index, clst, ith
+    my $out0 =  ( ($a * ($crnr==1) + $b * ($crnr==0)) #index, clst, ith
 		 -> prodover                          #clst, ith
 		 );
 
-    $out = ($out * $samp)->sumover; # ith, sth
+    my $out = ($out0 * $samp)->sumover; # ith, sth
+
+    # Work around BAD-not-being-contagious bug in PDL <= 2.6 bad handling code  --CED 3-April-2013
+    if($PDL::Bad::Status and $source->badflag) {
+	my $baddies = $samp->isbad->orover;
+	$out = $out->setbadif($baddies);
+    }
 
     return $out;
 
@@ -2639,6 +3163,10 @@ correspond to array C<$a> clumped using C<clump(-1)>. This routine is
 used in the old vector form of L<whichND|/whichND>, but is useful on
 its own occasionally.
 
+Returned piddles have the L<indx|PDL::Core/indx> datatype.  C<$indices> can have
+values larger than C<< $a->nelem >> but negative values in C<$indices>
+will not give the answer you expect.
+
 =for example
 
  pdl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
@@ -2656,11 +3184,12 @@ sub PDL::one2nd {
   barf "Usage: one2nd \$array \$indices\n" if $#_ != 1;
   my ($a, $ind)=@_;
   my @dimension=$a->dims;
+  $ind = indx($ind);
   my(@index);
   my $count=0;
   foreach (@dimension) {
     $index[$count++]=$ind % $_;
-    $ind=long($ind/$_);
+    $ind /= $_;
   }
   return @index;
 }
@@ -2671,7 +3200,7 @@ EOD
 
 =for sig
 
-  Signature: (mask(n); int [o] inds(m))
+  Signature: (mask(n); indx [o] inds(m))
 
 =cut
 
@@ -2724,7 +3253,7 @@ EOD
 
 =for sig
 
-  Signature: (mask(n); int [o] inds(m); int [o]notinds(q))
+  Signature: (mask(n); indx [o] inds(m); indx [o]notinds(q))
 
 =cut
 
@@ -2755,7 +3284,7 @@ EOD
 
     for (
 	 {Name=>'which',
-	  Pars => 'mask(n); int [o] inds(m);',
+	  Pars => 'mask(n); indx [o] inds(m);',
 	  Variables => 'int dm=0;',
 	  Elseclause => "",
 	  Autosize => '$SIZE(m) = sum;',
@@ -2771,7 +3300,7 @@ EOD
 EOD
 	  },
 	 {Name => 'which_both',
-	  Pars => 'mask(n); int [o] inds(m); int [o]notinds(q)',
+	  Pars => 'mask(n); indx [o] inds(m); indx [o]notinds(q)',
 	  Variables => 'int dm=0; int dm2=0;',
 	  Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
 	  Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
@@ -2813,13 +3342,13 @@ EOD
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
 	   RedoDimsCode => '
-		PDL_Long sum = 0;
+		PDL_Indx sum = 0;
 		/* not sure if this is necessary */
 		pdl * dpdl = $PDL(mask);
 		$GENERIC() *m_datap = (($GENERIC() *)(PDL_REPRP(dpdl)));
-		PDL_Long inc = PDL_REPRINC(dpdl,0);
-		PDL_Long offs = PDL_REPROFFS(dpdl);
-		int i;
+		PDL_Indx inc = PDL_REPRINC(dpdl,0);
+		PDL_Indx offs = PDL_REPROFFS(dpdl);
+		PDL_Indx i;
 
 		if (dpdl->ndims != 1)
 		  barf("dimflag currently works only with 1D pdls");

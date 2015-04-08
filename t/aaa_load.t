@@ -1,6 +1,5 @@
 # Test whether the system loads at all.
 
-BEGIN{print "1..1\n";}
-use PDL::LiteF;
+use Test::More tests => 1;
 
-print "ok 1\n";
+BEGIN { use_ok 'PDL::LiteF' }

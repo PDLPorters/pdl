@@ -244,7 +244,8 @@ package PDL::Transform::Cartography;
 use PDL::Core ':Internal'; # Load 'topdl' (internal routine)
 
 @ISA = ( 'Exporter','PDL::Transform' );
-$VERSION = "0.6";
+our $VERSION = "0.6";
+$VERSION = eval $VERSION;
 
 BEGIN {
   use Exporter ();
@@ -284,6 +285,7 @@ sub _strval {
 =for usage
 
    $lonlatp     = graticule(<grid-spacing>,<line-segment-size>);   
+   $lonlatp     = graticule(<grid-spacing>,<line-segment-size>,1);
 
 =for ref
 
@@ -305,54 +307,78 @@ In array context you get back a 2-element list containing a piddle of
 the (theta,phi) pairs and a piddle of the pen values (1 or 0) suitable for
 calling
 L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>.
-In scalar context
-the two elements are combined into a single piddle.
+In scalar context the two elements are combined into a single piddle.
 
-The pen values associated with the graticule are negative, which will
-cause
+The pen values associated with the graticule are negative, which will cause
 L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>
 to plot them as hairlines.
+
+If a third argument is given, it is a hash of options, which can be:
+
+=over 3
+
+=item nan - if true, use two columns instead of three, and separate lines with a 'nan' break
+
+=item lonpos - if true, all reported longitudes are positive (0 to 360) instead of (-180 to 180).
+
+=item dup - if true, the meridian at the far boundary is duplicated.
+
+=back 
 
 =cut
 
 sub graticule {
     my $grid = shift;
     my $step = shift;
+    my $hash = shift; $hash = {} unless defined($hash); # avoid // for ancient compatibility
+    my $two_cols = $hash->{nan} || 0;
+    my $lonpos = $hash->{lonpos} || 0;
+    my $dup = $hash->{dup} || 0;
+
     $grid = 10 unless defined($grid);
+    $grid = $grid->at(0) if(ref($grid) eq 'PDL');
+    
     $step = $grid/2 unless defined($step);
+    $step = $step->at(0) if(ref($step) eq 'PDL');
+
+    # Figure number of parallels and meridians
+    my $np = 2 * int(90/$grid);
+    my $nm = 2 * int(180/$grid);
     
-    my $par_siz = ((floor(180/$grid)) * (floor(360/$step) + 1))->at(0);
-    my $mer_siz = ((floor(360/$grid)+ 1) * floor(180/$step + 1))->at(0);
+    # First do parallels.
+    my $xp = xvals(360/$step + 1 + !!$two_cols, $np + 1) * $step       - 180 * (!$lonpos);
+    my $yp = yvals(360/$step + 1 + !!$two_cols, $np + 1) * 180/$np     -  90;
+    $xp->(-1,:) .= $yp->(-1,:) .= asin(pdl(1.1)) if($two_cols);
+
+    # Next do meridians.
+    my $xm = yvals( 180/$step + 1 + !!$two_cols,  $nm + !!$dup  ) * 360/$nm   - 180 * (!$lonpos);
+    my $ym = xvals( 180/$step + 1 + !!$two_cols,  $nm + !!$dup  ) * $step     - 90;
+    $xm->(-1,:) .= $ym->(-1,:) .= asin(pdl(1.1)) if($two_cols);
+
     
-    my $out = zeroes(2,$par_siz + $mer_siz);
-    my $p = ones($par_siz + $mer_siz);
-    
-    # First do parallels
-    $out->((0),0:$par_siz - 1) .= 
-	(xvals($par_siz) * $step) % (360+$step);
-    $out->((1),0:$par_siz - 1) .=
-	$grid * (1+floor((xvals($par_siz) * $step) / (360+$step)));
-    $p->(  ( xvals((floor(180/$grid)-1)->at(0)) + 1) * (floor(360/$step)+1)-1)
-	.= 0;
+    if($two_cols) {
+	return pdl( $xp->flat->append($xm->flat),
+		    $yp->flat->append($ym->flat)
+	    )->mv(1,0);
+    } else {
+	 our $pp = (zeroes($xp)-1); $pp->((-1)) .= 0;
+	 our $pm = (zeroes($xm)-1); $pm->((-1)) .= 0;
 
-    # Next, meridians.  Duplicate the 180 degree meridian, for cleaner
-    # default plots.
-    $out->((0),$par_siz:-1) .=
-	$grid * floor(xvals($mer_siz) * $step / (180+$step));
-    $out->((0),-floor(180/$step + 1):-1) -= 1e-3;
-
-    $out->((1),$par_siz:-1) .=
-	(xvals($mer_siz)*$step) % (180+$step) ;
-      
-    $p->( $par_siz +
-	  ( xvals(floor(360/$grid + 1)->at(0))+1) * (floor(180/$step)+1)-1
-	  ) .=  0;
-
-
-    $out->(0) -= 180;
-    $out->(1) -= 90;
-
-    $out->append(-$p->dummy(0,1));
+	if(wantarray) {
+	    return (  pdl( $xp->flat->append($xm->flat),
+			   $yp->flat->append($ym->flat)
+		      )->mv(1,0),
+		      
+		      $pp->flat->append($pm->flat)
+		);
+	} else {
+	    return pdl( $xp->flat->append($xm->flat),
+			$yp->flat->append($ym->flat),
+			$pp->flat->append($pm->flat)
+		     )->mv(1,0);
+	}  
+	barf "This can't happen";
+    }
 }
 
 =head2 earth_coast
@@ -625,8 +651,8 @@ sub new {
     my($l) = _opt($o,['l','L']);
     my($b) = _opt($o,['b','B']);
 
-    $or->(0) .= topdl($l) if defined($l);
-    $or->(1) .= topdl($b) if defined($b);
+    $or->(0) .= $l if defined($l);
+    $or->(1) .= $b if defined($b);
 
     my $roll = topdl(_opt($o,['r','roll','Roll','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');
@@ -656,7 +682,7 @@ sub new {
     $me->{params}->{roll} = $roll * $conv;
 
     $me->{params}->{bad} = _opt($o,['b','bad','Bad','missing','Missing'],
-			      asin(topdl(1.2)));
+			      asin(pdl(1.1)));
 
     # Get the standard parallel (in general there's only one; the conics
     # have two but that's handled by _c_new)
@@ -1141,7 +1167,7 @@ sub t_mercator {
 	$p->{c} = topdl($p->{c});
 	$p->{c} *= $p->{conv};
     } else {
-	$p->{c} = topdl($DEG2RAD * 75);
+	$p->{c} = pdl($DEG2RAD * 75);
     }
     $p->{c} = abs($p->{c}) * pdl(-1,1) if($p->{c}->nelem == 1);
 
@@ -1766,7 +1792,7 @@ sub t_lambert {
     if(defined($p->{c})) {
 	$p->{c} = topdl($p->{c});
     } else {
-	$p->{c} = topdl(-75,75);
+	$p->{c} = topdl([-75,75]);
     }
     $p->{c} = abs($p->{c}) * topdl([-1,1]) if($p->{c}->nelem == 1);
     $p->{c} = [$p->{c}->list];
@@ -2204,6 +2230,8 @@ sub t_az_eqa {
 
 =head2 t_aitoff
 
+C<t_aitoff> in an alias for C<t_hammer>
+
 =head2 t_hammer
 
 =for ref
@@ -2276,7 +2304,12 @@ sub t_hammer {
 
 ######################################################################
 
-=head2 t_vertical, t_zenithal -- vertical perspective projection
+=head2 t_zenithal
+
+Vertical projections are also called "zenithal", and C<t_zenithal> is an
+alias for C<t_vertical>.
+
+=head2 t_vertical
 
 =for usage
 
@@ -2290,9 +2323,6 @@ Vertical perspective projection is a generalization of L<gnomonic|/t_gnomonic>
 and L<stereographic|/t_stereographic> projection, and a special case of 
 L<perspective|/t_perspective> projection.  It is a projection from the 
 sphere onto a tangent plane from a point at the camera location.
-
-Vertical projections are also called "zenithal", and t_zenithal is an 
-alias for t_vertical.
 
 OPTIONS
 

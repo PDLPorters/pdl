@@ -70,26 +70,19 @@ of the file F<pdlcore.h>. So what does the structure look like:
 
 	   void *datasv;        /* Pointer to SV containing data. Refcnt inced */
 	   void *data;            /* Null: no data alloced for this one */
-	   int nvals;           /* How many values allocated */
+	   PDL_Indx nvals;           /* How many values allocated */
 	   int datatype;
-	   PDL_Long   *dims;      /* Array of data dimensions */
-	   PDL_Long   *dimincs;   /* Array of data default increments */
+	   PDL_Indx   *dims;      /* Array of data dimensions */
+	   PDL_Indx   *dimincs;   /* Array of data default increments */
 	   short    ndims;     /* Number of data dimensions */
 
 	   unsigned char *threadids;  /* Starting index of the thread index set n */
 	   unsigned char nthreadids;
 
-	   pdl *progenitor; /* I'm in a mutated family. make_physical_now must
-			       copy me to the new generation. */
-	   pdl *future_me;  /* I'm the "then" pdl and this is my "now" (or more modern
-			       version, anyway */
-
 	   pdl_children children;
 
-	   short living_for; /* Perl side not referenced; delete me when */
-
-	   PDL_Long   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
-	   PDL_Long   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
+	   PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
+	   PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
 	   unsigned char def_threadids[PDL_NTHREADIDS];
 
 	   struct pdl_magic *magic;
@@ -127,9 +120,10 @@ The actual pointer to data is stored in the member
 
 which contains a pointer to a memory area with space for
 
-	int nvals;
+	PDL_Indx nvals;
 
-data items of the data type of this piddle.
+data items of the data type of this piddle.  PDL_Indx is either 'long' or
+'long long' depending on whether your perl is 64bit or not.
 
 The data type of the data is stored in the variable
 
@@ -147,13 +141,13 @@ The number of dimensions in the piddle is given by the member
 
 which shows how many entries there are in the arrays
 
-	PDL_Long   *dims;      
-	PDL_Long   *dimincs;
+	PDL_Indx   *dims;      
+	PDL_Indx   *dimincs;
 
 These arrays are intimately related: C<dims> gives the sizes of the dimensions
 and C<dimincs> is always calculated by the code
 
-	int inc = 1;
+	PDL_Indx inc = 1;
         for(i=0; i<it->ndims; i++) {
 		it->dimincs[i] = inc; inc *= it->dims[i];
 	}
@@ -162,7 +156,7 @@ in the routine C<pdl_resize_defaultincs> in C<pdlapi.c>.
 What this means is that the dimincs can be used to calculate the offset
 by code like
 
-	int offs = 0;
+	PDL_Indx offs = 0;
 	for(i=0; i<it->ndims; i++) {
 		offs += it->dimincs[i] * index[i];
 	}
@@ -176,8 +170,8 @@ Since the vast majority of piddles don't have more than 6 dimensions,
 it is more efficient to have default storage for the dimensions and dimincs
 inside the PDL struct.
 
-   	PDL_Long   def_dims[PDL_NDIMS];   
-   	PDL_Long   def_dimincs[PDL_NDIMS]; 
+   	PDL_Indx   def_dims[PDL_NDIMS];   
+   	PDL_Indx   def_dimincs[PDL_NDIMS]; 
 
 The C<dims> and C<dimincs> may be set to point to the beginning of these
 arrays if C<ndims> is smaller than or equal to the compile-time constant
@@ -357,13 +351,13 @@ so be also I<bad>), so that I get a 'B' in the I<State> field:
  $a           Double D [7,7]                PB           0.38Kb 
  $b           Double D [3,3]                VCB          0.00Kb 
 
-This bit of magic is performed by the C<propogate_badflag> function,
+This bit of magic is performed by the C<propagate_badflag> function,
 which is listed below:
 
  /* newval = 1 means set flag, 0 means clear it */
  /* thanks to Christian Soeller for this */
 
- void propogate_badflag( pdl *it, int newval ) {
+ void propagate_badflag( pdl *it, int newval ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
     {
@@ -377,13 +371,13 @@ which is listed below:
 	    if ( newval ) child->state |=  PDL_BADVAL;
             else          child->state &= ~PDL_BADVAL;
 
-	    /* make sure we propogate to grandchildren, etc */
-	    propogate_badflag( child, newval );
+	    /* make sure we propagate to grandchildren, etc */
+	    propagate_badflag( child, newval );
 
         } /* for: i */
     }
     PDL_END_CHILDLOOP(it)
- } /* propogate_badflag */
+ } /* propagate_badflag */
 
 Given a piddle (C<pdl *it>), the routine loops through each 
 C<pdl_trans> structure, where access to this structure is provided by the 
@@ -394,7 +388,7 @@ C<i = ...nparents - 1>.
 Once we have the pointer to the child piddle, we can do what we want to 
 it; here we change the value of the C<state> variable, but the details
 are unimportant).
-What B<is> important is that we call C<propogate_badflag> on this
+What B<is> important is that we call C<propagate_badflag> on this
 piddle, to ensure we loop through its children. This recursion
 ensures we get to all the I<offspring> of a particular piddle.
 
@@ -596,9 +590,9 @@ mailing list (pdl-porters@jach.hawaii.edu).
 =head1 AUTHOR
 
 Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu),
-2000 Doug Burke (djburke@cpan.org), 2002 Christian Soeller & Doug Burke.
+2000 Doug Burke (djburke@cpan.org), 2002 Christian Soeller & Doug Burke,
+2013 Chris Marshall.
 
 Redistribution in the same form is allowed but reprinting requires
 a permission from the author.
-
 

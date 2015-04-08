@@ -1,22 +1,15 @@
-
-# Makefile.PL for PDL::Examples module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 
-PDL::Core::Dev->import;
-@pack = (["storable.pd",Storable,PDL::IO::Storable]);
+my @pack = (["storable.pd", qw(Storable PDL::IO::Storable)]);
 
-%hash = pdlpp_stdargs_int(@::pack);
+my %hash = pdlpp_stdargs_int(@pack);
 # $hash{'OPTIMIZE'}  = '-g'; # If you want to debug, uncomment this.
 $hash{'VERSION'}  = '0.5';
 
-WriteMakefile(%hash);
-
 # Add genpp rule
-sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
-}
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub { pdlpp_postamble_int(@pack); };
 
+WriteMakefile(%hash);

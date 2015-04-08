@@ -1,5 +1,5 @@
 +----------------------------------------------------------------------------+
-|                        PPDL Module Dependencies                            | 
+|                        PDL Module Dependencies                             |
 +----------------------------------------------------------------------------+
 
 This file lists dependencies of PDL modules on external programs
@@ -35,22 +35,21 @@ PDL (all)         perl >= 5.8.x           PDL requires at least this version
                   Pod::Parser >= 0        perl5 core module.
                   Pod::Select >= 0        perl5 core module.
 
-                  ExtUtils::MakeMaker >= 6.31
+                  ExtUtils::MakeMaker >= 6.56
 
 		                          This version of EU::MM is the first
-					  with support for INSTALL_BASE for
-					  non-system install locations.  If
-					  you edit the top level Makefile.PL
-					  and change the 6.31 to 0 in two
-					  spots, you can build with older
-					  versions---not recommended.
+					  with support for CONFIGURE_REQUIRES.
+
 
 PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
                   Filter::Util::Call
 
+                  Filter::Simple          Required for new PDL::NiceSlice
+                  Module::Compile         implementation under development.
 
-Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
-                                          PP code inline in your scripts.
+
+Inline::Pdlpp     Inline >= 0.68          This module allows to define fast
+                  Inline::C >= 0.62       PP code inline in your scripts.
 
                                           NOTE: Though Inline is listed as as
 					  PDL prerequisite for CPAN, you can
@@ -75,11 +74,18 @@ PDL::IO::Dumper   Data::Dumper >= 2.121
 
 
 PDL::IO::Storable Storable >=1.03
+                  perl >= 5.10.x          Will build but won't work for perl
+		                          versions prior to 5.10.0
 
 
 pdl2   (shell)    Devel::REPL >= 1.003011
                   and Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
+		                          
+					  Devel::REPL requires Data::Dump::Streamer
+					  to support pdl2.  This may need to be
+					  hand-installed if you are doing a manual
+					  PDL build.
 
 perldl (shell)    Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
@@ -89,17 +95,6 @@ perldl (shell)    Term::ReadLine::Perl
                                           installed, pdl2 uses perldl.  The
                                           same thing if a Term::ReadLine::Perl
                                           or Term::ReadLine::Gnu is not installed.
-
-
-PDL::FFTW         Needs the FFTW library version 2 installed.
-                  FFTW is a free C FFT library including multi-
-                  dimensional, real, and parallel transforms.
-                  See http://www.fftw.org/ 
-
-                  NOTE: The latest version of FFTW is FFTW3.
-
-                                          Will *not* be built unless
-                                          FFTW version 2 is detected.
 
 
 PDL::GIS::Proj
@@ -223,29 +218,16 @@ PDL::IO::HDF      PDL interface to HDF4 library.  See
                                           HDF4 libraries are detected.
 
 
-PDL::IO::NDF      NOTE: These refs/URLs may be incorrect or outdated.
-
-                  Requires the perl/NDF interface, NDFPERL, which
-                  also requires a fortran compiler and the fortran
-                  NDF library.  Get the STARPERL package from
-                  http://starlink.jach.hawaii.edu/starlink where
-                  there appears to be a git repository for STARPERL at
-                  http://starlink.jach.hawaii.edu/git/?p=starperl.git;a=summary .
-
-                                          Module builds ok without
-                                          NDF module and library
-
-
-PDL::IO::Pic      rpic/wpic: PBM+ or NetPBM converters
+PDL::IO::Pic      rpic/wpic: NetPBM converters
                   See http://netpbm.sourceforge.net/
 
                   wmpeg: requires the ffmpeg program
                   See http://ffmpeg.org/
 
                                           Module builds ok without
-                                          converters but t/pic_16bit
-                                          will fail without a recent
-                                          enough version of NetPBM.
+                                          converters.  Recommend at
+                                          least version 10.58.00 of
+                                          NetPBM.
 
 
 PDL::Minuit       PDL interface to Minuit minimization routines in

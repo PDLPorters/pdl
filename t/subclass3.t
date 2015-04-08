@@ -1,6 +1,7 @@
-
+#!/usr/bin/perl
+#
 use PDL::LiteF;
-
+use Test::More tests => 7;
 
 
 ########### Test of method over-riding in subclassed objects ###########
@@ -123,9 +124,6 @@ sub one2nd{
 package main;
 
 ###### Testing Begins #########
-print "1..7\n";   
-
-my $testNo = 1;
 
 $im = new PDL::Derived [
   [ 1, 2,  3,  3 , 5],
@@ -137,20 +135,20 @@ $im = new PDL::Derived [
 
 
 # Check for PDL::sumover being called by sum
-ok($testNo++, $im->sum == 176 ); # result will be = 134 if derived sumover not called, 176 if it is called.
-
+ok($im->sum == 176, "PDL::sumover is called by sum" ); # result will be = 134 if derived sumover
+                                                       # is not called,   176 if it is called.
 
 ### Test over-ride of minmaximum:
 $main::OVERRIDEWORKED = 0;
 my @minMax = $im->minmax;
-ok($testNo++, $main::OVERRIDEWORKED == 1 );
+ok($main::OVERRIDEWORKED == 1, "over-ride of minmaximum");
 
 
 ### Test over-ride of inner:
 ## Update to use inner, not matrix mult - CED 8-May-2010
 $main::OVERRIDEWORKED = 0;
 my $matMultRes = $im->inner($im);
-ok($testNo++, $main::OVERRIDEWORKED == 1 );
+ok($main::OVERRIDEWORKED == 1, "over-ride of inner");
 
 ### Test over-ride of which, one2nd
 $main::OVERRIDEWORKED = 0;
@@ -158,22 +156,11 @@ $main::OVERRIDEWORKED = 0;
 my $a= PDL::Derived->sequence(10,10,3,4);     
 # $PDL::whichND_no_warning = 1;
 # my ($x, $y, $z, $w)=whichND($a == 203);
-# ok($testNo++, $main::OVERRIDEWORKED == 2 );
+# ok($main::OVERRIDEWORKED == 2, "whichND test");
 my ($x, $y, $z, $w) = whichND($a == 203)->mv(0,-1)->dog;  # quiet deprecation warning
-ok($testNo++, $main::OVERRIDEWORKED == 1 );               # whitebox test condition, uugh!
+ok($main::OVERRIDEWORKED == 1, "whichND worked");         # whitebox test condition, uugh!
 
 # Check to see if the clip functions return a derived object:
-ok( $testNo++, ref( $im->clip(5,7) ) eq "PDL::Derived");
- 
-ok( $testNo++, ref( $im->hclip(5) ) eq "PDL::Derived");
-
-ok( $testNo++, ref( $im->lclip(5) ) eq "PDL::Derived");
- 
-
-
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
-}
+ok(ref( $im->clip(5,7) ) eq "PDL::Derived", "clip returns derived object");
+ok(ref( $im->hclip(5) ) eq "PDL::Derived", "hclip returns derived object");
+ok(ref( $im->lclip(5) ) eq "PDL::Derived", "lclip returns derived object");

@@ -29,10 +29,10 @@ GNU Scientific Library.
      my ($x) = @_;
      return $x**2;
    }
+EOD
 
-=head1 FUNCTIONS
-
-=head2 gsldiff()
+pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
+=head2 gsldiff
 
 =for ref
 
@@ -83,7 +83,7 @@ L<PDL>
 
 The GSL documentation is online at
 
-  http://sources.redhat.com/gsl/ref/gsl-ref_toc.html
+  http://www.gnu.org/software/gsl/manual/
 
 =head1 AUTHOR
 
@@ -96,7 +96,6 @@ PDL distribution, the copyright notice should be included in the file.
 The GSL differentiation routines were written by David Morrison.
 
 =cut
-
 
 EOD
 
