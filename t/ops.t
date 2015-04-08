@@ -1,4 +1,4 @@
-use Test::More tests => 53;
+use Test::More tests => 57;
 use PDL::LiteF;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -9,11 +9,8 @@ sub tapprox {
 	return $d < 0.01;
 }
 
-#<<<<<<< HEAD
-print "1..43\n";
+#print "1..57\n";
 
-#=======
-#>>>>>>> d9a474e209e01d011402d5ea0e21fbf89a436da0
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
 
@@ -176,15 +173,14 @@ ok longlong($INT_MAX*4)%2 == 0, 'big longlong modulus';
 cmp_ok double($INT_MAX*4)%2, '==', 0, 'big double modulus';
 }
 
-#<<<<<<< HEAD
 # check proper modulus...
 $a = xvals(15)-7;
 $b = $a % 3;
-ok(40,sum($b != pdl(2,0,1,2,0,1,2,0,1,2,0,1,2,0,1)) == 0);
+ok(sum($b != pdl(2,0,1,2,0,1,2,0,1,2,0,1,2,0,1)) == 0, 'modulus1');
 $b = $a % -3;
-ok(41,sum($b != pdl(-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2))==0);
+ok(sum($b != pdl(-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2))==0, 'modulus2');
 $b = $a % 0;
-ok(42,sum($b != 0) == 0);
+ok(sum($b != 0) == 0,'modulus3');
 
 # Check badflag propagation with .= (Ops::assgn) sf.net bug 3543056
 $a = sequence(10);
@@ -193,12 +189,11 @@ $b->inplace->setvaltobad(3);
 $a->slice('0:4') .= $b;
 $a->badflag(1);
 $a->check_badflag();
-ok(43,$a->badflag == 1 && $a->nbad == 1);
-=======
+ok($a->badflag == 1 && $a->nbad == 1,'badflag');
+
 #and do the same for byte (unsigned char) and ushort
 $BYTE_MAX = 255;
 $USHORT_MAX = 65535;
 
 ok byte($BYTE_MAX)%1 == 0, 'big byte modulus';
 ok ushort($USHORT_MAX)%1 == 0, 'big ushort modulus';
-#>>>>>>> d9a474e209e01d011402d5ea0e21fbf89a436da0
