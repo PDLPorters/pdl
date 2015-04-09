@@ -89,7 +89,6 @@ EOR
 # whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
 use Cwd qw/abs_path/;
 sub whereami_any {
-    print "whereami_any...\n";
 	my $dir = (&whereami(1) or &whereami_inst(1) or
           die "Unable to determine ANY directory path to PDL::Core::Dev module\n");
 	return abs_path($dir);
