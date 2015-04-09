@@ -163,13 +163,15 @@ $INT_MAX=2147483647;
 
 TODO: {
 local $TODO = undef;
-#$TODO = 'These tests have failed since <=2.007' if $^O eq 'MSWin32';
 $TODO = 'Marking TODO for big modulus for 2.008 release';
-ok long($INT_MAX)%1 == 0, 'big long modulus';
-cmp_ok indx($INT_MAX*4)%2, '==', 0, 'big indx modulus';
-ok longlong($INT_MAX*4)%2 == 0, 'big longlong modulus';
+require Config;
+diag "\$Config{ivsize} = $Config::Config{ivsize}";
+diag "\$INT_MAX = $INT_MAX = @{[ sprintf '%x', $INT_MAX ]}";
+cmp_ok long($INT_MAX)%1      , '==', 0, "big long modulus: $INT_MAX % 1";
+cmp_ok indx($INT_MAX*4)%2    , '==', 0, "big indx modulus: @{[$INT_MAX*4]} % 2";
+cmp_ok longlong($INT_MAX*4)%2, '==', 0, "big longlong modulus: @{[$INT_MAX*4]} % 2";
 #skip float intentionally here, since float($INT_MAX)!=$INT_MAX
-cmp_ok double($INT_MAX*4)%2, '==', 0, 'big double modulus';
+cmp_ok double($INT_MAX*4)%2  , '==', 0, "big double modulus: @{[$INT_MAX*4]} % 2";
 }
 
 #and do the same for byte (unsigned char) and ushort
