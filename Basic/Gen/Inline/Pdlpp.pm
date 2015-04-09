@@ -29,9 +29,8 @@ sub validate {
     my $o = shift;
     $o->{ILSM} ||= {};
     $o->{ILSM}{XS} ||= {};
-    # Internal should never be on during Inline compilations -- causes problems
-    # with "Basic/" vs "PDL/" suffixes in the library string later.
-    $o->{ILSM}{INTERNAL} = 0 unless defined $o->{ILSM}{INTERNAL};
+    # having internal on shouldn't matter
+    $o->{ILSM}{INTERNAL} = 1 unless defined $o->{ILSM}{INTERNAL};
     $o->{ILSM}{MAKEFILE} ||= {};
     if (not $o->UNTAINT) {
       my $w = abs_path(PDL::Core::Dev::whereami_any());
