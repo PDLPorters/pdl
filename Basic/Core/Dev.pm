@@ -89,6 +89,7 @@ EOR
 # whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
 use Cwd qw/abs_path/;
 sub whereami_any {
+    print "whereami_any...\n";
 	my $dir = (&whereami(1) or &whereami_inst(1) or
           die "Unable to determine ANY directory path to PDL::Core::Dev module\n");
 	return abs_path($dir);
@@ -105,7 +106,7 @@ sub whereami {
 }
 
 sub whereami_inst {
-   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../.. ../../../..|) {
+    for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../.. ../../../..|) {
       return ($_[0] ? $dir . '/PDL' : $dir)
 	if -e "$dir/PDL/Core/Dev.pm";
    }
@@ -349,6 +350,11 @@ EOF
 
 
 # Standard PDL postamble
+#
+# This is called via .../Gen/Inline/Pdlpp.pm, in the case that the INTERNAL
+# flag for the compilation is off (grep "ILSM" in that file to find the reference).
+# If it's ON, then postamble_int gets called instead.
+
 
 sub postamble {
   my ($self) = @_;
@@ -374,29 +380,31 @@ EOF
 # This is the function internal for PDL.
 
 sub pdlpp_postamble_int {
-	join '',map { my($src,$pref,$mod, $deps) = @$_;
-        die "If give dependencies, must be array-ref" if $deps and !ref $deps;
-	my $w = whereami_any();
-	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
-	my $top = File::Spec->abs2rel($w);
-	my $basic = File::Spec->catdir($top, 'Basic');
-	my $core = File::Spec->catdir($basic, 'Core');
-	my $gen = File::Spec->catdir($basic, 'Gen');
-        my $depbuild = '';
-        for my $dep (@{$deps || []}) {
-            my $target = '';
-            if ($dep eq 'core') {
-                $dep = $top;
-                $target = ' core';
-            }
-            require ExtUtils::MM;
-            $dep =~ s#([\(\)])#\\$1#g; # in case of unbalanced (
-            $depbuild .= MM->oneliner("exit(!(chdir q($dep) && !system(q(\$(MAKE)$target))))");
-            $depbuild .= "\n\t";
-        }
+	join '',map { 
+	    my($src,$pref,$mod, $deps) = @$_;
+	    die "If give dependencies, must be array-ref" if $deps and !ref $deps;
+	    my $w = whereami_any();
+	    $w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
+	    my $top = File::Spec->abs2rel($w);
+	    my $basic = File::Spec->catdir($top, 'Basic');
+	    my $core = File::Spec->catdir($basic, 'Core');
+	    my $gen = File::Spec->catdir($basic, 'Gen');
+	    my $depbuild = '';
+	    for my $dep (@{$deps || []}) {
+		my $target = '';
+		if ($dep eq 'core') {
+		    $dep = $top;
+		    $target = ' core';
+		}
+		require ExtUtils::MM;
+		$dep =~ s#([\(\)])#\\$1#g; # in case of unbalanced (
+		$depbuild .= MM->oneliner("exit(!(chdir q($dep) && !system(q(\$(MAKE)$target))))");
+		$depbuild .= "\n\t";
+	    }
+	    
 qq|
 
-$pref.pm: $src $core/Types.pm
+$pref.pm: $src $core/Types.pm 
 	$depbuild\$(PERLRUNINST) \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
@@ -406,7 +414,9 @@ $pref.c: $pref.xs
 
 $pref\$(OBJ_EXT): $pref.c
 |
-	} (@_)
+	} 
+
+	(@_);
 }
 
 
@@ -433,12 +443,13 @@ $pref\$(OBJ_EXT): $pref.c
 sub pdlpp_stdargs_int {
  my($rec) = @_;
  my($src,$pref,$mod) = @$rec;
- my $w = whereami();
+ my $w = whereami_any();
  my $malloclib = exists $PDL::Config{MALLOCDBG}->{libs} ?
    $PDL::Config{MALLOCDBG}->{libs} : '';
  my $mallocinc = exists $PDL::Config{MALLOCDBG}->{include} ?
    $PDL::Config{MALLOCDBG}->{include} : '';
-my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
+ my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
+ eval 'use ExtUtils::MakeMaker;'; # ensure VERSION is loaded
  return (
  	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
