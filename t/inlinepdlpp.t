@@ -1,45 +1,18 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 5;
 use PDL::LiteF;
 
-BEGIN {
-   # clean out the _Inline directory on every test
-   # (may be OTT but ensures that we're always testing the latest code)
-   #
-   # require File::Path;
-   # File::Path::rmtree (["_Inline", ".Inline"], 0, 0);
-
-   # Test for Inline and set options
-   my $inline_test_dir = './.inlinepdlpp';
-   mkdir $inline_test_dir unless -d $inline_test_dir;
-   eval 'use Inline (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1)';
-   plan skip_all => "Skipped: Inline not installed" if $@;
-   diag "Inline Version: $Inline::VERSION\n";
-   eval 'use Inline 0.43';
-   plan skip_all => "Skipped: not got Inline >= 0.43" if $@;
-   plan tests => 3;
-}
-
-sub myshape { join ',', $_[0]->dims }
-
-# use Inline 'INFO'; # use to generate lots of info
-use Inline 'Pdlpp';
-
-ok(1); # ok, we made it so far
-
-$a = sequence(3,3);
-
-$b = $a->testinc;
-
-ok(myshape($a) eq myshape($b));
-
-ok(all $b == $a+1);
-
-__DATA__
-
-__Pdlpp__
-
+my $inline_test_dir = './.inlinepdlpp';
+mkdir $inline_test_dir unless -d $inline_test_dir;
+SKIP: {
+   use_ok('Inline', Config => DIRECTORY => $inline_test_dir, FORCE_BUILD => 1)
+      || skip "Skipped: Inline not installed", 4;
+   note "Inline Version: $Inline::VERSION\n";
+   eval { Inline->VERSION(0.43) };
+   is $@, '', 'at least 0.43' or skip "Skipped: not got Inline >= 0.43", 3;
+   # use Inline 'INFO'; # use to generate lots of info
+   eval { Inline->bind(Pdlpp => <<'EOF') };
 # simple PP definition
 
 pp_def('testinc',
@@ -48,3 +21,12 @@ pp_def('testinc',
 );
 
 # this tests the bug with a trailing comment and *no* newline
+EOF
+   is $@, '', 'bind no error' or skip "bind failed", 2;
+   my $x = sequence(3,3);
+   my $y = $x->testinc;
+   is myshape($x), myshape($y), 'myshape eq';
+   ok(all $y == $x+1, '==');
+}
+
+sub myshape { join ',', $_[0]->dims }
