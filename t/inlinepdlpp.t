@@ -1,7 +1,6 @@
 use strict;
+use warnings;
 use Test::More;
-use blib;  # otherwise possible error on virgin systems not finding PDL::Core
-
 use PDL::LiteF;
 
 BEGIN {

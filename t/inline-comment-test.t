@@ -5,9 +5,8 @@
 #  -- DCM, April 16, 2012
 
 use strict;
+use warnings;
 use Test::More;
-use blib;  # otherwise possible error on virgin systems not finding PDL::Core
-
 use PDL::LiteF;
 
 # First some Inline administivia.
