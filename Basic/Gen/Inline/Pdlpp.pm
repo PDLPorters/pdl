@@ -29,8 +29,8 @@ sub validate {
     my $o = shift;
     $o->{ILSM} ||= {};
     $o->{ILSM}{XS} ||= {};
-    # having internal on shouldn't matter
-    $o->{ILSM}{INTERNAL} = 1 unless defined $o->{ILSM}{INTERNAL};
+    # Shouldn't use internal linking for Inline stuff, normally
+    $o->{ILSM}{INTERNAL} = 0 unless defined $o->{ILSM}{INTERNAL};
     $o->{ILSM}{MAKEFILE} ||= {};
     if (not $o->UNTAINT) {
       my $w = abs_path(PDL::Core::Dev::whereami_any());
