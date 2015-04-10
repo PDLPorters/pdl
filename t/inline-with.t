@@ -36,27 +36,12 @@ END {
       }
     }
   }
-#  rmtree $inline_test_dir if -d $inline_test_dir;
 }
 
-#use Inline 'INFO'; # use to generate lots of info
-use Inline with => 'PDL';
-use Inline 'C';
-
-note "Inline Version: $Inline::VERSION\n";
-ok 1, 'compiled';
-
-my $pdl = myfloatseq();
-note $pdl->info,"\n";
-
-is $pdl->dims, 3, 'dims correct';
-
-done_testing;
-
-__DATA__
-
-__C__
-
+SKIP: {
+  #use Inline 'INFO'; # use to generate lots of info
+  use_ok 'Inline', with => 'PDL' or skip 'with PDL failed', 3;
+  eval { Inline->bind(C => <<'EOF') };
 static pdl* new_pdl(int datatype, PDL_Indx dims[], int ndims)
 {
   pdl *p = PDL->pdlnew();
@@ -78,3 +63,16 @@ pdl* myfloatseq()
     dataf[i] = i; /* the data must be initialized ! */
   return p;
 }
+EOF
+  is $@, '', 'bind no error' or skip 'Inline C failed', 2;
+
+  note "Inline Version: $Inline::VERSION\n";
+  ok 1, 'compiled';
+
+  my $pdl = myfloatseq();
+  note $pdl->info,"\n";
+
+  is $pdl->dims, 3, 'dims correct';
+}
+
+done_testing;
