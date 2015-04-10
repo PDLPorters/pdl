@@ -40,33 +40,9 @@ BEGIN {
    plan tests => 3;
 }
 
+SKIP: {
 # use Inline 'INFO'; # use to generate lots of info
-use Inline 'Pdlpp';
-
-print "Inline Version: $Inline::VERSION\n";
-ok(1, 'Everything seems to have compiled');
-
-$a = sequence(3,3);
-
-$b = $a->testinc;
-
-ok(all ($b == $a+1), 'Sanity check runs correctly');
-
-# Test the inability to comment-out a threadloop. This is documented on the
-# 11th page of the PDL::PP chapter of the PDL book. If somebody ever fixes this
-# wart, this test will fail, in which case the book's text should be updated.
-$b = $a->testinc2;
-TODO: {
-	# Note: This test appears to fail on Cygwin and some flavors of Linux.
-	local $TODO = 'This test inexplicably passes on some machines';
-	ok(not (all $b == $a + 1), 'WART: commenting out a threadloop does not work')
-		or diag("\$a is $a and \$b is $b");
-}
-
-__DATA__
-
-__Pdlpp__
-
+eval { Inline->bind(Pdlpp => <<'EOF') };
 # simple PP definition with user irritation tests :-)
 
 pp_def('testinc',
@@ -107,3 +83,23 @@ pp_def('testinc2',
 	   
 	},
 );
+EOF
+is $@, '', 'compiled' or skip 'bind failed', 2;
+
+$a = sequence(3,3);
+
+$b = $a->testinc;
+
+ok(all ($b == $a+1), 'Sanity check runs correctly');
+
+# Test the inability to comment-out a threadloop. This is documented on the
+# 11th page of the PDL::PP chapter of the PDL book. If somebody ever fixes this
+# wart, this test will fail, in which case the book's text should be updated.
+$b = $a->testinc2;
+TODO: {
+	# Note: This test appears to fail on Cygwin and some flavors of Linux.
+	local $TODO = 'This test inexplicably passes on some machines';
+	ok(not (all $b == $a + 1), 'WART: commenting out a threadloop does not work')
+		or diag("\$a is $a and \$b is $b");
+}
+}
