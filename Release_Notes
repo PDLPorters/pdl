@@ -10,7 +10,7 @@ Release Notes for PDL 2.007_14 --------------------------
 
 General Notes:
 
- * Counting down to a PDL-2.008 release this April 2015
+ * This is PDL-2.008_rc1!
 
  * Another quick CPAN developers release
 
@@ -31,7 +31,10 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * More cleanup and a couple of build issues fixed with
+   PROJ4.
+
+ * Various test suite improvements.
 
 
 
