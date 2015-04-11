@@ -73,7 +73,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
    Convert from Test to Test::More
    * bess.t
-   * callext.t
    * conv.t
    * diskcache.t
    * erf.t

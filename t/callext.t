@@ -6,15 +6,13 @@ END { unlink 't/callext.pdb';}; # In case we build a 2nd time,
 # Example of how to use callext() - also see callext.c
 
 use strict;
-use Test;
+use warnings;
+use Test::More;
 use Config;
-
-BEGIN { plan tests => 1;
-}
 use PDL;
 use PDL::CallExt;
-
 use PDL::Core ':Internal'; # For topdl()
+use PDL::Core::Dev;
 use Config;
 use File::Spec;
 
@@ -29,8 +27,6 @@ sub tapprox {
 
 # Create the filenames
 my $cfile = File::Spec->catfile('t', 'callext.c');
-# include the pdlsimple.h that's in blib.
-my $inc = File::Spec->catdir('blib', 'lib', 'PDL', 'Core');
 my $out   = File::Spec->catfile('t', 'callext.'.$Config{dlext});
 
 # Compile the code
@@ -38,17 +34,22 @@ my $out   = File::Spec->catfile('t', 'callext.'.$Config{dlext});
 my @cleanup = ();
 END { unlink @cleanup; }
 push @cleanup, File::Spec->catfile('t', 'callext'.$Config{obj_ext}), $out;
-callext_cc($cfile, qq{"-I$inc"}, '', $out);
+eval { callext_cc($cfile, PDL_INCLUDE(), '', $out) };
 
+SKIP: {
+is $@, '', 'callext_cc no error' or skip 'callext_cc failed', 1;
 my $y = sequence(5,4)+2;  # Create PDL
 my $x = $y*20+100;        # Another
 
 my $try    = loglog($x,$y);
 my $correct = log(float($x))/log(float($y));
 
-print "Try = $try\n";
-print "Correct = $correct\n";
-ok( tapprox($try, $correct) );
+note "Try = $try\n";
+note "Correct = $correct\n";
+ok tapprox($try, $correct), 'tapprox';
+}
+
+done_testing;
 
 # Return log $x to base $y using callext() routine -
 # perl wrapper makes this nice and easy to use.
