@@ -191,10 +191,10 @@ sub callext_cc {
 	my $eo = ( $^O =~ /MSWin/i ? '"' : '' );
 
 	# Compiler command
-        # Placing $ccflags *before* installsitelib/PDL/Core enables us to include
-        # the appropriate 'pdlsimple.h' during 'make test'.
+        # Placing $ccflags *before* installsitearch/PDL/Core enables us to include
+        # the blib 'pdlsimple.h' during 'make test'.
 	my $cc_cmd = join(' ', map { $Config{$_} } qw(cc ccflags cccdlflags)) .
-		qq{ $ccflags "-I$Config{installsitelib}/PDL/Core" -c $src $do$cc_obj$eo};
+		qq{ $ccflags "-I$Config{installsitearch}/PDL/Core" -c $src $do$cc_obj$eo};
 
 	# The linker output flag is -o on cc and gcc, and -out: on MS Visual Studio
 	my $o = ( $Config{cc} eq 'cl' ? '-out:' : '-o ');
@@ -209,19 +209,17 @@ sub callext_cc {
 	$ld_cmd .=
 		join(' ', map { $Config{$_} } qw(ld lddlflags)) .
 		" $libs $ldflags $o$ld_obj $cc_obj";
-	my $cmd = "$cc_cmd; $ld_cmd";
-	print $cmd,"\n";
 
 	# Run the command in two steps so that we can check status
 	# of each and also so that we dont have to rely on ';' command
 	# separator
 
-	system $cc_cmd and croak " compiling $src";
+	system $cc_cmd and croak "Error compiling $src ($cc_cmd)";
 
       # Fix up ActiveState-built perl. Is this a reliable fix ?
       $ld_cmd =~ s/\-nodefaultlib//g if $Config{cc} eq 'cl';
 
-	system $ld_cmd and croak "Error linking $cc_obj";
+	system $ld_cmd and croak "Error linking $cc_obj ($ld_cmd)";
 	return 1;
 }
 
