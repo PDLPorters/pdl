@@ -3486,11 +3486,17 @@ $PDL::PP::deftbl =
 
    # The RedoDimsSub rule is a bit weird since it takes in the RedoDims target
    # twice (directly and via RedoDims-PostComp). Can this be cleaned up?
-   #
+   #    [I don't know who put this in, or when -- but I don't understand it.  CED 13-April-2015]
    PDL::PP::Rule->new("RedoDims-PreComp", "RedoDims",
 		      sub { return $_[0] . ' $PRIV(__ddone) = 1;'; }),
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
 				["RedoDims-PreComp", "PrivNames", "PrivObjs"], "PRIV"),
+
+   # RedoDimsSub is supposed to allow you to use $SIZE as an lvalue, to resize things.  It hasn't
+   # worked since I can remember (at least since I started messing around with range).  The reason
+   # appears to be that the SIZE macro was using the redodims argument instead of its own zeroth
+   # argument.  Renaming gone wrong?  Anyway I've fixed it to use $_[0] instead of $redodims in the
+   # SIZE closure.   -- CED 13-April-2015
    PDL::PP::Rule->new("RedoDimsSub",
 		      ["RedoDims", "RedoDims-PostComp", "_DimObjs"],
 		      sub {
@@ -3499,9 +3505,10 @@ $PDL::PP::deftbl =
 			my $dimobjs  = $_[2];
 
 			$result->[1]{"SIZE"} = sub {
-			  croak "can't get SIZE of undefined dimension (RedoDims=$redodims)."
-			    unless defined $dimobjs->{$redodims};
-			  return $dimobjs->{$redodims}->get_size();
+			    eval 'use PDL::IO::Dumper';
+			    croak "FOO can't get SIZE of undefined dimension (RedoDims=$redodims).\nredodims is $redodims\ndimobjs is ".sdump($dimobjs)."\n"
+			       unless defined $dimobjs->{$_[0]};  # This is the closure's $_[0], not the rule definition's $_[0]
+			  return $dimobjs->{$_[0]}->get_size();
 			};
 			return $result;
 		      }),
