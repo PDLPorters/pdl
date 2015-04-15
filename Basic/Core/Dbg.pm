@@ -156,7 +156,7 @@ Alias for C<px>
 =head1 BUGS
 
 There are probably some. Please report if you find any. Bug reports
-should be sent to the PDL mailing list perldl@jachw.hawaii.edu.
+should be sent to the PDL mailing list pdl-general@lists.sourceforge.net.
 
 =head1 AUTHOR
 

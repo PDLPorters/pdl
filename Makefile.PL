@@ -481,7 +481,7 @@ my %makefile_hash = (
                 ),
               },
 	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
-              'AUTHOR' => 'PerlDL Developers (perldl@jach.hawaii.edu)',
+              'AUTHOR' => 'PerlDL Developers (pdl-general@lists.sourceforge.net)',
               'ABSTRACT' => 'Perl Data Language',
               'BINARY_LOCATION' => 'PDL.tar.gz',
 

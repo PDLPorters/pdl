@@ -47,8 +47,9 @@ document. Please contact the FAQ maintainer if you feel
 hard done by.
 
 Send your comments, additions, suggestions or corrections
-to the PDL mailing list at perldl@jach.hawaii.edu. See Q: 3.2
-below for instructions on how to join the mailing lists.
+to the PDL mailing list at pdl-general@lists.sourceforge.net.
+See Q: 3.2 below for instructions on how to join the mailing
+lists.
 
 
 
@@ -86,15 +87,15 @@ of those existing packages.
 
 
 PDL is supported by its users. General informal support for PDL
-is provided through the PDL mailing list (perldl@jach.hawaii.edu ,
+is provided through the PDL mailing list (pdl-general@lists.sourceforge.net ,
 see below).
 
 As a Perl extension (see Q: 2.5 below) it is devoted to the idea of free and
 open development put forth by the Perl community. PDL was and is being
 actively developed by a loosely knit group of people around the world who
 coordinate their activities through the PDL development mailing list
-(pdl-porters@jach.hawaii.edu , see Q: 3.2 below). If you would like to join in the
-ongoing efforts to improve PDL please join this list.
+(pdl-devel@lists.sourceforge.net , see Q: 3.2 below). If you would like
+to join in the ongoing efforts to improve PDL please join this list.
 
 
 =head2 Q: 2.3    Why yet another Data Language ?  
@@ -252,8 +253,8 @@ available, see "Binary distributions" below.
 If you can (or cannot) get PDL working on a new (previously
 unsupported) platform we would like to hear about it. Please,
 report your success/failure to the PDL mailing list at 
-perldl@jach.hawaii.edu . We will do our best to assist
-you in porting PDL to a new system.
+pdl-general@lists.sourceforge.net . We will do our best to
+assist you in porting PDL to a new system.
 
 
 =head2 Q: 2.7    Where do I get it?  
@@ -368,27 +369,25 @@ pages).
 =back
 
 If you are interested in PDL in general you can join the PDL mailing
-list perldl@jach.hawaii.edu. This is a forum to discuss programming
+list pdl-general@lists.sourceforge.net. This is a forum to discuss programming
 issues in PDL, report bugs, seek assistance with PDL related problems,
 etc. To subscribe, fill out the form at
-L<http://mailman.jach.hawaii.edu/mailman/listinfo/perldl> .
+L<http://lists.sourceforge.net/lists/listinfo/pdl-general> .
 
 A searchable archive and a hypertext version of the traffic on this
 list (1997-2004) can be found at
 L<http://www.xray.mpe.mpg.de/mailing-lists/perldl/> . More recent
-messages (since June 2005) can be found at
-L<http://mailman.jach.hawaii.edu/mailman/listinfo/perldl> .
+messages (since June 2005) can be found at TBD.
 
 If you are interested in all the technical details of the ongoing PDL
 development you can join the PDL developers mailing list
-pdl-porters@jach.hawaii.edu . To subscribe, fill out the form at
-L<http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters> .
+pdl-devel@lists.sourceforge.net . To subscribe, fill out the form at
+L<http://lists.sourceforge.net/lists/listinfo/pdl-devel> .
 
 A searchable archive and a hypertext version
 of the traffic on this list (1997-2004) can be found at 
 L<http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/> . More recent messages 
-(since June 2005) can be found at 
-L<http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters> .
+(since June 2005) can be found at TBD
 
 Cross-posting between these lists should be avoided unless there is a
 I<very> good reason for doing that.
@@ -437,7 +436,7 @@ starting for either C<CPAN> or C<CPANPLUS> users.
 If you have a certain project in mind you should check if somebody
 else is already working on it or if you could benefit from existing
 modules. Do so by posting your planned project to the PDL developers
-mailing list at pdl-porters@jach.hawaii.edu . See the subscription
+mailing list at pdl-devel@lists.sourceforge.net . See the subscription
 instructions in L<Question 3.2|"Q: 3.2 Are there other PDL information sources on the Internet?">.
 We are always looking for people to write code and/or documentation ;).
 
@@ -449,7 +448,7 @@ First, make sure that the bug/problem you came across has not already been
 dealt with somewhere else in this FAQ.  Secondly, you can check the
 searchable archive of the PDL mailing lists to find whether
 this bug has already been discussed.  If you still haven't found
-any explanations you can post a bug report to perldl@jach.hawaii.edu ,
+any explanations you can post a bug report to pdl-general@lists.sourceforge.net ,
 or through the Bugs link on L<http://pdl.perl.org> .  See the F<BUGS>
 file in the PDL distribution for what information to include.  If
 you are unsure, discussions via the perldl mailing list can be
@@ -485,7 +484,7 @@ puzzling test or build failures.
 
 If you still can't make it work properly please submit a bug
 report including detailed information on the problems you
-encountered to the perldl mailing list ( perldl@jach.hawaii.edu ,
+encountered to the perldl mailing list ( pdl-general@lists.sourceforge.net ,
 see also above). Response is often rapid.
 
 
@@ -556,7 +555,7 @@ though they might not be the most recent version.
 
 If someone is interested in providing binary distributions for other 
 architectures, that would be very welcome. Let us know on the 
-pdl-porters@jach.hawaii.edu mailing list. Also check your Linux
+pdl-devel@lists.sourceforge.net mailing list. Also check your Linux
 distribution's package manager as many now include PDL.  PPMs
 for win32 versions (both 32bit and 64bit) are also available.
 
@@ -1556,7 +1555,7 @@ write more advanced routines directly in PDL::PP.
 
 
 If you find any inaccuracies in this document (or dis-functional
-URLs) please report to the perldl mailing list perldl@jach.hawaii.edu.
+URLs) please report to the perldl mailing list pdl-general@lists.sourceforge.net.
 
 
 
@@ -1594,5 +1593,5 @@ copying (and formatting) of this material as part of PDL.
 
 Permission is explicitly not granted for distribution in book
 or any corresponding form. Ask on the PDL mailing list
-perldl@jach.hawaii.edu if some of the issues covered
+pdl-general@lists.sourceforge.net if some of the issues covered
 in here are unclear.

@@ -39,7 +39,7 @@ comment q|
         3) It must create an interesting image when fed to perl.
 
         If you have an interesting new TriD M4LS (Maximal-4-lines-script)
-        submit it to the PDL mailing list (perldl@jach.hawaii.edu)
+        submit it to the PDL mailing list (pdl-general@lists.sourceforge.net)
         and there is a good chance it will soon be included in the gallery
 
 	Press 'q' in the graphics window for the next screen.
