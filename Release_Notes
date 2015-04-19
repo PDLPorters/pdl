@@ -31,7 +31,11 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Build issues with PROJ4 detection and link with cygwin
+   platforms has been worked around.
+ 
+ * Failing tests in t/ops.t for new 64bit modulus support
+   have been marked TODO.
 
 
 
