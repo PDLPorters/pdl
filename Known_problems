@@ -103,7 +103,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007_15 release:
+  PDL-2.007_16 release:
 
   378   where on dice of pdl bad results
   377   PDL::Transform::Proj4 not building under latest dev EUMM
