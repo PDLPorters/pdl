@@ -53,7 +53,8 @@ sub libdir {
 sub libflags {
   my ($class) = @_;
   my $lib_path = $class->libdir;
-  my $libflags = qq{"-L$lib_path" -lproj -lm};
+  $lib_path = qq{"$lib_path"} if $lib_path =~ /\s/; # conditional as EU::Liblist::Kid doesn't understand this on Cygwin
+  my $libflags = qq{-L$lib_path -lproj -lm};
   $libflags;
 }
 
