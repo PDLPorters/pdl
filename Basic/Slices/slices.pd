@@ -236,7 +236,7 @@ pp_def(
        Pars => 'a(n); indx ind(); [oca] c();',
        Code =>
        $index_init_good . ' $c() = $a(n => foo);',
-$a =        BadCode =>
+       BadCode =>
        $index_init_bad . ' $c() = $a(n => foo);',
        BackCode =>
        $index_init_good . ' $a(n => foo) = $c();',
@@ -3235,7 +3235,7 @@ SLICE-MC
                           /* this argument has a cached string */
 
                           char *s;
-                          IV len;
+                          STRLEN len;
                           int subargno = 0;
                           int flagged = 0;
                           int squish_closed = 0;
