@@ -318,7 +318,7 @@ sub PDL::DiskCache::STORE {
 
   if( $me->{slot}->[$i] ) {
     print "Storing index $i, in cache\n" if($me->{opt}->{verbose});
-    $me->sync;
+    $me->sync($i);
     return $me->{cache}->[$me->{slot}->[$i]] = $val;
   } else {
     print "Storing index $i, not in cache\n" if($me->{opt}->{verbose});
@@ -332,7 +332,7 @@ sub PDL::DiskCache::STORE {
     $me->{fdex}->[$a] = $i;
     $me->{cache_next}++;
     $me->{cache_next} %= $me->{mem};
-    $me->sync;
+    $me->sync($i);
     return $me->{cache}->[$a] = $val;
   }
 
@@ -373,22 +373,27 @@ sub PDL::DiskCache::STORESIZE {
 
 =head2 sync
 
-In a rw cache, flush all items out to disk but retain them in the cache.
-This is useful primarily for cache protection and could be slow.  Because
-we have no way of knowing what's modified and what's not in the cache,
-all elements are always flushed from an rw cache.  For ro caches,
-this is a not-too-slow (but safe) no-op.
+In a rw cache, flush items out to disk but retain them in the cache.
+
+Accepts a single scalar argument, which is the index number of a
+single item that should be written to disk. Passing (-1), or no
+argument, writes all items to disk, similar to purge(-1).
+
+For ro caches, this is a not-too-slow (but safe) no-op.
 
 =cut
 
 sub PDL::DiskCache::sync {
   my($me) = shift;
   $me = (tied @{$me}) if("$me" =~ m/^PDL\:\:DiskCache\=ARRAY/);
-
+  my($syncn) = shift;
+  $syncn = -1 unless defined $syncn;
   print "PDL::DiskCache::sync\n" if($me->{opt}->{verbose});
   
+  my @list = $syncn==-1 ? (0..$me->{mem}-1) : ($syncn);
+
   if($me->{rw}) {
-    for(0..$me->{mem}-1) {
+    for(@list) {
       if(defined $me->{fdex}->[$_]) {
 
 	print "  writing $me->{files}->[$me->{fdex}->[$_]]...\n"

@@ -20,7 +20,7 @@ if($@) {print $@,"\n";}
 ok( !$@ );
 
 ##2 Make a DiskCache object
-
+##exercises STORE, sync, and DESTROY
 
 eval <<'BAR'
   do {
