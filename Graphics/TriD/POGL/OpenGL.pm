@@ -413,7 +413,7 @@ PDL uses a mailing list support model.  The Perldl mailing list
 is the best for questions, problems, and feature discussions with
 other PDL users and PDL developers.
 
-To subscribe see the page at L<http://mailman.jach.hawaii.edu/mailman/listinfo/perldl>
+To subscribe see the page at L<http://pdl.perl.org/?page=mailing-lists>
 
 
 

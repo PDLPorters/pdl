@@ -1106,10 +1106,10 @@ Feedback and bug reports are welcome. Please include an example
 that demonstrates the problem. Log bug reports in the PDL
 bug database at
 
-  http://sourceforge.net/bugs/?group_id=612
+  http://sourceforge.net/p/pdl/bugs/
 
-or send them to the pdl-porters mailing list
-E<lt>pdl-porters@jach.hawaii.eduE<gt>.
+or send them to the pdl-devel mailing list
+E<lt>pdl-devel@lists.sourceforge.netE<gt>.
 
 
 =head1 COPYRIGHT

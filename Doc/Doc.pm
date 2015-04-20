@@ -938,7 +938,7 @@ The Ref entry will begin with 'Module:' if it's a module. In code:
 =head1 BUGS
 
 Quite a few shortcomings which will hopefully be fixed following
-discussions on the pdl-porters mailing list.
+discussions on the pdl-devel mailing list.
 
 =head1 AUTHOR
 

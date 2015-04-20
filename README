@@ -88,11 +88,10 @@ You can check the existing PDL bugs on sourceforge at
 
 The mailing list archives can be searched/read at
 
-	http://mailman.jach.hawaii.edu/pipermail/perldl/
-	http://mailman.jach.hawaii.edu/pipermail/pdl-porters/
+	http://pdl.perl.org/?page=mailing-lists
 
 Questions about problems and possible bugs can be discussed
-via the perldl mailing list.  This is very useful if you are
+via the pdl-general mailing list.  This is very useful if you are
 not sure what you have is a bug or not.  For example, the list
 is the place to go for install problems.
 
@@ -129,11 +128,11 @@ win32/     - Platform specific information
 
 
 Comments are welcome - so are volunteers to write code and documentation!
-Please contact the developers mailing list pdl-porters@jach.hawaii.edu
-(subscription address: pdl-porters-request@jach.hawaii.edu) with ideas
+Please contact the developers mailing list pdl-devel@lists.sourceforge.net
+(subscription info http://pdl.perl.org/?page=mailing-lists) with ideas
 and suggestions.
 
-  The pdl-porters team.
+  The PDL developers.
 
 
 

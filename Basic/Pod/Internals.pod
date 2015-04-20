@@ -22,7 +22,7 @@ struggle to understand L<PDL::PP|PDL::PP>, you will be awarded the title
 is so incomplete that this is next to impossible from just these notes).
 
 B<Warning:> If it seems that this document has gotten out of date,
-please inform the PDL porters email list (pdl-porters@jach.hawaii.edu).
+please inform the PDL porters email list (pdl-devel@lists.sourceforge.net).
 This may well happen.
 
 =head2 Piddles
@@ -562,7 +562,7 @@ If you add a new field to the F<Core> struct you should:
 
 =item *
 
-discuss it on the pdl porters email list (pdl-porters@jach.hawaii.edu)
+discuss it on the pdl porters email list (pdl-devel@lists.sourceforge.net)
 [with the possibility of making your changes to a separate
 branch of the CVS tree if it's a change that will take time to complete]
 
@@ -584,8 +584,8 @@ ensuring the code is as well documented as the rest of PDL
 =head1 BUGS
 
 This description is far from perfect. If you need more details
-or something is still unclear please ask on the pdl-porters
-mailing list (pdl-porters@jach.hawaii.edu).
+or something is still unclear please ask on the pdl-devel
+mailing list (pdl-devel@lists.sourceforge.net).
 
 =head1 AUTHOR
 

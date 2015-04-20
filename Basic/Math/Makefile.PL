@@ -83,7 +83,7 @@ if ($^O eq 'solaris' or $^O eq 'sunos') {
    if (!$ok) {
       print "Couldn't find sunmath library in standard places\n";
       print "If you can find libsunmath.a or libsunmath.so\n";
-      print "please let us know at pdl-porters\@jach.hawaii.edu\n";
+      print "please let us know at pdl-devel\@lists.sourceforge.net\n";
    }
 }
 

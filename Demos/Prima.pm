@@ -137,7 +137,7 @@ If you don't have an IRC client, you can join the discussion via mibbit:
 
 If you would rather, you can send an email to the mailing list:
 
-  http://mailman.jach.hawaii.edu/mailman/listinfo/perldl
+  http://pdl.perl.org/?page=mailing-lists
 
 For more information about PDL::Graphics::Prima, check out
 

@@ -96,7 +96,7 @@ to run the regression tests.  If you have issues,
 please read Known_problems to see if they have been
 seen before.  Again, if there are
 errors, please contact the developers (via the
-pdl-porters mailing list, see Basic/Pod/FAQ.pod).
+pdl-devel mailing list, see Basic/Pod/FAQ.pod).
 
 If everything works and you wish to install PDL, type
 
