@@ -1474,12 +1474,12 @@ pp_def('rot2d',
 	Pars => 'im(m,n); float angle(); bg(); int aa(); [o] om(p,q)',
 	Code => 'int ierr;
 		 if ((ierr = rotate($P(im),$P(om),$SIZE(m),$SIZE(n),$SIZE(p),
-			$SIZE(q),$angle(),$bg(),$aa())) != 0)
+			$SIZE(q),$angle(),$bg(),$aa())) != 0) {
 			if (ierr == -1)
 				croak("error during rotate, wrong angle");
 			else
 				croak("wrong output dims, did you set them?");
-		',
+		}',
 	# ugly workaround since $SIZE(m) and $SIZE(n) are not initialized
 	# when the redodimscode is called
 	# need to fix this!
