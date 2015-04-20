@@ -329,7 +329,7 @@ the hard way), you could open the generated XS file and search for the line
 number with the error. However, a recent addition to PDL::PP helps report
 the correct line number of your errors: C<pp_line_numbers>. Working with the
 original summit example, if you had a mis-spelling of tmp in your code, you
-could change the (erroneos) code to something like this and the compiler
+could change the (erroneous) code to something like this and the compiler
 would give you much more useful information:
 
    pp_def('sumit',
@@ -1846,7 +1846,7 @@ C<BadRedoDimsCode> keys for C<pp_def>. However, any
 C<EquivCPOffsCode> should I<not> need changing, since 
 any changes are absorbed into the definition of the
 C<$EQUIVCPOFFS()> macro (i.e. it is handled automatically
-by PDL::PP>.
+by PDL::PP).
 
 =head2 A few notes on writing a slicing routine...
 
@@ -1878,7 +1878,7 @@ of these routines deal with manipulating piddles, but some are more general:
 
 Sort the array C<xx> between the indices C<a> and C<b>.
 There are also versions for the other PDL datatypes,
-with postfix C<_S>, C<_U>, C<_L>, C<_F>, and C<_D>.
+with postfix C<_S>, C<_U>, C<_L>, C<_N>, C<_Q>, C<_F>, and C<_D>.
 Any module using this must ensure that C<PDL::Ufunc>
 is loaded.
 
@@ -2035,12 +2035,13 @@ your operation will accept. The meaning of each type is:
  S - signed short (two-byte integer)
  U - unsigned short
  L - signed long (four-byte integer, int on 32 bit systems)
+ N - signed integer for indexing piddle elements (platform & Perl-dependent size)
  Q - signed long long (eight byte integer)
  F - float
  D - double
 
 This is very useful (and important!) when interfacing an external library.
-Default: [qw/B S U L Q F D/]
+Default: [qw/B S U L N Q F D/]
 
 =item Inplace
 
@@ -2181,7 +2182,7 @@ a physical pointer access to pdl C<a>; mainly for internal use
 =item $TXXX(Alternative,Alternative)
 
 expansion alternatives according to runtime type of operation,
-where XXX is some string that is matched by C</[BSULFD+]/>.
+where XXX is some string that is matched by C</[BSULNQFD+]/>.
 
 =item $PDL(a)
 
@@ -2449,6 +2450,10 @@ I<perlxs>, I<perlxstut>
 =head1 CURRENTLY UNDOCUMENTED
 
 $RESIZE()
+
+BackCode
+
+Almost everything having to do with L<Slice Operation>.
 
 =head1 BUGS
 
