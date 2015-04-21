@@ -15,7 +15,7 @@ use Test::More;
 BEGIN{
    eval "use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;";
    if ($@) {
-      plan skip_all => "Skipped: PDL::Graphics::PGPLOT not installed";
+      plan skip_all => "PDL::Graphics::PGPLOT not installed";
    } elsif ( !exists($ENV{'DISPLAY'}) and !exists($ENV{HARNESS_ACTIVE}) ) {
       # We have this after the PGPLOT module is loaded so that we test whether the
       # module will at least load, even if we do not test it's
