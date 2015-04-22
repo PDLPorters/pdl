@@ -2,7 +2,7 @@ Release Notes for PDL 2.007_16 --------------------------
 
  +---------------------------------------------------------------+
  | BE WARNED:  This release includes an update to the internal,  |
- | C-level PDL API for PDL versions 2.006 and earlier.  This     |
+ | C-level PDL API for PDL versions 2.007 and earlier.  This     |
  | will require that you re-build any PP or XS modules.  Do not  |
  | upgrade or install over an existing PDL installation unless   |
  | you are prepared to do so!!!                                  |
@@ -31,7 +31,10 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Various clean up and doc fixes
+
+ * Add more of the PDL prerequisites explicitly to handle
+   missing core functionality for CPAN Testers.
 
 
 
