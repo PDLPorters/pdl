@@ -249,13 +249,13 @@ sub PDL::wpnm {
 
     # check the data
     my @Dims = $pdl->dims;
-    barf "wpnm: exspecting 3D (3,w,h) input"
+    barf "wpnm: expecting 3D (3,w,h) input"
 	if ($type =~ /PPM/) && (($#Dims != 2) || ($Dims[0] != 3));
-    barf "wpnm: exspecting 2D (w,h) input"
+    barf "wpnm: expecting 2D (w,h) input"
 	if ($type =~ /P[G,B]M/) && ($#Dims != 1);
     barf "wpnm: user should convert float and double data to appropriate type"
 	if ($pdl->get_datatype == $PDL_F) || ($pdl->get_datatype == $PDL_D);
-    barf "wpnm: exspecting prescaled data"
+    barf "wpnm: expecting prescaled data"
 	if (($pdl->get_datatype != $PDL_B) || ($pdl->get_datatype != $PDL_US)) &&
 	    ($pdl->min < 0);
 

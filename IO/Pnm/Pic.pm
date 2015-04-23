@@ -968,7 +968,7 @@ sub chkpdl {
     my ($isrgb,$form) = (0,"");
     my @Dims = $pdl->dims;
     $isrgb = 1 if ($#Dims >= 2) && ($Dims[0] == 3);
-    barf "exspecting 2D or 3D-RGB-interlaced data as input"
+    barf "expecting 2D or 3D-RGB-interlaced data as input"
 	unless ($isrgb || ($#Dims == 1));
 
     $$hints{'COLOR'} = "" unless defined($$hints{'COLOR'});

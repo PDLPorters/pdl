@@ -126,7 +126,7 @@ sub PDL::interlrgb {
     my $res;
     # for our purposes $lut should be (3,z) where z is the number
     # of colours in the lut
-    barf "exspecting (3,x) input" if ($lut->dims)[0] != 3;
+    barf "expecting (3,x) input" if ($lut->dims)[0] != 3;
     # do the conversion as an implicitly threaded index lookup
     if ($lut->fflows) {
       $res = $lut->xchg(0,1)->index($pdl->dummy(0));
@@ -162,7 +162,7 @@ greyscale image (x,.....) using standard formula:
 sub PDL::rgbtogr {
     barf "Usage: \$im->rgbtogr" if $#_ < 0;
     my $im = shift;
-    barf "rgbtogr: exspecting RGB (3,...) input"
+    barf "rgbtogr: expecting RGB (3,...) input"
          if (($im->dims)[0] != 3);
 
     my $type = $im->get_datatype;
