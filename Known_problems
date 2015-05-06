@@ -103,7 +103,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.007_17 release:
+  PDL-2.007_18 release:
 
   380   PDL Install hangs on t/#flexraw_fortran.t
   379   Passing qsort an extra argument causes a segfault
