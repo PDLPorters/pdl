@@ -454,7 +454,8 @@ my %makefile_hash = (
               },
               BUILD_REQUIRES => {
                 'ExtUtils::MakeMaker' => 0,
-                'ExtUtils::ParseXS' => 3.01, # avoids 2.21, known broken
+                'ExtUtils::ParseXS'   => 3.01, # avoids 2.21, known broken
+                'File::Path'          => 0,
               },
               'MIN_PERL_VERSION' => '5.010',
 	      'NAME' => 'PDL',
