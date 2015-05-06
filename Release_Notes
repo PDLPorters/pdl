@@ -10,7 +10,7 @@ Release Notes for PDL 2.007_17 --------------------------
 
 General Notes:
 
- * This is PDL-2.008 / TBD
+ * This is PDL-2.008_rc4!
 
  * Another quick CPAN developers release
 
@@ -31,7 +31,12 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Clean up of large number modulo tests and make TODO for
+   the PDL-2.008 release.
+ 
+ * Fix build/configure problems from CPAN Testers reports.
+
+ * Quiet excessive warnings in perldl and pdl2doc
 
 
 
