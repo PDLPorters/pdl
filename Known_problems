@@ -14,6 +14,8 @@ The following issues have been reported with this version of PDL:
 - Bugs in Netpbm versions earlier than 10.58.00 result in
   invalid 16bit PNG image IO and failing tests.
 
+- A bug in the Nepbm interface code prevents reading or writing
+  image files with whitespace in the filename.
 
 - GLUT readline support in perldl with the -glut option not
   yet implemented for win32.  Work in progress.
