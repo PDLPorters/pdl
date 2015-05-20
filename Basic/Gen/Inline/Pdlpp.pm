@@ -9,7 +9,7 @@ use Carp;
 use Cwd qw(cwd abs_path);
 use PDL::Core::Dev;
 
-$Inline::Pdlpp::VERSION = '0.3';
+$Inline::Pdlpp::VERSION = '0.4';
 use base qw(Inline::C);
 
 #==============================================================================

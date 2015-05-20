@@ -783,7 +783,7 @@ package PDL::PP;
 
 use strict;
 
-our $VERSION = "2.2";
+our $VERSION = "2.3";
 $VERSION = eval $VERSION;
 
 use PDL::Types ':All';
