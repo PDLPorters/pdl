@@ -2,138 +2,173 @@ use Test::More tests => 60;
 use PDL::LiteF;
 use Config;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+use Test::Exception;
 
-sub tapprox {
-	my($a,$b,$c,$d) = @_;
-	$c = abs($a-$b);
-	$d = max($c);
-	return $d < 0.01;
-}
+use strict;
+use warnings;
+
+kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+
+approx(pdl(0), pdl(0), 0.01); # set eps
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
+{
+my $pa = xvals zeroes 3,5;
 
-$a = xvals zeroes 3,5;
+my $pb = yvals zeroes 3,5;
 
-$b = yvals zeroes 3,5;
+my $pc = $pa + $pb;
 
-$c = $a + $b;
+ok($pc->at(2,2) == 4, 'pdl addition 1');
+ok($pc->at(2,3) == 5, 'pdl addition 2');
+throws_ok {
+	$pc->at(3,3);
+} qr/Position out of range/, 'invalid position';
+}
 
-ok($c->at(2,2) == 4, 'pdl addition 1');
-ok($c->at(2,3) == 5, 'pdl addition 2');
-eval '$c->at(3,3)';
-ok($@ =~ /Position out of range/, 'invalid position');
+{
+my $pd = pdl 5,6;
 
-$d = pdl 5,6;
-
-$e = $d - 1;
-ok($e->at(0) == 4, 'pdl - scalar 1');
-ok($e->at(1) == 5, 'pdl - scalar 2');
-$f = 1 - $d;
-ok($f->at(0) == -4, 'scalar - pdl 1');
-ok($f->at(1) == -5, 'scalar - pdl 2');
+my $pe = $pd - 1;
+ok($pe->at(0) == 4, 'pdl - scalar 1');
+ok($pe->at(1) == 5, 'pdl - scalar 2');
+my $pf = 1 - $pd;
+ok($pf->at(0) == -4, 'scalar - pdl 1');
+ok($pf->at(1) == -5, 'scalar - pdl 2');
+}
 
 # Now, test one operator from each group
 # biop1 tested already
+{
+my $pa = pdl 0,1,2;
+my $pb = pdl 1.5;
 
-$a = pdl 0,1,2;
-$b = pdl 1.5;
+my $pc = $pa > $pb;
 
-$c = $a > $b;
+ok($pc->at(1) == 0, '0 not > 1.5');
+ok($pc->at(2) == 1, '2 is > 1.5');
+}
 
-ok($c->at(1) == 0, '0 not > 1.5');
-ok($c->at(2) == 1, '2 is > 1.5');
+{
+my $pa = byte pdl 0,1,3;
+my $pc = $pa << 2;
 
-$a = byte pdl 0,1,3;
-$c = $a << 2;
+ok($pc->at(0) == 0, '0 left bitshift 2 is 0');
+ok($pc->at(1) == 4, '1 left bitshift 2 is 4');
+ok($pc->at(2) == 12,'3 left bitshift 2 is 12');
+}
 
-ok($c->at(0) == 0, '0 left bitshift 2 is 0');
-ok($c->at(1) == 4, '1 left bitshift 2 is 4');
-ok($c->at(2) == 12,'3 left bitshift 2 is 12');
+{
+my $pa = pdl 16,64,9;
+my $pb = sqrt($pa);
 
-
-$a = pdl 16,64,9;
-$b = sqrt($a);
-
-ok(tapprox($b,(pdl 4,8,3)),'sqrt of pdl(16,64,9)');
+ok(all approx($pb,(pdl 4,8,3)),'sqrt of pdl(16,64,9)');
 
 # See that a is unchanged.
 
-ok($a->at(0) == 16, 'sqrt orig value ok');
+ok($pa->at(0) == 16, 'sqrt orig value ok');
+}
 
-$a = pdl 1,0;
-$b = ! $a;
-ok($b->at(0) == 0, 'elementwise not 1');
-ok($b->at(1) == 1, 'elementwise not 2');
+{
+my $pa = pdl 1,0;
+my $pb = ! $pa;
+ok($pb->at(0) == 0, 'elementwise not 1');
+ok($pb->at(1) == 1, 'elementwise not 2');
+}
 
-$a = pdl 12,13,14,15,16,17;
-$b = $a % 3;
+{
+my $pa = pdl 12,13,14,15,16,17;
+my $pb = $pa % 3;
 
-ok($b->at(0) == 0, 'simple modulus 1');
-ok($b->at(1) == 1, 'simple modulus 2');
-ok($b->at(3) == 0, 'simple modulus 3');
+ok($pb->at(0) == 0, 'simple modulus 1');
+ok($pb->at(1) == 1, 'simple modulus 2');
+ok($pb->at(3) == 0, 'simple modulus 3');
 # [ More modulus testing farther down! ]
+}
 
+{
 # Might as well test this also
+ok(all approx((pdl 2,3),(pdl 2,3)),'approx equality 1');
+ok(!all approx((pdl 2,3),(pdl 2,4)),'approx equality 2');
+}
 
-ok(tapprox((pdl 2,3),(pdl 2,3)),'approx equality 1');
-ok(!tapprox((pdl 2,3),(pdl 2,4)),'approx equality 2');
-
+{
 # Simple function tests
+my $pa = pdl(2,3);
+ok(all approx(exp($pa), pdl(7.3891,20.0855)), 'exponential');
+ok(all approx(sqrt($pa), pdl(1.4142, 1.7321)), 'sqrt makes decimal');
+}
 
-$a = pdl(2,3);
-ok(tapprox(exp($a), pdl(7.3891,20.0855)), 'exponential');
-ok(tapprox(sqrt($a), pdl(1.4142, 1.7321)), 'sqrt makes decimal');
-
+{
 # And and Or
 
-ok(tapprox(pdl(1,0,1) & pdl(1,1,0), pdl(1,0,0)), 'elementwise and');
-ok(tapprox(pdl(1,0,1) | pdl(1,1,0), pdl(1,1,1)), 'elementwise or');
+ok(all approx(pdl(1,0,1) & pdl(1,1,0), pdl(1,0,0)), 'elementwise and');
+ok(all approx(pdl(1,0,1) | pdl(1,1,0), pdl(1,1,1)), 'elementwise or');
+}
 
+{
 # atan2
-ok (tapprox(atan2(pdl(1,1), pdl(1,1)), ones(2) * atan2(1,1)), 'atan2');
+ok (all approx(atan2(pdl(1,1), pdl(1,1)), ones(2) * atan2(1,1)), 'atan2');
+}
 
-$a = sequence (3,4);
-$b = sequence (3,4) + 1;
+{
+my $pa = sequence (3,4);
+my $pb = sequence (3,4) + 1;
 
-ok (tapprox($a->or2($b,0), $a | $b), 'or2');
-ok (tapprox($a->and2($b,0), $a & $b), 'and2');
-ok (tapprox($b->minus($a,0), $b - $a), 'explicit minus call');
-ok (tapprox($b - $a, ones(3,4)), 'pdl subtraction');
+ok (all approx($pa->or2($pb,0), $pa | $pb), 'or2');
+ok (all approx($pa->and2($pb,0), $pa & $pb), 'and2');
+ok (all approx($pb->minus($pa,0), $pb - $pa), 'explicit minus call');
+ok (all approx($pb - $pa, ones(3,4)), 'pdl subtraction');
+}
 
 # inplace tests
 
-$a = pdl 1;
-$sq2 = sqrt 2; # perl sqrt
-$a->inplace->plus(1,0);  # trailing 0 is ugly swap-flag
-ok(tapprox($a, pdl 2), 'inplace plus');
-$warning_shutup = $warning_shutup = sqrt $a->inplace;
-ok(tapprox( $a, pdl($sq2)), 'inplace pdl sqrt vs perl scalar sqrt');
-$a = pdl 4;
-ok(tapprox( 2, sqrt($a->inplace)),'perl scalar vs inplace pdl sqrt');
+{
+my $pa = pdl 1;
+my $sq2 = sqrt 2; # perl sqrt
+$pa->inplace->plus(1,0);  # trailing 0 is ugly swap-flag
+ok(all approx($pa, pdl 2), 'inplace plus');
+my $warning_shutup;
+$warning_shutup = $warning_shutup = sqrt $pa->inplace;
+ok(all approx( $pa, pdl($sq2)), 'inplace pdl sqrt vs perl scalar sqrt');
+my $pb = pdl 4;
+ok(all approx( 2, sqrt($pb->inplace)),'perl scalar vs inplace pdl sqrt');
+}
 
+{
 # log10 now uses C library
 # check using scalars and piddles
-$a = log10(110);
-$b = log(110) / log(10);
-note "a: $a  [ref(\$a)='", ref($a),"']\n";
-note "b: $b\n";
-ok(abs($a-$b) < 1.0e-5 ,'log10 scalar');
-$a = log10(pdl(110,23));
-$b = log(pdl(110,23)) / log(10);
-note "a: $a\n";
-note "b: $b\n";
-ok(tapprox( $a, $b), 'log10 pdl');
+{
+my $pa = log10(110);
+my $pb = log(110) / log(10);
+note "a: $pa  [ref(\$pa)='", ref($pa),"']\n";
+note "b: $pb\n";
+ok(abs($pa-$pb) < 1.0e-5 ,'log10 scalar');
+}
+
+{
+my $pa = log10(pdl(110,23));
+my $pb = log(pdl(110,23)) / log(10);
+note "a: $pa\n";
+note "b: $pb\n";
+ok(all approx( $pa, $pb), 'log10 pdl');
 
 # check inplace
-ok(tapprox( pdl(110,23)->inplace->log10(), $b), 'inplace pdl log10');
-$data = ones 5;
+ok(all approx( pdl(110,23)->inplace->log10(), $pb), 'inplace pdl log10');
+}
+
+}
+
+{
+my $data = ones 5;
 $data &= 0;
 ok(all($data == 0), 'and assign');
 $data |= 1;
 ok(all($data == 1), 'or assign');
 
 ok(all($data eq $data), 'eq'); # check eq operator
+}
 
 SKIP:
 {
@@ -147,29 +182,33 @@ SKIP:
 
 #### Modulus checks ####
 
+{
 #test signed modulus on small numbers
 # short/long/indx/longlong/float/double neg/0/pos % neg/0/pos
-$a = pdl(-7..7);
-$b = pdl(-3,0,3)->transpose;
-$c = cat(pdl("-1 0 -2 " x 5),zeroes(15),pdl("2 0 1 " x 5));
-ok all(short($a) % short($b) == short($c)),'short modulus';
-ok all(long($a) % long($b) ==  long($c)), 'long modulus';
-ok all(indx($a) % indx($b) == indx($c)), 'indx modulus';
-ok all(longlong($a) % longlong($b) == longlong($c)), 'longlong modulus';
-ok all(float($a) % float($b) == float($c)), 'float modulus';
-ok all(double($a) % double($b) == double($c)), 'double modulus';
+my $pa = pdl(-7..7);
+my $pb = pdl(-3,0,3)->transpose;
+my $pc = cat(pdl("-1 0 -2 " x 5),zeroes(15),pdl("2 0 1 " x 5));
+ok all(short($pa) % short($pb) == short($pc)),'short modulus';
+ok all(long($pa) % long($pb) ==  long($pc)), 'long modulus';
+ok all(indx($pa) % indx($pb) == indx($pc)), 'indx modulus';
+ok all(longlong($pa) % longlong($pb) == longlong($pc)), 'longlong modulus';
+ok all(float($pa) % float($pb) == float($pc)), 'float modulus';
+ok all(double($pa) % double($pb) == double($pc)), 'double modulus';
+}
 
+{
 #test unsigned modulus
 # byte/ushort 0/pos % 0/pos
-$a = xvals(15);
-$b = pdl(0,3)->transpose;
-$c = cat(zeroes(15),pdl("0 1 2 " x 5));
-ok all(byte($a) % byte($b)==byte($c)), 'byte modulus';
-ok all(ushort($a) % ushort($b)==ushort($c)), 'ushort modulus';
+my $pa = xvals(15);
+my $pb = pdl(0,3)->transpose;
+my $pc = cat(zeroes(15),pdl("0 1 2 " x 5));
+ok all(byte($pa) % byte($pb)==byte($pc)), 'byte modulus';
+ok all(ushort($pa) % ushort($pb)==ushort($pc)), 'ushort modulus';
+}
 
 #and for big numbers (bigger than INT_MAX=2147483647)
 #basically this is exercising the (typecast)(X)/(N) in the macros
-$INT_MAX=2147483647;
+my $INT_MAX = 2147483647;
 
 TODO: {
 local $TODO = undef;
@@ -184,12 +223,14 @@ cmp_ok longlong($INT_MAX*4)%2, '==', 0, "big longlong modulus: @{[$INT_MAX*4]} %
 cmp_ok double($INT_MAX*4)%2  , '==', 0, "big double modulus: @{[$INT_MAX*4]} % 2";
 }
 
+{
 #and do the same for byte (unsigned char) and ushort
-$BYTE_MAX = 255;
-$USHORT_MAX = 65535;
+my $BYTE_MAX = 255;
+my $USHORT_MAX = 65535;
 
 ok byte($BYTE_MAX)%1 == 0, 'big byte modulus';
 ok ushort($USHORT_MAX)%1 == 0, 'big ushort modulus';
+}
 
 SKIP:
 {
