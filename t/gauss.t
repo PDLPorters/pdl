@@ -27,19 +27,22 @@ my $g2 = pdl qw[  13.013418  11.397573  7.4494489  4.5594057  2.5728955
 2.2979197  2.2963699  2.1171346  1.8859732  2.1277667  2.0716804  1.9251175];
 
 
-my ($xc, $pk, $fwhm, $back, $err, $fit) = fitgauss1d(xvals($g1), $g1);
+{
+	my ($xc, $pk, $fwhm, $back, $err, $fit) = fitgauss1d(xvals($g1), $g1);
 
+	#points $g1; hold; line $fit; rel;
 
-#points $g1; hold; line $fit; rel;
+	ok( nint($xc)==16 && nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
+	    && nint($err)==0 && sum(abs($g1-$fit))<10);
+}
 
-ok( nint($xc)==16 && nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
-  && nint($err)==0 && sum(abs($g1-$fit))<10);
+{
+	my ($pk, $fwhm, $back, $err, $fit) = fitgauss1dr(xvals($g2),$g2);
 
-($pk, $fwhm, $back, $err, $fit) = fitgauss1dr(xvals($g2),$g2);
+	#points $g2; hold; line $fit; rel;
 
-#points $g2; hold; line $fit; rel;
-
-ok(nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
-  && nint($err)==0 && sum(abs($g2-$fit))<10);
+	ok(nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
+	   && nint($err)==0 && sum(abs($g2-$fit))<10);
+}
 
 done_testing;
