@@ -2,36 +2,31 @@
 # of used memory in 1.90_01
 use Test::More tests => 2;
 use PDL::LiteF;
+use Test::Exception;
 # PDL::Core::set_debugging(1);
-kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-{
-sub ap {
-	my($a,$b) = @_;
-	my $c = abs($a-$b);
-	my $d = max($c);
-	1;
-}
+use strict;
+use warnings;
 
-my $a = pdl (1,2);
-my $b = pdl [[1,2],[1,2],[1,2]];
-my $c = $a->slice(',*3');
-$c->make_physical;
-ap($b,$c);
-$c = $b->clump(2);
+kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-$b->make_physical;
-$c->make_physical;
-}
+lives_ok {
+my $pa = pdl (1,2);
+my $pb = pdl [[1,2],[1,2],[1,2]];
+my $pc = $pa->slice(',*3');
+$pc->make_physical;
+$pc = $pb->clump(2);
 
-ok 1;
+$pb->make_physical;
+$pc->make_physical;
+};
 
-$a =  zeroes 4,5;
+lives_ok {
+my $pa =  zeroes 4,5;
 
-$b = $a->slice('1:3:2,2:4:2');
+my $pb = $pa->slice('1:3:2,2:4:2');
 
-$b .=  ones(2,2);
+$pb .=  ones(2,2);
 
-note $a;
-
-ok 1;
+note $pa;
+};
