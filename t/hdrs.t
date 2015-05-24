@@ -20,26 +20,36 @@ note "pa: ", Dumper $pa->gethdr();
 
 ok($pa->hdrcpy);
 
-my $pb = $pa+1;
-note "pb: ", Dumper $pb->gethdr();
-ok( defined($pb->gethdr));
-is_deeply($pa->gethdr,$pb->gethdr);
+{
+	my $pb = $pa+1;
+	note "pb: ", Dumper $pb->gethdr();
+	ok( defined($pb->gethdr));
+	is_deeply($pa->gethdr,$pb->gethdr);
+}
 
-$pb = ones(20) + $pa;
-note "pb: ", Dumper $pb->gethdr();
-ok( defined($pb->gethdr));
-is_deeply($pa->gethdr,$pb->gethdr);
+{
+	my $pb = ones(20) + $pa;
+	note "pb: ", Dumper $pb->gethdr();
+	ok( defined($pb->gethdr));
+	is_deeply($pa->gethdr,$pb->gethdr);
+}
 
-my $pc = $pa->slice('0:5');
-note "pc: ", Dumper $pc->gethdr();
-is_deeply($pa->gethdr,$pc->gethdr);
+{
+	my $pc = $pa->slice('0:5');
+	note "pc: ", Dumper $pc->gethdr();
+	is_deeply($pa->gethdr,$pc->gethdr);
+}
 
-my $pd = $pa->copy;
-note "pd: ", Dumper $pd->gethdr();
-is_deeply($pa->gethdr,$pd->gethdr);
+{
+	my $pd = $pa->copy;
+	note "pd: ", Dumper $pd->gethdr();
+	is_deeply($pa->gethdr,$pd->gethdr);
+}
 
-$pa->hdrcpy(0);
-ok(defined($pa->slice('3')->hdr) && !( keys (%{$pa->slice('3')->hdr})));
-ok(!defined($pa->slice('3')->gethdr));
+{
+	$pa->hdrcpy(0);
+	ok(defined($pa->slice('3')->hdr) && !( keys (%{$pa->slice('3')->hdr})));
+	ok(!defined($pa->slice('3')->gethdr));
+}
 
 done_testing;
