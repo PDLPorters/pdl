@@ -6,6 +6,7 @@ use Test::More skip_all => 'See PDL::Func';
 use PDL::LiteF;
 
 use strict;
+use warnings;
 
 plan tests => 5;
 
@@ -26,8 +27,9 @@ is $obj->status, -1;
 
 # compare to direct version
 my ( $ans, $err ) = PDL::Primitive::interpolate( $xi, $x, $y );
-my $d = abs( $ans - $yi ); 
-ok( all $d < 1.0e-5 );
+ok(all approx($ans, $yi));
+#my $d = abs( $ans - $yi ); 
+#ok( all $d < 1.0e-5 );
 
 my $oerr = $obj->get( 'err' );
 ok( all ($oerr-$err) == 0 );
