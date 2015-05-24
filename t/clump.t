@@ -12,12 +12,12 @@ $|=1;
 #  PDL::Core::set_debugging(1);
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-#$a = zeroes(4,4) * zeroes(4,4);
-# $a = zeroes(4,4) ;
+#$pa = zeroes(4,4) * zeroes(4,4);
+# $pa = zeroes(4,4) ;
 
-#print $a;
+#print $pa;
 #
-#print $a->at(3,3);
+#print $pa->at(3,3);
 #
 #exit 4;
 
@@ -60,9 +60,9 @@ if(0) {
 	my $pa = xvals(zeroes(3,3)) + 10*yvals(zeroes(3,3));
 	note $pa;
 	my $pb = $pa->clump(-1);
-	# $b->make_physical();
-	# $a->jdump();
-	# $b->jdump();
+	# $pb->make_physical();
+	# $pa->jdump();
+	# $pb->jdump();
 
 	note $pb;
 
