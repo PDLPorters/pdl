@@ -1,4 +1,4 @@
-Release Notes for PDL 2.007_18 --------------------------
+Release Notes for PDL 2.008 -----------------------------
 
  +---------------------------------------------------------------+
  | BE WARNED:  This release includes an update to the internal,  |
@@ -10,28 +10,127 @@ Release Notes for PDL 2.007_18 --------------------------
 
 General Notes:
 
- * This is PDL-2.008 (TBD)
+ * This is PDL-2.008!  Yay!
 
- * Another quick CPAN developers release
+ * perl 5.10.x is now the minimum version of perl
+   supported by PDL-2.008 and later.
 
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
+ * 50 sf.net bug tickets closed/fixed since PDL-2.007!
 
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-
-   - Manual build/install is possible, but easiest is to
-     use cpanm:
-
-       cpanm --dev PDL
+ * Partial 64bit indexing support with some fixes to
+   remaining issues.  Full 64bit support for perl modulus
+   operater ('%') is in progress.
+ 
+ * Major clean up and rework of the core PDL computation
+   code, the build process, test suites, and updating to
+   reflect more of the best practices for perl module
+   development.
+ 
+ * The PDL development has moved to github and now has
+   added continuous commit testing via the Travis-CI
+   framework.  The git workflow is now inline with
+   current practices and it is expected that this will
+   allow more contributions and "eyes on the code".
 
 Highlights:
 
- * TBD
+ * PDL::FFTW is no longer part of the PDL Core.
+   Please use PDL::FFTW3 from CPAN (Dima Kogan)
+   with Alien::FFTW3 support (Craig DeForest)
+
+ * New improved vsearch functionality, interfaces,
+   and documentation (Diab Jerius)
+ 
+ * PDL::IO::Storable now robust against version, platform
+   endianness, and supports the new 64bit PDL_Indx data
+   type (Dima Kogan)
+
+ * Clean up of PDL/Basic/Core code to remove cruft and
+   to simplify the evolution to a coming improvements
+   (Craig DeForest)
+ 
+ * Major clean up, de-crufting, and streamlining of the
+   entire PDL ExtUtils::MakeMaker build process (Ed J)
+ 
+ * Standardizing and updating the entire PDL test suite
+   to a common basis (use Test::More) and coding to more
+   consistent best practices.  E.g., use strict
+   This is a huge (ongoing) effort but a comprehensive
+   test suite is needed for regression tests to validate
+   compatibility of coming PDL3 architecture changes.
+   (Zakariyya Mughal)
+
+ * You can now call the PDL::Graphics2D twiddle()
+   routine with an argument of 0 or 1 (i.e., false
+   or true) to set whether the twiddle loop is run.
+
+ * Library dependency detection improvements including
+   PROJ4 and GD.  A number of improvements in this for
+   strawberry perl on windows (kmx)
+ 
+ * The PDL distribution process now generated the
+   documentation for the modules using the automated
+   code generation process.  This makes all the PDL
+   docs available on http://search.cpan.org and on
+   http://metacpan.org for your web browser. (kmx)
+
+ * Improved support to build XS/C extensions: (Ed J)
+   - You can now: "use Inline with => 'PDL';", see PDL::API
+   - You can, in your module's Makefile.PL:
+     "$p = new ExtUtils::Depends 'MyMod', 'PDL'"
+
+ * MANY sf.net tickets closed:
+
+   377   PDL::Transform::Proj4 not building under latest dev EUMM
+   375   Storable files incorrectly processed from older versions.
+   374   CONFIGURE_REQUIRES => Devel::CheckLib
+   373   2.007_11 MANIFEST
+   372   2.007_11 fails on MS Windows 64bit
+   371   PDL-2.4.11 medover failure in perl 5.20.1
+   370   PDL-2.007 can fail to build Basic/#Core files
+   369   slice fails with subclass index
+   368   PDL::Slatec::polyfit ignores incorrect length of weight piddle...
+   367   BAD value parsing breakage
+   365   CPAN PDL install broken due to breakage in Module::Compile 0.34
+   363   PP "OtherPars" namespace is not clean
+   362   rcols COLIDS need chomp-ing
+   361   vsearch bug w/# reversed list
+   360   subtle & rare bug in vsearch
+   359   Improved documentation for vsearch
+   358   one2nd() has unexpected behaviour when given a Perl scalar rather than a piddle
+   357   Android support
+   356   overload::Method() does not return coderef for stringification
+   355   dog creates 0 dim piddle which squeezes to 1 dim.
+   353   imag2d not 'use warnings' safe and no way to disable twiddle
+   352   reorder() not an lvalue sub
+   351   PDL_BOOT has wrong XS code
+   350   Modules using PDL::Slatec will get installed even if Slatec is disabled
+   349   PDL needs integrated support for PDL::PP and CPAN indexer
+   348   PDL->null->slice('')->nelem results in error
+   345   documentation of WITH_PLPLOT in perldl.conf incorrect
+   344   Current version numbering is broken
+   342   BUGS file not indexable or discoverable
+   337   rangeb() broken for 64bit index support on 32bit perl
+   332   "isn't numeric in null operation" warning could be more helpful
+   331   uniq does not always return proper object
+   329   t/#picrgb.t fails in PDL build
+   321   Several core modules do not have man pages
+   319   PDL::Index does not render on websites
+   316   plplot.t failure when building 2.4.11
+   314   conv1d bad value broken
+   313   clip() edge case not handled right
+   312   Wrong results in corner empty-set cases
+   283   PDL::IO::FITS::wfits corrupting FITS image
+   272   indexND of Empty pdls can segfault
+   268   PLplot still unusable with X
+   261   max() fails on nan
+   256   Threadable version of PDL::MatrixOps::inv
+   232   perl -d chokes on lvalue functions
+   227   PGPLOT module doesn't work in PDL
+   224   Ctrl-C kills perldl in win32 console
+   207   Name "PDL::SHARE" used only once.
+    63   Unable to get the 3d demos
+    51   justify option fails in imag (PDL2.3.4)
 
 
 
