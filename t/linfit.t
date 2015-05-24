@@ -1,34 +1,41 @@
 use Test::More;
 use PDL::LiteF;
-BEGIN {
-        eval " use PDL::Fit::Linfit; ";
-        plan skip_all => "PDL::Fit::Linfit: $@" if $@;
-}
 
-kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+use strict;
+use warnings;
+
+eval {
+	require PDL::Fit::Linfit;
+	PDL::Fit::Linfit->import();
+	1;
+} or plan skip_all => "PDL::Fit::Linfit: $@";
+
+kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 plan tests => 2;
 
+{
 # Simple Test Case:
 
 # Generate data from a set of functions
 my $xvalues = sequence(100);
-$data = 3*$xvalues + 2*cos($xvalues) + 3*sin($xvalues*2); 
+my $data = 3*$xvalues + 2*cos($xvalues) + 3*sin($xvalues*2);
 
 # Fit functions are the linear, cos, and sin2x functions used in
 #   the data generation step above:
-$fitFuncs = cat $xvalues, cos($xvalues), sin($xvalues*2);
+my $fitFuncs = cat $xvalues, cos($xvalues), sin($xvalues*2);
 
 # Perform the fit, Coefs should equal 3,2,3
-my ($yfit, $coeffs) = PDL::linfit1d($data,$fitFuncs);
+my ($yfit, $coeffs) = PDL::linfit1d($data, $fitFuncs);
 
 my @coefs = $coeffs->list;
 
-ok( tapprox( $coefs[0], 3) && tapprox( $coefs[1], 2) && tapprox( $coefs[2], 3) );
+ok all approx( $coeffs, pdl([3,2,3]) );
+}
 
-
+{
 # More Complex Example
-	
+
 
 my $noPoints = 501;
 
@@ -57,9 +64,9 @@ $Amphalf = .5;
 $Ampfull = .2;
 
 # generate waveform:
-for($i=0;$i<$noPoints;$i++){
+for(my $i = 0; $i < $noPoints; $i++){
 	$PulsedB[$i]=
-		-$lin*1e-3*$i*$deltaT + 
+		-$lin*1e-3*$i*$deltaT +
 		$Amphalf*sin($pi/$Pwidth*$i*$deltaT)  +
 		$Ampfull*sin(2*$pi/$Pwidth*$i*$deltaT) +
 		$AmpHO*sin(2*$pi/$HOper*$i*$deltaT);
@@ -75,10 +82,9 @@ $pave = $psum/$noPoints;
 
 # printf("DC Value = %g\n",$pave);
 
-
 # Make PDL from waveform:
 my $data = new PDL( \@Pulse);
-
+my @functions;
 
 # setup matrix contains functions to fit
 for ($i=0; $i<$noPoints; $i++) {
@@ -92,21 +98,9 @@ $functions[3][$i] = sin(2*$pi*$i/($noPoints-1));
 
 my $fitFuncs = new PDL( \@functions);
 
-($yfit, $coeffs) = linfit1d( $data, $fitFuncs);
+my ($yfit, $coeffs) = linfit1d( $data, $fitFuncs);
 
-@coefs = $coeffs->list;
+my @coefs = $coeffs->list;
 
-ok( tapprox( $coefs[0], $expectedCoefs[0]) && 
-		tapprox( $coefs[1], $expectedCoefs[1]) &&
-		tapprox( $coefs[2], $expectedCoefs[2]) &&
-		tapprox( $coefs[3], $expectedCoefs[3]) 
-	 );
-
-
-sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs($a-$b);
-        my $d = ref($c) ? $c->{PDL}->max : $c ;  # don't do a make if were are dealing 
-					  # with a scalar
-        $d < 0.00001;
+ok all approx( $coeffs, pdl( \@expectedCoefs ) );
 }
