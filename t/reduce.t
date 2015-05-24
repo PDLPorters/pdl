@@ -2,12 +2,15 @@ use Test::More tests => 5;
 use PDL::LiteF;
 use PDL::Reduce;
 
-$a = sequence 5,5;
-$b = $a->reduce('add',0);
+use strict;
+use warnings;
 
-ok(all $b == $a->sumover);
-ok(all $a->reduce('add',1) == $a->mv(1,0)->sumover);
-ok(all $a->reduce('mult',1) == $a->mv(1,0)->prodover);
+my $pa = sequence 5,5;
+my $pb = $pa->reduce('add',0);
+
+ok(all $pb == $pa->sumover);
+ok(all $pa->reduce('add',1) == $pa->mv(1,0)->sumover);
+ok(all $pa->reduce('mult',1) == $pa->mv(1,0)->prodover);
 # test the new reduce features
-ok($a->reduce('+',0,1) == sum $a); # reduce over list of dims
-ok(all $a->reduce(\&PDL::sumover) == $a->sumover); # use code refs
+ok($pa->reduce('+',0,1) == sum $pa); # reduce over list of dims
+ok(all $pa->reduce(\&PDL::sumover) == $pa->sumover); # use code refs
