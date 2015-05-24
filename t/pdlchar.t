@@ -6,11 +6,13 @@ use Test::More tests => 6;
 use PDL;
 use PDL::Char;
 use strict;
+use warnings;
 
-my $a = PDL::Char->new ([[['abc', 'def', 'ghi'],['jkl', 'mno', 'qrs']],
+{
+my $pa = PDL::Char->new ([[['abc', 'def', 'ghi'],['jkl', 'mno', 'qrs']],
 		    [['tuv', 'wxy', 'zzz'],['aaa', 'bbb', 'ccc']]]);
 
-my $stringized = $a->string;
+my $stringized = $pa->string;
 my $comp = 
 qq{[
  [
@@ -24,19 +26,21 @@ qq{[
 ] 
 };
 
-ok( ($stringized eq $comp));
-$a->setstr(0,0,1, 'foo');
-ok( ($a->atstr(0,0,1) eq 'foo'));
-$a->setstr(2,0,0, 'barfoo');
-ok( ($a->atstr(2,0,0) eq 'bar'));
-$a->setstr(0,0,1, 'f');
-ok( ($a->atstr(0,0,1) eq "f"));
-$b = sequence (byte, 4, 5) + 99;
-$b = PDL::Char->new($b);
-$stringized = $b->string;
+is( $stringized, $comp);
+$pa->setstr(0,0,1, 'foo');
+is( $pa->atstr(0,0,1), 'foo');
+$pa->setstr(2,0,0, 'barfoo');
+is( $pa->atstr(2,0,0), 'bar');
+$pa->setstr(0,0,1, 'f');
+is( $pa->atstr(0,0,1), "f");
+my $pb = sequence (byte, 4, 5) + 99;
+$pb = PDL::Char->new($pb);
+$stringized = $pb->string;
 $comp = "[ 'cdef' 'ghij' 'klmn' 'opqr' 'stuv' ] \n";
-ok( ($stringized eq $comp));
+is($stringized, $comp);
+}
 
+{
 # Variable-length string test
 my $varstr = PDL::Char->new( [ ["longstring", "def", "ghi"],["jkl", "mno", 'pqr'] ] );
  
@@ -48,4 +52,5 @@ my $comp2 =
 ] 
 ";
 
-ok( ("$varstr" eq $comp2));
+is("$varstr", $comp2);
+}
