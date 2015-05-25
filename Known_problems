@@ -102,7 +102,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.008 release:
+  PDL-2.009 release:
 
   383   gcc/#gfortran 4.9.2 needs -lquadmath
   382   plplot-5.11.0 comes with libplplot.a but missing libplplotd.a
