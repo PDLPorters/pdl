@@ -11,6 +11,7 @@ pp_beginwrap; # required for overload to work
 pp_bless('PDL::Complex');
 
 pp_addpm {At => Top}, <<'EOD';
+our $VERSION = '2.009';
    use PDL::Slices;
    use PDL::Types;
    use PDL::Bad;

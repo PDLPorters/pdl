@@ -7,7 +7,8 @@ use warnings;
 use PDL::Exporter;
 use DynaLoader;
 our @ISA    = qw( PDL::Exporter DynaLoader );
-bootstrap PDL::Core;
+our $VERSION = '2.009';
+bootstrap PDL::Core $VERSION;
 use PDL::Types ':All';
 
 our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
