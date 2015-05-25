@@ -7,16 +7,13 @@ use PDL::Math;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs($a-$b);
-        my $d = max($c);
-        $d < 0.01;
-}
+approx(pdl(0), pdl(0), 0.01); # set eps
 
-my $a = pdl( 0.01, 0.0 );
-ok( tapprox( erfi($a), pdl(0.00886,0.0) ), "erfi");
+{
+my $pa = pdl( 0.01, 0.0 );
+ok( all approx( erfi($pa), pdl(0.00886,0.0) ), "erfi" );
 
 # inplace
-$a->inplace->erfi;
-ok( tapprox( $a, pdl(0.00886,0.0) ), "erfi inplace");
+$pa->inplace->erfi;
+ok( all approx( $pa, pdl(0.00886,0.0) ), "erfi inplace" );
+}
