@@ -3,8 +3,11 @@
 use Test::More;
 use PDL::LiteF;
 
+use strict;
+use warnings;
+
+our $loaded; our $slatec;
 BEGIN {
-    $loaded = 0; $slatec = 0;
     # Must load slatec before Func since Func loads slatec itself
     # and this line will be a no-op (and so we will not be able to
     # spot that Slatec has failed)
