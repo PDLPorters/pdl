@@ -19,10 +19,8 @@ use File::Spec;
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs($a-$b);
-        my $d = max($c);
-        $d < 0.01;
+        my($pa,$pb) = @_;
+	all approx($pa, $pb, 0.01);
 }
 
 # Create the filenames
@@ -71,8 +69,8 @@ sub loglog {
 
    my $ret = $x->copy; # Make copy of $x to return
 
-   print "X = $x\n";
-   print "Y = $y\n";
+   note "X = $x\n";
+   note "Y = $y\n";
 
    my $ldfile =
    callext($out, "loglog_ext", $ret, $y);
