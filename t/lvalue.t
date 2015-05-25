@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 use English;
-
 use Test::More;
+use Test::Exception;
 
 use PDL::LiteF;
 use PDL::Lvalue;
@@ -19,9 +19,9 @@ $| = 1;
 
 ok (PDL::Lvalue->subs('slice'),"slice is an lvalue sub");
 
-$a = sequence 10;
-eval '$a->slice("") .= 0';
+my $pa = sequence 10;
+lives_ok {
+	$pa->slice("") .= 0;
+} "lvalue slice ran OK";
 
-ok (!$@, "lvalue slice ran OK") or diag($@);
-
-is ($a->max, 0, "lvalue slice modified values");
+is($pa->max, 0, "lvalue slice modified values");
