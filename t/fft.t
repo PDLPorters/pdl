@@ -4,61 +4,60 @@ use PDL;
 use PDL::Image2D;
 use PDL::FFT;
 
-use Test::More tests =>17;
+use Test::More tests => 17;
+use Test::Exception;
 
 sub tapprox {
-        my($a,$b) = @_;
-        my ($c) = abs($a-$b);
-        my $d = max($c);
-        $d < 0.01;
+        my($pa,$pb) = @_;
+	all approx $pa, $pb, 0.01;
 }
 
-my ( $a, $b, $c, $i, $k, $kk );
+my ( $pa, $pb, $pc, $pi, $pk, $kk );
 
 foreach my $type(double,float){
-  $a = pdl($type,1,-1,1,-1);
-  $b = zeroes($type,$a->dims);
-  fft($a,$b);
-  ok(all($a==pdl($type,0,0,4,0)), "fft for type $type");
-  ifft($a,$b);
-  ok(all($a==pdl($type,1,-1,1,-1)), "ifft for type $type");
+  $pa = pdl($type,1,-1,1,-1);
+  $pb = zeroes($type,$pa->dims);
+  fft($pa,$pb);
+  ok(all($pa==pdl($type,0,0,4,0)), "fft for type $type");
+  ifft($pa,$pb);
+  ok(all($pa==pdl($type,1,-1,1,-1)), "ifft for type $type");
 }
 
-$k = ones(5,5);
-$a = rfits("m51.fits");
+$pk = ones(5,5);
+$pa = rfits("m51.fits");
 
-$b = $a->copy;
-$c = $b->zeroes;
-fft($b,$c);
-ifft($b,$c);
-ok (tapprox($c,0), "fft zeroes");
+$pb = $pa->copy;
+$pc = $pb->zeroes;
+fft($pb,$pc);
+ifft($pb,$pc);
+ok (tapprox($pc,0), "fft zeroes");
 
-#print "\n",$c->info("Type: %T Dim: %-15D State: %S"),"\n";
-#print "Max: ",$c->max,"\n";
-#print "Min: ",$c->min,"\n";
+#print "\n",$pc->info("Type: %T Dim: %-15D State: %S"),"\n";
+#print "Max: ",$pc->max,"\n";
+#print "Min: ",$pc->min,"\n";
+   
+ok (tapprox($pa,$pb), "m51 image recovered");
 
-ok (tapprox($a,$b), "m51 image recovered");
+$pb = $pa->copy;
+$pc = $pb->zeroes; fftnd($pb,$pc); ifftnd($pb,$pc);
+ok ( tapprox($pc,0), "fftnd zeroes");
+ok ( tapprox($pa,$pb), "fftnd real image");
 
-$b = $a->copy;
-$c = $b->zeroes; fftnd($b,$c); ifftnd($b,$c);
-ok ( tapprox($c,0), "fftnd zeroes");
-ok ( tapprox($a,$b), "fftnd real image");
-
-$b = $a->slice("1:35,1:69");
-$c = $b->copy; fftnd($b,$c); ifftnd($b,$c);
-ok ( tapprox($c,$b) ,"fftnd real and imaginary");
-ok ( tapprox($a->slice("1:35,1:69"),$b), "fftnd original restored");
+$pb = $pa->slice("1:35,1:69");
+$pc = $pb->copy; fftnd($pb,$pc); ifftnd($pb,$pc);
+ok ( tapprox($pc,$pb), "fftnd real and imaginary");
+ok ( tapprox($pa->slice("1:35,1:69"),$pb), "fftnd original restored");
 
 # Now compare fft convolutions with direct method
 
-$b = conv2d($a,$k);
-$kk = kernctr($a,$k);
-fftconvolve( $i=$a->copy, $kk );
+$pb = conv2d($pa,$pk);
+$kk = kernctr($pa,$pk);
+fftconvolve( $pi=$pa->copy, $kk );
 
 ok ( tapprox($kk,0), "kernctr");
-ok ( tapprox($i,$b), "fftconvolve");
+ok ( tapprox($pi,$pb), "fftconvolve" );
 
-$k = pdl[
+$pk = pdl[
  [ 0.51385498,  0.17572021,  0.30862427],
  [ 0.53451538,  0.94760132,  0.17172241],
  [ 0.70220947,  0.22640991,  0.49475098],
@@ -67,29 +66,27 @@ $k = pdl[
  [ 0.53536987,  0.76565552,  0.64645386],
  [ 0.76712036,   0.7802124,  0.82293701]
 ];
-$b = conv2d($a,$k);
+$pb = conv2d($pa,$pk);
 
-$kk = kernctr($a,$k);
-fftconvolve( $i=$a->copy, $kk );
+$kk = kernctr($pa,$pk);
+fftconvolve( $pi=$pa->copy, $kk );
 
 ok ( tapprox($kk,0), "kernctr weird kernel");
-ok ( tapprox($i,$b), "fftconvolve weird kernel");
+ok ( tapprox($pi,$pb), "fftconvolve weird kernel");
 
-$b = $a->copy;
+$pb = $pa->copy;
 
 # Test real ffts
-realfft($b);
-realifft($b);
-ok( tapprox($a,$b), "realfft");
+realfft($pb);
+realifft($pb);
+ok( tapprox($pa,$pb), "realfft");
 
 # Test that errors are properly caught
-eval {fft(sequence(10))};
-like( $@, qr/Did you forget/, 'fft offers helpful message when only one argument is supplied'); #16
-$@ = '';
+throws_ok {fft(sequence(10))}
+qr/Did you forget/, 'fft offers helpful message when only one argument is supplied'; #16
 
 
-eval {ifft(sequence(10))};
-like( $@, qr/Did you forget/, 'ifft offers helpful message when only one argument is supplied'); #17
-$@ = '';
+throws_ok {ifft(sequence(10))}
+qr/Did you forget/, 'ifft offers helpful message when only one argument is supplied'; #17
 
 # End
