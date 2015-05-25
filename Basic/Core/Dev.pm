@@ -515,7 +515,7 @@ sub pdlpp_mkgen {
     $prefix = "$dir/GENERATED/$prefix";
     File::Path::mkpath(dirname($prefix));
     #there is no way to use PDL::PP from perl code, thus calling via system()
-    my @in = map { "-I$_" } @INC;
+    my @in = map { "-I$_" } @INC, 'inc';
     my $rv = system($^X, @in, "-MPDL::PP qw[$mod $mod $prefix]", $pd);
     if ($rv == 0 && -f "$prefix.pm") {
       $added{$manifestpm} = "mod=$mod pd=$pd (added by pdlpp_mkgen)";
