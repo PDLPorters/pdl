@@ -146,7 +146,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.008';     # Go to sub numbering per git push
+$PDL::VERSION = '2.009';
 
 # Main loader of standard PDL package
 

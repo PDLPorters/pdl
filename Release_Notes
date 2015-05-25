@@ -1,3 +1,10 @@
+Release Notes for PDL 2.009 -----------------------------
+
+General Notes:
+
+ * This is PDL-2.009. It has tweaks to fix PAUSE/CPAN indexing problems
+   in 2.008.
+
 Release Notes for PDL 2.008 -----------------------------
 
  +---------------------------------------------------------------+
