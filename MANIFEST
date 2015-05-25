@@ -191,7 +191,6 @@ Example/InlinePdlpp/inlpp_link.pl
 Example/InlinePdlpp/inlppminimal.pl
 Example/PGPLOT/pgplot.pl
 Example/PGPLOT/std_pgplot.pl
-Example/PLplot/refresh.pdl
 Example/Simplex/tsimp2.pl
 Example/Simplex/tsimp_needs_pgplot.pl
 Example/TriD/3dtest.pl
@@ -271,10 +270,6 @@ Graphics/PGPLOT/Window/Makefile.PL
 Graphics/PGPLOT/Window/Window.pm
 Graphics/PGPLOT/Window/Window.xs
 Graphics/PGPLOT/Window/typemap
-Graphics/PLplot/Changes
-Graphics/PLplot/Makefile.PL
-Graphics/PLplot/README
-Graphics/PLplot/plplot.pd
 Graphics/State.pm
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGLQ/Makefile.PL
