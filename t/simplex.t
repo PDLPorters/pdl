@@ -3,11 +3,13 @@ use Test::More;
 use strict;
 use warnings;
 
-eval {
-	require PDL::Opt::Simplex;
-	PDL::Opt::Simplex->import();
-	1;
-} or plan skip_all => "PDL::Opt::Simplex not installed: $@";
+BEGIN {
+	eval {
+		require PDL::Opt::Simplex;
+		PDL::Opt::Simplex->import();
+		1;
+	} or plan skip_all => "PDL::Opt::Simplex not installed: $@";
+}
 
 plan tests => 8;
 

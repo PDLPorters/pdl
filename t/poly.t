@@ -4,11 +4,13 @@ use PDL::LiteF;
 use strict;
 use warnings;
 
-eval {
-	require PDL::Fit::Polynomial;
-	PDL::Fit::Polynomial->import();
-	1;
-} or plan skip_all => "PDL::Fit::Polynomial: $@";
+BEGIN {
+	eval {
+		require PDL::Fit::Polynomial;
+		PDL::Fit::Polynomial->import();
+		1;
+	} or plan skip_all => "PDL::Fit::Polynomial: $@";
+}
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 plan tests => 1;

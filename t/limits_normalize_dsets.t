@@ -6,11 +6,13 @@ use Test::Exception;
 use strict;
 use warnings;
 
-eval {
-	require PDL::Slatec;
-	require PDL::Graphics::Limits;
-	1;
-} or plan skip_all => 'could not load modules';
+BEGIN {
+	eval {
+		require PDL::Slatec;
+		require PDL::Graphics::Limits;
+		1;
+	} or plan skip_all => 'could not load modules';
+}
 
 plan tests => 21;
 
