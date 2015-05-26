@@ -30,7 +30,7 @@ ok all approx( $pc, $ans), "conv2d xvals";  # 1
 
 {
 # conv2d
-my $pa = zeroes(3,3); 
+my $pa = zeroes(3,3);
 $pa->set(1,1,1);
 my $pb = sequence(3,3);
 ok all approx( conv2d($pa,$pb), $pb ), "conv2d trivial kernel";    # 2
@@ -38,7 +38,7 @@ ok all approx( conv2d($pa,$pb), $pb ), "conv2d trivial kernel";    # 2
 
 {
 # conv2d: boundary => reflect
-my $pa = ones(3,3);  
+my $pa = ones(3,3);
 my $pb = sequence(3,3);
 {
 my $ans = pdl ([12,18,24],[30,36,42],[48,54,60]);
@@ -99,10 +99,10 @@ my $mask = zeroes(5,5);
 $mask->set(2,2,1);
 ok all approx( patch2d($pa,$mask), $pa ), "patch2d 1-element no-op";  # 6
 
-# note: 
+# note:
 #   with no bad values, any bad pixel which has no good neighbours
 #   has its value copied
-# 
+#
 my $m = $mask->slice('1:3,1:3');
 $m .= 1;
 my $pans = $pa->copy;
@@ -110,7 +110,7 @@ note $pa, $mask, patch2d($pa,$mask);
 ok all approx( patch2d($pa,$mask), $pans), "patch2d 2d slice no-op";  # 7
 
 SKIP: {
-    skip "PDL::Bad support not available", 5 unless $PDL::Bad::Status;
+    skip "PDL::Bad support not available.", 5 unless $PDL::Bad::Status;
 
     my $pa = ones(5,5);
     # patchbad2d: bad data
@@ -136,7 +136,7 @@ SKIP: {
     my @ans = $pa->max2d_ind();
     note "max2d_ind: " . join( ',', @ans );
     ok( ($ans[0] == 50) & ($ans[1] == 1) & ($ans[2] == 2), "max2d_ind bad data");;
-    
+
 
     # centroid2d
     # centroid2d
