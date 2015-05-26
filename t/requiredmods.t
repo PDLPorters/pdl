@@ -13,7 +13,7 @@ for my $mod (@test) {
 }
 
 if (@hasnt) {
-        print STDERR << 'EOP';
+        diag <<'EOP';
 
 ********************************************************
 * IMPORTANT: Your installation will not work since it  *
@@ -23,10 +23,10 @@ if (@hasnt) {
 *
 EOP
 
-    for (@hasnt) { print STDERR "*\t$_\n" }
+    for (@hasnt) { diag "*\t$_\n" }
 
 
-    print STDERR << 'EOP';
+    diag <<'EOP';
 *                                                      *
 * Please install the missing module(s) and start the   *
 * PDL build process again (perl Makefile.PL; ....)     *
