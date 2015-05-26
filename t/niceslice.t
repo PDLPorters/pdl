@@ -1,160 +1,154 @@
 use strict;
-use Test;
+use Test::More;
 
 use PDL::LiteF;
 
-BEGIN { 
-    eval 'require PDL::NiceSlice';
-    unless ($@) {
-	plan tests => 44,
-	# todo => [37..40],
-    } else {
-	plan tests => 1;
-	print "ok 1 # Skipped: no sourcefilter support\n";
-	exit;
-    }
-} 
+BEGIN {
+	eval {
+		require PDL::NiceSlice;
+		1;
+	} or plan skip_all => "no sourcefilter support: $@";
+}
+
+plan tests => 43;
 
 $| = 1;
 sub PDL::NiceSlice::findslice;
 sub translate_and_show {
   my ($txt) = @_;
   my $etxt = PDL::NiceSlice::findslice $txt;
-  print "$txt -> \n\t$etxt\n";
+  note "$txt -> \n\t$etxt\n";
   return $etxt;
 }
 
+my $pa = sequence 10; # shut up -w
+my $pb = pdl(1);
+eval translate_and_show '$pb = $pa((5));';
 
 ok (!$@);
+ok($pb->at == 5);
 
-my $a = sequence 10; # shut up -w
-my $b = pdl(1);
-eval translate_and_show '$b = $a((5));';
-
+eval translate_and_show '$pb = $pa->((5));';
 ok (!$@);
-ok($b->at == 5);
-
-eval translate_and_show '$b = $a->((5));';
-ok (!$@);
-ok($b->at == 5);
+ok($pb->at == 5);
 
 my $c = PDL->pdl(7,6);
-eval translate_and_show '$b = $a(($c(1)->at(0)));';
+eval translate_and_show '$pb = $pa(($c(1)->at(0)));';
 ok (!$@);
-ok($b->getndims == 0 && all $b == 6);
+ok($pb->getndims == 0 && all $pb == 6);
 
 # the latest versions should do the 'at' automatically
-eval translate_and_show '$b = $a(($c(1)));';
+eval translate_and_show '$pb = $pa(($c(1)));';
 ok (!$@);
-print "ERROR is $@\n" if($@);
-ok($b->getndims == 0 && all $b == 6);
+note "ERROR is $@\n" if($@);
+ok($pb->getndims == 0 && all $pb == 6);
 
-eval translate_and_show '$c = $a(:);';
+eval translate_and_show '$c = $pa(:);';
 ok (!$@);
-print $@ if $@;
-ok ($c->getdim(0) == 10 && all $c == $a);
+note $@ if $@;
+ok ($c->getdim(0) == 10 && all $c == $pa);
 
 my $idx = pdl 1,4,5;
 
-eval translate_and_show '$b = $a($idx);';
+eval translate_and_show '$pb = $pa($idx);';
 ok (!$@);
-ok(all $b == $idx);
+ok(all $pb == $idx);
 
 # use 1-el piddles as indices
 my $rg = pdl(2,7,2);
 my $cmp = pdl(2,4,6);
-eval translate_and_show '$b = $a($rg(0):$rg(1):$rg(2));';
+eval translate_and_show '$pb = $pa($rg(0):$rg(1):$rg(2));';
 ok (!$@);
-ok(all $b == $cmp);
+ok(all $pb == $cmp);
 
 # mix ranges and index piddles
 my $twod = sequence 5,5;
 $idx = pdl 2,3,0;
 $cmp = $twod->slice('-1:0')->dice_axis(1,$idx);
-eval translate_and_show '$b = $twod(-1:0,$idx);';
+eval translate_and_show '$pb = $twod(-1:0,$idx);';
 ok (!$@);
-ok(all $b == $cmp);
+ok(all $pb == $cmp);
 
 #
 # modifiers
 #
 
-$a = sequence 10;
-eval translate_and_show '$b = $a($a<3;?)' ;
+$pa = sequence 10;
+eval translate_and_show '$pb = $pa($pa<3;?)' ;
 ok (!$@);
-ok(all $b == pdl(0,1,2));
+ok(all $pb == pdl(0,1,2));
 
 # flat modifier
-$a = sequence 3,3;
-eval translate_and_show '$b = $a(0:-2;_);';
+$pa = sequence 3,3;
+eval translate_and_show '$pb = $pa(0:-2;_);';
 ok (!$@);
-ok(all $b == sequence 8);
+ok(all $pb == sequence 8);
 
 # where modifier cannot be mixed with other modifiers
-$a = sequence 10;
-eval { translate_and_show '$b = $a($a<3;?_)' };
+$pa = sequence 10;
+eval { translate_and_show '$pb = $pa($pa<3;?_)' };
 ok ($@ =~ 'more than 1');
 
 # more than one identifier
-$a = sequence 3,3;
-eval translate_and_show '$b = $a(0;-|)';
-print "Error was: $@\n" if $@;
+$pa = sequence 3,3;
+eval translate_and_show '$pb = $pa(0;-|)';
+note "Error was: $@\n" if $@;
 ok (!$@);
-eval {$b++};
-print "\$b = $b\n";
-ok($b->dim(0) == 3 && all $b == 3*sequence(3)+1);
-ok($a->at(0,0) == 0);
+eval {$pb++};
+note "\$pb = $pb\n";
+ok($pb->dim(0) == 3 && all $pb == 3*sequence(3)+1);
+ok($pa->at(0,0) == 0);
 
 # do we ignore whitspace correctly?
-eval translate_and_show '$c = $a(0; - | )';
-print "Error was: $@\n" if $@;
+eval translate_and_show '$c = $pa(0; - | )';
+note "Error was: $@\n" if $@;
 ok (!$@);
-ok (all $c == $b-1);
+ok (all $c == $pb-1);
 
 # empty modifier block
-$a = sequence 10;
-eval translate_and_show '$b = $a(0;   )';
+$pa = sequence 10;
+eval translate_and_show '$pb = $pa(0;   )';
 ok (!$@);
-ok ($b == $a->at(0));
+ok ($pb == $pa->at(0));
 
 # modifiers repeated
-eval 'translate_and_show "\$b = \$a(0;-||)"';
-print "Error was: $@\n" if $@;
+eval 'translate_and_show "\$pb = \$pa(0;-||)"';
+note "Error was: $@\n" if $@;
 ok ($@ =~ 'twice or more');
 
 # foreach/for blocking
 
-$a = '';
-eval translate_and_show "foreach \n" . ' $b(1,2,3,4) {$a .= $b;}';
-ok(!$@ and $a eq '1234');
+$pa = '';
+eval translate_and_show "foreach \n" . ' $pb(1,2,3,4) {$pa .= $pb;}';
+ok(!$@ and $pa eq '1234');
 
-$a = '';
-eval translate_and_show 'for    $b(1,2,3,4) {$a .= $b;}';
-ok(!$@ and $a eq '1234');
+$pa = '';
+eval translate_and_show 'for    $pb(1,2,3,4) {$pa .= $pb;}';
+ok(!$@ and $pa eq '1234');
 
-$a = '';
-eval translate_and_show 'for  my  $b(1,2,3,4) {$a .= $b;}';
-ok(!$@ and $a eq '1234');
+$pa = '';
+eval translate_and_show 'for  my  $pb(1,2,3,4) {$pa .= $pb;}';
+ok(!$@ and $pa eq '1234');
 
-$a = '';
-eval translate_and_show 'for  our $b(1,2,3,4) {$a .= $b;}';
-ok(!$@ and $a eq '1234');
+$pa = '';
+eval translate_and_show 'for  our $pb(1,2,3,4) {$pa .= $pb;}';
+ok(!$@ and $pa eq '1234');
 
-$a = ''; # foreach and whitespace
-eval translate_and_show 'foreach  my $b (1,2,3,4) {$a .= $b;}';
-ok(!$@ and $a eq '1234');
+$pa = ''; # foreach and whitespace
+eval translate_and_show 'foreach  my $pb (1,2,3,4) {$pa .= $pb;}';
+ok(!$@ and $pa eq '1234');
 
-$a = ''; my $t = ones 10; # foreach and imbedded expression
-eval translate_and_show 'foreach my $type ( $t(0)->list ) { $a .= $type }';
-ok(!$@ and $a eq '1');
+$pa = ''; my $t = ones 10; # foreach and imbedded expression
+eval translate_and_show 'foreach my $type ( $t(0)->list ) { $pa .= $type }';
+ok(!$@ and $pa eq '1');
 
 # block method access translation
 
-$a = pdl(5,3,2);
+$pa = pdl(5,3,2);
 my $method = 'dim';
-eval translate_and_show '$c = $a->$method(0)';
-print "c: $c\n";
-ok(!$@ && $c == $a->dim(0));
+eval translate_and_show '$c = $pa->$method(0)';
+note "c: $c\n";
+ok(!$@ && $c == $pa->dim(0));
 
 #
 # todo ones
@@ -162,63 +156,63 @@ ok(!$@ && $c == $a->dim(0));
 
 # whitespace tolerance
 
-$a= sequence 10;
-eval translate_and_show '$c = $a (0)';
-ok(!$@ && $c == $a->at(0));
+$pa= sequence 10;
+eval translate_and_show '$c = $pa (0)';
+ok(!$@ && $c == $pa->at(0));
 
 # comment tolerance
 
 eval translate_and_show << 'EOT';
 
-$c = $a-> # comment
+$c = $pa-> # comment
 	 (0);
 EOT
 
-ok(!$@ && $c == $a->at(0));
+ok(!$@ && $c == $pa->at(0));
 
 eval translate_and_show << 'EOT';
 
-$c = $a-> # comment
+$c = $pa-> # comment
           # comment line 2
 	 (0);
 EOT
 
-ok(!$@ && $c == $a->at(0));
+ok(!$@ && $c == $pa->at(0));
 
-$a = ''; # foreach and whitespace + comments
+$pa = ''; # foreach and whitespace + comments
 eval translate_and_show << 'EOT';
 
-foreach  my $b # a random comment thrown in
+foreach  my $pb # a random comment thrown in
 
-(1,2,3,4) {$a .= $b;}
+(1,2,3,4) {$pa .= $pb;}
 
 EOT
 
-ok(!$@ and $a eq '1234');
+ok(!$@ and $pa eq '1234');
 
 # test for correct header propagation
-$a = ones(10,10);
+$pa = ones(10,10);
 my $h = {NAXIS=>2,
 	 NAXIS1=>100,
 	 NAXIS=>100,
 	 COMMENT=>"Sample FITS-style header"};
-$a->sethdr($h);
-$a->hdrcpy(1);
-eval translate_and_show '$b = $a(1:2,pdl(0,2));';
+$pa->sethdr($h);
+$pa->hdrcpy(1);
+eval translate_and_show '$pb = $pa(1:2,pdl(0,2));';
 
 # Old hdrcpy test (for copy-by-reference); this is obsolete
 # with quasi-deep copying.  --CED 11-Apr-2003
-#   ok (!$@ and $b->gethdr() == $h);
+#   ok (!$@ and $pb->gethdr() == $h);
 if ( ok(!$@) ) {
-   my %bh = %{$b->gethdr};
+   my %bh = %{$pb->gethdr};
    my (@bhkeys) = sort keys %bh;
    my %hh = %{$h};
    my (@hhkeys) =  sort keys %hh;
    ok(join("",@bh{@bhkeys}) eq join("",@hh{@hhkeys}));
 }
 
-$a = ones(10);
-my $i = which $a < 0;
+$pa = ones(10);
+my $i = which $pa < 0;
 my $ai;
-eval translate_and_show '$ai = $a($i);';
+eval translate_and_show '$ai = $pa($i);';
 ok(isempty $ai );
