@@ -102,7 +102,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.009 release:
+  PDL-2.009_01 release:
 
   384   pdldoc.db is getting invalid paths to files on cygwin
   383   gcc/#gfortran 4.9.2 needs -lquadmath

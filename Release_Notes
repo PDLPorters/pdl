@@ -1,3 +1,38 @@
+Release Notes for PDL 2.009_01 -----------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.007 and earlier.  This     |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+General Notes:
+
+ * Another quick CPAN developers release
+
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+
+   - Manual build/install is possible, but easiest is to
+     use cpanm:
+
+       cpanm --dev PDL
+
+Highlights:
+
+ * TBD
+
+
+
 Release Notes for PDL 2.009 -----------------------------
 
 General Notes:
