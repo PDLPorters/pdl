@@ -2,8 +2,20 @@ Release Notes for PDL 2.009 -----------------------------
 
 General Notes:
 
- * This is PDL-2.009. It has tweaks to fix PAUSE/CPAN indexing problems
-   in 2.008.
+ * This is PDL-2.009. It has tweaks to fix PAUSE/CPAN
+   indexing problems in 2.008.
+ 
+ * Known_problems updated to reflect a seldom seen
+   pdldoc installation problem for certain custom
+   perl configurations on cygwin.  A workaround is
+   known.  Please contact the PDL mailing list if you
+   have this problem.  See the sf.net bug report at
+   http://sourceforge.net/p/pdl/bugs/384/ for more
+   information.
+ 
+ * See Release Notes for PDL 2.008 below for more.
+
+
 
 Release Notes for PDL 2.008 -----------------------------
 
