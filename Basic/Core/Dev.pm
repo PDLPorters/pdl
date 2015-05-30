@@ -728,7 +728,6 @@ sub datatypes_switch {
     $cname =~ s/^PDL_//;
     push @m, "\tcase $typesym: retval = PDL.bvals.$cname; break;";
   }
-warn "(@m)";
   print map "$_\n", @m;
 }
 
