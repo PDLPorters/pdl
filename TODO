@@ -1,12 +1,6 @@
 What follows is that task list and description of
 the work planned for the future  PDL-2.x releases.
 
-The main goal we are working towards is to have a
-baseline PDL working on *all* PDL OS platforms:
-win32/cygwin, macosx, and linux/unix/bsd systems with
-support for 2-D graphics (via PLplot) and 3-D graphics
-(via OpenGL/TriD).
-
 
 +-------------------------------------------------------+
 |       Candidate Tasks for PDL-2.x Development         |
@@ -137,10 +131,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
      - needs portable driver (OpenGL)
      - Alien::PGPLOT
      - apply/update RGB color patches to current
-   * PDL::Graphics::PLplot
-     - need portable driver (OpenGL)
-     - Alien::PLplot
-     - need low-level PLplot interface
    * PDL::IO::Browser
      - need curses/ncurses
      - Alien::Curses
@@ -166,7 +156,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 +-------------------------------------------------------+
    
    Alien modules for the external PDL dependencies
-   * Alien::PLplot
    * Alien::PROJ4
 
 
@@ -349,20 +338,13 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 +-------------------------------------------------------+
 |                    NEW FEATURES                       |
 +-------------------------------------------------------+
-   
+
    Finish PDL::IO::ENVI module
    * Implement basic writeenvi() routine
    * Add tests and reimplement as a module
    * Add to PDL distribution
 
 
-   Need PLplot and PDL::Graphics::PLplot to build all platforms
-   * MS Windows
-   * Cygwin
-   * Linux/unix
-   * Mac OS X 
-
-   
    Complete Perldl2 shell:
    * Implement remaining perldl features for pdl2
    * Fix Ctrl-C handling for win32 systems

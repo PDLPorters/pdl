@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my @subdirs = qw(PGPLOT LUT IIS PLplot Limits);
+my @subdirs = qw(PGPLOT LUT IIS Limits);
 
 # we try and build unless WITH_3D == 0
 my $t = $PDL::Config{WITH_3D};

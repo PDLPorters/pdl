@@ -763,8 +763,6 @@ t/physical.t
 t/pic_16bit.t
 t/picnorgb.t
 t/picrgb.t
-t/plplot.t
-t/plplot_no_fork.win32
 t/pnm.t
 t/poly.t
 t/polyroots.t

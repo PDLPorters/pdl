@@ -104,11 +104,6 @@ These modules with external dependencies are not yet available
 for cygwin:
 
  PDL::Graphics::IIS
-  
- PDL::Graphics::PLplot  (PLplot and the PDL module support
-                         is not working out of the box.  If
-			 you get plplot built and installed
-			 for cygwin with PDL, let us know!)
 
  PDL::IO::HDF           (HDF4 has not been ported to cygwin
                          but HDF5 is available via the cygwin

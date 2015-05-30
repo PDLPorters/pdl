@@ -124,10 +124,6 @@ Graphics/IIS/IIS.c
 Graphics/IIS/IIS.pm
 Graphics/IIS/IIS.xs
 Graphics/PGPLOT/Window/Window.c
-Graphics/PLplot/OPTIONS!
-Graphics/PLplot/PLplot.c
-Graphics/PLplot/PLplot.pm
-Graphics/PLplot/PLplot.xs
 Graphics/TriD/OpenGL/OpenGL.c
 Graphics/TriD/OpenGL/OpenGL.pm
 Graphics/TriD/OpenGL/OpenGL.xs

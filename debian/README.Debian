@@ -5,10 +5,6 @@ pdl for Debian
   pdl is the perl data language.  Try "man PDL", or , for more man pages,
   "man -k PDL". Html documents are found in /usr/share/doc/pdl/html/.
   
-  For some examples on how to use PDL::Graphics::PLplot for plotting, install
-  libplplot-dev and take a look at the perl/pdl examples in
-  /usr/share/doc/libplplot-dev/examples/perl
-  
   More information can be found at:
   http://pdl.perl.org/
   

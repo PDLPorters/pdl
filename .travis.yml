@@ -35,7 +35,7 @@ matrix:
     - perl: blead
 before_install:
   - sudo apt-get update
-  - sudo apt-get install build-essential libx11-dev pgplot5 libplplot-dev libgd2-xpm-dev libhdf4-alt-dev libproj-dev libvpx-dev libxpm-dev proj-bin libcfitsio3-dev libreadline-dev
+  - sudo apt-get install build-essential libx11-dev pgplot5 libgd2-xpm-dev libhdf4-alt-dev libproj-dev libvpx-dev libxpm-dev proj-bin libcfitsio3-dev libreadline-dev
   - if [ "$DISABLE_FORTRAN" != 1 ]; then sudo apt-get install gfortran; fi # set DISABLE_FOTRAN = 1 to not install gfortran
   # clang is already installed in Travis-CI environment. Using PERL_MM_OPT does not work with subdirectory Makefile.PLs so we override Config.pm
   # Also, both $Config{cc} and $Config{ld} need to be set because under ELF environments (such as Travis-CI's Ubuntu), this is what Perl's Config.pm does.

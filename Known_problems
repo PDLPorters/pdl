@@ -36,13 +36,6 @@ The following issues have been reported with this version of PDL:
     f( scalar($p0 * $p1) x $p2 );
 
 
-- On MS Windows, perl 5.14 (and perhaps later), it is reported that
-  PDL::Graphics::PLplot cannot be sucessfully built as part of the
-  PDL build. It compiles ok, but the resultant binary files are
-  unusable. Workaround is to build PDL first, then build
-  PDL::Graphics::PLplot separately.
-
-
 - Some versions of MinGW gcc (used to compile for win32 perls)
   crash in compilation of large, PP-generated files.  The work-
   around is to disable optimization for those files.  See the

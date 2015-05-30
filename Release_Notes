@@ -29,7 +29,7 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Removal of PDL::Graphics::PLplot since exists as separate CPAN distro
 
 
 

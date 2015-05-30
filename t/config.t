@@ -6,7 +6,7 @@
 # the result of use_ok or some such.
 
 BEGIN {
-   use Test::More tests => 13;  # 12 WITH_ keys and 1 use_ok test
+   use Test::More tests => 12;  # 11 WITH_ keys and 1 use_ok test
 }
 
 BEGIN {

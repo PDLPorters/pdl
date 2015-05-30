@@ -140,14 +140,6 @@ PDL::Graphics::PGPLOT
                                           and library.
 
 
-PDL::Graphics::PLplot
-                  The PLplot graphics library.
-                  See http://plplot.sourceforge.net 
-
-                                          Module will be built if the
-                                          PLplot library is detected.
-
-
 PDL::Graphics::IIS
                   To be useful an application that supports
                   the 'IIS' protocol must be installed, e.g.
