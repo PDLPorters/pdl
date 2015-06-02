@@ -1,4 +1,4 @@
-Release Notes for PDL 2.010 -----------------------------
+Release Notes for PDL 2.011 -----------------------------
 
  +---------------------------------------------------------------+
  | BE WARNED:  This release includes an update to the internal,  |
@@ -10,7 +10,7 @@ Release Notes for PDL 2.010 -----------------------------
 
 General Notes:
 
- * This is PDL-2.010 it is essentially PDL-2.008 with some
+ * This is PDL-2.011 it is essentially PDL-2.008 with some
    fixes for some minor issues.
  
  * perl 5.10.x is now the minimum version of perl
@@ -46,6 +46,14 @@ General Notes:
 Highlights:
 
  * See PDL 2.008 Highlights below.
+
+
+
+Release Notes for PDL 2.010 -----------------------------
+
+General Notes:
+
+ * Another indexing regression.  Sigh.
 
 
 
