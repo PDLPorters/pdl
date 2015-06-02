@@ -1,3 +1,54 @@
+Release Notes for PDL 2.010 -----------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.007 and earlier.  This     |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+General Notes:
+
+ * This is PDL-2.010 it is essentially PDL-2.008 with some
+   fixes for some minor issues.
+ 
+ * perl 5.10.x is now the minimum version of perl
+   supported by PDL-2.008 and later.
+
+ * PDL::FFTW is no longer part of the PDL Core.
+   Please use PDL::FFTW3 from CPAN (Dima Kogan)
+   with Alien::FFTW3 support (Craig DeForest)
+
+ * PDL::Graphics::PLplot is no longer included in
+   the PDL core distribution.  Please install from
+   CPAN directly.
+
+ * 50 sf.net bug tickets closed/fixed since PDL-2.007!
+
+ * Partial 64bit indexing support with some fixes
+   to remaining issues.  Full 64bit support for perl
+   modulus operater ('%') is in progress.
+ 
+ * Major clean up and rework of the core PDL
+   computation code, the build process, test suites,
+   and updating to reflect more of the best practices
+   for perl module development.
+ 
+ * The PDL development has moved to github and now
+   has added continuous commit testing via the
+   Travis-CI framework.  The git workflow is now
+   inline with current practices and it is expected
+   that this will allow more contributions and "eyes
+   on the code".
+
+
+Highlights:
+
+ * See PDL 2.008 Highlights below.
+
+
+
 Release Notes for PDL 2.009_01 -----------------------------
 
  +---------------------------------------------------------------+

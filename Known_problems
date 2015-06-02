@@ -95,19 +95,19 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.009_01 release:
+  PDL-2.010 release:
 
   384   pdldoc.db is getting invalid paths to files on cygwin
-  383   gcc/#gfortran 4.9.2 needs -lquadmath
+  383   gcc/gfortran 4.9.2 needs -lquadmath
   382   plplot-5.11.0 comes with libplplot.a but missing libplplotd.a
-  381   rpic/#rim fail to read files with whitespace in the filename
-  380   PDL Install hangs on t/#flexraw_fortran.t
+  381   rpic/rim fail to read files with whitespace in the filename
+  380   PDL Install hangs on t/flexraw_fortran.t
   379   Passing qsort an extra argument causes a segfault
   378   where on dice of pdl bad results
   366   many warnings in t/transform.t with use strict; use warnings;
   364   type promotion in whistogram is based upon the index, not the weight
   354   filter demo list by actually available
-  347   t/#pdl_from_string.t has a failure if BADVAL_NAN=1
+  347   t/pdl_from_string.t has a failure if BADVAL_NAN=1
   346   ExtUtils::F77 dependency causing problems for CPAN install
   343   longlong constructor and display lose digits due to implicit double precision conversions
   340   orover of byte data returns long type
