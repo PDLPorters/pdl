@@ -37,32 +37,14 @@ the work planned for the future  PDL-2.x releases.
 |                       TESTING                         |
 +-------------------------------------------------------+
 
-
-   Refactor to use Test::More
-   * limits_normalize_dsets.t
-   * segfault.t
-
-   Convert from Test to Test::More
-   * bess.t
-   * conv.t
-   * diskcache.t
-   * erf.t
-   * erfi.t
-   * fft.t
-   * func.t
-   * hist.t
-   * image2d.t
-   * lut.t
-   * lvalue.t
-   * matrix.t
-   * matrixops.t
-   * niceslice.t
-   * nsdatahandle.t
-   * requiredmods.t
-   * round.t
-   * simplex.t
-   * trig.t
-   * xvals.t
+   Need to test PDL build from scratch both WITH_BADVAL and without
+   * Find a way to automate this process for release testing
+   * Unix/Linux/BSD
+   * Windows
+     - cygwin
+     - activestate perl
+     - strawberry perl
+   * Mac OS X
 
 
    Verify dependency detection across all major PDL platforms
