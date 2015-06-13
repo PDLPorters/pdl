@@ -445,6 +445,7 @@ my %makefile_hash = (
                 'Devel::CheckLib' => 1.01,
                 'Carp'            => 1.20,    # EU::MM seems to need this not to crash
                 'ExtUtils::MakeMaker' => 6.56,
+                'File::Path'          => 0,
               },
               TEST_REQUIRES => {
                 'CPAN::Meta' => '2.120900',
