@@ -1,3 +1,34 @@
+Release Notes for PDL 2.012 -----------------------------
+
+ +---------------------------------------------------------------+
+ | BE WARNED:  This release includes an update to the internal,  |
+ | C-level PDL API for PDL versions 2.007 and earlier.  This     |
+ | will require that you re-build any PP or XS modules.  Do not  |
+ | upgrade or install over an existing PDL installation unless   |
+ | you are prepared to do so!!!                                  |
+ +---------------------------------------------------------------+
+
+General Notes:
+
+ * This is PDL-2.012 it is essentially PDL-2.011 with some
+   fixes for some minor issues that only came to light
+   with a new official release.
+ 
+ * See PDL 2.011 notes below.
+
+
+Highlights:
+
+ * Add package statements so PDL::Lite and PDL::LiteF are
+   indexed correctly
+ 
+ * Give PDL::NiceSlice a non-developer release for indexing
+
+ * Fix build regression that broke ActiveState perl
+   builds for many perl versions and OS platforms.
+
+
+
 Release Notes for PDL 2.011 -----------------------------
 
  +---------------------------------------------------------------+
