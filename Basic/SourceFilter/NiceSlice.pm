@@ -26,7 +26,7 @@ no warnings;
 
 package PDL::NiceSlice;
 
-our $VERSION = '1.000_003';
+our $VERSION = '1.001';
 $VERSION = eval $VERSION;
 
 $PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debug : 0;
