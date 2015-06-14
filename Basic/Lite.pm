@@ -45,7 +45,8 @@ use PDL::Bad '';
 use PDL::Version ;  # Doesn't export anything - no need for ''
 use PDL::Lvalue;
 
-$PDL::Lite::VERSION = $PDL::Version::VERSION;
+package PDL::Lite;
+$VERSION = $PDL::Version::VERSION;
 
 ;# Exit with OK status
 

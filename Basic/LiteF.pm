@@ -27,7 +27,9 @@ smaller see the L<PDL::Lite|PDL::Lite> module.
 
 # get the version: 
 use PDL::Version;
-$PDL::LiteF::VERSION = $PDL::Version::VERSION;
+
+package PDL::LiteF;
+$VERSION = $PDL::Version::VERSION;
 
 
 # Load the fundamental PDL packages, with imports
