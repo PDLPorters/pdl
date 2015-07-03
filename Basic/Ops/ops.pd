@@ -89,7 +89,9 @@ EOH
     # handle exceptions
     my $badcode = '$ISBAD(a()) || $ISBAD(b())';
     if ( exists $extra{Exception} ) {
-	delete $exists{Exception};
+	# NOTE This option is unused ($badcode is not set).
+	#      See also `ufunc()`.
+	delete $extra{Exception};
     }
 
     pp_def($name,
@@ -232,7 +234,9 @@ sub ufunc {
     if ( exists $extra{Exception} ) {
 #	$badcode .= " || $extra{Exception}";
 #	print "Warning: ignored exception for $name\n";
-	delete $exists{Exception};
+	# NOTE This option is unused ($badcode is commented out above).
+	#      See also `biop()`.
+	delete $extra{Exception};
     }
 
     # do not have to worry about propagation of the badflag when
