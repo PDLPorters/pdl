@@ -102,10 +102,12 @@ EOH
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => 
 	   "\$c() = \$a() $op \$b();",
-	   BadCode =>
-	   'if ( ' . $badcode . ' )
-	       $SETBAD(c());
-	    else' . "\n  \$c() = \$a() $op \$b();\n",
+	   BadCode => qq{
+	       if ( $badcode  )
+	           \$SETBAD(c());
+	       else
+	           \$c() = \$a() $op \$b();
+	   },
 	   CopyBadStatusCode =>
 	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
