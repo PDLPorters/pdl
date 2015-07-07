@@ -104,35 +104,81 @@ subtest "Badvalue set on 0-dim PDL + comparision operators" => sub {
 
 
 subtest "stats() badvalue behavior" => sub {
-	subtest "stats() should not set the badflag for output with only one badvalue" => sub {
-		my $p = pdl [1, 2, 3];
-		$p->badflag(1);
-		$p->badvalue(2);
+	my $stats_data = [
+		{
+			name => "stats() should not set the badflag for output with only one badvalue",
+			func => \&stats,
+			input => do { pdl [1, 2, 3] },
+			badvalue => 2,
+			string => "[1 BAD 3]",
+			mean => "2",
+			badflag => 0
+		},
+		{
+			name => "stats() should set the badflag for output with all badvalues and mean should be BAD" ,
+			func => \&stats,
+			input => do { pdl [1, 1, 1] },
+			badvalue => 1,
+			string => "[BAD BAD BAD]",
+			mean => "BAD",
+			badflag => 1,
+		},
+		{
+			name => "and statsover() on a row of BAD values",
+			func => \&statsover,
+			input => do { zeroes(3,3)->yvals+1 },
+			badvalue => 1,
+			string => do {
+my $p_str = <<'EOF';
 
-		note "\$p = $p";
-		is( "$p", "[1 BAD 3]", "stringifies properly");
+[
+ [BAD BAD BAD]
+ [  2   2   2]
+ [  3   3   3]
+]
+EOF
+			},
+			mean => "[BAD 2 3]",
+			badflag => 1,
+		},
+		{
+			name => "and statsover() on a diagonal of BAD values",
+			func => \&statsover,
+			input => do { my $p = ones(3,3)*2; $p->diagonal(0,1) .= 1; $p },
+			string => do {
+my $p_str = <<'EOF';
 
-		my $m = stats($p);
+[
+ [BAD   2   2]
+ [  2 BAD   2]
+ [  2   2 BAD]
+]
+EOF
+			},
+			badvalue => 1,
+			mean => "[2 2 2]",
+			badflag => 0,
+		}
+	];
 
-		note "\$m = $m";
-		is( "$m", "2", "Mean of [1 3] is 2" );
-		ok( !$m->badflag, "Mean does not have badflag set");
-	};
+	for my $case (@$stats_data) {
+		subtest $case->{name} => sub {
+			my $p = $case->{input};
+			$p->badflag(1);
+			$p->badvalue($case->{badvalue});
 
-	subtest "stats() should set the badflag for output with all badvalues" => sub {
-		my $p = pdl [1, 1, 1];
-		$p->badflag(1);
-		$p->badvalue(1);
+			note "\$p = $p";
+			is( "$p", $case->{string}, "stringifies properly");
 
-		note "\$p = $p";
-		is( "$p", "[BAD BAD BAD]", "stringifies properly");
+			my $m = $case->{func}->($p);
 
-		my $m = stats($p);
+			note "\$m = $m";
+			is( "$m", $case->{mean}, "Mean of \$p" );
+			is( $m->badflag, $case->{badflag}, "Mean does @{[ (' not ')x!!( ! $case->{badflag} ) ]} have badflag set");
+		};
+	}
 
-		note "\$m = $m";
-		is( "$m", "BAD", "Mean of a vector of all BAD values is BAD" );
-		ok( $m->badflag, "Mean does have badflag set");
-	};
+
 };
 
 subtest "Comparison between a vector and scalar" => sub {
