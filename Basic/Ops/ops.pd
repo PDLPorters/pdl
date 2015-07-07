@@ -87,7 +87,8 @@ EOH
     }
 
     # handle exceptions
-    my $badcode = '$ISBAD(a()) || $ISBAD(b())';
+    my $badcode = '   ( $PDLSTATEISBAD(a) && $ISBAD(a()) )
+                   || ( $PDLSTATEISBAD(b) && $ISBAD(b()) )';
     if ( exists $extra{Exception} ) {
 	# NOTE This option is unused ($badcode is not set).
 	#      See also `ufunc()`.
