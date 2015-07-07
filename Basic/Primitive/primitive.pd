@@ -1422,6 +1422,7 @@ pp_def('statsover',
            $SETBAD(max());
 	   $SETBAD(prms());
          }',
+      CopyBadStatusCode => '',
       PMCode => '
 
 sub PDL::statsover {
