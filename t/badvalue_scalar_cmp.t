@@ -103,19 +103,36 @@ subtest "Badvalue set on 0-dim PDL + comparision operators" => sub {
 };
 
 
-subtest "stats() should not set the badflag for output" => sub {
-	my $p = pdl [1, 2, 3];
-	$p->badflag(1);
-	$p->badvalue(2);
+subtest "stats() badvalue behavior" => sub {
+	subtest "stats() should not set the badflag for output with only one badvalue" => sub {
+		my $p = pdl [1, 2, 3];
+		$p->badflag(1);
+		$p->badvalue(2);
 
-	note "\$p = $p";
-	is( "$p", "[1 BAD 3]");
+		note "\$p = $p";
+		is( "$p", "[1 BAD 3]", "stringifies properly");
 
-	my $m = stats($p);
+		my $m = stats($p);
 
-	note "\$m = $m";
-	is( "$m", "2", "Mean of [1 3] is 2" );
-	ok( !$m->badflag, "Mean does not have badflag set");
+		note "\$m = $m";
+		is( "$m", "2", "Mean of [1 3] is 2" );
+		ok( !$m->badflag, "Mean does not have badflag set");
+	};
+
+	subtest "stats() should set the badflag for output with all badvalues" => sub {
+		my $p = pdl [1, 1, 1];
+		$p->badflag(1);
+		$p->badvalue(1);
+
+		note "\$p = $p";
+		is( "$p", "[BAD BAD BAD]", "stringifies properly");
+
+		my $m = stats($p);
+
+		note "\$m = $m";
+		is( "$m", "BAD", "Mean of a vector of all BAD values is BAD" );
+		ok( $m->badflag, "Mean does have badflag set");
+	};
 };
 
 subtest "Comparison between a vector and scalar" => sub {

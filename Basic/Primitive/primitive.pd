@@ -1415,12 +1415,12 @@ pp_def('statsover',
 	           $SETBAD(prms());
            $adev() = tmp1 / norm ;
          } else       { 
-           $SETBAD(avg()); 
-           $SETBAD(rms());
-           $SETBAD(adev());
-           $SETBAD(min());
-           $SETBAD(max());
-	   $SETBAD(prms());
+           $SETBAD(avg());  $PDLSTATESETBAD(avg);
+           $SETBAD(rms());  $PDLSTATESETBAD(rms);
+           $SETBAD(adev()); $PDLSTATESETBAD(adev);
+           $SETBAD(min());  $PDLSTATESETBAD(min);
+           $SETBAD(max());  $PDLSTATESETBAD(max);
+           $SETBAD(prms()); $PDLSTATESETBAD(prms);
          }',
       CopyBadStatusCode => '',
       PMCode => '
