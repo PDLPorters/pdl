@@ -17,7 +17,7 @@ use PDL::LiteF;
 ## <http://sourceforge.net/p/pdl/bugs/390/>
 ## <https://github.com/PDLPorters/pdl/issues/124>
 
-plan tests => 3;
+plan tests => 4;
 
 subtest "Issue example code" => sub {
 	my $x = pdl(1, 2, 3, 0);
@@ -116,4 +116,18 @@ subtest "stats() should not set the badflag for output" => sub {
 	note "\$m = $m";
 	is( "$m", "2", "Mean of [1 3] is 2" );
 	ok( !$m->badflag, "Mean does not have badflag set");
+};
+
+subtest "Comparison between a vector and scalar" => sub {
+	my $p = pdl [1, 2, 3, 4];
+	$p->badflag(1);
+	$p->badvalue(2);
+
+	note "\$p = $p";
+	is( "$p", "[1 BAD 3 4]", "PDL vector (with bv = 2)");
+
+	is( "" . ( $p > 1 ), '[0 BAD 1 1]', "compare PDL against (scalar = 1)");
+	is( "" . ( $p > 2 ), '[0 BAD 1 1]', "compare PDL against (scalar = 2)" );
+	is( "" . ( $p > 3 ), '[0 BAD 0 1]', "compare PDL against (scalar = 3)");
+	is( "" . ( $p > 4 ), '[0 BAD 0 0]', "compare PDL against (scalar = 4)");
 };
