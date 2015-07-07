@@ -115,4 +115,5 @@ subtest "stats() should not set the badflag for output" => sub {
 
 	note "\$m = $m";
 	is( "$m", "2", "Mean of [1 3] is 2" );
+	ok( !$m->badflag, "Mean does not have badflag set");
 };
