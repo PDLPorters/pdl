@@ -94,6 +94,17 @@ EOH
 	#      See also `ufunc()`.
 	delete $extra{Exception};
     }
+    if( exists $extra{Comparison} && $PDL::Config{WITH_BADVAL} ) {
+	# *append* to header
+	$extra{HdrCode} .= <<'EOH';
+           if(    PDL->get_pdl_badvalue(a) == 0 || PDL->get_pdl_badvalue(a) == 1
+	       || PDL->get_pdl_badvalue(b) == 0 || PDL->get_pdl_badvalue(b) == 1 ) {
+
+	          warn("Badvalue is set to 0 or 1. This will cause data loss when using badvalues for comparison operators.");
+
+	   }
+EOH
+    }
 
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
@@ -309,13 +320,13 @@ biop('divide','/',1,'divide two piddles', Exception => '$b() == 0' );
 
 ## comparison ops
 # need swapping
-biop('gt','>',1,'the binary E<gt> (greater than) operation');
-biop('lt','<',1,'the binary E<lt> (less than) operation');
-biop('le','<=',1,'the binary E<lt>= (less equal) operation');
-biop('ge','>=',1,'the binary E<gt>= (greater equal) operation');
+biop('gt','>',1,'the binary E<gt> (greater than) operation', Comparison => 1 );
+biop('lt','<',1,'the binary E<lt> (less than) operation', Comparison => 1 );
+biop('le','<=',1,'the binary E<lt>= (less equal) operation', Comparison => 1 );
+biop('ge','>=',1,'the binary E<gt>= (greater equal) operation', Comparison => 1 );
 # no swap required
-biop('eq','==',0,'binary I<equal to> operation (C<==>)');
-biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)');
+biop('eq','==',0,'binary I<equal to> operation (C<==>)', Comparison => 1 );
+biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)', Comparison => 1 );
 
 ## bit ops
 # those need to be limited to the right types

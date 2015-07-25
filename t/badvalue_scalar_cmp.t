@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use PDL::Config;
+use Test::Warn;
 
 plan skip_all => "Bad values disabled" unless $PDL::Config{WITH_BADVAL};
 plan skip_all => "Skip if badvalue support only supports NaN badvalues" if $PDL::Config{BADVAL_USENAN};
@@ -17,7 +18,7 @@ use PDL::LiteF;
 ## <http://sourceforge.net/p/pdl/bugs/390/>
 ## <https://github.com/PDLPorters/pdl/issues/124>
 
-plan tests => 4;
+plan tests => 5;
 
 subtest "Issue example code" => sub {
 	my $x = pdl(1, 2, 3, 0);
@@ -194,3 +195,40 @@ subtest "Comparison between a vector and scalar" => sub {
 	is( "" . ( $p > 3 ), '[0 BAD 0 1]', "compare PDL against (scalar = 3)");
 	is( "" . ( $p > 4 ), '[0 BAD 0 0]', "compare PDL against (scalar = 4)");
 };
+
+subtest "Throw a warning when badvalue is set to 0 or 1 and a comparison operator is used" => sub {
+	my $warn_msg_re = qr/Badvalue is set to 0 or 1/;
+
+	# We do not need to change the contents of this PDL.
+	# Only the value of badvalue changes.
+	my $p = pdl([0, 1, 2]);
+	$p->badflag(1);
+	subtest "Badvalue set to 0" => sub {
+		$p->badvalue(0);
+		warning_like { $p == 1 } $warn_msg_re, "A warning thrown for badval == 0 and == operator";
+	};
+
+	subtest "Badvalue set to 1" => sub {
+		$p->badvalue(1);
+		warning_like { $p == 1 } $warn_msg_re, "A warning thrown for badval == 1 and == operator";
+	};
+
+	subtest "Badvalue set to 2" => sub {
+		$p->badvalue(2);
+		warning_like { $p == 1 } undef, "No warning thrown for badval == 2 and == operator";
+	};
+
+	subtest "Badvalue set to 0 and other operators" => sub {
+		$p->badvalue(0);
+
+		warning_like { $p > 1 } $warn_msg_re, "A warning thrown for badval == 0 and > operator";
+		warning_like { $p >= 1 } $warn_msg_re, "A warning thrown for badval == 0 and >= operator";
+		warning_like { $p < 1 } $warn_msg_re, "A warning thrown for badval == 0 and < operator";
+		warning_like { $p <= 1 } $warn_msg_re, "A warning thrown for badval == 0 and <= operator";
+
+		warning_like { $p == 1 } $warn_msg_re, "A warning thrown for badval == 0 and == operator";
+		warning_like { $p != 1 } $warn_msg_re, "A warning thrown for badval == 0 and != operator";
+
+		warning_like { $p + 1 } undef, "No warning thrown for badval == 0 and + operator";
+	};
+}
