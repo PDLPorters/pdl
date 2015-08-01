@@ -1,3 +1,20 @@
+v2.012_01 2015-08-01 15:47401-0400
+
+General Notes:
+
+ * This is PDL-2.012_01.  It is PDL-2.012 with some fixes
+   for badvalue problems when the badvalue was 0 or 1.
+ 
+ * See PDL 2.012 notes below.
+
+
+Highlights:
+
+ * Candidate fix for sf.net bug #390: scalar PDL with
+   badvalue always compares BAD with perl scalars
+
+
+
 v2.012 2015-06-14 08:27:01-0400
 
 General Notes:

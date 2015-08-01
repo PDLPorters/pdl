@@ -95,15 +95,20 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.012 release:
+  PDL-2.012_01 release:
+
+  393   Tests may fail if perl is compiled with -Duselongdouble
+  392   Inline Pdlpp doesn't work in clean build tree
+  391   Operators called in the form "explicit call with trailing 0" give syntax error
+  390   scalar PDL with badvalue always compares BAD with perl scalars
+
+        This release has fixes to address this problem and
+	added warnings so that users don't get surprised by
+	some quirks of behavior when badvalues are set to
+	0 or 1 which correspond to the values of logical
+	operators.
 
   389 	not indexed modules
-
-        This is believed to be fixed in this release.
-	As it is an indexer problem, there is no way
-	to be certain without pushing another official
-	release.
-
   384   pdldoc.db is getting invalid paths to files on cygwin
   383   gcc/gfortran 4.9.2 needs -lquadmath
   382   plplot-5.11.0 comes with libplplot.a but missing libplplotd.a
