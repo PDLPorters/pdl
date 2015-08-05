@@ -1,0 +1,17 @@
+version: 1.0.{build}
+
+install:
+  - cinst StrawberryPerl
+  - path C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
+  - mkdir %APPVEYOR_BUILD_FOLDER%\tmp
+  - set TMPDIR=%APPVEYOR_BUILD_FOLDER%\tmp
+  - perl -V
+  - cpan App::cpanminus
+  - cpanm -q --showdeps --with-develop --with-suggests . | findstr /v "^perl\>" | cpanm -n
+  - 'echo End intall at: & time /t'
+
+build_script:
+  - perl Makefile.PL
+
+test_script:
+  - dmake test
