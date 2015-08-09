@@ -72,7 +72,7 @@ script:
   - export PROVE_FLAG=""; if [ "$TEST_INSTALLED" == 1 ]; then make install clean; mv Basic Basic.x; mv ../Basic ../Basic.x; rm t/01-checkmanifest.t; else PROVE_FLAG="-b -v"; fi # clean is to ensure no blib, mv to ensure doesn't think is in repo!
   - if [ "$SERIAL_TESTING" == 1 ]; then prove $PROVE_FLAG $(test-files); else prove --formatter TAP::Formatter::File -j$(test-jobs) $PROVE_FLAG $(test-files); fi
 after_script:
-  - perl -Iblib/lib -MPDL::Config -MData::Dumper -e 'print Dumper \%PDL::Config'
+  - perl -Iblib/lib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
 after_success:
   - coverage-report
 branches:
