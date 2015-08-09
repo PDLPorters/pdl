@@ -86,6 +86,7 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 #include <ieeefp.h>
 #include <float.h>
 #define NANARG 1L
+#define NANARG_SIGNATURE long n
 #endif
 #if defined __alpha && ! defined __linux
 #include <float.h>
@@ -93,6 +94,7 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 #endif
 #ifndef NANARG
 #define NANARG
+#define NANARG_SIGNATURE
 #endif
 
 /* Redefine nan so PDL doesn't die when we see one.
@@ -154,7 +156,7 @@ int mtherr();
 extern int merror;
 
 #ifdef MY_QUIET_NAN
-extern double quiet_nan();
+extern double quiet_nan(NANARG_SIGNATURE);
 #endif
 #ifdef MY_INFINITY
 extern double infinity();
