@@ -576,9 +576,11 @@ pdldoc.pod : pdldoc
 
 EOPS
 
+# Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
+# support the `$<` variable in explicit rules
 $text .= <<EOT if $^O !~ /MSWin/;
 pdl$Config::Config{exe_ext} : pdl.c
-	\$(CC) \$< -o \$\@
+	\$(CC) pdl.c -o \$\@
 EOT
 
 $text .= << 'EOT' if $^O =~ /MSWin/;
