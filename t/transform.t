@@ -138,7 +138,7 @@ SKIP: {
 
 	{
 		my $pb = $pa->match($pa,{method=>'h'});
-		ok(all(approx($pa,$pb)),"self-match wtih hanning method is an approximate no-op");
+		ok(all(approx($pa,$pb)),"self-match with hanning method is an approximate no-op");
 	}
 
 	{
