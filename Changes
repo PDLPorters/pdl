@@ -1,3 +1,26 @@
+v2.013 2015-08-14 08:37:15-04:00
+
+General Notes:
+
+ * This is PDL-2.013.  It is PDL-2.012 with some fixes
+   for badvalue problems and Solaris make issues.
+ 
+ * See PDL 2.012 notes below.
+
+
+Highlights:
+
+ * Fix for sf.net bug #390: scalar PDL with badvalue
+   always compares BAD with perl scalars.  Now a warning
+   is given if the badvalue could conflict with the
+   results of a logical or comparision operation.
+ 
+ * Fixed a makefile construct which was ambiguous and
+   caused build failures on Solaris using their make.
+   Gnu make was not affected even on Solaris.
+
+
+
 v2.012_01 2015-08-01 15:47401-0400
 
 General Notes:
