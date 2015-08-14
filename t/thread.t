@@ -54,15 +54,15 @@ maximum($pa->thread(0,1),$pc);
 # print "B:\n"; $pb->dump(); print "C:\n";$pc->dump();
 # print $pb;
 
-ok($pb->at(0,0) == 10);
-ok($pb->at(1,1) == 14);
+cmp_ok($pb->at(0,0), '==', 10);
+cmp_ok($pb->at(1,1), '==', 14);
 
 # print "B:\n"; $pb->dump(); print "C:\n";$pc->dump();
 minimum($pa->thread(0,1),$pb->thread(0,1));
 # print $pb;
 
-ok($pb->at(0,0) == 0);
-ok($pb->at(1,1) == 4);
+cmp_ok($pb->at(0,0), '==', 0);
+cmp_ok($pb->at(1,1), '==', 4);
 }
 
 
