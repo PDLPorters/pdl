@@ -24,7 +24,7 @@ vars_ipv;
 	my $im = float [1,2,3,4,5];
 	my $out = bytescl($im,100);
 	ok(all approx($im,$out));
-	ok($out->get_datatype == $PDL::Types::PDL_B);
+	cmp_ok($out->get_datatype, '==', $PDL::Types::PDL_B);
 }
 
 {
@@ -39,7 +39,7 @@ vars_ipv;
 	my $rgb = double [[1,1,1],[1,0.5,0.7],[0.1,0.2,0.1]];
 	my $out = rgbtogr($rgb);
 	ok(all approx($out,pdl([1,0.67,0.16]), 0.01));
-	ok($out->get_datatype == $PDL::Types::PDL_D);
+	cmp_ok($out->get_datatype, '==', $PDL::Types::PDL_D);
 
 	vars_ipv;
 	p $out;
