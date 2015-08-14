@@ -59,7 +59,7 @@ act q|
   ### Get the vector coastline map (and a lon/lat grid), and load the Earth
   ### RGB daytime image -- both of these are built-in to the module. The
   ### coastline map is a set of (X,Y,Pen) vectors.
-    $coast = earth_coast() -> glue( 1, graticule(15,1) );
+    $coast = earth_coast() -> glue( 1, scalar graticule(15,1) );
     print "Coastline data are a collection of vectors:  ",
              join("x",$coast->dims),"\n";
 
