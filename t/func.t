@@ -91,5 +91,4 @@ $d   = abs( $ans - $yi );
 ok( all($d <= 6), 'threading: correct answer' );
 
 # end
-
-
+done_testing;
