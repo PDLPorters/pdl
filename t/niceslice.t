@@ -1,5 +1,11 @@
 use strict;
+use warnings;
 use Test::More;
+
+# TODO
+#  - split up these into subtests so that they do not reuse the same
+#    variables.
+#  - use lives_ok() instead of eval; ok(!$@) everywhere
 
 use PDL::LiteF;
 
@@ -23,14 +29,15 @@ sub translate_and_show {
 
 my $pa = sequence 10; # shut up -w
 my $pb = pdl(1);
-eval translate_and_show '$pb = $pa((5));';
 
+my $pb = pdl(1);
+eval translate_and_show '$pb = $pa((5));';
 ok (!$@);
-ok($pb->at == 5);
+cmp_ok($pb->at, '==', 5);
 
 eval translate_and_show '$pb = $pa->((5));';
 ok (!$@);
-ok($pb->at == 5);
+cmp_ok($pb->at, '==', 5);
 
 my $c = PDL->pdl(7,6);
 eval translate_and_show '$pb = $pa(($c(1)->at(0)));';
