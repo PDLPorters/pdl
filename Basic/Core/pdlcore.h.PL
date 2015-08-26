@@ -25,7 +25,7 @@ use vars qw( %PDL_DATATYPES );
 # version 10 for 64bit index support (PDL index datatype)
 # version 11 for core cleanup (proto-PDL-3)
 use vars qw( $pdl_core_version );
-$pdl_core_version = 11;
+$pdl_core_version = 12;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -138,7 +138,7 @@ void    pdl_unpackdims ( SV* sv, PDL_Indx *dims,  /* Unpack */
                          int ndims );
 void*   pdl_malloc ( STRLEN nbytes );           /* malloc memory - auto free()*/
 
-void pdl_makescratchhash(pdl *ret,PDL_Anyval data, int datatype);
+void pdl_makescratchhash(pdl *ret, PDL_Anyval data);
 PDL_Indx pdl_safe_indterm(PDL_Indx dsz, PDL_Indx at, char *file, int lineno);
 void pdl_barf(const char* pat,...); /* General croaking utility */
 void pdl_warn(const char* pat,...); /* General warn utility */
@@ -152,7 +152,7 @@ for my $in ( keys %PDL_DATATYPES ) {
   (my $type = $PDL_DATATYPES{$in}) =~ s/^PDL_//;
   print OUT <<"!WITH!SUBS!";
 PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
-	PDL_Indx* pdims, PDL_Long ndims, int level, PDL_Anyval undefval);
+	PDL_Indx* pdims, PDL_Long ndims, int level, PDL_$type undefval);
 !WITH!SUBS!
 }
 

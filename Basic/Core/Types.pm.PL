@@ -143,15 +143,6 @@ my @types = (
 		  packtype => 'd*',
 	          defaultbadval => '-DBL_MAX',
 	      },
-	      {
-		  identifier => 'A',
-		  pdlctype => 'PDL_Anyval',
-		  realctype => 'double',
-		  ppforcetype => 'anyval',
-		  usenan => 0,
-		  packtype => '(a8)*',
-	          defaultbadval => '-DBL_MAX',
-	      },
 	      );
 
 sub checktypehas {
@@ -453,14 +444,20 @@ sub datatypes_header {
     $PDL_Indx_type = $Config::Config{'ivtype'};
     warn "Using new 64bit index support\n" if $Config::Config{'ivsize'}==8;
 
+    my $anyval_union = '';
     my $enum = '';
     my $typedefs = '';
     for (sort { $typehash{$a}{'numval'}<=>$typehash{$b}{'numval'} }  keys %typehash) {
      $enum .= $typehash{$_}{'sym'}.", ";
+     $anyval_union .= "        $typehash{$_}{'ctype'} $typehash{$_}{'ppsym'};\n";
      $typedefs .= "typedef $typehash{$_}{'realctype'}              $typehash{$_}{'ctype'};\n";
     }
     chop $enum;
     chop $enum;
+
+    $typedefs .= "typedef struct {\n    pdl_datatypes type;\n    union {\n";
+    $typedefs .= $anyval_union;
+    $typedefs .= "    } value;\n} PDL_Anyval;\n";
 
     my $indx_type = typefld('PDL_IND','realctype');
     $typedefs .= '#define IND_FLAG ';
@@ -481,7 +478,7 @@ sub datatypes_header {
 
 /* Data types/sizes [must be in order of complexity] */
 
-enum pdl_datatypes { $enum };
+typedef enum { $enum } pdl_datatypes;
 
 /* Define the pdl data types */
 
@@ -668,7 +665,7 @@ sub badvalue {
   my ( $self, $val ) = @_;
   my $name = "PDL::_badvalue_int" . $self->enum();
   if ( defined $val ) { return &{$name}( $val )->sclr; }
-  else                { return &{$name}()->sclr; }
+  else                { return &{$name}( undef )->sclr; }
 }
 
 sub orig_badvalue {

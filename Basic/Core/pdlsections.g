@@ -209,7 +209,7 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 
     int i;
     PDL_Indx ioff;
-    PDL_Anyval result;
+    PDL_Anyval result = { -1, 0 };
 
     for(i=0; i<ndims; i++) { /* Check */
 
@@ -225,7 +225,8 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
    GENERICLOOP (datatype)
 
       generic *xx = (generic *) x;
-      result = (PDL_Anyval)xx[ioff];
+      result.type = datatype;
+      result.value.generic_ppsym = xx[ioff];
 
    ENDGENERICLOOP
 
@@ -255,7 +256,7 @@ void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* in
    GENERICLOOP (datatype)
 
       generic *xx = (generic *) x;
-      xx[ioff] = value;
+      ANYVAL_TO_CTYPE(xx[ioff], generic, value);
 
    ENDGENERICLOOP
 }
