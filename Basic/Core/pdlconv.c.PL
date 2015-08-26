@@ -297,7 +297,7 @@ void pdl_coercetypes( pdl** aa, pdl** bb, Logical changePerl ) {
            if (vector->datatype == PDL_F)  /* FxD is OK as F */
               targtype = vector->datatype;
 
-           else if (vector->datatype <= PDL_L && scalar->datatype <= PDL_L)
+           else if (vector->datatype <= PDL_LL && scalar->datatype <= PDL_LL)
               targtype = vector->datatype; /* two ints is OK as input int */
 
            else if (vector->datatype <= PDL_F && scalar->datatype==PDL_D)

@@ -57,7 +57,8 @@ static int is_parent_of(pdl *it,pdl_trans *trans) {
 pdl *pdl_null() {
 	PDL_Indx d[1] = {0};
 	pdl *it = pdl_new();
-	pdl_makescratchhash(it,0.0,PDL_B);
+	PDL_Anyval zero = { PDL_B, 0 };
+	pdl_makescratchhash(it, zero);
 	pdl_setdims(it,d,1);
 	it->state |= PDL_NOMYDIMS;
 	return it;
@@ -639,7 +640,6 @@ void pdl_put_offs(pdl *it, PDL_Indx offs, PDL_Anyval value) {
 	PDL_Indx dummy1=offs+1; PDL_Indx dummy2=1;
 	pdl_set(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1, value);
 }
-
 
 void pdl__addchildtrans(pdl *it,pdl_trans *trans,int nth)
 {
