@@ -18,13 +18,13 @@ T_PDL_ANYVAL
 		$var.type = -1;
 		$var.value.B = 0;
 	} else if (SvIOK($arg)) {
-#if IVSIZE == 8
+	\#if IVSIZE == 8
 		$var.type = PDL_LL;
 		$var.value.Q = (PDL_LongLong) SvIV($arg);
-#else
+	\#else
 		$var.type = PDL_L;
 		$var.value.L = (PDL_Long) SvIV($arg);
-#endif
+	\#endif
 	} else {
 		$var.type = PDL_D;
 		$var.value.D = (PDL_Double) SvNV($arg);
@@ -35,7 +35,6 @@ T_PDLTRANS
 		$var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
 	else
 	        croak(\"$var is not of type PDL::Trans\");
-
 
 OUTPUT
 

@@ -462,7 +462,7 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 void pdl_dump_fixspace(pdl *it,int nspac)
 {
 	PDL_DECL_CHILDLOOP(it)
-	int i;
+	PDL_Indx i;
 	char spaces[PDL_MAXSPACE];
 	if (nspac >= PDL_MAXSPACE) {
 	  printf("too many spaces requested: %d"
@@ -640,6 +640,7 @@ void pdl_put_offs(pdl *it, PDL_Indx offs, PDL_Anyval value) {
 	PDL_Indx dummy1=offs+1; PDL_Indx dummy2=1;
 	pdl_set(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1, value);
 }
+
 
 void pdl__addchildtrans(pdl *it,pdl_trans *trans,int nth)
 {
@@ -1402,11 +1403,11 @@ void pdl_make_physvaffine(pdl *it)
 	pdl_trans_affine *at;
 	pdl *parent;
 	pdl *current;
-	int *incsleft = 0;
+	PDL_Indx *incsleft = 0;
 	int i,j;
 	PDL_Indx inc;
 	PDL_Indx newinc;
-	int ninced;
+	PDL_Indx ninced;
 	int flag;
 	int incsign;
 
@@ -1436,12 +1437,12 @@ void pdl_make_physvaffine(pdl *it)
 	t=it->trans;
 	current = it;
 	while(t && (t->flags & PDL_ITRANS_ISAFFINE)) {
-		int cur_offset = 0;
+		PDL_Indx cur_offset = 0;
 		at = (pdl_trans_affine *)t;
 		parent = t->pdls[0];
 		/* For all dimensions of the childest piddle */
 		for(i=0; i<it->ndims; i++) {
-			int offset_left = it->vafftrans->offs;
+			PDL_Indx offset_left = it->vafftrans->offs;
 
 			/* inc = the increment at the current stage */
 			inc = it->vafftrans->incs[i];
@@ -1462,7 +1463,7 @@ void pdl_make_physvaffine(pdl *it)
 					ninced = inc / current->dimincs[j];
 					if(cur_offset + it->dims[i]*ninced >
 						current->dims[j]) {
-					  int foo=
+					  PDL_Indx foo =
 					   (cur_offset + it->dims[i]*ninced)*
 					   current->dimincs[j];
 					  int k;

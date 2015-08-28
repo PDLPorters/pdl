@@ -11,6 +11,7 @@ our @ISA    = qw( PDL::Exporter DynaLoader );
 our $VERSION = '2.013';
 bootstrap PDL::Core $VERSION;
 use PDL::Types ':All';
+use Config;
 
 our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
 my @convertfuncs = map PDL::Types::typefld($_,'convertfunc'), PDL::Types::typesrtkeys();
@@ -54,7 +55,6 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *null	      = \&PDL::null;	  *set  	= \&PDL::set;
 *at		= \&PDL::at;	  *flows	= \&PDL::flows;
 *sclr           = \&PDL::sclr;    *shape        = \&PDL::shape;
-
 
 for (map {
   [ PDL::Types::typefld($_,'convertfunc'), PDL::Types::typefld($_,'numval') ]
@@ -828,7 +828,7 @@ sub PDL::shape {  # Return dimensions as a pdl
    my $pdl = PDL->topdl (shift);
    my @dims = ();
    for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
-   return pdl(\@dims);
+   return indx(\@dims);
 }
 
 sub PDL::howbig {
@@ -1257,6 +1257,12 @@ sub PDL::new {
          # new was passed a string argument that doesn't look like a number
          # so we can process as a Matlab-style data entry format.
 		return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
+      } elsif ($Config{ivsize} < 8 && $pack[$new->get_datatype] eq 'q*') {
+         # special case when running on a perl without 64bit int support
+         # we have to avoid pack("q", ...) in this case
+         # because it dies with error: "Invalid type 'q' in pack"
+         $new->setdims([]);
+         set_c($new, [0], $value);
       } else {
          $new->setdims([]);
          ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );

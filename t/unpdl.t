@@ -3,7 +3,7 @@ use warnings;
 
 use PDL;
 use Config;
-use Test::More tests => 2;
+use Test::More tests => 7;
 
 my $array = [
  [[1,2],
@@ -47,5 +47,14 @@ SKIP:
        8999999999999999996,
        9223372036854775807, #max int64
   ];
+
   is_deeply(longlong($input)->unpdl, $input, 'back convert of 64bit integers');
+  my $small_pdl = longlong([ -9000000000000000001, 9000000000000000001 ]);
+  is($small_pdl->at(0), -9000000000000000001, 'at/1');
+  is(PDL::Core::at_c($small_pdl, [1]),  9000000000000000001, 'at_c/1');
+  $small_pdl->set(0, -8888888888888888888);
+  PDL::Core::set_c($small_pdl, [1], 8888888888888888888);
+  is($small_pdl->at(0), -8888888888888888888, 'at/2');
+  is(PDL::Core::at_c($small_pdl, [1]),  8888888888888888888, 'at_c/2');
+  is_deeply($small_pdl->unpdl, [ -8888888888888888888, 8888888888888888888 ], 'unpdl/small_pdl');
 }

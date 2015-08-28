@@ -61,7 +61,8 @@ for(['readdata_vaffine', "*ap = *pp"],
 print OUT <<"!WITH!SUBS!";
 
 void pdl_${name}(pdl *a) {
-	int i,j;
+	PDL_Indx i;
+	int j;
 	int intype = a->datatype;
 	if(!PDL_VAFFOK(a)) {
 		die("pdl_$name without vaffine");
@@ -142,7 +143,7 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     HV*   hash;
     STRLEN   nbytes;
     int   diffsize;
-    int   i;
+    PDL_Indx   i;
 #if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
     dXSARGS;
 #endif
