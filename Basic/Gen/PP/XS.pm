@@ -1,4 +1,4 @@
-package XS;
+package PDL::PP::XS;
 
 sub mkproto {
 	my($name,$pars) = @_;
@@ -10,8 +10,6 @@ void
 $name($shortpars)
 $longpars
 END
-
-
 }
 
 1;
