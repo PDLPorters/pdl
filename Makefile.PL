@@ -644,7 +644,6 @@ sub coretarget {
     # @targets is make targets within that dir
     # @prereqs are named targets - undef=[]
     # all a left's rights are made concurrently, no sequence - list ALL prereqs
-    my @up_blib = ((File::Spec->updir) x 2, qw(blib arch auto PDL));
     my @left2rights = (
         [
             basics => [
@@ -658,13 +657,7 @@ sub coretarget {
                 [ [ qw(Basic SourceFilter) ], [ qw(pm_to_blib) ], ],
                 map { [
                     [ 'Basic', $_ ],
-                    # this contortion is due to an intermittent failure of
-                    # "cd;make" to actually build the SO in blib with
-                    # gmake -j4, which doesn't happen if give actual
-                    # path. E.g. in Core it often doesn't build pdlcore.o
-                    # and sometimes not Core.o, then just stops and
-                    # indicates success
-                    [ 'pm_to_blib', File::Spec->catfile(@up_blib, $_, "$_.\$(DLEXT)") ],
+                    [ 'pm_to_blib', 'dynamic' ],
                     [ 'basics' ],
                 # the modules in PDL::LiteF, used in t/core.t
                 ] } qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps),
