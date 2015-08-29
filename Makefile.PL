@@ -731,7 +731,7 @@ sub MY::processPL {
     return $self->SUPER::processPL if 0; ## || $^O =~ /MSWin32/i && $Config{make} =~ /\b[dn]make/i
     return "" unless $self->{PL_FILES};
     my @m;
-    my $alltarget = $ExtUtils::MakeMaker::VERSION >= 7.05_06 ? 'pure_nolink' : 'all';
+    my $alltarget = 'all';
     my $colon = $Config::Config{make} =~ /\bdmake/i ? ':' : '::';
     foreach my $plfile (sort keys %{$self->{PL_FILES}}) {
         my $list = ref($self->{PL_FILES}->{$plfile})
