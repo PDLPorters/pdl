@@ -1,6 +1,6 @@
 # For making sure that no conflicts occur
 
-package SymTab;
+package PDL::PP::SymTab;
 use Carp;
 
 sub new {

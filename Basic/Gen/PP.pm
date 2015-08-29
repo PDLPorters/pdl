@@ -1895,7 +1895,7 @@ sub MkPrivStructInit {
 }
 
 sub MkDefSyms {
-    return SymTab->new(
+    return PDL::PP::SymTab->new(
 		       _PDL_ThisTrans => ["__privtrans",C::Type->new(undef,"$_[0] *foo")],
 		      );
 }
