@@ -396,7 +396,8 @@ sub Win32::fn_win32_format {
   return $file;
 }
 
-package Win32::DDE::Netscape;
+package # hide from PAUSE
+    Win32::DDE::Netscape;
 use PDL::Core '';  # barf
 require Win32::DDE::Client if $^O =~ /win32/i;
 
