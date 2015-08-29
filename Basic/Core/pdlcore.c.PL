@@ -327,7 +327,7 @@ print OUT <<'!NO!SUBS!';
 
    if(SvTYPE(SvRV(sv)) == SVt_PVHV) {
         HV *hash = (HV*)SvRV(sv);
-        SV **svp = hv_fetch(hash,"PDL",3,0);
+        SV **svp = hv_fetchs(hash,"PDL",0);
         if(svp == NULL) {
                 croak("Hash given as a pdl - but not {PDL} key!");
         }
