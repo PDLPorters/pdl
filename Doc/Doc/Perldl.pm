@@ -265,7 +265,8 @@ sub finddoc  {
 	   # We've got a file name and we have to open it.  With the relocatable db, we have to reconstitute the absolute pathname.
 	   my $relfile = $m->[1]{File};
 	   my $absfile = undef;
-	   for my $dbf(@{$PDL::onlinedoc->{Scanned}}) {
+	   my @scnd = @{$PDL::onlinedoc->{Scanned}};
+	   for my $dbf(@scnd){
 	       $dbf =~ s:\/[^\/]*$::; # Trim file name off the end of the database file to get just the directory
 	       $dbf .= "/$relfile";
 	       $absfile = $dbf if( -e $dbf );
