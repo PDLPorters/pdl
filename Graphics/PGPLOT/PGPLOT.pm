@@ -146,7 +146,10 @@ package PDL::Graphics::PGPLOT;
 use PDL::Core qw/:Func :Internal/; # Grab the Core names
 use PDL::Graphics::PGPLOTOptions qw(default_options);
 use PDL::Graphics::PGPLOT::Window;
-use PGPLOT;
+BEGIN {
+  eval { require PGPLOT; PGPLOT->import; 1 }
+    or die "Dependency on PGPLOT is not satisfied: $@";
+}
 use Exporter;
 
 use strict;
