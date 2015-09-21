@@ -244,28 +244,28 @@ L<gethdr|PDL::Core/gethdr> calls.
 
 Smart references and most other fundamental functions
 operating on piddles are implemented via I<transformations>
-(Aas mentioned above) which are represented by the type C<pdl_trans> in PDL.
+(as mentioned above) which are represented by the type C<pdl_trans> in PDL.
 
 A transformation links input and output piddles and contains
-all the infrastructure that defines how
+all the infrastructure that defines how:
 
 =over 4
 
 =item *
 
-output piddles are obtained from input piddles
+output piddles are obtained from input piddles;
 
 =item *
 
 changes in smartly linked output piddles (e.g. the I<child>
 of a sliced I<parent> piddle) are flown back to the input
 piddle in transformations where this is supported (the most
-often used example being C<slice> here).
+often used example being C<slice> here);
 
 =item *
 
 datatype and size of output piddles that need to be created
-are obtained
+are obtained.
 
 =back
 
@@ -324,7 +324,7 @@ but still useful as an example!).
 
 Consider the following situation:
 
- pdl> $a = rvals(7,7,Centre=>[3,4]);
+ pdl> $a = rvals(7,7,{Centre=>[3,4]});
  pdl> $b = $a->slice('2:4,3:5');
  pdl> ? vars
  PDL variables in package main::
@@ -332,12 +332,12 @@ Consider the following situation:
  Name         Type   Dimension       Flow  State          Mem
  ----------------------------------------------------------------
  $a           Double D [7,7]                P            0.38Kb 
- $b           Double D [3,3]                VC           0.00Kb 
+ $b           Double D [3,3]                -C           0.00Kb
 
 Now, if I suddenly decide that C<$a> should be flagged as possibly
 containing bad values, using
 
- pdl> $a->baddata(1)
+ pdl> $a->badflag(1)
 
 then I want the state of C<$b> - it's I<child> - to be changed as
 well (since it will either share or inherit some of C<$a>'s data and
@@ -349,7 +349,7 @@ so be also I<bad>), so that I get a 'B' in the I<State> field:
  Name         Type   Dimension       Flow  State          Mem
  ----------------------------------------------------------------
  $a           Double D [7,7]                PB           0.38Kb 
- $b           Double D [3,3]                VCB          0.00Kb 
+ $b           Double D [3,3]                -CB          0.00Kb
 
 This bit of magic is performed by the C<propagate_badflag> function,
 which is listed below:
@@ -384,7 +384,7 @@ C<pdl_trans> structure, where access to this structure is provided by the
 C<PDL_CHILDLOOP_THISCHILD> macro.
 The I<children> of the piddle are stored in the C<pdls> array, after the
 I<parents>, hence the loop from C<i = ...nparents> to 
-C<i = ...nparents - 1>.
+C<i = ...npdls - 1>.
 Once we have the pointer to the child piddle, we can do what we want to 
 it; here we change the value of the C<state> variable, but the details
 are unimportant).
@@ -409,7 +409,7 @@ All transformations are implemented as structures
 	short flags; /* state of the trans */
 	pdl_transvtable *vtable;   /* the all important vtable */
 	void (*freeproc)(struct pdl_trans *);  /* Call to free this trans
-		(in case we had to malloc some stuff dor this trans) */
+		(in case we had to malloc some stuff for this trans) */
         pdl *pdls[NP]; /* The pdls involved in the transformation */
 	int __datatype; /* the type of the transformation */
         /* in general more members

@@ -151,7 +151,7 @@ Set the version for .pm and .xs files
 
 Why do we need PP? Several reasons: firstly, we want to be able to
 generate subroutine code for each of the PDL datatypes (PDL_Byte,
-PDL_Short,. etc).  AUTOMATICALLY.  Secondly, when referring to slices
+PDL_Short, etc).  AUTOMATICALLY.  Secondly, when referring to slices
 of PDL arrays in Perl (e.g. C<< $a->slice('0:10:2,:') >> or other things such
 as transposes) it is nice to be able to do this transparently and to
 be able to do this 'in-place' - i.e, not to have to make a memory copy
@@ -2321,7 +2321,7 @@ For example:
 
 Warning: If, in the middle of your .pd file, you put documentation meant for
 the bottom of your pod, you will thoroughly confuse CPAN. On the other hand,
-if in the middle of your .pd fil, you add some Perl code destined for the
+if in the middle of your .pd file, you add some Perl code destined for the
 bottom or top of your .pm file, you only have yourself to confuse. :-)
 
 =item pp_beginwrap
@@ -2458,7 +2458,7 @@ Almost everything having to do with L<Slice Operation>.
 =head1 BUGS
 
 Although PDL::PP is quite flexible and thoroughly used, there are surely
-bugs. First amonth them: this documentation needs a thorough revision.
+bugs. First amongst them: this documentation needs a thorough revision.
 
 =head1 AUTHOR
 

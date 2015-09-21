@@ -76,7 +76,7 @@
 # it does not need to be supplied, and the return value should be
 # given as a single-quoted string and use the $name variable
 #
-# The Substitute rule replaces dollar-signed macros ($P(), $ISBAD(), ect)
+# The Substitute rule replaces dollar-signed macros ($P(), $ISBAD(), etc)
 # with the low-level C code to perform the macro.
 #
 # The Substitute class replaces the dosubst rule. The old rule

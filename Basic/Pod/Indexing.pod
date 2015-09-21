@@ -705,7 +705,7 @@ you get the idea (in spite of my convoluted explanations).
 
 =head2 Propagated assignments ('.=') and dummy dimensions
 
-A sublety related to indexing is the assignment to piddles containing dummy
+A subtlety related to indexing is the assignment to piddles containing dummy
 dimensions of size greater than 1. These assignments (using C<.=>) are
 forbidden since several elements of the lvalue piddle point to the same
 element of the parent. As a consequence the value of those parent
