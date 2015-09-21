@@ -495,14 +495,12 @@ sub _hist_bin_calc {
     my($pdl,$min,$max,$step,$wantarray)=@_;
     $min = $pdl->min() unless defined $min;
     $max = $pdl->max() unless defined $max;
-    my $ntype = $pdl->get_datatype;
-    barf "empty piddle, no values to work with" if $pdl->nelem == 0;
-    unless (defined $step) {
-	my $defbins = sqrt($pdl->nelem);
-	$defbins = ($defbins>100) ? 100 : $defbins;
-	$step = ($max-$min)/$defbins;
-    }
+    my $nelem = $pdl->nelem;
+    barf "empty piddle, no values to work with" if $nelem == 0;
+
+    $step = ($max-$min)/(($nelem>10_000) ? 100 : sqrt($nelem)) unless defined $step;
     barf "step is zero (or all data equal to one value)" if $step == 0;
+
     my $bins = int(($max-$min)/$step+0.5);
     print "hist with step $step, min $min and $bins bins\n"
 	if $PDL::debug;
