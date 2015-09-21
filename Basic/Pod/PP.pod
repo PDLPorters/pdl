@@ -2449,11 +2449,120 @@ I<perlxs>, I<perlxstut>
 
 =head1 CURRENTLY UNDOCUMENTED
 
+Almost everything having to do with L<Slice operation>. This includes much of the following (each entry is followed by a guess/description of where it is used or defined):
+
+=over 3
+
+=item MACROS
+
+$CDIM()
+
+$CHILD()
+    PDL::PP::Rule::Substitute::Usual
+
+$CHILD_P()
+    PDL::PP::Rule::Substitute::Usual
+
+$CHILD_PTR()
+    PDL::PP::Rule::Substitute::Usual
+
+$COPYDIMS()
+
+$COPYINDS()
+
+$CROAK()
+    PDL::PP::Rule::Substitute::dosubst_private()
+
+$DOCOMPDIMS()
+    Used in slices.pd, defined where?
+
+$DOPRIVDIMS()
+    Used in slices.pd, defined where?
+    Code comes from PDL::PP::CType::get_malloc, which is called by PDL::PP::CType::get_copy, which is called by PDL::PP::CopyOtherPars, PDL::PP::NT2Copies__, and PDL::PP::make_incsize_copy.  But none of those three at first glance seem to have anything to do with $DOPRIVDIMS
+
+
+$EQUIVCPOFFS()
+
+$EQUIVCPTRUNC()
+
+$PARENT()
+    PDL::PP::Rule::Substitute::Usual
+
+$PARENT_P()
+    PDL::PP::Rule::Substitute::Usual
+
+$PARENT_PTR()
+    PDL::PP::Rule::Substitute::Usual
+
+
+$PDIM()
+
+$PRIV()
+    PDL::PP::Rule::Substitute::dosubst_private()
+
 $RESIZE()
+
+$SETDELTATHREADIDS()
+    PDL::PP::Rule::MakeComp
+
+$SETDIMS()
+    PDL::PP::Rule::MakeComp
+
+$SETNDIMS()
+    PDL::PP::Rule::MakeComp
+
+$SETREVERSIBLE()
+    PDL::PP::Rule::Substitute::dosubst_private()
+
+=item Keys
+
+AffinePriv
 
 BackCode
 
-Almost everything having to do with L<Slice Operation>.
+BadBackCode
+
+CallCopy
+
+Comp (related to $COMP()?)
+
+DefaultFlow
+
+EquivCDimExpr
+
+EquivCPOffsCode
+
+EquivDimCheck
+
+EquivPDimExpr
+
+FTypes (see comment in this POD's source file between NoPthread and PMCode.)
+
+GlobalNew
+
+Identity
+
+MakeComp
+
+NoPdlThread
+
+P2Child
+
+ParentInds
+
+Priv
+
+ReadDataFuncName
+
+RedoDims (related to RedoDimsCode ?)
+
+Reversible
+
+WriteBckDataFuncName
+
+XCHGOnly
+
+=back
 
 =head1 BUGS
 
