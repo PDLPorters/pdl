@@ -95,7 +95,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.013 release:
+  PDL-2.013_01 release:
 
   393   Tests may fail if perl is compiled with -Duselongdouble
   392   Inline Pdlpp doesn't work in clean build tree

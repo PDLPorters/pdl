@@ -1,3 +1,21 @@
+v2.013 2015-09-26 17:39:41-04:00
+
+General Notes:
+
+ * This is PDL-2.013_01 which is the first CPAN
+   developers release for PDL with newly completed
+   support for 64bit indexing.
+ 
+ * Needs testing for piddles with more than 2**32
+   elements but all checks pass so far.
+
+
+Highlights:
+
+ * TBD
+
+
+
 v2.013 2015-08-14 08:37:15-04:00
 
 General Notes:
