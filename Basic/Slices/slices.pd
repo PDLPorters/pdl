@@ -1343,25 +1343,20 @@ pp_def(
 
 
 
-# XXX Make clump work with optional parameter!
-if(0) {
-# Special-case
+# the perl wrapper clump is now defined in Core.pm
+# this is just the low level interface
 pp_def(
-        'clump',
+        '_clump_int',
         DefaultFlow => 1,
         OtherPars => 'int n',
         P2Child => 1,
+	NoPdlThread=>1,
         Priv => 'int nnew; int nrem;',
         RedoDims => 'int i; PDL_Indx d1;
-                if($COMP(n) > $PARENT(ndims))
-                        /* Now with more flavor: truncate overly long clumps to
-                           just clump existing dimensions...  (CED 17-Mar-2002) */
 
+	         /* truncate overly long clumps to just clump existing dimensions */
+		 if($COMP(n) > $PARENT(ndims))
                         $COMP(n) = $PARENT(ndims);
-
-                        /* Old croaking code: */
-                        /*$CROAK("Too many dimensions %d to clump from %d", */
-                        /*              $COMP(n),$PARENT(ndims)); */
 
                  $COMP(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
                  $PRIV(nnew) = $PARENT(ndims) - $COMP(nrem) + 1;
@@ -1384,63 +1379,9 @@ pp_def(
                 }
                 ',
         Reversible => 1,
-);
-} else {
-
-# Affine! Make sure vaffine chaining understands to stop in the right
-# place.
-# the perl wrapper clump is now defined in Core.pm
-# this is just the low level interface
-pp_def(
-        '_clump_int',
-        P2Child => 1,
-        NoPdlThread => 1,
-        DefaultFlow => 1,
-        Reversible => 1,
-        AffinePriv => 1,
-        OtherPars => 'int n',
-        RedoDims => 'int i; PDL_Indx d1;
-                int nrem; int nnew;
-                if($COMP(n) > $PARENT(ndims)) {
-                        /* Now with more flavor:  truncate clumping in this case to
-                         * the total number of dimensions that actually exist...
-                         *  --CED 17-Mar-2002
-                         */
-                        $COMP(n) = -1;
-
-#ifdef older_croaking_code
-                        $SETNDIMS(0);  /* fix to make sure we do not get problems later */
-                        $PRIV(offs) = 0;
-                        $SETDIMS();
-                        $CROAK("Too many dimensions %d to clump from %d",
-                                $COMP(n),$PARENT(ndims));
-#endif
-                }
-                 nrem = ($COMP(n)< 0 ? $PARENT(threadids[0]) + 1 + ($COMP(n)) : $COMP(n));
-                 if(nrem < 0) {
-                        $CROAK("Too many dimensions %d to leave behind when clumping from %d",-$COMP(n),$PARENT(ndims));
-                 }
-
-                 nnew = $PARENT(ndims) - nrem + 1;
-                 $SETNDIMS(nnew);
-                 $DOPRIVDIMS();
-                 $PRIV(offs) = 0;
-                 d1=1;
-                 for(i=0; i<nrem; i++) {
-                        d1 *= $PARENT(dims[i]);
-                 }
-                 $CHILD(dims[0]) = d1;
-                 $PRIV(incs[0]) = 1;
-                 for(; i<$PARENT(ndims); i++) {
-                        $CHILD(dims[i-nrem+1]) = $PARENT(dims[i]);
-                        $PRIV(incs[i-nrem+1]) = $PARENT(dimincs[i]);
-                 }
-                 $SETDIMS();
-                 $SETDELTATHREADIDS(1-nrem);
-                 ',
         Doc => 'internal',
 );
-}
+
 
 
 =head2 xchg
