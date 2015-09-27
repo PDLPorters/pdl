@@ -2631,7 +2631,7 @@ sub PDL::reshape{
     if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
 	return $_[0]->slice( map { $_==1 ? [0,0,0] : [] } $_[0]->dims);
     }
-    my $pdl = pdl($_[0]);
+    my $pdl = topdl($_[0]);
     my $nelem = $pdl->nelem;
     my @dims = grep defined, @_[1..$#_];
     for my $dim(@dims) { barf "reshape: invalid dim size '$dim'" if $dim < 0 }
