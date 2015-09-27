@@ -221,7 +221,7 @@ the matrix argument provided is non-invertible. The matrix threads as usual.
 This routine was previously known as C<det> which clashes now with
 L<det|PDL::MatrixOps/det> which is provided by L<PDL::MatrixOps>.
 
-=head2 PDL::Slatec::fft
+=head2 fft
 
 =for ref
 
@@ -236,7 +236,7 @@ C<PDL::Slatec::fft> is a convenience wrapper for L<ezfftf|ezfftf>, and
 performs a Fast Fourier Transform on an input vector C<$v_in>. The
 return values are the same as for L<ezfftf|ezfftf>.
 
-=head2 PDL::Slatec::rfft
+=head2 rfft
 
 =for ref
 

@@ -174,7 +174,7 @@ BEGIN {
 
 =head1 FUNCTIONS
 
-=head2 PDL::Func::init
+=head2 init
 
 =for usage
 
@@ -477,7 +477,7 @@ sub _get_value {
 
 ####################################################################
 
-=head2 PDL::Func::set
+=head2 set
 
 =for usage
 
@@ -528,7 +528,7 @@ sub set {
 
 ####################################################################
 
-=head2 PDL::Func::get
+=head2 get
 
 =for usage
 
@@ -567,7 +567,7 @@ sub get {
 #
 # access to flags - have individual methods for these
 
-=head2 PDL::Func::scheme
+=head2 scheme
 
 =for usage
 
@@ -583,7 +583,7 @@ Returns either C<Linear> or C<Hermite>.
 
 sub scheme { return $_[0]->{flags}{scheme}; }
 
-=head2 PDL::Func::status
+=head2 status
 
 =for usage
 
@@ -608,7 +608,7 @@ particular scheme in use.
 
 sub status { return $_[0]->{flags}{status}; }
 
-=head2 PDL::Func::routine
+=head2 routine
 
 =for usage
 
@@ -625,7 +625,7 @@ C<err> attribute.
 
 sub routine { return $_[0]->{flags}{routine}; }
 
-=head2 PDL::Func::attributes
+=head2 attributes
 
 =for usage
 
@@ -679,7 +679,7 @@ sub attributes {
 
 ####################################################################
 
-=head2 PDL::Func::interpolate
+=head2 interpolate
 
 =for usage
 
@@ -757,7 +757,7 @@ sub _interp_hermite {
     return $yi;
 } # sub: _interp_linear()
 
-=head2 PDL::Func::gradient
+=head2 gradient
 
 =for usage
 
@@ -808,7 +808,7 @@ sub gradient {
 
 } # sub: gradient
 
-=head2 PDL::Func::integrate
+=head2 integrate
 
 =for usage
 

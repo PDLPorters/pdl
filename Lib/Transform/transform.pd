@@ -1252,7 +1252,7 @@ pp_def('map',
 
         Doc=><<'+==EOD_map_doc==',
 
-=head2 PDL::match
+=head2 match
 
 =for usage
 

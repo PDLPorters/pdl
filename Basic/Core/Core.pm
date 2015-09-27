@@ -640,7 +640,7 @@ below for usage).
  $b = topdl $piddle;        # fall through
  $a = topdl (1,2,3,4);      # Convert 1D array
 
-=head2 PDL::get_datatype
+=head2 get_datatype
 
 =for ref
 
@@ -837,7 +837,7 @@ sub PDL::howbig {
 	PDL::howbig_c($t);
 }
 
-=head2 PDL::threadids
+=head2 threadids
 
 =for ref
 
@@ -902,7 +902,7 @@ sub PDL::flows {
          return ($this->fflows || $this->bflows);
 }
 
-=head2 PDL::new
+=head2 new
 
 =for ref
 
@@ -1314,7 +1314,7 @@ sub PDL::copy {
     return $new;
 }
 
-=head2 PDL::hdr_copy
+=head2 hdr_copy
 
 =for ref
 
@@ -1441,7 +1441,7 @@ sub PDL::_deep_hdr_copy {
 }
 
 
-=head2 PDL::unwind
+=head2 unwind
 
 =for ref
 
@@ -1452,7 +1452,7 @@ that all threadids have been removed.
 
  $y = $x->unwind;
 
-=head2 PDL::make_physical
+=head2 make_physical
 
 =for ref
 
@@ -1734,7 +1734,7 @@ sub PDL::thread_define ($$) {
   barf "error defining $name: $@\n" if $@;
 }
 
-=head2 PDL::thread
+=head2 thread
 
 =for ref
 
@@ -1798,7 +1798,7 @@ sub PDL::diagonal {
 	$var->diagonalI(\@_);
 }
 
-=head2 PDL::thread1
+=head2 thread1
 
 =for ref
 
@@ -1822,7 +1822,7 @@ sub PDL::thread1 {
 	$var->threadI(1,\@_);
 }
 
-=head2 PDL::thread2
+=head2 thread2
 
 =for ref
 
@@ -1846,7 +1846,7 @@ sub PDL::thread2 {
 	$var->threadI(2,\@_);
 }
 
-=head2 PDL::thread3
+=head2 thread3
 
 =for ref
 
@@ -1992,7 +1992,7 @@ but
  [0]
 
 
-=head2 PDL::info
+=head2 info
 
 =for ref
 
@@ -2344,7 +2344,7 @@ sub new_or_inplace {
 # Allow specifications like zeroes(10,10) or zeroes($x)
 # or zeroes(inplace $x) or zeroes(float,4,3)
 
-=head2 PDL::new_from_specification
+=head2 new_from_specification
 
 =for ref
 

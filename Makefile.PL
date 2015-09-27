@@ -472,6 +472,7 @@ my %makefile_hash = (
                        web => 'http://sourceforge.net/p/pdl/code/ci/master/tree/',
                     },
                  },
+                 no_index => { file => ['Doc/scantree.pl'] }
               },
               'MAN1PODS' => { 'Bugs.pod' => '$(INST_MAN1DIR)/PDL::Bugs.$(MAN1EXT)',
                               'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
