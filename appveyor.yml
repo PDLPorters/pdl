@@ -1,6 +1,8 @@
 version: 1.0.{build}
 
 install:
+  # running under CI
+  - set CI_TESTING=1
   - cinst StrawberryPerl
   - path C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
   - mkdir %APPVEYOR_BUILD_FOLDER%\tmp

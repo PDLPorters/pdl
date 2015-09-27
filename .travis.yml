@@ -58,6 +58,7 @@ matrix:
   allow_failures:
     - perl: blead
 before_install:
+  - export CI_TESTING=1 # running under CI
   - mkdir -p ~/bin; export PATH="$HOME/bin:$PATH"; G="$HOME/bin/gfortran"; if [ "$DISABLE_FORTRAN" == 1 ]; then touch "$G"; chmod a+x "$G"; echo 'false' >"$G"; else rm -f "$G"; fi # set DISABLE_FORTRAN = 1 to not have working gfortran
   # clang is already installed in Travis-CI environment. Using PERL_MM_OPT does not work with subdirectory Makefile.PLs so we override Config.pm
   # Also, both $Config{cc} and $Config{ld} need to be set because under ELF environments (such as Travis-CI's Ubuntu), this is what Perl's Config.pm does.
