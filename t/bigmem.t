@@ -9,7 +9,7 @@
 use Test::More;
 
 BEGIN {
-   if ($ENV{AUTOMATED_TESTING} or $ENV{TRAVIS_BUILD_ID}) {
+   if ($ENV{AUTOMATED_TESTING} or $ENV{CI_TESTING}) {
       plan skip_all => 'bigmem tests skipped to avoid OOM fails';
    } else {
       plan tests => 1;
