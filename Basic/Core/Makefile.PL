@@ -10,7 +10,6 @@ my $pthread_include = $Config::Config{usrinc};  # not good for win32
 my $pthread_library = '-lpthread';                                  # not good for MSVC
 my $pthread_define  = ' -DPDL_PTHREAD ';
 
-my $macos_braindamage_define = ($^O eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
 my $badval_define = " -DBADVAL=$PDL::Config{WITH_BADVAL} -DBADVAL_USENAN=$PDL::Config{BADVAL_USENAN} -DBADVAL_PER_PDL=$PDL::Config{BADVAL_PER_PDL}";
 
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
@@ -239,7 +238,7 @@ WriteMakefile(
 		},
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
  'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
- 'DEFINE' 	=> $pthread_define.$macos_braindamage_define.$badval_define,
+ 'DEFINE' 	=> $pthread_define.$badval_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => $cobj .
                    ' pdlconv.c pdlsections.c pdlcore.c '.
