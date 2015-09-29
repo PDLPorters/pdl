@@ -1,15 +1,9 @@
 The following issues have been reported with this version of PDL:
 
-- New support for 64bit data and the modulus operator causes
-  some fails in t/ops.t.  The new tests which are failing have
-  been marked TODO so that the improved modulus support, although
-  partial, does not result in misleading CPAN Testers FAIL reports.
-
 
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM
   format on some platforms, resulting in a failed picrgb test.
-
   
 - Bugs in Netpbm versions earlier than 10.58.00 result in
   invalid 16bit PNG image IO and failing tests.
@@ -87,16 +81,11 @@ The following issues have been reported with this version of PDL:
   again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
 
-- minimum/maximum/min/max inconsistently handle NaN values.
-  NaNs for the first element of a pdl will propagate to the
-  result while if the first element is a number, then the
-  result will be a number.  The answer for max/min should not
-  depend on the order of the input values.
-
-
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.013_01 release:
 
+  397   PDL::FFT not 64bit integer safe
+  395   ipow (integer exponentiation) support for 64bit index support
   393   Tests may fail if perl is compiled with -Duselongdouble
   392   Inline Pdlpp doesn't work in clean build tree
   391   Operators called in the form "explicit call with trailing 0" give syntax error
@@ -105,13 +94,11 @@ The following issues have been reported with this version of PDL:
   382   plplot-5.11.0 comes with libplplot.a but missing libplplotd.a
   381   rpic/rim fail to read files with whitespace in the filename
   379   Passing qsort an extra argument causes a segfault
-  378   where on dice of pdl bad results
   366   many warnings in t/transform.t with use strict; use warnings;
   364   type promotion in whistogram is based upon the index, not the weight
   354   filter demo list by actually available
   347   t/pdl_from_string.t has a failure if BADVAL_NAN=1
   346   ExtUtils::F77 dependency causing problems for CPAN install
-  343   longlong constructor and display lose digits due to implicit double precision conversions
   340   orover of byte data returns long type
   339   PDL::Complex support is inconsistent and incomplete
   334   Test coverage is incomplete
