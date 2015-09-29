@@ -1497,7 +1497,7 @@ void pdl_make_physvaffine(pdl *it)
 			it->vafftrans->incs[i] = incsleft[i];
 		}
 		{
-			int offset_left = it->vafftrans->offs;
+			PDL_Indx offset_left = it->vafftrans->offs;
 			inc = it->vafftrans->offs;
 			newinc = 0;
 			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {

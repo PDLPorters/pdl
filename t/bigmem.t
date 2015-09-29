@@ -12,7 +12,7 @@ BEGIN {
    if ($ENV{AUTOMATED_TESTING} or $ENV{CI_TESTING}) {
       plan skip_all => 'bigmem tests skipped to avoid OOM fails';
    } else {
-      plan tests => 1;
+      plan tests => 2;
    }
 }
 
@@ -34,6 +34,11 @@ $PDL::BIGPDL = 1;  # should this be the defaults for 64bit index support?
 
 my $bigbyte = ones( byte, 5*1024*1024*1024+17 );
 ok( $bigbyte->shape->sclr == $bigbyte->nelem, "shape handles indx dims > 4GiB");
+
+$bigbyte = ones(byte, 2**30, 4);
+my $aaa = $bigbyte->slice("3:-10");
+my $bbb = $aaa->slice(":,3");
+ok( $bbb->sum == $bbb->nelem, "slices of slices of giant PDLs seem to work right");
 
 # ndims
 # getndims
