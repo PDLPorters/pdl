@@ -310,9 +310,9 @@ EOD
 #
 
 ## arithmetic ops
-# no swap
-biop('plus','+',0,'add two piddles');
-biop('mult','*',0,'multiply two piddles');
+# no swap needed but set anyway fixing sf bug #391
+biop('plus','+',1,'add two piddles');
+biop('mult','*',1,'multiply two piddles');
 
 # all those need swapping
 biop('minus','-',1,'subtract two piddles');
@@ -326,18 +326,18 @@ biop('gt','>',1,'the binary E<gt> (greater than) operation', Comparison => 1 );
 biop('lt','<',1,'the binary E<lt> (less than) operation', Comparison => 1 );
 biop('le','<=',1,'the binary E<lt>= (less equal) operation', Comparison => 1 );
 biop('ge','>=',1,'the binary E<gt>= (greater equal) operation', Comparison => 1 );
-# no swap required
-biop('eq','==',0,'binary I<equal to> operation (C<==>)', Comparison => 1 );
-biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)', Comparison => 1 );
+# no swap required but set anyway fixing sf bug #391
+biop('eq','==',1,'binary I<equal to> operation (C<==>)', Comparison => 1 );
+biop('ne','!=',1,'binary I<not equal to> operation (C<!=>)', Comparison => 1 );
 
 ## bit ops
 # those need to be limited to the right types
-my $T = [B,U,S,L]; # the sensible types here
+my $T = [B,U,S,L,N,Q]; # the sensible types here
 biop('shiftleft','<<',1,'leftshift C<$a> by C<$b>',GenericTypes => $T);
 biop('shiftright','>>',1,'rightshift C<$a> by C<$b>',GenericTypes => $T);
-biop('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
-biop('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
-biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
+biop('or2','|',1,'binary I<or> of two piddles',GenericTypes => $T);
+biop('and2','&',1,'binary I<and> of two piddles',GenericTypes => $T);
+biop('xor','^',1,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 
 # really an ufunc
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
