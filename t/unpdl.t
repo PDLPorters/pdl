@@ -19,7 +19,7 @@ is_deeply( unpdl($pdl), $array, "back convert 3d");
 
 SKIP:
 {
-  skip("your perl hasn't 64bit int support", 1) if $Config{ivsize} < 8;
+  skip("your perl hasn't 64bit int support", 6) if $Config{ivsize} < 8;
   my $input = [
       -9223372036854775808, #min int64
       -9000000000000000001,
