@@ -302,8 +302,12 @@ int pdl_whichdatatype_double (NV nv) {
         TESTTYPE(PDL_D,PDL_Double)
 
         if( !finite(nv) ) { return PDL_D; }
-        croak("Something's gone wrong: %lf cannot be converted by whichdatatype_double",
-                nv);
+#if NVSIZE > 8
+        warn("Precision loss due to 'long double' to 'PDL_D' conversion!");
+        return PDL_D;
+#else
+        croak("Something's gone wrong: %lf cannot be converted by whichdatatype_double",  nv);
+#endif 
 }
 
 
