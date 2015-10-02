@@ -140,6 +140,7 @@ start-up modules.
    use PDL::IO::Misc;
    use PDL::IO::FITS;
    use PDL::IO::Pic;
+   use PDL::IO::Storable;
    use PDL::Lvalue;
 
 =cut
@@ -179,6 +180,10 @@ use PDL::IO::Pic;           # rpic/wpic
 # Load this so config/install info is available
 
 use PDL::Config;
+
+# Load this to avoid mysterious Storable segfaults
+
+use PDL::IO::Storable;
 
 EOD
 
