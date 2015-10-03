@@ -79,6 +79,8 @@ extern int pdl_debugging;
             } \\
         } while (0)
 
+extern int _anyval_eq_anyval(PDL_Anyval, PDL_Anyval);
+
 #define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
 
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
