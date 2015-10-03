@@ -12,8 +12,9 @@ BEGIN {
    }
 };
 
-## TODO: {  # I think this has been fixed
-## local $TODO = 'Needs to use approx() for float tests';
+TODO: {
+
+   local $TODO = 'Needs to use approx() for float tests';
 
    $x1 = pdl( 1, 2, 3 );
    $x2 = pdl( 2, 3, 4 );
@@ -41,4 +42,4 @@ BEGIN {
 
    is_deeply( \@range, [ log10(0.5), log10(5+0.5) ], 'illegal errbar lower bounds' );
 
-## }
+}
