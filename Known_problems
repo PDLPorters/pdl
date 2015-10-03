@@ -30,12 +30,6 @@ The following issues have been reported with this version of PDL:
     f( scalar($p0 * $p1) x $p2 );
 
 
-- Some versions of MinGW gcc (used to compile for win32 perls)
-  crash in compilation of large, PP-generated files.  The work-
-  around is to disable optimization for those files.  See the
-  INSTALL file for a hand fix.
-
-
 - The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
   doesn't work the same with the perl's new "safe signals".  A
   workaround to the problem is to set the PERL_SIGNALS environment
@@ -82,22 +76,26 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.013_01 release:
+  PDL-2.013_02 release:
 
   397   PDL::FFT not 64bit integer safe
   395   ipow (integer exponentiation) support for 64bit index support
   393   Tests may fail if perl is compiled with -Duselongdouble
+
+          Marked TODO at the moment.
+
   392   Inline Pdlpp doesn't work in clean build tree
   391   Operators called in the form "explicit call with trailing 0" give syntax error
   384   pdldoc.db is getting invalid paths to files on cygwin
-  383   gcc/gfortran 4.9.2 needs -lquadmath
   382   plplot-5.11.0 comes with libplplot.a but missing libplplotd.a
   381   rpic/rim fail to read files with whitespace in the filename
   379   Passing qsort an extra argument causes a segfault
-  366   many warnings in t/transform.t with use strict; use warnings;
   364   type promotion in whistogram is based upon the index, not the weight
   354   filter demo list by actually available
   347   t/pdl_from_string.t has a failure if BADVAL_NAN=1
+
+          May be fixed.  Please test and confirm.
+
   346   ExtUtils::F77 dependency causing problems for CPAN install
   340   orover of byte data returns long type
   339   PDL::Complex support is inconsistent and incomplete
@@ -106,6 +104,9 @@ The following issues have been reported with this version of PDL:
   324   PDL re-install wipes out non-core docs
   322   PDL::Demos system needs overhaul
   308   propagate badflag with .=
+
+          Is this ready to include in a PDL-2.014 release?
+
   274   'help funname' fails to show multiple function names
   254   online docs don't link to functions in other PDL modules
   238   NiceSlice affects code where it should not
