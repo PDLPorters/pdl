@@ -79,10 +79,6 @@ extern int pdl_debugging;
             } \\
         } while (0)
 
-extern int _anyval_eq_anyval(PDL_Anyval, PDL_Anyval);
-
-#define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
-
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
 /*  Target number of pthreads: Actual will be this number or less.
     A 0 here means no pthreading */
@@ -100,6 +96,11 @@ extern int pdl_autopthread_size;
 typedef struct pdl pdl;
 
 $PDL_DATATYPES
+
+extern int _anyval_eq_anyval(PDL_Anyval, PDL_Anyval);
+
+#define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
+
 $mymalloc
 !GROK!THIS!
 
