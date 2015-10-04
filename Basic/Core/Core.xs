@@ -881,6 +881,10 @@ set_c(x,position,value)
        pdl_changed( x , PDL_PARENTDATACHANGED , 0 );
 
 BOOT:
+{
+#if NVSIZE > 8
+   fprintf(stderr, "Your perl NV has more precision than PDL_Double.  There will be loss of floating point precision!\n");
+#endif
 
    /* Initialize structure of pointers to core C routines */
 
@@ -951,6 +955,7 @@ BOOT:
        by other modules
    */
    sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));
+}
 
 # make piddle belonging to 'class' and of type 'type'
 # from avref 'array_ref' which is checked for being
