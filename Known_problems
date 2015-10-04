@@ -1,6 +1,12 @@
 The following issues have been reported with this version of PDL:
 
 
+- For perls with long double or greater for NVTYPE, there
+  is an unavoidable loss of precision in converting to/from
+  the PDL_Double values.  This may effect the results of
+  calculations.
+
+
 - A bug in Netpbm from versions 10.56.00 through 10.61.2 may
   result in a an invalid conversion of RAST images to PNM
   format on some platforms, resulting in a failed picrgb test.
@@ -76,7 +82,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.013_02 release:
+  PDL-2.013_03 release:
 
   397   PDL::FFT not 64bit integer safe
   395   ipow (integer exponentiation) support for 64bit index support

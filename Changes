@@ -1,3 +1,27 @@
+v2.013_03 2015-10-04 12:21:30-04:00
+
+General Notes:
+
+ * This is PDL-2.013_03 which is the second CPAN
+   developers release for PDL with newly completed
+   support for 64bit indexing.
+ 
+ * Needs testing for piddles with more than 2**32
+   elements but all checks pass so far.
+
+
+Highlights:
+
+ * More clean-up to handle perls with long double NVs
+   Loss of precision will be warned on "use PDL;"
+
+ * Skipping t/bigmem.t to avoid OOM CPAN Testers fails.
+
+ * Minor fixes to C code to meet stricter compiler
+   and C99 requirements.
+
+
+
 v2.013_02 2015-10-03 08:40:08-04:00
 
 General Notes:
