@@ -147,7 +147,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.013_03';
+$PDL::VERSION = '2.013_04';
 
 # Main loader of standard PDL package
 

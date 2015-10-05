@@ -82,14 +82,11 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.013_03 release:
+  PDL-2.013_04 release:
 
   397   PDL::FFT not 64bit integer safe
   395   ipow (integer exponentiation) support for 64bit index support
   393   Tests may fail if perl is compiled with -Duselongdouble
-
-          Marked TODO at the moment.
-
   392   Inline Pdlpp doesn't work in clean build tree
   391   Operators called in the form "explicit call with trailing 0" give syntax error
   384   pdldoc.db is getting invalid paths to files on cygwin
@@ -98,11 +95,6 @@ The following issues have been reported with this version of PDL:
   379   Passing qsort an extra argument causes a segfault
   364   type promotion in whistogram is based upon the index, not the weight
   354   filter demo list by actually available
-  347   t/pdl_from_string.t has a failure if BADVAL_NAN=1
-
-          May be fixed.  Please test and confirm.
-
-  346   ExtUtils::F77 dependency causing problems for CPAN install
   340   orover of byte data returns long type
   339   PDL::Complex support is inconsistent and incomplete
   334   Test coverage is incomplete

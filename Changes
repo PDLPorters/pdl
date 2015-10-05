@@ -1,8 +1,26 @@
+v2.013_04 TBD
+
+General Notes:
+
+ * This is PDL-2.013_04 which is the fourth CPAN
+   developers release for PDL with newly completed
+   support for 64bit indexing.
+ 
+ * Needs testing for piddles with more than 2**32
+   elements but all checks pass so far.
+
+
+Highlights:
+
+ * TBD
+
+
+
 v2.013_03 2015-10-04 12:21:30-04:00
 
 General Notes:
 
- * This is PDL-2.013_03 which is the second CPAN
+ * This is PDL-2.013_03 which is the third CPAN
    developers release for PDL with newly completed
    support for 64bit indexing.
  
