@@ -289,10 +289,7 @@ for my $type (typesrtkeys()) {
 
 print OUT <<'!NO!SUBS!';
 
-        if( !finite(nv) ) { return PDL_D; }
-
-        croak("Something's gone wrong: %lf cannot be converted by whichdatatype",
-                nv);
+        croak("Something's gone wrong: %ld cannot be converted by whichdatatype", nv);
 }
 
 /* Check minimum, at least float, datatype required to represent number */
