@@ -1,4 +1,4 @@
-use Test::More tests => 59;
+use Test::More tests => 60;
 use PDL::LiteF;
 use Config;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
@@ -135,6 +135,15 @@ ok(all($data == 1), 'or assign');
 
 ok(all($data eq $data), 'eq'); # check eq operator
 
+SKIP:
+{
+  skip("ipow skipped without 64bit support", 1) if $Config{ivsize} < 8;
+  # check ipow routine
+  my $xdata = indx(0xeb * ones(8));
+  my $n = sequence(indx,8);
+  my $exact = indx(1,235,55225,12977875,3049800625,716703146875,168425239515625,39579931286171875);
+  ok(all($exact - ipow($xdata,$n) == indx(0)), 'ipow');
+}
 
 #### Modulus checks ####
 

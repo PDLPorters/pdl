@@ -408,6 +408,56 @@ pp_def(
 'Plain numerical assignment. This is used to implement the ".=" operator',
 ); # pp_def assgn
 
+pp_def('ipow',
+   Doc => qq{ 
+=for ref
+
+raise piddle C<\$a> to integer power C<\$b>
+
+=for example
+
+   \$c = \$a->ipow(\$b,0);     # explicit function call
+   \$c = ipow \$a, \$b;
+   \$a->inplace->ipow(\$b,0);  # modify \$a inplace
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
+Note that when calling this function explicitly you need to supply
+a third argument that should generally be zero (see first example).
+This restriction is expected to go away in future releases.
+
+Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squaring>
+
+=cut
+
+},
+   Pars => 'a(); b(); [o] ans()',
+   Code => pp_line_numbers(__LINE__, q{
+      PDL_Indx n = $b();
+      $GENERIC() y = 1;
+      $GENERIC() x = $a();
+      if (n < 0) {
+         x = 1 / x;
+         n = -n;
+      }
+      if (n == 0) {
+         $ans() = 1;
+      } else {
+          while (n > 1) { 
+             if (n % 2 == 0) {
+                x = x * x;
+                n = n / 2;
+             } else {
+                y = x * y;
+                x = x * x;
+                n = (n - 1) / 2;
+             }
+         }
+         $ans() = x * y;
+      }
+   })
+);
+
+
 #pp_export_nothing(); 
 
 pp_done();
