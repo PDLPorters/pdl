@@ -722,7 +722,7 @@ pp_def('nbadover' . <<'=cut',
 
 =for sig
 
-  Signature: (a(n); int+ [o] b())
+  Signature: (a(n); indx [o] b())
 
 =for ref
 
@@ -753,7 +753,7 @@ flag set.
     HandleBad => 1,
     Code => '$b() = 0;',
     BadCode => q{
-        $GENERIC(b) cnt = 0;
+        PDL_Indx cnt = 0;
         loop(n) %{ 
             if ( $ISBAD(a()) ) { cnt++; }
         %}
@@ -767,7 +767,7 @@ pp_def('ngoodover' . <<'=cut',
 
 =for sig
 
-  Signature: (a(n); int+ [o] b())
+  Signature: (a(n); indx [o] b())
 
 =for ref
 
@@ -798,9 +798,9 @@ flag set.
 
        HandleBad => 1,
        Code => 
-       '$b() = ($GENERIC(b)) $SIZE(n);',
+       '$b() = (PDL_Indx) $SIZE(n);',
        BadCode => 
-       '$GENERIC(b) cnt = 0;
+       'PDL_Indx cnt = 0;
 	loop(n) %{ 
            if ( $ISGOOD(a()) ) { cnt++; }
         %}
