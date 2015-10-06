@@ -12,7 +12,16 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * t/opengl.t is skipped the dynamic GL window creation
+   tests if $AUTOMATED_TESTING is true.
+ 
+ * A new ipow() routine for integer exponentiation
+
+ * Corrected return types of intover, borover, bandover,
+   nbadover, and ngoodover.
+
+ * Fixed compile problem in clang from using finite()
+   on an integer datatype.
 
 
 
