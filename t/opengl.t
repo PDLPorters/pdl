@@ -50,8 +50,8 @@ SKIP: {
    if ( hasDISPLAY and OpenGL::_have_glx ) {
       eval  { OpenGL::glpDisplay($ENV{DISPLAY}) };
       skip "can't open X display", 2 if $@;
-   } elsif ( $ENV{AUTOMATED_TESTING} ) {
-      skip "don't open try GL windows if \$AUTOMATED_TESTING is set", 2;
+   } elsif ( $ENV{AUTOMATED_TESTING} or $ENV{CI_TESTING} ) {
+      skip "don't open try GL windows if \$AUTOMATED_TESTING or \$CI_TESTING is set", 2;
    } else {
 
       my $numwins = 2;
