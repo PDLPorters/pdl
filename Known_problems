@@ -86,11 +86,6 @@ The following issues have been reported with this version of PDL:
 
   402   Add support for $PDL::indxformat to piddle stringify operation
   397   PDL::FFT not 64bit integer safe
-  393   Tests may fail if perl is compiled with -Duselongdouble
-
-        The tests are all marked TODO so that roundoff error
-	in the float/double calculations don't cause FAILs
-
   392   Inline Pdlpp doesn't work in clean build tree
   391   Operators called in the form "explicit call with trailing 0" give syntax error
   384   pdldoc.db is getting invalid paths to files on cygwin
