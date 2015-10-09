@@ -448,6 +448,7 @@ my %makefile_hash = (
               },
               TEST_REQUIRES => {
                 'CPAN::Meta' => '2.120900',
+                'IPC::Cmd' => 0.72,
                 'Test::Exception' => 0,
                 'Test::Warn' => 0,  # for t/pptest.t
                 'Test::Deep' => 0,
