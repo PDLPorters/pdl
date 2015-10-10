@@ -39,31 +39,8 @@ the work planned for the future  PDL-2.x releases.
 
 
    Refactor to use Test::More
-   * imagergb.t
-   * interp.t
-   * interp_slatec.t
-   * interpol.t
    * limits_normalize_dsets.t
-   * linfit.t
-   * magic.t
-   * matmult.t
-   * ones.t
-   * pdlchar.t
-   * physical.t
-   * picnorgb.t
-   * picrgb.t
-   * pnm.t
-   * poly.t
-   * polyroots.t
-   * pthread.t
-   * pthread_auto.t
-   * reduce.t
-   * refs.t
-   * scope.t
    * segfault.t
-   * thread.t
-   * thread_def.t
-   * vaffine.t
 
    Convert from Test to Test::More
    * bess.t
@@ -84,20 +61,9 @@ the work planned for the future  PDL-2.x releases.
    * requiredmods.t
    * round.t
    * simplex.t
-   * transform.t
    * trig.t
    * xvals.t
 
-
-   Need to test PDL build from scratch both WITH_BADVAL and without
-   * Find a way to automate this process for release testing
-   * Unix/Linux/BSD
-   * Windows
-     - cygwin
-     - activestate perl
-     - strawberry perl
-   * Mac OS X
-   
 
    Verify dependency detection across all major PDL platforms
    * Unix/Linux/BSD, Windows(ASPerl/Strawberry)/Cygwin, Mac OS X
@@ -177,8 +143,6 @@ the work planned for the future  PDL-2.x releases.
    Fix/document FORTRAN code requirements
    * Add a USE_FORTRAN option to perldl.conf
    * Add check for ExtUtils:F77
-   * Convert PDL::Slatec to use C with f2c of source
-   * Convert PDL::Minuit to use C with f2c of source 
    
 
    Fix IO/Browser build to properly check for the curses
@@ -474,7 +438,7 @@ the work planned for the future  PDL-2.x releases.
      * Add FFTW acceleration for the default FFT
      * Add cleaner use of complex values to FFT routines
    * Make non-inplace versions of FFT
-     * Make default FFT library match FFTW calling conventions
+     D Make default FFT library match FFTW calling conventions
    * Document FFT/FFTW
      * The computational algorithms
      * The input/output locations 
@@ -484,15 +448,3 @@ the work planned for the future  PDL-2.x releases.
    * HDF5 and HDF4 are entirely different beasts (and totally incompatible)
    * The PDL::IO::HDF library uses HDF4.
    * Portability issues especially re. Installs 
-
-
-+------------------------------------------------------------+
-| CORE CLEANUP TASKS (for v3)                                |
-+------------------------------------------------------------+
-
- - Search-and-destroy UNIVERSAL::ISA in favor of Safe::Isa
- - Remove all clang warnings from PP code
- - Dike out unwanted PP features 
- - Hose out unused cruft from the core modules (e.g. commented-out code)
- - Hooks for multithreading?
- 

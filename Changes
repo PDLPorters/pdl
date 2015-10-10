@@ -1,3 +1,22 @@
+v2.013_06 2015-10-10 16:04:14-04:00
+
+General Notes:
+
+ * This is PDL-2.013_06 which is RC 2 for PDL-2.014
+   and likely the final one before the official
+   release.  Please report any final issues and doc
+   patches ASAP.
+ 
+
+Highlights:
+
+ * Mark some failing tests in t/primitive.t as TODO
+   to avoid CPAN Testers failures.
+
+ * Add IPC::Cmd to TEST_REQUIRES
+
+
+
 v2.013_05 2015-10-08 07:14:19-04:00
 
 General Notes:
