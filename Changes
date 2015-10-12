@@ -1,14 +1,87 @@
-v2.014 2015-10-12 10:57:27-04:00
+v2.014 2015-10-12 11:44:10-04:00
 
 General Notes:
 
- * This is PDL-2.014 with full support for indexing
-   operations with 64bit integers (PDL_Indx).
+ * This is PDL-2.014 introducing full support for
+   64bit indexing operations using 64bit PDL_Indx
+   data type.
+
+ * PDL can now create and use piddles having more
+   than 2**32 elements.  Of particular use is that
+   you can now use PDL::IO::FlexRaw to memory map
+   piddles from files on disk which can allow for
+   simplified processing and IO on extremely large
+   data.
+
+ * Due to the new PDL_Anyval type changes, existing
+   PDL::PP modules may need to be updated to support
+   the new PDL Core version 12 API.  Authors, please
+   see PDL::API for macros to ease the porting.
+
+   Users, be aware that some modules may not work
+   until they are updated by their maintainers.
  
 
 Highlights:
 
- * TBD
+ * Implement PDL_Anyval data type as union to support
+   64bit indexing
+    
+   This adds a union data type to add 64bit integer support to
+   the original PDL-2.x types which assumed that double was
+   capable of holding all the "lesser" types.  With the PDL_Anyval
+   type, we can correctly handle 64bit integer data types and
+   avoid errors and loss of precision due to conversions to or
+   from PDL_Double.  Special thanks to kmx and zowie for their
+   help to complete and debug this implementation.
+
+ * Many fixes to the build process to make PDL more robust
+   to build, test, and install.  This takes advantage of new
+   automated CI testing via Travis CI on the github site.
+
+   Thanks much to Ed and Zakariyya for their work to get
+   this started and maintained.  This CI testing makes
+   this the best tested and best testing PDL release ever!
+
+ * Various documentation clean-ups and work to improve
+   on-line viewing at http://metacpan.org and others.
+   (Thanks kmx and Derek!)
+
+ * A new ipow() method haw been added with 64bit integer
+   support.  ipow() calculates the integer exponentiation
+   of a value by successive multiplications.  This allows
+   one to avoid loss of significance in integer exponents.
+   pow() converts the value to double and will always have
+   <52bits precision.
+
+ * nbadover and ngoodover now return indx type (PDL_Indx)
+
+ * PDL now detects when your perl installation has been
+   built with floating point longer than 8 bytes and gives
+   a one time warning that precision will be lost converting
+   from perl NV to PDL_Doubles.  This warning is given on
+   "use PDL;"
+
+ * "use PDL" now includes "use PDL::IO::Storable"
+   This avoids a hard to diagnose crash that can
+   occur when a user tries using Storable without the
+   necessary "use PDL::IO::Storable".
+
+ * MANY sf.net bugs fixed:
+ 
+   400  dataflow slice crash around 2**31 boundary
+   399  Small doc fixes
+   398  $pdl->hdr items are lost after $pdl->reshape
+   396  online docs for modules only work first time in PDL shells
+   395  ipow (integer exponentiation) support for 64bit index support
+   394  demo cartography fails
+   383  gcc/#gfortran 4.9.2 needs -lquadmath
+   378  where on dice of pdl bad results
+   376  PDL Segmentation fault working with Storable restored PDL
+   347  t/#pdl_from_string.t has a failure if BADVAL_NAN=1
+   346  ExtUtils::F77 dependency causing problems for CPAN install
+   343  longlong constructor and display lose digits due to...
+   340  orover of byte data returns long type
 
 
 
