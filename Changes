@@ -1,3 +1,17 @@
+v2.014 2015-10-12 10:57:27-04:00
+
+General Notes:
+
+ * This is PDL-2.014 with full support for indexing
+   operations with 64bit integers (PDL_Indx).
+ 
+
+Highlights:
+
+ * TBD
+
+
+
 v2.013_06 2015-10-10 16:04:14-04:00
 
 General Notes:
