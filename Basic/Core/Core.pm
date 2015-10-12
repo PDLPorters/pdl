@@ -1121,7 +1121,7 @@ sub PDL::Core::new_pdl_from_string {
       if( $to_return->dim(-1) == 1 ) {
 	      if( $to_return->dims > 1 ) {
 		      # remove potentially spurious last dimension
-		      $to_return = $to_return->mv(-1,1)->clump(2);
+		      $to_return = $to_return->mv(-1,1)->clump(2)->sever;
 	      } elsif( $to_return->dims == 1 ) {
 		      # fix scalar values
 		      $to_return->setdims([]);
