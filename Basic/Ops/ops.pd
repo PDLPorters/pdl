@@ -29,8 +29,8 @@ pp_addpm({At=>'Bot'},<<'EOPM');
 =head1 AUTHOR
 
 Tuomas J. Lukka (lukka@fas.harvard.edu),
-Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
-Doug Hunt (dhunt@ucar.edu), 
+Karl Glazebrook (kgb@aaoepp.aao.gov.au),
+Doug Hunt (dhunt@ucar.edu),
 Christian Soeller (c.soeller@auckland.ac.nz),
 Doug Burke (burke@ifa.hawaii.edu),
 and Craig DeForest (deforest@boulder.swri.edu).
@@ -51,7 +51,13 @@ pp_addhdr('
 /* Also changed the typecast in MOD to (long), and added a N==0 conditional to BU_MOD. -DAL 06-Mar-2015 */
 
 #define MOD(X,N) (  ((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long     )((X)/(ABS(N))) + (   ( ((N) * ((long     )((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
+
+/* We assume that "long long" is ok for all Microsoft Compiler versions >= 1400. */
+#if defined(_MSC_VER) && _MSC_VER < 1400
+#define Q_MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((__int64  )((X)/(ABS(N))) + (   ( ((N) * ((__int64  )((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
+#else
 #define Q_MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long long)((X)/(ABS(N))) + (   ( ((N) * ((long long)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
+#endif
 #define BU_MOD(X,N)(((N) == 0)   ?    0   :   ( (X)-(N)*((int)((X)/(N))) ))
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
@@ -81,7 +87,7 @@ sub biop {
     tmp = a;
     a = b;
     b = tmp;
- 
+
   }
 EOH
     }
@@ -114,7 +120,7 @@ EOH
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
-	   Code => 
+	   Code =>
 	   "\$c() = \$a() $op \$b();",
 	   BadCode => qq{
 	       if ( $badcode  )
@@ -190,7 +196,7 @@ EOH
   \$c() = Q_$func(\$a(),\$b());
   %}
 ENDCODE
-} else { 
+} else {
    $codestr = "\$c() = $func(\$a(),\$b());";
    }
  delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
@@ -207,7 +213,7 @@ ENDCODE
 	   OtherPars => 'int swap',
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => $codestr,
-	   BadCode => $badcodestr, 
+	   BadCode => $badcodestr,
 	   CopyBadStatusCode =>
 	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
@@ -264,7 +270,7 @@ sub ufunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
-	   Code => 
+	   Code =>
 	   "\$b() = $func(\$a());",
 	   BadCode =>
 	   'if ( ' . $badcode . ' )
@@ -295,7 +301,7 @@ EOD
 # note, for the ufunc()'s, the checks do not work too well
 #    for unsigned integer types (ie < 0)
 #
-# XXX needs thinking about 
+# XXX needs thinking about
 #    - have to integrate into Code section as well (so
 #      12/pdl(2,4,0,3) is trapped and flagged bad)
 #      --> complicated
@@ -355,19 +361,19 @@ ufunc('sin','sin','the sin function');
 ufunc('cos','cos','the cos function');
 ufunc('not','!','the elementwise I<not> operation');
 ufunc('exp','exp','the exponential function',GenericTypes => [D]);
-ufunc('log','log','the natural logarithm',GenericTypes => [D], 
+ufunc('log','log','the natural logarithm',GenericTypes => [D],
       Exception => '$a() <= 0' );
 
-pp_export_nothing(); 
+pp_export_nothing();
 
 # make log10() work on scalars (returning scalars)
 # as well as piddles
-ufunc('log10','log10','the base 10 logarithm', GenericTypes => [D], 
+ufunc('log10','log10','the base 10 logarithm', GenericTypes => [D],
       Exception => '$a() <= 0',
-      PMCode => 
+      PMCode =>
 '
-sub PDL::log10 { 
-    my $x = shift; 
+sub PDL::log10 {
+    my $x = shift;
     if ( ! UNIVERSAL::isa($x,"PDL") ) { return log($x) / log(10); }
     my $y;
     if ( $x->is_inplace ) { $x->set_inplace(0); $y = $x; }
@@ -409,7 +415,7 @@ pp_def(
 ); # pp_def assgn
 
 pp_def('ipow',
-   Doc => qq{ 
+   Doc => qq{
 =for ref
 
 raise piddle C<\$a> to integer power C<\$b>
@@ -442,7 +448,7 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
       if (n == 0) {
          $ans() = 1;
       } else {
-          while (n > 1) { 
+          while (n > 1) {
              if (n % 2 == 0) {
                 x = x * x;
                 n = n / 2;
@@ -458,7 +464,7 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
 );
 
 
-#pp_export_nothing(); 
+#pp_export_nothing();
 
 pp_done();
 
