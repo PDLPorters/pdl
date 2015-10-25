@@ -29,27 +29,29 @@ in the GNU Scientific Library.
 
 =head1 FUNCTIONS
 
-=head2 new()
+=head2 new
 
-=for ref 
+=for ref
 
 The new method initializes a new instance of the RNG.
 
 The avaible RNGs are:
-coveyou cmrg fishman18 fishman20 fishman2x gfsr4 knuthran
-knuthran2 knuthran2002 lecuyer21 minstd mrg mt19937 mt19937_1999
-mt19937_1998 r250 ran0 ran1 ran2 ran3 rand rand48 random128_bsd
-random128_glibc2 random128_libc5 random256_bsd random256_glibc2
-random256_libc5 random32_bsd random32_glibc2 random32_libc5
-random64_bsd random64_glibc2 random64_libc5 random8_bsd
-random8_glibc2 random8_libc5 random_bsd random_glibc2
-random_libc5 randu ranf ranlux ranlux389 ranlxd1 ranlxd2 ranlxs0
-ranlxs1 ranlxs2 ranmar slatec taus taus2 taus113 transputer tt800
-uni uni32 vax waterman14 zuf default
-The last one (default) uses the enviroment variable
-GSL_RNG_TYPE. Note that only a few of these rngs are recommended
-for general use. Please check the GSL documentation for more
-information.
+
+ coveyou cmrg fishman18 fishman20 fishman2x gfsr4 knuthran
+ knuthran2 knuthran2002 lecuyer21 minstd mrg mt19937 mt19937_1999
+ mt19937_1998 r250 ran0 ran1 ran2 ran3 rand rand48 random128_bsd
+ random128_glibc2 random128_libc5 random256_bsd random256_glibc2
+ random256_libc5 random32_bsd random32_glibc2 random32_libc5
+ random64_bsd random64_glibc2 random64_libc5 random8_bsd
+ random8_glibc2 random8_libc5 random_bsd random_glibc2
+ random_libc5 randu ranf ranlux ranlux389 ranlxd1 ranlxd2 ranlxs0
+ ranlxs1 ranlxs2 ranmar slatec taus taus2 taus113 transputer tt800
+ uni uni32 vax waterman14 zuf default
+
+The last one (default) uses the enviroment variable GSL_RNG_TYPE.
+
+Note that only a few of these rngs are recommended for general
+use. Please check the GSL documentation for more information.
 
 =for usage
 
@@ -63,7 +65,7 @@ Example:
 
    $rng = PDL::GSL::RNG->new('taus');
 
-=head2 set_seed();
+=head2 set_seed
 
 =for ref
 
@@ -81,7 +83,7 @@ Example:
 
    $rng->set_seed(666);
 
-=head2 min()
+=head2 min
 
 =for ref
 
@@ -99,7 +101,7 @@ Example:
 
    $min = $rng->min(); $max = $rng->max();
 
-=head2 max()
+=head2 max
 
 =for ref
 
@@ -117,7 +119,7 @@ Example:
 
    $min = $rng->min(); $max = $rng->max();
 
-=head2 name()
+=head2 name
 
 =for ref
 
@@ -135,7 +137,51 @@ Example:
 
    $name = $rng->name();
 
-=head2 get_uniform()
+=head2 get
+
+=for ref
+
+This function creates a piddle with given dimensions or accept an
+existing piddle and fills it. get() returns integer values
+beetween a minimum and a maximum specific to evry RNG.
+
+Usage: 
+
+=for usage
+
+   $piddle = $rng->get($list_of_integers)
+   $rng->get($piddle);
+
+Example:
+
+=for example
+
+   $a = zeroes 5,6;
+   $o = $rng->get(10,10); $rng->get($a);
+
+=head2 get_int
+
+=for ref
+
+This function creates a piddle with given dimensions or accept an
+existing piddle and fills it. get_int() returns integer values
+beetween 0 and $max.
+
+Usage: 
+
+=for usage
+
+   $piddle = $rng->get($max, $list_of_integers)
+   $rng->get($max, $piddle);
+
+Example:
+
+=for example
+
+   $a = zeroes 5,6; $max=100;
+   $o = $rng->get(10,10); $rng->get($a);
+
+=head2 get_uniform
 
 =for ref
 
@@ -156,7 +202,7 @@ Example:
    $a = zeroes 5,6; $max=100;
    $o = $rng->get_uniform(10,10); $rng->get_uniform($a);
 
-=head2 get_uniform_pos()
+=head2 get_uniform_pos
 
 =for ref
 
@@ -177,161 +223,66 @@ Example:
    $a = zeroes 5,6;
    $o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($a);
 
-=head2 get()
+=head2 ran_shuffle
 
 =for ref
 
-This function creates a piddle with given dimensions or accept an
-existing piddle and fills it. get() returns integer values 
-beetween a minimum and a maximum specific to evry RNG.
-
-Usage: 
-
-=for usage
-
-   $piddle = $rng->get($list_of_integers)
-   $rng->get($piddle);
-
-Example:
-
-=for example
-
-   $a = zeroes 5,6;
-   $o = $rng->get(10,10); $rng->get($a);
-
-=head2 get_int()
-
-=for ref
-
-This function creates a piddle with given dimensions or accept an
-existing piddle and fills it. get_int() returns integer values 
-beetween 0 and $max.
-
-Usage: 
-
-=for usage
-
-   $piddle = $rng->get($max, $list_of_integers)
-   $rng->get($max, $piddle);
-
-Example:
-
-=for example
-
-   $a = zeroes 5,6; $max=100;
-   $o = $rng->get(10,10); $rng->get($a);
-
-=head2 ran_gaussian()
-
-=for ref
-
-These functions return random deviates from given distribution.
-
-The general form is
-
-  ran_[distrib](args)
-
-where distrib can be any of the ones shown below.
-
-They accept the parameters of the distribution and a specification of
-where to put output. This spec can be in form of list of integers that
-specify the dimensions of the ouput piddle or an existing piddle that
-will be filled with values inplace.
+Shuffles values in piddle
 
 Usage:
 
 =for usage
 
-   # gaussian dist
-   $piddle = $rng->ran_gaussian($sigma,[list of integers]);
-   $rng->ran_gaussian($sigma,$piddle);
+   $rng->ran_shuffle($piddle);
 
-   # gaussian tail
-   $piddle = $rng->ran_ugaussian_tail($tail,[list of integers]);
-   $rng->ran_ugaussian_tail($tail,$piddle);
+=head2 ran_shuffle_vec
 
-   # exponential dist
-   $piddle = $rng->ran_exponential($mu,[list of integers]);
-   $rng->ran_exponential($mu,$piddle);
+=for ref
 
-   # laplacian dist
-   $piddle = $rng->ran_laplace($mu,[list of integers]);
-   $rng->ran_laplace($mu,$piddle);
+Shuffles values in piddle
 
-   $piddle = $rng->ran_exppow($mu,$a,[list of integers]);
-   $rng->ran_exppow($mu,$a,$piddle);
+Usage:
 
-   $piddle = $rng->ran_cauchy($mu,[list of integers]);
-   $rng->ran_cauchy($mu,$piddle);
+=for usage
 
-   $piddle = $rng->ran_rayleigh($sigma,[list of integers]);
-   $rng->ran_rayleigh($sigma,$piddle);
+   $rng->ran_shuffle_vec(@vec);
 
-   $piddle = $rng->ran_rayleigh_tail($a,$sigma,[list of integers]);
-   $rng->ran_rayleigh_tail($a,$sigma,$piddle);
+=head2 ran_choose
 
-   $piddle = $rng->ran_levy($mu,$a,[list of integers]);
-   $rng->ran_levy($mu,$a,$piddle);
+=for ref
 
-   $piddle = $rng->ran_gamma($a,$b,[list of integers]);
-   $rng->ran_gamma($a,$b,$piddle);
+Chooses values from C<$inpiddle> to C<$outpiddle>.
 
-   $piddle = $rng->ran_flat($a,$b,[list of integers]);
-   $rng->ran_flat($a,$b,$piddle);
+Usage:
 
-   $piddle = $rng->ran_lognormal($zeta, $sigma,[list of integers]);
-   $rng->ran_lognormal($zeta, $sigma,$piddle);
+=for usage
 
-   $piddle = $rng->ran_chisq($nu,[list of integers]);
-   $rng->ran_chisq($nu,$piddle);
+   $rng->ran_choose($inpiddle,$outpiddle);
 
-   $piddle = $rng->ran_fdist($nu1, $nu2,[list of integers]);
-   $rng->ran_fdist($nu1, $nu2,$piddle);
+=head2 ran_choose_vec
 
-   $piddle = $rng->ran_tdist($nu,[list of integers]);
-   $rng->ran_tdist($nu,$piddle);
+=for ref
 
-   $piddle = $rng->ran_beta($a,$b,[list of integers]);
-   $rng->ran_beta($a,$b,$piddle);
+Chooses C<$n> values from C<@vec>.
 
-   $piddle = $rng->ran_logistic($m,[list of integers]u)
-   $rng->ran_logistic($m,$piddleu)
+Usage:
 
-   $piddle = $rng->ran_pareto($a,$b,[list of integers]);
-   $rng->ran_pareto($a,$b,$piddle);
+=for usage
 
-   $piddle = $rng->ran_weibull($mu,$a,[list of integers]);
-   $rng->ran_weibull($mu,$a,$piddle);
+   @choosen = $rng->ran_choose_vec($n,@vec);
 
-   $piddle = $rng->ran_gumbel1($a,$b,[list of integers]);
-   $rng->ran_gumbel1($a,$b,$piddle);
+=head2 ran_gaussian
 
-   $piddle = $rng->ran_gumbel2($a,$b,[list of integers]);
-   $rng->ran_gumbel2($a,$b,$piddle);
+=for ref
 
-   $piddle = $rng->ran_poisson($mu,[list of integers]);
-   $rng->ran_poisson($mu,$piddle);
+Fills output piddle with random values from Gaussian distribution with mean zero and standard deviation C<$sigma>.
 
-   $piddle = $rng->ran_bernoulli($p,[list of integers]);
-   $rng->ran_bernoulli($p,$piddle);
+Usage:
 
-   $piddle = $rng->ran_binomial($p,$n,[list of integers]);
-   $rng->ran_binomial($p,$n,$piddle);
+=for usage
 
-   $piddle = $rng->ran_negative_binomial($p,$n,[list of integers]);
-   $rng->ran_negative_binomial($p,$n,$piddle);
-
-   $piddle = $rng->ran_pascal($p,$n,[list of integers]);
-   $rng->ran_pascal($p,$n,$piddle);
-
-   $piddle = $rng->ran_geometric($p,[list of integers]);
-   $rng->ran_geometric($p,$piddle);
-
-   $piddle = $rng->ran_hypergeometric($n1, $n2, $t,[list of integers]);
-   $rng->ran_hypergeometric($n1, $n2, $t,$piddle);
-
-   $piddle = $rng->ran_logarithmic($p,[list of integers]);
-   $rng->ran_logarithmic($p,$piddle);
+ $piddle = $rng->ran_gaussian($sigma,[list of integers = output piddle dims]);
+ $rng->ran_gaussian($sigma, $output_piddle);
 
 Example:
 
@@ -340,23 +291,20 @@ Example:
   $o = $rng->ran_gaussian($sigma,10,10);
   $rng->ran_gaussian($sigma,$a);
 
-
-=head2 ran_gaussian_var()
+=head2 ran_gaussian_var
 
 =for ref
 
-This method is similar to L<ran_[distrib]()|/ran_gaussian()> except that it
-takes the
-parameters of the distribution as a piddle and returns a piddle of equal
-dimensions. Of course, you can use the same set of distributions as in
-the previous method (see also the L<ran_gaussian|/ran_gaussian()> entry above).
+This method is similar to L<ran_gaussian|/ran_gaussian> except that it takes
+the parameters of the distribution as a piddle and returns a piddle of equal
+dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_[distribution]_var($distr_parameters_list,$piddle_dim_list);
-   $rng->ran_[distribution]_var($distr_parameters_list,$piddle);
+   $piddle = $rng->ran_gaussian_var($sigma_piddle);
+   $rng->ran_gaussian_var($sigma_piddle, $output_piddle);
 
 Example:
 
@@ -365,7 +313,7 @@ Example:
    $sigma_pdl = rvals zeroes 11,11;
    $o = $rng->ran_gaussian_var($sigma_pdl);
 
-=head2 ran_additive_gaussian()
+=head2 ran_additive_gaussian
 
 =for ref
 
@@ -383,48 +331,11 @@ Example:
 
    $rng->ran_additive_gaussian(1,$image);
 
-=head2 ran_additive_poisson()
+=head2 ran_bivariate_gaussian
 
 =for ref
 
-Add Poisson noise of given sigma to a piddle.
-
-Usage:
-
-=for usage
-
-   $rng->ran_additive_poisson($mu,$piddle);
-
-Example:
-
-=for example
-
-   $rng->ran_additive_poisson(1,$image);
-
-=head2 ran_feed_poisson()
-
-=for ref
-
-This method simulates shot noise, taking the values of piddle as
-values for mu to be fed in the poissonian RNG.
-
-Usage:
-
-=for usage
-
-   $rng->ran_feed_poisson($piddle);
-
-Example:
-
-=for example
-
-   $rng->ran_feed_poisson($image);
-
-=head2 ran_bivariate_gaussian()
-
-=for ref
-
-Generates $n bivariate gaussian random deviates.
+Generates C<$n> bivariate gaussian random deviates.
 
 Usage:
 
@@ -438,7 +349,791 @@ Example:
 
    $o = $rng->ran_bivariate_gaussian(1,2,0.5,1000);
 
-=head2 ran_dir()
+=head2 ran_poisson
+
+=for ref
+
+Fills output piddle by with random integer values from the Poisson distribution with mean C<$mu>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_poisson($mu,[list of integers = output piddle dims]);
+   $rng->ran_poisson($mu,$output_piddle);
+
+=head2 ran_poisson_var
+
+=for ref
+
+Similar to L<ran_poisson|/ran_poisson> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_poisson_var($mu_piddle);
+
+=head2 ran_additive_poisson
+
+=for ref
+
+Add Poisson noise of given C<$mu> to a C<$piddle>.
+
+Usage:
+
+=for usage
+
+   $rng->ran_additive_poisson($mu,$piddle);
+
+Example:
+
+=for example
+
+   $rng->ran_additive_poisson(1,$image);
+
+=head2 ran_feed_poisson
+
+=for ref
+
+This method simulates shot noise, taking the values of piddle as
+values for C<$mu> to be fed in the poissonian RNG.
+
+Usage:
+
+=for usage
+
+   $rng->ran_feed_poisson($piddle);
+
+Example:
+
+=for example
+
+   $rng->ran_feed_poisson($image);
+
+=head2 ran_bernoulli
+
+=for ref
+
+Fills output piddle with random values 0 or 1, the result of a Bernoulli trial with probability C<$p>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_bernoulli($p,[list of integers = output piddle dims]);
+   $rng->ran_bernoulli($p,$output_piddle);
+
+=head2 ran_bernoulli_var
+
+=for ref
+
+Similar to L<ran_bernoulli|/ran_bernoulli> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_bernoulli_var($p_piddle);
+
+=head2 ran_beta
+
+=for ref
+
+Fills output piddle with random variates from the beta distribution with parameters C<$a> and C<$b>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_beta($a,$b,[list of integers = output piddle dims]);
+   $rng->ran_beta($a,$b,$output_piddle);
+
+=head2 ran_beta_var
+
+=for ref
+
+Similar to L<ran_beta|/ran_beta> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_beta_var($a_piddle, $b_piddle);
+
+=head2 ran_binomial
+
+=for ref
+
+Fills output piddle with random integer values from the binomial distribution, the number of
+successes in C<$n> independent trials with probability C<$p>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_binomial($p,$n,[list of integers = output piddle dims]);
+   $rng->ran_binomial($p,$n,$output_piddle);
+
+=head2 ran_binomial_var
+
+=for ref
+
+Similar to L<ran_binomial|/ran_binomial> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_binomial_var($p_piddle, $n_piddle);
+
+=head2 ran_cauchy
+
+=for ref
+
+Fills output piddle with random variates from the Cauchy distribution with scale parameter C<$a>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_cauchy($a,[list of integers = output piddle dims]);
+   $rng->ran_cauchy($a,$output_piddle);
+
+=head2 ran_cauchy_var
+
+=for ref
+
+Similar to L<ran_cauchy|/ran_cauchy> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_cauchy_var($a_piddle);
+
+=head2 ran_chisq
+
+=for ref
+
+Fills output piddle with random variates from the chi-squared distribution with
+C<$nu> degrees of freedom.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_chisq($nu,[list of integers = output piddle dims]);
+   $rng->ran_chisq($nu,$output_piddle);
+
+=head2 ran_chisq_var
+
+=for ref
+
+Similar to L<ran_chisq|/ran_chisq> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_chisq_var($nu_piddle);
+
+=head2 ran_exponential
+
+=for ref
+
+Fills output piddle with random variates from the exponential distribution with mean C<$mu>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_exponential($mu,[list of integers = output piddle dims]);
+   $rng->ran_exponential($mu,$output_piddle);
+
+=head2 ran_exponential_var
+
+=for ref
+
+Similar to L<ran_exponential|/ran_exponential> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_exponential_var($mu_piddle);
+
+=head2 ran_exppow
+
+=for ref
+
+Fills output piddle with random variates from the exponential power distribution with scale
+parameter C<$a> and exponent C<$b>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_exppow($mu,$a,[list of integers = output piddle dims]);
+   $rng->ran_exppow($mu,$a,$output_piddle);
+
+=head2 ran_exppow_var
+
+=for ref
+
+Similar to L<ran_exppow|/ran_exppow> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_exppow_var($mu_piddle, $a_piddle);
+
+=head2 ran_fdist
+
+=for ref
+
+Fills output piddle with random variates from the F-distribution with degrees
+of freedom C<$nu1> and C<$nu2>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_fdist($nu1, $nu2,[list of integers = output piddle dims]);
+   $rng->ran_fdist($nu1, $nu2,$output_piddle);
+
+=head2 ran_fdist_var
+
+=for ref
+
+Similar to L<ran_fdist|/ran_fdist> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_fdist_var($nu1_piddle, $nu2_piddle);
+
+=head2 ran_flat
+
+=for ref
+
+Fills output piddle with random variates from the flat (uniform) distribution from C<$a> to C<$b>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_flat($a,$b,[list of integers = output piddle dims]);
+   $rng->ran_flat($a,$b,$output_piddle);
+
+=head2 ran_flat_var
+
+=for ref
+
+Similar to L<ran_flat|/ran_flat> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_flat_var($a_piddle, $b_piddle);
+
+=head2 ran_gamma
+
+=for ref
+
+Fills output piddle with random variates from the gamma distribution.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_gamma($a,$b,[list of integers = output piddle dims]);
+   $rng->ran_gamma($a,$b,$output_piddle);
+
+=head2 ran_gamma_var
+
+=for ref
+
+Similar to L<ran_gamma|/ran_gamma> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_gamma_var($a_piddle, $b_piddle);
+
+=head2 ran_geometric
+
+=for ref
+
+Fills output piddle with random integer values from the geometric distribution,
+the number of independent trials with probability C<$p> until the first success.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_geometric($p,[list of integers = output piddle dims]);
+   $rng->ran_geometric($p,$output_piddle);
+
+=head2 ran_geometric_var
+
+=for ref
+
+Similar to L<ran_geometric|/ran_geometric> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_geometric_var($p_piddle);
+
+=head2 ran_gumbel1
+
+=for ref
+
+Fills output piddle with random variates from the Type-1 Gumbel distribution.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_gumbel1($a,$b,[list of integers = output piddle dims]);
+   $rng->ran_gumbel1($a,$b,$output_piddle);
+
+=head2 ran_gumbel1_var
+
+=for ref
+
+Similar to L<ran_gumbel1|/ran_gumbel1> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_gumbel1_var($a_piddle, $b_piddle);
+
+=head2 ran_gumbel2
+
+=for ref
+
+Fills output piddle with random variates from the Type-2 Gumbel distribution.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_gumbel2($a,$b,[list of integers = output piddle dims]);
+   $rng->ran_gumbel2($a,$b,$output_piddle);
+
+=head2 ran_gumbel2_var
+
+=for ref
+
+Similar to L<ran_gumbel2|/ran_gumbel2> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_gumbel2_var($a_piddle, $b_piddle);
+
+=head2 ran_hypergeometric
+
+=for ref
+
+Fills output piddle with random integer values from the hypergeometric distribution.
+If a population contains C<$n1> elements of type 1 and C<$n2> elements of
+type 2 then the hypergeometric distribution gives the probability of obtaining
+C<$x> elements of type 1 in C<$t> samples from the population without replacement.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_hypergeometric($n1, $n2, $t,[list of integers = output piddle dims]);
+   $rng->ran_hypergeometric($n1, $n2, $t,$output_piddle);
+
+=head2 ran_hypergeometric_var
+
+=for ref
+
+Similar to L<ran_hypergeometric|/ran_hypergeometric> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_hypergeometric_var($n1_piddle, $n2_piddle, $t_piddle);
+
+=head2 ran_laplace
+
+=for ref
+
+Fills output piddle with random variates from the Laplace distribution with width C<$a>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_laplace($a,[list of integers = output piddle dims]);
+   $rng->ran_laplace($a,$output_piddle);
+
+=head2 ran_laplace_var
+
+=for ref
+
+Similar to L<ran_laplace|/ran_laplace> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_laplace_var($a_piddle);
+
+=head2 ran_levy
+
+=for ref
+
+Fills output piddle with random variates from the Levy symmetric stable
+distribution with scale C<$c> and exponent C<$alpha>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_levy($mu,$a,[list of integers = output piddle dims]);
+   $rng->ran_levy($mu,$a,$output_piddle);
+
+=head2 ran_levy_var
+
+=for ref
+
+Similar to L<ran_levy|/ran_levy> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_levy_var($mu_piddle, $a_piddle);
+
+=head2 ran_logarithmic
+
+=for ref
+
+Fills output piddle with random integer values from the logarithmic distribution.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_logarithmic($p,[list of integers = output piddle dims]);
+   $rng->ran_logarithmic($p,$output_piddle);
+
+=head2 ran_logarithmic_var
+
+=for ref
+
+Similar to L<ran_logarithmic|/ran_logarithmic> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_logarithmic_var($p_piddle);
+
+=head2 ran_logistic
+
+=for ref
+
+Fills output piddle with random random variates from the logistic distribution.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_logistic($m,[list of integers = output piddle dims]u)
+   $rng->ran_logistic($m,$output_piddle)
+
+=head2 ran_logistic_var
+
+=for ref
+
+Similar to L<ran_logistic|/ran_logistic> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_logistic_var($m_piddle);
+
+=head2 ran_lognormal
+
+=for ref
+
+Fills output piddle with random variates from the lognormal distribution with
+parameters C<$mu> (location) and C<$sigma> (scale).
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_lognormal($mu,$sigma,[list of integers = output piddle dims]);
+   $rng->ran_lognormal($mu,$sigma,$output_piddle);
+
+=head2 ran_lognormal_var
+
+=for ref
+
+Similar to L<ran_lognormal|/ran_lognormal> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_lognormal_var($mu_piddle, $sigma_piddle);
+
+=head2 ran_negative_binomial
+
+=for ref
+
+Fills output piddle with random integer values from the negative binomial
+distribution, the number of failures occurring before C<$n> successes in
+independent trials with probability C<$p> of success. Note that C<$n> is
+not required to be an integer.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_negative_binomial($p,$n,[list of integers = output piddle dims]);
+   $rng->ran_negative_binomial($p,$n,$output_piddle);
+
+=head2 ran_negative_binomial_var
+
+=for ref
+
+Similar to L<ran_negative_binomial|/ran_negative_binomial> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_negative_binomial_var($p_piddle, $n_piddle);
+
+=head2 ran_pareto
+
+=for ref
+
+Fills output piddle with random variates from the Pareto distribution of
+order C<$a> and scale C<$b>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_pareto($a,$b,[list of integers = output piddle dims]);
+   $rng->ran_pareto($a,$b,$output_piddle);
+
+=head2 ran_pareto_var
+
+=for ref
+
+Similar to L<ran_pareto|/ran_pareto> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_pareto_var($a_piddle, $b_piddle);
+
+=head2 ran_pascal
+
+=for ref
+
+Fills output piddle with random integer values from the Pascal distribution.
+The Pascal distribution is simply a negative binomial distribution
+(see L<ran_negative_binomial|/ran_negative_binomial>) with an integer value of C<$n>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_pascal($p,$n,[list of integers = output piddle dims]);
+   $rng->ran_pascal($p,$n,$output_piddle);
+
+=head2 ran_pascal_var
+
+=for ref
+
+Similar to L<ran_pascal|/ran_pascal> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_pascal_var($p_piddle, $n_piddle);
+
+=head2 ran_rayleigh
+
+=for ref
+
+Fills output piddle with random variates from the Rayleigh distribution with scale parameter C<$sigma>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_rayleigh($sigma,[list of integers = output piddle dims]);
+   $rng->ran_rayleigh($sigma,$output_piddle);
+
+=head2 ran_rayleigh_var
+
+=for ref
+
+Similar to L<ran_rayleigh|/ran_rayleigh> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_rayleigh_var($sigma_piddle);
+
+=head2 ran_rayleigh_tail
+
+=for ref
+
+Fills output piddle with random variates from the tail of the Rayleigh distribution
+with scale parameter C<$sigma> and a lower limit of C<$a>.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_rayleigh_tail($a,$sigma,[list of integers = output piddle dims]);
+   $rng->ran_rayleigh_tail($a,$sigma,$output_piddle);
+
+=head2 ran_rayleigh_tail_var
+
+=for ref
+
+Similar to L<ran_rayleigh_tail|/ran_rayleigh_tail> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_rayleigh_tail_var($a_piddle, $sigma_piddle);
+
+=head2 ran_tdist
+
+=for ref
+
+Fills output piddle with random variates from the t-distribution (AKA Student's
+t-distribution) with C<$nu> degrees of freedom.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_tdist($nu,[list of integers = output piddle dims]);
+   $rng->ran_tdist($nu,$output_piddle);
+
+=head2 ran_tdist_var
+
+=for ref
+
+Similar to L<ran_tdist|/ran_tdist> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_tdist_var($nu_piddle);
+
+=head2 ran_ugaussian_tail
+
+=for ref
+
+Fills output piddle with random variates from the upper tail of a Gaussian
+distribution with C<standard deviation = 1> (AKA unit Gaussian distribution).
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_ugaussian_tail($tail,[list of integers = output piddle dims]);
+   $rng->ran_ugaussian_tail($tail,$output_piddle);
+
+=head2 ran_ugaussian_tail_var
+
+=for ref
+
+Similar to L<ran_ugaussian_tail|/ran_ugaussian_tail> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_ugaussian_tail_var($tail_piddle);
+
+=head2 ran_weibull
+
+=for ref
+
+Fills output piddle with random variates from the Weibull distribution.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_weibull($mu,$a,[list of integers = output piddle dims]);
+   $rng->ran_weibull($mu,$a,$output_piddle);
+
+=head2 ran_weibull_var
+
+=for ref
+
+Similar to L<ran_weibull|/ran_weibull> except that it takes the distribution
+parameters as a piddle and returns a piddle of equal dimensions.
+
+Usage:
+
+=for usage
+
+   $piddle = $rng->ran_weibull_var($mu_piddle, $a_piddle);
+
+=head2 ran_dir
 
 =for ref
 
@@ -456,13 +1151,13 @@ Example:
 
    $o = $rng->ran_dir($ndim,$n);
 
-=head2 ran_discrete_preproc()
+=head2 ran_discrete_preproc
 
-=for ref 
+=for ref
 
 This method returns a handle that must be used when calling
-ran_discrete(). You specify the probability of the integer number
-that are returned by ran_discrete().
+L<ran_discrete|/ran_discrete>. You specify the probability of the integer number
+that are returned by L<ran_discrete|/ran_discrete>.
 
 Usage:
 
@@ -478,7 +1173,7 @@ Example:
    $ddh = $rng->ran_discrete_preproc($prob);
    $o = $rng->ran_discrete($discrete_dist_handle,100);
 
-=head2 ran_discrete()
+=head2 ran_discrete
 
 =for ref
 
@@ -499,60 +1194,12 @@ Example:
    $ddh = $rng->ran_discrete_preproc($prob);
    $o = $rng->ran_discrete($discrete_dist_handle,100);
 
-=head2 ran_shuffle()
+=head2 ran_ver
 
 =for ref
 
-Shuffles values in piddle
-
-Usage:
-
-=for usage
-
-   $rng->ran_shuffle($piddle);
-
-=head2 ran_shuffle_vec()
-
-=for ref
-
-Shuffles values in piddle
-
-Usage:
-
-=for usage
-
-   $rng->ran_shuffle_vec(@vec);
-
-=head2 ran_choose()
-
-=for ref 
-
-Chooses values from $inpiddle to $outpiddle.
-
-Usage:
-
-=for usage
-
-   $rng->ran_choose($inpiddle,$outpiddle);
-
-=head2 ran_choose_vec()
-
-=for ref 
-
-Chooses $n values from @vec.
-
-Usage:
-
-=for usage
-
-   @choosen = $rng->ran_choose_vec($n,@vec);
-
-=head2 ran_ver()
-
-=for ref
-
-Returns a piddle with $n values generated by the Verhulst map from $x0 and
-paramater $r.
+Returns a piddle with C<$n> values generated by the Verhulst map from C<$x0> and
+paramater C<$r>.
 
 Usage:
 
@@ -560,12 +1207,12 @@ Usage:
 
    $rng->ran_ver($x0, $r, $n);
 
-=head2 ran_caos()
+=head2 ran_caos
 
 =for ref
 
-Returns values from Verhuls map with $r=4.0 and randomly choosen
-$x0. The values are scaled by $m.
+Returns values from Verhuls map with C<$r=4.0> and randomly choosen
+C<$x0>. The values are scaled by C<$m>.
 
 Usage:
 
