@@ -136,7 +136,17 @@ slatec/$_\$(OBJ_EXT): slatec/$_.f
  
 };
 
+# Remove i386 option for OS X recent versions for better build, dual arch does not work anyway
+my %items;
+if ($Config{osname} =~ /darwin/ && $Config{osvers} >=14) { # OS X Mavericks+
+       print "Forcing single arch build for SLATEC\n";
+       $items{LDDLFLAGS} = $Config{lddlflags};
+       $items{LDDLFLAGS} =~ s/-arch i386/ /g;
+}
+
+
 WriteMakefile(
  %hash,
  VERSION => "0.12",   # This is overridden by VERSION_FROM in %hash 
+ %items
 );

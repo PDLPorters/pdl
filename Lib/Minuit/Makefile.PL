@@ -135,13 +135,12 @@ undef &MY::postamble; # suppress warning
         my $mycompiler     = $f77->compiler();
         my $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@pack);
-	my $hack_64bit = ($Config{archname}=~m/x86_64/ ?" -fPIC " : "");
 	$orig =~ s/:\s*minuit\.pd/: minuit.pd/;
 	$orig .= join "\n",map {
 	    ("
 
 minuitlib/$_\$(OBJ_EXT): minuitlib/$_.f 
-	$mycompiler -c $hack_64bit -o minuitlib/$_\$(OBJ_EXT) $mycflags minuitlib/$_.f
+	$mycompiler -c -o minuitlib/$_\$(OBJ_EXT) $mycflags minuitlib/$_.f
 " )} @minuitfiles;
 
 	if (!defined($PDL::Config{MINUIT_LIB})){
@@ -167,7 +166,16 @@ minuitlib/libminuit\$(LIB_EXT): minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfals
 	return $orig;
 };
 
+# Remove i386 option for OS X recent versions for better build, dual arch does not work anyway. KG 25/Oct/2015
+my %items;
+if ($Config{osname} =~ /darwin/ && $Config{osvers} >=14) { # OS X Mavericks+
+       print "Forcing single arch build for MINUIT\n";
+       $items{LDDLFLAGS} = $Config{lddlflags};
+       $items{LDDLFLAGS} =~ s/-arch i386/ /g;
+}
+
 WriteMakefile(
  %hash,
  VERSION => "0.1",   # This is overridden by VERSION_FROM in %hash 
+ %items
 );
