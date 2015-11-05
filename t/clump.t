@@ -1,7 +1,7 @@
 # Test ->clump(). This is not yet good enough: we need
 # nasty test cases
 
-use Test::More tests => 3;
+use Test::More tests => 5;
 use PDL::LiteF;
 
 use strict;
@@ -87,4 +87,16 @@ if(0) {
 	ok(all PDL::approx($pd,pdl([0,2,10,12,20,22]), $eps));
 
 	ok(all PDL::approx($pe,pdl([10,12,20]), $eps));
+
+        # SF bug #406 clump(-N) failure
+        ##-- test data
+        my $a1 = sequence(2,13);
+        my $b1 = sequence(3,2,13);
+        
+        ##-- bash to max 2 dimensions
+        my $a2 = $a1->clump(-2);   ##-- no-op
+        my $b2 = $b1->clump(-2);   ##-- merge 1st 2 dims
+        
+        ok($a1->ndims == 2, "no-op clump(-2)");
+        ok($b2->ndims == 2, "general clump(-2)");
 }

@@ -1358,8 +1358,11 @@ pp_def(
 		 if($COMP(n) > $PARENT(ndims))
                         $COMP(n) = $PARENT(ndims);
 
-                 $COMP(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
-                 $PRIV(nnew) = $PARENT(ndims) - $COMP(nrem) + 1;
+		 if($COMP(n) < -1)
+                        $COMP(n) = $PARENT(ndims) + $COMP(n) + 1;
+
+                 $PRIV(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
+                 $PRIV(nnew) = $PARENT(ndims) - $PRIV(nrem) + 1;
                  $SETNDIMS($PRIV(nnew));
                  d1=1;
                  for(i=0; i<$PRIV(nrem); i++) {
@@ -1370,7 +1373,7 @@ pp_def(
                         $CHILD(dims[i-$PRIV(nrem)+1]) = $PARENT(dims[i]);
                  }
                  $SETDIMS();
-                 $SETDELTATHREADIDS(1-$COMP(nrem));
+                 $SETDELTATHREADIDS(1-$PRIV(nrem));
                  ',
         EquivCPOffsCode => '
                 PDL_Indx i;
