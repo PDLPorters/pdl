@@ -160,7 +160,7 @@ act q|
 
   $l = ["sin", "cos"];
   $w->points({xtics=>{rotate=>45,offset=>[0,-1.5],font=>',14'},
-              xlab=>"Tilted Labels in 14-point text}"
+              xlab=>"Tilted Labels in 14-point text"
              },
              le=>$l, $x, $yy);
 
