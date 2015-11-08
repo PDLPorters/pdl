@@ -9,7 +9,7 @@ use Test::More;
 use File::Temp qw(tempfile);
 use File::Spec;
 
-my ($data,$head,$hdr);
+my ($data,$head,$hdr, $prog_iter);
 
 BEGIN {
    (undef, $data) = tempfile("rawXXXX", SUFFIX=>'_data', TMPDIR=>1);
@@ -221,6 +221,20 @@ sub createData {
       or die "ERROR: Unable to write F77 code to $file\n";
     $fh->print( $code );
     $fh->close;
+
+    if (-e "$prog$exec") {
+        my $success = unlink "$prog$exec";
+        if (!$success) {
+            #  Antivirus might be holding on to the exec
+            #  file so use a different name
+            #  Poss path length issues?
+            #  See $dalen in 2nd begin block$prog_iter++;
+            warn "Unable to delete $prog$exec, generating new name"
+              if $Verbose;
+            $prog_iter++;
+            $prog .= $prog_iter;
+        };
+    }
 
     system("$F77 $F77flags -o $prog$exec $file".
 	     (($Verbose || $DEBUG)?'': $null));
