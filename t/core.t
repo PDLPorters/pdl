@@ -13,7 +13,7 @@ BEGIN {
     eval {
         require PDL::LiteF;
     } or BAIL_OUT("PDL::LiteF failed: $@");
-    plan tests => 67;
+    plan tests => 66;
     PDL::LiteF->import;
 }
 $| = 1;
@@ -242,9 +242,6 @@ ok( ( $a->ndims==2 and $a->dim(0)==2 and $a->dim(1)==2 ), "reshape did the right
 ok(all($a == short pdl([[3,4],[5,6]])), "reshape moved the elements to the right place");
 
 $b = $a->slice(":,:");
-eval { $a->reshape(4); };
-ok( $@ =~ m/Can\'t/, "reshape fails on a PDL with a child" );
-
 eval { $b->reshape(4); };
-ok($@ =~ m/Can\'t/, "reshape fails on a PDL with a parent" );
+ok( $@ =~ m/Can\'t/, "reshape fails on a PDL with a parent" );
 

@@ -1210,7 +1210,7 @@ setdims(x,dims_arg)
 	CODE:
 	{
 	        /* This mask avoids all kinds of subtle dereferencing bugs (CED 11/2015) */
-		if(x->trans || x->vafftrans || x->children.next){
+	        if(x->trans || x->vafftrans || x->children.next ) {
 		  pdl_barf("Can't setdims on a PDL that already has children");
 		}
 
