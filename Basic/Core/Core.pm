@@ -41,6 +41,7 @@ $PDL::verbose      = 0;
 $PDL::use_commas   = 0;        # Whether to insert commas when printing arrays
 $PDL::floatformat  = "%7g";    # Default print format for long numbers
 $PDL::doubleformat = "%10.8g";
+$PDL::indxformat   = "%12d";   # Default print format for PDL_Indx values
 $PDL::undefval     = 0;        # Value to use instead of undef when creating PDLs
 $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 
@@ -257,7 +258,7 @@ Whether to insert commas when printing pdls
 
 =back
 
-=head3 C<$PDL::floatformat>, C<$PDL::doubleformat>
+=head3 C<$PDL::floatformat>, C<$PDL::doubleformat>, C<$PDL::indxformat>
 
 =over 4
 
@@ -266,6 +267,7 @@ The default default values are:
 
   $PDL::floatformat  = "%7g";
   $PDL::doubleformat = "%10.8g";
+  $PDL::indxformat   = "%12d";
 
 =back
 
@@ -3448,6 +3450,7 @@ sub str1D {
     my $dtype = $self->get_datatype();
     $dformat = $PDL::floatformat  if $dtype == $PDL_F;
     $dformat = $PDL::doubleformat if $dtype == $PDL_D;
+    $dformat = $PDL::indxformat if $dtype == $PDL_IND;
 
     my $badflag = $self->badflag();
     for $t (@$x) {
@@ -3502,6 +3505,8 @@ sub str2D{
 		$format = $PDL::floatformat;
 	    } elsif ($dtype == $PDL_D) {
 		$format = $PDL::doubleformat;
+	    } elsif ($dtype == $PDL_IND) {
+		$format = $PDL::indxformat;
 	    } else {
 		# Stick with default
 		$findmax = 0;
