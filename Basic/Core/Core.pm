@@ -1092,7 +1092,7 @@ sub PDL::Core::new_pdl_from_string {
    $nan->upd_data();
    $value =~ s/\beE\b/pi/g;
 
-   my $val = eval{
+   my $val = eval {
       # Install the warnings handler:
       my $old_warn_handler = $SIG{__WARN__};
       local $SIG{__WARN__} = sub {
@@ -1209,7 +1209,9 @@ sub PDL::Core::parse_basic_string {
 		elsif (s/^([\d+\-e.]+)//i) {
 			# Note that improper numbers are handled by the warning signal
 			# handler
-			push @to_return, $sign * $1;
+                        my $val = $1;
+                        my $nval = $val + 0x0;
+                        push @to_return, ($sign>0x0) ? $nval : -$nval;
 		}
 		else {
 			die "Incorrectly formatted input at:\n  ", substr ($_, 0, 10), "...\n";
