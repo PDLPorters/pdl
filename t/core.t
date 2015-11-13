@@ -13,7 +13,7 @@ BEGIN {
     eval {
         require PDL::LiteF;
     } or BAIL_OUT("PDL::LiteF failed: $@");
-    plan tests => 60;
+    plan tests => 67;
     PDL::LiteF->import;
 }
 $| = 1;
@@ -229,4 +229,22 @@ $b = $a->inplace->new_or_inplace;
 $b++;
 ok(all($b==$a),"new_or_inplace returns the original thing if inplace is set");
 ok(!($b->is_inplace),"new_or_inplace clears the inplace flag");
+
+# check reshape and dims.  While we're at it, check null creation too.
+$a = zeroes(0);
+ok($a->nelem==0,"you can make an empty PDL with zeroes(0)");
+ok("$a" =~ m/Empty/, "the empty PDL looks empty");
+
+$a = short pdl(3,4,5,6);
+eval { $a->reshape(2,2);};
+ok(!$@,"reshape succeeded in the normal case");
+ok( ( $a->ndims==2 and $a->dim(0)==2 and $a->dim(1)==2 ), "reshape did the right thing");
+ok(all($a == short pdl([[3,4],[5,6]])), "reshape moved the elements to the right place");
+
+$b = $a->slice(":,:");
+eval { $a->reshape(4); };
+ok( $@ =~ m/Can\'t/, "reshape fails on a PDL with a child" );
+
+eval { $b->reshape(4); };
+ok($@ =~ m/Can\'t/, "reshape fails on a PDL with a parent" );
 
