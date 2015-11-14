@@ -1,5 +1,25 @@
 The following issues have been reported with this version of PDL:
 
+- CPAN Testers failures for various BSD operating systems:
+  t/slice.t crashes after 17 subtests (openbsd, 5.7, amd64),
+  t/pthread.t fails (netbsd, 6.1.5, multi-64int),
+  t/inlinepdlpp.t fail (netbsd, 6.1.5, multi-64int),
+  t/pnm.t fails all subtests (netbsd, 6.1.5, i386-netbsd),
+  t/pdl_from_string.t (freebsd, 10.1, long double perl):
+
+  #   Failed test 'q[e] returns exp(1)'
+  #   at t/pdl_from_string.t line 301.
+  #          got: '2.71828182845904509'
+  #     expected: '2.71828182845904553'
+  # Got 2.71828182845904509
+
+  #   Failed test 'q[E] returns exp(1)'
+  #   at t/pdl_from_string.t line 304.
+  #          got: '2.71828182845904509'
+  #     expected: '2.71828182845904553'
+  # Got 2.71828182845904509
+  # Looks like you failed 2 tests of 113.
+
 
 - For perls with long double or greater for NVTYPE, there
   is an unavoidable loss of precision in converting to/from
@@ -84,7 +104,17 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.014_01 release:
 
+  408   PDL::GSL::RNG set_seed minor improvement
+  407   Build failures with GSL 2.1
+  406   clump() produces bogus dims
+
+        Fixed this release.  Please confirm.
+
+  405   PDL::Bad - adding locf() function
   402   Add support for $PDL::indxformat to piddle stringify operation
+
+        Fixed this release.  Please confirm.
+
   397   PDL::FFT not 64bit integer safe
   392   Inline Pdlpp doesn't work in clean build tree
   391   Operators called in the form "explicit call with trailing 0" give syntax error
@@ -94,6 +124,10 @@ The following issues have been reported with this version of PDL:
   379   Passing qsort an extra argument causes a segfault
   364   type promotion in whistogram is based upon the index, not the weight
   354   filter demo list by actually available
+  340   orover of byte data returns long type
+
+        Fixed this release.  Please confirm.
+
   339   PDL::Complex support is inconsistent and incomplete
   334   Test coverage is incomplete
   330   NiceSlice can get confused by comments to cause compilation errors

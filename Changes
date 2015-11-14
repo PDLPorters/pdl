@@ -1,13 +1,36 @@
-v2.014_01 TBD
+v2.014_01 2015-11-14 14:01:28-05:00
 
 General Notes:
 
- * This is PDL-2.014_01
+ * This is PDL-2.014_01, a cleanup and bug fix release.
  
 
 Highlights:
 
- * TBD
+ * Add $PDL::indxformat for PDL_Indx and
+   Make new_pdl_from_string() avoid converting IV values to NVs
+
+   PDL_Indx values (type indx) now print with an integer
+   format specification so all digits get printed.  In
+   addition pdl(indx, '[ 9007199254740992 ]') works as well
+   going the other direction.
+
+ * Fix sf.net bug 403: reshape can't handle piddles with -C flag
+
+   reshape() on a piddle with dataflow isn't meaningful.
+   Now a warning is given.  You can $pdl->sever first
+   and then reshape() can be applied.
+   
+ * Fix sf.net bug 406: clump() produces bogus dims
+
+ * Various build improvments and documentation fixes:
+
+   - force new_pdl_from_string to return a piddle with P=physical flag
+   - remove spurious '}' from gnuplot demo
+   - Basic/Ops/ops.pd - make compatible with MSVC++ 6.0
+   - Fix win10 breakage in t/flexraw_fortran.t
+   - improving PDL::GSL::RNG documentation
+   - Add type convert info to POD for the pdl() constructor
 
 
 
