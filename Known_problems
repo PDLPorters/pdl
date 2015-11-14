@@ -102,7 +102,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.014_01 release:
+  PDL-2.014_02 release:
 
   408   PDL::GSL::RNG set_seed minor improvement
   407   Build failures with GSL 2.1
