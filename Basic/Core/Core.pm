@@ -262,8 +262,8 @@ Whether to insert commas when printing pdls
 
 =over 4
 
-The default print format for floats and doubles, repectively.
-The default default values are:
+The default print format for floats, doubles, and indx values,
+repectively.  The default default values are:
 
   $PDL::floatformat  = "%7g";
   $PDL::doubleformat = "%10.8g";
@@ -338,22 +338,31 @@ PDL constructor - creates new piddle from perl scalars/arrays, piddles, and stri
 
 =for usage
 
- $a = pdl(SCALAR|ARRAY REFERENCE|ARRAY|STRING);
+ $double_pdl = pdl(SCALAR|ARRAY REFERENCE|ARRAY|STRING);  # default type
+ $type_pdl   = pdl(PDL::Type,SCALAR|ARRAY REFERENCE|ARRAY|STRING);
 
 =for example
 
- $a = pdl [1..10];             # 1D array
- $a = pdl ([1..10]);           # 1D array
- $a = pdl (1,2,3,4);           # Ditto
- $b = pdl [[1,2,3],[4,5,6]];   # 2D 3x2 array
- $b = pdl "[[1,2,3],[4,5,6]]"; # Ditto (slower)
- $b = pdl "[1 2 3; 4 5 6]";    # Ditto
- $b = pdl q[1 2 3; 4 5 6];     # Ditto, using the q quote operator
- $b = pdl "1 2 3; 4 5 6";      # Ditto, less obvious, but still works
- $b = pdl 42                   # 0-dimensional scalar
- $c = pdl $a;                  # Make a new copy
- $a = pdl([1,2,3],[4,5,6]);    # 2D
- $a = pdl([[1,2,3],[4,5,6]]);  # 2D
+ $a = pdl [1..10];                    # 1D array
+ $a = pdl ([1..10]);                  # 1D array
+ $a = pdl (1,2,3,4);                  # Ditto
+ $b = pdl [[1,2,3],[4,5,6]];          # 2D 3x2 array
+ $b = pdl "[[1,2,3],[4,5,6]]";        # Ditto (slower)
+ $b = pdl "[1 2 3; 4 5 6]";           # Ditto
+ $b = pdl q[1 2 3; 4 5 6];            # Ditto, using the q quote operator
+ $b = pdl "1 2 3; 4 5 6";             # Ditto, less obvious, but still works
+ $b = pdl 42                          # 0-dimensional scalar
+ $c = pdl $a;                         # Make a new copy
+
+ $u = pdl ushort(), 42                # 0-dimensional ushort scalar
+ $b = pdl(byte(),[[1,2,3],[4,5,6]]);  # 2D byte piddle
+
+ $n = pdl indx(), [1..5];             # 1D array of indx values
+ $n = pdl indx, [1..5];               # ... can leave off parens
+ $n = indx( [1..5] );                 # ... still the same!
+
+ $a = pdl([1,2,3],[4,5,6]);           # 2D
+ $a = pdl([1,2,3],[4,5,6]);           # 2D
 
 Note the last two are equivalent - a list is automatically
 converted to a list reference for syntactic convenience. i.e. you
