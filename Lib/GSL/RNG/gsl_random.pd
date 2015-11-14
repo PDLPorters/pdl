@@ -76,6 +76,8 @@ Usage:
 =for usage
 
    $rng->set_seed($integer);
+   # or
+   $rng = PDL::GSL::RNG->new('taus')->set_seed($integer);
 
 Example:
 
@@ -1816,8 +1818,9 @@ void
 set_seed(rng, seed)
   gsl_rng * rng
   int seed
- CODE:
+ PPCODE:
   gsl_rng_set(rng,seed);
+  XPUSHs(ST(0)); /* return self */
 
 unsigned int
 min(rng)
