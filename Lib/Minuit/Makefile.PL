@@ -135,12 +135,13 @@ undef &MY::postamble; # suppress warning
         my $mycompiler     = $f77->compiler();
         my $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@pack);
+	my $hack_64bit = ($Config{archname}=~m/x86_64/ ?" -fPIC " : "");
 	$orig =~ s/:\s*minuit\.pd/: minuit.pd/;
 	$orig .= join "\n",map {
 	    ("
 
 minuitlib/$_\$(OBJ_EXT): minuitlib/$_.f 
-	$mycompiler -c -o minuitlib/$_\$(OBJ_EXT) $mycflags minuitlib/$_.f
+	$mycompiler -c $hack_64bit -o minuitlib/$_\$(OBJ_EXT) $mycflags minuitlib/$_.f
 " )} @minuitfiles;
 
 	if (!defined($PDL::Config{MINUIT_LIB})){
