@@ -1,13 +1,15 @@
-v2.014_02 TBD
+v2.014_02 2015-11-17 09:20:23-05:00
 
 General Notes:
 
- * TBD
+ * This is the 2nd release candidate for PDL-2.015
  
 
 Highlights:
 
- * TBD
+ * Same as PDL-2.014_01 but with a couple of F77 build
+   fixes from Karl to support MacOSX builds and, we hope,
+   a SciPDL to go with PDL-2.015!
 
 
 
