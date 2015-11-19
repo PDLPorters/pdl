@@ -102,7 +102,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.014_02 release:
+  PDL-2.014_03 release:
 
   411   relax reshape() constraints
   410   perl scalar NVs to float/#double types confusing
