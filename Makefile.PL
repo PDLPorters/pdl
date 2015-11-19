@@ -440,6 +440,7 @@ my $preop = '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_m
 
 my %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
+              'LICENSE' => 'perl',
               'CONFIGURE_REQUIRES' => {
                 'Devel::CheckLib' => 1.01,
                 'Carp'            => 1.20,    # EU::MM seems to need this not to crash

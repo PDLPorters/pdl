@@ -104,6 +104,8 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.014_02 release:
 
+  411   relax reshape() constraints
+  410   perl scalar NVs to float/#double types confusing
   409   PDL demos with PGPLOT display ignore $ENV{PGPLOT_DEV}
   408   PDL::GSL::RNG set_seed minor improvement
   407   Build failures with GSL 2.1
