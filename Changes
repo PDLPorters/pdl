@@ -1,3 +1,53 @@
+v2.015 2015-11-22 08:52:22-05:00
+
+General Notes:
+
+ * PDL-2.015 is a clean and polish release.  It fixes
+   some problems discovered with PDL-2.014 and improves
+   the 64bit integer support.
+ 
+
+Highlights:
+
+ * Fixes to improve compile and test of F77 modules
+   on OS X (i.e. don't build i386 versions)
+
+ * Basic/Ops/ops.pd - make compatible with MSVC++ 6.0
+
+ * Fix win10 breakage in t/flexraw_fortran.t  Apparently, temp
+   files were not being released after use which was preventing
+   the tests to pass. 
+
+ * Fix missing PDL license information
+
+ * Fix sf.net bug #403: reshape() failed when applied to a
+   piddle with dataflow.  Now, changing the shape of a PDL
+   that already has dataflow is prevented and an error message
+   given.
+
+ * Fix sf.net bug 406 Added missing logic for clump(-N) and minor
+   cleanup of perl wrapper.
+
+ * force new_pdl_from_string to return a piddle with P=physical flag
+
+ * Add $PDL::indxformat for PDL_Indx This avoids loss of
+   significance when 64bit PDL_Indx values are printed.
+
+   Make new_pdl_from_string() avoid converting IV values
+   to NVs This allows pdl(indx, '[ 9007199254740992 ]')
+   to work without rounding due to the 52bit double
+   precision mantissa versus the 63bits + sign for PDL_Indx.
+
+ * Add type support info to pdl() constructor documentation.
+   pdl() has always supported this usage but examples were
+   missing in the documentation.
+
+ * improving PDL::GSL::RNG documentation
+
+ * remove spurious '}' from gnuplot demo
+
+
+
 v2.014_03 2015-11-19 12:37:00-05:00
 
 General Notes:
