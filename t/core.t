@@ -243,5 +243,5 @@ ok(all($a == short pdl([[3,4],[5,6]])), "reshape moved the elements to the right
 
 $b = $a->slice(":,:");
 eval { $b->reshape(4); };
-ok( $@ =~ m/Can\'t/, "reshape fails on a PDL with a parent" );
+ok( $@ !~ m/Can\'t/, "reshape doesn't fail on a PDL with a parent" );
 
