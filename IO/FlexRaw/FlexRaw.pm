@@ -520,7 +520,7 @@ sub readflex {
     local ($offset) = 0;
     my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
     my $d;
-    print("readflex: name is $name\n");
+    # print("readflex: name is $name\n");
     # Test if $name is a file handle
     if (defined fileno($name)) {
 		$d = $name;
