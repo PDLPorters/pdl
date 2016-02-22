@@ -6,13 +6,13 @@ use strict;
 
 ### fit using pdl's lmfit (Marquardt-Levenberg non-linear least squares fitting)
 ###
-### `lmfit' Syntax: 
+### `lmfit' Syntax:
 ###
 ### ($ym,$finalp,$covar,$iters)
 ###	= lmfit $x, $y, $sigma, \&fn, $initp, {Maxiter => 300, Eps => 1e-3};
 ###
 ### Explanation of variables
-### 
+###
 ### OUTPUT
 ### $ym     = pdl of fitted values
 ### $finalp = pdl of paramters
@@ -40,7 +40,7 @@ my $initp = pdl [0,1];
 # Weight all y data equally (else specify different uncertainties in a pdl)
 my $sigma = 1;
 
-# Use lmfit. Fourth input argument is reference to user-defined 
+# Use lmfit. Fourth input argument is reference to user-defined
 # subroutine ( here \&linefit ) detailed below.
 my ($yf,$pf,$cf,$if) = lmfit $xdata, $ydata, $sigma, \&linefit, $initp;
 
@@ -53,7 +53,7 @@ print "NUMBER ITERATIONS\n$if\n\n";
 # simple example of user defined fit function. Guidelines included on
 # how to write your own function subroutine.
 sub linefit {
-	
+
 	# leave this line as is
 	my ($x,$par,$ym,$dyda) = @_;
 
@@ -65,23 +65,23 @@ sub linefit {
 
 	# Write function with dependent variable $ym,
 	# independent variable $x, and fit parameters as specified above.
-	# Use the .= (dot equals) assignment operator to express the equality 
+	# Use the .= (dot equals) assignment operator to express the equality
 	# (not just a plain equals)
         $ym .= $m * $x + $b;
 
 	# Edit only the (0..1) part to (0..x) as above
         my (@dy) = map {$dyda -> slice(",($_)") } (0..1);
 
-	# Partial derivative of the function with respect to first 
-	# fit parameter ($m in this case). Again, note .= assignment 
+	# Partial derivative of the function with respect to first
+	# fit parameter ($m in this case). Again, note .= assignment
 	# operator (not just "equals")
         $dy[0] .= $x;
 
-	# Partial derivative of the function with respect to next 
+	# Partial derivative of the function with respect to next
         # fit parameter ($b in this case)
 	$dy[1] .= 1;
 
-	# Add $dy[ ] .= () lines as necessary to supply 
+	# Add $dy[ ] .= () lines as necessary to supply
 	# partial derivatives for all floating paramters.
 }
 
