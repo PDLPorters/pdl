@@ -12,7 +12,7 @@ see Numerical Recipes, chapter 15 "Modeling of data".
 =head1 SYNOPSIS
 
  use PDL::Fit::LM;
- $ym = lmfit $x, $y, $sig, \&expfunc, $a, {Maxiter => 300};
+ $ym = lmfit $x, $y, $sigma, \&expfunc, $initp, {Maxiter => 300};
 
 =head1 FUNCTIONS
 
@@ -38,15 +38,17 @@ Levenberg-Marquardt fitting of a user supplied model function
 
 =for example
 
- ($ym,$a,$covar,$iters) =
-      lmfit $x, $y, $sig, \&expfunc, $a, {Maxiter => 300, Eps => 1e-3};
+ ($ym,$finalp,$covar,$iters) =
+      lmfit $x, $y, $sigma, \&expfunc, $initp, {Maxiter => 300, Eps => 1e-3};
+
+where $x is the independent variable and $y the value of the dependent variable at each $x, $sigma is the estimate of the uncertainty (i.e., standard deviation) of $y at each data point, the fourth argument is a subroutine reference (see below), and $initp the initial values of the parameters to be adjusted.
 
 Options:
 
 =for options
 
  Maxiter:  maximum number of iterations before giving up
- Eps:      convergence citerium for fit; success when normalized change
+ Eps:      convergence criterion for fit; success when normalized change
            in chisquare smaller than Eps
 
 The user supplied sub routine reference should accept 4 arguments
@@ -103,7 +105,7 @@ sub PDL::lmfit {
 		  Eps => 1e-4}, ifhref($opt))};
   my ($maxiter,$eps) = map {$opt->{$_}} qw/Maxiter Eps/;
   # initialize some variables
-  my ($isig2,$chisq) = (1/($sig*$sig),0);
+  my ($isig2,$chisq) = (1/($sig*$sig),0); #$isig2="inverse of sigma squared"
   my ($ym,$al,$cov,$bet,$oldbet,$olda,$oldal,$ochisq,$di,$pivt,$info) =
     map {null} (0..10);
   my ($aldiag,$codiag);  # the diagonals for later updating
@@ -173,26 +175,26 @@ the F<Example/Fit> directory.
    ###
    ### `lmfit' Syntax: 
    ###
-   ### ($ym,$a,$covar,$iters) 
-   ###	= lmfit $x, $y, $sig, \&fn, $initp, {Maxiter => 300, Eps => 1e-3};
+   ### ($ym,$finalp,$covar,$iters)
+   ###	= lmfit $x, $y, $sigma, \&fn, $initp, {Maxiter => 300, Eps => 1e-3};
    ###
    ### Explanation of variables
    ### 
    ### OUTPUT
-   ### $ym =    pdl of fitted values
-   ### $a  =    pdl of paramters
-   ### $covar = covariance matrix
-   ### $iters = number of iterations actually used
+   ### $ym     = pdl of fitted values
+   ### $finalp = pdl of paramters
+   ### $covar  = covariance matrix
+   ### $iters  = number of iterations actually used
    ###
    ### INPUT
-   ### $x =      x data
-   ### $y =      y data
-   ### $sig =    weights for y data (can be set to scalar 1 for equal weighting)
-   ### \&fn =    reference to function provided by user (more on this below) 
-   ### $initp =  initial values for floating parameters 
+   ### $x      = x data
+   ### $y      = y data
+   ### $sigma  = piddle of y-uncertainties for each value of $y (can be set to scalar 1 for equal weighting)
+   ### \&fn    = reference to function provided by user (more on this below)
+   ### $initp  = initial values for floating parameters
    ###               (needs to be explicitly set prior to use of lmfit)
    ### Maxiter = maximum iterations
-   ### Eps =     convergence criterium (maximum normalized change in Chi Sq.)
+   ### Eps     = convergence criterion (maximum normalized change in Chi Sq.)
 
    ### Example:
    # make up experimental data:
@@ -202,12 +204,12 @@ the F<Example/Fit> directory.
    # set initial prameters in a pdl (order in accord with fit function below)
    my $initp = pdl [0,1];
 
-   # Weight all y data equally (else specify different weights in a pdl)
-   my $wt = 1;
+   # Weight all y data equally (else specify different uncertainties in a pdl)
+   my $sigma = 1;
 
    # Use lmfit. Fourth input argument is reference to user-defined 
    # subroutine ( here \&linefit ) detailed below.
-   my ($yf,$pf,$cf,$if) = lmfit $xdata, $ydata, $wt, \&linefit, $initp;
+   my ($yf,$pf,$cf,$if) = lmfit $xdata, $ydata, $sigma, \&linefit, $initp;
 
    # Note output
    print "\nXDATA\n$xdata\nY DATA\n$ydata\n\nY DATA FIT\n$yf\n\n";
@@ -268,7 +270,7 @@ threaded version of Levenberg-Marquardt fitting routine mfit
 
 =for sig
 
-  Signature: tlmfit(x(n);y(n);sig(n);a(m);iter();eps();[o] ym(n);[o] ao(m);
+  Signature: tlmfit(x(n);y(n);sigma(n);initp(m);iter();eps();[o] ym(n);[o] finalp(m);
            OtherPar => subref)
 
 a threaded version of C<lmfit> by using perl threading. Direct
@@ -285,7 +287,7 @@ some of the current limitations of perl level threading.
 =cut
 
 
-thread_define 'tlmfit(x(n);y(n);sig(n);a(m);iter();eps();[o] ym(n);[o] ao(m)),
+thread_define 'tlmfit(x(n);y(n);sigma(n);initp(m);iter();eps();[o] ym(n);[o] finalp(m)),
                NOtherPars => 1',
   over {
     $_[7] .= $_[3]; # copy our parameter guess into the output
