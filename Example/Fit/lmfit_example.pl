@@ -15,7 +15,7 @@ use strict;
 ###
 ### OUTPUT
 ### $ym     = pdl of fitted values
-### $finalp = pdl of paramters
+### $finalp = pdl of parameters
 ### $covar  = covariance matrix
 ### $iters  = number of iterations actually used
 ###
@@ -82,6 +82,6 @@ sub linefit {
 	$dy[1] .= 1;
 
 	# Add $dy[ ] .= () lines as necessary to supply
-	# partial derivatives for all floating paramters.
+	# partial derivatives for all floating parameters.
 }
 

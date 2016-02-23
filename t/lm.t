@@ -23,7 +23,6 @@ BEGIN {
 }    
 
 my ($t,$count,$sigma)=rcols(\*DATA,0,1,2);
-print "$t\n$count\n$sigma\n";
 my $initp = pdl(10,900,80,27,225);
 my $gnuplot_pf_unweighted = pdl(7.96, 282.5, 70.0, 28.5, 117.7);
 my $gnuplot_pf_weighted = pdl(5.53, 290.7, 46.6, 33.3, 162.7);
