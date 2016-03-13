@@ -33,7 +33,7 @@ For explanation of the signature format, see L<PDL::PP|PDL::PP>.
 
  # Pulls in PDL::Primitive, among other modules.
  use PDL;
- 
+
  # Only pull in PDL::Primitive:
  use PDL::Primitive;
 
@@ -62,15 +62,15 @@ EOD
 pp_def(
        'inner',
        HandleBad => 1,
-       Pars => 'a(n); b(n); [o]c();', 
-       Code => 
+       Pars => 'a(n); b(n); [o]c();',
+       Code =>
        'double tmp = 0;
         loop(n) %{ tmp += $a() * $b(); %}
         $c() = tmp;',
-       BadCode => 
+       BadCode =>
        'double tmp = 0;
         int badflag = 0;
-        loop(n) %{ 
+        loop(n) %{
            if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); } else { badflag = 1; }
         %}
         if ( badflag ) { $SETBAD(c()); $PDLSTATESETBAD(c); }
@@ -112,16 +112,16 @@ pp_def(
        'outer',
        HandleBad => 1,
        Pars => 'a(n); b(m); [o]c(n,m);',
-       Code => 
-       'loop(n,m) %{ 
-          $c() = $a() * $b(); 
+       Code =>
+       'loop(n,m) %{
+          $c() = $a() * $b();
         %}',
-       BadCode => 
-       'loop(n,m) %{ 
+       BadCode =>
+       'loop(n,m) %{
           if ( $ISBAD(a()) || $ISBAD(b()) ) {
              $SETBAD(c());
           } else {
-             $c() = $a() * $b(); 
+             $c() = $a() * $b();
           }
         %}',
        Doc => '
@@ -153,23 +153,23 @@ Matrix multiplication
 
 PDL overloads the C<x> operator (normally the repeat operator) for
 matrix multiplication.  The number of columns (size of the 0
-dimension) in the left-hand argument must normally equal the number of 
-rows (size of the 1 dimension) in the right-hand argument. 
+dimension) in the left-hand argument must normally equal the number of
+rows (size of the 1 dimension) in the right-hand argument.
 
 Row vectors are represented as (N x 1) two-dimensional PDLs, or you
-may be sloppy and use a one-dimensional PDL.  Column vectors are 
+may be sloppy and use a one-dimensional PDL.  Column vectors are
 represented as (1 x N) two-dimensional PDLs.
 
 Threading occurs in the usual way, but as both the 0 and 1 dimension
-(if present) are included in the operation, you must be sure that 
+(if present) are included in the operation, you must be sure that
 you don't try to thread over either of those dims.
 
 EXAMPLES
 
 Here are some simple ways to define vectors and matrices:
 
- pdl> $r = pdl(1,2);                # A row vector 
- pdl> $c = pdl([[3],[4]]);          # A column vector 
+ pdl> $r = pdl(1,2);                # A row vector
+ pdl> $c = pdl([[3],[4]]);          # A column vector
  pdl> $c = pdl(3,4)->(*1);          # A column vector, using NiceSlice
  pdl> $m = pdl([[1,2],[3,4]]);      # A 2x2 matrix
 
@@ -231,7 +231,7 @@ sub PDL::matmult {
 
     while($a->getndims < 2) {$a = $a->dummy(-1)}
     while($b->getndims < 2) {$b = $b->dummy(-1)}
-    
+
     return ($c .= $a * $b) if( ($a->dim(0)==1 && $a->dim(1)==1) ||
     	       	       	       ($b->dim(0)==1 && $b->dim(1)==1) );
     if($b->dim(1) != $a->dim(0)) {
@@ -268,18 +268,18 @@ EOPM
 	atdi = &($a(t=>1, h=>0)) - &($a(t=>0,h=>0));
 	btdi = &($b(t=>1, w=>0)) - &($b(t=>0,w=>0));
 
-	
+
 	// Loop over tiles
 	for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
 	   hlim = ( oh + tsiz > $SIZE(h) )  ?  $SIZE(h)  :  oh + tsiz;
-	   
+
 	   for(   ow=0;   ow < $SIZE(w);   ow += tsiz   ) {
 	      wlim = ( ow + tsiz > $SIZE(w) )  ?  $SIZE(w)  :  ow + tsiz;
 
 	      for(   ot=0;   ot < $SIZE(t);  ot += tsiz   ) {
 	         tlim = (ot + tsiz > $SIZE(t) )  ?  $SIZE(t)  :  ot + tsiz;
 
-		 
+
 	         for(  ih=oh; ih<hlim; ih++  ) {
 		    for(  iw=ow; iw<wlim; iw++  ) {
 		       $GENERIC() cc;
@@ -297,10 +297,10 @@ EOPM
 			    ad += atdi;
 			    bd += btdi;
 		       }
-		       
+
 		       // put the output back to be further accumulated later
 		       $c(w=>iw, h=>ih) = cc;
-		    }			    
+		    }
 		 }
 	      }
 	   }
@@ -337,19 +337,19 @@ pp_def(
        'innerwt',
        HandleBad => 1,
        Pars => 'a(n); b(n); c(n); [o]d();',
-       Code => 
+       Code =>
        'double tmp = 0;
-	loop(n) %{ 
-           tmp += $a() * $b() * $c(); 
+	loop(n) %{
+           tmp += $a() * $b() * $c();
         %}
 	$d() = tmp;',
-       BadCode => 
+       BadCode =>
        'double tmp = 0;
         int flag = 0;
 
-	loop(n) %{ 
-           if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) { 
-              tmp += $a() * $b() * $c(); 
+	loop(n) %{
+           if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) {
+              tmp += $a() * $b() * $c();
               flag = 1;
            }
         %}
@@ -380,17 +380,17 @@ pp_def(
        'inner2',
        HandleBad => 1,
        Pars => 'a(n); b(n,m); c(m); [o]d();',
-       Code => 
+       Code =>
        'double tmp=0;
 	loop(n,m) %{
            tmp += $a() * $b() * $c();
         %}
 	$d() = tmp;',
-       BadCode => 
+       BadCode =>
        'double tmp = 0;
         int flag = 0;
-	loop(n,m) %{ 
-           if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) { 
+	loop(n,m) %{
+           if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) {
               tmp += $a() * $b() * $c();
               flag = 1;
            }
@@ -405,7 +405,7 @@ Inner product of two vectors and a matrix
 
  d = sum_ij a(i) b(i,j) c(j)
 
-Note that you should probably not thread over C<a> and C<c> since that would be  
+Note that you should probably not thread over C<a> and C<c> since that would be
 very wasteful. Instead, you should use a temporary for C<b*c>.
 
 =cut
@@ -425,17 +425,17 @@ pp_def(
        'inner2d',
        HandleBad => 1,
        Pars => 'a(n,m); b(n,m); [o]c();',
-       Code => 
+       Code =>
        'double tmp=0;
 	loop(n,m) %{
            tmp += $a() * $b();
         %}
 	$c() = tmp;',
-       BadCode => 
+       BadCode =>
        'double tmp = 0;
         int flag = 0;
-	loop(n,m) %{ 
-           if ( $ISGOOD(a()) && $ISGOOD(b()) ) { 
+	loop(n,m) %{
+           if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
               tmp += $a() * $b();
               flag = 1;
            }
@@ -469,40 +469,40 @@ pp_def(
        'inner2t',
        HandleBad => 1,
        Pars => 'a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k));',
-       Code => 
-       'loop(n,k) %{ 
+       Code =>
+       'loop(n,k) %{
            double tmp0 = 0;
-	   loop(m) %{ 
-              tmp0 += $b() * $c(); 
+	   loop(m) %{
+              tmp0 += $b() * $c();
            %}
 	   $tmp() = tmp0;
 	%}
-	loop(j,k) %{ 
+	loop(j,k) %{
            double tmp1 = 0;
-	   loop(n) %{ 
-              tmp1 += $a() * $tmp(); 
+	   loop(n) %{
+              tmp1 += $a() * $tmp();
            %}
            $d() = tmp1;
 	%}',
-       BadCode => 
-       'loop(n,k) %{ 
+       BadCode =>
+       'loop(n,k) %{
            double tmp0 = 0;
            int flag = 0;
-	   loop(m) %{ 
+	   loop(m) %{
               if ( $ISGOOD(b()) && $ISGOOD(c()) ) {
-                 tmp0 += $b() * $c(); 
+                 tmp0 += $b() * $c();
                  flag = 1;
               }
            %}
            if ( flag ) { $tmp() = tmp0; }
            else        { $SETBAD(tmp()); }
 	%}
-	loop(j,k) %{ 
+	loop(j,k) %{
            double tmp1 = 0;
            int flag = 0;
-	   loop(n) %{ 
+	   loop(n) %{
               if ( $ISGOOD(a()) && $ISGOOD(tmp()) ) {
-                 tmp1 += $a() * $tmp(); 
+                 tmp1 += $a() * $tmp();
                  flag = 1;
               }
            %}
@@ -515,8 +515,8 @@ pp_def(
 
 Efficient Triple matrix product C<a*b*c>
 
-Efficiency comes from by using the temporary C<tmp>. This operation only 
-scales as C<N**3> whereas threading using L<inner2|/inner2> would scale 
+Efficiency comes from by using the temporary C<tmp>. This operation only
+scales as C<N**3> whereas threading using L<inner2|/inner2> would scale
 as C<N**4>.
 
 The reason for having this routine is that you do not need to
@@ -567,8 +567,8 @@ orthogonal to C<$a> and C<$b>
 
 EOD
        Pars => 'a(tri=3); b(tri); [o] c(tri)',
-       Code => 
-       crassgn(0,1,2)."\n". 
+       Code =>
+       crassgn(0,1,2)."\n".
        crassgn(1,2,0)."\n".
        crassgn(2,0,1),
        );
@@ -587,7 +587,7 @@ pp_def('norm',
        HandleBad => 1,
        Pars => 'vec(n); [o] norm(n)',
        Doc => 'Normalises a vector to unit Euclidean length',
-       Code => 
+       Code =>
        'double sum=0;
 	loop(n) %{ sum += $vec()*$vec(); %}
 	if (sum > 0) {
@@ -596,30 +596,30 @@ pp_def('norm',
 	} else {
 	  loop(n) %{ $norm() = $vec(); %}
 	}',
-       BadCode => 
+       BadCode =>
        'double sum=0;
         int flag = 0;
-	loop(n) %{ 
+	loop(n) %{
            if ( $ISGOOD(vec()) ) {
-              sum += $vec()*$vec(); 
+              sum += $vec()*$vec();
               flag = 1;
            }
         %}
         if ( flag ) {
 	   if (sum > 0) {
 	      sum = sqrt(sum);
-	      loop(n) %{ 
+	      loop(n) %{
                  if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
                  else                 { $norm() = $vec()/sum; }
               %}
 	   } else {
-	      loop(n) %{ 
+	      loop(n) %{
                  if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
                  else                 { $norm() = $vec(); }
               %}
            }
         } else {
-	   loop(n) %{ 
+	   loop(n) %{
               $SETBAD(norm());
            %}
 	}',
@@ -644,13 +644,13 @@ pp_def(
     'indadd',
     HandleBad => 1,
     Pars => 'a(); indx ind(); [o] sum(m)',
-    Code => 
+    Code =>
     'register PDL_Indx foo = $ind();
      if( foo<0 || foo>=$SIZE(m) ) {
        barf("PDL::indadd: invalid index");
      }
      $sum(m => foo) += $a();',
-    BadCode => 
+    BadCode =>
     'register PDL_Indx foo = $ind();
      if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
        barf("PDL::indadd: invalid index");
@@ -712,7 +712,7 @@ Threaded Example:
 # useful for threaded 1D filters
 pp_addhdr('
 /* Fast Modulus with proper negative behaviour */
-#define REALMOD(a,b) while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b); 
+#define REALMOD(a,b) while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b);
 ');
 pp_def('conv1d',
        Doc => << 'EOD',
@@ -775,7 +775,7 @@ EOD
         OtherPars => 'int reflect;',
         HandleBad => 0,
         PMCode => '
-        
+
 sub PDL::conv1d {
    my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
    die \'Usage: conv1d( a(m), kern(p), [o]b(m), {Options} )\'
@@ -788,26 +788,26 @@ sub PDL::conv1d {
    return $c;
 }
 
-',              
+',
         Code => '
            int i,i1,i2,poff,pflip;
            double tmp;
-           int reflect = $COMP(reflect); 
-           int m_size = $COMP(__m_size); 
-           int p_size = $COMP(__p_size); 
+           int reflect = $COMP(reflect);
+           int m_size = $COMP(__m_size);
+           int p_size = $COMP(__p_size);
 
            poff = (p_size-1)/2;
-           for(i=0; i<m_size; i++) { 
-              tmp = 0; 
-                  for(i1=0; i1<p_size; i1++) { 
+           for(i=0; i<m_size; i++) {
+              tmp = 0;
+                  for(i1=0; i1<p_size; i1++) {
                      pflip = p_size - 1 - i1;
-                     i2 = i+i1 - poff; 
+                     i2 = i+i1 - poff;
                      if (reflect && i2<0)
                      	i2 = -i2;
                      if (reflect && i2>=m_size)
                      	i2 = m_size-(i2-m_size+1);
 
-                     REALMOD(i2,m_size); 
+                     REALMOD(i2,m_size);
                      tmp += $a(m=>i2) * $kern(p=>pflip);
                   }
               $b(m=>i) = tmp;
@@ -871,7 +871,7 @@ The unique elements are returned in ascending order.
 =for example
 
   PDL> p pdl(2,2,2,4,0,-1,6,6)->uniq
-  [-1 0 2 4 6]     # 0 is returned 2nd (sorted order) 
+  [-1 0 2 4 6]     # 0 is returned 2nd (sorted order)
 
   PDL> p pdl(2,2,2,4,nan,-1,6,6)->uniq
   [-1 2 4 6 nan]   # NaN value is returned at end
@@ -1001,7 +1001,7 @@ sub PDL::uniqind {
   # Now map back to the original space
   my $ansind = $nanind;
   if ( $uniqind->nelem > 0 ) {
-     $ansind = ($good->index($i_srt->index($uniqind)))->append($ansind);   
+     $ansind = ($good->index($i_srt->index($uniqind)))->append($ansind);
   } else {
      $ansind = $uniqind->append($ansind);
   }
@@ -1049,7 +1049,7 @@ pp_addpm(<<'EOPM');
 
 If a vector contains all bad values, it is ignored as in L<uniq|uniq>.
 If some of the values are good, it is treated as a normal vector. For
-example, [1 2 BAD] and [BAD 2 3] could be returned, but [BAD BAD BAD] 
+example, [1 2 BAD] and [BAD 2 3] could be returned, but [BAD BAD BAD]
 could not.  Vectors containing BAD values will be returned after any
 non-NaN and non-BAD containing vectors, followed by the NaN vectors.
 
@@ -1154,7 +1154,7 @@ for my $opt (
 	   $name,
 	   HandleBad => 1,
 	   Pars => 'a(); b(); [o] c()',
-	   Code => 
+	   Code =>
 	   '$c() = ($a() '.$op.' $b()) ? $b() : $a();',
 	   BadCode =>
 	   'if ( $ISBAD(a()) || $ISBAD(b()) ) {
@@ -1216,7 +1216,7 @@ pp_def(
 	'clip',
 	HandleBad => 1,
 	Pars => 'a(); l(); h(); [o] c()',
-	Code => 
+	Code =>
 	'$c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );',
 	BadCode => <<'EOBC',
 	 if( $ISBAD(a()) || $ISBAD(l()) || $ISBAD(h()) ) {
@@ -1229,7 +1229,7 @@ EOBC
 *clip = \&PDL::clip;
 sub PDL::clip {
   my($a, $l, $h) = @_;
-  my $d; 
+  my $d;
   unless(defined($l) || defined($h)) {
       # Deal with pathological case
       if($a->is_inplace) {
@@ -1239,7 +1239,7 @@ sub PDL::clip {
 	  return $a->copy;
       }
   }
-  
+
   if($a->is_inplace) {
       $a->set_inplace(0); $d = $a
   } elsif ($#_ > 2) {
@@ -1283,13 +1283,13 @@ pp_def(
        'double wtsum = 0;
 	double statsum = 0;
 	loop(n) %{
-	   register double tmp; 
+	   register double tmp;
            register int i;
 	   wtsum += $wt();
-	   tmp=1; 
-           for(i=0; i<$COMP(deg); i++) 
+	   tmp=1;
+           for(i=0; i<$COMP(deg); i++)
               tmp *= $a();
-	   statsum += $wt() * (tmp - $avg()); 
+	   statsum += $wt() * (tmp - $avg());
         %}
 	$b() = statsum / wtsum;',
        BadCode =>
@@ -1298,13 +1298,13 @@ pp_def(
         int flag = 0;
 	loop(n) %{
            if ( $ISGOOD(wt()) && $ISGOOD(a()) && $ISGOOD(avg()) ) {
-              register double tmp; 
+              register double tmp;
               register int i;
 	      wtsum += $wt();
-	      tmp=1; 
-              for(i=0; i<$COMP(deg); i++) 
+	      tmp=1;
+              for(i=0; i<$COMP(deg); i++)
                  tmp *= $a();
-	      statsum += $wt() * (tmp - $avg()); 
+	      statsum += $wt() * (tmp - $avg());
               flag = 1;
            }
         %}
@@ -1342,9 +1342,9 @@ have its bad flag set if the output contains any bad data.
 pp_def('statsover',
 	HandleBad => 1,
 	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]median(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
-	Code => 
+	Code =>
 	'$GENERIC(avg) tmp = 0;
-         $GENERIC(avg) tmp1 = 0;         
+         $GENERIC(avg) tmp1 = 0;
          $GENERIC(avg) diff = 0;
          $GENERIC(min) curmin, curmax;
 	 $GENERIC(avg) norm = 0;
@@ -1352,18 +1352,18 @@ pp_def('statsover',
             tmp += $a()*$w();
             norm += ($GENERIC(avg)) $w();
             if (!n) { curmin = $a(); curmax = $a();}
-            if ($a() < curmin) { 
-                curmin = $a(); 
+            if ($a() < curmin) {
+                curmin = $a();
              } else if ($a() > curmax) {
                 curmax = $a();
-             } 
+             }
          %}
 	 $avg() = tmp / norm;  /* Find mean */
          $min() = curmin;
          $max() = curmax;
 
          /* Calculate the RMS and standard deviation. */
-         tmp = 0; 
+         tmp = 0;
 	 loop(n) %{
             diff = ($a() - $avg());
             tmp += diff * diff * $w();
@@ -1373,9 +1373,9 @@ pp_def('statsover',
 	 $prms() = (norm>1) ? sqrt( tmp/(norm-1) ) : 0;
          $adev() = tmp1/norm ;
 ',
-	BadCode => 
+	BadCode =>
 	'$GENERIC(avg) tmp = 0;
-         $GENERIC(avg) tmp1 = 0;         
+         $GENERIC(avg) tmp1 = 0;
          $GENERIC(avg) diff = 0;
          $GENERIC(min) curmin, curmax;
 	 $GENERIC(w) norm = 0;
@@ -1385,36 +1385,36 @@ pp_def('statsover',
              if ( $ISGOOD(a()) ) {
 	      tmp += $a()*$w();
               norm += $w();
- 	      if (!flag) { curmin = $a(); curmax = $a(); flag=1; }               
-              if ($a() < curmin) { 
-                curmin = $a(); 
+ 	      if (!flag) { curmin = $a(); curmax = $a(); flag=1; }
+              if ($a() < curmin) {
+                curmin = $a();
               } else if ($a() > curmax) {
                 curmax = $a();
               }
-            } 
+            }
          %}
          /* have at least one valid point if flag == 1 */
-         if ( flag ) { 
+         if ( flag ) {
            $avg() = tmp / norm; /* Find mean */
-           $min() = curmin;     
+           $min() = curmin;
            $max() = curmax;
 
 	   /* Calculate the RMS and standard deviation. */
-           tmp = 0; 
+           tmp = 0;
            loop(n) %{
-              if ($ISGOOD(a())) { 
+              if ($ISGOOD(a())) {
                  diff = $a()-$avg();
                  tmp += diff * diff * $w();
                  tmp1 += fabs(diff) * $w();
               }
            %}
 	   $rms() = sqrt( tmp/norm );
-	   if(norm>1)	  
+	   if(norm>1)
 	   	   $prms() =  sqrt( tmp/(norm-1) );
 	   else
 	           $SETBAD(prms());
            $adev() = tmp1 / norm ;
-         } else       { 
+         } else       {
            $SETBAD(avg());  $PDLSTATESETBAD(avg);
            $SETBAD(rms());  $PDLSTATESETBAD(rms);
            $SETBAD(adev()); $PDLSTATESETBAD(adev);
@@ -1446,7 +1446,7 @@ sub PDL::statsover {
 ',
       Doc => '
 
-=for ref 
+=for ref
 
 Calculate useful statistics over a dimension of a piddle
 
@@ -1469,7 +1469,7 @@ with C<N> being the number of elements in x
 
   PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
 
-The population deviation is the best-estimate of the deviation 
+The population deviation is the best-estimate of the deviation
 of the population from which a sample is drawn.
 
 =item * the median
@@ -1495,8 +1495,8 @@ variance)
 =back
 
 This operator is a projection operator so the calculation
-will take place over the final dimension. Thus if the input 
-is N-dimensional each returned value will be N-1 dimensional, 
+will take place over the final dimension. Thus if the input
+is N-dimensional each returned value will be N-1 dimensional,
 to calculate the statistics for the entire piddle either
 use C<clump(-1)> directly on the piddle or call C<stats>.
 
@@ -1560,14 +1560,14 @@ sub PDL::stats {
     # done rather more efficiently...
     if(defined $weights) {
 	$weights = pdl($weights) unless UNIVERSAL::isa($weights,'PDL');
-	if( ($weights->ndims != $data->ndims) or 
+	if( ($weights->ndims != $data->ndims) or
 	    (pdl($weights->dims) != pdl($data->dims))->or
 	  ) {
 		$weights = $weights + zeroes($data)
 	}
 	$weights = $weights->flat;
-    } 
-	
+    }
+
     return PDL::statsover($data->flat,$weights);
 }
 EOD
@@ -1676,7 +1676,7 @@ pp_def($_->{Name},
        # set outdim by Par!
        OtherPars => 'double step; double min; int msize => m',
        HandleBad => 1,
-       Code => 
+       Code =>
        'register int j;
 	register int maxj = $SIZE(m)-1;
 	register double min  = $COMP(min);
@@ -1692,7 +1692,7 @@ pp_def($_->{Name},
 	      ($hist(m => j))'.$_->{HistOp}.';
 	   %}
 	%}',
-       BadCode => 
+       BadCode =>
        'register int j;
 	register int maxj = $SIZE(m)-1;
 	register double min  = $COMP(min);
@@ -1733,12 +1733,12 @@ Calculates a 2d histogram.
  $h = histogram2d($datax, $datay, $stepx, $minx,
        $nbinx, $stepy, $miny, $nbiny);
  $hist = zeroes $nbinx, $nbiny;  # Put histogram in existing piddle.
- histogram2d($datax, $datay, $hist, $stepx, $minx, 
+ histogram2d($datax, $datay, $hist, $stepx, $minx,
        $nbinx, $stepy, $miny, $nbiny);
 
 The histogram will contain C<$nbinx> x C<$nbiny> bins, with the lower
 limits of the first one at C<($minx, $miny)>, and with bin size
-C<($stepx, $stepy)>. 
+C<($stepx, $stepy)>.
 The value in each bin is the number of
 values in C<$datax> and C<$datay> that lie within the bin limits.
 
@@ -1783,7 +1783,7 @@ Calculates a 2d histogram from weighted data.
 
 The histogram will contain C<$nbinx> x C<$nbiny> bins, with the lower
 limits of the first one at C<($minx, $miny)>, and with bin size
-C<($stepx, $stepy)>. 
+C<($stepx, $stepy)>.
 The value in each bin is the sum of the values in
 C<$weights> that correspond to values in C<$datax> and C<$datay> that lie within the bin limits.
 
@@ -1826,7 +1826,7 @@ pp_def($_->{Name},
        OtherPars => 'double stepa; double mina; int masize => ma;
 	             double stepb; double minb; int mbsize => mb;',
        HandleBad => 1,
-       Code => 
+       Code =>
        'register int ja,jb;
 	register int maxja = $SIZE(ma)-1;
 	register int maxjb = $SIZE(mb)-1;
@@ -1849,7 +1849,7 @@ pp_def($_->{Name},
 	   %}
 	%}
 	',
-       BadCode => 
+       BadCode =>
        'register int ja,jb;
 	register int maxja = $SIZE(ma)-1;
 	register int maxjb = $SIZE(mb)-1;
@@ -1937,7 +1937,7 @@ pp_def('append',
 	RedoDimsCode => '
 		pdl * dpdla = $PDL(a);
 		pdl * dpdlb = $PDL(b);
-                $SIZE(mn) = (dpdla->ndims > 0 ? dpdla->dims[0] : 1) + 
+                $SIZE(mn) = (dpdla->ndims > 0 ? dpdla->dims[0] : 1) +
                         (dpdlb->ndims > 0 ? dpdlb->dims[0] : 1);
 		',
 	Code => 'register PDL_Indx mnp;
@@ -1980,12 +1980,12 @@ pp_addpm(<<'EOD')
 
 =for ref
 
-Glue two or more PDLs together along an arbitrary dimension 
+Glue two or more PDLs together along an arbitrary dimension
 (N-D L<append|append>).
 
 Sticks $a, $b, and all following arguments together along the
-specified dimension.  All other dimensions must be compatible in the 
-threading sense.  
+specified dimension.  All other dimensions must be compatible in the
+threading sense.
 
 Glue is permissive, in the sense that every PDL is treated as having an
 infinite number of trivial dimensions of order 1 -- so C<< $a->glue(3,$b) >>
@@ -2044,9 +2044,9 @@ sub PDL::glue{
     }
     $a->xchg(0,$dim);
 }
-	
-	
-	
+
+
+
 
 EOD
 ;
@@ -2068,8 +2068,8 @@ pp_def( 'axisvalues',
 
 Internal routine
 
-C<axisvalues> is the internal primitive that implements 
-L<axisvals|PDL::Basic/axisvals> 
+C<axisvalues> is the internal primitive that implements
+L<axisvals|PDL::Basic/axisvals>
 and alters its argument.
 
 =cut
@@ -2829,7 +2829,7 @@ to find the values C<$yi> at a set of points C<$xi>.
 
 C<interpolate> uses a binary search to find the suspects, er...,
 interpolation indices and therefore abscissas (ie C<$x>)
-have to be I<strictly> ordered (increasing or decreasing). 
+have to be I<strictly> ordered (increasing or decreasing).
 For interpolation at lots of
 closely spaced abscissas an approach that uses the last index found as
 a start for the next search can be faster (compare Numerical Recipes
@@ -2894,9 +2894,9 @@ EOD
 pp_add_exported('','interpND');
 pp_addpm(<<'EOD');
 
-=head2 interpND 
+=head2 interpND
 
-=for ref 
+=for ref
 
 Interpolate values from an N-D piddle, with switchable method
 
@@ -2908,17 +2908,17 @@ Interpolate values from an N-D piddle, with switchable method
 
 InterpND acts like L<indexND|PDL::Slices/indexND>,
 collapsing C<$index> by lookup
-into C<$source>; but it does interpolation rather than direct sampling.  
-The interpolation method and boundary condition are switchable via 
-an options hash. 
+into C<$source>; but it does interpolation rather than direct sampling.
+The interpolation method and boundary condition are switchable via
+an options hash.
 
 By default, linear or sample interpolation is used, with constant
 value outside the boundaries of the source pdl.  No dataflow occurs,
 because in general the output is computed rather than indexed.
 
 All the interpolation methods treat the pixels as value-centered, so
-the C<sample> method will return C<< $a->(0) >> for coordinate values on 
-the set [-0.5,0.5), and all methods will return C<< $a->(1) >> for 
+the C<sample> method will return C<< $a->(0) >> for coordinate values on
+the set [-0.5,0.5), and all methods will return C<< $a->(1) >> for
 a coordinate value of exactly 1.
 
 
@@ -2926,11 +2926,11 @@ Recognized options:
 
 =over 3
 
-=item method 
+=item method
 
 Values can be:
 
-=over 3 
+=over 3
 
 =item * 0, s, sample, Sample (default for integer source types)
 
@@ -2945,8 +2945,8 @@ The values are N-linearly interpolated from an N-dimensional cube of size 2.
 
 The values are interpolated using a local cubic fit to the data.  The
 fit is constrained to match the original data and its derivative at the
-data points.  The second derivative of the fit is not continuous at the 
-data points.  Multidimensional datasets are interpolated by the 
+data points.  The second derivative of the fit is not continuous at the
+data points.  Multidimensional datasets are interpolated by the
 successive-collapse method.
 
 (Note that the constraint on the first derivative causes a small amount
@@ -2967,7 +2967,7 @@ they are calculated and put in the stash.
 
 =item b, bound, boundary, Boundary
 
-This option is passed unmodified into L<indexND|PDL::Slices/indexND>, 
+This option is passed unmodified into L<indexND|PDL::Slices/indexND>,
 which is used as the indexing engine for the interpolation.
 Some current allowed values are 'extend', 'periodic', 'truncate', and 'mirror'
 (default is 'truncate').
@@ -2998,8 +2998,8 @@ sub PDL::interpND {
 
   my($method)   = $opt->{m} || $opt->{meth} || $opt->{method} || $opt->{Method};
   if(!defined $method) {
-	$method = ($source->type <= zeroes(long,1)->type) ? 
-	   	   'sample' : 
+	$method = ($source->type <= zeroes(long,1)->type) ?
+	   	   'sample' :
 	           'linear';
   }
 
@@ -3059,13 +3059,13 @@ sub PDL::interpND {
 
       my ($d,@di) = $index->dims;
       my $di = $index->ndims - 1;
-      
+
       # Grab a 4-on-a-side n-cube around each desired pixel
       my $samp = $source->range($index->floor - 1,4,$boundary) #ith, cth, sth
 	  ->reorder( $di .. $di+$d-1, 0..$di-1, $di+$d .. $source->ndims-1 );
 	                   # (cth, ith, sth)
-      
-      # Make a cube of the subpixel offsets, and expand its dims to 
+
+      # Make a cube of the subpixel offsets, and expand its dims to
       # a 4-on-a-side N-1 cube, to match the slices of $samp (used below).
       my $b = $index - $index->floor;
       for my $i(1..$d-1) {
@@ -3085,19 +3085,19 @@ sub PDL::interpND {
 	  $bb = $b->slice("($i)");
 
 	  # Collapse the sample...
-	  $samp = ( $a0 + 
+	  $samp = ( $a0 +
 		    $bb * (
-			   $s0  +  
-			   $bb * ( (3 * $a1a0 - 2*$s0 - $s1) +  
-				   $bb * ( $s1 + $s0 - 2*$a1a0 ) 
+			   $s0  +
+			   $bb * ( (3 * $a1a0 - 2*$s0 - $s1) +
+				   $bb * ( $s1 + $s0 - 2*$a1a0 )
 				   )
 			   )
 		    );
-	  
+
 	  # "Collapse" the subpixel offset...
 	  $b = $b->slice(":,($i)");
       }
-      
+
       return $samp;
 
   } elsif($method =~ m/^f(ft|ourier)?/i) {
@@ -3116,7 +3116,7 @@ sub PDL::interpND {
      my $i;
      my $c = PDL::Basic::ndcoords($source);               # (dim, source-dims)
      for $i(1..$index->ndims-1) {
-	 $c = $c->dummy($i,$index->dim($i)) 
+	 $c = $c->dummy($i,$index->dim($i))
      }
      my $id = $index->ndims-1;
      my $phase = (($c * $index * 3.14159 * 2 / pdl($source->dims))
@@ -3132,8 +3132,8 @@ sub PDL::interpND {
      }
      my $out = cos($phase + $phref ) * $mag;
      $out = $out->clump($source->ndims)->sumover;
-     
-     return $out;		
+
+     return $out;
  }  else {
      barf("interpND: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
  }
@@ -3229,12 +3229,12 @@ with output from C<which>, remember to flatten it before calling index:
 
 Compare also L<where|/where> for similar functionality.
 
-SEE ALSO: 
+SEE ALSO:
 
 L<which_both|/which_both> returns separately the indices of both
 zero and nonzero values in the mask.
 
-L<where|/where> returns associated values from a data PDL, rather than 
+L<where|/where> returns associated values from a data PDL, rather than
 indices into the mask PDL.
 
 L<whichND|/whichND> returns N-D indices into a multidimensional PDL.
@@ -3309,7 +3309,7 @@ EOD
 	  PMCode=><<'EOD',
    sub which_both { my ($this,$outi,$outni) = @_;
 		$this = $this->flat;
-		$outi = $this->nullcreate unless defined $outi;	
+		$outi = $this->nullcreate unless defined $outi;
 		$outni = $this->nullcreate unless defined $outni;
 		PDL::_which_both_int($this,$outi,$outni);
 		return wantarray ? ($outi,$outni) : $outi;
@@ -3325,14 +3325,14 @@ EOD
 	   Pars => $_->{Pars},
 	   PMCode => $_->{PMCode},
 	   Code => $_->{Variables} .
-                 'loop(n) %{ 
+                 'loop(n) %{
 		       if($mask()) {
 				$inds(m => dm) = n;
 				dm++;
 			}'.$_->{Elseclause} . "\n".
 		' %}',
 	   BadCode => $_->{Variables} .
-                 'loop(n) %{ 		
+                 'loop(n) %{
 			if ( $mask() && $ISGOOD($mask()) ) {
 				$inds(m => dm) = n;
 				dm++;
@@ -3404,14 +3404,14 @@ that is compared to an N-dimensional mask.  Use C<whereND> for that.
  $i = $x->where($x+5 > 0); # $i contains those elements of $x
                            # where mask ($x+5 > 0) is 1
  $i .= -5;  # Set those elements (of $x) to -5. Together, these
-            # commands clamp $x to a maximum of -5. 
+            # commands clamp $x to a maximum of -5.
 
 It is also possible to use the same mask for several piddles with
 the same call:
 
  ($i,$j,$k) = where($x,$y,$z, $x+5>0);
 
-Note: C<$i> is always 1-D, even if C<$x> is E<gt>1-D. 
+Note: C<$i> is always 1-D, even if C<$x> is E<gt>1-D.
 
 WARNING: The first argument
 (the values) and the second argument (the mask) currently have to have
@@ -3541,7 +3541,7 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Return the coordinates of non-zero values in a mask. 
+Return the coordinates of non-zero values in a mask.
 
 =for usage
 
@@ -3552,38 +3552,38 @@ L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>.
 
  $coords = whichND($mask);
 
-returns a PDL containing the coordinates of the elements that are non-zero 
+returns a PDL containing the coordinates of the elements that are non-zero
 in C<$mask>, suitable for use in indexND.  The 0th dimension contains the
 full coordinate listing of each point; the 1st dimension lists all the points.
 For example, if $mask has rank 4 and 100 matching elements, then $coords has
 dimension 4x100.
 
 If no such elements exist, then whichND returns a structured empty PDL:
-an Nx0 PDL that contains no values (but matches, threading-wise, with 
+an Nx0 PDL that contains no values (but matches, threading-wise, with
 the vectors that would be produced if such elements existed).
 
 DEPRECATED BEHAVIOR IN LIST CONTEXT:
 
 whichND once delivered different values in list context than in scalar
-context, for historical reasons.  In list context, it returned the 
-coordinates transposed, as a collection of 1-PDLs (one per dimension) 
-in a list.  This usage is deprecated in PDL 2.4.10, and will cause a 
+context, for historical reasons.  In list context, it returned the
+coordinates transposed, as a collection of 1-PDLs (one per dimension)
+in a list.  This usage is deprecated in PDL 2.4.10, and will cause a
 warning to be issued every time it is encountered.  To avoid the
-warning, you can set the global variable "$PDL::whichND" to 's' to 
+warning, you can set the global variable "$PDL::whichND" to 's' to
 get scalar behavior in all contexts, or to 'l' to get list behavior in
-list context.  
+list context.
 
 In later versions of PDL, the deprecated behavior will disappear.  Deprecated
 list context whichND expressions can be replaced with:
 
     @list = $a->whichND->mv(0,-1)->dog;
-    
+
 
 SEE ALSO:
 
 L<which|/which> finds coordinates of nonzero values in a 1-D mask.
 
-L<where|/where> extracts values from a data PDL that are associated 
+L<where|/where> extracts values from a data PDL that are associated
 with nonzero values in a mask PDL.
 
 =for example
@@ -3618,11 +3618,11 @@ sub PDL::whichND {
   unless($mask->nelem) {
       return PDL::new_from_specification('PDL',indx,$mask->ndims,0);
   }
-  
+
   unless($mask->getndims) {
     return $mask ? pdl(indx,0) : PDL::new_from_specification('PDL',indx,0);
   }
-  
+
   $ind = $mask->flat->which->dummy(0,$mask->getndims)->make_physical;
   if($ind->nelem==0) {
       # In the empty case, explicitly return the correct type of structured empty
@@ -3671,8 +3671,8 @@ Implements simple set operations like union and intersection
 
 The operator can be C<OR>, C<XOR> or C<AND>. This is then applied
 to C<$a> viewed as a set and C<$b> viewed as a set. Set theory says
-that a set may not have two or more identical elements, but setops 
-takes care of this for you, so C<$a=pdl(1,1,2)> is OK. The functioning 
+that a set may not have two or more identical elements, but setops
+takes care of this for you, so C<$a=pdl(1,1,2)> is OK. The functioning
 is as follows:
 
 =over
@@ -3695,7 +3695,7 @@ in set operation terms.
 
 The resulting vector will contain the intersection of C<$a> and C<$b>, so
 the elements that are in both C<$a> and C<$b>. Note that for convenience
-this operation is also aliased to L<intersect|intersect>
+this operation is also aliased to L<intersect|intersect>.
 
 =back
 
@@ -3705,7 +3705,7 @@ subroutine.
 
 Finally IDL users might be familiar with Craig Markwardt's C<cmset_op.pro>
 routine which has inspired this routine although it was written independently
-However the present routine has a few less options (but see the exampels)
+However the present routine has a few less options (but see the examples)
 
 =for example
 
