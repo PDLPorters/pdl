@@ -2059,8 +2059,7 @@ Calculated memory consumption of this piddle's data area
 sub PDL::info {
     my ($this,$str) = @_;
     $str = "%C: %T %D" unless defined $str;
-    return ref($this)."->null"
-	if PDL::Core::dimstr($this) =~ /D \[0\]/;
+    return ref($this)."->null" if $this->isnull;
     my @hash = split /(%[-,0-9]*[.]?[0-9]*\w)/, $str;
     my @args = ();
     my $nstr = '';
