@@ -3,7 +3,7 @@
 
 use Test;
 BEGIN {
-    plan tests => 26;
+    plan tests => 28;
 }
 
 use PDL;
@@ -146,6 +146,10 @@ eval 'ccNcompt($a,5)';
 ok($@ ne '');
 eval 'ccNcompt($a,8)';
 ok($@ eq '');
+my $im = (xvals(25,25)+yvals(25,25));
+my $seg_b = cc4compt(byte $im%2);
+ok($seg_b->type >= long);
+ok(cc4compt($im%2)->max == $seg_b->max);
 
 # pnpoly
 my $px = pdl(0,3,1);
