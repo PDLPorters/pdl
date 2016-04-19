@@ -77,7 +77,8 @@ pp_def('gsl_sf_legendre_Plm_array',
        Code =>'
 GSLERR(gsl_sf_legendre_Plm_array,($COMP(l)-2+$COMP(m),$COMP(m),$x(),$P(y)))
 ',
-       Doc =>'P_lm(x) for l from 0 to n-2+m.'
+       Doc =>'P_lm(x) for l from 0 to n-2+m.
+gsl_sf_legendre_Plm_array has been deprecated in GSL version 2.0. It is included here for backwards compatability and may be removed in a future release.  New code should use L<gsl_sf_legendre_array> instead.'
       );
 
 pp_def('gsl_sf_legendre_sphPlm',
@@ -100,7 +101,8 @@ pp_def('gsl_sf_legendre_sphPlm_array',
        Code =>'
 GSLERR(gsl_sf_legendre_sphPlm_array,($COMP(n)-2+$COMP(m),$COMP(m),$x(),$P(y)))
 ',
-       Doc =>'P_lm(x), normalized properly for use in spherical harmonics for l from 0 to n-2+m.'
+       Doc =>'P_lm(x), normalized properly for use in spherical harmonics for l from 0 to n-2+m.
+gsl_sf_legendre_sphPlm_array has been deprecated in GSL version 2.0. It is included here for backwards compatability and may be removed in a future release.  New code should use L<gsl_sf_legendre_array> instead.'
       );
 
 pp_def('gsl_sf_conicalP_half',
