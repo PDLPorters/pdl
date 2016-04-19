@@ -70,6 +70,135 @@ $e() = r.err;
        Doc =>'P_lm(x)'
       );
 
+my $v = `gsl-config --version`;
+if ($v>=2.0){
+
+    pp_def('gsl_sf_legendre_array',
+	   GenericTypes => [D],
+	   OtherPars => 'char norm;  int lmax; int csphase',
+	   Pars => 'double x(); double [o]y(n); double [t]work(wn)',
+	   RedoDimsCode => '
+$SIZE(wn)=gsl_sf_legendre_array_n($COMP(lmax));
+$SIZE(n)=$COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1;
+',
+	   Code => <<'EOC',
+           int i;
+           if($x()<-1||$x()>1) barf("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f. Try normalizing your input.",$x());
+	   switch ($COMP(norm)){
+	       case 'P' :
+		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_NONE, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+	       break;
+	       case 'S' :
+		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_SCHMIDT, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+	       break;
+	       case 'Y' :
+		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_SPHARM, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+	       break;
+	       case 'N' :
+		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_FULL, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+	       break;
+               default :
+                ;
+           }
+           for(i=0; i<$SIZE(n); i++) {
+              $y(n=>i) = $work(wn=>i);
+           }
+
+EOC
+
+	   HandleBad => 1,
+	   BadCode => <<'EOBC',
+	   int i;
+	   if ( $ISBAD( x() ) ) {
+              loop(n) %{ $SETBAD ( y() ); %}
+	   } else {
+             if($x()<-1||$x()>1) barf("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f",$x());
+	     switch ($COMP(norm)) {
+		   case 'P' :
+		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_NONE, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+		   break;
+		   case 'S' :
+		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_SCHMIDT, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+		   break;
+		   case 'Y' :
+		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_SPHARM, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+		   break;
+		   case 'N' :
+		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_FULL, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+		   break;
+		   default :
+		       ;
+	       }
+             for(i=0; i<$SIZE(n); i++) {
+                $y(n=>i) = $work(wn=>i);
+             }
+	   }
+
+EOBC
+
+
+
+	   Doc => <<'EOD',
+=for ref
+
+Calculate all normalized associated Legendre polynomials.
+
+=for usage
+
+$Plm = gsl_sf_legendre_array($x,'P',4,-1);
+
+The calculation is done for degree 0 <= l <= lmax and order 0 <= m <= l on the range abs(x)<=1.
+
+The parameter norm should be:
+
+=over 3
+
+=item 'P' for unnormalized associated Legendre polynomials P_l^m(x),
+
+=item 'S' for Schmidt semi-normalized associated Legendre polynomials S_l^m(x),
+
+=item 'Y' for spherical harmonic associated Legendre polynomials Y_l^m(x), or
+
+=item 'N' for fully normalized associated Legendre polynomials N_l^m(x).
+
+=back
+
+lmax is the maximum degree l.
+csphase should be (-1) to INCLUDE the Condon-Shortley phase factor (-1)^m, or (+1) to EXCLUDE it.
+
+See L<gsl_sf_legendre_array_index> to get the value of C<l> and C<m> in the returned vector.
+
+EOD
+
+	);
+
+    pp_def('gsl_sf_legendre_array_index',
+	   OtherPars => 'int lmax',
+	   Pars => 'int [o]l(n); int [o]m(n)',
+	   RedoDimsCode => '$SIZE(n)=$COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1;',
+	   Code => q/
+           int ell, em, index;
+	   for (ell=0; ell<=$COMP(lmax); ell++){
+	       for (em=0; em<=ell; em++){
+		   index = gsl_sf_legendre_array_index(ell,em);
+		   $l(n=>index)=ell;
+		   $m(n=>index)=em;
+	       }
+	   }/,
+	   Doc =>'=for ref
+
+Calculate the relation between gsl_sf_legendre_arrays index and l and m values.
+
+=for usage
+($l,$m) = gsl_sf_legendre_array_index($lmax);
+
+Note that this function is called differently than the corresponding GSL function, to make it more useful for PDL: here you just input the maximum l (lmax) that was used in C<gsl_sf_legendre_array> and it calculates all l and m values.'
+	);
+
+
+}
+
+
 pp_def('gsl_sf_legendre_Plm_array',
        GenericTypes => [D],
        OtherPars =>'int l=>num; int m',
