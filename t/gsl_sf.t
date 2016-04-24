@@ -15,6 +15,7 @@ BEGIN
 {
    use PDL::Config;
    if ( $PDL::Config{WITH_GSL} ) {
+       my $v = `gsl-config --version`;
        eval "
 	  use PDL::GSLSF::AIRY;
 	  use PDL::GSLSF::BESSEL;
@@ -46,7 +47,8 @@ BEGIN
 	  use PDL::GSLSF::ZETA;
       ";
       unless ($@) {
-         plan tests => 3;
+	  plan tests => 3 if $v>=2.0;
+	  plan tests => 1 if $v<2.0;
       } else {
 	  warn "Warning: $@\n\n";
          plan skip_all => "PDL::GSLSF modules not installed.";
@@ -56,6 +58,7 @@ BEGIN
    }
 }
 
+my $version = `gsl-config --version`;
 my $arg = 5.0;
 my $expected = -0.17759677131433830434739701;
 
@@ -65,6 +68,8 @@ my ($y,$err) = gsl_sf_bessel_Jn($arg, 0);
 
 ok(abs($y-$expected) < 1e-6,"GSL SF Bessel function");
 
-my $Ylm = gsl_sf_legendre_array(xvals(21)/10-1,'Y',4,-1);
-ok($Ylm->slice("(0)")->uniq->nelem == 1, "Legendre Y00 is constant");
-ok(approx($Ylm->slice("(0),(0)"),0.5/sqrt(3.141592654),1E-6), "Y00 value is corect");
+if ($version >= 2.0){
+    my $Ylm = gsl_sf_legendre_array(xvals(21)/10-1,'Y',4,-1);
+    ok($Ylm->slice("(0)")->uniq->nelem == 1, "Legendre Y00 is constant");
+    ok(approx($Ylm->slice("(0),(0)"),0.5/sqrt(3.141592654),1E-6), "Y00 value is corect");
+}
