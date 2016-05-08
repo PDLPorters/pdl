@@ -636,6 +636,7 @@ pp_def('map',
  PDL_Double *tvec;          /* Temporary floating-point vector          */
  PDL_Double *acc;           /* Threaded accumulator                     */
  PDL_Double *wgt;           /* Threaded weight accumulator              */
+ PDL_Double *wgt2;          /* Threaded weight accumulator for badval finding   */
  char   *bounds;            /* Boundary condition packed string         */
  PDL_Indx  *index_stash;    /* Stash to store the opening index of dim sample scans */
  char   method;             /* Method identifier (gets one of 'h','g')  */
@@ -667,26 +668,6 @@ pp_def('map',
 
  ndims = map->ndims -1;
 
-  /***************************************************************************/
-  /**  Check that the dimensionalities are consistent.  This is             **/
-  /**  allegedly done already in the perl part, butcan also be done here.   **/
-  /**                                                                       **/
-  /**  if(map->ndims != out->ndims)                                         **/
-  /**   barf("%s", "Bug in map: index dims aren't consistent\n");           **/
-  /**  for(i=0;i<out->ndims-1;i++) {                                        **/
-  /**    static char buf[100];                                              **/
-  /**    if(map->dims[i+1] != out->dims[i]) {                               **/
-  /**      sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",           **/
-  /**                  i,map->dims[i+1],out->dims[i]);                      **/
-  /**      barf("%s", buf);                                                 **/
-  /**    }                                                                  **/
-  /**  }                                                                    **/
-  /**  if(map->dims[0] != in->ndims - 1)                                    **/
-  /**    barf("%s", "Bug in map - index vec - input mismatch\n");           **/
-  /**  if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                 **/
-  /**    barf("%s", "Bug in map:  thread dimension error\n");                **/
-  /***************************************************************************/
-
  /*
   * Allocate all our dynamic workspaces at once
   * */
@@ -695,6 +676,7 @@ pp_def('map',
                                      + sizeof(PDL_Double) * (3*ndims)                // dvec, tvec
                                      + sizeof(PDL_Double) * in->dims[ndims]          // acc
                                      + sizeof(PDL_Double) * in->dims[ndims]          // wgt
+                                     + sizeof(PDL_Double) * in->dims[ndims]          // wgt2
                                      + sizeof(PDL_Double) * 3 * ndims*ndims + ndims  // tmp (for PDL_xform_aux)
                                      + sizeof(char) * ndims                          // bounds
                                      + sizeof(PDL_Indx)   * ndims                    // index_stash
@@ -706,8 +688,9 @@ pp_def('map',
  dvec   =    (PDL_Double *)(&(ibvec[ndims]));
  tvec   =                   &(dvec[ndims]);
  acc    =                   &(tvec[ndims]);
- wgt    =                   &(acc[in->dims[ndims]]);
- tmp    =                   &(wgt[in->dims[ndims]]);
+ wgt    =                   &(acc[in->dims[ndims]]);  // weighting for accumulation
+ wgt2   =                   &(wgt[in->dims[ndims]]);  // weighting for acc, if no bad values were found
+ tmp    =                   &(wgt2[in->dims[ndims]]);
  bounds =          (char *)(&(tmp [3*ndims*ndims+ndims]));
  index_stash = (PDL_Indx *) &(bounds[ndims]);
 
@@ -897,6 +880,11 @@ pp_def('map',
        for(i=0;i < in->dims[ndims]; i++)
          *(wg++) = 0.0;
      }
+     {
+       PDL_Double *wg = wgt2;
+       for(i=0;i < in->dims[ndims]; i++)
+         *(wg++) = 0.0;
+      }	  
 
 
      /*
@@ -908,6 +896,7 @@ pp_def('map',
       *
       * This code matches the incrementation code at the bottom of the accumulation loop
       */
+      
      t_vio = 0; /* truncation-boundary violation count - don't bother if it is nonzero */
      i_off = 0;
      for(i=0;i<ndims; i++) {
@@ -1124,6 +1113,7 @@ pp_def('map',
                  dat += in->dimincs[ndims];
 	         wgt[i] += alpha;
 	      }
+	      wgt2[i] += alpha;  // Accumulate what weight we would have with no bad values
             }
           }
        } /* end of t_vio check (i.e. of input accumulation) */
@@ -1204,6 +1194,7 @@ pp_def('map',
      {
        PDL_Double *ac = acc;
        PDL_Double *wg = wgt;
+       PDL_Double *wg2 = wgt2;
        $GENERIC() *dat = out->data;
 
        /* Calculate output vector offset */
@@ -1211,13 +1202,14 @@ pp_def('map',
          dat += out->dimincs[i] * ovec[i];
 
        if(!flux) {
-         /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data./ */
+         /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data. */
          for(i=0; i < out->dims[ndims]; i++) {
-	   if(*wg) {
+	   if(*wg && (*wg2 / *wg) < 1.5 ) {
               *dat = *(ac++) / *(wg++);
+	      wg2++;
            } else {
 	      *dat = badval;
-	      ac++; wg++;
+	      ac++; wg++; wg2++;
 	   }
               dat += out->dimincs[ndims];
          }
@@ -1225,11 +1217,12 @@ pp_def('map',
          /* Flux flag is set - scale by the (unpadded) determinant of the Jacobian */
          PDL_Double det = tmp[ndims*ndims];
          for(i=0; i < out->dims[ndims]; i++) {
-	   if(*wg) {
+	   if(*wg && (*wg2 / *wg) < 1.5 ) {
               *dat = *(ac++) / *(wg++) * det;
+	      wg2++;
            } else {
 	      *dat = badval;
-	      ac++; wg++;
+	      ac++; wg++; wg2++;
 	   }
            dat += out->dimincs[ndims];
          } /* end of for loop */
@@ -1543,8 +1536,7 @@ than 1.0 are silly, because they allow the entire input array to be compressed
 into a region smaller than a single pixel.
 
 Wherever an output pixel would require averaging over an area that is too
-big in input space, it instead gets NaN or the equivalent (bad values are
-not yet supported).
+big in input space, it instead gets NaN or the bad value.
 
 =item phot, photometry, Photometry
 
