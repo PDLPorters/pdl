@@ -612,7 +612,8 @@ pp_def('map',
         Pars=>'k0()',  # Dummy to set type (should match the type of "in").
         OtherPars=>'SV *in; SV *out; SV *map; SV *boundary; SV *method;
                     SV *big; SV *blur; SV *sv_min; SV *flux; SV *bv',
-        Code=><<'+==EOD_map_c_code==',
+        Code => <<'+==EOD_map_c_code==',
+
 /*
  * Pixel interpolation & averaging code
  *
@@ -634,6 +635,7 @@ pp_def('map',
  PDL_Double *dvec;          /* Residual vector for linearization        */
  PDL_Double *tvec;          /* Temporary floating-point vector          */
  PDL_Double *acc;           /* Threaded accumulator                     */
+ PDL_Double *wgt;           /* Threaded weight accumulator              */
  char   *bounds;            /* Boundary condition packed string         */
  PDL_Indx  *index_stash;    /* Stash to store the opening index of dim sample scans */
  char   method;             /* Method identifier (gets one of 'h','g')  */
@@ -692,6 +694,7 @@ pp_def('map',
                                    ( + sizeof(PDL_Indx)    * 3 * ndims               // ovec, ivec, ibvec
                                      + sizeof(PDL_Double) * (3*ndims)                // dvec, tvec
                                      + sizeof(PDL_Double) * in->dims[ndims]          // acc
+                                     + sizeof(PDL_Double) * in->dims[ndims]          // wgt
                                      + sizeof(PDL_Double) * 3 * ndims*ndims + ndims  // tmp (for PDL_xform_aux)
                                      + sizeof(char) * ndims                          // bounds
                                      + sizeof(PDL_Indx)   * ndims                    // index_stash
@@ -703,7 +706,8 @@ pp_def('map',
  dvec   =    (PDL_Double *)(&(ibvec[ndims]));
  tvec   =                   &(dvec[ndims]);
  acc    =                   &(tvec[ndims]);
- tmp    =                   &(acc[in->dims[ndims]]);
+ wgt    =                   &(acc[in->dims[ndims]]);
+ tmp    =                   &(wgt[in->dims[ndims]]);
  bounds =          (char *)(&(tmp [3*ndims*ndims+ndims]));
  index_stash = (PDL_Indx *) &(bounds[ndims]);
 
@@ -840,7 +844,6 @@ pp_def('map',
 /* Main pixel loop (iterates over pixels in the output plane) */
  do {
    PDL_Indx psize; // Size of the region to accumulate over for this pixel
-   PDL_Double wgt; // Weight accumulator for output
    PDL_Indx i_off; // Offset into the data array of the source PDL
    PDL_Indx j;     // Generic loop index
    char t_vio;     // counter used for truncation boundary violations
@@ -885,10 +888,15 @@ pp_def('map',
      /* Initialize accumulators */
      {
        PDL_Double *ac = acc;
-       for(i=0; i < in->dims[ndims]; i++)
-        *(ac++) = 0.0;
+       for(i=0; i < in->dims[ndims]; i++)	
+         *(ac++) = 0.0;		     
+
      }
-     wgt = 0;
+     {
+       PDL_Double *wg = wgt;
+       for(i=0;i < in->dims[ndims]; i++)
+         *(wg++) = 0.0;
+     }
 
 
      /*
@@ -948,8 +956,8 @@ pp_def('map',
      /* start of each dimensional scan here.  When we finish incrementing     */
      /* through a particular dim, we pull its value back out of the stash.    */
      for(i=0;i<ndims;i++) {
-       index_stash[i] = i_off;
-     }
+       index_stash[i] = i_off; 
+    }
 
      /* The input accumulation loop is the hotspot for the entire operation.        */
      /* We loop over pixels in the region of interest (+/- psize in each dimension) */
@@ -1111,10 +1119,12 @@ pp_def('map',
             $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
             PDL_Indx max = out->dims[ndims];
             for( i=0; i < max; i++ ) {
-              acc[i] += *dat * alpha;
-              dat += in->dimincs[ndims];
+	      if( (badval==0) || (*dat != badval) ) {
+                 acc[i] += *dat * alpha;
+                 dat += in->dimincs[ndims];
+	         wgt[i] += alpha;
+	      }
             }
-            wgt += alpha;
           }
        } /* end of t_vio check (i.e. of input accumulation) */
 
@@ -1193,35 +1203,39 @@ pp_def('map',
 
      {
        PDL_Double *ac = acc;
+       PDL_Double *wg = wgt;
        $GENERIC() *dat = out->data;
 
        /* Calculate output vector offset */
        for(i=0;i<ndims;i++)
          dat += out->dimincs[i] * ovec[i];
 
-       if(wgt) {
-         if(!flux) {
-           /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data./ */
-           for(i=0; i < out->dims[ndims]; i++) {
-             *dat = *(ac++) / wgt;
-             dat += out->dimincs[ndims];
-           }
-         } else {
-           /* Flux flag is set - scale by the (unpadded) determinant of the Jacobian */
-           PDL_Double det = tmp[ndims*ndims];
-           for(i=0; i < out->dims[ndims]; i++) {
-             *dat = *(ac++) / wgt * det;
-             dat += out->dimincs[ndims];
-           }
+       if(!flux) {
+         /* Flux flag is NOT set -- normal case.  Copy the weighted accumulated data./ */
+         for(i=0; i < out->dims[ndims]; i++) {
+	   if(*wg) {
+              *dat = *(ac++) / *(wg++);
+           } else {
+	      *dat = badval;
+	      ac++; wg++;
+	   }
+              dat += out->dimincs[ndims];
          }
        } else {
-         /* wgt==0 -- no hits */
-         for(i=0;i<out->dims[ndims];i++){
-           *dat = badval;
+         /* Flux flag is set - scale by the (unpadded) determinant of the Jacobian */
+         PDL_Double det = tmp[ndims*ndims];
+         for(i=0; i < out->dims[ndims]; i++) {
+	   if(*wg) {
+              *dat = *(ac++) / *(wg++) * det;
+           } else {
+	      *dat = badval;
+	      ac++; wg++;
+	   }
            dat += out->dimincs[ndims];
-         }
-       }
-     }
+         } /* end of for loop */
+       } /* end of flux flag set conditional */
+     } /* end of convenience block */
+     
      /* End of code for normal pixels */
    } else {
      /* The pixel was ludicrously huge -- just set this pixel to nan */
@@ -1484,6 +1498,14 @@ Pixel values are filtered through a spatially-variable filter tuned to
 the computed Jacobian of the transformation, with radial Gaussian
 rolloff.  This is the most accurate resampling method, in the sense of
 introducing the fewest artifacts into a properly sampled data set.
+This method uses a lookup table to speed up calculation of the Gaussian
+weighting.
+
+=item * G
+
+This method works exactly like 'g' (above), except that the Gaussian
+values are computed explicitly for every sample -- which is considerably
+slower.
 
 =back
 
