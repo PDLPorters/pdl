@@ -67,7 +67,7 @@ print OUT <<'!HEADER!';
 # for 'isfinite' or 'finite', with a preference for 'isfinite' (IEEE recommends this).
 
 if($Config{cc} eq 'cl') {
-  # _finite in CV++ 4.0
+  # _finite in VC++ 4.0
   print OUT <<'FOO';
 #define finite _finite
 #include <float.h>
@@ -86,7 +86,7 @@ FOO
             $finite_inc = $inc;
         }
     }
-    
+
     if ( defined $finite_inc ) {
         print OUT "#include <$finite_inc>\n";
         print OUT "#define finite(a) (isfinite(a))\n";
