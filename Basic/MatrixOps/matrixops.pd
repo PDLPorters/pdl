@@ -24,7 +24,7 @@ pp_addhdr('
 }
 
 # patch from Albert Chin
-if ($^O =~ /hpux/) {
+if ($^O =~ /hpux|darwin/) {
 pp_addhdr('
 #ifdef isfinite
 #define finite isfinite
