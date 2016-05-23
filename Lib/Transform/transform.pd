@@ -1673,7 +1673,8 @@ sub map {
   $out = PDL::new_from_specification('PDL',$in->type,@odims);
   $out->sethdr($ohdr) if defined($ohdr);
 
-  if($PDL::Bad::Status and $in->badflag()) {
+  if($PDL::Bad::Status) {
+    # set badflag on output all the time if possible, to account for boundary violations
     $out->badflag(1);
   }
 
