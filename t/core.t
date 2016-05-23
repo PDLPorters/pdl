@@ -13,7 +13,7 @@ BEGIN {
     eval {
         require PDL::LiteF;
     } or BAIL_OUT("PDL::LiteF failed: $@");
-    plan tests => 66;
+    plan tests => 70;
     PDL::LiteF->import;
 }
 $| = 1;
@@ -230,10 +230,19 @@ $b++;
 ok(all($b==$a),"new_or_inplace returns the original thing if inplace is set");
 ok(!($b->is_inplace),"new_or_inplace clears the inplace flag");
 
-# check reshape and dims.  While we're at it, check null creation too.
-$a = zeroes(0);
-ok($a->nelem==0,"you can make an empty PDL with zeroes(0)");
-ok("$a" =~ m/Empty/, "the empty PDL looks empty");
+# check reshape and dims.  While we're at it, check null & empty creation too.
+my $null = null;
+my $empty = zeroes(0);
+ok($empty->nelem==0,"you can make an empty PDL with zeroes(0)");
+ok("$empty" =~ m/Empty/, "an empty PDL prints 'Empty'");
+
+ok($null->info =~ /^PDL->null$/, "null piddle's info is 'PDL->null'");
+my $mt_info = $empty->info;
+$mt_info =~m/\[([\d,]+)\]/;
+my $mt_info_dims = pdl("$1");
+ok(any($mt_info_dims==0), "empty piddle's info contains a 0 dimension");
+ok($null->isnull && $null->isempty, "a null piddle is both null and empty");
+ok(!$empty->isnull && $empty->isempty, "an empty piddle is empty but not null");
 
 $a = short pdl(3,4,5,6);
 eval { $a->reshape(2,2);};

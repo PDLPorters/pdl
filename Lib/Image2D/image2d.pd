@@ -1156,7 +1156,7 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 
 ',
        HandleBad => 0, # a marker
-        Pars => 'a(m,n); [o]b(m,n);',
+        Pars => 'a(m,n); int+ [o]b(m,n);',
         OtherPars => 'int con',
         Code => '
 

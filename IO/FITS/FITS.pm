@@ -1512,9 +1512,16 @@ sub _rfits_unpack_zimage($$$) {
 	}
     }
 
+    # Copy the ZNAXIS* keywords to NAXIS*
+    foreach (grep /^NAXIS/,keys %$hdr){
+	if (exists($hdr->{'Z'.$_}) && defined($hdr->{'Z'.$_})){
+	    $hdr->{$_} = $hdr->{'Z'.$_};
+	}
+    }
+
     # Clean up the ZFOO extensions and table cruft
-    for my $k(keys %{$pdl->hdr}) {
-	delete $pdl->hdr->{$k} if(
+    for my $k(keys %{$hdr}) {
+	delete $hdr->{$k} if(
 	    $k=~ m/^Z/ ||
 	    $k eq "TFIELDS" ||
 	    $k =~ m/^TTYPE/ ||

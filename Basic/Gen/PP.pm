@@ -807,7 +807,13 @@ $::PP_VERBOSE    = 0;
 $PDL::PP::done = 0;  # pp_done has not been called yet
 
 END {
-  pp_done() unless $PDL::PP::done; # make sure we call this
+    #you can uncomment this for testing, but this should remain
+    #commented in production code. This causes pp_done to be called
+    #even when a .pd file aborts with die(), potentially bypassing
+    #problem code when build is re-attempted. Having this commented
+    #means we are a bit more strict: a module must call pp_done in
+    #order to have .xs and .pm files written.
+#  pp_done() unless $PDL::PP::done;
 }
 
 use Carp;

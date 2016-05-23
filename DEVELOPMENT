@@ -78,6 +78,41 @@ access to the PDL Git repository.
    should be able to help.)
   
 
+PDL Developer Recommended Workflow:
+-----------------------------------
+The actual workflow is a little more complicated. This is because
+GitHub also hosts a mirror of PDL's SF repository, to enable automatic
+multi-platform build checks.
+
+If you are just starting out you need to clone the repository:
+
+ $ git clone ssh://your_sf_username@git.code.sf.net/p/pdl/code pdl-code
+
+Or if you already have a repository and haven't updated in awhile, do that,
+and follow the rest of the workflow below:
+
+ $ git pull origin master			#update local repository
+ $ git checkout -b problembranch		#create a local branch (use a more descriptive name!)
+ #fix a problem
+ $ git add filename(s)				#add files to staging area
+ $ git commit					#commit the changes to the local branch
+ $ git push origin problembranch		#push the branch to SF
+ #after a few minutes, log into GitHub, go to problembranch and initiate a pull request
+ #(or ask somebody to do it for you if you don't have a GitHub account).
+ #Wait for the automatic build tests to run and pass.
+ #Wait for somebody to look at and approve the code if it is complicated.
+ #Do NOT merge and delete the branch on GitHub (it will get restored
+ #the next time the SF repository is mirrored).
+ $ git rebase master				#rebase the branch onto master
+ $ git checkout master				#still rebasing
+ $ git merge problembranch --ff-only		#finally done rebasing
+ $ git push origin master 			#push to SF
+ $ git push origin :problembranch		#delete the remote branch
+ $ git branch -d problembranch			#delete the local branch
+
+You have just created, pushed, checked, rebased, and deleted a branch.
+
+
 PDL Developer Notes:
 --------------------
 
