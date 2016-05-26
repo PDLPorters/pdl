@@ -376,6 +376,22 @@ pp_def(
 	Doc => projectdocs( 'average', 'average', '' ),
 	);
 
+pp_addpm("*PDL::avgover = \\&PDL::average;\n");
+pp_addpm("*avgover = \\&PDL::average;\n");
+pp_add_exported('PDL::PP avgover');
+
+pp_addpm(<<'EOD');
+=head2 avgover
+
+=for ref
+
+  Synonym for average.
+
+=cut
+
+EOD
+
+
 # do the above calculation, but in double precision
 pp_def( 
 	'daverage',
@@ -400,6 +416,22 @@ pp_def(
 "Unlike L<average|/average>, the calculation is performed in double\n" .
 "precision." ),
 	);
+
+pp_addpm("*PDL::davgover = \\&PDL::daverage;\n");
+pp_addpm("*davgover = \\&PDL::daverage;\n");
+pp_add_exported('PDL::PP davgover');
+
+pp_addpm(<<'EOD');
+=head2 davgover
+
+=for ref
+
+  Synonym for daverage.
+
+=cut
+
+EOD
+
 
 # Internal utility sorting routine for median/qsort/qsortvec routines.
 #
@@ -1376,6 +1408,96 @@ otherwise the bad flag is cleared for the output piddle.',
 
 } # foreach: $which
 
+pp_addpm("*PDL::maxover = \\&PDL::maximum;\n");
+pp_addpm("*maxover = \\&PDL::maximum;\n");
+pp_add_exported('PDL::PP maxover');
+
+pp_addpm(<<'EOD');
+=head2 maxover
+
+=for ref
+
+  Synonym for maximum.
+
+=cut
+
+EOD
+
+pp_addpm("*PDL::maxover_ind = \\&PDL::maximum_ind;\n");
+pp_addpm("*maxover_ind = \\&PDL::maximum_ind;\n");
+pp_add_exported('PDL::PP maxover_ind');
+
+pp_addpm(<<'EOD');
+=head2 maxover_ind
+
+=for ref
+
+  Synonym for maximum_ind.
+
+=cut
+
+EOD
+
+pp_addpm("*PDL::maxover_n_ind = \\&PDL::maximum_n_ind;\n");
+pp_addpm("*maxover_n_ind = \\&PDL::maximum_n_ind;\n");
+pp_add_exported('PDL::PP maxover_n_ind');
+
+pp_addpm(<<'EOD');
+=head2 maxover_n_ind
+
+=for ref
+
+  Synonym for maximum_n_ind.
+
+=cut
+
+EOD
+
+pp_addpm("*PDL::minover = \\&PDL::minimum;\n");
+pp_addpm("*minover = \\&PDL::minimum;\n");
+pp_add_exported('PDL::PP minover');
+
+pp_addpm(<<'EOD');
+=head2 minover
+
+=for ref
+
+  Synonym for minimum.
+
+=cut
+
+EOD
+
+pp_addpm("*PDL::minover_ind = \\&PDL::minimum_ind;\n");
+pp_addpm("*minover_ind = \\&PDL::minimum_ind;\n");
+pp_add_exported('PDL::PP minover_ind');
+
+pp_addpm(<<'EOD');
+=head2 minover_ind
+
+=for ref
+
+  Synonym for minimum_ind.
+
+=cut
+
+EOD
+
+pp_addpm("*PDL::minover_n_ind = \\&PDL::minimum_n_ind;\n");
+pp_addpm("*minover_n_ind = \\&PDL::minimum_n_ind;\n");
+pp_add_exported('PDL::PP minover_n_ind');
+
+pp_addpm(<<'EOD');
+=head2 minover_n_ind
+
+=for ref
+
+  Synonym for minimum_n_ind
+
+=cut
+
+EOD
+
 # removed IsNaN handling, even from Code section
 # I think it was wrong, since it was
 #
@@ -1456,6 +1578,20 @@ Otherwise they will have their bad flags cleared,
 since they will not contain any bad values.',
 	); # pp_def minmaximum
 
+pp_addpm("*PDL::minmaxover = \\&PDL::minmaximum;\n");
+pp_addpm("*minmaxover = \\&PDL::minmaximum;\n");
+pp_add_exported('PDL::PP minmaxover');
+
+pp_addpm(<<'EOD');
+=head2 minmaxover
+
+=for ref
+
+  Synonym for minmaximum.
+
+=cut
+
+EOD
 
 pp_addpm({At=>'Bot'},<<'EOD');
 
