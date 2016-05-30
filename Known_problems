@@ -102,17 +102,15 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.015_001 release:
+  PDL-2.016 release:
 
+  419   t/#pdl_from_string.t fails on long double systems
+  418   warp2d and fitwarp2d polynomial fitting doesn't work as expected
   413   PDL::Core::Dev::pdlpp_postamble() cannot handle .pd files in subdirectories
   412   16bit TIFF image IO not exact in PDL::IO::Pic
   411   relax reshape() constraints
   410   perl scalar NVs to float/#double types confusing
   409   PDL demos with PGPLOT display ignore $ENV{PGPLOT_DEV}
-  407   Build failures with GSL 2.1
-
-        Pending fixed.
-
   405   PDL::Bad - adding locf() function
   397   PDL::FFT not 64bit integer safe
   393   Tests may fail if perl is compiled with -Duselongdouble

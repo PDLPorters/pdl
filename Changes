@@ -1,3 +1,101 @@
+v2.016 2016-05-30 10:22:04-04:00
+
+General Notes:
+
+ * This is version 2.016 of the Perl Data Language.
+ 
+ * Bugs fixed:
+    417   Perl 5.22: + GSL 2.1 fails to build
+    408   PDL::GSL::RNG set_seed minor improvement
+    407   Build failures with GSL 2.1
+    416   PDL::PP creates .pm & .xs files before pp_done is called
+    414   ccNcompt (i.e. cc4compt and cc8compt) breaks with byte data type
+
+
+ Highlights:
+
+  * All collapse operators now have "<name>over" equivalent names.
+    This ends an API wart in which most, but not all, of the collapse
+    operators had a short form that did full collapse and a long form
+    that did 1-D collapse only (e.g. "and" collapses to a point,
+    while "andover" collapses by one dimension).  The exceptions are
+    left in for legacy code, but now have regularized "-over" forms
+    as well:
+
+       average       -> avgover
+       daverage      -> davgover
+       maximum       -> maxover
+       maximum_ind   -> maxover_ind
+       maximum_n_ind -> maxover_n_ind
+       minmaximum    -> minmaxover
+       minimum       -> minover
+       minimum_ind   -> minover_ind
+       minimum_n_ind -> minover_n_ind
+
+  * PDL::Transform image resampling now handles bad values in
+    images.  In particular, the `h' and `j' (optimized filter)
+    resampling methods properly skip bad values in the image,
+    marking output pixels bad if more than 1/3 of the weighted
+    values associated with that output pixel are bad.
+
+  * PDLs with dataflow can now be reshaped.  The dataflow
+    connection gets severed by the reshape operation.
+    
+  * PDL::IO::FITS now works better with RICE-compressed FITS
+    images, such as are produced by NASA's SDO project.
+
+        - The NAXIS* header keywords are now replaced by their
+	  ZNAXIS* equivalents, so the NAXIS fields in the header
+	  are correct after the image is read in.
+
+        - The Z*, TFIELDS, TTYPE*, and TFORM* keywords are now
+          deleted from the header object, so that the uncompressed,
+          loaded image does not have leftover compression headers.
+    
+  * The language preprocessor PDL::PP now does not automatically
+    call pp_done for modules that do not call pp_done themselves.
+    This new, stricter behavior requires module authors to call
+    pp_done at the end of their PDL::PP file.  This prevents
+    partially-complete .xs and .pm files from being written if
+    there is a module build error.
+    
+  * PDL::GSLSF modules have several fixes/improvements to support
+    building against GSL 2.0:
+
+        - New calling convention for gsl_sf_ellint_D.
+        - New functions gsl_sf_legendre_array
+	    and gsl_sf_legendre_array_index.
+        - Deprecated gsl_sf_legendre_Plm_array
+	    and gsl_sf_legendre_sphPlm_array.
+        - New tests for new legendre functions.
+        - Test requires all PDL::GSLSF modules
+	    to successfully load.
+
+  * PDL::GSL::RNG now allows chaining for the set_seed() method:
+    e.g. $rng = PDL::GSL::RNG->new(..)->set_seed(..)
+    
+  * PDL::Image2D's ccNcompt connected-component analysis code now
+    returns types that are >= long, to avoid common overflow errors.
+
+  * PDL::whichND returns PDLs of Indx type, to avoid overflows.
+
+  * Empty piddles are handled slightly differently now by
+    PDL::info and `help vars'.  Empty piddles are different
+    from null piddles, and now generate different info strings.
+    (null piddles lack data or dimensions; empty piddles have
+    at least one dimension of size 0).
+    
+  * PDL::Fit::LM:
+
+        - Documentation has been clarified relating to input
+	    data uncertainties and weighting of the fit.
+        - A small test suite has been added.
+
+  * There is now a .gitattributes file so GitHub repo language
+    stats are more accurate.
+
+  * The PDL SF/GitHub deveolpment workflow is integrated into
+    the DEVELOPMENT docs.
 v2.015_001 2016-05-27 12:28:39-04:00
 
 General Notes:
