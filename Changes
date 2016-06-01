@@ -7,7 +7,9 @@ General Notes:
 
  Highlights:
 
-  * TBD
+  * Add PDL::Doc::add_module to pdlpp_postamble
+
+  * Deprecate finite in favor of isfinite.
 
 
 
