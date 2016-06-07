@@ -592,6 +592,7 @@ our $type_table = {
     8=>$PDL_B,
     16=>$PDL_S,
     32=>$PDL_L,
+    64=>$PDL_LL,
     -32=>$PDL_F,
     -64=>$PDL_D
 };
@@ -600,6 +601,7 @@ our $type_table_2 = {
     8=>byte,
     16=>short,
     32=>long,
+    64=>longlong,
     -32=>float,
     -64=>double
 };
@@ -1939,6 +1941,7 @@ sub PDL::wfits {
 	      $BITPIX =   8 if $pdl->get_datatype == $PDL_B;
 	      $BITPIX =  16 if $pdl->get_datatype == $PDL_S || $pdl->get_datatype == $PDL_US;
 	      $BITPIX =  32 if $pdl->get_datatype == $PDL_L;
+	      $BITPIX =  64 if $pdl->get_datatype == $PDL_LL || $pdl->get_datatype == $PDL_IND;
 	      $BITPIX = -32 if $pdl->get_datatype == $PDL_F;
 	      $BITPIX = -64 if $pdl->get_datatype == $PDL_D;
 	  }
@@ -1958,7 +1961,8 @@ sub PDL::wfits {
 	      my ($dmin,$dmax) = (0, 2**8-1)     if $BITPIX == 8;
 	      ($dmin,$dmax) = (-2**15, 2**15-1)  if $BITPIX == 16;
 	      ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
-	      
+	      ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
+	      ($dmin,$dmax) = (-(pdl(longlong,1)<<63), (pdl(longlong,1)<<63)-1) if $BITPIX==64;
 	      if ($min<$dmin || $max>$dmax) {
 		  $bzero = $min - $dmin;
 		  $max -= $bzero;
