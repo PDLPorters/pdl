@@ -424,6 +424,7 @@ sub defslatec {
     foreach ( @talts ) {
 	my $codeproto = "extern ";
 	if ( defined $fpar ) { $codeproto .= "$prototype{$_->[0]} "; }
+	else { $codeproto .= "int "; }
 	$codeproto .= "$_->[1]$uscore ();";
 	print PROTOS $codeproto . "\n";
     }
