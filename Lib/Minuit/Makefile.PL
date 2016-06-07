@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use Config;
+use version;
 
 # This mess sorts out the Fortran availability
 # Modified from Makefile.PL from Slatec
@@ -169,7 +170,7 @@ minuitlib/libminuit\$(LIB_EXT): minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfals
 
 # Remove i386 option for OS X recent versions for better build, dual arch does not work anyway. KG 25/Oct/2015
 my %items;
-if ($Config{osname} =~ /darwin/ && $Config{osvers} >=14) { # OS X Mavericks+
+if ($Config{osname} =~ /darwin/ && version->parse($Config{osvers}) >=version->parse("14")) { # OS X Mavericks+
        print "Forcing single arch build for MINUIT\n";
        $items{LDDLFLAGS} = $Config{lddlflags};
        $items{LDDLFLAGS} =~ s/-arch i386/ /g;
