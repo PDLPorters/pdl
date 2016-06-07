@@ -130,7 +130,7 @@ pp_def($name,
          /* Find background points - outer 10% */
          nb = 0; 
          loop(n) %{
-            if ( abs($xval()-xmin) > 0.9*abs(xmax-xmin) ) {
+            if ( fabs($xval()-xmin) > 0.9*fabs(xmax-xmin) ) {
                 $yytmp(n=>nb) = $ytmp();
 		nb++;
             }
