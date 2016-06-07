@@ -2186,7 +2186,7 @@ sub add_basic_xs
         
         # Handle perl's handling of pointers:
         my $call_name = $name;
-        if( $type =~ /(\S+)\s*\*/ 
+        if( $type =~ /((\S+\s*?)+)\s*\*/ 
             && $type !~ /void/ 
             && $type !~ /char/ )
         {
