@@ -12,7 +12,7 @@ use PDL::Config;
 
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-use Test::More tests => 90;
+use Test::More tests => 95;
 
 BEGIN {
       use_ok( "PDL::IO::FITS" ); #1
@@ -298,5 +298,24 @@ ok( $aa[1]->ndims == $b->ndims && all($aa[1]->shape == $b->shape), "second eleme
 ok( all($aa[1] == $b), "Second element reproduces written one");
 
 unlink $file;
+
+##############################
+# Rudimentary check for longlong support
+SKIP:{
+	eval "use PDL::Types";
+	our $PDL_LL;
+    	skip "Longlong not supported",5   unless ($PDL_LL//0);
+
+	$a = rvals(longlong,7,7);
+	eval { wfits($a, $file); };
+	ok(!$@, sprintf("writing a longlong image succeeded %s",($@?"($@)":"")));
+	eval { $b = rfits($file); };
+	ok(!$@, sprintf("Reading the longlong image succeeded %s",($@?"($@)":"")));
+	ok(ref($b->hdr) eq "HASH", "Reading the longlong image produced a PDL with a hash header");
+	ok($b->hdr->{BITPIX} == 64, "BITPIX value was correct");
+	ok(all($b==$a),"The new image matches the old one (longlong)");
+	unlink $file;
+}
+	
 
 1;

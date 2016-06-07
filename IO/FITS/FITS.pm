@@ -592,6 +592,7 @@ our $type_table = {
     8=>$PDL_B,
     16=>$PDL_S,
     32=>$PDL_L,
+    64=>$PDL_LL,
     -32=>$PDL_F,
     -64=>$PDL_D
 };
@@ -600,6 +601,7 @@ our $type_table_2 = {
     8=>byte,
     16=>short,
     32=>long,
+    64=>longlong,
     -32=>float,
     -64=>double
 };
@@ -649,9 +651,8 @@ sub _rfits_image($$$$) {
   if (!isbigendian() ) {
     # Need to byte swap on little endian machines
     bswap2($pdl) if $pdl->get_datatype == $PDL_S;
-    bswap4($pdl) if $pdl->get_datatype == $PDL_L || 
-      $pdl->get_datatype == $PDL_F;
-    bswap8($pdl) if $pdl->get_datatype == $PDL_D;
+    bswap4($pdl) if $pdl->get_datatype == $PDL_L || $pdl->get_datatype == $PDL_F;
+    bswap8($pdl) if $pdl->get_datatype == $PDL_D || $pdl->get_datatype==$PDL_LL;
   }
   
   if(exists $opt->{bscale}) {
@@ -830,6 +831,7 @@ $PDL::IO::FITS_bintable_handlers = {
   ,'L' => [ byte,    1,     1,     1  ] # logical - treat as byte
   ,'I' => [ short,   2,     2,     2  ] # short (no unsigned shorts?)
   ,'J' => [ long,    4,     4,     4  ] # long
+  ,'K' => [ longlong,8,     8,     8  ] # longlong
   ,'E' => [ float,   4,     4,     4  ] # single-precision
   ,'D' => [ double,  8,     8,     8  ] # double-precision
   ,'C' => [ sub { _nucomplx(float,  eval '@_') }, sub { _rdcomplx(float,  eval '@_') },
@@ -1877,24 +1879,6 @@ sub PDL::wfits {
   
   #### Figure output type
 
-#  unless( UNIVERSAL::isa($pdl,'PDL') ) {
-#      my $ref = ref($pdl) || "";
-#      if($ref eq 'HASH') {
-#	  my $fh = IO::File->new( $file )
-#	      or barf "Could not open $file\n";
-#	  _wfits_nullhdu($fh);
-#	  # default to binary table if none specified
-#	  my $table_type = exists $pdl->{tbl} ?
-#	      ($pdl->{tbl} =~ m/^a/i ? 'ascii' : 'binary') :
-#	      "binary";
-#	  _wfits_table($fh,$pdl,$table_type);
-#	  $fh->close;
-#	return;
-#     } else {
-#	  barf('wfits: multiple output xtensions not supported\n')
-#     }
-# }
-
   my @outputs = ();
   my $issue_nullhdu;
 
@@ -1939,15 +1923,23 @@ sub PDL::wfits {
 	      $BITPIX =   8 if $pdl->get_datatype == $PDL_B;
 	      $BITPIX =  16 if $pdl->get_datatype == $PDL_S || $pdl->get_datatype == $PDL_US;
 	      $BITPIX =  32 if $pdl->get_datatype == $PDL_L;
+	      $BITPIX =  64 if $pdl->get_datatype == $PDL_LL;
 	      $BITPIX = -32 if $pdl->get_datatype == $PDL_F;
 	      $BITPIX = -64 if $pdl->get_datatype == $PDL_D;
+	      $BITPIX = 8 * PDL::Core::howbig($PDL_IND) if($pdl->get_datatype==$PDL_IND);
 	  }
+	  if ($BITPIX eq "") {
+	      $BITPIX = -64;
+	      warn "wfits: PDL has an unsupported datatype -- defaulting to 64-bit float.\n";
+	  }
+
 	  my $convert = sub { return $_[0] }; # Default - do nothing
-	  $convert = sub {byte($_[0])}   if $BITPIX ==   8;
-	  $convert = sub {short($_[0])}  if $BITPIX ==  16;
-	  $convert = sub {long($_[0])}   if $BITPIX ==  32;
-	  $convert = sub {float($_[0])}  if $BITPIX == -32;
-	  $convert = sub {double($_[0])} if $BITPIX == -64;
+	  $convert = sub {byte($_[0])}     if $BITPIX ==   8;
+	  $convert = sub {short($_[0])}    if $BITPIX ==  16;
+	  $convert = sub {long($_[0])}     if $BITPIX ==  32;
+	  $convert = sub {longlong($_[0])} if $BITPIX == 64;
+	  $convert = sub {float($_[0])}    if $BITPIX == -32;
+	  $convert = sub {double($_[0])}   if $BITPIX == -64;
 	  
 	  # Automatically figure output scaling
 	  
@@ -1958,7 +1950,8 @@ sub PDL::wfits {
 	      my ($dmin,$dmax) = (0, 2**8-1)     if $BITPIX == 8;
 	      ($dmin,$dmax) = (-2**15, 2**15-1)  if $BITPIX == 16;
 	      ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
-	      
+	      ($dmin,$dmax) = (-(pdl(longlong,1)<<63), (pdl(longlong,1)<<63)-1) if $BITPIX==64;
+
 	      if ($min<$dmin || $max>$dmax) {
 		  $bzero = $min - $dmin;
 		  $max -= $bzero;
@@ -2200,7 +2193,7 @@ sub PDL::wfits {
 	  if ( !isbigendian() ) { # Need to set a byte swap routine
 	      $bswap = \&bswap2 if $BITPIX==16;
 	      $bswap = \&bswap4 if $BITPIX==32 || $BITPIX==-32;
-	      $bswap = \&bswap8 if $BITPIX==-64;
+	      $bswap = \&bswap8 if $BITPIX==-64 || $BITPIX==64;
 	  }
 	  
 	  # Write FITS data
