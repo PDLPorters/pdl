@@ -47,6 +47,7 @@
 
 /*							simq	2 */
 
+#include <stdio.h>
 int simq( A, B, X, n, flag, IPS )
 double A[], B[], X[];
 int n, flag;
