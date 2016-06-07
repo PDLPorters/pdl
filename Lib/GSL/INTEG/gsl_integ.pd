@@ -549,10 +549,6 @@ pp_addhdr('
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_errno.h>
-/* GSL Glue code contains it\'s own "warn" variable and doesn\'t call perl\'s warn function  */
-/*    (which can cause problems when perl\'s warn is called in a separate pthread),          */
-/*    so we undefine the warn redefinition                                                   */
-#undef warn
 
 #include "FUNC.c"
 
@@ -582,12 +578,12 @@ sub gslinteg_qng{
 pp_def('qng_meat',
         Pars => 'double a(); double b(); double epsabs();
                    double epsrel(); double [o] result(); double [o] abserr(); 
-                   int [o] neval(); int [o] ierr(); int warn()',
+                   int [o] neval(); int [o] ierr(); int gslwarn()',
 	OtherPars => 'SV* funcion;',
         Docs => undef,
         Code => '
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
@@ -615,12 +611,12 @@ sub gslinteg_qag{
 
 pp_def('qag_meat',
         Pars => 'double a(); double b(); double epsabs();double epsrel(); int limit();
-	           int key(); double [o] result(); double [o] abserr();int n();int [o] ierr();int warn();',
+	           int key(); double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
         OtherPars => 'SV* funcion;',
         Docs => undef,
         Code =>'
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
@@ -651,12 +647,12 @@ sub gslinteg_qags{
 ');
 pp_def('qags_meat',
         Pars => 'double a(); double b(); double epsabs();double epsrel(); int limit();
-	           double [o] result(); double [o] abserr();int n();int [o] ierr();int warn();',
+	           double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
         OtherPars => 'SV* funcion;',
         Docs => undef,
         Code =>'
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
@@ -687,11 +683,11 @@ sub gslinteg_qagp{
 ');
 pp_def('qagp_meat',
         Pars => 'double pts(l); double epsabs();double epsrel();int limit();
-		   double [o] result(); double [o] abserr();int n();int [o] ierr();int warn();',
+		   double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
 	OtherPars => 'SV* funcion;',
 	Code =>'
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
@@ -722,11 +718,11 @@ sub gslinteg_qagi{
 ');
 pp_def('qagi_meat',
         Pars => 'double epsabs();double epsrel(); int limit();
-		   double [o] result(); double [o] abserr(); int n(); int [o] ierr();int warn();',
+		   double [o] result(); double [o] abserr(); int n(); int [o] ierr();int gslwarn();',
         OtherPars => 'SV* funcion;',
 	Code =>'
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
@@ -757,12 +753,12 @@ sub gslinteg_qagiu{
 ');
 pp_def('qagiu_meat',
         Pars => 'double a(); double epsabs();double epsrel();int limit();
-		   double [o] result(); double [o] abserr();int n();int [o] ierr();int warn();',
+		   double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
         OtherPars => 'SV* funcion;',
         Docs => undef,
 	Code =>'
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
@@ -793,12 +789,12 @@ sub gslinteg_qagil{
 ');
 pp_def('qagil_meat',
         Pars => 'double b(); double epsabs();double epsrel();int limit();
-		   double [o] result(); double [o] abserr();int n();int [o] ierr();int warn();',
+		   double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
         OtherPars => 'SV* funcion;',
         Docs => undef,
 	Code =>'
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
@@ -829,11 +825,11 @@ sub gslinteg_qawc{
 ');
 pp_def('qawc_meat',
         Pars => 'double a(); double b(); double c(); double epsabs();double epsrel();int limit();
-	           double [o] result(); double [o] abserr();int n();int [o] ierr();int warn();',
+	           double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
 	OtherPars => 'SV* funcion;',
 	Code =>'
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
@@ -865,11 +861,11 @@ sub gslinteg_qaws{
 pp_def('qaws_meat',
         Pars => 'double a(); double b();double epsabs();double epsrel();int limit();
 	         double [o] result(); double [o] abserr();int n();
-		 double alpha(); double beta(); int mu(); int nu();int [o] ierr();int warn();',
+		 double alpha(); double beta(); int mu(); int nu();int [o] ierr();int gslwarn();',
         OtherPars => 'SV* funcion;',
 	Code => '
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_qaws_table * qtab;
 gsl_integration_workspace *w;
@@ -913,11 +909,11 @@ sub gslinteg_qawo{
 pp_def('qawo_meat',
 	Pars => 'double a(); double b();double epsabs();double epsrel();int limit();
 	         double [o] result(); double [o] abserr();int n();
-		 int sincosopt(); double omega(); double L(); int nlevels();int [o] ierr();int warn();',
+		 int sincosopt(); double omega(); double L(); int nlevels();int [o] ierr();int gslwarn();',
 	OtherPars =>  'SV* funcion;',
 	Code => '
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_qawo_table * qtab;
 gsl_integration_workspace *w;
@@ -964,11 +960,11 @@ sub gslinteg_qawf{
 pp_def('qawf_meat',
 	Pars => 'double a(); double epsabs();int limit();
 		 double [o] result(); double [o] abserr();int n();
-		 int sincosopt(); double omega(); int nlevels();int [o] ierr();int warn();',
+		 int sincosopt(); double omega(); int nlevels();int [o] ierr();int gslwarn();',
 	OtherPars => 'SV* funcion;',
 	Code => '
 gsl_error_handler_t * old_handler;
-if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
+if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_qawo_table * qtab;
 gsl_integration_workspace *w;
