@@ -1880,6 +1880,7 @@ ran_shuffle(rng, in)
   n = in->nvals;
   PDL->make_physical(in);
   switch(in->datatype) {
+   case PDL_INVALID: barf("ran_shuffle was passed a piddle of type PDL_INVALID"); break;
    case PDL_B: size=sizeof(PDL_Byte); break;
    case PDL_S: size=sizeof(PDL_Short); break;
    case PDL_US: size=sizeof(PDL_Ushort); break;
@@ -1905,6 +1906,7 @@ ran_choose(rng, in, out)
   PDL->make_physical(in);
   PDL->make_physical(out);
   switch(in->datatype) {
+   case PDL_INVALID: barf("ran_choose was passed a piddle of type PDL_INVALID"); break;
    case PDL_B: size=sizeof(PDL_Byte); break;
    case PDL_S: size=sizeof(PDL_Short); break;
    case PDL_US: size=sizeof(PDL_Ushort); break;
