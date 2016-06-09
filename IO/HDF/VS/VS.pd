@@ -28,7 +28,6 @@ EOD
 pp_addhdr(<<'EOH');
 
 #include <hdf.h>
-#include <mfhdf.h>
 #include <string.h>
 #include <stdio.h>
 
