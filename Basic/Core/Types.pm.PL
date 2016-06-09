@@ -450,7 +450,7 @@ sub datatypes_header {
     warn "Using new 64bit index support\n" if $Config::Config{'ivsize'}==8;
 
     my $anyval_union = '';
-    my $enum = '';
+    my $enum = 'PDL_INVALID=-1, ';
     my $typedefs = '';
     for (sort { $typehash{$a}{'numval'}<=>$typehash{$b}{'numval'} }  keys %typehash) {
      $enum .= $typehash{$_}{'sym'}.", ";
