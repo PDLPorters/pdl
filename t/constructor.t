@@ -4,7 +4,7 @@
 # Separate from core.t because the problem crashes perl
 # and I'd like to keep the granularity of the core.t tests
 #
-use Test::More tests => 85;
+use Test::More tests => 87;
 use PDL::LiteF;
 use PDL::Config;
 
