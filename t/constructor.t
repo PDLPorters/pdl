@@ -4,7 +4,7 @@
 # Separate from core.t because the problem crashes perl
 # and I'd like to keep the granularity of the core.t tests
 #
-use Test::More tests => 80;
+use Test::More tests => 85;
 use PDL::LiteF;
 use PDL::Config;
 
@@ -183,10 +183,6 @@ is $p->at(0,0), 5, "scalar OK for scalar & empty";
 is $p->at(0,1), $PDL::undefval, "padding OK for scalar & empty";
 
 
-
-
-
-
 # This is from sf.net bug #3011879
 my @c;
 $c[0][0]=pdl(0,4,2,1);
@@ -196,6 +192,28 @@ $c[0][1]=pdl(0,0,3,1);
 $c[1][1]=pdl(0,0,2,1);
 $c[2][1]=pdl(5,1,1,1);
 my $d = pdl(@c);
+
+##############################
+# test bad values
+ SKIP: {
+     skip "BAD values not compiled in",5 unless($PDL::Bad::Status);
+     
+     $a = pdl(3,4,5);
+     $a=$a->setbadif($a==4);
+     eval '$b = pdl($a,5);';
+     ok(!$@, "a badvalue PDL works in the constructor");
+
+     ok( $b->badflag, "bad value propagates from inner PDL to constructed PDL" );
+     ok( $b->slice("(1),(0)") == $b->badvalue, "bad value was passed in" );
+     ok( $b->at(1,1) == 0, "padding was correct" );
+
+     eval '$b = pdl(short, $a, 5);';
+     
+     ok(!$@, "constructed a short PDL");
+     ok( $b->slice("(1),(0)") == $b->badvalue, "bad value was translated" );
+     ok( $b->at(1,1) == 0, "padding was correct");
+
+}
 
 
 
