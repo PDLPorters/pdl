@@ -1151,8 +1151,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
   {
       PDL_Indx limit =  (   
           (plevel >= 0 && 
-           (source_pdl->ndims - 1 - plevel >= 0) && 
-           (source_pdl->ndims - 1 - plevel < source_pdl->ndims)
+           (source_pdl->ndims - 1 - plevel >= 0)
           )   
           ?   (source_pdl->dims[ source_pdl->ndims-1-plevel ])   
           :   1    
