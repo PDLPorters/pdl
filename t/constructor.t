@@ -196,7 +196,7 @@ my $d = pdl(@c);
 ##############################
 # test bad values
  SKIP: {
-     skip "BAD values not compiled in",5 unless($PDL::Bad::Status);
+     skip "BAD values not compiled in",7 unless($PDL::Bad::Status);
      
      $a = pdl(3,4,5);
      $a=$a->setbadif($a==4);
