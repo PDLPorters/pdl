@@ -373,6 +373,7 @@ list, and C<pdl> will sort them out.  You get back a PDL whose last
 (slowest running) dim runs across the top level of the list you hand
 in, and whose first (fastest running) dim runs across the deepest
 level that you supply.
+
 At the moment, you cannot mix and match those arguments with string
 arguments, though we can't imagine a situation in which you would
 really want to do that.
@@ -409,6 +410,9 @@ gives you the same answer as
 
   $a = pdl([[1,2,3],[2,undef,undef]]);
 
+If your PDL module has bad values compiled into it (see L<PDL::Bad>), 
+you can pass BAD values into the constructor within pre-existing PDLs.
+The BAD values are automatically kept BAD and propagated correctly.
 
 C<pdl()> is a functional synonym for the 'new' constructor,
 e.g.:
