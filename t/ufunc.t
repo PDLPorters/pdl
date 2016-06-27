@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 35;
+use Test::More tests => 43;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -53,25 +53,43 @@ ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
 
 # Test inplace sorting
 $d->inplace->qsort;
-ok(all($d == $d_sort));
+ok(all($d == $d_sort), "inplace sorting");
 
 # Test inplace sorting with bad values
 $d->setbadat(3);
 $d_sort = $d->qsort;
 $d->inplace->qsort;
-ok(all($d == $d_sort));
+ok(all($d == $d_sort), "inplace sorting with bad values");
 
 # Test inplace lexicographical sorting
 $e->inplace->qsortvec;
-ok(all($e == $e_sort));
+ok(all($e == $e_sort), "inplace lexicographical sorting");
 
 # Test inplace lexicographical sorting with bad values
 $e->setbadat(1,3);
 $e_sort = $e->qsortvec;
 $e->inplace->qsortvec;
-ok(all($e == $e_sort));
+ok(all($e == $e_sort), "inplace lexicographical sorting with bad values");
 
-# test for sf.net but report 3234141 "max() fails on nan"
+# Test sf.net bug 379 "Passing qsort an extra argument causes a segfault"
+# (also qsorti, qsortvec, qsortveci)
+eval { random(15)->qsort(5); };
+ok($@ ne '', "qsort extra argument");
+eval { random(15)->qsorti(5); };
+ok($@ ne '', "qsorti extra argument");
+eval {random(10,4)->qsortvec(5); };
+ok($@ ne '', "qsortvec extra argument");
+eval {random(10,4)->qsortveci(2); };
+ok(@$ ne '', "qsortveci extra argument");
+#but the dimension size checks for those cases shouldn't derail trivial qsorts:
+is(pdl(5)->qsort,pdl(5),'trivial qsort');
+is(pdl(8)->qsorti,pdl(0),'trivial qsorti');
+ok(all(pdl(42,41)->qsortvec == pdl(42,41)->dummy(1)),'trivial qsortvec');
+is(pdl(53,35)->qsortveci,pdl(0),'trivial qsortveci');
+
+
+
+# test for sf.net bug report 3234141 "max() fails on nan"
 #   NaN values are handled inconsistently by min, minimum, max, maximum...
 #
 local $TODO = "fixing max/min NaN handling";
