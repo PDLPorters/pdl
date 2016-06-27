@@ -1115,6 +1115,9 @@ pp_def(
     'PDL_Indx nn;
      loop(n) %{ $b() = $a(); %}
      nn = $COMP(__n_size)-1;
+     if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
+        pdl_barf("You likely passed a scalar argument to qsort, when you should have passed a piddle (or nothing at all)");
+     }
     ' . generic_qsort('b'),
     BadCode =>
     'register PDL_Indx nn = 0, nb = $SIZE(n) - 1;
@@ -1122,6 +1125,9 @@ pp_def(
         if ( $ISGOOD(a()) ) { $b(n=>nn) = $a(); nn++; }
         else                { $SETBAD(b(n=>nb)); nb--; }
      %}
+     if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(b)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
+        pdl_barf("You likely passed a scalar argument to qsort, when you should have passed a piddle (or nothing at all)");
+     }
      if ( nn != 0 ) {
         nn -= 1;
      ' . generic_qsort('b') . ' }',
@@ -1164,6 +1170,9 @@ pp_def(
         loop(n) %{ 
            $indx() = n; 
         %}
+        if ($PDL(a)->dims[0] != $PDL(indx)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(indx)->dims[0]!=1){
+           pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed a piddle (or nothing at all)");
+        }
        ' . generic_qsort_ind(),
        BadCode =>
        'register PDL_Indx nn = 0, nb = $SIZE(n) - 1;
@@ -1172,6 +1181,9 @@ pp_def(
            if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
            else                { $indx(n=>nb) = n; nb--; }
         %}
+         if ($PDL(a)->dims[0] != $PDL(indx)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(indx)->dims[0]!=1){
+            pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed a piddle (or nothing at all)");
+        }
         if ( nn != 0 ) {
            nn -= 1;
         ' . generic_qsort_ind() . ' }',
@@ -1213,6 +1225,9 @@ pp_def(
      loop(n,m) %{ $b() = $a(); %}
      nn = ($COMP(__m_size))-1;
      nd = $COMP(__n_size);
+     if (($PDL(a)->dims[0] != $PDL(b)->dims[0] || $PDL(a)->dims[1] != $PDL(b)->dims[1]) && $PDL(a)->dims[1] !=0 && $PDL(b)->dims[1] != 1){
+        pdl_barf("You likely passed a scalar argument to qsortvec, when you should have passed a piddle (or nothing at all)");
+     }
     ' . generic_qsortvec('b','nd'),
     Doc => '
 =for ref
@@ -1242,7 +1257,7 @@ the 1st dimension is list order.  Higher dimensions are threaded over.
 '
 Vectors with bad components should be moved to the end of the array:
 ',
-    ); # pp_def qsort
+    ); # pp_def qsortvec
 
 sub generic_qsortvec_ind {
     my $pdl = shift;
@@ -1262,6 +1277,9 @@ pp_def(
         $indx()=m;
      %}
      nd = $COMP(__n_size);
+     if ($PDL(a)->ndims >1 && $PDL(a)->dims[1] != $PDL(indx)->dims[0] && $PDL(a)->dims[1]!=0 && $PDL(indx)->dims[0]!=1){
+        pdl_barf("You likely passed a scalar argument to qsortveci, when you should have passed a piddle (or nothing at all)");
+     }
     ' . generic_qsortvec_ind('a','nd'),
     Doc => '
 =for ref
