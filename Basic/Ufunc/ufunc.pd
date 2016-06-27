@@ -1116,7 +1116,7 @@ pp_def(
      loop(n) %{ $b() = $a(); %}
      nn = $COMP(__n_size)-1;
      if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
-        pdl_barf("You likely passed a scalar argument to qsort, when you should have passed a piddle (or nothing at all)");
+        PDL->pdl_barf("You likely passed a scalar argument to qsort, when you should have passed a piddle (or nothing at all)");
      }
     ' . generic_qsort('b'),
     BadCode =>
@@ -1126,7 +1126,7 @@ pp_def(
         else                { $SETBAD(b(n=>nb)); nb--; }
      %}
      if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(b)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
-        pdl_barf("You likely passed a scalar argument to qsort, when you should have passed a piddle (or nothing at all)");
+        PDL->pdl_barf("You likely passed a scalar argument to qsort, when you should have passed a piddle (or nothing at all)");
      }
      if ( nn != 0 ) {
         nn -= 1;
@@ -1171,7 +1171,7 @@ pp_def(
            $indx() = n; 
         %}
         if ($PDL(a)->dims[0] != $PDL(indx)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(indx)->dims[0]!=1){
-           pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed a piddle (or nothing at all)");
+           PDL->pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed a piddle (or nothing at all)");
         }
        ' . generic_qsort_ind(),
        BadCode =>
@@ -1182,7 +1182,7 @@ pp_def(
            else                { $indx(n=>nb) = n; nb--; }
         %}
          if ($PDL(a)->dims[0] != $PDL(indx)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(indx)->dims[0]!=1){
-            pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed a piddle (or nothing at all)");
+            PDL->pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed a piddle (or nothing at all)");
         }
         if ( nn != 0 ) {
            nn -= 1;
@@ -1226,7 +1226,7 @@ pp_def(
      nn = ($COMP(__m_size))-1;
      nd = $COMP(__n_size);
      if (($PDL(a)->dims[0] != $PDL(b)->dims[0] || $PDL(a)->dims[1] != $PDL(b)->dims[1]) && $PDL(a)->dims[1] !=0 && $PDL(b)->dims[1] != 1){
-        pdl_barf("You likely passed a scalar argument to qsortvec, when you should have passed a piddle (or nothing at all)");
+        PDL->pdl_barf("You likely passed a scalar argument to qsortvec, when you should have passed a piddle (or nothing at all)");
      }
     ' . generic_qsortvec('b','nd'),
     Doc => '
@@ -1278,7 +1278,7 @@ pp_def(
      %}
      nd = $COMP(__n_size);
      if ($PDL(a)->ndims >1 && $PDL(a)->dims[1] != $PDL(indx)->dims[0] && $PDL(a)->dims[1]!=0 && $PDL(indx)->dims[0]!=1){
-        pdl_barf("You likely passed a scalar argument to qsortveci, when you should have passed a piddle (or nothing at all)");
+        PDL->pdl_barf("You likely passed a scalar argument to qsortveci, when you should have passed a piddle (or nothing at all)");
      }
     ' . generic_qsortvec_ind('a','nd'),
     Doc => '
