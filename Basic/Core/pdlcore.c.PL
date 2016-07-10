@@ -1077,6 +1077,11 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
       pdlsiz = source_pdl->dims[pdldim];
     }
 
+#if BADVAL
+    /* This is used inside the switch in order to detect badvalues. */
+    PDL_Anyval source_badval = PDL.get_pdl_badvalue(source_pdl);
+#endif /* BADVAL */
+
     /* This is the actual data-copying code. It is generated with a Perl loop, to
      * ensure that all current PDL types get treated. */
 
@@ -1084,12 +1089,23 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
 !WITH!SUBS!
 
         # perl loop to emit code for all the PDL types -- ctype gets the C type of 
-        # the source PDL, and switch_type gets the Perl name.
+        # the source PDL, switch_type gets the Perl name, ppsym gets
+        # the symbol need to retrieve from a PDL_Anyval, and type_usenan is a
+        # boolean indicating whether this type handles NaNs.
         foreach my $switch_type (keys %PDL::Types::typehash) {
 
 	    my $ctype = $PDL::Types::typehash{$switch_type}{ctype};
 	    my $stype = $PDL::Types::typehash{$switch_type}{ctype};
 	    $stype =~ s/PDL_//;
+	    my $ppsym = $PDL::Types::typehash{$switch_type}{ppsym};
+	    my $type_usenan = $PDL::Types::typehash{$switch_type}{usenan};
+
+	    my $comp_for_nan =
+	          $type_usenan
+	          # if not equal, check if both are NaN
+	        ? "( !finite( (($ctype *)pptr)[i] ) && !finite(source_badval.value.$ppsym) )"
+	          # otherwise it must be false
+	        : '0';
 
         print OUT <<"!WITH!SUBS!";
 
@@ -1100,10 +1116,10 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
         for(; i<pdlsiz; i++) {
 #if BADVAL
           if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) {
-              if( (($ctype *)pptr)[i] == PDL.bvals.$stype ) {
+              /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */
+              if( (($ctype *)pptr)[i] == source_badval.value.$ppsym || $comp_for_nan ) {
                   /* bad value in source PDL -- use our own type's bad value instead */
                   pdata[i] = PDL.bvals.$type;
-                  p->has_badvalue=1;
                   p->state |= PDL_BADVAL;
               } else {
                   pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];

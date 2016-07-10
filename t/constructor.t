@@ -129,14 +129,14 @@ is $p->at(1,0), $PDL::undefval, "scalar got padded OK";
 is $p->at(0,1), $pdl_v->at(0), "vector element 0 got copied OK";
 is $p->at(1,1), $pdl_v->at(1), "vector element 1 got copied OK";
 
-## A more complicated case 
+## A more complicated case
 $p = pdl($pdl_s, 5, $pdl_v, $pdl_m, [$pdl_v, $pdl_v]);
 isa_ok($p,'PDL');
 is $p->ndims(), 3, 'complicated case -> 3-d PDL';
 is $p->dim(0), 2, 'complicated case -> dim 0 is 2';
 is $p->dim(1), 2, 'complicated case -> dim 1 is 2';
 is $p->dim(2), 5, 'complicated case -> dim 1 is 5';
-@testvals = ([ [0,0,0], 2 ],   [ [1,0,0], 0 ],   [ [0,1,0], 0 ],  [ [1,1,0], 0 ], 
+@testvals = ([ [0,0,0], 2 ],   [ [1,0,0], 0 ],   [ [0,1,0], 0 ],  [ [1,1,0], 0 ],
 	     [ [0,0,1], 5 ],   [ [1,0,1], 0 ],   [ [0,1,1], 0 ],  [ [1,1,1], 0 ],
 	     [ [0,0,2], 3 ],   [ [1,0,2], 0 ],   [ [0,1,2], 4 ],  [ [1,1,2], 0 ],
 	     [ [0,0,3], 5 ],   [ [1,0,3], 6 ],   [ [0,1,3], 7 ],  [ [1,1,3], 8 ],
