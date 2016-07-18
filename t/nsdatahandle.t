@@ -1,18 +1,16 @@
 use strict;
-use Test;
-
+use warnings;
+use Test::More tests => 1;
 
 # check if PDL::NiceSlice clobbers the DATA filehandle
 use PDL::LiteF;
-
-plan tests => 1;
 
 $| = 1;
 
 use PDL::NiceSlice;
 
 my $data = join '', <DATA>;
-ok $data =~ "we've got data";
+like $data, qr/we've got data/, "we've got data";
 
 __DATA__
 

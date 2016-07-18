@@ -1,12 +1,10 @@
-
 use strict;
-
+use warnings;
 use PDL;
 use PDL::Image2D;
 use PDL::FFT;
 
-use Test;
-BEGIN { plan tests => 17; }
+use Test::More tests =>17;
 
 sub tapprox {
         my($a,$b) = @_;
@@ -21,9 +19,9 @@ foreach my $type(double,float){
   $a = pdl($type,1,-1,1,-1);
   $b = zeroes($type,$a->dims);
   fft($a,$b);
-  ok(all($a==pdl($type,0,0,4,0))); #1,3
+  ok(all($a==pdl($type,0,0,4,0)), "fft for type $type");
   ifft($a,$b);
-  ok(all($a==pdl($type,1,-1,1,-1))); #2,4
+  ok(all($a==pdl($type,1,-1,1,-1)), "ifft for type $type");
 }
 
 $k = ones(5,5);
@@ -33,23 +31,23 @@ $b = $a->copy;
 $c = $b->zeroes;
 fft($b,$c);
 ifft($b,$c);
-ok (tapprox($c,0)); #5
+ok (tapprox($c,0), "fft zeroes");
 
 #print "\n",$c->info("Type: %T Dim: %-15D State: %S"),"\n";
 #print "Max: ",$c->max,"\n";
 #print "Min: ",$c->min,"\n";
-   
-ok (tapprox($a,$b)); #6
+
+ok (tapprox($a,$b), "m51 image recovered");
 
 $b = $a->copy;
 $c = $b->zeroes; fftnd($b,$c); ifftnd($b,$c);
-ok ( tapprox($c,0) ); #7
-ok ( tapprox($a,$b) );#8
+ok ( tapprox($c,0), "fftnd zeroes");
+ok ( tapprox($a,$b), "fftnd real image");
 
 $b = $a->slice("1:35,1:69");
 $c = $b->copy; fftnd($b,$c); ifftnd($b,$c);
-ok ( tapprox($c,$b) );#9
-ok ( tapprox($a->slice("1:35,1:69"),$b) );#10
+ok ( tapprox($c,$b) ,"fftnd real and imaginary");
+ok ( tapprox($a->slice("1:35,1:69"),$b), "fftnd original restored");
 
 # Now compare fft convolutions with direct method
 
@@ -57,8 +55,8 @@ $b = conv2d($a,$k);
 $kk = kernctr($a,$k);
 fftconvolve( $i=$a->copy, $kk );
 
-ok ( tapprox($kk,0) );#11
-ok ( tapprox($i,$b) );#12
+ok ( tapprox($kk,0), "kernctr");
+ok ( tapprox($i,$b), "fftconvolve");
 
 $k = pdl[
  [ 0.51385498,  0.17572021,  0.30862427],
@@ -74,24 +72,24 @@ $b = conv2d($a,$k);
 $kk = kernctr($a,$k);
 fftconvolve( $i=$a->copy, $kk );
 
-ok ( tapprox($kk,0) );#13
-ok ( tapprox($i,$b) );#14
+ok ( tapprox($kk,0), "kernctr weird kernel");
+ok ( tapprox($i,$b), "fftconvolve weird kernel");
 
 $b = $a->copy;
 
 # Test real ffts
 realfft($b);
 realifft($b);
-ok( tapprox($a,$b) );#15
+ok( tapprox($a,$b), "realfft");
 
 # Test that errors are properly caught
 eval {fft(sequence(10))};
-ok( $@, qr/Did you forget/, 'fft offers helpful message when only one argument is supplied'); #16
+like( $@, qr/Did you forget/, 'fft offers helpful message when only one argument is supplied'); #16
 $@ = '';
 
 
 eval {ifft(sequence(10))};
-ok( $@, qr/Did you forget/, 'ifft offers helpful message when only one argument is supplied'); #17
+like( $@, qr/Did you forget/, 'ifft offers helpful message when only one argument is supplied'); #17
 $@ = '';
 
 # End

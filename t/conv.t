@@ -3,38 +3,38 @@
 
 # 1.9901 - converted to new type semantics + extra test
 
-use Test;
-BEGIN { plan tests => 7 }
+use Test::More tests => 7;
 
 use PDL::LiteF;
 use PDL::Types;
+use PDL::Constants qw(PI);
+use strict;
+use warnings;
 
-$a = pdl 42.4;
-print "A is $a\n";
+my $A = pdl 42.4;
+note "A is $A\n";
 
-ok($a->get_datatype,$PDL_D);
+is($A->get_datatype,$PDL_D, "A is double");
 
-$b = byte $a;
-print "B (byte $a) is $b\n";
+my $B = byte $A;
+note "B (byte $A) is $B\n";
 
-ok($b->get_datatype,$PDL_B);
-ok($b->at(),42);
+is($B->get_datatype,$PDL_B, "B is byte");
+is($B->at(),42);
 
-$c = $b * 3;
-ok($c->get_datatype, $PDL_B); # $c is the same
-print "C ($b * 3) is $c\n";
+my $C = $B * 3;
+is($C->get_datatype, $PDL_B, "C also byte");
+note "C ($B * 3) is $C\n";
 
-$d = $b * 600.0;
-ok($d->get_datatype, $PDL_F); # $d is promoted to float
-print "D ($b * 600) is $d\n";
+my $D = $B * 600.0;
+is($D->get_datatype, $PDL_F, "D promoted to float");
+note "D ($B * 600) is $D\n";
 
-$pi = 4*atan2(1,1);
+my $E = $B * PI;
+is($E->get_datatype, $PDL_D, "E promoted to double");
+note "E ($B * PI) is $E\n";
 
-$e = $b * $pi;
-ok($e->get_datatype, $PDL_D); # $e needs to be double to represent result
-print "E ($b * $pi) is $e\n";
-
-$f = $b * "-2.2";
-ok($f->get_datatype, $PDL_D); # $e check strings are handled ok
-print "F ($b * string(-2.2)) is $f\n";
+my $F = $B * "-2.2";
+is($F->get_datatype, $PDL_D, "F check string handling");
+note "F ($B * string(-2.2)) is $F\n";
 
