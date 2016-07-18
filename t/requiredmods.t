@@ -1,14 +1,14 @@
-use Test;
-
-plan tests => 2;
+use strict;
+use warnings;
+use Test::More tests => 2;
 
 my @hasnt = ();
 my @test = (['Filter::Util::Call','Filter'],
 	    ['Text::Balanced','Text::Balanced'],
-	   );	
+	   );
 for my $mod (@test) {
   eval "use $mod->[0]";
-  ok !$@;
+  ok(!$@, "has $mod->[0]");
   push @hasnt, $mod->[1] if $@;
 }
 

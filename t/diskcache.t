@@ -1,6 +1,5 @@
-
 use strict;
-
+use warnings;
 use PDL;
 use PDL::Config;
 use File::Temp 'tempdir';
@@ -10,16 +9,12 @@ use File::Spec;
 # separator (e.g. "/" on POSIX).
 my $d = File::Spec->catfile(tempdir(CLEANUP=>1),"");
 
-use Test;
-BEGIN { plan tests => 4; }
-
-##1 Make sure the library loads
+use Test::More tests => 4;
 
 eval 'use PDL::DiskCache;';
-if($@) {print $@,"\n";}
-ok( !$@ );
+ok( !$@, "use PDL::DiskCache succeeds" ) or diag($@);
 
-##2 Make a DiskCache object
+## Make a DiskCache object
 ##exercises STORE, sync, and DESTROY
 
 eval <<'BAR'
@@ -31,18 +26,14 @@ eval <<'BAR'
   } while(0);
 BAR
   ;
-ok( !$@ );
+ok( !$@, "Make a DiskCache object") or diag($@);
 
-ok( (-e "${d}1") && (-e "${d}2") && (-e "${d}3") );
+ok( (-e "${d}1") && (-e "${d}2") && (-e "${d}3"), "3 files written");
 
 eval <<'BAZ'
   do {
     my($b) = diskcache(["${d}1","${d}2","${d}3"],{ro=>1});
-    ok( ($b->[0]->sum == 0) && ($b->[1]->sum == xvals(10,10)->sum) );
+    ok( ($b->[0]->sum == 0) && ($b->[1]->sum == xvals(10,10)->sum), "files read correctly");
   }
 BAZ
   ;
-
-
-# end
-
