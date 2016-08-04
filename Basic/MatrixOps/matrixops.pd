@@ -44,9 +44,9 @@ PDL::MatrixOps -- Some Useful Matrix Operations
 =head1 SYNOPSIS
 
     $inv = $a->inv;
-    
+
     $det = $a->det;
-    
+
     ($lu,$perm,$par) = $a->lu_decomp;
     $x = lu_backsub($lu,$perm,$b); # solve $a x $x = $b
 
@@ -760,6 +760,9 @@ pp_def(
        Code => '
               extern void SVD( double *W, double *Z, int nRow, int nCol );
               int sm = $SIZE (m), sn = $SIZE (n), i;
+              if (sm<sn) {
+		  barf("svd requires input piddles to have m >= n (you have m=%d and n=%d). Try inputting the transpose.  See the docs for svd.",sm,sn);
+              }
               double *w, *t, zv;
               t = w = (double *) malloc(sn*(sm+sn)*sizeof(double));
               loop (m) %{
@@ -785,10 +788,10 @@ pp_def(
               %}
               free(w);
 ',
-      , Doc => '
+      , Doc => q{
 =for usage
 
- ($r1, $s, $r2) = svd($a);
+ ($u, $s, $v) = svd($a);
 
 =for ref
 
@@ -796,20 +799,36 @@ Singular value decomposition of a matrix.
 
 C<svd> is threadable.
 
-C<$r1> and C<$r2> are rotation matrices that convert from the original
-matrix\'s singular coordinates to final coordinates, and from original
-coordinates to singular coordinates, respectively.  C<$s> is the
-diagonal of the singular value matrix, so that, if C<$a> is square,
-then you can make an expensive copy of C<$a> by saying:
+Given an m x n matrix C<$a> that has m rows and n columns (m >= n),
+C<svd> computes matrices C<$u> and C<$v>, and a vector of the singular
+values C<$s>. Like most implementations, C<svd> computes what is
+commonly referred to as the "thin SVD" of C<$a>, such that C<$u> is m
+x n, C<$v> is n x n, and there are <=n singular values. As long as m
+>= n, the original matrix can be reconstructed as follows:
 
-    $ess = zeroes($r1); $ess->diagonal(0,1) .= $s;
-    $a_copy .= $r2 x $ess x $r1;
+    ($u,$s,$v) = svd($a);
+    $ess = zeroes($a->dim(0),$a->dim(0));
+    $ess->slice("$_","$_").=$s->slice("$_") foreach (0..$a->dim(0)-1); #generic diagonal
+    $a_copy = $u x $ess x $v->transpose;
+
+If m==n, C<$u> and C<$v> can be thought of as rotation matrices that
+convert from the original matrix's singular coordinates to final
+coordinates, and from original coordinates to singular coordinates,
+respectively, and $ess is a diagonal scaling matrix.
+
+If n>m, C<svd> will barf. This can be avoided by passing in the
+transpose of C<$a>, and reconstructing the original matrix like so:
+
+    ($u,$s,$v) = svd($a->transpose);
+    $ess = zeroes($a->dim(1),$a->dim(1));
+    $ess->slice("$_","$_").=$s->slice("$_") foreach (0..$a->dim(1)-1); #generic diagonal
+    $a_copy = $v x $ess x $u->transpose;
 
 EXAMPLE
 
 The computing literature has loads of examples of how to use SVD.
-Here\'s a trivial example (used in L<PDL::Transform::map|PDL::Transform/map>)
-of how to make a matrix less, er, singular, without changing the 
+Here's a trivial example (used in L<PDL::Transform::map|PDL::Transform/map>)
+of how to make a matrix less, er, singular, without changing the
 orientation of the ellipsoid of transformation:
 
     { my($r1,$s,$r2) = svd $a;
@@ -821,7 +840,7 @@ orientation of the ellipsoid of transformation:
 =cut
 
 
-',);
+},);
 
 
 ######################################################################
