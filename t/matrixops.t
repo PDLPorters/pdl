@@ -1,5 +1,5 @@
 use PDL::LiteF;
-use Test;
+use Test::More tests => 39;
 use Config;
 
 sub near {
@@ -8,9 +8,6 @@ sub near {
 	my $dist = abs($a - $b);
 	print STDERR "Max dist: ".$dist->max."\n" if any ($dist > $tol);
 	return ($dist <= $tol)->all;
-}
-
-BEGIN { plan tests => 34,
 }
 
 my $tol = 1e-14;
@@ -186,3 +183,44 @@ if(0){ #eigens for asymmetric matrices disbled
 my $should_be_nan = eval { sum(scalar eigens(pdl([1,1],[-1,1]))) };
 ok( ! ($should_be_nan == $should_be_nan)); #only NaN is not equal to itself
 }
+
+#check singular value decomposition for MxN matrices (M=#rows, N=#columns):
+
+my ($svd_in,$this_svd_in,$u,$s,$vT,$ess);
+
+$svd_in = pdl([3,1,2,-1],[-1,3,0,2],[-2,3,0,0],[1,3,-1,2]);
+
+#2x2;
+$this_svd_in = $svd_in->slice("0:1","0:1");
+($u,$s,$v) = svd($this_svd_in);
+$ess = zeroes($this_svd_in->dim(0),$this_svd_in->dim(0));
+$ess->diagonal(0,1).=$s;
+ok(all($this_svd_in==($u x $ess x $v->transpose)), "svd 2x2");
+
+#3x3;
+$this_svd_in = $svd_in->slice("0:2","0:2");
+($u,$s,$v) = svd($this_svd_in);
+$ess = zeroes($this_svd_in->dim(0),$this_svd_in->dim(0));
+$ess->diagonal(0,1).=$s;
+ok(all(approx($this_svd_in,$u x $ess x $v->transpose, 1e-8)), "svd 3x3");
+
+#4x4;
+$this_svd_in = $svd_in;
+($u,$s,$v) = svd($this_svd_in);
+$ess =zeroes($this_svd_in->dim(0),$this_svd_in->dim(0));
+$ess->diagonal(0,1).=$s;
+ok(all(approx($this_svd_in,($u x $ess x $v->transpose),1e-8)),"svd 4x4");
+
+#3x2
+$this_svd_in = $svd_in->slice("0:1","0:2");
+($u,$s,$v) = svd($this_svd_in);
+$ess = zeroes($this_svd_in->dim(0),$this_svd_in->dim(0));
+$ess->slice("$_","$_").=$s->slice("$_") foreach (0,1); #generic diagonal
+ok(all(approx($this_svd_in, $u x $ess x $v->transpose,1e-8)), "svd 3x2");
+
+#2x3
+$this_svd_in = $svd_in->slice("0:2","0:1");
+($u,$s,$v) = svd($this_svd_in->transpose);
+$ess = zeroes($this_svd_in->dim(1),$this_svd_in->dim(1));
+$ess->slice("$_","$_").=$s->slice("$_") foreach (0..$this_svd_in->dim(1)-1); #generic diagonal
+ok(all(approx($this_svd_in, $v x $ess x $u->transpose,1e-8)), "svd 2x3");
