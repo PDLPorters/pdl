@@ -13,7 +13,7 @@ use File::Temp qw( tempfile tempdir );
 
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-use Test::More tests => 19;
+use Test::More tests => 23;
 
 sub tapprox {
         my($a,$b) = @_;
@@ -42,7 +42,7 @@ close($fileh);
 }
 
 is( (sum($a<0)==2 && $a->getdim(0)==5 && $a->getdim(1)==3), 1, "rcols with undefval and missing cols" );
-unlink $file;
+unlink $file || warn "Could not unlink $file: $!";
 
 ############# Test rcols with filename and pattern #############
 
@@ -142,7 +142,7 @@ is( abs($b->sum - 5.13147) < .01, 1, "rasc on existing piddle" );
 eval '$b->rasc("file_that_does_not_exist")';
 like( $@, qr/Can't open/, "rasc on non-existant file" );
 
-unlink $file; # clean up
+unlink $file || warn "Could not unlink $file: $!"; # clean up
 
 #######################################################
 # Tests of rcols() options
@@ -192,12 +192,31 @@ $PDL::IO::Misc::deftype = short;
 ($a,$b) = rcols $file;
 is( $a->get_datatype, short->[0], "rcols: can read in as 'short'" );
 
-unlink $file;
+unlink $file || warn "Could not unlink $file: $!";
 
 ($fileh,$file) = tempfile( DIR => $tempd );
 eval { wcols $a, $b, $fileh };
 is(!$@,1, "wcols" );
-unlink $fileh;
+unlink $file || warn "Could not unlink $file: $!";
+
+($fileh,$file) = tempfile( DIR => $tempd );
+eval { wcols $a, $b, $fileh, {FORMAT=>"%0.3d %0.3d"}};
+is(!$@,1, "wcols FORMAT option");
+unlink $file || warn "Could not unlink $file: $!";
+
+($fileh,$file) = tempfile( DIR => $tempd );
+eval { wcols "%d %d", $a, $b, $fileh;};
+is(!$@,1, "wcols format_string");
+unlink $file || warn "Could not unlink $file: $!";
+
+($fileh,$file) = tempfile( DIR => $tempd );
+eval { wcols "arg %d %d", $a, $b, $fileh, {FORMAT=>"option %d %d"};};
+is(!$@,1, "wcols format_string override");
+
+open($fileh,"<",$file) or warn "Can't open $file: $!";
+chomp(my $line=readline(*$fileh));
+like(my $line=readline($fileh),qr/^arg/, "wcols format_string obeyed");
+unlink $file || warn "Could not unlink $file: $!";
 
 1;
 

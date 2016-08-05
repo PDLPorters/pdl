@@ -787,10 +787,10 @@ wantarray ? return(@ret) : return $ret[0];
 Can take file name or *HANDLE, and if no file/filehandle is given defaults to STDOUT.
 
   Options (case insensitive):
-  
+
     HEADER - prints this string before the data. If the string
              is not terminated by a newline, one is added. (default B<''>).
-  
+
     COLSEP - prints this string between colums of data. Defaults to
              $PDL::IO::Misc::defcolsep.
 
@@ -806,7 +806,7 @@ Can take file name or *HANDLE, and if no file/filehandle is given defaults to ST
    or 2D piddles (as might be returned from rcols() with the [] column
    syntax and/or using the PERLCOLS option).  dim(0) of all piddles
    written must be the same size.  The printf-style $format_string,
-   if given, overrides a any FORMAT key settings in the option hash 
+   if given, overrides any FORMAT key settings in the option hash.
 
 e.g.,
 
@@ -833,11 +833,11 @@ e.g.,
   wcols $b, $a52, $c  # ...and mix and match with 1D listrefs as well
 
   NOTES:
-  
+
   1. Columns are separated by whitespace by default, use
      C<$PDL::IO::Misc::defcolsep> to modify the default value or
      the COLSEP option
-  
+
   2. Support for the C<$PDL::IO::Misc::colsep> global value
      of PDL-2.4.6 and earlier is maintained but the initial value
      of the global is undef until you set it.  The value will be
@@ -867,12 +867,14 @@ sub PDL::wcols {
 	   elsif ( $key =~ /^COLSEP/i ) { $usecolsep = $opt->{$key}; }  # option: COLSEP
 	   elsif ( $key =~ /^FORMAT/i ) { $format_string = $opt->{$key}; }  # option: FORMAT
            else {
-               print "Warning: wcols does not understand option <$key>.\n"; 
+               print "Warning: wcols does not understand option <$key>.\n";
            }
        }
    }
-   if (ref(\$_[0]) eq "SCALAR") {
-       $step = $format_string = shift; # 1st arg not piddle, explicit overrides option hash
+   if (ref(\$_[0]) eq "SCALAR" || $format_string) {
+       $format_string = shift if (ref(\$_[0]) eq "SCALAR");
+       # 1st arg not piddle, explicit format string overrides option hash FORMAT
+       $step = $format_string;
        $step =~ s/(%%|[^%])//g;  # use step to count number of format items
        $step = length ($step);
    }
