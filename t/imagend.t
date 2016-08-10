@@ -2,7 +2,7 @@ use PDL;
 use PDL::ImageND;
 use PDL::NiceSlice;
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use strict;
 use warnings;
 
@@ -92,6 +92,13 @@ my $pb = pdl( [-1,0],[0,1] );
 
 	$pc = convolveND($pa,$pb,{m=>'f',b=>'t'});
 	ok( all( PDL::approx($pc, $ans_t, $eps) ) );
+}
+
+{
+    my $pa = sequence(6,6);
+    my $ans = pdl([14,22,30],[62,70,78],[110,118,126]);
+    ok( all( $ans==rebin($pa,3,3,{Norm=>1}) ) );
+
 }
 
 done_testing;
