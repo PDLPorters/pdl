@@ -13,7 +13,7 @@ sub near {
 my $tol = 1e-14;
 
 eval 'use PDL::MatrixOps;';
-ok(!$@, "use PDL::MatrixOps");
+is($@, '', "use PDL::MatrixOps");
 
 
 ### Check LU decomposition of a simple matrix
@@ -21,8 +21,8 @@ ok(!$@, "use PDL::MatrixOps");
 $a = pdl([1,2,3],[4,5,6],[7,1,1]);
 eval '($lu,$perm,$par) = lu_decomp($a)';
 
-ok(!$@, "lu_decomp 3x3 ran OK");
-ok($par==-1, "lu_decomp 3x3 correct parity");
+is($@, '', "lu_decomp 3x3 ran OK");
+is($par, -1, "lu_decomp 3x3 correct parity");
 ok(all($perm == pdl(2,1,0)), "lu_decomp 3x3 correct permutation");
 
 $l = $lu->copy;
