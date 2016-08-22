@@ -11,7 +11,7 @@ kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 {
 	my $pb=pdl([1,2,3])->long;
 	my $pa=[1,2,3];
-	lives_ok { PDL::Ufunc::sumover($pa,$pb) };
+	lives_ok { PDL::Ufunc::sumover($pa,$pb) } 'sumover with piddles of compatible dimensions does not die';
 }
 
 
