@@ -66,7 +66,7 @@ if(0) {
 
 	note $pb;
 
-	ok(all PDL::approx($pb,pdl([0,1,2,10,11,12,20,21,22]), $eps));
+	ok(all(PDL::approx($pb,pdl([0,1,2,10,11,12,20,21,22]), $eps)),'clump(-1) entire piddle');
 
 	# note $b;
 
@@ -84,9 +84,9 @@ if(0) {
 	# ok(2,$@ =~ /^clump: Increments do not match/);
 	# Clump supports this now.
 
-	ok(all PDL::approx($pd,pdl([0,2,10,12,20,22]), $eps));
+	ok(all(PDL::approx($pd,pdl([0,2,10,12,20,22]), $eps)),'clump(-1) slice with skip and whole dim');
 
-	ok(all PDL::approx($pe,pdl([10,12,20]), $eps));
+	ok(all(PDL::approx($pe,pdl([10,12,20]), $eps)),'clump(-1) slice');
 
         # SF bug #406 clump(-N) failure
         ##-- test data

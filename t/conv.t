@@ -20,7 +20,7 @@ my $B = byte $A;
 note "B (byte $A) is $B\n";
 
 is($B->get_datatype,$PDL_B, "B is byte");
-is($B->at(),42);
+is($B->at(),42, 'byte value is 42');
 
 my $C = $B * 3;
 is($C->get_datatype, $PDL_B, "C also byte");

@@ -16,4 +16,4 @@ my $pb = $pa->slice(':,2:3');
 $pa = 1;  # Undefine orig. a
 $pb += 1;
 
-ok(1);
+ok(1,"no barf when parent of slice undefined");

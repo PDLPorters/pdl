@@ -9,7 +9,7 @@ kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 {
 	my $pa = zeroes 1,1,1;
-	ok !$pa;
+	ok !$pa, 'single-element multi-dim piddle collapses';
 }
 
 {
@@ -19,13 +19,13 @@ kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 $a = ones 3;
 eval {print "oops\n" if $a};
-like $@, qr/multielement/;
+like $@, qr/multielement/, 'multielement piddle in conditional expression';
 
-ok all $a;
+ok all($a),'all elements true';
 
 $a = pdl byte, [ 0, 0, 1 ];
-ok any $a > 0;
+ok any($a > 0),'any element true';
 
 $a = ones 3;
 $b = $a + 1e-4;
-ok all PDL::approx $a, $b, 1e-3;
+ok all(PDL::approx $a, $b, 1e-3), 'approx';
