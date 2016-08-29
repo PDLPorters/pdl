@@ -1447,7 +1447,7 @@ void pdl_make_physvaffine(pdl *it)
 			/* inc = the increment at the current stage */
 			inc = it->vafftrans->incs[i];
 			incsign = (inc >= 0 ? 1:-1);
-			inc= abs(inc);
+			inc *= incsign;
 			newinc = 0;
 			/* For all dimensions of the current piddle */
 			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
