@@ -1664,6 +1664,9 @@ pp_def('polfit',
 	  This version handles bad values appropriately',
 );
 
+#these two need to be done manually because we don't use defslatec for them
+print PROTOS "extern int polfit_ ();\nextern int dpolft_ ();\n";
+
 close( PROTOS );
 
 ##################################################################
