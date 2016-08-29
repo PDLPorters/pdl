@@ -553,6 +553,23 @@ pp_def('cmul',
 ',
 	Doc => 'Complex multiplication'
 );
+
+use Config;
+use strict;
+use warnings;
+#define the abs <-> datatype mapping
+my %ah = (B => '',
+	  U => '',
+	  S => 'abs',
+	  L => $Config{'intsize'}==4?'abs':($Config{'longsize'}==4?'labs':'abs'),
+	  N => $Config{'ivtype'}eq'long'?'labs':($Config{'ivtype'}eq'longlong'?'llabs':'abs'),
+	  Q => 'labs',
+	  F => 'fabsf',
+	  D => 'fabs'
+    );
+
+our $abs_string .= "types($_) %{" . $ah{$_} . '(br) > ' . $ah{$_} . "(bi)%}\n" foreach (keys %ah);
+
 pp_def('cdiv',
 	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
 	Code => '
@@ -561,7 +578,7 @@ pp_def('cdiv',
 	   ai = $ai();
 	   br = $br();
 	   bi = $bi();
-	   if (fabs(br) > fabs(bi)) {
+          if (' . $abs_string . ') {
 	     tt = bi/br;
 	     dn = br + tt*bi;
 	     $cr() = (ar+tt*ai)/dn;
