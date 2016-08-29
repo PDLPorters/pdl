@@ -497,7 +497,7 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 	if(it->state & PDL_ALLOCATED) {
 		printf(")\n%s   First values: (",spaces);
 		for(i=0; i<it->nvals && i<10; i++) {
-			printf("%s%f",(i?" ":""),pdl_get_offs(it,i));
+                       printf("%s%f",(i?" ":""),pdl_get_offs(it,i).value.D);
 		}
 	} else {
 		printf(")\n%s   (not allocated",spaces);
