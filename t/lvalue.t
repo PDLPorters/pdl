@@ -11,9 +11,7 @@ BEGIN {
     if ( PDL::Lvalue->subs and !$PERLDB) {
 	plan tests => 3;
     } else {
-	plan tests => 1;
-	print "ok 1 # Skipped: no lvalue sub support\n";
-	exit;
+	plan skip_all => "no lvalue sub support";
     }
 } 
 
