@@ -97,7 +97,8 @@ $ans = $a->copy;
 print $a, $mask, patch2d($a,$mask);
 tapprox( patch2d($a,$mask), $ans, "patch2d 2d slice no-op" );  # 7
 
-if ( $PDL::Bad::Status ) {
+SKIP: {
+    skip "PDL::Bad support not available", 5 unless $PDL::Bad::Status;
     # patchbad2d: bad data
     $m = $a->slice('1:3,1:3');
     $m .= $a->badvalue;
@@ -128,11 +129,8 @@ if ( $PDL::Bad::Status ) {
     @ans = $a->centroid2d( 10, 10, 20 );
     tapprox( $ans[0], 8.432946, "centroid2d bad data (0)");  # numbers should be same as when set < 9 to 0
     tapprox( $ans[1], 11.756724, "centroid2d bad data (1)");
-
-} else { 
-    my $msg = "PDL::Bad support not available.";
-    for (0..4) { skip($msg,1,1) } # skip 5 tests
 }
+
 # box2d bug test
 my $one = random(10,10);
 my $box = cat $one,$one,$one;
