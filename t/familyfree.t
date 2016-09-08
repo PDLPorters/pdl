@@ -17,4 +17,4 @@ lives_ok {
 
 	$pa = 1;  # Undefine orig. a
 	$pb += 1;
-}, "no barf when parent of slice undefined";
+} "no barf when parent of slice undefined";

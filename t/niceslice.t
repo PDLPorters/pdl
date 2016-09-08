@@ -30,7 +30,6 @@ sub translate_and_show {
 my $pa = sequence 10; # shut up -w
 my $pb = pdl(1);
 
-my $pb = pdl(1);
 eval translate_and_show '$pb = $pa((5));';
 ok (!$@);
 cmp_ok($pb->at, '==', 5);

@@ -145,7 +145,7 @@ my $pa = pdl([3,4],[4,-3]);
 
 ### Check that eigens runs OK
 my ($vec,$val);
-lives_ok { ($vec,$val) = eigens $pa },"eigens runs OK";
+lives_ok { ($vec,$val) = eigens $pa } "eigens runs OK";
 
 ### Check that it really returns eigenvectors
 my $c = float(($pa x $vec) / $vec);

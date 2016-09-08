@@ -25,7 +25,7 @@ lives_ok {
   $pa->[1] = xvals(10,10);
   $pa->[2] = yvals(10,10);
   1;
-}, "Make a DiskCache object";
+} "Make a DiskCache object";
 
 ok( (-e "${d}1") && (-e "${d}2") && (-e "${d}3"), "3 files written");
 
