@@ -25,7 +25,7 @@ my $ans = pdl(
 my $pa = xvals zeroes 10,3;
 my $pb = pdl [1,2],[2,1];
 my $pc = conv2d ($pa, $pb);
-ok all approx( $pc, $ans), "conv2d xvals";  # 1
+ok all( approx( $pc, $ans)), "conv2d xvals";  # 1
 }
 
 {
@@ -33,7 +33,7 @@ ok all approx( $pc, $ans), "conv2d xvals";  # 1
 my $pa = zeroes(3,3);
 $pa->set(1,1,1);
 my $pb = sequence(3,3);
-ok all approx( conv2d($pa,$pb), $pb ), "conv2d trivial kernel";    # 2
+ok all( approx( conv2d($pa,$pb), $pb )), "conv2d trivial kernel";    # 2
 }
 
 {
@@ -42,19 +42,19 @@ my $pa = ones(3,3);
 my $pb = sequence(3,3);
 {
 my $ans = pdl ([12,18,24],[30,36,42],[48,54,60]);
-ok all approx( conv2d($pb,$pa,{Boundary => 'Reflect'}), $ans ), "conv2d reflect";  #3
+ok all( approx( conv2d($pb,$pa,{Boundary => 'Reflect'}), $ans )), "conv2d reflect";  #3
 }
 
 {
 # conv2d: boundary => replicate
 my $ans = pdl ([12,18,24],[30,36,42],[48,54,60]);
-ok all approx( conv2d($pb,$pa,{Boundary => 'Replicate'}), $ans ), "conv2d replicate" ; #4
+ok all( approx( conv2d($pb,$pa,{Boundary => 'Replicate'}), $ans )), "conv2d replicate" ; #4
 }
 
 {
 # conv2d: boundary => truncate
 my $ans = pdl ([8,15,12],[21,36,27],[20,33,24]);
-ok all approx( conv2d($pb,$pa,{Boundary => 'Truncate'}), $ans ), "conv2d truncate"; #5
+ok all( approx( conv2d($pb,$pa,{Boundary => 'Truncate'}), $ans )), "conv2d truncate"; #5
 }
 }
 
@@ -72,8 +72,8 @@ ok( ($ans[0] == 50) & ($ans[1] == 1) & ($ans[2] == 2), "max2d_ind" );
 my $pa = 100.0 / rvals( 20, 20, { Centre => [ 8, 12.5 ] } );
 $pa = $pa * ( $pa >= 9 );
 my @ans = $pa->centroid2d( 10, 10, 20 );
-ok all approx( $ans[0], 8.432946), "centroid2d (0)";  # numbers calculated by an independent program
-ok all approx( $ans[1], 11.756724), "centroid2d (1)";
+ok all( approx( $ans[0], 8.432946)), "centroid2d (0)";  # numbers calculated by an independent program
+ok all( approx( $ans[1], 11.756724)), "centroid2d (1)";
 }
 
 {
@@ -83,12 +83,12 @@ my $t = $pa->slice("1:3,1:3");
 $t .= ones(3,3);
 my $pb = sequence(3,3);
 my $ans = pdl ( [0,0,0,0,0],[0,0,1,0,0],[0,1,4,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-ok all approx( med2d($pa,$pb), $ans ), "med2d";
+ok all( approx( med2d($pa,$pb), $ans )), "med2d";
 
 {
 # med2df
 my $pa = sequence(10,10);
-ok all approx( med2df($pa,3,3,{Boundary=>'Truncate'})->slice("1:-2,1:-2"), $pa->slice("1:-2,1:-2")), "med2df";
+ok all( approx( med2df($pa,3,3,{Boundary=>'Truncate'})->slice("1:-2,1:-2"), $pa->slice("1:-2,1:-2"))), "med2df";
 }
 }
 
@@ -97,7 +97,7 @@ ok all approx( med2df($pa,3,3,{Boundary=>'Truncate'})->slice("1:-2,1:-2"), $pa->
 my $pa = ones(5,5);
 my $mask = zeroes(5,5);
 $mask->set(2,2,1);
-ok all approx( patch2d($pa,$mask), $pa ), "patch2d 1-element no-op";  # 6
+ok all( approx( patch2d($pa,$mask), $pa )), "patch2d 1-element no-op";  # 6
 
 # note:
 #   with no bad values, any bad pixel which has no good neighbours
@@ -107,7 +107,7 @@ my $m = $mask->slice('1:3,1:3');
 $m .= 1;
 my $pans = $pa->copy;
 note $pa, $mask, patch2d($pa,$mask);
-ok all approx( patch2d($pa,$mask), $pans), "patch2d 2d slice no-op";  # 7
+ok all( approx( patch2d($pa,$mask), $pans)), "patch2d 2d slice no-op";  # 7
 
 SKIP: {
     skip "PDL::Bad support not available.", 5 unless $PDL::Bad::Status;
@@ -123,12 +123,12 @@ SKIP: {
     $ans->badflag(1);
 
     #note $pa, patchbad2d($pa);
-    ok all approx( patchbad2d($pa), $ans ), "patchbad2d";  # 8
+    ok all( approx( patchbad2d($pa), $ans )), "patchbad2d";  # 8
 
     # patchbad2d: good data
     $pa = sequence(5,5);
     #note $pa, patchbad2d($pa);
-    ok all approx( patchbad2d($pa), $pa ), "patchbad2d good data";  # 9
+    ok all( approx( patchbad2d($pa), $pa )), "patchbad2d good data";  # 9
 
     # max2d_ind
     $pa = 100 / (1.0 + rvals(5,5));
@@ -143,8 +143,8 @@ SKIP: {
     $pa = 100.0 / rvals( 20, 20, { Centre => [ 8, 12.5 ] } );
     $pa = $pa->setbadif( $pa < 9 );
     @ans = $pa->centroid2d( 10, 10, 20 );
-    ok all approx( $ans[0], 8.432946), "centroid2d bad data (0)";  # numbers should be same as when set < 9 to 0
-    ok all approx( $ans[1], 11.756724), "centroid2d bad data (1)";
+    ok all( approx( $ans[0], 8.432946)), "centroid2d bad data (0)";  # numbers should be same as when set < 9 to 0
+    ok all( approx( $ans[1], 11.756724)), "centroid2d bad data (1)";
 }
 
 }
@@ -158,15 +158,15 @@ my $bav = $one->box2d(3,3,0);
 my $boxav = $box->box2d(3,3,0);
 
 # all 2D averages should be the same
-ok all approx($bav->sum,$boxav->clump(2)->sumover), "box2d";
+ok all( approx($bav->sum,$boxav->clump(2)->sumover)), "box2d";
 }
 
 {
 # cc8compt & cc4compt
 {
 my $pa = pdl([0,1,1,0,1],[1,0,1,0,0],[0,0,0,1,0],[1,0,0,0,0],[0,1,0,1,1]);
-ok(cc8compt($pa)->max == 4);
-ok(cc4compt($pa)->max == 7);
+is(cc8compt($pa)->max, 4, 'cc8compt');
+is(cc4compt($pa)->max, 7, 'cc4compt');
 dies_ok { ccNcompt($pa,5); } "ccNcompt(5) fails";
 lives_ok { ccNcompt($pa,8) } "ccNcompt(8) succeeds";
 }

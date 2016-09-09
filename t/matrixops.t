@@ -1,5 +1,5 @@
 use PDL::LiteF;
-use Test::More tests => 40;
+use Test::More tests => 38;
 use Test::Exception;
 use Config;
 
@@ -184,8 +184,8 @@ ok($esum == 61.308,"eigens sum for 8x8 correct answer");
 my $esum=0;
 lives_ok {
     $esum = sprintf "%.3f", sum scalar eigens_sym($m);
-};
-ok($esum == 61.308);
+} "eigens_sym for 8x8 ran OK";
+is($esum, 61.308, 'eigens_sym sum for 8x8 correct answer');
 }
 
 {
@@ -200,14 +200,6 @@ lives_ok {
 };
 ok($esum == 5);
 }
-}
-
-{
-my $esum = 0;
-lives_ok {
-    $esum = sprintf "%.3f", sum scalar eigens_sym($m);
-} "eigens_sym for 8x8 ran OK";
-ok($esum == 61.308, "eigens_sym sum for 8x8 correct answer");
 }
 
 }

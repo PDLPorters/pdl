@@ -37,7 +37,7 @@ my $pi = 4*atan2(1,1);
 
 my $pe = $pb * $pi;
 is($pe->get_datatype, $PDL_D, "E promoted to double (needed to represent result)");
-note "E ($pb * $pi) is $pe";
+note "E ($pb * PI) is $pe";
 
 my $pf = $pb * "-2.2";
 is($pf->get_datatype, $PDL_D, "F check string handling");
