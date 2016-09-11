@@ -18,7 +18,7 @@ Currently, multiple matches are not handled very well.
 
 =head1 SYNOPSIS
 
- use PDL::Doc::Perldl; # Load all documenation functions
+ use PDL::Doc::Perldl; # Load all documentation functions
 
 =head1 BUGS
 
