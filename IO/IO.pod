@@ -210,7 +210,7 @@ Perl's GD bindings installed.
 A CPAN module last updated in 2000 that allows you to read Grib files.
 GRIB is a data format commonly used in meteorology.  In the off-chance
 that you have it installed, you should L<read PDL::IO::Grib's
-documenation|PDL::IO::Grib>.
+documentation|PDL::IO::Grib>.
 
 =head2 PDL::IO::HDF, PDL::IO::HDF5
 

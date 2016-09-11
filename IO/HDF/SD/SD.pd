@@ -94,7 +94,7 @@ has been changed. If your code used to work with the circa 2002 version of this
 module, and does not work anymore, reading the 'Changes' is your best bet.
 
 In the documentation, the terms dataset and SDS (Scientific Data Set) are used
-interchangably.
+interchangeably.
 
 =cut
 
