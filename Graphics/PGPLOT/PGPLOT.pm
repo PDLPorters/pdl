@@ -58,7 +58,7 @@ Device manipulation commands:
  dev          -  Explicitly set a new PGPLOT graphics device
  new_window   -  Create a new plot window (use of dev is recommended)
  focus_window -  Change focus to a new window
- window_list  -  Get a list of currently exisiting plot windows
+ window_list  -  Get a list of currently existing plot windows
  close_window -  Close an open window
 
 

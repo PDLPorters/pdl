@@ -692,7 +692,7 @@ Similar to L<isfinite|PDL::Math/isfinite>.
 
 =for bad
 
-This method works with input piddles that are bad. The ouptut piddle
+This method works with input piddles that are bad. The output piddle
 will never contain bad values, but its bad value flag will be the
 same as the input piddle's flag.
 
@@ -733,7 +733,7 @@ Also see L<isfinite|PDL::Math/isfinite>.
 
 =for bad
 
-This method works with input piddles that are bad. The ouptut piddle
+This method works with input piddles that are bad. The output piddle
 will never contain bad values, but its bad value flag will be the
 same as the input piddle's flag.
 
@@ -778,7 +778,7 @@ it is possible to perform this calculation over I<any> dimension.
 
 =for bad
 
-nbadover processes input values that are bad. The ouput piddle will not have
+nbadover processes input values that are bad. The output piddle will not have
 any bad values, but the bad flag will be set if the input piddle had its bad
 flag set.
 
@@ -824,7 +824,7 @@ I<any> dimension.
 
 =for bad
 
-ngoodover processes input values that are bad. The ouput piddle will not have
+ngoodover processes input values that are bad. The output piddle will not have
 any bad values, but the bad flag will be set if the input piddle had its bad
 flag set.
 
@@ -921,7 +921,7 @@ probably mainly useful in test scripts!
 
 This method can be called on piddles that have bad values.
 The remainder of the arguments should be Perl scalars indicating
-the position to set as bad. The ouptut piddle will have bad values
+the position to set as bad. The output piddle will have bad values
 and will have its badflag turned on.
 
 =cut

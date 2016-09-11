@@ -363,7 +363,7 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	free(tp);
 	free(tparg);
 
-	// handle any errors that may have occured in the worker threads I reset the
+	// handle any errors that may have occurred in the worker threads I reset the
 	// length before actually barfing/warning because barf() may not come back.
 	// In that case, I'll have len==0, but an unfreed pointer. This memory will
 	// be reclaimed the next time we barf/warn something (since I'm using

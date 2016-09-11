@@ -420,7 +420,7 @@ void pdl_dump_flags_fixspace(int flags, int nspac, int type)
 	printf("\n");
 }
 
-/* Dump a tranformation (don't dump the pdls, just pointers to them */
+/* Dump a transformation (don't dump the pdls, just pointers to them */
 void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	int i;
 	char spaces[PDL_MAXSPACE];

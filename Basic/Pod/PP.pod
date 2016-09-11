@@ -1389,7 +1389,7 @@ threading dimensions. Of course, the temporary piddle C<work> (note the
 You can also use C<RedoDimsCode> to set the dimension of a
 piddle flagged with [o]. In this case you set the dimensions
 for the named dimension in the signature using $SIZE() as in
-the preceeding example.  However, because the piddle is
+the preceding example.  However, because the piddle is
 flagged with [o] instead of [t], threading dimensions will
 be added if required just as if the size of the dimension
 were computed from the signature according to the usual
@@ -2080,7 +2080,7 @@ rather stilted; it may be much better to do it yourself!
 =item NoPthread
 
 Optional flag to indicate the PDL function should B<not> use processor threads (i.e.
-pthreads or POSIX threads) to split up work across mutliple CPU cores. This option
+pthreads or POSIX threads) to split up work across multiple CPU cores. This option
 is typically set to 1 if the underlying PDL function is not threadsafe. If this option
 isn't present, then the function is assumed to be threadsafe. This option only
 applies if PDL has been compiled with POSIX threads enabled. 

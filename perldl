@@ -868,7 +868,7 @@ In multiline mode (which is enabled by default, see B<Shell
 variables>, below), B<perldl> searches for searches for block-like
 constructs with curly braces, parentheses, quotes, and related
 delimiters.  If you leave such a construct open, B<perldl> accepts more
-lines of input until you close the construct or explictly end the multi-line
+lines of input until you close the construct or explicitly end the multi-line
 expression with ^D.   Following the example above, the phrase
 
   { print "Hello ",
@@ -1038,7 +1038,7 @@ To set even more local defaults the file  F<local.perldlrc> (in the current
 directory) is sourced if found. This lets you load modules and define
 subroutines for the project in the current directory.
 
-The name is chosen specfically because it was found hidden files were
+The name is chosen specifically because it was found hidden files were
 NOT wanted in these circumstances.
 
 The startup file should normally include "use PDL::AutoLoader;", as 

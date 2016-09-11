@@ -26,10 +26,10 @@ sub gslmroot_fsolver{
 
 pp_def('fsolver_meat',
         Pars => 'double  xfree(n);   double epsabs(); int method();',
-        OtherPars => 'SV* funcion1;',
+        OtherPars => 'SV* function1;',
         Docs => undef,
         Code =>'
-ext_funname1 = $COMP(funcion1);
+ext_funname1 = $COMP(function1);
 ene = $SIZE(n);
 fsolver($P(xfree), $SIZE(n),  $epsabs(), $method()); 
 ');  

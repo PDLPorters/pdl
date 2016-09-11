@@ -83,7 +83,7 @@ act q|
 |;
 
 act q|
-    # 2D data can also easily be accomodated:
+    # 2D data can also easily be accommodated:
 
     # First make a simple image
     $gradient=sequence(40,40);

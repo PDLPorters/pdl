@@ -579,7 +579,7 @@ pp_def('qng_meat',
         Pars => 'double a(); double b(); double epsabs();
                    double epsrel(); double [o] result(); double [o] abserr(); 
                    int [o] neval(); int [o] ierr(); int gslwarn()',
-	OtherPars => 'SV* funcion;',
+	OtherPars => 'SV* function;',
         Docs => undef,
         Code => '
 gsl_error_handler_t * old_handler;
@@ -587,7 +587,7 @@ if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 $ierr() = gsl_integration_qng(&F,$a(),$b(),$epsabs(),$epsrel(),$P(result),$P(abserr),(size_t *) $P(neval));
@@ -612,7 +612,7 @@ sub gslinteg_qag{
 pp_def('qag_meat',
         Pars => 'double a(); double b(); double epsabs();double epsrel(); int limit();
 	           int key(); double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
-        OtherPars => 'SV* funcion;',
+        OtherPars => 'SV* function;',
         Docs => undef,
         Code =>'
 gsl_error_handler_t * old_handler;
@@ -621,7 +621,7 @@ else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -648,7 +648,7 @@ sub gslinteg_qags{
 pp_def('qags_meat',
         Pars => 'double a(); double b(); double epsabs();double epsrel(); int limit();
 	           double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
-        OtherPars => 'SV* funcion;',
+        OtherPars => 'SV* function;',
         Docs => undef,
         Code =>'
 gsl_error_handler_t * old_handler;
@@ -657,7 +657,7 @@ else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -684,7 +684,7 @@ sub gslinteg_qagp{
 pp_def('qagp_meat',
         Pars => 'double pts(l); double epsabs();double epsrel();int limit();
 		   double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
-	OtherPars => 'SV* funcion;',
+	OtherPars => 'SV* function;',
 	Code =>'
 gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
@@ -692,7 +692,7 @@ else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -719,7 +719,7 @@ sub gslinteg_qagi{
 pp_def('qagi_meat',
         Pars => 'double epsabs();double epsrel(); int limit();
 		   double [o] result(); double [o] abserr(); int n(); int [o] ierr();int gslwarn();',
-        OtherPars => 'SV* funcion;',
+        OtherPars => 'SV* function;',
 	Code =>'
 gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
@@ -727,7 +727,7 @@ else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -754,7 +754,7 @@ sub gslinteg_qagiu{
 pp_def('qagiu_meat',
         Pars => 'double a(); double epsabs();double epsrel();int limit();
 		   double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
-        OtherPars => 'SV* funcion;',
+        OtherPars => 'SV* function;',
         Docs => undef,
 	Code =>'
 gsl_error_handler_t * old_handler;
@@ -763,7 +763,7 @@ else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -790,7 +790,7 @@ sub gslinteg_qagil{
 pp_def('qagil_meat',
         Pars => 'double b(); double epsabs();double epsrel();int limit();
 		   double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
-        OtherPars => 'SV* funcion;',
+        OtherPars => 'SV* function;',
         Docs => undef,
 	Code =>'
 gsl_error_handler_t * old_handler;
@@ -799,7 +799,7 @@ else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -826,7 +826,7 @@ sub gslinteg_qawc{
 pp_def('qawc_meat',
         Pars => 'double a(); double b(); double c(); double epsabs();double epsrel();int limit();
 	           double [o] result(); double [o] abserr();int n();int [o] ierr();int gslwarn();',
-	OtherPars => 'SV* funcion;',
+	OtherPars => 'SV* function;',
 	Code =>'
 gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
@@ -834,7 +834,7 @@ else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -862,7 +862,7 @@ pp_def('qaws_meat',
         Pars => 'double a(); double b();double epsabs();double epsrel();int limit();
 	         double [o] result(); double [o] abserr();int n();
 		 double alpha(); double beta(); int mu(); int nu();int [o] ierr();int gslwarn();',
-        OtherPars => 'SV* funcion;',
+        OtherPars => 'SV* function;',
 	Code => '
 gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
@@ -874,7 +874,7 @@ qtab = gsl_integration_qaws_table_alloc($alpha(),$beta(),$mu(),$nu());
 
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -910,7 +910,7 @@ pp_def('qawo_meat',
 	Pars => 'double a(); double b();double epsabs();double epsrel();int limit();
 	         double [o] result(); double [o] abserr();int n();
 		 int sincosopt(); double omega(); double L(); int nlevels();int [o] ierr();int gslwarn();',
-	OtherPars =>  'SV* funcion;',
+	OtherPars =>  'SV* function;',
 	Code => '
 gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
@@ -926,7 +926,7 @@ qtab = gsl_integration_qawo_table_alloc($omega(),$L(),T,(size_t) $nlevels());
 
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
@@ -961,7 +961,7 @@ pp_def('qawf_meat',
 	Pars => 'double a(); double epsabs();int limit();
 		 double [o] result(); double [o] abserr();int n();
 		 int sincosopt(); double omega(); int nlevels();int [o] ierr();int gslwarn();',
-	OtherPars => 'SV* funcion;',
+	OtherPars => 'SV* function;',
 	Code => '
 gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
@@ -978,7 +978,7 @@ qtab = gsl_integration_qawo_table_alloc($omega(),1.,T,(size_t) $nlevels());
 
 current_fun++;
 if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(funcion);
+ext_funname[current_fun] = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 

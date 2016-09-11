@@ -112,7 +112,7 @@ unless( defined( $hdf_include_path ) ) {
           . "Please add the correct library path to Makefile.PL or install HDF\n";
 }
 
-# Set up architecture dependant stuff:
+# Set up architecture dependent stuff:
 # NOTE TO SELF: The main PDL developers may not like this...
 my $cpu = `uname -m`;
 chomp $cpu;

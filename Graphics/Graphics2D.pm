@@ -202,7 +202,7 @@ sub mouse_click {
    die "mouse_click: callback could not find image window\n" unless defined $img;
 
    # calculate zoom/aspect ratio factors
-   my $glds = 0; $glds = 1 if $img->dim(0) < 5;  # hack, need verify consistancy
+   my $glds = 0; $glds = 1 if $img->dim(0) < 5;  # hack, need verify consistency
 
    my $zoom_x = $width / $img->dim($glds+0);
    my $zoom_y = $height / $img->dim($glds+1);
@@ -257,7 +257,7 @@ sub resize_window {
    die "resize_window: callback could not find image window\n" unless defined $img;
 
    # calculate zoom/aspect ratio factors
-   my $glds = 0; $glds = 1 if $img->dim(0) < 5;  # hack, need verify consistancy
+   my $glds = 0; $glds = 1 if $img->dim(0) < 5;  # hack, need verify consistency
 
    my $zoom_x = $width / $img->dim($glds+0);
    my $zoom_y = $height / $img->dim($glds+1);

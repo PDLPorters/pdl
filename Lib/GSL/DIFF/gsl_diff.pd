@@ -138,10 +138,10 @@ pp_add_exported('gsldiff');
 
 pp_def('diff_central', 
 	Pars => 'double x(); double [o] res(); double [o] abserr();',
-	OtherPars => 'SV* funcion;',
+	OtherPars => 'SV* function;',
  	Docs => undef,
 	Code => '
-ext_funname = $COMP(funcion);
+ext_funname = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 gsl_diff_central (&F, $x(), $P(res), $P(abserr));
@@ -149,10 +149,10 @@ gsl_diff_central (&F, $x(), $P(res), $P(abserr));
 
 pp_def('diff_backward', 
 	Pars => 'double x(); double [o] res(); double [o] abserr();',
-	OtherPars => 'SV* funcion;',
+	OtherPars => 'SV* function;',
         Docs => undef,
 	Code => '
-ext_funname = $COMP(funcion);
+ext_funname = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 gsl_diff_backward (&F, $x(), $P(res), $P(abserr));
@@ -160,10 +160,10 @@ gsl_diff_backward (&F, $x(), $P(res), $P(abserr));
 
 pp_def('diff_forward', 
 	Pars => 'double x(); double [o] res(); double [o] abserr();',
-	OtherPars => 'SV* funcion;',
+	OtherPars => 'SV* function;',
 	Docs => undef,
 	Code => '
-ext_funname = $COMP(funcion);
+ext_funname = $COMP(function);
 F.function = &FUNC;
 F.params = 0;
 gsl_diff_forward (&F, $x(), $P(res), $P(abserr));

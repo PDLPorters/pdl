@@ -50,7 +50,7 @@ integration and gradient estimation.
 Throughout this documentation, C<$x> and C<$y> refer to the function
 to be interpolated whilst C<$xi> and C<$yi> are the interpolated values.
 
-The avaliable types, or I<schemes>, of interpolation are listed below.
+The available types, or I<schemes>, of interpolation are listed below.
 Also given are the valid attributes for each scheme: the flag value
 indicates whether it can be set (s), got (g), and if it is
 required (r) for the method to work.
@@ -922,7 +922,7 @@ interpolation routines, such as those provided by the
 Gnu Scientific Library (GSL), or the B-spline routines
 in the SLATEC library.
 
-In the documentation, the methods are preceeded by C<PDL::Func::>
+In the documentation, the methods are preceded by C<PDL::Func::>
 to avoid clashes with functions such as C<set> when using
 the C<help> or C<apropos> commands within I<perldl> or I<pdl2>.
 

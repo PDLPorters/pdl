@@ -38,7 +38,7 @@ options to the command.
 
 If you know the order in which you inserted commands they can be removed
 by calling C<remove> with the number in the stack. No further interaction
-is implmented except C<clear> which clears the stack and C<copy> which
+is implemented except C<clear> which clears the stack and C<copy> which
 returns a "deep" copy of the state.
 
 

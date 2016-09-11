@@ -379,7 +379,7 @@ documented along these lines should have is the I<Ref> field preceding
 a one line description of its intended functionality (suitable for
 inclusion in a concise reference card). PP defined functions (see L<PDL::PP>)
 should have a I<Sig> field stating their signature. To facilitate
-maintainance of this documentation for such functions the 'Doc' field
+maintenance of this documentation for such functions the 'Doc' field
 has been introduced into the definition of C<pp_def> (see again L<PDL::PP>)
 which will take care that name and signature of the so defined function
 are documented in this way (for examples of this usage see, for example,

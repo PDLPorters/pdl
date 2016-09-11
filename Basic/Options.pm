@@ -930,7 +930,7 @@ the second uses the object-oriented interface.
 		  }
 		);
 
-This will return a hash containg
+This will return a hash containing
 
     %options = (
                  LINE => 1,

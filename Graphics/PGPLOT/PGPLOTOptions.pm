@@ -18,7 +18,7 @@ file reading commands etc.
 The following is a listing of options that are set in this file and what
 they do and what their default value is
 
-=head2 Window specfic options
+=head2 Window specific options
 
 These options modify the appearance of windows and can also modify the
 default settings for creation of plot axes etc.

@@ -842,7 +842,7 @@ test if a is in the set of values b
    print pdl(3,1,4,6,2)->in(pdl(2,3,3));
   [1 0 0 0 1]
 
-C<in> is akin to the I<is an element of> of set theory. In priciple,
+C<in> is akin to the I<is an element of> of set theory. In principle,
 PDL threading could be used to achieve its functionality by using a
 construct like
 
@@ -1034,7 +1034,7 @@ higher dimensions are taken to run across vectors. The return
 value is always 2D; any structure of the input PDL (beyond using
 the 0th dimension for vector index) is lost.
 
-See also L<uniq|uniq> for a uniqe list of scalars; and
+See also L<uniq|uniq> for a unique list of scalars; and
 L<qsortvec|PDL::Ufunc/qsortvec> for sorting a list of vectors
 lexicographcally.
 
@@ -3752,7 +3752,7 @@ Finally find all odd squares:
   pdl> $odd_squares = setops($squares, 'AND', $odd)
 
 
-Another common occurance is to want to get all objects that are
+Another common occurrence is to want to get all objects that are
 in C<$a> and in the complement of C<$b>. But it is almost always best
 to create the complement explicitly since the universe that both are
 taken from is not known. Thus use L<which_both|which_both> if possible

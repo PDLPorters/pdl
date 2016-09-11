@@ -263,7 +263,7 @@ Whether to insert commas when printing pdls
 =over 4
 
 The default print format for floats, doubles, and indx values,
-repectively.  The default default values are:
+respectively.  The default default values are:
 
   $PDL::floatformat  = "%7g";
   $PDL::doubleformat = "%10.8g";
@@ -1488,7 +1488,7 @@ They do not have their own copy of
 data but instead store only access information to some (or all) of another
 piddle's data.
 
-Note: this function should not be used unless absolutely neccessary
+Note: this function should not be used unless absolutely necessary
 since otherwise memory requirements might be severly increased. Instead
 of writing your own XS code with the need to call C<make_physical> you
 might want to consider using the PDL preprocessor
@@ -3029,7 +3029,7 @@ Set a single value inside a piddle
 C<@position> is a coordinate list, of size equal to the
 number of dimensions in the piddle. Occasionally useful,
 mainly provided for backwards compatibility as superseded
-by use of L<slice|PDL::Slices/slice> and assigment operator C<.=>.
+by use of L<slice|PDL::Slices/slice> and assignment operator C<.=>.
 
 =for example
 

@@ -300,7 +300,7 @@ sub PDL::zlogvals {
 =for ref
 
 Synonym for L<ndcoords|ndcoords> - enumerates all coordinates in a
-PDL or dim list, adding an extra dim on the front to accomodate
+PDL or dim list, adding an extra dim on the front to accommodate
 the vector coordinate index (the form expected by L<indexND|indexND>,
 L<range|range>, and L<interpND|interpND>).  See L<ndcoords|ndcoords> for more detail.
 

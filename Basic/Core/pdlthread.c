@@ -45,7 +45,7 @@ void dump_thread(pdl_thread *thread) {
   printf("DUMPTHREAD %p \n",(void*)thread);
   if (0&& thread->einfo) {
     psp; printf("Funcname: %s\n",thread->einfo->funcname);
-    psp; printf("Paramaters: ");
+    psp; printf("Parameters: ");
     for (i=0;i<thread->einfo->nparamnames;i++)
       printf("%s ",thread->einfo->paramnames[i]);
     printf("\n");
