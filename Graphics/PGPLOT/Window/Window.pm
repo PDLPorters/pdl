@@ -196,7 +196,7 @@ The following
 will make a broad arrow of five times the normal size.
 
 Alternatively the arrow can be specified as a set of numbers
-corresponding to an extention to the syntax for pgsah. The equivalent to
+corresponding to an extension to the syntax for pgsah. The equivalent to
 the above is
 
  $opt = {ARROW => pdl([1, 60, 0.3, 5})};
@@ -357,7 +357,7 @@ The HardColour option should be used if you are plotting to a hardcopy device
 
 =item diraxis
 
-This sets the direction of the axes of a plot or image, when you don't explitly
+This sets the direction of the axes of a plot or image, when you don't explicitly
 set them with the XRange and YRange options.  It's particularly useful when
 you want (for example) to put long wavelengths (larger numbers) on the left
 hand side of your plot, or when you want to plot an image in (RA,dec)
@@ -1263,7 +1263,7 @@ coordinate system by saying:
 
 The identity transform is used if you select a mapping for which there is
 no information in the header.
-Please note that this suport is B<experimental> and is not guaranteed
+Please note that this support is B<experimental> and is not guaranteed
 to work correctly; please see the documentation for the L<_FITS_tr|/_FITS_tr>
 routine for more information.
 
@@ -1326,7 +1326,7 @@ Which side of the image to draw the wedge: can be one of 'B', 'L', 'T', or
 
 =item Displacement
 
-How far from the egde of the image should the wedge be drawn, in units of character
+How far from the edge of the image should the wedge be drawn, in units of character
 size. To draw within the image use a negative value. Default is B<1.5>.
 
 =item Width
@@ -1530,7 +1530,7 @@ The following standard options influence this command:
  AXIS, BORDER, CHARSIZE, COLOUR, LINESTYLE, LINEWIDTH,
  JUSTIFY, SCALE, PIX, PITCH, ALIGN
 
-C<SymbolSize> allows to adjust the symbol size, it defaults to CharSize.
+C<SymbolSize> allows adjusting the symbol size, it defaults to CharSize.
 
 The C<ColorValues> option allows one to plot XYZ data with the
 Z axis mapped to a color value.  For example:
@@ -2277,7 +2277,7 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 #
 # You call catch_signals with no arguments.  INT and __DIE__ signals
 # are sent to the signal_catcher, and released, not necessarily in
-# the order they occured, by release_signals.
+# the order they occurred, by release_signals.
 #
 # To avoid problems with nested &catch_signals and &release_signals calls,
 # a variable keeps track of balancing the two.  Ideally, no signals would
@@ -3677,7 +3677,7 @@ sub _standard_options_parser {
   if (exists($o->{Hatch})) {
     my $val = $o->{Hatch};
     if (!defined($val) || lc($val) eq 'default') {
-      pgshs();			# Default values are either specfied by HATCH=>undef or HATCH=>'default'
+      pgshs();			# Default values are either specified by HATCH=>undef or HATCH=>'default'
     } else {
       #
       # Can either be specified as numbers or as a hash...
@@ -4082,7 +4082,7 @@ sub _image_xyrange {
   ##############################
   ## Because the transform is an inhomogeneous scale-and-rotate,
   ## the limiting points are always the corners of the original
-  ## physical data plane after transformation.  We just tranform
+  ## physical data plane after transformation.  We just transform
   ## the four corners of the data (in evil homogeneous FORTRAN
   ## origin-at-1 coordinates) and find the minimum and maximum
   ## X and Y values of 'em all.

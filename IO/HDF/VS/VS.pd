@@ -14,9 +14,9 @@ PDL::IO::HDF - An interface library for HDF4 files.
 =head1 DESCRIPTION
 
 This librairy provide functions to manipulate
-HDF4 files with VS and V interface (reading, writting, ...)
+HDF4 files with VS and V interface (reading, writing, ...)
 
-For more infomation on HDF4, see http://www.hdfgroup.org/products/hdf4/
+For more information on HDF4, see http://www.hdfgroup.org/products/hdf4/
 
 =head1 FUNCTIONS
 

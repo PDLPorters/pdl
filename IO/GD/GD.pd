@@ -91,7 +91,7 @@ pp_def( 'write_png',
         Pars => 'byte img(x,y); byte lut(i,j);',
         OtherPars => 'char* filename',
         Doc => <<'ENDDOC',
-Writes a 2-d PDL varable out to a PNG file, using the supplied color look-up-table piddle
+Writes a 2-d PDL variable out to a PNG file, using the supplied color look-up-table piddle
 (hereafter referred to as a LUT).
 
 The LUT contains a line for each value 0-255 with a corresponding R, G, and B value.
@@ -150,7 +150,7 @@ pp_def( 'write_png_ex',
         Pars => 'img(x,y); lut(i,j);',
         OtherPars => 'char* filename; int level',
         Doc => <<'ENDDOC',
-Same as write_png(), except you can specify the compression level (0-9) as the last arguement.
+Same as write_png(), except you can specify the compression level (0-9) as the last argument.
 ENDDOC
         Code => <<'EOC' );
 
@@ -211,7 +211,7 @@ pp_def( 'write_true_png',
         Pars => 'img(x,y,z);',
         OtherPars => 'char* filename',
         Doc => <<'ENDDOC',
-Writes an (x, y, z(3)) PDL varable out to a PNG file, using a true color format.
+Writes an (x, y, z(3)) PDL variable out to a PNG file, using a true color format.
 
 This means a larger file on disk, but can contain more than 256 colors.
 ENDDOC
@@ -259,7 +259,7 @@ pp_def( 'write_true_png_ex',
         Pars => 'img(x,y,z);',
         OtherPars => 'char* filename; int level',
         Doc => <<'ENDDOC',
-Same as write_true_png(), except you can specify the compression level (0-9) as the last arguement.
+Same as write_true_png(), except you can specify the compression level (0-9) as the last argument.
 ENDDOC
         Code => <<'EOC' );
 
@@ -2050,7 +2050,7 @@ ENDSHORTCODE
 } # End of generate_pp_def_members...
 
 #
-# Functions not specific to one object, but that need to take objects as arguements:
+# Functions not specific to one object, but that need to take objects as arguments:
 #
 sub generate_class_functions
 {

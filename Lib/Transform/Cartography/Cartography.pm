@@ -2519,7 +2519,7 @@ sub t_vertical {
 (Cartography) Arbitrary perspective projection 
 
 Perspective projection onto a focal plane from an arbitrary location
-within or without the sphere, with an arbitary central look direction,
+within or without the sphere, with an arbitrary central look direction,
 and with correction for magnification within the optical system.
 
 In the forward direction, t_perspective generates perspective views of
@@ -2541,7 +2541,7 @@ magnification of your camera, a simple rule of thumb is that the
 magnification of a reflective telescope is roughly its focal length
 (plate scale) divided by its physical length; and the magnification of 
 a compound refractive telescope is roughly twice its physical length divided 
-by its focal length.  Simple optical sytems with a single optic have
+by its focal length.  Simple optical systems with a single optic have
 magnification = 1.  Fisheye lenses have magnification < 1.
 
 This transformation was derived by direct geometrical calculation

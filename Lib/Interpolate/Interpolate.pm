@@ -30,7 +30,7 @@ object, supplying it with its required attributes.
 
 =head1 LIBRARIES
 
-Currently, the avaliable classes are
+Currently, the available classes are
 
 =over 4
 

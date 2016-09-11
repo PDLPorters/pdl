@@ -339,7 +339,7 @@ sub PDL::wpnm {
 
 The stderr of the converters is redirected to a file. The filename is
 currently generated in a probably non-portable way. A method that avoids
-a file (and is portable) would be prefered.
+a file (and is portable) would be preferred.
 
 C<rpnm> currently relies on the fact that the header is separated
 from the image data by a newline. This is not required by the p[bgp]m

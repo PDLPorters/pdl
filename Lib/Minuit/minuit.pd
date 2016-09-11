@@ -36,7 +36,7 @@ of the CERN Library)
 
 A basic fit with Minuit will call three functions in this package. First, a basic
 initialization is done with mn_init(). Then, the parameters are defined via
-the function mn_def_pars(), which allows to set upper and lower bounds. Then
+the function mn_def_pars(), which allows setting upper and lower bounds. Then
 the function mn_excm() can be used to issue many Minuit commands, including simplex
 and migrad minimization algorithms (see Minuit manual for more details).
 
@@ -215,12 +215,12 @@ sub mn_excm{
 
 pp_def('mnexcm',
 	Pars =>'double a(n); int ia(); int [o] ib();',
-	OtherPars => 'char* str; SV* funcion; int numelem;',
+	OtherPars => 'char* str; SV* function; int numelem;',
 	Code => 'double zero;
         int largo; largo=strlen($COMP(str));
         ene = $COMP(numelem);
 	zero = 0.0;
-	mnfunname = $COMP(funcion);
+	mnfunname = $COMP(function);
         MNEXCM(FCN,$COMP(str),$P(a),$P(ia),$P(ib),&zero,largo); 
        ');
 
@@ -369,10 +369,10 @@ pp_addpm('
 
 pp_def('mncont',
         Pars => 'int ia(); int ib(); int ic(); double [o] a(n); double [o] b(n); int [o] id();',
-        OtherPars => 'SV* funcion; int numelem;',
+        OtherPars => 'SV* function; int numelem;',
         Code => ' double zero;
 	zero = 0.0; 
-        mnfunname = $COMP(funcion);
+        mnfunname = $COMP(function);
 	ene = $COMP(numelem);
         MNCONT(FCN,$P(ia),$P(ib),$P(ic),$P(a),$P(b),$P(id),&zero);
        ');
@@ -399,7 +399,7 @@ the function gradient.
 There are three optional arguments to mn_init(). By default, the output of Minuit
 will come through STDOUT unless a filename $logfile is given
 in the Log option. Note that this will mercilessly erase $logfile
-if it already exists. Aditionally, a title can be given to the fit
+if it already exists. Additionally, a title can be given to the fit
 by the Title option, the default is 'Minuit Fit'. If the output is
 written to a logfile, this is assigned Fortran unit number 88. If for
 whatever reason you want to have control over the unit number
@@ -446,7 +446,7 @@ Example:
 The function mn_def_pars() defines the initial values of the parameters of the function to 
 be minimized and the value of the initial steps around these values that the 
 minimizer will use for the first variations of the parameters in the search for the minimum.
-There are several optional arguments. One allows to assign names to these parameters which 
+There are several optional arguments. One allows assigning names to these parameters which 
 otherwise get names (Par_0, Par_1,....,Par_n) by default. Another two arguments can give
 lower and upper bounds for the parameters via two piddles. If the lower and upper bound for a 
 given parameter are both equal to 0 then the parameter is unbound. By default these lower and
@@ -485,12 +485,12 @@ Example:
  #use mn_def_pars with default parameter names (Par_0,Par_1,...)
  my $iflag = mn_def_pars($pars,$steps);
 
- #use of mn_def_pars explictly specify parameter names
+ #use of mn_def_pars explicitly specify parameter names
  $iflag = mn_def_pars($pars,$steps,{Names => \@names});
 
  # specify lower and upper bounds for the parameters. 
  # The example below leaves parameter 1 (intercept) unconstrained
- # and constrains parameter 2 (slope) to be betwen 0 and 100
+ # and constrains parameter 2 (slope) to be between 0 and 100
  my $lbounds = pdl(0, 0);
  my $ubounds = pdl(0, 100);
 
@@ -611,9 +611,9 @@ Usage:
 The function mn_contour() finds contours of the function being minimized
 with respect to two chosen parameters. The contour level is given by 
 F_min + UP, where F_min is the minimum of the function and UP is the ERRordef
-specfied by the user, or 1.0 by default (see Minuit manual). The contour
+specified by the user, or 1.0 by default (see Minuit manual). The contour
 calculated by this function is dynamic, in the sense that it represents the
-minimum of the funcion being minimized with respect to all the other NPAR-2 parameters
+minimum of the function being minimized with respect to all the other NPAR-2 parameters
 (if any).
 
 The function takes as input the parameter numbers with respect to which the contour

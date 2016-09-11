@@ -1290,7 +1290,7 @@ transform.
 
 =for usage
 
-  $b = $a->map($xform,[<template>],[\%opt]); # Distort $a with tranform $xform
+  $b = $a->map($xform,[<template>],[\%opt]); # Distort $a with transform $xform
   $b = $a->map(t_identity,[$pdl],[\%opt]); # rescale $a to match $pdl's dims.
 
 =for ref
@@ -2973,7 +2973,7 @@ pp_addpm(<<'+======EOD_t_scale======');
 
 Convenience interface to L<t_linear|/t_linear>.
 
-t_scale produces a tranform that scales around the origin by a fixed
+t_scale produces a transform that scales around the origin by a fixed
 amount.  It acts exactly the same as C<t_linear(Scale=>\<scale\>)>.
 
 =cut

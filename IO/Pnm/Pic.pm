@@ -421,7 +421,7 @@ e.g.
 =item LUT
 
 This is a palette image and the value of this key should be a
-pdl containg an RGB lookup table (3,x), e.g.
+pdl containing an RGB lookup table (3,x), e.g.
 
    LUT        => $lut,
 

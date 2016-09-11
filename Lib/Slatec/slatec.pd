@@ -904,7 +904,7 @@ monotonicity (data still valid).
 # can not say (nwk=2*n) --- the rhs has to equal a number
 # -> could Basic/Gen/PP/Dims.pm be hacked to allow this?
 #
-# I didn't have much success with preceeding wk by [t] 
+# I didn't have much success with preceding wk by [t] 
 #
 defslatec(
 	  'chic', {S => 'pchic', D => 'dpchic'},

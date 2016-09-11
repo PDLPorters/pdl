@@ -354,7 +354,7 @@ For example:
   4. LINES => '-1:0:3' may not work as you expect, since lines are skipped
      when read in, then the whole array reversed.
 
-  5. For consistancy with wcols and rcols 1D usage, column data is loaded
+  5. For consistency with wcols and rcols 1D usage, column data is loaded
      into the rows of the pdls (i.e., dim(0) is the elements read per column
      in the file and dim(1) is the number of columns of data read.
 

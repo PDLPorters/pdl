@@ -86,7 +86,7 @@ PDL::IO::HDF::SD - PDL interface to the HDF4 SD library.
 This library provides functions to read, write, and manipulate
 HDF4 files with HDF's SD interface.
 
-For more infomation on HDF4, see http://hdf.ncsa.uiuc.edu/
+For more information on HDF4, see http://hdf.ncsa.uiuc.edu/
 
 There have been a lot of changes starting with version 2.0, and these may affect 
 your code. PLEASE see the 'Changes' file for a detailed description of what 
@@ -1030,7 +1030,7 @@ sub SDgetcal
     
     Returns a PDL of data if ok, PDL::null on error.
     
-    If the slice arguements are not given, this function will read the entire
+    If the slice arguments are not given, this function will read the entire
         SDS from the file.
     
     The type of the returned PDL variable is the PDL equivalent of what was

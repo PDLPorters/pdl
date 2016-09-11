@@ -99,7 +99,7 @@ pp_addpm(<<'EOPM');
 Proj4 forward transformation $params is a string of the projection transformation
 parameters.
 
-Returns two pdls for x and y values respectively. The units are dependant on Proj4
+Returns two pdls for x and y values respectively. The units are dependent on Proj4
 behavior. They will be PDL->null if an error has occurred.
 
 BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements 
@@ -126,7 +126,7 @@ sub fwd_transform
 Proj4 inverse transformation $params is a string of the projection transformation
 parameters.
 
-Returns two pdls for lat and lon values respectively. The units are dependant on Proj4
+Returns two pdls for lat and lon values respectively. The units are dependent on Proj4
 behavior. They will be PDL->null if an error has occurred.
 
 BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements 
@@ -363,7 +363,7 @@ threadloop
                 sprintf(errstr, "%s: Projection conversion failed at (%f, %f): %s\n",
                         func, $lon(), $lat(), pj_strerrno(pj_errno));
                 fprintf( stderr, "%s", errstr );
-                fprintf( stderr, "%s: NOTE: Subsequent errors may have occured, but I'm only reporting the first!\n", func );   
+                fprintf( stderr, "%s: NOTE: Subsequent errors may have occurred, but I'm only reporting the first!\n", func );   
             }
         }
     }
@@ -565,7 +565,7 @@ threadloop
                 sprintf(errstr, "%s: Projection conversion failed at (%f, %f): %s\n",
                         func, $x(), $y(), pj_strerrno(pj_errno));
                 fprintf( stderr, "%s", errstr );
-                fprintf( stderr, "%s: NOTE: Subsequent errors may have occured, but I'm only reporting the first!\n", func );
+                fprintf( stderr, "%s: NOTE: Subsequent errors may have occurred, but I'm only reporting the first!\n", func );
             }
         }
     }
