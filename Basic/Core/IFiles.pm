@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Install::Files
+PDL::Install::Files -- Module for use by L<ExtUtils::Depends> and L<Inline>
 
 =head1 SYNOPSIS
 
