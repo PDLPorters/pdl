@@ -8,39 +8,42 @@ require PDL; # always needed to pick up PDL::VERSION
 $opt_v = 0;
 
 getopts('v');
-$dir = shift @ARGV;
+$dirarg = shift @ARGV;
 $outdb  = shift @ARGV;
 $outindex  = shift @ARGV;
 
-unless (defined $dir) {
-	($dir = $INC{'PDL.pm'}) =~ s/PDL\.pm$//i;
+unless (defined $dirarg) {
+	($dirarg = $INC{'PDL.pm'}) =~ s/PDL\.pm$//i;
 	umask 0022;
-	print "DIR = $dir\n";
+	print "DIR = $dirarg\n";
 }
+my @dirs = split /,/,$dirarg;
 unless (defined $outdb) {
-	$outdb = "$dir/PDL/pdldoc.db";
+	$outdb = "$dirs[0]/PDL/pdldoc.db";
 	print "DB  = $outdb\n";
 }
 
 $currdir = getcwd;
 
-chdir $dir or die "can't change to $dir";
-$dir = getcwd;
-
 unlink $outdb if -e $outdb;
 $onldc = new PDL::Doc();
 $onldc->outfile($outdb);
-$onldc->scantree($dir."/PDL",$opt_v);
-$onldc->scan($dir."/PDL.pm",$opt_v);
 
-chdir $currdir;
+foreach $dir (@dirs) {
+    chdir $dir or die "can't change to $dir";
+    $dir = getcwd;
+
+    $onldc->scantree($dir."/PDL",$opt_v);
+    $onldc->scan($dir."/PDL.pm",$opt_v) if (-s $dir."/PDL.pm");
+    chdir $currdir;
+}
 
 print STDERR "saving...\n";
 $onldc->savedb();
 @mods = $onldc->search('module:',['Ref'],1);
 @mans = $onldc->search('manual:',['Ref'],1);
 @scripts = $onldc->search('script:',['Ref'],1);
-$outdir = "$dir/PDL";
+$outdir = "$dirs[0]/PDL";
 # ($outdir = $INC{'PDL.pm'}) =~ s/\.pm$//i;
 $outindex="$outdir/Index.pod" unless (defined $outindex);
 unlink $outindex if -e $outindex;  # Handle read only file
