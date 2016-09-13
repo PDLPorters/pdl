@@ -266,7 +266,7 @@ sub myformat {
     return "[$list]";
   } elsif (ref $entry eq 'HASH') {
     my $list = join ",\n", (map {('"'.quotemeta($_).'" => "'.
-			       quotemeta($entry->{$_}).'"')} keys %$entry);
+			       quotemeta($entry->{$_}).'"')} sort keys %$entry);
     $list = "\n$list\n\t\t" unless $list =~ /^\s*$/;
     return "{$list}";
   } else {

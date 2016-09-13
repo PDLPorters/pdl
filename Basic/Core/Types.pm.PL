@@ -219,6 +219,7 @@ sub gentypehashcode {
   use Data::Dumper;
   local $Data::Dumper::Terse = 1;
   local $Data::Dumper::Indent = 1;
+  local $Data::Dumper::Sortkeys = 1;
   local $Data::Dumper::Pad = "\t\t";
   my $i = 0;
   my $perlcode = '';

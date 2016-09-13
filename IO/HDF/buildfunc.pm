@@ -82,7 +82,7 @@ sub create_low_level
         # Add the OUTPUT section:
         $xsout .= "OUTPUT:\n";
         $xsout .= "\tRETVAL\n";
-        foreach my $var ( keys %$output ) 
+        foreach my $var ( sort keys %$output ) 
         {
             $xsout .= "\t$var\n";
         }
