@@ -75,7 +75,7 @@ sub new {
         Name => $name,
     }, $type;
 
-    my $inccode = join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}});
+    my $inccode = join '',map {$_->get_incregisters();} (sort values %{$this->{ParObjs}});
 
     # First, separate the code into an array of C fragments (strings),
     # variable references (strings starting with $) and
@@ -165,7 +165,7 @@ sub new {
 
     # Then, in this form, put it together what we want the code to actually do.
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-    $this->{Code} = "{".(join '',values %$sizeprivs).
+    $this->{Code} = "{".(join '',sort values %$sizeprivs).
        $coderef->get_str($this,[])
        ."}";
     $this->{Code};
