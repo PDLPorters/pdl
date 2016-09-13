@@ -375,7 +375,7 @@ sub defslatec {
     my @talts = map { 
           defined $ftypes{$_} or die "FTYPE $_ NOT THERE\n";
           [$ftypes{$_},$fnames->{$_}] 
-    } keys %$fnames;
+    } sort keys %$fnames;
 
     my $func = "\$T".(join '',map {$_->[0]} @talts) . "(" . 
       (join ',',map {$_->[1].$uscore} @talts).")";

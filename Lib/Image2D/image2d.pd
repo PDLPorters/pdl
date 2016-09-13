@@ -137,7 +137,7 @@ my %pnpolyFields = (
 	'pnpolyfill_pp' => {'pars' => '[o,nc] a(m,n); ps(k,l); int col()', 'special' => 'if(c) { $a() = $col(); }'}
 );
 
-for my $name (keys %pnpolyFields) {
+for my $name (sort keys %pnpolyFields) {
 	pp_def($name,
 		HandleBad => 0,
 		PMFunc => '',

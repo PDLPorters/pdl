@@ -126,7 +126,7 @@ my %over =
      prodover => { name => 'product', op => '*=', init => 1, },
      );
 
-foreach my $func ( keys %over ) {
+foreach my $func ( sort keys %over ) {
 
     # creates $func and cumu$func functions
     # and d$func and dcumu$func functions, which
@@ -243,7 +243,7 @@ foreach my $func ( keys %over ) {
 
      );
 
-foreach my $func ( keys %over ) {
+foreach my $func ( sort keys %over ) {
 
     my $def   = $over{$func}{def};
     my $txt   = $over{$func}{txt};
