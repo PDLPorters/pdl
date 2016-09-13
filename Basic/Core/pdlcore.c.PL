@@ -971,7 +971,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 # Perl snippet autogenerates switch statement to distribute
 # pdl_setav calls...
 #
-  for my $type(sort keys %PDL_DATATYPES){
+  for my $type(typesrtkeys()){
     my $t2 = $PDL_DATATYPES{$type};
     $t2 =~ s/PDL_//;
     print OUT <<"!WITH!SUBS!";
@@ -1032,7 +1032,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
  */
 !NO!SUBS!
 
-for my $in ( keys %PDL_DATATYPES ) {
+for my $in ( typesrtkeys() ) {
 
   (my $type = $PDL_DATATYPES{$in}) =~ s/^PDL_//;
 
@@ -1092,7 +1092,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
         # the source PDL, switch_type gets the Perl name, ppsym gets
         # the symbol need to retrieve from a PDL_Anyval, and type_usenan is a
         # boolean indicating whether this type handles NaNs.
-        foreach my $switch_type (keys %PDL::Types::typehash) {
+        foreach my $switch_type ( typesrtkeys() ) {
 
 	    my $ctype = $PDL::Types::typehash{$switch_type}{ctype};
 	    my $stype = $PDL::Types::typehash{$switch_type}{ctype};

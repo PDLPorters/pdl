@@ -438,7 +438,7 @@ EOD
 # note: we export them to the PDL Core structure for use in
 #       other modules (eg Image2D)
 
-for (keys %PDL::Types::typehash) {
+for ( PDL::Types::typesrtkeys() ) {
     my $ctype = $PDL::Types::typehash{$_}{ctype};
     my $ppsym = $PDL::Types::typehash{$_}{ppsym};
 
@@ -1262,8 +1262,7 @@ Vectors with bad components should be moved to the end of the array:
 sub generic_qsortvec_ind {
     my $pdl = shift;
     my $ndim = shift;
-    return '$TBSULNQFD(pdl_qsortvec_ind_B,pdl_qsortvec_ind_S,pdl_qsortvec_ind_U,
-             pdl_qsortvec_ind_L,pdl_qsortvec_ind_N,pdl_qsortvec_ind_Q,pdl_qsortvec_ind_F,pdl_qsortvec_ind_D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
+    return '$TBSULNQFD(pdl_qsortvec_ind_B,pdl_qsortvec_ind_S,pdl_qsortvec_ind_U,pdl_qsortvec_ind_L,pdl_qsortvec_ind_N,pdl_qsortvec_ind_Q,pdl_qsortvec_ind_F,pdl_qsortvec_ind_D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
 }
 
 pp_def(

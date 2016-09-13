@@ -148,7 +148,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
 
 !NO!SUBS!
 
-for my $in ( keys %PDL_DATATYPES ) {
+for my $in ( PDL::Types::typesrtkeys() ) {
 
   (my $type = $PDL_DATATYPES{$in}) =~ s/^PDL_//;
   print OUT <<"!WITH!SUBS!";
@@ -351,7 +351,7 @@ double NaN_double;
     # file
     require "Types.pm";  # ie PDL::Types
 
-for (keys %PDL::Types::typehash) {
+for (PDL::Types::typesrtkeys()) {
    my $ctype = $PDL::Types::typehash{$_}{ctype};
    my $ppsym = $PDL::Types::typehash{$_}{ppsym};
 

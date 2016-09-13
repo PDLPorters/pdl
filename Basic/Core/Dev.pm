@@ -311,7 +311,7 @@ sub flushgeneric {  # Construct the generic code switch
 
    print $indent,"switch ($loopvar) {\n\n";
 
-   for $case (keys %PDL_DATATYPES) {
+   for $case (PDL::Types::typesrtkeys()){
 
      $type = $PDL_DATATYPES{$case};
 
