@@ -38,7 +38,7 @@ pp_def('gsl_sf_coupling_6j',
        Pars=>'ja(); jb(); jc(); jd(); je(); jf(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
-GSLERR(gsl_sf_coupling_3j_e,($ja(),$jb(),$jc(),$jd(),$je(),$jf(),&r))
+GSLERR(gsl_sf_coupling_6j_e,($ja(),$jb(),$jc(),$jd(),$je(),$jf(),&r))
 $y() = r.val;
 $e() = r.err; 
 ',
