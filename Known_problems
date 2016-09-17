@@ -102,8 +102,24 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.016_01 release:
+  PDL-2.016_02 release:
 
+  425   svd is broken for everything but 2x2 matrices
+        - pending-fixed, please report any problems
+
+  424   Calling PDL on a list of piddles fails to propogate bad values
+        - pending-fixed, please report any problems
+
+  423   wcols FORMAT option always incorrectly gives error
+        - pending-fixed, please report any problems
+
+  422   PDL misc. compiler warnings
+        - pending-fixed, please report any problems
+
+  421   PDL::IO::FITS can't handle 64-bit integers (longlong, indx)
+        - pending-fixed , please report any problems
+
+  420   PDL-2.016 fails to build on ASperl solaris 32bit or 64bit platforms
   419   t/#pdl_from_string.t fails on long double systems
   418   warp2d and fitwarp2d polynomial fitting doesn't work as expected
   413   PDL::Core::Dev::pdlpp_postamble() cannot handle .pd files in subdirectories
