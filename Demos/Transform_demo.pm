@@ -17,7 +17,8 @@ sub run {
   local($PDL::verbose) = 0;
 
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XWIN";
+$ENV{PGPLOT_DEV} = $^O =~ /MSWin32/          ? '/GW'            :
+                   defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XWIN";
 
 # try and find m51.fits
 $d = File::Spec->catdir( "PDL", "Demos" );
@@ -97,7 +98,8 @@ act q|
   #### Resampling with ->map and no FITS interpretation works in pixel space.
 
   ### Create a PGPLOT window, and display the original image
-    $dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
+    $dev = $^O =~ /MSWin32/          ? '/GW'            :
+           defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
     $win = pgwin( dev=> $dev, nx=>2, ny=>2, Charsize=>2, J=>1, Size=>[8,6] );
 
     $win->imag( $m51 , { DrawWedge=>0, Title=>"M51" }  );
@@ -259,7 +261,8 @@ act q|
     $s = "M51 closeup ("; $ss=" coords)";
     $ps = " (pixels)";
 
-    $dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
+    $dev = $^O =~ /MSWin32/          ? '/GW'            :
+           defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
     $w1 = pgwin( dev=> $dev, size=>[4,4], charsize=>1.5, justify=>1 );
     $w1->imag( $data, 600, 750, { title=>"${s}pixel${ss}", 
 				  xtitle=>"X$ps", ytitle=>"Y$ps" } );

@@ -17,7 +17,8 @@ sub run {
   local($PDL::verbose) = 0;
 
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XWIN";
+$ENV{PGPLOT_DEV} = $^O =~ /MSWin32/          ? '/GW'            :
+                   defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XWIN";
 
 
   unless( PDL->rpiccan('JPEG') ) {
@@ -77,7 +78,9 @@ act q&
   }
   print "\n";
 
-  $dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
+  $dev = $^O =~ /MSWin32/          ? '/GW'            :
+         defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
+         # $dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
   $w = pgwin(Dev=> $dev, size=>[8,6]);
   $w->fits_imag($map, {Title=>"NASA/MODIS Earth Map (Plate Caree)",J=>0});
 &;
@@ -102,7 +105,9 @@ act q&
 $w->close;   # Close old window
 undef $w;
 
-$dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
+#$dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
+$dev = $^O =~ /MSWin32/          ? '/GW'            :
+       defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
 $w = pgwin( Dev=> $dev, size=>[8,6], nx=>2, ny=>2 ) ;
 
 sub draw {
