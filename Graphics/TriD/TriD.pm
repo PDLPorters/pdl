@@ -132,7 +132,7 @@ The following contexts are currently supported:
 
 A 2-D lattice. C< [$piddle] > is interpreted as the Z coordinate over
 a lattice over the first dimension. Equivalent to
-C< [$piddle->xvals, $piddle->yvals, $piddle] >.
+C<< [$piddle->xvals, $piddle->yvals, $piddle] >>.
 
 =item POLAR2D
 
@@ -147,8 +147,8 @@ A set of colors. C< [$piddle] > is interpreted as grayscale color
 =item LINE
 
 A line made of 1 or 2 coordinates. C< [$piddle] > is interpreted as
-C< [$piddle->xvals,$piddle,0] >. C< [$piddle1,$piddle2] > is interpreted as
-C< [$piddle1,$piddle2,$piddle1->xvals] >.
+C<< [$piddle->xvals,$piddle,0] >>. C< [$piddle1,$piddle2] > is interpreted as
+C<< [$piddle1,$piddle2,$piddle1->xvals] >>.
 
 =back
 
