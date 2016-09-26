@@ -28,6 +28,8 @@ BEGIN {
          eval "sub OpenGL::Button1Mask         () { (1<<8 ) }";
          eval "sub OpenGL::Button2Mask         () { (1<<9 ) }";
          eval "sub OpenGL::Button3Mask         () { (1<<10) }";
+         eval "sub OpenGL::Button4Mask         () { (1<<11) }";  # scroll wheel
+         eval "sub OpenGL::Button5Mask         () { (1<<12) }";  # scroll wheel
          eval "sub OpenGL::ButtonMotionMask    () { (1<<13) }";
          eval "sub OpenGL::ExposureMask        () { (1<<15) }";
          eval "sub OpenGL::StructureNotifyMask    { (1<<17) }";
@@ -254,7 +256,7 @@ sub _pdl_fake_KeyPress {
 }
 
 {
-   my @button_to_mask = (256,512,1024);
+   my @button_to_mask = (1<<8, 1<<9, 1<<10, 1<<11, 1<<12);
    my $fake_mouse_state = 16;  # default have EnterWindowMask set;
    my $last_fake_mouse_state;
 
