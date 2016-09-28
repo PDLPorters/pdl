@@ -4,7 +4,7 @@
 use strict;
 use Test::More;
 
-plan tests => 92;
+plan tests => 95;
     ;
 use PDL::LiteF;
 
@@ -215,7 +215,20 @@ $a = pdl [1,1,1,3,3,4,4,1,1,2];
 $b = null;
 $c = null;
 rle($a,$b,$c);
-ok(tapprox($a, rld($b,$c)));
+ok(tapprox($a, rld($b,$c)),"rle with null input");
+
+undef $b; undef $c;
+($b,$c) = rle($a);
+ok(tapprox($a, rld($b,$c)),"rle with return vals");
+
+my $a2d = $a->cat($a->rotate(1),$a->rotate(2),$a->rotate(3),$a->rotate(4));
+rle($a2d,$b=null,$c=null);
+ok(tapprox($a2d,rld($b,$c)),"rle 2d with null input");
+
+undef $b; undef $c;
+($b,$c) = rle($a2d);
+ok(tapprox($a2d, rld($b,$c)),"rle 2d with return vals");
+
 
 $b = $a->mslice(0.5);
 ok(tapprox($b, 1), "mslice 1");
