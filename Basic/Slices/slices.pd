@@ -1254,6 +1254,16 @@ EOD
 pp_def(
         'rle',
         Pars=>'c(n); indx [o]a(n); [o]b(n);',
+        PMCode=><<'EOC',
+sub PDL::rle {
+  my $c = shift;
+  my ($a,$b) = @_==2 ? @_ : (null,null);
+  &PDL::_rle_int($c,$a,$b);
+  my $max_ind = ($c->ndims<2) ? ($a!=0)->sumover-1 :
+                                ($a!=0)->clump(1..$a->ndims-1)->sumover->max-1;
+  return ($a->slice("0:$max_ind"),$b->slice("0:$max_ind"));
+}
+EOC
         Code=>'
           PDL_Indx j=0,sn=$SIZE(n);
           $GENERIC(c) cv, clv;
@@ -1280,13 +1290,31 @@ pp_def(
 
 Run-length encode a vector
 
-Given vector C<$c>, generate a vector C<$a> with the number of each element,
-and a vector C<$b> of the unique values.  Only the elements up to the
-first instance of C<0> in C<$a> should be considered.
+Given vector C<$c>, generate a vector C<$a> with the number of each
+element, and a vector C<$b> of the unique values.  New in PDL 2.017,
+only the elements up to the first instance of C<0> in C<$a> are
+returned, which makes the common use case of a 1-dimensional C<$c> simpler.
+For threaded operation, C<$a> and C<$b> will be large enough
+to hold the largest row of C<$a>, and only the elements up to the
+first instance of C<0> in each row of C<$a> should be considered.
 
 =for example
 
+ $c = floor(4*random(10));
  rle($c,$a=null,$b=null);
+ #or
+ ($a,$b) = rle($c);
+
+ #for $c of shape [10, 4]:
+ $c = floor(4*random(10,4));
+ ($a,$b) = rle($c);
+
+ #to see the results of each row one at a time:
+ foreach (0..$c->dim(1)-1){
+  my ($as,$bs) = ($a(:,($_)),$b(:,($_)));
+  my ($ta,$tb) = where($as,$bs,$as!=0); #only the non-zero elements of $a
+  print $c(:,($_)) . " rle==> " , ($ta,$tb) , "\trld==> " . rld($ta,$tb) . "\n";
+ }
 
 =cut
 
