@@ -1253,7 +1253,9 @@ EOD
 
 pp_def(
         'rle',
-        Pars=>'c(n); indx [o]a(n); [o]b(n);',
+        Pars=>'c(n); indx [o]a(m); [o]b(m);',
+#this RedoDimsCode sets $SIZE(m)==$SIZE(n), but the slice in the PMCode below makes m<=n.
+        RedoDimsCode=>'$SIZE(m)=$PDL(c)->dims[0];',
         PMCode=><<'EOC',
 sub PDL::rle {
   my $c = shift;
@@ -1268,21 +1270,21 @@ EOC
           PDL_Indx j=0,sn=$SIZE(n);
           $GENERIC(c) cv, clv;
           clv = $c(n=>0);
-          $b(n=>0) = clv;
-          $a(n=>0) = 0;
+          $b(m=>0) = clv;
+          $a(m=>0) = 0;
           loop (n) %{
             cv = $c();
             if (cv == clv) {
-              $a(n=>j)++;
+              $a(m=>j)++;
             } else {
               j++;
-              $b(n=>j) = clv = cv;
-              $a(n=>j) = 1;
+              $b(m=>j) = clv = cv;
+              $a(m=>j) = 1;
             }
           %}
-          for (j++;j<sn;j++) {
-            $a(n=>j) = 0;
-            $b(n=>j) = 0;
+          for (j++;j<$SIZE(m);j++) {
+            $a(m=>j) = 0;
+            $b(m=>j) = 0;
           }
         ',
         Doc => <<'EOD'
