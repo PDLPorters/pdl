@@ -1,40 +1,12 @@
 The following issues have been reported with this version of PDL:
 
-- CPAN Testers failures for various BSD operating systems:
-  t/slice.t crashes after 17 subtests (openbsd, 5.7, amd64),
-  t/pthread.t fails (netbsd, 6.1.5, multi-64int),
-  t/inlinepdlpp.t fail (netbsd, 6.1.5, multi-64int),
-  t/pnm.t fails all subtests (netbsd, 6.1.5, i386-netbsd),
-  t/pdl_from_string.t (freebsd, 10.1, long double perl):
-
-  #   Failed test 'q[e] returns exp(1)'
-  #   at t/pdl_from_string.t line 301.
-  #          got: '2.71828182845904509'
-  #     expected: '2.71828182845904553'
-  # Got 2.71828182845904509
-
-  #   Failed test 'q[E] returns exp(1)'
-  #   at t/pdl_from_string.t line 304.
-  #          got: '2.71828182845904509'
-  #     expected: '2.71828182845904553'
-  # Got 2.71828182845904509
-  # Looks like you failed 2 tests of 113.
-
-
 - For perls with long double or greater for NVTYPE, there
   is an unavoidable loss of precision in converting to/from
   the PDL_Double values.  This may effect the results of
   calculations.  A warning is output every "use PDL;"
 
 
-- A bug in Netpbm from versions 10.56.00 through 10.61.2 may
-  result in a an invalid conversion of RAST images to PNM
-  format on some platforms, resulting in a failed picrgb test.
-  
-- Bugs in Netpbm versions earlier than 10.58.00 result in
-  invalid 16bit PNG image IO and failing tests.
-
-- A bug in the Nepbm interface code prevents reading or writing
+- A bug in the perl Nepbm interface code prevents reading or writing
   image files with whitespace in the filename.
 
 
@@ -63,7 +35,7 @@ The following issues have been reported with this version of PDL:
   for details and any future status.
 
 
-- The Perl debugger for perls 5.10.1 through 5.14.x has a new
+- The Perl debugger for perls 5.10.1 through 5.14.x has a 
   "feature" leading to false fails for lvalue subroutines when
   run under the debugger.  If you need to debug such code with
   an affected perl version, the work around is to use an
@@ -71,10 +43,6 @@ The following issues have been reported with this version of PDL:
 
     $piddle->slice('0:10') .= 100;           # original slice code
     ($tmp = $piddle->slice('0:10')) .= 100;  # work around perl -d "feature"
-
-  The problem is understood and it appears that the error has
-  been replaced by a warning with perl-5.15.1 and is fixed in
-  perl-5.16.0.  NOTE: the work-around is ugly but effective.
 
 
 - Multiline q'' constructs are broken in the Devel::REPL versions
@@ -121,21 +89,31 @@ The following issues have been reported with this version of PDL:
 
   420   PDL-2.016 fails to build on ASperl solaris 32bit or 64bit platforms
   419   t/#pdl_from_string.t fails on long double systems
+        - pending-fixed , please report any problems
+
   418   warp2d and fitwarp2d polynomial fitting doesn't work as expected
   413   PDL::Core::Dev::pdlpp_postamble() cannot handle .pd files in subdirectories
+        - pending-fixed , please report any problems
+
   412   16bit TIFF image IO not exact in PDL::IO::Pic
   411   relax reshape() constraints
   410   perl scalar NVs to float/#double types confusing
   409   PDL demos with PGPLOT display ignore $ENV{PGPLOT_DEV}
+        - pending-fixed , please report any problems
+
   405   PDL::Bad - adding locf() function
   397   PDL::FFT not 64bit integer safe
   393   Tests may fail if perl is compiled with -Duselongdouble
+        - pending-fixed , please report any problems
+
   392   Inline Pdlpp doesn't work in clean build tree
   391   Operators called in the form "explicit call with trailing 0" give syntax error
   384   pdldoc.db is getting invalid paths to files on cygwin
   382   plplot-5.11.0 comes with libplplot.a but missing libplplotd.a
   381   rpic/rim fail to read files with whitespace in the filename
   379   Passing qsort an extra argument causes a segfault
+        - pending-fixed , please report any problems
+
   364   type promotion in whistogram is based upon the index, not the weight
   354   filter demo list by actually available
   339   PDL::Complex support is inconsistent and incomplete

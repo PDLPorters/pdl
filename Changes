@@ -6,7 +6,12 @@ General Notes:
 
  Highlights:
 
-  * TBD
+ * Bugs fixed:
+    413   PDL::Core::Dev::pdlpp_postamble() cannot handle .pd files in subdirectories
+    419   t/#pdl_from_string.t fails on long double systems
+
+  * More helpful error message when multi-element PDL is used in
+    a boolean expression (feature request #84)
 
 
 
