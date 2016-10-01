@@ -404,7 +404,7 @@ sub pdlpp_postamble_int {
 qq|
 
 $pref.pm: $src $core/Types.pm
-	$depbuild\$(PERLRUNINST) \"-MPDL::PP qw{$mod $mod $pref}\" $src
+	$depbuild\$(PERLRUNINST) \"-MPDL::PP qw[$mod $mod $pref]\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
@@ -425,7 +425,7 @@ sub pdlpp_postamble {
 qq|
 
 $pref.pm: $src
-	\$(PERL) "-I$w" \"-MPDL::PP qw{$mod $mod $pref}\" $src
+	\$(PERL) "-I$w" \"-MPDL::PP qw[$mod $mod $pref]\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
