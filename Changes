@@ -1,4 +1,4 @@
-v2.016_03
+v2.016_03 2016-10-01 17:51:40-04:00
 
 General Notes:
 
@@ -13,6 +13,8 @@ General Notes:
   * More helpful error message when multi-element PDL is used in
     a boolean expression (feature request #84)
 
+  * Improve argument size handling and documentation for rle
+    (feature request #80)
 
 
 v2.016_02 2016-09-21 13:42:15-04:00
