@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test::More;
 
-plan tests => 53;
+plan tests => 58;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -188,11 +188,14 @@ $a = which(($x % 2) == 0);
 $b = which(($x % 3) == 0);
 $c = setops($a, 'AND', $b);
 ok(tapprox($c, pdl([0, 6])), "setops AND");                    #29
+ok(tapprox(intersect($a,$b),pdl([0,6])), "intersect same as setops AND");
 $c = setops($a,'OR',$b);
 ok(tapprox($c, pdl([0,2,3,4,6,8,9])), "setops OR");            #30
 $c = setops($a,'XOR',$b);
 ok(tapprox($c, pdl([2,3,4,8,9])), "setops XOR");               #31
-
+#Test intersect again
+my $intersect_test=intersect(pdl(1,-5,4,0), pdl(0,3,-5,2));
+ok (all($intersect_test==pdl(-5,0)), 'Intersect test values');
 
 ##############################
 # Test uniqind
@@ -246,3 +249,14 @@ SKIP: {
    ok(all($a->slice("1:-1") < 0), 'whereND in lvalue context works');
                                                                #42
 }
+
+#Test fibonacci.
+my $fib=fibonacci(15);
+my $fib_ans = pdl(1,1,2,3,5,8,13,21,34,55,89,144,233,377,610);
+ok(all($fib == $fib_ans), 'Fibonacci sequence');
+
+#Test which_both.
+my $which_both_test=pdl(1,4,-2,0,5,0,1);
+my ($nonzero,$zero)=which_both($which_both_test);
+ok(all($nonzero==pdl(0,1,2,4,6)), 'Which_both nonzero indices');
+ok(all($zero==pdl(3,5)), 'Which_both zero indices');
