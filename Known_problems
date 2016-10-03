@@ -70,7 +70,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.016_03 release:
+  PDL-2.016_91 release:
 
   425   svd is broken for everything but 2x2 matrices
         - pending-fixed, please report any problems

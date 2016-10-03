@@ -1,3 +1,20 @@
+v2.016_91 2016-10-03 14:03:19-04:00
+
+General Notes:
+
+ * This is version 2.016_13 of the Perl Data Language,
+   a.k.a. PDL-2.017 release candidate 1.
+
+ * All but release notes and announcement done...
+
+ Highlights:
+
+ * Added subtests to primitive.t
+
+ * Quiet printf format warning for sizeof()
+
+
+
 v2.016_03 2016-10-01 17:51:40-04:00
 
 General Notes:
@@ -15,6 +32,7 @@ General Notes:
 
   * Improve argument size handling and documentation for rle
     (feature request #80)
+
 
 
 v2.016_02 2016-09-21 13:42:15-04:00
