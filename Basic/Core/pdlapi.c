@@ -144,7 +144,7 @@ pdl* pdl_create(int type) {
      it->magic = 0;
      it->hdrsv = 0;
 
-     PDLDEBUG_f(printf("CREATE %p (size=%d)\n",(void*)it,sizeof(pdl)));
+     PDLDEBUG_f(printf("CREATE %p (size=%zu)\n",(void*)it,sizeof(pdl)));
      return it;
 }
 
