@@ -297,6 +297,7 @@ Graphics/TriD/TriD/Objects.pm
 Graphics/TriD/TriD/OOGL.pm
 Graphics/TriD/TriD/Polygonize.pm
 Graphics/TriD/TriD/Quaternion.pm
+Graphics/TriD/TriD/ScrollButtonScaler.pm
 Graphics/TriD/TriD/SimpleScaler.pm
 Graphics/TriD/TriD/Surface.pm
 Graphics/TriD/TriD/TextObjects.pm
