@@ -1,3 +1,57 @@
+v2.017 2016-10-08 13:50:39-04:00
+
+General Notes:
+
+ * This is version 2.017 of the Perl Data Language,
+
+ * Bugs fixed:
+
+    379   Passing qsort an extra argument causes a segfault
+    393	  Tests may fail if perl is compiled with -Duselongdouble
+    409	  PDL demos with PGPLOT display ignore $ENV{PGPLOT_DEV}
+    413   PDL::Core::Dev::pdlpp_postamble() cannot handle .pd files in subdirectories
+    419   t/#pdl_from_string.t fails on long double systems
+    421	  PDL::IO::FITS can't handle 64-bit integers (longlong, indx)
+    422	  PDL misc. compiler warnings.
+    423	  wcols FORMAT option always incorrectly gives error
+    424	  Calling PDL on a list of piddles fails to propogate bad values
+    425	  svd is broken for everything but 2x2 matrices
+    ---	  Typo in PDL::GSLSF::COUPLING routine gsl_sf_coupling_6j
+
+
+ Highlights:
+
+ * Several patches contributed from the Debian team have been applied
+   that fix documentation spelling errors, make PDL builds more
+   reproducible, and will make packaging PDL easier.
+
+ * More helpful error message when multi-element PDL is used in
+   a boolean expression (feature request #84)
+
+ * Improve argument size handling and documentation for rle
+   (feature request #80)
+
+ * One can now use $pdlc = pdl($pdla,$pdlb) when $pdla and/or $pdlb
+   have BAD values and the BAD values will propagate to
+   $pdlc. Previously this would only work with a copy of a single
+   piddle (e.g., $pdlc = pdl($pdla) ) or with 'cat'.
+
+ * Many changes have been made to make PDL compile more cleanly and
+   emit fewer compiler warnings.
+
+ * Quiet printf format warning for sizeof()
+
+ * Deprecate finite in favor of isfinite.
+
+ * Many cleanups and additions to the test suite to use Test::More
+   and to add meaningful test descriptions.
+
+ * Added subtests to primitive.t
+ 
+ * Add PDL::Doc::add_module to pdlpp_postamble
+
+
+
 v2.016_91 2016-10-03 14:03:19-04:00
 
 General Notes:
