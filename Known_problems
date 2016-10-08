@@ -70,50 +70,20 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.016_91 release:
-
-  425   svd is broken for everything but 2x2 matrices
-        - pending-fixed, please report any problems
-
-  424   Calling PDL on a list of piddles fails to propogate bad values
-        - pending-fixed, please report any problems
-
-  423   wcols FORMAT option always incorrectly gives error
-        - pending-fixed, please report any problems
-
-  422   PDL misc. compiler warnings
-        - pending-fixed, please report any problems
-
-  421   PDL::IO::FITS can't handle 64-bit integers (longlong, indx)
-        - pending-fixed , please report any problems
+  PDL-2.017 release:
 
   420   PDL-2.016 fails to build on ASperl solaris 32bit or 64bit platforms
-  419   t/#pdl_from_string.t fails on long double systems
-        - pending-fixed , please report any problems
-
   418   warp2d and fitwarp2d polynomial fitting doesn't work as expected
-  413   PDL::Core::Dev::pdlpp_postamble() cannot handle .pd files in subdirectories
-        - pending-fixed , please report any problems
-
   412   16bit TIFF image IO not exact in PDL::IO::Pic
   411   relax reshape() constraints
   410   perl scalar NVs to float/#double types confusing
-  409   PDL demos with PGPLOT display ignore $ENV{PGPLOT_DEV}
-        - pending-fixed , please report any problems
-
   405   PDL::Bad - adding locf() function
   397   PDL::FFT not 64bit integer safe
-  393   Tests may fail if perl is compiled with -Duselongdouble
-        - pending-fixed , please report any problems
-
   392   Inline Pdlpp doesn't work in clean build tree
   391   Operators called in the form "explicit call with trailing 0" give syntax error
   384   pdldoc.db is getting invalid paths to files on cygwin
   382   plplot-5.11.0 comes with libplplot.a but missing libplplotd.a
   381   rpic/rim fail to read files with whitespace in the filename
-  379   Passing qsort an extra argument causes a segfault
-        - pending-fixed , please report any problems
-
   364   type promotion in whistogram is based upon the index, not the weight
   354   filter demo list by actually available
   339   PDL::Complex support is inconsistent and incomplete
