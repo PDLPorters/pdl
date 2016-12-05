@@ -182,7 +182,7 @@ Add labels to a contour plot
   $contour->addlabels($labelint,$segint,$font);
 
 $labelint is the integer interval between labeled contours.  If you
-have 8 countour levels and specify $labelint=3 addlabels will attempt
+have 8 contour levels and specify $labelint=3 addlabels will attempt
 to label the 1st, 4th, and 7th contours.  $labelint defaults to 1.
 
 $segint specifies the density of labels on a single contour

@@ -237,7 +237,7 @@ arrays (also see L</rgrep>).
 For each column number specified, a 1D output PDL will be
 generated.  Anonymous arrays of column numbers generate
 2D output piddles with dim0 for the column data and dim1
-equal to the number of colums in the anonymous array(s).
+equal to the number of columns in the anonymous array(s).
 
 An empty anonymous array as column specification will
 produce a single output data piddle with dim(1) equal
@@ -281,7 +281,7 @@ Options (case insensitive):
   to be read in.  Any missing columns use the DEFTYPE value (default B<[]>).
   
   COLSEP
-  - splits on this string/pattern/qr{} between colums of data. Defaults to
+  - splits on this string/pattern/qr{} between columns of data. Defaults to
   $PDL::IO::Misc::defcolsep.
   
   PERLCOLS
@@ -791,7 +791,7 @@ Can take file name or *HANDLE, and if no file/filehandle is given defaults to ST
     HEADER - prints this string before the data. If the string
              is not terminated by a newline, one is added. (default B<''>).
 
-    COLSEP - prints this string between colums of data. Defaults to
+    COLSEP - prints this string between columns of data. Defaults to
              $PDL::IO::Misc::defcolsep.
 
     FORMAT - A printf-style format string that is cycled through

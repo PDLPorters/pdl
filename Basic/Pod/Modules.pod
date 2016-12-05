@@ -7,7 +7,7 @@ PDL::Modules - A guide to PDL's module reference.
 
 This page serves as a table of contents for PDL's module documentation.
 This page does not list every single PDL module. It only shows the ones
-intended for PDL users, while ommitting those which are deemed "for
+intended for PDL users, while omitting those which are deemed "for
 internal use only". If you wish to see a comprehensive list of all
 documentation, please see the L<PDL::Index|PDL::Index> page.
 

@@ -638,7 +638,7 @@ latter will just 'fall through' if the argument is
 already a piddle. It will return a reference and I<NOT>
 a new copy.
 
-This is particulary useful if you are writing a function
+This is particularly useful if you are writing a function
 which is doing some fiddling with internals and assumes
 a piddle argument (e.g. for method calls). Using C<topdl()>
 will ensure nothing breaks if passed with '2'.

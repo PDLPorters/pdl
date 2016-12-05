@@ -1296,7 +1296,7 @@ in the FITS header of the image.
   $win->fits_cont( image, [$contours, $transform, $misval], [$opt] )
 
 Does the same thing for the L<cont|/cont> routine that
-L<fits_imag|/fits_imag> does for the L<imag|/imag> routins.
+L<fits_imag|/fits_imag> does for the L<imag|/imag> routines.
 
 =head2 draw_wedge
 

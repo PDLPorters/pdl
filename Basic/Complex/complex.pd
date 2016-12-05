@@ -59,7 +59,7 @@ not the "highest" (for some definition)
 
 C<i> is a constant exported by this module, which represents
 C<-1**0.5>, i.e. the imaginary unit. it can be used to quickly and
-conviniently write complex constants like this: C<4+3*i>.
+conveniently write complex constants like this: C<4+3*i>.
 
 =item *
 
