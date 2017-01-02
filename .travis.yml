@@ -75,7 +75,6 @@ before_install:
   - cpanm --quiet --notest ExtUtils::F77 Term::ReadLine::Gnu PGPLOT # do not need tests
   - cpanm --quiet --notest Devel::CheckLib # specify this now because this is a CONFIGURE_REQUIRES for author-side
   - if [ "$AUTHOR_TESTING" == 1 ]; then cpanm --quiet --notest CPAN::Changes; fi # for author tests (AUTHOR_TESTING is set to true by default by init)
-  - cpanm --notest --verbose ExtUtils::ParseXS # we install the latest ExtUtils::ParseXS
   - if [ "$EUMM_BLEAD" == 1 ]; then cpanm --quiet --notest --dev ExtUtils::MakeMaker; fi
   - build-dist
   - SRC_DIR=$(pwd)
