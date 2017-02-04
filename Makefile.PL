@@ -226,7 +226,7 @@ sub check_f77conf {
 
 sub make_Version_pm {
   # Get Version from Basic/PDL.pm and generated Basic/Core/Version.pm from it
-  require 'Basic/PDL.pm';
+  require './Basic/PDL.pm';
   # keep version info in $PDL::Config
   $PDL::Config{PDL_BUILD_VERSION} = "$PDL::VERSION";
 
@@ -376,7 +376,7 @@ make_Types_pm();
 # this will make PDL::Core::Dev's functions available
 # in Makefile.PL files in all subdirectories
 # IMPORTANT: it has to be after make_Types_pm()
-require "Basic/Core/Dev.pm"; PDL::Core::Dev->import();
+require "./Basic/Core/Dev.pm"; PDL::Core::Dev->import();
 
 # only perform one test if required modules are missing
 # the test will print an informational message and fail
