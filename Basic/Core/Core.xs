@@ -336,7 +336,7 @@ iscontig(x)
 
 # using "perl" not $^X because that doesn't work on "perl in space"
 # TODO: switching back to $^X since using "perl" is not a viable fix
-INCLUDE_COMMAND: $^X -e "require q{Dev.pm}; PDL::Core::Dev::generate_core_flags()"
+INCLUDE_COMMAND: $^X -e "require q{./Dev.pm}; PDL::Core::Dev::generate_core_flags()"
 
 #if 0
 =begin windows_mmap

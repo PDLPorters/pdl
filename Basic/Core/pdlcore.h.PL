@@ -11,7 +11,7 @@ use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
 
-require 'Dev.pm'; PDL::Core::Dev->import;
+require './Dev.pm'; PDL::Core::Dev->import;
 use vars qw( %PDL_DATATYPES );
 
 # version 2 is for versions after PDL 2.1.1
@@ -349,7 +349,7 @@ double NaN_double;
 
     # fortunately it looks like Types.pm.PL is processed before this
     # file
-    require "Types.pm";  # ie PDL::Types
+    require "./Types.pm";  # ie PDL::Types
 
 for (PDL::Types::typesrtkeys()) {
    my $ctype = $PDL::Types::typehash{$_}{ctype};
