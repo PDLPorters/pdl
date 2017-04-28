@@ -6,7 +6,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 # how many variable types (ie PDL_Byte, ...) are there?
-require 'Types.pm';
+require './Types.pm';
 my $ntypes = $#PDL::Types::names;
 my $PDL_DATATYPES = PDL::Types::datatypes_header();
 

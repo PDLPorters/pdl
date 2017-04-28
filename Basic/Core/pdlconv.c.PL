@@ -7,9 +7,9 @@ use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
  
-require 'Dev.pm'; PDL::Core::Dev->import;
+require './Dev.pm'; PDL::Core::Dev->import;
 use vars qw( %PDL_DATATYPES );
-require 'Types.pm'; #for typesrtkeys
+require './Types.pm'; #for typesrtkeys
 
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
