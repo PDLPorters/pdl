@@ -86,4 +86,8 @@ The GSL SF modules were written by G. Jungman.
 
 EOD
 
+pp_add_boot('gsl_set_error_handler_off();
+');
+
+
 pp_done();

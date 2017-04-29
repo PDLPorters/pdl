@@ -452,5 +452,10 @@ acc_DESTROY(accel)
 ');        
 
 pp_export_nothing;  
+
+pp_add_boot('gsl_set_error_handler_off();
+');
+
+
 pp_done();  
 

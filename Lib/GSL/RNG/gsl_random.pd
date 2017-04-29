@@ -1926,4 +1926,8 @@ pp_core_importList(' qw/ zeroes long barf  /');  # import just a named list to o
 
 pp_export_nothing;  # set to not export anything. (This is a OO package, it doesn't need to export any methods.)
 
+pp_add_boot('gsl_set_error_handler_off();
+');
+
+
 pp_done();

@@ -130,4 +130,7 @@ PDL distribution, the copyright notice should be included in the file.
 
 EOD
 
+pp_add_boot('gsl_set_error_handler_off();
+');
+
 pp_done();

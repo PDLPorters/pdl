@@ -169,5 +169,8 @@ F.params = 0;
 gsl_diff_forward (&F, $x(), $P(res), $P(abserr));
 ');  
 
+pp_add_boot('gsl_set_error_handler_off();
+');
+
 pp_done();  
 
