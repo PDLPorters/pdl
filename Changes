@@ -1,14 +1,20 @@
-v2.017_01 TBD
+v2.017_01 2017-04-29 11:39:22-04:00
 
 General Notes:
 
  * This is version 2.017_01 of the Perl Data Language,
 
- * TBD
+ * Addresses some problems from changes in the perl
+   infrastructure that are or will break things in PDL.
 
  Highlights:
 
- * TBD
+ * Handle coming removal of '.' from @INC
+
+ * Fix sf bug #432:  Work around List::MoreUtils bug
+   This was causing a lot of PDL test failures.
+
+ * Fix build problem on perl <= 5.14
 
 
 
