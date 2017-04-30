@@ -70,7 +70,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.017_01 release:
+  PDL-2.017_02 release:
 
   432   t/#gd_oo_tests.t fails with perl 5.25.12
 
