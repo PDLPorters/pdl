@@ -47,8 +47,8 @@ BEGIN
 	  use PDL::GSLSF::ZETA;
       ";
       unless ($@) {
-	  plan tests => 3 if $v>=2.0;
-	  plan tests => 1 if $v<2.0;
+	  plan tests => 4 if $v>=2.0;
+	  plan tests => 2 if $v<2.0;
       } else {
 	  warn "Warning: $@\n\n";
          plan skip_all => "PDL::GSLSF modules not installed.";
@@ -73,3 +73,10 @@ if ($version >= 2.0){
     ok($Ylm->slice("(0)")->uniq->nelem == 1, "Legendre Y00 is constant");
     ok(approx($Ylm->slice("(0),(0)"),0.5/sqrt(3.141592654),1E-6), "Y00 value is corect");
 }
+
+
+#  Check that the PDL error handler gets called instead of aborting
+#  Failure is an abort. 
+my $err_test = eval {gsl_sf_lngamma(pdl(0))};
+#diag $@;
+ok (!!$@, "Got an error for invalid input");
