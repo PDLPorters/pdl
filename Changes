@@ -6,8 +6,17 @@ General Notes:
 
  Highlights:
 
- * TBD
+ * Fix problem where PDL::Lite could not be loaded more
+   than once. (Thanks to Shawn Laffan)
 
+ * Fix sf.net bug #429 with poor generation of documentation.
+
+ * Fix sf.net bug #433 where errors in GSL routines caused
+   perl to exit.
+
+ * Build enhancements for PDL::IO::GD to improve test
+   diagnostic messages and add List::MoreUtils as a
+   dependency for PDL.
 
 
 v2.017_01 2017-04-29 11:39:22-04:00
