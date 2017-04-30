@@ -5,14 +5,14 @@ PDL::Lite - minimum PDL module OO loader
 =head1 DESCRIPTION
 
 Loads the smallest possible set of modules for
-PDL to work, without importing an functions in
-to the current namespace. This is the absolute
-minimum set for PDL.
+PDL to work, importing only those functions always defined by
+L<PDL::Core|PDL::Core>) into the current namespace
+(C<pdl>, C<piddle>, C<barf> and C<null>).
+This is the absolute minimum set for PDL.
 
-Although no functions are defined (apart from
-a few always exported by L<PDL::Core|PDL::Core>) you can still
-use method syntax, viz:
+Access to other functions is by method syntax, viz:
 
+  $x = PDL->pdl(1, 2, 3, 4, 5);
   $x->wibble(42);
 
 =head1 SYNOPSIS
@@ -47,6 +47,14 @@ use PDL::Lvalue;
 
 package PDL::Lite;
 $VERSION = $PDL::Version::VERSION;
+
+@ISA = qw( PDL::Exporter );
+
+@EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
+our %EXPORT_TAGS = (
+   Func     => [@EXPORT],
+);
+
 
 ;# Exit with OK status
 
