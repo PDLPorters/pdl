@@ -469,7 +469,7 @@ ENDTEMPLATE
     {
         $doc_param_list .= "\nProjection Parameters\n\n=for options\n\n=over 4\n\n";
         foreach my $param ( sort @{ $projection->{PARAMS}->{PROJ} } )
-            { $doc_param_list .= "=item $param\n\n"; }
+            { next if(!$param); $doc_param_list .= "=item $param\n\n"; }
 	    $doc_param_list .= "=back\n\n";
     }
     
