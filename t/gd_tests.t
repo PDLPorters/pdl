@@ -21,7 +21,7 @@ BEGIN
         eval( " use PDL::IO::GD; " );
         if( $@ )
         {
-            plan skip_all => "PDL::IO::GD requires the gd image library.";
+            plan skip_all => "PDL::IO::GD requires the gd image library. \$@='$@'";
         }  
         else
         {

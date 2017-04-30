@@ -406,6 +406,7 @@ my @prereq = (
 	   'Filter::Simple'      => 0.88,      # for new PDL::NiceSlice
 	   'Inline'              => 0.68,
 	   'Inline::C'           => 0.62,
+           'List::MoreUtils'     => 0,         # for PDL::IO::GD
 	   'Module::Compile'     => 0.23,      # for new PDL::NiceSlice
 	   'Pod::Parser'         => 0,         # version TBD for PDL::Doc
 	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
