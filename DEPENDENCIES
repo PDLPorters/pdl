@@ -30,6 +30,8 @@ or if you don't have the cpan script try
 PDL (all)         perl >= 5.10.x          PDL requires at least this version
                                           of perl to build and run.
 
+                  Devel::CheckLib >= 1.01
+
                   File::Spec  >= 0.6      perl5 core module.
                   File::Temp  >= 0        perl5 core module.
                   Pod::Parser >= 0        perl5 core module.
@@ -39,6 +41,8 @@ PDL (all)         perl >= 5.10.x          PDL requires at least this version
 
 		                          This version of EU::MM is the first
 					  with support for CONFIGURE_REQUIRES.
+
+                  Test::Exception >= 0    Needed for test suite.
 
 
 PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
@@ -83,9 +87,9 @@ pdl2   (shell)    Devel::REPL >= 1.003011
                   or Term::ReadLine::Gnu 
 		                          
 					  Devel::REPL requires Data::Dump::Streamer
-					  to support pdl2.  This may need to be
-					  hand-installed if you are doing a manual
-					  PDL build.
+					  and Sys::SigAction to support pdl2.  They
+                                          may need to be hand-installed if you are
+                                          doing a manual PDL build.
 
 perldl (shell)    Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
