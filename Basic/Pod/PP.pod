@@ -227,7 +227,7 @@ and write the loop explicitly using conventional C:
    pp_def('sumit',
        Pars => 'a(n);  [o]b();',
        Code => q{
-           int i,n_size;
+           PDL_Indx i,n_size;
            double tmp;
            n_size = $SIZE(n);
            tmp = 0;
@@ -536,7 +536,7 @@ for C<$P>; it's a pointer access, see below) :
 
   pp_def('callf',
 	Pars => 'a(n); [t] tmp(n); [o] b()',
-	Code => 'int ns = $SIZE(n);
+	Code => 'PDL_Indx ns = $SIZE(n);
 		 f($P(a),$P(b),$P(tmp),ns);
 		'
   );
@@ -612,14 +612,14 @@ to type conversion. These qualifiers can be combined with those we have
 encountered already (the I<creation qualifiers> C<[o]> and C<[t]>). Let's
 go through the list of qualifiers that change type conversion behaviour.
 
-The most important is the C<int> qualifier which comes in handy when a
+The most important is the C<indx> qualifier which comes in handy when a
 pdl argument represents indices into another pdl. Let's take a look at
 an example from C<PDL::Ufunc>:
 
    pp_def('maximum_ind',
-	  Pars => 'a(n); int [o] b()',
+	  Pars => 'a(n); indx [o] b()',
 	  Code => '$GENERIC() cur;
-		   int curind;
+		   PDL_Indx curind;
 		   loop(n) %{
 		    if (!n || $a() > cur) {cur = $a(); curind = n;}
 	 	   %}
@@ -628,16 +628,25 @@ an example from C<PDL::Ufunc>:
 
 The function C<maximum_ind> finds the index of the largest element of
 a vector. If you look at the signature you notice that the output
-argument C<b> has been declared with the additional C<int> qualifier.
+argument C<b> has been declared with the additional C<indx> qualifier.
 This has the following consequences for type conversions: regardless of
 the type of the input pdl C<a> the output pdl C<b> will be of type
-C<PDL_Long> which makes sense since C<b> will represent an index into
-C<a>. Furthermore, if you call the function with an existing output
+C<PDL_Indx> which makes sense since C<b> will represent an index into
+C<a>.
+
+Note that 'curind' is declared as type C<PDL_Indx> and not C<indx>.
+While most datatype declarations in the 'Pars' section use the same
+name as the underlying C type, C<indx> is a type which is sufficient
+to handle PDL indexing operations.  For 32-bit installs, it can be
+a 32-bit integer type.  For 64-bit installs, it will be a 64-bit integer
+type.
+
+Furthermore, if you call the function with an existing output
 pdl C<b> its type will not influence the datatype of the operation (see
 above). Hence, even if C<a> is of a smaller type than C<b> it will not
 be converted to match the type of C<b> but stays untouched, which saves
 memory and CPU cycles and is the right thing to do when C<b> represents
-indices. Also note that you can use the 'int' qualifier together with
+indices. Also note that you can use the 'indx' qualifier together with
 other qualifiers (the C<[o]> and C<[t]> qualifiers). Order is significant --
 type qualifiers precede creation qualifiers (C<[o]> and C<[t]>).
 
@@ -658,9 +667,9 @@ C<PDL_Byte> and so on for the other case statements. I guess you
 realise that this is a useful macro to hold values of pdls in some
 code.
 
-There are a couple of other qualifiers with similar effects as C<int>.
+There are a couple of other qualifiers with similar effects as C<indx>.
 For your convenience there are the C<float> and C<double> qualifiers
-with analogous consequences on type conversions as C<int>. Let's
+with analogous consequences on type conversions as C<indx>. Let's
 assume you have a I<very> large array for which you want to compute
 row and column sums with an equivalent of the C<sumover> function.
 However, with the normal definition of C<sumover> you might run
@@ -688,7 +697,7 @@ comes in handy:
   );
 
 This gets us around the type conversion and overflow problems. Again,
-analogous to the C<int> qualifier C<double> results in C<b> always being of
+analogous to the C<indx> qualifier C<double> results in C<b> always being of
 type double regardless of the type of C<a> without leading to a
 type conversion of C<a> as a side effect.
 
@@ -1358,10 +1367,10 @@ in the signature. Instead you write
       "myexternalfunc",
       Pars         => ' p(m);  x(n);  [o] y(); [t] work(wn); ',
       RedoDimsCode => '
-	int im = $PDL(p)->dims[0];
-	int in = $PDL(x)->dims[0];
-	int min = in + im * im;
-	int inw = $PDL(work)->dims[0];
+	PDL_Indx im = $PDL(p)->dims[0];
+	PDL_Indx in = $PDL(x)->dims[0];
+	PDL_Indx min = in + im * im;
+	PDL_Indx inw = $PDL(work)->dims[0];
 	$SIZE(wn) = inw >= min ? inw : min;
       ',
       Code => '
@@ -1397,7 +1406,7 @@ rules. Here is an example from PDL::Math
 
  pp_def("polyroots",
       Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
-      RedoDimsCode => 'int sn = $PDL(cr)->dims[0]; $SIZE(m) = sn-1;',
+      RedoDimsCode => 'PDL_Indx sn = $PDL(cr)->dims[0]; $SIZE(m) = sn-1;',
 
 The input piddles are the real and imaginary parts of
 complex coefficients of a polynomial. The output piddles are
@@ -1600,7 +1609,7 @@ C<pp_def>s, e.g.:
   pp_def('barfoo',
 	 Pars => ' a(n); [o] b(n)',
 	 GenericTypes => ['B'],
-	 Code => ' int ns = $SIZE(n);
+	 Code => ' PDL_Indx ns = $SIZE(n);
 		   do_the_real_work($P(a),$P(b),ns);
                  ',
   );
@@ -1874,7 +1883,7 @@ of these routines deal with manipulating piddles, but some are more general:
 
 =over 4
 
-=item PDL->qsort_B( PDL_Byte *xx, int a, int b )
+=item PDL->qsort_B( PDL_Byte *xx, PDL_Indx a, PDL_Indx b )
 
 Sort the array C<xx> between the indices C<a> and C<b>.
 There are also versions for the other PDL datatypes,
@@ -1882,7 +1891,7 @@ with postfix C<_S>, C<_U>, C<_L>, C<_N>, C<_Q>, C<_F>, and C<_D>.
 Any module using this must ensure that C<PDL::Ufunc>
 is loaded.
 
-=item PDL->qsort_ind_B( PDL_Byte *xx, int *ix, int a, int b )
+=item PDL->qsort_ind_B( PDL_Byte *xx, PDL_Indx *ix, PDL_Indx a, PDL_Indx b )
 
 As for C<PDL-E<gt>qsort_B>, but this time sorting the indices
 rather than the data.
