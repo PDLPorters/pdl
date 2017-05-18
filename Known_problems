@@ -72,6 +72,8 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.017_02 release:
 
+  435   PDL-LinearAlgebra-0.12 undefined reference to dggsvd_ + sggsvd_
+
   433   GSL SF errors kill perl and pdl2/#perldl shell
           Should be fixed this release.
 
@@ -79,6 +81,7 @@ The following issues have been reported with this version of PDL:
           Should be fixed in this release.
 
   430   PDL-2.017 & MS Win test failures t/#inlinepdlpp.t + t/#inline-comment-test.t
+          May be fixed in this release---at least it has not been reported lately.
 
   429   Alien::Proj4->load_projection_information parses PJ_sch parameters incorrectly
           Should be fixed this release.

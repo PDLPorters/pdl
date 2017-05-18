@@ -1,8 +1,11 @@
-v2.017_02 TBD
+v2.017_02 2017-05-18 17:33:55-04:00
 
 General Notes:
 
  * This is version 2.017_02 of the Perl Data Language,
+   and essentially PDL 2.018 release candidate 1.  If
+   it tests ok we expect to release it as PDL 2.018 this
+   weekend.
 
  Highlights:
 
@@ -17,6 +20,13 @@ General Notes:
  * Build enhancements for PDL::IO::GD to improve test
    diagnostic messages and add List::MoreUtils as a
    dependency for PDL.
+ 
+ * Better docs and explanation of indx datatype.
+   This closes sf.net bug #434.
+
+ * Add some missing modules to DEPENDENCIES (thanks
+   to Luis Mochan).
+
 
 
 v2.017_01 2017-04-29 11:39:22-04:00
