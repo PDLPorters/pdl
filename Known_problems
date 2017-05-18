@@ -70,7 +70,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.017_02 release:
+  PDL-2.017_99 release:
 
   435   PDL-LinearAlgebra-0.12 undefined reference to dggsvd_ + sggsvd_
 
