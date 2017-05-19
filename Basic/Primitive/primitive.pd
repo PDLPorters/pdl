@@ -638,32 +638,28 @@ pp_def('norm',
 # discussion)
 # see PDL::ImageND for info about the circ_mean function
 
-=head2 indadd
-
-=for sig
-
-  Signature: (a(); indx ind(); [o] sum(m))
-
-=cut
-
 pp_def(
     'indadd',
     HandleBad => 1,
-    Pars => 'a(); indx ind(); [o] sum(m)',
+    Pars => 'a(n); indx ind(n); [o] sum(m)',
     GenericTypes => [ppdefs_all],
     Code =>
-    'register PDL_Indx foo = $ind();
-     if( foo<0 || foo>=$SIZE(m) ) {
-       barf("PDL::indadd: invalid index");
-     }
-     $sum(m => foo) += $a();',
+    'loop(n) %{
+        register PDL_Indx foo = $ind();
+        if ( foo<0 || foo>=$SIZE(m) ) {
+           barf("PDL::indadd: invalid index");
+        }
+        $sum(m => foo) += $a();
+    %}',
     BadCode =>
-    'register PDL_Indx foo = $ind();
-     if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
-       barf("PDL::indadd: invalid index");
-     }
-     if ( $ISBAD(a()) ) { $SETBAD(sum(m => foo)); }
-     else               { $sum(m => foo) += $a(); }',
+    'loop(n) %{
+        register PDL_Indx foo = $ind();
+        if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
+           barf("PDL::indadd: invalid index");
+        }
+        if ( $ISBAD(a()) ) { $SETBAD(sum(m => foo)); }
+        else               { $sum(m => foo) += $a(); }
+     %}',
     BadDoc => '
 
 =for bad
