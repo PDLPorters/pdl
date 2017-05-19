@@ -81,6 +81,7 @@ lib/PDL/ImageRGB/pdlppm.h
 lib/PDL/ImageRGB/ppm_quant.c
 lib/PDL/Index.pod
 lib/PDL/Indexing.pod
+lib/PDL/IndOps.pd
 lib/PDL/Install/Files.pm
 lib/PDL/InstallGuide.pod
 lib/PDL/Internals.pod
@@ -202,6 +203,7 @@ t/func.t
 t/image2d.t
 t/imagend.t
 t/imagergb.t
+t/indops.t
 t/inline-with.t
 t/inlinepdlpp.t
 t/io-misc.t

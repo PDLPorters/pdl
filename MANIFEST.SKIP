@@ -47,6 +47,7 @@ Makefile\.old
 ^lib/PDL/Image2D(\.(pm|xs|c)$|-pp-)
 ^lib/PDL/ImageND(\.(pm|xs|c)$|-pp-)
 ^lib/PDL/ImageRGB(\.(pm|xs|c)$|-pp-)
+^lib/PDL/IndOps(\.(pm|xs|c)$|-pp-)
 ^lib/PDL/Math(\.(pm|xs|c)$|-pp-)
 ^lib/PDL/MatrixOps(\.(pm|xs|c)$|-pp-)
 ^lib/PDL/Ops(\.(pm|xs|c)$|-pp-)

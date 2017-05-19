@@ -1,0 +1,487 @@
+use strict; # be careful
+
+pp_addpm({At=>'Top'},<<'EOD');
+
+=head1 NAME
+
+PDL::IndOps - index store with combine operations
+
+=head1 DESCRIPTION
+
+This module provides 1-D threaded index combine operations
+also known as scatter-combine.  Given a source PDL and a
+corresponding index PDL (where index is less than m), each
+element of source is combined into dest(index) using the
+desired OP.
+
+The defined operations are:
+
+  add       -- see indadd in PDL::Primitive
+  mul       -- multiply
+  copy      -- assignment  (last value wins)
+  band      -- bitwise and (for integer data types)
+  bor       -- bitwise or  (for integer data types)
+  bxor      -- bitwise xor (for integer data types)
+  min       -- minimum
+  max       -- maximum
+
+and these combined operations are also implemented for
+performance since they can be computed in a single pass
+through the source PDL:
+
+  minloc    -- minimum value with its location
+  maxloc    -- maximum value with its location
+  minmax    -- minimum and maximum
+  minmaxloc -- minimum and maximum values and their locations
+
+Although the locations are only calculated along one
+dimension, you can use this for N-D data by flattening,
+and then using one2nd() to convert the 1-D location
+into the desired N-D coordinates.
+
+=head1 SYNOPSIS
+
+ use PDL::IndXXX;
+
+ TBD
+
+=cut
+EOD
+
+our $VERSION = '0.02';
+$VERSION = eval $VERSION;
+
+# Implement general ind* routines where the * operators are:
+#
+# Returns 1 value:
+#
+#   add       - addition
+#   band      - bitwise and
+#   bor       - bitwise or
+#   bxor      - bitwise xor
+#   max       - maxval
+#   min       - minval
+#   mul       - multiply
+#
+# Returns 1 value, 1 location:
+#
+#   maxloc    - maxval and its index
+#   minloc    - minval and its index
+#
+# Returns 2 values:
+#
+#   minmax    - minval and maxval
+#
+# Returns 2 values, 2 locations:
+#
+#   minmaxloc - minval and its index, maxval and its index
+#
+#   Use code generation to avoid repeating
+#   boilerplate.  To handle location calculation,
+#   we need to make the PP threadloop explicit
+#   so the new signatures would be:
+#
+#     Signature: (a(n); indx ind(n); [o] out(m))
+#     Signature: (a(n); indx ind(n); [o] out(m); [o] indx loc(m))
+#
+#     Signature: (a(n); indx ind(n); [o] out1(m); [o] out2(m))
+#     Signature: (a(n); indx ind(n); [o] out1(m); [o] out2(m); [o] indx loc1(m); [o] indx loc2(m))
+#
+#   depending on the number of values and/or
+#   locations being computed.  For PDL::NG, I
+#   wonder if it would be possible to use
+#   chaining to optimize sequences of these
+#   for a given input array in PDL::NG?
+#
+# NOTE: In order for the combining operation to work,
+# one must ensure that the at least one value is
+# combined for each index of the output array or
+# that the output array is populated with the identity
+# element for the given operation.
+#
+# Since there is no clean way to determine if all
+# index values have corresponding elements in the
+# source array, we initialize the output array with
+# the appropriate identity element.
+#
+# TODO: How to handle the case when one wishes to
+# accumulate results with a sequence of calls to
+# ind* routines.  There is some ambiguity if the
+# output array ends up with the identity element.
+#
+# Was that the value combined (unlikely?) or was
+# there no source element with that index value?
+# Since the planned application for these routines
+# is to compute over segmented images, we assume
+# that the number of indexes == the number of
+# segements so, by definition, all index values
+# have at least one source value combined.
+
+my %combine_ops = (
+    'add' => {
+        opname => 'add',
+        fname => 'indadd',
+        fun_op => '+=',
+        sig => 'a(n); indx ind(n); [o] c(m)',
+        identity => 0,
+        # all types
+    },
+    'band' => {
+        opname => 'band',
+        fname => 'indband',
+        fun_op => '&=',
+        sig => 'a(n); indx ind(n); [o] c(m)',
+        identity => ~0,
+        # integer types
+    },
+    'copy' => {
+        opname => 'copy',
+        fname => 'indcopy',
+        fun_op =>  '=',
+        sig => 'a(n); indx ind(n); [o] c(m)',
+        identity => 0,
+        # all types
+    },
+    'mul' => {
+        opname => 'mul',
+        fname => 'indmul',
+        fun_op => '*=',
+        sig => 'a(n); indx ind(n); [o] c(m)',
+        identity => 1,
+        # all types
+    },
+    'bor' => {
+        opname => 'bor',
+        fname => 'indbor',
+        fun_op => '|=',
+        sig => 'a(n); indx ind(n); [o] c(m)',
+        identity => 0,
+        # integer types
+    },
+    'xor' => {
+        opname => 'xor',
+        fname => 'indxor',
+        fun_op => '^=',
+        sig => 'a(n); indx ind(n); [o] c(m)',
+        identity => 0,
+        # integer types
+    },
+);
+
+my %order_ops = (
+    'max' => {
+        fname => 'indmax',
+        ops => [ '>' ],
+        sig => 'a(n); indx ind(n); [o] c(m)',
+        identity => { uint => 0, int => '2^$n-1', float => '-FLT_MAX', double => '-DBL_MAX' },
+        # all types,
+    },
+    'min' => {
+        fname => 'indmin',
+        ops => [ '<' ],
+        sig => 'a(n); indx ind(n); [o] c(m)',
+        identity => { uint => '2**$n-1', int => '2^($n-1)', float => 'FLT_MAX', double => 'DBL_MAX' },
+        # all types,
+    },
+    'minmax' => {
+        fname => 'indminmax',
+        ops => [ '<', '>' ],
+        sig => 'a(n); indx ind(n); [o] c(m); [o] d(m))',
+        identity => "see identity for max and min above",
+        # all types
+    },
+    'maxloc' => {
+        fname => 'indmaxloc',
+        ops => [ '>', 'loc' ],
+        sig => 'a(n); indx ind(n); [o] c(m); [o] indx cind(m))',
+        identity => "see identity for max above",
+        # all types
+     },
+    'minloc' => {
+        fname => 'indminloc',
+        ops => [ '<', 'loc' ],
+        sig => 'a(n); indx ind(n); [o] c(m); [o] indx cind(m))',
+        identity => "see identity for min above",
+        # all types
+    },
+    'minmaxloc' => {
+        fname => 'indminmaxloc',
+        ops => [ '<', '>', 'loc', 'loc' ],
+        sig => 'a(n); indx ind(n); [o] c(m); [o] d(m)); [o] indx cind(m); [o] indx dind(m))',
+        identity => "see identity for max and min above",
+        # all types
+    },
+);
+
+=head2 indadd
+
+=for sig
+
+  Signature: (a(); indx ind(); [o] sum(m))
+
+=cut
+
+my $template = q{
+pp_def(
+    'fname',
+    HandleBad => 1,
+    GenericTypes=>$R,
+    Pars => 'sig',
+    Code =>
+    'register PDL_Indx foo = $ind();
+     if( foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::fname invalid index");
+     }
+     $c(m => foo) fun_op $a();',
+    BadCode =>
+    'register PDL_Indx foo = $ind();
+     if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::fname invalid index");
+     }
+     if ( $ISBAD(a()) ) { $SETBAD(c(m => foo)); }
+     else               { $c(m => foo) fun_op $a(); }',
+    BadDoc => '
+
+=for bad
+
+The routine barfs if any of the indices are bad.
+
+=cut
+
+',
+    Doc=>'
+
+=for ref
+
+Threaded Index combine with opname of C<a> to the C<ind> element of C<c>, i.e:
+
+ c(ind) fun_op a
+
+=for example
+
+Simple Example:
+
+  $a = 2;
+  $ind = 3;
+  $c = zeroes(10);
+  fname($a, $ind, $c);
+  print $c
+  # Result: ( 2 fun_op'd to element 3 of $c)
+  # TBD
+
+Threaded Example:
+
+  $a = pdl( 1,2,3 );
+  $ind = pdl( 1,4,6 );
+  $c = zeroes(10);
+  indadd($a, $ind, $c);
+  print $c . "\n";
+  # Result: ( 1, 2, and 3 fun_op'd to elements 1,4,6 of $c)
+  # TBD
+
+=cut
+');
+};
+
+my $R = ['B','S','U','L','N','F','D']; # should be using code from Types.pm to set up.
+
+pp_def(
+    'indadd',
+    HandleBad => 1,
+    GenericTypes=>$R,
+    Pars => 'a(); indx ind(); [o] sum(m)',
+    Code =>
+    'register PDL_Indx foo = $ind();
+     if( foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indadd: invalid index");
+     }
+     $sum(m => foo) += $a();',
+    BadCode =>
+    'register PDL_Indx foo = $ind();
+     if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indadd: invalid index");
+     }
+     if ( $ISBAD(a()) ) { $SETBAD(sum(m => foo)); }
+     else               { $sum(m => foo) += $a(); }',
+    BadDoc => '
+
+=for bad
+
+The routine barfs if any of the indices are bad.
+
+=cut
+
+',
+    Doc=>'
+
+=for ref
+
+Threaded Index Add: Add C<a> to the C<ind> element of C<sum>, i.e:
+
+ sum(ind) += a
+
+=for example
+
+Simple Example:
+
+  $a = 2;
+  $ind = 3;
+  $sum = zeroes(10);
+  indadd($a,$ind, $sum);
+  print $sum
+  #Result: ( 2 added to element 3 of $sum)
+  # [0 0 0 2 0 0 0 0 0 0]
+
+Threaded Example:
+
+  $a = pdl( 1,2,3);
+  $ind = pdl( 1,4,6);
+  $sum = zeroes(10);
+  indadd($a,$ind, $sum);
+  print $sum."\n";
+  #Result: ( 1, 2, and 3 added to elements 1,4,6 $sum)
+  # [0 1 0 0 2 0 3 0 0 0]
+
+=cut
+
+');
+
+=head2 indmax
+
+=for sig
+
+  Signature: (a(); indx ind(); [o] max(m))
+
+=cut
+
+pp_def(
+    'indmax',
+    HandleBad => 1,
+    GenericTypes=>$R,
+    Pars => 'a(); indx ind(); [o] max(m)',
+    Code =>
+    'register PDL_Indx foo = $ind();
+     if( foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indmax: invalid index");
+     }
+     $max(m => foo) = ($max(m => foo) < $a()) ? $a() : $max(m => foo);',
+    BadCode =>
+    'register PDL_Indx foo = $ind();
+     if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indmax: invalid index");
+     }
+     if ( $ISBAD(a()) ) { $SETBAD(max(m => foo)); }
+     else               { $max(m => foo) = ($max(m => foo) < $a()) ? $a() : $max(m => foo); }',
+    BadDoc => '
+
+=for bad
+
+The routine barfs if any of the indices are bad.
+
+=cut
+
+',
+    Doc=>'
+
+=for ref
+
+Threaded Index Min: Replace the C<ind> element of C<max> with C<a> if greater than the original value, i.e:
+
+ max(ind) = (max(ind) < a) ? a : max(ind);
+
+=for example
+
+Simple Example:
+
+  $a = 2;
+  $ind = 3;
+  $max = zeros(10);
+  indmax($a,$ind, $max);
+  print $max
+  #Result: ( 2 max-combined with element 3 of $max)
+  # [0 0 0 2 0 0 0 0 0 0]
+
+Threaded Example:
+
+  $a = pdl(1,-2,-3);
+  $ind = pdl(1,4,6);
+  $max = zeroes(10);
+  indmax($a,$ind, $max);
+  print $max."\n";
+  #Result: ( 1, -2, and -3 max-combined to elements 1,4,6 of $max)
+  # [0 1 0 0 0 0 0 0 0 0]
+
+=cut
+
+');
+
+=head2 indmin
+
+=for sig
+
+  Signature: (a(); indx ind(); [o] min(m))
+
+=cut
+
+pp_def(
+    'indmin',
+    HandleBad => 1,
+    GenericTypes=>$R,
+    Pars => 'a(); indx ind(); [o] min(m)',
+    Code =>
+    'register PDL_Indx foo = $ind();
+     if( foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indmin: invalid index");
+     }
+     $min(m => foo) = ($min(m => foo) > $a()) ? $a() : $min(m => foo);',
+    BadCode =>
+    'register PDL_Indx foo = $ind();
+     if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indmin: invalid index");
+     }
+     if ( $ISBAD(a()) ) { $SETBAD(min(m => foo)); }
+     else               { $min(m => foo) = ($min(m => foo) > $a()) ? $a() : $min(m => foo); }',
+    BadDoc => '
+
+=for bad
+
+The routine barfs if any of the indices are bad.
+
+=cut
+
+',
+    Doc=>'
+
+=for ref
+
+Threaded Index Min: Replace the C<ind> element of C<min> with C<a> if less than the original value, i.e:
+
+ min(ind) = (min(ind) > a) ? a : min(ind);
+
+=for example
+
+Simple Example:
+
+  $a = -2;
+  $ind = 3;
+  $min = ones(10);
+  indmin($a,$ind, $min);
+  print $min
+  #Result: ( -2 min-combined with element 3 of $min)
+  # [1 1 1 -2 1 1 1 1 1 1]
+
+Threaded Example:
+
+  $a = pdl(1,-2,-3);
+  $ind = pdl(1,4,6);
+  $min = zeroes(10);
+  indmin($a,$ind, $min);
+  print $min."\n";
+  #Result: ( 1, -2, and -3 min-combined to elements 1,4,6 of $min)
+  # [0 0 0 0 -2 0 -3 0 0 0]
+
+=cut
+
+');
+
+pp_done();

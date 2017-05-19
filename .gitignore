@@ -98,6 +98,9 @@ lib/PDL/ImageND.xs
 lib/PDL/ImageRGB.c
 lib/PDL/ImageRGB.pm
 lib/PDL/ImageRGB.xs
+lib/PDL/IndOps.c
+lib/PDL/IndOps.pm
+lib/PDL/IndOps.xs
 lib/PDL/Math.c
 lib/PDL/Math.pm
 lib/PDL/Math.xs
