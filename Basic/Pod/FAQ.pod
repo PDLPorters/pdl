@@ -6,12 +6,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  1.007
+Current FAQ version:  1.008
 
 
 =head1 DESCRIPTION
 
-This is version 1.007 of the PDL FAQ, a collection of  frequently 
+This is version 1.008 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 
@@ -395,8 +395,8 @@ I<very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
 
 
-As of this writing (FAQ version 1.007 of 08 Oct 2016) the latest stable version
-is 2.017.  The latest stable version should always be available from a CPAN
+As of this writing (FAQ version 1.008 of 21 May 2017) the latest stable version
+is 2.018.  The latest stable version should always be available from a CPAN
 mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?"> for
 info on where to get PDL).
 
@@ -575,7 +575,7 @@ PDL builds fine on Win32 using MinGW or Microsoft compilers.  See
 the F<win32/INSTALL> file in the PDL source distribution for details.
 Other compilers have not been tested--input is welcome.  There is
 also a distribution of PDL through ActiveState's ppm, though it
-might not always be the latest version.  PDL-2.017 builds out of
+might not always be the latest version.  PDL-2.018 builds out of
 the box on Strawberry Perl and ActiveState Perl and there are 
 distributions of Strawberry Perl with bundled PDL
 (see L<http://strawberryperl.com/releases.html>).
