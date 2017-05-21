@@ -70,22 +70,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.017_99 release:
+  PDL-2.018 release:
 
   435   PDL-LinearAlgebra-0.12 undefined reference to dggsvd_ + sggsvd_
-
-  433   GSL SF errors kill perl and pdl2/#perldl shell
-          Should be fixed this release.
-
-  432   t/#gd_oo_tests.t fails with perl 5.25.12
-          Should be fixed in this release.
-
-  430   PDL-2.017 & MS Win test failures t/#inlinepdlpp.t + t/#inline-comment-test.t
-          May be fixed in this release---at least it has not been reported lately.
-
-  429   Alien::Proj4->load_projection_information parses PJ_sch parameters incorrectly
-          Should be fixed this release.
-
   420   PDL-2.016 fails to build on ASperl solaris 32bit or 64bit platforms
   418   warp2d and fitwarp2d polynomial fitting doesn't work as expected
   412   16bit TIFF image IO not exact in PDL::IO::Pic
