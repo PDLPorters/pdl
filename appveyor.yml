@@ -1,10 +1,17 @@
 version: 1.0.{build}
 
+environment:
+  matrix:
+  - CHOCO_PERL_PACKAGE: StrawberryPerl
+    CHOCO_PERL_PATH: C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
+  - CHOCO_PERL_PACKAGE: activeperl
+    CHOCO_PERL_PATH: C:\Perl64\bin;C:\Perl64\site\bin;%PATH%
+
 install:
   # running under CI
   - set CI_TESTING=1
-  - cinst StrawberryPerl
-  - path C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
+  - cinst %CHOCO_PERL_PACKAGE%
+  - path %CHOCO_PERL_PATH%
   - mkdir %APPVEYOR_BUILD_FOLDER%\tmp
   - set TMPDIR=%APPVEYOR_BUILD_FOLDER%\tmp
   - perl -V
