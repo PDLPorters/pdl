@@ -3,7 +3,7 @@
 BEGIN {
    $ENV{DEVEL_REPL_PROFILE} = 'PDL::Perldl2::Profile::Perldl2';
 
-   # This should be based on 
+   # This should be based on
    $HOME = $ENV{HOME};             # Useful in shell
    if ($^O =~ /win32/i and
       (! defined($HOME)) or
@@ -21,6 +21,7 @@ BEGIN {
    eval " use Devel::REPL $minversion ";
    if ($@) {
       my ($perldl) = $0;
+      $perldl =~ s/pdl2\.bat$/perldl.bat/;
       $perldl =~ s/pdl2$/perldl/;
       warn "pdl2: Devel::REPL version $minversion not found, running '$perldl' instead...\n";
       do $perldl;
@@ -46,8 +47,8 @@ Use PDL interactively:
   %> pdl2
 
   pdl> $a = sequence(10)  # or any other perl or PDL command
-  
-  pdl> print "\$a = $a\n"; 
+
+  pdl> print "\$a = $a\n";
   $a = [0 1 2 3 4 5 6 7 8 9]
 
 =head1 DESCRIPTION
