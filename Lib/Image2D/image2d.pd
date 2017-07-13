@@ -1759,12 +1759,12 @@ C<FIT> allows you to restrict which terms of the polynomial to fit:
 only those terms for which the FIT piddle evaluates to true will be
 evaluated.  If a 2D piddle is sent in, then it is
 used for the x and y polynomials; otherwise
-C<$fit-E<gt>slice(":,:,(0)")> will be used for C<$px> and
-C<$fit-E<gt>slice(":,:,(1)")> will be used for C<$py>.
+C<< $fit->slice(":,:,(0)") >> will be used for C<$px> and
+C<< $fit->slice(":,:,(1)") >> will be used for C<$py>.
 
 =item THRESH
 
-Remove all singular values whose valus is less than C<THRESH>
+Remove all singular values whose value is less than C<THRESH>
 times the largest singular value.
 
 =back
