@@ -1950,7 +1950,7 @@ pp_def('append',
 
 =for ref
 
-append two or more piddles by concatenating along their first dimensions
+append two piddles by concatenating along their first dimensions
 
 =for example
 
@@ -1958,12 +1958,15 @@ append two or more piddles by concatenating along their first dimensions
  $b = sequence 5;
  $c = $a->append($b);  # size of $c is now (7,4,7) (a jumbo-piddle ;)
 
-C<append> appends two piddles along their first dims. Rest of the dimensions
-must be compatible in the threading sense. Resulting size of first dim is
-the sum of the sizes of the first dims of the two argument piddles -
-ie C<n + m>.
+C<append> appends two piddles along their first dimensions. The rest of the
+dimensions must be compatible in the threading sense. The resulting
+size of the first dimension is the sum of the sizes of the first dimensions
+of the two argument piddles - i.e. C<n + m>.
 
-Similar functions include L<glue|/glue> (below) and L<cat|PDL::Core/cat>.
+Similar functions include L<glue|/glue> (below), which can append more
+than two piddles along an arbitary dimension, and
+L<cat|PDL::Core/cat>, which can append more than two piddles that all
+have the same sized dimensions.
 
 =cut
 
@@ -2003,7 +2006,10 @@ C<glue> is implemented in pdl, using a combination of L<xchg|PDL::Slices/xchg> a
 L<append|append>.  It should probably be updated (one day) to a pure PP
 function.
 
-Similar functions include L<append|/append> (above) and L<cat|PDL::Core/cat>.
+Similar functions include L<append|/append> (above), which appends
+only two piddles along their first dimension, and
+L<cat|PDL::Core/cat>, which can append more than two piddles that all
+have the same sized dimensions.
 
 =cut
 
