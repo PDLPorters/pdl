@@ -1721,7 +1721,7 @@ a coordinate transformation.
 
 =for usage
 
-  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, $nf. { options } )
+  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, $nf, { options } )
 
 Given a set of points in the output plane (C<$u,$v>), find
 the best-fit (using singular-value decomposition) 2D polynomial
@@ -1748,8 +1748,14 @@ Options:
 =for options
 
   FIT     - which terms to fit? default ones(byte,$nf,$nf)
+
+=begin comment
+
+old option, caused trouble
   THRESH  - in svd, remove terms smaller than THRESH * max value
             default is 1.0e-5
+
+=end comment
 
 =over 4
 
@@ -1762,10 +1768,14 @@ used for the x and y polynomials; otherwise
 C<< $fit->slice(":,:,(0)") >> will be used for C<$px> and
 C<< $fit->slice(":,:,(1)") >> will be used for C<$py>.
 
+=begin comment
+
 =item THRESH
 
 Remove all singular values whose value is less than C<THRESH>
 times the largest singular value.
+
+=end comment
 
 =back
 
@@ -1810,6 +1820,40 @@ terms to fit (C<$nf*$nf> points for the default value of C<FIT>).
    [          1.25 -5.8546917e-18]
   ]
 
+  # A higher-degree polynomial should not affect the answer much, but
+  # will require more control points
+
+  $x = $x->glue(0,pdl(50,12.5, 37.5, 12.5, 37.5));
+  $y = $y->glue(0,pdl(50,12.5, 37.5, 37.5, 12.5));
+  $u = $u->glue(0,pdl(73,20,40,20,40));
+  $v = $v->glue(0,pdl(29,20,40,40,20));
+  ( $px3, $py3 ) = fitwarp2d( $x, $y, $u, $v, 3 );
+  print "px3 =${px3}py3 =$py3";
+  px3 =
+  [
+   [-6.4981162e+08       71034917     -726498.95]
+   [      49902244     -5415096.7      55945.388]
+   [    -807778.46      88457.191     -902.51612]
+  ]
+  py3 =
+  [
+   [-6.2732159e+08       68576392     -701354.77]
+   [      48175125     -5227679.8      54009.114]
+   [    -779821.18      85395.681     -871.27997]
+  ]
+
+  #This illustrates an important point about singular value
+  #decompositions that are used in fitwarp2d: like all SVDs, the
+  #rotation matrices are not unique, and so the $px and $py returned
+  #by fitwarp2d are not guaranteed to be the "simplest" solution.
+  #They do still work, though:
+
+  ($x3,$y3) = applywarp2d($px3,$py3,$u,$v);
+  print approx $x3,$x,1e-4;
+  [1 1 1 1 1 1 1 1 1]
+  print approx $y3,$y;
+  [1 1 1 1 1 1 1 1 1]
+
 =head2 applywarp2d
 
 =for ref
@@ -1828,10 +1872,75 @@ for more information on the format of C<$px> and C<$py>.
 =cut
 
 # use SVD to fit data. Assuming no errors.
-sub _svd ($$$) {
+
+=pod
+
+=begin comment
+
+Some explanation of the following three subroutines (_svd, _mkbasis,
+and fitwarp2d): See Wolberg 1990 (full ref elsewhere in this
+documentation), Chapter 3.6 "Polynomial Transformations".  The idea is
+that, given a set of control points in the input and output images
+denoted by coordinates (x,y) and (u,v), we want to create a polynomial
+transformation that relates u to linear combinations of powers of x
+and y, and another that relates v to powers of x and y.
+
+The transformations used here and by Wolberg differ slightly, but the
+basic idea is something like this.  For each u and each v, define a
+transform:
+
+u = (sum over j) (sum over i) a_{ij} x**i * y**j , (eqn 1)
+v = (sum over j) (sum over i) b_{ij} x**i * y**j . (eqn 2)
+
+We can write this in matrix notation.  Given that there are M control
+points, U is a column vector with M rows.  A and B are vectors containing
+the N coefficients (related to the degree of the polynomial fit).  W
+is an MxN matrix of the basis row-vectors (the x**i y**j).
+
+The matrix equations we are trying to solve are
+U = W A , (eqn 3)
+V = W B . (eqn 4)
+
+We need to find the A and B column vectors, those are the coefficients
+of the polynomial terms in W.  W is not square, so it has no inverse.
+But is has a pseudo-inverse W^+ that is NxM.  We are going to use that
+pseudo-inverse to isolate A and B, like so:
+
+W^+ U = W^+ W A = A (eqn 5)
+W^+ V = W^+ W B = B (eqn 6)
+
+We are going to get W^+ by performing a singular value decomposition
+of W (to use some of the variable names below):
+
+W = $svd_u x SIGMA x $svd_v->transpose (eqn 7)
+W^+ = $svd_v x SIGMA^+ x $svd_u->transpose . (eqn 8)
+
+Here SIGMA is a square diagonal matrix that contains the singular
+values of W that are in the variable $svd_w.  SIGMA^+ is the
+pseudo-inverse of SIGMA, which is calculated by replacing the non-zero
+singular values with their reciprocals, and then taking the transpose
+of the matrix (which is a no-op since the matrix is square and
+diagonal).
+
+So the code below does this:
+
+_mkbasis computes the matrix W, given control coordinates u and v and
+the maximum degree of the polynomial (and the terms to use).
+
+_svd takes the svd of W, computes the pseudo-inverse of W, and then
+multiplies that with the U vector (there called $y). The output of
+_svd is the A or B vector in eqns 5 & 6 above. Rarely is the matrix
+multiplication explicit, unfortunately, so I have added EXPLANATIONs
+below.
+
+=end comment
+
+=cut
+
+sub _svd ($$) {
     my $basis  = shift;
     my $y      = shift;
-    my $thresh = shift;
+#    my $thresh = shift;
 
     # if we had errors for these points, would normalise the
     # basis functions, and the output array, by these errors here
@@ -1839,12 +1948,19 @@ sub _svd ($$$) {
     # perform the SVD
     my ( $svd_u, $svd_w, $svd_v ) = svd( $basis );
 
-    # remove any singular values
-    $svd_w *= ( $svd_w >= ($svd_w->max * $thresh ) );
+    # DAL, 09/2017: the reason for removing ANY singular values, much less
+    #the smallest ones, is not clear. I commented the line below since this
+    #actually removes the LARGEST values in SIGMA^+.
+    # $svd_w *= ( $svd_w >= ($svd_w->max * $thresh ) );
+    # The line below would instead remove the SMALLEST values in SIGMA^+, but I can see no reason to include it either.
+    # $svd_w *= ( $svd_w <= ($svd_w->min / $thresh ) );
 
     # perform the back substitution
-    #
+    # EXPLANATION: same thing as $svd_u->transpose x $y->transpose.
     my $tmp = $y x $svd_u;
+
+    #EXPLANATION: the division by (the non-zero elements of) $svd_w (the singular values) is
+    #equivalent to $sigma_plus x $tmp, so $tmp is now SIGMA^+ x $svd_u x $y
     if ( $PDL::Bad::Status ) {
 	$tmp /= $svd_w->setvaltobad(0.0);
 	$tmp->inplace->setbadtoval(0.0);
@@ -1855,11 +1971,22 @@ sub _svd ($$$) {
 	$tmp *= ( 1 - $mask );
     }
 
-    my $ans = sumover( $svd_v * $tmp );
-
-    return $ans;
+    #EXPLANATION:   $svd_v x SIGMA^+ x $svd_u x $y
+    return sumover( $svd_v * $tmp );
 
 } # sub: _svd()
+
+#_mkbasis returns a piddle in which the k(=j*n+i)_th column is v**j * u**i
+#k=0 j=0 i=0
+#k=1 j=0 i=1
+#k=2 j=0 i=2
+#k=3 j=1 i=0
+# ...
+
+#each row corresponds to a control point
+#and the rows for each of the control points look like this, e.g.:
+# (1) (u) (u**2) (v) (vu) (v(u**2)) (v**2) ((v**2)u) ((v**2)(u**2))
+# and so on for the next control point.
 
 sub _mkbasis ($$$$) {
     my $fit    = shift;
@@ -1896,7 +2023,7 @@ sub PDL::fitwarp2d {
     my $v  = shift;
     my $nf = shift;
 
-    my $opts = PDL::Options->new( { FIT => ones(byte,$nf,$nf), THRESH => 1.0e-5 } );
+    my $opts = PDL::Options->new( { FIT => ones(byte,$nf,$nf) } ); #, THRESH => 1.0e-5 } );
     $opts->options( $_[0] ) if $#_ > -1;
     my $oref = $opts->current();
 
@@ -1906,9 +2033,9 @@ sub PDL::fitwarp2d {
 	unless $npts == $y->nelem and $npts == $u->nelem and $npts == $v->nelem
 	    and $x->getndims == 1 and $y->getndims == 1 and $u->getndims == 1 and $v->getndims == 1;
 
-    my $svd_thresh = $$oref{THRESH};
-    croak "fitwarp2d: THRESH option must be >= 0."
-	if $svd_thresh < 0;
+#    my $svd_thresh = $$oref{THRESH};
+#    croak "fitwarp2d: THRESH option must be >= 0."
+#	if $svd_thresh < 0;
 
     my $fit = $$oref{FIT};
     my $fit_ndim = $fit->getndims();
@@ -1933,20 +2060,22 @@ sub PDL::fitwarp2d {
 	$ncoeff = $ncoeffx > $ncoeffy ? $ncoeffx : $ncoeffy;
     }
 
-    croak "fitwarp2d: number of points must be >= \$ncoeff"
+    croak "fitwarp2d: number of points ($npts) must be >= \$ncoeff ($ncoeff)"
 	unless $npts >= $ncoeff;
 
     # create the basis functions for the SVD fitting
     my ( $basisx, $basisy );
+
     $basisx = _mkbasis( $fitx, $npts, $u, $v );
+
     if ( $fit_ndim == 2 ) {
 	$basisy = $basisx;
     } else {
 	$basisy = _mkbasis( $fity, $npts, $u, $v );
     }
 
-    my $px = _svd( $basisx, $x, $svd_thresh );
-    my $py = _svd( $basisy, $y, $svd_thresh );
+    my $px = _svd( $basisx, $x ); # $svd_thresh);
+    my $py = _svd( $basisy, $y ); # $svd_thresh);
 
     # convert into $nf x $nf element piddles, if necessary
     my $nf2 = $nf * $nf;
