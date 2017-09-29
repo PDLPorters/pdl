@@ -12,7 +12,7 @@ use PDL::Config;
 
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-use Test::More tests => 95;
+use Test::More tests => 97;
 
 BEGIN {
       use_ok( "PDL::IO::FITS" ); #1
@@ -316,6 +316,12 @@ SKIP:{
 	ok(all($b==$a),"The new image matches the old one (longlong)");
 	unlink $file;
 }
-	
+
+###############################
+# Check that tilde expansion works
+eval { sequence(3,5,2)->wfits('~/tmp.fits'); };
+ok(!$@, "wfits tilde expansion didn't fail");
+eval { rfits('~/tmp.fits'); };
+ok(!$@, "rfits tilde expansion didn't fail");
 
 1;
