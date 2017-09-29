@@ -1,7 +1,7 @@
 # -*-perl-*-
 #
 
-use Test::More tests => 29;
+use Test::More tests => 47;
 use Test::Exception;
 
 use PDL;
@@ -209,4 +209,59 @@ $im2 .= 0;
 polyfillv($im2,$ps) .= 25;
 polyfill($im,$ps,25);
 ok(all($im == $im2), "polyfill using default algorithm");
+}
+
+#######################
+#warp2d and friends
+{#this just runs the example in the documentation
+
+  my $x = pdl( 0,   0, 100, 100 );
+  my $y = pdl( 0, 100, 100,   0 );
+  # get warped to these positions
+  my $u = pdl( 10, 10, 90, 90 );
+  my $v = pdl( 10, 90, 90, 10 );
+  #
+  # shift of origin + scale x/y axis only
+  my $fit = byte( [ [1,1], [0,0] ], [ [1,0], [1,0] ] );
+  my ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, 2, { FIT => $fit } );
+  ok(all(approx($px,pdl([-12.5,1.25],[0,0]),1e-13)),'px fitwarp2d linear restricted');
+  ok(all(approx($py,pdl([-12.5,0],[1.25,0]))),'py fitwarp2d linear restricted');
+  # Compared to allowing all 4 terms
+  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, 2 );
+  ok(all(approx($px, pdl([-12.5,1.25],[0,0]))),'px fitwarp2d linear unrestricted');
+  ok(all(approx($py, pdl([-12.5,0],[1.25,0]))),'py fitwarp2d linear unrestricted');
+  # A higher-degree polynomial should not affect the answer much, but
+  # will require more control points
+  $x = $x->glue(0,pdl(50,12.5, 37.5, 12.5, 37.5));
+  $y = $y->glue(0,pdl(50,12.5, 37.5, 37.5, 12.5));
+  $u = $u->glue(0,pdl(73,20,40,20,40));
+  $v = $v->glue(0,pdl(29,20,40,40,20));
+  my ( $px3, $py3 ) = fitwarp2d( $x, $y, $u, $v, 3 );
+  my ($x3,$y3) = applywarp2d($px3,$py3,$u,$v);
+  ok(all(approx($x3,$x,1e-4)),'px fitwarp2d quadratic unrestricted');
+  ok(all(approx($y3,$y,1e-4)),'py fitwarp2d quadratic unrestricted');
+
+#define a simple grid image
+my $img = (xvals(50,50) % 8 == 5 ) * (yvals(50,50) % 9 == 6); #stretch the y control points out a bit, and offset them too.
+#get the control points
+  ($u,$v) = whichND($img)->mv(0,-1)->double->dog;
+#and shift it by 1 in horizontal and vertical directions
+my $shift = $img->range([1,1],[$img->dims],'p');
+#get the control points of the shifted image
+  ($x,$y) = whichND($shift)->mv(0,-1)->double->dog;
+
+  use PDL::NiceSlice;
+  # we try 1st-, 2nd-, and 3rd-order fits, with and without restrictions to shift-and-scale-only
+  foreach my $deg(2,3,4){
+      my $fit = zeroes(byte,$deg,$deg,2);
+      $fit(:,(0),(0)).=1;
+      $fit((0),:,(1)).=1;
+      foreach my $restrict_fit(1,0){
+	  my ($pxn,$pyn) = fitwarp2d($x,$y,$u,$v,$deg,$restrict_fit?{FIT=>$fit}:{});
+	  my $out = warp2d($shift,$pxn,$pyn);
+	  ok(all(approx($out,$img,1e-3)),'warp2d ' . ($restrict_fit?'':'un') . "restricted deg $deg values approx");
+	  ok(all($out->rint==$img),'warp2d ' . ($restrict_fit?'':'un') . "restricted deg $deg rint exact");
+      }
+  }
+
 }
