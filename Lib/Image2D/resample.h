@@ -39,4 +39,7 @@ poly2d_compute( int ncoeff, double *c, double u, double *vpow );
 double   *
 generate_interpolation_kernel(char * kernel_type);
 
+void
+kernel_free(void *p);
+
 #endif

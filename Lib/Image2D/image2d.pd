@@ -2448,7 +2448,7 @@ sub PDL::warp2d {
     %}        /* threadloop */
 
     free(poly);
-    free(kernel) ;
+    kernel_free(kernel) ;
 
 ',
     ); # pp_def: warp2d
@@ -2539,7 +2539,7 @@ sub PDL::warp2d_kernel ($) {
     %}
 
     /* free the kernel */
-    free( kernel );
+    kernel_free( kernel );
 
 '); # pp_addpm
 

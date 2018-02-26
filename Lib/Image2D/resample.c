@@ -357,6 +357,11 @@ generate_interpolation_kernel(char * kernel_type)
 
 } /* generate_interpolation_kernel() */
 
+void kernel_free( void *p ) {
+#undef free
+free( p );
+}
+
 /***********
  *** END ***
  ***********/
