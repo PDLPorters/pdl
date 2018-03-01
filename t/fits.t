@@ -319,9 +319,12 @@ SKIP:{
 
 ###############################
 # Check that tilde expansion works
-eval { sequence(3,5,2)->wfits('~/tmp.fits'); };
+my $tildefile = cfile('~',"PDL-IO-FITS-test_$$.fits");
+eval { sequence(3,5,2)->wfits($tildefile); };
 ok(!$@, "wfits tilde expansion didn't fail");
-eval { rfits('~/tmp.fits'); };
+eval { rfits($tildefile); };
 ok(!$@, "rfits tilde expansion didn't fail");
+$tildefile =~ s/^(~)/glob($1)/e; #use the same trick as in FITS.pm to resolve this filename.
+unlink($tildefile) or warn "Could not delete $tildefile: $!\n"; #clean up.
 
 1;
