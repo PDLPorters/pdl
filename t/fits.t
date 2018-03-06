@@ -13,6 +13,7 @@ use PDL::Config;
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 use Test::More tests => 97;
+use Test::Exception;
 
 BEGIN {
       use_ok( "PDL::IO::FITS" ); #1
@@ -285,11 +286,9 @@ $b = rvals(5,5);
 
 our @aa;
 
-eval { wfits([$a,$b],$file); };
-ok(!$@, "wfits with multiple HDUs didn't fail");
+lives_ok { wfits([$a,$b],$file) } "wfits with multiple HDUs didn't fail";
 
-eval { @aa = rfits($file); };
-ok(!$@, "rfits in list context didn't fail");
+lives_ok { @aa = rfits($file) } "rfits in list context didn't fail";
 
 ok( $aa[0]->ndims == $a->ndims && all($aa[0]->shape == $a->shape), "first element has right shape");
 ok( all($aa[0] == $a), "first element reproduces written one");
@@ -320,10 +319,8 @@ SKIP:{
 ###############################
 # Check that tilde expansion works
 my $tildefile = cfile('~',"PDL-IO-FITS-test_$$.fits");
-eval { sequence(3,5,2)->wfits($tildefile); };
-ok(!$@, "wfits tilde expansion didn't fail");
-eval { rfits($tildefile); };
-ok(!$@, "rfits tilde expansion didn't fail");
+lives_ok { sequence(3,5,2)->wfits($tildefile) } "wfits tilde expansion didn't fail";
+lives_ok { rfits($tildefile) } "rfits tilde expansion didn't fail";
 $tildefile =~ s/^(~)/glob($1)/e; #use the same trick as in FITS.pm to resolve this filename.
 unlink($tildefile) or warn "Could not delete $tildefile: $!\n"; #clean up.
 
