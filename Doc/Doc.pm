@@ -165,7 +165,7 @@ An implementation of online docs for PDL.
 =head1 Using PDL documentation
 
 PDL::Doc's main use is in the "help" (synonym "?") and "apropos"
-(synonym "??") commands in the perldl shell.  PDL:Doc provides the
+(synonym "??") commands in the perldl shell.  PDL::Doc provides the
 infrastrucure to index and access PDL's documentation through these
 commands.  There is also an API for direct access to the documentation 
 database (see below).
