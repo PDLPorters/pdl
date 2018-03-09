@@ -130,4 +130,7 @@ EOPOD
 
 close POD;
 
-
+#add the newly-created PDL::Index to the doc database
+$onldc->scan($outindex,$opt_v) if (-s $outindex);
+$onldc->savedb();
+1;
