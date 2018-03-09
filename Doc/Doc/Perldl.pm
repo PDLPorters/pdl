@@ -90,6 +90,25 @@ sub printmatch {
     }
 } # sub: print_match()
 
+
+# given a full function name like PDL::SomeModule::funcname,
+# in list context, returns the funcname and a (perhaps shortened) module name.
+# in scalar context, returns only the (perhaps shortened) module name.
+
+sub func_and_shortmod {
+  my $fullname = shift;
+  $fullname =~ m/((\w+::)+)(\w+)$/;
+  my $module = $1;
+  my $name = $3;
+  $module =~ s/::$//;
+  $module =~ s/^PDL::/P::/;
+  $module =~ s/Graphics/G/;
+  #additional abbreviation substitutions go here
+  return wantarray ? ($name, $module) : $module;
+}
+
+
+
 # return a string containing a formated version of the Ref string
 # for the given matches
 #
@@ -97,7 +116,13 @@ sub format_ref {
   my @match = @_;
   my @text = ();
 
-  my $width = screen_width()-17;
+  #finding the max width before doing the printing means looping through @match an extra time; so be it.
+  my @module_shorthands = map { scalar func_and_shortmod($_->[0]) } @match;
+  my $max_mod_length = -1;
+  map {$max_mod_length = length if (length>$max_mod_length) } @module_shorthands;
+
+
+  my $width = screen_width()-17-1-$max_mod_length;
   my $parser = new Pod::PlainText( width => $width, indent => 0, sentence => 0 );
 
   for my $m (@match) { 
@@ -107,18 +132,19 @@ sub format_ref {
         : "[No reference available]"
      );
 
+    my ($name,$module) = func_and_shortmod($m->[0]);
+
     $ref = $parser->interpolate( $ref );
     $ref = $parser->reformat( $ref );
 
     # remove last new lines (so substitution doesn't append spaces at end of text)
     $ref =~ s/\n*$//;
-    $ref =~ s/\n/\n                /g;
-
-    my $name = $m->[0];
+    $ref =~ s/\n/"\n                ".' 'x($max_mod_length+2)/eg;
+    $ref =~ s/^\s*//;
     if ( length($name) > 15 ) { 
-      push @text, sprintf "%s ...\n                %s\n", $name, $ref;
+      push @text, sprintf "%s ...\n " . ' 'x15 . "%-*s  %s\n", $name, $max_mod_length, $module, $ref;
     } else {
-      push @text, sprintf "%-15s %s\n", $name, $ref;
+      push @text, sprintf "%-15s %-*s  %s\n", $name, $max_mod_length, $module, $ref;
     }
   }
   return wantarray ? @text : $text[0];
@@ -211,11 +237,11 @@ sub finddoc  {
     # See if it matches a PDL function name
 
     my $subfield = $1
-      if( $topic =~ s/\[(\d*)\]$// );
+      if( $topic =~ s/\[(\d*)\]$// ); #does it end with a number in square brackets?
 
-    (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  
+    (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  #$t2 is a copy of $topic with escaped non-word characters
 
-    my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0);
+    my @match = search_docs("m/^(PDL::)?".$t2."\$|\:\:".$t2."\$/",['Name'],0);
 
     unless(@match) {
       

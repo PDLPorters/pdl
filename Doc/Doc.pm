@@ -683,12 +683,17 @@ sub scan {
   my $phash = $parser->{SYMHASH};
   my $n = 0;
   while (my ($key,$val) = each %$phash) {
-    #print "adding '$key'\n";
+
     $n++;
 
     $val->{File} = $file2;
-    $hash->{$key} = $val
+    #the stored key is now 'PDL::SomeModule::funcname'
+    $key = $val->{Module} . "::$key";
+    #print "adding '$key'\n";
+    if (!defined($hash->{$key})){
+      $hash->{$key} = $val;
     }
+  }
 
   # KGB pass2 - scan for module name and function
   # alright I admit this is kludgy but it works
@@ -768,6 +773,8 @@ sub funcdocs {
   if (!File::Spec->file_name_is_absolute($file) && $dbf) {
     $file = File::Spec->rel2abs($file, dirname($dbf)); 
   }
+  #In this file, don't search for 'PDL::SomeModule::funcname', just 'funcname'
+  $func =~ s/((\w+::)+)(\w+)$/$3/;
   funcdocs_fromfile($func,$file,$fout);
 }
 
