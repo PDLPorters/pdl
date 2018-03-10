@@ -53,20 +53,14 @@ is definitely not readily searchable.
 
 =head1 REPORTING BUGS
 
-Please submit bug reports via the sourceforge bug tracker
-interface at
+Please submit bug reports via the GitHub issue tracker at
 
-   http://sourceforge.net/p/pdl/bugs/
+   https://github.com/PDLPorters/pdl/issues
 
 where you can review the previously submitted bug reports.
-Click on C<Create Ticket> to generate a bug report.  If you do not
-already have a sourceforge.net account, you will need to
-get one to submit the report:
-
-   http://sourceforge.net/account/registration/
-
-Please provide a way for the PDL developers to contact you
-regarding the problem.
+Click on C<New issue> to generate a bug report.  If you do not
+already have a GitHub account, you will need to
+create one to submit the report.
 
 Try to include any information you think might help someone
 isolate, reproduce, and fix your problem.
@@ -129,7 +123,7 @@ A patch against the latest released version of this distribution which fixes thi
 
 Alternatively, send an e-mail report with the above
 information (including the output of C<perldl -V>)
-to C<pdl-devel@lists.sourceforge.net>. See
+to the pdl-devel mailing list. See
 
    http://pdl.perl.org/?page=mailing-lists
 
@@ -159,17 +153,30 @@ L<http://pdl.perl.org> which usually gives the best results.
 
 =head1 PATCHES
 
-Patches can be sent to the pdl-devel mailing list
-(see above) or can be directly submitted to the
-patch manager
+Patches can be submitted in several ways, in order of decreasing preference:
 
-   http://sourceforge.net/p/pdl/patches/
+=over 4
+
+=item 1
+
+	Fork the pdl repository on GitHub, make and test your changes, and submit a pull request;
+
+=item 2
+
+	Edit (or suggesting an edit to) the files in-place on GitHub;
+
+=item 3
+
+	Email a patch to the pdl-devel mailing list.
+
+=back
 
 Patches should be made against the latest released
 PDL or, ideally, against the current git sources
 which you can browse and check out at
 
-   git://git.code.sf.net/p/pdl/code
+   https://github.com/PDLPorters/pdl
+   git://github.com/PDLPorters/pdl.git
 
 Thanks,
 The PDL developers.

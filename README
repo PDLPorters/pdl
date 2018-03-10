@@ -82,9 +82,9 @@ basic examples of what you can do.
 
 Bug Reports
 -----------
-You can check the existing PDL bugs on sourceforge at
+You can check the existing PDL bugs on GitHub at
 
-	http://sourceforge.net/p/pdl/bugs/
+	https://github.com/PDLPorters/pdl/issues
 
 The mailing list archives can be searched/read at
 
@@ -96,11 +96,8 @@ not sure what you have is a bug or not.  For example, the list
 is the place to go for install problems.
 
 If you need to post a problem report, and after checking with
-the perldl list that it *is* a bug, please use the sourceforge.net
-tracker system following the guidance in the BUGS file:
-
-	http://sourceforge.net/p/pdl/bugs/
-
+the pdl-general list that it *is* a bug, please use the GitHub issue
+tracker system following the guidance in the BUGS file.
 
 
 Notes

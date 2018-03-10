@@ -468,11 +468,11 @@ my %makefile_hash = (
               'META_MERGE' => {
                  resources => {
                     homepage => 'http://pdl.perl.org/',
-                    bugtracker  => 'http://sourceforge.net/p/pdl/bugs/',
+                    bugtracker  => 'https://github.com/PDLPorters/pdl/issues',
                     repository  => {
-                       url => 'git://git.code.sf.net/p/pdl/code',
+                       url => 'git://github.com/PDLPorters/pdl.git',
                        type => 'git',
-                       web => 'http://sourceforge.net/p/pdl/code/ci/master/tree/',
+                       web => 'https://github.com/PDLPorters/pdl',
                     },
                  },
                  no_index => { file => ['Doc/scantree.pl'] }

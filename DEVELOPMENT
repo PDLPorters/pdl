@@ -5,15 +5,15 @@ not be confused with the latest public release
 which will always be available from CPAN (if you
 don't know what that is check the FAQ).
 
-Public Git repository at sourceforge.net
+Public Git repository
 --------------------------------------------
 
 From version PDL-2.4.4 onwards the source
 distribution is in a publicly accessible Git
-repository. The project is hosted at the
-sourceforge site at
+repository. From version PDL-2.019 onwards the
+project is hosted at the GitHub site at
 
-  http://sourceforge.net/projects/pdl/
+  https://github.com/PDLPorters/pdl
 
 Starting from the above URL you will find
 directions on how to check out the current
@@ -78,7 +78,7 @@ access to the PDL Git repository.
    should be able to help.)
   
 
-PDL Developer Recommended Workflow:
+(sf_to_gh)PDL Developer Recommended Workflow:
 -----------------------------------
 The actual workflow is a little more complicated. This is because
 GitHub also hosts a mirror of PDL's SF repository, to enable automatic
