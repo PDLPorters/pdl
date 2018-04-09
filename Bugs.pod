@@ -148,15 +148,15 @@ Patches can be submitted in several ways, in order of decreasing preference:
 
 =item 1
 
-	Fork the pdl repository on GitHub, make and test your changes, and submit a pull request;
+Fork the pdl repository on GitHub, make and test your changes, and submit a pull request;
 
 =item 2
 
-	Edit (or suggesting an edit to) the files in-place on GitHub;
+Edit (or suggesting an edit to) the files in-place on GitHub;
 
 =item 3
 
-	Email a patch to the pdl-devel mailing list.
+Email a patch to the pdl-devel mailing list.
 
 =back
 
