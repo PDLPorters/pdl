@@ -390,8 +390,8 @@ and pdl-devel was called 'pdl-porters'.
 |------------|-------------------------------------------------------|
 |1996 - 2004 | http://www.xray.mpe.mpg.de/mailing-lists/perldl/      |
 |1997 - 2004 | http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/ |
-|2005 - 2015 | perldl@jach lost???                                   |
-|2005 - 2015 | pdl-porters@jach lost???                              |
+|2005 - 2015 | http://perldl.jach.hawaii.narkive.com/                |
+|2005 - 2015 | http://pdl-porters.jach.hawaii.narkive.com/           |
 |2015 -      | https://sourceforge.net/p/pdl/mailman/pdl-general/    |
 |2015 -      | https://sourceforge.net/p/pdl/mailman/pdl-devel/      |
 |--------------------------------------------------------------------|
