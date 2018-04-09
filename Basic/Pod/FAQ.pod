@@ -606,13 +606,22 @@ Assume you have Git installed on your system and want to download the
 project source code into the directory C<PDL>. To get read-only access
 to the repository, you type at the command line
 
-   git clone git://github.com/PDLPorters/pdl PDL
+   git clone git://github.com/PDLPorters/pdl
 
-NEEDS updating (sf_to_gh): For official PDL developers, to get read/write access to the repository
+If you wish to submit changes to PDL, you should "fork" the repository
+from L<https://github.com/PDLPorters/pdl>, then clone your fork in the
+normal fashion.
+
+To become an official PDL developer, you will need to be added to the
+GitHub "PDLPorters" organisation.
+
+For official PDL developers, to get read/write access to the repository
 type at the command line
 
-   git clone ssh://USERNAME@git.code.sf.net/p/pdl/code pdl-code
+   git clone git://github.com/PDLPorters/pdl
 
+They can still use their own fork; at least one active developer uses
+that model rather than branches on the main repository.
 
 =head2 Q: 4.10   I had a problem with the Git version, how do I check if someone has submitted a patch?  
 
@@ -630,9 +639,19 @@ See L<Question 3.2|"Q: 3.2 Are there other PDL information sources on the Intern
 
 The first thing you should do is to read the Git documentation and
 learn the basics about Git. There are many sources available online.
-But here are the basics:
+It is very important that you use Git "best practice", with branches,
+but fortunately this is very easy! Here are the basics:
 
-Before you upload your changes, commit them to YOUR repository
+Make sure your copy is up to date with the main repo:
+
+   git checkout master
+   git pull --rebase # rebase in case you wrongly changed your own master
+
+Make a branch:
+
+   git checkout -b mybranch-name
+
+Commit your changes locally:
 
    git add <file1> <file2> ...
    git commit
@@ -641,21 +660,25 @@ or combine these two with
 
    git commit -a
 
-Then pull in any changes others have made
-
-   git pull origin
-
 Test the PDL before you push it to the main repository.  If the
 code is broken for you, then it is most likely broken for others
-and they won't be happy to have their recent PDL fail to build!
-NOTE: git makes it very easy to maintain a separate branch of
-development.  [ TBD, provide information on how ].
+Luckily, the rest of this process will test that automatically to help
+you catch such errors.
 
 Then update the shared repository with your changes
 
-   git push origin master
+   git push -u origin mybranch-name
 
+This will still leave your changes on a branch, but this is good. Now
+go to the GitHub page, L<https://github.com/PDLPorters/pdl>. It will
+ask you whether you want to make a "pull request" - you do. Follow the
+prompts. This will then initiate the automated "continuous integration"
+tests, on Linux and Windows, with various versions of Perl, with various
+compilers. You will also want to get at least one other developer to
+review your changes.
 
+Once this review process is successfully completed, you can merge your
+changes to the master branch!
 
 =head1 PDL JARGON
 
