@@ -374,9 +374,8 @@ assistance with PDL related problems, etc.
 If you are interested in all the technical details of the ongoing PDL
 development you can join the pdl-devel mailing list.
 
-Subscription and current archive links to both mailing lists can be found at
-
-    http://pdl.perl.org/?page=mailing-lists
+Subscription and current archive links to both mailing lists can be
+found at L<http://pdl.perl.org/?page=mailing-lists>.
 
 Cross-posting between these lists should be avoided unless there is a
 I<very> good reason for doing that.

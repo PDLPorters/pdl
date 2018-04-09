@@ -33,9 +33,8 @@ I<is almost always> the list to post to for PDL problems.
 The pdl-devel list is I<specifically> for PDL development
 and often contains discussions of a rather technical nature
 relating to PDL internals.  This is I<not> the list for
-general PDL discussion or questions.
-
-   http://pdl.perl.org/?page=mailing-lists
+general PDL discussion or questions:
+L<http://pdl.perl.org/?page=mailing-lists>.
 
 B<NOTE>: Both pdl-general and pdl-devel are read by the PDL
 developers so you don't save time or increase the probability
@@ -54,8 +53,7 @@ is definitely not readily searchable.
 =head1 REPORTING BUGS
 
 Please submit bug reports via the GitHub issue tracker at
-
-   https://github.com/PDLPorters/pdl/issues
+L<https://github.com/PDLPorters/pdl/issues>.
 
 where you can review the previously submitted bug reports.
 Click on C<New issue> to generate a bug report.  If you do not
@@ -124,9 +122,7 @@ A patch against the latest released version of this distribution which fixes thi
 Alternatively, send an e-mail report with the above
 information (including the output of C<perldl -V>)
 to the pdl-devel mailing list. See
-
-   http://pdl.perl.org/?page=mailing-lists
-
+L<http://pdl.perl.org/?page=mailing-lists>
 for info on how to subscribe to this list.
 
 
@@ -134,18 +130,11 @@ for info on how to subscribe to this list.
 
 BEFORE you report a bug make sure you got the latest
 release version of PDL, always available from CPAN,
-check
+check L<http://search.cpan.org/search?dist=PDL>.
 
-   http://search.cpan.org/search?dist=PDL
-
-Also, you can check the FAQ at
-
-   http://pdl.perl.org/?docs=FAQ&title=PDL::FAQ
-
+Also, you can check the FAQ at L<http://pdl.perl.org/?docs=FAQ&title=PDL::FAQ>.
 and the mailing list archives for hints. You can find links to the
-searchable archives at 
-
-   http://pdl.perl.org/?page=mailing-lists
+searchable archives at L<http://pdl.perl.org/?page=mailing-lists>.
 
 and there is a Google enable search box on the top right of
 L<http://pdl.perl.org> which usually gives the best results.
@@ -173,10 +162,7 @@ Patches can be submitted in several ways, in order of decreasing preference:
 
 Patches should be made against the latest released
 PDL or, ideally, against the current git sources
-which you can browse and check out at
-
-   https://github.com/PDLPorters/pdl
-   git://github.com/PDLPorters/pdl.git
+which you can browse and check out at L<https://github.com/PDLPorters/pdl>.
 
 Thanks,
 The PDL developers.
