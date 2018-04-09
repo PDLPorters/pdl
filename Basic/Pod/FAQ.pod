@@ -639,7 +639,7 @@ See L<Question 3.2|"Q: 3.2 Are there other PDL information sources on the Intern
 The first thing you should do is to read the Git documentation and
 learn the basics about Git. There are many sources available online.
 It is very important that you use Git "best practice", with branches,
-but fortunately this is very easy! Here are the basics:
+but fortunately this is very easy! Here are the basics.
 
 Make sure your copy is up to date with the main repo:
 
@@ -655,16 +655,16 @@ Commit your changes locally:
    git add <file1> <file2> ...
    git commit
 
-or combine these two with 
+or combine these two with:
 
    git commit -a
 
 Test the PDL before you push it to the main repository.  If the
-code is broken for you, then it is most likely broken for others
+code is broken for you, then it is most likely broken for others.
 Luckily, the rest of this process will test that automatically to help
 you catch such errors.
 
-Then update the shared repository with your changes
+Then update the shared repository with your changes:
 
    git push -u origin mybranch-name
 
