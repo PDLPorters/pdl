@@ -361,7 +361,7 @@ sub det {
   $opt = {} unless defined($opt);
 
   my($lu,$perm,$par);
-  if(exists ($opt->{u}) and (ref $opt->{lu} eq 'ARRAY')) {
+  if(exists ($opt->{lu}) and (ref $opt->{lu} eq 'ARRAY')) {
     ($lu,$perm,$par) =  @{$opt->{lu}};
   } else {
     ($lu,$perm,$par) = lu_decomp($a);

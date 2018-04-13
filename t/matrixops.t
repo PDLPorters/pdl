@@ -1,5 +1,5 @@
 use PDL::LiteF;
-use Test::More tests => 38;
+use Test::More tests => 42;
 use Test::Exception;
 use Config;
 
@@ -117,6 +117,17 @@ my $b2 = undef; # avoid warning from compiler
 my $pb = pdl([1,2,3],[4,5,6],[7,8,9]);
 lives_ok { $b2 = inv($pb,{s=>1}) } "inv of singular matrix should not barf if s=>1";
 ok(!defined $b2, "inv of singular matrix undefined if s=>1");
+}
+
+{
+### Check that det will save lu_decomp and reuse it
+my $m1 = pdl [[1,2],[3,4]];  # det -2
+my $opt1 = {lu=>undef};
+ok($m1->det($opt1) == -2, "det([[1,2],[3,4]]");
+ok($opt1->{lu}[0]->index2d(0,0) == 3, "set lu");
+my $m2 = pdl [[2,1],[4,3]];  # det 2
+ok($m2->det == 2, "det([[2,1],[3,4]]");
+ok($m2->det($opt1) == -2, "correctly used wrong lu");
 }
 
 {
