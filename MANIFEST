@@ -741,6 +741,7 @@ t/limits_trans.t
 t/limits_trans_err.t
 t/limits_ulimits.t
 t/linfit.t
+t/lite_loads_twice.t
 t/lm.t
 t/lut.t
 t/lvalue.t
