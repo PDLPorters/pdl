@@ -69,35 +69,11 @@ The following issues have been reported with this version of PDL:
   again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
 
-- The following SourceForge bugs are outstanding at time of the
-  PDL-2.018 release:
+- The following bugs are outstanding at time of the PDL-2.018_01 release:
 
-  435   PDL-LinearAlgebra-0.12 undefined reference to dggsvd_ + sggsvd_
-  420   PDL-2.016 fails to build on ASperl solaris 32bit or 64bit platforms
-  418   warp2d and fitwarp2d polynomial fitting doesn't work as expected
-  412   16bit TIFF image IO not exact in PDL::IO::Pic
-  411   relax reshape() constraints
-  410   perl scalar NVs to float/#double types confusing
-  405   PDL::Bad - adding locf() function
-  397   PDL::FFT not 64bit integer safe
-  392   Inline Pdlpp doesn't work in clean build tree
-  391   Operators called in the form "explicit call with trailing 0" give syntax error
-  384   pdldoc.db is getting invalid paths to files on cygwin
-  382   plplot-5.11.0 comes with libplplot.a but missing libplplotd.a
-  381   rpic/rim fail to read files with whitespace in the filename
-  364   type promotion in whistogram is based upon the index, not the weight
-  354   filter demo list by actually available
-  339   PDL::Complex support is inconsistent and incomplete
-  334   Test coverage is incomplete
-  330   NiceSlice can get confused by comments to cause compilation errors
-  324   PDL re-install wipes out non-core docs
-  322   PDL::Demos system needs overhaul
-  308   propagate badflag with .=
-  274   'help funname' fails to show multiple function names
-  254   online docs don't link to functions in other PDL modules
-  238   NiceSlice affects code where it should not
-  210   default PDL build output too long
-  147   closing TriD window kills perldl shell
+  ===============================================
+  TODO: need refs to github bugs here, not sf.net
+  ===============================================
 
 
 For more information on these and other PDL issues, and for

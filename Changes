@@ -1,3 +1,22 @@
+v2.018_01 2018-04-13 09:56:56-04:00
+
+General Notes:
+
+ * This is version 2.018_01 of the Perl Data Language.
+
+ * It is a transition developers release for the move of
+   PDL development from sf.net to github.
+
+ Highlights:
+
+ * Various updates to redirect links and documentation refs
+   to the github ones.
+
+ * Various fixes over the past year since PDL-2.018 release
+   which will be documented at the next official PDL release.
+
+
+
 v2.018 2017-05-21 17:02:03-04:00
 
 General Notes:
