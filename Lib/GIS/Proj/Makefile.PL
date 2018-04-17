@@ -22,6 +22,7 @@ eval { require Alien::Proj4 }; # runtime not compile-time so return above will w
 my @inc = eval { Alien::Proj4->default_inc };
 if ($@) {
   write_dummy_make("Will skip build of $package_name on this system");
+  $PDL::Config{$config_flag}=0; # we know Proj4 doesn't work
   return;
 }
 @inc = @{$PDL::Config{$config_incs}}
