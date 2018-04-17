@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use File::Spec;
-use Devel::CheckLib;
+eval { require Devel::CheckLib; Devel::CheckLib->import; };
 
 my @pack = (["browser.pd", qw(Browser PDL::IO::Browser)]);
 

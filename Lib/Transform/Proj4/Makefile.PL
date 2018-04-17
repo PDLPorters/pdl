@@ -16,8 +16,12 @@ if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==0) {
   return;
 }
 
-require Alien::Proj4; # runtime not compile-time so return above will work
-my @inc = Alien::Proj4->default_inc;
+eval { require Alien::Proj4 }; # runtime not compile-time so return above will work
+my @inc = eval { Alien::Proj4->default_inc };
+if ($@) {
+  write_dummy_make("Will skip build of $package_name on this system");
+  return;
+}
 @inc = @{$PDL::Config{$config_incs}}
   if $PDL::Config{$config_incs} and @{$PDL::Config{$config_incs}};
 push @inc, File::Spec->catdir((File::Spec->updir) x 2, qw(GIS Proj include));

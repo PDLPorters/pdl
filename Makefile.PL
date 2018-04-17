@@ -5,7 +5,7 @@ use warnings;
 use Cwd;
 use lib Cwd::abs_path('inc');
 
-use Devel::CheckLib;
+eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use 5.010_000;
 use ExtUtils::MakeMaker 6.56;  # for CONFIGURE_REQUIRES support
 use Config;

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Devel::CheckLib;
+eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use Config;
 use ExtUtils::MakeMaker;
 
