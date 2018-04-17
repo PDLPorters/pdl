@@ -476,7 +476,8 @@ my %makefile_hash = (
                        web => 'https://github.com/PDLPorters/pdl',
                     },
                  },
-                 no_index => { file => ['Doc/scantree.pl'] }
+                 no_index => { file => ['Doc/scantree.pl'] },
+                 x_IRC => 'irc://irc.perl.org/#pdl',
               },
               'MAN1PODS' => { 'Bugs.pod' => '$(INST_MAN1DIR)/PDL::Bugs.$(MAN1EXT)',
                               'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
