@@ -466,6 +466,7 @@ my %makefile_hash = (
 	      'EXE_FILES' => \@exe_files,
 	      'PM' => { @podpms }, #so that the script docs are picked up
               'META_MERGE' => {
+                 "meta-spec" => { version => 2 },
                  resources => {
                     homepage => 'http://pdl.perl.org/',
                     bugtracker  => 'https://github.com/PDLPorters/pdl/issues',
