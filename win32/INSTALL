@@ -3,7 +3,7 @@ Installing on Win32
 
 For instructions relating to the installation of PDL
 binaries (PPM packages) see the wiki:
-http://sourceforge.net/apps/mediawiki/pdl/index.php?title=Installing_PDL_on_Windows
+https://github.com/PDLPorters/pdl/wiki/Installing-PDL-on-Windows
 
 ########################################################################
 ########################################################################
@@ -135,4 +135,3 @@ Other Options
     a) PDL::IO::GD (needs the gd C library);
     b) PDL::GSL::* modules (needs the gsl C library);
     c) PDL::GIS::Proj & PDL::Transform::Proj4 (needs the proj4 C library);
-

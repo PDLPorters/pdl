@@ -405,8 +405,8 @@ Chris Marshall, C<< <devel dot chm dot 01 at gmail.com> >>
 
 =head1 BUGS
 
-Bugs and feature requests may be submitted through the PDL sourceforge
-project page at L<http://sourceforge.net/tracker/?group_id=612> .
+Bugs and feature requests may be submitted through the PDL GitHub
+project page at L<https://github.com/PDLPorters/pdl/issues> .
 
 
 =head1 SUPPORT
