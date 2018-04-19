@@ -69,11 +69,7 @@ The following issues have been reported with this version of PDL:
   again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
 
-- The following bugs are outstanding at time of the PDL-2.018_01 release:
-
-  ===============================================
-  TODO: need refs to github bugs here, not sf.net
-  ===============================================
+- See https://github.com/PDLPorters/pdl/issues for a full list of known issues.
 
 
 For more information on these and other PDL issues, and for
