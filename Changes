@@ -1,4 +1,4 @@
-v2.019 TBD
+v2.019 2018-05-05 16:42:44-04:00
 
 General Notes:
 
@@ -10,7 +10,18 @@ General Notes:
 
  Highlights:
 
- * TBD
+ * cat returns a piddle of the highest input type, not
+   the first.
+
+ * The 'thresh' options in fitwarp2d has been removed.
+
+ * rfits/wfits now do tilde filename expansion.
+
+ * det in MatrixOps now uses the cached lu_decomp
+   value correctly.
+
+ * Multiple minor fixes, docs, cleanup, and changing
+   things to point to github away from sf.net.
 
 
 

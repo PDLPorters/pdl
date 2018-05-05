@@ -1,32 +1,28 @@
-This file has some information on how to get
-access to the latest PDL sources (mainly of
-interest for potential developers). This should
-not be confused with the latest public release
-which will always be available from CPAN (if you
-don't know what that is check the FAQ).
+This file has some information on how to get access to the latest
+PDL sources (mainly of interest for potential developers). This
+should not be confused with the latest public release which will
+always be available from CPAN (if you don't know what that is
+check the FAQ).
 
 Public Git repository
 --------------------------------------------
 
-From version PDL-2.4.4 onwards the source
-distribution is in a publicly accessible Git
-repository. From version PDL-2.019 onwards the
-project is hosted at the GitHub site at
+From version PDL-2.4.4 onwards the source distribution is in
+a publicly accessible Git repository.  From version PDL-2.019
+onwards the project is hosted at the GitHub site at
 
   https://github.com/PDLPorters/pdl
 
 See Basic/Pod/FAQ.pod section 4.9 for instructions on this.
 
-If you do not know how to use Git try 'man git'
-or have a look at some of the online tutorials
-available on the web.
+If you do not know how to use Git try 'man git' or have a look at
+some of the online tutorials available on the web.
 
 The main Git home page is at
 
   http://www.git-scm.org/
 
-and two good online Git references are the Git
-User's Manual at
+and two good online Git references are the Git User's Manual at
 
   http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 
@@ -59,15 +55,16 @@ access to the PDL Git repository.
       documentation in .pm files. 
     - See Basic/Core/Primitive/Primitive.pd for an example of 
       including POD documentation in PDL .pd files.
-    - read the documentation in PDL::Doc for a detailed description of
-      the PDL documentation conventions.
+    - read the documentation in PDL::Doc for a detailed
+      description of the PDL documentation conventions.
 
-4) Don't commit before you successfully built and passed 'make test'.
+4) Don't commit before you successfully built and passed
+   'make test'.
  
-5) Bugs reported on the list should be entered into the bug database
-   and bugs closed when a patch has been committed as a fix. (Primary
-   responsibility for this task is the pumpking, but other devels
-   should be able to help.)
+5) Bugs reported on the list should be entered into the bug
+   database and bugs closed when a patch has been committed
+   as a fix. (Primary responsibility for this task is the
+   pumpking, but other devels should be able to help.)
   
 
 PDL Developer Recommended Workflow:
@@ -78,50 +75,54 @@ See Basic/Pod/FAQ.pod section 4.11 for instructions on this.
 PDL Developer Notes:
 --------------------
 
-A (small) collection of random musings to note if you feel the need to
-improve or add to PDL (please do):
+A (small) collection of random musings to note if you feel
+the need to improve or add to PDL (please do):
 
-*) git supports file-by-file commits so it is helpful to commit
-   your changes to git a little at a time where each commit
-   corresponds to a single change.  This makes it easy in the
-   log to determine what was done and to locate any desired
-   commit in case of issues that need to be resolved.
+*) git supports file-by-file commits so it is helpful
+   to commit your changes to git a little at a time where
+   each commit corresponds to a single change.  This makes
+   it easy in the log to determine what was done and to
+   locate any desired commit in case of issues that need
+   to be resolved.
 
 *) Need help?
 
-See the pdl-devel email list; details for subscription and access to
-the archives can be found on the PDL web page at:
+See the pdl-devel email list; details for subscription
+and access to the archives can be found on the PDL web
+page at:
 
   http://pdl.perl.org/?page=mailing-lists
  
 *) Access to PDL's configuration
 
 If you need to access the configuration for PDL then use the
-%PDL::Config variable. Prior to 2.4.1 this was a mess since you
-had to use %PDL_CONFIG within Makefile.PL and PDL::Config from
-*.pm/tests. The build process has been changed (I hesitate to say
-"cleaned up" ;) to just use %PDL::Config consistently throughout.
+%PDL::Config variable. Prior to 2.4.1 this was a mess since
+you had to use %PDL_CONFIG within Makefile.PL and PDL::Config
+from *.pm/tests. The build process has been changed (I hesitate
+to say "cleaned up" ;) to just use %PDL::Config consistently
+throughout.
 
-- %PDL::Config is automatically available to you when you are in a
-  Makefile.PL within the PDL distribution. You can change the hash
-  and these changes will be stored in the PDL::Config module. You
-  should only change values when it makes sense (e.g. if the user
-  has specified that a module should be built but you find out this
-  is not possible).
+- %PDL::Config is automatically available to you when you
+  are in a Makefile.PL within the PDL distribution. You can
+  change the hash and these changes will be stored in the
+  PDL::Config module. You should only change values when it
+  makes sense (e.g. if the user has specified that a module
+  should be built but you find out this is not possible).
 
 - use PDL; now loads PDL::Config by default
 
-- Otherwise you can say 'use PDL::Config;' or - perhaps something like
+- Otherwise you can say 'use PDL::Config;' or - perhaps
+  something like
     eval 'require "' . whereami_any() . '/Core/Config.pm";';
   where whereami_any() is from PDL::Core::Dev;
 
 *) Location of temporary files
 
 Please use $PDL::Config{TEMPDIR} for the directory in which to
-place temporary files (e.g. when IO::File::new_tmpfile() is not
-appropriate). This will make it easier for distributions to package
-PDL since there will only be one place they need to change if the
-default value causes problems.
+place temporary files (e.g. when IO::File::new_tmpfile() is
+not appropriate).  This will make it easier for distributions
+to package PDL since there will only be one place they need to
+change if the default value causes problems.
 
 This *includes* test cases as well as for Makefile.PL's!
 
