@@ -586,7 +586,7 @@ EOPS
 # support the `$<` variable in explicit rules
 $text .= <<EOT if $^O !~ /MSWin/;
 pdl$Config::Config{exe_ext} : pdl.c
-	\$(CC) \$(CFLAGS) \$(CPPFLAGS) pdl.c -o \$\@
+	\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CPPFLAGS) pdl.c -o \$\@
 EOT
 
 $text .= << 'EOT' if $^O =~ /MSWin/;
