@@ -22,7 +22,7 @@ $hash{'clean'}{FILES} .= ' browse$(OBJ_EXT) browse$(EXE_EXT) Browser.c Browser.p
 
 my $incstring;
 foreach my $incl ( qw( curses.h ncurses/curses.h ncurses.h ncurses/ncurses.h ncursesw/ncurses.h ) ) {
-    if (check_lib(header=>$incl)) {
+    if (eval { check_lib(header=>$incl) }) {
        print "IO/Browser: have '$incl'\n";
        $incstring = $incl;
        last;
@@ -32,7 +32,7 @@ $hash{DEFINE} .= ' -DCURSES=' . '\\"' . $incstring . '\\"' if defined $incstring
 
 my $libstring;
 foreach my $libr ( qw( curses ncurses ncursesw ) ) {
-   if (check_lib(lib=>$libr)) {
+   if (eval { check_lib(lib=>$libr) }) {
       print "IO/Browser: have -l$libr\n";
       $libstring = '-l' . $libr;
       last;
