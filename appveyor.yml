@@ -17,7 +17,7 @@ install:
   - perl -V
   - cpan App::cpanminus
   - cpanm -q --showdeps --with-develop --with-suggests . | findstr /v "^perl\>" | cpanm -n
-  - 'echo End intall at: & time /t'
+  - 'echo End install at: & time /t'
 
 build_script:
   - perl Makefile.PL
