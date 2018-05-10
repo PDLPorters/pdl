@@ -25,4 +25,4 @@ build_script:
   - perl Makefile.PL
 
 test_script:
-  - %CHOCO_PERL_MAKE% test
+  - '%CHOCO_PERL_MAKE% test'
