@@ -1489,7 +1489,7 @@ data but instead store only access information to some (or all) of another
 piddle's data.
 
 Note: this function should not be used unless absolutely necessary
-since otherwise memory requirements might be severly increased. Instead
+since otherwise memory requirements might be severely increased. Instead
 of writing your own XS code with the need to call C<make_physical> you
 might want to consider using the PDL preprocessor
 (see L<PDL::PP|PDL::PP>)
@@ -3188,7 +3188,7 @@ The output piddle is set bad if any input piddles have their bad flag set.
 Similar functions include L<append|PDL::Primitive/append>, which
 appends only two piddles along their first dimension, and
 L<glue|PDL::Primitive/glue>, which can append more than two piddles
-along an arbitary dimension.
+along an arbitrary dimension.
 
 Also consider the generic constructor L<pdl|pdl>, which can handle
 piddles of different sizes (with zero-padding), and will return a

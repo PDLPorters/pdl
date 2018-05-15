@@ -1964,7 +1964,7 @@ size of the first dimension is the sum of the sizes of the first dimensions
 of the two argument piddles - i.e. C<n + m>.
 
 Similar functions include L<glue|/glue> (below), which can append more
-than two piddles along an arbitary dimension, and
+than two piddles along an arbitrary dimension, and
 L<cat|PDL::Core/cat>, which can append more than two piddles that all
 have the same sized dimensions.
 
