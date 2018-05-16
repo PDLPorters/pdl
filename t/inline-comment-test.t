@@ -16,7 +16,7 @@ BEGIN {
       if $^O =~ /(bsd|dragonfly)$/i;
 
    # Test for Inline and set options
-   my $inline_test_dir = './.inlinepdlpp';
+   my $inline_test_dir = './.inline-ct';
    mkdir $inline_test_dir unless -d $inline_test_dir;
    
    # See if Inline loads without trouble, or bail out

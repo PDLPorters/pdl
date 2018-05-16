@@ -28,6 +28,7 @@ RCS
 \.bs
 \.bundle$
 \.cvsignore$
+\.inline-ct
 \.inlinepdlpp
 \.lck$
 \.m$
