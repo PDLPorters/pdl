@@ -34,8 +34,6 @@ END {
   unlink $file if defined $file and -e $file;
 }
 
-my $number_of_tests = 97;
-
 ################ Test rfits/wfits ########################
 
 my $t = long xvals(zeroes(11,20))-5;
@@ -334,10 +332,7 @@ if(-w dirname($tildefile)) {
 	$tildefile =~ s/^(~)/glob($1)/e; #use the same trick as in FITS.pm to resolve this filename.
 	unlink($tildefile) or warn "Could not delete $tildefile: $!\n"; #clean up.
 }
-else {
-	$number_of_tests -= 2;
-}
 
-done_testing($number_of_tests);
+done_testing();
 
 1;
