@@ -3,6 +3,8 @@
 
 use strict;
 
+use File::Basename;
+
 use PDL::LiteF;
 
 use PDL::Core ':Internal'; # For howbig()
@@ -12,7 +14,7 @@ use PDL::Config;
 
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-use Test::More tests => 97;
+use Test::More;
 use Test::Exception;
 
 BEGIN {
@@ -318,10 +320,19 @@ SKIP:{
 
 ###############################
 # Check that tilde expansion works
+
 my $tildefile = cfile('~',"PDL-IO-FITS-test_$$.fits");
-lives_ok { sequence(3,5,2)->wfits($tildefile) } "wfits tilde expansion didn't fail";
-lives_ok { rfits($tildefile) } "rfits tilde expansion didn't fail";
-$tildefile =~ s/^(~)/glob($1)/e; #use the same trick as in FITS.pm to resolve this filename.
-unlink($tildefile) or warn "Could not delete $tildefile: $!\n"; #clean up.
+
+# Only read/write the tildefile if the directory is writable.
+# Some build environments, like the Debian pbuilder chroots, use a non-existent $HOME.
+# See: https://github.com/PDLPorters/pdl/issues/238
+if(-w dirname($tildefile)) {
+	lives_ok { sequence(3,5,2)->wfits($tildefile) } "wfits tilde expansion didn't fail";
+	lives_ok { rfits($tildefile) } "rfits tilde expansion didn't fail";
+	$tildefile =~ s/^(~)/glob($1)/e; #use the same trick as in FITS.pm to resolve this filename.
+	unlink($tildefile) or warn "Could not delete $tildefile: $!\n"; #clean up.
+}
+
+done_testing();
 
 1;
