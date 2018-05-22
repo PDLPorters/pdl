@@ -9,30 +9,30 @@ use PDL::Core '';
 
 sub stupidpolygonize {
 	my($center, $initrad, $npatches, $nrounds, $func) = @_;
-	$a = PDL->zeroes(PDL::float(),3,$npatches,$npatches);
+	$x = PDL->zeroes(PDL::float(),3,$npatches,$npatches);
 	$mult = 2*3.14 / ($npatches-1);
-	my $ya = ($a->slice("(0)"))->xvals;
+	my $ya = ($x->slice("(0)"))->xvals;
 	$ya *= $mult;
-	my $za = ($a->slice("(0)"))->yvals;
+	my $za = ($x->slice("(0)"))->yvals;
 	$za *= $mult/2;
 	$za -= 3.14/2;
-	(my $tmp0 = $a->slice("(0)")) += cos($ya);
-	(my $tmp1 = $a->slice("(1)")) += sin($ya);
-	(my $tmp01 = $a->slice("0:1")) *= cos($za)->dummy(0);
-	(my $tmp2 = $a->slice("(2)")) += sin($za);
-	my $add = $a->copy;
-	$a *= $initrad;
-	$a += $center;
+	(my $tmp0 = $x->slice("(0)")) += cos($ya);
+	(my $tmp1 = $x->slice("(1)")) += sin($ya);
+	(my $tmp01 = $x->slice("0:1")) *= cos($za)->dummy(0);
+	(my $tmp2 = $x->slice("(2)")) += sin($za);
+	my $add = $x->copy;
+	$x *= $initrad;
+	$x += $center;
 	my $cur = $initrad;
-	my $inita = $a->copy;
+	my $inita = $x->copy;
 	for(1..$nrounds) {
 		$cur /= 2;
-		$vp = $func->($a);
+		$vp = $func->($x);
 		my $vps = ($vp > 0);
 		$vps -= 0.5; $vps *= 2;
-		$a += $vps->dummy(0) * $cur * $add;
+		$x += $vps->dummy(0) * $cur * $add;
 	}
-	return $a;
+	return $x;
 }
 
 sub polygonizeraw {

@@ -21,9 +21,9 @@ in the GNU Scientific Library.
 
    $rng->set_seed(time());
 
-   $a=zeroes(5,5,5)
+   $x=zeroes(5,5,5)
 
-   $rng->get_uniform($a); # inplace
+   $rng->get_uniform($x); # inplace
 
    $b=$rng->get_uniform(3,4,5); # creates new pdl
 
@@ -158,8 +158,8 @@ Example:
 
 =for example
 
-   $a = zeroes 5,6;
-   $o = $rng->get(10,10); $rng->get($a);
+   $x = zeroes 5,6;
+   $o = $rng->get(10,10); $rng->get($x);
 
 =head2 get_int
 
@@ -180,8 +180,8 @@ Example:
 
 =for example
 
-   $a = zeroes 5,6; $max=100;
-   $o = $rng->get(10,10); $rng->get($a);
+   $x = zeroes 5,6; $max=100;
+   $o = $rng->get(10,10); $rng->get($x);
 
 =head2 get_uniform
 
@@ -201,8 +201,8 @@ Example:
 
 =for example
 
-   $a = zeroes 5,6; $max=100;
-   $o = $rng->get_uniform(10,10); $rng->get_uniform($a);
+   $x = zeroes 5,6; $max=100;
+   $o = $rng->get_uniform(10,10); $rng->get_uniform($x);
 
 =head2 get_uniform_pos
 
@@ -222,8 +222,8 @@ Example:
 
 =for example
 
-   $a = zeroes 5,6;
-   $o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($a);
+   $x = zeroes 5,6;
+   $o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($x);
 
 =head2 ran_shuffle
 
@@ -291,7 +291,7 @@ Example:
 =for example
 
   $o = $rng->ran_gaussian($sigma,10,10);
-  $rng->ran_gaussian($sigma,$a);
+  $rng->ran_gaussian($sigma,$o);
 
 =head2 ran_gaussian_var
 
@@ -444,14 +444,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the beta distribution with parameters C<$a> and C<$b>.
+Fills output piddle with random variates from the beta distribution with parameters C<$x> and C<$b>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_beta($a,$b,[list of integers = output piddle dims]);
-   $rng->ran_beta($a,$b,$output_piddle);
+   $piddle = $rng->ran_beta($x,$b,[list of integers = output piddle dims]);
+   $rng->ran_beta($x,$b,$output_piddle);
 
 =head2 ran_beta_var
 
@@ -497,14 +497,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the Cauchy distribution with scale parameter C<$a>.
+Fills output piddle with random variates from the Cauchy distribution with scale parameter C<$x>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_cauchy($a,[list of integers = output piddle dims]);
-   $rng->ran_cauchy($a,$output_piddle);
+   $piddle = $rng->ran_cauchy($x,[list of integers = output piddle dims]);
+   $rng->ran_cauchy($x,$output_piddle);
 
 =head2 ran_cauchy_var
 
@@ -577,14 +577,14 @@ Usage:
 =for ref
 
 Fills output piddle with random variates from the exponential power distribution with scale
-parameter C<$a> and exponent C<$b>.
+parameter C<$x> and exponent C<$b>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_exppow($mu,$a,[list of integers = output piddle dims]);
-   $rng->ran_exppow($mu,$a,$output_piddle);
+   $piddle = $rng->ran_exppow($mu,$x,[list of integers = output piddle dims]);
+   $rng->ran_exppow($mu,$x,$output_piddle);
 
 =head2 ran_exppow_var
 
@@ -630,14 +630,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the flat (uniform) distribution from C<$a> to C<$b>.
+Fills output piddle with random variates from the flat (uniform) distribution from C<$x> to C<$b>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_flat($a,$b,[list of integers = output piddle dims]);
-   $rng->ran_flat($a,$b,$output_piddle);
+   $piddle = $rng->ran_flat($x,$b,[list of integers = output piddle dims]);
+   $rng->ran_flat($x,$b,$output_piddle);
 
 =head2 ran_flat_var
 
@@ -662,8 +662,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gamma($a,$b,[list of integers = output piddle dims]);
-   $rng->ran_gamma($a,$b,$output_piddle);
+   $piddle = $rng->ran_gamma($x,$b,[list of integers = output piddle dims]);
+   $rng->ran_gamma($x,$b,$output_piddle);
 
 =head2 ran_gamma_var
 
@@ -715,8 +715,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel1($a,$b,[list of integers = output piddle dims]);
-   $rng->ran_gumbel1($a,$b,$output_piddle);
+   $piddle = $rng->ran_gumbel1($x,$b,[list of integers = output piddle dims]);
+   $rng->ran_gumbel1($x,$b,$output_piddle);
 
 =head2 ran_gumbel1_var
 
@@ -741,8 +741,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel2($a,$b,[list of integers = output piddle dims]);
-   $rng->ran_gumbel2($a,$b,$output_piddle);
+   $piddle = $rng->ran_gumbel2($x,$b,[list of integers = output piddle dims]);
+   $rng->ran_gumbel2($x,$b,$output_piddle);
 
 =head2 ran_gumbel2_var
 
@@ -790,14 +790,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the Laplace distribution with width C<$a>.
+Fills output piddle with random variates from the Laplace distribution with width C<$x>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_laplace($a,[list of integers = output piddle dims]);
-   $rng->ran_laplace($a,$output_piddle);
+   $piddle = $rng->ran_laplace($x,[list of integers = output piddle dims]);
+   $rng->ran_laplace($x,$output_piddle);
 
 =head2 ran_laplace_var
 
@@ -823,8 +823,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_levy($mu,$a,[list of integers = output piddle dims]);
-   $rng->ran_levy($mu,$a,$output_piddle);
+   $piddle = $rng->ran_levy($mu,$x,[list of integers = output piddle dims]);
+   $rng->ran_levy($mu,$x,$output_piddle);
 
 =head2 ran_levy_var
 
@@ -952,14 +952,14 @@ Usage:
 =for ref
 
 Fills output piddle with random variates from the Pareto distribution of
-order C<$a> and scale C<$b>.
+order C<$x> and scale C<$b>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_pareto($a,$b,[list of integers = output piddle dims]);
-   $rng->ran_pareto($a,$b,$output_piddle);
+   $piddle = $rng->ran_pareto($x,$b,[list of integers = output piddle dims]);
+   $rng->ran_pareto($x,$b,$output_piddle);
 
 =head2 ran_pareto_var
 
@@ -1033,14 +1033,14 @@ Usage:
 =for ref
 
 Fills output piddle with random variates from the tail of the Rayleigh distribution
-with scale parameter C<$sigma> and a lower limit of C<$a>.
+with scale parameter C<$sigma> and a lower limit of C<$x>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_rayleigh_tail($a,$sigma,[list of integers = output piddle dims]);
-   $rng->ran_rayleigh_tail($a,$sigma,$output_piddle);
+   $piddle = $rng->ran_rayleigh_tail($x,$sigma,[list of integers = output piddle dims]);
+   $rng->ran_rayleigh_tail($x,$sigma,$output_piddle);
 
 =head2 ran_rayleigh_tail_var
 
@@ -1119,8 +1119,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_weibull($mu,$a,[list of integers = output piddle dims]);
-   $rng->ran_weibull($mu,$a,$output_piddle);
+   $piddle = $rng->ran_weibull($mu,$x,[list of integers = output piddle dims]);
+   $rng->ran_weibull($mu,$x,$output_piddle);
 
 =head2 ran_weibull_var
 

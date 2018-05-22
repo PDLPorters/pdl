@@ -23,7 +23,7 @@ RICE_1 algorithm used in internal FITS-file compression (see PDL::IO::FITS).
 
  use PDL::Compression
 
- ($b,$asize) = $a->rice_compress();
+ ($b,$asize) = $x->rice_compress();
  $c = $b->rice_expand($asize);
 
 =cut

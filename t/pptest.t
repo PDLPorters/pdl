@@ -169,55 +169,55 @@ BEGIN {
 
 # Is there any good reason we don't use PDL's approx function?
 sub tapprox {
-    my($a,$b) = @_;
-    my $c = abs($a-$b);
+    my($x,$b) = @_;
+    my $c = abs($x-$b);
     my $d = max($c);
     return $d < 0.01;
 }
 
-$a = xvals(zeroes(byte, 2, 4));
+my $x = xvals(zeroes(byte, 2, 4));
 
 # $P() affine tests
-test_foop($a,($b=null));
-ok( tapprox($a,$b) )
+test_foop($x,($b=null));
+ok( tapprox($x,$b) )
   or diag $b;
 
-test_foop($a->xchg(0,1),($b=null));
-ok( tapprox($a->xchg(0,1),$b) )
+test_foop($x->xchg(0,1),($b=null));
+ok( tapprox($x->xchg(0,1),$b) )
   or diag $b;
 
-my $vaff = $a->dummy(2,3)->xchg(1,2);
+my $vaff = $x->dummy(2,3)->xchg(1,2);
 test_foop($vaff,($b=null));
 ok( tapprox($vaff,$b) )
   or diag ($vaff, $vaff->dump);
 
 # float qualifier
-$a = ones(byte,3000);
-test_fsumover($a,($b=null));
+$x = ones(byte,3000);
+test_fsumover($x,($b=null));
 is( $b->get_datatype, $PDL_F );
 is( $b->at, 3000 );
 
 # int+ qualifier
 for (byte,short,ushort,long,float,double) {
-  $a = ones($_,3000);
-  test_nsumover($a,($b=null));
+  $x = ones($_,3000);
+  test_nsumover($x,($b=null));
   is( $b->get_datatype, (($PDL_L > $_->[0]) ? $PDL_L : $_->[0]) );
   is( $b->at, 3000 );
 }
 
-test_setdim(($a=null),10);
-is( join(',',$a->dims), "10" );
-ok( tapprox($a,sequence(10)) );
+test_setdim(($x=null),10);
+is( join(',',$x->dims), "10" );
+ok( tapprox($x,sequence(10)) );
 
 # this used to segv under solaris according to Karl
 { no warnings 'uninitialized';
   my $ny=7;
-  $a = double xvals zeroes (20,$ny);
-  test_fooseg $a, $b=null;
+  $x = double xvals zeroes (20,$ny);
+  test_fooseg $x, $b=null;
 
   ok( 1 );  # if we get here at all that is alright
-  ok( tapprox($a,$b) )
-    or diag($a, "\n", $b);
+  ok( tapprox($x,$b) )
+    or diag($x, "\n", $b);
 }
 
 # test the bug alluded to in the comments in

@@ -86,20 +86,20 @@ pp_def('testinc2',
 EOF
 is $@, '', 'compiled' or skip 'bind failed', 2;
 
-$a = sequence(3,3);
+my $x = sequence(3,3);
 
-$b = $a->testinc;
+$b = $x->testinc;
 
-ok(all ($b == $a+1), 'Sanity check runs correctly');
+ok(all ($b == $x+1), 'Sanity check runs correctly');
 
 # Test the inability to comment-out a threadloop. This is documented on the
 # 11th page of the PDL::PP chapter of the PDL book. If somebody ever fixes this
 # wart, this test will fail, in which case the book's text should be updated.
-$b = $a->testinc2;
+$b = $x->testinc2;
 TODO: {
 	# Note: This test appears to fail on Cygwin and some flavors of Linux.
 	local $TODO = 'This test inexplicably passes on some machines';
-	ok(not (all $b == $a + 1), 'WART: commenting out a threadloop does not work')
-		or diag("\$a is $a and \$b is $b");
+	ok(not (all $b == $x + 1), 'WART: commenting out a threadloop does not work')
+		or diag("\$x is $x and \$b is $b");
 }
 }

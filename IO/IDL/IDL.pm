@@ -109,13 +109,13 @@ use strict;
 
 =for usage 
 
-$a = ridl("foo.sav");
+$x = ridl("foo.sav");
 
 =for ref 
 
 Read an IDL save file from a file. 
 
-Upon successful completion, $a is a hash ref containing all of the
+Upon successful completion, $x is a hash ref containing all of the
 variables that are present in the save file, indexed by original
 variable name.  
 
@@ -641,10 +641,10 @@ sub r_structdesc {
 	my ($nstructs,$narrays);
 
 	for $i(0..$ntags-1) {
-	    my $a = $st->{descrip}->[$i*3+2];
+	    my $x = $st->{descrip}->[$i*3+2];
 
-	    $nstructs++ if($a & 32);
-	    $narrays++  if($a & 38);
+	    $nstructs++ if($x & 32);
+	    $narrays++  if($x & 38);
 	}
 
 	print "narrays=$narrays\n" if($PDL::debug || $PDL::IO::IDL::test);
@@ -802,12 +802,12 @@ sub r_byte_pdl {
   sysread(IDLSAV,my $buf,4)
     if($#$dims > 1);
 
-  $a = r_string();
+  my $x = r_string();
 
   my $pdl = new PDL;
   $pdl->set_datatype(byte->enum);
   $pdl->setdims($dims);
-  ${ $pdl->get_dataref() } = $a;
+  ${ $pdl->get_dataref() } = $x;
   $pdl->upd_data;
 
   $pdl;

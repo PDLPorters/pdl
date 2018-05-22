@@ -8,7 +8,7 @@ PDL::Slatec - PDL interface to the slatec numerical programming library
 
  use PDL::Slatec;
 
- ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
+ ($ndeg, $r, $ierr, $c) = polyfit($x, $y, $w, $maxdeg, $eps);
 
 =head1 DESCRIPTION
 
@@ -120,7 +120,7 @@ results (in C<$r> corresponding to the rows of $y.
 
 =for usage
 
- ($ndeg, $r, $ierr, $a, $coeffs, $rms) = polyfit($x, $y, $w, $maxdeg, [$eps]);
+ ($ndeg, $r, $ierr, $c, $coeffs, $rms) = polyfit($x, $y, $w, $maxdeg, [$eps]);
 
  $coeffs = polyfit($x,$y,$w,$maxdeg,[$eps]);
 
@@ -138,7 +138,7 @@ In list context:
 C<$ndeg> is the degree of polynomial actually used
 C<$r> is the values of the fitted polynomial 
 C<$ierr> is a return status code, and
-C<$a> is some working array or other (preserved for historical purposes)
+C<$c> is some working array or other (preserved for historical purposes)
 C<$coeffs> is the polynomial coefficients of the best fit polynomial.
 C<$rms> is the rms error of the fit.
 
@@ -148,7 +148,7 @@ Historically, C<$eps> was modified in-place to be a return value of the
 rms error.  This usage is deprecated, and C<$eps> is an optional parameter now.
 It is still modified if present.
  
-C<$a> is a working array accessible to Slatec - you can feed it to several
+C<$c> is a working array accessible to Slatec - you can feed it to several
 other Slatec routines to get nice things out.  It does not thread 
 correctly and should probably be fixed by someone.  If you are 
 reading this, that someone might be you.
@@ -171,7 +171,7 @@ Convert the C<polyfit>/C<polfit> coefficients to Taylor series form.
 
 =for usage
 
- $tc = polycoef($l, $c, $a);
+ $tc = polycoef($l, $c, $x);
 
 =head2 polyvalue
 
@@ -192,7 +192,7 @@ derivatives, at a specified point.
 
 =for usage
 
- ($yfit, $yp) = polyvalue($l, $nder, $x, $a);
+ ($yfit, $yp) = polyvalue($l, $nder, $x, $x);
 
 =head2 detslatec
 
@@ -230,7 +230,7 @@ Fast Fourier Transform
 =for example
 
   $v_in = pdl(1,0,1,0);
-  ($azero,$a,$b) = PDL::Slatec::fft($v_in);
+  ($azero,$x,$b) = PDL::Slatec::fft($v_in);
 
 C<PDL::Slatec::fft> is a convenience wrapper for L<ezfftf|ezfftf>, and
 performs a Fast Fourier Transform on an input vector C<$v_in>. The
@@ -244,7 +244,7 @@ reverse Fast Fourier Transform
 
 =for example
 
-  $v_out = PDL::Slatec::rfft($azero,$a,$b);
+  $v_out = PDL::Slatec::rfft($azero,$x,$b);
   print $v_in, $vout
   [1 0 1 0] [1 0 1 0]
 
@@ -552,16 +552,16 @@ sub prepfft {
 sub fft (;@) {
 	my($v) = @_;
 	my $ws = prepfft($v->getdim(0));
-	ezfftf($v,(my $az = PDL->null), (my $a = PDL->null),
+	ezfftf($v,(my $az = PDL->null), (my $x = PDL->null),
 		  (my $b = PDL->null), $ws);
-	return ($az,$a,$b);
+	return ($az,$x,$b);
 }
 
 sub rfft {
-	my($az,$a,$b) = @_;
-	my $ws = prepfft($a->getdim(0));
-	my $v = $a->copy();
-	ezfftb($v,$az,$a,$b,$ws);
+	my($az,$x,$b) = @_;
+	my $ws = prepfft($x->getdim(0));
+	my $v = $x->copy();
+	ezfftb($v,$az,$x,$b,$ws);
 	return $v;
 }
 
@@ -585,7 +585,7 @@ sub PDL::polyfit {
   # A array needs some work space
   my $sz = ((3 * $x_in->getdim(0)) + (3*$maxdeg_in) + 3); # Buffer size called for by Slatec
   my @otherdims = $_[0]->dims; shift @otherdims;          # Thread dims
-  my $a =      PDL::new_from_specification('PDL',$x_in->type,$sz,@otherdims);
+  my $a1 =      PDL::new_from_specification('PDL',$x_in->type,$sz,@otherdims);
   my $coeffs = PDL::new_from_specification('PDL',$x_in->type, $maxdeg_in + 1, @otherdims);
 
   my $ierr = PDL->null;
@@ -593,7 +593,7 @@ sub PDL::polyfit {
 
   # Now call polfit
   my $rms = pdl($eps_in);                                       
-  polfit($x_in, $y_in, $w_in, $maxdeg_in, $ndeg, $rms, $r, $ierr, $a, $coeffs);
+  polfit($x_in, $y_in, $w_in, $maxdeg_in, $ndeg, $rms, $r, $ierr, $a1, $coeffs);
   # Preserve historic compatibility by flowing rms error back into the argument
   if( UNIVERSAL::isa($eps_in,'PDL') ){
       $eps_in .= $rms;
@@ -601,7 +601,7 @@ sub PDL::polyfit {
 
   # Return the arrays
   if(wantarray) {
-    return ($ndeg, $r, $ierr, $a, $coeffs, $rms );
+    return ($ndeg, $r, $ierr, $a1, $coeffs, $rms );
   } else {
       return $coeffs;
   }
@@ -610,7 +610,7 @@ sub PDL::polyfit {
 
 *polycoef = \&PDL::polycoef;
 sub PDL::polycoef {
-  barf 'Usage: polycoef($l, $c, $a);'
+  barf 'Usage: polycoef($l, $c, $x);'
     unless @_ == 3;
 
   # Allocate memory for return PDL
@@ -629,7 +629,7 @@ sub PDL::polycoef {
 
 *polyvalue = \&PDL::polyvalue;
 sub PDL::polyvalue {
-  barf 'Usage: polyvalue($l, $nder, $x, $a);'
+  barf 'Usage: polyvalue($l, $nder, $x, $c);'
     unless @_ == 4;
 
   # Two output arrays
@@ -1270,12 +1270,12 @@ defslatec(
           ',
 'Evaluate the definite integral of a a piecewise
 cubic Hermite function over an arbitrary interval,
-given by C<[$a,$b]>.
+given by C<[$x,$b]>.
 See L<chid|/chid> if the integration limits are
 data points.
 Set C<check> to 0 to skip checks on the input data.
 
-The values of C<$a> and C<$b> do not have
+The values of C<$c> and C<$b> do not have
 to lie within C<$x>, although the resulting integral
 value will be highly suspect if they are not.
 
@@ -1289,7 +1289,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
-1 if C<$a> lies outside C<$x>.
+1 if C<$c> lies outside C<$x>.
 
 =item *
 

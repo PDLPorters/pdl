@@ -25,8 +25,8 @@ In the first case, you can do with
 	sub foo {my($this) = @_; fiddle;}
 
 	package main;
-	$a = PDL::pdl(BAR,5);
-	$a->foo();
+	$x = PDL::pdl(BAR,5);
+	$x->foo();
 
 However, because a PDL object is an opaque reference to a C struct,
 it is not possible to

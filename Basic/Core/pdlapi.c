@@ -18,7 +18,7 @@
  */
 
 /* This define causes the affine transformations not to be
- * optimized away so $a->slice(...) will always made physical.
+ * optimized away so $x->slice(...) will always made physical.
  * Uncommenting this define is not recommended at the moment
  */
 
@@ -685,7 +685,7 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans,int nth,int all)
 				flag = 1;
 				if(!all) return;
 				/* return;  Cannot return; might be many times
-				  (e.g. $a+$a) */
+				  (e.g. $x+$x) */
 			}
 		}
 		c=c->next;

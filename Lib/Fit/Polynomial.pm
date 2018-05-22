@@ -107,18 +107,18 @@ sub PDL::fitpoly1d {
 
    # Fitted coefficients vector
 
-   ## $a = matinv($C) x $Y;
-   ## print "matinv: \$C = $C, \$Y = $Y, \$a = $a\n";
-   $a = inv($C) x $Y;  # use inv() instead of matinv() to avoid Slatec dependency
-   ## print "inv:    \$C = $C, \$Y = $Y, \$a = $a\n";
+   ## $a1 = matinv($C) x $Y;
+   ## print "matinv: \$C = $C, \$Y = $Y, \$a1 = $a1\n";
+   my $a1 = inv($C) x $Y;  # use inv() instead of matinv() to avoid Slatec dependency
+   ## print "inv:    \$C = $C, \$Y = $Y, \$a1 = $a1\n";
    
    # Fitted data
 
-   $yfit = ($M x $a)->clump(2); # Remove first dim=1
+   $yfit = ($M x $a1)->clump(2); # Remove first dim=1
    
    $yfit *= $ymean; # Un-normalise
    if (wantarray) {
-      my $coeff = $a->clump(2);
+      my $coeff = $a1->clump(2);
       $coeff *= $ymean / ($xmean ** $pow); # Un-normalise
       return ($yfit, $coeff);
    }

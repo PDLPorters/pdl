@@ -94,8 +94,8 @@ $w = $x + $z;
 ok(ref($w) eq "PDL::Derived", "check type after adding");
 
 #### Check the type after calling null:
-$a = PDL::Derived->null();
-ok(ref($a) eq "PDL::Derived", "check type after calling null");
+$a1 = PDL::Derived->null();
+ok(ref($a1) eq "PDL::Derived", "check type after calling null");
 
 
 
@@ -128,11 +128,11 @@ $w =  $z**2;
 ok(ref($w) eq "PDL::Derived", "check type for bifuncs operation");
 
 ##### Check the type for a slicing operation:
-$a = PDL::Derived->new(1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
-$w = $a->slice('1:3:2,2:4:2');
+$a1 = PDL::Derived->new(1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
+$w = $a1->slice('1:3:2,2:4:2');
 ok(ref($w) eq "PDL::Derived", "check type for slicing operation");
 
 ##### Check that slicing with a subclass index works (sf.net bug #369)
-$a = sequence(10,3,2);
+$a1 = sequence(10,3,2);
 $idx = PDL::Derived->new(2,5,8);
-ok(defined(eval 'my $r = $a->slice($idx,"x","x");'), "slice works with subclass index");
+ok(defined(eval 'my $r = $a1->slice($idx,"x","x");'), "slice works with subclass index");

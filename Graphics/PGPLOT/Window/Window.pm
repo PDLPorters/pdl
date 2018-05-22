@@ -6,11 +6,11 @@ PDL::Graphics::PGPLOT::Window - A OO interface to PGPLOT windows
 
  pdl> use PDL::Graphics::PGPLOT::Window
  pdl> $win = pgwin(Device => '/xs');
- pdl> $a = pdl [1..100]
- pdl> $b = sqrt($a)
+ pdl> $x = pdl [1..100]
+ pdl> $b = sqrt($x)
  pdl> $win->line($b)
  pdl> $win->hold()
- pdl> $c = sin($a/10)*2 + 4
+ pdl> $c = sin($x/10)*2 + 4
  pdl> $win->line($c)
 
 In the following documentation the commands are not shown in their OO
@@ -761,8 +761,8 @@ passing in a single non-ref parameter.  For even further convenience, you
 can even omit the '/' in the device specifier, so these two lines
 deliver the same result:
 
-    $a = pgwin(gif);
-    $a = new PDL::Graphics::PGPLOT::Window({Dev=>'/gif'});
+    $x = pgwin(gif);
+    $x = new PDL::Graphics::PGPLOT::Window({Dev=>'/gif'});
 
 =head2 new
 
@@ -1136,18 +1136,18 @@ The following standard options influence this command:
 
    To see an image with maximum size in the current window, but square
    pixels, say:
-         $win->imag( $a, { PIX=>1 } );
+         $win->imag( $x, { PIX=>1 } );
    An alternative approach is to try:
-         $win->imag( $a, { JUSTIFY=>1 } );
+         $win->imag( $x, { JUSTIFY=>1 } );
    To see the same image, scaled 1:1 with device pixels, say:
-         $win->imag( $a, { SCALE=>1 } );
+         $win->imag( $x, { SCALE=>1 } );
    To see an image made on a device with 1:2 pixel aspect ratio, with
    X pixels the same as original image pixels, say
-         $win->imag( $a, { PIX=>0.5, SCALE=>2 } );
+         $win->imag( $x, { PIX=>0.5, SCALE=>2 } );
    To display an image at 100 dpi on any device, say:
-         $win->imag( $a, { PITCH=>100 } );
+         $win->imag( $x, { PITCH=>100 } );
    To display an image with 100 micron pixels, say:
-         $win->imag( $a, { PITCH=>10, UNIT=>'mm' } );
+         $win->imag( $x, { PITCH=>10, UNIT=>'mm' } );
 
 =head2 imag1
 
@@ -1354,12 +1354,12 @@ value used by C<imag> (recommended choice).  Default is C<undef>.
 
 =for example
 
- $a = rvals(50,50);
+ $x = rvals(50,50);
  $win = PDL::Graphics::PGPLOT::Window->new();
- $win->imag( $a, { Justify => 1, ITF => 'sqrt' } );
+ $win->imag( $x, { Justify => 1, ITF => 'sqrt' } );
  $win->draw_wedge( { Wedge => { Width => 4, Label => 'foo' } } );
  # although the following might be more sensible
- $win->imag( $a, { Justify => 1, ITF => 'sqrt', DrawWedge => 1,
+ $win->imag( $x, { Justify => 1, ITF => 'sqrt', DrawWedge => 1,
      Wedge => { Width => 4, Label => 'foo'} } );
 
 =head2 ctab
@@ -1782,7 +1782,7 @@ Plot an ellipse, optionally using fill style.
 
 =for usage
 
- Usage: ellipse($x, $y, $a, $b, $theta [, $opt]);
+ Usage: ellipse($x, $y, $c, $b, $theta [, $opt]);
 
 All arguments can alternatively be given in the options hash using the
 following options:
@@ -1791,7 +1791,7 @@ following options:
 
 =item MajorAxis
 
-The major axis of the ellipse - this must be defined or C<$a> must be given.
+The major axis of the ellipse - this must be defined or C<$c> must be given.
 
 =item MinorAxis
 
@@ -1868,15 +1868,15 @@ Display 2 images as a vector field
 
 =for usage
 
- Usage: vect ( $w, $a, $b, [$scale, $pos, $transform, $misval], { opt } );
-        $w->vect($a,$b,[$scale,$pos,$transform,$misval], { opt });
+ Usage: vect ( $w, $x, $b, [$scale, $pos, $transform, $misval], { opt } );
+        $w->vect($x,$b,[$scale,$pos,$transform,$misval], { opt });
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
 fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
-This routine will plot a vector field. C<$a> is the horizontal component
+This routine will plot a vector field. C<$x> is the horizontal component
 and C<$b> the vertical component.  The scale factor converts between
 vector length units and scientific positional units.  You can set the
 scale, position, etc. either by passing in parameters in the normal parameter
@@ -1899,9 +1899,9 @@ The following standard options influence this command:
 
 =for example
 
- $a=rvals(11,11,{Centre=>[5,5]});
+ $x=rvals(11,11,{Centre=>[5,5]});
  $b=rvals(11,11,{Centre=>[0,0]});
- vect $a, $b, {COLOR=>YELLOW, ARROWSIZE=>0.5, LINESTYLE=>dashed};
+ vect $x, $b, {COLOR=>YELLOW, ARROWSIZE=>0.5, LINESTYLE=>dashed};
 
 =head2 fits_vect
 
@@ -1911,7 +1911,7 @@ Display a pair of 2-D piddles as vectors, with FITS header interpretation
 
 =for usage
 
- Usage: fits_vect ($a, $b, [$scale, $pos, $transform, $misval] )
+ Usage: fits_vect ($x, $b, [$scale, $pos, $transform, $misval] )
 
 C<fits_vect> is to L<vect|/vect> as L<fits_imag|/fits_imag> is to L<imag|imag>.
 
@@ -5178,34 +5178,34 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       $p = (ref $in->[2] eq 'ARRAY') ? $in->[2] : [$in->[2]];
     }
     elsif(@$in == 2) { # $xy, $p  or $x,$y (no-$p)
-      my($a) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
+      my($c) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
       my($b) = (ref $in->[1] eq 'ARRAY') ? $in->[1] : [$in->[1]];
 
       release_and_barf " lines: \$xy must be a piddle\n"
-	unless(UNIVERSAL::isa($a->[0],'PDL'));
+	unless(UNIVERSAL::isa($c->[0],'PDL'));
 
       if(  ( ref $in->[0] ne ref $in->[1] ) ||
 	   ( ! UNIVERSAL::isa($b->[0],'PDL') ) ||
-	   ( $a->[0]->ndims > $b->[0]->ndims )
+	   ( $c->[0]->ndims > $b->[0]->ndims )
 	   ) { # $xy, $p case -- split $xy into $x and $y.
 
-	foreach $_(@$a){
+	foreach $_(@$c){
 	  push(@$x,$_->((0)));
 	  push(@$y,$_->((1)));
 	}
 	$p = $b;
 
       } else {  # $x,$y,(omitted $p) case -- make default $p.
-	$x = $a;
+	$x = $c;
 	$y = $b;
 	$p = [1];
       }
     }
 
     elsif(@$in == 1) { # $xyp or $xy,(omitted $p) case
-      my($a) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
+      my($c) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
 
-      foreach $_(@$a) {
+      foreach $_(@$c) {
 	push(@$x,$_->((0)));
 	push(@$y,$_->((1)));
 	push(@$p, ($_->dim(0) >= 3) ? $_->((2)) : 1);
@@ -5252,8 +5252,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	my($mask) = (isfinite $vals);
 	$mask &= ($vals != $missing) if(defined $missing);
 	$mask->(1:-1) &= (($pp->(0:-2) != 0) | ($pp->(1:-1) != 0));
-	my($a,$b) = minmax(where($vals,$mask));
-	$min .= $a;
+	my($c,$b) = minmax(where($vals,$mask));
+	$min .= $c;
 	$max .= $b;
       };
 
@@ -6478,12 +6478,12 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} unless defined $opt;
-    my ($x, $y, $a, $b, $theta)=@$in;
+    my ($x, $y, $c, $b, $theta)=@$in;
 
     my $o = $ell_options->options($opt);
     $o->{XCenter}=$x if defined($x);
     $o->{YCenter}=$y if defined($y);
-    $o->{MajorAxis} = $a if defined($a);
+    $o->{MajorAxis} = $c if defined($c);
     $o->{MinorAxis} = $b if defined($b);
     $o->{Theta}=$theta if defined($theta);
 
@@ -6607,12 +6607,12 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
       $vect_options->add_synonym({Pos => 'Position'});
     }
     my ($in, $opt)=_extract_hash(@_);
-    release_and_barf 'Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )' if $#$in<1 || $#$in>5;
-    my ($a, $b, $scale, $pos, $tr, $misval) = @$in;
-    $self->_checkarg($a,2); $self->_checkarg($b,2);
-    my($nx,$ny) = $a->dims;
+    release_and_barf 'Usage: vect ( $x, $b, [$scale, $pos, $transform, $misval] )' if $#$in<1 || $#$in>5;
+    my ($x, $b, $scale, $pos, $tr, $misval) = @$in;
+    $self->_checkarg($x,2); $self->_checkarg($b,2);
+    my($nx,$ny) = $x->dims;
     my($n1,$n2) = $b->dims;
-    release_and_barf 'Dimensions of $a and $b must be the same' unless $n1==$nx && $n2==$ny;
+    release_and_barf 'Dimensions of $x and $b must be the same' unless $n1==$nx && $n2==$ny;
 
     my ($o, $u_opt) = $self->_parse_options($vect_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
@@ -6625,7 +6625,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
     #What if there's no Missing option supplied and one of the input piddles
     #contain zero? Then that location will have no arrow, instead of a
     #horizontal or vertical line. So define $misval, but make it meaningless:
-    $misval = 1 + $a->glue(0,$b)->flat->maximum unless defined $misval; #DAL added 02-Jan-2006
+    $misval = 1 + $x->glue(0,$b)->flat->maximum unless defined $misval; #DAL added 02-Jan-2006
 
     $scale = 0 unless defined $scale;
     $pos   = 0 unless defined $pos;
@@ -6645,7 +6645,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
 
     $self->_save_status();
     $self->_standard_options_parser($u_opt); # For arrowtype and arrowhead
-    pgvect( $a->get_dataref, $b->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
+    pgvect( $x->get_dataref, $b->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
     $self->_add_to_state(\&vect, $in, $opt);

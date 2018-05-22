@@ -189,23 +189,23 @@ some cases:
 If the PDL on the left-hand side of C<.=> has a dim of size 1, it can be
 treated as a generalized scalar, as in:
 
-    $a = sequence(2,3);
+    $x = sequence(2,3);
     $b = zeroes(1,3);
-    $b .= $a;
+    $b .= $x;
 
 In this case, C<$b> is automatically treated as a 2x3-PDL during the
-threading operation, but half of the values from C<$a> silently disappear.
+threading operation, but half of the values from C<$x> silently disappear.
 The output is, as Kernighan and Ritchie would say, "undefined".
 
 Further, if the value on the right of C<.=> is empty, then C<.=> becomes
 a silent no-op:
 
-    $a = zeroes(0);
+    $x = zeroes(0);
     $b = zeroes(1);
-    $b .= $a+1;
+    $b .= $x+1;
     print $b;
 
-will print C<[0]>.  In this case, "$a+1" is empty, and "$b" is a generalized
+will print C<[0]>.  In this case, "$x+1" is empty, and "$b" is a generalized
 scalar that is adjusted to be empty, so the assignment is carried out for
 zero elements (a no-op).
 
@@ -217,9 +217,9 @@ they may be patched away in a future version of PDL.
 Generalized scalars (PDLs with a dim of size 1) can match any size in the
 corresponding dim, including 0.  Thus,
 
-    $a = ones(2,0);
+    $x = ones(2,0);
     $b = sequence(2,1);
-    $c = $a * $b;
+    $c = $x * $b;
     print $c;
 
 prints C<Empty[2,0]>.
@@ -343,16 +343,16 @@ PDL constructor - creates new piddle from perl scalars/arrays, piddles, and stri
 
 =for example
 
- $a = pdl [1..10];                    # 1D array
- $a = pdl ([1..10]);                  # 1D array
- $a = pdl (1,2,3,4);                  # Ditto
+ $x = pdl [1..10];                    # 1D array
+ $x = pdl ([1..10]);                  # 1D array
+ $x = pdl (1,2,3,4);                  # Ditto
  $b = pdl [[1,2,3],[4,5,6]];          # 2D 3x2 array
  $b = pdl "[[1,2,3],[4,5,6]]";        # Ditto (slower)
  $b = pdl "[1 2 3; 4 5 6]";           # Ditto
  $b = pdl q[1 2 3; 4 5 6];            # Ditto, using the q quote operator
  $b = pdl "1 2 3; 4 5 6";             # Ditto, less obvious, but still works
  $b = pdl 42                          # 0-dimensional scalar
- $c = pdl $a;                         # Make a new copy
+ $c = pdl $x;                         # Make a new copy
 
  $u = pdl ushort(), 42                # 0-dimensional ushort scalar
  $b = pdl(byte(),[[1,2,3],[4,5,6]]);  # 2D byte piddle
@@ -361,8 +361,8 @@ PDL constructor - creates new piddle from perl scalars/arrays, piddles, and stri
  $n = pdl indx, [1..5];               # ... can leave off parens
  $n = indx( [1..5] );                 # ... still the same!
 
- $a = pdl([1,2,3],[4,5,6]);           # 2D
- $a = pdl([1,2,3],[4,5,6]);           # 2D
+ $x = pdl([1,2,3],[4,5,6]);           # 2D
+ $x = pdl([1,2,3],[4,5,6]);           # 2D
 
 Note the last two are equivalent - a list is automatically
 converted to a list reference for syntactic convenience. i.e. you
@@ -404,11 +404,11 @@ is the same as
 All of the dimensions in the list are "padded-out" with undefval to
 meet the widest dim in the list, so (e.g.)
 
-  $a = pdl([[1,2,3],[2]])
+  $x = pdl([[1,2,3],[2]])
 
 gives you the same answer as
 
-  $a = pdl([[1,2,3],[2,undef,undef]]);
+  $x = pdl([[1,2,3],[2,undef,undef]]);
 
 If your PDL module has bad values compiled into it (see L<PDL::Bad>), 
 you can pass BAD values into the constructor within pre-existing PDLs.
@@ -619,7 +619,7 @@ dimensions have a size different from one. For example, in that sense a
 3D piddle of shape [3,5,2] is equivalent to a [3,5,2,1,1,1,1,1,....]
 piddle. Accordingly,
 
-  print $a->getdim(10000);
+  print $x->getdim(10000);
 
 will print 1 for most practically encountered piddles.
 
@@ -631,7 +631,7 @@ alternate piddle constructor - ensures arg is a piddle
 
 =for usage
 
- $a = topdl(SCALAR|ARRAY REFERENCE|ARRAY);
+ $x = topdl(SCALAR|ARRAY REFERENCE|ARRAY);
 
 The difference between L<pdl()|/pdl> and C<topdl()> is that the
 latter will just 'fall through' if the argument is
@@ -651,9 +651,9 @@ below for usage).
  use PDL::Core ':Internal'; # use the internal routines of
                             # the Core module
 
- $a = topdl 43;             # $a is piddle with value '43'
+ $x = topdl 43;             # $x is piddle with value '43'
  $b = topdl $piddle;        # fall through
- $a = topdl (1,2,3,4);      # Convert 1D array
+ $x = topdl (1,2,3,4);      # Convert 1D array
 
 =head2 get_datatype
 
@@ -1038,7 +1038,7 @@ sub PDL::Core::new_pdl_from_string {
    }
 
    # Wrap the string in brackets [], so that the following works:
-   # $a = new PDL q[1 2 3];
+   # $x = new PDL q[1 2 3];
    # We'll have to check for dimensions of size one after we've parsed
    # the string and built a PDL from the resulting array.
    $value = '[' . $value . ']';
@@ -1432,13 +1432,13 @@ sub PDL::_deep_hdr_copy {
   }
 
   if(ref $val eq 'SCALAR') {
-    my $a = $$val;
-    return \$a;
+    my $x = $$val;
+    return \$x;
   }
 
   if(ref $val eq 'REF') {
-    my $a = PDL::_deep_hdr_copy($$val);
-    return \$a;
+    my $x = PDL::_deep_hdr_copy($$val);
+    return \$x;
   }
 
   # Special case for PDLs avoids potential nasty header recursion...
@@ -1477,8 +1477,8 @@ Make sure the data portion of a piddle can be accessed from XS code.
 
 =for example
 
- $a->make_physical;
- $a->call_my_xs_method;
+ $x->make_physical;
+ $x->call_my_xs_method;
 
 Ensures that a piddle gets its own allocated copy of data. This obviously
 implies that there are certain piddles which do not have their own data.
@@ -1522,7 +1522,7 @@ If you specify a dimension position larger than the existing
 dimension list of your PDL, the PDL gets automagically padded with extra
 dummy dimensions so that you get the dim you asked for, in the slot you
 asked for.  This could cause you trouble if, for example,
-you ask for $a->dummy(5000,1) because $a will get 5,000 dimensions,
+you ask for $x->dummy(5000,1) because $x will get 5,000 dimensions,
 each of rank 1.
 
 Because padding at the beginning of the dimension list moves existing
@@ -1597,16 +1597,16 @@ sub PDL::dummy($$;$) {
 "clumps" several dimensions into one large dimension
 
 If called with one argument C<$n> clumps the first C<$n>
-dimensions into one. For example, if C<$a> has dimensions
+dimensions into one. For example, if C<$x> has dimensions
 C<(5,3,4)> then after
 
 =for example
 
- $b = $a->clump(2);   # Clump 2 first dimensions
+ $b = $x->clump(2);   # Clump 2 first dimensions
 
 the variable C<$b> will have dimensions C<(15,4)>
 and the element C<$b-E<gt>at(7,3)> refers to the element
-C<$a-E<gt>at(1,2,3)>.
+C<$x-E<gt>at(1,2,3)>.
 
 Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
 is provided as a convenient alias.
@@ -1622,8 +1622,8 @@ clumped dim is placed at the position of the lowest index in the list.
 This convention ensures that C<clump> does the expected thing in
 the usual cases. The following example demonstrates typical usage:
 
-  $a = sequence 2,3,3,3,5; # 5D piddle
-  $c = $a->clump(1..3);    # clump all the dims 1 to 3 into one
+  $x = sequence 2,3,3,3,5; # 5D piddle
+  $c = $x->clump(1..3);    # clump all the dims 1 to 3 into one
   print $c->info;          # resulting 3D piddle has clumped dim at pos 1
  PDL: Double D [2,27,5]
 
@@ -1757,12 +1757,12 @@ Use explicit threading over specified dimensions (see also L<PDL::Indexing>)
 
 =for usage
 
- $b = $a->thread($dim,[$dim1,...])
+ $b = $x->thread($dim,[$dim1,...])
 
 =for example
 
- $a = zeroes 3,4,5;
- $b = $a->thread(2,0);
+ $x = zeroes 3,4,5;
+ $b = $x->thread(2,0);
 
 Same as L<PDL::thread1|/PDL::thread1>, i.e. uses thread id 1.
 
@@ -1785,9 +1785,9 @@ Returns the multidimensional diagonal over the specified dimensions.
 
 =for example
 
- pdl> $a = zeroes(3,3,3);
- pdl> ($b = $a->diagonal(0,1))++;
- pdl> p $a
+ pdl> $x = zeroes(3,3,3);
+ pdl> ($b = $x->diagonal(0,1))++;
+ pdl> p $x
  [
   [
    [1 0 0]
@@ -1976,8 +1976,8 @@ This is simply achieved by using C<sever>. For example,
 
 =for example
 
-   $a = $pdl->index(pdl(0,3,7))->sever;
-   $a++;       # important: $pdl is not modified!
+   $x = $pdl->index(pdl(0,3,7))->sever;
+   $x++;       # important: $pdl is not modified!
 
 In many (but not all) circumstances it acts therefore similar to
 L<copy|PDL::Core/copy>.
@@ -1986,24 +1986,24 @@ C<sever> doesn't lead to futile copying when used on piddles that
 already have their own data. On the other hand, if you really want to make
 sure to work on a copy of a piddle use L<copy|PDL::Core/copy>.
 
-   $a = zeroes(20);
-   $a->sever;   # NOOP since $a is already its own boss!
+   $x = zeroes(20);
+   $x->sever;   # NOOP since $x is already its own boss!
 
 Again note: C<sever> I<is not> the same as L<copy|PDL::Core/copy>!
 For example,
 
-   $a = zeroes(1); # $a does not have a parent, i.e. it is not a slice etc
-   $b = $a->sever; # $b is now pointing to the same piddle as $a
+   $x = zeroes(1); # $x does not have a parent, i.e. it is not a slice etc
+   $b = $x->sever; # $b is now pointing to the same piddle as $x
    $b++;
-   print $a;
+   print $x;
  [1]
 
 but
 
-   $a = zeroes(1);
-   $b = $a->copy; # $b is now pointing to a new piddle
+   $x = zeroes(1);
+   $b = $x->copy; # $b is now pointing to a new piddle
    $b++;
-   print $a;
+   print $x;
  [0]
 
 
@@ -2087,7 +2087,7 @@ test for approximately equal values (relaxed C<==>)
 
   # ok if all corresponding values in
   # piddles are within 1e-8 of each other
-  print "ok\n" if all approx $a, $b, 1e-8;
+  print "ok\n" if all approx $x, $b, 1e-8;
 
 C<approx> is a relaxed form of the C<==> operator and
 often more appropriate for floating point types (C<float>
@@ -2097,24 +2097,24 @@ Usage:
 
 =for usage
 
-  $res = approx $a, $b [, $eps]
+  $res = approx $x, $b [, $eps]
 
 The optional parameter C<$eps> is remembered across invocations
 and initially set to 1e-6, e.g.
 
-  approx $a, $b;         # last $eps used (1e-6 initially)
-  approx $a, $b, 1e-10;  # 1e-10
-  approx $a, $b;         # also 1e-10
+  approx $x, $b;         # last $eps used (1e-6 initially)
+  approx $x, $b, 1e-10;  # 1e-10
+  approx $x, $b;         # also 1e-10
 
 =cut
 
 my $approx = 1e-6;  # a reasonable init value
 sub PDL::approx {
-  my ($a,$b,$eps) = @_;
+  my ($x,$b,$eps) = @_;
   $eps = $approx unless defined $eps;  # the default eps
   $approx = $eps;    # remember last eps
-  # NOTE: ($a-$b)->abs breaks for non-piddle inputs
-  return abs($a-$b) < $eps;
+  # NOTE: ($x-$b)->abs breaks for non-piddle inputs
+  return abs($x-$b) < $eps;
 }
 
 =head2 mslice
@@ -2126,12 +2126,12 @@ allowing easier inclusion of dimensions in perl code.
 
 =for usage
 
- $a = $x->mslice(...);
+ $w = $x->mslice(...);
 
 =for example
 
  # below is the same as $x->slice("5:7,:,3:4:2")
- $a = $x->mslice([5,7],X,[3,4,2]);
+ $w = $x->mslice([5,7],X,[3,4,2]);
 
 =cut
 
@@ -2164,7 +2164,7 @@ and/or changed to "slice_if_pdl" for PDL 3.0.
 
 =for usage
 
- $a = $x->nslice_if_pdl(...,'(args)');
+ $w = $x->nslice_if_pdl(...,'(args)');
 
 =cut
 
@@ -2308,8 +2308,8 @@ conveniently.
 
 =for usage
 
-    $a = new_or_inplace(shift());
-    $a = new_or_inplace(shift(),$preferred_type);
+    $w = new_or_inplace(shift());
+    $w = new_or_inplace(shift(),$preferred_type);
 
 =for ref
 
@@ -2471,8 +2471,8 @@ useful in particular when using the indexing function which. In the
 case of no match to a specified criterion, the returned piddle has
 zero dimension.
 
- pdl> $a=sequence(10)
- pdl> $i=which($a < -1)
+ pdl> $w=sequence(10)
+ pdl> $i=which($w < -1)
  pdl> print "I found no matches!\n" if ($i->isempty);
  I found no matches!
 
@@ -2501,14 +2501,14 @@ Various forms of usage,
 =for usage
 
  # usage type (i):
- $a = zeroes([type], $nx, $ny, $nz,...);
- $a = PDL->zeroes([type], $nx, $ny, $nz,...);
- $a = $pdl->zeroes([type], $nx, $ny, $nz,...);
+ $w = zeroes([type], $nx, $ny, $nz,...);
+ $w = PDL->zeroes([type], $nx, $ny, $nz,...);
+ $w = $pdl->zeroes([type], $nx, $ny, $nz,...);
  # usage type (ii):
- $a = zeroes $b;
- $a = $b->zeroes
- zeroes inplace $a;     # Equivalent to   $a .= 0;
- $a->inplace->zeroes;   #  ""
+ $w = zeroes $b;
+ $w = $b->zeroes
+ zeroes inplace $w;     # Equivalent to   $w .= 0;
+ $w->inplace->zeroes;   #  ""
 
 =for example
 
@@ -2556,7 +2556,7 @@ construct a one filled piddle
 
 =for usage
 
- $a = ones([type], $nx, $ny, $nz,...);
+ $w = ones([type], $nx, $ny, $nz,...);
  etc. (see 'zeroes')
 
 =for example
@@ -2594,8 +2594,8 @@ If the new array is longer it will be zero-padded.
 If the list of C<NEWDIMS> is empty C<reshape> will just drop
 all dimensions of size 1 (preserving the number of elements):
 
-  $a = sequence(3,4,5);
-  $b = $a(1,3);
+  $w = sequence(3,4,5);
+  $b = $w(1,3);
   $b->reshape();
   print $b->info;
  PDL: Double D [5]
@@ -2603,15 +2603,15 @@ all dimensions of size 1 (preserving the number of elements):
 Dimensions of size 1 will also be dropped if C<reshape> is
 invoked with the argument -1:
 
-  $b = $a->reshape(-1);
+  $b = $w->reshape(-1);
 
 As opposed to C<reshape> without arguments, C<reshape(-1)>
 preserves dataflow:
 
-  $a = ones(2,1,2);
-  $b = $a(0)->reshape(-1);
+  $w = ones(2,1,2);
+  $b = $w(0)->reshape(-1);
   $b++;
-  print $a;
+  print $w;
  [
   [
    [2 1]
@@ -2670,14 +2670,14 @@ eliminate all singleton dimensions (dims of size 1)
 
 =for example
 
- $b = $a(0,0)->squeeze;
+ $b = $w(0,0)->squeeze;
 
 Alias for C<reshape(-1)>. Removes all singleton dimensions
 and preserves dataflow. A more concise interface is
 provided by L<PDL::NiceSlice|PDL::NiceSlice> via modifiers:
 
  use PDL::NiceSlice;
- $b = $a(0,0;-); # same as $a(0,0)->squeeze
+ $b = $w(0,0;-); # same as $w(0,0)->squeeze
 
 =cut
 
@@ -2762,10 +2762,10 @@ long-winded and say C<$x = long(pdl(42))>
 
 Thus one can say:
 
- $a = float(1,2,3,4);           # 1D
- $a = float q[1 2 3; 4 5 6];    # 2D
- $a = float([1,2,3],[4,5,6]);   # 2D
- $a = float([[1,2,3],[4,5,6]]); # 2D
+ $w = float(1,2,3,4);           # 1D
+ $w = float q[1 2 3; 4 5 6];    # 2D
+ $w = float([1,2,3],[4,5,6]);   # 2D
+ $w = float([[1,2,3],[4,5,6]]); # 2D
 
 Note the last three give identical results, and the last two are exactly
 equivalent - a list is automatically converted to a list reference for
@@ -2832,15 +2832,15 @@ A convenience function for use with the piddle constructors, e.g.
 
 =for example
 
- $b = PDL->zeroes($a->type,$a->dims,3);
- die "must be float" unless $a->type == float;
+ $b = PDL->zeroes($x->type,$x->dims,3);
+ die "must be float" unless $x->type == float;
 
 See also the discussion of the C<PDL::Type> class in L<PDL::Types>.
 Note that the C<PDL::Type> objects have overloaded comparison and
 stringify operators so that you can compare and print types:
 
- $a = $a->float if $a->type < float;
- $t = $a->type; print "Type is $t\";
+ $x = $x->float if $x->type < float;
+ $t = $x->type; print "Type is $t\";
 
 =cut
 
@@ -3095,16 +3095,16 @@ return a single value from a piddle as a scalar
 
 =for example
 
-  $val = $a(10)->sclr;
-  $val = sclr inner($a,$b);
+  $val = $x(10)->sclr;
+  $val = sclr inner($x,$b);
 
 The C<sclr> method is useful to turn a piddle into a normal Perl
 scalar. Its main advantage over using C<at> for this purpose is the fact
 that you do not need to worry if the piddle is 0D, 1D or higher dimensional.
 Using C<at> you have to supply the correct number of zeroes, e.g.
 
-  $a = sequence(10);
-  $b = $a->slice('4');
+  $x = sequence(10);
+  $b = $x->slice('4');
   print $b->sclr; # no problem
   print $b->at(); # error: needs at least one zero
 
@@ -3326,7 +3326,7 @@ e.g.:
 =for example
 
  pdl> $p = ones 3,3,3
- pdl> ($a,$b,$c) = dog $p
+ pdl> ($x,$b,$c) = dog $p
  pdl> $b++; p $p
  [
   [
@@ -3377,30 +3377,30 @@ sub PDL::dog {
 # package vars $level and @dims must be initialised first.
 
 sub rpack {
-    my ($ptype,$a) = @_;  my ($ret,$type);
+    my ($ptype,$x) = @_;  my ($ret,$type);
 
     $ret = "";
-    if (ref($a) eq "ARRAY") {
+    if (ref($x) eq "ARRAY") {
 
        if (defined($dims[$level])) {
-           barf 'Array is not rectangular' unless $dims[$level] == scalar(@$a);
+           barf 'Array is not rectangular' unless $dims[$level] == scalar(@$x);
        }else{
-          $dims[$level] = scalar(@$a);
+          $dims[$level] = scalar(@$x);
        }
 
-       $type = ref($$a[0]);
+       $type = ref($$x[0]);
         if ($type) {
         $level++;
-        for(@$a) {
+        for(@$x) {
             barf 'Array is not rectangular' unless $type eq ref($_); # Equal types
             $ret .= rpack($ptype,$_);
         }
         $level--;
         } else {
         # These are leaf nodes
-        $ret = pack $ptype, map {defined($_) ? $_ : $PDL::undefval} @$a;
+        $ret = pack $ptype, map {defined($_) ? $_ : $PDL::undefval} @$x;
       }
-    } elsif (ref($a) eq "PDL") {
+    } elsif (ref($x) eq "PDL") {
 	barf 'Cannot make a new piddle from two or more piddles, try "cat"';
     } else {
         barf "Don't know how to make a PDL object from passed argument";
@@ -3626,9 +3626,9 @@ defined value.
 Note that gethdr() works by B<reference>: you can modify the header
 in-place once it has been retrieved:
 
-  $a  = rfits($filename);
-  $ah = $a->gethdr();
-  $ah->{FILENAME} = $filename;
+  $x  = rfits($filename);
+  $xh = $x->gethdr();
+  $xh->{FILENAME} = $filename;
 
 It is also important to realise that in most cases the header is not
 automatically copied when you copy the piddle.  See L<hdrcpy|/hdrcpy>
@@ -3752,10 +3752,10 @@ switch on/off/examine automatic header copying
 
 =for example
 
- print "hdrs will be copied" if $a->hdrcpy;
- $a->hdrcpy(1);       # switch on automatic header copying
- $b = $a->sumover;    # and $b will inherit $a's hdr
- $a->hdrcpy(0);       # and now make $a non-infectious again
+ print "hdrs will be copied" if $x->hdrcpy;
+ $x->hdrcpy(1);       # switch on automatic header copying
+ $b = $x->sumover;    # and $b will inherit $x's hdr
+ $x->hdrcpy(0);       # and now make $x non-infectious again
 
 C<hdrcpy> without an argument just returns the current setting of the
 flag.  See also "hcpy" which returns its PDL argument (and so is useful
@@ -3775,14 +3775,14 @@ The C<hdrcpy> flag is viral: if you set it for a PDL, then derived
 PDLs will get copies of the header and will also have their C<hdrcpy>
 flags set.  For example:
 
-  $a = xvals(50,50);
-  $a->hdrcpy(1);
-  $a->hdr->{FOO} = "bar";
-  $b = $a++;
+  $x = xvals(50,50);
+  $x->hdrcpy(1);
+  $x->hdr->{FOO} = "bar";
+  $b = $x++;
   $c = $b++;
   print $b->hdr->{FOO}, " - ", $c->hdr->{FOO}, "\n";
   $b->hdr->{FOO} = "baz";
-  print $a->hdr->{FOO}, " - ", $b->hdr->{FOO}, " - ", $c->hdr->{FOO}, "\n";
+  print $x->hdr->{FOO}, " - ", $b->hdr->{FOO}, " - ", $c->hdr->{FOO}, "\n";
 
 will print:
 
@@ -3792,11 +3792,11 @@ will print:
 Performing an operation in which more than one PDL has its hdrcpy flag
 causes the resulting PDL to take the header of the first PDL:
 
-  ($a,$b) = sequence(5,2)->dog;
-  $a->hdrcpy(1); $b->hdrcpy(1);
-  $a->hdr->{foo} = 'a';
+  ($x,$b) = sequence(5,2)->dog;
+  $x->hdrcpy(1); $b->hdrcpy(1);
+  $x->hdr->{foo} = 'a';
   $b->hdr->{foo} = 'b';
-  print (($a+$b)->hdr->{foo} , ($b+$a)->hdr->{foo});
+  print (($x+$b)->hdr->{foo} , ($b+$x)->hdr->{foo});
 
 will print:
 
@@ -3810,8 +3810,8 @@ Switch on/off automatic header copying, with PDL pass-through
 
 =for example
 
-  $a = rfits('foo.fits')->hcpy(0);
-  $a = rfits('foo.fits')->hcpy(1);
+  $x = rfits('foo.fits')->hcpy(0);
+  $x = rfits('foo.fits')->hcpy(1);
 
 C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL
 itself.  That makes it convenient for inline use in expressions.
@@ -3839,7 +3839,7 @@ See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
   # Execute a pdl function, processing will split into two pthreads as long as
   #  one of the pdl-threaded dimensions is divisible by 2.
-  $a = minimum($b);
+  $x = minimum($b);
 
   # Get the actual number of pthreads that were run.
   $actual_pthread = get_autopthread_actual();
@@ -3909,7 +3909,7 @@ See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
   # Execute a pdl function, processing will split into two pthreads as long as
   #  one of the pdl-threaded dimensions is divisible by 2.
-  $a = minimum($b);
+  $x = minimum($b);
 
   # Get the actual number of pthreads that were run.
   $actual_pthread = get_autopthread_actual();

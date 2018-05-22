@@ -13,14 +13,14 @@ between PDL versions 1.0 and 2.0.
 
 =head2 Piddles are not hashes any more:
 
-    $a = zeroes 10,10;
-    $$a{FOO} = "bar"
+    $x = zeroes 10,10;
+    $$x{FOO} = "bar"
 
 doesn't work. They are currently scalar references (to opaque
 C structures in finer terms) because of speed as well as
 syntactic issues. If you want to have a hash, use
 
-    $a->hdr()
+    $x->hdr()
 
 which returns a reference to an anonymous hash. Also,
 subclassing works if you store a piddle in the hash member ``PDL''.

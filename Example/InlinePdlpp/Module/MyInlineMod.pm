@@ -8,8 +8,8 @@ PDL::MyInlineMod - a simple PDL module containing inlined Pdlpp code
 
   use PDL::MyInlineMod;
 
-  $a = zeroes 10, 10;
-  $twos = $a->plus2;  # a simple function
+  $x = zeroes 10, 10;
+  $twos = $x->plus2;  # a simple function
 
 =head1 DESCRIPTION
 

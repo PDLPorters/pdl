@@ -19,17 +19,17 @@ BEGIN {
    use_ok('PDL::IO::Storable');
 }
 
-my ($data,$dfreeze,$dthaw,$olda,$pfreeze,$phash,$phthaw,$seq1,$seq1_tf,$seq2,$seq2_dc,$serialized);
+my ($data,$dfreeze,$dthaw,$oldx,$pfreeze,$phash,$phthaw,$seq1,$seq1_tf,$seq2,$seq2_dc,$serialized);
 
-$a = sequence(2,2);
-# $a->dump;
+my $x = sequence(2,2);
+# $x->dump;
 
-$serialized = freeze $a;
+$serialized = freeze $x;
 
-$olda = thaw $serialized;
-# $olda->dump;
+$oldx = thaw $serialized;
+# $oldx->dump;
 
-ok(sum(abs($a-$olda))==0, 'PDL freeze/thaw');
+ok(sum(abs($x-$oldx))==0, 'PDL freeze/thaw');
 
 # $oldb = thaw $serialized;
 # $oldc = thaw $serialized;
@@ -40,7 +40,7 @@ ok(sum(abs($a-$olda))==0, 'PDL freeze/thaw');
 # undef $oldb;
 # print $oldc;
 
-undef $a;
+undef $x;
 
 $data = {
    key1 => 1,

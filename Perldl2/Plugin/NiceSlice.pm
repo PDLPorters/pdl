@@ -40,15 +40,15 @@ Without the plugin, array slicing looks like this:
     
   pdl> use PDL;
   
-  pdl> $a = sequence(10);
+  pdl> $x = sequence(10);
   $PDL1 = [0 1 2 3 4 5 6 7 8 9];
   
-  pdl> $a->slice("2:9:2");
+  pdl> $x->slice("2:9:2");
   $PDL1 = [2 4 6 8];
 
 After the NiceSlice plugin has been loaded, you can use this:
 
-  pdl> $a(2:9:2)
+  pdl> $x(2:9:2)
   $PDL1 = [2 4 6 8];
 
 =head1 CAVEATS

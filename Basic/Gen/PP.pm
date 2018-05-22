@@ -950,7 +950,7 @@ sub pp_addxs {
 # inserts #line directives into source text. Use like this:
 #   ...
 #   FirstKey => ...,
-#   Code => pp_line_numbers (__LINE__, $a . $b . $c),
+#   Code => pp_line_numbers (__LINE__, $x . $b . $c),
 #   OtherKey => ...
 
 sub pp_line_numbers ($$) {

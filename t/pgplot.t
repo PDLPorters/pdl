@@ -98,16 +98,16 @@ my $w = PDL::Graphics::PGPLOT::Window->new(
                                            Ch=>2.5, HardCH=>2.5);
 ok( UNIVERSAL::isa($w, "PDL::Graphics::PGPLOT::Window") );
 
-my $a = rfits('m51.fits');
+my $x = rfits('m51.fits');
 
 ##############################
 # Page 1
 #
 foreach my $str ( (
-    '$w->imag($a,{Title=>"\$w->imag(\$a);"} );',
-    '$w->fits_imag($a,{Title=>"\$w->fits_imag(\$a);"});',
-    '$w->imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});',
-    '$w->fits_imag($a,{J=>1,Title=>"\$w->fits_imag(\$a,{J=>1});"});'
+    '$w->imag($x,{Title=>"\$w->imag(\$x);"} );',
+    '$w->fits_imag($x,{Title=>"\$w->fits_imag(\$x);"});',
+    '$w->imag($x,{J=>1,Title=>"\$w->imag(\$x,{J=>1});"});',
+    '$w->fits_imag($x,{J=>1,Title=>"\$w->fits_imag(\$x,{J=>1});"});'
     ) ) {
     eval $str;
     ok (!$@);
@@ -123,10 +123,10 @@ SKIP: {
 # Page 2
 #
 foreach my $str ( (
-    '$w->imag($a,{Pitch=>300,Align=>"LB",Title=>"\$w->imag(\$a,{Pitch=>300,Align=>LB})"});',
-    '$w->imag($a,{J=>.5,Pitch=>300,Align=>"LB",Title=>"\$w->imag(\$a,{J=>.5,Pitch=>300,Align=>LB})"});',
-    '$w->imag($a,{Pitch=>300,Align=>"RT",Title=>"\$w->imag(\$a,{Pitch=>300,Align=>RT})"});',
-    '$w->imag($a,{J=>2,Pitch=>600,Align=>"RT",Title=>"\$w->imag(\$a,{J=>2,Pitch=>600,Align=>RT})                     ."});',
+    '$w->imag($x,{Pitch=>300,Align=>"LB",Title=>"\$w->imag(\$x,{Pitch=>300,Align=>LB})"});',
+    '$w->imag($x,{J=>.5,Pitch=>300,Align=>"LB",Title=>"\$w->imag(\$x,{J=>.5,Pitch=>300,Align=>LB})"});',
+    '$w->imag($x,{Pitch=>300,Align=>"RT",Title=>"\$w->imag(\$x,{Pitch=>300,Align=>RT})"});',
+    '$w->imag($x,{J=>2,Pitch=>600,Align=>"RT",Title=>"\$w->imag(\$x,{J=>2,Pitch=>600,Align=>RT})                     ."});',
     ) ) {
     eval $str;
     ok (!$@);

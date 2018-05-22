@@ -87,7 +87,7 @@ capabilities.
   * DDS (pretty prints output using Data::Dump::Streamer)
   * History (redo commands with !-1 and !<num> syntax)
   * Interrupt (interrupt with Ctrl-C; not on MSWin32)
-  * LexEnv (e.g., my $a = zeros(10) works)
+  * LexEnv (e.g., my $x = zeros(10) works)
   * MultiLine::PPI (handles multiline input like perldl)
   * NiceSlice (PDL::NiceSlice works too!)
   * Packages (keeps track of current user package)

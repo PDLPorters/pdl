@@ -80,8 +80,8 @@ if ($ExtUtils::F77::VERSION > 1.03) {
 }
 
 sub tapprox {
-    my ($a,$b) = @_;
-    my $c = abs($a->clump(-1)-$b->clump(-1));
+    my ($x,$b) = @_;
+    my $c = abs($x->clump(-1)-$b->clump(-1));
     my $d = max($c);
     $d < 0.01;
 }
@@ -562,8 +562,8 @@ my $d = double pdl (4*atan2(1,1));
 my $f = float ($d);
 my $l = long (10**$f);
 $i = short ($l);
-my $a = byte (32);
-my @req = ($a,$i,$l,$f,$d);
+my $x = byte (32);
+my @req = ($x,$i,$l,$f,$d);
 my $ok = 1;
 foreach (@req) {
     my $h = shift @a;
@@ -600,8 +600,8 @@ SKIP: {
    $f = float ($d);
    $l = long (10**$f);
    $i = short ($l);
-   $a = byte (32);
-   @req = ($a,$i,$l,$f,$d);
+   $x = byte (32);
+   @req = ($x,$i,$l,$f,$d);
    foreach (@req) {
       my $h = shift @a;
       $ok &&= tapprox($_,$h);

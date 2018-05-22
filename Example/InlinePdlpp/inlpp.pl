@@ -2,9 +2,9 @@ use blib;
 use PDL; # this must be called before (!) 'use Inline Pdlpp' calls
 use Inline Pdlpp; # the actual code is in the __Pdlpp__ block below
 
-$a = sequence 10;
-print $a->inc,"\n";
-print $a->inc->dummy(1,10)->tcumul,"\n";
+$x = sequence 10;
+print $x->inc,"\n";
+print $x->inc->dummy(1,10)->tcumul,"\n";
 
 __DATA__
 

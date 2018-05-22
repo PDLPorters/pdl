@@ -143,11 +143,11 @@ $doc
 
 =for example
 
-   \$c = $name \$a, \$b, 0;     # explicit call with trailing 0
-   \$c = \$a $op \$b;           # overloaded call
-   \$a->inplace->$name(\$b,0);  # modify \$a inplace
+   \$c = $name \$x, \$b, 0;     # explicit call with trailing 0
+   \$c = \$x $op \$b;           # overloaded call
+   \$x->inplace->$name(\$b,0);  # modify \$x inplace
 
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
+It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the binary C<$optxt> operator.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
@@ -229,11 +229,11 @@ $doc
 
 =for example
 
-   \$c = \$a->$name(\$b,0); # explicit function call
+   \$c = \$x->$name(\$b,0); # explicit function call
    $ovcall
-   \$a->inplace->$name(\$b,0);     # modify \$a inplace
+   \$x->inplace->$name(\$b,0);     # modify \$x inplace
 
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
+It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the binary C<$funcovp> function.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
@@ -284,10 +284,10 @@ $doc
 
 =for example
 
-   \$b = $funcov \$a;
-   \$a->inplace->$name;  # modify \$a inplace
+   \$b = $funcov \$x;
+   \$x->inplace->$name;  # modify \$a inplace
 
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
+It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the unary C<$funcovp> operator/function.
 
 =cut
@@ -422,11 +422,11 @@ raise piddle C<\$a> to integer power C<\$b>
 
 =for example
 
-   \$c = \$a->ipow(\$b,0);     # explicit function call
-   \$c = ipow \$a, \$b;
-   \$a->inplace->ipow(\$b,0);  # modify \$a inplace
+   \$c = \$x->ipow(\$b,0);     # explicit function call
+   \$c = ipow \$x, \$b;
+   \$x->inplace->ipow(\$b,0);  # modify \$x inplace
 
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
+It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.

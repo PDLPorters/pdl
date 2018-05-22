@@ -38,8 +38,8 @@ comment q|
 |;
 
 act q|
-	$a = zeroes 5,5; # 5x5 matrix
-	output $a;
+	$x = zeroes 5,5; # 5x5 matrix
+	output $x;
 |;
 
 act q|
@@ -50,20 +50,20 @@ act q|
 |;
 
 act q|
-	$a ++;      # Operators like increment work..
-	output $a;
+	$x ++;      # Operators like increment work..
+	output $x;
 |;
 
 act q|
 	# xvals and yvals (yes, there is also zvals...)
 	# give you piddles which give the coordinate value.
-	$b = xvals $a;
+	$b = xvals $x;
 	output $b;
 |;
 
 act q|
 	# So you can do things like
-	$b = $a + 0.1 * xvals($a) + 0.01 * yvals($a);
+	$b = $x + 0.1 * xvals($x) + 0.01 * yvals($x);
 	output $b;
 |;
 
@@ -136,17 +136,17 @@ act q|
 act q|
 	# Here are some more advanced tricks for selecting
 	# parts of 1-D vectors:
-	$a = (xvals 12)/3;
-	$i = which(sin($a) > 0.5);   # Indices of those sines > 0.5
-	output $a,"\n";
+	$x = (xvals 12)/3;
+	$i = which(sin($x) > 0.5);   # Indices of those sines > 0.5
+	output $x,"\n";
 	output $i,"\n";
-	output $a->index($i),"\n";
+	output $x->index($i),"\n";
              # and we can have the effect of the last command in one
              # go using 'where' instead of 'which' and 'index' as in
-        output $a->where(sin($a) > 0.5),"\n";
+        output $x->where(sin($x) > 0.5),"\n";
              # and finally take the sin of these elements
              # (to show that these are indeed the correct ones)
-	output sin($a->index($i)),"\n";
+	output sin($x->index($i)),"\n";
 |;
 
 comment q|

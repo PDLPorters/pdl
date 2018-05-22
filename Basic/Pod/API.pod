@@ -57,9 +57,9 @@ Perl and C these days, using the C<with> capability in L<Inline> 0.68+.
 
    use PDL::LiteF;
 
-   $a = myfloatseq(); # exercise our C piddle constructor
+   $x = myfloatseq(); # exercise our C piddle constructor
 
-   print $a->info,"\n";
+   print $x->info,"\n";
 
    use Inline with => 'PDL';
    use Inline C;

@@ -40,12 +40,12 @@ numbers. These are usually represented as a pair C<[ real imag ]> or
 C<[ angle phase ]>. If not explicitly mentioned, the functions can work
 inplace (not yet implemented!!!) and require rectangular form.
 
-While there is a procedural interface available (C<< $a/$b*$c <=> Cmul
-(Cdiv $a, $b), $c) >>), you can also opt to cast your pdl's into the
+While there is a procedural interface available (C<< $x/$b*$c <=> Cmul
+(Cdiv $x, $b), $c) >>), you can also opt to cast your pdl's into the
 C<PDL::Complex> datatype, which works just like your normal piddles, but
 with all the normal perl operators overloaded.
 
-The latter means that C<sin($a) + $b/$c> will be evaluated using the
+The latter means that C<sin($x) + $b/$c> will be evaluated using the
 normal rules of complex numbers, while other pdl functions (like C<max>)
 just treat the piddle as a real-valued piddle with a lowest dimension of
 size 2, so C<max> will return the maximum of all real and imaginary parts,

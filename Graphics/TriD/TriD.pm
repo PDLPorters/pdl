@@ -420,8 +420,8 @@ ways one might want to do this.
 
 e.g.
 
- pdl> $a=sqrt(rvals(zeroes(50,50))/2)
- pdl> imagrgb [0.5*sin(8*$a)+0.5,0.5*cos(8*$a)+0.5,0.5*cos(4*$a)+0.5]
+ pdl> $x=sqrt(rvals(zeroes(50,50))/2)
+ pdl> imagrgb [0.5*sin(8*$x)+0.5,0.5*cos(8*$x)+0.5,0.5*cos(4*$x)+0.5]
 
 =head2 imagrgb3d
 
@@ -561,7 +561,7 @@ your own risk.
 The syntax C<PDL::Graphics::TriD::Scale(x,y,z)> here means that you create
 an object like
 
-	$a = new PDL::Graphics::TriD::Scale($x,$y,$z);
+	$c = new PDL::Graphics::TriD::Scale($x,$y,$z);
 
 =head2 PDL::Graphics::TriD::LineStrip
 

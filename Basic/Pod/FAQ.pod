@@ -68,7 +68,7 @@ initiator of the PDL project:
     The PDL concept is to give standard perl5 the ability
     to COMPACTLY store and SPEEDILY manipulate the large
     N-dimensional data sets which are the bread and butter
-    of scientific computing. e.g. $a=$b+$c can add two
+    of scientific computing. e.g. $x=$b+$c can add two
     2048x2048 images in only a fraction of a second.
 
 
@@ -315,11 +315,11 @@ reproduced in braces ( <... ...> ) ):
     < ... help output ... >
     pdl> help PDL::QuickStart
     < ... perldoc page ... >
-    pdl> $a = pdl (1,5,7.3,1.0)
+    pdl> $x = pdl (1,5,7.3,1.0)
     pdl> $b = sequence float, 4, 4
     pdl> help inner
     < ... help on the 'inner' function ... >
-    pdl> $c = inner $a, $b
+    pdl> $c = inner $x, $b
     pdl> p $c
     [22.6 79.8 137 194.2]
 
@@ -703,7 +703,7 @@ multiprocessor machines or clusters)
 PDL threading of operations on piddles (as mentioned in the
 indexing docs) is the iteration of a basic operation over
 appropriate sub-slices of piddles, e.g. the inner product 
-C<inner $a, $b> of a (3) pdl C<$a> and a (3,5,4) pdl 
+C<inner $x, $b> of a (3) pdl C<$x> and a (3,5,4) pdl 
 C<$b> results in a (5,4) piddle where each
 value is the result of an inner product of the (3) pdl with a
 (3) sub-slice of the (3,5,4) piddle.  For details check
@@ -759,7 +759,7 @@ shell if you are new to PDL.
 
 
 
-=head2 Q: 6.3    I want to access the third element of a pdl but $a[2] doesn't work ?!  
+=head2 Q: 6.3    I want to access the third element of a pdl but $x[2] doesn't work ?!  
 
 
 See answer to the next question why the normal Perl array syntax doesn't
@@ -804,7 +804,7 @@ very useful !
 
 Most people will try to form new piddles from old piddles
 using some variation over the theme: 
-C<$a =  pdl([$b, 0, 2])> , but this does not work. The way to
+C<$x =  pdl([$b, 0, 2])> , but this does not work. The way to
 concatenate piddles is to use the function 
 C<cat> (see also C<append> and C<glue>). Similarly you can split piddles
 using the command C<dog> .
@@ -860,35 +860,35 @@ C<.=> for certain types of assignments.
 In Perl 5.6.7 and higher this assignment can be made
 using lvalue subroutines:
 
-    pdl> $a = sequence(5); p $a
+    pdl> $x = sequence(5); p $x
     [0 1 2 3 4]
-    pdl> $a->slice('1:2') .= pdl([5,6])
-    pdl> p $a
+    pdl> $x->slice('1:2') .= pdl([5,6])
+    pdl> p $x
     [0 5 6 3 4]
 
 see L<PDL::Lvalue> for more info.  PDL also supports a more
 matrix-like slice syntax via the L<PDL::NiceSlice|PDL::NiceSlice> module:
 
-    pdl> $a(1:2) .= pdl([5,6])
-    pdl> p $a
+    pdl> $x(1:2) .= pdl([5,6])
+    pdl> p $x
     [0 5 6 3 4]
 
 With versions of Perl prior to 5.6.7 B<or when running under
 the perl debugger> this has to be done using a temporary variable: 
 
-    pdl> $a = sequence(5); p $a
+    pdl> $x = sequence(5); p $x
     [0 1 2 3 4]
-    pdl> $tmp = $a->slice('1:2'); p $tmp;
+    pdl> $tmp = $x->slice('1:2'); p $tmp;
     [1 2]
     pdl> $tmp .= pdl([5, 6]);    # Note .= !!
-    pdl> p $a
+    pdl> p $x
     [0 5 6 3 4]
 
 This can also be made into one expression, which is often
 seen in PDL code:
 
-    pdl> ($tmp = $a->slice('1:2')) .= pdl([5,6])
-    pdl> p $a
+    pdl> ($tmp = $x->slice('1:2')) .= pdl([5,6])
+    pdl> p $x
     [0 5 6 3 4]
 
 
@@ -902,12 +902,12 @@ has two very useful functions:
 C<any> and C<all> . Use these to test if any or
 all elements in a piddle fulfills some criterion:
 
-    pdl> $a=pdl ( 1, -2, 3);
-    pdl> print '$a has at least one element < 0' if (any $a < 0);
-    $a has at least one element < 0
+    pdl> $x=pdl ( 1, -2, 3);
+    pdl> print '$x has at least one element < 0' if (any $x < 0);
+    $x has at least one element < 0
     
-    pdl> print '$a is not positive definite' unless (all $a > 0);
-    $a is not positive definite
+    pdl> print '$x is not positive definite' unless (all $x > 0);
+    $x is not positive definite
 
 
 =head2 Q: 6.11   Logical operators and piddles -  '||' and '&&' don't work!  
@@ -950,11 +950,11 @@ C<[t]> qualifiers (see next question if you don't know what
 the I<signature> of a PDL function is).  For example, you 
 can invoke the C<sumover> function as follows:
 
-    sumover $a, $b=null;
+    sumover $x, $b=null;
 
 which is equivalent to
 
-    $b = sumover $a;
+    $b = sumover $x;
 
 If this seems still a bit murky check 
 L<PDL::Indexing|PDL::Indexing> and 
@@ -1049,17 +1049,17 @@ section below on L<Extensions of PDL|"EXTENSIONS OF PDL">.
 
 Piddles behave like Perl references in many respects. So when you say
 
-    $a = pdl [0,1,2,3];
-    $b = $a;
+    $x = pdl [0,1,2,3];
+    $b = $x;
 
-then both $b and $a point to the same object, e.g. then saying
+then both $b and $x point to the same object, e.g. then saying
 
     $b++;
 
 will *not* create a copy of the original piddle but just increment in
 place, of which you can convince yourself by saying
 
-    print $a;
+    print $x;
     [1 2 3 4]
 
 This should not be mistaken for dataflow which connects several

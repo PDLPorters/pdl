@@ -36,21 +36,21 @@ BEGIN {
 $PDL::IO::Pic::debug=20;
 
 # test save/restore of 8-bit image
-my $a = sequence(16, 16);
+my $x = sequence(16, 16);
 my $tmpdir = tempdir( CLEANUP => 1 );
 my $filestub = File::Spec->catfile($tmpdir, 'tbyte_a');
-$a->wpic("$filestub.pnm");
+$x->wpic("$filestub.pnm");
 my $a_pnm = rpic("$filestub.pnm");
-ok(sum(abs($a-$a_pnm)) == 0, 'pnm byte image save+restore');
+ok(sum(abs($x-$a_pnm)) == 0, 'pnm byte image save+restore');
 unlink "$filestub.pnm";
 
 SKIP: {
   skip ": pnmtopng not found, is NetPBM installed?", 1 unless $test_pnmtopng; 
-  $a->wpic("$filestub.png");
+  $x->wpic("$filestub.png");
   my $a_png;
   unless ($^O =~ /MSWin32/i) { $a_png = rpic("$filestub.png") }
   else { $a_png = rpic("$filestub.png", {FORMAT => 'PNG'}) }
-  ok(sum(abs($a-$a_png)) == 0, 'png byte image save+restore'); #test 3
+  ok(sum(abs($x-$a_png)) == 0, 'png byte image save+restore'); #test 3
   unlink "$filestub.png";
 };
 

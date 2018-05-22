@@ -38,14 +38,14 @@ if ($choice == 1) {
   ($optimum,$ssize,$optval) = simplex($init,$initsize,$minsize,$maxiter,  
 # this sub returns the function to be minimised.          
                             sub {my ($xv) =@_;
-			        my $a = $xv->slice("(0)"); 
+			        my $x = $xv->slice("(0)"); 
 			        my $b = $xv->slice("(1)");                  
 			        my $c = $xv->slice("(2)");   
-				$count += $a->dim(0);
-				my $sum = $a * 0.0;
+				$count += $x->dim(0);
+				my $sum = $x * 0.0;
 				foreach $j (0..19) {
 				    $sum += ($data[$j] -
-				     $a*exp(-(($j-$b)/$c)**2))**2;
+				     $x*exp(-(($j-$b)/$c)**2))**2;
 				}
                                 return $sum;
 			    });

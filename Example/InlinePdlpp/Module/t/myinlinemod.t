@@ -19,14 +19,14 @@ print "ok 1\n";
 # of the test code):
 
 use PDL::LiteF;
-my $a = zeroes 10;
-my $b = $a->myinc;
+my $x = zeroes 10;
+my $b = $x->myinc;
 print "$b\n";
 
 print 'not ' unless all $b == 1;
 print "ok 2\n";
 
-my $c = $a->plus2;
+my $c = $x->plus2;
 print "$c\n";
 print 'not ' unless all $c == 2;
 print "ok 3\n";

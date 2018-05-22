@@ -37,9 +37,9 @@ use ExtUtils::testlib;
 
 sub tapprox
 {
-    my $a = shift;
+    my $x = shift;
     my $b = shift;
-    my $d = abs($a - $b);
+    my $d = abs($x - $b);
     #ok( all($d < 1.0e-5) );
     return all($d < 1.0e-5);
 }

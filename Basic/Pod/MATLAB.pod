@@ -160,10 +160,10 @@ MATLAB:
 
 PDL Shell (perldl or pdl2):
 
- pdl> $a = 12    # No output.
- pdl> print $a   # Print object.
+ pdl> $x = 12    # No output.
+ pdl> print $x   # Print object.
  12
- pdl> p $a       # "p" is a shorthand for "print" in the shell.
+ pdl> p $x       # "p" is a shorthand for "print" in the shell.
  12
  pdl>
 
@@ -644,7 +644,7 @@ together:
 
 4) You can assign values to several variables at once using the syntax:
 
-  ($a, $b, $c) = (1, 2, 3);
+  ($x, $y, $z) = (1, 2, 3);
 
 So, in the previous examples:
 
