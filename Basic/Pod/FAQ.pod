@@ -266,10 +266,8 @@ The CPAN archives contains not only the PDL distribution but
 also just about everything else that is Perl-related.  CPAN is
 mirrored by dozens of sites all over the world.  The main site
 is L<http://www.cpan.org>, and local CPAN sites (mirrors) can be
-found there. Within CPAN you find the latest released version of
-PDL in the directory /modules/by-module/PDL/. PDL's homepage is at
-L<http://pdl.perl.org> and the latest version can also be downloaded
-from there.
+found there. PDL's homepage is at L<http://pdl.perl.org> and the
+latest version can also be downloaded from there.
 
 
 =head2 Q: 2.8    What do I have to pay to get PDL?  
