@@ -20,8 +20,8 @@ BEGIN {
 	    print qq{
 
 PDL::Graphics::Gnuplot is required for this demo, but didn't load.  You may have
-to go get it from CPAN (http://search.cpan.org).  You might also need to get the 
-external "gnuplot" app (http://www.gnuplot.info).
+to go get it from CPAN (https://metacpan.org/pod/PDL::Graphics::Gnuplot).
+You might also need to get the external "gnuplot" app (http://www.gnuplot.info).
 
 };
 	}
