@@ -456,7 +456,7 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   use PDL::NiceSlice;
 
   $x(1:4) .= 2;             # concise syntax for ranges
-  print $b((0),1:$end);     # use variables in the slice expression
+  print $y((0),1:$end);     # use variables in the slice expression
   $x->xchg(0,1)->(($pos-1)) .= 0; # default method syntax
 
   $idx = long 1, 7, 3, 0;   # a piddle of indices
@@ -465,15 +465,15 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   $x(myfunc(0,$var),1:4)++; # when using functions in slice expressions
                             # use parentheses around args!
 
-  $b = $x(*3);              # Add dummy dimension of order 3
+  $y = $x(*3);              # Add dummy dimension of order 3
 
   # modifiers are specified in a ;-separated trailing block
   $x($x!=3;?)++;            # short for $x->where($x!=3)++
   $x(0:1114;_) .= 0;        # short for $x->flat->(0:1114)
-  $b = $x(0:-1:3;|);        # short for $x(0:-1:3)->sever
+  $y = $x(0:-1:3;|);        # short for $x(0:-1:3)->sever
   $n = sequence 3,1,4,1;
-  $b = $n(;-);              # drop all dimensions of size 1 (AKA squeeze)
-  $b = $n(0,0;-|);          # squeeze *and* sever
+  $y = $n(;-);              # drop all dimensions of size 1 (AKA squeeze)
+  $y = $n(0,0;-|);          # squeeze *and* sever
   $c = $x(0,3,0;-);         # more compact way of saying $x((0),(3),(0))
 
 =head1 DESCRIPTION
@@ -589,10 +589,10 @@ you want:
   eval << 'EOE';
 
   use PDL::NiceSlice;
-  $b = $x(0:5);
+  $y = $x(0:5);
 
   EOE
-  print $b;
+  print $y;
 
 Instead say:
 
@@ -600,10 +600,10 @@ Instead say:
   $x = sequence 10;
   eval << 'EOE';
 
-  $b = $x(0:5);
+  $y = $x(0:5);
 
   EOE
-  print $b;
+  print $y;
 
 Source filters I<must> be executed at compile time to be effective. And
 C<PDL::NiceFilter> is just a source filter (although it is not
@@ -626,7 +626,7 @@ slice piddles without too much typing:
 using parentheses directly following a scalar variable name,
 for example
 
-   $c = $b(0:-3:4,(0));
+   $c = $y(0:-3:4,(0));
 
 =item *
 
@@ -711,7 +711,7 @@ name. Instead, use the I<default method> syntax in such cases:
 
 Similarly, if you have a list of piddles C<@pdls>:
 
-  $b = $pdls[5]->(0:-1);
+  $y = $pdls[5]->(0:-1);
 
 =head2 The argument list
 
@@ -756,8 +756,8 @@ operator in slice expressions (i.e., C<?:>, since the parser confuses them
 with ranges). For example, the following will cause an error:
 
   $x = sequence 10;
-  $b = rand > 0.5 ? 0 : 1; # this one is ok
-  print $x($b ? 1 : 2);    # error !
+  $y = rand > 0.5 ? 0 : 1; # this one is ok
+  print $x($y ? 1 : 2);    # error !
  syntax error at (eval 59) line 3, near "1,
 
 For the moment, just try to stay clear of the conditional operator
@@ -782,13 +782,13 @@ Four modifiers are currently implemented:
 C<_> : I<flatten> the piddle before applying the slice expression. Here
 is an example
 
-   $b = sequence 3, 3;
-   print $b(0:-2;_); # same as $b->flat->(0:-2)
+   $y = sequence 3, 3;
+   print $y(0:-2;_); # same as $y->flat->(0:-2)
  [0 1 2 3 4 5 6 7]
 
 which is quite different from the same slice expression without the modifier
 
-   print $b(0:-2);
+   print $y(0:-2);
  [
   [0 1]
   [3 4]
@@ -800,8 +800,8 @@ which is quite different from the same slice expression without the modifier
 C<|> : L<sever|PDL::Core/sever> the link to the piddle, e.g.
 
    $x = sequence 10;
-   $b = $x(0:2;|)++;  # same as $x(0:2)->sever++
-   print $b;
+   $y = $x(0:2;|)++;  # same as $x(0:2)->sever++
+   print $y;
  [1 2 3]
    print $x; # check if $x has been modified
  [0 1 2 3 4 5 6 7 8 9]
@@ -839,8 +839,8 @@ That can be very handy if you want to simplify
 the results of slicing operations:
 
   $x = ones 3, 4, 5;
-  $b = $x(1,0;-); # easier to type than $x((1),(0))
-  print $b->info;
+  $y = $x(1,0;-); # easier to type than $x((1),(0))
+  print $y->info;
  PDL: Double D [5]
 
 It also provides a unique opportunity to have smileys in your code!
@@ -967,7 +967,7 @@ of indices. A simple example:
 
   $x = random 10;
   $idx = long 3,4,7,0;
-  $b = $x($idx);
+  $y = $x($idx);
 
 This way of selecting indices was previously only possible using
 L<dice|PDL::Slices/dice> (C<PDL::NiceSlice> attempts to unify the
@@ -992,7 +992,7 @@ As you might have expected ranges and index piddles can be freely
 mixed in slicing expressions:
 
   $x = random 5, 5;
-  $b = $x(-1:2,pdl(3,0,1));
+  $y = $x(-1:2,pdl(3,0,1));
 
 =head2 piddles as indices in ranges
 

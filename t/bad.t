@@ -37,8 +37,8 @@ if ( $PDL::Config{WITH_BADVAL} ) {
     my $x = pdl(1,2,3);
     is( $x->badflag(), 0 ); # 1
     
-    my $b = pdl(4,5,6);
-    my $c = $x + $b;
+    my $y = pdl(4,5,6);
+    my $c = $x + $y;
     is( $c->badflag(), 0 ); # 2
     is( $c->sum(), 21 );    # 3
     
@@ -53,11 +53,11 @@ if ( $PDL::Config{WITH_BADVAL} ) {
     ok( all( ($x->setbadif( $x == 2 ) - pdl(1,2,3)) == 0 ) );
 
     $x = ones(3,2,4);
-    $b = zeroes(2,4);
+    $y = zeroes(2,4);
     $c = ones(2,4) * 3;
     is( $x->nbad, 0 );
     is( $x->ngood, 24 );
-    ok( all( ($x->nbadover  - $b) == 0 ) );
+    ok( all( ($x->nbadover  - $y) == 0 ) );
     ok( all( ($x->ngoodover - $c) == 0 ) );
 
     exit;
@@ -72,8 +72,8 @@ my $perpdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 my $x = pdl(1,2,3);
 is( $x->badflag(), 0, "no badflag" );
 
-my $b = pdl(4,5,6);
-my $c = $x + $b;
+my $y = pdl(4,5,6);
+my $c = $x + $y;
 is( $c->badflag(), 0, "badflag not set in a copy" );
 is( $c->sum(), 21, "sum() works on non bad-flag piddles" );
 
@@ -81,35 +81,35 @@ is( $c->sum(), 21, "sum() works on non bad-flag piddles" );
 $x->badflag(1);
 ok( $x->badflag(), "bad flag is now set" );
 
-$c = $x + $b;
+$c = $x + $y;
 ok( $c->badflag(), "bad flag is propagated" );
 is( $c->sum(), 21, "sum is still 21 with badflag set" );
 
 $x->badflag(0);
-$b->badflag(1);
-$c = $x + $b;
+$y->badflag(1);
+$c = $x + $y;
 ok( $c->badflag(), "badflag propagates on rhs of 'a+b'" );
 
 # how about copies/vaffines/whatever
 $x = rvals( long, 7, 7, {Centre=>[2,2]} );
-$b = $x;
-is( $b->badflag, 0, "badflag not set in a copy" );
+$y = $x;
+is( $y->badflag, 0, "badflag not set in a copy" );
 
 $x->badflag(1);
-$b = $x;
-ok( $b->badflag, "badflag is now set in a copy" );
+$y = $x;
+ok( $y->badflag, "badflag is now set in a copy" );
 
 $x->badflag(0);
-$b = $x->slice('2:5,3:4');
-$c = $b->slice('0:1,(0)'); 
-is( $b->badflag, 0, "slice handling okay with no badflag" );
+$y = $x->slice('2:5,3:4');
+$c = $y->slice('0:1,(0)'); 
+is( $y->badflag, 0, "slice handling okay with no badflag" );
 
 $x->badflag(1);
 
 my $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 print "Info: a = ", $x->info($i), "\n";
-print "Info: b = ", $b->info($i), "\n";
-print "Info: c = ", $b->info($i), "\n";
+print "Info: b = ", $y->info($i), "\n";
+print "Info: c = ", $y->info($i), "\n";
 
 # let's check that it gets through to a child of a child
 ok( $c->badflag, "badflag propagated throufh to a child" );
@@ -138,21 +138,21 @@ is( PDL::Core::string($x), "[1 2 44 4 5]", "can remove the bad value setting" );
 $x->badvalue($badval);
 
 $x = byte(1,2,3);
-$b = byte(1,byte->badvalue,3);
+$y = byte(1,byte->badvalue,3);
 $x->badflag(1);
-$b->badflag(1);
+$y->badflag(1);
 
 # does string work?
 # (this has implicitly been tested just above)
 #
-is( PDL::Core::string($b), "[1 BAD 3]", "can convert bad values to a string" );
+is( PDL::Core::string($y), "[1 BAD 3]", "can convert bad values to a string" );
 
 # does addition work
-$c = $x + $b;
+$c = $x + $y;
 is( sum($c), 8, "addition propagates the bad value" );
 
 # does conversion of bad types work
-$c = float($b);
+$c = float($y);
 ok( $c->badflag, "type conversion retains bad flag" );
 is( PDL::Core::string($c), "[1 BAD 3]", "  and the value" );
 is( sum($c), 4, "  and the sum" );
@@ -175,9 +175,9 @@ is( PDL::Core::string($x->ngoodover), "[0 1 2]", "ngoodover() works" );
 # check dataflow (or vaffine or whatever it's called)
 $x = byte( [1,2,byte->badvalue,4,5], [byte->badvalue,0,1,2,byte->badvalue] );
 $x->badflag(1);
-$b = $x->slice(',(1)');
-is( sum($b), 3, "sum of slice works" );
-$b++;
+$y = $x->slice(',(1)');
+is( sum($y), 3, "sum of slice works" );
+$y++;
 is( PDL::Core::string($x),
     "\n[\n [  1   2 BAD   4   5]\n [BAD   1   2   3 BAD]\n]\n",
     "inplace addition of slice flows back to parent"
@@ -212,8 +212,8 @@ $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 # check out stats, since it uses several routines
 # and setbadif
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
-$b = $x->setbadif( $x < 20 ); 
-my @s = $b->stats();                     
+$y = $x->setbadif( $x < 20 ); 
+my @s = $y->stats();                     
 ok( approx( $s[0], 61.9375, ABSTOL ), "setbadif/stats test 1" );
 ok( approx( $s[1], 27.6079, ABSTOL ), "setbadif/stats test 2" );
 is( $s[2], 66.5, "setbadif/stats test 3" );
@@ -222,27 +222,27 @@ is( $s[4], 98, "setbadif/stats test 5" );
 ok( approx( $s[6], 26.7312, ABSTOL ), "setbadif/stats test 6" );
 
 # how about setbadtoval (was replacebad)
-$x = $b->setbadtoval(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
+$x = $y->setbadtoval(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
 ok( all($x == 0), "setbadtoval() worked" );
 
 # and inplace?
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
-$b = $x->setbadif( $x < 20 ); 
-$b->inplace->setbadtoval(20);
-$x = $b - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
+$y = $x->setbadif( $x < 20 ); 
+$y->inplace->setbadtoval(20);
+$x = $y - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
 ok( all($x == 0), "   and inplace" );
 
 # ditto for copybad
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
-$b = $x->setbadif( $x < 20 ); 
-$c = copybad( $x, $b );
+$y = $x->setbadif( $x < 20 ); 
+$c = copybad( $x, $y );
 is( PDL::Core::string( $c->isbad ), 
     "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]",
   "isbad() worked" );
 
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
-$b = $x->setbadif( $x < 20 ); 
-$x->inplace->copybad( $b );
+$y = $x->setbadif( $x < 20 ); 
+$x->inplace->copybad( $y );
 is( PDL::Core::string( $x->isbad ), 
     "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]",
   "  and inplace" );
@@ -260,25 +260,25 @@ is( PDL::Core::string( $x->isbad ),
 ## look at propagation of bad flag using inplace routines...
 $x = sequence( byte, 2, 3 );
 $x = $x->setbadif( $x == 3 );
-$b = $x->slice("(1),:");
+$y = $x->slice("(1),:");
 $x->inplace->setbadtoval(3);
-is( $b->badflag, 0, "badflag cleared using inplace setbadtoval()" );
+is( $y->badflag, 0, "badflag cleared using inplace setbadtoval()" );
 
 $x = sequence( byte, 2, 3 );
-$b = $x->slice("(1),:");
+$y = $x->slice("(1),:");
 my $mask = sequence( byte, 2, 3 );
 $mask = $mask->setbadif( ($mask % 3) == 2 );
-print "a,b == ", $x->badflag, ",", $b->badflag, "\n";
+print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
 $x->inplace->copybad( $mask );
-print "a,b == ", $x->badflag, ",", $b->badflag, "\n";
-print "$x $b\n";
-is( $b->badflag, 1, "badflag propagated using inplace copybad()" );
+print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
+print "$x $y\n";
+is( $y->badflag, 1, "badflag propagated using inplace copybad()" );
 
 # test some of the qsort functions
 $x = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
-$b = $x->setbadif( $x < 20 ); 
-my $ix = qsorti( $b );
-is( PDL::Core::string( $b->index($ix) ), 
+$y = $x->setbadif( $x < 20 ); 
+my $ix = qsorti( $y );
+is( PDL::Core::string( $y->index($ix) ), 
     "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]",
     "qsorti() okay"
     );                                   # 
@@ -287,19 +287,19 @@ is( PDL::Core::string( $b->index($ix) ),
 
 $x = pdl( 2, 4, double->badvalue );
 $x->badflag(1);
-$b = abs( $x - pdl(2.001,3.9999,234e23) ) > 0.01;
-is( PDL::Core::string( $b ), "[0 0 BAD]", "abs() and >" );
+$y = abs( $x - pdl(2.001,3.9999,234e23) ) > 0.01;
+is( PDL::Core::string( $y ), "[0 0 BAD]", "abs() and >" );
 
-$b = byte(1,2,byte->badvalue,4);
-$b->badflag(1);
-is( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]", "<<" );
+$y = byte(1,2,byte->badvalue,4);
+$y->badflag(1);
+is( PDL::Core::string( $y << 2 ), "[4 8 BAD 16]", "<<" );
 
 $x = pdl([1,2,3]);
 $x->badflag(1);
-$b = $x->assgn;
-is( $b->badflag, 1, "assgn propagated badflag");
+$y = $x->assgn;
+is( $y->badflag, 1, "assgn propagated badflag");
 $x->badflag(0);
-is( $b->badflag, 1, "assgn is not a deep copy for the badflag");
+is( $y->badflag, 1, "assgn is not a deep copy for the badflag");
 
 # check that at and sclr return the correct values
 TODO: {
@@ -316,14 +316,14 @@ use PDL::Math;
 
 $x = pdl(0.5,double->badvalue,0);
 $x->badflag(1);
-$b = bessj0($x);
-is( PDL::Core::string( isbad($b) ), "[0 1 0]", "bessj0()" );
+$y = bessj0($x);
+is( PDL::Core::string( isbad($y) ), "[0 1 0]", "bessj0()" );
 
 $x = pdl(double->badvalue,0.8);
 $x->badflag(1);
-$b = bessjn($x,3);  # thread over n()
-is( PDL::Core::string( isbad($b) ), "[1 0]", "thread over bessjn()" );
-ok( abs($b->at(1)-0.010) < 0.001 );
+$y = bessjn($x,3);  # thread over n()
+is( PDL::Core::string( isbad($y) ), "[1 0]", "thread over bessjn()" );
+ok( abs($y->at(1)-0.010) < 0.001 );
 
 $x = pdl( 0.01, 0.0 );
 $x->badflag(1);
@@ -336,9 +336,9 @@ is( PDL::Core::string( $x->rotate(2) ), "[4 5 0 1 BAD]", "rotate()" );
 
 # check norm
 $x = float( 2, 0, 2, 2 )->setvaltobad(0.0);
-$b = $x->norm;
+$y = $x->norm;
 $c = $x/sqrt(sum($x*$x));
-ok( all( approx( $b, $c, ABSTOL ) ), "norm()" );
+ok( all( approx( $y, $c, ABSTOL ) ), "norm()" );
 
 # Image2D
 my $ans = pdl(
@@ -350,10 +350,10 @@ my $ans = pdl(
 $x = xvals zeroes 10,3;
 $x->setbadat(2,1);
 
-$b = pdl [1,2],[2,1];
+$y = pdl [1,2],[2,1];
 
 use PDL::Image2D;
-$c = conv2d($x, $b);
+$c = conv2d($x, $y);
 
 is( int(at(sum($c-$ans))), 0, "conv2d()" ); 
 
@@ -363,17 +363,17 @@ my $t = $x->slice("1:3,1:3");
 $t .= ones(3,3);
 $x->setbadat(2,2);
 
-$b = sequence(3,3);
+$y = sequence(3,3);
 $ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-is( int(at(sum(med2d($x,$b)-$ans))), 0, "med2d()" );
+is( int(at(sum(med2d($x,$y)-$ans))), 0, "med2d()" );
 
 # propagation of badflag using inplace ops (ops.pd)
 
 # test biop fns
 $x = sequence(3,3);
 $c = $x->slice(',(1)');
-$b = $x->setbadif( $x % 2 );
-$x->inplace->plus($b,0);
+$y = $x->setbadif( $x % 2 );
+$x->inplace->plus($y,0);
 print $x;
 print "$c\n";
 is( PDL::Core::string($c), "[BAD 8 BAD]", "inplace biop - plus()" );
@@ -381,8 +381,8 @@ is( PDL::Core::string($c), "[BAD 8 BAD]", "inplace biop - plus()" );
 # test bifunc fns
 $x = sequence(3,3);
 $c = $x->slice(',(1)');
-$b = $x->setbadif( $x % 3 != 0 );
-$x->inplace->power($b,0);
+$y = $x->setbadif( $x % 3 != 0 );
+$x->inplace->power($y,0);
 print $x;
 print "$c\n";
 is( PDL::Core::string($c), "[27 BAD BAD]", "inplace bifunc - power()" );
@@ -390,13 +390,13 @@ is( PDL::Core::string($c), "[27 BAD BAD]", "inplace bifunc - power()" );
 # test histogram (using hist)
 $x = pdl( qw/1 2 3 4 5 4 3 2 2 1/ );
 $x->setbadat(1);
-$b = hist $x, 0, 6, 1;
+$y = hist $x, 0, 6, 1;
 print "values:    $x\n";
-print "histogram: $b\n";
-is( PDL::Core::string($b), "[0 2 2 2 2 1]", "hist()" );
+print "histogram: $y\n";
+is( PDL::Core::string($y), "[0 2 2 2 2 1]", "hist()" );
 
-#$b = $x->isfinite;
-#print "isfinite(A): datatype = [",$b->get_datatype,"]\n";
+#$y = $x->isfinite;
+#print "isfinite(A): datatype = [",$y->get_datatype,"]\n";
 
 $x->inplace->isfinite;
 #print "A: datatype = [",$x->get_datatype,"]\n";
@@ -405,10 +405,10 @@ is( PDL::Core::string($x), "[1 0 1 1 1 1 1 1 1 1]", "isfinite()" );
 
 # histogram2d
 $x = long(1,1,1,2,2);
-$b = long(2,1,1,1,1);
-$b->setbadat(0);
+$y = long(2,1,1,1,1);
+$y->setbadat(0);
 my @c = ( 1,0,3 );
-$c = histogram2d($x,$b,@c,@c);
+$c = histogram2d($x,$y,@c,@c);
 is( PDL::Core::string($c->clump(-1)), 
     "[0 0 0 0 2 2 0 0 0]",
   "histogram2d()" );
@@ -418,10 +418,10 @@ is( PDL::Core::string($c->clump(-1)),
 #
 #$x = sequence( byte, 2, 3 );
 #$x = $x->setbadif( $x == 3 );
-#$b = $x->slice("(1),:");
+#$y = $x->slice("(1),:");
 #$x .= $x->setbadtoval(3);
 #ok( $x->badflag, 0 );                  # this fails
-#ok( $b->badflag, 0 );                  # as does this
+#ok( $y->badflag, 0 );                  # as does this
 
 # badmask: inplace
 $x = sequence(5);
@@ -454,18 +454,18 @@ use PDL::IO::FITS;
 $x = sequence(10)->setbadat(0);
 print "Writing to fits: $x  type = (", $x->get_datatype, ")\n";
 $x->wfits($fname);
-$b = rfits($fname);
-print "Read from fits:  $b  type = (", $b->get_datatype, ")\n";
+$y = rfits($fname);
+print "Read from fits:  $y  type = (", $y->get_datatype, ")\n";
 
-ok( $b->slice('0:0')->isbad, "rfits/wfits propagated bad flag" );
-ok( sum(abs($x-$b)) < 1.0e-5, "  and values" );
+ok( $y->slice('0:0')->isbad, "rfits/wfits propagated bad flag" );
+ok( sum(abs($x-$y)) < 1.0e-5, "  and values" );
 
 # now force to integer
 $x->wfits($fname,16);
-$b = rfits($fname);
-print "BITPIX 16: datatype == ", $b->get_datatype, " badvalue == ", $b->badvalue(), "\n";
-ok( $b->slice('0:0')->isbad, "wfits coerced bad flag with integer datatype" );
-ok( sum(abs(convert($x,short)-$b)) < 1.0e-5, "  and the values" );
+$y = rfits($fname);
+print "BITPIX 16: datatype == ", $y->get_datatype, " badvalue == ", $y->badvalue(), "\n";
+ok( $y->slice('0:0')->isbad, "wfits coerced bad flag with integer datatype" );
+ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
 
 # check that we can change the value used to represent
 # missing elements for floating points (earlier tests only did integer types)
@@ -492,9 +492,9 @@ SKIP: {
     $x = sequence(4);
     $x->badvalue(3);
     $x->badflag(1);
-    $b = $x->slice('2:3');
-    is( $b->badvalue, 3, "can propagate per-piddle bad value");
-    is( $b->sum, 2, "and the propagated value is recognised as bad");
+    $y = $x->slice('2:3');
+    is( $y->badvalue, 3, "can propagate per-piddle bad value");
+    is( $y->sum, 2, "and the propagated value is recognised as bad");
 
     $x = sequence(4);
     is ($x->badvalue, double->orig_badvalue, "no long-term affects of per-piddle changes [1]");

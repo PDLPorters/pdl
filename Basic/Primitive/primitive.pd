@@ -224,20 +224,20 @@ pp_def('matmult',
 	Pars => 'a(t,h); b(w,t); [o]c(w,h);',
 	PMCode => <<'EOPM',
 sub PDL::matmult {
-    my ($x,$b,$c) = @_;
+    my ($x,$y,$c) = @_;
 
-    $b = pdl($b) unless eval { $b->isa('PDL') };
+    $y = pdl($y) unless eval { $y->isa('PDL') };
     $c = PDL->null unless eval { $c->isa('PDL') };
 
     while($x->getndims < 2) {$x = $x->dummy(-1)}
-    while($b->getndims < 2) {$b = $b->dummy(-1)}
+    while($y->getndims < 2) {$y = $y->dummy(-1)}
 
-    return ($c .= $x * $b) if( ($x->dim(0)==1 && $x->dim(1)==1) ||
-    	       	       	       ($b->dim(0)==1 && $b->dim(1)==1) );
-    if($b->dim(1) != $x->dim(0)) {
-        barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$x->dim(0),$x->dim(1),$b->dim(0),$b->dim(1),$x->dim(0),$b->dim(1)));
+    return ($c .= $x * $y) if( ($x->dim(0)==1 && $x->dim(1)==1) ||
+                               ($y->dim(0)==1 && $y->dim(1)==1) );
+    if($y->dim(1) != $x->dim(0)) {
+        barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$x->dim(0),$x->dim(1),$y->dim(0),$y->dim(1),$x->dim(0),$y->dim(1)));
     }
-    PDL::_matmult_int($x,$b,$c);
+    PDL::_matmult_int($x,$y,$c);
     $c;
 }
 EOPM
@@ -311,10 +311,10 @@ EOC
 
 Matrix multiplication
 
-Notionally, matrix multiplication $a x $b is equivalent to the
+Notionally, matrix multiplication $x x $y is equivalent to the
 threading expression
 
-    $a->dummy(1)->inner($b->xchg(0,1)->dummy(2),$c);
+    $x->dummy(1)->inner($y->xchg(0,1)->dummy(2),$c);
 
 but for large matrices that breaks CPU cache and is slow.  Instead,
 matmult calculates its result in 32x32x32 tiles, to keep the memory
@@ -450,7 +450,7 @@ Inner product over 2 dimensions.
 
 Equivalent to
 
- $c = inner($x->clump(2), $b->clump(2))
+ $c = inner($x->clump(2), $y->clump(2))
 
 =cut
 
@@ -558,10 +558,10 @@ After
 
 =for example
 
- $c = crossp $x, $b
+ $c = crossp $x, $y
 
-the inner product C<$c*$x> and C<$c*$b> will be zero, i.e. C<$c> is
-orthogonal to C<$x> and C<$b>
+the inner product C<$c*$x> and C<$c*$y> will be zero, i.e. C<$c> is
+orthogonal to C<$x> and C<$y>
 
 =cut
 
@@ -753,7 +753,7 @@ the C<Boundary> option:
 The convolution is performed along the first dimension. To apply it across
 another dimension use the slicing routines, e.g.
 
-  $b = $x->mv(2,0)->conv1d($kernel)->mv(0,2); # along third dim
+  $y = $x->mv(2,0)->conv1d($kernel)->mv(0,2); # along third dim
 
 This function is useful for threaded filtering of 1D signals.
 
@@ -824,7 +824,7 @@ sub PDL::conv1d {
 =cut
 
 # this can be achieved by
-#  ($x->dummy(0) == $b)->orover
+#  ($x->dummy(0) == $y)->orover
 # but this one avoids a larger intermediate and potentially shortcuts
 pp_def('in',
 	Pars => 'a(); b(n); [o] c()',
@@ -1166,12 +1166,12 @@ for my $opt (
 	   ($name eq 'hclip' ? 'upper' : 'lower').' bound)',
           PMCode=><<"EOD",
 sub PDL::$name {
-   my (\$x,\$b) = \@_;
+   my (\$x,\$y) = \@_;
    my \$c;
    if (\$x->is_inplace) {
        \$x->set_inplace(0); \$c = \$x;
    } elsif (\$#_ > 1) {\$c=\$_[2]} else {\$c=PDL->nullcreate(\$x)}
-   &PDL::_${name}_int(\$x,\$b,\$c);
+   &PDL::_${name}_int(\$x,\$y,\$c);
    return \$c;
 }
 EOD
@@ -1191,7 +1191,7 @@ Clip (threshold) a piddle by (optional) upper or lower bounds.
 
 =for usage
 
- $b = $x->clip(0,3);
+ $y = $x->clip(0,3);
  $c = $x->clip(undef, $x);
 
 =cut
@@ -1955,8 +1955,8 @@ append two piddles by concatenating along their first dimensions
 =for example
 
  $x = ones(2,4,7);
- $b = sequence 5;
- $c = $x->append($b);  # size of $c is now (7,4,7) (a jumbo-piddle ;)
+ $y = sequence 5;
+ $c = $x->append($y);  # size of $c is now (7,4,7) (a jumbo-piddle ;)
 
 C<append> appends two piddles along their first dimensions. The rest of the
 dimensions must be compatible in the threading sense. The resulting
@@ -1979,20 +1979,20 @@ pp_addpm(<<'EOD')
 
 =for usage
 
-  $c = $x->glue(<dim>,$b,...)
+  $c = $x->glue(<dim>,$y,...)
 
 =for ref
 
 Glue two or more PDLs together along an arbitrary dimension
 (N-D L<append|append>).
 
-Sticks $x, $b, and all following arguments together along the
+Sticks $x, $y, and all following arguments together along the
 specified dimension.  All other dimensions must be compatible in the
 threading sense.
 
 Glue is permissive, in the sense that every PDL is treated as having an
-infinite number of trivial dimensions of order 1 -- so C<< $x->glue(3,$b) >>
-works, even if $x and $b are only one dimensional.
+infinite number of trivial dimensions of order 1 -- so C<< $x->glue(3,$y) >>
+works, even if $x and $y are only one dimensional.
 
 If one of the PDLs has no elements, it is ignored.  Likewise, if one
 of them is actually the undefined value, it is treated as if it had no
@@ -2018,9 +2018,9 @@ sub PDL::glue{
     my($dim) = shift;
 
     if(defined $x && !(ref $x)) {
-	my $b = $dim;
+	my $y = $dim;
 	$dim = $x;
-	$x = $b;
+	$x = $y;
     }
 
     if(!defined $x || $x->nelem==0) {
@@ -2039,14 +2039,14 @@ sub PDL::glue{
     $x = $x->xchg(0,$dim);
 
     while(scalar(@_)){
-	my $b = shift;
-	next unless(defined $b && $b->nelem);
+	my $y = shift;
+	next unless(defined $y && $y->nelem);
 
-	while($dim >= $b->ndims) {
-		$b = $b->dummy(-1,1);
+	while($dim >= $y->ndims) {
+		$y = $y->dummy(-1,1);
         }
-	$b = $b->xchg(0,$dim);
-	$x = $x->append($b);
+	$y = $y->xchg(0,$dim);
+	$x = $x->append($y);
     }
     $x->xchg(0,$dim);
 }
@@ -2095,7 +2095,7 @@ Constructor which returns piddle of random numbers
 =for usage
 
  $x = random([type], $nx, $ny, $nz,...);
- $x = random $b;
+ $x = random $y;
 
 etc (see L<zeroes|PDL::Core/zeroes>).
 
@@ -2117,7 +2117,7 @@ Constructor which returns piddle of random numbers
 =for usage
 
  $x = randsym([type], $nx, $ny, $nz,...);
- $x = randsym $b;
+ $x = randsym $y;
 
 etc (see L<zeroes|PDL::Core/zeroes>).
 
@@ -2192,7 +2192,7 @@ Constructor which returns piddle of Gaussian random numbers
 =for usage
 
  $x = grandom([type], $nx, $ny, $nz,...);
- $x = grandom $b;
+ $x = grandom $y;
 
 etc (see L<zeroes|PDL::Core/zeroes>).
 
@@ -2378,8 +2378,8 @@ for my $func ( [
 			  for events and want to generate indices to events:
 
 			   $x = pdl(.01,.86,.93,1); # Barnsley IFS probabilities cumulatively
-			   $b = random 20;
-			   $c = %FUNC%($b, $x); # Now, $c will have the appropriate distr.
+			   $y = random 20;
+			   $c = %FUNC%($y, $x); # Now, $c will have the appropriate distr.
 
 			  It is possible to use the L<cumusumover|PDL::Ufunc/cumusumover>
 			  function to obtain cumulative probabilities from absolute probabilities.
@@ -3036,18 +3036,18 @@ sub PDL::interpND {
              ->mv(0,-1)->clump($index->dim(0))->mv(-1,0); # (index, clst)
 
     # a & b are the weighting coefficients.
-    my($x,$b);
+    my($x,$y);
     my($indexwhere);
     ($indexwhere = $index->where( 0 * $index )) .= -10; # Change NaN to invalid
     {
       my $bb = PDL::Math::floor($index);
       $x = ($index - $bb)     -> dummy(1,$crnr->dim(1)); # index, clst, ith
-      $b = ($bb + 1 - $index) -> dummy(1,$crnr->dim(1)); # index, clst, ith
+      $y = ($bb + 1 - $index) -> dummy(1,$crnr->dim(1)); # index, clst, ith
     }
 
     # Use 1/0 corners to select which multiplier happens, multiply
     # 'em all together to get sample weights, and sum to get the answer.
-    my $out0 =  ( ($x * ($crnr==1) + $b * ($crnr==0)) #index, clst, ith
+    my $out0 =  ( ($x * ($crnr==1) + $y * ($crnr==0)) #index, clst, ith
 		 -> prodover                          #clst, ith
 		 );
 
@@ -3073,9 +3073,9 @@ sub PDL::interpND {
 
       # Make a cube of the subpixel offsets, and expand its dims to
       # a 4-on-a-side N-1 cube, to match the slices of $samp (used below).
-      my $b = $index - $index->floor;
+      my $y = $index - $index->floor;
       for my $i(1..$d-1) {
-	  $b = $b->dummy($i,4);
+	  $y = $y->dummy($i,4);
       }
 
       # Collapse by interpolation, one dimension at a time...
@@ -3088,7 +3088,7 @@ sub PDL::interpND {
 	  my $s0 = $gradient->slice("(0)");   # Just-under-gradient
 	  my $s1 = $gradient->slice("(1)");   # Just-over-gradient
 
-	  $bb = $b->slice("($i)");
+	  $bb = $y->slice("($i)");
 
 	  # Collapse the sample...
 	  $samp = ( $a0 +
@@ -3101,7 +3101,7 @@ sub PDL::interpND {
 		    );
 
 	  # "Collapse" the subpixel offset...
-	  $b = $b->slice(":,($i)");
+	  $y = $y->slice(":,($i)");
       }
 
       return $samp;
@@ -3113,10 +3113,10 @@ sub PDL::interpND {
      $fftref = [] unless(ref $fftref eq 'ARRAY');
      if(@$fftref != 2) {
 	 my $x = $source->copy;
-	 my $b = zeroes($source);
-	 fftnd($x,$b);
-	 $fftref->[0] = sqrt($x*$x+$b*$b) / $x->nelem;
-	 $fftref->[1] = - atan2($b,$x);
+	 my $y = zeroes($source);
+	 fftnd($x,$y);
+	 $fftref->[0] = sqrt($x*$x+$y*$y) / $x->nelem;
+	 $fftref->[1] = - atan2($y,$x);
      }
 
      my $i;
@@ -3673,10 +3673,10 @@ Implements simple set operations like union and intersection
 
 =for usage
 
-   Usage: $set = setops($x, <OPERATOR>, $b);
+   Usage: $set = setops($x, <OPERATOR>, $y);
 
 The operator can be C<OR>, C<XOR> or C<AND>. This is then applied
-to C<$x> viewed as a set and C<$b> viewed as a set. Set theory says
+to C<$x> viewed as a set and C<$y> viewed as a set. Set theory says
 that a set may not have two or more identical elements, but setops
 takes care of this for you, so C<$x=pdl(1,1,2)> is OK. The functioning
 is as follows:
@@ -3686,27 +3686,27 @@ is as follows:
 =item C<OR>
 
 The resulting vector will contain the elements that are either in C<$x>
-I<or> in C<$b> or both. This is the union in set operation terms
+I<or> in C<$y> or both. This is the union in set operation terms
 
 =item C<XOR>
 
 The resulting vector will contain the elements that are either in C<$x>
-or C<$b>, but not in both. This is
+or C<$y>, but not in both. This is
 
-     Union($x, $b) - Intersection($x, $b)
+     Union($x, $y) - Intersection($x, $y)
 
 in set operation terms.
 
 =item C<AND>
 
-The resulting vector will contain the intersection of C<$x> and C<$b>, so
-the elements that are in both C<$x> and C<$b>. Note that for convenience
+The resulting vector will contain the intersection of C<$x> and C<$y>, so
+the elements that are in both C<$x> and C<$y>. Note that for convenience
 this operation is also aliased to L<intersect|intersect>.
 
 =back
 
 It should be emphasized that these routines are used when one or both of
-the sets C<$x>, C<$b> are hard to calculate or that you get from a separate
+the sets C<$x>, C<$y> are hard to calculate or that you get from a separate
 subroutine.
 
 Finally IDL users might be familiar with Craig Markwardt's C<cmset_op.pro>
@@ -3759,7 +3759,7 @@ Finally find all odd squares:
 
 
 Another common occurrence is to want to get all objects that are
-in C<$x> and in the complement of C<$b>. But it is almost always best
+in C<$x> and in the complement of C<$y>. But it is almost always best
 to create the complement explicitly since the universe that both are
 taken from is not known. Thus use L<which_both|which_both> if possible
 to keep track of complements.
@@ -3767,11 +3767,11 @@ to keep track of complements.
 If this is impossible the best approach is to make a temporary:
 
 This creates an index vector the size of the universe of the sets and
-set all elements in C<$b> to 0
+set all elements in C<$y> to 0
 
-  pdl> $tmp = ones($n_universe); $tmp($b) .= 0;
+  pdl> $tmp = ones($n_universe); $tmp($y) .= 0;
 
-This then finds the complement of C<$b>
+This then finds the complement of C<$y>
 
   pdl> $C_b = which($tmp == 1);
 
@@ -3785,27 +3785,27 @@ and this does the final selection:
 
 sub PDL::setops {
 
-  my ($x, $op, $b)=@_;
+  my ($x, $op, $y)=@_;
 
-  # Check that $x and $b are 1D.
-  if ($x->ndims() > 1 || $b->ndims() > 1) {
-     warn 'setops: $x and $b must be 1D - flattening them!'."\n";
+  # Check that $x and $y are 1D.
+  if ($x->ndims() > 1 || $y->ndims() > 1) {
+     warn 'setops: $x and $y must be 1D - flattening them!'."\n";
      $x = $x->flat;
-     $b = $b->flat;
+     $y = $y->flat;
   }
 
   #Make sure there are no duplicate elements.
   $x=$x->uniq;
-  $b=$b->uniq;
+  $y=$y->uniq;
 
   my $result;
 
   if ($op eq 'OR') {
     # Easy...
-    $result = uniq(append($x, $b));
+    $result = uniq(append($x, $y));
   } elsif ($op eq 'XOR') {
     # Make ordered list of set union.
-    my $union = append($x, $b)->qsort;
+    my $union = append($x, $y)->qsort;
     # Index lists.
     my $s1=zeroes(byte, $union->nelem());
     my $s2=zeroes(byte, $union->nelem());
@@ -3835,7 +3835,7 @@ sub PDL::setops {
     # The intersection of the arrays.
 
     # Make ordered list of set union.
-    my $union = append($x, $b)->qsort;
+    my $union = append($x, $y)->qsort;
 
     return $union->where($union == rotate($union, -1));
   } else {
@@ -3862,7 +3862,7 @@ Calculate the intersection of two piddles
 
 =for usage
 
-   Usage: $set = intersect($x, $b);
+   Usage: $set = intersect($x, $y);
 
 This routine is merely a simple interface to L<setops|setops>. See
 that for more information

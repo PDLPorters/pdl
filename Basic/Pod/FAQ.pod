@@ -68,7 +68,7 @@ initiator of the PDL project:
     The PDL concept is to give standard perl5 the ability
     to COMPACTLY store and SPEEDILY manipulate the large
     N-dimensional data sets which are the bread and butter
-    of scientific computing. e.g. $x=$b+$c can add two
+    of scientific computing. e.g. $x=$y+$c can add two
     2048x2048 images in only a fraction of a second.
 
 
@@ -316,10 +316,10 @@ reproduced in braces ( <... ...> ) ):
     pdl> help PDL::QuickStart
     < ... perldoc page ... >
     pdl> $x = pdl (1,5,7.3,1.0)
-    pdl> $b = sequence float, 4, 4
+    pdl> $y = sequence float, 4, 4
     pdl> help inner
     < ... help on the 'inner' function ... >
-    pdl> $c = inner $x, $b
+    pdl> $c = inner $x, $y
     pdl> p $c
     [22.6 79.8 137 194.2]
 
@@ -703,8 +703,8 @@ multiprocessor machines or clusters)
 PDL threading of operations on piddles (as mentioned in the
 indexing docs) is the iteration of a basic operation over
 appropriate sub-slices of piddles, e.g. the inner product 
-C<inner $x, $b> of a (3) pdl C<$x> and a (3,5,4) pdl 
-C<$b> results in a (5,4) piddle where each
+C<inner $x, $y> of a (3) pdl C<$x> and a (3,5,4) pdl 
+C<$y> results in a (5,4) piddle where each
 value is the result of an inner product of the (3) pdl with a
 (3) sub-slice of the (3,5,4) piddle.  For details check
 L<PDL::Indexing|PDL::Indexing> 
@@ -804,7 +804,7 @@ very useful !
 
 Most people will try to form new piddles from old piddles
 using some variation over the theme: 
-C<$x =  pdl([$b, 0, 2])> , but this does not work. The way to
+C<$x =  pdl([$y, 0, 2])> , but this does not work. The way to
 concatenate piddles is to use the function 
 C<cat> (see also C<append> and C<glue>). Similarly you can split piddles
 using the command C<dog> .
@@ -950,11 +950,11 @@ C<[t]> qualifiers (see next question if you don't know what
 the I<signature> of a PDL function is).  For example, you 
 can invoke the C<sumover> function as follows:
 
-    sumover $x, $b=null;
+    sumover $x, $y=null;
 
 which is equivalent to
 
-    $b = sumover $x;
+    $y = sumover $x;
 
 If this seems still a bit murky check 
 L<PDL::Indexing|PDL::Indexing> and 
@@ -1050,11 +1050,11 @@ section below on L<Extensions of PDL|"EXTENSIONS OF PDL">.
 Piddles behave like Perl references in many respects. So when you say
 
     $x = pdl [0,1,2,3];
-    $b = $x;
+    $y = $x;
 
-then both $b and $x point to the same object, e.g. then saying
+then both $y and $x point to the same object, e.g. then saying
 
-    $b++;
+    $y++;
 
 will *not* create a copy of the original piddle but just increment in
 place, of which you can convince yourself by saying

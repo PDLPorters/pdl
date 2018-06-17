@@ -294,7 +294,7 @@ the end of the current paragraph is accepted, for example:
          ($x,$y) = $x->func(1,3);  # this is part of the accepted info
          $x = func($x,0,1);        # this as well
 
-         $x = func($x,$b);         # but this isn't
+         $x = func($x,$y);         # but this isn't
 
 To make the resulting pod documentation also easily digestible for the
 existing pod filters (pod2man, pod2text, pod2html, etc) the actual

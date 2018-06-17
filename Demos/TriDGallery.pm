@@ -138,8 +138,8 @@ $e = ($s>$r); $d .= $e; }while(!twiddle3d)
 actnw q|
 # Volume rendering [Robin Williams]
 use PDL; use PDL::Graphics::TriD; keeptwiddling3d();
-$b=zeroes(50,50,50);$b=sin(0.3*$b->rvals)*cos(0.3*$b->xvals);$c=0;
-$x=byte($b>$c);foreach(1,2,4){$t=($x->slice("0:-2")<<$_);$t+=$x->slice("1:-1");
+$y=zeroes(50,50,50);$y=sin(0.3*$y->rvals)*cos(0.3*$y->xvals);$c=0;
+$x=byte($y>$c);foreach(1,2,4){$t=($x->slice("0:-2")<<$_);$t+=$x->slice("1:-1");
 $x = $t->mv(0,2);} points3d [whichND(($x != 0) & ($x != 255))];
 |;
 
@@ -161,16 +161,16 @@ actnw q|
 # spherical dynamics [Mark R Baker]
 use PDL;use PDL::Graphics::TriD;for $c(1..99){$n=6.28*$c; $g=$c*rvals(
 sin(zeros(5000))*$c);$cz=-1**$g*$c;$cy=$g*cos$g*$c;$cx=$c*rvals($g)*$c;
-$g=cos($w=$cz+$cy+$cx);$r=sin$cy+$c+$cz;$b=sin$w;nokeeptwiddling3d();
-$i=$cz-$cx-$cy;$q=$i*$n;points3d[$b*sin$q,$r*cos$q,$g*sin$q],[$r,$g,$b]}
+$g=cos($w=$cz+$cy+$cx);$r=sin$cy+$c+$cz;$y=sin$w;nokeeptwiddling3d();
+$i=$cz-$cx-$cy;$q=$i*$n;points3d[$y*sin$q,$r*cos$q,$g*sin$q],[$r,$g,$y]}
 |;
 
 actnw q~
 # Fractal mountain range [Tuomas Lukka]
 use PDL;use PDL::Image2D;use PDL::Graphics::TriD; keeptwiddling3d(); $k=ones(5,5) / 25;
-$x=5;$b=ones(1,1)/2;for(1..7){$c=$b->dummy(0,2)->clump(2)->xchg(0,1)->
+$x=5;$y=ones(1,1)/2;for(1..7){$c=$y->dummy(0,2)->clump(2)->xchg(0,1)->
 dummy(0,2)->clump(2)->xchg(0,1)->copy;$c+=$x*$c->random;$x/=3;
-$b=conv2d($c,$k); imag3d[$b],{Lines => 0}; }
+$y=conv2d($c,$k); imag3d[$y],{Lines => 0}; }
 ~;
 
 comment q|
@@ -186,8 +186,8 @@ comment q|
 if(0) { # one possible addition to volume rendering...
 
 use PDL; use PDL::Graphics::TriD;
-$b=zeroes(50,50,50);$b=sin(0.3*$b->rvals)*cos(0.3*$b->xvals);$c=0;
-$x=byte($b>$c);foreach(1,2,4){$t=($x->slice("0:-2")<<$_);$t+=$x->slice("1:-1");
+$y=zeroes(50,50,50);$y=sin(0.3*$y->rvals)*cos(0.3*$y->xvals);$c=0;
+$x=byte($y>$c);foreach(1,2,4){$t=($x->slice("0:-2")<<$_);$t+=$x->slice("1:-1");
 $x = $t->mv(0,2);}points3d[map{$_+$_->float->random}whichND(($x!=0)&($x != 255))];
 
 }

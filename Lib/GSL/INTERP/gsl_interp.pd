@@ -168,17 +168,17 @@ is out of range pass the option {Extrapolate => 1}
 
 Usage:
 
-    $result = $spl->integ($x,$b,$opt);
+    $result = $spl->integ($x,$y,$opt);
 
 =for example
 
 Example:
 
-    my $res = $spl->integ($x,$b)
-    $res = $spl->integ($x,$b,{Extrapolate => 0}) #same as above
+    my $res = $spl->integ($x,$y)
+    $res = $spl->integ($x,$y,{Extrapolate => 0}) #same as above
 
-    # silently comply if $x or $b are out of range
-    $res = $spl->eval($x,$b,{Extrapolate => 1})
+    # silently comply if $x or $y are out of range
+    $res = $spl->eval($x,$y,{Extrapolate => 1})
 
 =head1 BUGS
 
@@ -364,14 +364,14 @@ sub integ{
   my $opt;
   if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
   else{ $opt = {Extrapolate => 0}; }
-  my ($obj,$x,$b) = @_;
+  my ($obj,$x,$y) = @_;
   my $s_obj = $$obj[0];
   my $a_obj = $$obj[1];
   if($$opt{Extrapolate} == 0){
-    return eval_integ_meat($x,$b,$$s_obj,$$a_obj);
+    return eval_integ_meat($x,$y,$$s_obj,$$a_obj);
   }
   else{
-    return eval_integ_meat_ext($x,$b,$$s_obj,$$a_obj);
+    return eval_integ_meat_ext($x,$y,$$s_obj,$$a_obj);
   }
 }
 ');

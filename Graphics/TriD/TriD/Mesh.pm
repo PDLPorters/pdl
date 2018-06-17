@@ -61,8 +61,8 @@ sub get_boundingbox {
 	my($this) = @_;
 	my $foo = PDL->zeroes(6)->double;
 	$x = $this->{Vertices}; printdims "A",$x;
-	$b = $x->thread(0); printdims "B",$b;
-	$c = $b->clump(-1); printdims "C",$c;
+	$y = $x->thread(0); printdims "B",$y;
+	$c = $y->clump(-1); printdims "C",$c;
 	$d = $c->unthread(1); printdims "D",$d;
 
 	$this->{Vertices}->thread(0);

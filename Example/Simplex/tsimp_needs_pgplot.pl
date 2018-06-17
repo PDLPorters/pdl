@@ -30,8 +30,8 @@ hold;
 
 sub func {
 	my($x) = @_;
-	my $b = ($mult * $x) ** 2;
-	sumover($b,(my $res = null));
+	my $y = ($mult * $x) ** 2;
+	sumover($y,(my $res = null));
 	$res;
 }
 

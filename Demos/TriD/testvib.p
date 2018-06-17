@@ -18,7 +18,7 @@ $size = 80 ;
 
 $x = zeroes(float(),$size,$size);
 
-$b = ((rvals $x) < $size/2)->float;
+$y = ((rvals $x) < $size/2)->float;
 
 $c = (rvals ($size,$size,{Centre=>[$size/3,$size/3]}))->float ;
 $c2 = (rvals ($size,$size,{Centre=>[$size/3,$size/2]}))->float ;
@@ -28,7 +28,7 @@ $sdiv = 20/$size;
 
 $x .= exp(-($sdiv*$c) ** 2)->float;
 $x -= exp(-($sdiv*$c2) ** 2)->float;
-$x *= $b;
+$x *= $y;
 
 if(0) {
 	$x->set(8,8,0.3);

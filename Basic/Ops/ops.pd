@@ -143,9 +143,9 @@ $doc
 
 =for example
 
-   \$c = $name \$x, \$b, 0;     # explicit call with trailing 0
-   \$c = \$x $op \$b;           # overloaded call
-   \$x->inplace->$name(\$b,0);  # modify \$x inplace
+   \$c = $name \$x, \$y, 0;     # explicit call with trailing 0
+   \$c = \$x $op \$y;           # overloaded call
+   \$x->inplace->$name(\$y,0);  # modify \$x inplace
 
 It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the binary C<$optxt> operator.
@@ -229,9 +229,9 @@ $doc
 
 =for example
 
-   \$c = \$x->$name(\$b,0); # explicit function call
+   \$c = \$x->$name(\$y,0); # explicit function call
    $ovcall
-   \$x->inplace->$name(\$b,0);     # modify \$x inplace
+   \$x->inplace->$name(\$y,0);     # modify \$x inplace
 
 It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the binary C<$funcovp> function.
@@ -284,7 +284,7 @@ $doc
 
 =for example
 
-   \$b = $funcov \$x;
+   \$y = $funcov \$x;
    \$x->inplace->$name;  # modify \$a inplace
 
 It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
@@ -422,9 +422,9 @@ raise piddle C<\$a> to integer power C<\$b>
 
 =for example
 
-   \$c = \$x->ipow(\$b,0);     # explicit function call
-   \$c = ipow \$x, \$b;
-   \$x->inplace->ipow(\$b,0);  # modify \$x inplace
+   \$c = \$x->ipow(\$y,0);     # explicit function call
+   \$c = ipow \$x, \$y;
+   \$x->inplace->ipow(\$y,0);  # modify \$x inplace
 
 It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 Note that when calling this function explicitly you need to supply

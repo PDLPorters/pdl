@@ -5,8 +5,8 @@
 #  Testing utility functions:
 
 sub tapprox {
-        my($x,$b) = @_;
-        my $c = abs($x-$b);
+        my($x,$y) = @_;
+        my $c = abs($x-$y);
         my $d = ref($c) ? max($c) : $c ;  # don't do a make if were are dealing 
 					  # with a scalar
         $d < 0.01;
@@ -84,8 +84,8 @@ my ($x, $y, $z, $w) = whichND($a1 == 203)->mv(0,-1)->dog;  # quiet deprecation w
 ok($a1->at($x->list,$y->list,$z->list,$w->list) == 203, "whichND" );
  
 $a1 = pdl(1,2,3,4);
-$b = append($a1,2);
-ok(int(sum($b))==12, "append");
+my $b1 = append($a1,2);
+ok(int(sum($b1))==12, "append");
 
 
 

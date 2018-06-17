@@ -104,8 +104,8 @@ glTranslatef (0.0, 0.0, -5.0);
 add_clip_plane;
 
 # test glGetClipPlane()
-($x,$b,$c,$d)=OpenGL::glpGetClipPlane(GL_CLIP_PLANE0);
-print "Clipping plane (a,b,c,d) = ($x,$b,$c,$d)\n";
+($x,$y,$c,$d)=OpenGL::glpGetClipPlane(GL_CLIP_PLANE0);
+print "Clipping plane (a,b,c,d) = ($x,$y,$c,$d)\n";
 
 $spin=0;
 while(1) {$spin += 1.0; display;}

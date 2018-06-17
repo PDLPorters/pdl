@@ -430,7 +430,7 @@ in way we can express as:
 
 =back
 
-[ work in the new index function: C<$b = $x-E<gt>index($c);> ???? ]
+[ work in the new index function: C<$y = $x-E<gt>index($c);> ???? ]
 
 =head2 There are different kinds of assignments in PDL
 
@@ -603,10 +603,10 @@ photos to color ones in the way you'd like. :(
 Note that the memory usage of piddles with dummy dimensions
 is especially sensitive to the internal representation. If the piddle
 can be represented as a virtual affine (``vaffine'') piddle,
-only the control structures are stored. But if C<$b> in
+only the control structures are stored. But if C<$y> in
 
  $x = zeroes(10000);
- $b = $x->dummy(1,10000);
+ $y = $x->dummy(1,10000);
 
 is made physical by some routine, you will find that the memory usage
 of your program has suddenly grown by 100Mb.
@@ -654,8 +654,8 @@ but more about that later.
 L<mv|PDL::Slices/mv> works in a similar fashion. It moves a dimension (specified by
 its number in the parent) to a new position in the new child piddle:
 
- $b = $x->mv(4,0);  # make the 5th dimension of $x the first in the
-                    # new child $b
+ $y = $x->mv(4,0);  # make the 5th dimension of $x the first in the
+                    # new child $y
 
 The difference between C<xchg> and C<mv> is that C<xchg> only changes
 the position of two dimensions with each other, whereas C<mv>
@@ -714,8 +714,8 @@ which the implementation makes the assignments to elements. Therefore,
 an assignment like this:
 
  $x = pdl [1,2,3];
- $b = $x->dummy(1,4);
- $b .= yvals(zeroes(3,4));
+ $y = $x->dummy(1,4);
+ $y .= yvals(zeroes(3,4));
 
 can produce unexpected results and the results are explicitly
 B<undefined> by PDL because when PDL gets parallel computing
@@ -989,13 +989,13 @@ the signature:
 and you call it with 3 piddles C<a(5,3,10,11)>,
 C<b(5,3,2,10,1,12)>, and C<c(5,1,11,12)> as
 
- func($x,$b,$c,($d=null))
+ func($x,$y,$c,($d=null))
 
-then the number of loop dimensions is 3 (by C<R0+R1> from C<$b> and C<$c>) with
+then the number of loop dimensions is 3 (by C<R0+R1> from C<$y> and C<$c>) with
 sizes C<(10,11,12)> (by R2); the two output core dimensions are C<(5,2)>
 (from the signature of func) resulting in a 5-dimensional output piddle
 C<$c> of size C<(5,2,10,11,12)> (see R5) and (the automatically created) C<$d>
-is derived from C<($x,$b,$c)> in a way that can be expressed in pdl
+is derived from C<($x,$y,$c)> in a way that can be expressed in pdl
 pseudo-code as
 
  $d(:,:,i,j,k) .= func($a(:,:,i,j),$b(:,:,:,i,0,k),$c(:,0,j,k))
@@ -1184,11 +1184,11 @@ do with the general calling conventions of PP-functions and the
 automatic creation of output arguments.
 Basically, there are two ways of invoking PDL routines, namely
 
- $result = func($x,$b);
+ $result = func($x,$y);
 
 and
 
- func($x,$b,$result);
+ func($x,$y,$result);
 
 If you are only using implicit threading then the output variable can
 be automatically created by PDL. You flag that to the PP-function by
@@ -1202,11 +1202,11 @@ which the threading dimensions are appended (which are in turn
 determined by the dimensions of the input piddles as described above).
 So you can say
 
- func($x,$b,($result=PDL->null));
+ func($x,$y,($result=PDL->null));
 
 or
 
- $result = func($x,$b)
+ $result = func($x,$y)
 
 which are B<exactly> equivalent.
 
@@ -1221,9 +1221,9 @@ temporary piddle in each step of the loop that comes along with the
  # create output piddle of appropriate size only at first invocation
  $result = null;  
  for (0...$n) {
-      func($x,$b,$result); # in all but the first invocation $result
-      func2($b);           # is defined and has the right size to
-                           # take the output provided $b's dims don't change
+      func($x,$y,$result); # in all but the first invocation $result
+      func2($y);           # is defined and has the right size to
+                           # take the output provided $y's dims don't change
       twiddle($result,$x); # do something from $result to $x for iteration
  }
 
@@ -1277,7 +1277,7 @@ have been specified in a call to C<thread> as being taken away from
 the set of normal dimensions and put on a separate stack. So assuming
 we have a piddle C<x(4,7,2,8)> saying
 
- $b = $x->thread(2,1)
+ $y = $x->thread(2,1)
 
 creates a new virtual piddle of dimension C<b(4,8)> (which we call the
 remaining dims) that also has 2 thread dimensions of size C<(2,7)>. For
@@ -1369,7 +1369,7 @@ and you call it with 3 piddles C<a(5,3,10,11)>, C<b(3,5,10,1,12)>, C<c(10)> and 
 output piddle C<d(3,11,5,10,12)> (which can here I<not> be automatically
 created) as
 
- func($x->thread(1,3),$b->thread(0,3),$c,$d->thread(0,1))
+ func($x->thread(1,3),$y->thread(0,3),$c,$d->thread(0,1))
 
 From the signature of func and the above call the piddles split into
 the following groups of core, extra and thread dimensions (written in
@@ -1427,10 +1427,10 @@ Example 2:
  # outer product by threaded multiplication
  # stress that we need to do it with explicit call to my_biop1
  # when using explicit threading
- $res=zeroes(($x->dims)[0],($b->dims)[0]);
- my_biop1($x->thread(0,-1),$b->thread(-1,0),$res->(0,1),"*");
+ $res=zeroes(($x->dims)[0],($y->dims)[0]);
+ my_biop1($x->thread(0,-1),$y->thread(-1,0),$res->(0,1),"*");
  # similar thing by implicit threading with auto-created piddle
- $res = $x->dummy(1) * $b->dummy(0);
+ $res = $x->dummy(1) * $y->dummy(0);
 
 
 Example 3:

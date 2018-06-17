@@ -37,8 +37,8 @@ BEGIN
 sub tapprox
 {
     my $x = shift;
-    my $b = shift;
-    my $d = abs($x - $b);
+    my $y = shift;
+    my $d = abs($x - $y);
     #ok( all($d < 1.0e-5) );
     return all($d < 1.0e-5);
 }

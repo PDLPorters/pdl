@@ -40,12 +40,12 @@ numbers. These are usually represented as a pair C<[ real imag ]> or
 C<[ angle phase ]>. If not explicitly mentioned, the functions can work
 inplace (not yet implemented!!!) and require rectangular form.
 
-While there is a procedural interface available (C<< $x/$b*$c <=> Cmul
-(Cdiv $x, $b), $c) >>), you can also opt to cast your pdl's into the
+While there is a procedural interface available (C<< $x/$y*$c <=> Cmul
+(Cdiv $x, $y), $c) >>), you can also opt to cast your pdl's into the
 C<PDL::Complex> datatype, which works just like your normal piddles, but
 with all the normal perl operators overloaded.
 
-The latter means that C<sin($x) + $b/$c> will be evaluated using the
+The latter means that C<sin($x) + $y/$c> will be evaluated using the
 normal rules of complex numbers, while other pdl functions (like C<max>)
 just treat the piddle as a real-valued piddle with a lowest dimension of
 size 2, so C<max> will return the maximum of all real and imaginary parts,
@@ -911,8 +911,8 @@ sub _gen_biop {
    if (/(\S+)\+(\w+)/) {
       $sub = eval 'sub { '.$2.' $_[0], ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1] }';
    } elsif (/(\S+)\-(\w+)/) {
-      $sub = eval 'sub { my $b = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                       $_[2] ? '.$2.' $b, $_[0] : '.$2.' $_[0], $b }';
+      $sub = eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                       $_[2] ? '.$2.' $y, $_[0] : '.$2.' $_[0], $y }';
    } else {
       die;
    }
@@ -927,8 +927,8 @@ sub _gen_unop {
 }
 
 sub _gen_cpop {
-   ($_[0], eval 'sub { my $b = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                 ($_[2] ? $b <=> $_[0] : $_[0] <=> $b) '.$_[0].' 0 }');
+   ($_[0], eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                 ($_[2] ? $y <=> $_[0] : $_[0] <=> $y) '.$_[0].' 0 }');
 }
 
 sub initialize {

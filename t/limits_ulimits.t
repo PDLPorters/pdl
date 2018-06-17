@@ -214,12 +214,12 @@ foreach my $test ( @tests )
 
 # check equality of array refs up to a tolerance
 sub mostly_eq_array {
-  my ($x, $b) = @_;
+  my ($x, $y) = @_;
 
   my $tol = 1e-9;
 
   for (my $i=0;$i<@$x;$i++) {
-    return 0 unless (abs($$x[$i] - $$b[$i]) < $tol);
+    return 0 unless (abs($$x[$i] - $$y[$i]) < $tol);
   }
 
   return 1;

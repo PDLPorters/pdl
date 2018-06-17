@@ -418,12 +418,12 @@ change the bad value on a per-piddle basis, so
 
     $x = sequence (10);
     $x->badvalue (3); $x->badflag (1);
-    $b = sequence (10);
-    $b->badvalue (4); $b->badflag (1);
+    $y = sequence (10);
+    $y->badvalue (4); $y->badflag (1);
 
-will set $x to be C<[0 1 2 BAD 4 5 6 7 8 9]> and $b to be
+will set $x to be C<[0 1 2 BAD 4 5 6 7 8 9]> and $y to be
 C<[0 1 2 3 BAD 5 6 7 8 9]>. If the flag is not set then both
-$x and $b will be set to C<[0 1 2 3 BAD 5 6 7 8 9]>. Please
+$x and $y will be set to C<[0 1 2 3 BAD 5 6 7 8 9]>. Please
 note that the code to support per-piddle bad values is
 I<experimental> in the current release, and it requires that
 you modify the settings under which PDL is compiled.
@@ -686,8 +686,8 @@ Similar to L<isfinite|PDL::Math/isfinite>.
  $x = pdl(1,2,3);
  $x->badflag(1);
  set($x,1,$x->badvalue);
- $b = isbad($x);
- print $b, "\n";
+ $y = isbad($x);
+ print $y, "\n";
  [0 1 0]
 
 =for bad
@@ -727,8 +727,8 @@ Also see L<isfinite|PDL::Math/isfinite>.
  $x = pdl(1,2,3);
  $x->badflag(1);
  set($x,1,$x->badvalue);
- $b = isgood($x);
- print $b, "\n";
+ $y = isgood($x);
+ print $y, "\n";
  [1 0 1]
 
 =for bad
@@ -770,7 +770,7 @@ it is possible to perform this calculation over I<any> dimension.
 
 =for usage
 
- $x = nbadover($b);
+ $x = nbadover($y);
 
 =for example
 
@@ -1131,7 +1131,7 @@ with a call to L<check_badflag()|/check_badflag> thrown in.
 
 =for usage
 
- $b = $x->setnantobad;
+ $y = $x->setnantobad;
  $x->inplace->setnantobad;
 
 =for bad
@@ -1143,18 +1143,18 @@ Supports bad values.
 *setnantobad = \&PDL::setnantobad;
 sub PDL::setnantobad{
     my $x = shift;
-    my $b;
+    my $y;
     if ( $x->is_inplace ) {
 	$x->set_inplace(0);
-	$b = $x;
+	$y = $x;
     } elsif ( $#_ > -1 ) {
-	$b = $_[0] = $x->copy; # is this correct?
+	$y = $_[0] = $x->copy; # is this correct?
     } else {
-	$b = $x->copy;
+	$y = $x->copy;
     }
     # make sure bad flag is set, otherwise check_badflag() is a nop
-    $b->badflag(1); $b->check_badflag();
-    return $b; 
+    $y->badflag(1); $y->check_badflag();
+    return $y; 
 }
 
 =head2 setbadtonan
@@ -1170,7 +1170,7 @@ with the bad flag being cleared.
 
 =for usage
 
- $b = $x->setbadtonan;
+ $y = $x->setbadtonan;
  $x->inplace->setbadtonan;
 
 =for bad
@@ -1182,17 +1182,17 @@ Supports bad values.
 *setbadtonan = \&PDL::setbadtonan;
 sub PDL::setbadtonan{
     my $x = shift;
-    my $b;
+    my $y;
     if ( $x->is_inplace ) {
 	$x->set_inplace(0);
-	$b = $x;
+	$y = $x;
     } elsif ( $#_ > -1 ) {
-	$b = $_[0] = $x->copy; # is this correct?
+	$y = $_[0] = $x->copy; # is this correct?
     } else {
-	$b = $x->copy;
+	$y = $x->copy;
     }
-    $b->badflag(0);
-    return $b; 
+    $y->badflag(0);
+    return $y; 
 }
 
 !NO!SUBS!
@@ -1229,7 +1229,7 @@ Can be done inplace.
 
 =for usage
 
- $b = $x->setnantobad;
+ $y = $x->setnantobad;
  $x->inplace->setnantobad;
 
 =for bad
@@ -1286,7 +1286,7 @@ of any type, but if done inplace, the input must be floating point.
 
 =for usage
 
- $b = $x->setbadtonan;
+ $y = $x->setbadtonan;
  $x->inplace->setbadtonan;
 
 =for bad

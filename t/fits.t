@@ -99,8 +99,8 @@ unless($PDL::Astro_FITS_Header) {
 } else { # Astro::FITS::Header exists
 
 	my $x = long( 1, 4, 9, 32 );
-	my $b = double( 2.3, 4.3, -999.0, 42 );
-	my $table = { COLA => $x, COLB => $b };
+	my $y = double( 2.3, 4.3, -999.0, 42 );
+	my $table = { COLA => $x, COLB => $y };
 	wfits $table, $file;
 	
 	my $table2 = rfits $file;
@@ -117,9 +117,9 @@ unless($PDL::Astro_FITS_Header) {
 	is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );		  #12
 	
 	compare_piddles $x, $$table2{COLA}, "COLA";			#13-16
-	compare_piddles $b, $$table2{COLB}, "COLB";			#17-20
+	compare_piddles $y, $$table2{COLB}, "COLB";			#17-20
 	
-	$table = { BAR => $x, FOO => $b,
+	$table = { BAR => $x, FOO => $y,
 		   hdr => { TTYPE1 => 'FOO', TTYPE2 => 'BAR' } };
 	$table2 = {};
 	
@@ -134,18 +134,18 @@ unless($PDL::Astro_FITS_Header) {
 	is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );	       #25
 	
 	compare_piddles $x, $$table2{BAR}, "BAR";			#26-29
-	compare_piddles $b, $$table2{FOO}, "FOO";			#30-33
+	compare_piddles $y, $$table2{FOO}, "FOO";			#30-33
 	
 	# try out more "exotic" data types
 	
 	$x = byte(12,45,23,0);
-	$b = short(-99,100,0,32767);
+	$y = short(-99,100,0,32767);
 	my $c = ushort(99,32768,65535,0);
 	my $d = [ "A string", "b", "", "The last string" ];
 	my $e = float(-999.0,0,0,12.3);
 	##my $f = float(1,0,-1,2) + i * float( 0,1,2,-1 );
 	$table = {
-	       ACOL => $x, BCOL => $b, CCOL => $c, DCOL => $d, ECOL => $e,
+	       ACOL => $x, BCOL => $y, CCOL => $c, DCOL => $d, ECOL => $e,
 	##	  FCOL => $f,
 	};
 	$table2 = {};
@@ -181,7 +181,7 @@ unless($PDL::Astro_FITS_Header) {
 	#
 	my $i = 1;
 	foreach my $colinfo ( ( ["ACOL","1B",$x],
-				["BCOL","1I",$b],
+				["BCOL","1I",$y],
 				["CCOL","1J",$c->long],
 				["DCOL","${dlen}A",$d],
 				["ECOL","1E",$e],
@@ -275,8 +275,8 @@ SKIP:{
     my $ai = zeroes($x);
     fftnd($x,$ai);
     wfits($x,$file);
-    my $b = rfits($file);
-    ok(all($x==$b),"fftnd output (non-contiguous in memory) is written correctly");
+    my $y = rfits($file);
+    ok(all($x==$y),"fftnd output (non-contiguous in memory) is written correctly");
     unlink $file;
 }
 
@@ -284,19 +284,19 @@ SKIP:{
 # Check multi-HDU read/write
 
 my $x = sequence(5,5);
-$b = rvals(5,5);
+my $y = rvals(5,5);
 
 our @aa;
 
-lives_ok { wfits([$x,$b],$file) } "wfits with multiple HDUs didn't fail";
+lives_ok { wfits([$x,$y],$file) } "wfits with multiple HDUs didn't fail";
 
 lives_ok { @aa = rfits($file) } "rfits in list context didn't fail";
 
 ok( $aa[0]->ndims == $x->ndims && all($aa[0]->shape == $x->shape), "first element has right shape");
 ok( all($aa[0] == $x), "first element reproduces written one");
 
-ok( $aa[1]->ndims == $b->ndims && all($aa[1]->shape == $b->shape), "second element has right shape");
-ok( all($aa[1] == $b), "Second element reproduces written one");
+ok( $aa[1]->ndims == $y->ndims && all($aa[1]->shape == $y->shape), "second element has right shape");
+ok( all($aa[1] == $y), "Second element reproduces written one");
 
 unlink $file;
 
@@ -310,11 +310,11 @@ SKIP:{
 	$x = rvals(longlong,7,7);
 	eval { wfits($x, $file); };
 	ok(!$@, sprintf("writing a longlong image succeeded %s",($@?"($@)":"")));
-	eval { $b = rfits($file); };
+	eval { $y = rfits($file); };
 	ok(!$@, sprintf("Reading the longlong image succeeded %s",($@?"($@)":"")));
-	ok(ref($b->hdr) eq "HASH", "Reading the longlong image produced a PDL with a hash header");
-	ok($b->hdr->{BITPIX} == 64, "BITPIX value was correct");
-	ok(all($b==$x),"The new image matches the old one (longlong)");
+	ok(ref($y->hdr) eq "HASH", "Reading the longlong image produced a PDL with a hash header");
+	ok($y->hdr->{BITPIX} == 64, "BITPIX value was correct");
+	ok(all($y==$x),"The new image matches the old one (longlong)");
 	unlink $file;
 }
 

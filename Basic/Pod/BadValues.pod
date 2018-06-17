@@ -12,7 +12,7 @@ perfect since certain areas contain invalid data due to imperfections in the
 detector.  Whilst PDL's powerful index
 routines and all the complicated business with dataflow, slices, etc etc mean 
 that these regions can be ignored in processing, it's awkward to do. It would
-be much easier to be able to say C<$c = $x + $b> and leave all the hassle to 
+be much easier to be able to say C<$c = $x + $y> and leave all the hassle to 
 the computer.
 
 If you're not interested in this, then you may (rightly) be concerned 
@@ -174,8 +174,8 @@ If you change the badflag of a piddle, this change is propagated to all
 the I<children> of a piddle, so
 
    pdl> $x = zeroes(20,30);
-   pdl> $b = $x->slice('0:10,0:10');
-   pdl> $c = $b->slice(',(2)');
+   pdl> $y = $x->slice('0:10,0:10');
+   pdl> $c = $y->slice(',(2)');
    pdl> print ">>c: ", $c->badflag, "\n";
    >>c: 0
    pdl> $x->badflag(1);
@@ -680,7 +680,7 @@ See the B<experimental> C<BADVAL_PER_PDL> option.
 
 =item *
 
-what to do about C<$b = pdl(-2); $x = log10($b)> - C<$x> should
+what to do about C<$y = pdl(-2); $x = log10($y)> - C<$x> should
 be set bad, but it currently isn't.
 
 =item *
@@ -694,13 +694,13 @@ Needs a fair bit of work to PDL::PP::PDLCode.
 C<$pdl-E<gt>baddata()> now updates all the children of this piddle
 as well. However, not sure what to do with parents, since:
 
-  $b = $x->slice(); 
-  $b->baddata(0)
+  $y = $x->slice(); 
+  $y->baddata(0)
 
 doesn't mean that C<$x> shouldn't have its badvalue cleared.
 however, after
 
-  $b->baddata(1)
+  $y->baddata(1)
 
 it's sensible to assume that the parents now get flagged as
 containing bad values.

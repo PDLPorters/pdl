@@ -75,7 +75,8 @@ ok(((ref $x->{e} eq 'PDL')
       && (sum(abs(($x->{e} - xvals(25,25))))<0.0000001)), 'Verify 25x25 PDL restored data');
 
 ########## Check header dumping...
-eval '$x = xvals(2,2); $x->sethdr({ok=>1}); $x->hdrcpy(1); $b = xvals(25,25); $b->sethdr({ok=>2}); $b->hdrcpy(0); $s = sdump([$x,$b,yvals(25,25)]);';
+my $y;
+eval '$x = xvals(2,2); $x->sethdr({ok=>1}); $x->hdrcpy(1); $y = xvals(25,25); $y->sethdr({ok=>2}); $y->hdrcpy(0); $s = sdump([$x,$y,yvals(25,25)]);';
 ok(!$@, 'Check header dumping');
 
 $x = eval $s;

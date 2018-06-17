@@ -19,8 +19,8 @@ loaded.
 
  use PDL::ImageND;
 
- $b = $x->convolveND($kernel,{bound=>'periodic'});
- $b = $x->rebin(50,30,10);
+ $y = $x->convolveND($kernel,{bound=>'periodic'});
+ $y = $x->rebin(50,30,10);
  
 =cut
 
@@ -127,11 +127,11 @@ EOD
 # Custom Perl wrapper
 
 sub PDL::convolve{
-    my($x,$b,$c) = @_;
+    my($x,$y,$c) = @_;
     barf("Usage: convolve(a(*), b(*), [o]c(*)") if $#_<1 || $#_>2;
     $c = PDL->null if $#_<2;
-    &PDL::_convolve_int( $x->clump(-1), $b->clump(-1),
-       long([$x->dims]), long([$b->dims]),
+    &PDL::_convolve_int( $x->clump(-1), $y->clump(-1),
+       long([$x->dims]), long([$y->dims]),
        ($c->getndims>1? $c->clump(-1) : $c)
      );
      $c->setdims([$x->dims]);
@@ -313,7 +313,7 @@ sub PDL::rebin {
     my($opts) = ref $_[-1] eq "HASH" ? pop : {};
     my(@idims) = $x->dims;
     my(@odims) = ref $_[0] ? $_[0]->dims : @_;
-    my($i,$b);
+    my($i,$y);
     foreach $i (0..$#odims) {
       if ($i > $#idims) {  # Just dummy extra dimensions
           $x = $x->dummy($i,$odims[$i]);
@@ -323,20 +323,20 @@ sub PDL::rebin {
       } elsif ($odims[$i] != $idims[$i]) {       # If something changes
          if (!($odims[$i] % $idims[$i])) {      # Cells map 1 -> n
                my ($r) = $odims[$i]/$idims[$i];
-               $b = $x->mv($i,0)->dummy(0,$r)->clump(2);
+               $y = $x->mv($i,0)->dummy(0,$r)->clump(2);
          } elsif (!($idims[$i] % $odims[$i])) { # Cells map n -> 1
                my ($r) = $idims[$i]/$odims[$i];
                $x = $x->mv($i,0);
                # -> copy so won\'t corrupt input PDL
-               $b = $x->slice("0:-1:$r")->copy;
+               $y = $x->slice("0:-1:$r")->copy;
                foreach (1..$r-1) {
-                  $b += $x->slice("$_:-1:$r");
+                  $y += $x->slice("$_:-1:$r");
                }
-               $b /= $r;
+               $y /= $r;
          } else {                               # Cells map n -> m
-             &PDL::_rebin_int($x->mv($i,0), $b = null, $odims[$i]);
+             &PDL::_rebin_int($x->mv($i,0), $y = null, $odims[$i]);
          }
-         $x = $b->mv(0,$i);
+         $x = $y->mv(0,$i);
       }
     }
     if (exists $opts->{Norm} and $opts->{Norm}) {
@@ -488,7 +488,7 @@ sub PDL::kernctr {
     my (@nk) = $kern->dims;
     barf "Kernel and image must have same number of dims" if $#ni != $#nk;
     my ($newk) = zeroes(double,@ni);
-    my ($k,$n,$d,$i,@stri,@strk,@b);
+    my ($k,$n,$y,$d,$i,@stri,@strk,@b);
     for ($i=0; $i <= $#ni; $i++) {
 	$k = $nk[$i];
 	$n = $ni[$i];
@@ -504,10 +504,10 @@ sub PDL::kernctr {
     CHUNK:
       for ($i=0; $i < $nchunk; $i++) {
 	my ($stri,$strk);
-	for ($n=0, $b=$i; $n <= $#ni; $n++, $b >>= 1) {
-        next CHUNK if $stri[$n][$b & 1] eq '';
-	  $stri .= $stri[$n][$b & 1];
-	  $strk .= $strk[$n][$b & 1];
+	for ($n=0, $y=$i; $n <= $#ni; $n++, $y >>= 1) {
+        next CHUNK if $stri[$n][$y & 1] eq '';
+	  $stri .= $stri[$n][$y & 1];
+	  $strk .= $strk[$n][$y & 1];
 	}
 	chop ($stri); chop ($strk);
 	($t = $newk->slice($stri)) .= $kern->slice($strk);

@@ -48,7 +48,7 @@ PDL::MatrixOps -- Some Useful Matrix Operations
     $det = $x->det;
 
     ($lu,$perm,$par) = $x->lu_decomp;
-    $y = lu_backsub($lu,$perm,$b); # solve $x x $y = $b
+    $y = lu_backsub($lu,$perm,$z); # solve $x x $y = $z
 
 =head1 DESCRIPTION
 
@@ -422,23 +422,23 @@ sub determinant {
   
   return $x->clump(2) if($n==1);
   if($n==2) {
-    my($b) = $x->clump(2);
-    return $b->index(0)*$b->index(3) - $b->index(1)*$b->index(2);
+    my($y) = $x->clump(2);
+    return $y->index(0)*$y->index(3) - $y->index(1)*$y->index(2);
   }
   if($n==3) {
-    my($b) = $x->clump(2);
+    my($y) = $x->clump(2);
     
-    my $b3 = $b->index(3);
-    my $b4 = $b->index(4);
-    my $b5 = $b->index(5);
-    my $b6 = $b->index(6);
-    my $b7 = $b->index(7);
-    my $b8 = $b->index(8);
+    my $b3 = $y->index(3);
+    my $b4 = $y->index(4);
+    my $b5 = $y->index(5);
+    my $b6 = $y->index(6);
+    my $b7 = $y->index(7);
+    my $b8 = $y->index(8);
 
     return ( 
-	 $b->index(0) * ( $b4 * $b8 - $b5 * $b7 )
-      +  $b->index(1) * ( $b5 * $b6 - $b3 * $b8 )
-      +  $b->index(2) * ( $b3 * $b7 - $b4 * $b6 )
+	 $y->index(0) * ( $b4 * $b8 - $b5 * $b7 )
+      +  $y->index(1) * ( $b5 * $b6 - $b3 * $b8 )
+      +  $y->index(2) * ( $b3 * $b7 - $b4 * $b6 )
 	     );
   }
   
@@ -1170,12 +1170,12 @@ Solve a x = b for matrix a, by back substitution into a's LU decomposition.
 
   ($lu,$perm,$par) = lu_decomp($x);
   
-  $x = lu_backsub($lu,$perm,$par,$b);  # or
-  $x = lu_backsub($lu,$perm,$b);       # $par is not required for lu_backsub
+  $x = lu_backsub($lu,$perm,$par,$y);  # or
+  $x = lu_backsub($lu,$perm,$y);       # $par is not required for lu_backsub
   
-  lu_backsub($lu,$perm,$b->inplace); # modify $b in-place
+  lu_backsub($lu,$perm,$y->inplace); # modify $y in-place
   
-  $x = lu_backsub(lu_decomp($x),$b); # (ignores parity value from lu_decomp)
+  $x = lu_backsub(lu_decomp($x),$y); # (ignores parity value from lu_decomp)
 
 =for description
 
@@ -1187,7 +1187,7 @@ multiple times and not have to do the expensive LU decomposition
 more than once.
 
 C<lu_backsub> acts on single vectors and threads in the usual
-way, which means that it treats C<$b> as the I<transpose>
+way, which means that it treats C<$y> as the I<transpose>
 of the input.  If you want to process a matrix, you must
 hand in the I<transpose> of the matrix, and then transpose
 the output when you get it back. that is because pdls are
@@ -1209,30 +1209,30 @@ It is written in PDL but should probably be implemented in C.
 *PDL::lu_backsub = \&lu_backsub;
 
 sub lu_backsub {
-   my ($lu, $perm, $b, $par);
+   my ($lu, $perm, $y, $par);
    print STDERR "lu_backsub: entering debug version...\n" if $PDL::debug;
    if(@_==3) {
-      ($lu, $perm, $b) = @_;
+      ($lu, $perm, $y) = @_;
    } elsif(@_==4) {
-      ($lu, $perm, $par, $b) = @_;
+      ($lu, $perm, $par, $y) = @_;
    } 
 
    barf("lu_backsub: LU decomposition is undef -- probably from a singular matrix.\n")
    unless defined($lu);
 
-   barf("Usage: \$x = lu_backsub(\$lu,\$perm,\$b); all must be PDLs\n") 
+   barf("Usage: \$x = lu_backsub(\$lu,\$perm,\$y); all must be PDLs\n") 
    unless(UNIVERSAL::isa($lu,'PDL') &&
       UNIVERSAL::isa($perm,'PDL') &&
-      UNIVERSAL::isa($b,'PDL'));
+      UNIVERSAL::isa($y,'PDL'));
 
-   my $n = $b->dim(0);
+   my $n = $y->dim(0);
    my $n1 = $n; $n1--;
 
    # Make sure threading dimensions are compatible.
    # There are two possible sources of thread dims:
    #
    # (1) over multiple LU (i.e., $lu,$perm) instances
-   # (2) over multiple  B (i.e., $b) column instances
+   # (2) over multiple  B (i.e., $y) column instances
    #
    # The full dimensions of the function call looks like
    #
@@ -1245,9 +1245,9 @@ sub lu_backsub {
    # (1) Check that m dims are compatible
    my $ludims = pdl($lu->dims);
    my $permdims = pdl($perm->dims);
-   my $bdims = pdl($b->dims);
+   my $bdims = pdl($y->dims);
 
-   print STDERR "lu_backsub: called with args:  \$lu$ludims, \$perm$permdims, \$b$bdims\n" if $PDL::debug;
+   print STDERR "lu_backsub: called with args:  \$lu$ludims, \$perm$permdims, \$y$bdims\n" if $PDL::debug;
 
    my $m = $ludims((0));  # this is the sig dimension
    unless ( ($ludims(0) == $m) and ($ludims(1) == $m) and
@@ -1289,16 +1289,16 @@ THREAD_OK:
    my $nontrivial = ! (($perm==$perm->xvals)->clump(-1)->andover);
 
    if($nontrivial) {
-      if($b->is_inplace) {
-         $b .= $b->dummy(1,$b->dim(0))->index($perm->dummy(1,1))->sever;   # TODO: check threading
-         $out = $b;
+      if($y->is_inplace) {
+         $y .= $y->dummy(1,$y->dim(0))->index($perm->dummy(1,1))->sever;   # TODO: check threading
+         $out = $y;
       } else {
-         $out = $b->dummy(1,$b->dim(0))->index($perm->dummy(1,1))->sever;  # TODO: check threading
+         $out = $y->dummy(1,$y->dim(0))->index($perm->dummy(1,1))->sever;  # TODO: check threading
       }
    } else {
       # should check for more matrix dims to thread over
       # but ignore the issue for now
-      $out = ($b->is_inplace ? $b : $b->copy);
+      $out = ($y->is_inplace ? $y : $y->copy);
    }
    print STDERR "lu_backsub: starting with \$out" . pdl($out->dims) . "\n" if $PDL::debug;
 
@@ -1374,11 +1374,11 @@ While this is the transpose of the normal column-wise storage, this
 corresponds to normal PDL usage.  The contents of matrix a may be
 altered (but may be required for subsequent calls with flag = -1).
 
-C<$b>, C<$x>, C<$ips> are vectors of length C<n>.
+C<$y>, C<$x>, C<$ips> are vectors of length C<n>.
 
 Set C<flag=0> to solve.  
 Set C<flag=-1> to do a new back substitution for
-different C<$b> vector using the same a matrix previously reduced when
+different C<$y> vector using the same a matrix previously reduced when
 C<flag=0> (the C<$ips> vector generated in the previous solution is also
 required).
 

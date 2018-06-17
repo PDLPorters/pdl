@@ -56,14 +56,14 @@ indices of a large piddle, like
 	while(1) {
 		$inds = where($x>0);
 		$x = $x->index($inds);
-		$b = $b->index($inds);
-		func($b,$x);
+		$y = $y->index($inds);
+		func($y,$x);
 	}
 
-If you are not writing to $b, it saves a lot of memory to change this
+If you are not writing to $y, it saves a lot of memory to change this
 to
 
-		$b = $b->index($inds)->sever;
+		$y = $y->index($inds)->sever;
 
 The new method C<sever> is a causes the write-back relation to be
 forgotten. It is like copy except it changes the original piddle
@@ -76,8 +76,8 @@ Of course, the probably best way to do the above is
 		$inds0 = where($x>0);
 		$inds1 = $inds->index($inds)->sever;
 		$x = $a0->index($inds1);
-		$b = $b->index($inds1)->sever;
-		func($b,$x);
+		$y = $y->index($inds1)->sever;
+		func($y,$x);
 	}
 
 which doesn't save all the temporary instances of $x in memory.

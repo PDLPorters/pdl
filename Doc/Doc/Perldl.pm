@@ -545,16 +545,16 @@ sub whatis_r {
   }
 
   if(UNIVERSAL::can($x,'px')) {
-    my $b;
+    my $y;
     local $PDL::debug = 1;
 
-    $b = ( (UNIVERSAL::isa($x,'PDL') && $x->nelem < 5 && $x->ndims < 2)
+    $y = ( (UNIVERSAL::isa($x,'PDL') && $x->nelem < 5 && $x->ndims < 2)
 	   ? 
 	   ": $x" :
 	   ": *****"
 	   );
 
-    $x->px($prefix.(ref $x)." %7T (%D) ".$b);
+    $x->px($prefix.(ref $x)." %7T (%D) ".$y);
 
   } else {
 

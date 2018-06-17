@@ -14,8 +14,8 @@ BEGIN {
 $| = 1;
 
 sub tapprox ($$) {
-    my ( $x, $b ) = @_;
-    my $d = abs( $x - $b );
+    my ( $x, $y ) = @_;
+    my $d = abs( $x - $y );
     my $check = ($d <= 0.0001);
     diag "diff = [$d]\n" unless $check;
     return $check;
@@ -25,8 +25,8 @@ sub tapprox ($$) {
 #
 my $x = pdl(0,0,6,3,5,0,7,14,94,5,5,8,7,7,1,6,7,13,10,2,101,19,7,7,5);  # sf.net bug #2019651
 my $a_sort = $x->qsort;
-my $b = pdl(55);
-my $b_sort = $b->qsort;
+my $y = pdl(55);
+my $b_sort = $y->qsort;
 my $c = cat($x,$x);
 my $c_sort = $c->qsort;
 my $d = sequence(10)->rotate(1);
@@ -97,10 +97,10 @@ local $TODO = "fixing max/min NaN handling";
 {my $inf = exp(~0>>1);
 my $nan = $inf/$inf;
 my $x = pdl($nan, 0, 1, 2);
-my $b = pdl(0, 1, 2, $nan);
+my $y = pdl(0, 1, 2, $nan);
 
-ok($x->min == $b->min, "min with NaNs");
-ok($x->max == $b->max, "max with NaNs");
+ok($x->min == $y->min, "min with NaNs");
+ok($x->max == $y->max, "max with NaNs");
 }
 my $empty = which(ones(5)>5);
 $x = $empty->double->maximum;

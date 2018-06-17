@@ -83,8 +83,8 @@ MATLAB and IDL).
 
 But with PDL, we can just write:
 
-  pdl> $b = $x + 3
-  pdl> p $b
+  pdl> $y = $x + 3
+  pdl> p $y
   [
     [  3   4   5   6   7   8   9  10  11  12  13]
     [ 14  15  16  17  18  19  20  21  22  23  24]

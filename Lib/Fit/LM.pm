@@ -79,12 +79,12 @@ As an example take this definition of a single exponential with
 
  sub expdec {
    my ($x,$par,$ym,$dyda) = @_;
-   my ($a1,$b,$c) = map {$par->slice("($_)")} (0..2);
+   my ($a1,$y,$c) = map {$par->slice("($_)")} (0..2);
    my $arg = $x/$a1;
    my $ex = exp($arg);
-   $ym .= $b*$ex+$c;
+   $ym .= $y*$ex+$c;
    my (@dy) = map {$dyda->slice(",($_)")} (0..2);
-   $dy[0] .= -$b*$ex*$arg/$a1;
+   $dy[0] .= -$y*$ex*$arg/$a1;
    $dy[1] .= $ex;
    $dy[2] .= 1;
  }
@@ -224,17 +224,17 @@ the F<Example/Fit> directory.
 	   # leave this line as is
 	   my ($x,$par,$ym,$dyda) = @_;
 
-	   # $m and $b are fit parameters, internal to this function
+	   # $m and $y are fit parameters, internal to this function
 	   # call them whatever make sense to you, but replace (0..1)
 	   # with (0..x) where x is equal to your number of fit parameters
 	   # minus 1
-	   my ($m,$b) = map { $par->slice("($_)") } (0..1);
+	   my ($m,$y) = map { $par->slice("($_)") } (0..1);
 
 	   # Write function with dependent variable $ym,
 	   # independent variable $x, and fit parameters as specified above.
 	   # Use the .= (dot equals) assignment operator to express the equality 
 	   # (not just a plain equals)
-	   $ym .= $m * $x + $b;
+	   $ym .= $m * $x + $y;
 
 	   # Edit only the (0..1) part to (0..x) as above
 	   my (@dy) = map {$dyda -> slice(",($_)") } (0..1);
@@ -245,7 +245,7 @@ the F<Example/Fit> directory.
 	   $dy[0] .= $x;
 
 	   # Partial derivative of the function with respect to next 
-	   # fit parameter ($b in this case)
+	   # fit parameter ($y in this case)
 	   $dy[1] .= 1;
 
 	   # Add $dy[ ] .= () lines as necessary to supply 

@@ -19,28 +19,28 @@ use PDL::LiteF;
 
 sub tapprox ($$) {
     my $x = shift;
-    my $b = shift;
-    my $maxdiff = abs($x-$b)->max;
+    my $y = shift;
+    my $maxdiff = abs($x-$y)->max;
     return $maxdiff < 0.01;
 }
 
-my ($x, $b, $c, $d, $e, $f);
+my ($x, $y, $c, $d, $e, $f);
 
 $x = (1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
 
 is($x->at(2,2), 23, "a location (2,2) is 23");
 
-$b = $x->slice('1:3:2,2:4:2');
+$y = $x->slice('1:3:2,2:4:2');
 
-is($b->at(0,0), 22, "(1,2)->(0,0)");
-is($b->at(1,0), 24, "(3,2)->(1,0)");
-is($b->at(0,1), 42, "(1,4)->(0,1)");
-is($b->at(1,1), 44, "(3,4)->(1,1)");
+is($y->at(0,0), 22, "(1,2)->(0,0)");
+is($y->at(1,0), 24, "(3,2)->(1,0)");
+is($y->at(0,1), 42, "(1,4)->(0,1)");
+is($y->at(1,1), 44, "(3,4)->(1,1)");
 
-$b .= 0.5 * ones(2,2);
+$y .= 0.5 * ones(2,2);
 
-is($b->at(1,0), 0.5);
-is($b->at(0,1), 0.5);
+is($y->at(1,0), 0.5);
+is($y->at(0,1), 0.5);
 
 is($x->at(1,2), 0.5);
 
@@ -48,7 +48,7 @@ is($x->at(1,2), 0.5);
 is($x->at(2,2), 23);
 
 $x = pdl (1,2);
-$b = pdl [[1,2],[1,2],[1,2]];
+$y = pdl [[1,2],[1,2],[1,2]];
 $c = $x->slice(',*3');
 
 # check dimensions, sum of elements and correct order of els (using tapprox)
@@ -56,16 +56,16 @@ $c = $x->slice(',*3');
 my $sum;
 # $c = $x->dummy(1,3);
 sumover($c->clump(-1),($sum=null));
-ok(tapprox($b,$c));
+ok(tapprox($y,$c));
 is($sum->at, 9);
 
 is(join(',',$c->dims), "2,3");
 
-$b = pdl [[1,1,1],[2,2,2]];
+$y = pdl [[1,1,1],[2,2,2]];
 $c = $x->slice('*3,');
 sumover($c->clump(-1),($sum=null));
 
-ok(tapprox($b,$c));
+ok(tapprox($y,$c));
 is($sum->at, 9);
 is(join(',',$c->dims), "3,2");
 
@@ -81,8 +81,8 @@ is($linepr, '[1 1 1]');
 
 # Test whether error is properly returned:
 
-$b = zeroes(5,3,3);
-$c = $b->slice(":,:,1");
+$y = zeroes(5,3,3);
+$c = $y->slice(":,:,1");
 
 is(join(',',$c->dims), "5,3,1");
 
@@ -92,19 +92,19 @@ like($@, qr/out of bounds/, 'check slice bounds error handling') or diag "ERROR 
 
 $x = zeroes 3,3;
 
-$b = $x->slice("1,1:2");
+$y = $x->slice("1,1:2");
 
-$b .= 1;
+$y .= 1;
 
 $x = xvals zeroes 20,20;
 
-$b = $x->slice("1:18:2,:");
-$c = $b->slice(":,1:18:2");
+$y = $x->slice("1:18:2,:");
+$c = $y->slice(":,1:18:2");
 $d = $c->slice("3:5,:");
 $e = $d->slice(":,(0)");
 $f = $d->slice(":,(1)");
 
-"$b";
+"$y";
 "$c"; 
 "$d";
 "$e";
@@ -117,11 +117,11 @@ is("$f", "[7 9 11]");
 
 $x = zeroes 5,6,2;
 
-$b = (xvals $x) + 0.1 * (yvals $x) + 0.01 * (zvals $x);
+$y = (xvals $x) + 0.1 * (yvals $x) + 0.01 * (zvals $x);
 
-$b = $b->copy;
+$y = $y->copy;
 
-$c = $b->slice("2:3");
+$c = $y->slice("2:3");
 
 $d = $c->copy;
 
@@ -174,11 +174,11 @@ ok(tapprox($lut,pdl([[1,0],[1,1]])));
 
 # can we catch indices which are too negative?
 $x = PDL->sequence(10);
-$b = $x->slice('0:-10');
-is("$b", "[0]", "slice 0:-n picks first element");
+$y = $x->slice('0:-10');
+is("$y", "[0]", "slice 0:-n picks first element");
 
-$b = $x->slice('0:-14');
-eval '"$b";';
+$y = $x->slice('0:-14');
+eval '"$y";';
 like($@, qr/slice ends out of bounds/);
 
 # Test of dice and dice_axis
@@ -196,91 +196,91 @@ is_deeply($dice->where($dice == 0)->unpdl,[0,0],"dice clump where zero");
 # Test of Reorder:
 $x = sequence(5,3,2);
 my @newDimOrder = (2,1,0);
-$b = $x->reorder(@newDimOrder);
+$y = $x->reorder(@newDimOrder);
 
 # since doing floating-point arithmetic here, should probably
 # use a better test than "eq" here
 #
-is($b->average->average->sum , 72.5, "Test of reorder");
+is($y->average->average->sum , 72.5, "Test of reorder");
 
 $x = zeroes(3,4);
-$b = $x->dummy(-1,2);
-is(join(',',$b->dims), '3,4,2');
+$y = $x->dummy(-1,2);
+is(join(',',$y->dims), '3,4,2');
 
 $x = pdl(2);
-$b = $x->slice('');
-ok(tapprox($x, $b), "Empty slice");
+$y = $x->slice('');
+ok(tapprox($x, $y), "Empty slice");
 
 $x = pdl [1,1,1,3,3,4,4,1,1,2];
-$b = null;
+$y = null;
 $c = null;
-rle($x,$b,$c);
-ok(tapprox($x, rld($b,$c)),"rle with null input");
+rle($x,$y,$c);
+ok(tapprox($x, rld($y,$c)),"rle with null input");
 
-undef $b; undef $c;
-($b,$c) = rle($x);
-ok(tapprox($x, rld($b,$c)),"rle with return vals");
+undef $y; undef $c;
+($y,$c) = rle($x);
+ok(tapprox($x, rld($y,$c)),"rle with return vals");
 
 my $a2d = $x->cat($x->rotate(1),$x->rotate(2),$x->rotate(3),$x->rotate(4));
-rle($a2d,$b=null,$c=null);
-ok(tapprox($a2d,rld($b,$c)),"rle 2d with null input");
+rle($a2d,$y=null,$c=null);
+ok(tapprox($a2d,rld($y,$c)),"rle 2d with null input");
 
-undef $b; undef $c;
-($b,$c) = rle($a2d);
-ok(tapprox($a2d, rld($b,$c)),"rle 2d with return vals");
+undef $y; undef $c;
+($y,$c) = rle($a2d);
+ok(tapprox($a2d, rld($y,$c)),"rle 2d with return vals");
 
 
-$b = $x->mslice(0.5);
-ok(tapprox($b, 1), "mslice 1");
+$y = $x->mslice(0.5);
+ok(tapprox($y, 1), "mslice 1");
 
-$b = $x->mslice([0.5,2.11]);
-is("$b", "[1 1 1]", "mslice 2");
+$y = $x->mslice([0.5,2.11]);
+is("$y", "[1 1 1]", "mslice 2");
 
 $x = zeroes(3,3);
-$b = $x->splitdim(3,3);
-eval '$b->make_physdims';
+$y = $x->splitdim(3,3);
+eval '$y->make_physdims';
 like($@, qr/^Splitdim: nthdim/, "make_physdim: Splitdim");
 
 $x = sequence 5,5;
-$b = $x->diagonal(0,1);
-is("$b", "[0 6 12 18 24]", "diagonal");
+$y = $x->diagonal(0,1);
+is("$y", "[0 6 12 18 24]", "diagonal");
 
 $x = sequence 10;
-eval '$b = $x->lags(1,1,1)->make_physdims';
+eval '$y = $x->lags(1,1,1)->make_physdims';
 like($@, qr/lags: dim out of range/, "make_physdim: out of range");
 
-eval '$b = $x->lags(0,-1,1)->make_physdims';
+eval '$y = $x->lags(0,-1,1)->make_physdims';
 like($@, qr/lags: step must be positive/, "make_physdim: negative step");
 
-eval '$b = $x->lags(0,1,11)->make_physdims';
+eval '$y = $x->lags(0,1,11)->make_physdims';
 like($@, qr/too large/, "make_pyhsdim: too large");
 
 ##############################
 # Tests of some edge cases
 $x = sequence(10);
-eval '$b = $x->slice("5")';
+eval '$y = $x->slice("5")';
 ok(!$@, "simple slice works");
-ok(($b->nelem==1 and $b==5), "simple slice works right");
+ok(($y->nelem==1 and $y==5), "simple slice works right");
 
-eval '$b = $x->slice("5:")';
+eval '$y = $x->slice("5:")';
 ok(!$@, "empty second specifier works");
-ok(($b->nelem == 5  and  all($b == pdl(5,6,7,8,9))), "empty second specifier works right");
+ok(($y->nelem == 5  and  all($y == pdl(5,6,7,8,9))), "empty second specifier works right");
 
-eval '$b = $x->slice(":5")';
+eval '$y = $x->slice(":5")';
 ok(!$@, "empty first specifier works");
-ok(($b->nelem == 6  and  all($b == pdl(0,1,2,3,4,5))), "empty first specifier works right");
+ok(($y->nelem == 6  and  all($y == pdl(0,1,2,3,4,5))), "empty first specifier works right");
 
 ##############################
 # White space in slice specifier
-eval ' $b = $x->slice(" 4:");';
+eval ' $y = $x->slice(" 4:");';
 ok(!$@,"slice with whitespace worked - 1");
-ok(($b->nelem==6 and all($b==pdl(4,5,6,7,8,9))),"slice with whitespace works right - 1");
-eval ' $b = $x->slice(" :4");';
+ok(($y->nelem==6 and all($y==pdl(4,5,6,7,8,9))),"slice with whitespace works right - 1");
+eval ' $y = $x->slice(" :4");';
 ok(!$@,"slice with whitespace worked - 2");
-ok(($b->nelem==5 and all($b==pdl(0,1,2,3,4))),"slice with whitespace works right - 2");
-eval ' $b = $x->slice(" 3: 4 ");';
+ok(($y->nelem==5 and all($y==pdl(0,1,2,3,4))),"slice with whitespace works right - 2");
+eval ' $y = $x->slice(" 3: 4 ");';
 ok(!$@,"slice with whitespace worked - 3");
-ok(($b->nelem==2 and all($b==pdl(3,4))),"slice with whitespace works right - 3");
+ok(($y->nelem==2 and all($y==pdl(3,4))),"slice with whitespace works right - 3");
 
 
 
@@ -289,10 +289,10 @@ ok(($b->nelem==2 and all($b==pdl(3,4))),"slice with whitespace works right - 3")
 
 $x = xvals(5,5)+10*yvals(5,5);
 
-eval '$b = $x->slice("1,2,(0)")->make_physical';
+eval '$y = $x->slice("1,2,(0)")->make_physical';
 ok(!$@);
-is($b->ndims, 2, "slice->make_physical: ndims");
-is(pdl($b->dims)->sumover, 2, "slice->make_physical: dims");
+is($y->ndims, 2, "slice->make_physical: ndims");
+is(pdl($y->dims)->sumover, 2, "slice->make_physical: dims");
 
 eval '$c = $x->slice("1,2,(1)")->make_physical';
 like($@, qr/too many dims/i, "slice->make_physical: too many dims");
@@ -400,9 +400,9 @@ ok(all($x==5));   # should *not* change $x!
 
 $x = PDL->null;
 
-eval '$b = $x->slice("")->nelem';
+eval '$y = $x->slice("")->nelem';
 ok(!$@);
-ok($b==0);
+ok($y==0);
 
-eval '$b = $x->slice(0)->nelem';
+eval '$y = $x->slice(0)->nelem';
 ok($@ =~ m/out of bounds/);

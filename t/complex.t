@@ -7,8 +7,8 @@ BEGIN {
 }
 
 sub tapprox {
-        my($x,$b) = @_;
-        my $c = abs($x-$b);
+        my($x,$y) = @_;
+        my $c = abs($x-$y);
         my $d = max($c);
         $d < 0.0001;
 }
@@ -31,8 +31,8 @@ ok(tapprox($x->real, -$ref+1), 'complex to real dataflow');
 # Check that converting from re/im to mag/ang and
 #  back we get the same thing
 $x = cplx($ref);
-my $b = $x->Cr2p()->Cp2r();
-ok(tapprox($x-$b, 0), 'check re/im and mag/ang equivalence');
+my $y = $x->Cr2p()->Cp2r();
+ok(tapprox($x-$y, 0), 'check re/im and mag/ang equivalence');
 
 # to test Cabs, Cabs2, Carg (ref PDL)
 # Catan, Csinh, Ccosh, Catanh, Croots
@@ -46,8 +46,8 @@ ok(tapprox($cabs, Cabs $x), 'Cabs value');
 ok(tapprox($cabs**2, Cabs2 $x), 'Cabs2 value');
 
 # Check cat'ing of PDL::Complex
-$b = $x->copy + 1;
-my $bigArray = $x->cat($b);
+$y = $x->copy + 1;
+my $bigArray = $x->cat($y);
 ok(abs($bigArray->sum() +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
 
 my $z = pdl(0) + i*pdl(0);

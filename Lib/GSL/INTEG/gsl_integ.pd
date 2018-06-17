@@ -71,19 +71,19 @@ Please check the GSL documentation for more information.
    use PDL::GSL::INTEG;
 
    my $x = 1.2;
-   my $b = 3.7;
+   my $y = 3.7;
    my $epsrel = 0;
    my $epsabs = 1e-6;
 
    # Non adaptive integration
-   my ($res,$abserr,$ierr,$neval) = gslinteg_qng(\&myf,$x,$b,$epsrel,$epsabs);
+   my ($res,$abserr,$ierr,$neval) = gslinteg_qng(\&myf,$x,$y,$epsrel,$epsabs);
    # Warnings on
-   my ($res,$abserr,$ierr,$neval) = gslinteg_qng(\&myf,$x,$b,$epsrel,$epsabs,{Warn=>'y'});
+   my ($res,$abserr,$ierr,$neval) = gslinteg_qng(\&myf,$x,$y,$epsrel,$epsabs,{Warn=>'y'});
 
    # Adaptive integration with warnings on
    my $limit = 1000;
    my $key = 5;
-   my ($res,$abserr,$ierr) = gslinteg_qag(\&myf,$x,$b,$epsrel,
+   my ($res,$abserr,$ierr) = gslinteg_qag(\&myf,$x,$y,$epsrel,
                                      $epsabs,$limit,$key,{Warn=>'y'});
 
    sub myf{
@@ -99,7 +99,7 @@ pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
 Non-adaptive Gauss-Kronrod integration
 
 This function applies the Gauss-Kronrod 10-point, 21-point, 43-point and 87-point 
-integration rules in succession until an estimate of the integral of f over ($x,$b) 
+integration rules in succession until an estimate of the integral of f over ($x,$y) 
 is achieved within the desired absolute and relative error limits, $epsabs and $epsrel.
 It is meant for fast integration of smooth functions. It returns an array with the 
 result, an estimate of the absolute error, an error flag and the number of function
@@ -109,7 +109,7 @@ evaluations performed.
 
 Usage:
 
-  ($res,$abserr,$ierr,$neval) = gslinteg_qng($function_ref,$x,$b,
+  ($res,$abserr,$ierr,$neval) = gslinteg_qng($function_ref,$x,$y,
                                              $epsrel,$epsabs,[{Warn => $warn}]);
 
 =for example
@@ -131,7 +131,7 @@ Example:
 Adaptive integration
 
 This function applies an integration rule adaptively until an estimate of 
-the integral of f over ($x,$b) is achieved within the desired absolute and 
+the integral of f over ($x,$y) is achieved within the desired absolute and 
 relative error limits, $epsabs and $epsrel. On each iteration the adaptive 
 integration strategy bisects the interval with the largest error estimate; 
 the maximum number of allowed subdivisions is given by the parameter $limit.
@@ -149,7 +149,7 @@ Please check the GSL documentation for more information.
 
 Usage:
 
-  ($res,$abserr,$ierr) = gslinteg_qag($function_ref,$x,$b,$epsrel,
+  ($res,$abserr,$ierr) = gslinteg_qag($function_ref,$x,$y,$epsrel,
                                       $epsabs,$limit,$key,[{Warn => $warn}]);
 
 =for example
@@ -170,7 +170,7 @@ Example:
 Adaptive integration with singularities
 
 This function applies the Gauss-Kronrod 21-point integration rule 
-adaptively until an estimate of the integral of f over ($x,$b) is 
+adaptively until an estimate of the integral of f over ($x,$y) is 
 achieved within the desired absolute and relative error limits, 
 $epsabs and $epsrel. The algorithm is such that it
 accelerates the convergence of the integral in the presence of 
@@ -186,7 +186,7 @@ Please check the GSL documentation for more information.
 
 Usage:
 
-  ($res,$abserr,$ierr) = gslinteg_qags($function_ref,$x,$b,$epsrel,
+  ($res,$abserr,$ierr) = gslinteg_qags($function_ref,$x,$y,$epsrel,
                                        $epsabs,$limit,[{Warn => $warn}]);
 
 =for example
@@ -209,7 +209,7 @@ Adaptive integration with known singular points
 This function applies the adaptive integration algorithm used by 
 gslinteg_qags taking into account the location of singular points
 until an estimate of 
-the integral of f over ($x,$b) is achieved within the desired absolute and 
+the integral of f over ($x,$y) is achieved within the desired absolute and 
 relative error limits, $epsabs and $epsrel.
 Singular points are supplied in the piddle $points, whose endpoints 
 determine the integration range.
@@ -341,7 +341,7 @@ Please check the GSL documentation for more information.
 
 Usage:
 
-  ($res,$abserr,$ierr) = gslinteg_qagl($function_ref,$b,$epsabs,
+  ($res,$abserr,$ierr) = gslinteg_qagl($function_ref,$y,$epsabs,
                                        $epsrel,$limit,[{Warn => $warn}]);
 
 =for example
@@ -375,7 +375,7 @@ Please check the GSL documentation for more information.
 
 Usage:
 
-  ($res,$abserr,$ierr) = gslinteg_qawc($function_ref,$x,$b,$c,$epsabs,$epsrel,$limit)
+  ($res,$abserr,$ierr) = gslinteg_qawc($function_ref,$x,$y,$c,$epsabs,$epsrel,$limit)
 
 =for example
 
@@ -412,7 +412,7 @@ Please check the GSL documentation for more information.
 Usage: 
 
   ($res,$abserr,$ierr) = 
-      gslinteg_qawc($function_ref,$alpha,$beta,$mu,$nu,$x,$b,
+      gslinteg_qawc($function_ref,$alpha,$beta,$mu,$nu,$x,$y,
                     $epsabs,$epsrel,$limit,[{Warn => $warn}]);
 
 =for example
@@ -454,7 +454,7 @@ Please check the GSL documentation for more information.
 Usage:
 
   ($res,$abserr,$ierr) = gslinteg_qawo($function_ref,$omega,$sin_or_cos,
-                                $x,$b,$epsabs,$epsrel,$limit,[opt])
+                                $x,$y,$epsabs,$epsrel,$limit,[opt])
 
 =for example
 
@@ -568,10 +568,10 @@ sub gslinteg_qng{
   else{ $opt = {Warn => \'n\'}; }
   if($$opt{Warn}=~/y/i) { $warn = 1;}
   else {$warn = 0;} 
-  my ($f,$x,$b,$epsabs,$epsrel) = @_;
-  barf \'Usage: gslinteg_qng($function_ref,$x,$b,$epsabs,$epsrel,[opt]) \' 
+  my ($f,$x,$y,$epsabs,$epsrel) = @_;
+  barf \'Usage: gslinteg_qng($function_ref,$x,$y,$epsabs,$epsrel,[opt]) \' 
 	unless ($#_ == 4);
-  my ($res,$abserr,$neval,$ierr) = qng_meat($x,$b,$epsabs,$epsrel,$warn,$f);
+  my ($res,$abserr,$neval,$ierr) = qng_meat($x,$y,$epsabs,$epsrel,$warn,$f);
   return ($res,$abserr,$ierr,$neval);
 }
 ');
@@ -601,10 +601,10 @@ sub gslinteg_qag{
    else{ $opt = {Warn => \'n\'}; }
    if($$opt{Warn}=~/y/i) { $warn = 1;}
    else {$warn = 0;} 
-   my ($f,$x,$b,$epsabs,$epsrel,$limit,$key) = @_;
-   barf \'Usage: gslinteg_qag($function_ref,$x,$b,$epsabs,$epsrel,$limit,$key,[opt]) \' 
+   my ($f,$x,$y,$epsabs,$epsrel,$limit,$key) = @_;
+   barf \'Usage: gslinteg_qag($function_ref,$x,$y,$epsabs,$epsrel,$limit,$key,[opt]) \' 
 	unless ($#_ == 6);
-   my ($res,$abserr,$ierr) = qag_meat($x,$b,$epsabs,$epsrel,$limit,$key,$limit,$warn,$f);
+   my ($res,$abserr,$ierr) = qag_meat($x,$y,$epsabs,$epsrel,$limit,$key,$limit,$warn,$f);
    return ($res,$abserr,$ierr);
 }
 ');
@@ -638,10 +638,10 @@ sub gslinteg_qags{
   else{ $opt = {Warn => \'n\'}; }
   if($$opt{Warn}=~/y/i) { $warn = 1;}
   else {$warn = 0;} 
-  my ($f,$x,$b,$epsabs,$epsrel,$limit) = @_;
-  barf \'Usage: gslinteg_qags($function_ref,$x,$b,$epsabs,$epsrel,$limit,[opt]) \' 
+  my ($f,$x,$y,$epsabs,$epsrel,$limit) = @_;
+  barf \'Usage: gslinteg_qags($function_ref,$x,$y,$epsabs,$epsrel,$limit,[opt]) \' 
 	unless ($#_ == 5);
-  my ($res,$abserr,$ierr) = qags_meat($x,$b,$epsabs,$epsrel,$limit,$limit,$warn,$f);
+  my ($res,$abserr,$ierr) = qags_meat($x,$y,$epsabs,$epsrel,$limit,$limit,$warn,$f);
   return ($res,$abserr,$ierr);
 }
 ');
@@ -780,10 +780,10 @@ sub gslinteg_qagil{
   else{ $opt = {Warn => \'n\'}; }
   if($$opt{Warn}=~/y/i) { $warn = 1;}
   else {$warn = 0;} 
-  my ($f,$b,$epsabs,$epsrel,$limit) = @_;
-  barf \'Usage: gslinteg_qagil($function_ref,$b,$epsabs,$epsrel,$limit,[opt]) \' 
+  my ($f,$y,$epsabs,$epsrel,$limit) = @_;
+  barf \'Usage: gslinteg_qagil($function_ref,$y,$epsabs,$epsrel,$limit,[opt]) \' 
 	unless ($#_ == 4);
-  my ($res,$abserr,$ierr) = qagil_meat($b,$epsabs,$epsrel,$limit,$limit,$warn,$f);
+  my ($res,$abserr,$ierr) = qagil_meat($y,$epsabs,$epsrel,$limit,$limit,$warn,$f);
   return ($res,$abserr,$ierr);
 }
 ');
@@ -816,10 +816,10 @@ sub gslinteg_qawc{
   else{ $opt = {Warn => \'n\'}; }
   if($$opt{Warn}=~/y/i) { $warn = 1;}
   else {$warn = 0;} 
-  my ($f,$x,$b,$c,$epsabs,$epsrel,$limit) = @_;
-  barf \'Usage: gslinteg_qawc($function_ref,$x,$b,$c,$epsabs,$epsrel,$limit,[opt]) \' 
+  my ($f,$x,$y,$c,$epsabs,$epsrel,$limit) = @_;
+  barf \'Usage: gslinteg_qawc($function_ref,$x,$y,$c,$epsabs,$epsrel,$limit,[opt]) \' 
 	unless ($#_ == 6);
-  my ($res,$abserr,$ierr) = qawc_meat($x,$b,$c,$epsabs,$epsrel,$limit,$limit,$warn,$f);
+  my ($res,$abserr,$ierr) = qawc_meat($x,$y,$c,$epsabs,$epsrel,$limit,$limit,$warn,$f);
   return ($res,$abserr,$ierr);
 }
 ');
@@ -851,10 +851,10 @@ sub gslinteg_qaws{
   else{ $opt = {Warn => \'n\'}; }
   if($$opt{Warn}=~/y/i) { $warn = 1;}
   else {$warn = 0;} 
-  my ($f,$alpha,$beta,$mu,$nu,$x,$b,$epsabs,$epsrel,$limit) = @_;
-  barf \'Usage: gslinteg_qaws($function_ref,$alpha,$beta,$mu,$nu,$x,$b,$epsabs,$epsrel,$limit,[opt]) \' 
+  my ($f,$alpha,$beta,$mu,$nu,$x,$y,$epsabs,$epsrel,$limit) = @_;
+  barf \'Usage: gslinteg_qaws($function_ref,$alpha,$beta,$mu,$nu,$x,$y,$epsabs,$epsrel,$limit,[opt]) \' 
 	unless ($#_ == 9);
-  my ($res,$abserr,$ierr) = qaws_meat($x,$b,$epsabs,$epsrel,$limit,$limit,$alpha,$beta,$mu,$nu,$warn,$f);
+  my ($res,$abserr,$ierr) = qaws_meat($x,$y,$epsabs,$epsrel,$limit,$limit,$alpha,$beta,$mu,$nu,$warn,$f);
   return ($res,$abserr,$ierr);
 }
 ');
@@ -892,17 +892,17 @@ sub gslinteg_qawo{
   else{ $opt = {Warn => \'n\'}; }
   if($$opt{Warn}=~/y/i) { $warn = 1;}
   else {$warn = 0;} 
-  my ($f,$omega,$sincosopt,$x,$b,$epsabs,$epsrel,$limit) = @_;
-  barf \'Usage: gslinteg_qawo($function_ref,$omega,$sin_or_cos,$x,$b,$epsabs,$epsrel,$limit,[opt]) \' 
+  my ($f,$omega,$sincosopt,$x,$y,$epsabs,$epsrel,$limit) = @_;
+  barf \'Usage: gslinteg_qawo($function_ref,$omega,$sin_or_cos,$x,$y,$epsabs,$epsrel,$limit,[opt]) \' 
 	unless ($#_ == 7);
   my $OPTION_SIN_COS;
   if($sincosopt=~/cos/i){ $OPTION_SIN_COS = 0;}
   elsif($sincosopt=~/sin/i){ $OPTION_SIN_COS = 1;}
   else { barf("Error in argument 3 of function gslinteg_qawo: specify \'cos\' or \'sin\'\n");}
 
-  my $L = $b - $x;
+  my $L = $y - $x;
   my $nlevels = $limit;
-  my ($res,$abserr,$ierr) = qawo_meat($x,$b,$epsabs,$epsrel,$limit,$limit,$OPTION_SIN_COS,$omega,$L,$nlevels,$warn,$f);
+  my ($res,$abserr,$ierr) = qawo_meat($x,$y,$epsabs,$epsrel,$limit,$limit,$OPTION_SIN_COS,$omega,$L,$nlevels,$warn,$f);
   return ($res,$abserr,$ierr);
 }
 ');

@@ -102,14 +102,14 @@ static void pdl_freedata (pdl *a) {
  * t/bad.t - ie
  *
  * $x = sequence( byte, 2, 3 );
- * $b = $x->slice("(1),:");
+ * $y = $x->slice("(1),:");
  * my $mask = sequence( byte, 2, 3 );
  * $mask = $mask->setbadif( ($mask % 3) == 2 );
- * print "a,b == ", $x->badflag, ",", $b->badflag, "\n";
+ * print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
  * $x->inplace->copybad( $mask );                          <-- think this is the call
- * print "a,b == ", $x->badflag, ",", $b->badflag, "\n";
- * print "$x $b\n";
- * ok( $b->badflag, 1 );
+ * print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
+ * print "$x $y\n";
+ * ok( $y->badflag, 1 );
  *
  */
 

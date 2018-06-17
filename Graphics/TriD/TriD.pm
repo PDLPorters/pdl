@@ -10,7 +10,7 @@ PDL::Graphics::TriD -- PDL 3D interface
  $t = sequence(100)/10;
  $x = sin($t); $y = cos($t), $z = $t;
  $coords = cat($x, $y, $z)->xchg(0,1);
- $r = cos(2*$t); $g = sin($t); $b = $t;
+ my $r = cos(2*$t); my $g = sin($t); my $b = $t;
  $colors = cat($r, $g, $b)->xchg(0,1);
  
  # After each graph, let the user rotate and

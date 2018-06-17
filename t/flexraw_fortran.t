@@ -80,8 +80,8 @@ if ($ExtUtils::F77::VERSION > 1.03) {
 }
 
 sub tapprox {
-    my ($x,$b) = @_;
-    my $c = abs($x->clump(-1)-$b->clump(-1));
+    my ($x,$y) = @_;
+    my $c = abs($x->clump(-1)-$y->clump(-1));
     my $d = max($c);
     $d < 0.01;
 }

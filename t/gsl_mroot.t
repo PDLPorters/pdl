@@ -38,10 +38,10 @@ ok(abs($res[1]- 1) < 1e-6 );
 sub rosenbrock{
   my ($x) = @_;
   my $a1 = 1;
-  my $b = 10;
+  my $b1 = 10;
   my $y = zeroes($x);
   my $tmp; # work around perl -d "feature"
   ($tmp = $y->slice(0)) .=  $a1 * (1 - $x->slice(0));
-  ($tmp = $y->slice(1)) .=  $b * ($x->slice(1) - $x->slice(0)**2);
+  ($tmp = $y->slice(1)) .=  $b1 * ($x->slice(1) - $x->slice(0)**2);
   return $y;
 }

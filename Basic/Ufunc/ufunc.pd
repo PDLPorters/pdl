@@ -59,7 +59,7 @@ I<any> dimension.
 
 =for usage
 
- \$b = $op(\$x);
+ \$y = $op(\$x);
 
 =for example
 
@@ -94,7 +94,7 @@ is the first element of the parameter.
 
 =for usage
 
- \$b = $op(\$x);
+ \$y = $op(\$x);
 
 =for example
 
@@ -795,7 +795,7 @@ I<any> dimension.
 
 =for usage
 
- $b = pctover($x, $p);
+ $y = pctover($x, $p);
 
 =for example
 
@@ -839,7 +839,7 @@ I<any> dimension.
 
 =for usage
 
- $b = oddpctover($x, $p);
+ $y = oddpctover($x, $p);
 
 =for example
 
@@ -1147,9 +1147,9 @@ Quicksort a vector into ascending order.
 '
 Bad values are moved to the end of the array:
 
- pdl> p $b
+ pdl> p $y
  [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
- pdl> p qsort($b)
+ pdl> p qsort($y)
  [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
 ',
     ); # pp_def qsort
@@ -1190,9 +1190,9 @@ pp_def(
        BadDoc => 
 'Bad elements are moved to the end of the array:
 
- pdl> p $b
+ pdl> p $y
  [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
- pdl> p $b->index( qsorti($b) )
+ pdl> p $y->index( qsorti($y) )
  [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
 ',
        Doc => '

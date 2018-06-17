@@ -126,13 +126,13 @@ sub PDL::DiskCache::new {
   my($class,$f,$opt) = @_;
   my($x)=[];
 
-  my($b) = tie @{$x},$class,$f,$opt;
+  my($y) = tie @{$x},$class,$f,$opt;
   if($opt->{bless}) {
     $x = bless($x,$class);
   }
 
   if(wantarray) {
-    return ($x,bless($b,$class));
+    return ($x,bless($y,$class));
   } else {
     return $x;
   }

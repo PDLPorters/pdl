@@ -38,8 +38,8 @@ eval { writeflexhdr($name, $header) };
 ok(-f "$name.hdr", "writeflexhdr should create a header file");
 
 # **TEST 4** read it back, and make sure it gives the same piddle
-my $b = eval { readflex($name) };
-ok(all(approx($x,$b)), "A piddle and it's saved copy should be about equal");
+my $y = eval { readflex($name) };
+ok(all(approx($x,$y)), "A piddle and it's saved copy should be about equal");
 
 # **TEST 5** save two piddles to disk
 my $c = pdl [[0,0,0,0],[0,0,0,0]];
@@ -82,14 +82,14 @@ SKIP: {
    # saved to the file (or at least it's not saved immediately).
    $c += 1;
    undef $c;
-   $b = readflex($name);
-   ok(all(approx($x+1,$b)), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
+   $y = readflex($name);
+   ok(all(approx($x+1,$y)), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
 
    # We're starting a new test, so we'll remove the files we've created so far
    # and clean up the memory, just to be super-safe
    unlink $name, $name . '.hdr';
    undef $x;
-   undef $b;
+   undef $y;
 
    # **TEST 10** test creating a pdl via mapfraw
    # First create and modify the piddle
@@ -105,20 +105,20 @@ SKIP: {
    # save the contents
    undef $x;
    # Load it back up and see if the values are what we expect
-   $b = readflex($name);
+   $y = readflex($name);
    # **TEST 11**
-   ok(all(approx($b, PDL->pdl([[0,1,2],[0.1,1.1,2.1]]))),
+   ok(all(approx($y, PDL->pdl([[0,1,2],[0.1,1.1,2.1]]))),
       "mapfraw should be able to create new piddles");
 
    # **TEST 12** test the created type
-   ok($b->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
+   ok($y->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
 
 }
 
 # Clean things up a bit
 unlink $name, $name . '.hdr';
 undef $x;
-undef $b;
+undef $y;
 
 # Test the file header options:
 

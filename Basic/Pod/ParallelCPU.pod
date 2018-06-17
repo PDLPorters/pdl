@@ -22,7 +22,7 @@ by taking advantage of multi-core and/or multi-processor machines.
   
   $x = zeroes(5000,5000); # Create 25Meg element array
   
-  $b = $x + 5; # Processing will be split up into multiple pthreads
+  $y = $x + 5; # Processing will be split up into multiple pthreads
   
   # Get the actual number of pthreads for the last
   #  processing operation.

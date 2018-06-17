@@ -8,7 +8,7 @@ PDL::Slices -- Indexing, slicing, and dicing
 
   use PDL;
   $x = ones(3,3);
-  $b = $x->slice('-1:0,(1)');
+  $y = $x->slice('-1:0,(1)');
   $c = $x->dummy(2);
 
 
@@ -35,26 +35,26 @@ and modifying the data themselves.  Two special methods, L<copy|copy> and
 L<sever|sever>, help you control the data flow connection between related
 variables.
 
- $b = $x->slice("1:3"); # Slice maintains a link between $x and $b.
- $b += 5;               # $x is changed!
+ $y = $x->slice("1:3"); # Slice maintains a link between $x and $y.
+ $y += 5;               # $x is changed!
 
 If you want to force a physical copy and no data flow, you can copy or
 sever the slice expression:
 
- $b = $x->slice("1:3")->copy;
- $b += 5;               # $x is not changed.
+ $y = $x->slice("1:3")->copy;
+ $y += 5;               # $x is not changed.
 
- $b = $x->slice("1:3")->sever;
- $b += 5;               # $x is not changed.
+ $y = $x->slice("1:3")->sever;
+ $y += 5;               # $x is not changed.
 
 The difference between C<sever> and C<copy> is that sever acts on (and
 returns) its argument, while copy produces a disconnected copy.  If you
 say
 
- $b = $x->slice("1:3");
- $c = $b->sever;
+ $y = $x->slice("1:3");
+ $c = $y->sever;
 
-then the variables C<$b> and C<$c> point to the same object but with
+then the variables C<$y> and C<$c> point to the same object but with
 C<-E<gt>copy> they would not.
 
 =cut
@@ -203,10 +203,10 @@ C<index> provids simple threading:  multiple-dimensioned arrays are treated
 as collections of 1-D arrays, so that
 
  $x = xvals(10,10)+10*yvals(10,10);
- $b = $x->index(3);
+ $y = $x->index(3);
  $c = $x->index(9-xvals(10));
 
-puts a single column from C<$x> into C<$b>, and puts a single element
+puts a single column from C<$x> into C<$y>, and puts a single element
 from each column of C<$x> into C<$c>.  If you want to extract multiple
 columns from an array in one operation, see L<dice|/dice> or
 L<indexND|/indexND>.
@@ -1205,7 +1205,7 @@ pp_def(
         Pars=>'indx a(n); b(n); [o]c(m);',
         PMCode =><<'EOD',
 sub PDL::rld {
-  my ($x,$b) = @_;
+  my ($x,$y) = @_;
   my ($c);
   if ($#_ == 2) {
     $c = $_[2];
@@ -1214,9 +1214,9 @@ sub PDL::rld {
     my ($size) = $x->sumover->max;
     my (@dims) = $x->dims;
     shift @dims;
-    $c = $b->zeroes($size,@dims);
+    $c = $y->zeroes($size,@dims);
   }
-  &PDL::_rld_int($x,$b,$c);
+  &PDL::_rld_int($x,$y,$c);
   $c;
 }
 EOD
@@ -1236,12 +1236,12 @@ EOD
 
 Run-length decode a vector
 
-Given a vector C<$a> of the numbers of instances of values C<$b>, run-length
+Given a vector C<$x> of the numbers of instances of values C<$y>, run-length
 decode to C<$c>.
 
 =for example
 
- rld($x,$b,$c=null);
+ rld($x,$y,$c=null);
 
 =cut
 
@@ -1259,11 +1259,11 @@ pp_def(
         PMCode=><<'EOC',
 sub PDL::rle {
   my $c = shift;
-  my ($x,$b) = @_==2 ? @_ : (null,null);
-  &PDL::_rle_int($c,$x,$b);
+  my ($x,$y) = @_==2 ? @_ : (null,null);
+  &PDL::_rle_int($c,$x,$y);
   my $max_ind = ($c->ndims<2) ? ($x!=0)->sumover-1 :
                                 ($x!=0)->clump(1..$x->ndims-1)->sumover->max-1;
-  return ($x->slice("0:$max_ind"),$b->slice("0:$max_ind"));
+  return ($x->slice("0:$max_ind"),$y->slice("0:$max_ind"));
 }
 EOC
         Code=>'
@@ -1293,7 +1293,7 @@ EOC
 Run-length encode a vector
 
 Given vector C<$c>, generate a vector C<$a> with the number of each
-element, and a vector C<$b> of the unique values.  New in PDL 2.017,
+element, and a vector C<$y> of the unique values.  New in PDL 2.017,
 only the elements up to the first instance of C<0> in C<$a> are
 returned, which makes the common use case of a 1-dimensional C<$c> simpler.
 For threaded operation, C<$a> and C<$b> will be large enough
@@ -1303,17 +1303,17 @@ first instance of C<0> in each row of C<$a> should be considered.
 =for example
 
  $c = floor(4*random(10));
- rle($c,$x=null,$b=null);
+ rle($c,$x=null,$y=null);
  #or
- ($x,$b) = rle($c);
+ ($x,$y) = rle($c);
 
  #for $c of shape [10, 4]:
  $c = floor(4*random(10,4));
- ($x,$b) = rle($c);
+ ($x,$y) = rle($c);
 
  #to see the results of each row one at a time:
  foreach (0..$c->dim(1)-1){
-  my ($as,$bs) = ($x(:,($_)),$b(:,($_)));
+  my ($as,$bs) = ($x(:,($_)),$y(:,($_)));
   my ($ta,$tb) = where($as,$bs,$as!=0); #only the non-zero elements of $x
   print $c(:,($_)) . " rle==> " , ($ta,$tb) , "\trld==> " . rld($ta,$tb) . "\n";
  }
@@ -1450,12 +1450,12 @@ The command
 
 =for example
 
- $b = $x->xchg(2,3);
+ $y = $x->xchg(2,3);
 
-creates C<$b> to be like C<$x> except that the dimensions 2 and 3
+creates C<$y> to be like C<$x> except that the dimensions 2 and 3
 are exchanged with each other i.e.
 
- $b->at(5,3,2,8) == $x->at(5,3,8,2)
+ $y->at(5,3,2,8) == $x->at(5,3,8,2)
 
 =cut
 
@@ -1628,12 +1628,12 @@ The command
 
 =for example
 
- $b = $x->mv(4,1);
+ $y = $x->mv(4,1);
 
-creates C<$b> to be like C<$x> except that the dimension 4 is moved to the
+creates C<$y> to be like C<$x> except that the dimension 4 is moved to the
 place 1, so:
 
- $b->at(1,2,3,4,5,6) == $x->at(1,5,2,3,4,6);
+ $y->at(1,2,3,4,5,6) == $x->at(1,5,2,3,4,6);
 
 The other dimensions are moved accordingly.
 Negative dimension indices count from the end.
@@ -2156,10 +2156,10 @@ C<(5,3,5,4,6,5)> then after
 
 =for example
 
- $b = $x->diagonal(0,2,5);
+ $y = $x->diagonal(0,2,5);
 
-the piddle C<$b> has dimensions C<(5,3,4,6)> and
-C<$b-E<gt>at(2,1,0,1)> refers
+the piddle C<$y> has dimensions C<(5,3,4,6)> and
+C<$y-E<gt>at(2,1,0,1)> refers
 to C<$x-E<gt>at(2,1,2,0,1,2)>.
 
 NOTE: diagonal doesn't handle threadids correctly. XXX FIX
@@ -2191,7 +2191,7 @@ then
 
 =for example
 
- $b = $x->lags(0,2,2);
+ $y = $x->lags(0,2,2);
 
 is a (5,2) matrix
 
@@ -2260,11 +2260,11 @@ After
 
 =for example
 
- $b = $x->splitdim(2,3);
+ $y = $x->splitdim(2,3);
 
 the expression
 
- $b->at(6,4,x,y,3,6) == $x->at(6,4,x+3*y)
+ $y->at(6,4,x,y,3,6) == $x->at(6,4,x+3*y)
 
 is always true (C<x> has to be less than 3).
 =cut
@@ -2363,7 +2363,7 @@ Put some dimensions to a threadid.
 
 =for example
 
- $b = $x->threadI(0,1,5); # thread over dims 1,5 in id 1
+ $y = $x->threadI(0,1,5); # thread over dims 1,5 in id 1
 
 =cut
 

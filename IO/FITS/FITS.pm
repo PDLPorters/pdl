@@ -1678,7 +1678,7 @@ the list are stringified before being written.  For example, if you
 pass in a perl list of 7 PDLs, each PDL will be stringified before
 being written, just as if you printed it to the screen.  This is
 probably not what you want -- you should use L<glue|glue> to connect 
-the separate PDLs into a single one.  (e.g. C<$x-E<gt>glue(1,$b,$c)-E<gt>mv(1,0)>)
+the separate PDLs into a single one.  (e.g. C<$x-E<gt>glue(1,$y,$c)-E<gt>mv(1,0)>)
 
 The column names are case-insensitive, but by convention the keys of
 C<$hash> should normally be ALL CAPS, containing only digits, capital
@@ -1727,8 +1727,8 @@ other fields are passed into the final FITS header verbatim.
 As an example, the following
 
   $x = long(1,2,4);
-  $b = double(1,2,4);
-  wfits { 'COLA'=>$x, 'COLB'=>$b }, "table1.fits";
+  $y = double(1,2,4);
+  wfits { 'COLA'=>$x, 'COLB'=>$y }, "table1.fits";
 
 will create a binary FITS table called F<table1.fits> which
 contains two columns called C<COLA> and C<COLB>. The order
@@ -1736,7 +1736,7 @@ of the columns is controlled by setting the C<TTYPEn>
 keywords in the header array, so 
 
   $h = { 'TTYPE1'=>'Y', 'TTYPE2'=>'X' };
-  wfits { 'X'=>$x, 'Y'=>$b, hdr=>$h }, "table2.fits";
+  wfits { 'X'=>$x, 'Y'=>$y, hdr=>$h }, "table2.fits";
 
 creates F<table2.fits> where the first column is
 called C<Y> and the second column is C<X>.
@@ -1858,17 +1858,17 @@ sub wheader ($$) {
 #
 sub PDL::wfits {
   barf 'Usage: wfits($pdl,$file,[$BITPIX],[{options}])' if $#_<1 || $#_>3;
-  my ($pdl,$file,$x,$b) = @_;
+  my ($pdl,$file,$x,$y) = @_;
   my ($opt, $BITPIX);
 
   local $\ = undef;  # fix sf.net bug #3394327 
 
   if(ref $x eq 'HASH') {
       $x = $opt;
-      $BITPIX = $b;
-  } elsif(ref $b eq 'HASH') {
+      $BITPIX = $y;
+  } elsif(ref $y eq 'HASH') {
       $BITPIX = $x;
-      $opt = $b;
+      $opt = $y;
   }
 
   my ($k, $buff, $off, $ndims, $sz);

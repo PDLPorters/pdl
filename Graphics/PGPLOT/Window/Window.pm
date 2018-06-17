@@ -7,8 +7,8 @@ PDL::Graphics::PGPLOT::Window - A OO interface to PGPLOT windows
  pdl> use PDL::Graphics::PGPLOT::Window
  pdl> $win = pgwin(Device => '/xs');
  pdl> $x = pdl [1..100]
- pdl> $b = sqrt($x)
- pdl> $win->line($b)
+ pdl> $y = sqrt($x)
+ pdl> $win->line($y)
  pdl> $win->hold()
  pdl> $c = sin($x/10)*2 + 4
  pdl> $win->line($c)
@@ -1868,8 +1868,8 @@ Display 2 images as a vector field
 
 =for usage
 
- Usage: vect ( $w, $x, $b, [$scale, $pos, $transform, $misval], { opt } );
-        $w->vect($x,$b,[$scale,$pos,$transform,$misval], { opt });
+ Usage: vect ( $w, $x, $y, [$scale, $pos, $transform, $misval], { opt } );
+        $w->vect($x,$y,[$scale,$pos,$transform,$misval], { opt });
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
@@ -1877,7 +1877,7 @@ fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 This routine will plot a vector field. C<$x> is the horizontal component
-and C<$b> the vertical component.  The scale factor converts between
+and C<$y> the vertical component.  The scale factor converts between
 vector length units and scientific positional units.  You can set the
 scale, position, etc. either by passing in parameters in the normal parameter
 list or by passing in options.
@@ -1900,8 +1900,8 @@ The following standard options influence this command:
 =for example
 
  $x=rvals(11,11,{Centre=>[5,5]});
- $b=rvals(11,11,{Centre=>[0,0]});
- vect $x, $b, {COLOR=>YELLOW, ARROWSIZE=>0.5, LINESTYLE=>dashed};
+ $y=rvals(11,11,{Centre=>[0,0]});
+ vect $x, $y, {COLOR=>YELLOW, ARROWSIZE=>0.5, LINESTYLE=>dashed};
 
 =head2 fits_vect
 
@@ -1911,7 +1911,7 @@ Display a pair of 2-D piddles as vectors, with FITS header interpretation
 
 =for usage
 
- Usage: fits_vect ($x, $b, [$scale, $pos, $transform, $misval] )
+ Usage: fits_vect ($x, $y, [$scale, $pos, $transform, $misval] )
 
 C<fits_vect> is to L<vect|/vect> as L<fits_imag|/fits_imag> is to L<imag|imag>.
 

@@ -75,8 +75,8 @@ at first.  Here are some examples of transforms in action:
    $w->imag($x);
 
    ## Grow m51 by a factor of 3; origin is at lower left.
-   $b = $ts->map($x,{pix=>1});    # pix option uses direct pixel coord system
-   $w->imag($b);
+   $y = $ts->map($x,{pix=>1});    # pix option uses direct pixel coord system
+   $w->imag($y);
 
    ## Shrink m51 by a factor of 3; origin still at lower left.
    $c = $ts->unmap($x, {pix=>1});
@@ -1263,9 +1263,9 @@ pp_def('map',
 
 =for usage
 
-  $b = $x->match($c);                  # Match $c's header and size
-  $b = $x->match([100,200]);           # Rescale to 100x200 pixels
-  $b = $x->match([100,200],{rect=>1}); # Rescale and remove rotation/skew.
+  $y = $x->match($c);                  # Match $c's header and size
+  $y = $x->match([100,200]);           # Rescale to 100x200 pixels
+  $y = $x->match([100,200],{rect=>1}); # Rescale and remove rotation/skew.
 
 =for ref
 
@@ -1273,7 +1273,7 @@ Resample a scientific image to the same coordinate system as another.
 
 The example above is syntactic sugar for
 
- $b = $x->map(t_identity, $c, ...);
+ $y = $x->map(t_identity, $c, ...);
 
 it resamples the input PDL with the identity transformation in
 scientific coordinates, and matches the pixel coordinate system to
@@ -1290,8 +1290,8 @@ transform.
 
 =for usage
 
-  $b = $x->map($xform,[<template>],[\%opt]); # Distort $x with transform $xform
-  $b = $x->map(t_identity,[$pdl],[\%opt]); # rescale $x to match $pdl's dims.
+  $y = $x->map($xform,[<template>],[\%opt]); # Distort $x with transform $xform
+  $y = $x->map(t_identity,[$pdl],[\%opt]); # rescale $x to match $pdl's dims.
 
 =for ref
 
@@ -2273,9 +2273,9 @@ pp_addpm(<<'+======EOD_t_wrap======');
 Shift a transform into a different space by 'wrapping' it with a second.
 
 This is just a convenience function for two
-L<t_compose|/t_compose> calls. C<< $x->wrap($b) >> is the same as
-C<(!$b) x $x x $b>: the resulting transform first hits the data with
-$b, then with $x, then with the inverse of $b.
+L<t_compose|/t_compose> calls. C<< $x->wrap($y) >> is the same as
+C<(!$y) x $x x $y>: the resulting transform first hits the data with
+$y, then with $x, then with the inverse of $y.
 
 For example, to shift the origin of rotation, do this:
 
@@ -2302,26 +2302,26 @@ sub wrap {
 
 # Composition operator -- handles 'x'.
 sub _compose_op {
-    my($x,$b,$c) = @_;
-    $c ? compose($b,$x) : compose($x,$b);
+    my($x,$y,$c) = @_;
+    $c ? compose($y,$x) : compose($x,$y);
 }
 
 # Raise-to-power operator -- handles '**'.
 
 sub _pow_op {
-    my($x,$b,$c) = @_;
+    my($x,$y,$c) = @_;
 
     barf("%s", "Can't raise anything to the power of a transform")
-        if($c || UNIVERSAL::isa($b,'PDL::Transform')) ;
+        if($c || UNIVERSAL::isa($y,'PDL::Transform')) ;
 
     $x = $x->inverse
-        if($b < 0);
+        if($y < 0);
 
-    return $x if(abs($b) == 1);
-    return new PDL::Transform if(abs($b) == 0);
+    return $x if(abs($y) == 1);
+    return new PDL::Transform if(abs($y) == 0);
 
     my(@l);
-    for my $i(1..abs($b)) {
+    for my $i(1..abs($y)) {
         push(@l,$x);
     }
 
@@ -2454,13 +2454,13 @@ To scale logarithmically the Y axis of m51, try:
   $x = float rfits('m51.fits');
   $lookup = xvals(128,128) -> cat( 10**(yvals(128,128)/50) * 256/10**2.55 );
   $t = t_lookup($lookup);
-  $b = $t->map($x);
+  $y = $t->map($x);
 
 To do the same thing but with a smaller lookup table, try:
 
   $lookup = 16 * xvals(17,17)->cat(10**(yvals(17,17)/(100/16)) * 16/10**2.55);
   $t = t_lookup($lookup,{scale=>1/16.0});
-  $b = $t->map($x);
+  $y = $t->map($x);
 
 (Notice that, although the lookup table coordinates are is divided by 16,
 it is a 17x17 -- so linear interpolation works right to the edge of the original
@@ -2980,10 +2980,10 @@ amount.  It acts exactly the same as C<t_linear(Scale=>\<scale\>)>.
 
 sub t_scale {
     my($scale) = shift;
-    my($b) = shift;
-    return t_linear(scale=>$scale,%{$b})
-        if(ref $b eq 'HASH');
-    t_linear(Scale=>$scale,$b,@_);
+    my($y) = shift;
+    return t_linear(scale=>$scale,%{$y})
+        if(ref $y eq 'HASH');
+    t_linear(Scale=>$scale,$y,@_);
 }
 
 +======EOD_t_scale======
@@ -3008,11 +3008,11 @@ It acts exactly the same as C<t_linear(Pre=>\<shift\>)>.
 
 sub t_offset {
     my($pre) = shift;
-    my($b) = shift;
-    return t_linear(pre=>$pre,%{$b})
-        if(ref $b eq 'HASH');
+    my($y) = shift;
+    return t_linear(pre=>$pre,%{$y})
+        if(ref $y eq 'HASH');
 
-    t_linear(pre=>$pre,$b,@_);
+    t_linear(pre=>$pre,$y,@_);
 }
 
 +======EOD_t_offset ======
@@ -3038,11 +3038,11 @@ N-D (matrix).  It acts exactly the same as C<t_linear(Rot=>\<shift\>)>.
 *t_rot = \&t_rotate;
 sub t_rotate    {
     my $rot = shift;
-    my($b) = shift;
-    return t_linear(rot=>$rot,%{$b})
-        if(ref $b eq 'HASH');
+    my($y) = shift;
+    return t_linear(rot=>$rot,%{$y})
+        if(ref $y eq 'HASH');
 
-    t_linear(rot=>$rot,$b,@_);
+    t_linear(rot=>$rot,$y,@_);
 }
 
 +======EOD_t_rot======
@@ -3405,7 +3405,7 @@ to a diameter in the vertical direction.
   $x = rfits('m51.fits');
   $ts = t_linear(s => [250/2.0/3.14159, 2]); # Scale to fill orig. image
   $tu = t_radial(o => [130,130]);            # Expand around galactic core
-  $b = $x->map($ts x $tu);
+  $y = $x->map($ts x $tu);
 
 Examine radial structure in M51 (conformal):
 Here, we scale the output to stretch 2*pi radians out to the full image width
@@ -3416,7 +3416,7 @@ each piece of the image looks "natural" -- only scaled and not stretched.
   $x = rfits('m51.fits')
   $ts = t_linear(s=> 250/2.0/3.14159);  # Note scalar (heh) scale.
   $tu = t_radial(o=> [130,130], r0=>5); # 5 pix. radius -> bottom of image
-  $b = $ts->compose($tu)->unmap($x);
+  $y = $ts->compose($tu)->unmap($x);
 
 
 =cut

@@ -57,14 +57,14 @@ act q|
 act q|
 	# xvals and yvals (yes, there is also zvals...)
 	# give you piddles which give the coordinate value.
-	$b = xvals $x;
-	output $b;
+	$y = xvals $x;
+	output $y;
 |;
 
 act q|
 	# So you can do things like
-	$b = $x + 0.1 * xvals($x) + 0.01 * yvals($x);
-	output $b;
+	$y = $x + 0.1 * xvals($x) + 0.01 * yvals($x);
+	output $y;
 |;
 
 act q|
@@ -76,41 +76,41 @@ act q|
 
 act q|
 	# You can also take slices:
-	output $b;
-	output $b->slice(":,2:3");  # rows 2 and 3
+	output $y;
+	output $y->slice(":,2:3");  # rows 2 and 3
 |;
 act q|
-	output $b->slice("2:3,:");  # or columns 2 and 3
+	output $y->slice("2:3,:");  # or columns 2 and 3
 |;
 
 act q|
-	output $b;
-	output $b->diagonal(0,1),"\n"; # 0 and 1 are the dimensions
+	output $y;
+	output $y->diagonal(0,1),"\n"; # 0 and 1 are the dimensions
 |;
 
 act q|
 	# One of the really nifty features is that the
 	# slices are actually references back to the original
 	# piddle:
-	$diag = $b->diagonal(0,1);
-	output $b;
+	$diag = $y->diagonal(0,1);
+	output $y;
 	output $diag,"\n";
 	$diag+=100;
 	output "AFTER:\n";
 	output $diag,"\n";
-	output "Now, guess what \$b looks like?\n";
+	output "Now, guess what \$y looks like?\n";
 |;
 
 act q|
 	# Yes, it has changed:
-	output $b;
+	output $y;
 |;
 
 act q|
 	# Another example (we only modify elements 0,2 and 4 of
         # each row):
-	$t = $b->slice("0:4:2"); $t += 50;
-	output $b;
+	$t = $y->slice("0:4:2"); $t += 50;
+	output $y;
 |;
 
 act q|
@@ -118,19 +118,19 @@ act q|
 	# and PDL::Slices - we can't show you all but here are some
 	# examples:
 
-	output $b;
-	output $b->sum, "\n";
-	output $b->sumover,"\n"; # Only over first dim.
+	output $y;
+	output $y->sum, "\n";
+	output $y->sumover,"\n"; # Only over first dim.
 |;
 
 act q|
-	output $b->xchg(0,1);
-	output $b->minimum,"\n"; # over first dim.
-	output $b->min,"\n";
+	output $y->xchg(0,1);
+	output $y->minimum,"\n"; # over first dim.
+	output $y->min,"\n";
 |;
 
 act q|
-	output $b->random;
+	output $y->random;
 |;
 
 act q|

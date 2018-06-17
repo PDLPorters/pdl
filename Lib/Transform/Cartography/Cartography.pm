@@ -530,16 +530,16 @@ it is probably not worth the computational overhead.
 sub clean_lines {
     my($lines) = shift;
     my($x) = shift;
-    my($b) = shift;
+    my($y) = shift;
     my($l,$p,$th);
 
     $th = 0.1;
 
-    if(defined($b)) {
+    if(defined($y)) {
 	# separate case with thresh
 	$l = $lines;
 	$p = $x->is_inplace?$x:$x->copy;
-	$th = $b;
+	$th = $y;
     } else {
 	if(!defined($x)) {
 	    # duplex case no thresh
@@ -649,10 +649,10 @@ sub new {
     }
 
     my($l) = _opt($o,['l','L']);
-    my($b) = _opt($o,['b','B']);
+    my($y) = _opt($o,['b','B']);
 
     $or->(0) .= $l if defined($l);
-    $or->(1) .= $b if defined($b);
+    $or->(1) .= $y if defined($y);
 
     my $roll = topdl(_opt($o,['r','roll','Roll','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');
@@ -2871,9 +2871,9 @@ sub t_perspective {
 	## Solve for the X coordinate of the surface.  
 	## This is a quadratic in the tangent-plane coordinates;
 	## so here we just figure out the coefficients and plug into
-	## the quadratic formula.  $b here is actually -B/2.
+	## the quadratic formula.  $y here is actually -B/2.
 	my $a1 = ($oyz * $oyz)->sumover + 1;
-	my $b = ( $o->{sph_origin}->((0)) 
+	my $y = ( $o->{sph_origin}->((0)) 
 		  - ($o->{sph_origin}->(1:2) * $oyz)->sumover
 		  );
 	my $c = topdl($o->{r0}*$o->{r0} - 1);
@@ -2881,10 +2881,10 @@ sub t_perspective {
 	my $x;
 	if($o->{m} == 2) { 
 	    # Exceptional case: mask asks for the far hemisphere
-	    $x = - ( $b - sqrt($b*$b - $a1 * $c) ) / $a1;
+	    $x = - ( $y - sqrt($y*$y - $a1 * $c) ) / $a1;
 	} else {
 	    # normal case: mask asks for the near hemisphere
-	    $x =   - ( $b + sqrt($b*$b - $a1 * $c) ) / $a1;
+	    $x =   - ( $y + sqrt($y*$y - $a1 * $c) ) / $a1;
 	}
 
 	## Assemble the 3-space coordinates of the points

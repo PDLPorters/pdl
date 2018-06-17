@@ -22,8 +22,8 @@ unlink $name, $name . '.hdr', $header;	# just to be absolutely sure
 
 # A function that tells us if two piddles are approximately the same
 sub tapprox {
-	my($x,$b) = @_;
-	my $c = abs($x-$b);
+	my($x,$y) = @_;
+	my $c = abs($x-$y);
 	return (max($c) < 0.01);
 }
 
@@ -38,8 +38,8 @@ writefraw($x,$name);
 ok((-f $name and -f ($name . '.hdr')), "Writing should create a file and header file");
 
 # **TEST 3** read it back, and make sure it gives the same piddle
-my $b = readfraw($name);
-ok(tapprox($x,$b), "A piddle and it's saved copy should be about equal");
+my $y = readfraw($name);
+ok(tapprox($x,$y), "A piddle and it's saved copy should be about equal");
 
 # some mapfraw tests
 SKIP:
@@ -58,14 +58,14 @@ SKIP:
 	# **TEST 5** modifications should be saved when $c goes out of scope
 	$c += 1;
 	undef $c;
-	$b = readfraw($name);
-	ok(tapprox($x+1,$b), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
+	$y = readfraw($name);
+	ok(tapprox($x+1,$y), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
 	
 	# We're starting a new test, so we'll remove the files we've created so far
 	# and clean up the memory, just to be super-safe
 	unlink $name, $name . '.hdr';
 	undef $x;
-	undef $b;
+	undef $y;
 	
 	# **TEST 6** test creating a pdl via mapfraw
 	# First create and modify the piddle
@@ -75,18 +75,18 @@ SKIP:
 	# save the contents
 	undef $x;
 	# Load it back up and see if the values are what we expect
-	$b = readfraw($name);
-	ok(tapprox($b, PDL->pdl([[0,1,2],[0.1,1.1,2.1]])),
+	$y = readfraw($name);
+	ok(tapprox($y, PDL->pdl([[0,1,2],[0.1,1.1,2.1]])),
 		"mapfraw should be able to create new piddles");
 	
 	# **TEST 7** test the created type
-	ok($b->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
+	ok($y->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
 }
 
 # Clean things up a bit
 unlink $name, $name . '.hdr', $header;
 undef $x;
-undef $b;
+undef $y;
 
 # Test the file header options:
 
@@ -96,8 +96,8 @@ writefraw($x,$name,{Header => $header});
 ok(-f $header, "writefraw should create the special header file when specified");
 
 # **TEST 9** test the use of a custom header for reading
-$b = readfraw($name,{Header => $header});
-ok(tapprox($x,$b), "Should be able to read given a specified header");
+$y = readfraw($name,{Header => $header});
+ok(tapprox($x,$y), "Should be able to read given a specified header");
 
 # mapfraw custom header tests
 SKIP: 

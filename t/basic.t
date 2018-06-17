@@ -10,8 +10,8 @@ BEGIN {
 use PDL::LiteF;
 
 sub tapprox {
-    my($x,$b) = @_;
-    my $d = max( abs($x-$b) );
+    my($x,$y) = @_;
+    my $d = max( abs($x-$y) );
     $d < 1.0e-6;
 }
 

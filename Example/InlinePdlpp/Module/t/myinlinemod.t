@@ -20,10 +20,10 @@ print "ok 1\n";
 
 use PDL::LiteF;
 my $x = zeroes 10;
-my $b = $x->myinc;
-print "$b\n";
+my $y = $x->myinc;
+print "$y\n";
 
-print 'not ' unless all $b == 1;
+print 'not ' unless all $y == 1;
 print "ok 2\n";
 
 my $c = $x->plus2;

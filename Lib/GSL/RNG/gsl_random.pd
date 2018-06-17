@@ -25,7 +25,7 @@ in the GNU Scientific Library.
 
    $rng->get_uniform($x); # inplace
 
-   $b=$rng->get_uniform(3,4,5); # creates new pdl
+   $y=$rng->get_uniform(3,4,5); # creates new pdl
 
 =head1 FUNCTIONS
 
@@ -444,14 +444,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the beta distribution with parameters C<$x> and C<$b>.
+Fills output piddle with random variates from the beta distribution with parameters C<$x> and C<$y>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_beta($x,$b,[list of integers = output piddle dims]);
-   $rng->ran_beta($x,$b,$output_piddle);
+   $piddle = $rng->ran_beta($x,$y,[list of integers = output piddle dims]);
+   $rng->ran_beta($x,$y,$output_piddle);
 
 =head2 ran_beta_var
 
@@ -577,7 +577,7 @@ Usage:
 =for ref
 
 Fills output piddle with random variates from the exponential power distribution with scale
-parameter C<$x> and exponent C<$b>.
+parameter C<$x> and exponent C<$y>.
 
 Usage:
 
@@ -630,14 +630,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the flat (uniform) distribution from C<$x> to C<$b>.
+Fills output piddle with random variates from the flat (uniform) distribution from C<$x> to C<$y>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_flat($x,$b,[list of integers = output piddle dims]);
-   $rng->ran_flat($x,$b,$output_piddle);
+   $piddle = $rng->ran_flat($x,$y,[list of integers = output piddle dims]);
+   $rng->ran_flat($x,$y,$output_piddle);
 
 =head2 ran_flat_var
 
@@ -662,8 +662,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gamma($x,$b,[list of integers = output piddle dims]);
-   $rng->ran_gamma($x,$b,$output_piddle);
+   $piddle = $rng->ran_gamma($x,$y,[list of integers = output piddle dims]);
+   $rng->ran_gamma($x,$y,$output_piddle);
 
 =head2 ran_gamma_var
 
@@ -715,8 +715,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel1($x,$b,[list of integers = output piddle dims]);
-   $rng->ran_gumbel1($x,$b,$output_piddle);
+   $piddle = $rng->ran_gumbel1($x,$y,[list of integers = output piddle dims]);
+   $rng->ran_gumbel1($x,$y,$output_piddle);
 
 =head2 ran_gumbel1_var
 
@@ -741,8 +741,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel2($x,$b,[list of integers = output piddle dims]);
-   $rng->ran_gumbel2($x,$b,$output_piddle);
+   $piddle = $rng->ran_gumbel2($x,$y,[list of integers = output piddle dims]);
+   $rng->ran_gumbel2($x,$y,$output_piddle);
 
 =head2 ran_gumbel2_var
 
@@ -952,14 +952,14 @@ Usage:
 =for ref
 
 Fills output piddle with random variates from the Pareto distribution of
-order C<$x> and scale C<$b>.
+order C<$x> and scale C<$y>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_pareto($x,$b,[list of integers = output piddle dims]);
-   $rng->ran_pareto($x,$b,$output_piddle);
+   $piddle = $rng->ran_pareto($x,$y,[list of integers = output piddle dims]);
+   $rng->ran_pareto($x,$y,$output_piddle);
 
 =head2 ran_pareto_var
 

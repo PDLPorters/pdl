@@ -135,10 +135,10 @@ sub _ext_lastD {                           # Called by rcols and rgrep
       my @nold   = $x->dims;
       my @nnew   = @nold;
       $nnew[-1] += $n;                      # add $n to the last dimension
-      my $b      = zeroes($x->type,@nnew);  # New pdl
-      my $bb     = $b->mv(-1,0)->slice("0:".($nold[-1]-1))->mv(0,-1);
+      my $y      = zeroes($x->type,@nnew);  # New pdl
+      my $bb     = $y->mv(-1,0)->slice("0:".($nold[-1]-1))->mv(0,-1);
       $bb       .= $x;
-      $_[0]      = $b;
+      $_[0]      = $y;
    }
    1;
 }
@@ -453,12 +453,12 @@ my ( @explicit_cols )  = @_;  # call specified columns to read
 
 # work out which line numbers are required
 # - the regexp's are a bit over the top
-my ( $x, $b, $c );
+my ( $x, $y, $c );
 if ( $$options{LINES} ne '' ) {
    if ( $$options{LINES} =~ /^\s*([+-]?\d*)\s*:\s*([+-]?\d*)\s*$/ ) {
-      $x = $1; $b = $2;
+      $x = $1; $y = $2;
    } elsif ( $$options{LINES} =~ /^\s*([+-]?\d*)\s*:\s*([+-]?\d*)\s*:\s*([+]?\d*)\s*$/ ) {
-      $x = $1; $b = $2; $c = $3;
+      $x = $1; $y = $2; $c = $3;
    } else {
       barf "rcols() - unable to parse LINES option.\n";
    }
@@ -467,7 +467,7 @@ if ( $$options{LINES} ne '' ) {
 # Since we do not know how many lines there are in advance, things get a bit messy
 my ( $index_start, $index_end ) = ( 0, -1 );
 $index_start  = $x if defined($x) and $x ne '';
-$index_end    = $b if defined($b) and $b ne '';
+$index_end    = $y if defined($y) and $y ne '';
 my $line_step = $c || 1;
 
 # $line_rev = 0/1 for normal order/reversed
@@ -817,20 +817,20 @@ e.g.,
   wcols $x, $y+2, *STDERR;
   wcols $x, $y+2, '|wc';
 
-  $x = sequence(3); $b = zeros(3); $c = random(3);
-  wcols $x,$b,$c; # Orthogonal version of 'print $x,$b,$c' :-)
+  $x = sequence(3); $y = zeros(3); $c = random(3);
+  wcols $x,$y,$c; # Orthogonal version of 'print $x,$y,$c' :-)
 
-  wcols "%10.3f", $x,$b; # Formatted
-  wcols "%10.3f %10.5g", $x,$b; # Individual column formatting
+  wcols "%10.3f", $x,$y; # Formatted
+  wcols "%10.3f %10.5g", $x,$y; # Individual column formatting
 
-  $x = sequence(3); $b = zeros(3); $units = [ 'm/sec', 'kg', 'MPH' ];
-  wcols $x,$b, { HEADER => "#   a   b" };
-  wcols $x,$b, { Header => "#   a   b", Colsep => ', ' };  # case insensitive option names!
-  wcols " %4.1f  %4.1f  %s",$x,$b,$units, { header => "# Day  Time  Units" };
+  $x = sequence(3); $y = zeros(3); $units = [ 'm/sec', 'kg', 'MPH' ];
+  wcols $x,$y, { HEADER => "#   a   b" };
+  wcols $x,$y, { Header => "#   a   b", Colsep => ', ' };  # case insensitive option names!
+  wcols " %4.1f  %4.1f  %s",$x,$y,$units, { header => "# Day  Time  Units" };
 
-  $a52 = sequence(5,2); $b = ones(5); $c = [ 1, 2, 4 ];
+  $a52 = sequence(5,2); $y = ones(5); $c = [ 1, 2, 4 ];
   wcols $a52;         # now can write out 2D pdls (2 columns data in output)
-  wcols $b, $a52, $c  # ...and mix and match with 1D listrefs as well
+  wcols $y, $a52, $c  # ...and mix and match with 1D listrefs as well
 
   NOTES:
 
@@ -1079,9 +1079,9 @@ e.g.
 
 =for example
 
- ($x,$b) = rgrep {/Foo (.*) Bar (.*) Mumble/} $file;
+ ($x,$y) = rgrep {/Foo (.*) Bar (.*) Mumble/} $file;
 
-i.e. the vectors C<$x> and C<$b> get the progressive values
+i.e. the vectors C<$x> and C<$y> get the progressive values
 of C<$1>, C<$2> etc.
 
 =cut

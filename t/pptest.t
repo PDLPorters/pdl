@@ -169,40 +169,41 @@ BEGIN {
 
 # Is there any good reason we don't use PDL's approx function?
 sub tapprox {
-    my($x,$b) = @_;
-    my $c = abs($x-$b);
+    my($x,$y) = @_;
+    my $c = abs($x-$y);
     my $d = max($c);
     return $d < 0.01;
 }
 
 my $x = xvals(zeroes(byte, 2, 4));
+my $y;
 
 # $P() affine tests
-test_foop($x,($b=null));
-ok( tapprox($x,$b) )
-  or diag $b;
+test_foop($x,($y=null));
+ok( tapprox($x,$y) )
+  or diag $y;
 
-test_foop($x->xchg(0,1),($b=null));
-ok( tapprox($x->xchg(0,1),$b) )
-  or diag $b;
+test_foop($x->xchg(0,1),($y=null));
+ok( tapprox($x->xchg(0,1),$y) )
+  or diag $y;
 
 my $vaff = $x->dummy(2,3)->xchg(1,2);
-test_foop($vaff,($b=null));
-ok( tapprox($vaff,$b) )
+test_foop($vaff,($y=null));
+ok( tapprox($vaff,$y) )
   or diag ($vaff, $vaff->dump);
 
 # float qualifier
 $x = ones(byte,3000);
-test_fsumover($x,($b=null));
-is( $b->get_datatype, $PDL_F );
-is( $b->at, 3000 );
+test_fsumover($x,($y=null));
+is( $y->get_datatype, $PDL_F );
+is( $y->at, 3000 );
 
 # int+ qualifier
 for (byte,short,ushort,long,float,double) {
   $x = ones($_,3000);
-  test_nsumover($x,($b=null));
-  is( $b->get_datatype, (($PDL_L > $_->[0]) ? $PDL_L : $_->[0]) );
-  is( $b->at, 3000 );
+  test_nsumover($x,($y=null));
+  is( $y->get_datatype, (($PDL_L > $_->[0]) ? $PDL_L : $_->[0]) );
+  is( $y->at, 3000 );
 }
 
 test_setdim(($x=null),10);
@@ -213,11 +214,11 @@ ok( tapprox($x,sequence(10)) );
 { no warnings 'uninitialized';
   my $ny=7;
   $x = double xvals zeroes (20,$ny);
-  test_fooseg $x, $b=null;
+  test_fooseg $x, $y=null;
 
   ok( 1 );  # if we get here at all that is alright
-  ok( tapprox($x,$b) )
-    or diag($x, "\n", $b);
+  ok( tapprox($x,$y) )
+    or diag($x, "\n", $y);
 }
 
 # test the bug alluded to in the comments in

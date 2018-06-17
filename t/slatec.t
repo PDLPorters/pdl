@@ -23,10 +23,10 @@ BEGIN {
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub tapprox {
-	my($x,$b,$c,$d) = @_;
-	$c = abs($x-$b);
+	my($x,$y,$c,$d) = @_;
+	$c = abs($x-$y);
 	$d = max($c);
-#	print "APR: $x,$b,$c,$d;\n";
+#	print "APR: $x,$y,$c,$d;\n";
 	$d < 0.001;
 }
 

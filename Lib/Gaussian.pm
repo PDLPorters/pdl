@@ -22,10 +22,10 @@ is in and I<gdimslist> is a reference to an array containing
 the dimensionality of the gaussian space. For example, after
 
  $x = new PDL::Gaussian([2],[3,4]);
- $b = new PDL::Gaussian([],[]);
+ $y = new PDL::Gaussian([],[]);
 
 The variable C<$x> contains set of 12 (=C<3*4>) 2-Dimensional gaussians
-and C<$b> is the simplest form: one 1D gaussian.
+and C<$y> is the simplest form: one 1D gaussian.
 Currently, I<xdims> may containe either zero or one dimensions
 due to limitations of L<PDL::PP|PDL::PP>.
 

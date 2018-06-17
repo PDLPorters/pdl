@@ -111,8 +111,8 @@ act q|
     print( "Bad flag (a) == ", $x->badflag(), "\n" );
 
     # note the bad flag is infectious
-    $b = 2 * $x;
-    print( "Bad flag (b) == ", $b->badflag(), "\n\n" );
+    $y = 2 * $x;
+    print( "Bad flag (b) == ", $y->badflag(), "\n\n" );
 
 |;
 
@@ -126,7 +126,7 @@ act q|
     print "   Type   Dimension        State          Mem\n";
     print "-------------------------------------------------\n";
     print "a ", $x->info("%-6T %-15D   %-5S  %12M"), "\n";
-    print "b ", $b->info("%-6T %-15D   %-5S  %12M"), "\n";
+    print "b ", $y->info("%-6T %-15D   %-5S  %12M"), "\n";
     print "c ", $c->info("%-6T %-15D   %-5S  %12M"), "\n\n";
 |;
 
@@ -138,8 +138,8 @@ act q|
 
     # now print out
     print "Some bad values: $x\n";
-    print "b contains:      $b\n";
-    $c = $x + $b;
+    print "b contains:      $y\n";
+    $c = $x + $y;
     print "so a + b =       $c\n\n";
 
 |;
@@ -174,11 +174,11 @@ act q|
     # are also changed:
     $x = sequence( byte, 2, 3 );
     $x = $x->setbadif( $x == 3 );
-    $b = $x->slice("(1),:");
-    print "b = $b\tbadflag = ", $b->badflag, "\n";
+    $y = $x->slice("(1),:");
+    print "b = $y\tbadflag = ", $y->badflag, "\n";
 
     $x->inplace->setbadtoval(3);
-    print "b = $b\tbadflag = ", $b->badflag, "\n\n";
+    print "b = $y\tbadflag = ", $y->badflag, "\n\n";
 
 |;
 

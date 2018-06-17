@@ -19,8 +19,8 @@ BEGIN {
 $| = 1;
 
 sub tapprox ($$) {
-    my ( $x, $b ) = @_;
-    my $d = abs( $x - $b );
+    my ( $x, $y ) = @_;
+    my $d = abs( $x - $y );
     print "diff = [$d]\n";
     return $d <= 0.0001;
 }
@@ -60,21 +60,21 @@ eval 'my $d_dbl = $a_dbl->reshape(0,-3);';
 like $@, qr/invalid dim size/, "reshape() failed with negative args (dbl)";
 
 # test reshape with no args
-my ( $x, $b, $c );
+my ( $x, $y, $c );
 
 $x = ones 3,1,4;
-$b = $x->reshape;
-ok eq_array( [ $b->dims ], [3,4] ), "reshape()";
+$y = $x->reshape;
+ok eq_array( [ $y->dims ], [3,4] ), "reshape()";
 
 # test reshape(-1) and squeeze
 $x = ones 3,1,4;
-$b = $x->reshape(-1);
+$y = $x->reshape(-1);
 $c = $x->squeeze;
-ok eq_array( [ $b->dims ], [3,4] ), "reshape(-1)";
-ok all( $b == $c ), "squeeze";
+ok eq_array( [ $y->dims ], [3,4] ), "reshape(-1)";
+ok all( $y == $c ), "squeeze";
 
 $c++; # check dataflow in reshaped PDL
-ok all( $b == $c ), "dataflow"; # should flow back to b
+ok all( $y == $c ), "dataflow"; # should flow back to b
 ok all( $x == 2 ), "dataflow";
 
 our $d = pdl(5); # zero dim piddle and reshape/squeeze
@@ -105,25 +105,25 @@ ok (($x->nelem == 3  and  all($x == pdl(1,2,3))), "topdl(1,2,3) returns a 3-pidd
 is $PDL::undefval, 0, "default value of $PDL::undefval is 0";
 
 $x = [ [ 2, undef ], [3, 4 ] ];
-$b = pdl( $x );
+$y = pdl( $x );
 $c = pdl( [ 2, 0, 3, 4 ] )->reshape(2,2);
-ok all( $b == $c ), "undef converted to 0 (dbl)";
+ok all( $y == $c ), "undef converted to 0 (dbl)";
 ok eq_array( $x, [[2,undef],[3,4]] ), "pdl() has not changed input array";
 
-$b = pdl( long, $x );
+$y = pdl( long, $x );
 $c = pdl( long, [ 2, 0, 3, 4 ] )->reshape(2,2);
-ok all( $b == $c ), "undef converted to 0 (long)";
+ok all( $y == $c ), "undef converted to 0 (long)";
 
 do {
     local($PDL::undefval) = -999;
     $x = [ [ 2, undef ], [3, 4 ] ];
-    $b = pdl( $x );
+    $y = pdl( $x );
     $c = pdl( [ 2, -999, 3, 4 ] )->reshape(2,2);
-    ok all( $b == $c ), "undef converted to -999 (dbl)";
+    ok all( $y == $c ), "undef converted to -999 (dbl)";
 
-    $b = pdl( long, $x );
+    $y = pdl( long, $x );
     $c = pdl( long, [ 2, -999, 3, 4 ] )->reshape(2,2);
-    ok all( $b == $c ), "undef converted to -999 (long)";
+    ok all( $y == $c ), "undef converted to -999 (long)";
 } while(0);
 
 ##############
@@ -160,19 +160,19 @@ do {
 eval {$x = zeroes(2,0,1);};
 ok(!$@,"zeroes accepts empty PDL specification");
 
-eval { $b = pdl($x,sequence(2,0,1)); };
-ok((!$@ and all(pdl($b->dims) == pdl(2,0,1,2))), "concatenating two empties gives an empty");
+eval { $y = pdl($x,sequence(2,0,1)); };
+ok((!$@ and all(pdl($y->dims) == pdl(2,0,1,2))), "concatenating two empties gives an empty");
 
-eval { $b = pdl($x,sequence(2,1,1)); };
-ok((!$@ and all(pdl($b->dims) == pdl(2,1,1,2))), "concatenating an empty and a nonempty treats the empty as a filler");
+eval { $y = pdl($x,sequence(2,1,1)); };
+ok((!$@ and all(pdl($y->dims) == pdl(2,1,1,2))), "concatenating an empty and a nonempty treats the empty as a filler");
 
-eval { $b = pdl($x,5) };
-ok((!$@ and all(pdl($b->dims)==pdl(2,1,1,2))), "concatenating an empty and a scalar on the right works");
-ok( all($b==pdl([[[0,0]]],[[[5,0]]])), "concatenating an empty and a scalar on the right gives the right answer");
+eval { $y = pdl($x,5) };
+ok((!$@ and all(pdl($y->dims)==pdl(2,1,1,2))), "concatenating an empty and a scalar on the right works");
+ok( all($y==pdl([[[0,0]]],[[[5,0]]])), "concatenating an empty and a scalar on the right gives the right answer");
 
-eval { $b = pdl(5,$x) };
-ok((!$@ and all(pdl($b->dims)==pdl(2,1,1,2))), "concatenating an empty and a scalar on the left works");
-ok( all($b==pdl([[[5,0]]],[[[0,0]]])), "concatenating an empty and a scalar on the left gives the right answer");
+eval { $y = pdl(5,$x) };
+ok((!$@ and all(pdl($y->dims)==pdl(2,1,1,2))), "concatenating an empty and a scalar on the left works");
+ok( all($y==pdl([[[5,0]]],[[[0,0]]])), "concatenating an empty and a scalar on the left gives the right answer");
 
 # end
 
@@ -226,19 +226,19 @@ map{ ok(all($_==$list[$i]),"cat/dog symmetry for values ($i)"); $i++; }$c2->dog;
 $x = sequence(byte,5);
 
 
-$b = $x->new_or_inplace;
-ok( all($b==$x) && ($b->get_datatype ==  $x->get_datatype), "new_or_inplace with no pref returns something like the orig.");
+$y = $x->new_or_inplace;
+ok( all($y==$x) && ($y->get_datatype ==  $x->get_datatype), "new_or_inplace with no pref returns something like the orig.");
 
-$b++;
-ok(all($b!=$x),"new_or_inplace with no inplace flag returns something disconnected from the orig.");
+$y++;
+ok(all($y!=$x),"new_or_inplace with no inplace flag returns something disconnected from the orig.");
 
-$b = $x->new_or_inplace("float,long");
-ok($b->type eq 'float',"new_or_inplace returns the first type in case of no match");
+$y = $x->new_or_inplace("float,long");
+ok($y->type eq 'float',"new_or_inplace returns the first type in case of no match");
 
-$b = $x->inplace->new_or_inplace;
-$b++;
-ok(all($b==$x),"new_or_inplace returns the original thing if inplace is set");
-ok(!($b->is_inplace),"new_or_inplace clears the inplace flag");
+$y = $x->inplace->new_or_inplace;
+$y++;
+ok(all($y==$x),"new_or_inplace returns the original thing if inplace is set");
+ok(!($y->is_inplace),"new_or_inplace clears the inplace flag");
 
 # check reshape and dims.  While we're at it, check null & empty creation too.
 my $null = null;
@@ -260,7 +260,7 @@ ok(!$@,"reshape succeeded in the normal case");
 ok( ( $x->ndims==2 and $x->dim(0)==2 and $x->dim(1)==2 ), "reshape did the right thing");
 ok(all($x == short pdl([[3,4],[5,6]])), "reshape moved the elements to the right place");
 
-$b = $x->slice(":,:");
-eval { $b->reshape(4); };
+$y = $x->slice(":,:");
+eval { $y->reshape(4); };
 ok( $@ !~ m/Can\'t/, "reshape doesn't fail on a PDL with a parent" );
 

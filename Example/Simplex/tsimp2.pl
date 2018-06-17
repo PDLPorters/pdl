@@ -39,13 +39,13 @@ if ($choice == 1) {
 # this sub returns the function to be minimised.          
                             sub {my ($xv) =@_;
 			        my $x = $xv->slice("(0)"); 
-			        my $b = $xv->slice("(1)");                  
+			        my $y = $xv->slice("(1)");                  
 			        my $c = $xv->slice("(2)");   
 				$count += $x->dim(0);
 				my $sum = $x * 0.0;
 				foreach $j (0..19) {
 				    $sum += ($data[$j] -
-				     $x*exp(-(($j-$b)/$c)**2))**2;
+				     $x*exp(-(($j-$y)/$c)**2))**2;
 				}
                                 return $sum;
 			    });

@@ -134,7 +134,7 @@ act q|
   # Now for a more complicated example.
   # First create some data
   $x=sequence(360)*3.1415/180.;
-  $b=sin($x)*transpose(cos($x));
+  $y=sin($x)*transpose(cos($x));
 
   # Make a piddle with the wanted contours
   $contours=pdl [0.1,0.5,1.0];
@@ -142,7 +142,7 @@ act q|
   $labels=['A', 'B', 'C'];
   # Create a contour map of the data - note that we can set the colour of
   # the labels.
-  cont($b, {CONTOURS=>$contours, linest=>'DASHED',
+  cont($y, {CONTOURS=>$contours, linest=>'DASHED',
 	    LINEWIDTH=>3, COLOR=>2, LABELCOL=>4});
   hold;
 
@@ -157,9 +157,9 @@ act q|
   # More examples of changing the plot defaults
   # 
   $x = 1+sequence(10);
-  $b = $x*2;
+  $y = $x*2;
   $bord_opt = { TYPE => 'RELATIVE', VALUE => 0.1 };
-  line log10($x), $b, { AXIS => 'LOGX', BORDER => $bord_opt };
+  line log10($x), $y, { AXIS => 'LOGX', BORDER => $bord_opt };
 |;
 
 act q|
