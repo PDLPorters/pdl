@@ -816,7 +816,7 @@ I<any> dimension.
 
 =for usage
 
- $x = ngoodover($b);
+ $x = ngoodover($y);
 
 =for example
 
@@ -1392,6 +1392,7 @@ Can be done inplace.
 
  $x = byte( [0,1,3] );
  $mask = byte( [0,0,0] );
+ $mask->badflag(1);
  set($mask,1,$mask->badvalue);
  $x->inplace->copybad( $mask );
  p $x;
