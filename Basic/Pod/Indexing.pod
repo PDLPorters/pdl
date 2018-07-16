@@ -922,7 +922,7 @@ down into two groups in the following: Core dimensions (as defined by
 the PP-function, see B<Appendix B> for a list of PDL primitives) and
 extra dimensions which comprises all remaining dimensions of that
 piddle. For example calling a function C<func> with the signature
-C<func((n,m),[o](n))> with a piddle C<a(2,4,7,1,3)> as C<f($x,($o = null))>
+C<func((n,m),[o](n))> with a piddle C<$a(2,4,7,1,3)> as C<f($x,($o = null))>
 results in the semantic splitting of a's dimensions into:
 core dimensions C<(2,4)> and extra dimensions C<(7,1,3)>.
 
@@ -986,19 +986,19 @@ the signature:
 
  func((m,n),(m,n,o),(m),[o](m,o))
 
-and you call it with 3 piddles C<a(5,3,10,11)>,
-C<b(5,3,2,10,1,12)>, and C<c(5,1,11,12)> as
+and you call it with 3 piddles C<$a(5,3,10,11)>,
+C<$b(5,3,2,10,1,12)>, and C<$c(5,1,11,12)> as
 
- func($x,$y,$c,($d=null))
+ func($x,$y,$z,($d=null))
 
-then the number of loop dimensions is 3 (by C<R0+R1> from C<$y> and C<$c>) with
+then the number of loop dimensions is 3 (by C<R0+R1> from C<$y> and C<$z>) with
 sizes C<(10,11,12)> (by R2); the two output core dimensions are C<(5,2)>
 (from the signature of func) resulting in a 5-dimensional output piddle
 C<$c> of size C<(5,2,10,11,12)> (see R5) and (the automatically created) C<$d>
-is derived from C<($x,$y,$c)> in a way that can be expressed in pdl
+is derived from C<($x,$y,$z)> in a way that can be expressed in pdl
 pseudo-code as
 
- $d(:,:,i,j,k) .= func($a(:,:,i,j),$b(:,:,:,i,0,k),$c(:,0,j,k))
+ $d(:,:,i,j,k) .= func($x(:,:,i,j),$y(:,:,:,i,0,k),$z(:,0,j,k))
     with 0<=i<10, 0<=j<=11, 0<=k<12
 
 If we analyze the color to grey-scale conversion again with these rules
@@ -1279,10 +1279,10 @@ we have a piddle C<x(4,7,2,8)> saying
 
  $y = $x->thread(2,1)
 
-creates a new virtual piddle of dimension C<b(4,8)> (which we call the
+creates a new virtual piddle of dimension C<y(4,8)> (which we call the
 remaining dims) that also has 2 thread dimensions of size C<(2,7)>. For
 the purposes of this document we write that symbolically as
-C<b(4,8){2,7}>. An important difference to the previous examples where
+C<y(4,8){2,7}>. An important difference to the previous examples where
 only implicit threading was used is the fact that the core dimensions
 are matched against the I<remaining dimensions> which are not
 necessarily the first dimensions of the piddle. We will now specify how

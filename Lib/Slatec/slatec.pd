@@ -192,7 +192,7 @@ derivatives, at a specified point.
 
 =for usage
 
- ($yfit, $yp) = polyvalue($l, $nder, $x, $x);
+ ($yfit, $yp) = polyvalue($l, $nder, $x, $z);
 
 =head2 detslatec
 

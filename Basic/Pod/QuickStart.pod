@@ -25,7 +25,7 @@ complete Object-Oriented extension to Perl (although you don't have to know
 what an object is to use it) which allows large N-dimensional data sets, such
 as large images, spectra, time series, etc to be stored  B<efficiently> and
 manipulated B<en masse>.  For example  with the PDL module we can write the
-Perl code C<$x = $y + $c>, where C<$y> and C<$c> are large datasets
+Perl code C<$x = $y + $z>, where C<$y> and C<$z> are large datasets
 (e.g. 2048x2048 images), and get the result in only a fraction of a second.
 
 PDL variables (or 'piddles' as they have come to be known)
@@ -202,7 +202,7 @@ C<'x'> is hijacked as the matrix multiplication operator. e.g.
 C<$c = $x x $y>;
 
 perlDL is row-major not column major so this is actually
-C<c(i,j) = sum_k a(k,j) b(i,k)> - but when matrices are printed the
+C<c(i,j) = sum_k x(k,j) y(i,k)> - but when matrices are printed the
 results will look right. Just remember the indices are reversed.
 e.g.:
 
@@ -290,12 +290,12 @@ Simple sectioning uses a syntax extension to Perl,
 L<PDL::NiceSlice|PDL::NiceSlice>, that allows you to specify subranges
 via a null-method modifier to a PDL:
 
-  $y = $x->($x1:$x2,$y1:$y2,($z1)); # Take subsection
+  $g = $f->($x1:$x2,$y1:$y2,($z1)); # Take subsection
 
-Here, C<$x> is a 3-dimensional variable, and C<$y> gets a planar
+Here, C<$f> is a 3-dimensional variable, and C<$g> gets a planar
 cutout that is defined by the limits $x1, $x2, $y1, $y2, at the location
 $z1.  The parenthesis around C<$z1> cause the trivial index to be omitted --
-otherwise C<$y> would be three-dimensional with a third dimension of order 1.
+otherwise C<$g> would be three-dimensional with a third dimension of order 1.
 
 You can put PDL slices on either side of the element-wise assignment 
 operator C<.=>, like so:

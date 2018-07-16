@@ -649,10 +649,10 @@ sub new {
     }
 
     my($l) = _opt($o,['l','L']);
-    my($y) = _opt($o,['b','B']);
+    my($b_angle) = _opt($o,['b','B']);
 
     $or->(0) .= $l if defined($l);
-    $or->(1) .= $y if defined($y);
+    $or->(1) .= $b_angle if defined($b_angle);
 
     my $roll = topdl(_opt($o,['r','roll','Roll','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');

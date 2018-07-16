@@ -101,7 +101,7 @@ B<Example>
  $c = maximum($x);
 
 For the above example, the I<maximum> function has a signature of C<(a(n); [o]c())>, which means that the first
-dimension of $a (size 20) is a I<Core> dimension of the I<maximum> function. The other dimensions of $a (size 4,3)
+dimension of $x (size 20) is a I<Core> dimension of the I<maximum> function. The other dimensions of $x (size 4,3)
 are I<threaded> dimensions (i.e. will be threaded-over in the I<maximum> function.
 
 The auto-pthreading algorithm examines the threaded dims of size (4,3) and picks the 4 dimension, 

@@ -68,7 +68,7 @@ initiator of the PDL project:
     The PDL concept is to give standard perl5 the ability
     to COMPACTLY store and SPEEDILY manipulate the large
     N-dimensional data sets which are the bread and butter
-    of scientific computing. e.g. $x=$y+$c can add two
+    of scientific computing. e.g. $x=$y+$z can add two
     2048x2048 images in only a fraction of a second.
 
 
