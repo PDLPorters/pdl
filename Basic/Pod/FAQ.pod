@@ -804,10 +804,11 @@ very useful !
 
 Most people will try to form new piddles from old piddles
 using some variation over the theme: 
-C<$x =  pdl([$y, 0, 2])> , but this does not work. The way to
-concatenate piddles is to use the function 
-C<cat> (see also C<append> and C<glue>). Similarly you can split piddles
-using the command C<dog> .
+C<$x =  pdl([$y, 0, 2])>.  This does work, but may not work in the way
+that a novice user would expect. (If C<$y> has N dimensions then C<$x>
+will have N+1 dimensions.) Other ways to concatenate piddles are
+to use the functions C<cat>, C<append>, and C<glue>. Similarly you can
+split piddles using the command C<dog>.
 
 
 =head2 Q: 6.6    Sometimes I am getting these strange results when using inplace  operations?   
