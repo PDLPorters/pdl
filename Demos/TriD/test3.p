@@ -58,14 +58,14 @@ $gob = pdl [
 $gob2 = $gob->slice(":,1:2,1:2");
 $gob3 = $gob->slice(":,2:3,2:3");
 
-$b = new PDL::Graphics::TriD::GoBoard({Data => $gob});
+$y = new PDL::Graphics::TriD::GoBoard({Data => $gob});
 $b->add_inlay($gob2,1,1,0.25);
 $b->add_inlay($gob3,2,2,0.5);
 
 if(1) {
 $win = PDL::Graphics::TriD::get_current_window();
 $win->clear_objects();
-$win->add_object($b);
+$win->add_object($y);
 $win->twiddle();
 }
 

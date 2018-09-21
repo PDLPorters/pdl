@@ -13,14 +13,14 @@ NON-OO:
 OO:
 
    use PDL::DiskCache;
-   $a = diskcache(\@files,\%options);
-   imag $a->[3];
+   $x = diskcache(\@files,\%options);
+   imag $x->[3];
 
 or
 
    use PDL::DiskCache;
-   $a = new PDL::DiskCache(\@files,\%options);
-   imag $a->[4];
+   $x = new PDL::DiskCache(\@files,\%options);
+   imag $x->[4];
 
 =over 3
 
@@ -103,7 +103,7 @@ Object constructor.
 
 =for usage
 
-  $a = diskcache(\@f,\%options);
+  $x = diskcache(\@f,\%options);
 
 Options
 
@@ -124,17 +124,17 @@ sub diskcache {
 
 sub PDL::DiskCache::new {
   my($class,$f,$opt) = @_;
-  my($a)=[];
+  my($x)=[];
 
-  my($b) = tie @{$a},$class,$f,$opt;
+  my($y) = tie @{$x},$class,$f,$opt;
   if($opt->{bless}) {
-    $a = bless($a,$class);
+    $x = bless($x,$class);
   }
 
   if(wantarray) {
-    return ($a,bless($b,$class));
+    return ($x,bless($y,$class));
   } else {
-    return $a;
+    return $x;
   }
 }
 
@@ -187,8 +187,8 @@ wfits: func(object,filename).
 
 If set to a nonzero value, then the array ref gets
 blessed into the DiskCache class for for easier access to the "purge"
-and "sync" methods.  This means that you can say C<< $a->sync >> instead
-of the more complex C<< (%{tied @$a})->sync >>, but C<ref $a> will return
+and "sync" methods.  This means that you can say C<< $x->sync >> instead
+of the more complex C<< (%{tied @$x})->sync >>, but C<ref $x> will return
 "PDL::DiskCache" instead of "ARRAY", which could break some code.
 
 =item verbose (default 0)
@@ -298,19 +298,19 @@ sub PDL::DiskCache::FETCH {
     $me->purge(1);
   } 
   
-  my($a) = $me->{cache_next};
-  $me->{cache}->[$a] = eval { 
+  my($x) = $me->{cache_next};
+  $me->{cache}->[$x] = eval {
     &{$me->{read}}($me->{files}->[$i])
     } ;
   undef $@; # Keep this from hanging anything else.
-  print "result is ",(defined $me->{cache}->[$a] ? "" : "un")."defined.\n"
+  print "result is ",(defined $me->{cache}->[$x] ? "" : "un")."defined.\n"
     if($me->{opt}->{verbose});
 
   $me->{slot}->[$i] = $me->{cache_next};
   $me->{fdex}->[$me->{cache_next}] = $i;
   $me->{cache_next}++;
   $me->{cache_next} %= $me->{mem};
-  $me->{cache}->[$a];
+  $me->{cache}->[$x];
 }
 
 sub PDL::DiskCache::STORE {
@@ -327,13 +327,13 @@ sub PDL::DiskCache::STORE {
       $me->purge(1);
     }
     
-    my($a) = $me->{cache_next};
-    $me->{slot}->[$i] = $a;
-    $me->{fdex}->[$a] = $i;
+    my($x) = $me->{cache_next};
+    $me->{slot}->[$i] = $x;
+    $me->{fdex}->[$x] = $i;
     $me->{cache_next}++;
     $me->{cache_next} %= $me->{mem};
     $me->sync($i);
-    return $me->{cache}->[$a] = $val;
+    return $me->{cache}->[$x] = $val;
   }
 
   croak("This never happens");

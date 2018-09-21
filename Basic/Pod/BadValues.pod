@@ -12,7 +12,7 @@ perfect since certain areas contain invalid data due to imperfections in the
 detector.  Whilst PDL's powerful index
 routines and all the complicated business with dataflow, slices, etc etc mean 
 that these regions can be ignored in processing, it's awkward to do. It would
-be much easier to be able to say C<$c = $a + $b> and leave all the hassle to 
+be much easier to be able to say C<$c = $x + $y> and leave all the hassle to 
 the computer.
 
 If you're not interested in this, then you may (rightly) be concerned 
@@ -77,28 +77,28 @@ routines (i.e. everything else in the PDL distribution) had been changed.
 
  pdl> p $PDL::Bad::Status
  1
- pdl> $a = sequence(4,3);
- pdl> p $a
+ pdl> $x = sequence(4,3);
+ pdl> p $x
  [
   [ 0  1  2  3]
   [ 4  5  6  7]
   [ 8  9 10 11]
  ]
- pdl> $a = $a->setbadif( $a % 3 == 2 )
- pdl> p $a
+ pdl> $x = $x->setbadif( $x % 3 == 2 )
+ pdl> p $x
  [
   [  0   1 BAD   3]
   [  4 BAD   6   7]
   [BAD   9  10 BAD]
  ]
- pdl> $a *= 3
- pdl> p $a
+ pdl> $x *= 3
+ pdl> p $x
  [
   [  0   3 BAD   9]
   [ 12 BAD  18  21]
   [BAD  27  30 BAD]
  ]
- pdl> p $a->sum
+ pdl> p $x->sum
  120
 
 C<demo bad> and C<demo bad2>
@@ -173,21 +173,21 @@ I<NOTE>: propagation of the badflag
 If you change the badflag of a piddle, this change is propagated to all
 the I<children> of a piddle, so
 
-   pdl> $a = zeroes(20,30);
-   pdl> $b = $a->slice('0:10,0:10');
-   pdl> $c = $b->slice(',(2)');
+   pdl> $x = zeroes(20,30);
+   pdl> $y = $x->slice('0:10,0:10');
+   pdl> $c = $y->slice(',(2)');
    pdl> print ">>c: ", $c->badflag, "\n";
    >>c: 0
-   pdl> $a->badflag(1);
+   pdl> $x->badflag(1);
    pdl> print ">>c: ", $c->badflag, "\n";
    >>c: 1
 
 I<No> change is made to the parents of a piddle, so
 
-   pdl> print ">>a: ", $a->badflag, "\n";
+   pdl> print ">>a: ", $x->badflag, "\n";
    >>a: 1
    pdl> $c->badflag(0);
-   pdl> print ">>a: ", $a->badflag, "\n";
+   pdl> print ">>a: ", $x->badflag, "\n";
    >>a: 1
 
 Thoughts:
@@ -203,7 +203,7 @@ one).
 
 =item *
 
-C<$a-E<gt>badflag(1)> should propagate the badflag to BOTH parents and
+C<$x-E<gt>badflag(1)> should propagate the badflag to BOTH parents and
 children.
 
 =back
@@ -274,14 +274,14 @@ Currently, there is one bad value for each datatype. The code is written so
 that we could have a separate bad value for each piddle (stored in the 
 pdl structure) - this would then remove the current problem of:
 
- pdl> $a = byte( 1, 2, byte->badvalue, 4, 5 );
- pdl> p $a;
+ pdl> $x = byte( 1, 2, byte->badvalue, 4, 5 );
+ pdl> p $x;
  [1 2 255 4 5]
- pdl> $a->badflag(1)
- pdl> p $a;
+ pdl> $x->badflag(1)
+ pdl> p $x;
  [1 2 BAD 4 5]
  pdl> byte->badvalue(0);
- pdl> p $a;
+ pdl> p $x;
  [1 2 255 4 5]
 
 ie the bad value in C<$a> has lost its I<bad> status using the current 
@@ -557,7 +557,7 @@ For these routines, we want to use the C<Code> section if
 otherwise we use the C<BadCode> section.  This is I<NOT IMPLEMENTED>, as
 it will require reasonable hacking of PP::PDLCode!
 
-There's also the problem of how we handle 'exceptions' - since C<$a = pdl(2) / pdl(0)>
+There's also the problem of how we handle 'exceptions' - since C<$x = pdl(2) / pdl(0)>
 produces a bad value but doesn't update the badflag value of the piddle. 
 Can we catch an exception, or do we have to trap for this
 (e.g. search for C<exception> in F<Basic/Ops/ops.pd>)?
@@ -680,7 +680,7 @@ See the B<experimental> C<BADVAL_PER_PDL> option.
 
 =item *
 
-what to do about C<$b = pdl(-2); $a = log10($b)> - C<$a> should
+what to do about C<$y = pdl(-2); $x = log10($y)> - C<$x> should
 be set bad, but it currently isn't.
 
 =item *
@@ -694,13 +694,13 @@ Needs a fair bit of work to PDL::PP::PDLCode.
 C<$pdl-E<gt>baddata()> now updates all the children of this piddle
 as well. However, not sure what to do with parents, since:
 
-  $b = $a->slice(); 
-  $b->baddata(0)
+  $y = $x->slice(); 
+  $y->baddata(0)
 
-doesn't mean that C<$a> shouldn't have its badvalue cleared.
+doesn't mean that C<$x> shouldn't have its badvalue cleared.
 however, after
 
-  $b->baddata(1)
+  $y->baddata(1)
 
 it's sensible to assume that the parents now get flagged as
 containing bad values.

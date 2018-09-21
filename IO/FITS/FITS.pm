@@ -7,8 +7,8 @@ PDL::IO::FITS -- Simple FITS support for PDL
  use PDL;
  use PDL::IO::FITS;
 
- $a = rfits('foo.fits');          # read a FITS file
- $a->wfits('bar.fits');           # write a FITS file
+ $x = rfits('foo.fits');          # read a FITS file
+ $x->wfits('bar.fits');           # write a FITS file
 
 =head1 DESCRIPTION
 
@@ -79,9 +79,9 @@ BEGIN {
   eval "use Astro::FITS::Header;";
   $PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
   if($PDL::Astro_FITS_Header) {
-    my($a) = $Astro::FITS::Header::VERSION;
-    $a =~ s/[^0-9\.].*//;
-    $PDL::Astro_FITS_Header = 0 if($a < 1.12);
+    my($x) = $Astro::FITS::Header::VERSION;
+    $x =~ s/[^0-9\.].*//;
+    $PDL::Astro_FITS_Header = 0 if($x < 1.12);
   }
 
   unless($PDL::Astro_FITS_Header) {
@@ -242,7 +242,7 @@ the repeat count) or variable length arrays.)
 Thus, if your table contains a column named C<FOO> with type C<5D>,
 the expression
 
-  $a->{FOO}->((2))
+  $x->{FOO}->((2))
 
 returns a 5-element double-precision PDL containing the values of FOO
 from the third row of the table.
@@ -331,7 +331,7 @@ sub PDL::rfits {
   
   my $class = shift;
   
-  barf 'Usage: $a = rfits($file)  -or-   $a = PDL->rfits($file)' if (@_ < 1 || @_ > 2);
+  barf 'Usage: $x = rfits($file)  -or-   $x = PDL->rfits($file)' if (@_ < 1 || @_ > 2);
   
   my $file = shift; 
   
@@ -1232,9 +1232,9 @@ sub _rfits_bintable ($$$$) {
 	my %foo = ("TZERO$i"=>"BZERO", 
 		   "TSCAL$i"=>"BSCALE", 
 		   "TUNIT$i"=>"BUNIT");
-	for my $a(keys %foo) {
-	  $tmpcol->{data}->hdr->{$foo{$a}} = $hdr->{$a}
-	  if( defined($hdr->{$a}) );
+	for my $x(keys %foo) {
+	  $tmpcol->{data}->hdr->{$foo{$x}} = $hdr->{$x}
+	  if( defined($hdr->{$x}) );
 	}
       } # End of bscale checking...
 
@@ -1244,8 +1244,8 @@ sub _rfits_bintable ($$$$) {
 
       if(exists($hdr->{"TDIM$i"})) {
 	  if($hdr->{"TDIM$i"} =~ m/\((\s*\d+(\s*\,\s*\d+)*\s*)\)/) {
-	      my $a = $1;
-	      @tdims = map { $_+0 } split(/\,/,$a);
+	      my $x = $1;
+	      @tdims = map { $_+0 } split(/\,/,$x);
 	      my $tdims = pdl(@tdims);
 	      my $tds = $tdims->prodover;
 	      if($tds > $tmpcol->{data}->dim(0)) {
@@ -1597,7 +1597,7 @@ C<wfits> will remove any extraneous C<NAXISn> keywords (per the FITS
 standard), and also remove the other keywords associated with that
 axis: C<CTYPEn>, C<CRPIXn>, C<CRVALn>, C<CDELTn>, and C<CROTAn>.  This
 may cause confusion if the slice is NOT out of the last dimension:
-C<wfits($a(:,(0),:),'file.fits');> and you would be best off adjusting
+C<wfits($x(:,(0),:),'file.fits');> and you would be best off adjusting
 the header yourself before calling C<wfits>.
 
 You can tile-compress images according to the CFITSIO extension to the 
@@ -1678,7 +1678,7 @@ the list are stringified before being written.  For example, if you
 pass in a perl list of 7 PDLs, each PDL will be stringified before
 being written, just as if you printed it to the screen.  This is
 probably not what you want -- you should use L<glue|glue> to connect 
-the separate PDLs into a single one.  (e.g. C<$a-E<gt>glue(1,$b,$c)-E<gt>mv(1,0)>)
+the separate PDLs into a single one.  (e.g. C<$x-E<gt>glue(1,$y,$c)-E<gt>mv(1,0)>)
 
 The column names are case-insensitive, but by convention the keys of
 C<$hash> should normally be ALL CAPS, containing only digits, capital
@@ -1726,9 +1726,9 @@ other fields are passed into the final FITS header verbatim.
 
 As an example, the following
 
-  $a = long(1,2,4);
-  $b = double(1,2,4);
-  wfits { 'COLA'=>$a, 'COLB'=>$b }, "table1.fits";
+  $x = long(1,2,4);
+  $y = double(1,2,4);
+  wfits { 'COLA'=>$x, 'COLB'=>$y }, "table1.fits";
 
 will create a binary FITS table called F<table1.fits> which
 contains two columns called C<COLA> and C<COLB>. The order
@@ -1736,7 +1736,7 @@ of the columns is controlled by setting the C<TTYPEn>
 keywords in the header array, so 
 
   $h = { 'TTYPE1'=>'Y', 'TTYPE2'=>'X' };
-  wfits { 'X'=>$a, 'Y'=>$b, hdr=>$h }, "table2.fits";
+  wfits { 'X'=>$x, 'Y'=>$y, hdr=>$h }, "table2.fits";
 
 creates F<table2.fits> where the first column is
 called C<Y> and the second column is C<X>.
@@ -1858,17 +1858,17 @@ sub wheader ($$) {
 #
 sub PDL::wfits {
   barf 'Usage: wfits($pdl,$file,[$BITPIX],[{options}])' if $#_<1 || $#_>3;
-  my ($pdl,$file,$a,$b) = @_;
+  my ($pdl,$file,$x,$y) = @_;
   my ($opt, $BITPIX);
 
   local $\ = undef;  # fix sf.net bug #3394327 
 
-  if(ref $a eq 'HASH') {
-      $a = $opt;
-      $BITPIX = $b;
-  } elsif(ref $b eq 'HASH') {
-      $BITPIX = $a;
-      $opt = $b;
+  if(ref $x eq 'HASH') {
+      $x = $opt;
+      $BITPIX = $y;
+  } elsif(ref $y eq 'HASH') {
+      $BITPIX = $x;
+      $opt = $y;
   }
 
   my ($k, $buff, $off, $ndims, $sz);
@@ -2065,8 +2065,8 @@ sub PDL::wfits {
 	      $h->{BZERO}  = $bzero  if($bzero  != 0);
 	      
 	      if ( $pdl->badflag() ) {
-		  if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0));
-				       $h->{BLANK} = $a->badvalue(); }
+		  if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0));
+				       $h->{BLANK} = $x->badvalue(); }
 		  else               { delete $h->{BLANK}; }
 	      }
 	      
@@ -2179,7 +2179,7 @@ sub PDL::wfits {
 	      #                    (make sure it's for the correct type)
 	      #   otherwise      - make sure the BLANK keyword is removed
 	      if ( $pdl->badflag() ) {
-		  if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
+		  if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0)); $hdr{BLANK} = $x->badvalue(); }
 		  else               { delete $hdr{BLANK}; }
 	      }
 	      
@@ -2447,7 +2447,7 @@ sub _prep_table {
 
   ### Allocate any table columns that are already in the header...
   local $_;
-  map { for my $a(1) { # [Shenanigans to make next work right]
+  map { for my $x(1) { # [Shenanigans to make next work right]
     next unless m/^TTYPE(\d*)$/;
 
     my $num = $1;
@@ -2701,12 +2701,12 @@ FOO
       my $row = "";
       for my $c(1..$cols) {
 	my $tmp;
-	my $a = $fieldvars[$c];
+	my $x = $fieldvars[$c];
        
 	if($internaltype[$c] eq 'P') {  # PDL handling
 	  $tmp = $converters[$c]
-	    ? &{$converters[$c]}($a->slice("$r")->flat->sever, $r, $c) 
-	      : $a->slice("$r")->flat->sever ;
+	    ? &{$converters[$c]}($x->slice("$r")->flat->sever, $r, $c)
+	      : $x->slice("$r")->flat->sever ;
 
 	  ## This would go faster if moved outside the loop but I'm too
 	  ## lazy to do it Right just now.  Perhaps after it actually works.
@@ -2721,9 +2721,9 @@ FOO
 	  my $t = $tmp->get_dataref;  
 	  $tmp = $$t;
 	} else {                                  # Only other case is ASCII just now...
-	  $tmp = ( ref $a eq 'ARRAY' ) ?          # Switch on array or string
-	    ( $#$a == 0 ? $a->[0] : $a->[$r] )    # Thread arrays as needed
-	      : $a;
+	  $tmp = ( ref $x eq 'ARRAY' ) ?          # Switch on array or string
+	    ( $#$x == 0 ? $x->[0] : $x->[$r] )    # Thread arrays as needed
+	      : $x;
 	 
 	  $tmp .= " " x ($field_len[$c] - length($tmp));
 	}

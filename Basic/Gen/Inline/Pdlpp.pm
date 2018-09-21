@@ -276,9 +276,9 @@ that illustrate typical usage.
 
    use Inline Pdlpp; # the actual code is in the __Pdlpp__ block below
 
-   $a = sequence 10;
-   print $a->inc,"\n";
-   print $a->inc->dummy(1,10)->tcumul,"\n";
+   $x = sequence 10;
+   print $x->inc,"\n";
+   print $x->inc->dummy(1,10)->tcumul,"\n";
 
    __DATA__
 
@@ -343,8 +343,8 @@ C<LIBS>, C<AUTO_INCLUDE> and C<BOOT>.
 
    use Inline Pdlpp; # the actual code is in the __Pdlpp__ block below
 
-   $a = zeroes(10) + 30;;
-   print $a->poidev(5),"\n";
+   $x = zeroes(10) + 30;;
+   print $x->poidev(5),"\n";
 
    __DATA__
 
@@ -497,9 +497,9 @@ the section of inlined Pdlpp code. For example:
   use PDL::NiceSlice;
   use Inline::Pdlpp;
 
-  $a = sequence 10;
-  $a(0:3)++;
-  $a->inc;
+  $x = sequence 10;
+  $x(0:3)++;
+  $x->inc;
 
   no PDL::NiceSlice;
 

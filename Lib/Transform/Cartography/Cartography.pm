@@ -6,11 +6,11 @@ PDL::Transform::Cartography - Useful cartographic projections
 
  # make a Mercator map of Earth
  use PDL::Transform::Cartography;
- $a = earth_coast();
- $a = graticule(10,2)->glue(1,$a);
+ $x = earth_coast();
+ $x = graticule(10,2)->glue(1,$x);
  $t = t_mercator;
  $w = pgwin(xs);
- $w->lines($t->apply($a)->clean_lines());
+ $w->lines($t->apply($x)->clean_lines());
 
 =head1 DESCRIPTION
 
@@ -184,8 +184,8 @@ lines that cross the 180th meridian.
 Draw a Mercator map of the world, with lon/lat at 10 degree intervals:
 
    $w = pgwin(xs)
-   $a = earth_coast()->glue(1,graticule(10,1));
-   $w->lines($a->apply(t_mercator)->clean_lines);
+   $x = earth_coast()->glue(1,graticule(10,1));
+   $w->lines($x->apply(t_mercator)->clean_lines);
 
 This works just the same as the first example, except that a map graticule
 has been applied with interline spacing of 10 degrees lon/lat and 
@@ -385,7 +385,7 @@ sub graticule {
 
 =for usage
 
-  $a = earth_coast()
+  $x = earth_coast()
 
 =for ref
 
@@ -491,9 +491,9 @@ sub earth_image {
 
 =for usage
 
- $a = clean_lines(t_mercator->apply(scalar(earth_coast())));
- $a = clean_lines($line_pen, [threshold]);
- $a = $lines->clean_lines;
+ $x = clean_lines(t_mercator->apply(scalar(earth_coast())));
+ $x = clean_lines($line_pen, [threshold]);
+ $x = $lines->clean_lines;
 
 =for ref
 
@@ -529,32 +529,32 @@ it is probably not worth the computational overhead.
 *PDL::clean_lines = \&clean_lines;
 sub clean_lines {
     my($lines) = shift;
-    my($a) = shift;
-    my($b) = shift;
+    my($x) = shift;
+    my($y) = shift;
     my($l,$p,$th);
 
     $th = 0.1;
 
-    if(defined($b)) {
+    if(defined($y)) {
 	# separate case with thresh
 	$l = $lines;
-	$p = $a->is_inplace?$a:$a->copy;
-	$th = $b;
+	$p = $x->is_inplace?$x:$x->copy;
+	$th = $y;
     } else {
-	if(!defined($a)) {
+	if(!defined($x)) {
 	    # duplex case no thresh
 	    $l = $lines->(0:1);
 	    $p = $lines->is_inplace ? $lines->((2)) : $lines->((2))->sever;
-	} elsif(UNIVERSAL::isa($a,'PDL') && 
-		$lines->((0))->nelem == $a->nelem) {
+	} elsif(UNIVERSAL::isa($x,'PDL') && 
+		$lines->((0))->nelem == $x->nelem) {
 	    # Separate case no thresh
 	    $l = $lines;
-	    $p = $a->is_inplace ? $a : $a->copy;;
+	    $p = $x->is_inplace ? $x : $x->copy;;
 	} else {
 	    # duplex case with thresh
 	    $l = $lines->(0:1);
 	    $p = $lines->is_inplace ? $lines->((2)) : $lines->((2))->sever;
-	    $th = $a;
+	    $th = $x;
 	}
     }
 
@@ -594,7 +594,7 @@ sub _uconv{
   local($_) = shift;
   my($silent) =shift;
 
-  my($a) = 
+  my($x) = 
     ( m/^deg/i    ? $DEG2RAD :
       m/^arcmin/i ? $DEG2RAD / 60 :
       m/^arcsec/i ? $DEG2RAD / 3600 :
@@ -611,8 +611,8 @@ sub _uconv{
       undef
       );
   print STDERR "Cartography: unrecognized unit '$_'\n"    
-    if( (!defined $a) && !$silent && ($PDL::debug || $PDL::verbose));
-  $a;
+    if( (!defined $x) && !$silent && ($PDL::debug || $PDL::verbose));
+  $x;
 }
 
 ###
@@ -649,10 +649,10 @@ sub new {
     }
 
     my($l) = _opt($o,['l','L']);
-    my($b) = _opt($o,['b','B']);
+    my($b_angle) = _opt($o,['b','B']);
 
     $or->(0) .= $l if defined($l);
-    $or->(1) .= $b if defined($b);
+    $or->(1) .= $b_angle if defined($b_angle);
 
     my $roll = topdl(_opt($o,['r','roll','Roll','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');
@@ -1308,19 +1308,19 @@ The difference in scale is about 0.3%.
 
 sub t_utm {
   my $zone = (int(shift)-1) % 60 + 1;
-  my($a) = _new(@_,"UTM-$zone");
-  my $opt = $a->{options};
+  my($x) = _new(@_,"UTM-$zone");
+  my $opt = $x->{options};
 
   ## Make sure that there is a conversion (default is 'meters')
-  $a->{ounit} = ['meter','meter'] unless defined($a->{ounit});
-  $a->{ounit} = [$a->{ounit},$a->{ounit}] unless ref($a->{ounit});
-  $a->{params}->{oconv} = _uconv($a->{ounit}->[0]);
+  $x->{ounit} = ['meter','meter'] unless defined($x->{ounit});
+  $x->{ounit} = [$x->{ounit},$x->{ounit}] unless ref($x->{ounit});
+  $x->{params}->{oconv} = _uconv($x->{ounit}->[0]);
 
   ## Define our zone and NS offset 
   my $subzone = _opt($opt,['sz', 'subzone', 'SubZone'],1);
   my $offset = zeroes(2);
-  $offset->(0) .= 5e5*(2*$PI/40e6)/$a->{params}->{oconv};
-  $offset->(1) .= ($subzone < 0) ? $PI/2/$a->{params}->{oconv} : 0;
+  $offset->(0) .= 5e5*(2*$PI/40e6)/$x->{params}->{oconv};
+  $offset->(1) .= ($subzone < 0) ? $PI/2/$x->{params}->{oconv} : 0;
 
   my $merid = ($zone * 6) - 183;
 
@@ -1332,7 +1332,7 @@ sub t_utm {
 
 		      t_mercator(o=>[$merid,0], 
 				 r=>90, 
-				 ou=>$a->{ounit}, 
+				 ou=>$x->{ounit}, 
 				 s=>$gk ? 0 : ($RAD2DEG * (180/6371))
 				)
 		      );
@@ -1340,7 +1340,7 @@ sub t_utm {
 
   my $s = ($zone < 0) ? "S Hemisphere " : "";
   $me->{otype} = ["UTM-$zone Easting","${s}Northing"];
-  $me->{ounit} = $a->{ounit};
+  $me->{ounit} = $x->{ounit};
 
   return $me;
 }
@@ -2656,12 +2656,12 @@ rocket at an altitude of 100km, looking NNE from ~200km south of
 Washington (the radius of Earth is 6378 km; Washington D.C. is at
 roughly 77W,38N).  Superimpose a linear coastline map on a photographic map.
 
-  $a = graticule(1,0.1)->glue(1,earth_coast());
+  $x = graticule(1,0.1)->glue(1,earth_coast());
   $t = t_perspective(r0=>6478/6378.0,fov=>60,cam=>[22.5,-20],o=>[-77,36])
   $w = pgwin(size=>[10,6],J=>1);
   $w->fits_imag(earth_image()->map($t,[800,500],{m=>linear}));
   $w->hold;
-  $w->lines($a->apply($t),{xt=>'Degrees',yt=>'Degrees'});
+  $w->lines($x->apply($t),{xt=>'Degrees',yt=>'Degrees'});
   $w->release;
 
 Model a 5x telescope looking at Betelgeuse with a 10 degree field of view
@@ -2871,9 +2871,9 @@ sub t_perspective {
 	## Solve for the X coordinate of the surface.  
 	## This is a quadratic in the tangent-plane coordinates;
 	## so here we just figure out the coefficients and plug into
-	## the quadratic formula.  $b here is actually -B/2.
-	my $a = ($oyz * $oyz)->sumover + 1;
-	my $b = ( $o->{sph_origin}->((0)) 
+	## the quadratic formula.  $y here is actually -B/2.
+	my $a1 = ($oyz * $oyz)->sumover + 1;
+	my $y = ( $o->{sph_origin}->((0)) 
 		  - ($o->{sph_origin}->(1:2) * $oyz)->sumover
 		  );
 	my $c = topdl($o->{r0}*$o->{r0} - 1);
@@ -2881,10 +2881,10 @@ sub t_perspective {
 	my $x;
 	if($o->{m} == 2) { 
 	    # Exceptional case: mask asks for the far hemisphere
-	    $x = - ( $b - sqrt($b*$b - $a * $c) ) / $a;
+	    $x = - ( $y - sqrt($y*$y - $a1 * $c) ) / $a1;
 	} else {
 	    # normal case: mask asks for the near hemisphere
-	    $x =   - ( $b + sqrt($b*$b - $a * $c) ) / $a;
+	    $x =   - ( $y + sqrt($y*$y - $a1 * $c) ) / $a1;
 	}
 
 	## Assemble the 3-space coordinates of the points

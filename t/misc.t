@@ -13,8 +13,8 @@ kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 use Test::More tests => 23;
 
 sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs($a-$b);
+        my($x,$y) = @_;
+        my $c = abs($x-$y);
         my $d = max($c);
         $d < 0.0001;
 }
@@ -33,12 +33,12 @@ print $fileh <<EOD;
 EOD
 close($fileh);
 
-{
+my $x = do {
    local $PDL::undefval = -1;
-   $a = rcols $file, [], { colsep=>',' };
-}
+   rcols $file, [], { colsep=>',' };
+};
 
-is( (sum($a<0)==2 && $a->getdim(0)==5 && $a->getdim(1)==3), 1, "rcols with undefval and missing cols" );
+is( (sum($x<0)==2 && $x->getdim(0)==5 && $x->getdim(1)==3), 1, "rcols with undefval and missing cols" );
 unlink $file || warn "Could not unlink $file: $!";
 
 ############# Test rcols with filename and pattern #############
@@ -53,16 +53,17 @@ print $fileh <<EOD;
 EOD
 close($fileh);
 
-($a,$b) = rcols $file,0,1;
-$a = long($a); $b=long($b);
+my $y;
+($x,$y) = rcols $file,0,1;
+$x = long($x); $y=long($y);
 
-is( (sum($a)==15 && max($b)==66 && $b->getdim(0)==5), 1, "rcols with filename" );
+is( (sum($x)==15 && max($y)==66 && $y->getdim(0)==5), 1, "rcols with filename" );
 
-($a,$b) = rcols $file, "/FOO/",0,1;
-$a = long($a);
-$b=long($b);
+($x,$y) = rcols $file, "/FOO/",0,1;
+$x = long($x);
+$y=long($y);
 
-is( (sum($a)==6 && max($b)==33 && $b->getdim(0)==2), 1, "rcols with filename + pattern" );
+is( (sum($x)==6 && max($y)==33 && $y->getdim(0)==2), 1, "rcols with filename + pattern" );
 
 ############# Test rcols with file handle with nothing left #############
 
@@ -71,7 +72,7 @@ open my $fh, '<', $file;
 my @slurp = <$fh>;
 # Now apply rcols:
 $@ = '';
-$a = eval { rcols $fh };
+$x = eval { rcols $fh };
 is($@, '', 'rcols does not die on a used file handle');
 close $fh;
 
@@ -88,17 +89,17 @@ EOD
 close($fileh);
 
 open(OUT, $file) || die "Can not open $file for reading\n";
-($a,$b) = rgrep {/foo"(.*)".*-(.*)-/} *OUT;
-$a = long($a); $b=long($b);
+($x,$y) = rgrep {/foo"(.*)".*-(.*)-/} *OUT;
+$x = long($x); $y=long($y);
 close(OUT);
 
-is( (sum($a)==15 && max($b)==66 && $b->getdim(0)==5), 1, "rgrep" );
+is( (sum($x)==15 && max($y)==66 && $y->getdim(0)==5), 1, "rgrep" );
 
 ########### Explicit test of byte swapping #################
 
-$a = short(3); $b = long(3); # $c=long([3,3]);
-bswap2($a); bswap4($b);
-is(sum($a)==768 && sum($b)==50331648,1,"bswap2");
+$x = short(3); $y = long(3); # $c=long([3,3]);
+bswap2($x); bswap4($y);
+is(sum($x)==768 && sum($y)==50331648,1,"bswap2");
 
 ############# Test rasc  #############
 
@@ -128,15 +129,15 @@ print $fileh <<EOD;
 EOD
 close($fileh);
 
-$a = PDL->null;
-$a->rasc($file,20);
-is( abs($a->sum - 5.13147) < .01, 1, "rasc on null piddle" );
+$x = PDL->null;
+$x->rasc($file,20);
+is( abs($x->sum - 5.13147) < .01, 1, "rasc on null piddle" );
  
-$b = zeroes(float,20,2);
-$b->rasc($file);
-is( abs($b->sum - 5.13147) < .01, 1, "rasc on existing piddle" );
+$y = zeroes(float,20,2);
+$y->rasc($file);
+is( abs($y->sum - 5.13147) < .01, 1, "rasc on existing piddle" );
 
-eval '$b->rasc("file_that_does_not_exist")';
+eval '$y->rasc("file_that_does_not_exist")';
 like( $@, qr/Can't open/, "rasc on non-existant file" );
 
 unlink $file || warn "Could not unlink $file: $!"; # clean up
@@ -155,29 +156,29 @@ print $fileh <<EOD;
 EOD
 close($fileh);
 
-($a,$b) = rcols $file,0,1;
-is( $a->nelem==4 && sum($a)==6 && sum($b)==20, 1,
+($x,$y) = rcols $file,0,1;
+is( $x->nelem==4 && sum($x)==6 && sum($y)==20, 1,
     "rcols: default" );
 
-($a,$b) = rcols \*DATA,0,1;
-is( $a->nelem==4 && sum($a)==6 && sum($b)==20, 1,
+($x,$y) = rcols \*DATA,0,1;
+is( $x->nelem==4 && sum($x)==6 && sum($y)==20, 1,
     "rcols: pipe" );
 
-($a,$b) = rcols $file,0,1, { INCLUDE => '/^-/' };
-is( $a->nelem==1 && $a->at(0)==-5 && $b->at(0)==6, 1,
+($x,$y) = rcols $file,0,1, { INCLUDE => '/^-/' };
+is( $x->nelem==1 && $x->at(0)==-5 && $y->at(0)==6, 1,
     "rcols: include pattern" );
 
-($a,$b) = rcols $file,0,1, { LINES => '-2:0' };
-is( $a->nelem==3 && tapprox($a,pdl(-5,3,1)) && tapprox($b,pdl(6,4,2)), 1,
+($x,$y) = rcols $file,0,1, { LINES => '-2:0' };
+is( $x->nelem==3 && tapprox($x,pdl(-5,3,1)) && tapprox($y,pdl(6,4,2)), 1,
     "rcols: lines option" );
 
 use PDL::Types;
-($a,$b) = rcols $file, { DEFTYPE => long };
-is( $a->nelem==4 && $a->get_datatype==$PDL_L && $b->get_datatype==$PDL_L, 1,
+($x,$y) = rcols $file, { DEFTYPE => long };
+is( $x->nelem==4 && $x->get_datatype==$PDL_L && $y->get_datatype==$PDL_L, 1,
     "rcols: deftype option" );
 
-($a,$b) = rcols $file, { TYPES => [ ushort ] };
-is( $a->nelem==4 && $a->get_datatype==$PDL_US && $b->get_datatype==$PDL_D, 1,
+($x,$y) = rcols $file, { TYPES => [ ushort ] };
+is( $x->nelem==4 && $x->get_datatype==$PDL_US && $y->get_datatype==$PDL_D, 1,
     "rcols: types option" );
 
 is( UNIVERSAL::isa($PDL::IO::Misc::deftype,"PDL::Type"), 1,
@@ -186,33 +187,33 @@ is( $PDL::IO::Misc::deftype->[0], double->[0],
     "PDL::IO::Misc::deftype check" );
 
 $PDL::IO::Misc::deftype = short;
-($a,$b) = rcols $file;
-is( $a->get_datatype, short->[0], "rcols: can read in as 'short'" );
+($x,$y) = rcols $file;
+is( $x->get_datatype, short->[0], "rcols: can read in as 'short'" );
 
 unlink $file || warn "Could not unlink $file: $!";
 
 ($fileh,$file) = tempfile( DIR => $tempd );
-eval { wcols $a, $b, $fileh };
+eval { wcols $x, $y, $fileh };
 is(!$@,1, "wcols" );
 unlink $file || warn "Could not unlink $file: $!";
 
 ($fileh,$file) = tempfile( DIR => $tempd );
-eval { wcols $a, $b, $fileh, {FORMAT=>"%0.3d %0.3d"}};
+eval { wcols $x, $y, $fileh, {FORMAT=>"%0.3d %0.3d"}};
 is(!$@,1, "wcols FORMAT option");
 unlink $file || warn "Could not unlink $file: $!";
 
 ($fileh,$file) = tempfile( DIR => $tempd );
-eval { wcols "%d %d", $a, $b, $fileh;};
+eval { wcols "%d %d", $x, $y, $fileh;};
 is(!$@,1, "wcols format_string");
 unlink $file || warn "Could not unlink $file: $!";
 
 ($fileh,$file) = tempfile( DIR => $tempd );
-eval { wcols "arg %d %d", $a, $b, $fileh, {FORMAT=>"option %d %d"};};
+eval { wcols "arg %d %d", $x, $y, $fileh, {FORMAT=>"option %d %d"};};
 is(!$@,1, "wcols format_string override");
 
 open($fileh,"<",$file) or warn "Can't open $file: $!";
-chomp(my $line=readline(*$fileh));
-like(my $line=readline($fileh),qr/^arg/, "wcols format_string obeyed");
+readline(*$fileh); # dump first line
+like(readline($fileh),qr/^arg/, "wcols format_string obeyed");
 unlink $file || warn "Could not unlink $file: $!";
 
 1;

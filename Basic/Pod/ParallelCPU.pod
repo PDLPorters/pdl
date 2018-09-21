@@ -20,9 +20,9 @@ by taking advantage of multi-core and/or multi-processor machines.
   set_autopthread_targ(4);
   set_autopthread_size(5);
   
-  $a = zeroes(5000,5000); # Create 25Meg element array
+  $x = zeroes(5000,5000); # Create 25Meg element array
   
-  $b = $a + 5; # Processing will be split up into multiple pthreads
+  $y = $x + 5; # Processing will be split up into multiple pthreads
   
   # Get the actual number of pthreads for the last
   #  processing operation.
@@ -91,17 +91,17 @@ performing processing.
 
 B<Example>
 
- $a = sequence(20,4,3); # Small 3-D Array, size 20,4,3
+ $x = sequence(20,4,3); # Small 3-D Array, size 20,4,3
  
  # Setup auto-pthreading:
  set_autopthread_targ(2); # Target of 2 pthreads
  set_autopthread_size(0); # Zero so that the small PDLs in this example will be pthreaded
 
  # This will be split up into 2 pthreads
- $c = maximum($a);
+ $c = maximum($x);
 
 For the above example, the I<maximum> function has a signature of C<(a(n); [o]c())>, which means that the first
-dimension of $a (size 20) is a I<Core> dimension of the I<maximum> function. The other dimensions of $a (size 4,3)
+dimension of $x (size 20) is a I<Core> dimension of the I<maximum> function. The other dimensions of $x (size 4,3)
 are I<threaded> dimensions (i.e. will be threaded-over in the I<maximum> function.
 
 The auto-pthreading algorithm examines the threaded dims of size (4,3) and picks the 4 dimension, 

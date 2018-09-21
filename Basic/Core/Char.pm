@@ -106,29 +106,29 @@ sub new {
 #    It assumes that all strings are the same length, but also checks to see if they aren't
 sub _rcharpack {
 
-  my $a = shift;		     # Input string
+  my $w = shift;		     # Input string
   my ($maxlenref, $samelenref) = @_; # reference to $maxlength, $samelen
 
   my ($ret,$type);
   
   $ret = "";
-  if (ref($a) eq "ARRAY") {
+  if (ref($w) eq "ARRAY") {
 
     PDL::Core::barf('Array is not rectangular') if (defined($dims[$level]) and 
-					$dims[$level] != scalar(@$a));
-    $dims[$level] = scalar (@$a);
+					$dims[$level] != scalar(@$w));
+    $dims[$level] = scalar (@$w);
     $level++;
     
-    $type = ref($$a[0]);
-    for(@$a) {
+    $type = ref($$w[0]);
+    for(@$w) {
       PDL::Core::barf('Array is not rectangular') unless $type eq ref($_); # Equal types
       $ret .= _rcharpack($_,$maxlenref, $samelenref);
     }
     
     $level--;
     
-  }elsif (ref(\$a) eq "SCALAR") { 
-    my $len = length($a);
+  }elsif (ref(\$w) eq "SCALAR") { 
+    my $len = length($w);
 
     # Check for this length being different then the others:
     $$samelenref = 0 if( defined($$maxlenref) && ($len != $$maxlenref) );
@@ -136,7 +136,7 @@ sub _rcharpack {
     $$maxlenref = $len if( !defined($$maxlenref) || $len > $$maxlenref); # see if this is the max length seen so far
 
     $dims[$level] = $len;
-    $ret = $a;
+    $ret = $w;
     
   }else{
     PDL::Core::barf("Don't know how to make a PDL object from passed argument");
@@ -153,31 +153,31 @@ sub _rcharpack {
 #
 sub _rcharpack2 {
 
-  my $a = shift;		  # Input string
+  my $w = shift;		  # Input string
   my ($maxlen) = @_; 		  # Length to pad strings to
 
   my ($ret,$type);
   
   $ret = "";
-  if (ref($a) eq "ARRAY") {
+  if (ref($w) eq "ARRAY") {
 
     #  Checks not needed the second time thru (removed)
 
-    $dims[$level] = scalar (@$a);
+    $dims[$level] = scalar (@$w);
     $level++;
     
-    $type = ref($$a[0]);
-    for(@$a) {
+    $type = ref($$w[0]);
+    for(@$w) {
       $ret .= _rcharpack2($_,$maxlen);
     }
     
     $level--;
     
-  }elsif (ref(\$a) eq "SCALAR") { 
-    my $len = length($a);
+  }elsif (ref(\$w) eq "SCALAR") { 
+    my $len = length($w);
 
     $dims[$level] = $maxlen;
-    $ret = $a.("\00" x ($maxlen - $len));
+    $ret = $w.("\00" x ($maxlen - $len));
   }
   return $ret;
 }
@@ -302,9 +302,9 @@ sub atstr {    # Fetchs a string value from a PDL::Char
   my $self = shift;
   
   my $str = ':,' . join (',', map {"($_)"} @_);
-  my $a = $self->slice($str);
+  my $w = $self->slice($str);
   
-  my $val = ${$a->get_dataref}; # get the data
+  my $val = ${$w->get_dataref}; # get the data
   $val =~ s/\00+$//g; # get rid of any null padding
   return $val;
 }

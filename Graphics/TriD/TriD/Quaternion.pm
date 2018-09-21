@@ -27,9 +27,9 @@ sub copy {
 }
 
 sub new_vrmlrot {
-	my($type,$x,$y,$z,$a) = @_;
+	my($type,$x,$y,$z,$c) = @_;
 	my $l = sqrt($x**2+$y**2+$z**2);
-	my $this = bless [cos($a/2),map {sin($a/2)*$_/$l} $x,$y,$z],$type;
+	my $this = bless [cos($c/2),map {sin($c/2)*$_/$l} $x,$y,$z],$type;
 	$this->normalize_this();
 	return $this;
 }

@@ -198,20 +198,20 @@ my $d = pdl(@c);
  SKIP: {
      skip "BAD values not compiled in",7 unless($PDL::Bad::Status);
      
-     $a = pdl(3,4,5);
-     $a=$a->setbadif($a==4);
-     eval '$b = pdl($a,5);';
+     $x = pdl(3,4,5);
+     $x=$x->setbadif($x==4);
+     eval '$y = pdl($x,5);';
      ok(!$@, "a badvalue PDL works in the constructor");
 
-     ok( $b->badflag, "bad value propagates from inner PDL to constructed PDL" );
-     ok( $b->slice("(1),(0)") == $b->badvalue, "bad value was passed in" );
-     ok( $b->at(1,1) == 0, "padding was correct" );
+     ok( $y->badflag, "bad value propagates from inner PDL to constructed PDL" );
+     ok( $y->slice("(1),(0)") == $y->badvalue, "bad value was passed in" );
+     ok( $y->at(1,1) == 0, "padding was correct" );
 
-     eval '$b = pdl(short, $a, 5);';
+     eval '$y = pdl(short, $x, 5);';
      
      ok(!$@, "constructed a short PDL");
-     ok( $b->slice("(1),(0)") == $b->badvalue, "bad value was translated" );
-     ok( $b->at(1,1) == 0, "padding was correct");
+     ok( $y->slice("(1),(0)") == $y->badvalue, "bad value was translated" );
+     ok( $y->at(1,1) == 0, "padding was correct");
 
 }
 

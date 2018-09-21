@@ -68,8 +68,6 @@ if(0) {
 
 	ok(all(PDL::approx($pb,pdl([0,1,2,10,11,12,20,21,22]), $eps)),'clump(-1) entire piddle');
 
-	# note $b;
-
 	my $pc = $pa->slice('0:2:2,:');
 
 	my $pd = $pc->clump(-1);

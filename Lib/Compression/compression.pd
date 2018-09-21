@@ -23,8 +23,8 @@ RICE_1 algorithm used in internal FITS-file compression (see PDL::IO::FITS).
 
  use PDL::Compression
 
- ($b,$asize) = $a->rice_compress();
- $c = $b->rice_expand($asize);
+ ($y,$xsize) = $x->rice_compress();
+ $c = $y->rice_expand($xsize);
 
 =cut
 
@@ -206,7 +206,7 @@ pp_def(
 
 =for ref
 
-Unsquishes a PDL that has been squished by rice_expand.
+Unsquishes a PDL that has been squished by rice_compress.
 
 =for usage
 

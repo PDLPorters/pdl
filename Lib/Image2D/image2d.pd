@@ -386,9 +386,9 @@ sub PDL::conv2d {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
    die \'Usage: conv2d( a(m,n), kern(p,q), [o]b(m,n), {Options} )\'
       if $#_<1 || $#_>2;
-   my($a,$kern) = @_;
-   my $c = $#_ == 2 ? $_[2] : $a->nullcreate;
-   &PDL::_conv2d_int($a,$kern,$c,
+   my($x,$kern) = @_;
+   my $c = $#_ == 2 ? $_[2] : $x->nullcreate;
+   &PDL::_conv2d_int($x,$kern,$c,
 	(!(defined $opt && exists $$opt{Boundary}))?0:
 	(($$opt{Boundary} eq "Reflect") +
 	2*($$opt{Boundary} eq "Truncate") +
@@ -497,11 +497,11 @@ sub PDL::med2d {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
    die \'Usage: med2d( a(m,n), kern(p,q), [o]b(m,n), {Options} )\'
       if $#_<1 || $#_>2;
-   my($a,$kern) = @_;
+   my($x,$kern) = @_;
    croak "med2d: kernel must contain some positive elements.\n"
        if all( $kern <= 0 );
-   my $c = $#_ == 2 ? $_[2] : $a->nullcreate;
-   &PDL::_med2d_int($a,$kern,$c,
+   my $c = $#_ == 2 ? $_[2] : $x->nullcreate;
+   &PDL::_med2d_int($x,$kern,$c,
 	(!(defined $opt && exists $$opt{Boundary}))?0:
 	(($$opt{Boundary} eq "Reflect") +
 	2*($$opt{Boundary} eq "Truncate") +
@@ -629,11 +629,11 @@ sub PDL::med2df {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
    die \'Usage: med2df( a(m,n), [o]b(m,n), p, q, {Options} )\'
       if $#_<2 || $#_>3;
-   my($a,$p,$q) = @_;
+   my($x,$p,$q) = @_;
    croak "med2df: kernel must contain some positive elements.\n"
        if $p == 0 && $q == 0;
-   my $c = $#_ == 3 ? $_[3] : $a->nullcreate;
-   &PDL::_med2df_int($a,$c,$p,$q,
+   my $c = $#_ == 3 ? $_[3] : $x->nullcreate;
+   &PDL::_med2df_int($x,$c,$p,$q,
 	(!(defined $opt && exists $$opt{Boundary}))?0:
 	(($$opt{Boundary} eq "Reflect") +
 	2*($$opt{Boundary} eq "Truncate") +

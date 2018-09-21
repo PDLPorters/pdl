@@ -46,10 +46,10 @@ Use PDL interactively:
 
   %> pdl2
 
-  pdl> $a = sequence(10)  # or any other perl or PDL command
+  pdl> $x = sequence(10)  # or any other perl or PDL command
 
-  pdl> print "\$a = $a\n";
-  $a = [0 1 2 3 4 5 6 7 8 9]
+  pdl> print "\$x = $x\n";
+  $x = [0 1 2 3 4 5 6 7 8 9]
 
 =head1 DESCRIPTION
 
@@ -89,15 +89,15 @@ C<do_print> routine allows you to toggle between the default
 
 =for example
 
-  pdl> $a = pdl(3,2)
+  pdl> $x = pdl(3,2)
 
   pdl> do_print
   1
-  pdl> $a = pdl(3,2)
+  pdl> $x = pdl(3,2)
   $PDL1 = [3 2];
   pdl> do_print
 
-  pdl> $a = pdl(3,2)
+  pdl> $x = pdl(3,2)
 
 =head1 VARIABLES
 

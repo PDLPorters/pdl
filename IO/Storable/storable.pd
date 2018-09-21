@@ -334,8 +334,8 @@ store a piddle using L<Storable|Storable>
 
 =for example
 
-  $a = random 12,10;
-  $a->store('myfile');
+  $x = random 12,10;
+  $x->store('myfile');
 
 =cut
 
@@ -347,8 +347,8 @@ freeze a piddle using L<Storable|Storable>
 
 =for example
 
-  $a = random 12,10;
-  $frozen = $a->freeze;
+  $x = random 12,10;
+  $frozen = $x->freeze;
 
 =cut
 

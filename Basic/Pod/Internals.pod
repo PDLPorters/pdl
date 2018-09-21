@@ -205,16 +205,16 @@ and keep track of piddles in these operations.
 As you should already know, piddles often carry information about
 where they come from. For example, the code
 
-	$b = $a->slice("2:5");
-	$b .= 1;
+	$y = $x->slice("2:5");
+	$y .= 1;
 
-will alter $a. So C<$b> and C<$a> I<know> that they are connected
+will alter $x. So C<$y> and C<$x> I<know> that they are connected
 via a C<slice>-transformation. This information is stored in the members
 
    	pdl_trans *trans; 
    	pdl_vaffine *vafftrans;
 
-Both C<$a> (the I<parent>) and C<$b> (the child) store this information
+Both C<$x> (the I<parent>) and C<$y> (the child) store this information
 about the transformation in appropriate slots of the C<pdl> structure.
 
 C<pdl_trans> and C<pdl_vaffine> are structures that we will look at in
@@ -293,14 +293,14 @@ that piddle objects that are linked in
 such a way be kept alive beyond the point where they have gone
 out of scope from the point of view of Perl:
 
-  $a = zeroes(20);
-  $b = $a->slice('2:4');
-  undef $a;    # last reference to $a is now destroyed
+  $x = zeroes(20);
+  $y = $x->slice('2:4');
+  undef $x;    # last reference to $x is now destroyed
 
-Although $a should now be destroyed according to Perl's rules
-the underlying C<pdl> structure must actually only be freed when C<$b>
+Although $x should now be destroyed according to Perl's rules
+the underlying C<pdl> structure must actually only be freed when C<$y>
 also goes out of scope (since it still references
-internally some of C<$a>'s data). This example demonstrates that such
+internally some of C<$x>'s data). This example demonstrates that such
 a dataflow paradigm between PDL objects necessitates a special
 destruction algorithm that takes the links between piddles
 into account and couples the lifespan of those objects. The
@@ -324,23 +324,23 @@ but still useful as an example!).
 
 Consider the following situation:
 
- pdl> $a = rvals(7,7,{Centre=>[3,4]});
- pdl> $b = $a->slice('2:4,3:5');
+ pdl> $x = rvals(7,7,{Centre=>[3,4]});
+ pdl> $y = $x->slice('2:4,3:5');
  pdl> ? vars
  PDL variables in package main::
 
  Name         Type   Dimension       Flow  State          Mem
  ----------------------------------------------------------------
- $a           Double D [7,7]                P            0.38Kb 
- $b           Double D [3,3]                -C           0.00Kb
+ $x           Double D [7,7]                P            0.38Kb 
+ $y           Double D [3,3]                -C           0.00Kb
 
-Now, if I suddenly decide that C<$a> should be flagged as possibly
+Now, if I suddenly decide that C<$x> should be flagged as possibly
 containing bad values, using
 
- pdl> $a->badflag(1)
+ pdl> $x->badflag(1)
 
-then I want the state of C<$b> - it's I<child> - to be changed as
-well (since it will either share or inherit some of C<$a>'s data and
+then I want the state of C<$y> - it's I<child> - to be changed as
+well (since it will either share or inherit some of C<$x>'s data and
 so be also I<bad>), so that I get a 'B' in the I<State> field:
 
  pdl> ? vars                    
@@ -348,8 +348,8 @@ so be also I<bad>), so that I get a 'B' in the I<State> field:
 
  Name         Type   Dimension       Flow  State          Mem
  ----------------------------------------------------------------
- $a           Double D [7,7]                PB           0.38Kb 
- $b           Double D [3,3]                -CB          0.00Kb
+ $x           Double D [7,7]                PB           0.38Kb 
+ $y           Double D [3,3]                -CB          0.00Kb
 
 This bit of magic is performed by the C<propagate_badflag> function,
 which is listed below:

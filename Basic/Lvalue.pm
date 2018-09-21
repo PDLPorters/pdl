@@ -8,11 +8,11 @@ Declares a subset of PDL functions so that they
 can be used as lvalue subs. In particular, this allows
 simpler constructs such as
 
-  $a->slice(',(0)') .= 1;
+  $x->slice(',(0)') .= 1;
 
 instead of the clumsy
 
-  (my $tmp = $a->slice(',(0)')) .= 1;
+  (my $tmp = $x->slice(',(0)')) .= 1;
 
 This will only work if your perl supports lvalue subroutines
 (i.e. versions  >= v5.6.0). Note that lvalue subroutines

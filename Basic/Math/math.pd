@@ -179,15 +179,15 @@ sub badcode_ufunc {
 }
 
 sub code_bifunc {
-    my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
+    my $name = $_[0]; my $x = $_[1] || 'a'; my $y = $_[2] || 'b';
     my $c = $_[3] || 'c';
-    return "\$$c() = $name(\$$a(),\$$b());";
+    return "\$$c() = $name(\$$x(),\$$y());";
 }
 sub badcode_bifunc {
-    my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
+    my $name = $_[0]; my $x = $_[1] || 'a'; my $y = $_[2] || 'b';
     my $c = $_[3] || 'c';
-    return 'if ( $ISBAD('.$a.'()) || $ISBAD('.$b.'()) ) { $SETBAD('.$c.'()); } else { ' .
-	"\$$c() = $name(\$$a(),\$$b()); }";
+    return 'if ( $ISBAD('.$x.'()) || $ISBAD('.$y.'()) ) { $SETBAD('.$c.'()); } else { ' .
+	"\$$c() = $name(\$$x(),\$$y()); }";
 }
 
 sub inplace_doc {
@@ -332,10 +332,10 @@ pp_def(
 
 Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>.
 
-badmask can be run with C<$a> inplace:
+badmask can be run with C<$x> inplace:
 
-  badmask($a->inplace,0);
-  $a->inplace->badmask(0);
+  badmask($x->inplace,0);
+  $x->inplace->badmask(0);
 
 ',
        BadDoc =>

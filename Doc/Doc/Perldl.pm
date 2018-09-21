@@ -491,74 +491,74 @@ $PDL::Doc::Perldl::hash_indent=3;
 sub whatis_r {
   my $prefix = shift;
   my $indent = shift;
-  my $a = shift;
+  my $x = shift;
   
-  unless(defined $a) {
+  unless(defined $x) {
     print $prefix,"<undef>\n";
     return;
   }
 
-  unless(ref $a) {
+  unless(ref $x) {
     print "${prefix}'".
-      substr($a,0,$PDL::Doc::Perldl::max_strlen).
-      "'".((length $a > $PDL::Doc::Perldl::max_strlen) && '...').
+      substr($x,0,$PDL::Doc::Perldl::max_strlen).
+      "'".((length $x > $PDL::Doc::Perldl::max_strlen) && '...').
       "\n";
     return;
   }
 
-  if(ref $a eq 'ARRAY') {
-    print "${prefix}Array (".scalar(@$a)." elements):\n";
+  if(ref $x eq 'ARRAY') {
+    print "${prefix}Array (".scalar(@$x)." elements):\n";
 
     my($el);
-    for $el(0..$#$a) {
+    for $el(0..$#$x) {
       my $pre = sprintf("%s  %2d: "," "x$indent,$el);
-      whatis_r($pre,$indent + $PDL::Doc::Perldl::array_indent, $a->[$el]);
+      whatis_r($pre,$indent + $PDL::Doc::Perldl::array_indent, $x->[$el]);
       last if($el == $PDL::Doc::Perldl::max_arraylen);
     } 
     printf "%s   ... \n"," " x $indent
-      if($#$a > $PDL::Doc::Perldl::max_arraylen);
+      if($#$x > $PDL::Doc::Perldl::max_arraylen);
 
     return;
   }
       
-  if(ref $a eq 'HASH') {
-    print "${prefix}Hash (".scalar(keys %$a)." elements)\n";
+  if(ref $x eq 'HASH') {
+    print "${prefix}Hash (".scalar(keys %$x)." elements)\n";
     my $key;
-    for $key(sort keys %$a) {
+    for $key(sort keys %$x) {
       my $pre = " " x $indent .
 	        " $key: " . 
 		(" "x($PDL::Doc::Perldl::max_keylen - length($key))) ;
 
-      whatis_r($pre,$indent + $PDL::Doc::Perldl::hash_indent, $a->{$key});
+      whatis_r($pre,$indent + $PDL::Doc::Perldl::hash_indent, $x->{$key});
     }
     return;
   }
 
-  if(ref $a eq 'CODE') {
+  if(ref $x eq 'CODE') {
     print "${prefix}Perl CODE ref\n";
     return;
   }
 
-  if(ref $a eq 'SCALAR' | ref $a eq 'REF') {
-    whatis_r($prefix." Ref -> ",$indent+8,$$a);
+  if(ref $x eq 'SCALAR' | ref $x eq 'REF') {
+    whatis_r($prefix." Ref -> ",$indent+8,$$x);
     return;
   }
 
-  if(UNIVERSAL::can($a,'px')) {
-    my $b;
+  if(UNIVERSAL::can($x,'px')) {
+    my $y;
     local $PDL::debug = 1;
 
-    $b = ( (UNIVERSAL::isa($a,'PDL') && $a->nelem < 5 && $a->ndims < 2)
+    $y = ( (UNIVERSAL::isa($x,'PDL') && $x->nelem < 5 && $x->ndims < 2)
 	   ? 
-	   ": $a" :
+	   ": $x" :
 	   ": *****"
 	   );
 
-    $a->px($prefix.(ref $a)." %7T (%D) ".$b);
+    $x->px($prefix.(ref $x)." %7T (%D) ".$y);
 
   } else {
 
-    print "${prefix}Object: ".ref($a)."\n";
+    print "${prefix}Object: ".ref($x)."\n";
 
   }
 }
@@ -588,9 +588,9 @@ and the remaining commands listed, along with the names of their modules.
 sub help_url {
     local $_;
     foreach(@INC) {
-	my $a = "$_/PDL/HtmlDocs/PDL/Index.html";
-	if(-e $a) {
-	    return "file://$a";
+	my $x = "$_/PDL/HtmlDocs/PDL/Index.html";
+	if(-e $x) {
+	    return "file://$x";
 	}
     }
 }
@@ -607,9 +607,9 @@ sub help {
 	  if ($topic =~ /^\s*vars\s*$/i) {
 	      PDL->px((caller)[0]);
 	  } elsif($topic =~ /^\s*url\s*/i) {
-	      my $a = help_url();
-	      if($a) {
-		  print $a;
+	      my $x = help_url();
+	      if($x) {
+		  print $x;
 	      } else {
 		  print "Hmmm. Curious: I couldn't find the HTML docs anywhere in \@INC...\n";
 	      }

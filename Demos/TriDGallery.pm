@@ -52,7 +52,7 @@ actnw q|
 # B/W Mandelbrot... [Tjl]
 
 use PDL; use PDL::Graphics::TriD;
-$s=150;$a=zeroes $s,$s;$r=$a->xlinvals(-1.5,0.5);$i=$a->ylinvals(-1,1);
+$s=150;$x=zeroes $s,$s;$r=$x->xlinvals(-1.5,0.5);$i=$x->ylinvals(-1,1);
 $t=$r;$u=$i;
 for(0..12){$q=$r**2-$i**2+$t;$h=2*$r*$i+$u;($r,$i)=map{$_->clip(-5,5)}($q,$h);}
 imagrgb[($r**2+$i**2)>2.0];
@@ -64,10 +64,10 @@ if(0) {
 actnw q|
 # Greyscale Mandelbrot [Tjl]
 
-use PDL; use PDL::Graphics::TriD;$a=zeroes 300,300;$r=$a->xlinvals(-1.5,
-0.5);$i=$a->ylinvals(-1,1);$t=$r;$u=$i;for(1..30){$q=$r**2-$i**2+$t;$h=2
-*$r*$i+$u;$d=$r**2+$i**2;$a=lclip($a,$_*($d>2.0)*($a==0));($r,$i)=map{$_
-->clip(-5,5)}($q,$h);}imagrgb[$a/30];
+use PDL; use PDL::Graphics::TriD;$x=zeroes 300,300;$r=$x->xlinvals(-1.5,
+0.5);$i=$x->ylinvals(-1,1);$t=$r;$u=$i;for(1..30){$q=$r**2-$i**2+$t;$h=2
+*$r*$i+$u;$d=$r**2+$i**2;$x=lclip($x,$_*($d>2.0)*($x==0));($r,$i)=map{$_
+->clip(-5,5)}($q,$h);}imagrgb[$x/30];
 
 # [press 'q' in the graphics window when done]
 |;
@@ -77,10 +77,10 @@ actnw q|
 
 use PDL; use PDL::Graphics::TriD;
 nokeeptwiddling3d();
-$a=zeroes 300,300;$r=$a->xlinvals(-1.5,
-0.5);$i=$a->ylinvals(-1,1);$t=$r;$u=$i;for(1..30){$q=$r**2-$i**2+$t;$h=2
-*$r*$i+$u;$d=$r**2+$i**2;$a=lclip($a,$_*($d>2.0)*($a==0));($r,$i)=map{$_
-->clip(-5,5)}$q,$h;imagrgb[($a==0)*($r/2+0.75),($a==0)*($i+1)/2,$a/30]}
+$x=zeroes 300,300;$r=$x->xlinvals(-1.5,
+0.5);$i=$x->ylinvals(-1,1);$t=$r;$u=$i;for(1..30){$q=$r**2-$i**2+$t;$h=2
+*$r*$i+$u;$d=$r**2+$i**2;$x=lclip($x,$_*($d>2.0)*($x==0));($r,$i)=map{$_
+->clip(-5,5)}$q,$h;imagrgb[($x==0)*($r/2+0.75),($x==0)*($i+1)/2,$x/30]}
 
 # [press 'q' in the graphics window when done]
 |;
@@ -91,8 +91,8 @@ actnw q|
 # Torus... (barrel) [Tjl]
 
 use PDL; use PDL::Graphics::TriD;
-$s=40;$a=zeroes $s,$s;$t=$a->xlinvals(0,6.284);
-$u=$a->ylinvals(0,6.284);$o=5;$i=1;$v=$o+$i*sin$u;
+$s=40;$x=zeroes $s,$s;$t=$x->xlinvals(0,6.284);
+$u=$x->ylinvals(0,6.284);$o=5;$i=1;$v=$o+$i*sin$u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos$u]);
 |;
 
@@ -100,8 +100,8 @@ actnw q|
 # Ripply torus [Tjl]
 
 use PDL; use PDL::Graphics::TriD;
-$s=40;$a=zeroes 2*$s,$s/2;$t=$a->xlinvals(0,6.284);
-$u=$a->ylinvals(0,6.284); $o=5;$i=1;$v=$o+$i*sin$u;
+$s=40;$x=zeroes 2*$s,$s/2;$t=$x->xlinvals(0,6.284);
+$u=$x->ylinvals(0,6.284); $o=5;$i=1;$v=$o+$i*sin$u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
 |;
 
@@ -109,7 +109,7 @@ actnw q|
 # Ripply torus distorted [Tjl]
 
 use PDL; use PDL::Graphics::TriD;
-$s=40;$a=zeroes 2*$s,$s/2;$t=$a->xlinvals(0,6.284);$u=$a->ylinvals(0,
+$s=40;$x=zeroes 2*$s,$s/2;$t=$x->xlinvals(0,6.284);$u=$x->ylinvals(0,
 6.284); $o=5;$i=1;$v=$o-$o/2*sin(3*$t)+$i*sin$u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
 |;
@@ -138,17 +138,17 @@ $e = ($s>$r); $d .= $e; }while(!twiddle3d)
 actnw q|
 # Volume rendering [Robin Williams]
 use PDL; use PDL::Graphics::TriD; keeptwiddling3d();
-$b=zeroes(50,50,50);$b=sin(0.3*$b->rvals)*cos(0.3*$b->xvals);$c=0;
-$a=byte($b>$c);foreach(1,2,4){$t=($a->slice("0:-2")<<$_);$t+=$a->slice("1:-1");
-$a = $t->mv(0,2);} points3d [whichND(($a != 0) & ($a != 255))];
+$y=zeroes(50,50,50);$y=sin(0.3*$y->rvals)*cos(0.3*$y->xvals);$c=0;
+$x=byte($y>$c);foreach(1,2,4){$t=($x->slice("0:-2")<<$_);$t+=$x->slice("1:-1");
+$x = $t->mv(0,2);} points3d [whichND(($x != 0) & ($x != 255))];
 |;
 
 actnw q|
 # Lucy deconvolution (AJ 79, 745) [Robin Williams (=> TriD by Tjl)]
 use PDL; use PDL::Graphics::TriD; nokeeptwiddling3d();
 sub smth {use PDL::Image2D; conv2d($_[0],exp(-(rvals ones(3,3))**2));}
-$a=rfits("m51.fits")->float; $c=$d=avg($a)+0*$a;
-while(max $c>1.1) {$c=smth($a/smth($d));$d*=$c;imagrgb[$d/850];}
+$x=rfits("m51.fits")->float; $c=$d=avg($x)+0*$x;
+while(max $c>1.1) {$c=smth($x/smth($d));$d*=$c;imagrgb[$d/850];}
 |;
 
 
@@ -161,16 +161,16 @@ actnw q|
 # spherical dynamics [Mark R Baker]
 use PDL;use PDL::Graphics::TriD;for $c(1..99){$n=6.28*$c; $g=$c*rvals(
 sin(zeros(5000))*$c);$cz=-1**$g*$c;$cy=$g*cos$g*$c;$cx=$c*rvals($g)*$c;
-$g=cos($w=$cz+$cy+$cx);$r=sin$cy+$c+$cz;$b=sin$w;nokeeptwiddling3d();
-$i=$cz-$cx-$cy;$q=$i*$n;points3d[$b*sin$q,$r*cos$q,$g*sin$q],[$r,$g,$b]}
+$g=cos($w=$cz+$cy+$cx);$r=sin$cy+$c+$cz;$y=sin$w;nokeeptwiddling3d();
+$i=$cz-$cx-$cy;$q=$i*$n;points3d[$y*sin$q,$r*cos$q,$g*sin$q],[$r,$g,$y]}
 |;
 
 actnw q~
 # Fractal mountain range [Tuomas Lukka]
 use PDL;use PDL::Image2D;use PDL::Graphics::TriD; keeptwiddling3d(); $k=ones(5,5) / 25;
-$a=5;$b=ones(1,1)/2;for(1..7){$c=$b->dummy(0,2)->clump(2)->xchg(0,1)->
-dummy(0,2)->clump(2)->xchg(0,1)->copy;$c+=$a*$c->random;$a/=3;
-$b=conv2d($c,$k); imag3d[$b],{Lines => 0}; }
+$x=5;$y=ones(1,1)/2;for(1..7){$c=$y->dummy(0,2)->clump(2)->xchg(0,1)->
+dummy(0,2)->clump(2)->xchg(0,1)->copy;$c+=$x*$c->random;$x/=3;
+$y=conv2d($c,$k); imag3d[$y],{Lines => 0}; }
 ~;
 
 comment q|
@@ -186,9 +186,9 @@ comment q|
 if(0) { # one possible addition to volume rendering...
 
 use PDL; use PDL::Graphics::TriD;
-$b=zeroes(50,50,50);$b=sin(0.3*$b->rvals)*cos(0.3*$b->xvals);$c=0;
-$a=byte($b>$c);foreach(1,2,4){$t=($a->slice("0:-2")<<$_);$t+=$a->slice("1:-1");
-$a = $t->mv(0,2);}points3d[map{$_+$_->float->random}whichND(($a!=0)&($a != 255))];
+$y=zeroes(50,50,50);$y=sin(0.3*$y->rvals)*cos(0.3*$y->xvals);$c=0;
+$x=byte($y>$c);foreach(1,2,4){$t=($x->slice("0:-2")<<$_);$t+=$x->slice("1:-1");
+$x = $t->mv(0,2);}points3d[map{$_+$_->float->random}whichND(($x!=0)&($x != 255))];
 
 }
 
@@ -198,10 +198,10 @@ if(0) {
 use PDL; use PDL::Graphics::TriD;
 nokeeptwiddling3d();
 sub f {return abs(sin($_[0]*30))}
-$a=zeroes 300,300;$r=$a->xlinvals(-1.5,
-0.5);$i=$a->ylinvals(-1,1);$t=$r;$u=$i;for(1..30){$q=$r**2-$i**2+$t;$h=2
-*$r*$i+$u;$d=$r**2+$i**2;$a=lclip($a,$_*($d>2.0)*($a==0));($r,$i)=map{$_
-->clip(-5,5)}$q,$h;imagrgb[f(($a==0)*($r/2+0.75)),f(($a==0)*($i+1)/2),$a/30]}
+$x=zeroes 300,300;$r=$x->xlinvals(-1.5,
+0.5);$i=$x->ylinvals(-1,1);$t=$r;$u=$i;for(1..30){$q=$r**2-$i**2+$t;$h=2
+*$r*$i+$u;$d=$r**2+$i**2;$x=lclip($x,$_*($d>2.0)*($x==0));($r,$i)=map{$_
+->clip(-5,5)}$q,$h;imagrgb[f(($x==0)*($r/2+0.75)),f(($x==0)*($i+1)/2),$x/30]}
 
 }
 1;

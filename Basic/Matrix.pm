@@ -13,7 +13,7 @@ This document refers to version PDL::Matrix 0.5 of PDL::Matrix
   $m = mpdl [[1,2,3],[4,5,6]];
   $m = PDL::Matrix->pdl([[1,2,3],[4,5,6]]);
   $m = msequence(4,3);
-  @dimsa = $a->mdims; # 'dims' is not overloaded
+  @dimsa = $x->mdims; # 'dims' is not overloaded
 
   $v = vpdl [0,1,2,3]
   $v = vzeroes(4);

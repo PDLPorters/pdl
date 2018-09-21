@@ -25,7 +25,7 @@ complete Object-Oriented extension to Perl (although you don't have to know
 what an object is to use it) which allows large N-dimensional data sets, such
 as large images, spectra, time series, etc to be stored  B<efficiently> and
 manipulated B<en masse>.  For example  with the PDL module we can write the
-Perl code C<$a = $b + $c>, where C<$b> and C<$c> are large datasets
+Perl code C<$x = $y + $z>, where C<$y> and C<$z> are large datasets
 (e.g. 2048x2048 images), and get the result in only a fraction of a second.
 
 PDL variables (or 'piddles' as they have come to be known)
@@ -67,7 +67,7 @@ but that is not relevant for ordinary use of perlDL)
 The fundamental idea behind perlDL is to allow C<$x> to hold a whole 1D
 spectrum, or a 2D image, a 3D data cube, and so on up to large
 N-dimensional data sets. These can be manipulated all at once, e.g.
-C<$a = $b + 2> does a vector operation on each value in the
+C<$x = $y + 2> does a vector operation on each value in the
 spectrum/image/etc.
 
 You may well ask: "Why not just store a spectrum as a simple Perl C<@x>
@@ -124,20 +124,20 @@ or L<pdl2|PDL::Perldl2> for details.
 
 Here are some ways of creating a PDL variable:
 
- $a = pdl [1..10];             # 1D array
- $a = pdl (1,2,3,4);           # Ditto
- $a = pdl '[1 2 3 4]';         # Ditto
- $b = pdl [[1,2,3],[4,5,6]];   # 2D 3x2 array
- $b = pdl '[1 2 3; 4 5 6]';    # Ditto
- $b = pdl q[1,2,3; 4,5,6];     # Ditto
- $b = pdl <<NEWPDL             # Ditto
+ $x = pdl [1..10];             # 1D array
+ $x = pdl (1,2,3,4);           # Ditto
+ $x = pdl '[1 2 3 4]';         # Ditto
+ $y = pdl [[1,2,3],[4,5,6]];   # 2D 3x2 array
+ $y = pdl '[1 2 3; 4 5 6]';    # Ditto
+ $y = pdl q[1,2,3; 4,5,6];     # Ditto
+ $y = pdl <<NEWPDL             # Ditto
    [1 2 3]
    [4 5 6]
  NEWPDL
  $c = pdl q[1 -2];             # 2-element piddle containing 1 and -2
  $c = pdl q[1 - 2];            # 2-element piddle containing 1 and -2
- $b = pdl 42                   # 0-dimensional scalar
- $c = pdl $a;                  # Make a new copy
+ $y = pdl 42                   # 0-dimensional scalar
+ $c = pdl $x;                  # Make a new copy
  
  $d = byte [1..10];            # See "Type conversion"
  $e = zeroes(3,2,4);           # 3x2x4 zero-filled array
@@ -156,42 +156,42 @@ to PDL variables on-the-fly.
 
 =head2 Arithmetic (and boolean expressions)
 
- $a = $b + 2; $a++; $a = $b / $c; # Etc.
+ $x = $y + 2; $x++; $x = $y / $c; # Etc.
 
- $c=sqrt($a); $d = log10($b+100); # Etc
+ $c=sqrt($x); $d = log10($y+100); # Etc
 
- $e = $a>42; # Vector conditional
+ $e = $x>42; # Vector conditional
 
- $e = 42*($a>42) + $a*($a<=42); # Cap top
+ $e = 42*($x>42) + $x*($x<=42); # Cap top
 
- $b = $a->log10 unless any ($a <= 0); # avoid floating point error
+ $y = $x->log10 unless any ($x <= 0); # avoid floating point error
 
- $a = $a / ( max($a) - min($a) );
+ $x = $x / ( max($x) - min($x) );
 
- $f = where($a, $a > 10); # where returns a piddle of elements for
+ $f = where($x, $x > 10); # where returns a piddle of elements for
                           # which the condition is true
 
- print $a; # $a in string context prints it in a N-dimensional format
+ print $x; # $x in string context prints it in a N-dimensional format
 
 (and other Perl operators/functions)
 
 When using piddles in conditional expressions (i.e. C<if>, C<unless> and
 C<while> constructs) only piddles with exactly one element are allowed, e.g.
 
- $a = pdl (1,0,0,1);
- print "is set" if $a->index(2);
+ $x = pdl (1,0,0,1);
+ print "is set" if $x->index(2);
 
 Note that the boolean operators return in general multi-element
 piddles. Therefore, the following will raise an error
 
- print "is ok" if $a > 3;
+ print "is ok" if $x > 3;
 
-since C<$a E<gt> 3> is a piddle with 4 elements. Rather use 
+since C<$x E<gt> 3> is a piddle with 4 elements. Rather use 
 L<all|PDL::Ufunc/all> or L<any|PDL::Ufunc/any>
 to test if all or any of the elements fulfill the condition:
 
- print "some are > 3" if any $a>3;
- print "can't take logarithm" unless all $a>0;
+ print "some are > 3" if any $x>3;
+ print "can't take logarithm" unless all $x>0;
 
 There are also many predefined functions, which are described on other
 man pages. Check L<PDL::Index>.
@@ -199,14 +199,14 @@ man pages. Check L<PDL::Index>.
 =head2 Matrix functions
 
 C<'x'> is hijacked as the matrix multiplication operator. e.g.
-C<$c = $a x $b>;
+C<$c = $x x $y>;
 
 perlDL is row-major not column major so this is actually
-C<c(i,j) = sum_k a(k,j) b(i,k)> - but when matrices are printed the
+C<c(i,j) = sum_k x(k,j) y(i,k)> - but when matrices are printed the
 results will look right. Just remember the indices are reversed.
 e.g.:
 
- $a = [                   $b = [
+ $x = [                   $y = [
        [ 1  2  3  0]            [1 1]
        [ 1 -1  2  7]            [0 2]
        [ 1  0  0  1]            [0 2]
@@ -226,8 +226,8 @@ to turn row vectors into column vectors.
 =head2 How to write a simple function
 
  sub dotproduct {
-     my ($a,$b) = @_;
-     return sum($a*$b) ;
+     my ($x,$y) = @_;
+     return sum($x*$y) ;
  }
  1;
 
@@ -242,9 +242,9 @@ function, see L<PDL::Primitive>.
 
 Default for pdl() is double. Conversions are:
 
- $a = float($b);
+ $x = float($y);
  $c = long($d);   # "long" is generally a 4 byte int
- $d = byte($a);
+ $d = byte($x);
 
 Also double(), short(), ushort(), indx().  
 
@@ -257,8 +257,8 @@ Also double(), short(), ushort(), indx().
 These routines also automatically convert Perl lists to
 allow the convenient shorthand:
 
- $a = byte [[1..10],[1..10]];  # Create 2D byte array
- $a = float [1..1000];         # Create 1D float array
+ $x = byte [[1..10],[1..10]];  # Create 2D byte array
+ $x = float [1..1000];         # Create 1D float array
 
 etc.
 
@@ -266,9 +266,9 @@ etc.
 
 Automatically expands array in N-dimensional format:
 
- print $a;
+ print $x;
 
- $b = "Answer is = $a ";
+ $y = "Answer is = $x ";
 
 =head2 Sections
 
@@ -284,18 +284,18 @@ of, for example, the PGPLOT FORTRAN library.
 
 Following the usual convention coordinate (0,0) is displayed
 at the bottom left when displaying an image. It appears at the
-top left when using "C<print $a>" etc.
+top left when using "C<print $x>" etc.
 
 Simple sectioning uses a syntax extension to Perl,
 L<PDL::NiceSlice|PDL::NiceSlice>, that allows you to specify subranges
 via a null-method modifier to a PDL:
 
-  $b = $a->($x1:$x2,$y1:$y2,($z1)); # Take subsection
+  $g = $f->($x1:$x2,$y1:$y2,($z1)); # Take subsection
 
-Here, C<$a> is a 3-dimensional variable, and C<$b> gets a planar
+Here, C<$f> is a 3-dimensional variable, and C<$g> gets a planar
 cutout that is defined by the limits $x1, $x2, $y1, $y2, at the location
 $z1.  The parenthesis around C<$z1> cause the trivial index to be omitted --
-otherwise C<$b> would be three-dimensional with a third dimension of order 1.
+otherwise C<$g> would be three-dimensional with a third dimension of order 1.
 
 You can put PDL slices on either side of the element-wise assignment 
 operator C<.=>, like so:
@@ -305,12 +305,12 @@ operator C<.=>, like so:
 
 Some other miscellany:
 
- $c  = nelem($a); # Number of pixels
+ $c  = nelem($x); # Number of pixels
 
  $val = at($object, $x,$y,$z...)    # Pixel value at position, as a Perl scalar
  $val = $object->at($x,$y,$z...)    # equivalent (method syntax OK)
 
- $b = xvals($a); # Fill array with X-coord values (also yvals(), zvals(),
+ $y = xvals($x); # Fill array with X-coord values (also yvals(), zvals(),
                  # axisvals($x,$axis) and rvals() for radial distance
                  # from centre).
 
@@ -519,43 +519,43 @@ options you can use to tune the behaviour.
 
 =item Simple arithmetic
 
-If $a is a big image (e.g. occupying 10MB) then the command
+If $x is a big image (e.g. occupying 10MB) then the command
 
- $a = $a + 1;
+ $x = $x + 1;
 
 eats up another 10MB of memory. This is because
-the expression C<$a+1> creates a temporary copy of C<$a> to hold the
-result, then C<$a> is assigned a reference to that.
-After this, the original C<$a> is destroyed so there is no I<permanent>
+the expression C<$x+1> creates a temporary copy of C<$x> to hold the
+result, then C<$x> is assigned a reference to that.
+After this, the original C<$x> is destroyed so there is no I<permanent>
 memory waste. But on a small machine, the growth in the memory footprint
 can be considerable.
 It is obviously done
-this way so C<$c=$a+1> works as expected.
+this way so C<$c=$x+1> works as expected.
 
 Also if one says:
 
- $b = $a;     # $b and $a now point to same data
- $a = $a + 1;
+ $y = $x;     # $y and $x now point to same data
+ $x = $x + 1;
 
-Then C<$b> and C<$a> end up being different, as one naively expects,
-because a new reference is created and C<$a> is assigned to it.
+Then C<$y> and C<$x> end up being different, as one naively expects,
+because a new reference is created and C<$x> is assigned to it.
 
-However if C<$a> was a huge memory hog (e.g. a 3D volume) creating a copy
+However if C<$x> was a huge memory hog (e.g. a 3D volume) creating a copy
 of it may not be a good thing. One can avoid this memory overhead in
 the above example by saying:
 
- $a++;
+ $x++;
 
 The operations C<++,+=,--,-=>, etc. all call a special "in-place"
 version of the arithmetic subroutine. This means no more memory is
-needed - the downside of this is that if C<$b=$a> then C<$b> is also
+needed - the downside of this is that if C<$y=$x> then C<$y> is also
 incremented. To force a copy explicitly:
 
- $b = pdl $a; # Real copy
+ $y = pdl $x; # Real copy
 
 or, alternatively, perhaps better style:
 
- $b = $a->copy;
+ $y = $x->copy;
 
 =item Functions
 

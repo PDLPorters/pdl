@@ -8,15 +8,15 @@ use Time::HiRes qw(sleep);
 
 $size = 100;
 
-$a = zeroes(float,$size,$size);
-$res = $a->copy;
+$x = zeroes(float,$size,$size);
+$res = $x->copy;
 $resc0 = $res->clump(2);
 $resc = $resc0;
 $resi = xvals $resc;
 $inds0 = $resi;
 
-$re00 = 2*(xvals $a)->clump(2)/$size-1.5;
-$im00 = 2*(yvals $a)->clump(2)/$size-0.5;
+$re00 = 2*(xvals $x)->clump(2)/$size-1.5;
+$im00 = 2*(yvals $x)->clump(2)/$size-0.5;
 
 $re0 = $re00;
 $im0 = $im00;

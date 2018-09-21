@@ -7,7 +7,7 @@ PDL::Dbg - functions to support debugging of PDL scripts
        use PDL;
        use PDL::Dbg;
 
-       $c = $a->slice("5:10,2:30")->px->diagonal(3,4);
+       $c = $x->slice("5:10,2:30")->px->diagonal(3,4);
        PDL->px;
 
 =head1 DESCRIPTION
@@ -40,10 +40,10 @@ Print info about a piddle (or all known piddles)
 =for example
 
     pdl> PDL->px
-    pdl> $b += $a->clump(2)->px('clumptest')->sumover
-    pdl> $a->px('%C (%A) Type: %T') # prints nothing unless $PDL::debug
+    pdl> $y += $x->clump(2)->px('clumptest')->sumover
+    pdl> $x->px('%C (%A) Type: %T') # prints nothing unless $PDL::debug
     pdl> $PDL::debug = 1
-    pdl>  $a->px('%C (%A) Type: %T')
+    pdl>  $x->px('%C (%A) Type: %T')
     PDL (52433464) Type: Double
 
 

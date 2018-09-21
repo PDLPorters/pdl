@@ -7,47 +7,47 @@ BEGIN {
 }
 
 sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs($a-$b);
+        my($x,$y) = @_;
+        my $c = abs($x-$y);
         my $d = max($c);
         $d < 0.0001;
 }
 
 $ref = pdl([[-2,1],[-3,1]]);
-$a = i - pdl(2,3);
+$x = i - pdl(2,3);
 
-ok(ref $a eq PDL::Complex, 'type promotion i - piddle');
-ok(tapprox($a->real,$ref), 'value from i - piddle');
+ok(ref $x eq PDL::Complex, 'type promotion i - piddle');
+ok(tapprox($x->real,$ref), 'value from i - piddle');
 
-$a = pdl(2,3) - i;
-ok(ref $a eq PDL::Complex, 'type promption piddle - i');
-ok(tapprox($a->real,-$ref), 'value from piddle - i');
+$x = pdl(2,3) - i;
+ok(ref $x eq PDL::Complex, 'type promption piddle - i');
+ok(tapprox($x->real,-$ref), 'value from piddle - i');
 
 # dataflow from complex to real
-$ar = $a->real;
+$ar = $x->real;
 $ar++;
-ok(tapprox($a->real, -$ref+1), 'complex to real dataflow');
+ok(tapprox($x->real, -$ref+1), 'complex to real dataflow');
 
 # Check that converting from re/im to mag/ang and
 #  back we get the same thing
-$a = cplx($ref);
-my $b = $a->Cr2p()->Cp2r();
-ok(tapprox($a-$b, 0), 'check re/im and mag/ang equivalence');
+$x = cplx($ref);
+my $y = $x->Cr2p()->Cp2r();
+ok(tapprox($x-$y, 0), 'check re/im and mag/ang equivalence');
 
 # to test Cabs, Cabs2, Carg (ref PDL)
 # Catan, Csinh, Ccosh, Catanh, Croots
 
-$cabs = sqrt($a->re**2+$a->im**2);
+$cabs = sqrt($x->re**2+$x->im**2);
 
-ok(ref Cabs $a eq 'PDL', 'Cabs type');
-ok(ref Cabs2 $a eq 'PDL', 'Cabs2 type');
-ok(ref Carg $a eq 'PDL', 'Carg type');
-ok(tapprox($cabs, Cabs $a), 'Cabs value');
-ok(tapprox($cabs**2, Cabs2 $a), 'Cabs2 value');
+ok(ref Cabs $x eq 'PDL', 'Cabs type');
+ok(ref Cabs2 $x eq 'PDL', 'Cabs2 type');
+ok(ref Carg $x eq 'PDL', 'Carg type');
+ok(tapprox($cabs, Cabs $x), 'Cabs value');
+ok(tapprox($cabs**2, Cabs2 $x), 'Cabs2 value');
 
 # Check cat'ing of PDL::Complex
-$b = $a->copy + 1;
-my $bigArray = $a->cat($b);
+$y = $x->copy + 1;
+my $bigArray = $x->cat($y);
 ok(abs($bigArray->sum() +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
 
 my $z = pdl(0) + i*pdl(0);

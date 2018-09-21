@@ -79,12 +79,12 @@ As an example take this definition of a single exponential with
 
  sub expdec {
    my ($x,$par,$ym,$dyda) = @_;
-   my ($a,$b,$c) = map {$par->slice("($_)")} (0..2);
-   my $arg = $x/$a;
+   my ($width,$amp,$off) = map {$par->slice("($_)")} (0..2);
+   my $arg = $x/$width;
    my $ex = exp($arg);
-   $ym .= $b*$ex+$c;
+   $ym .= $amp*$ex+$off;
    my (@dy) = map {$dyda->slice(",($_)")} (0..2);
-   $dy[0] .= -$b*$ex*$arg/$a;
+   $dy[0] .= -$amp*$ex*$arg/$width;
    $dy[1] .= $ex;
    $dy[2] .= 1;
  }
@@ -100,7 +100,7 @@ performed.
 =cut
 
 sub PDL::lmfit {
-  my ($x,$y,$sig,$func,$a,$opt) = @_; # not using $ia right now
+  my ($x,$y,$sig,$func,$c,$opt) = @_; # not using $ia right now
   $opt = {iparse( { Maxiter => 200,
 		  Eps => 1e-4}, ifhref($opt))};
   my ($maxiter,$eps) = map {$opt->{$_}} qw/Maxiter Eps/;
@@ -110,8 +110,8 @@ sub PDL::lmfit {
     map {null} (0..10);
   my ($aldiag,$codiag);  # the diagonals for later updating
   # this will break threading
-  my $dyda = zeroes($x->type,$x->getdim(0),$a->getdim(0));
-  my $alv = zeroes($x->type,$x->getdim(0),$a->getdim(0),$a->getdim(0));
+  my $dyda = zeroes($x->type,$x->getdim(0),$c->getdim(0));
+  my $alv = zeroes($x->type,$x->getdim(0),$c->getdim(0),$c->getdim(0));
   my ($iter,$lambda) = (0,0.001);
 
   do {
@@ -123,9 +123,9 @@ sub PDL::lmfit {
       gesl $cov, $pivt, $bet, 0;   # solution returned in $bet
       # lusd($cov,$bet,$da);
       # print "changing by $da\n";
-      $a += $bet;                  # what we used to call $da is now $bet
+      $c += $bet;                  # what we used to call $da is now $bet
     }
-    &$func($x,$a,$ym,$dyda);
+    &$func($x,$c,$ym,$dyda);
     $chisq = ($y-$ym)*($y-$ym);
     $chisq *= $isig2;
     $chisq = $chisq->sumover;                   # calculate chi^2
@@ -133,7 +133,7 @@ sub PDL::lmfit {
     $alv *= $isig2;
     $alv->sumover($al);                         # calculate alpha
     (($y-$ym)*$isig2*$dyda)->sumover($bet);     # calculate beta
-    if ($iter == 0) {$olda .= $a; $ochisq .= $chisq; $oldbet .= $bet;
+    if ($iter == 0) {$olda .= $c; $ochisq .= $chisq; $oldbet .= $bet;
                      $oldal .= $al; $aldiag = $al->diagonal(0,1);
                      $cov .= $al; $codiag = $cov->diagonal(0,1)}
     $di .= abs($chisq-$ochisq);
@@ -141,20 +141,20 @@ sub PDL::lmfit {
     if ($chisq < $ochisq) {
       $lambda *= 0.1;
       $ochisq .= $chisq;
-      $olda .= $a;
+      $olda .= $c;
       $oldbet .= $bet;
       $oldal .= $al;
     } else {
       $lambda *= 10;
       $chisq .= $ochisq;
-      $a .= $olda;      # go back to previous a
+      $c .= $olda;      # go back to previous a
       $bet .= $oldbet;  # and beta
       $al .= $oldal;    # and alpha
     }
   } while ($iter++==0 || $iter < $maxiter && $di/$chisq > $eps);
   barf "iteration did not converge" if $iter >= $maxiter && $di/$chisq > $eps;
   # return inv $al as estimate of covariance matrix
-  return wantarray ? ($ym,$a,matinv($al),$iter) : $ym;
+  return wantarray ? ($ym,$c,matinv($al),$iter) : $ym;
 }
 *lmfit = \&PDL::lmfit;
 
@@ -224,17 +224,17 @@ the F<Example/Fit> directory.
 	   # leave this line as is
 	   my ($x,$par,$ym,$dyda) = @_;
 
-	   # $m and $b are fit parameters, internal to this function
+	   # $m and $c are fit parameters, internal to this function
 	   # call them whatever make sense to you, but replace (0..1)
 	   # with (0..x) where x is equal to your number of fit parameters
 	   # minus 1
-	   my ($m,$b) = map { $par->slice("($_)") } (0..1);
+	   my ($m,$c) = map { $par->slice("($_)") } (0..1);
 
 	   # Write function with dependent variable $ym,
 	   # independent variable $x, and fit parameters as specified above.
 	   # Use the .= (dot equals) assignment operator to express the equality 
 	   # (not just a plain equals)
-	   $ym .= $m * $x + $b;
+	   $ym .= $m * $x + $c;
 
 	   # Edit only the (0..1) part to (0..x) as above
 	   my (@dy) = map {$dyda -> slice(",($_)") } (0..1);
@@ -245,7 +245,7 @@ the F<Example/Fit> directory.
 	   $dy[0] .= $x;
 
 	   # Partial derivative of the function with respect to next 
-	   # fit parameter ($b in this case)
+	   # fit parameter ($y in this case)
 	   $dy[1] .= 1;
 
 	   # Add $dy[ ] .= () lines as necessary to supply 

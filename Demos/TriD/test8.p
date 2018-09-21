@@ -39,11 +39,11 @@ Contact pdl-porters if you feel you need this functionality.
 
 EOD
 
-my $a = zeroes(3,10000);
-random $a->inplace;
-$a -= 0.5; $a *= 30;
-$mf = d2c(func($a));
-points3d($a,[$mf]);
+my $x = zeroes(3,10000);
+random $x->inplace;
+$x -= 0.5; $x *= 30;
+$mf = d2c(func($x));
+points3d($x,[$mf]);
 
 PDL::Graphics::OpenGL::glShadeModel (&PDL::Graphics::OpenGL::GL_SMOOTH);
 

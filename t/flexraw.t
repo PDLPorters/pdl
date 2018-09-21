@@ -29,8 +29,8 @@ BEGIN { use_ok( 'PDL::IO::FlexRaw' ); }
 # Set up the working filename and make sure we're working with a clean slate:
 
 # **TEST 2** save a piddle to disk
-my $a = pdl [2,3],[4,5],[6,7];
-my $header = eval { writeflex($name, $a) };
+my $x = pdl [2,3],[4,5],[6,7];
+my $header = eval { writeflex($name, $x) };
 ok((-f $name), "writeflex should create a file");
 
 # **TEST 3** save a header to disk
@@ -38,8 +38,8 @@ eval { writeflexhdr($name, $header) };
 ok(-f "$name.hdr", "writeflexhdr should create a header file");
 
 # **TEST 4** read it back, and make sure it gives the same piddle
-my $b = eval { readflex($name) };
-ok(all(approx($a,$b)), "A piddle and it's saved copy should be about equal");
+my $y = eval { readflex($name) };
+ok(all(approx($x,$y)), "A piddle and its saved copy should be about equal");
 
 # **TEST 5** save two piddles to disk
 my $c = pdl [[0,0,0,0],[0,0,0,0]];
@@ -72,7 +72,7 @@ SKIP: {
    }
 
    # **TEST 8** compare mapfraw piddle with original piddle	
-   ok(all(approx($a,$c)), "A piddle and it's mapflex representation should be about equal");
+   ok(all(approx($x,$c)), "A piddle and its mapflex representation should be about equal");
 
    # **TEST 9** modifications should be saved when $c goes out of scope
    # THIS TEST FAILS.
@@ -82,43 +82,43 @@ SKIP: {
    # saved to the file (or at least it's not saved immediately).
    $c += 1;
    undef $c;
-   $b = readflex($name);
-   ok(all(approx($a+1,$b)), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
+   $y = readflex($name);
+   ok(all(approx($x+1,$y)), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
 
    # We're starting a new test, so we'll remove the files we've created so far
    # and clean up the memory, just to be super-safe
    unlink $name, $name . '.hdr';
-   undef $a;
-   undef $b;
+   undef $x;
+   undef $y;
 
    # **TEST 10** test creating a pdl via mapfraw
    # First create and modify the piddle
    $header = [{NDims => 2, Dims => [3,2], Type => 'float'}];
    # Fix this specification.
-   $a = mapflex($name, $header, {Creat => 1});
+   $x = mapflex($name, $header, {Creat => 1});
    writeflexhdr($name, $header);
-   ok(defined($a), 'mapflex create piddle');
+   ok(defined($x), 'mapflex create piddle');
 
-   skip('no mapflex piddle to check', 2) unless defined $a;
-   $a += xvals $a;
-   $a += 0.1 * yvals $a;
+   skip('no mapflex piddle to check', 2) unless defined $x;
+   $x += xvals $x;
+   $x += 0.1 * yvals $x;
    # save the contents
-   undef $a;
+   undef $x;
    # Load it back up and see if the values are what we expect
-   $b = readflex($name);
+   $y = readflex($name);
    # **TEST 11**
-   ok(all(approx($b, PDL->pdl([[0,1,2],[0.1,1.1,2.1]]))),
+   ok(all(approx($y, PDL->pdl([[0,1,2],[0.1,1.1,2.1]]))),
       "mapfraw should be able to create new piddles");
 
    # **TEST 12** test the created type
-   ok($b->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
+   ok($y->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
 
 }
 
 # Clean things up a bit
 unlink $name, $name . '.hdr';
-undef $a;
-undef $b;
+undef $x;
+undef $y;
 
 # Test the file header options:
 

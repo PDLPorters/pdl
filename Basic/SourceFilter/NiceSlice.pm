@@ -215,7 +215,7 @@ sub procargs {
 }
 
 # this is the real workhorse that translates occurences
-# of $a(args) into $args->slice(processed_arglist)
+# of $x(args) into $args->slice(processed_arglist)
 #
 sub findslice {
   my ($src,$verb) = @_;
@@ -235,7 +235,7 @@ sub findslice {
 
     if ($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+(\s|$RE_cmt)*$/s ||
       # foreach statement: Don't translate
-	$prefix =~ m/->\s*\$\w+$/s) # e.g. $a->$method(args)
+	$prefix =~ m/->\s*\$\w+$/s) # e.g. $x->$method(args)
       # method invocation via string, don't translate either
     {
 	# note: even though we reject this one we need to call
@@ -455,26 +455,26 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
 
   use PDL::NiceSlice;
 
-  $a(1:4) .= 2;             # concise syntax for ranges
-  print $b((0),1:$end);     # use variables in the slice expression
-  $a->xchg(0,1)->(($pos-1)) .= 0; # default method syntax
+  $x(1:4) .= 2;             # concise syntax for ranges
+  print $y((0),1:$end);     # use variables in the slice expression
+  $x->xchg(0,1)->(($pos-1)) .= 0; # default method syntax
 
   $idx = long 1, 7, 3, 0;   # a piddle of indices
-  $a(-3:2:2,$idx) += 3;     # mix explicit indexing and ranges
-  $a->clump(1,2)->(0:30);   # 'default method' syntax
-  $a(myfunc(0,$var),1:4)++; # when using functions in slice expressions
+  $x(-3:2:2,$idx) += 3;     # mix explicit indexing and ranges
+  $x->clump(1,2)->(0:30);   # 'default method' syntax
+  $x(myfunc(0,$var),1:4)++; # when using functions in slice expressions
                             # use parentheses around args!
 
-  $b = $a(*3);              # Add dummy dimension of order 3
+  $y = $x(*3);              # Add dummy dimension of order 3
 
   # modifiers are specified in a ;-separated trailing block
-  $a($a!=3;?)++;            # short for $a->where($a!=3)++
-  $a(0:1114;_) .= 0;        # short for $a->flat->(0:1114)
-  $b = $a(0:-1:3;|);        # short for $a(0:-1:3)->sever
+  $x($x!=3;?)++;            # short for $x->where($x!=3)++
+  $x(0:1114;_) .= 0;        # short for $x->flat->(0:1114)
+  $y = $x(0:-1:3;|);        # short for $x(0:-1:3)->sever
   $n = sequence 3,1,4,1;
-  $b = $n(;-);              # drop all dimensions of size 1 (AKA squeeze)
-  $b = $n(0,0;-|);          # squeeze *and* sever
-  $c = $a(0,3,0;-);         # more compact way of saying $a((0),(3),(0))
+  $y = $n(;-);              # drop all dimensions of size 1 (AKA squeeze)
+  $y = $n(0,0;-|);          # squeeze *and* sever
+  $c = $x(0,3,0;-);         # more compact way of saying $x((0),(3),(0))
 
 =head1 DESCRIPTION
 
@@ -527,8 +527,8 @@ the following situation: a file F<test0.pl>
    use PDL;
    use PDL::NiceSlice;
 
-   $a = sequence 10;
-   print $a(0:4),"\n";
+   $x = sequence 10;
+   print $x(0:4),"\n";
 
    require 'test1.pl';
    # end test0.pl
@@ -585,25 +585,25 @@ Due to C<PDL::NiceSlice> being a source filter it won't work
 in the usual way within evals. The following will I<not> do what
 you want:
 
-  $a = sequence 10;
+  $x = sequence 10;
   eval << 'EOE';
 
   use PDL::NiceSlice;
-  $b = $a(0:5);
+  $y = $x(0:5);
 
   EOE
-  print $b;
+  print $y;
 
 Instead say:
 
   use PDL::NiceSlice;
-  $a = sequence 10;
+  $x = sequence 10;
   eval << 'EOE';
 
-  $b = $a(0:5);
+  $y = $x(0:5);
 
   EOE
-  print $b;
+  print $y;
 
 Source filters I<must> be executed at compile time to be effective. And
 C<PDL::NiceFilter> is just a source filter (although it is not
@@ -626,7 +626,7 @@ slice piddles without too much typing:
 using parentheses directly following a scalar variable name,
 for example
 
-   $c = $b(0:-3:4,(0));
+   $c = $y(0:-3:4,(0));
 
 =item *
 
@@ -648,19 +648,19 @@ An arglist in parentheses following directly after a scalar variable
 name that is I<not> preceded by C<&> will be resolved as a slicing
 command, e.g.
 
-  $a(1:4) .= 2;         # only use this syntax on piddles
-  $sum += $a(,(1));
+  $x(1:4) .= 2;         # only use this syntax on piddles
+  $sum += $x(,(1));
 
 However, if the variable name is immediately preceded by a C<&>,
 for example
 
-  &$a(4,5);
+  &$x(4,5);
 
 it will not be interpreted as a slicing expression. Rather, to avoid
 interfering with the current subref syntax, it will be treated as an
-invocation of the code reference C<$a> with argumentlist C<(4,5)>.
+invocation of the code reference C<$x> with argumentlist C<(4,5)>.
 
-The $a(ARGS) syntax collides in a minor way with the perl syntax.  In
+The $x(ARGS) syntax collides in a minor way with the perl syntax.  In
 particular, ``foreach $var(LIST)'' appears like a PDL slicing call.  
 NiceSlice avoids translating the ``for $var(LIST)'' and 
 ``foreach $var(LIST)'' constructs for this reason.  Since you
@@ -676,7 +676,7 @@ The second syntax that will be recognized is what I called the
 I<default method> syntax. It is the method arrow C<-E<gt>> directly
 followed by an open parenthesis, e.g.
 
-  $a->xchg(0,1)->(($pos)) .= 0;
+  $x->xchg(0,1)->(($pos)) .= 0;
 
 Note that this conflicts with the use of normal code references, since you
 can write in plain Perl
@@ -700,18 +700,18 @@ the C<&>-way of calling subrefs, e.g.:
 =head2 When to use which syntax?
 
 Why are there two different ways to invoke slicing?
-The first syntax C<$a(args)> doesn't work with chained method calls. E.g.
+The first syntax C<$x(args)> doesn't work with chained method calls. E.g.
 
-  $a->xchg(0,1)(0);
+  $x->xchg(0,1)(0);
 
 won't work. It can I<only> be used directly following a valid perl variable
 name. Instead, use the I<default method> syntax in such cases:
 
-  $a->xchg(0,1)->(0);
+  $x->xchg(0,1)->(0);
 
 Similarly, if you have a list of piddles C<@pdls>:
 
-  $b = $pdls[5]->(0:-1);
+  $y = $pdls[5]->(0:-1);
 
 =head2 The argument list
 
@@ -721,11 +721,11 @@ to usage of the L<slice|PDL::Slices/slice> method the arguments should
 I<not> be quoted. Rather freely mix literals (1,3,etc), perl
 variables and function invocations, e.g.
 
-  $a($pos-1:$end,myfunc(1,3)) .= 5;
+  $x($pos-1:$end,myfunc(1,3)) .= 5;
 
 There can even be other slicing commands in the arglist:
 
-  $a(0:-1:$pdl($step)) *= 2;
+  $x(0:-1:$pdl($step)) *= 2;
 
 NOTE: If you use function calls in the arglist make sure that
 you use parentheses around their argument lists. Otherwise the
@@ -734,8 +734,8 @@ list on commas that are not protected by parentheses. Take
 the following example:
 
   sub myfunc { return 5*$_[0]+$_[1] }
-  $a = sequence 10;
-  $sl = $a(0:myfunc 1, 2);
+  $x = sequence 10;
+  $sl = $x(0:myfunc 1, 2);
   print $sl;
  PDL barfed: Error in slice:Too many dims in slice
  Caught at file /usr/local/bin/perldl, line 232, pkg main
@@ -743,7 +743,7 @@ the following example:
 
 The simple fix is
 
-  $sl = $a(0:myfunc(1, 2));
+  $sl = $x(0:myfunc(1, 2));
   print $sl;
  [0 1 2 3 4 5 6 7]
 
@@ -755,9 +755,9 @@ Another pitfall to be aware of: currently, you can't use the conditional
 operator in slice expressions (i.e., C<?:>, since the parser confuses them
 with ranges). For example, the following will cause an error:
 
-  $a = sequence 10;
-  $b = rand > 0.5 ? 0 : 1; # this one is ok
-  print $a($b ? 1 : 2);    # error !
+  $x = sequence 10;
+  $y = rand > 0.5 ? 0 : 1; # this one is ok
+  print $x($y ? 1 : 2);    # error !
  syntax error at (eval 59) line 3, near "1,
 
 For the moment, just try to stay clear of the conditional operator
@@ -782,13 +782,13 @@ Four modifiers are currently implemented:
 C<_> : I<flatten> the piddle before applying the slice expression. Here
 is an example
 
-   $b = sequence 3, 3;
-   print $b(0:-2;_); # same as $b->flat->(0:-2)
+   $y = sequence 3, 3;
+   print $y(0:-2;_); # same as $y->flat->(0:-2)
  [0 1 2 3 4 5 6 7]
 
 which is quite different from the same slice expression without the modifier
 
-   print $b(0:-2);
+   print $y(0:-2);
  [
   [0 1]
   [3 4]
@@ -799,11 +799,11 @@ which is quite different from the same slice expression without the modifier
 
 C<|> : L<sever|PDL::Core/sever> the link to the piddle, e.g.
 
-   $a = sequence 10;
-   $b = $a(0:2;|)++;  # same as $a(0:2)->sever++
-   print $b;
+   $x = sequence 10;
+   $y = $x(0:2;|)++;  # same as $x(0:2)->sever++
+   print $y;
  [1 2 3]
-   print $a; # check if $a has been modified
+   print $x; # check if $x has been modified
  [0 1 2 3 4 5 6 7 8 9]
 
 =item *
@@ -813,19 +813,19 @@ L<where|PDL::Primitive/where> expression
 
 As expressions like
 
-  $a->where($a>5)
+  $x->where($x>5)
 
 are used very often you can write that shorter as
 
-  $a($a>5;?)
+  $x($x>5;?)
 
 With the C<?>-modifier the expression preceding the modifier is I<not>
 really a slice expression (e.g. ranges are not allowed) but rather an
 expression as required by the L<where|PDL::Primitive/where> method.
 For example, the following code will raise an error:
 
-  $a = sequence 10;
-  print $a(0:3;?);
+  $x = sequence 10;
+  print $x(0:3;?);
  syntax error at (eval 70) line 3, near "0:"
 
 That's about all there is to know about this one.
@@ -838,9 +838,9 @@ dims of size 1. It is equivalent to doing a L<reshape|PDL::Core/reshape>(-1).
 That can be very handy if you want to simplify
 the results of slicing operations:
 
-  $a = ones 3, 4, 5;
-  $b = $a(1,0;-); # easier to type than $a((1),(0))
-  print $b->info;
+  $x = ones 3, 4, 5;
+  $y = $x(1,0;-); # easier to type than $x((1),(0))
+  print $y->info;
  PDL: Double D [5]
 
 It also provides a unique opportunity to have smileys in your code!
@@ -852,7 +852,7 @@ Yes, PDL gives new meaning to smileys.
 
 Several modifiers can be used in the same expression, e.g.
 
-  $c = $a(0;-|); # squeeze and sever
+  $c = $x(0;-|); # squeeze and sever
 
 Other combinations are just as useful, e.g. C<;_|> to flatten and
 sever. The sequence in which modifiers are specified is not important.
@@ -863,7 +863,7 @@ to relax this rule).
 
 Repeating any modifier will raise an error:
 
-  $c = $a(-1:1;|-|); # will cause error
+  $c = $x(-1:1;|-|); # will cause error
  NiceSlice error: modifier | used twice or more
 
 Modifiers are still a new and experimental feature of
@@ -886,7 +886,7 @@ of the C<?>-modifier above for an exception).
 
 You can access ranges using the usual C<:> separated format:
 
-  $a($start:$stop:$step) *= 4;
+  $x($start:$stop:$step) *= 4;
 
 Note that you can omit the trailing step which then defaults to 1.  Double
 colons (C<::>) are not allowed to avoid clashes with Perl's namespace
@@ -894,64 +894,64 @@ syntax. So if you want to use steps different from the default
 you have to also at least specify the stop position.
 Examples:
 
-  $a(::2);   # this won't work (in the way you probably intended)
-  $a(:-1:2); # this will select every 2nd element in the 1st dim
+  $x(::2);   # this won't work (in the way you probably intended)
+  $x(:-1:2); # this will select every 2nd element in the 1st dim
 
 Just as with L<slice|PDL::Slices/slice> negative indices count from the end of the dimension
 backwards with C<-1> being the last element. If the start index is larger
 than the stop index the resulting piddle will have the elements in reverse
 order between these limits:
 
-  print $a(-2:0:2);
+  print $x(-2:0:2);
  [8 6 4 2 0]
 
 A single index just selects the given index in the slice
 
-  print $a(5);
+  print $x(5);
  [5]
 
 Note, however, that the corresponding dimension is not removed from
 the resulting piddle but rather reduced to size 1:
 
-  print $a(5)->info
+  print $x(5)->info
  PDL: Double D [1]
 
 If you want to get completely rid of that dimension enclose the index
 in parentheses (again similar to the L<slice|PDL::Slices/slice> syntax):
 
-  print $a((5));
+  print $x((5));
  5
 
 In this particular example a 0D piddle results. Note that this syntax is
 only allowed with a single index. All these will be errors:
 
-  print $a((0,4));  # will work but not in the intended way
-  print $a((0:4));  # compile time error
+  print $x((0,4));  # will work but not in the intended way
+  print $x((0:4));  # compile time error
 
 An empty argument selects the whole dimension, in this example
 all of the first dimension:
 
-  print $a(,(0));
+  print $x(,(0));
 
 Alternative ways to select a whole dimension are
 
-  $a = sequence 5, 5; 
-  print $a(:,(0));
-  print $a(0:-1,(0));
-  print $a(:-1,(0));
-  print $a(0:,(0));
+  $x = sequence 5, 5; 
+  print $x(:,(0));
+  print $x(0:-1,(0));
+  print $x(:-1,(0));
+  print $x(0:,(0));
 
 Arguments for trailing dimensions can be omitted. In that case
 these dimensions will be fully kept in the sliced piddle:
 
-  $a = random 3,4,5;
-  print $a->info;
+  $x = random 3,4,5;
+  print $x->info;
  PDL: Double D [3,4,5]
-  print $a((0))->info;
+  print $x((0))->info;
  PDL: Double D [4,5]
-  print $a((0),:,:)->info;  # a more explicit way
+  print $x((0),:,:)->info;  # a more explicit way
  PDL: Double D [4,5]
-  print $a((0),,)->info;    # similar
+  print $x((0),,)->info;    # similar
  PDL: Double D [4,5]
 
 =item * dummy dimensions
@@ -965,18 +965,18 @@ order 1; a '*' followed by a number inserts a dummy dimension of that order.
 The second way to select indices from a dimension is via 1D piddles
 of indices. A simple example:
 
-  $a = random 10;
+  $x = random 10;
   $idx = long 3,4,7,0;
-  $b = $a($idx);
+  $y = $x($idx);
 
 This way of selecting indices was previously only possible using
 L<dice|PDL::Slices/dice> (C<PDL::NiceSlice> attempts to unify the
 C<slice> and C<dice> interfaces). Note that the indexing piddles must
 be 1D or 0D. Higher dimensional piddles as indices will raise an error:
 
-  $a = sequence 5, 5;
+  $x = sequence 5, 5;
   $idx2 = ones 2,2;
-  $sum = $a($idx2)->sum;
+  $sum = $x($idx2)->sum;
  piddle must be <= 1D at /home/XXXX/.perldlrc line 93
 
 Note that using index piddles is not as efficient as using ranges.
@@ -991,8 +991,8 @@ go use it!
 As you might have expected ranges and index piddles can be freely
 mixed in slicing expressions:
 
-  $a = random 5, 5;
-  $b = $a(-1:2,pdl(3,0,1));
+  $x = random 5, 5;
+  $y = $x(-1:2,pdl(3,0,1));
 
 =head2 piddles as indices in ranges
 
@@ -1002,13 +1002,13 @@ However, make sure they contain not more than one element! Otherwise
 a runtime error will be triggered. First a couple of examples that
 illustrate proper usage:
 
-  $a = sequence 5, 5;
+  $x = sequence 5, 5;
   $rg = pdl(1,-1,3);
-  print $a($rg(0):$rg(1):$rg(2),2);
+  print $x($rg(0):$rg(1):$rg(2),2);
  [
   [11 14]
  ]
-  print $a($rg+1,:$rg(0));
+  print $x($rg+1,:$rg(0));
  [
   [2 0 4]
   [7 5 9]
@@ -1016,7 +1016,7 @@ illustrate proper usage:
 
 The next one raises an error 
 
-  print $a($rg+1,:$rg(0:1));
+  print $x($rg+1,:$rg(0:1));
  multielement piddle where only one allowed at XXX/Core.pm line 1170.
 
 The problem is caused by using the 2-element piddle C<$rg(0:1)> as the
@@ -1072,8 +1072,8 @@ Pdlpp code (see above):
   use PDL::NiceSlice;
   use Inline Pdlpp;
 
-  $a = sequence(10);
-  print $a(0:5);
+  $x = sequence(10);
+  print $x(0:5);
 
   __END__
 
@@ -1087,9 +1087,9 @@ Inline::Pdlpp code:
 
   use PDL::NiceSlice;
 
-  $a = sequence 10;
-  $a(0:3)++;
-  $a->inc;
+  $x = sequence 10;
+  $x(0:3)++;
+  $x->inc;
 
   no PDL::NiceSlice; # switch off before Pdlpp code
   use Inline Pdlpp => "Pdlpp source code";

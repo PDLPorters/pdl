@@ -286,9 +286,9 @@ sub Torusdemos{
   if($demo ne "Off"){
     my $data;
     my $s=40;
-    my $a=zeroes 2*$s,$s/2;
-    my $t=$a->xlinvals(0,6.284);
-    my $u=$a->ylinvals(0,6.284); 
+    my $x=zeroes 2*$s,$s/2;
+    my $t=$x->xlinvals(0,6.284);
+    my $u=$x->ylinvals(0,6.284); 
     my $o=0.5;
     my $i=0.1;
     my $v=$o+$i*sin$u;

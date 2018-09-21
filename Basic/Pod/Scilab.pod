@@ -68,10 +68,10 @@ PDL program:
   use PDL;             # Import main PDL module.
   use PDL::NiceSlice;  # Import additional PDL module.
   
-  $b = pdl [2,3,4];              # Statements end in semicolon.
+  $y = pdl [2,3,4];              # Statements end in semicolon.
   $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional piddle.
   
-  print $A x $b->transpose;
+  print $A x $y->transpose;
 
 Save this file as C<myprogram.pl> and run it with:
 
@@ -84,12 +84,12 @@ a flexible matrix syntax that can look extremely similar to Scilab:
 
 1) Use a ';' to delimit rows:
 
-  $b = pdl q[ 2,3,4 ];
+  $y = pdl q[ 2,3,4 ];
   $A = pdl q[ 1,2,3 ; 4,5,6 ];
 
 2) Use spaces to separate elements:
 
-  $b = pdl q[ 2 3 4 ];
+  $y = pdl q[ 2 3 4 ];
   $A = pdl q[ 1 2 3 ; 4 5 6 ];
 
 
@@ -113,10 +113,10 @@ more familiar to Scilab users.
   b(1:5)            -->  Selects the first 5 elements from b.
   
   # PDL without NiceSlice
-  $b->slice("0:4")  -->  Selects the first 5 elements from $b.
+  $y->slice("0:4")  -->  Selects the first 5 elements from $y.
   
   # PDL with NiceSlice
-  $b(0:4)           -->  Selects the first 5 elements from $b.
+  $y(0:4)           -->  Selects the first 5 elements from $y.
 
 =back
 
@@ -135,7 +135,7 @@ Scilab users will want to start here.
 =item Indices
 
 In PDL, indices start at '0' (like C and Java), not 1 (like Scilab).
-For example, if C<$b> is an array with 5 elements, the elements would be
+For example, if C<$y> is an array with 5 elements, the elements would be
 numbered from 0 to 4.
 
 =item Displaying an object
@@ -152,10 +152,10 @@ Scilab:
 
 PerlDL:
 
- pdl> $a = 12    # No output.
- pdl> print $a   # Print object.
+ pdl> $x = 12    # No output.
+ pdl> print $x   # Print object.
  12
- pdl> p $a       # "p" is a shorthand for "print" in the shell.
+ pdl> p $x       # "p" is a shorthand for "print" in the shell.
  12
 
 =back
@@ -622,7 +622,7 @@ together:
 
 4) You can assign values to several variables at once using the syntax:
 
-  ($a, $b, $c) = (1, 2, 3);
+  ($x, $y, $z) = (1, 2, 3);
 
 So, in the previous examples:
 

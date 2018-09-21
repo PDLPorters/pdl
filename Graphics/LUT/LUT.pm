@@ -63,7 +63,7 @@ Load in the requested colour table and intensity ramp.
 
 =for usage
 
- ( $l, $r, $g, $b ) = lut_data( $table, [ $reverse, [ $ramp ] ] );
+ my ( $l, $r, $g, $b ) = lut_data( $table, [ $reverse, [ $ramp ] ] );
 
 Returns the levels and r, g, b components of the colour table
 C<$table>. If C<$reverse> is 1 (defaults to B<0> 

@@ -16,9 +16,9 @@ $bc = 1-$fric*$tc;
 
 $size = 80 ;
 
-$a = zeroes(float(),$size,$size);
+$x = zeroes(float(),$size,$size);
 
-$b = ((rvals $a) < $size/2)->float;
+$y = ((rvals $x) < $size/2)->float;
 
 $c = (rvals ($size,$size,{Centre=>[$size/3,$size/3]}))->float ;
 $c2 = (rvals ($size,$size,{Centre=>[$size/3,$size/2]}))->float ;
@@ -26,42 +26,42 @@ $c2 = (rvals ($size,$size,{Centre=>[$size/3,$size/2]}))->float ;
 # $sdiv = 12/$size;
 $sdiv = 20/$size;
 
-$a .= exp(-($sdiv*$c) ** 2)->float;
-$a -= exp(-($sdiv*$c2) ** 2)->float;
-$a *= $b;
+$x .= exp(-($sdiv*$c) ** 2)->float;
+$x -= exp(-($sdiv*$c2) ** 2)->float;
+$x *= $y;
 
 if(0) {
-	$a->set(8,8,0.3);
-	$a->set(8,9,0.5);
-	$a->set(9,8,0.5);
-	$a->set(9,9,1);
-	$a->set(10,8,0.3);
-	$a->set(10,9,0.5);
-	$a->set(8,10,0.3);
-	$a->set(9,10,0.5);
-	$a->set(10,10,0.3);
+	$x->set(8,8,0.3);
+	$x->set(8,9,0.5);
+	$x->set(9,8,0.5);
+	$x->set(9,9,1);
+	$x->set(10,8,0.3);
+	$x->set(10,9,0.5);
+	$x->set(8,10,0.3);
+	$x->set(9,10,0.5);
+	$x->set(10,10,0.3);
 }
 
 
-$asl1 = $a->slice("0:-3,1:-2");
-$asl2 = $a->slice("1:-2,0:-3");
-$asl3 = $a->slice("2:-1,1:-2");
-$asl4 = $a->slice("1:-2,2:-1");
+$asl1 = $x->slice("0:-3,1:-2");
+$asl2 = $x->slice("1:-2,0:-3");
+$asl3 = $x->slice("2:-1,1:-2");
+$asl4 = $x->slice("1:-2,2:-1");
 
-$ach = $a->slice("1:-2,1:-2");
-$bch = $b->slice("1:-2,1:-2");
+$ach = $x->slice("1:-2,1:-2");
+$bch = $x->slice("1:-2,1:-2");
 
 $s = $ach * 0;
 
 $round = 0;
 
 $win = PDL::Graphics::TriD::get_current_window();
-# points3d([SURF2D,$a]);
+# points3d([SURF2D,$x]);
 $g = PDL::Graphics::TriD::get_current_graph();
 
 keeptwiddling3d(1);
 
-$surf = new PDL::Graphics::TriD::SLattice_S([$a]);
+$surf = new PDL::Graphics::TriD::SLattice_S([$x]);
 
 if(0) {
 	$g->add_dataseries($surf,"surf");
@@ -100,7 +100,7 @@ while(1) {
 			$win->changed();
 			$win->twiddle(1);
 		} else {
-			imag3d([$a],{KeepTwiddling => 0});
+			imag3d([$x],{KeepTwiddling => 0});
 		}
 	}
 	$round++;

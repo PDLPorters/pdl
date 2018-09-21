@@ -43,8 +43,8 @@ around 'read' => sub {
 
    if ( $lines =~ /^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
       my @t = split(/\s+/,$lines);
-      my $a;
-      foreach $a(@t) { $a=~s/^["']+//; $a=~s/['"]+$//; };
+      my $x;
+      foreach $x(@t) { $x=~s/^["']+//; $x=~s/['"]+$//; };
       $t[1] = "'".$t[1]."'"  if ($#t == 1 && !($t[1] =~ /^\$/));
       $lines = join(' ',@t);
    }

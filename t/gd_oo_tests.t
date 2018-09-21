@@ -55,9 +55,9 @@ use PDL::Config;
 
 sub tapprox
 {
-    my $a = shift;
-    my $b = shift;
-    my $d = abs($a - $b);
+    my $x = shift;
+    my $y = shift;
+    my $d = abs($x - $y);
     #ok( all($d < 1.0e-5) );
     return all($d < 1.0e-5);
 }

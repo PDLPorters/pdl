@@ -23,8 +23,8 @@ EOINC
 
 use Inline Pdlpp; # the actual code is in the __Pdlpp__ block below
 
-$a = zeroes(10) + 30;;
-print $a->poidev(-3),"\n";
+$x = zeroes(10) + 30;;
+print $x->poidev(-3),"\n";
 
 __DATA__
 

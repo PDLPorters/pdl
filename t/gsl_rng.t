@@ -59,37 +59,37 @@ $name = $rng->name();
 ok(1,'name() function');
 
 # get_uniform() function Test: 
-$a = zeroes 5,6; $max=100;
+$x = zeroes 5,6; $max=100;
 
-$o = $rng->get_uniform(10,10); $rng->get_uniform($a);
+$o = $rng->get_uniform(10,10); $rng->get_uniform($x);
 
 ok(1,'get_uniform() function');
 
 # get_uniform_pos() function Test: 
-$a = zeroes 5,6;
+$x = zeroes 5,6;
 
-$o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($a);
+$o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($x);
 
 ok(1,'get_uniform_pos() function');
 
 # get() function Test: 
-$a = zeroes 5,6;
+$x = zeroes 5,6;
 
-$o = $rng->get(10,10); $rng->get($a);
+$o = $rng->get(10,10); $rng->get($x);
 
 ok(1,'get() function');
 
 # get_int() function Test: 
-$a = zeroes 5,6; $max=100;
+$x = zeroes 5,6; $max=100;
 
-$o = $rng->get(10,10); $rng->get($a);
+$o = $rng->get(10,10); $rng->get($x);
 
 ok(1,'get_int() function');
 
 # ran_gaussian() function Test: 
 $o = $rng->ran_gaussian($sigma,10,10);
 
-$rng->ran_gaussian($sigma,$a);
+$rng->ran_gaussian($sigma,$x);
 
 
 ok(1,'ran_gaussian() function');

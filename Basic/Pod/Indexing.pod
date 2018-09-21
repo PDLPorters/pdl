@@ -155,7 +155,7 @@ propagated back to the parent. (Note: You see, we are aiming in our
 terminology already towards the new dataflow features. The kind of
 dataflow that is used by the indexing commands (about which you will
 learn in a minute) is always in operation, not only when you have
-explicitly switched on dataflow in your piddle by saying C<$a-E<gt>doflow>. For
+explicitly switched on dataflow in your piddle by saying C<$x-E<gt>doflow>. For
 further information about data flow check the dataflow man page.)
 
 Another way to interpret the piddles created by our indexing commands is
@@ -191,10 +191,10 @@ those routines that pass pointers to external library functions).
 Note that whether something is affine or not does not affect the semantics
 of what you do in any way: both
 
- $a->index(...) .= 5;
- $a->slice(...) .= 5;
+ $x->index(...) .= 5;
+ $x->slice(...) .= 5;
 
-change the data in C<$a>. The affinity does, however, have a significant
+change the data in C<$x>. The affinity does, however, have a significant
 impact on memory usage and performance.
 
 =head2 Slicing piddles
@@ -304,9 +304,9 @@ The previous examples have demonstrated typical usage of the slice
 function. Since the slicing functionality is so important here is an
 explanation of the syntax for the string argument to slice:
 
- $vpdl = $a->slice('ind0,ind1...')
+ $vpdl = $x->slice('ind0,ind1...')
 
-where C<ind0> specifies what to do with index No 0 of the piddle C<$a>,
+where C<ind0> specifies what to do with index No 0 of the piddle C<$x>,
 etc. Each element of the comma separated list can have one of the
 following forms:
 
@@ -430,7 +430,7 @@ in way we can express as:
 
 =back
 
-[ work in the new index function: C<$b = $a-E<gt>index($c);> ???? ]
+[ work in the new index function: C<$y = $x-E<gt>index($c);> ???? ]
 
 =head2 There are different kinds of assignments in PDL
 
@@ -523,8 +523,8 @@ Note that there can be a problem with assignments like this when
 lvalue and rvalue piddles refer to overlapping portions of data in the
 parent piddle:
 
- # revert the elements of the first line of $a
- ($tmp = $a->slice(':,(1)')) .= $a->slice('-1:0,(1)');
+ # revert the elements of the first line of $x
+ ($tmp = $x->slice(':,(1)')) .= $x->slice('-1:0,(1)');
 
 Currently, the parent data on the right side of the assignments is not
 copied before the (internal) assignment loop proceeds. Therefore, the
@@ -533,11 +533,11 @@ elements are assigned and almost certainly I<not> do what you
 wanted.  So the semantics are currently B<undefined> for now and liable
 to change anytime. To obtain the desired behaviour, use
 
- ($tmp = $a->slice(':,(1)')) .= $a->slice('-1:0,(1)')->copy;
+ ($tmp = $x->slice(':,(1)')) .= $x->slice('-1:0,(1)')->copy;
 
 which makes a physical copy of the slice or
 
- ($tmp = $a->slice(':,(1)')) .= $a->slice('-1:0,(1)')->sever;
+ ($tmp = $x->slice(':,(1)')) .= $x->slice('-1:0,(1)')->sever;
 
 which returns the same slice but severs the connection of the slice
 to its parent.
@@ -603,10 +603,10 @@ photos to color ones in the way you'd like. :(
 Note that the memory usage of piddles with dummy dimensions
 is especially sensitive to the internal representation. If the piddle
 can be represented as a virtual affine (``vaffine'') piddle,
-only the control structures are stored. But if C<$b> in
+only the control structures are stored. But if C<$y> in
 
- $a = zeroes(10000);
- $b = $a->dummy(1,10000);
+ $x = zeroes(10000);
+ $y = $x->dummy(1,10000);
 
 is made physical by some routine, you will find that the memory usage
 of your program has suddenly grown by 100Mb.
@@ -645,17 +645,17 @@ A straightforward example:
 
  # transpose a matrix (without explicitly reshuffling data and
  # making a copy)
- $prod = $a x $a->xchg(0,1);
+ $prod = $x x $x->xchg(0,1);
 
-C<$prod> should now be pretty close to the unity matrix if C<$a> is an
+C<$prod> should now be pretty close to the unity matrix if C<$x> is an
 orthogonal matrix. Often C<xchg> will be used in the context of threading
 but more about that later.
 
 L<mv|PDL::Slices/mv> works in a similar fashion. It moves a dimension (specified by
 its number in the parent) to a new position in the new child piddle:
 
- $b = $a->mv(4,0);  # make the 5th dimension of $a the first in the
-                    # new child $b
+ $y = $x->mv(4,0);  # make the 5th dimension of $x the first in the
+                    # new child $y
 
 The difference between C<xchg> and C<mv> is that C<xchg> only changes
 the position of two dimensions with each other, whereas C<mv>
@@ -696,9 +696,9 @@ return a newly created child object. However, when doing extensive
 index manipulations in a chain be sure to keep track of what you are
 doing, e.g.
 
- $a->xchg(0,1)->mv(0,4)
+ $x->xchg(0,1)->mv(0,4)
 
-moves the dimension 1 of C<$a> to position 4 since when the
+moves the dimension 1 of C<$x> to position 4 since when the
 second command is executed the original dimension 1 has been moved
 to position 0 of the new child that calls the C<mv> function. I think
 you get the idea (in spite of my convoluted explanations).
@@ -713,9 +713,9 @@ elements are potentially ambiguous and would depend on the sequence in
 which the implementation makes the assignments to elements. Therefore,
 an assignment like this:
 
- $a = pdl [1,2,3];
- $b = $a->dummy(1,4);
- $b .= yvals(zeroes(3,4));
+ $x = pdl [1,2,3];
+ $y = $x->dummy(1,4);
+ $y .= yvals(zeroes(3,4));
 
 can produce unexpected results and the results are explicitly
 B<undefined> by PDL because when PDL gets parallel computing
@@ -922,8 +922,8 @@ down into two groups in the following: Core dimensions (as defined by
 the PP-function, see B<Appendix B> for a list of PDL primitives) and
 extra dimensions which comprises all remaining dimensions of that
 piddle. For example calling a function C<func> with the signature
-C<func((n,m),[o](n))> with a piddle C<a(2,4,7,1,3)> as C<f($a,($o = null))>
-results in the semantic splitting of a's dimensions into:
+C<func((n,m),[o](n))> with a piddle C<$x(2,4,7,1,3)> as C<f($x,($o = null))>
+results in the semantic splitting of x's dimensions into:
 core dimensions C<(2,4)> and extra dimensions C<(7,1,3)>.
 
 =over 6
@@ -986,19 +986,19 @@ the signature:
 
  func((m,n),(m,n,o),(m),[o](m,o))
 
-and you call it with 3 piddles C<a(5,3,10,11)>,
-C<b(5,3,2,10,1,12)>, and C<c(5,1,11,12)> as
+and you call it with 3 piddles C<$x(5,3,10,11)>,
+C<$y(5,3,2,10,1,12)>, and C<$z(5,1,11,12)> as
 
- func($a,$b,$c,($d=null))
+ func($x,$y,$z,($d=null))
 
-then the number of loop dimensions is 3 (by C<R0+R1> from C<$b> and C<$c>) with
+then the number of loop dimensions is 3 (by C<R0+R1> from C<$y> and C<$z>) with
 sizes C<(10,11,12)> (by R2); the two output core dimensions are C<(5,2)>
 (from the signature of func) resulting in a 5-dimensional output piddle
 C<$c> of size C<(5,2,10,11,12)> (see R5) and (the automatically created) C<$d>
-is derived from C<($a,$b,$c)> in a way that can be expressed in pdl
+is derived from C<($x,$y,$z)> in a way that can be expressed in pdl
 pseudo-code as
 
- $d(:,:,i,j,k) .= func($a(:,:,i,j),$b(:,:,:,i,0,k),$c(:,0,j,k))
+ $d(:,:,i,j,k) .= func($x(:,:,i,j),$y(:,:,:,i,0,k),$z(:,0,j,k))
     with 0<=i<10, 0<=j<=11, 0<=k<12
 
 If we analyze the color to grey-scale conversion again with these rules
@@ -1184,11 +1184,11 @@ do with the general calling conventions of PP-functions and the
 automatic creation of output arguments.
 Basically, there are two ways of invoking PDL routines, namely
 
- $result = func($a,$b);
+ $result = func($x,$y);
 
 and
 
- func($a,$b,$result);
+ func($x,$y,$result);
 
 If you are only using implicit threading then the output variable can
 be automatically created by PDL. You flag that to the PP-function by
@@ -1202,11 +1202,11 @@ which the threading dimensions are appended (which are in turn
 determined by the dimensions of the input piddles as described above).
 So you can say
 
- func($a,$b,($result=PDL->null));
+ func($x,$y,($result=PDL->null));
 
 or
 
- $result = func($a,$b)
+ $result = func($x,$y)
 
 which are B<exactly> equivalent.
 
@@ -1221,10 +1221,10 @@ temporary piddle in each step of the loop that comes along with the
  # create output piddle of appropriate size only at first invocation
  $result = null;  
  for (0...$n) {
-      func($a,$b,$result); # in all but the first invocation $result
-      func2($b);           # is defined and has the right size to
-                           # take the output provided $b's dims don't change
-      twiddle($result,$a); # do something from $result to $a for iteration
+      func($x,$y,$result); # in all but the first invocation $result
+      func2($y);           # is defined and has the right size to
+                           # take the output provided $y's dims don't change
+      twiddle($result,$x); # do something from $result to $x for iteration
  }
 
 The take-home message of this section once more: be aware of the
@@ -1275,14 +1275,14 @@ encountered: thread dimensions, core dimensions and extra dimensions.
 Conceptually, it is best to think of those dimensions of a piddle that
 have been specified in a call to C<thread> as being taken away from
 the set of normal dimensions and put on a separate stack. So assuming
-we have a piddle C<a(4,7,2,8)> saying
+we have a piddle C<x(4,7,2,8)> saying
 
- $b = $a->thread(2,1)
+ $y = $x->thread(2,1)
 
-creates a new virtual piddle of dimension C<b(4,8)> (which we call the
+creates a new virtual piddle of dimension C<y(4,8)> (which we call the
 remaining dims) that also has 2 thread dimensions of size C<(2,7)>. For
 the purposes of this document we write that symbolically as
-C<b(4,8){2,7}>. An important difference to the previous examples where
+C<y(4,8){2,7}>. An important difference to the previous examples where
 only implicit threading was used is the fact that the core dimensions
 are matched against the I<remaining dimensions> which are not
 necessarily the first dimensions of the piddle. We will now specify how
@@ -1369,7 +1369,7 @@ and you call it with 3 piddles C<a(5,3,10,11)>, C<b(3,5,10,1,12)>, C<c(10)> and 
 output piddle C<d(3,11,5,10,12)> (which can here I<not> be automatically
 created) as
 
- func($a->thread(1,3),$b->thread(0,3),$c,$d->thread(0,1))
+ func($x->thread(1,3),$y->thread(0,3),$c,$d->thread(0,1))
 
 From the signature of func and the above call the piddles split into
 the following groups of core, extra and thread dimensions (written in
@@ -1427,10 +1427,10 @@ Example 2:
  # outer product by threaded multiplication
  # stress that we need to do it with explicit call to my_biop1
  # when using explicit threading
- $res=zeroes(($a->dims)[0],($b->dims)[0]);
- my_biop1($a->thread(0,-1),$b->thread(-1,0),$res->(0,1),"*");
+ $res=zeroes(($x->dims)[0],($y->dims)[0]);
+ my_biop1($x->thread(0,-1),$y->thread(-1,0),$res->(0,1),"*");
  # similar thing by implicit threading with auto-created piddle
- $res = $a->dummy(1) * $b->dummy(0);
+ $res = $x->dummy(1) * $y->dummy(0);
 
 
 Example 3:
@@ -1441,7 +1441,7 @@ Example 3:
 
  # use thread/unthread to shuffle dimensions around
  # just try it out and compare the child piddle with its parent
- $trans = $a->thread(4,1,0,3,2)->unthread;
+ $trans = $x->thread(4,1,0,3,2)->unthread;
 
 Example 4:
 

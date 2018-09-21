@@ -101,15 +101,15 @@ static void pdl_freedata (pdl *a) {
  * this seems to cause an infinite loop in between tests 42 & 43 of
  * t/bad.t - ie
  *
- * $a = sequence( byte, 2, 3 );
- * $b = $a->slice("(1),:");
+ * $x = sequence( byte, 2, 3 );
+ * $y = $x->slice("(1),:");
  * my $mask = sequence( byte, 2, 3 );
  * $mask = $mask->setbadif( ($mask % 3) == 2 );
- * print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
- * $a->inplace->copybad( $mask );                          <-- think this is the call
- * print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
- * print "$a $b\n";
- * ok( $b->badflag, 1 );
+ * print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
+ * $x->inplace->copybad( $mask );                          <-- think this is the call
+ * print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
+ * print "$x $y\n";
+ * ok( $y->badflag, 1 );
  *
  */
 

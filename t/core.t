@@ -19,8 +19,8 @@ BEGIN {
 $| = 1;
 
 sub tapprox ($$) {
-    my ( $a, $b ) = @_;
-    my $d = abs( $a - $b );
+    my ( $x, $y ) = @_;
+    my $d = abs( $x - $y );
     print "diff = [$d]\n";
     return $d <= 0.0001;
 }
@@ -60,22 +60,22 @@ eval 'my $d_dbl = $a_dbl->reshape(0,-3);';
 like $@, qr/invalid dim size/, "reshape() failed with negative args (dbl)";
 
 # test reshape with no args
-my ( $a, $b, $c );
+my ( $x, $y, $c );
 
-$a = ones 3,1,4;
-$b = $a->reshape;
-ok eq_array( [ $b->dims ], [3,4] ), "reshape()";
+$x = ones 3,1,4;
+$y = $x->reshape;
+ok eq_array( [ $y->dims ], [3,4] ), "reshape()";
 
 # test reshape(-1) and squeeze
-$a = ones 3,1,4;
-$b = $a->reshape(-1);
-$c = $a->squeeze;
-ok eq_array( [ $b->dims ], [3,4] ), "reshape(-1)";
-ok all( $b == $c ), "squeeze";
+$x = ones 3,1,4;
+$y = $x->reshape(-1);
+$c = $x->squeeze;
+ok eq_array( [ $y->dims ], [3,4] ), "reshape(-1)";
+ok all( $y == $c ), "squeeze";
 
 $c++; # check dataflow in reshaped PDL
-ok all( $b == $c ), "dataflow"; # should flow back to b
-ok all( $a == 2 ), "dataflow";
+ok all( $y == $c ), "dataflow"; # should flow back to y
+ok all( $x == 2 ), "dataflow";
 
 our $d = pdl(5); # zero dim piddle and reshape/squeeze
 ok $d->reshape(-1)->ndims==0, "reshape(-1) on 0-dim PDL gives 0-dim PDL";
@@ -96,54 +96,54 @@ is($c->hdr->{demo}, "yes", "hdr after reshape");
 isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns a piddle" );
 isa_ok( PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns a piddle" );
 isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns a piddle" );
-$a=PDL->topdl(1,2,3);
-ok (($a->nelem == 3  and  all($a == pdl(1,2,3))), "topdl(1,2,3) returns a 3-piddle containing (1,2,3)");
+$x=PDL->topdl(1,2,3);
+ok (($x->nelem == 3  and  all($x == pdl(1,2,3))), "topdl(1,2,3) returns a 3-piddle containing (1,2,3)");
 
 
 # test $PDL::undefval support in pdl (bug #886263)
 #
 is $PDL::undefval, 0, "default value of $PDL::undefval is 0";
 
-$a = [ [ 2, undef ], [3, 4 ] ];
-$b = pdl( $a );
+$x = [ [ 2, undef ], [3, 4 ] ];
+$y = pdl( $x );
 $c = pdl( [ 2, 0, 3, 4 ] )->reshape(2,2);
-ok all( $b == $c ), "undef converted to 0 (dbl)";
-ok eq_array( $a, [[2,undef],[3,4]] ), "pdl() has not changed input array";
+ok all( $y == $c ), "undef converted to 0 (dbl)";
+ok eq_array( $x, [[2,undef],[3,4]] ), "pdl() has not changed input array";
 
-$b = pdl( long, $a );
+$y = pdl( long, $x );
 $c = pdl( long, [ 2, 0, 3, 4 ] )->reshape(2,2);
-ok all( $b == $c ), "undef converted to 0 (long)";
+ok all( $y == $c ), "undef converted to 0 (long)";
 
 do {
     local($PDL::undefval) = -999;
-    $a = [ [ 2, undef ], [3, 4 ] ];
-    $b = pdl( $a );
+    $x = [ [ 2, undef ], [3, 4 ] ];
+    $y = pdl( $x );
     $c = pdl( [ 2, -999, 3, 4 ] )->reshape(2,2);
-    ok all( $b == $c ), "undef converted to -999 (dbl)";
+    ok all( $y == $c ), "undef converted to -999 (dbl)";
 
-    $b = pdl( long, $a );
+    $y = pdl( long, $x );
     $c = pdl( long, [ 2, -999, 3, 4 ] )->reshape(2,2);
-    ok all( $b == $c ), "undef converted to -999 (long)";
+    ok all( $y == $c ), "undef converted to -999 (long)";
 } while(0);
 
 ##############
 # Funky constructor cases
 
 # pdl of a pdl
-$a = pdl(pdl(5));
-ok all( $a== pdl(5)), "pdl() can piddlify a piddle";
+$x = pdl(pdl(5));
+ok all( $x== pdl(5)), "pdl() can piddlify a piddle";
 
 TODO: {
    local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
 
    # pdl of mixed-dim pdls: pad within a dimension
-   $a = pdl( zeroes(5), ones(3) );
-   ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two piddles concatenates them and pads to length" or diag("a=$a\n");
+   $x = pdl( zeroes(5), ones(3) );
+   ok all($x == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two piddles concatenates them and pads to length" or diag("x=$x\n");
 }
 
 # pdl of mixed-dim pdls: pad a whole dimension
-$a = pdl( [[9,9],[8,8]], xvals(3)+1 );
-ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can concatenate mixed-dim piddles" or diag("a=$a\n");
+$x = pdl( [[9,9],[8,8]], xvals(3)+1 );
+ok all($x == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can concatenate mixed-dim piddles" or diag("x=$x\n");
 
 # pdl of mixed-dim pdls: a hairier case
 $c = pdl [1], pdl[2,3,4], pdl[5];
@@ -157,22 +157,22 @@ do {
 } while(0);
 
 # empty pdl cases
-eval {$a = zeroes(2,0,1);};
+eval {$x = zeroes(2,0,1);};
 ok(!$@,"zeroes accepts empty PDL specification");
 
-eval { $b = pdl($a,sequence(2,0,1)); };
-ok((!$@ and all(pdl($b->dims) == pdl(2,0,1,2))), "concatenating two empties gives an empty");
+eval { $y = pdl($x,sequence(2,0,1)); };
+ok((!$@ and all(pdl($y->dims) == pdl(2,0,1,2))), "concatenating two empties gives an empty");
 
-eval { $b = pdl($a,sequence(2,1,1)); };
-ok((!$@ and all(pdl($b->dims) == pdl(2,1,1,2))), "concatenating an empty and a nonempty treats the empty as a filler");
+eval { $y = pdl($x,sequence(2,1,1)); };
+ok((!$@ and all(pdl($y->dims) == pdl(2,1,1,2))), "concatenating an empty and a nonempty treats the empty as a filler");
 
-eval { $b = pdl($a,5) };
-ok((!$@ and all(pdl($b->dims)==pdl(2,1,1,2))), "concatenating an empty and a scalar on the right works");
-ok( all($b==pdl([[[0,0]]],[[[5,0]]])), "concatenating an empty and a scalar on the right gives the right answer");
+eval { $y = pdl($x,5) };
+ok((!$@ and all(pdl($y->dims)==pdl(2,1,1,2))), "concatenating an empty and a scalar on the right works");
+ok( all($y==pdl([[[0,0]]],[[[5,0]]])), "concatenating an empty and a scalar on the right gives the right answer");
 
-eval { $b = pdl(5,$a) };
-ok((!$@ and all(pdl($b->dims)==pdl(2,1,1,2))), "concatenating an empty and a scalar on the left works");
-ok( all($b==pdl([[[5,0]]],[[[0,0]]])), "concatenating an empty and a scalar on the left gives the right answer");
+eval { $y = pdl(5,$x) };
+ok((!$@ and all(pdl($y->dims)==pdl(2,1,1,2))), "concatenating an empty and a scalar on the left works");
+ok( all($y==pdl([[[5,0]]],[[[0,0]]])), "concatenating an empty and a scalar on the left gives the right answer");
 
 # end
 
@@ -206,10 +206,10 @@ like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual piddle in combined screw-ups');
 $@ = '';
 
-eval {$a = cat(pdl(1),pdl(2,3));};
+eval {$x = cat(pdl(1),pdl(2,3));};
 ok(!$@, 'cat(pdl(1),pdl(2,3)) succeeds');
-ok( ($a->ndims==2 and $a->dim(0)==2 and $a->dim(1)==2), 'weird cat case has the right shape');
-ok( all( $a == pdl([1,1],[2,3]) ), "cat does the right thing with catting a 0-pdl and 2-pdl together");
+ok( ($x->ndims==2 and $x->dim(0)==2 and $x->dim(1)==2), 'weird cat case has the right shape');
+ok( all( $x == pdl([1,1],[2,3]) ), "cat does the right thing with catting a 0-pdl and 2-pdl together");
 $@='';
 
 my $by=xvals(byte,5)+253;
@@ -223,22 +223,22 @@ my $i=0;
 map{ ok(all($_==$list[$i]),"cat/dog symmetry for values ($i)"); $i++; }$c2->dog;
 
 # new_or_inplace
-$a = sequence(byte,5);
+$x = sequence(byte,5);
 
 
-$b = $a->new_or_inplace;
-ok( all($b==$a) && ($b->get_datatype ==  $a->get_datatype), "new_or_inplace with no pref returns something like the orig.");
+$y = $x->new_or_inplace;
+ok( all($y==$x) && ($y->get_datatype ==  $x->get_datatype), "new_or_inplace with no pref returns something like the orig.");
 
-$b++;
-ok(all($b!=$a),"new_or_inplace with no inplace flag returns something disconnected from the orig.");
+$y++;
+ok(all($y!=$x),"new_or_inplace with no inplace flag returns something disconnected from the orig.");
 
-$b = $a->new_or_inplace("float,long");
-ok($b->type eq 'float',"new_or_inplace returns the first type in case of no match");
+$y = $x->new_or_inplace("float,long");
+ok($y->type eq 'float',"new_or_inplace returns the first type in case of no match");
 
-$b = $a->inplace->new_or_inplace;
-$b++;
-ok(all($b==$a),"new_or_inplace returns the original thing if inplace is set");
-ok(!($b->is_inplace),"new_or_inplace clears the inplace flag");
+$y = $x->inplace->new_or_inplace;
+$y++;
+ok(all($y==$x),"new_or_inplace returns the original thing if inplace is set");
+ok(!($y->is_inplace),"new_or_inplace clears the inplace flag");
 
 # check reshape and dims.  While we're at it, check null & empty creation too.
 my $null = null;
@@ -254,13 +254,13 @@ ok(any($mt_info_dims==0), "empty piddle's info contains a 0 dimension");
 ok($null->isnull && $null->isempty, "a null piddle is both null and empty");
 ok(!$empty->isnull && $empty->isempty, "an empty piddle is empty but not null");
 
-$a = short pdl(3,4,5,6);
-eval { $a->reshape(2,2);};
+$x = short pdl(3,4,5,6);
+eval { $x->reshape(2,2);};
 ok(!$@,"reshape succeeded in the normal case");
-ok( ( $a->ndims==2 and $a->dim(0)==2 and $a->dim(1)==2 ), "reshape did the right thing");
-ok(all($a == short pdl([[3,4],[5,6]])), "reshape moved the elements to the right place");
+ok( ( $x->ndims==2 and $x->dim(0)==2 and $x->dim(1)==2 ), "reshape did the right thing");
+ok(all($x == short pdl([[3,4],[5,6]])), "reshape moved the elements to the right place");
 
-$b = $a->slice(":,:");
-eval { $b->reshape(4); };
+$y = $x->slice(":,:");
+eval { $y->reshape(4); };
 ok( $@ !~ m/Can\'t/, "reshape doesn't fail on a PDL with a parent" );
 

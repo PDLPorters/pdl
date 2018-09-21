@@ -24,13 +24,13 @@ $z = $k;
 $x /= $s; $y /= $s; $z /= $s;
 
 
-$a = new PDL::Graphics::TriD::Lattice([$x,$y,$z]);
-$b = new PDL::Graphics::TriD::Points([$x,$y,$z+1]);
+$x = new PDL::Graphics::TriD::Lattice([$x,$y,$z]);
+$y = new PDL::Graphics::TriD::Points([$x,$y,$z+1]);
 
 $win = PDL::Graphics::TriD::get_current_window();
 $win->clear_objects();
-$win->add_object($a);
-$win->add_object($b);
+$win->add_object($x);
+$win->add_object($y);
 
 #$PDL::Graphics::TriD::verbose=1;
 #$win->twiddle();

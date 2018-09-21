@@ -14,11 +14,11 @@ C<maximum>, C<average>, etc).
 =head1 SYNOPSIS
 
  use PDL::Reduce;
- $a = sequence 5,5;
+ $x = sequence 5,5;
  # reduce by adding all
  # elements along 2nd dimension
- $b = $a->reduce('add',1);
- @ops = $a->canreduce; # return a list of all allowed operations
+ $y = $x->reduce('add',1);
+ @ops = $x->canreduce; # return a list of all allowed operations
 
 =head1 FUNCTIONS
 
@@ -75,17 +75,17 @@ along the specified dimension
 
 =for example
 
- $a = sequence 5,5;
+ $x = sequence 5,5;
  # reduce by adding all
  # elements along 2nd dimension
- $b = $a->reduce('add',1);
- $b = $a->reduce('plus',1);
- $b = $a->reduce('+',1);     # three ways to do the same thing
+ $y = $x->reduce('add',1);
+ $y = $x->reduce('plus',1);
+ $y = $x->reduce('+',1);     # three ways to do the same thing
 
 [ As an aside: if you are familiar with threading you will see that
 this is actually the same as
 
- $b = $a->mv(1,0)->sumover
+ $y = $x->mv(1,0)->sumover
 
 ]
 
@@ -96,11 +96,11 @@ which might be imported into your namespace. And you definitely
 want a string as argument, not a function invocation! For example,
 this will probably fail:
 
-  $b = $a->reduce(avg,1); # gives an error from invocation of 'avg'
+  $y = $x->reduce(avg,1); # gives an error from invocation of 'avg'
 
 Rather use
 
-  $b = $a->reduce('avg',1);
+  $y = $x->reduce('avg',1);
 
 C<reduce> provides a simple and unified interface to the
 I<projection> functions and makes people coming from other

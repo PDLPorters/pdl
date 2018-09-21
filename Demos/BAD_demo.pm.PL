@@ -103,16 +103,16 @@ act q|
 act q|
 
     # create a piddle
-    $a = byte(1,2,3);
-    print( "Bad flag (a) == ", $a->badflag(), "\n" );
+    $x = byte(1,2,3);
+    print( "Bad flag (x) == ", $x->badflag(), "\n" );
 
     # set bad flag, even though all the data is good
-    $a->badflag(1);
-    print( "Bad flag (a) == ", $a->badflag(), "\n" );
+    $x->badflag(1);
+    print( "Bad flag (x) == ", $x->badflag(), "\n" );
 
     # note the bad flag is infectious
-    $b = 2 * $a;
-    print( "Bad flag (b) == ", $b->badflag(), "\n\n" );
+    $y = 2 * $x;
+    print( "Bad flag (y) == ", $y->badflag(), "\n\n" );
 
 |;
 
@@ -125,22 +125,22 @@ act q|
 
     print "   Type   Dimension        State          Mem\n";
     print "-------------------------------------------------\n";
-    print "a ", $a->info("%-6T %-15D   %-5S  %12M"), "\n";
-    print "b ", $b->info("%-6T %-15D   %-5S  %12M"), "\n";
+    print "x ", $x->info("%-6T %-15D   %-5S  %12M"), "\n";
+    print "y ", $y->info("%-6T %-15D   %-5S  %12M"), "\n";
     print "c ", $c->info("%-6T %-15D   %-5S  %12M"), "\n\n";
 |;
 
 act q|
 
-    print "No bad values:   $a\n";
+    print "No bad values:   $x\n";
     # set the middle value bad
-    $a->setbadat(1);
+    $x->setbadat(1);
 
     # now print out
-    print "Some bad values: $a\n";
-    print "b contains:      $b\n";
-    $c = $a + $b;
-    print "so a + b =       $c\n\n";
+    print "Some bad values: $x\n";
+    print "b contains:      $y\n";
+    $c = $x + $y;
+    print "so x + y =       $c\n\n";
 
 |;
 
@@ -148,22 +148,22 @@ act q|
 
     # The module PDL::Bad contains a number of routines designed
     # to make using bad values easy.
-    print "a contains ", $a->nbad, " bad elements.\n";
-    print "The bad value for type #",$a->get_datatype," is ",$a->badvalue,"\n";
-    print "It is easy to find whether a value is good: ", isgood($a), "\n\n";
+    print "x contains ", $x->nbad, " bad elements.\n";
+    print "The bad value for type #",$x->get_datatype," is ",$x->badvalue,"\n";
+    print "It is easy to find whether a value is good: ", isgood($x), "\n\n";
 
     print "or to remove the bad values\n";
-    $a->inplace->setbadtoval(23);
-    print "a = $a and \$a->badflag == ", $a->badflag, "\n\n";
+    $x->inplace->setbadtoval(23);
+    print "x = $x and \$x->badflag == ", $x->badflag, "\n\n";
 
 |;
 
 act q|
 
     print "We can even label certain values as bad!\n";
-    $a = sequence(3,3);
-    $a = $a->setbadif( $a % 2 ); # unfortunately can not be done inplace
-    print $a;
+    $x = sequence(3,3);
+    $x = $x->setbadif( $x % 2 ); # unfortunately can not be done inplace
+    print $x;
 
 |;
 
@@ -172,13 +172,13 @@ act q|
     # the issue of how to cope with dataflow is not fully resolved. At
     # present, if you change the badflag of a piddle, all its children
     # are also changed:
-    $a = sequence( byte, 2, 3 );
-    $a = $a->setbadif( $a == 3 );
-    $b = $a->slice("(1),:");
-    print "b = $b\tbadflag = ", $b->badflag, "\n";
+    $x = sequence( byte, 2, 3 );
+    $x = $x->setbadif( $x == 3 );
+    $y = $x->slice("(1),:");
+    print "y = $y\tbadflag = ", $y->badflag, "\n";
 
-    $a->inplace->setbadtoval(3);
-    print "b = $b\tbadflag = ", $b->badflag, "\n\n";
+    $x->inplace->setbadtoval(3);
+    print "y = $y\tbadflag = ", $y->badflag, "\n\n";
 
 |;
 
@@ -188,9 +188,9 @@ act q|
     # operands are bad: one way around this is to replace all bad values
     # by 0 or 1. 
 
-    $a = sequence(3,3); $a = $a->setbadif( $a % 2 );
-    print $a > 5;
-    print setbadtoval($a > 5,0);  # set all bad values to false
+    $x = sequence(3,3); $x = $x->setbadif( $x % 2 );
+    print $x > 5;
+    print setbadtoval($x > 5,0);  # set all bad values to false
 
 |;
 
@@ -205,11 +205,11 @@ act q|
     # There is also the fact that the bad value need not relate to the
     # type of the input piddle (due to internal conversion to an 'int +').
     
-    $a = ones(3); $a = $a->setbadif( $a == 1 );
-    print "Any returns: ", any( $a > 2 ), "\n";
+    $x = ones(3); $x = $x->setbadif( $x == 1 );
+    print "Any returns: ", any( $x > 2 ), "\n";
     print "which is the bad value of 'long' (", long->badvalue, ").\n";
 
-    print "Whereas the bad value for \$a is: ", $a->badvalue, "\n";
+    print "Whereas the bad value for \$x is: ", $x->badvalue, "\n";
 
 |;
 

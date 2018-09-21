@@ -23,10 +23,10 @@ BEGIN {
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub tapprox {
-	my($a,$b,$c,$d) = @_;
-	$c = abs($a-$b);
+	my($x,$y,$c,$d) = @_;
+	$c = abs($x-$y);
 	$d = max($c);
-#	print "APR: $a,$b,$c,$d;\n";
+#	print "APR: $x,$y,$c,$d;\n";
 	$d < 0.001;
 }
 
@@ -78,7 +78,7 @@ if ($PDL::Config{WITH_BADVAL}) {
 
   # Test with a bad value
   $y->inplace->setbadat(3);
-  ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
+  ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
   ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
   ## print STDERR "poly = $r\n";
@@ -87,7 +87,7 @@ if ($PDL::Config{WITH_BADVAL}) {
 
   # Test with all bad values
   $y = zeroes(9)->setbadif(1);
-  ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
+  ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
   ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
   ## print STDERR "poly = $r\n";
@@ -106,7 +106,7 @@ if ($PDL::Config{WITH_BADVAL}) {
   $y->inplace->setbadat(4,1);
   $eps = pdl(0,0);
 
-  ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
+  ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
   ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
   ## print STDERR "poly = $r\n";
@@ -123,7 +123,7 @@ $maxdeg = 7;
 $eps = pdl(0);
 
 # Do the fit
-my ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
+my ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
 ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
 ## print STDERR "poly = $r\n";
@@ -135,7 +135,7 @@ ok(($ierr == 1));
 
 my $c = pdl(4);           # Expand about x = 4;
 
-my $tc = polycoef($ndeg, $c, $a);
+my $tc = polycoef($ndeg, $c, $a1);
 
 my @tc = $tc->list;
 my @r  = $r->list;
@@ -160,7 +160,7 @@ foreach my $xpos ($x->list) {
 my $xx = pdl([4]);
 my $nder = 3;
 
-my ($yfit, $yp) = polyvalue($ndeg, $nder, $xx, $a);
+my ($yfit, $yp) = polyvalue($ndeg, $nder, $xx, $a1);
 
 ## print STDERR "At $xx, $yfit and $yp\n";
 ok(int($yp->at(0)) == 8);
@@ -169,7 +169,7 @@ ok(int($yp->at(0)) == 8);
 $nder = 3;
 $xx    = pdl(12,4,6.25,1.5); # Ask for multiple positions at once
 
-($yfit, $yp) = polyvalue($ndeg, $nder, $xx, $a);
+($yfit, $yp) = polyvalue($ndeg, $nder, $xx, $a1);
 
 ## print STDERR "At $xx is $yfit and $yp\n";
 

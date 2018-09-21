@@ -25,10 +25,10 @@ directory, try the following
 
 =head2 Indexing idioms
 
-The following code normalizes a bunch of vectors in $a.
-This works regardless of the dimensionality of $a.
+The following code normalizes a bunch of vectors in $x.
+This works regardless of the dimensionality of $x.
 
-	$a /= $a->sumover->dummy(0);
+	$x /= $x->sumover->dummy(0);
 
 =head2 What is actually happening?
 
@@ -54,16 +54,16 @@ If you are running recursively something that selects certain
 indices of a large piddle, like
 
 	while(1) {
-		$inds = where($a>0);
-		$a = $a->index($inds);
-		$b = $b->index($inds);
-		func($b,$a);
+		$inds = where($x>0);
+		$x = $x->index($inds);
+		$y = $y->index($inds);
+		func($y,$x);
 	}
 
-If you are not writing to $b, it saves a lot of memory to change this
+If you are not writing to $y, it saves a lot of memory to change this
 to
 
-		$b = $b->index($inds)->sever;
+		$y = $y->index($inds)->sever;
 
 The new method C<sever> is a causes the write-back relation to be
 forgotten. It is like copy except it changes the original piddle
@@ -71,16 +71,16 @@ and returns it).
 
 Of course, the probably best way to do the above is
 
-	$inds = xvals ($a->long);
+	$inds = xvals ($x->long);
 	while(1) {
-		$inds0 = where($a>0);
+		$inds0 = where($x>0);
 		$inds1 = $inds->index($inds)->sever;
-		$a = $a0->index($inds1);
-		$b = $b->index($inds1)->sever;
-		func($b,$a);
+		$x = $a0->index($inds1);
+		$y = $y->index($inds1)->sever;
+		func($y,$x);
 	}
 
-which doesn't save all the temporary instances of $a in memory.
+which doesn't save all the temporary instances of $x in memory.
 See C<mandel.pl> in the Demos subdirectory of the PerlDL distribution
 for an example.
 

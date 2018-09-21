@@ -143,15 +143,15 @@ sub PDL::linfit1d {
 
    # Fitted coefficients vector
 
-   $a = matinv($C) x $Y;
+   $c = matinv($C) x $Y;
    
    # Fitted data
 
-   $yfit = ($M x $a)->clump(2); # Remove first dim=1
+   $yfit = ($M x $c)->clump(2); # Remove first dim=1
    
    $yfit *= $ymean; # Un-normalise
    if (wantarray) {
-      my $coeff = $a->clump(2);
+      my $coeff = $c->clump(2);
       $coeff *= $ymean; # Un-normalise
       return ($yfit, $coeff);
    }

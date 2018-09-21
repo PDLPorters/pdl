@@ -4,13 +4,13 @@ PDL::Filter::Linear - linear filtering for PDL
 
 =head1 SYNOPSIS
 
-	$a = new PDL::Filter::Linear(
+	$x = new PDL::Filter::Linear(
 		{Weights => $v,
 		 Point => 10});
 
-	$b = new PDL::Filter::Gaussian(15,2); # 15 points, 2 std devn.
+	$y = new PDL::Filter::Gaussian(15,2); # 15 points, 2 std devn.
 
-	($pred,$corrslic) = $a->predict($dat);
+	($pred,$corrslic) = $x->predict($dat);
 
 =head1 DESCRIPTION
 

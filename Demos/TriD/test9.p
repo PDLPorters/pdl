@@ -19,8 +19,8 @@ sub func1 {
 	return $res;
 }
 
-$a = PDL::Graphics::TriD::StupidPolygonize::stupidpolygonize($orig,
+$x = PDL::Graphics::TriD::StupidPolygonize::stupidpolygonize($orig,
 	5, 50, 10,\&func1)  ;
 
-# print $a;
-imag3d $a,{Lines => 0, Smooth => 1};
+# print $x;
+imag3d $x,{Lines => 0, Smooth => 1};

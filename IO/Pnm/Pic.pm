@@ -506,15 +506,15 @@ sub PDL::wpic {
 
 =for usage
 
- Usage: $a = rim($file);
- or       rim($a,$file);
+ Usage: $x = rim($file);
+ or       rim($x,$file);
 
 =for ref
 
 Read images in most formats, with improved RGB handling.
 
 You specify a filename and get back a PDL with the image data in it.
-Any PNM handled format or FITS will work. In the second form, $a is an
+Any PNM handled format or FITS will work. In the second form, $x is an
 existing PDL that gets loaded with the image data.
 
 If the image is in one of the standard RGB formats, then you get back
@@ -543,7 +543,7 @@ The same as L<rpic|rpic>, which is used as an engine:
 If you don't specify this then formats are autodetected.  If you do specify
 it then only the specified interpreter is tried.  For example,
 
-  $a = rim("foo.gif",{FORMAT=>"JPEG"})
+  $x = rim("foo.gif",{FORMAT=>"JPEG"})
 
 forces JPEG interpretation.
 
@@ -551,7 +551,7 @@ forces JPEG interpretation.
 
 Contains extra command line flags for the pnm interpreter.  For example,
 
-  $a = rim("foo.jpg",{XTRAFLAGS=>"-nolut"})
+  $x = rim("foo.jpg",{XTRAFLAGS=>"-nolut"})
 
 prevents use of a lookup table in JPEG images.
 

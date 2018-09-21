@@ -10,8 +10,8 @@ BEGIN {
 use PDL::LiteF;
 
 sub tapprox {
-    my($a,$b) = @_;
-    my $d = max( abs($a-$b) );
+    my($x,$y) = @_;
+    my $d = max( abs($x-$y) );
     $d < 1.0e-6;
 }
 
@@ -46,26 +46,26 @@ ok( tapprox( $x1, rvals(3,3,{center=>[2,2],squared=>1}) ), "both center and squa
 
 # test (x|y|z)(lin|log)vals: shape and values
 {
-my $a=zeroes(101,51,26);
-my $x = $a->xlinvals(0.5,1.5);
-my $y = $a->ylinvals(-2,-1);
-my $z = $a->zlinvals(-3,2);
-ok(all($a->shape==$x->shape), "xlinvals shape"); #7
-ok(all($a->shape==$y->shape), "ylinvals shape"); #8
-ok(all($a->shape==$z->shape), "zlinvals shape"); #9
+my $x=zeroes(101,51,26);
+my $x = $x->xlinvals(0.5,1.5);
+my $y = $x->ylinvals(-2,-1);
+my $z = $x->zlinvals(-3,2);
+ok(all($x->shape==$x->shape), "xlinvals shape"); #7
+ok(all($x->shape==$y->shape), "ylinvals shape"); #8
+ok(all($x->shape==$z->shape), "zlinvals shape"); #9
 ok(tapprox($x->uniqvec->flat,pdl(50..150)/100),"xlinvals values"); #10
 ok(tapprox($y->mv(1,0)->uniqvec->flat,pdl(-100..-50)/50),"ylinvals values"); #11
 ok(tapprox($z->mv(2,0)->uniqvec->flat,pdl(0..25)/5-3),"zlinvals values"); #12
 }
 
 {
-my $a = zeroes(11,6,8);
-my $xl = $a->xlogvals(1e2,1e12);
-my $yl = $a->ylogvals(1e-3,1e2);
-my $zl = $a->zlogvals(1e-10,1e-3);
-ok(all($a->shape==$xl->shape),"xlogvals shape"); #13
-ok(all($a->shape==$yl->shape),"ylogvals shape"); #14
-ok(all($a->shape==$zl->shape),"zlogvals shape"); #15
+my $x = zeroes(11,6,8);
+my $xl = $x->xlogvals(1e2,1e12);
+my $yl = $x->ylogvals(1e-3,1e2);
+my $zl = $x->zlogvals(1e-10,1e-3);
+ok(all($x->shape==$xl->shape),"xlogvals shape"); #13
+ok(all($x->shape==$yl->shape),"ylogvals shape"); #14
+ok(all($x->shape==$zl->shape),"zlogvals shape"); #15
 ok(tapprox($xl->uniqvec->flat->log10,pdl(2..12)),"xlogvals values"); #16
 ok(tapprox($yl->mv(1,0)->uniqvec->flat->log10,pdl(-3..2)),"ylogvals values"); #17
 ok(tapprox($zl->mv(2,0)->uniqvec->flat->log10,pdl(-10..-3)),"zlogvals values");#18

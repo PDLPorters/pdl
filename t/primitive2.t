@@ -5,8 +5,8 @@
 #  Testing utility functions:
 
 sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs($a-$b);
+        my($x,$y) = @_;
+        my $c = abs($x-$y);
         my $d = ref($c) ? max($c) : $c ;  # don't do a make if were are dealing 
 					  # with a scalar
         $d < 0.01;
@@ -75,17 +75,17 @@ ok(tapprox($statsRes[4],13), "stats: trivial weights max" );
 ok(tapprox($statsRes[6],4.462), "stats: trivial weights rms");
 
 # which ND test
-my $a= PDL->sequence(10,10,3,4);  
+my $a1 = PDL->sequence(10,10,3,4);  
 
 # $PDL::whichND_no_warning = 1;
-# ($x, $y, $z, $w)=whichND($a == 203);
-my ($x, $y, $z, $w) = whichND($a == 203)->mv(0,-1)->dog;  # quiet deprecation warning
+# ($x, $y, $z, $w)=whichND($a1 == 203);
+my ($x, $y, $z, $w) = whichND($a1 == 203)->mv(0,-1)->dog;  # quiet deprecation warning
 
-ok($a->at($x->list,$y->list,$z->list,$w->list) == 203, "whichND" );
+ok($a1->at($x->list,$y->list,$z->list,$w->list) == 203, "whichND" );
  
-$a = pdl(1,2,3,4);
-$b = append($a,2);
-ok(int(sum($b))==12, "append");
+$a1 = pdl(1,2,3,4);
+my $b1 = append($a1,2);
+ok(int(sum($b1))==12, "append");
 
 
 
@@ -98,16 +98,16 @@ ok(tapprox($im->lclip(5)->sum,176), "lclip" );
 ok(tapprox($im->clip(5,7)->sum,140), "clip" );
 
 # indadd Test:
-$a = pdl( 1,2,3);
+$a1 = pdl( 1,2,3);
 my $ind = pdl( 1,4,6);
 my $sum = zeroes(10);
-indadd($a,$ind, $sum);
+indadd($a1,$ind, $sum);
 ok(tapprox($sum->sum,6), "indadd" );
 
 #one2nd test
-$a = zeroes(3,4,5);
+$a1 = zeroes(3,4,5);
 my $indicies = pdl(0,1,4,6,23,58,59);
-($x,$y,$z)=$a->one2nd($indicies);
+($x,$y,$z)=$a1->one2nd($indicies);
 ok(all( $x==pdl(0,1,1,0,2,1,2) ), "one2nd x");
 ok(all( $y==pdl(0,0,1,2,3,3,3) ), "one2nd y");
 ok(all( $z==pdl(0,0,0,0,1,4,4) ), "one2nd z");

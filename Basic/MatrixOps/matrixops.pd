@@ -43,12 +43,12 @@ PDL::MatrixOps -- Some Useful Matrix Operations
 
 =head1 SYNOPSIS
 
-    $inv = $a->inv;
+    $inv = $x->inv;
 
-    $det = $a->det;
+    $det = $x->det;
 
-    ($lu,$perm,$par) = $a->lu_decomp;
-    $x = lu_backsub($lu,$perm,$b); # solve $a x $x = $b
+    ($lu,$perm,$par) = $x->lu_decomp;
+    $y = lu_backsub($lu,$perm,$z); # solve $x x $y = $z
 
 =head1 DESCRIPTION
 
@@ -115,9 +115,9 @@ When threading over matrices, it's very easy to get confused about
 which dimension goes where. It is useful to include comments with 
 every expression, explaining what you think each dimension means:
 
-	$a = xvals(360)*3.14159/180;        # (angle)
-	$rot = cat(cat(cos($a),sin($a)),    # rotmat: (col,row,angle)
-	           cat(-sin($a),cos($a)));
+	$x = xvals(360)*3.14159/180;        # (angle)
+	$rot = cat(cat(cos($x),sin($x)),    # rotmat: (col,row,angle)
+	           cat(-sin($x),cos($x)));
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -267,15 +267,15 @@ whether or not the matrix is singular.
 
 *PDL::inv = \&inv;
 sub inv {
-  my $a = shift;
+  my $x = shift;
   my $opt = shift;
   $opt = {} unless defined($opt);
 
 
   barf "inverse needs a square PDL as a matrix\n" 
-    unless(UNIVERSAL::isa($a,'PDL') &&
-	   $a->dims >= 2 &&
-	   $a->dim(0) == $a->dim(1)
+    unless(UNIVERSAL::isa($x,'PDL') &&
+	   $x->dims >= 2 &&
+	   $x->dim(0) == $x->dim(1)
 	   );
 
   my ($lu,$perm,$par);
@@ -284,7 +284,7 @@ sub inv {
      ref $opt->{lu}->[0] eq 'PDL') {
 	    ($lu,$perm,$par) = @{$opt->{lu}};
   } else {
-    ($lu,$perm,$par) = lu_decomp($a);
+    ($lu,$perm,$par) = lu_decomp($x);
     @{$opt->{lu}} = ($lu,$perm,$par)
      if(ref $opt->{lu} eq 'ARRAY');
   }
@@ -299,15 +299,15 @@ sub inv {
     barf("PDL::inv: got a singular matrix or LU decomposition\n");
   }
 
-  my $idenA = $a->zeros;
+  my $idenA = $x->zeros;
   $idenA->diagonal(0,1) .= 1;
   my $out = lu_backsub($lu,$perm,$par,$idenA)->xchg(0,1)->sever;
 
   return $out
-    unless($a->is_inplace);
+    unless($x->is_inplace);
 
-  $a .= $out;
-  $a;
+  $x .= $out;
+  $x;
 }
 
 EOD
@@ -356,7 +356,7 @@ the matrix will not be decomposed again.
 
 *PDL::det = \&det;
 sub det {
-  my($a) = shift;
+  my($x) = shift;
   my($opt) = shift;
   $opt = {} unless defined($opt);
 
@@ -364,7 +364,7 @@ sub det {
   if(exists ($opt->{lu}) and (ref $opt->{lu} eq 'ARRAY')) {
     ($lu,$perm,$par) =  @{$opt->{lu}};
   } else {
-    ($lu,$perm,$par) = lu_decomp($a);
+    ($lu,$perm,$par) = lu_decomp($x);
     $opt->{lu} = [$lu,$perm,$par]
       if(exists($opt->{lu}));
   }
@@ -387,7 +387,7 @@ pp_addpm(<<'EOD');
 
 =for usage
 
-  $det = determinant($a);
+  $det = determinant($x);
 
 =for ref
 
@@ -412,52 +412,52 @@ threading benchmarks with new code).
 
 *PDL::determinant = \&determinant;
 sub determinant {
-  my($a) = shift;
+  my($x) = shift;
   my($n);
   return undef unless(
-		      UNIVERSAL::isa($a,'PDL') &&
-		      $a->getndims >= 2 &&
-		      ($n = $a->dim(0)) == $a->dim(1)
+		      UNIVERSAL::isa($x,'PDL') &&
+		      $x->getndims >= 2 &&
+		      ($n = $x->dim(0)) == $x->dim(1)
 		      );
   
-  return $a->clump(2) if($n==1);
+  return $x->clump(2) if($n==1);
   if($n==2) {
-    my($b) = $a->clump(2);
-    return $b->index(0)*$b->index(3) - $b->index(1)*$b->index(2);
+    my($y) = $x->clump(2);
+    return $y->index(0)*$y->index(3) - $y->index(1)*$y->index(2);
   }
   if($n==3) {
-    my($b) = $a->clump(2);
+    my($y) = $x->clump(2);
     
-    my $b3 = $b->index(3);
-    my $b4 = $b->index(4);
-    my $b5 = $b->index(5);
-    my $b6 = $b->index(6);
-    my $b7 = $b->index(7);
-    my $b8 = $b->index(8);
+    my $y3 = $y->index(3);
+    my $y4 = $y->index(4);
+    my $y5 = $y->index(5);
+    my $y6 = $y->index(6);
+    my $y7 = $y->index(7);
+    my $y8 = $y->index(8);
 
     return ( 
-	 $b->index(0) * ( $b4 * $b8 - $b5 * $b7 )
-      +  $b->index(1) * ( $b5 * $b6 - $b3 * $b8 )
-      +  $b->index(2) * ( $b3 * $b7 - $b4 * $b6 )
+	 $y->index(0) * ( $y4 * $y8 - $y5 * $y7 )
+      +  $y->index(1) * ( $y5 * $y6 - $y3 * $y8 )
+      +  $y->index(2) * ( $y3 * $y7 - $y4 * $y6 )
 	     );
   }
   
   my($i);
-  my($sum) = zeroes($a->((0),(0)));
+  my($sum) = zeroes($x->((0),(0)));
 
   # Do middle submatrices
   for $i(1..$n-2) {
-    my $el = $a->(($i),(0));
+    my $el = $x->(($i),(0));
     next if( ($el==0)->all );  # Optimize away unnecessary recursion
 
     $sum += $el * (1-2*($i%2)) * 
-      determinant(        $a->(0:$i-1,1:-1)->
-		   append($a->($i+1:-1,1:-1)));
+      determinant(        $x->(0:$i-1,1:-1)->
+		   append($x->($i+1:-1,1:-1)));
   }
 
   # Do beginning and end submatrices
-  $sum += $a->((0),(0))  * determinant($a->(1:-1,1:-1));
-  $sum -= $a->((-1),(0)) * determinant($a->(0:-2,1:-1)) * (1 - 2*($n % 2));
+  $sum += $x->((0),(0))  * determinant($x->(1:-1,1:-1));
+  $sum -= $x->((-1),(0)) * determinant($x->(0:-2,1:-1)) * (1 - 2*($n % 2));
   
   return $sum;
 }
@@ -482,16 +482,16 @@ pp_def("eigens_sym",
 ',
       PMCode =>'
    sub PDL::eigens_sym {
-      my ($a) = @_;
-      my (@d) = $a->dims;
+      my ($x) = @_;
+      my (@d) = $x->dims;
       barf "Need real square matrix for eigens_sym" 
             if $#d < 1 or $d[0] != $d[1];
       my ($n) = $d[0];
-      my ($sym) = 0.5*($a + $a->mv(0,1));
+      my ($sym) = 0.5*($x + $x->mv(0,1));
       my ($err) = PDL::max(abs($sym));
       barf "Need symmetric component non-zero for eigens_sym"
           if $err == 0;
-      $err = PDL::max(abs($a-$sym))/$err;
+      $err = PDL::max(abs($x-$sym))/$err;
       warn "Using symmetrized version of the matrix in eigens_sym"
 	if $err > 1e-5 && $PDL::debug;
 
@@ -536,14 +536,14 @@ makes it slightly easier to access individual eigenvectors, since the
 0th dim of the output PDL runs across the eigenvectors and the 1st dim
 runs across their components.
 
-    ($ev,$e) = eigens_sym $a;  # Make eigenvector matrix
+    ($ev,$e) = eigens_sym $x;  # Make eigenvector matrix
     $vector = $ev->($n);       # Select nth eigenvector as a column-vector
     $vector = $ev->(($n));     # Select nth eigenvector as a row-vector
 
 =for usage
 
-    ($ev, $e) = eigens_sym($a); # e-vects & e-values
-    $e = eigens_sym($a);        # just eigenvalues
+    ($ev, $e) = eigens_sym($x); # e-vects & e-values
+    $e = eigens_sym($x);        # just eigenvalues
 
 =cut 
 
@@ -643,21 +643,21 @@ pp_def("eigens",
 ',
       PMCode =>'
    sub PDL::eigens {
-      my ($a) = @_;
-      my (@d) = $a->dims;
+      my ($x) = @_;
+      my (@d) = $x->dims;
       my $n = $d[0];
       barf "Need real square matrix for eigens" 
             if $#d < 1 or $d[0] != $d[1];
-      my $deviation = PDL::max(abs($a - $a->mv(0,1)))/PDL::max(abs($a));
+      my $deviation = PDL::max(abs($x - $x->mv(0,1)))/PDL::max(abs($x));
       if ( $deviation <= 1e-5 ) {
           #taken from eigens_sym code
 
-          my $lt  = PDL::indexND($a,
+          my $lt  = PDL::indexND($x,
 			     scalar(PDL::whichND(PDL->xvals($n,$n) <=
 						 PDL->yvals($n,$n)))
 			     )->copy;
-          my $ev  = PDL->zeroes($a->dims);
-          my $e   = PDL->zeroes($a->index(0)->dims);
+          my $ev  = PDL->zeroes($x->dims);
+          my $e   = PDL->zeroes($x->index(0)->dims);
       
           &PDL::_eigens_sym_int($lt, $ev, $e);
 
@@ -677,10 +677,10 @@ pp_def("eigens",
 		  $PDL::eigens_bug_ack = 1;
 	  }
 	  
-          my $ev  = PDL->zeroes(2, $a->dims);
-          my $e   = PDL->zeroes(2, $a->index(0)->dims);
+          my $ev  = PDL->zeroes(2, $x->dims);
+          my $e   = PDL->zeroes(2, $x->index(0)->dims);
 
-          &PDL::_eigens_int($a->clump(0,1), $ev, $e);
+          &PDL::_eigens_int($x->clump(0,1), $ev, $e);
 
           return $ev->index(0)->xchg(0,1)->sever, $e->index(0)->sever
               if(wantarray);
@@ -730,7 +730,7 @@ the 0 dimension).  That makes it slightly easier to access individual
 eigenvectors, since the 0th dim of the output PDL runs across the
 eigenvectors and the 1st dim runs across their components.
 
-	($ev,$e) = eigens $a;  # Make eigenvector matrix
+	($ev,$e) = eigens $x;  # Make eigenvector matrix
 	$vector = $ev->($n);   # Select nth eigenvector as a column-vector
 	$vector = $ev->(($n)); # Select nth eigenvector as a row-vector
 
@@ -742,8 +742,8 @@ numbers.  It might be useful to be able to return complex eigenvalues.
 
 =for usage
 
-    ($ev, $e) = eigens($a); # e\'vects & e\'vals
-    $e = eigens($a);        # just eigenvalues
+    ($ev, $e) = eigens($x); # e\'vects & e\'vals
+    $e = eigens($x);        # just eigenvalues
 
 =cut
 
@@ -791,7 +791,7 @@ pp_def(
       , Doc => q{
 =for usage
 
- ($u, $s, $v) = svd($a);
+ ($u, $s, $v) = svd($x);
 
 =for ref
 
@@ -806,9 +806,9 @@ commonly referred to as the "thin SVD" of C<$a>, such that C<$u> is m
 x n, C<$v> is n x n, and there are <=n singular values. As long as m
 >= n, the original matrix can be reconstructed as follows:
 
-    ($u,$s,$v) = svd($a);
-    $ess = zeroes($a->dim(0),$a->dim(0));
-    $ess->slice("$_","$_").=$s->slice("$_") foreach (0..$a->dim(0)-1); #generic diagonal
+    ($u,$s,$v) = svd($x);
+    $ess = zeroes($x->dim(0),$x->dim(0));
+    $ess->slice("$_","$_").=$s->slice("$_") foreach (0..$x->dim(0)-1); #generic diagonal
     $a_copy = $u x $ess x $v->transpose;
 
 If m==n, C<$u> and C<$v> can be thought of as rotation matrices that
@@ -819,10 +819,10 @@ respectively, and $ess is a diagonal scaling matrix.
 If n>m, C<svd> will barf. This can be avoided by passing in the
 transpose of C<$a>, and reconstructing the original matrix like so:
 
-    ($u,$s,$v) = svd($a->transpose);
-    $ess = zeroes($a->dim(1),$a->dim(1));
-    $ess->slice("$_","$_").=$s->slice("$_") foreach (0..$a->dim(1)-1); #generic diagonal
-    $a_copy = $v x $ess x $u->transpose;
+    ($u,$s,$v) = svd($x->transpose);
+    $ess = zeroes($x->dim(1),$x->dim(1));
+    $ess->slice("$_","$_").=$s->slice("$_") foreach (0..$x->dim(1)-1); #generic diagonal
+    $x_copy = $v x $ess x $u->transpose;
 
 EXAMPLE
 
@@ -831,10 +831,10 @@ Here's a trivial example (used in L<PDL::Transform::map|PDL::Transform/map>)
 of how to make a matrix less, er, singular, without changing the
 orientation of the ellipsoid of transformation:
 
-    { my($r1,$s,$r2) = svd $a;
+    { my($r1,$s,$r2) = svd $x;
       $s++;             # fatten all singular values
       $r2 *= $s;        # implicit threading for cheap mult.
-      $a .= $r2 x $r1;  # a gets r2 x ess x r1
+      $x .= $r2 x $r1;  # a gets r2 x ess x r1
     }
 
 =cut
@@ -859,11 +859,11 @@ LU decompose a matrix, with row permutation
 
 =for usage
 
-  ($lu, $perm, $parity) = lu_decomp($a);
+  ($lu, $perm, $parity) = lu_decomp($x);
 
-  $lu = lu_decomp($a, $perm, $par);  # $perm and $par are outputs!
+  $lu = lu_decomp($x, $perm, $par);  # $perm and $par are outputs!
 
-  lu_decomp($a->inplace,$perm,$par); # Everything in place.
+  lu_decomp($x->inplace,$perm,$par); # Everything in place.
 
 =for description
 
@@ -1043,13 +1043,13 @@ LU decompose a matrix, with no row permutation
 
 =for usage
 
-  ($lu, $perm, $parity) = lu_decomp2($a);
+  ($lu, $perm, $parity) = lu_decomp2($x);
   
-  $lu = lu_decomp2($a,$perm,$parity);   # or
-  $lu = lu_decomp2($a);                 # $perm and $parity are optional
+  $lu = lu_decomp2($x,$perm,$parity);   # or
+  $lu = lu_decomp2($x);                 # $perm and $parity are optional
   
-  lu_decomp($a->inplace,$perm,$parity); # or
-  lu_decomp($a->inplace);               # $perm and $parity are optional
+  lu_decomp($x->inplace,$perm,$parity); # or
+  lu_decomp($x->inplace);               # $perm and $parity are optional
 
 =for description
 
@@ -1168,14 +1168,14 @@ Solve a x = b for matrix a, by back substitution into a's LU decomposition.
 
 =for usage
 
-  ($lu,$perm,$par) = lu_decomp($a);
+  ($lu,$perm,$par) = lu_decomp($x);
   
-  $x = lu_backsub($lu,$perm,$par,$b);  # or
-  $x = lu_backsub($lu,$perm,$b);       # $par is not required for lu_backsub
+  $x = lu_backsub($lu,$perm,$par,$y);  # or
+  $x = lu_backsub($lu,$perm,$y);       # $par is not required for lu_backsub
   
-  lu_backsub($lu,$perm,$b->inplace); # modify $b in-place
+  lu_backsub($lu,$perm,$y->inplace); # modify $y in-place
   
-  $x = lu_backsub(lu_decomp($a),$b); # (ignores parity value from lu_decomp)
+  $x = lu_backsub(lu_decomp($x),$y); # (ignores parity value from lu_decomp)
 
 =for description
 
@@ -1187,7 +1187,7 @@ multiple times and not have to do the expensive LU decomposition
 more than once.
 
 C<lu_backsub> acts on single vectors and threads in the usual
-way, which means that it treats C<$b> as the I<transpose>
+way, which means that it treats C<$y> as the I<transpose>
 of the input.  If you want to process a matrix, you must
 hand in the I<transpose> of the matrix, and then transpose
 the output when you get it back. that is because pdls are
@@ -1209,30 +1209,30 @@ It is written in PDL but should probably be implemented in C.
 *PDL::lu_backsub = \&lu_backsub;
 
 sub lu_backsub {
-   my ($lu, $perm, $b, $par);
+   my ($lu, $perm, $y, $par);
    print STDERR "lu_backsub: entering debug version...\n" if $PDL::debug;
    if(@_==3) {
-      ($lu, $perm, $b) = @_;
+      ($lu, $perm, $y) = @_;
    } elsif(@_==4) {
-      ($lu, $perm, $par, $b) = @_;
+      ($lu, $perm, $par, $y) = @_;
    } 
 
    barf("lu_backsub: LU decomposition is undef -- probably from a singular matrix.\n")
    unless defined($lu);
 
-   barf("Usage: \$x = lu_backsub(\$lu,\$perm,\$b); all must be PDLs\n") 
+   barf("Usage: \$x = lu_backsub(\$lu,\$perm,\$y); all must be PDLs\n") 
    unless(UNIVERSAL::isa($lu,'PDL') &&
       UNIVERSAL::isa($perm,'PDL') &&
-      UNIVERSAL::isa($b,'PDL'));
+      UNIVERSAL::isa($y,'PDL'));
 
-   my $n = $b->dim(0);
+   my $n = $y->dim(0);
    my $n1 = $n; $n1--;
 
    # Make sure threading dimensions are compatible.
    # There are two possible sources of thread dims:
    #
    # (1) over multiple LU (i.e., $lu,$perm) instances
-   # (2) over multiple  B (i.e., $b) column instances
+   # (2) over multiple  B (i.e., $y) column instances
    #
    # The full dimensions of the function call looks like
    #
@@ -1245,9 +1245,9 @@ sub lu_backsub {
    # (1) Check that m dims are compatible
    my $ludims = pdl($lu->dims);
    my $permdims = pdl($perm->dims);
-   my $bdims = pdl($b->dims);
+   my $bdims = pdl($y->dims);
 
-   print STDERR "lu_backsub: called with args:  \$lu$ludims, \$perm$permdims, \$b$bdims\n" if $PDL::debug;
+   print STDERR "lu_backsub: called with args:  \$lu$ludims, \$perm$permdims, \$y$bdims\n" if $PDL::debug;
 
    my $m = $ludims((0));  # this is the sig dimension
    unless ( ($ludims(0) == $m) and ($ludims(1) == $m) and
@@ -1289,16 +1289,16 @@ THREAD_OK:
    my $nontrivial = ! (($perm==$perm->xvals)->clump(-1)->andover);
 
    if($nontrivial) {
-      if($b->is_inplace) {
-         $b .= $b->dummy(1,$b->dim(0))->index($perm->dummy(1,1))->sever;   # TODO: check threading
-         $out = $b;
+      if($y->is_inplace) {
+         $y .= $y->dummy(1,$y->dim(0))->index($perm->dummy(1,1))->sever;   # TODO: check threading
+         $out = $y;
       } else {
-         $out = $b->dummy(1,$b->dim(0))->index($perm->dummy(1,1))->sever;  # TODO: check threading
+         $out = $y->dummy(1,$y->dim(0))->index($perm->dummy(1,1))->sever;  # TODO: check threading
       }
    } else {
       # should check for more matrix dims to thread over
       # but ignore the issue for now
-      $out = ($b->is_inplace ? $b : $b->copy);
+      $out = ($y->is_inplace ? $y : $y->copy);
    }
    print STDERR "lu_backsub: starting with \$out" . pdl($out->dims) . "\n" if $PDL::debug;
 
@@ -1374,11 +1374,11 @@ While this is the transpose of the normal column-wise storage, this
 corresponds to normal PDL usage.  The contents of matrix a may be
 altered (but may be required for subsequent calls with flag = -1).
 
-C<$b>, C<$x>, C<$ips> are vectors of length C<n>.
+C<$y>, C<$x>, C<$ips> are vectors of length C<n>.
 
 Set C<flag=0> to solve.  
 Set C<flag=-1> to do a new back substitution for
-different C<$b> vector using the same a matrix previously reduced when
+different C<$y> vector using the same a matrix previously reduced when
 C<flag=0> (the C<$ips> vector generated in the previous solution is also
 required).
 

@@ -14,8 +14,8 @@ BEGIN {
 $| = 1;
 
 sub tapprox ($$) {
-    my ( $a, $b ) = @_;
-    my $d = abs( $a - $b );
+    my ( $x, $y ) = @_;
+    my $d = abs( $x - $y );
     my $check = ($d <= 0.0001);
     diag "diff = [$d]\n" unless $check;
     return $check;
@@ -23,11 +23,11 @@ sub tapprox ($$) {
 
 # set up test arrays
 #
-my $a = pdl(0,0,6,3,5,0,7,14,94,5,5,8,7,7,1,6,7,13,10,2,101,19,7,7,5);  # sf.net bug #2019651
-my $a_sort = $a->qsort;
-my $b = pdl(55);
-my $b_sort = $b->qsort;
-my $c = cat($a,$a);
+my $x = pdl(0,0,6,3,5,0,7,14,94,5,5,8,7,7,1,6,7,13,10,2,101,19,7,7,5);  # sf.net bug #2019651
+my $a_sort = $x->qsort;
+my $y = pdl(55);
+my $b_sort = $y->qsort;
+my $c = cat($x,$x);
 my $c_sort = $c->qsort;
 my $d = sequence(10)->rotate(1);
 my $d_sort = $d->qsort;
@@ -35,11 +35,11 @@ my $e = pdl([[1,2],[0,500],[2,3],[4,2],[3,4],[3,5]]);
 my $e_sort = $e->qsortvec;
 
 # Test a range of values
-ok( tapprox($a->pctover(-0.5), $a_sort->at(0)), "pct below 0 for 25-elem pdl" );
-ok( tapprox($a->pctover( 0.0), $a_sort->at(0)), "pct equal 0 for 25-elem pdl" );
-ok( tapprox($a->pctover( 0.9),             17), "pct equal 0.9 for 25-elem pdl [SF bug 2019651]" );
-ok( tapprox($a->pctover( 1.0), $a_sort->at($a->dim(0)-1)), "pct equal 1 for 25-elem pdl" );
-ok( tapprox($a->pctover( 2.0), $a_sort->at($a->dim(0)-1)), "pct above 1 for 25-elem pdl" );
+ok( tapprox($x->pctover(-0.5), $a_sort->at(0)), "pct below 0 for 25-elem pdl" );
+ok( tapprox($x->pctover( 0.0), $a_sort->at(0)), "pct equal 0 for 25-elem pdl" );
+ok( tapprox($x->pctover( 0.9),             17), "pct equal 0.9 for 25-elem pdl [SF bug 2019651]" );
+ok( tapprox($x->pctover( 1.0), $a_sort->at($x->dim(0)-1)), "pct equal 1 for 25-elem pdl" );
+ok( tapprox($x->pctover( 2.0), $a_sort->at($x->dim(0)-1)), "pct above 1 for 25-elem pdl" );
 
 # test for sf.net bug report 2753869
 #
@@ -96,18 +96,18 @@ local $TODO = "fixing max/min NaN handling";
 
 {my $inf = exp(~0>>1);
 my $nan = $inf/$inf;
-my $a = pdl($nan, 0, 1, 2);
-my $b = pdl(0, 1, 2, $nan);
+my $x = pdl($nan, 0, 1, 2);
+my $y = pdl(0, 1, 2, $nan);
 
-ok($a->min == $b->min, "min with NaNs");
-ok($a->max == $b->max, "max with NaNs");
+ok($x->min == $y->min, "min with NaNs");
+ok($x->max == $y->max, "max with NaNs");
 }
 my $empty = which(ones(5)>5);
-$a = $empty->double->maximum;
-ok( $a->nelem==1, "maximum over an empty dim yields 1 value");
-ok(!($a*0==0), "max of empty nonbad float gives NaN");
-$a = $empty->byte->maximum;
-ok($a==0, "max of empty nonbad int type gives 0");
+$x = $empty->double->maximum;
+ok( $x->nelem==1, "maximum over an empty dim yields 1 value");
+ok(!($x*0==0), "max of empty nonbad float gives NaN");
+$x = $empty->byte->maximum;
+ok($x==0, "max of empty nonbad int type gives 0");
 
 # test bad value handling with pctover and max
 #
@@ -115,17 +115,17 @@ SKIP: {
    skip "Bad value support not compiled", 5 unless $PDL::Bad::Status;
 
    $empty->badflag(1);
-   $a = $empty->maximum;
-   ok( $a->isbad, "bad flag gets set on max over an empty dim");
+   $x = $empty->maximum;
+   ok( $x->isbad, "bad flag gets set on max over an empty dim");
 
-   my $abad = $a;
-   $abad->badflag(1);
-   $abad->inplace->setvaltobad(7);
-   my $agood = $abad->where($abad->isgood);
-   my $allbad = $abad->where($abad->isbad);
+   my $xbad = $x;
+   $xbad->badflag(1);
+   $xbad->inplace->setvaltobad(7);
+   my $xgood = $xbad->where($xbad->isgood);
+   my $allbad = $xbad->where($xbad->isbad);
 
-   ok( $abad->pctover(0.1) == $agood->pctover(0.1), "pctover(0.1) badvals" );
-   ok( $abad->pctover(0.9) == $agood->pctover(0.9), "pctover(0.9) badvals" );
+   ok( $xbad->pctover(0.1) == $xgood->pctover(0.1), "pctover(0.1) badvals" );
+   ok( $xbad->pctover(0.9) == $xgood->pctover(0.9), "pctover(0.9) badvals" );
    ok( $allbad->pctover(0.1)->isbad, "pctover(0.1) all badvals" );
    ok( $allbad->pctover(0.9)->isbad, "pctover(0.9) all badvals" );
 };
@@ -158,8 +158,8 @@ ok (PDL::oddmedian($h) ==  0, 'Oddmedian 3-value not in order test');
 ok (PDL::oddmedian($j) == -3, 'Oddmedian negative values even cardinality test');
 
 #Test mode and modeover
-my $a = pdl([1,2,3,3,4,3,2],1);
-ok( $a->mode == 0, "mode test" );
-ok( all($a->modeover == pdl(3,0)), "modeover test");
+my $x = pdl([1,2,3,3,4,3,2],1);
+ok( $x->mode == 0, "mode test" );
+ok( all($x->modeover == pdl(3,0)), "modeover test");
 
 

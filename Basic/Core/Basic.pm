@@ -152,9 +152,9 @@ X axis values between endpoints (see L<xvals|/xvals>).
 
 =for usage
 
- $a = zeroes(100,100);
- $x = $a->xlinvals(0.5,1.5);
- $y = $a->ylinvals(-2,-1);
+ $w = zeroes(100,100);
+ $x = $w->xlinvals(0.5,1.5);
+ $y = $w->ylinvals(-2,-1);
  # calculate Z for X between 0.5 and 1.5 and
  # Y between -2 and -1.
  $z = f($x,$y);            
@@ -187,9 +187,9 @@ X axis values logarithmically spaced between endpoints (see L<xvals|/xvals>).
 
 =for usage
 
- $a = zeroes(100,100);
- $x = $a->xlogvals(1e-6,1e-3);
- $y = $a->ylinvals(1e-4,1e3);
+ $w = zeroes(100,100);
+ $x = $w->xlogvals(1e-6,1e-3);
+ $y = $w->ylinvals(1e-4,1e3);
  # calculate Z for X between 1e-6 and 1e-3 and
  # Y between 1e-4 and 1e3.
  $z = f($x,$y);            
@@ -355,10 +355,10 @@ $indices = ndcoords($type,@dimlist);
    ]
   ]
 
-  pdl> $a = zeroes(byte,2,3);        # $a is a 2x3 byte piddle
-  pdl> $b = ndcoords($a);            # $b inherits $a's type
-  pdl> $c = ndcoords(long,$a->dims); # $c is a long piddle, same dims as $b
-  pdl> help $b;
+  pdl> $w = zeroes(byte,2,3);        # $w is a 2x3 byte piddle
+  pdl> $y = ndcoords($w);            # $y inherits $w's type
+  pdl> $c = ndcoords(long,$w->dims); # $c is a long piddle, same dims as $y
+  pdl> help $y;
   This variable is   Byte D [2,2,3]              P            0.01Kb
   pdl> help $c;
   This variable is   Long D [2,2,3]              P            0.05Kb
@@ -380,8 +380,8 @@ sub PDL::ndcoords {
   $out = PDL->zeroes(@d);
   
   for my $d(0..$#dims) {
-    my $a = $out->index($d)->mv($d,0);
-    $a .= xvals($a);
+    my $w = $out->index($d)->mv($d,0);
+    $w .= xvals($w);
   }
 
   $out;
@@ -519,7 +519,7 @@ Create array filled with a sequence of values
 
 =for usage
 
- $a = sequence($b); $a = sequence [OPTIONAL TYPE], @dims;
+ $w = sequence($y); $w = sequence [OPTIONAL TYPE], @dims;
 
 etc. see L<zeroes|PDL::Core/zeroes>.
 
@@ -594,8 +594,8 @@ or floating point datatypes.
 For a more general metric, one can define, e.g.,
 
  sub distance {
-   my ($a,$centre,$f) = @_;
-   my ($r) = $a->allaxisvals-$centre;
+   my ($w,$centre,$f) = @_;
+   my ($r) = $w->allaxisvals-$centre;
    $f->($r);
  }
  sub l1 { sumover(abs($_[0])); }
@@ -604,7 +604,7 @@ For a more general metric, one can define, e.g.,
 
 so now
 
- distance($a, $centre, \&euclid);
+ distance($w, $centre, \&euclid);
 
 will emulate rvals, while C<\&l1> and C<\&linfty> will generate other
 well-known norms. 
@@ -739,17 +739,17 @@ transpose rows and columns.
 
 =for usage
 
- $b = transpose($a); 
+ $y = transpose($w);
 
 =for example
 
- pdl> $a = sequence(3,2)
- pdl> p $a
+ pdl> $w = sequence(3,2)
+ pdl> p $w
  [
   [0 1 2]
   [3 4 5]
  ]                                                                               
- pdl> p transpose( $a )
+ pdl> p transpose( $w )
  [
   [0 3]
   [1 4]

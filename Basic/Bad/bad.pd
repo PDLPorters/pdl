@@ -368,11 +368,11 @@ getter/setter for the bad data flag
 
 =for example
 
-  if ( $a->badflag() ) {
+  if ( $x->badflag() ) {
     print "Data may contain bad values.\n";
   }
-  $a->badflag(1);      # set bad data flag
-  $a->badflag(0);      # unset bad data flag
+  $x->badflag(1);      # set bad data flag
+  $x->badflag(0);      # unset bad data flag
 
 When called as a setter, this modifies the piddle on which
 it is called. This always returns a Perl scalar with the
@@ -400,30 +400,30 @@ a PDL::Type object, or one of C<$PDL_B>, C<$PDL_S>, etc.
 =for example
 
    $badval = badvalue( float );
-   $a = ones(ushort,10);
+   $x = ones(ushort,10);
    print "The bad data value for ushort is: ",
-      $a->badvalue(), "\n";
+      $x->badvalue(), "\n";
 
-This can act as a setter (e.g. C<< $a->badvalue(23) >>)
+This can act as a setter (e.g. C<< $x->badvalue(23) >>)
 if the data type is an integer or C<$PDL::Bad::UseNaN == 0>.
 Note that this B<never touches the data in the piddle>.
-That is, if C<$a> already has bad values, they will not
+That is, if C<$x> already has bad values, they will not
 be changed to use the given number and if any elements of
-C<$a> have that value, they will unceremoniously be marked
+C<$x> have that value, they will unceremoniously be marked
 as bad data. See L</setvaltobad>, L</setbadtoval>, and
 L</setbadif> for ways to actually modify the data in piddles
 
 If the C<$PDL::Bad::PerPdl> flag is set then it is possible to
 change the bad value on a per-piddle basis, so
 
-    $a = sequence (10);
-    $a->badvalue (3); $a->badflag (1);
-    $b = sequence (10);
-    $b->badvalue (4); $b->badflag (1);
+    $x = sequence (10);
+    $x->badvalue (3); $x->badflag (1);
+    $y = sequence (10);
+    $y->badvalue (4); $y->badflag (1);
 
-will set $a to be C<[0 1 2 BAD 4 5 6 7 8 9]> and $b to be
+will set $x to be C<[0 1 2 BAD 4 5 6 7 8 9]> and $y to be
 C<[0 1 2 3 BAD 5 6 7 8 9]>. If the flag is not set then both
-$a and $b will be set to C<[0 1 2 3 BAD 5 6 7 8 9]>. Please
+$x and $y will be set to C<[0 1 2 3 BAD 5 6 7 8 9]>. Please
 note that the code to support per-piddle bad values is
 I<experimental> in the current release, and it requires that
 you modify the settings under which PDL is compiled.
@@ -449,9 +449,9 @@ It also has an I<awful> name.
 =for example
 
    $orig_badval = orig_badvalue( float );
-   $a = ones(ushort,10);
+   $x = ones(ushort,10);
    print "The original bad data value for ushort is: ", 
-      $a->orig_badvalue(), "\n";
+      $x->orig_badvalue(), "\n";
 
 =for bad
 
@@ -683,11 +683,11 @@ Similar to L<isfinite|PDL::Math/isfinite>.
 
 =for example
 
- $a = pdl(1,2,3);
- $a->badflag(1);
- set($a,1,$a->badvalue);
- $b = isbad($a);
- print $b, "\n";
+ $x = pdl(1,2,3);
+ $x->badflag(1);
+ set($x,1,$x->badvalue);
+ $y = isbad($x);
+ print $y, "\n";
  [0 1 0]
 
 =for bad
@@ -724,11 +724,11 @@ Also see L<isfinite|PDL::Math/isfinite>.
 
 =for example
 
- $a = pdl(1,2,3);
- $a->badflag(1);
- set($a,1,$a->badvalue);
- $b = isgood($a);
- print $b, "\n";
+ $x = pdl(1,2,3);
+ $x->badflag(1);
+ set($x,1,$x->badvalue);
+ $y = isgood($x);
+ print $y, "\n";
  [1 0 1]
 
 =for bad
@@ -770,7 +770,7 @@ it is possible to perform this calculation over I<any> dimension.
 
 =for usage
 
- $a = nbadover($b);
+ $x = nbadover($y);
 
 =for example
 
@@ -816,7 +816,7 @@ I<any> dimension.
 
 =for usage
 
- $a = ngoodover($b);
+ $x = ngoodover($y);
 
 =for example
 
@@ -940,8 +940,8 @@ sub PDL::setbadat {
 # NOTE: the Code section uses SETBAD
 #
 # have removed inplace stuff because:
-#  $a->inplace->setbadif( $a % 2 )
-# actually sets the badflag in a for ($a % 2) - this is
+#  $x->inplace->setbadif( $x % 2 )
+# actually sets the badflag in a for ($x % 2) - this is
 # done inplace, and the flag cleared. Hence the setbadif()
 # call is NOT done inplace.
 #
@@ -979,11 +979,11 @@ copy across the data.
 
 =for example
 
- pdl> $a = sequence(5,5)
- pdl> $a = $a->setbadif( $a % 2 )
- pdl> p "a badflag: ", $a->badflag, "\n"
+ pdl> $x = sequence(5,5)
+ pdl> $x = $x->setbadif( $x % 2 )
+ pdl> p "a badflag: ", $x->badflag, "\n"
  a badflag: 1
- pdl> p "a is\n$a"
+ pdl> p "a is\n$x"
  [
   [  0 BAD   2 BAD   4]
   [BAD   6 BAD   8 BAD]
@@ -994,7 +994,7 @@ copy across the data.
 
 Unfortunately, this routine can I<not> be run inplace, since the
 current implementation can not handle the same piddle used as
-C<a> and C<mask> (eg C<< $a->inplace->setbadif($a%2) >> fails).
+C<a> and C<mask> (eg C<< $x->inplace->setbadif($x%2) >> fails).
 Even more unfortunate: we can't catch this error and tell you.
 
 =for bad
@@ -1026,7 +1026,7 @@ Also see L<setvaltobad|/setvaltobad> and L<setnantobad|/setnantobad>.
      }',
 ); # pp_def: setbadif
 
-# this is useful because $a->setbadif( $a == 23 )
+# this is useful because $x->setbadif( $x == 23 )
 # is common and that can't be done inplace
 #
 # this doesn't need a BadCode section
@@ -1054,9 +1054,9 @@ Set bad all those elements which equal the supplied value.
 
 =for example
 
- $a = sequence(10) % 3;
- $a->inplace->setvaltobad( 0 );
- print "$a\n";
+ $x = sequence(10) % 3;
+ $x->inplace->setvaltobad( 0 );
+ print "$x\n";
  [BAD 1 2 BAD 1 2 BAD 1 2 BAD]
 
 This is a simpler version of L<setbadif|/setbadif>, but this
@@ -1131,8 +1131,8 @@ with a call to L<check_badflag()|/check_badflag> thrown in.
 
 =for usage
 
- $b = $a->setnantobad;
- $a->inplace->setnantobad;
+ $y = $x->setnantobad;
+ $x->inplace->setnantobad;
 
 =for bad
 
@@ -1142,19 +1142,19 @@ Supports bad values.
 
 *setnantobad = \&PDL::setnantobad;
 sub PDL::setnantobad{
-    my $a = shift;
-    my $b;
-    if ( $a->is_inplace ) {
-	$a->set_inplace(0);
-	$b = $a;
+    my $x = shift;
+    my $y;
+    if ( $x->is_inplace ) {
+	$x->set_inplace(0);
+	$y = $x;
     } elsif ( $#_ > -1 ) {
-	$b = $_[0] = $a->copy; # is this correct?
+	$y = $_[0] = $x->copy; # is this correct?
     } else {
-	$b = $a->copy;
+	$y = $x->copy;
     }
     # make sure bad flag is set, otherwise check_badflag() is a nop
-    $b->badflag(1); $b->check_badflag();
-    return $b; 
+    $y->badflag(1); $y->check_badflag();
+    return $y; 
 }
 
 =head2 setbadtonan
@@ -1170,8 +1170,8 @@ with the bad flag being cleared.
 
 =for usage
 
- $b = $a->setbadtonan;
- $a->inplace->setbadtonan;
+ $y = $x->setbadtonan;
+ $x->inplace->setbadtonan;
 
 =for bad
 
@@ -1181,18 +1181,18 @@ Supports bad values.
 
 *setbadtonan = \&PDL::setbadtonan;
 sub PDL::setbadtonan{
-    my $a = shift;
-    my $b;
-    if ( $a->is_inplace ) {
-	$a->set_inplace(0);
-	$b = $a;
+    my $x = shift;
+    my $y;
+    if ( $x->is_inplace ) {
+	$x->set_inplace(0);
+	$y = $x;
     } elsif ( $#_ > -1 ) {
-	$b = $_[0] = $a->copy; # is this correct?
+	$y = $_[0] = $x->copy; # is this correct?
     } else {
-	$b = $a->copy;
+	$y = $x->copy;
     }
-    $b->badflag(0);
-    return $b; 
+    $y->badflag(0);
+    return $y; 
 }
 
 !NO!SUBS!
@@ -1229,8 +1229,8 @@ Can be done inplace.
 
 =for usage
 
- $b = $a->setnantobad;
- $a->inplace->setnantobad;
+ $y = $x->setnantobad;
+ $x->inplace->setnantobad;
 
 =for bad
 
@@ -1286,8 +1286,8 @@ of any type, but if done inplace, the input must be floating point.
 
 =for usage
 
- $b = $a->setbadtonan;
- $a->inplace->setbadtonan;
+ $y = $x->setbadtonan;
+ $x->inplace->setbadtonan;
 
 =for bad
 
@@ -1338,8 +1338,8 @@ L<badmask|PDL::Math/badmask>.
 
 =for example
 
- $a->inplace->setbadtoval(23); 
- print "a badflag: ", $a->badflag, "\n";
+ $x->inplace->setbadtoval(23);
+ print "a badflag: ", $x->badflag, "\n";
  a badflag: 0
 
 =for bad
@@ -1390,20 +1390,21 @@ Can be done inplace.
 
 =for example
 
- $a = byte( [0,1,3] );
+ $x = byte( [0,1,3] );
  $mask = byte( [0,0,0] );
+ $mask->badflag(1);
  set($mask,1,$mask->badvalue);
- $a->inplace->copybad( $mask );
- p $a;
+ $x->inplace->copybad( $mask );
+ p $x;
  [0 BAD 3]
 
 It is equivalent to:
 
- $c = $a + $mask * 0
+ $c = $x + $mask * 0
 
 =for bad
 
-This handles input piddles that are bad. If either C<$a>
+This handles input piddles that are bad. If either C<$x>
 or C<$mask> have bad values, those values will be marked
 as bad in the output piddle and the output piddle will have
 its bad value flag set to true.

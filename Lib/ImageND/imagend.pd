@@ -19,8 +19,8 @@ loaded.
 
  use PDL::ImageND;
 
- $b = $a->convolveND($kernel,{bound=>'periodic'});
- $b = $a->rebin(50,30,10);
+ $y = $x->convolveND($kernel,{bound=>'periodic'});
+ $y = $x->rebin(50,30,10);
  
 =cut
 
@@ -106,7 +106,7 @@ N-dimensional convolution (Deprecated; use convolveND)
 
 =for usage
 
-$new = convolve $a, $kernel
+  $new = convolve $x, $kernel
 
 Convolve an array with a kernel, both of which are N-dimensional.  This 
 routine does direct convolution (by copying) but uses quasi-periodic
@@ -127,19 +127,19 @@ EOD
 # Custom Perl wrapper
 
 sub PDL::convolve{
-    my($a,$b,$c) = @_;
+    my($x,$y,$c) = @_;
     barf("Usage: convolve(a(*), b(*), [o]c(*)") if $#_<1 || $#_>2;
     $c = PDL->null if $#_<2;
-    &PDL::_convolve_int( $a->clump(-1), $b->clump(-1),
-       long([$a->dims]), long([$b->dims]),
+    &PDL::_convolve_int( $x->clump(-1), $y->clump(-1),
+       long([$x->dims]), long([$y->dims]),
        ($c->getndims>1? $c->clump(-1) : $c)
      );
-     $c->setdims([$a->dims]);
+     $c->setdims([$x->dims]);
 
-    if($a->is_inplace) {
-      $a .= $c;
-      $a->set_inplace(0);
-      return $a;
+    if($x->is_inplace) {
+      $x .= $c;
+      $x->set_inplace(0);
+      return $x;
     }
     return $c;
 }
@@ -262,7 +262,7 @@ which runs somewhat slower.
 sub PDL::ninterpol {
     use PDL::Math 'floor';
     use PDL::Primitive 'interpol';
-    print 'Usage: $a = ninterpolate($point(s), $data);' if $#_ != 1;
+    print 'Usage: $x = ninterpolate($point(s), $data);' if $#_ != 1;
     my ($p, $y) = @_;
     my ($ip) = floor($p);
     # isolate relevant N-cube
@@ -280,9 +280,9 @@ N-dimensional rebinning algorithm
 
 =for usage
 
-$new = rebin $a, $dim1, $dim2,..;.
-$new = rebin $a, $template;
-$new = rebin $a, $template, {Norm => 1};
+  $new = rebin $x, $dim1, $dim2,..;.
+  $new = rebin $x, $template;
+  $new = rebin $x, $template, {Norm => 1};
 
 Rebin an N-dimensional array to newly specified dimensions.
 Specifying `Norm' keeps the sum constant, otherwise the intensities
@@ -290,8 +290,8 @@ are kept constant.  If more template dimensions are given than for the
 input pdl, these dimensions are created; if less, the final dimensions
 are maintained as they were.
 
-So if C<$a> is a 10 x 10 pdl, then C<rebin($a,15)> is a 15 x 10 pdl,
-while C<rebin($a,15,16,17)> is a 15 x 16 x 17 pdl (where the values
+So if C<$x> is a 10 x 10 pdl, then C<rebin($x,15)> is a 15 x 10 pdl,
+while C<rebin($x,15,16,17)> is a 15 x 16 x 17 pdl (where the values
 along the final dimension are all identical).
 
 Expansion is performed by sampling; reduction is performed by averaging.
@@ -309,34 +309,34 @@ EOD
 # Custom Perl wrapper
 
 sub PDL::rebin {
-    my($a) = shift;
+    my($x) = shift;
     my($opts) = ref $_[-1] eq "HASH" ? pop : {};
-    my(@idims) = $a->dims;
+    my(@idims) = $x->dims;
     my(@odims) = ref $_[0] ? $_[0]->dims : @_;
-    my($i,$b);
+    my($i,$y);
     foreach $i (0..$#odims) {
       if ($i > $#idims) {  # Just dummy extra dimensions
-          $a = $a->dummy($i,$odims[$i]);
+          $x = $x->dummy($i,$odims[$i]);
           next;
       # rebin_int can cope with all cases, but code
       # 1->n and n->1 separately for speed
       } elsif ($odims[$i] != $idims[$i]) {       # If something changes
          if (!($odims[$i] % $idims[$i])) {      # Cells map 1 -> n
                my ($r) = $odims[$i]/$idims[$i];
-               $b = $a->mv($i,0)->dummy(0,$r)->clump(2);
+               $y = $x->mv($i,0)->dummy(0,$r)->clump(2);
          } elsif (!($idims[$i] % $odims[$i])) { # Cells map n -> 1
                my ($r) = $idims[$i]/$odims[$i];
-               $a = $a->mv($i,0);
+               $x = $x->mv($i,0);
                # -> copy so won\'t corrupt input PDL
-               $b = $a->slice("0:-1:$r")->copy;
+               $y = $x->slice("0:-1:$r")->copy;
                foreach (1..$r-1) {
-                  $b += $a->slice("$_:-1:$r");
+                  $y += $x->slice("$_:-1:$r");
                }
-               $b /= $r;
+               $y /= $r;
          } else {                               # Cells map n -> m
-             &PDL::_rebin_int($a->mv($i,0), $b = null, $odims[$i]);
+             &PDL::_rebin_int($x->mv($i,0), $y = null, $odims[$i]);
          }
-         $a = $b->mv(0,$i);
+         $x = $y->mv(0,$i);
       }
     }
     if (exists $opts->{Norm} and $opts->{Norm}) {
@@ -348,11 +348,11 @@ sub PDL::rebin {
               $norm *= $idims[$i]/$odims[$i];
          }
       }
-      return $a * $norm;
+      return $x * $norm;
     } else {
       # Explicit copy so i) can\'t corrupt input PDL through this link
       #                 ii) don\'t waste space on invisible elements
-      return $a -> copy;
+      return $x -> copy;
     }
 }
 ',
@@ -399,17 +399,17 @@ the projection. Optionally takes the center to be used.
 
 
 sub circ_mean_p {
- my ($a,$opt) = @_;
+ my ($x,$opt) = @_;
  my ($rad,$sum,$norm);
 
  if (defined $opt) {
-   $rad = long PDL::rvals($a,$opt);
+   $rad = long PDL::rvals($x,$opt);
  }
  else {
-   $rad = long rvals $a;
+   $rad = long rvals $x;
  }
  $sum = zeroes($rad->max+1);
- PDL::indadd $a->clump(-1), $rad->clump(-1), $sum; # this does the real work
+ PDL::indadd $x->clump(-1), $rad->clump(-1), $sum; # this does the real work
  $norm = zeroes($rad->max+1);
  PDL::indadd pdl(1), $rad->clump(-1), $norm;       # equivalent to get norm
  $sum /= $norm;
@@ -432,24 +432,24 @@ Optionally takes the center to be used.
 
 
 sub circ_mean {
- my ($a,$opt) = @_;
+ my ($x,$opt) = @_;
  my ($rad,$sum,$norm,$a1);
 
  if (defined $opt) {
-   $rad = long PDL::rvals($a,$opt);
+   $rad = long PDL::rvals($x,$opt);
  }
  else {
-   $rad = long rvals $a;
+   $rad = long rvals $x;
  }
  $sum = zeroes($rad->max+1);
- PDL::indadd $a->clump(-1), $rad->clump(-1), $sum; # this does the real work
+ PDL::indadd $x->clump(-1), $rad->clump(-1), $sum; # this does the real work
  $norm = zeroes($rad->max+1);
  PDL::indadd pdl(1), $rad->clump(-1), $norm;       # equivalent to get norm
  $sum /= $norm;
- $a1 = $a->clump(-1);
+ $a1 = $x->clump(-1);
  $a1 .= $sum->index($rad->clump(-1));
 
- return $a;
+ return $x;
 }
 
 EOD
@@ -488,7 +488,7 @@ sub PDL::kernctr {
     my (@nk) = $kern->dims;
     barf "Kernel and image must have same number of dims" if $#ni != $#nk;
     my ($newk) = zeroes(double,@ni);
-    my ($k,$n,$d,$i,@stri,@strk,@b);
+    my ($k,$n,$y,$d,$i,@stri,@strk,@b);
     for ($i=0; $i <= $#ni; $i++) {
 	$k = $nk[$i];
 	$n = $ni[$i];
@@ -504,10 +504,10 @@ sub PDL::kernctr {
     CHUNK:
       for ($i=0; $i < $nchunk; $i++) {
 	my ($stri,$strk);
-	for ($n=0, $b=$i; $n <= $#ni; $n++, $b >>= 1) {
-        next CHUNK if $stri[$n][$b & 1] eq '';
-	  $stri .= $stri[$n][$b & 1];
-	  $strk .= $strk[$n][$b & 1];
+	for ($n=0, $y=$i; $n <= $#ni; $n++, $y >>= 1) {
+        next CHUNK if $stri[$n][$y & 1] eq '';
+	  $stri .= $stri[$n][$y & 1];
+	  $strk .= $strk[$n][$y & 1];
 	}
 	chop ($stri); chop ($strk);
 	($t = $newk->slice($stri)) .= $kern->slice($strk);
@@ -528,7 +528,7 @@ Speed-optimized convolution with selectable boundary conditions
 
 =for usage
 
-$new = convolveND($a, $kernel, [ {options} ]);
+  $new = convolveND($x, $kernel, [ {options} ]);
 
 Conolve an array with a kernel, both of which are N-dimensional.
 
@@ -550,7 +550,7 @@ The kernel and the array are not quite interchangeable (as in mathematical
 convolution): the code is inplace-aware only for the array itself, and
 the only allowed boundary condition on the kernel is truncation.
 
-convolveND is inplace-aware: say C<convolveND(inplace $a ,$k)> to modify
+convolveND is inplace-aware: say C<convolveND(inplace $x ,$k)> to modify
 a variable in-place.  You don't reduce the working memory that way -- only
 the final memory.
 
@@ -617,11 +617,11 @@ use PDL::Options;
 sub PDL::convolveND {
   my($a0,$k,$opt0) = @_;
   my $inplace = $a0->is_inplace;
-  my $a = $a0->new_or_inplace;
+  my $x = $a0->new_or_inplace;
 
  
-  barf("convolveND: kernel (".join("x",$k->dims).") has more dims than source (".join("x",$a->dims).")\n")
-    if($a->ndims < $k->ndims);
+  barf("convolveND: kernel (".join("x",$k->dims).") has more dims than source (".join("x",$x->dims).")\n")
+    if($x->ndims < $k->ndims);
   
 
   # Coerce stuff all into the same type.  Try to make sense.
@@ -632,10 +632,10 @@ sub PDL::convolveND {
   if($inplace) {
 	$type = $a0->get_datatype;
   } else {
-	my $z = $a->flat->index(0) + $k->flat->index(0);
+	my $z = $x->flat->index(0) + $k->flat->index(0);
 	$type = $z->get_datatype;
   }
-  $a = $a->convert($type);
+  $x = $x->convert($type);
   $k = $k->convert($type);
 	
 
@@ -657,24 +657,24 @@ sub PDL::convolveND {
   # If the kernel has too few dimensions, we thread over the other
   # dims -- this is the same as supplying the kernel with dummy dims of
   # order 1, so, er, we do that.
-  $k = $k->dummy($a->dims - 1, 1)
-    if($a->ndims > $k->ndims);
+  $k = $k->dummy($x->dims - 1, 1)
+    if($x->ndims > $k->ndims);
   my $kdims = pdl($k->dims); 
 
   ###
   # Decide whether to FFT or directly convolve: if we're in auto mode,
   # choose based on the relative size of the image and kernel arrays.
   my $fft = ( ($opt->{Method} =~ m/^a/i) ?
-	       ( $a->nelem > 2500 and ($a->nelem) <= ($k->nelem * 500) ) :
+	       ( $x->nelem > 2500 and ($x->nelem) <= ($k->nelem * 500) ) :
   	       ( $opt->{Method} !~ m/^[ds]/i )
 	      );
 
   ###
   # Pad the array to include boundary conditions
-  my $adims = pdl($a->dims);
+  my $adims = pdl($x->dims);
   my $koff = ($kdims/2)->ceil - 1;
 
-  my $aa = $a->range( -$koff, $adims + $kdims, $opt->{Boundary} )
+  my $aa = $x->range( -$koff, $adims + $kdims, $opt->{Boundary} )
                ->sever;
 
   if($fft) {
@@ -702,18 +702,18 @@ sub PDL::convolveND {
     }
 
     PDL::ifftnd($aa,$aai);
-    $a .= $aa->range( $koff, $adims);
+    $x .= $aa->range( $koff, $adims);
 
   } else {
     print "convolveND: using direct method\n" if($PDL::debug);
 
     ### The first argument is a dummy to set $GENERIC.	
-    &PDL::_convolveND_int( $k->flat->index(0), $k, $aa, $a );
+    &PDL::_convolveND_int( $k->flat->index(0), $k, $aa, $x );
 
   }
 
 
-  $a;
+  $x;
 }
 
 EOD
