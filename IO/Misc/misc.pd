@@ -136,8 +136,8 @@ sub _ext_lastD {                           # Called by rcols and rgrep
       my @nnew   = @nold;
       $nnew[-1] += $n;                      # add $n to the last dimension
       my $y      = zeroes($x->type,@nnew);  # New pdl
-      my $bb     = $y->mv(-1,0)->slice("0:".($nold[-1]-1))->mv(0,-1);
-      $bb       .= $x;
+      my $yy     = $y->mv(-1,0)->slice("0:".($nold[-1]-1))->mv(0,-1);
+      $yy       .= $x;
       $_[0]      = $y;
    }
    1;
