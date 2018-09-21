@@ -824,8 +824,8 @@ e.g.,
   wcols "%10.3f %10.5g", $x,$y; # Individual column formatting
 
   $x = sequence(3); $y = zeros(3); $units = [ 'm/sec', 'kg', 'MPH' ];
-  wcols $x,$y, { HEADER => "#   a   b" };
-  wcols $x,$y, { Header => "#   a   b", Colsep => ', ' };  # case insensitive option names!
+  wcols $x,$y, { HEADER => "#   x   y" };
+  wcols $x,$y, { Header => "#   x   y", Colsep => ', ' };  # case insensitive option names!
   wcols " %4.1f  %4.1f  %s",$x,$y,$units, { header => "# Day  Time  Units" };
 
   $a52 = sequence(5,2); $y = ones(5); $c = [ 1, 2, 4 ];

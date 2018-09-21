@@ -105,7 +105,7 @@ add_clip_plane;
 
 # test glGetClipPlane()
 ($x,$y,$c,$d)=OpenGL::glpGetClipPlane(GL_CLIP_PLANE0);
-print "Clipping plane (a,b,c,d) = ($x,$y,$c,$d)\n";
+print "Clipping plane (x,y,c,d) = ($x,$y,$c,$d)\n";
 
 $spin=0;
 while(1) {$spin += 1.0; display;}

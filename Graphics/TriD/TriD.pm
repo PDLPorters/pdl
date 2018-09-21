@@ -10,8 +10,8 @@ PDL::Graphics::TriD -- PDL 3D interface
  $t = sequence(100)/10;
  $x = sin($t); $y = cos($t), $z = $t;
  $coords = cat($x, $y, $z)->xchg(0,1);
- my $r = cos(2*$t); my $g = sin($t); my $b = $t;
- $colors = cat($r, $g, $b)->xchg(0,1);
+ my $red = cos(2*$t); my $green = sin($t); my $blue = $t;
+ $colors = cat($red, $green, $blue)->xchg(0,1);
  
  # After each graph, let the user rotate and
  # wait for him to press 'q', then make new graph
@@ -24,9 +24,9 @@ PDL::Graphics::TriD -- PDL 3D interface
  $surf2 = sqrt(rvals(zeroes(50,50))/2);
  $x = sin($surface); $y = cos($surface), $z = $surface;
  $coords = cat($x, $y, $z)->xchg(0,1);
- $r = cos(2*$surface); $g = sin($surface); $b = $surface;
- $colors = cat($r, $g, $b)->xchg(0,1);
- imagrgb([$r,$g,$b]);     # 2-d piddles
+ $red = cos(2*$surface); $green = sin($surface); $blue = $surface;
+ $colors = cat($red, $green, $blue)->xchg(0,1);
+ imagrgb([$red,$green,$blue]);     # 2-d piddles
  lattice3d([$surf1]);
  points3d([$x,$y,$z]);
  spheres3d([$x,$y,$z]);  # preliminary implementation

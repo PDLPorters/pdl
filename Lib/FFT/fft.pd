@@ -376,15 +376,15 @@ pp_def('fftnd',
 
 sub PDL::fftnd{
     barf("Usage: fftnd(real(*), imag(*)") if $#_ != 1;
-    my($x,$y) = @_;
-    my(@dimsa) = $x->dims;
-    my(@dimsb) = $y->dims;
-    my($dimsa) = long \@dimsa;
-    foreach(@dimsa) {
+    my($r,$i) = @_;
+    my(@dimsr) = $r->dims;
+    my(@dimsi) = $i->dims;
+    my($dimsr) = long \@dimsr;
+    foreach(@dimsr) {
 	barf "Real and imaginary arrays must have same dimensions"
-	  if ($_ != shift @dimsb);
+	  if ($_ != shift @dimsi);
     }
-    &PDL::_fftnd_int($dimsa, $x->clump(-1), $y->clump(-1));
+    &PDL::_fftnd_int($dimsr, $r->clump(-1), $i->clump(-1));
 }
 
 ',
@@ -407,15 +407,15 @@ pp_def('ifftnd',
 
 sub PDL::ifftnd{
     barf("Usage: ifftnd(real(*), imag(*)") if $#_ != 1;
-    my($x,$y) = @_;
-    my(@dimsa) = $x->dims;
-    my(@dimsb) = $y->dims;
-    my($dimsa) = long \@dimsa;
-    foreach(@dimsa) {
+    my($r,$i) = @_;
+    my(@dimsr) = $r->dims;
+    my(@dimsi) = $i->dims;
+    my($dimsr) = long \@dimsi;
+    foreach(@dimsr) {
 	barf "Real and imaginary arrays must have same dimensions"
-	  if ($_ != shift @dimsb);
+	  if ($_ != shift @dimsi);
     }
-    &PDL::_ifftnd_int($dimsa, $x->clump(-1), $y->clump(-1));
+    &PDL::_ifftnd_int($dimsr, $r->clump(-1), $i->clump(-1));
 }
 
 ',
@@ -465,21 +465,21 @@ these fft routines is for kernel sizes roughly 7x7.
 
 sub PDL::fftconvolve {
     barf "Must have image & kernel for fftconvolve" if $#_ != 1;
-    my ($x, $k) = @_;
+    my ($im, $k) = @_;
 
     my ($ar,$ai,$kr,$ki,$cr,$ci);
 
-    $ar = $x->copy;
-    $ai = $ar->zeros;
-    fftnd($ar, $ai);
+    $imr = $im->copy;
+    $imi = $imr->zeros;
+    fftnd($imr, $imi);
 
     $kr = $k->copy;
     $ki = $kr->zeroes;
     fftnd($kr,$ki);
 
-    $cr = $ar->zeroes;
-    $ci = $ai->zeroes;
-    cmul($ar,$ai,$kr,$ki,$cr,$ci);
+    $cr = $imr->zeroes;
+    $ci = $imi->zeroes;
+    cmul($imr,$imi,$kr,$ki,$cr,$ci);
 
     ifftnd($cr,$ci);
     $_[0] = $cr;

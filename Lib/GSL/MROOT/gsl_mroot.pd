@@ -66,14 +66,14 @@ to the algorithms in the GSL library that do not use derivatives.
   sub rosenbrock{
      my ($x) = @_;
      my $c = 1;
-     my $b = 10;
+     my $d = 10;
      my $y = zeroes($x);
 
      my $y0 = $y->slice(0);
      $y0 .=  $c * (1 - $x->slice(0));
 
      my $y1 = $y->slice(1);
-     $y1 .=  $b * ($x->slice(1) - $x->slice(0)**2);
+     $y1 .=  $d * ($x->slice(1) - $x->slice(0)**2);
 
      return $y;
   }

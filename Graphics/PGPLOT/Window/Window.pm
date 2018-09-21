@@ -761,8 +761,8 @@ passing in a single non-ref parameter.  For even further convenience, you
 can even omit the '/' in the device specifier, so these two lines
 deliver the same result:
 
-    $x = pgwin(gif);
-    $x = new PDL::Graphics::PGPLOT::Window({Dev=>'/gif'});
+    $win = pgwin(gif);
+    $win = new PDL::Graphics::PGPLOT::Window({Dev=>'/gif'});
 
 =head2 new
 

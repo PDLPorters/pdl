@@ -104,15 +104,15 @@ act q|
 
     # create a piddle
     $x = byte(1,2,3);
-    print( "Bad flag (a) == ", $x->badflag(), "\n" );
+    print( "Bad flag (x) == ", $x->badflag(), "\n" );
 
     # set bad flag, even though all the data is good
     $x->badflag(1);
-    print( "Bad flag (a) == ", $x->badflag(), "\n" );
+    print( "Bad flag (x) == ", $x->badflag(), "\n" );
 
     # note the bad flag is infectious
     $y = 2 * $x;
-    print( "Bad flag (b) == ", $y->badflag(), "\n\n" );
+    print( "Bad flag (y) == ", $y->badflag(), "\n\n" );
 
 |;
 
@@ -125,8 +125,8 @@ act q|
 
     print "   Type   Dimension        State          Mem\n";
     print "-------------------------------------------------\n";
-    print "a ", $x->info("%-6T %-15D   %-5S  %12M"), "\n";
-    print "b ", $y->info("%-6T %-15D   %-5S  %12M"), "\n";
+    print "x ", $x->info("%-6T %-15D   %-5S  %12M"), "\n";
+    print "y ", $y->info("%-6T %-15D   %-5S  %12M"), "\n";
     print "c ", $c->info("%-6T %-15D   %-5S  %12M"), "\n\n";
 |;
 
@@ -140,7 +140,7 @@ act q|
     print "Some bad values: $x\n";
     print "b contains:      $y\n";
     $c = $x + $y;
-    print "so a + b =       $c\n\n";
+    print "so x + y =       $c\n\n";
 
 |;
 
@@ -148,13 +148,13 @@ act q|
 
     # The module PDL::Bad contains a number of routines designed
     # to make using bad values easy.
-    print "a contains ", $x->nbad, " bad elements.\n";
+    print "x contains ", $x->nbad, " bad elements.\n";
     print "The bad value for type #",$x->get_datatype," is ",$x->badvalue,"\n";
     print "It is easy to find whether a value is good: ", isgood($x), "\n\n";
 
     print "or to remove the bad values\n";
     $x->inplace->setbadtoval(23);
-    print "a = $x and \$x->badflag == ", $x->badflag, "\n\n";
+    print "x = $x and \$x->badflag == ", $x->badflag, "\n\n";
 
 |;
 
@@ -175,10 +175,10 @@ act q|
     $x = sequence( byte, 2, 3 );
     $x = $x->setbadif( $x == 3 );
     $y = $x->slice("(1),:");
-    print "b = $y\tbadflag = ", $y->badflag, "\n";
+    print "y = $y\tbadflag = ", $y->badflag, "\n";
 
     $x->inplace->setbadtoval(3);
-    print "b = $y\tbadflag = ", $y->badflag, "\n\n";
+    print "y = $y\tbadflag = ", $y->badflag, "\n\n";
 
 |;
 
