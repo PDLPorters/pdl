@@ -271,12 +271,12 @@ SKIP:{
     eval "use PDL::FFT";
     skip "PDL::FFT not installed", 79 if $@;
 
-    my $x = sequence(10,10,10);
-    my $ai = zeroes($x);
-    fftnd($x,$ai);
-    wfits($x,$file);
+    my $ar = sequence(10,10,10);
+    my $ai = zeroes($ar);
+    fftnd($ar,$ai);
+    wfits($ar,$file);
     my $y = rfits($file);
-    ok(all($x==$y),"fftnd output (non-contiguous in memory) is written correctly");
+    ok(all($ar==$y),"fftnd output (non-contiguous in memory) is written correctly");
     unlink $file;
 }
 

@@ -511,7 +511,7 @@ sub count_tags {
 	   $x = $@;
        };
 
-    print "a = $x\nreturn = '",join("','",@result),"'\n" 
+    print "x = $x\nreturn = '",join("','",@result),"'\n"
 	if($PERLDL::debug);
 
     if($x =~ m/^Did not find/) {

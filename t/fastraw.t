@@ -39,7 +39,7 @@ ok((-f $name and -f ($name . '.hdr')), "Writing should create a file and header 
 
 # **TEST 3** read it back, and make sure it gives the same piddle
 my $y = readfraw($name);
-ok(tapprox($x,$y), "A piddle and it's saved copy should be about equal");
+ok(tapprox($x,$y), "A piddle and its saved copy should be about equal");
 
 # some mapfraw tests
 SKIP:
@@ -53,7 +53,7 @@ SKIP:
         }
 
 	# **TEST 4** compare mapfraw piddle with original piddle	
-	ok(tapprox($x,$c), "A piddle and it's mapfraw representation should be about equal");
+	ok(tapprox($x,$c), "A piddle and its mapfraw representation should be about equal");
 	
 	# **TEST 5** modifications should be saved when $c goes out of scope
 	$c += 1;

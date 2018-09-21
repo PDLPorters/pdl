@@ -428,17 +428,17 @@ sub determinant {
   if($n==3) {
     my($y) = $x->clump(2);
     
-    my $b3 = $y->index(3);
-    my $b4 = $y->index(4);
-    my $b5 = $y->index(5);
-    my $b6 = $y->index(6);
-    my $b7 = $y->index(7);
-    my $b8 = $y->index(8);
+    my $y3 = $y->index(3);
+    my $y4 = $y->index(4);
+    my $y5 = $y->index(5);
+    my $y6 = $y->index(6);
+    my $y7 = $y->index(7);
+    my $y8 = $y->index(8);
 
     return ( 
-	 $y->index(0) * ( $b4 * $b8 - $b5 * $b7 )
-      +  $y->index(1) * ( $b5 * $b6 - $b3 * $b8 )
-      +  $y->index(2) * ( $b3 * $b7 - $b4 * $b6 )
+	 $y->index(0) * ( $y4 * $y8 - $y5 * $y7 )
+      +  $y->index(1) * ( $y5 * $y6 - $y3 * $y8 )
+      +  $y->index(2) * ( $y3 * $y7 - $y4 * $y6 )
 	     );
   }
   

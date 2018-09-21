@@ -39,7 +39,7 @@ ok(-f "$name.hdr", "writeflexhdr should create a header file");
 
 # **TEST 4** read it back, and make sure it gives the same piddle
 my $y = eval { readflex($name) };
-ok(all(approx($x,$y)), "A piddle and it's saved copy should be about equal");
+ok(all(approx($x,$y)), "A piddle and its saved copy should be about equal");
 
 # **TEST 5** save two piddles to disk
 my $c = pdl [[0,0,0,0],[0,0,0,0]];
@@ -72,7 +72,7 @@ SKIP: {
    }
 
    # **TEST 8** compare mapfraw piddle with original piddle	
-   ok(all(approx($x,$c)), "A piddle and it's mapflex representation should be about equal");
+   ok(all(approx($x,$c)), "A piddle and its mapflex representation should be about equal");
 
    # **TEST 9** modifications should be saved when $c goes out of scope
    # THIS TEST FAILS.

@@ -118,14 +118,14 @@ SKIP: {
    $x = $empty->maximum;
    ok( $x->isbad, "bad flag gets set on max over an empty dim");
 
-   my $abad = $x;
-   $abad->badflag(1);
-   $abad->inplace->setvaltobad(7);
-   my $agood = $abad->where($abad->isgood);
-   my $allbad = $abad->where($abad->isbad);
+   my $xbad = $x;
+   $xbad->badflag(1);
+   $xbad->inplace->setvaltobad(7);
+   my $xgood = $xbad->where($xbad->isgood);
+   my $allbad = $xbad->where($xbad->isbad);
 
-   ok( $abad->pctover(0.1) == $agood->pctover(0.1), "pctover(0.1) badvals" );
-   ok( $abad->pctover(0.9) == $agood->pctover(0.9), "pctover(0.9) badvals" );
+   ok( $xbad->pctover(0.1) == $xgood->pctover(0.1), "pctover(0.1) badvals" );
+   ok( $xbad->pctover(0.9) == $xgood->pctover(0.9), "pctover(0.9) badvals" );
    ok( $allbad->pctover(0.1)->isbad, "pctover(0.1) all badvals" );
    ok( $allbad->pctover(0.9)->isbad, "pctover(0.9) all badvals" );
 };

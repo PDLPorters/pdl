@@ -74,7 +74,7 @@ ok eq_array( [ $y->dims ], [3,4] ), "reshape(-1)";
 ok all( $y == $c ), "squeeze";
 
 $c++; # check dataflow in reshaped PDL
-ok all( $y == $c ), "dataflow"; # should flow back to b
+ok all( $y == $c ), "dataflow"; # should flow back to y
 ok all( $x == 2 ), "dataflow";
 
 our $d = pdl(5); # zero dim piddle and reshape/squeeze
@@ -138,12 +138,12 @@ TODO: {
 
    # pdl of mixed-dim pdls: pad within a dimension
    $x = pdl( zeroes(5), ones(3) );
-   ok all($x == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two piddles concatenates them and pads to length" or diag("a=$x\n");
+   ok all($x == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two piddles concatenates them and pads to length" or diag("x=$x\n");
 }
 
 # pdl of mixed-dim pdls: pad a whole dimension
 $x = pdl( [[9,9],[8,8]], xvals(3)+1 );
-ok all($x == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can concatenate mixed-dim piddles" or diag("a=$x\n");
+ok all($x == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can concatenate mixed-dim piddles" or diag("x=$x\n");
 
 # pdl of mixed-dim pdls: a hairier case
 $c = pdl [1], pdl[2,3,4], pdl[5];

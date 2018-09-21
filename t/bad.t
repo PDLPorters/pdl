@@ -88,7 +88,7 @@ is( $c->sum(), 21, "sum is still 21 with badflag set" );
 $x->badflag(0);
 $y->badflag(1);
 $c = $x + $y;
-ok( $c->badflag(), "badflag propagates on rhs of 'a+b'" );
+ok( $c->badflag(), "badflag propagates on rhs of 'x+y'" );
 
 # how about copies/vaffines/whatever
 $x = rvals( long, 7, 7, {Centre=>[2,2]} );
@@ -107,9 +107,9 @@ is( $y->badflag, 0, "slice handling okay with no badflag" );
 $x->badflag(1);
 
 my $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
-print "Info: a = ", $x->info($i), "\n";
-print "Info: b = ", $y->info($i), "\n";
-print "Info: c = ", $y->info($i), "\n";
+print "Info: x = ", $x->info($i), "\n";
+print "Info: y = ", $y->info($i), "\n";
+print "Info: c = ", $c->info($i), "\n";
 
 # let's check that it gets through to a child of a child
 ok( $c->badflag, "badflag propagated throufh to a child" );
@@ -207,7 +207,6 @@ $x = random(20);
 $x->badflag(1);
 is( $x->check_badflag, 0, "check_badflag did not find a bad value" );
 
-$i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 
 # check out stats, since it uses several routines
 # and setbadif
@@ -268,9 +267,9 @@ $x = sequence( byte, 2, 3 );
 $y = $x->slice("(1),:");
 my $mask = sequence( byte, 2, 3 );
 $mask = $mask->setbadif( ($mask % 3) == 2 );
-print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
+print "x,y == ", $x->badflag, ",", $y->badflag, "\n";
 $x->inplace->copybad( $mask );
-print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
+print "x,y == ", $x->badflag, ",", $y->badflag, "\n";
 print "$x $y\n";
 is( $y->badflag, 1, "badflag propagated using inplace copybad()" );
 
@@ -396,12 +395,12 @@ print "histogram: $y\n";
 is( PDL::Core::string($y), "[0 2 2 2 2 1]", "hist()" );
 
 #$y = $x->isfinite;
-#print "isfinite(A): datatype = [",$y->get_datatype,"]\n";
+#print "isfinite(X): datatype = [",$y->get_datatype,"]\n";
 
 $x->inplace->isfinite;
-#print "A: datatype = [",$x->get_datatype,"]\n";
+#print "X: datatype = [",$x->get_datatype,"]\n";
 is( PDL::Core::string($x), "[1 0 1 1 1 1 1 1 1 1]", "isfinite()" );
-#print "A: datatype = [",$x->get_datatype,"]\n";
+#print "X: datatype = [",$x->get_datatype,"]\n";
 
 # histogram2d
 $x = long(1,1,1,2,2);

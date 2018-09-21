@@ -1292,13 +1292,13 @@ EOC
 
 Run-length encode a vector
 
-Given vector C<$c>, generate a vector C<$a> with the number of each
+Given vector C<$c>, generate a vector C<$x> with the number of each
 element, and a vector C<$y> of the unique values.  New in PDL 2.017,
-only the elements up to the first instance of C<0> in C<$a> are
+only the elements up to the first instance of C<0> in C<$x> are
 returned, which makes the common use case of a 1-dimensional C<$c> simpler.
-For threaded operation, C<$a> and C<$b> will be large enough
-to hold the largest row of C<$a>, and only the elements up to the
-first instance of C<0> in each row of C<$a> should be considered.
+For threaded operation, C<$x> and C<$y> will be large enough
+to hold the largest row of C<$y>, and only the elements up to the
+first instance of C<0> in each row of C<$x> should be considered.
 
 =for example
 
@@ -2264,9 +2264,9 @@ After
 
 the expression
 
- $y->at(6,4,x,y,3,6) == $x->at(6,4,x+3*y)
+ $y->at(6,4,m,n,3,6) == $x->at(6,4,m+3*n)
 
-is always true (C<x> has to be less than 3).
+is always true (C<m> has to be less than 3).
 =cut
 EOD
         P2Child => 1,

@@ -36,15 +36,15 @@ ok(tapprox($x->sumover(), PDL->pdl([12, 6.5])), "sumover");    # 2
 ok(tapprox($x->prodover(), PDL->pdl([60, 9])), "prodover");    # 3
 
 my $y = PDL->pdl(4,3,1,0,0,0,0,5,2,0,3,6);
-# diag "B: $y\n";
+# diag "Y: $y\n";
 my $c = ($y->xvals) + 10;
 # diag "C: $c\n";
 
-# diag "BW: ", $y->where, "\n";
+# diag "YW: ", $y->where, "\n";
 ok(tapprox($y->where($y>4), PDL->pdl(5,6)), "where with >");   # 4
 ok(tapprox($y->which, PDL->pdl(0,1,2,7,8,10,11)), "which");    # 5
 
-# diag "B, ",$y->which();
+# diag "Y, ",$y->which();
 # diag "C: $c\n";
 # diag "\nCI, ", $c->index($y->which());
 # diag "D\n";

@@ -72,9 +72,9 @@ precision numbers. If we wanted to add 3 to all elements in an C<n x m>
 piddle, a traditional language would use two nested for-loops:
 
   # Pseudo-code. Traditional way to add 3 to an array.
-  for (x=0; x < n; x++) {
-      for (y=0; y < m; y++) {
-          a(x,y) = a(x,y) + 3
+  for (i=0; i < n; i++) {
+      for (j=0; j < m; j++) {
+          a(i,j) = a(i,j) + 3
       }
   }
 
@@ -199,10 +199,10 @@ most common ones are:
 The C<xchg> method "B<exchanges>" two dimensions in a piddle:
 
   pdl> $x = sequence(6,7,8,9)
-  pdl> $a_xchg = $x->xchg(0,3)
+  pdl> $x_xchg = $x->xchg(0,3)
   
   pdl> p $x->info       =>  PDL: Double D [6,7,8,9]
-  pdl> p $a_xchg->info  =>  PDL: Double D [9,7,8,6]
+  pdl> p $x_xchg->info  =>  PDL: Double D [9,7,8,6]
                                            |     |
                                            V     V
                                        (dim 0) (dim 3)
@@ -217,10 +217,10 @@ The C<mv> method "B<moves>" one dimension, in a piddle, shifting other
 dimensions as necessary.
 
   pdl> $x = sequence(6,7,8,9)         (dim 0)
-  pdl> $a_mv = $x->mv(0,3)               |
+  pdl> $x_mv = $x->mv(0,3)               |
   pdl>                                   V _____
   pdl> p $x->info     =>  PDL: Double D [6,7,8,9]
-  pdl> p $a_mv->info  =>  PDL: Double D [7,8,9,6]
+  pdl> p $x_mv->info  =>  PDL: Double D [7,8,9,6]
                                           ----- |
                                                 V
                                               (dim 3)
@@ -235,10 +235,10 @@ The C<reorder> method is a generalization of the C<xchg> and C<mv> methods.
 It "B<reorders>" the dimensions in any way you specify:
 
   pdl> $x = sequence(6,7,8,9)
-  pdl> $a_reorder = $x->reorder(3,0,2,1)
+  pdl> $x_reorder = $x->reorder(3,0,2,1)
   pdl>
   pdl> p $x->info          =>  PDL: Double D [6,7,8,9]
-  pdl> p $a_reorder->info  =>  PDL: Double D [9,6,8,7]
+  pdl> p $x_reorder->info  =>  PDL: Double D [9,6,8,7]
                                               | | | |
                                               V V v V
                                  dimensions:  0 1 2 3
@@ -262,10 +262,10 @@ By default, piddles are B<linked together> so that changes on one will go
 back and affect the original B<as well>.
 
   pdl> $x = sequence(4,5)
-  pdl> $a_xchg = $x->xchg(1,0)
+  pdl> $x_xchg = $x->xchg(1,0)
 
-Here, C<$a_xchg> B<is not a separate object>. It is merely a different way
-of looking at C<$x>. Any change in C<$a_xchg> will appear in C<$x> as well.
+Here, C<$x_xchg> B<is not a separate object>. It is merely a different way
+of looking at C<$x>. Any change in C<$x_xchg> will appear in C<$x> as well.
 
   pdl> p $x
   [
@@ -275,7 +275,7 @@ of looking at C<$x>. Any change in C<$a_xchg> will appear in C<$x> as well.
    [12 13 14 15]
    [16 17 18 19]
   ]
-  pdl> $a_xchg += 3
+  pdl> $x_xchg += 3
   pdl> p $x
   [
    [ 3  4  5  6]

@@ -28,7 +28,7 @@ my ($x, $y, $c, $d, $e, $f);
 
 $x = (1+(xvals zeroes 4,5) + 10*(yvals zeroes 4,5));
 
-is($x->at(2,2), 23, "a location (2,2) is 23");
+is($x->at(2,2), 23, "x location (2,2) is 23");
 
 $y = $x->slice('1:3:2,2:4:2');
 
@@ -221,13 +221,13 @@ undef $y; undef $c;
 ($y,$c) = rle($x);
 ok(tapprox($x, rld($y,$c)),"rle with return vals");
 
-my $a2d = $x->cat($x->rotate(1),$x->rotate(2),$x->rotate(3),$x->rotate(4));
-rle($a2d,$y=null,$c=null);
-ok(tapprox($a2d,rld($y,$c)),"rle 2d with null input");
+my $x2d = $x->cat($x->rotate(1),$x->rotate(2),$x->rotate(3),$x->rotate(4));
+rle($x2d,$y=null,$c=null);
+ok(tapprox($x2d,rld($y,$c)),"rle 2d with null input");
 
 undef $y; undef $c;
-($y,$c) = rle($a2d);
-ok(tapprox($a2d, rld($y,$c)),"rle 2d with return vals");
+($y,$c) = rle($x2d);
+ok(tapprox($x2d, rld($y,$c)),"rle 2d with return vals");
 
 
 $y = $x->mslice(0.5);
