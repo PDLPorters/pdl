@@ -63,7 +63,7 @@ Description: perl data language: Perl extensions for numerics
  all at once. For example, using PDL the perl variable $x can hold a
  1024x1024 floating point image, it only takes 4Mb of memory to store
  it and expressions like $x=sqrt($x)+2 would manipulate the whole image 
- in a few seconds. 
+ in a fraction of a second.
  .
  A simple interactive shell (perldl) is provided for command line use 
  together with a module (PDL) for use in perl scripts. 
