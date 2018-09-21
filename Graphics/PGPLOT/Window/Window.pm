@@ -1782,20 +1782,21 @@ Plot an ellipse, optionally using fill style.
 
 =for usage
 
- Usage: ellipse($x, $y, $c, $b, $theta [, $opt]);
+ Usage: ellipse($x, $y, $smaj, $smin, $theta [, $opt]);
 
 All arguments can alternatively be given in the options hash using the
-following options:
+following options (for historical reasons the names MajorAxis and MinorAxis have
+been preserved though they really refer to the semi-axes):
 
 =over
 
 =item MajorAxis
 
-The major axis of the ellipse - this must be defined or C<$c> must be given.
+The semi-major axis of the ellipse - this must be defined or C<$smaj> must be given.
 
 =item MinorAxis
 
-The minor axis, like A this is required.
+The semi-minor axis, like C<MajorAxis> this is required or C<$smin> must be given.
 
 =item Theta (synonym Angle)
 
@@ -6478,13 +6479,13 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} unless defined $opt;
-    my ($x, $y, $c, $b, $theta)=@$in;
+    my ($x, $y, $c, $d, $theta)=@$in;
 
     my $o = $ell_options->options($opt);
     $o->{XCenter}=$x if defined($x);
     $o->{YCenter}=$y if defined($y);
     $o->{MajorAxis} = $c if defined($c);
-    $o->{MinorAxis} = $b if defined($b);
+    $o->{MinorAxis} = $d if defined($d);
     $o->{Theta}=$theta if defined($theta);
 
     if (!defined($o->{MajorAxis}) || !defined($o->{MinorAxis}) || !defined($o->{XCenter})
