@@ -1,5 +1,5 @@
 
-pp_bless('PDL::GSL::RNG'); # make the functions generated go into our namespace, and 
+pp_bless('PDL::GSL::RNG'); # make the functions generated go into our namespace, and
 				# not PDL's namespace
 
 pp_addpm({At=>Top},<<'EOD');
@@ -26,6 +26,16 @@ in the GNU Scientific Library.
    $rng->get_uniform($x); # inplace
 
    $y=$rng->get_uniform(3,4,5); # creates new pdl
+
+=head1 NOMENCLATURE
+
+Throughout this documentation we strive to use the same variables that
+are present in the original GSL documentation (see L<See
+Also|"SEE-ALSO">). Oftentimes those variables are called C<a> and
+C<b>. Since good Perl coding practices discourage the use of Perl
+variables C<$a> and C<$b>, here we refer to Parameters C<a> and C<b>
+as C<$pa> and C<$pb>, respectively, and Limits (of domain or
+integration) as C<$la> and C<$lb>.
 
 =head1 FUNCTIONS
 
@@ -91,7 +101,7 @@ Example:
 
 Return the minimum value generable by this RNG.
 
-Usage: 
+Usage:
 
 =for usage
 
@@ -109,7 +119,7 @@ Example:
 
 Return the maximum value generable by the RNG.
 
-Usage: 
+Usage:
 
 =for usage
 
@@ -127,7 +137,7 @@ Example:
 
 Returns the name of the RNG.
 
-Usage: 
+Usage:
 
 =for usage
 
@@ -143,11 +153,11 @@ Example:
 
 =for ref
 
-This function creates a piddle with given dimensions or accept an
+This function creates a piddle with given dimensions or accepts an
 existing piddle and fills it. get() returns integer values
 between a minimum and a maximum specific to every RNG.
 
-Usage: 
+Usage:
 
 =for usage
 
@@ -165,11 +175,11 @@ Example:
 
 =for ref
 
-This function creates a piddle with given dimensions or accept an
+This function creates a piddle with given dimensions or accepts an
 existing piddle and fills it. get_int() returns integer values
 between 0 and $max.
 
-Usage: 
+Usage:
 
 =for usage
 
@@ -187,10 +197,10 @@ Example:
 
 =for ref
 
-This function creates a piddle with given dimensions or accept an
+This function creates a piddle with given dimensions or accepts an
 existing piddle and fills it. get_uniform() returns values 0<=x<1,
 
-Usage: 
+Usage:
 
 =for usage
 
@@ -208,10 +218,10 @@ Example:
 
 =for ref
 
-This function creates a piddle with given dimensions or accept an
+This function creates a piddle with given dimensions or accepts an
 existing piddle and fills it. get_uniform_pos() returns values 0<x<1,
 
-Usage: 
+Usage:
 
 =for usage
 
@@ -444,14 +454,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the beta distribution with parameters C<$x> and C<$y>.
+Fills output piddle with random variates from the beta distribution with parameters C<$pa> and C<$pb>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_beta($x,$y,[list of integers = output piddle dims]);
-   $rng->ran_beta($x,$y,$output_piddle);
+   $piddle = $rng->ran_beta($pa,$pb,[list of integers = output piddle dims]);
+   $rng->ran_beta($pa,$pb,$output_piddle);
 
 =head2 ran_beta_var
 
@@ -497,14 +507,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the Cauchy distribution with scale parameter C<$x>.
+Fills output piddle with random variates from the Cauchy distribution with scale parameter C<$pa>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_cauchy($x,[list of integers = output piddle dims]);
-   $rng->ran_cauchy($x,$output_piddle);
+   $piddle = $rng->ran_cauchy($pa,[list of integers = output piddle dims]);
+   $rng->ran_cauchy($pa,$output_piddle);
 
 =head2 ran_cauchy_var
 
@@ -577,14 +587,14 @@ Usage:
 =for ref
 
 Fills output piddle with random variates from the exponential power distribution with scale
-parameter C<$x> and exponent C<$y>.
+parameter C<$pa> and exponent C<$pb>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_exppow($mu,$x,[list of integers = output piddle dims]);
-   $rng->ran_exppow($mu,$x,$output_piddle);
+   $piddle = $rng->ran_exppow($pa,$pb,[list of integers = output piddle dims]);
+   $rng->ran_exppow($pa,$pb,$output_piddle);
 
 =head2 ran_exppow_var
 
@@ -597,7 +607,7 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_exppow_var($mu_piddle, $a_piddle);
+   $piddle = $rng->ran_exppow_var($a_piddle, $b_piddle);
 
 =head2 ran_fdist
 
@@ -630,14 +640,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the flat (uniform) distribution from C<$x> to C<$y>.
+Fills output piddle with random variates from the flat (uniform) distribution from C<$la> to C<$lb>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_flat($x,$y,[list of integers = output piddle dims]);
-   $rng->ran_flat($x,$y,$output_piddle);
+   $piddle = $rng->ran_flat($la,$lb,[list of integers = output piddle dims]);
+   $rng->ran_flat($la,$lb,$output_piddle);
 
 =head2 ran_flat_var
 
@@ -662,8 +672,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gamma($x,$y,[list of integers = output piddle dims]);
-   $rng->ran_gamma($x,$y,$output_piddle);
+   $piddle = $rng->ran_gamma($pa,$pb,[list of integers = output piddle dims]);
+   $rng->ran_gamma($pa,$pb,$output_piddle);
 
 =head2 ran_gamma_var
 
@@ -715,8 +725,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel1($x,$y,[list of integers = output piddle dims]);
-   $rng->ran_gumbel1($x,$y,$output_piddle);
+   $piddle = $rng->ran_gumbel1($pa,$pb,[list of integers = output piddle dims]);
+   $rng->ran_gumbel1($pa,$pb,$output_piddle);
 
 =head2 ran_gumbel1_var
 
@@ -741,8 +751,8 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel2($x,$y,[list of integers = output piddle dims]);
-   $rng->ran_gumbel2($x,$y,$output_piddle);
+   $piddle = $rng->ran_gumbel2($pa,$pb,[list of integers = output piddle dims]);
+   $rng->ran_gumbel2($pa,$pb,$output_piddle);
 
 =head2 ran_gumbel2_var
 
@@ -790,14 +800,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the Laplace distribution with width C<$x>.
+Fills output piddle with random variates from the Laplace distribution with width C<$pa>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_laplace($x,[list of integers = output piddle dims]);
-   $rng->ran_laplace($x,$output_piddle);
+   $piddle = $rng->ran_laplace($pa,[list of integers = output piddle dims]);
+   $rng->ran_laplace($pa,$output_piddle);
 
 =head2 ran_laplace_var
 
@@ -952,14 +962,14 @@ Usage:
 =for ref
 
 Fills output piddle with random variates from the Pareto distribution of
-order C<$x> and scale C<$y>.
+order C<$pa> and scale C<$lb>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_pareto($x,$y,[list of integers = output piddle dims]);
-   $rng->ran_pareto($x,$y,$output_piddle);
+   $piddle = $rng->ran_pareto($pa,$lb,[list of integers = output piddle dims]);
+   $rng->ran_pareto($pa,$lb,$output_piddle);
 
 =head2 ran_pareto_var
 
@@ -1033,13 +1043,13 @@ Usage:
 =for ref
 
 Fills output piddle with random variates from the tail of the Rayleigh distribution
-with scale parameter C<$sigma> and a lower limit of C<$x>.
+with scale parameter C<$sigma> and a lower limit of C<$la>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_rayleigh_tail($x,$sigma,[list of integers = output piddle dims]);
+   $piddle = $rng->ran_rayleigh_tail($la,$sigma,[list of integers = output piddle dims]);
    $rng->ran_rayleigh_tail($x,$sigma,$output_piddle);
 
 =head2 ran_rayleigh_tail_var
@@ -1113,14 +1123,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random variates from the Weibull distribution.
+Fills output piddle with random variates from the Weibull distribution with scale C<$pa> and exponent C<$pb>. (Some literature uses C<lambda> for C<$pa> and C<k> for C<$pb>.)
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_weibull($mu,$x,[list of integers = output piddle dims]);
-   $rng->ran_weibull($mu,$x,$output_piddle);
+   $piddle = $rng->ran_weibull($pa,$pb,[list of integers = output piddle dims]);
+   $rng->ran_weibull($pa,$pb,$output_piddle);
 
 =head2 ran_weibull_var
 
@@ -1133,7 +1143,7 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_weibull_var($mu_piddle, $a_piddle);
+   $piddle = $rng->ran_weibull_var($a_piddle, $b_piddle);
 
 =head2 ran_dir
 
@@ -1231,8 +1241,8 @@ database is always linked from L<http://pdl.perl.org/>).
 
 L<PDL>
 
-The GSL documentation is online at
-L<http://www.gnu.org/software/gsl/manual/html_node/>
+The GSL documentation for random number distributions is online at
+L<https://www.gnu.org/software/gsl/doc/html/randist.html>
 
 =head1 AUTHOR
 
@@ -1254,10 +1264,10 @@ EOD
 
 
 ##############################
-# 
-# make_get_sub generates a wrapper PDL subroutine that handles the 
+#
+# make_get_sub generates a wrapper PDL subroutine that handles the
 # fill-a-PDL and create-a-PDL cases for each of the GSL functions.
-#  --CED 
+#  --CED
 #
 sub make_get_sub {
   my ($fname,$par) =@_;
@@ -1266,7 +1276,7 @@ sub make_get_sub {
   $s = '
 sub ' . $fname . ' {
 my ($obj,' . $par . '@var) = @_;';
-   
+
     if ($par ne '') {
        my $ss=$par;
 
@@ -1276,7 +1286,7 @@ my ($obj,' . $par . '@var) = @_;';
 
 $s .= 'if (ref($var[0]) eq \'PDL\') {
     gsl_' . $fname . '_meat($var[0],' . $par . '$$obj);
-    return $var[0]; 
+    return $var[0];
 }
 else {
     my $p;
@@ -1296,7 +1306,7 @@ use strict;
 # PDL::GSL::RNG::nullcreate just creates a null PDL. Used
 #  for the GSL functions that create PDLs
 sub nullcreate{
-	
+
 	my ($type,$arg) = @_;
 
 	PDL->nullcreate($arg);
@@ -1357,7 +1367,7 @@ $a() = gsl_rng_uniform_int(INT2PTR(gsl_rng *, $COMP(rng)),$COMP(n));');
 sub add_randist {
   my ($name,$npar) = @_;
   my ($pars1,$fcall1,$arglist);
-  
+
   if ($npar==1) {
     $pars1='double a; IV rng';
     $fcall1='$COMP(a)';
@@ -1392,7 +1402,7 @@ sub ran_' . $name . ' {
 my ($obj,' . $arglist . '@var) = @_;
 if (ref($var[0]) eq \'PDL\') {
     ran_' . $name . '_meat($var[0],' . $arglist . '$$obj);
-    return $var[0]; 
+    return $var[0];
 }
 else {
     my $p;
@@ -1431,7 +1441,7 @@ my ($obj,@var) = @_;
 #my ($obj,' . $arglist . '@var) = @_;
 #if (ref($var[0]) eq \'PDL\') {
 #    PDL::ran_' . $name . '_add_meat($var[0],' . $arglist . '$$obj);
-#    return $var[0]; 
+#    return $var[0];
 #}
 #else {
 #    barf("In add mode you must specify a piddle!");
@@ -1452,7 +1462,7 @@ my ($obj,@var) = @_;
 #my ($obj, @var) = @_;
 #if (ref($var[0]) eq \'PDL\') {
 #    PDL::ran_' . $name . '_feed_meat($var[0], $$obj);
-#    return $var[0]; 
+#    return $var[0];
 #}
 #else {
 #    barf("In feed mode you must specify a piddle!");
@@ -1460,7 +1470,7 @@ my ($obj,@var) = @_;
 #}
 #');
 #  }
-  
+
 }
 
 add_randist('gaussian',1);
@@ -1506,7 +1516,7 @@ pp_addpm('
 	 my ($obj,$sigma,@var) = @_;
 	 if (ref($var[0]) eq \'PDL\') {
 	   ran_additive_gaussian_meat($var[0],$sigma,$$obj);
-	   return $var[0]; 
+	   return $var[0];
 	 }
 	 else {
 	   barf("In additive gaussian mode you must specify a piddle!");
@@ -1525,7 +1535,7 @@ pp_addpm('
 	 my ($obj,$sigma,@var) = @_;
 	 if (ref($var[0]) eq \'PDL\') {
 	   ran_additive_poisson_meat($var[0],$sigma,$$obj);
-	   return $var[0]; 
+	   return $var[0];
 	 }
 	 else {
 	   barf("In additive poisson mode you must specify a piddle!");
@@ -1544,7 +1554,7 @@ pp_addpm('
 	 my ($obj,@var) = @_;
 	 if (ref($var[0]) eq \'PDL\') {
 	   ran_feed_poisson_meat($var[0],$$obj);
-	   return $var[0]; 
+	   return $var[0];
 	 }
 	 else {
 	   barf("In poisson mode you must specify a piddle!");
@@ -1561,7 +1571,7 @@ double xx,yy;
 gsl_ran_bivariate_gaussian(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma_x), $COMP(sigma_y),$COMP(rho), &xx, &yy);
 $x(n=>0)=xx;
 $x(n=>1)=yy;
-');	
+');
 
 pp_addpm('
        sub ran_bivariate_gaussian {
@@ -1569,7 +1579,7 @@ pp_addpm('
 	 if ($n>0) {
 	   my $p = zeroes(2,$n);
 	   ran_bivariate_gaussian_meat($p,$sigma_x,$sigma_y,$rho,$$obj);
-	   return $p; 
+	   return $p;
 	 }
 	 else {
 	   barf("Not enough parameters for gaussian bivariate!");
@@ -1586,7 +1596,7 @@ double xx,yy;
 gsl_ran_dir_2d(INT2PTR(gsl_rng *, $COMP(rng)), &xx, &yy);
 $x(n=>0)=xx;
 $x(n=>1)=yy;
-');	
+');
 
 pp_defnd(
 	'ran_dir_3d_meat',
@@ -1598,7 +1608,7 @@ gsl_ran_dir_3d(INT2PTR(gsl_rng *, $COMP(rng)), &xx, &yy, &zz);
 $x(n=>0)=xx;
 $x(n=>1)=yy;
 $x(n=>2)=zz;
-');	
+');
 
 $MAX_DIMENSIONS = 100;
 
@@ -1607,9 +1617,9 @@ pp_defnd(
 	Pars => ';[o]x(n)',
 	OtherPars => 'int ns => n; IV rng',
         Code =>'
-double xxx[' . $MAX_DIMENSIONS .']; 
+double xxx[' . $MAX_DIMENSIONS .'];
 gsl_ran_dir_nd(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(ns), xxx);
-loop (n) %{ $x() = xxx[n]; %}');	
+loop (n) %{ $x() = xxx[n]; %}');
 
 pp_addpm('
        sub ran_dir {
@@ -1620,7 +1630,7 @@ pp_addpm('
 	   elsif ($ndim==3) { ran_dir_3d_meat($p,$$obj); }
 	   elsif ($ndim>=4 && $ndim<=' . $MAX_DIMENSIONS . ') { ran_dir_nd_meat($p,$ndim,$$obj); }
 	   else { barf("Bad number of dimensions!"); }
-	   return $p; 
+	   return $p;
 	 }
 	 else {
 	   barf("Not enough parameters for random vectors!");
@@ -1633,14 +1643,14 @@ pp_defnd(
 	Pars => ';[o]x()',
 	OtherPars => 'IV rng_discrete; IV rng',
         Code =>'
-$x()=gsl_ran_discrete(INT2PTR(gsl_rng *, $COMP(rng)), INT2PTR(gsl_ran_discrete_t *, $COMP(rng_discrete))); ');	
+$x()=gsl_ran_discrete(INT2PTR(gsl_rng *, $COMP(rng)), INT2PTR(gsl_ran_discrete_t *, $COMP(rng_discrete))); ');
 
   pp_addpm('
 sub ran_discrete {
 my ($obj, $rdt, @var) = @_;
 if (ref($var[0]) eq \'PDL\') {
     ran_discrete_meat($var[0], $$rdt, $$obj);
-    return $var[0]; 
+    return $var[0];
 }
 else {
     my $p;
@@ -1689,7 +1699,7 @@ pp_defnd(
         Code =>'
 double xx=$COMP(x0);
 
-loop (n) %{ $x() = xx; xx = $COMP(r)*(1-xx)*xx; %}');	
+loop (n) %{ $x() = xx; xx = $COMP(r)*(1-xx)*xx; %}');
 
 pp_defnd(
 	'ran_caos_meat',
@@ -1698,7 +1708,7 @@ pp_defnd(
         Code =>'
 double xx=gsl_ran_gaussian(INT2PTR(gsl_rng *, $COMP(rng)),0.1)+0.5;
 
-loop (n) %{ $x() = (xx-0.5)*$COMP(m); xx = 4.0*(1-xx)*xx; %}');	
+loop (n) %{ $x() = (xx-0.5)*$COMP(m); xx = 4.0*(1-xx)*xx; %}');
 
 pp_addpm('
        sub ran_ver {
@@ -1706,7 +1716,7 @@ pp_addpm('
 	 if ($n>0) {
 	   my $p = zeroes($n);
 	   ran_ver_meat($p,$x0,$r,$n,$$obj);
-	   return $p; 
+	   return $p;
 	 }
 	 else {
 	   barf("Not enough parameters for ran_ver!");
@@ -1720,7 +1730,7 @@ pp_addpm('
 	 if ($n>0) {
 	   my $p = zeroes($n);
 	   ran_caos_meat($p,$m,$n,$$obj);
-	   return $p; 
+	   return $p;
 	 }
 	 else {
 	   barf("Not enough parameters for ran_caos!");
