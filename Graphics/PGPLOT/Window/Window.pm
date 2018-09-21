@@ -3555,19 +3555,19 @@ should be ok,  as that routine returns a rather sensible error-message.
     if (ref($col)) {
       if ((ref($col) eq 'PDL') or (ref($col) eq 'ARRAY')) {
 	my @colvals = (ref($col) eq 'PDL' ? list($col) : @{$col});
-	my ($r, $g, $b)=@colvals;
+	my ($red, $green, $blue)=@colvals;
 	my $index = $work_ci;
 	if ($#colvals == 3) {
 	  # This is a situation where the first element is interpreted
 	  # as a PGPLOT colour index, otherwise we will use our own
 	  # strategy to step through indices.
-	  ($index, $r, $g, $b)=@colvals;
+	  ($index, $red, $green, $blue)=@colvals;
 	} else {
   	  $work_ci += 1;
 	  # NB this does not work on devices with < 16 colours.
 	  $work_ci = 16 if $work_ci > $max_col;
 	}
-	pgscr($index, $r, $g, $b);
+	pgscr($index, $red, $green, $blue);
 
 	if ($is_textbg) {
 	  pgstbg($index);
@@ -5180,25 +5180,25 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     }
     elsif(@$in == 2) { # $xy, $p  or $x,$y (no-$p)
       my($c) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
-      my($b) = (ref $in->[1] eq 'ARRAY') ? $in->[1] : [$in->[1]];
+      my($d) = (ref $in->[1] eq 'ARRAY') ? $in->[1] : [$in->[1]];
 
       release_and_barf " lines: \$xy must be a piddle\n"
 	unless(UNIVERSAL::isa($c->[0],'PDL'));
 
       if(  ( ref $in->[0] ne ref $in->[1] ) ||
-	   ( ! UNIVERSAL::isa($b->[0],'PDL') ) ||
-	   ( $c->[0]->ndims > $b->[0]->ndims )
+	   ( ! UNIVERSAL::isa($d->[0],'PDL') ) ||
+	   ( $c->[0]->ndims > $d->[0]->ndims )
 	   ) { # $xy, $p case -- split $xy into $x and $y.
 
 	foreach $_(@$c){
 	  push(@$x,$_->((0)));
 	  push(@$y,$_->((1)));
 	}
-	$p = $b;
+	$p = $d;
 
       } else {  # $x,$y,(omitted $p) case -- make default $p.
 	$x = $c;
-	$y = $b;
+	$y = $d;
 	$p = [1];
       }
     }
@@ -5253,9 +5253,9 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	my($mask) = (isfinite $vals);
 	$mask &= ($vals != $missing) if(defined $missing);
 	$mask->(1:-1) &= (($pp->(0:-2) != 0) | ($pp->(1:-1) != 0));
-	my($c,$b) = minmax(where($vals,$mask));
+	my($c,$d) = minmax(where($vals,$mask));
 	$min .= $c;
-	$max .= $b;
+	$max .= $d;
       };
 
       for my $i(0..$#$x) {
@@ -6608,12 +6608,12 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
       $vect_options->add_synonym({Pos => 'Position'});
     }
     my ($in, $opt)=_extract_hash(@_);
-    release_and_barf 'Usage: vect ( $x, $b, [$scale, $pos, $transform, $misval] )' if $#$in<1 || $#$in>5;
-    my ($x, $b, $scale, $pos, $tr, $misval) = @$in;
-    $self->_checkarg($x,2); $self->_checkarg($b,2);
+    release_and_barf 'Usage: vect ( $x, $y, [$scale, $pos, $transform, $misval] )' if $#$in<1 || $#$in>5;
+    my ($x, $y, $scale, $pos, $tr, $misval) = @$in;
+    $self->_checkarg($x,2); $self->_checkarg($y,2);
     my($nx,$ny) = $x->dims;
-    my($n1,$n2) = $b->dims;
-    release_and_barf 'Dimensions of $x and $b must be the same' unless $n1==$nx && $n2==$ny;
+    my($n1,$n2) = $y->dims;
+    release_and_barf 'Dimensions of $x and $y must be the same' unless $n1==$nx && $n2==$ny;
 
     my ($o, $u_opt) = $self->_parse_options($vect_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
@@ -6626,7 +6626,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
     #What if there's no Missing option supplied and one of the input piddles
     #contain zero? Then that location will have no arrow, instead of a
     #horizontal or vertical line. So define $misval, but make it meaningless:
-    $misval = 1 + $x->glue(0,$b)->flat->maximum unless defined $misval; #DAL added 02-Jan-2006
+    $misval = 1 + $x->glue(0,$y)->flat->maximum unless defined $misval; #DAL added 02-Jan-2006
 
     $scale = 0 unless defined $scale;
     $pos   = 0 unless defined $pos;
@@ -6646,7 +6646,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
 
     $self->_save_status();
     $self->_standard_options_parser($u_opt); # For arrowtype and arrowhead
-    pgvect( $x->get_dataref, $b->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
+    pgvect( $x->get_dataref, $y->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
     $self->_add_to_state(\&vect, $in, $opt);
