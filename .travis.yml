@@ -39,6 +39,7 @@ matrix:
 #    - perl: "5.16"
 #    - perl: "5.18"
     - perl: "blead"
+    - perl: "blead-dbg"
     # this is commented out because we test Perl v5.20 under all BADVAL configurations including the default below
     #- perl: "5.20"
     - perl: "5.20"
@@ -57,6 +58,7 @@ matrix:
       env: CC="clang" # use `clang` instead of `gcc` default
   allow_failures:
     - perl: blead
+    - perl: blead-dbg
 before_install:
   - export CI_TESTING=1 # running under CI
   - mkdir -p ~/bin; export PATH="$HOME/bin:$PATH"; G="$HOME/bin/gfortran"; if [ "$DISABLE_FORTRAN" == 1 ]; then touch "$G"; chmod a+x "$G"; echo 'false' >"$G"; else rm -f "$G"; fi # set DISABLE_FORTRAN = 1 to not have working gfortran
