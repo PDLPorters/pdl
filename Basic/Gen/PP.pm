@@ -2055,7 +2055,7 @@ sub VarArgsXSReturn {
 
 return <<"END"
 if (nreturn) {
-  if (nreturn - items > 0) EXTEND (SP, nreturn - items);
+  if (nreturn > 0) EXTEND (SP, nreturn );
 $clause1
   XSRETURN(nreturn);
 } else {
