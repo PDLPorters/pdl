@@ -3,7 +3,7 @@
 use PDL;
 use PDL::Fit::Gaussian;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 use strict;
 use warnings;
@@ -26,23 +26,27 @@ my $g2 = pdl qw[  13.013418  11.397573  7.4494489  4.5594057  2.5728955
 1.9363813  2.1414206  2.0062853  2.0867273  2.0158617  1.6481802  1.9686077
 2.2979197  2.2963699  2.1171346  1.8859732  2.1277667  2.0716804  1.9251175];
 
+my $x1 = xvals($g1);
+my $x2 = xvals($g2);
 
-{
-	my ($xc, $pk, $fwhm, $back, $err, $fit) = fitgauss1d(xvals($g1), $g1);
-
-	#points $g1; hold; line $fit; rel;
-
-	ok( nint($xc)==16 && nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
-	    && nint($err)==0 && sum(abs($g1-$fit))<10);
+{ #test fitgauss1d specifying all output piddles in the call
+    my ($xc, $pk, $fwhm, $back, $err, $fit);
+    fitgauss1d($x1, $g1,$xc=null,$pk=null,$fwhm=null,$back=null,$err=null,$fit=null);
+    ok( nint($xc)==16 && nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
+	&& nint($err)==0 && sum(abs($g1-$fit))<10,"fitgauss1d output=null");
 }
 
-{
-	my ($pk, $fwhm, $back, $err, $fit) = fitgauss1dr(xvals($g2),$g2);
 
-	#points $g2; hold; line $fit; rel;
+{ #test fitgauss1d specifying only the input piddles
+    my ($xc, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x1, $g1);
+    ok( nint($xc)==16 && nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
+	&& nint($err)==0 && sum(abs($g1-$fit))<10,"fitgauss1d normal");
+}
 
-	ok(nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
-	   && nint($err)==0 && sum(abs($g2-$fit))<10);
+{ #test fitgauss1dr specifying only the input piddles
+    my ($pk, $fwhm, $back, $err, $fit) = fitgauss1dr($x2,$g2);
+    ok(nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
+       && nint($err)==0 && sum(abs($g2-$fit))<10,"fitgauss1dr normal");
 }
 
 done_testing;
