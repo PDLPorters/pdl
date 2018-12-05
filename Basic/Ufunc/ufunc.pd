@@ -266,9 +266,8 @@ foreach my $func ( sort keys %over ) {
 	   $def . '=' . $init . ';
             loop(n) %{ ' . $op . ' if (' . $check . ') break; %}
             $b() = tmp;',
-	   BadCode => 
-	   'char tmp = ' . $init . ';
-	    $GENERIC(b) gtmp = '. $init . ';
+	   BadCode =>
+	    $def . '=' . $init .';
             int flag = 0;
             loop(n) %{
                if ( $ISGOOD(a()) ) { ' . $op . ' flag = 1; if (' . $check . ') break; }

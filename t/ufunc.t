@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 43;
+use Test::More tests => 47;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -92,15 +92,15 @@ is(pdl(53,35)->qsortveci,pdl(0),'trivial qsortveci');
 # test for sf.net bug report 3234141 "max() fails on nan"
 #   NaN values are handled inconsistently by min, minimum, max, maximum...
 #
-local $TODO = "fixing max/min NaN handling";
+TODO: {
+ local $TODO = "fixing max/min NaN handling";
+ my $inf = exp(~0>>1);
+ my $nan = $inf/$inf;
+ my $x = pdl($nan, 0, 1, 2);
+ my $y = pdl(0, 1, 2, $nan);
 
-{my $inf = exp(~0>>1);
-my $nan = $inf/$inf;
-my $x = pdl($nan, 0, 1, 2);
-my $y = pdl(0, 1, 2, $nan);
-
-ok($x->min == $y->min, "min with NaNs");
-ok($x->max == $y->max, "max with NaNs");
+ ok($x->min == $y->min, "min with NaNs");
+ ok($x->max == $y->max, "max with NaNs");
 }
 my $empty = which(ones(5)>5);
 $x = $empty->double->maximum;
@@ -163,3 +163,30 @@ ok( $x->mode == 0, "mode test" );
 ok( all($x->modeover == pdl(3,0)), "modeover test");
 
 
+#the next 4 tests address GitHub issue #248.
+
+#   .... 0000 1010
+#   .... 1111 1100
+#OR:.... 1111 1110 = -2
+is( pdl([10,0,-4])->borover(), -2, "borover with no BAD values");
+
+#     .... 1111 1111
+#     .... 1111 1010
+#     .... 1111 1100
+#AND: .... 1111 1000 = -8
+
+is( pdl([-6,~0,-4])->bandover(), -8, "bandover with no BAD values");
+
+SKIP: {
+   skip "Bad value support not compiled", 2 unless $PDL::Bad::Status;
+
+#   0000 1010
+#   1111 1100
+#OR:1111 1110 = 254 if the accumulator in BadCode is an unsigned char
+   is( pdl([10,0,-4])->setvaltobad(0)->borover(), -2, "borover with BAD values");
+
+#     1111 1010
+#     1111 1100
+#AND: 1111 1000 = 248 if the accumulator in BadCode is an unsigned char
+   is( pdl([-6,~0,-4])->setvaltobad(~0)->bandover(), -8, "bandover with BAD values");
+};
