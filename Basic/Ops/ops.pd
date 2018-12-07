@@ -285,7 +285,7 @@ $doc
 =for example
 
    \$y = $funcov \$x;
-   \$x->inplace->$name;  # modify \$a inplace
+   \$x->inplace->$name;  # modify \$x inplace
 
 It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the unary C<$funcovp> operator/function.
