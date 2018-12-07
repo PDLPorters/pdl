@@ -979,9 +979,11 @@ pp_addpm {At => Bot}, <<'EOD';
 
 # overload must be here, so that all the functions can be seen
 
-# undocumented compatibility functions
-sub Catan2($$) { Catan Cdiv $_[1], $_[0] }
-sub atan2($$)  { Catan Cdiv $_[1], $_[0] }
+# undocumented compatibility functions (thanks to Luis Mochan!)
+sub Catan2($$) { Clog( $_[1] + i*$_[0])/i }
+sub atan2($$) { Clog( $_[1] + i*$_[0])/i }
+
+
 
 sub _gen_biop {
    local $_ = shift;
