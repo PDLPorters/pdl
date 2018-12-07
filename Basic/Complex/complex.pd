@@ -41,7 +41,7 @@ C<[ angle phase ]>. If not explicitly mentioned, the functions can work
 inplace (not yet implemented!!!) and require rectangular form.
 
 While there is a procedural interface available (C<< $x/$y*$c <=> Cmul
-(Cdiv $x, $y), $c) >>), you can also opt to cast your pdl's into the
+(Cdiv ($x, $y), $c) >>), you can also opt to cast your pdl's into the
 C<PDL::Complex> datatype, which works just like your normal piddles, but
 with all the normal perl operators overloaded.
 
@@ -165,6 +165,47 @@ An ASCII version of this plot looks like this:
  -15 ++-----+------+------+------+------+------+-----###-----+------+-----++
      0      5      10     15     20     25     30     35     40     45     50
 
+
+=head1 OPERATORS
+
+The following operators are overloaded:
+
+=over 4
+
+=item +, += (addition)
+
+=item -, -= (subtraction)
+
+=item *, *= (multiplication; L<Cmul|/Cmul>)
+
+=item /, /= (division; L<Cdiv|/Cdiv>)
+
+=item **, **= (exponentiation; L<Cpow|/Cpow>)
+
+=item atan2 (4-quadrant arc tangent)
+
+=item <=> (nonsensical comparison operator; L<Ccmp|/Ccmp>)
+
+=item sin (L<Csin|/Csin>)
+
+=item cos (L<Ccos|/Ccos>)
+
+=item exp (L<Cexp|/Cexp>)
+
+=item abs (L<Cabs|/Cabs>)
+
+=item log (L<Clog|/Clog>)
+
+=item sqrt (L<Csqrt|/Csqrt>)
+
+=item <, <=, ==, !=, >=, > (just as nonsensical as L<Ccmp|/Ccmp>)
+
+=item ++, -- (increment, decrement; they affect the real part of the complex number only)
+
+=item "" (stringification)
+
+=back
+
 =cut
 
 my $i;
@@ -252,26 +293,48 @@ EOH
 
 pp_addpm <<'EOP';
 
-=head2 cplx real-valued-pdl
+=head2 cplx
 
-Cast a real-valued piddle to the complex datatype. The first dimension of
-the piddle must be of size 2. After this the usual (complex) arithmetic
-operators are applied to this pdl, rather than the normal elementwise pdl
-operators.  Dataflow to the complex parent works. Use C<sever> on the result
-if you don't want this.
+=for ref
 
+Cast a real-valued piddle to the complex datatype.
 
-=head2 complex real-valued-pdl
+The first dimension of the piddle must be of size 2. After this the
+usual (complex) arithmetic operators are applied to this pdl, rather
+than the normal elementwise pdl operators.  Dataflow to the complex
+parent works. Use C<sever> on the result if you don't want this.
+
+=for usage
+
+ cplx($real_valued_pdl)
+
+=head2 complex
+
+=for ref
 
 Cast a real-valued piddle to the complex datatype I<without> dataflow
-and I<inplace>. Achieved by merely reblessing a piddle. The first dimension of
-the piddle must be of size 2.
+and I<inplace>.
 
-=head2 real cplx-valued-pdl
+Achieved by merely reblessing a piddle. The first dimension of the
+piddle must be of size 2.
 
-Cast a complex valued pdl back to the "normal" pdl datatype. Afterwards
-the normal elementwise pdl operators are used in operations. Dataflow
-to the real parent works. Use C<sever> on the result if you don't want this.
+=for usage
+
+ complex($real_valued_pdl)
+
+=head2 real
+
+=for ref
+
+Cast a complex valued pdl back to the "normal" pdl datatype.
+
+Afterwards the normal elementwise pdl operators are used in
+operations. Dataflow to the real parent works. Use C<sever> on the
+result if you don't want this.
+
+=for usage
+
+ real($cplx_valued_pdl)
 
 =cut
 
@@ -447,7 +510,11 @@ pp_def 'Cdiv',
 pp_def 'Ccmp',
 	Pars => 'a(m=2); b(m=2); [o]c()',
         GenericTypes => [F,D],
-        Doc => 'Complex comparison oeprator (spaceship). It orders by real first, then by imaginary. Hm, but it is mathematical nonsense! Complex numbers cannot be ordered.',
+        Doc => '=for ref
+
+Complex comparison operator (spaceship).
+
+Ccmp orders by real first, then by imaginary. Hm, but it is mathematical nonsense! Complex numbers cannot be ordered.',
         Code => q^
            $GENERIC() a, b;
 
@@ -551,9 +618,15 @@ pp_def 'Ccos',
 
 pp_addpm <<'EOD';
 
-=head2 Ctan a [not inplace]
+=head2 Ctan
+
+=for ref
+
+Complex tangent
 
   tan (a) = -i * (exp (a*i) - exp (-a*i)) / (exp (a*i) + exp (-a*i))
+
+Does not work inplace.
 
 =cut
 
@@ -566,7 +639,7 @@ pp_def 'Cexp',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => 'exp (a) = exp (real (a)) * (cos (imag (a)) + i * sin (imag (a))). Works inplace',
+        Doc => '  exp (a) = exp (real (a)) * (cos (imag (a)) + i * sin (imag (a))). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            $GENERIC() ex = exp (ar);
@@ -582,7 +655,7 @@ pp_def 'Clog',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => 'log (a) = log (cabs (a)) + i * carg (a). Works inplace',
+        Doc => '  log (a) = log (cabs (a)) + i * carg (a). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
@@ -688,9 +761,13 @@ pp_def 'Cacos',
 
 pp_addpm <<'EOD';
 
-=head2 Catan cplx [not inplace]
+=head2 Catan
+
+=for ref
 
 Return the complex C<atan()>.
+
+Does not work inplace.
 
 =cut
 
@@ -852,11 +929,12 @@ pp_def 'Croots',
 
 pp_addpm <<'EOD';
 
-=head2 re cplx, im cplx
+=head2 re, im
 
-Return the real or imaginary part of the complex number(s) given. These
-are slicing operators, so data flow works. The real and imaginary parts
-are returned as piddles (ref eq PDL).
+Return the real or imaginary part of the complex number(s) given.
+
+These are slicing operators, so data flow works. The real and
+imaginary parts are returned as piddles (ref eq PDL).
 
 =cut
 
