@@ -984,15 +984,30 @@ sub Catan2($$) { Clog( $_[1] + i*$_[0])/i }
 sub atan2($$) { Clog( $_[1] + i*$_[0])/i }
 
 
+=begin comment
+
+In _gen_biop, the '+' or '-' between the operator (e.g., '*') and the
+function that it overloads (e.g., 'Cmul') flags whether the operation
+is ('+') or is not ('-') commutative. See the discussion of argument
+swapping in the section "Calling Conventions and Magic Autogeneration"
+in "perldoc overload".
+
+This is a great example of taking almost as many lines to write cute
+generating code as it would take to just clearly and explicitly write
+down the overload.
+
+=end comment
+
+=cut
 
 sub _gen_biop {
    local $_ = shift;
    my $sub;
-   if (/(\S+)\+(\w+)/) {
+   if (/(\S+)\+(\w+)/) { #commutes
       $sub = eval 'sub { '.$2.' $_[0], ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1] }';
-   } elsif (/(\S+)\-(\w+)/) {
+   } elsif (/(\S+)\-(\w+)/) { #does not commute
       $sub = eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                       $_[2] ? '.$2.' $y, $_[0] : '.$2.' $_[0], $y }';
+                       $_[2] ? '.$2.' $y, $_[0] : '.$2.' $_[0], $y }'; #need to swap?
    } else {
       die;
    }
@@ -1006,10 +1021,10 @@ sub _gen_unop {
    ($op, eval 'sub { '.$func.' $_[0] }');
 }
 
-sub _gen_cpop {
-   ($_[0], eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                 ($_[2] ? $y <=> $_[0] : $_[0] <=> $y) '.$_[0].' 0 }');
-}
+#sub _gen_cpop {
+#   ($_[0], eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+#                 ($_[2] ? $y <=> $_[0] : $_[0] <=> $y) '.$_[0].' 0 }');
+#}
 
 sub initialize {
    # Bless a null PDL into the supplied 1st arg package
@@ -1019,8 +1034,21 @@ sub initialize {
 
 use overload
    (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 <=>-Ccmp)),
-   (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt abs@Cabs)),
-   (map _gen_cpop($_), qw(< <= == != >= >)),
+   (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt)),
+#   (map _gen_cpop($_), qw(< <= == != >= >)), #segfaults with infinite recursion of the operator.
+#final ternary used to make result a scalar, not a PDL:::Complex (thx CED!)
+    "<" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+		 PDL::lt( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
+    "<=" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                 PDL::le( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
+    "==" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                 PDL::eq( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
+    "!=" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                 PDL::ne( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
+    ">=" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                 PDL::ge( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
+    ">" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                 PDL::gt( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
    '++' => sub { $_[0] += 1 },
    '--' => sub { $_[0] -= 1 },
    '""' => \&PDL::Complex::string
