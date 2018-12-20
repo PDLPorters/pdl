@@ -37,7 +37,7 @@ PDL::Complex - handle complex numbers
 
 This module features a growing number of functions manipulating complex
 numbers. These are usually represented as a pair C<[ real imag ]> or
-C<[ angle phase ]>. If not explicitly mentioned, the functions can work
+C<[ magnitude phase ]>. If not explicitly mentioned, the functions can work
 inplace (not yet implemented!!!) and require rectangular form.
 
 While there is a procedural interface available (C<< $x/$y*$c <=> Cmul
@@ -1153,16 +1153,29 @@ sub cd(;@) {
    }
 
 
-    sub sum {
-       my($x) = @_;
-       my $tmp = $x->mv(0,1)->clump(0,2)->mv(1,0)->sumover;
-       return $tmp->squeeze;
-    }
+   sub sum {
+      my($x) = @_;
+      return $x if $x->dims==1;
+      my $tmp = $x->mv(0,-1)->clump(-2)->mv(1,0)->sumover;
+      return $tmp;
+   }
 
    sub sumover{
       my $m = shift;
       PDL::Ufunc::sumover($m->xchg(0,1));
    }
+
+   *PDL::Complex::Csumover=\&sumover; # define through alias
+
+   *PDL::Complex::prodover=\&Cprodover; # define through alias
+
+   sub prod {
+      my($x) = @_;
+      return $x if $x->dims==1;
+      my $tmp = $x->mv(0,-1)->clump(-2)->mv(1,0)->prodover;
+      return $tmp;
+   }
+
 
 
    sub strND {

@@ -207,11 +207,7 @@ ok(tapprox(rCpolynomial(pdl(1,2,3), $x),
 $y = $x->copy + 1;
 my $bigArray = $x->cat($y);
 ok(abs($bigArray->sumover->sumover +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
- SKIP: {
-     # This test passed, but by chance
-     skip "sum only works on 2D complex arrays, i.e. 3D piddles", 1;
-     ok(abs($bigArray->sum() +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
-}
+ok(abs($bigArray->sum() +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
 
 my $z = pdl(0) + i*pdl(0);
 $z **= 2;
@@ -237,19 +233,16 @@ ok($r->at(0) < 100.000000001 && $r->at(0) > 99.999999999 && $r->at(1) == 0,
 #Check Csumover sumover, Cprodover and prodover
 $x=sequence(2,3)+1;
 $y=$x->copy->complex;
- SKIP: {
-     skip "Csumover is not defined", 3;
-     ok(ref $y->Csumover eq 'PDL::Complex', 'Type of Csumover');
-     is($y->Csumover->dim(0), 2, 'Dimension 0 of Csumover');
-     ok(tapprox($y->Csumover->real, $x->mv(1,0)->sumover),
-	'Csumover value');
-}
+ok(ref $y->Csumover eq 'PDL::Complex', 'Type of Csumover');
+is($y->Csumover->dim(0), 2, 'Dimension 0 of Csumover');
+ok(tapprox($y->Csumover->real, $x->mv(1,0)->sumover),
+   'Csumover value');
 ok(ref $y->sumover eq 'PDL::Complex', 'Type of sumover');
 is($y->sumover->dim(0), 2, 'Dimension 0 of sumover');
 ok(tapprox($y->sumover->real, $x->mv(1,0)->sumover), 'sumover value');
+ok(ref sumover($y) eq 'PDL::Complex', 'Type of sumover');
  TODO: {
      local $TODO="sumover as method and as function differ";
-     ok(ref sumover($y) eq 'PDL::Complex', 'Type of sumover');
      is(sumover($y)->dim(0), 2, 'Dimension 0 of sumover');
    SKIP: {
        todo_skip "sumover as function is real sumover", 1;
@@ -264,46 +257,28 @@ ok(tapprox($y->Cprodover->real,
 	   ($y->slice(':,(0)')*$y->slice(':,(1)')*$y->slice(':,(2)'))->real),
 	  'Value of Cprodover');
 ok(ref $y->prodover eq 'PDL::Complex', 'Type of prodover');
- TODO: {
-     local $TODO="prodover of complex multiplies over dimension 0, not 1";
      is($y->prodover->dim(0), 2, 'Dimension 0 of prodover');
-   SKIP: {
-       todo_skip "prodover of complex multiplies over dimension 0, not 1",
-	   1 if $y->prodover->dim(0) != 2;
-       ok(tapprox($y->prodover->real, $x->mv(1,0)->prodover),
-	  'Value of prodover');
-     }
-}
+ok(tapprox($y->prodover->real,
+	   ($y->slice(':,(0)')*$y->slice(':,(1)')*$y->slice(':,(2)'))->real),
+   'Value of prodover');
 
 
 #Check sum
- TODO: {
-     local $TODO="Complex sum works miraculously only for 2,n,m PDL's";
-   SKIP: {
-       todo_skip "Complex sum for 2,n Complex PDL's doesn't work", 4;
-       $x=sequence(2,3)+1;
-       $y=$x->copy->complex;
-       ok(ref $y->sum eq 'PDL::Complex', 'Type of sum');
-       is($y->sum->dims, 1, 'Dimensions of sum');
-       is($y->sum->dim(0), 2, 'Dimension 0 of sum');
-       ok(tapprox($y->sum->real, $x->mv(1,0)->sumover), 'Value of sum');
-     }
-}
+$x=sequence(2,3)+1;
+$y=$x->copy->complex;
+ok(ref	$y->sum eq 'PDL::Complex', 'Type of sum');
+is($y->sum->dims, 1, 'Dimensions of sum');
+is($y->sum->dim(0), 2, 'Dimension 0 of sum');
+ok(tapprox($y->sum->real, $x->mv(1,0)->sumover), 'Value of sum');
 
 #Check prod
- TODO: {
-     local $TODO="Complex prod doesn't work at all";
-   SKIP: {
-       todo_skip "Complex prod doesn't work", 4;
-       $x=sequence(2,3)+1;
-       $y=$x->copy->complex;
-       ok(ref $y->prod eq 'PDL::Complex', 'Type of prod');
-       is($y->prod->dims, 1, 'Dimensions of prod');
-       is($y->prod->dim(0), 2, 'Dimension 0 of prod');
-       ok(tapprox($y->prod->real, $y->prodover->real),
-	  'Value of prod');
-     }
-}
+$x=sequence(2,3)+1;
+$y=$x->copy->complex;
+ok(ref $y->prod eq 'PDL::Complex', 'Type of prod');
+is($y->prod->dims, 1, 'Dimensions of prod');
+is($y->prod->dim(0), 2, 'Dimension 0 of prod');
+ok(tapprox($y->prod->real, $y->prodover->real),
+   'Value of prod');
 
 
  TODO: {
