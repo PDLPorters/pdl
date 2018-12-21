@@ -672,6 +672,10 @@ pp_def 'Cpow',
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            $GENERIC() br = $b(m=>0), bi = $b(m=>1);
 
+PDL_COMMENT(real piddle (scalar or 1-piddle))
+           if($PDL(b)->dims[0]==0)
+             bi = 0;
+PDL_COMMENT(printf("ar: %f ai: %f\nbr: %f bi: %f\nDimsB: %ld\n",ar,ai,br,bi,$PDL(b)->dims[0]);)
            double logr, logi, x, y;
            double  s, c;
 

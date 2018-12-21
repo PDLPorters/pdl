@@ -150,11 +150,9 @@ ok(tapprox(Cpow($x,r2C(2))->real,
 #Csqrt
 ok(ref Csqrt($x) eq 'PDL::Complex', 'Csqrt type');
 ok(tapprox((Csqrt($x)*Csqrt($x))->real, $x->real), 'Csqrt value');
-TODO: {
-      local $TODO="Cpow doesn't understand a real argument";
-      ok(tapprox(Cpow(i,2)->real, pdl(-1,0)), 'scalar power of i');
-      ok(tapprox(Cpow(i,pdl(2))->real, pdl(1,0)), 'real pdl power of i');
-}
+
+ok(tapprox(Cpow(i,2)->real, pdl(-1,0)), 'scalar power of i');
+ok(tapprox(Cpow(i,pdl(2))->real, pdl(-1,0)), 'real pdl power of i');
 
 #Casin, Cacos, Catan
 ok(ref Casin($x) eq 'PDL::Complex', 'Casin type');
