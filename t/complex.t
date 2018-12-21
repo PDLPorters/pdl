@@ -4,7 +4,7 @@ use PDL::Config;
 use PDL::Math;
 
 BEGIN {
-   use Test::More tests => 125;
+   use Test::More tests => 131;
 }
 
 sub tapprox {
@@ -342,4 +342,17 @@ TODO: {
       $x=sequence(2,2)->complex;
       $y=$x->mv(0,1);
       ok(ref $y eq 'PDL', 'PDL::Complex becomes real PDL after moving dim 0');
+}
+
+#test overloaded nonsensical comparison operators
+{
+    my $less = 3-4*i;
+    my $equal = -1*(-3+4*i);
+    my $more = 3+2*i;
+    is($less<$more,1,'less than');
+    is(($less<=$equal) && ($equal<$more),1,'less than or equal to');
+    is($less==$equal,1,'equal to');
+    is($less!=$equal,0,'not equal to');
+    is($more>$equal,1,'greater than');
+    is($more>=$equal,1,'greater than or equal to');
 }
