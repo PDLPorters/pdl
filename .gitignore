@@ -72,6 +72,12 @@ Changes
 
 ._*
 
+# Devel::Cover files
+*.gcda
+*.gcno
+*.gcov
+cover_db/
+
 # Directory specific build files
 # These can either be in the specific directories or specified
 # with full patch in the top level directory (as here).
