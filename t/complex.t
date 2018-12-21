@@ -192,12 +192,9 @@ is((2+3*i)->re, 2, 'Real part');
 is((2+3*i)->im, 3, 'Imaginary part');
 
 #rCpolynomial
- TODO: {
-     local $TODO="rCpolynomial doesn't return a PDL::Complex";
-     ok(ref rCpolynomial(pdl(1,2,3), $x) eq 'PDL::Complex',
+ok(ref rCpolynomial(pdl(1,2,3), $x) eq 'PDL::Complex',
 	'rCpolynomial type');
-}
-ok(tapprox(rCpolynomial(pdl(1,2,3), $x),
+ok(tapprox(rCpolynomial(pdl(1,2,3), $x)->real,
 	   (1+2*$x+3*$x**2)->real), 'rCpolynomial value');
 
 

@@ -954,6 +954,15 @@ pp_def 'rCpolynomial',
        Pars => 'coeffs(n); x(c=2,m); [o]out(c=2,m)',
        Doc => 'evaluate the polynomial with (real) coefficients C<coeffs> at the (complex) position(s) C<x>. C<coeffs[0]> is the constant term.',
        GenericTypes => [F,D],
+       PMCode=> q!
+sub rCpolynomial {
+    my $coeffs = shift;
+    my $x = shift;
+    my $out = $x->copy;
+    _rCpolynomial_int($coeffs,$x,$out);
+    return PDL::complex($out);
+    }
+!,
        Code => q!
           loop(m) %{
              double xr = 1;
