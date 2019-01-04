@@ -1,4 +1,4 @@
-use Test::More tests => 60;
+use Test::More tests => 62;
 use PDL::LiteF;
 use Config;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
@@ -243,3 +243,6 @@ SKIP:
   cmp_ok longlong(9223372036854775807) - longlong(9223372036854775806),  '==', 1, "longlong precision/5";
   cmp_ok longlong(9223372036854775807) + longlong(-9223372036854775808), '==',-1, "longlong precision/6";
 }
+
+is(~pdl(1,2,3)              ."", '[-2 -3 -4]', 'bitwise negation');
+is((pdl(1,2,3) ^ pdl(4,5,6))."", '[5 7 5]'   , 'bitwise xor'     );
