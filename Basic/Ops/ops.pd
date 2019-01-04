@@ -341,9 +341,12 @@ biop('ne','!=',1,'binary I<not equal to> operation (C<!=>)', Comparison => 1 );
 my $T = [B,U,S,L,N,Q]; # the sensible types here
 biop('shiftleft','<<',1,'leftshift C<$a> by C<$b>',GenericTypes => $T);
 biop('shiftright','>>',1,'rightshift C<$a> by C<$b>',GenericTypes => $T);
-biop('or2','|',1,'binary I<or> of two piddles',GenericTypes => $T);
-biop('and2','&',1,'binary I<and> of two piddles',GenericTypes => $T);
-biop('xor','^',1,'binary I<exclusive or> of two piddles',GenericTypes => $T);
+biop('or2','|',1,'binary I<or> of two piddles',GenericTypes => $T,
+      Bitwise => 1);
+biop('and2','&',1,'binary I<and> of two piddles',GenericTypes => $T,
+      Bitwise => 1);
+biop('xor','^',1,'binary I<exclusive or> of two piddles',GenericTypes => $T,
+      Bitwise => 1);
 
 # really an ufunc
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);

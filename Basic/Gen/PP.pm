@@ -1860,7 +1860,7 @@ EOD
 # Removing useless use of hasp2child in this function. DCM Sept 12, 2011
 sub VarArgsXSHdr {
   my($name,$xsargs,$parobjs,$optypes,#$hasp2child,
-     $pmcode,$hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
+     $pmcode,$hdrcode,$inplacecode,$globalnew,$callcopy,$bitwise) = @_;
 
   # Don't do var args processing if the user has pre-defined pmcode
   return 'DO NOT SET!!' if ($pmcode);
@@ -1977,6 +1977,9 @@ sub VarArgsXSHdr {
   # Add code for creating output variables via call to 'initialize' perl routine
   $clause3 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
 
+  # Bitwise ops may get five args
+  my $bitwise_cond = $bitwise ? " || items == 5" : '';
+
   return<<END;
 
 void
@@ -2009,7 +2012,7 @@ $pars
 $clause1
   }
 $clause2
-  else if (items == $nin) { PDL_COMMENT("only input variables on stack, create outputs and temps")
+  else if (items == $nin$bitwise_cond) { PDL_COMMENT("only input variables on stack, create outputs and temps")
     nreturn = $nallout;
 $clause3
   }
@@ -3193,7 +3196,7 @@ $PDL::PP::deftbl =
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
    PDL::PP::Rule->new("VarArgsXSHdr",
 		      ["Name","NewXSArgs","USParObjs","OtherParTypes",
-		       "PMCode","HdrCode","InplaceCode","_GlobalNew","_CallCopy"],
+		       "PMCode","HdrCode","InplaceCode","_GlobalNew","_CallCopy","_Bitwise"],
 		      'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
 		      \&VarArgsXSHdr),
 
