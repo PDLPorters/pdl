@@ -843,7 +843,7 @@ pp_def('map',
        foo += ovec[k] * map->dimincs[k+1];
        printf(" %2d ",(int)(ovec[k]));
      }
-     printf("]; psize is %d; big is %d; blur is %8.2f; ret is %8g; map is [",psize,big, blur, ret);
+     printf("]; psize is %ld; big is %d; blur is %8.2f; map is [",psize,big, blur);
      for(k=0;k<ndims;k++) {
        printf("%8.2f",(double)((($GENERIC() *)(map->data))[foo + k*map->dimincs[0]]));
      }
@@ -1012,10 +1012,11 @@ pp_def('map',
                } else {
                  beta *= zeta;
                  lodex = beta;
-                 beta -= lodex;
+                 beta -= lodex;  //lodex now has the integer part, beta has the fractional part
                  if(lodex > HANNING_LOOKUP_SIZE)
                  lodex = HANNING_LOOKUP_SIZE;
                  hidex = lodex+1;
+                 //do a linear interpolation between the two nearest values
                  alpha *= hanning_lookup[hidex]*beta + hanning_lookup[lodex]*(1-beta);
                } /* end of interpolation branch */
              } /* end of beta > 0 branch */
@@ -1058,15 +1059,18 @@ pp_def('map',
 		  alpha = 0;
               }
 	    }
-	    if( sum > GAUSSIAN_MAXVAL ) {
+	    if( sum > GAUSSIAN_MAXVAL || !isfinite(sum) || isnan(sum) ) {
 	      alpha = 0;
 	    } else {
 	      int lodex,hidex;
 	      PDL_Double beta = fabs(zeta * sum);
+
 	      lodex = beta;
-	      beta -= lodex;
+	      beta -= lodex; // lodex now has the integer part, beta has the fractional part
 	      hidex = lodex+1;
+	      //do a linear interpolation between the two nearest values
               alpha = gaussian_lookup[hidex]*beta + gaussian_lookup[lodex]*(1 - beta);
+
             }
           }
           break;
@@ -1283,7 +1287,7 @@ There is one difference between match and map: match makes the
 C<rectify> option to C<map> default to 0, not 1.  This only affects
 matching where autoscaling is required (i.e. the array ref example
 above).  By default, that example simply scales $x to the new size and
-maintains any rotation or skew in its scientiic-to-pixel coordinate
+maintains any rotation or skew in its scientific-to-pixel coordinate
 transform.
 
 =head2 map
@@ -1396,7 +1400,7 @@ subsequent dimensions -- or, for a 2-D transformation, the scientific
 pixel aspect ratio.  Values less than 1 shrink the scale in the first
 dimension compared to the other dimensions; values greater than 1
 enlarge it compared to the other dimensions.  (This is the same sense
-as in the L<PGPLOT|PDL::Graphics::PGPLOT>interface.)
+as in the L<PGPLOT|PDL::Graphics::PGPLOT> interface.)
 
 =item ir, irange, input_range, Input_Range
 
