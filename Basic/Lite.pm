@@ -31,11 +31,9 @@ Access to other functions is by method syntax, viz:
 
 =cut
 
-# Load the fundamental PDL packages, no imports
-# Because there are no imports, we do not need
-# the usual 'eval in the user's namespace' routine.
+package PDL::Lite;
 
-use PDL::Core '';
+use PDL::Core qw(pdl piddle barf null);
 use PDL::Ops '';
 use PDL::Primitive '';
 use PDL::Ufunc '';
@@ -45,7 +43,6 @@ use PDL::Bad '';
 use PDL::Version ;  # Doesn't export anything - no need for ''
 use PDL::Lvalue;
 
-package PDL::Lite;
 $VERSION = $PDL::Version::VERSION;
 
 @ISA = qw( PDL::Exporter );
