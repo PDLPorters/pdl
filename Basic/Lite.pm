@@ -33,6 +33,9 @@ Access to other functions is by method syntax, viz:
 
 package PDL::Lite;
 
+use strict;
+use warnings;
+
 use PDL::Core qw(pdl piddle barf null);
 use PDL::Ops '';
 use PDL::Primitive '';
@@ -43,11 +46,11 @@ use PDL::Bad '';
 use PDL::Version ;  # Doesn't export anything - no need for ''
 use PDL::Lvalue;
 
-$VERSION = $PDL::Version::VERSION;
+our $VERSION = $PDL::Version::VERSION;
 
-@ISA = qw( PDL::Exporter );
+our @ISA = qw( PDL::Exporter );
 
-@EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
+our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
 our %EXPORT_TAGS = (
    Func     => [@EXPORT],
 );
