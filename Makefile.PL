@@ -469,7 +469,7 @@ my %makefile_hash = (
                  "meta-spec" => { version => 2 },
                  resources => {
                     homepage => 'http://pdl.perl.org/',
-                    bugtracker  => 'https://github.com/PDLPorters/pdl/issues',
+                    bugtracker  => {web=>'https://github.com/PDLPorters/pdl/issues'},
                     repository  => {
                        url => 'git://github.com/PDLPorters/pdl.git',
                        type => 'git',
