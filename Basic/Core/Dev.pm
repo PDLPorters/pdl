@@ -37,8 +37,6 @@ use English; require Exporter;
                 pdlpp_mkgen
 		 );
 
-my $quotation_mark = $^O =~ /MSWin32/i ? '"' : "'";
-
 # Installation locations
 # beware: whereami_any now appends the /Basic or /PDL directory as appropriate
 
@@ -423,6 +421,8 @@ sub pdlpp_postamble {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
+	require ExtUtils::MM;
+	my $oneliner = MM->oneliner(q{exit if \$\$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
 qq|
 
 $pref.pm: $src
@@ -437,7 +437,7 @@ $pref\$(OBJ_EXT): $pref.c
 
 install ::
 	\@echo "Updating PDL documentation database...";
-	\$(ABSPERLRUN) -e ${quotation_mark}exit if \$\$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }; ${quotation_mark};
+	$oneliner
 |
 	} (@_)
 }
