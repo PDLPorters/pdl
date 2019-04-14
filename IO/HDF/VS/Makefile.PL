@@ -13,14 +13,14 @@ undef &MY::postamble; # suppress warning
 WriteMakefile(
     NAME => 'PDL::IO::HDF::VS',
     TYPEMAPS => [ &PDL_TYPEMAP() ],
-    OBJECT => 'VS.o',
+    OBJECT => 'VS$(OBJ_EXT)',
     PM => {
         'VS.pm' => '$(INST_LIBDIR)/VS.pm',
     },
     INC => &PDL_INCLUDE() . " -I$hdf_include_path",
     LIBS => [ "-L$hdf_lib_path $hdf_libs -ljpeg -lz $szip" ],
     clean => {
-        FILES => 'VS.pm VS.xs VS.o VS.c',
+        FILES => 'VS.pm VS.xs VS$(OBJ_EXT) VS.c',
     },
     dist => { 
         COMPRESS => 'gzip', 

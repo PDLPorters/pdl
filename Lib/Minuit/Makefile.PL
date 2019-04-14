@@ -111,7 +111,7 @@ if($Config{cc} eq 'cl') {
 }
 
 $hash{LIBS}[0] .= $f77->runtime ;
-$hash{clean}{FILES} .= join '', map {" minuitlib/$_.o "} @minuitfiles;
+$hash{clean}{FILES} .= join '', map {" minuitlib/$_\$(OBJ_EXT) "} @minuitfiles;
 
 # Handle multiple compilers
 
