@@ -38,7 +38,7 @@ $PDL::IO::Pic::debug=20;
 # test save/restore of 8-bit image
 my $x = sequence(16, 16);
 my $tmpdir = tempdir( CLEANUP => 1 );
-my $filestub = File::Spec->catfile($tmpdir, 'tbyte_a');
+my $filestub = File::Spec->catfile($tmpdir, 't byte_a');
 $x->wpic("$filestub.pnm");
 my $a_pnm = rpic("$filestub.pnm");
 ok(sum(abs($x-$a_pnm)) == 0, 'pnm byte image save+restore');

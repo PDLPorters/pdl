@@ -314,7 +314,7 @@ sub PDL::rpic {
     my $flags = $converter{$type}->{FLAGS};
     $flags = "$Dflags" unless defined($flags);
     $flags .= " $$hints{XTRAFLAGS}" if defined($$hints{XTRAFLAGS});
-    my $cmd = "$converter{$type}->{get} $flags $file |";
+    my $cmd = qq{$converter{$type}->{get} $flags "$file" |};
     $cmd = $file if $converter{$type}->{'get'} =~ /^NONE/;
 
     print("conversion by '$cmd'\n") if $PDL::IO::Pic::debug > 10;
@@ -490,7 +490,7 @@ sub PDL::wpic {
     ($pdl,$iform) = chkpdl($pdl,$iform,$hints,$format);
     print "using intermediate format $iform\n" if $PDL::IO::Pic::debug>10;
 
-    $cmd = "|"  . "$conv $flags >$file";
+    $cmd = "|"  . qq{$conv $flags >"$file"};
     $cmd = ">" . $file if $conv =~ /^NONE/;
     print "built the command $cmd to write image\n" if $PDL::IO::Pic::debug>10;
 
