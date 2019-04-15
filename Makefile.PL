@@ -439,6 +439,8 @@ if($Config{archname}=~m/x86_64/) {
 # create GENERATED subdir with *.pm files during 'make dist' (to make metacpan.org happy)
 my $preop = '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)';
 
+my @optimize = (OPTIMIZE => $PDL::Config{OPTIMIZE}) if $PDL::Config{OPTIMIZE};
+
 my %makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
               'LICENSE' => 'perl',
@@ -483,7 +485,7 @@ my %makefile_hash = (
                               'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
                               'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)' },
 	      'MAN3PODS' => {}, # don't pick up the script pods again
-	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
+	      @optimize,
 	      'CCFLAGS' => $ccflags,
 	      'dist'     => { COMPRESS => 'gzip',
                               SUFFIX   => 'gz',
