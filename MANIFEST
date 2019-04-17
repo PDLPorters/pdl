@@ -307,7 +307,6 @@ Graphics/TriD/POGL/Makefile.PL
 Graphics/TriD/POGL/MANIFEST
 Graphics/TriD/POGL/OpenGL.pm
 Graphics/TriD/POGL/README
-Graphics/TriD/POGL/t/00-load.t
 Graphics/TriD/Rout/Makefile.PL
 Graphics/TriD/Rout/rout.pd
 Graphics/TriD/TriD.pm
