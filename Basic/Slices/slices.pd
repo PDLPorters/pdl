@@ -409,8 +409,9 @@ pp_addpm(<<'EOD-range');
 
 sub PDL::range {
   my($source,$ind,$sz,$bound) = @_;
-  my $index = PDL->pdl($ind);
 
+# Convert to indx type up front (also handled in rangeb if necessary)
+  my $index = (ref $ind && UNIVERSAL::isa($ind,'PDL') && $ind->type eq 'indx') ? $ind : indx($ind);
   my $size = defined($sz) ? PDL->pdl($sz) : undef;
 
 
@@ -783,7 +784,7 @@ switch(ind_pdl->datatype) {
    PDL->converttype(&ind_pdl,PDL_IND,1); /* convert in place. */
    break;
  case PDL_IND:
-   /* do nothing */
+   PDL->make_physical(ind_pdl);
    break;
 }
 
@@ -890,6 +891,7 @@ switch(ind_pdl->datatype) {
         PDL->converttype(&size_pdl,PDL_IND,1); /* convert in place. */
         break;
       case PDL_IND:
+        PDL->make_physical(size_pdl);
         break;
       }
 
@@ -1083,7 +1085,11 @@ EOD-RedoDims
           if(ck < 0 || ck >= $PARENT_P(dims[k])) {
             switch($COMP(boundary[k])) {
             case 0: /* no boundary breakage allowed */
-              barf("index out-of-bounds in range");
+	      {
+		char barfstr[1024];
+		sprintf(barfstr,"index out-of-bounds in range (index vector #%ld)",item);
+		barf(barfstr);
+	      }
               break;
             case 1: /* truncation */
               trunc = 1;
