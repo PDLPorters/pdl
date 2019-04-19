@@ -387,7 +387,6 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/Bugs/;
 
 my @prereq = (
-	   'Astro::FITS::Header' => 0,
            'Carp'                => 0,         # Need to run
            'Config'              => 0,         #
            'Convert::UU'         => 0,         # for PDL::IO::Dumper
@@ -486,6 +485,11 @@ my %makefile_hash = (
            recommends => {
               'ExtUtils::F77' => '1.10',
               'PGPLOT' => 0,
+           },
+        },
+        runtime => {
+           suggests => {
+              'Astro::FITS::Header' => 0,
            },
         },
      },
