@@ -407,14 +407,26 @@ sub PDL::log10 {
 #
 pp_def(
        'assgn',
-#       HandleBad => 1,
+       HandleBad => 1,
        Pars => 'a(); [o]b();',
        Code =>
        '$b() = $a();',
-#       BadCode =>
-#       'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = $a(); }',
+       BadCode =>
+       'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = $a(); }',
        Doc =>
 'Plain numerical assignment. This is used to implement the ".=" operator',
+		BadDoc =>
+'If C<a> is a child piddle (e.g., the result of a slice) and bad values are generated in C<b>,
+the bad value flag is set in C<b>, but it is B<NOT> automatically propagated back to the parent of C<a>.
+The following idiom ensures that the badflag is propagated back to the parent of C<a>:
+
+ $pdl->slice(":,(1)") .= PDL::Bad_aware_func();
+ $pdl->badflag(1);
+ $pdl->check_badflag();
+
+This is unnecessary if $pdl->badflag is known to be 1 before the slice is performed.
+
+See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for details.'
 ); # pp_def assgn
 
 pp_def('ipow',
