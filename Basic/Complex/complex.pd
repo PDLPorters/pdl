@@ -1,6 +1,3 @@
-$VERSION = 0.7;
-
-# pp_setversion $VERSION;  # haven't worked out why it breaks my system (CS)
 pp_beginwrap; # required for overload to work
 
 # pp_def functions go into the PDL::Complex namespace
