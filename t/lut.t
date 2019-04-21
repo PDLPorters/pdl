@@ -26,5 +26,10 @@ isnt scalar(@ramps), 0, "lut_ramps returns some ramps";
 # load in a different intensity ramp
 my @cols3 = lut_data( $names[0], 0, $ramps[0] ); 
 is( $cols3[0]->nelem, $cols3[1]->nelem, "intensity ramp nelem check");
-ok( all( approx($cols[1],$cols3[1])), "intensity ramp vals check");
-
+ok( all(approx($cols[1],$cols3[1], 1e-6)), "intensity ramp vals check")
+  or diag '[ difference, subtract, c[1], c3[1] ]: ', explain [
+    abs($cols[1] - $cols3[1]).'',
+    ($cols[1] - $cols3[1]).'',
+    $cols[1].'',
+    $cols3[1].'',
+  ];
