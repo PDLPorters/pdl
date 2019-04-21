@@ -302,14 +302,14 @@ $expected = pdl(1)->exp;
 # perls compiled with uselongdouble
 #
 $got = pdl q[e];
-ok(approx($got, $expected, 1e-15), 'q[e] returns exp(1)')
+ok(approx($got, $expected, 1e-12), 'q[e] returns exp(1)')
 	or diag("Got $got");
 # using approx() here since PDL only has support for double data
 # so there will be differences in the least significant places for
 # perls compiled with uselongdouble
 #
 $got = pdl q[E];
-ok(approx($got, $expected, 1e-15), 'q[E] returns exp(1)')
+ok(approx($got, $expected, 1e-12), 'q[E] returns exp(1)')
 	or diag("Got $got");
 $expected = pdl(1, exp(1));
 $got = pdl q[1 e];
