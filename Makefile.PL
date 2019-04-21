@@ -191,9 +191,9 @@ EOD
   # option).
   #
   my $flag_bad     = $PDL_CONFIG{WITH_BADVAL} || 0;
-  my $flag_per_pdl = $PDL_CONFIG{BADVAL_PER_PDL} || 0;
   my $flag_use_nan = $PDL_CONFIG{BADVAL_USENAN} || 0;
-  if ( $flag_bad and $flag_per_pdl and $flag_use_nan ) {
+  my $flag_per_pdl = $PDL_CONFIG{BADVAL_PER_PDL} || 0;
+  if ( $flag_bad and $flag_use_nan and $flag_per_pdl ) {
       print "WARNING: Setting BADVAL_USENAN=0 as BADVAL_PER_PDL option is set!\n\n";
       $PDL_CONFIG{BADVAL_USENAN} = 0;
   }
