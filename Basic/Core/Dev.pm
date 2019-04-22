@@ -368,39 +368,25 @@ EOF
 }
 
 # Expects list in format:
-# [gtest.pd, GTest, PDL::GTest,     ['../GIS/Proj', ...] ], [...]
-# source,    prefix,module/package, optional deps
+# [gtest.pd, GTest, PDL::GTest[, PDL::XSPkg] ], [...]
+# source,    prefix,module/package, optional pp_addxs destination
 # The idea is to support in future several packages in same dir - EUMM
 #   7.06 supports
-# each optional dep is a relative dir that a "make" will chdir to and
-# "make" first - so the *.pd file can then "use" what it makes
 
 # This is the function internal for PDL.
 
 sub pdlpp_postamble_int {
-	join '',map { my($src,$pref,$mod, $deps) = @$_;
-        die "If give dependencies, must be array-ref" if $deps and !ref $deps;
+	join '',map { my($src,$pref,$mod,$callpack) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
 	my $top = File::Spec->abs2rel($w);
 	my $basic = File::Spec->catdir($top, 'Basic');
 	my $core = File::Spec->catdir($basic, 'Core');
-	my $gen = File::Spec->catdir($basic, 'Gen');
-        my $depbuild = '';
-        for my $dep (@{$deps || []}) {
-            my $target = '';
-            if ($dep eq 'core') {
-                $dep = $top;
-                $target = ' core';
-            }
-            $dep =~ s#([\(\)])#\\$1#g; # in case of unbalanced (
-            $depbuild .= _oneliner("exit(!(chdir q($dep) && !system(q(\$(MAKE)$target))))");
-            $depbuild .= "\n\t";
-        }
+	$callpack //= '';
 qq|
 
 $pref.pm: $src $core/Types.pm
-	$depbuild\$(PERLRUNINST) \"-MPDL::PP qw[$mod $mod $pref]\" $src
+	\$(PERLRUNINST) \"-MPDL::PP qw[$mod $mod $pref $callpack]\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
@@ -412,17 +398,18 @@ $pref\$(OBJ_EXT): $pref.c
 	} (@_)
 }
 
-
 # This is the function to be used outside the PDL tree.
+# same format as pdlpp_postamble_int
 sub pdlpp_postamble {
-	join '',map { my($src,$pref,$mod) = @$_;
+	join '',map { my($src,$pref,$mod,$callpack) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
 	my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
+	$callpack //= '';
 qq|
 
 $pref.pm: $src
-	\$(PERL) "-I$w" \"-MPDL::PP qw[$mod $mod $pref]\" $src
+	\$(PERL) "-I$w" \"-MPDL::PP qw[$mod $mod $pref $callpack]\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
