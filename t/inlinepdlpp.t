@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More;
 use PDL::LiteF;
 
 my $inline_test_dir = './.inlinepdlpp';
@@ -30,3 +30,5 @@ EOF
 }
 
 sub myshape { join ',', $_[0]->dims }
+
+done_testing;
