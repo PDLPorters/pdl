@@ -1,4 +1,5 @@
 - make pdlpp_postamble_int 4th arg be XS subs destination
+- Inline::Pdlpp can take package param to put XS subs into
 
 2.037 2021-04-16
 - switch obsolete finite() to C99 isfinite()

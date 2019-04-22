@@ -36,4 +36,20 @@ ok(all $y == $x+1, '==');
 
 sub myshape { join ',', $_[0]->dims }
 
+eval { Inline->bind(Pdlpp => <<'EOF', PACKAGE => 'Other::Pkg') };
+pp_addxs(<<'EOXS');
+int
+add1 (parm)
+        int     parm
+CODE:
+        RETVAL =  parm + 1;
+OUTPUT:
+        RETVAL
+EOXS
+EOF
+is $@, '', 'bind no error';
+my $r = eval { Other::Pkg::add1(4) };
+is $@, '', 'call no error';
+is $r, 5, 'correct result';
+
 done_testing;
