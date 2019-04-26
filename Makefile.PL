@@ -513,32 +513,6 @@ my %makefile_hash = (
   %notestsifmodulesmissing,
 );
 
-=begin comment
-
-print "makefile hash is:\n";
-for $k(sort keys %makefile_hash) {
-    print "\t$k\t";
-    $v = $makefile_hash{$k};
-    unless(ref $v) {
-	print $v,"\n";
-    } elsif(ref $v eq 'HASH') {
-	print "HASH:\n";
-	for $vk(sort keys %$v) {
-	    print "\t\t$vk\t$v->{$vk}\n";
-	}
-    } elsif(ref $v eq 'ARRAY') {
-	print "ARRAY:\n";
-	for $vv(@$v) {
-	    print "\t\t$vv\n";
-	}
-    } else {print "$v\n";}
-
-}
-
-=end comment
-
-=cut
-
 WriteMakefile(%makefile_hash);
 
 # do *after* WriteMakefile since some options
