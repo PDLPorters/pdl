@@ -442,77 +442,76 @@ my $preop = '$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -MPDL::Core::Dev -e pdlpp_m
 my @optimize = (OPTIMIZE => $PDL::Config{OPTIMIZE}) if $PDL::Config{OPTIMIZE};
 
 my %makefile_hash = (
-	      'PREREQ_PM' => { @prereq },
-              'LICENSE' => 'perl',
-              'CONFIGURE_REQUIRES' => {
-                'Devel::CheckLib' => 1.01,
-                'Carp'            => 1.20,    # EU::MM seems to need this not to crash
-                'ExtUtils::MakeMaker' => 6.56,
-                'File::Path'          => 0,
-                'ExtUtils::ParseXS'   => 3.01, # avoids 2.21, known broken
-                'ExtUtils::Depends' => '0.402',
-              },
-              TEST_REQUIRES => {
-                'CPAN::Meta' => '2.120900',
-                'IPC::Cmd' => 0.72,
-                'Test::Exception' => 0,
-                'Test::Warn' => 0,  # for t/pptest.t
-                'Test::Deep' => 0,
-              },
-              BUILD_REQUIRES => {
-                'ExtUtils::MakeMaker' => 0,
-                'File::Path'          => 0,
-              },
-              'MIN_PERL_VERSION' => '5.010',
-	      'NAME' => 'PDL',
-	      'VERSION_FROM' => 'Basic/Core/Version.pm',
-	      'EXE_FILES' => \@exe_files,
-	      'PM' => { @podpms }, #so that the script docs are picked up
-              'META_MERGE' => {
-                 "meta-spec" => { version => 2 },
-                 resources => {
-                    homepage => 'http://pdl.perl.org/',
-                    bugtracker  => {web=>'https://github.com/PDLPorters/pdl/issues'},
-                    repository  => {
-                       url => 'git://github.com/PDLPorters/pdl.git',
-                       type => 'git',
-                       web => 'https://github.com/PDLPorters/pdl',
-                    },
-                    x_IRC => 'irc://irc.perl.org/#pdl',
-                 },
-                 no_index => { file => ['Doc/scantree.pl'] },
-                 prereqs => {
-                    configure => {
-                       recommends => {
-                          'ExtUtils::F77' => '1.10',
-                          'PGPLOT' => 0,
-                       },
-                    },
-                 },
-              },
-              'MAN1PODS' => { 'Bugs.pod' => '$(INST_MAN1DIR)/PDL::Bugs.$(MAN1EXT)',
-                              'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
-                              'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)' },
-	      'MAN3PODS' => {}, # don't pick up the script pods again
-	      @optimize,
-	      'CCFLAGS' => $ccflags,
-	      'dist'     => { COMPRESS => 'gzip',
-                              SUFFIX   => 'gz',
-                              PREOP    => $preop },
-	      'clean' => {
-		'FILES' => join ' ', @cleanup, qw(
-                  tbyte.tif tmp0 tmp0.hdr tushort.tif
-                  MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*
-                  _Inline/ .inlinepdlpp/ .inline-ct/ .inlinewith/ *.xfig
-                ),
-              },
-	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
-              'AUTHOR' => 'PerlDL Developers (pdl-general@lists.sourceforge.net)',
-              'ABSTRACT' => 'Perl Data Language',
-              'BINARY_LOCATION' => 'PDL.tar.gz',
-
-	      %notestsifmodulesmissing,
-    );
+  PREREQ_PM => { @prereq },
+  LICENSE => 'perl',
+  CONFIGURE_REQUIRES => {
+    'Devel::CheckLib' => 1.01,
+    'Carp'            => 1.20,    # EU::MM seems to need this not to crash
+    'ExtUtils::MakeMaker' => 6.56,
+    'File::Path'          => 0,
+    'ExtUtils::ParseXS'   => 3.01, # avoids 2.21, known broken
+    'ExtUtils::Depends' => '0.402',
+  },
+  TEST_REQUIRES => {
+    'CPAN::Meta' => '2.120900',
+    'IPC::Cmd' => 0.72,
+    'Test::Exception' => 0,
+    'Test::Warn' => 0,  # for t/pptest.t
+    'Test::Deep' => 0,
+  },
+  BUILD_REQUIRES => {
+    'ExtUtils::MakeMaker' => 0,
+    'File::Path'          => 0,
+  },
+  MIN_PERL_VERSION => '5.010',
+  NAME => 'PDL',
+  VERSION_FROM => 'Basic/Core/Version.pm',
+  EXE_FILES => \@exe_files,
+  PM => { @podpms }, #so that the script docs are picked up
+  META_MERGE => {
+     "meta-spec" => { version => 2 },
+     resources => {
+        homepage => 'http://pdl.perl.org/',
+        bugtracker  => {web=>'https://github.com/PDLPorters/pdl/issues'},
+        repository  => {
+           url => 'git://github.com/PDLPorters/pdl.git',
+           type => 'git',
+           web => 'https://github.com/PDLPorters/pdl',
+        },
+        x_IRC => 'irc://irc.perl.org/#pdl',
+     },
+     no_index => { file => ['Doc/scantree.pl'] },
+     prereqs => {
+        configure => {
+           recommends => {
+              'ExtUtils::F77' => '1.10',
+              'PGPLOT' => 0,
+           },
+        },
+     },
+  },
+  MAN1PODS => {
+    'Bugs.pod' => '$(INST_MAN1DIR)/PDL::Bugs.$(MAN1EXT)',
+    'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
+    'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'
+  },
+  MAN3PODS => {}, # don't pick up the script pods again
+  @optimize,
+  CCFLAGS => $ccflags,
+  dist => { COMPRESS => 'gzip', SUFFIX => 'gz', PREOP => $preop },
+  clean => {
+    FILES => join ' ', @cleanup, qw(
+      tbyte.tif tmp0 tmp0.hdr tushort.tif
+      MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*
+      _Inline/ .inlinepdlpp/ .inline-ct/ .inlinewith/ *.xfig
+    ),
+  },
+  realclean => {'FILES' => 'Basic/Core/Config.pm'},
+  AUTHOR => 'PerlDL Developers <pdl-general@lists.sourceforge.net>',
+  ABSTRACT => 'Perl Data Language',
+  BINARY_LOCATION => 'PDL.tar.gz',
+  %notestsifmodulesmissing,
+);
 
 =begin comment
 
