@@ -1,16 +1,9 @@
-# -*-perl-*-
-#
-
-use Test::More;
-use Test::Exception;
-
-use PDL;
-use PDL::Image2D;
-
 use strict;
 use warnings;
-
-kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+use Test::More;
+use Test::Exception;
+use PDL;
+use PDL::Image2D;
 
 my $ans = pdl(
  [ 3,  7, 11, 21, 27, 33, 39, 45, 51, 27],
@@ -138,43 +131,39 @@ my $pans = $pa->copy;
 note $pa, $mask, patch2d($pa,$mask);
 ok all( approx( patch2d($pa,$mask), $pans)), "patch2d 2d slice no-op";  # 7
 
-SKIP: {
-    skip "PDL::Bad support not available.", 5 unless $PDL::Bad::Status;
+$pa = ones(5,5);
+# patchbad2d: bad data
+$m = $pa->slice('1:3,1:3');
+$m .= $pa->badvalue;
+$pa->badflag(1);        # should sort out propagation of badflag
 
-    my $pa = ones(5,5);
-    # patchbad2d: bad data
-    my $m = $pa->slice('1:3,1:3');
-    $m .= $pa->badvalue;
-    $pa->badflag(1);        # should sort out propagation of badflag
+my $ans = ones(5,5);
+$ans->set(2,2,$ans->badvalue);
+$ans->badflag(1);
 
-    my $ans = ones(5,5);
-    $ans->set(2,2,$ans->badvalue);
-    $ans->badflag(1);
+#note $pa, patchbad2d($pa);
+ok all( approx( patchbad2d($pa), $ans )), "patchbad2d";  # 8
 
-    #note $pa, patchbad2d($pa);
-    ok all( approx( patchbad2d($pa), $ans )), "patchbad2d";  # 8
+# patchbad2d: good data
+$pa = sequence(5,5);
+#note $pa, patchbad2d($pa);
+ok all( approx( patchbad2d($pa), $pa )), "patchbad2d good data";  # 9
 
-    # patchbad2d: good data
-    $pa = sequence(5,5);
-    #note $pa, patchbad2d($pa);
-    ok all( approx( patchbad2d($pa), $pa )), "patchbad2d good data";  # 9
-
-    # max2d_ind
-    $pa = 100 / (1.0 + rvals(5,5));
-    $pa = $pa->setbadif( $pa > 90 );
-    my @ans = $pa->max2d_ind();
-    note "max2d_ind: " . join( ',', @ans );
-    ok( ($ans[0] == 50) & ($ans[1] == 1) & ($ans[2] == 2), "max2d_ind bad data");;
+# max2d_ind
+$pa = 100 / (1.0 + rvals(5,5));
+$pa = $pa->setbadif( $pa > 90 );
+my @ans = $pa->max2d_ind();
+note "max2d_ind: " . join( ',', @ans );
+ok( ($ans[0] == 50) & ($ans[1] == 1) & ($ans[2] == 2), "max2d_ind bad data");;
 
 
-    # centroid2d
-    # centroid2d
-    $pa = 100.0 / rvals( 20, 20, { Centre => [ 8, 12.5 ] } );
-    $pa = $pa->setbadif( $pa < 9 );
-    @ans = $pa->centroid2d( 10, 10, 20 );
-    ok all( approx( $ans[0], 8.432946)), "centroid2d bad data (0)";  # numbers should be same as when set < 9 to 0
-    ok all( approx( $ans[1], 11.756724)), "centroid2d bad data (1)";
-}
+# centroid2d
+# centroid2d
+$pa = 100.0 / rvals( 20, 20, { Centre => [ 8, 12.5 ] } );
+$pa = $pa->setbadif( $pa < 9 );
+@ans = $pa->centroid2d( 10, 10, 20 );
+ok all( approx( $ans[0], 8.432946)), "centroid2d bad data (0)";  # numbers should be same as when set < 9 to 0
+ok all( approx( $ans[1], 11.756724)), "centroid2d bad data (1)";
 
 }
 

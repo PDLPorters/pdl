@@ -520,6 +520,7 @@ Libtmp/Image2D/Makefile.PL
 Libtmp/Image2D/resample.c
 Libtmp/Image2D/resample.h
 Libtmp/Image2D/rotate.c
+Libtmp/Image2D/t/image2d.t
 Libtmp/ImageND/imagend.pd
 Libtmp/ImageND/Makefile.PL
 Libtmp/ImageRGB/imagergb.pd
@@ -730,7 +731,6 @@ t/hdrs.t
 t/hist.t
 t/howbig.t
 t/ica.t
-t/image2d.t
 t/imagend.t
 t/imagergb.t
 t/inline-with.t
