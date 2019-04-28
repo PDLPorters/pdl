@@ -1,10 +1,6 @@
 use strict;
 use warnings;
 
-# using absolute path to make it valid also for Makefile.PL files in subdirectories
-use Cwd;
-use lib Cwd::abs_path('inc');
-
 eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use 5.010_000;
 use ExtUtils::MakeMaker;

@@ -347,7 +347,6 @@ Graphics/TriD/TriD/Window.pm
 Graphics/TriD/VRML/Makefile.PL
 Graphics/TriD/VRML/VRML.pm
 Graphics/TriD/VRML/VRML/Protos.pm
-inc/Alien/Proj4.pm
 INSTALL
 INTERNATIONALIZATION
 IO/Browser/browse.c
@@ -437,7 +436,6 @@ Libtmp/Fit/Polynomial.pm
 Libtmp/Fit/t/poly.t
 Libtmp/Func.pm
 Libtmp/GIS/Makefile.PL
-Libtmp/GIS/Proj/include/projects.h
 Libtmp/GIS/Proj/Makefile.PL
 Libtmp/GIS/Proj/Proj.pd
 Libtmp/GIS/Proj/README
