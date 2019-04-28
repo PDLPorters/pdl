@@ -1,17 +1,8 @@
-use PDL::LiteF;
-use Test::More;
 use strict;
 use warnings;
-
-BEGIN {
-	eval {
-		require PDL::Opt::Simplex;
-		PDL::Opt::Simplex->import();
-		1;
-	} or plan skip_all => "PDL::Opt::Simplex not installed: $@";
-}
-
-plan tests => 8;
+use Test::More;
+use PDL::LiteF;
+use PDL::Opt::Simplex;
 
 my $dis = pdl( 0, 1 );
 my $func = sub {
@@ -48,3 +39,5 @@ ok( ( $y - 1 ) < 0.001 );
 ok( $ssize < 0.001 );
 ok( ( $optval - 1 ) < 0.001 );
 }
+
+done_testing;

@@ -516,6 +516,7 @@ Libtmp/Minuit/minuitlib/intracfalse.f
 Libtmp/Minuit/minuitlib/minuit.f
 Libtmp/Simplex/Makefile.PL
 Libtmp/Simplex/Simplex.pm
+Libtmp/Simplex/t/simplex.t
 Libtmp/Slatec/Makefile.PL
 Libtmp/Slatec/slatec.pd
 Libtmp/Slatec/slatec/chfcm.f
@@ -776,7 +777,6 @@ t/rim.t
 t/round.t
 t/scope.t
 t/segfault.t
-t/simplex.t
 t/slice-exceptions.t
 t/slice.t
 t/storable.t
