@@ -1,18 +1,11 @@
 # NOTE: 
 #  currently not in use anymore
 #  - see PDL::Func (in Lib/) and t/func.t
-use Test::More skip_all => 'See PDL::Func';
-
-use PDL::LiteF;
-
 use strict;
 use warnings;
-
-plan tests => 5;
-
-##########################################################
-
-eval "use PDL::Interpolate;";
+use Test::More skip_all => 'See PDL::Func';
+use PDL::Interpolate;
+use PDL::LiteF;
 
 my $x = float( 1, 2, 3, 4, 5, 6, 8, 10 );
 my $y = ($x * 3) * ($x - 2);
@@ -37,3 +30,5 @@ ok( all ($oerr-$err) == 0 );
 #print "x:  ", $x, "\n";
 #print "xi: ", $xi, "\n";
 #print "$oerr\n";
+
+done_testing;

@@ -1,19 +1,11 @@
 # NOTE: 
 #  currently not in use anymore
 #  - see PDL::Func (in Lib/) and t/func.t
+use strict;
 use Test::More skip_all => 'See PDL::Func';
 use PDL::LiteF;
-
-BEGIN {
-    eval "use PDL::Slatec;";
-    plan skip_all => "PDL::Slatec: '$@'" if $@;
-}
-
-plan tests => 11;
-
-use strict;
-
-eval "use PDL::Interpolate::Slatec";
+use PDL::Slatec;
+use PDL::Interpolate::Slatec
 
 ########### First test normal subclassing ###########
 
@@ -57,3 +49,5 @@ ok( (dims($yi) == 2) & ($yi->getdim(0) == $xi->getdim(0)) & ($yi->getdim(1) == 2
 $ans = cat( $xi*$xi+43.3, $xi*$xi*$xi-23 );
 $d   = abs( $ans - $yi );
 ok( all $d <= 6 );
+
+done_testing;

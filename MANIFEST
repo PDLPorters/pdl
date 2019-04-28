@@ -530,6 +530,8 @@ Libtmp/Interpolate/Interpolate.pm
 Libtmp/Interpolate/Makefile.PL
 Libtmp/Interpolate/Slatec/Makefile.PL
 Libtmp/Interpolate/Slatec/Slatec.pm
+Libtmp/Interpolate/t/interp.t
+Libtmp/Interpolate/t/interp_slatec.t
 Libtmp/Makefile.PL
 Libtmp/Minuit/FCN.c
 Libtmp/Minuit/Makefile.PL
@@ -733,8 +735,6 @@ t/imagend.t
 t/imagergb.t
 t/inline-with.t
 t/inlinepdlpp.t
-t/interp.t
-t/interp_slatec.t
 t/interpol.t
 t/lgamma.t
 t/linfit.t
