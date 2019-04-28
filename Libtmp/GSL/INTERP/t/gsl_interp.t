@@ -6,23 +6,8 @@
 #  do not want to duplicate that effort here.
 
 use PDL;
-use PDL::Config;
+use PDL::GSL::INTERP;
 use Test::More;
-	
-BEGIN
-{
-   use PDL::Config;
-   if ( $PDL::Config{WITH_GSL} ) {
-      eval " use PDL::GSL::INTERP; ";
-      unless ($@) {
-         plan tests => 12;
-      } else {
-         plan skip_all => "PDL::GSL::INTERP not installed";
-      }
-   } else {
-      plan skip_all => "PDL::GSL::INTERP not compiled.";
-   }
-}
 
 my $x = sequence(10);
 my $y = exp($x);
@@ -56,3 +41,5 @@ my $nx = ($x)*($x<=3) + ($x-1)*($x>3); # x value not monotonically increasing
 my $i; eval { $i = PDL::GSL::INTERP->init('cspline',$nx, $y) };
 
 like($@,qr/invalid argument supplied by user/,"module exception handling");
+
+done_testing;

@@ -1,4 +1,3 @@
-
 # Test Script for the PDL interface to the GSL library
 #  This tests mainly that the interface is working, i.e. that the
 #   functions can be called. 
@@ -6,23 +5,8 @@
 #  do not want to duplicate that effort here.
 
 use PDL;
+use PDL::GSL::MROOT;
 use Test::More;
-
-BEGIN
-{
-   use PDL::Config;
-   if ( $PDL::Config{WITH_GSL} ) {
-      eval " use PDL::GSL::MROOT; ";
-      unless ($@) {
-         ## plan tests => 2;
-         plan skip_all => "PDL::GSL::MROOT doesn't work with PDL_Index, yet";
-      } else {
-         plan skip_all => "PDL::GSL::MROOT not installed";
-      }
-   } else {
-      plan skip_all => "PDL::GSL::MROOT not compiled.";
-   }
-}
 
 my $init = pdl (-10.00, -5.0);
 my $epsabs = 1e-7;
@@ -34,6 +18,7 @@ my @res = list ($res);
 ok(abs($res[0]- 1) < 1e-6 );
 ok(abs($res[1]- 1) < 1e-6 );
 
+done_testing;
 
 sub rosenbrock{
   my ($x) = @_;

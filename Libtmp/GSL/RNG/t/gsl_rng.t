@@ -1,5 +1,3 @@
-
-
 # Test Script for the PDL interface to the GSL library
 #  This tests only that the interface is working, i.e. that the
 #   functions can be called. The actual return values are not
@@ -7,23 +5,9 @@
 #  The GSL library already has a extensive test suite, and we
 #  do not want to duplicate that effort here.
 
-use PDL;
 use Test::More;
-
-BEGIN
-{
-   use PDL::Config;
-   if ( $PDL::Config{WITH_GSL} ) {
-      eval " use PDL::GSL::RNG; ";
-      unless ($@) {
-         plan tests => 19;
-      } else {
-         plan skip_all => "PDL::GSL::RNG not installed.";
-      }
-   } else {
-      plan skip_all => "PDL::GSL::RNG not compiled.";
-   }
-}
+use PDL;
+use PDL::GSL::RNG;
 
 $image = zeroes(10,10);
 $ndim = 2;
@@ -143,3 +127,4 @@ $o = $rng->ran_discrete($discrete_dist_handle,100);
 
 ok(1,'ran_discrete() method');
 
+done_testing;

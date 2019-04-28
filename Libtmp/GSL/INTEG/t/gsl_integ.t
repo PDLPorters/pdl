@@ -1,27 +1,12 @@
-
 # Test Script for the PDL interface to the GSL library
 #  This tests mainly that the interface is working, i.e. that the
 #   functions can be called. 
 #  The GSL library already has a extensive test suite, and we
 #  do not want to duplicate that effort here.
 
-use PDL;
 use Test::More;
-	
-BEGIN
-{
-   use PDL::Config;
-   if ( $PDL::Config{WITH_GSL} ) {
-      eval " use PDL::GSL::INTEG; ";
-      unless ($@) {
-         plan tests => 22;
-      } else {
-         plan skip_all => "PDL::GSL::INTEG not installed.";
-      }
-   } else {
-      plan skip_all => "PDL::GSL::INTEG not compiled.";
-   }
-}
+use PDL;
+use PDL::GSL::INTEG;
 
 my $alfa = 2.6;
 
@@ -81,12 +66,12 @@ ok(abs($res + 0.128136848399167) < 1e-6);
 ($res,$abserr,$ierr) = gslinteg_qawo(\&f456,10*$PI,'sin',0,1,0,1e-7,1000,{Warn => 'y'});
 ok(abs($res + 0.128136848399167) < 1e-6);
 
-
 ($res,$abserr,$ierr) = gslinteg_qawf(\&f457,$PI/2.0,'cos',0,1e-7,1000);
 ok(abs($res -0.999999999927978) < 1e-6);
 ($res,$abserr,$ierr) = gslinteg_qawf(\&f457,$PI/2.0,'cos',0,1e-7,1000,{Warn => 'y'});
 ok(abs($res -0.999999999927978) < 1e-6);
 
+done_testing;
 
 sub f1{
     my ($x) = @_;
