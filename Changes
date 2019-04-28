@@ -3,6 +3,7 @@
 - remove check in build for ~/.perldl.conf
 - remove TEMPDIR config - all now use File::Temp
 - remove unnecessary PDL::Version (just "require PDL")
+- relocate tests to beside what's tested (helps with any split)
 
 2.034 2021-03-31
 - add "complex" Pars type qualifier, r2C function

@@ -384,6 +384,8 @@ IO/Storable/storable.pd
 Libtmp/CallExt/CallExt.pm
 Libtmp/CallExt/CallExt.xs
 Libtmp/CallExt/Makefile.PL
+Libtmp/CallExt/t/callext.c
+Libtmp/CallExt/t/callext.t
 Libtmp/Compression/compression.pd
 Libtmp/Compression/Makefile.PL
 Libtmp/Compression/ricecomp.c
@@ -668,8 +670,6 @@ t/basic.t
 t/bess.t
 t/bigmem.t
 t/bool.t
-t/callext.c
-t/callext.t
 t/clump.t
 t/complex.t
 t/config.t
