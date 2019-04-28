@@ -52,21 +52,7 @@ BEGIN{
          plan tests => $ntests;
       }
    }
-
-    # Configuration
-    # Get ExtUtils::F77 if run in either PDL/t/ or PDL/
-    #
-    if(-e 'flexraw.t') {
-	unshift @INC, '../Lib/Slatec/' if -e 'flexraw.t';
-    } elsif(-e 'INTERNATIONALIZATION') {
-	unshift @INC, 'Lib/Slatec/' if -e 'INTERNATIONALIZATION';
-    } else {
-	print "I'm not in PDL now, right? Still trying\n";
-    }
-
 }
-
-# use ExtUtils::F77;
 
 my $F77;
 my $F77flags;
