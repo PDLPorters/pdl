@@ -390,6 +390,7 @@ Libtmp/Compression/compression.pd
 Libtmp/Compression/Makefile.PL
 Libtmp/Compression/ricecomp.c
 Libtmp/DiskCache.pm
+Libtmp/t/diskcache.t
 Libtmp/FFT/fft.pd
 Libtmp/FFT/fftn.c
 Libtmp/FFT/fftn.h
@@ -678,7 +679,6 @@ t/constructor.t
 t/conv.t
 t/core.t
 t/croak.t
-t/diskcache.t
 t/dumper.t
 t/erf.t
 t/erfi.t
