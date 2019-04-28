@@ -302,6 +302,7 @@ Graphics/Makefile.PL
 Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
 Graphics/PGPLOT/PGPLOTOptions.pm
+Graphics/PGPLOT/t/pgplot.t
 Graphics/PGPLOT/Window/Makefile.PL
 Graphics/PGPLOT/Window/typemap
 Graphics/PGPLOT/Window/Window.pm
@@ -755,7 +756,6 @@ t/ops.t
 t/pdl-from-string-bad-values.t
 t/pdl_from_string.t
 t/pdlchar.t
-t/pgplot.t
 t/physical.t
 t/pic_16bit.t
 t/picnorgb.t

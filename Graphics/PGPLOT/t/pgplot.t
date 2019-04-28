@@ -7,7 +7,7 @@ BEGIN{
 }
 
 use strict;
-
+use warnings;
 use PDL;
 use Test::More;
 
@@ -24,8 +24,6 @@ BEGIN {
    eval_skip "PDL::Graphics::PGPLOT::Window";
    eval_skip "ExtUtils::F77";
 }
-
-plan tests => 36;
 
 diag "F77 Method: $_, ", explain(ExtUtils::F77->$_) for qw(runtime runtimeok trail_ compiler cflags);
 
@@ -105,7 +103,7 @@ my $w = PDL::Graphics::PGPLOT::Window->new(
 );
 isa_ok($w, "PDL::Graphics::PGPLOT::Window");
 
-my $x = rfits('m51.fits');
+my $x = rfits('../../m51.fits');
 
 ##############################
 # Page 1
@@ -178,3 +176,5 @@ for my $win ($rate_win, $area_win) {
    is $@, '', "close window";
    isnt $result, 0, 'returned true';
 }
+
+done_testing;
