@@ -345,6 +345,7 @@ IO/Browser/Makefile.PL
 IO/Dicom/Dicom.pm
 IO/Dicom/Makefile.PL
 IO/Dumper.pm
+IO/t/dumper.t
 IO/ENVI/readenvi.pdl
 IO/FastRaw/FastRaw.pm
 IO/FastRaw/Makefile.PL
@@ -679,7 +680,6 @@ t/constructor.t
 t/conv.t
 t/core.t
 t/croak.t
-t/dumper.t
 t/erf.t
 t/erfi.t
 t/familyfree.t
