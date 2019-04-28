@@ -3,8 +3,7 @@ use warnings;
 use PDL;
 use PDL::Image2D;
 use PDL::FFT;
-
-use Test::More tests => 22;
+use Test::More;
 use Test::Exception;
 
 sub tapprox {
@@ -24,7 +23,7 @@ foreach my $type(double,float,cdouble,cfloat){
 }
 
 $pk = ones(5,5);
-$pa = rfits("m51.fits");
+$pa = rfits("../../m51.fits");
 
 $pb = $pa->copy;
 $pc = $pb->zeroes;
@@ -89,8 +88,7 @@ ok( tapprox($pa,$pb), "realfft");
 throws_ok {fft(sequence(10))}
 qr/Did you forget/, 'fft offers helpful message when only one argument is supplied'; #16
 
-
 throws_ok {ifft(sequence(10))}
 qr/Did you forget/, 'ifft offers helpful message when only one argument is supplied'; #17
 
-# End
+done_testing;

@@ -412,6 +412,7 @@ Libtmp/FFT/fft.pd
 Libtmp/FFT/fftn.c
 Libtmp/FFT/fftn.h
 Libtmp/FFT/Makefile.PL
+Libtmp/FFT/t/fft.t
 Libtmp/Filter/Linear.pm
 Libtmp/Filter/LinPred.pm
 Libtmp/Filter/Makefile.PL
@@ -714,7 +715,6 @@ t/croak.t
 t/erf.t
 t/erfi.t
 t/familyfree.t
-t/fft.t
 t/fits.t
 t/flexraw_fortran.t
 t/flow.t
