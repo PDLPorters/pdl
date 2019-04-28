@@ -1,18 +1,13 @@
+use strict;
+use warnings;
+use Test::More;
 use PDL;
 use PDL::ImageND;
 use PDL::NiceSlice;
 
-use Test::More tests => 8;
-use strict;
-use warnings;
-
-kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
 my $eps = 1e-15;
 
 # Right answer
-
-
 {
 	my $ans = pdl(
 	 [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27],
@@ -25,24 +20,15 @@ my $eps = 1e-15;
 	ok(all PDL::approx( $pc, $ans, $eps ) );
 }
 
-
 my $pa = zeroes(6,6);
+$pa(4,:) .= 1;
+$pa(5,:) .= 1;
+$pa(1,2) .= 1;
+$pa(0,4) .= 1;
+$pa(2,0) .= 1;
 my $pb = pdl( [-1,0],[0,1] );
 
 {
-	# XXX Dead code
-	my $ta;
-
-	($ta = $pa(4,:)) .= 1;
-	($ta = $pa(5,:)) .= 1;
-	($ta = $pa(1,2)) .= 1;
-	($ta = $pa(0,4)) .= 1;
-	($ta = $pa(2,0)) .= 1;
-}
-
-
-{
-	my $pc;
 	my $ans_e = pdl(
 		     [ 0,  0,  1, -1,  0,  0],
 		     [-1,  0,  0, -1,  0,  0],
@@ -51,15 +37,13 @@ my $pb = pdl( [-1,0],[0,1] );
 		     [ 1,  0,  0, -1,  0,  0],
 		     [ 0,  0,  0, -1,  0,  0]
 		);
-	$pc = convolveND($pa,$pb,{m=>'d',b=>'e'});
-	ok( all PDL::approx($pc,$ans_e, $eps) );
-
+	my $pc = convolveND($pa,$pb,{m=>'d',b=>'e'});
+	ok( all PDL::approx($pc,$ans_e, $eps) ) or diag $pc;
 	$pc = convolveND($pa,$pb,{m=>'f',b=>'e'});
 	ok( all PDL::approx($pc,$ans_e, $eps) );
 }
 
 {
-	my $pc;
 	my $ans_p = pdl(
 		     [ 0,  0,  1, -1,  0,  1],
 		     [-1,  0,  0, -1,  0,  1],
@@ -68,14 +52,11 @@ my $pb = pdl( [-1,0],[0,1] );
 		     [ 1,  0,  0, -1,  0,  1],
 		     [ 0, -1,  0, -1,  0,  1]
 		);
-
-	$pc = convolveND($pa,$pb,{m=>'d',b=>'p'});
+	my $pc = convolveND($pa,$pb,{m=>'d',b=>'p'});
 	ok( all( PDL::approx($pc, $ans_p, $eps) ) );
-
 	$pc = convolveND($pa,$pb,{m=>'f',b=>'p'});
 	ok(all PDL::approx($pc, $ans_p, $eps) );
 }
-
 
 {
 	my $pc;

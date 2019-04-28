@@ -523,6 +523,7 @@ Libtmp/Image2D/rotate.c
 Libtmp/Image2D/t/image2d.t
 Libtmp/ImageND/imagend.pd
 Libtmp/ImageND/Makefile.PL
+Libtmp/ImageND/t/imagend.t
 Libtmp/ImageRGB/imagergb.pd
 Libtmp/ImageRGB/Makefile.PL
 Libtmp/ImageRGB/pdlppm.h
@@ -734,7 +735,6 @@ t/hdrs.t
 t/hist.t
 t/howbig.t
 t/ica.t
-t/imagend.t
 t/imagergb.t
 t/inline-with.t
 t/inlinepdlpp.t
