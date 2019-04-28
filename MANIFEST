@@ -417,6 +417,7 @@ Libtmp/Filter/Makefile.PL
 Libtmp/Fit/Gaussian/gauss.c
 Libtmp/Fit/Gaussian/gaussian.pd
 Libtmp/Fit/Gaussian/Makefile.PL
+Libtmp/Fit/Gaussian/t/gauss.t
 Libtmp/Fit/Linfit.pm
 Libtmp/Fit/LM.pm
 Libtmp/Fit/Makefile.PL
@@ -718,7 +719,6 @@ t/flexraw_fortran.t
 t/flow.t
 t/func.pdl
 t/func.t
-t/gauss.t
 t/hdf_sd.t
 t/hdf_vdata.t
 t/hdf_vgroup.t

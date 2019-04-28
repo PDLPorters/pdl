@@ -1,14 +1,8 @@
-# Test routine for PDL::Fit::Gaussian module
-
-use PDL;
-use PDL::Fit::Gaussian;
-
-use Test::More tests => 3;
-
 use strict;
 use warnings;
-
-kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+use Test::More;
+use PDL;
+use PDL::Fit::Gaussian;
 
 sub nint{int($_[0]->at+0.5)};
 
