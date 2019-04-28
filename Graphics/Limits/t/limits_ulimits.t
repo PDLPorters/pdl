@@ -1,43 +1,34 @@
-
+use strict;
+use warnings;
 use Test::More;
 use PDL;
-
-BEGIN {
-  eval "use PDL::Slatec;";
-  if ( !$@ ) {
-    eval "use PDL::Graphics::Limits;";
-    plan tests => 26;
-  } else {
-    plan skip_all => 'PDL::Slatec not available';
-  }
-};
+use PDL::Graphics::Limits;
 
 #####################################################################
 # test user override limits.  only need to worry about how they affect
 # the bounding algorithms.  they shouldn't be affected by errors,
 # so don't toss them in the test.
 
-$x1 = pdl( 1, 2, 3 );
-$x2 = pdl( 2, 3, 4 );
+my $x1 = pdl( 1, 2, 3 );
+my $x2 = pdl( 2, 3, 4 );
 
-$y1 = pdl( 10, 8, 3 );
-$y2 = pdl( 0, 2, 4 );
+my $y1 = pdl( 10, 8, 3 );
+my $y2 = pdl( 0, 2, 4 );
 
-@udsets_arr  = ( [ $x1, $y1 ], 
+my @udsets_arr  = ( [ $x1, $y1 ], 
 	         [ $x2, $y2 ] );
 
-@udsets_hash = ( [ { x => $x1, y => $y1 },
+my @udsets_hash = ( [ { x => $x1, y => $y1 },
 	           { x => $x2, y => $y2 } ] );
-
 
 #############################################################3
 #### Bounds => MinMax
 
-%attr = ( Bounds => 'MinMax', Clean => 'None' );
+my %attr = ( Bounds => 'MinMax', Clean => 'None' );
 
 # array based
 
-@tests = ( 
+my @tests = ( 
 	  [ 'none 0', 
 	    [ ],
 	    [ 1, 4, 0, 10 ]
@@ -89,17 +80,12 @@ $y2 = pdl( 0, 2, 4 );
 	  ],
 
 	);
-       
 
-foreach my $test ( @tests )
-{
+foreach my $test ( @tests ) {
   my ( $msg, $limits, $exp ) = @$test;
-
-  my @range = limits( @udsets_arr, { %attr, Limits => $limits } );
-  ok( mostly_eq_array( \@range, $exp ), "array: $msg" );
+  my $range = pdl limits( @udsets_arr, { %attr, Limits => $limits } );
+  ok( all(approx $range, pdl $exp), "array: $msg" );
 }
-
-
 
 @tests = ( 
 	  [ 'none', 
@@ -144,14 +130,11 @@ foreach my $test ( @tests )
 
 	);
 
-foreach my $test ( @tests )
-{
+foreach my $test ( @tests ) {
   my ( $msg, $limits, $exp ) = @$test;
-
-  my @range = limits( @udsets_hash, { %attr, Limits => $limits,  VecKeys => [ qw/ x y / ] } );
-  ok( mostly_eq_array( \@range, $exp ), "hash: $msg" );
+  my $range = pdl limits( @udsets_hash, { %attr, Limits => $limits,  VecKeys => [ qw/ x y / ] } );
+  ok( all(approx $range, pdl $exp), "hash: $msg" );
 }
-
 
 #############################################################
 #### Bounds => ZScale
@@ -202,31 +185,11 @@ foreach my $test ( @tests )
 	  ],
 
 	);
-       
 
-foreach my $test ( @tests )
-{
+foreach my $test ( @tests ) {
   my ( $msg, $limits, $exp ) = @$test;
-
-  my @range = limits( @udsets_arr, { %attr, Limits => $limits } );
-  ok( mostly_eq_array( \@range, $exp ), "array: $msg" ) or diag "(@range), [@$exp]\n";
+  my $range = pdl limits( @udsets_arr, { %attr, Limits => $limits } );
+  ok( all(approx $range, pdl $exp), "array: $msg" ) or diag "($range), [@$exp]\n";
 }
 
-# check equality of array refs up to a tolerance
-sub mostly_eq_array {
-  my ($x, $y) = @_;
-
-  my $tol = 1e-9;
-
-  for (my $i=0;$i<@$x;$i++) {
-    return 0 unless (abs($$x[$i] - $$y[$i]) < $tol);
-  }
-
-  return 1;
-}
-
-
-
-
-
-
+done_testing;

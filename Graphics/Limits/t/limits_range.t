@@ -1,16 +1,6 @@
-
 use Test::More;
 use PDL;
-
-BEGIN {
-  eval "use PDL::Slatec;";
-  if ( !$@ ) {
-    eval "use PDL::Graphics::Limits;";
-    plan tests => 6;
-  } else {
-    plan skip_all => 'PDL::Slatec not available';
-  }
-};
+use PDL::Graphics::Limits;
 
 #################################################################
 
@@ -50,4 +40,4 @@ ok( all(approx( pdl(@range), pdl ( 1, 4, -0.4, 8.9 ) )), 'Zscale, None' );
 @range = limits( [ 1, 2 ], [ 3, 4 ], { Bounds => 'MinMax', Clean => 'None' } );
 ok( eq_array( \@range, [ 1, 3, 2, 4 ] ), "scalars in the mix " );
 
-
+done_testing;

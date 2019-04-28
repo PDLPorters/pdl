@@ -1,20 +1,9 @@
-use PDL;
-
-use Test::More;
-use Test::Exception;
-
 use strict;
 use warnings;
-
-BEGIN {
-	eval {
-		require PDL::Slatec;
-		require PDL::Graphics::Limits;
-		1;
-	} or plan skip_all => 'could not load modules';
-}
-
-plan tests => 21;
+use PDL;
+use Test::More;
+use Test::Exception;
+require PDL::Graphics::Limits;
 
 *normalize_dsets = \&PDL::Graphics::Limits::normalize_dsets;
 *parse_vecspecs = \&PDL::Graphics::Limits::parse_vecspecs;
@@ -264,3 +253,4 @@ my %keys = ( KeySpec => parse_vecspecs( $keys ) );
 
 ############################################
 
+done_testing;

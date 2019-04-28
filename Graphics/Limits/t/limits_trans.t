@@ -1,28 +1,20 @@
-
+use strict;
+use warnings;
 use Test::More;
 use PDL;
+use PDL::Graphics::Limits;
 
-BEGIN {
-  eval "use PDL::Slatec;";
-  if ( !$@ ) {
-    eval "use PDL::Graphics::Limits;";
-    plan tests => 8;
-  } else {
-    plan skip_all => 'PDL::Slatec not available';
-  }
-};
+my $x1 = pdl( 1, 2, 3 );
+my $x2 = pdl( 2, 3, 4 );
 
-$x1 = pdl( 1, 2, 3 );
-$x2 = pdl( 2, 3, 4 );
-
-$y1 = pdl( 10, 3, 4 );
-$y2 = pdl( -1, 2, 4 );
+my $y1 = pdl( 10, 3, 4 );
+my $y2 = pdl( -1, 2, 4 );
 
 sub trans { $_[0] * 10 };
 sub trans2 { $_[0] * 11 };
 
-@udsets = ( [ $x1, [ $y1, \&trans ]], [ $x2, $y2 ] );
-@limits = limits( @udsets, { Bounds => 'MinMax', Clean => 'None' } );
+my @udsets = ( [ $x1, [ $y1, \&trans ]], [ $x2, $y2 ] );
+my @limits = limits( @udsets, { Bounds => 'MinMax', Clean => 'None' } );
 ok( eq_array( \@limits, [ 1, 4, -1, 100 ] ), 'array: y1 trans' );
 
 @udsets = ( [ $x1, $y1], [ $x2, $y2 ] );
@@ -71,3 +63,4 @@ ok( eq_array( \@limits, [ 1, 4, -10, 40 ] ), 'hash: y* trans y1 undef' );
 			 } );
 ok( eq_array( \@limits, [ 1, 4, -11, 100 ] ), 'hash: y1 trans y2 trans2' );
 
+done_testing;

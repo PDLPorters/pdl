@@ -1,17 +1,7 @@
-
 use strict;
 use warnings;
 use Test::More;
-
-BEGIN {
-  eval "use PDL::Slatec;";
-  if ( !$@ ) {
-    eval "use PDL::Graphics::Limits;";
-    plan tests => 12;
-  } else {
-    plan skip_all => 'PDL::Slatec not available';
-  }
-};
+use PDL::Graphics::Limits;
 
 *parse_vecspec = \&PDL::Graphics::Limits::parse_vecspec;
 
@@ -76,3 +66,4 @@ for my $spec ( @bad )
   ok( $@, "$spec" );
 }
 
+done_testing;

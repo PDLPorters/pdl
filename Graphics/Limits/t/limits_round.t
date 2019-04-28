@@ -1,20 +1,12 @@
-
+use strict;
+use warnings;
 use PDL::LiteF;
 use Test::More;
-
-BEGIN {
-  eval "use PDL::Slatec;";
-  if ( !$@ ) {
-    eval "use PDL::Graphics::Limits;";
-    plan tests => 37;
-  } else {
-    plan skip_all => 'PDL::Slatec not available';
-  }
-};
+use PDL::Graphics::Limits;
 
 *round_pow = \&PDL::Graphics::Limits::round_pow;
 
-@round_tests =
+my @round_tests =
  ( 
   [ -100, -200, -50 ],
   [ -11, -20, -10 ],
@@ -64,3 +56,5 @@ for my $test ( @round_tests )
 
   ok( approx($test->[1],$down,$eps) && approx($test->[2],$up,$eps), 'round_pow('. $test->[0] .')' );
 }
+
+done_testing;

@@ -1,16 +1,6 @@
-
 use Test::More;
 use PDL;
-
-BEGIN {
-  eval "use PDL::Slatec;";
-  if ( !$@ ) {
-    eval "use PDL::Graphics::Limits;";
-    plan tests => 6;
-  } else {
-    plan skip_all => 'PDL::Slatec not available';
-  }
-};
+use PDL::Graphics::Limits;
 
 $x1 = pdl( 1, 2, 3 );
 $x2 = pdl( 2, 3, 4 );
@@ -54,3 +44,4 @@ ok( eq_array( \@range, [ 0.5, 4, 0, 10 ] ), 'hash: xerr symmetric, y none' );
       		 } );
 ok( eq_array( \@range, [ 0.5, 4, 0, 10 ] ), 'hash: xerr asymmetric, y none' );
 
+done_testing;
