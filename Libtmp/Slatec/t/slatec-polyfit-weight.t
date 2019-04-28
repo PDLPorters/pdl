@@ -1,8 +1,9 @@
-use Test::More;
-use Test::Exception;
-
 use strict;
 use warnings;
+use Test::More;
+use Test::Exception;
+use PDL::LiteF;
+use PDL::Slatec;
 
 ## Issue information
 ##
@@ -11,23 +12,6 @@ use warnings;
 ##
 ## <https://sourceforge.net/p/pdl/bugs/368/>
 ## <https://github.com/PDLPorters/pdl/issues/48>
-
-use PDL::LiteF;
-use PDL::Config;
-
-BEGIN {
-    unless ($PDL::Config{WITH_SLATEC} &&
-	    eval {
-		require PDL::Slatec;
-		PDL::Slatec->import();
-		1;
-	    }
-	) {
-	plan skip_all => "PDL::Slatec not available";
-    }
-}
-
-plan tests => 3;
 
 ## Set up data
 my $ecf = sequence(999);

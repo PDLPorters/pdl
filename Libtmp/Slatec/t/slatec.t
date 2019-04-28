@@ -1,23 +1,7 @@
 # -*-perl-*-
 use PDL::LiteF;
-use PDL::Config;
 use Test::More;
-my $ntests;
-BEGIN {
-   if ($PDL::Config{WITH_SLATEC}) {
-      eval " use PDL::Slatec; ";
-      $loaded = ($@ ? 0 : 1);
-      if ($loaded) {
-         $ntests = 40;
-         plan tests => $ntests;
-      } 
-   }
-   else { 
-      ## print STDERR "$@\n";
-      plan skip_all => 'PDL::Slatec not available';
-   }
-}
-
+use PDL::Slatec;
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -273,3 +257,4 @@ ok(all($err == 0));
 exit(0);
 =cut
 
+done_testing;
