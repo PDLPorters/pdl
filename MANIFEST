@@ -253,6 +253,7 @@ Graphics/LUT/ramps/null.fits
 Graphics/LUT/ramps/ramp.fits
 Graphics/LUT/ramps/stairs.fits
 Graphics/LUT/README
+Graphics/LUT/t/lut.t
 Graphics/LUT/tables/aips0.fits
 Graphics/LUT/tables/backgr.fits
 Graphics/LUT/tables/bgyrw.fits
@@ -735,7 +736,6 @@ t/lgamma.t
 t/linfit.t
 t/lite_loads_twice.t
 t/lm.t
-t/lut.t
 t/lvalue.t
 t/magic.t
 t/matmult.t

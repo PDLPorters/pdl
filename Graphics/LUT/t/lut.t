@@ -1,8 +1,6 @@
-# -*-perl-*-
 use strict;
 use warnings;
-use Test::More tests => 8;
-
+use Test::More;
 use PDL::LiteF;
 use PDL::Types;
 use PDL::Graphics::LUT;
@@ -33,3 +31,5 @@ ok( all(approx($cols[1],$cols3[1], 1e-6)), "intensity ramp vals check")
     $cols[1].'',
     $cols3[1].'',
   ];
+
+done_testing;
