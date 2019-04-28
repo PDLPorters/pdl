@@ -361,6 +361,8 @@ IO/GD/GD.pd
 IO/GD/Makefile.PL
 IO/GD/TODO
 IO/GD/typemap
+IO/GD/t/gd_oo_tests.t
+IO/GD/t/gd_tests.t
 IO/HDF/buildfunc.pm
 IO/HDF/Changes
 IO/HDF/HDF.pm
@@ -706,8 +708,6 @@ t/flow.t
 t/func.pdl
 t/func.t
 t/gauss.t
-t/gd_oo_tests.t
-t/gd_tests.t
 t/hdf_sd.t
 t/hdf_vdata.t
 t/hdf_vgroup.t

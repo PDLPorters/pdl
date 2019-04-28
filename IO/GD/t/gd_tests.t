@@ -1,51 +1,20 @@
-#!/usr/bin/perl
-
-#
 # t/gd_tests.t - tests functions in the PDL::IO::GD module
-#
 # Judd Taylor, USF IMaRS
 # 13 March 2003
-#
 
 use strict;
 use PDL;
-use PDL::Config;
 use Test::More;
 use File::Temp qw(tempdir);
+use PDL::IO::GD;
 
-BEGIN
-{
-    use PDL::Config;
-    if ( $PDL::Config{WITH_GD} ) 
-    {
-        eval( " use PDL::IO::GD; " );
-        if( $@ )
-        {
-            plan skip_all => "PDL::IO::GD requires the gd image library. \$@='$@'";
-        }  
-        else
-        {
-            plan tests => 13;
-        }
-    }
-    else
-    {
-        plan skip_all => "PDL::IO::GD not compiled.";
-    }
-}
-
-sub tapprox
-{
+sub tapprox {
     my $x = shift;
     my $y = shift;
     my $d = abs($x - $y);
     #ok( all($d < 1.0e-5) );
     return all($d < 1.0e-5);
 }
-
-use ExtUtils::testlib;
-
-use PDL::IO::GD;
 
 # Test Files:
 my $tempdir = tempdir( CLEANUP=>1 );
@@ -59,78 +28,41 @@ my $testfile4 = "$tempdir/test_nocomp.png";
 # Write out the lutfile below, so we don't have to include it in the distro:
 write_lut($lutfile);
 
-# Start the tests:
-#
-
-# TEST 1:
-# Load the lutfile from the ascii file we just created:
 my $lut = load_lut( $lutfile );
-print "Dims of loaded lut: " . join(", ", $lut->dims()) . "\n";
 ok( ($lut->dim(0) == 3 && $lut->dim(1) == 256) );
 
-# TEST 2:
-print "Test writing byte (8bit) PNG image...\n";
 my $pdl = sequence(byte, 30, 30);
 write_png( $pdl, $lut, $testfile1 );
-ok( 1 );
 
-# TEST 3:
-print "Testing writing true color (32 bit) PNG image...\n";
 my $tc_pdl = sequence(byte, 100, 100, 3);
 write_true_png( $tc_pdl, $testfile2 );
-ok( 1 );
 
-# TEST 4:
-print "Test reading byte (8bit) PNG image...\n";
 my $image = read_png($testfile1);
 ok( tapprox( $pdl, $image ) );
 $image = null;
 
-# TEST 5:
-print "Test reading true color PNG image...\n";
 $image = read_true_png( $testfile2 );
 ok( tapprox( $image, $tc_pdl ) );
 
-# TEST 6:
-print "Test reading byte (8bit) PNG Color Table...\n";
 my $lut2 = read_png_lut( $testfile1 );
 ok( tapprox( $lut, $lut2 ) );
 
-# TESTS 7-9:
-# Test the compression level stuff:
-print "Test writing byte (8bit) PNG image with various compression levels...\n";
 $pdl = sequence(byte, 30, 30);
 write_png_ex($pdl, $lut, $testfile3, 0);
-ok( 1 );
 write_png_ex($pdl, $lut, $testfile3, 9);
-ok( 1 );
 write_png_best($pdl, $lut, $testfile3);
-ok( 1 );
 
-# TESTS 10-12:
-print "Testing writing true color (32 bit) PNG image with various compression levels...\n";
 $pdl = sequence(100, 100, 3);
 write_true_png_ex($pdl, $testfile4, 0);
-ok( 1 );
 write_true_png_ex($pdl, $testfile3, 9);
-ok( 1 );
 write_true_png_best($pdl, $testfile3 );
-ok( 1 );
 
-# TEST 13:
-print "Testing recompressiong PNG image recompress_png_best()...\n";
 recompress_png_best( $testfile3 );
 ok( tapprox( read_png( $testfile4 ), read_png( $testfile3 ) ) );
 
-# Remove the testfiles: 
-#
-for ( $lutfile, $testfile1, $testfile2, $testfile3, $testfile4 )
-    { unlink( $_ ); }
+done_testing;
 
-exit(0);
-
-sub write_lut
-{
+sub write_lut {
     my $filename = shift;
     open( LUT, ">$filename" )
         or die "Can't write $filename: $!\n";
