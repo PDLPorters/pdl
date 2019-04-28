@@ -354,6 +354,8 @@ IO/FITS/FITS.pm
 IO/FITS/Makefile.PL
 IO/FlexRaw/FlexRaw.pm
 IO/FlexRaw/Makefile.PL
+IO/FlexRaw/t/flexraw.t
+IO/FlexRaw/t/iotypes.t
 IO/GD/Changes
 IO/GD/GD.pd
 IO/GD/Makefile.PL
@@ -690,7 +692,6 @@ t/erfi.t
 t/familyfree.t
 t/fft.t
 t/fits.t
-t/flexraw.t
 t/flexraw_fortran.t
 t/flow.t
 t/func.pdl
@@ -719,7 +720,6 @@ t/inlinepdlpp.t
 t/interp.t
 t/interp_slatec.t
 t/interpol.t
-t/iotypes.t
 t/lgamma.t
 t/limits_00.t
 t/limits_errb.t

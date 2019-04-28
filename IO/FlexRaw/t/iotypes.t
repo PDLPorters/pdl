@@ -1,17 +1,10 @@
+use strict;
 use PDL::LiteF;
 use PDL::Types ':All';
-
 use PDL::IO::FlexRaw;
 use PDL::Config;
 use File::Temp;
-
 use Test::More;
-use strict;
-
-# eventually this should test all our io routines with all
-# supported types
-
-# $SIG{__DIE__} = sub {print Carp::longmess(@_); die ;};
 
 our @types = map { print "making type $_\n";
 		   new PDL::Type typefld($_,'numval') }
