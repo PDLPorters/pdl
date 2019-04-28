@@ -365,6 +365,7 @@ IO/FITS/Makefile.PL
 IO/FlexRaw/FlexRaw.pm
 IO/FlexRaw/Makefile.PL
 IO/FlexRaw/t/flexraw.t
+IO/FlexRaw/t/flexraw_fortran.t
 IO/FlexRaw/t/iotypes.t
 IO/GD/Changes
 IO/GD/GD.pd
@@ -721,7 +722,6 @@ t/erf.t
 t/erfi.t
 t/familyfree.t
 t/fits.t
-t/flexraw_fortran.t
 t/flow.t
 t/func.pdl
 t/hdf_sd.t

@@ -1,22 +1,18 @@
+use strict;
 use PDL::LiteF;
 use PDL::IO::FlexRaw;
 use PDL::Config;
 use Config;
-
-use strict;
-
 use Test::More;
 use File::Temp qw(tempfile);
 use File::Spec;
 
-my ($data,$head,$hdr, $prog_iter);
+my $prog_iter;
 
-BEGIN {
-   (undef, $data) = tempfile("rawXXXX", SUFFIX=>'_data', TMPDIR=>1);
-   $data =~ s/\\/\//g if $^O =~ /MSWin32/;
-   $hdr = $data . '.hdr';
-   ($head = $data) =~ s/_data$//;
-}
+(undef, my $data) = tempfile("rawXXXX", SUFFIX=>'_data', TMPDIR=>1);
+$data =~ s/\\/\//g if $^O =~ /MSWin32/;
+my $hdr = $data . '.hdr';
+(my $head = $data) =~ s/_data$//;
 
 $|=1;
 
@@ -29,30 +25,15 @@ $Verbose |= $PDL::Verbose;
 my $exec = $^O =~ /win32/i ? '.exe' : '';
 my $null = $^O =~ /win32/i ? ' 2>nul' : ' 2>/dev/null';
 
-BEGIN{
-
-   my $ntests = 29;
-   my $datalen;
-   $datalen = length($data);
-
-   eval " use PDL::Slatec; ";
-   my $loaded = ($@ ? 0 : 1);
-   unless ( $loaded ) {
-      plan skip_all => "Skipped tests as F77 compiler not found";
-   } elsif ($Config{archname} =~ /(x86_64|ia64)/) {
-      plan skip_all => "Skipped tests for 64 bit architecture: $1";
-   } elsif ($datalen > 70) {
-      plan skip_all => "temp file path too long for f77 ($datalen chars), skipping all tests";
-   } else {
-      eval " use ExtUtils::F77; ";
-      if ( $@ ) {
-         plan skip_all => "Skip all tests as ExtUtils::F77 not found"; 
-         exit 0;
-      } else {
-         plan tests => $ntests;
-      }
-   }
-}
+my $datalen = length($data);
+eval "use PDL::Slatec";
+plan skip_all => "Skipped tests as no Slatec" if $@;
+plan skip_all => "Skipped tests for 64 bit architecture: $1"
+  if $Config{archname} =~ /(x86_64|ia64)/;
+plan skip_all => "temp file path too long for f77 ($datalen chars), skipping all tests"
+  if $datalen > 70;
+eval "use ExtUtils::F77";
+plan skip_all => "Skip all tests as ExtUtils::F77 not found" if $@;
 
 my $F77;
 my $F77flags;
@@ -678,3 +659,5 @@ foreach (@req) {
 }
 unlink $data;
 ok( $ok, "writeflex with file handle" );
+
+done_testing;
