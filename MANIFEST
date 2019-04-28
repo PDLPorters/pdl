@@ -409,11 +409,12 @@ Libtmp/Fit/Makefile.PL
 Libtmp/Fit/Polynomial.pm
 Libtmp/Func.pm
 Libtmp/GIS/Makefile.PL
-Libtmp/GIS/Proj/include/projects.h
 Libtmp/GIS/Proj/Makefile.PL
 Libtmp/GIS/Proj/Proj.pd
 Libtmp/GIS/Proj/README
 Libtmp/GIS/Proj/TODO
+Libtmp/GIS/Proj/include/projects.h
+Libtmp/GIS/Proj/t/gis_proj.t
 Libtmp/GSL/DIFF/FUNC.c
 Libtmp/GSL/DIFF/gsl_diff.pd
 Libtmp/GSL/DIFF/Makefile.PL
@@ -694,7 +695,6 @@ t/func.t
 t/gauss.t
 t/gd_oo_tests.t
 t/gd_tests.t
-t/gis_proj.t
 t/gsl_diff.t
 t/gsl_integ.t
 t/gsl_interp.t

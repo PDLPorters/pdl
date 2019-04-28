@@ -1,6 +1,3 @@
-#!/usr/bin/perl
-
-#
 # t/gis_proj.t
 #
 # Test program for the PDL::GIS::Proj library
@@ -12,27 +9,7 @@
 use strict;
 use PDL;
 use Test::More;
-
-BEGIN
-{
-    use PDL::Config;
-    if ( $PDL::Config{WITH_PROJ} )
-    {
-        eval( " use PDL::GIS::Proj; " );
-        if( $@ )
-        {
-            plan skip_all => "PDL::GIS::Proj compiled, but not available.";
-        }
-        else
-        {
-            plan tests => 15;
-        }
-    }
-    else
-    {
-        plan skip_all => "PDL::GIS::Proj module not compiled.";
-    }
-}
+use PDL::GIS::Proj;
 
 sub tapprox
 {
