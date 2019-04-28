@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use PDL::LiteF;
 use PDL::Transform;
-use Test::More tests => 35;
+use Test::More;
 use Test::Exception;
 
 {
@@ -105,7 +105,7 @@ SKIP: {
 
 {
 	use PDL::IO::FITS;
-	my $m51 = rfits('m51.fits');
+	my $m51 = rfits('../../m51.fits');
 	my $m51map = $m51->map(t_identity,{method=>'s'}); #SHOULD be a no-op
 	ok(all($m51==$m51map));
 
@@ -187,7 +187,7 @@ SKIP: {
 	    #was segfaulting on 'g' only
 	    use PDL::IO::FITS;
 	    use PDL::Transform::Cartography;
-	    my $m51 = rfits('m51.fits');
+	    my $m51 = rfits('../../m51.fits');
 	    my $tp = t_perspective(r0=>200,iu=>'arcmin',origin=>[-10,3]);
 	    foreach my $method(qw/s l c h g j H G/){ #f doesn't work so well on images this big
 		lives_ok {$m51->map(!$tp,{nofits=>1,method=>$method})} "no map segfault m=>$method";

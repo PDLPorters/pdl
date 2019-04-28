@@ -670,6 +670,7 @@ Libtmp/Transform/Proj4/README
 Libtmp/Transform/Proj4/t/proj_transform.t
 Libtmp/Transform/Proj4/t/proj_transform2.t
 Libtmp/Transform/Proj4/TODO
+Libtmp/Transform/t/transform.t
 Libtmp/Transform/transform.pd
 m51.fits
 macosx/README
@@ -788,7 +789,6 @@ t/subclass3.t
 t/subclass4.t
 t/thread.t
 t/thread_def.t
-t/transform.t
 t/trig.t
 t/ufunc.t
 t/unpdl.t
