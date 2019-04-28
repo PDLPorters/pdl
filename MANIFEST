@@ -652,6 +652,8 @@ Libtmp/Transform/Proj4/Makefile.PL
 Libtmp/Transform/Proj4/Proj4.pd
 Libtmp/Transform/Proj4/README
 Libtmp/Transform/Proj4/TODO
+Libtmp/Transform/Proj4/t/proj_transform.t
+Libtmp/Transform/Proj4/t/proj_transform2.t
 Libtmp/Transform/transform.pd
 m51.fits
 macosx/README
@@ -767,8 +769,6 @@ t/pp_line_numbers.t
 t/pptest.t
 t/primitive.t
 t/primitive2.t
-t/proj_transform.t
-t/proj_transform2.t
 t/pthread.t
 t/pthread_auto.t
 t/pthreadBarf.t

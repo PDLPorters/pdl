@@ -1,19 +1,8 @@
-#!/usr/bin/perl
-
 use strict;
 use warnings;
 use PDL;
+use PDL::Transform::Proj4;
 use Test::More;
-
-use PDL::Config;
-plan skip_all => "PDL::Transform::Proj4 module not compiled."
-    unless $PDL::Config{WITH_PROJ};
-eval { require PDL::Transform::Proj4; PDL::Transform::Proj4->import; };
-plan skip_all => "PDL::Transform::Proj4 module compiled, but not available."
-    if $@;
-plan skip_all => "PDL::Transform::Proj4 module requires the PDL::Bad module!"
-    unless $PDL::Bad::Status;
-plan tests => 20;
 
 # Test integration with PDL::Transform
 
@@ -116,6 +105,8 @@ SKIP: {
    }
 
 }
+
+done_testing;
 
 sub get_ref_robin_slices {
     my @slices = ();

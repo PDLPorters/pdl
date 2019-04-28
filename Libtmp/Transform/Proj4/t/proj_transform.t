@@ -1,17 +1,8 @@
-#!/usr/bin/perl
-
 use strict;
 use warnings;
 use PDL;
 use Test::More;
-use PDL::Config;
-plan skip_all => "PDL::Transform::Proj4 module not compiled."
-    unless $PDL::Config{WITH_PROJ};
-eval { require PDL::Transform::Proj4; PDL::Transform::Proj4->import; };
-plan skip_all => "PDL::Transform::Proj4 module compiled, but not available."
-    if $@;
-plan skip_all => "PDL::Transform::Proj4 module requires the PDL::Bad module!"
-    unless $PDL::Bad::Status;
+use PDL::Transform::Proj4;
 
 my $test_jpegtopnm = 1;
 if($^O =~ /MSWin32/i) {
@@ -24,7 +15,6 @@ plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not 
     if !$test_jpegtopnm;
 
 my @projections = sort keys %{PDL::GIS::Proj::load_projection_information()};
-plan tests => 25 + 2 * @projections;
 
 # Test integration with PDL::Transform
 
@@ -127,6 +117,8 @@ for my $proj (@projections) {
    is $@, '';
    isnt $proj, undef;
 }
+
+done_testing;
 
 sub get_ref_robin_slices {
     my @slices = ();
