@@ -1,31 +1,22 @@
-# -*-perl-*-
-#
+use strict;
+use warnings;
 use Test::More;
 use PDL::LiteF;
 
-use strict;
-use warnings;
+# Must load slatec before Func since Func loads slatec itself
+# and this line will be a no-op (and so we will not be able to
+# spot that Slatec has failed)
+my $slatec;
+BEGIN { eval "use PDL::Slatec"; $slatec = ($@ ? 0 : 1); }
 
-my $loaded; my $slatec;
-BEGIN {
-    # Must load slatec before Func since Func loads slatec itself
-    # and this line will be a no-op (and so we will not be able to
-    # spot that Slatec has failed)
-    eval "use PDL::Slatec";
-    $slatec = ($@ ? 0 : 1);
-
-    eval "use PDL::Func;";
-    $loaded = ($@ ? 0 : 1);
-
-    plan tests => $slatec ? 16 : 5;
-}
+use PDL::Func;
 
 ##########################################################
 
 my $x = float( 1, 2, 3, 4, 5, 6, 8, 10 );
 my $y = ($x * 3) * ($x - 2);
 
-my $obj = init PDL::Func ( x => $x, y => $y );
+my $obj = PDL::Func->init( x => $x, y => $y );
 is( $obj->scheme() , 'Linear', 'default scheme is linear' );  # 1
 
 my $xi = $x - 0.5;
@@ -44,9 +35,10 @@ ok( all ($oerr-$err) == 0 , 'no error after interpolation');
 eval { $obj->gradient( $xi ); };
 isnt( $@ , '' ,'calling unavailable method'); # 5
 
-## Test: Hermite
-#
-exit unless $slatec;
+unless ($slatec) {
+  done_testing;
+  exit;
+}
 
 $x = sequence(float,10);
 $y = $x*$x + 0.5;
@@ -90,5 +82,4 @@ $ans = cat( $xi*$xi+43.3, $xi*$xi*$xi-23 );
 $d   = abs( $ans - $yi );
 ok( all($d <= 6), 'threading: correct answer' );
 
-# end
 done_testing;

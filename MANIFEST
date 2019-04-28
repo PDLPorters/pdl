@@ -660,6 +660,7 @@ Libtmp/Slatec/slatec/xgetua.f
 Libtmp/Slatec/t/slatec-polyfit-weight.t
 Libtmp/Slatec/t/slatec.t
 Libtmp/t/diskcache.t
+Libtmp/t/func.t
 Libtmp/Transform/Cartography/Cartography.pm
 Libtmp/Transform/Cartography/earth_coast.vec.fits
 Libtmp/Transform/Cartography/earth_day.jpg
@@ -722,7 +723,6 @@ t/fits.t
 t/flexraw_fortran.t
 t/flow.t
 t/func.pdl
-t/func.t
 t/hdf_sd.t
 t/hdf_vdata.t
 t/hdf_vgroup.t
