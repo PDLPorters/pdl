@@ -533,6 +533,7 @@ Libtmp/Minuit/minuit.pd
 Libtmp/Minuit/minuitlib/futils.f
 Libtmp/Minuit/minuitlib/intracfalse.f
 Libtmp/Minuit/minuitlib/minuit.f
+Libtmp/Minuit/t/minuit.t
 Libtmp/Simplex/Makefile.PL
 Libtmp/Simplex/Simplex.pm
 Libtmp/Simplex/t/simplex.t
@@ -742,7 +743,6 @@ t/matmult.t
 t/matrix.t
 t/matrixops.t
 t/minmax-behavior.t
-t/minuit.t
 t/misc.t
 t/nat_complex.t
 t/niceslice.t
