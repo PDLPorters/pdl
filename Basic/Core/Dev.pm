@@ -260,7 +260,7 @@ sub isbigendian {
 # (i) O_NONBLOCK - open flag for non-blocking I/O (5/Aug/96)
 #
 
-
+# return exit code, so 0 = OK
 sub genpp {
 
    $gotstart = 0; @gencode = ();
@@ -306,6 +306,7 @@ sub genpp {
       }
 
    } # End while
+   0;
 }
 
 sub flushgeneric {  # Construct the generic code switch
@@ -350,10 +351,9 @@ sub genpp_cmdline {
   my ($in, $out) = @_;
   my $devpm = whereami_any()."/Core/Dev.pm";
   sprintf(_oneliner(<<'EOF'), $devpm) . qq{ "$in" > "$out"};
-require "%s"; PDL::Core::Dev->import(); genpp();
+require "%s"; PDL::Core::Dev->import(); exit genpp();
 EOF
 }
-
 
 # Standard PDL postamble
 #
