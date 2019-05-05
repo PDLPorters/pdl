@@ -278,6 +278,7 @@ sub make_PDL_Config_pm {
   print "Writing Basic/Core/Config.pm\n";
 
   my $versionFile = "Basic/Core/Config.pm";
+  require IO::Handle; # enable method calls on FHs
   open my $fh, ">", $versionFile
     or die "Couldn't open $versionFile for writing";
   print $fh "
