@@ -392,7 +392,6 @@ my @prereq = (
            'Config'              => 0,         #
            'Convert::UU'         => 0,         # for PDL::IO::Dumper
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
-           'English'             => 0,
            'Fcntl'               => 0,
            'File::Basename'      => 0,
            'File::Find'          => 0,

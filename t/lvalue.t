@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use English;
 use Test::More;
 use Test::Exception;
 
@@ -8,7 +7,7 @@ use PDL::LiteF;
 use PDL::Lvalue;
 
 BEGIN { 
-    if ( PDL::Lvalue->subs and !$PERLDB) {
+    if ( PDL::Lvalue->subs and !$^P) {
 	plan tests => 3;
     } else {
 	plan skip_all => "no lvalue sub support";

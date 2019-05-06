@@ -25,7 +25,6 @@ use warnings;
 use File::Path;
 use File::Basename;
 use ExtUtils::Manifest;
-use English;
 require Exporter;
 use Config;
 eval { require Devel::CheckLib };
@@ -264,11 +263,11 @@ sub isbigendian {
 # (i) O_NONBLOCK - open flag for non-blocking I/O (5/Aug/96)
 #
 
-my ($loopvar, $indent, @gencode); # guuhhhhhh
 # return exit code, so 0 = OK
 sub genpp {
 
-   my $gotstart = 0; @gencode = ();
+   my $gotstart = 0; my @gencode = ();
+   my ($loopvar, $indent);
 
    while (<>) { # Process files in @ARGV list - result to STDOUT
 
@@ -282,10 +281,10 @@ sub genpp {
          die "Found GENERICLOOP while searching for ENDGENERICLOOP\n" if $gotstart;
          $loopvar = $2;
          $indent = $1;
-         print $PREMATCH;
+         print $`;
 
          @gencode = ();  # Start saving code
-         push @gencode, $POSTMATCH;
+         push @gencode, $';
          $gotstart = 1;
          next;
       }
@@ -294,11 +293,11 @@ sub genpp {
 
          die "Found ENDGENERICLOOP while searching for GENERICLOOP\n" unless $gotstart;
 
-         push @gencode, $PREMATCH;
+         push @gencode, $`;
 
-         flushgeneric();  # Output the generic code
+         print flushgeneric($indent, $loopvar, \@gencode);  # Output the generic code
 
-         print $POSTMATCH;  # End of genric code
+         print $';  # End of genric code
          $gotstart = 0;
          next;
       }
@@ -315,34 +314,36 @@ sub genpp {
 }
 
 sub flushgeneric {  # Construct the generic code switch
-
-   print $indent,"switch ($loopvar) {\n\n";
+   my ($indent, $loopvar, $gencode) = @_;
+   my @m;
+   push @m, $indent,"switch ($loopvar) {\n\n";
 
    for my $case (PDL::Types::typesrtkeys()){
 
      my $type = $PDL_DATATYPES{$case};
 
      my $ppsym = $PDL::Types::typehash{$case}->{ppsym};
-     print $indent,"case $case:\n"; # Start of this case
-     print $indent,"   {";
+     push @m, $indent,"case $case:\n"; # Start of this case
+     push @m, $indent,"   {";
 
      # Now output actual code with substitutions
 
-     for  (@gencode) {
+     for  (@$gencode) {
         my $line = $_;
 
         $line =~ s/\bgeneric\b/$type/g;
         $line =~ s/\bgeneric_ppsym\b/$ppsym/g;
 
-        print "   ",$line;
+        push @m, "   ",$line;
      }
 
-     print "}break;\n\n";  # End of this case
+     push @m, "}break;\n\n";  # End of this case
    }
-   print $indent,"default:\n";
-   print $indent,'   croak ("Not a known data type code=%d",'.$loopvar.");\n";
-   print $indent,"}";
+   push @m, $indent,"default:\n";
+   push @m, $indent,'   croak ("Not a known data type code=%d",'.$loopvar.");\n";
+   push @m, $indent,"}";
 
+   join '', @m;
 }
 
 sub _oneliner {
