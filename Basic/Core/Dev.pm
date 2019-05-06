@@ -20,15 +20,19 @@ PDL development and is often used from within Makefile.PL's.
 
 package PDL::Core::Dev;
 
+use strict;
+use warnings;
 use File::Path;
 use File::Basename;
 use ExtUtils::Manifest;
-use English; require Exporter;
+use English;
+require Exporter;
+use Config;
 eval { require Devel::CheckLib };
 
-@ISA    = qw( Exporter );
+our @ISA    = qw( Exporter );
 
-@EXPORT = qw( isbigendian genpp %PDL_DATATYPES
+our @EXPORT = qw( isbigendian genpp %PDL_DATATYPES
 	     PDL_INCLUDE PDL_TYPEMAP
 	     PDL_AUTO_INCLUDE PDL_BOOT
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
@@ -38,6 +42,9 @@ eval { require Devel::CheckLib };
                 pdlpp_mkgen
                 got_complex_version
 		 );
+
+my $O_NONBLOCK = defined $Config{'o_nonblock'} ? $Config{'o_nonblock'}
+                : 'O_NONBLOCK';
 
 # Installation locations
 # beware: whereami_any now appends the /Basic or /PDL directory as appropriate
@@ -96,7 +103,7 @@ sub whereami_any {
 }
 
 sub whereami {
-   for $dir (@INC,qw|. .. ../.. ../../.. ../../../..|) {
+   for my $dir (qw|. .. ../.. ../../.. ../../../..|,@INC) {
       return ($_[0] ? $dir . '/Basic' : $dir)
 	if -e "$dir/Basic/Core/Dev.pm";
    }
@@ -106,7 +113,7 @@ sub whereami {
 }
 
 sub whereami_inst {
-   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../.. ../../../..|) {
+   for my $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../.. ../../../..|) {
       return ($_[0] ? $dir . '/PDL' : $dir)
 	if -e "$dir/PDL/Core/Dev.pm";
    }
@@ -170,16 +177,13 @@ my $inc = defined $PDL::Config{MALLOCDBG}->{include} ?
 my $libs = defined $PDL::Config{MALLOCDBG}->{libs} ?
   "$PDL::Config{MALLOCDBG}->{libs}" : '';
 
-%PDL_DATATYPES = ();
-foreach $key (keys %PDL::Types::typehash) {
+our %PDL_DATATYPES = ();
+foreach my $key (keys %PDL::Types::typehash) {
     $PDL_DATATYPES{$PDL::Types::typehash{$key}->{'sym'}} =
 	$PDL::Types::typehash{$key}->{'ctype'};
 }
 
 # non-blocking IO configuration
-
-$O_NONBLOCK = defined $Config{'o_nonblock'} ? $Config{'o_nonblock'}
-                : 'O_NONBLOCK';
 
 =head2 isbigendian
 
@@ -260,10 +264,11 @@ sub isbigendian {
 # (i) O_NONBLOCK - open flag for non-blocking I/O (5/Aug/96)
 #
 
+my ($loopvar, $indent, @gencode); # guuhhhhhh
 # return exit code, so 0 = OK
 sub genpp {
 
-   $gotstart = 0; @gencode = ();
+   my $gotstart = 0; @gencode = ();
 
    while (<>) { # Process files in @ARGV list - result to STDOUT
 
@@ -313,18 +318,18 @@ sub flushgeneric {  # Construct the generic code switch
 
    print $indent,"switch ($loopvar) {\n\n";
 
-   for $case (PDL::Types::typesrtkeys()){
+   for my $case (PDL::Types::typesrtkeys()){
 
-     $type = $PDL_DATATYPES{$case};
+     my $type = $PDL_DATATYPES{$case};
 
      my $ppsym = $PDL::Types::typehash{$case}->{ppsym};
      print $indent,"case $case:\n"; # Start of this case
      print $indent,"   {";
 
-     # Now output actual code with substutions
+     # Now output actual code with substitutions
 
      for  (@gencode) {
-        $line = $_;
+        my $line = $_;
 
         $line =~ s/\bgeneric\b/$type/g;
         $line =~ s/\bgeneric_ppsym\b/$ppsym/g;
