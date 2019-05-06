@@ -31,7 +31,7 @@ eval { require Devel::CheckLib };
 
 our @ISA    = qw( Exporter );
 
-our @EXPORT = qw( isbigendian genpp %PDL_DATATYPES
+our @EXPORT = qw( isbigendian genpp
 	     PDL_INCLUDE PDL_TYPEMAP
 	     PDL_AUTO_INCLUDE PDL_BOOT
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
@@ -154,33 +154,32 @@ unless ( %PDL::Config ) {
 
 # Data types to C types mapping
 # get the map from Types.pm
-{
-# load PDL::Types only if it has not been previously loaded
-  my $loaded_types = grep (m%(PDL|Core)/Types[.]pm$%, keys %INC);
-  $@ = ''; # reset
-  eval('require "'.whereami_any().'/Core/Types.pm"') # lets dist Types.pm win
-    unless $loaded_types; # only when PDL::Types not yet loaded
-  if($@) {  # if PDL::Types doesn't work try with full path (during build)
-    my $foo = $@;
-    $@="";
-    eval('require PDL::Types');
-    if($@) {
-      die "can't find PDL::Types: $foo and $@" unless $@ eq "";
-    }
-  }
+sub loadmod_Types {
+  # load PDL::Types only if it has not been previously loaded
+  return if grep (m%(PDL|Core)/Types[.]pm$%, keys %INC);
+  eval { require(whereami_any().'/Core/Types.pm') }; # lets dist Types.pm win
+  return if !$@;
+  # if PDL::Types doesn't work try with full path (during build)
+  my $foo = $@;
+  eval { require PDL::Types };
+  return if !$@;
+  die "can't find PDL::Types: $foo and $@";
 }
-PDL::Types->import();
+
+my %sym2type;
+sub load_Types {
+  loadmod_Types();
+  return \%sym2type if %sym2type;
+  %sym2type = map {
+    $PDL::Types::typehash{$_}->{'sym'} => $PDL::Types::typehash{$_}->{'ctype'}
+  } keys %PDL::Types::typehash;
+  \%sym2type;
+}
 
 my $inc = defined $PDL::Config{MALLOCDBG}->{include} ?
   "$PDL::Config{MALLOCDBG}->{include}" : '';
 my $libs = defined $PDL::Config{MALLOCDBG}->{libs} ?
   "$PDL::Config{MALLOCDBG}->{libs}" : '';
-
-our %PDL_DATATYPES = ();
-foreach my $key (keys %PDL::Types::typehash) {
-    $PDL_DATATYPES{$PDL::Types::typehash{$key}->{'sym'}} =
-	$PDL::Types::typehash{$key}->{'ctype'};
-}
 
 # non-blocking IO configuration
 
@@ -265,7 +264,7 @@ sub isbigendian {
 
 # return exit code, so 0 = OK
 sub genpp {
-
+   my $sym2type = load_Types();
    my $gotstart = 0; my @gencode = ();
    my ($loopvar, $indent);
 
@@ -295,7 +294,7 @@ sub genpp {
 
          push @gencode, $`;
 
-         print flushgeneric($indent, $loopvar, \@gencode);  # Output the generic code
+         print flushgeneric($indent, $loopvar, \@gencode, $sym2type);  # Output the generic code
 
          print $';  # End of genric code
          $gotstart = 0;
@@ -314,13 +313,13 @@ sub genpp {
 }
 
 sub flushgeneric {  # Construct the generic code switch
-   my ($indent, $loopvar, $gencode) = @_;
+   my ($indent, $loopvar, $gencode, $sym2type) = @_;
    my @m;
    push @m, $indent,"switch ($loopvar) {\n\n";
 
    for my $case (PDL::Types::typesrtkeys()){
 
-     my $type = $PDL_DATATYPES{$case};
+     my $type = $sym2type->{$case};
 
      my $ppsym = $PDL::Types::typehash{$case}->{ppsym};
      push @m, $indent,"case $case:\n"; # Start of this case
@@ -738,6 +737,7 @@ prints on C<STDOUT> XS text for F<Core.xs>.
 =cut
 
 sub datatypes_switch {
+  loadmod_Types();
   my $ntypes = $#PDL::Types::names;
   my @m;
   foreach my $i ( 0 .. $ntypes ) {
@@ -831,6 +831,7 @@ prints on C<STDOUT> XS text with badval initialisation, for F<Core.xs>.
 =cut
 
 sub generate_badval_init {
+  loadmod_Types();
   for my $type (PDL::Types::types()) {
     my $typename = $type->ctype;
     $typename =~ s/^PDL_//;

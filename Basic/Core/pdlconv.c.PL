@@ -6,10 +6,8 @@ use strict;
  
 use Config;
 use File::Basename qw(&basename &dirname);
- 
 require './Dev.pm'; PDL::Core::Dev->import;
-use vars qw( %PDL_DATATYPES );
-require './Types.pm'; #for typesrtkeys
+my $sym2type = PDL::Core::Dev::load_Types();
 
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
@@ -76,7 +74,7 @@ void pdl_${name}(pdl *a) {
 
 for my $in ( PDL::Types::typesrtkeys() ) {
 
-    my $intype = $PDL_DATATYPES{$in};
+    my $intype = $sym2type->{$in};
     print OUT <<"!WITH!SUBS!";
     case ${in}:
       {
@@ -194,7 +192,7 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 
 for my $in ( PDL::Types::typesrtkeys() ) {
 
-    my $intype = $PDL_DATATYPES{$in}; 
+    my $intype = $sym2type->{$in};
 
     print OUT <<"!WITH!SUBS!";
       case ${in}:
@@ -208,7 +206,7 @@ for my $in ( PDL::Types::typesrtkeys() ) {
     for my $targ ( PDL::Types::typesrtkeys() ) {
 
 	next if $in eq $targ; # Skip duplicates
-	my $targtype = $PDL_DATATYPES{$targ};
+	my $targtype = $sym2type->{$targ};
 
 	print OUT <<"!WITH!SUBS!";
 	   case ${targ}:
