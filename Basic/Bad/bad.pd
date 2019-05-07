@@ -15,13 +15,13 @@ my $bvalPerPdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 
 unless ( $bvalflag ) {
 
-    my $bulk_of_file = <<'!NO!SUBS!';
+    pp_addpm({At=>'Top'}, <<'!NO!SUBS!');
 
-=head2 NAME
+=head1 NAME
 
 PDL::Bad - PDL does not process bad values
 
-=head2 DESCRIPTION
+=head1 DESCRIPTION
 
 PDL has been compiled with WITH_BADVAL either 0 or undef,
 so it does not contain any bad-value support code.
@@ -32,7 +32,7 @@ WITH_BADVAL being true or false, easier.
 Implementation details are given in
 L<PDL::BadValues>.
 
-=head2 SYNOPSIS
+=head1 SYNOPSIS
 
  use PDL::Bad;
  print "\nBad value support in PDL is turned " .
@@ -40,7 +40,7 @@ L<PDL::BadValues>.
 
  Bad value support in PDL is turned off.
 
-=head2 VARIABLES
+=head1 VARIABLES
 
 There are currently three variables that this module defines
 which may be of use.
@@ -129,11 +129,6 @@ sub PDL::setbadtonan { return $_[0]->copy; }
 sub PDL::copybad { return $_[0]->copy; } # ignore the mask
 
 !NO!SUBS!
-
-    # Replace the head2 with head1
-    $bulk_of_file =~ s/head2/head1/g;
-    pp_addpm({At=>'Top'},$bulk_of_file);
-
 
     pp_add_exported( '',
 		     'badflag check_badflag badvalue orig_badvalue nbad nbadover ngood ngoodover ' .
@@ -1069,20 +1064,12 @@ pp_addhdr('
 ');
 }
 
-=head2 setnantobad, setbadtonan when using NaN for bad
-
-The behavior of these functions depend on whether C<PDL::Bad::UseNaN>
-is set to a true value. For PDL as currently distributed, this is
-typically not the case. That documentation is show first:
-
-=cut
-
 # setnantobad \ are straight copies if $PDL::Bad::UseNaN == 1
 # setbadtonan /
 #
 if ( $usenan ) {
     pp_add_exported( '', 'setnantobad setbadtonan' );
-	my $stuff_to_add_to_the_pm = <<'!NO!SUBS!';
+	pp_addpm(<<'!NO!SUBS!');
 
 =head2 setnantobad
 
@@ -1163,20 +1150,7 @@ sub PDL::setbadtonan{
 
 !NO!SUBS!
 
-	# Replace the head3 directives with head2, since that's what
-	# they should be in their final result.
-	$stuff_to_add_to_the_pm =~ s/head3/head2/g;
-	pp_addpm($stuff_to_add_to_the_pm);
-
 } else {
-
-=pod
-
-On the other hand, if usenan is not true, then any number can be used
-to designate a bad value, and this must be handled with greater care.
-This is the usual case, and the documentation in that case is this:
-
-=cut
 
     # usenan is not true, so we need to do something
 pp_def('setnantobad' . <<'=cut',
