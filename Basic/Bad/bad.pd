@@ -2,31 +2,6 @@
 package PDL::Bad;
 ';
 
-=pod
-
-=head1 bad.pd
-
-The PDL definition for bad value handling.
-
-What you are reading is the pod documentation as extracted directly from
-the .pd file, which is not what you will see reported on your own
-machine. (I'm guessing you're reading this from CPAN.) What you see on
-your own machine depends on your PDL's configuration, as discussed near
-the bottom of this document.
-
-=head1 DESCRIPTION
-
-The contents of Bad.pm depend on whether we have
-bad-value support in PDL.
-
-If we do not have bad support then the module just
-contains a set of methods which essentially do nothing
-(they may return 0 or undef or a copy of the input
-piddle [thankfully PDL::copy handles inplace ops])
-
-=cut
-
-
 use strict;
 
 # check for bad value support
@@ -35,15 +10,6 @@ use PDL::Core::Dev;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 my $bvalPerPdl = $PDL::Config{BADVAL_PER_PDL} || 0;
-
-#########################################################
-
-=head1 Docs for no Bad Value support
-
-If you don't have bad value support enabled, your docs for this module
-will look something like this.
-
-=cut
 
 # if no bad-value support, this is easy
 
