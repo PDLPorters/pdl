@@ -388,17 +388,9 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/Bugs/;
 
 my @prereq = (
-           'Carp'                => 0,         # Need to run
-           'Config'              => 0,         #
            'Convert::UU'         => 0,         # for PDL::IO::Dumper
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
-           'Fcntl'               => 0,
-           'File::Basename'      => 0,
-           'File::Find'          => 0,
 	   'File::Map'           => 0.57,      # test new mmap implementation
-           'File::Path'          => 0,
-	   'File::Spec'          => 0.6,
-	   'File::Temp'          => 0,
 	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
 	   'Filter::Simple'      => 0.88,      # for new PDL::NiceSlice
 	   'Inline'              => 0.83,      # fixed ILSM-finding
