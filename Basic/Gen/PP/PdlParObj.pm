@@ -275,12 +275,8 @@ sub get_xsnormdimchecks {
 	$str .= "   if($siz == -1 || ($ndims > $no && $siz == 1)) {\n" .
 	        "      $siz = $dim;\n" .
 		"   } else if($ndims > $no && $siz != $dim) {\n" .
-# XXX should these lines simply be removed? If re-inserted, be sure to use PDL_COMMENT
-#		"      if($dim == 1) {\n" .
-#		"         /* Do nothing */ /* XXX Careful, increment? */" .
-#		"      } else {\n" .
 		"      if($dim != 1) {\n" .
-                "         \$CROAK(\"Wrong dims\\n\");\n" .
+                "         \$CROAK(\"Wrong dimensions for parameter '@{[ $this->name ]}'\\n\");\n" .
 		"      }\n   }\n";
 	$no++;
     } 
