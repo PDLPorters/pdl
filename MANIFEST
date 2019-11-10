@@ -357,7 +357,6 @@ IO/Pnm/Pic.pm
 IO/Pnm/pnm.pd
 IO/Storable/Makefile.PL
 IO/Storable/storable.pd
-Known_problems
 Lib/CallExt/CallExt.pm
 Lib/CallExt/CallExt.xs
 Lib/CallExt/Makefile.PL
