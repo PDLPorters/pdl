@@ -1,7 +1,6 @@
-2.019_01 TBD
+2.019_01 2019-11-10
 
 - Honor LDFLAGS when building pdl - thanks @wiz-0
-- AppVeyor ActivePerl continuous integration - thanks @zmughal
 - build works even without Devel::CheckLib
 - race condition in tests fixed to allow parallel tests
 - fix spelling errors - thanks @sebastic
