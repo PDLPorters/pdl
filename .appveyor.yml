@@ -5,9 +5,10 @@ environment:
   - CHOCO_PERL_PACKAGE: StrawberryPerl
     CHOCO_PERL_PATH: C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
     CHOCO_PERL_MAKE: gmake
-  - CHOCO_PERL_PACKAGE: activeperl
-    CHOCO_PERL_PATH: C:\Perl64\bin;C:\Perl64\site\bin;%PATH%
-    CHOCO_PERL_MAKE: dmake
+# chocolatey activeperl not working since ActiveState changed their URLs
+#  - CHOCO_PERL_PACKAGE: activeperl
+#    CHOCO_PERL_PATH: C:\Perl64\bin;C:\Perl64\site\bin;%PATH%
+#    CHOCO_PERL_MAKE: dmake
 
 install:
   # running under CI
