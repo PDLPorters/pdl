@@ -1,3 +1,29 @@
+2.019_01 TBD
+
+- Honor LDFLAGS when building pdl - thanks @wiz-0
+- AppVeyor ActivePerl continuous integration - thanks @zmughal
+- build works even without Devel::CheckLib
+- race condition in tests fixed to allow parallel tests
+- fix spelling errors - thanks @sebastic
+- Fix tilde expansion tests when non-existent $HOME - thanks @sebastic
+- zap inc/Carp - fix #94
+- update doc URLs, and docs - thanks @d-lamb
+- replace all non-sort, non-ppdef-doc $a/$b in codebase - thanks @d-lamb
+- Clean up PDL::Fit::Gaussian docs and tests - thanks @d-lamb
+- badval fixes on systems with only unsigned chars - thanks @d-lamb
+- fix segfault in some uses of PDL::Transform::map - thanks @d-lamb
+- Improve compatibility with Perl's experimental 'bitwise' feature - thanks sprout@cpan.org
+- RedoDims fix - thanks @drzowie
+- range speedup - thanks @drzowie
+- PDL::Lite fixes to bug that broke Test::PDL
+- propagation of badflag with .= - thanks @hainest
+- doc-building fixes for Windows
+- quote-protect rpic/wpic commands
+- test-coverage now available for XS files too
+- Only build PDL::Graphics::PGPLOT if PGPLOT installed
+- better vsearch_* docs - thanks @zmughal
+- PDL::Complex doc and code fixes, tests, and improvements - thanks @d-lamb
+
 v2.019 2018-05-05 16:42:44-04:00
 
 General Notes:
