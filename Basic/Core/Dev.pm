@@ -337,13 +337,17 @@ sub flushgeneric {  # Construct the generic code switch
 
 }
 
+sub _oneliner {
+  my ($cmd) = @_;
+  require ExtUtils::MM;
+  my $MM = bless { NAME => 'Fake' }, 'MM';
+  $MM->oneliner($cmd);
+}
 
 sub genpp_cmdline {
   my ($in, $out) = @_;
-  require ExtUtils::MM;
-  my $MM = bless { NAME => 'Fake' }, 'MM';
   my $devpm = whereami_any()."/Core/Dev.pm";
-  sprintf($MM->oneliner(<<'EOF'), $devpm) . qq{ "$in" > "$out"};
+  sprintf(_oneliner(<<'EOF'), $devpm) . qq{ "$in" > "$out"};
 require "%s"; PDL::Core::Dev->import(); genpp();
 EOF
 }
@@ -395,9 +399,8 @@ sub pdlpp_postamble_int {
                 $dep = $top;
                 $target = ' core';
             }
-            require ExtUtils::MM;
             $dep =~ s#([\(\)])#\\$1#g; # in case of unbalanced (
-            $depbuild .= MM->oneliner("exit(!(chdir q($dep) && !system(q(\$(MAKE)$target))))");
+            $depbuild .= _oneliner("exit(!(chdir q($dep) && !system(q(\$(MAKE)$target))))");
             $depbuild .= "\n\t";
         }
 qq|
@@ -421,8 +424,7 @@ sub pdlpp_postamble {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
-	require ExtUtils::MM;
-	my $oneliner = MM->oneliner(q{exit if \$\$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
+	my $oneliner = _oneliner(q{exit if \$\$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
 qq|
 
 $pref.pm: $src
