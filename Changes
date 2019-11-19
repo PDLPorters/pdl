@@ -1,3 +1,8 @@
+2.019_02 2019-11-19
+
+- fix t/fits.t tempfiles use
+- _oneliner to use EU::MM right
+
 2.019_01 2019-11-10
 
 - Honor LDFLAGS when building pdl - thanks @wiz-0
