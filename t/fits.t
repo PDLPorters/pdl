@@ -23,16 +23,10 @@ BEGIN {
 
 require File::Spec;
 my $fs = 'File::Spec';
-sub cdir { return $fs->catdir(@_)}
 sub cfile { return $fs->catfile(@_)}
 
-my $tempd = $PDL::Config{TEMPDIR} or
-  die "TEMPDIR not found in %PDL::Config";
-my $file = cfile $tempd, "iotest$$";
-
-END {
-  unlink $file if defined $file and -e $file;
-}
+require File::Temp;
+my $file = File::Temp::tempfile();
 
 ################ Test rfits/wfits ########################
 
