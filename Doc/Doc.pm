@@ -472,11 +472,12 @@ sub ensuredb {
       my ($len) = unpack "S", $plen;
       read IN, $txt, $len;
       my (@a) =  split chr(0), $txt;
+      my $module = splice @a,1,1;
       push(@a, "") unless(@a % 2);  # Add null string at end if necessary -- solves bug with missing REF section.
       my ($sym, %hash) = @a;
      
       $hash{Dbfile} = $fi; # keep the origin pdldoc.db path
-      $this->{SYMS}->{$sym} = {%hash};
+      $this->{SYMS}->{$sym}->{$module} = {%hash};
     }
     close IN;
     push @{$this->{Scanned}}, $fi;
@@ -496,16 +497,18 @@ sub savedb {
   my $hash = $this->ensuredb();
   open OUT, ">$this->{Outfile}" or barf "can't write to symdb $this->{Outfile}";
   binmode OUT;
-  while (my ($key,$val) = each %$hash) {
-    next if 0 == scalar(%$val);
-    my $fi = $val->{File};
-    if (File::Spec->file_name_is_absolute($fi) && -f $fi) {
-      #store paths to *.pm files relative to pdldoc.db
-      $val->{File} = File::Spec->abs2rel($fi, dirname($this->{Outfile})) ;
+  while (my ($name,$mods_hash) = each %$hash) {
+    next if 0 == scalar(%$mods_hash);
+    while (my ($module,$val) = each %$mods_hash){
+      my $fi = $val->{File};
+      if (File::Spec->file_name_is_absolute($fi) && -f $fi) {
+        #store paths to *.pm files relative to pdldoc.db
+        $val->{File} = File::Spec->abs2rel($fi, dirname($this->{Outfile})) ;
+      }
+      delete $val->{Dbfile}; # no need to store Dbfile
+      my $txt = "$name".chr(0)."$module".chr(0).join(chr(0),%$val);
+      print OUT pack("S",length($txt)).$txt;
     }
-    delete $val->{Dbfile}; # no need to store Dbfile
-    my $txt = "$key".chr(0).join(chr(0),%$val);
-    print OUT pack("S",length($txt)).$txt;
   }
 }
 
@@ -514,30 +517,38 @@ sub savedb {
 
 Return the PDL symhash (e.g. for custom search operations)
 
-The symhash is a multiply nested hash with the following structure:
+The symhash is a multiply nested hash ref with the following structure:
 
  $symhash = {
      function_name => {
-             Module => 'module::name',
-             Sig    => 'signature string',
-             Bad    => 'bad documentation string',
-             ...
-         },
+             module::name => {
+                  Module => 'module::name',
+                  Sig    => 'signature string',
+                  Bad    => 'bad documentation string',
+                  ...
+                  },
+             },
      function_name => {
-             Module => 'module::name',
-             Sig    => 'signature string',
-             Bad    => 'bad documentation string',
-             ...
-         },
-     };
+             module::name => {
+                  Module => 'module::name',
+                  Sig    => 'signature string',
+                  Bad    => 'bad documentation string',
+                  ...
+                  },
+             },
+ }
 
-The possible keys for each function include:
+The three-layer structure is designed to allow the symhash (and the
+underlying database) to handle functions that have the same name but
+reside in different module namespaces.
+
+The possible keys for each function/module entry include:
 
  Module   - module name
  Sig      - signature
  Crossref - the function name for the documentation, if it has multiple
             names (ex: the documentation for zeros is under zeroes)
- Names    - a comma-separated string of the all the function's names
+ Names    - a comma-separated string of all the function's names
  Example  - example text (optional)
  Ref      - one-line reference string
  Opt      - options
@@ -575,11 +586,11 @@ that should be matched against the regex. Valid fields are
 If you wish to have your results sorted by function name, pass a true
 value for C<$sort>.
 
-The results will be returned as an array of pairs in the form
+The results will be returned as an array of triplets in the form
 
  @results = (
-  [funcname, {SYMHASH_ENTRY}],
-  [funcname, {SYMHASH_ENTRY}],
+  [funcname, module, {SYMHASH_ENTRY}],
+  [funcname, module, {SYMHASH_ENTRY}],
   ...
  );
 
@@ -600,16 +611,18 @@ sub search {
 
   $pattern = $this->checkregex($pattern);
 
-  while (my ($key,$val) = each %$hash) {
-    FIELD: for (@$fields) {
-      if ($_ eq 'Name' and $key =~ /$pattern/i
-          or defined $val->{$_} and $val->{$_} =~ /$pattern/i) {
-        $val = $hash->{$val->{Crossref}}
-          if defined $val->{Crossref} && defined $hash->{$val->{Crossref}};
-        push @match, [$key,$val];
-        last FIELD;
+  while (my ($name,$mods_hash) = each %$hash) {
+      while (my ($module,$val) = each %$mods_hash){
+	FIELD: for (@$fields) {
+	    if ($_ eq 'Name' and $name =~ /$pattern/i
+		or defined $val->{$_} and $val->{$_} =~ /$pattern/i) {
+		$val = $hash->{$val->{Crossref}}->{$module} #we're going to assume that any Crossref'd documentation is also in this module
+		if defined $val->{Crossref} && defined $hash->{$val->{Crossref}}->{$module};
+		push @match, [$name,$module,$val];
+		last FIELD;
+	    }
+	}
       }
-    }
   }
   @match = sort {$a->[0] cmp $b->[0]} @match if (@match && $sort);
   return @match;
@@ -687,13 +700,13 @@ sub scan {
     $n++;
 
     $val->{File} = $file2;
-    #the stored key is now 'PDL::SomeModule::funcname'
-    $key = $val->{Module} . "::$key";
-    #print "adding '$key'\n";
-    if (!defined($hash->{$key})){
-      $hash->{$key} = $val;
+    #set up the 3-layer hash/database structure: $hash->{funcname}->{PDL::SomeModule} = $val
+    if (defined($val->{Module})){
+	$hash->{$key}->{$val->{Module}} = $val;
+    } else {
+	print STDERR "no Module for $key in $file2\n";
     }
-  }
+}
 
   # KGB pass2 - scan for module name and function
   # alright I admit this is kludgy but it works
@@ -722,7 +735,7 @@ sub scan {
 	       ($does =~ /shell|script/i && $name =~ /^[a-z][a-z0-9]*$/) ? 'Script:' 
 	       : 'Manual:'
 	       : 'Module:');
-   $hash->{$name} = {Ref=>"$type $does",File=>$file2} if $name !~ /^\s*$/;
+   $hash->{$name}->{$name} = {Ref=>"$type $does",File=>$file2} if $name !~ /^\s*$/;
    return $n;
 }
 
@@ -765,16 +778,15 @@ extract the complete documentation about a function from its
 =cut
 
 sub funcdocs {
-  my ($this,$func,$fout) = @_;
+  my ($this,$func,$module,$fout) = @_;
   my $hash = $this->ensuredb;
   barf "unknown function '$func'" unless defined($hash->{$func});
-  my $file = $hash->{$func}->{File};
-  my $dbf = $hash->{$func}->{Dbfile};
+  barf "funcdocs now requires 3 arguments" if UNIVERSAL::isa($module,IO::File);
+  my $file = $hash->{$func}->{$module}->{File};
+  my $dbf = $hash->{$func}->{$module}->{Dbfile};
   if (!File::Spec->file_name_is_absolute($file) && $dbf) {
     $file = File::Spec->rel2abs($file, dirname($dbf)); 
   }
-  #In this file, don't search for 'PDL::SomeModule::funcname', just 'funcname'
-  $func =~ s/((\w+::)+)(\w+)$/$3/;
   funcdocs_fromfile($func,$file,$fout);
 }
 
@@ -901,31 +913,35 @@ own code.
          last DIRECTORY;
      }
  }
- 
+
  die ("Unable to find docs database!\n") unless $pdldoc;
- 
+
  # Print the reference line for zeroes:
- print $pdldoc->gethash->{zeroes}->{Ref};
- 
- # See which examples use zeroes
- $pdldoc->search('zeroes', 'Example', 1);
- 
+ print map{$_->{Ref}} values %{$pdldoc->gethash->{zeroes}};
+ # Or, if you remember that zeroes is in PDL::Core:
+ print $pdldoc->gethash->{zeroes}->{PDL::Core}->{Ref};
+
+ # Get info for all the functions whose examples use zeroes
+ my @entries = $pdldoc->search('zeroes','Example',1);
+
  # All the functions that use zeroes in their example:
- my @entries = $pdldoc->search('zeroes', 'Example', 1);
  print "Functions that use 'zeroes' in their examples include:\n";
  foreach my $entry (@entries) {
      # Unpack the entry
-     my ($func_name, $sym_hash) = @$entry;
+     my ($func_name, $module, $sym_hash) = @$entry;
      print "$func_name\n";
  }
- 
  print "\n";
- 
+
+ #Or, more concisely:
+ print join("\n",map{$_->[0]}@entries);
+
+
  # Let's look at the function 'mpdl'
  @entries = $pdldoc->search('mpdl', 'Name');
  # I know there's only one:
  my $entry = $entries[0];
- my ($func_name, $sym_hash) = @$entry;
+ my ($func_name, undef, $sym_hash) = @$entry;
  print "mpdl info:\n";
  foreach my $key (keys %$sym_hash) {
      # Unpack the entry
@@ -938,9 +954,8 @@ How can you tell if you've gotten a module for one of your entries?
 The Ref entry will begin with 'Module:' if it's a module. In code:
 
  # Prints:
- #  Module: fundamental PDL functionality
- my $sym_hash = $pdldoc->gethash;
- print $pdldoc->gethash->{'PDL::Core'}->{Ref}, "\n"
+ #  Module: fundamental PDL functionality and vectorization/threading
+ print $pdldoc->gethash->{'PDL::Core'}->{'PDL::Core'}->{Ref}, "\n"
 
 =head1 BUGS
 
@@ -949,11 +964,13 @@ discussions on the pdl-devel mailing list.
 
 =head1 AUTHOR
 
-Copyright 1997 Christian Soeller E<lt>c.soeller@auckland.ac.nzE<gt> 
+Copyright 1997 Christian Soeller E<lt>c.soeller@auckland.ac.nzE<gt>
 and Karl Glazebrook E<lt>kgb@aaoepp.aao.gov.auE<gt>
 
 Further contributions copyright 2010 David Mertens
 E<lt>dcmertens.perl@gmail.comE<gt>
+
+Documentation database restructuring 2019 Derek Lamb
 
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain

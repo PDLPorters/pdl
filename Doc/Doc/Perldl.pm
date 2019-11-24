@@ -100,22 +100,17 @@ sub printmatch {
 } # sub: print_match()
 
 
-# given a full function name like PDL::SomeModule::funcname,
-# in list context, returns the funcname and a (perhaps shortened) module name.
-# in scalar context, returns only the (perhaps shortened) module name.
+# given a long module name, return the (perhaps shortened) module name.
 
-sub func_and_shortmod {
-  my $fullname = shift;
-  $fullname =~ m/((\w+::)+)(\w+)$/;
-  my $module = $1;
-  my $name = $3;
+sub shortmod {
+  my $module = shift;
   $module =~ s/::$//;
   unless ($PERLDL::long_mod_names){
       $module =~ s/^PDL::/P::/;
-      $module =~ s/^P::Graphics/P::G/;
+      $module =~ s/^P::Graphics::/P::G::/;
       #additional abbreviation substitutions go here
   }
-  return wantarray ? ($name, $module) : $module;
+  return $module;
 }
 
 
@@ -128,7 +123,7 @@ sub format_ref {
   my @text = ();
 
   #finding the max width before doing the printing means looping through @match an extra time; so be it.
-  my @module_shorthands = map { scalar func_and_shortmod($_->[0]) } @match;
+  my @module_shorthands = map { shortmod($_->[1]) } @match;
   my $max_mod_length = -1;
   map {$max_mod_length = length if (length>$max_mod_length) } @module_shorthands;
 
@@ -136,14 +131,15 @@ sub format_ref {
   my $width = screen_width()-17-1-$max_mod_length;
   my $parser = new Pod::PlainText( width => $width, indent => 0, sentence => 0 );
 
-  for my $m (@match) { 
-    my $ref = $m->[1]{Ref} || 
-      ( (defined $m->[1]{CustomFile})
-        ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
+  for my $m (@match) {
+    my $ref = $m->[2]{Ref} ||
+      ( (defined $m->[2]{CustomFile})
+        ? "[No ref avail. for `".$m->[2]{CustomFile}."']"
         : "[No reference available]"
      );
 
-    my ($name,$module) = func_and_shortmod($m->[0]);
+    my $name = $m->[0];
+    my $module = shortmod($m->[1]);
 
     $ref = $parser->interpolate( $ref );
     $ref = $parser->reformat( $ref );
@@ -260,7 +256,7 @@ sub finddoc  {
 
     (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  #$t2 is a copy of $topic with escaped non-word characters
 
-    my @match = search_docs("m/^(PDL::)?".$t2."\$|\:\:".$t2."\$/",['Name'],0);
+    my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0) ; #matches: ^PDL::topic$ or ^topic$
 
     unless(@match) {
       
@@ -290,11 +286,11 @@ sub finddoc  {
     while (@match) {
        $pdl_pod_matchnum++;
 
-       if (  @match > 1   and   !$subfield  ) {
+       if (  @match > 1   and   !$subfield  and $pdl_pod_matchnum==1 ) {
           print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
           my $i=0;
           for my $m ( @match ) {
-             printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[1]{Module} && "in ", $m->[1]{CustomFile} || $m->[1]{Module};
+             printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[2]{Module} && "in ", $m->[2]{CustomFile} || $m->[2]{Module};
           }
           print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
        }
@@ -305,10 +301,10 @@ sub finddoc  {
 
        my $m = shift @match;
 
-       my $Ref = $m->[1]{Ref};
+       my $Ref = $m->[2]{Ref};
        if ( $Ref =~ /^(Module|Manual|Script): / ) {
 	   # We've got a file name and we have to open it.  With the relocatable db, we have to reconstitute the absolute pathname.
-	   my $relfile = $m->[1]{File};
+	   my $relfile = $m->[2]{File};
 	   my $absfile = undef;
 	   my @scnd = @{$PDL::onlinedoc->{Scanned}};
 	   for my $dbf(@scnd){
@@ -322,17 +318,18 @@ sub finddoc  {
 	   my $in = IO::File->new("<$absfile");
 	   print $out join("",<$in>);
        } else {
-          if(defined $m->[1]{CustomFile}) {
+          if(defined $m->[2]{CustomFile}) {
 
              my $parser= Pod::Select->new;
-             print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
-             $parser->parse_from_file($m->[1]{CustomFile},$out);
-             print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";
+             print $out "=head1 Autoload file \"".$m->[2]{CustomFile}."\"\n\n";
+             $parser->parse_from_file($m->[2]{CustomFile},$out);
+             print $out "\n\n=head2 Docs from\n\n".$m->[2]{CustomFile}."\n\n";
 
           } else {
 
-             print $out "=head1 Module ",$m->[1]{Module}, "\n\n";
-             $PDL::onlinedoc->funcdocs($m->[0],$out);
+             print $out "=head1 Module ",$m->[2]{Module}, "\n\n";
+#	     print STDERR "calling funcdocs(" . $m->[0] . ", " . $m->[1] . ")\n";
+             $PDL::onlinedoc->funcdocs($m->[0],$m->[1],$out);
 
           }
 
@@ -384,7 +381,7 @@ sub find_autodoc {
 	if($exact) {
 	    my $file = $dir . "/" . "$topic";
 	    push(@out,
-	          [$file, {CustomFile => "$file", Module => "file '$file'"}]
+	          [$file, undef, {CustomFile => "$file", Module => "file '$file'"}]
 		 )
 		if(-e $file);
 	} else {
@@ -393,7 +390,7 @@ sub find_autodoc {
 	    closedir(FOO);
 	    for my $file( grep( &$matcher, @dir ) ) {
 		push(@out,
-		     [$file, {CustomFile => "$dir/$file", Module => "file '$dir/$file'"}]
+		     [$file, undef, {CustomFile => "$dir/$file", Module => "file '$dir/$file'"}]
 		     );
 	    }
 
@@ -439,14 +436,13 @@ sub usage_string{
     else {
 	#this sorts by namespace depth by counting colons in the name.
 	#PDL::Ufunc::max comes before PDL::GSL::RNG::max, for example.
-	foreach my $m(sort { scalar(()=$a->[0]=~/\:/g) <=> scalar(()=$b->[0]=~/\:/g) } @match){
+	foreach my $m(sort { scalar(()=$a->[1]=~/\:/g) <=> scalar(()=$b->[1]=~/\:/g) } @match){
 	    $str .= "\n" . format_ref( $m );
-	    my ($name,$hash) = @{$m};
+	    my ($name,$module,$hash) = @{$m};
 	    #$str .= sprintf ( (' 'x16)."(Module %s)\n\n", $hash->{Module} );
 	    $str.="\n";
 	    die "No usage info found for $func\n" if (!defined $hash->{Example} && !defined $hash->{Sig} &&
 						      !defined $hash->{Usage});
-	    $name=~s/^.*\:\:(\w*)$/$1/;
 	    $str .= "  Signature: $name($hash->{Sig})\n\n" if defined $hash->{Sig};
 	    for (['Usage','Usage'],['Opt','Options'],['Example','Example']) {
 		$str .= "  $_->[1]:\n".&allindent($hash->{$_->[0]},10)."\n" if defined $hash->{$_->[0]};
@@ -485,10 +481,9 @@ sub sig {
 	my @match = search_docs("m/^(PDL::)?$func\$|\:\:$func\$/",['Name']);
 	my $count = @match;
 	unless (@match) { print "\n  no match\n" } else {
-	    foreach my $m(sort { scalar(()=$a->[0]=~/\:/g) <=> scalar(()=$b->[0]=~/\:/g) } @match){
-		my ($name,$hash) = @{$m};
+	    foreach my $m(sort { scalar(()=$a->[1]=~/\:/g) <=> scalar(()=$b->[1]=~/\:/g) } @match){
+		my ($name,$module,$hash) = @{$m};
 		die "No signature info found for $func\n" if !defined $hash->{Sig};
-		$name=~s/^.*\:\:(\w*)$/$1/;
 		print "  Signature: $name($hash->{Sig})\n" if defined $hash->{Sig};
 		print '='x20 unless 1==$count--;
 	    }
@@ -760,9 +755,8 @@ sub badinfo {
     if ( $count ) {
 	my ($pagerstr, $noinfostr);
 	foreach my $m(@match) {
-	    my ($name,$hash) = @{$m};
+	    my ($name,$module,$hash) = @{$m};
 	    my $info = $hash->{Bad};
-	    my $module = $hash->{Module};
 	    if ( defined $info ) {
 		$name=~s/^(.*)\:\:(\w*)$/$2/;
 
