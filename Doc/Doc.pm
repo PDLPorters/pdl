@@ -640,7 +640,7 @@ sub checkregex {
   return "(?i)$regex" unless $regex =~ /^m[^a-z,A-Z,0-9]/;
   my $sep = substr($regex,1,1);
   substr($regex,0,2) = '';
-  $sep = '(?<!\\\\)\\'.$sep; # Avoid '\' before the separator 
+  $sep = '(?<!\\\\)\\'.$sep; # Avoid '\' before the separator
 
   my ($pattern,$mod) = split($sep,$regex,2);
   barf "unknown regex modifiers '$mod'" if $mod && $mod !~ /[imsx]+/;
@@ -891,7 +891,7 @@ sub add_module {
 	}
 	return if($hit);
     }
-    
+
     die "Unable to find a .pm or .pod file in \@INC for module $module\n";
 }
 

@@ -148,7 +148,7 @@ sub format_ref {
     $ref =~ s/\n*$//;
     $ref =~ s/\n/"\n                ".' 'x($max_mod_length+2)/eg;
     $ref =~ s/^\s*//;
-    if ( length($name) > 15 ) { 
+    if ( length($name) > 15 ) {
       push @text, sprintf "%s ...\n " . ' 'x15 . "%-*s  %s\n", $name, $max_mod_length, $module, $ref;
     } else {
       push @text, sprintf "%-15s %-*s  %s\n", $name, $max_mod_length, $module, $ref;
@@ -204,7 +204,7 @@ sub aproposover {
     my $func = shift;
     $func =~ s:\/:\\\/:g;
     search_docs("m/$func/",['Name','Ref','Module'],1);
-    
+
 }
 
 sub apropos  {
@@ -228,7 +228,7 @@ sub search_docs {
 
     @match = $PDL::onlinedoc->search($func,$types,$sortflag);
     push(@match,find_autodoc( $func, $exact ) );
-    
+
     @match;
 }
 
