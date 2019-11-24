@@ -823,7 +823,7 @@ sub getfuncdocs {
 #  $parser->select("\\(METHODS\\|OPERATORS\\|CONSTRUCTORS\\|FUNCTIONS\\|METHODS\\)/$func(\\(.*\\)*\\s*");
   foreach my $foo(qw/FUNCTIONS OPERATORS CONSTRUCTORS METHODS/) {
       seek $in,0,0;
-      $parser->select("$foo/$func(\\(.*\\))*\\s*");
+      $parser->select("$foo/(.*,\\s+)*$func(\\(.*\\))*(\\s*|,\\s+.*)");
       $parser->parse_from_filehandle($in,$out);
   }
 }
