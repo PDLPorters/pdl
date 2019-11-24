@@ -1,17 +1,14 @@
 #!/usr/bin/perl
-#
+
 # Verify that the Config.pm values were updated from the
 # actual build process.  Quick placeholder tests for now.
 # Eventually need to check that the configuration matches
 # the result of use_ok or some such.
 
-BEGIN {
-   use Test::More tests => 12;  # 11 WITH_ keys and 1 use_ok test
-}
+use Test::More;
+plan 'no_plan';
 
-BEGIN {
-   use_ok( 'PDL::Config' );
-}
+use_ok( 'PDL::Config' );
 
 TODO: {
    # This is Known_problems bug sf.net #3030998

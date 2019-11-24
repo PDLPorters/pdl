@@ -1,3 +1,5 @@
+- t/config.t stop specifying number of %Config keys
+
 2.019_02 2019-11-19
 
 - fix t/fits.t tempfiles use
