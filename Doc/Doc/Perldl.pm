@@ -22,7 +22,7 @@ Currently-implemented shorthands are
 
 =item * P:: (short for PDL::)
 
-=item * P::G (short for PDL::Graphics)
+=item * P::G:: (short for PDL::Graphics::)
 
 =back
 
