@@ -115,25 +115,41 @@ my (@winObjects) = ();
 #
 #use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
 
-=head2 new($class,$options,[$window_type])
-
-Returns a new OpenGL object with attributes specified in the options
-field, and of the 3d window type, if specified.  These attributes are:
+=head2 new
 
 =for ref
 
-  x,y - the position of the upper left corner of the window (0,0)
-  width,height - the width and height of the window in pixels (500,500)
-  parent - the parent under which the new window should be opened (root)
-  mask - the user interface mask (StructureNotifyMask)
-  attributes - attributes to pass to glXChooseVisual
+Returns a new OpenGL object.
+
+=for usage
+
+  new($class,$options,[$window_type])
+
+  Attributes are specified in the $options field; the 3d $window_type is optionsl. The attributes are:
+
+=over
+
+=item x,y - the position of the upper left corner of the window (0,0)
+
+=item width,height - the width and height of the window in pixels (500,500)
+
+=item parent - the parent under which the new window should be opened (root)
+
+=item mask - the user interface mask (StructureNotifyMask)
+
+=item attributes - attributes to pass to glXChooseVisual
+
+=back
 
 Allowed 3d window types, case insensitive, are:
 
-=for ref
+=over
 
-  glut - use Perl OpenGL bindings and GLUT windows (no Tk)
-  x11  - use Perl OpenGL (POGL) bindings with X11 (disabled)
+=item glut - use Perl OpenGL bindings and GLUT windows (no Tk)
+
+=item x11  - use Perl OpenGL (POGL) bindings with X11 (disabled)
+
+=back
 
 =cut
 
@@ -318,9 +334,13 @@ sub XPending {
 }
 
 
-=head2 XResizeWindow(x,y)
+=head2 XResizeWindow
 
 OO interface to XResizeWindow
+
+=for usage
+
+  XResizeWindow(x,y)
 
 =cut
 
