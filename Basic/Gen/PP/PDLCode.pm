@@ -250,7 +250,7 @@ sub get_str {
     my $good = $this->[0];
     my $bad  = $this->[1];
 
-    my $str = "if ( \$PRIV(bvalflag) ) { PDL_COMMENT(\"** do 'bad' Code **\")\n";
+    my $str = PDL::PP::pp_line_numbers(__LINE__, "if ( \$PRIV(bvalflag) ) { PDL_COMMENT(\"** do 'bad' Code **\")\n");
     $str .= "\n#define PDL_BAD_CODE\n";
     $str .= $bad->get_str($parent,$context);
     $str .= "\n#undef PDL_BAD_CODE\n";
@@ -290,7 +290,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 			for($_=0; $_<(__$i->[0]_size); $_++) {";
 		$i;
 	} @{$this->[0]};
-	return $text;
+	return PDL::PP::pp_line_numbers(__LINE__, $text);
 }
 sub mypostlude { my($this,$parent,$context) = @_;
 	splice @$context, - ($#{$this->[0]}+1);
@@ -373,12 +373,12 @@ sub myitem {
 				"#define THISIS$this->[1]_$item->[3](a) a\n";
     }
 
-    return "\t} break; case $item->[0]: {\n".
+    return PDL::PP::pp_line_numbers(__LINE__, "\t} break; case $item->[0]: {\n".
 	$thisis_loop .
 	    (join '',map{
 		# print "DAPAT: '$_'\n";
 		$parent->{ParObjs}{$_}->get_xsdatapdecl($item->[1]);
-	    } (@{$this->[2]})) ;
+	    } (@{$this->[2]})));
 }
 
 sub mypostlude {
@@ -413,13 +413,13 @@ sub myoffs { return 0; }
 sub myprelude {my($this,$parent,$context) = @_;
  my $no;
  my ($ord,$pdls) = $parent->get_pdls();
-'	PDL_COMMENT("THREADLOOPBEGIN")
+PDL::PP::pp_line_numbers(__LINE__, '	PDL_COMMENT("THREADLOOPBEGIN")
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
  	__privtrans))) return;
    do {
  '.(join '',map {"${_}_datap += \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
  		@$ord).'
-';
+');
 }
 
 sub mypostlude {my($this,$parent,$context) = @_;
@@ -459,7 +459,7 @@ sub myprelude {
 
     my ($ord,$pdls) = $parent->get_pdls();
 
-    join( "\n	",
+    PDL::PP::pp_line_numbers(__LINE__, join "\n	",
 	  '',
 	  'PDL_COMMENT("THREADLOOPBEGIN")',
 	  'if ( PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return;
@@ -490,7 +490,7 @@ sub myprelude {
 sub mypostlude {my($this,$parent,$context) = @_;
 
  my ($ord,$pdls) = $parent->get_pdls();
- join( "\n	",
+ PDL::PP::pp_line_numbers(__LINE__, join "\n	",
        '',
        'PDL_COMMENT("THREADLOOPEND")',
        '}',

@@ -248,7 +248,7 @@ sub get_xsnormdimchecks {
     my $iref  = $this->{IndObjs};
     my $ninds = 0+scalar(@$iref);
 
-    my $str = ""; 
+    my $str = PDL::PP::pp_line_numbers(__LINE__, "");
     $str .= "if(!__creating[$this->{Number}]) {\n" if $this->{FlagCreat};
     
     # Dimensional Promotion when number of dims is less than required:
@@ -330,16 +330,16 @@ sub get_incregisters {
 
 sub get_incdecl_copy {
 	my($this,$fromsub,$tosub) = @_;
-	join '',map {
+	PDL::PP::pp_line_numbers(__LINE__, join '',map {
 		my $iname = $this->get_incname($_);
 		&$fromsub($iname)."=".&$tosub($iname).";";
-	} (0..$#{$this->{IndObjs}})
+	} (0..$#{$this->{IndObjs}}))
 }
 
 sub get_incsets {
 	my($this,$str) = @_;
 	my $no=0;
-	(join '',map {
+	PDL::PP::pp_line_numbers(__LINE__, join '',map {
                "if($str->ndims <= $_ || $str->dims[$_] <= 1)
 		  \$PRIV(".($this->get_incname($_)).") = 0; else
 		 \$PRIV(".($this->get_incname($_)).
@@ -388,14 +388,14 @@ sub do_resize {
 		push @c,$index if $_->name eq $ind; $index ++;
 	}
 	my $pdl = $this->get_nname;
-	return (join '',map {"$pdl->dims[$_] = $size;\n"} @c).
+	return PDL::PP::pp_line_numbers(__LINE__, (join '',map {"$pdl->dims[$_] = $size;\n"} @c).
 		"PDL->resize_defaultincs($pdl);PDL->allocdata($pdl);".
-		$this->get_xsdatapdecl(undef,1);
+		$this->get_xsdatapdecl(undef,1));
 }
 
 sub do_pdlaccess {
 	my($this) = @_;
-	return '$PRIV(pdls['.$this->{Number}.'])';
+	PDL::PP::pp_line_numbers(__LINE__, '$PRIV(pdls['.$this->{Number}.'])');
 
 }
 
@@ -429,7 +429,7 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 		On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n" ;}
 #	return "\$PRIV(".($this->get_incname($ind))."*". $index .")";
 # Now we have them in register variables -> no PRIV
-       return ("(".($this->get_incname($ind))."*".
+       PDL::PP::pp_line_numbers(__LINE__, "(".($this->get_incname($ind))."*".
                "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))");
 }
 
@@ -450,8 +450,8 @@ sub get_xsdatapdecl {
 # ThreadLoop does this for us.
 #	return "$declini ${name}_datap = ($cast((${_})->data)) + (${_})->offs;\n";
     
-    my $str = "$declini ${name}_datap = ($cast(PDL_REPRP_TRANS($pdl,$flag)));\n" .
-	"$declini ${name}_physdatap = ($cast($pdl->data));\n";
+    my $str = PDL::PP::pp_line_numbers(__LINE__, "$declini ${name}_datap = ($cast(PDL_REPRP_TRANS($pdl,$flag)));\n" .
+	"$declini ${name}_physdatap = ($cast($pdl->data));\n");
 
     # assuming we always need this 
     # - may not be true - eg if $asgnonly ??
