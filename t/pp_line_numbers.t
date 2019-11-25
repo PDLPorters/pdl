@@ -9,8 +9,8 @@ use PDL::PP qw(foo::bar foo::bar foobar);
 # Add some tests for pp_line_numbers:
 pp_def(test1 =>
   Pars => 'a(n)',
-  Code => pp_line_numbers (__LINE__, q{
-    /* line 13, First line */
+  Code => pp_line_numbers (__LINE__,
+    q{/* line 13, First line */
     threadloop %{
       /* line 15, Line after threadloop */
       loop (n) %{

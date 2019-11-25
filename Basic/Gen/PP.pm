@@ -950,7 +950,7 @@ sub pp_addxs {
 # inserts #line directives into source text. Use like this:
 #   ...
 #   FirstKey => ...,
-#   Code => pp_line_numbers (__LINE__, $x . $y . $c),
+#   Code => pp_line_numbers(__LINE__, $x . $y . $c),
 #   OtherKey => ...
 
 sub pp_line_numbers ($$) {
@@ -961,17 +961,17 @@ sub pp_line_numbers ($$) {
 	my (undef, $filename) = caller;
 	# Escape backslashes:
 	$filename =~ s/\\/\\\\/g;
-	my @to_return = "#line $line \"$filename\"";
+	my @to_return = "\n#line $line \"$filename\"\n";
 
 	# Look for threadloops and loops and add # line directives
-	foreach (split (/(\n)/, $string)) {
+	foreach (split (/\n/, $string)) {
 		# Always add the current line.
-		push @to_return, $_;
-
-		# If we need to add a # line directive, do so before incrementing
-		push (@to_return, "\n#line $line \"$filename\"") if (/%\{/ or /%}/);
-
-		$line++ if /\n/;
+		push @to_return, "$_\n";
+		# If we need to add a # line directive, do so after incrementing
+		$line++;
+		if (/%\{/ or /%}/) {
+			push @to_return, "#line $line \"$filename\"\n";
+		}
 	}
 
 	return join('', @to_return);
