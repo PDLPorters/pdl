@@ -120,21 +120,21 @@ EOH
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
-	   Code =>
-	   "\$c() = \$a() $op \$b();",
-	   BadCode => qq{
+	   Code => pp_line_numbers(__LINE__,
+	   "\$c() = \$a() $op \$b();"),
+	   BadCode => pp_line_numbers(__LINE__, qq{
 	       if ( $badcode  )
 	           \$SETBAD(c());
 	       else
 	           \$c() = \$a() $op \$b();
-	   },
-	   CopyBadStatusCode =>
+	   }),
+	   CopyBadStatusCode => pp_line_numbers(__LINE__,
 	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
                   PDL->propagate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
                }
                $SETPDLSTATEBAD(c);
-            }',
+            }'),
 	   %extra,
 	   Doc => << "EOD");
 =for ref
@@ -212,15 +212,15 @@ ENDCODE
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
-	   Code => $codestr,
-	   BadCode => $badcodestr,
+	   Code => pp_line_numbers(__LINE__, $codestr),
+	   BadCode => pp_line_numbers(__LINE__, $badcodestr),
 	   CopyBadStatusCode =>
-	   'if ( $BADFLAGCACHE() ) {
+	   pp_line_numbers(__LINE__, 'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
                   PDL->propagate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
                }
                $SETPDLSTATEBAD(c);
-            }',
+            }'),
 	   %extra,
 	   Doc => << "EOD");
 =for ref
@@ -270,12 +270,12 @@ sub ufunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
-	   Code =>
-	   "\$b() = $func(\$a());",
+	   Code => pp_line_numbers(__LINE__,
+	   "\$b() = $func(\$a());"),
 	   BadCode =>
-	   'if ( ' . $badcode . ' )
+	   pp_line_numbers(__LINE__, 'if ( ' . $badcode . ' )
 	      $SETBAD(b());
-	   else' . "\n  \$b() = $func(\$a());\n",
+	   else' . "\n  \$b() = $func(\$a());\n"),
 	   %extra,
 	   Doc => << "EOD");
 =for ref
@@ -410,9 +410,9 @@ pp_def(
        HandleBad => 1,
        Pars => 'a(); [o]b();',
        Code =>
-       '$b() = $a();',
+       pp_line_numbers(__LINE__, '$b() = $a();'),
        BadCode =>
-       'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = $a(); }',
+       pp_line_numbers(__LINE__, 'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = $a(); }'),
        Doc =>
 'Plain numerical assignment. This is used to implement the ".=" operator',
 		BadDoc =>
