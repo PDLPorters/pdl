@@ -444,7 +444,7 @@ for ( PDL::Types::typesrtkeys() ) {
     pp_add_boot( " PDL->qsort_${ppsym} = pdl_qsort_${ppsym};" .
 		 " PDL->qsort_ind_${ppsym} = pdl_qsort_ind_${ppsym};\n" );
 
-    pp_addhdr(<<"FOO"
+    pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<"FOO")
 
       void pdl_qsort_$ppsym($ctype* xx, PDL_Indx a, PDL_Indx b) {
 
