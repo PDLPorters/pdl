@@ -1,3 +1,6 @@
+2.019_04 2019-11-27
+- fix PdlParObj.pm excessive pp_line_numbers
+
 2.019_03 2019-11-25
 
 - t/config.t stop specifying number of %Config keys
