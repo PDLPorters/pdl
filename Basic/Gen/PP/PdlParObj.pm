@@ -429,8 +429,8 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 		On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n" ;}
 #	return "\$PRIV(".($this->get_incname($ind))."*". $index .")";
 # Now we have them in register variables -> no PRIV
-       PDL::PP::pp_line_numbers(__LINE__, "(".($this->get_incname($ind))."*".
-               "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))");
+       return "(".($this->get_incname($ind))."*".
+               "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))";
 }
 
 # XXX hacked to create a variable containing the bad value for 
