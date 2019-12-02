@@ -2053,17 +2053,17 @@ sub VarArgsXSReturn {
 
     my $clause1 = '';
     foreach my $i ( 0 .. $#outs ) {
-	$clause1 .= "${ci}ST($i) = $outs[$i]_SV;\n";
+	$clause1 .= ($ci x 2) . "ST($i) = $outs[$i]_SV;\n";
     }
 
 PDL::PP::pp_line_numbers(__LINE__, <<"END")
-if (nreturn) {
-  if (nreturn > 0) EXTEND (SP, nreturn );
+${ci}if (nreturn) {
+${ci}  if (nreturn > 0) EXTEND (SP, nreturn );
 $clause1
-  XSRETURN(nreturn);
-} else {
-  XSRETURN(0);
-}
+${ci}  XSRETURN(nreturn);
+${ci}} else {
+${ci}  XSRETURN(0);
+${ci}}
 END
 
 } # sub: VarArgsXSReturn()
