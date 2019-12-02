@@ -1,4 +1,5 @@
 - calloc->malloc+memset, as calloc on Win32 = "free to wrong pool"
+- memset after malloc in pdlapi.c
 
 2.019_04 2019-11-27
 - fix PdlParObj.pm excessive pp_line_numbers

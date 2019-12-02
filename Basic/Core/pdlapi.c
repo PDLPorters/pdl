@@ -117,6 +117,7 @@ pdl* pdl_create(int type) {
      if(type == PDL_TMP) {croak("PDL internal error. FIX!\n");}
 
      it = (pdl*) malloc(sizeof(pdl));
+     memset(it, 0, sizeof(pdl));
      if (it==NULL)
         croak("Out of Memory\n");
 
