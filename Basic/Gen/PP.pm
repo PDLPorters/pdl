@@ -1762,7 +1762,7 @@ sub MkPrivStructInit {
 
     my $ci = '   ';
     PDL::PP::pp_line_numbers(__LINE__,
-	"\n${ci}$sname = calloc(1, sizeof(*$sname));\n" .
+	"\n${ci}$sname = malloc(sizeof(*$sname)); memset($sname, 0, sizeof(*$sname));\n" .
 	($nopdlthread ? "" : "${ci}PDL_THR_CLRMAGIC(&$sname->__pdlthread);\n") .
 	"${ci}PDL_TR_SETMAGIC($sname);\n" .
 	"${ci}$sname->flags = $affflag;\n" .
@@ -3371,7 +3371,7 @@ $PDL::PP::deftbl =
 		      ["PrivCopyCode","CompCopyCode","StructName","NoPdlThread"],
 		      sub {
 			  PDL::PP::pp_line_numbers(__LINE__,
-			    "$_[2] *__copy = calloc(1, sizeof($_[2]));\n" .
+			    "$_[2] *__copy = malloc(sizeof($_[2])); memset(__copy, 0, sizeof($_[2]));\n" .
 			($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->__pdlthread);") .
 "			PDL_TR_CLRMAGIC(__copy);
                         __copy->has_badvalue = \$PRIV(has_badvalue);
