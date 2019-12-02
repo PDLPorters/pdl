@@ -46,12 +46,12 @@ ok( tapprox( $x1, rvals(3,3,{center=>[2,2],squared=>1}) ), "both center and squa
 
 # test (x|y|z)(lin|log)vals: shape and values
 {
-my $x=zeroes(101,51,26);
-my $x = $x->xlinvals(0.5,1.5);
-my $y = $x->ylinvals(-2,-1);
-my $z = $x->zlinvals(-3,2);
-ok(all($x->shape==$x->shape), "xlinvals shape"); #7
-ok(all($x->shape==$y->shape), "ylinvals shape"); #8
+my $a1=zeroes(101,51,26);
+my $x = $a1->xlinvals(0.5,1.5);
+my $y = $a1->ylinvals(-2,-1);
+my $z = $a1->zlinvals(-3,2);
+ok(all($a1->shape==$x->shape), "xlinvals shape"); #7
+ok(all($a1->shape==$y->shape), "ylinvals shape"); #8
 ok(all($x->shape==$z->shape), "zlinvals shape"); #9
 ok(tapprox($x->uniqvec->flat,pdl(50..150)/100),"xlinvals values"); #10
 ok(tapprox($y->mv(1,0)->uniqvec->flat,pdl(-100..-50)/50),"ylinvals values"); #11

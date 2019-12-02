@@ -43,7 +43,7 @@ ok( tapprox($x->pctover( 2.0), $a_sort->at($x->dim(0)-1)), "pct above 1 for 25-e
 
 # test for sf.net bug report 2753869
 #
-my $x = sequence(10);
+$x = sequence(10);
 ok( tapprox($x->pctover(0.2 ), 1.8 ), "20th percential of 10-elem piddle [SF bug 2753869]");
 ok( tapprox($x->pctover(0.23), 2.07), "23rd percential of 10-elem piddle [SF bug 2753869]");
 
@@ -158,7 +158,7 @@ ok (PDL::oddmedian($h) ==  0, 'Oddmedian 3-value not in order test');
 ok (PDL::oddmedian($j) == -3, 'Oddmedian negative values even cardinality test');
 
 #Test mode and modeover
-my $x = pdl([1,2,3,3,4,3,2],1);
+$x = pdl([1,2,3,3,4,3,2],1);
 ok( $x->mode == 0, "mode test" );
 ok( all($x->modeover == pdl(3,0)), "modeover test");
 
