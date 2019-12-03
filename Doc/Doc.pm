@@ -506,7 +506,7 @@ sub savedb {
         $val->{File} = File::Spec->abs2rel($fi, dirname($this->{Outfile})) ;
       }
       delete $val->{Dbfile}; # no need to store Dbfile
-      my $txt = "$name".chr(0)."$module".chr(0).join(chr(0),%$val);
+      my $txt = join(chr(0),$name,$module,%$val);
       print OUT pack("S",length($txt)).$txt;
     }
   }
@@ -704,7 +704,7 @@ sub scan {
     if (defined($val->{Module})){
 	$hash->{$key}->{$val->{Module}} = $val;
     } else {
-	print STDERR "no Module for $key in $file2\n";
+	warn "no Module for $key in $file2\n";
     }
 }
 

@@ -171,19 +171,15 @@ Regex search PDL documentation database
 =for example
 
  pdl> apropos 'pic'
- find_autodoc    P::Doc::Perldl  Internal helper routine that finds and returns documentation in the autoloader path,
-                                 if it exists. You feed in a topic and it searches for the file "${topic}.pdl". If
-                                 that exists, then the filename gets returned in a match structure appropriate for
-                                 the rest of finddoc.
- grabpic3d       P::G::TriD      Grab a 3D image from the screen.
- Pic             P::IO           Module: image I/O for PDL
- rim             P::IO::Pic      Read images in most formats, with improved RGB handling.
- rpic            P::IO::Pic      Read images in many formats with automatic format detection.
- rpiccan         P::IO::Pic      Test which image formats can be read/written
- wim             P::IO::Pic      Write a pdl to an image file with selected type (or using filename extensions)
- wmpeg           P::IO::Pic      Write an image sequence (a (3,x,y,n) byte pdl) as an animation.
- wpic            P::IO::Pic      Write images in many formats with automatic format selection.
- wpiccan         P::IO::Pic      Test which image formats can be read/written
+ PDL::IO::Pic    P::IO::Pic  Module: image I/O for PDL
+ grabpic3d       P::G::TriD  Grab a 3D image from the screen.
+ rim             P::IO::Pic  Read images in most formats, with improved RGB handling.
+ rpic            P::IO::Pic  Read images in many formats with automatic format detection.
+ rpiccan         P::IO::Pic  Test which image formats can be read/written
+ wim             P::IO::Pic  Write a pdl to an image file with selected type (or using filename extensions)
+ wmpeg           P::IO::Pic  Write an image sequence (a (3,x,y,n) byte pdl) as an animation.
+ wpic            P::IO::Pic  Write images in many formats with automatic format selection.
+ wpiccan         P::IO::Pic  Test which image formats can be read/written
 
 To find all the manuals that come with PDL, try
 
@@ -342,10 +338,12 @@ sub finddoc  {
 
 =for ref
 
-Internal helper routine that finds and returns documentation in the autoloader
-path, if it exists.  You feed in a topic and it searches for the file
-"${topic}.pdl".  If that exists, then the filename gets returned in a 
-match structure appropriate for the rest of finddoc.
+Internal routine that finds and returns documentation in the
+PDL::AutoLoader path, if it exists.
+
+You feed in a topic and it searches for the file "${topic}.pdl".  If
+that exists, then the filename gets returned in a match structure
+appropriate for the rest of finddoc.
 
 =cut
 
