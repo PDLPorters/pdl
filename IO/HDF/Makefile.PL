@@ -6,7 +6,7 @@ use Config;
 our ($hdf_include_path, $hdf_lib_path, $hdf_libs, $szip);
 
 my $msg = "";
-my $forcebuild=0;  # Note: forcebuild not used
+my $forcebuild=0;
 
 if (defined $PDL::Config{WITH_HDF} && $PDL::Config{WITH_HDF}==0) {
     $msg = "\n   Will skip build of PDL::IO::HDF on this system   \n";
