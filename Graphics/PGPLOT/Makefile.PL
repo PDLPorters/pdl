@@ -2,7 +2,10 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-eval { require PGPLOT };
+eval {
+  local @INC = grep $_ ne '.', @INC;
+  require PGPLOT;
+};
 if ($@) {
     write_dummy_make("Not building PDL::Graphics::PGPLOT, PGPLOT not installed");
     return;

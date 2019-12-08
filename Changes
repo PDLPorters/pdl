@@ -1,3 +1,5 @@
+- PGPLOT stop accidentally finding own PGPLOT.pm from . in @INC - was loading installed %PDL::Config
+
 2.019_05 2019-12-02
 - calloc->malloc+memset, as calloc on Win32 = "free to wrong pool"
 - memset after malloc in pdlapi.c
