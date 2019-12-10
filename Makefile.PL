@@ -412,7 +412,8 @@ my @prereq = (
 	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
            'Scalar::Util'        => 0,
            'Storable'            => 1.03,      # for PDL::IO::Storable
-	   'Text::Balanced'      => 1.89,      # for PDL::NiceSlice
+           'Term::ReadKey'       => 2.34,      #for perldl shell
+           'Text::Balanced'      => 1.89,      # for PDL::NiceSlice
 	  );
 
 # add OpenGL version dependency for CPAN to follow

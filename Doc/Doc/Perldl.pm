@@ -51,6 +51,7 @@ use PDL::Doc;
 use Pod::Select;
 use IO::File;
 use Pod::PlainText;
+use Term::ReadKey; #for GetTerminalSize
 
 $PDL::onlinedoc = undef;
 $PDL::onlinedoc = PDL::Doc->new(FindStdFile());
@@ -83,11 +84,7 @@ sub FindStdFile {
 # machines)
 #
 sub screen_width() {
-    return $ENV{COLUMNS}
-       || (($ENV{TERMCAP} =~ /co#(\d+)/) and $1)
-       || ($^O ne 'MSWin32' and $^O ne 'dos' and 
-	  ((`stty -a 2>/dev/null` =~ /columns\s*=?\s*(\d+)/) or (`stty -a 2>/dev/null` =~ /(\d+)\s+columns/)) and $1)
-       || 72;
+    return ( ( GetTerminalSize(\*STDOUT) )[0] );
 }
 
 sub printmatch {
