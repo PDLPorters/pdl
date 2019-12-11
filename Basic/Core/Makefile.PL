@@ -220,8 +220,7 @@ pdlcore.c:: pdlcore.c.PL Types.pm\n"
 }
 };
 
-my $libs_string = "$pthread_library $malloclib";
-$libs_string =~ s/^ $//;
+my $libs_string = "$pthread_library $malloclib -lm";
 
 my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic pdlsections);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;

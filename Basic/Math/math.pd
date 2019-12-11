@@ -44,7 +44,7 @@ sub doco {
 }
 
 doco (qw/acos asin atan tan/,
-'The usual trigonometric function.');
+'The usual trigonometric function. Note that when input is a perl scalar and the real-value based function would return Inf or NaN, it now returns a cdouble.');
 
 doco (qw/cosh sinh tanh acosh asinh atanh/,
 'The standard hyperbolic function.');
@@ -157,7 +157,7 @@ pp_addhdr('
 
 # Standard `-lm'
 my (@ufuncs1) = qw(acos asin atan cosh sinh tan tanh); # F,D only
-my (@ufuncs1g) = qw(ceil floor rint); # Any type
+my (@ufuncs1g) = qw(ceil floor rint); # Any real type
 
 # Note:
 #  ops.pd has a power() function that does the same thing
@@ -172,22 +172,37 @@ my (@besufuncs) = qw(j0 j1 y0 y1); # "
 my (@besbifuncs) = qw(jn yn); # "
 # Need igamma, ibeta, and a fall-back implementation of the above
 
-sub code_ufunc    { return '$b() = ' . $_[0] . '($a());'; }
+sub code_ufunc    { return '
+	types(G) %{ $b() = c' . $_[0] . 'f($a()); %}
+	types(C) %{ $b() = c' . $_[0] . '($a()); %}
+	types(BSULNFD) %{ $b() = ' . $_[0] . '($a()); %}
+	'; }
 sub badcode_ufunc {
     my $name = $_[0];
-    return 'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = ' . $name . '($a()); }';
+    return 'if ( $ISBAD(a()) ) { $SETBAD(b()); } else {
+	types(G) %{ $b() = c' . $_[0] . 'f($a()); %}
+	types(C) %{ $b() = c' . $_[0] . '($a()); %}
+	types(BSULNFD) %{ $b() = ' . $_[0] . '($a()); %}
+	 }';
 }
 
 sub code_bifunc {
     my $name = $_[0]; my $x = $_[1] || 'a'; my $y = $_[2] || 'b';
     my $c = $_[3] || 'c';
-    return "\$$c() = $name(\$$x(),\$$y());";
+    return (
+	"types(BSULNFD) %{ \$$c() = $name(\$$x(),\$$y()); %} "
+	."types(C) %{ \$$c() = c$name(\$$x(),\$$y()); %} "
+	."types(G) %{ \$$c() = c".$name."f(\$$x(),\$$y()); %} "
+	."");
 }
 sub badcode_bifunc {
     my $name = $_[0]; my $x = $_[1] || 'a'; my $y = $_[2] || 'b';
     my $c = $_[3] || 'c';
     return 'if ( $ISBAD('.$x.'()) || $ISBAD('.$y.'()) ) { $SETBAD('.$c.'()); } else { ' .
-	"\$$c() = $name(\$$x(),\$$y()); }";
+	"types(BSULNFD) %{ \$$c() = $name(\$$x(),\$$y()); %} "
+	."types(C) %{ \$$c() = c$name(\$$x(),\$$y()); %} "
+	."types(G) %{ \$$c() = c${name}f(\$$x(),\$$y()); %} "
+	."}";
 }
 
 sub inplace_doc {
@@ -200,7 +215,7 @@ foreach $func (@ufuncs1) {
     pp_def($func,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	   GenericTypes => ['F','D'],
+	   GenericTypes => ['F','D','G','C'],
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
@@ -208,10 +223,12 @@ foreach $func (@ufuncs1) {
 	   BadCode => badcode_ufunc($func),
 	   );
 }
-
+my $R = ['B','S','U','L','N','F','D']; # should be using code from Types.pm to set up.
+# real types
 foreach $func (@ufuncs1g) {
     pp_def($func,
 	   HandleBad => 1,
+	   GenericTypes=>$R,
 	   NoBadifNaN => 1,
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
@@ -278,6 +295,7 @@ foreach $func (@besbifuncs) {
 if ($^O !~ /win32/i) {
     pp_def("lgamma",
 	   HandleBad => 1,
+	   GenericTypes=>$R,
 	   Pars => 'a(); [o]b(); int[o]s()',
 	   Doc => $doco{"lgamma"},
 	   Code =>
@@ -298,6 +316,7 @@ if ($^O !~ /win32/i) {
 elsif ($Config{cc} =~ /\bgcc/i) {
     pp_def("lgamma",
 	   HandleBad => 1,
+	   GenericTypes=>$R,
 	   Pars => 'a(); [o]b(); int[o]s()',
 	   Doc => $doco{"lgamma"},
 	   Code =>
@@ -384,7 +403,7 @@ pp_def(
        "ndtri",
        HandleBad => 1,
        NoBadifNaN => 1,
-       GenericTypes => ['F','D'],
+       GenericTypes => ['F','D','G','C'],
        Pars => 'a(); [o]b()',
        Inplace => 1,
        Doc => inplace_doc( "ndtri" ),

@@ -534,7 +534,7 @@ EOC
     # - is there a better way of checking for the condition since
     #   the current one needs to be changed whenever the types are changed
     #
-    $set_code = "" if $usenan and ($type->ppsym eq "F" or $type->ppsym eq "D");
+    $set_code = "" if $usenan and ($type->ppsym eq "F" or $type->ppsym eq "D" or $type->ppsym eq "C" or $type->ppsym eq "G");
 
     $str .=
 "

@@ -25,6 +25,7 @@ use vars qw( %PDL_DATATYPES );
 # version 10 for 64bit index support (PDL index datatype)
 # version 11 for core cleanup (proto-PDL-3)
 # version 12 for PDL_Anyval union data type (full 64bit support)
+# version 13 for complex data types (native complex support)
 use vars qw( $pdl_core_version );
 $pdl_core_version = 12;
 

@@ -140,6 +140,7 @@ my %pnpolyFields = (
 for my $name (sort keys %pnpolyFields) {
 	pp_def($name,
 		HandleBad => 0,
+		GenericTypes=>['B','S','U','L','N','F','D'],
 		PMFunc => '',
 		Doc => undef,
 		Pars => $pnpolyFields{$name}->{'pars'},
@@ -195,8 +196,8 @@ pp_addhdr('
 
 for ( PDL::Types::typesrtkeys() ) {
     my $ctype = $PDL::Types::typehash{$_}{ctype};
+    next if $ctype =~ /C/; # filter complex
     my $ppsym = $PDL::Types::typehash{$_}{ppsym};
-
   pp_addhdr << "EOH";
 
 /*
@@ -621,6 +622,7 @@ Note: this routine does the median over all points in a rectangular
 
 EOD
         Pars => 'a(m,n); [o]b(m,n);',
+        GenericTypes=>['B','S','U','L','N','F','D'],
 	# funny parameter names to avoid special case in 'init_vars'
         OtherPars => 'int __p_size; int __q_size; int opt;',
         PMCode => '
@@ -939,6 +941,7 @@ EOD
 
        HandleBad => 1,
         Pars => 'a(m,n); [o]val(); int [o]x(); int[o]y();',
+        GenericTypes=>['B','S','U','L','N','F','D'],
         Code => '
         double cur; int curind1; int curind2;
         curind1=0;
@@ -1157,6 +1160,7 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 ',
        HandleBad => 0, # a marker
         Pars => 'a(m,n); int+ [o]b(m,n);',
+        GenericTypes=>['B','S','U','L','N','F','D'],
         OtherPars => 'int con',
         Code => '
 
@@ -1530,6 +1534,7 @@ EOD
 pp_def('bilin2d',
        HandleBad => 0,
     Pars => 'Int(n,m); O(q,p)',
+    GenericTypes=>['B','S','U','L','N','F','D'],
     Doc=><<'EOD',
 
 =for ref
@@ -1577,6 +1582,7 @@ EOD
 pp_def('rescale2d',
        HandleBad => 0,
     Pars => 'Int(m,n); O(p,q)',
+    GenericTypes=>['B','S','U','L','N','F','D'],
     Doc=><<'EOD',
 
 =for ref

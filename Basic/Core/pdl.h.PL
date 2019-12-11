@@ -31,6 +31,8 @@ print OUT <<"!GROK!THIS!";
 #ifndef __PDL_H
 #define __PDL_H
 
+#include <complex.h>
+
 #define PDL_DEBUGGING 1
 
 #ifdef PDL_DEBUGGING
@@ -49,6 +51,8 @@ extern int pdl_debugging;
                 case PDL_LL:  outsv = newSViv( (IV)(inany.value.Q) ); break; \\
                 case PDL_F:   outsv = newSVnv( (NV)(inany.value.F) ); break; \\
                 case PDL_D:   outsv = newSVnv( (NV)(inany.value.D) ); break; \\
+                case PDL_CF:  outsv = newSV( 50 ); sv_setpvf(outsv, "%.9g+%.9gi", creal(inany.value.G),cimag(inany.value.G)); break; \\
+                case PDL_CD:  outsv = newSV( 50 ); sv_setpvf(outsv, "%.17g+%.17gi",creal(inany.value.C),cimag(inany.value.C)); break; \\
                 default:      outsv = &PL_sv_undef; \\
             } \\
         } while (0)
@@ -62,6 +66,8 @@ extern int pdl_debugging;
                 case PDL_LL:  outany.type = avtype; outany.value.Q = (PDL_LongLong)(inval); break; \\
                 case PDL_F:   outany.type = avtype; outany.value.F = (PDL_Float)(inval);    break; \\
                 case PDL_D:   outany.type = avtype; outany.value.D = (PDL_Double)(inval);   break; \\
+                case PDL_CF:  outany.type = avtype; outany.value.G = (PDL_CFloat)(inval);   break; \\
+                case PDL_CD:  outany.type = avtype; outany.value.C = (PDL_CDouble)(inval);   break; \\
                 default:      outany.type = -1;     outany.value.B = 0; \\
             } \\
         } while (0)
@@ -75,6 +81,8 @@ extern int pdl_debugging;
                 case PDL_LL:  outval = (ctype)(inany.value.Q); break; \\
                 case PDL_F:   outval = (ctype)(inany.value.F); break; \\
                 case PDL_D:   outval = (ctype)(inany.value.D); break; \\
+                case PDL_CF:  outval = (ctype)(inany.value.G); break; \\
+                case PDL_CD:  outval = (ctype)(inany.value.C); break; \\
                 default:      outval = 0; \\
             } \\
         } while (0)
@@ -109,6 +117,8 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
                 case PDL_LL:  return ((PDL_LongLong)(x.value.B) == y.value.Q) ? 1 : 0;
                 case PDL_F:   return ((PDL_Float)(x.value.B)    == y.value.F) ? 1 : 0;
                 case PDL_D:   return ((PDL_Double)(x.value.B)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.B)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return ((PDL_CDouble)(x.value.B)  == y.value.C) ? 1 : 0;
                 default:      return 0;
             }
         case PDL_S:
@@ -121,6 +131,8 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
                 case PDL_LL:  return ((PDL_LongLong)(x.value.S) == y.value.Q) ? 1 : 0;
                 case PDL_F:   return ((PDL_Float)(x.value.S)    == y.value.F) ? 1 : 0;
                 case PDL_D:   return ((PDL_Double)(x.value.S)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.S)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return ((PDL_CDouble)(x.value.S)  == y.value.C) ? 1 : 0;
                 default:      return 0;
             }
         case PDL_US:
@@ -133,6 +145,8 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
                 case PDL_LL:  return ((PDL_LongLong)(x.value.U) == y.value.Q) ? 1 : 0;
                 case PDL_F:   return ((PDL_Float)(x.value.U)    == y.value.F) ? 1 : 0;
                 case PDL_D:   return ((PDL_Double)(x.value.U)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.U)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return ((PDL_CDouble)(x.value.U)  == y.value.C) ? 1 : 0;
                 default:      return 0;
             }
         case PDL_L:
@@ -145,6 +159,8 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
                 case PDL_LL:  return ((PDL_LongLong)(x.value.L) == y.value.Q) ? 1 : 0;
                 case PDL_F:   return ((PDL_Float)(x.value.L)    == y.value.F) ? 1 : 0;
                 case PDL_D:   return ((PDL_Double)(x.value.L)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.L)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return ((PDL_CDouble)(x.value.L)  == y.value.C) ? 1 : 0;
                 default:      return 0;
             }
         case PDL_IND:
@@ -157,6 +173,8 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
                 case PDL_LL:  return ((PDL_LongLong)(x.value.N) == y.value.Q) ? 1 : 0;
                 case PDL_F:   return ((PDL_Float)(x.value.N)    == y.value.F) ? 1 : 0;
                 case PDL_D:   return ((PDL_Double)(x.value.N)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.N)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return ((PDL_CDouble)(x.value.N)  == y.value.C) ? 1 : 0;
                 default:      return 0;
             }
         case PDL_LL:
@@ -169,6 +187,8 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
                 case PDL_LL:  return (x.value.Q                 == y.value.Q) ? 1 : 0;
                 case PDL_F:   return ((PDL_Float)(x.value.Q)    == y.value.F) ? 1 : 0;
                 case PDL_D:   return ((PDL_Double)(x.value.Q)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.Q)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return ((PDL_CDouble)(x.value.Q)  == y.value.C) ? 1 : 0;
                 default:      return 0;
             }
         case PDL_F:
@@ -181,6 +201,8 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
                 case PDL_LL:  return (x.value.F                 == (PDL_Float)(y.value.Q)) ? 1 : 0;
                 case PDL_F:   return (x.value.F                 == y.value.F) ? 1 : 0;
                 case PDL_D:   return ((PDL_Double)(x.value.F)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.F)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return ((PDL_CDouble)(x.value.F)  == y.value.C) ? 1 : 0;
                 default:      return 0;
             }
         case PDL_D:
@@ -193,6 +215,36 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
                 case PDL_LL:  return (x.value.D                 == (PDL_Double)(y.value.Q)) ? 1 : 0;
                 case PDL_F:   return (x.value.D                 == (PDL_Double)(y.value.F)) ? 1 : 0;
                 case PDL_D:   return (x.value.D                 == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.D)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return ((PDL_CDouble)(x.value.D)  == y.value.C) ? 1 : 0;
+                default:      return 0;
+            }
+        case PDL_CF:
+            switch (y.type) {
+                case PDL_B:   return (x.value.C                 == y.value.B) ? 1 : 0;
+                case PDL_S:   return ((PDL_Short)(x.value.C)    == y.value.S) ? 1 : 0;
+                case PDL_US:  return ((PDL_Ushort)(x.value.C)   == y.value.U) ? 1 : 0;
+                case PDL_L:   return ((PDL_Long)(x.value.C)     == y.value.L) ? 1 : 0;
+                case PDL_IND: return ((PDL_Indx)(x.value.C)     == y.value.N) ? 1 : 0;
+                case PDL_LL:  return ((PDL_LongLong)(x.value.C) == y.value.Q) ? 1 : 0;
+                case PDL_F:   return ((PDL_Float)(x.value.C)    == y.value.F) ? 1 : 0;
+                case PDL_D:   return ((PDL_Double)(x.value.C)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CFloat)(x.value.C)   == y.value.G) ? 1 : 0;
+                case PDL_CD:  return (x.value.C                 == y.value.C) ? 1 : 0;
+                default:      return 0;
+            }
+        case PDL_CD:
+            switch (y.type) {
+                case PDL_B:   return (x.value.C                 == y.value.B) ? 1 : 0;
+                case PDL_S:   return ((PDL_Short)(x.value.C)    == y.value.S) ? 1 : 0;
+                case PDL_US:  return ((PDL_Ushort)(x.value.C)   == y.value.U) ? 1 : 0;
+                case PDL_L:   return ((PDL_Long)(x.value.C)     == y.value.L) ? 1 : 0;
+                case PDL_IND: return ((PDL_Indx)(x.value.C)     == y.value.N) ? 1 : 0;
+                case PDL_LL:  return ((PDL_LongLong)(x.value.C) == y.value.Q) ? 1 : 0;
+                case PDL_F:   return ((PDL_Float)(x.value.C)    == y.value.F) ? 1 : 0;
+                case PDL_D:   return ((PDL_Double)(x.value.C)   == y.value.D) ? 1 : 0;
+                case PDL_CF:  return ((PDL_CDouble)(x.value.B)  == y.value.G) ? 1 : 0;
+                case PDL_CD:  return (x.value.C                 == y.value.C) ? 1 : 0;
                 default:      return 0;
             }
         default:
