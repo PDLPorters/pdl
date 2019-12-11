@@ -84,7 +84,7 @@ sub FindStdFile {
 # machines)
 #
 sub screen_width() {
-    return ( ( GetTerminalSize(\*STDOUT) )[0] );
+    return ( ( GetTerminalSize(\*STDOUT) )[0] // 72);
 }
 
 sub printmatch {
