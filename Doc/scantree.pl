@@ -67,7 +67,7 @@ EOPOD
 #print POD "=over ",$#mans+1,"\n\n";
 print POD "=over 4\n\n";
 for (@mans) {
-  my $ref = $_->[1]->{Ref};
+  my $ref = $_->[2]->{Ref};
   $ref =~ s/Manual:/L<$_->[0]|$_->[0]> -/;
 ##  print POD "=item L<$_->[0]>\n\n$ref\n\n";
 #  print POD "=item $_->[0]\n\n$ref\n\n";
@@ -85,7 +85,7 @@ EOPOD
 #print POD "=over ",$#mods+1,"\n\n";
 print POD "=over 4\n\n";
 for (@scripts) {
-  my $ref = $_->[1]->{Ref};
+  my $ref = $_->[2]->{Ref};
   $ref =~ s/Script:/L<$_->[0]|PDL::$_->[0]> -/;
 ##  print POD "=item L<$_->[0]>\n\n$ref\n\n";
 #  print POD "=item $_->[0]\n\n$ref\n\n";
@@ -103,7 +103,7 @@ EOPOD
 #print POD "=over ",$#mods+1,"\n\n";
 print POD "=over 4\n\n";
 for (@mods) {
-  my $ref = $_->[1]->{Ref};
+  my $ref = $_->[2]->{Ref};
   next unless $_->[0] =~ /^PDL/;
   if( $_->[0] eq 'PDL'){ # special case needed to find the main PDL.pm file.
 	  $ref =~ s/Module:/L<PDL::PDL|PDL::PDL> -/;
@@ -130,4 +130,7 @@ EOPOD
 
 close POD;
 
-
+#add the newly-created PDL::Index to the doc database
+$onldc->scan($outindex,$opt_v) if (-s $outindex);
+$onldc->savedb();
+1;

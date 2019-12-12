@@ -4,8 +4,8 @@ PDL::Doc::Perldl - commands for accessing PDL doc database from 'perldl' shell
 
 =head1 DESCRIPTION
 
-This module provides a simple set of functions to
-access the PDL documentation of database, for use
+This module provides a set of functions to
+access the PDL documentation database, for use
 from the I<perldl> or I<pdl2> shells as well as the
 I<pdldoc> command-line program.
 
@@ -14,15 +14,24 @@ tree.  That behavior can be switched off with the variable
 C<$PERLDL::STRICT_DOCS> (true: don't search autoload tree; false: search
 the autoload tree.)
 
-Currently, multiple matches are not handled very well.
+In the interest of brevity, functions that print module names (at the moment
+just L</apropos> and L</usage>) use some shorthand notation for module names.
+Currently-implemented shorthands are
+
+=over 3
+
+=item * P:: (short for PDL::)
+
+=item * P::G:: (short for PDL::Graphics::)
+
+=back
+
+To turn this feature off, set the variable $PERLDL::long_mod_names to a true value.
+The feature is assumed to be on for the purposes of this documentation.
 
 =head1 SYNOPSIS
 
  use PDL::Doc::Perldl; # Load all documentation functions
-
-=head1 BUGS
-
-The description contains the misleading word "simple". 
 
 =head1 FUNCTIONS
 
@@ -42,6 +51,7 @@ use PDL::Doc;
 use Pod::Select;
 use IO::File;
 use Pod::PlainText;
+use Term::ReadKey; #for GetTerminalSize
 
 $PDL::onlinedoc = undef;
 $PDL::onlinedoc = PDL::Doc->new(FindStdFile());
@@ -74,11 +84,7 @@ sub FindStdFile {
 # machines)
 #
 sub screen_width() {
-    return $ENV{COLUMNS}
-       || (($ENV{TERMCAP} =~ /co#(\d+)/) and $1)
-       || ($^O ne 'MSWin32' and $^O ne 'dos' and 
-	   (`stty -a 2>/dev/null` =~ /columns\s*=?\s*(\d+)/) and $1)
-       || 72;
+    return ( ( GetTerminalSize(\*STDOUT) )[0] // 72);
 }
 
 sub printmatch {
@@ -90,6 +96,22 @@ sub printmatch {
     }
 } # sub: print_match()
 
+
+# given a long module name, return the (perhaps shortened) module name.
+
+sub shortmod {
+  my $module = shift;
+  $module =~ s/::$//;
+  unless ($PERLDL::long_mod_names){
+      $module =~ s/^PDL::/P::/;
+      $module =~ s/^P::Graphics::/P::G::/;
+      #additional abbreviation substitutions go here
+  }
+  return $module;
+}
+
+
+
 # return a string containing a formated version of the Ref string
 # for the given matches
 #
@@ -97,28 +119,36 @@ sub format_ref {
   my @match = @_;
   my @text = ();
 
-  my $width = screen_width()-17;
+  #finding the max width before doing the printing means looping through @match an extra time; so be it.
+  my @module_shorthands = map { shortmod($_->[1]) } @match;
+  my $max_mod_length = -1;
+  map {$max_mod_length = length if (length>$max_mod_length) } @module_shorthands;
+
+
+  my $width = screen_width()-17-1-$max_mod_length;
   my $parser = new Pod::PlainText( width => $width, indent => 0, sentence => 0 );
 
-  for my $m (@match) { 
-    my $ref = $m->[1]{Ref} || 
-      ( (defined $m->[1]{CustomFile})
-        ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
+  for my $m (@match) {
+    my $ref = $m->[2]{Ref} ||
+      ( (defined $m->[2]{CustomFile})
+        ? "[No ref avail. for `".$m->[2]{CustomFile}."']"
         : "[No reference available]"
      );
+
+    my $name = $m->[0];
+    my $module = shortmod($m->[1]);
 
     $ref = $parser->interpolate( $ref );
     $ref = $parser->reformat( $ref );
 
     # remove last new lines (so substitution doesn't append spaces at end of text)
     $ref =~ s/\n*$//;
-    $ref =~ s/\n/\n                /g;
-
-    my $name = $m->[0];
-    if ( length($name) > 15 ) { 
-      push @text, sprintf "%s ...\n                %s\n", $name, $ref;
+    $ref =~ s/\n/"\n                ".' 'x($max_mod_length+2)/eg;
+    $ref =~ s/^\s*//;
+    if ( length($name) > 15 ) {
+      push @text, sprintf "%s ...\n " . ' 'x15 . "%-*s  %s\n", $name, $max_mod_length, $module, $ref;
     } else {
-      push @text, sprintf "%-15s %s\n", $name, $ref;
+      push @text, sprintf "%-15s %-*s  %s\n", $name, $max_mod_length, $module, $ref;
     }
   }
   return wantarray ? @text : $text[0];
@@ -138,11 +168,15 @@ Regex search PDL documentation database
 =for example
 
  pdl> apropos 'pic'
- rpic            Read images in many formats with automatic format detection.
- rpiccan         Test which image formats can be read/written
- wmpeg           Write an image sequence ((x,y,n) piddle) as an MPEG animation.
- wpic            Write images in many formats with automatic format selection.
- wpiccan         Test which image formats can be read/written
+ PDL::IO::Pic    P::IO::Pic  Module: image I/O for PDL
+ grabpic3d       P::G::TriD  Grab a 3D image from the screen.
+ rim             P::IO::Pic  Read images in most formats, with improved RGB handling.
+ rpic            P::IO::Pic  Read images in many formats with automatic format detection.
+ rpiccan         P::IO::Pic  Test which image formats can be read/written
+ wim             P::IO::Pic  Write a pdl to an image file with selected type (or using filename extensions)
+ wmpeg           P::IO::Pic  Write an image sequence (a (3,x,y,n) byte pdl) as an animation.
+ wpic            P::IO::Pic  Write images in many formats with automatic format selection.
+ wpiccan         P::IO::Pic  Test which image formats can be read/written
 
 To find all the manuals that come with PDL, try
 
@@ -163,7 +197,7 @@ sub aproposover {
     my $func = shift;
     $func =~ s:\/:\\\/:g;
     search_docs("m/$func/",['Name','Ref','Module'],1);
-    
+
 }
 
 sub apropos  {
@@ -187,7 +221,7 @@ sub search_docs {
 
     @match = $PDL::onlinedoc->search($func,$types,$sortflag);
     push(@match,find_autodoc( $func, $exact ) );
-    
+
     @match;
 }
 
@@ -211,11 +245,11 @@ sub finddoc  {
     # See if it matches a PDL function name
 
     my $subfield = $1
-      if( $topic =~ s/\[(\d*)\]$// );
+      if( $topic =~ s/\[(\d*)\]$// ); #does it end with a number in square brackets?
 
-    (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  
+    (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  #$t2 is a copy of $topic with escaped non-word characters
 
-    my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0);
+    my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0) ; #matches: ^PDL::topic$ or ^topic$
 
     unless(@match) {
       
@@ -245,11 +279,11 @@ sub finddoc  {
     while (@match) {
        $pdl_pod_matchnum++;
 
-       if (  @match > 1   and   !$subfield  ) {
+       if (  @match > 1   and   !$subfield  and $pdl_pod_matchnum==1 ) {
           print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
           my $i=0;
           for my $m ( @match ) {
-             printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[1]{Module} && "in ", $m->[1]{CustomFile} || $m->[1]{Module};
+             printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[2]{Module} && "in ", $m->[2]{CustomFile} || $m->[2]{Module};
           }
           print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=cut\n\n";
        }
@@ -260,10 +294,10 @@ sub finddoc  {
 
        my $m = shift @match;
 
-       my $Ref = $m->[1]{Ref};
+       my $Ref = $m->[2]{Ref};
        if ( $Ref =~ /^(Module|Manual|Script): / ) {
 	   # We've got a file name and we have to open it.  With the relocatable db, we have to reconstitute the absolute pathname.
-	   my $relfile = $m->[1]{File};
+	   my $relfile = $m->[2]{File};
 	   my $absfile = undef;
 	   my @scnd = @{$PDL::onlinedoc->{Scanned}};
 	   for my $dbf(@scnd){
@@ -277,17 +311,18 @@ sub finddoc  {
 	   my $in = IO::File->new("<$absfile");
 	   print $out join("",<$in>);
        } else {
-          if(defined $m->[1]{CustomFile}) {
+          if(defined $m->[2]{CustomFile}) {
 
              my $parser= Pod::Select->new;
-             print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
-             $parser->parse_from_file($m->[1]{CustomFile},$out);
-             print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";
+             print $out "=head1 Autoload file \"".$m->[2]{CustomFile}."\"\n\n";
+             $parser->parse_from_file($m->[2]{CustomFile},$out);
+             print $out "\n\n=head2 Docs from\n\n".$m->[2]{CustomFile}."\n\n";
 
           } else {
 
-             print $out "=head1 Module ",$m->[1]{Module}, "\n\n";
-             $PDL::onlinedoc->funcdocs($m->[0],$out);
+             print $out "=head1 Module ",$m->[2]{Module}, "\n\n";
+#	     print STDERR "calling funcdocs(" . $m->[0] . ", " . $m->[1] . ")\n";
+             $PDL::onlinedoc->funcdocs($m->[0],$m->[1],$out);
 
           }
 
@@ -300,10 +335,12 @@ sub finddoc  {
 
 =for ref
 
-Internal helper routine that finds and returns documentation in the autoloader
-path, if it exists.  You feed in a topic and it searches for the file
-"${topic}.pdl".  If that exists, then the filename gets returned in a 
-match structure appropriate for the rest of finddoc.
+Internal routine that finds and returns documentation in the
+PDL::AutoLoader path, if it exists.
+
+You feed in a topic and it searches for the file "${topic}.pdl".  If
+that exists, then the filename gets returned in a match structure
+appropriate for the rest of finddoc.
 
 =cut
 
@@ -339,7 +376,7 @@ sub find_autodoc {
 	if($exact) {
 	    my $file = $dir . "/" . "$topic";
 	    push(@out,
-	          [$file, {CustomFile => "$file", Module => "file '$file'"}]
+	          [$file, undef, {CustomFile => "$file", Module => "file '$file'"}]
 		 )
 		if(-e $file);
 	} else {
@@ -348,7 +385,7 @@ sub find_autodoc {
 	    closedir(FOO);
 	    for my $file( grep( &$matcher, @dir ) ) {
 		push(@out,
-		     [$file, {CustomFile => "$dir/$file", Module => "file '$dir/$file'"}]
+		     [$file, undef, {CustomFile => "$dir/$file", Module => "file '$dir/$file'"}]
 		     );
 	    }
 
@@ -372,10 +409,10 @@ Prints usage information for a PDL function
 
    pdl> usage 'inner'
 
-   inner           inner prodcuct over one dimension
-                   (Module PDL::Primitive)
+   inner           P::Primitive  Inner product over one dimension
 
-   Signature: inner(a(n); b(n); [o]c(); )
+   Signature: inner(a(n); b(n); [o]c())
+
 
 
 =cut
@@ -388,20 +425,24 @@ sub usage {
 sub usage_string{
     my $func = shift;
     my $str = "";
-    my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
-
-    unless (@match) { $str = "\n  no match\n" } 
+    my @match = search_docs("m/^(PDL::)?$func\$|\:\:$func\$/",['Name']);
+    my $count = @match;
+    unless ($count) { $str = "\n  no match\n" }
     else {
-	$str .= "\n" . format_ref( $match[0] );
-	my ($name,$hash) = @{$match[0]};
-	$str .= sprintf ( (' 'x16)."(Module %s)\n\n", $hash->{Module} );
-	die "No usage info found for $func\n"
-	    if !defined $hash->{Example} && !defined $hash->{Sig} &&
-		!defined $hash->{Usage};
-	$str .= "  Signature: $name($hash->{Sig})\n\n" if defined $hash->{Sig};
-	for (['Usage','Usage'],['Opt','Options'],['Example','Example']) {
-	    $str .= "  $_->[1]:\n\n".&allindent($hash->{$_->[0]},10)."\n\n"
-		if defined $hash->{$_->[0]};
+	#this sorts by namespace depth by counting colons in the name.
+	#PDL::Ufunc::max comes before PDL::GSL::RNG::max, for example.
+	foreach my $m(sort { scalar(()=$a->[1]=~/\:/g) <=> scalar(()=$b->[1]=~/\:/g) } @match){
+	    $str .= "\n" . format_ref( $m );
+	    my ($name,$module,$hash) = @{$m};
+	    #$str .= sprintf ( (' 'x16)."(Module %s)\n\n", $hash->{Module} );
+	    $str.="\n";
+	    die "No usage info found for $func\n" if (!defined $hash->{Example} && !defined $hash->{Sig} &&
+						      !defined $hash->{Usage});
+	    $str .= "  Signature: $name($hash->{Sig})\n\n" if defined $hash->{Sig};
+	    for (['Usage','Usage'],['Opt','Options'],['Example','Example']) {
+		$str .= "  $_->[1]:\n".&allindent($hash->{$_->[0]},10)."\n" if defined $hash->{$_->[0]};
+	    }
+	    $str .= '='x20 unless 1==$count--;
 	}
     }
     return $str;
@@ -424,8 +465,7 @@ doesn't break -- it causes threading.  See L<PDL::PP|PDL::PP> for details.
 =for example
 
   pdl> sig 'outer'
-    Signature: outer(a(n); b(m); [o]c(n,m); )
-
+    Signature: outer(a(n); b(m); [o]c(n,m))
 
 =cut
 
@@ -433,13 +473,16 @@ sub sig {
 	die "Usage: sig \$funcname\n" unless $#_>-1;
 	die "no online doc database" unless defined $PDL::onlinedoc;
 	my $func = shift;
-	my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
+	my @match = search_docs("m/^(PDL::)?$func\$|\:\:$func\$/",['Name']);
+	my $count = @match;
 	unless (@match) { print "\n  no match\n" } else {
-         my ($name,$hash) = @{$match[0]};
-	 die "No signature info found for $func\n"
-            if !defined $hash->{Sig};
-         print "  Signature: $name($hash->{Sig})\n" if defined $hash->{Sig};
-        }
+	    foreach my $m(sort { scalar(()=$a->[1]=~/\:/g) <=> scalar(()=$b->[1]=~/\:/g) } @match){
+		my ($name,$module,$hash) = @{$m};
+		die "No signature info found for $func\n" if !defined $hash->{Sig};
+		print "  Signature: $name($hash->{Sig})\n" if defined $hash->{Sig};
+		print '='x20 unless 1==$count--;
+	    }
+	}
 }
 
 sub allindent {
@@ -677,6 +720,14 @@ And has a horrible name.
 
  badinfo 'func'
 
+=for example
+
+  pdl> badinfo 'inner'
+  Bad value support for inner (in module PDL::Primitive)
+      If "a() * b()" contains only bad data, "c()" is set bad. Otherwise "c()"
+      will have its bad flag cleared, as it will not contain any bad values.
+
+
 =cut
 
 # need to get this to format the output - want a format_bad()
@@ -694,16 +745,26 @@ sub badinfo {
 
     local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
 
-    my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
-    if ( @match ) {
-	my ($name,$hash) = @{$match[0]};
-	my $info = $hash->{Bad};
+    my @match = search_docs("m/^(PDL::)?$func\$|\:\:$func\$/",['Name']);
+    my $count = @match;
+    if ( $count ) {
+	my ($pagerstr, $noinfostr);
+	foreach my $m(@match) {
+	    my ($name,$module,$hash) = @{$m};
+	    my $info = $hash->{Bad};
+	    if ( defined $info ) {
+		$name=~s/^(.*)\:\:(\w*)$/$2/;
 
-	if ( defined $info ) {
+		$pagerstr .= "=head1 Bad value support for $name (in module $module)\n\n$info\n";
+	    } else {
+		$noinfostr .= "\n  No information on bad-value support found for $func (in module $module)\n";
+	    }
+	}
+	if ($pagerstr){
 	    my $out = new IO::File "| pod2text | $PDL::Doc::pager";
-	    print $out "=head1 Bad value support for $name\n\n$info\n";
+	    print $out $pagerstr, $noinfostr;
 	} else {
-	    print "\n  No information on bad-value support found for $func\n";
+	    print $noinfostr;
 	}
     } else {
 	print "\n  no match\n";
