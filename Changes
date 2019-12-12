@@ -1,5 +1,8 @@
+2.020 2019-12-12
+- no changes from 2.019_06
+
 2.019_06 2019-12-08
-- PGPLOT stop accidentally finding own PGPLOT.pm from . in @INC - was loading installed %PDL::Config
+- PGPLOT stop accidentally finding own PGPLOT.pm from . in @INC - was loading installed %PDL::Config into Makefile.PL process
 
 2.019_05 2019-12-02
 - calloc->malloc+memset, as calloc on Win32 = "free to wrong pool"
@@ -69,8 +72,6 @@ General Notes:
 
  * Multiple minor fixes, docs, cleanup, and changing
    things to point to github away from sf.net.
-
-
 
 v2.018_02 2018-04-28 13:46:27-04:00
 
