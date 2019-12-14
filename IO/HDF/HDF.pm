@@ -51,7 +51,7 @@ use PDL::IO::HDF::VS;
 
 =head1 CONSTANTS
 
-These constants are now implented using the perl 'use constant' pragma.
+These constants are now implemented using the perl 'use constant' pragma.
 
 Previously, they were just scalars that were changeable (which is a no-no).
 

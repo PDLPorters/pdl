@@ -247,7 +247,7 @@ missing data values.
 
 =over 4
 
-=item Algorthym
+=item Algorithm
 
 The data array represents samples of some field observed on the surface described 
 by points.  For each contour value we look for intersections on the line segments
