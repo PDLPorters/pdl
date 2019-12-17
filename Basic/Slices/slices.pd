@@ -2790,7 +2790,7 @@ in the original PDL some number of times.  An asterisk followed
 by a number produces a dummy dimension in the output, for
 example C<< *2 >> will generate a dimension of size 2 at
 the corresponding location in the output dim list.  Omitting
-the numeber (and using just an asterisk) inserts a dummy dimension
+the number (and using just an asterisk) inserts a dummy dimension
 of size 1.
 
 =back

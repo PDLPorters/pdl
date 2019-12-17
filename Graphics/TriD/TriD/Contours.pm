@@ -59,7 +59,7 @@ value using the set_color_table function.
   Font =>  $font      # explicitly set the font for contour labels
 
   If ContourVals is specified ContourInt, ContourMin, and ContourMax
-  are ignored.  If no options are specified, the algorthym tries to
+  are ignored.  If no options are specified, the algorithm tries to
   choose values based on the data supplied.  Font can also be specified or
   overwritten by the addlabels() function below.
 
