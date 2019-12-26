@@ -1,4 +1,5 @@
 - PGPLOT test to check $DISPLAY first
+- CallExt test to use abs path because of recent MacOS change
 
 2.020_02 2019-12-17
 - spelling fixes - thanks @sebastic

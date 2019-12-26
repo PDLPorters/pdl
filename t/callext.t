@@ -72,8 +72,7 @@ sub loglog {
 	note "X = $x\n";
 	note "Y = $y\n";
 
-	my $ldfile =
-	callext($out, "loglog_ext", $ret, $y);
+	callext(File::Spec->rel2abs($out), "loglog_ext", $ret, $y);
 
 	return $ret;
 }
