@@ -17,11 +17,11 @@ sub eval_skip {
 }
 
 BEGIN {
+   plan skip_all => "DISPLAY environment variable not set"
+      if !exists $ENV{'DISPLAY'} and !exists $ENV{HARNESS_ACTIVE};
    eval_skip "PGPLOT";
    eval_skip "PDL::Graphics::PGPLOT";
    eval_skip "PDL::Graphics::PGPLOT::Window";
-   plan skip_all => "DISPLAY environment variable not set"
-      if !exists $ENV{'DISPLAY'} and !exists $ENV{HARNESS_ACTIVE};
 }
 
 plan tests => 36;
