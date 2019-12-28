@@ -481,6 +481,14 @@ my %makefile_hash = (
                     x_IRC => 'irc://irc.perl.org/#pdl',
                  },
                  no_index => { file => ['Doc/scantree.pl'] },
+                 prereqs => {
+                    configure => {
+                       recommends => {
+                          'ExtUtils::F77' => '1.10',
+                          'PGPLOT' => 0,
+                       },
+                    },
+                 },
               },
               'MAN1PODS' => { 'Bugs.pod' => '$(INST_MAN1DIR)/PDL::Bugs.$(MAN1EXT)',
                               'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',

@@ -1,3 +1,5 @@
+- more diagnostic info for PGPLOT / F77
+
 2.020_03 2019-12-26
 - PGPLOT test to check $DISPLAY first
 - CallExt test to use abs path because of recent MacOS change

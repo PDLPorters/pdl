@@ -22,9 +22,12 @@ BEGIN {
    eval_skip "PGPLOT";
    eval_skip "PDL::Graphics::PGPLOT";
    eval_skip "PDL::Graphics::PGPLOT::Window";
+   eval_skip "ExtUtils::F77";
 }
 
 plan tests => 36;
+
+diag "F77 Method: $_, ", explain ExtUtils::F77->$_ for qw(runtime runtimeok trail_ compiler cflags);
 
 sub get_answer () {
     print STDERR "Does this look OK (y/n, y is default)? :";
