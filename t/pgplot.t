@@ -27,7 +27,7 @@ BEGIN {
 
 plan tests => 36;
 
-diag "F77 Method: $_, ", explain ExtUtils::F77->$_ for qw(runtime runtimeok trail_ compiler cflags);
+diag "F77 Method: $_, ", explain(ExtUtils::F77->$_) for qw(runtime runtimeok trail_ compiler cflags);
 
 sub get_answer () {
     print STDERR "Does this look OK (y/n, y is default)? :";
