@@ -1,4 +1,6 @@
-2.020_04 2019-12-29
+- fix pdlpp_postamble - thanks @sebastic
+
+2.020_05 2019-12-29
 - fix t/pgplot.t
 
 2.020_04 2019-12-28
