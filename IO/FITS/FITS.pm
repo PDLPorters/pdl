@@ -118,6 +118,7 @@ Suffix magic:
   @pdls = rfits('file.fits');      # Read primary data and extensions
 
 Tilde expansion:
+
   #expand leading ~ to home directory (using glob())
   $pdl = rfits '~/filename.fits';
 
@@ -1569,6 +1570,7 @@ Suffix magic:
   wfits $pdl, 'filename.fits.Z';  
 
 Tilde expansion:
+
   #expand leading ~ to home directory (using glob())
   wfits $pdl, '~/filename.fits';
 
