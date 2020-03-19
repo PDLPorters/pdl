@@ -239,7 +239,7 @@ WriteMakefile(
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
  'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
  'DEFINE' 	=> $pthread_define.$badval_define,
- 'LIBS'         => ["$pthread_library $malloclib"],
+ 'LIBS'         => ["$pthread_library $malloclib" =~ s/^ $//r],
  'clean'        => {'FILES'  => $cobj .
                    ' pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
