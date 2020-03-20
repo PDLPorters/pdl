@@ -220,6 +220,9 @@ pdlcore.c:: pdlcore.c.PL Types.pm\n"
 }
 };
 
+my $libs_string = "$pthread_library $malloclib";
+$libs_string =~ s/^ $//;
+
 my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic pdlsections);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
@@ -239,7 +242,7 @@ WriteMakefile(
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
  'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
  'DEFINE' 	=> $pthread_define.$badval_define,
- 'LIBS'         => ["$pthread_library $malloclib"],
+ 'LIBS'         => [$libs_string],
  'clean'        => {'FILES'  => $cobj .
                    ' pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
