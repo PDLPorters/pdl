@@ -818,7 +818,7 @@ Figure out the format of an image file from its magic numbers, or else, from its
 
 =for example
 
-    $format=imageformat('image.jpg'); # find out format
+    $format=imageformat($path); # find out image format of certain file
     print "Unknown image format" if $format eq 'UNKNOWN';
     $canread=rpiccan($format); # check if this format is readable in this system
     if($canread){
