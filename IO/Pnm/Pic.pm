@@ -32,7 +32,7 @@ temporary directory). For this to work you need the program ffmpeg also.
 package PDL::IO::Pic;
 
 
-@EXPORT_OK = qw( wmpeg rim wim rpic wpic rpiccan wpiccan );
+@EXPORT_OK = qw( wmpeg rim wim rpic wpic rpiccan wpiccan imageformat);
 
 %EXPORT_TAGS = (Func => [@EXPORT_OK]);
 use PDL::Core;
@@ -577,7 +577,7 @@ sub rim {
 	  ) {
 	  $out =  $out->reorder(1,2,0);
       }
-      
+
       $dest .= $out;
       return $out;
   }
@@ -704,7 +704,7 @@ is used to determine the video encoder type.
   E.g.:
     .mpg for MPEG-1 encoding
     .mp4 for MPEG-4 encoding
-   
+
   And even:
     .gif for GIF animation (uncompressed)
 
@@ -810,7 +810,31 @@ sub PDL::wmpeg {
    return 1;
 }
 
+=head2 imageformat
 
+=for ref
+
+Figure out the format of an image file from its magic numbers, or else, from its extension.
+
+=for example
+
+    $format=imageformat('image.jpg'); # find out format
+    print "Unknown image format" if $format eq 'UNKNOWN';
+    $canread=rpiccan($format); # check if this format is readable in this system
+    if($canread){
+        $pdl=rpic($path) ; # attempt to read image ONLY if we can
+    } else {
+        print "Image can't be read\n"; # skip unreadable file
+    }
+
+=cut
+
+sub imageformat {PDL->imageformat(@_)}
+
+sub PDL::imageformat {
+    my($class, $file)=@_;
+    return chkform($file);
+}
 
 1; # Return OK status
 
@@ -870,11 +894,14 @@ sub chkext {
     return 'UNKNOWN';
 }
 
+
+
 # try to figure out the format of a supposed image file
 # from the magic numbers (numbers taken from magic in netpbm and
 # the file format routines in xv)
 # if no magics match try extension for non-magic file types
 #     todo: make more complete
+
 sub chkform {
     my $file = shift;
     my ($format, $magic, $len, $ext) = ("","",0,"");
@@ -905,7 +932,6 @@ sub chkform {
 
     return chkext(getext($file));    # then try extensions
 }
-
 
 # helper proc for wpic
 # process hints for direct converter control and try to guess from extension
