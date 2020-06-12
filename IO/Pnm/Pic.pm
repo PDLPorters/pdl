@@ -816,6 +816,10 @@ sub PDL::wmpeg {
 
 Figure out the format of an image file from its magic numbers, or else, from its extension.
 
+Currently recognized image formats are: PNM, GIF, TIFF, JPEG, SGI,
+RAST, IFF, PCX, PS, FITS, PNG.  If the format can not be determined,
+the string 'UNKNOWN' is returned.
+
 =for example
 
     $format=imageformat($path); # find out image format of certain file

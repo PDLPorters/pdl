@@ -68,7 +68,7 @@ for (keys %formats) {
    }
 }
 
-my $ntests = 2 * (@allowed);
+my $ntests = 4 * (@allowed);
 if ($ntests < 1) {
   plan skip_all => "No tests";
 }
@@ -107,7 +107,13 @@ foreach my $form (sort @allowed) {
         skip "Error: '$@'$additional", 2 if $@;
         $im2->wpic($tbyte,{IFORM => $iform});
 
+	my $determined_format;
+	$determined_format = imageformat($tushort);
+	is($determined_format, $form, "image $tushort is format $form");
         my $in1 = rpic_unlink($tushort) unless $usherr;
+
+	$determined_format = imageformat($tbyte);
+	is($determined_format, $form, "image $tbyte is format $form");
         my $in2 = rpic_unlink($tbyte);
 
         my $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
