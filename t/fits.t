@@ -204,6 +204,8 @@ unless($PDL::Astro_FITS_Header) {
     my $a2 = [[1,2],[1,2]];
     my $p;
     my $q;
+    my @target_bitpix = (8,16,32,-32,-64);
+    my $bp_i = 0;
     for my $cref ( \(&byte, &short, &long, &float, &double) ) {
         for my $x ($a1,$a2) {
             $p = &$cref($x);
@@ -218,8 +220,10 @@ unless($PDL::Astro_FITS_Header) {
                   print "\tq:", unpack("c" x ($q->nelem*howbig($q->get_datatype)), ${$q->get_dataref}),"\n";
 		}
             }
+	    is($q->hdr->{BITPIX},$target_bitpix[$bp_i],"BITPIX implicitly set to " . $target_bitpix[$bp_i]);
 	    ok($flag,"hash reference - type check: " . &$cref ); #64-73
         }
+	$bp_i++;
     }
     unlink 'x.fits';
 }
@@ -236,11 +240,11 @@ unless($PDL::Astro_FITS_Header) {
         $q = PDL->rfits('x.fits');
         @s = $q->stats;
 	my $flag;
-	print "s=@s\n";
         if ($s[0] == 1.5 and $s[1] < 0.7072 and $s[1]>0.577) {
            $flag = 1;
         } else {
            $flag = 0;
+	   print "s=@s\n";
            print "\tBITPIX=$i, nelem=", $p->nelem, "\n";
            print "\tbug: $s[0] == 1.5 and $s[1] == 0.5\n";
 	   { local $, = " ";
@@ -248,6 +252,7 @@ unless($PDL::Astro_FITS_Header) {
 	     print "\tq:", unpack("c" x abs($i/8*$q->nelem), ${$q->get_dataref}),"\n";
            }
         }
+	is($q->hdr->{BITPIX},$i,"BITPIX explicitly set to $i"); #check that explicitly setting BITPIX in wfits works.
 	ok($flag,"piddle - bitpix=$i" ); #74-83
     }
     }
