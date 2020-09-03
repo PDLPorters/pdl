@@ -21,7 +21,7 @@ install:
   - cpan App::cpanminus
   # F77 1.23, which comes with SP 5.30.1.1, fails on Win32
   - cpanm ExtUtils::F77
-  - cpanm -q --showdeps --with-develop --with-suggests --with-configure . | findstr /v "^perl\>" | cpanm -n
+  - cpanm -q --showdeps --with-develop --with-suggests --with-configure . | findstr /v "^perl\>" | findstr /v "^Config" | cpanm -n
   - 'echo End install at: & time /t'
 
 build_script:
