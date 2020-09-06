@@ -1,3 +1,7 @@
+2.022 2020-09-06
+- Fix wfits so that explicitly setting BITPIX works. - thanks @d-lamb
+- add PDL::IO::Pic::imageformat - thanks @wmlb
+
 2.021 2020-03-01
 - fix pdlpp_postamble - thanks @sebastic
 
