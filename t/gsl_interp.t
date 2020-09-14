@@ -38,10 +38,10 @@ ok(abs($spl->eval(5.5)-237.641810667697) < 1e-6,  'eval 5.5'   );
 ok(abs($spl->deriv(5.5)-237.669424604497) < 1e-6, 'deriv 5.5'  );
 ok(abs($spl->deriv2(5.5)-306.23332503967) < 1e-6, 'deriv2 5.5' );
 ok(abs($spl->integ(3.2,8.5)-4925.23555581654) < 1e-6, 'integ 3.2 to 8.5' );   
-ok(abs($spl->eval(5.5,{Extrapolate => 1})-237.641810667697) < 1e-6, 'eval 5.5 w Extrapolate' );
-ok(abs($spl->deriv(5.5,{Extrapolate => 1})-237.669424604497) < 1e-6, 'deriv 5.5 w Extrapolate' );
-ok(abs($spl->deriv2(5.5,{Extrapolate => 1})-306.23332503967) < 1e-6, 'deriv2 5.5 w Extrapolate' );
-ok(abs($spl->integ(3.2,8.5,{Extrapolate => 1})-4925.23555581654) < 1e-6, 'integ 3.2 to 8.5 w Extrapolate' );   
+eval { $spl->eval(10)     }; like($@,qr/input domain error/, 'eval 10 (extrapolation not allowed)') ;
+eval { $spl->deriv(10)    }; like($@,qr/input domain error/, 'deriv 10 (extrapolation not allowed)' );
+eval { $spl->deriv2(10)   }; like($@,qr/input domain error/, 'deriv2 10 (extrapolation not allowed)');
+eval { $spl->integ(8.5,10)}; like($@,qr/input domain error/, 'integ 8.5 to 10 (extrapolation not allowed)');
 
 # Bad value test added 5/31/2005 D. Hunt
 
