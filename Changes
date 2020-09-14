@@ -1,3 +1,6 @@
+2.023 2020-09-14
+- Remove extrapolation code from PDL::GSL::INTERP. - thanks @d-lamb
+
 2.022 2020-09-06
 - Fix wfits so that explicitly setting BITPIX works. - thanks @d-lamb
 - add PDL::IO::Pic::imageformat - thanks @wmlb
