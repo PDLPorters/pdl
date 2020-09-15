@@ -389,7 +389,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 my @prereq = (
 	   'Astro::FITS::Header' => 0,
            'Carp'                => 0,         # Need to run
-           'Config'              => 0,         # 
+           'Config'              => 0,         #
            'Convert::UU'         => 0,         # for PDL::IO::Dumper
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
            'English'             => 0,
@@ -597,7 +597,7 @@ EOPS
 # support the `$<` variable in explicit rules
 $text .= <<EOT if $^O !~ /MSWin/;
 pdl$Config::Config{exe_ext} : pdl.c
-	\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CPPFLAGS) pdl.c -o \$\@
+	\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CCCDLFLAGS) pdl.c -o \$\@
 EOT
 
 $text .= << 'EOT' if $^O =~ /MSWin/;
