@@ -8,7 +8,7 @@ use PDL::Exporter;
 require PDL; # for $VERSION
 use DynaLoader;
 our @ISA    = qw( PDL::Exporter DynaLoader );
-our $VERSION = '2.023';
+our $VERSION = '2.024';
 bootstrap PDL::Core $VERSION;
 use PDL::Types ':All';
 use Config;

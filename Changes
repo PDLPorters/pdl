@@ -1,3 +1,6 @@
+2.024 2020-09-17
+- use CCCDLFLAGS for compile of pdl.c to include -fPIC where needed - thanks @newville
+
 2.023 2020-09-14
 - Remove extrapolation code from PDL::GSL::INTERP. - thanks @d-lamb
 
