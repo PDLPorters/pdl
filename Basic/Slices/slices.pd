@@ -1143,7 +1143,7 @@ EOD-RedoDims
               ck = 0;
               break;
             default:
-              barf("Unknown boudnary condition in range -- bug alert!");
+              barf("Unknown boundary condition in range -- bug alert!");
               /* Note clever misspelling of boundary to distinguish from other case */
               break;
           }
