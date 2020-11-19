@@ -1,3 +1,5 @@
+- fix spellings - thanks @sebastic
+
 2.024 2020-09-17
 - use CCCDLFLAGS for compile of pdl.c to include -fPIC where needed - thanks @newville
 
