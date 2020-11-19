@@ -1144,7 +1144,6 @@ EOD-RedoDims
               break;
             default:
               barf("Unknown boundary condition in range -- bug alert!");
-              /* Note clever misspelling of boundary to distinguish from other case */
               break;
           }
       }
