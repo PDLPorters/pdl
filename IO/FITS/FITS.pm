@@ -1538,7 +1538,7 @@ sub _rfits_unpack_zimage($$$) {
 	    );
     }
 
-    if(exists $hdr->{BSCALE}) {
+    if(exists $hdr->{BSCALE} || exists $hdr->{BLANK}) {
 	$pdl = treat_bscale($pdl, $hdr);
     }
     $pdl->sethdr($hdr);
