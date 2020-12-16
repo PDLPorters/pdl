@@ -2189,7 +2189,7 @@ sub PDL::nslice_if_pdl {
 =for ref
 
 C<nslice> was an internally used interface for L<PDL::NiceSlice|PDL::NiceSlice>,
-but is now merely a springboard to L<PDL::Slice|PDL::Slice>.  It is deprecated
+but is now merely a springboard to L<PDL::Slices>.  It is deprecated
 and likely to disappear in PDL 3.0.
 
 =cut

@@ -2596,7 +2596,7 @@ dimensions can be omitted implying C<X>'es for those.
  ]
 
 As this is an index function, any modifications to the
-slice change the parent (use the C<.=> operator).
+slice will change the parent (use the C<.=> operator).
 
 =cut
 
@@ -2673,7 +2673,7 @@ have a 2D image C<axis=0> will select certain C<X> values
 - i.e. extract columns
 
 As this is an index function, any modifications to the
-slice change the parent.
+slice will change the parent.
 
 =cut
 

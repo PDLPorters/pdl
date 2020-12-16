@@ -203,8 +203,8 @@ Probably the most important application of the concept of parent/child
 piddles is the representation of rectangular slices of a physical piddle by
 a virtual piddle. Having talked long enough about concepts let's get more
 specific. Suppose we are working with a 2D piddle representing a 5x5
-image (its unusually small so that we can print it without filling
-several screens full of digits ;).
+image (it's unusually small so that we can print it without filling
+several screens full of digits).
 
  pdl> $im = sequence(5,5)
  pdl> p $im
