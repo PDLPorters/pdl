@@ -785,7 +785,7 @@ copied across.
 
 EOD
        BadDoc =>
-'This routine does not handle bad values - use L<patchbad2d|/patchbad2d> instead',
+'This routine does not handle bad values - use L</patchbad2d> instead',
        HandleBad => 0,
         Pars => 'a(m,n); int bad(m,n); [o]b(m,n);',
         Code =>
@@ -847,7 +847,7 @@ patch bad pixels out of 2D images containing bad values
 Pixels are replaced by the average of their non-bad neighbours;
 if all neighbours are bad, the output is set bad.
 If the input piddle contains I<no> bad values, then a straight copy
-is performed (see L<patch2d|/patch2d>).
+is performed (see L</patch2d>).
 
 =cut
 
@@ -2472,7 +2472,7 @@ pp_addpm( '
 
 =for ref
 
-Return the specified kernel, as used by L<warp2d|/warp2d>
+Return the specified kernel, as used by L</warp2d>
 
 =for usage
 

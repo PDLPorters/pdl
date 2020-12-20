@@ -173,7 +173,7 @@ foreach my $func ( sort keys %over ) {
             if ( flag ) { $b() = tmp; }
             else        { $SETBAD(b()); }',
 	   Doc => projectdocs( $name, "d$func", 
-"Unlike L<$func|/$func>, the calculations are performed in double\n" .
+"Unlike L</$func>, the calculations are performed in double\n" .
 "precision." ),
 	   );
 
@@ -221,7 +221,7 @@ foreach my $func ( sort keys %over ) {
                }
 	    %}',
 	   Doc => cumuprojectdocs( $name, $cfunc, 
-"Unlike L<cumu$func|/cumu$func>, the calculations are performed in double\n" .
+"Unlike L</cumu$func>, the calculations are performed in double\n" .
 "precision." ),
 	   );
 
@@ -412,7 +412,7 @@ pp_def(
          if ( cnt ) { $b() = tmp / cnt; }
          else       { $SETBAD(b()); }',
 	Doc => projectdocs( 'average', 'daverage', 
-"Unlike L<average|/average>, the calculation is performed in double\n" .
+"Unlike L</average>, the calculation is performed in double\n" .
 "precision." ),
 	);
 
@@ -960,7 +960,7 @@ for my $op ( ['avg','average','average'],
 
 Return the $text of all elements in a piddle.
 
-See the documentation for L<$func|/$func> for more information.
+See the documentation for L</$func> for more information.
 
 =for usage
 
@@ -1016,7 +1016,7 @@ EOPM
 	pp_addpm(<<'EOPM');
 =for bad
 
-See L<or|/or> for comments on what happens when all elements
+See L</or> for comments on what happens when all elements
 in the check are bad.
 
 =cut
@@ -1048,7 +1048,7 @@ EOPM
 	pp_addpm(<<'EOPM');
 =for bad
 
-See L<and|/and> for comments on what happens when all elements
+See L</and> for comments on what happens when all elements
 in the check are bad.
 
 =cut
@@ -1077,7 +1077,7 @@ Returns an array with minimum and maximum values of a piddle.
 
 This routine does I<not> thread over the dimensions of C<$pdl>; 
 it returns the minimum and maximum values of the whole array.
-See L<minmaximum|/minmaximum> if this is not what is required.
+See L</minmaximum> if this is not what is required.
 The two values are returned as Perl scalars similar to min/max.
 
 =for example
@@ -1582,7 +1582,7 @@ Find minimum and maximum and their indices for a given piddle;
  pdl> p $min, $max, $min_ind, $max_ind
  [-2 0] [4 3] [0 1] [2 2]
 
-See also L<minmax|/minmax>, which clumps the piddle together.
+See also L</minmax>, which clumps the piddle together.
 
 =cut
 

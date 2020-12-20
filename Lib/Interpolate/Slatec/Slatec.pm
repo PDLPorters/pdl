@@ -62,7 +62,7 @@ The estimated gradient can be obtained using
 
  $gradient = $obj->get( 'g' );
 
-As described in the L<interpolate|/interpolate> method,
+As described in the L</interpolate> method,
 the C<"pch"> routines can also estimate the gradient,
 as well as the function value, for a set of C<$xi>.
 

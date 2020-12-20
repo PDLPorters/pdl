@@ -78,7 +78,7 @@ doco ('ndtri',
 
 The value for which the area under the
 Gaussian probability density function (integrated from
-minus infinity) is equal to the argument (cf L<erfi|/erfi>).");
+minus infinity) is equal to the argument (cf L</erfi>).");
 
 doco(qw/bessj0 bessj1/,
      "The regular Bessel function of the first kind, J_n" );

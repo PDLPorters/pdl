@@ -208,8 +208,8 @@ as collections of 1-D arrays, so that
 
 puts a single column from C<$x> into C<$y>, and puts a single element
 from each column of C<$x> into C<$c>.  If you want to extract multiple
-columns from an array in one operation, see L<dice|/dice> or
-L<indexND|/indexND>.
+columns from an array in one operation, see L</dice> or
+L</indexND>.
 
 =cut
 
@@ -391,7 +391,7 @@ The returned elements are looked up from C<$source>.  Dataflow
 works -- propagated assignment flows back into C<$source>.
 
 IndexND and IndexNDb were originally separate routines but they are both
-now implemented as a call to L<range|/range>, and have identical syntax to
+now implemented as a call to L</range>, and have identical syntax to
 one another.
 
 =cut
@@ -458,11 +458,11 @@ pp_def(
         Doc => <<'EOD',
 =for ref
 
-Engine for L<range|/range>
+Engine for L</range>
 
 =for example
 
-Same calling convention as L<range|/range>, but you must supply all
+Same calling convention as L</range>, but you must supply all
 parameters.  C<rangeb> is marginally faster as it makes a direct PP call,
 avoiding the perl argument-parsing step.
 
@@ -500,7 +500,7 @@ you get two dummy dimensions of size 1 on the end of your source array.
 You can extract single elements or N-D rectangular ranges from C<$source>,
 by setting C<$size>.  If C<$size> is undef or zero, then you get a single
 sample for each row of C<$index>.  This behavior is similar to
-L<indexNDb|/indexNDb>, which is in fact implemented as a call to L<range|/range>.
+L</indexNDb>, which is in fact implemented as a call to L</range>.
 
 If C<$size> is positive then you get a range of values from C<$source> at
 each location, and the output has extra dimensions allocated for them.
@@ -523,7 +523,7 @@ less difficult than it sounds; see the examples below).
 
 Ranges are not allowed to cross the boundary of the original PDL.  Disallowed
 ranges throw an error.  The errors are thrown at evaluation time, not
-at the time of the range call (this is the same behavior as L<slice|/slice>).
+at the time of the range call (this is the same behavior as L</slice>).
 
 =item 1 (synonyms: 't','truncate')
 
@@ -1475,8 +1475,8 @@ pp_addpm(<< 'EOD');
 
 Re-orders the dimensions of a PDL based on the supplied list.
 
-Similar to the L<xchg|/xchg> method, this method re-orders the dimensions
-of a PDL. While the L<xchg|/xchg> method swaps the position of two dimensions,
+Similar to the L</xchg> method, this method re-orders the dimensions
+of a PDL. While the L</xchg> method swaps the position of two dimensions,
 the reorder method can change the positions of many dimensions at
 once.
 
@@ -2548,11 +2548,11 @@ or planes in a cube. This can of course be done with
 the usual dimension tricks but this saves having to
 figure it out each time!
 
-This method is similar in functionality to the L<slice|/slice>
-method, but L<slice|/slice> requires that contiguous ranges or ranges
-with constant offset be extracted. ( i.e. L<slice|/slice> requires
+This method is similar in functionality to the L</slice>
+method, but L</slice> requires that contiguous ranges or ranges
+with constant offset be extracted. ( i.e. L</slice> requires
 ranges of the form C<1,2,3,4,5> or C<2,4,6,8,10>). Because of this
-restriction, L<slice|/slice> is more memory efficient and slightly faster
+restriction, L</slice> is more memory efficient and slightly faster
 than dice
 
 =for usage

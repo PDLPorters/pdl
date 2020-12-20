@@ -176,29 +176,29 @@ The following operators are overloaded:
 
 =item -, -= (subtraction)
 
-=item *, *= (multiplication; L<Cmul|/Cmul>)
+=item *, *= (multiplication; L</Cmul>)
 
-=item /, /= (division; L<Cdiv|/Cdiv>)
+=item /, /= (division; L</Cdiv>)
 
-=item **, **= (exponentiation; L<Cpow|/Cpow>)
+=item **, **= (exponentiation; L</Cpow>)
 
 =item atan2 (4-quadrant arc tangent)
 
-=item <=> (nonsensical comparison operator; L<Ccmp|/Ccmp>)
+=item <=> (nonsensical comparison operator; L</Ccmp>)
 
-=item sin (L<Csin|/Csin>)
+=item sin (L</Csin>)
 
-=item cos (L<Ccos|/Ccos>)
+=item cos (L</Ccos>)
 
-=item exp (L<Cexp|/Cexp>)
+=item exp (L</Cexp>)
 
-=item abs (L<Cabs|/Cabs>)
+=item abs (L</Cabs>)
 
-=item log (L<Clog|/Clog>)
+=item log (L</Clog>)
 
-=item sqrt (L<Csqrt|/Csqrt>)
+=item sqrt (L</Csqrt>)
 
-=item <, <=, ==, !=, >=, > (just as nonsensical as L<Ccmp|/Ccmp>)
+=item <, <=, ==, !=, >=, > (just as nonsensical as L</Ccmp>)
 
 =item ++, -- (increment, decrement; they affect the real part of the complex number only)
 

@@ -382,7 +382,7 @@ A return value of 1 does not guarantee the presence of
 bad data in a piddle; all it does is say that we need to
 I<check> for the presence of such beasties. To actually
 find out if there are any bad values present in a piddle,
-use the L<check_badflag|/check_badflag> method.
+use the L</check_badflag> method.
 
 =for bad
 
@@ -441,7 +441,7 @@ with the current or new bad value.
 returns the original value used to represent bad values for
 a given type.
 
-This routine operates the same as L<badvalue|/badvalue>,
+This routine operates the same as L</badvalue>,
 except you can not change the values.
 
 It also has an I<awful> name.
@@ -1000,12 +1000,12 @@ Even more unfortunate: we can't catch this error and tell you.
 =for bad
 
 The output always has its bad flag set, even if it does not contain
-any bad values (use L<check_badflag|/check_badflag> to check
+any bad values (use L</check_badflag> to check
 whether there are any bad values in the output). 
 The input piddle can have bad values: any bad values in the input piddles
 are copied across to the output piddle.
 
-Also see L<setvaltobad|/setvaltobad> and L<setnantobad|/setnantobad>.
+Also see L</setvaltobad> and L</setnantobad>.
 
 =cut
 
@@ -1059,14 +1059,14 @@ Set bad all those elements which equal the supplied value.
  print "$x\n";
  [BAD 1 2 BAD 1 2 BAD 1 2 BAD]
 
-This is a simpler version of L<setbadif|/setbadif>, but this
-function can be done inplace.  See L<setnantobad|/setnantobad>
+This is a simpler version of L</setbadif>, but this
+function can be done inplace.  See L</setnantobad>
 if you want to convert NaN/Inf to the bad value.
 
 =for bad
 
 The output always has its bad flag set, even if it does not contain
-any bad values (use L<check_badflag|/check_badflag> to check
+any bad values (use L</check_badflag> to check
 whether there are any bad values in the output). 
 Any bad values in the input piddles are copied across to the output piddle.
 

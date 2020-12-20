@@ -668,7 +668,7 @@ Internal: Return the numeric value identifying the piddle datatype
 Mainly used for internal routines.
 
 NOTE: get_datatype returns 'just a number' not any special
-type object, unlike L<type|/type>.
+type object, unlike L</type>.
 
 =head2 howbig
 
@@ -713,7 +713,7 @@ piddle points to the new location of the underlying perl variable.
 Calling C<get_dataref> automatically physicalizes your piddle (see
 L<make_physical|/PDL::make_physical>).  You definitely
 don't want to do anything to the SV to truncate or deallocate the
-string, unless you correspondingly call L<reshape|/reshape> to make the
+string, unless you correspondingly call L</reshape> to make the
 PDL match its new data dimension.
 
 You definitely don't want to use get_dataref unless you know what you
@@ -1764,7 +1764,7 @@ Use explicit threading over specified dimensions (see also L<PDL::Indexing>)
  $x = zeroes 3,4,5;
  $y = $x->thread(2,0);
 
-Same as L<PDL::thread1|/PDL::thread1>, i.e. uses thread id 1.
+Same as L</PDL::thread1>, i.e. uses thread id 1.
 
 =cut
 
@@ -2281,7 +2281,7 @@ Test the in-place flag on a piddle
   $out = ($in->is_inplace) ? $in : zeroes($in);
   $in->set_inplace(0)
 
-Provides access to the L<inplace|/inplace> hint flag, within the perl millieu.
+Provides access to the L</inplace> hint flag, within the perl millieu.
 That way functions you write can be inplace aware... If given an
 argument the inplace flag will be set or unset depending on the value
 at the same time. Can be used for shortcut tests that delete the
@@ -2300,8 +2300,8 @@ Set the in-place flag on a piddle
   $out = ($in->is_inplace) ? $in : zeroes($in);
   $in->set_inplace(0);
 
-Provides access to the L<inplace|/inplace> hint flag, within the perl millieu.
-Useful mainly for turning it OFF, as L<inplace|/inplace> turns it ON more
+Provides access to the L</inplace> hint flag, within the perl millieu.
+Useful mainly for turning it OFF, as L</inplace> turns it ON more
 conveniently.
 
 =head2 new_or_inplace
@@ -2364,7 +2364,7 @@ sub new_or_inplace {
 
 Internal method: create piddle by specification
 
-This is the argument processing method called by L<zeroes|/zeroes>
+This is the argument processing method called by L</zeroes>
 and some other functions
 which constructs piddles from argument lists of the form:
 
@@ -3616,7 +3616,7 @@ Retrieve header information from a piddle
  print "Number of pixels in the X-direction=$$h{NAXIS1}\n";
 
 The C<gethdr> function retrieves whatever header information is contained
-within a piddle. The header can be set with L<sethdr|/sethdr> and is always a
+within a piddle. The header can be set with L</sethdr> and is always a
 hash reference or undef.
 
 C<gethdr> returns undef if the piddle has not yet had a header
@@ -3631,7 +3631,7 @@ in-place once it has been retrieved:
   $xh->{FILENAME} = $filename;
 
 It is also important to realise that in most cases the header is not
-automatically copied when you copy the piddle.  See L<hdrcpy|/hdrcpy>
+automatically copied when you copy the piddle.  See L</hdrcpy>
 to enable automatic header copying.
 
 Here's another example: a wrapper around rcols that allows your piddle
@@ -3741,8 +3741,8 @@ the elements happen to be scalars):
 which is considerably faster but just copies the top level.
 
 The C<sethdr> function must be given a hash reference or undef.  For
-further information on the header, see L<gethdr|/gethdr>, L<hdr|/hdr>,
-L<fhdr|/fhdr> and L<hdrcpy|/hdrcpy>.
+further information on the header, see L</gethdr>, L</hdr>,
+L</fhdr> and L</hdrcpy>.
 
 =head2 hdrcpy
 

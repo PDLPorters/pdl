@@ -148,7 +148,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for ref
 
-X axis values between endpoints (see L<xvals|/xvals>).
+X axis values between endpoints (see L</xvals>).
 
 =for usage
 
@@ -167,23 +167,23 @@ arguments along the given axis.
 
 =for ref
 
-Y axis values between endpoints (see L<yvals|/yvals>).
+Y axis values between endpoints (see L</yvals>).
 
-See L<xlinvals|/xlinvals> for more information.
+See L</xlinvals> for more information.
 
 =head2 zlinvals
 
 =for ref
 
-Z axis values between endpoints (see L<zvals|/zvals>).
+Z axis values between endpoints (see L</zvals>).
 
-See L<xlinvals|/xlinvals> for more information.
+See L</xlinvals> for more information.
 
 =head2 xlogvals
 
 =for ref
 
-X axis values logarithmically spaced between endpoints (see L<xvals|/xvals>).
+X axis values logarithmically spaced between endpoints (see L</xvals>).
 
 =for usage
 
@@ -202,17 +202,17 @@ arguments along the given axis.
 
 =for ref
 
-Y axis values logarithmically spaced between endpoints (see L<yvals|/yvals>).
+Y axis values logarithmically spaced between endpoints (see L</yvals>).
 
-See L<xlogvals|/xlogvals> for more information.
+See L</xlogvals> for more information.
 
 =head2 zlogvals
 
 =for ref
 
-Z axis values logarithmically spaced between endpoints (see L<zvals|/zvals>).
+Z axis values logarithmically spaced between endpoints (see L</zvals>).
 
-See L<xlogvals|/xlogvals> for more information.
+See L</xlogvals> for more information.
 
 =cut
 
@@ -649,7 +649,7 @@ Fills a piddle with index values on Nth dimension
 
  $z = axisvals ($piddle, $nth);
 
-This is the routine, for which L<xvals|/xvals>, L<yvals|/yvals> etc
+This is the routine, for which L</xvals>, L</yvals> etc
 are mere shorthands. C<axisvals> can be used to fill along any dimension,
 using a parameter.
 

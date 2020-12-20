@@ -28,7 +28,7 @@ L<ctab|PDL::Graphics::PGPLOT::Window/ctab>.
 
 Unlike the initial release of the package, the data tables are
 now stored within the PDL distribution as FITS files
-(see L<$tabledir|/$tabledir> and L<$rampdir|/$rampdir>),
+(see L</$tabledir> and L</$rampdir>),
 rather than in the module itself.
 Changes to these directories will be picked up on the next call
 to one of the package functions.

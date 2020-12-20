@@ -890,7 +890,7 @@ to get it one way or the other.
 
 LU decomposition is the answer to a lot of matrix questions,
 including inversion and determinant-finding, and C<lu_decomp>
-is used by L<inv|/inv>.
+is used by L</inv>.
 
 If you pass in C<$perm> and C<$parity>, they either must be
 predeclared PDLs of the correct size ($perm is an n-vector,
@@ -1197,8 +1197,8 @@ column vector.
 
 If C<$lu> is dense and you have more than a few points to
 solve for, it is probably cheaper to find C<a^-1> with
-L<inv|/inv>, and just multiply C<x = a^-1 b>.) in fact,
-L<inv|/inv> works by calling C<lu_backsub> with the identity
+L</inv>, and just multiply C<x = a^-1 b>.) in fact,
+L</inv> works by calling C<lu_backsub> with the identity
 matrix.
 
 C<lu_backsub> is ported from section 2.3 of I<Numerical Recipes>.

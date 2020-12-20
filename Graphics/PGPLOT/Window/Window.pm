@@ -580,7 +580,7 @@ logically different he chooses to have two windows open:
   $area_win = PDL::Graphics::PGPLOT::Window->new(Device => '/xw',
               Aspect => 1, WindowWidth => 5);
 
-See the documentation for L<new|/new> below for a full overview of the
+See the documentation for L</new> below for a full overview of the
 options you can pass to the constructor.
 
 Next, Odd wants to create plotting areas for subsequent plots and maybe
@@ -1264,7 +1264,7 @@ coordinate system by saying:
 The identity transform is used if you select a mapping for which there is
 no information in the header.
 Please note that this support is B<experimental> and is not guaranteed
-to work correctly; please see the documentation for the L<_FITS_tr|/_FITS_tr>
+to work correctly; please see the documentation for the L</_FITS_tr>
 routine for more information.
 
 =back
@@ -1281,7 +1281,7 @@ Display an RGB FITS image with correct axes
 
   $win->fits_rgbi( image, [$min,$max], [$opt] );
 
-Works exactly like L<fits_imag|/fits_imag>, but the image must be in
+Works exactly like L</fits_imag>, but the image must be in
 (X,Y,RGB) form.  Only the first two axes of the FITS header are examined.
 
 =head2 fits_cont
@@ -1295,8 +1295,8 @@ in the FITS header of the image.
 
   $win->fits_cont( image, [$contours, $transform, $misval], [$opt] )
 
-Does the same thing for the L<cont|/cont> routine that
-L<fits_imag|/fits_imag> does for the L<imag|/imag> routines.
+Does the same thing for the L</cont> routine that
+L</fits_imag> does for the L</imag> routines.
 
 =head2 draw_wedge
 
@@ -1816,7 +1816,7 @@ might need changing in the case of very large ellipses.
 =back
 
 The routine also recognises the same standard options as
-accepted by L<poly|/poly>.
+accepted by L</poly>.
 
 =head2 rectangle
 
@@ -1829,7 +1829,7 @@ Draw a rectangle.
  Usage: rectangle($xcenter, $ycenter, $xside, $yside, [, $angle, $opt]);
 
 This routine draws a rectangle with the chosen fill style. Internally
-it calls L<poly|/poly> which is somewhat slower than C<pgrect> but which
+it calls L</poly> which is somewhat slower than C<pgrect> but which
 allows for rotated rectangles as well. The routine recognises the same
 options as C<poly> and in addition the following:
 
@@ -1914,7 +1914,7 @@ Display a pair of 2-D piddles as vectors, with FITS header interpretation
 
  Usage: fits_vect ($x, $y, [$scale, $pos, $transform, $misval] )
 
-C<fits_vect> is to L<vect|/vect> as L<fits_imag|/fits_imag> is to L<imag>.
+C<fits_vect> is to L</vect> as L</fits_imag> is to L<imag>.
 
 =head2 transform
 
@@ -4130,8 +4130,8 @@ sub _image_xyrange {
 
 Given a FITS image, return the PGPLOT transformation matrix to convert
 pixel coordinates to scientific coordinates.   Used by
-L<fits_imag|/fits_imag>, L<fits_rgbi|/fits_rgbi>, and
-L<fits_cont|/fits_cont>, but may come in handy for other methods.
+L</fits_imag>, L</fits_rgbi>, and
+L</fits_cont>, but may come in handy for other methods.
 
 =for example
 

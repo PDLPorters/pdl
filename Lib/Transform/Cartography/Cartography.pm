@@ -24,7 +24,7 @@ terrestrial maps, but also any nearly spherical surface including the
 Sun, the Celestial sphere, various moons and planets, distant stars,
 etc.  They also are useful for interpreting scientific images, which
 are themselves generally projections of a sphere onto a flat focal
-plane (e.g. the L<t_gnomonic|/t_gnomonic> projection).
+plane (e.g. the L</t_gnomonic> projection).
 
 Unless otherwise noted, all the transformations in this file convert
 from (theta,phi) coordinates on the unit sphere (e.g. (lon,lat) on a
@@ -50,7 +50,7 @@ L<"unit sphere"|/t_unit_sphere> 3-D projection.
 
 Extra dimensions tacked on to each point to be transformed are, in
 general, ignored.  That is so that you can add on an extra index
-to keep track of pen color.  For example, L<earth_coast|/earth_coast>
+to keep track of pen color.  For example, L</earth_coast>
 returns a 3x<n> piddle containing (lon, lat, pen) at each list location.
 Transforming the vector list retains the pen value as the first index
 after the dimensional directions.
@@ -404,7 +404,7 @@ dimension threads over all the points in the data set.
 
 The vector map includes lines that pass through the antipodean
 meridian, so if you want to plot it without reprojecting, you should
-run it through L<clean_lines|/clean_lines> first:
+run it through L</clean_lines> first:
 
     $w = pgwin();
     $w->lines(earth_coast->clean_lines);     # plot plate caree map of world
@@ -756,7 +756,7 @@ Cartesian space.  In fact, the other projections implement oblique
 transforms by
 L<wrapping|PDL::Transform/t_wrap>
 L<t_linear|PDL::Transform/t_linear> with
-L<t_unit_sphere|/t_unit_sphere>.
+L</t_unit_sphere>.
 
 OPTIONS:
 
@@ -933,7 +933,7 @@ as a composition of a t_unit_sphere call, a rotation, and a slice.
 inverse exists.  There is no single inverse for the whole-sphere case,
 so the inverse transform superimposes everything on a single
 hemisphere.  If you want an invertible 3-D transform, you want
-L<t_unit_sphere|/t_unit_sphere>.
+L</t_unit_sphere>.
 
 OPTIONS
 
@@ -950,7 +950,7 @@ The hemisphere to keep in the projection (see L<PDL::Transform::Cartography>).
 NOTES
 
 Alone of the various projections, this one does not use
-L<t_rot_sphere|/t_rot_sphere> to handle the standard options, because
+L</t_rot_sphere> to handle the standard options, because
 the cartesian coordinates of the rotated sphere are already correctly
 projected -- t_rot_sphere would put them back into (theta', phi')
 coordinates.
@@ -1124,7 +1124,7 @@ globe-radii for easy conversion to kilometers; hence the horizontal extent
 is -pi to pi.
 
 You can get oblique Mercator projections by specifying the C<origin> or
-C<roll> options; this is implemented via L<t_rot_sphere|/t_rot_sphere>.
+C<roll> options; this is implemented via L</t_rot_sphere>.
 
 OPTIONS
 
@@ -1430,7 +1430,7 @@ sub t_sin_lat {
 
 Sinusoidal projection preserves the latitude scale but scales
 longitude according to sin(lat); in this respect it is the companion to
-L<t_sin_lat|/t_sin_lat>, which is also authalic but preserves the
+L</t_sin_lat>, which is also authalic but preserves the
 longitude scale instead.  
 
 OPTIONS
@@ -1637,7 +1637,7 @@ sectionals of the 50 contiguous United States of America.
 
 The projection reduces to the Lambert equal-area conic (infrequently
 used and not to be confused with the Lambert conformal conic,
-L<t_lambert|/t_lambert>!)  if the pole is used as one of the two
+L</t_lambert>!)  if the pole is used as one of the two
 standard parallels.
 
 Notionally, this is a conic projection onto a cone that intersects the
@@ -1656,7 +1656,7 @@ The locations of the standard parallel(s).  If you specify only one then
 the other is taken to be the nearest pole and a Lambert Equal-Area Conic
 map results.  If you specify both standard parallels to be the same pole,
 then the projection reduces to the Lambert Azimuthal Equal-Area map as
-aq special case.  (Note that L<t_lambert|/t_lambert> is Lambert's
+aq special case.  (Note that L</t_lambert> is Lambert's
 Conformal Conic, the most commonly used of Lambert's projections.)
 
 The default values for the standard parallels are those chosen by Adams
@@ -1769,7 +1769,7 @@ in fact this is implemented by a call to t_mercator.
 Because the transform is conformal, the distant pole is displaced to
 infinity.  Many applications require a clipping boundary.  The value
 is in whatever angular unit you set with the standard 'unit' option.
-For consistency with L<t_mercator|/t_mercator>, clipping works the same
+For consistency with L</t_mercator>, clipping works the same
 way even though in most cases only one pole needs it.  Set this to 0
 for no clipping at all.
 
@@ -2240,7 +2240,7 @@ C<t_aitoff> in an alias for C<t_hammer>
 
 The Hammer/Aitoff projection is often used to display the Celestial
 sphere.  It is mathematically related to the Lambert Azimuthal Equal-Area
-projection (L<t_az_eqa|/t_az_eqa>), and maps the sphere to an ellipse of unit 
+projection (L</t_az_eqa>), and maps the sphere to an ellipse of unit 
 eccentricity, with vertical radius sqrt(2) and horizontal radius of 
 2 sqrt(2).
 
