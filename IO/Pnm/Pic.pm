@@ -253,7 +253,7 @@ This is especially useful if the particular format isn't identified by
 a magic number and doesn't have the 'typical' extension or you want to
 avoid the check of the magic number if your data comes in from a pipe.
 The function returns a pdl of the appropriate type upon completion.
-Option parsing uses the L<PDL::Options|PDL::Options> module and
+Option parsing uses the L<PDL::Options> module and
 therefore supports minimal options matching.
 
 You can also read directly into an existing pdl that has to have the
@@ -364,7 +364,7 @@ the image format that is being written. Valid options are (key
    COLOR      => 'bw',         # specify color conversion
    LUT        => $lut,         # use color table information
 
-Option parsing uses the L<PDL::Options|PDL::Options> module and
+Option parsing uses the L<PDL::Options> module and
 therefore supports minimal options matching. A detailed explanation of
 supported options follows.
 
@@ -521,7 +521,7 @@ If the image is in one of the standard RGB formats, then you get back
 data in (<X>,<Y>,<RGB-index>) format -- that is to say, the third dim
 contains the color information.  That allows you to do simple indexing
 into the image without knowing whether it is color or not -- if present,
-the RGB information is silently threaded over.  (Contrast L<rpic|rpic>, which
+the RGB information is silently threaded over.  (Contrast L<rpic>, which
 munges the information by putting the RGB index in the 0th dim, screwing
 up subsequent threading operations).
 
@@ -534,7 +534,7 @@ automatically uncompressed before reading.
 
 OPTIONS
 
-The same as L<rpic|rpic>, which is used as an engine:
+The same as L<rpic>, which is used as an engine:
 
 =over 3
 
@@ -626,7 +626,7 @@ OPTIONS
 
 You can pass in a hash ref whose keys are options.  The code uses the
 PDL::Options module so unique abbreviations are accepted.  Accepted
-keys are the same as for L<wpic|wpic>, which is used as an engine:
+keys are the same as for L<wpic>, which is used as an engine:
 
 =over 3
 

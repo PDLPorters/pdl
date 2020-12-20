@@ -1426,7 +1426,7 @@ many cases the external libraries either use derived types or
 pointers of various types.
 
 The standard way to handle this in Perl is to use a C<typemap> file.
-This is discussed in some detail in L<perlxs|perlxs> in the standard
+This is discussed in some detail in L<perlxs> in the standard
 Perl documentation. In PP the functionality is very similar, so you can
 create a C<typemap> file in the directory where your PP file resides and
 when it is built it is automatically read in to figure out the appropriate

@@ -241,7 +241,7 @@ which use NaN, since you can not change their badvalue.
 
 =head2 Bad values and boolean operators
 
-For those boolean operators in L<PDL::Ops|PDL::Ops>, evaluation 
+For those boolean operators in L<PDL::Ops>, evaluation 
 on a bad value returns the bad value.  Whilst this means that 
 
  $mask = $img > $thresh;
@@ -255,7 +255,7 @@ which need to be re-written as something like
 
  do_something() if any( setbadtoval( ($img > $thresh), 0 ) );
 
-When using one of the 'projection' functions in L<PDL::Ufunc|PDL::Ufunc> - such as 
+When using one of the 'projection' functions in L<PDL::Ufunc> - such as 
 L<orover|PDL::Ufunc/orover> - 
 bad values are skipped over (see the documentation of these
 functions for the current (poor) handling of the case when

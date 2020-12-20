@@ -31,9 +31,9 @@ PDL::Interpolate::Slatec - simple interface to SLATEC interpolation routines
 
 =head1 DESCRIPTION
 
-Use the interface defined by L<PDL::Interpolate|PDL::Interpolate>
+Use the interface defined by L<PDL::Interpolate>
 to provide a simple way to use the SLATEC interpolation
-routines (e.g. see L<PDL::Slatec|PDL::Slatec>).
+routines (e.g. see L<PDL::Slatec>).
 Hence the name for this library - as returned by the C<library>
 method - is C<"Slatec">.
 
@@ -44,7 +44,7 @@ are available (C<type == "pch">).
 =head2 Attributes
 
 The following changes are made to the attributes 
-of L<PDL::Interpolate|PDL::Interpolate>:
+of L<PDL::Interpolate>:
 
  Attribute  Flag  Description
  bc         sgr   boundary conditions

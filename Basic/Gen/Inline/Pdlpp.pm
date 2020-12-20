@@ -316,7 +316,7 @@ from an external library (here from Numerical Recipes). All the
 relevant information regarding include files, libraries and boot
 code is specified in a config call to C<Inline>. For more experienced
 Perl hackers it might be helpful to know that the format is
-similar to that used with L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>. The
+similar to that used with L<ExtUtils::MakeMaker>. The
 keywords are largely equivalent to those used with C<Inline::C>. Please
 see below for further details on the usage of C<INC>,
 C<LIBS>, C<AUTO_INCLUDE> and C<BOOT>.
@@ -485,13 +485,13 @@ to include an C<Inline-E<gt>init> call in your script, e.g.
 =head2 C<PDL::NiceSlice> and C<Inline::Pdlpp>
 
 There is currently an undesired interaction between
-L<PDL::NiceSlice|PDL::NiceSlice> and C<Inline::Pdlpp>.
+L<PDL::NiceSlice> and C<Inline::Pdlpp>.
 Since PP code generally contains expressions
 of the type C<$var()> (to access piddles, etc)
-L<PDL::NiceSlice|PDL::NiceSlice> recognizes those incorrectly as
+L<PDL::NiceSlice> recognizes those incorrectly as
 slice expressions and does its substitutions. For the moment
 (until hopefully the parser can deal with that) it is best to
-explicitly switch L<PDL::NiceSlice|PDL::NiceSlice> off before
+explicitly switch L<PDL::NiceSlice> off before
 the section of inlined Pdlpp code. For example:
 
   use PDL::NiceSlice;

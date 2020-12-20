@@ -31,7 +31,7 @@ N-dimensional matrices. They are highly optimized for numerical work.
 If you have used PDL for a little while already, you may have been using
 threading without realising it. Start the PDL shell (type C<perldl> or
 C<pdl2> on a terminal). Most examples in this tutorial use the PDL shell.
-Make sure that L<PDL::NiceSlice|PDL::NiceSlice> and L<PDL::AutoLoader|PDL::AutoLoader>
+Make sure that L<PDL::NiceSlice> and L<PDL::AutoLoader>
 are enabled. For example:
 
   % pdl2
@@ -150,7 +150,7 @@ You can do that by specifying the line explicitly:
    [88 89 90 91 92 93 94 95 96 97 98]
   ]
 
-See L<PDL::Indexing|PDL::Indexing> and L<PDL::NiceSlice|PDL::NiceSlice> to
+See L<PDL::Indexing> and L<PDL::NiceSlice> to
 learn more about specifying subsets from piddles.
 
 The true power of threading comes when you realise that the piddle can
@@ -186,7 +186,7 @@ How do we tell PDL that we want to subtract from  dimension 1 instead?
 =head1 MANIPULATING DIMENSIONS
 
 There are many PDL functions that let you rearrange the dimensions of PDL
-arrays. They are mostly covered in L<PDL::Slices|PDL::Slices>. The three
+arrays. They are mostly covered in L<PDL::Slices>. The three
 most common ones are:
 
  xchg
@@ -870,7 +870,7 @@ Putting it all together, the next generation is:
 
 =head2 Bonus feature: Graphics!
 
-If you have L<PDL::Graphics::TriD|PDL::Graphics::TriD> installed, you can
+If you have L<PDL::Graphics::TriD> installed, you can
 make a graphical version of the program by just changing three lines:
 
   #!/usr/bin/perl

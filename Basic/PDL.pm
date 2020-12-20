@@ -4,7 +4,7 @@ PDL - the Perl Data Language
 
 =head1 DESCRIPTION
 
-(For the exported PDL constructor, pdl(), see L<PDL::Core|PDL::Core>)
+(For the exported PDL constructor, pdl(), see L<PDL::Core>)
 
 PDL is the Perl Data Language, a perl extension that is designed for
 scientific and bulk numeric data processing and display.  It extends
@@ -19,7 +19,7 @@ images, spectra, etc to be stored efficiently and manipulated quickly.
 =head1 VECTORIZATION 
 
 For a description of the vectorization (also called "threading"), see
-L<PDL::Core|PDL::Core>.
+L<PDL::Core>.
 
 
 =head1 INTERACTIVE SHELL
@@ -41,7 +41,7 @@ For example:
  yvals           Fills a piddle with Y index values. See the CAVEAT for xvals.
  zvals           Fills a piddle with Z index values. See the CAVEAT for xvals.
 
-To learn more about the PDL shell, see L<perldl|perldl> or L<pdl2|pdl2>.
+To learn more about the PDL shell, see L<perldl> or L<pdl2>.
 
 =head1 LANGUAGE DOCUMENTATION
 
@@ -52,29 +52,29 @@ guidance to help you find the documentation you need.
 
 =over 5
 
-=item L<PDL::FAQ|PDL::FAQ>
+=item L<PDL::FAQ>
 
 Frequently asked questions about PDL. This page covers a lot of
 questions that do not fall neatly into any of the documentation
 categories.
 
-=item L<PDL::Tutorials|PDL::Tutorials>
+=item L<PDL::Tutorials>
 
 A guide to PDL's tutorial-style documentation. With topics from beginner
 to advanced, these pages teach you various aspects of PDL step by step.
 
-=item L<PDL::Modules|PDL::Modules>
+=item L<PDL::Modules>
 
 A guide to PDL's module reference. Modules are organized by level
 (foundation to advanced) and by category (graphics, numerical methods,
 etc) to help you find the module you need as quickly as possible.
 
-=item L<PDL::Course|PDL::Course>
+=item L<PDL::Course>
 
 This page compiles PDL's tutorial and reference pages into a comprehensive
 course that takes you from a complete beginner level to expert.
 
-=item L<PDL::Index|PDL::Index>
+=item L<PDL::Index>
 
 List of all available documentation, sorted alphabetically. If you
 cannot find what you are looking for, try here.
@@ -97,7 +97,7 @@ Some notes:
 See the SYNOPSIS section at the end of this document for a list of
 modules loaded by default.
 
-=item L<PDL::Lite|PDL::Lite> and L<PDL::LiteF|PDL::LiteF>
+=item L<PDL::Lite> and L<PDL::LiteF>
 
 These are lighter-weight alternatives to the standard PDL module.
 Consider using these modules if startup time becomes an issue.
@@ -108,17 +108,17 @@ C<use PDL;> exports a large number of routines into the calling
 namespace.  If you want to avoid namespace pollution, you must instead 
 C<use PDL::Lite>, and include any additional modules explicitly.
 
-=item L<PDL::NiceSlice|PDL::NiceSlice>
+=item L<PDL::NiceSlice>
 
-Note that the L<PDL::NiceSlice|PDL::NiceSlice> syntax is NOT automatically
+Note that the L<PDL::NiceSlice> syntax is NOT automatically
 loaded by C<use PDL;>.  If you want to use the extended slicing syntax in 
 a standalone script, you must also say C<use PDL::NiceSlice;>.
 
-=item L<PDL::Math|PDL::Math>
+=item L<PDL::Math>
 
-The L<PDL::Math|PDL::Math> module has been added to the list of modules
+The L<PDL::Math> module has been added to the list of modules
 for versions later than 2.3.1. Note that PDL::Math is still
-I<not> included in the L<PDL::Lite|PDL::Lite> and L<PDL::LiteF|PDL::LiteF>
+I<not> included in the L<PDL::Lite> and L<PDL::LiteF>
 start-up modules.
 
 =back

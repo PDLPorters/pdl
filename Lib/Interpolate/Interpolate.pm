@@ -22,7 +22,7 @@ a somewhat-convoluted interface to the C<interpolate>
 function of L<PDL::Primitive|PDL::Primitive/interpolate>. 
 However, it is expected that derived classes,
 such as 
-L<PDL::Interpolate::Slatec|PDL::Interpolate::Slatec>,
+L<PDL::Interpolate::Slatec>,
 will actually be used in real-world situations.
 
 To use, create a PDL::Interpolate (or a derived class)
@@ -118,7 +118,7 @@ The required L<attributes|/attributes> are
 C<x> and C<y>.
 At present the only available interpolation method 
 is C<"linear"> - which just uses
-L<PDL::Primitive::interpolate|PDL::Primitive::interpolate> - and
+L<PDL::Primitive::interpolate> - and
 there are no options for boundary conditions, which is why
 the C<type> and C<bc> attributes can not be changed.
 

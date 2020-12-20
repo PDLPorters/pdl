@@ -101,7 +101,7 @@ PerlDL is loaded into your Perl script using this command:
  use PDL;  # in Perl scripts: use the standard perlDL modules
 
 There are also a lot of extension modules, e.g. 
-L<PDL::Graphics::TriD|PDL::Graphics::TriD>. 
+L<PDL::Graphics::TriD>. 
 Most of these (but not all as sometimes it is not appropriate) follow
 a standard convention. If you say:
 
@@ -232,7 +232,7 @@ to turn row vectors into column vectors.
  1;
 
 If put in file dotproduct.pdl would be autoloaded if you
-are using L<PDL::AutoLoader|PDL::AutoLoader> (see below).
+are using L<PDL::AutoLoader> (see below).
 
 Of course, this function is already available as the 
 L<inner|PDL::Primitive/inner>
@@ -287,7 +287,7 @@ at the bottom left when displaying an image. It appears at the
 top left when using "C<print $x>" etc.
 
 Simple sectioning uses a syntax extension to Perl,
-L<PDL::NiceSlice|PDL::NiceSlice>, that allows you to specify subranges
+L<PDL::NiceSlice>, that allows you to specify subranges
 via a null-method modifier to a PDL:
 
   $g = $f->($x1:$x2,$y1:$y2,($z1)); # Take subsection
@@ -318,7 +318,7 @@ Some other miscellany:
 
 The C<PDL::IO> modules implement several useful IO format functions.
 It would be too much to give examples of each, but you can find a nice
-overview at L<PDL::IO|PDL::IO>. Here is a sample of some of the
+overview at L<PDL::IO>. Here is a sample of some of the
 supported IO formats in PDL.
 
 =over 8
@@ -369,7 +369,7 @@ latest PDL modules provide interfaces to OpenGL and VRML graphics!
 PGPLOT provides a simple library for line graphics and image display.
 
 There is an easy interface to this in the internal module
-L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>, which
+L<PDL::Graphics::PGPLOT>, which
 calls routines in the separately available
 PGPLOT top-level module.
 
@@ -380,7 +380,7 @@ output drivers, including a direct-to-piddle driver.
 
 This module provides both high-level and low-level functionality built
 on PLplot. The low-level commands are pretty much direct bindings to
-PLplot's C interface. Read more at L<PDL::Graphics::PLplot|PDL::Graphics::PLplot>.
+PLplot's C interface. Read more at L<PDL::Graphics::PLplot>.
 
 =item PDL::Graphics::IIS
 
@@ -389,14 +389,14 @@ derivations/clones). These are useful free widgets for inspection and
 visualisation of images. (They are not provided with perlDL but can
 easily be obtained from their official sites off the Net.)
 
-The L<PDL::Graphics::IIS|PDL::Graphics::IIS> 
+The L<PDL::Graphics::IIS> 
 package provides allows one to display images
 in these ("IIS" is the name of an ancient item of image display
 hardware whose protocols these tools conform to.)
 
 =item PDL::Graphics::TriD
 
-See L<PDL::Graphics::TriD|PDL::Graphics::TriD>, this is a collection
+See L<PDL::Graphics::TriD>, this is a collection
 of 3D routines for OpenGL and (soon) VRML and other 3D formats which
 allow 3D point, line, and surface plots from PDL.
 

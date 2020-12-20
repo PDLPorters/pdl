@@ -21,7 +21,7 @@ The values of a piddle are stored compactly as typed values in a single block of
 not (as in a normal Perl list-of-lists) as individual Perl scalars.
 
 In the sections that follow many "methods" are called out -- these are Perl operators
-that apply to piddles.  From the L<perldl|perldl> (or L<pdl2|pdl2>) shell, you
+that apply to piddles.  From the L<perldl> (or L<pdl2>) shell, you
 can find out more about each method by typing "?" followed by the method name.
 
 =head2 Dimension lists 
@@ -298,7 +298,7 @@ how to create this structure from its parents data (the way this works
 is buried in the internals of PDL and not important for you to know
 anyway (unless you want to hack the core in the future or would like
 to become a PDL guru in general (for a definition of this strange
-creature see L<PDL::Internals|PDL::Internals>)).
+creature see L<PDL::Internals>)).
 
 The previous examples have demonstrated typical usage of the slice
 function. Since the slicing functionality is so important here is an
@@ -764,7 +764,7 @@ manipulating functions you have met in the previous paragraphs are
 especially important and useful in the context of threading.
 The other ingredient for threading (apart from the piddles involved) is
 a function that is threading aware (generally, these are 
-L<PDL::PP|PDL::PP> compiled functions) and that the piddles are "threaded" over.
+L<PDL::PP> compiled functions) and that the piddles are "threaded" over.
 So much about the terminology and now let's try to shed some light on what it
 all means.
 
@@ -806,7 +806,7 @@ following to process the whole image:
  }
 
 Now we write the same using threading (noting that C<inner> is a threading
-aware function defined in the L<PDL::Primitive|PDL::Primitive> package)
+aware function defined in the L<PDL::Primitive> package)
 
  $grey = inner($im,pdl([77,150,29]/256));
 
@@ -821,7 +821,7 @@ still owe you an explanation how this 'magic' is achieved.
 
 The first thing to note is that every function that is threading aware
 (these are without exception functions compiled from concise
-descriptions by L<PDL::PP|PDL::PP>, later just called PP-functions) expects a
+descriptions by L<PDL::PP>, later just called PP-functions) expects a
 defined (minimum) number of dimensions (we call them core dimensions)
 from each of its piddle arguments. The L<inner|PDL::Primitive/inner> function
 expects two one-dimensional (input) parameters from which it calculates a

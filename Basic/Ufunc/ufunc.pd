@@ -16,7 +16,7 @@ C<accumulate> along a dimension. These all do their job across the
 first dimension but by using the slicing functions you can do it
 on any dimension.
 
-The L<PDL::Reduce|PDL::Reduce> module provides an alternative interface
+The L<PDL::Reduce> module provides an alternative interface
 to many of the functions in this module.
 
 =head1 SYNOPSIS

@@ -287,7 +287,7 @@ a file, so I figured I would write a small bit of documentation on it.
 
 =head1 Bad Value Support
 
-As of PDL-2.4.8, L<PDL::IO::FlexRaw|PDL::IO::FlexRaw> has support for reading and writing
+As of PDL-2.4.8, L<PDL::IO::FlexRaw> has support for reading and writing
 pdls with L<bad|PDL::Bad> values in them.
 
 On C<writeflex>, a piddle
@@ -315,7 +315,7 @@ reference the current C<$hdr> looks like this:
 
     $badpdl = readflex('badpdl', [$hdr]);
 
-If you use bad values and try the new L<PDL::IO::FlexRaw|PDL::IO::FlexRaw> bad value
+If you use bad values and try the new L<PDL::IO::FlexRaw> bad value
 support, please let us know via the perldl mailing list.
 Suggestions and feedback are also welcome.
 

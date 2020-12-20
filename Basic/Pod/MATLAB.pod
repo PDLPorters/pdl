@@ -106,7 +106,7 @@ There are two modules that MATLAB users will want to use:
 
 =over 5
 
-=item L<PDL::NiceSlice|PDL::NiceSlice>
+=item L<PDL::NiceSlice>
 
 Gives PDL a syntax for slices (sub-matrices) that is shorter and
 more familiar to MATLAB users.
@@ -120,7 +120,7 @@ more familiar to MATLAB users.
   # PDL with NiceSlice
   $y(0:4)           -->  Selects the first 5 elements from $y.
 
-=item L<PDL::AutoLoader|PDL::AutoLoader>
+=item L<PDL::AutoLoader>
 
 Provides a MATLAB-style autoloader for PDL. If an unknown function
 C<foo()> is called, PDL looks for a file called C<foo.pdl>. If it
@@ -312,7 +312,7 @@ important differences:
 =item B<Warning>
 
 When you write a stand-alone PDL program you have
-to include the L<PDL::NiceSlice|PDL::NiceSlice> module. See the
+to include the L<PDL::NiceSlice> module. See the
 previous section "B<MODULES FOR MATLAB USERS>" for more information.
 
   use PDL;             # Import main PDL module.
@@ -494,8 +494,8 @@ Never use for-loops for numerical work. Perl's for-loops are faster
 than MATLAB's, but they both pale against a "vectorized" operation.
 PDL has many tools that facilitate writing vectorized programs.
 These are beyond the scope of this guide. To learn more, see:
-L<PDL::Indexing|PDL::Indexing>, L<PDL::Threading|PDL::Threading>,
-and L<PDL::PP|PDL::PP>.
+L<PDL::Indexing>, L<PDL::Threading>,
+and L<PDL::PP>.
 
 Likewise, never use C<1..10> for numerical work, even outside a for-loop.
 C<1..10> is a Perl array. Perl arrays are designed for flexibility, not
@@ -743,7 +743,7 @@ you through these features:
 
 =over 5
 
-=item L<PDL::Indexing|PDL::Indexing>
+=item L<PDL::Indexing>
 
 B<Level>: Beginner
 
@@ -751,7 +751,7 @@ This beginner tutorial covers the standard "vectorization" feature that
 you already know from MATLAB. Use this page to learn how to avoid for-loops
 to make your program more efficient.
 
-=item L<PDL::Threading|PDL::Threading>
+=item L<PDL::Threading>
 
 B<Level>: Intermediate
 
@@ -770,7 +770,7 @@ tool to help you focus your optimization efforts. You can read about it
 online (L<http://perldoc.perl.org/Benchmark.html>) or through the
 command C<perldoc Benchmark>.
 
-=item L<PDL::PP|PDL::PP>
+=item L<PDL::PP>
 
 B<Level>: Advanced
 
@@ -793,7 +793,7 @@ PDL has three main plotting modules:
 
 =over 5
 
-=item L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>
+=item L<PDL::Graphics::PGPLOT>
 
 B<Best for>: Plotting 2D functions and data sets.
 
@@ -804,7 +804,7 @@ compared to newer packages such as PLplot (e.g. no RGB graphics).
 But it has many features that still make it popular in the scientific
 community.
 
-=item L<PDL::Graphics::PLplot|PDL::Graphics::PLplot>
+=item L<PDL::Graphics::PLplot>
 
 B<Best for>: Plotting 2D functions as well as 2D and 3D data sets.
 
@@ -814,7 +814,7 @@ It supports plots of both 2D and 3D data sets. PLplot is best
 supported for unix/linux/macosx platforms. It has an active
 developers community and support for win32 platforms is improving.
 
-=item L<PDL::Graphics::TriD|PDL::Graphics::TriD>
+=item L<PDL::Graphics::TriD>
 
 B<Best for>: Plotting 3D functions.
 

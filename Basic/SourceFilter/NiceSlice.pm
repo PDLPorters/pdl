@@ -956,7 +956,7 @@ these dimensions will be fully kept in the sliced piddle:
 
 =item * dummy dimensions
 
-As in L<slice|slice>, you can insert a dummy dimension by preceding a
+As in L<slice>, you can insert a dummy dimension by preceding a
 single index argument with '*'.  A lone '*' inserts a dummy dimension of 
 order 1; a '*' followed by a number inserts a dummy dimension of that order.
 
@@ -1036,7 +1036,7 @@ compiler. C<PDL::NiceSlice> searches through your Perl source code and when
 it finds the new slicing syntax it rewrites the argument list
 appropriately and splices a call to the C<slice> method using the
 modified arg list into your perl code. You can see how this works in
-the L<perldl|perldl> or L<pdl2|PDL::Perldl2> shells by switching on
+the L<perldl> or L<pdl2|PDL::Perldl2> shells by switching on
 reporting (see above how to do that).
 
 =head1 BUGS
@@ -1052,12 +1052,12 @@ I<Note>: To avoid clobbering the C<DATA> filehandle C<PDL::NiceSlice>
 switches itself off when encountering the C<__END__> or C<__DATA__> tokens.
 This should not be a problem for you unless you use C<SelfLoader> to load
 PDL code including the new slicing from that section. It is even desirable
-when working with L<Inline::Pdlpp|Inline::Pdlpp>, see below.
+when working with L<Inline::Pdlpp>, see below.
 
-=head2 Possible interaction with L<Inline::Pdlpp|Inline::Pdlpp>
+=head2 Possible interaction with L<Inline::Pdlpp>
 
 There is currently an undesired interaction between C<PDL::NiceSlice>
-and the new L<Inline::Pdlpp|Inline::Pdlpp> module (currently only in 
+and the new L<Inline::Pdlpp> module (currently only in 
 PDL CVS). Since PP code generally
 contains expressions of the type C<$var()> (to access piddles, etc)
 C<PDL::NiceSlice> recognizes those I<incorrectly> as

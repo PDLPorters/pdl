@@ -1167,7 +1167,7 @@ as if you typed it, line-by-line, into the perldl shell.
 
 =head2 Command preprocessing
 
-NOTE: This feature is used by default by L<PDL::NiceSlice|PDL::NiceSlice>.
+NOTE: This feature is used by default by L<PDL::NiceSlice>.
 See below for more about slicing at the C<perldl> prompt
 
 In some cases, it is convenient to process commands before they are
@@ -1238,9 +1238,9 @@ An example of actual usage can be found in the C<perldl> script. Look
 at the function C<trans> to see how the niceslicing preprocessor is
 enabled/disabled.
 
-=head2 C<perldl> and L<PDL::NiceSlice|PDL::NiceSlice>
+=head2 C<perldl> and L<PDL::NiceSlice>
 
-L<PDL::NiceSlice|PDL::NiceSlice> introduces a more convenient
+L<PDL::NiceSlice> introduces a more convenient
 slicing syntax for piddles. In current versions of C<perldl> and
 C<pdl2> niceslicing is enabled by default (if the required CPAN
 modules are installed on your machine).
@@ -1267,13 +1267,13 @@ you can use the enhanced slicing syntax:
 
 For details consult L<PDL::NiceSlice>.
 
-L<PDL::NiceSlice|PDL::NiceSlice> installs a filter in the
+L<PDL::NiceSlice> installs a filter in the
 preprocessing pipeline (see above) to enable the enhanced slicing
 syntax. You can use a few commands in the C<perldl> shell to
 switch this preprocessing on or off and also explicitly check
 the substitutions that the NiceSlice filter makes.
 
-You can switch the L<PDL::NiceSlice|PDL::NiceSlice> filter on and off
+You can switch the L<PDL::NiceSlice> filter on and off
 by typing
 
   pdl> trans # switch niceslicing on

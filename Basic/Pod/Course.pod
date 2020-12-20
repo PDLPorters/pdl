@@ -41,23 +41,23 @@ familiarize yourself with the basic capabilities of PDL.
 
 =over
 
-=item * L<PDL::Philosophy|PDL::Philosophy>, L<PDL::QuickStart|PDL::QuickStart>
+=item * L<PDL::Philosophy>, L<PDL::QuickStart>
 
 A couple of brief introductions to PDL. The second one is a bit more
 hands-on. If you are new to PDL, you should start with these.
 
-=item * L<PDL::Basic|PDL::Basic>
+=item * L<PDL::Basic>
 
 Covers basic piddle-creation routines like C<sequence>,
 C<rvals>, and C<logxvals> to name a random few.  Also covers
 C<hist> and C<transpose>.
 
-=item * L<PDL::Ufunc|PDL::Ufunc>
+=item * L<PDL::Ufunc>
 
 Explains a large collection of built-in functions which, given an
 N-dimension piddle, will create a piddle with N-1 dimensions.
 
-=item * L<PDL::NiceSlice|PDL::NiceSlice>
+=item * L<PDL::NiceSlice>
 
 PDL came of age right around the turn of the millennium and
 NiceSlice came on the scene slightly after that.  Some of
@@ -66,7 +66,7 @@ way to slice and dice your piddles.  Read the Synopsis, then
 scroll down to The New Slicing Syntax.  After you've read to
 the bottom, return to and read the stuff at the top.
 
-=item * L<PDL::Primitive|PDL::Primitive>
+=item * L<PDL::Primitive>
 
 Defines a whole slew of useful built-in functions.  These
 are the sorts of things that beginners are likely to write to
@@ -74,7 +74,7 @@ the list and say, "How do I do xxx?"  You would be well
 on your way to learning the ropes after you've gotten through
 this document.
 
-=item * Selections from L<PDL::Core|PDL::Core>
+=item * Selections from L<PDL::Core>
 
 Like PDL::Primitive, defines a large set of useful functions.
 Unfortunately, some of the functions are quite esoteric, but
@@ -89,7 +89,7 @@ C<approx>.
 
 =over
 
-=item * The L<perldl|perldl> or L<pdl2|PDL::Perldl2> Shell
+=item * The L<perldl> or L<pdl2|PDL::Perldl2> Shell
 
 The Perldl Shell is a REPL (Read-Evaluate-Print-Loop, in other words,
 a prompt or shell) that allows you to work with PDL (or any Perl, for
@@ -103,7 +103,7 @@ Shell, with instant feedback!
 
 =over
 
-=item * L<PDL|PDL>
+=item * L<PDL>
 
 The main workhorse module. You'll include this in nearly every PDL
 program you write.
@@ -121,16 +121,16 @@ need their functionality.
 
 =over
 
-=item * L<PDL::Slices|PDL::Slices>
+=item * L<PDL::Slices>
 
 In addition to explaining the original slicing and dicing functions -
-for which you can usually use L<PDL::NiceSlice|PDL::NiceSlice> - this also covers
+for which you can usually use L<PDL::NiceSlice> - this also covers
 many dimension-handling functions such as C<mv>, C<xchg>, and
 C<reorder>.  This also thoroughly documents the C<range> function, which
 can be very powerful, and covers a number of internal functions, which
 can probably be skipped.
 
-=item * L<PDL::Indexing|PDL::Indexing>
+=item * L<PDL::Indexing>
 
 This covers a lot of the deeper conceptual ground that you'll
 need to grasp to really use PDL to its full potential.  It gets
@@ -139,20 +139,20 @@ yourself loosing interest half way through.  However, reading
 this document all the way through will bring you much closer to
 PDL enlightenment.
 
-=item * L<PDL::IO|PDL::IO>
+=item * L<PDL::IO>
 
 PDL has quite a few IO modules, most of which are discussed
 in this summary module.
 
-=item * L<PDL::Tips|PDL::Tips>
+=item * L<PDL::Tips>
 
 A collection of some of Tuomas's ideas for making good use of PDL.
 
-=item * L<PDL::BadValues|PDL::BadValues>
+=item * L<PDL::BadValues>
 
 Explains what bad values are and how and why they are implemented.
 
-=item * Selections from L<Inline::Pdlpp|Inline::Pdlpp>
+=item * Selections from L<Inline::Pdlpp>
 
 Although writing PDL::PP code is considered an Advanced topic, and is
 covered in the next section, you should be aware that it is possible 
@@ -161,11 +161,11 @@ the whole thing at this point, but to get some feel for how it works,
 you should read everything up through the first example.  A copy of this
 documentation is contained in L<PDL::PP-Inline>.
 
-=item * L<PDL::Objects|PDL::Objects>
+=item * L<PDL::Objects>
 
 Explains how to subclass a piddle object.
 
-=item * L<PDL::Index|PDL::Index>
+=item * L<PDL::Index>
 
 This was discussed in the Preface. It is an automatically generated
 file that lists all of the PDL modules on your computer. There are many
@@ -178,12 +178,12 @@ such as bindings to the FFTW library, or GSL. Give it a read!
 
 =over
 
-=item * L<PDL::Complex|PDL::Complex>
+=item * L<PDL::Complex>
 
 Complex number support.  No, PDL does not have complex number
 support built into the core, but this should help you out.
 
-=item * L<PDL::FFT|PDL::FFT>
+=item * L<PDL::FFT>
 
 PDL's own Fast Fourier Transform.  If you have FFTW, then you
 should probably make use of it; this is PDL's internal
@@ -194,21 +194,21 @@ implementation and should always be available.
 PDL does not have bindings for every sub-library in the GNU Scientific
 Library, but it has quite a few. If you have GSL installed on your
 machine then chances are decent that your PDL has the GSL bindings.
-For a full list of the GSL bindings, check L<PDL::Index|PDL::Index>.
+For a full list of the GSL bindings, check L<PDL::Index>.
 
-=item * L<PDL::Func|PDL::Func>
+=item * L<PDL::Func>
 
 A somewhat uniform interface to the different interpolation modules in PDL.
 
-=item * L<PDL::Bad|PDL::Bad>
+=item * L<PDL::Bad>
 
 Includes some basic bad-value functionality, including functions
 to query if a piddle has bad values (C<isbad>) and functions to
 set certain elements as bad (C<setbadat> and C<setbadif>).  Among
-other places, bad values are used in L<PDL::Graphics::PLplot|PDL::Graphics::PLplot>'s
+other places, bad values are used in L<PDL::Graphics::PLplot>'s
 xyplot to make a gap in a line plot.
 
-=item * L<PDL::DiskCache|PDL::DiskCache>
+=item * L<PDL::DiskCache>
 
 A cool module that allows you to tie a Perl array to a collection of
 files on your disk, which will be loaded into and out of memory as
@@ -216,32 +216,32 @@ piddles. If you find yourself writing scripts to process many data files,
 especially if that data processing is not necessarily in sequential
 order, you should consider using PDL::DiskCache.
 
-=item * L<PDL::Char|PDL::Char>
+=item * L<PDL::Char>
 
 A PDL subclass that allows you to store and manipulate collections
 of fixed-length character strings using PDL.
 
-=item * L<PDL::Image2D|PDL::Image2D>
+=item * L<PDL::Image2D>
 
 A whole collection of methods for manipulating images whose image data
 are stored in a piddle.  These include methods for convolutions
 (smoothing), polygon fills, scaling, rotation, and warping, among
 others.
 
-=item * L<PDL::ImageND|PDL::ImageND>
+=item * L<PDL::ImageND>
 
 Contains a few functions that are conceptually related to image
 processing, but which can be defined for higher-dimensional data.  For
 examples this module defines high-dimensional convolution and
 interpolation, among others.
 
-=item * L<PDL::ImageRGB|PDL::ImageRGB>
+=item * L<PDL::ImageRGB>
 
 Defines some useful functions for working with RBG image data.  It's
 not very feature-full, but it may have something you need, and if not,
 you can always add more!
 
-=item * L<PDL::Transform|PDL::Transform>
+=item * L<PDL::Transform>
 
 Creates the transform class, which allows you to create various
 coordinate transforms.  For example, if you data is a collection of
@@ -250,20 +250,20 @@ them to Spherical-Polar coordinates (although many such standard
 coordinate transformations are predefined for you, in this case it's
 called C<t_spherical>).
 
-=item * L<PDL::Opt::Simplex|PDL::Opt::Simplex>
+=item * L<PDL::Opt::Simplex>
 
 This package states that it "implements the commonly used simplex
 optimization algorithm." I'm going to assume that if you need this
 algorithm then you already know what it is.
 
-=item * L<PDL::Math|PDL::Math>
+=item * L<PDL::Math>
 
 A collection of fairly standard math functions, like the inverse 
 trigonometric functions, hyperbolic functions and their inverses, and
 others.  This module is included in the standard call to C<use PDL>, but
 not in the Lite versions.
 
-=item * L<PDL::Matrix|PDL::Matrix>
+=item * L<PDL::Matrix>
 
 Provides a few functions that use the standard mathematical Matrix
 notation of row-column indexing rather than the PDL-standard column-row.
@@ -272,16 +272,16 @@ modules, so although it should work with other modules, don't be
 surprised if something breaks when you use it (and feel free to offer
 any fixes that you may develop).
 
-=item * L<PDL::MatrixOps|PDL::MatrixOps>
+=item * L<PDL::MatrixOps>
 
 Provides many standard matrix operations for piddles, such as computing
 eigenvalues, inverting square matrices, LU-decomposition, and solving
-a system of linear equations.  Though it is not built on L<PDL::Matrix|PDL::Matrix>,
+a system of linear equations.  Though it is not built on L<PDL::Matrix>,
 it should generally work with that module.  Also, the methods
 provided by this module do not depend on external libraries such as
 Slatec or GSL.
 
-=item * L<PDL::Reduce|PDL::Reduce>
+=item * L<PDL::Reduce>
 
 Implements an interface to all the functions that return piddles with
 one less dimension (for example, C<sumover>), such that they can be
@@ -293,29 +293,29 @@ called by suppling their name, as a string.
 
 =over
 
-=item * L<PDL::AutoLoader|PDL::AutoLoader>
+=item * L<PDL::AutoLoader>
 
 Enables Matlab-style autoloading.  When you call an unknown
 function, instead of complaining and croaking, PDL will go hunt
 around in the directories you specify in search of a like-named
 file.  Particularly useful when used with the Perldl Shell.
 
-=item * L<PDL::Dbg|PDL::Dbg>
+=item * L<PDL::Dbg>
 
 Declares the C<px> function, which can be handy for debugging your
 PDL scripts and/or perldl shell commands.
 
-=item * L<PDL::Options|PDL::Options>
+=item * L<PDL::Options>
 
 Suppose you define a powerful, versatile function.  Chances are good
 that you'll accept the arguments in the form of a hash or hashref.  Now
-you face the problem of processing that hashref.  L<PDL::Options|PDL::Options>
+you face the problem of processing that hashref.  L<PDL::Options>
 assists you in writing code to process those options.  (You'd think
 Perl would have tons of these sorts of modules lying around, but I
 couldn't find any.)  Note this module does not depend on PDL for its
 usage or installation.
 
-=item * L<PDL::pdldoc|PDL::pdldoc>
+=item * L<PDL::pdldoc>
 
 Ever fired-up the perldl shell just to look up the help for a particular
 function?  You can use C<pdldoc> instead.  This shell script extracts
@@ -333,20 +333,20 @@ problems.
 
 =over
 
-=item * L<PDL::Lite|PDL::Lite>, L<PDL::LiteF|PDL::LiteF>
+=item * L<PDL::Lite>, L<PDL::LiteF>
 
 Lite-weight replacements for C<use PDL>, from the standpoint of
 namespace pollution and load time.
 
-=item * L<Inline::Pdlpp|Inline::Pdlpp>
+=item * L<Inline::Pdlpp>
 
-This was mentioned earlier.  Before you begin reading about L<PDL::PP|PDL::PP>
+This was mentioned earlier.  Before you begin reading about L<PDL::PP>
 (next), you should remind yourself about how to use this.
-L<Inline::Pdlpp|Inline::Pdlpp> will help you experiment with L<PDL::PP|PDL::PP> without having
+L<Inline::Pdlpp> will help you experiment with L<PDL::PP> without having
 to go through the trouble of building a module and constructing
-makefiles (but see L<PDL::pptemplate|PDL::pptemplate> for help on that).
+makefiles (but see L<PDL::pptemplate> for help on that).
 
-=item * L<PDL::PP|PDL::PP>
+=item * L<PDL::PP>
 
 The PDL Pre-Processor, which vastly simplifies making you
 C or Fortran code play with Perl and piddles.  Most of PDL's
@@ -354,15 +354,15 @@ basic functionality is written using PDL::PP, so if you're
 thinking about how you might integrate some numerical
 library written in C, look no further.
 
-=item * L<PDL::pptemplate|PDL::pptemplate>
+=item * L<PDL::pptemplate>
 
-A script that automates the creation of modules that use L<PDL::PP|PDL::PP>,
+A script that automates the creation of modules that use L<PDL::PP>,
 which should make your life as a module author a bit simpler.
 
-=item * L<PDL::CallExt|PDL::CallExt>
+=item * L<PDL::CallExt>
 
 Allows you to call functions using external shared
-libraries.  This is an alternative to using L<PDL::PP|PDL::PP>.
+libraries.  This is an alternative to using L<PDL::PP>.
 The major difference between PDL::PP and PDL::CallExt is
 that the former will handle threading over implicit thread
 dimensions for you, whereas PDL::CallExt simply calls an
@@ -375,7 +375,7 @@ if there wasn't another way to do it.
 Defines the C<%PDL::Config> hash, which has lots of useful
 information pertinent to your PDL build.
 
-=item * L<PDL::Doc|PDL::Doc>
+=item * L<PDL::Doc>
 
 Explanation of the PDL documentation conventions, and an
 interface to the PDL Documentation parser.  Following these
@@ -383,15 +383,15 @@ guidelines when writing documentation for PDL functions will
 ensure that your wonderful documentation is accessible from
 the perldl shell and from calls to C<barf>.  (Did you notice
 that C<barf> used your documentation?  Time to reread
-L<PDL::Core|PDL::Core>...)
+L<PDL::Core>...)
 
-=item * L<PDL::Exporter|PDL::Exporter>
+=item * L<PDL::Exporter>
 
-A simple replacement for the standard L<Exporter|Exporter> module.
+A simple replacement for the standard L<Exporter> module.
 The only major difference is that the default imported modules
 are those marked ':Func'.
 
-=item * L<PDL::Types|PDL::Types>
+=item * L<PDL::Types>
 
 Defines some useful functions for getting a piddle's type, as well as
 getting information about that type.
@@ -400,7 +400,7 @@ getting information about that type.
 
 Simply defines the scalar C<$PDL::Version::Version> with the current
 version of PDL, as defined in PDL.pm.  This is most useful if you
-distribute your own module on CPAN, use L<PDL::Lite|PDL::Lite> or L<PDL::LiteF|PDL::LiteF>
+distribute your own module on CPAN, use L<PDL::Lite> or L<PDL::LiteF>
 and want to make sure that your users have a recent-enough version of
 PDL.  Since the variable is defined in PDL.pm, you don't need this
 module if you C<use PDL>.
@@ -411,17 +411,17 @@ module if you C<use PDL>.
 
 =over
 
-=item * L<PDL::Core::Dev|PDL::Core::Dev>
+=item * L<PDL::Core::Dev>
 
 Provides some decently useful functions that are pretty
 much only needed by the PDL Porters.
 
-=item * L<PDL::API|PDL::API>
+=item * L<PDL::API>
 
 Explains how to make a piddle I<by hand>, from Perl or your
 C source code, using the PDL API.
 
-=item * L<PDL::Internals|PDL::Internals>
+=item * L<PDL::Internals>
 
 Explains the nitty-gritty of the PDL data structures.  After reading
 this (a few times :), you should be able to create a piddle completely
@@ -440,39 +440,39 @@ seem to fit anywhere above.
 
 =over
 
-=item * L<PDL::Delta|PDL::Delta>
+=item * L<PDL::Delta>
 
 Explains how things changed from PDL 1.x to PDL 2.x
 
-=item * L<PDL::Graphics2D|PDL::Graphics2D>
+=item * L<PDL::Graphics2D>
 
 Supposed to be a uniform interface to plotting 2D graphics.
 
-=item * L<PDL::Dataflow|PDL::Dataflow>
+=item * L<PDL::Dataflow>
 
 Covers data flow, a cool feature to be sure, but from what I can tell
 it is not currently supported.
 
-=item * L<PDL::Lvalues|PDL::Lvalues>
+=item * L<PDL::Lvalues>
 
 PDL started before Perl 5.6, which introduce subs that could return
 lvalues. I'm pretty sure that this module has been rolled into the core
 and is no longer necessary.
 
 
-=item * L<PDL::Tests|PDL::Tests>
+=item * L<PDL::Tests>
 
 Defines a few PDL::PP tests.  This code should be moved into the testing
 suite, but hasn't been...
 
-=item * L<PDL::Ops|PDL::Ops>
+=item * L<PDL::Ops>
 
 Defines the standard Perl-overloadable operators, like + and .=, for
 example.  Since pretty much all of these operators and functions are
 discussed elsewhere, there's usually no need to read this documentation
 or use this module.
 
-=item * L<PDL::Gaussian|PDL::Gaussian>
+=item * L<PDL::Gaussian>
 
 An apparently broken module to help generate and work with Gaussian
 distributions.

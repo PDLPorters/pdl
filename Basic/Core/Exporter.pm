@@ -20,7 +20,7 @@ use PDL::Exporter;
 
 =head1 SUMMARY
 
-C<PDL::Exporter> is a drop-in replacement for the L<Exporter|Exporter>
+C<PDL::Exporter> is a drop-in replacement for the L<Exporter>
 module. It confers the standard PDL export conventions to your module.
 Usage is fairly straightforward and best illustrated by an example. The
 following shows typical usage near the top of a simple PDL module:
@@ -68,7 +68,7 @@ sub import {
 
 =head1 SEE ALSO
 
-L<Exporter|Exporter>
+L<Exporter>
 
 =head1 AUTHOR
 

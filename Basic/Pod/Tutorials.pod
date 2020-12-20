@@ -9,12 +9,12 @@ of numerical analysis software.
 
 =over 5
 
-=item L<PDL::MATLAB|PDL::MATLAB>
+=item L<PDL::MATLAB>
 
 Migration guide for MATLAB users. This page explains the key differences
 between MATLAB and PDL from the point of view of a MATLAB user.
 
-=item L<PDL::Scilab|PDL::Scilab>
+=item L<PDL::Scilab>
 
 Migration guide for Scilab users. This page explains the key differences
 between Scilab and PDL from the point of view of a Scilab user.
@@ -27,19 +27,19 @@ between Scilab and PDL from the point of view of a Scilab user.
 
 =over 5
 
-=item L<PDL::Philosophy|PDL::Philosophy>
+=item L<PDL::Philosophy>
 
 Why did we write PDL? This document explains some of the history and
 motivation behind the Perl Data Language. It is an attempt to answer
 the question "Why PDL?".
 
-=item L<PDL::QuickStart|PDL::QuickStart>
+=item L<PDL::QuickStart>
 
 Quick introduction to PDL features. A hands-on guide suitable for
 complete beginners. This page assumes no previous knowledge of Perl
 or PDL.
 
-=item L<PDL::Indexing|PDL::Indexing>
+=item L<PDL::Indexing>
 
 After you have read the QuickStart guide, you should follow up with
 this document. This guide goes more deeply into the concepts of
@@ -55,7 +55,7 @@ analysis with PDL.
 
 =over 5
 
-=item L<PDL::Threading|PDL::Threading>
+=item L<PDL::Threading>
 
 B<Threading> is one of PDL's most powerful features. If you know MATLAB,
 you've heard of "vectorizing". Well, B<threading> is like "vectorizing on
@@ -67,7 +67,7 @@ This tutorial introduces PDL's threading feature, and it shows an example
 implementing Conway's Game of Life in 10 lines and 80 times faster than
 a classical implementation.
 
-=item L<PDL::BadValues|PDL::BadValues>
+=item L<PDL::BadValues>
 
 Sometimes it is useful to specify that a certain value is "bad" or
 "missing". Scientific instruments some times include portions of
@@ -76,7 +76,7 @@ over-exposed pixels. PDL's "bad values" feature gives you an easy way
 to deal with this sort of imperfect data.
 
 
-=item L<PDL::Tips|PDL::Tips>
+=item L<PDL::Tips>
 
 Tips and suggestions for using PDL. This page is an assorted collection
 of programming tidbits that some PDL users have found useful. Some of
@@ -90,7 +90,7 @@ these tips might be of help when you write your programs.
 
 =over 5
 
-=item L<PDL::PP|PDL::PP>
+=item L<PDL::PP>
 
 PDL's Pre-Processor is one of PDL's most powerful features. You
 write a function definition in special markup and the preprocessor
@@ -98,7 +98,7 @@ generates real C code which can be compiled. With PDL:PP you get the
 full speed of native C code without having to deal with the full
 complexity of the C language.
 
-=item L<PDL::API|PDL::API>
+=item L<PDL::API>
 
 A simple cookbook explaining how to create piddle manually, either
 from Perl or from C/XS code. This page covers the PDL core routines
@@ -106,13 +106,13 @@ that comprise the PDL API. If you need to access piddles from C/XS,
 this is the document for you.
 
 
-=item L<PDL::Internals|PDL::Internals>
+=item L<PDL::Internals>
 
 Description of the inner workings of the PDL module. Very few people
 need to see this. This page is mainly for PDL developers, or people
 interested in debugging PDL or changing the internals of PDL. If you
 can read this document and understand all of it, and you additionally
-understand L<PDL::PP|PDL::PP>, you will be awarded the title of
+understand L<PDL::PP>, you will be awarded the title of
 "PDL Guru".
 
 

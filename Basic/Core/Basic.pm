@@ -9,9 +9,9 @@ This module contains basic utility functions for
 creating and manipulating piddles. Most of these functions
 are simplified interfaces to the more flexible functions in
 the modules 
-L<PDL::Primitive|PDL::Primitive> 
+L<PDL::Primitive> 
 and 
-L<PDL::Slices|PDL::Slices>.
+L<PDL::Slices>.
 
 =head1 SYNOPSIS
 
@@ -51,7 +51,7 @@ use PDL::Options;
 =for ref
 
 Fills a piddle with X index values.  Uses similar specifications to
-L<zeroes|zeroes> and L<new_from_specification|new_from_specification>.
+L<zeroes> and L<new_from_specification>.
 
 CAVEAT: 
 
@@ -88,7 +88,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for ref
 
-Fills a piddle with Y index values.  See the CAVEAT for L<xvals|xvals>.
+Fills a piddle with Y index values.  See the CAVEAT for L<xvals>.
 
 =for usage
 
@@ -117,7 +117,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for ref
 
-Fills a piddle with Z index values.  See the CAVEAT for L<xvals|xvals>.
+Fills a piddle with Z index values.  See the CAVEAT for L<xvals>.
 
 =for usage
 
@@ -299,10 +299,10 @@ sub PDL::zlogvals {
 
 =for ref
 
-Synonym for L<ndcoords|ndcoords> - enumerates all coordinates in a
+Synonym for L<ndcoords> - enumerates all coordinates in a
 PDL or dim list, adding an extra dim on the front to accommodate
-the vector coordinate index (the form expected by L<indexND|indexND>,
-L<range|range>, and L<interpND|interpND>).  See L<ndcoords|ndcoords> for more detail.
+the vector coordinate index (the form expected by L<indexND>,
+L<range>, and L<interpND>).  See L<ndcoords> for more detail.
 
 =for usage
 
@@ -323,9 +323,9 @@ L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>: you feed
 in a dimension list and get out a piddle whose 0th dimension runs over
 dimension index and whose 1st through Nth dimensions are the
 dimensions given in the input.  If you feed in a piddle instead of a
-perl list, then the dimension list is used, as in L<xvals|xvals> etc.
+perl list, then the dimension list is used, as in L<xvals> etc.
 
-Unlike L<xvals|xvals> etc., if you supply a piddle input, you get 
+Unlike L<xvals> etc., if you supply a piddle input, you get 
 out a piddle of the default piddle type: double.   This causes less
 surprises than the previous default of keeping the data type of
 the input piddle since that rarely made sense in most usages.
@@ -411,7 +411,7 @@ If C<hist> is run in list context, C<$xvals> gives the
 computed bin centres as double values.
 
 A nice idiom (with 
-L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
+L<PDL::Graphics::PGPLOT>) is
 
  bin hist $data;  # Plot histogram
 
@@ -461,7 +461,7 @@ as type double values.  C<$data> and C<$wt> should have
 the same dimensionality and extents.
 
 A nice idiom (with 
-L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
+L<PDL::Graphics::PGPLOT>) is
 
  bin whist $data, $wt;  # Plot histogram
 
@@ -653,9 +653,9 @@ This is the routine, for which L<xvals|/xvals>, L<yvals|/yvals> etc
 are mere shorthands. C<axisvals> can be used to fill along any dimension,
 using a parameter.
 
-See also L<allaxisvals|allaxisvals>, which generates all axis values 
-simultaneously in a form useful for L<range|range>, L<interpND|interpND>, 
-L<indexND|indexND>, etc.
+See also L<allaxisvals>, which generates all axis values 
+simultaneously in a form useful for L<range>, L<interpND>, 
+L<indexND>, etc.
 
 Note the 'from specification' style (see L<zeroes|PDL::Core/zeroes>) is
 not available here, for obvious reasons.

@@ -27,7 +27,7 @@ the dimensionality of the gaussian space. For example, after
 The variable C<$x> contains set of 12 (=C<3*4>) 2-Dimensional gaussians
 and C<$y> is the simplest form: one 1D gaussian.
 Currently, I<xdims> may containe either zero or one dimensions
-due to limitations of L<PDL::PP|PDL::PP>.
+due to limitations of L<PDL::PP>.
 
 To set the distribution parameters, you can use the routines
 

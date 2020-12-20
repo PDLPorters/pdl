@@ -26,8 +26,8 @@ PDL::Primitive - primitive operations for pdl
 This module provides some primitive and useful functions defined
 using PDL::PP and able to use the new indexing tricks.
 
-See L<PDL::Indexing|PDL::Indexing> for how to use indices creatively.
-For explanation of the signature format, see L<PDL::PP|PDL::PP>.
+See L<PDL::Indexing> for how to use indices creatively.
+For explanation of the signature format, see L<PDL::PP>.
 
 =head1 SYNOPSIS
 
@@ -882,7 +882,7 @@ any other values, even themselves.  As a result, they are
 always unique. C<uniq> returns the NaN values at the end
 of the result piddle.  This follows the Matlab usage.
 
-See L<uniqind|uniqind> if you need the indices of the unique
+See L<uniqind> if you need the indices of the unique
 elements rather than the values.
 
 =cut
@@ -956,7 +956,7 @@ Matlab usage.
 Note: The returned pdl is 1D; any structure of the input
 piddle is lost.
 
-See L<uniq|uniq> if you want the unique values instead of the
+See L<uniq> if you want the unique values instead of the
 indices.
 
 =cut
@@ -1034,7 +1034,7 @@ higher dimensions are taken to run across vectors. The return
 value is always 2D; any structure of the input PDL (beyond using
 the 0th dimension for vector index) is lost.
 
-See also L<uniq|uniq> for a unique list of scalars; and
+See also L<uniq> for a unique list of scalars; and
 L<qsortvec|PDL::Ufunc/qsortvec> for sorting a list of vectors
 lexicographcally.
 
@@ -1047,7 +1047,7 @@ pp_addpm(<<'EOPM');
 
 =for bad
 
-If a vector contains all bad values, it is ignored as in L<uniq|uniq>.
+If a vector contains all bad values, it is ignored as in L<uniq>.
 If some of the values are good, it is treated as a normal vector. For
 example, [1 2 BAD] and [BAD 2 3] could be returned, but [BAD BAD BAD]
 could not.  Vectors containing BAD values will be returned after any
@@ -1984,7 +1984,7 @@ pp_addpm(<<'EOD')
 =for ref
 
 Glue two or more PDLs together along an arbitrary dimension
-(N-D L<append|append>).
+(N-D L<append>).
 
 Sticks $x, $y, and all following arguments together along the
 specified dimension.  All other dimensions must be compatible in the
@@ -2003,7 +2003,7 @@ then it is taken as a dimension along which to glue everything else,
 so you can say C<$cube = PDL::glue(3,@image_list);> if you like.
 
 C<glue> is implemented in pdl, using a combination of L<xchg|PDL::Slices/xchg> and
-L<append|append>.  It should probably be updated (one day) to a pure PP
+L<append>.  It should probably be updated (one day) to a pure PP
 function.
 
 Similar functions include L<append|/append> (above), which appends
@@ -3762,7 +3762,7 @@ in set operation terms.
 
 The resulting vector will contain the intersection of C<$x> and C<$y>, so
 the elements that are in both C<$x> and C<$y>. Note that for convenience
-this operation is also aliased to L<intersect|intersect>.
+this operation is also aliased to L<intersect>.
 
 =back
 
@@ -3822,7 +3822,7 @@ Finally find all odd squares:
 Another common occurrence is to want to get all objects that are
 in C<$x> and in the complement of C<$y>. But it is almost always best
 to create the complement explicitly since the universe that both are
-taken from is not known. Thus use L<which_both|which_both> if possible
+taken from is not known. Thus use L<which_both> if possible
 to keep track of complements.
 
 If this is impossible the best approach is to make a temporary:
@@ -3925,7 +3925,7 @@ Calculate the intersection of two piddles
 
    Usage: $set = intersect($x, $y);
 
-This routine is merely a simple interface to L<setops|setops>. See
+This routine is merely a simple interface to L<setops>. See
 that for more information
 
 =for example

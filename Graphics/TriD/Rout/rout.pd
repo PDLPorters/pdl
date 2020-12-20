@@ -135,7 +135,7 @@ Repulsive potential for molecule-like constructs.
 
 C<repulse> uses a hash table of cubes to quickly calculate
 a repulsive force that vanishes at infinity for many
-objects. For use by the module L<PDL::Graphics::TriD::MathGraph|PDL::Graphics::TriD::MathGraph>.
+objects. For use by the module L<PDL::Graphics::TriD::MathGraph>.
 For definition of the potential, see the actual function.
 
 =cut
@@ -188,7 +188,7 @@ C<attract> is used to calculate
 an attractive force for many
 objects, of which some attract each other (in a way
 like molecular bonds).
-For use by the module L<PDL::Graphics::TriD::MathGraph|PDL::Graphics::TriD::MathGraph>.
+For use by the module L<PDL::Graphics::TriD::MathGraph>.
 For definition of the potential, see the actual function.
 
 =cut

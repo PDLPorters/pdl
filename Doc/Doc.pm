@@ -210,7 +210,7 @@ Individual functions or methods in these section are introduced by
 
 where signature is the argumentlist for a PP defined function as
 explained in L<PDL::PP>. Generally, PDL documentation is in valid POD
-format (see L<perlpod|perlpod>) but uses the C<=for> directive in a
+format (see L<perlpod>) but uses the C<=for> directive in a
 special way. The C<=for> directive is used to flag to the PDL Pod
 parser that information is following that will be used to generate
 online help.

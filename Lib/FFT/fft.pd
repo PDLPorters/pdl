@@ -56,7 +56,7 @@ But if $r and $i are unsigned short integers (ushorts):
 	print $r,$i;
 	[2 0 65534 0] [0 0 0 0]
 
-This used to occur because L<PDL::PP|PDL::PP> converts the ushort
+This used to occur because L<PDL::PP> converts the ushort
 piddles to floats or doubles, performs the FFT on them, and then
 converts them back to ushort, causing the overflow where the amplitude
 of the frequency should be -2.
@@ -92,7 +92,7 @@ C<< $kx = $real->xlinvals(-($N/2-0.5)/$N/$D,($N/2-0.5)/$N/$D)->rotate(-($N-1)/2)
 =head1 ALTERNATIVE FFT PACKAGES
 
 Various other modules - such as 
-L<PDL::FFTW|PDL::FFTW> and L<PDL::Slatec|PDL::Slatec> - 
+L<PDL::FFTW> and L<PDL::Slatec> - 
 contain FFT routines.
 However, unlike PDL::FFT, these modules are optional,
 and so may not be installed.

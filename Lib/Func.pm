@@ -73,7 +73,7 @@ The valid attributes are:
 
 Use the piecewice cubic Hermite interpolation routines
 from the SLATEC library.
-Only available if L<PDL::Slatec|PDL::Slatec> is installed.
+Only available if L<PDL::Slatec> is installed.
 
 The valid attributes are:
 

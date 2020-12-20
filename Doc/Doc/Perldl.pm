@@ -460,7 +460,7 @@ prints signature of PDL function
 
 The signature is the normal dimensionality of the
 function's arguments.  Calling with different dimensions
-doesn't break -- it causes threading.  See L<PDL::PP|PDL::PP> for details.
+doesn't break -- it causes threading.  See L<PDL::PP> for details.
 
 =for example
 

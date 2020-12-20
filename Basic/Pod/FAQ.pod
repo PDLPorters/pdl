@@ -157,7 +157,7 @@ extensions to standard Perl freely available on the network.
 Integral language features of Perl (regular expressions,
 hashes, object modules) immensely facilitated development
 and implementation of key concepts of PDL. One of the most
-striking examples for this point is probably L<PDL::PP|PDL::PP> 
+striking examples for this point is probably L<PDL::PP> 
 (see Q: 6.16 below), a code generator/parser/pre-processor that
 generates PDL functions from concise descriptions.
 
@@ -193,7 +193,7 @@ All existing languages violate at least one of these rules.
 As a project for the future PDL should be able to use super
 computer features, e.g. vector capabilities/parallel processing,
 GPGPU acceleration. This will probably be achieved by having 
-L<PDL::PP|PDL::PP> (see Q: 6.16 below) generate appropriate code
+L<PDL::PP> (see Q: 6.16 below) generate appropriate code
 on such architectures to exploit these features.
 
 =item *
@@ -705,7 +705,7 @@ C<inner $x, $y> of a (3) pdl C<$x> and a (3,5,4) pdl
 C<$y> results in a (5,4) piddle where each
 value is the result of an inner product of the (3) pdl with a
 (3) sub-slice of the (3,5,4) piddle.  For details check
-L<PDL::Indexing|PDL::Indexing> 
+L<PDL::Indexing> 
 
 =back
 
@@ -769,7 +769,7 @@ work for piddles.
 
 OK, you are right in a way. The docs say that piddles can be
 thought of arrays.  More specifically, it says (
-L<PDL::QuickStart|PDL::QuickStart> ):
+L<PDL::QuickStart> ):
 
     I find when using the Perl Data Language it is most useful
     to think of standard Perl @x variables as "lists" of generic
@@ -787,8 +787,8 @@ individual elements or a range of elements. The
 functions/methods to check are 
 C<at> / C<set> (see
 L<the section 'Sections' in PDL::QuickStart|PDL::QuickStart/"Sections"> ) or the powerful 
-C<slice> function and friends (see L<PDL::Slices|PDL::Slices> and 
-L<PDL::Indexing|PDL::Indexing> and especially L<PDL::NiceSlice|PDL::NiceSlice> ).
+C<slice> function and friends (see L<PDL::Slices> and 
+L<PDL::Indexing> and especially L<PDL::NiceSlice> ).
 
 Finally, to confuse you completely, you can have Perl arrays
 of piddles, e.g. C<$spec[3]> can refer to a pdl representing ,e.g,
@@ -866,7 +866,7 @@ using lvalue subroutines:
     [0 5 6 3 4]
 
 see L<PDL::Lvalue> for more info.  PDL also supports a more
-matrix-like slice syntax via the L<PDL::NiceSlice|PDL::NiceSlice> module:
+matrix-like slice syntax via the L<PDL::NiceSlice> module:
 
     pdl> $x(1:2) .= pdl([5,6])
     pdl> p $x
@@ -956,8 +956,8 @@ which is equivalent to
     $y = sumover $x;
 
 If this seems still a bit murky check 
-L<PDL::Indexing|PDL::Indexing> and 
-L<PDL::PP|PDL::PP> for details about calling
+L<PDL::Indexing> and 
+L<PDL::PP> for details about calling
 conventions, the I<signature> and 
 I<threading> (see also below).
 
@@ -980,16 +980,16 @@ called with slices of these piddles of appropriate dimension(this is called
 I<threading> in PDL).
 
 For details and further explanations consult 
-L<PDL::Indexing|PDL::Indexing> and L<PDL::PP|PDL::PP> .
+L<PDL::Indexing> and L<PDL::PP> .
 
 
 =head2 Q: 6.14   How can I subclass (inherit from) piddles?  
 
 
-The short answer is: read L<PDL::Objects|PDL::Objects> (e.g. type 
+The short answer is: read L<PDL::Objects> (e.g. type 
 C<help PDL::Objects> in the I<perldl> or I<pdl2> shell).
 
-The longer answer (extracted from L<PDL::Objects|PDL::Objects> ): 
+The longer answer (extracted from L<PDL::Objects> ): 
 Since a PDL object is an opaque reference to a C struct, it is not 
 possible to extend the PDL class by e.g. extra data via sub-classing 
 (as you could do with a hash based Perl object).  To circumvent this 
@@ -1021,7 +1021,7 @@ F<t/subclass.t> in the PDL distribution.
 Dataflow is an experimental project that you don't need to concern
 yourself with (it should not interfere with your usual programming). 
 However, if you want to know, have a look at 
-L<PDL::Dataflow|PDL::Dataflow> . There
+L<PDL::Dataflow> . There
 are applications which will benefit from this feature (and it is already
 at work behind the scenes).
 
@@ -1039,7 +1039,7 @@ can easily be called from PDL and which automatically support
 threading, dataflow and other things without you having to
 worry about it. 
 
-For further details check L<PDL::PP|PDL::PP> and the
+For further details check L<PDL::PP> and the
 section below on L<Extensions of PDL|"EXTENSIONS OF PDL">.
 
 
@@ -1122,27 +1122,27 @@ FlexRaw module at some time in the future.
 
 =item *
 
-FITS I/O is implemented by the C<wfits>/C<rfits> functions in L<PDL::IO::FITS|PDL::IO::FITS> .
+FITS I/O is implemented by the C<wfits>/C<rfits> functions in L<PDL::IO::FITS> .
 
 =item *
 
 ASCII file I/O in various formats can be achieved by using the 
-C<rcols> and C<rgrep> functions, also in L<PDL::IO::Misc|PDL::IO::Misc> .
+C<rcols> and C<rgrep> functions, also in L<PDL::IO::Misc> .
 
 =item *
 
-L<PDL::IO::Pic|PDL::IO::Pic> implements an interface to the
+L<PDL::IO::Pic> implements an interface to the
 NetPBM/PBM+ filters to read/write several popular image formats; also
 supported is output of image sequences as MPEG movies, animated GIFs
 and a wide variety of other video formats.
 
 =item *
 
-On CPAN you can find the L<PDL::NetCDF|PDL::NetCDF> module that works with PDL 2.007.
+On CPAN you can find the L<PDL::NetCDF> module that works with PDL 2.007.
 
 =back
 
-For further details consult the more detailed list in the L<PDL::IO|PDL::IO>
+For further details consult the more detailed list in the L<PDL::IO>
 documentation or the documentation for the individual modules.
 
 
@@ -1150,7 +1150,7 @@ documentation or the documentation for the individual modules.
 
 
 Assuming all arrays are of the same size and in some format recognized by
-C<rpic> (see L<PDL::IO::Pic|PDL::IO::Pic> ) you could say:
+C<rpic> (see L<PDL::IO::Pic> ) you could say:
 
     use PDL::IO::Pic;
     @names = qw/name1.tif .... nameN.tif/;  # some file names
@@ -1165,7 +1165,7 @@ or
 
     $cube(:,:,($_)) .= PDL->rpic($names[$_]);
 
-for the slice assignment using the new L<PDL::NiceSlice|PDL::NiceSlice> syntax and Lvalue
+for the slice assignment using the new L<PDL::NiceSlice> syntax and Lvalue
 assignments.
 
 The for loop reads the actual images into a temporary 2D piddle whose
@@ -1300,7 +1300,7 @@ also the next question.
 
 Yes, you can, in fact it is very simple for many simple
 applications. What you want is the PDL pre-processor PP
-(L<PDL::PP|PDL::PP> ). This will allow you to make a 
+(L<PDL::PP> ). This will allow you to make a 
 simple interface to your C routine. 
 
 The two functions you need to learn (at least first) are 
@@ -1308,7 +1308,7 @@ C<pp_def> which defines the calling interface to the function,
 specifying input and output parameters, and contains the code 
 that links to the external library. The other command is 
 C<pp_end> which finishes the PP definitions.  For details see
-the L<PDL::PP|PDL::PP> man-page, but we also have a worked 
+the L<PDL::PP> man-page, but we also have a worked 
 example here. 
 
     double eight_sum(int n)
@@ -1449,10 +1449,10 @@ install it for you.
 
 This question is closely related to the previous one, and as
 we said there, the 
-L<PDL::PP|PDL::PP> pre-processor is the standard
+L<PDL::PP> pre-processor is the standard
 way of interfacing external packages with PDL. The most usual
 way to use PDL::PP is to write a short interface routine, see
-the L<PDL::PP|PDL::PP> perldoc page and
+the L<PDL::PP> perldoc page and
 the answer to the previous question for
 examples. 
 
@@ -1462,7 +1462,7 @@ convenient in certain situations, in particular if you have a
 routine that expects a function as input and you would like to
 pass the function a Perl function for convenience. 
 
-The L<PDL::PP|PDL::PP> perldoc page is the main
+The L<PDL::PP> perldoc page is the main
 source of information for writing PDL::PP extensions, but it
 is very useful to look for files in the distribution of PDL as
 many of the core functions are written in PDL::PP. Look for
@@ -1569,7 +1569,7 @@ C<perl Makefile.PL; make> .
 
 You should experiment with this function, changing the
 calculations and input and output parameters. In conjunction
-with the L<PDL::PP|PDL::PP> perldoc page this should allow you to quickly
+with the L<PDL::PP> perldoc page this should allow you to quickly
 write more advanced routines directly in PDL::PP.
 
 

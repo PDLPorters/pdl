@@ -256,7 +256,7 @@ above tests for this
    if (PDL->Version != PDL_CORE_VERSION)
      ....
 
-For more information on the Core struct see L<PDL::Internals|PDL::Internals>.
+For more information on the Core struct see L<PDL::Internals>.
 
 With these preparations your code can now access the
 core routines as already shown in some of the examples above, e.g.

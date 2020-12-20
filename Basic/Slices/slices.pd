@@ -31,8 +31,8 @@ for details.
 
 PDL indexing and slicing functions usually include two-way data flow,
 so that you can separate the actions of reshaping your data structures
-and modifying the data themselves.  Two special methods, L<copy|copy> and
-L<sever|sever>, help you control the data flow connection between related
+and modifying the data themselves.  Two special methods, L<copy> and
+L<sever>, help you control the data flow connection between related
 variables.
 
  $y = $x->slice("1:3"); # Slice maintains a link between $x and $y.
@@ -187,7 +187,7 @@ than 0 must agree in a threading sense.
 
 C<index2d> works like C<index> but uses separate piddles for X and Y
 coordinates.  For more general N-dimensional indexing, see the
-L<PDL::NiceSlice|PDL::NiceSlice> syntax or L<PDL::Slices|PDL::Slices> (in particular C<slice>,
+L<PDL::NiceSlice> syntax or L<PDL::Slices> (in particular C<slice>,
 C<indexND>, and C<range>).
 
 =back 
