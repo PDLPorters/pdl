@@ -14,7 +14,11 @@ it highlights the key differences between MATLAB and PDL.
 
 =head1 Perl
 
-The key difference between MATLAB and PDL is B<Perl>.
+The key differences between MATLAB and PDL are threading, and B<Perl>.
+
+Threading means you can get a reference to just a part of your data,
+and operate on it in a way that makes sense for your application. Those
+operations will be reflected in the original data.
 
 Perl is a general purpose programming language with thousands of modules
 freely available on the web. PDL is an extension of Perl. This gives PDL
@@ -69,10 +73,10 @@ PDL program:
   use PDL;             # Import main PDL module.
   use PDL::NiceSlice;  # Import additional PDL module.
   use PDL::AutoLoader; # Import additional PDL module.
-  
+
   $y = pdl [2,3,4];              # Statements end in semicolon.
   $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional matrix.
-  
+
   print $A x $y->transpose;
 
 Save this file as C<myprogram.pl> and run it with:
@@ -84,21 +88,17 @@ Save this file as C<myprogram.pl> and run it with:
 In current versions of PDL (version 2.4.7 or later) there is
 a flexible matrix syntax that can look extremely similar to MATLAB:
 
-1) Use a ';' to delimit rows:
-
-  $y = pdl q[ 2,3,4 ];
-  $A = pdl q[ 1,2,3 ; 4,5,6 ];
-
-2) Use spaces to separate elements:
+1) Use spaces to separate elements:
 
   $y = pdl q[ 2 3 4 ];
-  $A = pdl q[ 1 2 3 ; 4 5 6 ];
 
+2) Use a ';' to delimit rows:
+
+  $A = pdl q[ 1,2,3 ; 4,5,6 ];
 
 Basically, as long as you put a C<q> in front of the opening bracket,
 PDL should "do what you mean". So you can write in a syntax that is
 more comfortable for you.
-
 
 =head1 MODULES FOR MATLAB USERS
 
@@ -113,10 +113,10 @@ more familiar to MATLAB users.
 
   % MATLAB
   b(1:5)            -->  Selects the first 5 elements from b.
-  
+
   # PDL without NiceSlice
   $y->slice("0:4")  -->  Selects the first 5 elements from $y.
-  
+
   # PDL with NiceSlice
   $y(0:4)           -->  Selects the first 5 elements from $y.
 
@@ -128,13 +128,10 @@ finds one, it reads it.
 
 =back
 
-
-
 =head1 BASIC FEATURES
 
 This section explains how PDL's syntax differs from MATLAB. Most
 MATLAB users will want to start here.
-
 
 =head2 General "gotchas"
 
@@ -144,7 +141,8 @@ MATLAB users will want to start here.
 
 In PDL, indices start at '0' (like C and Java), not 1 (like MATLAB or FORTRAN).
 For example, if C<$y> is an array with 5 elements, the elements would be
-numbered from 0 to 4.
+numbered from 0 to 4. This is different, but less difficult as soon as
+you need to do calculations based on offsets.
 
 =item Displaying an object
 
@@ -156,7 +154,7 @@ MATLAB:
  >> a = 12
  a =  12
  >> b = 23;       % Suppress output.
- >> 
+ >>
 
 PDL Shell (perldl or pdl2):
 
@@ -167,10 +165,11 @@ PDL Shell (perldl or pdl2):
  12
  pdl>
 
+In pdl2 there is the C<do_print> command that will toggle the "quiet"
+mode, which defaults to on. In "print" mode, expressions you enter on
+the command line will have their values printed.
 
 =back
-
-
 
 =head2 Creating Piddles
 
@@ -224,13 +223,15 @@ Both are valid statements:
   ]
 
 Rather than trying to memorize Perl's order of precedence, it is best
-to use parentheses to make your code unambiguous.
+to use parentheses to make your code unambiguous. Remember you may need
+to come back to your code, and parentheses make your own (as well as
+others') comprehension easier.
 
 =item Linearly spaced sequences
 
   MATLAB:   >> linspace(2,10,5)
             ans = 2 4 6 8 10
-  
+
   PerlDL:   pdl> p zeroes(5)->xlinvals(2,10)
             [2 4 6 8 10]
 
@@ -311,22 +312,20 @@ important differences:
 
 =item B<Warning>
 
-When you write a stand-alone PDL program you have
+When you write a stand-alone PDL program, if you want the "nice slice" syntax, you have
 to include the L<PDL::NiceSlice> module. See the
 previous section "B<MODULES FOR MATLAB USERS>" for more information.
 
   use PDL;             # Import main PDL module.
   use PDL::NiceSlice;  # Nice syntax for slicing.
   use PDL::AutoLoader; # MATLAB-like autoloader.
-  
+
   $A = random 4,4;
   print $A(0,1);
 
 =back
 
 =back
-
-
 
 =head2 Matrix Operations
 
@@ -404,7 +403,6 @@ works over the entire piddle.
   pdl> p ones(2,2,2,2)->max
   1
 
-
 =back
 
 =over 5
@@ -474,7 +472,6 @@ There is usually no distinction.
 
 =back
 
-
 =head2 Loop Structures
 
 Perl has many loop structures, but we will only show the one that
@@ -518,7 +515,7 @@ B<Data structures> below), B<but they are not designed for numerical work>.
 For that, use I<piddles>:
 
   $pdl = pdl [ 1, 2, 3, 4 ];
-  $pdl = sequence 10_000_000; 
+  $pdl = sequence 10_000_000;
   $pdl = ones 600, 600;
 
 For example:
@@ -583,7 +580,7 @@ while-loops and if-statements:
   while ( ! finished() ) {
       keep_working();
   }
-  
+
   if ( ! wife_angry() ) {
       kiss_wife();
   }
@@ -593,7 +590,7 @@ But it also offers the alternative B<until> and B<unless> statements:
   until ( finished() ) {
       keep_working();
   }
-  
+
   unless ( wife_angry() ) {
       kiss_wife();
   }
@@ -601,14 +598,12 @@ But it also offers the alternative B<until> and B<unless> statements:
 And Perl allows you to write loops and conditionals in "postfix" form:
 
   keep_working() until finished();
-  
-  kiss_wife() unless wife_angry();
 
+  kiss_wife() unless wife_angry();
 
 In this way, Perl often allows you to write more natural, easy to
 understand code than is possible in more restrictive programming
 languages.
-
 
 =head2 Functions
 
@@ -626,7 +621,9 @@ a function declaration in PDL:
 
 1) "B<sub>" stands for "subroutine".
 
-2) "B<my>" declares variables to be local to the function.
+2) "B<my>" declares variables to be local to the function. This helps
+you not accidentally use undeclared variables, which is enforced if you
+C<use strict>. See L<strict> for more.
 
 3) "B<@_>" is a special Perl array that holds all the function parameters.
 This might seem like a strange way to do functions, but it allows you
@@ -642,6 +639,9 @@ together:
       return $total;
   }
 
+In more recent versions of Perl, you can C<use signatures> for a different
+syntax for declaring function parameters. See L<signatures> for more.
+
 4) You can assign values to several variables at once using the syntax:
 
   ($x, $y, $z) = (1, 2, 3);
@@ -650,7 +650,7 @@ So, in the previous examples:
 
   # This declares two local variables and initializes them to 0.
   my ($i, $total) = (0, 0);
-  
+
   # This takes the first two elements of @_ and puts them in $x and $y.
   my ($x, $y) = @_;
 
@@ -702,7 +702,6 @@ any data type.
   @array = ( 5 , {'name' => 'Mike'} , [1, 12, 'hello'] )
   => OK
 
-
 Notice that Perl array's start with the "@" prefix instead of the "$" used by
 piddles.
 
@@ -718,7 +717,7 @@ Perl hashes are similar to MATLAB's structure arrays:
   >> drink = struct('type', 'coke', 'size', 'large', 'myarray', {1,2,3})
   >> drink.type = 'sprite'
   >> drink.price = 12          % Add new field to structure array.
-  
+
   PerlDL
   ------
   pdl> %drink = ( type => 'coke' , size => 'large', mypiddle => ones(3,3,3) )
@@ -732,8 +731,6 @@ I<To learn about Perl hashes, please go to L<http://perldoc.perl.org/perldata.ht
 or run the command C<perldoc perldata>.>
 
 =back
-
-
 
 =head2 Performance
 
@@ -759,7 +756,6 @@ PDL's "vectorization" feature goes beyond what most numerical software
 can do. In this tutorial you'll learn how to "thread" over higher dimensions,
 allowing you to vectorize your program further than is possible in MATLAB.
 
-
 =item Benchmarks
 
 B<Level>: Intermediate
@@ -781,8 +777,6 @@ you get the full speed of native C code without having to deal with
 the full complexity of the C language.
 
 =back
-
-
 
 =head2 Plotting
 
@@ -825,7 +819,6 @@ time.
 
 =back
 
-
 =head2 Writing GUIs
 
 Through Perl, PDL has access to all the major toolkits for creating
@@ -837,7 +830,6 @@ applications.
 wxWidgets is designed to make your application look and feel like
 a native application in every platform. For example, the Perl
 IDE B<Padre> is written with wxPerl.
-
 
 =head2 Simulink
 
@@ -853,6 +845,101 @@ and open source. It doesn't have PDL's unique features, but it is
 very similar to MATLAB. Scilab comes with B<Xcos> (previously Scicos),
 a graphical system modeler and simulator similar to Simulink.
 
+=head1 COMPARISON: FLOYD-WARSHALL ALGORITHM
+
+In L<graph theory|https://en.wikipedia.org/wiki/Graph_theory>, an
+apparently-simple but difficult problem is the "shortest path" problem,
+of finding the shortest path between any two nodes. A famous solution
+to this, albeit expensive (it is C<O(V^3)> where C<V> is the number of
+vertices) is the Floyd-Warshall algorithm, which iterates through all
+the possible paths.
+
+Both the MATLAB solution and the PDL solution use vectorisation, so
+hopefully this is a useful comparison. The MATLAB version started with
+the code in
+L<code by Giorgos Dim|https://uk.mathworks.com/matlabcentral/fileexchange/67503-floyd-warshall-vectorized>,
+but modified as that code produces an incorrect path matrix.
+
+Sample data (reflected on both the Wikipedia page, and the Rosetta Code
+website) for the weighted-edges matrix is, in PDL format:
+
+  my $we = pdl q[
+   [Inf Inf  -2 Inf]
+   [  4 Inf   3 Inf]
+   [Inf Inf Inf   2]
+   [Inf  -1 Inf Inf]
+  ];
+
+and in MATLAB format:
+
+  A = [0 Inf -2 Inf; 4 0 3 Inf; Inf Inf 0 2; Inf -1 Inf 0]
+
+=head2 PDL version
+
+To solve for only distances without capturing the shortest actual paths:
+
+  $we .= $we->hclip($we->mslice('X', $_) + $we->mslice($_, 'X'))
+    for 0..($we->dim(0)-1);
+
+This loops over each possible intermediate point (C<k> in the
+other literature), setting it to C<$_> (a Perl idiom). It uses
+L<PDL::Primitive/hclip> for vectorised calculation of the distance
+between the intermediate point's predecessors and successors. Those are
+the two components of the addition expression, using "slices" alluded
+to above. The C<.=> is the PDL syntax for updating a piddle.
+
+To capture the shortest-path "next vertex" matrix as well:
+
+  use PDL::Lite;
+  my $d = $we->copy->inplace;
+  $d->diagonal(0, 1) .= 0;
+  my $suc = $we->copy->inplace;
+  my $adjacent_coords = PDL::whichND($we->isfinite);
+  $suc->indexND($adjacent_coords) .= $adjacent_coords->slice(0)->flat;
+  $suc->diagonal(0, 1) .= PDL::Basic::sequence($d->dim(0));
+  for (my $k = $d->dim(0)-1; $k >= 0; $k--) {
+    my $d_copy = $d->copy;
+    $d .= $d->hclip($d->mslice('X', $k) + $d->mslice($k, 'X'));
+    my $coords = PDL::whichND($d < $d_copy);
+    my $from_coords = $coords->copy->inplace;
+    $from_coords->slice(0) .= $k;
+    $suc->indexND($coords) .= $suc->indexND($from_coords);
+  }
+
+The C<diagonal> and C<slice> expressions show how to update data via a
+query syntax.
+
+=head2 MATLAB version
+
+Path-lengths only:
+
+  function D = FloydWarshall(D)
+    for k = 1:length(D)
+      D = min(D,D(:,k) + D(k,:));
+    end
+  end
+
+The path vertices-capturing as well:
+
+  function [D,P] = FloydWarshall(D)
+    P = D;
+    n = length(D);
+    coords = find(isfinite(P));
+    P(coords) = floor((coords-1) / n)+1; % the col in 1-based
+    for v = 1:n; P(v, v) = v; end
+    for k = 1:n
+      prevD = D;
+      D = min(D,D(:,k) + D(k,:));
+      coords = find(D<prevD);
+      from_coords = n * (k-1) + mod(coords-1, n) + 1; % change col to k in 1-based
+      P(coords) = P(from_coords);
+    end
+  end
+
+By comparison, the lack of "threading" means that to update the diagonal
+requires a for-loop, which in the sphere of vectorised calculations is
+a bad thing. The calculations of coordinates are complicated by the
+1-based counting.
 
 =head1 COPYRIGHT
 
@@ -863,12 +950,9 @@ See: http://dev.perl.org/licenses/
 
 =over 5
 
-=item B<Acknowledgements>
+=head1 ACKNOWLEDGEMENTS
 
 I'd like to thank David Mertens, Chris Marshall and Sigrid Carrera for
 their immense help reviewing earlier drafts of this guide. Without their
 hours of work, this document would not be remotely as useful to MATLAB
 users as it is today.
-
-=back
-
