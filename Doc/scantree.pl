@@ -106,15 +106,11 @@ for (@mods) {
   my $ref = $_->[2]->{Ref};
   next unless $_->[0] =~ /^PDL/;
   if( $_->[0] eq 'PDL'){ # special case needed to find the main PDL.pm file.
-	  $ref =~ s/Module:/L<PDL::PDL> -/;
-##	  print POD "=item L<PDL::PDL>\n\n$ref\n\n";
-#	  print POD "=item PDL::PDL\n\n$ref\n\n";
+	  $ref =~ s/Module:/L<PDL> -/;
 	  print POD "=item *\n\n$ref\n\n";
 	  next;
   }
   $ref =~ s/Module:/L<$_->[0]> -/;
-##  print POD "=item L<$_->[0]>\n\n$ref\n\n";
-#  print POD "=item $_->[0]\n\n$ref\n\n";
   print POD "=item *\n\n$ref\n\n";
 }
 
