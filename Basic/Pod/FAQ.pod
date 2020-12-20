@@ -525,7 +525,7 @@ C<perl Makefile.PL INSTALL_BASE=/mydir/perl5> will configure PDL
 to install into the tree rooted at C</mydir/perl5>.  For more
 details see L<perlfaq8/"How do I keep my own module/library directory?">
 and subsequent sections.  Another alternative is to use L<local::lib>
-to do the heavy listing for the needed configuration.
+to do the heavy lifting for the needed configuration.
 
 
 =head2 Q: 4.5    How can I force a completely clean installation?
@@ -1188,7 +1188,7 @@ directory.  After you have built PDL you can do:
 
 to try the two TriD test programs.  They only exercise one TriD function
 each but their simplicity makes it easy to debug if needed with the
-Perl debugger, see L<perldbug>.
+Perl debugger, see L<perldebug>.
 
 The programs in the Demo directory can be run most easily from the
 C<perldl> or C<pdl2> interactive shell:
