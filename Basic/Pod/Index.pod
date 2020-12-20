@@ -101,19 +101,19 @@ L<PDL::Tutorials> - A guide to PDL's tutorial documentation.
 
 =item *
 
-L<pdl2|PDL::pdl2> - Simple shell (version 2) for PDL
+L<pdl2> - Simple shell (version 2) for PDL
 
 =item *
 
-L<pdldoc|PDL::pdldoc> - shell interface to PDL documentation
+L<pdldoc> - shell interface to PDL documentation
 
 =item *
 
-L<perldl|PDL::perldl> - Simple shell for PDL (see also L<pdl2>)
+L<perldl> - Simple shell for PDL (see also L</pdl2>)
 
 =item *
 
-L<pptemplate|PDL::pptemplate> - script to generate Makefile.PL and PP file skeleton
+L<pptemplate> - script to generate Makefile.PL and PP file skeleton
 
 
 =back
@@ -124,7 +124,7 @@ L<pptemplate|PDL::pptemplate> - script to generate Makefile.PL and PP file skele
 
 =item *
 
-L<PDL::PDL> - the Perl Data Language
+L<PDL> - the Perl Data Language
 
 =item *
 

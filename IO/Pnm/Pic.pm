@@ -521,7 +521,7 @@ If the image is in one of the standard RGB formats, then you get back
 data in (<X>,<Y>,<RGB-index>) format -- that is to say, the third dim
 contains the color information.  That allows you to do simple indexing
 into the image without knowing whether it is color or not -- if present,
-the RGB information is silently threaded over.  (Contrast L<rpic>, which
+the RGB information is silently threaded over.  (Contrast L</rpic>, which
 munges the information by putting the RGB index in the 0th dim, screwing
 up subsequent threading operations).
 
@@ -534,7 +534,7 @@ automatically uncompressed before reading.
 
 OPTIONS
 
-The same as L<rpic>, which is used as an engine:
+The same as L</rpic>, which is used as an engine:
 
 =over 3
 
@@ -626,7 +626,7 @@ OPTIONS
 
 You can pass in a hash ref whose keys are options.  The code uses the
 PDL::Options module so unique abbreviations are accepted.  Accepted
-keys are the same as for L<wpic>, which is used as an engine:
+keys are the same as for L</wpic>, which is used as an engine:
 
 =over 3
 
@@ -657,7 +657,7 @@ output converter)
 =item COLOR
 
 Specifies color conversion (e.g. 'bw' converts to black-and-white; see
-L<pbmplus> for details).
+pbmplus for details).
 
 =item LUT
 

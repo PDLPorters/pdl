@@ -116,7 +116,7 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
 
 =head1 SEE ALSO
 
-L<debhelper(7)>
+debhelper(7)
 
 =head1 AUTHOR
 

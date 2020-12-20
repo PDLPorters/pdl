@@ -403,7 +403,7 @@ a large collection of matrices all at once if you want.
 Matrices up to 3x3 are handled by direct multiplication; larger matrices
 are handled by recursive descent to the 3x3 case.
 
-The LU-decomposition method L<det> is faster in isolation for
+The LU-decomposition method L</det> is faster in isolation for
 single matrices larger than about 4x4, and is much faster if you end up
 reusing the LU decomposition of C<$a> (NOTE: check performance and
 threading benchmarks with new code).
@@ -1053,13 +1053,13 @@ LU decompose a matrix, with no row permutation
 
 =for description
 
-C<lu_decomp2> works just like L<lu_decomp>, but it does B<no>
-pivoting at all.  For compatibility with L<lu_decomp>, it
+C<lu_decomp2> works just like L</lu_decomp>, but it does B<no>
+pivoting at all.  For compatibility with L</lu_decomp>, it
 will give you a permutation list and a parity scalar if you ask
 for them -- but they are always trivial.
 
 Because C<lu_decomp2> does not pivot, it is numerically B<unstable> --
-that means it is less precise than L<lu_decomp>, particularly for
+that means it is less precise than L</lu_decomp>, particularly for
 large or near-singular matrices.  There are also specific types of 
 non-singular matrices that confuse it (e.g. ([0,-1,0],[1,0,0],[0,0,1]),
 which is a 90 degree rotation matrix but which confuses C<lu_decomp2>).
@@ -1071,7 +1071,7 @@ decomposition for some of the input matrices.
 
 The output is a single matrix that contains the LU decomposition of C<$a>;
 you can even do it in-place, thereby destroying C<$a>, if you want.  See
-L<lu_decomp> for more information about LU decomposition. 
+L</lu_decomp> for more information about LU decomposition. 
 
 C<lu_decomp2> is ported from I<Numerical Recipes> into PDL.
 
@@ -1179,7 +1179,7 @@ Solve a x = b for matrix a, by back substitution into a's LU decomposition.
 
 =for description
 
-Given the LU decomposition of a square matrix (from L<lu_decomp>),
+Given the LU decomposition of a square matrix (from L</lu_decomp>),
 C<lu_backsub> does back substitution into the matrix to solve
 C<a x = b> for given vector C<b>.  It is separated from the
 C<lu_decomp> method so that you can call the cheap C<lu_backsub>
@@ -1382,7 +1382,7 @@ different C<$y> vector using the same a matrix previously reduced when
 C<flag=0> (the C<$ips> vector generated in the previous solution is also
 required).
 
-See also L<lu_backsub>, which does the same thing with a slightly
+See also L</lu_backsub>, which does the same thing with a slightly
 less opaque interface.
 
 =cut

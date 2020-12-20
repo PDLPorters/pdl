@@ -114,7 +114,7 @@ C<reduce> applies the named operation along the specified
 dimension(s) reducing the input piddle dimension by as many
 dimensions as supplied as arguments. If the
 dimension(s) argument is omitted the operation is applied along the first
-dimension. To get a list of valid operations see L<canreduce>.
+dimension. To get a list of valid operations see L</canreduce>.
 
 NOTE - new power user feature: you can now supply a code
 reference as operation to reduce with.

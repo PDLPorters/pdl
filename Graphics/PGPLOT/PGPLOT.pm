@@ -227,10 +227,10 @@ Open a PGPLOT graphics device
 
   $win = new_window($dev, $nx, $ny, $opt);
 
-This function is identical to L<dev> except that it always creates a new
+This function is identical to L</dev> except that it always creates a new
 window. This means that the user is required to close all windows
-explicitly using L<close_window>. All functionality is otherwise like C<dev>
-so see the documentation for L<dev> for details of use.
+explicitly using L</close_window>. All functionality is otherwise like C<dev>
+so see the documentation for L</dev> for details of use.
 
 =cut
 
@@ -293,7 +293,7 @@ C<new_window>. It requires the id of the window to close. If C<$id> is
 left undefined, the currently focussed window is deleted and focus is
 transferred to the lowest numbered window in existence. If many windows
 have been created and deleted this might not be what you expect, so
-it is recommended to make an explicit call to L<focus_window> after
+it is recommended to make an explicit call to L</focus_window> after
 any call to C<close_window>.
 
 =cut
@@ -429,7 +429,7 @@ Switch to another output window.
  Usage: focus_window($id);
 
 This command is used to switch output focus to another window created by
-L<dev> or L<new_window>. The window can be referred to either by its
+L</dev> or L</new_window>. The window can be referred to either by its
 ID or by its name.
 
 =for example
@@ -461,7 +461,7 @@ sub focus_window {
 =for ref
 
 Return a list of ID numbers and names of the windows currently opened using
-L<dev> or L<new_window>.
+L</dev> or L</new_window>.
 
 =for usage
 

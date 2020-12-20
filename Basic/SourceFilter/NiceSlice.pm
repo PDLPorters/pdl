@@ -479,15 +479,15 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
 =head1 DESCRIPTION
 
 Slicing is a basic, extremely common operation, and PDL's
-L<slice|PDL::Slices/slice> method would be cumbersome to use in many
+L<PDL::Slices/slice> method would be cumbersome to use in many
 cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
 syntax directly into the language via a perl I<source filter> (see
-L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient syntax.
+L<perlfilter>).  NiceSlice adds no new functionality, only convenient syntax.
 
 NiceSlice is loaded automatically in the perldl or pdl2 shell, but (to avoid
 conflicts with other modules) must be loaded explicitly in standalone
 perl/PDL scripts (see below).  If you prefer not to use a prefilter on
-your standalone scripts, you can use the L<slice|PDL::Slices/slice>
+your standalone scripts, you can use the L<PDL::Slices/slice>
 method in those scripts,
 rather than the more compact NiceSlice constructs.
 
@@ -717,7 +717,7 @@ Similarly, if you have a list of piddles C<@pdls>:
 
 The argument list is a comma separated list. Each argument specifies
 how the corresponding dimension in the piddle is sliced. In contrast
-to usage of the L<slice|PDL::Slices/slice> method the arguments should
+to usage of the L<PDL::Slices/slice> method the arguments should
 I<not> be quoted. Rather freely mix literals (1,3,etc), perl
 variables and function invocations, e.g.
 
@@ -897,7 +897,7 @@ Examples:
   $x(::2);   # this won't work (in the way you probably intended)
   $x(:-1:2); # this will select every 2nd element in the 1st dim
 
-Just as with L<slice|PDL::Slices/slice> negative indices count from the end of the dimension
+Just as with L<PDL::Slices/slice> negative indices count from the end of the dimension
 backwards with C<-1> being the last element. If the start index is larger
 than the stop index the resulting piddle will have the elements in reverse
 order between these limits:
@@ -917,7 +917,7 @@ the resulting piddle but rather reduced to size 1:
  PDL: Double D [1]
 
 If you want to get completely rid of that dimension enclose the index
-in parentheses (again similar to the L<slice|PDL::Slices/slice> syntax):
+in parentheses (again similar to the L<PDL::Slices/slice> syntax):
 
   print $x((5));
  5
@@ -956,7 +956,7 @@ these dimensions will be fully kept in the sliced piddle:
 
 =item * dummy dimensions
 
-As in L<slice>, you can insert a dummy dimension by preceding a
+As in L<PDL::Slices/slice>, you can insert a dummy dimension by preceding a
 single index argument with '*'.  A lone '*' inserts a dummy dimension of 
 order 1; a '*' followed by a number inserts a dummy dimension of that order.
 
@@ -970,7 +970,7 @@ of indices. A simple example:
   $y = $x($idx);
 
 This way of selecting indices was previously only possible using
-L<dice|PDL::Slices/dice> (C<PDL::NiceSlice> attempts to unify the
+L<PDL::Slices/dice> (C<PDL::NiceSlice> attempts to unify the
 C<slice> and C<dice> interfaces). Note that the indexing piddles must
 be 1D or 0D. Higher dimensional piddles as indices will raise an error:
 

@@ -232,9 +232,9 @@ Fast Fourier Transform
   $v_in = pdl(1,0,1,0);
   ($azero,$x,$y) = PDL::Slatec::fft($v_in);
 
-C<PDL::Slatec::fft> is a convenience wrapper for L<ezfftf>, and
+C<PDL::Slatec::fft> is a convenience wrapper for L</ezfftf>, and
 performs a Fast Fourier Transform on an input vector C<$v_in>. The
-return values are the same as for L<ezfftf>.
+return values are the same as for L</ezfftf>.
 
 =head2 rfft
 
@@ -248,7 +248,7 @@ reverse Fast Fourier Transform
   print $v_in, $vout
   [1 0 1 0] [1 0 1 0]
 
-C<PDL::Slatec::rfft> is a convenience wrapper for L<ezfftb>,
+C<PDL::Slatec::rfft> is a convenience wrapper for L</ezfftb>,
 and performs a reverse Fast Fourier Transform. The input is the same
 as the output of L</PDL::Slatec::fft>, and the output
 of C<rfft> is a data vector, similar to what is input into

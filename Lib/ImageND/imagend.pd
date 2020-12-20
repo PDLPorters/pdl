@@ -539,7 +539,7 @@ conditions and method used.
 The kernel's origin is taken to be at the kernel's center.  If your
 kernel has a dimension of even order then the origin's coordinates get
 rounded up to the next higher pixel (e.g. (1,2) for a 3x4 kernel).
-This mimics the behavior of the earlier L<convolve> and
+This mimics the behavior of the earlier L</convolve> and
 L<fftconvolve|PDL::FFT/fftconvolve()> routines, so convolveND is a drop-in
 replacement for them.
 

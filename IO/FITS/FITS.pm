@@ -1679,7 +1679,7 @@ as a multi-string column in FITS tables, so any nonscalar values in
 the list are stringified before being written.  For example, if you
 pass in a perl list of 7 PDLs, each PDL will be stringified before
 being written, just as if you printed it to the screen.  This is
-probably not what you want -- you should use L<glue> to connect 
+probably not what you want -- you should use L</glue> to connect 
 the separate PDLs into a single one.  (e.g. C<$x-E<gt>glue(1,$y,$c)-E<gt>mv(1,0)>)
 
 The column names are case-insensitive, but by convention the keys of

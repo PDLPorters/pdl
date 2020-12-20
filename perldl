@@ -806,7 +806,7 @@ and be able to format and display it on demand.
 
 If you have the perl modules ReadLines and ReadKeys installed, then
 B<perldl> supports a history and line-editing mechanism using editing
-keys similar to L<emacs>. The last 500 commands are always stored in
+keys similar to C<emacs>. The last 500 commands are always stored in
 the file F<.perldl_hist> in your home directory between sessions.
 Set C<$PERLDL::HISTFILESIZE> to change the number of lines saved.
 The command C<l [number]> shows you the last C<number> commands you
