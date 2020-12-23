@@ -1609,6 +1609,8 @@ FITS standard, by adding an option hash to the arguments:
 
 =item compress 
 
+CURRENTLY UNIMPLEMENTED.  Below describes the envisioned usage.
+
 This can be either unity, in which case Rice compression is used,
 or a (case-insensitive) string matching the CFITSIO compression 
 type names.  Currently supported compression algorithms are:
