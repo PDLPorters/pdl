@@ -25,7 +25,7 @@
 # and the subroutine reference is the routine called when the rule is
 # applied.
 #
-# If their is no condition, the argument can be left out of the call
+# If there is no condition, the argument can be left out of the call
 # (unless there is a doc string), so
 #   [["Name1"], [], $ref_to_sub]]
 # becomes
@@ -124,7 +124,7 @@
 #   substitutions). Not sure whether it would really clarify things.
 #
 # To do:
-#   wrap_vfn could propbably be moved into a class.
+#   wrap_vfn could probably be moved into a class.
 #
 #   move the PDL::PP::Rule and subclasses into their own file?
 #
@@ -2317,13 +2317,13 @@ sub InplaceCode {
 
 } # sub: InplaceCode
 
-# If there is an EquivCPOffsCOde and:
+# If there is an EquivCPOffsCode and:
 #    no bad-value support ==> use that
 #    bad value support ==> write a bit of code that does
 #      if ( $PRIV(bvalflag) ) { bad-EquivCPOffsCode }
 #      else                   { good-EquivCPOffsCode }
 #
-#  Note: since EquivCPOffsCOde doesn't (or I haven't seen any that
+#  Note: since EquivCPOffsCode doesn't (or I haven't seen any that
 #  do) use 'loop %{' or 'threadloop %{', we can't rely on
 #  PDLCode to automatically write code like above, hence the
 #  explicit definition here.

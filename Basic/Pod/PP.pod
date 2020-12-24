@@ -1054,7 +1054,7 @@ arguments. Thus one could also write this as:
 
 The type specification in C<Pars> exempts the argument from
 variation in the typeloop - rather it is automatically converted
-too and from the type specified. This is obviously useful in
+to and from the type specified. This is obviously useful in
 a more general example, e.g.:
 
 	void myfunc(int n,float *v1,long *v2);
@@ -1071,8 +1071,8 @@ it automatically though the code has yet to attain that
 level of sophistication!
 
 Finally note when types are converted automatically one MUST
-use the C<[o]> qualifier for output variables or you hard
-one changes will get optimised away by PP!
+use the C<[o]> qualifier for output variables or you hard-won
+changes will get optimised away by PP!
 
 If you interface a large library you can automate the interfacing even
 further. Perl can help you again(!) in doing this. In many libraries
