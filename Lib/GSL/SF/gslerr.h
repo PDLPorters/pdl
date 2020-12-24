@@ -1,4 +1,4 @@
-
+#include <gsl/gsl_errno.h>
 static int status;
 static char buf[200];
 
