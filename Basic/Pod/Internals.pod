@@ -130,8 +130,9 @@ The data type of the data is stored in the variable
 	int datatype;
 
 the values for this member are given in the enum C<pdl_datatypes> (see
-F<pdl.h>). Currently we have byte, short, unsigned short, long, float and
-double types, see also L<PDL::Types>.
+F<pdl.h>). Currently we have byte, short, unsigned short, long, index
+(either long or long long), long long, float and double types, see
+also L<PDL::Types>.
 
 =item Dimensions
 
