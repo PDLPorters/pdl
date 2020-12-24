@@ -149,6 +149,10 @@ Set the version for .pm and .xs files
 
 =head1 OVERVIEW
 
+For an alternate introduction to PDL::PP, see L<Practical Magick with
+C, PDL, and PDL::PP -- a guide to compiled add-ons for
+PDL|https://arxiv.org/abs/1702.07753>.
+
 Why do we need PP? Several reasons: firstly, we want to be able to
 generate subroutine code for each of the PDL datatypes (PDL_Byte,
 PDL_Short, etc).  AUTOMATICALLY.  Secondly, when referring to slices
@@ -2455,6 +2459,9 @@ L<PDL::Internals>
 L<PDL::BadValues> for information on bad values
 
 I<perlxs>, I<perlxstut>
+
+L<Practical Magick with C, PDL, and PDL::PP -- a guide to compiled
+add-ons for PDL|https://arxiv.org/abs/1702.07753>
 
 =head1 CURRENTLY UNDOCUMENTED
 
