@@ -946,9 +946,7 @@ a bad thing. The calculations of coordinates are complicated by the
 Copyright 2010 Daniel Carrera (dcarrera@gmail.com). You can distribute and/or
 modify this document under the same terms as the current Perl license.
 
-See: http://dev.perl.org/licenses/
-
-=over 5
+See: L<http://dev.perl.org/licenses/>
 
 =head1 ACKNOWLEDGEMENTS
 
