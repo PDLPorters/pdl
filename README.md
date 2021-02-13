@@ -2,10 +2,10 @@
 
 ![PDL logo](http://pdlporters.github.io/images/icons/pdl.png)
 
-| OS      |  Build status |
-|:-------:|--------------:|
-| Linux   | [![Build Status](https://travis-ci.org/PDLPorters/pdl.png?branch=master)](https://travis-ci.org/PDLPorters/pdl) |
-| Windows | [![Build status](https://ci.appveyor.com/api/projects/status/96mjqd4fymv0h8yw/branch/master?svg=true)](https://ci.appveyor.com/project/zmughal/pdl/branch/master) |
+| Service   |  Build status |
+|:---------:|--------------:|
+| GitHub CI | ![Build Status](https://github.com/PDLPorters/pdl/workflows/perl/badge.svg?branch=master) |
+| AppVeyor  | [![Build status](https://ci.appveyor.com/api/projects/status/96mjqd4fymv0h8yw/branch/master?svg=true)](https://ci.appveyor.com/project/zmughal/pdl/branch/master) |
 
 [![Coverage Status](https://coveralls.io/repos/PDLPorters/pdl/badge.png?branch=master)](https://coveralls.io/r/PDLPorters/pdl?branch=master)
 [![CPAN version](https://badge.fury.io/pl/PDL.svg)](https://metacpan.org/pod/PDL)

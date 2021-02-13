@@ -7,7 +7,7 @@ use lib Cwd::abs_path('inc');
 
 eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use 5.010_000;
-use ExtUtils::MakeMaker 6.56;  # for CONFIGURE_REQUIRES support
+use ExtUtils::MakeMaker;  # for CONFIGURE_REQUIRES support
 use Config;
 use File::Spec;
 

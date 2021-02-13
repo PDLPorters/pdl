@@ -38,7 +38,6 @@ RCS
 \.patch$
 \.so$
 \.tar\.gz$
-\.travis\.yml$
 /core$
 \b_eumm/
 ^Basic/Bad/Bad\.c$
@@ -248,6 +247,6 @@ subdirs
 ~$
 ^xt/
 
-.travis.yml
 appveyor.yml
 README.md
+^\.github/

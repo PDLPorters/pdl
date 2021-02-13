@@ -1,0 +1,107 @@
+name: perl
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+jobs:
+  ubuntu:
+    runs-on: ${{ matrix.os }}
+    env:
+      PGPLOT_DEV: /NULL
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        perl-version: ['5.10']
+        include:
+          - perl-version: '5.30'
+            os: ubuntu-latest
+            release-test: true
+          - perl-version: '5.30'
+            os: ubuntu-latest
+            eumm-blead: 1
+          - perl-version: '5.30'
+            os: ubuntu-latest
+            test-installed: true # test not from blib but after installing
+            disable-badval: true # test with badval disabled
+          - perl-version: '5.30'
+            os: ubuntu-latest
+            badval-per-pdl: true
+          - perl-version: '5.30'
+            os: ubuntu-latest
+            badval-usenan: true
+          - perl-version: '5.30'
+            os: ubuntu-latest
+            badval-usenan: true
+            badval-per-pdl: true
+          - perl-version: '5.30'
+            os: ubuntu-latest
+            disable-fortran: true # what if we don't have Fortran installed?
+          - perl-version: '5.30'
+            os: ubuntu-latest
+            use-clang: true # use `clang` instead of `gcc` default
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shogo82148/actions-setup-perl@v1
+        with:
+          distribution: strawberry # ignored non-windows
+          perl-version: ${{ matrix.perl-version }}
+      - run: perl -V
+
+      # conditional config
+      - name: Maybe gfortran
+        if: '!matrix.disable-fortran'
+        run: |
+          sudo apt-get install gfortran
+          cpanm -n ExtUtils::F77
+      - name: Use clang?
+        # clang is already installed in Travis-CI environment. Using PERL_MM_OPT does not work with subdirectory Makefile.PLs so we override Config.pm
+        # Also, both $Config{cc} and $Config{ld} need to be set because under ELF environments (such as Travis-CI's Ubuntu), this is what Perl's Config.pm does.
+        if: matrix.use-clang
+        run: |
+          mkdir build_aux
+          echo 'package pdl_config_override; use ExtUtils::MakeMaker::Config; $Config{cc} = $Config{ld} = "clang"; 1;' >> build_aux/pdl_config_override.pm
+          echo "PERL5OPT=-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
+      - name: disable bad value support?
+        if: matrix.disable-badval
+        run: perl -pi -e 's|WITH_BADVAL => 1|WITH_BADVAL => 0|' perldl.conf
+      - name: enable BADVAL_USENAN?
+        if: matrix.badval-usenan
+        run: perl -pi -e 's|BADVAL_USENAN => 0|BADVAL_USENAN => 1|' perldl.conf
+      - name: enable BADVAL_PER_PDL?
+        if: matrix.badval-per-pdl
+        run: perl -pi -e 's|BADVAL_PER_PDL => 0|BADVAL_PER_PDL => 1|' perldl.conf
+      - name: EUMM blead?
+        if: matrix.eumm-blead
+        run: cpanm -n --dev ExtUtils::MakeMaker
+
+      - name: Ubuntu packages
+        run: sudo apt-get -y update && sudo apt-get install build-essential libx11-dev libgd-dev libhdf4-alt-dev libproj-dev proj-bin libcfitsio-dev libreadline-dev pgplot5 libvpx-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev
+      - run: cpanm -n ExtUtils::MakeMaker && cpanm -n --installdeps .
+      - name: Run release tests # before others as may install useful stuff
+        if: ${{ matrix.release-test }}
+        env:
+          RELEASE_TESTING: 1
+        run: |
+          cpanm -n --installdeps --with-develop .
+          cpanm -n CPAN::Changes
+          prove -lr xt
+      - name: Extra optionals deps
+        run: cpanm -n Term::ReadLine::Gnu PGPLOT
+
+      - name: Run tests (no coverage)
+        if: '!matrix.coverage'
+        run: perl Makefile.PL && HARNESS_OPTIONS='j4' make test
+      - name: Run tests after install (no coverage)
+        if: '!matrix.coverage && matrix.test-installed'
+        run: |
+          set -e
+          perl Makefile.PL
+          make install clean # clean is to ensure no blib
+          mv Basic Basic.x # ensure doesn't think is in repo!
+          prove -j4 t
+
+      - run: perl -Iblib/lib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
