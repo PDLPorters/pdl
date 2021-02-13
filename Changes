@@ -1,3 +1,8 @@
+2.026 2021-02-13
+- fix GSL build errors, improve docs - thanks @d-lamb
+- rfits properly treats BLANK in rice-compressed - thanks @d-lamb
+- added Floyd-Warshall example to MATLAB comparison doc
+
 2.025 2020-11-19
 - fix spellings - thanks @sebastic
 
