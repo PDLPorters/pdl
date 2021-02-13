@@ -18,4 +18,5 @@ close $fh;
 
 $source =~ s/use warnings;\K/no warnings 'experimental::bitwise';/;
 
-eval "#line 1 opts.t_run_by_ops-bitwise.t\n$source" or die $@;
+eval "#line 1 opts.t_run_by_ops-bitwise.t\n$source";
+die $@ if $@;
