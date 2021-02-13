@@ -394,7 +394,6 @@ my @prereq = (
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
            'English'             => 0,
            'ExtUtils::MakeMaker' => 6.56,      # for CONFIGURE_REQUIRES support
-           'ExtUtils::Manifest'  => 0,
            'Fcntl'               => 0,
            'File::Basename'      => 0,
            'File::Find'          => 0,

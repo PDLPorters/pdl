@@ -86,8 +86,8 @@ before_install:
 install:
   - cpan-install --deps       # installs prereqs, including recommends
   - cpan-install --coverage   # installs coverage prereqs, if enabled
-  - prove t/00-report-prereqs.t t/01-checkmanifest.t
-  - prove -b -v $SRC_DIR/xt/00-check-changelog.t # run the author test out of the source directory
+  - prove t/00-report-prereqs.t
+  - prove -b -v $SRC_DIR/xt # run the author test out of the source directory
   # SYSTEM_CORES set by travis-perl-helpers
   - if [ "$SERIAL_BUILD" == 1 ]; then make; else make -j$(( $SYSTEM_CORES * 2 )); fi
 before_script:
@@ -95,7 +95,7 @@ before_script:
 script:
   - env|sort
   - VERBOSE_FLAG=""; if [ "$TEST_VERBOSE" == 1 ]; then VERBOSE_FLAG="-v"; fi
-  - PROVE_FLAG="$VERBOSE_FLAG"; if [ "$TEST_INSTALLED" == 1 ]; then make install clean; mv Basic Basic.x; mv ../Basic ../Basic.x; rm t/01-checkmanifest.t; else PROVE_FLAG="-b $PROVE_FLAG"; fi # clean is to ensure no blib, mv to ensure doesn't think is in repo!
+  - PROVE_FLAG="$VERBOSE_FLAG"; if [ "$TEST_INSTALLED" == 1 ]; then make install clean; mv Basic Basic.x; mv ../Basic ../Basic.x; else PROVE_FLAG="-b $PROVE_FLAG"; fi # clean is to ensure no blib, mv to ensure doesn't think is in repo!
   - if [ "$SERIAL_TESTING" == 1 ]; then prove $PROVE_FLAG $(test-files); else prove --formatter TAP::Formatter::File -j$(test-jobs) $PROVE_FLAG $(test-files); fi
 after_script:
   - perl -Iblib/lib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'

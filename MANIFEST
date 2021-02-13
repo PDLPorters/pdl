@@ -667,7 +667,6 @@ pdldoc
 perldl
 perldl.conf
 t/00-report-prereqs.t
-t/01-checkmanifest.t
 t/aaa_load.t
 t/argtest.t
 t/autoload.t
