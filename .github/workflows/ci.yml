@@ -7,7 +7,7 @@ on:
       - '*'
   pull_request:
 jobs:
-  ubuntu:
+  ci:
     runs-on: ${{ matrix.os }}
     env:
       PGPLOT_DEV: /NULL
@@ -44,6 +44,8 @@ jobs:
           - perl-version: '5.30'
             os: ubuntu-latest
             use-clang: true # use `clang` instead of `gcc` default
+          - perl-version: '5.30'
+            os: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: shogo82148/actions-setup-perl@v1
@@ -54,7 +56,7 @@ jobs:
 
       # conditional config
       - name: Maybe gfortran
-        if: '!matrix.disable-fortran'
+        if: "!matrix.disable-fortran && matrix.os == 'ubuntu-latest'"
         run: |
           sudo apt-get install gfortran
           cpanm -n ExtUtils::F77
@@ -80,6 +82,7 @@ jobs:
         run: cpanm -n --dev ExtUtils::MakeMaker
 
       - name: Ubuntu packages
+        if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get -y update && sudo apt-get install build-essential libx11-dev libgd-dev libhdf4-alt-dev libproj-dev proj-bin libcfitsio-dev libreadline-dev pgplot5 libvpx-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev
       - run: cpanm -n ExtUtils::MakeMaker && cpanm -n --installdeps .
       - name: Run release tests # before others as may install useful stuff
@@ -91,11 +94,14 @@ jobs:
           cpanm -n CPAN::Changes
           prove -lr xt
       - name: Extra optionals deps
+        if: matrix.os == 'ubuntu-latest'
         run: cpanm -n Term::ReadLine::Gnu PGPLOT
 
       - name: Run tests (no coverage)
         if: '!matrix.coverage'
-        run: perl Makefile.PL && HARNESS_OPTIONS='j4' make test
+        env:
+          HARNESS_OPTIONS: j4
+        run: perl Makefile.PL && make test
       - name: Run tests after install (no coverage)
         if: '!matrix.coverage && matrix.test-installed'
         run: |
@@ -108,9 +114,10 @@ jobs:
         if: matrix.coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HARNESS_OPTIONS: j4
         run: |
           cpanm -n Devel::Cover::Report::Coveralls
           cpanm git://github.com/mohawk2/Devel--Cover.git@deepdirs
-          HARNESS_OPTIONS='j4' cover -test -relative_only -gcov_chdir -report Coveralls
+          cover -test -relative_only -gcov_chdir -report Coveralls
 
       - run: perl -Iblib/lib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'

@@ -247,6 +247,8 @@ subdirs
 ~$
 ^xt/
 
-appveyor.yml
 README.md
 ^\.github/
+
+^cover_db/
+\.gc(ov|no|da)$
