@@ -46,6 +46,8 @@ jobs:
             use-clang: true # use `clang` instead of `gcc` default
           - perl-version: '5.30'
             os: windows-latest
+          - perl-version: '5.30'
+            os: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: shogo82148/actions-setup-perl@v1
