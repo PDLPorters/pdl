@@ -20,6 +20,7 @@ jobs:
           - perl-version: '5.30'
             os: ubuntu-latest
             release-test: true
+            coverage: true
           - perl-version: '5.30'
             os: ubuntu-latest
             eumm-blead: 1
@@ -103,5 +104,13 @@ jobs:
           make install clean # clean is to ensure no blib
           mv Basic Basic.x # ensure doesn't think is in repo!
           prove -j4 t
+      - name: Run tests (with coverage)
+        if: matrix.coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cpanm -n Devel::Cover::Report::Coveralls
+          cpanm git://github.com/mohawk2/Devel--Cover.git@deepdirs
+          HARNESS_OPTIONS='j4' cover -test -relative_only -gcov_chdir -report Coveralls
 
       - run: perl -Iblib/lib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
