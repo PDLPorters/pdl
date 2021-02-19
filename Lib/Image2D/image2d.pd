@@ -1529,7 +1529,7 @@ EOD
 
 pp_def('bilin2d',
        HandleBad => 0,
-    Pars => 'I(n,m); O(q,p)',
+    Pars => 'Int(n,m); O(q,p)',
     Doc=><<'EOD',
 
 =for ref
@@ -1558,10 +1558,10 @@ EOD
 	  if (jj>=($SIZE(m)-1)) jj = $SIZE(m)-2;
 	  ii1 = ii+1;
 	  jj1 = jj+1;
-	  y1 = $I(n=>ii,m=>jj);
-	  y2 = $I(n=>ii1,m=>jj);
-	  y3 = $I(n=>ii1,m=>jj1);
-	  y4 = $I(n=>ii,m=>jj1);
+	  y1 = $Int(n=>ii,m=>jj);
+	  y2 = $Int(n=>ii1,m=>jj);
+	  y3 = $Int(n=>ii1,m=>jj1);
+	  y4 = $Int(n=>ii,m=>jj1);
 	  t = x-ii;
 	  u = y-jj;
 	  $O(q=>i,p=>j) += (1-t)*(1-u)*y1 + t*(1-u)*y2 + t*u*y3 + (1-t)*u*y4;
@@ -1576,7 +1576,7 @@ EOD
 
 pp_def('rescale2d',
        HandleBad => 0,
-    Pars => 'I(m,n); O(p,q)',
+    Pars => 'Int(m,n); O(p,q)',
     Doc=><<'EOD',
 
 =for ref
@@ -1616,7 +1616,7 @@ if(ox >= ix && oy >= iy) {
 	for(xx=lx;xx<=cx;xx++)
 	  for(yy=ly;yy<=cy;yy++) {
 /*	    fprintf(stderr,"i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    $O(p=>xx,q=>yy) += $I(m=>i,n=>j);
+	    $O(p=>xx,q=>yy) += $Int(m=>i,n=>j);
 	  }
 	ly = cy + 1;
       }
@@ -1639,7 +1639,7 @@ else if(ox < ix && oy < iy) {
 	for(xx=lx;xx<=cx;xx++)
 	  for(yy=ly;yy<=cy;yy++) {
 /*	    fprintf(stderr,"i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    temp += $I(n=>yy,m=>xx);
+	    temp += $Int(n=>yy,m=>xx);
 	    num++;
 	  }
 	$O(p=>i,q=>j) += temp/num;
@@ -1663,7 +1663,7 @@ else if(ox >= ix && oy < iy) {
 	num = 0;
 	for(yy=ly;yy<=cy;yy++) {
 /*	  fprintf(stderr,"1 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    temp += $I(n=>yy,m=>i);
+	    temp += $Int(n=>yy,m=>i);
 	  num++;
 	}
 	for(xx=lx;xx<=cx;xx++) {
@@ -1690,7 +1690,7 @@ else if(ox < ix && oy >= iy) {
 	num = 0;
 	for(xx=lx;xx<=cx;xx++) {
 /*	  fprintf(stderr,"1 i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    temp += $I(n=>j,m=>xx);
+	    temp += $Int(n=>j,m=>xx);
 	  num++;
 	}
 	for(yy=ly;yy<=cy;yy++) {
