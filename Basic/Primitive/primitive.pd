@@ -1143,7 +1143,7 @@ clip (threshold) C<$a> by C<$b> (C<$b> is upper bound)
 clip (threshold) C<$a> by C<$b> (C<$b> is lower bound)
 
 =cut
-
+my $R=['B','S','U','L','N','F','D'];
 for my $opt (
 	     ['hclip','>'],
 	     ['lclip','<']
@@ -1153,6 +1153,7 @@ for my $opt (
     pp_def(
 	   $name,
 	   HandleBad => 1,
+	   GenericTypes => $R,
 	   Pars => 'a(); b(); [o] c()',
 	   Code =>
 	   '$c() = ($a() '.$op.' $b()) ? $b() : $a();',
@@ -1215,6 +1216,8 @@ EOD
 pp_def(
 	'clip',
 	HandleBad => 1,
+	GenericTypes => $R,
+
 	Pars => 'a(); l(); h(); [o] c()',
 	Code =>
 	'$c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );',
@@ -1341,6 +1344,7 @@ have its bad flag set if the output contains any bad data.
 
 pp_def('statsover',
 	HandleBad => 1,
+	GenericTypes => $R,
 	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]median(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code =>
 	'$GENERIC(avg) tmp = 0;

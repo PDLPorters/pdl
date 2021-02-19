@@ -59,6 +59,9 @@ my @types = (
 	      usenan => 0,           # do we need NaN handling for this type?
 	      packtype => 'C*',      # the perl pack type
 	      defaultbadval => 'UCHAR_MAX',
+	      real=>1,
+	      integer=>1,
+	      unsigned=>1,
 	     },
 	     {
 	      identifier => 'S',
@@ -68,6 +71,9 @@ my @types = (
 	      usenan => 0,
 	      packtype => 's*',
 	      defaultbadval => 'SHRT_MIN',
+	      real=>1,
+	      integer=>1,
+	      unsigned=>0,
 	     },
 	     {
 	      identifier => 'US',
@@ -78,6 +84,9 @@ my @types = (
 	      usenan => 0,
 	      packtype => 'S*',
 	      defaultbadval => 'USHRT_MAX',
+	      real=>1,
+	      integer=>1,
+	      unsigned=>1,
 	     },
 	     {
 	      identifier => 'L',
@@ -87,6 +96,9 @@ my @types = (
 	      usenan => 0,
 	      packtype => 'l*',
 	      defaultbadval => 'INT_MIN',
+	      real=>1,
+	      integer=>1,
+	      unsigned=>0,
 	     },
 
 #
@@ -103,6 +115,9 @@ my @types = (
         usenan => 0,
         packtype => &packtypeof_PDL_Indx,
         defaultbadval => 'LONG_MIN',
+        real=>1,
+        integer=>1,
+        unsigned=>0,
        },
 #
 #
@@ -123,6 +138,9 @@ my @types = (
 	                             # on the other hand 2^63 should be the
                                      # value of of llong_max which we should be
                                      # able to compute at runtime ?!
+	real=>1,
+	integer=>1,
+	unsigned=>0,
       },
 
 # IMPORTANT:
@@ -138,6 +156,9 @@ my @types = (
 		  usenan => 1,
 		  packtype => 'f*',
 	          defaultbadval => '-FLT_MAX',
+	          real=>1,
+	          integer=>0,
+	          unsigned=>0,
 	      },
 	      {
 		  identifier => 'D',
@@ -147,6 +168,38 @@ my @types = (
 		  usenan => 1,
 		  packtype => 'd*',
 	          defaultbadval => '-DBL_MAX',
+	          real=>1,
+	          integer=>0,
+	          unsigned=>0,
+	      },
+	      {
+		  identifier => 'CF',
+		  onecharident => 'G',   # only needed if different from identifier
+		  pdlctype => 'PDL_CFloat',
+		  realctype => 'complex float',
+		  convertfunc => 'cfloat',
+		  ppforcetype => 'cfloat',
+		  usenan => 0,
+		  packtype => '(ff)*',
+	          defaultbadval => '(complex float)( -FLT_MAX/2)',
+	          real=>0,
+	          integer=>0,
+	          unsigned=>0,
+	      },
+	      {
+		  identifier => 'CD',
+		  onecharident => 'C',   # only needed if different from identifier
+		  pdlctype => 'PDL_CDouble',
+		  realctype => 'complex double',
+		  convertfunc => 'cdouble',
+		  ppforcetype => 'cdouble',
+		  usenan => 0,
+		  packtype => '(dd)*',
+	          defaultbadval => '(complex double)( -DBL_MAX/2)',
+	          #defaultbadval => '-DBL_MAX',
+	          real=>0,
+	          integer=>0,
+	          unsigned=>0,
 	      },
 	      );
 
@@ -174,6 +227,27 @@ sub gentypenames {
   my @types = @_;
   checktypehas 'identifier', @types;
   my @ret = map {"PDL_$_->{identifier}"} @types;
+  return wantarray ? @ret : $ret[0];
+}
+
+sub is_real {
+  my @types = @_;
+  checktypehas 'real', @types;
+  my @ret = map {"$_->{real}"} @types;
+  return wantarray ? @ret : $ret[0];
+}
+
+sub is_unsigned {
+  my @types = @_;
+  checktypehas 'unsigned', @types;
+  my @ret = map {"$_->{unsigned}"} @types;
+  return wantarray ? @ret : $ret[0];
+}
+
+sub is_int {
+  my @types = @_;
+  checktypehas 'integer', @types;
+  my @ret = map {"$_->{integer}"} @types;
   return wantarray ? @ret : $ret[0];
 }
 

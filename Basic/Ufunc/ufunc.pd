@@ -108,6 +108,11 @@ EOD
 
 } # sub: cumuprojectdocs()
 
+# type classes to pass to GenericTypes. Should use the new attributes in Types.pm.
+my $R=[qw/B S U L Q N F D/];
+my $INT=[qw/B S U L Q N /];
+my $C=[qw/C G/];
+
 # it's a bit unclear what to do with the comparison operators,
 # since the return value could be bad because all elements are bad,
 # which needs checking for since the bad value could evaluate to 
@@ -155,7 +160,29 @@ foreach my $func ( sort keys %over ) {
 	   Doc => projectdocs( $name, $func, '' ),
 	   );
 
-    # as above, but in double precision
+    # as above, but in complex double precision
+    pp_def(
+	   "c$func",
+	   HandleBad => 1,
+	   GenericTypes=>$C,
+	   Pars => 'a(n); cdouble [o]b();',
+	   Code =>
+	   'complex double tmp = ' . $init . ';
+	    loop(n) %{ tmp ' . $op . ' $a(); %}
+	    $b() = tmp;',
+	   BadCode =>
+	   'complex double tmp = ' . $init . ';
+            int flag = 0;
+	    loop(n) %{
+               if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
+            %}
+            if ( flag ) { $b() = tmp; }
+            else        { $SETBAD(b()); }',
+	   Doc => projectdocs( $name, "d$func",
+"Unlike L<$func|/$func>, the calculations are performed in complex double\n" .
+"precision." ),
+	   );
+
     pp_def(
 	   "d$func",
 	   HandleBad => 1,
@@ -225,6 +252,32 @@ foreach my $func ( sort keys %over ) {
 "precision." ),
 	   );
 
+    # as above but in complex double precision
+=for
+    pp_def(
+	   "c$cfunc",
+	   HandleBad => 1,
+	   Pars => 'a(n); cdouble [o]b(n);',
+	   Code =>
+           'complex double tmp = ' . $init . ';
+	    loop(n) %{
+               tmp ' . $op . ' $a();
+	       $b() = tmp;
+	    %}',
+	   BadCode =>
+	   'complex double tmp = ' . $init . ';
+	    loop(n) %{
+               if ( $ISBAD(a()) ) { $SETBAD(b()); }
+               else {
+                  tmp ' . $op . ' $a();
+	          $b() = tmp;
+               }
+	    %}',
+	   Doc => cumuprojectdocs( $name, $cfunc,
+"Unlike L<cumu$func|/cumu$func>, the calculations are performed in complex double\n" .
+"precision." ),
+	   );
+=cut
 } # foreach: my $func
 
 
@@ -254,7 +307,7 @@ foreach my $func ( sort keys %over ) {
 
     my %extra = {};
     unless ( defined $over{$func}{alltypes} and $over{$func}{alltypes} ) {
-	$extra{GenericTypes} = ['B','S','U','L','N'];
+	$extra{GenericTypes} = $INT,
     }
 
     pp_def(
@@ -391,6 +444,31 @@ pp_addpm(<<'EOD');
 EOD
 
 
+# do the above calculation, but in complex double precision
+pp_def(
+	'caverage',
+	HandleBad => 1,
+	Pars => 'a(n); cdouble [o]b();',
+	Code =>
+	'complex double tmp = 0;
+	if($SIZE(n)) {
+	 loop(n) %{ tmp += $a(); %}
+	 $b() = tmp / $SIZE(n);
+	}
+	  else { $b() = 0; }',
+	BadCode =>
+	'complex double tmp = 0;
+         PDL_Indx cnt = 0;
+	 loop(n) %{
+            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
+         %}
+         if ( cnt ) { $b() = tmp / cnt; }
+         else       { $SETBAD(b()); }',
+	Doc => projectdocs( 'average', 'daverage',
+"Unlike L<average|/average>, the calculation is performed in complex double\n" .
+"precision." ),
+	);
+
 # do the above calculation, but in double precision
 pp_def( 
 	'daverage',
@@ -440,6 +518,7 @@ EOD
 for ( PDL::Types::typesrtkeys() ) {
     my $ctype = $PDL::Types::typehash{$_}{ctype};
     my $ppsym = $PDL::Types::typehash{$_}{ppsym};
+	next if (grep { $ppsym =~ m/$_/ } @$C ); # sorting of complex numbers not well defined
 
     pp_add_boot( " PDL->qsort_${ppsym} = pdl_qsort_${ppsym};" .
 		 " PDL->qsort_ind_${ppsym} = pdl_qsort_ind_${ppsym};\n" );
@@ -696,7 +775,7 @@ some circumstances.
 pp_def('modeover',
        HandleBad=>undef,
        Pars => 'data(n); [o]out(); [t]sorted(n);',
-       GenericTypes=>['B','S','U','L','Q','N'],
+       GenericTypes=>$INT,
        Doc=>projectdocs('mode','modeover','
 
 The mode is the single element most frequently found in a 
@@ -1314,6 +1393,7 @@ for my $which (
     pp_def( 
 	    $name,
 	    HandleBad => 1,
+	    GenericTypes=>$R,
 	    Pars => 'a(n); [o]c();', 
 	    Code => 
 	    '$GENERIC() cur;
@@ -1357,6 +1437,7 @@ for ways of masking NaNs.
     pp_def( 
 	    "${name}_ind",
 	    HandleBad => 1,
+	    GenericTypes=>$R,
 	    Pars => 'a(n); indx [o] c();', 
 	    Code => 
 	    '$GENERIC() cur;
@@ -1401,6 +1482,7 @@ otherwise the bad flag is cleared for the output piddle.',
     pp_def( 
 	    "${name}_n_ind",
 	    HandleBad => 0,   # just a marker 
+	    GenericTypes=>$R,
 	    Pars => 'a(n); indx [o]c(m);',
 	    Code =>
 	    '$GENERIC() cur; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
@@ -1525,6 +1607,7 @@ EOD
 pp_def( 
 	'minmaximum',
 	HandleBad => 1,
+	GenericTypes=>$R,
 	Pars => 'a(n); [o]cmin(); [o] cmax(); indx [o]cmin_ind(); indx [o]cmax_ind();',
 	Code => 
 	'$GENERIC() curmin, curmax;

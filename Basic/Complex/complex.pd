@@ -393,6 +393,7 @@ pp_def 'i2C',
 pp_def 'Cr2p',
        Pars => 'r(m=2); float+ [o]p(m=2)',
        Inplace => 1,
+       GenericTypes=>['B','S','U','L','N','F','D'],
        Doc => 'convert complex numbers in rectangular form to polar (mod,arg) form. Works inplace',
        Code => q!
           $GENERIC() x = $r(m=>0);

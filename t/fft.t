@@ -4,7 +4,7 @@ use PDL;
 use PDL::Image2D;
 use PDL::FFT;
 
-use Test::More tests => 17;
+use Test::More tests => 22;
 use Test::Exception;
 
 sub tapprox {
@@ -14,7 +14,7 @@ sub tapprox {
 
 my ( $pa, $pb, $pc, $pi, $pk, $kk );
 
-foreach my $type(double,float){
+foreach my $type(double,float,cdouble,cfloat){
   $pa = pdl($type,1,-1,1,-1);
   $pb = zeroes($type,$pa->dims);
   fft($pa,$pb);
@@ -28,9 +28,13 @@ $pa = rfits("m51.fits");
 
 $pb = $pa->copy;
 $pc = $pb->zeroes;
+my $pd=$pb+ci()*$pc;
 fft($pb,$pc);
 ifft($pb,$pc);
+fft($pd);
+ifft($pd);
 ok (tapprox($pc,0), "fft zeroes");
+ok (tapprox(cimag($pd),0), "fft zeroes using complex piddles");
 
 #print "\n",$pc->info("Type: %T Dim: %-15D State: %S"),"\n";
 #print "Max: ",$pc->max,"\n";

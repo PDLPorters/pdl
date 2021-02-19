@@ -30,6 +30,7 @@ print "Extracting $file (with variable substitutions)\n";
 
 print OUT <<"!GROK!THIS!";
 
+#include <complex.h>
 #ifndef __PDL_H
 
 /* These are kept automaticallu in sync with pdl.h during perl build */

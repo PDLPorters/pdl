@@ -631,6 +631,7 @@ my %set_nan =
     (
      float  => 'PDL->bvals.Float',  PDL_Float  => 'PDL->bvals.Float',
      double => 'PDL->bvals.Double', PDL_Double => 'PDL->bvals.Double',
+     cdouble => 'PDL->bvals.CDouble', PDL_CDouble => 'PDL->bvals.CDouble',
      );
 
 sub use_nan ($) {

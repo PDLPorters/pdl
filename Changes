@@ -1,3 +1,5 @@
+- native support for complex numbers - thanks @fantasma13
+
 2.026 2021-02-13
 - fix GSL build errors, improve docs - thanks @d-lamb
 - rfits properly treats BLANK in rice-compressed - thanks @d-lamb
