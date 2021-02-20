@@ -39,7 +39,7 @@ my $pb = yvals(cdouble, 3, 5)+10 - 2*yvals(3, 5)*ci;
 my $pc = $pa + $pb;
 ok(approx(cdouble(25 - 10*ci) - cdouble(25 - 10*ci), 0), 'pdl complex subtraction');
 ok(approx($pc->double->at(2,2), 24), 'pdl complex addition 1');
-is $pc->at(2,3), '25+-10i', 'at stringifies complex';
+is $pc->at(2,3), '25-10i', 'at stringifies complex';
 ok(approx($pc->slice([2], [3]), cdouble(25 - 10*ci)), 'pdl complex addition 2');
 throws_ok { $pc->at(3,3); } qr/Position out of range/, 'invalid position';
 is_deeply \@w, [], 'no warnings' or diag explain \@w;
