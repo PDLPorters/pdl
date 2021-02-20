@@ -3057,6 +3057,8 @@ sub PDL::set{    # Sets a particular single value
 =for ref
 
 Returns a single value inside a piddle as perl scalar.
+If the piddle is a native complex value (cdouble, cfloat), it will
+be stringified.
 
 =for usage
 

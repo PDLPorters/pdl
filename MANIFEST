@@ -755,7 +755,6 @@ t/op-eq-warn-for-non-numeric.t
 t/opengl.t
 t/ops-bitwise.t
 t/ops.t
-t/ops_complex.t
 t/pdl-from-string-bad-values.t
 t/pdl_from_string.t
 t/pdlchar.t

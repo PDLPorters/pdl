@@ -1,4 +1,4 @@
-use Test::More tests => 63;
+use Test::More;
 use PDL::LiteF;
 use Config;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
@@ -11,31 +11,51 @@ kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 approx(pdl(0), pdl(0), 0.01); # set eps
 
-# $a0 = zeroes 3,5;
-# $b0 = xvals $a0;
 {
 my $pa = xvals zeroes 3,5;
-
 my $pb = yvals zeroes 3,5;
-
 my $pc = $pa + $pb;
-
 ok($pc->at(2,2) == 4, 'pdl addition 1');
 ok($pc->at(2,3) == 5, 'pdl addition 2');
-throws_ok {
-	$pc->at(3,3);
-} qr/Position out of range/, 'invalid position';
+throws_ok { $pc->at(3,3); } qr/Position out of range/, 'invalid position';
 }
 
 {
 my $pd = pdl 5,6;
-
 my $pe = $pd - 1;
 ok($pe->at(0) == 4, 'pdl - scalar 1');
 ok($pe->at(1) == 5, 'pdl - scalar 2');
 my $pf = 1 - $pd;
 ok($pf->at(0) == -4, 'scalar - pdl 1');
 ok($pf->at(1) == -5, 'scalar - pdl 2');
+}
+
+# complex versions of above
+{
+my @w;
+local $SIG{__WARN__} = sub { push @w, @_ };
+my $pa = xvals(cdouble, 3, 5)+10 - 2*xvals(3, 5)*ci;
+my $pb = yvals(cdouble, 3, 5)+10 - 2*yvals(3, 5)*ci;
+my $pc = $pa + $pb;
+ok(approx(cdouble(25 - 10*ci) - cdouble(25 - 10*ci), 0), 'pdl complex subtraction');
+ok(approx($pc->double->at(2,2), 24), 'pdl complex addition 1');
+is $pc->at(2,3), '25+-10i', 'at stringifies complex';
+ok(approx($pc->slice([2], [3]), cdouble(25 - 10*ci)), 'pdl complex addition 2');
+throws_ok { $pc->at(3,3); } qr/Position out of range/, 'invalid position';
+is_deeply \@w, [], 'no warnings' or diag explain \@w;
+}
+
+{
+my @w;
+local $SIG{__WARN__} = sub { push @w, @_ };
+my $pd = cdouble 5,6;
+my $pe = $pd - 1;
+is($pe->at(0), '4+0i', 'pdl - scalar 1');
+is($pe->at(1), '5+0i', 'pdl - scalar 2');
+my $pf = 1 - $pd;
+is($pf->at(0), '-4+0i', 'scalar - pdl 1');
+is($pf->at(1), '-5+0i', 'scalar - pdl 2');
+is_deeply \@w, [], 'no warnings' or diag explain \@w;
 }
 
 # Now, test one operator from each group
@@ -62,12 +82,15 @@ ok($pc->at(2) == 12,'3 left bitshift 2 is 12');
 {
 my $pa = pdl 16,64,9;
 my $pb = sqrt($pa);
-
 ok(all( approx($pb,(pdl 4,8,3))),'sqrt of pdl(16,64,9)');
-
 # See that a is unchanged.
-
 ok($pa->at(0) == 16, 'sqrt orig value ok');
+# complex version
+$pa = cdouble pdl 16,64,9,-1;
+$pb = sqrt($pa);
+ok(ci()**2 == -1,'i squared = -1');
+ok(all( approx($pb,(cdouble 4,8,3,ci()))),'sqrt of pdl(16,64,9,-1)');
+is $pa->at(0), '16+0i', 'sqrt orig value ok';
 }
 
 {
@@ -115,7 +138,6 @@ ok (all( approx(atan2(pdl(1,1), pdl(1,1)), ones(2) * atan2(1,1))), 'atan2');
 {
 my $pa = sequence (3,4);
 my $pb = sequence (3,4) + 1;
-
 ok (all( approx($pa->or2($pb,0), $pa | $pb)), 'or2');
 ok (all( approx($pa->and2($pb,0), $pa & $pb)), 'and2');
 ok (all( approx($pb->minus($pa,0), $pb - $pa)), 'explicit minus call');
@@ -145,6 +167,9 @@ my $pb = log(110) / log(10);
 note "a: $pa  [ref(\$pa)='", ref($pa),"']\n";
 note "b: $pb\n";
 ok(abs($pa-$pb) < 1.0e-5 ,'log10 scalar');
+$pa = 20+10*ci;
+$pb = log ($pa);
+ok(exp($pb)-$pa < 1.0e-5 ,'exp of log of complex scalar');
 }
 
 {
@@ -153,9 +178,9 @@ my $pb = log(pdl(110,23)) / log(10);
 note "a: $pa\n";
 note "b: $pb\n";
 ok(all( approx( $pa, $pb)), 'log10 pdl');
-
 # check inplace
 ok(all( approx( pdl(110,23)->inplace->log10(), $pb)), 'inplace pdl log10');
+ok(all( approx( cdouble(110,23)->inplace->log()/log(10), $pb)), 'complex inplace pdl log10');
 }
 
 }
@@ -166,8 +191,11 @@ $data &= 0;
 ok(all($data == 0), 'and assign');
 $data |= 1;
 ok(all($data == 1), 'or assign');
-
 ok(all($data eq $data), 'eq'); # check eq operator
+$data = ones cdouble, 5;
+$data+=ci();
+$data &= 0;
+ok(all($data == 0), 'and assign complex');
 }
 
 SKIP:
@@ -258,3 +286,5 @@ $a->badflag(1);
 $a->check_badflag();
 ok($a->badflag == 1 && $a->nbad == 1, 'badflag propagation with .=');
 }
+
+done_testing;
