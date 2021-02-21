@@ -62,7 +62,6 @@ pp_addhdr('
 #define BU_MOD(X,N)(((N) == 0)   ?    0   :   ( (X)-(N)*((int)((X)/(N))) ))
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
-#define cABS(A)       ( sqrt(creal(A)*creal(A)+cimag(A)*cimag(A))  )
 #define NOTHING
 ');
 
@@ -101,22 +100,7 @@ EOH
 	#      See also `ufunc()`.
 	delete $extra{Exception};
     }
-    if( exists $extra{Comparison} && 0) {
-	$pmcode= qq/
-		sub $name {
-			my \$x=shift;
-			my \$y=shift;
-			my \$ret=shift;
-			if (\$r && ( \$x->type eq 'cdouble' || \$y->type eq 'cdouble')) {
-				barf $op.' not defined for complex numbers!\n';
-			} else {
-				\$ret=&PDL::_${op}_int(\$x,\$y);
-			}
-			\$ret;
-		}
-	/,
-	}
-    if( exists $extra{Comparison} && $PDL::Config{WITH_BADVAL} ) {
+    if (exists $extra{Comparison} && $PDL::Config{WITH_BADVAL}) {
 	# *append* to header
 	# I am not sure if this should be changed to complex double?
 	$extra{HdrCode} .= <<'EOH';
@@ -371,7 +355,6 @@ biop('divide','/',1,'divide two piddles', Exception => '$b() == 0' );
 ## comparison ops
 # need swapping
 my $R = [B,U,S,L,N,Q,F,D]; # real types here
-my $Rs = join '',@$R;
 my $C = [C,G];
 # not defined for complex numbers
 biop('gt','>',1,'the binary E<gt> (greater than) operation', Comparison => 1, GenericTypes=>$R );
