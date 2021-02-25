@@ -383,7 +383,7 @@ ufunc('sin','sin','the sin function');
 ufunc('cos','cos','the cos function');
 ufunc('not','!','the elementwise I<not> operation',GenericTypes=>$R );
 ufunc('exp','exp','the exponential function',GenericTypes => [D,C]);
-ufunc('log','log','the natural logarithm',GenericTypes => [D,C], Exception => '$a() <= 0' );
+ufunc('log','log','the natural logarithm',GenericTypes => [F,D,G,C], Exception => '$a() <= 0' );
 
 pp_export_nothing();
 

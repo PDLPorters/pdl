@@ -177,6 +177,8 @@ if ($can_complex_power) {
   $pb = log ($pa);
   ok(exp($pb)-$pa < 1.0e-5 ,'exp of log of complex scalar');
 }
+my $y = sequence(5,4)+2;  # Create PDL
+is log(float($y))->type, 'float';
 }
 
 {
