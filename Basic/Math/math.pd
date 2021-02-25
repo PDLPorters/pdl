@@ -43,11 +43,17 @@ sub doco {
   for (@funcs) { $doco{$_} = $doc }
 }
 
-doco (qw/acos asin atan tan/,
-'The usual trigonometric function. Note that when input is a perl scalar and the real-value based function would return Inf or NaN, it now returns a cdouble.');
+doco (qw/acos asin atan tan/, <<'EOF');
+The usual trigonometric function.
+Note that when input is a perl scalar and the real-value based function
+would return NaN, it now returns a cdouble.
+EOF
 
-doco (qw/cosh sinh tanh acosh asinh atanh/,
-'The standard hyperbolic function.');
+doco (qw/cosh sinh tanh acosh asinh atanh/, <<'EOF');
+The standard hyperbolic function.
+Note that when input is a perl scalar and the real-value based function
+would return NaN, it now returns a cdouble.
+EOF
 
 doco (qw/ceil floor/,
 'Round to integer values in floating-point format.');
