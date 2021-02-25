@@ -1,3 +1,4 @@
+2.026_02 2021-02-25
 - implement PDL::Type::real etc
 - native complex numbers need check_lib as FreeBSD <10 has no complex trig
 
