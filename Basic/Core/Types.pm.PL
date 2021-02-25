@@ -230,27 +230,6 @@ sub gentypenames {
   return wantarray ? @ret : $ret[0];
 }
 
-sub is_real {
-  my @types = @_;
-  checktypehas 'real', @types;
-  my @ret = map {"$_->{real}"} @types;
-  return wantarray ? @ret : $ret[0];
-}
-
-sub is_unsigned {
-  my @types = @_;
-  checktypehas 'unsigned', @types;
-  my @ret = map {"$_->{unsigned}"} @types;
-  return wantarray ? @ret : $ret[0];
-}
-
-sub is_int {
-  my @types = @_;
-  checktypehas 'integer', @types;
-  my @ret = map {"$_->{integer}"} @types;
-  return wantarray ? @ret : $ret[0];
-}
-
 sub genpacktypes {
   my @types = @_;
   checktypehas 'packtype', @types;
@@ -751,7 +730,9 @@ sub PDL::Types::types { # return all known types as type objects
 !NO!SUBS!
 
 foreach my $name ( qw( ctype ppsym realctype ppforcetype convertfunc
-		       sym numval usenan ioname defbval) ) {
+		       sym numval usenan ioname defbval
+		       real integer unsigned
+                       ) ) {
   print OUT << "EOS";
 sub $name {
   return \$PDL::Types::typehash{\$_[0]->symbol}->{$name};
@@ -836,6 +817,10 @@ taken from the actual code that defines the C<ushort> type:
 	      ppforcetype => 'ushort',
 	      usenan => 0,
 	      packtype => 'S*',
+	      defaultbadval => 'USHRT_MAX',
+	      real=>1,
+	      integer=>1,
+	      unsigned=>1,
 	     },
 
 Before we start to explain the fields please take this important
@@ -902,6 +887,24 @@ Generally only required for floating point types.
 packtype
 
 I<Required>. The Perl pack type used to pack Perl values into the machine representation for this type. For details see C<perldoc -f pack>.
+
+=item *
+
+integer
+
+I<Required>. Boolean - is this an integer type?
+
+=item *
+
+unsigned
+
+I<Required>. Boolean - is this an unsigned type?
+
+=item *
+
+real
+
+I<Required>. Boolean - is this a real (not complex) type?
 
 =back
 
