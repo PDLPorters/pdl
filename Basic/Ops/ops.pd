@@ -269,6 +269,12 @@ sub ufunc {
 	delete $extra{Exception};
     }
 
+    my $codestr = <<EOF;
+	types(G) %{ \$b() = c${func}f(\$a()); %}
+	types(C) %{ \$b() = c$func(\$a()); %}
+	types(BUSLNQFD) %{ \$b() = $func(\$a()); %}
+EOF
+
     # do not have to worry about propagation of the badflag when
     # inplace since only input piddle is a, hence its badflag
     # won't change
@@ -279,29 +285,13 @@ sub ufunc {
 	   NoBadifNaN => 1,
 	   Inplace => 1,
 	   Code => pp_line_numbers(__LINE__,
-	   "
-		    types(G) %{
-			    \$b() = c${func}f(\$a());
-		    %}
-		    types(C) %{
-			    \$b() = c$func(\$a());
-		    %}
-		    types(BUSLNQFD) %{
-			    \$b() = $func(\$a());
-		    %}
-	   "),
+	       $codestr
+	   ),
 	   BadCode =>
 		    pp_line_numbers(__LINE__, 'if ( ' . $badcode . ' )
 		    $SETBAD(b());
-		    else' . "\n types(G) %{
-			    \$b() = c${func}f(\$a());
-		    %}
-		    types(C) %{
-			    \$b() = c$func(\$a());
-		    %}
-		    types(BUSLNQFD) %{
-		     \$b() = $func(\$a());
-		    %}\n"),
+		    else {' . "\n" . $codestr . "}\n"
+		    ),
 	   %extra,
 	   Doc => << "EOD");
 =for ref
