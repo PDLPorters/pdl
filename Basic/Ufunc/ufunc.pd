@@ -737,6 +737,7 @@ pp_def(
        HandleBad => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('median','medover',''),
+       GenericTypes=>$R,
        Code => 
        "PDL_Indx nn2;\n" . $copy_to_temp_good . $find_median_average,
        BadCode =>
@@ -761,6 +762,7 @@ value. The lower-odd median is just the lower of these two values
 and so it ALWAYS sits on an actual data value which is useful in
 some circumstances.
 	'),
+       GenericTypes=>$R,
        Code => 
        $copy_to_temp_good . $find_median_lower,
        BadCode =>
@@ -883,7 +885,8 @@ I<any> dimension.
 
 
 ',
-        Code => '
+       GenericTypes=>$R,
+       Code => '
            double np, pp1, pp2;
            PDL_Indx nn2;
 	   ' . $copy_to_temp_good .
@@ -927,7 +930,8 @@ I<any> dimension.
 
 
 ',
-        Code => '
+       GenericTypes=>$R,
+       Code => '
            PDL_Indx np;
 	   ' . $copy_to_temp_good . '
            np = (nn+1)*$p();
@@ -1189,6 +1193,7 @@ pp_def(
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n); [o]b(n);',
+    GenericTypes=>$R,
     Code => 
     'PDL_Indx nn;
      loop(n) %{ $b() = $a(); %}
@@ -1242,6 +1247,7 @@ pp_def(
        'qsorti',
        HandleBad => 1,
        Pars => 'a(n); indx [o]indx(n);',
+       GenericTypes=>$R,
        Code => 
        'PDL_Indx nn = $COMP(__n_size)-1;
         if ($SIZE(n) == 0) return;
@@ -1297,6 +1303,7 @@ pp_def(
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n,m); [o]b(n,m);',
+    GenericTypes=>$R,
     Code => 
     'PDL_Indx nn;
      PDL_Indx nd;
@@ -1347,6 +1354,7 @@ pp_def(
     'qsortveci',
     HandleBad => 1,
     Pars => 'a(n,m); indx [o]indx(m);',
+    GenericTypes=>$R,
     Code => 
     'PDL_Indx nd;
      PDL_Indx nn=$COMP(__m_size)-1;
