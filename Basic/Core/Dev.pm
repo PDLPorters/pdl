@@ -24,6 +24,7 @@ use File::Path;
 use File::Basename;
 use ExtUtils::Manifest;
 use English; require Exporter;
+eval { require Devel::CheckLib };
 
 @ISA    = qw( Exporter );
 
@@ -35,6 +36,7 @@ use English; require Exporter;
 		 pdlpp_postamble pdlpp_stdargs write_dummy_make
                 unsupported getcyglib trylink
                 pdlpp_mkgen
+                got_complex_version
 		 );
 
 # Installation locations
@@ -837,6 +839,30 @@ sub generate_badval_init {
 #    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
 #    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
 
+}
+
+=head2 got_complex_version
+
+=for ref
+
+  PDL::Core::Dev::got_complex_version($func_name, $num_params)
+
+For a given function appearing in C99's C<complex.h>, will return a
+boolean of whether the system being compiled on has the complex version
+of that. E.g. for C<sin>, will test whether C<csin> exists.
+
+=cut
+
+my %got_complex_cache;
+sub got_complex_version {
+    my ($name, $params) = @_;
+    return $got_complex_cache{$name} if defined $got_complex_cache{$name};
+    my $args = join ',', ('(double complex)1') x $params;
+    $got_complex_cache{$name} = Devel::CheckLib::check_lib(
+        lib => 'm',
+        header => 'complex.h',
+        function => sprintf('c%s(%s);', $name, $args),
+    );
 }
 
 1;

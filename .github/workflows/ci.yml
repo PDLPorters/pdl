@@ -86,7 +86,7 @@ jobs:
       - name: Ubuntu packages
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get -y update && sudo apt-get install build-essential libx11-dev libgd-dev libhdf4-alt-dev libproj-dev proj-bin libcfitsio-dev libreadline-dev pgplot5 libvpx-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev
-      - run: cpanm -n ExtUtils::MakeMaker && cpanm -n --installdeps .
+      - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib && cpanm -n --installdeps .
       - name: Run release tests # before others as may install useful stuff
         if: ${{ matrix.release-test }}
         env:

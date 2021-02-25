@@ -167,6 +167,9 @@ sub bifunc {
     my $isop=0; if ($funcov =~ s/^op//) { $isop = 1; }
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
+    my $got_complex = PDL::Core::Dev::got_complex_version($func, 2);
+    $extra{GenericTypes} = [ grep !$is_complex{$_}, @{$extra{GenericTypes}} ]
+	if !$got_complex and $extra{GenericTypes};
     if ($swap) {
 	$extra{HdrCode} .= << 'EOH';
   pdl *tmp;
@@ -187,23 +190,16 @@ EOH
     my $codestr;
     my $badcodestr;
     if ($extra{unsigned}){
-    $codestr = << "ENDCODE";
-  types(C) %{
-  \$c() = c$func}(\$a(),\$b());
-  %}
-  types(G) %{
-  \$c() = c${func}f(\$a(),\$b());
-  %}
-  types(BU) %{
-  \$c() = BU_$func(\$a(),\$b());
-  %}
-  types(SLNFD) %{
-  \$c() = $func(\$a(),\$b());
-  %}
-  types(Q) %{
-  \$c() = Q_$func(\$a(),\$b());
-  %}
+    my $complex_bit = << "ENDCODE";
+  types(C) %{ \$c() = c$func}(\$a(),\$b()); %}
+  types(G) %{ \$c() = c${func}f(\$a(),\$b()); %}
 ENDCODE
+    $codestr = << "ENDCODE";
+  types(BU) %{ \$c() = BU_$func(\$a(),\$b()); %}
+  types(SLNFD) %{ \$c() = $func(\$a(),\$b()); %}
+  types(Q) %{ \$c() = Q_$func(\$a(),\$b()); %}
+ENDCODE
+    $codestr .= $complex_bit if $got_complex;
 } else {
    $codestr = "\$c() = $func(\$a(),\$b());";
    }
@@ -258,6 +254,9 @@ sub ufunc {
     my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
+    my $got_complex = PDL::Core::Dev::got_complex_version($func, 1);
+    $extra{GenericTypes} = [ grep !$is_complex{$_}, @{$extra{GenericTypes}} ]
+	if !$got_complex and $extra{GenericTypes};
 
     # handle exceptions
     my $badcode = '$ISBAD(a())';
@@ -268,12 +267,14 @@ sub ufunc {
 	#      See also `biop()`.
 	delete $extra{Exception};
     }
-
-    my $codestr = <<EOF;
+    my $complex_bit = <<EOF;
 	types(G) %{ \$b() = c${func}f(\$a()); %}
 	types(C) %{ \$b() = c$func(\$a()); %}
+EOF
+    my $codestr = <<EOF;
 	types(BUSLNQFD) %{ \$b() = $func(\$a()); %}
 EOF
+    $codestr .= $complex_bit if $got_complex;
 
     # do not have to worry about propagation of the badflag when
     # inplace since only input piddle is a, hence its badflag

@@ -3,11 +3,14 @@ use PDL::LiteF;
 use Config;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 use Test::Exception;
+require PDL::Core::Dev;
 
 use strict;
 use warnings;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+
+my $can_complex_power = PDL::Core::Dev::got_complex_version('power', 2);
 
 approx(pdl(0), pdl(0), 0.01); # set eps
 
@@ -87,9 +90,11 @@ ok(all( approx($pb,(pdl 4,8,3))),'sqrt of pdl(16,64,9)');
 ok($pa->at(0) == 16, 'sqrt orig value ok');
 # complex version
 $pa = cdouble pdl 16,64,9,-1;
-$pb = sqrt($pa);
-ok(ci()**2 == -1,'i squared = -1');
-ok(all( approx($pb,(cdouble 4,8,3,ci()))),'sqrt of pdl(16,64,9,-1)');
+if ($can_complex_power) {
+  $pb = sqrt($pa);
+  ok(ci()**2 == -1,'i squared = -1');
+  ok(all( approx($pb,(cdouble 4,8,3,ci()))),'sqrt of pdl(16,64,9,-1)');
+}
 is $pa->at(0), '16+0i', 'sqrt orig value ok';
 }
 
@@ -167,9 +172,11 @@ my $pb = log(110) / log(10);
 note "a: $pa  [ref(\$pa)='", ref($pa),"']\n";
 note "b: $pb\n";
 ok(abs($pa-$pb) < 1.0e-5 ,'log10 scalar');
-$pa = 20+10*ci;
-$pb = log ($pa);
-ok(exp($pb)-$pa < 1.0e-5 ,'exp of log of complex scalar');
+if ($can_complex_power) {
+  $pa = 20+10*ci;
+  $pb = log ($pa);
+  ok(exp($pb)-$pa < 1.0e-5 ,'exp of log of complex scalar');
+}
 }
 
 {
@@ -180,7 +187,9 @@ note "b: $pb\n";
 ok(all( approx( $pa, $pb)), 'log10 pdl');
 # check inplace
 ok(all( approx( pdl(110,23)->inplace->log10(), $pb)), 'inplace pdl log10');
-ok(all( approx( cdouble(110,23)->inplace->log()/log(10), $pb)), 'complex inplace pdl log10');
+if ($can_complex_power) {
+  ok(all( approx( cdouble(110,23)->inplace->log()/log(10), $pb)), 'complex inplace pdl log10');
+}
 }
 
 }
