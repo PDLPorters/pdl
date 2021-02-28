@@ -1,3 +1,4 @@
+2.026_03 2021-02-28
 - got_complex_version change to defeat FreeBSD 10 false positive for complex funcs
 - trig functions like asin($perl_scalar) return NaN for >1 again
 
