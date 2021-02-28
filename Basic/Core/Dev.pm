@@ -861,7 +861,7 @@ sub got_complex_version {
     $got_complex_cache{$name} = Devel::CheckLib::check_lib(
         lib => 'm',
         header => 'complex.h',
-        function => sprintf('c%s(%s);', $name, $args),
+        function => sprintf('double num; num = creal(c%s(%s));', $name, $args),
     );
 }
 
