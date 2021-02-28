@@ -576,9 +576,11 @@ EOD
 # convmath does local part of the maths necessary to handle a,b which
 # result from FFT of image & kernel in parallel.
 
+my $R = ['B','S','U','L','N','Q','F','D']; # should be using code from Types.pm to set up.
+
 pp_def('convmath',
 	Pars => '[o,nc]a(m); [o,nc]b(m);',
-	GenericTypes=>['B','S','U','L','N','F','D'],
+	GenericTypes=>$R,
 	Code => '
 	$GENERIC() t1, t2;
 	loop(m) %{
@@ -594,7 +596,7 @@ pp_def('convmath',
 
 pp_def('cmul',
 	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
-	GenericTypes=>['B','S','U','L','N','F','D'],
+	GenericTypes=>$R,
 	Code => '
 	$GENERIC() ar, ai, br, bi;
 	   ar = $ar();
@@ -625,7 +627,7 @@ our $abs_string .= "types($_) %{" . $ah{$_} . '(br) > ' . $ah{$_} . "(bi)%}\n" f
 
 pp_def('cdiv',
 	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
-	GenericTypes=>['B','S','U','L','N','F','D'],
+	GenericTypes=>$R,
 	Code => '
 	$GENERIC() ar, ai, br, bi, tt, dn;
 	   ar = $ar();

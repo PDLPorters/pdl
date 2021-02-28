@@ -1143,7 +1143,7 @@ clip (threshold) C<$a> by C<$b> (C<$b> is upper bound)
 clip (threshold) C<$a> by C<$b> (C<$b> is lower bound)
 
 =cut
-my $R=['B','S','U','L','N','F','D'];
+my $R=['B','S','U','L','N','Q','F','D'];
 for my $opt (
 	     ['hclip','>'],
 	     ['lclip','<']
