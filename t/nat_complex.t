@@ -1,10 +1,9 @@
 use PDL::LiteF;
 #use PDL::Complex;
 use PDL::Config;
+use PDL::Core::Dev;
 
-BEGIN {
-   use Test::More tests => 16;
-}
+use Test::More;
 
 sub tapprox {
         my($x,$y) = @_;
@@ -78,6 +77,21 @@ $r **= 2;
 ok($r->creal->at(0) < 100.000000001 && $r->creal->at(0) > 99.999999999 && $r->cimag->at(0) == 0,
   'check that imaginary part is exactly zero'); # Wasn't always so
 
+my $asin_2 = PDL::asin(2)."";
+like $asin_2, qr/nan/i, 'perl scalar 2 treated as real';
+$asin_2 = PDL::asin(2.0)."";
+like $asin_2, qr/nan/i, 'perl scalar 2.0 treated as real';
+$asin_2 = PDL::asin(byte 2)."";
+like $asin_2, qr/nan/i, 'real byte treated as real';
+$asin_2 = PDL::asin(double 2)."";
+like $asin_2, qr/nan/i, 'real double treated as real';
+$asin_2 = PDL::asin(pdl 2)."";
+like $asin_2, qr/nan/i, 'pdl(2) treated as real';
+if (PDL::Core::Dev::got_complex_version('asin', 1)) {
+  my $c_asin_2 = PDL::asin(cdouble(2))."";
+  unlike $c_asin_2, qr/nan/i, 'asin of complex gives complex result';
+}
+
 TODO: {
    local $TODO = "Known_problems sf.net bug #1176614" if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} );
 
@@ -89,3 +103,5 @@ TODO: {
    my $c211str = "$c211";
    ok($c211str=~/(9.123|4.123)/, 'sf.net bug #1176614');
 }
+
+done_testing;
