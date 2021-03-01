@@ -1,3 +1,10 @@
+package PDL::PP::Signature;
+
+use strict; use warnings;
+use PDL::PP::PdlParObj;
+use PDL::PP::Dims;
+use Carp;
+
 =head1 NAME
 
 PDL::PP::Signature - Internal module to handle signatures
@@ -10,13 +17,7 @@ Internal module to handle signatures
 
  use PDL::PP::Signature;
 
-
 =cut
-
-package PDL::PP::Signature;
-use PDL::PP::PdlParObj;
-use PDL::PP::Dims;
-use Carp;
 
 # we pass on $bvalflag to the PdlParObj's created by parse
 # (a hack for PdlParObj::get_xsdatapdecl() which should
@@ -41,67 +42,39 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
-
 =cut
 
 # Eliminate whitespace entries
 sub nospacesplit {map {/^\s*$/?():$_} split $_[0],$_[1]}
 
+sub names { $_[0]->{Names} }
 
-sub names {
-  my $this = shift;
-  return $this->{Names};
-}
-
-sub objs {
-  my $this = shift;
-  return $this->{Objects};
-}
+sub objs { $_[0]->{Objects} }
 
 # Pars -> ParNames, Parobjs
 sub parse {
-	my($str,$bvalflag) = @_;
-	my @entries = nospacesplit ';',$str;
-	my $number = 0;
-	my %objs; my @names; my $obj;
-	for (@entries) {
-		$obj = PDL::PP::PdlParObj->new($_,"PDL_UNDEF_NUMBER",$bvalflag);
-		push @names,$obj->name;
-		$objs{$obj->name} = $obj;
-	}
-	return (\@names,\%objs,1);
+  my($str,$bvalflag) = @_;
+  my @objects = map PDL::PP::PdlParObj->new($_,"PDL_UNDEF_NUMBER",$bvalflag), nospacesplit ';',$str;
+  ([ map $_->name, @objects ], { map +($_->name => $_), @objects }, 1);
 }
-
 
 sub realdims {
   my $this = shift;
-  my @rds = map { scalar @{$this->{Objects}->{$_}->{RawInds}}}
-         @{$this->{Names}};
-#  print "Realdims are ".join(',',@rds)."\n";
-  return \@rds;
+  [ map scalar @{$this->{Objects}->{$_}->{RawInds}}, @{$this->{Names}} ];
 }
 
 sub creating {
   my $this = shift;
-#  my @creat = map { $this->{Objects}->{$_}->{FlagCreat} ? 1:0 }
-#   @{$this->{Names}};
-#  print "Creating is ".join(',',@creat)."\n";
   croak "you must perform a checkdims before calling creating"
     unless defined $this->{Create};
   return $this->{Create};
 }
 
-sub getinds {
-  my $this = shift;
-  $this->{Dims} = new PDL::PP::PdlDimsObj;
-  for (@{$this->{Names}}) {
-    $this->{Objects}->{$_}->add_inds($this->{Dims});
-  }
-}
-
 sub checkdims {
   my $this = shift;
-  $this->getinds;  # we have to recreate to keep defaults currently
+  # we have to recreate to keep defaults currently
+  $this->{Dims} = PDL::PP::PdlDimsObj->new;
+  $this->{Objects}->{$_}->add_inds($this->{Dims}) for @{$this->{Names}};
   my $n = @{$this->{Names}};
   croak "not enough pdls to match signature" unless $#_ >= $n-1;
   my @pdls = @_[0..$n-1];
