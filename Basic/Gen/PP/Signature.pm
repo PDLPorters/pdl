@@ -17,9 +17,6 @@ package PDL::PP::Signature;
 use PDL::PP::PdlParObj;
 use PDL::PP::Dims;
 use Carp;
-use SelfLoader;
-
-@ISA = qw/ SelfLoader /;
 
 # we pass on $bvalflag to the PdlParObj's created by parse
 # (a hack for PdlParObj::get_xsdatapdecl() which should
@@ -34,8 +31,6 @@ sub new {
 
 *with = \&new;
 
-1;
-
 =head1 AUTHOR
 
 Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu) and by Christian
@@ -48,8 +43,6 @@ the copyright notice should be included in the file.
 
 
 =cut
-
-__DATA__
 
 # Eliminate whitespace entries
 sub nospacesplit {map {/^\s*$/?():$_} split $_[0],$_[1]}
@@ -140,3 +133,5 @@ sub checkdims {
     $_[$i-1] = $pdls[$i-1]->slice($str);
   }
 }
+
+1;
