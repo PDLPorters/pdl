@@ -443,9 +443,6 @@ sub get_xsdatapdecl {
     $type = $this->ctype($genlooptype) if defined $genlooptype;
     my $declini = ($asgnonly ? "" : "\t$type *");
     my $cast = ($type ? "($type *)" : "");
-# ThreadLoop does this for us.
-#	return "$declini ${name}_datap = ($cast((${_})->data)) + (${_})->offs;\n";
-    
     my $str = PDL::PP::pp_line_numbers(__LINE__, "$declini ${name}_datap = ($cast(PDL_REPRP_TRANS($pdl,$flag)));\n" .
 	"$declini ${name}_physdatap = ($cast($pdl->data));\n");
 
