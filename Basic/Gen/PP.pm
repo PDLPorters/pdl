@@ -359,7 +359,6 @@ our @CARP_NOT;
 sub new {
     croak('Usage: PDL::PP::Ruel::Croak->new(["incompatible", "arguments"], "Croaking message")')
 		unless @_ == 3;
-    
     my $class = shift;
     my $self  = $class->SUPER::new([], @_);
     return bless $self, $class;
@@ -786,6 +785,176 @@ use strict;
 our $VERSION = "2.3";
 $VERSION = eval $VERSION;
 
+our $macros = <<'EOF';
+#define PDL_BRACES(...) { __VA_ARGS__ } /* work around syntax limitation */
+#define PDL_PARNAMES(parnames, realdims, npdls, funcname) \
+  static char *__parnames[] = PDL_BRACES parnames; \
+  static PDL_Indx __realdims[] = PDL_BRACES realdims; \
+  static char __funcname[] = funcname; \
+  static pdl_errorinfo __einfo = { __funcname, __parnames, npdls };
+
+#define PDL_INITTHREADSTRUCT(npdls, pdls, pdlthread, flags, noPthreadFlag) \
+  PDL->initthreadstruct(2,pdls, \
+    __realdims,__creating,npdls, \
+    &__einfo,&(pdlthread), \
+    flags, \
+    noPthreadFlag );
+
+#define PDL_HDRCHECK1(aux, name) \
+  if(!hdrp && aux name->hdrsv && (name->state & PDL_HDRCPY)) { \
+    hdrp = name->hdrsv; \
+    propagate_hdrcpy = ((name->state & PDL_HDRCPY) != 0); \
+  }
+
+#define PDL_DEEPCOPY \
+  if(hdrp == &PL_sv_undef) \
+    hdr_copy = &PL_sv_undef; \
+  else {  PDL_COMMENT("Call the perl routine _hdr_copy...") \
+    int count; \
+    PDL_COMMENT("Call the perl routine PDL::_hdr_copy(hdrp)") \
+    dSP; \
+    ENTER ; \
+    SAVETMPS ; \
+    PUSHMARK(SP) ; \
+    XPUSHs( hdrp ); \
+    PUTBACK ; \
+    count = call_pv("PDL::_hdr_copy",G_SCALAR); \
+    SPAGAIN ; \
+    if(count != 1) \
+      croak("PDL::_hdr_copy didn't return a single value - please report this bug (A)."); \
+    hdr_copy = (SV *)POPs; \
+    if(hdr_copy && hdr_copy != &PL_sv_undef) { \
+       (void)SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS") \
+    } \
+    FREETMPS ; \
+    LEAVE ; \
+  } PDL_COMMENT("end of callback  block")
+
+#define PDL_HDRCHECK2(name) \
+  if (name->hdrsv != hdrp) { \
+    if (name->hdrsv && name->hdrsv != &PL_sv_undef) \
+      (void)SvREFCNT_dec( name->hdrsv ); \
+    if (hdr_copy != &PL_sv_undef) \
+      (void)SvREFCNT_inc(hdr_copy); \
+    name->hdrsv = hdr_copy; \
+  } \
+  if(propagate_hdrcpy) \
+    name->state |= PDL_HDRCPY;
+
+#define PDL_COPYCODE(privcode, compcode, has_bv, bv, pflags, pvt, pdt, pdd, ppdl) \
+  PDL_TR_CLRMAGIC(__copy); \
+  __copy->has_badvalue = has_bv; \
+  __copy->badvalue = bv; \
+  __copy->flags = pflags; \
+  __copy->vtable = pvt; \
+  __copy->__datatype = pdt; \
+  __copy->freeproc = NULL; \
+  __copy->__ddone = pdd; \
+  {int i; \
+   for(i=0; i<__copy->vtable->npdls; i++) \
+          __copy->pdls[i] = ppdl; \
+  } \
+  compcode \
+  if(__copy->__ddone) { \
+          privcode \
+  } \
+  return (pdl_trans*)__copy;
+
+#define PDL_XS_PREAMBLE \
+  char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set \
+                            by pp_bless ? (CS) */ \
+  HV *bless_stash = 0; \
+  SV *parent = 0; \
+  int   nreturn;
+
+#define PDL_XS_PACKAGEGET \
+  PDL_COMMENT("Check if you can get a package name for this input value.  ") \
+  PDL_COMMENT("It can be either a PDL (SVt_PVMG) or a hash which is a     ") \
+  PDL_COMMENT("derived PDL subclass (SVt_PVHV)                            ") \
+  if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) { \
+    parent = ST(0); \
+    if (sv_isobject(parent)){ \
+	bless_stash = SvSTASH(SvRV(ST(0))); \
+	objname = HvNAME((bless_stash));  PDL_COMMENT("The package to bless output vars into is taken from the first input var") \
+    } \
+  }
+
+#define PDL_XS_PERLINIT(name, to_push, method) \
+  if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL") \
+     name ## _SV = sv_newmortal(); \
+     name = PDL->null(); \
+     PDL->SetSV_PDL(name ## _SV, name); \
+     if (bless_stash) name ## _SV = sv_bless(name ## _SV, bless_stash); \
+  } else { \
+     PUSHMARK(SP); \
+     XPUSHs(to_push); \
+     PUTBACK; \
+     perl_call_method(#method, G_SCALAR); \
+     SPAGAIN; \
+     name ## _SV = POPs; \
+     PUTBACK; \
+     name = PDL->SvPDLV(name ## _SV); \
+  }
+
+#define PDL_XS_INPLACE(in, out) \
+    if (in->state & PDL_INPLACE && (out != in)) { \
+	in->state &= ~PDL_INPLACE; PDL_COMMENT("unset") \
+	out = in; PDL_COMMENT("discard output value, leak ?") \
+	PDL->SetSV_PDL(out ## _SV,out); \
+    }
+
+#define PDL_XS_PRIVSTRUCT(sname, clrmagic, affflag, pvtable) \
+    sname = malloc(sizeof(*sname)); memset(sname, 0, sizeof(*sname)); \
+    clrmagic; \
+    PDL_TR_SETMAGIC(sname); \
+    sname->flags = affflag; \
+    sname->__ddone = 0; \
+    sname->vtable = &pvtable; \
+    sname->freeproc = PDL->trans_mallocfreeproc;
+
+#define PDL_XS_RETURN(clause1) \
+    if (nreturn) { \
+      if (nreturn > 0) EXTEND (SP, nreturn); \
+      clause1; \
+      XSRETURN(nreturn); \
+    } else { \
+      XSRETURN(0); \
+    }
+
+#define PDL_FREE_CODE(priv_free_code, comp_free_code, ntpriv_free_code) \
+    PDL_TR_CLRMAGIC(__privtrans); \
+    comp_free_code \
+    if (__privtrans->__ddone) { \
+	priv_free_code \
+	ntpriv_free_code \
+    }
+
+#define PDL_PERL_HDRCOPY \
+    if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) { \
+	PDL_COMMENT("call the perl routine _hdr_copy.") \
+	int count; \
+	dSP; \
+	ENTER; \
+	SAVETMPS; \
+	PUSHMARK(SP); \
+	XPUSHs( sv_mortalcopy((SV*)__parent->hdrsv) ); \
+	PUTBACK; \
+	count = call_pv("PDL::_hdr_copy",G_SCALAR); \
+	SPAGAIN; \
+	if (count != 1) \
+	    croak("PDL::_hdr_copy didn\'t return a single value - please report this bug (B)."); \
+	{ PDL_COMMENT("convenience block for tmp var") \
+	    SV *tmp = (SV *) POPs ; \
+	    __it->hdrsv = (void*) tmp; \
+	    if(tmp != &PL_sv_undef ) \
+		(void)SvREFCNT_inc(tmp); \
+	} \
+	__it->state |= PDL_HDRCPY; \
+	FREETMPS; \
+	LEAVE; \
+    }
+EOF
+
 use PDL::Types ':All';
 use Config;
 use FileHandle;
@@ -1012,6 +1181,9 @@ PDL_COMMENT("                                                               ")
 PDL_COMMENT("just think of it as a C multiline comment like:                ")
 PDL_COMMENT("                                                               ")
 PDL_COMMENT("   /* Memory access */                                         ")
+
+$PDL::PP::PdlParObj::macros
+$PDL::PP::macros
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -1645,57 +1817,16 @@ sub wrap_vfn {
     my $type = ($name eq "copy" ? "pdl_trans *" : "void");
     my $sname = $hdrinfo->{StructName};
     my $oargs = ($name eq "foo" ? ",int i1,int i2,int i3" : "");
-
-#	print "$rout\_$name: $p2child\n";
-    my $p2decl = '';
-    # Put p2child in simple boolean context rather than strict numerical equality
-    if ( $p2child ) {
-	$p2decl =
-	    PDL::PP::pp_line_numbers(__LINE__, "pdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1]; pdl *__parent = __tr->pdls[0];");
-	if ( $name eq "redodims" ) {
-	    $p2decl .= '
-	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) {
-                  PDL_COMMENT("call the perl routine _hdr_copy.")
-                  int count;
-
-                  dSP;
-                  ENTER ;
-                  SAVETMPS ;
-                  PUSHMARK(SP) ;
-                  XPUSHs( sv_mortalcopy((SV*)__parent->hdrsv) );
-                  PUTBACK ;
-                  count = call_pv("PDL::_hdr_copy",G_SCALAR);
-                  SPAGAIN ;
-                  if(count != 1)
-                      croak("PDL::_hdr_copy didn\'t return a single value - please report this bug (B).");
-
-                  { PDL_COMMENT("convenience block for tmp var")
-                    SV *tmp = (SV *) POPs ;
-		    __it->hdrsv = (void*) tmp;
-                    if(tmp != &PL_sv_undef )
-                       (void)SvREFCNT_inc(tmp);
-                  }
-
-                  __it->state |= PDL_HDRCPY;
-
-                  FREETMPS ;
-                  LEAVE ;
-             }
-        ';
-	}
-    } # if: $p2child == 1
-
-    qq|$type $rout(pdl_trans *__tr $oargs) {
+    my $str = PDL::PP::pp_line_numbers(__LINE__, qq|$type $rout(pdl_trans *__tr $oargs) {
 	int __dim;
-	$sname *__privtrans = ($sname *) __tr;
-	$p2decl
-	{
-	    $code
-	}
+	$sname *__privtrans = ($sname *) __tr;\n|);
+    if ( $p2child ) {
+	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
+	$str .= "\tPDL_PERL_HDRCOPY\n" if $name eq "redodims";
     }
-    |;
-
-} # sub: wrap_vfn()
+    $str .= "\t{\n$code\n\t}\n" if $code;
+    "$str\n}\n";
+}
 
 sub makesettrans {
     my($pnames,$pobjs,$symtab) = @_;
@@ -1759,18 +1890,9 @@ sub Sym2Loc { PDL::PP::pp_line_numbers(__LINE__, $_[0]->decl_locals()) }
 sub MkPrivStructInit {
     my( $symtab, $vtable, $affflag, $nopdlthread ) = @_;
     my $sname = $symtab->get_symname('_PDL_ThisTrans');
-
-    my $ci = '   ';
-    PDL::PP::pp_line_numbers(__LINE__,
-	"\n${ci}$sname = malloc(sizeof(*$sname)); memset($sname, 0, sizeof(*$sname));\n" .
-	($nopdlthread ? "" : "${ci}PDL_THR_CLRMAGIC(&$sname->__pdlthread);\n") .
-	"${ci}PDL_TR_SETMAGIC($sname);\n" .
-	"${ci}$sname->flags = $affflag;\n" .
-	"${ci}$sname->__ddone = 0;\n" .
-	"${ci}$sname->vtable = &$vtable;\n" .
-	"${ci}$sname->freeproc = PDL->trans_mallocfreeproc;\n")
-
-} # sub: MkPrivStructInit()
+    my $clrmagic = $nopdlthread ?"":"PDL_THR_CLRMAGIC(&$sname->__pdlthread)";
+    PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_PRIVSTRUCT($sname, $clrmagic, $affflag, $vtable)\n");
+}
 
 sub MkDefSyms {
     return SymTab->new(
@@ -1799,56 +1921,13 @@ sub callPerlInit {
     my $ci    = shift; # current indenting
     my $callcopy = $#_ > -1 ? shift : 0;
     my $ret = '';
-
     foreach my $name (@$names) {
-	unless ($callcopy) { $ret .= << "EOC"}
-
-if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL")
-   $name\_SV = sv_newmortal();
-   $name = PDL->null();
-   PDL->SetSV_PDL($name\_SV,$name);
-   if (bless_stash) $name\_SV = sv_bless($name\_SV, bless_stash);
-} else {
-   PUSHMARK(SP);
-   XPUSHs(sv_2mortal(newSVpv(objname, 0)));
-   PUTBACK;
-   perl_call_method(\"initialize\", G_SCALAR);
-   SPAGAIN;
-   $name\_SV = POPs;
-   PUTBACK;
-   $name = PDL->SvPDLV($name\_SV);
-}
-
-EOC
-
-    else { $ret .= << "EOD" }
-
-if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL")
-   $name\_SV = sv_newmortal();
-   $name = PDL->null();
-   PDL->SetSV_PDL($name\_SV,$name);
-   if (bless_stash) $name\_SV = sv_bless($name\_SV, bless_stash);
-} else {
-   /* XXX should these commented lines be removed? See also a 8 lines down */
-   /* warn("possibly relying on deprecated automatic copy call in derived class\n")
-   warn("please modify your initialize method to avoid future problems\n");
-   */
-   PUSHMARK(SP);
-   XPUSHs(parent);
-   PUTBACK;
-   perl_call_method(\"copy\", G_SCALAR);
-   /* perl_call_method(\"initialize\", G_SCALAR); */
-   SPAGAIN;
-   $name\_SV = POPs;
-   PUTBACK;
-   $name = PDL->SvPDLV($name\_SV);
-}
-EOD
-
-  } # doreach: $name
-
-  PDL::PP::pp_line_numbers(__LINE__, indent($ret,$ci));
-
+	my ($to_push, $method) = $callcopy
+	    ? ('parent', 'copy')
+	    : ('sv_2mortal(newSVpv(objname, 0))', 'initialize');
+	$ret .= "PDL_XS_PERLINIT($name, $to_push, $method)\n";
+    }
+    PDL::PP::pp_line_numbers(__LINE__, indent($ret,$ci));
 } #sub callPerlInit()
 
 # This subroutine is called when no 'otherpars' exist.
@@ -1985,28 +2064,13 @@ sub VarArgsXSHdr {
 void
 $name(...)
  PREINIT:
-  char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set
-                            by pp_bless ? (CS) */
-  HV *bless_stash = 0;
-  SV *parent = 0;
-  int   nreturn;
+  PDL_XS_PREAMBLE
 $svdecls
 $pars
 
  PPCODE:
-
 {
-  PDL_COMMENT("Check if you can get a package name for this input value.  ")
-  PDL_COMMENT("It can be either a PDL (SVt_PVMG) or a hash which is a     ")
-  PDL_COMMENT("derived PDL subclass (SVt_PVHV)                            ")
-
-  if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
-    parent = ST(0);
-    if (sv_isobject(parent)){
-	bless_stash = SvSTASH(SvRV(ST(0)));
-	objname = HvNAME((bless_stash));  PDL_COMMENT("The package to bless output vars into is taken from the first input var")
-    }
-  }
+  PDL_XS_PACKAGEGET
   if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output and temp vars")
     nreturn = $noutca;
 $clause1
@@ -2033,14 +2097,10 @@ END
 # or leaves them as modified input variables.  D. Hunt 4/10/00
 sub VarArgsXSReturn {
     my($xsargs, $parobjs, $globalnew ) = @_;
-
     # don't generate a HDR if globalnew is set
     # globalnew implies internal usage, not XS
     return undef if $globalnew;
-
-    # names of output variables    (in calling order)
-    my @outs;
-
+    my @outs; # names of output variables (in calling order)
     # beware of existance tests like this:  $$parobjs{$arg->[0]}{FlagOut}  !
     # this will cause $$parobjs{$arg->[0]} to spring into existance even if $$parobjs{$arg->[0]}{FlagOut}
     # does not exist!!
@@ -2048,26 +2108,9 @@ sub VarArgsXSReturn {
 	my $x = $arg->[0];
 	push (@outs, $x) if (exists ($$parobjs{$x}) and exists ($$parobjs{$x}{FlagOut}));
     }
-
-    my $ci = '  ';  # Current indenting
-
-    my $clause1 = '';
-    foreach my $i ( 0 .. $#outs ) {
-	$clause1 .= ($ci x 2) . "ST($i) = $outs[$i]_SV;\n";
-    }
-
-PDL::PP::pp_line_numbers(__LINE__, <<"END")
-${ci}if (nreturn) {
-${ci}  if (nreturn > 0) EXTEND (SP, nreturn );
-$clause1
-${ci}  XSRETURN(nreturn);
-${ci}} else {
-${ci}  XSRETURN(0);
-${ci}}
-END
-
-} # sub: VarArgsXSReturn()
-
+    my $clause1 = join ';', map "ST($_) = $outs[$_]_SV", 0 .. $#outs;
+    PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_RETURN($clause1)");
+}
 
 sub XSCHdrs {
 	my($name,$pars,$gname) = @_;
@@ -2306,15 +2349,7 @@ sub InplaceCode {
 	unless defined $in;
     die "ERROR: Inplace [$ppname] does not know name of output piddle\n"
 	unless defined $out;
-
-    my $instate = $in . "->state";
-    PDL::PP::pp_line_numbers(__LINE__,
-	qq{\tif ( $instate & PDL_INPLACE && ($out != $in)) {
-              $instate &= ~PDL_INPLACE; PDL_COMMENT("unset")
-              $out = $in;             PDL_COMMENT("discard output value, leak ?")
-              PDL->SetSV_PDL(${out}_SV,${out});
-          }})
-
+    PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_INPLACE($in, $out)\n");
 } # sub: InplaceCode
 
 # If there is an EquivCPOffsCode and:
@@ -2645,22 +2680,16 @@ sub make_incsize_free {
 }
 
 sub make_parnames {
-	my($pnames,$pobjs,$dobjs) = @_;
-	my @pdls = map {$pobjs->{$_}} @$pnames;
-	my $npdls = $#pdls+1;
-      my $join__parnames = join ",",map {qq|"$_"|} @$pnames;
-      my $join__realdims = join ",",map {$#{$_->{IndObjs}}+1} @pdls;
-      if($Config{cc} eq 'cl') {
-         $join__parnames = '""' if $join__parnames eq '';
-         $join__realdims = '0' if $join__realdims eq '';
-      }
-      PDL::PP::pp_line_numbers(__LINE__, "static char *__parnames[] = {". $join__parnames ."};
-		static PDL_Indx __realdims[] = {". $join__realdims . "};
-		static char __funcname[] = \"\$MODULE()::\$NAME()\";
-		static pdl_errorinfo __einfo = {
-			__funcname, __parnames, $npdls
-		};
-		");
+  my($pnames,$pobjs,$dobjs) = @_;
+  my @pdls = map {$pobjs->{$_}} @$pnames;
+  my $npdls = $#pdls+1;
+  my $join__parnames = join ",",map {qq|"$_"|} @$pnames;
+  my $join__realdims = join ",",map {$#{$_->{IndObjs}}+1} @pdls;
+  if($Config{cc} eq 'cl') {
+    $join__parnames = '""' if $join__parnames eq '';
+    $join__realdims = '0' if $join__realdims eq '';
+  }
+  PDL::PP::pp_line_numbers(__LINE__, "PDL_PARNAMES(($join__parnames), ($join__realdims), $npdls, \"\$MODULE()::\$NAME()\")");
 }
 
 ##############################
@@ -2709,71 +2738,16 @@ sub hdrcheck {
 
   # Find a header among the possible names
   foreach ( 0 .. $nn ) {
-    my $aux = $pobjs->{$pnames->[$_]}{FlagCreat} ? "!__creating[$_] && \n" : "";
-    $str .= <<"HdRCHECK1"
-      if(!hdrp &&
-	 $aux     $names[$_]\->hdrsv &&
-	 ($names[$_]\->state & PDL_HDRCPY)
-	 ) {
-	hdrp = $names[$_]\->hdrsv;
-	propagate_hdrcpy = (($names[$_]\->state & PDL_HDRCPY) != 0);
-      }
-HdRCHECK1
-  ;
+    my $aux = $pobjs->{$pnames->[$_]}{FlagCreat} ? "!__creating[$_] &&" : "";
+    $str .= "PDL_HDRCHECK1($aux, $names[$_])\n";
   }
 
-  $str .= << 'DeePcOPY'
-if (hdrp) {
-  if(hdrp == &PL_sv_undef)
-    hdr_copy = &PL_sv_undef;
-  else  {  PDL_COMMENT("Call the perl routine _hdr_copy...")
-    int count;
-    PDL_COMMENT("Call the perl routine PDL::_hdr_copy(hdrp)")
-    dSP;
-    ENTER ;
-    SAVETMPS ;
-    PUSHMARK(SP) ;
-    XPUSHs( hdrp );
-    PUTBACK ;
-    count = call_pv("PDL::_hdr_copy",G_SCALAR);
-    SPAGAIN ;
-    if(count != 1)
-	croak("PDL::_hdr_copy didn't return a single value - please report this bug (A).");
-
-    hdr_copy = (SV *)POPs;
-
-    if(hdr_copy && hdr_copy != &PL_sv_undef) {
-       (void)SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS")
-    }
-
-    FREETMPS ;
-    LEAVE ;
-
-
-  } PDL_COMMENT("end of callback  block")
-
-DeePcOPY
-    ;
+  $str .= "if (hdrp) {\nPDL_DEEPCOPY\n";
 # if(hdrp) block is still open -- now reassign all the aliases...
 
   # Found the header -- now copy it into all the right places.
-  foreach ( 0 .. $nn ) {
-     $str .= <<"HdRCHECK2"
-       if ( $names[$_]\->hdrsv != hdrp ){
-	 if( $names[$_]\->hdrsv && $names[$_]\->hdrsv != &PL_sv_undef)
-             (void)SvREFCNT_dec( $names[$_]\->hdrsv );
-	 if( hdr_copy != &PL_sv_undef )
-             (void)SvREFCNT_inc(hdr_copy);
-	 $names[$_]\->hdrsv = hdr_copy;
-       }
-     if(propagate_hdrcpy)
-       $names[$_]\->state |= PDL_HDRCPY;
-HdRCHECK2
-
-      # QUESTION: what is the following line doing?
-      #
-      if ( $pobjs->{$pnames->[$_]}{FlagCreat} );
-   }
+  $str .= "PDL_HDRCHECK2($names[$_])\n"
+    for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
 
   $str .= '
          if(hdr_copy != &PL_sv_undef)
@@ -2786,7 +2760,6 @@ HdRCHECK2
 } # sub: hdrcheck()
 
 sub make_redodims_thread {
-    #my($pnames,$pobjs,$dobjs,$dpars,$pcode ) = @_;
     my($pnames,$pobjs,$dobjs,$dpars,$pcode, $noPthreadFlag) = @_;
     my $str = PDL::PP::pp_line_numbers(__LINE__, '');
     my $npdls = @$pnames;
@@ -2795,30 +2768,23 @@ sub make_redodims_thread {
 
     my $nn = $#$pnames;
     my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
-    $str .= $npdls ? "PDL_Indx __creating[$npdls];\n" : "PDL_Indx __creating[1];\n";
+    if ($npdls) {
+      $str .= "PDL_Indx __creating[$npdls] = {" . join(',', (0) x $npdls) . "};\n";
+    } else {
+      $str .= "PDL_Indx __creating[1];\n";
+    }
     $str .= join '',map {$_->get_initdim."\n"} sort values %$dobjs;
 
     # if FlagCreat is NOT true, then we set __creating[] to 0
     # and we can use this knowledge below, and in hdrcheck()
     # and in PP/PdlParObj (get_xsnormdimchecks())
-    #
-    foreach ( 0 .. $nn ) {
-	$str .= "__creating[$_] = ";
-	if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
-	    $str .= "PDL_CR_SETDIMSCOND(__privtrans,$privname[$_]);\n";
-	} else {
-	    $str .= "0;\n";
-	}
-    } # foreach: 0 .. $nn
+    $str .= "__creating[$_] = PDL_CR_SETDIMSCOND(__privtrans,$privname[$_]);\n"
+      for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
 
     $str .= " {\n$pcode\n}\n";
     $str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
-		 PDL->initthreadstruct(2,\$PRIV(pdls),
-			__realdims,__creating,$npdls,
-                      &__einfo,&(\$PRIV(__pdlthread)),
-                        \$PRIV(vtable->per_pdl_flags),
-			$noPthreadFlag );
-		}\n";
+       PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(__pdlthread), \$PRIV(vtable->per_pdl_flags), $noPthreadFlag)
+      }\n";
     $str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
     $str .= hdrcheck($pnames,$pobjs);
     $str .= join '',map {$pobjs->{$pnames->[$_]}->
@@ -3370,38 +3336,17 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("CopyCodeNS",
 		      ["PrivCopyCode","CompCopyCode","StructName","NoPdlThread"],
 		      sub {
-			  PDL::PP::pp_line_numbers(__LINE__,
+			PDL::PP::pp_line_numbers(__LINE__,
 			    "$_[2] *__copy = malloc(sizeof($_[2])); memset(__copy, 0, sizeof($_[2]));\n" .
-			($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->__pdlthread);") .
-"			PDL_TR_CLRMAGIC(__copy);
-                        __copy->has_badvalue = \$PRIV(has_badvalue);
-                        __copy->badvalue = \$PRIV(badvalue);
-			__copy->flags = \$PRIV(flags);
-			__copy->vtable = \$PRIV(vtable);
-			__copy->__datatype = \$PRIV(__datatype);
-			__copy->freeproc = NULL;
-			__copy->__ddone = \$PRIV(__ddone);
-			{int i;
-			 for(i=0; i<__copy->vtable->npdls; i++)
-				__copy->pdls[i] = \$PRIV(pdls[i]);
-			}
-			$_[1]
-			if(__copy->__ddone) {
-				$_[0]
-			}
-			return (pdl_trans*)__copy;") }),
+			($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->__pdlthread);\n") .
+                        "PDL_COPYCODE($_[0], $_[1], \$PRIV(has_badvalue), \$PRIV(badvalue), \$PRIV(flags), \$PRIV(vtable), \$PRIV(__datatype), \$PRIV(__ddone), \$PRIV(pdls[i]))\n"
+                        )
+                      }),
 
    PDL::PP::Rule->new("FreeCodeNS",
-		      ["PrivFreeCode","CompFreeCode","NTPrivFreeCode"],
-		      sub {
-			  PDL::PP::pp_line_numbers(__LINE__, "
-			PDL_TR_CLRMAGIC(__privtrans);
-			$_[1]
-			if(__privtrans->__ddone) {
-				$_[0]
-				$_[2]
-			}
-			") }),
+      ["PrivFreeCode","CompFreeCode","NTPrivFreeCode"],
+      sub {
+	  PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], $_[1], $_[2])") }),
 
    PDL::PP::Rule::Substitute::Usual->new("CopyCode", "CopyCodeNS"),
    PDL::PP::Rule::Substitute::Usual->new("FreeCode", "FreeCodeNS"),

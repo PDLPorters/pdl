@@ -459,45 +459,56 @@ sub myprelude {
 
     my ($ord,$pdls) = $parent->get_pdls();
 
-    PDL::PP::pp_line_numbers(__LINE__, join "\n	",
-	  '',
-	  'PDL_COMMENT("THREADLOOPBEGIN")',
-	  'if ( PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return;
-           do { register PDL_Indx __tind1=0,__tind2=0;
-                register PDL_Indx __tnpdls = $PRIV(__pdlthread).npdls;
-                register PDL_Indx __tdims1 = $PRIV(__pdlthread.dims[1]);
-                register PDL_Indx __tdims0 = $PRIV(__pdlthread.dims[0]);
-                register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));',
+    my $str = '';
+    my $loop_key = "emitted_startthreadloop_$funcName";
+    my $macro_name = "PDL_STARTTHREADLOOP_$parent->{Name}_$funcName";
+    if (!$parent->{$loop_key}) {
+	$parent->{$loop_key} = 1;
+	$str .= join " \\\n\t",
+	  "#define $macro_name",
+	  'if ( PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return; \
+	   do { register PDL_Indx __tind1=0,__tind2=0; \
+		register PDL_Indx __tnpdls = $PRIV(__pdlthread).npdls; \
+		register PDL_Indx __tdims1 = $PRIV(__pdlthread.dims[1]); \
+		register PDL_Indx __tdims0 = $PRIV(__pdlthread.dims[0]); \
+		register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));',
 	  ( map { "register PDL_Indx __tinc0_${_} = \$PRIV(__pdlthread).incs[${_}];"} 0..$#{$ord}),
 	  ( map { "register PDL_Indx __tinc1_${_} = \$PRIV(__pdlthread).incs[__tnpdls+$_];"} 0.. $#{$ord}),
 	  ( map { $ord->[$_] ."_datap += __offsp[$_];"} 0..$#{$ord} ),
-	  'for( __tind2 = 0 ;
-                __tind2 < __tdims1 ;
-                __tind2++',
-	        ( map { "\t\t," . $ord->[$_] . "_datap += __tinc1_${_} - __tinc0_${_} * __tdims0"} 0..$#{$ord} ),
-             ')',
-	  '{
-	     for( __tind1 = 0 ;
-                  __tind1 < __tdims0 ;
-                  __tind1++',
-	          ( map { "\t\t," . $ord->[$_] . "_datap += __tinc0_${_}"} 0..$#{$ord}),
-	       ')',
-           '{  PDL_COMMENT("This is the tightest threadloop. Make sure inside is optimal.")'
-	);
+	  'for( __tind2 = 0 ; \
+		__tind2 < __tdims1 ; \
+		__tind2++',
+		( map { "\t\t," . $ord->[$_] . "_datap += __tinc1_${_} - __tinc0_${_} * __tdims0"} 0..$#{$ord} ),
+	     ')',
+	  '{ \
+	     for( __tind1 = 0 ; \
+		  __tind1 < __tdims0 ; \
+		  __tind1++',
+		  ( map { "\t\t," . $ord->[$_] . "_datap += __tinc0_${_}"} 0..$#{$ord}),
+	       ") {",
+	  "PDL_COMMENT(\"This is the tightest threadloop. Make sure inside is optimal.\")\n\n",
+	;
+    }
+    $str . PDL::PP::pp_line_numbers(__LINE__, $macro_name);
 }
 
 # Should possibly fold out thread.dims[0] and [1].
 sub mypostlude {my($this,$parent,$context) = @_;
-
- my ($ord,$pdls) = $parent->get_pdls();
- PDL::PP::pp_line_numbers(__LINE__, join "\n	",
-       '',
-       'PDL_COMMENT("THREADLOOPEND")',
-       '}',
-       '}',
-       ( map { $ord->[$_] . "_datap -= __tinc1_${_} * __tdims1 + __offsp[${_}];"} 0..$#{$ord} ),
-       '} while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));'
-     )
+    my ($ord,$pdls) = $parent->get_pdls();
+    my $loop_key = "emitted_endthreadloop";
+    my $macro_name = "PDL_ENDTHREADLOOP_$parent->{Name}";
+    my $str = '';
+    if (!$parent->{$loop_key}) {
+	$parent->{$loop_key} = 1;
+	$str .= join " \\\n\t",
+	    "\n#define $macro_name",
+	    '}',
+	    '}',
+	    ( map { $ord->[$_] . "_datap -= __tinc1_${_} * __tdims1 + __offsp[${_}];"} 0..$#{$ord} ),
+	    '} while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));'."\n",
+	    ;
+    }
+    $str . PDL::PP::pp_line_numbers(__LINE__, $macro_name);
 }
 
 # Simple subclass of ComplexThreadLoop to implement writeback code
