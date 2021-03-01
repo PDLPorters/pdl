@@ -99,10 +99,6 @@ sub getinds {
   }
 }
 
-sub resetinds {
-  my $this = shift;
-  for (keys %{$this->{Dims}}) {$this->{Dims}->{$_}->{Value} = undef;}
-}
 sub checkdims {
   my $this = shift;
   $this->getinds;  # we have to recreate to keep defaults currently
