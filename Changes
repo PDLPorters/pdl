@@ -1,3 +1,6 @@
+2.027 2021-03-06
+- no changes from 2.026_04
+
 2.026_04 2021-03-02
 - define and use C macros in PP for shorter, more comprehensible XS
 
