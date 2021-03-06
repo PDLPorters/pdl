@@ -249,6 +249,7 @@ subdirs
 
 README.md
 ^\.github/
+^Example/Benchmark/\.git
 
 ^cover_db/
 \.gc(ov|no|da)$

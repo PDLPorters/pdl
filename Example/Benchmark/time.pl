@@ -1,11 +1,4 @@
-use blib ".";
-use blib "../..";
 use PDL;
-# use PDL::Bench;
-BEGIN{
-require "Bench.pm";
-PDL::Bench->import();
-}
-
+use PDL::Bench;
 
 do_benchmark();

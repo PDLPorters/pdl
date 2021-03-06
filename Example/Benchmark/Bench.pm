@@ -24,7 +24,7 @@ use Benchmark;
 
 sub do_benchmark {
 	$size = 512;
-	$niter = 80;
+	$niter = 10000;
 	$piddle = (PDL->zeroes($size,$size));
 	$dref = ${$piddle->get_dataref()};
 	timethese($niter, {

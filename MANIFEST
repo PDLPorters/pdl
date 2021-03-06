@@ -209,7 +209,7 @@ Doc/TODO
 Example/Benchmark/Bench.pm
 Example/Benchmark/Bench.xs
 Example/Benchmark/Makefile.PL
-Example/Benchmark/README
+Example/Benchmark/README.md
 Example/Benchmark/time.pl
 Example/Fit/lmfit_example.pl
 Example/InlinePdlpp/inlpp.pl
