@@ -46,35 +46,33 @@ ok(tapprox($x-$y, 0.), 'check re/im and mag/ang equivalence')
 # to test Cabs, Cabs2, Carg (ref PDL)
 # Catan, Csinh, Ccosh, Catanh, Croots
 
-$cabs = sqrt($x->creal**2+$x->cimag**2);
+$cabs = sqrt($x->creal->double**2+$x->cimag->double**2);
 
 ok(ref abs $x eq 'PDL', 'Cabs type');
 ok(ref carg ($x) eq 'PDL', 'Carg type');
-ok(tapprox($cabs, abs $x), 'Cabs value');
-
-ok(tapprox($x**2, $x * $x), '** op complex')
-  or diag "For ($x), got: ", $x**2, ", expected: ", $x * $x;
-ok(tapprox($x->pow(2), $x * $x), 'complex pow')
-  or diag "Got: ", $x->pow(2), ", expected: ", $x * $x;
-ok(tapprox($x->power(2, 0), $x * $x), 'complex power')
-  or diag "Got: ", $x->power(2, 0), ", expected: ", $x * $x;
+ok(tapprox(abs $x, $cabs), 'Cabs value') or diag "got: (@{[abs $x]}), expected ($cabs)";
 
 # Check cat'ing of PDL::Complex
 $y = $x->creal->copy + 1;
 my $bigArray = $x->cat($y);
 #ok(abs($bigArray->sum() +  8 - 4*ci()) < .0001, 'check cat for PDL::Complex');
 
-my $z = pdl(0) + ci()*pdl(0);
-$z **= 2;
-
-ok(tapprox($z, 0 + 0*ci), 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
-
-my $r = pdl(-10) + ci()*pdl(0);
-$r **= 2;
-
-ok(tapprox($r, 100 + 0*ci),
-  'check that imaginary part is exactly zero') # Wasn't always so
-  or diag "got: ", $r;
+if (PDL::Core::Dev::got_complex_version('pow', 2)) {
+  ok(tapprox($x**2, $x * $x), '** op complex')
+    or diag "For ($x), got: ", $x**2, ", expected: ", $x * $x;
+  ok(tapprox($x->pow(2), $x * $x), 'complex pow')
+    or diag "Got: ", $x->pow(2), ", expected: ", $x * $x;
+  ok(tapprox($x->power(2, 0), $x * $x), 'complex power')
+    or diag "Got: ", $x->power(2, 0), ", expected: ", $x * $x;
+  my $z = pdl(0) + ci()*pdl(0);
+  $z **= 2;
+  ok(tapprox($z, 0 + 0*ci), 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
+  my $r = pdl(-10) + ci()*pdl(0);
+  $r **= 2;
+  ok(tapprox($r, 100 + 0*ci),
+    'check that imaginary part is exactly zero') # Wasn't always so
+    or diag "got: ", $r;
+}
 
 my $asin_2 = PDL::asin(2)."";
 like $asin_2, qr/nan/i, 'perl scalar 2 treated as real';
