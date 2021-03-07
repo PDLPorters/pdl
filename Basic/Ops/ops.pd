@@ -449,67 +449,35 @@ See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for detai
 
 # special functions for complex data types that somehow don't work well with
 # the ufunc/bifunc logic
-
-pp_def(
-	'carg',
+sub cfunc {
+    my ($name,$func,$doc, %extra) = @_;
+    my $badcode = '$ISBAD(a())';
+    my $codestr = "\$b() = \$TCG(${func},${func}f)(\$a());";
+    pp_def($name,
+	   GenericTypes=>$C,
+	   Pars => 'a(); [o]b()',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	 GenericTypes=>$C,
-	Pars=>'a(); double [o] b()',
-	Code=>'$b()=carg($a());',
-	BadCode => '
-		if ($ISBAD(a()) ) { $SETBAD(b()); } else { $b() = carg($a()); }
-		',
-	Doc=>'Returns the polar angle of a complex number. ' ,
-); # pp_def carg
+	   Inplace => 1,
+	   Code => pp_line_numbers(__LINE__,
+	       $codestr
+	   ),
+	   BadCode =>
+		    pp_line_numbers(__LINE__, 'if ( ' . $badcode . ' )
+		    $SETBAD(b());
+		    else {' . "\n" . $codestr . "}\n"
+		    ),
+	   %extra,
+	   Doc => $doc);
+}
 
-pp_def('conj',
-	   HandleBad => 1,
-	   NoBadifNaN => 1,
-	GenericTypes=>$C,
-	Doc=>'complex conjugate.',
-	Pars=>'a(); [o]b();',
-	Code => '$b()=conj($a());',
-	BadCode => '
-	       if ( $ISBAD(a())  )
-	           $SETBAD(b());
-	       else
-	           $b() = conj($a());
-	   ',
+cfunc('carg', 'carg', 'Returns the polar angle of a complex number.');
+cfunc('conj', 'conj', 'complex conjugate.');
+cfunc('creal', 'creal', 'Returns the real part of a complex number.');
+cfunc('cimag', 'cimag', 'Returns the imaginary part of a complex number.');
+cfunc('_cabs', 'cabs', 'Returns the absolute (length) of a complex number.',
+    PMFunc=>'',
 );
-
-pp_def(
-	'creal',
-	   HandleBad => 1,
-	   NoBadifNaN => 1,
-	 GenericTypes=>$C,
-	Pars=>'a(); double [o] b()',
-	Code=>'$b()=creal($a());',
-	BadCode => q{
-	       if ( $ISBAD(a())  )
-	           $SETBAD(b());
-	       else
-	           $b() = creal($a());
-	   },
-	Doc=>'Returns the real part of a complex number. ' ,
-); # pp_def creal
-
-
-pp_def(
-	'cimag',
-	   HandleBad => 1,
-	   NoBadifNaN => 1,
-	 GenericTypes=>$C,
-	Pars=>'a(); double [o]b()',
-	Code=>'$b()=cimag($a());',
-	BadCode => q{
-	       if ( $ISBAD(a())  )
-	           $SETBAD(b());
-	       else
-	           $b() = cimag($a());
-	   },
-Doc=>'Returns the imaginary part of a complex number. ' ,
-); # pp_def cimag
 
 pp_def(
 	'ci',
@@ -577,8 +545,6 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
    })
 );
 
-#pp_export_nothing();
-
 pp_def ( '_rabs',
 	GenericTypes=>[qw(B U S L N Q F D)],
 	Pars=>'a(); [o]b()',
@@ -592,21 +558,6 @@ pp_def ( '_rabs',
 		$b()=ABS ($a()) ; ',
 	Code=>'$b()=ABS ($a()) ; ',
 	Doc=>'Returns the absolute value of a number. ' ,
-	PMFunc=>'',
-);
-pp_def(
-	'_cabs',
-	 GenericTypes=>$C,
-	 HandleBad => 1,
-	 NoBadifNaN => 1,
-	Pars=>'a(); double [o] b()',
-	BadCode => q{
-	       if ( $ISBAD(a()) )
-	           $SETBAD(b());
-	       else
-		$b()=$TCG(cabs,cabsf)($a()); },
-	Code=> '$b()=$TCG(cabs,cabsf)($a());',
-	Doc=>'Returns the absolute (length) of a complex number. ' ,
 	PMFunc=>'',
 );
 
