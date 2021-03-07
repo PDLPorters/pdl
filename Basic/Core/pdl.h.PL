@@ -51,7 +51,7 @@ extern int pdl_debugging;
                 case PDL_LL:  outsv = newSViv( (IV)(inany.value.Q) ); break; \\
                 case PDL_F:   outsv = newSVnv( (NV)(inany.value.F) ); break; \\
                 case PDL_D:   outsv = newSVnv( (NV)(inany.value.D) ); break; \\
-                case PDL_CF:  outsv = newSV( 50 ); sv_setpvf(outsv, "%.9g%+.9gi", creal(inany.value.G),cimag(inany.value.G)); break; \\
+                case PDL_CF:  outsv = newSV( 50 ); sv_setpvf(outsv, "%.9g%+.9gi", crealf(inany.value.G),cimagf(inany.value.G)); break; \\
                 case PDL_CD:  outsv = newSV( 50 ); sv_setpvf(outsv, "%.17g%+.17gi",creal(inany.value.C),cimag(inany.value.C)); break; \\
                 default:      outsv = &PL_sv_undef; \\
             } \\
