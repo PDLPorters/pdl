@@ -123,3 +123,24 @@ jobs:
           cover -test -relative_only -gcov_chdir -report Coveralls
 
       - run: perl -Iblib/lib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
+
+  ci-ubuntu-containers:
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        container: ['centos:centos7']
+    steps:
+      - uses: actions/checkout@v2
+      - name: CentOS setup
+        if: matrix.container == 'centos:centos7'
+        run: |
+          uname -a
+          yum -y install perl perl-App-cpanminus gcc bzip2 patch
+      - run: perl -V
+      - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib && cpanm -n --installdeps . || cat ~/.cpanm/build.log
+      - name: Run tests
+        env:
+          HARNESS_OPTIONS: j4
+        run: perl Makefile.PL && make test

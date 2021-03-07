@@ -21,7 +21,7 @@ ok(tapprox($x->cimag,$ref->slice("1,:")), 'value from i - piddle');
 
 $x = cdouble (2,3);
 $x-=3*ci();
-ok(type ($x) eq 'cdouble', 'type promption piddle - i');
+ok(type ($x) eq 'cdouble', 'type promotion piddle - i');
 $y=cfloat($x);
 ok(type ($y) eq 'cfloat', 'type conversion to cfloat');
 ok(tapprox($x->cimag,$ref->slice("0,1")), 'value from piddle - i');
@@ -37,10 +37,11 @@ ok(tapprox($x->cimag, -$ref->slice("1,")*2), 'no dataflow after conversion');
 #  back we get the same thing
 $x = $ref2->copy;
 my $a=abs($x);
-my $p=carg($x);
+my $p=carg($x)->double; # force to double to avoid glibc bug 18594
 
 my $y = $a*cos($p)+ci()*$a*sin($p);
-ok(tapprox($x-$y, 0.), 'check re/im and mag/ang equivalence');
+ok(tapprox($x-$y, 0.), 'check re/im and mag/ang equivalence')
+  or diag "For ($x), got: ($y) from a=($a) p=($p) cos(p)=(", cos($p), ") sin(p)=(", sin($p), ")";
 
 # to test Cabs, Cabs2, Carg (ref PDL)
 # Catan, Csinh, Ccosh, Catanh, Croots

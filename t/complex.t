@@ -47,7 +47,7 @@ ok(ref $x eq PDL::Complex, 'type promotion i - real scalar');
 ok(tapprox($x->real,$ref), 'value from i - real scalar');
 
 $x = 1-i;
-ok(ref $x eq PDL::Complex, 'type promption real scalar - i');
+ok(ref $x eq PDL::Complex, 'type promotion real scalar - i');
 ok(tapprox($x->real,-$ref), 'value from real scalar - i');
 
 $ref = pdl([[-2,1],[-3,1]]);
@@ -57,7 +57,7 @@ ok(ref $x eq PDL::Complex, 'type promotion i - real piddle');
 ok(tapprox($x->real,$ref), 'value from i - real piddle');
 
 $x = pdl(2,3) - i;
-ok(ref $x eq PDL::Complex, 'type promption real piddle - i');
+ok(ref $x eq PDL::Complex, 'type promotion real piddle - i');
 ok(tapprox($x->real,-$ref), 'value from real piddle - i');
 
 # dataflow from complex to real

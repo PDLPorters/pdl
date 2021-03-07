@@ -1,5 +1,6 @@
 - stop claiming packages C::StructObj C::StructType C::Type C::Var SymTab Win32::DDE::Netscape XS
 - incorporate relevant improvements made in PDLA distros
+- fix t/nat_complex.t to avoid glibc bug 18594 (fixed v2.22)
 
 2.028 2021-03-07
 - correct complex-maths functions for their C types
