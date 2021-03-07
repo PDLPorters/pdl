@@ -189,21 +189,21 @@ EOH
 #a little dance to avoid the MOD macro warnings for byte & ushort datatypes
     my $codestr;
     my $badcodestr;
-    if ($extra{unsigned}){
     my $complex_bit = << "ENDCODE";
-  types(C) %{ \$c() = c$func}(\$a(),\$b()); %}
+  types(C) %{ \$c() = c${func}(\$a(),\$b()); %}
   types(G) %{ \$c() = c${func}f(\$a(),\$b()); %}
 ENDCODE
+    if ($extra{unsigned}){
     $codestr = << "ENDCODE";
   types(BU) %{ \$c() = BU_$func(\$a(),\$b()); %}
   types(SLNFD) %{ \$c() = $func(\$a(),\$b()); %}
   types(Q) %{ \$c() = Q_$func(\$a(),\$b()); %}
 ENDCODE
-    $codestr .= $complex_bit if $got_complex;
 } else {
-   $codestr = "\$c() = $func(\$a(),\$b());";
+   $codestr = "types(BUSLNQFD) %{ \$c() = $func(\$a(),\$b()); %}";
    }
  delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
+    $codestr .= $complex_bit if $got_complex;
 
  $badcodestr = 'if ( $ISBAD(a()) || $ISBAD(b()) )
 	       $SETBAD(c());

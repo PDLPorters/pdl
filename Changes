@@ -1,4 +1,5 @@
 - correct complex-maths functions for their C types
+- fix MOD-problem-dodging logic for native complex
 
 2.027 2021-03-06
 - no changes from 2.026_04
