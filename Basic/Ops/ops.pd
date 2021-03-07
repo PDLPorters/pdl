@@ -580,7 +580,7 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
 #pp_export_nothing();
 
 pp_def ( '_rabs',
-	GenericTypes=>[D,F,L,S],
+	GenericTypes=>[qw(B U S L N Q F D)],
 	Pars=>'a(); [o]b()',
 	HandleBad => 1,
 	NoBadifNaN => 1,
@@ -604,11 +604,11 @@ pp_def(
 	       if ( $ISBAD(a()) )
 	           $SETBAD(b());
 	       else
-		$b()=cabs ($a()) ; },
-	Code=>'$b()=cabs($a());',
+		$b()=$TCG(cabs,cabsf)($a()); },
+	Code=> '$b()=$TCG(cabs,cabsf)($a());',
 	Doc=>'Returns the absolute (length) of a complex number. ' ,
 	PMFunc=>'',
-); # pp_def cabs
+);
 
 pp_addpm(<<'EOPM');
 
