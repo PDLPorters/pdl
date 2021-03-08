@@ -1,3 +1,4 @@
+2.028_01 2021-03-08
 - stop claiming packages C::StructObj C::StructType C::Type C::Var SymTab Win32::DDE::Netscape XS
 - incorporate relevant improvements made in PDLA distros
 - fix t/nat_complex.t to avoid glibc bug 18594 (fixed v2.22)
