@@ -5,9 +5,10 @@
 #
 
 use strict;
-
 use Config;
 use File::Basename qw(&basename &dirname);
+
+my @TYPE_VERBATIM = qw/realctype ppforcetype usenan real unsigned integer/;
 
 # Figure out the 4 byte integer type on this machine
 
@@ -248,21 +249,18 @@ sub convertfunc {
 
 sub gentypehashentry ($$) {
   my ($type,$num) = @_;
-  for my $field (qw/identifier pdlctype realctype ppforcetype usenan
-		 defaultbadval/)
-    {checktypehas $field, $type}
+  checktypehas $_, $type
+    for qw/identifier pdlctype defaultbadval/, @TYPE_VERBATIM;
+  my $convertfunc = convertfunc($type);
   my $newhash = {
 		 ctype => $type->{pdlctype},
-		 realctype => $type->{realctype},
 		 ppsym => $type->{onecharident} || $type->{identifier},
-		 ppforcetype => $type->{ppforcetype},
-		 convertfunc => &convertfunc($type),
+		 convertfunc => $convertfunc,
 		 sym => &gentypenames($type),
 		 numval => $num,
-		 usenan => $type->{usenan},
-		 ioname => &convertfunc($type), # same as the name of the
-		                                # convertfunc
+		 ioname => $convertfunc,
 		 defbval => $type->{defaultbadval},
+		 (map +($_ => $type->{$_}), @TYPE_VERBATIM),
 		};
   return $newhash;
 }

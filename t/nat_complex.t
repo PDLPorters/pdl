@@ -18,8 +18,10 @@ $x = ci() -pdl (-2, -3);
 
 ok($x->type eq 'cdouble', 'type promotion i - piddle');
 ok(tapprox($x->cimag,$ref->slice("1,:")), 'value from i - piddle');
+ok !$x->type->real, 'complex type not real';
+ok double->real, 'real type is real';
 
-$x = cdouble (2,3);
+$x = cdouble(2,3);
 $x-=3*ci();
 ok(type ($x) eq 'cdouble', 'type promotion piddle - i');
 $y=cfloat($x);
