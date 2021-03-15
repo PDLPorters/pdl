@@ -1,3 +1,5 @@
+- native complex documented better - thanks @fantasma13
+
 2.032 2021-03-24
 - fix t/pptest.t so it passes on 5.10, add VERSION_FROM to pdlpp_stdargs
 

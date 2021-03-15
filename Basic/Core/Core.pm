@@ -2823,6 +2823,14 @@ Convert to float datatype
 
 Convert to double datatype
 
+=head2 cfloat
+
+Convert to complex float datatype
+
+=head2 double
+
+Convert to complex double datatype
+
 =head2 type
 
 =for ref
