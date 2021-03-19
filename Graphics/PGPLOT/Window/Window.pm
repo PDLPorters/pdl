@@ -555,7 +555,7 @@ output devices. Thus in such a hypothetical package one would say:
   my $win1 = Graphics::new('PGPLOT', {Device => '/xs'});
   my $win2 = Graphics::new('gnuplot', {Background => 'Gray'};
 
-From a more practical point of of view such abstraction also comes in
+From a more practical point of view such abstraction also comes in
 handy when you write a large program package and you do not want to import
 routines nilly-willy in which case an OO approach with method calls is a
 lot cleaner.

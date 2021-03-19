@@ -86,7 +86,7 @@ The complex constant five is equal to C<pdl(1,0)>:
    pdl> p $x = r2C 5
    5 +0i
 
-Now calculate the three cubic roots of of five:
+Now calculate the three cubic roots of five:
 
    pdl> p $r = Croots $x, 3
    [1.70998 +0i  -0.854988 +1.48088i  -0.854988 -1.48088i]

@@ -137,7 +137,7 @@ my @types = (
 		                     # but LLONG_MIN/LLONG_MAX are probably
 		                     # nonportable
 	                             # on the other hand 2^63 should be the
-                                     # value of of llong_max which we should be
+                                     # value of llong_max which we should be
                                      # able to compute at runtime ?!
 	real=>1,
 	integer=>1,
