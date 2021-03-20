@@ -102,11 +102,12 @@ Duh! Could be better. Now try by multiplying C<$r> three times with itself:
    [5 +0i  5 -4.72647e-15i  5 -7.53694e-15i]
 
 Well... maybe C<Cpow> (which is used by the C<**> operator) isn't as
-bad as I thought. Now multiply by C<i> and negate, which is just a very
-expensive way of swapping real and imaginary parts.
+bad as I thought. Now multiply by C<i> and negate, then take the complex
+conjugate, which is just a very expensive way of swapping real and
+imaginary parts.
 
-   pdl> p -($r*i)
-   [0 -1.70998i  1.48088 +0.854988i  -1.48088 +0.854988i]
+   pdl> p Cconj(-($r*i))
+   [0 +1.70998i  1.48088 -0.854988i  -1.48088 -0.854988i]
 
 Now plot the magnitude of (part of) the complex sine. First generate the
 coefficients:
