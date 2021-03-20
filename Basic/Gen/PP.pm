@@ -1562,6 +1562,7 @@ sub typemap {
     $mode = 'Typemap';
     $junk = "" ;
     $current = \$junk;
+    local $_; # else get "Modification of a read-only value attempted"
     while (<TYPEMAP>) {
 	next if /^\s*#/;
         my $line_no = $. + 1;
