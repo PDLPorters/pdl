@@ -45,14 +45,10 @@ sub doco {
 
 doco (qw/acos asin atan tan/, <<'EOF');
 The usual trigonometric function.
-Note that when input is a perl scalar and the real-value based function
-would return NaN, it now returns a cdouble.
 EOF
 
 doco (qw/cosh sinh tanh acosh asinh atanh/, <<'EOF');
 The standard hyperbolic function.
-Note that when input is a perl scalar and the real-value based function
-would return NaN, it now returns a cdouble.
 EOF
 
 doco (qw/ceil floor/,
