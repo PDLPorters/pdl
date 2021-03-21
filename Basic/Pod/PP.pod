@@ -138,15 +138,6 @@ Clear out the export list for your generated module
 
 Add line number information to simplify debugging of PDL::PP code
 
-
-=head2 pp_setversion
-
-=for ref
-
-Set the version for .pm and .xs files
-
-
-
 =head1 OVERVIEW
 
 For an alternate introduction to PDL::PP, see L<Practical Magick with
@@ -1784,12 +1775,17 @@ being imported from Core.pm.
 
 =head3 pp_setversion
 
-I am pretty sure that this allows you to simultaneously set the .pm and
-.xs files' versions, thus avoiding unnecessary version-skew between the
-two. To use this, simply have the following line at some point in your
-.pd file:
+Simultaneously set the F<.pm> and F<.xs> files' versions, thus avoiding
+unnecessary version-skew between the two. To use this, simply do this
+in your .pd file, probably near the top:
 
- pp_setversion('0.0.3');
+ our $VERSION = '0.0.3';
+ pp_setversion($VERSION);
+
+ # Then, in your Makefile.PL:
+ my @package = qw(FFTW3.pd FFTW3 PDL::FFTW3);
+ my %descriptor = pdlpp_stdargs(\@package);
+ $descriptor{VERSION_FROM} = 'FFTW3.pd'; # EUMM can parse the format above
 
 However, don't use this if you use L<Module::Build::PDL>. See that
 module's documentation for details.
