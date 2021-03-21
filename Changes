@@ -1,4 +1,5 @@
 - PDL::Types now have the data to make PDL::Type::real etc operate
+- pp_setversion treats (and preserves) version as string
 
 2.029 2021-03-12
 - no changes from 2.028_01

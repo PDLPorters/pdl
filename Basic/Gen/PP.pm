@@ -1042,7 +1042,7 @@ sub pp_beginwrap {
 sub pp_setversion {
 	my ($ver) = @_;
 	$::PDLMODVERSION = '$VERSION';
-	$::PDLVERSIONSET = "\$$::PDLPACK\::VERSION = $ver;";
+	$::PDLVERSIONSET = "our \$VERSION = '$ver';";
 }
 
 sub pp_addhdr {
@@ -1252,8 +1252,8 @@ unless (nopm) {
 #
 package $::PDLPACK;
 
-\@EXPORT_OK  = qw( $::PDLPMROUT);
-\%EXPORT_TAGS = (Func=>[\@EXPORT_OK]);
+our \@EXPORT_OK = qw($::PDLPMROUT);
+our \%EXPORT_TAGS = (Func=>[\@EXPORT_OK]);
 
 use PDL::Core$::PDLCOREIMPORT;
 use PDL::Exporter;
@@ -1262,7 +1262,7 @@ use DynaLoader;
 
 $::PDL_IFBEGINWRAP[0]
    $::PDLVERSIONSET
-   \@ISA    = ( $::PDLPMISA );
+   our \@ISA = ( $::PDLPMISA );
    push \@PDL::Core::PP, __PACKAGE__;
    bootstrap $::PDLMOD $::PDLMODVERSION;
 $::PDL_IFBEGINWRAP[-1]
