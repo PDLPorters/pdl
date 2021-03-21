@@ -2282,7 +2282,7 @@ Test the in-place flag on a piddle
   $out = ($in->is_inplace) ? $in : zeroes($in);
   $in->set_inplace(0)
 
-Provides access to the L</inplace> hint flag, within the perl millieu.
+Provides access to the L</inplace> hint flag, within the perl milieu.
 That way functions you write can be inplace aware... If given an
 argument the inplace flag will be set or unset depending on the value
 at the same time. Can be used for shortcut tests that delete the
@@ -2301,7 +2301,7 @@ Set the in-place flag on a piddle
   $out = ($in->is_inplace) ? $in : zeroes($in);
   $in->set_inplace(0);
 
-Provides access to the L</inplace> hint flag, within the perl millieu.
+Provides access to the L</inplace> hint flag, within the perl milieu.
 Useful mainly for turning it OFF, as L</inplace> turns it ON more
 conveniently.
 
