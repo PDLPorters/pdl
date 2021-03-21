@@ -1407,7 +1407,7 @@ The input piddles are the real and imaginary parts of
 complex coefficients of a polynomial. The output piddles are
 real and imaginary parts of the roots. There are C<n> roots
 to an C<n>th order polynomial and such a polynomial has
-C<n+1> coefficients (the zeoreth through the C<n>th). In
+C<n+1> coefficients (the zero-th through the C<n>th). In
 this example, threading will work correctly. That is, the
 first dimension of the output piddle with have its dimension
 adjusted, but other threading dimensions will be assigned
