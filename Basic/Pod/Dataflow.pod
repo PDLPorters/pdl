@@ -118,54 +118,54 @@ of where the error actually was.
 This is one of the more intricate concepts of one-directional dataflow.
 Consider the following code ($x and $y are pdls that have dataflow enabled):
 
-	$c = $x + $y;
-	$e = $c + 1;
-	$d = $c->diagonal();
-	$d ++;
-	$f = $c + 1;
+	$w = $u + $v;
+	$y = $w + 1;
+	$x = $w->diagonal();
+	$x++;
+	$z = $w + 1;
 
-What should $e and $f contain now? What about when $x is changed
+What should $y and $z contain now? What about when $u is changed
 and a recalculation is triggered.
 
 In order to make dataflow work like you'd expect, a rather strange
 concept must be introduced: families. Let us make a diagram:
 
-	a   b
+	u   v
 	 \ /
-	  c
+	  w
 	 /|
 	/ |
-       e  d
+       y  x
 
 This is what PDL actually has in memory after the first three lines.
-When $d is changed, we want $c to change but we don't want $e to change
+When $x is changed, we want $w to change but we don't want $y to change
 because it already is on the graph. It may not be clear now why you don't
 want it to change but if there were 40 lines of code between the 2nd
-and 4th lines, you would. So we need to make a copy of $c and $d:
+and 4th lines, you would. So we need to make a copy of $w and $x:
 
-	a   b
+	u   v
 	 \ /
-	  c' . . . c
+	  w' . . . w
 	 /|        |\
 	/ |        | \
-       e  d' . . . d  f
+       y  x' . . . x  z
 
-Notice that we primed the original c and d, because they do not correspond
-to the objects in $c and $d any more. Also, notice the dotted lines
-between the two objects: when $x is changed and this diagram is re-evaluated,
-$c really does get the value of c' with the diagonal incremented.
+Notice that we primed the original w and x, because they do not correspond
+to the objects in $w and $x any more. Also, notice the dotted lines
+between the two objects: when $u is changed and this diagram is re-evaluated,
+$w really does get the value of w' with the diagonal incremented.
 
 To generalize on the above, whenever a piddle is mutated i.e.
-when its actual *value* is forcibly changed (not just the reference:
+when its actual *value* is forcibly changed (not just the reference):
 
-	$d = $d + 1
+	$x = $x + 1
 
-would produce a completely different result ($c and $d would not be bound
+would produce a completely different result ($w and $x would not be bound
 any more whereas
 
-	$d .= $d + 1
+	$x .= $x + 1
 
-would yield the same as $d++), a "family" consisting of all other piddles
+would yield the same as $x++), a "family" consisting of all other piddles
 joined to the mutated piddle by a two-way transformation is created
 and all those are copied.
 
