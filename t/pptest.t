@@ -26,6 +26,7 @@ EOF
     'tests.pd' => <<'EOF',
 # make sure the deprecation mechanism throws warnings
 pp_deprecate_module( infavor => "PDL::Test::Fancy" );
+pp_setversion(qq{'0.01'}); # why god, why
 
 sub pp_deft {
     my ($name,%hash) = @_;

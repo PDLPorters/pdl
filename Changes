@@ -1,3 +1,5 @@
+- pp_setversion preserves version as string, handling quote characters
+
 2.030 2021-03-21
 - PDL::Types now have the data to make PDL::Type::real etc operate
 - pp_setversion treats (and preserves) version as string

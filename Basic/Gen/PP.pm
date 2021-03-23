@@ -1041,8 +1041,9 @@ sub pp_beginwrap {
 
 sub pp_setversion {
 	my ($ver) = @_;
+	$ver = qq{'$ver'} if $ver !~ /['"]/;
 	$::PDLMODVERSION = '$VERSION';
-	$::PDLVERSIONSET = "our \$VERSION = '$ver';";
+	$::PDLVERSIONSET = "our \$VERSION = $ver;";
 }
 
 sub pp_addhdr {
