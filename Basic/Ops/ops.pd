@@ -452,7 +452,7 @@ See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for detai
 sub cfunc {
     my ($name,$func,$doc, %extra) = @_;
     my $badcode = '$ISBAD(a())';
-    my $codestr = "\$b() = \$TCG(${func},${func}f)(\$a());";
+    my $codestr = "\$b() = $func\$TGC(f,)(\$a());";
     pp_def($name,
 	   GenericTypes=>$C,
 	   Pars => 'a(); [o]b()',
@@ -565,13 +565,7 @@ pp_addpm(<<'EOPM');
 
 sub PDL::abs {
 	my $x=shift;
-	my $ret;
-	if ($x->type eq 'cdouble' or $x->type eq 'cfloat') {
-		$ret=PDL::_cabs($x);
-	} else {
-		$ret=PDL::_rabs($x);
-	}
-	$ret;
+	$x->type->real ? PDL::_rabs($x) : PDL::_cabs($x);
 }
 
 EOPM
