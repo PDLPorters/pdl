@@ -1250,7 +1250,7 @@ operation, it clears the bad flag.
     Code => q{
         if ( $ISBAD(a()) ) {
         	/* _nan_xxx set up at top of file */
-            $b() = $TFD(_nan_float,_nan_double);
+            $b() = _nan_$TFD(float,double);
         }
         else {
             $b() = $a();

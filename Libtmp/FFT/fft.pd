@@ -122,8 +122,7 @@ pp_def('_fft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
 	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => [F,D],
-	Code => '$TFD(fftnf,fftn)
-	($SIZE(n), NULL , $P(real),$P(imag), -1, 1.);',
+	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), -1, 1.);',
 	Doc=>undef
 );
 
@@ -131,8 +130,7 @@ pp_def('_ifft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
 	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => [F,D],
-	Code => '$TFD(fftnf,fftn)
-	($SIZE(n), NULL , $P(real),$P(imag), 1, -1.);',
+	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
 	Doc=>undef
 );
 
@@ -435,7 +433,7 @@ sub PDL::fftnd{
 	   barf("fftnd: Out of memory for dimension array");
 	for (j=0;j<ns;j++)
 	  dima[j] = $dims(n=>j);
-	$TFD(fftnf,fftn)(ns, dima, $P(real),$P(imag), 1, 1.);
+	fftn$TFD(f,)(ns, dima, $P(real),$P(imag), 1, 1.);
 	free(dima);
 ',
 	Doc=>'N-dimensional FFT [inplace].'
@@ -466,7 +464,7 @@ sub PDL::ifftnd{
 	   barf("ifftnd: Out of memory for dimension array");
 	for (j=0;j<ns;j++)
 	  dima[j] = $dims(n=>j);
-	$TFD(fftnf,fftn)(ns, dima, $P(real),$P(imag), -1, -1.);
+	fftn$TFD(f,)(ns, dima, $P(real),$P(imag), -1, -1.);
 	free(dima);
 ',
 	Doc=>'N-dimensional inverse FFT [inplace].'

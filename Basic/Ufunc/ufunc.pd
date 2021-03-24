@@ -689,15 +689,13 @@ FOO
 
 sub generic_qsort {
     my $pdl = shift;
-    return '$TBSULNQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_N,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
+    return 'pdl_qsort_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(' . $pdl . '), 0, nn);';
 }
 
 sub generic_qsortvec {
     my $pdl = shift;
     my $ndim = shift;
-    return '$TBSULNQFD(pdl_qsortvec_B,pdl_qsortvec_S,pdl_qsortvec_U,
-             pdl_qsortvec_L,pdl_qsortvec_N,pdl_qsortvec_Q,pdl_qsortvec_F,pdl_qsortvec_D) ($P(' . $pdl . '), '. $ndim.', 0, nn);';
+    return 'pdl_qsortvec_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(' . $pdl . '), '. $ndim.', 0, nn);';
 }
 
 
@@ -798,7 +796,7 @@ BAD is the most common element, the returned value is also BAD.
 
                /* Copy input to buffer for sorting, and sort it */
                loop(n) %{ $sorted() = $data(); %}
-               PDL->$TBSULNQ(qsort_B,qsort_S,qsort_U,qsort_L,qsort_N,qsort_Q)($P(sorted),0,$SIZE(n)-1);
+               PDL->qsort_$TBSULNQ(B,S,U,L,N,Q)($P(sorted),0,$SIZE(n)-1);
       
                /* Walk through the sorted data and find the most common elemen */
                loop(n) %{
@@ -1238,8 +1236,7 @@ Bad values are moved to the end of the array:
     ); # pp_def qsort
 
 sub generic_qsort_ind {
-    return '$TBSULNQFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
-            pdl_qsort_ind_L,pdl_qsort_ind_N,pdl_qsort_ind_Q,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
+    return 'pdl_qsort_ind_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(a), $P(indx),
             0, nn);';
 }
 
@@ -1347,7 +1344,7 @@ Vectors with bad components should be moved to the end of the array:
 sub generic_qsortvec_ind {
     my $pdl = shift;
     my $ndim = shift;
-    return '$TBSULNQFD(pdl_qsortvec_ind_B,pdl_qsortvec_ind_S,pdl_qsortvec_ind_U,pdl_qsortvec_ind_L,pdl_qsortvec_ind_N,pdl_qsortvec_ind_Q,pdl_qsortvec_ind_F,pdl_qsortvec_ind_D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
+    return 'pdl_qsortvec_ind_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
 }
 
 pp_def(

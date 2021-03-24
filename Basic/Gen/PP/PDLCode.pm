@@ -1046,7 +1046,7 @@ sub get_str {my($this,$parent,$context) = @_;
 	my ($pdl,$inds,$name) = @{$this};
 	$pdl =~ /^\s*T([A-Z]+)\s*$/
 	  or confess("Macroaccess wrong in $name (allowed types $types): was '$pdl'\n");
-	my @lst = split ',',$inds;
+	my @lst = split ',', $inds, -1;
 	my @ilst = split '',$1;
 	if($#lst != $#ilst) {confess("Macroaccess: different nos of args $pdl $inds\n");}
 	croak "generic type access outside a generic loop in $name"
