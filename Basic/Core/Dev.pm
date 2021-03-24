@@ -483,6 +483,7 @@ sub pdlpp_stdargs {
  return (
  	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
+	 'VERSION_FROM' => $src,
 	 'TYPEMAPS'     => [&PDL_INST_TYPEMAP()],
 	 'OBJECT'       => "$pref\$(OBJ_EXT)",
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},

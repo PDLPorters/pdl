@@ -26,7 +26,8 @@ EOF
     'tests.pd' => <<'EOF',
 # make sure the deprecation mechanism throws warnings
 pp_deprecate_module( infavor => "PDL::Test::Fancy" );
-pp_setversion(qq{'0.01'}); # why god, why
+our $VERSION = '0.01'; # so the Makefile.PL's VERSION_FROM picks it up
+pp_setversion(qq{'0.01'}); # this doesn't use $VERSION only to check a bug is fixed
 
 sub pp_deft {
     my ($name,%hash) = @_;
