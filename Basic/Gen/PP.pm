@@ -3127,15 +3127,14 @@ $PDL::PP::deftbl =
 			  return 0 if $hasp2c;
 			  my $noDimmedArgs = scalar(keys %$dimObj);
 			  my $noArgs = scalar(@$USParNames);
-			  if( $noDimmedArgs == 0 and $noArgs == 2  ){
-			      # Check for 2-arg functgion with 0-dim signatures
-			      # Check to see if output arg is _not_ explicitly typed:
-			      my $arg2 = $USParNames->[1];
-			      my $ParObj = $USParObjs->{$arg2};
-			      if( $ParObj->ctype('generic') eq 'generic'){
-				  # print "Calling Copy for function '$Name'\n";
-				  return 1;
-			      }
+			  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
+			  # Check for 2-arg function with 0-dim signatures
+			  # Check to see if output arg is _not_ explicitly typed:
+			  my $arg2 = $USParNames->[1];
+			  my $ParObj = $USParObjs->{$arg2};
+			  if( $ParObj->ctype('generic') eq 'generic'){
+			      # print "Calling Copy for function '$Name'\n";
+			      return 1;
 			  }
 			  return 0;
 		      }),
