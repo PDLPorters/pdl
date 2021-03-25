@@ -48,6 +48,19 @@ just treat the piddle as a real-valued piddle with a lowest dimension of
 size 2, so C<max> will return the maximum of all real and imaginary parts,
 not the "highest" (for some definition)
 
+=head2 Native complex support
+
+2.027 added changes in complex number handling, with support for C99
+complex floating-point types, and most functions and modules in the core
+distribution support these as well.
+
+PDL can now handle complex numbers natively as scalars. This has
+the advantage that real and complex valued piddles have the same
+dimensions. Consider this when writing code in the future.
+
+See L<PDL::Ops/ci>, L<PDL::Ops/creal>, L<PDL::Ops/cimag>,
+L<PDL::Ops/cabs>, L<PDL::Ops/carg>, L<PDL::Ops/conj> for more.
+
 =head1 TIPS, TRICKS & CAVEATS
 
 =over 4

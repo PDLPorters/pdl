@@ -81,6 +81,12 @@ cannot find what you are looking for, try here.
 
 =back
 
+=head1 DATA TYPES
+
+PDL comes with support for most native numeric data types available in C.
+2.027 added support for C99 complex numbers.  See L<PDL::Complex>,
+L<PDL::Core>, L<PDL::Ops> and L<PDL::Math> for details on usage and
+behaviour.
 
 =head1 MODULES
 

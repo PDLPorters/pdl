@@ -2027,8 +2027,8 @@ Only used if C<HandleBad =E<gt> 1>.
 =item GenericTypes
 
 An array reference. The array may contain any subset of the one-character
-strings `B', `S', `U', `L', `Q', `F' and `D', which specify which types
-your operation will accept. The meaning of each type is:
+strings given below, which specify which types your operation will
+accept. The meaning of each type is:
 
  B - signed byte (i.e. signed char)
  S - signed short (two-byte integer)
@@ -2038,9 +2038,11 @@ your operation will accept. The meaning of each type is:
  Q - signed long long (eight byte integer)
  F - float
  D - double
+ G - complex float
+ C - complex double
 
 This is very useful (and important!) when interfacing an external library.
-Default: [qw/B S U L N Q F D/]
+Default: [qw/B S U L N Q F D C G/]
 
 =item Inplace
 
