@@ -271,7 +271,7 @@ sub gentypehashcode {
   local $Data::Dumper::Pad = "\t\t";
   my $i = 0;
   my $perlcode = '';
-  $perlcode .= "%PDL::Types::typehash = (\n";
+  $perlcode .= "our %typehash = (\n";
   for my $type (@types) {
     print STDOUT "making ".gentypenames($type)."...\n";
     $perlcode .= "\t".gentypenames($type)." =>\n";
@@ -321,24 +321,26 @@ print OUT <<'!NO!SUBS!';
 ### Generated from Types.pm.PL automatically - do not modify! ###
 
 package PDL::Types;
+use strict;
+use warnings;
 require Exporter;
 use Carp;
 
 !NO!SUBS!
 
 print OUT qq{
-\@EXPORT = qw( $typeexports
+our \@EXPORT = qw( $typeexports
 	       \@pack \%typehash );
 };
 
 print OUT <<'!NO!SUBS!';
 
-@EXPORT_OK = (@EXPORT, qw/types ppdefs typesrtkeys mapfld typefld/);
-%EXPORT_TAGS = (
-	All=>[@EXPORT,qw/types ppdefs typesrtkeys mapfld typefld/],
+our @EXPORT_OK = (@EXPORT, qw/types ppdefs typesrtkeys mapfld typefld/);
+our %EXPORT_TAGS = (
+	All=>[@EXPORT,@EXPORT_OK],
 );
 
-@ISA    = qw( Exporter );
+our @ISA    = qw( Exporter );
 
 !NO!SUBS!
 
@@ -346,10 +348,10 @@ print OUT qq{
 
 # Data types/sizes (bytes) [must be in order of complexity]
 # Enum
-( $typevars ) = (0..$ntypesm1);
+our ( $typevars ) = (0..$ntypesm1);
 # Corresponding pack types
-\@pack= qw/$packtypes/;
-\@names= qw/$typenames/;
+our \@pack= qw/$packtypes/;
+our \@names= qw/$typenames/;
 
 };
 
@@ -359,7 +361,7 @@ print OUT gentypehashcode @types;
 print OUT <<'!NO!SUBS!';
 
 # Cross-reference by common names
-%PDL::Types::typenames = ();
+our %typenames;
 for my $k(keys %PDL::Types::typehash) {
     my $n = $PDL::Types::typehash{$k}->{'numval'};
     $PDL::Types::typenames{$k} = $n;
@@ -522,7 +524,6 @@ return C header text for F<pdl.h> and F<pdlsimple.h>.
 
 sub datatypes_header {
     require Config;
-    $PDL_Indx_type = $Config::Config{'ivtype'};
     warn "Using new 64bit index support\n" if $Config::Config{'ivsize'}==8;
 
     my $anyval_union = '';
@@ -564,8 +565,6 @@ typedef enum { $enum } pdl_datatypes;
 /* Define the pdl data types */
 
 $typedefs
-
-/* typedef $PDL_Indx_type    PDL_Indx; */
 
 /*****************************************************************************/
 
@@ -694,7 +693,7 @@ print OUT <<'!NO!SUBS!';
     sub new {
         my($type,$val) = @_;
         if("PDL::Type" eq ref $val) { return bless [@$val],$type; }
-        if(ref $val and $val->isa(PDL)) {
+        if(ref $val and $val->isa('PDL')) {
             if($val->getndims != 0) {
               PDL::Core::barf(
                 "Can't make a type out of non-scalar piddle $val!");
