@@ -348,10 +348,6 @@ double NaN_double;
 
 # set up the qsort routines
 
-    # fortunately it looks like Types.pm.PL is processed before this
-    # file
-    require "./Types.pm";  # ie PDL::Types
-
 for (PDL::Types::typesrtkeys()) {
    my $ctype = $PDL::Types::typehash{$_}{ctype};
    my $ppsym = $PDL::Types::typehash{$_}{ppsym};

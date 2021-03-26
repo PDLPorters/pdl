@@ -688,6 +688,10 @@ print OUT <<'!NO!SUBS!';
 
 =cut
 
+sub types { # return all known types as type objects
+  map PDL::Type->new(typefld($_,'numval')), typesrtkeys();
+}
+
 {
     package PDL::Type;
     sub new {
@@ -700,26 +704,17 @@ print OUT <<'!NO!SUBS!';
             }
             $val = $val->at;
         }
-      PDL::Core::barf("Can't make a type out of non-scalar $val!".
-          (ref $val)."!") if ref $val;
-
-	if(length($PDL::Types::typenames{$val})) {
-	    $val =~ s/^\s*//o;
-	    $val =~ s/\s*$//o;
-	    return bless [$PDL::Types::typenames{$val}],$type;
-	} else {
-	    die("Unknown type string '$val' (should be one of ".
-                            join(",",map { $PDL::Types::typehash{$_}->{ioname} } @names).
-			    ")\n");
-	}
+        PDL::Core::barf("Can't make a type out of non-scalar $val!".
+            (ref $val)."!") if ref $val;
+        die "Unknown type string '$val' (should be one of ".
+            join(",",map $PDL::Types::typehash{$_}->{ioname}, @names).
+            ")\n"
+            if !defined $PDL::Types::typenames{$val};
+        return bless [$PDL::Types::typenames{$val}],$type;
     }
 
-sub enum   { return $_[0]->[0]; }
-sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
-sub PDL::Types::types { # return all known types as type objects
-  map { new PDL::Type PDL::Types::typefld($_,'numval') } 
-      PDL::Types::typesrtkeys();
-}
+    sub enum   { return $_[0]->[0]; }
+    sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
 
 !NO!SUBS!
 
@@ -727,16 +722,9 @@ foreach my $name ( qw( ctype ppsym convertfunc
 		       sym numval ioname defbval
                        ), @TYPE_VERBATIM ) {
   print OUT << "EOS";
-sub $name {
-  return \$PDL::Types::typehash{\$_[0]->symbol}->{$name};
-}
+    sub $name { \$PDL::Types::typehash{\$_[0]->symbol}->{$name}; }
 EOS
 }
-
-## add the code for returning the bad value for a particular
-## type. Up to (and including) 2.3.4, this code was actually in
-## Basic/Bad/bad.pd.
-##
 
 if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
@@ -753,13 +741,11 @@ sub orig_badvalue {
 }
 use strict 'refs';
 !NO!SUBS!
-
 } else {
     print OUT qq{
 sub badvalue { return undef; }
 sub orig_badvalue { return undef; }
 };
-
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
@@ -768,17 +754,16 @@ sub shortctype { my $txt = $_[0]->ctype; $txt =~ s/PDL_//; return $txt; }
 
 # make life a bit easier
 use overload (
-	      "\"\""  => sub { lc $_[0]->shortctype },
-              "eq"    => sub { my($self, $other, $swap) = @_;
-          		     return ("$self" eq $other);
-              },
-              "cmp"   => sub { my($self, $other, $swap) = @_;
-          		     return ($swap ? $other cmp "$self" : "$self" cmp $other);
-              },
-	      "<=>"   => sub { $_[2] ? $_[1]->enum <=> $_[0]->enum :
-	                               $_[0]->enum <=> $_[1]->enum },
-	     );
-
+  '""'  => sub { lc $_[0]->shortctype },
+  "eq"  => sub { my($self, $other, $swap) = @_;
+    return ("$self" eq $other);
+  },
+  "cmp" => sub { my($self, $other, $swap) = @_;
+    $swap ? $other cmp "$self" : "$self" cmp $other;
+  },
+  "<=>" => sub { $_[2] ? $_[1]->enum <=> $_[0]->enum :
+                         $_[0]->enum <=> $_[1]->enum },
+);
 
 } # package: PDL::Type
 # Return
