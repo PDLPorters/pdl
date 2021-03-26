@@ -219,23 +219,19 @@ sub typeval {
 sub ctype {
   my ($this,$generic) = @_;
   return $generic unless $this->{FlagTyped};
-  croak "ctype: unknownn type"
-    unless defined($Typemap{$this->{Type}});
-  my $type = $Typemap{$this->{Type}}->{Ctype};
-  if ($this->{FlagTplus}) {
-    $type = $Typemap{$this->{Type}}->{Val} >
-      PDL::PP::PdlParObj::typeval($generic) ?
-      $Typemap{$this->{Type}}->{Ctype} : $generic;
-  }
-  return $type;
+  confess "ctype: unknown type '$this->{Type}'"
+    unless defined(my $type = $Typemap{$this->{Type}});
+  return $type->{Val} > typeval($generic) ? $type->{Ctype} : $generic
+    if $this->{FlagTplus};
+  $type->{Ctype};
 }
 
 # return the enum type for a parobj; it'd better be typed
 sub cenum {
     my $this = shift;
-    croak "cenum: unknown type [" . $this->{Type} . "]"
-	unless defined($PDL::PP::PdlParObj::Typemap{$this->{Type}});
-    return $PDL::PP::PdlParObj::Typemap{$this->{Type}}->{Cenum};
+    croak "cenum: unknown type [$this->{Type}]"
+	unless defined($Typemap{$this->{Type}});
+    return $Typemap{$this->{Type}}->{Cenum};
 }
 
 sub get_nname{ my($this) = @_;
