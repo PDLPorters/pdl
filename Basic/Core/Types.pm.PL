@@ -740,22 +740,18 @@ EOS
 
 if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
-
 no strict 'refs';
 sub badvalue {
   my ( $self, $val ) = @_;
-  my $name = "PDL::_badvalue_int" . $self->enum();
-  if ( defined $val ) { return &{$name}( $val )->sclr; }
-  else                { return &{$name}( undef )->sclr; }
+  my $name = "PDL::_badvalue_int" . $self->enum;
+  $name->( $val )->sclr;
 }
-
 sub orig_badvalue {
   my $self = shift;
-  my $name = "PDL::_default_badvalue_int" . $self->enum();
-  return &{$name}()->sclr;
+  my $name = "PDL::_default_badvalue_int" . $self->enum;
+  $name->()->sclr;
 }
 use strict 'refs';
-
 !NO!SUBS!
 
 } else {
