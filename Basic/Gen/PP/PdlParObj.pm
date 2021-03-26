@@ -23,18 +23,21 @@ our $macros = <<'EOF';
   PDL_Anyval name ## _anyval_badval = PDL->get_pdl_badvalue(pdlname); \
   ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval);
 EOF
-our %Typemap = ();
 use PDL::Types ':All';
 
 # build a typemap for our translation purposes
 # again from info in PDL::Types
+my %PPTYPE2INFO = ();
 for my $typ (typesrtkeys) {
-  $Typemap{typefld($typ,'ppforcetype')} = {
-					  Ctype => typefld($typ,'ctype'),
-					  Cenum => typefld($typ,'sym'),
-					  Val =>   typefld($typ,'numval'),
-					 };
+  $PPTYPE2INFO{typefld($typ,'ppforcetype')} = {
+    Ctype => typefld($typ,'ctype'),
+    Cenum => typefld($typ,'sym'),
+    Val =>   typefld($typ,'numval'),
+  };
 }
+my %CTYPE2VAL = map +(
+  $PPTYPE2INFO{$_}{Ctype} => $PPTYPE2INFO{$_}{Val}
+), keys %PPTYPE2INFO;
 
 # Try to load Text::Balanced
 my $hasTB = 0;
@@ -202,17 +205,10 @@ sub getcreatedims {
       $_->{Value} } @{$this->{IndObjs}};
 }
 
-
 # find the value for a given PDL type
 sub typeval {
   my $ctype = shift;
-  my @match = grep {$Typemap{$_}->{Ctype} =~ /^$ctype$/} keys(%Typemap);
-  if ($#match < 0) {
-    use Data::Dumper;
-    print Dumper \%Typemap;
-    croak "unknown PDL type '$ctype'" ;
-  }
-  return $Typemap{$match[0]}->{Val};
+  $CTYPE2VAL{$ctype} // confess "unknown PDL type '$ctype'";
 }
 
 # return the PDL type for this pdl
@@ -220,7 +216,7 @@ sub ctype {
   my ($this,$generic) = @_;
   return $generic unless $this->{FlagTyped};
   confess "ctype: unknown type '$this->{Type}'"
-    unless defined(my $type = $Typemap{$this->{Type}});
+    unless defined(my $type = $PPTYPE2INFO{$this->{Type}});
   return $type->{Val} > typeval($generic) ? $type->{Ctype} : $generic
     if $this->{FlagTplus};
   $type->{Ctype};
@@ -228,10 +224,10 @@ sub ctype {
 
 # return the enum type for a parobj; it'd better be typed
 sub cenum {
-    my $this = shift;
-    croak "cenum: unknown type [$this->{Type}]"
-	unless defined($Typemap{$this->{Type}});
-    return $Typemap{$this->{Type}}->{Cenum};
+  my $this = shift;
+  croak "cenum: unknown type '$this->{Type}'"
+    unless defined($PPTYPE2INFO{$this->{Type}});
+  return $PPTYPE2INFO{$this->{Type}}->{Cenum};
 }
 
 sub get_nname{ my($this) = @_;
