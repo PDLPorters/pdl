@@ -724,10 +724,9 @@ sub PDL::Types::types { # return all known types as type objects
 
 !NO!SUBS!
 
-foreach my $name ( qw( ctype ppsym realctype ppforcetype convertfunc
-		       sym numval usenan ioname defbval
-		       real integer unsigned
-                       ) ) {
+foreach my $name ( qw( ctype ppsym convertfunc
+		       sym numval ioname defbval
+                       ), @TYPE_VERBATIM ) {
   print OUT << "EOS";
 sub $name {
   return \$PDL::Types::typehash{\$_[0]->symbol}->{$name};
