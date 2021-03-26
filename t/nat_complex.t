@@ -23,9 +23,9 @@ ok double->real, 'real type is real';
 
 $x = cdouble(2,3);
 $x-=3*ci();
-ok(type ($x) eq 'cdouble', 'type promotion piddle - i');
+is type($x), 'cdouble', 'type promotion piddle - i';
 $y=cfloat($x);
-ok(type ($y) eq 'cfloat', 'type conversion to cfloat');
+is type($y), 'cfloat', 'type conversion to cfloat';
 ok(tapprox($x->cimag,$ref->slice("0,1")), 'value from piddle - i');
 
 # dataflow from complex to real

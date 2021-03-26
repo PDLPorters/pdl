@@ -624,7 +624,7 @@ use PDL::Types ':All'; # typefld et al.
 # which means the hack to add 'int' to %use_nan
 #
 my %use_nan =
-    map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
+    map +(typefld($_, 'convertfunc') => typefld($_, 'usenan')*$usenan), typesrtkeys;
 $use_nan{int} = 0;
 
 # original try
@@ -651,7 +651,7 @@ sub use_nan ($) {
 
     $type =~ s/^PDL_//;
     $type = lc $type;
-    die "ERROR: Unknown type [$type] used in a 'Bad' macro."
+    Carp::confess("ERROR: Unknown type [$type] used in a 'Bad' macro.")
 	unless exists $use_nan{$type};
     return $use_nan{$type};
 }

@@ -1,17 +1,12 @@
-##############################################
-
-##############################################
-
 package PDL::PP::PdlParObj;
 
+use strict;
+use warnings;
 use Carp;
-use PDL::Types;
-
-# check for bad value support
-#
+use PDL::Types ':All';
 use PDL::Config;
-my $usenan = $PDL::Config{BADVAL_USENAN} || 0;
 
+my $usenan = $PDL::Config{BADVAL_USENAN} || 0;
 our $macros = <<'EOF';
 #define PDL_REDODIMS(declini, cast, type, flag, name, pdlname) \
   declini name ## _datap = (cast(PDL_REPRP_TRANS(pdlname, flag))); \
@@ -23,7 +18,6 @@ our $macros = <<'EOF';
   PDL_Anyval name ## _anyval_badval = PDL->get_pdl_badvalue(pdlname); \
   ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval);
 EOF
-use PDL::Types ':All';
 
 # build a typemap for our translation purposes
 # again from info in PDL::Types
@@ -213,7 +207,7 @@ sub typeval {
 
 # return the PDL type for this pdl
 sub ctype {
-  my ($this,$generic) = @_;
+  my ($this, $generic) = @_;
   return $generic unless $this->{FlagTyped};
   confess "ctype: unknown type '$this->{Type}'"
     unless defined(my $type = $PPTYPE2INFO{$this->{Type}});
@@ -368,7 +362,7 @@ sub do_access {
 	if(scalar(keys %subst) != 0) {
 		confess("Substitutions left: ".(join ',',keys %subst)."\n");
 	}
-       return "$text PDL_COMMENT(\"ACCESS($access)\") ";
+       $text;
 }
 
 sub has_dim {
@@ -439,15 +433,15 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 #
 sub get_xsdatapdecl { 
     my($this,$genlooptype,$asgnonly) = @_;
-    my $type; 
-    my $pdl = $this->get_nname; 
+    my $type;
+    my $pdl = $this->get_nname;
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};
     $type = $this->ctype($genlooptype) if defined $genlooptype;
     my $declini = ($asgnonly ? "" : "$type *");
     my $cast = ($type ? "($type *)" : "");
     my $macro = "PDL_REDODIMS";
-    # assuming we always need this 
+    # assuming we always need this
     # - may not be true - eg if $asgnonly ??
     # - not needed for floating point types when using NaN as bad values
     $macro = "PDL_REDODIMS_BADVAL" if $this->{BadFlag} and $type and
