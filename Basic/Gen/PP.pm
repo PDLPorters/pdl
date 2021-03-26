@@ -2542,8 +2542,10 @@ sub coerce_types {
 	    $dtype = $po->{Type}->sym;
 	    $dtype = "PDLMAX($dtype,\$PRIV(__datatype))"
 		if $po->{FlagTplus};
+	} elsif ( $po->{FlagReal} ) {
+	    $dtype = '($PRIV(__datatype) < PDL_CF ? $PRIV(__datatype) : $PRIV(__datatype) - (PDL_CF - PDL_F))'
 	} else {
-	    $dtype = "\$PRIV(__datatype)";
+	    $dtype = '$PRIV(__datatype)';
 	}
 
 	if ( $po->{FlagCreateAlways} ) {

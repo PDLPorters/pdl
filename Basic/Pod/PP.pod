@@ -696,6 +696,11 @@ analogous to the C<indx> qualifier C<double> results in C<b> always being of
 type double regardless of the type of C<a> without leading to a
 type conversion of C<a> as a side effect.
 
+There is also a special type, C<real>. The others above are all actual
+PDL/C datatypes, but C<real> is a modifier; if the operation type is real,
+it has no effect; if it is complex, then the parameter will be the real
+version - so C<cdouble> becomes C<double>, etc.
+
 Finally, there are the C<type+> qualifiers where type is one of C<int>
 or C<float>. What shall that mean. Let's illustrate the C<int+>
 qualifier with the actual definition of sumover:

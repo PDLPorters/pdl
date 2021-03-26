@@ -75,7 +75,7 @@ sub splitprotected ($$) {
 #
 my $typeregex = join '|', map $_->ppforcetype, types;
 our $pars_re = qr/^
-	\s*((?:$typeregex)[+]*|)\s*	# $1: first option
+	\s*((?:real|$typeregex)[+]*|)\s*	# $1: first option
 	(?:
 	\[([^]]*)\]   	# $2: The initial [option] part
 	)?\s*
@@ -105,6 +105,7 @@ sub new {
 			and $this->{FlagCreateAlways}=1 or
 		/^t$/ and $this->{FlagTemp}=1 and $this->{FlagCreat}=1 and $this->{FlagW}=1 or
 		/^phys$/ and $this->{FlagPhys} = 1 or
+		/^real$/ and $this->{FlagReal} = 1 or
 		/^((?:$typeregex)[+]*)$/ and $this->{Type} = $1 and $this->{FlagTyped} = 1 or
 		confess("Invalid flag $_ given for $string\n");
 	}
@@ -188,6 +189,7 @@ sub getcreatedims {
 
 sub adjusted_type {
   my ($this, $generic) = @_;
+  return $generic->realversion if $this->{FlagReal};
   return $generic unless $this->{FlagTyped};
   return $this->{Type}->numval > $generic->numval
     ? $this->{Type} : $generic

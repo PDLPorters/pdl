@@ -450,12 +450,12 @@ See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for detai
 # special functions for complex data types that somehow don't work well with
 # the ufunc/bifunc logic
 sub cfunc {
-    my ($name,$func,$doc, %extra) = @_;
+    my ($name, $func, $make_real, $doc, %extra) = @_;
     my $badcode = '$ISBAD(a())';
     my $codestr = "\$b() = $func\$TGC(f,)(\$a());";
     pp_def($name,
 	   GenericTypes=>$C,
-	   Pars => 'a(); [o]b()',
+	   Pars => 'a(); '.($make_real ? 'real' : '').' [o]b()',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
@@ -471,11 +471,11 @@ sub cfunc {
 	   Doc => $doc);
 }
 
-cfunc('carg', 'carg', 'Returns the polar angle of a complex number.');
-cfunc('conj', 'conj', 'complex conjugate.');
-cfunc('creal', 'creal', 'Returns the real part of a complex number.');
-cfunc('cimag', 'cimag', 'Returns the imaginary part of a complex number.');
-cfunc('_cabs', 'cabs', 'Returns the absolute (length) of a complex number.',
+cfunc('carg', 'carg', 1, 'Returns the polar angle of a complex number.');
+cfunc('conj', 'conj', 0, 'complex conjugate.');
+cfunc('creal', 'creal', 1, 'Returns the real part of a complex number.');
+cfunc('cimag', 'cimag', 1, 'Returns the imaginary part of a complex number.');
+cfunc('_cabs', 'cabs', 1, 'Returns the absolute (length) of a complex number.',
     PMFunc=>'',
 );
 

@@ -169,6 +169,12 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	      },
+# the complex types need to be in the same order as their real
+# counterparts, because the "real" ppforcetype relies on a fixed interval
+# between real and complex versions
+# they also need to occur at the end of the types, as a < PDL_CF
+# comparison is done at C level to see if a type is real, analogous to
+# the < PDL_F above
 	      {
 		  identifier => 'CF',
 		  onecharident => 'G',   # only needed if different from identifier
@@ -179,6 +185,7 @@ my @types = (
 		  packtype => '(ff)*',
 	          defaultbadval => '(complex float)( -FLT_MAX/2)',
 	          real=>0,
+	          realversion=>'F',
 	          integer=>0,
 	          unsigned=>0,
 	      },
@@ -192,6 +199,7 @@ my @types = (
 		  packtype => '(dd)*',
 	          defaultbadval => '(complex double)( -DBL_MAX/2)',
 	          real=>0,
+	          realversion=>'D',
 	          integer=>0,
 	          unsigned=>0,
 	      },
@@ -246,15 +254,17 @@ sub gentypehashentry ($$) {
     for qw/identifier pdlctype defaultbadval/, @TYPE_VERBATIM;
   my $convertfunc = convertfunc($type);
   (my $shortctype = $type->{pdlctype}) =~ s/PDL_//;
+  my $ppsym = $type->{onecharident} || $type->{identifier};
   +{
     ctype => $type->{pdlctype},
-    ppsym => $type->{onecharident} || $type->{identifier},
+    ppsym => $ppsym,
     convertfunc => $convertfunc,
     sym => &gentypenames($type),
     numval => $num,
     ioname => $convertfunc,
     defbval => $type->{defaultbadval},
     shortctype => $shortctype,
+    realversion => $type->{realversion} || $ppsym,
     (map +($_ => $type->{$_}), @TYPE_VERBATIM),
   };
 }
@@ -363,7 +373,7 @@ my @RTKEYS = map $_->{sym}, @HASHES;
 our %typenames;
 for my $h (@HASHES) {
   my $n = $h->{numval};
-  $typenames{$_} = $n for $n, @$h{qw(sym ioname ctype ppforcetype)};
+  $typenames{$_} = $n for $n, @$h{qw(sym ioname ctype ppforcetype ppsym)};
 }
 
 =head1 NAME
@@ -694,6 +704,10 @@ sub types { @CACHED_TYPES }
     sub enum { $_[0][0] }
     *symbol = \&sym;
 
+    sub realversion {
+      $CACHED_TYPES[$PDL::Types::typenames{ $_[0][1]{realversion} }];
+    }
+
 !NO!SUBS!
 
 foreach my $name ( qw( ctype ppsym convertfunc shortctype
@@ -850,6 +864,10 @@ I<Required>. Boolean - is this an unsigned type?
 real
 
 I<Required>. Boolean - is this a real (not complex) type?
+
+realversion
+
+String - the real version of this type (e.g. cdouble -> 'D').
 
 =back
 
