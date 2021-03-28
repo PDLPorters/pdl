@@ -1223,15 +1223,11 @@ our @CARP_NOT;
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-	     croak "generic type access outside a generic loop"
-	       unless defined $parent->{Gencurtype}->[-1];
-	     my $type = $parent->{Gencurtype}->[-1];
-	     if ($this->[0]) {
-	       croak "not a defined name"
-		 unless defined($parent->{ParObjs}{$this->[0]});
-	       $type = $parent->{ParObjs}{$this->[0]}->ctype($type);
-	     }
-	     return $type;
+  croak "generic type access outside a generic loop"
+    unless defined(my $type = $parent->{Gencurtype}->[-1]);
+  return $type if !$this->[0];
+  my $pobj = $parent->{ParObjs}{$this->[0]} // croak "not a defined parname";
+  $pobj->ctype($type);
 }
 
 ########################
