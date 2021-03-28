@@ -184,6 +184,132 @@ sub make_loopind { my($this,$ind) = @_;
 	return [$ind,$orig];
 }
 
+# my ( $threadloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
+#
+# separates the code into an array of C fragments (strings),
+# variable references (strings starting with $) and
+# loops (array references, 1. item = variable.
+#
+sub separate_code {
+   ## $DB::single=1;
+    my ( $this, $code ) = @_;
+
+    # First check for standard code errors:
+    catch_code_errors($code);
+
+    my $coderef = PDL::PP::Block->new;
+
+    my @stack = ($coderef);
+    my $threadloops = 0;
+    my $sizeprivs = {};
+
+    local $_ = $code;
+##    print "Code to parse = [$_]\n" if $::PP_VERBOSE;
+    while($_) {
+	# Parse next statement
+
+	# I'm not convinced that having the checks twice is a good thing,
+	# since it makes it easy (for me at least) to forget to update one
+	# of them
+
+	s/^(.*?) # First, some noise is allowed. This may be bad.
+	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
+                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]\w*\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
+###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
+                |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
+	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
+		|\bloop\s*\([^)]+\)\s*%\{   # loop(..) %{
+		|\btypes\s*\([^)]+\)\s*%\{  # types(..) %{
+		|\bthreadloop\s*%\{         # threadloop %{
+		|%}                        # %}
+		|$)//xs
+		    or confess("Invalid program $_");
+		my $control = $2;
+		# Store the user code.
+		# Some day we shall parse everything.
+		push @{$stack[-1]},$1;
+
+		if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
+
+		# Then, our control.
+		if($control) {
+			if($control =~ /^loop\s*\(([^)]+)\)\s*%\{/) {
+				my $ob = PDL::PP::Loop->new([split ',',$1],
+						   $sizeprivs,$this);
+				print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+			} elsif($control =~ /^types\s*\(([^)]+)\)\s*%\{/) {
+				my $ob = PDL::PP::Types->new($1,$this);
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+			} elsif($control =~ /^threadloop\s*%\{/) {
+				my $ob = PDL::PP::ThreadLoop->new;
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+				$threadloops ++;
+			} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},PDL::PP::PPBadAccess->new($1,$2,$3,$this);
+			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},PDL::PP::BadVarAccess->new($1,$2,$3,$this);
+			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
+				push @{$stack[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
+			} elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},PDL::PP::PDLStateBadAccess->new($1,$2,$3,$this);
+			} elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
+				push @{$stack[-1]},PDL::PP::Access->new($control,$this);
+			} elsif($control =~ /^%}/) {
+			    pop @stack;
+			} else {
+				confess("Invalid control: $control\n");
+			}
+		} else {
+			print("No \$2!\n") if $::PP_VERBOSE;
+		}
+    } # while: $_
+
+    return ( $threadloops, $coderef, $sizeprivs );
+
+} # sub: separate_code()
+
+# This is essentially a collection of regexes that look for standard code
+# errors and croaks with an explanation if they are found.
+sub catch_code_errors {
+	my $code_string = shift;
+
+	# Look for constructs like
+	#   loop %{
+	# which is invalid - you need to specify the dimension over which it
+	# should loop
+	report_error('Expected dimension name after "loop" and before "%{"', $1)
+		if $code_string =~ /(.*\bloop\s*%\{)/s;
+
+}
+
+# Report an error as precisely as possible. If they have #line directives
+# in the code string, use that in the reporting; otherwise, use standard
+# Carp mechanisms
+my $line_re = qr/#\s*line\s+(\d+)\s+"([^"]*)"/;
+sub report_error {
+	my ($message, $code) = @_;
+
+	# Just croak if they didn't supply a #line directive:
+	croak($message) if $code !~ $line_re;
+
+	# Find the line at which the error occurred:
+	my $line = 0;
+	my $filename;
+	LINE: foreach (split /\n/, $code) {
+		$line++;
+		if (/$line_re/) {
+			$line = $1;
+			$filename = $2;
+		}
+	}
+
+	die "$message at $filename line $line\n";
+}
+
 
 #####################################################################
 #
@@ -573,15 +699,15 @@ sub new { my($type,$str,$parent) = @_;
 	$str =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/ or
 		confess ("Access wrong: '$str'\n");
 	my($pdl,$inds) = ($1,$2);
-	if($pdl =~ /^T/) {new PDL::PP::MacroAccess($pdl,$inds,
+	if($pdl =~ /^T/) {PDL::PP::MacroAccess->new($pdl,$inds,
 						   $parent->{Generictypes},$parent->{Name});}
-	elsif($pdl =~ /^P$/) {new PDL::PP::PointerAccess($pdl,$inds);}
-	elsif($pdl =~ /^PP$/) {new PDL::PP::PhysPointerAccess($pdl,$inds);}
-        elsif($pdl =~ /^SIZE$/) {new PDL::PP::SizeAccess($pdl,$inds);}
-        elsif($pdl =~ /^RESIZE$/) {new PDL::PP::ReSizeAccess($pdl,$inds);}
-        elsif($pdl =~ /^GENERIC$/) {new PDL::PP::GentypeAccess($pdl,$inds);}
-	elsif($pdl =~ /^PDL$/) {new PDL::PP::PdlAccess($pdl,$inds);}
-	elsif(!defined $parent->{ParObjs}{$pdl}) {new PDL::PP::OtherAccess($pdl,$inds);}
+	elsif($pdl =~ /^P$/) {PDL::PP::PointerAccess->new($pdl,$inds);}
+	elsif($pdl =~ /^PP$/) {PDL::PP::PhysPointerAccess->new($pdl,$inds);}
+        elsif($pdl =~ /^SIZE$/) {PDL::PP::SizeAccess->new($pdl,$inds);}
+        elsif($pdl =~ /^RESIZE$/) {PDL::PP::ReSizeAccess->new($pdl,$inds);}
+        elsif($pdl =~ /^GENERIC$/) {PDL::PP::GentypeAccess->new($pdl,$inds);}
+	elsif($pdl =~ /^PDL$/) {PDL::PP::PdlAccess->new($pdl,$inds);}
+	elsif(!defined $parent->{ParObjs}{$pdl}) {PDL::PP::OtherAccess->new($pdl,$inds);}
 	else {
 		bless [$pdl,$inds],$type;
 	}
@@ -1190,145 +1316,6 @@ sub xxx_get_generictypes { my($this) = @_;
 		$this->{Types} =~ /$_->[0]/ ? [mapfld($_->[0],'ppsym'=>'sym'),$_->[1],$_->[2],$_->[0]] : ()
 	}
 	       @typetable];
-}
-
-
-package PDL::PP::Code;
-
-# my ( $threadloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
-#
-# umm, can't call classes defined later on in code ...
-# hence moved to end of file
-# (rather ugly...)
-#
-# XXX The above statement is almost certainly false. This module is parsed
-#     before separate_code is ever called, so all of the class definitions
-#     should exist. -- David Mertens, Dec 2 2011
-#
-# separates the code into an array of C fragments (strings),
-# variable references (strings starting with $) and
-# loops (array references, 1. item = variable.
-#
-sub separate_code {
-   ## $DB::single=1;
-    my ( $this, $code ) = @_;
-
-    # First check for standard code errors:
-    catch_code_errors($code);
-
-    my $coderef = new PDL::PP::Block;
-
-    my @stack = ($coderef);
-    my $threadloops = 0;
-    my $sizeprivs = {};
-
-    local $_ = $code;
-##    print "Code to parse = [$_]\n" if $::PP_VERBOSE;
-    while($_) {
-	# Parse next statement
-
-	# I'm not convinced that having the checks twice is a good thing,
-	# since it makes it easy (for me at least) to forget to update one
-	# of them
-
-	s/^(.*?) # First, some noise is allowed. This may be bad.
-	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
-                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]\w*\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
-###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
-                |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
-	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
-		|\bloop\s*\([^)]+\)\s*%\{   # loop(..) %{
-		|\btypes\s*\([^)]+\)\s*%\{  # types(..) %{
-		|\bthreadloop\s*%\{         # threadloop %{
-		|%}                        # %}
-		|$)//xs
-		    or confess("Invalid program $_");
-		my $control = $2;
-		# Store the user code.
-		# Some day we shall parse everything.
-		push @{$stack[-1]},$1;
-
-		if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
-
-		# Then, our control.
-		if($control) {
-			if($control =~ /^loop\s*\(([^)]+)\)\s*%\{/) {
-				my $ob = new PDL::PP::Loop([split ',',$1],
-						   $sizeprivs,$this);
-				print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-			} elsif($control =~ /^types\s*\(([^)]+)\)\s*%\{/) {
-				my $ob = new PDL::PP::Types($1,$this);
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-			} elsif($control =~ /^threadloop\s*%\{/) {
-				my $ob = new PDL::PP::ThreadLoop();
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-				$threadloops ++;
-			} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
-				push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
-			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
-				push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
-			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
-				push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
-	#	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-	#		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
-			} elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-				push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
-			} elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
-				push @{$stack[-1]},new PDL::PP::Access($control,$this);
-			} elsif($control =~ /^%}/) {
-			    pop @stack;
-			} else {
-				confess("Invalid control: $control\n");
-			}
-		} else {
-			print("No \$2!\n") if $::PP_VERBOSE;
-		}
-    } # while: $_
-
-    return ( $threadloops, $coderef, $sizeprivs );
-
-} # sub: separate_code()
-
-# This is essentially a collection of regexes that look for standard code
-# errors and croaks with an explanation if they are found.
-sub catch_code_errors {
-	my $code_string = shift;
-
-	# Look for constructs like
-	#   loop %{
-	# which is invalid - you need to specify the dimension over which it
-	# should loop
-	report_error('Expected dimension name after "loop" and before "%{"', $1)
-		if $code_string =~ /(.*\bloop\s*%\{)/s;
-
-}
-
-# Report an error as precisely as possible. If they have #line directives
-# in the code string, use that in the reporting; otherwise, use standard
-# Carp mechanisms
-my $line_re = qr/#\s*line\s+(\d+)\s+"([^"]*)"/;
-sub report_error {
-	my ($message, $code) = @_;
-
-	# Just croak if they didn't supply a #line directive:
-	croak($message) if $code !~ $line_re;
-
-	# Find the line at which the error occurred:
-	my $line = 0;
-	my $filename;
-	LINE: foreach (split /\n/, $code) {
-		$line++;
-		if (/$line_re/) {
-			$line = $1;
-			$filename = $2;
-		}
-	}
-
-	die "$message at $filename line $line\n";
 }
 
 # return true
