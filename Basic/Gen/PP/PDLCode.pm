@@ -774,17 +774,10 @@ sub use_nan ($) {
 
 sub convert ($$$$$) {
     my ( $parent, $name, $lhs, $rhs, $opcode ) = @_;
-
-    my $type = $parent->{Gencurtype}[-1];
     die "ERROR: unable to find type info for $opcode access"
-	unless defined $type;
-
-    # note: gentype may not be sensible because the
-    # actual piddle could have a 'fixed' type
+	unless defined(my $type = $parent->{Gencurtype}[-1]);
     die "ERROR: unable to find piddle $name in parent!"
-	unless exists $parent->{ParObjs}{$name};
-    my $pobj = $parent->{ParObjs}{$name};
-
+	unless my $pobj = $parent->{ParObjs}{$name};
     # based on code from from PdlParObj::ctype()
     # - want to handle FlagTplus case
     # - may not be correct
@@ -795,7 +788,6 @@ sub convert ($$$$$) {
 	print "#DBG: hacked <$name> to type <$type>\n" if $::PP_VERBOSE;
     } elsif ( exists $pobj->{FlagTyped} and $pobj->{FlagTyped} ) {
 	$type = $pobj->{Type};
-
 	# this should use Dev.pm - fortunately only worried about double/float here
 	# XXX - do I really know what I'm doing ?
 	if ( $pobj->{FlagTplus} ) {
@@ -807,18 +799,8 @@ sub convert ($$$$$) {
 	    }
 	}
     }
-
-    if ( use_nan($type) ) {
-	if ( $opcode eq "SETBAD" ) {
-#	    $rhs = "(0.0/0.0)";
-	    $rhs = $set_nan{$type};
-	} else {
-	    $rhs = "0";
-	    $lhs = "finite($lhs)";
-	}
-    }
-
-    return ( $lhs, $rhs );
+    return ($lhs, $rhs) if !use_nan($type);
+    $opcode eq "SETBAD" ? ($lhs, $set_nan{$type}) : ("finite($lhs)", "0");
 }
 
 ###########################
