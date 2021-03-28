@@ -453,16 +453,14 @@ sub get_generictyperecs { my($types) = @_;
 # Types: BSULFD
 sub new {
     my($type,$types,$name,$varnames,$whattype) = @_;
-    bless [get_generictyperecs($types),$name,$varnames,
-	   $whattype],$type;
+    bless [get_generictyperecs($types),$name,$varnames, $whattype],$type;
 }
 
 sub myoffs {4}
 
 sub myprelude {
-    my($this,$parent,$context) = @_;
+    my ($this,$parent,$context) = @_;
     push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
-
     # horrible hack for PDL::PP::NaNSupport
     if ( $this->[1] ne "" ) {
 	my ( @test ) = keys %{$parent->{pars}};
@@ -470,66 +468,43 @@ sub myprelude {
 	    if $#test != -1;
 	$parent->{pars} = {};
     }
-
-    my $thisis_loop = '';
-    if ( $parent->{types} ) {
-	$thisis_loop = join '',
-	map {
-	    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n"
-	    }
-	(ppdefs);
-    }
-
-    return <<WARNING_EATER;
+    <<WARNING_EATER;
 PDL_COMMENT("Start generic loop")
-$thisis_loop
+@{[$this->_thisisloop($parent)]}
 	switch($this->[3]) { case -42: PDL_COMMENT("Warning eater") {(void)1;
 WARNING_EATER
 }
 
-sub myitem {
-    my($this,$parent,$nth) = @_;
-#	print "GENERICITEM\n";
-    my $item = $this->[0]->[$nth];
-    if(!$item) {return "";}
-    $parent->{Gencurtype}->[-1] = $item->[1];
+sub _thisisloop {
+    my ($this, $parent, @extra) = @_;
+    !$parent->{types} ? '' : join '',
+	map "#undef THISIS$this->[1]_$_->[0]\n#define THISIS$this->[1]_$_->[0](a)$_->[1]\n",
+	(map [$_, ''], ppdefs()), map [$_, ' a'], @extra;
+}
 
+sub myitem {
+    my ($this,$parent,$nth) = @_;
+    my $item = $this->[0]->[$nth] || return "";
+    $parent->{Gencurtype}->[-1] = $item->[1];
     # horrible hack for PDL::PP::NaNSupport
     if ( $this->[1] ne "" ) {
 	foreach my $parname ( @{$this->[2]} ) {
 	    $parent->{pars}{$parname} = $item->[1];
 	}
     }
-
-    my $thisis_loop = '';
-    if ( $parent->{types} ) {
-	$thisis_loop = (
-			join '',
-			map {
-			    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
-			}
-			(ppdefs)
-			) .
-			    "#undef THISIS$this->[1]_$item->[3]\n" .
-				"#define THISIS$this->[1]_$item->[3](a) a\n";
-    }
-
-    return PDL::PP::pp_line_numbers(__LINE__, "\t} break; case $item->[0]: {\n".
-	$thisis_loop .
-	    (join '',map{
-		# print "DAPAT: '$_'\n";
-		$parent->{ParObjs}{$_}->get_xsdatapdecl($item->[1]);
-	    } (@{$this->[2]})));
+    PDL::PP::pp_line_numbers(__LINE__, join '',
+	"\t} break; case $item->[0]: {\n",
+	$this->_thisisloop($parent, $item->[3]),
+	map $parent->{ParObjs}{$_}->get_xsdatapdecl($item->[1]),
+	    @{$this->[2]});
 }
 
 sub mypostlude {
     my($this,$parent,$context) = @_;
     pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
-
     # horrible hack for PDL::PP::NaNSupport
     if ( $this->[1] ne "" ) { $parent->{pars} = {}; }
-
-    return "\tbreak;}
+    "\tbreak;}
 	default:barf(\"PP INTERNAL ERROR! PLEASE MAKE A BUG REPORT\\n\");}\n";
 }
 
