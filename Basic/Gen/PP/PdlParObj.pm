@@ -87,7 +87,7 @@ sub splitprotected ($$) {
 # need for $badflag is due to hacked get_xsdatapdecl() 
 # - this should disappear when (if?) things are done sensibly
 #
-my $typeregex = join '|', map {typefld($_,'ppforcetype')} typesrtkeys;
+my $typeregex = join '|', map $_->ppforcetype, types;
 our $pars_re = qr/^
 	\s*((?:$typeregex)[+]*|)\s*	# $1: first option
 	(?:
@@ -127,7 +127,7 @@ sub new {
 #	}
 	if ($this->{FlagTyped} && $this->{Type} =~ s/[+]$// ) {
 	  $this->{FlagTplus} = 1;
-		}
+	}
 	if($this->{FlagNCreat}) {
 		delete $this->{FlagCreat};
 		delete $this->{FlagCreateAlways};

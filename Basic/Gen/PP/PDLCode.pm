@@ -13,7 +13,6 @@ use strict;
 # check for bad value support
 #
 use PDL::Config;
-#use vars qw ( $bvalflag $usenan );
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 
@@ -327,9 +326,9 @@ package PDL::PP::Block;
 
 sub new { my($type) = @_; bless [],$type; }
 
-sub myoffs { return 0; }
+sub myoffs { 0 }
 sub myprelude {}
-sub myitem {return "";}
+sub myitem { "" }
 sub mypostlude {}
 
 sub get_str {
@@ -436,24 +435,16 @@ our @ISA = "PDL::PP::Block";
 
 # make the typetable from info in PDL::Types
 use PDL::Types ':All';
-my @typetable = map {[$typehash{$_}->{ppsym},
-		  $typehash{$_}->{ctype},
-		  $typehash{$_}->{numval},
-		 ]} typesrtkeys;
+my @typetable = map [$_->sym, $_->ctype, $_->numval, $_->ppsym], types();
 sub get_generictyperecs { my($types) = @_;
-	my $foo;
-	return [map {$foo = $_;
-		( grep {/$foo->[0]/} (@$types) ) ?
-		  [mapfld($_->[0],'ppsym'=>'sym'),$_->[1],$_->[2],$_->[0]]
-		  : ()
-	}
-	       @typetable];
+    my %wanted; @wanted{@$types} = ();
+    [ grep exists $wanted{$_->[3]}, @typetable ];
 }
 
 # Types: BSULFD
 sub new {
-    my($type,$types,$name,$varnames,$whattype) = @_;
-    bless [get_generictyperecs($types),$name,$varnames, $whattype],$type;
+    my ($type,$types,$name,$varnames,$whattype) = @_;
+    bless [get_generictyperecs($types), $name, $varnames, $whattype], $type;
 }
 
 sub myoffs {4}
@@ -717,7 +708,6 @@ package PDL::PP::OtherAccess;
 sub new { my($type,$pdl,$inds) = @_; bless [$pdl,$inds],$type; }
 sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 
-
 ###########################
 #
 # used by BadAccess code to know when to use NaN support
@@ -742,17 +732,6 @@ use PDL::Types ':All'; # typefld et al.
 my %use_nan =
     map +(typefld($_, 'convertfunc') => typefld($_, 'usenan')*$usenan), typesrtkeys;
 $use_nan{int} = 0;
-
-# original try
-##my %use_nan =
-##  map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
-
-# Was the following, before new Type "interface"
-#     ( byte => 0, short => 0, ushort => 0, long => 0,
-#       int => 0,  longlong => 0, # necessary for fixed-type piddles (or something)
-#       float => $usenan,
-#       double => $usenan
-#       );
 
 my %set_nan =
     (

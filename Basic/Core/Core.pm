@@ -15,7 +15,7 @@ use PDL::Types ':All';
 use Config;
 
 our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
-my @convertfuncs = map PDL::Types::typefld($_,'convertfunc'), PDL::Types::typesrtkeys();
+my @convertfuncs = map $_->convertfunc, PDL::Types::types();
 my @exports_internal = qw(howbig threadids topdl);
 my @exports_normal   = (@EXPORT,
   @convertfuncs,
@@ -58,14 +58,12 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *at		= \&PDL::at;	  *flows	= \&PDL::flows;
 *sclr           = \&PDL::sclr;    *shape        = \&PDL::shape;
 
-for (map {
-  [ PDL::Types::typefld($_,'convertfunc'), PDL::Types::typefld($_,'numval') ]
-} PDL::Types::typesrtkeys()) {
-  my ($conv, $val) = @$_;
+for my $t (PDL::Types::types()) {
+  my $conv = $t->convertfunc;
   no strict 'refs';
   *$conv = *{"PDL::$conv"} = sub {
-    return bless [$val], "PDL::Type" unless @_;
-    alltopdl('PDL', (scalar(@_)>1 ? [@_] : shift), PDL::Type->new($val));
+    return $t unless @_;
+    alltopdl('PDL', (@_>1 ? [@_] : shift), $t);
   };
 }
 
