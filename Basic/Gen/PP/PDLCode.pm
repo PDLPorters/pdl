@@ -1126,36 +1126,30 @@ use PDL::Types ':All';
 my $types = join '',ppdefs;
 our @CARP_NOT;
 
-sub new { my($type,$pdl,$inds,$gentypes,$name) = @_;
-	  $pdl =~ /^\s*T([A-Z]+)\s*$/ or confess("Macroaccess wrong: $pdl\n");
-	  my @ilst = split '',$1;
-	  for my $gt (@$gentypes) {
-	    warn "$name has no Macro for generic type $gt (has $pdl)\n"
-	      unless grep {$gt eq $_} @ilst }
-	  for my $mtype (@ilst) {
-	    warn "Macro for unsupported generic type identifier $mtype".
-	      " (probably harmless)\n"
-	      unless grep {$mtype eq $_} @$gentypes;
-	  }
-	  return bless [$pdl,$inds,$name],
-	    $type; }
+sub new {
+    my ($type, $pdl, $inds, $gentypes, $name) = @_;
+    $pdl =~ /^\s*T([A-Z]+)\s*$/
+      or confess("Macroaccess wrong in $name (allowed types $types): was '$pdl'\n");
+    my @ilst = split '', $1;
+    my @lst = split ',', $inds, -1;
+    confess "Macroaccess: different nos of args $pdl $inds\n" if @lst != @ilst;
+    my %type2value; @type2value{@ilst} = @lst;
+    warn "$name has no Macro for generic type $_ (has $pdl)\n"
+	for grep !exists $type2value{$_}, @$gentypes;
+    my %gts; @gts{@$gentypes} = ();
+    warn "Macro for unsupported generic type identifier $_\n"
+	for grep !exists $gts{$_}, @ilst;
+    bless [\%type2value, $name], $type;
+}
 
-sub get_str {my($this,$parent,$context) = @_;
-	my ($pdl,$inds,$name) = @{$this};
-	$pdl =~ /^\s*T([A-Z]+)\s*$/
-	  or confess("Macroaccess wrong in $name (allowed types $types): was '$pdl'\n");
-	my @lst = split ',', $inds, -1;
-	my @ilst = split '',$1;
-	if($#lst != $#ilst) {confess("Macroaccess: different nos of args $pdl $inds\n");}
-	croak "generic type access outside a generic loop in $name"
-	  unless defined $parent->{Gencurtype}->[-1];
-	my $type = mapfld $parent->{Gencurtype}->[-1], 'ctype' => 'ppsym';
-	#     print "Type access: $type\n";
-	croak "unknown Type in $name (generic type currently $parent->{Gencurtype}->[-1]"
-	  unless defined $type;
-	for (0..$#lst) {
-	  return "$lst[$_]" if $ilst[$_] =~ /$type/;
-	}
+sub get_str {
+    my ($this, $parent, $context) = @_;
+    my ($type2value, $name) = @{$this};
+    croak "generic type access outside a generic loop in $name"
+      unless defined $parent->{Gencurtype}->[-1];
+    croak "unknown Type in $name (generic type currently $parent->{Gencurtype}->[-1]"
+      unless defined(my $type = mapfld $parent->{Gencurtype}->[-1], 'ctype' => 'ppsym');
+    $type2value->{$type};
 }
 
 
