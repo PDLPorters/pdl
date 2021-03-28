@@ -432,13 +432,28 @@ sub mypostlude { my($this,$parent,$context) = @_;
 # (makes the xs code easier to read)
 #
 package PDL::PP::GenericLoop;
-@PDL::PP::GenericLoop::ISA = "PDL::PP::Block";
+our @ISA = "PDL::PP::Block";
+
+# make the typetable from info in PDL::Types
+use PDL::Types ':All';
+my @typetable = map {[$typehash{$_}->{ppsym},
+		  $typehash{$_}->{ctype},
+		  $typehash{$_}->{numval},
+		 ]} typesrtkeys;
+sub get_generictyperecs { my($types) = @_;
+	my $foo;
+	return [map {$foo = $_;
+		( grep {/$foo->[0]/} (@$types) ) ?
+		  [mapfld($_->[0],'ppsym'=>'sym'),$_->[1],$_->[2],$_->[0]]
+		  : ()
+	}
+	       @typetable];
+}
 
 # Types: BSULFD
-use PDL::Types ':All';
 sub new {
     my($type,$types,$name,$varnames,$whattype) = @_;
-    bless [(PDL::PP::get_generictyperecs($types)),$name,$varnames,
+    bless [get_generictyperecs($types),$name,$varnames,
 	   $whattype],$type;
 }
 
@@ -1270,13 +1285,6 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::TypeConv;
 
-# make the typetable from info in PDL::Types
-use PDL::Types ':All';
-my @typetable = map {[$typehash{$_}->{ppsym},
-		  $typehash{$_}->{ctype},
-		  $typehash{$_}->{numval},
-		 ]} typesrtkeys;
-
 sub print_xscoerce { my($this) = @_;
 	$this->printxs("\t__priv->datatype=PDL_B;\n");
 # First, go through all the types, selecting the most general.
@@ -1297,26 +1305,6 @@ sub print_xscoerce { my($this) = @_;
 	}
 }
 # XXX Should use PDL::Core::Dev;
-
-no strict 'vars';
-
-# STATIC!
-sub PDL::PP::get_generictyperecs { my($types) = @_;
-	my $foo;
-	return [map {$foo = $_;
-		( grep {/$foo->[0]/} (@$types) ) ?
-		  [mapfld($_->[0],'ppsym'=>'sym'),$_->[1],$_->[2],$_->[0]]
-		  : ()
-	}
-	       @typetable];
-}
-
-sub xxx_get_generictypes { my($this) = @_;
-	return [map {
-		$this->{Types} =~ /$_->[0]/ ? [mapfld($_->[0],'ppsym'=>'sym'),$_->[1],$_->[2],$_->[0]] : ()
-	}
-	       @typetable];
-}
 
 # return true
 1;
