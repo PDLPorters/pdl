@@ -585,7 +585,8 @@ ppm : doctest ppd
 EOT
 
 $text .= "\n" . ::coretarget($self);
-my $coretest = join ' ', map File::Spec->catfile('t', $_), qw(core.t ops.t);
+my $coretest = join ' ', map File::Spec->catfile('t', $_),
+  qw(core.t ops.t bad.t nat_complex.t);
 $text .= <<EOF;
 
 coretest : core

@@ -102,11 +102,9 @@ my @types = (
 	      unsigned=>0,
 	     },
 
-#
 # The PDL_Indx type will be either the same as PDL_Long or, probably,
 # the same as PDL_LongLong depending on the platform.  Will need to
 # determine the actual type at build time.
-
        {
         identifier => 'IND',
         onecharident => 'N',   # only needed if different from identifier
@@ -120,11 +118,9 @@ my @types = (
         integer=>1,
         unsigned=>0,
        },
-#
-#
+
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
-#
        {
 	identifier => 'LL',
 	onecharident => 'Q',   # only needed if different from identifier
@@ -249,17 +245,16 @@ sub gentypehashentry ($$) {
   checktypehas $_, $type
     for qw/identifier pdlctype defaultbadval/, @TYPE_VERBATIM;
   my $convertfunc = convertfunc($type);
-  my $newhash = {
-		 ctype => $type->{pdlctype},
-		 ppsym => $type->{onecharident} || $type->{identifier},
-		 convertfunc => $convertfunc,
-		 sym => &gentypenames($type),
-		 numval => $num,
-		 ioname => $convertfunc,
-		 defbval => $type->{defaultbadval},
-		 (map +($_ => $type->{$_}), @TYPE_VERBATIM),
-		};
-  return $newhash;
+  +{
+    ctype => $type->{pdlctype},
+    ppsym => $type->{onecharident} || $type->{identifier},
+    convertfunc => $convertfunc,
+    sym => &gentypenames($type),
+    numval => $num,
+    ioname => $convertfunc,
+    defbval => $type->{defaultbadval},
+    (map +($_ => $type->{$_}), @TYPE_VERBATIM),
+  };
 }
 
 sub gentypehashcode {
@@ -361,15 +356,13 @@ print OUT gentypehashcode @types;
 print OUT <<'!NO!SUBS!';
 
 # Cross-reference by common names
+my @HASHES = sort {$a->{numval} <=> $b->{numval}} values %typehash;
+my @RTKEYS = map $_->{sym}, @HASHES;
 our %typenames;
-for my $k(keys %PDL::Types::typehash) {
-    my $n = $PDL::Types::typehash{$k}->{'numval'};
-    $PDL::Types::typenames{$k} = $n;
-    $PDL::Types::typenames{$n} = $n;
-    $PDL::Types::typenames{$PDL::Types::typehash{$k}->{ioname}} = $n;
-    $PDL::Types::typenames{$PDL::Types::typehash{$k}->{ctype}} = $n;
+for my $h (@HASHES) {
+  my $n = $h->{numval};
+  $typenames{$_} = $n for $n, @$h{qw(sym ioname ctype ppforcetype)};
 }
-
 
 =head1 NAME
 
@@ -414,10 +407,7 @@ Returns an array of keys of typehash sorted in order of type complexity
 
 =cut
 
-sub typesrtkeys {
-  return sort {$typehash{$a}->{numval} <=> $typehash{$b}->{numval}}
-	keys %typehash;
-}
+sub typesrtkeys { @RTKEYS }
 
 =head2 ppdefs
 
@@ -433,9 +423,8 @@ Returns an array of pp symbols for all known types
 
 =cut
 
-sub ppdefs {
-	return map {$typehash{$_}->{ppsym}} typesrtkeys;
-}
+my @PPDEFS = map $_->{ppsym}, @HASHES;
+sub ppdefs { @PPDEFS }
 
 =head2 typefld
 
@@ -526,20 +515,11 @@ sub datatypes_header {
     require Config;
     warn "Using new 64bit index support\n" if $Config::Config{'ivsize'}==8;
 
-    my $anyval_union = '';
-    my $enum = 'PDL_INVALID=-1, ';
-    my $typedefs = '';
-    for (sort { $typehash{$a}{'numval'}<=>$typehash{$b}{'numval'} }  keys %typehash) {
-     $enum .= $typehash{$_}{'sym'}.", ";
-     $anyval_union .= "        $typehash{$_}{'ctype'} $typehash{$_}{'ppsym'};\n";
-     $typedefs .= "typedef $typehash{$_}{'realctype'}              $typehash{$_}{'ctype'};\n";
-    }
-    chop $enum;
-    chop $enum;
-
-    $typedefs .= "typedef struct {\n    pdl_datatypes type;\n    union {\n";
-    $typedefs .= $anyval_union;
-    $typedefs .= "    } value;\n} PDL_Anyval;\n";
+    my $enum = join ', ', 'PDL_INVALID=-1', map $_->{sym}, @HASHES;
+    my $typedefs = join '', map "typedef $_->{realctype} $_->{ctype};\n", @HASHES;
+    $typedefs .= "typedef struct {\n  pdl_datatypes type;\n  union {\n";
+    $typedefs .= join '', map "  $_->{ctype} $_->{ppsym};\n", @HASHES;
+    $typedefs .= "  } value;\n} PDL_Anyval;\n";
 
     my $indx_type = typefld('PDL_IND','realctype');
     $typedefs .= '#define IND_FLAG ';
@@ -550,9 +530,9 @@ sub datatypes_header {
     } else {
 	$typedefs .= qq|"d"|;
     }
-    $typedefs .= "\n\n";
+    $typedefs .= "\n";
 
-    my $PDL_DATATYPES = <<"EOD";
+    <<EOD . "\n".typesynonyms()."\n";
 
 /*****************************************************************************/
 /*** This section of .h file generated automatically by ***/
@@ -569,9 +549,6 @@ $typedefs
 /*****************************************************************************/
 
 EOD
-
-    $PDL_DATATYPES .= "\n".typesynonyms()."\n";
-    $PDL_DATATYPES;
 }
 
 =head1 PDL::Type OBJECTS
@@ -688,33 +665,31 @@ print OUT <<'!NO!SUBS!';
 
 =cut
 
-sub types { # return all known types as type objects
-  map PDL::Type->new(typefld($_,'numval')), typesrtkeys();
-}
+my @CACHED_TYPES = map bless([$_], 'PDL::Type'), 0..scalar(keys %typehash)-1;
+# return all known types as type objects
+sub types { @CACHED_TYPES }
 
 {
     package PDL::Type;
     sub new {
-        my($type,$val) = @_;
-        if("PDL::Type" eq ref $val) { return bless [@$val],$type; }
+        my ($type,$val) = @_;
+        return $val if "PDL::Type" eq ref $val;
         if(ref $val and $val->isa('PDL')) {
-            if($val->getndims != 0) {
-              PDL::Core::barf(
-                "Can't make a type out of non-scalar piddle $val!");
-            }
+            PDL::Core::barf("Can't make a type out of non-scalar piddle $val!")
+              if $val->getndims != 0;
             $val = $val->at;
         }
-        PDL::Core::barf("Can't make a type out of non-scalar $val!".
-            (ref $val)."!") if ref $val;
+        PDL::Core::barf("Can't make a type out of non-scalar $val (".
+            (ref $val).")!") if ref $val;
         die "Unknown type string '$val' (should be one of ".
             join(",",map $PDL::Types::typehash{$_}->{ioname}, @names).
             ")\n"
             if !defined $PDL::Types::typenames{$val};
-        return bless [$PDL::Types::typenames{$val}],$type;
+        $CACHED_TYPES[$PDL::Types::typenames{$val}];
     }
 
-    sub enum   { return $_[0]->[0]; }
-    sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
+    sub enum { $_[0][0] }
+    *symbol = \&sym;
 
 !NO!SUBS!
 
@@ -722,47 +697,42 @@ foreach my $name ( qw( ctype ppsym convertfunc
 		       sym numval ioname defbval
                        ), @TYPE_VERBATIM ) {
   print OUT << "EOS";
-    sub $name { \$PDL::Types::typehash{\$_[0]->symbol}->{$name}; }
+    sub $name { \$HASHES[ \$_[0][0] ]{$name}; }
 EOS
 }
 
 if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
-no strict 'refs';
 sub badvalue {
-  my ( $self, $val ) = @_;
-  my $name = "PDL::_badvalue_int" . $self->enum;
-  $name->( $val )->sclr;
+  my $name = "PDL::_badvalue_int$_[0][0]";
+  no strict 'refs';
+  $name->( $_[1] )->sclr;
 }
 sub orig_badvalue {
-  my $self = shift;
-  my $name = "PDL::_default_badvalue_int" . $self->enum;
+  my $name = "PDL::_default_badvalue_int$_[0][0]";
+  no strict 'refs';
   $name->()->sclr;
 }
-use strict 'refs';
 !NO!SUBS!
 } else {
     print OUT qq{
-sub badvalue { return undef; }
-sub orig_badvalue { return undef; }
+sub badvalue { undef }
+sub orig_badvalue { undef }
 };
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
 
-sub shortctype { my $txt = $_[0]->ctype; $txt =~ s/PDL_//; return $txt; }
+sub shortctype { (my $txt = $_[0]->ctype) =~ s/PDL_//; $txt; }
 
 # make life a bit easier
 use overload (
   '""'  => sub { lc $_[0]->shortctype },
-  "eq"  => sub { my($self, $other, $swap) = @_;
-    return ("$self" eq $other);
-  },
-  "cmp" => sub { my($self, $other, $swap) = @_;
+  "eq"  => sub { my ($self, $other, $swap) = @_; ("$self" eq $other); },
+  "cmp" => sub { my ($self, $other, $swap) = @_;
     $swap ? $other cmp "$self" : "$self" cmp $other;
   },
-  "<=>" => sub { $_[2] ? $_[1]->enum <=> $_[0]->enum :
-                         $_[0]->enum <=> $_[1]->enum },
+  "<=>" => sub { $_[2] ? $_[1][0] <=> $_[0][0] : $_[0][0] <=> $_[1][0] },
 );
 
 } # package: PDL::Type
