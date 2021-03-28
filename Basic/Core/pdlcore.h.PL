@@ -12,7 +12,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 require './Dev.pm'; PDL::Core::Dev->import;
-my $sym2type = PDL::Core::Dev::load_Types();
+PDL::Core::Dev::loadmod_Types();
 
 # version 2 is for versions after PDL 2.1.1
 # version 4 has pdl_hard_copy included in the Core structure.
@@ -149,12 +149,11 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
 
 !NO!SUBS!
 
-for my $in ( PDL::Types::typesrtkeys() ) {
-
-  (my $type = $sym2type->{$in}) =~ s/^PDL_//;
+for my $t ( PDL::Types::types() ) {
+  my ($in, $shorttype, $type) = map $t->$_, qw(sym shortctype ctype);
   print OUT <<"!WITH!SUBS!";
-PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
-	PDL_Indx* pdims, PDL_Long ndims, int level, PDL_$type undefval, pdl *p);
+PDL_Indx pdl_setav_$shorttype($type* pdata, AV* av,
+	PDL_Indx* pdims, PDL_Long ndims, int level, $type undefval, pdl *p);
 !WITH!SUBS!
 }
 
@@ -348,12 +347,12 @@ double NaN_double;
 
 # set up the qsort routines
 
-for (PDL::Types::typesrtkeys()) {
-   my $ctype = $PDL::Types::typehash{$_}{ctype};
-   my $ppsym = $PDL::Types::typehash{$_}{ppsym};
-
-   print OUT "void (*qsort_${ppsym}) (${ctype} *xx, PDL_Indx a, PDL_Indx b );\n";
-   print OUT "void (*qsort_ind_${ppsym}) (${ctype} *xx, PDL_Indx *ix, PDL_Indx a, PDL_Indx b );\n";
+for my $t(PDL::Types::types()) {
+   my ($ctype, $ppsym) = map $t->$_, qw(ctype ppsym);
+   print OUT <<EOF;
+void (*qsort_$ppsym) ($ctype *xx, PDL_Indx a, PDL_Indx b );
+void (*qsort_ind_$ppsym) ($ctype *xx, PDL_Indx *ix, PDL_Indx a, PDL_Indx b );
+EOF
 }
 
 # storage space for bad values

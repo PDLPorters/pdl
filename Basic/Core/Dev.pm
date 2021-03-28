@@ -166,16 +166,6 @@ sub loadmod_Types {
   die "can't find PDL::Types: $foo and $@";
 }
 
-my %sym2type;
-sub load_Types {
-  loadmod_Types();
-  return \%sym2type if %sym2type;
-  %sym2type = map {
-    $PDL::Types::typehash{$_}->{'sym'} => $PDL::Types::typehash{$_}->{'ctype'}
-  } keys %PDL::Types::typehash;
-  \%sym2type;
-}
-
 my $inc = defined $PDL::Config{MALLOCDBG}->{include} ?
   "$PDL::Config{MALLOCDBG}->{include}" : '';
 my $libs = defined $PDL::Config{MALLOCDBG}->{libs} ?
@@ -264,7 +254,7 @@ sub isbigendian {
 
 # return exit code, so 0 = OK
 sub genpp {
-   my $sym2type = load_Types();
+   loadmod_Types();
    my $gotstart = 0; my @gencode = ();
    my ($loopvar, $indent);
 
@@ -294,7 +284,7 @@ sub genpp {
 
          push @gencode, $`;
 
-         print flushgeneric($indent, $loopvar, \@gencode, $sym2type);  # Output the generic code
+         print flushgeneric($indent, $loopvar, \@gencode);  # Output the generic code
 
          print $';  # End of genric code
          $gotstart = 0;
@@ -313,15 +303,12 @@ sub genpp {
 }
 
 sub flushgeneric {  # Construct the generic code switch
-   my ($indent, $loopvar, $gencode, $sym2type) = @_;
+   my ($indent, $loopvar, $gencode) = @_;
    my @m;
    push @m, $indent,"switch ($loopvar) {\n\n";
 
-   for my $case (PDL::Types::typesrtkeys()){
-
-     my $type = $sym2type->{$case};
-
-     my $ppsym = $PDL::Types::typehash{$case}->{ppsym};
+   for my $t (PDL::Types::types()) {
+     my ($case, $type, $ppsym) = map $t->$_, qw(sym ctype ppsym);
      push @m, $indent,"case $case:\n"; # Start of this case
      push @m, $indent,"   {";
 
@@ -745,8 +732,7 @@ sub datatypes_switch {
     my $type = PDL::Type->new( $i );
     my $typesym = $type->symbol;
     my $typeppsym = $type->ppsym;
-    my $cname = $type->ctype;
-    $cname =~ s/^PDL_//;
+    my $cname = $type->shortctype;
     push @m, "\tcase $typesym: retval.type = $typesym; retval.value.$typeppsym = PDL.bvals.$cname; break;";
   }
   print map "$_\n", @m;

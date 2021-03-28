@@ -7,7 +7,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 require './Dev.pm'; PDL::Core::Dev->import;
-my $sym2type = PDL::Core::Dev::load_Types();
+PDL::Core::Dev::loadmod_Types();
 PDL::Types->import(':All');
 
 # check for bad value support
@@ -145,8 +145,8 @@ int pdl_howbig (int datatype) {
   ;
 # generate the cases for the various types
 
-for my $type (typesrtkeys()) {
-   my ($sym,$ctype) = map {typefld($type,$_)} qw/sym ctype/;
+for my $type (types()) {
+   my ($sym,$ctype) = map $type->$_, qw/sym ctype/;
    print OUT << "!WITH!SUBS!";
     case $sym:
       return sizeof($ctype);
@@ -179,8 +179,8 @@ int pdl_whichdatatype (IV nv) {
 
 # generate the cases for the various types
 
-for my $type (typesrtkeys()) {
-   my ($sym,$ctype) = map {typefld($type,$_)} qw/sym ctype/;
+for my $type (types()) {
+   my ($sym,$ctype) = map $type->$_, qw/sym ctype/;
    print OUT << "!WITH!SUBS!";
         TESTTYPE($sym,$ctype)
 !WITH!SUBS!
@@ -865,9 +865,8 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 # Perl snippet autogenerates switch statement to distribute
 # pdl_setav calls...
 #
-  for my $type(typesrtkeys()){
-    my $t2 = $sym2type->{$type};
-    $t2 =~ s/PDL_//;
+  for my $t (types()) {
+    my ($type, $t2) = map $t->$_, qw(sym shortctype);
     print OUT <<"!WITH!SUBS!";
   case $type:
     pdl_setav_$t2(p->data,av,pdims,ndims,level, undefval.value.$PDL::Types::typehash{$type}->{ppsym}, p);
@@ -926,9 +925,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
  */
 !NO!SUBS!
 
-for my $in ( typesrtkeys() ) {
-
-  (my $type = $sym2type->{$in}) =~ s/^PDL_//;
+for my $type ( map $_->shortctype, types() ) {
 
 print OUT <<"!WITH!SUBS!";
 
@@ -986,16 +983,14 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
         # the source PDL, switch_type gets the Perl name, ppsym gets
         # the symbol need to retrieve from a PDL_Anyval, and type_usenan is a
         # boolean indicating whether this type handles NaNs.
-        foreach my $switch_type ( typesrtkeys() ) {
-
-	    my $ctype = $PDL::Types::typehash{$switch_type}{ctype};
-	    my $stype = $PDL::Types::typehash{$switch_type}{ctype};
-	    $stype =~ s/PDL_//;
-	    my $ppsym = $PDL::Types::typehash{$switch_type}{ppsym};
-	    my $type_usenan = $PDL::Types::typehash{$switch_type}{usenan};
+        foreach my $inner_type ( types() ) {
+	    my $switch_type = $inner_type->sym;
+	    my $ctype = $inner_type->ctype;
+	    my $stype = $inner_type->shortctype;
+	    my $ppsym = $inner_type->ppsym;
 
 	    my $comp_for_nan =
-	          $type_usenan
+	          $inner_type->usenan
 	          # if not equal, check if both are NaN
 	        ? "( !finite( (($ctype *)pptr)[i] ) && !finite(source_badval.value.$ppsym) )"
 	          # otherwise it must be false

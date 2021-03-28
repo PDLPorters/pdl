@@ -7,7 +7,7 @@ use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
 require './Dev.pm'; PDL::Core::Dev->import;
-my $sym2type = PDL::Core::Dev::load_Types();
+PDL::Core::Dev::loadmod_Types();
 
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
@@ -72,9 +72,8 @@ void pdl_${name}(pdl *a) {
 
 ##### Generate code for each data type #####
 
-for my $in ( PDL::Types::typesrtkeys() ) {
-
-    my $intype = $sym2type->{$in};
+for my $t ( PDL::Types::types() ) {
+    my ($in, $intype) = map $t->$_, qw(sym ctype);
     print OUT <<"!WITH!SUBS!";
     case ${in}:
       {
@@ -190,10 +189,8 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 
 ##### Generate code for each pair of data types #####
 
-for my $in ( PDL::Types::typesrtkeys() ) {
-
-    my $intype = $sym2type->{$in};
-
+for my $t ( PDL::Types::types() ) {
+    my ($in, $intype) = map $t->$_, qw(sym ctype);
     print OUT <<"!WITH!SUBS!";
       case ${in}:
         {
@@ -203,11 +200,9 @@ for my $in ( PDL::Types::typesrtkeys() ) {
          switch ( targtype ) {
 !WITH!SUBS!
 
-    for my $targ ( PDL::Types::typesrtkeys() ) {
-
+    for my $t2 ( PDL::Types::types() ) {
+	my ($targ, $targtype) = map $t2->$_, qw(sym ctype);
 	next if $in eq $targ; # Skip duplicates
-	my $targtype = $sym2type->{$targ};
-
 	print OUT <<"!WITH!SUBS!";
 	   case ${targ}:
              {
