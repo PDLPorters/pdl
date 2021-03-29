@@ -205,11 +205,10 @@ sub typeval {
   $CTYPE2VAL{$ctype} // confess "unknown PDL type '$ctype'";
 }
 
-# return the PDL type for this pdl
-sub ctype {
+sub adjusted_type {
   my ($this, $generic) = @_;
   return $generic unless $this->{FlagTyped};
-  confess "ctype: unknown type '$this->{Type}'"
+  confess "adjusted_type: unknown type '$this->{Type}'"
     unless defined(my $type = $PPTYPE2INFO{$this->{Type}});
   return $type->{Val} > typeval($generic) ? $type->{Ctype} : $generic
     if $this->{FlagTplus};
@@ -437,7 +436,7 @@ sub get_xsdatapdecl {
     my $pdl = $this->get_nname;
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};
-    $type = $this->ctype($genlooptype) if defined $genlooptype;
+    $type = $this->adjusted_type($genlooptype) if defined $genlooptype;
     my $declini = ($asgnonly ? "" : "$type *");
     my $cast = ($type ? "($type *)" : "");
     my $macro = "PDL_REDODIMS";
