@@ -364,7 +364,12 @@ $x->setbadat(2,2);
 
 $y = sequence(3,3);
 $ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-is( int(at(sum(med2d($x,$y)-$ans))), 0, "med2d()" );
+my $m = med2d($x,$y);
+my $m_sub = $m-$ans;
+my $m_sum = sum($m_sub);
+my $m_at = at($m_sum);
+my $m_int = int($m_at);
+is( $m_int, 0, "med2d()" ) or diag "x: $x\nm: $m\nans: $ans\nm_sub: $m_sub\nm_sum: $m_sum\nm_at: $m_at\nm_int: $m_int";
 
 # propagation of badflag using inplace ops (ops.pd)
 
