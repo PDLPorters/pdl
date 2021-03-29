@@ -534,7 +534,7 @@ sub myprelude {
     my $macro_name = "PDL_STARTTHREADLOOP_$parent->{Name}_$funcName";
     if (!$parent->{$loop_key}) {
 	$parent->{$loop_key} = 1;
-	$str .= join " \\\n\t",
+	$str .= PDL::PP::pp_line_numbers(__LINE__, join " \\\n\t",
 	  "#define $macro_name",
 	  'if ( PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return; \
 	   do { register PDL_Indx __tind1=0,__tind2=0; \
@@ -557,9 +557,9 @@ sub myprelude {
 		  ( map { "\t\t," . $ord->[$_] . "_datap += __tinc0_${_}"} 0..$#{$ord}),
 	       ") {",
 	  "PDL_COMMENT(\"This is the tightest threadloop. Make sure inside is optimal.\")\n\n",
-	;
+	);
     }
-    $str . PDL::PP::pp_line_numbers(__LINE__, $macro_name);
+    $str . $macro_name;
 }
 
 # Should possibly fold out thread.dims[0] and [1].
@@ -570,15 +570,15 @@ sub mypostlude {my($this,$parent,$context) = @_;
     my $str = '';
     if (!$parent->{$loop_key}) {
 	$parent->{$loop_key} = 1;
-	$str .= join " \\\n\t",
+	$str .= PDL::PP::pp_line_numbers(__LINE__, join " \\\n\t",
 	    "\n#define $macro_name",
 	    '}',
 	    '}',
 	    ( map { $ord->[$_] . "_datap -= __tinc1_${_} * __tdims1 + __offsp[${_}];"} 0..$#{$ord} ),
 	    '} while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));'."\n",
-	    ;
+	    );
     }
-    $str . PDL::PP::pp_line_numbers(__LINE__, $macro_name);
+    $str . $macro_name;
 }
 
 # Simple subclass of ComplexThreadLoop to implement writeback code
