@@ -139,7 +139,7 @@ sub new {
     unless ($nogeneric_loop) {
 	# XXX Make genericloop understand denied pointers;...
 	my $nc = $coderef;
-	$coderef = PDL::PP::GenericLoop->new($generictypes,"",
+	$coderef = PDL::PP::GenericLoop->new($generictypes, undef,
 	      [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
 	push @{$coderef},$nc;
     }
@@ -449,12 +449,8 @@ sub myprelude {
     my ($this,$parent,$context) = @_;
     push @{$parent->{Gencurtype}}, undef; # so that $GENERIC can get at it
     # horrible hack for PDL::PP::NaNSupport
-    if ( $this->[1] ne "" ) {
-	my ( @test ) = keys %{$parent->{pars}};
-	die "ERROR: need to rethink NaNSupport in GenericLoop\n"
-	    if $#test != -1;
-	$parent->{pars} = {};
-    }
+    die "ERROR: need to rethink NaNSupport in GenericLoop\n"
+	if defined $this->[1] and keys %{$parent->{pars}};
     <<WARNING_EATER;
 PDL_COMMENT("Start generic loop")
 @{[$this->_thisisloop($parent)]}
@@ -474,11 +470,8 @@ sub myitem {
     my $item = $this->[0]->[$nth] || return "";
     $parent->{Gencurtype}[-1] = $item;
     # horrible hack for PDL::PP::NaNSupport
-    if ( $this->[1] ne "" ) {
-	foreach my $parname ( @{$this->[2]} ) {
-	    $parent->{pars}{$parname} = $item;
-	}
-    }
+    my ($name, $varnames) = @$this[1, 2];
+    @{$parent->{pars}}{@$varnames} = ($item) x @$varnames if defined $name;
     PDL::PP::pp_line_numbers(__LINE__, join '',
 	"\t} break; case @{[$item->sym]}: {\n",
 	$this->_thisisloop($parent, $item),
@@ -490,7 +483,7 @@ sub mypostlude {
     my($this,$parent,$context) = @_;
     pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
     # horrible hack for PDL::PP::NaNSupport
-    if ( $this->[1] ne "" ) { $parent->{pars} = {}; }
+    $parent->{pars} = {} if defined $this->[1];
     "\tbreak;}
 	default:barf(\"PP INTERNAL ERROR! PLEASE MAKE A BUG REPORT\\n\");}\n";
 }
@@ -720,17 +713,10 @@ package PDL::PP::NaNSupport;
 
 sub convert ($$$$$) {
     my ( $parent, $name, $lhs, $rhs, $opcode ) = @_;
-    die "ERROR: unable to find type info for $opcode access"
-	unless defined(my $type = $parent->{Gencurtype}[-1]);
     die "ERROR: unable to find piddle $name in parent!"
 	unless my $pobj = $parent->{ParObjs}{$name};
     # - extended to include hack to GenericLoop
-    if ( exists $parent->{pars}{$name} ) {
-	$type = $parent->{pars}{$name};
-	print "#DBG: hacked <$name> to type <$type>\n" if $::PP_VERBOSE;
-    } elsif ( $pobj->{FlagTyped} ) {
-	$type = $pobj->adjusted_type($type);
-    }
+    my $type = $parent->{pars}{$name} || $pobj->adjusted_type($parent->{Gencurtype}[-1]);
     return ($lhs, $rhs) if !($usenan * $type->usenan);
     $opcode eq "SETBAD"
 	? ($lhs, "PDL->bvals.".$type->shortctype) : ("finite($lhs)", "0");
