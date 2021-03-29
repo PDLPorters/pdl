@@ -729,14 +729,6 @@ my %use_nan =
     map +(typefld($_, 'convertfunc') => typefld($_, 'usenan')*$usenan), typesrtkeys;
 $use_nan{int} = 0;
 
-my %set_nan =
-    (
-     float  => 'PDL->bvals.Float',  PDL_Float  => 'PDL->bvals.Float',
-     double => 'PDL->bvals.Double', PDL_Double => 'PDL->bvals.Double',
-     cfloat => 'PDL->bvals.CFloat', PDL_CFloat => 'PDL->bvals.CFloat',
-     cdouble => 'PDL->bvals.CDouble', PDL_CDouble => 'PDL->bvals.CDouble',
-     );
-
 sub use_nan ($) {
     my $type = shift;
 
@@ -760,9 +752,9 @@ sub convert ($$$$$) {
     } elsif ( $pobj->{FlagTyped} ) {
 	$type = $pobj->adjusted_type($type);
     }
-    $type = $type->ctype;
-    return ($lhs, $rhs) if !use_nan($type);
-    $opcode eq "SETBAD" ? ($lhs, $set_nan{$type}) : ("finite($lhs)", "0");
+    return ($lhs, $rhs) if !use_nan($type->ctype);
+    $opcode eq "SETBAD"
+	? ($lhs, "PDL->bvals.".$type->shortctype) : ("finite($lhs)", "0");
 }
 
 ###########################
