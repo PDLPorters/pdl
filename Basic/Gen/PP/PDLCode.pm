@@ -61,7 +61,7 @@ sub new {
 	ParNames => $parnames,
 	ParObjs => $parobjs,
 	Gencurtype => [], # stack to hold GenType in generic loops
-	types => 0,  # hack for PDL::PP::Types/GenericLoop
+	types => 0,  # for thisisloop method
 	pars => {},  # hack for PDL::PP::NaNSupport/GenericLoop
         Generictypes => $generictypes,   # so that MacroAccess can check it
         Name => $name,
@@ -220,7 +220,7 @@ sub separate_code {
 		push @stack,$ob;
 	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%\{/) {
 		my $ob = PDL::PP::Types->new($1,$this);
-		$this->{types} = 1; # hack for PDL::PP::GenericLoop
+		$this->{types} = 1; # thisisloop method
 		push @{$stack[-1]},$ob;
 		push @stack,$ob;
 	    } elsif($control =~ /^threadloop\s*%\{/) {
@@ -283,6 +283,14 @@ sub report_error {
     die "$message at $filename line $line\n";
 }
 
+use PDL::Types ':All';
+my @ppdefs = ppdefs();
+sub thisisloop {
+    my ($this, $name, @extra) = @_;
+    !$this->{types} ? '' : join '',
+	map "#undef THISIS${name}_$_->[0]\n#define THISIS${name}_$_->[0](a)$_->[1]\n",
+	(map [$_, ''], @ppdefs), map [$_->ppsym, ' a'], @extra;
+}
 
 #####################################################################
 #
@@ -428,16 +436,9 @@ sub myprelude {
 	if defined $this->[1] and keys %{$parent->{pars}};
     <<WARNING_EATER;
 PDL_COMMENT("Start generic loop")
-@{[$this->_thisisloop($parent)]}
+@{[$parent->thisisloop($this->[1])]}
 	switch($this->[3]) { case -42: PDL_COMMENT("Warning eater") {(void)1;
 WARNING_EATER
-}
-
-sub _thisisloop {
-    my ($this, $parent, @extra) = @_;
-    !$parent->{types} ? '' : join '',
-	map "#undef THISIS$this->[1]_$_->[0]\n#define THISIS$this->[1]_$_->[0](a)$_->[1]\n",
-	(map [$_, ''], ppdefs()), map [$_->ppsym, ' a'], @extra;
 }
 
 sub myitem {
@@ -449,7 +450,7 @@ sub myitem {
     @{$parent->{pars}}{@$varnames} = ($item) x @$varnames if defined $name;
     PDL::PP::pp_line_numbers(__LINE__, join '',
 	"\t} break; case @{[$item->sym]}: {\n",
-	$this->_thisisloop($parent, $item),
+	$parent->thisisloop($this->[1], $item),
 	map $parent->{ParObjs}{$_}->get_xsdatapdecl($item),
 	    @{$this->[2]});
 }
