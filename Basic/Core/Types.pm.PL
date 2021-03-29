@@ -245,6 +245,7 @@ sub gentypehashentry ($$) {
   checktypehas $_, $type
     for qw/identifier pdlctype defaultbadval/, @TYPE_VERBATIM;
   my $convertfunc = convertfunc($type);
+  (my $shortctype = $type->{pdlctype}) =~ s/PDL_//;
   +{
     ctype => $type->{pdlctype},
     ppsym => $type->{onecharident} || $type->{identifier},
@@ -253,6 +254,7 @@ sub gentypehashentry ($$) {
     numval => $num,
     ioname => $convertfunc,
     defbval => $type->{defaultbadval},
+    shortctype => $shortctype,
     (map +($_ => $type->{$_}), @TYPE_VERBATIM),
   };
 }
@@ -694,7 +696,7 @@ sub types { @CACHED_TYPES }
 
 !NO!SUBS!
 
-foreach my $name ( qw( ctype ppsym convertfunc
+foreach my $name ( qw( ctype ppsym convertfunc shortctype
 		       sym numval ioname defbval
                        ), @TYPE_VERBATIM ) {
   print OUT << "EOS";
@@ -723,8 +725,6 @@ sub orig_badvalue { undef }
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
-
-sub shortctype { (my $txt = $_[0]->ctype) =~ s/PDL_//; $txt; }
 
 # make life a bit easier
 use overload (
