@@ -665,7 +665,7 @@ print OUT <<'!NO!SUBS!';
 
 =cut
 
-my @CACHED_TYPES = map bless([$_], 'PDL::Type'), 0..scalar(keys %typehash)-1;
+my @CACHED_TYPES = map bless([$_->{numval}, $_], 'PDL::Type'), @HASHES;
 # return all known types as type objects
 sub types { @CACHED_TYPES }
 
@@ -698,7 +698,7 @@ foreach my $name ( qw( ctype ppsym convertfunc
 		       sym numval ioname defbval
                        ), @TYPE_VERBATIM ) {
   print OUT << "EOS";
-    sub $name { \$HASHES[ \$_[0][0] ]{$name}; }
+    sub $name { \$_[0][1]{$name}; }
 EOS
 }
 
