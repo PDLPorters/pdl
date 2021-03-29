@@ -671,6 +671,7 @@ sub types { @CACHED_TYPES }
 
 {
     package PDL::Type;
+    use Carp;
     sub new {
         my ($type,$val) = @_;
         return $val if "PDL::Type" eq ref $val;
@@ -679,9 +680,9 @@ sub types { @CACHED_TYPES }
               if $val->getndims != 0;
             $val = $val->at;
         }
-        PDL::Core::barf("Can't make a type out of non-scalar $val (".
-            (ref $val).")!") if ref $val;
-        die "Unknown type string '$val' (should be one of ".
+        confess "Can't make a type out of non-scalar $val (".
+            (ref $val).")!" if ref $val;
+        confess "Unknown type string '$val' (should be one of ".
             join(",",map $PDL::Types::typehash{$_}->{ioname}, @names).
             ")\n"
             if !defined $PDL::Types::typenames{$val};
