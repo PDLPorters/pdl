@@ -2539,7 +2539,7 @@ sub coerce_types {
 
 	my $dtype;
 	if ( $po->{FlagTyped} ) {
-	    $dtype = $po->cenum();
+	    $dtype = $po->{Type}->sym;
 	    $dtype = "PDLMAX($dtype,\$PRIV(__datatype))"
 		if $po->{FlagTplus};
 	} else {

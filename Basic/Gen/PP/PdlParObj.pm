@@ -25,7 +25,6 @@ my %PPTYPE2INFO = ();
 for my $typ (typesrtkeys) {
   $PPTYPE2INFO{typefld($typ,'ppforcetype')} = {
     Ctype => typefld($typ,'ctype'),
-    Cenum => typefld($typ,'sym'),
     Val =>   typefld($typ,'numval'),
   };
 }
@@ -128,6 +127,7 @@ sub new {
 	if ($this->{FlagTyped} && $this->{Type} =~ s/[+]$// ) {
 	  $this->{FlagTplus} = 1;
 	}
+	$this->{Type} &&= PDL::Type->new($this->{Type});
 	if($this->{FlagNCreat}) {
 		delete $this->{FlagCreat};
 		delete $this->{FlagCreateAlways};
@@ -208,19 +208,10 @@ sub typeval {
 sub adjusted_type {
   my ($this, $generic) = @_;
   return $generic unless $this->{FlagTyped};
-  confess "adjusted_type: unknown type '$this->{Type}'"
-    unless defined(my $type = $PPTYPE2INFO{$this->{Type}});
-  return $type->{Val} > typeval($generic) ? $type->{Ctype} : $generic
+  return $this->{Type}->numval > typeval($generic)
+    ? $this->{Type}->ctype : $generic
     if $this->{FlagTplus};
-  $type->{Ctype};
-}
-
-# return the enum type for a parobj; it'd better be typed
-sub cenum {
-  my $this = shift;
-  croak "cenum: unknown type '$this->{Type}'"
-    unless defined($PPTYPE2INFO{$this->{Type}});
-  return $PPTYPE2INFO{$this->{Type}}->{Cenum};
+  $this->{Type}->ctype;
 }
 
 sub get_nname{ my($this) = @_;
