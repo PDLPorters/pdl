@@ -18,10 +18,6 @@ my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
-# we define the method separate_code() at the end of this
-# file, so that it can call the constructors from the classes
-# defined in this file. ugly...
-
 # Do the appropriate substitutions in the code.
 sub new {
     my($type,$code,$badcode,$parnames,$parobjs,$indobjs,$generictypes,
