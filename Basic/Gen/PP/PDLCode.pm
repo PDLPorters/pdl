@@ -62,7 +62,8 @@ sub new {
 	ParObjs => $parobjs,
 	Gencurtype => [], # stack to hold GenType in generic loops
 	types => 0,  # for thisisloop method
-	pars => {},  # hack for PDL::PP::NaNSupport/GenericLoop
+	ftypes_vars => {},
+	ftypes_type => undef,
         Generictypes => $generictypes,   # so that MacroAccess can check it
         Name => $name,
     }, $type;
@@ -302,7 +303,8 @@ sub thisisloop {
 #
 sub convert {
     my ( $this, $name, $lhs, $rhs, $opcode, $pobj ) = @_;
-    my $type = $this->{pars}{$name} || $pobj->adjusted_type($this->{Gencurtype}[-1]);
+    my $ftype_override = exists $this->{ftypes_vars}{$name} ? $this->{ftypes_type} : undef;
+    my $type = $ftype_override || $pobj->adjusted_type($this->{Gencurtype}[-1]);
     return ($lhs, $rhs) if !($usenan * $type->usenan);
     $opcode eq "SETBAD"
 	? ($lhs, "PDL->bvals.".$type->shortctype) : ("finite($lhs)", "0");
@@ -439,7 +441,8 @@ sub get_generictyperecs { my($types) = @_;
 # Types: BSULFD
 sub new {
     my ($type,$types,$name,$varnames,$whattype) = @_;
-    bless [get_generictyperecs($types), $name, $varnames, $whattype], $type;
+    my %vars; @vars{@$varnames} = ();
+    bless [get_generictyperecs($types), $name, \%vars, $whattype], $type;
 }
 
 sub myoffs {4}
@@ -447,9 +450,8 @@ sub myoffs {4}
 sub myprelude {
     my ($this,$parent,$context) = @_;
     push @{$parent->{Gencurtype}}, undef; # so that $GENERIC can get at it
-    # horrible hack for PDL::PP::NaNSupport
-    die "ERROR: need to rethink NaNSupport in GenericLoop\n"
-	if defined $this->[1] and keys %{$parent->{pars}};
+    die "ERROR: need to rethink NaN support in GenericLoop\n"
+	if defined $this->[1] and $parent->{ftypes_type};
     <<WARNING_EATER;
 PDL_COMMENT("Start generic loop")
 @{[$parent->thisisloop($this->[1])]}
@@ -461,21 +463,18 @@ sub myitem {
     my ($this,$parent,$nth) = @_;
     my $item = $this->[0]->[$nth] || return "";
     $parent->{Gencurtype}[-1] = $item;
-    # horrible hack for PDL::PP::NaNSupport
-    my ($name, $varnames) = @$this[1, 2];
-    @{$parent->{pars}}{@$varnames} = ($item) x @$varnames if defined $name;
+    @$parent{qw(ftypes_type ftypes_vars)} = ($item, $this->[2]) if defined $this->[1];
     PDL::PP::pp_line_numbers(__LINE__, join '',
 	"\t} break; case @{[$item->sym]}: {\n",
 	$parent->thisisloop($this->[1], $item),
 	map $parent->{ParObjs}{$_}->get_xsdatapdecl($item),
-	    @{$this->[2]});
+	    sort keys %{$this->[2]});
 }
 
 sub mypostlude {
     my($this,$parent,$context) = @_;
     pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
-    # horrible hack for PDL::PP::NaNSupport
-    $parent->{pars} = {} if defined $this->[1];
+    $parent->{ftypes_type} = undef if defined $this->[1];
     "\tbreak;}
 	default:barf(\"PP INTERNAL ERROR! PLEASE MAKE A BUG REPORT\\n\");}\n";
 }
