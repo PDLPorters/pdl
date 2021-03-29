@@ -431,10 +431,10 @@ our @ISA = "PDL::PP::Block";
 
 # make the typetable from info in PDL::Types
 use PDL::Types ':All';
-my @typetable = map [$_->sym, $_->ctype, $_->numval, $_->ppsym], types();
+my @typetable = map [$_->ppsym, $_], types();
 sub get_generictyperecs { my($types) = @_;
     my %wanted; @wanted{@$types} = ();
-    [ grep exists $wanted{$_->[3]}, @typetable ];
+    [ map $_->[1], grep exists $wanted{$_->[0]}, @typetable ];
 }
 
 # Types: BSULFD
@@ -466,23 +466,23 @@ sub _thisisloop {
     my ($this, $parent, @extra) = @_;
     !$parent->{types} ? '' : join '',
 	map "#undef THISIS$this->[1]_$_->[0]\n#define THISIS$this->[1]_$_->[0](a)$_->[1]\n",
-	(map [$_, ''], ppdefs()), map [$_, ' a'], @extra;
+	(map [$_, ''], ppdefs()), map [$_->ppsym, ' a'], @extra;
 }
 
 sub myitem {
     my ($this,$parent,$nth) = @_;
     my $item = $this->[0]->[$nth] || return "";
-    $parent->{Gencurtype}->[-1] = $item->[1];
+    $parent->{Gencurtype}[-1] = $item;
     # horrible hack for PDL::PP::NaNSupport
     if ( $this->[1] ne "" ) {
 	foreach my $parname ( @{$this->[2]} ) {
-	    $parent->{pars}{$parname} = $item->[1];
+	    $parent->{pars}{$parname} = $item->ctype;
 	}
     }
     PDL::PP::pp_line_numbers(__LINE__, join '',
-	"\t} break; case $item->[0]: {\n",
-	$this->_thisisloop($parent, $item->[3]),
-	map $parent->{ParObjs}{$_}->get_xsdatapdecl($item->[1]),
+	"\t} break; case @{[$item->sym]}: {\n",
+	$this->_thisisloop($parent, $item),
+	map $parent->{ParObjs}{$_}->get_xsdatapdecl($item),
 	    @{$this->[2]});
 }
 
@@ -753,26 +753,12 @@ sub convert ($$$$$) {
 	unless defined(my $type = $parent->{Gencurtype}[-1]);
     die "ERROR: unable to find piddle $name in parent!"
 	unless my $pobj = $parent->{ParObjs}{$name};
-    # based on code from from PdlParObj::ctype()
-    # - want to handle FlagTplus case
-    # - may not be correct
     # - extended to include hack to GenericLoop
-    #
     if ( exists $parent->{pars}{$name} ) {
 	$type = $parent->{pars}{$name};
 	print "#DBG: hacked <$name> to type <$type>\n" if $::PP_VERBOSE;
-    } elsif ( exists $pobj->{FlagTyped} and $pobj->{FlagTyped} ) {
-	$type = $pobj->{Type};
-	# this should use Dev.pm - fortunately only worried about double/float here
-	# XXX - do I really know what I'm doing ?
-	if ( $pobj->{FlagTplus} ) {
-	    my $gtype = $parent->{Gencurtype}[-1];
-	    if ( $gtype eq "PDL_Double" ) {
-		$type = $gtype if $type ne "double";
-	    } elsif ( $gtype eq "PDL_Float" ) {
-		$type = $gtype if $type !~ /^(float|double)$/;  # note: ignore doubles
-	    }
-	}
+    } elsif ( $pobj->{FlagTyped} ) {
+	$type = $pobj->adjusted_type($type);
     }
     return ($lhs, $rhs) if !use_nan($type);
     $opcode eq "SETBAD" ? ($lhs, $set_nan{$type}) : ("finite($lhs)", "0");
@@ -1120,11 +1106,9 @@ sub new {
 sub get_str {
     my ($this, $parent, $context) = @_;
     my ($type2value, $name) = @{$this};
-    croak "generic type access outside a generic loop in $name"
-      unless defined $parent->{Gencurtype}->[-1];
-    croak "unknown Type in $name (generic type currently $parent->{Gencurtype}->[-1]"
-      unless defined(my $type = mapfld $parent->{Gencurtype}->[-1], 'ctype' => 'ppsym');
-    $type2value->{$type};
+    confess "generic type access outside a generic loop in $name"
+      unless defined $parent->{Gencurtype}[-1];
+    $type2value->{$parent->{Gencurtype}[-1]->ppsym};
 }
 
 
@@ -1193,8 +1177,8 @@ sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
   croak "generic type access outside a generic loop"
-    unless defined(my $type = $parent->{Gencurtype}->[-1]);
-  return $type if !$this->[0];
+    unless defined(my $type = $parent->{Gencurtype}[-1]);
+  return $type->ctype if !$this->[0];
   my $pobj = $parent->{ParObjs}{$this->[0]} // croak "not a defined parname";
   $pobj->adjusted_type($type);
 }

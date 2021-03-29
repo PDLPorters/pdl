@@ -19,19 +19,6 @@ our $macros = <<'EOF';
   ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval);
 EOF
 
-# build a typemap for our translation purposes
-# again from info in PDL::Types
-my %PPTYPE2INFO = ();
-for my $typ (typesrtkeys) {
-  $PPTYPE2INFO{typefld($typ,'ppforcetype')} = {
-    Ctype => typefld($typ,'ctype'),
-    Val =>   typefld($typ,'numval'),
-  };
-}
-my %CTYPE2VAL = map +(
-  $PPTYPE2INFO{$_}{Ctype} => $PPTYPE2INFO{$_}{Val}
-), keys %PPTYPE2INFO;
-
 # Try to load Text::Balanced
 my $hasTB = 0;
 eval q{
@@ -199,17 +186,11 @@ sub getcreatedims {
       $_->{Value} } @{$this->{IndObjs}};
 }
 
-# find the value for a given PDL type
-sub typeval {
-  my $ctype = shift;
-  $CTYPE2VAL{$ctype} // confess "unknown PDL type '$ctype'";
-}
-
 sub adjusted_type {
   my ($this, $generic) = @_;
-  return $generic unless $this->{FlagTyped};
-  return $this->{Type}->numval > typeval($generic)
-    ? $this->{Type}->ctype : $generic
+  return $generic->ctype unless $this->{FlagTyped};
+  return $this->{Type}->numval > $generic->numval
+    ? $this->{Type}->ctype : $generic->ctype
     if $this->{FlagTplus};
   $this->{Type}->ctype;
 }
