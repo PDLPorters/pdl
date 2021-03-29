@@ -447,7 +447,7 @@ sub myoffs {4}
 
 sub myprelude {
     my ($this,$parent,$context) = @_;
-    push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
+    push @{$parent->{Gencurtype}}, undef; # so that $GENERIC can get at it
     # horrible hack for PDL::PP::NaNSupport
     if ( $this->[1] ne "" ) {
 	my ( @test ) = keys %{$parent->{pars}};
