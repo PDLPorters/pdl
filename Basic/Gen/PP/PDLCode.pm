@@ -717,27 +717,6 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 # There MUST be a better way than this...
 #
 package PDL::PP::NaNSupport;
-use PDL::Types ':All'; # typefld et al.
-
-# need to be lower-case because of FlagTyped stuff
-#
-# need to be able to handle signatures with fixed types
-# which means parameters like 'int mask()',
-# which means the hack to add 'int' to %use_nan
-#
-my %use_nan =
-    map +(typefld($_, 'convertfunc') => typefld($_, 'usenan')*$usenan), typesrtkeys;
-$use_nan{int} = 0;
-
-sub use_nan ($) {
-    my $type = shift;
-
-    $type =~ s/^PDL_//;
-    $type = lc $type;
-    Carp::confess("ERROR: Unknown type [$type] used in a 'Bad' macro.")
-	unless exists $use_nan{$type};
-    return $use_nan{$type};
-}
 
 sub convert ($$$$$) {
     my ( $parent, $name, $lhs, $rhs, $opcode ) = @_;
@@ -752,7 +731,7 @@ sub convert ($$$$$) {
     } elsif ( $pobj->{FlagTyped} ) {
 	$type = $pobj->adjusted_type($type);
     }
-    return ($lhs, $rhs) if !use_nan($type->ctype);
+    return ($lhs, $rhs) if !($usenan * $type->usenan);
     $opcode eq "SETBAD"
 	? ($lhs, "PDL->bvals.".$type->shortctype) : ("finite($lhs)", "0");
 }
