@@ -3122,22 +3122,18 @@ $PDL::PP::deftbl =
  #   for PDL-subclassed objects
  #
    PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "USParObjs", "Name", "_P2Child"],
-		      sub {
-			  my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
-			  return 0 if $hasp2c;
-			  my $noDimmedArgs = scalar(keys %$dimObj);
-			  my $noArgs = scalar(@$USParNames);
-			  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
-			  # Check for 2-arg function with 0-dim signatures
-			  # Check to see if output arg is _not_ explicitly typed:
-			  my $arg2 = $USParNames->[1];
-			  my $ParObj = $USParObjs->{$arg2};
-			  if( $ParObj->ctype('generic') eq 'generic'){
-			      # print "Calling Copy for function '$Name'\n";
-			      return 1;
-			  }
-			  return 0;
-		      }),
+      sub {
+	  my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
+	  return 0 if $hasp2c;
+	  my $noDimmedArgs = scalar(keys %$dimObj);
+	  my $noArgs = scalar(@$USParNames);
+	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
+	  # Check for 2-arg function with 0-dim signatures
+	  # Check to see if output arg is _not_ explicitly typed:
+	  my $arg2 = $USParNames->[1];
+	  my $ParObj = $USParObjs->{$arg2};
+	  !$ParObj->{FlagTyped};
+      }),
 
 # "Other pars", the parameters which are usually not pdls.
 
