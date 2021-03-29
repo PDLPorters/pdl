@@ -3246,7 +3246,7 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("ParsedBackCode",
 		      ["BackCode","_BadBackCode","ParNames","ParObjs","DimObjs","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
-		      sub { return PDL::PP::Code->new(@_, undef, undef, 'BackCode2'); }),
+		      sub { return PDL::PP::Code->new(@_, undef, 'BackCode2'); }),
 
 # Compiled representations i.e. what the xsub function leaves
 # in the trans structure. By default, copies of the parameters

@@ -22,7 +22,7 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 sub new {
     my($type,$code,$badcode,$parnames,$parobjs,$indobjs,$generictypes,
        $extrageneric,$havethreading,$name,
-       $dont_add_thrloop, $nogeneric_loop, $backcode ) = @_;
+       $dont_add_thrloop, $backcode ) = @_;
 
     die "Error: missing name argument to PDL::PP::Code->new call!\n"
       unless defined $name;
@@ -31,15 +31,12 @@ sub new {
     $badcode = undef unless $bvalflag;
     my $handlebad = defined($badcode);
 
-    # last three arguments may not be supplied
-    # (in fact, the nogeneric_loop argument may never be supplied now?)
+    # last two arguments may not be supplied
     #
     # "backcode" is a flag to the PDL::PP::Threadloop class indicating thre threadloop
     #   is for writeback code (typically used for writeback of data from child to parent PDL
 
     $dont_add_thrloop = 0 unless defined $dont_add_thrloop;
-    $nogeneric_loop = 0 unless defined $nogeneric_loop;
-
 
     # C++ style comments
     #
@@ -136,13 +133,11 @@ sub new {
     print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 
     # Enclose it all in a genericloop.
-    unless ($nogeneric_loop) {
-	# XXX Make genericloop understand denied pointers;...
-	my $nc = $coderef;
-	$coderef = PDL::PP::GenericLoop->new($generictypes, undef,
-	      [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
-	push @{$coderef},$nc;
-    }
+    # XXX Make genericloop understand denied pointers;...
+    my $nc = $coderef;
+    $coderef = PDL::PP::GenericLoop->new($generictypes, undef,
+	  [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
+    push @{$coderef},$nc;
 
     # Do we have extra generic loops?
     # If we do, first reverse the hash:
