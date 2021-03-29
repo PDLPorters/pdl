@@ -188,11 +188,11 @@ sub getcreatedims {
 
 sub adjusted_type {
   my ($this, $generic) = @_;
-  return $generic->ctype unless $this->{FlagTyped};
+  return $generic unless $this->{FlagTyped};
   return $this->{Type}->numval > $generic->numval
-    ? $this->{Type}->ctype : $generic->ctype
+    ? $this->{Type} : $generic
     if $this->{FlagTplus};
-  $this->{Type}->ctype;
+  $this->{Type};
 }
 
 sub get_nname{ my($this) = @_;
@@ -408,7 +408,7 @@ sub get_xsdatapdecl {
     my $pdl = $this->get_nname;
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};
-    $type = $this->adjusted_type($genlooptype) if defined $genlooptype;
+    $type = $this->adjusted_type($genlooptype)->ctype if defined $genlooptype;
     my $declini = ($asgnonly ? "" : "$type *");
     my $cast = ($type ? "($type *)" : "");
     my $macro = "PDL_REDODIMS";

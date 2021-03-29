@@ -476,7 +476,7 @@ sub myitem {
     # horrible hack for PDL::PP::NaNSupport
     if ( $this->[1] ne "" ) {
 	foreach my $parname ( @{$this->[2]} ) {
-	    $parent->{pars}{$parname} = $item->ctype;
+	    $parent->{pars}{$parname} = $item;
 	}
     }
     PDL::PP::pp_line_numbers(__LINE__, join '',
@@ -760,6 +760,7 @@ sub convert ($$$$$) {
     } elsif ( $pobj->{FlagTyped} ) {
 	$type = $pobj->adjusted_type($type);
     }
+    $type = $type->ctype;
     return ($lhs, $rhs) if !use_nan($type);
     $opcode eq "SETBAD" ? ($lhs, $set_nan{$type}) : ("finite($lhs)", "0");
 }
@@ -1180,7 +1181,7 @@ sub get_str {my($this,$parent,$context) = @_;
     unless defined(my $type = $parent->{Gencurtype}[-1]);
   return $type->ctype if !$this->[0];
   my $pobj = $parent->{ParObjs}{$this->[0]} // croak "not a defined parname";
-  $pobj->adjusted_type($type);
+  $pobj->adjusted_type($type)->ctype;
 }
 
 ########################
