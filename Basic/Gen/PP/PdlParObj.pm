@@ -404,11 +404,11 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 #
 sub get_xsdatapdecl { 
     my($this,$genlooptype,$asgnonly) = @_;
-    my $type;
+    my $ptype = $this->adjusted_type($genlooptype);
+    my $type = $ptype->ctype;
     my $pdl = $this->get_nname;
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};
-    $type = $this->adjusted_type($genlooptype)->ctype if defined $genlooptype;
     my $declini = ($asgnonly ? "" : "$type *");
     my $cast = ($type ? "($type *)" : "");
     my $macro = "PDL_REDODIMS";
