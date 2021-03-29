@@ -292,6 +292,22 @@ sub thisisloop {
 	(map [$_, ''], @ppdefs), map [$_->ppsym, ' a'], @extra;
 }
 
+###########################
+#
+# used by BadAccess code to know when to use NaN support
+# - the output depends on the value of the
+#   BADVAL_USENAN option in perldl.conf
+#   == 1 then we use NaN's
+#      0             PDL.bvals.Float/Double
+#
+sub convert {
+    my ( $this, $name, $lhs, $rhs, $opcode, $pobj ) = @_;
+    my $type = $this->{pars}{$name} || $pobj->adjusted_type($this->{Gencurtype}[-1]);
+    return ($lhs, $rhs) if !($usenan * $type->usenan);
+    $opcode eq "SETBAD"
+	? ($lhs, "PDL->bvals.".$type->shortctype) : ("finite($lhs)", "0");
+}
+
 #####################################################################
 #
 # Encapsulate the parsing code objects
@@ -659,31 +675,6 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 
 ###########################
 #
-# used by BadAccess code to know when to use NaN support
-# - the output depends on the value of the
-#   BADVAL_USENAN option in perldl.conf
-#   == 1 then we use NaN's
-#      0             PDL.bvals.Float/Double
-#
-# note the *horrible hack* for piddles whose type have been
-# specified using the FType option - see GenericLoop.
-# There MUST be a better way than this...
-#
-package PDL::PP::NaNSupport;
-
-sub convert ($$$$$) {
-    my ( $parent, $name, $lhs, $rhs, $opcode ) = @_;
-    die "ERROR: unable to find piddle $name in parent!"
-	unless my $pobj = $parent->{ParObjs}{$name};
-    # - extended to include hack to GenericLoop
-    my $type = $parent->{pars}{$name} || $pobj->adjusted_type($parent->{Gencurtype}[-1]);
-    return ($lhs, $rhs) if !($usenan * $type->usenan);
-    $opcode eq "SETBAD"
-	? ($lhs, "PDL->bvals.".$type->shortctype) : ("finite($lhs)", "0");
-}
-
-###########################
-#
 # Encapsulate a check on whether a value is good or bad
 # handles both checking (good/bad) and setting (bad)
 #
@@ -714,15 +705,15 @@ use Carp;
 our @CARP_NOT;
 
 sub new {
-    my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
+    my ( $type, $opcode, $name, $inds, $parent ) = @_;
 
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
     die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
-	"  unknown piddle <$pdl_name($inds)>\n"
-	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+	"  unknown piddle <$name($inds)>\n"
+	unless exists($check->{$name}) and defined($check->{$name});
 
-    return bless [$opcode, $pdl_name, $inds], $type;
+    return bless [$opcode, $name, $inds], $type;
 }
 
 our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
@@ -744,11 +735,9 @@ sub get_str {
     die "ERROR: something screwy in PDL::PP::BadAccess (PP/PDLCode.pm)\n"
 	unless defined( $obj );
 
-    my $lhs = $obj->do_access($inds,$context);
-    my $rhs = "${name}_badval";
-
-    ( $lhs, $rhs ) =
-      PDL::PP::NaNSupport::convert( $parent, $name, $lhs, $rhs, $opcode );
+    my ( $lhs, $rhs ) = $parent->convert(
+	$name, $obj->do_access($inds,$context), "${name}_badval", $opcode, $obj
+    );
 
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
@@ -776,15 +765,15 @@ use Carp;
 our @CARP_NOT;
 
 sub new {
-    my ( $type, $opcode, $var_name, $pdl_name, $parent ) = @_;
+    my ( $type, $opcode, $var_name, $name, $parent ) = @_;
 
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
     die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
-	"  unknown piddle <$pdl_name>\n"
-	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+	"  unknown piddle <$name>\n"
+	unless exists($check->{$name}) and defined($check->{$name});
 
-    bless [$opcode, $var_name, $pdl_name], $type;
+    bless [$opcode, $var_name, $name], $type;
 }
 
 our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
@@ -794,23 +783,21 @@ sub get_str {
 
     my $opcode   = $this->[0];
     my $var_name = $this->[1];
-    my $pdl_name = $this->[2];
+    my $name = $this->[2];
 
-    print "PDL::PP::BadVarAccess sent [$opcode] [$var_name] [$pdl_name]\n" if $::PP_VERBOSE;
+    print "PDL::PP::BadVarAccess sent [$opcode] [$var_name] [$name]\n" if $::PP_VERBOSE;
 
     my $op = $ops{$opcode};
     die "ERROR: unknown check <$opcode> sent to PDL::PP::BadVarAccess\n"
 	unless defined $op;
 
-    my $obj = $parent->{ParObjs}{$pdl_name};
+    my $obj = $parent->{ParObjs}{$name};
     die "ERROR: something screwy in PDL::PP::BadVarAccess (PP/PDLCode.pm)\n"
 	unless defined( $obj );
 
-    my $lhs = $var_name;
-    my $rhs = "${pdl_name}_badval";
-
-    ( $lhs, $rhs ) =
-      PDL::PP::NaNSupport::convert( $parent, $pdl_name, $lhs, $rhs, $opcode );
+    my ( $lhs, $rhs ) = $parent->convert(
+	$name, $var_name, "${name}_badval", $opcode, $obj
+    );
 
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
@@ -840,10 +827,10 @@ use Carp;
 our @CARP_NOT;
 
 sub new {
-    my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
+    my ( $type, $opcode, $name, $inds, $parent ) = @_;
 
     $opcode =~ s/^PP//;
-    bless [$opcode, $pdl_name, $inds], $type;
+    bless [$opcode, $name, $inds], $type;
 }
 
 # PP is stripped in new()
@@ -866,11 +853,9 @@ sub get_str {
     die "\nERROR: ParObjs does not seem to exist for <$name> = problem in PDL::PP::PPBadAccess\n"
 	unless defined $obj;
 
-    my $lhs = $obj->do_physpointeraccess() . "$inds";
-    my $rhs = "${name}_badval";
-
-    ( $lhs, $rhs ) =
-      PDL::PP::NaNSupport::convert( $parent, $name, $lhs, $rhs, $opcode );
+    my ( $lhs, $rhs ) = $parent->convert(
+	$name, $obj->do_physpointeraccess() . "$inds", "${name}_badval", $opcode, $obj
+    );
 
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
@@ -894,7 +879,7 @@ use Carp;
 our @CARP_NOT;
 
 sub new {
-    my ( $type, $op, $val, $pdl_name, $parent ) = @_;
+    my ( $type, $op, $val, $name, $parent ) = @_;
 
     # $op  is one of: IS SET
     # $val is one of: GOOD BAD
@@ -902,10 +887,10 @@ sub new {
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
     die "\nIt looks like you have tried a \$PDLSTATE${op}${val}() macro on an\n" .
-	"  unknown piddle <$pdl_name>\n"
-	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+	"  unknown piddle <$name>\n"
+	unless exists($check->{$name}) and defined($check->{$name});
 
-    bless [$op, $val, $pdl_name], $type;
+    bless [$op, $val, $name], $type;
 }
 
 our %ops  = (
