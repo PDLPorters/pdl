@@ -181,27 +181,19 @@ sub make_loopind { my($this,$ind) = @_;
 # loops (array references, 1. item = variable.
 #
 sub separate_code {
-   ## $DB::single=1;
     my ( $this, $code ) = @_;
-
     # First check for standard code errors:
     catch_code_errors($code);
-
     my $coderef = PDL::PP::Block->new;
-
     my @stack = ($coderef);
     my $threadloops = 0;
     my $sizeprivs = {};
-
     local $_ = $code;
-##    print "Code to parse = [$_]\n" if $::PP_VERBOSE;
     while($_) {
 	# Parse next statement
-
 	# I'm not convinced that having the checks twice is a good thing,
 	# since it makes it easy (for me at least) to forget to update one
 	# of them
-
 	s/^(.*?) # First, some noise is allowed. This may be bad.
 	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
                 |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]\w*\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
@@ -214,66 +206,59 @@ sub separate_code {
 		|%}                        # %}
 		|$)//xs
 		    or confess("Invalid program $_");
-		my $control = $2;
-		# Store the user code.
-		# Some day we shall parse everything.
-		push @{$stack[-1]},$1;
-
-		if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
-
-		# Then, our control.
-		if($control) {
-			if($control =~ /^loop\s*\(([^)]+)\)\s*%\{/) {
-				my $ob = PDL::PP::Loop->new([split ',',$1],
-						   $sizeprivs,$this);
-				print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-			} elsif($control =~ /^types\s*\(([^)]+)\)\s*%\{/) {
-				my $ob = PDL::PP::Types->new($1,$this);
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-			} elsif($control =~ /^threadloop\s*%\{/) {
-				my $ob = PDL::PP::ThreadLoop->new;
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-				$threadloops ++;
-			} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
-				push @{$stack[-1]},PDL::PP::PPBadAccess->new($1,$2,$3,$this);
-			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
-				push @{$stack[-1]},PDL::PP::BadVarAccess->new($1,$2,$3,$this);
-			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
-				push @{$stack[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
-			} elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-				push @{$stack[-1]},PDL::PP::PDLStateBadAccess->new($1,$2,$3,$this);
-			} elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
-				push @{$stack[-1]},PDL::PP::Access->new($control,$this);
-			} elsif($control =~ /^%}/) {
-			    pop @stack;
-			} else {
-				confess("Invalid control: $control\n");
-			}
-		} else {
-			print("No \$2!\n") if $::PP_VERBOSE;
-		}
+	my $control = $2;
+	# Store the user code.
+	# Some day we shall parse everything.
+	push @{$stack[-1]},$1;
+	if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
+	# Then, our control.
+	if($control) {
+	    if($control =~ /^loop\s*\(([^)]+)\)\s*%\{/) {
+		my $ob = PDL::PP::Loop->new([split ',',$1], $sizeprivs,$this);
+		print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%\{/) {
+		my $ob = PDL::PP::Types->new($1,$this);
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+	    } elsif($control =~ /^threadloop\s*%\{/) {
+		my $ob = PDL::PP::ThreadLoop->new;
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+		$threadloops ++;
+	    } elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},PDL::PP::PPBadAccess->new($1,$2,$3,$this);
+	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},PDL::PP::BadVarAccess->new($1,$2,$3,$this);
+	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
+		push @{$stack[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
+	    } elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},PDL::PP::PDLStateBadAccess->new($1,$2,$3,$this);
+	    } elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
+		push @{$stack[-1]},PDL::PP::Access->new($control,$this);
+	    } elsif($control =~ /^%}/) {
+		pop @stack;
+	    } else {
+		confess("Invalid control: $control\n");
+	    }
+	} else {
+	    print("No \$2!\n") if $::PP_VERBOSE;
+	}
     } # while: $_
-
-    return ( $threadloops, $coderef, $sizeprivs );
-
+    ( $threadloops, $coderef, $sizeprivs );
 } # sub: separate_code()
 
 # This is essentially a collection of regexes that look for standard code
 # errors and croaks with an explanation if they are found.
 sub catch_code_errors {
-	my $code_string = shift;
-
-	# Look for constructs like
-	#   loop %{
-	# which is invalid - you need to specify the dimension over which it
-	# should loop
-	report_error('Expected dimension name after "loop" and before "%{"', $1)
-		if $code_string =~ /(.*\bloop\s*%\{)/s;
-
+    my $code_string = shift;
+    # Look for constructs like
+    #   loop %{
+    # which is invalid - you need to specify the dimension over which it
+    # should loop
+    report_error('Expected dimension name after "loop" and before "%{"', $1)
+	    if $code_string =~ /(.*\bloop\s*%\{)/s;
 }
 
 # Report an error as precisely as possible. If they have #line directives
@@ -281,23 +266,20 @@ sub catch_code_errors {
 # Carp mechanisms
 my $line_re = qr/#\s*line\s+(\d+)\s+"([^"]*)"/;
 sub report_error {
-	my ($message, $code) = @_;
-
-	# Just croak if they didn't supply a #line directive:
-	croak($message) if $code !~ $line_re;
-
-	# Find the line at which the error occurred:
-	my $line = 0;
-	my $filename;
-	LINE: foreach (split /\n/, $code) {
-		$line++;
-		if (/$line_re/) {
-			$line = $1;
-			$filename = $2;
-		}
-	}
-
-	die "$message at $filename line $line\n";
+    my ($message, $code) = @_;
+    # Just croak if they didn't supply a #line directive:
+    croak($message) if $code !~ $line_re;
+    # Find the line at which the error occurred:
+    my $line = 0;
+    my $filename;
+    LINE: foreach (split /\n/, $code) {
+	    $line++;
+	    if (/$line_re/) {
+		    $line = $1;
+		    $filename = $2;
+	    }
+    }
+    die "$message at $filename line $line\n";
 }
 
 
@@ -353,7 +335,7 @@ sub get_str_int {
 #   if ( badflag ) { badcode } else { goodcode }
 #
 package PDL::PP::BadSwitch;
-@PDL::PP::BadSwitch::ISA = "PDL::PP::Block";
+our @ISA = "PDL::PP::Block";
 
 sub new {
     my($type,$good,$bad) = @_;
@@ -362,10 +344,8 @@ sub new {
 
 sub get_str {
     my ($this,$parent,$context) = @_;
-
     my $good = $this->[0];
     my $bad  = $this->[1];
-
     my $str = PDL::PP::pp_line_numbers(__LINE__, "if ( \$PRIV(bvalflag) ) { PDL_COMMENT(\"** do 'bad' Code **\")\n");
     $str .= "\n#define PDL_BAD_CODE\n";
     $str .= $bad->get_str($parent,$context);
@@ -373,7 +353,6 @@ sub get_str {
     $str .= "} else { PDL_COMMENT(\"** else do 'good' Code **\")\n";
     $str .= $good->get_str($parent,$context);
     $str .= "}\n";
-
     return $str;
 }
 
@@ -382,7 +361,7 @@ sub get_str {
 # Encapsulate a loop
 
 package PDL::PP::Loop;
-@PDL::PP::Loop::ISA = "PDL::PP::Block";
+our @ISA = "PDL::PP::Block";
 
 sub new { my($type,$args,$sizeprivs,$parent) = @_;
 	my $this = bless [$args],$type;
@@ -496,7 +475,7 @@ sub new {
 
 package PDL::PP::SimpleThreadLoop;
 use Carp;
-@PDL::PP::SimpleThreadLoop::ISA = "PDL::PP::Block";
+our @ISA = "PDL::PP::Block";
 our @CARP_NOT;
 
 sub new { my($type) = @_; bless [],$type; }
@@ -530,7 +509,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 #
 package PDL::PP::ComplexThreadLoop;
 use Carp;
-@PDL::PP::ComplexThreadLoop::ISA = "PDL::PP::Block";
+our @ISA = "PDL::PP::Block";
 our @CARP_NOT;
 
 
@@ -607,7 +586,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 #
 package PDL::PP::BackCodeThreadLoop;
 use Carp;
-@PDL::PP::BackCodeThreadLoop::ISA = "PDL::PP::ComplexThreadLoop";
+our @ISA = "PDL::PP::ComplexThreadLoop";
 our @CARP_NOT;
 
 sub myprelude {
@@ -632,7 +611,7 @@ sub myprelude {
 package PDL::PP::Types;
 use Carp;
 use PDL::Types ':All';
-@PDL::PP::Types::ISA = "PDL::PP::Block";
+our @ISA = "PDL::PP::Block";
 our @CARP_NOT;
 
 sub new {
@@ -661,27 +640,26 @@ use Carp;
 our @CARP_NOT;
 
 sub new { my($type,$str,$parent) = @_;
-	$str =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/ or
-		confess ("Access wrong: '$str'\n");
-	my($pdl,$inds) = ($1,$2);
-	if($pdl =~ /^T/) {PDL::PP::MacroAccess->new($pdl,$inds,
-						   $parent->{Generictypes},$parent->{Name});}
-	elsif($pdl =~ /^P$/) {PDL::PP::PointerAccess->new($pdl,$inds);}
-	elsif($pdl =~ /^PP$/) {PDL::PP::PhysPointerAccess->new($pdl,$inds);}
-        elsif($pdl =~ /^SIZE$/) {PDL::PP::SizeAccess->new($pdl,$inds);}
-        elsif($pdl =~ /^RESIZE$/) {PDL::PP::ReSizeAccess->new($pdl,$inds);}
-        elsif($pdl =~ /^GENERIC$/) {PDL::PP::GentypeAccess->new($pdl,$inds);}
-	elsif($pdl =~ /^PDL$/) {PDL::PP::PdlAccess->new($pdl,$inds);}
-	elsif(!defined $parent->{ParObjs}{$pdl}) {PDL::PP::OtherAccess->new($pdl,$inds);}
-	else {
-		bless [$pdl,$inds],$type;
-	}
+    $str =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/ or
+	    confess ("Access wrong: '$str'\n");
+    my($pdl,$inds) = ($1,$2);
+    if($pdl =~ /^T/) {PDL::PP::MacroAccess->new($pdl,$inds,
+			   $parent->{Generictypes},$parent->{Name});}
+    elsif($pdl =~ /^P$/) {PDL::PP::PointerAccess->new($pdl,$inds);}
+    elsif($pdl =~ /^PP$/) {PDL::PP::PhysPointerAccess->new($pdl,$inds);}
+    elsif($pdl =~ /^SIZE$/) {PDL::PP::SizeAccess->new($pdl,$inds);}
+    elsif($pdl =~ /^RESIZE$/) {PDL::PP::ReSizeAccess->new($pdl,$inds);}
+    elsif($pdl =~ /^GENERIC$/) {PDL::PP::GentypeAccess->new($pdl,$inds);}
+    elsif($pdl =~ /^PDL$/) {PDL::PP::PdlAccess->new($pdl,$inds);}
+    elsif(!defined $parent->{ParObjs}{$pdl}) {PDL::PP::OtherAccess->new($pdl,$inds);}
+    else {
+	bless [$pdl,$inds],$type;
+    }
 }
 
 sub get_str { my($this,$parent,$context) = @_;
-#	print "AC: $this->[0]\n";
-	$parent->{ParObjs}{$this->[0]}->do_access($this->[1],$context)
-	 if defined($parent->{ParObjs}{$this->[0]});
+    $parent->{ParObjs}{$this->[0]}->do_access($this->[1],$context)
+	if defined($parent->{ParObjs}{$this->[0]});
 }
 
 ###########################
