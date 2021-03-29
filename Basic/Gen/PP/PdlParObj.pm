@@ -415,8 +415,8 @@ sub get_xsdatapdecl {
     # assuming we always need this
     # - may not be true - eg if $asgnonly ??
     # - not needed for floating point types when using NaN as bad values
-    $macro = "PDL_REDODIMS_BADVAL" if $this->{BadFlag} and $type and
-	( $usenan == 0 or $type !~ /^PDL_(Float|Double)$/ );
+    $macro = "PDL_REDODIMS_BADVAL" if $this->{BadFlag} and $ptype and
+	!($usenan * $ptype->usenan);
     PDL::PP::pp_line_numbers(__LINE__, "$macro($declini, $cast, $type, $flag, $name, $pdl)");
 }
 
