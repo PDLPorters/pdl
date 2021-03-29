@@ -220,6 +220,7 @@ sub separate_code {
 		push @stack,$ob;
 	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%\{/) {
 		my $ob = PDL::PP::Types->new($1,$this);
+		$this->{types} = 1; # hack for PDL::PP::GenericLoop
 		push @{$stack[-1]},$ob;
 		push @stack,$ob;
 	    } elsif($control =~ /^threadloop\s*%\{/) {
@@ -396,7 +397,7 @@ sub mypostlude { my($this,$parent,$context) = @_;
 #
 # Encapsulate a generic type loop
 #
-# we use the value of $parent->{types} [set by a PDL::PP::Types object]
+# we use the value of $parent->{types}
 # to determine whether to define/undefine the THISISxxx macros
 # (makes the xs code easier to read)
 #
@@ -594,21 +595,16 @@ sub myprelude {
 #
 # Encapsulate a types() switch
 #
-# horrible hack:
-#  set $parent->{types} if we create this object so that
-#  PDL::PP::GenericLoop knows to define the THISIS ... macros
-#
 package PDL::PP::Types;
 use Carp;
 use PDL::Types ':All';
 our @ISA = "PDL::PP::Block";
 our @CARP_NOT;
+my $types = join '', ppdefs; # BSUL....
 
 sub new {
     my($type,$ts,$parent) = @_;
-    my $types = join '', ppdefs; # BSUL....
     $ts =~ /[$types]+/ or confess "Invalid type access with '$ts'!";
-    $parent->{types} = 1; # hack for PDL::PP::GenericLoop
     bless [$ts],$type; }
 sub myoffs { return 1; }
 sub myprelude {
