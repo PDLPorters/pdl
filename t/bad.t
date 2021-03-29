@@ -28,12 +28,8 @@ use PDL::LiteF;
 $| = 1;
 
 use PDL::Config;
-if ( $PDL::Config{WITH_BADVAL} ) {
-    plan tests => 82;
-} else {
+if ( !$PDL::Config{WITH_BADVAL} ) {
     # reduced testing
-    plan tests => 10;
-
     my $x = pdl(1,2,3);
     is( $x->badflag(), 0 ); # 1
     
@@ -60,6 +56,7 @@ if ( $PDL::Config{WITH_BADVAL} ) {
     ok( all( ($x->nbadover  - $y) == 0 ) );
     ok( all( ($x->ngoodover - $c) == 0 ) );
 
+    done_testing;
     exit;
 }
 
@@ -339,38 +336,6 @@ $y = $x->norm;
 $c = $x/sqrt(sum($x*$x));
 ok( all( approx( $y, $c, ABSTOL ) ), "norm()" );
 
-# Image2D
-my $ans = pdl(
- [ 3,  7, 11, 21, 27, 33, 39, 45, 51, 27],
- [ 3,  5, 13, 21, 27, 33, 39, 45, 51, 27],
- [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27]
-);
-
-$x = xvals zeroes 10,3;
-$x->setbadat(2,1);
-
-$y = pdl [1,2],[2,1];
-
-use PDL::Image2D;
-$c = conv2d($x, $y);
-
-is( int(at(sum($c-$ans))), 0, "conv2d()" ); 
-
-$x = zeroes(5,5);
-$x->badflag(1);
-my $t = $x->slice("1:3,1:3");
-$t .= ones(3,3);
-$x->setbadat(2,2);
-
-$y = sequence(3,3);
-$ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-my $m = med2d($x,$y);
-my $m_sub = $m-$ans;
-my $m_sum = sum($m_sub);
-my $m_at = at($m_sum);
-my $m_int = int($m_at);
-is( $m_int, 0, "med2d()" ) or diag "x: $x\nm: $m\nans: $ans\nm_sub: $m_sub\nm_sum: $m_sum\nm_at: $m_at\nm_int: $m_int";
-
 # propagation of badflag using inplace ops (ops.pd)
 
 # test biop fns
@@ -523,4 +488,4 @@ SKIP: {
 #    is (0, 1);
 #}
 
-# end
+done_testing;
