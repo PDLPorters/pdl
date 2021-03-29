@@ -463,16 +463,6 @@ sub mypostlude {
 }
 
 
-###########################
-#
-# Encapsulate a threadloop.
-# There are several different
-
-package PDL::PP::ThreadLoop;
-sub new {
-	return PDL::PP::ComplexThreadLoop->new(@_);
-}
-
 package PDL::PP::SimpleThreadLoop;
 use Carp;
 our @ISA = "PDL::PP::Block";
@@ -507,7 +497,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 # This relies on PP.pm making sure that initthreadloop always sets
 # up the two first dimensions even when they are not necessary.
 #
-package PDL::PP::ComplexThreadLoop;
+package PDL::PP::ThreadLoop;
 use Carp;
 our @ISA = "PDL::PP::Block";
 our @CARP_NOT;
@@ -581,12 +571,12 @@ sub mypostlude {my($this,$parent,$context) = @_;
     $str . $macro_name;
 }
 
-# Simple subclass of ComplexThreadLoop to implement writeback code
+# Simple subclass of ThreadLoop to implement writeback code
 #
 #
 package PDL::PP::BackCodeThreadLoop;
 use Carp;
-our @ISA = "PDL::PP::ComplexThreadLoop";
+our @ISA = "PDL::PP::ThreadLoop";
 our @CARP_NOT;
 
 sub myprelude {
