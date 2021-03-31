@@ -74,7 +74,7 @@ sub splitprotected ($$) {
 # - this should disappear when (if?) things are done sensibly
 #
 my $typeregex = join '|', map $_->ppforcetype, types;
-my $complex_regex = join '|', qw(real);
+my $complex_regex = join '|', qw(real complex);
 our $pars_re = qr/^
 	\s*((?:$complex_regex|$typeregex)\b[+]*|)\s*	# $1: first option
 	(?:
@@ -90,7 +90,7 @@ sub new {
 	# Parse the parameter string. Note that the regexes for this match were
 	# originally defined here, but were moved to PDL::PP for FullDoc parsing.
 	$string =~ $pars_re
-		 or confess "Invalid pdl def $string (regex $typeregex)\n";
+		 or confess "Invalid pdl def $string (regex $pars_re)\n";
 	my($opt1,$opt2,$name,$inds) = ($1,$2,$3,$4);
 	map {$_ = '' unless defined($_)} ($opt1,$opt2,$inds); # shut up -w
 	print "PDL: '$opt1', '$opt2', '$name', '$inds'\n"
@@ -107,6 +107,7 @@ sub new {
 		/^t$/ and $this->{FlagTemp}=1 and $this->{FlagCreat}=1 and $this->{FlagW}=1 or
 		/^phys$/ and $this->{FlagPhys} = 1 or
 		/^real$/ and $this->{FlagReal} = 1 or
+		/^complex$/ and $this->{FlagComplex} = 1 or
 		/^((?:$typeregex)[+]*)$/ and $this->{Type} = $1 and $this->{FlagTyped} = 1 or
 		confess("Invalid flag $_ given for $string\n");
 	}

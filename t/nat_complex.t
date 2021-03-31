@@ -29,6 +29,10 @@ $y=cfloat($x);
 is type($y), 'cfloat', 'type conversion to cfloat';
 is $y->creal->type, 'float', 'real real part';
 ok(tapprox($x->cimag,$ref->slice("0,1")), 'value from piddle - i');
+is zeroes($_->[0], 2)->r2C->type, $_->[1], "r2C $_->[0] -> $_->[1]"
+  for [byte, 'cfloat'], [long, 'cfloat'],
+    [float, 'cfloat'], [cfloat, 'cfloat'],
+    [double, 'cdouble'], [cdouble, 'cdouble'];
 
 # dataflow from complex to real
 $ar = $x->creal;

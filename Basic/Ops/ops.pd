@@ -560,14 +560,27 @@ pp_def ( '_rabs',
 	Doc=>'Returns the absolute value of a number. ' ,
 	PMFunc=>'',
 );
-
 pp_addpm(<<'EOPM');
-
 sub PDL::abs {
 	my $x=shift;
 	$x->type->real ? PDL::_rabs($x) : PDL::_cabs($x);
 }
-
 EOPM
+
+# modified from PDL::Complex analogue
+pp_def('r2C',
+  GenericTypes=>[reverse qw(F D G C)], # last one is default so here = F
+  Pars => 'r(); complex [o]c()',
+  Doc => 'convert real to native complex, with an imaginary part of zero',
+  PMCode => << 'EOF',
+sub PDL::r2C ($) {
+  return $_[0] if !$_[0]->type->real;
+  my $r = $_[1] // PDL->nullcreate($_[0]);
+  PDL::_r2C_int($_[0], $r);
+  $r;
+}
+EOF
+  Code => '$c() = $r();'
+);
 
 pp_done();

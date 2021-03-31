@@ -701,6 +701,23 @@ PDL/C datatypes, but C<real> is a modifier; if the operation type is real,
 it has no effect; if it is complex, then the parameter will be the real
 version - so C<cdouble> becomes C<double>, etc.
 
+There is also the converse, C<complex>. If the operation is already
+complex, there is no effect; if not, the output will be promoted to the
+type's L<PDL::Type/complexversion>, which defaults to C<cfloat>. Note this
+is controlled both by the L<PDL::Types> data, and the code in L<PDL::PP>.
+B<NB> Because this outputs floating-point data, the inputs will by
+definition be turned into such. Therefore, it only makes sense to have
+floating-point C<GenericTypes> inputs. If you want to default to coercing
+inputs to C<float>, give that as the last C<GenericTypes> as the generated
+XS function defaults to the last-given one. Hence (with the C<PMCode>
+and C<Doc> omitted):
+
+  pp_def('r2C',
+    GenericTypes=>[reverse qw(F D G C)], # last one is default so here = F
+    Pars => 'r(); complex [o]c()',
+    Code => '$c() = $r();'
+  );
+
 Finally, there are the C<type+> qualifiers where type is one of C<int>
 or C<float>. What shall that mean. Let's illustrate the C<int+>
 qualifier with the actual definition of sumover:

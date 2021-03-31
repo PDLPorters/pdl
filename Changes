@@ -1,3 +1,5 @@
+- add "complex" Pars type qualifier, r2C function
+
 2.033 2021-03-30
 - native complex documented better - thanks @fantasma13
 - add "real" Pars type qualifier

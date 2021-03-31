@@ -154,6 +154,7 @@ my @types = (
 		  packtype => 'f*',
 	          defaultbadval => '-FLT_MAX',
 	          real=>1,
+		  complexversion=> 'G',
 	          integer=>0,
 	          unsigned=>0,
 	      },
@@ -166,6 +167,7 @@ my @types = (
 		  packtype => 'd*',
 	          defaultbadval => '-DBL_MAX',
 	          real=>1,
+		  complexversion=> 'C',
 	          integer=>0,
 	          unsigned=>0,
 	      },
@@ -265,6 +267,7 @@ sub gentypehashentry ($$) {
     defbval => $type->{defaultbadval},
     shortctype => $shortctype,
     realversion => $type->{realversion} || $ppsym,
+    complexversion => $type->{complexversion} || 'G',
     (map +($_ => $type->{$_}), @TYPE_VERBATIM),
   };
 }
@@ -708,6 +711,10 @@ sub types { @CACHED_TYPES }
       $CACHED_TYPES[$PDL::Types::typenames{ $_[0][1]{realversion} }];
     }
 
+    sub complexversion {
+      $CACHED_TYPES[$PDL::Types::typenames{ $_[0][1]{complexversion} }];
+    }
+
 !NO!SUBS!
 
 foreach my $name ( qw( ctype ppsym convertfunc shortctype
@@ -865,9 +872,17 @@ real
 
 I<Required>. Boolean - is this a real (not complex) type?
 
+=item *
+
 realversion
 
 String - the real version of this type (e.g. cdouble -> 'D').
+
+=item *
+
+complexversion
+
+String - the complex version of this type (e.g. double -> 'C').
 
 =back
 
