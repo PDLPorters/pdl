@@ -451,11 +451,11 @@ See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for detai
 # the ufunc/bifunc logic
 sub cfunc {
     my ($name, $func, $make_real, $doc, %extra) = @_;
-    my $badcode = '$ISBAD(a())';
-    my $codestr = "\$b() = $func\$TGC(f,)(\$a());";
+    my $badcode = '$ISBAD(complexv())';
+    my $codestr = "\$b() = $func\$TGC(f,)(\$complexv());";
     pp_def($name,
 	   GenericTypes=>$C,
-	   Pars => 'a(); '.($make_real ? 'real' : '').' [o]b()',
+	   Pars => 'complexv(); '.($make_real ? 'real' : '').' [o]b()',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,

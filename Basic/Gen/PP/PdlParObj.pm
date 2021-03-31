@@ -74,8 +74,9 @@ sub splitprotected ($$) {
 # - this should disappear when (if?) things are done sensibly
 #
 my $typeregex = join '|', map $_->ppforcetype, types;
+my $complex_regex = join '|', qw(real);
 our $pars_re = qr/^
-	\s*((?:real|$typeregex)[+]*|)\s*	# $1: first option
+	\s*((?:$complex_regex|$typeregex)\b[+]*|)\s*	# $1: first option
 	(?:
 	\[([^]]*)\]   	# $2: The initial [option] part
 	)?\s*
