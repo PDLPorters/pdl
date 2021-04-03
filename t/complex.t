@@ -2,10 +2,7 @@ use PDL::LiteF;
 use PDL::Complex;
 use PDL::Config;
 use PDL::Math;
-
-BEGIN {
-   use Test::More tests => 131;
-}
+use Test::More;
 
 sub tapprox {
 	my($x,$y) = @_;
@@ -351,3 +348,20 @@ TODO: {
     is($more>$equal,1,'greater than');
     is($more>=$equal,1,'greater than or equal to');
 }
+
+# Test binary operations between PDL::Complex and cdouble types.
+TODO: {
+      local $TODO="PDL::Complex binop native complex should yield native complex";
+      my $p=1+i;
+      my $n=cdouble(1+ci()); # Guess this is cdouble by default but don't risk it
+      my $plus_pn=$p+$n;
+      ok(tapprox($plus_pn, 2+2*ci()), 'PDL::Complex+cdouble value') or diag "got: $plus_pn";
+      my $times_pn=$p*$n;
+      ok(tapprox($times_pn, 2*ci()),   'PDL::Complex*cdouble value') or diag "got: $times_pn";
+      my $plus_np=$n+$p;
+      ok(tapprox($plus_np, 2+2*ci()), 'cdouble+PDL::Complex value') or diag "got: $plus_np";
+      my $times_np=$n*$p;
+      ok(tapprox($times_np, 2*ci()),   'cdouble*PDL::Complex value') or diag "got: $times_np";
+}
+
+done_testing;
