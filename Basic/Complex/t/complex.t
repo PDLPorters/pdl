@@ -373,4 +373,19 @@ TODO: {
     ok($zero_imag!=5,'neq real');
 }
 
+# Test binary operations between PDL::Complex and cdouble types.
+TODO: {
+      local $TODO="PDL::Complex binop native complex should yield native complex";
+      my $p=1+i;
+      my $n=pdl('1+i'); # Guess this is cdouble by default but don't risk it
+      my $plus_pn=$p+$n;
+      ok(tapprox($plus_pn, pdl('2+2i')), 'PDL::Complex+cdouble value') or diag "got: $plus_pn";
+      my $times_pn=$p*$n;
+      ok(tapprox($times_pn, pdl('2i')), 'PDL::Complex*cdouble value') or diag "got: $times_pn";
+      my $plus_np=$n+$p;
+      ok(tapprox($plus_np, pdl('2+2i')), 'cdouble+PDL::Complex value') or diag "got: $plus_np";
+      my $times_np=$n*$p;
+      ok(tapprox($times_np, pdl('2i')), 'cdouble*PDL::Complex value') or diag "got: $times_np";
+}
+
 done_testing;
