@@ -46,7 +46,7 @@ $x = i - 1;
 ok(ref $x eq PDL::Complex, 'type promotion i - real scalar');
 ok(tapprox($x->real,$ref), 'value from i - real scalar');
 
-$x = 1-i;
+$x = 1 - i;
 ok(ref $x eq PDL::Complex, 'type promotion real scalar - i');
 ok(tapprox($x->real,-$ref), 'value from real scalar - i');
 
@@ -69,14 +69,14 @@ ok(tapprox($x->real, -$ref+1), 'complex to real dataflow');
 
 $refc=$ref->copy;
 $ac = $refc->cplx;
-$ac .= $ac-1-i;
+$ac .= $ac - 1 - i;
 ok(tapprox($refc, $ref-1), 'real to complex dataflow');
 
 # no dataflow from real to complex when complex
 
 $refc=$ref->copy;
 $ac = $refc->complex;
-$ac .= $ac-1-i;
+$ac .= $ac - 1 - i;
 ok(tapprox($refc->real, $ref-1), 'real to complex dataflow');
 
 #Check Cr2p and Cp2r
