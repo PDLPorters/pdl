@@ -165,6 +165,14 @@ jobs:
           git config --global core.eol lf
         shell: powershell
       - uses: actions/checkout@v2
+      - name: Cache Cygwin
+        uses: actions/cache@v1
+        with:
+          path: |
+            c:\tools\cygwin
+            !c:\tools\cygwin\home
+          key: ${{ runner.os }}-build-cygwin-tools
+          restore-keys: ${{ runner.os }}-build-cygwin-tools
       - name: Set up Cygwin
         uses: egor-tensin/setup-cygwin@v3
         with:
