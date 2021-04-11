@@ -178,15 +178,6 @@ EOVF
   close $fh;
 }
 
-sub make_Types_pm {
-  # make sure we have Types.pm ready for prime time
-  die "Types.pm.PL not found in Basic/Core"
-    unless -f 'Basic/Core/Types.pm.PL';
-  system $Config{perlpath}, 'Basic/Core/Types.pm.PL';
-  die "error creating Basic/Core/Types.pm"
-    unless -f 'Basic/Core/Types.pm';
-}
-
 # very simple formatter, assumes structures are *not* nested
 # used by make_PDL_Config_pm
 sub myformat {
@@ -294,11 +285,8 @@ if (!defined($PDL::Config{USE_POGL}) or +$PDL::Config{USE_POGL}) {
 
 make_Version_pm();
 
-make_Types_pm();
-
 # this will make PDL::Core::Dev's functions available
 # in Makefile.PL files in all subdirectories
-# IMPORTANT: it has to be after make_Types_pm()
 require "./Basic/Core/Dev.pm"; PDL::Core::Dev->import();
 
 # only perform one test if required modules are missing
