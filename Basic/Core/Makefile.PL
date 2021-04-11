@@ -112,15 +112,8 @@ pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
 
 pdlcore.h:: pdlcore.h.PL Types.pm\n"
     . make_from_PL( 'pdlcore.h' );
-if($Config{make} =~ /\bdmake/i) {
-  if($ExtUtils::MakeMaker::VERSION < 7) {
-    return $text . $pdlsections_g;
-  } else {
-#EU-MM >= 7
-    return $text;
-  }
-} else { return
-$text.
+return $text if $Config{make} =~ /\bdmake/i;
+return $text.
 "
 # Bits of C code we generate from special perl scripts
 #
@@ -150,7 +143,6 @@ pdlcore.c:: pdlcore.c.PL Types.pm\n"
 . make_from_PL( 'pdlcore.c' )
 .
 ($^O =~ /MSWin/ ? $pdlsections_g : '');
-}
 };
 
 my $libs_string = "$pthread_library $malloclib -lm";
