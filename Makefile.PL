@@ -11,15 +11,9 @@ use ExtUtils::MakeMaker;
 use ExtUtils::MakeMaker::Config;
 use File::Spec;
 
-$::PP_VERBOSE = $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
-
 # file globals(!)
 my ($pdl_f77conf, $forcebuild);
-my ($seen_pdlconf, $seen_f77conf);
-my $pdl_conf_file = ''; # apparently for users to change
-
-# build-system globals
-our ($usenan, $bvalflag, $bvalPerPdl);
+my ($seen_f77conf);
 
 sub checkbuggysetup {
     # detect buggy Perl setups
@@ -105,43 +99,10 @@ unless $ENV{PDL_INC_OK};
 %PDL::Config = ();
 
 sub getpdl_config {
-  my ($pdl_conf_file) = @_;
-
   # First read in distribution config file
   #
   our %PDL_CONFIG;
   require './perldl.conf';
-
-  # Save standard values
-  #
-  my %PDL_CONFIG_DIST = %PDL_CONFIG;
-
-  # Now read in the users config file if specified
-  # and convert y/n to 1/0
-  #
-  if (-f $pdl_conf_file) {
-    warn "\nINFORMATION: using file $pdl_conf_file to set configuration defaults\n\n";
-    require $pdl_conf_file;
-  }
-
-  # Sanity checking of user supplied keys (look for ones not defined in dist)
-
-  for(keys %PDL_CONFIG) {
-    if(!exists($PDL_CONFIG_DIST{$_})) {
-      die << "EOD";
-Invalid key $_ found in user supplied $pdl_conf_file
-  - this key appears to be no longer in use.
-  Please review configuration options and check the comments in
-  the file perldl.conf that came with this distribution
-EOD
-    }
-  }
-
-  # Merge in default options where not supplied in users file
-  #
-  for(keys %PDL_CONFIG_DIST) {
-    $PDL_CONFIG{$_} = $PDL_CONFIG_DIST{$_} unless exists $PDL_CONFIG{$_};
-  }
 
   # Set up the default TEMPDIR if it has not been set by the user
   #
@@ -200,7 +161,7 @@ EOD
       $PDL::Config{$key} = $val;
   }
 
-  # destroy PDL_CONFIG/PDL_CONFIG_DIST so that we can catch any accesses
+  # destroy PDL_CONFIG so that we can catch any accesses
   # to them in other Makefile.PL's
   #
   %PDL_CONFIG = ();
@@ -307,10 +268,7 @@ for my $mod (@test) {
 
 # Scan ARGV for config file argument
 @ARGV = map {
-	if(/^PDLCONF=(.*)$/) {
-		$seen_pdlconf=1;
-		$pdl_conf_file = $1; ();
-	} elsif (/^F77CONF=(.*)$/) {
+	if (/^F77CONF=(.*)$/) {
 		$seen_f77conf=1;
 		$pdl_f77conf=$1; ();
 	} elsif (/^FORCE$/i) {
@@ -325,13 +283,8 @@ warn "WARNING: forcing build...\n" if $forcebuild;
 
 checkbuggysetup(); # check for buggy Perl setups
 
-unless ( $seen_pdlconf ) {
-    my $defname = "$ENV{HOME}/.perldl.conf";
-    $pdl_conf_file = $defname if -f $defname;
-}
-
 # needs to be called before any of the make_XX routines
-getpdl_config($pdl_conf_file);
+getpdl_config();
 $seen_f77conf = check_f77conf($seen_f77conf);
 
 # Check environment for SKIP_KNOWN_PROBLEMS

@@ -1,5 +1,6 @@
 - bad value support now always present, not configurable
 - pthread detection simplified, now enabled for Windows and MacOS
+- remove check in build for ~/.perldl.conf
 
 2.034 2021-03-31
 - add "complex" Pars type qualifier, r2C function
