@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Config;
+use ExtUtils::MakeMaker::Config; # to pick up EUMM-targeted config overrides
 use Test::More $Config{usedl}
     ? ()
     : (skip_all => 'No dynaload; double-blib static build too difficult');
