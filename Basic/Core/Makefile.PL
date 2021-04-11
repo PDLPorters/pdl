@@ -87,62 +87,15 @@ sub make_from_PL ($) {
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
+    PDL::Core::Dev::postamble() . "
+pdlsections.c : pdlsections.g # needs to be spelled out despite inference rule
 
-    # nmake doesn't seem to do inference rules right so spell it out
-    my $pdlsections_g = sprintf <<'EOF', PDL::Core::Dev::genpp_cmdline(qw(pdlsections.g pdlsections.c));
+pdlconv.c.PL pdlcore.c.PL pdlcore.h.PL pdlsimple.h.PL pdl.h.PL pdldataswitch.c.PL pdlbadvalinit.c.PL :: Types.pm
 
-pdlsections.c :: pdlsections.g Types.pm
-	%s
-EOF
-    my $text = PDL::Core::Dev::postamble() . "
+pdlsections.g pdlapi.c pdlhash.c pdlthread.c :: pdl.h pdlcore.h
 
-pdlbadvalinit.c:: pdlbadvalinit.c.PL Types.pm\n"
-. make_from_PL( 'pdlbadvalinit.c' )
-."
-
-pdldataswitch.c:: pdldataswitch.c.PL Types.pm\n"
-. make_from_PL( 'pdldataswitch.c' )
-."
-
-pdl.h:: pdl.h.PL Types.pm\n"
-    . make_from_PL( 'pdl.h' ) . "
-
-pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
-    . make_from_PL( 'pdlsimple.h' ) . "
-
-pdlcore.h:: pdlcore.h.PL Types.pm\n"
-    . make_from_PL( 'pdlcore.h' );
-return $text if $Config{make} =~ /\bdmake/i;
-return $text.
+pdlmagic.c :: pdlcore.h
 "
-# Bits of C code we generate from special perl scripts
-#
-# there must be a more elegant way of saying that
-# certain files have additional dependencies!
-
-pdlthread.c :: pdl.h pdlcore.h\n"
-."
-
-pdlhash.c :: pdl.h pdlcore.h\n"
-."
-
-pdlapi.c :: pdl.h pdlcore.h\n"
-."
-
-pdlmagic.c :: pdlcore.h\n"
-."
-
-pdlsections.c :: pdl.h pdlcore.h\n"
-."
-
-pdlconv.c:: pdlconv.c.PL Types.pm\n"
-. make_from_PL( 'pdlconv.c' )
-."
-
-pdlcore.c:: pdlcore.c.PL Types.pm\n"
-. make_from_PL( 'pdlcore.c' )
-.
-($^O =~ /MSWin/ ? $pdlsections_g : '');
 };
 
 my $libs_string = "$pthread_library $malloclib -lm";
