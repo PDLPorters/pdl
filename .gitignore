@@ -89,7 +89,6 @@ Basic/Complex/Complex.xs
 Basic/Core/Config.pm
 Basic/Core/Core.c
 Basic/Core/Types.pm
-Basic/Core/Version.pm
 Basic/Core/pdl.h
 Basic/Core/pdlbadvalinit.c
 Basic/Core/pdlconv.c

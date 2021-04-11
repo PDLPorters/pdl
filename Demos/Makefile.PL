@@ -19,7 +19,7 @@ test_tjl :
 #   install that into the demos directory
 WriteMakefile(
      'NAME'	=> 'PDL::Demos',
-     'VERSION_FROM' => '../Basic/Core/Version.pm',
+     'VERSION_FROM' => '../Basic/PDL.pm',
      'PM'       => {'General.pm'     => '$(INST_LIBDIR)/Demos/General.pm',
                     'Screen.pm'    => '$(INST_LIBDIR)/Demos/Screen.pm',
                     'TriD1.pm'    => '$(INST_LIBDIR)/Demos/TriD1.pm',

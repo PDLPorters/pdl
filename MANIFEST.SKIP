@@ -48,9 +48,6 @@ RCS
 ^Basic/Core/Config\.pm
 ^Basic/Core/Core\.c$
 ^Basic/Core/Types\.pm$
-^Basic/Core/Version\.pm
-^Basic/Core/Version\.pm
-^Basic/Core/check_endian$
 ^Basic/Core/pdlbadvalinit\.c$
 ^Basic/Core/pdldataswitch\.c$
 ^Basic/Core/isbigendian.p$
@@ -66,7 +63,6 @@ RCS
 ^Basic/MatrixOps/MatrixOps\.c
 ^Basic/MatrixOps/MatrixOps\.pm
 ^Basic/MatrixOps/MatrixOps\.xs
-^Basic/OLD
 ^Basic/Ops/Ops\.c$
 ^Basic/Ops/Ops\.pm$
 ^Basic/Ops/Ops\.xs$
@@ -163,7 +159,6 @@ RCS
 ^Libtmp/GSL/RNG\.(pm|xs|c)
 ^Libtmp/GSL/SF/.*\.c$
 ^Libtmp/Gaussian\.pm
-^Libtmp/Genetic
 ^Libtmp/Image2D/Image2D\..*
 ^Libtmp/ImageND/ImageND\..*
 ^Libtmp/ImageRGB/ImageRGB\..*
@@ -171,7 +166,6 @@ RCS
 ^Libtmp/Minuit/.*\.pm$
 ^Libtmp/Minuit/.*\.xs$
 ^Libtmp/Minuit/M.*\.c$
-^Libtmp/PCARout/PCARout\..*
 ^Libtmp/Slatec/Slatec.c
 ^Libtmp/Slatec/Slatec.pm
 ^Libtmp/Slatec/Slatec.xs
@@ -187,7 +181,6 @@ RCS
 ^Libtmp/Transform/Transform\.c
 ^Libtmp/Transform/Transform\.pm
 ^Libtmp/Transform/Transform\.xs
-^Padre/readline-fix
 ^Perldl2/logo3d.pdl
 ^Perldl2/pdl2.pod$
 ^Perldl2/tctrl-c.pl

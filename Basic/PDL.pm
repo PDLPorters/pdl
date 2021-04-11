@@ -1,3 +1,8 @@
+package PDL;
+
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL - the Perl Data Language
@@ -142,7 +147,6 @@ start-up modules.
    use PDL::Bad;
    use PDL::MatrixOps;
    use PDL::Math;
-   use PDL::Version;
    use PDL::IO::Misc;
    use PDL::IO::FITS;
    use PDL::IO::Pic;
@@ -151,21 +155,17 @@ start-up modules.
 
 =cut
 
-
 # set the version:
-$PDL::VERSION = '2.034';
+our $VERSION = '2.034';
 
 # Main loader of standard PDL package
 
-sub PDL::import {
-
-my $pkg = (caller())[0];
-eval <<"EOD";
-
+sub import {
+  my $pkg = (caller())[0];
+  eval <<"EOD";
 package $pkg;
 
 # Load the fundamental packages
-
 use PDL::Core;
 use PDL::Ops;
 use PDL::Primitive;
@@ -177,30 +177,17 @@ use PDL::Math;
 use PDL::MatrixOps;
 use PDL::Lvalue;
 
-# Load these for TPJ compatibility
-
+# for TPJ compatibility
 use PDL::IO::Misc;          # Misc IO (Ascii)
 use PDL::IO::FITS;          # FITS IO (rfits/wfits; used by rpic/wpic too)
 use PDL::IO::Pic;           # rpic/wpic
 
-# Load this so config/install info is available
-
-use PDL::Config;
-
-# Load this to avoid mysterious Storable segfaults
-
-use PDL::IO::Storable;
+use PDL::Config; # so config/install info is available
+use PDL::IO::Storable; # to avoid mysterious Storable segfaults
 
 EOD
-
-die $@ if $@;
-
+  die $@ if $@;
 }
-
-
-# Dummy Package PDL Statement. This is only needed so CPAN
-# properly recognizes the PDL package.
-package PDL;
 
 # support: use Inline with => 'PDL';
 # Returns a hash containing parameters accepted by recent versions of
@@ -217,20 +204,17 @@ sub Inline {
 ##################################################
 # Rudimentary handling for multiple Perl threads #
 ##################################################
-my $clone_skip_should_be_quiet = 0;
+our $no_clone_skip_warning = 0;
 sub CLONE_SKIP {
-    warn("* If you need to share PDL data across threads, use memory mapped data, or\n"
-		. "* check out PDL::Parallel::threads, available on CPAN.\n"
-        . "* You can silence this warning by saying `PDL::no_clone_skip_warning;'\n"
-        . "* before you create your first thread.\n")
-        unless $clone_skip_should_be_quiet;
-    PDL::no_clone_skip_warning();
-    # Whether we warned or not, always return 1 to tell Perl not to clone PDL data
+    warn <<'EOF' if !$no_clone_skip_warning;
+* If you need to share PDL data across threads, use memory mapped data, or
+* check out PDL::Parallel::threads, available on CPAN.
+* You can silence this warning by saying `$PDL::no_clone_skip_warning = 1;'
+* before you create your first thread.
+EOF
+    $no_clone_skip_warning = 1;
+    # always return 1 to tell Perl not to clone PDL data
     return 1;
 }
-sub no_clone_skip_warning {
-    $clone_skip_should_be_quiet = 1;
-}
 
-# Exit with OK status
 1;

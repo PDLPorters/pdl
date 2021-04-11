@@ -3,7 +3,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 WriteMakefile(
         NAME => 'PDL::Filter',
-        VERSION_FROM => '../../Basic/Core/Version.pm',
+        VERSION_FROM => '../../Basic/PDL.pm',
         PM => {
          map {($_ => '$(INST_LIBDIR)/Filter/'.$_)}
          grep {

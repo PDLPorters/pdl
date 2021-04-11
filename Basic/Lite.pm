@@ -26,7 +26,6 @@ Access to other functions is by method syntax, viz:
    use PDL::Basic '';
    use PDL::Slices '';
    use PDL::Bad '';
-   use PDL::Version;
    use PDL::Lvalue;
 
 =cut
@@ -43,10 +42,10 @@ use PDL::Ufunc '';
 use PDL::Basic '';
 use PDL::Slices '';
 use PDL::Bad '';
-use PDL::Version ;  # Doesn't export anything - no need for ''
+require PDL; # for VERSION
 use PDL::Lvalue;
 
-our $VERSION = $PDL::Version::VERSION;
+our $VERSION = $PDL::VERSION;
 
 our @ISA = qw( PDL::Exporter );
 

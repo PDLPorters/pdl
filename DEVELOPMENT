@@ -152,7 +152,7 @@ Makefile.PL:
    'pdlpp_postamble_int' (with the same arguments.)
 
 -- It seems that most modules in the PDL source use 
-   VERSION_FROM => '../../Basic/Core/Version.pm',
+   VERSION_FROM => '../../Basic/PDL.pm',
    but not all of them in order that their version tracks
    the PDL release version.  It is possible to maintain
    separate versioning even within the PDL source tree but

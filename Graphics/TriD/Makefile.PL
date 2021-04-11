@@ -26,7 +26,7 @@ $PDL::Config{GL_BUILD} = $gl_build; # record for Config.pm
 
 WriteMakefile (
      'NAME'         => "PDL::Graphics::TriD",
-     'VERSION_FROM' => '../../Basic/Core/Version.pm',
+     'VERSION_FROM' => '../../Basic/PDL.pm',
      'DIR'          => [ @subdirs ],
     (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
 );

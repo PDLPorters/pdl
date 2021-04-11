@@ -396,15 +396,6 @@ are those marked ':Func'.
 Defines some useful functions for getting a piddle's type, as well as
 getting information about that type.
 
-=item * PDL::Version
-
-Simply defines the scalar C<$PDL::Version::Version> with the current
-version of PDL, as defined in PDL.pm.  This is most useful if you
-distribute your own module on CPAN, use L<PDL::Lite> or L<PDL::LiteF>
-and want to make sure that your users have a recent-enough version of
-PDL.  Since the variable is defined in PDL.pm, you don't need this
-module if you C<use PDL>.
-
 =back
 
 =head1 Expert Usage

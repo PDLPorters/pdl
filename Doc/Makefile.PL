@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     'NAME'         => 'PDL::Doc',
-    'VERSION_FROM' => '../Basic/Core/Version.pm',
+    'VERSION_FROM' => '../Basic/PDL.pm',
     'LIBS'         => [''],   # e.g., '-lm'
     'DEFINE'       => '',     # e.g., '-DHAVE_SOMETHING'
     'INC'          => '',     # e.g., '-I/usr/include/other'

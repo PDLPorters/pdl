@@ -29,7 +29,7 @@ my %man3pods = map { my $h = '$(INST_MAN3DIR)/';
                    } @pm_names;
 WriteMakefile(
                'NAME'         => 'PDL',
-               'VERSION_FROM' => '../Basic/Core/Version.pm',
+               'VERSION_FROM' => '../Basic/PDL.pm',
                'PM'           => \%pm,
                'MAN3PODS'     => \%man3pods,
                'DIR'          => [@subdirs],

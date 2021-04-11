@@ -451,7 +451,7 @@ my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
  return (
  	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
-	 'VERSION_FROM' => "$w/Basic/Core/Version.pm",
+	 'VERSION_FROM' => "$w/Basic/PDL.pm",
 	 'TYPEMAPS'     => [&PDL_TYPEMAP()],
 	 'OBJECT'       => "$pref\$(OBJ_EXT)",
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},

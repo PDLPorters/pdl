@@ -1,3 +1,8 @@
+package PDL::LiteF;
+
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::LiteF - minimum PDL module function loader
@@ -20,25 +25,19 @@ smaller see the L<PDL::Lite> module.
    use PDL::Basic;
    use PDL::Slices;
    use PDL::Bad;
-   use PDL::Version;
    use PDL::Lvalue;
 
 =cut
 
-# get the version: 
-use PDL::Version;
+require PDL; # get the version
 
-package PDL::LiteF;
-$VERSION = $PDL::Version::VERSION;
-
+our $VERSION = $PDL::VERSION;
 
 # Load the fundamental PDL packages, with imports
 
-sub PDL::LiteF::import {
-
-my $pkg = (caller())[0];
-eval <<EOD;
-
+sub import {
+  my $pkg = (caller())[0];
+  eval <<EOD;
 package $pkg;
 
 use PDL::Core;
@@ -51,11 +50,7 @@ use PDL::Bad;
 use PDL::Lvalue;
 
 EOD
-
-die $@ if $@;
-
+  die $@ if $@;
 }
-
-;# Exit with OK status
 
 1;

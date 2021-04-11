@@ -44,7 +44,7 @@ $Modules = $Modules = "";	# pacify -w
 
 sub mypdlconfig {
   require Config; # pick up perl version info
-  eval 'require PDL::Version' if not defined $PDL::Version::VERSION;
+  eval 'require PDL' if not defined $PDL::VERSION;
   eval 'require PDL::Config';
   eval "use Data::Dumper";
   my $hasdumper = $@ eq "" ? 1 : 0;
@@ -52,7 +52,7 @@ sub mypdlconfig {
   my $bflag = defined($PDL::Bad::Status) && $PDL::Bad::Status;
 
   my $txt = "\nSummary of my PDL configuration\n\n";
-  $txt .= "VERSION: PDL v$PDL::Version::VERSION";
+  $txt .= "VERSION: PDL v$PDL::VERSION";
   $txt .= " (supports bad values)" if $bflag;
   $txt .= "\n\n";
   if ($hasdumper && %PDL::Config) {
@@ -353,14 +353,14 @@ print "Reading $startup_file...\n";
 eval 'require "'.$startup_file.'"';
 my $PDL_OK = ($@ eq "");
 if ($PDL_OK) {
-   require PDL::Version if not defined $PDL::Version::VERSION;
+   require PDL if not defined $PDL::VERSION;
    print "Type 'demo' for online demos\n";
    eval "use PDL::Bad;";
    my $bflag = defined($PDL::Bad::Status) && $PDL::Bad::Status;
    if ( $bflag ) {
-      print "Loaded PDL v$PDL::Version::VERSION (supports bad values)\n";
+      print "Loaded PDL v$PDL::VERSION (supports bad values)\n";
    } else {
-      print "Loaded PDL v$PDL::Version::VERSION\n";
+      print "Loaded PDL v$PDL::VERSION\n";
    }
 }else{
    warn "WARNING: Error loading PDL: '$@' - trying blib. \n";
@@ -369,8 +369,8 @@ if ($PDL_OK) {
    eval 'require "'.$startup_file.'"';
    $PDL_OK = ($@ eq "");
    if ($PDL_OK) {
-      require PDL::Version if not defined $PDL::Version::VERSION;
-      print "Loaded PDL v$PDL::Version::VERSION\n";
+      require PDL if not defined $PDL::VERSION;
+      print "Loaded PDL v$PDL::VERSION\n";
    }else{
       warn "WARNING: PDL startup not found only plain perl available\n";
       $PERLDL::PROMPT = 'perl> ';  # so there is visual indication of no PDL

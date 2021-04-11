@@ -104,10 +104,10 @@ my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic pdlsections);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
- 'VERSION_FROM' => 'Version.pm',
+ 'VERSION_FROM' => '../PDL.pm',
   'PM'          => {
 		(map {($_,'$(INST_LIBDIR)/'.$_)} (
-			qw/Core.pm Basic.pm Version.pm Types.pm
+			qw/Core.pm Basic.pm Types.pm
 						  Dbg.pm Exporter.pm Config.pm Char.pm/
 		)),
 		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
@@ -124,7 +124,7 @@ WriteMakefile(
                    ' pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
                    'pdldataswitch.c pdlbadvalinit.c '.
-		   'Types.pm Version.pm Core.c '
+		   'Types.pm Core.c '
 		   },
  'INC'          => join(' ',
    PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
