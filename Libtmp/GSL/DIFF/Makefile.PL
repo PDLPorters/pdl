@@ -51,8 +51,6 @@ if (($skip && !$forcebuild) ||
   $msg .= "GSL Libraries not found... Skipping build of PDL::GSL::DIFF.\n";
   write_dummy_make( $msg );
   return;
-} else {
-  print "Building PDL::GSL::DIFF. Turn off WITH_GSL if there are any problems\n";
 }
 
 my @pack = (["gsl_diff.pd", qw(DIFF PDL::GSL::DIFF)]);

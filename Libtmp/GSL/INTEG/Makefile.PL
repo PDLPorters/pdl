@@ -50,8 +50,6 @@ if (($skip && !$forcebuild) ||
   $msg .= "GSL Libraries not found... Skipping build of PDL::GSL::INTEG.\n";
   write_dummy_make( $msg );
   return;
-} else {
-  print "Building PDL::GSL::INTEG. Turn off WITH_GSL if there are any problems\n";
 }
 
 my @pack = (["gsl_integ.pd", qw(INTEG PDL::GSL::INTEG)]);

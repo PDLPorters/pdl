@@ -17,12 +17,12 @@ my $f77;
 my @minuitfiles;
 
 if (defined $PDL::Config{WITH_MINUIT} && $PDL::Config{WITH_MINUIT}==0) {
-  $msg = "\n   Will skip build of PDL::Minuit on this system   \n";
+  $msg = "Will skip build of PDL::Minuit on this system\n";
   goto skip;
 }
 
 if (defined $PDL::Config{WITH_MINUIT} && $PDL::Config{WITH_MINUIT}==1) {
-  print "\n   Will forcibly try and build PDL::Minuit on this system   \n\n";
+  print "Will try and build PDL::Minuit on this system\n";
   $forcebuild = 1;
 }
 
@@ -62,7 +62,6 @@ if ($msg ne "" && !$forcebuild) {
   $PDL::Config{WITH_MINUIT} = 0;
   $donot = 1;
 } else {
-  print "Building PDL::Minuit. Turn off WITH_MINUIT if there are any problems\n";
   $PDL::Config{WITH_MINUIT} = 1;
 }
 
@@ -72,12 +71,10 @@ my @pack = (["minuit.pd", qw(Minuit PDL::Minuit)]);
 
 if (defined($PDL::Config{MINUIT_LIB})){
     # If libraries are specified, just need to build futils
-    print "Using compiled CERN library: ".$PDL::Config{MINUIT_LIB}."...\n";
     @minuitfiles = ("futils");
 }
 else{
     # Otherwise, we need to build the Minuit library as well
-    print "Stand alone Minuit library will be built...\n";
     @minuitfiles = ("futils", "minuit", "intracfalse");
 }
    

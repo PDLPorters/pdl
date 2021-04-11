@@ -37,8 +37,6 @@ if (($skip && !$forcebuild) ||
   $msg .= "GSL Libraries not found... Skipping build of PDL::GSLSF.\n";
   write_dummy_make( $msg );
   return;
-} else {
-  print "Building PDL::GSLSF. Turn off WITH_GSL if there are any problems\n";
 }
 
 WriteMakefile(

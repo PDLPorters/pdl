@@ -87,8 +87,6 @@ if (($skip && !$forcebuild) ||
   $msg .= "GSL Libraries not found... Skipping build of PDL::GSL::MROOT.\n";
   write_dummy_make( $msg );
   return;
-} else {
-  print "Building PDL::GSL::MROOT. Turn off WITH_GSL if there are any problems\n";
 }
 
 my @pack = (["gsl_mroot.pd", qw(MROOT PDL::GSL::MROOT)]);

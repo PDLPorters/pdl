@@ -19,7 +19,7 @@ if (defined $PDL::Config{WITH_SLATEC} && $PDL::Config{WITH_SLATEC}==0) {
 }
 
 if (defined $PDL::Config{WITH_SLATEC} && $PDL::Config{WITH_SLATEC}==1) {
-   print "Will forcibly try and build PDL::Slatec on this system\n";
+   print "Will try and build PDL::Slatec on this system\n";
    $forcebuild=1;
 }
 
@@ -61,7 +61,6 @@ if ($msg ne "" && $forcebuild==0) {
     $PDL::Config{WITH_SLATEC} = 0;
     $donot = 1;
 } else {
-   print "Building PDL::Slatec. Turn off WITH_SLATEC if there are any problems\n";
    $PDL::Config{WITH_SLATEC} = 1;
 }
 

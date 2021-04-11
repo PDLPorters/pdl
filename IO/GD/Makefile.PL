@@ -38,7 +38,7 @@ if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==0)
 
 if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==1)
 {
-    print "Will forcibly try and build $package_name on this system\n";
+    print "Will try and build $package_name on this system\n";
     $forcebuild=1;
 }
 
@@ -105,16 +105,12 @@ if ( $donot )
 
 skip:
 
-if ($msg ne "" && $forcebuild==0)
-{
+if ($msg ne "" && $forcebuild==0) {
     write_dummy_make( $msg );
     $donot = 1;
     $PDL::Config{$config_flag}=0;
-}
-else
-{
+} else {
     $PDL::Config{$config_flag}=1;
-    print "Building $package_name. Turn off $config_flag if there are any problems\n\n";
 }
 
 return if $donot;
