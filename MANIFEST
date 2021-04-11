@@ -773,7 +773,6 @@ t/pthread_auto.t
 t/pthreadBarf.t
 t/reduce.t
 t/refs.t
-t/requiredmods.t
 t/rim.t
 t/round.t
 t/scope.t

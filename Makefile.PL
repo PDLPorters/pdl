@@ -223,20 +223,6 @@ use File::Spec;
   $fh->close();
 }
 
-# test for critical modules
-my @hasnt = ();
-my @test = (
-    ['Filter::Util::Call','Filter'],
-    ['Filter::Simple','Filter::Simple'],
-    ## ['Module::Compile','Module::Compile'], # don't do this, fails (why?)
-    ['Text::Balanced','Text::Balanced'],
-);
-## $DB::single = 1; # uncomment to have debugger stop here
-for my $mod (@test) {
-    eval "use $mod->[0]";
-    push @hasnt, $mod->[1] if $@;
-}
-
 # Scan ARGV for config file argument
 @ARGV = map {
 	if (/^F77CONF=(.*)$/) {
@@ -288,11 +274,6 @@ make_Version_pm();
 # this will make PDL::Core::Dev's functions available
 # in Makefile.PL files in all subdirectories
 require "./Basic/Core/Dev.pm"; PDL::Core::Dev->import();
-
-# only perform one test if required modules are missing
-# the test will print an informational message and fail
-my %notestsifmodulesmissing = @hasnt ? # are any required modules missing ?
-  (test => {TESTS => 't/requiredmods.t'}) : ();
 
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/Bugs/;
@@ -410,7 +391,6 @@ my %makefile_hash = (
   AUTHOR => 'PerlDL Developers <pdl-general@lists.sourceforge.net>',
   ABSTRACT => 'Perl Data Language',
   BINARY_LOCATION => 'PDL.tar.gz',
-  %notestsifmodulesmissing,
 );
 
 WriteMakefile(%makefile_hash);
@@ -583,32 +563,3 @@ sub MY::init_dirscan {
     $self->{C} = [];
     $self->{O_FILES} = [];
 }
-
-# warn if vital modules are missing
-END {
-    if (@hasnt) {
-      print << 'EOP';
-
-********************************************************
-* IMPORTANT: Your installation will not work since it  *
-* lacks critical modules.                              *
-* ALL TESTS WILL FAIL UNLESS YOU IMMEDIATELY           *
-* INSTALL THE FOLLOWING MODULES [available from CPAN]: *
-*
-EOP
-
-    for (@hasnt) { print "*\t$_\n" }
-
-
-    print << 'EOP';
-*                                                      *
-* Please install the missing module(s) and start the   *
-* PDL build process again (perl Makefile.PL; ....)     *
-*                                                      *
-********************************************************
-
-EOP
-
-  }
-
-} # end of END block
