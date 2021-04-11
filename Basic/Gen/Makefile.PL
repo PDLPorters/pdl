@@ -24,5 +24,5 @@ WriteMakefile(NAME => "PDL::PP",
 	PM => {@pms},
 	'EXE_FILES' => ['pptemplate'],
 	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate.pod"},
-	(eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+	NO_MYMETA => 1,
 );

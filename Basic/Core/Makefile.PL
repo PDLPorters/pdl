@@ -133,5 +133,5 @@ WriteMakefile(
     'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdldataswitch.c pdlbadvalinit.c pdl.h pdlcore.h',
         # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
   },
- (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+  NO_MYMETA => 1,
 );

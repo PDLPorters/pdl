@@ -10,5 +10,5 @@ WriteMakefile(
  'VERSION_FROM' => '../../Basic/PDL.pm',
  'INC' => "-I../../Basic/Core $mallocinc",
  'LIBS' => [$malloclib],
- (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+ NO_MYMETA => 1,
 );

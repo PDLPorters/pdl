@@ -14,4 +14,5 @@ WriteMakefile(
     },
     'dist'                => { 'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz', },
     'clean'               => { 'FILES' => 'PDL-Graphics-OpenGL-Perl-OpenGL-*' },
+    NO_MYMETA => 1,
 );

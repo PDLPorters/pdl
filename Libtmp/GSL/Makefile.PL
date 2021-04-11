@@ -71,6 +71,6 @@ if (! $new_enough) {
    $PDL::Config{WITH_GSL} = 1;
    WriteMakefile(
       'NAME'	=> 'PDL::GSL',
-       (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+       NO_MYMETA => 1,
    );
 }

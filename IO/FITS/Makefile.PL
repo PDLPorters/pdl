@@ -3,10 +3,10 @@ use strict;
 use warnings;
 
 WriteMakefile(
-	      NAME => "PDL::IO::FITS",
-	      'VERSION_FROM' => '../../Basic/PDL.pm',
-    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
-	      );
+  NAME => "PDL::IO::FITS",
+  VERSION_FROM => '../../Basic/PDL.pm',
+  NO_MYMETA => 1,
+);
 
 # Check whether FITS modules are available (external to PDL)
 BEGIN {

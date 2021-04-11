@@ -15,5 +15,5 @@ WriteMakefile(
 	      'NAME'  	=> 'PDL::Graphics::PGPLOT',
 	      'VERSION_FROM' => '../../Basic/PDL.pm',
 	      'DIR' => ['Window'],
-    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+	      NO_MYMETA => 1,
 );

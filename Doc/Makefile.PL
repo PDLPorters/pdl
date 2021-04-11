@@ -15,7 +15,7 @@ WriteMakefile(
 			},
     'PL_FILES'     => {q[Doc$(DFSEP)Config.pm.PL]=>q[Doc$(DFSEP)Config.pm]},
      'clean'       => { 'FILES' => q[Doc/Config.pm] },
-    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+    NO_MYMETA => 1,
 );
 
 package MY;

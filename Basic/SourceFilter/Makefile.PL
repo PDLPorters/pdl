@@ -26,4 +26,5 @@ WriteMakefile(
       'Text::Balanced' => 0,
       'PDL' => 2.003000,
    },
+   NO_MYMETA => 1,
 );

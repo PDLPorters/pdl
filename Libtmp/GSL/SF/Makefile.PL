@@ -53,5 +53,5 @@ WriteMakefile(
 	VERSION => '0.5',
 	# VERSION_FROM => '../../Basic/PDL.pm',
        #DIR =>  [ qw/airy bessel chebyshev clausen coulomb coupling dawson debye dilog elementary ellint elljac erf exp expint fermi_dirac gamma gegenbauer hyperg laguerre legendre log poly pow_int psi synchrotron transport trig zeta/ ],
-    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+	NO_MYMETA => 1,
 );

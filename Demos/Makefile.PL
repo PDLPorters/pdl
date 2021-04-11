@@ -36,5 +36,5 @@ WriteMakefile(
                     'Prima.pm' => '$(INST_LIBDIR)/Demos/Prima.pm',
 		   },
      'clean' => { 'FILES' => 'BAD_demo.pm BAD2_demo.pm' },
-    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+     NO_MYMETA => 1,
 );

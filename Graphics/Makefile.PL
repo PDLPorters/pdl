@@ -33,5 +33,5 @@ WriteMakefile(
                'PM'           => \%pm,
                'MAN3PODS'     => \%man3pods,
                'DIR'          => [@subdirs],
-    (eval ($ExtUtils::MakeMaker::VERSION) >= 6.57_02 ? ('NO_MYMETA' => 1) : ()),
+               NO_MYMETA => 1,
 );
