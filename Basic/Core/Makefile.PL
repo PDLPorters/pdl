@@ -85,27 +85,11 @@ sub make_from_PL ($) {
 	    "${head}.PL $head\n";
 }
 
-sub MY::xs_o {
-    if($Config{make} =~ /\bnmake/i) {
-      return'
-.xs$(OBJ_EXT):
-	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
-	$(CCCMD) $(CCCDLFLAGS) "-I$(PERL_INC)" $(DEFINE) $*.c
-'
-      }
-    else {
-      package MY;
-      my $self = shift;
-      return $self->SUPER::xs_o;
-      }
-}
-
 undef &MY::processPL; *MY::processPL = sub {
     package MY;
     my ($self) = @_;
     return $self->SUPER::processPL
-        unless $^O =~ /MSWin32/i && $Config::Config{make} =~ /\b[dn]make/i;
-    return '' if $Config::Config{make} =~ /\bnmake/i;
+        unless $^O =~ /MSWin32/i && $Config::Config{make} =~ /\bdmake/i;
     return "" unless $self->{PL_FILES};
     my @m;
     my $alltarget = 'all';
