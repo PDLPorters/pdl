@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-use Config;
+use ExtUtils::MakeMaker::Config;
 use version;
 
 # This mess sorts out the Fortran availability
@@ -125,8 +125,8 @@ $hash{DEFINE} .= $f77->trail_ ? "" : "-DNO_TRAILING_USCORE";
 ###       $hash{MYEXTLIB} .= (" ".$PDL::Config{MINUIT_LIB}." ");
 ###   }
 ###   else{
-###       $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
-###       $hash{clean}{FILES} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
+###       $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config{lib_ext} ";
+###       $hash{clean}{FILES} .= " ./minuitlib/libminuit$Config{lib_ext} ";
 ###   }
 ### }
 
@@ -147,7 +147,7 @@ minuitlib/$_\$(OBJ_EXT): minuitlib/$_.f
 
 	if (!defined($PDL::Config{MINUIT_LIB})){
           my $libbuild;
-          if($Config::Config{cc} eq 'cl') {
+          if($Config{cc} eq 'cl') {
             $libbuild = "
 
 minuitlib/libminuit\$(LIB_EXT): minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)

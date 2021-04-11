@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-use Config;
+use ExtUtils::MakeMaker::Config;
 
 my @pms = map {($_ => '$(INST_LIBDIR)/'.$_)}
   (<*.pm>, <PP/*.pm>, 'PP/Dump.pm');
@@ -29,7 +29,7 @@ undef &MY::processPL; *MY::processPL = sub {
     return "" unless $self->{PL_FILES};
     my @m;
     my $alltarget = 'all';
-    my $colon = $Config::Config{make} =~ /\bdmake/i ? ':' : '::';
+    my $colon = $::Config{make} =~ /\bdmake/i ? ':' : '::';
     foreach my $plfile (sort keys %{$self->{PL_FILES}}) {
         my $list = ref($self->{PL_FILES}->{$plfile})
                 ? $self->{PL_FILES}->{$plfile}

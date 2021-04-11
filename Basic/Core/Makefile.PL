@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 eval { require Devel::CheckLib; Devel::CheckLib->import; };
-use Config;
+use ExtUtils::MakeMaker::Config;
 use ExtUtils::MakeMaker;
 
 ## $DB::single = 1;  # uncomment to have debugger stop here
@@ -24,24 +24,24 @@ if ( defined $PDL::Config{POSIX_THREADS_LIBS} ) {
     print "\tUsing POSIX_THREADS_LIBS from perldl.conf\n";
 }
 if ($^O eq 'dec_osf') {
-    if ($Config::Config{usemymalloc} eq 'n') {
+    if ($Config{usemymalloc} eq 'n') {
         print "\tFine pthread, works with Digital Unixs malloc\n";
     } else {
         print "\tPerls malloc has problems when perl is not linked with -lpthread\n";
         $pthread_library = '';
     }
 } elsif ($^O eq 'freebsd'){
-    if ($Config::Config{libs} =~ /-lc_r/) {
+    if ($Config{libs} =~ /-lc_r/) {
         print "\tGood, found -lc_r on a freebsd system.\n";
     } else {
         print "On FreeBSD try building perl with libc_r instead of libc\n";
         $pthread_library = '';
     }
 } elsif ($^O =~ /bsd$/i){
-    if ($Config::Config{usemymalloc} eq 'y') {
+    if ($Config{usemymalloc} eq 'y') {
         print "\tGood, usemymalloc=y, will build with pthread support\n";
     } else {
-        print "\tGot usemymalloc=$Config::Config{usemymalloc} so not building with pthreads\n";
+        print "\tGot usemymalloc=$Config{usemymalloc} so not building with pthreads\n";
         $pthread_library = '';
     }
 }
@@ -84,28 +84,6 @@ sub make_from_PL ($) {
 	'$(PERLRUNINST) ' .
 	    "${head}.PL $head\n";
 }
-
-undef &MY::processPL; *MY::processPL = sub {
-    package MY;
-    my ($self) = @_;
-    return $self->SUPER::processPL
-        unless $^O =~ /MSWin32/i && $Config::Config{make} =~ /\bdmake/i;
-    return "" unless $self->{PL_FILES};
-    my @m;
-    my $alltarget = 'all';
-    my $colon = $Config::Config{make} =~ /\bdmake/i ? ':' : '::';
-    foreach my $plfile (sort keys %{$self->{PL_FILES}}) {
-        my $list = ref($self->{PL_FILES}->{$plfile})
-                ? $self->{PL_FILES}->{$plfile}
-                : [$self->{PL_FILES}->{$plfile}];
-        foreach my $target (@$list) {
-            push @m,
-                "\n$alltarget :: $target\n\t\$(NOECHO) \$(NOOP)\n",
-                "\n$target $colon\n\t\$(PERLRUNINST) $plfile $target\n";
-        }
-    }
-    join "", @m;
-};
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {

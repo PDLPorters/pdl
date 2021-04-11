@@ -8,7 +8,7 @@ use lib Cwd::abs_path('inc');
 eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use 5.010_000;
 use ExtUtils::MakeMaker;  # for CONFIGURE_REQUIRES support
-use Config;
+use ExtUtils::MakeMaker::Config;
 use File::Spec;
 
 $::PP_VERBOSE = $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
@@ -557,7 +557,7 @@ doc_perl_install ::
 # Here, `pdl.c` is used directly because some makes (e.g., on Solaris) do not
 # support the `$<` variable in explicit rules
 $text .= <<EOT if $^O !~ /MSWin/;
-pdl$Config::Config{exe_ext} : pdl.c
+pdl$::Config{exe_ext} : pdl.c
 	\$(CC) \$(CFLAGS) \$(LDFLAGS) \$(CCCDLFLAGS) pdl.c -o \$\@
 EOT
 
