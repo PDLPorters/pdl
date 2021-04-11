@@ -303,7 +303,6 @@ Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
 Graphics/TriD/POGL/ignore.txt
 Graphics/TriD/POGL/Makefile.PL
-Graphics/TriD/POGL/MANIFEST
 Graphics/TriD/POGL/OpenGL.pm
 Graphics/TriD/POGL/README
 Graphics/TriD/Rout/Makefile.PL
@@ -364,13 +363,11 @@ IO/HDF/HDF.pm
 IO/HDF/Makefile.PL
 IO/HDF/SD/Changes
 IO/HDF/SD/Makefile.PL
-IO/HDF/SD/MANIFEST
 IO/HDF/SD/SD.pd
 IO/HDF/TODO
 IO/HDF/typemap
 IO/HDF/VS/Changes
 IO/HDF/VS/Makefile.PL
-IO/HDF/VS/MANIFEST
 IO/HDF/VS/VS.pd
 IO/IDL/IDL.pm
 IO/IDL/Makefile.PL

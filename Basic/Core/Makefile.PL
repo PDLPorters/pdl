@@ -11,39 +11,23 @@ my $badval_define = " -DBADVAL_USENAN=$PDL::Config{BADVAL_USENAN} -DBADVAL_PER_P
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
-print "Trying to figure out POSIX threads support ...\n";
-
 my $pthread_include = '';
 if ( defined $PDL::Config{POSIX_THREADS_INC} ) {
     $pthread_include = $PDL::Config{POSIX_THREADS_INC};
-    print "\t..setting \$pthread_include to $pthread_include\n";
 }
 my $pthread_library = '-lpthread';
 if ( defined $PDL::Config{POSIX_THREADS_LIBS} ) {
     $pthread_library = $PDL::Config{POSIX_THREADS_LIBS};
-    print "\tUsing POSIX_THREADS_LIBS from perldl.conf\n";
 }
-if ($^O eq 'dec_osf') {
-    if ($Config{usemymalloc} eq 'n') {
-        print "\tFine pthread, works with Digital Unixs malloc\n";
-    } else {
-        print "\tPerls malloc has problems when perl is not linked with -lpthread\n";
-        $pthread_library = '';
-    }
-} elsif ($^O eq 'freebsd'){
-    if ($Config{libs} =~ /-lc_r/) {
-        print "\tGood, found -lc_r on a freebsd system.\n";
-    } else {
-        print "On FreeBSD try building perl with libc_r instead of libc\n";
-        $pthread_library = '';
-    }
-} elsif ($^O =~ /bsd$/i){
-    if ($Config{usemymalloc} eq 'y') {
-        print "\tGood, usemymalloc=y, will build with pthread support\n";
-    } else {
-        print "\tGot usemymalloc=$Config{usemymalloc} so not building with pthreads\n";
-        $pthread_library = '';
-    }
+if ($^O eq 'dec_osf' and $Config{usemymalloc} ne 'n') {
+    print "\tPerls malloc has problems when perl is not linked with -lpthread\n";
+    $pthread_library = '';
+} elsif ($^O eq 'freebsd' and $Config{libs} !~ /-lc_r/) {
+    print "On FreeBSD try building perl with libc_r instead of libc\n";
+    $pthread_library = '';
+} elsif ($^O =~ /bsd$/i and $Config{usemymalloc} ne 'y') {
+    print "Got usemymalloc=$Config{usemymalloc} so not building with pthreads\n";
+    $pthread_library = '';
 }
 my $pthread_conf = $PDL::Config{WITH_POSIX_THREADS};
 if (defined $pthread_conf and !$pthread_conf) {
@@ -52,27 +36,23 @@ if (defined $pthread_conf and !$pthread_conf) {
 }
 if ($pthread_library) {
     (my $libname = $pthread_library) =~ s/^-l//;
-    print "\tDevel::CheckLib with '$libname' ";
-    if (eval { check_lib(lib=>$libname,header=>'pthread.h',incpath=>$pthread_include) }) {
-        print "worked\n";
-    } else {
-        print "failed\n";
+    if (!eval { check_lib(lib=>$libname,header=>'pthread.h',incpath=>$pthread_include) }) {
+        print "\tDevel::CheckLib with '$libname' failed\n";
         $pthread_library = '';
     }
 }
 if ($pthread_library) {
-    print "\t==> Will build PDL with POSIX thread support. Gifts to TJL :-)\n";
+    print "Will build PDL with POSIX thread support.\n";
     $PDL::Config{WITH_POSIX_THREADS} = 1;
 } else {
-    print "\t==> PDL will be built without POSIX thread support.\n";
+    print "PDL will be built without POSIX thread support.\n";
     print "\t==> *NOTE*: PDL threads are unrelated to perl threads (usethreads=y)!\n";
     print "\t==> Enabling perl threads will not help!\n";
     $PDL::Config{WITH_POSIX_THREADS} = 0;
 }
 my $pthread_define  = $pthread_library ? ' -DPDL_PTHREAD ' : '';
 
-print "Trying to figure out endian-ness of machine...";
-print " It is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . " endian\n";
+print "Machine is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . "-endian\n";
 
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 

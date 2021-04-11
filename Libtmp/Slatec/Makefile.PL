@@ -14,7 +14,7 @@ my ($f77);
 our ($f2cbased, $g2cbased);
 
 if (defined $PDL::Config{WITH_SLATEC} && $PDL::Config{WITH_SLATEC}==0) {
-   $msg = "Will skip build of PDL::Slatec on this system";
+   $msg = "Will skip build of PDL::Slatec on this system\n";
    goto skip;
 }
 
@@ -34,13 +34,12 @@ if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
 } else {
   eval { require ExtUtils::F77; ExtUtils::F77->import; };  # Might want "ExtUtils::F77->import(qw(generic f2c))"
   if ($@ ne "") {
-    $msg = "ExtUtils::F77 module not found. Ought not build PDL::Slatec" ;
+    $msg = "ExtUtils::F77 module not found. Ought not build PDL::Slatec\n" ;
     goto skip unless $forcebuild;
   } else {
     $f77 = 'ExtUtils::F77';
-    print "(ExtUtils Version $ExtUtils::F77::VERSION)\n";
     if ($ExtUtils::F77::VERSION < 1.03 ) {
-      $msg = "Need a version of ExtUtils::F77 >= 1.03. Ought not build PDL::Slatec" ;
+      $msg = "Need a version of ExtUtils::F77 >= 1.03. Ought not build PDL::Slatec\n" ;
       goto skip unless $forcebuild;
     }
   }  # end if ($@ ne "")
@@ -49,7 +48,7 @@ if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
 my $compiler_available = $f77->testcompiler;
 
 if (!$compiler_available) {
-   $msg = "No f77 compiler found. Ought to skip PDL::Slatec on this system";
+   $msg = "No f77 compiler found. Ought to skip PDL::Slatec on this system\n";
    $PDL::Config{WITH_SLATEC} = 0;
 } else {
    $PDL::Config{WITH_SLATEC} = 1;
@@ -62,7 +61,7 @@ if ($msg ne "" && $forcebuild==0) {
     $PDL::Config{WITH_SLATEC} = 0;
     $donot = 1;
 } else {
-   print "\n   Building PDL::Slatec. Turn off WITH_SLATEC if there are any problems\n\n";
+   print "Building PDL::Slatec. Turn off WITH_SLATEC if there are any problems\n";
    $PDL::Config{WITH_SLATEC} = 1;
 }
 

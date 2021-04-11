@@ -41,7 +41,6 @@ if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
     goto skip unless $forcebuild;
   } else {
     $f77 = 'ExtUtils::F77';
-    print "(ExtUtils Version $ExtUtils::F77::VERSION)\n";
     if ($ExtUtils::F77::VERSION < 1.03 ) {
       $msg = "Need a version of ExtUtils::F77 >= 1.03. Ought not build PDL::Minuit\n" ;
       goto skip unless $forcebuild;

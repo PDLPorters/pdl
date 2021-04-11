@@ -31,16 +31,11 @@ push @inc, qw(include);
 Alien::Proj4->import($PDL::Config{$config_libs}, \@inc);
 
 if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==1) {
-  print "\n   Will forcibly try and build $package_name on this system   \n\n";
   $forcebuild=1;
 }
 
 if (!$forcebuild && !Alien::Proj4->installed) {
-  write_dummy_make( <<EOF );
-\tCannot find $lib_name installation.
-\tPlease add the correct library path to perldl.conf or install $lib_name.
-Skipping build of $package_name.
-EOF
+  write_dummy_make("Cannot find $lib_name, add library path to perldl.conf. Skipping $package_name.");
   $PDL::Config{$config_flag}=0;
   return;
 }
