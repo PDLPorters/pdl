@@ -12,16 +12,11 @@ use strict;
 # supported types
 
 # $SIG{__DIE__} = sub {print Carp::longmess(@_); die ;};
-BEGIN { 
-  my @ntypes = (PDL::Types::typesrtkeys());
-  plan tests => scalar grep { ! m/^PDL_IND$/ } @ntypes;
-}
 
 our @types = map { print "making type $_\n";
 		   new PDL::Type typefld($_,'numval') }
                    grep { ! m/^PDL_IND$/ } typesrtkeys();
 
-##my $data = $PDL::Config{TEMPDIR} . "/tmprawdata";
 my $data = File::Temp::tmpnam();
 
 for my $type (@types) {
@@ -39,3 +34,4 @@ for my $type (@types) {
 
 unlink $data, "${data}.hdr";
 
+done_testing;

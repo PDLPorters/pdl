@@ -116,17 +116,6 @@ throughout.
     eval 'require "' . whereami_any() . '/Core/Config.pm";';
   where whereami_any() is from PDL::Core::Dev;
 
-*) Location of temporary files
-
-Please use $PDL::Config{TEMPDIR} for the directory in which to
-place temporary files (e.g. when IO::File::new_tmpfile() is
-not appropriate).  This will make it easier for distributions
-to package PDL since there will only be one place they need to
-change if the default value causes problems.
-
-This *includes* test cases as well as for Makefile.PL's!
-
-  
 
 -------------------------------------------------------------
 Notes on transferring an external PDL module to the PDL

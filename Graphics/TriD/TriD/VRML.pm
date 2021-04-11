@@ -523,6 +523,7 @@ sub send_to_browser {my $this=$_[0]; &{$this->{'Browser'}}(@_)
 
 package PDL::Graphics::TriD::VRML::URL;
 use PDL::Core '';  # barf
+require File::Temp;
 
 my %types = (
 	     'image/JPG' => {'save' => sub {local $PDL::debug=0; $_[1]->wpic($_[0]->wfile)},
@@ -540,7 +541,7 @@ sub new {
   $this->{'Type'} = $types{$mime};
   &{$this->{'Type'}->{'setup'}} if defined $this->{'Type'}->{'setup'};
   $this->{'Binding'} = 'local';
-  $this->{'Filestem'} = $PDL::Config{TEMPDIR} . "/tridim_$urlnum";
+  $this->{'Filestem'} = File::Temp::tempdir(CLEANUP=>1) . "/tridim_$urlnum";
   $urlnum++;
   return $this;
 }
@@ -569,8 +570,7 @@ $PDL::Graphics::TriD::create_window_sub = sub {
 };
 
 # set up the default parameters for VRML
-my $tmpdir = $PDL::Config{TEMPDIR} ||
-  die "TEMPDIR not found in %PDL::Config";
+my $tmpdir = File::Temp::tempdir(CLEANUP=>1);
 my $tmpname = "$tmpdir/tridvrml_$$.wrl";
 my $para = $PDL::Graphics::TriD::Settings =
   PDL::Graphics::TriD::VRML::Parameter->new() ;

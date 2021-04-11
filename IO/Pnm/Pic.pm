@@ -45,6 +45,7 @@ use PDL::Config;
 use File::Basename;
 use SelfLoader;
 use File::Spec;
+require File::Temp;
 
 use strict;
 use vars qw( $Dflags @ISA %converter );
@@ -773,7 +774,7 @@ sub PDL::wmpeg {
    barf "input must be byte (3,x,y,z)" if (@Dims != 4) || ($Dims[0] != 3)
    || ($pdl->get_datatype != $PDL_B);
    my $nims = $Dims[3];
-   my $tmp = gettmpdir();
+   my $tmp = File::Temp::tempdir(CLEANUP=>1);
 
    # get tmpdir for parameter file
    # see PDL-2.4.6 version for original code
@@ -1021,18 +1022,6 @@ sub chkpdl {
 	}
     return ($pdl, $iform);
 }
-
-# delegate setting the temporary directory to the config file
-# (so that it can either be OS-independent or at least
-#  easily controlled by the user).
-#
-sub gettmpdir {
-    my $tmpdir = $PDL::Config{TEMPDIR} ||
-      die "TEMPDIR not found in %PDL::Config";
-    barf "can't locate a temp dir called $tmpdir" unless -d $tmpdir;
-    return $tmpdir;
-}
-
 
 =head1 BUGS
 

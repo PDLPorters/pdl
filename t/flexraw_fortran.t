@@ -42,7 +42,7 @@ BEGIN{
    } elsif ($Config{archname} =~ /(x86_64|ia64)/) {
       plan skip_all => "Skipped tests for 64 bit architecture: $1";
    } elsif ($datalen > 70) {
-      plan skip_all => "TEMPDIR path too long for f77 ($datalen chars), skipping all tests";
+      plan skip_all => "temp file path too long for f77 ($datalen chars), skipping all tests";
    } else {
       eval " use ExtUtils::F77; ";
       if ( $@ ) {

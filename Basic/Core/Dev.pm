@@ -677,13 +677,7 @@ sub trylink {
   my $HIDE = !$hide ? '' : '>/dev/null 2>&1';
   if($^O =~ /mswin32/i) {$HIDE = '>NUL 2>&1'}
 
-  my $tempd;
-
-  $tempd = File::Temp::tempdir(CLEANUP=>1) || die "trylink: could not make TEMPDIR";
-  ### if($^O =~ /MSWin32/i) {$tempd = File::Spec->tmpdir()}
-  ### else {
-  ###    $tempd = $PDL::Config{TEMPDIR} ||
-  ### }
+  my $tempd = File::Temp::tempdir(CLEANUP=>1) || die "trylink: could not make temp dir";
 
   my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
   open FILE,">$tc" or die "trylink: couldn't open testfile `$tc' for writing, $!";
