@@ -13,7 +13,6 @@ PDL::Types->import(':All');
 # check for bad value support
 require './Config.pm'; # to load the PDL not the Perl one
 die "No PDL::Config found" unless %PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL};
 my $usenan = $PDL::Config{BADVAL_USENAN};
 
 # This forces PL files to create target in same directory as PL file.
@@ -25,23 +24,14 @@ $file =~ s/\.pl$//
     if ($Config{'osname'} eq 'VMS' or
         $Config{'osname'} eq 'OS2');  # "case-forgiving"
 
-if ( $bvalflag ) {
-    print "Extracting $file (WITH bad value support)\n";
-} else {
-    print "Extracting $file (NO bad value support)\n";
-}
-
+print "Extracting $file\n";
 
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
-
-
 print OUT <<"!WITH!SUBS!";
 
 /* pdlcore.c - generated automatically by pdlcore.c.PL */
-/*           - bad value support = $bvalflag */
-
 
 !WITH!SUBS!
 
@@ -282,7 +272,7 @@ pdl* SvPDLV ( SV* sv ) {
 
 ##########
 # If badvals and usenan are true, we default NaNs to type double. 
-if ( $bvalflag and $usenan ) {
+if ( $usenan ) {
     print OUT q{
       /*
        * default NaN/Infs to double
@@ -299,7 +289,7 @@ if ( $bvalflag and $usenan ) {
         datatype = pdl_whichdatatype_double(tmp_NV);
 
    }
-} # if: $bvalflag
+}
 
 print OUT <<'!NO!SUBS!';
         ANYVAL_FROM_CTYPE(data, datatype, tmp_NV);
@@ -968,10 +958,8 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
       pdlsiz = source_pdl->dims[pdldim];
     }
 
-#if BADVAL
     /* This is used inside the switch in order to detect badvalues. */
     PDL_Anyval source_badval = PDL.get_pdl_badvalue(source_pdl);
-#endif /* BADVAL */
 
     /* This is the actual data-copying code. It is generated with a Perl loop, to
      * ensure that all current PDL types get treated. */
@@ -1003,7 +991,6 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
       i=0;
       if(pptr && pdata && pdlsiz) {
         for(; i<pdlsiz; i++) {
-#if BADVAL
           if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) {
               /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */
               if( (($ctype *)pptr)[i] == source_badval.value.$ppsym || $comp_for_nan ) {
@@ -1016,9 +1003,6 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
           } else {
             pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];
           }
-#else
-          pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];
-#endif
         } // end of loop over pdlsiz
       } else { 
         // pptr or pdata or pdlsiz are 0

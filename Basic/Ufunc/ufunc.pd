@@ -29,10 +29,6 @@ use PDL::Slices;
 use Carp;
 EOD
 
-# check for bad value support
-use PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
 # should we use the finite() routine in libm ?
 # (is the Windows version _finite() ?)
 #
@@ -1047,22 +1043,11 @@ See the documentation for L</$func> for more information.
 
  \$x = $name(\$data);
 
-=cut
-
-EOD
-
-    if ( $bvalflag ) {
-	pp_addpm(<<"EOD");
 =for bad
 
 This routine handles bad values.
 
 =cut
-
-EOD
-} # if: bvalflag
-
-   pp_addpm(<<"EOD");
 
 *$name = \\&PDL::$name;
 sub PDL::$name {
@@ -1089,12 +1074,6 @@ Useful in conditional expressions:
 
  if (any $x>15) { print "some values are greater than 15\n" }
 
-=cut
-
-EOPM
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'EOPM');
 =for bad
 
 See L</or> for comments on what happens when all elements
@@ -1102,10 +1081,6 @@ in the check are bad.
 
 =cut
 
-EOPM
-} # if: bvalflag
-
-pp_addpm(<<'EOPM');
 *any = \&or;
 *PDL::any = \&PDL::or;
 
@@ -1121,12 +1096,6 @@ Useful in conditional expressions:
 
  if (all $x>15) { print "all values are greater than 15\n" }
 
-=cut
-
-EOPM
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'EOPM');
 =for bad
 
 See L</and> for comments on what happens when all elements
@@ -1134,17 +1103,8 @@ in the check are bad.
 
 =cut
 
-EOPM
-} # IF: BVALFLAG
-
-pp_addpm(<<'EOPM');
-
 *all = \&and;
 *PDL::all = \&PDL::and;
-
-EOPM
-
-pp_addpm(<<'EOD'
 
 =head2 minmax
 
@@ -1177,12 +1137,10 @@ sub PDL::minmax {
   return map {$_->sclr} @arr[0,1]; # return as scalars !
 }
 
-EOD
-);
+EOPM
 
 pp_add_exported('', 'minmax');
 #pp_add_exported('', 'minmax_ind');
-
 
 # move all bad values to the end of the array
 #
@@ -1409,14 +1367,8 @@ for my $which (
 	     if(flag && !IsNaN(cur)) {
 	     	     $c() = cur;
              } else {
-	     ' . ($bvalflag ? '
 	             $SETBAD(c());
 		     $PDLSTATESETBAD(c);
-	     ' : '
-                     $c() = 0.25;
-                     if($c()>0)
-                       $c() = sqrt(-1);
-             ' ) . '
              }     
 		     ',
 	    BadCode => 
@@ -1454,18 +1406,9 @@ for ways of masking NaNs.
 	     %}
 	     if(flag && !IsNaN(cur)) {
 	       $c() = curind;
-  	     } else { '
-	     . ($bvalflag ? '
+	     } else {
 	          $SETBAD(c());
                   $PDLSTATESETBAD(c);
-	     ' : '
-	       $c() = 0.25;      /* check for floatiness */
-	       if($c() == 0) {
-	          $c() = -1;     /* put a nonsensical value in */
-	       } else {
-	          $c() = sqrt(-1);  /* NaN if possible */
-	       }
-             ') . '
 	     }
 	       ',
 	    BadCode => 

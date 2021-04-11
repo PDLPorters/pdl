@@ -37,22 +37,12 @@ the work planned for the future  PDL-2.x releases.
 |                       TESTING                         |
 +-------------------------------------------------------+
 
-   Need to test PDL build from scratch both WITH_BADVAL and without
-   * Find a way to automate this process for release testing
-   * Unix/Linux/BSD
-   * Windows
-     - cygwin
-     - activestate perl
-     - strawberry perl
-   * Mac OS X
-
 
    Verify dependency detection across all major PDL platforms
    * Unix/Linux/BSD, Windows(ASPerl/Strawberry)/Cygwin, Mac OS X
    * Check completely clean build each platform
    * Confirm that dependencies for each platform
        are correctly detected and reported.
-   * Add any issues to Known_problems
 
 
    These modules aren't tested by CPAN Testers because of dependencies:

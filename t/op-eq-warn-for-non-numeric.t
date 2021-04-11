@@ -11,7 +11,6 @@ use warnings;
 ## <http://sourceforge.net/p/pdl/bugs/332/>
 ## <https://github.com/PDLPorters/pdl/issues/33>
 
-use PDL::Config;
 use PDL::LiteF;
 
 # The following code calls the PDL::Ops::eq() function via the operator
@@ -44,8 +43,6 @@ subtest "String 'nan' is numeric" => sub {
 TODO: {
 	# implementing this might require checking for strings that can be made into PDLs
 	local $TODO = "Using the eq operator with the string 'bad' might be a good feature";
-	todo_skip "Bad values disabled", 1 unless $PDL::Config{WITH_BADVAL};
-
 	subtest "String 'bad' is numeric (in PDL)" => sub {
 		check_eq_warnings('bad', $no_warning);
 	};

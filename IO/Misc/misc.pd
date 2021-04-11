@@ -1,8 +1,3 @@
-
-# check for bad value support
-use PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
 # and endian-ness of machine
 require PDL::Core::Dev;
 my $isbigendian = PDL::Core::Dev::isbigendian();

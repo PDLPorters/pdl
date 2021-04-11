@@ -9,11 +9,6 @@ use Config;
 use File::Basename qw(&basename &dirname);
 use blib;
 
-# check for bad value support
-use lib '../Basic/Core';  # so Config.pm is found during build
-use PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
@@ -24,11 +19,7 @@ $file =~ s/\.pl$//
             $Config{'osname'} eq 'OS2');  # "case-forgiving"
 open OUT,">$file" or die "Can't create $file: $!";
 
-if ( $bvalflag ) {
-    print "Extracting $file (WITH bad value support)\n";
-} else {
-    print "Extracting $file (NO bad value support)\n";
-}
+print "Extracting $file\n";
 chmod 0644, $file;
 
 print OUT <<'!NO!SUBS!';
@@ -49,23 +40,6 @@ sub act($);
 sub output;
 
 sub run {
-
-!NO!SUBS!
-
-    if ( ! $bvalflag ) {
-	print OUT <<'!NO!SUBS!';
-
-comment q|
-
-    Your version of PDL has been compiled without support for bad
-    values, hence this demo cannot do anything.
-
-|;
-
-!NO!SUBS!
-
-} else {
-    print OUT <<'!NO!SUBS!';
 
 $ENV{PGPLOT_XW_WIDTH}=0.6;
 $ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
@@ -151,12 +125,6 @@ act q|
     rel;
 
 |;
-
-!NO!SUBS!
-
-} # if: $bvalflag
-
-print OUT <<'!NO!SUBS!';
 
 }
 

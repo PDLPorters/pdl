@@ -9,7 +9,6 @@ BEGIN {
       $loaded = ($@ ? 0 : 1);
       if ($loaded) {
          $ntests = 40;
-         $ntests -= 3 unless ($PDL::Config{WITH_BADVAL}); # two fewer tests if no bad val support
          plan tests => $ntests;
       } 
    }
@@ -65,55 +64,51 @@ ok(tapprox($deti,-0.5));
 # Now do the polynomial fitting tests
 
 
-if ($PDL::Config{WITH_BADVAL}) {
+# Set up tests x, y and weight
+my $y = pdl (1,4,9,16,25,36,49,64.35,32);
+my $x = pdl ( 1,2,3,4,5,6,7,8,9);
+my $w = pdl ( 1,1,1,1,1,1,1,0.5,0.3);
 
-  # Set up tests x, y and weight
-  my $y = pdl (1,4,9,16,25,36,49,64.35,32);
-  my $x = pdl ( 1,2,3,4,5,6,7,8,9);
-  my $w = pdl ( 1,1,1,1,1,1,1,0.5,0.3);
+# input parameters
+my $eps = pdl(0);
+my $maxdeg = 5;
 
-  # input parameters
-  my $eps = pdl(0);
-  my $maxdeg = 5;
+# Test with a bad value
+$y->inplace->setbadat(3);
+($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
-  # Test with a bad value
-  $y->inplace->setbadat(3);
-  ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
+## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
+## print STDERR "poly = $r\n";
 
-  ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-  ## print STDERR "poly = $r\n";
+ok(($ierr == 1));
 
-  ok(($ierr == 1));
+# Test with all bad values
+$y = zeroes(9)->setbadif(1);
+($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
-  # Test with all bad values
-  $y = zeroes(9)->setbadif(1);
-  ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
+## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
+## print STDERR "poly = $r\n";
 
-  ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-  ## print STDERR "poly = $r\n";
+ok(($ierr == 2));
 
-  ok(($ierr == 2));
+# Now test threading over a 2 by N matrix
+# Set up tests x, y and weight
+$y = pdl ([1,4,9,16,25,36,49,64.35,32],
+          [1,4,9,16,25,36,49,64.35,32],);
+$x = pdl ([1,2,3,4,5,6,7,8,9],
+          [1,2,3,4,5,6,7,8,9],);
+$w = pdl ([1,1,1,1,1,1,1,0.5,0.3],
+          [1,1,1,1,1,1,1,0.5,0.3],);
+$y->inplace->setbadat(3,0);
+$y->inplace->setbadat(4,1);
+$eps = pdl(0,0);
 
-  # Now test threading over a 2 by N matrix
-  # Set up tests x, y and weight
-  $y = pdl ([1,4,9,16,25,36,49,64.35,32],
-	    [1,4,9,16,25,36,49,64.35,32],);
-  $x = pdl ([1,2,3,4,5,6,7,8,9],
-	    [1,2,3,4,5,6,7,8,9],);
-  $w = pdl ([1,1,1,1,1,1,1,0.5,0.3],
-	    [1,1,1,1,1,1,1,0.5,0.3],);
-  $y->inplace->setbadat(3,0);
-  $y->inplace->setbadat(4,1);
-  $eps = pdl(0,0);
+($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
-  ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
+## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
+## print STDERR "poly = $r\n";
 
-  ## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-  ## print STDERR "poly = $r\n";
-
-  ok((sum($ierr == 1) == 2));
-
-}
+ok((sum($ierr == 1) == 2));
 
 # Set up tests x, y and weight
 $y = pdl (1,4,9,16,25,36,49,64.35,32);

@@ -13,7 +13,6 @@ use strict;
 # check for bad value support
 #
 use PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
@@ -28,7 +27,6 @@ sub new {
       unless defined $name;
 
     # simple way of handling bad code check
-    $badcode = undef unless $bvalflag;
     my $handlebad = defined($badcode);
 
     # last two arguments may not be supplied

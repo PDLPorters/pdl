@@ -1,8 +1,6 @@
 # -*-perl-*-
 #
 # test bad value handling in PDL
-# - as it's a compile-time option we
-#   skip unless $PDL::Config{WITH_BADVAL}
 #
 
 use strict;
@@ -28,38 +26,6 @@ use PDL::LiteF;
 $| = 1;
 
 use PDL::Config;
-if ( !$PDL::Config{WITH_BADVAL} ) {
-    # reduced testing
-    my $x = pdl(1,2,3);
-    is( $x->badflag(), 0 ); # 1
-    
-    my $y = pdl(4,5,6);
-    my $c = $x + $y;
-    is( $c->badflag(), 0 ); # 2
-    is( $c->sum(), 21 );    # 3
-    
-    # can not set the bad flag
-    $x->badflag(1);
-    is( $x->badflag(), 0 );
-
-    # and piddles do not have a bad value
-    ok( ! defined $x->badvalue );
-
-    # can not change a piddle to include bad values
-    ok( all( ($x->setbadif( $x == 2 ) - pdl(1,2,3)) == 0 ) );
-
-    $x = ones(3,2,4);
-    $y = zeroes(2,4);
-    $c = ones(2,4) * 3;
-    is( $x->nbad, 0 );
-    is( $x->ngood, 24 );
-    ok( all( ($x->nbadover  - $y) == 0 ) );
-    ok( all( ($x->ngoodover - $c) == 0 ) );
-
-    done_testing;
-    exit;
-}
-
 my $usenan = $PDL::Config{BADVAL_USENAN} || 0;
 my $perpdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 

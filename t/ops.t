@@ -252,7 +252,6 @@ my $INT_MAX = 2147483647;
 TODO: {
 local $TODO = undef;
 $TODO = 'Marking TODO for big modulus for 2.008 release';
-require Config;
 diag "\$Config{ivsize} = $Config::Config{ivsize}";
 diag "\$INT_MAX = $INT_MAX = @{[ sprintf '%x', $INT_MAX ]}";
 cmp_ok long($INT_MAX)%1      , '==', 0, "big long modulus: $INT_MAX % 1";
@@ -286,8 +285,6 @@ SKIP:
 is(~pdl(1,2,3)              ."", '[-2 -3 -4]', 'bitwise negation');
 is((pdl(1,2,3) ^ pdl(4,5,6))."", '[5 7 5]'   , 'bitwise xor'     );
 
-SKIP: {
-skip 'No BADVAL', 1 if !$PDL::Config{WITH_BADVAL};
 # Check badflag propagation with .= (Ops::assgn) sf.net bug 3543056
 $a = sequence(10);
 $b = sequence(5);
@@ -296,6 +293,5 @@ $a->slice('0:4') .= $b;
 $a->badflag(1);
 $a->check_badflag();
 ok($a->badflag == 1 && $a->nbad == 1, 'badflag propagation with .=');
-}
 
 done_testing;

@@ -27,7 +27,6 @@ jobs:
           - perl-version: '5.30'
             os: ubuntu-latest
             test-installed: true # test not from blib but after installing
-            disable-badval: true # test with badval disabled
           - perl-version: '5.30'
             os: ubuntu-latest
             badval-per-pdl: true
@@ -70,9 +69,6 @@ jobs:
           mkdir build_aux
           echo 'package pdl_config_override; use ExtUtils::MakeMaker::Config; $Config{cc} = $Config{ld} = "clang"; 1;' >> build_aux/pdl_config_override.pm
           echo "PERL5OPT=-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
-      - name: disable bad value support?
-        if: matrix.disable-badval
-        run: perl -pi -e 's|WITH_BADVAL => 1|WITH_BADVAL => 0|' perldl.conf
       - name: enable BADVAL_USENAN?
         if: matrix.badval-usenan
         run: perl -pi -e 's|BADVAL_USENAN => 0|BADVAL_USENAN => 1|' perldl.conf

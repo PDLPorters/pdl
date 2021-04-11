@@ -988,10 +988,6 @@ END {
 use Carp;
 our @CARP_NOT;
 
-# check for bad value support
-use PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
 my $ntypes = $#PDL::Types::names;
 
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
@@ -2168,7 +2164,6 @@ sub get_badstate {
 #
 sub findbadstatus {
     my ( $badflag, $badcode, $xsargs, $parobjs, $optypes, $symtab, $name ) = @_;
-    return '' unless $bvalflag;
 
     return PDL::PP::pp_line_numbers(__LINE__, $badcode) if defined $badcode;
 
@@ -2248,8 +2243,6 @@ sub findbadstatus {
 #
 sub copybadstatus {
     my ( $badflag, $badcode, $xsargs, $parobjs, $symtab ) = @_;
-##    return '' unless $bvalflag or $badflag == 0;
-    return '' unless $bvalflag;
 
     if (defined $badcode) {
 	# realised in 2.4.3 testing that use of $PRIV at this stage is
@@ -2449,9 +2442,6 @@ sub GenDocs {
 
   return '' if $doc eq '' && (!defined $doc) && $doc==undef;
   return '' if $doc =~ /^\s*internal\s*$/i;
-
-  # remove any 'bad' documentation if we're not compiling support
-  $baddoc = undef unless $bvalflag;
 
   # If the doc string is one line let's have to for the
   # reference card information as well
@@ -2927,7 +2917,7 @@ $PDL::PP::deftbl =
    #
    PDL::PP::Rule->new("BadFlag", "_HandleBad",
 		      "Sets BadFlag based upon HandleBad key and PDL's ability to handle bad values",
-		      sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }),
+		      sub { return (defined $_[0]) ? ($_[0]) : undef; }),
 
    ####################
    # FullDoc Handling #
@@ -2967,7 +2957,6 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
               'Sets the default documentation for handling of bad values',
       sub {
-         return undef unless $bvalflag;
          my ( $bf, $name, $code ) = @_;
          my $str;
          if ( not defined($bf) ) {
@@ -2994,16 +2983,10 @@ $PDL::PP::deftbl =
    # the docs
    PDL::PP::Rule->new("PdlDoc", "FullDoc", sub {
          my $fulldoc = shift;
-         
-         # Remove bad documentation if bad values are not supported
-         $fulldoc =~ s/=for bad\n\n.*?\n\n//s unless $bvalflag;
-         
          # Append a final cut if it doesn't exist due to heredoc shinanigans
          $fulldoc .= "\n\n=cut\n" unless $fulldoc =~ /\n=cut\n*$/;
-         
          # Make sure the =head1 FUNCTIONS section gets added
          $::DOCUMENTED++;
-         
          return $fulldoc;
       }
    ),
@@ -3198,9 +3181,9 @@ $PDL::PP::deftbl =
 ## rule)
 ##
 ##    PDL::PP::Rule->new("CacheBadFlagInitNS", "_HandleBad",
-##		      sub { return $bvalflag ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; }),
+##		      sub { return "\n  int \$BADFLAGCACHE() = 0;\n"; }),
     PDL::PP::Rule->new("CacheBadFlagInitNS",
-		      sub { PDL::PP::pp_line_numbers(__LINE__, $bvalflag ? "\n  int \$BADFLAGCACHE() = 0;\n" : "") }),
+		      sub { PDL::PP::pp_line_numbers(__LINE__, "\n  int \$BADFLAGCACHE() = 0;\n") }),
 # The next rule, if done in place of the above, causes Ops.xs to fail to compile
 #    PDL::PP::Rule->new("CacheBadFlagInitNS", "BadFlag",
 #		      sub { return $_[0] ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; }),

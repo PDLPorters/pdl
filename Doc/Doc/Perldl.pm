@@ -56,9 +56,6 @@ use Term::ReadKey; #for GetTerminalSize
 $PDL::onlinedoc = undef;
 $PDL::onlinedoc = PDL::Doc->new(FindStdFile());
 
-use PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
 # Find std file
 
 sub FindStdFile {
@@ -689,14 +686,9 @@ The following commands support online help in the perldl shell:
  apropos 'word' -- search for keywords/function names 
  usage          -- print usage information for a given PDL function
  sig            -- print signature of PDL function
+ badinfo        -- information on the support for bad values
 
  ('?' is an alias for 'help';  '??' is an alias for 'apropos'.)
-EOH
-
-print "  badinfo         -- information on the support for bad values\n"
-   if $bvalflag;
-
-print <<'EOH';
 
 Quick start:
   apropos 'manual:' -- Find all the manual documents
@@ -736,10 +728,6 @@ And has a horrible name.
 sub badinfo {
     my $func = shift;
     die "Usage: badinfo \$funcname\n" unless defined $func;
-
-    die "PDL has not been compiled with support for bad values.\n" .
-	"Recompile with WITH_BADVAL set to 1 in config file!.\n"
-	    unless $bvalflag;
 
     die "no online doc database" unless defined $PDL::onlinedoc;
 

@@ -417,8 +417,8 @@ the index manipulation/slicing function definitions in the file F<slices.pd>
 that is part of the PDL distribution; but beware, this is not introductory
 level stuff).
 
-If PDL was compiled with support for bad values (i.e. C<WITH_BADVAL =E<gt> 1>),
-then additional keys are required for C<pp_def>, as explained below.
+To support bad values, additional keys are required for C<pp_def>,
+as explained below.
 
 If you are just interested in communicating with some external
 library (for example some linear algebra/matrix library), you'll usually

@@ -274,11 +274,10 @@ gives examples of typical usage for the current function:
 
 =item Bad
 
-provides information on how the function handles bad values (if
-C<$PDL:Config{WITH_BADVAL}> is set to 1). The documentation under
-this directive should indicate if this function accepts piddles
-with bad values and under what circumstances this function might
-return piddles with bad values.
+provides information on how the function handles bad values. The
+documentation under this directive should indicate if this function
+accepts piddles with bad values and under what circumstances this function
+might return piddles with bad values.
 
 =back
 

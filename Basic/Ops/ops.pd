@@ -100,7 +100,7 @@ EOH
 	#      See also `ufunc()`.
 	delete $extra{Exception};
     }
-    if (exists $extra{Comparison} && $PDL::Config{WITH_BADVAL}) {
+    if (exists $extra{Comparison}) {
 	# *append* to header
 	# I am not sure if this should be changed to complex double?
 	$extra{HdrCode} .= <<'EOH';

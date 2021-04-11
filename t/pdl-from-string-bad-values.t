@@ -3,10 +3,6 @@ use Test::More;
 use strict;
 use warnings;
 
-use PDL::Config;
-
-plan skip_all => "Bad values disabled" unless $PDL::Config{WITH_BADVAL};
-
 use PDL::LiteF;
 
 ## Issue information

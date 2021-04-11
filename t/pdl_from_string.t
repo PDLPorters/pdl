@@ -198,12 +198,8 @@ SKIP: {
 		. "so checking signs is silly", 1 if $PDL::Config{BADVAL_USENAN};
 	ok($bad_values->at(2) == -$bad_values->at(1), "negative inf is numerically equal to -inf");
 }
-# bad test
-SKIP: {
-skip "Bad values disabled", 1 if !$PDL::Config{WITH_BADVAL};
 ok($bad_values->isbad->at(3), 'properly handles bad values')
 	or diag("Third bad value should be BAD but it describes itself as " . $bad_values->slice(3));
-}
 
 my $infty = pdl 'inf';
 my $min_inf = pdl '-inf';
@@ -268,11 +264,8 @@ TODO: {
 	}
 }
 
-SKIP: {
-skip "Bad values disabled", 1 if !$PDL::Config{WITH_BADVAL};
 ok($bad->isbad, "pdl 'bad' works by itself")
 	or diag("pdl 'bad' gave me $bad");
-}
 
 # Checks for windows strings:
 $infty = pdl q[1.#INF];

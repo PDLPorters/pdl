@@ -6,43 +6,40 @@ use Test::Exception;
 
 use PDL;
 use PDL::Image2D;
-use PDL::Config;
 
 use strict;
 use warnings;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-if ( $PDL::Config{WITH_BADVAL} ) {
-  my $ans = pdl(
-   [ 3,  7, 11, 21, 27, 33, 39, 45, 51, 27],
-   [ 3,  5, 13, 21, 27, 33, 39, 45, 51, 27],
-   [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27]
-  );
+my $ans = pdl(
+ [ 3,  7, 11, 21, 27, 33, 39, 45, 51, 27],
+ [ 3,  5, 13, 21, 27, 33, 39, 45, 51, 27],
+ [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27]
+);
 
-  my $x = xvals zeroes 10,3;
-  $x->setbadat(2,1);
+my $x = xvals zeroes 10,3;
+$x->setbadat(2,1);
 
-  my $y = pdl [1,2],[2,1];
-  my $c = conv2d($x, $y);
+my $y = pdl [1,2],[2,1];
+my $c = conv2d($x, $y);
 
-  is( int(at(sum($c-$ans))), 0, "conv2d()" );
+is( int(at(sum($c-$ans))), 0, "conv2d()" );
 
-  $x = zeroes(5,5);
-  $x->badflag(1);
-  my $t = $x->slice("1:3,1:3");
-  $t .= ones(3,3);
-  $x->setbadat(2,2);
+$x = zeroes(5,5);
+$x->badflag(1);
+my $t = $x->slice("1:3,1:3");
+$t .= ones(3,3);
+$x->setbadat(2,2);
 
-  $y = sequence(3,3);
-  $ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-  my $m = med2d($x,$y);
-  my $m_sub = $m-$ans;
-  my $m_sum = sum($m_sub);
-  my $m_at = at($m_sum);
-  my $m_int = int($m_at);
-  is( $m_int, 0, "med2d()" ) or diag "x: $x\nm: $m\nans: $ans\nm_sub: $m_sub\nm_sum: $m_sum\nm_at: $m_at\nm_int: $m_int";
-}
+$y = sequence(3,3);
+$ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
+my $m = med2d($x,$y);
+my $m_sub = $m-$ans;
+my $m_sum = sum($m_sub);
+my $m_at = at($m_sum);
+my $m_int = int($m_at);
+is( $m_int, 0, "med2d()" ) or diag "x: $x\nm: $m\nans: $ans\nm_sub: $m_sub\nm_sum: $m_sum\nm_at: $m_at\nm_int: $m_int";
 
 {
 # Right answer

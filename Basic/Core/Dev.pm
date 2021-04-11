@@ -758,7 +758,6 @@ my %flags = (
     dimschgd => { FLAG => "PARENTDIMSCHANGED" },
     tracedebug => { FLAG => "TRACEDEBUG", set => 1},
 );
-#if ( $bvalflag ) { $flags{baddata} = { set => 1, FLAG => "BADVAL" }; }
 
 sub generate_core_flags {
     # access (read, if set is true then write as well; if postset true then

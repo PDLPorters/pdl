@@ -17,12 +17,10 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#if BADVAL
-#  if !BADVAL_USENAN
+#if !BADVAL_USENAN
 #include <float.h>
-#  endif
-#include <limits.h>
 #endif
+#include <limits.h>
 
 /* Return a integer or numeric scalar as approroate */
 
@@ -92,8 +90,6 @@ static void pdl_freedata (pdl *a) {
 		die("Trying to free data of untouchable (mmapped?) pdl");
 	}
 }
-
-#if BADVAL
 
 #ifdef FOOFOO_PROPAGATE_BADFLAG
 
@@ -275,8 +271,6 @@ PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
 #endif
     return retval;
 } /* pdl_get_pdl_badvalue() */
-
-#endif
 
 MODULE = PDL::Core     PACKAGE = PDL
 
@@ -699,9 +693,8 @@ at_bad_c(x,position)
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
 	x->ndims);
-#if BADVAL
    badflag = (x->state & PDL_BADVAL) > 0;
-#  if BADVAL_USENAN
+#if BADVAL_USENAN
    /* do we have to bother about NaN's? */
    if ( badflag &&
         ( ( x->datatype < PDL_F && ANYVAL_EQ_ANYVAL(result, pdl_get_badvalue(x->datatype)) ) ||
@@ -719,7 +712,6 @@ at_bad_c(x,position)
       ) {
 	 RETVAL = newSVpvn( "BAD", 3 );
    } else
-#  endif
 #endif
 
     ANYVAL_TO_SV(RETVAL, result);
@@ -780,7 +772,6 @@ listref_c(x)
    PDL_Anyval pdl_val =    { -1, 0 };
    PDL_Anyval pdl_badval = { -1, 0 };
   CODE:
-#if BADVAL
     /*
     # note:
     #  the badvalue is stored in a PDL_Anyval, but that's what pdl_at()
@@ -788,16 +779,15 @@ listref_c(x)
     */
 
    int badflag = (x->state & PDL_BADVAL) > 0;
-#  if BADVAL_USENAN
+#if BADVAL_USENAN
     /* do we have to bother about NaN's? */
    if ( badflag && x->datatype < PDL_F ) {
       pdl_badval = pdl_get_pdl_badvalue( x );
    }
-#  else
+#else
    if ( badflag ) {
       pdl_badval = pdl_get_pdl_badvalue( x );
    }
-#  endif
 #endif
 
    pdl_make_physvaffine( x );
@@ -810,27 +800,21 @@ listref_c(x)
    lind=0;
    for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
    while(!stop) {
-#if BADVAL
       pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
       if ( badflag && 
-#  if BADVAL_USENAN
+#if BADVAL_USENAN
         ( (x->datatype < PDL_F && ANYVAL_EQ_ANYVAL(pdl_val, pdl_badval)) ||
           (x->datatype == PDL_F && finite(pdl_val.value.F) == 0) ||
           (x->datatype == PDL_D && finite(pdl_val.value.D) == 0) )
-#  else
+#else
         ANYVAL_EQ_ANYVAL(pdl_val, pdl_badval)
-#  endif
+#endif
       ) {
 	 sv = newSVpvn( "BAD", 3 );
       } else {
 	 ANYVAL_TO_SV(sv, pdl_val);
       }
       av_store( av, lind, sv );
-#else
-      pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
-      ANYVAL_TO_SV(sv, pdl_val);
-      av_store(av, lind, sv);
-#endif
 
       lind++;
       stop = 1;
@@ -944,12 +928,10 @@ BOOT:
 
    PDL.NaN_float  = union_nan_float.f;
    PDL.NaN_double = union_nan_double.d;
-#if BADVAL
    PDL.propagate_badflag = propagate_badflag;
    PDL.propagate_badvalue = propagate_badvalue;
    PDL.get_pdl_badvalue = pdl_get_pdl_badvalue;
 #include "pdlbadvalinit.c"
-#endif
    /*
       "Publish" pointer to this structure in perl variable for use
        by other modules

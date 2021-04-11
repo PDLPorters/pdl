@@ -6,7 +6,6 @@ use warnings;
 use PDL::Config;
 use Test::Warn;
 
-plan skip_all => "Bad values disabled" unless $PDL::Config{WITH_BADVAL};
 plan skip_all => "Skip if badvalue support only supports NaN badvalues" if $PDL::Config{BADVAL_USENAN};
 
 use PDL::LiteF;

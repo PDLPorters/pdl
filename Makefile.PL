@@ -112,13 +112,6 @@ sub getpdl_config {
   our %PDL_CONFIG;
   require './perldl.conf';
 
-  # Add BAD_VAL tests if CPAN testers
-  #
-  if ($ENV{AUTOMATED_TESTING}) {
-     # warn "Makefile.PL: Automated testing environment: enabling USE_POGL config option\n";
-     # $PDL_CONFIG{USE_POGL} = 1;
-  }
-
   # Save standard values
   #
   my %PDL_CONFIG_DIST = %PDL_CONFIG;
@@ -190,10 +183,9 @@ EOD
   # NaN's for floating-point bad values (the BADVAL_USENAN
   # option).
   #
-  my $flag_bad     = $PDL_CONFIG{WITH_BADVAL} || 0;
   my $flag_use_nan = $PDL_CONFIG{BADVAL_USENAN} || 0;
   my $flag_per_pdl = $PDL_CONFIG{BADVAL_PER_PDL} || 0;
-  if ( $flag_bad and $flag_use_nan and $flag_per_pdl ) {
+  if ( $flag_use_nan and $flag_per_pdl ) {
       print "WARNING: Setting BADVAL_USENAN=0 as BADVAL_PER_PDL option is set!\n\n";
       $PDL_CONFIG{BADVAL_USENAN} = 0;
   }
@@ -249,12 +241,9 @@ sub make_Types_pm {
   # make sure we have Types.pm ready for prime time
   die "Types.pm.PL not found in Basic/Core"
     unless -f 'Basic/Core/Types.pm.PL';
-  my $usebvals = $PDL::Config{WITH_BADVAL} ? "BADVALS=1" : "";
-  system( $Config{perlpath}, 'Basic/Core/Types.pm.PL', $usebvals);
-  unless ( -f 'Basic/Core/Types.pm' ) {
-     warn "system( $Config{perlpath}, 'Basic/Core/Types.pm.PL', $usebvals) was run...\n";
-     die "error creating Basic/Core/Types.pm";
-  }
+  system $Config{perlpath}, 'Basic/Core/Types.pm.PL';
+  die "error creating Basic/Core/Types.pm"
+    unless -f 'Basic/Core/Types.pm';
 }
 
 # very simple formatter, assumes structures are *not* nested
