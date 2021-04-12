@@ -383,6 +383,7 @@ IO/Misc/misc.pd
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/pnm.pd
+IO/Pnm/t/rim.t
 IO/Storable/Makefile.PL
 IO/Storable/storable.pd
 Libtmp/CallExt/CallExt.pm
@@ -773,7 +774,6 @@ t/pthread_auto.t
 t/pthreadBarf.t
 t/reduce.t
 t/refs.t
-t/rim.t
 t/round.t
 t/scope.t
 t/segfault.t
