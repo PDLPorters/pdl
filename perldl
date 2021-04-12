@@ -219,11 +219,8 @@ unless ($@) {
   push @enabled, "NiceSlice";
 }
 
-eval "use Text::Balanced";
-my $multi_ok = ($@ eq "");
-$PERLDL::MULTI = 0 unless($multi_ok);
-push @enabled,"MultiLines" if $multi_ok;
-
+use Text::Balanced;
+push @enabled,"MultiLines";
 
 print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
@@ -555,12 +552,6 @@ sub count_tags {
 sub process_input { 
   my $lines;
 
-
-  if($PERLDL::MULTI && !$multi_ok) {
-      $PERLDL::MULTI = 0;
-      print STDERR "WARNING: Text::Balanced not present; disabling multi-line parsing.\n";
-  }
-  
   # The {} around the do let us get out with 'last' in the EOF case.
  multiline: { 
      my $cont;

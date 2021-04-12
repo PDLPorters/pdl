@@ -19,21 +19,12 @@ our $macros = <<'EOF';
   ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval);
 EOF
 
-# Try to load Text::Balanced
-my $hasTB = 0;
-eval q{
-	use Text::Balanced;
-	$hasTB = 1;
-};
-
 # split regex $re separated arglist
 # but ignore bracket-protected bits
 # (i.e. text that is within matched brackets)
-# fallback to simple split if we can't find Text::Balanced
 my $prebrackreg = qr/^([^\(\{\[]*)/;
 sub splitprotected ($$) {
   my ($re,$txt) = @_;
-  return split $re, $txt unless $hasTB;
   return () if !defined $txt || $txt =~ /^\s*$/;
   my ($got,$pre) = (1,'');
   my @chunks = ('');
