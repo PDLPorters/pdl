@@ -238,7 +238,7 @@ subdirs
 ~$
 ^xt/
 
-README.md
+^README\.md
 ^\.github/
 ^Example/Benchmark/\.git
 

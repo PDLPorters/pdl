@@ -353,7 +353,6 @@ IO/Browser/Makefile.PL
 IO/Dicom/Dicom.pm
 IO/Dicom/Makefile.PL
 IO/Dumper.pm
-IO/t/dumper.t
 IO/ENVI/readenvi.pdl
 IO/FastRaw/FastRaw.pm
 IO/FastRaw/Makefile.PL
@@ -367,10 +366,10 @@ IO/FlexRaw/t/iotypes.t
 IO/GD/Changes
 IO/GD/GD.pd
 IO/GD/Makefile.PL
-IO/GD/TODO
-IO/GD/typemap
 IO/GD/t/gd_oo_tests.t
 IO/GD/t/gd_tests.t
+IO/GD/TODO
+IO/GD/typemap
 IO/HDF/buildfunc.pm
 IO/HDF/Changes
 IO/HDF/HDF.pm
@@ -396,6 +395,7 @@ IO/Pnm/pnm.pd
 IO/Pnm/t/rim.t
 IO/Storable/Makefile.PL
 IO/Storable/storable.pd
+IO/t/dumper.t
 Libtmp/CallExt/CallExt.pm
 Libtmp/CallExt/CallExt.xs
 Libtmp/CallExt/Makefile.PL
@@ -405,7 +405,6 @@ Libtmp/Compression/compression.pd
 Libtmp/Compression/Makefile.PL
 Libtmp/Compression/ricecomp.c
 Libtmp/DiskCache.pm
-Libtmp/t/diskcache.t
 Libtmp/FFT/fft.pd
 Libtmp/FFT/fftn.c
 Libtmp/FFT/fftn.h
@@ -422,12 +421,12 @@ Libtmp/Fit/Makefile.PL
 Libtmp/Fit/Polynomial.pm
 Libtmp/Func.pm
 Libtmp/GIS/Makefile.PL
+Libtmp/GIS/Proj/include/projects.h
 Libtmp/GIS/Proj/Makefile.PL
 Libtmp/GIS/Proj/Proj.pd
 Libtmp/GIS/Proj/README
-Libtmp/GIS/Proj/TODO
-Libtmp/GIS/Proj/include/projects.h
 Libtmp/GIS/Proj/t/gis_proj.t
+Libtmp/GIS/Proj/TODO
 Libtmp/GSL/DIFF/FUNC.c
 Libtmp/GSL/DIFF/gsl_diff.pd
 Libtmp/GSL/DIFF/Makefile.PL
@@ -439,8 +438,8 @@ Libtmp/GSL/INTEG/t/gsl_integ.t
 Libtmp/GSL/INTERP/gsl_interp.pd
 Libtmp/GSL/INTERP/gslerr.h
 Libtmp/GSL/INTERP/Makefile.PL
-Libtmp/GSL/INTERP/typemap
 Libtmp/GSL/INTERP/t/gsl_interp.t
+Libtmp/GSL/INTERP/typemap
 Libtmp/GSL/Makefile.PL
 Libtmp/GSL/MROOT/FUNC.c
 Libtmp/GSL/MROOT/gsl_mroot.pd
@@ -449,8 +448,8 @@ Libtmp/GSL/MROOT/t/gsl_mroot.t
 Libtmp/GSL/RNG/gsl_random.pd
 Libtmp/GSL/RNG/Makefile.PL
 Libtmp/GSL/RNG/README
-Libtmp/GSL/RNG/typemap
 Libtmp/GSL/RNG/t/gsl_rng.t
+Libtmp/GSL/RNG/typemap
 Libtmp/GSL/SF/airy/gsl_sf_airy.pd
 Libtmp/GSL/SF/airy/Makefile.PL
 Libtmp/GSL/SF/bessel/gsl_sf_bessel.pd
@@ -504,11 +503,11 @@ Libtmp/GSL/SF/psi/Makefile.PL
 Libtmp/GSL/SF/README
 Libtmp/GSL/SF/synchrotron/gsl_sf_synchrotron.pd
 Libtmp/GSL/SF/synchrotron/Makefile.PL
+Libtmp/GSL/SF/t/gsl_sf.t
 Libtmp/GSL/SF/transport/gsl_sf_transport.pd
 Libtmp/GSL/SF/transport/Makefile.PL
 Libtmp/GSL/SF/trig/gsl_sf_trig.pd
 Libtmp/GSL/SF/trig/Makefile.PL
-Libtmp/GSL/SF/t/gsl_sf.t
 Libtmp/GSL/SF/zeta/gsl_sf_zeta.pd
 Libtmp/GSL/SF/zeta/Makefile.PL
 Libtmp/Image2D/image2d.pd
@@ -652,6 +651,7 @@ Libtmp/Slatec/slatec/xersve.f
 Libtmp/Slatec/slatec/xgetua.f
 Libtmp/Slatec/t/slatec-polyfit-weight.t
 Libtmp/Slatec/t/slatec.t
+Libtmp/t/diskcache.t
 Libtmp/Transform/Cartography/Cartography.pm
 Libtmp/Transform/Cartography/earth_coast.vec.fits
 Libtmp/Transform/Cartography/earth_day.jpg
@@ -661,9 +661,9 @@ Libtmp/Transform/Makefile.PL
 Libtmp/Transform/Proj4/Makefile.PL
 Libtmp/Transform/Proj4/Proj4.pd
 Libtmp/Transform/Proj4/README
-Libtmp/Transform/Proj4/TODO
 Libtmp/Transform/Proj4/t/proj_transform.t
 Libtmp/Transform/Proj4/t/proj_transform2.t
+Libtmp/Transform/Proj4/TODO
 Libtmp/Transform/transform.pd
 m51.fits
 macosx/README
