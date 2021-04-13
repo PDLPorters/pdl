@@ -1,26 +1,9 @@
-# -*-perl-*-
-
 use strict;
 use warnings;
 use Test::More;
 use PDL::LiteF;
-use PDL::Config;
 use PDL::IO::Misc 'rcols';
-
-BEGIN {
-    if ($PDL::Config{WITH_SLATEC}) {
-	eval " use PDL::Fit::LM; ";
-	unless ($@) {
-	    plan tests => 2;
-	} 
-	else {
-	    plan skip_all => 'PDL::Fit::LM did not load. Is PDL::Slatec available?';
-	}
-    }
-    else {
-	plan skip_all => 'PDL::Fit::LM not available (needs PDL::Slatec)';
-    }
-}    
+use PDL::Fit::LM;
 
 my ($t,$count,$sigma)=rcols(\*DATA,0,1,2);
 my $initp = pdl(10,900,80,27,225);
@@ -33,7 +16,7 @@ ok(all(abs(log10($pf/$gnuplot_pf_unweighted))<0.02),"Unweighted fit");
 ($yf,$pf,$cf,$if) = lmfit($t, $count, $sigma, \&const_2exp, $initp);
 ok(all(abs(log10($pf/$gnuplot_pf_weighted))<0.02),"Weighted fit");
 
-1;
+done_testing;
 
 sub const_2exp{
 #constant plus 2 exponentials
@@ -47,7 +30,6 @@ sub const_2exp{
     $dy[3] .= $a2 * $x * exp(-$x/$a4)/$a4/$a4;
     $dy[4] .= $a3 * $x * exp(-$x/$a5)/$a5/$a5; 
 }
-
 
 __DATA__
 # $Id: silver.dat,v 1.1.1.1 1998/04/15 19:16:42 lhecking Exp $

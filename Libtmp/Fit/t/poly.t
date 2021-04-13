@@ -1,19 +1,8 @@
-use Test::More;
-use PDL::LiteF;
-
 use strict;
 use warnings;
-
-BEGIN {
-	eval {
-		require PDL::Fit::Polynomial;
-		PDL::Fit::Polynomial->import();
-		1;
-	} or plan skip_all => "PDL::Fit::Polynomial: $@";
-}
-
-kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-plan tests => 1;
+use Test::More;
+use PDL::LiteF;
+use PDL::Fit::Polynomial;
 
 my $x = sequence(20)-10;
 my $y = 30-2*$x+3*$x**2-2*$x**3;
@@ -35,3 +24,5 @@ my $yfit = fitpoly1d($x,$y,4);
 #hold; line $x, $yfit;
 
 ok(max(abs($y-$yfit)) < 220); # need to add 10 for windows
+
+done_testing;

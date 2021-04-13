@@ -1,20 +1,8 @@
-use Test::More;
-use PDL::LiteF;
-
 use strict;
 use warnings;
-
-BEGIN {
-	eval {
-		require PDL::Fit::Linfit;
-		PDL::Fit::Linfit->import();
-		1;
-	} or plan skip_all => "PDL::Fit::Linfit: $@";
-}
-
-kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
-plan tests => 2;
+use Test::More;
+use PDL::Fit::Linfit;
+use PDL::LiteF;
 
 {
 # Simple Test Case:
@@ -106,3 +94,5 @@ my @coefs = $coeffs->list;
 
 ok all approx( $coeffs, pdl( \@expectedCoefs ) );
 }
+
+done_testing;

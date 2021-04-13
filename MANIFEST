@@ -421,10 +421,9 @@ Libtmp/Fit/Gaussian/gauss.c
 Libtmp/Fit/Gaussian/gaussian.pd
 Libtmp/Fit/Gaussian/Makefile.PL
 Libtmp/Fit/Gaussian/t/gauss.t
-Libtmp/Fit/Linfit.pm
-Libtmp/Fit/LM.pm
 Libtmp/Fit/Makefile.PL
 Libtmp/Fit/Polynomial.pm
+Libtmp/Fit/t/poly.t
 Libtmp/Func.pm
 Libtmp/GIS/Makefile.PL
 Libtmp/GIS/Proj/include/projects.h
@@ -545,6 +544,8 @@ Libtmp/Minuit/t/minuit.t
 Libtmp/Simplex/Makefile.PL
 Libtmp/Simplex/Simplex.pm
 Libtmp/Simplex/t/simplex.t
+Libtmp/Slatec/Linfit.pm
+Libtmp/Slatec/LM.pm
 Libtmp/Slatec/Makefile.PL
 Libtmp/Slatec/slatec.pd
 Libtmp/Slatec/slatec/chfcm.f
@@ -659,6 +660,8 @@ Libtmp/Slatec/slatec/xermsg.f
 Libtmp/Slatec/slatec/xerprn.f
 Libtmp/Slatec/slatec/xersve.f
 Libtmp/Slatec/slatec/xgetua.f
+Libtmp/Slatec/t/linfit.t
+Libtmp/Slatec/t/lm.t
 Libtmp/Slatec/t/slatec-polyfit-weight.t
 Libtmp/Slatec/t/slatec.t
 Libtmp/t/diskcache.t
@@ -737,9 +740,7 @@ t/inline-with.t
 t/inlinepdlpp.t
 t/interpol.t
 t/lgamma.t
-t/linfit.t
 t/lite_loads_twice.t
-t/lm.t
 t/lvalue.t
 t/magic.t
 t/matmult.t
@@ -762,7 +763,6 @@ t/pic_16bit.t
 t/picnorgb.t
 t/picrgb.t
 t/pnm.t
-t/poly.t
 t/polyroots.t
 t/pp_croaking.t
 t/pp_line_numbers.t

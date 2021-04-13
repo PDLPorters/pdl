@@ -143,9 +143,9 @@ if ($Config{osname} =~ /darwin/ && version->parse($Config{osvers}) >= version->p
        $items{LDDLFLAGS} =~ s/-arch i386/ /g;
 }
 
-
+my @fit = qw(Linfit.pm LM.pm);
+@{$hash{PM}}{@fit} = map '$(INST_LIBDIR)/Fit/'.$_, @fit;
 WriteMakefile(
  %hash,
- VERSION => "0.12",   # This is overridden by VERSION_FROM in %hash 
  %items
 );
