@@ -1,37 +1,23 @@
-# Created on: Fri 14 Dec 2007 07:22:09 PM 
-# Last saved: Fri 09 Dec 2011 01:57:56 PM 
-#
 # This tests the 16-bit image capabilities of the rpic() and wpic()
 # commands.  The new code works with PNM output files and PNG format
 # too.
 
-# Our new default testing framework
 use strict;
 use Test::More;
 use File::Temp qw(tempdir);
 use File::Spec;
-
 use PDL;
 use PDL::NiceSlice;
+use PDL::IO::Pic;
 
-my ($test_pnmtopng);
-
-BEGIN {
-   eval "use PDL::IO::Pic;";
-   if ( !$@ ) {
-      $test_pnmtopng = 1;
-      plan tests => 5;
-      if($^O =~ /MSWin32/i) {
-         $test_pnmtopng = `pnmtopng --help 2>&1`;
-         $test_pnmtopng = $test_pnmtopng =~ /^pnmtopng:/ ? 1 : 0;
-      } elsif ( !defined( scalar( qx(pnmtopng --help 2>&1) ) ) ) {
-         $test_pnmtopng = 0;
-      } 
-   } else {
-      plan skip_all => 'PDL::IO::Pic not available'
-   }
-   use_ok('PDL::IO::Pic');
-}
+my $test_pnmtopng;
+$test_pnmtopng = 1;
+if($^O =~ /MSWin32/i) {
+   $test_pnmtopng = `pnmtopng --help 2>&1`;
+   $test_pnmtopng = $test_pnmtopng =~ /^pnmtopng:/ ? 1 : 0;
+} elsif ( !defined( scalar( qx(pnmtopng --help 2>&1) ) ) ) {
+   $test_pnmtopng = 0;
+} 
 
 $PDL::IO::Pic::debug=20;
 
@@ -69,6 +55,6 @@ SKIP : {
   else {$a16_png = rpic('tushort_a16.png', {FORMAT => 'PNG'})} 
   ok(sum(abs($a16-$a16_png)) == 0, 'png ushort image save+restore'); # test 5 (fails on Win32 if not skipped)
   unlink 'tushort_a16.png';
-  };
+}
 
-# end
+done_testing;

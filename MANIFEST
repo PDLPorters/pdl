@@ -399,6 +399,7 @@ IO/Misc/misc.pd
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/pnm.pd
+IO/Pnm/t/pic_16bit.t
 IO/Pnm/t/pnm.t
 IO/Pnm/t/rim.t
 IO/Storable/Makefile.PL
@@ -764,7 +765,6 @@ t/pdl-from-string-bad-values.t
 t/pdl_from_string.t
 t/pdlchar.t
 t/physical.t
-t/pic_16bit.t
 t/polyroots.t
 t/pp_croaking.t
 t/pp_line_numbers.t
