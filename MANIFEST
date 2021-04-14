@@ -399,6 +399,7 @@ IO/Misc/misc.pd
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/pnm.pd
+IO/Pnm/t/pnm.t
 IO/Pnm/t/rim.t
 IO/Storable/Makefile.PL
 IO/Storable/storable.pd
@@ -765,7 +766,6 @@ t/physical.t
 t/pic_16bit.t
 t/picnorgb.t
 t/picrgb.t
-t/pnm.t
 t/polyroots.t
 t/pp_croaking.t
 t/pp_line_numbers.t
