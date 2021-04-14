@@ -129,6 +129,7 @@ Basic/SourceFilter/local.perldlrc
 Basic/SourceFilter/Makefile.PL
 Basic/SourceFilter/ModuleCompile.pm
 Basic/SourceFilter/NiceSlice.pm
+Basic/SourceFilter/t/niceslice.t
 Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
 Bugs.pod
@@ -755,8 +756,6 @@ t/matrix.t
 t/matrixops.t
 t/minmax-behavior.t
 t/nat_complex.t
-t/niceslice.t
-t/nsdatahandle.t
 t/ones.t
 t/op-eq-warn-for-non-numeric.t
 t/ops-bitwise.t
