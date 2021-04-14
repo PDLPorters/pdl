@@ -32,7 +32,7 @@ typedef struct pdl_errorinfo {
 typedef struct pdl_thread {
 	pdl_errorinfo *einfo;
 #ifdef PDL_THREAD_DEBUG
-        int magicno;
+        unsigned int magicno;
 #endif
 	int gflags;	/* Flags about this struct */
 	int ndims;	/* Number of dimensions threaded over */
