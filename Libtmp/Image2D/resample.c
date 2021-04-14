@@ -8,6 +8,7 @@
  * see http://www.eso.org/eclipse for further details
  */
 
+#include <string.h>
 #include "resample.h"
 
 /*-------------------------------------------------------------------------*/
