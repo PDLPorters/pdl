@@ -381,6 +381,9 @@ IO/HDF/Makefile.PL
 IO/HDF/SD/Changes
 IO/HDF/SD/Makefile.PL
 IO/HDF/SD/SD.pd
+IO/HDF/t/hdf_sd.t
+IO/HDF/t/hdf_vdata.t
+IO/HDF/t/hdf_vgroup.t
 IO/HDF/TODO
 IO/HDF/typemap
 IO/HDF/VS/Changes
@@ -728,9 +731,6 @@ t/familyfree.t
 t/fits.t
 t/flow.t
 t/func.pdl
-t/hdf_sd.t
-t/hdf_vdata.t
-t/hdf_vgroup.t
 t/hdrs.t
 t/hist.t
 t/howbig.t
