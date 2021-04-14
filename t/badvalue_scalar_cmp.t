@@ -1,14 +1,56 @@
-use Test::More;
-
 use strict;
 use warnings;
-
+use Test::More;
 use PDL::Config;
 use Test::Warn;
-
-plan skip_all => "Skip if badvalue support only supports NaN badvalues" if $PDL::Config{BADVAL_USENAN};
-
 use PDL::LiteF;
+
+## Name: "isn't numeric in null operation" warning could be more helpful
+## <http://sourceforge.net/p/pdl/bugs/332/>
+## <https://github.com/PDLPorters/pdl/issues/33>
+# The following code calls the PDL::Ops::eq() function via the operator
+# overload for the eq operator. Because the Perl eq operator is usually used
+# for strings, the default warning of "isn't numeric in null operation" is
+# confusing. Comparing a PDL against a string should give a more useful
+# warning.
+my $numeric_warning = qr/not numeric nor a PDL/;
+my $no_warning = undef;
+sub check_eq_warnings {
+	my ($string, $warning) = @_;
+        $warning ||= qr/^\s*$/;
+        my @w;
+        local $SIG{__WARN__} = sub { push @w, @_ };
+	my $dummy = pdl() eq $string;
+        like "@w", $warning; @w = ();
+	$dummy = $string eq pdl();
+        like "@w", $warning; @w = ();
+}
+
+subtest "String 'x' is not numeric and should warn" => sub {
+	check_eq_warnings('x', $numeric_warning);
+};
+subtest "String 'nancy' is not numeric and should warn" => sub {
+	check_eq_warnings('nancy', $numeric_warning);
+};
+subtest "String 'inf' is numeric" => sub {
+	check_eq_warnings('inf', $no_warning);
+};
+subtest "String 'nan' is numeric" => sub {
+	check_eq_warnings('nan', $no_warning);
+};
+TODO: {
+	# implementing this might require checking for strings that can be made into PDLs
+	local $TODO = "Using the eq operator with the string 'bad' might be a good feature";
+	subtest "String 'bad' is numeric (in PDL)" => sub {
+		check_eq_warnings('bad', $no_warning);
+	};
+}
+
+if ($PDL::Config{BADVAL_USENAN}) {
+  # next bit not if badvalue support only supports NaN badvalues
+  done_testing;
+  exit;
+}
 
 ## Issue information
 ##
@@ -16,9 +58,6 @@ use PDL::LiteF;
 ##
 ## <http://sourceforge.net/p/pdl/bugs/390/>
 ## <https://github.com/PDLPorters/pdl/issues/124>
-
-plan tests => 5;
-
 subtest "Issue example code" => sub {
 	my $x = pdl(1, 2, 3, 0);
 	$x->badflag(1);
@@ -238,4 +277,6 @@ subtest "Throw a warning when badvalue is set to 0 or 1 and a comparison operato
 
 		warning_like { $p + 1 } undef, "No warning thrown for badval == 0 and + operator";
 	};
-}
+};
+
+done_testing;

@@ -744,7 +744,6 @@ t/matrix.t
 t/matrixops.t
 t/nat_complex.t
 t/ones.t
-t/op-eq-warn-for-non-numeric.t
 t/ops-bitwise.t
 t/ops.t
 t/pdl_from_string.t
