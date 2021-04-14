@@ -171,11 +171,12 @@ my $pa = log10(110);
 my $pb = log(110) / log(10);
 note "a: $pa  [ref(\$pa)='", ref($pa),"']\n";
 note "b: $pb\n";
-ok(abs($pa-$pb) < 1.0e-5 ,'log10 scalar');
+ok(abs($pa-$pb) < 1.0e-5, 'log10 scalar');
 if ($can_complex_power) {
   $pa = 20+10*ci;
-  $pb = log ($pa);
-  ok(exp($pb)-$pa < 1.0e-5 ,'exp of log of complex scalar');
+  $pb = log($pa);
+  my $got = exp($pb);
+  ok(abs($got-$pa) < 1.0e-4,'exp of log of complex scalar') or diag "pb=$pb, got=$got, expected=$pa";
 }
 my $y = sequence(5,4)+2;  # Create PDL
 is log(float($y))->type, 'float';

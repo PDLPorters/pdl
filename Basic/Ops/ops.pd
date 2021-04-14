@@ -1,4 +1,17 @@
+use strict;
+use warnings;
+use PDL::Types qw(types);
+
+my $R = [map $_->ppsym, grep $_->real, types]; # real types here
+my $C = [map $_->ppsym, grep !$_->real, types];
+my $F = [map $_->ppsym, grep $_->real && !$_->integer, types];
+my $T = [map $_->ppsym, grep $_->integer, types];
+my %is_real; @is_real{@$R} = ();
+
 pp_addpm({At=>'Top'},<<'EOD');
+
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -116,7 +129,6 @@ EOH
     }
 
     pp_def($name,
-	   PMCode => $pmcode,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
 	   HandleBad => 1,
@@ -168,7 +180,7 @@ sub bifunc {
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
     my $got_complex = PDL::Core::Dev::got_complex_version($func, 2);
-    $extra{GenericTypes} = [ grep !$is_complex{$_}, @{$extra{GenericTypes}} ]
+    $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
     if ($swap) {
 	$extra{HdrCode} .= << 'EOH';
@@ -255,7 +267,7 @@ sub ufunc {
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
     my $got_complex = PDL::Core::Dev::got_complex_version($func, 1);
-    $extra{GenericTypes} = [ grep !$is_complex{$_}, @{$extra{GenericTypes}} ]
+    $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
 
     # handle exceptions
@@ -345,8 +357,6 @@ biop('divide','/',1,'divide two piddles', Exception => '$b() == 0' );
 
 ## comparison ops
 # need swapping
-my $R = [B,U,S,L,N,Q,F,D]; # real types here
-my $C = [C,G];
 # not defined for complex numbers
 biop('gt','>',1,'the binary E<gt> (greater than) operation', Comparison => 1, GenericTypes=>$R );
 biop('lt','<',1,'the binary E<lt> (less than) operation', Comparison => 1,GenericTypes=>$R );
@@ -358,7 +368,6 @@ biop('ne','!=',1,'binary I<not equal to> operation (C<!=>)', Comparison => 1 );
 
 ## bit ops
 # those need to be limited to the right types
-my $T = [B,U,S,L,N,Q]; # the sensible types here
 biop('shiftleft','<<',1,'leftshift C<$a> by C<$b>',GenericTypes => $T);
 biop('shiftright','>>',1,'rightshift C<$a> by C<$b>',GenericTypes => $T);
 biop('or2','|',1,'binary I<or> of two piddles',GenericTypes => $T,
@@ -372,8 +381,8 @@ biop('xor','^',1,'binary I<exclusive or> of two piddles',GenericTypes => $T,
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<$b>',GenericTypes => [C,G,D]);
-bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D,F]);
+bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<$b>',GenericTypes => [@$C, @$F]);
+bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => $F);
 bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation',unsigned=>1,GenericTypes=>$R);
 bifunc('spaceship',['SPACE','op<=>'],1,'elementwise "<=>" operation', ,GenericTypes=>$R);
 
@@ -382,14 +391,14 @@ ufunc('sqrt','sqrt','elementwise square root',); # Exception => '$a() < 0' ,Gene
 ufunc('sin','sin','the sin function');
 ufunc('cos','cos','the cos function');
 ufunc('not','!','the elementwise I<not> operation',GenericTypes=>$R );
-ufunc('exp','exp','the exponential function',GenericTypes => [D,C]);
-ufunc('log','log','the natural logarithm',GenericTypes => [F,D,G,C], Exception => '$a() <= 0' );
+ufunc('exp','exp','the exponential function',GenericTypes => [@$C, @$F]);
+ufunc('log','log','the natural logarithm',GenericTypes => [@$C, @$F], Exception => '$a() <= 0' );
 
 pp_export_nothing();
 
 # make log10() work on scalars (returning scalars)
 # as well as piddles
-ufunc('log10','log10','the base 10 logarithm', GenericTypes => [D],
+ufunc('log10','log10','the base 10 logarithm', GenericTypes => $F,
       Exception => '$a() <= 0',
       PMCode =>
 '
