@@ -713,7 +713,6 @@ Perldl2/Script.pm
 Perldl2/TODO
 README
 t/00-report-prereqs.t
-t/aaa_load.t
 t/argtest.t
 t/autoload.t
 t/bad.t
