@@ -20,7 +20,7 @@ $file =~ s/\.pl$//
 open OUT,">$file" or die "Can't create $file: $!";
 
 print "Extracting $file (with variable substitutions)\n";
-chmod 0775, $file;
+chmod 0644, $file;
 
 # In this section, perl variables will be expanded during extraction.
 # You can use $Config{...} to use Configure variables.
