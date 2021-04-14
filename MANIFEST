@@ -769,7 +769,6 @@ t/reduce.t
 t/refs.t
 t/scope.t
 t/segfault.t
-t/slice-exceptions.t
 t/slice.t
 t/stringify.t
 t/subclass.t
@@ -780,7 +779,6 @@ t/thread.t
 t/thread_def.t
 t/ufunc.t
 t/unpdl.t
-t/vaffine.t
 t/vsearch.t
 TODO
 utils/perldlpp.pl

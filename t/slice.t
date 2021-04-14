@@ -1,12 +1,7 @@
-# -*-perl-*-
-#
-
 use strict;
 use Test::More;
-
-plan tests => 95;
-    ;
 use PDL::LiteF;
+use PDL::Dbg;
 
 # PDL::Core::set_debugging(1);
 
@@ -132,8 +127,6 @@ $e = $c-$d;
 
 is(max(abs($e)), 0);
 
-use PDL::Dbg;
-
 my ($im, $im1, $im2, $lut, $in);
 
 $im = byte [[0,1,255],[0,0,0],[1,1,1]];
@@ -229,7 +222,6 @@ undef $y; undef $c;
 ($y,$c) = rle($x2d);
 ok(tapprox($x2d, rld($y,$c)),"rle 2d with return vals");
 
-
 $y = $x->mslice(0.5);
 ok(tapprox($y, 1), "mslice 1");
 
@@ -281,8 +273,6 @@ ok(($y->nelem==5 and all($y==pdl(0,1,2,3,4))),"slice with whitespace works right
 eval ' $y = $x->slice(" 3: 4 ");';
 ok(!$@,"slice with whitespace worked - 3");
 ok(($y->nelem==2 and all($y==pdl(3,4))),"slice with whitespace works right - 3");
-
-
 
 ##############################
 # Tests of permissive slicing and dummying
@@ -381,7 +371,6 @@ ok("$z" eq 'Empty[0]', "scalar Empty[0] indices handled correctly by range");
 $z = $dex->range(zeroes(1,0)); # 1-vector Empties are handled right.
 ok("$z" eq 'Empty[0]', "1-vector Empty[1,0] indices handled correctly by range");
 
-
 $z = $mt->range($dex,undef,'e');
 ok(all($z==0),"empty source arrays handled correctly by range");
 
@@ -406,3 +395,54 @@ ok($y==0);
 
 eval '$y = $x->slice(0)->nelem';
 ok($@ =~ m/out of bounds/);
+
+for my $start (0, 4, -4, 20, -20) {
+	for my $stop (0, 4, -4, 20, -20) {
+		# Generate a simple data piddle and a bad slice of that piddle
+		my $data = sequence(10);
+		my $slice = $data->slice("$start:$stop");
+
+		pass('Slice operation for properly formed slice does not croak');
+
+		# Calculate the expected dimension size:
+		my $expected_dim_size;
+		my $real_start = $start;
+		$real_start += 10 if $start < 0;
+		my $real_stop = $stop;
+		$real_stop += 10 if $stop < 0;
+		$expected_dim_size = abs($real_stop - $real_start) + 1
+			if 0 <= $real_stop and $real_stop < 10
+				and 0 <= $real_start and $real_start < 10;
+
+		my $expected_outcome_description
+			= defined $expected_dim_size ? 'is fine' : 'croaks';
+
+		my $dim1;
+		# Should croak when we ask about the dimension:
+		eval { $dim1 = $slice->dim(0) };
+		is($dim1, $expected_dim_size, "Requesting dim(0) on slice($start:$stop) $expected_outcome_description");
+
+		# Should *STILL* croak when we ask about the dimension:
+		eval { $dim1 = $slice->dim(0) };
+		is($dim1, $expected_dim_size, "Requesting dim(0) a second time on slice($start:$stop) $expected_outcome_description");
+
+		# Calculate the expected value
+		my $expected_value;
+		$expected_value = $data->at($real_start) if defined $expected_dim_size;
+
+		# Should croak when we ask about data
+		my $value;
+		eval { $value = $slice->at(0) };
+		is($value, $expected_value, "Requesting first element on slice($start:$stop) $expected_outcome_description");
+	}
+}
+
+{
+# Test vaffine optimisation
+my $x = zeroes(100,100);
+my $y = $x->slice('10:90,10:90');
+$y++;
+ok( (not $y->allocated) ) ;
+}
+
+done_testing;
