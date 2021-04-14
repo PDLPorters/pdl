@@ -724,7 +724,6 @@ t/autoload.t
 t/bad.t
 t/badvalue_scalar_cmp.t
 t/basic.t
-t/bess.t
 t/bigmem.t
 t/bool.t
 t/clump.t
@@ -735,7 +734,6 @@ t/constructor.t
 t/conv.t
 t/core.t
 t/croak.t
-t/erf.t
 t/familyfree.t
 t/flow.t
 t/func.pdl
@@ -746,10 +744,10 @@ t/ica.t
 t/inline-with.t
 t/inlinepdlpp.t
 t/interpol.t
-t/lgamma.t
 t/lite_loads_twice.t
 t/lvalue.t
 t/magic.t
+t/math.t
 t/matmult.t
 t/matrix.t
 t/matrixops.t
@@ -763,7 +761,6 @@ t/pdl-from-string-bad-values.t
 t/pdl_from_string.t
 t/pdlchar.t
 t/physical.t
-t/polyroots.t
 t/pp_croaking.t
 t/pp_line_numbers.t
 t/pptest.t
@@ -774,7 +771,6 @@ t/pthread_auto.t
 t/pthreadBarf.t
 t/reduce.t
 t/refs.t
-t/round.t
 t/scope.t
 t/segfault.t
 t/slice-exceptions.t
@@ -786,7 +782,6 @@ t/subclass3.t
 t/subclass4.t
 t/thread.t
 t/thread_def.t
-t/trig.t
 t/ufunc.t
 t/unpdl.t
 t/vaffine.t
