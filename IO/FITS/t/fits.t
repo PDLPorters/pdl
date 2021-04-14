@@ -1,31 +1,17 @@
-
-# Test routine for PDL::IO::FITS module
-
 use strict;
-
 use File::Basename;
-
 use PDL::LiteF;
-
 use PDL::Core ':Internal'; # For howbig()
 use PDL::Config;
-
-##use PDL::Complex;  # currently not supported
-
-kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
 use Test::More;
 use Test::Exception;
-
-BEGIN {
-      use_ok( "PDL::IO::FITS" ); #1
-}
-
+use PDL::IO::FITS;
 require File::Spec;
+require File::Temp;
+
 my $fs = 'File::Spec';
 sub cfile { return $fs->catfile(@_)}
 
-require File::Temp;
 my $file = File::Temp::tempfile();
 
 ################ Test rfits/wfits ########################
@@ -333,5 +319,3 @@ if(-w dirname($tildefile)) {
 }
 
 done_testing();
-
-1;

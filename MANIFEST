@@ -362,6 +362,7 @@ IO/FastRaw/Makefile.PL
 IO/FastRaw/t/fastraw.t
 IO/FITS/FITS.pm
 IO/FITS/Makefile.PL
+IO/FITS/t/fits.t
 IO/FlexRaw/FlexRaw.pm
 IO/FlexRaw/Makefile.PL
 IO/FlexRaw/t/flexraw.t
@@ -736,7 +737,6 @@ t/croak.t
 t/erf.t
 t/erfi.t
 t/familyfree.t
-t/fits.t
 t/flow.t
 t/func.pdl
 t/hdrs.t
