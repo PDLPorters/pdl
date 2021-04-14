@@ -497,10 +497,10 @@ void pdl_unpackdims ( SV* sv, PDL_Indx *dims, int ndims ) {
 
 PDL_Indx pdl_safe_indterm( PDL_Indx dsz, PDL_Indx at, char *file, int lineno)
 {
-  if (at >= 0 && at < dsz) return at;
-  pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
+  if (!(at >= 0 && at < dsz))
+    pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
           at, dsz-1, file?file:"?", lineno);
-  return at; // This can never happen - placed to avoid a compiler warning.
+  return at;
 }
 
 /*
