@@ -25,6 +25,8 @@ sub new {
 
     die "Error: missing name argument to PDL::PP::Code->new call!\n"
       unless defined $name;
+    confess "Error: empty or undefined GenericTypes!\n"
+      unless @{$generictypes || []};
 
     # simple way of handling bad code check
     my $handlebad = defined($badcode);
