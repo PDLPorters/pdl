@@ -738,7 +738,6 @@ t/familyfree.t
 t/flow.t
 t/func.pdl
 t/hdrs.t
-t/hist.t
 t/howbig.t
 t/ica.t
 t/inline-with.t
@@ -786,7 +785,6 @@ t/ufunc.t
 t/unpdl.t
 t/vaffine.t
 t/vsearch.t
-t/xvals.t
 TODO
 utils/perldlpp.pl
 win32/INSTALL
