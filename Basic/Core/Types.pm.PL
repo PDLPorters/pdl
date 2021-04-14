@@ -337,7 +337,11 @@ our \@EXPORT = qw( $typeexports
 
 print OUT <<'!NO!SUBS!';
 
-our @EXPORT_OK = (@EXPORT, qw/types ppdefs typesrtkeys mapfld typefld/);
+our @EXPORT_OK = (@EXPORT,
+  qw/types typesrtkeys mapfld typefld
+    ppdefs ppdefs_complex
+  /
+);
 our %EXPORT_TAGS = (
 	All=>[@EXPORT,@EXPORT_OK],
 );
@@ -424,14 +428,29 @@ Returns an array of pp symbols for all known types
 
 =for example
 
- pdl> @ppdefs = PDL::Types::ppdefs
- pdl> print @ppdefs;
- B S U L N Q F D
+ pdl> print PDL::Types::ppdefs
+ B S U L N Q F D G C
 
 =cut
 
 my @PPDEFS = map $_->{ppsym}, @HASHES;
 sub ppdefs { @PPDEFS }
+
+=head2 ppdefs_complex
+
+=for ref
+
+Returns an array of pp symbols for all complex types.
+
+=for example
+
+ pdl> print PDL::Types::ppdefs_complex
+ G C
+
+=cut
+
+my @PPDEFS_CPLX = map $_->{ppsym}, grep !$_->{real}, @HASHES;
+sub ppdefs_complex { @PPDEFS_CPLX }
 
 =head2 typefld
 

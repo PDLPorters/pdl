@@ -1,9 +1,9 @@
 use strict;
 use warnings;
-use PDL::Types qw(types);
+use PDL::Types qw(types ppdefs_complex);
 
 my $R = [map $_->ppsym, grep $_->real, types]; # real types here
-my $C = [map $_->ppsym, grep !$_->real, types];
+my $C = [ppdefs_complex];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types];
 my $T = [map $_->ppsym, grep $_->integer, types];
 my %is_real; @is_real{@$R} = ();

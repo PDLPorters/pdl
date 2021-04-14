@@ -2,6 +2,7 @@ use PDL::LiteF;
 #use PDL::Complex;
 use PDL::Config;
 use PDL::Core::Dev;
+use PDL::Types qw(ppdefs ppdefs_complex);
 
 use Test::More;
 
@@ -11,6 +12,9 @@ sub tapprox {
         my $d = max($c);
         $d < 0.0001;
 }
+
+is_deeply [ ppdefs() ], [qw(B S U L N Q F D G C)];
+is_deeply [ ppdefs_complex() ], [qw(G C)];
 
 $ref = pdl([[-2,1],[-3,1]]);
 $ref2 = squeeze($ref->slice("0,")+ci()*$ref->slice("1,"));
