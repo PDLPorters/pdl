@@ -739,7 +739,6 @@ t/flow.t
 t/func.pdl
 t/hdrs.t
 t/howbig.t
-t/ica.t
 t/inline-with.t
 t/inlinepdlpp.t
 t/interpol.t
