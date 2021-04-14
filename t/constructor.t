@@ -1,12 +1,10 @@
-#!/usr/bin/perl
-#
 # Test for bug in the pdl constructor for mixed arguments.
 # Separate from core.t because the problem crashes perl
 # and I'd like to keep the granularity of the core.t tests
 #
-use Test::More tests => 87;
+use Test::More;
 use PDL::LiteF;
-use PDL::Config;
+use Test::Exception;
 
 my $scalar = 1;
 my $pdl_e = pdl([]);
@@ -16,7 +14,6 @@ my $pdl_vec2 = pdl([9,10]);
 my $pdl_m = pdl([5,6],[7,8]);
 my $pdl_row = pdl([[10,11]]);
 my $pdl_col = pdl([[12],[13]]);
-
 
 ##############################
 # Test the basics (21 tests)
@@ -182,7 +179,6 @@ is $p->dim(1), 2, "catenating a scalar and an empty yields a 1x2-PDL";
 is $p->at(0,0), 5, "scalar OK for scalar & empty";
 is $p->at(0,1), $PDL::undefval, "padding OK for scalar & empty";
 
-
 # This is from sf.net bug #3011879
 my @c;
 $c[0][0]=pdl(0,4,2,1);
@@ -195,26 +191,26 @@ my $d = pdl(@c);
 
 ##############################
 # test bad values
- SKIP: {
-     skip "BAD values not compiled in",7 unless($PDL::Bad::Status);
-     
-     $x = pdl(3,4,5);
-     $x=$x->setbadif($x==4);
-     eval '$y = pdl($x,5);';
-     ok(!$@, "a badvalue PDL works in the constructor");
+$x = pdl(3,4,5);
+$x=$x->setbadif($x==4);
+eval '$y = pdl($x,5);';
+ok(!$@, "a badvalue PDL works in the constructor");
+ok( $y->badflag, "bad value propagates from inner PDL to constructed PDL" );
+ok( $y->slice("(1),(0)") == $y->badvalue, "bad value was passed in" );
+ok( $y->at(1,1) == 0, "padding was correct" );
+eval '$y = pdl(short, $x, 5);';
+ok(!$@, "constructed a short PDL");
+ok( $y->slice("(1),(0)") == $y->badvalue, "bad value was translated" );
+ok( $y->at(1,1) == 0, "padding was correct");
 
-     ok( $y->badflag, "bad value propagates from inner PDL to constructed PDL" );
-     ok( $y->slice("(1),(0)") == $y->badvalue, "bad value was passed in" );
-     ok( $y->at(1,1) == 0, "padding was correct" );
-
-     eval '$y = pdl(short, $x, 5);';
-     
-     ok(!$@, "constructed a short PDL");
-     ok( $y->slice("(1),(0)") == $y->badvalue, "bad value was translated" );
-     ok( $y->at(1,1) == 0, "padding was correct");
-
+{
+# Tests for a segfault bug in PDL through 2.4.2
+# (Thanks, Alexey!)
+my $x = pdl(1,2);
+my $y = bless \my $z,"ASFG";
+throws_ok {
+	$x != $y
+} qr/Error - tried to use an unknown/;
 }
 
-
-
-
+done_testing;
