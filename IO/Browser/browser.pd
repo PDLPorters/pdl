@@ -19,11 +19,13 @@ EOD
 
 use PDL::Types;
 
+pp_addhdr('void browse(int type, int nc, int nr, void *in);');
+
 pp_def(
 	'browse',
 	Pars => 'a(n,m);',
 	Code => "
-	browse(\$TBSULQFD($PDL_B,$PDL_S,$PDL_US,$PDL_L,$PDL_LL,$PDL_F,$PDL_D),
+	browse(\$TBSULQFD(0,1,2,3,4,5,6),
 	       \$SIZE(n),\$SIZE(m),\$P(a));
 	",
 	GenericTypes => [qw(B S U L Q F D)],

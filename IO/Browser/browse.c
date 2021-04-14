@@ -16,8 +16,8 @@
 #include <string.h>
 
 #include "EXTERN.h"
-// #include "perl.h"
-// #include "XSUB.h"
+#include "perl.h"
+#include "XSUB.h"
 
 #include "pdl.h"
 
@@ -37,30 +37,31 @@ int    width[] =      {     4,     7,      7,      12,       12,       11,      
 char *str_value(int x, int y,
 		int type, int nx, void *data, char *str)
 {
+  // int offsets into our array, not the PDL enum
   switch (type) {
-  case PDL_B:
+  case 0: // PDL_B
     sprintf(str,format[type],*(((char *)data)+y*nx+x));
     break;
-  case PDL_S:
+  case 1: // PDL_S
     sprintf(str,format[type],*(((short *)data)+y*nx+x));
     break;
-  case PDL_US:
+  case 2: // PDL_US
     sprintf(str,format[type],*(((unsigned short *)data)+y*nx+x));
     break;
-  case PDL_L:
+  case 3: // PDL_L
     sprintf(str,format[type],*(((int *)data)+y*nx+x));
     break;
-  case PDL_LL:
+  case 4: // PDL_LL
     sprintf(str,format[type],*(((long long *)data)+y*nx+x));
     break;
-  case PDL_F:
+  case 5: // PDL_F
     sprintf(str,format[type],*(((float *)data)+y*nx+x));
     break;
-  case PDL_D:
+  case 6: // PDL_D
     sprintf(str,format[type],*(((double *)data)+y*nx+x));
     break;
   default:
-    Perl_croak("type (val=%d) not implemented",type);
+    Perl_croak(aTHX_ "type (val=%d) not implemented",type);
     break;
   }
   return str;
@@ -92,7 +93,7 @@ void set_value(int x, int y,
     *(((PDL_Double *)data)+y*nx+x) = atof(str);
     break;
   default:
-    Perl_croak("type (val=%d) not implemented",type);
+    Perl_croak(aTHX_ "type (val=%d) not implemented",type);
     break;
   }
   return;

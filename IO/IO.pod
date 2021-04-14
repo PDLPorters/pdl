@@ -91,14 +91,6 @@ this on your machine.  (Note that the package containing the header
 files for the CURSES library may be called C<libcurses> or possibly
 C<libncurses>.)
 
-PDL::IO::Browser is not installed by default because it gives
-trouble on Mac OS X, and not enough is known to fix the problem.
-If you want to enable it, edit the perldl configuration file
-and rebuild PDL.  To learn more about editing the configuration
-file, see the INSTALLATION section in L<the FAQ|PDL::FAQ>.  (Also,
-if you are familiar with CURSES on Mac, your help would be much
-appreciated!)
-
 To see if the module is installed on your machine (and to get more
 information about PDL::IO::Browser), follow L<this link|PDL::IO::Browser>
 or type at the system prompt:
