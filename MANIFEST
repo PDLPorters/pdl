@@ -736,7 +736,6 @@ t/conv.t
 t/core.t
 t/croak.t
 t/erf.t
-t/erfi.t
 t/familyfree.t
 t/flow.t
 t/func.pdl

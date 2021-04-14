@@ -1,12 +1,8 @@
-# -*-perl-*-
 use strict;
 use warnings;
-use Test::More tests => 5;
-
+use Test::More;
 use PDL::LiteF;
 use PDL::Math;
-
-kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub tapprox {
     my($pa,$pb) = @_;
@@ -28,3 +24,12 @@ my $pa = pdl(0.5);
 $pa->inplace->erfc; 
 ok( tapprox( 1.0-$pa, erf(0.5) ), "erfc inplace" );
 }
+
+{
+my $pa = pdl( 0.01, 0.0 );
+ok( all( approx( erfi($pa), pdl(0.00886,0.0) )), "erfi" );
+$pa->inplace->erfi;
+ok( all( approx( $pa, pdl(0.00886,0.0) )), "erfi inplace" );
+}
+
+done_testing;
