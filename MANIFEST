@@ -402,6 +402,9 @@ IO/Pnm/pnm.pd
 IO/Pnm/t/rim.t
 IO/Storable/Makefile.PL
 IO/Storable/storable.pd
+IO/Storable/t/storable.t
+IO/Storable/t/storable_new_amd64.dat
+IO/Storable/t/storable_old_amd64.dat
 IO/t/dumper.t
 Libtmp/CallExt/CallExt.pm
 Libtmp/CallExt/CallExt.xs
@@ -779,9 +782,6 @@ t/scope.t
 t/segfault.t
 t/slice-exceptions.t
 t/slice.t
-t/storable.t
-t/storable_new_amd64.dat
-t/storable_old_amd64.dat
 t/stringify.t
 t/subclass.t
 t/subclass2.t
