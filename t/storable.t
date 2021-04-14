@@ -1,23 +1,9 @@
-# -*- cperl -*-
-
 use strict;
 use Test::More;
-
-BEGIN { 
-  eval 'use Storable 1.03';
-  unless ($@) {
-    plan tests => 23;
-  } else {
-    plan skip_all => "Storable >= 1.03 not installed\n";
-  }
-  use Storable qw/freeze thaw retrieve/;
-}
-
-BEGIN { 
-   use PDL::LiteF;
-   use PDL::Dbg;
-   use_ok('PDL::IO::Storable');
-}
+use Storable qw/freeze thaw retrieve/;
+use PDL::LiteF;
+use PDL::Dbg;
+use PDL::IO::Storable;
 
 my ($data,$dfreeze,$dthaw,$oldx,$pfreeze,$phash,$phthaw,$seq1,$seq1_tf,$seq2,$seq2_dc,$serialized);
 
@@ -83,8 +69,7 @@ ok(! all($seq2 == $seq2_dc), 'Initialization from dclone object') or
 # Now test reading from files
 testLoad($_) foreach( qw(t/storable_new_amd64.dat t/storable_old_amd64.dat) );
 
-
-
+done_testing;
 
 # tests loading some files made on different architectures. All these files were
 # made with this:
