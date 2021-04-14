@@ -746,7 +746,6 @@ t/lite_loads_twice.t
 t/lvalue.t
 t/magic.t
 t/math.t
-t/matmult.t
 t/matrix.t
 t/matrixops.t
 t/minmax-behavior.t

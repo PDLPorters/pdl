@@ -1,10 +1,10 @@
-use PDL::LiteF;
-use Test::More tests => 42;
-use Test::Exception;
-use Config;
-
 use strict;
 use warnings;
+use PDL::LiteF;
+use Test::More;
+use Test::Exception;
+use Config;
+use PDL::MatrixOps;
 
 sub tapprox {
 	my($pa,$pb,$tol) = @_;
@@ -14,49 +14,39 @@ sub tapprox {
 
 my $tol = 1e-14;
 
-use PDL::MatrixOps;
-
 {
 ### Check LU decomposition of a simple matrix
-
 my $pa = pdl([1,2,3],[4,5,6],[7,1,1]);
 my ($lu, $perm, $par);
 lives_ok { ($lu,$perm,$par) = lu_decomp($pa); } "lu_decomp 3x3 ran OK";
 is($par, -1, "lu_decomp 3x3 correct parity");
 ok(all($perm == pdl(2,1,0)), "lu_decomp 3x3 correct permutation");
-
 my $l = $lu->copy;
 my $ldiag;
 ($ldiag = $l->diagonal(0,1)) .= 1;
 my $tmp;
 ($tmp = $l->slice("2,1"))   .= 0;
 ($tmp = $l->slice("1:2,0")) .= 0;
-
 my $u = $lu->copy;
 ($tmp = $u->slice("1,2"))   .= 0;
 ($tmp = $u->slice("0,1:2")) .= 0;
-
 ok(tapprox($pa,matmult($l,$u)->slice(":,-1:0"),$tol), "LU = A (after depermutation)");
 }
 
 {
 ### Check LU decomposition of an OK singular matrix
-
 my $pb = pdl([1,2,3],[4,5,6],[7,8,9]);
 my ($lu,$perm,$par) = lu_decomp($pb);
-
 ok(defined $lu, "lu_decomp singular matrix defined");
 ok($lu->flat->abs->at(-1) < $tol, "lu_decomp singular matrix small value");
 }
 
 {
 ### Check inversion -- this also checks lu_backsub
-
 my $pa = pdl([1,2,3],[4,5,6],[7,1,1]);
 my $opt ={s=>1,lu=>\my @a};
 my $a1 = inv($pa, $opt);
 my $identity = zeroes(3,3); (my $tmp = $identity->diagonal(0,1))++;
-
 ok(defined $a1, "3x3 inverse: defined");
 ok(ref ($opt->{lu}->[0]) eq 'PDL',"inverse: lu_decomp first entry is a piddle");
 ok(tapprox(matmult($a1,$pa),$identity,$tol),"matrix mult by its inverse gives identity matrix");
@@ -86,7 +76,6 @@ my $a334inv;
 lives_ok { $a334inv = $a334->inv } "3x3x4 inv ran OK";
 my $identity = zeroes(3,3); (my $tmp = $identity->diagonal(0,1))++;
 ok(tapprox(matmult($a334,$a334inv),$identity->dummy(2,4)), "3x3x4 inv gave correct answer");
-
 undef $a94;       # clean up variables
 undef $a334;      # clean up variables
 undef $a334inv;   # clean up variables
@@ -94,14 +83,11 @@ undef $a334inv;   # clean up variables
 
 {
 ### Check LU backsubstitution (bug #2023711 on sf.net)
-
-
 my $pa = pdl([[2,1],[1,2]]);
 my ($lu,$perm,$par);
 lives_ok { ($lu,$perm,$par) = lu_decomp($pa) } "lu_decomp 2x2 ran OK";
 ok($par==1, "lu_decomp 2x2 correct parity");
 ok(all($perm == pdl(0,1)), "lu_decomp 2x2 correct permutation");
-
 my $bb = pdl([1,0]);
 my $xx;
 lives_ok { $xx = lu_backsub($lu,$perm,$bb) } "lu_backsub ran OK";
@@ -144,25 +130,20 @@ ok(all($det == pdl([48,1],[-1,-216])), "threaded determinant");
 {
 ### Check identity and stretcher matrices...
 ok((identity(2)->flat == pdl(1,0,0,1))->all, "identity matrix");
-
 ok((stretcher(pdl(2,3))->flat == pdl(2,0,0,3))->all, "stretcher 2x2");
-
 ok((stretcher(pdl([2,3],[3,4]))->flat == pdl(2,0,0,3,3,0,0,4))->all, "stretcher 2x2x2");
 }
 
 {
 ### Check eigens
 my $pa = pdl([3,4],[4,-3]);
-
 ### Check that eigens runs OK
 my ($vec,$val);
 lives_ok { ($vec,$val) = eigens $pa } "eigens runs OK";
-
 ### Check that it really returns eigenvectors
 my $c = float(($pa x $vec) / $vec);
 #print "c is $c\n";
 ok(all($c->slice(":,0") == $c->slice(":,1")),"eigens really returns eigenvectors");
-
 ### Check that the eigenvalues are correct for this matrix
 ok((float($val->slice("0")) == - float($val->slice("1")) and
 	float($val->slice("0") * $val->slice("1")) == float(-25)),"eigenvalues are correct");
@@ -179,7 +160,6 @@ my $m = pdl(
    [-2.443, -3.711, -2.621, -2.913,  0.896,  5.856,  1.357, -2.915],
    [ -0.71, -0.493,  0.248,  0.576,  8.622,  1.357,   20.8, -0.622],
    [ 1.983,  2.434,  1.738,  2.471, -0.254, -2.915, -0.622,  3.214]);
-
 {
 my $esum=0;
 my ($vec,$val);
@@ -273,3 +253,38 @@ ok(all(approx($this_svd_in, $v x $ess x $u->transpose,1e-8)), "svd 2x3");
 }
 
 }
+
+{
+my $pa = pdl [[ 1,  2,  3,  0],
+      [ 1, -1,  2,  7],
+      [ 1,  0,  0,  1]];
+my $pb = pdl [[1, 1],
+     [0, 2],
+     [0, 2],
+     [1, 1]];
+my $pc = pdl [[ 1, 11],
+      [ 8, 10],
+      [ 2,  2]];
+my $res = $pa x $pb;
+ok(all approx($pc,$res));
+my $eq = float [[1,1,1,1]];  # a 4,1-matrix ( 1 1 1 1 )
+# Check collapse: output should be a 1x2...
+ok(all approx($eq x $pb  , pdl([[2,6]]) )); # ([4x1] x [2x4] -> [1x2])
+# Check dimensional exception: mismatched dims should throw an error
+dies_ok {
+	my $pz = $pb x $eq; # [2x4] x [4x1] --> error (2 != 1)
+};
+{
+# Check automatic scalar multiplication
+my $pz;
+lives_ok { $pz = $pb x 2; };
+ok( all approx($pz,$pb * 2));
+}
+{
+my $pz;
+lives_ok { $pz = pdl(3) x $pb; };
+ok( all approx($pz,$pb * 3));
+}
+}
+
+done_testing;
