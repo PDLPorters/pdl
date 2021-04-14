@@ -741,7 +741,6 @@ t/hdrs.t
 t/howbig.t
 t/inline-with.t
 t/inlinepdlpp.t
-t/interpol.t
 t/lvalue.t
 t/magic.t
 t/math.t
@@ -760,7 +759,6 @@ t/pp_croaking.t
 t/pp_line_numbers.t
 t/pptest.t
 t/primitive.t
-t/primitive2.t
 t/pthread.t
 t/pthread_auto.t
 t/pthreadBarf.t
@@ -777,7 +775,6 @@ t/thread.t
 t/thread_def.t
 t/ufunc.t
 t/unpdl.t
-t/vsearch.t
 TODO
 utils/perldlpp.pl
 win32/INSTALL
