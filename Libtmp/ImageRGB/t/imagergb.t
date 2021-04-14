@@ -1,7 +1,9 @@
-use Test::More tests => 6;
-
 use strict;
 use warnings;
+use Test::More;
+use PDL::LiteF;
+use PDL::ImageRGB;
+use PDL::Dbg;
 
 sub vars_ipv {
   PDL::Dbg::vars() if $PDL::debug;
@@ -11,12 +13,7 @@ sub p {
   print @_ if $PDL::debug;
 }
 
-use PDL::LiteF;
-use PDL::ImageRGB;
-use PDL::Dbg;
-
 $PDL::debug = 0;
-
 
 vars_ipv;
 
@@ -31,7 +28,6 @@ vars_ipv;
 	my $im = float [1,2,3,4,5];
 	my $out = bytescl($im,-100);
 	ok(all approx(pdl([0,25,50,75,100]),$out));
-
 	p "$out\n";
 }
 
@@ -40,7 +36,6 @@ vars_ipv;
 	my $out = rgbtogr($rgb);
 	ok(all approx($out,pdl([1,0.67,0.16]), 0.01));
 	cmp_ok($out->get_datatype, '==', $PDL::Types::PDL_D);
-
 	vars_ipv;
 	p $out;
 }
@@ -60,9 +55,10 @@ vars_ipv;
 			(my $tmp = $interl->slice(":,($i),($j)")) .= $lut->slice(":,($pos)");
 		}
 	}
-
 	my $out = interlrgb($im,$lut);
 	vars_ipv;
 	p $out;
 	ok(all approx($out,$interl));
 }
+
+done_testing;

@@ -534,6 +534,7 @@ Libtmp/ImageRGB/imagergb.pd
 Libtmp/ImageRGB/Makefile.PL
 Libtmp/ImageRGB/pdlppm.h
 Libtmp/ImageRGB/ppm_quant.c
+Libtmp/ImageRGB/t/imagergb.t
 Libtmp/Interpolate/Interpolate.pm
 Libtmp/Interpolate/Makefile.PL
 Libtmp/Interpolate/Slatec/Makefile.PL
@@ -738,7 +739,6 @@ t/hdrs.t
 t/hist.t
 t/howbig.t
 t/ica.t
-t/imagergb.t
 t/inline-with.t
 t/inlinepdlpp.t
 t/interpol.t
