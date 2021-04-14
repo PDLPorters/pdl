@@ -747,7 +747,6 @@ t/magic.t
 t/math.t
 t/matrix.t
 t/matrixops.t
-t/minmax-behavior.t
 t/nat_complex.t
 t/ones.t
 t/op-eq-warn-for-non-numeric.t
