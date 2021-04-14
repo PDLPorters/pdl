@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+use Test::More;
 use PDL;
 use PDL::IO::Pic;
 use PDL::ImageRGB;
@@ -5,11 +8,7 @@ use PDL::Dbg;
 use File::Temp qw(tempdir);
 use File::Spec;
 
-use strict;
-use warnings;
-
 # we need tests with index shuffling once vaffines are fixed
-use Test::More;
 
 sub tapprox {
 	my($pa,$pb,$mdiff) = @_;
@@ -38,8 +37,7 @@ sub tifftest {
   return 0 unless $form eq 'TIFF';
   warn "WARNING: you are probably using buggy tiff converters.
      Check IO/Pnm/converters for patched source files\n" unless $warned;
-  $warned = 1;
-  return 1;
+  return $warned = 1;
 }
 
 $PDL::debug = 0;
@@ -67,13 +65,7 @@ for (keys %formats) {
       push @allowed, $_;
    }
 }
-
-my $ntests = 4 * (@allowed);
-if ($ntests < 1) {
-  plan skip_all => "No tests";
-}
-
-plan tests => $ntests;
+plan skip_all => "No tests" if !@allowed;
 
 note "Testable formats on this platform:\n".join(',',@allowed)."\n";
 
@@ -128,6 +120,4 @@ foreach my $form (sort @allowed) {
     }
 }
 
-use Data::Dumper;
-note "PDL::IO::Pic converter data:\n";
-note Dumper(\%PDL::IO::Pic::converter);
+done_testing;

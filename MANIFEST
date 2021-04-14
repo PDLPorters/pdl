@@ -536,6 +536,8 @@ Libtmp/ImageRGB/Makefile.PL
 Libtmp/ImageRGB/pdlppm.h
 Libtmp/ImageRGB/ppm_quant.c
 Libtmp/ImageRGB/t/imagergb.t
+Libtmp/ImageRGB/t/picnorgb.t
+Libtmp/ImageRGB/t/picrgb.t
 Libtmp/Interpolate/Interpolate.pm
 Libtmp/Interpolate/Makefile.PL
 Libtmp/Interpolate/Slatec/Makefile.PL
@@ -763,8 +765,6 @@ t/pdl_from_string.t
 t/pdlchar.t
 t/physical.t
 t/pic_16bit.t
-t/picnorgb.t
-t/picrgb.t
 t/polyroots.t
 t/pp_croaking.t
 t/pp_line_numbers.t

@@ -44,14 +44,8 @@ my %formats = ('PNM'  => ['pnm',1,0,0.01],
 my @allowed = ();
 for ('PNM') { push @allowed, $_
 	if PDL->rpiccan($_) && defined $formats{$_} }
+plan skip_all => 'No tests' if !@allowed;
 
-my $ntests = 3 * @allowed;  # -1 due to TIFF converter
-$ntests-- if grep /^TIFF$/, @allowed;
-if ($ntests < 1) {
-  plan skip_all => 'No tests';
-}
-
-plan tests => $ntests;
 note "Testable formats on this platform:\n  ".join(',',@allowed)."\n";
 
 my $im1 = pdl([[0,65535,0], [256,256,256], [65535,256,65535]])->ushort;
@@ -125,6 +119,4 @@ foreach my $format (sort @allowed) {
     }
 }
 
-use Data::Dumper;
-note "Dumping diagnostic PDL::IO::Pic converter data...\n";
-note Dumper(\%PDL::IO::Pic::converter);
+done_testing;
