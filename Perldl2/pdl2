@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!perl
 
 BEGIN {
    $ENV{DEVEL_REPL_PROFILE} = 'PDL::Perldl2::Profile::Perldl2';
