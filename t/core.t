@@ -1,22 +1,9 @@
-# -*-perl-*-
-#
-# test some PDL core routines
-#
-
 use strict;
 use Test::More;
-
-BEGIN {
-    # if we've got this far in the tests then
-    # we can probably assume PDL::LiteF works!
-    #
-    eval {
-        require PDL::LiteF;
-    } or BAIL_OUT("PDL::LiteF failed: $@");
-    plan tests => 75;
-    PDL::LiteF->import;
-}
-$| = 1;
+use PDL::LiteF;
+use Config;
+use PDL::Constants qw(PI);
+use PDL::Types;
 
 sub tapprox ($$) {
     my ( $x, $y ) = @_;
@@ -264,3 +251,147 @@ $y = $x->slice(":,:");
 eval { $y->reshape(4); };
 ok( $@ !~ m/Can\'t/, "reshape doesn't fail on a PDL with a parent" );
 
+{
+my $pb = double ones(2,3);
+my $ind = 1;
+is(($pb->dims)[0], 2);
+is(($pb->dims)[1], 3);
+note $pb;
+is($pb->at(1,1), 1);
+is($pb->at(1,2), 1);
+}
+
+my $array = [
+ [[1,2],
+  [3,4]],
+ [[5,6],
+  [7,8]],
+ [[9,10],
+  [11,12]]
+];
+my $pdl = pdl $array;
+is_deeply( unpdl($pdl), $array, "back convert 3d");
+SKIP: {
+  skip("your perl hasn't 64bit int support", 6) if $Config{ivsize} < 8;
+  my $input = [
+      -9223372036854775808, #min int64
+      -9000000000000000001,
+      -9000000000000000002,
+      -9000000000000000003,
+      -9000000000000000004,
+      -9000000000000000005,
+      -8999999999999999999,
+      -8999999999999999998,
+      -8999999999999999997,
+      -8999999999999999996,
+      -1000000000000000001,
+               -2147483648, #min int32
+                2147483647, #max int32
+                4294967295, #max uint32
+       1000000000000000001,
+       9000000000000000001,
+       9000000000000000002,
+       9000000000000000003,
+       9000000000000000004,
+       9000000000000000005,
+       8999999999999999999,
+       8999999999999999998,
+       8999999999999999997,
+       8999999999999999996,
+       9223372036854775807, #max int64
+  ];
+  is_deeply(longlong($input)->unpdl, $input, 'back convert of 64bit integers');
+  my $small_pdl = longlong([ -9000000000000000001, 9000000000000000001 ]);
+  is($small_pdl->at(0), -9000000000000000001, 'at/1');
+  is(PDL::Core::at_c($small_pdl, [1]),  9000000000000000001, 'at_c/1');
+  $small_pdl->set(0, -8888888888888888888);
+  PDL::Core::set_c($small_pdl, [1], 8888888888888888888);
+  is($small_pdl->at(0), -8888888888888888888, 'at/2');
+  is(PDL::Core::at_c($small_pdl, [1]),  8888888888888888888, 'at_c/2');
+  is_deeply($small_pdl->unpdl, [ -8888888888888888888, 8888888888888888888 ], 'unpdl/small_pdl');
+}
+
+{
+my $pa = zeroes(20);
+$pa->hdrcpy(1);
+$pa->dump;
+$pa->sethdr( {Field1=>'arg1',
+	     Field2=>'arg2'});
+note "pa: ", explain $pa->gethdr();
+ok($pa->hdrcpy);
+{
+	my $pb = $pa+1;
+	note "pb: ", explain $pb->gethdr();
+	ok( defined($pb->gethdr));
+	is_deeply($pa->gethdr,$pb->gethdr);
+}
+{
+	my $pb = ones(20) + $pa;
+	note "pb: ", explain $pb->gethdr();
+	ok( defined($pb->gethdr));
+	is_deeply($pa->gethdr,$pb->gethdr);
+}
+{
+	my $pc = $pa->slice('0:5');
+	note "pc: ", explain $pc->gethdr();
+	is_deeply($pa->gethdr,$pc->gethdr);
+}
+{
+	my $pd = $pa->copy;
+	note "pd: ", explain $pd->gethdr();
+	is_deeply($pa->gethdr,$pd->gethdr);
+}
+{
+	$pa->hdrcpy(0);
+	ok(defined($pa->slice('3')->hdr) && !( keys (%{$pa->slice('3')->hdr})));
+	ok(!defined($pa->slice('3')->gethdr));
+}
+}
+
+{
+my $pa = pdl 42.4;
+note "A is $pa";
+
+is($pa->get_datatype,$PDL_D, "A is double");
+
+my $pb = byte $pa;
+note "B (byte $pa) is $pb";
+
+is($pb->get_datatype,$PDL_B, "B is byte");
+is($pb->at(),42, 'byte value is 42');
+
+my $pc = $pb * 3;
+is($pc->get_datatype, $PDL_B, "C also byte");
+note "C ($pb * 3) is $pc";
+
+my $pd = $pb * 600.0;
+is($pd->get_datatype, $PDL_F, "D promoted to float");
+note "D ($pb * 600) is $pd";
+
+my $pi = 4*atan2(1,1);
+
+my $pe = $pb * $pi;
+is($pe->get_datatype, $PDL_D, "E promoted to double (needed to represent result)");
+note "E ($pb * PI) is $pe";
+
+my $pf = $pb * "-2.2";
+is($pf->get_datatype, $PDL_D, "F check string handling");
+note "F ($pb * string(-2.2)) is $pf";
+}
+
+{
+my @types = (
+	{ typefunc => *byte  , size => 1 },
+	{ typefunc => *short , size => 2 },
+	{ typefunc => *ushort, size => 2 },
+	{ typefunc => *long  , size => 4 },
+	{ typefunc => *float , size => 4 },
+	{ typefunc => *double, size => 8 },
+);
+for my $type (@types) {
+	my $pdl = $type->{typefunc}(42); # build a PDL with datatype $type->{type}
+	is( PDL::Core::howbig( $pdl->get_datatype ), $type->{size} );
+}
+}
+
+done_testing;
