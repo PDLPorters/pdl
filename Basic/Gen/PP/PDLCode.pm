@@ -474,7 +474,7 @@ sub mypostlude {
     pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
     $parent->{ftypes_type} = undef if defined $this->[1];
     "\tbreak;}
-	default:barf(\"PP INTERNAL ERROR! PLEASE MAKE A BUG REPORT\\n\");}\n";
+	default:barf(\"PP INTERNAL ERROR in $parent->{Name}! PLEASE MAKE A BUG REPORT\\n\");}\n";
 }
 
 

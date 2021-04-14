@@ -320,7 +320,7 @@ sub apply {
     my @args = $self->extract_args($pars);
 
     # Run this rule's subroutine:
-    my @retval = $self->{ref}(@args);
+    my @retval = $ref->(@args);
 
     # Check for any inconsistencies:
     confess "Internal error: rule '$self' returned " . (1+$#retval)
@@ -2573,7 +2573,7 @@ sub find_datatype {
     # TODO XXX
     #  the check can probably be removed, but left in since I don't know
     #  what I'm doing (DJB)
-    die "ERROR: gentypes != $ntypes with p2child\n"
+    confess "ERROR: gentypes (@$gentypes) != $ntypes with p2child\n"
 	if $hasp2child and $#$gentypes != $ntypes;
 
     return "$dtype = $$parnames[0]\->datatype;\n\$PRIV(has_badvalue) = $$parnames[0]\->has_badvalue;\n\$PRIV(badvalue) = $$parnames[0]\->badvalue;\n"
