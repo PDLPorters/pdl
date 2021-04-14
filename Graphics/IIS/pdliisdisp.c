@@ -236,10 +236,10 @@ void iis_open(char* inpipe, char* outpipe, int fb, int fbx, int fby) {
 
       /* Else look in standard places */
 
-      strncpy(iname,home,STRSIZE); strncat(iname,"/iraf/dev/imt1i",STRSIZE);
+      strncpy(iname,home,STRSIZE); strncat(iname,"/iraf/dev/imt1i",STRSIZE - strlen(iname) - 1);
       if (!access(iname,F_OK))
          goto gotin;
-      strncpy(iname,home,STRSIZE); strncat(iname,"/dev/imt1i",STRSIZE);
+      strncpy(iname,home,STRSIZE); strncat(iname,"/dev/imt1i",STRSIZE - strlen(iname) - 1);
       if (!access(iname,F_OK))
          goto gotin;
       strncpy(iname,"/dev/imt1i",STRSIZE);
@@ -266,10 +266,10 @@ void iis_open(char* inpipe, char* outpipe, int fb, int fbx, int fby) {
       }
       /* Else look in standard places */
 
-      strncpy(oname,home,STRSIZE); strncat(oname,"/iraf/dev/imt1o",STRSIZE);
+      strncpy(oname,home,STRSIZE); strncat(oname,"/iraf/dev/imt1o",STRSIZE - strlen(oname) - 1);
       if (!access(oname,F_OK))
          goto gotout;
-      strncpy(oname,home,STRSIZE); strncat(oname,"/dev/imt1o",STRSIZE);
+      strncpy(oname,home,STRSIZE); strncat(oname,"/dev/imt1o",STRSIZE - strlen(oname) - 1);
       if (!access(oname,F_OK))
          goto gotout;
       strncpy(oname,"/dev/imt1o",STRSIZE);
