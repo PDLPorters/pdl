@@ -618,7 +618,7 @@ my $types = join '', ppdefs; # BSUL....
 
 sub new {
     my($type,$ts,$parent) = @_;
-    $ts =~ /[$types]+/ or confess "Invalid type access with '$ts'!";
+    $ts =~ /^[$types]+$/ or confess "Invalid type access with '$ts', not found in [$types]!";
     bless [$ts],$type; }
 sub myoffs { return 1; }
 sub myprelude {
