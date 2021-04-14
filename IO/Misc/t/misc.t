@@ -1,16 +1,8 @@
-
-# Test routine for PDL::IO::Misc module
-
 use strict; 
-
 use PDL::LiteF;
 use PDL::IO::Misc;
-
 use File::Temp qw( tempfile tempdir );
-
-kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
-use Test::More tests => 23;
+use Test::More;
 
 sub tapprox {
         my($x,$y) = @_;
@@ -216,7 +208,7 @@ readline(*$fileh); # dump first line
 like(readline($fileh),qr/^arg/, "wcols format_string obeyed");
 unlink $file || warn "Could not unlink $file: $!";
 
-1;
+done_testing;
 
 __DATA__
 1 2

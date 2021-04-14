@@ -396,6 +396,7 @@ IO/IO.pod
 IO/Makefile.PL
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
+IO/Misc/t/misc.t
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/pnm.pd
@@ -753,7 +754,6 @@ t/matmult.t
 t/matrix.t
 t/matrixops.t
 t/minmax-behavior.t
-t/misc.t
 t/nat_complex.t
 t/niceslice.t
 t/nsdatahandle.t
