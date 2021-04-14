@@ -733,7 +733,6 @@ t/constructor.t
 t/conv.t
 t/core.t
 t/croak.t
-t/flow.t
 t/func.pdl
 t/hdrs.t
 t/howbig.t
