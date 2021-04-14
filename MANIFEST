@@ -719,7 +719,6 @@ Perldl2/Script.pm
 Perldl2/TODO
 README
 t/00-report-prereqs.t
-t/argtest.t
 t/autoload.t
 t/bad.t
 t/badvalue_scalar_cmp.t
@@ -734,7 +733,6 @@ t/constructor.t
 t/conv.t
 t/core.t
 t/croak.t
-t/familyfree.t
 t/flow.t
 t/func.pdl
 t/hdrs.t
@@ -763,7 +761,6 @@ t/pthread.t
 t/pthread_auto.t
 t/pthreadBarf.t
 t/reduce.t
-t/refs.t
 t/scope.t
 t/segfault.t
 t/slice.t
