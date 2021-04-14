@@ -182,6 +182,7 @@ sub getcreatedims {
 
 sub adjusted_type {
   my ($this, $generic) = @_;
+  confess "adjusted_type given undefined generic type\n" if !defined $generic;
   return $generic->realversion if $this->{FlagReal};
   return $generic unless $this->{FlagTyped};
   return $this->{Type}->numval > $generic->numval
