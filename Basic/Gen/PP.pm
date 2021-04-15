@@ -1244,7 +1244,6 @@ sub pp_def {
 	my($name,%obj) = @_;
 
 	print "*** Entering pp_def for $name\n" if $::PP_VERBOSE;
-	
 	# See if the 'name' is multiline, in which case we extract the
 	# name and add the FullDoc field
 	if ($name =~ /\n/) {
@@ -1262,8 +1261,9 @@ sub pp_def {
 		}
 		$obj{FullDoc} = $fulldoc;
 	}
-	
 	$obj{Name} = $name;
+	croak("ERROR: pp_def=$name given empty GenericTypes!\n")
+	  if exists $obj{GenericTypes} and !@{ $obj{GenericTypes} || [] };
 	foreach my $rule (@$PDL::PP::deftbl) {
 	    $rule->apply(\%obj);
 	}
