@@ -475,8 +475,9 @@ sub mypostlude {
     my($this,$parent,$context) = @_;
     pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
     $parent->{ftypes_type} = undef if defined $this->[1];
+    my $supported = join '', map $_->ppsym, @{$this->[0]};
     "\tbreak;}
-	default:barf(\"PP INTERNAL ERROR in $parent->{Name}! PLEASE MAKE A BUG REPORT\\n\");}\n";
+	default:barf(\"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);}\n";
 }
 
 
