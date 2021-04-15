@@ -171,10 +171,7 @@ sub report ($$) { print $_[1] if $::PP_VERBOSE; }
 #
 sub new {
     my $class = shift;
-
-    my $self = {};
-    bless $self, $class;
-
+    my $self = bless {}, $class;
     my $usage = "Usage: PDL::PP::Rule->new(\$targets[,\$conditions[,\$doc],] [,\$ref])\n";
 
     # handle arguments
@@ -359,9 +356,7 @@ our @CARP_NOT;
 sub new {
     croak('Usage: PDL::PP::Ruel::Croak->new(["incompatible", "arguments"], "Croaking message")')
 		unless @_ == 3;
-    my $class = shift;
-    my $self  = $class->SUPER::new([], @_);
-    return bless $self, $class;
+    shift->SUPER::new([], @_);
 }
 
 sub apply {
@@ -384,18 +379,12 @@ our @ISA = qw (PDL::PP::Rule);
 #
 sub new {
     my $class = shift;
-
     my $value = pop;
-
-    my @args  = @_;
-    my $self  = $class->SUPER::new(@args);
-    bless $self, $class;
+    my $self  = $class->SUPER::new(@_);
     $self->{"returns.value"} = $value;
-
     my $targets = $self->{targets};
     croak "There can only be 1 target for a $self, not " . (1+$#$targets) . "!"
       unless $#$targets == 0;
-
     return $self;
 }
 
@@ -428,11 +417,7 @@ use strict;
 our @ISA = qw (PDL::PP::Rule::Returns);
 
 sub new {
-    my $class = shift;
-    my @args  = @_;
-    my $self  = $class->SUPER::new(@args,0);
-    bless $self, $class;
-    return $self;
+    shift->SUPER::new(@_,0);
 }
 
 package PDL::PP::Rule::Returns::One;
@@ -443,11 +428,7 @@ use strict;
 our @ISA = qw (PDL::PP::Rule::Returns);
 
 sub new {
-    my $class = shift;
-    my @args  = @_;
-    my $self  = $class->SUPER::new(@args,1);
-    bless $self, $class;
-    return $self;
+    shift->SUPER::new(@_,1);
 }
 
 package PDL::PP::Rule::Returns::EmptyString;
@@ -458,11 +439,7 @@ use strict;
 our @ISA = qw (PDL::PP::Rule::Returns);
 
 sub new {
-    my $class = shift;
-    my @args  = @_;
-    my $self  = $class->SUPER::new(@args,"");
-    bless $self, $class;
-    return $self;
+    shift->SUPER::new(@_,"");
 }
 
 package PDL::PP::Rule::Returns::NULL;
@@ -473,11 +450,7 @@ use strict;
 our @ISA = qw (PDL::PP::Rule::Returns);
 
 sub new {
-    my $class = shift;
-    my @args  = @_;
-    my $self  = $class->SUPER::new(@args,"NULL");
-    bless $self, $class;
-    return $self;
+    shift->SUPER::new(@_,"NULL");
 }
 
 package PDL::PP::Rule::InsertName;
@@ -500,7 +473,6 @@ sub new {
 
     my @args  = @_;
     my $self  = $class->SUPER::new(@args);
-    bless $self, $class;
     $self->{"insertname.value"} = $value;
 
     # Generate a defaul doc string
@@ -607,11 +579,8 @@ sub new {
     die "\$target must be a scalar for PDL::PP::Rule->Substitute" if ref $target;
     die "\$condition must be a scalar for PDL::PP::Rule->Substitute" if ref $condition;
 
-    my $self = $class->SUPER::new($target, [$condition, "NewXSSymTab", "Name"],
+    $class->SUPER::new($target, [$condition, "NewXSSymTab", "Name"],
 				  \&dosubst_private);
-    bless $self, $class;
-
-    return $self;
 }
 
 # Poor name. This is the old "dousualsubsts" routine
@@ -652,16 +621,6 @@ my @std_childparent = (
 );
 
 sub get_std_childparent { return @std_childparent; }
-
-sub new {
-    my $class = shift;
-
-    my @args = @_;
-    my $self = $class->SUPER::new(@args);
-    bless $self, $class;
-
-    return $self;
-}
 
 # We modify the arguments from the conditions to include the
 # extra information
@@ -752,7 +711,6 @@ sub new {
 
     my $self = $class->SUPER::new($target, $condition,
 				  \&subst_makecomp_private);
-    bless $self, $class;
     $self->{"makecomp.value"} = $symbol;
 
     return $self;
