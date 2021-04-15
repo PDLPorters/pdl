@@ -1,31 +1,14 @@
-# -*-perl-*-
-#
-# test bad value handling in PDL
-#
-
 use strict;
 use Test::More;
+use PDL::LiteF;
+use PDL::Config;
+use PDL::Math;
 
 # although approx() caches the tolerance value, we
 # use it in every call just to document things
 #
 use constant ABSTOL => 1.0e-4;
 
-use File::Temp qw( tempfile );
-my $fname;
-{
-   local $^W = 0;
-   (undef, $fname) = tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
-}
-
-END {
-    unlink $fname if -e $fname;
-}
-
-use PDL::LiteF;
-$| = 1;
-
-use PDL::Config;
 my $usenan = $PDL::Config{BADVAL_USENAN} || 0;
 my $perpdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 
@@ -273,9 +256,6 @@ TODO: {
    is( $x->sclr, 'BAD', 'sclr() returns BAD for a bad value' );
 }
 
-# quick look at math.pd
-use PDL::Math;
-
 $x = pdl(0.5,double->badvalue,0);
 $x->badflag(1);
 $y = bessj0($x);
@@ -382,25 +362,6 @@ ok( all($fa->setvaltobad(2/3)->isbad == $da->setvaltobad(2/3)->isbad), "setvalto
 $x->inplace->setnantobad;
 like( PDL::Core::string( $x->clump(-1) ), 
     qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setnantobad()" );
-
-# test r/wfits
-use PDL::IO::FITS;
-
-$x = sequence(10)->setbadat(0);
-print "Writing to fits: $x  type = (", $x->get_datatype, ")\n";
-$x->wfits($fname);
-$y = rfits($fname);
-print "Read from fits:  $y  type = (", $y->get_datatype, ")\n";
-
-ok( $y->slice('0:0')->isbad, "rfits/wfits propagated bad flag" );
-ok( sum(abs($x-$y)) < 1.0e-5, "  and values" );
-
-# now force to integer
-$x->wfits($fname,16);
-$y = rfits($fname);
-print "BITPIX 16: datatype == ", $y->get_datatype, " badvalue == ", $y->badvalue(), "\n";
-ok( $y->slice('0:0')->isbad, "wfits coerced bad flag with integer datatype" );
-ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
 
 # check that we can change the value used to represent
 # missing elements for floating points (earlier tests only did integer types)

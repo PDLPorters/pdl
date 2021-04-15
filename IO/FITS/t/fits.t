@@ -318,4 +318,25 @@ if(-w dirname($tildefile)) {
 	unlink($tildefile) or warn "Could not delete $tildefile: $!\n"; #clean up.
 }
 
+# test bad with r/wfits
+{
+(undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
+my $x = sequence(10)->setbadat(0);
+print "Writing to fits: $x  type = (", $x->get_datatype, ")\n";
+$x->wfits($fname);
+my $y = rfits($fname);
+print "Read from fits:  $y  type = (", $y->get_datatype, ")\n";
+
+ok( $y->slice('0:0')->isbad, "rfits/wfits propagated bad flag" );
+ok( sum(abs($x-$y)) < 1.0e-5, "  and values" );
+
+# now force to integer
+$x->wfits($fname,16);
+$y = rfits($fname);
+print "BITPIX 16: datatype == ", $y->get_datatype, " badvalue == ", $y->badvalue(), "\n";
+ok( $y->slice('0:0')->isbad, "wfits coerced bad flag with integer datatype" );
+ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
+unlink $fname if -e $fname;
+}
+
 done_testing();
