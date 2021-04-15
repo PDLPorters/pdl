@@ -1306,9 +1306,10 @@ sub pp_def {
 	}
 	
 	$obj{Name} = $name;
-	translate(\%obj,$PDL::PP::deftbl);
-
-	print "Output of translate for $name:\n" . Dumper(\%obj) . "\n"
+	foreach my $rule (@$PDL::PP::deftbl) {
+	    $rule->apply(\%obj);
+	}
+	print "Result of translate for $name:\n" . Dumper(\%obj) . "\n"
 	  if exists $obj{Dump} and $obj{Dump} and $::PP_VERBOSE;
 
 	croak("ERROR: No FreeFunc for pp_def=$name!\n")
@@ -3506,17 +3507,4 @@ sub printtrans {
 	}
 }
 
-sub translate {
-    my ($pars,$tbl) = @_;
-
-    foreach my $rule (@$tbl) {
-	$rule->apply($pars);
-    }
-
-#	print Dumper($pars);
-    print "GOING OUT!\n" if $::PP_VERBOSE;
-    return $pars;
-} # sub: translate()
-
-## End
-#
+1;
