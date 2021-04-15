@@ -2,7 +2,6 @@ use strict;
 use Test::More;
 use PDL::LiteF;
 use Config;
-use PDL::Constants qw(PI);
 use PDL::Types;
 
 sub tapprox ($$) {
