@@ -2872,11 +2872,10 @@ $PDL::PP::deftbl =
    # ie should we bother with bad values for this routine?
    # 1     - yes,
    # 0     - no, maybe issue a warning
-   # undef - we're not compiling with bad value support
    #
    PDL::PP::Rule->new("BadFlag", "_HandleBad",
 		      "Sets BadFlag based upon HandleBad key and PDL's ability to handle bad values",
-		      sub { return (defined $_[0]) ? ($_[0]) : undef; }),
+		      sub { $_[0] }),
 
    ####################
    # FullDoc Handling #

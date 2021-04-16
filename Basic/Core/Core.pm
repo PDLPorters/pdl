@@ -2920,9 +2920,6 @@ occasionally useful and is provied for backwards compatibility.
    # Do something on each value...
  }
 
-If you compile PDL with bad value support (the default), your machine's
-docs will also say this:
-
 =for bad
 
 list converts any bad values into the string 'BAD'.
@@ -2962,11 +2959,6 @@ unlike C<list>.
 
  use JSON;
  my $json = encode_json unpdl $pdl;
-
-If you compile PDL with bad value support (the default), your machine's
-docs will also say this:
-
-=cut
 
 =for bad
 
@@ -3081,9 +3073,6 @@ in a general context, quite useful too inside PDL internals.
  pdl> p $x->at(1,2)
  7
 
-If you compile PDL with bad value support (the default), your machine's
-docs will also say this:
-
 =for bad
 
 at converts any bad values into the string 'BAD'.
@@ -3186,9 +3175,6 @@ returns a single piddle of dimension N+1.
    [1 1 1]
   ]
  ]
-
-If you compile PDL with bad value support (the default), your machine's
-docs will also say this:
 
 =for bad
 
@@ -3358,9 +3344,6 @@ e.g.:
 =for options
 
  Break => 1   Break dataflow connection (new copy)
-
-If you compile PDL with bad value support (the default), your machine's
-docs will also say this:
 
 =for bad
 

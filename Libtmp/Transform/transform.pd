@@ -1586,12 +1586,11 @@ Maybe that someone is you.
 
 BAD VALUES:
 
-If your PDL was compiled with bad value support, C<map()> supports
-bad values in the data array.  Bad values in the input array are
-propagated to the output array.  The 'g' and 'h' methods will do some
-smoothing over bad values:  if more than 1/3 of the weighted input-array
-footprint of a given output pixel is bad, then the output pixel gets marked
-bad.
+C<map()> supports bad values in the data array. Bad values in the input
+array are propagated to the output array.  The 'g' and 'h' methods will
+do some smoothing over bad values:  if more than 1/3 of the weighted
+input-array footprint of a given output pixel is bad, then the output
+pixel gets marked bad.
 
 =cut
 
