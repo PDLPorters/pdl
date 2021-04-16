@@ -1,4 +1,6 @@
 - switch obsolete finite() to C99 isfinite()
+- add ppdefs_all
+- make PDL::Types::ppdefs only return non-complex types for back-compat
 
 2.036 2021-04-16
 - fix t/gis_proj.t

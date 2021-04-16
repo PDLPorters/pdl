@@ -2,7 +2,7 @@ use PDL::LiteF;
 #use PDL::Complex;
 use PDL::Config;
 use PDL::Core::Dev;
-use PDL::Types qw(ppdefs ppdefs_complex);
+use PDL::Types qw(ppdefs ppdefs_complex ppdefs_all);
 
 use Test::More;
 
@@ -13,14 +13,15 @@ sub tapprox {
         $d < 0.0001;
 }
 
-is_deeply [ ppdefs() ], [qw(B S U L N Q F D G C)];
+is_deeply [ ppdefs() ], [qw(B S U L N Q F D)];
 is_deeply [ ppdefs_complex() ], [qw(G C)];
+is_deeply [ ppdefs_all() ], [qw(B S U L N Q F D G C)];
 
 $ref = pdl([[-2,1],[-3,1]]);
 $ref2 = squeeze($ref->slice("0,")+ci()*$ref->slice("1,"));
 $x = ci() -pdl (-2, -3);
 
-ok($x->type eq 'cdouble', 'type promotion i - piddle');
+is($x->type, 'cdouble', 'type promotion i - piddle');
 ok(tapprox($x->cimag,$ref->slice("1,:")), 'value from i - piddle');
 ok !$x->type->real, 'complex type not real';
 ok double->real, 'real type is real';
@@ -32,7 +33,7 @@ is $x->creal->type, 'double', 'real real part';
 $y=cfloat($x);
 is type($y), 'cfloat', 'type conversion to cfloat';
 is $y->creal->type, 'float', 'real real part';
-ok(tapprox($x->cimag,$ref->slice("0,1")), 'value from piddle - i');
+ok(tapprox($x->cimag,$ref->slice("0,1")), 'value from piddle - i') or diag 'got: ', $x->cimag;
 is zeroes($_->[0], 2)->r2C->type, $_->[1], "r2C $_->[0] -> $_->[1]"
   for [byte, 'cfloat'], [long, 'cfloat'],
     [float, 'cfloat'], [cfloat, 'cfloat'],

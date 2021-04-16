@@ -1,3 +1,5 @@
+use PDL::Types qw(ppdefs_all);
+
 pp_addpm({At => 'Top'},<< 'EOD');
 
 =head1 NAME
@@ -101,6 +103,7 @@ pp_def(
        WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
        MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
        RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
+       GenericTypes => [ppdefs_all],
        EquivCPOffsCode => '
                 PDL_Indx i; PDL_Indx poffs=$PRIV(offs); int nd;
                 for(i=0; i<$CHILD_P(nvals); i++) {
@@ -134,6 +137,7 @@ pp_def(
         's_identity',
         HandleBad => 1,
         P2Child => 1,
+        GenericTypes => [ppdefs_all],
         NoPdlThread => 1,
         DefaultFlow => 1,
         OtherPars => '',
@@ -230,6 +234,7 @@ my $index_init_bad =
 
 pp_def(
        'index',
+       GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
        Reversible => 1,
@@ -249,6 +254,7 @@ pp_def(
 
 pp_def(
        'index1d',
+       GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
        Reversible => 1,
@@ -337,6 +343,7 @@ my $index2d_init_bad =
 
 pp_def(
        'index2d',
+       GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
        Reversible => 1,
@@ -454,6 +461,7 @@ EOD-range
 
 pp_def(
         'rangeb',
+        GenericTypes => [ppdefs_all],
         OtherPars => 'SV *index; SV *size; SV *boundary',
         Doc => <<'EOD',
 =for ref
@@ -1207,6 +1215,7 @@ EOD-EquivCPOffsCode
 
 pp_def(
         'rld',
+        GenericTypes => [ppdefs_all],
         Pars=>'indx a(n); b(n); [o]c(m);',
         PMCode =><<'EOD',
 sub PDL::rld {
@@ -1258,6 +1267,7 @@ EOD
 
 pp_def(
         'rle',
+        GenericTypes => [ppdefs_all],
         Pars=>'c(n); indx [o]a(m); [o]b(m);',
 #this RedoDimsCode sets $SIZE(m)==$SIZE(n), but the slice in the PMCode below makes m<=n.
         RedoDimsCode=>'$SIZE(m)=$PDL(c)->dims[0];',
@@ -1334,6 +1344,7 @@ EOD
 # XXX do not know whether the HandleBad stuff will work here
 #
 pp_def('flowconvert',
+       GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
        Reversible => 1,
@@ -1363,6 +1374,7 @@ pp_def('flowconvert',
 
 pp_def(
         'converttypei',
+        GenericTypes => [ppdefs_all],
         HandleBad => 1,
         DefaultFlow => 1,
         GlobalNew => 'converttypei_new',
@@ -1382,6 +1394,7 @@ pp_def(
 # this is just the low level interface
 pp_def(
         '_clump_int',
+        GenericTypes => [ppdefs_all],
         DefaultFlow => 1,
         OtherPars => 'int n',
         P2Child => 1,
@@ -1427,6 +1440,7 @@ pp_def(
 
 pp_def(
         'xchg',
+        GenericTypes => [ppdefs_all],
         OtherPars => 'int n1; int n2;',
         DefaultFlow => 1,
         Reversible => 1,
@@ -1595,6 +1609,7 @@ EOD
 
 pp_def(
         'mv',
+        GenericTypes => [ppdefs_all],
         OtherPars => 'int n1; int n2;',
         DefaultFlow => 1,
         Reversible => 1,
@@ -1658,6 +1673,7 @@ EOH
 #
 pp_def(
         'oslice',
+        GenericTypes => [ppdefs_all],
         Doc => << 'EOD',
 =for ref
 
@@ -2050,6 +2066,7 @@ END
 
 
 pp_def( 'affine',
+        GenericTypes => [ppdefs_all],
         P2Child => 1,
         NoPdlThread => 1,
         DefaultFlow => 1,
@@ -2095,6 +2112,7 @@ pp_def( 'affine',
 
 pp_def(
         'diagonalI',
+        GenericTypes => [ppdefs_all],
         P2Child => 1,
         NoPdlThread => 1,
         DefaultFlow => 1,
@@ -2177,6 +2195,7 @@ EOD
 
 pp_def(
         'lags',
+        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2256,6 +2275,7 @@ EOD
 
 pp_def(
         'splitdim',
+        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2316,6 +2336,7 @@ EOD
 =cut
 
 pp_def('rotate',
+        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2359,6 +2380,7 @@ EOD
 
 pp_def(
         'threadI',
+        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2462,6 +2484,7 @@ EOD
 # we don't really need this one since it can be achieved with
 # a ->threadI(-1,[])
 pp_def('identvaff',
+        GenericTypes => [ppdefs_all],
         P2Child => 1,
         NoPdlThread => 1,
         DefaultFlow => 1,
@@ -2496,6 +2519,7 @@ EOD
 
 pp_def(
         'unthread',
+        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2919,7 +2943,6 @@ pp_add_exported('', 'slice');
 # we have to generate the switch statement using information in the Config typehash.  But it saves
 # time compared to parsing out any passed-in PDLs on the Perl side.
 #
-use PDL::Types;
 $sliceb_data_kludge = <<'KLUDGE';
     { pdl *p = PDL->SvPDLV( *svp );
       int i;
@@ -2956,6 +2979,7 @@ KLUDGE
 
 pp_def(
         'sliceb',
+        GenericTypes => [ppdefs_all],
         P2Child => 1,
         NoPdlThread => 1,
         DefaultFlow => 1,

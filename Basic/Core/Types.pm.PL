@@ -339,7 +339,7 @@ print OUT <<'!NO!SUBS!';
 
 our @EXPORT_OK = (@EXPORT,
   qw/types typesrtkeys mapfld typefld
-    ppdefs ppdefs_complex
+    ppdefs ppdefs_complex ppdefs_all
   /
 );
 our %EXPORT_TAGS = (
@@ -424,16 +424,18 @@ sub typesrtkeys { @RTKEYS }
 
 =for ref
 
-Returns an array of pp symbols for all known types
+Returns an array of pp symbols for all real types. This informs the
+default C<GenericTypes> for C<pp_def> functions, making support for
+complex types require an "opt-in".
 
 =for example
 
  pdl> print PDL::Types::ppdefs
- B S U L N Q F D G C
+ B S U L N Q F D
 
 =cut
 
-my @PPDEFS = map $_->{ppsym}, @HASHES;
+my @PPDEFS = map $_->{ppsym}, grep $_->{real}, @HASHES;
 sub ppdefs { @PPDEFS }
 
 =head2 ppdefs_complex
@@ -451,6 +453,22 @@ Returns an array of pp symbols for all complex types.
 
 my @PPDEFS_CPLX = map $_->{ppsym}, grep !$_->{real}, @HASHES;
 sub ppdefs_complex { @PPDEFS_CPLX }
+
+=head2 ppdefs_all
+
+=for ref
+
+Returns an array of pp symbols for all types including complex.
+
+=for example
+
+ pdl> print PDL::Types::ppdefs_all
+ B S U L N Q F D G C
+
+=cut
+
+my @PPDEFS_ALL = map $_->{ppsym}, @HASHES;
+sub ppdefs_all { @PPDEFS_ALL }
 
 =head2 typefld
 

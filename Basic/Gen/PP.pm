@@ -2974,7 +2974,7 @@ $PDL::PP::deftbl =
 # Answer: Core/Types.pm
 #
    PDL::PP::Rule->new("GenericTypes", [],
-       'Sets GenericTypes flag to all types known to PDL::Types',
+       'Sets GenericTypes flag to all real types known to PDL::Types',
        sub {[ppdefs]}),
 
    PDL::PP::Rule->new("ExtraGenericLoops", "FTypes",

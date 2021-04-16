@@ -285,7 +285,7 @@ sub report_error {
 }
 
 use PDL::Types ':All';
-my @ppdefs = ppdefs();
+my @ppdefs = ppdefs_all();
 sub thisisloop {
     my ($this, $name, @extra) = @_;
     !$this->{types} ? '' : join '',
@@ -617,7 +617,7 @@ use Carp;
 use PDL::Types ':All';
 our @ISA = "PDL::PP::Block";
 our @CARP_NOT;
-my $types = join '', ppdefs; # BSUL....
+my $types = join '', ppdefs_all; # BSUL....
 
 sub new {
     my($type,$ts,$parent) = @_;
@@ -987,7 +987,7 @@ sub get_str {my($this,$parent,$context) = @_;
 package PDL::PP::MacroAccess;
 use Carp;
 use PDL::Types ':All';
-my $types = join '',ppdefs;
+my $types = join '',ppdefs_all;
 our @CARP_NOT;
 
 sub new {

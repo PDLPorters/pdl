@@ -64,7 +64,7 @@ sub pp_def {
    use PDL::Types ':All';
 
    if ($typecheck) {
-    my @alltypes = ppdefs; my $jointypes = join '',@alltypes;
+    my @alltypes = ppdefs_all; my $jointypes = join '',@alltypes;
     my $types = exists $hash{GenericTypes} ? $hash{GenericTypes} : [@alltypes];
     for my $key (qw/Code BackCode/) {
       if (exists $hash{$key}) {
