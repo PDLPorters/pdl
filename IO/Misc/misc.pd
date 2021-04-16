@@ -1113,13 +1113,8 @@ of C<$1>, C<$2> etc.
      # If UNDEFINED is set to .*bad.* then undefined are set to
      # bad - unless we have a Perl that is not compiled with Bad support
      my $undef_is_bad = ($$options{UNDEFINED} =~ /bad/i);
-     if ($undef_is_bad && !$PDL::Bad::Status) {
-	carp "UNDEFINED cannot be set to Badvalue when PDL hasn't been compiled with Bad value support - \$PDL::undefval used instead\n";
-        $undef_is_bad = 0;
-     }        
      barf "Unknown PDL type given for DEFTYPE.\n"
         unless ref($$options{DEFTYPE}) eq "PDL::Type";
-
 
      while(<$fh>) {
          next unless @v = &$pattern;

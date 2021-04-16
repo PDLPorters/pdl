@@ -681,30 +681,27 @@ sub treat_bscale($$){
 
     print "treating bscale...\n" if($PDL::debug);
 
-    if ( $PDL::Bad::Status ) {
-      # do we have bad values? - needs to be done before BSCALE/BZERO
-      # (at least for integers)
-      #
-      if ( $$foo{BITPIX} > 0 and exists $$foo{BLANK} ) {
-	# integer, so bad value == BLANK keyword
-	my $blank = $foo->{BLANK};
-	# do we have to do any conversion?
-	if ( $blank == $pdl->badvalue() ) {
-	  $pdl->badflag(1);
-	} else {
-	  # we change all BLANK values to the current bad value
-	  # (would not be needed with a per-piddle bad value)
-	  $pdl->inplace->setvaltobad( $blank );
-	}
-      } elsif ( $foo->{BITPIX} < 0 ) {
-	# bad values are stored as NaN's in FITS
-	# let setnanbad decide if we need to change anything
-	$pdl->inplace->setnantobad();
+    # do we have bad values? - needs to be done before BSCALE/BZERO
+    # (at least for integers)
+    if ( $$foo{BITPIX} > 0 and exists $$foo{BLANK} ) {
+      # integer, so bad value == BLANK keyword
+      my $blank = $foo->{BLANK};
+      # do we have to do any conversion?
+      if ( $blank == $pdl->badvalue() ) {
+        $pdl->badflag(1);
+      } else {
+        # we change all BLANK values to the current bad value
+        # (would not be needed with a per-piddle bad value)
+        $pdl->inplace->setvaltobad( $blank );
       }
-      print "FITS file may contain bad values.\n"
-	if $pdl->badflag() and $PDL::verbose;
-    } # if: PDL::Bad::Status
-    
+    } elsif ( $foo->{BITPIX} < 0 ) {
+      # bad values are stored as NaN's in FITS
+      # let setnanbad decide if we need to change anything
+      $pdl->inplace->setnantobad();
+    }
+    print "FITS file may contain bad values.\n"
+      if $pdl->badflag() and $PDL::verbose;
+
     my ($bscale, $bzero);
     $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
     print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;

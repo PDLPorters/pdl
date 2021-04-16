@@ -40,19 +40,10 @@ use warnings;
 sub set_mask
 {
   my ( $mask, $data ) = @_;
-
-  if ( $PDL::Bad::Status )
-  {
-    my $badflag = $data->badflag();
-    $data->badflag(1);
-
-    $mask .= $PDL::Bad::UseNaN ? (! $data->isbad ) : ( $data->isfinite & ! $data->isbad );
-
-    $data->badflag($badflag);
-  } else
-  {
-    $mask .= $data->isfinite;
-  }
+  my $badflag = $data->badflag();
+  $data->badflag(1);
+  $mask .= $PDL::Bad::UseNaN ? (! $data->isbad ) : ( $data->isfinite & ! $data->isbad );
+  $data->badflag($badflag);
 }
 
 

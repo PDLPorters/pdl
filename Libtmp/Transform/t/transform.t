@@ -83,22 +83,16 @@ use Test::Exception;
 
 ##############################
 # bad value handling...
-
-SKIP: {
-	skip "Bad value support not included", 3 if !$PDL::Bad::Status;
+{
 	my $pa = sequence(5,5);
 	no warnings;
 	my $t1 = t_linear(pre=>[1.5,2]);
 	my $t2 = t_linear(pre=>[1,2]);
 	use warnings;
-
 	$pa->badflag(1);
-
 	my $pb;
 	lives_ok { $pb = $pa->map($t1,{pix=>1,method=>'l'}) };
-
 	ok(($pb->slice("0:1")->isbad->all  and  $pb->slice(":,0:1")->isbad->all  and ($pb->isbad->sum==16)), "Bad values happen");
-
 	eval { $pb = $pa->map($t1,{pix=>1,method=>'h'}) };
 	ok(($pb->slice("0")->isbad->all  and  $pb->slice(":,0:1")->isbad->all and $pb->isbad->sum==13), "Bad values happen with 'h' method"); 
 }
@@ -113,7 +107,6 @@ SKIP: {
 	my $m51map_coords = pdl(0,0)->apply(t_fits($m51map));
 	ok(all(approx($m51_coords, $m51map_coords,1e-8)));
 }
-
 
 ########################################
 ########################################

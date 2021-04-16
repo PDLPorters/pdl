@@ -861,11 +861,6 @@ to do it check the section on PDL::PP internals.
 
 =head2 Handling bad values
 
-If you do not have bad-value support compiled into PDL you can
-ignore this section and the related keys: C<BadCode>, C<HandleBad>, ...
-(try printing out the value of C<$PDL::Bad::Status> - if it equals 0 
-then move straight on).
-
 There are several keys and macros used when writing code to handle
 bad values. The first one is the C<HandleBad> key:
 

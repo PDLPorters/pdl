@@ -1969,15 +1969,8 @@ sub _svd ($$) {
 
     #EXPLANATION: the division by (the non-zero elements of) $svd_w (the singular values) is
     #equivalent to $sigma_plus x $tmp, so $tmp is now SIGMA^+ x $svd_u x $y
-    if ( $PDL::Bad::Status ) {
-	$tmp /= $svd_w->setvaltobad(0.0);
-	$tmp->inplace->setbadtoval(0.0);
-    } else {
-	# not checked
-	my $mask = ($svd_w == 0.0);
-	$tmp /= ( $svd_w + $mask );
-	$tmp *= ( 1 - $mask );
-    }
+    $tmp /= $svd_w->setvaltobad(0.0);
+    $tmp->inplace->setbadtoval(0.0);
 
     #EXPLANATION:   $svd_v x SIGMA^+ x $svd_u x $y
     return sumover( $svd_v * $tmp );

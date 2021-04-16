@@ -39,8 +39,6 @@ if both are set then PDL will ignore the C<BADVAL_USENAN> value.
 
 =head2 A quick overview
 
- pdl> p $PDL::Bad::Status
- 1
  pdl> $x = sequence(4,3);
  pdl> p $x
  [

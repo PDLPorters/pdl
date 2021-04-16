@@ -30,10 +30,7 @@ eval { $spl->integ(8.5,10)}; like($@,qr/input domain error/, 'integ 8.5 to 10 (e
 
 # Bad value test added 5/31/2005 D. Hunt
 
-SKIP: {
-    skip "Test not valid without bad value support", 1 unless $PDL::Bad::Status;
-    ok ($spl->eval(pdl(0)->setbadat(0))->isbad, 'cspline eval w badvalue');
-}
+ok ($spl->eval(pdl(0)->setbadat(0))->isbad, 'cspline eval w badvalue');
 
 # Exception handling test added 10/18/2010 Jason Lin
 

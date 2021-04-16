@@ -1676,10 +1676,8 @@ sub map {
   $out = PDL::new_from_specification('PDL',$in->type,@odims);
   $out->sethdr($ohdr) if defined($ohdr);
 
-  if($PDL::Bad::Status) {
-    # set badflag on output all the time if possible, to account for boundary violations
-    $out->badflag(1);
-  }
+  # set badflag on output all the time if possible, to account for boundary violations
+  $out->badflag(1);
 
   ##############################
   ## Figure out the dimensionality of the
@@ -2010,12 +2008,7 @@ sub map {
   $blur = $blur->at(0) if(ref $blur);
   $svmin =  $svmin->at(0)  if(ref $svmin);
 
-  my $bv;
-  if($PDL::Bad::Status  and $in->badflag){
-      $bv = $in->badvalue;
-  } else {
-      $bv = 0;
-  }
+  my $bv = $in->badflag ? $in->badvalue : 0;
 
   ### The first argument is a dummy to set $GENERIC.
   $idx = double($idx) unless($idx->type == double);

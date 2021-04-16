@@ -61,7 +61,7 @@ act q|
 
     # There are 2 ways to see whether bad-value support has been
     # compiled into your perldl or pdl2 shell:
-    print("You can use bad values.\n") if $PDL::Bad::Status;
+    print("You can use bad values.\n");
 
     # note that PDL::Bad is included by default when you use
     # 'use PDL', 'use PDL::Lite', or 'use PDL::LiteF'

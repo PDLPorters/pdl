@@ -53,23 +53,12 @@ L<PDL::BadValues>.
 =head1 SYNOPSIS
 
  use PDL::Bad;
- print "\nBad value support in PDL is turned " .
-     $PDL::Bad::Status ? "on" : "off" . ".\n";
-
- Bad value support in PDL is turned on.
-
- and some other things
+ print "\nBad value per PDL support in PDL is turned " .
+     $PDL::Bad::PerPdl ? "on" : "off" . ".\n";
 
 =head1 VARIABLES
 
-There are currently three variables that this module defines
-which may be of use.
-
 =over 4
-
-=item $PDL::Bad::Status
-
-Set to 1
 
 =item $PDL::Bad::UseNaN
 

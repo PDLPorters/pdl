@@ -48,12 +48,8 @@ sub mypdlconfig {
   eval 'require PDL::Config';
   eval "use Data::Dumper";
   my $hasdumper = $@ eq "" ? 1 : 0;
-  eval "use PDL::Bad;";
-  my $bflag = defined($PDL::Bad::Status) && $PDL::Bad::Status;
-
   my $txt = "\nSummary of my PDL configuration\n\n";
-  $txt .= "VERSION: PDL v$PDL::VERSION";
-  $txt .= " (supports bad values)" if $bflag;
+  $txt .= "VERSION: PDL v$PDL::VERSION (supports bad values)";
   $txt .= "\n\n";
   if ($hasdumper && %PDL::Config) {
     $txt .= Data::Dumper->Dump([{%PDL::Config}],['%PDL::Config']);
@@ -352,13 +348,7 @@ my $PDL_OK = ($@ eq "");
 if ($PDL_OK) {
    require PDL if not defined $PDL::VERSION;
    print "Type 'demo' for online demos\n";
-   eval "use PDL::Bad;";
-   my $bflag = defined($PDL::Bad::Status) && $PDL::Bad::Status;
-   if ( $bflag ) {
-      print "Loaded PDL v$PDL::VERSION (supports bad values)\n";
-   } else {
-      print "Loaded PDL v$PDL::VERSION\n";
-   }
+   print "Loaded PDL v$PDL::VERSION (supports bad values)\n";
 }else{
    warn "WARNING: Error loading PDL: '$@' - trying blib. \n";
    eval "use blib";
@@ -435,8 +425,8 @@ Use:
    demo transform   # Coordinate transformations (Req.: PGPLOT)
    demo cartography # Cartographic projections (Req.: PGPLOT)
 
-   demo bad         # Bad-value demo (Req.: bad value support)
-   demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
+   demo bad         # Bad-value demo
+   demo bad2        # Bad-values, part 2 (Req.: PGPLOT)
 
 EOD
     return;
