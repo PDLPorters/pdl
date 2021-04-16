@@ -694,25 +694,21 @@ at_bad_c(x,position)
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
 	x->ndims);
    badflag = (x->state & PDL_BADVAL) > 0;
+   if ( badflag &&
 #if BADVAL_USENAN
    /* do we have to bother about NaN's? */
-   if ( badflag &&
         ( ( x->datatype < PDL_F && ANYVAL_EQ_ANYVAL(result, pdl_get_badvalue(x->datatype)) ) ||
           ( x->datatype == PDL_CF && finite(result.value.C) == 0 ) ||
           ( x->datatype == PDL_CD && finite(result.value.G) == 0 ) ||
           ( x->datatype == PDL_F && finite(result.value.F) == 0 ) ||
           ( x->datatype == PDL_D && finite(result.value.D) == 0 )
         )
-      ) {
-	 RETVAL = newSVpvn( "BAD", 3 );
-   } else
 #  else
-   if ( badflag &&
         ANYVAL_EQ_ANYVAL( result, pdl_get_badvalue( x->datatype ) )
+#endif
       ) {
 	 RETVAL = newSVpvn( "BAD", 3 );
    } else
-#endif
 
     ANYVAL_TO_SV(RETVAL, result);
 
@@ -779,16 +775,16 @@ listref_c(x)
     */
 
    int badflag = (x->state & PDL_BADVAL) > 0;
+   if (
 #if BADVAL_USENAN
     /* do we have to bother about NaN's? */
-   if ( badflag && x->datatype < PDL_F ) {
-      pdl_badval = pdl_get_pdl_badvalue( x );
-   }
+      badflag && x->datatype < PDL_F
 #else
-   if ( badflag ) {
+      badflag
+#endif
+   ) {
       pdl_badval = pdl_get_pdl_badvalue( x );
    }
-#endif
 
    pdl_make_physvaffine( x );
    inds = pdl_malloc(sizeof(PDL_Indx) * x->ndims); /* GCC -> on stack :( */
