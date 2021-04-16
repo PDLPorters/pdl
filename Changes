@@ -1,3 +1,4 @@
+2.037 2021-04-16
 - switch obsolete finite() to C99 isfinite()
 - add ppdefs_all
 - make PDL::Types::ppdefs only return non-complex types for back-compat
