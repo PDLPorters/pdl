@@ -217,7 +217,6 @@ if (!defined($PDL::Config{USE_POGL}) or +$PDL::Config{USE_POGL}) {
       }
    } else {
       # Have OpenGL so set USE_POGL option if needed
-      warn "Makefile.PL: Found required OpenGL version, setting USE_POGL => 1\n" unless defined($PDL::Config{USE_POGL});
       $PDL::Config{USE_POGL} ||= 1;
    }
 } else {

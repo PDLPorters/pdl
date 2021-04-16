@@ -42,7 +42,6 @@ if ($pthread_library) {
     }
 }
 if ($pthread_library) {
-    print "Will build PDL with POSIX thread support.\n";
     $PDL::Config{WITH_POSIX_THREADS} = 1;
 } else {
     print "PDL will be built without POSIX thread support.\n";
@@ -51,8 +50,6 @@ if ($pthread_library) {
     $PDL::Config{WITH_POSIX_THREADS} = 0;
 }
 my $pthread_define  = $pthread_library ? ' -DPDL_PTHREAD ' : '';
-
-print "Machine is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . "-endian\n";
 
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 

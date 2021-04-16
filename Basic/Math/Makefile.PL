@@ -116,16 +116,6 @@ foreach (@besbifuncs) {
     $source{$_} = 'system' if is_sys_func( "$_(1,1.);", $libs, $dir );
 }
 
-print "Source of functions\nSystem:      ";
-foreach (@keys) {
-    print " $_" if $source{$_} eq 'system';
-}
-print "\nDistribution:";
-foreach (@keys) {
-    print " $_" if $source{$_} ne 'system';
-}
-print "\n";
-
 my @pack = (["math.pd", qw(Math PDL::Math)]);
 my %hash = pdlpp_stdargs_int(@pack);
 
