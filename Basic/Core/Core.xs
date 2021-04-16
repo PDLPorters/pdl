@@ -13,7 +13,6 @@
 #undef CONTEXT
 #endif
 
-#define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
@@ -22,7 +21,7 @@
 #endif
 #include <limits.h>
 
-/* Return a integer or numeric scalar as approroate */
+/* Return a integer or numeric scalar as appropriate */
 
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
 

@@ -1,7 +1,6 @@
 /* XXX NOTE THAT IT IS NOT SAFE TO USE ->pdls MEMBER OUTSIDE
    INITTHREADSTRUCT! */
 
-#define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 

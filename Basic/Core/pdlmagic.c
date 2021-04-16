@@ -1,4 +1,3 @@
-#define PDL_CORE      /* For certain ifdefs */
 #ifndef WIN32
 #define USE_MMAP
 #else

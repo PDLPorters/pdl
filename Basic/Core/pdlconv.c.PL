@@ -39,7 +39,6 @@ print OUT <<"!WITH!SUBS!";
  
 print OUT <<'!NO!SUBS!';
 
-#define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 

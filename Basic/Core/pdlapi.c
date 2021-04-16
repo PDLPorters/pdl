@@ -5,7 +5,6 @@
 /*    we now have dummy functions so do not need to   */
 /*    create the file                                 */
 
-#define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
