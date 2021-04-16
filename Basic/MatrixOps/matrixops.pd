@@ -1,16 +1,6 @@
 pp_addhdr('
 #include <math.h>
 #include "protos.h"
-
-/* Change names when fixing glibc-2.1 bug */
-#ifdef MY_FIXY0
-#define y0(a) fixy0(a)
-extern double fixy0(double a);
-#endif
-#ifdef MY_FIXYN
-#define yn(a,b) fixyn(a,b)
-extern double fixyn(int a, double b);
-#endif
 ');
 
 ## handle various cases of 'finite'
