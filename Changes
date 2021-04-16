@@ -1,3 +1,5 @@
+- fix t/gis_proj.t
+
 2.035 2021-04-15
 - bad value support now always present, not configurable
 - pthread detection simplified, now enabled for Windows and MacOS

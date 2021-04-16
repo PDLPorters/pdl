@@ -145,8 +145,7 @@ my $info = load_projection_information();
 #}
 ok(1);
 
-
-exit(0);
+done_testing;
 
 sub print_hi_prec
 {
