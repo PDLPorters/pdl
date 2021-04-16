@@ -86,7 +86,7 @@ else
 
 if( x > 1.0e8 )
 	{
-	  if(!finite(x))
+	  if(!isfinite(x))
 	    return(xx);
 	  return( sign * (log(x) + LOGE2) );
 	}

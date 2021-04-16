@@ -1,4 +1,6 @@
-2.035 2021-04-16
+- switch obsolete finite() to C99 isfinite()
+
+2.036 2021-04-16
 - fix t/gis_proj.t
 
 2.035 2021-04-15

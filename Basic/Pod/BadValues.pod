@@ -397,8 +397,8 @@ If C<BADVAL_USENAN> is set, then
 it's a bit different for C<float> and C<double>, where we consider
 C<NaN>, C<+Inf>, and C<-Inf> all to be bad. In this case:
 
-  ISBAD   becomes   finite(piddle) == 0
-  ISGOOD            finite(piddle) != 0
+  ISBAD   becomes   isfinite(piddle) == 0
+  ISGOOD            isfinite(piddle) != 0
   SETBAD            piddle          = NaN
 
 where the value for NaN is discussed below in
@@ -497,7 +497,7 @@ produces a bad value but doesn't update the badflag value of the piddle.
 Can we catch an exception, or do we have to trap for this
 (e.g. search for C<exception> in F<Basic/Ops/ops.pd>)?
 
-Checking for C<Nan>, and C<Inf> is done by using the C<finite()>
+Checking for C<Nan>, and C<Inf> is done by using the C<isfinite()>
 system call.  If you want to set a value to the C<NaN> value, the
 following bit of code can be used (this can be found in
 both F<Basic/Core/Core.xs.PL> and F<Basic/Bad/bad.pd>):

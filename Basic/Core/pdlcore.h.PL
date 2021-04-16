@@ -81,13 +81,6 @@ print OUT <<'!NO!SUBS!';
 
 print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
 
-print OUT <<'!NO!SUBS!' if ($^O =~ /MSWin/);
- 
-#define finite _finite
-#include <float.h>
-
-!NO!SUBS!
-
 print OUT <<'!NO!SUBS!';
 
 #define PDL_TMP  0        /* Flags */

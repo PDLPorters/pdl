@@ -50,53 +50,9 @@ extern Core PDL;
  * So many ways to be undefined...
  */
 #define sv_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
+
+#include <math.h> /* for isfinite */
 !HEADER!
-
-
-##############################
-# Figure out the best definition for the 'finite()' call or call-like macro
-# We short-circuit the process for the cl compiler; for other compilers we search 
-# for 'isfinite' or 'finite', with a preference for 'isfinite' (IEEE recommends this).
-
-if($Config{cc} eq 'cl') {
-  # _finite in VC++ 4.0
-  print OUT <<'FOO';
-#define finite _finite
-#include <float.h>
-FOO
-} else {
-    my $finite_inc;
-    my $use_isfinite = 0;
-    foreach my $inc ( qw/ math.h ieeefp.h / )
-    {
-        if ( trylink ("finite: $inc", "#include <$inc>", 'isfinite(3.2);', '' ) ) {
-            $finite_inc = $inc;
-            $use_isfinite = 1;
-            last;
-        }
-        if ( (!defined($finite_inc))  and  trylink ("finite: $inc", "#include <$inc>", 'finite(3.2);','') ) {
-            $finite_inc = $inc;
-        }
-    }
-
-    if ( defined $finite_inc ) {
-        print OUT "#include <$finite_inc>\n";
-        print OUT "#define finite(a) (isfinite(a))\n";
-    }
-    else
-    {
-        print OUT <<'!NO!SUBS!';
-            /* Kludgy finite/isfinite because pdlcore.c.PL was unable to find one in your math library */
-#ifndef finite
-#ifdef isfinite
-#define finite isfinite
-#else
-#define finite(a) (((a) * 0) == (0))
-#endif
-#endif
-!NO!SUBS!
-    }
-}
 
 
 ##############################
@@ -278,7 +234,7 @@ if ( $usenan ) {
        * default NaN/Infs to double
        *
        */
-      if ( finite(tmp_NV) == 0 ) {
+      if ( isfinite(tmp_NV) == 0 ) {
         datatype = PDL_D;
       } else {
         datatype = pdl_whichdatatype_double(tmp_NV);
@@ -980,7 +936,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
 	    my $comp_for_nan =
 	          $inner_type->usenan
 	          # if not equal, check if both are NaN
-	        ? "( !finite( (($ctype *)pptr)[i] ) && !finite(source_badval.value.$ppsym) )"
+	        ? "( !isfinite( (($ctype *)pptr)[i] ) && !isfinite(source_badval.value.$ppsym) )"
 	          # otherwise it must be false
 	        : '0';
 

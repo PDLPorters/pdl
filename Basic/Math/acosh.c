@@ -87,7 +87,7 @@ if( x < 1.0 )
 
 if( x > 1.0e8 )
 	{
-	  if( !finite(x) )
+	  if( !isfinite(x) )
 	    return(x);
 	return( log(x) + LOGE2 );
 	}

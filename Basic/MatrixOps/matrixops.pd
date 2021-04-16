@@ -3,26 +3,6 @@ pp_addhdr('
 #include "protos.h"
 ');
 
-## handle various cases of 'finite'
-#
-if ($^O =~ /MSWin/) {
-# _finite in VC++ 4.0
-pp_addhdr('
-#define finite _finite
-#include <float.h>
-');
-}
-
-# patch from Albert Chin
-if ($^O =~ /hpux|darwin/) {
-pp_addhdr('
-#ifdef isfinite
-#define finite isfinite
-#endif
-');
-}
-
-
 use strict;
 
 pp_addpm({At=>'Top'},<<'EOD');
@@ -599,7 +579,7 @@ pp_def("eigens",
                    for(  j=0; ok && j< sn;  j++) 
                       ok &= fabs( ($P(ev))[ 2* (i*sn + j) + 1] ) < eps;
                    for(  k=0; ok && k < i; k++ ) {
-                     if( finite( ($P(ev))[ 2 * (k*sn) ] ) ) { 
+                     if( isfinite( ($P(ev))[ 2 * (k*sn) ] ) ) { 
                        for( flag=1, j=0; ok && flag && j< sn; j++) 
                          flag &= ( fabs( ($P(ev))[ 2 * (i*sn + j) ] -
                                          ($P(ev))[ 2 * (k*sn + j) ] 

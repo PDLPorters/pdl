@@ -73,10 +73,6 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 #include <values.h>
 #endif   /* __GNUC__ */
 #endif
-#if defined(_WIN32) || defined(WIN32)
-#include <float.h>
-#define finite _finite
-#endif
 
 /* Now include system-specific stuff */
 

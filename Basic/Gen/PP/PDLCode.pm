@@ -307,7 +307,7 @@ sub convert {
     my $type = $ftype_override || $pobj->adjusted_type($this->{Gencurtype}[-1]);
     return ($lhs, $rhs) if !($usenan * $type->usenan);
     $opcode eq "SETBAD"
-	? ($lhs, "PDL->bvals.".$type->shortctype) : ("finite($lhs)", "0");
+	? ($lhs, PDL::PP::pp_line_numbers(__LINE__-1, "PDL->bvals.".$type->shortctype)) : (PDL::PP::pp_line_numbers(__LINE__-1, "isfinite($lhs)"), "0");
 }
 
 #####################################################################
@@ -684,8 +684,8 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 #   $SETBAD($a())     $a()   = a_badval
 #
 # floating point with NaN
-#   $ISBAD($a(n))  -> finite($a(n)) == 0
-#   $ISGOOD($a())     finite($a())  != 0
+#   $ISBAD($a(n))  -> isfinite($a(n)) == 0
+#   $ISGOOD($a())     isfinite($a())  != 0
 #   $SETBAD($a())     $a()           = PDL->bvals.Float (or .Double)
 #
 # I've also got it so that the $ on the pdl name is not
@@ -755,8 +755,8 @@ sub get_str {
 #   $SETBADVAR(foo,a)    foo  = a_badval
 #
 # floating point with NaN
-#   $ISBADVAR(foo,a)  -> finite(foo) == 0
-#   $ISGOODVAR(foo,a)    finite(foo) != 0
+#   $ISBADVAR(foo,a)  -> isfinite(foo) == 0
+#   $ISGOODVAR(foo,a)    isfinite(foo) != 0
 #   $SETBADVAR(foo,a)    foo          = PDL->bvals.Float (or .Double)
 #
 
@@ -817,8 +817,8 @@ sub get_str {
 #  etc
 #
 # if we use NaN's, then
-#  $PPISBAD(PARENT,[i])   -> finite(PARENT_physdatap[i]) == 0
-#  $PPISGOOD(PARENT,[i])  -> finite(PARENT_physdatap[i]) != 0
+#  $PPISBAD(PARENT,[i])   -> isfinite(PARENT_physdatap[i]) == 0
+#  $PPISGOOD(PARENT,[i])  -> isfinite(PARENT_physdatap[i]) != 0
 #  $PPSETBAD(PARENT,[i])  -> PARENT_physdatap[i]          = PDL->bvals.Float (or .Double)
 #
 

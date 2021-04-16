@@ -29,9 +29,6 @@ use PDL::Slices;
 use Carp;
 EOD
 
-# should we use the finite() routine in libm ?
-# (is the Windows version _finite() ?)
-#
 pp_addhdr(<<'EOD');
 #define IsNaN(x) (x*0 != 0)
 EOD
@@ -1362,7 +1359,7 @@ for my $which (
 	    '$GENERIC() cur;
 	     int flag = 0;
 	     loop(n) %{
-	 	if( !flag || ($a() '.$op.' cur ) || IsNaN(cur) ) { cur = $a(); flag = 1;}
+		if( !flag || ($a() '.$op.' cur ) || IsNaN(cur) ) { cur = $a(); flag = 1;}
 	     %}
 	     if(flag && !IsNaN(cur)) {
 	     	     $c() = cur;
@@ -1401,7 +1398,7 @@ for ways of masking NaNs.
              PDL_Indx curind;
 	     int flag = 0;
 	     loop(n) %{
-	 	if(!flag || $a() '.$op.' cur || IsNaN(cur))
+		if(!flag || $a() '.$op.' cur || IsNaN(cur))
 		   {cur = $a(); curind = n;flag=1;}
 	     %}
 	     if(flag && !IsNaN(cur)) {
@@ -1544,14 +1541,6 @@ pp_addpm(<<'EOD');
 
 EOD
 
-# removed IsNaN handling, even from Code section
-# I think it was wrong, since it was
-#
-#   if (!n || ($a() < curmin) || IsNaN(curmin)) {curmin = $a(); curmin_ind = n;};
-#   if (!n || ($a() > curmax) || IsNaN(curmax)) {curmax = $a(); curmax_ind = n;};
-#
-# surely this succeeds if cur... is a NaN??
-#
 pp_def( 
 	'minmaximum',
 	HandleBad => 1,

@@ -126,24 +126,11 @@ pp_addhdr('
 #include "protos.h"
 ');
 
-## handle various cases of 'finite'
-#
 if ($^O =~ /MSWin/) {
-# _finite in VC++ 4.0
 pp_addhdr('
-#define finite _finite
 #include <float.h>
 #ifdef _MSC_VER
 double rint (double);
-#endif
-');
-}
-
-# patch from Albert Chin
-if ($^O =~ /hpux|darwin/) {
-pp_addhdr('
-#ifdef isfinite
-#define finite isfinite
 #endif
 ');
 }
@@ -336,9 +323,9 @@ pp_def(
        Inplace => [ 'a' ],
        HandleBad => 1,
        Code =>
-       '$c() = finite($a()) ? $a() : $b();',
+       '$c() = isfinite((double) $a()) ? $a() : $b();',
        BadCode =>
-       '$c() = ( finite($a()) && $ISGOOD(a()) ) ? $a() : $b();',
+       '$c() = ( isfinite((double) $a()) && $ISGOOD(a()) ) ? $a() : $b();',
        CopyBadStatusCode =>
        'if ( a == c && $ISPDLSTATEBAD(a) )
            PDL->propagate_badflag( c, 0 );  /* propagate badflag if inplace AND its changed */
@@ -365,9 +352,9 @@ pp_def(
        Inplace => 1,
        HandleBad => 1,
        Code =>
-       '$mask() = finite((double) $a()) != 0;',
+       '$mask() = isfinite((double) $a()) != 0;',
        BadCode =>
-       '$mask() = finite((double) $a()) != 0 && $ISGOOD($a());',
+       '$mask() = isfinite((double) $a()) != 0 && $ISGOOD($a());',
        CopyBadStatusCode =>
        'if ( a == mask && $ISPDLSTATEBAD(a) )
            PDL->propagate_badflag( mask, 0 );  /* propagate badflag if inplace AND its changed */
