@@ -258,15 +258,15 @@ void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 
+#if defined(PDL_clean_namespace) || defined(PDL_OLD_API)
+#error PDL_clean_namespace and PDL_OLD_API defines have been removed. Use PDL->pdlnew() instead of PDL->new().
+#endif
+
 struct Core {
     I32    Version;
     pdl*   (*SvPDLV)      ( SV*  );
     void   (*SetSV_PDL)   ( SV *sv, pdl *it );
-#if defined(PDL_clean_namespace) || defined(PDL_OLD_API)
-    pdl*   (*new)      ( );     /* make it work with gimp-perl */
-#else
-    pdl*   (*pdlnew)      ( );  /* renamed because of C++ clash */
-#endif
+    pdl*   (*pdlnew)      ( );
     pdl*   (*tmp)         ( );
     pdl*   (*create)      (int type);
     void   (*destroy)     (pdl *it);
