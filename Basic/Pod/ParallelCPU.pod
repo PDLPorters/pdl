@@ -19,15 +19,19 @@ by taking advantage of multi-core and/or multi-processor machines.
   #  5Meg elements for splitting processing into parallel pthreads.
   set_autopthread_targ(4);
   set_autopthread_size(5);
-  
+
   $x = zeroes(5000,5000); # Create 25Meg element array
-  
+
   $y = $x + 5; # Processing will be split up into multiple pthreads
-  
+
   # Get the actual number of pthreads for the last
   #  processing operation.
   $actualPthreads = get_autopthread_actual();
-  
+
+  # Or compare these to see CPU usage (first one only 1 pthread, second one 10)
+  # in the PDL shell:
+  $x = ones(10,1000,10000); set_autopthread_targ(1); $y = sin($x)*cos($x); p get_autopthread_actual;
+  $x = ones(10,1000,10000); set_autopthread_targ(10); $y = sin($x)*cos($x); p get_autopthread_actual;
 
 =head1 Terminology
 
