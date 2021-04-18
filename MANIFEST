@@ -747,8 +747,6 @@ t/pp_line_numbers.t
 t/pptest.t
 t/primitive.t
 t/pthread.t
-t/pthread_auto.t
-t/pthreadBarf.t
 t/reduce.t
 t/scope.t
 t/slice.t
