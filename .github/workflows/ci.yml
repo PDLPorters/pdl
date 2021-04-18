@@ -42,7 +42,7 @@ jobs:
           tls: false
           notice: true
           message: |
-            ${{ github.actor }} ${{ github.event.action }} PR ${{ github.event.pull_request.html_url }}
+            ${{ github.actor }} ${{ github.event.action }} PR «${{ github.event.pull_request.title }}» ${{ github.event.pull_request.html_url }}
       - name: irc tag created
         uses: Gottox/irc-message-action@v1.3
         if: github.event_name == 'create' && github.event.ref_type == 'tag'
