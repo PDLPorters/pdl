@@ -295,6 +295,7 @@ jobs:
           notice: true
           message: |
             Build status: All builds succeeded [${{ github.event_name }}]: ${{ env.GITHUB_WORKFLOW_URL }}
+            @ ${{ env.GITHUB_SHA }} : ${{ github.event.commits[0].message }}
       - name: IRC build failure
         uses: Gottox/irc-message-action@v1.3
         if: ${{ contains(needs.*.result, 'failure') }}
@@ -307,3 +308,4 @@ jobs:
           notice: true
           message: |
             Build status: Some builds failed [${{ github.event_name }}]: ${{ env.GITHUB_WORKFLOW_URL }}
+            @ ${{ env.GITHUB_SHA }} : ${{ github.event.commits[0].message }}
