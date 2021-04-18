@@ -30,7 +30,7 @@ jobs:
           notice: true
           message: |
             ${{ github.actor }} pushed ${{ github.event.ref }} ${{ github.event.compare }}
-            ${{ join(github.event.commits.*.message) }}
+            ${{ join(github.event.commits.*.message, ', ') }}
       - name: irc pull request
         uses: Gottox/irc-message-action@v1.3
         if: github.event_name == 'pull_request'
