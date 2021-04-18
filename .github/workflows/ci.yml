@@ -30,7 +30,7 @@ jobs:
           notice: true
           message: |
             ${{ github.actor }} pushed ${{ github.event.ref }} ${{ github.event.compare }}
-            ${{ join(github.event.commits.*.message) }}
+            ${{ join(github.event.commits.*.message, ', ') }}
       - name: irc pull request
         uses: Gottox/irc-message-action@v1.3
         if: github.event_name == 'pull_request'
@@ -42,7 +42,7 @@ jobs:
           tls: false
           notice: true
           message: |
-            ${{ github.actor }} ${{ github.event.action }} PR ${{ github.event.pull_request.html_url }}
+            ${{ github.actor }} ${{ github.event.action }} PR «${{ github.event.pull_request.title }}» ${{ github.event.pull_request.html_url }}
       - name: irc tag created
         uses: Gottox/irc-message-action@v1.3
         if: github.event_name == 'create' && github.event.ref_type == 'tag'
@@ -269,3 +269,41 @@ jobs:
         if: ${{ failure() }}
         run: |
           cat ~/.cpanm/latest-build/build.log
+  build-status:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    if: ( github.event_name == 'push' || github.event_name == 'pull_request' ) && ( ${{ success() }} || ${{ failure() }} ) && github.repository == 'PDLPorters/pdl'
+    needs: [ 'ci', 'ci-ubuntu-containers', 'cygwin' ]
+    env:
+      IRC_CHANNEL: '#pdl'
+      IRC_SERVER: 'irc.perl.org'
+      IRC_PORT: '6667'
+      IRC_NICKNAME: 'pdl-commits'
+    steps:
+      - name: Prepare message
+        run: |
+          echo "GITHUB_WORKFLOW_URL=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
+      - name: IRC build success
+        uses: Gottox/irc-message-action@v1.3
+        if: ${{ ! contains(needs.*.result, 'failure') && ! contains(needs.*.result, 'cancelled') }}
+        with:
+          channel: ${{ env.IRC_CHANNEL }}
+          server: ${{ env.IRC_SERVER }}
+          port: ${{ env.IRC_PORT }}
+          nickname: ${{ env.IRC_NICKNAME }}
+          tls: false
+          notice: true
+          message: |
+            Build status: All builds succeeded [${{ github.event_name }}]: ${{ env.GITHUB_WORKFLOW_URL }}
+      - name: IRC build failure
+        uses: Gottox/irc-message-action@v1.3
+        if: ${{ contains(needs.*.result, 'failure') }}
+        with:
+          channel: ${{ env.IRC_CHANNEL }}
+          server: ${{ env.IRC_SERVER }}
+          port: ${{ env.IRC_PORT }}
+          nickname: ${{ env.IRC_NICKNAME }}
+          tls: false
+          notice: true
+          message: |
+            Build status: Some builds failed [${{ github.event_name }}]: ${{ env.GITHUB_WORKFLOW_URL }}
