@@ -285,7 +285,7 @@ jobs:
           echo "GITHUB_WORKFLOW_URL=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
       - name: IRC build success
         uses: Gottox/irc-message-action@v1.3
-        if: ${{ ! contains(needs.*.result, 'failure') }}
+        if: ${{ ! contains(needs.*.result, 'failure') && ! contains(needs.*.result, 'cancelled') }}
         with:
           channel: ${{ env.IRC_CHANNEL }}
           server: ${{ env.IRC_SERVER }}
