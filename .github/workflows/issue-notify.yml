@@ -40,4 +40,4 @@ jobs:
           tls: false
           notice: true
           message: |
-            ${{ github.actor }} ${{ github.event.review.state || 'commented' }} on #${{ github.event.issue.number }} {{ github.event.comment.html_url || github.event.review.html_url }}
+            ${{ github.actor }} ${{ github.event.review.state || 'commented' }} on #${{ github.event.issue.number }} ${{ github.event.comment.html_url || github.event.review.html_url }}
