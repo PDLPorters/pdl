@@ -1,0 +1,192 @@
+#!/usr/bin/perl
+
+pp_addpm({At=>Top},<<'EOD');
+
+$PDL::onlinedoc->scan(__FILE__) if $PDL::onlinedoc;
+
+=head1 NAME
+
+PDL::GSL::CDF - PDL interface to GSL Cumulative Distribution Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Cumulative Distribution Function package present in the GNU Scientific Library.
+
+Let us have a continuous random number distributions are defined by a probability density function C<p(x)>.
+
+The cumulative distribution function for the lower tail C<P(x)> is defined by the integral of C<p(x)>, and
+gives the probability of a variate taking a value less than C<x>. These functions are named B<cdf_NNNNNNN_P()>.
+
+The cumulative distribution function for the upper tail C<Q(x)> is defined by the integral of C<p(x)>, and
+gives the probability of a variate taking a value greater than C<x>. These functions are named B<cdf_NNNNNNN_Q()>.
+
+The upper and lower cumulative distribution functions are related by C<P(x) + Q(x) = 1> and
+satisfy C<0 E<lt>= P(x) E<lt>= 1> and C<0 E<lt>= Q(x) E<lt>= 1>.
+
+The inverse cumulative distributions, C<x = Pinv(P)> and C<x = Qinv(Q)> give the values of C<x> which correspond
+to a specific value of C<P> or C<Q>. They can be used to find confidence limits from probability values.
+These functions are named B<cdf_NNNNNNN_Pinv()> and B<cdf_NNNNNNN_Qinv()>.
+
+For discrete distributions the probability of sampling the integer value C<k> is given by C<p(k)>, where
+C<sum_k p(k) = 1>. The cumulative distribution for the lower tail C<P(k)> of a discrete distribution is
+defined as, where the sum is over the allowed range of the distribution less than or equal to C<k>.
+
+The cumulative distribution for the upper tail of a discrete distribution C<Q(k)> is defined as giving the sum
+of probabilities for all values greater than C<k>. These two definitions satisfy the identity C<P(k) + Q(k) = 1>.
+
+If the range of the distribution is C<1> to C<n> inclusive then C<P(n) = 1>, C<Q(n) = 0>
+while C<P(1) = p(1)>, C<Q(1) = 1 - p(1)>.
+
+=head1 SYNOPSIS
+
+    use PDL;
+    use PDL::GSL::CDF;
+
+    my $p = gsl_cdf_tdist_P( $t, $df );
+
+    my $t = gsl_cdf_tdist_Pinv( $p, $df );
+
+=cut
+
+EOD
+
+pp_addhdr('
+#include <gsl/gsl_cdf.h>
+
+');
+
+my ($header) = `gsl-config --cflags` =~ m/-I(.+)$/;
+$header .= '/gsl/gsl_cdf.h';
+# for win32. Thanks Sisyphus!
+$header =~ s/"//g;
+
+open my $fh, "< $header" or die "$!";
+
+local $/ = undef;
+my $h = <$fh>;
+my @functions = $h =~ m/(double\s+gsl_cdf_.+?\)\s*;\s*)\n/xmsg;
+my @func_defs;
+
+my %p_type = (
+  'double'       => 'double',
+  'unsigned int' => 'ushort',
+);
+
+my %func_desc = (
+  gsl_cdf_gaussian          => ['The Gaussian Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the Gaussian distribution with standard deviation I<sigma>.'],
+  gsl_cdf_ugaussian         => ['The Unit Gaussian Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the unit Gaussian distribution.'],
+  gsl_cdf_exponential       => ['The Exponential Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the exponential distribution with mean I<mu>.'],
+  gsl_cdf_laplace           => ['The Laplace Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the Laplace distribution with width I<a>.'],
+  gsl_cdf_exppow            => ['The Exponential Power Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) for the exponential power distribution with parameters I<a> and I<b>.'],
+  gsl_cdf_cauchy            => ['The Cauchy Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the Cauchy distribution with scale parameter I<a>.'],
+  gsl_cdf_rayleigh          => ['The Rayleigh Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the Rayleigh distribution with scale parameter I<sigma>.'],
+  gsl_cdf_gamma             => ['The Gamma Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the gamma distribution with parameters I<a> and I<b>.'],
+  gsl_cdf_flat              => ['The Flat (Uniform) Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for a uniform distribution from I<a> to I<b>.'],
+  gsl_cdf_lognormal         => ['The Lognormal Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the lognormal distribution with parameters I<zeta> and I<sigma>.'],
+  gsl_cdf_chisq             => ['The Chi-squared Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the chi-squared distribution with I<nu> degrees of freedom.'],
+  gsl_cdf_fdist             => ['The F-distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the F-distribution with I<nu1> and I<nu2> degrees of freedom.'],
+  gsl_cdf_tdist             => ['The t-distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the t-distribution with I<nu> degrees of freedom.'],
+  gsl_cdf_beta              => ['The Beta Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the beta distribution with parameters I<a> and I<b>.'],
+  gsl_cdf_logistic          => ['The Logistic Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the logistic distribution with scale parameter I<a>.'],
+  gsl_cdf_pareto            => ['The Pareto Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the Pareto distribution with exponent I<a> and scale I<b>.'],
+  gsl_cdf_weibull           => ['The Weibull Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the Weibull distribution with scale I<a> and exponent I<b>.'],
+  gsl_cdf_gumbel1           => ['The Type-1 Gumbel Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the Type-1 Gumbel distribution with parameters I<a> and I<b>.'],
+  gsl_cdf_gumbel2           => ['The Type-2 Gumbel Distribution', 'These functions compute the cumulative distribution functions P(x), Q(x) and their inverses for the Type-2 Gumbel distribution with parameters I<a> and I<b>.'],
+  gsl_cdf_poisson           => ['The Poisson Distribution', 'These functions compute the cumulative distribution functions P(k), Q(k) for the Poisson distribution with parameter I<mu>.'],
+  gsl_cdf_binomial          => ['The Binomial Distribution', 'These functions compute the cumulative distribution functions P(k), Q(k) for the binomial distribution with parameters I<p> and I<n>.'],
+  gsl_cdf_negative_binomial => ['The Negative Binomial Distribution', 'These functions compute the cumulative distribution functions P(k), Q(k) for the negative binomial distribution with parameters I<p> and I<n>.'],
+  gsl_cdf_pascal            => ['The Pascal Distribution', 'These functions compute the cumulative distribution functions P(k), Q(k) for the Pascal distribution with parameters I<p> and I<n>.'],
+  gsl_cdf_geometric         => ['The Geometric Distribution', 'These functions compute the cumulative distribution functions P(k), Q(k) for the geometric distribution with parameter I<p>.'],
+  gsl_cdf_hypergeometric    => ['The Hypergeometric Distribution', 'These functions compute the cumulative distribution functions P(k), Q(k) for the hypergeometric distribution with parameters I<n1>, I<n2> and I<t>.'],
+);
+
+for (@functions) {
+  s/\n\s+/ /xmsg;
+  s/const //g;
+  if (m/^(\w+)\s+(\w+)\s*\(\s*(.+)\s*\)\s*\;$/s) {
+    my ($out_type, $function, $pars) = ($1, $2, $3);
+    my @pars = split /,/, $pars;
+    for (@pars) {
+      if (m/^(.+)( \w+)$/) {
+        my ($type, $par) = ($1, $2);
+        s/^ | $//g for ($type, $par);
+        $par = lc $par;
+          # numbers interfere with $ISGOOD in BadCode
+        $par =~ s/1/a/g;
+        $par =~ s/2/b/g;
+        $_ = [$p_type{$type}, $par];
+      }
+    }
+    push @func_defs, [ $out_type, $function, \@pars ];
+  }
+}
+
+@func_defs = sort { $a->[1] cmp $b->[1] } @func_defs; # sort by function name
+
+for my $f (@func_defs) {
+  my $out_type = $f->[0];
+  my $function = $f->[1];
+  (my $func_short = $function) =~ s/^([^_]+_[^_]+_[^_]+).*$/$1/;
+  my $desc = delete $func_desc{$func_short};
+  my @pars = @{$f->[2]};
+  my ($p, $code, $badcode) = print_ppdef($out_type, $function, @pars);
+  pp_addpm(qq{\n=head2 $desc->[0] (${func_short}_*)\n\n$desc->[1]\n\n=cut\n\n}) if $desc;
+  pp_def($function,
+    HandleBad => 1,
+    GenericTypes => [D],
+    Pars => $p,
+    Code => $code,
+    BadCode => $badcode,
+    Doc  => '',
+  );
+}
+
+sub print_ppdef {
+  my ($out_type, $function, @pars) = @_;
+
+  my ($pars, $code, $badcode);
+
+  for (@pars) {
+    my ($type, $par) = @$_;
+    $pars .= "$type $par(); ";
+  }
+  $pars .= "$out [o]out()";
+
+  $code = "\$out() = $function( ";
+  $code .= "\$" . $_->[1] . "(), "
+    for (@pars);
+  $code .= ");";
+  $code =~ s/, \);/ );/;
+
+  $badcode
+    = "if ( " . join(' && ', map { "\$ISGOOD($_->[1]())" } @pars ) . " ) {\n";
+  $badcode .= '  ' . $code . "\n}\n";
+  $badcode .= "else {\n  \$SETBAD(out());\n}";
+
+#  print "pp_def('$function',\n";
+#  print "  HandleBad => 1,\n";
+#  print "  GenericTypes => [D],\n";
+#  print "  Pars => '$pars',\n";
+#  print "  Code => '\n$code\n',\n";
+#  print "  BadCode => '\n$badcode\n',\n";
+#  print "  Doc  => '',\n";
+#  print ");\n\n";
+  return ($pars, $code, $badcode);
+}
+
+pp_addpm({At=>Bot},<<'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) 2009 Maggie J. Xiong <maggiexyz users.sourceforge.net>
+
+The GSL CDF module was written by J. Stover.
+
+All rights reserved. There is no warranty. You are allowed to redistribute this software / documentation as described in the file COPYING in the PDL distribution.
+
+=cut
+
+EOD
+
+pp_done();
+

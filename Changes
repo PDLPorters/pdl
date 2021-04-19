@@ -1,5 +1,6 @@
-- make pdlpp_postamble_int 4th arg be XS subs destination
+- make pdlpp_postamble 4th arg be XS subs destination
 - Inline::Pdlpp can take package param to put XS subs into
+- incorporated GSL CDF functions out of PDL::Stats - thanks @maggiexyz!
 
 2.037 2021-04-16
 - switch obsolete finite() to C99 isfinite()

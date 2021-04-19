@@ -175,6 +175,9 @@ Libtmp/Fit/Gaussian/Gaussian.xs
 Libtmp/GIS/Proj/Proj.c
 Libtmp/GIS/Proj/Proj.pm
 Libtmp/GIS/Proj/Proj.xs
+Libtmp/GSL/CDF/CDF.c
+Libtmp/GSL/CDF/CDF.pm
+Libtmp/GSL/CDF/CDF.xs
 Libtmp/GSL/DIFF/DIFF.c
 Libtmp/GSL/DIFF/DIFF.pm
 Libtmp/GSL/DIFF/DIFF.xs

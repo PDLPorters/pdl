@@ -151,6 +151,9 @@ RCS
 ^Libtmp/GIS/Proj/Proj\.xs
 ^Libtmp/GSL/.*\.pm$
 ^Libtmp/GSL/.*\.xs$
+^Libtmp/GSL/CDF/CDF\.c
+^Libtmp/GSL/CDF/CDF\.pm
+^Libtmp/GSL/CDF/CDF\.xs
 ^Libtmp/GSL/DIFF/D.*\.c$
 ^Libtmp/GSL/INTEG/I.*\.c$
 ^Libtmp/GSL/INTERP/.*\.c$
