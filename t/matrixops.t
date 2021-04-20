@@ -88,13 +88,15 @@ my ($lu,$perm,$par);
 lives_ok { ($lu,$perm,$par) = lu_decomp($pa) } "lu_decomp 2x2 ran OK";
 ok($par==1, "lu_decomp 2x2 correct parity");
 ok(all($perm == pdl(0,1)), "lu_decomp 2x2 correct permutation");
-my $bb = pdl([1,0]);
+my $bb = pdl([1,0], [3, 4]);
 my $xx;
 lives_ok { $xx = lu_backsub($lu,$perm,$bb) } "lu_backsub ran OK";
 my $xx_shape = pdl($xx->dims);
 my $bb_shape = pdl($bb->dims);
 ok(all($xx_shape == $bb_shape), "lu_backsub solution and input have same shape");
-ok(tapprox($xx,pdl([2/3, -1/3]),$tol), "lu_backsub LU=A (after depermutation)");
+ok(tapprox($xx->slice(',(0)'),pdl([2/3, -1/3]),$tol), "lu_backsub LU=A (after depermutation)");
+my $got = $pa x $xx->xchg(0,1);
+ok(tapprox($got,$bb->xchg(0,1),$tol), "A x actually == B") or diag "got: $got";
 }
 
 {
