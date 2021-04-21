@@ -259,7 +259,7 @@ sub gentypehashentry ($$) {
     defbval => $type->{defaultbadval},
     shortctype => $shortctype,
     realversion => $type->{realversion} || $ppsym,
-    complexversion => $type->{complexversion} || 'G',
+    complexversion => $type->{complexversion} || (!$type->{real} ? $ppsym : 'G'),
     (map +($_ => $type->{$_}), @TYPE_VERBATIM),
   };
 }

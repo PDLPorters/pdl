@@ -457,7 +457,7 @@ This is unnecessary if $pdl->badflag is known to be 1 before the slice is perfor
 See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for details.'
 ); # pp_def assgn
 
-# special functions for complex data types that somehow don't work well with
+# special functions for complex data types that don't work well with
 # the ufunc/bifunc logic
 sub cfunc {
     my ($name, $func, $make_real, $doc, %extra) = @_;

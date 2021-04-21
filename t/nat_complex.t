@@ -38,6 +38,9 @@ is zeroes($_->[0], 2)->r2C->type, $_->[1], "r2C $_->[0] -> $_->[1]"
   for [byte, 'cfloat'], [long, 'cfloat'],
     [float, 'cfloat'], [cfloat, 'cfloat'],
     [double, 'cdouble'], [cdouble, 'cdouble'];
+my $got_double = double(-1, 2);
+my $got_r2C = $got_double->r2C;
+is ''.$got_r2C->creal, ''.$got_double, 'creal(r2C) identical to orig';
 
 # dataflow from complex to real
 $ar = $x->creal;
