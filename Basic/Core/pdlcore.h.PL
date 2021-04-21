@@ -245,11 +245,6 @@ PDL_Indx  pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims,           /* Chec
                            int ndims );
 void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims,              /* Move down one row */
                         int ndims );
-void pdl_subsection( char *y, char*x, int datatype,      /* Take subsection */
-                 PDL_Indx* sec, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, int* ndims);
-void pdl_insertin( char*y, PDL_Indx* ydims, int nydims,        /* Insert pdl in pdl */
-                   char*x, PDL_Indx* xdims, int nxdims,
-                   int datatype, PDL_Indx* pos);
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
              PDL_Indx *incs, PDL_Indx offset, int ndims);
 void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set value at x,y,z... */
