@@ -710,7 +710,7 @@ need to call L</upd_data> afterward, to make sure that the
 piddle points to the new location of the underlying perl variable.
 
 Calling C<get_dataref> automatically physicalizes your piddle (see
-L<make_physical|/PDL::make_physical>).  You definitely
+L</make_physical>).  You definitely
 don't want to do anything to the SV to truncate or deallocate the
 string, unless you correspondingly call L</reshape> to make the
 PDL match its new data dimension.
@@ -1763,7 +1763,7 @@ Use explicit threading over specified dimensions (see also L<PDL::Indexing>)
  $x = zeroes 3,4,5;
  $y = $x->thread(2,0);
 
-Same as L</PDL::thread1>, i.e. uses thread id 1.
+Same as L</thread1>, i.e. uses thread id 1.
 
 =cut
 
@@ -2521,7 +2521,7 @@ Various forms of usage,
  pdl> $z = zeroes ushort, 3,2 # Create ushort array
  [ushort() etc. with no arg returns a PDL::Types token]
 
-See also L<new_from_specification|/PDL::new_from_specification>
+See also L</new_from_specification>
 for details on using piddles in the dimensions list.
 
 =cut
@@ -2562,7 +2562,7 @@ construct a one filled piddle
 
  see zeroes() and add one
 
-See also L<new_from_specification|/PDL::new_from_specification>
+See also L</new_from_specification>
 for details on using piddles in the dimensions list.
 
 =cut
