@@ -90,103 +90,6 @@ static void pdl_freedata (pdl *a) {
 	}
 }
 
-#ifdef FOOFOO_PROPAGATE_BADFLAG
-
-/*
- * this seems to cause an infinite loop in between tests 42 & 43 of
- * t/bad.t - ie
- *
- * $x = sequence( byte, 2, 3 );
- * $y = $x->slice("(1),:");
- * my $mask = sequence( byte, 2, 3 );
- * $mask = $mask->setbadif( ($mask % 3) == 2 );
- * print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
- * $x->inplace->copybad( $mask );                          <-- think this is the call
- * print "a,b == ", $x->badflag, ",", $y->badflag, "\n";
- * print "$x $y\n";
- * ok( $y->badflag, 1 );
- *
- */
-
-/* used by propagate_badflag() */
-
-void propagate_badflag_children( pdl *it, int newval ) {
-    PDL_DECL_CHILDLOOP(it)
-    PDL_START_CHILDLOOP(it)
-    {
-	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i;
-
-	for( i = trans->vtable->nparents;
-	     i < trans->vtable->npdls;
-	     i++ ) {
-
-	    pdl *child = trans->pdls[i];
-
-	    if ( newval ) child->state |=  PDL_BADVAL;
-            else          child->state &= ~PDL_BADVAL;
-
-	    /* make sure we propagate to grandchildren, etc */
-	    propagate_badflag_children( child, newval );
-
-        } /* for: i */
-    }
-    PDL_END_CHILDLOOP(it)
-} /* propagate_badflag_children */
-
-/* used by propagate_badflag() */
-
-void propagate_badflag_parents( pdl *it ) {
-    PDL_DECL_CHILDLOOP(it)
-    PDL_START_CHILDLOOP(it)
-    {
-	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i;
-
-	for( i = 0;
-	     i < trans->vtable->nparents;
-	     i++ ) {
-
-	    pdl *parent = trans->pdls[i];
-
-	    /* only sets allowed here */
-	    parent->state |= PDL_BADVAL;
-
-	    /* make sure we propagate to grandparents, etc */
-	    propagate_badflag_parents( parent );
-
-        } /* for: i */
-    }
-    PDL_END_CHILDLOOP(it)
-} /* propagate_badflag_parents */
-
-/*
- * we want to change the bad flag of the children
- * (newval = 1 means set flag, 0 means clear it).
- * If newval == 1, then we also loop through the
- * parents, setting their bad flag
- *
- * thanks to Christian Soeller for this
- */
-
-void propagate_badflag( pdl *it, int newval ) {
-   /* only do anything if the flag has changed - do we need this check ? */
-   if ( newval ) {
-      if ( (it->state & PDL_BADVAL) == 0 ) {
-         propagate_badflag_parents( it );
-         propagate_badflag_children( it, newval );
-      }
-   } else {
-      if ( (it->state & PDL_BADVAL) > 0 ) {
-         propagate_badflag_children( it, newval );
-      }
-
-   }
-
-} /* propagate_badflag */
-
-#else        /* FOOFOO_PROPAGATE_BADFLAG */
-
 /* newval = 1 means set flag, 0 means clear it */
 /* thanks to Christian Soeller for this */
 
@@ -212,8 +115,6 @@ void propagate_badflag( pdl *it, int newval ) {
     }
     PDL_END_CHILDLOOP(it)
 } /* propagate_badflag */
-
-#endif    /* FOOFOO_PROPAGATE_BADFLAG */
 
 void propagate_badvalue( pdl *it ) {
     PDL_DECL_CHILDLOOP(it)
