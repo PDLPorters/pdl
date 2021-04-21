@@ -3,9 +3,6 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 our ($GSL_includes, $GSL_libs); 
-my $msg = undef;
-my $forcebuild=0;
-my $skip = 0;
 
 sub gsl_integ_links_ok {
   my($lib,$inc) = @_;
@@ -32,23 +29,11 @@ EOI
   F.params = 0;
  
   ierr = gsl_integration_qng(&F,1.0,2.0,0.0,1e-6,&result,&abserr,&neval);
-
 EOB
 }
 
-if (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==0) {
-  $msg = "Will skip build of PDL::GSL::INTEG on this system\n";
-  $skip = 1;
-} elsif (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==1) {
-  $forcebuild=1;
-}
-
-if (($skip && !$forcebuild) ||
-    !gsl_integ_links_ok($GSL_libs, $GSL_includes)) {
-  warn "trying to force GSL build but link test failed\n".
-    "\t -- aborting GSL build\n" if $forcebuild;
-  $msg .= "GSL Libraries not found... Skipping build of PDL::GSL::INTEG.\n";
-  write_dummy_make( $msg );
+if (!gsl_integ_links_ok($GSL_libs, $GSL_includes)) {
+  write_dummy_make( "Skipping build of PDL::GSL::INTEG." );
   return;
 }
 

@@ -19,23 +19,8 @@ EOI
 EOB
 }
 
-my $skip = 0;
-my $msg = undef;
-my $forcebuild=0;
-
-if (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==0) {
-  $msg = "Will skip build of PDL::GSLSF on this system\n";
-  $skip = 1;
-} elsif (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==1) {
-  $forcebuild=1;
-}
-
-if (($skip && !$forcebuild) ||
-    !gsl_sf_links_ok($GSL_libs, $GSL_includes)) {
-  warn "trying to force GSL build but link test failed\n".
-    "\t -- aborting GSL build\n" if $forcebuild;
-  $msg .= "GSL Libraries not found... Skipping build of PDL::GSLSF.\n";
-  write_dummy_make( $msg );
+if (!gsl_sf_links_ok($GSL_libs, $GSL_includes)) {
+  write_dummy_make( "Skipping build of PDL::GSLSF." );
   return;
 }
 

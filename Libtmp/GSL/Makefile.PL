@@ -64,11 +64,7 @@ undef &MY::postamble; # suppress warning
 *MY::postamble = sub {};
 if (! $new_enough) {
    write_dummy_make("Not building GSL modules: GSL version $version found, but need at least $MINVERSION");
-   $PDL::Config{WITH_GSL} = 0;
-} elsif ( defined($PDL::Config{WITH_GSL}) and ! $PDL::Config{WITH_GSL} ) {
-   write_dummy_make("Not building GSL modules: WITH_GSL=> 0");
 } else {
-   $PDL::Config{WITH_GSL} = 1;
    WriteMakefile(
       'NAME'	=> 'PDL::GSL',
        NO_MYMETA => 1,

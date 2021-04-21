@@ -3,9 +3,6 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 our ($GSL_includes, $GSL_libs); 
-my $msg = undef;
-my $forcebuild=0;
-my $skip = 0;
 
 sub gsl_interp_links_ok {
   my($lib,$inc) = @_;
@@ -17,16 +14,14 @@ sub gsl_interp_links_ok {
 #include <gsl/gsl_spline.h>
 EOI
 	<< 'EOB', $lib, $inc);
-
   int i;
   double xi, yi, x[10], y[10];
 
-  for (i = 0; i < 10; i++)
-    {
-      x[i] = i + 0.5 * sin (i);
-      y[i] = i + cos (i * i);
+  for (i = 0; i < 10; i++) {
+    x[i] = i + 0.5 * sin (i);
+    y[i] = i + cos (i * i);
   }
- {
+  {
     gsl_interp_accel *acc 
       = gsl_interp_accel_alloc ();
     gsl_spline *spline 
@@ -39,23 +34,11 @@ EOI
     gsl_spline_free (spline);
     gsl_interp_accel_free(acc);
   }
-
 EOB
 }
 
-if (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==0) {
-  $msg = "Will skip build of PDL::GSL::INTERP on this system\n";
-  $skip = 1;
-} elsif (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==1) {
-  $forcebuild=1;
-}
-
-if (($skip && !$forcebuild) ||
-    !gsl_interp_links_ok($GSL_libs, $GSL_includes)) {
-  warn "trying to force GSL build but link test failed\n".
-    "\t -- aborting GSL build\n" if $forcebuild;
-  $msg .= "GSL Libraries not found... Skipping build of PDL::GSL::INTERP.\n";
-  write_dummy_make( $msg );
+if (!gsl_interp_links_ok($GSL_libs, $GSL_includes)) {
+  write_dummy_make( "Skipping build of PDL::GSL::INTERP." );
   return;
 }
 

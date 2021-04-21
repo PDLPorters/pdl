@@ -3,9 +3,6 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 our ($GSL_includes, $GSL_libs); 
-my $msg = undef;
-my $forcebuild=0;
-my $skip = 0;
 
 sub gsl_mroot_links_ok {
   my($lib,$inc) = @_;
@@ -70,19 +67,8 @@ EOI
 EOB
 }
 
-if (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==0) {
-  $msg = "Will skip build of PDL::GSL::MROOT on this system\n";
-  $skip = 1;
-} elsif (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==1) {
-  $forcebuild=1;
-}
-
-if (($skip && !$forcebuild) ||
-    !gsl_mroot_links_ok($GSL_libs, $GSL_includes)) {
-  warn "trying to force GSL build but link test failed\n".
-    "\t -- aborting GSL build\n" if $forcebuild;
-  $msg .= "GSL Libraries not found... Skipping build of PDL::GSL::MROOT.\n";
-  write_dummy_make( $msg );
+if (!gsl_mroot_links_ok($GSL_libs, $GSL_includes)) {
+  write_dummy_make( "Skipping build of PDL::GSL::MROOT." );
   return;
 }
 
