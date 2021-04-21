@@ -27,13 +27,6 @@
 
 Core PDL; /* Struct holding pointers to shared C routines */
 
-#ifdef FOO
-Core *pdl__Core_get_Core() /* INTERNAL TO CORE! DONT CALL FROM OUTSIDE */
-{
-	return PDL;
-}
-#endif
-
 int pdl_debugging=0;
 int pdl_autopthread_targ   = 0; /* No auto-pthreading unless set using the set_autopthread_targ */
 int pdl_autopthread_actual = 0;

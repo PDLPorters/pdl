@@ -358,8 +358,6 @@ print OUT <<'!NO!SUBS!';
 
 typedef struct Core Core;
 
-Core *pdl__Core_get_Core(); /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
-
 /* __PDLCORE_H */
 #endif
 
