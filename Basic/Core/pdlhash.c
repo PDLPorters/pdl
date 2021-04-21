@@ -47,12 +47,6 @@ void pdl_grow (pdl* a, PDL_Indx newsize) {
    if (ncurr == nbytes)
       return;    /* Nothing to be done */
 
-/* We don't want to do this: if someone is resizing it
- * but wanting to preserve data.. */
-#ifdef FEOIJFOESIJFOJE
-   if (ncurr>nbytes)  /* Nuke back to zero */
-      sv_setpvn(foo,"",0);
-#endif
    if(nbytes > (1024*1024*1024)) {
      SV *sv = get_sv("PDL::BIGPDL",0);
      if(sv == NULL || !(SvTRUE(sv)))

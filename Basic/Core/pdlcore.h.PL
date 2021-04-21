@@ -182,7 +182,6 @@ void pdl_reallocdims ( pdl *it,int ndims );  /* reallocate dims and incs */
 void pdl_reallocthreadids ( pdl *it,int ndims );  /* reallocate threadids */
 void pdl_resize_defaultincs ( pdl *it );     /* Make incs out of dims */
 void pdl_unpackarray ( HV* hash, char *key, PDL_Indx *dims, int ndims );
-void pdl_print(pdl *it);
 void pdl_dump(pdl *it);
 void pdl_allocdata(pdl *it);
 

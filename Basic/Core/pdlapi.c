@@ -602,19 +602,6 @@ void pdl_setdims_careful(pdl *it)
         pdl_reallocthreadids(it,0); /* XXX For now */
 }
 
-void pdl_print(pdl *it) {
-#ifdef FOO
-   int i;
-   printf("PDL %d: sv = %d, data = %d, datatype = %d, nvals = %d, ndims = %d\n",
-   	(int)it, (int)(it->hash), (int)(it->data), it->datatype, it->nvals, it->ndims);
-   printf("Dims: ");
-   for(i=0; i<it->ndims; i++) {
-   	printf("%d(%d) ",it->dims[i],it->dimincs[i]);
-   }
-   printf("\n");
-#endif
-}
-
 /* pdl_get is now vaffine aware */
 PDL_Anyval pdl_get(pdl *it,PDL_Indx *inds) {
         int i;
@@ -762,12 +749,6 @@ void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,int nth)
 		it->trans = trans;
 		it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED ;
 		trans->pdls[nth] = it;
-#ifdef FOOBARBAR
-		if(trans->flags & PDL_ITRANS_DO_DATAFLOW_F)
-			it->state |= PDL_DATAFLOW_F;
-		if(trans->flags & PDL_ITRANS_DO_DATAFLOW_B)
-			it->state |= PDL_DATAFLOW_B;
-#endif
 	}
 }
 
@@ -875,13 +856,6 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		}
 	  }
   }
-
-#ifdef FOO
-/* If we are not flowing, we must disappear */
-  if(!(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY)) {
-  	pdl_destroytransform(trans,1);
-  }
-#endif
 
   PDLDEBUG_f(printf("make_trans_mutual_exit %p\n",(void*)trans));
 
