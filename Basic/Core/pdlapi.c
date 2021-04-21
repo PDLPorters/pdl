@@ -327,12 +327,7 @@ pdl *pdl_hard_copy(pdl *src) {
 	pdl_setdims(it,src->dims,src->ndims);
 	pdl_allocdata(it);
 
- /* null != [0] */
-#ifdef ELIFSLEFJSEFSE
-	if(src->ndims == 1 && src->dims[0] == 0)
-#else
 	if(src->state & PDL_NOMYDIMS)
-#endif
 		it->state |= PDL_NOMYDIMS;
 
 	pdl_reallocthreadids(it,src->nthreadids);
