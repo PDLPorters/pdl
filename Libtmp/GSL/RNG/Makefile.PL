@@ -7,9 +7,6 @@ my $msg = undef;
 my $forcebuild=0;
 my $skip = 0;
 
-# this Makefile uses get_gsl_libs which is defined in
-# the parent Makefile.PL
-
 sub gsl_rng_links_ok {
   my($lib,$inc) = @_;
   return defined($lib) && defined($inc) &&
