@@ -1,3 +1,5 @@
+- update lu_backsub docs with comparison to other linear algebra code
+
 2.038 2021-04-19
 - make pdlpp_postamble 4th arg be XS subs destination
 - Inline::Pdlpp can take package param to put XS subs into

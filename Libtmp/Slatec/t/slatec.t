@@ -1,7 +1,7 @@
-# -*-perl-*-
 use PDL::LiteF;
 use Test::More;
 use PDL::Slatec;
+use PDL::MatrixOps qw(identity);
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -256,5 +256,14 @@ echbs( $x, $f, $d, 0, $nknots, $t, $bcoef, $ndim, $kord, $err );
 ok(all($err == 0));
 exit(0);
 =cut
+
+my $A = identity(4) + ones(4, 4);
+$A->slice('2,0') .= 0; # break symmetry to see if need transpose
+my $B = sequence(2, 4);
+gefa(my $lu=$A->copy, my $ipiv=null, my $info=null);
+gesl($lu, $ipiv, my $x=$B->xchg(0,1)->copy, 1); # 1 = do transpose - why needed!??
+$x = $x->inplace->xchg(0,1);
+my $got = $A x $x;
+ok tapprox $got, $B or diag "got: $got";
 
 done_testing;

@@ -1134,18 +1134,46 @@ pp_addpm(<<'EOD');
 
 =for ref
 
-Solve a x = b for matrix a, by back substitution into a's LU decomposition.
+Solve A x = B for matrix A, by back substitution into A's LU decomposition.
 
 =for usage
 
-  ($lu,$perm,$par) = lu_decomp($x);
-  
-  $x = lu_backsub($lu,$perm,$par,$y);  # or
-  $x = lu_backsub($lu,$perm,$y);       # $par is not required for lu_backsub
-  
-  lu_backsub($lu,$perm,$y->inplace); # modify $y in-place
-  
-  $x = lu_backsub(lu_decomp($x),$y); # (ignores parity value from lu_decomp)
+  ($lu,$perm,$par) = lu_decomp($A);
+
+  $x = lu_backsub($lu,$perm,$par,$A);  # or
+  $x = lu_backsub($lu,$perm,$B);       # $par is not required for lu_backsub
+
+  lu_backsub($lu,$perm,$B->inplace); # modify $B in-place
+
+  $x = lu_backsub(lu_decomp($A),$B); # (ignores parity value from lu_decomp)
+
+  # starting from square matrix A and columns matrix B, with mathematically
+  # correct dimensions
+  $A = identity(4) + ones(4, 4);
+  $A->slice('2,0') .= 0; # break symmetry to see if need transpose
+  $B = sequence(2, 4);
+  # all these functions take B as rows, interpret as though notional columns
+  # mathematically confusing but can't change as back-compat and also
+  # familiar to Fortran users, so just transpose inputs and outputs
+
+  # using lu_backsub
+  ($lu,$perm,$par) = lu_decomp($A);
+  $x = lu_backsub($lu,$perm,$par, $B->xchg(0,1))->xchg(0,1);
+
+  # or with Slatec LINPACK
+  use PDL::Slatec;
+  gefa($lu=$A->copy, $ipiv=null, $info=null);
+  gesl($lu, $ipiv, $x=$B->xchg(0,1)->copy, 1); # 1 = do transpose - why needed!??
+  $x = $x->inplace->xchg(0,1);
+
+  # or with LAPACK
+  use PDL::LinearAlgebra::Real;
+  getrf($lu=$A->copy, $ipiv=null, $info=null);
+  getrs($lu, 1, $x=$B->xchg(0,1)->copy, $ipiv, $info=null); # again, need transpose
+  $x=$x->inplace->xchg(0,1);
+
+  # proof of the pudding is in the eating:
+  print $A x $x;
 
 =for description
 
