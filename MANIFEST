@@ -720,6 +720,7 @@ Perldl2/Script.pm
 Perldl2/TODO
 README
 t/00-report-prereqs.t
+t/01-pptest.t
 t/autoload.t
 t/bad.t
 t/basic.t
@@ -746,7 +747,6 @@ t/pdl_from_string.t
 t/pdlchar.t
 t/pp_croaking.t
 t/pp_line_numbers.t
-t/pptest.t
 t/primitive.t
 t/pthread.t
 t/reduce.t
