@@ -311,6 +311,12 @@ SKIP: {
 }
 
 {
+my $x = cdouble(2, 3);
+PDL::Core::set_c($x, [1], ci());
+is $x.'', '[2+0i 0+1i]', 'set_c can take piddle value';
+}
+
+{
 my $pa = zeroes(20);
 $pa->hdrcpy(1);
 $pa->dump;

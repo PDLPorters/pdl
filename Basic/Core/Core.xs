@@ -772,6 +772,7 @@ BOOT:
    PDL.unpackdims  = pdl_unpackdims;
    PDL.setdims     = pdl_setdims;
    PDL.grow        = pdl_grow;
+   PDL.at0         = pdl_at0;
    PDL.flushcache  = NULL;
    PDL.reallocdims = pdl_reallocdims;
    PDL.reallocthreadids = pdl_reallocthreadids;

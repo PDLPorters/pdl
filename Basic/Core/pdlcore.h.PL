@@ -277,6 +277,7 @@ struct Core {
     void   (*unpackdims)  ( SV* sv, PDL_Indx *dims,    /* Unpack */
                             int ndims );
     void   (*grow)        ( pdl* a, PDL_Indx newsize); /* Change pdl 'Data' size */
+    PDL_Anyval (*at0)     ( pdl* x );
     void (*flushcache)( pdl *thepdl );	     /* flush cache */
     void (*reallocdims) ( pdl *it,int ndims );  /* reallocate dims and incs */
     void (*reallocthreadids) ( pdl *it,int ndims );

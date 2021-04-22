@@ -17,6 +17,9 @@ T_PDL_ANYVAL
 	if (!SvOK($arg)) {
 		$var.type = -1;
 		$var.value.B = 0;
+	} else if(sv_derived_from($arg,\"PDL\")) {
+		pdl *it = SvPDLV($arg);
+		$var = pdl_at0(it);
 	} else if (SvIOK($arg)) {
 	\#if IVSIZE == 8
 		$var.type = PDL_LL;

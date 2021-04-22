@@ -1,3 +1,6 @@
+# this file is for non-Core modules that haven't dyn-linked to Core.so
+# and therefore don't have available all its symbols, and so must access
+# Core functions via the PDL object
 TYPEMAP
 pdl*	T_PDL
 pdl *	T_PDL
@@ -17,6 +20,9 @@ T_PDL_ANYVAL
 	if (!SvOK($arg)) {
 		$var.type = -1;
 		$var.value.B = 0;
+	} else if(sv_derived_from($arg,\"PDL\")) {
+		pdl *it = PDL->SvPDLV($arg);
+		$var = PDL->at0(it);
 	} else if (SvIOK($arg)) {
 	\#if IVSIZE == 8
 		$var.type = PDL_LL;
