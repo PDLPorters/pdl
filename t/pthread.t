@@ -2,8 +2,8 @@ use strict;
 use warnings;
 use Test::More;
 use PDL::LiteF;
+use PDL::Config;
 use Benchmark qw(timethese :hireswallclock);
-use PDL::Image2D;
 
 plan skip_all => 'No threads' if !PDL::Core::pthreads_enabled;
 
@@ -161,28 +161,13 @@ eval{
 
 like( $@, qr/identical abscissas/ , "interpolate barf" );
 
-## Now Check Warning Messages with pthreading ###
-# Create an array of 2 bogus polygon indexes (bogus due to negative indexes)
-#  Thes will make polyfill emit a warning message.
-
-# Single polygon
-my $poly = pdl([-1,1], [0,0]);
-$poly = $poly->reorder(1,0);
-
-# make second polygon have same indexes
-my $poly2 = $poly->copy;
-$poly = cat $poly, $poly2;
-
-my $mask = zeroes(5,5);
-
-# Because of the negative indexes, a warning message will be printed,
-# which will cause segfault wheen pthreaded, if messages not deferred
-# properly
-# Setup to catch warning messages
-local $SIG{__WARN__} = sub { die $_[0] };
-
-eval{ polyfill($mask, $poly, 1) };
-
-like( $@, qr/errors during polygonfilling/, "polyfill barf" );
+if (!$PDL::Config{BADVAL_USENAN}) {
+  # warning message segfaults when pthreaded if messages not deferred properly
+  my $mask = zeroes(5,5);
+  local $SIG{__WARN__} = sub { die $_[0] };
+  $mask->badvalue(1);
+  eval{ PDL::gt($mask, 2, 0) };
+  like( $@, qr/Badvalue is set to/, "safe barf" );
+}
 
 done_testing;
