@@ -414,8 +414,12 @@ ppm : doctest ppd
 EOT
 
 $text .= "\n" . ::coretarget($self);
-my $coretest = join ' ', map File::Spec->catfile('t', $_),
-  qw(core.t ops.t bad.t nat_complex.t);
+my $coretest = join ' ', map File::Spec->catfile('t', $_.'.t'), qw(
+  autoload bad basic bool clump config constructor core croak lvalue
+  math matrix matrixops nat_complex ops-bitwise ops pdl_from_string
+  pp_croaking pp_line_numbers pptest primitive pthread reduce
+  slice subclass thread thread_def ufunc
+);
 $text .= <<EOF;
 
 coretest : core
