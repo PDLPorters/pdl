@@ -976,11 +976,8 @@ sub PDL::Core::new_pdl_from_string {
 
    # I check for invalid characters later, but arbitrary strings of e will
    # pass that check, so I'll check for that here, first.
-#   croak("PDL::Core::new_pdl_from_string: I found consecutive copies of e but\n"
-#      . "  I'm not sure what you mean. You gave me $original_value")
-#      if ($value =~ /ee/i);
    croak("PDL::Core::new_pdl_from_string: found 'e' as part of a larger word in $original_value")
-      if $value =~ /e\p{IsAlpha}/ or $value =~ /\p{IsAlpha}e/;
+      if $value =~ /e\p{IsAlpha}|\p{IsAlpha}e/;
 
    # Only a few characters are allowed in the expression, but we want to allow
    # expressions like 'inf' and 'bad'. As such, convert those values to internal
@@ -992,12 +989,12 @@ sub PDL::Core::new_pdl_from_string {
    #  pi  => eE
    # --( Bad )--
    croak("PDL::Core::new_pdl_from_string: found 'bad' as part of a larger word in $original_value")
-      if $value =~ /bad\B/ or $value =~ /\Bbad/;
+      if $value =~ /bad\B|\Bbad/;
    my ($has_bad) = ($value =~ s/\bbad\b/EE/gi);
    # --( nan )--
    my ($has_nan) = 0;
    croak("PDL::Core::new_pdl_from_string: found 'nan' as part of a larger word in $original_value")
-      if $value =~ /\Bnan/ or $value =~ /nan\B/;
+      if $value =~ /\Bnan|nan\B/;
    $has_nan++ if ($value =~ s/\bnan\b/ee/gi);
    # Strawberry Perl compatibility:
    croak("PDL::Core::new_pdl_from_string: found '1.#IND' as part of a larger word in $original_value")
@@ -1011,11 +1008,11 @@ sub PDL::Core::new_pdl_from_string {
    $has_inf++ if ($value =~ s/1\.\#INF/Ee/gi);
    # Other platforms:
    croak("PDL::Core::new_pdl_from_string: found 'inf' as part of a larger word in $original_value")
-      if $value =~ /inf\B/ or $value =~ /\Binf/;
+      if $value =~ /inf\B|\Binf/;
    $has_inf++ if ($value =~ s/\binf\b/Ee/gi);
    # --( pi )--
    croak("PDL::Core::new_pdl_from_string: found 'pi' as part of a larger word in $original_value")
-      if $value =~ /pi\B/ or $value =~ /\Bpi/;
+      if $value =~ /pi\B|\Bpi/;
    $value =~ s/\bpi\b/eE/gi;
 
    # Some data types do not support nan and inf, so check for and warn or croak,
@@ -1075,7 +1072,7 @@ sub PDL::Core::new_pdl_from_string {
    # these with bad values, but that is more difficult that I like, so I'm just
    # going to disallow that here:
    croak("PDL::Core::new_pdl_from_string: Operations with bad values are not supported")
-      if($value =~ /EE[+\-]/ or $value =~ /[+\-]EE/);
+      if($value =~ /EE[+\-]|[+\-]EE/);
 
    # Check for things that will evaluate as functions and croak if found
    if (my ($disallowed) = ($value =~ /((\D+|\A)[eE]\d+)/)) {
