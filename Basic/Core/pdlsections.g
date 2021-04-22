@@ -53,7 +53,7 @@ PDL_Indx pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims, int ndims ){
    return count;
 }
 
-/* Increrement a position pointer array by one row */
+/* Increment a position pointer array by one row */
 
 void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, int ndims ) {
 
@@ -76,6 +76,18 @@ void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, int ndims ) {
           noescape = 0;    /* Exit */
        }
     }
+}
+
+/* wrapper for pdl_at where only want first item, cf sclr_c */
+PDL_Anyval pdl_at0( pdl* it ) {
+    PDL_Indx nullp = 0;
+    PDL_Indx dummyd = 1;
+    PDL_Indx dummyi = 1;
+    pdl_make_physvaffine( it );
+    if (it->nvals < 1)
+       croak("piddle must have at least one element");
+    return pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
+            &dummyi, PDL_REPROFFS(it),1);
 }
 
 /* Return value at position (x,y,z...) */

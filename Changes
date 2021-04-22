@@ -1,5 +1,6 @@
 - update lu_backsub docs with comparison to other linear algebra code
 - fix "complex" type-qualifier bug affecting native-complex r2C
+- add core pdl_at0
 
 2.038 2021-04-19
 - make pdlpp_postamble 4th arg be XS subs destination

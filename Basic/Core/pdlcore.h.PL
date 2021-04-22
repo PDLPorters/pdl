@@ -244,6 +244,7 @@ PDL_Indx  pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims,           /* Chec
                            int ndims );
 void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims,              /* Move down one row */
                         int ndims );
+PDL_Anyval pdl_at0( pdl* x );
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
              PDL_Indx *incs, PDL_Indx offset, int ndims);
 void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set value at x,y,z... */

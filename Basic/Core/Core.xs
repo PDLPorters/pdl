@@ -500,21 +500,12 @@ SV *
 sclr_c(it)
    pdl* it
    PREINIT:
-	PDL_Indx nullp = 0;
-	PDL_Indx dummyd = 1;
-	PDL_Indx dummyi = 1;
 	PDL_Anyval result = { -1, 0 };
    CODE:
         /* get the first element of a piddle and return as
          * Perl scalar (autodetect suitable type IV or NV)
          */
-        pdl_make_physvaffine( it );
-	if (it->nvals < 1)
-           croak("piddle must have at least one element");
-	/* offs = PDL_REPROFFS(it); */
-        /* result = pdl_get_offs(PDL_REPRP(it),offs); */
-        result=pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
-        &dummyi, PDL_REPROFFS(it),1);
+        result = pdl_at0(it);
         ANYVAL_TO_SV(RETVAL, result);
 
     OUTPUT:
