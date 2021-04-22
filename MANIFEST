@@ -722,7 +722,6 @@ README
 t/00-report-prereqs.t
 t/autoload.t
 t/bad.t
-t/badvalue_scalar_cmp.t
 t/basic.t
 t/bigmem.t
 t/bool.t
