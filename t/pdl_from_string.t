@@ -45,10 +45,10 @@ my $got = pdl q[1.2e3];
 is($got, $expected, "Correctly interprets [1.2e3]");
 $expected = pdl(1.2e3, 4, 5.6e-7);
 $got = pdl q[1.2e3 4 5.6e-7];
-ok(all($got == $expected), "Correclty interprets [1.2e3 4 5.6e-7]");
+ok(all($got == $expected), "Correctly interprets [1.2e3 4 5.6e-7]");
 $expected = pdl(1.2e3, 4, 5.e-7);
 $got = pdl q[1.2e3 4 5.e-7];
-ok(all($got == $expected), "Correclty interprets [1.2e3 4 5.e-7]");
+ok(all($got == $expected), "Correctly interprets [1.2e3 4 5.e-7]");
 
 # Signs and operators #
 # This functionality does not with the parsed (as opposed to eval'd) method
@@ -300,46 +300,38 @@ isnt($@, '', 'croaks with non-interpolated strings');
 
 # Install a function that knows if it's been executed.
 {
-	no warnings 'redefine';
 	my $e_was_run = 0;
 	sub PDL::Core::e { $e_was_run++ }
+	sub PDL::Core::e123 { $e_was_run++ }
 	my $to_check = q[1 e 2];
-	sub PDL::Core::e { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
 	$to_check = q[1 +e 2];
-	sub PDL::Core::e { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
 	$to_check = q[1 e+ 2];
-	sub PDL::Core::e { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
 	$to_check = q[1e 2];
-	sub PDL::Core::e { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
 	$to_check = q[1e+ 2];
-	sub PDL::Core::e { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
 	$to_check = q[1+e 2];
-	sub PDL::Core::e { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
 	$to_check = q[1+e+ 2];
-	sub PDL::Core::e { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
 	$to_check = q[1 e123 2];
-	sub PDL::Core::e123 { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e123 in [$to_check]");
 	$e_was_run = 0;
