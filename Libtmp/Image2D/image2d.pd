@@ -1,5 +1,5 @@
 use strict;
-use PDL::Types;
+use PDL::Types qw(types);
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -137,12 +137,9 @@ my %pnpolyFields = (
 	'pnpolyfill_pp' => {'pars' => '[o,nc] a(m,n); ps(k,l); int col()', 'special' => 'if(c) { $a() = $col(); }'}
 );
 
-my $R = ['B','S','U','L','N','Q','F','D']; # should be using code from Types.pm to set up.
-
 for my $name (sort keys %pnpolyFields) {
 	pp_def($name,
 		HandleBad => 0,
-		GenericTypes=>$R,
 		PMFunc => '',
 		Doc => undef,
 		Pars => $pnpolyFields{$name}->{'pars'},
@@ -196,10 +193,8 @@ pp_addhdr('
 
 ');
 
-for ( PDL::Types::typesrtkeys() ) {
-    my $ctype = $PDL::Types::typehash{$_}{ctype};
-    next if $ctype =~ /C/; # filter complex
-    my $ppsym = $PDL::Types::typehash{$_}{ppsym};
+for ( grep $_->real, types() ) {
+    my ($ctype, $ppsym) = ($_->ctype, $_->ppsym);
   pp_addhdr << "EOH";
 
 /*
@@ -624,7 +619,6 @@ Note: this routine does the median over all points in a rectangular
 
 EOD
         Pars => 'a(m,n); [o]b(m,n);',
-        GenericTypes=>$R,
 	# funny parameter names to avoid special case in 'init_vars'
         OtherPars => 'int __p_size; int __q_size; int opt;',
         PMCode => '
@@ -943,7 +937,6 @@ EOD
 
        HandleBad => 1,
         Pars => 'a(m,n); [o]val(); int [o]x(); int[o]y();',
-        GenericTypes=>$R,
         Code => '
         double cur; int curind1; int curind2;
         curind1=0;
@@ -1162,7 +1155,6 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
 ',
        HandleBad => 0, # a marker
         Pars => 'a(m,n); int+ [o]b(m,n);',
-        GenericTypes=>$R,
         OtherPars => 'int con',
         Code => '
 
@@ -1536,7 +1528,6 @@ EOD
 pp_def('bilin2d',
        HandleBad => 0,
     Pars => 'Int(n,m); O(q,p)',
-    GenericTypes=>$R,
     Doc=><<'EOD',
 
 =for ref
@@ -1584,7 +1575,6 @@ EOD
 pp_def('rescale2d',
        HandleBad => 0,
     Pars => 'Int(m,n); O(p,q)',
-    GenericTypes=>$R,
     Doc=><<'EOD',
 
 =for ref

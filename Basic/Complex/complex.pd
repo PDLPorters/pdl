@@ -1,3 +1,8 @@
+use PDL::Types qw(ppdefs ppdefs_complex types);
+my $R = [ppdefs()];
+my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
+my $C = [ppdefs_complex()];
+
 pp_beginwrap; # required for overload to work
 
 # pp_def functions go into the PDL::Complex namespace
@@ -404,7 +409,6 @@ pp_def 'i2C',
 pp_def 'Cr2p',
        Pars => 'r(m=2); float+ [o]p(m=2)',
        Inplace => 1,
-       GenericTypes=>['B','S','U','L','N','F','D'],
        Doc => 'convert complex numbers in rectangular form to polar (mod,arg) form. Works inplace',
        Code => q!
           $GENERIC() x = $r(m=>0);
@@ -417,7 +421,7 @@ pp_def 'Cr2p',
 pp_def 'Cp2r',
        Pars => 'r(m=2); [o]p(m=2)',
        Inplace => 1,
-       GenericTypes => [F,D],
+       GenericTypes => $F,
        Doc => 'convert complex numbers in polar (mod,arg) form to rectangular form. Works inplace',
        Code => q!
           $GENERIC() m = $r(m=>0);
@@ -496,7 +500,7 @@ pp_def 'Cscale',
 
 pp_def 'Cdiv',
 	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'complex division',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -521,7 +525,7 @@ pp_def 'Cdiv',
 
 pp_def 'Ccmp',
 	Pars => 'a(m=2); b(m=2); [o]c()',
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => '=for ref
 
 Complex comparison operator (spaceship).
@@ -554,7 +558,7 @@ pp_def 'Cconj',
 
 pp_def 'Cabs',
 	Pars => 'a(m=2); [o]c()',
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'complex C<abs()> (also known as I<modulus>)',
         PMCode => q^sub PDL::Complex::Cabs($) {
            my $pdl= shift;
@@ -585,7 +589,7 @@ pp_def 'Cabs2',
 
 pp_def 'Carg',
 	Pars => 'a(m=2); [o]c()',
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'complex argument function ("angle")',
         PMCode => q^sub PDL::Complex::Carg($) {
            my $pdl= shift;
@@ -601,7 +605,7 @@ pp_def 'Carg',
 pp_def 'Csin',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => '  sin (a) = 1/(2*i) * (exp (a*i) - exp (-a*i)). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -616,7 +620,7 @@ pp_def 'Csin',
 pp_def 'Ccos',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => '  cos (a) = 1/2 * (exp (a*i) + exp (-a*i)). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -650,7 +654,7 @@ EOD
 pp_def 'Cexp',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => '  exp (a) = exp (real (a)) * (cos (imag (a)) + i * sin (imag (a))). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -666,7 +670,7 @@ pp_def 'Cexp',
 pp_def 'Clog',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => '  log (a) = log (cabs (a)) + i * carg (a). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -678,7 +682,7 @@ pp_def 'Clog',
 pp_def 'Cpow',
 	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
 	Inplace => ['a'],
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'complex C<pow()> (C<**>-operator)',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -718,7 +722,7 @@ PDL_COMMENT(printf("ar: %f ai: %f\nbr: %f bi: %f\nDimsB: %ld\n",ar,ai,br,bi,$PDL
 pp_def 'Csqrt',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -730,7 +734,7 @@ pp_def 'Csqrt',
 pp_def 'Casin',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -754,7 +758,7 @@ pp_def 'Casin',
 pp_def 'Cacos',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -797,7 +801,7 @@ EOD
 pp_def 'Csinh',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => '  sinh (a) = (exp (a) - exp (-a)) / 2. Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -812,7 +816,7 @@ pp_def 'Csinh',
 pp_def 'Ccosh',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => '  cosh (a) = (exp (a) + exp (-a)) / 2. Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -827,7 +831,7 @@ pp_def 'Ccosh',
 pp_def 'Ctanh',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -845,7 +849,7 @@ pp_def 'Ctanh',
 pp_def 'Casinh',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -864,7 +868,7 @@ pp_def 'Casinh',
 pp_def 'Cacosh',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -884,7 +888,7 @@ pp_def 'Cacosh',
 pp_def 'Catanh',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -901,7 +905,7 @@ pp_def 'Catanh',
 pp_def 'Cproj',
 	Pars => 'a(m=2); [o]c(m=2)',
 	Inplace => 1,
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'compute the projection of a complex number to the riemann sphere. Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
@@ -916,7 +920,7 @@ pp_def 'Cproj',
 pp_def 'Croots',
 	Pars => 'a(m=2); [o]c(m=2,n)',
         OtherPars => 'int n => n',
-        GenericTypes => [F,D],
+        GenericTypes => $F,
         Doc => 'Compute the C<n> roots of C<a>. C<n> must be a positive integer. The result will always be a complex type!',
         PMCode => q^sub PDL::Complex::Croots($$) {
            my ($pdl, $n) = @_;
@@ -965,7 +969,7 @@ EOD
 pp_def 'rCpolynomial',
        Pars => 'coeffs(n); x(c=2,m); [o]out(c=2,m)',
        Doc => 'evaluate the polynomial with (real) coefficients C<coeffs> at the (complex) position(s) C<x>. C<coeffs[0]> is the constant term.',
-       GenericTypes => [F,D],
+       GenericTypes => $F,
        PMCode=> q!
 sub rCpolynomial {
     my $coeffs = shift;

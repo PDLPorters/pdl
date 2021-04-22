@@ -457,7 +457,6 @@ pp_bless('PDL::Graphics::IIS');
 
 pp_def('_iis',
         Pars => 'image(m,n); min(); max();',
-        GenericTypes=>['B','S','U','L','N','F','D'],
         OtherPars => 'char *perl_title',
 	Doc  => undef,
         Code => '

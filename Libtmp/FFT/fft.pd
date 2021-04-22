@@ -1,3 +1,5 @@
+use PDL::Types qw(types);
+my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 
 pp_addpm({At=>Top},<<'EOD');
 =head1 NAME
@@ -121,7 +123,7 @@ fft_free()
 pp_def('_fft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
 	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
-	GenericTypes => [F,D],
+	GenericTypes => $F,
 	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), -1, 1.);',
 	Doc=>undef
 );
@@ -129,7 +131,7 @@ pp_def('_fft',
 pp_def('_ifft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
 	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
-	GenericTypes => [F,D],
+	GenericTypes => $F,
 	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
 	Doc=>undef
 );
@@ -181,7 +183,7 @@ sub PDL::fft {
 	# Convert the first argument to decimal and check for trouble.
 	my $re=$_[0];
 	my $im=$_[1];
-	if ($re->type =~ m/cdouble|cfloat/) {
+	if (!$re->type->real) {
 		$im=cimag($re);
 		$re=creal($re);
 	}
@@ -200,7 +202,7 @@ sub PDL::fft {
 		barf($message);
 	}
 	_fft($re,$im);
-	if ($_[0]->type =~ m/cdouble|cfloat/) {
+	if (!$_[0]->type->real) {
 		$_[0]= $re+ci()*$im;
 	} else {
 		$_[0]=$re,$_[1]=$im;
@@ -231,7 +233,7 @@ sub PDL::ifft {
 	# Convert the first argument to decimal and check for trouble.
 	my $re=$_[0];
 	my $im=$_[1];
-	if ($re->type =~ m/cdouble|cfloat/) {
+	if (!$re->type->real) {
 		$im=cimag($re);
 		$re=creal($re);
 	}
@@ -250,7 +252,7 @@ sub PDL::ifft {
 		barf($message);
 	}
 	_ifft($re,$im);
-	if ($_[0]->type =~ m/cdouble|cfloat/) {
+	if (!$_[0]->type->real) {
 		$_[0]= $re+ci()*$im;
 	} else {
 		$_[0]=$re,$_[1]=$im;
@@ -335,7 +337,7 @@ N-dimensional FFT over all pdl dims of input (inplace)
 sub PDL::fftnd {
     barf "Must have real and imaginary parts for fftnd" if $#_ != 1;
     my ($r,$i) = @_;
-    if ($r->type =~m/cdouble|cfloat/ ) {
+    if (!$r->type->real) {
 	$i=cimag $r;
 	$r=creal $r;
     }
@@ -352,7 +354,7 @@ sub PDL::fftnd {
       $r = $r->mv(0,$n);
       $i = $i->mv(0,$n);
     }
-    if ($_[0]->type =~m/cdouble|cfloat/ ) {
+    if (!$_[0]->type->real) {
 	$_[0]=$r+ci()*$i;
     } else {
 	$_[0] = $r; $_[1] = $i;
@@ -377,7 +379,7 @@ N-dimensional inverse FFT over all pdl dims of input (inplace)
 sub PDL::ifftnd {
     barf "Must have real and imaginary parts for ifftnd" if $#_ != 1;
     my ($r,$i) = @_;
-    if ($r->type =~m/cdouble|cfloat/ ) {
+    if (!$r->type->real) {
 	$r=creal $r;
 	$i=cimag $r;
     }
@@ -394,7 +396,7 @@ sub PDL::ifftnd {
       $r = $r->mv(0,$n);
       $i = $i->mv(0,$n);
     }
-    if ($_[0]->type =~m/cdouble|cfloat/ ) {
+    if (!$_[0]->type->real) {
 	$_[0]=$r+ci()*$i;
     } else {
 	$_[0] = $r; $_[1] = $i;
@@ -410,7 +412,7 @@ EOD
 if (0) {
 pp_def('fftnd',
 	Pars => 'int dims(n); [o,nc]real(m); [o,nc]imag(m);',
-	GenericTypes => [F,D],
+	GenericTypes => $F,
         PMCode => '
 
 sub PDL::fftnd{
@@ -441,7 +443,7 @@ sub PDL::fftnd{
 
 pp_def('ifftnd',
 	Pars => 'int dims(n); [o,nc]real(m); [o,nc]imag(m);',
-	GenericTypes => [F,D],
+	GenericTypes => $F,
         PMCode => '
 
 sub PDL::ifftnd{
@@ -530,7 +532,7 @@ sub PDL::fftconvolve {
 sub PDL::fftconvolve_inplace {
     barf "Must have image & kernel for fftconvolve" if $#_ != 1;
     my ($hr, $hi) = @_;
-    if ($hr->type =~m/cdouble|cfloat/) {
+    if (!$hr->type->real) {
 	$hi=cimag($hr);
 	$hr=creal($hr);
     }
@@ -560,7 +562,7 @@ sub PDL::fftconvolve_inplace {
     $hi->clump(-1)->set(0,0.);
     ifftnd($hr,$hi);
     # convert back to complex if input was complex
-    if ($_[0]->type =~m/cdouble|cfloat/) {
+    if (!$_[0]->type->real) {
 	$_[0]=$hr+ci()*$hi;
 	return $_[0];
     } else {
@@ -574,11 +576,8 @@ EOD
 # convmath does local part of the maths necessary to handle a,b which
 # result from FFT of image & kernel in parallel.
 
-my $R = ['B','S','U','L','N','Q','F','D']; # should be using code from Types.pm to set up.
-
 pp_def('convmath',
 	Pars => '[o,nc]a(m); [o,nc]b(m);',
-	GenericTypes=>$R,
 	Code => '
 	$GENERIC() t1, t2;
 	loop(m) %{
@@ -594,7 +593,6 @@ pp_def('convmath',
 
 pp_def('cmul',
 	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
-	GenericTypes=>$R,
 	Code => '
 	$GENERIC() ar, ai, br, bi;
 	   ar = $ar();
@@ -625,7 +623,6 @@ our $abs_string .= "types($_) %{" . $ah{$_} . '(br) > ' . $ah{$_} . "(bi)%}\n" f
 
 pp_def('cdiv',
 	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
-	GenericTypes=>$R,
 	Code => '
 	$GENERIC() ar, ai, br, bi, tt, dn;
 	   ar = $ar();

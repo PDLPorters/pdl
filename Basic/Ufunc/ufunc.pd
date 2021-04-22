@@ -1,6 +1,9 @@
 use strict;
 use PDL::Types qw(types ppdefs_complex);
 
+my $T = [map $_->ppsym, grep $_->integer, types];
+my $C = [ppdefs_complex];
+
 pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
@@ -101,10 +104,6 @@ $extras
 EOD
 
 } # sub: cumuprojectdocs()
-
-my $R = [map $_->ppsym, grep $_->real, types];
-my $T = [map $_->ppsym, grep $_->integer, types];
-my $C = [ppdefs_complex];
 
 # it's a bit unclear what to do with the comparison operators,
 # since the return value could be bad because all elements are bad,
@@ -508,11 +507,8 @@ EOD
 # note: we export them to the PDL Core structure for use in
 #       other modules (eg Image2D)
 
-for ( PDL::Types::typesrtkeys() ) {
-    my $ctype = $PDL::Types::typehash{$_}{ctype};
-    my $ppsym = $PDL::Types::typehash{$_}{ppsym};
-	next if (grep { $ppsym =~ m/$_/ } @$C ); # sorting of complex numbers not well defined
-
+for ( grep $_->real, types() ) {
+    my ($ctype, $ppsym) = ($_->ctype, $_->ppsym);
     pp_add_boot( " PDL->qsort_${ppsym} = pdl_qsort_${ppsym};" .
 		 " PDL->qsort_ind_${ppsym} = pdl_qsort_ind_${ppsym};\n" );
 
@@ -728,7 +724,6 @@ pp_def(
        HandleBad => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('median','medover',''),
-       GenericTypes=>$R,
        Code => 
        "PDL_Indx nn2;\n" . $copy_to_temp_good . $find_median_average,
        BadCode =>
@@ -753,7 +748,6 @@ value. The lower-odd median is just the lower of these two values
 and so it ALWAYS sits on an actual data value which is useful in
 some circumstances.
 	'),
-       GenericTypes=>$R,
        Code => 
        $copy_to_temp_good . $find_median_lower,
        BadCode =>
@@ -876,7 +870,6 @@ I<any> dimension.
 
 
 ',
-       GenericTypes=>$R,
        Code => '
            double np, pp1, pp2;
            PDL_Indx nn2;
@@ -921,7 +914,6 @@ I<any> dimension.
 
 
 ',
-       GenericTypes=>$R,
        Code => '
            PDL_Indx np;
 	   ' . $copy_to_temp_good . '
@@ -1146,7 +1138,6 @@ pp_def(
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n); [o]b(n);',
-    GenericTypes=>$R,
     Code => 
     'PDL_Indx nn;
      loop(n) %{ $b() = $a(); %}
@@ -1199,7 +1190,6 @@ pp_def(
        'qsorti',
        HandleBad => 1,
        Pars => 'a(n); indx [o]indx(n);',
-       GenericTypes=>$R,
        Code => 
        'PDL_Indx nn = $COMP(__n_size)-1;
         if ($SIZE(n) == 0) return;
@@ -1255,7 +1245,6 @@ pp_def(
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n,m); [o]b(n,m);',
-    GenericTypes=>$R,
     Code => 
     'PDL_Indx nn;
      PDL_Indx nd;
@@ -1306,7 +1295,6 @@ pp_def(
     'qsortveci',
     HandleBad => 1,
     Pars => 'a(n,m); indx [o]indx(m);',
-    GenericTypes=>$R,
     Code => 
     'PDL_Indx nd;
      PDL_Indx nn=$COMP(__m_size)-1;
@@ -1353,7 +1341,6 @@ for my $which (
     pp_def( 
 	    $name,
 	    HandleBad => 1,
-	    GenericTypes=>$R,
 	    Pars => 'a(n); [o]c();', 
 	    Code => 
 	    '$GENERIC() cur;
@@ -1391,7 +1378,6 @@ for ways of masking NaNs.
     pp_def( 
 	    "${name}_ind",
 	    HandleBad => 1,
-	    GenericTypes=>$R,
 	    Pars => 'a(n); indx [o] c();', 
 	    Code => 
 	    '$GENERIC() cur;
@@ -1427,7 +1413,6 @@ otherwise the bad flag is cleared for the output piddle.',
     pp_def( 
 	    "${name}_n_ind",
 	    HandleBad => 0,   # just a marker 
-	    GenericTypes=>$R,
 	    Pars => 'a(n); indx [o]c(m);',
 	    Code =>
 	    '$GENERIC() cur; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
@@ -1544,7 +1529,6 @@ EOD
 pp_def( 
 	'minmaximum',
 	HandleBad => 1,
-	GenericTypes=>$R,
 	Pars => 'a(n); [o]cmin(); [o] cmax(); indx [o]cmin_ind(); indx [o]cmax_ind();',
 	Code => 
 	'$GENERIC() curmin, curmax;

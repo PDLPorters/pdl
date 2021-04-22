@@ -1,5 +1,6 @@
 use strict;
-use PDL::Types qw(ppdefs_all);
+use PDL::Types qw(ppdefs_all types);
+my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 
 pp_addhdr(<<'EOD');
 
@@ -1103,7 +1104,7 @@ clip (threshold) C<$a> by C<$b> (C<$b> is upper bound)
 clip (threshold) C<$a> by C<$b> (C<$b> is lower bound)
 
 =cut
-my $R=['B','S','U','L','N','Q','F','D'];
+
 for my $opt (
 	     ['hclip','>'],
 	     ['lclip','<']
@@ -1113,7 +1114,6 @@ for my $opt (
     pp_def(
 	   $name,
 	   HandleBad => 1,
-	   GenericTypes => $R,
 	   Pars => 'a(); b(); [o] c()',
 	   Code =>
 	   '$c() = ($a() '.$op.' $b()) ? $b() : $a();',
@@ -1168,8 +1168,6 @@ EOD
 pp_def(
 	'clip',
 	HandleBad => 1,
-	GenericTypes => $R,
-
 	Pars => 'a(); l(); h(); [o] c()',
 	Code =>
 	'$c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );',
@@ -1296,7 +1294,6 @@ have its bad flag set if the output contains any bad data.
 
 pp_def('statsover',
 	HandleBad => 1,
-	GenericTypes => $R,
 	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]median(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code =>
 	'$GENERIC(avg) tmp = 0;
@@ -2771,7 +2768,7 @@ for my $func ( [
         HandleBad    => 0,
         BadDoc       => 'needs major (?) work to handles bad values',
         Pars         => 'vals(); x(n); indx [o]idx()',
-        GenericTypes => [ 'F', 'D' ],    # too restrictive ?
+        GenericTypes => $F,    # too restrictive ?
         Code         => $code,
 	Doc          => $doc,
     );
@@ -2793,7 +2790,7 @@ pp_def('interpolate',
        HandleBad => 0,
        BadDoc => 'needs major (?) work to handles bad values',
 	Pars => 'xi(); x(n); y(n); [o] yi(); int [o] err()',
-	GenericTypes => ['F','D'], # too restrictive ?
+	GenericTypes => $F, # too restrictive ?
 	Code => '
 		 $GENERIC() d;
 		 PDL_Indx n  = $SIZE(n);

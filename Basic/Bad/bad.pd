@@ -309,10 +309,7 @@ EOC
     # if UseNaN is true, then we can not change the value used to
     # represent bad elements since it's a NaN. At least, not for
     # for floating point types
-    # - is there a better way of checking for the condition since
-    #   the current one needs to be changed whenever the types are changed
-    #
-    $set_code = "" if $usenan and ($type->ppsym eq "F" or $type->ppsym eq "D" or $type->ppsym eq "C" or $type->ppsym eq "G");
+    $set_code = "" if $usenan and !$type->integer;
 
     $str .=
 "

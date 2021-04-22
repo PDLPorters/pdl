@@ -1,6 +1,10 @@
-
 use strict;
 use Config;
+use PDL::Types qw(ppdefs ppdefs_complex types);
+
+my $R = [ppdefs()];
+my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
+my $C = [ppdefs_complex()];
 
 pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
@@ -192,13 +196,12 @@ sub inplace_doc {
     return "$doco{$func} Works inplace.";
 }
 
-my $func;
-foreach $func (@ufuncs1) {
+foreach my $func (@ufuncs1) {
     my $got_complex = PDL::Core::Dev::got_complex_version($func, 1);
     pp_def($func,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	   GenericTypes => [($got_complex ? ('G','C') : ()), 'F','D'],
+	   GenericTypes => [($got_complex ? @$C : ()), @$F],
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
@@ -206,12 +209,10 @@ foreach $func (@ufuncs1) {
 	   BadCode => badcode_ufunc($func),
 	   );
 }
-my $R = ['B','S','U','L','N','Q','F','D']; # should be using code from Types.pm to set up.
 # real types
-foreach $func (@ufuncs1g) {
+foreach my $func (@ufuncs1g) {
     pp_def($func,
 	   HandleBad => 1,
-	   GenericTypes=>$R,
 	   NoBadifNaN => 1,
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
@@ -221,14 +222,14 @@ foreach $func (@ufuncs1g) {
 	   );
 }
 
-foreach $func (@bifuncs1) {
+foreach my $func (@bifuncs1) {
     my $got_complex = PDL::Core::Dev::got_complex_version($func, 2);
     pp_def($func,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Pars => 'a(); b(); [o]c();',
 	   Inplace => [ 'a' ],
-	   GenericTypes => [($got_complex ? ('G','C') : ()), @$R],
+	   GenericTypes => [($got_complex ? @$C : ()), @$R],
 	   Doc => inplace_doc( $func ),
 	   Code => code_bifunc($func),
 	   BadCode => badcode_bifunc($func),
@@ -236,11 +237,11 @@ foreach $func (@bifuncs1) {
 }
 
 # Functions provided by extended -lm
-foreach $func (@ufuncs2) {
+foreach my $func (@ufuncs2) {
     pp_def($func,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	   GenericTypes => ['F','D'],
+	   GenericTypes => $F,
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
@@ -249,12 +250,12 @@ foreach $func (@ufuncs2) {
 	   );
 }
 
-foreach $func (@besufuncs) {
+foreach my $func (@besufuncs) {
     my $fname = "bess$func";
     pp_def($fname,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	   GenericTypes => ['F','D'],
+	   GenericTypes => $F,
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
 	   Doc => inplace_doc( $fname ),
@@ -263,12 +264,12 @@ foreach $func (@besufuncs) {
 	   );
 }
 
-foreach $func (@besbifuncs) {
+foreach my $func (@besbifuncs) {
     my $fname = "bess$func";
     pp_def($fname,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	   GenericTypes => ['F','D'],
+	   GenericTypes => $F,
 	   Pars => 'a(); int n(); [o]b();',
 	   Inplace => [ 'a' ],
 	   Doc => inplace_doc( $fname ),
@@ -280,7 +281,6 @@ foreach $func (@besbifuncs) {
 if ($^O !~ /win32/i) {
     pp_def("lgamma",
 	   HandleBad => 1,
-	   GenericTypes=>$R,
 	   Pars => 'a(); [o]b(); int[o]s()',
 	   Doc => $doco{"lgamma"},
 	   Code =>
@@ -301,7 +301,6 @@ if ($^O !~ /win32/i) {
 elsif ($Config{cc} =~ /\bgcc/i) {
     pp_def("lgamma",
 	   HandleBad => 1,
-	   GenericTypes=>$R,
 	   Pars => 'a(); [o]b(); int[o]s()',
 	   Doc => $doco{"lgamma"},
 	   Code =>
@@ -371,7 +370,7 @@ pp_def(
        "erfi",
        HandleBad => 1,
        NoBadifNaN => 1,
-       GenericTypes => ['F','D'],
+       GenericTypes => $F,
        Pars => 'a(); [o]b()',
        Inplace => 1,
        Doc => inplace_doc( "erfi" ),
@@ -388,7 +387,7 @@ pp_def(
        "ndtri",
        HandleBad => 1,
        NoBadifNaN => 1,
-       GenericTypes => ['F','D'],
+       GenericTypes => $F,
        Pars => 'a(); [o]b()',
        Inplace => 1,
        Doc => inplace_doc( "ndtri" ),
