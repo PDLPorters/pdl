@@ -707,16 +707,12 @@ prints on C<STDOUT> XS text for F<Core.xs>.
 
 sub datatypes_switch {
   loadmod_Types();
-  my $ntypes = $#PDL::Types::names;
-  my @m;
-  foreach my $i ( 0 .. $ntypes ) {
-    my $type = PDL::Type->new( $i );
+  foreach my $type ( PDL::Types::types() ) {
     my $typesym = $type->symbol;
     my $typeppsym = $type->ppsym;
     my $cname = $type->shortctype;
-    push @m, "\tcase $typesym: retval.type = $typesym; retval.value.$typeppsym = PDL.bvals.$cname; break;";
+    print "\tcase $typesym: retval.type = $typesym; retval.value.$typeppsym = PDL.bvals.$cname; break;\n";
   }
-  print map "$_\n", @m;
 }
 
 =head2 generate_core_flags
@@ -800,8 +796,7 @@ prints on C<STDOUT> XS text with badval initialisation, for F<Core.xs>.
 sub generate_badval_init {
   loadmod_Types();
   for my $type (PDL::Types::types()) {
-    my $typename = $type->ctype;
-    $typename =~ s/^PDL_//;
+    my $typename = $type->shortctype;
     my $bval = $type->defbval;
     if ($PDL::Config{BADVAL_USENAN} && $type->usenan) {
       # note: no defaults if usenan
@@ -810,11 +805,6 @@ sub generate_badval_init {
       print "\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";
     }
   }
-#    PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
-#    PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
-#    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
-#    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
-
 }
 
 =head2 got_complex_version

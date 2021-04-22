@@ -7,7 +7,6 @@ use File::Basename qw(&basename &dirname);
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require './Types.pm';
-my $ntypes = $#PDL::Types::names;
 my $PDL_DATATYPES = PDL::Types::datatypes_header();
 
 require './Config.pm';
@@ -261,11 +260,8 @@ $mymalloc
 # - for binary compatability, this is created whatever the
 #   value of $bvalflag and $usenan
 print OUT "typedef struct badvals {\n";
-foreach my $i ( reverse(0 .. $ntypes) ) {
-    my $name = $PDL::Types::names[$i];
-    my $realctype = $PDL::Types::typehash{$name}->{realctype};
-    my $cname     = $PDL::Types::typehash{$name}->{ctype};
-    $cname =~ s/^PDL_//;
+foreach my $type ( reverse PDL::Types::types() ) {
+    my ($realctype, $cname) = map $type->$_, qw(realctype shortctype);
     printf OUT "   %18s   %s;\n",$realctype,$cname;
     printf OUT "   %18s   default_%s;\n",$realctype,$cname;
 }

@@ -817,11 +817,11 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 # pdl_setav calls...
 #
   for my $t (types()) {
-    my ($type, $t2) = map $t->$_, qw(sym shortctype);
+    my ($type, $t2, $ppsym) = map $t->$_, qw(sym shortctype ppsym);
     print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
     print OUT <<"!WITH!SUBS!";
   case $type:
-    pdl_setav_$t2(p->data,av,pdims,ndims,level, undefval.value.$PDL::Types::typehash{$type}->{ppsym}, p);
+    pdl_setav_$t2(p->data,av,pdims,ndims,level, undefval.value.$ppsym, p);
     break;
 
 !WITH!SUBS!

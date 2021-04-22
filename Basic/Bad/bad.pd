@@ -282,18 +282,12 @@ static pdl* new_pdlscalar(int datatype)
        }
 EOHDR
 
-use PDL::Types;
-my $ntypes = $#PDL::Types::names;
+use PDL::Types qw(types);
 
 my $str;
-foreach my $i ( 0 .. $ntypes ) {
-    my $type = PDL::Type->new( $i );
-    my $ctype = $type->ctype;
-    my $realctype = $type->realctype;
-    my $typesym = $type->symbol;
-
-    my $cname = $type->ctype;
-    $cname =~ s/^PDL_//;
+foreach my $type ( types() ) {
+    my ($i, $ctype, $realctype, $typesym, $cname) =
+      map $type->$_, qw(enum ctype realctype symbol shortctype);
     my $storage = "PDL->bvals.$cname";
 
     my $init_code = << "EOC";
@@ -361,10 +355,7 @@ _default_badvalue_int${i}()
     RETVAL
 
 ";
-
-
-
-} # foreach: $i = 0 .. $ntypes
+}
 
 pp_addxs( "\n$xshdr\n\n$str\n" );
 

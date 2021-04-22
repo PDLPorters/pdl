@@ -2957,9 +2957,9 @@ $sliceb_data_kludge = <<'KLUDGE';
       switch( p->datatype ) {
 KLUDGE
 
-for my $type( PDL::Types::typesrtkeys()) {
+for my $type (PDL::Types::types()) {
     $sliceb_data_kludge .=
-"        case $type: nn = *( ($PDL::Types::typehash{$type}->{realctype} *)(p->data) ); break;\n";
+"        case @{[$type->symbol]}: nn = *( (@{[$type->realctype]} *)(p->data) ); break;\n";
 }
 
 $sliceb_data_kludge .= <<'KLUDGE';
