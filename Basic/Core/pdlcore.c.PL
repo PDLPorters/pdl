@@ -201,7 +201,7 @@ pdl* SvPDLV ( SV* sv ) {
    PDL_Indx fake[1];
    SV *sv2;
 
-   if ( !SvROK(sv) ) {  
+   if ( !SvROK(sv) ) {
       /* The scalar is not a ref, so we can use direct conversion. */
 
       SV *dat;
@@ -267,11 +267,34 @@ print OUT <<'!NO!SUBS!';
 
    } /* End of scalar case */
 
+   if(sv_derived_from(sv, "Math::Complex")) {
+      dSP;
+      int count, i;
+      NV retval;
+      double vals[2];
+      char *meths[] = { "Re", "Im" };
+      PDL_Anyval data;
+      ENTER; SAVETMPS;
+      for (i = 0; i < 2; i++) {
+        PUSHMARK(sp); XPUSHs(sv); PUTBACK;
+        count = perl_call_method(meths[i], G_SCALAR);
+        SPAGAIN;
+        if (count != 1) croak("Failed Math::Complex method '%s'", meths[i]);
+        retval = POPn;
+        vals[i] = (double)retval;
+        PUTBACK;
+      }
+      FREETMPS; LEAVE;
+      ret = pdl_new();  /* Scratch pdl */
+      data.type = PDL_CD;
+      data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
+      pdl_makescratchhash(ret, data);
+      return ret;
+   }
+
    /* If execution reaches here, then sv is NOT a scalar
     * (i.e. it is a ref).
     */
-
-
 
    if(SvTYPE(SvRV(sv)) == SVt_PVHV) {
         HV *hash = (HV*)SvRV(sv);

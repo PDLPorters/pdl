@@ -3,6 +3,7 @@ use Test::More;
 use PDL::LiteF;
 use Config;
 use PDL::Types;
+use Math::Complex ();
 
 sub tapprox ($$) {
     my ( $x, $y ) = @_;
@@ -314,6 +315,13 @@ SKIP: {
 my $x = cdouble(2, 3);
 PDL::Core::set_c($x, [1], ci());
 is $x.'', '[2+0i 0+1i]', 'set_c can take piddle value';
+}
+
+{
+my $x = cdouble(2, Math::Complex::i());
+is $x.'', '[2+0i 0+1i]', 'type constructor can take Math::Complex value';
+$x = pdl(Math::Complex::cplx(2, 0), Math::Complex::i());
+is $x.'', '[2+0i 0+1i]', 'pdl defaults to cdouble if Math::Complex values';
 }
 
 {

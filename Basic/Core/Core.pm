@@ -342,7 +342,7 @@ PDL constructor - creates new piddle from perl scalars/arrays, piddles, and stri
 
 =for example
 
- $x = pdl [1..10];                    # 1D array
+ $x = pdl [1..10];                    # 1D array of doubles
  $x = pdl ([1..10]);                  # 1D array
  $x = pdl (1,2,3,4);                  # Ditto
  $y = pdl [[1,2,3],[4,5,6]];          # 2D 3x2 array
@@ -360,7 +360,12 @@ PDL constructor - creates new piddle from perl scalars/arrays, piddles, and stri
  $n = pdl indx, [1..5];               # ... can leave off parens
  $n = indx( [1..5] );                 # ... still the same!
 
- $x = pdl([1,2,3],[4,5,6]);           # 2D
+ $n = pdl cdouble, 2, 3;              # native complex numbers, zero imaginary
+ use Math::Complex qw(cplx);
+ $n = pdl cdouble, 2, cplx(2, 1));    # explicit type
+ $n = pdl 2, cplx(2, 1);              # default cdouble if Math::Complex obj
+
+ $x = pdl([[1,2,3],[4,5,6]]);         # 2D
  $x = pdl([1,2,3],[4,5,6]);           # 2D
 
 Note the last two are equivalent - a list is automatically
@@ -1240,7 +1245,14 @@ sub PDL::new {
    # print "in PDL::new\n";
    my $this = shift;
    return $this->copy if ref($this);
-   my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
+   my $type;
+   if (ref($_[0]) eq 'PDL::Type') {
+     $type = ${shift @_}[0];
+   } elsif (grep UNIVERSAL::isa($_, 'Math::Complex'), @_) {
+     $type = $PDL_CD;
+   } else {
+     $type = $PDL_D;
+   }
    my $value = (@_ >1 ? [@_] : shift);  # ref thyself
 
    unless(defined $value) {

@@ -2,6 +2,7 @@
 - fix "complex" type-qualifier bug affecting native-complex r2C
 - add core pdl_at0
 - Core.xs:set_c, badvalue now able to take a PDL object not just Perl scalar
+- can construct a PDL object with Math::Complex objects
 
 2.038 2021-04-19
 - make pdlpp_postamble 4th arg be XS subs destination
