@@ -1,9 +1,5 @@
-# -*-perl-*-
-
 use strict;
 use warnings;
-use Config;
-use File::Basename qw(&basename &dirname);
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require './Types.pm';
@@ -21,9 +17,6 @@ my $file = shift @ARGV;
 print "Extracting $file\n";
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
-
-# In this section, perl variables will be expanded during extraction.
-# You can use $Config{...} to use Configure variables.
 
 print OUT <<"!GROK!THIS!";
 
@@ -45,6 +38,22 @@ extern int pdl_debugging;
 #define PDLDEBUG_f(a)
 #endif
 
+#define PDL_MAKE_PERL_COMPLEX(output,r,i) { \\
+        dSP; int count; double rval = r, ival = i; SV *ret; \\
+        ENTER; SAVETMPS; PUSHMARK(sp); \\
+        perl_require_pv("PDL/Complex/Overloads.pm"); \\
+        mXPUSHn(rval); \\
+        mXPUSHn(ival); \\
+        PUTBACK; \\
+        count = perl_call_pv("PDL::Complex::Overloads::cplx", G_SCALAR); \\
+        SPAGAIN; \\
+        if (count != 1) croak("Failed to create PDL::Complex::Overloads object (%.9g, %.9g)", rval, ival); \\
+        ret = POPs; \\
+        SvREFCNT_inc(ret); \\
+        output = ret; \\
+        PUTBACK; FREETMPS; LEAVE; \\
+}
+
 #define ANYVAL_TO_SV(outsv,inany) do { switch (inany.type) { \\
                 case PDL_B:   outsv = newSViv( (IV)(inany.value.B) ); break; \\
                 case PDL_S:   outsv = newSViv( (IV)(inany.value.S) ); break; \\
@@ -54,8 +63,8 @@ extern int pdl_debugging;
                 case PDL_LL:  outsv = newSViv( (IV)(inany.value.Q) ); break; \\
                 case PDL_F:   outsv = newSVnv( (NV)(inany.value.F) ); break; \\
                 case PDL_D:   outsv = newSVnv( (NV)(inany.value.D) ); break; \\
-                case PDL_CF:  outsv = newSV( 50 ); sv_setpvf(outsv, "%.9g%+.9gi", crealf(inany.value.G),cimagf(inany.value.G)); break; \\
-                case PDL_CD:  outsv = newSV( 50 ); sv_setpvf(outsv, "%.17g%+.17gi",creal(inany.value.C),cimag(inany.value.C)); break; \\
+                case PDL_CF:  PDL_MAKE_PERL_COMPLEX(outsv, crealf(inany.value.G), cimagf(inany.value.G)); break; \\
+                case PDL_CD:  PDL_MAKE_PERL_COMPLEX(outsv, creal(inany.value.C), cimag(inany.value.C)); break; \\
                 default:      outsv = &PL_sv_undef; \\
             } \\
         } while (0)

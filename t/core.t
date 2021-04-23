@@ -76,8 +76,6 @@ is($c->hdr->{demo}, "yes", "hdr before reshape");
 $c->reshape(5,5);
 is($c->hdr->{demo}, "yes", "hdr after reshape");
 
-
-
 # test topdl
 
 isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns a piddle" );
@@ -314,14 +312,14 @@ SKIP: {
 {
 my $x = cdouble(2, 3);
 PDL::Core::set_c($x, [1], ci());
-is $x.'', '[2+0i 0+1i]', 'set_c can take piddle value';
+is $x.'', '[2 i]', 'set_c can take piddle value';
 }
 
 {
 my $x = cdouble(2, Math::Complex::i());
-is $x.'', '[2+0i 0+1i]', 'type constructor can take Math::Complex value';
+is $x.'', '[2 i]', 'type constructor can take Math::Complex value';
 $x = pdl(Math::Complex::cplx(2, 0), Math::Complex::i());
-is $x.'', '[2+0i 0+1i]', 'pdl defaults to cdouble if Math::Complex values';
+is $x.'', '[2 i]', 'pdl defaults to cdouble if Math::Complex values';
 }
 
 {

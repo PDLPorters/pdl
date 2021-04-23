@@ -13,6 +13,7 @@ Basic/Core/Dev.pm
 Basic/Core/Exporter.pm
 Basic/Core/IFiles.pm
 Basic/Core/Makefile.PL
+Basic/Core/Overloads.pm
 Basic/Core/pdl.h.PL
 Basic/Core/pdlapi.c
 Basic/Core/pdlbadvalinit.c.PL

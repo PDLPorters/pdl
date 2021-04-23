@@ -53,11 +53,12 @@ my @w;
 local $SIG{__WARN__} = sub { push @w, @_ };
 my $pd = cdouble 5,6;
 my $pe = $pd - 1;
-is($pe->at(0), '4+0i', 'pdl - scalar 1');
-is($pe->at(1), '5+0i', 'pdl - scalar 2');
+is($pe->at(0), '4', 'pdl - scalar 1');
+is($pe->at(1), '5', 'pdl - scalar 2');
 my $pf = 1 - $pd;
-is($pf->at(0), '-4+0i', 'scalar - pdl 1');
-is($pf->at(1), '-5+0i', 'scalar - pdl 2');
+my $got = $pf->at(0);
+is($got, '-4', 'scalar - pdl 1') or diag explain $got;
+is($pf->at(1), '-5', 'scalar - pdl 2');
 is_deeply \@w, [], 'no warnings' or diag explain \@w;
 }
 
@@ -92,10 +93,10 @@ ok($pa->at(0) == 16, 'sqrt orig value ok');
 $pa = cdouble pdl 16,64,9,-1;
 if ($can_complex_power) {
   $pb = sqrt($pa);
-  ok(ci()**2 == -1,'i squared = -1');
+  ok(approx(ci()**2, -1),'i squared = -1');
   ok(all( approx($pb,(cdouble 4,8,3,ci()))),'sqrt of pdl(16,64,9,-1)');
 }
-is $pa->at(0), '16+0i', 'sqrt orig value ok';
+is $pa->at(0), '16', 'sqrt orig value ok';
 }
 
 {

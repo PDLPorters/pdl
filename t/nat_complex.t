@@ -46,7 +46,7 @@ for (float, double, cfloat, cdouble) {
   my $got = pdl $_, '[0 BAD]';
   my $bv = $got->badvalue;
   my $obv = $got->orig_badvalue;
-  is $got.'', ($_->real ? '[0 BAD]' : '[0+0i BAD]'), "$_ bad"
+  is $got.'', '[0 BAD]', "$_ bad"
     or diag "bv=$bv, obv=$obv: ", explain [$bv, $obv];
   is $got->isbad.'', '[0 1]', "$_ isbad";
   # this captures a failure in IO/Flexraw/t/iotypes.t

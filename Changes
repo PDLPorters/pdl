@@ -6,6 +6,7 @@
 - fix cfloat-comparison that was breaking badval detection in complex types
 - add $type->isnan('c expression')
 - badvalue doesn't force return values to be Perl scalar but PDL object
+- native complex values get Perl-ised into PDL::Complex::Overloads objects not strings
 
 2.038 2021-04-19
 - make pdlpp_postamble 4th arg be XS subs destination

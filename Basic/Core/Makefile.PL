@@ -92,6 +92,7 @@ WriteMakefile(
 				pdlthread.h ppport.h/
 		)),
 		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
+		(map +($_=>'$(INST_LIBDIR)/Complex/'.$_), qw(Overloads.pm)),
 		},
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
  'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,

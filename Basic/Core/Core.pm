@@ -826,7 +826,7 @@ sub warn_non_numeric_op_wrapper {
 				 croak("multielement piddle in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
 				     unless $_[0]->nelem == 1;
 				 $_[0]->clump(-1)->at(0); },
-		"\"\""  =>  \&PDL::Core::string   );
+		'""'  =>  \&PDL::Core::string   );
 }
 
 sub rswap { if($_[2]) { return @_[1,0]; } else { return @_[0,1]; } }
@@ -1125,7 +1125,7 @@ sub PDL::Core::new_pdl_from_string {
 
       # Let's see if we can parse it as an array-of-arrays:
       local $_ = $value;
-      return PDL::Core::parse_basic_string ($inf, $nan, $nnan, $bad);
+      PDL::Core::parse_basic_string($inf, $nan, $nnan, $bad);
    };
 
    # Respect BADVAL_USENAN
@@ -3066,7 +3066,7 @@ sub PDL::set{    # Sets a particular single value
 
 Returns a single value inside a piddle as perl scalar.
 If the piddle is a native complex value (cdouble, cfloat), it will
-be stringified.
+be a L<PDL::Complex::Overloads> object.
 
 =for usage
 
