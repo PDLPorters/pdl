@@ -372,7 +372,6 @@ pp_addpm(<<'!NO!SUBS!');
 #
 sub PDL::badvalue {
     no strict 'refs';
-
     my ( $self, $val ) = @_;
     my $num;
     if ( UNIVERSAL::isa($self,"PDL") ) {
@@ -381,35 +380,22 @@ sub PDL::badvalue {
 	    $self->inplace->setbadtoval( $val );
 	    $self->badflag(1);
 	}
-
 	if ($PDL::Config{BADVAL_PER_PDL}) {
 	    my $name = "PDL::_badvalue_per_pdl_int$num";
-	    if ( defined $val ) {
-		return &{$name}($self, $val )->sclr;
-	    } else {
-		return &{$name}($self, undef)->sclr;
-	    }
+	    return &{$name}($self, $val)->sclr;
 	}
-
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
 	$num = $self->enum;
     } else {
         # assume it's a number
         $num = $self;
     }
-
     my $name = "PDL::_badvalue_int$num";
-    if ( defined $val ) {
-	return &{$name}( $val )->sclr;
-    } else {
-	return &{$name}( undef )->sclr;
-    }
-
-} # sub: badvalue()
+    &{$name}( $val )->sclr;
+}
 
 sub PDL::orig_badvalue {
     no strict 'refs';
-
     my $self = shift;
     my $num;
     if ( UNIVERSAL::isa($self,"PDL") ) {
@@ -420,11 +406,9 @@ sub PDL::orig_badvalue {
         # assume it's a number
         $num = $self;
     }
-
     my $name = "PDL::_default_badvalue_int$num";
     return &${name}();
-
-} # sub: orig_badvalue()
+}
 
 ############################################################
 ############################################################
