@@ -3,6 +3,7 @@
 - add core pdl_at0
 - Core.xs:set_c, badvalue now able to take a PDL object not just Perl scalar
 - can construct a PDL object with Math::Complex objects
+- fix cfloat-comparison that was breaking badval detection in complex types
 
 2.038 2021-04-19
 - make pdlpp_postamble 4th arg be XS subs destination
