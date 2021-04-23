@@ -660,11 +660,10 @@ listref_c(x)
 
    int badflag = (x->state & PDL_BADVAL) > 0;
    if (
+      badflag
 #if BADVAL_USENAN
     /* do we have to bother about NaN's? */
-      badflag && x->datatype < PDL_F
-#else
-      badflag
+      && x->datatype < PDL_F
 #endif
    ) {
       pdl_badval = pdl_get_pdl_badvalue( x );

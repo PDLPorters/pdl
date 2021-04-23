@@ -6,6 +6,9 @@ use strict;
 
 use PDL::Config;
 use PDL::Core::Dev;
+use PDL::Types qw(ppdefs_all types);
+my $A = [ppdefs_all()];
+my $AF = [map $_->ppsym, grep !$_->integer, types()]; # all including complex
 my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 my $bvalPerPdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 
@@ -30,8 +33,18 @@ if ( $usenan == 0 ) {
     } else {
 	pp_addhdr( "{ 0, 0, 0xc0, 0x7f } };\n\n" );
     }
-    pp_addhdr( "float _nan_float;\ndouble _nan_double;\n\n" );
-    pp_add_boot( " _nan_float = __pdl_nan.__d;\n  _nan_double = (double) __pdl_nan.__d;\n" );
+    pp_addhdr( <<'EOF' );
+float _nan_float;
+double _nan_double;
+complex float _nan_cfloat;
+complex double _nan_cdouble;
+EOF
+    pp_add_boot( <<'EOF' );
+  _nan_float = __pdl_nan.__d;
+  _nan_double = (double) __pdl_nan.__d;
+  _nan_cfloat = __pdl_nan.__d + I*__pdl_nan.__d;
+  _nan_cdouble = (complex double) __pdl_nan.__d + I*__pdl_nan.__d;
+EOF
 
 } # if: $usenan
 
@@ -454,7 +467,7 @@ same as the input piddle's flag.
        BadCode => 
        '$b() = $ISBAD(a());',
        CopyBadStatusCode => '',
-
+       GenericTypes => $A,
        );
 
 pp_def('isgood' . <<'=cut',
@@ -495,6 +508,7 @@ same as the input piddle's flag.
        BadCode => 
        '$b() = $ISGOOD(a());',
        CopyBadStatusCode => '',
+       GenericTypes => $A,
        );
 
 
@@ -543,6 +557,7 @@ flag set.
         %}
         $b() = cnt;
     },
+    GenericTypes => $A,
 );
 
 pp_def('ngoodover' . <<'=cut',
@@ -589,6 +604,7 @@ flag set.
            if ( $ISGOOD(a()) ) { cnt++; }
         %}
         $b() = cnt;',
+       GenericTypes => $A,
        );
 
 # Generate small ops functions to do entire array
@@ -774,6 +790,7 @@ Also see L</setvaltobad> and L</setnantobad>.
      } else {
         $b() = $a();
      }',
+     GenericTypes => $A,
 ); # pp_def: setbadif
 
 # this is useful because $x->setbadif( $x == 23 )
@@ -841,7 +858,7 @@ Any bad values in the input piddles are copied across to the output piddle.
             $b() = $a();
         }
     ],
-
+    GenericTypes => $A,
 ); # pp_def: setvaltobad
 
 if ($^O =~ /MSWin/) {
@@ -973,7 +990,7 @@ bad flag is set, it will no
 =cut
 
     HandleBad => 1,
-    GenericTypes => [ 'F', 'D' ],
+    GenericTypes => $AF,
     Inplace => 1,
     CopyBadStatusCode => q{
         /* note: not quite the normal check since set b bad within Code */
@@ -985,7 +1002,11 @@ bad flag is set, it will no
     Code => q{
         int flag = 0;
         threadloop %{
-            if ( ! isfinite($a()) ) {
+            if (
+              types (FD) %{ !isfinite($a()) %}
+              types (G) %{ !isfinite(crealf($a())) && !isfinite(cimagf($a())) %}
+              types (C) %{ !isfinite(creal($a())) && !isfinite(cimag($a())) %}
+            ) {
                 $SETBAD(b());
                 flag = 1;
             }
@@ -1028,7 +1049,7 @@ operation, it clears the bad flag.
 =cut
     
     HandleBad => 1,
-    GenericTypes => [ 'F', 'D' ],
+    GenericTypes => $AF,
     Inplace => 1,
     CopyBadStatusCode => q{
         /* propagate cleared badflag if inplace */
@@ -1039,7 +1060,7 @@ operation, it clears the bad flag.
     Code => q{
         if ( $ISBAD(a()) ) {
         	/* _nan_xxx set up at top of file */
-            $b() = _nan_$TFD(float,double);
+            $b() = _nan_$TFDGC(float,double,cfloat,cdouble);
         }
         else {
             $b() = $a();
@@ -1100,6 +1121,7 @@ values are copied with no replacement.
         /* always make sure the output is "good" */
         $SETPDLSTATEGOOD(b);
     },
+    GenericTypes => $A,
 ); # pp_def: setbadtoval
 
 pp_def('copybad'.<<'=cut',
@@ -1159,6 +1181,7 @@ its bad value flag set to true.
             $SETPDLSTATEBAD(b);
         }
     },
+    GenericTypes => $A,
 ); # pp_def: copybad
 
 #########################################################
