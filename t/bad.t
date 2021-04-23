@@ -394,7 +394,7 @@ SKIP: {
     is( $y->sum, 2, "and the propagated value is recognised as bad");
 
     $x = sequence(4);
-    is ($x->badvalue, double->orig_badvalue, "no long-term affects of per-piddle changes [1]");
+    is ($x->badvalue, double->orig_badvalue, "no long-term effects of per-piddle changes [1]");
 
 }
 
@@ -404,7 +404,8 @@ SKIP: {
 
     $x = double(4);
     double->badvalue(3);
-    is($x->badvalue, double->badvalue, "no long-term affects of per-piddle changes [2]");
+    is($x->badvalue.'', double->badvalue.'', "no long-term effects of per-piddle changes [2]")
+        or diag explain [$x->badvalue, double->badvalue];
     double->badvalue(double->orig_badvalue);
 
 }

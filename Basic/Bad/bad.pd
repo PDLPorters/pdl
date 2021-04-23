@@ -268,8 +268,7 @@ It returns the final state of the bad-value flag.
 =for bad
 
 This method accepts piddles with or without bad values. It
-returns a Perl scalar with the final bad-value flag, so it
-never returns bad values itself.
+returns a piddle with the final bad-value.
 
 =cut
 
@@ -375,7 +374,7 @@ pp_addxs( "\n$xshdr\n\n$str\n" );
 pp_addpm(<<'!NO!SUBS!');
 
 # note:
-#  if sent a piddle, we have to change it's bad values
+#  if sent a piddle, we have to change its bad values
 #  (but only if it contains bad values)
 #  - there's a slight overhead in that the badflag is
 #    cleared and then set (hence propagating to all
@@ -395,7 +394,7 @@ sub PDL::badvalue {
 	}
 	if ($PDL::Config{BADVAL_PER_PDL}) {
 	    my $name = "PDL::_badvalue_per_pdl_int$num";
-	    return &{$name}($self, $val)->sclr;
+	    return &{$name}($self, $val);
 	}
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
 	$num = $self->enum;
@@ -404,7 +403,7 @@ sub PDL::badvalue {
         $num = $self;
     }
     my $name = "PDL::_badvalue_int$num";
-    &{$name}( $val )->sclr;
+    &{$name}( $val );
 }
 
 sub PDL::orig_badvalue {

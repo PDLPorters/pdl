@@ -94,7 +94,7 @@ use Test::Exception;
 	lives_ok { $pb = $pa->map($t1,{pix=>1,method=>'l'}) };
 	ok(($pb->slice("0:1")->isbad->all  and  $pb->slice(":,0:1")->isbad->all  and ($pb->isbad->sum==16)), "Bad values happen");
 	eval { $pb = $pa->map($t1,{pix=>1,method=>'h'}) };
-	ok(($pb->slice("0")->isbad->all  and  $pb->slice(":,0:1")->isbad->all and $pb->isbad->sum==13), "Bad values happen with 'h' method"); 
+	ok(($pb->slice("0")->isbad->all  and  $pb->slice(":,0:1")->isbad->all and $pb->isbad->sum==13), "Bad values happen with 'h' method") or diag "got: $pb";
 }
 
 {

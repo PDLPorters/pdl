@@ -2067,7 +2067,7 @@ sub PDL::wfits {
 	      
 	      if ( $pdl->badflag() ) {
 		  if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0));
-				       $h->{BLANK} = $x->badvalue(); }
+				       $h->{BLANK} = $x->badvalue->sclr; }
 		  else               { delete $h->{BLANK}; }
 	      }
 	      
@@ -2180,7 +2180,7 @@ sub PDL::wfits {
 	      #                    (make sure it's for the correct type)
 	      #   otherwise      - make sure the BLANK keyword is removed
 	      if ( $pdl->badflag() ) {
-		  if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0)); $hdr{BLANK} = $x->badvalue(); }
+		  if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0)); $hdr{BLANK} = $x->badvalue->sclr; }
 		  else               { delete $hdr{BLANK}; }
 	      }
 	      

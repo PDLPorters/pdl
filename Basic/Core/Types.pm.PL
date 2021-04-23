@@ -718,12 +718,12 @@ print OUT <<'!NO!SUBS!';
 sub badvalue {
   my $name = "PDL::_badvalue_int$_[0][0]";
   no strict 'refs';
-  $name->( $_[1] )->sclr;
+  $name->( $_[1] );
 }
 sub orig_badvalue {
   my $name = "PDL::_default_badvalue_int$_[0][0]";
   no strict 'refs';
-  $name->()->sclr;
+  $name->();
 }
 
 # make life a bit easier

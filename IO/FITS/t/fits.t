@@ -322,10 +322,10 @@ if(-w dirname($tildefile)) {
 {
 (undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
 my $x = sequence(10)->setbadat(0);
-print "Writing to fits: $x  type = (", $x->get_datatype, ")\n";
+#diag "Writing to fits: $x  type = (", $x->get_datatype, ")\n";
 $x->wfits($fname);
 my $y = rfits($fname);
-print "Read from fits:  $y  type = (", $y->get_datatype, ")\n";
+#diag "Read from fits:  $y  type = (", $y->get_datatype, ")\n";
 
 ok( $y->slice('0:0')->isbad, "rfits/wfits propagated bad flag" );
 ok( sum(abs($x-$y)) < 1.0e-5, "  and values" );
@@ -334,7 +334,8 @@ ok( sum(abs($x-$y)) < 1.0e-5, "  and values" );
 $x->wfits($fname,16);
 $y = rfits($fname);
 print "BITPIX 16: datatype == ", $y->get_datatype, " badvalue == ", $y->badvalue(), "\n";
-ok( $y->slice('0:0')->isbad, "wfits coerced bad flag with integer datatype" );
+my $got = $y->slice('0:0');
+ok( $got->isbad, "wfits coerced bad flag with integer datatype" ) or diag "got: $got (from $y)";
 ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
 unlink $fname if -e $fname;
 }

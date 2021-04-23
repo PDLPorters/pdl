@@ -42,6 +42,19 @@ my $got_double = double(-1, 2);
 my $got_r2C = $got_double->r2C;
 is ''.$got_r2C->creal, ''.$got_double, 'creal(r2C) identical to orig';
 
+for (float, double, cfloat, cdouble) {
+  my $got = pdl $_, '[0 BAD]';
+  my $bv = $got->badvalue;
+  my $obv = $got->orig_badvalue;
+  is $got.'', ($_->real ? '[0 BAD]' : '[0+0i BAD]'), "$_ bad"
+    or diag "bv=$bv, obv=$obv: ", explain [$bv, $obv];
+  is $got->isbad.'', '[0 1]', "$_ isbad";
+  # this captures a failure in IO/Flexraw/t/iotypes.t
+  next if $PDL::Config{BADVAL_USENAN}; # comparing NaN not what we want
+  eval { ok $bv == $obv, 'can equality-check badvalue and orig_badvalue' };
+  is $@, '' or diag explain [$bv, $obv];
+}
+
 # dataflow from complex to real
 $ar = $x->creal;
 $ar++;
