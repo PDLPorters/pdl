@@ -680,10 +680,7 @@ listref_c(x)
       if ( badflag && 
 #if BADVAL_USENAN
         ( ( x->datatype < PDL_F && ANYVAL_EQ_ANYVAL(pdl_val, pdl_badval) ) ||
-          ( x->datatype == PDL_CF && !(isfinite(crealf(pdl_val.value.G)) || isfinite(cimagf(pdl_val.value.G))) ) ||
-          ( x->datatype == PDL_CD && !(isfinite(creal(pdl_val.value.C)) || isfinite(cimag(pdl_val.value.C))) ) ||
-          ( x->datatype == PDL_F && !isfinite(pdl_val.value.F) ) ||
-          ( x->datatype == PDL_D && !isfinite(pdl_val.value.D) ) )
+          ANYVAL_ISNAN(pdl_val) )
 #else
         ANYVAL_EQ_ANYVAL(pdl_val, pdl_badval)
 #endif
