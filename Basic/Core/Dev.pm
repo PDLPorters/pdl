@@ -798,12 +798,7 @@ sub generate_badval_init {
   for my $type (PDL::Types::types()) {
     my $typename = $type->shortctype;
     my $bval = $type->defbval;
-    if ($PDL::Config{BADVAL_USENAN} && $type->usenan) {
-      # note: no defaults if usenan
-      print "\tPDL.bvals.$typename = PDL.NaN_$type;\n"; #Core NaN value
-    } else {
-      print "\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";
-    }
+    print "\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";
   }
 }
 

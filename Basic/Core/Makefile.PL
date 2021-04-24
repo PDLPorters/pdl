@@ -4,10 +4,6 @@ eval { require Devel::CheckLib; Devel::CheckLib->import; };
 use ExtUtils::MakeMaker::Config;
 use ExtUtils::MakeMaker;
 
-## $DB::single = 1;  # uncomment to have debugger stop here
-
-my $badval_define = " -DBADVAL_USENAN=$PDL::Config{BADVAL_USENAN}";
-
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
@@ -96,7 +92,7 @@ WriteMakefile(
 		},
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
  'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
- 'DEFINE' 	=> $pthread_define.$badval_define,
+ 'DEFINE' 	=> $pthread_define,
  'LIBS'         => [$libs_string],
  'clean'        => {'FILES'  => $cobj .
                    ' pdlconv.c pdlsections.c pdlcore.c '.

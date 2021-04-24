@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use Test::More;
 use PDL::LiteF;
-use PDL::Config;
 use Benchmark qw(timethese :hireswallclock);
 
 plan skip_all => 'No threads' if !PDL::Core::pthreads_enabled;
@@ -161,13 +160,11 @@ eval{
 
 like( $@, qr/identical abscissas/ , "interpolate barf" );
 
-if (!$PDL::Config{BADVAL_USENAN}) {
-  # warning message segfaults when pthreaded if messages not deferred properly
-  my $mask = zeroes(5,5);
-  local $SIG{__WARN__} = sub { die $_[0] };
-  $mask->badvalue(1);
-  eval{ PDL::gt($mask, 2, 0) };
-  like( $@, qr/Badvalue is set to/, "safe barf" );
-}
+# warning message segfaults when pthreaded if messages not deferred properly
+my $mask = zeroes(5,5);
+local $SIG{__WARN__} = sub { die $_[0] };
+$mask->badvalue(1);
+eval{ PDL::gt($mask, 2, 0) };
+like( $@, qr/Badvalue is set to/, "safe barf" );
 
 done_testing;

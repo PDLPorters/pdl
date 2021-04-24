@@ -27,14 +27,13 @@ You may also ask 'well, my computer supports IEEE NaN, so I already have this'.
 Well, yes and no - many routines, such as C<y=sin(x)>, will propagate NaN's 
 without the user having to code differently, but routines such as C<qsort>, or
 finding the median of an array, need to be re-coded to handle bad values.
-For floating-point datatypes, C<NaN> and C<Inf> are used to flag bad values
-I<IF> the option C<BADVAL_USENAN> is set to 1 in your config file.  Otherwise
+For floating-point datatypes, C<NaN> and C<Inf> can be used to flag bad
+values, but by default
 special values are used (L<Default bad values|/Default bad values>).  I
 do not have any benchmarks to see which option is faster.
 
 As of PDL 2.040, you can have different bad values for separate piddles of the
-same type. This currently does not work with the C<BADVAL_USENAN> option;
-if you set the C<BADVAL_USENAN> value, PDL will not build.
+same type.
 
 =head2 A quick overview
 
@@ -163,7 +162,6 @@ To change the current bad value, supply the new number to badvalue - eg
 
 I<Note>: the value is silently converted to the correct C type, and
 returned - i.e. C<byte-E<gt>badvalue(-26)> returns 230 on my Linux machine.
-It is also a C<nop> for floating-point types when C<BADVAL_USENAN> is true.
 
 Note that changes to the bad value are I<NOT> propagated to previously-created
 piddles - they will still have the bad value set, but suddenly the elements
@@ -195,25 +193,8 @@ all elements are bad).
 
 =head2 A bad value for each piddle, and related issues
 
-The following is relevant only for integer types, and for floating-point
-types if C<BADVAL_USENAN> was not set when PDL was built.
-
-Currently, there is one bad value for each datatype. The code is written so 
-that we could have a separate bad value for each piddle (stored in the 
-pdl structure) - this would then remove the current problem of:
-
- pdl> $x = byte( 1, 2, byte->badvalue, 4, 5 );
- pdl> p $x;
- [1 2 255 4 5]
- pdl> $x->badflag(1)
- pdl> p $x;
- [1 2 BAD 4 5]
- pdl> byte->badvalue(0);
- pdl> p $x;
- [1 2 255 4 5]
-
-ie the bad value in C<$a> has lost its I<bad> status using the current 
-implementation.  It would almost certainly cause problems elsewhere though!
+There is one default bad value for each datatype, but
+you can have a separate bad value for each piddle as of PDL 2.040.
 
 =head1 IMPLEMENTATION DETAILS
 
@@ -239,8 +220,7 @@ or not. This value is set if any of the input piddles have their C<PDL_BADVAL>
 flag set (although this code can be replaced by setting C<FindBadStateCode> in 
 pp_def).  The logic of the check is going to get a tad more complicated
 if I allow routines to fall back to using the C<Code> section for 
-floating-point types (i.e. those routines with C<NoBadifNaN =E<gt> 1>
-when C<BADVAL_USENAN> is true).
+floating-point types.
 
 The default bad values
 are now stored in a structure within the Core PDL structure
@@ -271,16 +251,8 @@ distribution):
   PDL_Short   ==   SHRT_MIN
   PDL_Ushort  ==  USHRT_MAX
   PDL_Long    ==    INT_MIN
-
-If C<BADVAL_USENAN == 0>, then we also have
-
   PDL_Float   ==   -FLT_MAX
   PDL_Double  ==   -DBL_MAX
-
-otherwise all of C<NaN>, C<+Inf>, and
-C<-Inf> are taken to be bad for floating-point types. 
-In this case, the bad value can't be changed, unlike the 
-integer types.
 
 =head2 How do I change a routine to handle bad values?
 
@@ -383,16 +355,8 @@ improve their use.
   '$PPISGOOD(CHILD,[i])         'CHILD_physdatap[i] != CHILD_badval'
   '$PPSETBAD(CHILD,[i])         'CHILD_physdatap[i]  = CHILD_badval'
 
-If C<BADVAL_USENAN> is set, then 
-it's a bit different for C<float> and C<double>, where we consider
-C<NaN>, C<+Inf>, and C<-Inf> all to be bad. In this case:
-
-  ISBAD   becomes   isfinite(piddle) == 0
-  ISGOOD            isfinite(piddle) != 0
-  SETBAD            piddle          = NaN
-
-where the value for NaN is discussed below in
-L<Handling NaN values|/Handling NaN values>.
+You can use C<NaN> as the bad value for any floating-point type,
+including complex.
 
 This all means that you can change
 
@@ -449,24 +413,6 @@ In PDL 2.4.3 the C<$BADFLAGCACHE()> macro was introduced for use in
 C<FindBadStatusCode> and C<CopyBadStatusCode>.
 
 =head2 Handling NaN values
-
-There are two issues:
-
-=over 4
-
-=item NaN as the bad value
-
-which is done.  To select, set C<BADVAL_USENAN> to 1 in perldl.conf;
-a value of 0 falls back to treating the floating-point types the
-same as the integers.  I need to do some benchmarks to see which is faster,
-and whether it's dependent on machines (Linux seems to slow down much
-more than my Sparc machine in some very simple tests I did).
-
-=item Ignoring BadCode sections
-
-which is I<not>.
-
-=back
 
 For I<simple> routines processing floating-point numbers, we should let
 the computer process the bad values (i.e. C<NaN> and C<Inf> values) instead
@@ -535,12 +481,6 @@ I would like the above to produce "[1 2 BAD]", but this would
 slow down operations on I<all> piddles.  
 We could check for C<NaN>/C<Inf> values after the operation,
 but I doubt that would be any faster.
-
-=head2 Integration with NaN
-
-When C<BADVAL_USENAN> is true, the routines in C<PDL::Ops> should
-just fall through to the C<Code> section - i.e. don't use C<BadCode> -
-for C<float> and C<double> data types.
 
 =head2 Dataflow of the badflag
 

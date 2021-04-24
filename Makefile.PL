@@ -114,15 +114,6 @@ sub getpdl_config {
 	unless exists $PDL_CONFIG{MALLOCDBG}->{$item};
   }
 
-  # filter out incompatible options for the 'bad' code.
-  # At present we can not have the experimental per-piddle
-  # code turned on (the BADVAL_PER_PDL option) and use
-  # NaN's for floating-point bad values (the BADVAL_USENAN
-  # option).
-  #
-  die "WARNING: die-ing as had BADVAL_USENAN=1; BADVAL_PER_PDL option is permanent"
-    if $PDL_CONFIG{BADVAL_USENAN};
-
   # create a PDL::Config variable matching the PDL_CONFIG structure
   # and convert yes/no answers to 1/0
   #

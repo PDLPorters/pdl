@@ -10,11 +10,6 @@ require './Dev.pm'; PDL::Core::Dev->import;
 PDL::Core::Dev::loadmod_Types();
 PDL::Types->import(':All');
 
-# check for bad value support
-require './Config.pm'; # to load the PDL not the Perl one
-die "No PDL::Config found" unless %PDL::Config;
-my $usenan = $PDL::Config{BADVAL_USENAN};
-
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
@@ -228,28 +223,10 @@ pdl* SvPDLV ( SV* sv ) {
 
 !NO!SUBS!
 
-##########
-# If badvals and usenan are true, we default NaNs to type double. 
-if ( $usenan ) {
-    print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-    print OUT q{
-      /*
-       * default NaN/Infs to double
-       *
-       */
-      if ( isfinite(tmp_NV) == 0 ) {
-        datatype = PDL_D;
-      } else {
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT q{
         datatype = pdl_whichdatatype_double(tmp_NV);
-      }
-   }
-} else {
-   print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-   print OUT q{
-        datatype = pdl_whichdatatype_double(tmp_NV);
-
-   }
-}
+};
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'!NO!SUBS!';

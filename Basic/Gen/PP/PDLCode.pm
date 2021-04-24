@@ -10,11 +10,6 @@ our @CARP_NOT;
 
 use strict;
 
-# check for bad value support
-#
-use PDL::Config;
-my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
-
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
 # Do the appropriate substitutions in the code.
@@ -296,24 +291,11 @@ sub thisisloop {
 ###########################
 #
 # used by BadAccess code to know when to use NaN support
-# - the output depends on the value of the
-#   BADVAL_USENAN option in perldl.conf
-#   == 1 then we use NaN's
-#      0             PDL.bvals.Float/Double
+# - since 2.040, use per-PDL code
 #
 sub convert {
     my ( $this, $name, $lhs, $rhs, $opcode, $pobj ) = @_;
-    my $ftype_override = exists $this->{ftypes_vars}{$name} ? $this->{ftypes_type} : undef;
-    my $type = $ftype_override || $pobj->adjusted_type($this->{Gencurtype}[-1]);
-    return ($lhs, $rhs) if !($usenan * $type->usenan);
-    return (
-      $lhs,
-      PDL::PP::pp_line_numbers(__LINE__-1, "PDL->bvals.".$type->shortctype)
-    ) if $opcode eq "SETBAD";
-    (
-      PDL::PP::pp_line_numbers(__LINE__-1, "!".$type->isnan($lhs)),
-      "0"
-    );
+    ($lhs, $rhs);
 }
 
 #####################################################################

@@ -9,7 +9,6 @@ use PDL::Core::Dev;
 use PDL::Types qw(ppdefs_all types);
 my $A = [ppdefs_all()];
 my $AF = [map $_->ppsym, grep !$_->integer, types()]; # all including complex
-my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 
 #########################################################
 
@@ -21,31 +20,25 @@ pp_add_exported( '',
 		 'badflag check_badflag badvalue orig_badvalue nbad nbadover ngood ngoodover ' .
 		 'setbadat ' );
 
-# If UseNaN == 0, we need to have a variable containing the
-# value for NaN. This is taken from Basic/Core/Core.xs.PL
-#
-if ( $usenan == 0 ) {
-    require PDL::Core::Dev; PDL::Core::Dev->import;
-    pp_addhdr( "\nstatic union { unsigned char __c[4]; float __d; } __pdl_nan = {\n" );
-    if ( isbigendian() ) {
-	pp_addhdr( "{ 0x7f, 0xc0, 0, 0 } };\n\n" );
-    } else {
-	pp_addhdr( "{ 0, 0, 0xc0, 0x7f } };\n\n" );
-    }
-    pp_addhdr( <<'EOF' );
+require PDL::Core::Dev; PDL::Core::Dev->import;
+pp_addhdr( "\nstatic union { unsigned char __c[4]; float __d; } __pdl_nan = {\n" );
+if ( isbigendian() ) {
+    pp_addhdr( "{ 0x7f, 0xc0, 0, 0 } };\n\n" );
+} else {
+    pp_addhdr( "{ 0, 0, 0xc0, 0x7f } };\n\n" );
+}
+pp_addhdr( <<'EOF' );
 float _nan_float;
 double _nan_double;
 complex float _nan_cfloat;
 complex double _nan_cdouble;
 EOF
-    pp_add_boot( <<'EOF' );
+pp_add_boot( <<'EOF' );
   _nan_float = __pdl_nan.__d;
   _nan_double = (double) __pdl_nan.__d;
   _nan_cfloat = __pdl_nan.__d + I*__pdl_nan.__d;
   _nan_cdouble = (complex double) __pdl_nan.__d + I*__pdl_nan.__d;
 EOF
-
-} # if: $usenan
 
 ## Header
 pp_addpm({At=>'Top'},<<'!NO!SUBS!');
@@ -74,8 +67,8 @@ L<PDL::BadValues>.
 
 =item $PDL::Bad::UseNaN
 
-Set to 1 if PDL was compiled with C<BADVAL_USENAN> set,
-0 otherwise.
+Set to 0 as of PDL 2.040, as no longer available, though NaN can be used
+as a badvalue for a given PDL object.
 
 =item $PDL::Bad::PerPdl
 
@@ -95,7 +88,7 @@ pp_addpm(<<"!WITH!SUBS!");
 
 # really should be constants
 \$PDL::Bad::Status = 1;
-\$PDL::Bad::UseNaN = $usenan;
+\$PDL::Bad::UseNaN = 0;
 \$PDL::Bad::PerPdl = 1;
 
 use strict;
@@ -197,8 +190,8 @@ a PDL::Type object, or one of C<$PDL_B>, C<$PDL_S>, etc.
    print "The bad data value for ushort is: ",
       $x->badvalue(), "\n";
 
-This can act as a setter (e.g. C<< $x->badvalue(23) >>)
-if the data type is an integer or C<$PDL::Bad::UseNaN == 0>.
+This can act as a setter (e.g. C<< $x->badvalue(23) >>),
+including with the value C<NaN> for floating-point types.
 Note that this B<never touches the data in the piddle>.
 That is, if C<$x> already has bad values, they will not
 be changed to use the given number and if any elements of
@@ -313,11 +306,6 @@ foreach my $type ( types() ) {
 EOC
 
     my $set_code = "if ( val.type != -1 ) { ANYVAL_TO_CTYPE($storage, $ctype, val); }";
-
-    # if UseNaN is true, then we can not change the value used to
-    # represent bad elements since it's a NaN. At least, not for
-    # for floating point types
-    $set_code = "" if $usenan and $type->usenan;
 
     $str .=
 "
@@ -869,95 +857,6 @@ pp_addhdr('
 ');
 }
 
-# setnantobad \ are straight copies if $PDL::Bad::UseNaN == 1
-# setbadtonan /
-#
-if ( $usenan ) {
-    pp_add_exported( '', 'setnantobad setbadtonan' );
-	pp_addpm(<<'!NO!SUBS!');
-
-=head2 setnantobad
-
-=for ref
-
-Sets NaN/Inf values in the input piddle bad
-(only relevant for floating-point piddles).
-Can be done inplace.
-
-As C<$PDL::Bad::UseNan == 1>, this is just a copy
-with a call to L<check_badflag()|/check_badflag> thrown in.
-
-=for usage
-
- $y = $x->setnantobad;
- $x->inplace->setnantobad;
-
-=for bad
-
-Supports bad values.
-
-=cut
-
-*setnantobad = \&PDL::setnantobad;
-sub PDL::setnantobad{
-    my $x = shift;
-    my $y;
-    if ( $x->is_inplace ) {
-	$x->set_inplace(0);
-	$y = $x;
-    } elsif ( $#_ > -1 ) {
-	$y = $_[0] = $x->copy; # is this correct?
-    } else {
-	$y = $x->copy;
-    }
-    # make sure bad flag is set, otherwise check_badflag() is a nop
-    $y->badflag(1); $y->check_badflag();
-    return $y; 
-}
-
-=head2 setbadtonan
-
-=for ref
-
-Sets Bad values to NaN
-(only relevant for floating-point piddles).
-Can be done inplace.
-
-As C<$PDL::Bad::UseNan == 1>, this is just a copy,
-with the bad flag being cleared.
-
-=for usage
-
- $y = $x->setbadtonan;
- $x->inplace->setbadtonan;
-
-=for bad
-
-Supports bad values.
-
-=cut
-
-*setbadtonan = \&PDL::setbadtonan;
-sub PDL::setbadtonan{
-    my $x = shift;
-    my $y;
-    if ( $x->is_inplace ) {
-	$x->set_inplace(0);
-	$y = $x;
-    } elsif ( $#_ > -1 ) {
-	$y = $_[0] = $x->copy; # is this correct?
-    } else {
-	$y = $x->copy;
-    }
-    $y->badflag(0);
-    return $y; 
-}
-
-!NO!SUBS!
-
-} else {
-
-    # usenan is not true, so we need to do something
 pp_def('setnantobad' . <<'=cut',
 
 =head2 setnantobad
@@ -1066,8 +965,6 @@ operation, it clears the bad flag.
         }
     },
 ); # pp_def: setbadtonan
-
-} # if: $usenan
 
 # renamed replacebad by setbadtoval
 pp_def('setbadtoval' . <<'=cut',
@@ -1186,22 +1083,6 @@ its bad value flag set to true.
 #########################################################
 
 pp_addpm({At=>'Bot'},<<'!WITHOUT!SUBS!');
-
-=head1 CONFIGURATION
-
-The way the PDL handles the various bad value settings depends on your
-compile-time configuration settings, as held in C<perldl.conf>.
-
-=over
-
-=item C<$PDL::Config{BADVAL_USENAN}>
-
-Set this configuration option to a true value if you want floating-pont
-numbers to use NaN to represent the bad value. If set to false, you can
-use any number to represent a bad value, which is generally more
-flexible. In the default configuration, this is set to a false value.
-
-=back
 
 =head1 AUTHOR
 

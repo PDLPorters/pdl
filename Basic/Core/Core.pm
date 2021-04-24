@@ -1128,10 +1128,6 @@ sub PDL::Core::new_pdl_from_string {
       PDL::Core::parse_basic_string($inf, $nan, $nnan, $bad);
    };
 
-   # Respect BADVAL_USENAN
-   require PDL::Config;
-   $has_bad += $has_inf + $has_nan if $PDL::Config{BADVAL_USENAN};
-
    if (ref $val eq 'ARRAY') {
       my $to_return = PDL::Core::pdl_avref($val,$this,$type);
       if( $to_return->dim(-1) == 1 ) {

@@ -50,7 +50,6 @@ for (float, double, cfloat, cdouble) {
     or diag "bv=$bv, obv=$obv: ", explain [$bv, $obv];
   is $got->isbad.'', '[0 1]', "$_ isbad";
   # this captures a failure in IO/Flexraw/t/iotypes.t
-  next if $PDL::Config{BADVAL_USENAN}; # comparing NaN not what we want
   eval { ok $bv == $obv, 'can equality-check badvalue and orig_badvalue' };
   is $@, '' or diag explain [$bv, $obv];
 }

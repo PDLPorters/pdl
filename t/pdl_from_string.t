@@ -9,7 +9,6 @@ use strict;
 use warnings;
 use Test::More;
 use Config;
-require PDL::Config;
 use PDL::LiteF;
 
 isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns a piddle} );
@@ -134,36 +133,23 @@ TODO: {
 	# conditional TODO
 	local $TODO = 'ActivePerl and/or perls built using MS compilers might fail this test'
 		if($ActivePerl::VERSION || $Config{cc} eq 'cl');
-	if ($PDL::Config{BADVAL_USENAN}) {
-		ok($bad_values->isbad->at(0), 'sets nan to bad')
-			or diag("Zeroeth bad value should be bad but it describes itself as "
-		. $bad_values->at(0));
-	}
-	else {
-		SKIP: {
-			skip "broken for PDL_Index", 1;
-			ok($bad_values->at(0) != $bad_values->at(0), 'properly handles nan')
-				or diag("Zeroeth bad value should be nan but it describes itself as "
-				. $bad_values->at(0));
-		}
+	SKIP: {
+		skip "broken for PDL_Index", 1;
+		ok($bad_values->at(0) != $bad_values->at(0), 'properly handles nan')
+			or diag("Zeroeth bad value should be nan but it describes itself as "
+			. $bad_values->at(0));
 	}
 }
 
 # inf test: inf == inf but inf * 0 != 0
-ok((	$PDL::Config{BADVAL_USENAN} and $bad_values->isbad->at(1)
-		or  $bad_values->at(1) == $bad_values->at(1)
+ok((	$bad_values->at(1) == $bad_values->at(1)
 		and $bad_values->at(1) * 0.0 != 0.0), 'properly handles inf')
 	or diag("First bad value should be inf but it describes itself as " . $bad_values->at(1));
 # inf test: -inf == -1 * inf
-ok((	$PDL::Config{BADVAL_USENAN} and $bad_values->isbad->at(2)
-		or  $bad_values->at(2) == $bad_values->at(2)
+ok((	$bad_values->at(2) == $bad_values->at(2)
 		and $bad_values->at(2) * 0.0 != 0.0), 'properly handles -inf')
 	or diag("Second bad value should be -inf but it describes itself as " . $bad_values->at(2));
-SKIP: {
-	skip "because BADVAL_USENAN makes -inf and inf both bad, "
-		. "so checking signs is silly", 1 if $PDL::Config{BADVAL_USENAN};
-	ok($bad_values->at(2) == -$bad_values->at(1), "negative inf is numerically equal to -inf");
-}
+ok($bad_values->at(2) == -$bad_values->at(1), "negative inf is numerically equal to -inf");
 ok($bad_values->isbad->at(3), 'properly handles bad values')
 	or diag("Third bad value should be BAD but it describes itself as " . $bad_values->slice(3));
 
@@ -179,47 +165,35 @@ TODO: {
 	# conditional TODO
 	local $TODO = 'ActivePerl and/or perls built using MS compilers might fail this test'
 		if($ActivePerl::VERSION || $Config{cc} eq 'cl');
-	ok((	$PDL::Config{BADVAL_USENAN} and $infty->isbad
-		or $infty == $infty and $infty * 0.0 != 0.0), "pdl 'inf' works by itself")
+	ok((	$infty == $infty and $infty * 0.0 != 0.0), "pdl 'inf' works by itself")
 		or diag("pdl 'inf' gave me $infty");
-	ok((	$PDL::Config{BADVAL_USENAN} and $min_inf->isbad
-		or $min_inf == $min_inf and $min_inf * 0.0 != 0.0), "pdl '-inf' works by itself")
+	ok((	$min_inf == $min_inf and $min_inf * 0.0 != 0.0), "pdl '-inf' works by itself")
 		or diag("pdl '-inf' gave me $min_inf");
 }
 
-SKIP: {
-	skip "because BADVAL_USENAN makes -inf and inf both bad, "
-		. "so checking signs is silly", 1 if $PDL::Config{BADVAL_USENAN};
-	ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
-}
+ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
 
 TODO: {
 	local $TODO = 'Sign of Nan depends on platform, still some loose ends';
 	# conditional TODO for a different reason
 	local $TODO = 'Cygwin perl and/or ActivePerl might fail these tests'
 		if($ActivePerl::VERSION || $^O =~ /cygwin/i);
-	ok((   $PDL::Config{BADVAL_USENAN} and $nan->isbad
-	       or $nan != $nan), "pdl 'nan' works by itself")
+	ok((   $nan != $nan), "pdl 'nan' works by itself")
 	       or diag("pdl 'nan' gave me $nan");
-	ok((   $PDL::Config{BADVAL_USENAN} and $nan2->isbad
-	       or $nan2 != $nan2), "pdl '-nan' works by itself")
+	ok((   $nan2 != $nan2), "pdl '-nan' works by itself")
 	       or diag("pdl '-nan' gave me $nan2");
 	# On MS Windows, nan is -1.#IND and -nan is 1.#QNAN. IOW, nan has
 	# a leading minus sign, and -nan is not signed.
 	if($^O =~ /MSWin32/i) {
-		ok((   $PDL::Config{BADVAL_USENAN} and $nan->isbad
-		       or $nan =~ /-/), "pdl 'nan' has a negative sign (MS Windows only)")
+		ok((   $nan =~ /-/), "pdl 'nan' has a negative sign (MS Windows only)")
 		       or diag("pdl 'nan' gave me $nan");
-		ok((   $PDL::Config{BADVAL_USENAN} and $nan2->isbad
-		       or $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
+		ok((   $nan2 !~ /-/), "pdl '-nan' doesn't have a negative sign (MS Windows only)")
 		       or diag("pdl -'nan' gave me $nan2");
 	}
 	else {
-		ok((   $PDL::Config{BADVAL_USENAN} and $nan->isbad
-		       or $nan !~ /-/), "pdl 'nan' has a positive sign")
+		ok((   $nan !~ /-/), "pdl 'nan' has a positive sign")
 		       or diag("pdl 'nan' gave me $nan");
-		ok((   $PDL::Config{BADVAL_USENAN} and $nan2->isbad
-		       or $nan2 =~ /-/), "pdl '-nan' has a negative sign")
+		ok((   $nan2 =~ /-/), "pdl '-nan' has a negative sign")
 		       or diag("pdl '-nan' gave me $nan2");
 	}
 }
@@ -235,11 +209,9 @@ TODO: {
 	# conditional TODO
 	local $TODO = 'ActivePerl and/or perls built using MS compilers might fail this test'
 		if($ActivePerl::VERSION || $Config{cc} eq 'cl');
-	ok((	$PDL::Config{BADVAL_USENAN} and $infty->isbad
-		or $infty == $infty and $infty * 0 != 0), "pdl '1.#INF' works")
+	ok((	$infty == $infty and $infty * 0 != 0), "pdl '1.#INF' works")
 		or diag("pdl '1.#INF' gave me $infty");
-	ok(($PDL::Config{BADVAL_USENAN} and $nan->isbad
-		or $nan != $nan), "pdl '-1.#IND' works")
+	ok((	$nan != $nan), "pdl '-1.#IND' works")
 		or diag("pdl '-1.#IND' gave me $nan");
 }
 

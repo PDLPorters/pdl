@@ -1,7 +1,6 @@
 use strict;
 use Test::More;
 use PDL::LiteF;
-use PDL::Config;
 use PDL::Math;
 use PDL::Types qw(types);
 use Test::Warn;
@@ -10,8 +9,6 @@ use Test::Warn;
 # use it in every call just to document things
 #
 use constant ABSTOL => 1.0e-4;
-
-my $usenan = $PDL::Config{BADVAL_USENAN} || 0;
 
 # check default behaviour (ie no bad data)
 # - probably overkill
@@ -361,20 +358,10 @@ like( PDL::Core::string( $x->clump(-1) ),
 
 # check that we can change the value used to represent
 # missing elements for floating points (earlier tests only did integer types)
-# IF we are not using NaN's
 #
-SKIP: {
-    skip( "Skipped: test only valid when not using NaN's as bad values", 2 )
-      if $usenan;
-
-    # perhaps should check that the value can't be changed when NaN's are
-    # being used.
-    #
-
-    is( float->badvalue, float->orig_badvalue, "default bad value for floats matches" );
-    is( float->badvalue(23), 23, "changed floating-point bad value" );
-    float->badvalue( float->orig_badvalue );
-}
+is( float->badvalue, float->orig_badvalue, "default bad value for floats matches" );
+is( float->badvalue(23), 23, "changed floating-point bad value" );
+float->badvalue( float->orig_badvalue );
 
 $x = sequence(4);
 $x->badvalue(3);
@@ -432,12 +419,6 @@ TODO: {
 	subtest "String 'bad' is numeric (in PDL)" => sub {
 		check_eq_warnings('bad', $no_warning);
 	};
-}
-
-if ($usenan) {
-  diag 'terminating as badvalue support only supports NaN badvalues';
-  done_testing;
-  exit;
 }
 
 ## Issue information
