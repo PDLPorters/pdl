@@ -1163,7 +1163,8 @@ Solve A x = B for matrix A, by back substitution into A's LU decomposition.
   # or with Slatec LINPACK
   use PDL::Slatec;
   gefa($lu=$A->copy, $ipiv=null, $info=null);
-  gesl($lu, $ipiv, $x=$B->xchg(0,1)->copy, 1); # 1 = do transpose - why needed!??
+  # 1 = do transpose because Fortran's idea of rows vs columns
+  gesl($lu, $ipiv, $x=$B->xchg(0,1)->copy, 1);
   $x = $x->inplace->xchg(0,1);
 
   # or with LAPACK
