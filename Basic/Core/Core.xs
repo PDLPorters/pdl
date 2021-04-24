@@ -16,11 +16,6 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#if !BADVAL_USENAN
-#include <float.h>
-#endif
-#include <limits.h>
-
 /* Return a integer or numeric scalar as appropriate */
 
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
