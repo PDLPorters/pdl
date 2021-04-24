@@ -499,41 +499,6 @@ sclr_c(it)
 
 
 SV *
-at_c(x,position)
-   pdl*	x
-   SV*	position
-   PREINIT:
-    PDL_Indx * pos;
-    int npos;
-    int ipos;
-    PDL_Anyval result = { -1, 0 };
-   CODE:
-    pdl_make_physvaffine( x );
-
-    pos = pdl_packdims( position, &npos);
-
-    if (pos == NULL || npos < x->ndims)
-       croak("Invalid position");
-
-    /*  allow additional trailing indices
-     *  which must be all zero, i.e. a
-     *  [3,1,5] piddle is treated as an [3,1,5,1,1,1,....]
-     *  infinite dim piddle
-     */
-    for (ipos=x->ndims; ipos<npos; ipos++)
-      if (pos[ipos] != 0)
-         croak("Invalid position");
-
-    result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
-        (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
-	x->ndims);
-
-    ANYVAL_TO_SV(RETVAL, result);
-
-    OUTPUT:
-     RETVAL
-
-SV *
 at_bad_c(x,position)
    pdl*	x
    SV *	position
