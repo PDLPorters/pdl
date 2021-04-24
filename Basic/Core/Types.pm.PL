@@ -151,7 +151,7 @@ my @types = (
 		  complexversion=> 'G',
 	          integer=>0,
 	          unsigned=>0,
-	          isnan=>'!isfinite(%1$s)',
+	          isnan=>'isnan(%1$s)',
 	      },
 	      {
 		  identifier => 'D',
@@ -165,7 +165,7 @@ my @types = (
 		  complexversion=> 'C',
 	          integer=>0,
 	          unsigned=>0,
-	          isnan=>'!isfinite(%1$s)',
+	          isnan=>'isnan(%1$s)',
 	      },
 # the complex types need to be in the same order as their real
 # counterparts, because the "real" ppforcetype relies on a fixed interval
@@ -186,7 +186,7 @@ my @types = (
 	          realversion=>'F',
 	          integer=>0,
 	          unsigned=>0,
-	          isnan=>'!(isfinite(crealf(%1$s)) || isfinite(cimagf(%1$s)))',
+	          isnan=>'(isnan(crealf(%1$s)) || isnan(cimagf(%1$s)))',
 	      },
 	      {
 		  identifier => 'CD',
@@ -201,7 +201,7 @@ my @types = (
 	          realversion=>'D',
 	          integer=>0,
 	          unsigned=>0,
-	          isnan=>'!(isfinite(creal(%1$s)) || isfinite(cimag(%1$s)))',
+	          isnan=>'(isnan(creal(%1$s)) || isnan(cimag(%1$s)))',
 	      },
 	      );
 

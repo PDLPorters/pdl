@@ -690,8 +690,8 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 #   $SETBAD($a())     $a()   = a_badval
 #
 # floating point with NaN
-#   $ISBAD($a(n))  -> isfinite($a(n)) == 0
-#   $ISGOOD($a())     isfinite($a())  != 0
+#   $ISBAD($a(n))  -> !isnan($a(n)) == 0
+#   $ISGOOD($a())     !isnan($a())  != 0
 #   $SETBAD($a())     $a()           = PDL->bvals.Float (or .Double)
 #
 # I've also got it so that the $ on the pdl name is not
@@ -761,8 +761,8 @@ sub get_str {
 #   $SETBADVAR(foo,a)    foo  = a_badval
 #
 # floating point with NaN
-#   $ISBADVAR(foo,a)  -> isfinite(foo) == 0
-#   $ISGOODVAR(foo,a)    isfinite(foo) != 0
+#   $ISBADVAR(foo,a)  -> !isnan(foo) == 0
+#   $ISGOODVAR(foo,a)    !isnan(foo) != 0
 #   $SETBADVAR(foo,a)    foo          = PDL->bvals.Float (or .Double)
 #
 
@@ -823,8 +823,8 @@ sub get_str {
 #  etc
 #
 # if we use NaN's, then
-#  $PPISBAD(PARENT,[i])   -> isfinite(PARENT_physdatap[i]) == 0
-#  $PPISGOOD(PARENT,[i])  -> isfinite(PARENT_physdatap[i]) != 0
+#  $PPISBAD(PARENT,[i])   -> !isnan(PARENT_physdatap[i]) == 0
+#  $PPISGOOD(PARENT,[i])  -> !isnan(PARENT_physdatap[i]) != 0
 #  $PPSETBAD(PARENT,[i])  -> PARENT_physdatap[i]          = PDL->bvals.Float (or .Double)
 #
 

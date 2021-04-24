@@ -1002,9 +1002,9 @@ bad flag is set, it will no
         int flag = 0;
         threadloop %{
             if (
-              types (FD) %{ !isfinite($a()) %}
-              types (G) %{ !isfinite(crealf($a())) && !isfinite(cimagf($a())) %}
-              types (C) %{ !isfinite(creal($a())) && !isfinite(cimag($a())) %}
+              types (FD) %{ isnan($a()) %}
+              types (G) %{ isnan(crealf($a())) || isnan(cimagf($a())) %}
+              types (C) %{ isnan(creal($a())) || isnan(cimag($a())) %}
             ) {
                 $SETBAD(b());
                 flag = 1;
