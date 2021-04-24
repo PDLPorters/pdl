@@ -1,3 +1,5 @@
+- pdl_core_version 14 for Core struct updates
+
 2.039 2021-04-24
 - update lu_backsub docs with comparison to other linear algebra code
 - fix "complex" type-qualifier bug affecting native-complex r2C

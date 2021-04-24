@@ -26,8 +26,9 @@ PDL::Core::Dev::loadmod_Types();
 # version 11 for core cleanup (proto-PDL-3)
 # version 12 for PDL_Anyval union data type (full 64bit support)
 # version 13 for complex data types (native complex support)
+# version 14: NaN support for native complex
 use vars qw( $pdl_core_version );
-$pdl_core_version = 13;
+$pdl_core_version = 14;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
