@@ -235,7 +235,6 @@ my @prereq = (
 	   'Inline'              => 0.83,      # fixed ILSM-finding
 	   'Inline::C'           => 0.62,
            'List::MoreUtils'     => 0,         # for PDL::IO::GD
-	   'Module::Compile'     => 0.23,      # for new PDL::NiceSlice
 	   'Pod::Parser'         => 0,         # version TBD for PDL::Doc
 	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
            'Scalar::Util'        => 0,

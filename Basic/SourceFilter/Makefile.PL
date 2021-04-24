@@ -25,6 +25,7 @@ WriteMakefile(
       'Filter::Util::Call' => 0,
       'Text::Balanced' => 0,
       'PDL' => 2.003000,
+#      'Module::Compile' => '0.23',
    },
    NO_MYMETA => 1,
 );
