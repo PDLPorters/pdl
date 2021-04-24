@@ -11,7 +11,6 @@ use Test::Warn;
 use constant ABSTOL => 1.0e-4;
 
 my $usenan = $PDL::Config{BADVAL_USENAN} || 0;
-my $perpdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 
 # check default behaviour (ie no bad data)
 # - probably overkill
@@ -381,34 +380,14 @@ SKIP: {
     float->badvalue( float->orig_badvalue );
 }
 
-SKIP: {
-
-    skip ("Skipped: test only valid when enabling bad values per pdl", 3)
-      unless $perpdl;
-
-    $x = sequence(4);
-    $x->badvalue(3);
-    $x->badflag(1);
-    $y = $x->slice('2:3');
-    is( $y->badvalue, 3, "can propagate per-piddle bad value");
-    is( $y->sum, 2, "and the propagated value is recognised as bad");
-
-    $x = sequence(4);
-    is ($x->badvalue, double->orig_badvalue, "no long-term effects of per-piddle changes [1]");
-
-}
-
-SKIP: {
-    skip ("Skipped: test not valid if per-piddle bad values are used", 1)
-      if $perpdl;
-
-    $x = double(4);
-    double->badvalue(3);
-    is($x->badvalue.'', double->badvalue.'', "no long-term effects of per-piddle changes [2]")
-        or diag explain [$x->badvalue, double->badvalue];
-    double->badvalue(double->orig_badvalue);
-
-}
+$x = sequence(4);
+$x->badvalue(3);
+$x->badflag(1);
+$y = $x->slice('2:3');
+is( $y->badvalue, 3, "can propagate per-piddle bad value");
+is( $y->sum, 2, "and the propagated value is recognised as bad");
+$x = sequence(4);
+is ($x->badvalue, double->orig_badvalue, "no long-term effects of per-piddle changes [1]");
 
 # At the moment we do not allow per-piddle bad values
 # and the use of NaN's.
@@ -483,11 +462,8 @@ subtest "Issue example code" => sub {
 	is( "$m", 2, "Mean of [1 2 3] is 2" );
 	is( "$s", 1, "And std. dev is 1" );
 
-	if ($perpdl) {
-	  # to ensure warnings happen if per-PDL
-	  $s->badflag(1);
-	  $s->badvalue(0);
-	}
+	$s->badflag(1);
+	$s->badvalue(0);
 	my @warnings;
 	local $SIG{__WARN__} = sub { push @warnings, @_ };
 	is( "".($s >  0), "1", "is 1 >  0? -> true" );

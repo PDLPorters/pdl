@@ -10,7 +10,6 @@ use PDL::Types qw(ppdefs_all types);
 my $A = [ppdefs_all()];
 my $AF = [map $_->ppsym, grep !$_->integer, types()]; # all including complex
 my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
-my $bvalPerPdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 
 #########################################################
 
@@ -80,8 +79,11 @@ Set to 1 if PDL was compiled with C<BADVAL_USENAN> set,
 
 =item $PDL::Bad::PerPdl
 
-Set to 1 if PDL was compiled with the I<experimental>
-C<BADVAL_PER_PDL> option set, 0 otherwise.
+Set to 1 as of PDL 2.040 as always available.
+
+=item $PDL::Bad::Status
+
+Set to 1 as of PDL 2.035 as always available.
 
 =back
 
@@ -94,7 +96,7 @@ pp_addpm(<<"!WITH!SUBS!");
 # really should be constants
 \$PDL::Bad::Status = 1;
 \$PDL::Bad::UseNaN = $usenan;
-\$PDL::Bad::PerPdl = $bvalPerPdl;
+\$PDL::Bad::PerPdl = 1;
 
 use strict;
 
@@ -392,10 +394,8 @@ sub PDL::badvalue {
 	    $self->inplace->setbadtoval( $val );
 	    $self->badflag(1);
 	}
-	if ($PDL::Config{BADVAL_PER_PDL}) {
-	    my $name = "PDL::_badvalue_per_pdl_int$num";
-	    return &{$name}($self, $val);
-	}
+	my $name = "PDL::_badvalue_per_pdl_int$num";
+	return &{$name}($self, $val);
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
 	$num = $self->enum;
     } else {
@@ -1187,15 +1187,6 @@ its bad value flag set to true.
 
 pp_addpm({At=>'Bot'},<<'!WITHOUT!SUBS!');
 
-=head1 CHANGES
-
-The I<experimental> C<BADVAL_PER_PDL> configuration option,
-which - when set - allows per-piddle bad values, was added
-after the 2.4.2 release of PDL.
-The C<$PDL::Bad::PerPdl> variable can be
-inspected to see if this feature is available.
-
-
 =head1 CONFIGURATION
 
 The way the PDL handles the various bad value settings depends on your
@@ -1209,14 +1200,6 @@ Set this configuration option to a true value if you want floating-pont
 numbers to use NaN to represent the bad value. If set to false, you can
 use any number to represent a bad value, which is generally more
 flexible. In the default configuration, this is set to a false value.
-
-=item C<$PDL::Config{BADVAL_PER_PDL}>
-
-Set this configuration option to a true value if you want each of your
-piddles to keep track of their own bad values. This means that for one
-piddle you can set the bad value to zero, while in another piddle you
-can set the bad value to NaN (or any other useful number). This is
-usually set to false.
 
 =back
 

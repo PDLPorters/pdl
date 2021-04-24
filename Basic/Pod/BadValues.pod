@@ -32,10 +32,9 @@ I<IF> the option C<BADVAL_USENAN> is set to 1 in your config file.  Otherwise
 special values are used (L<Default bad values|/Default bad values>).  I
 do not have any benchmarks to see which option is faster.
 
-There is an experimental feature C<BADVAL_PER_PDL> which, if set,
-allows you to have different bad values for separate piddles of the
+As of PDL 2.040, you can have different bad values for separate piddles of the
 same type. This currently does not work with the C<BADVAL_USENAN> option;
-if both are set then PDL will ignore the C<BADVAL_USENAN> value.
+if you set the C<BADVAL_USENAN> value, PDL will not build.
 
 =head2 A quick overview
 
@@ -196,10 +195,6 @@ all elements are bad).
 
 =head2 A bad value for each piddle, and related issues
 
-An B<experimental> option C<BADVAL_PER_PDL> has been added to F<perldl.conf>
-to allow per-piddle bad values. The documentation has not been updated
-to account for this change.
-
 The following is relevant only for integer types, and for floating-point
 types if C<BADVAL_USENAN> was not set when PDL was built.
 
@@ -247,16 +242,13 @@ if I allow routines to fall back to using the C<Code> section for
 floating-point types (i.e. those routines with C<NoBadifNaN =E<gt> 1>
 when C<BADVAL_USENAN> is true).
 
-The bad values for the integer types
+The default bad values
 are now stored in a structure within the Core PDL structure
 - C<PDL.bvals> (eg F<Basic/Core/pdlcore.h.PL>); see also 
 C<typedef badvals> in F<Basic/Core/pdl.h.PL> and the
 BOOT code of F<Basic/Core/Core.xs.PL> where the values are initialised to 
 (hopefully) sensible values.
 See F<PDL/Bad/bad.pd> for read/write routines to the values.
-
-The addition of the C<BADVAL_PER_PDL> option has resulted in additional
-changes to the internals of piddles. These changes are not documented yet.
 
 =head2 Why not make a PDL subclass?
 
@@ -550,17 +542,6 @@ When C<BADVAL_USENAN> is true, the routines in C<PDL::Ops> should
 just fall through to the C<Code> section - i.e. don't use C<BadCode> -
 for C<float> and C<double> data types.
 
-=head2 Global versus per-piddle bad values
-
-I think all that's needed is to change the routines in
-C<Basic/Core/pdlconv.c.PL>, although there's bound to be complications.
-It would also mean that the pdl structure would need to have a
-variable to store its bad value, which would mean binary incompatibility
-with previous versions of PDL with bad value support.
-
-As of 17 March 2006, PDL contains the B<experimental> C<BADVAL_PER_PDL>
-configuration option which, if selected, adds per-piddle bad values.
-
 =head2 Dataflow of the badflag
 
 Currently changes to the bad flag are propagated to the children of a piddle,
@@ -594,15 +575,6 @@ etc
 =head1 TODO/SUGGESTIONS
 
 =over 4
-
-=item *
-
-Look at using per-piddle bad values.  Would mean a change to the pdl structure
-(i.e. binary incompatibility) and the routines in C<Basic/Core/pdlconv.c.PL>
-would need changing to handle this.  Most other routines I<should not>
-need to be changed ...
-
-See the B<experimental> C<BADVAL_PER_PDL> option.
 
 =item *
 

@@ -26,7 +26,7 @@ PDL::Core::Dev::loadmod_Types();
 # version 11 for core cleanup (proto-PDL-3)
 # version 12 for PDL_Anyval union data type (full 64bit support)
 # version 13 for complex data types (native complex support)
-# version 14: NaN support for native complex
+# version 14: NaN support for native complex, per-PDL badval on
 use vars qw( $pdl_core_version );
 $pdl_core_version = 14;
 

@@ -79,16 +79,6 @@ jobs:
             test-installed: true # test not from blib but after installing
           - perl-version: '5.30'
             os: ubuntu-latest
-            badval-per-pdl: true
-          - perl-version: '5.30'
-            os: ubuntu-latest
-            badval-usenan: true
-          - perl-version: '5.30'
-            os: ubuntu-latest
-            badval-usenan: true
-            badval-per-pdl: true
-          - perl-version: '5.30'
-            os: ubuntu-latest
             disable-fortran: true # what if we don't have Fortran installed?
           - perl-version: '5.30'
             os: ubuntu-latest
@@ -119,12 +109,6 @@ jobs:
           mkdir build_aux
           echo 'package pdl_config_override; use ExtUtils::MakeMaker::Config; $Config{cc} = $Config{ld} = "clang"; 1;' >> build_aux/pdl_config_override.pm
           echo "PERL5OPT=-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
-      - name: enable BADVAL_USENAN?
-        if: matrix.badval-usenan
-        run: perl -pi -e 's|BADVAL_USENAN => 0|BADVAL_USENAN => 1|' perldl.conf
-      - name: enable BADVAL_PER_PDL?
-        if: matrix.badval-per-pdl
-        run: perl -pi -e 's|BADVAL_PER_PDL => 0|BADVAL_PER_PDL => 1|' perldl.conf
       - name: EUMM blead?
         if: matrix.eumm-blead
         run: cpanm -n --dev ExtUtils::MakeMaker

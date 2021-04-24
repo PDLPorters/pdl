@@ -120,12 +120,8 @@ sub getpdl_config {
   # NaN's for floating-point bad values (the BADVAL_USENAN
   # option).
   #
-  my $flag_use_nan = $PDL_CONFIG{BADVAL_USENAN} || 0;
-  my $flag_per_pdl = $PDL_CONFIG{BADVAL_PER_PDL} || 0;
-  if ( $flag_use_nan and $flag_per_pdl ) {
-      print "WARNING: Setting BADVAL_USENAN=0 as BADVAL_PER_PDL option is set!\n\n";
-      $PDL_CONFIG{BADVAL_USENAN} = 0;
-  }
+  die "WARNING: die-ing as had BADVAL_USENAN=1; BADVAL_PER_PDL option is permanent"
+    if $PDL_CONFIG{BADVAL_USENAN};
 
   # create a PDL::Config variable matching the PDL_CONFIG structure
   # and convert yes/no answers to 1/0

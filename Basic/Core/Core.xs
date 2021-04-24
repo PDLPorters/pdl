@@ -148,22 +148,8 @@ PDL_Anyval pdl_get_badvalue( int datatype ) {
 
 
 PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
-    PDL_Anyval retval = { -1, 0 };
-    int datatype;
-
-#if BADVAL_PER_PDL
-    if (it->has_badvalue) {
-        retval = it->badvalue;
-    } else {
-        datatype = it->datatype;
-        retval = pdl_get_badvalue( datatype );
-    }
-#else
-    datatype = it->datatype;
-    retval = pdl_get_badvalue( datatype );
-#endif
-    return retval;
-} /* pdl_get_pdl_badvalue() */
+    return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );
+}
 
 MODULE = PDL::Core     PACKAGE = PDL
 

@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker;
 
 ## $DB::single = 1;  # uncomment to have debugger stop here
 
-my $badval_define = " -DBADVAL_USENAN=$PDL::Config{BADVAL_USENAN} -DBADVAL_PER_PDL=$PDL::Config{BADVAL_PER_PDL}";
+my $badval_define = " -DBADVAL_USENAN=$PDL::Config{BADVAL_USENAN}";
 
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
