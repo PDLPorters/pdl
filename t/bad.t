@@ -3,6 +3,7 @@ use Test::More;
 use PDL::LiteF;
 use PDL::Config;
 use PDL::Math;
+use PDL::Types qw(types);
 use Test::Warn;
 
 # although approx() caches the tolerance value, we
@@ -384,12 +385,13 @@ is( $y->sum, 2, "and the propagated value is recognised as bad");
 $x = sequence(4);
 is ($x->badvalue, double->orig_badvalue, "no long-term effects of per-piddle changes [1]");
 
-# At the moment we do not allow per-piddle bad values
-# and the use of NaN's.
-#TODO: {
-#    local $TODO = "Need to work out whan NaN and per-piddle bad values means";
-#    is (0, 1);
-#}
+for my $t (map +([$_, undef], [$_, 'nan']), grep !$_->integer, types()) {
+  my $p = sequence $t->[0], 2;
+  $p->badvalue($t->[1]) if defined $t->[1];
+  $p->setbadat(1);
+  eval {is $p.'', '[0 BAD]', "badvalue works right $t->[0], bv=".explain($->[1])};
+  is $@, '';
+}
 
 ## Name: "isn't numeric in null operation" warning could be more helpful
 ## <http://sourceforge.net/p/pdl/bugs/332/>

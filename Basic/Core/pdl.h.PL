@@ -76,7 +76,8 @@ extern int pdl_debugging;
     ANYVAL_ISNAN(inany) \\
   )
 #else
-#define ANYVAL_ISBAD(inany,pdl,badval) ANYVAL_EQ_ANYVAL(inany, badval)
+#define ANYVAL_ISBAD(inany,pdl,badval) \\
+  (ANYVAL_ISNAN(badval) ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval))
 #endif
 
 #define ANYVAL_FROM_CTYPE(outany,avtype,inval) do { switch (avtype) { \\

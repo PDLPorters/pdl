@@ -309,6 +309,10 @@ SKIP: {
   is_deeply($small_pdl->unpdl, [ -8888888888888888888, 8888888888888888888 ], 'unpdl/small_pdl');
 }
 
+my $big_ushort = ushort(65535);
+is $big_ushort->badflag, 0, 'max ushort value badflag';
+is PDL::Core::at_bad_c($big_ushort, []), 65535, 'max ushort value not "BAD" per se';
+
 {
 my $x = cdouble(2, 3);
 PDL::Core::set_c($x, [1], ci());

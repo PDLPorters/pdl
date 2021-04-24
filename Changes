@@ -3,6 +3,7 @@
 - switch from List::MoreUtils to List::Util to reduce deps
 - bad value perl PDL support now always present, not configurable
 - use C99 isnan() to check for NaN, not isfinite(); complex if either are NaN
+- can use NaN as badvalue for all floating-point types
 
 2.039 2021-04-24
 - update lu_backsub docs with comparison to other linear algebra code
