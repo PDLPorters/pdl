@@ -548,39 +548,6 @@ at_bad_c(x,position)
      RETVAL
 
 
-void
-list_c(x)
-	pdl *x
-      PREINIT:
-	PDL_Indx *inds;
-      PDL_Indx *incs;
-      PDL_Indx offs;
-	void *data;
-	int ind;
-	int stop = 0;
-	SV *sv;
-	PPCODE:
-      pdl_make_physvaffine( x );
-	inds = pdl_malloc(sizeof(PDL_Indx) * x->ndims); /* GCC -> on stack :( */
-
-	data = PDL_REPRP(x);
-	incs = (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs);
-	offs = PDL_REPROFFS(x);
-	EXTEND(sp,x->nvals);
-	for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
-	while(!stop) {
-		PDL_Anyval pdl_val = { -1, 0 };
-		pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims);
-		ANYVAL_TO_SV(sv,pdl_val);
-		PUSHs(sv_2mortal(sv));
-		stop = 1;
-		for(ind = 0; ind < x->ndims; ind++)
-			if(++(inds[ind]) >= x->dims[ind])
-				inds[ind] = 0;
-			else
-				{stop = 0; break;}
-	}
-
 # returns the string 'BAD' if an element is bad
 #
 
