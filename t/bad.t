@@ -246,15 +246,10 @@ is( $y->badflag, 1, "assgn propagated badflag");
 $x->badflag(0);
 is( $y->badflag, 1, "assgn is not a deep copy for the badflag");
 
-# check that at and sclr return the correct values
-TODO: {
-   $x = pdl q[BAD];
-   local $TODO = 'check that at and sclr return correct values and the same';
-
-   is( PDL::Core::string($x), 'BAD', 'can convert PDL to string' );
-   is( $x->at, 'BAD', 'at() returns BAD for a bad value' );
-   is( $x->sclr, 'BAD', 'sclr() returns BAD for a bad value' );
-}
+$x = pdl q[BAD];
+is( PDL::Core::string($x), 'BAD', 'can convert PDL to string' );
+is( $x->at, 'BAD', 'at() returns BAD for a bad value' );
+isnt( $x->sclr, 'BAD', 'sclr() ignores bad value' );
 
 $x = pdl(0.5,double->badvalue,0);
 $x->badflag(1);

@@ -3098,7 +3098,7 @@ sub PDL::at {     # Return value at ($x,$y,$z...)
 
 =for ref
 
-return a single value from a piddle as a scalar
+return a single value from a piddle as a scalar, ignoring whether it is bad.
 
 =for example
 
