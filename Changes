@@ -1,5 +1,6 @@
 - pdl_core_version 14 for Core struct updates
 - drop unused dep Module::Compile
+- switch from List::MoreUtils to List::Util to reduce deps
 
 2.039 2021-04-24
 - update lu_backsub docs with comparison to other linear algebra code

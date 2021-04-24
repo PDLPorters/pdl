@@ -1073,8 +1073,8 @@ sub new
         my @pairs = @_;
         my $Npairs = scalar(@pairs)/2;
 
-        use List::MoreUtils 'none';
-        if( List::MoreUtils::none { ref $pairs[2*$_] } 0..$Npairs-1 ) {
+        use List::Util 'none';
+        if( none { ref $pairs[2*$_] } 0..$Npairs-1 ) {
           # treat the arguments as a hash
           $options = { @pairs }
         }
