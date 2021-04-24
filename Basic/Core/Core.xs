@@ -582,10 +582,7 @@ at_bad_c(x,position)
 #if BADVAL_USENAN
    /* do we have to bother about NaN's? */
         ( ( x->datatype < PDL_F && ANYVAL_EQ_ANYVAL(result, pdl_get_badvalue(x->datatype)) ) ||
-          ( x->datatype == PDL_CF && !(isfinite(crealf(result.value.G)) || isfinite(cimagf(result.value.G))) ) ||
-          ( x->datatype == PDL_CD && !(isfinite(creal(result.value.C)) || isfinite(cimag(result.value.C))) ) ||
-          ( x->datatype == PDL_F && !isfinite(result.value.F) ) ||
-          ( x->datatype == PDL_D && !isfinite(result.value.D) )
+          ANYVAL_ISNAN(result)
         )
 #else
         ANYVAL_EQ_ANYVAL( result, pdl_get_badvalue( x->datatype ) )

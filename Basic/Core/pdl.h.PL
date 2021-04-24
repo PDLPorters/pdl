@@ -253,6 +253,15 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
 
 #define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
 
+#define ANYVAL_ISNAN(x) (\\
+  (x).type < PDL_F ? 0 : \\
+  (x).type == PDL_CF ? !(isfinite(crealf((x).value.G)) || isfinite(cimagf((x).value.G))) : \\
+  (x).type == PDL_CD ? !(isfinite(creal((x).value.C)) || isfinite(cimag((x).value.C))) : \\
+  (x).type == PDL_F ? !isfinite((x).value.F) : \\
+  (x).type == PDL_D ? !isfinite((x).value.D) : \\
+  (croak("ANYVAL_ISNAN should not get here, had type %d", (x).type), 1) \\
+)
+
 $mymalloc
 !GROK!THIS!
 
