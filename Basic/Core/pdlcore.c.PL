@@ -967,7 +967,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
 	    my $comp_for_nan =
 	          $inner_type->usenan
 	          # if not equal, check if both are NaN
-	        ? "( !isfinite( (($ctype *)pptr)[i] ) && !isfinite(source_badval.value.$ppsym) )"
+	        ? '('.$inner_type->isnan("(($ctype *)pptr)[i]") .' && '.$inner_type->isnan("source_badval.value.$ppsym").')'
 	          # otherwise it must be false
 	        : '0';
 

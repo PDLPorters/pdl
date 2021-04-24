@@ -8,7 +8,9 @@ use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
 
-my @TYPE_VERBATIM = qw/realctype ppforcetype usenan real unsigned integer/;
+my @TYPE_VERBATIM = qw/
+  realctype ppforcetype usenan real unsigned integer
+/;
 
 # Figure out the 4 byte integer type on this machine
 
@@ -149,6 +151,7 @@ my @types = (
 		  complexversion=> 'G',
 	          integer=>0,
 	          unsigned=>0,
+	          isnan=>'!isfinite(%1$s)',
 	      },
 	      {
 		  identifier => 'D',
@@ -162,6 +165,7 @@ my @types = (
 		  complexversion=> 'C',
 	          integer=>0,
 	          unsigned=>0,
+	          isnan=>'!isfinite(%1$s)',
 	      },
 # the complex types need to be in the same order as their real
 # counterparts, because the "real" ppforcetype relies on a fixed interval
@@ -175,13 +179,14 @@ my @types = (
 		  pdlctype => 'PDL_CFloat',
 		  realctype => 'complex float',
 		  ppforcetype => 'cfloat',
-		  usenan => 0,
+		  usenan => 1,
 		  packtype => '(ff)*',
 	          defaultbadval => '(-FLT_MAX - I*FLT_MAX)',
 	          real=>0,
 	          realversion=>'F',
 	          integer=>0,
 	          unsigned=>0,
+	          isnan=>'!(isfinite(crealf(%1$s)) || isfinite(cimagf(%1$s)))',
 	      },
 	      {
 		  identifier => 'CD',
@@ -189,13 +194,14 @@ my @types = (
 		  pdlctype => 'PDL_CDouble',
 		  realctype => 'complex double',
 		  ppforcetype => 'cdouble',
-		  usenan => 0,
+		  usenan => 1,
 		  packtype => '(dd)*',
 	          defaultbadval => '(-DBL_MAX - I*DBL_MAX)',
 	          real=>0,
 	          realversion=>'D',
 	          integer=>0,
 	          unsigned=>0,
+	          isnan=>'!(isfinite(creal(%1$s)) || isfinite(cimag(%1$s)))',
 	      },
 	      );
 
@@ -260,7 +266,7 @@ sub gentypehashentry ($$) {
     shortctype => $shortctype,
     realversion => $type->{realversion} || $ppsym,
     complexversion => $type->{complexversion} || (!$type->{real} ? $ppsym : 'G'),
-    (map +($_ => $type->{$_}), @TYPE_VERBATIM),
+    (map +($_ => $type->{$_}), @TYPE_VERBATIM, qw(isnan)),
   };
 }
 
@@ -643,6 +649,11 @@ The value returned by C<ctype> without the 'PDL_' prefix.
 The special numerical value used to represent bad values for this type.
 See L<badvalue routine in PDL::Bad|PDL::Bad/badvalue> for more details.
 
+=item isnan
+
+Given a string representing a C value, will return a C expression for
+this type that indicates whether that value is NaN.
+
 =cut
 
 =item orig_badvalue
@@ -690,6 +701,8 @@ sub types { @CACHED_TYPES }
     sub complexversion {
       $CACHED_TYPES[$PDL::Types::typenames{ $_[0][1]{complexversion} }];
     }
+
+    sub isnan { sprintf $_[0][1]{isnan}, $_[1] }
 
 !NO!SUBS!
 

@@ -8,6 +8,10 @@ use File::Basename qw(&basename &dirname);
 # how many variable types (ie PDL_Byte, ...) are there?
 require './Types.pm';
 my $PDL_DATATYPES = PDL::Types::datatypes_header();
+my $typeF = PDL::Type->new('F');
+my $typeD = PDL::Type->new('D');
+my $typeG = PDL::Type->new('G');
+my $typeC = PDL::Type->new('C');
 
 require './Config.pm';
 die "No PDL::Config found" unless %PDL::Config;
@@ -253,17 +257,19 @@ static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
 
 #define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
 
-#define ANYVAL_ISNAN(x) (\\
-  (x).type < PDL_F ? 0 : \\
-  (x).type == PDL_CF ? !(isfinite(crealf((x).value.G)) || isfinite(cimagf((x).value.G))) : \\
-  (x).type == PDL_CD ? !(isfinite(creal((x).value.C)) || isfinite(cimag((x).value.C))) : \\
-  (x).type == PDL_F ? !isfinite((x).value.F) : \\
-  (x).type == PDL_D ? !isfinite((x).value.D) : \\
-  (croak("ANYVAL_ISNAN should not get here, had type %d", (x).type), 1) \\
-)
-
 $mymalloc
 !GROK!THIS!
+
+print OUT <<EOF;
+#define ANYVAL_ISNAN(x) (\\
+  (x).type < PDL_F ? 0 : \\
+  (x).type == PDL_CF ? @{[$typeG->isnan('(x).value.G')]} : \\
+  (x).type == PDL_CD ? @{[$typeC->isnan('(x).value.C')]} : \\
+  (x).type == PDL_F ? @{[$typeF->isnan('(x).value.F')]} : \\
+  (x).type == PDL_D ? @{[$typeD->isnan('(x).value.D')]} : \\
+  (croak("ANYVAL_ISNAN should not get here, had type %d", (x).type), 1) \\
+)
+EOF
 
 # set up the badvalues structure
 # - for binary compatability, this is created whatever the

@@ -306,8 +306,14 @@ sub convert {
     my $ftype_override = exists $this->{ftypes_vars}{$name} ? $this->{ftypes_type} : undef;
     my $type = $ftype_override || $pobj->adjusted_type($this->{Gencurtype}[-1]);
     return ($lhs, $rhs) if !($usenan * $type->usenan);
-    $opcode eq "SETBAD"
-	? ($lhs, PDL::PP::pp_line_numbers(__LINE__-1, "PDL->bvals.".$type->shortctype)) : (PDL::PP::pp_line_numbers(__LINE__-1, "isfinite($lhs)"), "0");
+    return (
+      $lhs,
+      PDL::PP::pp_line_numbers(__LINE__-1, "PDL->bvals.".$type->shortctype)
+    ) if $opcode eq "SETBAD";
+    (
+      PDL::PP::pp_line_numbers(__LINE__-1, "!".$type->isnan($lhs)),
+      "0"
+    );
 }
 
 #####################################################################

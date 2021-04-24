@@ -331,6 +331,8 @@ PDL_Indx (*safe_indterm)(PDL_Indx dsz, PDL_Indx at, char *file, int lineno);
 
 float NaN_float;
 double NaN_double;
+complex float NaN_cfloat;
+complex double NaN_cdouble;
 
 !NO!SUBS!
 

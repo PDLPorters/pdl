@@ -316,7 +316,7 @@ EOC
     # if UseNaN is true, then we can not change the value used to
     # represent bad elements since it's a NaN. At least, not for
     # for floating point types
-    $set_code = "" if $usenan and !$type->integer;
+    $set_code = "" if $usenan and $type->usenan;
 
     $str .=
 "

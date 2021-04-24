@@ -804,6 +804,8 @@ BOOT:
 
    PDL.NaN_float  = union_nan_float.f;
    PDL.NaN_double = union_nan_double.d;
+   PDL.NaN_cfloat  = union_nan_float.f + I*union_nan_float.f;
+   PDL.NaN_cdouble = union_nan_double.d + I*union_nan_double.d;
    PDL.propagate_badflag = propagate_badflag;
    PDL.propagate_badvalue = propagate_badvalue;
    PDL.get_pdl_badvalue = pdl_get_pdl_badvalue;
