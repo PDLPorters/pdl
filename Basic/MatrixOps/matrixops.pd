@@ -1173,6 +1173,14 @@ Solve A x = B for matrix A, by back substitution into A's LU decomposition.
   getrs($lu, 1, $x=$B->xchg(0,1)->copy, $ipiv, $info=null); # again, need transpose
   $x=$x->inplace->xchg(0,1);
 
+  # or with GSL
+  use PDL::GSL::LINALG;
+  LU_decomp(my $lu=$A->copy, my $p=null, my $signum=null);
+  # $B and $x, first dim is because GSL treats as vector, higher dims thread
+  # so we transpose in and back out
+  LU_solve($lu, $p, $B->xchg(0,1), my $x=null);
+  $x=$x->inplace->xchg(0,1);
+
   # proof of the pudding is in the eating:
   print $A x $x;
 

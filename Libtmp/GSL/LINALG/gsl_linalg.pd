@@ -1,0 +1,167 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSL::LINALG - PDL interface to linear algebra routines in GSL
+
+=head1 SYNOPSIS
+
+  use PDL::LiteF;
+  use PDL::MatrixOps; # for 'x'
+  use PDL::GSL::LINALG;
+  my $A = pdl [
+    [0.18, 0.60, 0.57, 0.96],
+    [0.41, 0.24, 0.99, 0.58],
+    [0.14, 0.30, 0.97, 0.66],
+    [0.51, 0.13, 0.19, 0.85],
+  ];
+  my $B = sequence(2,4); # column vectors
+  LU_decomp(my $lu=$A->copy, my $p=null, my $signum=null);
+  # transpose so first dim means is vector, higher dims thread
+  LU_solve($lu, $p, $B->xchg(0,1), my $x=null);
+  $x = $x->inplace->xchg(0,1); # now can be matrix-multiplied
+
+=head1 DESCRIPTION
+
+This is an interface to the linear algebra package present in the
+GNU Scientific Library. Functions are named as in GSL, but with the
+initial C<gsl_linalg_> removed. They are provided in both real and
+complex double precision.
+
+Currently only LU decomposition interfaces here. Pull requests welcome!
+
+EOD
+
+pp_addpm({At=>Bot},<<'EOD');
+=head1 SEE ALSO
+
+L<PDL>
+
+The GSL documentation for linear algebra is online at
+L<https://www.gnu.org/software/gsl/doc/html/linalg.html>
+
+=cut
+
+EOD
+
+pp_addhdr('
+#include <gsl/gsl_linalg.h>
+
+/* from PDL::FFTW3 */
+#define static_assert_linalg(x) (void)( sizeof( int[ 1 - 2* !(x) ]) )
+
+#define MATRIX_SETUP(m, rows, cols, lda, datap) \\
+  m.size1 = rows; \\
+  m.size2 = cols; \\
+  m.tda = lda; \\
+  m.data = (double *)datap; \\
+  m.owner = 0;
+
+#define PERM_SETUP(p, psize, datap) \\
+  p.size = psize; \\
+  p.data = datap;
+
+#define VECTOR_SETUP(v, vsize, datap) \\
+  v.size = vsize; \\
+  v.stride = 1; \\
+  v.data = (double *)datap; \\
+  v.owner = 0;
+');
+
+pp_def('LU_decomp',
+        HandleBad => 0,
+        RedoDimsCode => '$SIZE(p) =  $PDL(A)->ndims > 1 ? PDLMIN($PDL(A)->dims[0], $PDL(A)->dims[1]) : 1;',
+        Pars => '[io,phys]A(n,m); indx [o,phys]ipiv(p); int [o,phys]signum()',
+        GenericTypes => [qw(C D)],
+        Code => <<'EOF',
+/* make sure the PDL data types match */
+static_assert_linalg( sizeof($GENERIC(ipiv)) == sizeof(size_t) );
+gsl_matrix$TDC(,_complex) m;
+gsl_permutation p;
+int s;
+MATRIX_SETUP(m, $PRIV(__m_size), $PRIV(__n_size), $PRIV(__n_size), $P(A))
+PERM_SETUP(p, $PRIV(__p_size), $P(ipiv))
+gsl_linalg$TDC(,_complex)_LU_decomp(&m, &p, &s);
+$signum() = s;
+EOF
+        Doc => <<'EOF',
+=for ref
+
+LU decomposition of the given (real or complex) matrix.
+
+EOF
+);
+
+pp_def('LU_solve',
+        HandleBad => 0,
+        Pars => '[phys]LU(n,m); indx [phys]ipiv(p); [phys]B(n); [o,phys]x(n)',
+        GenericTypes => [qw(C D)],
+        Code => <<'EOF',
+gsl_matrix$TDC(,_complex) m;
+gsl_permutation p;
+gsl_vector$TDC(,_complex) b, x;
+int s;
+MATRIX_SETUP(m, $PRIV(__m_size), $PRIV(__n_size), $PRIV(__n_size), $P(LU))
+PERM_SETUP(p, $PRIV(__p_size), $P(ipiv))
+VECTOR_SETUP(b, $PRIV(__n_size), $P(B))
+VECTOR_SETUP(x, $PRIV(__n_size), $P(x))
+gsl_linalg$TDC(,_complex)_LU_solve(&m, &p, &b, &x);
+EOF
+        Doc => <<'EOF',
+=for ref
+
+Solve C<A x = B> using the LU and permutation from L</LU_decomp>, real
+or complex.
+
+EOF
+);
+
+pp_def('LU_det',
+        HandleBad => 0,
+        Pars => '[phys]LU(n,m); int [phys]signum(); [o]det()',
+        GenericTypes => [qw(C D)],
+        Code => <<'EOF',
+gsl_matrix$TDC(,_complex) m;
+MATRIX_SETUP(m, $PRIV(__m_size), $PRIV(__n_size), $PRIV(__n_size), $P(LU))
+types (D) %{
+  $det() = gsl_linalg_LU_det(&m, $signum());
+%}
+types (C) %{
+  gsl_complex z = gsl_linalg_complex_LU_det(&m, $signum());
+  $det() = GSL_REAL(z) + I*GSL_IMAG(z);
+%}
+EOF
+        Doc => <<'EOF',
+=for ref
+
+Find the determinant from the LU decomp.
+
+EOF
+);
+
+pp_def('solve_tridiag',
+        HandleBad => 0,
+        Pars => '[phys]diag(n); [phys]superdiag(n); [phys]subdiag(n); [phys]B(n); [o,phys]x(n)',
+        GenericTypes => [qw(D)],
+        Code => <<'EOF',
+gsl_vector d, sup, sub, b, x;
+VECTOR_SETUP(d, $PRIV(__n_size), $P(diag))
+VECTOR_SETUP(sup, $PRIV(__n_size)-1, $P(superdiag))
+VECTOR_SETUP(sub, $PRIV(__n_size)-1, $P(subdiag))
+VECTOR_SETUP(b, $PRIV(__n_size), $P(B))
+VECTOR_SETUP(x, $PRIV(__n_size), $P(x))
+#define CONST_VEC (const gsl_vector *)
+gsl_linalg$TDC(,_complex)_solve_tridiag(
+  CONST_VEC &d, CONST_VEC &sup, CONST_VEC &sub, CONST_VEC &b, &x
+);
+#undef CONST_VEC
+EOF
+        Doc => <<'EOF',
+=for ref
+
+Solve C<A x = B> where A is a tridiagonal system. Real only, because
+GSL does not have a complex function.
+
+EOF
+);
+
+pp_done();

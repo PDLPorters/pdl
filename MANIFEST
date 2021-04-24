@@ -458,6 +458,9 @@ Libtmp/GSL/INTERP/gslerr.h
 Libtmp/GSL/INTERP/Makefile.PL
 Libtmp/GSL/INTERP/t/gsl_interp.t
 Libtmp/GSL/INTERP/typemap
+Libtmp/GSL/LINALG/gsl_linalg.pd
+Libtmp/GSL/LINALG/Makefile.PL
+Libtmp/GSL/LINALG/t/gsl_linalg.t
 Libtmp/GSL/Makefile.PL
 Libtmp/GSL/MROOT/FUNC.c
 Libtmp/GSL/MROOT/gsl_mroot.pd

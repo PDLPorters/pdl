@@ -9,6 +9,7 @@
 - add $type->floatsuffix for more generalisation
 - all pdl.h type code generated from type objects to ease adding new types
 - all suitable PDL::Primitive functions support native complex
+- add PDL::GSL::LINALG - linear algebra routines from GSL
 
 2.039 2021-04-24
 - update lu_backsub docs with comparison to other linear algebra code

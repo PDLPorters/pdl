@@ -157,6 +157,9 @@ RCS
 ^Libtmp/GSL/DIFF/D.*\.c$
 ^Libtmp/GSL/INTEG/I.*\.c$
 ^Libtmp/GSL/INTERP/.*\.c$
+^Libtmp/GSL/LINALG/LINALG\.c$
+^Libtmp/GSL/LINALG/LINALG\.pm$
+^Libtmp/GSL/LINALG/LINALG\.xs$
 ^Libtmp/GSL/MROOT/M.*\.c$
 ^Libtmp/GSL/RNG/.*\.c$
 ^Libtmp/GSL/RNG\.(pm|xs|c)
