@@ -529,20 +529,10 @@ at_bad_c(x,position)
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
 	x->ndims);
    badflag = (x->state & PDL_BADVAL) > 0;
-   if ( badflag &&
-#if BADVAL_USENAN
-   /* do we have to bother about NaN's? */
-        ( ( x->datatype < PDL_F && ANYVAL_EQ_ANYVAL(result, pdl_get_badvalue(x->datatype)) ) ||
-          ANYVAL_ISNAN(result)
-        )
-#else
-        ANYVAL_EQ_ANYVAL( result, pdl_get_badvalue( x->datatype ) )
-#endif
-      ) {
-	 RETVAL = newSVpvn( "BAD", 3 );
-   } else
-
-    ANYVAL_TO_SV(RETVAL, result);
+   if (badflag && ANYVAL_ISBAD(result, x, pdl_get_badvalue(x->datatype)))
+     RETVAL = newSVpvn( "BAD", 3 );
+   else
+     ANYVAL_TO_SV(RETVAL, result);
 
     OUTPUT:
      RETVAL
@@ -595,14 +585,7 @@ listref_c(x)
    for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
    while(!stop) {
       pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
-      if ( badflag && 
-#if BADVAL_USENAN
-        ( ( x->datatype < PDL_F && ANYVAL_EQ_ANYVAL(pdl_val, pdl_badval) ) ||
-          ANYVAL_ISNAN(pdl_val) )
-#else
-        ANYVAL_EQ_ANYVAL(pdl_val, pdl_badval)
-#endif
-      ) {
+      if (badflag && ANYVAL_ISBAD(pdl_val, x, pdl_badval)) {
 	 sv = newSVpvn( "BAD", 3 );
       } else {
 	 ANYVAL_TO_SV(sv, pdl_val);

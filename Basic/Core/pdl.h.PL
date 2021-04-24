@@ -69,6 +69,16 @@ extern int pdl_debugging;
             } \\
         } while (0)
 
+#if BADVAL_USENAN
+/* do we have to bother about NaN's? */
+#define ANYVAL_ISBAD(inany,pdl,badval) \\
+  ( pdl->datatype < PDL_F ? ANYVAL_EQ_ANYVAL(inany, badval) : \\
+    ANYVAL_ISNAN(inany) \\
+  )
+#else
+#define ANYVAL_ISBAD(inany,pdl,badval) ANYVAL_EQ_ANYVAL(inany, badval)
+#endif
+
 #define ANYVAL_FROM_CTYPE(outany,avtype,inval) do { switch (avtype) { \\
                 case PDL_B:   outany.type = avtype; outany.value.B = (PDL_Byte)(inval);     break; \\
                 case PDL_S:   outany.type = avtype; outany.value.S = (PDL_Short)(inval);    break; \\
