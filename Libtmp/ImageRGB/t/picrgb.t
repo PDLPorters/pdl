@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
-use PDL;
+use PDL::LiteF;
 use PDL::IO::Pic;
 use PDL::ImageRGB;
 use PDL::Dbg;

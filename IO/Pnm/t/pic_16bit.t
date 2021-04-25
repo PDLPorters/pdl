@@ -6,7 +6,7 @@ use strict;
 use Test::More;
 use File::Temp qw(tempdir);
 use File::Spec;
-use PDL;
+use PDL::LiteF;
 use PDL::NiceSlice;
 use PDL::IO::Pic;
 

@@ -15,8 +15,11 @@ sub tapprox {
 	all approx($pa, $pb,$mdiff || 0.01);
 }
 
+my $tmpdir = tempdir( CLEANUP => 1 );
 sub rpnm_unlink {
-  my $file = shift;
+  my ($data, $ext, $format, $raw) = @_;
+  my $file = File::Spec->catfile($tmpdir, "temp.$ext");
+  wpnm($data, $file, $format, $raw);
   my $pdl = rpnm($file);
   unlink $file;
   return $pdl;
@@ -53,22 +56,17 @@ if ($PDL::debug) {
 # for some reason the pnmtotiff converter coredumps when trying
 # to do the conversion for the ushort data, haven't yet tried to
 # figure out why
-my $tmpdir = tempdir( CLEANUP => 1 );
-sub tmpfile { File::Spec->catfile($tmpdir, $_[0]); }
 for my $raw (0,1) {
   foreach my $form (@formats) {
-    my $tbyte = tmpfile("tbyte.$form->[1]");
-    wpnm($im2,$tbyte,'PGM',$raw); my $in2 = rpnm_unlink($tbyte);
-    my $tbin = tmpfile("tbin.$form->[1]");
-    wpnm($im3,$tbin,'PBM',$raw); my $in3 = rpnm_unlink($tbin);
+    my $in2 = rpnm_unlink($im2, $form->[1], 'PGM', $raw);
+    my $in3 = rpnm_unlink($im3, $form->[1], 'PBM', $raw);
     my $comp = ($form->[3] ? $im2->dummy(0,3) : $im2);
     ok(tapprox($in2,$comp)) or diag "got=$in2\nexpected=$comp";
     $comp = $form->[3] ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0);
     $comp = $comp->ushort*65535 if $form->[0] eq 'SGI'; # yet another format quirk
     ok(tapprox($in3,$comp)) or diag "got=$in3\nexpected=$comp";
     next if $form->[0] eq 'GIF';
-    my $tushort = tmpfile("tushort.$form->[1]");
-    wpnm($im1,$tushort,'PGM',$raw); my $in1 = rpnm_unlink($tushort);
+    my $in1 = rpnm_unlink($im1, $form->[1], 'PGM', $raw);
     my $scale = $form->[3] ? $im1->dummy(0,3) : $im1;
     $comp = $scale / $form->[2];
     ok(tapprox($in1,$comp,$form->[4]), $form->[0])

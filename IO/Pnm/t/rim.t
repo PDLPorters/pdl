@@ -1,8 +1,8 @@
 use strict;
 use warnings;
-use PDL;
+use PDL::LiteF;
 use PDL::IO::Pic;
-use Test::More tests => 3;
+use Test::More;
 use File::Temp qw(tempdir);
 use File::Spec;
 
@@ -42,6 +42,4 @@ ok(sum(abs($out3 - $out2)) == 0, "\$out3 & \$out2 are the same");
 # Test 3
 ok(sum(abs($out1 - $in  )) == 0, "\$out1 & \$in are the same");
 
-END {
- unlink $file;
-};
+done_testing;
