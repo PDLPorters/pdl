@@ -109,9 +109,9 @@ foreach my $form (sort @allowed) {
         my $in2 = rpic_unlink($tbyte);
 
         my $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
-        note "Comparison arr: $comp" if $PDL::debug;
-        ok($usherr || tapprox($comp,$in1,$arr->[3]) || tifftest($form));
-        ok(tapprox($im2,$in2) || tifftest($form));
+        ok($usherr || tapprox($in1,$comp,$arr->[3]) || tifftest($form), $form)
+          or diag "got=$in1\nexpected:$comp";
+        ok(tapprox($in2,$im2) || tifftest($form));
 
         if ($PDL::debug) {
           note $in1->px;

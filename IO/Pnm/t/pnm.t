@@ -58,20 +58,20 @@ if ($PDL::debug) {
 # figure out why
 for my $raw (0,1) {
   foreach my $form (@formats) {
-    my $in2 = rpnm_unlink($im2, $form->[1], 'PGM', $raw);
-    my $in3 = rpnm_unlink($im3, $form->[1], 'PBM', $raw);
+    my $in = rpnm_unlink($im2, $form->[1], 'PGM', $raw);
     my $comp = ($form->[3] ? $im2->dummy(0,3) : $im2);
-    ok(tapprox($in2,$comp)) or diag "got=$in2\nexpected=$comp";
+    ok(tapprox($in,$comp)) or diag "got=$in\nexpected=$comp";
     $comp = $form->[3] ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0);
     $comp = $comp->ushort*65535 if $form->[0] eq 'SGI'; # yet another format quirk
-    ok(tapprox($in3,$comp)) or diag "got=$in3\nexpected=$comp";
+    $in = rpnm_unlink($im3, $form->[1], 'PBM', $raw);
+    ok(tapprox($in,$comp)) or diag "got=$in\nexpected=$comp";
     next if $form->[0] eq 'GIF';
-    my $in1 = rpnm_unlink($im1, $form->[1], 'PGM', $raw);
+    $in = rpnm_unlink($im1, $form->[1], 'PGM', $raw);
     my $scale = $form->[3] ? $im1->dummy(0,3) : $im1;
     $comp = $scale / $form->[2];
-    ok(tapprox($in1,$comp,$form->[4]), $form->[0])
-      or diag "got=$in1\nexpected=$comp";
-    note $in1->px if $PDL::debug and $form->[0] ne 'TIFF';
+    ok(tapprox($in,$comp,$form->[4]), $form->[0])
+      or diag "got=$in\nexpected=$comp", $in->info;
+    note $in->px if $PDL::debug and $form->[0] ne 'TIFF';
   }
 }
 
