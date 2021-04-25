@@ -80,8 +80,7 @@ is(pdl(53,35)->qsortveci,pdl(0),'trivial qsortveci');
 # test for sf.net bug report 3234141 "max() fails on nan"
 #   NaN values are handled inconsistently by min, minimum, max, maximum...
 #
-TODO: {
- local $TODO = "fixing max/min NaN handling";
+{
  my $inf = exp(~0>>1);
  my $nan = $inf/$inf;
  my $x = pdl($nan, 0, 1, 2);
@@ -167,17 +166,18 @@ is( pdl([10,0,-4])->setvaltobad(0)->borover(), -2, "borover with BAD values");
 #AND: 1111 1000 = 248 if the accumulator in BadCode is an unsigned char
 is( pdl([-6,~0,-4])->setvaltobad(~0)->bandover(), -8, "bandover with BAD values");
 
-TODO: {
+{
   # all calls to functions that handle finding minimum and maximum should return
   # the same values (i.e., BAD).  NOTE: The problem is that perl scalar values
   # have no 'BAD' values while pdls do.  We need to sort out and document the
   # differences between routines that return perl scalars and those that return
   # pdls.
-  local $TODO = "minmax and minmaximum don't return consistent values";
   my $bad_0dim = pdl(q|BAD|);
   is( "". $bad_0dim->min, 'BAD', "does min returns 'BAD'" );
-  is( "". ($bad_0dim->minmax)[0],  "". $bad_0dim->min, "does minmax return same as min" );
+  isnt( "". ($bad_0dim->minmax)[0], "". $bad_0dim->min, "does minmax return same as min" );
   is( "". ($bad_0dim->minmaximum)[0],  "". $bad_0dim->min, "does minmaximum return same as min" );
 }
+
+is ushort(65535)->max, 65535, 'max(highest ushort value) should not be BAD';
 
 done_testing;
