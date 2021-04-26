@@ -857,6 +857,7 @@ pp_addhdr('
 ');
 }
 
+my $isnan = join "\n", map 'types('.$_->ppsym.') %{'.$_->isnan('$a()').'%}', grep $_->usenan, types();
 pp_def('setnantobad' . <<'=cut',
 
 =head2 setnantobad
@@ -897,14 +898,10 @@ bad flag is set, it will no
         if ( a == b && $ISPDLSTATEBAD(b) )
             PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
     },
-    Code => q{
+    Code => q[
         int flag = 0;
         threadloop %{
-            if (
-              types (FD) %{ isnan($a()) %}
-              types (G) %{ isnan(crealf($a())) || isnan(cimagf($a())) %}
-              types (C) %{ isnan(creal($a())) || isnan(cimag($a())) %}
-            ) {
+            if ( ] . $isnan . q[ ) {
                 $SETBAD(b());
                 flag = 1;
             }
@@ -913,7 +910,7 @@ bad flag is set, it will no
             }
         %}
         if ( flag ) $PDLSTATESETBAD(b);
-    },
+    ],
 ); # pp_def: setnantobad
 
 

@@ -4,10 +4,9 @@ use warnings;
 # how many variable types (ie PDL_Byte, ...) are there?
 require './Types.pm';
 my $PDL_DATATYPES = PDL::Types::datatypes_header();
-my $typeF = PDL::Type->new('F');
-my $typeD = PDL::Type->new('D');
-my $typeG = PDL::Type->new('G');
-my $typeC = PDL::Type->new('C');
+my $isnan = join " \\\n  ",
+  map "(x).type == ".$_->sym." ? @{[$_->isnan('(x).value.'.$_->ppsym)]} :",
+  grep $_->usenan, PDL::Types::types();
 
 require './Config.pm';
 die "No PDL::Config found" unless %PDL::Config;
@@ -275,10 +274,7 @@ $mymalloc
 print OUT <<EOF;
 #define ANYVAL_ISNAN(x) (\\
   (x).type < PDL_F ? 0 : \\
-  (x).type == PDL_CF ? @{[$typeG->isnan('(x).value.G')]} : \\
-  (x).type == PDL_CD ? @{[$typeC->isnan('(x).value.C')]} : \\
-  (x).type == PDL_F ? @{[$typeF->isnan('(x).value.F')]} : \\
-  (x).type == PDL_D ? @{[$typeD->isnan('(x).value.D')]} : \\
+  $isnan \\
   (croak("ANYVAL_ISNAN should not get here, had type %d", (x).type), 1) \\
 )
 EOF
