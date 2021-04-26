@@ -152,6 +152,7 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	          isnan=>'isnan(%1$s)',
+	          floatsuffix=>'f',
 	      },
 	      {
 		  identifier => 'D',
@@ -166,6 +167,7 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	          isnan=>'isnan(%1$s)',
+	          floatsuffix=>'',
 	      },
 # the complex types need to be in the same order as their real
 # counterparts, because the "real" ppforcetype relies on a fixed interval
@@ -187,6 +189,7 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	          isnan=>'(isnan(crealf(%1$s)) || isnan(cimagf(%1$s)))',
+	          floatsuffix=>'f',
 	      },
 	      {
 		  identifier => 'CD',
@@ -202,6 +205,7 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	          isnan=>'(isnan(creal(%1$s)) || isnan(cimag(%1$s)))',
+	          floatsuffix=>'',
 	      },
 	      );
 
@@ -266,7 +270,7 @@ sub gentypehashentry ($$) {
     shortctype => $shortctype,
     realversion => $type->{realversion} || $ppsym,
     complexversion => $type->{complexversion} || (!$type->{real} ? $ppsym : 'G'),
-    (map +($_ => $type->{$_}), @TYPE_VERBATIM, qw(isnan)),
+    (map +($_ => $type->{$_}), @TYPE_VERBATIM, qw(isnan floatsuffix)),
   };
 }
 
@@ -654,6 +658,11 @@ See L<badvalue routine in PDL::Bad|PDL::Bad/badvalue> for more details.
 Given a string representing a C value, will return a C expression for
 this type that indicates whether that value is NaN.
 
+=item floatsuffix
+
+The string appended to floating-point functions for this floating-point
+type. Dies if called on non-floating-point type.
+
 =cut
 
 =item orig_badvalue
@@ -703,6 +712,8 @@ sub types { @CACHED_TYPES }
     }
 
     sub isnan { sprintf $_[0][1]{isnan}, $_[1] }
+
+    sub floatsuffix { $_[0][1]{floatsuffix} // 'floatsuffix called on non-float type' }
 
 !NO!SUBS!
 

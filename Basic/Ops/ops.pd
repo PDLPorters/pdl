@@ -7,6 +7,9 @@ my $C = [ppdefs_complex];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types];
 my $T = [map $_->ppsym, grep $_->integer, types];
 my %is_real; @is_real{ppdefs()} = ();
+my @Rtypes = grep $_->real, types();
+my @Ctypes = grep !$_->real, types();
+my @Ftypes = grep !$_->integer, types();
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -65,12 +68,10 @@ pp_addhdr('
 /* Also changed the typecast in MOD to (long), and added a N==0 conditional to BU_MOD. -DAL 06-Mar-2015 */
 
 #define MOD(X,N) (  ((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long     )((X)/(ABS(N))) + (   ( ((N) * ((long     )((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
-
 #define Q_MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long long)((X)/(ABS(N))) + (   ( ((N) * ((long long)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
 #define BU_MOD(X,N)(((N) == 0)   ?    0   :   ( (X)-(N)*((int)((X)/(N))) ))
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
-#define NOTHING
 ');
 
 sub protect_chars {
@@ -192,30 +193,30 @@ EOH
     if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
     else       { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"; }
 
-
-#a little dance to avoid the MOD macro warnings for byte & ushort datatypes
+    my $complex_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$c() = c'.$func.$_->floatsuffix.'($a(),$b());%}',
+      @Ctypes;
     my $codestr;
-    my $badcodestr;
-    my $complex_bit = << "ENDCODE";
-  types(C) %{ \$c() = c${func}(\$a(),\$b()); %}
-  types(G) %{ \$c() = c${func}f(\$a(),\$b()); %}
-ENDCODE
     if ($extra{unsigned}){
-    $codestr = << "ENDCODE";
+#a little dance to avoid the MOD macro warnings for byte & ushort datatypes
+      $codestr = << "ENDCODE";
   types(BU) %{ \$c() = BU_$func(\$a(),\$b()); %}
   types(SLNFD) %{ \$c() = $func(\$a(),\$b()); %}
   types(Q) %{ \$c() = Q_$func(\$a(),\$b()); %}
 ENDCODE
-} else {
-   $codestr = "types(BUSLNQFD) %{ \$c() = $func(\$a(),\$b()); %}";
-   }
- delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
+#end dance
+    } else {
+      $codestr = join "\n",
+        map 'types('.$_->ppsym.') %{$c() = '.$func.'($a(),$b());%}',
+        @Rtypes;
+    }
+    delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
     $codestr .= $complex_bit if $got_complex;
 
- $badcodestr = 'if ( $ISBAD(a()) || $ISBAD(b()) )
+    my $badcodestr;
+    $badcodestr = 'if ( $ISBAD(a()) || $ISBAD(b()) )
 	       $SETBAD(c());
 	       else {' . $codestr . " } \n";
-#end dance
 
     pp_def($name,
 	   HandleBad => 1,
@@ -274,13 +275,12 @@ sub ufunc {
 	#      See also `biop()`.
 	delete $extra{Exception};
     }
-    my $complex_bit = <<EOF;
-	types(G) %{ \$b() = c${func}f(\$a()); %}
-	types(C) %{ \$b() = c$func(\$a()); %}
-EOF
-    my $codestr = <<EOF;
-	types(BUSLNQFD) %{ \$b() = $func(\$a()); %}
-EOF
+    my $complex_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}',
+      @Ctypes;
+    my $codestr = join "\n",
+        map 'types('.$_->ppsym.') %{$b() = '.$func.'($a());%}',
+        @Rtypes;
     $codestr .= $complex_bit if $got_complex;
 
     # do not have to worry about propagation of the badflag when
@@ -457,7 +457,10 @@ See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for detai
 sub cfunc {
     my ($name, $func, $make_real, $doc, %extra) = @_;
     my $badcode = '$ISBAD(complexv())';
-    my $codestr = "\$b() = $func\$TGC(f,)(\$complexv());";
+    my $codestr = "\$b() = $func\$T" .
+      join('', map $_->ppsym, @Ctypes) .
+      "(". join(',', map $_->floatsuffix, @Ctypes) .
+      ")(\$complexv());";
     pp_def($name,
 	   GenericTypes=>$C,
 	   Pars => 'complexv(); '.($make_real ? 'real' : '').' [o]b()',

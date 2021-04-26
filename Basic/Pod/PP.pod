@@ -1331,6 +1331,22 @@ argument to C<type>, e.g.
 	     %}
              ...'
 
+You are encouraged to use this idiom (from L<PDL::Math>) in order to
+minimise effort needed to make your code work with new types:
+
+  use PDL::Types qw(types);
+  my @Rtypes = grep $_->real, types();
+  my @Ctypes = grep !$_->real, types();
+  # ...
+    my $got_complex = PDL::Core::Dev::got_complex_version($name, 2);
+    my $complex_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$'.$c.'() = c'.$name.$_->floatsuffix.'($'.$x.'(),$'.$y.'());%}',
+      @Ctypes;
+    my $real_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$'.$c.'() = '.$name.'($'.$x.'(),$'.$y.'());%}',
+      @Rtypes;
+    ($got_complex ? $complex_bit : '') . $real_bit;
+
 =back
 
 =head2 The RedoDimsCode Section

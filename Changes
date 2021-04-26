@@ -6,6 +6,7 @@
 - can use NaN as badvalue for all floating-point types
 - BADVAL_USENAN configuration option removed
 - remove checks for _MSC_VER < 1400 as native complex req renders irrelevant
+- add $type->floatsuffix for more generalisation
 
 2.039 2021-04-24
 - update lu_backsub docs with comparison to other linear algebra code

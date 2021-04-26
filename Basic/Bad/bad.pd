@@ -289,8 +289,6 @@ static pdl* new_pdlscalar(int datatype)
        }
 EOHDR
 
-use PDL::Types qw(types);
-
 my $str;
 foreach my $type ( types() ) {
     my ($i, $ctype, $realctype, $typesym, $cname) =
@@ -307,8 +305,7 @@ EOC
 
     my $set_code = "if ( val.type != -1 ) { ANYVAL_TO_CTYPE($storage, $ctype, val); }";
 
-    $str .=
-"
+    $str .= "
 pdl *
 _badvalue_int${i}(val)
     PDL_Anyval val

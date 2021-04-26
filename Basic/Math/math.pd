@@ -5,6 +5,8 @@ use PDL::Types qw(ppdefs ppdefs_complex types);
 my $R = [ppdefs()];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 my $C = [ppdefs_complex()];
+my @Rtypes = grep $_->real, types();
+my @Ctypes = grep !$_->real, types();
 
 pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
@@ -159,12 +161,13 @@ my (@besbifuncs) = qw(jn yn); # "
 sub code_ufunc {
     my ($name) = @_;
     my $got_complex = PDL::Core::Dev::got_complex_version($name, 1);
-    my $complex_bit = sprintf(<<'EOF', $name);
-	types(C) %%{ $b() = c%1$s($a()); %%}
-	types(G) %%{ $b() = c%1$sf($a()); %%}
-EOF
-    ($got_complex ? $complex_bit : '') .
-    'types(BSULNQFD) %{ $b() = ' . $name . '($a()); %}'."\n";
+    my $complex_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$b() = c'.$name.$_->floatsuffix.'($a());%}',
+      @Ctypes;
+    my $real_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$b() = '.$name.'($a());%}',
+      @Rtypes;
+    ($got_complex ? $complex_bit : '') . $real_bit;
 }
 sub badcode_ufunc {
     'if ( $ISBAD(a()) ) { $SETBAD(b()); } else {' . "\n" .
@@ -176,12 +179,13 @@ sub code_bifunc {
     my $name = $_[0]; my $x = $_[1] || 'a'; my $y = $_[2] || 'b';
     my $c = $_[3] || 'c';
     my $got_complex = PDL::Core::Dev::got_complex_version($name, 2);
-    my $complex_bit = sprintf(<<'EOF', $name, $x, $y, $c);
-	types(C) %%{ $%4$s() = c%1$s($%2$s(), $%3$s()); %%}
-	types(G) %%{ $%4$s() = c%1$sf($%2$s(), $%3$s()); %%}
-EOF
-    ($got_complex ? $complex_bit : '') .
-    "types(BSULNQFD) %{ \$$c() = $name(\$$x(),\$$y()); %}\n";
+    my $complex_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$'.$c.'() = c'.$name.$_->floatsuffix.'($'.$x.'(),$'.$y.'());%}',
+      @Ctypes;
+    my $real_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$'.$c.'() = '.$name.'($'.$x.'(),$'.$y.'());%}',
+      @Rtypes;
+    ($got_complex ? $complex_bit : '') . $real_bit;
 }
 sub badcode_bifunc {
     my $name = $_[0]; my $x = $_[1] || 'a'; my $y = $_[2] || 'b';
