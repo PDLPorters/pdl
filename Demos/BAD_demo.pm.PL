@@ -40,11 +40,11 @@ sub run {
 comment q|
     Welcome to this tour of the bad value support in PDL
 
-    Each piddle contains a flag - accessible via the badflag() method -
+    Each ndarray contains a flag - accessible via the badflag() method -
     which indicates whether:
 
-       the piddle contains no bad values (flag equals 0)
-       the piddle *MAY* contain bad values (flag equals 1)
+       the ndarray contains no bad values (flag equals 0)
+       the ndarray *MAY* contain bad values (flag equals 1)
 
     If the flag is set, then the routines (well, those that have been
     converted) will process these bad values correctly, otherwise they
@@ -52,7 +52,7 @@ comment q|
 
     The code has been written so as to provide as little overhead as
     possible; therefore there should be almost no difference in the
-    time it takes to process piddles which do not have their bad flag
+    time it takes to process ndarrays which do not have their bad flag
     set.
 
 |;
@@ -70,7 +70,7 @@ act q|
 
 act q|
 
-    # create a piddle
+    # create an ndarray
     $x = byte(1,2,3);
     print( "Bad flag (x) == ", $x->badflag(), "\n" );
 
@@ -87,9 +87,9 @@ act q|
 act q|
 
     # the badflag is also included in the state info of
-    # piddle
+    # ndarray
     #
-    $c = pdl(2,3); # just a piddle without the badflag set
+    $c = pdl(2,3); # just an ndarray without the badflag set
 
     print "   Type   Dimension        State          Mem\n";
     print "-------------------------------------------------\n";
@@ -138,7 +138,7 @@ act q|
 act q|
 
     # the issue of how to cope with dataflow is not fully resolved. At
-    # present, if you change the badflag of a piddle, all its children
+    # present, if you change the badflag of an ndarray, all its children
     # are also changed:
     $x = sequence( byte, 2, 3 );
     $x = $x->setbadif( $x == 3 );
@@ -171,7 +171,7 @@ act q|
     # on the numerical value used to store bad values).
 
     # There is also the fact that the bad value need not relate to the
-    # type of the input piddle (due to internal conversion to an 'int +').
+    # type of the input ndarray (due to internal conversion to an 'int +').
 
     $x = ones(3); $x = $x->setbadif( $x == 1 );
     print "Any returns: ", any( $x > 2 ), "\n";

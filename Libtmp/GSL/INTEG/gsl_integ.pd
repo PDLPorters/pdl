@@ -221,7 +221,7 @@ gslinteg_qags taking into account the location of singular points
 until an estimate of
 the integral of f over ($la,$lb) is achieved within the desired absolute and
 relative error limits, $epsabs and $epsrel.
-Singular points are supplied in the piddle $points, whose endpoints
+Singular points are supplied in the ndarray $points, whose endpoints
 determine the integration range.
 So, for example, if the function has singular points at x_1 and x_2 and the
 integral is desired from a to b (a < x_1 < x_2 < b), $points = pdl(a,x_1,x_2,b).

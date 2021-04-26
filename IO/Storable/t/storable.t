@@ -103,8 +103,8 @@ SKIP:
     ok( defined $x, "Reading from file '$filename'" );
     ok( @$x == 3, "Reading an array-ref of size 3 from file '$filename'" );
     ok( $x->[1] eq 'abcd', "Reading a correct string from file '$filename'" );
-    isa_ok( $x->[0], 'PDL', "Reading a piddle from file '$filename'" );
-    isa_ok( $x->[2], 'PDL', "Reading another piddle from file '$filename'" );
+    isa_ok( $x->[0], 'PDL', "Reading an ndarray from file '$filename'" );
+    isa_ok( $x->[2], 'PDL', "Reading another ndarray from file '$filename'" );
 
     my $diff0 = $x->[0] - pdl[[0,1,4],
                               [0,4,10],

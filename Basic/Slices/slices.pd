@@ -185,7 +185,7 @@ than 0 must agree in a threading sense.
 
 =item * 
 
-C<index2d> works like C<index> but uses separate piddles for X and Y
+C<index2d> works like C<index> but uses separate ndarrays for X and Y
 coordinates.  For more general N-dimensional indexing, see the
 L<PDL::NiceSlice> syntax or L<PDL::Slices> (in particular C<slice>,
 C<indexND>, and C<range>).
@@ -372,7 +372,7 @@ pp_addpm(<<'EOD-indexND');
 
 =for ref
 
-  Find selected elements in an N-D piddle, with optional boundary handling
+  Find selected elements in an N-D ndarray, with optional boundary handling
 
 =for example
 
@@ -476,15 +476,15 @@ avoiding the perl argument-parsing step.
 
 =for ref
 
-Extract selected chunks from a source piddle, with boundary conditions
+Extract selected chunks from a source ndarray, with boundary conditions
 
 =for example
 
         $out = $source->range($index,[$size,[$boundary]])
 
-Returns elements or rectangular slices of the original piddle, indexed by
-the C<$index> piddle.  C<$source> is an N-dimensional piddle, and C<$index> is
-a piddle whose first dimension has size up to N.  Each row of C<$index> is
+Returns elements or rectangular slices of the original ndarray, indexed by
+the C<$index> ndarray.  C<$source> is an N-dimensional ndarray, and C<$index> is
+an ndarray whose first dimension has size up to N.  Each row of C<$index> is
 treated as coordinates of a single value or chunk from C<$source>, specifying
 the location(s) to extract.
 
@@ -493,7 +493,7 @@ slice, with controllable boundary conditions.
 
 B<INPUTS>
 
-C<$index> and C<$size> can be piddles or array refs such as you would
+C<$index> and C<$size> can be ndarrays or array refs such as you would
 feed to L<zeroes|PDL::Core/zeroes> and its ilk.  If C<$index>'s 0th dimension
 has size higher than the number of dimensions in C<$source>, then
 C<$source> is treated as though it had trivial dummy dimensions of
@@ -531,7 +531,7 @@ at the time of the range call (this is the same behavior as L</slice>).
 
 =item 1 (synonyms: 't','truncate')
 
-Values outside the original piddle get BAD if you've got bad value
+Values outside the original ndarray get BAD if you've got bad value
 support compiled into your PDL and set the badflag for the source PDL;
 or 0 if you haven't (you must set the badflag if you want BADs for out
 of bound values, otherwise you get 0).  Reverse dataflow works OK for
@@ -541,15 +541,15 @@ execution continues.
 
 =item 2 (synonyms: 'e','x','extend')
 
-Values that would be outside the original piddle point instead to the
-nearest allowed value within the piddle.  See the CAVEAT below on
+Values that would be outside the original ndarray point instead to the
+nearest allowed value within the ndarray.  See the CAVEAT below on
 mappings that are not single valued.
 
 =item 3 (synonyms: 'p','periodic')
 
 Periodic boundary conditions apply: the numbers in $index are applied,
 strict-modulo the corresponding dimensions of $source.  This is equivalent to
-duplicating the $source piddle throughout N-D space.  See the CAVEAT below
+duplicating the $source ndarray throughout N-D space.  See the CAVEAT below
 about mappings that are not single valued.
 
 =item 4 (synonyms: 'm','mirror')
@@ -762,7 +762,7 @@ pdl *ind_pdl;
 pdl *size_pdl;
 
 /***
- * Check and condition the index piddle.  Some of this is apparently
+ * Check and condition the index ndarray.  Some of this is apparently
  * done by XS -- but XS doesn't check for existing SVs that are undef.
  */
 if ((index==NULL) || (index == &PL_sv_undef))
@@ -863,7 +863,7 @@ switch(ind_pdl->datatype) {
 }
 
 /***
- * Check and condition the size piddle, and store sizes of the ranges
+ * Check and condition the size ndarray, and store sizes of the ranges
  */
 {
   PDL_Indx i,ntsize;
@@ -927,8 +927,8 @@ switch(ind_pdl->datatype) {
         $CROAK(" Size must match index's 0th dim in range\n");
       }
 
-    } /* end of nonempty size-piddle code */
-  } /* end of defined-size-piddle code */
+    } /* end of nonempty size-ndarray code */
+  } /* end of defined-size-ndarray code */
 
   /* Insert the number of nontrivial sizes (these get output dimensions) */
   for(i=ntsize=0;i<$COMP(rdim);i++)
@@ -959,7 +959,7 @@ switch(ind_pdl->datatype) {
 
     /* Loop over the 0th dim of index, copying coords. */
     /* This is the natural place to check for permissive ranging; too */
-    /* bad we don't have access to the parent piddle here... */
+    /* bad we don't have access to the parent ndarray here... */
 
     for(j=0;j<$COMP(rdim);j++)
         *(cptr++) = ((PDL_Indx *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
@@ -1334,7 +1334,7 @@ first instance of C<0> in each row of C<$x> should be considered.
 EOD
 );
 
-# this one can convert vaffine piddles without(!) physicalising them
+# this one can convert vaffine ndarrays without(!) physicalising them
 # maybe it can replace 'converttypei' in the future?
 #
 # XXX do not know whether the HandleBad stuff will work here
@@ -1677,7 +1677,7 @@ DEPRECATED:  'oslice' is the original 'slice' routine in pre-2.006_006
 versions of PDL.  It is left here for reference but will disappear in
 PDL 3.000
 
-Extract a rectangular slice of a piddle, from a string specifier.
+Extract a rectangular slice of an ndarray, from a string specifier.
 
 C<slice> was the original Swiss-army-knife PDL indexing routine, but is
 largely superseded by the L<NiceSlice|PDL::NiceSlice> source prefilter
@@ -1879,7 +1879,7 @@ EOD
          * which is a slice with dummy dimensions of order 1 in place of each excessive
          * dimension.  (Note that there are two ways to indicate a zero index: "0" and "-<w>",
          * where <w> happens to be the size of that dim in the original
-         * piddle.  The latter case still causes an error.  That is a feature.)
+         * ndarray.  The latter case still causes an error.  That is a feature.)
          *    --CED 15-March-2002
          */
                         int ii,parentdim,ok;
@@ -1956,7 +1956,7 @@ EOD
                                         /* set a state flag to re-trip the RedoDims code later, in
                                          * case this barf is caught in an eval. This slice will
                                          * always croak, so it may be smarter to find a way to
-                                         * replace this whole piddle with a "barf" piddle, but this
+                                         * replace this whole ndarray with a "barf" ndarray, but this
                                          * will work for now. */
                                         PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
                                         barf("Negative slice cannot start or end above limit");
@@ -1970,7 +1970,7 @@ EOD
                                         /* set a state flag to re-trip the RedoDims code later, in
                                          * case this barf is caught in an eval. This slice will
                                          * always croak, so it may be smarter to find a way to
-                                         * replace this whole piddle with a "barf" piddle, but this
+                                         * replace this whole ndarray with a "barf" ndarray, but this
                                          * will work for now. */
                                         PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
                                         barf("Slice cannot start or end above limit");
@@ -2177,7 +2177,7 @@ C<(5,3,5,4,6,5)> then after
 
  $y = $x->diagonal(0,2,5);
 
-the piddle C<$y> has dimensions C<(5,3,4,6)> and
+the ndarray C<$y> has dimensions C<(5,3,4,6)> and
 C<$y-E<gt>at(2,1,0,1)> refers
 to C<$x-E<gt>at(2,1,2,0,1,2)>.
 
@@ -2195,7 +2195,7 @@ pp_def(
         Doc => <<'EOD',
 =for ref
 
-Returns a piddle of lags to parent.
+Returns an ndarray of lags to parent.
 
 Usage:
 
@@ -2275,7 +2275,7 @@ pp_def(
         Doc => <<'EOD',
 =for ref
 
-Splits a dimension in the parent piddle (opposite of L<clump|PDL::Core/clump>)
+Splits a dimension in the parent ndarray (opposite of L<clump|PDL::Core/clump>)
 
 After
 
@@ -2346,7 +2346,7 @@ EOD
         PDL_Indx i,j;
         PDL_Indx n_size = $SIZE(n);
         if (n_size == 0)
-          barf("can not shift zero size piddle (n_size is zero)");
+          barf("can not shift zero size ndarray (n_size is zero)");
         j = ($shift()) % n_size;
         if (j < 0)
                 j += n_size;
@@ -2722,7 +2722,7 @@ pp_addpm(<<'EOD-slice');
 
 =for ref
 
-Extract rectangular slices of a piddle, from a string specifier,
+Extract rectangular slices of an ndarray, from a string specifier,
 an array ref specifier, or a combination.
 
 C<slice> is the main method for extracting regions of PDLs and
@@ -3508,7 +3508,7 @@ pp_addpm({At => 'Bot'},<< 'EOD');
 =head1 BUGS
 
 For the moment, you can't slice one of the zero-length dims of an
-empty piddle.  It is not clear how to implement this in a way that makes
+empty ndarray.  It is not clear how to implement this in a way that makes
 sense.
 
 Many types of index errors are reported far from the indexing

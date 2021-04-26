@@ -113,7 +113,7 @@ and at the last point to -1.
 
 The C<status> method provides a simple mechanism to check if
 the previous method was successful. The C<err> attribute
-contains the C<$ierr> piddle returned by the Slatec
+contains the C<$ierr> ndarray returned by the Slatec
 routine if a more precise diagnostic is required.
 To find out which routine was called, use the
 C<routine> method.
@@ -183,13 +183,13 @@ sub _initialise {
     #  ie allow the possibility of threading
     my $xdim = $x->getdim( 0 );
     my $ydim = $y->getdim( 0 );
-    croak "ERROR: x and y piddles must have the same first dimension.\n"
+    croak "ERROR: x and y ndarrays must have the same first dimension.\n"
 	unless $xdim == $ydim;
 
     # if a gradient has been specified, then we don't need to do anything
     # - other than check the dimensions
     if ( defined $g ) {
-	croak "ERROR: gradient piddle must have the same first dimension as x and y.\n"
+	croak "ERROR: gradient ndarray must have the same first dimension as x and y.\n"
 	    unless $g->getdim( 0 ) == $xdim;
 	$self->{flags}->{status} = 1;
 	return;
@@ -313,7 +313,7 @@ object.
 
 The integration can either be between points of
 the original C<x> array (C<index>), or arbitrary x values
-(C<x>). For both cases, a two element piddle
+(C<x>). For both cases, a two element ndarray
 should be given,
 to specify the start and end points of the integration.
 
@@ -335,7 +335,7 @@ one or both of the integration limits did not
 lie inside the C<x> array. I<Caveat emptor> with the
 result in such a case.
 
-The reason for using piddles, rather than arrays, is that
+The reason for using ndarrays, rather than arrays, is that
 it allows for threading.
 
 =cut

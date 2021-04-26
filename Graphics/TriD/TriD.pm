@@ -26,7 +26,7 @@ PDL::Graphics::TriD -- PDL 3D interface
  $coords = cat($x, $y, $z)->xchg(0,1);
  $red = cos(2*$surface); $green = sin($surface); $blue = $surface;
  $colors = cat($red, $green, $blue)->xchg(0,1);
- imagrgb([$red,$green,$blue]);     # 2-d piddles
+ imagrgb([$red,$green,$blue]);     # 2-d ndarrays
  lattice3d([$surf1]);
  points3d([$x,$y,$z]);
  spheres3d([$x,$y,$z]);  # preliminary implementation
@@ -34,7 +34,7 @@ PDL::Graphics::TriD -- PDL 3D interface
  hold3d(); # the following graphs are on top of each other and the previous
  line3d([$x,$y,$z]);
  line3d([$x,$y,$z+1]);
- $pic = grabpic3d(); # Returns the picture in a (3,$x,$y) float piddle (0..1).
+ $pic = grabpic3d(); # Returns the picture in a (3,$x,$y) float ndarray (0..1).
 
  release3d(); # the next graph will again wipe out things.
 
@@ -100,7 +100,7 @@ PDL and wait for the next PDL image over the network.
 
 Specifying a set of coordinates is generally a context-dependent operation.
 For a traditional 3D surface plot, you'll want two of the coordinates
-to have just the xvals and yvals of the piddle, respectively.
+to have just the xvals and yvals of the ndarray, respectively.
 For a line, you would generally want to have one coordinate held
 at zero and the other advancing.
 
@@ -110,19 +110,19 @@ interpretation.
 
 The alternative syntaxes for specifying a set of coordinates (or colors) are
 
-   $piddle                             # MUST have 3 as first dim.
-  [$piddle]
-  [$piddle1,$piddle2]
-  [$piddle1,$piddle2,$piddle3]
-  [CONTEXT,$piddle]
-  [CONTEXT,$piddle1,$piddle2]
-  [CONTEXT,$piddle1,$piddle2,$piddle3]
+   $ndarray                             # MUST have 3 as first dim.
+  [$ndarray]
+  [$ndarray1,$ndarray2]
+  [$ndarray1,$ndarray2,$ndarray3]
+  [CONTEXT,$ndarray]
+  [CONTEXT,$ndarray1,$ndarray2]
+  [CONTEXT,$ndarray1,$ndarray2,$ndarray3]
 
 where C<CONTEXT> is a string describing in which context you wish these
-piddles to be interpreted. Each routine specifies a default context
+ndarrays to be interpreted. Each routine specifies a default context
 which is explained in the routines documentation.
 Context is usually used only to understand what the user wants
-when he/she specifies less than 3 piddles.
+when he/she specifies less than 3 ndarrays.
 
 The following contexts are currently supported:
 
@@ -130,25 +130,25 @@ The following contexts are currently supported:
 
 =item SURF2D
 
-A 2-D lattice. C< [$piddle] > is interpreted as the Z coordinate over
+A 2-D lattice. C< [$ndarray] > is interpreted as the Z coordinate over
 a lattice over the first dimension. Equivalent to
-C<< [$piddle->xvals, $piddle->yvals, $piddle] >>.
+C<< [$ndarray->xvals, $ndarray->yvals, $ndarray] >>.
 
 =item POLAR2D
 
-A 2-D polar coordinate system. C< [$piddle] > is interpreted as the
-z coordinate over theta and r (theta = the first dimension of the piddle).
+A 2-D polar coordinate system. C< [$ndarray] > is interpreted as the
+z coordinate over theta and r (theta = the first dimension of the ndarray).
 
 =item COLOR
 
-A set of colors. C< [$piddle] > is interpreted as grayscale color
-(equivalent to C< [$piddle,$piddle,$piddle] >).
+A set of colors. C< [$ndarray] > is interpreted as grayscale color
+(equivalent to C< [$ndarray,$ndarray,$ndarray] >).
 
 =item LINE
 
-A line made of 1 or 2 coordinates. C< [$piddle] > is interpreted as
-C<< [$piddle->xvals,$piddle,0] >>. C< [$piddle1,$piddle2] > is interpreted as
-C<< [$piddle1,$piddle2,$piddle1->xvals] >>.
+A line made of 1 or 2 coordinates. C< [$ndarray] > is interpreted as
+C<< [$ndarray->xvals,$ndarray,0] >>. C< [$ndarray1,$ndarray2] > is interpreted as
+C<< [$ndarray1,$ndarray2,$ndarray1->xvals] >>.
 
 =back
 
@@ -221,7 +221,7 @@ meaningful surface (unless you're into fractals, perhaps).
  print "using line3d to plot a trajectory (press q when you're done twiddling)\n";
  line3d [$x,$y,$z];
 
- # If you give it a single piddle, it expects
+ # If you give it a single ndarray, it expects
  # the data to look like
  # ((x1, y1, z1), (x2, y2, z2), ...)
  # which is why we have to do the exchange:
@@ -282,7 +282,7 @@ routines are supported:
 
 =for usage
 
- line3d piddle(3,x), {OPTIONS}
+ line3d ndarray(3,x), {OPTIONS}
  line3d [CONTEXT], {OPTIONS}
 
 =for example
@@ -310,8 +310,8 @@ contexts and options
 
 =for usage
 
- imag3d piddle(3,x,y), {OPTIONS}
- imag3d [piddle,...], {OPTIONS}
+ imag3d ndarray(3,x,y), {OPTIONS}
+ imag3d [ndarray,...], {OPTIONS}
 
 =for example
 
@@ -332,8 +332,8 @@ contexts and options
 
 =for usage
 
- mesh3d piddle(3,x,y), {OPTIONS}
- mesh3d [piddle,...], {OPTIONS}
+ mesh3d ndarray(3,x,y), {OPTIONS}
+ mesh3d [ndarray,...], {OPTIONS}
 
 =for example
 
@@ -364,8 +364,8 @@ alias for mesh3d
 
 =for usage
 
- points3d piddle(3), {OPTIONS}
- points3d [piddle,...], {OPTIONS}
+ points3d ndarray(3), {OPTIONS}
+ points3d [ndarray,...], {OPTIONS}
 
 =for example
 
@@ -385,8 +385,8 @@ contexts and options
 
 =for usage
 
- spheres3d piddle(3), {OPTIONS}
- spheres3d [piddle,...], {OPTIONS}
+ spheres3d ndarray(3), {OPTIONS}
+ spheres3d [ndarray,...], {OPTIONS}
 
 =for example
 
@@ -408,8 +408,8 @@ drawn and no control of color or transparency.
 
 =for usage
 
- imagrgb piddle(3,x,y), {OPTIONS}
- imagrgb [piddle,...], {OPTIONS}
+ imagrgb ndarray(3,x,y), {OPTIONS}
+ imagrgb [ndarray,...], {OPTIONS}
 
 This would be used to plot an image, specifying
 red, green and blue values at each point. Note:
@@ -431,12 +431,12 @@ e.g.
 
 =for usage
 
- imagrdb3d piddle(3,x,y), {OPTIONS}
- imagrdb3d [piddle,...], {OPTIONS}
+ imagrdb3d ndarray(3,x,y), {OPTIONS}
+ imagrdb3d [ndarray,...], {OPTIONS}
 
-The piddle gives the colors. The option allowed is Points,
+The ndarray gives the colors. The option allowed is Points,
 which should give 4 3D coordinates for the corners of the polygon,
-either as a piddle or as array ref.
+either as an ndarray or as array ref.
 The default is [[0,0,0],[1,0,0],[1,1,0],[0,1,0]].
 
 =for example
@@ -456,7 +456,7 @@ Grab a 3D image from the screen.
 
  $pic = grabpic3d();
 
-The returned piddle has dimensions (3,$x,$y) and is of type float
+The returned ndarray has dimensions (3,$x,$y) and is of type float
 (currently). XXX This should be altered later.
 
 =head2 hold3d, release3d
@@ -566,15 +566,15 @@ an object like
 =head2 PDL::Graphics::TriD::LineStrip
 
 This is just a line or a set of lines. The arguments are 3 1-or-more-D
-piddles which describe the vertices of a continuous line and an 
-optional color piddle (which is 1-D also and simply
+ndarrays which describe the vertices of a continuous line and an 
+optional color ndarray (which is 1-D also and simply
 defines the color between red and blue. This will probably change).
 
 =head2 PDL::Graphics::TriD::Lines
 
 This is just a line or a set of lines. The arguments are 3 1-or-more-D
-piddles where each contiguous pair of vertices describe a line segment 
-and an optional color piddle (which is 1-D also and simply
+ndarrays where each contiguous pair of vertices describe a line segment 
+and an optional color ndarray (which is 1-D also and simply
 defines the color between red and blue. This will probably change).
 
 =head2 PDL::Graphics::TriD::Image
@@ -586,12 +586,12 @@ be relatively memory and execution-time-friendly.
 =head2 PDL::Graphics::TriD::Lattice
 
 This is a 2-D set of points connected by lines in 3-space.
-The constructor takes as arguments 3 2-dimensional piddles.
+The constructor takes as arguments 3 2-dimensional ndarrays.
 
 =head2 PDL::Graphics::TriD::Points
 
 This is simply a set of points in 3-space. Takes as arguments
-the x, y and z coordinates of the points as piddles.
+the x, y and z coordinates of the points as ndarrays.
 
 =head2 PDL::Graphics::TriD::Scale(x,y,z)
 
@@ -706,7 +706,7 @@ sub realcoords {
 	my($type,$c) = @_;
 	if(ref $c ne "ARRAY") {
 		if($c->getdim(0) != 3) {
-			barf "If one piddle given for coordinate, must be (3,...) or have default interpretation";
+			barf "If one ndarray given for coordinate, must be (3,...) or have default interpretation";
 		}
 		return $c ;
 	}
@@ -722,7 +722,7 @@ sub realcoords {
 		my $r = $c->[0]->yvals / ($c->[0]->getdim(1)-1);
 		@$c = ($r * sin($t), $r * cos($t), $c->[0]);
 	} elsif($#$c == 0 and $type eq "COLOR") {
-		# color -> 1 piddle = grayscale
+		# color -> 1 ndarray = grayscale
 		@$c = ($c->[0], $c->[0], $c->[0]);
 	} elsif($#$c == 0 and $type eq "LINE") {
 		@$c = ($c->[0]->xvals, $c->[0], 0);

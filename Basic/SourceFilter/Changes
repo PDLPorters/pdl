@@ -12,7 +12,7 @@
  - allow more than one modifier
  - fix modifier parsing
 0.97
- - nslice updates (indexing with multidim piddles)
+ - nslice updates (indexing with multidim ndarrays)
    yet undocumented I think
 0.96
  - splitprotected interface similar to split's

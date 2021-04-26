@@ -8,7 +8,7 @@ print "Initializing...\n";
 use PDL;
 use PDL::NiceSlice;
 
-# Snarf the file and build a separate piddle for each polyline
+# Snarf the file and build a separate ndarray for each polyline
 print "Interpreting map file...\n";
 
 open(MAP,"<earth.txt");

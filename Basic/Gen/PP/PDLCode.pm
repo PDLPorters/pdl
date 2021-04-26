@@ -698,7 +698,7 @@ sub new {
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
     die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
-	"  unknown piddle <$name($inds)>\n"
+	"  unknown ndarray <$name($inds)>\n"
 	unless exists($check->{$name}) and defined($check->{$name});
 
     return bless [$opcode, $name, $inds], $type;
@@ -758,7 +758,7 @@ sub new {
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
     die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
-	"  unknown piddle <$name>\n"
+	"  unknown ndarray <$name>\n"
 	unless exists($check->{$name}) and defined($check->{$name});
 
     bless [$opcode, $var_name, $name], $type;
@@ -852,7 +852,7 @@ sub get_str {
 
 ###########################
 #
-# Encapsulate a check on whether the state flag of a piddle
+# Encapsulate a check on whether the state flag of an ndarray
 # is set/change this state
 #
 # $PDLSTATEISBAD(a)    ->  ($PDL(a)->state & PDL_BADVAL) > 0
@@ -875,7 +875,7 @@ sub new {
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
     die "\nIt looks like you have tried a \$PDLSTATE${op}${val}() macro on an\n" .
-	"  unknown piddle <$name>\n"
+	"  unknown ndarray <$name>\n"
 	unless exists($check->{$name}) and defined($check->{$name});
 
     bless [$op, $val, $name], $type;
@@ -1037,7 +1037,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 	my $s = $parent->{IndObjs}{$1}->get_size();
 
-# XXX NOTE: All piddles must be output piddles, there must not be
+# XXX NOTE: All ndarrays must be output ndarrays, there must not be
 # a loop over this var (at all!) etc. Should check for these,
 # this is why not yet documented.
 # FURTHER NOTE: RESIZE DOESN'T COPY DATA PROPERLY!

@@ -123,11 +123,11 @@ close($fileh);
 
 $x = PDL->null;
 $x->rasc($file,20);
-is( abs($x->sum - 5.13147) < .01, 1, "rasc on null piddle" );
+is( abs($x->sum - 5.13147) < .01, 1, "rasc on null ndarray" );
  
 $y = zeroes(float,20,2);
 $y->rasc($file);
-is( abs($y->sum - 5.13147) < .01, 1, "rasc on existing piddle" );
+is( abs($y->sum - 5.13147) < .01, 1, "rasc on existing ndarray" );
 
 eval '$y->rasc("file_that_does_not_exist")';
 like( $@, qr/Can't open/, "rasc on non-existant file" );

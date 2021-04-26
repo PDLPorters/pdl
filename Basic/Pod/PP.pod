@@ -412,7 +412,7 @@ in PDL very well yet; it is still very much experimental).
 
 The 'slice operation' is a different kind of operation: in a slice
 operation, you are not changing any data, you are defining
-correspondences between different elements of two piddles (examples include
+correspondences between different elements of two ndarrays (examples include
 the index manipulation/slicing function definitions in the file F<slices.pd>
 that is part of the PDL distribution; but beware, this is not introductory
 level stuff).
@@ -474,14 +474,14 @@ you take another look at the definition of C<add> you will notice that
 the third argument C<c> is flagged with the qualifier C<[o]> which
 tells PDL::PP that this is an output argument. So the above call to
 add means 'create a new $c from scratch with correct dimensions' -
-C<null> is a special token for 'empty piddle' (you might ask why we
+C<null> is a special token for 'empty ndarray' (you might ask why we
 haven't used the value C<undef> to flag this instead of the PDL
 specific C<null>; we are currently thinking about it ;).
 
 [This should be explained in some other section of the manual
 as well!!]
 The reason for having this syntax as an alternative is that if you have
-really huge piddles, you can do
+really huge ndarrays, you can do
 
 	$c = PDL->null;
 	for(some long loop) {
@@ -562,10 +562,10 @@ that works.
 
 =head2 Constant argument dimensions in the signature
 
-Suppose you want an output piddle to be created
+Suppose you want an output ndarray to be created
 automatically and you know that on every call its dimension
 will have the same size (say 9) regardless of the dimensions
-of the input piddles. In this case you use the following
+of the input ndarrays. In this case you use the following
 syntax in the Pars section to specify the size of the dimension: 
 
     ' [o] y(n=9); '
@@ -869,10 +869,10 @@ bad values. The first one is the C<HandleBad> key:
 =item HandleBad => 0
 
 This flags a pp-routine as I<NOT> handling bad values. If this routine
-is sent piddles with their C<badflag> set, then a warning message is
-printed to STDOUT and the piddles are processed as if the value used to
+is sent ndarrays with their C<badflag> set, then a warning message is
+printed to STDOUT and the ndarrays are processed as if the value used to
 represent bad values is a valid number. The C<badflag> value is
-not propagated to the output piddles.
+not propagated to the output ndarrays.
 
 An example of when this is used is for FFT routines, which generally
 do not have a way of ignoring part of the data.
@@ -885,8 +885,8 @@ work.
 
 =item HandleBad is not given
 
-If any of the input piddles have their C<badflag> set, then the
-output piddles will have their C<badflag> set, but any supplied
+If any of the input ndarrays have their C<badflag> set, then the
+output ndarrays will have their C<badflag> set, but any supplied
 BadCode is ignored.
 
 =back
@@ -908,7 +908,7 @@ becomes something like
  }
 
 However, we only want the second version if bad values are present in
-the input piddles (and that bad-value support is wanted!) - otherwise 
+the input ndarrays (and that bad-value support is wanted!) - otherwise 
 we actually want the original code. This is where the C<BadCode>
 key comes in; you use it to specify the code to execute if bad values
 may be present, and PP uses both it and the C<Code> section to create
@@ -938,11 +938,11 @@ additional macros:
 
 =item $ISBAD(var)
 
-To check whether a piddle's value is bad, use the C<$ISBAD> macro:
+To check whether an ndarray's value is bad, use the C<$ISBAD> macro:
 
  if ( $ISBAD(a()) ) { printf("a() is bad\n"); }
 
-You can also access given elements of a piddle:
+You can also access given elements of an ndarray:
 
  if ( $ISBAD(a(n=>l)) ) { printf("element %d of a() is bad\n", l); }
 
@@ -952,11 +952,11 @@ This is the opposite of the C<$ISBAD> macro.
 
 =item $SETBAD(var)
 
-For when you want to set an element of a piddle bad.
+For when you want to set an element of an ndarray bad.
 
 =item $ISBADVAR(c_var,pdl)
 
-If you have cached the value of a piddle C<$a()> into a c-variable (C<foo> say),
+If you have cached the value of an ndarray C<$a()> into a c-variable (C<foo> say),
 then to check whether it is bad, use C<$ISBADVAR(foo,a)>.
 
 =item $ISGOODVAR(c_var,pdl)
@@ -966,7 +966,7 @@ isn't bad.
 
 =item $SETBADVAR(c_var,pdl)
 
-To copy the bad value for a piddle into a c variable, use
+To copy the bad value for an ndarray into a c variable, use
 C<$SETBADVAR(foo,a)>.
 
 =back
@@ -1008,7 +1008,7 @@ using the same code for both of the C<Code> and C<BadCode> sections:
     #endif PDL_BAD_CODE
 
 If you want access to the value of the badflag for a given
-piddle, you can use the PDL STATE macros:
+ndarray, you can use the PDL STATE macros:
 
 =over 4
 
@@ -1352,7 +1352,7 @@ minimise effort needed to make your code work with new types:
 =head2 The RedoDimsCode Section
 
 The C<RedoDimsCode> key is an optional key that is used to
-compute dimensions of piddles at runtime in case the
+compute dimensions of ndarrays at runtime in case the
 standard rules for computing dimensions from the signature
 are not sufficient. The contents of the C<RedoDimsCode> entry
 is interpreted in the same way that the Code section is
@@ -1373,7 +1373,7 @@ argument. Two input data arrays that are passed are C<p(m)>
 and C<x(n)>. The output data array is C<y(n)>. The routine
 requires a workspace array with a length of n+m*m, and you'd
 like the storage created automatically just like it would be
-for any piddle flagged with [t] or [o].  What you'd like is to
+for any ndarray flagged with [t] or [o].  What you'd like is to
 say something like
 
  pp_def( "myexternalfunc",
@@ -1398,26 +1398,26 @@ in the signature. Instead you write
   );
 
 This code works as follows: The macro $PDL(p) expands to a
-pointer to the pdl struct for the piddle p.  You don't want
+pointer to the pdl struct for the ndarray p.  You don't want
 a pointer to the data ( ie $P ) in this case, because you
-want to access the methods for the piddle on the C
-level. You get the first dimension of each of the piddles
+want to access the methods for the ndarray on the C
+level. You get the first dimension of each of the ndarrays
 and store them in integers. Then you compute the minimum
-length the work array can be. If the user sent a piddle
+length the work array can be. If the user sent an ndarray
 C<work> with sufficient storage, then leave it alone. If the
 user sent, say a null pdl, or no pdl at all, then the size
 of wn will be zero and you reset it to the minimum
 value. Before the code in the Code section is executed PP
 will create the proper storage for C<work> if it does not
 exist. Note that you only took the first dimension of C<p>
-and C<x> because the user may have sent piddles with extra
-threading dimensions. Of course, the temporary piddle C<work> (note the
+and C<x> because the user may have sent ndarrays with extra
+threading dimensions. Of course, the temporary ndarray C<work> (note the
 [t] flag) should not be given any thread dimensions anyway.
 
 You can also use C<RedoDimsCode> to set the dimension of a
-piddle flagged with [o]. In this case you set the dimensions
+ndarray flagged with [o]. In this case you set the dimensions
 for the named dimension in the signature using $SIZE() as in
-the preceding example.  However, because the piddle is
+the preceding example.  However, because the ndarray is
 flagged with [o] instead of [t], threading dimensions will
 be added if required just as if the size of the dimension
 were computed from the signature according to the usual
@@ -1427,13 +1427,13 @@ rules. Here is an example from PDL::Math
       Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
       RedoDimsCode => 'PDL_Indx sn = $PDL(cr)->dims[0]; $SIZE(m) = sn-1;',
 
-The input piddles are the real and imaginary parts of
-complex coefficients of a polynomial. The output piddles are
+The input ndarrays are the real and imaginary parts of
+complex coefficients of a polynomial. The output ndarrays are
 real and imaginary parts of the roots. There are C<n> roots
 to an C<n>th order polynomial and such a polynomial has
 C<n+1> coefficients (the zero-th through the C<n>th). In
 this example, threading will work correctly. That is, the
-first dimension of the output piddle with have its dimension
+first dimension of the output ndarray with have its dimension
 adjusted, but other threading dimensions will be assigned
 just as if there were no C<RedoDimsCode>.
 
@@ -1467,8 +1467,8 @@ declaration:
           const double xa[], const double ya[], size_t size);
 
 Clearly the C<xa> and C<ya> arrays are candidates for being passed
-in as piddles and the C<size> argument is just the length of these
-piddles so that can be handled by the C<$SIZE()> macro in PP. The
+in as ndarrays and the C<size> argument is just the length of these
+ndarrays so that can be handled by the C<$SIZE()> macro in PP. The
 problem is the pointer to the C<gsl_spline> type. The natural solution
 would be to write an C<OtherPars> declaration of the form
 
@@ -1534,7 +1534,7 @@ An incomplete list of the available keys:
 =item Inplace
 
 Setting this key marks the routine as working inplace - ie
-the input and output piddles are the same. An example is
+the input and output ndarrays are the same. An example is
 C<$x-E<gt>inplace-E<gt>sqrt()> (or C<sqrt(inplace($x))>).
 
 =over 4
@@ -1545,13 +1545,13 @@ Use when the routine is a unary function, such as C<sqrt>.
 
 =item Inplace => ['a']
 
-If there are more than one input piddles, specify the name
+If there are more than one input ndarrays, specify the name
 of the one that can be changed inplace using an array reference.
 
 =item Inplace => ['a','b']
 
-If there are more than one output piddle, specify the name
-of the input piddle and output piddle in a 2-element array
+If there are more than one output ndarray, specify the name
+of the input ndarray and output ndarray in a 2-element array
 reference. This probably isn't needed, but left in for
 completeness.
 
@@ -1575,11 +1575,11 @@ consider this excerpt from F<Basic/Bad/bad.pd>:
     ',
     ...
 
-Since this routine removes all bad values, then the output piddle had
+Since this routine removes all bad values, then the output ndarray had
 its bad flag cleared. If run inplace (so C<a == b>), then we have to
 tell all the children of C<a> that the bad flag has been cleared (to
 save time we make sure that we call C<PDL-E<gt>propagate_badgflag> only
-if the input piddle had its bad flag set).
+if the input ndarray had its bad flag set).
 
 NOTE: one idea is that the documentation for the routine could be 
 automatically flagged to indicate that it can be executed inplace,
@@ -1865,7 +1865,7 @@ distribution :-). Nevertheless,
 functions generated using the slice operations are at the heart of the
 index manipulation and dataflow capabilities of PDL.
 
-Also, there are a lot of dirty issues with virtual piddles and
+Also, there are a lot of dirty issues with virtual ndarrays and
 vaffines which we shall entirely skip here.
 
 =head2 Slices and bad values
@@ -1903,7 +1903,7 @@ See L<PDL::ParallelCPU> for more information on pthreading.
 
 The PDL C<Core> structure, defined in F<Basic/Core/pdlcore.h.PL>, contains
 pointers to a number of routines that may be useful to you.  The majority
-of these routines deal with manipulating piddles, but some are more general:
+of these routines deal with manipulating ndarrays, but some are more general:
 
 =over 4
 
@@ -2049,12 +2049,12 @@ PP functions are recognised in the string value
 If set to 1, the routine is assumed to support bad values and the code in
 the BadCode key is used if bad values are present;
 it also sets things up so that the C<$ISBAD()> etc macros can be used.
-If set to 0, cause the routine to print a warning if any of the input piddles 
+If set to 0, cause the routine to print a warning if any of the input ndarrays 
 have their bad flag set.
 
 =item BadCode (bad)
 
-Give the code to be used if bad values may be present in the input piddles.
+Give the code to be used if bad values may be present in the input ndarrays.
 Only used if C<HandleBad =E<gt> 1>.
 
 =item GenericTypes
@@ -2067,7 +2067,7 @@ accept. The meaning of each type is:
  S - signed short (two-byte integer)
  U - unsigned short
  L - signed long (four-byte integer, int on 32 bit systems)
- N - signed integer for indexing piddle elements (platform & Perl-dependent size)
+ N - signed integer for indexing ndarray elements (platform & Perl-dependent size)
  Q - signed long long (eight byte integer)
  F - float
  D - double
@@ -2127,28 +2127,28 @@ applies if PDL has been compiled with POSIX threads enabled.
 # defined, but it is named used in converttypei as the GlobalNew, which I
 # presume we'll get to later. At any rate, converttypei appears to be
 # defunct. flowconvert, on the other hand, claims that it 'converts vaffine
-# piddles without physicalizing them'. However, its only use, in Core.pm,
+# ndarrays without physicalizing them'. However, its only use, in Core.pm,
 # is followed immediately by a "->make_physical->sever", so I don't see the
 # advantage of not making things physical. At any rate, FTypes needs to be
 # documented.
 
 =item PMCode
 
-PDL functions allow you to pass in a piddle into which you want the output
-saved. This is handy because you can allocate an output piddle once and
-reuse it many times; the alternative would be for PDL to create a new piddle
+PDL functions allow you to pass in an ndarray into which you want the output
+saved. This is handy because you can allocate an output ndarray once and
+reuse it many times; the alternative would be for PDL to create a new ndarray
 each time, which may waste compute cycles or, more likely, RAM. This added
 flexibility comes at the cost of more complexity: PDL::PP has to write
 functions that are smart enough to count the arguments passed to it and
-create new piddles on the fly, but only if you want them.
+create new ndarrays on the fly, but only if you want them.
 
 PDL::PP is smart enough to do that, but there are restrictions on argument
 order and the like. If you want a more flexible function, you can write your
 own Perl-side wrapper and specify it in the PMCode key. The string that you
 supply must (should) define a Perl function with a name that matches what you
 gave to pp_def in the first place. When you wish to eventually invoke the
-PP-generated function, you will need to supply all piddles in the exact
-order specified in the signature: output piddles are not optional, and the
+PP-generated function, you will need to supply all ndarrays in the exact
+order specified in the signature: output ndarrays are not optional, and the
 PP-generated function will not return anything. The obfuscated name that you
 will call is _<funcname>_int.
 
@@ -2220,23 +2220,23 @@ where XXX is some string that is matched by C</[BSULNQFD+]/>.
 
 =item $PDL(a)
 
-return a pointer to the pdl data structure (pdl *) of piddle C<a>
+return a pointer to the pdl data structure (pdl *) of ndarray C<a>
 
 =item $ISBAD(a()) (bad)
 
 returns true if the value stored in C<a()> equals the bad value
-for this piddle. 
+for this ndarray. 
 Requires C<HandleBad> being set to 1.
 
 =item $ISGOOD(a()) (bad)
 
 returns true if the value stored in C<a()> does not equal the bad value
-for this piddle.
+for this ndarray.
 Requires C<HandleBad> being set to 1.
 
 =item $SETBAD(a()) (bad)
 
-Sets C<a()> to equal the bad value for this piddle.
+Sets C<a()> to equal the bad value for this ndarray.
 Requires C<HandleBad> being set to 1.
 
 =back
@@ -2404,13 +2404,13 @@ Sets the package (symbol table) to which the XS code is added. The default
 is PDL, which is generally what you want. If you use the default blessing
 and you create a function myfunc, then you can do the following:
 
- $piddle->myfunc(<args>);
- PDL::myfunc($piddle, <args>);
+ $ndarray->myfunc(<args>);
+ PDL::myfunc($ndarray, <args>);
 
 On the other hand, if you bless your functions into another package, you
 cannot invoke them as PDL methods, and must invoke them as:
 
- MyPackage::myfunc($piddle, <args>);
+ MyPackage::myfunc($ndarray, <args>);
 
 Of course, you could always use the PMFunc key to add your function to the
 PDL symbol table, but why do that?

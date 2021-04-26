@@ -5,7 +5,7 @@
 # one black space between the subimages.
 # The X coordinate will be ((x+1)*z+1)*d and the
 # Y coordinate ((y+1)*q+1)*f. We need to use splitdim to obtain
-# a piddle of the imag dimensions from the flat piddle.
+# an ndarray of the imag dimensions from the flat ndarray.
 
 package PDL::Graphics::TriD::Image;
 @ISA=qw/PDL::Graphics::TriD::Object/;
@@ -40,13 +40,13 @@ sub get_points {
 	return $_[0]->{Points};
 }
 
-# In the future, have this happen automatically by the piddles.
+# In the future, have this happen automatically by the ndarrays.
 sub data_changed {
 	my($this) = @_;
 	$this->changed();
 }
 
-# ND piddle -> 2D
+# ND ndarray -> 2D
 sub flatten {
         my ($this,$bin_align) = @_;
 	my @dims = $this->{Im}->dims;

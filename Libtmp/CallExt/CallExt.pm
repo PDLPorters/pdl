@@ -21,7 +21,7 @@ PDL::CallExt - call functions in external shared libraries
 =head1 SYNOPSIS
 
  use PDL::CallExt;
- callext('file.so', 'foofunc', $x, $y); # pass piddles to foofunc()
+ callext('file.so', 'foofunc', $x, $y); # pass ndarrays to foofunc()
 
  % perl -MPDL::CallExt -e callext_cc file.c
 
@@ -29,7 +29,7 @@ PDL::CallExt - call functions in external shared libraries
 
 callext() loads in a shareable object (i.e. compiled code) using
 Perl's dynamic loader, calls the named function and passes a list of
-piddle arguments to it.
+ndarray arguments to it.
 
 It provides a reasonably portable way of doing this, including
 compiling the code with the right flags, though it requires simple
@@ -43,13 +43,13 @@ limitations of this module.
 callext_cc() allows one to compile the shared objects using Perl's knowledge
 of compiler flags.
 
-The named function (e.g. 'foofunc') must take a list of piddle structures as
+The named function (e.g. 'foofunc') must take a list of ndarray structures as
 arguments, there is now way of doing portable general argument construction
 hence this limitation.
 
 In detail the code in the original file.c would look like this:
 
- #include "pdlsimple.h" /* Declare simple piddle structs - note this .h file
+ #include "pdlsimple.h" /* Declare simple ndarray structs - note this .h file
  			   contains NO perl/PDL dependencies so can be used
  			   standalone */
 
@@ -71,7 +71,7 @@ pdlsimple.h defines a simple N-dimensional data structure which looks like this:
 
 (PDL_Long is always a 4 byte int and is defined in pdlsimple.h)
 
-This is a simplification of the internal representation of piddles in PDL which is
+This is a simplification of the internal representation of ndarrays in PDL which is
 more complicated because of threading, dataflow, etc. It will usually be found
 somewhere like /usr/local/lib/perl5/site_perl/PDL/pdlsimple.h
 
@@ -105,7 +105,7 @@ out how to generate shared libraries.
 
 See t/callext.t in the distribution for a working example.
 
-It is up to the caller to ensure datatypes of piddles are correct - if not
+It is up to the caller to ensure datatypes of ndarrays are correct - if not
 peculiar results or SEGVs will result.
 
 
@@ -119,7 +119,7 @@ Call a function in an external library using Perl dynamic loading
 
 =for usage
 
-  callext('file.so', 'foofunc', $x, $y); # pass piddles to foofunc()
+  callext('file.so', 'foofunc', $x, $y); # pass ndarrays to foofunc()
 
 The file must be compiled with dynamic loading options
 (see C<callext_cc>). See the module docs C<PDL::Callext>

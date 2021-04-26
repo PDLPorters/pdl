@@ -33,14 +33,14 @@ At the moment, only PDL::IO::Browser provides data browsing functionality.
 
 =item * Image Handling
 
-PDL has a handful of modules that will load images into piddles for you.
+PDL has a handful of modules that will load images into ndarrays for you.
 They include PDL::IO::Dicom, PDL::IO::FITS, PDL::IO::GD, PDL::IO::Pic,
 and PDL::IO::Pnm.  However, PDL::IO::FITS should also be considered something
 of a general data format.
 
 =item * Disk Caching
 
-Both PDL::IO::FastRaw and PDL::IO::FlexRaw provide for direct piddle-to-disk
+Both PDL::IO::FastRaw and PDL::IO::FlexRaw provide for direct ndarray-to-disk
 mapping, but they use PDL's underlying mmap functionality to do it, and that
 doesn't work for Windows.  However, users of all operating systems can still
 use PDL::DiskCache, which can use any desired IO read/write functionality
@@ -52,7 +52,7 @@ PDL has a number of modules that interface general data storage libraries.
 They include PDL::IO::HDF and PDL::IO::NDF (the latter is now a separate
 CPAN module).  There is a PDL::IO::IDL,
 though at the moment it is not distributed with PDL.  PDL::IO::FITS is
-something of a general data format, since piddle data can be stored to a
+something of a general data format, since ndarray data can be stored to a
 FITS file without loss.  PDL::IO::FlexRaw and PDL::IO::FastRaw read and
 write data identical C's low-level C<write> function and PDL::IO::FlexRaw
 can work with FORTRAN 77 UNFORMATTED files.  FlexRaw and Storable provide
@@ -71,7 +71,7 @@ Here's a brief summary of all of the modules, in alphabetical order.
 
 The DiskCache module allows you to tie a Perl array to a collection
 of files on your disk, which will be loaded into and out of memory
-as piddles.  Although the module defaults to working with FITS files,
+as ndarrays.  Although the module defaults to working with FITS files,
 it allows you to specify your own reading and writing functions.
 This allows you to vastly streamline your code by hiding the unnecessary
 details of loading and saving files.
@@ -111,7 +111,7 @@ L<PDL::IO::Dicom documentation|PDL::IO::Dicom>.
 =head2 PDL::IO::Dumper
 
 Provides functionality similar to L<Data::Dumper> for
-piddles.  L<Data::Dumper> stringifies a data structure,
+ndarrays.  L<Data::Dumper> stringifies a data structure,
 creating a string that can be C<eval>ed to reproduce the original data
 structure.  It's also usually suitable for printing, to visualize the
 structure.
@@ -123,20 +123,20 @@ data solution.
 =head2 PDL::IO::FastRaw
 
 Very simple module for quickly writing, reading, and memory-mapping
-piddles to/from disk.  It is fast to learn and fast to use, though
+ndarrays to/from disk.  It is fast to learn and fast to use, though
 you may be frustrated by its lack of options.  To quote from
 the original POD:
 
 "The binary files are in general NOT interchangeable between different
 architectures since the binary file is simply dumped from the memory
-region of the piddle.  This is what makes the approach efficient."
+region of the ndarray.  This is what makes the approach efficient."
 
-This creates two files for every piddle saved - one that stores the
+This creates two files for every ndarray saved - one that stores the
 raw data and another that stores the header file, which indicates
 the dimensions of the data stored in the raw file.  Even
-if you save 1000 different piddles with the exact same dimensions,
+if you save 1000 different ndarrays with the exact same dimensions,
 you will still need to write out a header file for each one.  You
-cannot store multiple piddles in one file.
+cannot store multiple ndarrays in one file.
 
 Note that at the time of writing, memory-mapping is not possible
 on Windows.
@@ -162,8 +162,8 @@ by typing at the system prompt:
 =head2 PDL::IO::FlexRaw
 
 Somewhat smarter module (compared to FastRaw) for reading, writing,
-and memory mapping piddles to disk.  In addition to everything that
-FastRaw can do, FlexRaw can also store multiple piddles in a single
+and memory mapping ndarrays to disk.  In addition to everything that
+FastRaw can do, FlexRaw can also store multiple ndarrays in a single
 file, take user-specified headers (so you can use one header file
 for multiple files that have identical structure), and read
 compressed data.  However, FlexRaw cannot memory-map compressed data,
@@ -247,7 +247,7 @@ for more details.
 
 =head2 PDL::IO::Pic
 
-Provides reading/writing of images to/from piddles, as well as creating
+Provides reading/writing of images to/from ndarrays, as well as creating
 MPEG animations!  The module uses the netpbm library, so you will
 need that on your machine in order for this to work.  To read more,
 see the L<PDL::IO::Pic documentation|PDL::IO::Pic>.  Also look into
@@ -261,11 +261,11 @@ more details.  Also check out the previous module and PDL::IO::GD.
 
 =head2 PDL::IO::Storable
 
-Implements the relevant methods to be able to store and retrieve piddles
-via Storable.  True, you can use many methods to save a single piddle.
+Implements the relevant methods to be able to store and retrieve ndarrays
+via Storable.  True, you can use many methods to save a single ndarray.
 In contrast, this module is particularly useful if you need to save a complex Perl structure
-that contain piddles, such as an array of hashes, each of which contains
-piddles.
+that contain ndarrays, such as an array of hashes, each of which contains
+ndarrays.
 
 Check the L<PDL::IO::Storable documentation|PDL::IO::Storable> for more
 details.  See also PDL::IO::Dumper for an alternative stringifier.

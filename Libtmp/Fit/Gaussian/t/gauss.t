@@ -23,7 +23,7 @@ my $g2 = pdl qw[  13.013418  11.397573  7.4494489  4.5594057  2.5728955
 my $x1 = xvals($g1);
 my $x2 = xvals($g2);
 
-{ #test fitgauss1d specifying all output piddles in the call
+{ #test fitgauss1d specifying all output ndarrays in the call
     my ($xc, $pk, $fwhm, $back, $err, $fit);
     fitgauss1d($x1, $g1,$xc=null,$pk=null,$fwhm=null,$back=null,$err=null,$fit=null);
     ok( nint($xc)==16 && nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
@@ -31,13 +31,13 @@ my $x2 = xvals($g2);
 }
 
 
-{ #test fitgauss1d specifying only the input piddles
+{ #test fitgauss1d specifying only the input ndarrays
     my ($xc, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x1, $g1);
     ok( nint($xc)==16 && nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
 	&& nint($err)==0 && sum(abs($g1-$fit))<10,"fitgauss1d normal");
 }
 
-{ #test fitgauss1dr specifying only the input piddles
+{ #test fitgauss1dr specifying only the input ndarrays
     my ($pk, $fwhm, $back, $err, $fit) = fitgauss1dr($x2,$g2);
     ok(nint($pk)==11 && nint($fwhm)==4 && nint($back)==2
        && nint($err)==0 && sum(abs($g2-$fit))<10,"fitgauss1dr normal");

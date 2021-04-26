@@ -19,7 +19,7 @@ is( $x->badflag(), 0, "no badflag" );
 my $y = pdl(4,5,6);
 my $c = $x + $y;
 is( $c->badflag(), 0, "badflag not set in a copy" );
-is( $c->sum(), 21, "sum() works on non bad-flag piddles" );
+is( $c->sum(), 21, "sum() works on non bad-flag ndarrays" );
 
 # is the flag propagated?
 $x->badflag(1);
@@ -69,7 +69,7 @@ $x = pdl(1,2,3,4,5);
 $x->setbadat(2);
 is( PDL::Core::string($x), "[1 2 BAD 4 5]", "setbadat worked" );
 
-# now check that badvalue() changes the piddle
+# now check that badvalue() changes the ndarray
 # (only for integer types)
 $x = convert($x,ushort);
 my $badval = $x->badvalue;
@@ -138,7 +138,7 @@ is( PDL::Core::string( PDL::zcover($x) ), "[BAD 0]", "  and still okay" );
 # 255 is the default bad value for a byte array
 #
 $x = byte(1,2,255,4,5);
-is( $x->median, 4, "median() works on good piddle" );
+is( $x->median, 4, "median() works on good ndarray" );
 $x->badflag(1);
 is( $x->median, 3, "median() works on bad biddle" );
 
@@ -343,10 +343,10 @@ $x->inplace->setvaltobad( 1 );
 like( PDL::Core::string( $x->clump(-1) ), 
     qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setvaltobad()" );
 
-# check setvaltobad for non-double piddles
+# check setvaltobad for non-double ndarrays
 my $fa = pdl( float,  1..4) / 3;
 my $da = pdl( double, 1..4) / 3;
-ok( all($fa->setvaltobad(2/3)->isbad == $da->setvaltobad(2/3)->isbad), "setvaltobad for float piddle");
+ok( all($fa->setvaltobad(2/3)->isbad == $da->setvaltobad(2/3)->isbad), "setvaltobad for float ndarray");
 
 # simple test for setnantobad
 # - could have a 1D FITS image containing
@@ -367,10 +367,10 @@ $x = sequence(4);
 $x->badvalue(3);
 $x->badflag(1);
 $y = $x->slice('2:3');
-is( $y->badvalue, 3, "can propagate per-piddle bad value");
+is( $y->badvalue, 3, "can propagate per-ndarray bad value");
 is( $y->sum, 2, "and the propagated value is recognised as bad");
 $x = sequence(4);
-is ($x->badvalue, double->orig_badvalue, "no long-term effects of per-piddle changes [1]");
+is ($x->badvalue, double->orig_badvalue, "no long-term effects of per-ndarray changes [1]");
 
 for my $t (map +([$_, undef], [$_, 'nan']), grep !$_->integer, types()) {
   my $p = sequence $t->[0], 2;

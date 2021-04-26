@@ -51,7 +51,7 @@ L<"unit sphere"|/t_unit_sphere> 3-D projection.
 Extra dimensions tacked on to each point to be transformed are, in
 general, ignored.  That is so that you can add on an extra index
 to keep track of pen color.  For example, L</earth_coast>
-returns a 3x<n> piddle containing (lon, lat, pen) at each list location.
+returns a 3x<n> ndarray containing (lon, lat, pen) at each list location.
 Transforming the vector list retains the pen value as the first index
 after the dimensional directions.
 
@@ -176,7 +176,7 @@ Draw a Mercator map of the world on-screen:
    $w = pgwin(xs);
    $w->lines(earth_coast->apply(t_mercator)->clean_lines);
 
-Here, C<earth_coast()> returns a 3xn piddle containing (lon, lat, pen) 
+Here, C<earth_coast()> returns a 3xn ndarray containing (lon, lat, pen) 
 values for the included world coastal outline; C<t_mercator> converts
 the values to projected Mercator coordinates, and C<clean_lines> breaks
 lines that cross the 180th meridian.
@@ -303,11 +303,11 @@ You can attach the graticule to a vector map using the syntax:
 
     $out = graticule(10,2)->glue(1,$map);
 
-In array context you get back a 2-element list containing a piddle of
-the (theta,phi) pairs and a piddle of the pen values (1 or 0) suitable for
+In array context you get back a 2-element list containing an ndarray of
+the (theta,phi) pairs and an ndarray of the pen values (1 or 0) suitable for
 calling
 L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>.
-In scalar context the two elements are combined into a single piddle.
+In scalar context the two elements are combined into a single ndarray.
 
 The pen values associated with the graticule are negative, which will cause
 L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>
@@ -1139,7 +1139,7 @@ displaced to infinity, many applications require a clipping boundary.  The
 value is in whatever angular unit you set with the standard 'units' option.
 The default roughly matches interesting landforms on Earth.
 For no clipping at all, set b=>0.  For asymmetric clipping, use a 2-element
-list ref or piddle.
+list ref or ndarray.
 
 =item s, std, Standard (default 0)
 
@@ -2824,7 +2824,7 @@ sub t_perspective {
 
       # Chuck points that are outside the FOV: glue those points
       # onto the removal list.   The conditional works around a bug 
-      # in 2.3.4cvs and earlier: null piddles make append() crash.
+      # in 2.3.4cvs and earlier: null ndarrays make append() crash.
       my $w;
       if(ref $o->{f} eq 'ARRAY') {
 	$w = whichND( ( abs($dcyz->((0))) > $o->{f}->[0] ) |

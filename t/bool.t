@@ -9,12 +9,12 @@ kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 {
 	my $pa = zeroes 1,1,1;
-	ok !$pa, 'single-element multi-dim piddle collapses';
+	ok !$pa, 'single-element multi-dim ndarray collapses';
 }
 
 {
 	my $pa = ones 3;
-	throws_ok { print "oops\n" if $pa } qr/multielement/, 'multielement piddle in conditional expression';
+	throws_ok { print "oops\n" if $pa } qr/multielement/, 'multielement ndarray in conditional expression';
 	ok all $pa, 'all elements true';
 }
 

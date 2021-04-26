@@ -19,9 +19,9 @@ If you're not interested in this, then you may (rightly) be concerned
 with how this affects the speed of PDL, since the overhead of checking for a
 bad value at each operation can be large. 
 Because of this, the code has been written to be as fast as possible -
-particularly when operating on piddles which do not contain bad values.
+particularly when operating on ndarrays which do not contain bad values.
 In fact, you should notice essentially no speed difference when working 
-with piddles which do not contain bad values.
+with ndarrays which do not contain bad values.
 
 You may also ask 'well, my computer supports IEEE NaN, so I already have this'.
 Well, yes and no - many routines, such as C<y=sin(x)>, will propagate NaN's 
@@ -32,7 +32,7 @@ values, but by default
 special values are used (L<Default bad values|/Default bad values>).  I
 do not have any benchmarks to see which option is faster.
 
-As of PDL 2.040, you can have different bad values for separate piddles of the
+As of PDL 2.040, you can have different bad values for separate ndarrays of the
 same type.
 
 =head2 A quick overview
@@ -72,7 +72,7 @@ L<perldl|PDL::perldl> or L<pdl2|PDL::Perldl2> or the C<-b> option to
 L<pdldoc|PDL::pdldoc>.  This facility is currently a 'proof of concept'
 (or, more realistically, a quick hack) so expect it to be rough around the edges.
 
-Each piddle contains a flag - accessible via C<$pdl-E<gt>badflag> - to say 
+Each ndarray contains a flag - accessible via C<$pdl-E<gt>badflag> - to say 
 whether there's any bad data present: 
 
 =over 4
@@ -84,7 +84,7 @@ C<Code> option to C<pp_def()> is executed.
 
 =item *
 
-If B<true/1>, then this says there I<MAY> be bad data in the piddle, so use the
+If B<true/1>, then this says there I<MAY> be bad data in the ndarray, so use the
 code in the C<BadCode> option (assuming that the C<pp_def()> for this routine 
 has been updated to have a BadCode key). 
 You get all the advantages of threading, as with the C<Code> option, 
@@ -92,17 +92,17 @@ but it will run slower since you are going to have to handle the presence of bad
 
 =back
 
-If you create a piddle, it will have its bad-value flag set to 0. To change 
+If you create an ndarray, it will have its bad-value flag set to 0. To change 
 this, use C<$pdl-E<gt>badflag($new_bad_status)>, where C<$new_bad_status> can be 0 or 1.
-When a routine creates a piddle, its bad-value flag will depend on the input
-piddles: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), the 
-bad-value flag will be set true if any of the input piddles contain bad values.
-To check that a piddle really contains bad data, use the C<check_badflag> method.
+When a routine creates an ndarray, its bad-value flag will depend on the input
+ndarrays: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), the 
+bad-value flag will be set true if any of the input ndarrays contain bad values.
+To check that an ndarray really contains bad data, use the C<check_badflag> method.
 
 I<NOTE>: propagation of the badflag
 
-If you change the badflag of a piddle, this change is propagated to all
-the I<children> of a piddle, so
+If you change the badflag of an ndarray, this change is propagated to all
+the I<children> of an ndarray, so
 
    pdl> $x = zeroes(20,30);
    pdl> $y = $x->slice('0:10,0:10');
@@ -113,7 +113,7 @@ the I<children> of a piddle, so
    pdl> print ">>c: ", $c->badflag, "\n";
    >>c: 1
 
-I<No> change is made to the parents of a piddle, so
+I<No> change is made to the parents of an ndarray, so
 
    pdl> print ">>a: ", $x->badflag, "\n";
    >>a: 1
@@ -127,9 +127,9 @@ Thoughts:
 
 =item *
 
-the badflag can ONLY be cleared IF a piddle has NO parents,
+the badflag can ONLY be cleared IF an ndarray has NO parents,
 and that this change will propagate to all the children of that
-piddle. I am not so keen on this anymore (too awkward to code, for
+ndarray. I am not so keen on this anymore (too awkward to code, for
 one).
 
 =item *
@@ -141,13 +141,13 @@ children.
 
 This shouldn't be hard to implement (although an initial attempt failed!). 
 Does it make sense though? There's also
-the issue of what happens if you change the badvalue of a piddle - should
+the issue of what happens if you change the badvalue of an ndarray - should
 these propagate to children/parents (yes) or whether you should only be
-able to change the badvalue at the 'top' level - i.e. those piddles which do
+able to change the badvalue at the 'top' level - i.e. those ndarrays which do
 not have parents.
 
 The C<orig_badvalue()> method returns the compile-time value for a given 
-datatype. It works on piddles, PDL::Type objects, and numbers - eg
+datatype. It works on ndarrays, PDL::Type objects, and numbers - eg
 
   $pdl->orig_badvalue(), byte->orig_badvalue(), and orig_badvalue(4).
 
@@ -164,7 +164,7 @@ I<Note>: the value is silently converted to the correct C type, and
 returned - i.e. C<byte-E<gt>badvalue(-26)> returns 230 on my Linux machine.
 
 Note that changes to the bad value are I<NOT> propagated to previously-created
-piddles - they will still have the bad value set, but suddenly the elements
+ndarrays - they will still have the bad value set, but suddenly the elements
 that were bad will become 'good', but containing the old bad value.
 See discussion below.  It's not a problem for floating-point types
 which use NaN, since you can not change their badvalue.
@@ -191,32 +191,32 @@ bad values are skipped over (see the documentation of these
 functions for the current (poor) handling of the case when
 all elements are bad).
 
-=head2 A bad value for each piddle, and related issues
+=head2 A bad value for each ndarray, and related issues
 
 There is one default bad value for each datatype, but
-you can have a separate bad value for each piddle as of PDL 2.040.
+you can have a separate bad value for each ndarray as of PDL 2.040.
 
 =head1 IMPLEMENTATION DETAILS
 
 PDL code just needs to access the C<%PDL::Config>
 array (e.g. F<Basic/Bad/bad.pd>) to find out whether bad-value support is required.
 
-A new flag has been added to the state of a piddle - C<PDL_BADVAL>. If unset, then
-the piddle does not contain bad values, and so all the support code can be 
+A new flag has been added to the state of an ndarray - C<PDL_BADVAL>. If unset, then
+the ndarray does not contain bad values, and so all the support code can be 
 ignored. If set, it does not guarantee that bad values are present, just that
 they should be checked for. Thanks to Christian, C<badflag()> - which 
 sets/clears this flag (see F<Basic/Bad/bad.pd>) - will update I<ALL> the 
-children/grandchildren/etc of a piddle if its state changes (see 
+children/grandchildren/etc of an ndarray if its state changes (see 
 C<badflag> in F<Basic/Bad/bad.pd> and
 C<propagate_badflag> in F<Basic/Core/Core.xs.PL>). 
 It's not clear what to do with parents: I can see the reason for propagating a 
 'set badflag' request to parents, but I think a child should NOT be able to clear 
 the badflag of a parent. 
-There's also the issue of what happens when you change the bad value for a piddle.
+There's also the issue of what happens when you change the bad value for an ndarray.
 
 The C<pdl_trans> structure has been extended to include an integer value,
 C<bvalflag>, which acts as a switch to tell the code whether to handle bad values
-or not. This value is set if any of the input piddles have their C<PDL_BADVAL> 
+or not. This value is set if any of the input ndarrays have their C<PDL_BADVAL> 
 flag set (although this code can be replaced by setting C<FindBadStateCode> in 
 pp_def).  The logic of the check is going to get a tad more complicated
 if I allow routines to fall back to using the C<Code> section for 
@@ -262,7 +262,7 @@ Some of the logic might appear a bit unclear - that's probably because it
 is! Comments appreciated.
 
 All routines should automatically propagate the bad status flag to output
-piddles, unless you declare otherwise.
+ndarrays, unless you declare otherwise.
 
 If a routine explicitly deals with bad values, you must provide this option
 to pp_def:
@@ -278,12 +278,12 @@ To flag a routine as NOT handling bad values, use
 
    HandleBad => 0
 
-This I<should> cause the routine to print a warning if it's sent any piddles
+This I<should> cause the routine to print a warning if it's sent any ndarrays
 with the bad flag set. Primitive's C<intover> has had this set - since it
 would be awkward to convert - but I've not tried it out to see if it works.
 
 If you want to handle bad values but not set the state of all the output
-piddles, or if it's only one input piddle that's important, then look
+ndarrays, or if it's only one input ndarray that's important, then look
 at the PP rules C<NewXSFindBadStatus> and C<NewXSCopyBadStatus> and the
 corresponding C<pp_def> options:
 
@@ -293,17 +293,17 @@ corresponding C<pp_def> options:
 
 By default, C<FindBadStatusCode> creates code which sets 
 C<$PRIV(bvalflag)> depending on the state of the bad flag
-of the input piddles: see C<findbadstatus> in F<Basic/Gen/PP.pm>.
+of the input ndarrays: see C<findbadstatus> in F<Basic/Gen/PP.pm>.
 User-defined code should also store the value of C<bvalflag>
 in the C<$BADFLAGCACHE()> variable.
 
 =item CopyBadStatusCode
 
 The default code here is a bit simpler than for C<FindBadStatusCode>:
-the bad flag of the output piddles are set if 
+the bad flag of the output ndarrays are set if 
 C<$BADFLAGCACHE()> is true after the code has been
 evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
-with the responsibility of setting the badflag of the output piddle
+with the responsibility of setting the badflag of the output ndarray
 left to the C<BadCode> section (e.g. the C<xxxover> routines
 in F<Basic/Primitive/primitive.pd>).
 
@@ -328,7 +328,7 @@ If the option
 
 is given, then many things happen.  For integer types, the readdata code 
 automatically creates a variable called C<E<lt>pdl nameE<gt>_badval>, 
-which contains the bad value for that piddle (see
+which contains the bad value for that ndarray (see
 C<get_xsdatapdecl()> in F<Basic/Gen/PP/PdlParObjs.pm>).  However, do not 
 hard code this name into your code!
 Instead use macros (thanks to Tuomas for the suggestion):
@@ -341,7 +341,7 @@ well, the C<$a(...)> is expanded as well. Also, you can use a C<$> before the
 pdl name, if you so wish, but it begins to look like line noise -
 eg C<$ISGOOD($a())>.
 
-If you cache a piddle value in a variable -- eg C<index> in F<slices.pd> --
+If you cache an ndarray value in a variable -- eg C<index> in F<slices.pd> --
 the following routines are useful:
 
    '$ISBADVAR(c_var,pdl)'       'c_var == pdl_badval'
@@ -389,7 +389,7 @@ only access to data is via the C<$EQUIVCPOFFS(i,j)> macro, then we can
 automatically create the 'bad' version of it; see the C<[EquivCPOffsCode]>
 and C<[Code]> rules in L<PDL::PP>.
 
-=head2 Macro access to the bad flag of a piddle
+=head2 Macro access to the bad flag of an ndarray
 
 Macros have been provided to provide access to the bad-flag status of 
 a pdl:
@@ -422,14 +422,14 @@ I<ignored> by PDL::PP.
 
 For these routines, we want to use the C<Code> section if
 
-  the piddle does not have its bad flag set
+  the ndarray does not have its bad flag set
   the datatype is a float or double
 
 otherwise we use the C<BadCode> section.  This is I<NOT IMPLEMENTED>, as
 it will require reasonable hacking of PP::PDLCode!
 
 There's also the problem of how we handle 'exceptions' - since C<$x = pdl(2) / pdl(0)>
-produces a bad value but doesn't update the badflag value of the piddle. 
+produces a bad value but doesn't update the badflag value of the ndarray. 
 Can we catch an exception, or do we have to trap for this
 (e.g. search for C<exception> in F<Basic/Ops/ops.pd>)?
 
@@ -478,15 +478,15 @@ set the output bad for out-of-range input values?
  pdl> p log10(pdl(10,100,-1))
 
 I would like the above to produce "[1 2 BAD]", but this would
-slow down operations on I<all> piddles.  
+slow down operations on I<all> ndarrays.  
 We could check for C<NaN>/C<Inf> values after the operation,
 but I doubt that would be any faster.
 
 =head2 Dataflow of the badflag
 
-Currently changes to the bad flag are propagated to the children of a piddle,
+Currently changes to the bad flag are propagated to the children of an ndarray,
 but perhaps they should also be passed on to the parents as well. With the
-advent of per-piddle bad values we need to consider how to handle changes
+advent of per-ndarray bad values we need to consider how to handle changes
 to the value used to represent bad items too.
 
 =head1 EVERYTHING ELSE
@@ -524,12 +524,12 @@ be set bad, but it currently isn't.
 =item *
 
 Allow the operations in PDL::Ops to skip the check for bad values when using
-NaN as a bad value and processing a floating-point piddle.
+NaN as a bad value and processing a floating-point ndarray.
 Needs a fair bit of work to PDL::PP::PDLCode.
 
 =item *
 
-C<$pdl-E<gt>baddata()> now updates all the children of this piddle
+C<$pdl-E<gt>baddata()> now updates all the children of this ndarray
 as well. However, not sure what to do with parents, since:
 
   $y = $x->slice(); 
@@ -544,12 +544,12 @@ it's sensible to assume that the parents now get flagged as
 containing bad values.
 
 PERHAPS you can only clear the bad value flag if you are NOT
-a child of another piddle, whereas if you set the flag then all
+a child of another ndarray, whereas if you set the flag then all
 children AND parents should be set as well?
 
-Similarly, if you change the bad value in a piddle, should this
+Similarly, if you change the bad value in an ndarray, should this
 be propagated to parent & children? Or should you only be able to do
-this on the 'top-level' piddle? Nasty...
+this on the 'top-level' ndarray? Nasty...
 
 =item *
 
@@ -562,7 +562,7 @@ in F<Basic/Bad/bad.pd> in particular. Any suggestions appreciated.
 
 Copyright (C) Doug Burke (djburke@cpan.org), 2000, 2006.
 
-The per-piddle bad value support is by Heiko Klein (2006).
+The per-ndarray bad value support is by Heiko Klein (2006).
 
 Commercial reproduction of this documentation in a different format
 is forbidden.

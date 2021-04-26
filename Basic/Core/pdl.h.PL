@@ -215,8 +215,8 @@ print OUT <<'!NO!SUBS!';
   /* Flag indicating destruction in progress                                */
 #define         PDL_DESTROYING          0x2000
   /* If this flag is set, you must not alter the data pointer nor           */
-  /* free this piddle nor use datasv (which should be null).                */
-  /* This means e.g. that the piddle is mmapped from a file                 */
+  /* free this ndarray nor use datasv (which should be null).                */
+  /* This means e.g. that the ndarray is mmapped from a file                 */
 #define         PDL_DONTTOUCHDATA       0x4000
   /* Not sure what this does, but PP uses it a lot. -- CED                  */
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \

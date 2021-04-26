@@ -123,7 +123,7 @@ pp_addpm(<<'!NO!SUBS!');
 
 # Internal routine to extend PDL array by size $n along last dimension
 # - Would be nice to have a proper extend function rather than hack
-# - Is a NO-OP when handed a perl ARRAY ref rather than a piddle arg
+# - Is a NO-OP when handed a perl ARRAY ref rather than an ndarray arg
 sub _ext_lastD {                           # Called by rcols and rgrep
    my ($x,$n) = @_;
    if (ref($_[0]) ne 'ARRAY') {
@@ -139,7 +139,7 @@ sub _ext_lastD {                           # Called by rcols and rgrep
 }
 
 # Implements PDL->at() for either 1D PDL or ARRAY arguments
-# TODO: Need to add support for multidim piddles parallel to rcols
+# TODO: Need to add support for multidim ndarrays parallel to rcols
 sub _at_1D ($$) {                           # Called by wcols and swcols
     my $data = $_[0];
     my $index = $_[1];
@@ -218,7 +218,7 @@ sub _is_io_handle {
 
 =for ref
 
-Read specified ASCII cols from a file into piddles and perl
+Read specified ASCII cols from a file into ndarrays and perl
 arrays (also see L</rgrep>).
 
 =for usage
@@ -231,11 +231,11 @@ arrays (also see L</rgrep>).
 
 For each column number specified, a 1D output PDL will be
 generated.  Anonymous arrays of column numbers generate
-2D output piddles with dim0 for the column data and dim1
+2D output ndarrays with dim0 for the column data and dim1
 equal to the number of columns in the anonymous array(s).
 
 An empty anonymous array as column specification will
-produce a single output data piddle with dim(1) equal
+produce a single output data ndarray with dim(1) equal
 to the number of columns available.
 
 There are two calling conventions - the old version, where a
@@ -248,7 +248,7 @@ The default behaviour is to ignore lines beginning with
 a # character and lines that only consist of whitespace.
 Options exist to only read from lines that match, or do
 not match, supplied patterns, and to set the types of the
-created piddles.
+created ndarrays.
 
 Can take file name or *HANDLE, and if no explicit column
 numbers are specified, all are assumed. For the allowed types,
@@ -281,7 +281,7 @@ Options (case insensitive):
   
   PERLCOLS
   - an array of column numbers which are to be read into perl arrays
-  rather than piddles.  Any columns not specified in the explicit list
+  rather than ndarrays.  Any columns not specified in the explicit list
   of columns to read will be returned after the explicit columns.
   (default B<undef>).
 
@@ -292,10 +292,10 @@ Options (case insensitive):
 
   CHUNKSIZE
   - the number of input data elements to batch together before appending
-  to each output data piddle (Default value is 100).  If CHUNKSIZE is
+  to each output data ndarray (Default value is 100).  If CHUNKSIZE is
   greater than the number of lines of data to read, the entire file is
   slurped in, lines split, and perl lists of column data are generated.
-  At the end, effectively pdl(@column_data) produces any result piddles.
+  At the end, effectively pdl(@column_data) produces any result ndarrays.
 
   VERBOSE
   - be verbose about IO processing (default C<$PDL::vebose>)
@@ -305,7 +305,7 @@ Options (case insensitive):
 For example:
 
   $x      = PDL->rcols 'file1';	        # file1 has only one column of data
-  $x      = PDL->rcols 'file2', [];	# file2 can have multiple columns, still 1 piddle output
+  $x      = PDL->rcols 'file2', [];	# file2 can have multiple columns, still 1 ndarray output
                                         # (empty array ref spec means all possible data fields)
 
   ($x,$y) = rcols 'table.csv', { COLSEP => ',' };  # read CSV data file
@@ -320,17 +320,17 @@ For example:
   ($x,$y) = rcols 'file3', { LINES => '27:-1', DEFTYPE => ushort };
   ($x,$y) = rcols 'file3', { LINES => '27:', TYPES => [ ushort, ushort ] };
 
-  # read in the first column as a perl array and the next two as piddles
-  # with the perl column returned after the piddle outputs
+  # read in the first column as a perl array and the next two as ndarrays
+  # with the perl column returned after the ndarray outputs
   ($x,$y,$name) = rcols 'file4', 1, 2   , { PERLCOLS => [ 0 ] };
   printf "Number of names read in = %d\n", 1 + $#$name;
 
-  # read in the first column as a perl array and the next two as piddles
+  # read in the first column as a perl array and the next two as ndarrays
   # with PERLCOLS changing the type of the first returned value to perl list ref
   ($name,$x,$y) = rcols 'file4', 0, 1, 2, { PERLCOLS => [ 0 ] };
 
   # read in the first column as a perl array returned first followed by the
-  # the next two data columns in the file as a single Nx2 piddle 
+  # the next two data columns in the file as a single Nx2 ndarray 
   ($name,$xy) = rcols 'file4', 0, [1, 2], { PERLCOLS => [ 0 ] };
 
 
@@ -358,9 +358,9 @@ For example:
 use vars qw/ $colsep $defcolsep $deftype /;
 
 $defcolsep = ' ';       # Default column separator
-$deftype = double;      # Default type for piddles
+$deftype = double;      # Default type for ndarrays
 
-my $defchunksize = 100; # Number of perl list items to append to piddle
+my $defchunksize = 100; # Number of perl list items to append to ndarray
 my $usecolsep;          # This is the colsep value that is actually used
 
 # NOTE: XXX
@@ -429,11 +429,11 @@ sub PDL::rcols {
       }
    }
 
-   # CHUNKSIZE controls memory/time tradeoff of piddle IO
+   # CHUNKSIZE controls memory/time tradeoff of ndarray IO
    my $chunksize = $options->{CHUNKSIZE} || $defchunksize;
    my $nextburpindex = -1;
 
-# which columns are to be read into piddles and which into perl arrays?
+# which columns are to be read into ndarrays and which into perl arrays?
 my @end_perl_cols = ();       # unique perl cols to return at end
 
 my @perl_cols = ();           # perl cols index list from PERLCOLS option
@@ -543,7 +543,7 @@ RCOLS_IO: {
       # map empty fields '' to undef value
       @v = map { $_ eq '' ? undef : $_ } @v;
 
-      # if the first line, set up the output piddles using all the columns
+      # if the first line, set up the output ndarrays using all the columns
       # if the user doesn't specify anything
       if ( $index == 0 ) {
 
@@ -566,7 +566,7 @@ RCOLS_IO: {
             }
          }
          if ($implicit_pdls > 1) {
-            die "rcols: only one implicit multicolumn piddle spec allowed, found $implicit_pdls!\n";
+            die "rcols: only one implicit multicolumn ndarray spec allowed, found $implicit_pdls!\n";
          }
          foreach my $col (@explicit_cols) {
             if (ref($col) eq "ARRAY" and !scalar(@$col)) {
@@ -578,7 +578,7 @@ RCOLS_IO: {
          $k = 0;
          my @pdl_cols = ();
          foreach my $col (@explicit_cols) {
-            # strip out declared perl cols so they won't be read into piddles
+            # strip out declared perl cols so they won't be read into ndarrays
             if ( ref($col) eq "ARRAY" ) {
                @$col = grep { !$is_perl_col[$_] } @{$col};
                push @pdl_cols, [ @{$col} ];
@@ -594,10 +594,10 @@ RCOLS_IO: {
             }
          };
 
-         # sort out the types of the piddles
+         # sort out the types of the ndarrays
          my @types = _handle_types( $#pdl_cols, $$options{DEFTYPE}, $$options{TYPES} );
          if ( $options->{VERBOSE} ) { # dbg aid
-            print "Reading data into piddles of type: [ ";
+            print "Reading data into ndarrays of type: [ ";
             foreach my $t ( @types ) {
                print $t->shortctype() . " ";
             }
@@ -606,10 +606,10 @@ RCOLS_IO: {
 
          $k = 0;
          for (@explicit_cols) {
-            # Using mixed list+piddle data structure for performance tradeoff
+            # Using mixed list+ndarray data structure for performance tradeoff
             # between memory usage (perl list) and speed of IO (PDL operations)
             if (ref($_) eq "ARRAY") {
-               # use multicolumn piddle here
+               # use multicolumn ndarray here
                push @ret, [ $class->zeroes($types[$k++],scalar(@{$_}),1), [] ];
             } else {
                push @ret, ($is_perl_col[$_] ? [ [], [] ] : [ $class->zeroes($types[$k],1), [] ]);
@@ -662,7 +662,7 @@ for (@ret, $line_store) {
    $_ = $_->[0];
 }
 
-# have we read anything in? if not, return empty piddles
+# have we read anything in? if not, return empty ndarrays
 if ( $index == -1 ) {
    print "Warning: rcols() did not read in any data.\n" if $options->{VERBOSE};
    if ( wantarray ) {
@@ -698,7 +698,7 @@ if ( $line_rev == 0 and $index_start >= 0 and $index_end >= -1 ) {
    wantarray ? return(@ret) : return $ret[0];
 }
 
-# Work out which line numbers we want. First we clean up the piddle
+# Work out which line numbers we want. First we clean up the ndarray
 # containing the line numbers that have been read in
 $line_store = $line_store->slice("0:${index}");
 
@@ -727,7 +727,7 @@ my $indices;
    }
 }
 
-# truncate the piddles
+# truncate the ndarrays
 for my $col ( @explicit_cols ) {
    if ( ref($col) eq "ARRAY" ) {
       for ( @$col ) {
@@ -777,7 +777,7 @@ wantarray ? return(@ret) : return $ret[0];
 
 =for ref
 
-  Write ASCII columns into file from 1D or 2D piddles and/or 1D listrefs efficiently.
+  Write ASCII columns into file from 1D or 2D ndarrays and/or 1D listrefs efficiently.
 
 Can take file name or *HANDLE, and if no file/filehandle is given defaults to STDOUT.
 
@@ -797,9 +797,9 @@ Can take file name or *HANDLE, and if no file/filehandle is given defaults to ST
  Usage: wcols $data1, $data2, $data3,..., *HANDLE|"outfile", [\%options];  # or
         wcols $format_string, $data1, $data2, $data3,..., *HANDLE|"outfile", [\%options];
 
-   where the $dataN args are either 1D piddles, 1D perl array refs,
-   or 2D piddles (as might be returned from rcols() with the [] column
-   syntax and/or using the PERLCOLS option).  dim(0) of all piddles
+   where the $dataN args are either 1D ndarrays, 1D perl array refs,
+   or 2D ndarrays (as might be returned from rcols() with the [] column
+   syntax and/or using the PERLCOLS option).  dim(0) of all ndarrays
    written must be the same size.  The printf-style $format_string,
    if given, overrides any FORMAT key settings in the option hash.
 
@@ -868,7 +868,7 @@ sub PDL::wcols {
    }
    if (ref(\$_[0]) eq "SCALAR" || $format_string) {
        $format_string = shift if (ref(\$_[0]) eq "SCALAR");
-       # 1st arg not piddle, explicit format string overrides option hash FORMAT
+       # 1st arg not ndarray, explicit format string overrides option hash FORMAT
        $step = $format_string;
        $step =~ s/(%%|[^%])//g;  # use step to count number of format items
        $step = length ($step);
@@ -892,7 +892,7 @@ sub PDL::wcols {
           $file_opened = 1;
        }
        else{  # Not a filehandle or filename, assume something else
-              # (probably piddle) and send to STDOUT
+              # (probably ndarray) and send to STDOUT
           $fh = *STDOUT;
        }
    }
@@ -961,13 +961,13 @@ sub PDL::wcols {
 
 =for ref
 
-generate string list from C<sprintf> format specifier and a list of piddles
+generate string list from C<sprintf> format specifier and a list of ndarrays
 
 C<swcols> takes an (optional) format specifier of the printf
-sort and a list of 1D piddles as input. It returns a perl
+sort and a list of 1D ndarrays as input. It returns a perl
 array (or array reference if called in scalar context)
 where each element of the array is the string generated by
-printing the corresponding element of the piddle(s) using
+printing the corresponding element of the ndarray(s) using
 the format specified. If no format is specified it uses the
 default print format.
 
@@ -986,7 +986,7 @@ sub PDL::swcols{
   my @outlist;
 
   if (ref(\$_[0]) eq "SCALAR") {
-         $step = $format_string = shift; # 1st arg not piddle
+         $step = $format_string = shift; # 1st arg not ndarray
          $step =~ s/(%%|[^%])//g;  # use step to count number of format items
          $step = length ($step);
   }
@@ -1039,7 +1039,7 @@ sub PDL::swcols{
 
 =for ref
 
-  Read columns into piddles using full regexp pattern matching.
+  Read columns into ndarrays using full regexp pattern matching.
   
 
   Options:
@@ -1060,7 +1060,7 @@ sub PDL::swcols{
   TYPES:   A reference to a Perl array with types for each column - see 
   the documentation for L</rcols()>
   
-  BUFFERSIZE: The number of lines to extend the piddle by. It might speed
+  BUFFERSIZE: The number of lines to extend the ndarray by. It might speed
   up the reading a little bit by setting this to the number of lines in the
   file, but in general L</rasc()> is a better choice
 

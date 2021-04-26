@@ -118,7 +118,7 @@ doco( 'lgamma' ,<<'EOD');
 
 log gamma function
 
-This returns 2 piddles -- the first set gives the log(gamma) values,
+This returns 2 ndarrays -- the first set gives the log(gamma) values,
 while the second set, of integer values, gives the sign of the gamma
 function.  This is useful for determining factorials, amongst other
 things.

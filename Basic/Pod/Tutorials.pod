@@ -100,9 +100,9 @@ complexity of the C language.
 
 =item L<PDL::API>
 
-A simple cookbook explaining how to create piddle manually, either
+A simple cookbook explaining how to create ndarray manually, either
 from Perl or from C/XS code. This page covers the PDL core routines
-that comprise the PDL API. If you need to access piddles from C/XS,
+that comprise the PDL API. If you need to access ndarrays from C/XS,
 this is the document for you.
 
 

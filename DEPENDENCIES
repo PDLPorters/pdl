@@ -45,7 +45,7 @@ PDL (all)         perl >= 5.10.x          PDL requires at least this version
                   Test::Exception >= 0    Needed for test suite.
 
 
-PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index piddles.
+PDL::NiceSlice    Text::Balanced >= 1.89  A nicer way to index ndarrays.
                   Filter::Util::Call
 
                   Filter::Simple          Required for new PDL::NiceSlice

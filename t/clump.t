@@ -66,7 +66,7 @@ if(0) {
 
 	note $pb;
 
-	ok(all(PDL::approx($pb,pdl([0,1,2,10,11,12,20,21,22]), $eps)),'clump(-1) entire piddle');
+	ok(all(PDL::approx($pb,pdl([0,1,2,10,11,12,20,21,22]), $eps)),'clump(-1) entire ndarray');
 
 	my $pc = $pa->slice('0:2:2,:');
 

@@ -102,7 +102,7 @@ sub _wfits_table ($$$);
 
 =for ref
 
-Simple piddle FITS reader.
+Simple ndarray FITS reader.
 
 =for example
 
@@ -186,7 +186,7 @@ and get a large boost in speed.
 FITS image headers are stored in the output PDL and can be retrieved
 with L<hdr|PDL::Core/hdr> or L<gethdr|PDL::Core/gethdr>.  The
 L<hdrcpy|PDL::Core/hdrcpy> flag of the PDL is set so that the header
-is copied to derived piddles by default.  (This is inefficient if you
+is copied to derived ndarrays by default.  (This is inefficient if you
 are planning to do lots of small operations on the data; clear
 the flag with "->hcpy(0)" or via the options hash if that's the case.)
 
@@ -299,7 +299,7 @@ in place for adding other compression schemes.
 =head3 BAD VALUE HANDLING
 
 If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>), 
-the piddle will have its bad flag set, and those elements which equal the
+the ndarray will have its bad flag set, and those elements which equal the
 C<BLANK> value will be set bad.  For C<BITPIX E<lt> 0>, any NaN's are
 converted to bad (if necessary).
 
@@ -620,7 +620,7 @@ sub _rfits_image($$$$) {
   my $opt = shift;  # $opt contains the option hash
   my $pdl = shift;  # $pdl contains a pre-blessed virgin PDL
 
-  # Setup piddle structure
+  # Setup ndarray structure
   
   if(  defined($type_table->{0 + $foo->{"BITPIX"}})  ) {
       $pdl->set_datatype( $type_table->{$foo->{"BITPIX"}} );
@@ -691,7 +691,7 @@ sub treat_bscale($$){
         $pdl->badflag(1);
       } else {
         # we change all BLANK values to the current bad value
-        # (would not be needed with a per-piddle bad value)
+        # (would not be needed with a per-ndarray bad value)
         $pdl->inplace->setvaltobad( $blank );
       }
     } elsif ( $foo->{BITPIX} < 0 ) {
@@ -1755,7 +1755,7 @@ ASCII tables are not yet handled but should be.
 
 Binary tables currently only handle one vector (up to 1-D array) 
 per table entry; the standard allows more, and should be fully implemented.
-This means that PDL::Complex piddles currently can not be written to
+This means that PDL::Complex ndarrays currently can not be written to
 disk.
 
 Handling multidim arrays implies that perl multidim lists should also be

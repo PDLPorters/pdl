@@ -333,7 +333,7 @@ PDL::set_autopthread_size( $ENV{PDL_AUTOPTHREAD_SIZE} ) if( defined ( $ENV{PDL_A
 
 =for ref
 
-PDL constructor - creates new piddle from perl scalars/arrays, piddles, and strings
+PDL constructor - creates new ndarray from perl scalars/arrays, ndarrays, and strings
 
 =for usage
 
@@ -354,7 +354,7 @@ PDL constructor - creates new piddle from perl scalars/arrays, piddles, and stri
  $c = pdl $x;                         # Make a new copy
 
  $u = pdl ushort(), 42                # 0-dimensional ushort scalar
- $y = pdl(byte(),[[1,2,3],[4,5,6]]);  # 2D byte piddle
+ $y = pdl(byte(),[[1,2,3],[4,5,6]]);  # 2D byte ndarray
 
  $n = pdl indx(), [1..5];             # 1D array of indx values
  $n = pdl indx, [1..5];               # ... can leave off parens
@@ -454,16 +454,16 @@ sub piddle {PDL->pdl(@_)}
 
 =for ref
 
-Returns a 'null' piddle.
+Returns a 'null' ndarray.
 
 =for usage
 
  $x = null;
 
 C<null()> has a special meaning to L<PDL::PP>. It is used to
-flag a special kind of empty piddle, which can grow to
+flag a special kind of empty ndarray, which can grow to
 appropriate dimensions to store a result (as opposed to
-storing a result in an existing piddle).
+storing a result in an existing ndarray).
 
 =for example
 
@@ -492,7 +492,7 @@ sub PDL::null{
 
 =for ref
 
-Returns a 'null' piddle.
+Returns a 'null' ndarray.
 
 =for usage
 
@@ -500,7 +500,7 @@ Returns a 'null' piddle.
 
 This is an routine used by many of the threading primitives
 (i.e. L<sumover|PDL::Ufunc/sumover>,
-L<minimum|PDL::Ufunc/minimum>, etc.) to generate a null piddle for the
+L<minimum|PDL::Ufunc/minimum>, etc.) to generate a null ndarray for the
 function's output that will behave properly for derived (or
 subclassed) PDL objects.
 
@@ -527,11 +527,11 @@ sub PDL::nullcreate{
 
 =for ref
 
-Return the number of elements in a piddle
+Return the number of elements in an ndarray
 
 =for usage
 
- $n = nelem($piddle); $n = $piddle->nelem;
+ $n = nelem($ndarray); $n = $ndarray->nelem;
 
 =for example
 
@@ -541,28 +541,28 @@ Return the number of elements in a piddle
 
 =for ref
 
-Return piddle dimensions as a perl list
+Return ndarray dimensions as a perl list
 
 =for usage
 
- @dims = $piddle->dims;  @dims = dims($piddle);
+ @dims = $ndarray->dims;  @dims = dims($ndarray);
 
 =for example
 
  pdl> p @tmp = dims zeroes 10,3,22
  10 3 22
 
-See also L</shape> which returns a piddle instead.
+See also L</shape> which returns an ndarray instead.
 
 =head2 shape
 
 =for ref
 
-Return piddle dimensions as a piddle
+Return ndarray dimensions as an ndarray
 
 =for usage
 
- $shape = $piddle->shape;  $shape = shape($piddle);
+ $shape = $ndarray->shape;  $shape = shape($ndarray);
 
 =for example
 
@@ -575,18 +575,18 @@ See also L</dims> which returns a perl list.
 
 =for ref
 
-Returns the number of dimensions in a piddle. Alias
+Returns the number of dimensions in an ndarray. Alias
 for L<getndims|PDL::Core/getndims>.
 
 =head2 getndims
 
 =for ref
 
-Returns the number of dimensions in a piddle
+Returns the number of dimensions in an ndarray
 
 =for usage
 
- $ndims = $piddle->getndims;
+ $ndims = $ndarray->getndims;
 
 =for example
 
@@ -597,7 +597,7 @@ Returns the number of dimensions in a piddle
 
 =for ref
 
-Returns the size of the given dimension of a piddle. Alias
+Returns the size of the given dimension of an ndarray. Alias
 for L<getdim|PDL::Core/getdim>.
 
 =head2 getdim
@@ -608,7 +608,7 @@ Returns the size of the given dimension.
 
 =for usage
 
- $dim0 = $piddle->getdim(0);
+ $dim0 = $ndarray->getdim(0);
 
 =for example
 
@@ -620,18 +620,18 @@ Indices beyond the end will return a size of 1. This
 reflects the idea that any pdl is equivalent to an
 infinitely dimensional array in which only a finite number of
 dimensions have a size different from one. For example, in that sense a
-3D piddle of shape [3,5,2] is equivalent to a [3,5,2,1,1,1,1,1,....]
-piddle. Accordingly,
+3D ndarray of shape [3,5,2] is equivalent to a [3,5,2,1,1,1,1,1,....]
+ndarray. Accordingly,
 
   print $x->getdim(10000);
 
-will print 1 for most practically encountered piddles.
+will print 1 for most practically encountered ndarrays.
 
 =head2 topdl
 
 =for ref
 
-alternate piddle constructor - ensures arg is a piddle
+alternate ndarray constructor - ensures arg is an ndarray
 
 =for usage
 
@@ -639,12 +639,12 @@ alternate piddle constructor - ensures arg is a piddle
 
 The difference between L<pdl()|/pdl> and C<topdl()> is that the
 latter will just 'fall through' if the argument is
-already a piddle. It will return a reference and I<NOT>
+already an ndarray. It will return a reference and I<NOT>
 a new copy.
 
 This is particularly useful if you are writing a function
 which is doing some fiddling with internals and assumes
-a piddle argument (e.g. for method calls). Using C<topdl()>
+an ndarray argument (e.g. for method calls). Using C<topdl()>
 will ensure nothing breaks if passed with '2'.
 
 Note that C<topdl()> is not exported by default (see example
@@ -655,19 +655,19 @@ below for usage).
  use PDL::Core ':Internal'; # use the internal routines of
                             # the Core module
 
- $x = topdl 43;             # $x is piddle with value '43'
- $y = topdl $piddle;        # fall through
+ $x = topdl 43;             # $x is ndarray with value '43'
+ $y = topdl $ndarray;       # fall through
  $x = topdl (1,2,3,4);      # Convert 1D array
 
 =head2 get_datatype
 
 =for ref
 
-Internal: Return the numeric value identifying the piddle datatype
+Internal: Return the numeric value identifying the ndarray datatype
 
 =for usage
 
- $x = $piddle->get_datatype;
+ $x = $ndarray->get_datatype;
 
 Mainly used for internal routines.
 
@@ -678,7 +678,7 @@ type object, unlike L</type>.
 
 =for ref
 
-Returns the sizeof a piddle datatype in bytes.
+Returns the sizeof an ndarray datatype in bytes.
 
 Note that C<howbig()> is not exported by default (see example
 below for usage).
@@ -688,7 +688,7 @@ below for usage).
  use PDL::Core ':Internal'; # use the internal routines of
                             # the Core module
 
- $size = howbig($piddle->get_datatype);
+ $size = howbig($ndarray->get_datatype);
 
 Mainly used for internal routines.
 
@@ -705,16 +705,16 @@ NOTE: NOT a method! This is because get_datatype returns
 
 =for ref
 
-Return the internal data for a piddle, as a perl SCALAR ref.
+Return the internal data for an ndarray, as a perl SCALAR ref.
 
-Most piddles hold their internal data in a packed perl string, to take
+Most ndarrays hold their internal data in a packed perl string, to take
 advantage of perl's memory management.  This gives you direct access
 to the string, which is handy when you need to manipulate the binary
 data directly (e.g. for file I/O).  If you modify the string, you'll
 need to call L</upd_data> afterward, to make sure that the
-piddle points to the new location of the underlying perl variable.
+ndarray points to the new location of the underlying perl variable.
 
-Calling C<get_dataref> automatically physicalizes your piddle (see
+Calling C<get_dataref> automatically physicalizes your ndarray (see
 L</make_physical>).  You definitely
 don't want to do anything to the SV to truncate or deallocate the
 string, unless you correspondingly call L</reshape> to make the
@@ -729,7 +729,7 @@ variable.  Here be dragons.
 
 =for ref
 
-Update the data pointer in a piddle to match its perl SV.
+Update the data pointer in an ndarray to match its perl SV.
 
 This is useful if you've been monkeying with the packed string
 representation of the PDL, which you probably shouldn't be doing
@@ -823,7 +823,7 @@ sub warn_non_numeric_op_wrapper {
 				  PDL::Primitive::matmult(@_[0,1],$foo); $foo;},
 
 		'bool'  => sub { return 0 if $_[0]->isnull;
-				 croak("multielement piddle in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
+				 croak("multielement ndarray in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
 				     unless $_[0]->nelem == 1;
 				 $_[0]->clump(-1)->at(0); },
 		'""'  =>  \&PDL::Core::string   );
@@ -860,7 +860,7 @@ sub PDL::howbig {
 
 =for ref
 
-Returns the piddle thread IDs as a perl list
+Returns the ndarray thread IDs as a perl list
 
 Note that C<threadids()> is not exported by default (see example
 below for usage).
@@ -870,7 +870,7 @@ below for usage).
  use PDL::Core ':Internal'; # use the internal routines of
                             # the Core module
 
- @ids = threadids $piddle;
+ @ids = threadids $ndarray;
 
 =cut
 
@@ -908,7 +908,7 @@ sub PDL::doflow {
 
 =for ref
 
-Whether or not a piddle is indulging in dataflow
+Whether or not an ndarray is indulging in dataflow
 
 =for usage
 
@@ -925,7 +925,7 @@ sub PDL::flows {
 
 =for ref
 
-new piddle constructor method
+new ndarray constructor method
 
 =for usage
 
@@ -941,14 +941,14 @@ new piddle constructor method
  $w = PDL->new("[1 2 3]");      # new from Perl string, using
                                 # Matlab constructor syntax
 
-Constructs piddle from perl numbers and lists
+Constructs ndarray from perl numbers and lists
 and strings with Matlab/Octave style constructor
 syntax.
 
 The string input is fairly versatile though not
 performance optimized. The goal is to make it
 easy to copy and paste code from PDL output and
-to offer a familiar Matlab syntax for piddle
+to offer a familiar Matlab syntax for ndarray
 construction. As of May, 2010, it is a new
 feature, so feel free to report bugs or suggest
 new features.  See documentation for L<pdl> for
@@ -974,7 +974,7 @@ sub PDL::Core::new_pdl_from_string {
    my ($new, $original_value, $this, $type) = @_;
    my $value = $original_value;
 
-   # Check for input that would generate empty piddles as output:
+   # Check for input that would generate empty ndarrays as output:
    my @types = PDL::Types::types;
    return zeroes($types[$type], 1)->where(zeroes(1) < 0)
       if ($value eq '' or $value eq '[]');
@@ -1304,7 +1304,7 @@ sub PDL::new {
 
 =for ref
 
-Make a physical copy of a piddle
+Make a physical copy of an ndarray
 
 =for usage
 
@@ -1466,7 +1466,7 @@ sub PDL::_deep_hdr_copy {
 
 =for ref
 
-Return a piddle which is the same as the argument except
+Return an ndarray which is the same as the argument except
 that all threadids have been removed.
 
 =for usage
@@ -1477,27 +1477,27 @@ that all threadids have been removed.
 
 =for ref
 
-Make sure the data portion of a piddle can be accessed from XS code.
+Make sure the data portion of an ndarray can be accessed from XS code.
 
 =for example
 
  $x->make_physical;
  $x->call_my_xs_method;
 
-Ensures that a piddle gets its own allocated copy of data. This obviously
-implies that there are certain piddles which do not have their own data.
-These are so called I<virtual> piddles that make use of the I<vaffine>
+Ensures that an ndarray gets its own allocated copy of data. This obviously
+implies that there are certain ndarrays which do not have their own data.
+These are so called I<virtual> ndarrays that make use of the I<vaffine>
 optimisation (see L<PDL::Indexing>).
 They do not have their own copy of
 data but instead store only access information to some (or all) of another
-piddle's data.
+ndarray's data.
 
 Note: this function should not be used unless absolutely necessary
 since otherwise memory requirements might be severely increased. Instead
 of writing your own XS code with the need to call C<make_physical> you
 might want to consider using the PDL preprocessor
 (see L<PDL::PP>)
-which can be used to transparently access virtual piddles without the
+which can be used to transparently access virtual ndarrays without the
 need to physicalise them (though there are exceptions).
 
 =cut
@@ -1612,12 +1612,12 @@ the variable C<$y> will have dimensions C<(15,4)>
 and the element C<$y-E<gt>at(7,3)> refers to the element
 C<$x-E<gt>at(1,2,3)>.
 
-Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
+Use C<clump(-1)> to flatten an ndarray. The method L<flat|PDL::Core/flat>
 is provided as a convenient alias.
 
 Clumping with a negative dimension in general leaves that many
 dimensions behind -- e.g. clump(-2) clumps all of the first few
-dimensions into a single one, leaving a 2-D piddle.
+dimensions into a single one, leaving a 2-D ndarray.
 
 If C<clump> is called with an index list with more than one element
 it is treated as a list of dimensions that should be clumped together
@@ -1626,9 +1626,9 @@ clumped dim is placed at the position of the lowest index in the list.
 This convention ensures that C<clump> does the expected thing in
 the usual cases. The following example demonstrates typical usage:
 
-  $x = sequence 2,3,3,3,5; # 5D piddle
+  $x = sequence 2,3,3,3,5; # 5D ndarray
   $c = $x->clump(1..3);    # clump all the dims 1 to 3 into one
-  print $c->info;          # resulting 3D piddle has clumped dim at pos 1
+  print $c->info;          # resulting 3D ndarray has clumped dim at pos 1
  PDL: Double D [2,27,5]
 
 =cut
@@ -1690,7 +1690,7 @@ pdls as needed.
 
 Similar to C<pp_def> and its C<OtherPars> option it is possible to
 define the new function so that it accepts normal perl args as well as
-piddles. You do this by using the C<NOtherPars> parameter in the
+ndarrays. You do this by using the C<NOtherPars> parameter in the
 signature. The number of C<NOtherPars> specified will be passed
 unaltered into the subroutine given as the second argument of
 C<thread_define>. Let's illustrate this with an example:
@@ -1700,7 +1700,7 @@ C<thread_define>. Let's illustrate this with an example:
     ${$_[3]} .= $_[4].join(',',map {$_->at} @_[0..2]).",-1,\n";
   };
 
-This defines a function C<triangles> that takes 3 piddles as input
+This defines a function C<triangles> that takes 3 ndarrays as input
 plus 2 arguments which are passed into the routine unaltered. This routine
 is used to collect lists of indices into a perl scalar that is passed by
 reference. Each line is preceded by a prefix passed as C<$_[4]>. Here is
@@ -1739,8 +1739,8 @@ sub PDL::thread_define ($$) {
   print "defining '$name' with signature '$sigstr' and $others extra args\n"
 						  if $PDL::debug;
   my $sig = new PDL::PP::Signature($sigstr);
-  my $args = @{$sig->names}; # number of piddle arguments
-  barf "no piddle args" if $args == 0;
+  my $args = @{$sig->names}; # number of ndarray arguments
+  barf "no ndarray args" if $args == 0;
   $args--;
   # TODO: $sig->dimcheck(@_) + proper creating generation
   my $def = "\@_[0..$args] = map {PDL::Core::topdl(\$_)} \@_[0..$args];\n".
@@ -1964,17 +1964,17 @@ sub dimstr {
 
 =for ref
 
-sever any links of this piddle to parent piddles
+sever any links of this ndarray to parent ndarrays
 
-In PDL it is possible for a piddle to be just another
-view into another piddle's data. In that case we call
-this piddle a I<virtual piddle> and the original piddle owning
+In PDL it is possible for an ndarray to be just another
+view into another ndarray's data. In that case we call
+this ndarray a I<virtual ndarray> and the original ndarray owning
 the data its parent. In other languages these alternate views
 sometimes run by names such as I<alias> or I<smart reference>.
 
-Typical functions that return such piddles are C<slice>, C<xchg>,
+Typical functions that return such ndarrays are C<slice>, C<xchg>,
 C<index>, etc. Sometimes, however, you would like to separate the
-I<virtual piddle> from its parent's data and just give it a life of
+I<virtual ndarray> from its parent's data and just give it a life of
 its own (so that manipulation of its data doesn't change the parent).
 This is simply achieved by using C<sever>. For example,
 
@@ -1986,9 +1986,9 @@ This is simply achieved by using C<sever>. For example,
 In many (but not all) circumstances it acts therefore similar to
 L<copy|PDL::Core/copy>.
 However, in general performance is better with C<sever> and secondly,
-C<sever> doesn't lead to futile copying when used on piddles that
+C<sever> doesn't lead to futile copying when used on ndarrays that
 already have their own data. On the other hand, if you really want to make
-sure to work on a copy of a piddle use L<copy|PDL::Core/copy>.
+sure to work on a copy of an ndarray use L<copy|PDL::Core/copy>.
 
    $x = zeroes(20);
    $x->sever;   # NOOP since $x is already its own boss!
@@ -1997,7 +1997,7 @@ Again note: C<sever> I<is not> the same as L<copy|PDL::Core/copy>!
 For example,
 
    $x = zeroes(1); # $x does not have a parent, i.e. it is not a slice etc
-   $y = $x->sever; # $y is now pointing to the same piddle as $x
+   $y = $x->sever; # $y is now pointing to the same ndarray as $x
    $y++;
    print $x;
  [1]
@@ -2005,7 +2005,7 @@ For example,
 but
 
    $x = zeroes(1);
-   $y = $x->copy; # $y is now pointing to a new piddle
+   $y = $x->copy; # $y is now pointing to a new ndarray
    $y++;
    print $x;
  [0]
@@ -2015,7 +2015,7 @@ but
 
 =for ref
 
-Return formatted information about a piddle.
+Return formatted information about an ndarray.
 
 =for usage
 
@@ -2025,7 +2025,7 @@ Return formatted information about a piddle.
 
  print $x->info("Type: %T Dim: %-15D State: %S");
 
-Returns a string with info about a piddle. Takes an optional
+Returns a string with info about an ndarray. Takes an optional
 argument to specify the format of information a la sprintf.
 Format specifiers are in the form C<%E<lt>widthE<gt>E<lt>letterE<gt>>
 where the width is optional and the letter is one of
@@ -2050,15 +2050,15 @@ Some internal flags (P=physical,V=Vaffine,C=changed,B=may contain bad data)
 
 =item C
 
-Class of this piddle, i.e. C<ref $pdl>
+Class of this ndarray, i.e. C<ref $pdl>
 
 =item A
 
-Address of the piddle struct as a unique identifier
+Address of the ndarray struct as a unique identifier
 
 =item M
 
-Calculated memory consumption of this piddle's data area
+Calculated memory consumption of this ndarray's data area
 
 =back
 
@@ -2090,7 +2090,7 @@ test for approximately equal values (relaxed C<==>)
 =for example
 
   # ok if all corresponding values in
-  # piddles are within 1e-8 of each other
+  # ndarrays are within 1e-8 of each other
   print "ok\n" if all approx $x, $y, 1e-8;
 
 C<approx> is a relaxed form of the C<==> operator and
@@ -2117,7 +2117,7 @@ sub PDL::approx {
   my ($x,$y,$eps) = @_;
   $eps = $approx unless defined $eps;  # the default eps
   $approx = $eps;    # remember last eps
-  # NOTE: ($x-$y)->abs breaks for non-piddle inputs
+  # NOTE: ($x-$y)->abs breaks for non-ndarray inputs
   return abs($x-$y) < $eps;
 }
 
@@ -2236,7 +2236,7 @@ sub alltopdl {
 
 =for ref
 
-Flag a piddle so that the next operation is done 'in place'
+Flag an ndarray so that the next operation is done 'in place'
 
 =for usage
 
@@ -2278,7 +2278,7 @@ sub PDL::inplace {
 
 =for ref
 
-Test the in-place flag on a piddle
+Test the in-place flag on an ndarray
 
 =for usage
 
@@ -2297,7 +2297,7 @@ inplace flag while testing:
 
 =for ref
 
-Set the in-place flag on a piddle
+Set the in-place flag on an ndarray
 
 =for usage
 
@@ -2366,15 +2366,15 @@ sub new_or_inplace {
 
 =for ref
 
-Internal method: create piddle by specification
+Internal method: create ndarray by specification
 
 This is the argument processing method called by L</zeroes>
 and some other functions
-which constructs piddles from argument lists of the form:
+which constructs ndarrays from argument lists of the form:
 
  [type], $nx, $ny, $nz,...
 
-For C<$nx>, C<$ny>, etc. 0 and 1D piddles are allowed.
+For C<$nx>, C<$ny>, etc. 0 and 1D ndarrays are allowed.
 Giving those has the same effect as if saying C<$arg-E<gt>list>,
 e.g.
 
@@ -2385,7 +2385,7 @@ is equivalent to
    1, 5, 2, 4
 
 Note, however, that in all functions using C<new_from_specification>
-calling C<func $piddle> will probably not do what you want. So to play safe
+calling C<func $ndarray> will probably not do what you want. So to play safe
 use (e.g. with zeroes)
 
   $pdl = zeroes $dimpdl->list;
@@ -2418,10 +2418,10 @@ sub PDL::new_from_specification{
     my $nelems = 1; my @dims;
     for (@_) {
        if (ref $_) {
-         barf "Trying to use non-piddle as dimensions?" unless $_->isa('PDL');
-         barf "Trying to use multi-dim piddle as dimensions?"
+         barf "Trying to use non-ndarray as dimensions?" unless $_->isa('PDL');
+         barf "Trying to use multi-dim ndarray as dimensions?"
               if $_->getndims > 1;
-         warn "creating > 10 dim piddle (piddle arg)!"
+         warn "creating > 10 dim ndarray (ndarray arg)!"
               if $_->nelem > 10;
          for my $dim ($_->list) {$nelems *= $dim; push @dims, $dim}
        } else {
@@ -2444,19 +2444,19 @@ sub PDL::new_from_specification{
 
 =for ref
 
-Test whether a piddle is null
+Test whether an ndarray is null
 
 =for usage
 
- croak("Input piddle mustn't be null!")
-     if $input_piddle->isnull;
+ croak("Input ndarray mustn't be null!")
+     if $input_ndarray->isnull;
 
-This function returns 1 if the piddle is null, zero if it is not. The purpose
-of null piddles is to "tell" any PDL::PP methods to allocate new memory for
-an output piddle, but only when that PDL::PP method is called in full-arg
+This function returns 1 if the ndarray is null, zero if it is not. The purpose
+of null ndarrays is to "tell" any PDL::PP methods to allocate new memory for
+an output ndarray, but only when that PDL::PP method is called in full-arg
 form. Of course, there's no reason you couldn't commandeer the special value
 for your own purposes, for which this test function would prove most helpful.
-But in general, you shouldn't need to test for a piddle's nullness.
+But in general, you shouldn't need to test for an ndarray's nullness.
 
 See L</Null PDLs> for more information.
 
@@ -2464,15 +2464,15 @@ See L</Null PDLs> for more information.
 
 =for ref
 
-Test whether a piddle is empty
+Test whether an ndarray is empty
 
 =for usage
 
- print "The piddle has zero dimension\n" if $pdl->isempty;
+ print "The ndarray has zero dimension\n" if $pdl->isempty;
 
-This function returns 1 if the piddle has zero elements. This is
+This function returns 1 if the ndarray has zero elements. This is
 useful in particular when using the indexing function which. In the
-case of no match to a specified criterion, the returned piddle has
+case of no match to a specified criterion, the returned ndarray has
 zero dimension.
 
  pdl> $w=sequence(10)
@@ -2481,7 +2481,7 @@ zero dimension.
  I found no matches!
 
 Note that having zero elements is rather different from the concept
-of being a null piddle, see the L<PDL::FAQ> and
+of being a null ndarray, see the L<PDL::FAQ> and
 L<PDL::Indexing>
 manpages for discussions of this.
 
@@ -2496,11 +2496,11 @@ sub PDL::isempty {
 
 =for ref
 
-construct a zero filled piddle from dimension list or template piddle.
+construct a zero filled ndarray from dimension list or template ndarray.
 
 Various forms of usage,
 
-(i) by specification or (ii) by template piddle:
+(i) by specification or (ii) by template ndarray:
 
 =for usage
 
@@ -2527,7 +2527,7 @@ Various forms of usage,
  [ushort() etc. with no arg returns a PDL::Types token]
 
 See also L</new_from_specification>
-for details on using piddles in the dimensions list.
+for details on using ndarrays in the dimensions list.
 
 =cut
 
@@ -2545,7 +2545,7 @@ sub PDL::zeroes {
 
 =for ref
 
-construct a zero filled piddle (see zeroes for usage)
+construct a zero filled ndarray (see zeroes for usage)
 
 =cut
 
@@ -2556,7 +2556,7 @@ construct a zero filled piddle (see zeroes for usage)
 
 =for ref
 
-construct a one filled piddle
+construct a one filled ndarray
 
 =for usage
 
@@ -2568,7 +2568,7 @@ construct a one filled piddle
  see zeroes() and add one
 
 See also L</new_from_specification>
-for details on using piddles in the dimensions list.
+for details on using ndarrays in the dimensions list.
 
 =cut
 
@@ -2584,7 +2584,7 @@ sub PDL::ones {
 
 =for ref
 
-Change the shape (i.e. dimensions) of a piddle, preserving contents.
+Change the shape (i.e. dimensions) of an ndarray, preserving contents.
 
 =for usage
 
@@ -2625,7 +2625,7 @@ preserves dataflow:
   ]
  ]
 
-Important: Piddles are changed inplace!  
+Important: ndarrays are changed inplace!  
 
 Note: If C<$x> is connected to any other PDL (e.g. if it is a slice)
 then the connection is first severed.
@@ -2692,14 +2692,14 @@ sub PDL::squeeze { return $_[0]->reshape(-1) }
 
 =for ref
 
-flatten a piddle (alias for C<< $pdl->clump(-1) >>)
+flatten an ndarray (alias for C<< $pdl->clump(-1) >>)
 
 =for example
 
   $srt = $pdl->flat->qsort;
 
-Useful method to make a 1D piddle from an
-arbitrarily sized input piddle. Data flows
+Useful method to make a 1D ndarray from an
+arbitrarily sized input ndarray. Data flows
 back and forth as usual with slicing routines.
 Falls through if argument already E<lt>= 1D.
 
@@ -2757,11 +2757,11 @@ byte|short|ushort|long|indx|longlong|float|double|cfloat|cdouble (shorthands to 
  $y = double $x; $y = ushort [1..10];
  # all of the above listed shorthands behave similarly
 
-When called with a piddle argument, they convert to the specific
+When called with an ndarray argument, they convert to the specific
 datatype.
 
 When called with a numeric, list, listref, or string argument they
-construct a new piddle. This is a convenience to avoid having to be
+construct a new ndarray. This is a convenience to avoid having to be
 long-winded and say C<$x = long(pdl(42))>
 
 Thus one can say:
@@ -2780,7 +2780,7 @@ This allows syntactical sugar like:
 
  $x = ones byte, 1000,1000;
 
-This example creates a large piddle directly as byte datatype in
+This example creates a large ndarray directly as byte datatype in
 order to save memory.
 
 In order to control how undefs are handled in converting from perl lists to
@@ -2838,9 +2838,9 @@ Convert to complex double datatype
 
 =for ref
 
-return the type of a piddle as a blessed type object
+return the type of an ndarray as a blessed type object
 
-A convenience function for use with the piddle constructors, e.g.
+A convenience function for use with the ndarray constructors, e.g.
 
 =for example
 
@@ -2884,7 +2884,7 @@ sub PDL::string {
 		}
 		}
 		return "Null" if $self->isnull;
-		return "Empty[".join("x",$self->dims)."]" if $self->isempty; # Empty piddle
+		return "Empty[".join("x",$self->dims)."]" if $self->isempty; # Empty ndarray
 		local $sep  = $PDL::use_commas ? "," : " ";
 		local $sep2 = $PDL::use_commas ? "," : "";
 		if ($ndims==1) {
@@ -2908,7 +2908,7 @@ sub PDL::string {
 
 =for ref
 
-Convert piddle to perl list
+Convert ndarray to perl list
 
 =for usage
 
@@ -2943,14 +2943,14 @@ sub PDL::list{ # pdl -> @list
 
 =for ref
 
-Convert piddle to nested Perl array references
+Convert ndarray to nested Perl array references
 
 =for usage
 
  $arrayref = unpdl $x;
 
 This function returns a reference to a Perl list-of-lists structure
-equivalent to the input piddle (within the limitation that while values
+equivalent to the input ndarray (within the limitation that while values
 of elements should be preserved, the detailed datatypes will not as
 perl itself basically has "number" data rather than byte, short, int...
 E.g., C<< sum($x - pdl( $x->unpdl )) >> should equal 0.
@@ -2991,7 +2991,7 @@ sub _unpdl_int {
 
 =for ref
 
-Convert piddle indices to perl list
+Convert ndarray indices to perl list
 
 =for usage
 
@@ -3024,14 +3024,14 @@ sub PDL::listindices{ # Return list of index values for 1D pdl
 
 =for ref
 
-Set a single value inside a piddle
+Set a single value inside an ndarray
 
 =for usage
 
- set $piddle, @position, $value
+ set $ndarray, @position, $value
 
 C<@position> is a coordinate list, of size equal to the
-number of dimensions in the piddle. Occasionally useful,
+number of dimensions in the ndarray. Occasionally useful,
 mainly provided for backwards compatibility as superseded
 by use of L<slice|PDL::Slices/slice> and assignment operator C<.=>.
 
@@ -3060,16 +3060,16 @@ sub PDL::set{    # Sets a particular single value
 
 =for ref
 
-Returns a single value inside a piddle as perl scalar.
-If the piddle is a native complex value (cdouble, cfloat), it will
+Returns a single value inside an ndarray as perl scalar.
+If the ndarray is a native complex value (cdouble, cfloat), it will
 be a L<PDL::Complex::Overloads> object.
 
 =for usage
 
- $z = at($piddle, @position); $z=$piddle->at(@position);
+ $z = at($ndarray, @position); $z=$ndarray->at(@position);
 
 C<@position> is a coordinate list, of size equal to the
-number of dimensions in the piddle. Occasionally useful
+number of dimensions in the ndarray. Occasionally useful
 in a general context, quite useful too inside PDL internals.
 
 =for example
@@ -3094,16 +3094,16 @@ sub PDL::at {     # Return value at ($x,$y,$z...)
 
 =for ref
 
-return a single value from a piddle as a scalar, ignoring whether it is bad.
+return a single value from an ndarray as a scalar, ignoring whether it is bad.
 
 =for example
 
   $val = $x(10)->sclr;
   $val = sclr inner($x,$y);
 
-The C<sclr> method is useful to turn a piddle into a normal Perl
+The C<sclr> method is useful to turn an ndarray into a normal Perl
 scalar. Its main advantage over using C<at> for this purpose is the fact
-that you do not need to worry if the piddle is 0D, 1D or higher dimensional.
+that you do not need to worry if the ndarray is 0D, 1D or higher dimensional.
 Using C<at> you have to supply the correct number of zeroes, e.g.
 
   $x = sequence(10);
@@ -3112,15 +3112,15 @@ Using C<at> you have to supply the correct number of zeroes, e.g.
   print $y->at(); # error: needs at least one zero
 
 C<sclr> is generally used when a Perl scalar is required instead
-of a one-element piddle. If the input is a multielement piddle
+of a one-element ndarray. If the input is a multielement ndarray
 the first value is returned as a Perl scalar. You can optionally
-switch on checks to ensure that the input piddle has only one element:
+switch on checks to ensure that the input ndarray has only one element:
 
   PDL->sclr({Check => 'warn'}); # carp if called with multi-el pdls
   PDL->sclr({Check => 'barf'}); # croak if called with multi-el pdls
 
 are the commands to switch on warnings or raise an error if
-a multielement piddle is passed as input. Note that these options
+a multielement ndarray is passed as input. Note that these options
 can only be set when C<sclr> is called as a class method (see
 example above). Use
 
@@ -3137,9 +3137,9 @@ use PDL::Options;
 sub PDL::sclr {
   my $this = shift;
   if (ref $this) { # instance method
-    carp "multielement piddle in 'sclr' call"
+    carp "multielement ndarray in 'sclr' call"
       if ($chkmode == 1 && $this->nelem > 1);
-    croak "multielement piddle in 'sclr' call"
+    croak "multielement ndarray in 'sclr' call"
       if ($chkmode == 2 && $this->nelem > 1);
     return sclr_c($this);
   } else {  # class method
@@ -3155,10 +3155,10 @@ sub PDL::sclr {
 
 =for ref
 
-concatenate piddles to N+1 dimensional piddle
+concatenate ndarrays to N+1 dimensional ndarray
 
-Takes a list of N piddles of same shape as argument,
-returns a single piddle of dimension N+1.
+Takes a list of N ndarrays of same shape as argument,
+returns a single ndarray of dimension N+1.
 
 =for example
 
@@ -3183,16 +3183,16 @@ returns a single piddle of dimension N+1.
 
 =for bad
 
-The output piddle is set bad if any input piddles have their bad flag set.
+The output ndarray is set bad if any input ndarrays have their bad flag set.
 
 Similar functions include L<append|PDL::Primitive/append>, which
-appends only two piddles along their first dimension, and
-L<glue|PDL::Primitive/glue>, which can append more than two piddles
+appends only two ndarrays along their first dimension, and
+L<glue|PDL::Primitive/glue>, which can append more than two ndarrays
 along an arbitrary dimension.
 
 Also consider the generic constructor L</pdl>, which can handle
-piddles of different sizes (with zero-padding), and will return a
-piddle of type 'double' by default, but may be considerably faster (up
+ndarrays of different sizes (with zero-padding), and will return a
+ndarray of type 'double' by default, but may be considerably faster (up
 to 10x) than cat.
 
 =cut
@@ -3232,32 +3232,32 @@ sub PDL::cat {
 	if  ($@ =~ /PDL::Ops::assgn|mismatched/
 	  or $@ =~ /"badflag"/
 	  or $@ =~ /"initialize"/) {
-		my (@mismatched_dims, @not_a_piddle);
+		my (@mismatched_dims, @not_a_ndarray);
 		my $i = 0;
 
-		# non-piddles and/or dimension mismatch.  The first argument is
+		# non-ndarrays and/or dimension mismatch.  The first argument is
 		# ok unless we have the "initialize" error:
 		if ($@ =~ /"initialize"/) {
 			# Handle the special case that there are *no* args passed:
 			barf("Called PDL::cat without any arguments") unless @_;
 
 			while ($i < @_ and not eval{ $_[$i]->isa('PDL')}) {
-				push (@not_a_piddle, $i);
+				push (@not_a_ndarray, $i);
 				$i++;
 			}
 		}
 
-		# Get the dimensions of the first actual piddle in the argument
+		# Get the dimensions of the first actual ndarray in the argument
 		# list:
-		my $first_piddle_argument = $i;
+		my $first_ndarray_argument = $i;
 		my @dims = $_[$i]->dims if ref($_[$i]) =~ /PDL/;
 
 		# Figure out all the ways that the caller screwed up:
 		while ($i < @_) {
 			my $arg = $_[$i];
-			# Check if not a piddle
+			# Check if not an ndarray
 			if (not eval{$arg->isa('PDL')}) {
-				push @not_a_piddle, $i;
+				push @not_a_ndarray, $i;
 			}
 			# Check if different number of dimensions
 			elsif (@dims != $arg->ndims) {
@@ -3282,25 +3282,25 @@ sub PDL::cat {
 			$message .= "The dimensions of arguments "
 						. join(', ', @mismatched_dims[0 .. $#mismatched_dims-1])
 						. " and $mismatched_dims[-1] do not match the\n"
-						. "   dimensions of the first piddle argument (argument $first_piddle_argument).\n";
+						. "   dimensions of the first ndarray argument (argument $first_ndarray_argument).\n";
 		}
 		elsif (@mismatched_dims) {
 			# One dimension mismatch
 			$message .= "The dimensions of argument $mismatched_dims[0] do not match the\n"
-						. "   dimensions of the first piddle argument (argument $first_piddle_argument).\n";
+						. "   dimensions of the first ndarray argument (argument $first_ndarray_argument).\n";
 		}
-		if (@not_a_piddle > 1) {
-			# many non-piddles
-			$message .= "Arguments " . join(', ', @not_a_piddle[0 .. $#not_a_piddle-1])
-						. " and $not_a_piddle[-1] are not piddles.\n";
+		if (@not_a_ndarray > 1) {
+			# many non-ndarrays
+			$message .= "Arguments " . join(', ', @not_a_ndarray[0 .. $#not_a_ndarray-1])
+						. " and $not_a_ndarray[-1] are not ndarrays.\n";
 		}
-		elsif (@not_a_piddle) {
-			# one non-piddle
-			$message .= "Argument $not_a_piddle[0] is not a piddle.\n";
+		elsif (@not_a_ndarray) {
+			# one non-ndarray
+			$message .= "Argument $not_a_ndarray[0] is not an ndarray.\n";
 		}
 
 		# Handle the edge case that something else happened:
-		if (@not_a_piddle == 0 and @mismatched_dims == 0) {
+		if (@not_a_ndarray == 0 and @mismatched_dims == 0) {
 			barf("cat: unknown error from the internals:\n$@");
 		}
 
@@ -3316,10 +3316,10 @@ sub PDL::cat {
 
 =for ref
 
-Opposite of 'cat' :). Split N dim piddle to list of N-1 dim piddles
+Opposite of 'cat' :). Split N dim ndarray to list of N-1 dim ndarrays
 
-Takes a single N-dimensional piddle and splits it into a list of N-1 dimensional
-piddles. The breakup is done along the last dimension.
+Takes a single N-dimensional ndarray and splits it into a list of N-1 dimensional
+ndarrays. The breakup is done along the last dimension.
 Note the dataflown connection is still preserved by default,
 e.g.:
 
@@ -3352,7 +3352,7 @@ e.g.:
 
 =for bad
 
-The output piddles are set bad if the original piddle has its bad flag set.
+The output ndarrays are set bad if the original ndarray has its bad flag set.
 
 =cut
 
@@ -3398,7 +3398,7 @@ sub rpack {
         $ret = pack $ptype, map {defined($_) ? $_ : $PDL::undefval} @$x;
       }
     } elsif (ref($x) eq "PDL") {
-	barf 'Cannot make a new piddle from two or more piddles, try "cat"';
+	barf 'Cannot make a new ndarray from two or more ndarrays, try "cat"';
     } else {
         barf "Don't know how to make a PDL object from passed argument";
     }
@@ -3604,7 +3604,7 @@ sub PDL::hcpy {
 
 =for ref
 
-Retrieve header information from a piddle
+Retrieve header information from an ndarray
 
 =for example
 
@@ -3613,10 +3613,10 @@ Retrieve header information from a piddle
  print "Number of pixels in the X-direction=$$h{NAXIS1}\n";
 
 The C<gethdr> function retrieves whatever header information is contained
-within a piddle. The header can be set with L</sethdr> and is always a
+within an ndarray. The header can be set with L</sethdr> and is always a
 hash reference or undef.
 
-C<gethdr> returns undef if the piddle has not yet had a header
+C<gethdr> returns undef if the ndarray has not yet had a header
 defined; compare with C<hdr> and C<fhdr>, which are guaranteed to return a
 defined value.
 
@@ -3628,10 +3628,10 @@ in-place once it has been retrieved:
   $xh->{FILENAME} = $filename;
 
 It is also important to realise that in most cases the header is not
-automatically copied when you copy the piddle.  See L</hdrcpy>
+automatically copied when you copy the ndarray.  See L</hdrcpy>
 to enable automatic header copying.
 
-Here's another example: a wrapper around rcols that allows your piddle
+Here's another example: a wrapper around rcols that allows your ndarray
 to remember the file it was read from and the columns could be easily
 written (here assuming that no regexp is needed, extensions are left
 as an exercise for the reader)
@@ -3642,30 +3642,30 @@ as an exercise for the reader)
     $$header{File}=$file;
     $$header{Columns}=\@columns;
 
-    @piddles=rcols $file, @columns;
-    foreach (@piddles) { $_->sethdr($header); }
-    return @piddles;
+    @ndarrays=rcols $file, @columns;
+    foreach (@ndarrays) { $_->sethdr($header); }
+    return @ndarrays;
  }
 
 =head2 hdr
 
 =for ref
 
-Retrieve or set header information from a piddle
+Retrieve or set header information from an ndarray
 
 =for example
 
  $pdl->hdr->{CDELT1} = 1;
 
 The C<hdr> function allows convenient access to the header of a
-piddle.  Unlike C<gethdr> it is guaranteed to return a defined value,
+ndarray.  Unlike C<gethdr> it is guaranteed to return a defined value,
 so you can use it in a hash dereference as in the example.  If the
 header does not yet exist, it gets autogenerated as an empty hash.
 
 Note that this is usually -- but not always -- What You Want.  If you
 want to use a tied L<Astro::FITS::Header> hash,
 for example, you should either construct it yourself and use C<sethdr>
-to put it into the piddle, or use L</fhdr> instead.  (Note that
+to put it into the ndarray, or use L</fhdr> instead.  (Note that
 you should be able to write out the FITS file successfully regardless
 of whether your PDL has a tied FITS header object or a vanilla hash).
 
@@ -3673,14 +3673,14 @@ of whether your PDL has a tied FITS header object or a vanilla hash).
 
 =for ref
 
-Retrieve or set FITS header information from a piddle
+Retrieve or set FITS header information from an ndarray
 
 =for example
 
  $pdl->fhdr->{CDELT1} = 1;
 
 The C<fhdr> function allows convenient access to the header of a
-piddle.  Unlike C<gethdr> it is guaranteed to return a defined value,
+ndarray.  Unlike C<gethdr> it is guaranteed to return a defined value,
 so you can use it in a hash dereference as in the example.  If the
 header does not yet exist, it gets autogenerated as a tied
 L<Astro::FITS::Header> hash.
@@ -3697,7 +3697,7 @@ normal hash instead of a tied object.
 
 =for ref
 
-Set header information of a piddle
+Set header information of an ndarray
 
 =for example
 
@@ -3707,7 +3707,7 @@ Set header information of a piddle
  $$h{FILENAME} = 'file.fits';
  $pdl->sethdr( $h );
 
-The C<sethdr> function sets the header information for a piddle.
+The C<sethdr> function sets the header information for an ndarray.
 You must feed in a hash ref or undef, and the header field of the PDL is
 set to be a new ref to the same hash (or undefined).
 
@@ -3758,7 +3758,7 @@ C<hdrcpy> without an argument just returns the current setting of the
 flag.  See also "hcpy" which returns its PDL argument (and so is useful
 in method-call pipelines).
 
-Normally, the optional header of a piddle is not copied automatically
+Normally, the optional header of an ndarray is not copied automatically
 in pdl operations. Switching on the hdrcpy flag using the C<hdrcpy>
 method will enable automatic hdr copying. Note that an actual deep
 copy gets made, which is rather processor-inefficient -- so avoid

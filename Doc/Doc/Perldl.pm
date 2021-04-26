@@ -678,11 +678,11 @@ sub help {
 The following commands support online help in the perldl shell:
 
  help 'thing'   -- print docs on 'thing' (func, module, manual, autoload-file)
- help vars      -- print information about all current piddles
+ help vars      -- print information about all current ndarrays
  help url       -- locate the HTML version of the documentation
  help www       -- View docs with default web browser (set by env: PERLDL_WWW)
 
- whatis <expr>  -- Describe the type and structure of an expression or piddle.
+ whatis <expr>  -- Describe the type and structure of an expression or ndarray.
  apropos 'word' -- search for keywords/function names 
  usage          -- print usage information for a given PDL function
  sig            -- print signature of PDL function

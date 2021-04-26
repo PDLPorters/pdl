@@ -45,12 +45,12 @@ ok ($c->getdim(0) == 10 && all $c == $pa);
 $pb = translate_and_run '$pa($idx);';
 ok(all $pb == $idx);
 
-# use 1-el piddles as indices
+# use 1-el ndarrays as indices
 my $cmp = pdl(2,4,6);
 $pb = translate_and_run '$pa($rg(0):$rg(1):$rg(2));';
 ok(all $pb == $cmp);
 
-# mix ranges and index piddles
+# mix ranges and index ndarrays
 $pa = sequence 5,5;
 $idx = pdl 2,3,0;
 $cmp = $pa->slice('-1:0')->dice_axis(1,$idx);

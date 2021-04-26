@@ -189,7 +189,7 @@ the F<Example/Fit> directory.
    ### INPUT
    ### $x      = x data
    ### $y      = y data
-   ### $sigma  = piddle of y-uncertainties for each value of $y (can be set to scalar 1 for equal weighting)
+   ### $sigma  = ndarray of y-uncertainties for each value of $y (can be set to scalar 1 for equal weighting)
    ### \&fn    = reference to function provided by user (more on this below)
    ### $initp  = initial values for floating parameters
    ###               (needs to be explicitly set prior to use of lmfit)

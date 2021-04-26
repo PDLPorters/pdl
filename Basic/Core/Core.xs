@@ -483,7 +483,7 @@ sclr_c(it)
    PREINIT:
 	PDL_Anyval result = { -1, 0 };
    CODE:
-        /* get the first element of a piddle and return as
+        /* get the first element of an ndarray and return as
          * Perl scalar (autodetect suitable type IV or NV)
          */
         result = pdl_at0(it);
@@ -513,8 +513,8 @@ at_bad_c(x,position)
 
     /*  allow additional trailing indices
      *  which must be all zero, i.e. a
-     *  [3,1,5] piddle is treated as an [3,1,5,1,1,1,....]
-     *  infinite dim piddle
+     *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
+     *  infinite dim ndarray
      */
     for (ipos=x->ndims; ipos<npos; ipos++)
       if (pos[ipos] != 0)
@@ -613,8 +613,8 @@ set_c(x,position,value)
 
     /*  allow additional trailing indices
      *  which must be all zero, i.e. a
-     *  [3,1,5] piddle is treated as an [3,1,5,1,1,1,....]
-     *  infinite dim piddle
+     *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
+     *  infinite dim ndarray
      */
     for (ipos=x->ndims; ipos<npos; ipos++)
       if (pos[ipos] != 0)
@@ -707,7 +707,7 @@ BOOT:
    sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));
 }
 
-# make piddle belonging to 'class' and of type 'type'
+# make ndarray belonging to 'class' and of type 'type'
 # from avref 'array_ref' which is checked for being
 # rectangular first
 
@@ -723,7 +723,7 @@ pdl_avref(array_ref, class, type)
      SV* psv;
      pdl* p;
   CODE:
-     /* make a piddle from a Perl array ref */
+     /* make an ndarray from a Perl array ref */
 
      if (!SvROK(array_ref))
        croak("pdl_avref: not a reference");
@@ -743,7 +743,7 @@ pdl_avref(array_ref, class, type)
 
      /* printf("will make type %s\n",class); */
      /*
-	at this stage start making a piddle and populate it with
+	at this stage start making an ndarray and populate it with
 	values from the array (which has already been checked in av_check)
      */
      if (strcmp(class,"PDL") == 0) {
@@ -759,7 +759,7 @@ pdl_avref(array_ref, class, type)
        SPAGAIN;
        psv = POPs;
        PUTBACK;
-       p = SvPDLV(psv); /* and get piddle from returned object */
+       p = SvPDLV(psv); /* and get ndarray from returned object */
        ST(0) = psv;
        pdl_from_array(av,dims,type,p); /* populate ;) */
      }

@@ -1,58 +1,58 @@
 =head1 NAME
 
-PDL::Indexing - Introduction to indexing and slicing piddles.
+PDL::Indexing - Introduction to indexing and slicing ndarrays.
 
 =head1 OVERVIEW
 
 This man page should serve as a first tutorial on the indexing and
 threading features of I<PDL>.
 
-Like all vectorized languages, PDL automates looping over multi-dimensional data structures ("piddles") using
+Like all vectorized languages, PDL automates looping over multi-dimensional data structures ("ndarrays") using
 a variant of mathematical vector notation.  The automatic looping is called
 "threading", in part because ultimately PDL will implement parallel processing
 to speed up the loops.
 
 A lot of the flexibility and power of PDL relies on the indexing and threading
-features of the Perl extension.  Indexing allows access to the data of a piddle
+features of the Perl extension.  Indexing allows access to the data of an ndarray
 in a very flexible way.  Threading provides efficient vectorization of simple
 operations.  
 
-The values of a piddle are stored compactly as typed values in a single block of memory, 
+The values of an ndarray are stored compactly as typed values in a single block of memory, 
 not (as in a normal Perl list-of-lists) as individual Perl scalars.
 
 In the sections that follow many "methods" are called out -- these are Perl operators
-that apply to piddles.  From the L<perldl> (or L<pdl2>) shell, you
+that apply to ndarrays.  From the L<perldl> (or L<pdl2>) shell, you
 can find out more about each method by typing "?" followed by the method name.
 
 =head2 Dimension lists 
 
-A piddle (PDL variable), in general, is an N-dimensional array where N can be 
+A ndarray (PDL variable), in general, is an N-dimensional array where N can be 
 0 (for a scalar), 1 (e.g. for a sound sample), or higher values for images 
-and more complex structures.  Each dimension of the piddle has a positive 
-integer size.  The C<perl> interpreter treats each piddle as a special type of 
+and more complex structures.  Each dimension of the ndarray has a positive 
+integer size.  The C<perl> interpreter treats each ndarray as a special type of 
 Perl scalar (a blessed Perl object, actually -- but you don't have to know that
 to use them) that can be used anywhere you can put a normal scalar.  
 
-You can access the dimensions of a piddle as a Perl list and otherwise determine
-the size of a piddle with several methods.  The important ones are:
+You can access the dimensions of an ndarray as a Perl list and otherwise determine
+the size of an ndarray with several methods.  The important ones are:
 
 =over 3
 
-=item nelem - the total number of elements in a piddle
+=item nelem - the total number of elements in an ndarray
 
-=item ndims - returns the number of dimensions in a piddle
+=item ndims - returns the number of dimensions in an ndarray
 
-=item dims - returns the dimension list of a piddle as a Perl list
+=item dims - returns the dimension list of an ndarray as a Perl list
 
-=item dim - returns the size of a particular dimension of a piddle
+=item dim - returns the size of a particular dimension of an ndarray
 
 =back
 
 =head2 Indexing and Dataflow
 
-PDL maintains a notion of "dataflow" between a piddle and indexed subfields of 
-that piddle.  When you produce an indexed subfield or single element of a parent
-piddle, the child and parent remain attached until you manually disconnect them.
+PDL maintains a notion of "dataflow" between an ndarray and indexed subfields of 
+that ndarray.  When you produce an indexed subfield or single element of a parent
+ndarray, the child and parent remain attached until you manually disconnect them.
 This lets you represent the same data different ways within your code -- for example,
 you can consider an RGB image simultaneously as a collection of (R,G,B) values 
 in a 3 x 1000 x 1000 image, and as three separate 1000 x 1000 color planes stored in 
@@ -60,23 +60,23 @@ different variables.  Modifying any of the variables changes the underlying memo
 the changes are reflected in all representations of the data.
 
 There are two important methods that let you control dataflow connections between a 
-child and parent piddle:
+child and parent ndarray:
 
 =over 3
 
-=item copy - forces an explicit copy of a piddle
+=item copy - forces an explicit copy of an ndarray
 
-=item sever - breaks the dataflow connection between a piddle and its parents (if any)
+=item sever - breaks the dataflow connection between an ndarray and its parents (if any)
 
 =back
 
 =head2 Threading and Dimension Order
 
-Most PDL operations act on the first few dimensions of their piddle arguments.  For
+Most PDL operations act on the first few dimensions of their ndarray arguments.  For
 example, C<sumover> sums all elements along the first dimension in the list (dimension 0).
-If you feed in a three-dimensional piddle, then the first dimension is considered the 
+If you feed in a three-dimensional ndarray, then the first dimension is considered the 
 "active" dimension and the later dimensions are "thread" dimensions because they are simply
-looped over.  There are several ways to transpose or re-order the dimension list of a piddle.
+looped over.  There are several ways to transpose or re-order the dimension list of an ndarray.
 Those techniques are very fast since they don't touch the underlying data, only change the
 way that PDL accesses the data.  The main dimension ordering functions are:
 
@@ -131,34 +131,34 @@ reworking of paragraph on explicit threading
 
 A lot of the flexibility and power of PDL relies on the indexing and
 looping features of the Perl extension. Indexing allows access to the
-data of a piddle in a very flexible way. Threading provides
+data of an ndarray in a very flexible way. Threading provides
 efficient implicit looping functionality (since the loops are
 implemented as optimized C code).
 
-Piddles are Perl objects that
+ndarrays are Perl objects that
 represent multidimensional arrays and operations on those. In contrast
 to simple Perl C<@x> style lists the array data is compactly stored in
 a single block of memory thus taking up a lot less memory and enabling
 use of fast C code to implement operations (e.g. addition,
-etc) on piddles.
+etc) on ndarrays.
 
-=head2 piddles can have children
+=head2 ndarrays can have children
 
 Central to many of the indexing capabilities of PDL are the relation of
-"parent" and "child" between piddles. Many of the indexing commands
-create a new piddle from an existing piddle. The new piddle is the "child"
-and the old one is the "parent". The data of the new piddle is defined by a
+"parent" and "child" between ndarrays. Many of the indexing commands
+create a new ndarray from an existing ndarray. The new ndarray is the "child"
+and the old one is the "parent". The data of the new ndarray is defined by a
 transformation that specifies how to generate (compute) its data from
-the parent's data. The relation between the child piddle and its parent
+the parent's data. The relation between the child ndarray and its parent
 are often bidirectional, meaning that changes in the child's data are
 propagated back to the parent. (Note: You see, we are aiming in our
 terminology already towards the new dataflow features. The kind of
 dataflow that is used by the indexing commands (about which you will
 learn in a minute) is always in operation, not only when you have
-explicitly switched on dataflow in your piddle by saying C<$x-E<gt>doflow>. For
+explicitly switched on dataflow in your ndarray by saying C<$x-E<gt>doflow>. For
 further information about data flow check the dataflow man page.)
 
-Another way to interpret the piddles created by our indexing commands is
+Another way to interpret the ndarrays created by our indexing commands is
 to view them as a kind of intelligent pointer that points back to some
 portion or all of its parent's data. Therefore, it is not surprising
 that the parent's data (or a portion of it) changes when manipulated
@@ -172,20 +172,20 @@ analogies in the context of some of the examples later on.
 There are two different implementations of this ``smart pointer''
 relationship: the first one, which is a little slower but works
 for any transformation is simply to do the transformation forwards
-and backwards as necessary. The other is to consider the child piddle
-a ``virtual'' piddle, which only stores a pointer to the parent
-and access information so that routines which use the child piddle
+and backwards as necessary. The other is to consider the child ndarray
+a ``virtual'' ndarray, which only stores a pointer to the parent
+and access information so that routines which use the child ndarray
 actually directly access the data in the parent.
-If the virtual piddle is given to a routine which cannot use it,
-PDL transparently physicalizes the virtual piddle before letting
+If the virtual ndarray is given to a routine which cannot use it,
+PDL transparently physicalizes the virtual ndarray before letting
 the routine use it.
 
 Currently (1.94_01) all transformations which are ``affine'',
-i.e. the indices of the data item in the parent piddle are determined
+i.e. the indices of the data item in the parent ndarray are determined
 by a linear transformation (+ constant) from the indices of the
-child piddle result in virtual piddles. All other indexing
-routines (e.g. C<-E<gt>index(...)>) result in physical piddles.
-All routines compiled by PP can accept affine piddles (except
+child ndarray result in virtual ndarrays. All other indexing
+routines (e.g. C<-E<gt>index(...)>) result in physical ndarrays.
+All routines compiled by PP can accept affine ndarrays (except
 those routines that pass pointers to external library functions).
 
 Note that whether something is affine or not does not affect the semantics
@@ -197,12 +197,12 @@ of what you do in any way: both
 change the data in C<$x>. The affinity does, however, have a significant
 impact on memory usage and performance.
 
-=head2 Slicing piddles
+=head2 Slicing ndarrays
 
 Probably the most important application of the concept of parent/child
-piddles is the representation of rectangular slices of a physical piddle by
-a virtual piddle. Having talked long enough about concepts let's get more
-specific. Suppose we are working with a 2D piddle representing a 5x5
+ndarrays is the representation of rectangular slices of a physical ndarray by
+a virtual ndarray. Having talked long enough about concepts let's get more
+specific. Suppose we are working with a 2D ndarray representing a 5x5
 image (it's unusually small so that we can print it without filling
 several screens full of digits).
 
@@ -226,16 +226,16 @@ several screens full of digits).
 
 [ here it might be appropriate to quickly talk about the 
 C<help vars> command
-that provides information about piddles in the interactive
+that provides information about ndarrays in the interactive
 C<perldl> or C<pdl2> shell that comes with PDL.
 ]
 
-Now suppose we want to create a 1-D piddle that just references
-one line of the image, say line 2; or a piddle that represents all even
+Now suppose we want to create a 1-D ndarray that just references
+one line of the image, say line 2; or an ndarray that represents all even
 lines of the image (imagine we have to deal with even and odd frames
 of an interlaced image due to some peculiar behaviour of our frame
 grabber). As another frequent application of slices we might want to
-create a piddle that represents a rectangular region of the image with
+create an ndarray that represents a rectangular region of the image with
 top and bottom reversed. All these effects (and many more) can be
 easily achieved with the powerful slice function:
 
@@ -252,9 +252,9 @@ easily achieved with the powerful slice function:
  $line        Double D [5]                  -C           0.00Kb
  $area        Double D [2,3]                -C           0.00Kb                  
 
-All three "child" piddles are children of C<$im> or in the other (largely
+All three "child" ndarrays are children of C<$im> or in the other (largely
 equivalent) interpretation pointers to data of C<$im>.  Operations on
-those virtual piddles access only those portions of the data as specified
+those virtual ndarrays access only those portions of the data as specified
 by the argument to slice. So we can just print line 2:
 
  pdl> p $line
@@ -285,15 +285,15 @@ the changes in C<$line>'s data are propagated back to C<$im>):
   [21 22 23 24 25]
  ]
 
-Note how assignment operations on the child virtual piddles change the
-parent physical piddle and vice versa (however, the basic "=" assignment
+Note how assignment operations on the child virtual ndarrays change the
+parent physical ndarray and vice versa (however, the basic "=" assignment
 doesn't, use ".=" to obtain that effect. See below for the reasons).
-The virtual child piddles are
-something like "live links" to the "original" parent piddle. As
+The virtual child ndarrays are
+something like "live links" to the "original" parent ndarray. As
 previously said, they can be thought of to work similar to a
 C-pointer. But in contrast to a C-pointer they carry a lot more
 information. Firstly, they specify the structure of the data they
-represent (the dimensionality of the new piddle) and secondly, specify
+represent (the dimensionality of the new ndarray) and secondly, specify
 how to create this structure from its parents data (the way this works
 is buried in the internals of PDL and not important for you to know
 anyway (unless you want to hack the core in the future or would like
@@ -306,7 +306,7 @@ explanation of the syntax for the string argument to slice:
 
  $vpdl = $x->slice('ind0,ind1...')
 
-where C<ind0> specifies what to do with index No 0 of the piddle C<$x>,
+where C<ind0> specifies what to do with index No 0 of the ndarray C<$x>,
 etc. Each element of the comma separated list can have one of the
 following forms:
 
@@ -319,7 +319,7 @@ Use the whole dimension
 =item 'n'
 
 Use only index C<n>. The dimension of this index in the
-resulting virtual piddle is 1. An example involving those first two index
+resulting virtual ndarray is 1. An example involving those first two index
 formats:
 
  pdl> $column = $im->slice('2,:')
@@ -349,7 +349,7 @@ formats:
 =item '(n)'
 
 Use only index C<n>. This dimension is removed from the
-resulting piddle (relying on the fact that a dimension of size 1 can always be
+resulting ndarray (relying on the fact that a dimension of size 1 can always be
 removed). The distinction between this case and the previous one
 becomes important in assignments where left and right hand side have to
 have appropriate dimensions.
@@ -375,7 +375,7 @@ definition of the sub-image composed of even lines.
 This example also demonstrates that negative indices work like they do
 for normal Perl style arrays by counting backwards from the end of the
 dimension. If C<n2> is smaller than C<n1> (in the example -1 is
-equivalent to index 4) the elements in the virtual piddle are effectively
+equivalent to index 4) the elements in the virtual ndarray are effectively
 reverted with respect to its parent.
 
 =item '*[n]'
@@ -399,21 +399,21 @@ its explanation below.
 
 [Not yet implemented ??????]
 With an argument like this you make I<generalised diagonals>. The
-I<diagonal> will be dimension no. C<i> of the new output piddle and (if
+I<diagonal> will be dimension no. C<i> of the new output ndarray and (if
 optional part in brackets specified) will extend along the range of
-indices specified of the respective parent piddle's dimension. In general
+indices specified of the respective parent ndarray's dimension. In general
 an argument like this only makes sense if there are other arguments
 like this in the same call to slice. The part in brackets is optional
 for this type of argument. All arguments of this type that specify the
 same target dimension C<i> have to relate to the same number of
 indices in their parent dimension. The best way to explain it is probably to
-give an example, here we make a piddle that refers to the elements along
-the space diagonal of its parent piddle (a cube):
+give an example, here we make an ndarray that refers to the elements along
+the space diagonal of its parent ndarray (a cube):
 
  $cube = zeroes(5,5,5);
  $sdiag = $cube->slice('(=0),(=0),(=0)');
 
-The above command creates a virtual piddle that represents the diagonal
+The above command creates a virtual ndarray that represents the diagonal
 along the parents' dimension no. 0, 1 and 2 and makes its dimension 0
 (the only dimension) of it. You use the extended syntax if the
 dimension sizes of the parent dimensions you want to build the
@@ -434,25 +434,25 @@ in way we can express as:
 
 =head2 There are different kinds of assignments in PDL
 
-The previous examples have already shown that virtual piddles can be used
-to operate on or access portions of data of a parent piddle. They can
+The previous examples have already shown that virtual ndarrays can be used
+to operate on or access portions of data of a parent ndarray. They can
 also be used as lvalues in assignments (as the use of C<++> in some of
 the examples above has already demonstrated). For explicit assignments
-to the data represented by a virtual piddle you have to use the
+to the data represented by a virtual ndarray you have to use the
 overloaded C<.=> operator (which in this context we call I<propagated
 assignment>). Why can't you use the normal assignment operator C<=>?
 
 Well, you definitely still can use the '=' operator but it wouldn't do
 what you want. This is due to the fact that the '=' operator cannot be
 overloaded in the same way as other assignment operators. If we tried
-to use '=' to try to assign data to a portion of a physical piddle
-through a virtual piddle we wouldn't achieve the desired effect (instead
-the variable representing the virtual piddle (a reference to a
+to use '=' to try to assign data to a portion of a physical ndarray
+through a virtual ndarray we wouldn't achieve the desired effect (instead
+the variable representing the virtual ndarray (a reference to a
 blessed thingy) would after the assignment just contain the reference
 to another blessed thingy which would behave to future assignments as
 a "physical" copy of the original rvalue [this is actually not yet
 clear and subject of discussions in the PDL developers mailing
-list]. In that sense it would break the connection of the piddle to the
+list]. In that sense it would break the connection of the ndarray to the
 parent [ isn't this behaviour in a sense the opposite of what happens in
 dataflow, where C<.=> breaks the connection to the parent? ]. 
 
@@ -496,8 +496,8 @@ Also, you can substitute
 
  pdl> $line .= 0;
 
-for the assignment above (the zero is converted to a scalar piddle,
-with no dimensions so it can be assigned to any piddle).
+for the assignment above (the zero is converted to a scalar ndarray,
+with no dimensions so it can be assigned to any ndarray).
 
 A nice feature in recent perl versions is lvalue subroutines
 (i.e., versions 5.6.x and higher including all perls currently
@@ -520,8 +520,8 @@ which works both with and without the debugger but is arguably
 clumsy and awkward to read.
 
 Note that there can be a problem with assignments like this when
-lvalue and rvalue piddles refer to overlapping portions of data in the
-parent piddle:
+lvalue and rvalue ndarrays refer to overlapping portions of data in the
+parent ndarray:
 
  # revert the elements of the first line of $x
  ($tmp = $x->slice(':,(1)')) .= $x->slice('-1:0,(1)');
@@ -558,7 +558,7 @@ later). Here are a list and some examples how to use them.
 inserts a dummy dimension of the size you specify (default 1) at the
 chosen location. You can't wait to hear how that is achieved?  Well,
 all elements with index C<(X,x,Y)> (C<0E<lt>=xE<lt>size_of_dummy_dim>) just map to
-the element with index C<(X,Y)> of the parent piddle (where C<X> and C<Y> refer to
+the element with index C<(X,Y)> of the parent ndarray (where C<X> and C<Y> refer to
 the group of indices before and after the location where the dummy
 dimension was inserted.)
 
@@ -600,9 +600,9 @@ same source element:
 Unfortunately this trick cannot be used to convert your old B/W
 photos to color ones in the way you'd like. :(
 
-Note that the memory usage of piddles with dummy dimensions
-is especially sensitive to the internal representation. If the piddle
-can be represented as a virtual affine (``vaffine'') piddle,
+Note that the memory usage of ndarrays with dummy dimensions
+is especially sensitive to the internal representation. If the ndarray
+can be represented as a virtual affine (``vaffine'') ndarray,
 only the control structures are stored. But if C<$y> in
 
  $x = zeroes(10000);
@@ -652,7 +652,7 @@ orthogonal matrix. Often C<xchg> will be used in the context of threading
 but more about that later.
 
 L<mv|PDL::Slices/mv> works in a similar fashion. It moves a dimension (specified by
-its number in the parent) to a new position in the new child piddle:
+its number in the parent) to a new position in the new child ndarray:
 
  $y = $x->mv(4,0);  # make the 5th dimension of $x the first in the
                     # new child $y
@@ -665,8 +665,8 @@ dimensions around accordingly.
 =item C<clump>
 
 collapses several dimensions into one. Its only argument specifies how
-many dimensions of the source piddle should be collapsed (starting from
-the first). An (admittedly unrealistic) example is a 3D piddle which
+many dimensions of the source ndarray should be collapsed (starting from
+the first). An (admittedly unrealistic) example is a 3D ndarray which
 holds data from a stack of image files that you have just read
 in. However, the data from each image really represents a 1D time
 series and has only been arranged that way because it was digitized
@@ -705,9 +705,9 @@ you get the idea (in spite of my convoluted explanations).
 
 =head2 Propagated assignments ('.=') and dummy dimensions
 
-A subtlety related to indexing is the assignment to piddles containing dummy
+A subtlety related to indexing is the assignment to ndarrays containing dummy
 dimensions of size greater than 1. These assignments (using C<.=>) are
-forbidden since several elements of the lvalue piddle point to the same
+forbidden since several elements of the lvalue ndarray point to the same
 element of the parent. As a consequence the value of those parent
 elements are potentially ambiguous and would depend on the sequence in
 which the implementation makes the assignments to elements. Therefore,
@@ -735,7 +735,7 @@ dummy dimensions are created implicitly during the thread loop (see below).
 
  XXXXX being memory efficient
  XXXXX in the context of threading
- XXXXX very flexible and powerful way of accessing portions of piddle data
+ XXXXX very flexible and powerful way of accessing portions of ndarray data
        (in much more general way than sec, etc allow)
  XXXXX efficient implementation
  XXXXX difference to section/at, etc.
@@ -753,18 +753,18 @@ dummy dimensions are created implicitly during the thread loop (see below).
 
 In the previous paragraph on indexing we have already mentioned the
 term occasionally but now its really time to talk explicitly about
-"threading" with piddles. The term threading has many different meanings in
+"threading" with ndarrays. The term threading has many different meanings in
 different fields of computing. Within the framework of PDL it could
 probably be loosely defined as an implicit looping
 facility. It is implicit because you don't specify anything like
 enclosing for-loops but rather the loops are automatically (or
-'magically') generated by PDL based on the dimensions of the piddles
+'magically') generated by PDL based on the dimensions of the ndarrays
 involved. This should give you a first idea why the index/dimension
 manipulating functions you have met in the previous paragraphs are
 especially important and useful in the context of threading.
-The other ingredient for threading (apart from the piddles involved) is
+The other ingredient for threading (apart from the ndarrays involved) is
 a function that is threading aware (generally, these are 
-L<PDL::PP> compiled functions) and that the piddles are "threaded" over.
+L<PDL::PP> compiled functions) and that the ndarrays are "threaded" over.
 So much about the terminology and now let's try to shed some light on what it
 all means.
 
@@ -773,8 +773,8 @@ all means.
 There are two slightly different variants of threading. We start
 with what we call "implicit threading". Let's pick a practical example
 that involves looping of a function over many elements of a
-piddle. Suppose we have an RGB image that we want to convert to
-grey-scale. The RGB image is represented by a 3-dim piddle C<im(3,x,y)> where
+ndarray. Suppose we have an RGB image that we want to convert to
+grey-scale. The RGB image is represented by a 3-dim ndarray C<im(3,x,y)> where
 the first dimension contains the three color components of each pixel and C<x>
 and C<y> are width and height of the image, respectively. Next we need to
 specify how to convert a color-triple at a given pixel into a
@@ -795,7 +795,7 @@ following to process the whole image:
 
  my @dims=$im->dims;
  # here normally check that first dim has correct size (3), etc
- $grey=zeroes(@dims[1,2]);   # make the piddle for the resulting grey image
+ $grey=zeroes(@dims[1,2]);   # make the ndarray for the resulting grey image
  $w = pdl [77,150,29] / 256; # the vector of weights
  for ($j=0;$j<dims[2];$j++) {
     for ($i=0;$i<dims[1];$i++) {
@@ -811,7 +811,7 @@ aware function defined in the L<PDL::Primitive> package)
  $grey = inner($im,pdl([77,150,29]/256));
 
 We have ended up with a one-liner that automatically
-creates the piddle C<$grey> with the right number and size of dimensions and
+creates the ndarray C<$grey> with the right number and size of dimensions and
 performs the loops automatically (these loops are implemented as fast C code
 in the internals of PDL).
 Well, we
@@ -823,7 +823,7 @@ The first thing to note is that every function that is threading aware
 (these are without exception functions compiled from concise
 descriptions by L<PDL::PP>, later just called PP-functions) expects a
 defined (minimum) number of dimensions (we call them core dimensions)
-from each of its piddle arguments. The L<inner|PDL::Primitive/inner> function
+from each of its ndarray arguments. The L<inner|PDL::Primitive/inner> function
 expects two one-dimensional (input) parameters from which it calculates a
 zero-dimensional (output) parameter. We write that symbolically as
 C<inner((n),(n),[o]())> and call it C<inner>'s I<signature>, where n
@@ -835,11 +835,11 @@ C<outer((n),(m),[o](n,m))>. The C<[o]> in both examples indicates that
 this (here third) argument is an output argument. In the latter
 example the dimensions of first and second argument don't have to
 agree but you see how they determine the size of the two dimensions of
-the output piddle.
+the output ndarray.
 
 Here is the point when threading finally enters the game. If you call
-PP-functions with piddles that have I<more> than the required core
-dimensions the first dimensions of the piddle arguments are used as the
+PP-functions with ndarrays that have I<more> than the required core
+dimensions the first dimensions of the ndarray arguments are used as the
 core dimensions and the additional extra dimensions are threaded
 over. Let us demonstrate this first with our example above
 
@@ -850,17 +850,17 @@ In this case $w is 1D and so supplied just the core dimension, C<$im> is
 required core dimension that matches (as required by inner) the first
 (and only) dimension of C<$w>. The second dimension is the first thread
 dimension (of size C<x>) and the third is here the second thread
-dimension (of size C<y>). The output piddle is automatically created (as
+dimension (of size C<y>). The output ndarray is automatically created (as
 requested by setting C<$grey> to "null" prior to invocation). The output
 dimensions are obtained by appending the I<loop dimensions> (here
 C<(x,y)>) to the core output dimensions (here 0D) to yield the final
-dimensions of the auto-created piddle (here C<0D+2D=2D> to yield a 2D
+dimensions of the auto-created ndarray (here C<0D+2D=2D> to yield a 2D
 output of size C<(x,y)>).
 
 So the above command calls the core functionality that computes the inner
 product of two 1D vectors C<x*y> times with C<$w> and all 1D slices of the
 form C<(':,(i),(j)')> of C<$im> and sets the respective elements of the
-output piddle C<$grey(i,j)> to the result of each computation. We could
+output ndarray C<$grey(i,j)> to the result of each computation. We could
 write that symbolically as
 
  $grey(0,0) = f($w,$im(:,(0),(0)))
@@ -872,15 +872,15 @@ write that symbolically as
  $grey(x-1,y-1) = f($w,$im(:,(x-1),(y-1)))
 
 But this is done automatically by PDL without writing any explicit
-Perl loops.  We see that the command really creates an output piddle with
+Perl loops.  We see that the command really creates an output ndarray with
 the right dimensions and sets the elements indeed to the result of the
 computation for each pixel of the input image.
 
-When even more piddles and extra dimensions are involved things get a bit
+When even more ndarrays and extra dimensions are involved things get a bit
 more complicated. We will first give the general rules how the thread
-dimensions depend on the dimensions of input piddles enabling you to
-figure out the dimensionality of an auto-created output piddle (for any
-given set of input piddles and core dimensions of the PP-function in
+dimensions depend on the dimensions of input ndarrays enabling you to
+figure out the dimensionality of an auto-created output ndarray (for any
+given set of input ndarrays and core dimensions of the PP-function in
 question). The general rules will most likely appear a bit confusing
 on first sight so that we'll set out to illustrate the usage with a set
 of further examples (which will hopefully also demonstrate that there
@@ -916,13 +916,13 @@ dimensions, purpose of the routine, etc ?
 =head2 How to figure out the loop dimensions
 
 There are a couple of rules that allow you to figure out number and
-size of loop dimensions (and if the size of your input piddles comply
-with the threading rules). Dimensions of any piddle argument are broken
+size of loop dimensions (and if the size of your input ndarrays comply
+with the threading rules). Dimensions of any ndarray argument are broken
 down into two groups in the following: Core dimensions (as defined by
 the PP-function, see B<Appendix B> for a list of PDL primitives) and
 extra dimensions which comprises all remaining dimensions of that
-piddle. For example calling a function C<func> with the signature
-C<func((n,m),[o](n))> with a piddle C<$x(2,4,7,1,3)> as C<f($x,($o = null))>
+ndarray. For example calling a function C<func> with the signature
+C<func((n,m),[o](n))> with an ndarray C<$x(2,4,7,1,3)> as C<f($x,($o = null))>
 results in the semantic splitting of x's dimensions into:
 core dimensions C<(2,4)> and extra dimensions C<(7,1,3)>.
 
@@ -931,53 +931,53 @@ core dimensions C<(2,4)> and extra dimensions C<(7,1,3)>.
 =item R0
 
 Core dimensions are identified with the first N dimensions of the
-respective piddle argument (and are required). Any further dimensions are
+respective ndarray argument (and are required). Any further dimensions are
 extra dimensions and used to determine the loop dimensions.
 
 =item R1
 
 The number of (implicit) loop dimensions is equal to the maximal
-number of extra dimensions taken over the set of piddle arguments.
+number of extra dimensions taken over the set of ndarray arguments.
 
 =item R2
 
 The size of each of the loop dimensions is derived from the size
-of the respective dimensions of the piddle arguments. The size of a
+of the respective dimensions of the ndarray arguments. The size of a
 loop dimension is given by the maximal size found in any of
-the piddles having this extra dimension.
+the ndarrays having this extra dimension.
 
 =item R3
 
-For all piddles that have a given extra dimension the size must be
+For all ndarrays that have a given extra dimension the size must be
 equal to the size of the loop dimension (as determined by the
 previous rule) or 1; otherwise you raise a runtime exception. If the
-size of the extra dimension in a piddle is one it is implicitly treated
+size of the extra dimension in an ndarray is one it is implicitly treated
 as a dummy dimension of size equal to that loop dim size when
 performing the thread loop.
 
 =item R4
 
-If a piddle doesn't have a loop dimension, in the thread loop this
-piddle is treated as if having a dummy dimension of size equal to the
+If an ndarray doesn't have a loop dimension, in the thread loop this
+ndarray is treated as if having a dummy dimension of size equal to the
 size of that loop dimension.
 
 =item R5
 
-If output auto-creation is used (by setting the relevant piddle to
+If output auto-creation is used (by setting the relevant ndarray to
 C<PDL-E<gt>null> before invocation) the number of dimensions of the created
-piddle is equal to the sum of the number of core output dimensions +
+ndarray is equal to the sum of the number of core output dimensions +
 number of loop dimensions. The size of the core output dimensions is
-derived from the relevant dimension of input piddles (as specified in the
+derived from the relevant dimension of input ndarrays (as specified in the
 function definition) and the sizes of the other dimensions are equal
 to the size of the loop dimension it is derived from. The
-automatically created piddle will be physical (unless dataflow is in
+automatically created ndarray will be physical (unless dataflow is in
 operation).
 
 =back
 
 In this context, note that you can run into the problem with
-assignment to piddles containing greater-than-one dummy dimensions (see above).
-Although your output piddle(s) didn't contain any dummy dimensions in the
+assignment to ndarrays containing greater-than-one dummy dimensions (see above).
+Although your output ndarray(s) didn't contain any dummy dimensions in the
 first place they may end up with implicitly created dummy dimensions
 according to I<R4>.
 
@@ -986,14 +986,14 @@ the signature:
 
  func((m,n),(m,n,o),(m),[o](m,o))
 
-and you call it with 3 piddles C<$x(5,3,10,11)>,
+and you call it with 3 ndarrays C<$x(5,3,10,11)>,
 C<$y(5,3,2,10,1,12)>, and C<$z(5,1,11,12)> as
 
  func($x,$y,$z,($d=null))
 
 then the number of loop dimensions is 3 (by C<R0+R1> from C<$y> and C<$z>) with
 sizes C<(10,11,12)> (by R2); the two output core dimensions are C<(5,2)>
-(from the signature of func) resulting in a 5-dimensional output piddle
+(from the signature of func) resulting in a 5-dimensional output ndarray
 C<$c> of size C<(5,2,10,11,12)> (see R5) and (the automatically created) C<$d>
 is derived from C<($x,$y,$z)> in a way that can be expressed in pdl
 pseudo-code as
@@ -1003,10 +1003,10 @@ pseudo-code as
 
 If we analyze the color to grey-scale conversion again with these rules
 in mind we note another great advantage of implicit threading.
-We can call the conversion with a piddle representing a pixel (C<im(3)>),
+We can call the conversion with an ndarray representing a pixel (C<im(3)>),
 a line of rgb pixels (C<im(3,x)>), a proper color image (C<im(3,x,y)>) or a
 whole stack of RGB images (C<im(3,x,y,z)>). As long as C<$im> is of the form
-C<(3,...)> the automatically created output piddle will contain the right
+C<(3,...)> the automatically created output ndarray will contain the right
 number of dimensions and contain the intensity data as we expect it
 since the loops have been implicitly performed thanks to I<implicit
 threading>. You can easily convince yourself that calling with a color
@@ -1041,12 +1041,12 @@ according to R4.
 More importantly, the two L<sumover|PDL::Ufunc/sumover> operations show
 a first example of how to make use of the dimension manipulating
 commands. A quick look at sumover's signature will remind you that
-it will only "gobble up" the first dimension of a given input piddle. But
+it will only "gobble up" the first dimension of a given input ndarray. But
 what if we want to really compute the sum over all elements of the
 first two dimensions? Well, nothing keeps us from passing a virtual
-piddle into sumover which in this case is formed by clumping the first
-two dimensions of the "parent piddle" into one. From the point of view of
-the parent piddle the sum is now computed over the first two dimensions,
+ndarray into sumover which in this case is formed by clumping the first
+two dimensions of the "parent ndarray" into one. From the point of view of
+the parent ndarray the sum is now computed over the first two dimensions,
 just as we wanted, though sumover has just done the job as specified
 by its signature. Got it ?
 
@@ -1057,8 +1057,8 @@ routine and get either just one x-coordiante or a vector of
 x-coordinates (of size t) in return.
 
 Another set of common operations are what one could call "projection
-operations". These operations take a N-D piddle as input and return a
-(N-1)-D "projected" piddle. These operations are often performed with
+operations". These operations take a N-D ndarray as input and return a
+(N-1)-D "projected" ndarray. These operations are often performed with
 functions like L<sumover|PDL::Ufunc/sumover>, 
 L<prodover|PDL::Ufunc/prodover>, L<minimum|PDL::Ufunc/minimum> and
 L<maximum|PDL::Ufunc/maximum>. 
@@ -1073,8 +1073,8 @@ But what if you want to calculate maxima per column when implicit
 threading always applies the core functionality to the first dimension
 and threads over all others? How can we achieve that instead the
 core functionality is applied to the second dimension and threading is
-done over the others. Can you guess it? Yes, we make a virtual piddle
-that has the second dimension of the "parent piddle" as its first
+done over the others. Can you guess it? Yes, we make a virtual ndarray
+that has the second dimension of the "parent ndarray" as its first
 dimension using the C<mv> command.
 
  # maxima of columns (as function of column number and time)
@@ -1088,12 +1088,12 @@ is now almost too easy
 
 Finally, if you want to apply the operation to all elements (like max over
 all elements or sum over all elements) regardless of the dimensions of
-the piddle in question C<clump> comes in handy. As an example look at the
+the ndarray in question C<clump> comes in handy. As an example look at the
 definition of C<sum> (as defined in C<Ufunc.pm>):
 
  sub sum {
    PDL::Ufunc::sumover($name->clump(-1),($tmp=null));
-   return $tmp->at(); # return a Perl number, not a 0D piddle
+   return $tmp->at(); # return a Perl number, not a 0D ndarray
  }
 
 We have already mentioned that all basic operations support threading
@@ -1116,7 +1116,7 @@ are going to use a PP-function we haven't encoutered yet in the previous
 examples. It is the aptly named L<index|PDL::Slices/index> function, signature
 C<((n),(),[o]())> (see B<Appendix B>) with the core functionality that
 C<index(pdl (0,2,4,5),2,($ret=null))> will return the element with index
-2 of the first input piddle. In this case, C<$ret> will contain the value 4.
+2 of the first input ndarray. In this case, C<$ret> will contain the value 4.
 So here is the example:
 
  # a threaded index lookup to generate an RGB, or RGBA or YMCK image
@@ -1173,8 +1173,8 @@ To wrap it all up once again, the general idea is as follows. If you
 want to achieve looping over certain dimensions and have the I<core functionality>
 applied to another specified set of dimensions you use
 the dimension manipulating commands to create a (or several)
-I<virtual> piddle(s) so that from the point of view of the I<parent>
-piddle(s) you get what you want (always having the signature of the
+I<virtual> ndarray(s) so that from the point of view of the I<parent>
+ndarray(s) you get what you want (always having the signature of the
 function in question and R1-R5 in mind!). Easy, isn't it ?
 
 =head2 Output auto-creation and PP-function calling conventions
@@ -1192,14 +1192,14 @@ and
 
 If you are only using implicit threading then the output variable can
 be automatically created by PDL. You flag that to the PP-function by
-setting the output argument to a special kind of piddle that is returned
+setting the output argument to a special kind of ndarray that is returned
 from a call to the function C<PDL-E<gt>null> that returns an essentially
-"empty" piddle (for those interested in details there is a flag
+"empty" ndarray (for those interested in details there is a flag
 in the C pdl structure for this). The dimensions
-of the created piddle are determined by the rules of implicit
+of the created ndarray are determined by the rules of implicit
 threading: the first dimensions are the core output dimensions to
 which the threading dimensions are appended (which are in turn
-determined by the dimensions of the input piddles as described above).
+determined by the dimensions of the input ndarrays as described above).
 So you can say
 
  func($x,$y,($result=PDL->null));
@@ -1215,10 +1215,10 @@ explicit threading (for reasons explained in the following section on
 B<explicit threading>, the second variant of threading).
 
 In "tight" loops you probably want to avoid the implicit creation of a
-temporary piddle in each step of the loop that comes along with the
+temporary ndarray in each step of the loop that comes along with the
 "functional" style but rather say
 
- # create output piddle of appropriate size only at first invocation
+ # create output ndarray of appropriate size only at first invocation
  $result = null;  
  for (0...$n) {
       func($x,$y,$result); # in all but the first invocation $result
@@ -1257,7 +1257,7 @@ usage of the former:
  pdl> ($tmp = $mat->thread(0)) += $line
 
 In this example, C<$mat-E<gt>thread(0)> tells PDL that you want the second
-dimension of this piddle to be threaded over first leading to a thread
+dimension of this ndarray to be threaded over first leading to a thread
 loop that can be expressed as
 
  for (j=0; j<3; j++) {
@@ -1268,26 +1268,26 @@ loop that can be expressed as
 
 C<thread> takes a list of numbers as arguments which explicitly
 specify which dimensions to thread over first. With the introduction
-of explicit threading the dimensions of a piddle are conceptually split into
+of explicit threading the dimensions of an ndarray are conceptually split into
 three different groups the latter two of which we have already
 encountered: thread dimensions, core dimensions and extra dimensions.
 
-Conceptually, it is best to think of those dimensions of a piddle that
+Conceptually, it is best to think of those dimensions of an ndarray that
 have been specified in a call to C<thread> as being taken away from
 the set of normal dimensions and put on a separate stack. So assuming
-we have a piddle C<x(4,7,2,8)> saying
+we have an ndarray C<x(4,7,2,8)> saying
 
  $y = $x->thread(2,1)
 
-creates a new virtual piddle of dimension C<y(4,8)> (which we call the
+creates a new virtual ndarray of dimension C<y(4,8)> (which we call the
 remaining dims) that also has 2 thread dimensions of size C<(2,7)>. For
 the purposes of this document we write that symbolically as
 C<y(4,8){2,7}>. An important difference to the previous examples where
 only implicit threading was used is the fact that the core dimensions
 are matched against the I<remaining dimensions> which are not
-necessarily the first dimensions of the piddle. We will now specify how
+necessarily the first dimensions of the ndarray. We will now specify how
 the presence of thread dimensions changes the rules R1-R5 for
-thread loops (which apply to the special case where none of the piddle
+thread loops (which apply to the special case where none of the ndarray
 arguments has any thread dimensions).
 
 =over 4
@@ -1295,19 +1295,19 @@ arguments has any thread dimensions).
 =item T0
 
 Core dimensions are matched against the first n I<remaining dimensions>
-of the piddle argument (note the difference to R1). Any
+of the ndarray argument (note the difference to R1). Any
 further I<remaining dimensions> are I<extra dimensions> and are used
 to determine the I<implicit loop dimensions>.
 
 =item T1a
 
 The number of I<implicit loop dimensions> is equal to the maximal
-number of extra dimensions taken over the set of piddle arguments.
+number of extra dimensions taken over the set of ndarray arguments.
 
 =item T1b
 
 The number of I<explicit loop dimensions> is equal to the maximal
-number of thread dimensions taken over the set of piddle arguments.
+number of thread dimensions taken over the set of ndarray arguments.
 
 =item T1c
 
@@ -1319,43 +1319,43 @@ followed by I<implicit loop dimensions>.
 =item T2
 
 The size of each of the I<loop dimensions> is derived from the size of
-the respective dimensions of the piddle arguments. It is given by the
-maximal size found in any piddles having this thread dimension (for
+the respective dimensions of the ndarray arguments. It is given by the
+maximal size found in any ndarrays having this thread dimension (for
 I<explicit loop dimensions>) or extra dimension (for
 I<implicit loop dimensions>).
 
 =item T3
 
 This rule applies to any I<explicit loop dimension> as well as any
-I<implicit loop dimension>. For all piddles that have a given
+I<implicit loop dimension>. For all ndarrays that have a given
 I<thread/extra dimension> the size must be equal to the size of the
 respective I<explicit/implicit loop dimension> or 1; otherwise you
 raise a runtime exception. If the size of a I<thread/extra dimension>
-of a piddle is one it is implicitly treated as a dummy
+of an ndarray is one it is implicitly treated as a dummy
 dimension of size equal to the I<explicit/implicit loop dimension>.
 
 =item T4
 
-If a piddle doesn't have a I<thread/extra dimension> that corresponds to
+If an ndarray doesn't have a I<thread/extra dimension> that corresponds to
 an I<explicit/implicit loop dimension>, in the thread loop this
-piddle is treated as if having a dummy dimension of size equal to the
+ndarray is treated as if having a dummy dimension of size equal to the
 size of that loop dimension.
 
 =item T4a
 
-All piddles that do have I<thread dimensions> must have the same number of
+All ndarrays that do have I<thread dimensions> must have the same number of
 thread dimensions.
 
 =item T5
 
-Output auto-creation cannot be used if any of the piddle arguments has any
+Output auto-creation cannot be used if any of the ndarray arguments has any
 I<thread dimensions>. Otherwise R5 applies.
 
 =back
 
 The same restrictions apply with regard to implicit dummy dimensions
 (created by application of T4) as already mentioned in the section
-on implicit threading: if any of the output piddles has an (explicit or
+on implicit threading: if any of the output ndarrays has an (explicit or
 implicitly created) greater-than-one dummy dimension a runtime
 exception will be raised.
 
@@ -1365,13 +1365,13 @@ the signature:
 
  func((m,n),(m),(),[o](m))
 
-and you call it with 3 piddles C<a(5,3,10,11)>, C<b(3,5,10,1,12)>, C<c(10)> and an
-output piddle C<d(3,11,5,10,12)> (which can here I<not> be automatically
+and you call it with 3 ndarrays C<a(5,3,10,11)>, C<b(3,5,10,1,12)>, C<c(10)> and an
+output ndarray C<d(3,11,5,10,12)> (which can here I<not> be automatically
 created) as
 
  func($x->thread(1,3),$y->thread(0,3),$c,$d->thread(0,1))
 
-From the signature of func and the above call the piddles split into
+From the signature of func and the above call the ndarrays split into
 the following groups of core, extra and thread dimensions (written in
 the form C<pdl(core dims){thread dims}[extra dims]>):
 
@@ -1383,7 +1383,7 @@ want to keep track of what is going on) we further deduce
 that the number of explicit loop dimensions is 2 (by T1b from C<$a> and C<$b>)
 with sizes C<(3,11)> (by T2); 2 implicit loop dimensions (by T1a from C<$b>
 and C<$d>) of size C<(10,12)> (by T2) and the elements of are computed from
-the input piddles in a way that can be expressed in pdl pseudo-code as
+the input ndarrays in a way that can be expressed in pdl pseudo-code as
 
  for (l=0;l<12;l++)
   for (k=0;k<10;k++)
@@ -1429,7 +1429,7 @@ Example 2:
  # when using explicit threading
  $res=zeroes(($x->dims)[0],($y->dims)[0]);
  my_biop1($x->thread(0,-1),$y->thread(-1,0),$res->(0,1),"*");
- # similar thing by implicit threading with auto-created piddle
+ # similar thing by implicit threading with auto-created ndarray
  $res = $x->dummy(1) * $y->dummy(0);
 
 
@@ -1440,7 +1440,7 @@ Example 3:
 
 
  # use thread/unthread to shuffle dimensions around
- # just try it out and compare the child piddle with its parent
+ # just try it out and compare the child ndarray with its parent
  $trans = $x->thread(4,1,0,3,2)->unthread;
 
 Example 4:
@@ -1459,7 +1459,7 @@ Example 5:
  # uses explicit threading and an implicitly threaded division
  $stack = read_image_stack();
  # calculate the average (per pixel average) of the first $n+1 images
- $aver = zeroes([stack->dims]->[0,1]);  # make the output piddle
+ $aver = zeroes([stack->dims]->[0,1]);  # make the output ndarray
  sumover($stack->slice(":,:,0:$n")->thread(0,1),$aver);
  $aver /= ($n+1);
  $stack /= $aver;  # normalize the stack by doing a threaded division

@@ -9,15 +9,15 @@ we don't recommend storing extra object data in the header hash?]
 
 =head2 Inheritance
 
-There are basically two reasons for subclassing piddles.
+There are basically two reasons for subclassing ndarrays.
 The first is simply that you want to be able to use your own routines
 like
 
-	$piddle->something()
+	$ndarray->something()
 
 but don't want to mess up the PDL namespace (a worthy goal, indeed!).
 The other is that you wish to provide special handling of some functions
-or more information about the data the piddle contains.
+or more information about the data the ndarray contains.
 In the first case, you can do with
 
 	package BAR;
@@ -55,7 +55,7 @@ C<PDL> attribute is used by perlDL to store the PDL object and
 all PDL methods use this attribute automatically if they are called
 with a blessed hash reference instead of a PDL object (a blessed scalar).
 
-Do remember that if you subclass a class that is subclassed from a piddle,
+Do remember that if you subclass a class that is subclassed from an ndarray,
 you need to call SUPER::initialize.
 
 

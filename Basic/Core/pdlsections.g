@@ -85,7 +85,7 @@ PDL_Anyval pdl_at0( pdl* it ) {
     PDL_Indx dummyi = 1;
     pdl_make_physvaffine( it );
     if (it->nvals < 1)
-       croak("piddle must have at least one element");
+       croak("ndarray must have at least one element");
     return pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
             &dummyi, PDL_REPROFFS(it),1);
 }

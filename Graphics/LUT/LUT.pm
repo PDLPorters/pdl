@@ -73,7 +73,7 @@ returned.
 If not supplied, C<$ramp> defaults to B<"ramp"> 
 (this is a linear intensity ramp).
 
-The returned values are piddles containing values in the range
+The returned values are ndarrays containing values in the range
 0 to 1 inclusive, and are floats.
 
 =head1 VARIABLES

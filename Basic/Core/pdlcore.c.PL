@@ -268,10 +268,10 @@ print OUT <<'!NO!SUBS!';
 
         /* This is the magic hook which checks to see if {PDL}
         is a code ref, and if so executes it. It should
-        return a standard piddle. This allows
+        return a standard ndarray. This allows
         all kinds of funky objects to be derived from PDL,
         and allow normal PDL functions to still work so long
-        as the {PDL} code returns a standard piddle on
+        as the {PDL} code returns a standard ndarray on
         demand - KGB */
 
         if (SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVCV) {
@@ -337,7 +337,7 @@ print OUT <<'!NO!SUBS!';
 
     /* Final check -- make sure it has the right magic number */
     if(ret->magicno != PDL_MAGICNO) {
-        croak("Fatal error: argument is probably not a piddle, or\
+        croak("Fatal error: argument is probably not an ndarray, or\
  magic no overwritten. You're in trouble, guv: %p %p %lu\n",sv2,ret,ret->magicno);
    }
 
@@ -560,11 +560,11 @@ GEN_PDL_BARF_OR_WARN_LEGACY(warn, 1)
  *  Scalars, array refs, and PDLs may be mixed in the incoming AV.
  *
  *  The routine works out the dimensions of a corresponding
- *  piddle (in the AV dims) in reverse notation (vs PDL conventions).
+ *  ndarray (in the AV dims) in reverse notation (vs PDL conventions).
  *
  *  It does not enforce a rectangular array on the input, the idea being that
- *  omitted values will be set to zero or the undefval in the resulting piddle,
- *  i.e. we can make piddles from 'sparse' array refs.
+ *  omitted values will be set to zero or the undefval in the resulting ndarray,
+ *  i.e. we can make ndarrays from 'sparse' array refs.
  *
  *  Empty PDLs are treated like any other dimension -- i.e. their 
  *  0-length dimensions are thrown into the mix just like nonzero 
@@ -772,7 +772,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 
   {
     /******
-     * Copy the undefval to fill empty spots in the piddle...
+     * Copy the undefval to fill empty spots in the ndarray...
      */
     SV *sv = get_sv("PDL::undefval",0);
     if ((!sv) || (sv==&PL_sv_undef)) {

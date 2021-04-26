@@ -30,19 +30,19 @@ There is also a beginner's portal (L<http://perl-begin.org>).
 Perl's module repository is called CPAN (L<http://www.cpan.org>) and it
 has a vast array of modules. Run C<perldoc cpan> for more information.
 
-=head1 TERMINOLOGY: PIDDLE
+=head1 TERMINOLOGY: NDARRAY
 
 Scilab typically refers to vectors, matrices, and arrays. Perl already
 has arrays, and the terms "vector" and "matrix" typically refer to one-
 and two-dimensional collections of data. Having no good term to describe
-their object, PDL developers coined the term "I<piddle>" to give a name to
+their object, PDL developers coined the term "I<ndarray>" to give a name to
 their data type.
 
-A I<piddle> consists of a series of numbers organized as an N-dimensional
-data set. Piddles provide efficient storage and fast computation of large
+A I<ndarray> consists of a series of numbers organized as an N-dimensional
+data set. ndarrays provide efficient storage and fast computation of large
 N-dimensional matrices. They are highly optimized for numerical work.
 
-For more information, see "B<Piddles vs Perl Arrays>" later in this document.
+For more information, see "B<ndarrays vs Perl Arrays>" later in this document.
 
 =head1 COMMAND WINDOW AND IDE
 
@@ -69,7 +69,7 @@ PDL program:
   use PDL::NiceSlice;  # Import additional PDL module.
   
   $y = pdl [2,3,4];              # Statements end in semicolon.
-  $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional piddle.
+  $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional ndarray.
   
   print $A x $y->transpose;
 
@@ -162,7 +162,7 @@ PerlDL:
 
 
 
-=head2 Creating Piddles
+=head2 Creating ndarrays
 
 =over 5
 
@@ -175,7 +175,7 @@ Variables always start with the '$' sign.
 
 =item Basic syntax
 
-Use the "pdl" constructor to create a new I<piddle>.
+Use the "pdl" constructor to create a new I<ndarray>.
 
  Scilab:    v  = [1,2,3,4]
  PerlDL:    $v = pdl [1,2,3,4]
@@ -224,7 +224,7 @@ to use parentheses to make your code unambiguous.
   PerlDL:   pdl> p zeroes(5)->xlinvals(2,10)
             [2 4 6 8 10]
 
-B<Explanation>: Start with a 1-dimensional piddle of 5 elements and give
+B<Explanation>: Start with a 1-dimensional ndarray of 5 elements and give
 it equally spaced values from 2 to 10.
 
 Scilab has a single function call for this. On the other hand, PDL's
@@ -375,7 +375,7 @@ PDL offers two functions for each feature.
   min   vs   minimum
 
 The B<long name> works over a dimension, while the B<short name>
-works over the entire piddle.
+works over the entire ndarray.
 
   pdl> p $A = pdl [ [1,5,4] , [4,2,1] ]
   [
@@ -397,7 +397,7 @@ works over the entire piddle.
 A related issue is how Scilab and PDL understand data sets of higher
 dimension. Scilab was designed for 1D vectors and 2D matrices with
 higher dimensional objects added on top. In contrast, PDL was designed
-for N-dimensional piddles from the start. This leads to a few surprises
+for N-dimensional ndarrays from the start. This leads to a few surprises
 in Scilab that don't occur in PDL:
 
 =over 5
@@ -438,8 +438,8 @@ as a 1D vector: A single dimension of size 4.
 =item Feature support.
 
 In Scilab, several features are not available for N-D arrays. In PDL,
-just about any feature supported by 1D and 2D piddles, is equally
-supported by N-dimensional piddles. There is usually no distinction:
+just about any feature supported by 1D and 2D ndarrays, is equally
+supported by N-dimensional ndarrays. There is usually no distinction:
 
   Scilab                       PerlDL
   ------                       ------
@@ -474,14 +474,14 @@ and L<PDL::PP>.
 
 Likewise, never use C<1..10> for numerical work, even outside a for-loop.
 C<1..10> is a Perl array. Perl arrays are designed for flexibility, not
-speed. Use I<piddles> instead. To learn more, see the next section.
+speed. Use I<ndarrays> instead. To learn more, see the next section.
 
 =back
 
 
-=head2 Piddles vs Perl Arrays
+=head2 ndarrays vs Perl Arrays
 
-It is important to note the difference between a I<Piddle> and a Perl
+It is important to note the difference between a I<ndarray> and a Perl
 array. Perl has a general-purpose array object that can hold any
 type of element:
 
@@ -491,7 +491,7 @@ type of element:
 
 Perl arrays allow you to create powerful data structures (see
 B<Data structures> below), B<but they are not designed for numerical work>.
-For that, use I<piddles>:
+For that, use I<ndarrays>:
 
   $pdl = pdl [ 1, 2, 3, 4 ];
   $pdl = sequence 10_000_000; 
@@ -661,7 +661,7 @@ structure that can contain any data type.
 
 
 Notice that Perl array's start with the "@" prefix instead of the "$" used by
-piddles.
+ndarrays.
 
 I<To learn about Perl arrays, please go to L<http://perldoc.perl.org/perldata.html>
 or run the command C<perldoc perldata>.>
@@ -678,12 +678,12 @@ Perl hashes are similar to Scilab's structure arrays:
   
   PerlDL
   ------
-  pdl> %drink = ( type => 'coke' , size => 'large', mypiddle => ones(3,3,3) )
+  pdl> %drink = ( type => 'coke' , size => 'large', myndarray => ones(3,3,3) )
   pdl> $drink{type} = 'sprite'
   pdl> $drink{price} = 12   # Add new field to hash.
 
 Notice that Perl hashes start with the "%" prefix instead of the "@" for
-arrays and "$" used by piddles.
+arrays and "$" used by ndarrays.
 
 I<To learn about Perl hashes, please go to L<http://perldoc.perl.org/perldata.html>
 or run the command C<perldoc perldata>.>

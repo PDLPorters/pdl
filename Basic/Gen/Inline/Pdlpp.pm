@@ -503,7 +503,7 @@ to include an C<Inline-E<gt>init> call in your script, e.g.
 There is currently an undesired interaction between
 L<PDL::NiceSlice> and C<Inline::Pdlpp>.
 Since PP code generally contains expressions
-of the type C<$var()> (to access piddles, etc)
+of the type C<$var()> (to access ndarrays, etc)
 L<PDL::NiceSlice> recognizes those incorrectly as
 slice expressions and does its substitutions. For the moment
 (until hopefully the parser can deal with that) it is best to

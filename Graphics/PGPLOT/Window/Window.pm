@@ -81,7 +81,7 @@ Device manipulation commands:
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
-zero-offset. The L<transform()|/transform> routine can be used to create this piddle.
+zero-offset. The L<transform()|/transform> routine can be used to create this ndarray.
 
 For completeness: The transformation array connect the pixel index to a
 world coordinate such that:
@@ -101,10 +101,10 @@ checks the dimensionality of the input data. If there are superfluous
 dimensions of size 1 they will be trimmed away until the dimensionality
 is correct. Example:
 
-Assume a piddle with dimensions (1,100,1,1) is passed to C<line>, which
-expects its inputs to be vectors. C<checkarg> will then return a piddle
-with dimensions (100). If instead the same piddle was passed to C<imag>,
-which requires 2D piddles as output, C<checkarg> would return a piddle
+Assume an ndarray with dimensions (1,100,1,1) is passed to C<line>, which
+expects its inputs to be vectors. C<checkarg> will then return an ndarray
+with dimensions (100). If instead the same ndarray was passed to C<imag>,
+which requires 2D ndarrays as output, C<checkarg> would return an ndarray
 with dimensionality (100, 1) (Dimensions are removed from the I<start>)
 
 Thus, if you want to provide support for another PGPLOT function, the
@@ -336,7 +336,7 @@ the default colour map):
  16 - LIGHTGRAY
 
 However there is a much more flexible mechanism to deal with colour.
-The colour can be set as a 3 or 4 element anonymous array (or piddle)
+The colour can be set as a 3 or 4 element anonymous array (or ndarray)
 which gives the RGB colours. If the array has four elements the first
 element is taken to be the colour index to change. For normal work you
 might want to simply use a 3 element array with R, G and B values and
@@ -426,7 +426,7 @@ with the key ANGLE to set the angle that the hatch lines will make
 with the horizontal, SEPARATION to set the spacing of the hatch lines
 in units of 1% of C<min(height, width)> of the view surface, and PHASE to
 set the offset the hatching. Alternatively this can be specified as a
-1x3 piddle C<$hatch=pdl[$angle, $sep, $phase]>.
+1x3 ndarray C<$hatch=pdl[$angle, $sep, $phase]>.
 
  $opt = {FILLTYPE => 'HATCHED',
          HATCHING => {ANGLE=>30, SEPARATION=>4}};
@@ -1051,7 +1051,7 @@ NOTES
 C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
 fortunately, zero-offset. The L<transform()|/transform> routine can be used to
-create this piddle.
+create this ndarray.
 
 If C<$image> is two-dimensional, you get a grey or pseudocolor image
 using the scalar values at each X,Y point.  If C<$image> is
@@ -1460,13 +1460,13 @@ Plot a list of vectors as discrete sets of connected points
 
 This works much like L</line>, but for discrete sets of connected
 points.  There are two ways to break lines: you can pass in x/y coordinates
-just like in L</line>, but with an additional C<pen> piddle that
+just like in L</line>, but with an additional C<pen> ndarray that
 indicates whether the pen is up or down on the line segment following
 each point (so you set it to zero at the end of each line segment you
 want to draw);  or you can pass in an array ref containing a list
 of single polylines to draw.
 
-Happily, there's extra meaning packed into the C<pen> piddle: it
+Happily, there's extra meaning packed into the C<pen> ndarray: it
 multiplies the COLO(U)R that you set, so if you feed in boolean
 values you get what you expect -- but you can also feed in integer
 or floating-point values to get multicolored lines.
@@ -1515,7 +1515,7 @@ Plot vector as points
 
 Options recognised:
 
-   SYMBOL - Either a piddle with the same dimensions as $x, containing
+   SYMBOL - Either an ndarray with the same dimensions as $x, containing
             the symbol associated to each point or a number specifying
             the symbol to use for every point, or a name specifying the
             symbol to use according to the following (recognised name in
@@ -1599,11 +1599,11 @@ Display image as contour map
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
 fortunately, zero-offset. The L<transform()|/transform> routine can be used to
-create this piddle.
+create this ndarray.
 
 Options recognised:
 
-    CONTOURS - A piddle with the contour levels
+    CONTOURS - A ndarray with the contour levels
       FOLLOW - Follow the contour lines around (uses pgcont rather than
                pgcons) If this is set >0 the chosen linestyle will be
                ignored and solid line used for the positive contours
@@ -1875,7 +1875,7 @@ Display 2 images as a vector field
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
 fortunately, zero-offset. The L<transform()|/transform> routine can be used to
-create this piddle.
+create this ndarray.
 
 This routine will plot a vector field. C<$x> is the horizontal component
 and C<$y> the vertical component.  The scale factor converts between
@@ -1908,7 +1908,7 @@ The following standard options influence this command:
 
 =for ref
 
-Display a pair of 2-D piddles as vectors, with FITS header interpretation
+Display a pair of 2-D ndarrays as vectors, with FITS header interpretation
 
 =for usage
 
@@ -2051,7 +2051,7 @@ Example:
  $h={justify => 1,Color => ['red','green','blue'], filltype => ['solid','outline','hatched','cross_hatched']};
  tcircle($x, $y, $r, $h);
 
-Note that C<$x> and C<$y> must be the same size (>1D is OK, though meaningless as far as C<tcircle> is concerned). C<$r> can be the same size as C<$x> OR a 1-element piddle OR a single perl scalar.
+Note that C<$x> and C<$y> must be the same size (>1D is OK, though meaningless as far as C<tcircle> is concerned). C<$r> can be the same size as C<$x> OR a 1-element ndarray OR a single perl scalar.
 
 =head2 Text routines
 
@@ -3406,7 +3406,7 @@ sub _checkarg {			# Check/alter arguments utility
   $arg = convert($arg,$type) if $arg->get_datatype != $type;
   if (($arg->getndims > $dims)) {
     # Get the dimensions, find out which are == 1. If it helps
-    # chuck these off and return trimmed piddle.
+    # chuck these off and return trimmed ndarray.
     my $n=nelem(which(pdl($arg->dims)==1));
     if (($arg->getndims-$n) > $dims) {
       $ok = 0;
@@ -4175,7 +4175,7 @@ information on the Representation of World Coordinate Systems in FITS.
 	    unless defined $_FITS_tr_opt;
 	my $user_opts = $_FITS_tr_opt->options( $opts );
 
-	# Can either be sent a piddle or a hash reference for the header
+	# Can either be sent an ndarray or a hash reference for the header
 	# information
 	#
 	my $isapdl = UNIVERSAL::isa($pdl,'PDL');
@@ -4597,7 +4597,7 @@ sub env {
 	    $yref_pix = ($y_pix - 1)/2;
 	}
 
-	# The elements of the transform piddle,
+	# The elements of the transform ndarray,
 	# here labelled t0 to t5, relate to the
 	# following maxtix equation:
 	#
@@ -4837,7 +4837,7 @@ EOD
 
     # loop over input data; skip undefined values, as they are
     # used to flag missing error bars.  all data should have the
-    # same dims as the first piddle.
+    # same dims as the first ndarray.
     for ( my $i = 0 ; $i < @t ; $i++ )
       {
 	next if ! defined $t[$i];
@@ -5185,7 +5185,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       my($c) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
       my($d) = (ref $in->[1] eq 'ARRAY') ? $in->[1] : [$in->[1]];
 
-      release_and_barf " lines: \$xy must be a piddle\n"
+      release_and_barf " lines: \$xy must be an ndarray\n"
 	unless(UNIVERSAL::isa($c->[0],'PDL'));
 
       if(  ( ref $in->[0] ne ref $in->[1] ) ||
@@ -5341,7 +5341,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 
 	  $pos += $rl;
 	  $run++;
-      } # end of within-piddle polyline loop
+      } # end of within-ndarray polyline loop
   } # end of array ref loop
 
     pgslw($lw); # undo incredible shrinking line width$
@@ -6572,7 +6572,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     # Ok if we got this far it is about time to do something useful,
-    # namely construct the piddle that contains the sides of the rectangle.
+    # namely construct the ndarray that contains the sides of the rectangle.
 
     # We make it first parallell to the coordinate axes around origo
     # and rotate it subsequently (ala the ellipse routine above).
@@ -6626,7 +6626,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
     $pos = $o->{Position} if exists($u_opt->{Scale});
     $tr = $o->{Transform} if exists($u_opt->{Transform});
     $misval = $o->{Missing} if exists($u_opt->{Missing});
-    #What if there's no Missing option supplied and one of the input piddles
+    #What if there's no Missing option supplied and one of the input ndarrays
     #contain zero? Then that location will have no arrow, instead of a
     #horizontal or vertical line. So define $misval, but make it meaningless:
     $misval = 1 + $x->glue(0,$y)->flat->maximum unless defined $misval; #DAL added 02-Jan-2006

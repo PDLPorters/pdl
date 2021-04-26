@@ -48,7 +48,7 @@ typedef struct pdl_thread {
 	pdl **pdls;
         char *flags;    /* per pdl flags */
         int mag_nth;    /* magicked thread dim */
-        int mag_nthpdl; /* magicked piddle */
+        int mag_nthpdl; /* magicked ndarray */
         int mag_nthr;   /* number of threads */
 } pdl_thread;
 

@@ -53,12 +53,12 @@ ok(tapprox($x->real,-$ref), 'value from real scalar - i');
 $ref = pdl([[-2,1],[-3,1]]);
 $x = i - pdl(2,3);
 
-ok(ref $x eq PDL::Complex, 'type promotion i - real piddle');
-ok(tapprox($x->real,$ref), 'value from i - real piddle');
+ok(ref $x eq PDL::Complex, 'type promotion i - real ndarray');
+ok(tapprox($x->real,$ref), 'value from i - real ndarray');
 
 $x = pdl(2,3) - i;
-ok(ref $x eq PDL::Complex, 'type promotion real piddle - i');
-ok(tapprox($x->real,-$ref), 'value from real piddle - i');
+ok(ref $x eq PDL::Complex, 'type promotion real ndarray - i');
+ok(tapprox($x->real,-$ref), 'value from real ndarray - i');
 
 # dataflow from complex to real
 $ar = $x->real;
@@ -280,7 +280,7 @@ ok(tapprox($y->prod->real, $y->prodover->real),
      local $TODO = "Known_problems sf.net bug #1176614" if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} );
 
 
-   # Check stringification of complex piddle
+   # Check stringification of complex ndarray
    # This is sf.net bug #1176614
    my $c =  9.1234 + 4.1234*i;
    my $c211 = $c->dummy(2,1);

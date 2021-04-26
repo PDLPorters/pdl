@@ -398,7 +398,7 @@ ok($@ =~ m/out of bounds/);
 
 for my $start (0, 4, -4, 20, -20) {
 	for my $stop (0, 4, -4, 20, -20) {
-		# Generate a simple data piddle and a bad slice of that piddle
+		# Generate a simple data ndarray and a bad slice of that ndarray
 		my $data = sequence(10);
 		my $slice = $data->slice("$start:$stop");
 

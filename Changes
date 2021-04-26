@@ -190,7 +190,7 @@ General Notes:
 
  Highlights:
 
- * cat returns a piddle of the highest input type, not
+ * cat returns an ndarray of the highest input type, not
    the first.
 
  * The 'thresh' options in fitwarp2d has been removed.
@@ -344,7 +344,7 @@ General Notes:
     421	  PDL::IO::FITS can't handle 64-bit integers (longlong, indx)
     422	  PDL misc. compiler warnings.
     423	  wcols FORMAT option always incorrectly gives error
-    424	  Calling PDL on a list of piddles fails to propogate bad values
+    424	  Calling PDL on a list of ndarrays fails to propogate bad values
     425	  svd is broken for everything but 2x2 matrices
     ---	  Typo in PDL::GSLSF::COUPLING routine gsl_sf_coupling_6j
 
@@ -364,7 +364,7 @@ General Notes:
  * One can now use $pdlc = pdl($pdla,$pdlb) when $pdla and/or $pdlb
    have BAD values and the BAD values will propagate to
    $pdlc. Previously this would only work with a copy of a single
-   piddle (e.g., $pdlc = pdl($pdla) ) or with 'cat'.
+   ndarray (e.g., $pdlc = pdl($pdla) ) or with 'cat'.
 
  * Many changes have been made to make PDL compile more cleanly and
    emit fewer compiler warnings.
@@ -432,7 +432,7 @@ General Notes:
     421	  PDL::IO::FITS can't handle 64-bit integers (longlong, indx)
     422	  PDL misc. compiler warnings.
     423	  wcols FORMAT option always incorrectly gives error
-    424	  Calling PDL on a list of piddles fails to propogate bad values
+    424	  Calling PDL on a list of ndarrays fails to propogate bad values
     425	  svd is broken for everything but 2x2 matrices
     ---	  Typo in PDL::GSLSF::COUPLING routine gsl_sf_coupling_6j
 
@@ -441,7 +441,7 @@ General Notes:
   * One can now use $pdlc = pdl($pdla,$pdlb) when $pdla and/or $pdlb
     have BAD values and the BAD values will propagate to
     $pdlc. Previously this would only work with a copy of a single
-    piddle (e.g., $pdlc = pdl($pdla) ) or with 'cat'.
+    ndarray (e.g., $pdlc = pdl($pdla) ) or with 'cat'.
 
   * Many changes have been made to make PDL compile more cleanly and
     emit fewer compiler warnings.
@@ -551,10 +551,10 @@ General Notes:
 
   * PDL::whichND returns PDLs of Indx type, to avoid overflows.
 
-  * Empty piddles are handled slightly differently now by
-    PDL::info and `help vars'.  Empty piddles are different
-    from null piddles, and now generate different info strings.
-    (null piddles lack data or dimensions; empty piddles have
+  * Empty ndarrays are handled slightly differently now by
+    PDL::info and `help vars'.  Empty ndarrays are different
+    from null ndarrays, and now generate different info strings.
+    (null ndarrays lack data or dimensions; empty ndarrays have
     at least one dimension of size 0).
     
   * PDL::Fit::LM:
@@ -604,14 +604,14 @@ Highlights:
  * Fix missing PDL license information
 
  * Fix sf.net bug #403: reshape() failed when applied to a
-   piddle with dataflow.  Now, changing the shape of a PDL
+   ndarray with dataflow.  Now, changing the shape of a PDL
    that already has dataflow is prevented and an error message
    given.
 
  * Fix sf.net bug 406 Added missing logic for clump(-N) and minor
    cleanup of perl wrapper.
 
- * force new_pdl_from_string to return a piddle with P=physical flag
+ * force new_pdl_from_string to return an ndarray with P=physical flag
 
  * Add $PDL::indxformat for PDL_Indx This avoids loss of
    significance when 64bit PDL_Indx values are printed.
@@ -678,9 +678,9 @@ Highlights:
    addition pdl(indx, '[ 9007199254740992 ]') works as well
    going the other direction.
 
- * Fix sf.net bug 403: reshape can't handle piddles with -C flag
+ * Fix sf.net bug 403: reshape can't handle ndarrays with -C flag
 
-   reshape() on a piddle with dataflow isn't meaningful.
+   reshape() on an ndarray with dataflow isn't meaningful.
    Now a warning is given.  You can $pdl->sever first
    and then reshape() can be applied.
    
@@ -688,7 +688,7 @@ Highlights:
 
  * Various build improvments and documentation fixes:
 
-   - force new_pdl_from_string to return a piddle with P=physical flag
+   - force new_pdl_from_string to return an ndarray with P=physical flag
    - remove spurious '}' from gnuplot demo
    - Basic/Ops/ops.pd - make compatible with MSVC++ 6.0
    - Fix win10 breakage in t/flexraw_fortran.t
@@ -705,10 +705,10 @@ General Notes:
    64bit indexing operations using 64bit PDL_Indx
    data type.
 
- * PDL can now create and use piddles having more
+ * PDL can now create and use ndarrays having more
    than 2**32 elements.  Of particular use is that
    you can now use PDL::IO::FlexRaw to memory map
-   piddles from files on disk which can allow for
+   ndarrays from files on disk which can allow for
    simplified processing and IO on extremely large
    data.
 
@@ -811,7 +811,7 @@ General Notes:
    is the fifth CPAN developers release for PDL with
    newly completed support for 64bit indexing.
  
- * Needs testing for piddles with more than 2**32
+ * Needs testing for ndarrays with more than 2**32
    elements but all checks pass so far.
 
 
@@ -829,7 +829,7 @@ General Notes:
    developers release for PDL with newly completed
    support for 64bit indexing.
  
- * Needs testing for piddles with more than 2**32
+ * Needs testing for ndarrays with more than 2**32
    elements but all checks pass so far.
 
 
@@ -856,7 +856,7 @@ General Notes:
    developers release for PDL with newly completed
    support for 64bit indexing.
  
- * Needs testing for piddles with more than 2**32
+ * Needs testing for ndarrays with more than 2**32
    elements but all checks pass so far.
 
 
@@ -880,7 +880,7 @@ General Notes:
    developers release for PDL with newly completed
    support for 64bit indexing.
  
- * Needs testing for piddles with more than 2**32
+ * Needs testing for ndarrays with more than 2**32
    elements but all checks pass so far.
 
 
@@ -902,7 +902,7 @@ General Notes:
    developers release for PDL with newly completed
    support for 64bit indexing.
  
- * Needs testing for piddles with more than 2**32
+ * Needs testing for ndarrays with more than 2**32
    elements but all checks pass so far.
 
 
@@ -1138,7 +1138,7 @@ Highlights:
    371   PDL-2.4.11 medover failure in perl 5.20.1
    370   PDL-2.007 can fail to build Basic/#Core files
    369   slice fails with subclass index
-   368   PDL::Slatec::polyfit ignores incorrect length of weight piddle...
+   368   PDL::Slatec::polyfit ignores incorrect length of weight ndarray...
    367   BAD value parsing breakage
    365   CPAN PDL install broken due to breakage in Module::Compile 0.34
    363   PP "OtherPars" namespace is not clean
@@ -1146,10 +1146,10 @@ Highlights:
    361   vsearch bug w/# reversed list
    360   subtle & rare bug in vsearch
    359   Improved documentation for vsearch
-   358   one2nd() has unexpected behaviour when given a Perl scalar rather than a piddle
+   358   one2nd() has unexpected behaviour when given a Perl scalar rather than an ndarray
    357   Android support
    356   overload::Method() does not return coderef for stringification
-   355   dog creates 0 dim piddle which squeezes to 1 dim.
+   355   dog creates 0 dim ndarray which squeezes to 1 dim.
    353   imag2d not 'use warnings' safe and no way to disable twiddle
    352   reorder() not an lvalue sub
    351   PDL_BOOT has wrong XS code
@@ -1304,7 +1304,7 @@ Highlights:
    via the travis-ci infrastructure
 
  * Fixed sf.net bug #368 PDL::Slatec::polyfit ignores
-   incorrect length of weight piddle
+   incorrect length of weight ndarray
  
  * Fixed sf.net bug #374 CONFIGURE_REQUIRES => Devel::CheckLib 
 
@@ -1547,7 +1547,7 @@ General Notes:
      based modules.
 
    - PDL now auto-promotes array refs in many places that
-     previously required a piddle (so you can say, e.g.,
+     previously required an ndarray (so you can say, e.g.,
      "$a->index([2,3])" instead of "$a->index(pdl(2,3))").
 
    - String syntax for slice() specifications now ignore
@@ -1585,7 +1585,7 @@ Highlights:
 
    - Fix OpenBSD pthread build problem for non-threaded perls
 
-   - Fix PDL::shape to return vector for 1-D piddles
+   - Fix PDL::shape to return vector for 1-D ndarrays
 
    - Fix badvalue-on-truncate support for map and for interpND
 
@@ -1726,7 +1726,7 @@ Highlights:
 
     - Sf.net bug #3475075: Fixed 16-bit PNM raw format handling.
 
-    - Added warning if conv1d is used on a piddle with
+    - Added warning if conv1d is used on an ndarray with
       the badflag set.
 
     - Fix NaN sign issues as reported (and fixed!) by
@@ -1867,7 +1867,7 @@ Highlights:
  * General cleanup of code, including restructuring for clarity.
  
  * List output from whichND() is now deprecated.  whichND() now returns
-   a piddle of coordinates in all cases with a warning when a list
+   an ndarray of coordinates in all cases with a warning when a list
    context is detected.  See the docs for work-arounds to your code.
  
  * PDL::IO::Misc now has better support for handles that are not
@@ -1886,7 +1886,7 @@ Highlights:
      3059083  Problems with FITS header handling
      3080505  PLplot segfaults on plshades call on OS X
      3285520  status message from gslmroot_fsolver
-     3294808  sever on Empty piddle causes segfault
+     3294808  sever on Empty ndarray causes segfault
      3295544  NiceSlice parsing bug
      3299611  FITS I/O obscure bug
      3300467  NiceSlice asterisk parsing issue
@@ -1985,7 +1985,7 @@ Highlights:
  
  * PDL now supports pdls larger than 2GiB.  The element count
    is still an int type internally so the total number of elements
-   per-piddle must be less than 2**31.
+   per-ndarray must be less than 2**31.
  
  * POSIX threads (pthreads) are supported for win32 and cygwin
    platforms.  Pthreads are now available for all PDL platforms.
@@ -2062,7 +2062,7 @@ Highlights:
  * Various fixes for PDL::Transform
    - fix inverse in perspective()
    - fix t_cubic() parameter parsing
-   - fix handling of multiple PCi_j systems in the piddle header
+   - fix handling of multiple PCi_j systems in the ndarray header
  
  * Added SIGPIPE handlers to cases where PDL uses pipes to/from
    external processes (such as ffmpeg or some NetPBM image
@@ -2116,13 +2116,13 @@ General Notes:
  * PDL::IO::FlexRaw now supports automatic header file
    creation when writeflex() is given a filename argument
    for writing.  readflex/writeflex/mapflex now support
-   reading and writing piddles with bad values in them.
+   reading and writing ndarrays with bad values in them.
  
  * New PDL::Constants module provides PI and E.
 
  * PDL::Complex now supports in-place operations.
 
- * Added $PDL::toolongtoprint to set the maximum piddle
+ * Added $PDL::toolongtoprint to set the maximum ndarray
    size allowed to print as a string.  This was added
    to the default.perldlrc to make it easier to discover
    by users.
@@ -2215,7 +2215,7 @@ Highlights:
    printing the return value of each command.
    
  * readflex/writeflex/mapflex now support reading and writing  
-   piddles with bad values in them. This was sf.net feature
+   ndarrays with bad values in them. This was sf.net feature
    request #3028127, "add badvalue support to FlexRaw".
    
  * writeflex now supports automatically calling the
@@ -2264,7 +2264,7 @@ Highlights:
    mapping fails
    
  * Fixed SF bug #3011879, "pdl() constructor crashes perl for
-   mixed ref/piddle args" and #3080505, and #3139088.  This
+   mixed ref/ndarray args" and #3080505, and #3139088.  This
    fix also includes a larger and more complete set of tests.
    
  * Fixed segfault in plplot.t with a work-around.
@@ -2753,7 +2753,7 @@ Summary of Changes:
   Closed SF bug #1476324 by adding FAQ entry on clean installs
 
   Fix qsorti(null()) crash bug from SF bug #2110074.  Make
-  qsorti() return quietly when given a null() piddle input
+  qsorti() return quietly when given a null() ndarray input
 
   Fix broken PP typemap finding code, thanks to CS for the
   final code and many testers!
@@ -3036,7 +3036,7 @@ Summary of Changes:
 
      - Numerous small fixes/additions to docs/functions
 
-     - Improved handling of empty piddles
+     - Improved handling of empty ndarrays
 
      - Fixed most reported bugs
 
@@ -3242,7 +3242,7 @@ Major Changes:
        and within perldl you now need to explicitly say 'use
        PDL::Graphics::PGPLOT'). Additionally, it needs Karl's new 2.16
        release of the PGPLOT module (available from CPAN).
-     - Notable additions are a module for operations on complex piddles
+     - Notable additions are a module for operations on complex ndarrays
        (PDL::Complex), a subtype of PDL which allows manipulation of byte
        type PDLs as N dimensional arrays of fixed length strings (PDL::Char)
        and a Levenberg-Marquardt fitting module (PDL::Fit::LM).

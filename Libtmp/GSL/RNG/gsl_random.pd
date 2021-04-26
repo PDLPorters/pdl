@@ -153,16 +153,16 @@ Example:
 
 =for ref
 
-This function creates a piddle with given dimensions or accepts an
-existing piddle and fills it. get() returns integer values
+This function creates an ndarray with given dimensions or accepts an
+existing ndarray and fills it. get() returns integer values
 between a minimum and a maximum specific to every RNG.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->get($list_of_integers)
-   $rng->get($piddle);
+   $ndarray = $rng->get($list_of_integers)
+   $rng->get($ndarray);
 
 Example:
 
@@ -175,16 +175,16 @@ Example:
 
 =for ref
 
-This function creates a piddle with given dimensions or accepts an
-existing piddle and fills it. get_int() returns integer values
+This function creates an ndarray with given dimensions or accepts an
+existing ndarray and fills it. get_int() returns integer values
 between 0 and $max.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->get($max, $list_of_integers)
-   $rng->get($max, $piddle);
+   $ndarray = $rng->get($max, $list_of_integers)
+   $rng->get($max, $ndarray);
 
 Example:
 
@@ -197,15 +197,15 @@ Example:
 
 =for ref
 
-This function creates a piddle with given dimensions or accepts an
-existing piddle and fills it. get_uniform() returns values 0<=x<1,
+This function creates an ndarray with given dimensions or accepts an
+existing ndarray and fills it. get_uniform() returns values 0<=x<1,
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->get_uniform($list_of_integers)
-   $rng->get_uniform($piddle);
+   $ndarray = $rng->get_uniform($list_of_integers)
+   $rng->get_uniform($ndarray);
 
 Example:
 
@@ -218,15 +218,15 @@ Example:
 
 =for ref
 
-This function creates a piddle with given dimensions or accepts an
-existing piddle and fills it. get_uniform_pos() returns values 0<x<1,
+This function creates an ndarray with given dimensions or accepts an
+existing ndarray and fills it. get_uniform_pos() returns values 0<x<1,
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->get_uniform_pos($list_of_integers)
-   $rng->get_uniform_pos($piddle);
+   $ndarray = $rng->get_uniform_pos($list_of_integers)
+   $rng->get_uniform_pos($ndarray);
 
 Example:
 
@@ -239,19 +239,19 @@ Example:
 
 =for ref
 
-Shuffles values in piddle
+Shuffles values in ndarray
 
 Usage:
 
 =for usage
 
-   $rng->ran_shuffle($piddle);
+   $rng->ran_shuffle($ndarray);
 
 =head2 ran_shuffle_vec
 
 =for ref
 
-Shuffles values in piddle
+Shuffles values in ndarray
 
 Usage:
 
@@ -263,13 +263,13 @@ Usage:
 
 =for ref
 
-Chooses values from C<$inpiddle> to C<$outpiddle>.
+Chooses values from C<$inndarray> to C<$outndarray>.
 
 Usage:
 
 =for usage
 
-   $rng->ran_choose($inpiddle,$outpiddle);
+   $rng->ran_choose($inndarray,$outndarray);
 
 =head2 ran_choose_vec
 
@@ -287,14 +287,14 @@ Usage:
 
 =for ref
 
-Fills output piddle with random values from Gaussian distribution with mean zero and standard deviation C<$sigma>.
+Fills output ndarray with random values from Gaussian distribution with mean zero and standard deviation C<$sigma>.
 
 Usage:
 
 =for usage
 
- $piddle = $rng->ran_gaussian($sigma,[list of integers = output piddle dims]);
- $rng->ran_gaussian($sigma, $output_piddle);
+ $ndarray = $rng->ran_gaussian($sigma,[list of integers = output ndarray dims]);
+ $rng->ran_gaussian($sigma, $output_ndarray);
 
 Example:
 
@@ -308,15 +308,15 @@ Example:
 =for ref
 
 This method is similar to L</ran_gaussian> except that it takes
-the parameters of the distribution as a piddle and returns a piddle of equal
+the parameters of the distribution as an ndarray and returns an ndarray of equal
 dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gaussian_var($sigma_piddle);
-   $rng->ran_gaussian_var($sigma_piddle, $output_piddle);
+   $ndarray = $rng->ran_gaussian_var($sigma_ndarray);
+   $rng->ran_gaussian_var($sigma_ndarray, $output_ndarray);
 
 Example:
 
@@ -329,13 +329,13 @@ Example:
 
 =for ref
 
-Add Gaussian noise of given sigma to a piddle.
+Add Gaussian noise of given sigma to an ndarray.
 
 Usage:
 
 =for usage
 
-   $rng->ran_additive_gaussian($sigma,$piddle);
+   $rng->ran_additive_gaussian($sigma,$ndarray);
 
 Example:
 
@@ -353,7 +353,7 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_bivariate_gaussian($sigma_x,$sigma_y,$rho,$n);
+   $ndarray = $rng->ran_bivariate_gaussian($sigma_x,$sigma_y,$rho,$n);
 
 Example:
 
@@ -365,39 +365,39 @@ Example:
 
 =for ref
 
-Fills output piddle by with random integer values from the Poisson distribution with mean C<$mu>.
+Fills output ndarray by with random integer values from the Poisson distribution with mean C<$mu>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_poisson($mu,[list of integers = output piddle dims]);
-   $rng->ran_poisson($mu,$output_piddle);
+   $ndarray = $rng->ran_poisson($mu,[list of integers = output ndarray dims]);
+   $rng->ran_poisson($mu,$output_ndarray);
 
 =head2 ran_poisson_var
 
 =for ref
 
 Similar to L</ran_poisson> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_poisson_var($mu_piddle);
+   $ndarray = $rng->ran_poisson_var($mu_ndarray);
 
 =head2 ran_additive_poisson
 
 =for ref
 
-Add Poisson noise of given C<$mu> to a C<$piddle>.
+Add Poisson noise of given C<$mu> to a C<$ndarray>.
 
 Usage:
 
 =for usage
 
-   $rng->ran_additive_poisson($mu,$piddle);
+   $rng->ran_additive_poisson($mu,$ndarray);
 
 Example:
 
@@ -409,14 +409,14 @@ Example:
 
 =for ref
 
-This method simulates shot noise, taking the values of piddle as
+This method simulates shot noise, taking the values of ndarray as
 values for C<$mu> to be fed in the poissonian RNG.
 
 Usage:
 
 =for usage
 
-   $rng->ran_feed_poisson($piddle);
+   $rng->ran_feed_poisson($ndarray);
 
 Example:
 
@@ -428,350 +428,350 @@ Example:
 
 =for ref
 
-Fills output piddle with random values 0 or 1, the result of a Bernoulli trial with probability C<$p>.
+Fills output ndarray with random values 0 or 1, the result of a Bernoulli trial with probability C<$p>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_bernoulli($p,[list of integers = output piddle dims]);
-   $rng->ran_bernoulli($p,$output_piddle);
+   $ndarray = $rng->ran_bernoulli($p,[list of integers = output ndarray dims]);
+   $rng->ran_bernoulli($p,$output_ndarray);
 
 =head2 ran_bernoulli_var
 
 =for ref
 
 Similar to L</ran_bernoulli> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_bernoulli_var($p_piddle);
+   $ndarray = $rng->ran_bernoulli_var($p_ndarray);
 
 =head2 ran_beta
 
 =for ref
 
-Fills output piddle with random variates from the beta distribution with parameters C<$pa> and C<$pb>.
+Fills output ndarray with random variates from the beta distribution with parameters C<$pa> and C<$pb>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_beta($pa,$pb,[list of integers = output piddle dims]);
-   $rng->ran_beta($pa,$pb,$output_piddle);
+   $ndarray = $rng->ran_beta($pa,$pb,[list of integers = output ndarray dims]);
+   $rng->ran_beta($pa,$pb,$output_ndarray);
 
 =head2 ran_beta_var
 
 =for ref
 
 Similar to L</ran_beta> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_beta_var($a_piddle, $b_piddle);
+   $ndarray = $rng->ran_beta_var($a_ndarray, $b_ndarray);
 
 =head2 ran_binomial
 
 =for ref
 
-Fills output piddle with random integer values from the binomial distribution, the number of
+Fills output ndarray with random integer values from the binomial distribution, the number of
 successes in C<$n> independent trials with probability C<$p>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_binomial($p,$n,[list of integers = output piddle dims]);
-   $rng->ran_binomial($p,$n,$output_piddle);
+   $ndarray = $rng->ran_binomial($p,$n,[list of integers = output ndarray dims]);
+   $rng->ran_binomial($p,$n,$output_ndarray);
 
 =head2 ran_binomial_var
 
 =for ref
 
 Similar to L</ran_binomial> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_binomial_var($p_piddle, $n_piddle);
+   $ndarray = $rng->ran_binomial_var($p_ndarray, $n_ndarray);
 
 =head2 ran_cauchy
 
 =for ref
 
-Fills output piddle with random variates from the Cauchy distribution with scale parameter C<$pa>.
+Fills output ndarray with random variates from the Cauchy distribution with scale parameter C<$pa>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_cauchy($pa,[list of integers = output piddle dims]);
-   $rng->ran_cauchy($pa,$output_piddle);
+   $ndarray = $rng->ran_cauchy($pa,[list of integers = output ndarray dims]);
+   $rng->ran_cauchy($pa,$output_ndarray);
 
 =head2 ran_cauchy_var
 
 =for ref
 
 Similar to L</ran_cauchy> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_cauchy_var($a_piddle);
+   $ndarray = $rng->ran_cauchy_var($a_ndarray);
 
 =head2 ran_chisq
 
 =for ref
 
-Fills output piddle with random variates from the chi-squared distribution with
+Fills output ndarray with random variates from the chi-squared distribution with
 C<$nu> degrees of freedom.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_chisq($nu,[list of integers = output piddle dims]);
-   $rng->ran_chisq($nu,$output_piddle);
+   $ndarray = $rng->ran_chisq($nu,[list of integers = output ndarray dims]);
+   $rng->ran_chisq($nu,$output_ndarray);
 
 =head2 ran_chisq_var
 
 =for ref
 
 Similar to L</ran_chisq> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_chisq_var($nu_piddle);
+   $ndarray = $rng->ran_chisq_var($nu_ndarray);
 
 =head2 ran_exponential
 
 =for ref
 
-Fills output piddle with random variates from the exponential distribution with mean C<$mu>.
+Fills output ndarray with random variates from the exponential distribution with mean C<$mu>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_exponential($mu,[list of integers = output piddle dims]);
-   $rng->ran_exponential($mu,$output_piddle);
+   $ndarray = $rng->ran_exponential($mu,[list of integers = output ndarray dims]);
+   $rng->ran_exponential($mu,$output_ndarray);
 
 =head2 ran_exponential_var
 
 =for ref
 
 Similar to L</ran_exponential> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_exponential_var($mu_piddle);
+   $ndarray = $rng->ran_exponential_var($mu_ndarray);
 
 =head2 ran_exppow
 
 =for ref
 
-Fills output piddle with random variates from the exponential power distribution with scale
+Fills output ndarray with random variates from the exponential power distribution with scale
 parameter C<$pa> and exponent C<$pb>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_exppow($pa,$pb,[list of integers = output piddle dims]);
-   $rng->ran_exppow($pa,$pb,$output_piddle);
+   $ndarray = $rng->ran_exppow($pa,$pb,[list of integers = output ndarray dims]);
+   $rng->ran_exppow($pa,$pb,$output_ndarray);
 
 =head2 ran_exppow_var
 
 =for ref
 
 Similar to L</ran_exppow> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_exppow_var($a_piddle, $b_piddle);
+   $ndarray = $rng->ran_exppow_var($a_ndarray, $b_ndarray);
 
 =head2 ran_fdist
 
 =for ref
 
-Fills output piddle with random variates from the F-distribution with degrees
+Fills output ndarray with random variates from the F-distribution with degrees
 of freedom C<$nu1> and C<$nu2>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_fdist($nu1, $nu2,[list of integers = output piddle dims]);
-   $rng->ran_fdist($nu1, $nu2,$output_piddle);
+   $ndarray = $rng->ran_fdist($nu1, $nu2,[list of integers = output ndarray dims]);
+   $rng->ran_fdist($nu1, $nu2,$output_ndarray);
 
 =head2 ran_fdist_var
 
 =for ref
 
 Similar to L</ran_fdist> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_fdist_var($nu1_piddle, $nu2_piddle);
+   $ndarray = $rng->ran_fdist_var($nu1_ndarray, $nu2_ndarray);
 
 =head2 ran_flat
 
 =for ref
 
-Fills output piddle with random variates from the flat (uniform) distribution from C<$la> to C<$lb>.
+Fills output ndarray with random variates from the flat (uniform) distribution from C<$la> to C<$lb>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_flat($la,$lb,[list of integers = output piddle dims]);
-   $rng->ran_flat($la,$lb,$output_piddle);
+   $ndarray = $rng->ran_flat($la,$lb,[list of integers = output ndarray dims]);
+   $rng->ran_flat($la,$lb,$output_ndarray);
 
 =head2 ran_flat_var
 
 =for ref
 
 Similar to L</ran_flat> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_flat_var($a_piddle, $b_piddle);
+   $ndarray = $rng->ran_flat_var($a_ndarray, $b_ndarray);
 
 =head2 ran_gamma
 
 =for ref
 
-Fills output piddle with random variates from the gamma distribution.
+Fills output ndarray with random variates from the gamma distribution.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gamma($pa,$pb,[list of integers = output piddle dims]);
-   $rng->ran_gamma($pa,$pb,$output_piddle);
+   $ndarray = $rng->ran_gamma($pa,$pb,[list of integers = output ndarray dims]);
+   $rng->ran_gamma($pa,$pb,$output_ndarray);
 
 =head2 ran_gamma_var
 
 =for ref
 
 Similar to L</ran_gamma> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gamma_var($a_piddle, $b_piddle);
+   $ndarray = $rng->ran_gamma_var($a_ndarray, $b_ndarray);
 
 =head2 ran_geometric
 
 =for ref
 
-Fills output piddle with random integer values from the geometric distribution,
+Fills output ndarray with random integer values from the geometric distribution,
 the number of independent trials with probability C<$p> until the first success.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_geometric($p,[list of integers = output piddle dims]);
-   $rng->ran_geometric($p,$output_piddle);
+   $ndarray = $rng->ran_geometric($p,[list of integers = output ndarray dims]);
+   $rng->ran_geometric($p,$output_ndarray);
 
 =head2 ran_geometric_var
 
 =for ref
 
 Similar to L</ran_geometric> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_geometric_var($p_piddle);
+   $ndarray = $rng->ran_geometric_var($p_ndarray);
 
 =head2 ran_gumbel1
 
 =for ref
 
-Fills output piddle with random variates from the Type-1 Gumbel distribution.
+Fills output ndarray with random variates from the Type-1 Gumbel distribution.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel1($pa,$pb,[list of integers = output piddle dims]);
-   $rng->ran_gumbel1($pa,$pb,$output_piddle);
+   $ndarray = $rng->ran_gumbel1($pa,$pb,[list of integers = output ndarray dims]);
+   $rng->ran_gumbel1($pa,$pb,$output_ndarray);
 
 =head2 ran_gumbel1_var
 
 =for ref
 
 Similar to L</ran_gumbel1> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel1_var($a_piddle, $b_piddle);
+   $ndarray = $rng->ran_gumbel1_var($a_ndarray, $b_ndarray);
 
 =head2 ran_gumbel2
 
 =for ref
 
-Fills output piddle with random variates from the Type-2 Gumbel distribution.
+Fills output ndarray with random variates from the Type-2 Gumbel distribution.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel2($pa,$pb,[list of integers = output piddle dims]);
-   $rng->ran_gumbel2($pa,$pb,$output_piddle);
+   $ndarray = $rng->ran_gumbel2($pa,$pb,[list of integers = output ndarray dims]);
+   $rng->ran_gumbel2($pa,$pb,$output_ndarray);
 
 =head2 ran_gumbel2_var
 
 =for ref
 
 Similar to L</ran_gumbel2> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_gumbel2_var($a_piddle, $b_piddle);
+   $ndarray = $rng->ran_gumbel2_var($a_ndarray, $b_ndarray);
 
 =head2 ran_hypergeometric
 
 =for ref
 
-Fills output piddle with random integer values from the hypergeometric distribution.
+Fills output ndarray with random integer values from the hypergeometric distribution.
 If a population contains C<$n1> elements of type 1 and C<$n2> elements of
 type 2 then the hypergeometric distribution gives the probability of obtaining
 C<$x> elements of type 1 in C<$t> samples from the population without replacement.
@@ -780,159 +780,159 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_hypergeometric($n1, $n2, $t,[list of integers = output piddle dims]);
-   $rng->ran_hypergeometric($n1, $n2, $t,$output_piddle);
+   $ndarray = $rng->ran_hypergeometric($n1, $n2, $t,[list of integers = output ndarray dims]);
+   $rng->ran_hypergeometric($n1, $n2, $t,$output_ndarray);
 
 =head2 ran_hypergeometric_var
 
 =for ref
 
 Similar to L</ran_hypergeometric> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_hypergeometric_var($n1_piddle, $n2_piddle, $t_piddle);
+   $ndarray = $rng->ran_hypergeometric_var($n1_ndarray, $n2_ndarray, $t_ndarray);
 
 =head2 ran_laplace
 
 =for ref
 
-Fills output piddle with random variates from the Laplace distribution with width C<$pa>.
+Fills output ndarray with random variates from the Laplace distribution with width C<$pa>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_laplace($pa,[list of integers = output piddle dims]);
-   $rng->ran_laplace($pa,$output_piddle);
+   $ndarray = $rng->ran_laplace($pa,[list of integers = output ndarray dims]);
+   $rng->ran_laplace($pa,$output_ndarray);
 
 =head2 ran_laplace_var
 
 =for ref
 
 Similar to L</ran_laplace> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_laplace_var($a_piddle);
+   $ndarray = $rng->ran_laplace_var($a_ndarray);
 
 =head2 ran_levy
 
 =for ref
 
-Fills output piddle with random variates from the Levy symmetric stable
+Fills output ndarray with random variates from the Levy symmetric stable
 distribution with scale C<$c> and exponent C<$alpha>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_levy($mu,$x,[list of integers = output piddle dims]);
-   $rng->ran_levy($mu,$x,$output_piddle);
+   $ndarray = $rng->ran_levy($mu,$x,[list of integers = output ndarray dims]);
+   $rng->ran_levy($mu,$x,$output_ndarray);
 
 =head2 ran_levy_var
 
 =for ref
 
 Similar to L</ran_levy> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_levy_var($mu_piddle, $a_piddle);
+   $ndarray = $rng->ran_levy_var($mu_ndarray, $a_ndarray);
 
 =head2 ran_logarithmic
 
 =for ref
 
-Fills output piddle with random integer values from the logarithmic distribution.
+Fills output ndarray with random integer values from the logarithmic distribution.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_logarithmic($p,[list of integers = output piddle dims]);
-   $rng->ran_logarithmic($p,$output_piddle);
+   $ndarray = $rng->ran_logarithmic($p,[list of integers = output ndarray dims]);
+   $rng->ran_logarithmic($p,$output_ndarray);
 
 =head2 ran_logarithmic_var
 
 =for ref
 
 Similar to L</ran_logarithmic> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_logarithmic_var($p_piddle);
+   $ndarray = $rng->ran_logarithmic_var($p_ndarray);
 
 =head2 ran_logistic
 
 =for ref
 
-Fills output piddle with random random variates from the logistic distribution.
+Fills output ndarray with random random variates from the logistic distribution.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_logistic($m,[list of integers = output piddle dims]u)
-   $rng->ran_logistic($m,$output_piddle)
+   $ndarray = $rng->ran_logistic($m,[list of integers = output ndarray dims]u)
+   $rng->ran_logistic($m,$output_ndarray)
 
 =head2 ran_logistic_var
 
 =for ref
 
 Similar to L</ran_logistic> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_logistic_var($m_piddle);
+   $ndarray = $rng->ran_logistic_var($m_ndarray);
 
 =head2 ran_lognormal
 
 =for ref
 
-Fills output piddle with random variates from the lognormal distribution with
+Fills output ndarray with random variates from the lognormal distribution with
 parameters C<$mu> (location) and C<$sigma> (scale).
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_lognormal($mu,$sigma,[list of integers = output piddle dims]);
-   $rng->ran_lognormal($mu,$sigma,$output_piddle);
+   $ndarray = $rng->ran_lognormal($mu,$sigma,[list of integers = output ndarray dims]);
+   $rng->ran_lognormal($mu,$sigma,$output_ndarray);
 
 =head2 ran_lognormal_var
 
 =for ref
 
 Similar to L</ran_lognormal> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_lognormal_var($mu_piddle, $sigma_piddle);
+   $ndarray = $rng->ran_lognormal_var($mu_ndarray, $sigma_ndarray);
 
 =head2 ran_negative_binomial
 
 =for ref
 
-Fills output piddle with random integer values from the negative binomial
+Fills output ndarray with random integer values from the negative binomial
 distribution, the number of failures occurring before C<$n> successes in
 independent trials with probability C<$p> of success. Note that C<$n> is
 not required to be an integer.
@@ -941,54 +941,54 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_negative_binomial($p,$n,[list of integers = output piddle dims]);
-   $rng->ran_negative_binomial($p,$n,$output_piddle);
+   $ndarray = $rng->ran_negative_binomial($p,$n,[list of integers = output ndarray dims]);
+   $rng->ran_negative_binomial($p,$n,$output_ndarray);
 
 =head2 ran_negative_binomial_var
 
 =for ref
 
 Similar to L</ran_negative_binomial> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_negative_binomial_var($p_piddle, $n_piddle);
+   $ndarray = $rng->ran_negative_binomial_var($p_ndarray, $n_ndarray);
 
 =head2 ran_pareto
 
 =for ref
 
-Fills output piddle with random variates from the Pareto distribution of
+Fills output ndarray with random variates from the Pareto distribution of
 order C<$pa> and scale C<$lb>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_pareto($pa,$lb,[list of integers = output piddle dims]);
-   $rng->ran_pareto($pa,$lb,$output_piddle);
+   $ndarray = $rng->ran_pareto($pa,$lb,[list of integers = output ndarray dims]);
+   $rng->ran_pareto($pa,$lb,$output_ndarray);
 
 =head2 ran_pareto_var
 
 =for ref
 
 Similar to L</ran_pareto> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_pareto_var($a_piddle, $b_piddle);
+   $ndarray = $rng->ran_pareto_var($a_ndarray, $b_ndarray);
 
 =head2 ran_pascal
 
 =for ref
 
-Fills output piddle with random integer values from the Pascal distribution.
+Fills output ndarray with random integer values from the Pascal distribution.
 The Pascal distribution is simply a negative binomial distribution
 (see L</ran_negative_binomial>) with an integer value of C<$n>.
 
@@ -996,154 +996,154 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_pascal($p,$n,[list of integers = output piddle dims]);
-   $rng->ran_pascal($p,$n,$output_piddle);
+   $ndarray = $rng->ran_pascal($p,$n,[list of integers = output ndarray dims]);
+   $rng->ran_pascal($p,$n,$output_ndarray);
 
 =head2 ran_pascal_var
 
 =for ref
 
 Similar to L</ran_pascal> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_pascal_var($p_piddle, $n_piddle);
+   $ndarray = $rng->ran_pascal_var($p_ndarray, $n_ndarray);
 
 =head2 ran_rayleigh
 
 =for ref
 
-Fills output piddle with random variates from the Rayleigh distribution with scale parameter C<$sigma>.
+Fills output ndarray with random variates from the Rayleigh distribution with scale parameter C<$sigma>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_rayleigh($sigma,[list of integers = output piddle dims]);
-   $rng->ran_rayleigh($sigma,$output_piddle);
+   $ndarray = $rng->ran_rayleigh($sigma,[list of integers = output ndarray dims]);
+   $rng->ran_rayleigh($sigma,$output_ndarray);
 
 =head2 ran_rayleigh_var
 
 =for ref
 
 Similar to L</ran_rayleigh> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_rayleigh_var($sigma_piddle);
+   $ndarray = $rng->ran_rayleigh_var($sigma_ndarray);
 
 =head2 ran_rayleigh_tail
 
 =for ref
 
-Fills output piddle with random variates from the tail of the Rayleigh distribution
+Fills output ndarray with random variates from the tail of the Rayleigh distribution
 with scale parameter C<$sigma> and a lower limit of C<$la>.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_rayleigh_tail($la,$sigma,[list of integers = output piddle dims]);
-   $rng->ran_rayleigh_tail($x,$sigma,$output_piddle);
+   $ndarray = $rng->ran_rayleigh_tail($la,$sigma,[list of integers = output ndarray dims]);
+   $rng->ran_rayleigh_tail($x,$sigma,$output_ndarray);
 
 =head2 ran_rayleigh_tail_var
 
 =for ref
 
 Similar to L</ran_rayleigh_tail> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_rayleigh_tail_var($a_piddle, $sigma_piddle);
+   $ndarray = $rng->ran_rayleigh_tail_var($a_ndarray, $sigma_ndarray);
 
 =head2 ran_tdist
 
 =for ref
 
-Fills output piddle with random variates from the t-distribution (AKA Student's
+Fills output ndarray with random variates from the t-distribution (AKA Student's
 t-distribution) with C<$nu> degrees of freedom.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_tdist($nu,[list of integers = output piddle dims]);
-   $rng->ran_tdist($nu,$output_piddle);
+   $ndarray = $rng->ran_tdist($nu,[list of integers = output ndarray dims]);
+   $rng->ran_tdist($nu,$output_ndarray);
 
 =head2 ran_tdist_var
 
 =for ref
 
 Similar to L</ran_tdist> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_tdist_var($nu_piddle);
+   $ndarray = $rng->ran_tdist_var($nu_ndarray);
 
 =head2 ran_ugaussian_tail
 
 =for ref
 
-Fills output piddle with random variates from the upper tail of a Gaussian
+Fills output ndarray with random variates from the upper tail of a Gaussian
 distribution with C<standard deviation = 1> (AKA unit Gaussian distribution).
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_ugaussian_tail($tail,[list of integers = output piddle dims]);
-   $rng->ran_ugaussian_tail($tail,$output_piddle);
+   $ndarray = $rng->ran_ugaussian_tail($tail,[list of integers = output ndarray dims]);
+   $rng->ran_ugaussian_tail($tail,$output_ndarray);
 
 =head2 ran_ugaussian_tail_var
 
 =for ref
 
 Similar to L</ran_ugaussian_tail> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_ugaussian_tail_var($tail_piddle);
+   $ndarray = $rng->ran_ugaussian_tail_var($tail_ndarray);
 
 =head2 ran_weibull
 
 =for ref
 
-Fills output piddle with random variates from the Weibull distribution with scale C<$pa> and exponent C<$pb>. (Some literature uses C<lambda> for C<$pa> and C<k> for C<$pb>.)
+Fills output ndarray with random variates from the Weibull distribution with scale C<$pa> and exponent C<$pb>. (Some literature uses C<lambda> for C<$pa> and C<k> for C<$pb>.)
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_weibull($pa,$pb,[list of integers = output piddle dims]);
-   $rng->ran_weibull($pa,$pb,$output_piddle);
+   $ndarray = $rng->ran_weibull($pa,$pb,[list of integers = output ndarray dims]);
+   $rng->ran_weibull($pa,$pb,$output_ndarray);
 
 =head2 ran_weibull_var
 
 =for ref
 
 Similar to L</ran_weibull> except that it takes the distribution
-parameters as a piddle and returns a piddle of equal dimensions.
+parameters as an ndarray and returns an ndarray of equal dimensions.
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_weibull_var($a_piddle, $b_piddle);
+   $ndarray = $rng->ran_weibull_var($a_ndarray, $b_ndarray);
 
 =head2 ran_dir
 
@@ -1155,7 +1155,7 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_dir($ndim,$n);
+   $ndarray = $rng->ran_dir($ndim,$n);
 
 Example:
 
@@ -1175,7 +1175,7 @@ Usage:
 
 =for usage
 
-   $discrete_dist_handle = $rng->ran_discrete_preproc($double_piddle_prob);
+   $discrete_dist_handle = $rng->ran_discrete_preproc($double_ndarray_prob);
 
 Example:
 
@@ -1196,7 +1196,7 @@ Usage:
 
 =for usage
 
-   $piddle = $rng->ran_discrete($discrete_dist_handle,$num);
+   $ndarray = $rng->ran_discrete($discrete_dist_handle,$num);
 
 Example:
 
@@ -1210,7 +1210,7 @@ Example:
 
 =for ref
 
-Returns a piddle with C<$n> values generated by the Verhulst map from C<$x0> and
+Returns an ndarray with C<$n> values generated by the Verhulst map from C<$x0> and
 parameter C<$r>.
 
 Usage:
@@ -1444,7 +1444,7 @@ my ($obj,@var) = @_;
 #    return $var[0];
 #}
 #else {
-#    barf("In add mode you must specify a piddle!");
+#    barf("In add mode you must specify an ndarray!");
 #}
 #}
 #');
@@ -1465,7 +1465,7 @@ my ($obj,@var) = @_;
 #    return $var[0];
 #}
 #else {
-#    barf("In feed mode you must specify a piddle!");
+#    barf("In feed mode you must specify an ndarray!");
 #}
 #}
 #');
@@ -1519,7 +1519,7 @@ pp_addpm('
 	   return $var[0];
 	 }
 	 else {
-	   barf("In additive gaussian mode you must specify a piddle!");
+	   barf("In additive gaussian mode you must specify an ndarray!");
 	 }
        }
        ');
@@ -1538,7 +1538,7 @@ pp_addpm('
 	   return $var[0];
 	 }
 	 else {
-	   barf("In additive poisson mode you must specify a piddle!");
+	   barf("In additive poisson mode you must specify an ndarray!");
 	 }
        }
        ');
@@ -1557,7 +1557,7 @@ pp_addpm('
 	   return $var[0];
 	 }
 	 else {
-	   barf("In poisson mode you must specify a piddle!");
+	   barf("In poisson mode you must specify an ndarray!");
 	 }
        }
        ');
@@ -1890,7 +1890,7 @@ ran_shuffle(rng, in)
   n = in->nvals;
   PDL->make_physical(in);
   switch(in->datatype) {
-   case PDL_INVALID: barf("ran_shuffle was passed a piddle of type PDL_INVALID"); break;
+   case PDL_INVALID: barf("ran_shuffle was passed an ndarray of type PDL_INVALID"); break;
    case PDL_B: size=sizeof(PDL_Byte); break;
    case PDL_S: size=sizeof(PDL_Short); break;
    case PDL_US: size=sizeof(PDL_Ushort); break;
@@ -1916,7 +1916,7 @@ ran_choose(rng, in, out)
   PDL->make_physical(in);
   PDL->make_physical(out);
   switch(in->datatype) {
-   case PDL_INVALID: barf("ran_choose was passed a piddle of type PDL_INVALID"); break;
+   case PDL_INVALID: barf("ran_choose was passed an ndarray of type PDL_INVALID"); break;
    case PDL_B: size=sizeof(PDL_Byte); break;
    case PDL_S: size=sizeof(PDL_Short); break;
    case PDL_US: size=sizeof(PDL_Ushort); break;

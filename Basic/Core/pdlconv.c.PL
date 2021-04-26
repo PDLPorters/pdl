@@ -46,8 +46,8 @@ print OUT <<'!NO!SUBS!';
 
 # these 2 routines shouldn't need to be changed to handle
 # bad values, since all they do is copy data from
-# one piddle to another of the same type
-# (assuming no per-piddle bad values)
+# one ndarray to another of the same type
+# (assuming no per-ndarray bad values)
 #
 
 for(['readdata_vaffine', "*ap = *pp"],

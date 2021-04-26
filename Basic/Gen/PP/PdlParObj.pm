@@ -393,7 +393,7 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 }
 
 # XXX hacked to create a variable containing the bad value for 
-# this piddle. 
+# this ndarray. 
 # This is a HACK (Doug Burke 07/08/00)
 # XXX
 #

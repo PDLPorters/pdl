@@ -33,10 +33,10 @@ ok tapprox( $c_dbl->sclr, 4 ), "sclr test of 3-elem pdl (dbl)";
 is( PDL->sclr({Check=>'barf'}), 2, "changed error mode of sclr" );
 
 eval '$c_long->sclr';
-like $@, qr/multielement piddle in 'sclr' call/, "sclr failed on multi-element piddle (long)";
+like $@, qr/multielement ndarray in 'sclr' call/, "sclr failed on multi-element ndarray (long)";
 
 eval '$c_dbl->sclr';
-like $@, qr/multielement piddle in 'sclr' call/, "sclr failed on multi-element piddle (dbl)";
+like $@, qr/multielement ndarray in 'sclr' call/, "sclr failed on multi-element ndarray (dbl)";
 
 # test reshape barfing with negative args
 #
@@ -64,7 +64,7 @@ $c++; # check dataflow in reshaped PDL
 ok all( $y == $c ), "dataflow"; # should flow back to y
 ok all( $x == 2 ), "dataflow";
 
-our $d = pdl(5); # zero dim piddle and reshape/squeeze
+our $d = pdl(5); # zero dim ndarray and reshape/squeeze
 ok $d->reshape(-1)->ndims==0, "reshape(-1) on 0-dim PDL gives 0-dim PDL";
 ok $d->reshape(1)->ndims==1, "reshape(1) on 0-dim PDL gives 1-dim PDL";
 ok $d->reshape(1)->reshape(-1)->ndims==0, "reshape(-1) on 1-dim, 1-element PDL gives 0-dim PDL";
@@ -78,11 +78,11 @@ is($c->hdr->{demo}, "yes", "hdr after reshape");
 
 # test topdl
 
-isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns a piddle" );
-isa_ok( PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns a piddle" );
-isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns a piddle" );
+isa_ok( PDL->topdl(1),       "PDL", "topdl(1) returns an ndarray" );
+isa_ok( PDL->topdl([1,2,3]), "PDL", "topdl([1,2,3]) returns an ndarray" );
+isa_ok( PDL->topdl(1,2,3),   "PDL", "topdl(1,2,3) returns an ndarray" );
 $x=PDL->topdl(1,2,3);
-ok (($x->nelem == 3  and  all($x == pdl(1,2,3))), "topdl(1,2,3) returns a 3-piddle containing (1,2,3)");
+ok (($x->nelem == 3  and  all($x == pdl(1,2,3))), "topdl(1,2,3) returns a 3-ndarray containing (1,2,3)");
 
 
 # test $PDL::undefval support in pdl (bug #886263)
@@ -116,23 +116,23 @@ do {
 
 # pdl of a pdl
 $x = pdl(pdl(5));
-ok all( $x== pdl(5)), "pdl() can piddlify a piddle";
+ok all( $x== pdl(5)), "pdl() can piddlify an ndarray";
 
 TODO: {
    local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
 
    # pdl of mixed-dim pdls: pad within a dimension
    $x = pdl( zeroes(5), ones(3) );
-   ok all($x == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two piddles concatenates them and pads to length" or diag("x=$x\n");
+   ok all($x == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two ndarrays concatenates them and pads to length" or diag("x=$x\n");
 }
 
 # pdl of mixed-dim pdls: pad a whole dimension
 $x = pdl( [[9,9],[8,8]], xvals(3)+1 );
-ok all($x == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can concatenate mixed-dim piddles" or diag("x=$x\n");
+ok all($x == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can concatenate mixed-dim ndarrays" or diag("x=$x\n");
 
 # pdl of mixed-dim pdls: a hairier case
 $c = pdl [1], pdl[2,3,4], pdl[5];
-ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can concatenate mixed-dim piddles: hairy case" or diag("c=$c\n");
+ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can concatenate mixed-dim ndarrays: hairy case" or diag("c=$c\n");
 
 # same thing, with undefval set differently
 do {
@@ -163,32 +163,32 @@ ok( all($y==pdl([[[5,0]]],[[[0,0]]])), "concatenating an empty and a scalar on t
 
 # cat problems
 eval {cat(1, pdl(1,2,3), {}, 6)};
-ok ($@ ne '', 'cat barfs on non-piddle arguments');
-like ($@, qr/Arguments 0, 2 and 3 are not piddles/, 'cat correctly identifies non-piddle arguments');
+ok ($@ ne '', 'cat barfs on non-ndarray arguments');
+like ($@, qr/Arguments 0, 2 and 3 are not ndarrays/, 'cat correctly identifies non-ndarray arguments');
 $@ = '';
 eval {cat(1, pdl(1,2,3))};
-like($@, qr/Argument 0 is not a piddle/, 'cat uses good grammar when discussing non-piddles');
+like($@, qr/Argument 0 is not an ndarray/, 'cat uses good grammar when discussing non-ndarrays');
 $@ = '';
 
 my $two_dim_array = cat(pdl(1,2), pdl(1,2));
 eval {cat(pdl(1,2,3,4,5), $two_dim_array, pdl(1,2,3,4,5), pdl(1,2,3))};
-ok ($@ ne '', 'cat barfs on mismatched piddles');
+ok ($@ ne '', 'cat barfs on mismatched ndarrays');
 like($@, qr/The dimensions of arguments 1 and 3 do not match/
-	, 'cat identifies all piddles with differing dimensions');
-like ($@, qr/\(argument 0\)/, 'cat identifies the first actual piddle in the arg list');
+	, 'cat identifies all ndarrays with differing dimensions');
+like ($@, qr/\(argument 0\)/, 'cat identifies the first actual ndarray in the arg list');
 $@ = '';
 eval {cat(pdl(1,2,3), pdl(1,2))};
 like($@, qr/The dimensions of argument 1 do not match/
-	, 'cat uses good grammar when discussing piddle dimension mismatches');
+	, 'cat uses good grammar when discussing ndarray dimension mismatches');
 $@ = '';
 eval {cat(1, pdl(1,2,3), $two_dim_array, 4, {}, pdl(4,5,6), pdl(7))};
 ok ($@ ne '', 'cat barfs combined screw-ups');
-like($@, qr/Arguments 0, 3 and 4 are not piddles/
-	, 'cat properly identifies non-piddles in combined screw-ups');
+like($@, qr/Arguments 0, 3 and 4 are not ndarrays/
+	, 'cat properly identifies non-ndarrays in combined screw-ups');
 like($@, qr/arguments 2 and 6 do not match/
-	, 'cat properly identifies piddles with mismatched dimensions in combined screw-ups');
+	, 'cat properly identifies ndarrays with mismatched dimensions in combined screw-ups');
 like($@, qr/\(argument 1\)/,
-	'cat properly identifies the first actual piddle in combined screw-ups');
+	'cat properly identifies the first actual ndarray in combined screw-ups');
 $@ = '';
 
 eval {$x = cat(pdl(1),pdl(2,3));};
@@ -231,13 +231,13 @@ my $empty = zeroes(0);
 ok($empty->nelem==0,"you can make an empty PDL with zeroes(0)");
 ok("$empty" =~ m/Empty/, "an empty PDL prints 'Empty'");
 
-ok($null->info =~ /^PDL->null$/, "null piddle's info is 'PDL->null'");
+ok($null->info =~ /^PDL->null$/, "null ndarray's info is 'PDL->null'");
 my $mt_info = $empty->info;
 $mt_info =~m/\[([\d,]+)\]/;
 my $mt_info_dims = pdl("$1");
-ok(any($mt_info_dims==0), "empty piddle's info contains a 0 dimension");
-ok($null->isnull && $null->isempty, "a null piddle is both null and empty");
-ok(!$empty->isnull && $empty->isempty, "an empty piddle is empty but not null");
+ok(any($mt_info_dims==0), "empty ndarray's info contains a 0 dimension");
+ok($null->isnull && $null->isempty, "a null ndarray is both null and empty");
+ok(!$empty->isnull && $empty->isempty, "an empty ndarray is empty but not null");
 
 $x = short pdl(3,4,5,6);
 eval { $x->reshape(2,2);};
@@ -316,7 +316,7 @@ is PDL::Core::at_bad_c($big_ushort, []), 65535, 'max ushort value not "BAD" per 
 {
 my $x = cdouble(2, 3);
 PDL::Core::set_c($x, [1], ci());
-is $x.'', '[2 i]', 'set_c can take piddle value';
+is $x.'', '[2 i]', 'set_c can take ndarray value';
 }
 
 {

@@ -48,7 +48,7 @@ sub projectdocs {
 
 Project via $name to N-1 dimensions
 
-This function reduces the dimensionality of a piddle
+This function reduces the dimensionality of an ndarray
 by one by taking the $name along the 1st dimension.
 
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
@@ -110,8 +110,8 @@ EOD
 # which needs checking for since the bad value could evaluate to 
 # true or false (eg if the user has set it to 0)
 #
-# by setting CopyBadStatusCode to '', we stop the output piddle
-# from automatically being set bad if any of the input piddles are bad.
+# by setting CopyBadStatusCode to '', we stop the output ndarray
+# from automatically being set bad if any of the input ndarrays are bad.
 # - we can set the flag within BadCode if necessary
 #
 # This may NOT be sensible. Only time, and comments, will tell...
@@ -846,7 +846,7 @@ pp_def('pctover',
 
 Project via percentile to N-1 dimensions
 
-This function reduces the dimensionality of a piddle by one by finding
+This function reduces the dimensionality of an ndarray by one by finding
 the specified percentile (p) along the 1st dimension.  The specified
 percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between data points, the result is interpolated.  Values outside
@@ -892,7 +892,7 @@ pp_def('oddpctover',
 
 Project via percentile to N-1 dimensions
 
-This function reduces the dimensionality of a piddle by one by finding
+This function reduces the dimensionality of an ndarray by one by finding
 the specified percentile along the 1st dimension.  The specified
 percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between two values, the nearest data value is the result.
@@ -940,7 +940,7 @@ pp_addpm(<<"EOD");
 
 =for ref
 
-Return the specified percentile of all elements in a piddle. The
+Return the specified percentile of all elements in an ndarray. The
 specified percentile (p) must be between 0.0 and 1.0.  When the
 specified percentile falls between data points, the result is
 interpolated.
@@ -968,7 +968,7 @@ pp_addpm(<<"EOD");
 
 =for ref
 
-Return the specified percentile of all elements in a piddle. The
+Return the specified percentile of all elements in an ndarray. The
 specified percentile must be between 0.0 and 1.0.  When the specified
 percentile falls between two values, the nearest data value is the
 result.
@@ -1024,7 +1024,7 @@ for my $op ( ['avg','average','average'],
 
 =for ref
 
-Return the $text of all elements in a piddle.
+Return the $text of all elements in an ndarray.
 
 See the documentation for L</$func> for more information.
 
@@ -1055,7 +1055,7 @@ pp_addpm(<<'EOPM');
 
 =for ref
 
-Return true if any element in piddle set
+Return true if any element in ndarray set
 
 Useful in conditional expressions:
 
@@ -1077,7 +1077,7 @@ in the check are bad.
 
 =for ref
 
-Return true if all elements in piddle set
+Return true if all elements in ndarray set
 
 Useful in conditional expressions:
 
@@ -1099,14 +1099,14 @@ in the check are bad.
 
 =for ref
 
-Returns a list with minimum and maximum values of a piddle.
+Returns a list with minimum and maximum values of an ndarray.
 
 =for usage
 
  ($mn, $mx) = minmax($pdl);
 
 This routine does I<not> thread over the dimensions of C<$pdl>; 
-it returns the minimum and maximum values of the whole piddle.
+it returns the minimum and maximum values of the whole ndarray.
 See L</minmaximum> if this is not what is required.
 The two values are returned as Perl scalars similar to min/max,
 and therefore ignore whether the values are bad.
@@ -1144,7 +1144,7 @@ pp_def(
      loop(n) %{ $b() = $a(); %}
      nn = $COMP(__n_size)-1;
      if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
-        PDL->pdl_barf("You likely passed a scalar argument to qsort, when you should have passed a piddle (or nothing at all)");
+        PDL->pdl_barf("You likely passed a scalar argument to qsort, when you should have passed an ndarray (or nothing at all)");
      }
     ' . generic_qsort('b'),
     BadCode =>
@@ -1154,7 +1154,7 @@ pp_def(
         else                { $SETBAD(b(n=>nb)); nb--; }
      %}
      if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(b)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
-        PDL->pdl_barf("You likely passed a scalar argument to qsort, when you should have passed a piddle (or nothing at all)");
+        PDL->pdl_barf("You likely passed a scalar argument to qsort, when you should have passed an ndarray (or nothing at all)");
      }
      if ( nn != 0 ) {
         nn -= 1;
@@ -1198,7 +1198,7 @@ pp_def(
            $indx() = n; 
         %}
         if ($PDL(a)->dims[0] != $PDL(indx)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(indx)->dims[0]!=1){
-           PDL->pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed a piddle (or nothing at all)");
+           PDL->pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed an ndarray (or nothing at all)");
         }
        ' . generic_qsort_ind(),
        BadCode =>
@@ -1209,7 +1209,7 @@ pp_def(
            else                { $indx(n=>nb) = n; nb--; }
         %}
          if ($PDL(a)->dims[0] != $PDL(indx)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(indx)->dims[0]!=1){
-            PDL->pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed a piddle (or nothing at all)");
+            PDL->pdl_barf("You likely passed a scalar argument to qsorti, when you should have passed an ndarray (or nothing at all)");
         }
         if ( nn != 0 ) {
            nn -= 1;
@@ -1253,7 +1253,7 @@ pp_def(
      nn = ($COMP(__m_size))-1;
      nd = $COMP(__n_size);
      if (($PDL(a)->dims[0] != $PDL(b)->dims[0] || $PDL(a)->dims[1] != $PDL(b)->dims[1]) && $PDL(a)->dims[1] !=0 && $PDL(b)->dims[1] != 1){
-        PDL->pdl_barf("You likely passed a scalar argument to qsortvec, when you should have passed a piddle (or nothing at all)");
+        PDL->pdl_barf("You likely passed a scalar argument to qsortvec, when you should have passed an ndarray (or nothing at all)");
      }
     ' . generic_qsortvec('b','nd'),
     Doc => '
@@ -1261,7 +1261,7 @@ pp_def(
 
 Sort a list of vectors lexicographically.
 
-The 0th dimension of the source piddle is dimension in the vector;
+The 0th dimension of the source ndarray is dimension in the vector;
 the 1st dimension is list order.  Higher dimensions are threaded over.
 
 =for example
@@ -1304,7 +1304,7 @@ pp_def(
      %}
      nd = $COMP(__n_size);
      if ($PDL(a)->ndims >1 && $PDL(a)->dims[1] != $PDL(indx)->dims[0] && $PDL(a)->dims[1]!=0 && $PDL(indx)->dims[0]!=1){
-        PDL->pdl_barf("You likely passed a scalar argument to qsortveci, when you should have passed a piddle (or nothing at all)");
+        PDL->pdl_barf("You likely passed a scalar argument to qsortveci, when you should have passed an ndarray (or nothing at all)");
      }
     ' . generic_qsortvec_ind('a','nd'),
     Doc => '
@@ -1368,7 +1368,7 @@ for my $which (
 	    Doc => projectdocs($name,$name),
 	    BadDoc => 
 'Output is set bad if all elements of the input are bad,
-otherwise the bad flag is cleared for the output piddle.
+otherwise the bad flag is cleared for the output ndarray.
 
 Note that C<NaNs> are considered to be valid values;
 see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
@@ -1408,7 +1408,7 @@ for ways of masking NaNs.
 	    Doc => "Like $name but returns the index rather than the value",
 	    BadDoc => 
 'Output is set bad if all elements of the input are bad,
-otherwise the bad flag is cleared for the output piddle.',
+otherwise the bad flag is cleared for the output ndarray.',
 	    );
 
     pp_def( 
@@ -1535,7 +1535,7 @@ pp_def(
 	'$GENERIC() curmin, curmax;
          PDL_Indx curmin_ind, curmax_ind;
 
- 	 curmin = curmax = 0; /* Handle null piddle --CED */
+ 	 curmin = curmax = 0; /* Handle null ndarray --CED */
 
 	 loop(n) %{
             if ( !n ) {
@@ -1565,7 +1565,7 @@ pp_def(
                }
             } /* ISGOOD */
 	 %}
-         if ( flag ) { /* Handle null piddle */
+         if ( flag ) { /* Handle null ndarray */
             $cmin() = curmin; $cmin_ind() = curmin_ind;
             $cmax() = curmax; $cmax_ind() = curmax_ind;
          } else {
@@ -1578,7 +1578,7 @@ pp_def(
 '
 =for ref
 
-Find minimum and maximum and their indices for a given piddle;
+Find minimum and maximum and their indices for a given ndarray;
 
 =for usage
 
@@ -1587,13 +1587,13 @@ Find minimum and maximum and their indices for a given piddle;
  pdl> p $min, $max, $min_ind, $max_ind
  [-2 0] [4 3] [0 1] [2 2]
 
-See also L</minmax>, which clumps the piddle together.
+See also L</minmax>, which clumps the ndarray together.
 
 =cut
 
 ',
 	BadDoc =>
-'If C<a()> contains only bad data, then the output piddles will
+'If C<a()> contains only bad data, then the output ndarrays will
 be set bad, along with their bad flag.
 Otherwise they will have their bad flags cleared,
 since they will not contain any bad values.',

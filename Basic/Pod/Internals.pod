@@ -25,17 +25,17 @@ B<Warning:> If it seems that this document has gotten out of date,
 please inform the PDL porters email list (pdl-devel@lists.sourceforge.net).
 This may well happen.
 
-=head2 Piddles
+=head2 ndarrays
 
 The pdl data object is generally an opaque scalar reference into a 
 pdl structure in memory. Alternatively, it may be a hash reference with
 the C<PDL> field containing the scalar reference (this makes overloading
-piddles easy, see L<PDL::Objects>). You can easily find out
-at the Perl level which type of piddle you are dealing with. The example
+ndarrays easy, see L<PDL::Objects>). You can easily find out
+at the Perl level which type of ndarray you are dealing with. The example
 code below demonstrates how to do it:
 
-   # check if this a piddle
-   die "not a piddle" unless UNIVERSAL::isa($pdl, 'PDL');
+   # check if this an ndarray
+   die "not an ndarray" unless UNIVERSAL::isa($pdl, 'PDL');
    # is it a scalar ref or a hash ref?
    if (UNIVERSAL::isa($pdl, "HASH")) {
      die "not a valid PDL" unless exists $pdl->{PDL} &&
@@ -49,7 +49,7 @@ code below demonstrates how to do it:
 The scalar reference points to the numeric address of a C structure of
 type C<pdl> which is defined in F<pdl.h>. The mapping between the
 object at the Perl level and the C structure containing the actual
-data and structural that makes up a piddle is done by the PDL typemap.
+data and structural that makes up an ndarray is done by the PDL typemap.
 The functions used in the PDL typemap are defined pretty much at the top
 of the file F<pdlcore.h>. So what does the structure look like:
 
@@ -102,7 +102,7 @@ there is the member
 	void *datasv;
 
 which is really a pointer to a Perl SV structure (C<SV *>). The SV is
-expected to be representing a string, in which the data of the piddle
+expected to be representing a string, in which the data of the ndarray
 is stored in a tightly packed form. This pointer counts as a reference
 to the SV so the reference count has been incremented when the C<SV *>
 was placed here (this reference count business has to do with Perl's
@@ -111,7 +111,7 @@ to you). This pointer is allowed to have the value C<NULL> which
 means that there is no actual Perl SV for this data - for instance, the data
 might be allocated by a C<mmap> operation. Note the use of an SV*
 was purely for convenience, it allows easy transformation of
-packed data from files into piddles. Other implementations are not
+packed data from files into ndarrays. Other implementations are not
 excluded.
 
 The actual pointer to data is stored in the member
@@ -122,7 +122,7 @@ which contains a pointer to a memory area with space for
 
 	PDL_Indx nvals;
 
-data items of the data type of this piddle.  PDL_Indx is either 'long' or
+data items of the data type of this ndarray.  PDL_Indx is either 'long' or
 'long long' depending on whether your perl is 64bit or not.
 
 The data type of the data is stored in the variable
@@ -136,7 +136,7 @@ also L<PDL::Types>.
 
 =item Dimensions
 
-The number of dimensions in the piddle is given by the member
+The number of dimensions in the ndarray is given by the member
 
 	int ndims;
 
@@ -167,7 +167,7 @@ at least without checking for certain things first.
 
 =item Default storage
 
-Since the vast majority of piddles don't have more than 6 dimensions,
+Since the vast majority of ndarrays don't have more than 6 dimensions,
 it is more efficient to have default storage for the dimensions and dimincs
 inside the PDL struct.
 
@@ -176,14 +176,14 @@ inside the PDL struct.
 
 The C<dims> and C<dimincs> may be set to point to the beginning of these
 arrays if C<ndims> is smaller than or equal to the compile-time constant
-C<PDL_NDIMS>. This is important to note when freeing a piddle struct.
+C<PDL_NDIMS>. This is important to note when freeing an ndarray struct.
 The same applies for the threadids:
 
    	unsigned char def_threadids[PDL_NTHREADIDS];
 
 =item Magic
 
-It is possible to attach magic to piddles, much like Perl's own magic
+It is possible to attach magic to ndarrays, much like Perl's own magic
 mechanism. If the member pointer
 
 	   struct pdl_magic *magic;
@@ -199,11 +199,11 @@ One of the first members of the structure is
 
 The possible flags and their meanings are given in C<pdl.h>.
 These are mainly used to implement the lazy evaluation mechanism
-and keep track of piddles in these operations.
+and keep track of ndarrays in these operations.
 
 =item Transformations and virtual affine transformations
 
-As you should already know, piddles often carry information about
+As you should already know, ndarrays often carry information about
 where they come from. For example, the code
 
 	$y = $x->slice("2:5");
@@ -223,7 +223,7 @@ more detail below.
 
 =item The Perl SVs
 
-When piddles are referred to through Perl SVs, we store an additional
+When ndarrays are referred to through Perl SVs, we store an additional
 reference to it in the member
 
 	void*    sv;
@@ -244,43 +244,43 @@ L<gethdr|PDL::Core/gethdr> calls.
 =head2 Smart references and transformations: slicing and dicing
 
 Smart references and most other fundamental functions
-operating on piddles are implemented via I<transformations>
+operating on ndarrays are implemented via I<transformations>
 (as mentioned above) which are represented by the type C<pdl_trans> in PDL.
 
-A transformation links input and output piddles and contains
+A transformation links input and output ndarrays and contains
 all the infrastructure that defines how:
 
 =over 4
 
 =item *
 
-output piddles are obtained from input piddles;
+output ndarrays are obtained from input ndarrays;
 
 =item *
 
-changes in smartly linked output piddles (e.g. the I<child>
-of a sliced I<parent> piddle) are flown back to the input
-piddle in transformations where this is supported (the most
+changes in smartly linked output ndarrays (e.g. the I<child>
+of a sliced I<parent> ndarray) are flown back to the input
+ndarray in transformations where this is supported (the most
 often used example being C<slice> here);
 
 =item *
 
-datatype and size of output piddles that need to be created
+datatype and size of output ndarrays that need to be created
 are obtained.
 
 =back
 
-In general, executing a PDL function on a group of piddles
+In general, executing a PDL function on a group of ndarrays
 results in creation of a transformation of the requested
 type that links all input and output arguments (at least
-those that are piddles). In PDL functions that support
+those that are ndarrays). In PDL functions that support
 data flow between input and output args (e.g. C<slice>,
 C<index>) this transformation links I<parent> (input) and
-I<child> (output) piddles permanently until either the link is
+I<child> (output) ndarrays permanently until either the link is
 explicitly broken by user request (C<sever> at the Perl level)
 or all parents and children have been destroyed. In those
 cases the transformation is lazy-evaluated, e.g. only executed
-when piddle values are actually accessed.
+when ndarray values are actually accessed.
 
 In I<non-flowing> functions, for example addition (C<+>) and inner
 products (C<inner>), the transformation is installed just as
@@ -290,7 +290,7 @@ before the function returns.
 
 It should be noted that the close link between input and output args
 of a flowing function (like L<slice|PDL::Slices/slice>) requires
-that piddle objects that are linked in
+that ndarray objects that are linked in
 such a way be kept alive beyond the point where they have gone
 out of scope from the point of view of Perl:
 
@@ -303,22 +303,22 @@ the underlying C<pdl> structure must actually only be freed when C<$y>
 also goes out of scope (since it still references
 internally some of C<$x>'s data). This example demonstrates that such
 a dataflow paradigm between PDL objects necessitates a special
-destruction algorithm that takes the links between piddles
+destruction algorithm that takes the links between ndarrays
 into account and couples the lifespan of those objects. The
 non-trivial algorithm is implemented in the function
 C<pdl_destroy> in F<pdlapi.c>. In fact, most of the code
 in F<pdlapi.c> and F<pdlfamily.c> is concerned with
-making sure that piddles (C<pdl *>s) are created, updated
+making sure that ndarrays (C<pdl *>s) are created, updated
 and freed at the right times depending on interactions
-with other piddles via PDL transformations (remember, C<pdl_trans>). 
+with other ndarrays via PDL transformations (remember, C<pdl_trans>). 
 
-=head2 Accessing children and parents of a piddle
+=head2 Accessing children and parents of an ndarray
 
-When piddles are dynamically linked via transformations as
-suggested above input and output piddles are referred to as parents
+When ndarrays are dynamically linked via transformations as
+suggested above input and output ndarrays are referred to as parents
 and children, respectively.
 
-An example of processing the children of a piddle is provided
+An example of processing the children of an ndarray is provided
 by the C<baddata> method of L<PDL::Bad>.
 
 Consider the following situation:
@@ -378,18 +378,18 @@ which is listed below:
     PDL_END_CHILDLOOP(it)
  } /* propagate_badflag */
 
-Given a piddle (C<pdl *it>), the routine loops through each 
+Given an ndarray (C<pdl *it>), the routine loops through each 
 C<pdl_trans> structure, where access to this structure is provided by the 
 C<PDL_CHILDLOOP_THISCHILD> macro.
-The I<children> of the piddle are stored in the C<pdls> array, after the
+The I<children> of the ndarray are stored in the C<pdls> array, after the
 I<parents>, hence the loop from C<i = ...nparents> to 
 C<i = ...npdls - 1>.
-Once we have the pointer to the child piddle, we can do what we want to 
+Once we have the pointer to the child ndarray, we can do what we want to 
 it; here we change the value of the C<state> variable, but the details
 are unimportant).
 What B<is> important is that we call C<propagate_badflag> on this
-piddle, to ensure we loop through its children. This recursion
-ensures we get to all the I<offspring> of a particular piddle.
+ndarray, to ensure we loop through its children. This recursion
+ensures we get to all the I<offspring> of a particular ndarray.
 
 Access to I<parents> is similar, with the C<for> loop replaced by:
 
@@ -420,7 +420,7 @@ The transformation identifies all C<pdl>s involved in the trans
 
   pdl *pdls[NP];
 
-with C<NP> depending on the number of piddle args of the particular
+with C<NP> depending on the number of ndarray args of the particular
 trans. It records a state
 
   short flags;
@@ -429,7 +429,7 @@ and the datatype
 
   int __datatype;
 
-of the trans (to which all piddles must be converted unless
+of the trans (to which all ndarrays must be converted unless
 they are explicitly typed, PDL functions created with L<PDL::PP>
 make sure that these conversions are done as necessary). Most important is
 the pointer to the vtable (virtual table) that contains the actual
@@ -460,9 +460,9 @@ We focus on the callback functions:
 
   	void (*redodims)(pdl_trans *tr);
 
-C<redodims> will work out the dimensions of piddles that need
+C<redodims> will work out the dimensions of ndarrays that need
 to be created and is called from within the API function that
-should be called to ensure that the dimensions of a piddle are
+should be called to ensure that the dimensions of an ndarray are
 accessible (F<pdlapi.c>):
 
    void pdl_make_physdims(pdl *it)
@@ -471,12 +471,12 @@ C<readdata> and C<writebackdata> are responsible for the actual
 computations of the child data from the parents or parent data
 from those of the children, respectively (the dataflow aspect).
 The PDL core makes sure that these are called as needed when
-piddle data is accessed (lazy-evaluation). The general API
-function to ensure that a piddle is up-to-date is
+ndarray data is accessed (lazy-evaluation). The general API
+function to ensure that an ndarray is up-to-date is
 
   void pdl_make_physvaffine(pdl *it)
 
-which should be called before accessing piddle data from
+which should be called before accessing ndarray data from
 XS/C (see F<Core.xs> for some examples).
 
 C<freetrans> frees dynamically allocated memory associated
@@ -499,7 +499,7 @@ The basic trick is that parent and child of such a transformation work
 on the same (shared) block of data which they just choose
 to interpret differently (by using different C<dims>, C<dimincs> and
 C<offs> on the same data, compare the C<pdl> structure above).
-Each operation on a piddle sharing
+Each operation on an ndarray sharing
 data with another one in this way is therefore automatically flown
 from child to parent and back -- after all they are reading and writing
 the same block of memory. This is currently not Perl thread safe --
@@ -509,7 +509,7 @@ no big loss since the whole PDL core is not reentrant
 =head2 Signatures: threading over elementary operations
 
 Most of that functionality of PDL threading (automatic iteration
-of elementary operations over multi-dim piddles) is implemented in the
+of elementary operations over multi-dim ndarrays) is implemented in the
 file F<pdlthread.c>.
 
 The L<PDL::PP> generated functions (in particular the

@@ -35,7 +35,7 @@ package PDL;
 
 =for ref
 
-Print info about a piddle (or all known piddles)
+Print info about an ndarray (or all known ndarrays)
 
 =for example
 
@@ -47,7 +47,7 @@ Print info about a piddle (or all known piddles)
     PDL (52433464) Type: Double
 
 
-This function prints some information about piddles. It can be invoked
+This function prints some information about ndarrays. It can be invoked
 as a class method (e.g. C<PDL-E<gt>px> ) or as an instance method (e.g.
 C<$pdl-E<gt>px($arg)>). If
 
@@ -55,7 +55,7 @@ C<$pdl-E<gt>px($arg)>). If
 
 =item invoked as a class method
 
-it prints info about all piddles found in the current package
+it prints info about all ndarrays found in the current package
 (I<excluding> C<my> variables). This comes in quite handy when you are
 not quite sure which pdls you have already defined, what data they
 hold , etc. C<px> is supposed to support inheritance and prints info
@@ -69,7 +69,7 @@ The default package is that of the caller.
 
 =item invoked as an instance method
 
-it prints info about that particular piddle if C<$PDL::debug> is
+it prints info about that particular ndarray if C<$PDL::debug> is
 true and returns the pdl object upon completion. It accepts an
 optional string argument that is simply prepended to the default info
 if it doesn't contain a C<%> character. If, however, the argument

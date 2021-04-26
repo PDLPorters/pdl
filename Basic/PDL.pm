@@ -42,9 +42,9 @@ For example:
  pdl> apropos xval
  xlinvals        X axis values between endpoints (see xvals).
  xlogvals        X axis values logarithmicly spaced...
- xvals           Fills a piddle with X index values...
- yvals           Fills a piddle with Y index values. See the CAVEAT for xvals.
- zvals           Fills a piddle with Z index values. See the CAVEAT for xvals.
+ xvals           Fills an ndarray with X index values...
+ yvals           Fills an ndarray with Y index values. See the CAVEAT for xvals.
+ zvals           Fills an ndarray with Z index values. See the CAVEAT for xvals.
 
 To learn more about the PDL shell, see L<perldl> or L<pdl2>.
 

@@ -136,7 +136,7 @@ act q|
   $x=sequence(360)*3.1415/180.;
   $y=sin($x)*transpose(cos($x));
 
-  # Make a piddle with the wanted contours
+  # Make an ndarray with the wanted contours
   $contours=pdl [0.1,0.5,1.0];
   # And an array (reference to an array) with labels
   $labels=['A', 'B', 'C'];

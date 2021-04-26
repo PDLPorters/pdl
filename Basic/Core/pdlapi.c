@@ -211,7 +211,7 @@ void pdl__destroy_childtranses(pdl *it,int ensure) {
 
 /*
 
-  A piddle may be
+  A ndarray may be
    - a parent of something - just ensure & destroy
    - a child of something - just ensure & destroy
    - parent of two pdls which both propagate backwards - mustn't destroy.
@@ -221,7 +221,7 @@ void pdl__destroy_childtranses(pdl *it,int ensure) {
       1. a parent with max. 1 backwards propagating transformation
       2. a child with no children 
 
-  When a piddle is destroyed, it must tell its children and/or
+  When an ndarray is destroyed, it must tell its children and/or
   parent.
 
 */
@@ -753,7 +753,7 @@ void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,int nth)
 }
 
 /* Called with a filled pdl_trans struct.
- * Sets the parent and trans fields of the piddles correctly,
+ * Sets the parent and trans fields of the ndarrays correctly,
  * creating families and the like if necessary.
  * Alternatively may just execute transformation
  * that would require families but is not dataflown.
@@ -915,7 +915,7 @@ void pdl_make_physical(pdl *it) {
          *
          * why do we need to call redodims if   !(it->state & PDL_ALLOCATED)   ???
          * this results in a) redodims called twice if make_physdims had already been
-         * called for this piddle and results in associated memory leaks!
+         * called for this ndarray and results in associated memory leaks!
          * On the other hand, if I comment out  !(it->state & PDL_ALLOCATED)
          * then we get errors for cases like 
          *                  $in = $lut->xchg(0,1)->index($im->dummy(0));
@@ -929,7 +929,7 @@ void pdl_make_physical(pdl *it) {
          * redodims if !(it->state & PDL_ALLOCATED)??????
          * changed it so that redodims only called if
          *            (!(it->state & PDL_ALLOCATED) && vaffinepar)
-         * i.e. at least one of the parent piddles is a real vaffine
+         * i.e. at least one of the parent ndarrays is a real vaffine
          * CS
          */
 	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
@@ -1409,7 +1409,7 @@ void pdl_make_physvaffine(pdl *it)
 		PDL_Indx cur_offset = 0;
 		at = (pdl_trans_affine *)t;
 		parent = t->pdls[0];
-		/* For all dimensions of the childest piddle */
+		/* For all dimensions of the childest ndarray */
 		for(i=0; i<it->ndims; i++) {
 			PDL_Indx offset_left = it->vafftrans->offs;
 
@@ -1418,7 +1418,7 @@ void pdl_make_physvaffine(pdl *it)
 			incsign = (inc >= 0 ? 1:-1);
 			inc *= incsign;
 			newinc = 0;
-			/* For all dimensions of the current piddle */
+			/* For all dimensions of the current ndarray */
 			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
 				cur_offset = offset_left / current->dimincs[j];
 				offset_left -= cur_offset * current->dimincs[j];

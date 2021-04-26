@@ -399,7 +399,7 @@ sub PDL::IO::Dumper::stringify_PDL{
 
 Recover a PDL from a uuencoded string [Internal routine]
 
-This routine encapsulates uudecoding of the dumped string for large piddles. 
+This routine encapsulates uudecoding of the dumped string for large ndarrays. 
 It's separate to encapsulate the decision about which method of uudecoding
 to try (both the built-in Convert::UU and the shell command uudecode(1) 
 are supported).

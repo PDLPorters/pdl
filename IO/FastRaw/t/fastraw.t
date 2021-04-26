@@ -20,7 +20,7 @@ my $name = $tmpdir . "/tmp0";
 my $header = $tmpdir . "/headerfile" . $$;
 unlink $name, $name . '.hdr', $header;	# just to be absolutely sure
 
-# A function that tells us if two piddles are approximately the same
+# A function that tells us if two ndarrays are approximately the same
 sub tapprox {
 	my($x,$y) = @_;
 	my $c = abs($x-$y);
@@ -32,14 +32,14 @@ BEGIN { use_ok( 'PDL::IO::FastRaw' ); }
 
 # Set up the working filename and make sure we're working with a clean slate:
 
-# **TEST 2** save a piddle to disk
+# **TEST 2** save an ndarray to disk
 my $x = pdl [2,3],[4,5],[6,7];
 writefraw($x,$name);
 ok((-f $name and -f ($name . '.hdr')), "Writing should create a file and header file");
 
-# **TEST 3** read it back, and make sure it gives the same piddle
+# **TEST 3** read it back, and make sure it gives the same ndarray
 my $y = readfraw($name);
-ok(tapprox($x,$y), "A piddle and its saved copy should be about equal");
+ok(tapprox($x,$y), "A ndarray and its saved copy should be about equal");
 
 # some mapfraw tests
 SKIP:
@@ -52,14 +52,14 @@ SKIP:
            }
         }
 
-	# **TEST 4** compare mapfraw piddle with original piddle	
-	ok(tapprox($x,$c), "A piddle and its mapfraw representation should be about equal");
+	# **TEST 4** compare mapfraw ndarray with original ndarray	
+	ok(tapprox($x,$c), "A ndarray and its mapfraw representation should be about equal");
 	
 	# **TEST 5** modifications should be saved when $c goes out of scope
 	$c += 1;
 	undef $c;
 	$y = readfraw($name);
-	ok(tapprox($x+1,$y), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
+	ok(tapprox($x+1,$y), "Modifications to mapfraw should be saved to disk no later than when the ndarray ceases to exist");
 	
 	# We're starting a new test, so we'll remove the files we've created so far
 	# and clean up the memory, just to be super-safe
@@ -68,7 +68,7 @@ SKIP:
 	undef $y;
 	
 	# **TEST 6** test creating a pdl via mapfraw
-	# First create and modify the piddle
+	# First create and modify the ndarray
 	$x = mapfraw($name, {Creat => 1, Datatype => &float, Dims => [3,2]});
 	$x += xvals $x;
 	$x += 0.1 * yvals $x;
@@ -77,7 +77,7 @@ SKIP:
 	# Load it back up and see if the values are what we expect
 	$y = readfraw($name);
 	ok(tapprox($y, PDL->pdl([[0,1,2],[0.1,1.1,2.1]])),
-		"mapfraw should be able to create new piddles");
+		"mapfraw should be able to create new ndarrays");
 	
 	# **TEST 7** test the created type
 	ok($y->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');

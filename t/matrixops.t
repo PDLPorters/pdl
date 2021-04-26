@@ -48,7 +48,7 @@ my $opt ={s=>1,lu=>\my @a};
 my $a1 = inv($pa, $opt);
 my $identity = zeroes(3,3); (my $tmp = $identity->diagonal(0,1))++;
 ok(defined $a1, "3x3 inverse: defined");
-ok(ref ($opt->{lu}->[0]) eq 'PDL',"inverse: lu_decomp first entry is a piddle");
+ok(ref ($opt->{lu}->[0]) eq 'PDL',"inverse: lu_decomp first entry is an ndarray");
 ok(tapprox(matmult($a1,$pa),$identity,$tol),"matrix mult by its inverse gives identity matrix");
 }
 

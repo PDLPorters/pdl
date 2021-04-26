@@ -2,7 +2,7 @@
 # There are three goals from the new functionality: (1) to allow
 # MATLAB to use familiar syntax to create arrays, (2) to allow
 # cut-n-paste of PDL print output as input for scripts and programs,
-# and (3) to allow easy ways to construct nan and inf values in piddles.
+# and (3) to allow easy ways to construct nan and inf values in ndarrays.
 #
 
 use strict;
@@ -11,7 +11,7 @@ use Test::More;
 use Config;
 use PDL::LiteF;
 
-isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns a piddle} );
+isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns an ndarray} );
 
 # Basic Tests #
 ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
@@ -118,7 +118,7 @@ ok($t16->ndims == 1, "Implicit bracketing gets proper number of dimensions - bra
 $expected = pdl [];
 $got = pdl q[];
 ok(all($got == $expected), 'Blank strings are interpreted as empty arrays');
-# This generates an annoying warning, and the piddle should be Empty anyway
+# This generates an annoying warning, and the ndarray should be Empty anyway
 #$expected = pdl [];
 $got = pdl q[[]];
 ok(all($got == $expected), 'Empty bracket is correctly interpreted');
@@ -419,7 +419,7 @@ done_testing;
 # pdl> p $d = pdl q[ 7 - 2 + 5 ]
 # 10
 
-# A [2,3,4] shape piddle
+# A [2,3,4] shape ndarray
 # pdl> p $d = pdl [ [ [0, 1], [4, 0], [0, 3] ],
 #                   [ [2, 0], [4, 0], [4, 1] ],
 #                   [ [0, 1], [3, 2], [1, 4] ],

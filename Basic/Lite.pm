@@ -7,7 +7,7 @@ PDL::Lite - minimum PDL module OO loader
 Loads the smallest possible set of modules for
 PDL to work, importing only those functions always defined by
 L<PDL::Core>) into the current namespace
-(C<pdl>, C<piddle>, C<barf> and C<null>).
+(C<pdl>, C<ndarray>, C<barf> and C<null>).
 This is the absolute minimum set for PDL.
 
 Access to other functions is by method syntax, viz:

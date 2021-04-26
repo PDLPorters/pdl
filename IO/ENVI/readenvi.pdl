@@ -323,7 +323,7 @@ sub readenvi {
       ($envi) = @envidata;
    }
 
-   # attach ENVI hdr to piddle
+   # attach ENVI hdr to ndarray
    $envi->sethdr($envihdr);
 
    # handle ignore values by mapping to BAD

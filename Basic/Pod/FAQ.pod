@@ -698,13 +698,13 @@ multiprocessor machines or clusters)
 
 =item *
 
-PDL threading of operations on piddles (as mentioned in the
+PDL threading of operations on ndarrays (as mentioned in the
 indexing docs) is the iteration of a basic operation over
-appropriate sub-slices of piddles, e.g. the inner product 
+appropriate sub-slices of ndarrays, e.g. the inner product 
 C<inner $x, $y> of a (3) pdl C<$x> and a (3,5,4) pdl 
-C<$y> results in a (5,4) piddle where each
+C<$y> results in a (5,4) ndarray where each
 value is the result of an inner product of the (3) pdl with a
-(3) sub-slice of the (3,5,4) piddle.  For details check
+(3) sub-slice of the (3,5,4) ndarray.  For details check
 L<PDL::Indexing> 
 
 =back
@@ -715,14 +715,14 @@ machines/networks; there you have the connection between the
 two types of use of the term. 
 
 
-=head2 Q: 5.2    What is a piddle?  
+=head2 Q: 5.2    What is an ndarray?  
 
 
 Well, PDL scalar variables (which are instances of a particular class
 of Perl objects, i.e. blessed thingies (see C<perldoc perlobj> )) are
-in common PDL parlance often called I<piddles> (for example, check the
+in common PDL parlance often called I<ndarrays> (for example, check the
 mailing list archives).  Err, clear?  If not, simply use the term
-I<piddle> when you refer to a PDL variable (an instance of a PDL
+I<ndarray> when you refer to a PDL variable (an instance of a PDL
 object as you might remember) regardless of what actual data the PDL
 variable contains.
 
@@ -753,7 +753,7 @@ shell if you are new to PDL.
 
 
 
-=head1 MANIPULATION OF PIDDLES
+=head1 MANIPULATION OF NDARRAYS
 
 
 
@@ -761,13 +761,13 @@ shell if you are new to PDL.
 
 
 See answer to the next question why the normal Perl array syntax doesn't
-work for piddles.
+work for ndarrays.
 
 
-=head2 Q: 6.4    The docs say piddles are some kind of array. But why doesn't the Perl array syntax work with piddles then ?  
+=head2 Q: 6.4    The docs say ndarrays are some kind of array. But why doesn't the Perl array syntax work with ndarrays then ?  
 
 
-OK, you are right in a way. The docs say that piddles can be
+OK, you are right in a way. The docs say that ndarrays can be
 thought of arrays.  More specifically, it says (
 L<PDL::QuickStart> ):
 
@@ -776,7 +776,7 @@ L<PDL::QuickStart> ):
     "things" and PDL variables like $x as "arrays" which can be
     contained in lists or hashes.
 
-So, while piddles can be thought of as some kind of
+So, while ndarrays can be thought of as some kind of
 multi-dimensional array they are 
 B< not> arrays in the Perl sense. Rather,
 from the point of view of Perl they are some special class
@@ -791,22 +791,22 @@ C<slice> function and friends (see L<PDL::Slices> and
 L<PDL::Indexing> and especially L<PDL::NiceSlice> ).
 
 Finally, to confuse you completely, you can have Perl arrays
-of piddles, e.g. C<$spec[3]> can refer to a pdl representing ,e.g,
+of ndarrays, e.g. C<$spec[3]> can refer to a pdl representing ,e.g,
 a spectrum, where C<$spec[3]> is the fourth element of the Perl
 list (or array ;) C<@spec> .  This may be confusing but is 
 very useful !
 
 
-=head2 Q: 6.5    How do I concatenate piddles?  
+=head2 Q: 6.5    How do I concatenate ndarrays?  
 
 
-Most people will try to form new piddles from old piddles
+Most people will try to form new ndarrays from old ndarrays
 using some variation over the theme: 
 C<$x =  pdl([$y, 0, 2])>.  This does work, but may not work in the way
 that a novice user would expect. (If C<$y> has N dimensions then C<$x>
-will have N+1 dimensions.) Other ways to concatenate piddles are
+will have N+1 dimensions.) Other ways to concatenate ndarrays are
 to use the functions C<cat>, C<append>, and C<glue>. Similarly you can
-split piddles using the command C<dog>.
+split ndarrays using the command C<dog>.
 
 
 =head2 Q: 6.6    Sometimes I am getting these strange results when using inplace  operations?   
@@ -853,7 +853,7 @@ assignment operator. Therefore, PDL peruses the operator
 C<.=> for certain types of assignments.
 
 
-=head2 Q: 6.9    How do I set a set of values in a piddle?  
+=head2 Q: 6.9    How do I set a set of values in an ndarray?  
 
 
 In Perl 5.6.7 and higher this assignment can be made
@@ -891,15 +891,15 @@ seen in PDL code:
     [0 5 6 3 4]
 
 
-=head2 Q: 6.10   Can I use a piddle in a conditional expression?  
+=head2 Q: 6.10   Can I use an ndarray in a conditional expression?  
 
 
 Yes you can, but not in the way you probably tried first. It
-is not possible to use a piddle directly in a conditional
+is not possible to use an ndarray directly in a conditional
 expression since this is usually poorly defined. Instead PDL
 has two very useful functions: 
 C<any> and C<all> . Use these to test if any or
-all elements in a piddle fulfills some criterion:
+all elements in an ndarray fulfills some criterion:
 
     pdl> $x=pdl ( 1, -2, 3);
     pdl> print '$x has at least one element < 0' if (any $x < 0);
@@ -909,21 +909,21 @@ all elements in a piddle fulfills some criterion:
     $x is not positive definite
 
 
-=head2 Q: 6.11   Logical operators and piddles -  '||' and '&&' don't work!  
+=head2 Q: 6.11   Logical operators and ndarrays -  '||' and '&&' don't work!  
 
 
 It is a common problem that you try to make a mask array or something 
 similar using a construct such as 
 
-    $mask = which($piddle > 1 && $piddle < 2);   # incorrect
+    $mask = which($ndarray > 1 && $ndarray < 2);   # incorrect
 
 This B< does not> work! What you are looking for is the B< bitwise> 
 logical operators '|' and '&' which work on an element-by-element
 basis. So it is really very simple: Do not use logical operators on 
-multi-element piddles since that really doesn't make sense, instead 
+multi-element ndarrays since that really doesn't make sense, instead 
 write the example as:
 
-    $mask = which($piddle > 1 & $piddle < 2);
+    $mask = which($ndarray > 1 & $ndarray < 2);
 
 which works correctly.
 
@@ -938,9 +938,9 @@ which works correctly.
 
 =for comment Is Q: 6.12 up-to-date with null and empty pdls?
 
-C<null> is a special token for 'empty piddle'. A null pdl 
+C<null> is a special token for 'empty ndarray'. A null pdl 
 can be used to flag to a PDL function that it should create 
-an appropriately sized and typed piddle. I<Null> piddles 
+an appropriately sized and typed ndarray. I<Null> ndarrays 
 can be used in places where a PDL function expects an 
 I<output> or I<temporary> argument. I<Output> and 
 I<temporary> arguments are flagged in the
@@ -975,15 +975,15 @@ an example, look at the signature of the C<maximum> function:
 this says that C<maximum> takes two arguments, the first of which is
 (at least) one-dimensional while the second one is zero-dimensional and
 an I<output> argument (flagged by the C<[o]> qualifier). If the function
-is called with piddles of higher dimension the function will be repeatedly
-called with slices of these piddles of appropriate dimension(this is called 
+is called with ndarrays of higher dimension the function will be repeatedly
+called with slices of these ndarrays of appropriate dimension(this is called 
 I<threading> in PDL).
 
 For details and further explanations consult 
 L<PDL::Indexing> and L<PDL::PP> .
 
 
-=head2 Q: 6.14   How can I subclass (inherit from) piddles?  
+=head2 Q: 6.14   How can I subclass (inherit from) ndarrays?  
 
 
 The short answer is: read L<PDL::Objects> (e.g. type 
@@ -1046,7 +1046,7 @@ section below on L<Extensions of PDL|"EXTENSIONS OF PDL">.
 =head2 Q: 6.17   What happens when I have several references to the same PDL object in different variables (cloning, etc?) ?  
 
 
-Piddles behave like Perl references in many respects. So when you say
+ndarrays behave like Perl references in many respects. So when you say
 
     $x = pdl [0,1,2,3];
     $y = $x;
@@ -1055,7 +1055,7 @@ then both $y and $x point to the same object, e.g. then saying
 
     $y++;
 
-will *not* create a copy of the original piddle but just increment in
+will *not* create a copy of the original ndarray but just increment in
 place, of which you can convince yourself by saying
 
     print $x;
@@ -1063,14 +1063,14 @@ place, of which you can convince yourself by saying
 
 This should not be mistaken for dataflow which connects several
 *different* objects so that data changes are propagated between
-the so linked piddles (though, under certain circumstances, dataflown
-piddles can share physically the same data).
+the so linked ndarrays (though, under certain circumstances, dataflown
+ndarrays can share physically the same data).
 
-It is important to keep the "reference nature" of piddles in mind
-when passing piddles into subroutines. If you modify the input
-piddles you modify the original argument, I<not> a copy of it. This
+It is important to keep the "reference nature" of ndarrays in mind
+when passing ndarrays into subroutines. If you modify the input
+ndarrays you modify the original argument, I<not> a copy of it. This
 is different from some other array processing languages but makes
-for very efficient passing of piddles between subroutines. If you
+for very efficient passing of ndarrays between subroutines. If you
 do not want to modify the original argument but rather a copy
 of it just create a copy explicitly (this example also demonstrates
 how to properly check for an I<explicit> request to process
@@ -1146,7 +1146,7 @@ For further details consult the more detailed list in the L<PDL::IO>
 documentation or the documentation for the individual modules.
 
 
-=head2 Q: 6.19   How can I stack a set of 2D arrays (images) into a 3D piddle?  
+=head2 Q: 6.19   How can I stack a set of 2D arrays (images) into a 3D ndarray?  
 
 
 Assuming all arrays are of the same size and in some format recognized by
@@ -1155,7 +1155,7 @@ C<rpic> (see L<PDL::IO::Pic> ) you could say:
     use PDL::IO::Pic;
     @names = qw/name1.tif .... nameN.tif/;  # some file names
     $dummy = PDL->rpic($names[0]);
-    $cube = PDL->zeroes($dummy->type,$dummy->dims,$#names+1); # make 3D piddle
+    $cube = PDL->zeroes($dummy->type,$dummy->dims,$#names+1); # make 3D ndarray
     for (0..$#names) {
         # this is the slice assignment
         ($tmp = $cube->slice(":,:,($_)")) .= PDL->rpic($names[$_]);
@@ -1168,9 +1168,9 @@ or
 for the slice assignment using the new L<PDL::NiceSlice> syntax and Lvalue
 assignments.
 
-The for loop reads the actual images into a temporary 2D piddle whose
+The for loop reads the actual images into a temporary 2D ndarray whose
 values are then assigned (using the overloaded C<.=> operator) to the
-appropriate slices of the 3D piddle C<$cube> .
+appropriate slices of the 3D ndarray C<$cube> .
 
 
 =head2 Q: 6.20   Where are test files for the graphics modules?  
@@ -1476,7 +1476,7 @@ the intention is to show the basics of writing a PDL::PP
 interface. 
 
 We will write a simple function that calculates the minimum,
-maximum and average of a piddle. On my machine the resulting
+maximum and average of an ndarray. On my machine the resulting
 function is 8 times faster than the built-in function 
 C<stats> (of course the latter also
 calculates the median). 

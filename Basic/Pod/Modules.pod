@@ -20,9 +20,9 @@ For example:
  pdl> apropos xval
  xlinvals        X axis values between endpoints (see xvals).
  xlogvals        X axis values logarithmicly spaced...
- xvals           Fills a piddle with X index values...
- yvals           Fills a piddle with Y index values. See the CAVEAT for xvals.
- zvals           Fills a piddle with Z index values. See the CAVEAT for xvals.
+ xvals           Fills an ndarray with X index values...
+ yvals           Fills an ndarray with Y index values. See the CAVEAT for xvals.
+ zvals           Fills an ndarray with Z index values. See the CAVEAT for xvals.
 
 To learn more about the PDL shell, see L<perldl> or L<pdl2>.
 
@@ -42,7 +42,7 @@ Learn about the PDL shell.
 
 =item L<PDL::Core>
 
-Core module (e.g. creating piddles).
+Core module (e.g. creating ndarrays).
 
 =item L<PDL::Basic>
 
@@ -68,7 +68,7 @@ MATLAB-style function autoloader.
 
 =item L<PDL::Slices>
 
-Indexing and slices. How to access a subset of a piddle.
+Indexing and slices. How to access a subset of an ndarray.
 
 =item L<PDL::NiceSlice>
 
@@ -84,7 +84,7 @@ Nicer syntax for slices.
 
 =item L<PDL::Primitive>
 
-Fundamental operations on piddles.
+Fundamental operations on ndarrays.
 
 =item L<PDL::Complex>
 
@@ -459,7 +459,7 @@ PDL debugger.
 
 =item L<PDL::DiskCache>
 
-Manage many piddles through a disk cache.
+Manage many ndarrays through a disk cache.
 
 =item L<PDL::CallExt>
 

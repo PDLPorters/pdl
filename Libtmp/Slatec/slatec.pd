@@ -37,7 +37,7 @@ the data contains both "steep" and "flat" sections.
 Interpolation of cumulative probability distribution functions is 
 another application.
 These routines are cryptically named (blame FORTRAN), 
-beginning with 'ch', and accept either float or double piddles. 
+beginning with 'ch', and accept either float or double ndarrays. 
 
 Most of the routines require an integer parameter called C<check>;
 if set to 0, then no checks on the validity of the input data are
@@ -405,7 +405,7 @@ sub defslatec {
       }
     }
 
-    # _incfd     = 1 makes sure PCHIP code treats piddle as 1D
+    # _incfd     = 1 makes sure PCHIP code treats ndarray as 1D
     # _checkflag - copy input data to a temporary variable, in case
     #              the PCHIP routine decides to change it
     #
@@ -923,7 +923,7 @@ defslatec(
 'Calculate the derivatives at the given points (C<$x,$f>,
 where C<$x> is strictly increasing).
 Control over the boundary conditions is given by the 
-C<$ic> and C<$vc> piddles, and the value of C<$mflag> determines
+C<$ic> and C<$vc> ndarrays, and the value of C<$mflag> determines
 the treatment of points where monotoncity switches
 direction. A simpler, more restricted, interface is available 
 using L</chim>.
@@ -979,9 +979,9 @@ where C<dfloc> is the maximum of the change of C<$f> on this interval
 and its two immediate neighbours.
 If C<$mflag E<lt> 0>, no such control is to be imposed.            
 
-The piddle C<$wk> is only needed for work space. However, I could
+The ndarray C<$wk> is only needed for work space. However, I could
 not get it to work as a temporary variable, so you must supply
-it; it is a 1D piddle with C<2*n> elements.
+it; it is a 1D ndarray with C<2*n> elements.
 
 Error status returned by C<$ierr>:
 
@@ -1037,7 +1037,7 @@ for monotonicity.
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
 
-# as above, have made wk an actual piddle, rather than a [t]
+# as above, have made wk an actual ndarray, rather than a [t]
 defslatec(
 	  'chsp', {S => 'pchsp', D => 'dpchsp'},
 	  'IntFlag      ic      (two=2);
@@ -1055,7 +1055,7 @@ defslatec(
 at the given points (C<$x,$f>), with the specified
 boundary conditions. 
 Control over the boundary conditions is given by the 
-C<$ic> and C<$vc> piddles.
+C<$ic> and C<$vc> ndarrays.
 The resulting values - C<$x,$f,$d> - can
 be used in all the functions which expect a cubic
 Hermite function.
@@ -1096,9 +1096,9 @@ the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
 The values of C<$vc> need only be set if options 1 or 2 are chosen
 for C<$ic>.
 
-The piddle C<$wk> is only needed for work space. However, I could
+The ndarray C<$wk> is only needed for work space. However, I could
 not get it to work as a temporary variable, so you must supply
-it; it is a 1D piddle with C<2*n> elements.
+it; it is a 1D ndarray with C<2*n> elements.
 
 Error status returned by C<$ierr>:
 
@@ -1384,7 +1384,7 @@ defslatec(
            IntFlag [o]  ismon   (n);
            IntFlag [o]  ierr    ();
           ',
-'The outout piddle C<$ismon> indicates over
+'The outout ndarray C<$ismon> indicates over
 which intervals the function is monotonic.
 Set C<check> to 0 to skip checks on the input data.
 

@@ -44,12 +44,12 @@ inplace (not yet implemented!!!) and require rectangular form.
 
 While there is a procedural interface available (C<< $x/$y*$c <=> Cmul
 (Cdiv ($x, $y), $c) >>), you can also opt to cast your pdl's into the
-C<PDL::Complex> datatype, which works just like your normal piddles, but
+C<PDL::Complex> datatype, which works just like your normal ndarrays, but
 with all the normal perl operators overloaded.
 
 The latter means that C<sin($x) + $y/$c> will be evaluated using the
 normal rules of complex numbers, while other pdl functions (like C<max>)
-just treat the piddle as a real-valued piddle with a lowest dimension of
+just treat the ndarray as a real-valued ndarray with a lowest dimension of
 size 2, so C<max> will return the maximum of all real and imaginary parts,
 not the "highest" (for some definition)
 
@@ -60,7 +60,7 @@ complex floating-point types, and most functions and modules in the core
 distribution support these as well.
 
 PDL can now handle complex numbers natively as scalars. This has
-the advantage that real and complex valued piddles have the same
+the advantage that real and complex valued ndarrays have the same
 dimensions. Consider this when writing code in the future.
 
 See L<PDL::Ops/ci>, L<PDL::Ops/creal>, L<PDL::Ops/cimag>,
@@ -85,8 +85,8 @@ the fifths roots of 1+1*i (due to threading).
 
 =item *
 
-use C<cplx(real-valued-piddle)> to cast from normal piddles into the
-complex datatype. Use C<real(complex-valued-piddle)> to cast back. This
+use C<cplx(real-valued-ndarray)> to cast from normal ndarrays into the
+complex datatype. Use C<real(complex-valued-ndarray)> to cast back. This
 requires a copy, though.
 
 =item *
@@ -313,9 +313,9 @@ pp_addpm <<'EOP';
 
 =for ref
 
-Cast a real-valued piddle to the complex datatype.
+Cast a real-valued ndarray to the complex datatype.
 
-The first dimension of the piddle must be of size 2. After this the
+The first dimension of the ndarray must be of size 2. After this the
 usual (complex) arithmetic operators are applied to this pdl, rather
 than the normal elementwise pdl operators.  Dataflow to the complex
 parent works. Use C<sever> on the result if you don't want this.
@@ -328,11 +328,11 @@ parent works. Use C<sever> on the result if you don't want this.
 
 =for ref
 
-Cast a real-valued piddle to the complex datatype I<without> dataflow
+Cast a real-valued ndarray to the complex datatype I<without> dataflow
 and I<inplace>.
 
-Achieved by merely reblessing a piddle. The first dimension of the
-piddle must be of size 2.
+Achieved by merely reblessing an ndarray. The first dimension of the
+ndarray must be of size 2.
 
 =for usage
 
@@ -356,13 +356,13 @@ result if you don't want this.
 
 use Carp;
 sub cplx($) {
-   return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just piddle
+   return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just ndarray
    croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
    bless $_[0]->slice('');
 }
 
 sub complex($) {
-   return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just piddle
+   return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just ndarray
    croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
    bless $_[0];
 }
@@ -688,7 +688,7 @@ pp_def 'Cpow',
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            $GENERIC() br = $b(m=>0), bi = $b(m=>1);
 
-PDL_COMMENT(real piddle (scalar or 1-piddle))
+PDL_COMMENT(real ndarray (scalar or 1-ndarray))
            if($PDL(b)->dims[0]==0)
              bi = 0;
 PDL_COMMENT(printf("ar: %f ai: %f\nbr: %f bi: %f\nDimsB: %ld\n",ar,ai,br,bi,$PDL(b)->dims[0]);)
@@ -954,7 +954,7 @@ pp_addpm <<'EOD';
 Return the real or imaginary part of the complex number(s) given.
 
 These are slicing operators, so data flow works. The real and
-imaginary parts are returned as piddles (ref eq PDL).
+imaginary parts are returned as ndarrays (ref eq PDL).
 
 =cut
 
@@ -1170,7 +1170,7 @@ sub cd(;@) {
          PDL::Core::string($self,$format1);
       }
       return "Null" if $self->isnull;
-      return "Empty" if $self->isempty; # Empty piddle
+      return "Empty" if $self->isempty; # Empty ndarray
       local $sep  = $PDL::use_commas ? ", " : "  ";
       local $sep2 = $PDL::use_commas ? ", " : "";
       if ($ndims < 3) {

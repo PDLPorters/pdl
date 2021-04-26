@@ -148,12 +148,12 @@ is $test_ok, 1, "contents of complicated case";
 ##############################
 # test empty PDLs.
 $p = pdl($pdl_e);
-is $p->nelem, 0, "piddlifying an empty piddle yields 0 elements";
+is $p->nelem, 0, "piddlifying an empty ndarray yields 0 elements";
 
 $p = pdl($pdl_e, $pdl_e);
 is $p->ndims, 2, "piddlifying two 0-PDLs makes a 2D-PDL";
-is $p->dim(0),0, "piddlifying two empty piddles makes a 0x2-PDL";
-is $p->dim(1),2, "piddlifying two empty piddles makes a 0x2-PDL";
+is $p->dim(0),0, "piddlifying two empty ndarrays makes a 0x2-PDL";
+is $p->dim(1),2, "piddlifying two empty ndarrays makes a 0x2-PDL";
 eval { $p->at(0,0) };
 ok( $@ =~ m/^Position out of range/ , "can't index an empty PDL with at" );
 

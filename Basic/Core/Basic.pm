@@ -6,7 +6,7 @@ PDL::Basic -- Basic utility functions for PDL
 =head1 DESCRIPTION
 
 This module contains basic utility functions for
-creating and manipulating piddles. Most of these functions
+creating and manipulating ndarrays. Most of these functions
 are simplified interfaces to the more flexible functions in
 the modules 
 L<PDL::Primitive> 
@@ -50,12 +50,12 @@ use PDL::Options;
 
 =for ref
 
-Fills a piddle with X index values.  Uses similar specifications to
+Fills an ndarray with X index values.  Uses similar specifications to
 L</zeroes> and L</new_from_specification>.
 
 CAVEAT: 
 
-If you use the single argument piddle form (top row
+If you use the single argument ndarray form (top row
 in the usage table) the output will have the same type as the input;
 this may give surprising results if, e.g., you have a byte array with
 a dimension of size greater than 256.  To force a type, use the third form.
@@ -88,7 +88,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for ref
 
-Fills a piddle with Y index values.  See the CAVEAT for L</xvals>.
+Fills an ndarray with Y index values.  See the CAVEAT for L</xvals>.
 
 =for usage
 
@@ -117,7 +117,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for ref
 
-Fills a piddle with Z index values.  See the CAVEAT for L</xvals>.
+Fills an ndarray with Z index values.  See the CAVEAT for L</xvals>.
 
 =for usage
 
@@ -159,7 +159,7 @@ X axis values between endpoints (see L</xvals>).
  # Y between -2 and -1.
  $z = f($x,$y);            
 
-C<xlinvals>, C<ylinvals> and C<zlinvals> return a piddle with the same shape
+C<xlinvals>, C<ylinvals> and C<zlinvals> return an ndarray with the same shape
 as their first argument and linearly scaled values between the two other
 arguments along the given axis.
 
@@ -194,7 +194,7 @@ X axis values logarithmically spaced between endpoints (see L</xvals>).
  # Y between 1e-4 and 1e3.
  $z = f($x,$y);            
 
-C<xlogvals>, C<ylogvals> and C<zlogvals> return a piddle with the same shape
+C<xlogvals>, C<ylogvals> and C<zlogvals> return an ndarray with the same shape
 as their first argument and logarithmically scaled values between the two other
 arguments along the given axis.
 
@@ -316,19 +316,19 @@ $indices = allaxisvals($type,@dimlist);
 
 =for ref
 
-Enumerate pixel coordinates for an N-D piddle
+Enumerate pixel coordinates for an N-D ndarray
 
 Returns an enumerated list of coordinates suitable for use in
 L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>: you feed
-in a dimension list and get out a piddle whose 0th dimension runs over
+in a dimension list and get out an ndarray whose 0th dimension runs over
 dimension index and whose 1st through Nth dimensions are the
-dimensions given in the input.  If you feed in a piddle instead of a
+dimensions given in the input.  If you feed in an ndarray instead of a
 perl list, then the dimension list is used, as in L</xvals> etc.
 
-Unlike L</xvals> etc., if you supply a piddle input, you get 
-out a piddle of the default piddle type: double.   This causes less
+Unlike L</xvals> etc., if you supply an ndarray input, you get 
+out an ndarray of the default ndarray type: double.   This causes less
 surprises than the previous default of keeping the data type of
-the input piddle since that rarely made sense in most usages.
+the input ndarray since that rarely made sense in most usages.
 
 =for usage
 
@@ -355,9 +355,9 @@ $indices = ndcoords($type,@dimlist);
    ]
   ]
 
-  pdl> $w = zeroes(byte,2,3);        # $w is a 2x3 byte piddle
+  pdl> $w = zeroes(byte,2,3);        # $w is a 2x3 byte ndarray
   pdl> $y = ndcoords($w);            # $y inherits $w's type
-  pdl> $c = ndcoords(long,$w->dims); # $c is a long piddle, same dims as $y
+  pdl> $c = ndcoords(long,$w->dims); # $c is a long ndarray, same dims as $y
   pdl> help $y;
   This variable is   Byte D [2,2,3]              P            0.01Kb
   pdl> help $c;
@@ -395,7 +395,7 @@ sub PDL::ndcoords {
 
 =for ref
 
-Create histogram of a piddle
+Create histogram of an ndarray
 
 =for usage
 
@@ -449,7 +449,7 @@ sub PDL::hist {
 
 =for ref
 
-Create a weighted histogram of a piddle
+Create a weighted histogram of an ndarray
 
 =for usage
 
@@ -496,7 +496,7 @@ sub _hist_bin_calc {
     $min = $pdl->min() unless defined $min;
     $max = $pdl->max() unless defined $max;
     my $nelem = $pdl->nelem;
-    barf "empty piddle, no values to work with" if $nelem == 0;
+    barf "empty ndarray, no values to work with" if $nelem == 0;
 
     $step = ($max-$min)/(($nelem>10_000) ? 100 : sqrt($nelem)) unless defined $step;
     barf "step is zero (or all data equal to one value)" if $step == 0;
@@ -550,11 +550,11 @@ sub PDL::sequence {
 
 =for ref
 
-Fills a piddle with radial distance values from some centre.
+Fills an ndarray with radial distance values from some centre.
 
 =for usage
 
- $r = rvals $piddle,{OPTIONS};
+ $r = rvals $ndarray,{OPTIONS};
  $r = rvals [OPTIONAL TYPE],$nx,$ny,...{OPTIONS};
 
 =for options
@@ -643,11 +643,11 @@ sub PDL::rvals { # Return radial distance from given point and offset
 
 =for ref
 
-Fills a piddle with index values on Nth dimension
+Fills an ndarray with index values on Nth dimension
 
 =for usage
 
- $z = axisvals ($piddle, $nth);
+ $z = axisvals ($ndarray, $nth);
 
 This is the routine, for which L</xvals>, L</yvals> etc
 are mere shorthands. C<axisvals> can be used to fill along any dimension,

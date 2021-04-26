@@ -77,7 +77,7 @@ pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
 
 =for ref
 
-Read a pnm (portable bitmap/pixmap, pbm/ppm) file into a piddle.
+Read a pnm (portable bitmap/pixmap, pbm/ppm) file into an ndarray.
 
 =for usage
 

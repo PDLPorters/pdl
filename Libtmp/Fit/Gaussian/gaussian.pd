@@ -35,7 +35,7 @@ reasonable looking gaussians and tests show correct parameters.
 
 =for ref
 
-Fit 1D Gassian to data piddle
+Fit 1D Gassian to data ndarray
 
 =for example
 
@@ -54,9 +54,9 @@ Fit 1D Gassian to data piddle
 Fits a 1D Gaussian robustly free parameters are the centre, peak height,
 FWHM. The background is NOT fit, because I find this is generally
 unreliable, rather a median is determined in the 'outer' 10% of
-pixels (i.e. those at the start/end of the data piddle). The initial
-estimate of the FWHM is the length of the piddle/3, so it might fail
-if the piddle is too long. (This is non-robust anyway). Most data
+pixels (i.e. those at the start/end of the data ndarray). The initial
+estimate of the FWHM is the length of the ndarray/3, so it might fail
+if the ndarray is too long. (This is non-robust anyway). Most data
 does just fine and this is a good default gaussian fitter.
 
 SEE ALSO: fitgauss1dr() for fitting radial gaussians
@@ -65,7 +65,7 @@ SEE ALSO: fitgauss1dr() for fitting radial gaussians
 
 =for ref
 
-Fit 1D Gassian to radial data piddle
+Fit 1D Gassian to radial data ndarray
 
 =for example
 
@@ -82,12 +82,12 @@ Fit 1D Gassian to radial data piddle
   [t]sig(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
 
 Fits a 1D radial Gaussian robustly free parameters are the peak height,
-FWHM. Centre is assumed to be X=0 (i.e. start of piddle).
+FWHM. Centre is assumed to be X=0 (i.e. start of ndarray).
 The background is NOT fit, because I find this is generally
 unreliable, rather a median is determined in the 'outer' 10% of
-pixels (i.e. those at the end of the data piddle). The initial
-estimate of the FWHM is the length of the piddle/3, so it might fail
-if the piddle is too long. (This is non-robust anyway). Most data
+pixels (i.e. those at the end of the data ndarray). The initial
+estimate of the FWHM is the length of the ndarray/3, so it might fail
+if the ndarray is too long. (This is non-robust anyway). Most data
 does just fine and this is a good default gaussian fitter.
 
 SEE ALSO: fitgauss1d() to fit centre as well.

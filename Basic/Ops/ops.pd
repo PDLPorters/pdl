@@ -284,7 +284,7 @@ sub ufunc {
     $codestr .= $complex_bit if $got_complex;
 
     # do not have to worry about propagation of the badflag when
-    # inplace since only input piddle is a, hence its badflag
+    # inplace since only input ndarray is a, hence its badflag
     # won't change
     # UNLESS an exception occurs...
     pp_def($name,
@@ -341,12 +341,12 @@ EOD
 
 ## arithmetic ops
 # no swap needed but set anyway fixing sf bug #391
-biop('plus','+',1,'add two piddles',GenericTypes => $A);
-biop('mult','*',1,'multiply two piddles',GenericTypes => $A);
+biop('plus','+',1,'add two ndarrays',GenericTypes => $A);
+biop('mult','*',1,'multiply two ndarrays',GenericTypes => $A);
 
 # all those need swapping
-biop('minus','-',1,'subtract two piddles',GenericTypes => $A);
-biop('divide','/',1,'divide two piddles', Exception => '$b() == 0', GenericTypes => $A);
+biop('minus','-',1,'subtract two ndarrays',GenericTypes => $A);
+biop('divide','/',1,'divide two ndarrays', Exception => '$b() == 0', GenericTypes => $A);
 
 ## note: divide should perhaps trap division by zero as well
 
@@ -365,19 +365,19 @@ biop('ne','!=',1,'binary I<not equal to> operation (C<!=>)', Comparison => 1, Ge
 # those need to be limited to the right types
 biop('shiftleft','<<',1,'leftshift C<$a> by C<$b>',GenericTypes => $T);
 biop('shiftright','>>',1,'rightshift C<$a> by C<$b>',GenericTypes => $T);
-biop('or2','|',1,'binary I<or> of two piddles',GenericTypes => $T,
+biop('or2','|',1,'binary I<or> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
-biop('and2','&',1,'binary I<and> of two piddles',GenericTypes => $T,
+biop('and2','&',1,'binary I<and> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
-biop('xor','^',1,'binary I<exclusive or> of two piddles',GenericTypes => $T,
+biop('xor','^',1,'binary I<exclusive or> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
 
 # really an ufunc
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<$b>',GenericTypes => [@$C, @$F]);
-bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => $F);
+bifunc('power',['pow','op**'],1,'raise ndarray C<$a> to the power C<$b>',GenericTypes => [@$C, @$F]);
+bifunc('atan2','atan2',1,'elementwise C<atan2> of two ndarrays',GenericTypes => $F);
 bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation',unsigned=>1);
 bifunc('spaceship',['SPACE','op<=>'],1,'elementwise "<=>" operation');
 
@@ -392,7 +392,7 @@ ufunc('log','log','the natural logarithm',GenericTypes => [@$C, @$F], Exception 
 pp_export_nothing();
 
 # make log10() work on scalars (returning scalars)
-# as well as piddles
+# as well as ndarrays
 ufunc('log10','log10','the base 10 logarithm', GenericTypes => $A,
       Exception => '$a() <= 0',
       PMCode =>
@@ -439,7 +439,7 @@ pp_def(
        Doc =>
 'Plain numerical assignment. This is used to implement the ".=" operator',
 		BadDoc =>
-'If C<a> is a child piddle (e.g., the result of a slice) and bad values are generated in C<b>,
+'If C<a> is a child ndarray (e.g., the result of a slice) and bad values are generated in C<b>,
 the bad value flag is set in C<b>, but it is B<NOT> automatically propagated back to the parent of C<a>.
 The following idiom ensures that the badflag is propagated back to the parent of C<a>:
 
@@ -508,7 +508,7 @@ pp_def('ipow',
    Doc => qq{
 =for ref
 
-raise piddle C<\$a> to integer power C<\$b>
+raise ndarray C<\$a> to integer power C<\$b>
 
 =for example
 

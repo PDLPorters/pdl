@@ -24,9 +24,9 @@ pp_def(
 	Doc => <<EOT
 =for ref
 
-Combine three coordinates into a single piddle.
+Combine three coordinates into a single ndarray.
 
-Combine x, y and z to a single piddle the first dimension
+Combine x, y and z to a single ndarray the first dimension
 of which is 3. This routine does dataflow automatically.
 
 =cut
@@ -232,7 +232,7 @@ pp_addpm(<<'EOD');
 =for ref
 
 This is the interface for the pp routine contour_segments_internal
-- it takes 3 piddles as input
+- it takes 3 ndarrays as input
 
 C<$c> is a contour value (or a list of contour values)
 

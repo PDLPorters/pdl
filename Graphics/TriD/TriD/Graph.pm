@@ -76,7 +76,7 @@ sub get_points {
 	my $pnew;
 	for(@{$this->{DataBind}{$name}}) {
 		defined($this->{Axis}{$_->[0]}) or die("Axis not defined: $_->[0]");
-# Transform can return the same or a different piddle.
+# Transform can return the same or a different ndarray.
 		$pnew = $this->{Axis}{$_->[0]}->transform($p,$d,$_->[1]);
 		$p = $pnew;
 	}

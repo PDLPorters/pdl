@@ -7,7 +7,7 @@ use PDL::Slatec;
 
 ## Issue information
 ##
-## Name: PDL::Slatec::polyfit ignores incorrect length of weight piddle; passes
+## Name: PDL::Slatec::polyfit ignores incorrect length of weight ndarray; passes
 ##       garbage to slatec polfit
 ##
 ## <https://sourceforge.net/p/pdl/bugs/368/>

@@ -168,7 +168,7 @@ e.g., the compose() method.
 =item itype
 
 An array containing the name of the quantity that is expected from the
-input piddle for the transform, for each dimension.  This field is advisory,
+input ndarray for the transform, for each dimension.  This field is advisory,
 and can be left blank if there's no obvious quantity associated with
 the transform.  This is analogous to the CTYPEn field used in FITS headers.
 
@@ -377,9 +377,9 @@ pp_addpm(<<'+======EOD_invert======');
 
 Apply an inverse transformation to some input coordinates.
 
-In the example, C<$t> is a PDL::Transform and C<$data> is a piddle to
+In the example, C<$t> is a PDL::Transform and C<$data> is an ndarray to
 be interpreted as a collection of N-vectors (with index in the 0th
-dimension).  The output is a similar piddle.
+dimension).  The output is a similar ndarray.
 
 For convenience this is both a PDL method and a PDL::Transform method.
 
@@ -1407,7 +1407,7 @@ as in the L<PGPLOT|PDL::Graphics::PGPLOT> interface.)
 This is a way to modify the autoscaling.  It specifies the range of
 input scientific (not necessarily pixel) coordinates that you want to be
 mapped to the output image.  It can be either a nested array ref or
-a piddle.  The 0th dim (outside coordinate in the array ref) is
+an ndarray.  The 0th dim (outside coordinate in the array ref) is
 dimension index in the data; the 1st dim should have order 2.
 For example, passing in either [[-1,2],[3,4]] or pdl([[-1,2],[3,4]])
 limites the map to the quadrilateral in input space defined by the
@@ -1642,7 +1642,7 @@ sub map {
 
   $tmp = [$in->dims]  unless(defined($tmp));
 
-  # Generate an appropriate output piddle for values to go in
+  # Generate an appropriate output ndarray for values to go in
   my($out);
   my(@odims);
   my($ohdr);

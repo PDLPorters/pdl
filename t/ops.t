@@ -166,7 +166,7 @@ ok(all( approx( 2, sqrt($pb->inplace))),'perl scalar vs inplace pdl sqrt');
 
 {
 # log10 now uses C library
-# check using scalars and piddles
+# check using scalars and ndarrays
 {
 my $pa = log10(110);
 my $pb = log(110) / log(10);

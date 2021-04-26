@@ -35,7 +35,7 @@ use strict;
 use warnings;
 
 ################################################################################
-# figure out what's good in a piddle after a possible transformation which could
+# figure out what's good in an ndarray after a possible transformation which could
 # generate Infs or NaN's.  If only everyone used PDL::Bad::UseNaN...
 sub set_mask
 {
@@ -173,8 +173,8 @@ sub set_mask
     # i know of no way of determining whether a function can be applied inplace.
     # assume not.
 
-    # if xfrm is true, $tmp will be an independent piddle, else its an alias for data
-    # no need to create a new piddle unless necessary.
+    # if xfrm is true, $tmp will be an independent ndarray, else its an alias for data
+    # no need to create a new ndarray unless necessary.
     $tmp = $xfrm ? $vec->{trans}->($data) : $data;
     set_mask( $mask, $tmp );
     push @minmax, $tmp->where($mask)->minmax;
@@ -342,11 +342,11 @@ sub normalize_dsets
     my $ref = ref $ds;
 
     # peek inside the array to see what's there.  we can have the following
-    # [ scalar|piddle, scalar|piddle, ... ] -> a zero dimensional data set
+    # [ scalar|ndarray, scalar|ndarray, ... ] -> a zero dimensional data set
     # [ \@a, \@b, \@c, \%d, ...  ]          -> a bunch of data sets
     # [ \%h, @keys ]                        -> a hash with its keys
 
-    # scalar or piddle, turn it into its own data set
+    # scalar or ndarray, turn it into its own data set
     if ( ! $ref || UNIVERSAL::isa($ds, 'PDL') )
     {
       push @dsets,
@@ -362,7 +362,7 @@ sub normalize_dsets
     else
     {
       die( "data set: ", scalar @dsets + 1,
-	   "illegal type in data set list: not an arrayref, scalar, or piddle\n" );
+	   "illegal type in data set list: not an arrayref, scalar, or ndarray\n" );
     }
 
   }
@@ -442,7 +442,7 @@ sub normalize_array
 
     }
 
-    # must be a list of vectors as either scalars, piddles, or array
+    # must be a list of vectors as either scalars, ndarrays, or array
     # refs (vectors with attributes)
     else
     {
@@ -456,7 +456,7 @@ sub normalize_array
 
 	eval
 	{
-	  # naked scalar or piddle: data vector with no attributes
+	  # naked scalar or ndarray: data vector with no attributes
 	  if ( ! $ref || UNIVERSAL::isa($vec, 'PDL') )
 	  {
 	    push @vecs, { data => PDL::Core::topdl( $vec ) };
@@ -1050,7 +1050,7 @@ dimension. All data sets must have the same dimensions.
 Multi-dimensional data sets are packaged as arrays or hashs; one
 dimensional data sets need not be.  The different representations may
 be mixed, as long as the dimensions are presented in the same order.
-Vectors may be either scalars or piddles.
+Vectors may be either scalars or ndarrays.
 
 =over 8
 
@@ -1058,7 +1058,7 @@ Vectors may be either scalars or piddles.
 
 One dimensional data sets may be passed directly, with no additional packaging:
 
-  limits( $scalar, $piddle );
+  limits( $scalar, $ndarray );
 
 =item Data sets as arrays
 
@@ -1105,7 +1105,7 @@ asymmetric (two values are required to specify the errors).
 
 If the data set is specified as an array of vectors, vectors with
 errors should be embedded in an array. For symmetric errors, the error
-is given as a single vector (piddle or scalar); for asymmetric errors, there
+is given as a single vector (ndarray or scalar); for asymmetric errors, there
 should be two values (one of which may be C<undef> to indicate
 a one-sided error bar):
 

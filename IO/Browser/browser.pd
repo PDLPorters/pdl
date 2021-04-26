@@ -6,7 +6,7 @@ PDL::IO::Browser -- 2D data browser for PDL
 
 =head1 DESCRIPTION
 
-cursor terminal browser for piddles.
+cursor terminal browser for ndarrays.
 
 =head1 SYNOPSIS
 

@@ -24,7 +24,7 @@ This document refers to version PDL::Matrix 0.5 of PDL::Matrix
 
 This package tries to help people who want to use PDL for 2D matrix
 computation with lots of indexing involved. It provides a PDL
-subclass so one- and two-dimensional piddles that are used as
+subclass so one- and two-dimensional ndarrays that are used as
 vectors resp and matrices can be typed in using traditional matrix
 convention.
 
@@ -121,7 +121,7 @@ sub string {
 
 =for ref
 
-constructs an object of class PDL::Matrix which is a piddle child class.
+constructs an object of class PDL::Matrix which is an ndarray child class.
 
 =for example
 
@@ -144,7 +144,7 @@ sub pdl {
 
 =for ref
 
-constructs a PDL::Matrix object similar to the piddle constructors
+constructs a PDL::Matrix object similar to the ndarray constructors
 zeroes, ones, sequence.
 
 =cut
@@ -390,8 +390,8 @@ sub printTeX {
 
 =head1 BUGS AND PROBLEMS
 
-Because we change the way piddles are constructed, not all pdl
-operators may be applied to piddle-matrices. The inner product is not
+Because we change the way ndarrays are constructed, not all pdl
+operators may be applied to ndarray-matrices. The inner product is not
 redefined. We might have missed some functions/methods. Internal
 consistency of our approach needs yet to be established.
 

@@ -378,7 +378,7 @@ sub _init_hermite {
     #  ie allow the possibility of threading
     my $xdim = $x->getdim( 0 );
     my $ydim = $y->getdim( 0 );
-    croak "ERROR: x and y piddles must have the same first dimension.\n"
+    croak "ERROR: x and y ndarrays must have the same first dimension.\n"
 	unless $xdim == $ydim;
 
     my ( $g, $ierr );
@@ -822,7 +822,7 @@ object, if the scheme is C<Hermite>.
 
 The integration can either be between points of
 the original C<x> array (C<index>), or arbitrary x values
-(C<x>). For both cases, a two element piddle
+(C<x>). For both cases, a two element ndarray
 should be given,
 to specify the start and end points of the integration.
 

@@ -1670,7 +1670,7 @@ sub OtherPars_nft {
 		unless defined($dimobjs->{$dim});
 	    $dimobjs->{$dim}->set_from($type);
 	} elsif(/^\s*pdl\s+\*\s*(\w+)$/) {
-	    # It is a piddle -> make it a controlling one.
+	    # It is an ndarray -> make it a controlling one.
 	    die("Not supported yet");
 	} else {
 	    $type = PDL::PP::CType->new(undef,$_);
@@ -2106,7 +2106,7 @@ sub get_badstate {
     PDL::PP::pp_line_numbers(__LINE__, "\$ISPDLSTATEBAD($pdl)")
 }
 
-# checks the input piddles to see if the routine
+# checks the input ndarrays to see if the routine
 # is being any data containing bad values
 #
 # if FindBadStatusCode is set, use it,
@@ -2114,10 +2114,10 @@ sub get_badstate {
 #
 # - in the automatic code creation,
 # if $badflag is 0, rather than being undefined, then
-# we issue a warning if any piddles contain bad values
+# we issue a warning if any ndarrays contain bad values
 # (and set the bvalflag to 0)
 #
-# XXX it looks like output piddles are included in the
+# XXX it looks like output ndarrays are included in the
 # check. I *think* this is just wasted code, but I'm
 # not sure.
 #
@@ -2151,7 +2151,7 @@ sub findbadstatus {
 
     my $str = $clear_bad;
 
-    # set the badflag_cache variable if any input piddle has the bad flag set
+    # set the badflag_cache variable if any input ndarray has the bad flag set
     #
     my $add = 0;
     my $badflag_str = "  \$BADFLAGCACHE() = ";
@@ -2165,7 +2165,7 @@ sub findbadstatus {
     }
 
     # It is possible, at present, for $add to be 0. I think this is when
-    # the routine has no input piddles, such as fibonacci in primitive.pd,
+    # the routine has no input ndarrays, such as fibonacci in primitive.pd,
     # but there may be other cases. These routines could/should (?)
     # be marked as NoBadCode to avoid this, or maybe the code here made
     # smarter. Left as is for now as do not want to add instability into
@@ -2174,7 +2174,7 @@ sub findbadstatus {
     if ($add != 0) {
 	$str .= $badflag_str . ";\n  if (\$BADFLAGCACHE()) ${set_bad}\n";
     } else {
-	print "\nNOTE: $name has no input bad piddles.\n\n" if $::PP_VERBOSE;
+	print "\nNOTE: $name has no input bad ndarrays.\n\n" if $::PP_VERBOSE;
     }
 
     if ( defined($badflag) and $badflag == 0 ) {
@@ -2191,7 +2191,7 @@ sub findbadstatus {
 } # sub: findbadstatus
 
 
-# copies over the bad value state to the output piddles
+# copies over the bad value state to the output ndarrays
 #
 # if CopyBadStatusCode is set, use it,
 # otherwise create the code automatically.
@@ -2253,20 +2253,20 @@ sub copybadstatus {
 #
 # Inplace can be supplied several values
 #   => 1
-#     assumes fn has an inout and output piddle (eg 'a(); [o] b();')
+#     assumes fn has an inout and output ndarray (eg 'a(); [o] b();')
 #
 #   => [ 'a' ]
-#     assumes several input piddles in sig, so 'a' labels which
+#     assumes several input ndarrays in sig, so 'a' labels which
 #     one is to be marked inplace
 #
 #   => [ 'a', 'b' ]
-#     input piddle is a(), output pidle is 'b'
+#     input ndarray is a(), output pidle is 'b'
 #
 sub InplaceCode {
     my ( $ppname, $xsargs, $parobjs, $arg ) = @_;
     return '' unless defined $arg;
 
-    # find input and output piddles
+    # find input and output ndarrays
     my ( @in, @out );
     foreach my $arg (@$xsargs) {
 	my $name = $arg->[0];
@@ -2282,7 +2282,7 @@ sub InplaceCode {
     # handle different values of arg
     my ( $in, $out );
 
-    # default vals - only set if we have one input/output piddle
+    # default vals - only set if we have one input/output ndarray
     $in  = $in[0]  if $#in == 0;
     $out = $out[0] if $#out == 0;
 
@@ -2299,9 +2299,9 @@ sub InplaceCode {
 	die "ERROR: Inplace rule [$ppname] must be sent either an array ref or a scalar.\n";
     }
 
-    die "ERROR: Inplace [$ppname] does not know name of input piddle\n"
+    die "ERROR: Inplace [$ppname] does not know name of input ndarray\n"
 	unless defined $in;
-    die "ERROR: Inplace [$ppname] does not know name of output piddle\n"
+    die "ERROR: Inplace [$ppname] does not know name of output ndarray\n"
 	unless defined $out;
     PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_INPLACE($in, $out)\n");
 } # sub: InplaceCode
@@ -2654,7 +2654,7 @@ sub make_parnames {
 # bit set is used.  This used to do just a simple ref copy but now
 # it uses the perl routine PDL::_hdr_copy to do the dirty work.  That
 # routine makes a deep copy of the header.  Copies of the deep copy
-# are distributed to all the names of the piddle that are not the source
+# are distributed to all the names of the ndarray that are not the source
 # of the header.  I believe that is the Right Thing to do but I could be
 # wrong.
 #
@@ -2792,7 +2792,7 @@ my $pars_re = $PDL::PP::PdlParObj::pars_re;
 # Name       : build_pars_from_fulldoc
 # Usage      : $pars = build_pars_from_fulldoc($fulldoc)
 # Purpose    : extract the Pars from the signature from the fulldoc string,
-#            : the part of the signature that specifies the piddles
+#            : the part of the signature that specifies the ndarrays
 # Returns    : a string appropriate for the Pars key
 # Parameters : $fulldoc
 # Throws     : if there is no signature 
@@ -2834,7 +2834,7 @@ sub build_pars_from_fulldoc {
 # Name       : build_otherpars_from_fulldoc
 # Usage      : $otherpars = build_otherpars_from_fulldoc($fulldoc)
 # Purpose    : extract the OtherPars from the signature from the fulldoc
-#            : string, the part of the signature that specifies non-piddle
+#            : string, the part of the signature that specifies non-ndarray
 #            : arguments
 # Returns    : a string appropriate for the OtherPars key
 # Parameters : $fulldoc
@@ -2922,15 +2922,15 @@ $PDL::PP::deftbl =
          } elsif ( $bf ) {
             $str = "$name processes bad values.\n";
          } else {
-            $str = "$name ignores the bad-value flag of the input piddles.\n";
+            $str = "$name ignores the bad-value flag of the input ndarrays.\n";
          }
          if ( not defined($code) ) {
-            $str .= "It will set the bad-value flag of all output piddles if " .
-            "the flag is set for any of the input piddles.\n";
+            $str .= "It will set the bad-value flag of all output ndarrays if " .
+            "the flag is set for any of the input ndarrays.\n";
          } elsif (  $code eq '' ) {
-            $str .= "The output piddles will NOT have their bad-value flag set.\n";
+            $str .= "The output ndarrays will NOT have their bad-value flag set.\n";
          } else {
-            $str .= "The state of the bad-value flag of the output piddles is unknown.\n";
+            $str .= "The state of the bad-value flag of the output ndarrays is unknown.\n";
          }
       }
    ),
@@ -3240,7 +3240,7 @@ $PDL::PP::deftbl =
 		      \&make_incsize_free),
 
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
-			       'Code that can be inserted to set the size of output piddles dynamically based on input piddles; is parsed',
+			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       'PDL_COMMENT("none")'),
    PDL::PP::Rule->new("RedoDimsParsedCode",
 		      ["RedoDimsCode","_BadRedoDimsCode","ParNames","ParObjs","DimObjs",
@@ -3304,14 +3304,14 @@ $PDL::PP::deftbl =
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
 		      ["BadFlag","_FindBadStatusCode","NewXSArgs","USParObjs","OtherParTypes","NewXSSymTab","Name"],
-		      "Rule to find the bad value status of the input piddles",
+		      "Rule to find the bad value status of the input ndarrays",
 		      \&findbadstatus),
 
     # this can be removed once the default bad values are stored in a C structure
     # (rather than as a perl array in PDL::Types)
     # which it now is, hence the comments (DJB 07/10/00)
-    # - left around in case we move to per-piddle bad values
-    # - NOTE: now we have the experimental per-piddle bad values I need to remember
+    # - left around in case we move to per-ndarray bad values
+    # - NOTE: now we have the experimental per-ndarray bad values I need to remember
     #         what I was doing here
 # [[NewXSCopyBadValues], [BadFlag,NewXSSymTab],
 #    "copybadvalues",
@@ -3319,7 +3319,7 @@ $PDL::PP::deftbl =
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
 		      ["BadFlag","_CopyBadStatusCode","NewXSArgs","USParObjs","NewXSSymTab"],
-		      "Rule to copy the bad value status to the output piddles",
+		      "Rule to copy the bad value status to the output ndarrays",
 		      \&copybadstatus),
 
  # expand macros in ...BadStatusCode

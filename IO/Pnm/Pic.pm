@@ -696,7 +696,7 @@ Write an image sequence (a (3,x,y,n) byte pdl) as an animation.
 
 =for usage
 
-  $piddle->wmpeg('movie.mpg'); # $piddle is (3,x,y,nframes) byte
+  $ndarray->wmpeg('movie.mpg'); # $ndarray is (3,x,y,nframes) byte
 
 Writes a stack of RGB images as a movie.  While the
 format generated is nominally MPEG, the file extension

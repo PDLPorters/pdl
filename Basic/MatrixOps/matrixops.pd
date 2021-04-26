@@ -731,7 +731,7 @@ pp_def(
               extern void SVD( double *W, double *Z, int nRow, int nCol );
               int sm = $SIZE (m), sn = $SIZE (n), i;
               if (sm<sn) {
-		  barf("svd requires input piddles to have m >= n (you have m=%d and n=%d). Try inputting the transpose.  See the docs for svd.",sm,sn);
+		  barf("svd requires input ndarrays to have m >= n (you have m=%d and n=%d). Try inputting the transpose.  See the docs for svd.",sm,sn);
               }
               double *w, *t, zv;
               t = w = (double *) malloc(sn*(sm+sn)*sizeof(double));

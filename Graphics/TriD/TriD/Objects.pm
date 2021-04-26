@@ -98,7 +98,7 @@ sub get_points {
 }
 
 
-# In the future, have this happen automatically by the piddles.
+# In the future, have this happen automatically by the ndarrays.
 sub data_changed {
 	my($this) = @_;
 	$this->changed();

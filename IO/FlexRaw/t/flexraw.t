@@ -28,7 +28,7 @@ BEGIN { use_ok( 'PDL::IO::FlexRaw' ); }
 
 # Set up the working filename and make sure we're working with a clean slate:
 
-# **TEST 2** save a piddle to disk
+# **TEST 2** save an ndarray to disk
 my $x = pdl [2,3],[4,5],[6,7];
 my $header = eval { writeflex($name, $x) };
 ok((-f $name), "writeflex should create a file");
@@ -37,11 +37,11 @@ ok((-f $name), "writeflex should create a file");
 eval { writeflexhdr($name, $header) };
 ok(-f "$name.hdr", "writeflexhdr should create a header file");
 
-# **TEST 4** read it back, and make sure it gives the same piddle
+# **TEST 4** read it back, and make sure it gives the same ndarray
 my $y = eval { readflex($name) };
-ok(all(approx($x,$y)), "A piddle and its saved copy should be about equal");
+ok(all(approx($x,$y)), "A ndarray and its saved copy should be about equal");
 
-# **TEST 5** save two piddles to disk
+# **TEST 5** save two ndarrays to disk
 my $c = pdl [[0,0,0,0],[0,0,0,0]];
 my $d = pdl [1,1,1];
 my $cdname = $name . 'cd';
@@ -52,7 +52,7 @@ ok((-f $cdname), "writeflex saves 2 pdls to a file");
 eval { writeflexhdr($cdname, $header) };
 ok(-f "$cdname.hdr", "writeflexhdr create a header file");
 
-# **TEST 7** read it back, and make sure it gives the same piddle
+# **TEST 7** read it back, and make sure it gives the same ndarray
 # This is sf.net bug #3375837 "_read_flexhdr state machine fails"
 my (@cd) = eval { no warnings; readflex($cdname) };
 ok( (scalar(@cd)==2 and all(approx($cd[0],$c)) and all(approx($cd[1],$d)) ), 'sf.net bug 3375837');
@@ -71,8 +71,8 @@ SKIP: {
       }
    }
 
-   # **TEST 8** compare mapfraw piddle with original piddle	
-   ok(all(approx($x,$c)), "A piddle and its mapflex representation should be about equal");
+   # **TEST 8** compare mapfraw ndarray with original ndarray	
+   ok(all(approx($x,$c)), "A ndarray and its mapflex representation should be about equal");
 
    # **TEST 9** modifications should be saved when $c goes out of scope
    # THIS TEST FAILS.
@@ -83,7 +83,7 @@ SKIP: {
    $c += 1;
    undef $c;
    $y = readflex($name);
-   ok(all(approx($x+1,$y)), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
+   ok(all(approx($x+1,$y)), "Modifications to mapfraw should be saved to disk no later than when the ndarray ceases to exist");
 
    # We're starting a new test, so we'll remove the files we've created so far
    # and clean up the memory, just to be super-safe
@@ -92,14 +92,14 @@ SKIP: {
    undef $y;
 
    # **TEST 10** test creating a pdl via mapfraw
-   # First create and modify the piddle
+   # First create and modify the ndarray
    $header = [{NDims => 2, Dims => [3,2], Type => 'float'}];
    # Fix this specification.
    $x = mapflex($name, $header, {Creat => 1});
    writeflexhdr($name, $header);
-   ok(defined($x), 'mapflex create piddle');
+   ok(defined($x), 'mapflex create ndarray');
 
-   skip('no mapflex piddle to check', 2) unless defined $x;
+   skip('no mapflex ndarray to check', 2) unless defined $x;
    $x += xvals $x;
    $x += 0.1 * yvals $x;
    # save the contents
@@ -108,7 +108,7 @@ SKIP: {
    $y = readflex($name);
    # **TEST 11**
    ok(all(approx($y, PDL->pdl([[0,1,2],[0.1,1.1,2.1]]))),
-      "mapfraw should be able to create new piddles");
+      "mapfraw should be able to create new ndarrays");
 
    # **TEST 12** test the created type
    ok($y->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');

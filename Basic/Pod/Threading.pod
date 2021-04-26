@@ -14,16 +14,16 @@ Other vector based languages, such as MATLAB, use a subset of threading
 techniques, but PDL shines by completely generalizing them for all sorts
 of vector-based applications.
 
-=head1 TERMINOLOGY: PIDDLE
+=head1 TERMINOLOGY: NDARRAY
 
 MATLAB typically refers to vectors, matrices, and arrays. Perl already
 has arrays, and the terms "vector" and "matrix" typically refer to one-
 and two-dimensional collections of data. Having no good term to describe
-their object, PDL developers coined the term "I<piddle>" to give a name to
+their object, PDL developers coined the term "I<ndarray>" to give a name to
 their data type.
 
-A I<piddle> consists of a series of numbers organized as an N-dimensional
-data set. Piddles provide efficient storage and fast computation of large
+A I<ndarray> consists of a series of numbers organized as an N-dimensional
+data set. ndarrays provide efficient storage and fast computation of large
 N-dimensional matrices. They are highly optimized for numerical work.
 
 =head1 THINKING IN TERMS OF THREADING
@@ -46,7 +46,7 @@ are enabled. For example:
 In this example, NiceSlice was automatically enabled, but AutoLoader was not.
 To enable it, type C<use PDL::AutoLoader>.
 
-Let's start with a two-dimensional I<piddle>:
+Let's start with a two-dimensional I<ndarray>:
 
   pdl> $x = sequence(11,9)
   pdl> p $x
@@ -62,14 +62,14 @@ Let's start with a two-dimensional I<piddle>:
     [88 89 90 91 92 93 94 95 96 97 98]
   ]
 
-The C<info> method gives you basic information about a I<piddle>:
+The C<info> method gives you basic information about a I<ndarray>:
 
   pdl> p $x->info
   PDL: Double D [11,9]
 
-This tells us that C<$x> is an 11 x 9 I<piddle> composed of double
+This tells us that C<$x> is an 11 x 9 I<ndarray> composed of double
 precision numbers. If we wanted to add 3 to all elements in an C<n x m>
-piddle, a traditional language would use two nested for-loops:
+ndarray, a traditional language would use two nested for-loops:
 
   # Pseudo-code. Traditional way to add 3 to an array.
   for (i=0; i < n; i++) {
@@ -151,17 +151,17 @@ You can do that by specifying the line explicitly:
   ]
 
 See L<PDL::Indexing> and L<PDL::NiceSlice> to
-learn more about specifying subsets from piddles.
+learn more about specifying subsets from ndarrays.
 
-The true power of threading comes when you realise that the piddle can
-have any number of dimensions! Let's make a 4 dimensional piddle:
+The true power of threading comes when you realise that the ndarray can
+have any number of dimensions! Let's make a 4 dimensional ndarray:
 
-  pdl> $piddle_4D = sequence(11,3,7,2)
-  pdl> $c = $piddle_4D - $line
+  pdl> $ndarray_4D = sequence(11,3,7,2)
+  pdl> $c = $ndarray_4D - $line
 
-Now C<$c> is a piddle of the same dimension as C<$piddle_4D>.
+Now C<$c> is an ndarray of the same dimension as C<$ndarray_4D>.
 
-  pdl> p $piddle_4D->info  =>  PDL: Double D [11,3,7,2]
+  pdl> p $ndarray_4D->info  =>  PDL: Double D [11,3,7,2]
   pdl> p $c->info          =>  PDL: Double D [11,3,7,2]
 
 This time PDL has threaded over three higher dimensions automatically,
@@ -196,7 +196,7 @@ most common ones are:
 
 =head2 Method: C<xchg>
 
-The C<xchg> method "B<exchanges>" two dimensions in a piddle:
+The C<xchg> method "B<exchanges>" two dimensions in an ndarray:
 
   pdl> $x = sequence(6,7,8,9)
   pdl> $x_xchg = $x->xchg(0,3)
@@ -213,7 +213,7 @@ variable C<$x> remains untouched.
 
 =head2 Method: C<mv>
 
-The C<mv> method "B<moves>" one dimension, in a piddle, shifting other
+The C<mv> method "B<moves>" one dimension, in an ndarray, shifting other
 dimensions as necessary.
 
   pdl> $x = sequence(6,7,8,9)         (dim 0)
@@ -258,7 +258,7 @@ C<reorder> does not alter C<$x>. The original variable C<$x> remains untouched.
 
 =head2 Linking
 
-By default, piddles are B<linked together> so that changes on one will go
+By default, ndarrays are B<linked together> so that changes on one will go
 back and affect the original B<as well>.
 
   pdl> $x = sequence(4,5)
@@ -288,7 +288,7 @@ of looking at C<$x>. Any change in C<$x_xchg> will appear in C<$x> as well.
 =head2 Assignment
 
 Some times, linking is not the behaviour you want. If you want to make the
-piddles independent, use the C<copy> method:
+ndarrays independent, use the C<copy> method:
 
   pdl> $x = sequence(4,5)
   pdl> $x_xchg = $x->copy->xchg(1,0)
@@ -364,7 +364,7 @@ The simplest way is to use the C<xchg> method and rely on PDL linking:
 
 =item General Strategy:
 
-Move the dimensions you want to operate on to the start of your piddle's
+Move the dimensions you want to operate on to the start of your ndarray's
 dimension list. Then let PDL thread over the higher dimensions.
 
 =back
@@ -502,8 +502,8 @@ In this example, the key functions are:
 =head3 Method: C<range>
 
 At the simplest level, the C<range> method is a different way to select a
-portion of a piddle. Instead of using the C<$x(2,3)> notation, we use
-another piddle.
+portion of an ndarray. Instead of using the C<$x(2,3)> notation, we use
+another ndarray.
 
   pdl> $x = sequence(6,7)
   pdl> p $x
@@ -546,8 +546,8 @@ We can use this to select one or more 3x3 boxes.
 
 Finally, C<range> can take a third parameter called the "boundary" condition.
 It tells PDL what to do if the size box you request goes beyond the edge of
-the piddle. We won't go over all the options. We'll just say that the option
-C<periodic> means that the piddle "wraps around". For example:
+the ndarray. We won't go over all the options. We'll just say that the option
+C<periodic> means that the ndarray "wraps around". For example:
 
   pdl> p $x
   [
@@ -573,20 +573,20 @@ C<periodic> means that the piddle "wraps around". For example:
    [29 24 25]
   ]
 
-Notice how the box wraps around the boundary of the piddle.
+Notice how the box wraps around the boundary of the ndarray.
 
 =head3 Method: C<ndcoords>
 
 The C<ndcoords> method is a convenience method that returns an enumerated
 list of coordinates suitable for use with the C<range> method.
 
-  pdl> p $piddle = sequence(3,3)
+  pdl> p $ndarray = sequence(3,3)
   [
    [0 1 2]
    [3 4 5]
    [6 7 8]
   ]
-  pdl> p ndcoords($piddle)
+  pdl> p ndcoords($ndarray)
   [
    [
     [0 0]
@@ -606,7 +606,7 @@ list of coordinates suitable for use with the C<range> method.
   ]
 
 This can be a little hard to read. Basically it's saying that the coordinates
-for every element in C<$piddle> is given by:
+for every element in C<$ndarray> is given by:
 
    (0,0)     (1,0)     (2,0)
    (1,0)     (1,1)     (2,1)
@@ -615,15 +615,15 @@ for every element in C<$piddle> is given by:
 =head3 Combining C<range> and C<ndcoords>
 
 What really matters is that C<ndcoords> is designed to work together with
-C<range>, with no C<$size> parameter, you get the same piddle back.
+C<range>, with no C<$size> parameter, you get the same ndarray back.
 
-  pdl> p $piddle
+  pdl> p $ndarray
   [
    [0 1 2]
    [3 4 5]
    [6 7 8]
   ]
-  pdl> p $piddle->range( ndcoords($piddle) )
+  pdl> p $ndarray->range( ndcoords($ndarray) )
   [
    [0 1 2]
    [3 4 5]
@@ -631,15 +631,15 @@ C<range>, with no C<$size> parameter, you get the same piddle back.
   ]
 
 Why would this be useful? Because now we can ask for a series of "boxes" for
-the entire piddle. For example, 2x2 boxes:
+the entire ndarray. For example, 2x2 boxes:
 
-  pdl> p $piddle->range( ndcoords($piddle) , 2 , "periodic" )
+  pdl> p $ndarray->range( ndcoords($ndarray) , 2 , "periodic" )
 
 The output of this function is difficult to read because the "boxes" along
 the last two dimension. We can make the result more readable by rearranging
 the dimensions:
 
-  pdl> p $piddle->range( ndcoords($piddle) , 2 , "periodic" )->reorder(2,3,0,1)
+  pdl> p $ndarray->range( ndcoords($ndarray) , 2 , "periodic" )->reorder(2,3,0,1)
   [
    [
     [
@@ -658,7 +658,7 @@ Here you can see more clearly that
   [0 1]
   [3 4]
 
-Is the 2x2 box starting with the (0,0) element of C<$piddle>.
+Is the 2x2 box starting with the (0,0) element of C<$ndarray>.
 
 We are not done yet. For the game of life, we want 3x3 boxes from C<$x>:
 
@@ -942,7 +942,7 @@ changes:
 =head1 CONCLUSION: GENERAL STRATEGY
 
 The general strategy is: I<Move the dimensions you want to operate on to the
-start of your piddle's dimension list. Then let PDL thread over the higher
+start of your ndarray's dimension list. Then let PDL thread over the higher
 dimensions.>
 
 Threading is a powerful tool that helps eliminate for-loops and can make your

@@ -138,7 +138,7 @@ my @types = (
 # PDL_F *must* be the first non-integer type in this list
 # as there are many places in the code (.c/.xs/.pm/.pd)
 # with tests like this:
-#                        if (piddletype < PDL_F) { ... }
+#                        if (ndarraytype < PDL_F) { ... }
 	      {
 		  identifier => 'F',
 		  pdlctype => 'PDL_Float',
@@ -608,7 +608,7 @@ EOD
 =head1 PDL::Type OBJECTS
 
 This module declares one class - C<PDL::Type> - objects of this class
-are returned by the L<type|PDL::Core/type> method of a piddle.  It has
+are returned by the L<type|PDL::Core/type> method of an ndarray.  It has
 several methods, listed below, which provide an easy way to access
 type information:
 
@@ -687,7 +687,7 @@ sub types { @CACHED_TYPES }
         my ($type,$val) = @_;
         return $val if "PDL::Type" eq ref $val;
         if(ref $val and $val->isa('PDL')) {
-            PDL::Core::barf("Can't make a type out of non-scalar piddle $val!")
+            PDL::Core::barf("Can't make a type out of non-scalar ndarray $val!")
               if $val->getndims != 0;
             $val = $val->at;
         }

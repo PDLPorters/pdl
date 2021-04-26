@@ -21,19 +21,19 @@ $ref = pdl([[-2,1],[-3,1]]);
 $ref2 = squeeze($ref->slice("0,")+ci()*$ref->slice("1,"));
 $x = ci() -pdl (-2, -3);
 
-is($x->type, 'cdouble', 'type promotion i - piddle');
-ok(tapprox($x->cimag,$ref->slice("1,:")), 'value from i - piddle');
+is($x->type, 'cdouble', 'type promotion i - ndarray');
+ok(tapprox($x->cimag,$ref->slice("1,:")), 'value from i - ndarray');
 ok !$x->type->real, 'complex type not real';
 ok double->real, 'real type is real';
 
 $x = cdouble(2,3);
 $x-=3*ci();
-is type($x), 'cdouble', 'type promotion piddle - i';
+is type($x), 'cdouble', 'type promotion ndarray - i';
 is $x->creal->type, 'double', 'real real part';
 $y=cfloat($x);
 is type($y), 'cfloat', 'type conversion to cfloat';
 is $y->creal->type, 'float', 'real real part';
-ok(tapprox($x->cimag,$ref->slice("0,1")), 'value from piddle - i') or diag 'got: ', $x->cimag;
+ok(tapprox($x->cimag,$ref->slice("0,1")), 'value from ndarray - i') or diag 'got: ', $x->cimag;
 is zeroes($_->[0], 2)->r2C->type, $_->[1], "r2C $_->[0] -> $_->[1]"
   for [byte, 'cfloat'], [long, 'cfloat'],
     [float, 'cfloat'], [cfloat, 'cfloat'],
@@ -121,7 +121,7 @@ TODO: {
    local $TODO = "Known_problems sf.net bug #1176614" if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} );
 
 
-   # Check stringification of complex piddle
+   # Check stringification of complex ndarray
    # This is sf.net bug #1176614
    my $c =  9.1234 + 4.1234*ci;
    my $c211 = $c->dummy(2,1);

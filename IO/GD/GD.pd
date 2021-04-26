@@ -2,7 +2,7 @@
 # GD.pd
 #
 # PDL interface to the GD c library
-#   ('cos looping over a piddle in perl and using the perl GD lib is too slow...)
+#   ('cos looping over an ndarray in perl and using the perl GD lib is too slow...)
 #
 # Judd Taylor, USF IMaRS
 # 13 March 2003
@@ -56,7 +56,7 @@ years old at this point (read: stable). If you're feeling frisky, try the new OO
 interface described below.
 
 The general version just provides several image IO utility functions you can use with
-piddle variables. It's deceptively useful, however.
+ndarray variables. It's deceptively useful, however.
 
 =cut
 
@@ -86,12 +86,12 @@ pp_addhdr(<<'EOH');
 
 EOH
 
-# Function to write a PNG image from a piddle variable:
+# Function to write a PNG image from an ndarray variable:
 pp_def( 'write_png',
         Pars => 'byte img(x,y); byte lut(i,j);',
         OtherPars => 'char* filename',
         Doc => <<'ENDDOC',
-Writes a 2-d PDL variable out to a PNG file, using the supplied color look-up-table piddle
+Writes a 2-d PDL variable out to a PNG file, using the supplied color look-up-table ndarray
 (hereafter referred to as a LUT).
 
 The LUT contains a line for each value 0-255 with a corresponding R, G, and B value.
@@ -144,7 +144,7 @@ gdImageDestroy(im);
 
 EOC
 
-# Function to write a PNG image from a piddle variable, accepting a compression
+# Function to write a PNG image from an ndarray variable, accepting a compression
 #    level argument:
 pp_def( 'write_png_ex',
         Pars => 'img(x,y); lut(i,j);',
@@ -206,7 +206,7 @@ gdImageDestroy(im);
 
 EOC
 
-# Function to write a TRUE COLOR PNG image from a piddle variable:
+# Function to write a TRUE COLOR PNG image from an ndarray variable:
 pp_def( 'write_true_png',
         Pars => 'img(x,y,z);',
         OtherPars => 'char* filename',
@@ -253,7 +253,7 @@ fclose(out);
 gdImageDestroy(im);
 EOC
 
-# Function to write a TRUE COLOR PNG image from a piddle variable, 
+# Function to write a TRUE COLOR PNG image from an ndarray variable, 
 #    with the specified compression level:
 pp_def( 'write_true_png_ex',
         Pars => 'img(x,y,z);',
@@ -316,7 +316,7 @@ Like write_png(), but it assumes the best PNG compression (9).
 
 =for example
 
-  write_png_best( $img(piddle), $lut(piddle), $filename )
+  write_png_best( $img(ndarray), $lut(ndarray), $filename )
 
 =cut
 
@@ -335,7 +335,7 @@ Like write_true_png(), but it assumes the best PNG compression (9).
 
 =for example
 
-  write_true_png_best( $img(piddle), $filename )
+  write_true_png_best( $img(ndarray), $filename )
 
 =cut
 
@@ -386,7 +386,7 @@ pp_addpm(<<'EOPM');
 
 =head2 load_lut( $filename )
 
-Loads a color look up table from an ASCII file. returns a piddle
+Loads a color look up table from an ASCII file. returns an ndarray
 
 =cut
 
@@ -474,7 +474,7 @@ _get_png_ys(char* filename)
         RETVAL
 EOXS
 
-# Function to read a TRUE COLOR PNG image into a piddle variable:
+# Function to read a TRUE COLOR PNG image into an ndarray variable:
 pp_def( '_read_true_png',
         Pars => 'int [o] img(x,y,z);',
         OtherPars => 'char* filename',
@@ -505,7 +505,7 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of %s (%dx%d) and piddle (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
+    croak("%sDims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
@@ -523,7 +523,7 @@ for( y2 = 0; y2 < ysize; y2++ )
 gdImageDestroy(im);
 EOC
 
-# Function to read PNG image into a piddle variable:
+# Function to read PNG image into an ndarray variable:
 pp_def( '_read_png',
         Pars => 'int [o] img(x,y);',
         OtherPars => 'char* filename',
@@ -554,7 +554,7 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of %s (%dx%d) and piddle (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
+    croak("%sDims of %s (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
@@ -586,7 +586,7 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of gdImage (%dx%d) and piddle (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
+    croak("%sDims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             func, xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
@@ -619,7 +619,7 @@ ysize = gdImageSY(im);
 /* Check the dims... */
 if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
 {
-    croak("%sDims of gdImage (%dx%d) and piddle (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
+    croak("%sDims of gdImage (%dx%d) and ndarray (%"IND_FLAG"x%"IND_FLAG") do not match!\n",
             func, xsize, ysize, $SIZE(x), $SIZE(y));
 }
 
@@ -709,7 +709,7 @@ for( y2 = 0; y2 < $SIZE(y); y2++ )
 $img_ptr(q=>0) = (PDL_LongLong) PTR2IV(im);
 ENDCODE
 
-# Function to write Read PNG LUT Table into a piddle variable:
+# Function to write Read PNG LUT Table into an ndarray variable:
 pp_addpm(<<'EOPM');
 
 =head2 read_png_lut( $filename )
@@ -1006,7 +1006,7 @@ string interpreted as a filename. Thus the following are all equivalent:
 
 If the hash has:
 
- pdl => $pdl_var (lut => $lut_piddle)
+ pdl => $pdl_var (lut => $lut_ndarray)
     Then a new GD is created from that PDL variable.
 
  filename => $file
@@ -1029,7 +1029,7 @@ Example:
  
  my $gd = PDL::IO::GD->new({ pdl => $pdl_var });
     
- my $gd = PDL::IO::GD->new({ pdl => $pdl_var, lut => $lut_piddle });
+ my $gd = PDL::IO::GD->new({ pdl => $pdl_var, lut => $lut_ndarray });
  
  my $gd = PDL::IO::GD->new({ filename => "image.png" });
  
@@ -1203,7 +1203,7 @@ EOF
 
 =head2 to_pdl
 
-When you're done playing with your GDImage and want a piddle back, use this function to return one.
+When you're done playing with your GDImage and want an ndarray back, use this function to return one.
 
 =cut
 
@@ -1229,11 +1229,11 @@ sub to_pdl
     return $pdl;
 } # End of to_pdl()...
 
-=head2 apply_lut( $lut(piddle) )
+=head2 apply_lut( $lut(ndarray) )
 
-Does a $im->ColorAllocate() for and entire LUT piddle at once.
+Does a $im->ColorAllocate() for and entire LUT ndarray at once.
 
-The LUT piddle format is the same as for the general interface above.
+The LUT ndarray format is the same as for the general interface above.
 
 =cut
 
@@ -1377,7 +1377,7 @@ ENDMEMBERS
 #char* gdImageStringFT (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);
 #ENDMEMBERS
 
-# Allow operation on these member function on piddles as well:
+# Allow operation on these member function on ndarrays as well:
 #int gdImageGetPixel (gdImagePtr im, int x, int y);
 generate_pp_def_members( <<'ENDMEMBERS' );
 int gdImageColorAllocate (gdImagePtr im, int r, int g, int b);
@@ -1958,7 +1958,7 @@ ENDSHORTCODE
 } # End of generate_member_functions()...
 
 #
-# Add some member functions that can function on piddles:
+# Add some member functions that can function on ndarrays:
 #
 sub generate_pp_def_members
 {

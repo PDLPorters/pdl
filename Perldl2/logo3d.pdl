@@ -71,7 +71,7 @@ $L = pdl [
          ];
 
 # Assign the bitmaps to the 3D layout, might be clearer to just
-# generate the $logomask piddle with a single constructor call
+# generate the $logomask ndarray with a single constructor call
 # since the mask assignments are a bit obtuse
 #
 $logomask = $P->dummy(2,5)->zeros;
@@ -80,8 +80,8 @@ $logomask(:,:,(2)) .= $D(:,-1:0);
 $logomask(:,:,(0)) .= $L(:,-1:0);
 
 # Now to extract the sphere coordinates for each letter
-#   $logomask            ...starts as 4x7x5 piddle
-#    ->ndcoords          ...produces 3 x 4x7x5 piddles of coords
+#   $logomask            ...starts as 4x7x5 ndarray
+#    ->ndcoords          ...produces 3 x 4x7x5 ndarrays of coords
 #    ->where(            ...select values with set pixels
 #      $logomask(*3)     ...need conforming 3x4x7x5 mask array
 #    )->splitdim(0,3);   ...1D result needs to get dim(0) back

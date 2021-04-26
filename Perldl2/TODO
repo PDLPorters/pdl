@@ -13,7 +13,7 @@ Last saved: Tue 09 Jul 2013 09:05:18 AM
   Add syntax highlighting to help ensure correct
   entries (e.g., in matlab keywords are blue, strings
   are purple, unterminated strings are maroon...)
-  We could also specifically color piddles and objects
+  We could also specifically color ndarrays and objects
   from the current session space.
 
   Add "blink to matching delimiter" for input or even

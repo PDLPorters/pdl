@@ -14,7 +14,7 @@ the PDL manual documents
 
 =item *
 
-L<PDL::API> - making piddles from Perl and C/XS code
+L<PDL::API> - making ndarrays from Perl and C/XS code
 
 =item *
 
@@ -42,7 +42,7 @@ L<PDL::IO> - An overview of the modules in the PDL::IO namespace.
 
 =item *
 
-L<PDL::Indexing> - Introduction to indexing and slicing piddles.
+L<PDL::Indexing> - Introduction to indexing and slicing ndarrays.
 
 =item *
 
@@ -384,7 +384,7 @@ L<PDL::Graphics::OpenGL::Perl::OpenGL> - PDL TriD OpenGL interface using POGL
 
 =item *
 
-L<PDL::Graphics::OpenGLQ> - quick routines to plot lots of stuff from piddles.
+L<PDL::Graphics::OpenGLQ> - quick routines to plot lots of stuff from ndarrays.
 
 =item *
 

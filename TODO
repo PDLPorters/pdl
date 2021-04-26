@@ -308,12 +308,12 @@ the work planned for the future  PDL-2.x releases.
    * Needs more testing and verification
    * Does it work for MATLAB and PDL users' purposes? 
      * Handle complex numbers (with i,j for sqrt(-1))
-     * Handle cut and paste of printed piddles
+     * Handle cut and paste of printed ndarrays
      * Better error checking for invalid values
    
      Ideally we should be able to cut-n-paste the print
-     output of a piddle into the constructor as a
-     string and get the piddle back (within float eps).
+     output of an ndarray into the constructor as a
+     string and get the ndarray back (within float eps).
 
 
    Finish spheres3d implementation

@@ -739,7 +739,7 @@ my %flags = (
 sub generate_core_flags {
     # access (read, if set is true then write as well; if postset true then
     #         read first and write new value after that)
-    # to piddle's state
+    # to ndarray's state
     foreach my $name ( sort keys %flags ) {
         my $flag = "PDL_" . ($flags{$name}{FLAG} || uc($name));
         if ( $flags{$name}{set} ) {

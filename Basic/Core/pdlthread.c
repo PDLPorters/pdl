@@ -398,7 +398,7 @@ void pdl_initthreadstruct(int nobl,
 
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
-		/* Check for magical piddles (parallelized) */
+		/* Check for magical ndarrays (parallelized) */
 		if((!nthr) &&
 		  pdls[j]->magic &&
 		  (nthr = pdl_magic_thread_nthreads(pdls[j],&nthrd))) {

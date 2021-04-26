@@ -290,7 +290,7 @@ a file, so I figured I would write a small bit of documentation on it.
 As of PDL-2.4.8, L<PDL::IO::FlexRaw> has support for reading and writing
 pdls with L<bad|PDL::Bad> values in them.
 
-On C<writeflex>, a piddle
+On C<writeflex>, an ndarray
 argument with C<< $pdl->badflag == 1 >> will have the keyword/token "badvalue"
 added to the header file after the dimension list and an additional token
 with the bad value for that pdl if C<< $pdl->badvalue != $pdl->orig_badvalue >>.

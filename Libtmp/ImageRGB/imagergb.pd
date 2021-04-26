@@ -112,7 +112,7 @@ Make an RGB image from a palette image and its lookup table.
 Input should be of an integer type and the lookup table (3,x,...). Will perform
 the lookup for any N-dimensional input pdl (i.e. 0D, 1D, 2D, ...). Uses the
 index command but will not dataflow by default. If you want it to dataflow the
-dataflow_forward flag must be set in the $lut piddle (you can do that by saying
+dataflow_forward flag must be set in the $lut ndarray (you can do that by saying
 $lut->set_dataflow_f(1)).
 
 =cut

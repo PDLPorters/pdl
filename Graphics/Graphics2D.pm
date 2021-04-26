@@ -194,7 +194,7 @@ sub mouse_click {
    # search for image corresponding to window
    foreach my $entry ( @imag2d_list ) {
       if ( $entry->{window_id} == $window_id ) {
-         $img = $entry->{img};  # 2D piddle for now
+         $img = $entry->{img};  # 2D ndarray for now
          last;
       }
    }
@@ -249,7 +249,7 @@ sub resize_window {
    # search for image corresponding to window
    foreach my $entry ( @imag2d_list ) {
       if ( $entry->{window_id} == $window_id ) {
-         $img = $entry->{img};  # 2D piddle for now
+         $img = $entry->{img};  # 2D ndarray for now
          last;
       }
    }
@@ -323,7 +323,7 @@ sub display_image {
    # search for image corresponding to window
    foreach my $entry ( @imag2d_list ) {
       if ( $entry->{window_id} == $window_id ) {
-         $img = $entry->{img};  # 2D piddle for now
+         $img = $entry->{img};  # 2D ndarray for now
          last;
       }
    }
@@ -399,7 +399,7 @@ sub ModeMenu {
       # search for image corresponding to window
       foreach my $listentry ( @imag2d_list ) {
          if ( $listentry->{window_id} == $window_id ) {
-            $img = $listentry->{img};  # 2D piddle for now
+            $img = $listentry->{img};  # 2D ndarray for now
             last;
          }
       }
@@ -591,7 +591,7 @@ sub display_new_window {
 };
 
 #------------------------------------------------------------------------
-# Display piddle as 2-D image in window using OpenGL
+# Display ndarray as 2-D image in window using OpenGL
 #------------------------------------------------------------------------
 
 =head1 FUNCTIONS
@@ -626,12 +626,12 @@ the sub, only the imag2d() windows will update correctly.
 
   $window_id = imag2d($image, $name, $zoom, $x_off, $y_off);
     
-    creates a new image figure window from the input piddle
+    creates a new image figure window from the input ndarray
     with the given title, zoom factor, and position (if possible)
     
     $window_id - may be used to refer to the figure window
     
-    $image - 2D image piddle with at least 2 or 3 dimensions
+    $image - 2D image ndarray with at least 2 or 3 dimensions
              e.g. [M,N], [1,M,N], [2,M,N], [3,M,N], [4,M,N]
     
     $name - the name to use for the figure window (optional)
@@ -659,7 +659,7 @@ the sub, only the imag2d() windows will update correctly.
 
 =for ref
 
-Update an existing imag2d window with new piddle data
+Update an existing imag2d window with new ndarray data
 
 =for usage
 
@@ -824,7 +824,7 @@ sub imag2d_update {
    # search for image corresponding to window
    foreach my $entry ( @imag2d_list ) {
       if ( $entry->{window_id} == $win_id ) {
-         $img = $entry->{img};  # 2D piddle for now
+         $img = $entry->{img};  # 2D ndarray for now
          last;
       }
    }
@@ -917,7 +917,7 @@ sub twiddle {
 # Threaded image display as tiles (code from PDL::Graphics::TriD::Image)
 #------------------------------------------------------------------------
 
-# N-D piddle -> 2-D
+# N-D ndarray -> 2-D
 sub flatten {
    my ($this,$bin_align) = @_;
 

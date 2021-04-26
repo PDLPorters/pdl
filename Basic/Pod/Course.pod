@@ -48,21 +48,21 @@ hands-on. If you are new to PDL, you should start with these.
 
 =item * L<PDL::Basic>
 
-Covers basic piddle-creation routines like C<sequence>,
+Covers basic ndarray-creation routines like C<sequence>,
 C<rvals>, and C<logxvals> to name a random few.  Also covers
 C<hist> and C<transpose>.
 
 =item * L<PDL::Ufunc>
 
 Explains a large collection of built-in functions which, given an
-N-dimension piddle, will create a piddle with N-1 dimensions.
+N-dimension ndarray, will create an ndarray with N-1 dimensions.
 
 =item * L<PDL::NiceSlice>
 
 PDL came of age right around the turn of the millennium and
 NiceSlice came on the scene slightly after that.  Some of
 the docs still haven't caught up.  NiceSlice is the 'modern'
-way to slice and dice your piddles.  Read the Synopsis, then
+way to slice and dice your ndarrays.  Read the Synopsis, then
 scroll down to The New Slicing Syntax.  After you've read to
 the bottom, return to and read the stuff at the top.
 
@@ -163,7 +163,7 @@ documentation is contained in L<PDL::PP-Inline>.
 
 =item * L<PDL::Objects>
 
-Explains how to subclass a piddle object.
+Explains how to subclass an ndarray object.
 
 =item * L<PDL::Index>
 
@@ -203,7 +203,7 @@ A somewhat uniform interface to the different interpolation modules in PDL.
 =item * L<PDL::Bad>
 
 Includes some basic bad-value functionality, including functions
-to query if a piddle has bad values (C<isbad>) and functions to
+to query if an ndarray has bad values (C<isbad>) and functions to
 set certain elements as bad (C<setbadat> and C<setbadif>).  Among
 other places, bad values are used in L<PDL::Graphics::PLplot>'s
 xyplot to make a gap in a line plot.
@@ -212,7 +212,7 @@ xyplot to make a gap in a line plot.
 
 A cool module that allows you to tie a Perl array to a collection of
 files on your disk, which will be loaded into and out of memory as
-piddles. If you find yourself writing scripts to process many data files,
+ndarrays. If you find yourself writing scripts to process many data files,
 especially if that data processing is not necessarily in sequential
 order, you should consider using PDL::DiskCache.
 
@@ -224,7 +224,7 @@ of fixed-length character strings using PDL.
 =item * L<PDL::Image2D>
 
 A whole collection of methods for manipulating images whose image data
-are stored in a piddle.  These include methods for convolutions
+are stored in an ndarray.  These include methods for convolutions
 (smoothing), polygon fills, scaling, rotation, and warping, among
 others.
 
@@ -274,7 +274,7 @@ any fixes that you may develop).
 
 =item * L<PDL::MatrixOps>
 
-Provides many standard matrix operations for piddles, such as computing
+Provides many standard matrix operations for ndarrays, such as computing
 eigenvalues, inverting square matrices, LU-decomposition, and solving
 a system of linear equations.  Though it is not built on L<PDL::Matrix>,
 it should generally work with that module.  Also, the methods
@@ -283,7 +283,7 @@ Slatec or GSL.
 
 =item * L<PDL::Reduce>
 
-Implements an interface to all the functions that return piddles with
+Implements an interface to all the functions that return ndarrays with
 one less dimension (for example, C<sumover>), such that they can be
 called by suppling their name, as a string.
 
@@ -349,7 +349,7 @@ makefiles (but see L<PDL::pptemplate> for help on that).
 =item * L<PDL::PP>
 
 The PDL Pre-Processor, which vastly simplifies making you
-C or Fortran code play with Perl and piddles.  Most of PDL's
+C or Fortran code play with Perl and ndarrays.  Most of PDL's
 basic functionality is written using PDL::PP, so if you're
 thinking about how you might integrate some numerical
 library written in C, look no further.
@@ -393,7 +393,7 @@ are those marked ':Func'.
 
 =item * L<PDL::Types>
 
-Defines some useful functions for getting a piddle's type, as well as
+Defines some useful functions for getting an ndarray's type, as well as
 getting information about that type.
 
 =back
@@ -409,13 +409,13 @@ much only needed by the PDL Porters.
 
 =item * L<PDL::API>
 
-Explains how to make a piddle I<by hand>, from Perl or your
+Explains how to make an ndarray I<by hand>, from Perl or your
 C source code, using the PDL API.
 
 =item * L<PDL::Internals>
 
 Explains the nitty-gritty of the PDL data structures.  After reading
-this (a few times :), you should be able to create a piddle completely
+this (a few times :), you should be able to create an ndarray completely
 from scratch (i.e. without using the PDL API).  Put a little
 differently, if you want to understand how PDL::PP works, you'll need
 to read this.

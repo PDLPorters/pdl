@@ -45,7 +45,7 @@ Define a new contour plot for TriD.
 
 where $d is a 2D pdl of data to be contoured. [$x,$y,$z] define a 3D
 map of $d into the visualization space [$r,$g,$b] is an optional [3,1]
-piddle specifying the contour color and $options is a hash reference to
+ndarray specifying the contour color and $options is a hash reference to
 a list of options documented below.  Contours can also be colored by
 value using the set_color_table function.
 
@@ -254,10 +254,10 @@ Sets contour level colors based on the color table.
 
 =for usage 
 
-$table is passed in as either a piddle of [3,n] colors, where n is the
+$table is passed in as either an ndarray of [3,n] colors, where n is the
 number of contour levels, or as a reference to a function which
 expects the number of contour levels as an argument and returns a
-[3,n] piddle.  It should be straight forward to use the
+[3,n] ndarray.  It should be straight forward to use the
 L<PDL::Graphics::LUT> tables in a function which subsets the 256
 colors supplied by the look up table into the number of colors needed
 by Contours.

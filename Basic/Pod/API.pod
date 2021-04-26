@@ -1,34 +1,34 @@
 =head1 NAME
 
-PDL::API - making piddles from Perl and C/XS code
+PDL::API - making ndarrays from Perl and C/XS code
 
 =head1 DESCRIPTION
 
-A simple cookbook how to create piddles manually.
+A simple cookbook how to create ndarrays manually.
 It covers both the Perl and the C/XS level.
 Additionally, it describes the PDL core routines
 that can be accessed from other modules. These
 routines basically define the PDL API. If you need to
-access piddles from C/XS you probably need to know
+access ndarrays from C/XS you probably need to know
 about these functions.
 
 =head1 SYNOPSIS
 
   use PDL;
-  sub mkmypiddle {
+  sub mkmyndarray {
    ...
   }
 
-=head1 Creating a piddle manually from Perl
+=head1 Creating an ndarray manually from Perl
 
-Sometimes you want to create a piddle I<manually>
+Sometimes you want to create an ndarray I<manually>
 from binary data. You can do that at the Perl level.
 Examples in the distribution include some of the
 IO routines. The code snippet below illustrates the
 required steps.
 
    use Carp;
-   sub mkmypiddle {
+   sub mkmyndarray {
      my $class = shift;
      my $pdl  = $class->new;
      $pdl->set_datatype($PDL_B);
@@ -49,15 +49,15 @@ required steps.
      return $pdl;
    }
 
-=head1 Creating a piddle in C
+=head1 Creating an ndarray in C
 
-The following example creates a piddle at the C level.
+The following example creates an ndarray at the C level.
 We use the C<Inline> module which is really the way to interface
 Perl and C these days, using the C<with> capability in L<Inline> 0.68+.
 
    use PDL::LiteF;
 
-   $x = myfloatseq(); # exercise our C piddle constructor
+   $x = myfloatseq(); # exercise our C ndarray constructor
 
    print $x->info,"\n";
 
@@ -91,22 +91,22 @@ Perl and C these days, using the C<with> capability in L<Inline> 0.68+.
      return p;
    }
 
-=head2 Wrapping your own data into a piddle
+=head2 Wrapping your own data into an ndarray
 
 Sometimes you obtain a chunk of data from another
 source, for example an image processing library, etc.
 All you want to do in that case is wrap your data
-into a piddle struct at the C level. Examples using this approach
+into an ndarray struct at the C level. Examples using this approach
 can be found in the IO modules (where FastRaw and FlexRaw
 use it for mmapped access) and the Gimp Perl module (that
-uses it to wrap Gimp pixel regions into piddles).
+uses it to wrap Gimp pixel regions into ndarrays).
 The following script demonstrates a simple example:
 
    use PDL::LiteF;
    use PDL::Core::Dev;
    use PDL::Graphics::PGPLOT;
 
-   $y = mkpiddle();
+   $y = mkndarray();
 
    print $y->info,"\n";
 
@@ -120,12 +120,12 @@ The following script demonstrates a simple example:
 
    __C__
 
-   /* wrap a user supplied chunk of data into a piddle
+   /* wrap a user supplied chunk of data into an ndarray
     * You must specify the dimensions (dims,ndims) and 
     * the datatype (constants for the datatypes are declared
     * in pdl.h; e.g. PDL_B for byte type, etc)
     *
-    * when the created piddle 'npdl' is destroyed on the
+    * when the created ndarray 'npdl' is destroyed on the
     * Perl side the function passed as the 'delete_magic'
     * parameter will be called with the pointer to the pdl structure
     * and the 'delparam' argument.
@@ -133,7 +133,7 @@ The following script demonstrates a simple example:
     * that is necessary. For example, you might have to
     * explicitly call a function to free the resources
     * associated with your data pointer.
-    * At the very least 'delete_magic' should zero the piddle's data pointer:
+    * At the very least 'delete_magic' should zero the ndarray's data pointer:
     * 
     *     void delete_mydata(pdl* pdl, int param)
     *     {
@@ -189,7 +189,7 @@ The following script demonstrates a simple example:
      p->data = 0;
    }
 
-   pdl* mkpiddle()
+   pdl* mkndarray()
    {
      PDL_Indx dims[] = {SZ,SZ};
      pdl *p;
@@ -301,7 +301,7 @@ C<pdl *SetSV_PDL(SV *sv, pdl *it)>
 C<pdl *pdlnew()>
 
 C<pdlnew> returns an empty pdl object that needs further initialization
-to turn it into a proper piddle. Example:
+to turn it into a proper ndarray. Example:
 
   pdl *p = PDL->pdlnew();
   PDL->setdims(p,dims,ndims);

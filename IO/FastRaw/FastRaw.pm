@@ -46,7 +46,7 @@ options hash.
 
 The binary files are in general
 NOT interchangeable between different architectures since the binary
-file is simply dumped from the memory region of the piddle.
+file is simply dumped from the memory region of the ndarray.
 This is what makes the approach efficient.
 
 It is also possible to mmap the file which can give a large
@@ -61,8 +61,8 @@ dependent - see Core.xs and your operating system documentation
 for exact semantics of whatever. Basically, if you write to a
 mmapped file without C<ReadOnly>, the change will be reflected
 in the file immediately. C<ReadOnly> doesn't really make it impossible
-to write to the piddle but maps the memory privately so the file
-will not be changed when you change the piddle. Be aware though
+to write to the ndarray but maps the memory privately so the file
+will not be changed when you change the ndarray. Be aware though
 that mmapping a 40Mb file without C<ReadOnly> spends no virtual
 memory but with C<ReadOnly> it does reserve 40Mb.
 
@@ -163,13 +163,13 @@ around with C<mapfraw> much myself.
 
 What if you eschew the use of C<writefraw> and prefer to only use
 C<mapfraw>?  How would you save your data to a raw format?  In that
-case, you would have to create a C<mapfraw> piddle with the correct
+case, you would have to create a C<mapfraw> ndarray with the correct
 dimensions first using 
 
- $piddle_on_hd = mapfraw('fname', {Creat => 1, Dims => [dim1, dim2, ...]});
+ $ndarray_on_hd = mapfraw('fname', {Creat => 1, Dims => [dim1, dim2, ...]});
 
 Note that you must specify the dimensions and you must tell
-C<mapfraw> to create the new piddle for you by setting the
+C<mapfraw> to create the new ndarray for you by setting the
 C<Creat> option to a true value, not C<Create> (note the missing
 final 'e').
 

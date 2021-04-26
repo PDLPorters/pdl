@@ -115,7 +115,7 @@ actnw q|
 
 actnw q|
 	# The reason for the [] around $x,$y,$z:
-	# 1. You can give all the coordinates and colors in one piddle.
+	# 1. You can give all the coordinates and colors in one ndarray.
 	$c = (zeroes 3,$size+1) / $size;
 	$coords =
 		sin((3+3*xvals $c)*yvals $c);

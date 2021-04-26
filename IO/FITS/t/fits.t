@@ -51,7 +51,7 @@ SKIP: {
 #   compare to the data used to create the file.
 #   So it is more of a "self consistent" test.
 #
-sub compare_piddles ($$$) {
+sub compare_ndarrays ($$$) {
     my $orig  = shift;
     my $new   = shift;
     my $label = shift;
@@ -96,8 +96,8 @@ unless($PDL::Astro_FITS_Header) {
 	is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );	  #11
 	is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );		  #12
 	
-	compare_piddles $x, $$table2{COLA}, "COLA";			#13-16
-	compare_piddles $y, $$table2{COLB}, "COLB";			#17-20
+	compare_ndarrays $x, $$table2{COLA}, "COLA";			#13-16
+	compare_ndarrays $y, $$table2{COLB}, "COLB";			#17-20
 	
 	$table = { BAR => $x, FOO => $y,
 		   hdr => { TTYPE1 => 'FOO', TTYPE2 => 'BAR' } };
@@ -113,8 +113,8 @@ unless($PDL::Astro_FITS_Header) {
 	is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );	       #24
 	is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );	       #25
 	
-	compare_piddles $x, $$table2{BAR}, "BAR";			#26-29
-	compare_piddles $y, $$table2{FOO}, "FOO";			#30-33
+	compare_ndarrays $x, $$table2{BAR}, "BAR";			#26-29
+	compare_ndarrays $y, $$table2{FOO}, "FOO";			#30-33
 	
 	# try out more "exotic" data types
 	
@@ -171,7 +171,7 @@ unless($PDL::Astro_FITS_Header) {
 	  is( $$table2{hdr}{"TFORM$i"}, $$colinfo[1], "  and is stored as $$colinfo[1]" ); #38,44,50,56,59
 	  my $col = $$table2{$$colinfo[0]};
 	  if ( UNIVERSAL::isa($col,"PDL") ) {
-	    compare_piddles $col, $$colinfo[2], $$colinfo[0]; #39-42,45-48,51-54,60-63
+	    compare_ndarrays $col, $$colinfo[2], $$colinfo[0]; #39-42,45-48,51-54,60-63
 	  } else {
 	    # Need to somehow handle the arrays since the data read in from the
 	    # file all have 15-character length strings (or whatever the length is)
@@ -239,7 +239,7 @@ unless($PDL::Astro_FITS_Header) {
            }
         }
 	is($q->hdr->{BITPIX},$i,"BITPIX explicitly set to $i"); #check that explicitly setting BITPIX in wfits works.
-	ok($flag,"piddle - bitpix=$i" ); #74-83
+	ok($flag,"ndarray - bitpix=$i" ); #74-83
     }
     }
     unlink 'x.fits';

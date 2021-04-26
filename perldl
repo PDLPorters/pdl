@@ -1222,7 +1222,7 @@ enabled/disabled.
 =head2 C<perldl> and L<PDL::NiceSlice>
 
 L<PDL::NiceSlice> introduces a more convenient
-slicing syntax for piddles. In current versions of C<perldl> and
+slicing syntax for ndarrays. In current versions of C<perldl> and
 C<pdl2> niceslicing is enabled by default (if the required CPAN
 modules are installed on your machine).
 

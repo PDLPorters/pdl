@@ -77,7 +77,7 @@ $x = whichND( $r % 12 == 0 );
 
 # Nontrivial case gives correct coordinates
 ok(eval { sum($x != pdl([0,0],[2,1],[4,2],[6,3],[8,4],[0,6],[2,7],[4,8],[6,9]))==0 }, "whichND");
-ok($x->type eq 'indx', "whichND returns indx-type piddle for non-trivial case");
+ok($x->type eq 'indx', "whichND returns indx-type ndarray for non-trivial case");
 # Empty case gives matching Empty
 $x = whichND( $r*0 );
 ok($x->nelem==0, "whichND( 0*\$r ) gives an Empty PDL");
@@ -88,19 +88,19 @@ ok($x->type eq 'indx', "whichND( 0*\$r) type is indx");
 # Scalar PDLs are treated as 1-PDLs
 $x = whichND(pdl(5));
 ok($x->nelem==1 && $x==0, "whichND scalar PDL");
-ok($x->type eq 'indx', "whichND returns indx-type piddle for scalar piddle mask");
+ok($x->type eq 'indx', "whichND returns indx-type ndarray for scalar ndarray mask");
 
 # Scalar empty case returns a 1-D vector of size 0
 $x = whichND(pdl(0));
 ok($x->nelem==0,  "whichND of 0 scalar is empty");
 ok($x->ndims==1,  "whichND of 0 scalar has 1 dim");
 ok($x->dim(0)==0, "whichND of 0 scalar: return 0 dim size is 0");
-ok($x->type eq 'indx', "whichND returns indx-type piddle for scalar empty case");
+ok($x->type eq 'indx', "whichND returns indx-type ndarray for scalar empty case");
 
 # Empty case returns Empty
 $y = whichND( which(pdl(0)) );                              
 ok($y->nelem==0, "whichND of Empty mask");
-ok($y->type eq 'indx', "whichND returns indx-type piddle for empty case");
+ok($y->type eq 'indx', "whichND returns indx-type ndarray for empty case");
 
 # Nontrivial empty mask case returns matching Empty -- whichND(Empty[2x0x2]) should return Empty[3x0]
 $y = whichND(zeroes(2,0,2));
@@ -129,7 +129,7 @@ ok(zcheck($d - pdl([[0,1],[0,1],[0,0],[1,1],[0,0],[0,0]],
                    [[0,1],[0,1],[0,0],[1,1],[1,1],[1,1]])), "glue");
 
 ##############################
-# test new empty piddle handling
+# test new empty ndarray handling
 $x = which ones(4) > 2;
 $y = $x->long;
 $c = $x->double;
@@ -786,15 +786,15 @@ for my $mode (
     my $vals = random( 100 );
     my $xs = sequence(100) / 99;
 
-    # implicit output piddle
+    # implicit output ndarray
     my $indx0 = vsearch( $vals, $xs );
 
     my $ret = vsearch( $vals, $xs, my $indx1 = PDL->null() );
 
-    is( $ret, undef, "no return from explicit output piddle" );
+    is( $ret, undef, "no return from explicit output ndarray" );
 
     ok ( all ( $indx0 == $indx1 ),
-	 'explicit piddle == implicit piddle' );
+	 'explicit ndarray == implicit ndarray' );
 }
 }
 

@@ -11,7 +11,7 @@ between PDL versions 1.0 and 2.0.
 
 =head1 Core Changes
 
-=head2 Piddles are not hashes any more:
+=head2 ndarrays are not hashes any more:
 
     $x = zeroes 10,10;
     $$x{FOO} = "bar"
@@ -23,7 +23,7 @@ syntactic issues. If you want to have a hash, use
     $x->hdr()
 
 which returns a reference to an anonymous hash. Also,
-subclassing works if you store a piddle in the hash member ``PDL''.
+subclassing works if you store an ndarray in the hash member ``PDL''.
 
 There are also many core enhancements to support Dataflow and
 Slicing tricks, but these do not introduce any incompatibilities.

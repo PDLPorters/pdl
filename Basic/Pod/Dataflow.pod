@@ -21,10 +21,10 @@ how to make it functional again.
 
 Two-directional dataflow (which implements ->slice() etc.)
 is fully functional, however. Just about any function which
-returns some subset of the values in some piddle will make a binding
+returns some subset of the values in some ndarray will make a binding
 so that
 
-	$x = some piddle
+	$x = some ndarray
 	$y = $x->slice("some parts");
 	$y->set(3,3,10);
 
@@ -35,7 +35,7 @@ to $x, you must do
 
 	$y = $x->slice("some parts")->copy;
 
-The copying turns off all dataflow between the two piddles.
+The copying turns off all dataflow between the two ndarrays.
 
 The difficulties with one-directional
 dataflow are related to sequences like
@@ -155,7 +155,7 @@ to the objects in $w and $x any more. Also, notice the dotted lines
 between the two objects: when $u is changed and this diagram is re-evaluated,
 $w really does get the value of w' with the diagonal incremented.
 
-To generalize on the above, whenever a piddle is mutated i.e.
+To generalize on the above, whenever an ndarray is mutated i.e.
 when its actual *value* is forcibly changed (not just the reference):
 
 	$x = $x + 1
@@ -165,8 +165,8 @@ any more whereas
 
 	$x .= $x + 1
 
-would yield the same as $x++), a "family" consisting of all other piddles
-joined to the mutated piddle by a two-way transformation is created
+would yield the same as $x++), a "family" consisting of all other ndarrays
+joined to the mutated ndarray by a two-way transformation is created
 and all those are copied.
 
 All slices or transformations that simply select a subset of the original
