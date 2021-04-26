@@ -66,12 +66,7 @@ pp_addhdr('
 
 #define MOD(X,N) (  ((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long     )((X)/(ABS(N))) + (   ( ((N) * ((long     )((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
 
-/* We assume that "long long" is ok for all Microsoft Compiler versions >= 1400. */
-#if defined(_MSC_VER) && _MSC_VER < 1400
-#define Q_MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((__int64  )((X)/(ABS(N))) + (   ( ((N) * ((__int64  )((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
-#else
 #define Q_MOD(X,N) (((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((long long)((X)/(ABS(N))) + (   ( ((N) * ((long long)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
-#endif
 #define BU_MOD(X,N)(((N) == 0)   ?    0   :   ( (X)-(N)*((int)((X)/(N))) ))
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )

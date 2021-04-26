@@ -5,6 +5,7 @@
 - use C99 isnan() to check for NaN, not isfinite(); complex if either are NaN
 - can use NaN as badvalue for all floating-point types
 - BADVAL_USENAN configuration option removed
+- remove checks for _MSC_VER < 1400 as native complex req renders irrelevant
 
 2.039 2021-04-24
 - update lu_backsub docs with comparison to other linear algebra code

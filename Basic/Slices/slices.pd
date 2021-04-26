@@ -75,11 +75,7 @@ FUNCTIONS
 pp_addhdr(<<'EOH');
 
 #ifdef _MSC_VER
-#if _MSC_VER < 1300
-#define strtoll strtol
-#else
 #define strtoll _strtoi64
-#endif
 #endif
 
 EOH

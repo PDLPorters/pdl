@@ -785,15 +785,6 @@ Also see L</setvaltobad> and L</setnantobad>.
 #
 # this doesn't need a BadCode section
 
-if ($^O =~ /MSWin/) {
-pp_addhdr('
-#if defined _MSC_VER && _MSC_VER < 1400
-#pragma optimize("", off)
-#endif
-
-');
-}
-
 pp_def('setvaltobad' . <<'=cut',
 
 =head2 setvaltobad
@@ -834,12 +825,7 @@ Any bad values in the input piddles are copied across to the output piddle.
         $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
     },
     Code => q[
-        #if defined _MSC_VER && _MSC_VER < 1400
-            $GENERIC(a) dummy1 = ($GENERIC(a)) $COMP(value);
-            if ( $a() == dummy1 ) {
-        #else
-            if ( $a() == ($GENERIC(a)) $COMP(value) ) {
-        #endif
+        if ( $a() == ($GENERIC(a)) $COMP(value) ) {
             $SETBAD(b());
         } else {
             $b() = $a();
@@ -847,15 +833,6 @@ Any bad values in the input piddles are copied across to the output piddle.
     ],
     GenericTypes => $A,
 ); # pp_def: setvaltobad
-
-if ($^O =~ /MSWin/) {
-pp_addhdr('
-#if defined _MSC_VER && _MSC_VER < 1400
-#pragma optimize("", on)
-#endif
-
-');
-}
 
 my $isnan = join "\n", map 'types('.$_->ppsym.') %{'.$_->isnan('$a()').'%}', grep $_->usenan, types();
 pp_def('setnantobad' . <<'=cut',
