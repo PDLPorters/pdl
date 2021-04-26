@@ -449,6 +449,7 @@ struct pdl {
 
 
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
+#define PDLMIN(a,b) ((a) < (b) ? (a) : (b))
 
 /***************
  * Some macros to guard against dataflow infinite recursion.
