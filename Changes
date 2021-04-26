@@ -8,6 +8,7 @@
 - remove checks for _MSC_VER < 1400 as native complex req renders irrelevant
 - add $type->floatsuffix for more generalisation
 - all pdl.h type code generated from type objects to ease adding new types
+- all suitable PDL::Primitive functions support native complex
 
 2.039 2021-04-24
 - update lu_backsub docs with comparison to other linear algebra code

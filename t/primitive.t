@@ -269,6 +269,12 @@ ok(tapprox($statsRes[3],1), "stats: trivial weights min" );
 ok(tapprox($statsRes[4],13), "stats: trivial weights max" );
 ok(tapprox($statsRes[6],4.462), "stats: trivial weights rms");
 
+# complex matmult
+my $cm1 = cdouble(1, 1+ci(), 1);
+my $cm2 = cdouble(2, 3, ci());
+my $got = $cm1 x $cm2->dummy(0);
+ok all(approx $got, 5+4*ci), 'complex matmult' or diag $got;
+
 # which ND test
 my $a1 = PDL->sequence(10,10,3,4);  
 
