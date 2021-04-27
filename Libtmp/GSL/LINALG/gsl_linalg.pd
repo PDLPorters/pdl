@@ -150,7 +150,7 @@ VECTOR_SETUP(sub, $PRIV(__n_size)-1, $P(subdiag))
 VECTOR_SETUP(b, $PRIV(__n_size), $P(B))
 VECTOR_SETUP(x, $PRIV(__n_size), $P(x))
 #define CONST_VEC (const gsl_vector *)
-gsl_linalg$TDC(,_complex)_solve_tridiag(
+gsl_linalg_solve_tridiag(
   CONST_VEC &d, CONST_VEC &sup, CONST_VEC &sub, CONST_VEC &b, &x
 );
 #undef CONST_VEC
