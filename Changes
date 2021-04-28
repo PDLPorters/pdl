@@ -1,3 +1,4 @@
+2.040_01 2021-04-28
 - all C dimension- and threadid-related things now typed PDL_Indx
 
 2.040 2021-04-27
