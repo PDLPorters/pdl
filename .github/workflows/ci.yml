@@ -11,7 +11,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     continue-on-error: true
-    if: ${{ always() }} && github.repository == 'PDLPorters/pdl'
+    if: ${{ always() && github.repository == 'PDLPorters/pdl' }}
     env:
       IRC_CHANNEL: '#pdl'
       IRC_SERVER: 'irc.perl.org'
@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: irc push
         uses: Gottox/irc-message-action@v1.3
-        if: github.event_name == 'push'
+        if: ${{ github.event_name == 'push' }}
         with:
           channel: ${{ env.IRC_CHANNEL }}
           server: ${{ env.IRC_SERVER }}
@@ -33,7 +33,7 @@ jobs:
             ${{ join(github.event.commits.*.message, ', ') }}
       - name: irc pull request
         uses: Gottox/irc-message-action@v1.3
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         with:
           channel: ${{ env.IRC_CHANNEL }}
           server: ${{ env.IRC_SERVER }}
@@ -45,7 +45,7 @@ jobs:
             ${{ github.actor }} ${{ github.event.action }} PR «${{ github.event.pull_request.title }}» ${{ github.event.pull_request.html_url }}
       - name: irc tag created
         uses: Gottox/irc-message-action@v1.3
-        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' }}
         with:
           channel: ${{ env.IRC_CHANNEL }}
           server: ${{ env.IRC_SERVER }}
@@ -57,7 +57,7 @@ jobs:
             ${{ github.actor }} tagged ${{ github.repository }} ${{ github.event.ref }}
   ci:
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
     needs: notify
     env:
       PGPLOT_DEV: /NULL
@@ -156,7 +156,7 @@ jobs:
 
   ci-ubuntu-containers:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
     needs: notify
     container: ${{ matrix.container }}
     strategy:
@@ -185,7 +185,7 @@ jobs:
       PERL_MM_OPT: INSTALL_BASE=/cygdrive/c/cx
       CYGWIN_NOWINPATH: 1
     runs-on: windows-latest
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
     needs: notify
     strategy:
       fail-fast: false
@@ -256,7 +256,7 @@ jobs:
   build-status:
     runs-on: ubuntu-latest
     continue-on-error: true
-    if: ( github.event_name == 'push' || github.event_name == 'pull_request' ) && ( ${{ success() }} || ${{ failure() }} ) && github.repository == 'PDLPorters/pdl'
+    if: ${{ ( github.event_name == 'push' || github.event_name == 'pull_request' ) && ( success() || failure() ) && github.repository == 'PDLPorters/pdl' }}
     needs: [ 'ci', 'ci-ubuntu-containers', 'cygwin' ]
     env:
       IRC_CHANNEL: '#pdl'
