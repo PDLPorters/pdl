@@ -63,10 +63,10 @@ void pdl_grow (pdl* a, PDL_Indx newsize) {
 
 /* unpack dims array into Hash */
 
-void pdl_unpackarray ( HV* hash, char *key, PDL_Indx *dims, int ndims ) {
+void pdl_unpackarray ( HV* hash, char *key, PDL_Indx *dims, PDL_Indx ndims ) {
 
    AV*  array;
-   int i;
+   PDL_Indx i;
 
    array = newAV();
    (void)hv_store(hash, key, strlen(key), newRV( (SV*) array), 0 );

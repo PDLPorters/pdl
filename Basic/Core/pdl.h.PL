@@ -246,8 +246,8 @@ typedef struct pdl_trans pdl_trans;
 typedef struct pdl_transvtable {
         pdl_transtype transtype;
         int flags;
-        int nparents;
-        int npdls;
+        PDL_Indx nparents;
+        PDL_Indx npdls;
         char *per_pdl_flags;
         void (*redodims)(pdl_trans *tr);      /* Only dims and internal trans (makes phys) */
         void (*readdata)(pdl_trans *tr);      /* Only data, to "data" ptr  */
@@ -343,7 +343,7 @@ typedef struct pdl_trans_affine {
 typedef struct pdl_vaffine {
 	PDL_TRANS_START(2);
 	PDL_Indx *incs; PDL_Indx offs;
-	int ndims;
+	PDL_Indx ndims;
 	PDL_Indx def_incs[PDL_NDIMS];
 	pdl *from;
 } pdl_vaffine;
@@ -411,16 +411,16 @@ struct pdl {
    pdl_datatypes datatype; /* One of the usual suspects (PDL_L, PDL_D, etc.) */
    PDL_Indx   *dims;      /* Array of data dimensions - could point below or to an allocated array */
    PDL_Indx   *dimincs;   /* Array of data default increments, aka strides through memory for each dim (0 for dummies) */
-   short    ndims;     /* Number of data dimensions in dims and dimincs */
+   PDL_Indx    ndims;     /* Number of data dimensions in dims and dimincs */
 
-   unsigned char *threadids;  /* Starting index of the thread index set n */
-   unsigned char nthreadids;
+   PDL_Indx *threadids;  /* Starting index of the thread index set n */
+   PDL_Indx nthreadids;
 
    pdl_children children;
 
    PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
    PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
-   unsigned char def_threadids[PDL_NTHREADIDS];
+   PDL_Indx   def_threadids[PDL_NTHREADIDS];
 
    struct pdl_magic *magic;
 

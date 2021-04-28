@@ -1,4 +1,5 @@
 use PDL::Types qw(ppdefs_all);
+my $Ntype = PDL::Type->new('N')->realctype;
 
 pp_addpm({At => 'Top'},<< 'EOD');
 
@@ -2070,10 +2071,10 @@ pp_def( 'affine',
         AffinePriv => 1,
         GlobalNew => 'affine_new',
         OtherPars => 'PDL_Indx offspar; SV *dimlist; SV *inclist;',
-        Comp => 'int nd; PDL_Indx offset; PDL_Indx sdims[$COMP(nd)];
+        Comp => 'PDL_Indx nd; PDL_Indx offset; PDL_Indx sdims[$COMP(nd)];
                 PDL_Indx sincs[$COMP(nd)];',
         MakeComp => '
-                int i,n2;
+                PDL_Indx i,n2;
                 PDL_Indx *tmpi;
                 PDL_Indx *tmpd = PDL->packdims(dimlist,&($COMP(nd)));
                 tmpi = PDL->packdims(inclist,&n2);
@@ -2115,9 +2116,9 @@ pp_def(
         Reversible => 1,
         AffinePriv => 1,
         OtherPars => 'SV *list',
-        Comp => 'int nwhichdims; int whichdims[$COMP(nwhichdims)];',
+        Comp => 'PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];',
         MakeComp => '
-                int i,j;
+                PDL_Indx i,j;
                 PDL_Indx *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
                 if($COMP(nwhichdims) < 1) {
                         $CROAK("Diagonal: must have at least 1 dimension");
@@ -2231,9 +2232,9 @@ EOD
         DefaultFlow => 1,
         Reversible => 1, # XXX Not really
         AffinePriv => 1,
-        OtherPars => 'int nthdim; int step; int n;',
+        OtherPars => join('', map "$Ntype $_;", qw(nthdim step n)),
         RedoDims => '
-                int i;
+                PDL_Indx i;
                 if ($PRIV(nthdim) < 0)  /* the usual conventions */
                    $PRIV(nthdim) = $PARENT(ndims) + $PRIV(nthdim);
                 if ($PRIV(nthdim) < 0 || $PRIV(nthdim) >= $PARENT(ndims))
@@ -2294,18 +2295,18 @@ EOD
         NoPdlThread => 1,
         DefaultFlow => 1,
         Reversible => 1, # XXX Not really
-        OtherPars => 'int nthdim; int nsp;',
+        OtherPars => join('', map "$Ntype $_;", qw(nthdim nsp)),
         AffinePriv => 1,
         RedoDims => '
-                int i = $COMP(nthdim);
-                int nsp = $COMP(nsp);
+                PDL_Indx i = $COMP(nthdim);
+                PDL_Indx nsp = $COMP(nsp);
                 if(nsp == 0) {die("Splitdim: Cannot split to 0\n");}
                 if(i <0 || i >= $PARENT(ndims)) {
-                        die("Splitdim: nthdim (%d) must not be negative or greater or equal to number of dims (%d)\n",
+                        die("Splitdim: nthdim (%"IND_FLAG") must not be negative or greater or equal to number of dims (%"IND_FLAG")\n",
                                 i, $PARENT(ndims));
                 }
                 if(nsp > $PARENT(dims[i])) {
-                        die("Splitdim: nsp (%d) cannot be greater than dim (%"IND_FLAG")\n",
+                        die("Splitdim: nsp (%"IND_FLAG") cannot be greater than dim (%"IND_FLAG")\n",
                                 nsp, $PARENT(dims[i]));
                 }
                 $PRIV(offs) = 0;
@@ -2398,11 +2399,11 @@ EOD
         AffinePriv => 1,
         CallCopy => 0,  # Don't CallCopy for subclassed objects because PDL::Copy calls ThreadI
                         #  (Wouldn't cause recursive loop otherwise)
-        OtherPars => 'int id; SV *list',
-        Comp => 'int id; int nwhichdims; int whichdims[$COMP(nwhichdims)];
-                        int nrealwhichdims; ',
+        OtherPars => "$Ntype id; SV *list",
+        Comp => 'PDL_Indx id; PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];
+                        PDL_Indx nrealwhichdims; ',
         MakeComp => '
-                int i,j;
+                PDL_Indx i,j;
                 PDL_Indx *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
                 $DOCOMPDIMS();
                 for(i=0; i<$COMP(nwhichdims); i++)
@@ -2422,7 +2423,7 @@ EOD
                 $COMP(id) = id;
                 ',
         RedoDims => '
-                int nthc,i,j,flag;
+                PDL_Indx nthc,i,j,flag;
                 $SETNDIMS($PARENT(ndims));
                 $DOPRIVDIMS();
                 $PRIV(offs) = 0;

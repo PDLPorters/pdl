@@ -80,8 +80,8 @@ typedef struct pdl_magic_deletedata {
 
 typedef struct pdl_magic_pthread {
 	PDL_MAGICSTART;
-	int nthdim;
-	int nthreads;
+	PDL_Indx nthdim;
+	PDL_Indx nthreads;
 	pthread_key_t key;
 } pdl_magic_pthread;
 #endif
@@ -125,9 +125,9 @@ pdl_trans *pdl_find_mutatedtrans(pdl *it);
 /* Deferred barfing and warning when pthreading  */
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args);
 
-void pdl_add_threading_magic(pdl *,int nthdim,int nthreads);
+void pdl_add_threading_magic(pdl *,PDL_Indx nthdim, PDL_Indx nthreads);
 
-int pdl_magic_thread_nthreads(pdl *,int *nthdim);
+int pdl_magic_thread_nthreads(pdl *,PDL_Indx *nthdim);
 int pdl_magic_get_thread(pdl *); /* XXX -> only one thread can handle pdl at once */
 
 void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);

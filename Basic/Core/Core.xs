@@ -499,8 +499,8 @@ at_bad_c(x,position)
    SV *	position
    PREINIT:
     PDL_Indx * pos;
-    int npos;
-    int ipos;
+    PDL_Indx npos;
+    PDL_Indx ipos;
     int badflag;
     PDL_Anyval result = { -1, 0 };
    CODE:
@@ -602,8 +602,8 @@ set_c(x,position,value)
     PDL_Anyval	value
    PREINIT:
     PDL_Indx * pos;
-    int npos;
-    int ipos;
+    PDL_Indx npos;
+    PDL_Indx ipos;
    CODE:
     pdl_make_physvaffine( x );
 
@@ -955,7 +955,7 @@ setdims(x,dims_arg)
       SV * dims_arg
       PREINIT:
 	 PDL_Indx * dims;
-	 int ndims;
+	 PDL_Indx ndims;
        int i;
 	CODE:
 	{

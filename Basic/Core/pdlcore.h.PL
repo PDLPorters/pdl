@@ -27,8 +27,9 @@ PDL::Core::Dev::loadmod_Types();
 # version 12 for PDL_Anyval union data type (full 64bit support)
 # version 13 for complex data types (native complex support)
 # version 14: NaN support for native complex, per-PDL badval on
+# version 15: threadid, ndims become PDL_Indx
 use vars qw( $pdl_core_version );
-$pdl_core_version = 14;
+$pdl_core_version = 15;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -129,9 +130,9 @@ int     pdl_howbig (int datatype);           /* Size of data type (bytes) */
 pdl*    SvPDLV ( SV* sv );                   /* Map SV* to pdl struct */
 void	SetSV_PDL( SV *sv, pdl *it );	     /* Outputting a pdl from.. */
 SV*     pdl_copy( pdl* a, char* option );     /* call copy method */
-PDL_Indx *    pdl_packdims ( SV* sv, int*ndims ); /* Pack dims[] into SV aref */
-void    pdl_unpackdims ( SV* sv, PDL_Indx *dims,  /* Unpack */
-                         int ndims );
+PDL_Indx *    pdl_packdims ( SV *sv, PDL_Indx *ndims ); /* Pack dims[] into SV aref */
+void    pdl_unpackdims ( SV *sv, PDL_Indx *dims,  /* Unpack */
+                         PDL_Indx ndims );
 void*   pdl_malloc ( STRLEN nbytes );           /* malloc memory - auto free()*/
 
 void pdl_makescratchhash(pdl *ret, PDL_Anyval data);
@@ -178,25 +179,25 @@ pdl* pdl_external_new();
 pdl* pdl_external_tmp();
 pdl* pdl_create(int type);
 void pdl_destroy(pdl *it);
-void pdl_setdims(pdl* it, PDL_Indx* dims, int ndims);
-void pdl_reallocdims ( pdl *it,int ndims );  /* reallocate dims and incs */
-void pdl_reallocthreadids ( pdl *it,int ndims );  /* reallocate threadids */
+void pdl_setdims(pdl* it, PDL_Indx* dims, PDL_Indx ndims);
+void pdl_reallocdims(pdl *it, PDL_Indx ndims); /* reallocate dims and incs */
+void pdl_reallocthreadids(pdl *it, PDL_Indx ndims); /* reallocate threadids */
 void pdl_resize_defaultincs ( pdl *it );     /* Make incs out of dims */
-void pdl_unpackarray ( HV* hash, char *key, PDL_Indx *dims, int ndims );
+void pdl_unpackarray(HV* hash, char *key, PDL_Indx *dims, PDL_Indx ndims);
 void pdl_dump(pdl *it);
 void pdl_allocdata(pdl *it);
 
 PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread); /* For pthreading */
 void pdl_thread_copy(pdl_thread *from,pdl_thread *to);
 void pdl_clearthreadstruct(pdl_thread *it);
-void pdl_initthreadstruct(int nobl,pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,int npdls,
+void pdl_initthreadstruct(int nobl,pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating, PDL_Indx npdls,
 	pdl_errorinfo *info,pdl_thread *thread,char *flags, int noPthreadFlag );
 int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),pdl_trans *);
-int pdl_iterthreadloop(pdl_thread *thread,int which);
+int pdl_iterthreadloop(pdl_thread *thread, PDL_Indx which);
 void pdl_freethreadloop(pdl_thread *thread);
-void pdl_thread_create_parameter(pdl_thread *thread,int j,PDL_Indx *dims,
+void pdl_thread_create_parameter(pdl_thread *thread,PDL_Indx j,PDL_Indx *dims,
 				 int temp);
-void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...);
+void pdl_croak_param(pdl_errorinfo *info, int paramIndex, char *pat, ...);
 
 void pdl_setdims_careful(pdl *pdl);
 void pdl_put_offs(pdl *pdl,PDL_Indx offs, PDL_Anyval val);
@@ -214,8 +215,8 @@ void pdl_separatefromparent(pdl *it);
 void pdl_trans_changesoon(pdl_trans *trans,int what);
 void pdl_trans_changed(pdl_trans *trans,int what);
 
-void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans,int nth);
-void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,int nth);
+void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth);
+void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth);
 
 /* pdlhash.c */
 
@@ -240,16 +241,16 @@ void** pdl_twod( pdl* x );                    /* Return 2D pointer to data array
 
 /* pdlsections.c */
 
-PDL_Indx  pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, int ndims);      /* Offset of pixel x,y,z... */
+PDL_Indx  pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);      /* Offset of pixel x,y,z... */
 PDL_Indx  pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims,           /* Check section */
-                           int ndims );
+                           PDL_Indx ndims );
 void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims,              /* Move down one row */
-                        int ndims );
+                        PDL_Indx ndims );
 PDL_Anyval pdl_at0( pdl* x );
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
-             PDL_Indx *incs, PDL_Indx offset, int ndims);
+             PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
 void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set value at x,y,z... */
-                PDL_Indx *incs, PDL_Indx offs, int ndims, PDL_Anyval value);
+                PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value);
 void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
@@ -273,26 +274,26 @@ struct Core {
     void** (*twod)        ( pdl* );
     void*  (*smalloc)      ( STRLEN );
     int    (*howbig)      ( int );
-    PDL_Indx*   (*packdims)    ( SV* sv, int *ndims ); /* Pack dims[] into SV aref */
-    void   (*setdims)     ( pdl* it, PDL_Indx* dims, int ndims );
+    PDL_Indx*   (*packdims)    ( SV* sv, PDL_Indx *ndims ); /* Pack dims[] into SV aref */
+    void   (*setdims)     ( pdl* it, PDL_Indx* dims, PDL_Indx ndims );
     void   (*unpackdims)  ( SV* sv, PDL_Indx *dims,    /* Unpack */
-                            int ndims );
+                            PDL_Indx ndims );
     void   (*grow)        ( pdl* a, PDL_Indx newsize); /* Change pdl 'Data' size */
     PDL_Anyval (*at0)     ( pdl* x );
     void (*flushcache)( pdl *thepdl );	     /* flush cache */
-    void (*reallocdims) ( pdl *it,int ndims );  /* reallocate dims and incs */
-    void (*reallocthreadids) ( pdl *it,int ndims );
+    void (*reallocdims) ( pdl *it,PDL_Indx ndims );  /* reallocate dims and incs */
+    void (*reallocthreadids) ( pdl *it,PDL_Indx ndims );
     void (*resize_defaultincs) ( pdl *it );     /* Make incs out of dims */
 
 void (*thread_copy)(pdl_thread *from,pdl_thread *to);
 void (*clearthreadstruct)(pdl_thread *it);
-void (*initthreadstruct)(int nobl,pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,int npdls,
+void (*initthreadstruct)(int nobl,pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,PDL_Indx npdls,
 	pdl_errorinfo *info,pdl_thread *thread,char *flags, int noPthreadFlag );
 int (*startthreadloop)(pdl_thread *thread,void (*func)(pdl_trans *),pdl_trans *);
 PDL_Indx *(*get_threadoffsp)(pdl_thread *thread); /* For pthreading */
-int (*iterthreadloop)(pdl_thread *thread,int which);
+int (*iterthreadloop)(pdl_thread *thread, PDL_Indx which);
 void (*freethreadloop)(pdl_thread *thread);
-void (*thread_create_parameter)(pdl_thread *thread,int j,PDL_Indx *dims,
+void (*thread_create_parameter)(pdl_thread *thread,PDL_Indx j,PDL_Indx *dims,
 				int temp);
 void (*add_deletedata_magic) (pdl *it,void (*func)(pdl *, Size_t param), Size_t param); /* Automagic destructor */
                              /* This needs to be fixed to work correctly for File::Map implementation */
@@ -302,8 +303,8 @@ void (*setdims_careful)(pdl *pdl);
 void (*put_offs)(pdl *pdl,PDL_Indx offs, PDL_Anyval val);
 PDL_Anyval (*get_offs)(pdl *pdl,PDL_Indx offs);
 PDL_Anyval (*get)(pdl *pdl,PDL_Indx *inds);
-void (*set_trans_childtrans)(pdl *it, pdl_trans *trans,int nth);
-void (*set_trans_parenttrans)(pdl *it, pdl_trans *trans,int nth);
+void (*set_trans_childtrans)(pdl *it, pdl_trans *trans,PDL_Indx nth);
+void (*set_trans_parenttrans)(pdl *it, pdl_trans *trans,PDL_Indx nth);
 pdl *(*make_now)(pdl *it);
 
 pdl *(*get_convertedpdl)(pdl *pdl,int type);

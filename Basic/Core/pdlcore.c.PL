@@ -395,11 +395,11 @@ SV* pdl_copy( pdl* a, char* option ) {
 
 /* Pack dims array - returns dims[] (pdl_malloced) and ndims */
 
-PDL_Indx* pdl_packdims ( SV* sv, int *ndims ) {
+PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
 
    SV*  bar;
    AV*  array;
-   int i;
+   PDL_Indx i;
    PDL_Indx *dims;
 
    if (!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))  /* Test */
@@ -407,7 +407,7 @@ PDL_Indx* pdl_packdims ( SV* sv, int *ndims ) {
 
    array = (AV *) SvRV(sv);   /* dereference */
 
-   *ndims = (int) av_len(array) + 1;  /* Number of dimensions */
+   *ndims = (PDL_Indx) av_len(array) + 1;  /* Number of dimensions */
 
    dims = (PDL_Indx *) pdl_malloc( (*ndims) * sizeof(*dims) ); /* Array space */
    if (dims == NULL)
@@ -422,11 +422,11 @@ PDL_Indx* pdl_packdims ( SV* sv, int *ndims ) {
 
 /* unpack dims array into PDL SV* */
 
-void pdl_unpackdims ( SV* sv, PDL_Indx *dims, int ndims ) {
+void pdl_unpackdims ( SV* sv, PDL_Indx *dims, PDL_Indx ndims ) {
 
    AV*  array;
    HV* hash;
-   int i;
+   PDL_Indx i;
 
    hash = (HV*) SvRV( sv );
    array = newAV();

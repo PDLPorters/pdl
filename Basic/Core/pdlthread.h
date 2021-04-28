@@ -35,10 +35,10 @@ typedef struct pdl_thread {
         unsigned int magicno;
 #endif
 	int gflags;	/* Flags about this struct */
-	int ndims;	/* Number of dimensions threaded over */
-	int nimpl;	/* Number of these that are implicit */
-	int npdls;	/* Number of pdls involved */
-	int nextra;
+	PDL_Indx ndims;	/* Number of dimensions threaded over */
+	PDL_Indx nimpl;	/* Number of these that are implicit */
+	PDL_Indx npdls;	/* Number of pdls involved */
+	PDL_Indx nextra;
 	PDL_Indx *inds;	/* Indices for each of the dimensions */
 	PDL_Indx *dims;	/* Dimensions of each dimension */
 	PDL_Indx *offs;	/* Offsets for each of the pdls */
@@ -47,9 +47,9 @@ typedef struct pdl_thread {
 	PDL_Indx *realdims;  /* realdims for each pdl (e.g., specified by PP signature) */
 	pdl **pdls;
         char *flags;    /* per pdl flags */
-        int mag_nth;    /* magicked thread dim */
-        int mag_nthpdl; /* magicked ndarray */
-        int mag_nthr;   /* number of threads */
+        PDL_Indx mag_nth;    /* magicked thread dim */
+        PDL_Indx mag_nthpdl; /* magicked ndarray */
+        PDL_Indx mag_nthr;   /* number of threads */
 } pdl_thread;
 
 

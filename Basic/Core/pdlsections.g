@@ -19,8 +19,8 @@
 
 /* Compute offset of (x,y,z,...) position in row-major list */
 
-PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, int ndims) {
-   int i;
+PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims) {
+   PDL_Indx i;
    PDL_Indx result;
    result = offset;
    for (i=0; i<ndims; i++) {
@@ -31,7 +31,7 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
 
 /* Check validity of section - return number of elements in it */
 
-PDL_Indx pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims, int ndims ){
+PDL_Indx pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims, PDL_Indx ndims ){
 
    PDL_Indx i,start,end,count;
 
@@ -55,9 +55,10 @@ PDL_Indx pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims, int ndims ){
 
 /* Increment a position pointer array by one row */
 
-void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, int ndims ) {
+void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, PDL_Indx ndims ) {
 
-    int i, noescape;
+    PDL_Indx i;
+    int noescape;
 
     i=1; noescape=1;
 
@@ -93,9 +94,9 @@ PDL_Anyval pdl_at0( pdl* it ) {
 /* Return value at position (x,y,z...) */
 
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, 
-	PDL_Indx* incs, PDL_Indx offset, int ndims) {
+	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
 
-    int i;
+    PDL_Indx i;
     PDL_Indx ioff;
     PDL_Anyval result = { -1, 0 };
 
@@ -123,9 +124,9 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 
 /* Set value at position (x,y,z...) */
 
-void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, int ndims, PDL_Anyval value){
+void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value){
 
-    int i;
+    PDL_Indx i;
     PDL_Indx ioff;
 
     for(i=0; i<ndims; i++) { /* Check */

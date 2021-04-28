@@ -153,16 +153,16 @@ int pdl__ismagic(pdl *it)
 }
 
 static pdl_magic **delayed=NULL;
-static int ndelayed = 0;
+static PDL_Indx ndelayed = 0;
 void pdl_add_delayed_magic(pdl_magic *mag) {
     /* FIXME: Common realloc mistake: 'delayed' nulled but not freed upon failure */
 	delayed = realloc(delayed,sizeof(*delayed)*++ndelayed);
 	delayed[ndelayed-1] = mag;
 }
 void pdl_run_delayed_magic() {
-	int i;
+	PDL_Indx i;
 	pdl_magic **oldd = delayed; /* In case someone makes new delayed stuff */
-	int nold = ndelayed;
+	PDL_Indx nold = ndelayed;
 	delayed = NULL;
 	ndelayed = 0;
 	for(i=0; i<nold; i++) {
@@ -275,7 +275,7 @@ static void *pthread_perform(void *vp) {
 	return NULL;
 }
 
-int pdl_magic_thread_nthreads(pdl *it,int *nthdim) {
+int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {
 	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 	if(!ptr) return 0;
 	*nthdim = ptr->nthdim;
@@ -296,7 +296,7 @@ int pdl_magic_get_thread(pdl *it) { /* XXX -> only one thread can handle pdl at 
 
 void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {
 	pdl_magic_pthread *ptr; pthread_t *tp; ptarg *tparg;
-	int i;
+	PDL_Indx i;
 	int clearMagic = 0; /* Flag = 1 if we are temporarily creating pthreading magic in the
 						   supplied pdl.  */
 	SV * barf_msg;	  /* Deferred barf message. Using a perl SV here so it's memory can be freeed by perl
@@ -401,7 +401,7 @@ void pdl_rm_threading_magic(pdl *it)
 /* Function to add threading magic (i.e. identify which PDL dimension should
    be pthreaded and how many pthreads to create
    Note: If nthdim and nthreads = -1 then any pthreading magic is removed */
-void pdl_add_threading_magic(pdl *it,int nthdim,int nthreads)
+void pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads)
 {
       pdl_magic_pthread *ptr;
 
@@ -489,10 +489,10 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 
 #else
 /* Dummy versions */
-void pdl_add_threading_magic(pdl *it,int nthdim,int nthreads) {}
+void pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads) {}
 int pdl_magic_get_thread(pdl *it) {return 0;}
 void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {}
-int pdl_magic_thread_nthreads(pdl *it,int *nthdim) {return 0;}
+int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {return 0;}
 int pdl_pthreads_enabled() {return 0;}
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args){ return 0;}
 #endif

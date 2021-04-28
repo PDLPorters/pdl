@@ -401,7 +401,7 @@ void pdl_dump_flags_fixspace(int flags, int nspac, int type)
 
 /* Dump a transformation (don't dump the pdls, just pointers to them */
 void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
-	int i;
+	PDL_Indx i;
 	char spaces[PDL_MAXSPACE];
 	if (nspac >= PDL_MAXSPACE) {
 	  printf("too many spaces requested: %d"
@@ -458,13 +458,13 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 		printf("%s   Data SV: %p, Svlen: %d, data: %p, nvals: %"IND_FLAG"\n", spaces,
 			(void*)(it->datasv), (int)SvCUR((SV*)it->datasv), (void*)(it->data), it->nvals);
 	}
-	printf("%s   Dims: %p (",spaces,(void*)(it->dims));
+	printf("%s   Dims: %p (",spaces,(void*)it->dims);
 	for(i=0; i<it->ndims; i++) {
 		printf("%s%"IND_FLAG,(i?" ":""),it->dims[i]);
-	};
+	}
 	printf(")\n%s   ThreadIds: %p (",spaces,(void*)(it->threadids));
 	for(i=0; i<it->nthreadids+1; i++) {
-		printf("%s%d",(i?" ":""),it->threadids[i]);
+		printf("%s%"IND_FLAG,(i?" ":""),it->threadids[i]);
 	}
 	if(PDL_VAFFOK(it)) {
 		printf(")\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:(",
@@ -500,8 +500,7 @@ void pdl_dump (pdl *it) {
 /* Reallocate this PDL to have ndims dimensions. The previous dims
    are copied. */
 
-void pdl_reallocdims(pdl *it,int ndims) {
-   int i;
+void pdl_reallocdims(pdl *it, PDL_Indx ndims) {
    if (it->ndims < ndims) {  /* Need to realloc for more */
       if(it->dims != it->def_dims) free(it->dims);
       if(it->dimincs != it->def_dimincs) free(it->dimincs);
@@ -521,9 +520,9 @@ void pdl_reallocdims(pdl *it,int ndims) {
 
 /* Reallocate n threadids. Set the new extra ones to the end */
 /* XXX Check logic */
-void pdl_reallocthreadids(pdl *it,int n) {
-	int i;
-	unsigned char *olds; int nold;
+void pdl_reallocthreadids(pdl *it, PDL_Indx n) {
+	PDL_Indx i;
+	PDL_Indx *olds; PDL_Indx nold;
 	if(n <= it->nthreadids) {
 		it->nthreadids = n; it->threadids[n] = it->ndims; return;
 	}
@@ -563,8 +562,8 @@ void pdl_resize_defaultincs(pdl *it) {
 
 /* Init dims & incs - if *incs is NULL ignored (but space is always same for both)  */
 
-void pdl_setdims(pdl* it, PDL_Indx * dims, int ndims) {
-   int i;
+void pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
+   PDL_Indx i;
 
    pdl_reallocdims(it,ndims);
 
@@ -588,7 +587,7 @@ void pdl_setdims_careful(pdl *it)
 
 /* pdl_get is now vaffine aware */
 PDL_Anyval pdl_get(pdl *it,PDL_Indx *inds) {
-        int i;
+        PDL_Indx i;
         PDL_Indx *incs;
         PDL_Indx offs=PDL_REPROFFS(it);
         incs = PDL_VAFFOK(it) ? it->vafftrans->incs : it->dimincs;
@@ -608,7 +607,7 @@ void pdl_put_offs(pdl *it, PDL_Indx offs, PDL_Anyval value) {
 }
 
 
-void pdl__addchildtrans(pdl *it,pdl_trans *trans,int nth)
+void pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 {
 	int i; pdl_children *c;
 	trans->pdls[nth] = it;
@@ -633,9 +632,9 @@ void pdl__addchildtrans(pdl *it,pdl_trans *trans,int nth)
  * there may be several different children with the same name.
  * Therefore, we cannot croak :(
  */
-void pdl__removechildtrans(pdl *it,pdl_trans *trans,int nth,int all)
+void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
 {
-	int i; pdl_children *c; int flag = 0;
+	PDL_Indx i; pdl_children *c; int flag = 0;
 	if(all) {
 		for(i=0; i<trans->vtable->nparents; i++)
 			if(trans->pdls[i] == it)
@@ -662,14 +661,14 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans,int nth,int all)
 		pdl_warn("Child not found for pdl %d, %d\n",it, trans);
 }
 
-void pdl__removeparenttrans(pdl *it, pdl_trans *trans, int nth)
+void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 {
 	trans->pdls[nth] = 0;
 	it->trans = 0;
 }
 
 void pdl_make_physdims(pdl *it) {
-	int i;
+	PDL_Indx i;
 	int c = (it->state & (PDL_PARENTDIMSCHANGED | PDL_PARENTREPRCHANGED)) ;
 	PDLDEBUG_f(printf("Make_physdims %p\n",(void*)it));
         PDL_CHKMAGIC(it);
@@ -704,7 +703,7 @@ void pdl_writeover(pdl *it) {
 
 /* Order is important: do childtrans first, then parentrans. */
 
-void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans,int nth)
+void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 {
 	pdl__addchildtrans(it,trans,nth);
 /* Determine if we want to do dataflow */
@@ -718,7 +717,7 @@ void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans,int nth)
    previous parent transformations and mutate if they exist
    if no dataflow. */
 
-void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,int nth)
+void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,PDL_Indx nth)
 {
 	if((it->trans || is_parent_of(it,trans))
 	   /* && (it->state & PDL_DATAFLOW_F) */ ) {
@@ -737,7 +736,7 @@ void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,int nth)
  */
 void pdl_make_trans_mutual(pdl_trans *trans)
 {
-  int i;
+  PDL_Indx i;
   int fflag=0;
   int cfflag=0;
   int pfflag=0;
@@ -1180,8 +1179,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 
 void pdl__ensure_transdims(pdl_trans *trans)
 {
-	int j;
-	int flag=0;
+	PDL_Indx j;
 	PDL_TR_CHKMAGIC(trans);
 	for(j=0; j<trans->vtable->nparents; j++) {
 		pdl_make_physdims(trans->pdls[j]);
@@ -1199,7 +1197,7 @@ void pdl__ensure_transdims(pdl_trans *trans)
    that is only freed in later call to freefunc */
 void pdl_destroytransform(pdl_trans *trans,int ensure)
 {
-	int j;
+	PDL_Indx j;
 	pdl *foo;
 	pdl *destbuffer[100];
 	int ndest = 0;
@@ -1222,7 +1220,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 		foo = trans->pdls[j];
 		if(!foo) continue;
 		PDL_CHKMAGIC(foo);
-		PDLDEBUG_f(printf("pdl_removectransform(%p): %p %d\n",
+		PDLDEBUG_f(printf("pdl_removectransform(%p): %p %"IND_FLAG"\n",
 			(void*)trans, (void*)(trans->pdls[j]), j));
 		pdl__removechildtrans(trans->pdls[j],trans,j,1);
 		if(!(foo->state & PDL_DESTROYING) && !foo->sv) {
@@ -1232,7 +1230,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 	for(; j<trans->vtable->npdls; j++) {
 		foo = trans->pdls[j];
 		PDL_CHKMAGIC(foo);
-		PDLDEBUG_f(printf("pdl_removeptransform(%p): %p %d\n",
+		PDLDEBUG_f(printf("pdl_removeptransform(%p): %p %"IND_FLAG"\n",
 			(void*)trans, (void*)(trans->pdls[j]), j));
 		pdl__removeparenttrans(trans->pdls[j],trans,j);
 		if(foo->vafftrans) {
@@ -1350,7 +1348,7 @@ void pdl_make_physvaffine(pdl *it)
 	pdl *parent;
 	pdl *current;
 	PDL_Indx *incsleft = 0;
-	int i,j;
+	PDL_Indx i,j;
 	PDL_Indx inc;
 	PDL_Indx newinc;
 	PDL_Indx ninced;
@@ -1412,7 +1410,7 @@ void pdl_make_physvaffine(pdl *it)
 					  PDL_Indx foo =
 					   (cur_offset + it->dims[i]*ninced)*
 					   current->dimincs[j];
-					  int k;
+					  PDL_Indx k;
 					  for(k=j+1; k<current->ndims; k++) {
 						foo -= current->dimincs[k-1] *
 							current->dims[k-1];
