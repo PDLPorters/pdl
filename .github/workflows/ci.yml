@@ -11,7 +11,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     continue-on-error: true
-    if: ${{ always() && github.repository == 'PDLPorters/pdl' }}
+    if: ${{ always() }}
     env:
       IRC_CHANNEL: '#pdl'
       IRC_SERVER: 'irc.perl.org'
@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: irc push
         uses: Gottox/irc-message-action@v1.3
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && github.repository == 'PDLPorters/pdl' }}
         with:
           channel: ${{ env.IRC_CHANNEL }}
           server: ${{ env.IRC_SERVER }}
@@ -33,7 +33,7 @@ jobs:
             ${{ join(github.event.commits.*.message, ', ') }}
       - name: irc pull request
         uses: Gottox/irc-message-action@v1.3
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && github.repository == 'PDLPorters/pdl' }}
         with:
           channel: ${{ env.IRC_CHANNEL }}
           server: ${{ env.IRC_SERVER }}
@@ -45,7 +45,7 @@ jobs:
             ${{ github.actor }} ${{ github.event.action }} PR «${{ github.event.pull_request.title }}» ${{ github.event.pull_request.html_url }}
       - name: irc tag created
         uses: Gottox/irc-message-action@v1.3
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && github.repository == 'PDLPorters/pdl' }}
         with:
           channel: ${{ env.IRC_CHANNEL }}
           server: ${{ env.IRC_SERVER }}
