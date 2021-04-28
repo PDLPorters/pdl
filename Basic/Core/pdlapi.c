@@ -29,22 +29,6 @@ extern Core PDL;
 
 void pdl__ensure_trans(pdl_trans *trans,int what) ;
 
-static int has_children(pdl *it) {
-	PDL_DECL_CHILDLOOP(it)
-	PDL_START_CHILDLOOP(it)
-		return 1;
-	PDL_END_CHILDLOOP(it)
-	return 0;
-}
-
-static int is_child_of(pdl *it,pdl_trans *trans) {
-	int i;
-	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-		if(trans->pdls[i] == it)  return 1;
-	}
-	return 0;
-}
-
 static int is_parent_of(pdl *it,pdl_trans *trans) {
 	int i;
 	for(i=0; i<trans->vtable->nparents; i++) {
@@ -736,20 +720,13 @@ void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans,int nth)
 
 void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,int nth)
 {
-	int i; int nthind;
 	if((it->trans || is_parent_of(it,trans))
 	   /* && (it->state & PDL_DATAFLOW_F) */ ) {
-		/* XXX What if in several places */
-		nthind=-1;
-		for(i=0; i<trans->vtable->nparents; i++)
-			if(trans->pdls[i] == it) nthind = i;
 		croak("Sorry, families not allowed now (i.e. You cannot modify dataflowing pdl)\n");
-		/* pdl_family_create(it,trans,nthind,nth); */
-	} else {
-		it->trans = trans;
-		it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED ;
-		trans->pdls[nth] = it;
 	}
+	it->trans = trans;
+	it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED ;
+	trans->pdls[nth] = it;
 }
 
 /* Called with a filled pdl_trans struct.
