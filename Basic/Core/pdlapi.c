@@ -62,7 +62,6 @@ pdl *pdl_get_convertedpdl(pdl *old,int type) {
 void pdl_allocdata(pdl *it) {
 	int i;
 	PDL_Indx nvals=1;
-	SV *bar;
 	for(i=0; i<it->ndims; i++) {
 			nvals *= it->dims[i];
 	}
@@ -319,7 +318,7 @@ pdl *pdl_hard_copy(pdl *src) {
 		it->threadids[i] = src->threadids[i];
 	}
 
-	memcpy(it->data,src->data, pdl_howbig(it->datatype) * it->nvals);
+	memcpy(it->data,src->data, pdl_howbig(it->datatype) * (size_t)it->nvals);
 
 	return it;
 
@@ -333,7 +332,8 @@ pdl *pdl_hard_copy(pdl *src) {
 void pdl_dump_flags_fixspace(int flags, int nspac, int type)
 {
 	int i;
-	int len, found, sz;
+	int found = 0;
+	size_t sz = 0;
 
 	int pdlflagval[] = {
 	    PDL_ALLOCATED,PDL_PARENTDATACHANGED,
@@ -384,11 +384,8 @@ void pdl_dump_flags_fixspace(int flags, int nspac, int type)
 	}
 	for(i=0; i<nspac; i++) spaces[i]=' ';
 	spaces[i] = '\0';
-	sz = 0;
 
 	printf("%sState: (%d) ",spaces,flags);
-	len = 0;
-	found = 0;
 	for (i=0;flagval[i]!=0; i++)
 	  if (flags & flagval[i]) {
 	    printf("%s%s",found ? "|":"",flagchar[i]);
@@ -549,7 +546,7 @@ void pdl_reallocthreadids(pdl *it, PDL_Indx n) {
 
 void pdl_resize_defaultincs(pdl *it) {
 	PDL_Indx inc = 1;
-	int i=0;
+	unsigned int i=0;
 	for(i=0; i<it->ndims; i++) {
 		it->dimincs[i] = inc; inc *= it->dims[i];
 	}
@@ -769,7 +766,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 /* Now, if parents are not flowing, just execute the transformation */
 
   if(!pfflag && !(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY)) {
-  	int *wd = malloc(sizeof(int) * trans->vtable->npdls);
+	int *wd = malloc(sizeof(int) * (size_t)trans->vtable->npdls);
 
 	/* mark this transform as non mutual in case we croak during
 	   ensuring it */
@@ -962,7 +959,7 @@ void pdl_children_changesoon_c(pdl *it,int what)
 
 void pdl_children_changesoon(pdl *it, int what)
 {
-	pdl_children *c; int i;
+	unsigned int i;
 	if(it->trans &&
 	   !(it->trans->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
 		pdl_destroytransform(it->trans,1);
@@ -1370,7 +1367,7 @@ void pdl_make_physvaffine(pdl *it)
 	}
 
 	(void)PDL_ENSURE_VAFFTRANS(it);
-	incsleft = malloc(sizeof(*incsleft)*it->ndims);
+	incsleft = malloc(sizeof(*incsleft)*(size_t)it->ndims);
         PDLDEBUG_f(printf("vaff_malloc: got %p\n",(void*)incsleft));
         for(i=0; i<it->ndims; i++) {
 		it->vafftrans->incs[i] = it->dimincs[i];
@@ -1476,7 +1473,7 @@ void pdl_vafftrans_alloc(pdl *it)
 	if(!it->vafftrans->incs || it->vafftrans->ndims < it->ndims ) {
 		if(it->vafftrans->incs) free(it->vafftrans->incs);
 		it->vafftrans->incs = malloc(sizeof(*(it->vafftrans->incs))
-					     * it->ndims);
+					     * (size_t)it->ndims);
 		it->vafftrans->ndims = it->ndims;
 	}
 }

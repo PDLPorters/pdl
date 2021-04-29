@@ -126,7 +126,7 @@ typedef int Logical;
 
 /* pdlcore.c */
 
-int     pdl_howbig (int datatype);           /* Size of data type (bytes) */
+size_t  pdl_howbig (int datatype);           /* Size of data type (bytes) */
 pdl*    SvPDLV ( SV* sv );                   /* Map SV* to pdl struct */
 void	SetSV_PDL( SV *sv, pdl *it );	     /* Outputting a pdl from.. */
 SV*     pdl_copy( pdl* a, char* option );     /* call copy method */
@@ -273,7 +273,7 @@ struct Core {
     void   (*converttype) ( pdl**, int, Logical );
     void** (*twod)        ( pdl* );
     void*  (*smalloc)      ( STRLEN );
-    int    (*howbig)      ( int );
+    size_t (*howbig)      ( int );
     PDL_Indx*   (*packdims)    ( SV* sv, PDL_Indx *ndims ); /* Pack dims[] into SV aref */
     void   (*setdims)     ( pdl* it, PDL_Indx* dims, PDL_Indx ndims );
     void   (*unpackdims)  ( SV* sv, PDL_Indx *dims,    /* Unpack */

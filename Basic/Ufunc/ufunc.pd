@@ -1532,10 +1532,8 @@ pp_def(
 	HandleBad => 1,
 	Pars => 'a(n); [o]cmin(); [o] cmax(); indx [o]cmin_ind(); indx [o]cmax_ind();',
 	Code => 
-	'$GENERIC() curmin, curmax;
-         PDL_Indx curmin_ind, curmax_ind;
-
- 	 curmin = curmax = 0; /* Handle null ndarray --CED */
+	'$GENERIC() curmin = 0, curmax = 0; /* Handle null ndarray --CED */
+         PDL_Indx curmin_ind = 0, curmax_ind = 0;
 
 	 loop(n) %{
             if ( !n ) {
@@ -1550,8 +1548,8 @@ pp_def(
          $cmax() = curmax; $cmax_ind() = curmax_ind;',
 	CopyBadStatusCode => '',
 	BadCode => 
-	'$GENERIC() curmin, curmax;
-         PDL_Indx curmin_ind, curmax_ind; int flag = 0;
+	'$GENERIC() curmin = 0, curmax = 0;
+         PDL_Indx curmin_ind = 0, curmax_ind = 0; int flag = 0;
 	
 	 loop(n) %{
             if ( $ISGOOD(a()) ) {

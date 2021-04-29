@@ -1312,7 +1312,7 @@ pp_def('statsover',
 	'$GENERIC(avg) tmp = 0;
          $GENERIC(avg) tmp1 = 0;
          $GENERIC(avg) diff = 0;
-         $GENERIC(min) curmin, curmax;
+         $GENERIC(min) curmin = 0, curmax = 0;
 	 $GENERIC(avg) norm = 0;
 	 loop(n) %{             /* Accumulate sum and summed weight. */
             tmp += $a()*$w();
@@ -1343,7 +1343,7 @@ pp_def('statsover',
 	'$GENERIC(avg) tmp = 0;
          $GENERIC(avg) tmp1 = 0;
          $GENERIC(avg) diff = 0;
-         $GENERIC(min) curmin, curmax;
+         $GENERIC(min) curmin = 0, curmax = 0;
 	 $GENERIC(w) norm = 0;
          int flag = 0;
          loop(n) %{

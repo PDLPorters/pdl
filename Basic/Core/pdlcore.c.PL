@@ -78,7 +78,7 @@ void SetSV_PDL ( SV *sv, pdl *it ) {
 
 /* Size of data type information */
 
-int pdl_howbig (int datatype) {
+size_t pdl_howbig (int datatype) {
     switch (datatype) {
 
 !NO!SUBS!
