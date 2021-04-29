@@ -820,6 +820,7 @@ sub got_complex_version {
     return $got_complex_cache{$name} if defined $got_complex_cache{$name};
     my $args = join ',', ('(double complex)1') x $params;
     $got_complex_cache{$name} = Devel::CheckLib::check_lib(
+        ($Config{gccversion} ? (ccflags => '-O0') : ()), # stop GCC optimising test code away
         lib => 'm',
         header => 'complex.h',
         function => sprintf('double num; num = creal(c%s(%s)); return 0;', $name, $args),
