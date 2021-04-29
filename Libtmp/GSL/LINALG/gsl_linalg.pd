@@ -61,7 +61,8 @@ pp_addhdr('
   } else { \\
     p ## _local = gsl_permutation_alloc(psize); \\
     size_t *p ## _local_data = p ## _local->data; \\
-    for (size_t p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
+    size_t p ## _i_local = 0; \\
+    for (p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
       p ## _local_data[p ## _i_local] = datap[p ## _i_local]; \\
     } \\
     p.data = p ## _local_data; \\
@@ -70,7 +71,8 @@ pp_addhdr('
 #define PERM_RETURN(p, psize, datap) \\
   if (sizeof(PDL_Indx) != sizeof(size_t)) { \\
     size_t *p ## _local_data = p ## _local->data; \\
-    for (size_t p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
+    size_t p ## _i_local = 0; \\
+    for (p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
       datap[p ## _i_local] = p ## _local_data[p ## _i_local]; \\
     } \\
   }
