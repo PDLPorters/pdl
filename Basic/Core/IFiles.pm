@@ -45,7 +45,6 @@ require Inline;
 sub Inline {
   my ($class, $lang) = @_;
   return {} if $lang eq 'Pdlpp';
-  return unless $lang eq 'C';
   unless($ENV{"PDL_Early_Inline"} // ($Inline::VERSION >= 0.68) ) {
       die "PDL::Inline: requires Inline version 0.68 or higher to make sense\n  (yours is $Inline::VERSION). You should upgrade Inline, \n   or else set \$ENV{PDL_Early_Inline} to a true value to ignore this message.\n";
   }

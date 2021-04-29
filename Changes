@@ -1,4 +1,5 @@
 - at least GCC 4.8.5 needs loop var declared first
+- can now use Inline "with" PDL in languages other than C
 
 2.040_02 2021-04-29
 - build fixes plus make LINALG work on 32-bit
