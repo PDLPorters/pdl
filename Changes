@@ -1,3 +1,4 @@
+2.040_02 2021-04-29
 - build fixes plus make LINALG work on 32-bit
 - update metadata to correct List::Util version dep
 
