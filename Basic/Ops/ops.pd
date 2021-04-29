@@ -7,6 +7,8 @@ my $C = [ppdefs_complex];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types];
 my $AF = [map $_->ppsym, grep !$_->integer, types];
 my $T = [map $_->ppsym, grep $_->integer, types];
+my $U = [map $_->ppsym, grep $_->unsigned, types];
+my $S = [map $_->ppsym, grep $_->real && !$_->unsigned, types];
 my %is_real; @is_real{ppdefs()} = ();
 my @Rtypes = grep $_->real, types();
 my @Ctypes = grep !$_->real, types();
@@ -555,6 +557,10 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
    })
 );
 
+my $rabs_code = '
+  types('.join('', @$U).') %{ $b()=$a(); %}
+  types('.join('', @$S).') %{ $b()=ABS($a()); %}
+';
 pp_def ( '_rabs',
 	Pars=>'a(); [o]b()',
 	HandleBad => 1,
@@ -563,17 +569,22 @@ pp_def ( '_rabs',
 	BadCode => '
 	       if ( $ISBAD(a()) )
 	           $SETBAD(b());
-	       else
-		$b()=ABS ($a()) ; ',
-	Code=>'$b()=ABS ($a()) ; ',
-	Doc=>'Returns the absolute value of a number. ' ,
+	       else ' . $rabs_code,
+	Code=>$rabs_code,
+	Doc=>undef,
 	PMFunc=>'',
 );
 pp_addpm(<<'EOPM');
-sub PDL::abs {
-	my $x=shift;
-	$x->type->real ? PDL::_rabs($x) : PDL::_cabs($x);
-}
+
+=head2 abs
+
+=for ref
+
+Returns the absolute value of a number.
+
+=cut
+
+sub PDL::abs { $_[0]->type->real ? goto &PDL::_rabs : goto &PDL::_cabs }
 EOPM
 
 # modified from PDL::Complex analogue
