@@ -526,7 +526,7 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
 =cut
 
 },
-   Pars => 'a(); b(); [o] ans()',
+   Pars => 'a(); indx b(); [o] ans()',
    GenericTypes => $A,
    Code => pp_line_numbers(__LINE__, q{
       PDL_Indx n = $b();
