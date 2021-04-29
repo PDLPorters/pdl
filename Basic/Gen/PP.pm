@@ -1474,7 +1474,6 @@ sub typemap {
   my $type   = shift;
   my $arg    = shift;
 
-  #
   # Modification to parse Perl's typemap here.
   #
   # The default search path for the typemap taken from xsubpp. It seems it is
@@ -1499,13 +1498,9 @@ sub typemap {
 	    $_rootdir.'../../../typemap',
 	    $_rootdir.'../../typemap', $_rootdir.'../typemap',
 	    $_rootdir.'typemap');
-  # Finally tag onto the end, the current directory typemap. Ideally we should here pick
-  # up the TYPEMAPS flag from ExtUtils::MakeMaker, but a) I don't know how and b)
-  # it is only a slight inconvenience hopefully!
-  #
   # Note that the OUTPUT typemap is unlikely to be of use here, but I have kept
   # the source code from xsubpp for tidiness.
-  push @tm, 'typemap';
+  push @tm, &PDL::Core::Dev::PDL_TYPEMAP, 'typemap';
   my $foundtm = 0;
   foreach $typemap (@tm) {
     next unless -f $typemap ;

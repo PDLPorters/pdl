@@ -2,10 +2,8 @@
 # and therefore don't have available all its symbols, and so must access
 # Core functions via the PDL object
 TYPEMAP
-pdl*	T_PDL
 pdl *	T_PDL
 pdl_trans * T_PDLTRANS
-pdl_trans* T_PDLTRANS
 Logical	T_IV
 PDL_Indx  T_IV
 float	T_NV

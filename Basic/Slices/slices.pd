@@ -1,5 +1,4 @@
 use PDL::Types qw(ppdefs_all);
-my $Ntype = PDL::Type->new('N')->realctype;
 
 pp_addpm({At => 'Top'},<< 'EOD');
 
@@ -2232,7 +2231,7 @@ EOD
         DefaultFlow => 1,
         Reversible => 1, # XXX Not really
         AffinePriv => 1,
-        OtherPars => join('', map "$Ntype $_;", qw(nthdim step n)),
+        OtherPars => join('', map "PDL_Indx $_;", qw(nthdim step n)),
         RedoDims => '
                 PDL_Indx i;
                 if ($PRIV(nthdim) < 0)  /* the usual conventions */
@@ -2295,7 +2294,7 @@ EOD
         NoPdlThread => 1,
         DefaultFlow => 1,
         Reversible => 1, # XXX Not really
-        OtherPars => join('', map "$Ntype $_;", qw(nthdim nsp)),
+        OtherPars => join('', map "PDL_Indx $_;", qw(nthdim nsp)),
         AffinePriv => 1,
         RedoDims => '
                 PDL_Indx i = $COMP(nthdim);
@@ -2399,7 +2398,7 @@ EOD
         AffinePriv => 1,
         CallCopy => 0,  # Don't CallCopy for subclassed objects because PDL::Copy calls ThreadI
                         #  (Wouldn't cause recursive loop otherwise)
-        OtherPars => "$Ntype id; SV *list",
+        OtherPars => "PDL_Indx id; SV *list",
         Comp => 'PDL_Indx id; PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];
                         PDL_Indx nrealwhichdims; ',
         MakeComp => '
