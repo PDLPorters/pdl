@@ -46,9 +46,6 @@ EOD
 pp_addhdr('
 #include <gsl/gsl_linalg.h>
 
-/* from PDL::FFTW3 */
-#define static_assert_linalg(x) (void)( sizeof( int[ 1 - 2* !(x) ]) )
-
 #define MATRIX_SETUP(m, rows, cols, lda, datap) \\
   m.size1 = rows; \\
   m.size2 = cols; \\
@@ -56,9 +53,27 @@ pp_addhdr('
   m.data = (double *)datap; \\
   m.owner = 0;
 
+/* rely on optimiser for this to produce sensible code */
 #define PERM_SETUP(p, psize, datap) \\
-  p.size = psize; \\
-  p.data = datap;
+  gsl_permutation *p ## _local = NULL; \\
+  if (sizeof(PDL_Indx) == sizeof(size_t)) { \\
+    p.data = datap; \\
+  } else { \\
+    p ## _local = gsl_permutation_alloc(psize); \\
+    size_t *p ## _local_data = p ## _local->data; \\
+    for (size_t p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
+      p ## _local_data[p ## _i_local] = datap[p ## _i_local]; \\
+    } \\
+    p.data = p ## _local_data; \\
+  } \\
+  p.size = psize;
+#define PERM_RETURN(p, psize, datap) \\
+  if (sizeof(PDL_Indx) != sizeof(size_t)) { \\
+    size_t *p ## _local_data = p ## _local->data; \\
+    for (size_t p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
+      datap[p ## _i_local] = p ## _local_data[p ## _i_local]; \\
+    } \\
+  }
 
 #define VECTOR_SETUP(v, vsize, datap) \\
   v.size = vsize; \\
@@ -74,13 +89,13 @@ pp_def('LU_decomp',
         GenericTypes => [qw(C D)],
         Code => <<'EOF',
 /* make sure the PDL data types match */
-static_assert_linalg( sizeof($GENERIC(ipiv)) == sizeof(size_t) );
 gsl_matrix$TDC(,_complex) m;
 gsl_permutation p;
 int s;
 MATRIX_SETUP(m, $PRIV(__m_size), $PRIV(__n_size), $PRIV(__n_size), $P(A))
 PERM_SETUP(p, $PRIV(__p_size), $P(ipiv))
 gsl_linalg$TDC(,_complex)_LU_decomp(&m, &p, &s);
+PERM_RETURN(p, $PRIV(__p_size), $P(ipiv))
 $signum() = s;
 EOF
         Doc => <<'EOF',
@@ -105,6 +120,7 @@ PERM_SETUP(p, $PRIV(__p_size), $P(ipiv))
 VECTOR_SETUP(b, $PRIV(__n_size), $P(B))
 VECTOR_SETUP(x, $PRIV(__n_size), $P(x))
 gsl_linalg$TDC(,_complex)_LU_solve(&m, &p, &b, &x);
+PERM_RETURN(p, $PRIV(__p_size), $P(ipiv))
 EOF
         Doc => <<'EOF',
 =for ref
