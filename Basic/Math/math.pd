@@ -406,12 +406,12 @@ pp_def(
 
 pp_def("polyroots",
       Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
-      RedoDimsCode => 'int sn = $PDL(cr)->dims[0]; $SIZE(m) = sn-1;',
+      RedoDimsCode => '$SIZE(m) = $PDL(cr)->dims[0]-1;',
       GenericTypes => ['D'],
       Code => '
               extern int cpoly( double *cr, double *ci, int deg,
                     double *rr, double *ri );
-              int deg = $SIZE(n)-1, i;
+              int deg = (int)$SIZE(n)-1;
               if (cpoly($P(cr), $P(ci), deg, $P(rr), $P(ri)))
                  barf("PDL::Math::polyroots failed");
 ',

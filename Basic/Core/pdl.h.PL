@@ -295,7 +295,7 @@ typedef struct pdl_transvtable {
 // virtual parent.
 
 #define PDL_TRANS_START_COMMON                                          \
-  int magicno;                                                          \
+  unsigned int magicno;                                                 \
   short flags;                                                          \
   pdl_transvtable *vtable;                                              \
   void (*freeproc)(struct pdl_trans *);  /* Call to free this           \

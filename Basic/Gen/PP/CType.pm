@@ -38,7 +38,7 @@ sub stripptrs {
 			unshift @$decl,"ARR($siz)";
 			print "ARR($str): ($siz)\n" if $::PP_VERBOSE;
 		} else {
-			die("Invalid C type '$str'");
+			Carp::confess("Invalid C type '$str'");
 		}
 		return $decl;
 	}

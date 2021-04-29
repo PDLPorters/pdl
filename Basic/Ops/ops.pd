@@ -63,9 +63,6 @@ pp_addhdr('
 #include <complex.h>
 
 /* MOD requires hackage to map properly into the positive-definite numbers. */
-/* Note that this code causes some warning messages in the compile, because */
-/* the unsigned data types always fail the ((foo)<0) tests.  I believe that */
-/* gcc optimizes those tests away for those data types.  --CED 7-Aug-2002   */
 /* Resurrect the old MOD operator as the unsigned BU_MOD to get around this. --DAL 27-Jun-2008 */
 /* Q_MOD is the same as MOD except the internal casts are to longlong.  -DAL 18-Feb-2015 */
 /* Also changed the typecast in MOD to (long), and added a N==0 conditional to BU_MOD. -DAL 06-Mar-2015 */
@@ -114,12 +111,11 @@ EOH
     }
     if (exists $extra{Comparison}) {
 	# *append* to header
-	# I am not sure if this should be changed to complex double?
 	$extra{HdrCode} .= <<'EOH';
            {
-             double bad_a, bad_b;
-             ANYVAL_TO_CTYPE(bad_a, double, PDL->get_pdl_badvalue(a));
-             ANYVAL_TO_CTYPE(bad_b, double, PDL->get_pdl_badvalue(b));
+             complex double bad_a, bad_b;
+             ANYVAL_TO_CTYPE(bad_a, complex double, PDL->get_pdl_badvalue(a));
+             ANYVAL_TO_CTYPE(bad_b, complex double, PDL->get_pdl_badvalue(b));
              if( bad_a == 0 || bad_a == 1 || bad_b == 0 || bad_b == 1 ) {
                warn("Badvalue is set to 0 or 1. This will cause data loss when using badvalues for comparison operators.");
              }
@@ -203,14 +199,14 @@ EOH
     if ($extra{unsigned}){
 #a little dance to avoid the MOD macro warnings for byte & ushort datatypes
       $codestr = << "ENDCODE";
-  types(BU) %{ \$c() = BU_$func(\$a(),\$b()); %}
-  types(SLNFD) %{ \$c() = $func(\$a(),\$b()); %}
-  types(Q) %{ \$c() = Q_$func(\$a(),\$b()); %}
+  types(BU) %{ \$c() = (\$GENERIC(c))BU_$func(\$a(),\$b()); %}
+  types(SLNFD) %{ \$c() = (\$GENERIC(c))$func(\$a(),\$b()); %}
+  types(Q) %{ \$c() = (\$GENERIC(c))Q_$func(\$a(),\$b()); %}
 ENDCODE
 #end dance
     } else {
       $codestr = join "\n",
-        map 'types('.$_->ppsym.') %{$c() = '.$func.'($a(),$b());%}',
+        map 'types('.$_->ppsym.') %{$c() = ($GENERIC(c))'.$func.'((double)$a(),(double)$b());%}',
         @Rtypes;
     }
     delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
@@ -282,7 +278,7 @@ sub ufunc {
       map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}',
       @Ctypes;
     my $codestr = join "\n",
-        map 'types('.$_->ppsym.') %{$b() = '.$func.'($a());%}',
+        map 'types('.$_->ppsym.') %{$b() = ($GENERIC(b))'.$func.'('.($func=~/[a-z]/?'(double)':'').'$a());%}',
         @Rtypes;
     $codestr .= $complex_bit if $got_complex;
 

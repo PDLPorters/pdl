@@ -1148,8 +1148,6 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	}
 
 	if(flag & (PDL_PARENTDATACHANGED | PDL_PARENTDIMSCHANGED)) {
-		int i;
-
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		  /* Attention: this assumes affine = p2child */
 		  /* need to signal that redodims has already been called */
@@ -1160,6 +1158,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 			pdl_readdata_vaffine(((pdl_trans_affine *)(trans))->pdls[1]);
 		} else {
 #ifdef DONT_VAFFINE
+			PDL_Indx i=0;
 			for(i=0; i<trans->vtable->npdls; i++) {
 				if(!(trans->pdls[i]->state & PDL_ALLOCATED)) {
 					croak("Trying to readdata without physicality");

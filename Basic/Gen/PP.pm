@@ -1667,6 +1667,9 @@ sub OtherPars_nft {
 	} elsif(/^\s*pdl\s+\*\s*(\w+)$/) {
 	    # It is an ndarray -> make it a controlling one.
 	    die("Not supported yet");
+	} elsif(/^\s*\(\s*void\s*\)/) {
+	    # suppressing unused param warning - skip
+	    next;
 	} else {
 	    $type = PDL::PP::CType->new(undef,$_);
 	}
@@ -1770,7 +1773,6 @@ sub wrap_vfn {
     my $sname = $hdrinfo->{StructName};
     my $oargs = ($name eq "foo" ? ",int i1,int i2,int i3" : "");
     my $str = PDL::PP::pp_line_numbers(__LINE__, qq|$type $rout(pdl_trans *__tr $oargs) {
-	int __dim;
 	$sname *__privtrans = ($sname *) __tr;\n|);
     if ( $p2child ) {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";

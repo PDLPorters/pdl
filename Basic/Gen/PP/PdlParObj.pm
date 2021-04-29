@@ -8,12 +8,16 @@ use PDL::Types ':All';
 our $macros = <<'EOF';
 #define PDL_REDODIMS(declini, cast, type, flag, name, pdlname) \
   declini name ## _datap = (cast(PDL_REPRP_TRANS(pdlname, flag))); \
-  declini name ## _physdatap = (cast(pdlname->data));
+  declini name ## _physdatap = (cast(pdlname->data)); \
+  (void)name ## _datap; \
+  (void)name ## _physdatap;
 
 #define PDL_REDODIMS_BADVAL(declini, cast, type, flag, name, pdlname) \
   PDL_REDODIMS(declini, cast, type, flag, name, pdlname) \
   type name ## _badval = 0; \
   PDL_Anyval name ## _anyval_badval = PDL->get_pdl_badvalue(pdlname); \
+  (void)name ## _badval; \
+  (void)name ## _anyval_badval; \
   ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval);
 EOF
 
@@ -274,7 +278,8 @@ sub get_incdecls {
 	my($this) = @_;
 	if(scalar(@{$this->{IndObjs}}) == 0) {return "";}
 	(join '',map {
-		"PDL_Indx ".($this->get_incname($_)).";";
+		my $name = $this->get_incname($_);
+		"PDL_Indx $name; (void)$name;";
 	} (0..$#{$this->{IndObjs}}) ) . ";"
 }
 
@@ -282,8 +287,8 @@ sub get_incregisters {
 	my($this) = @_;
 	if(scalar(@{$this->{IndObjs}}) == 0) {return "";}
 	(join '',map {
-		"register PDL_Indx ".($this->get_incname($_))." = \$PRIV(".
-			($this->get_incname($_)).");\n";
+		my $name = $this->get_incname($_);
+		"register PDL_Indx $name = \$PRIV($name); (void)$name;\n";
 	} (0..$#{$this->{IndObjs}}) )
 }
 
@@ -299,10 +304,10 @@ sub get_incsets {
 	my($this,$str) = @_;
 	my $no=0;
 	PDL::PP::pp_line_numbers(__LINE__, join '',map {
+               my $name = $this->get_incname($_);
                "if($str->ndims <= $_ || $str->dims[$_] <= 1)
-		  \$PRIV(".($this->get_incname($_)).") = 0; else
-		 \$PRIV(".($this->get_incname($_)).
-			") = ".($this->{FlagPhys}?
+		  \$PRIV($name) = 0; else
+		 \$PRIV($name) = ".($this->{FlagPhys}?
 				   "$str->dimincs[$_];" :
 				   "PDL_REPRINC($str,$_);");
 	} (0..$#{$this->{IndObjs}}) )
@@ -386,8 +391,6 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 	}
 	if(!defined $index) {confess "Access Index not found: $pdl, $ind, $indname
 		On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n" ;}
-#	return "\$PRIV(".($this->get_incname($ind))."*". $index .")";
-# Now we have them in register variables -> no PRIV
        return "(".($this->get_incname($ind))."*".
                "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))";
 }

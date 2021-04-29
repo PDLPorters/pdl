@@ -1437,7 +1437,7 @@ pp_def(
 pp_def(
         'xchg',
         GenericTypes => [ppdefs_all],
-        OtherPars => 'int n1; int n2;',
+        OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
         DefaultFlow => 1,
         Reversible => 1,
         P2Child => 1,
@@ -1606,7 +1606,7 @@ EOD
 pp_def(
         'mv',
         GenericTypes => [ppdefs_all],
-        OtherPars => 'int n1; int n2;',
+        OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
         DefaultFlow => 1,
         Reversible => 1,
         P2Child => 1,
@@ -2073,10 +2073,9 @@ pp_def( 'affine',
         Comp => 'PDL_Indx nd; PDL_Indx offset; PDL_Indx sdims[$COMP(nd)];
                 PDL_Indx sincs[$COMP(nd)];',
         MakeComp => '
-                PDL_Indx i,n2;
-                PDL_Indx *tmpi;
+                PDL_Indx i = 0, n2 = 0;
+                PDL_Indx *tmpi = PDL->packdims(inclist,&n2);
                 PDL_Indx *tmpd = PDL->packdims(dimlist,&($COMP(nd)));
-                tmpi = PDL->packdims(inclist,&n2);
                 if ($COMP(nd) < 0) {
                       $CROAK("Affine: can not have negative no of dims");
                 }
@@ -3238,8 +3237,6 @@ SLICE-MC
                           int subargno = 0;
                           int flagged = 0;
                           int squish_closed = 0;
-                          char buf[161];
-                          char ii;
                           s = SvPVbyte(this, len);
 
                           /* Very stoopid parsing - should probably make some calls to perl string utilities... */
