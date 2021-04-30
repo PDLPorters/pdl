@@ -1,4 +1,5 @@
 - ones, zeroes can be called with no args, returns zero-dims ndarray
+- add nan() and inf() that behave similarly to ones, mutatum mutandis
 
 2.041 2021-04-30
 - at least GCC 4.8.5 needs loop var declared first

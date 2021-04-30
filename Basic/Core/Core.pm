@@ -20,7 +20,7 @@ my @exports_internal = qw(howbig threadids topdl);
 my @exports_normal   = (@EXPORT,
   @convertfuncs,
   qw(nelem dims shape null
-      convert inplace zeroes zeros ones list listindices unpdl
+      convert inplace zeroes zeros ones nan inf list listindices unpdl
       set at flows thread_define over reshape dog cat barf type diagonal
       dummy mslice approx flat sclr squeeze
       get_autopthread_targ set_autopthread_targ get_autopthread_actual
@@ -2579,6 +2579,64 @@ sub PDL::ones {
     my $class = shift;
     my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
     $pdl.=1;
+    return $pdl;
+}
+
+=head2 nan
+
+=for ref
+
+construct a C<NaN> filled ndarray.
+If called with no arguments, returns a zero-dimension ndarray (a scalar).
+
+=for usage
+
+ $w = nan([type], $nx, $ny, $nz,...);
+ etc. (see 'zeroes')
+
+=for example
+
+ see zeroes() and add NaN
+
+See also L</new_from_specification>
+for details on using ndarrays in the dimensions list.
+
+=cut
+
+sub nan { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::nan($_[0]) : PDL->nan(@_) }
+sub PDL::nan {
+    my $class = shift;
+    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    $pdl.='nan';
+    return $pdl;
+}
+
+=head2 inf
+
+=for ref
+
+construct an C<Inf> filled ndarray.
+If called with no arguments, returns a zero-dimension ndarray (a scalar).
+
+=for usage
+
+ $w = inf([type], $nx, $ny, $nz,...);
+ etc. (see 'zeroes')
+
+=for example
+
+ see zeroes() and add NaN
+
+See also L</new_from_specification>
+for details on using ndarrays in the dimensions list.
+
+=cut
+
+sub inf { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::inf($_[0]) : PDL->inf(@_) }
+sub PDL::inf {
+    my $class = shift;
+    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    $pdl.='inf';
     return $pdl;
 }
 
