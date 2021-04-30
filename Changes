@@ -1,3 +1,6 @@
+2.043 2021-04-30
+- fix case-sensitivity issue for earlier Perls in stringifying "NaN" - thanks @zmughal
+
 2.042 2021-04-30
 - ones, zeroes can be called with no args, returns zero-dims ndarray
 - add nan() and inf() that behave similarly to ones, mutatum mutandis
