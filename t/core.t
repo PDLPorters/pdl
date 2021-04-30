@@ -409,4 +409,15 @@ for my $type (@types) {
 }
 }
 
+for (['ones', 1], ['zeroes', 0]) {
+  my ($name, $val) = @$_;
+  no strict 'refs';
+  my $g = eval { $name->() };
+  is $@, '', "$name works with no args";
+  is $g.'', $val, "$name() gives back right value";
+  my $g1 = eval { $name->(2) };
+  is $@, '', "$name works with 1 args";
+  is_deeply [$g1->dims], [2], 'right dims';
+}
+
 done_testing;
