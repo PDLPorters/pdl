@@ -317,10 +317,10 @@ TODO: {
 }
 
 $x=3+4*i;$y=4+2*i; my $c=1+1*i;
-is(Ccmp(Cmul($x,$y),4+22*i),0,"Cmul");
-is(Ccmp($x*$y,4+22*i),0,"overloaded *");
-is(Ccmp(Cdiv($x,$y),1 + 0.5*i),0,"Cdiv");
-is(Ccmp($x/$y,1+0.5*i),0,"overloaded /");
+ok(Cmul($x,$y) == 4+22*i,"Cmul");
+ok($x*$y == 4+22*i,"overloaded *");
+ok(Cdiv($x,$y) == 1 + 0.5*i,"Cdiv");
+ok($x/$y == 1+0.5*i,"overloaded /");
 ok(tapprox(Cabs(atan2(pdl(1)->r2C,pdl(0)->r2C)),PDL::Math::asin(1)),"atan2");
 
 TODO: {
@@ -337,17 +337,20 @@ TODO: {
       ok(ref $y eq 'PDL', 'PDL::Complex becomes real PDL after moving dim 0');
 }
 
-#test overloaded nonsensical comparison operators
+#test overloaded operators
 {
     my $less = 3-4*i;
     my $equal = -1*(-3+4*i);
     my $more = 3+2*i;
-    is($less<$more,1,'less than');
-    is(($less<=$equal) && ($equal<$more),1,'less than or equal to');
-    is($less==$equal,1,'equal to');
-    is($less!=$equal,0,'not equal to');
-    is($more>$equal,1,'greater than');
-    is($more>=$equal,1,'greater than or equal to');
+    my $zero_imag = r2C(4);
+    eval { my $bool = $less<$more }; ok $@, 'exception on invalid operator';
+    eval { my $bool = $less<=$equal }; ok $@, 'exception on invalid operator';
+    ok($less==$equal,'equal to');
+    ok(!($less!=$equal),'not equal to');
+    eval { my $bool = $more>$equal }; ok $@, 'exception on invalid operator';
+    eval { my $bool = $more>=$equal }; ok $@, 'exception on invalid operator';
+    ok($zero_imag==4,'equal to real');
+    ok($zero_imag!=5,'neq real');
 }
 
 done_testing;

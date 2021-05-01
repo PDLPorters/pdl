@@ -200,8 +200,6 @@ The following operators are overloaded:
 
 =item atan2 (4-quadrant arc tangent)
 
-=item <=> (nonsensical comparison operator; L</Ccmp>)
-
 =item sin (L</Csin>)
 
 =item cos (L</Ccos>)
@@ -214,13 +212,13 @@ The following operators are overloaded:
 
 =item sqrt (L</Csqrt>)
 
-=item <, <=, ==, !=, >=, > (just as nonsensical as L</Ccmp>)
-
 =item ++, -- (increment, decrement; they affect the real part of the complex number only)
 
 =item "" (stringification)
 
 =back
+
+Comparing complex numbers other than for equality is a fatal error.
 
 =cut
 
@@ -523,27 +521,21 @@ pp_def 'Cdiv',
         ^
 ;
 
-pp_def 'Ccmp',
+pp_def 'Ceq',
 	Pars => 'a(m=2); b(m=2); [o]c()',
         GenericTypes => $F,
-        Doc => '=for ref
-
-Complex comparison operator (spaceship).
-
-Ccmp orders by real first, then by imaginary. Hm, but it is mathematical nonsense! Complex numbers cannot be ordered.',
+        Doc => "=for ref\n\nComplex equality operator.",
         Code => q^
-           $GENERIC() a, b;
-
-           a = $a(m=>0), b = $b(m=>0);
-           if (a != b)
-             $c() = (a > b) * 2 - 1;
-           else
-             {
-               a = $a(m=>1), b = $b(m=>1);
-               $c() = a == b ? 0
-                             : (a > b) * 2 - 1;
-             }
-        ^
+           $c() = (($a(m=>0) == $b(m=>0)) && ($a(m=>1) == $b(m=>1)));
+        ^,
+        PMCode => <<'EOF',
+sub PDL::Complex::Ceq {
+    my @args = reverse &PDL::Core::rswap;
+    $args[1] = r2C($args[1]) if ref $args[1] ne __PACKAGE__;
+    PDL::Complex::_Ceq_int($args[0], $args[1], my $r = PDL->null);
+    $r;
+}
+EOF
 ;
 
 pp_def 'Cconj',
@@ -1040,7 +1032,7 @@ sub _gen_biop {
    } else {
       die;
    }
-   if($1 eq "atan2" || $1 eq "<=>") { return ($1, $sub) }
+   if($1 eq "atan2") { return ($1, $sub) }
    ($1, $sub, "$1=", $sub);
 }
 
@@ -1050,11 +1042,6 @@ sub _gen_unop {
    ($op, eval 'sub { '.$func.' $_[0] }');
 }
 
-#sub _gen_cpop {
-#   ($_[0], eval 'sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-#                 ($_[2] ? $y <=> $_[0] : $_[0] <=> $y) '.$_[0].' 0 }');
-#}
-
 sub initialize {
    # Bless a null PDL into the supplied 1st arg package
    #   If 1st arg is a ref, get the package from it
@@ -1062,22 +1049,14 @@ sub initialize {
 }
 
 use overload
-   (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 <=>-Ccmp)),
+   (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 ==+Ceq)),
    (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt)),
-#   (map _gen_cpop($_), qw(< <= == != >= >)), #segfaults with infinite recursion of the operator.
 #final ternary used to make result a scalar, not a PDL:::Complex (thx CED!)
-    "<" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-		 PDL::lt( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
-    "<=" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                 PDL::le( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
-    "==" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                 PDL::eq( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
-    "!=" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                 PDL::ne( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
-    ">=" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                 PDL::ge( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
-    ">" => sub { my $y = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
-                 PDL::gt( ($_[2] ? $y <=> $_[0] : $_[0] <=> $y), 0, 0) ? 1 : 0;},
+    "<" => sub { confess "Can't compare complex numbers" },
+    "<=" => sub { confess "Can't compare complex numbers" },
+    ">=" => sub { confess "Can't compare complex numbers" },
+    ">" => sub { confess "Can't compare complex numbers" },
+    "!=" => sub { !($_[0] == $_[1]) },
    '++' => sub { $_[0] += 1 },
    '--' => sub { $_[0] -= 1 },
    '""' => \&PDL::Complex::string
