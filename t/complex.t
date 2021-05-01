@@ -1,11 +1,10 @@
+use strict;
+use warnings;
 use PDL::LiteF;
 use PDL::Complex;
 use PDL::Config;
 use PDL::Math;
-
-BEGIN {
-   use Test::More tests => 131;
-}
+use Test::More;
 
 sub tapprox {
 	my($x,$y) = @_;
@@ -15,11 +14,11 @@ sub tapprox {
 }
 
 #Type of cplx and cmplx
-$x=sequence(2);
-$y=$x->cplx;
+my $x=sequence(2);
+my $y=$x->cplx;
 ok(ref $y eq 'PDL::Complex', 'type of cplx');
 ok(ref $x eq 'PDL', "cplx doesn't modify original pdl");
-$z=$y->real;
+my $z=$y->real;
 ok(ref $z eq 'PDL', 'real returns type to pdl');
 ok(ref $y eq 'PDL::Complex', "real doesn't change type of parent");
 #Should there be a real subroutine, such as complex, that does change
@@ -40,37 +39,37 @@ is(i2C(1)->im, 1, 'imaginary part of i2C');
 
 #Test mixed complex-real operations
 
-$ref = pdl(-1,1);
+my $ref = pdl(-1,1);
 $x = i - 1;
 
-ok(ref $x eq PDL::Complex, 'type promotion i - real scalar');
+ok(ref $x eq 'PDL::Complex', 'type promotion i - real scalar');
 ok(tapprox($x->real,$ref), 'value from i - real scalar');
 
 $x = 1 - i;
-ok(ref $x eq PDL::Complex, 'type promotion real scalar - i');
+ok(ref $x eq 'PDL::Complex', 'type promotion real scalar - i');
 ok(tapprox($x->real,-$ref), 'value from real scalar - i');
 
 $ref = pdl([[-2,1],[-3,1]]);
 $x = i - pdl(2,3);
 
-ok(ref $x eq PDL::Complex, 'type promotion i - real ndarray');
+ok(ref $x eq 'PDL::Complex', 'type promotion i - real ndarray');
 ok(tapprox($x->real,$ref), 'value from i - real ndarray');
 
 $x = pdl(2,3) - i;
-ok(ref $x eq PDL::Complex, 'type promotion real ndarray - i');
+ok(ref $x eq 'PDL::Complex', 'type promotion real ndarray - i');
 ok(tapprox($x->real,-$ref), 'value from real ndarray - i');
 
 # dataflow from complex to real
-$ar = $x->real;
+my $ar = $x->real;
 $ar++;
 ok(tapprox($x->real, -$ref+1), 'complex to real dataflow');
 
 # dataflow from real to complex when using cplx
 
-$refc=$ref->copy;
-$ac = $refc->cplx;
+my $refc=$ref->copy;
+my $ac = $refc->cplx;
 $ac .= $ac - 1 - i;
-ok(tapprox($refc, $ref-1), 'real to complex dataflow');
+ok(tapprox($refc, $ref-1), 'real to complex dataflow') or diag "refc=$refc\nref=$ref\nac=$ac";
 
 # no dataflow from real to complex when complex
 
@@ -86,14 +85,14 @@ ok(tapprox(Cp2r(pdl(sqrt(2),atan2(1,1))), pdl(1,1)), 'polar to rectangular');
 # Check that converting from re/im to mag/ang and
 #  back we get the same thing
 $x = cplx($ref);
-my $y = $x->Cr2p()->Cp2r();
+$y = $x->Cr2p()->Cp2r();
 ok(tapprox($x-$y, 0), 'check re/im and mag/ang equivalence');
 
 # Test Cadd, Csub, Cmul, Cscale, Cdiv
 $x=1+2*i;
 $y=3+4*i;
 $a=3;
-$pa=pdl(3);
+my $pa=pdl(3);
 ok(ref Cadd($x,$y) eq 'PDL::Complex', 'Type of Cadd');
 ok(tapprox(Cadd($x,$y)->real, $x->real+$y->real), 'Value of Cadd');
 ok(ref Csub($x,$y) eq 'PDL::Complex', 'Type of Csub');
@@ -112,7 +111,7 @@ ok(tapprox(Cscale($x,$pa)->real, $x->real*$pa), 'Value of Cscale with pdl');
 # to test Cabs, Cabs2, Carg (ref PDL)
 
 $x = cplx($ref);
-$cabs = sqrt($x->re**2+$x->im**2);
+my $cabs = sqrt($x->re**2+$x->im**2);
 
 ok(ref Cabs $x eq 'PDL', 'Cabs type');
 ok(ref Cabs2 $x eq 'PDL', 'Cabs2 type');
@@ -204,7 +203,7 @@ my $bigArray = $x->cat($y);
 ok(abs($bigArray->sumover->sumover +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
 ok(abs($bigArray->sum() +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
 
-my $z = pdl(0) + i*pdl(0);
+$z = pdl(0) + i*pdl(0);
 $z **= 2;
 
 ok($z->at(0) == 0 && $z->at(1) == 0, 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
@@ -221,9 +220,8 @@ ok($z->at(0) == 1 && $z->at(1) == 0, 'check that 0+0i ** 0+0i is 1+0i');
 
 my $r = pdl(-10) + i*pdl(0);
 $r **= 2;
-
 ok($r->at(0) < 100.000000001 && $r->at(0) > 99.999999999 && $r->at(1) == 0,
-  'check that imaginary part is exactly zero'); # Wasn't always so
+  'check that imaginary part is exactly zero') or diag "got:$r";
 
 #Check Csumover sumover, Cprodover and prodover
 $x=sequence(2,3)+1;
@@ -318,7 +316,7 @@ TODO: {
       diag("$x should have equaled $y");
 }
 
-$x=3+4*i;$y=4+2*i;$c=1+1*i;
+$x=3+4*i;$y=4+2*i; my $c=1+1*i;
 is(Ccmp(Cmul($x,$y),4+22*i),0,"Cmul");
 is(Ccmp($x*$y,4+22*i),0,"overloaded *");
 is(Ccmp(Cdiv($x,$y),1 + 0.5*i),0,"Cdiv");
@@ -351,3 +349,5 @@ TODO: {
     is($more>$equal,1,'greater than');
     is($more>=$equal,1,'greater than or equal to');
 }
+
+done_testing;
