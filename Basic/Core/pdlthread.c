@@ -388,7 +388,7 @@ void pdl_initthreadstruct(int nobl,
 		MAX2(nids,pdls[j]->nthreadids);
 		MAX2(mx,pdls[j]->threadids[0] - realdims[j]);
 	}
-	nthreadids = pdl_malloc(sizeof(int)*nids);
+	nthreadids = pdl_malloc(sizeof(PDL_Indx)*nids);
 	ndims += mx;  nimpl = mx; thread->nimpl = nimpl;
 
 

@@ -339,7 +339,7 @@ $pa->doflow;
 # $pa->jdump;
 my $a2 = pdl 1;
 my $pb = $pa + $a2;
-ok("$pb" eq <<END);
+is("$pb", <<END, 'pb doflow');
 
 [
  [3 4 5]
@@ -347,7 +347,7 @@ ok("$pb" eq <<END);
 ]
 END
 my $pc = $pb * 2; # This should stay the same flowed structure.
-ok("$pc" eq <<END);
+is("$pc", <<END, 'multiplied');
 
 [
  [ 6  8 10]
@@ -369,13 +369,13 @@ $pc->make_physical();
 maximum($pa->thread(0,1),$pc);
 # print "B:\n"; $pb->dump(); print "C:\n";$pc->dump();
 # print $pb;
-cmp_ok($pb->at(0,0), '==', 10);
-cmp_ok($pb->at(1,1), '==', 14);
+cmp_ok($pb->at(0,0), '==', 10, 'at(0,0)');
+cmp_ok($pb->at(1,1), '==', 14, 'at(1,1)');
 # print "B:\n"; $pb->dump(); print "C:\n";$pc->dump();
 minimum($pa->thread(0,1),$pb->thread(0,1));
 # print $pb;
-cmp_ok($pb->at(0,0), '==', 0);
-cmp_ok($pb->at(1,1), '==', 4);
+cmp_ok($pb->at(0,0), '==', 0, 'at(0,0)');
+cmp_ok($pb->at(1,1), '==', 4, 'at(1,1)');
 }
 
 {
@@ -383,7 +383,7 @@ cmp_ok($pb->at(1,1), '==', 4);
 my $pa = zeroes(4,5,6);
 my $pb = $pa->thread(1);
 my $pc = $pb->unthread(2);
-ok((join ',',$pc->dims) eq "4,6,5");
+is(join(',',$pc->dims), "4,6,5", 'unthread dims');
 # $pb->jdump; $pc->jdump;
 }
 
