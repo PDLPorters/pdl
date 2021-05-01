@@ -1,3 +1,6 @@
+2.044 2021-05-01
+- fix a definite malloc error that may be what started build failures on 32-bit
+
 2.043 2021-04-30
 - fix case-sensitivity issue for earlier Perls in stringifying "NaN" - thanks @zmughal
 
