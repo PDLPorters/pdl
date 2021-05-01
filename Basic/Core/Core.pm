@@ -2625,7 +2625,7 @@ If called with no arguments, returns a zero-dimension ndarray (a scalar).
 
 =for example
 
- see zeroes() and add NaN
+ see zeroes() and add Inf
 
 See also L</new_from_specification>
 for details on using ndarrays in the dimensions list.
