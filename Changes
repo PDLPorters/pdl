@@ -1,3 +1,5 @@
+- PDL::r2C able to take simple numbers
+
 2.044 2021-05-01
 - fix a definite malloc error that may be what started build failures on 32-bit
 

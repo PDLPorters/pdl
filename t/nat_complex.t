@@ -42,6 +42,10 @@ my $got_double = double(-1, 2);
 my $got_r2C = $got_double->r2C;
 is ''.$got_r2C->creal, ''.$got_double, 'creal(r2C) identical to orig';
 
+my $got = r2C(1);
+is $got, 1, 'can give Perl numbers to r2C';
+ok !$got->type->real, 'complex type';
+
 for (float, double, cfloat, cdouble) {
   my $got = pdl $_, '[0 BAD]';
   my $bv = $got->badvalue;
