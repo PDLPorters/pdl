@@ -133,4 +133,20 @@ TODO: {
    ok($c211str=~/(9.123|4.123)/, 'sf.net bug #1176614');
 }
 
+#test overloaded operators
+{
+    my $less = 3-4*ci;
+    my $equal = -1*(-3+4*ci);
+    my $more = 3+2*ci;
+    my $zero_imag = r2C(4);
+    eval { my $bool = $less<$more }; ok $@, 'exception on invalid operator';
+    eval { my $bool = $less<=$equal }; ok $@, 'exception on invalid operator';
+    ok($less==$equal,'equal to');
+    ok(!($less!=$equal),'not equal to');
+    eval { my $bool = $more>$equal }; ok $@, 'exception on invalid operator';
+    eval { my $bool = $more>=$equal }; ok $@, 'exception on invalid operator';
+    ok($zero_imag==4,'equal to real');
+    ok($zero_imag!=5,'neq real');
+}
+
 done_testing;

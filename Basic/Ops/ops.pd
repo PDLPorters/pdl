@@ -109,8 +109,12 @@ EOH
 	#      See also `ufunc()`.
 	delete $extra{Exception};
     }
-    if (exists $extra{Comparison}) {
-	# *append* to header
+    if ($extra{Comparison}) {
+        my $first_complex = $Ctypes[0]->sym;
+	$extra{HdrCode} .= <<EOF if $extra{Comparison} > 1;
+           if ((a->datatype >= $first_complex) || (b->datatype >= $first_complex))
+             barf("Can't compare complex numbers");
+EOF
 	$extra{HdrCode} .= <<'EOH';
            {
              complex double bad_a, bad_b;
@@ -121,6 +125,7 @@ EOH
              }
            }
 EOH
+        delete $extra{Comparison};
     }
 
     pp_def($name,
@@ -352,10 +357,10 @@ biop('divide','/',1,'divide two ndarrays', Exception => '$b() == 0', GenericType
 ## comparison ops
 # need swapping
 # not defined for complex numbers
-biop('gt','>',1,'the binary E<gt> (greater than) operation', Comparison => 1);
-biop('lt','<',1,'the binary E<lt> (less than) operation', Comparison => 1);
-biop('le','<=',1,'the binary E<lt>= (less equal) operation', Comparison => 1);
-biop('ge','>=',1,'the binary E<gt>= (greater equal) operation', Comparison => 1);
+biop('gt','>',1,'the binary E<gt> (greater than) operation', Comparison => 2);
+biop('lt','<',1,'the binary E<lt> (less than) operation', Comparison => 2);
+biop('le','<=',1,'the binary E<lt>= (less equal) operation', Comparison => 2);
+biop('ge','>=',1,'the binary E<gt>= (greater equal) operation', Comparison => 2);
 # no swap required but set anyway fixing sf bug #391
 biop('eq','==',1,'binary I<equal to> operation (C<==>)', Comparison => 1, GenericTypes => $A);
 biop('ne','!=',1,'binary I<not equal to> operation (C<!=>)', Comparison => 1, GenericTypes => $A);

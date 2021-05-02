@@ -1,5 +1,6 @@
 - PDL::r2C able to take simple numbers
 - comparing PDL::Complex other than for equality now a fatal error, can == with real
+- same comparison change in native complex
 - PDL::Complex slices that affect 0-th dim get re-blessed as PDL
 - PDL::Complex can assign real values and threading won't also assign to imag
 
