@@ -223,6 +223,11 @@ $r **= 2;
 ok($r->at(0) < 100.000000001 && $r->at(0) > 99.999999999 && $r->at(1) == 0,
   'check that imaginary part is exactly zero') or diag "got:$r";
 
+$r = sequence(2,2,3)->complex;
+my $slice = $r->slice('(0),:,(0)');
+$slice .= 44;
+like $r->slice(':,(1),(0)'), qr/44.*3/ or diag "got:", $r->slice(':,(1),(0)');
+
 #Check Csumover sumover, Cprodover and prodover
 $x=sequence(2,3)+1;
 $y=$x->copy->complex;
@@ -246,13 +251,14 @@ ok(ref sumover($y) eq 'PDL::Complex', 'Type of sumover');
 
 ok(ref $y->Cprodover eq 'PDL::Complex', 'Type of Cprodover');
 is($y->Cprodover->dim(0), 2, 'Dimension 0 of Cprodover');
+my @els = map $y->slice(":,($_)"), 0..2;
 ok(tapprox($y->Cprodover->real,
-	   ($y->slice(':,(0)')*$y->slice(':,(1)')*$y->slice(':,(2)'))->real),
+	   ($els[0]*$els[1]*$els[2])->real),
 	  'Value of Cprodover');
 ok(ref $y->prodover eq 'PDL::Complex', 'Type of prodover');
      is($y->prodover->dim(0), 2, 'Dimension 0 of prodover');
 ok(tapprox($y->prodover->real,
-	   ($y->slice(':,(0)')*$y->slice(':,(1)')*$y->slice(':,(2)'))->real),
+	   ($els[0]*$els[1]*$els[2])->real),
    'Value of prodover');
 
 

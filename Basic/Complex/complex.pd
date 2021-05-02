@@ -950,11 +950,16 @@ imaginary parts are returned as ndarrays (ref eq PDL).
 
 =cut
 
-sub re($) { bless $_[0]->slice("(0)"), 'PDL'; }
-sub im($) { bless $_[0]->slice("(1)"), 'PDL'; }
+sub re($) { $_[0]->slice("(0)") }
+sub im($) { $_[0]->slice("(1)") }
 
-*PDL::Complex::re = \&re;
-*PDL::Complex::im = \&im;
+# if the argument does anything other than pass through 0-th dim, re-bless
+sub slice (;@) :lvalue {
+  my $first = ref $_[1] ? $_[1][0] : (split ',', $_[1])[0];
+  my $class = $first =~ /^[:x]?$/i ? ref($_[0]) : 'PDL';
+  my $ret = bless $_[0]->SUPER::slice(@_[1..$#_]), $class;
+  $ret;
+}
 
 EOD
 
