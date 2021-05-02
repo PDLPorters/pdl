@@ -1575,7 +1575,7 @@ consider this excerpt from F<Basic/Bad/bad.pd>:
     ',
     ...
 
-Since this routine removes all bad values, then the output ndarray had
+Since this routine removes all bad values, the output ndarray had
 its bad flag cleared. If run inplace (so C<a == b>), then we have to
 tell all the children of C<a> that the bad flag has been cleared (to
 save time we make sure that we call C<PDL-E<gt>propagate_badgflag> only
@@ -1870,9 +1870,8 @@ vaffines which we shall entirely skip here.
 
 =head2 Slices and bad values
 
-Slice operations need to be able to handle bad values (if support
-is compiled into PDL). The easiest thing to do is look at
-F<Basic/Slices/slices.pd> to see how this works. 
+Slice operations need to be able to handle bad values.  The easiest
+thing to do is look at F<Basic/Slices/slices.pd> to see how this works.
 
 Along with C<BadCode>, there are also the C<BadBackCode> and 
 C<BadRedoDimsCode> keys for C<pp_def>. However, any
@@ -2023,8 +2022,7 @@ your best bet will be to read the source code :-( or ask on the list
 
 =head1 Appendix A: Some keys recognised by PDL::PP
 
-Unless otherwise specified, the arguments are strings. Keys marked with
-(bad) are only used if bad-value support is compiled into PDL.
+Unless otherwise specified, the arguments are strings.
 
 =over 4
 
@@ -2044,7 +2042,7 @@ also the same entry in L<Appendix B|/Appendix B: PP macros and functions>.
 the actual code that implements the functionality; several PP macros and
 PP functions are recognised in the string value
 
-=item HandleBad (bad)
+=item HandleBad
 
 If set to 1, the routine is assumed to support bad values and the code in
 the BadCode key is used if bad values are present;
@@ -2052,7 +2050,7 @@ it also sets things up so that the C<$ISBAD()> etc macros can be used.
 If set to 0, cause the routine to print a warning if any of the input ndarrays 
 have their bad flag set.
 
-=item BadCode (bad)
+=item BadCode
 
 Give the code to be used if bad values may be present in the input ndarrays.
 Only used if C<HandleBad =E<gt> 1>.
@@ -2103,7 +2101,7 @@ If you really want the function NOT to be documented in any way at this point
 (e.g. for an internal routine, or because you are doing it elsewhere in the
 code) explicitly specify C<Doc=E<gt>undef>.
 
-=item BadDoc (bad)
+=item BadDoc
 
 Contains the text returned by the C<badinfo> command (in C<perldl>) or
 the C<-b> switch to the C<pdldoc> shell script. In many cases, you will
@@ -2181,9 +2179,6 @@ if you want to add Perl code to your module.
 
 =head2 Macros
 
-Macros labeled by (bad) are only used if bad-value support is compiled into
-PDL.
-
 =over 7
 
 =item $I<variablename_from_sig>()
@@ -2206,7 +2201,7 @@ replaced by the C type that is equal to the runtime type of the operation
 
 =item $P(a)
 
-a pointer access to the PDL named C<a> in the signature. Useful for
+a pointer to the data of the PDL named C<a> in the signature. Useful for
 interfacing to C functions
 
 =item $PP(a)
@@ -2222,19 +2217,19 @@ where XXX is some string that is matched by C</[BSULNQFD+]/>.
 
 return a pointer to the pdl data structure (pdl *) of ndarray C<a>
 
-=item $ISBAD(a()) (bad)
+=item $ISBAD(a())
 
 returns true if the value stored in C<a()> equals the bad value
 for this ndarray. 
 Requires C<HandleBad> being set to 1.
 
-=item $ISGOOD(a()) (bad)
+=item $ISGOOD(a())
 
 returns true if the value stored in C<a()> does not equal the bad value
 for this ndarray.
 Requires C<HandleBad> being set to 1.
 
-=item $SETBAD(a()) (bad)
+=item $SETBAD(a())
 
 Sets C<a()> to equal the bad value for this ndarray.
 Requires C<HandleBad> being set to 1.
