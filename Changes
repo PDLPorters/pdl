@@ -1,3 +1,4 @@
+2.045 2021-05-03
 - PDL::r2C able to take simple numbers
 - comparing PDL::Complex other than for equality now a fatal error, can == with real
 - same comparison change in native complex
