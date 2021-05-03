@@ -25,7 +25,6 @@ require Exporter;
 @EXPORT_OK = qw(PI DEGRAD E I J);  # symbols to export
 
 use PDL::Lite;
-use PDL::Complex qw(i);
 
 =head2 PI
 
@@ -57,7 +56,10 @@ The imaginary unit, C< I*I == -1 >
 
 =cut
 
-use constant I     => i;
+sub I () {
+  require PDL::Complex;
+  goto &PDL::Complex::i;
+}
 
 =head2 J
 
@@ -65,7 +67,10 @@ The imaginary unit for engineers, C< J*J == -1 >
 
 =cut
 
-use constant J     => i;
+sub J () {
+  require PDL::Complex;
+  goto &PDL::Complex::i;
+}
 
 =head1 COPYRIGHT & LICENSE
 

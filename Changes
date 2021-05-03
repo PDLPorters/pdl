@@ -3,6 +3,7 @@
 - same comparison change in native complex
 - PDL::Complex slices that affect 0-th dim get re-blessed as PDL
 - PDL::Complex can assign real values and threading won't also assign to imag
+- PDL::Constants only loads PDL::Complex on demand
 
 2.044 2021-05-01
 - fix a definite malloc error that may be what started build failures on 32-bit
