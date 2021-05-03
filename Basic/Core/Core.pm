@@ -13,6 +13,7 @@ $VERSION = $PDL::VERSION;
 bootstrap PDL::Core $VERSION;
 use PDL::Types ':All';
 use Config;
+use List::Util qw(max);
 
 our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
 my @convertfuncs = map $_->convertfunc, PDL::Types::types();
@@ -1237,31 +1238,34 @@ sub PDL::Core::parse_basic_string {
 	return \@to_return;
 }
 
+my $MAX_TYPE = $types[-1]->enum; # use lexical @types from above
+sub _establish_type {
+  my ($item, $sofar) = @_;
+  barf("Error: $sofar > max type value($MAX_TYPE)") if $sofar > $MAX_TYPE;
+  return $sofar if $sofar == $MAX_TYPE;
+  return $PDL_CD if UNIVERSAL::isa($item, 'Math::Complex');
+  return max($item->type->enum, $sofar) if UNIVERSAL::isa($item, 'PDL');
+  return $PDL_D if ref($item) ne 'ARRAY';
+  max($sofar, map _establish_type($_, $sofar), @$item);
+}
+
 sub PDL::new {
    # print "in PDL::new\n";
    my $this = shift;
    return $this->copy if ref($this);
-   my $type;
-   if (ref($_[0]) eq 'PDL::Type') {
-     $type = ${shift @_}[0];
-   } elsif (grep UNIVERSAL::isa($_, 'Math::Complex'), @_) {
-     $type = $PDL_CD;
-   } else {
-     $type = $PDL_D;
-   }
+   my $type = ref($_[0]) eq 'PDL::Type' ? shift->enum : undef;
    my $value = (@_ >1 ? [@_] : shift);  # ref thyself
-
    unless(defined $value) {
        if($PDL::debug && $PDL::undefval) {
 	   print STDERR "Warning: PDL::new converted undef to $PDL::undefval ($PDL::undefval)\n";
        }
        $value = $PDL::undefval+0
    }
+   $type = _establish_type($value, $PDL_D) if !defined $type;
 
    return pdl_avref($value,$this,$type) if ref($value) eq "ARRAY";
    my $new = $this->initialize();
    $new->set_datatype($type);
-
 
    if (ref(\$value) eq "SCALAR") {
       # The string processing is extremely slow. Benchmarks indicated that it

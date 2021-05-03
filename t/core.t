@@ -324,6 +324,8 @@ my $x = cdouble(2, Math::Complex::i());
 is $x.'', '[2 i]', 'type constructor can take Math::Complex value';
 $x = pdl(Math::Complex::cplx(2, 0), Math::Complex::i());
 is $x.'', '[2 i]', 'pdl defaults to cdouble if Math::Complex values';
+$x = pdl([Math::Complex::cplx(2, 0), Math::Complex::i()]);
+is $x.'', '[2 i]', 'pdl defaults to cdouble if Math::Complex values in arrayref';
 }
 
 {

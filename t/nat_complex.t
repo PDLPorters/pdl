@@ -149,4 +149,7 @@ TODO: {
     ok($zero_imag!=5,'neq real');
 }
 
+is pdl(ci)->type, 'cdouble', 'pdl(complex ndarray) -> complex-typed ndarray';
+is pdl([ci])->type, 'cdouble', 'pdl([complex ndarray]) -> complex-typed ndarray';
+
 done_testing;
