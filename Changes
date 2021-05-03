@@ -1,4 +1,5 @@
 - pdl([native-complex]) now creates a native-complex ndarray
+- sumover/prodover now also process native complex
 
 2.045 2021-05-03
 - PDL::r2C able to take simple numbers

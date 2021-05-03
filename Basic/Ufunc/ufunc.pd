@@ -1,8 +1,9 @@
 use strict;
-use PDL::Types qw(types ppdefs_complex);
+use PDL::Types qw(types ppdefs_complex ppdefs_all);
 
 my $T = [map $_->ppsym, grep $_->integer, types];
 my $C = [ppdefs_complex];
+my $A = [ppdefs_all];
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -137,6 +138,7 @@ foreach my $func ( sort keys %over ) {
 	   $func,
 	   HandleBad => 1,
 	   Pars => 'a(n); int+ [o]b();',
+	   GenericTypes=>$A,
 	   Code => 
 	   '$GENERIC(b) tmp = ' . $init . ';
 	    loop(n) %{ tmp ' . $op . ' $a(); %}
@@ -201,6 +203,7 @@ foreach my $func ( sort keys %over ) {
 	   $cfunc,
 	   HandleBad => 1,
 	   Pars => 'a(n); int+ [o]b(n);',
+	   GenericTypes=>$A,
 	   Code => 
            '$GENERIC(b) tmp = ' . $init . ';
 	    loop(n) %{ 
@@ -243,33 +246,6 @@ foreach my $func ( sort keys %over ) {
 "Unlike L</cumu$func>, the calculations are performed in double\n" .
 "precision." ),
 	   );
-
-    # as above but in complex double precision
-=for
-    pp_def(
-	   "c$cfunc",
-	   HandleBad => 1,
-	   Pars => 'a(n); cdouble [o]b(n);',
-	   Code =>
-           'complex double tmp = ' . $init . ';
-	    loop(n) %{
-               tmp ' . $op . ' $a();
-	       $b() = tmp;
-	    %}',
-	   BadCode =>
-	   'complex double tmp = ' . $init . ';
-	    loop(n) %{
-               if ( $ISBAD(a()) ) { $SETBAD(b()); }
-               else {
-                  tmp ' . $op . ' $a();
-	          $b() = tmp;
-               }
-	    %}',
-	   Doc => cumuprojectdocs( $name, $cfunc,
-"Unlike L<cumu$func|/cumu$func>, the calculations are performed in complex double\n" .
-"precision." ),
-	   );
-=cut
 } # foreach: my $func
 
 
