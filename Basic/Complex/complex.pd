@@ -72,9 +72,12 @@ L<PDL::Ops/conj> for more.
 
 =item *
 
-C<i> is a constant exported by this module, which represents
-C<-1**0.5>, i.e. the imaginary unit. it can be used to quickly and
-conveniently write complex constants like this: C<4+3*i>.
+C<i> is a function (not, as of 2.047, a constant) exported by this module,
+which represents C<-1**0.5>, i.e. the imaginary unit. it can be used to
+quickly and conveniently write complex constants like this: C<4+3*i>.
+
+B<NB> This will override the PDL::Core function of the same name, which
+returns a native complex value.
 
 =item *
 
@@ -224,7 +227,8 @@ Comparing complex numbers other than for equality is a fatal error.
 
 my $i;
 BEGIN { $i = bless pdl 0,1 }
-sub i () { $i->copy };
+undef *PDL::i;
+sub i { $i->copy + (@_ ? $_[0] : 0) };
 EOD
 
 for (qw(Ctan Catan re im i cplx real)) {
@@ -785,7 +789,7 @@ Does not work inplace.
 
 sub Catan($) {
    my $z = shift;
-   Cmul Clog(Cdiv (PDL::Complex::i+$z, PDL::Complex::i-$z)), pdl(0, 0.5);
+   Cmul Clog(Cdiv (PDL::Complex::i()+$z, PDL::Complex::i()-$z)), pdl(0, 0.5);
 }
 
 EOD
@@ -1006,8 +1010,8 @@ pp_addpm {At => Bot}, <<'EOD';
 # overload must be here, so that all the functions can be seen
 
 # undocumented compatibility functions (thanks to Luis Mochan!)
-sub Catan2($$) { Clog( $_[1] + i*$_[0])/i }
-sub atan2($$) { Clog( $_[1] + i*$_[0])/i }
+sub Catan2($$) { Clog( $_[1] + i()*$_[0])/i }
+sub atan2($$) { Clog( $_[1] + i()*$_[0])/i }
 
 
 =begin comment

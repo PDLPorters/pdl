@@ -315,7 +315,7 @@ is PDL::Core::at_bad_c($big_ushort, []), 65535, 'max ushort value not "BAD" per 
 
 {
 my $x = cdouble(2, 3);
-PDL::Core::set_c($x, [1], ci());
+PDL::Core::set_c($x, [1], i);
 is $x.'', '[2 i]', 'set_c can take ndarray value';
 }
 
@@ -411,7 +411,7 @@ for my $type (@types) {
 }
 }
 
-for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf']) {
+for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i']) {
   my ($name, $val) = @$_;
   no strict 'refs';
   my $g = eval { $name->() };

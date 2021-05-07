@@ -21,7 +21,7 @@ is_deeply [ ppdefs_all() ], [qw(B S U L N Q F D G C)];
 
 my $ref = pdl([[-2,1],[-3,1]]);
 my $ref2 = squeeze(czip($ref->slice("0,"), $ref->slice("1,")));
-my $x = ci() -pdl (-2, -3);
+my $x = i() -pdl (-2, -3);
 
 is($x->type, 'cdouble', 'type promotion i - ndarray');
 ok(tapprox($x->im,$ref->slice("1,:")), 'value from i - ndarray');
@@ -50,8 +50,10 @@ is $got, 1, 'can give Perl numbers to r2C';
 ok !$got->type->real, 'complex type';
 
 $got = i2C(1);
-is $got, ci(), 'can give Perl numbers to i2C';
+is $got, i(), 'can give Perl numbers to i2C';
 ok !$got->type->real, 'complex type';
+
+ok !i(2, 3)->type->real, 'i(2, 3) returns complex type';
 
 for (float, double, cfloat, cdouble) {
   my $got = pdl $_, '[0 BAD]';
@@ -69,7 +71,7 @@ for (float, double, cfloat, cdouble) {
 my $ar = $x->re;
 $ar++;
 ok(tapprox($x->re, -$ref->slice("0,")->squeeze), 'no complex to real dataflow');
-$x+=ci;
+$x+=i;
 ok(tapprox($x->im, -$ref->slice("1,")*2), 'no dataflow after conversion');
 
 # Check that converting from re/im to mag/ang and
@@ -94,7 +96,7 @@ ok(tapprox(abs $x, $cabs), 'Cabs value') or diag "got: (@{[abs $x]}), expected (
 # Check cat'ing of PDL::Complex
 $y = $x->re->copy + 1;
 my $bigArray = $x->cat($y);
-#ok(abs($bigArray->sum() +  8 - 4*ci()) < .0001, 'check cat for PDL::Complex');
+#ok(abs($bigArray->sum() +  8 - 4*i()) < .0001, 'check cat for PDL::Complex');
 
 if (PDL::Core::Dev::got_complex_version('pow', 2)) {
   ok(tapprox($x**2, $x * $x), '** op complex')
@@ -103,7 +105,7 @@ if (PDL::Core::Dev::got_complex_version('pow', 2)) {
     or diag "Got: ", $x->pow(2), ", expected: ", $x * $x;
   ok(tapprox($x->power(2, 0), $x * $x), 'complex power')
     or diag "Got: ", $x->power(2, 0), ", expected: ", $x * $x;
-  my $z = pdl(0) + ci()*pdl(0);
+  my $z = pdl(0) + i()*pdl(0);
   $z **= 2;
   ok(tapprox($z, i2C(0)), 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
   my $r = r2C(-10);
@@ -141,7 +143,7 @@ TODO: {
 #test overloaded operators
 {
     my $less = czip(3, -4);
-    my $equal = -1*(-3+4*ci);
+    my $equal = -1*(-3+4*i);
     my $more = czip(3, 2);
     my $zero_imag = r2C(4);
     eval { my $bool = $less<$more }; ok $@, 'exception on invalid operator';
@@ -154,7 +156,7 @@ TODO: {
     ok($zero_imag!=5,'neq real');
 }
 
-is pdl(ci)->type, 'cdouble', 'pdl(complex ndarray) -> complex-typed ndarray';
-is pdl([ci])->type, 'cdouble', 'pdl([complex ndarray]) -> complex-typed ndarray';
+is pdl(i)->type, 'cdouble', 'pdl(complex ndarray) -> complex-typed ndarray';
+is pdl([i])->type, 'cdouble', 'pdl([complex ndarray]) -> complex-typed ndarray';
 
 done_testing;

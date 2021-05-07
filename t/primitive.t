@@ -271,7 +271,7 @@ ok(tapprox($statsRes[6],4.462), "stats: trivial weights rms");
 
 # complex matmult
 my $cm1 = cdouble(1, czip(1, 1), 1);
-my $cm2 = cdouble(2, 3, ci());
+my $cm2 = cdouble(2, 3, i());
 my $got = $cm1 x $cm2->dummy(0);
 ok all(approx $got, czip(5, 4)), 'complex matmult' or diag $got;
 

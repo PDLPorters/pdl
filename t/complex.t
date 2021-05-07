@@ -40,7 +40,7 @@ is(i2C(1)->im, 1, 'imaginary part of i2C');
 #Test mixed complex-real operations
 
 my $ref = pdl(-1,1);
-$x = i() - 1;
+$x = i - 1;
 
 ok(ref $x eq 'PDL::Complex', 'type promotion i - real scalar');
 ok(tapprox($x->real,$ref), 'value from i - real scalar') or diag "x=$x, real=", $x->real, "\nexpected: $ref";

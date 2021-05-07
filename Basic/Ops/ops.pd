@@ -502,21 +502,14 @@ EOF
 );
 
 pp_def(
-	'ci',
+	'_ci',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	 GenericTypes=>$C,
 	Pars=>'cdouble [o]b();',
 	Code=>'$b()=0+1I;',
-	Doc=> <<'EOF',
-Returns the complex number 0 + 1i.
-
-B<WARNING> because this is not defined as a constant (with empty
-prototype), you must use it either as C<10*ci> or C<ci()*10>. If you
-use it as C<ci*10> this will actually try to use 10 as a glob and pass
-that to C<ci>, which will not do what you want.
-EOF
-); # pp_def ci
+	Doc=> undef,
+);
 
 pp_def('ipow',
    Doc => qq{

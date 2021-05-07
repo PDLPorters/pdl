@@ -37,13 +37,13 @@ ok($pf->at(1) == -5, 'scalar - pdl 2');
 {
 my @w;
 local $SIG{__WARN__} = sub { push @w, @_ };
-my $pa = xvals(cdouble, 3, 5)+10 - 2*xvals(3, 5)*ci;
-my $pb = yvals(cdouble, 3, 5)+10 - 2*yvals(3, 5)*ci;
+my $pa = xvals(cdouble, 3, 5)+10 - 2*xvals(3, 5)*i;
+my $pb = yvals(cdouble, 3, 5)+10 - 2*yvals(3, 5)*i;
 my $pc = $pa + $pb;
-ok(approx(cdouble(25 - 10*ci) - cdouble(25 - 10*ci), 0), 'pdl complex subtraction');
+ok(approx(cdouble(25 - 10*i) - cdouble(25 - 10*i), 0), 'pdl complex subtraction');
 ok(approx($pc->double->at(2,2), 24), 'pdl complex addition 1');
 is $pc->at(2,3), '25-10i', 'at stringifies complex';
-ok(approx($pc->slice([2], [3]), cdouble(25 - 10*ci)), 'pdl complex addition 2');
+ok(approx($pc->slice([2], [3]), cdouble(25 - 10*i)), 'pdl complex addition 2');
 throws_ok { $pc->at(3,3); } qr/Position out of range/, 'invalid position';
 is_deeply \@w, [], 'no warnings' or diag explain \@w;
 }
@@ -93,8 +93,8 @@ ok($pa->at(0) == 16, 'sqrt orig value ok');
 $pa = cdouble pdl 16,64,9,-1;
 if ($can_complex_power) {
   $pb = sqrt($pa);
-  ok(approx(ci()**2, -1),'i squared = -1');
-  ok(all( approx($pb,(cdouble 4,8,3,ci()))),'sqrt of pdl(16,64,9,-1)');
+  ok(approx(i()**2, -1),'i squared = -1');
+  ok(all( approx($pb,(cdouble 4,8,3,i()))),'sqrt of pdl(16,64,9,-1)');
 }
 is $pa->at(0), '16', 'sqrt orig value ok';
 }
@@ -174,7 +174,7 @@ note "a: $pa  [ref(\$pa)='", ref($pa),"']\n";
 note "b: $pb\n";
 ok(abs($pa-$pb) < 1.0e-5, 'log10 scalar');
 if ($can_complex_power) {
-  $pa = 20+10*ci;
+  $pa = 20+10*i;
   $pb = log($pa);
   my $got = exp($pb);
   ok(abs($got-$pa) < 1.0e-4,'exp of log of complex scalar') or diag "pb=$pb, got=$got, expected=$pa";
@@ -206,7 +206,7 @@ $data |= 1;
 ok(all($data == 1), 'or assign');
 ok(all($data eq $data), 'eq'); # check eq operator
 $data = ones cdouble, 5;
-$data+=ci();
+$data+=i();
 $data &= 0;
 ok(all($data == 0), 'and assign complex');
 }
