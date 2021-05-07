@@ -35,8 +35,8 @@ ok($x->approx($r)->all, "tridiag")
   or diag "got:$x\nexpected:$r";
 
 # now complex
-$A = $A + 1e-9*ci();
-$B = $B + 2*ci();
+$A = czip($A, 1e-9);
+$B = czip($B, 2);
 LU_decomp($lu=$A->copy, $p=null, $signum=null);
 LU_solve($lu, $p, $B->xchg(0,1), $x=null);
 $x = $x->inplace->xchg(0,1);

@@ -491,6 +491,16 @@ cfunc('_cabs', 'cabs', 1, 'Returns the absolute (length) of a complex number.',
     PMFunc=>'',
 );
 
+pp_def('czip',
+  Pars => 'r(); i(); complex [o]c()',
+  Doc => <<'EOF',
+convert real, imaginary to native complex, (sort of) like LISP zip
+function. Will add the C<r> ndarray to "i" times the C<i> ndarray. Only
+takes real ndarrays as input.
+EOF
+  Code => '$c() = $r() + $i() * I;'
+);
+
 pp_def(
 	'ci',
 	   HandleBad => 1,

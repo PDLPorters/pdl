@@ -27,7 +27,7 @@ $pa = rfits("../../m51.fits");
 
 $pb = $pa->copy;
 $pc = $pb->zeroes;
-my $pd=$pb+ci()*$pc;
+my $pd=czip($pb, $pc);
 fft($pb,$pc);
 ifft($pb,$pc);
 fft($pd);

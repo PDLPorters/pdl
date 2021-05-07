@@ -20,7 +20,7 @@ is_deeply [ ppdefs_complex() ], [qw(G C)];
 is_deeply [ ppdefs_all() ], [qw(B S U L N Q F D G C)];
 
 my $ref = pdl([[-2,1],[-3,1]]);
-my $ref2 = squeeze($ref->slice("0,")+ci()*$ref->slice("1,"));
+my $ref2 = squeeze(czip($ref->slice("0,"), $ref->slice("1,")));
 my $x = ci() -pdl (-2, -3);
 
 is($x->type, 'cdouble', 'type promotion i - ndarray');
@@ -78,7 +78,7 @@ $x = $ref2->copy;
 my $a=abs($x);
 my $p=carg($x)->double; # force to double to avoid glibc bug 18594
 
-$y = $a*cos($p)+ci()*$a*sin($p);
+$y = czip($a*cos($p), $a*sin($p));
 ok(tapprox($x-$y, 0.), 'check re/im and mag/ang equivalence')
   or diag "For ($x), got: ($y) from a=($a) p=($p) cos(p)=(", cos($p), ") sin(p)=(", sin($p), ")";
 
@@ -106,7 +106,7 @@ if (PDL::Core::Dev::got_complex_version('pow', 2)) {
   my $z = pdl(0) + ci()*pdl(0);
   $z **= 2;
   ok(tapprox($z, i2C(0)), 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
-  my $r = pdl(-10) + ci()*pdl(0);
+  my $r = r2C(-10);
   $r **= 2;
   ok(tapprox($r, r2C(100)),
     'check that imaginary part is exactly zero') # Wasn't always so
@@ -132,7 +132,7 @@ TODO: {
    local $TODO = "Known_problems sf.net bug #1176614" if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} );
    # Check stringification of complex ndarray
    # This is sf.net bug #1176614
-   my $c =  9.1234 + 4.1234*ci;
+   my $c = czip(9.1234, 4.1234);
    my $c211 = $c->dummy(2,1);
    my $c211str = "$c211";
    ok($c211str=~/(9.123|4.123)/, 'sf.net bug #1176614');
@@ -140,9 +140,9 @@ TODO: {
 
 #test overloaded operators
 {
-    my $less = 3-4*ci;
+    my $less = czip(3, -4);
     my $equal = -1*(-3+4*ci);
-    my $more = 3+2*ci;
+    my $more = czip(3, 2);
     my $zero_imag = r2C(4);
     eval { my $bool = $less<$more }; ok $@, 'exception on invalid operator';
     eval { my $bool = $less<=$equal }; ok $@, 'exception on invalid operator';

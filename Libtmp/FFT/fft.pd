@@ -145,7 +145,7 @@ use PDL::Core qw/:Func/;
 use PDL::Basic qw/:Func/;
 use PDL::Types;
 use PDL::ImageND qw/kernctr/; # moved to ImageND since FFTW uses it too
-use PDL::Ops qw/ci im re/;
+use PDL::Ops qw/czip im re/;
 
 END {
   # tidying up required after using fftn
@@ -203,7 +203,7 @@ sub PDL::fft {
 	}
 	_fft($re,$im);
 	if (!$_[0]->type->real) {
-		$_[0]= $re+ci()*$im;
+		$_[0]= czip($re, $im);
 	} else {
 		$_[0]=$re,$_[1]=$im;
 	}
@@ -253,7 +253,7 @@ sub PDL::ifft {
 	}
 	_ifft($re,$im);
 	if (!$_[0]->type->real) {
-		$_[0]= $re+ci()*$im;
+		$_[0]= czip($re, $im);
 	} else {
 		$_[0]=$re,$_[1]=$im;
 	}
@@ -355,7 +355,7 @@ sub PDL::fftnd {
       $i = $i->mv(0,$n);
     }
     if (!$_[0]->type->real) {
-	$_[0]=$r+ci()*$i;
+	$_[0]= czip($r, $i);
     } else {
 	$_[0] = $r; $_[1] = $i;
     }
@@ -397,7 +397,7 @@ sub PDL::ifftnd {
       $i = $i->mv(0,$n);
     }
     if (!$_[0]->type->real) {
-	$_[0]=$r+ci()*$i;
+	$_[0]= czip($r, $i);
     } else {
 	$_[0] = $r; $_[1] = $i;
     }
@@ -563,7 +563,7 @@ sub PDL::fftconvolve_inplace {
     ifftnd($hr,$hi);
     # convert back to complex if input was complex
     if (!$_[0]->type->real) {
-	$_[0]=$hr+ci()*$hi;
+	$_[0]= czip($hr, $hi);
 	return $_[0];
     } else {
         $_[0] = $hr; $_[1] = $hi;
