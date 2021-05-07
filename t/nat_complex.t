@@ -38,7 +38,7 @@ is type($y), 'cfloat', 'type conversion to cfloat';
 is $y->re->type, 'float', 'real real part';
 ok(tapprox($x->im,$ref->slice("0,1")), 'value from ndarray - i') or diag 'got: ', $x->im;
 is zeroes($_->[0], 2)->r2C->type, $_->[1], "r2C $_->[0] -> $_->[1]"
-  for [byte, 'cfloat'], [long, 'cfloat'],
+  for [byte, 'cdouble'], [long, 'cdouble'],
     [float, 'cfloat'], [cfloat, 'cfloat'],
     [double, 'cdouble'], [cdouble, 'cdouble'];
 my $got_double = double(-1, 2);

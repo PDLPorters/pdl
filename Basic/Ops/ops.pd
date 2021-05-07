@@ -590,7 +590,7 @@ EOPM
 
 # modified from PDL::Complex analogue
 pp_def('r2C',
-  GenericTypes=>[reverse qw(F D G C)], # last one is default so here = F
+  GenericTypes=>[qw(G C F D)], # last one is default so here = D
   Pars => 'r(); complex [o]c()',
   Doc => 'convert real to native complex, with an imaginary part of zero',
   PMCode => << 'EOF',
@@ -606,7 +606,7 @@ EOF
 
 # modified from PDL::Complex analogue
 pp_def('i2C',
-  GenericTypes=>[reverse qw(F D G C)], # last one is default so here = F
+  GenericTypes=>[qw(G C F D)], # last one is default so here = D
   Pars => 'i(); complex [o]c()',
   Doc => 'convert imaginary to native complex, with a real part of zero',
   PMCode => << 'EOF',
