@@ -84,14 +84,15 @@ $y = czip($a*cos($p), $a*sin($p));
 ok(tapprox($x-$y, 0.), 'check re/im and mag/ang equivalence')
   or diag "For ($x), got: ($y) from a=($a) p=($p) cos(p)=(", cos($p), ") sin(p)=(", sin($p), ")";
 
-# to test Cabs, Cabs2, Carg (ref PDL)
 # Catan, Csinh, Ccosh, Catanh, Croots
 
-my $cabs = sqrt($x->re->double**2+$x->im->double**2);
+my $cabs = sqrt($x->re**2+$x->im**2);
 
-ok(ref abs $x eq 'PDL', 'Cabs type');
-ok(ref carg ($x) eq 'PDL', 'Carg type');
+ok(abs($x)->type->real, 'Cabs type real');
 ok(tapprox(abs $x, $cabs), 'Cabs value') or diag "got: (@{[abs $x]}), expected ($cabs)";
+ok(tapprox(abs2 $x, $cabs**2), 'Cabs2 value') or diag "got: (@{[abs2 $x]}), expected (", $cabs**2, ")";
+ok(carg($x)->type->real, 'Carg type real');
+ok(tapprox(carg($x), atan2($x->im, $x->re)), 'Carg value');
 
 # Check cat'ing of PDL::Complex
 $y = $x->re->copy + 1;

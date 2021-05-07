@@ -4,6 +4,7 @@
 - add czip($re, $im) -> native complex
 - i() as function (not constant) like nan()
 - ci() removed
+- add abs2
 
 2.046 2021-05-04
 - pdl([native-complex]) now creates a native-complex ndarray

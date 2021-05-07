@@ -591,6 +591,19 @@ Returns the absolute value of a number.
 sub PDL::abs { $_[0]->type->real ? goto &PDL::_rabs : goto &PDL::_cabs }
 EOPM
 
+pp_addpm(<<'EOPM');
+
+=head2 abs2
+
+=for ref
+
+Returns the square of the absolute value of a number.
+
+=cut
+
+sub PDL::abs2 ($) { my $r = &PDL::abs; $r * $r }
+EOPM
+
 # modified from PDL::Complex analogue
 pp_def('r2C',
   GenericTypes=>[qw(G C F D)], # last one is default so here = D
