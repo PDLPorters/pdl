@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use PDL::LiteF;
+use PDL::Lite;
 use PDL::Complex;
 use PDL::Config;
 use PDL::Math;
@@ -9,12 +9,12 @@ use Test::More;
 sub tapprox {
 	my($x,$y) = @_;
 	my $c = abs($x-$y);
-	my $d = max($c);
+	my $d = PDL::max($c);
 	$d < 0.0001;
 }
 
 #Type of cplx and cmplx
-my $x=sequence(2);
+my $x=PDL->sequence(2);
 my $y=$x->cplx;
 ok(ref $y eq 'PDL::Complex', 'type of cplx');
 ok(ref $x eq 'PDL', "cplx doesn't modify original pdl");
@@ -40,20 +40,20 @@ is(i2C(1)->im, 1, 'imaginary part of i2C');
 #Test mixed complex-real operations
 
 my $ref = pdl(-1,1);
-$x = i - 1;
+$x = i() - 1;
 
 ok(ref $x eq 'PDL::Complex', 'type promotion i - real scalar');
-ok(tapprox($x->real,$ref), 'value from i - real scalar');
+ok(tapprox($x->real,$ref), 'value from i - real scalar') or diag "x=$x, real=", $x->real, "\nexpected: $ref";
 
-$x = 1 - i;
+$x = 1 - i();
 ok(ref $x eq 'PDL::Complex', 'type promotion real scalar - i');
 ok(tapprox($x->real,-$ref), 'value from real scalar - i');
 
 $ref = pdl([[-2,1],[-3,1]]);
-$x = i - pdl(2,3);
+$x = i() - pdl(2,3);
 
 ok(ref $x eq 'PDL::Complex', 'type promotion i - real ndarray');
-ok(tapprox($x->real,$ref), 'value from i - real ndarray');
+ok(tapprox($x->real,$ref), 'value from i - real ndarray') or diag "x=$x, real=", $x->real;
 
 $x = pdl(2,3) - i;
 ok(ref $x eq 'PDL::Complex', 'type promotion real ndarray - i');
@@ -124,18 +124,18 @@ ok(tapprox(atan2($x->im, $x->re), Carg $x), 'Carg value');
 
 ok(ref Csin(i) eq 'PDL::Complex', 'Csin type');
 ok(tapprox(Csin($x->re->r2C)->re, sin($x->re)), 'Csin of reals');
-ok(tapprox(Csin(i*$x->im)->im, sinh($x->im)), 'Csin of imags');
+ok(tapprox(Csin(i()*$x->im)->im, sinh($x->im)), 'Csin of imags');
 ok(ref Ccos(i) eq 'PDL::Complex', 'Ccos type');
 ok(tapprox(Ccos($x->re->r2C)->re, cos($x->re)), 'Ccos of reals');
-ok(tapprox(Ccos(i*$x->im)->re, cosh($x->im)), 'Ccos of imags');
+ok(tapprox(Ccos(i()*$x->im)->re, cosh($x->im)), 'Ccos of imags');
 ok(ref Ctan(i) eq 'PDL::Complex', 'Ctan type');
 ok(tapprox(Ctan($x->re->r2C)->re, tan($x->re)), 'Ctan of reals');
-ok(tapprox(Ctan(i*$x->im)->im, tanh($x->im)), 'Ctan of imags');
+ok(tapprox(Ctan(i()*$x->im)->im, tanh($x->im)), 'Ctan of imags');
 
 #Cexp, Clog, Cpow
 ok(ref Cexp(i) eq 'PDL::Complex', 'Cexp type');
 ok(tapprox(Cexp($x->re->r2C)->re, exp($x->re)), 'Cexp of reals');
-ok(tapprox(Cexp(i*$x->im->r2C)->real, pdl(cos($x->im), sin($x->im))->mv(1,0)),
+ok(tapprox(Cexp(i()*$x->im->r2C)->real, pdl(cos($x->im), sin($x->im))->mv(1,0)),
 	   'Cexp of imags ');
 ok(ref Clog(i) eq 'PDL::Complex', 'Clog type');
 ok(tapprox(Clog($x)->real,
@@ -163,11 +163,11 @@ ok(tapprox(Ctan(Catan($x))->real, $x->real), 'Catan value');
 
 #Csinh, Ccosh, Ctanh
 ok(ref Csinh($x) eq 'PDL::Complex', 'Csinh type');
-ok(tapprox(Csinh($x)->real, (i*Csin($x/i))->real), 'Csinh value');
+ok(tapprox(Csinh($x)->real, (i()*Csin($x/i()))->real), 'Csinh value');
 ok(ref Ccosh($x) eq 'PDL::Complex', 'Ccosh type');
-ok(tapprox(Ccosh($x)->real, (Ccos($x/i))->real), 'Ccosh value');
+ok(tapprox(Ccosh($x)->real, (Ccos($x/i()))->real), 'Ccosh value');
 ok(ref Ctanh($x) eq 'PDL::Complex', 'Ctanh type');
-ok(tapprox(Ctanh($x)->real, (i*Ctan($x/i))->real), 'Ctanh value');
+ok(tapprox(Ctanh($x)->real, (i()*Ctan($x/i()))->real), 'Ctanh value');
 
 #Casinh, Cacosh, Catanh
 ok(ref Casinh($x) eq 'PDL::Complex', 'Casinh type');
@@ -187,8 +187,8 @@ ok(tapprox(Croots($x, 5)->sumover, pdl(0)),
    'Croots center of mass');
 
 #Check real and imaginary parts
-is((2+3*i)->re, 2, 'Real part');
-is((2+3*i)->im, 3, 'Imaginary part');
+is((2+3*i())->re, 2, 'Real part');
+is((2+3*i())->im, 3, 'Imaginary part');
 
 #rCpolynomial
 ok(ref rCpolynomial(pdl(1,2,3), $x) eq 'PDL::Complex',
@@ -200,10 +200,10 @@ ok(tapprox(rCpolynomial(pdl(1,2,3), $x)->real,
 # Check cat'ing of PDL::Complex
 $y = $x->copy + 1;
 my $bigArray = $x->cat($y);
-ok(abs($bigArray->sumover->sumover +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
-ok(abs($bigArray->sum() +  8 - 4*i) < .0001, 'check cat for PDL::Complex');
+ok(abs($bigArray->sumover->sumover +  8 - 4*i()) < .0001, 'check cat for PDL::Complex');
+ok(abs($bigArray->sum() +  8 - 4*i()) < .0001, 'check cat for PDL::Complex');
 
-$z = pdl(0) + i*pdl(0);
+$z = pdl(0) + i()*pdl(0);
 $z **= 2;
 
 ok($z->at(0) == 0 && $z->at(1) == 0, 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
@@ -218,31 +218,31 @@ $z **= $z;
 
 ok($z->at(0) == 1 && $z->at(1) == 0, 'check that 0+0i ** 0+0i is 1+0i');
 
-my $r = pdl(-10) + i*pdl(0);
+my $r = pdl(-10) + i()*pdl(0);
 $r **= 2;
 ok($r->at(0) < 100.000000001 && $r->at(0) > 99.999999999 && $r->at(1) == 0,
   'check that imaginary part is exactly zero') or diag "got:$r";
 
-$r = sequence(2,2,3)->complex;
+$r = PDL->sequence(2,2,3)->complex;
 my $slice = $r->slice('(0),:,(0)');
 $slice .= 44;
 like $r->slice(':,(1),(0)'), qr/44.*3/ or diag "got:", $r->slice(':,(1),(0)');
 
 $r = r2C(-10);
 $r .= 2;
-ok(approx($r->at(0), 2) && approx($r->at(1), 0),
+ok(PDL::approx($r->at(0), 2) && PDL::approx($r->at(1), 0),
   'check threading does not make assigning a real value affect imag part') or diag "got:$r";
 
 $r = r2C(2);
 $r++;
-ok(approx($r->at(0), 3) && approx($r->at(1), 0), '++ not imag') or diag "got:$r";
+ok(PDL::approx($r->at(0), 3) && PDL::approx($r->at(1), 0), '++ not imag') or diag "got:$r";
 
 $r = r2C(3);
 $r--;
-ok(approx($r->at(0), 2) && approx($r->at(1), 0), '-- not imag') or diag "got:$r";
+ok(PDL::approx($r->at(0), 2) && PDL::approx($r->at(1), 0), '-- not imag') or diag "got:$r";
 
 #Check Csumover sumover, Cprodover and prodover
-$x=sequence(2,3)+1;
+$x=PDL->sequence(2,3)+1;
 $y=$x->copy->complex;
 ok(ref $y->Csumover eq 'PDL::Complex', 'Type of Csumover');
 is($y->Csumover->dim(0), 2, 'Dimension 0 of Csumover');
@@ -251,13 +251,13 @@ ok(tapprox($y->Csumover->real, $x->mv(1,0)->sumover),
 ok(ref $y->sumover eq 'PDL::Complex', 'Type of sumover');
 is($y->sumover->dim(0), 2, 'Dimension 0 of sumover');
 ok(tapprox($y->sumover->real, $x->mv(1,0)->sumover), 'sumover value');
-ok(ref sumover($y) eq 'PDL::Complex', 'Type of sumover');
+ok(ref PDL::sumover($y) eq 'PDL::Complex', 'Type of sumover');
  TODO: {
      local $TODO="sumover as method and as function differ";
-     is(sumover($y)->dim(0), 2, 'Dimension 0 of sumover');
+     is(PDL::sumover($y)->dim(0), 2, 'Dimension 0 of sumover');
    SKIP: {
        todo_skip "sumover as function is real sumover", 1;
-       ok(tapprox(sumover($y)->real, $x->mv(1,0)->sumover), 'sumover
+       ok(tapprox(PDL::sumover($y)->real, $x->mv(1,0)->sumover), 'sumover
 	  value');
      }
 }
@@ -276,7 +276,7 @@ ok(tapprox($y->prodover->real,
 
 
 #Check sum
-$x=sequence(2,3)+1;
+$x=PDL->sequence(2,3)+1;
 $y=$x->copy->complex;
 ok(ref	$y->sum eq 'PDL::Complex', 'Type of sum');
 is($y->sum->dims, 1, 'Dimensions of sum');
@@ -284,7 +284,7 @@ is($y->sum->dim(0), 2, 'Dimension 0 of sum');
 ok(tapprox($y->sum->real, $x->mv(1,0)->sumover), 'Value of sum');
 
 #Check prod
-$x=sequence(2,3)+1;
+$x=PDL->sequence(2,3)+1;
 $y=$x->copy->complex;
 ok(ref $y->prod eq 'PDL::Complex', 'Type of prod');
 is($y->prod->dims, 1, 'Dimensions of prod');
@@ -299,7 +299,7 @@ ok(tapprox($y->prod->real, $y->prodover->real),
 
    # Check stringification of complex ndarray
    # This is sf.net bug #1176614
-   my $c =  9.1234 + 4.1234*i;
+   my $c =  9.1234 + 4.1234*i();
    my $c211 = $c->dummy(2,1);
    my $c211str = "$c211";
    ok($c211str=~/(9.123|4.123)/, 'sf.net bug #1176614');
@@ -327,7 +327,7 @@ TODO: {
 TODO: {
       local $TODO="Computed assignment doesn't modify slices";
       # autoincrement flow
-      $x=sequence(2,3)->complex;
+      $x=PDL->sequence(2,3)->complex;
       $y=$x->copy;
       $x+=$x;
       $y->slice('')+=$y;
@@ -344,14 +344,14 @@ ok(tapprox(Cabs(atan2(pdl(1)->r2C,pdl(0)->r2C)),PDL::Math::asin(1)),"atan2");
 
 TODO: {
       local $TODO="Transpose of complex data should leave 0-th dimension alone";
-      $x=sequence(2,3,4)->complex;
+      $x=PDL->sequence(2,3,4)->complex;
       $y=$x->transpose;
       is($y->dim(0),2, "Keep dimension 0 when transposing");
 }
 TODO: {
       local $TODO="complex numbers should not be so after moving dimension 0";
 
-      $x=sequence(2,2)->complex;
+      $x=PDL->sequence(2,2)->complex;
       $y=$x->mv(0,1);
       ok(ref $y eq 'PDL', 'PDL::Complex becomes real PDL after moving dim 0');
 }
