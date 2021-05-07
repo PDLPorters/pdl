@@ -604,4 +604,20 @@ EOF
   Code => '$c() = $r();'
 );
 
+# modified from PDL::Complex analogue
+pp_def('i2C',
+  GenericTypes=>[reverse qw(F D G C)], # last one is default so here = F
+  Pars => 'i(); complex [o]c()',
+  Doc => 'convert imaginary to native complex, with a real part of zero',
+  PMCode => << 'EOF',
+sub PDL::i2C ($) {
+  return $_[0] if UNIVERSAL::isa($_[0], 'PDL') and !$_[0]->type->real;
+  my $r = $_[1] // PDL->nullcreate($_[0]);
+  PDL::_i2C_int($_[0], $r);
+  $r;
+}
+EOF
+  Code => '$c() = $i() * I;'
+);
+
 pp_done();

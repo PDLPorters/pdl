@@ -30,7 +30,7 @@ ok double->real, 'real type is real';
 ok !$x->sumover->type->real, 'sumover type=complex';
 
 $x = cdouble(2,3);
-$x-=3*ci();
+$x-=i2C(3);
 is type($x), 'cdouble', 'type promotion ndarray - i';
 is $x->creal->type, 'double', 'real real part';
 my $y=cfloat($x);
@@ -47,6 +47,10 @@ is ''.$got_r2C->creal, ''.$got_double, 'creal(r2C) identical to orig';
 
 my $got = r2C(1);
 is $got, 1, 'can give Perl numbers to r2C';
+ok !$got->type->real, 'complex type';
+
+$got = i2C(1);
+is $got, ci(), 'can give Perl numbers to i2C';
 ok !$got->type->real, 'complex type';
 
 for (float, double, cfloat, cdouble) {
@@ -101,10 +105,10 @@ if (PDL::Core::Dev::got_complex_version('pow', 2)) {
     or diag "Got: ", $x->power(2, 0), ", expected: ", $x * $x;
   my $z = pdl(0) + ci()*pdl(0);
   $z **= 2;
-  ok(tapprox($z, 0 + 0*ci), 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
+  ok(tapprox($z, i2C(0)), 'check that 0 +0i exponentiates correctly'); # Wasn't always so.
   my $r = pdl(-10) + ci()*pdl(0);
   $r **= 2;
-  ok(tapprox($r, 100 + 0*ci),
+  ok(tapprox($r, r2C(100)),
     'check that imaginary part is exactly zero') # Wasn't always so
     or diag "got: ", $r;
 }
