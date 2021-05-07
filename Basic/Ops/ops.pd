@@ -485,8 +485,8 @@ sub cfunc {
 
 cfunc('carg', 'carg', 1, 'Returns the polar angle of a complex number.');
 cfunc('conj', 'conj', 0, 'complex conjugate.');
-cfunc('creal', 'creal', 1, 'Returns the real part of a complex number.');
-cfunc('cimag', 'cimag', 1, 'Returns the imaginary part of a complex number.');
+cfunc('re', 'creal', 1, 'Returns the real part of a complex number.');
+cfunc('im', 'cimag', 1, 'Returns the imaginary part of a complex number.');
 cfunc('_cabs', 'cabs', 1, 'Returns the absolute (length) of a complex number.',
     PMFunc=>'',
 );

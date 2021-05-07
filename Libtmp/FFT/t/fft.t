@@ -33,7 +33,7 @@ ifft($pb,$pc);
 fft($pd);
 ifft($pd);
 ok (tapprox($pc,0), "fft zeroes");
-ok (tapprox(cimag($pd),0), "fft zeroes using complex ndarrays");
+ok (tapprox(im($pd),0), "fft zeroes using complex ndarrays");
 
 #print "\n",$pc->info("Type: %T Dim: %-15D State: %S"),"\n";
 #print "Max: ",$pc->max,"\n";

@@ -24,7 +24,7 @@ my $ref2 = squeeze($ref->slice("0,")+ci()*$ref->slice("1,"));
 my $x = ci() -pdl (-2, -3);
 
 is($x->type, 'cdouble', 'type promotion i - ndarray');
-ok(tapprox($x->cimag,$ref->slice("1,:")), 'value from i - ndarray');
+ok(tapprox($x->im,$ref->slice("1,:")), 'value from i - ndarray');
 ok !$x->type->real, 'complex type not real';
 ok double->real, 'real type is real';
 ok !$x->sumover->type->real, 'sumover type=complex';
@@ -32,18 +32,18 @@ ok !$x->sumover->type->real, 'sumover type=complex';
 $x = cdouble(2,3);
 $x-=i2C(3);
 is type($x), 'cdouble', 'type promotion ndarray - i';
-is $x->creal->type, 'double', 'real real part';
+is $x->re->type, 'double', 'real real part';
 my $y=cfloat($x);
 is type($y), 'cfloat', 'type conversion to cfloat';
-is $y->creal->type, 'float', 'real real part';
-ok(tapprox($x->cimag,$ref->slice("0,1")), 'value from ndarray - i') or diag 'got: ', $x->cimag;
+is $y->re->type, 'float', 'real real part';
+ok(tapprox($x->im,$ref->slice("0,1")), 'value from ndarray - i') or diag 'got: ', $x->im;
 is zeroes($_->[0], 2)->r2C->type, $_->[1], "r2C $_->[0] -> $_->[1]"
   for [byte, 'cfloat'], [long, 'cfloat'],
     [float, 'cfloat'], [cfloat, 'cfloat'],
     [double, 'cdouble'], [cdouble, 'cdouble'];
 my $got_double = double(-1, 2);
 my $got_r2C = $got_double->r2C;
-is ''.$got_r2C->creal, ''.$got_double, 'creal(r2C) identical to orig';
+is ''.$got_r2C->re, ''.$got_double, 're(r2C) identical to orig';
 
 my $got = r2C(1);
 is $got, 1, 'can give Perl numbers to r2C';
@@ -66,11 +66,11 @@ for (float, double, cfloat, cdouble) {
 }
 
 # dataflow from complex to real
-my $ar = $x->creal;
+my $ar = $x->re;
 $ar++;
-ok(tapprox($x->creal, -$ref->slice("0,")->squeeze), 'no complex to real dataflow');
+ok(tapprox($x->re, -$ref->slice("0,")->squeeze), 'no complex to real dataflow');
 $x+=ci;
-ok(tapprox($x->cimag, -$ref->slice("1,")*2), 'no dataflow after conversion');
+ok(tapprox($x->im, -$ref->slice("1,")*2), 'no dataflow after conversion');
 
 # Check that converting from re/im to mag/ang and
 #  back we get the same thing
@@ -85,14 +85,14 @@ ok(tapprox($x-$y, 0.), 'check re/im and mag/ang equivalence')
 # to test Cabs, Cabs2, Carg (ref PDL)
 # Catan, Csinh, Ccosh, Catanh, Croots
 
-my $cabs = sqrt($x->creal->double**2+$x->cimag->double**2);
+my $cabs = sqrt($x->re->double**2+$x->im->double**2);
 
 ok(ref abs $x eq 'PDL', 'Cabs type');
 ok(ref carg ($x) eq 'PDL', 'Carg type');
 ok(tapprox(abs $x, $cabs), 'Cabs value') or diag "got: (@{[abs $x]}), expected ($cabs)";
 
 # Check cat'ing of PDL::Complex
-$y = $x->creal->copy + 1;
+$y = $x->re->copy + 1;
 my $bigArray = $x->cat($y);
 #ok(abs($bigArray->sum() +  8 - 4*ci()) < .0001, 'check cat for PDL::Complex');
 

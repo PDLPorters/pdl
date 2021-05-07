@@ -1,4 +1,5 @@
 - add PDL::i2C
+- replace creal, cimag with re, im, for easier PDL::Complex -> native transition
 
 2.046 2021-05-04
 - pdl([native-complex]) now creates a native-complex ndarray
