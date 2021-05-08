@@ -393,6 +393,30 @@ ufunc('not','!','the elementwise I<not> operation');
 ufunc('exp','exp','the exponential function',GenericTypes => [@$C, @$F]);
 ufunc('log','log','the natural logarithm',GenericTypes => [@$C, @$F], Exception => '$a() <= 0');
 
+# no export these because clash with Test::Deep (re) or internal (_*abs)
+cfunc('re', 'creal', 1, 'Returns the real part of a complex number.');
+cfunc('im', 'cimag', 1, 'Returns the imaginary part of a complex number.');
+cfunc('_cabs', 'cabs', 1, 'Returns the absolute (length) of a complex number.',
+    PMFunc=>'',
+);
+my $rabs_code = '
+  types('.join('', @$U).') %{ $b()=$a(); %}
+  types('.join('', @$S).') %{ $b()=ABS($a()); %}
+';
+pp_def ( '_rabs',
+	Pars=>'a(); [o]b()',
+	HandleBad => 1,
+	NoBadifNaN => 1,
+	    Inplace => 1,
+	BadCode => '
+	       if ( $ISBAD(a()) )
+	           $SETBAD(b());
+	       else ' . $rabs_code,
+	Code=>$rabs_code,
+	Doc=>undef,
+	PMFunc=>'',
+);
+
 pp_export_nothing();
 
 # make log10() work on scalars (returning scalars)
@@ -485,11 +509,6 @@ sub cfunc {
 
 cfunc('carg', 'carg', 1, 'Returns the polar angle of a complex number.');
 cfunc('conj', 'conj', 0, 'complex conjugate.');
-cfunc('re', 'creal', 1, 'Returns the real part of a complex number.');
-cfunc('im', 'cimag', 1, 'Returns the imaginary part of a complex number.');
-cfunc('_cabs', 'cabs', 1, 'Returns the absolute (length) of a complex number.',
-    PMFunc=>'',
-);
 
 pp_def('czip',
   Pars => 'r(); i(); complex [o]c()',
@@ -561,23 +580,6 @@ Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squari
    })
 );
 
-my $rabs_code = '
-  types('.join('', @$U).') %{ $b()=$a(); %}
-  types('.join('', @$S).') %{ $b()=ABS($a()); %}
-';
-pp_def ( '_rabs',
-	Pars=>'a(); [o]b()',
-	HandleBad => 1,
-	NoBadifNaN => 1,
-	    Inplace => 1,
-	BadCode => '
-	       if ( $ISBAD(a()) )
-	           $SETBAD(b());
-	       else ' . $rabs_code,
-	Code=>$rabs_code,
-	Doc=>undef,
-	PMFunc=>'',
-);
 pp_addpm(<<'EOPM');
 
 =head2 abs

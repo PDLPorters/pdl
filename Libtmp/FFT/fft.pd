@@ -145,7 +145,7 @@ use PDL::Core qw/:Func/;
 use PDL::Basic qw/:Func/;
 use PDL::Types;
 use PDL::ImageND qw/kernctr/; # moved to ImageND since FFTW uses it too
-use PDL::Ops qw/czip im re/;
+use PDL::Ops qw/czip/;
 
 END {
   # tidying up required after using fftn
@@ -184,8 +184,8 @@ sub PDL::fft {
 	my $re=$_[0];
 	my $im=$_[1];
 	if (!$re->type->real) {
-		$im=im($re);
-		$re=re($re);
+		$im=$re->im;
+		$re=$re->re;
 	}
 	eval {	todecimal($re);	};
 	if ($@) {
@@ -234,8 +234,8 @@ sub PDL::ifft {
 	my $re=$_[0];
 	my $im=$_[1];
 	if (!$re->type->real) {
-		$im=im($re);
-		$re=re($re);
+		$im=$re->im;
+		$re=$re->re;
 	}
 	eval {	todecimal($re);	};
 	if ($@) {
@@ -533,8 +533,8 @@ sub PDL::fftconvolve_inplace {
     barf "Must have image & kernel for fftconvolve" if $#_ != 1;
     my ($hr, $hi) = @_;
     if (!$hr->type->real) {
-	$hi=im($hr);
-	$hr=re($hr);
+	$hi=$hr->im;
+	$hr=$hr->re;
     }
     my ($n) = $hr->getndims;
     todecimal($hr);   # Convert to double unless already float or double
