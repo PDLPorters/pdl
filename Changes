@@ -1,3 +1,4 @@
+2.047 2021-05-08
 - add PDL::i2C
 - replace creal, cimag with re, im, for easier PDL::Complex -> native transition
 - change default r2C and i2C input types to D from F
