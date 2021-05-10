@@ -1,3 +1,4 @@
+use PDL::Types qw(types);
 
 pp_bless('PDL::GSL::RNG'); # make the functions generated go into our namespace, and
 				# not PDL's namespace
@@ -1740,10 +1741,21 @@ pp_addpm('
 
 # XS function for the RNG object
 
+my $getsize = <<'EOF';
+#define PDL_GETSIZE(in,size,label) \
+  switch(in->datatype) { \
+   case PDL_INVALID: barf(label " was passed an ndarray of type PDL_INVALID"); break; \
+EOF
+$getsize .= "    case ".$_->sym.": size=sizeof(".$_->ctype."); break; \\\n" for types();
+$getsize .= <<'EOF';
+  }
+EOF
+
 pp_addxs('','
 MODULE = PDL::GSL::RNG PACKAGE = PDL::GSL::RNG
 
 #define DEF_RNG(X) if (!strcmp(TYPE,#X)) rng=gsl_rng_alloc( gsl_rng_ ## X ); strcat(rngs,#X ", ");
+'.$getsize.'
 
 gsl_rng *
 new (CLASS,TYPE)
@@ -1889,17 +1901,7 @@ ran_shuffle(rng, in)
 
   n = in->nvals;
   PDL->make_physical(in);
-  switch(in->datatype) {
-   case PDL_INVALID: barf("ran_shuffle was passed an ndarray of type PDL_INVALID"); break;
-   case PDL_B: size=sizeof(PDL_Byte); break;
-   case PDL_S: size=sizeof(PDL_Short); break;
-   case PDL_US: size=sizeof(PDL_Ushort); break;
-   case PDL_L: size=sizeof(PDL_Long); break;
-   case PDL_IND: size=sizeof(PDL_Indx); break;
-   case PDL_LL: size=sizeof(PDL_LongLong); break;
-   case PDL_F: size=sizeof(PDL_Float); break;
-   case PDL_D: size=sizeof(PDL_Double); break;
-  }
+  PDL_GETSIZE(in, size, "ran_shuffle")
   gsl_ran_shuffle(rng,(double *) in->data,n,size);
 
 void
@@ -1915,17 +1917,7 @@ ran_choose(rng, in, out)
   if (in->datatype != out->datatype) barf("Data Types must match for ran_chooser");
   PDL->make_physical(in);
   PDL->make_physical(out);
-  switch(in->datatype) {
-   case PDL_INVALID: barf("ran_choose was passed an ndarray of type PDL_INVALID"); break;
-   case PDL_B: size=sizeof(PDL_Byte); break;
-   case PDL_S: size=sizeof(PDL_Short); break;
-   case PDL_US: size=sizeof(PDL_Ushort); break;
-   case PDL_L: size=sizeof(PDL_Long); break;
-   case PDL_IND: size=sizeof(PDL_Indx); break;
-   case PDL_LL: size=sizeof(PDL_LongLong); break;
-   case PDL_F: size=sizeof(PDL_Float); break;
-   case PDL_D: size=sizeof(PDL_Double); break;
-  }
+  PDL_GETSIZE(in, size, "ran_choose")
   gsl_ran_choose(rng,(double *) out->data, m, (double *) in->data,n,size);
 
 ');
