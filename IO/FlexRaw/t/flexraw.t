@@ -18,7 +18,6 @@ $PDL::debug = 0;
 
 # Get a temporary directory and file name, which obviously we'll need for testing
 # saving and reading of data.
-use PDL::Config;
 my $tmpdir = tempdir( CLEANUP=>1 );
 my $name = $tmpdir . "/tmp0";
 unlink $name, $name . '.hdr';	# just to be absolutely sure

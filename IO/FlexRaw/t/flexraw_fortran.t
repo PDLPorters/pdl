@@ -1,7 +1,6 @@
 use strict;
 use PDL::LiteF;
 use PDL::IO::FlexRaw;
-use PDL::Config;
 use Config;
 use Test::More;
 use File::Temp qw(tempfile);

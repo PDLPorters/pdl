@@ -2,7 +2,6 @@ use strict;
 use PDL::LiteF;
 use PDL::Types ':All';
 use PDL::IO::FlexRaw;
-use PDL::Config;
 use File::Temp;
 use Test::More;
 

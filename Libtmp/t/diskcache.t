@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use PDL;
-use PDL::Config;
 use File::Temp 'tempdir';
 use File::Spec;
 

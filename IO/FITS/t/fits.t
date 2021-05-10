@@ -2,7 +2,6 @@ use strict;
 use File::Basename;
 use PDL::LiteF;
 use PDL::Core ':Internal'; # For howbig()
-use PDL::Config;
 use Test::More;
 use Test::Exception;
 use PDL::IO::FITS;

@@ -119,7 +119,7 @@ $x = pdl(pdl(5));
 ok all( $x== pdl(5)), "pdl() can piddlify an ndarray";
 
 TODO: {
-   local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
+   local $TODO = 'Known_problems bug sf.net #3011879' if exists $ENV{SKIP_KNOWN_PROBLEMS};
 
    # pdl of mixed-dim pdls: pad within a dimension
    $x = pdl( zeroes(5), ones(3) );
