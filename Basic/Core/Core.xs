@@ -178,9 +178,6 @@ get_trans(self)
                ST(0) = &PL_sv_undef;
 	}
 
-
-MODULE = PDL::Core	PACKAGE = PDL
-
 int
 iscontig(x)
    pdl*	x
