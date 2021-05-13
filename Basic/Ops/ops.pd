@@ -520,16 +520,6 @@ EOF
   Code => '$c() = $r() + $i() * I;'
 );
 
-pp_def(
-	'_ci',
-	   HandleBad => 1,
-	   NoBadifNaN => 1,
-	 GenericTypes=>$C,
-	Pars=>'cdouble [o]b();',
-	Code=>'$b()=0+1I;',
-	Doc=> undef,
-);
-
 pp_def('ipow',
    Doc => qq{
 =for ref

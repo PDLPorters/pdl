@@ -52,8 +52,12 @@ required steps.
 =head1 Creating an ndarray in C
 
 The following example creates an ndarray at the C level.
-We use the C<Inline> module which is really the way to interface
-Perl and C these days, using the C<with> capability in L<Inline> 0.68+.
+We use the C<Inline> module which is a good way to interface
+Perl and C, using the C<with> capability in L<Inline> 0.68+.
+
+Note that to create a "scalar" ndarray (with no dimensions at all,
+and a single element), just pass a zero-length C<dims> array, with
+C<ndims> as zero.
 
    use PDL::LiteF;
 
