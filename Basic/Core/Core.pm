@@ -998,7 +998,7 @@ sub PDL::Core::new_pdl_from_string {
       if $value =~ /bad\B|\Bbad/;
    my ($has_bad) = ($value =~ s/\bbad\b/EE/gi);
    # --( nan )--
-   my ($has_nan) = 0;
+   my $has_nan = 0;
    croak("PDL::Core::new_pdl_from_string: found 'nan' as part of a larger word in $original_value")
       if $value =~ /\Bnan|nan\B/;
    $has_nan++ if ($value =~ s/\bnan\b/ee/gi);
@@ -1007,7 +1007,7 @@ sub PDL::Core::new_pdl_from_string {
       if $value =~ /IND\B/i;
    $has_nan++ if ($value =~ s/1\.\#IND/ee/gi);
    # --( inf )--
-   my ($has_inf) = 0;
+   my $has_inf = 0;
    # Strawberry Perl compatibility:
    croak("PDL::Core::new_pdl_from_string: found '1.#INF' as part of a larger word in $original_value")
       if $value =~ /INF\B/i;
@@ -1064,10 +1064,6 @@ sub PDL::Core::new_pdl_from_string {
    # Remove whitspace between signs and the numbers that follow them:
    $value =~ s/([+\-])\s+/$1/g;
 
-#   # make unambiguous addition/subtraction (white-space on both sides
-#   # of operator) by removing white-space from both sides
-#   $value =~ s/([\dEe])\s+([+\-])\s+(?=[Ee\d])/$1$2/g;
-
    # Replace white-space separators with commas:
    $value =~ s/([.\deE])\s+(?=[+\-eE\d])/$1,/g;
 
@@ -1087,24 +1083,24 @@ sub PDL::Core::new_pdl_from_string {
    }
 
    # Replace the place-holder strings with strings that will evaluate to their
-   # correct numerical values when we run the eval:
+   # correct numerical values
    $value =~ s/\bEE\b/bad/g;
    my $bad = $types[$type]->badvalue;
    $value =~ s/\bee\b/nan/g;
    my $inf = -pdl(0)->log;
    $value =~ s/\bEe\b/inf/g;
+
    my $nnan = $inf - $inf;
    my $nan= $this->initialize();
    $nan->set_datatype($nnan->get_datatype);
    $nan->setdims([]);
-
    # pack("d*", "nan") will work here only on perls that numify the string "nan" to a NaN.
    # pack( "d*", (-1.0) ** 0.5 ) will hopefully work in more places, though it seems both
    # pack("d*", "nan") and pack( "d*", (-1.0) ** 0.5 ) fail on *old* MS Compilers (MSVC++ 6.0 and earlier).
    # sisyphus 4 Jan 2013.
    ${$nan->get_dataref}     = pack( "d*", (-1.0) ** 0.5 );
-
    $nan->upd_data();
+
    $value =~ s/\beE\b/pi/g;
 
    my $val = eval {
@@ -1112,7 +1108,7 @@ sub PDL::Core::new_pdl_from_string {
       my $old_warn_handler = $SIG{__WARN__};
       local $SIG{__WARN__} = sub {
          if ($_[0] =~ /(Argument ".*" isn't numeric)/) {
-            # Send the error through die. This is *always* get caught, so keep
+            # Send the error through die. This *always* gets caught, so keep
             # it simple.
             die "Incorrectly formatted input: $1\n";
          }
@@ -1129,30 +1125,25 @@ sub PDL::Core::new_pdl_from_string {
       PDL::Core::parse_basic_string($inf, $nan, $nnan, $bad);
    };
 
-   if (ref $val eq 'ARRAY') {
-      my $to_return = PDL::Core::pdl_avref($val,$this,$type);
-      if( $to_return->dim(-1) == 1 ) {
-	      if( $to_return->dims > 1 ) {
-		      # remove potentially spurious last dimension
-		      $to_return = $to_return->mv(-1,1)->clump(2)->sever;
-	      } elsif( $to_return->dims == 1 ) {
-		      # fix scalar values
-		      $to_return->setdims([]);
-	      }
-      }
-      # Mark bad if appropriate
-      $to_return->badflag($has_bad > 0);
-      return $to_return;
-   }
-   else {
+   if (ref $val ne 'ARRAY') {
       my @message = ("PDL::Core::new_pdl_from_string: string input='$original_value', string output='$value'" );
-      if ($@) {
-         push @message, $@;
-      } else {
-         push @message, "Internal error: unexpected output type ->$val<- is not ARRAY ref";
-      }
+      push @message, $@ ||
+         "Internal error: unexpected output type ->$val<- is not ARRAY ref";
       croak join("\n  ", @message);
    }
+   my $to_return = PDL::Core::pdl_avref($val,$this,$type);
+   if( $to_return->dim(-1) == 1 ) {
+      if( $to_return->dims > 1 ) {
+         # remove potentially spurious last dimension
+         $to_return = $to_return->mv(-1,1)->clump(2)->sever;
+      } elsif( $to_return->dims == 1 ) {
+         # fix scalar values
+         $to_return->setdims([]);
+      }
+   }
+   # Mark bad if appropriate
+   $to_return->badflag($has_bad > 0);
+   return $to_return;
 }
 
 sub PDL::Core::parse_basic_string {

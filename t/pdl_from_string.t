@@ -50,9 +50,6 @@ $got = pdl q[1.2e3 4 5.e-7];
 ok(all($got == $expected), "Correctly interprets [1.2e3 4 5.e-7]");
 
 # Signs and operators #
-# This functionality does not with the parsed (as opposed to eval'd) method
-# for building the pdl-from-string. I'm commenting out the tests that will
-# fail.
 # Now some more interesting tests
 my $t5 = pdl "[1 -4]";
 $compare = pdl [1, -4];
