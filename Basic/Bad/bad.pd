@@ -21,24 +21,6 @@ pp_add_exported( '',
 		 'setbadat ' );
 
 require PDL::Core::Dev; PDL::Core::Dev->import;
-pp_addhdr( "\nstatic union { unsigned char __c[4]; float __d; } __pdl_nan = {\n" );
-if ( isbigendian() ) {
-    pp_addhdr( "{ 0x7f, 0xc0, 0, 0 } };\n\n" );
-} else {
-    pp_addhdr( "{ 0, 0, 0xc0, 0x7f } };\n\n" );
-}
-pp_addhdr( <<'EOF' );
-float _nan_float;
-double _nan_double;
-complex float _nan_cfloat;
-complex double _nan_cdouble;
-EOF
-pp_add_boot( <<'EOF' );
-  _nan_float = __pdl_nan.__d;
-  _nan_double = (double) __pdl_nan.__d;
-  _nan_cfloat = __pdl_nan.__d + I*__pdl_nan.__d;
-  _nan_cdouble = (complex double) __pdl_nan.__d + I*__pdl_nan.__d;
-EOF
 
 ## Header
 pp_addpm({At=>'Top'},<<'!NO!SUBS!');
@@ -928,8 +910,7 @@ operation, it clears the bad flag.
     },
     Code => q{
         if ( $ISBAD(a()) ) {
-        	/* _nan_xxx set up at top of file */
-            $b() = _nan_$TFDGC(float,double,cfloat,cdouble);
+            $b() = PDL->NaN_$TFDGC(float,double,cfloat,cdouble);
         }
         else {
             $b() = $a();
