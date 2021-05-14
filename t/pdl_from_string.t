@@ -259,6 +259,10 @@ ok(all($got == $expected), 'q[1 pi] returns [1 4*atan2(1,1)]')
 $got = pdl q[1 PI];
 ok(all($got == $expected), 'q[1 PI] returns [1 4*atan2(1,1)]')
 	or diag("Got $got");
+$expected = pdl(4 * atan2(1,1), 1);
+$got = pdl q[pi 1];
+ok(all($got == $expected), 'q[pi 1] returns [4*atan2(1,1) 1]')
+	or diag("Got $got");
 
 # Security checks #
 # Check croaking on arbitrary bare-words:
