@@ -454,45 +454,13 @@ get_autopthread_actual()
 
 void
 _ci(...)
- PREINIT:
-  SV *b_SV = NULL;
-  pdl  *b;
-  int nreturn = 1;
-  int ndims = 0;
  PPCODE:
-  PDL_Indx *pdims;
-  pdims = (PDL_Indx *) pdl_malloc( ndims * sizeof(*pdims) );
-  b = pdl_new();
-  pdl_setdims(b, pdims, ndims);
-  b->datatype = PDL_CD;
-  pdl_allocdata(b);
-  ((PDL_CDouble *)b->data)[0] = 0 + 1I;
-  b_SV = sv_newmortal();
-  SetSV_PDL(b_SV, b);
-  if (nreturn > 0) EXTEND(SP, nreturn);
-  ST(0) = b_SV;
-  XSRETURN(nreturn);
+  PDL_XS_SCALAR(PDL_CD, PDL_CDouble, 0 + 1I)
 
 void
 _nan(...)
- PREINIT:
-  SV *b_SV = NULL;
-  pdl  *b;
-  int nreturn = 1;
-  int ndims = 0;
  PPCODE:
-  PDL_Indx *pdims;
-  pdims = (PDL_Indx *) pdl_malloc( ndims * sizeof(*pdims) );
-  b = pdl_new();
-  pdl_setdims(b, pdims, ndims);
-  b->datatype = PDL_D;
-  pdl_allocdata(b);
-  ((PDL_Double *)b->data)[0] = PDL.NaN_double;
-  b_SV = sv_newmortal();
-  SetSV_PDL(b_SV, b);
-  if (nreturn > 0) EXTEND(SP, nreturn);
-  ST(0) = b_SV;
-  XSRETURN(nreturn);
+  PDL_XS_SCALAR(PDL_D, PDL_Double, PDL.NaN_double)
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
 

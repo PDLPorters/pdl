@@ -118,11 +118,28 @@ static const union {unsigned char c[8]; double d;}
 #undef warn
 #define warn PDL->pdl_warn
 
+#define PDL_XS_SCALAR(type, ctype, val) \
+  SV *b_SV = NULL; \
+  pdl  *b; \
+  int nreturn = 1; \
+  int ndims = 0; \
+  PDL_Indx *pdims; \
+  pdims = (PDL_Indx *) pdl_malloc( ndims * sizeof(*pdims) ); \
+  b = pdl_new(); \
+  pdl_setdims(b, pdims, ndims); \
+  b->datatype = type; \
+  pdl_allocdata(b); \
+  ((ctype *)b->data)[0] = val; \
+  b_SV = sv_newmortal(); \
+  SetSV_PDL(b_SV, b); \
+  if (nreturn > 0) EXTEND(SP, nreturn); \
+  ST(0) = b_SV; \
+  XSRETURN(nreturn);
+
 
 typedef int Logical;
 
 /*************** Function prototypes *********************/
-
 
 /* pdlcore.c */
 
