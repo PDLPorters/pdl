@@ -1084,16 +1084,15 @@ sub PDL::Core::new_pdl_from_string {
 
    # Replace the place-holder strings with strings that will evaluate to their
    # correct numerical values
-   $value =~ s/\bEE\b/bad/g;
    my $bad = $types[$type]->badvalue;
+   $value =~ s/\bEE\b/bad/g;
+   my $nan = PDL::_nan();
    $value =~ s/\bee\b/nan/g;
    my $inf = PDL::_inf();
    $value =~ s/\bEe\b/inf/g;
-
-   my $nnan = $inf - $inf;
-   my $nan = PDL::_nan();
-
+   my $pi = 4 * atan2(1, 1);
    $value =~ s/\beE\b/pi/g;
+   my $e = exp(1);
 
    my $val = eval {
       # Install the warnings handler:
@@ -1114,7 +1113,7 @@ sub PDL::Core::new_pdl_from_string {
 
       # Let's see if we can parse it as an array-of-arrays:
       local $_ = $value;
-      PDL::Core::parse_basic_string($inf, $nan, $nnan, $bad);
+      PDL::Core::parse_basic_string($inf, $nan, $bad, $e, $pi);
    };
 
    if (ref $val ne 'ARRAY') {
@@ -1141,21 +1140,16 @@ sub PDL::Core::new_pdl_from_string {
 sub PDL::Core::parse_basic_string {
 	# Assumes $_ holds the string of interest, and modifies that value
 	# in-place.
-
 	use warnings;
-
 	# Takes a string with proper bracketing, etc, and returns an array-of-arrays
 	# filled with numbers, suitable for use with pdl_avref. It uses recursive
 	# descent to handle the nested nature of the data. The string should have
 	# no whitespace and should be something that would evaluate into a Perl
 	# array-of-arrays (except that strings like 'inf', etc, are allowed).
-
-	my ($inf, $nan, $nnan, $bad) = @_;
-
+	my ($inf, $nan, $bad, $e, $pi) = @_;
 	# First character should be a bracket:
 	die "Internal error: input string -->$_<-- did not start with an opening bracket\n"
 		unless s/^\[//;
-
 	my @to_return;
 	# Loop until we run into our closing bracket:
 	my $sign = 1;
@@ -1188,24 +1182,19 @@ sub PDL::Core::parse_basic_string {
 			push @to_return, $sign * $inf;
 		}
 		elsif (s/^nan//i or s/^1\.\#IND//i) {
-                        if ($sign == -1) {
-                          push @to_return, $nnan;
-                        } else {
-                          push @to_return, $nan;
-                        }
+			push @to_return, $sign * $nan;
 		}
 		elsif (s/^pi//i) {
-			push @to_return, $sign * 4 * atan2(1, 1);
+			push @to_return, $sign * $pi;
 		}
 		elsif (s/^e//i) {
-			push @to_return, $sign * exp(1);
+			push @to_return, $sign * $e;
 		}
 		elsif (s/^([\d+\-e.]+)//i) {
 			# Note that improper numbers are handled by the warning signal
 			# handler
-                        my $val = $1;
-                        my $nval = $val + 0x0;
-                        push @to_return, ($sign>0x0) ? $nval : -$nval;
+			my $nval = $1 + 0x0;
+			push @to_return, $sign * $nval;
 		}
 		else {
 			die "Incorrectly formatted input at:\n  ", substr ($_, 0, 10), "...\n";
@@ -1217,7 +1206,6 @@ sub PDL::Core::parse_basic_string {
 		$expects_number = 0;
 		s/^,//;
 	}
-
 	return \@to_return;
 }
 
