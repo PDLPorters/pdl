@@ -473,6 +473,27 @@ _ci(...)
   ST(0) = b_SV;
   XSRETURN(nreturn);
 
+void
+_nan(...)
+ PREINIT:
+  SV *b_SV = NULL;
+  pdl  *b;
+  int nreturn = 1;
+  int ndims = 0;
+ PPCODE:
+  PDL_Indx *pdims;
+  pdims = (PDL_Indx *) pdl_malloc( ndims * sizeof(*pdims) );
+  b = pdl_new();
+  pdl_setdims(b, pdims, ndims);
+  b->datatype = PDL_D;
+  pdl_allocdata(b);
+  ((PDL_Double *)b->data)[0] = PDL.NaN_double;
+  b_SV = sv_newmortal();
+  SetSV_PDL(b_SV, b);
+  if (nreturn > 0) EXTEND(SP, nreturn);
+  ST(0) = b_SV;
+  XSRETURN(nreturn);
+
 MODULE = PDL::Core     PACKAGE = PDL::Core
 
 unsigned int

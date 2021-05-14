@@ -81,8 +81,8 @@ is(pdl(53,35)->qsortveci,pdl(0),'trivial qsortveci');
 #   NaN values are handled inconsistently by min, minimum, max, maximum...
 #
 {
- my $inf = exp(~0>>1);
- my $nan = $inf/$inf;
+ my $inf = inf();
+ my $nan = nan();
  my $x = pdl($nan, 0, 1, 2);
  my $y = pdl(0, 1, 2, $nan);
 

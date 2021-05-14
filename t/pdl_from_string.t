@@ -150,9 +150,9 @@ ok($bad_values->at(2) == -$bad_values->at(1), "negative inf is numerically equal
 ok($bad_values->isbad->at(3), 'properly handles bad values')
 	or diag("Third bad value should be BAD but it describes itself as " . $bad_values->slice(3));
 
-my $infty = pdl 'inf';
-my $min_inf = pdl '-inf';
-my $nan = pdl 'nan';
+my $infty = inf();
+my $min_inf = -inf();
+my $nan = nan();
 
 my $nan2 = $^O =~ /MSWin32/i && !$ActivePerl::VERSION && $Config{cc} ne 'cl' ? pdl (-((-1) ** 0.5))
                              : pdl '-nan';

@@ -1091,15 +1091,7 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/\bEe\b/inf/g;
 
    my $nnan = $inf - $inf;
-   my $nan= $this->initialize();
-   $nan->set_datatype($nnan->get_datatype);
-   $nan->setdims([]);
-   # pack("d*", "nan") will work here only on perls that numify the string "nan" to a NaN.
-   # pack( "d*", (-1.0) ** 0.5 ) will hopefully work in more places, though it seems both
-   # pack("d*", "nan") and pack( "d*", (-1.0) ** 0.5 ) fail on *old* MS Compilers (MSVC++ 6.0 and earlier).
-   # sisyphus 4 Jan 2013.
-   ${$nan->get_dataref}     = pack( "d*", (-1.0) ** 0.5 );
-   $nan->upd_data();
+   my $nan = PDL::_nan();
 
    $value =~ s/\beE\b/pi/g;
 
@@ -2602,7 +2594,7 @@ sub nan { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::nan($_[0]) : PDL->nan(@
 sub PDL::nan {
     my $class = shift;
     my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-    $pdl.='nan';
+    $pdl .= PDL::_nan();
     return $pdl;
 }
 
