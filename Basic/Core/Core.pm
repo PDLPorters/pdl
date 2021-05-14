@@ -1087,7 +1087,7 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/\bEE\b/bad/g;
    my $bad = $types[$type]->badvalue;
    $value =~ s/\bee\b/nan/g;
-   my $inf = -pdl(0)->log;
+   my $inf = PDL::_inf();
    $value =~ s/\bEe\b/inf/g;
 
    my $nnan = $inf - $inf;
@@ -2623,7 +2623,7 @@ sub inf { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::inf($_[0]) : PDL->inf(@
 sub PDL::inf {
     my $class = shift;
     my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-    $pdl.='inf';
+    $pdl .= PDL::_inf();
     return $pdl;
 }
 

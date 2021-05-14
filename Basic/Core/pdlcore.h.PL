@@ -136,7 +136,6 @@ static const union {unsigned char c[8]; double d;}
   ST(0) = b_SV; \
   XSRETURN(nreturn);
 
-
 typedef int Logical;
 
 /*************** Function prototypes *********************/

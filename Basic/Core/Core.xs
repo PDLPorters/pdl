@@ -462,6 +462,11 @@ _nan(...)
  PPCODE:
   PDL_XS_SCALAR(PDL_D, PDL_Double, PDL.NaN_double)
 
+void
+_inf(...)
+ PPCODE:
+  PDL_XS_SCALAR(PDL_D, PDL_Double, INFINITY)
+
 MODULE = PDL::Core     PACKAGE = PDL::Core
 
 unsigned int
