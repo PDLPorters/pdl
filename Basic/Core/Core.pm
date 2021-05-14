@@ -1061,11 +1061,11 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/(\d\.)(z|[^\d])/${1}0$2/g;
    $value =~ s/(\A|[^\d])\./${1}0./g;
 
-   # Remove whitspace between signs and the numbers that follow them:
+   # Remove whitespace between signs and the numbers that follow them:
    $value =~ s/([+\-])\s+/$1/g;
 
-   # Replace white-space separators with commas:
-   $value =~ s/([.\deE])\s+(?=[+\-eE\d])/$1,/g;
+   # Replace whitespace separators with commas:
+   $value =~ s/([.\de])\s+(?=[+\-e\d])/$1,/gi;
 
    # Remove all other white space:
    $value =~ s/\s+//g;
@@ -1137,6 +1137,7 @@ sub PDL::Core::new_pdl_from_string {
    return $to_return;
 }
 
+my $NUM_RE = qr/(\d+(?:\.\d+)?(?:e[-+]?\d+)?)/i;
 sub PDL::Core::parse_basic_string {
 	# Assumes $_ holds the string of interest, and modifies that value
 	# in-place.
@@ -1190,14 +1191,13 @@ sub PDL::Core::parse_basic_string {
 		elsif (s/^e//i) {
 			push @to_return, $sign * $e;
 		}
-		elsif (s/^([\d+\-e.]+)//i) {
+		elsif (s/^$NUM_RE([^e])/$2/i) {
 			# Note that improper numbers are handled by the warning signal
 			# handler
-			my $nval = $1 + 0x0;
-			push @to_return, $sign * $nval;
+			push @to_return, $sign * ($1 + 0x0);
 		}
 		else {
-			die "Incorrectly formatted input at:\n  ", substr ($_, 0, 10), "...\n";
+			die "Incorrectly formatted input at:\n  ", substr($_, 0, 10), "...\n";
 		}
 	}
 	# Strip off any commas
