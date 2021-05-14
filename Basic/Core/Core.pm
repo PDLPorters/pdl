@@ -1036,7 +1036,7 @@ sub PDL::Core::new_pdl_from_string {
    # present:
    $value =~ s/\s+/ /g;
    if (my ($disallowed) = ($value =~ /([^\[\]\+\-0-9;,.eE ]+)/)) {
-      croak("PDL::Core::new_pdl_from_string: found disallowed character(s) '$disallowed' in $original_value");
+      croak("PDL::Core::new_pdl_from_string: found disallowed character(s) '$disallowed' in '$original_value', value now: '$value'");
    }
 
    # Wrap the string in brackets [], so that the following works:
