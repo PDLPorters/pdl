@@ -412,46 +412,6 @@ there are:
 In PDL 2.4.3 the C<$BADFLAGCACHE()> macro was introduced for use in
 C<FindBadStatusCode> and C<CopyBadStatusCode>.
 
-=head2 Handling NaN values
-
-For I<simple> routines processing floating-point numbers, we should let
-the computer process the bad values (i.e. C<NaN> and C<Inf> values) instead
-of using the code in the C<BadCode> section.  Many such routines have
-been labeled using C<NoBadifNaN =E<gt> 1>; however this is currently 
-I<ignored> by PDL::PP.
-
-For these routines, we want to use the C<Code> section if
-
-  the ndarray does not have its bad flag set
-  the datatype is a float or double
-
-otherwise we use the C<BadCode> section.  This is I<NOT IMPLEMENTED>, as
-it will require reasonable hacking of PP::PDLCode!
-
-There's also the problem of how we handle 'exceptions' - since C<$x = pdl(2) / pdl(0)>
-produces a bad value but doesn't update the badflag value of the ndarray. 
-Can we catch an exception, or do we have to trap for this
-(e.g. search for C<exception> in F<Basic/Ops/ops.pd>)?
-
-Checking for C<Nan>, and C<Inf> is done by using the C<isfinite()>
-system call.  If you want to set a value to the C<NaN> value, the
-following bit of code can be used (this can be found in
-both F<Basic/Core/Core.xs.PL> and F<Basic/Bad/bad.pd>):
-
-  /* for big-endian machines */
-  static union { unsigned char __c[4]; float __d; } 
-        __pdl_nan = { { 0x7f, 0xc0, 0, 0 } };
-
-  /* for little-endian machines */
-  static union { unsigned char __c[4]; float __d; } 
-        __pdl_nan = { { 0, 0, 0xc0, 0x7f } };
-
-This approach should probably be replaced by library routines such as
-C<nan("")> or C<atof("NaN")>.
-
-To find out whether a particular machine is big endian, use the
-routine C<PDL::Core::Dev::isbigendian()>.
-
 =head1 WHAT ABOUT DOCUMENTATION?
 
 One of the strengths of PDL is its on-line documentation. The aim is to use

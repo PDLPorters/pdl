@@ -1,3 +1,5 @@
+- remove obsolete and inaccurate doc relating bad values to NaN
+
 2.047 2021-05-08
 - add PDL::i2C
 - replace creal, cimag with re, im, for easier PDL::Complex -> native transition
