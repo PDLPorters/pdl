@@ -993,6 +993,7 @@ sub PDL::Core::new_pdl_from_string {
    #  nan => ee
    #  inf => Ee
    #  pi  => eE
+   #  i   => EeE
    # --( Bad )--
    croak("PDL::Core::new_pdl_from_string: found 'bad' as part of a larger word in $original_value")
       if $value =~ /bad\B|\Bbad/;
@@ -1020,6 +1021,12 @@ sub PDL::Core::new_pdl_from_string {
    croak("PDL::Core::new_pdl_from_string: found 'pi' as part of a larger word in $original_value")
       if $value =~ /pi\B|\Bpi/;
    $value =~ s/\bpi\b/eE/gi;
+   # --( i )--
+   my $has_i = 0;
+   croak("PDL::Core::new_pdl_from_string: found 'i' as part of a larger word ($1) in $original_value")
+      if $value =~ /(i\B|[^\-+\d\s.\[]i)/;
+   $has_i++ if ($value =~ s/([\-+\d]*)i\b/${1}EeE/gi);
+   $type = $types[$type]->complexversion->enum if $has_i;
 
    # Some data types do not support nan and inf, so check for and warn or croak,
    # as appropriate:
@@ -1088,6 +1095,9 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/\bEE\b/bad/g;
    my $nan = PDL::_nan();
    $value =~ s/\bee\b/nan/g;
+   my $i = PDL::_ci();
+   $value =~ s/([-+]*)(\d*)EeE\b/$1 . (length($2) ? $2 : '1') . 'i'/ge
+      if $has_i;
    my $inf = PDL::_inf();
    $value =~ s/\bEe\b/inf/g;
    my $pi = 4 * atan2(1, 1);
@@ -1113,7 +1123,7 @@ sub PDL::Core::new_pdl_from_string {
 
       # Let's see if we can parse it as an array-of-arrays:
       local $_ = $value;
-      PDL::Core::parse_basic_string($inf, $nan, $bad, $e, $pi);
+      PDL::Core::parse_basic_string($inf, $nan, $bad, $e, $pi, $i, $has_i);
    };
 
    if (ref $val ne 'ARRAY') {
@@ -1147,7 +1157,7 @@ sub PDL::Core::parse_basic_string {
 	# descent to handle the nested nature of the data. The string should have
 	# no whitespace and should be something that would evaluate into a Perl
 	# array-of-arrays (except that strings like 'inf', etc, are allowed).
-	my ($inf, $nan, $bad, $e, $pi) = @_;
+	my ($inf, $nan, $bad, $e, $pi, $i, $has_i) = @_;
 	# First character should be a bracket:
 	die "Internal error: input string -->$_<-- did not start with an opening bracket\n"
 		unless s/^\[//;
@@ -1190,6 +1200,15 @@ sub PDL::Core::parse_basic_string {
 		}
 		elsif (s/^e//i) {
 			push @to_return, $sign * $e;
+		}
+		elsif ($has_i and s/^${NUM_RE}i//i) {
+			my $val = $sign * $1 * $i;
+			push @to_return, $val;
+		}
+		elsif ($has_i and s/^$NUM_RE([-+])${NUM_RE}i//i) {
+			my $val = $sign * $1;
+			my $imag = $3 * ($2 eq '-' ? -1 : 1) * $i;
+			push @to_return, $val + $imag;
 		}
 		elsif (s/^$NUM_RE([^e])/$2/i) {
 			# Note that improper numbers are handled by the warning signal

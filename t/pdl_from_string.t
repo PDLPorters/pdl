@@ -3,7 +3,8 @@
 # MATLAB to use familiar syntax to create arrays, (2) to allow
 # cut-n-paste of PDL print output as input for scripts and programs,
 # and (3) to allow easy ways to construct nan and inf values in ndarrays.
-#
+# (4) to allow complex numbers to be round-tripped in native
+# complex (i.e. Math::Complex) format
 
 use strict;
 use warnings;
@@ -48,6 +49,27 @@ ok(all($got == $expected), "Correctly interprets [1.2e3 4 5.6e-7]");
 $expected = pdl(1.2e3, 4, 5.e-7);
 $got = pdl q[1.2e3 4 5.e-7];
 ok(all($got == $expected), "Correctly interprets [1.2e3 4 5.e-7]");
+
+for (
+  '[i 1-i]',
+  ['[-i 1 -i]', qr/(-0)?-i 1 (-0)?-i/],
+  ['[-i 1 -i 1]', qr/(-0)?-i 1 (-0)?-i 1/],
+  ['[-i 1-i 1]', qr/(-0)?-i 1-i 1/],
+  '[i 1+i]',
+  ['[i 1 +i]', '[i 1 i]'],
+  ['[i 2e+2+i]', '[i 200+i]'],
+  ['[i 2e2+i]', '[i 200+i]'],
+  '[2i 1-2i]',
+  '[2i 1+2i]',
+  '[0.5-2i 1.5-2i]',
+  '[0.5 0.5-2i 2i 1.5 1.5-2i]',
+) {
+  my ($input, $expected) = ref($_) ? @$_ : ($_, $_);
+  my $got = eval { pdl($input).'' };
+  is $@, '', "parsed '$input' with no exception";
+  $expected = qr/\A\Q$expected\E\z/ if !ref $expected;
+  like $got, $expected, "complex number round-tripped '$input'";
+}
 
 # Signs and operators #
 # Now some more interesting tests
