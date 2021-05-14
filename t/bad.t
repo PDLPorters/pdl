@@ -340,8 +340,12 @@ is( PDL::Core::string($x), "[0 1 0 3 4]", "inplace badmask()" );
 # setvaltobad
 $x = sequence(10) % 4;
 $x->inplace->setvaltobad( 1 );
-like( PDL::Core::string( $x->clump(-1) ), 
+like( PDL::Core::string( $x->clump(-1) ),
     qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setvaltobad()" );
+
+$x->inplace->setbadtonan;
+like( PDL::Core::string( $x->clump(-1) ),
+    qr/^\[-?0 nan 2 3 -?0 nan 2 3 -?0 nan]$/i, "inplace setbadtonan()" );
 
 # check setvaltobad for non-double ndarrays
 my $fa = pdl( float,  1..4) / 3;
