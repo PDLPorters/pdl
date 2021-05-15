@@ -203,27 +203,18 @@ pdl* SvPDLV ( SV* sv ) {
       /* Figure datatype to use */
       if ( !SvIOK(sv) )  { /* Perl Double (e.g. 2.0) */
          tmp_NV = SvNV(sv);
+         datatype = pdl_whichdatatype_double(tmp_NV);
+         ANYVAL_FROM_CTYPE(data, datatype, tmp_NV);
+      } /* end of Perl Double case for data type */
+      else { /* Perl Int (e.g. 2) */
+         tmp_IV = SvIV(sv);
+         datatype = pdl_whichdatatype(tmp_IV);
+         ANYVAL_FROM_CTYPE(data, datatype, tmp_IV);
+      }
 
-!NO!SUBS!
+      pdl_makescratchhash(ret, data);
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT q{
-        datatype = pdl_whichdatatype_double(tmp_NV);
-};
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'!NO!SUBS!';
-        ANYVAL_FROM_CTYPE(data, datatype, tmp_NV);
-     } /* end of Perl Double case for data type */
-     else { /* Perl Int (e.g. 2) */
-        tmp_IV = SvIV(sv);
-        datatype = pdl_whichdatatype(tmp_IV);
-        ANYVAL_FROM_CTYPE(data, datatype, tmp_IV);
-     }
-
-     pdl_makescratchhash(ret, data);
-
-     return ret;
+      return ret;
 
    } /* End of scalar case */
 
