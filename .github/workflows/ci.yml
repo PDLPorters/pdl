@@ -127,7 +127,7 @@ jobs:
           prove -lr xt
       - name: Extra optionals deps
         if: matrix.os == 'ubuntu-latest'
-        run: cpanm -n Term::ReadLine::Gnu PGPLOT Alien::HDF4 Alien::Proj4 || cat ~/.cpanm/build.log
+        run: cpanm -n Term::ReadLine::Gnu PGPLOT Alien::HDF4 Alien::Proj4 OpenGL || cat ~/.cpanm/build.log
 
       - name: Run tests (no coverage)
         if: '!matrix.coverage'
