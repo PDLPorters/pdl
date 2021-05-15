@@ -292,17 +292,10 @@ is($y->prod->dim(0), 2, 'Dimension 0 of prod');
 ok(tapprox($y->prod->real, $y->prodover->real),
    'Value of prod');
 
-
- TODO: {
-     local $TODO = "Known_problems sf.net bug #1176614" if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} );
-
-
-   # Check stringification of complex ndarray
-   # This is sf.net bug #1176614
-   my $c =  9.1234 + 4.1234*i();
-   my $c211 = $c->dummy(2,1);
-   my $c211str = "$c211";
-   ok($c211str=~/(9.123|4.123)/, 'sf.net bug #1176614');
+{
+# Check stringification of complex ndarray
+my $c =  9.1234 + 4.1234*i();
+like($c->dummy(2,1).'', qr/9.123.*4.123/, 'sf.net bug #1176614');
 }
 
 TODO: {
