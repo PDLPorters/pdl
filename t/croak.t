@@ -61,7 +61,8 @@ note $pa;
 }
 
 {
-	throws_ok { PDL::Ufunc::sumover({}) } qr/Hash given as a pdl - but not \{PDL} key/;
+	throws_ok { PDL::Ufunc::sumover({}) } qr/Hash given as a pdl \(HASH\) - but not \{PDL} key/;
+	throws_ok { PDL::Ufunc::sumover(bless {}, 'Foo') } qr/Hash given as a pdl \(Foo\) - but not \{PDL} key/;
 }
 
 {

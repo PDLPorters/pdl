@@ -251,10 +251,10 @@ pdl* SvPDLV ( SV* sv ) {
         HV *hash = (HV*)SvRV(sv);
         SV **svp = hv_fetchs(hash,"PDL",0);
         if(svp == NULL) {
-                croak("Hash given as a pdl - but not {PDL} key!");
+                croak("Hash given as a pdl (%s) - but not {PDL} key!", sv_reftype(SvRV(sv), TRUE));
         }
         if(*svp == NULL) {
-                croak("Hash given as a pdl - but not {PDL} key (*svp)!");
+                croak("Hash given as a pdl (%s) - but not {PDL} key (*svp)!", sv_reftype(SvRV(sv), TRUE));
         }
 
         /* This is the magic hook which checks to see if {PDL}
