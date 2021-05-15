@@ -1,16 +1,7 @@
-
 package PDL::Graphics::TriD::Surface;
 
-BEGIN {
-   use PDL::Config;
-   if ( $PDL::Config{USE_POGL} ) {
-      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
-      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-   } else {
-      eval 'use PDL::Graphics::OpenGL';
-   }
-}
-
+use OpenGL qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Lite;
 
 sub new {
@@ -43,6 +34,5 @@ sub normals_smooth {
 
 sub togl {
 }
-
 
 1;

@@ -1,24 +1,14 @@
-#
-#
 # ToDo:
 #  - multiple windows - requires editing generate.pl in OpenGL/
 #  - clean up
 #
 #package PDL::Graphics::TriD::GL;
 
-
-BEGIN {
-   use PDL::Config;
-   if ( $PDL::Config{USE_POGL} ) {
-      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
-      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-   } else {
-      eval 'use PDL::Graphics::OpenGL';
-   }
-}
+use OpenGL qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 $PDL::Graphics::TriD::create_window_sub = sub {
-  return new PDL::Graphics::TriD::GL::Window(@_);
+  return PDL::Graphics::TriD::GL::Window->new(@_);
 };
 
 sub PDL::Graphics::TriD::Material::togl{
@@ -232,15 +222,11 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		my $nc = $s->[0];
 		for(0..$ndiv) {
 			&glRasterPos3f(@coords);
-                        if ( $PDL::Config{USE_POGL} ) {
-                              if ( OpenGL::done_glutInit() ) {
-                                 OpenGL::glutBitmapString($fontbase, sprintf("%.3f",$nc));
-                              } else {
-                                 OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
-                              }
-                           } else {
-                              PDL::Graphics::OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
-                           }
+			if ( OpenGL::done_glutInit() ) {
+			   OpenGL::glutBitmapString($fontbase, sprintf("%.3f",$nc));
+			} else {
+			   OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
+			}
 			glBegin(GL_LINES);
 			&glVertex3f(@coords0);
 			&glVertex3f(@coords);
@@ -252,15 +238,11 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		}
 		$coords0[$dim] = 1.1;
 		&glRasterPos3f(@coords0);
-                if ( $PDL::Config{USE_POGL} ) {
-                   if ( OpenGL::done_glutInit() ) {
-                      OpenGL::glutBitmapString($fontbase, $this->{Names}[$dim]);
-                   } else {
-                      OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
-                   }
-                } else {
-                   PDL::Graphics::OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
-                }
+		if ( OpenGL::done_glutInit() ) {
+			OpenGL::glutBitmapString($fontbase, $this->{Names}[$dim]);
+		} else {
+			OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
+		}
              }
 	glEnable(GL_LIGHTING);
 }
@@ -602,11 +584,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	my($this,$vert) = @_;
 	my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
 	glColor3d(1,1,1);
-        if ( $PDL::Config{USE_POGL} ) {
-           glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
-        } else {
-           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
-        }
+         glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
 	 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	       glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
@@ -650,15 +628,8 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 #
 package PDL::Graphics::TriD::Window;
 
-BEGIN {
-   use PDL::Config;
-   if ( $PDL::Config{USE_POGL} ) {
-      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
-      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-   } else {
-      eval 'use PDL::Graphics::OpenGL';
-   }
-}
+use OpenGL qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Ev Width Height Interactive _GLObject 
@@ -746,11 +717,7 @@ sub gdriver {
 #  $this->reshape($options->{width},$options->{height});
 
   my $light = pack "f*",1.0,1.0,1.0,0.0;
-  if ( $PDL::Config{USE_POGL} ) {
-     glLightfv_s(GL_LIGHT0,GL_POSITION,$light);
-  } else {
-     glLightfv(GL_LIGHT0,GL_POSITION,$light);
-  }
+  glLightfv_s(GL_LIGHT0,GL_POSITION,$light);
 
   glColor3f(1,1,1);
   
@@ -932,19 +899,13 @@ sub display {
 
   }
 
-  if ( $PDL::Config{USE_POGL} ) {
-
-     print "display: SwapBuffers() call on return\n" if ($PDL::Graphics::TriD::verbose);
-     if ( $this->{_GLObject}->{window_type} eq 'glut' ) {  # need to make method call
-        glutSwapBuffers();
-     } elsif ( $this->{_GLObject}->{window_type} eq 'x11' ) {  # need to make method call
-        $this->{_GLObject}->glXSwapBuffers();
-     } else {
-        print "display: got object with inconsistent _GLObject info\n";
-     }
-
+  print "display: SwapBuffers() call on return\n" if ($PDL::Graphics::TriD::verbose);
+  if ( $this->{_GLObject}->{window_type} eq 'glut' ) {  # need to make method call
+    glutSwapBuffers();
+  } elsif ( $this->{_GLObject}->{window_type} eq 'x11' ) {  # need to make method call
+    $this->{_GLObject}->glXSwapBuffers();
   } else {
-     $this->{_GLObject}->glXSwapBuffers();
+    print "display: got object with inconsistent _GLObject info\n";
   }
 #  $this->{Angle}+= 3;
 }
@@ -956,13 +917,7 @@ sub read_picture {
 	my $res = PDL->zeroes(PDL::byte,3,$w,$h);
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
-
-        if ( $PDL::Config{USE_POGL} ) {
-           glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->get_dataref);
-        } else {
-           glReadPixels(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->get_dataref);
-        }
-
+        glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->get_dataref);
 	return $res;
 }
 
@@ -972,15 +927,8 @@ sub read_picture {
 
 package PDL::Graphics::TriD::EventHandler;
 
-BEGIN {
-   use PDL::Config;
-   if ( $PDL::Config{USE_POGL} ) {
-      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask)";
-      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-   } else {
-      eval 'use PDL::Graphics::OpenGL';
-   }
-}
+use OpenGL qw(ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use fields qw/X Y Buttons VP/;
 use strict;
@@ -1067,18 +1015,9 @@ use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands 
               DefMaterial AspectRatio Graphs/;
 
-BEGIN {
-   use PDL::Config;
-   if ( $PDL::Config{USE_POGL} ) {
-      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
-      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-   } else {
-      eval 'use PDL::Graphics::OpenGL';
-   }
-}
-
+use OpenGL qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Graphics::OpenGLQ;
-
 
 sub highlight {
   my ($vp) = @_;

@@ -31,16 +31,8 @@ the copyright notice should be included in the file.
 =cut
 package PDL::Graphics::TriD::Labels;
 
-BEGIN {
-   use PDL::Config;
-   if ( $PDL::Config{USE_POGL} ) {
-      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
-      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-   } else {
-      eval 'use PDL::Graphics::OpenGL';
-   }
-}
-
+use OpenGL qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::GObject/;

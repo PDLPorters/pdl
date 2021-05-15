@@ -1,12 +1,7 @@
 package PDL::Graphics::OpenGL::Perl::OpenGL;
 
-BEGIN {
-   use PDL::Config;
-   if ($PDL::Config{USE_POGL}) {
-      eval "use OpenGL $PDL::Config{POGL_VERSION} qw()";
-      use OpenGL::Config;
-   }
-}
+use OpenGL ();
+use OpenGL::Config;
 
 BEGIN {
    eval 'OpenGL::ConfigureNotify()';

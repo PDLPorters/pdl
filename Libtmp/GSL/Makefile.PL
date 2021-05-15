@@ -9,20 +9,12 @@ sub get_gsl_config {
 }
 
 # the real stuff happens in the subdirs
-#
-# DJB (12/30/03)
-# - would it not make sense to do all the checks here and just
-#   write a dummy makefile if GSL support is not available
-#   (as done with some of the other modules; or is it possible/desireable
-#    to compile only some of the GSL modules here?)
-#
 sub get_gsl_libs {
   warn << 'EOW' if ref $PDL::Config{GSL_LIBS};
  The GSL_LIBS config variable must be a string (!)
  not a reference. You should probably leave it undefined
  and rely on gsl-config. Build will likely fail.
 EOW
-
   my $lib = ($PDL::Config{GSL_LIBS} or
 	  get_gsl_config('--libs') or
 	  warn "\tno GSL link info (libgsl probably not available)\n");
@@ -30,14 +22,11 @@ EOW
 	  get_gsl_config('--cflags') or 
 	  warn "\tno GSL include info (libgsl probably not available)\n\n");
   chomp $lib; chomp $inc;
-
-  # print STDERR "Lib: $lib\nInc: $inc\n";
-
   return ($inc,$lib);
 }
 
 # these will be used in the subdirs
-our ($GSL_includes, $GSL_libs)  = get_gsl_libs();
+our ($GSL_includes, $GSL_libs) = get_gsl_libs();
 
 # Version check
 my $MINVERSION = "1.3";

@@ -1,5 +1,3 @@
-#!/usr/bin/perl 
-#
 #  PDL::Graphics::TriD::Tk - A Tk widget interface to the PDL::Graphics::TriD
 #  visualization package:  $Revision$  
 #
@@ -50,28 +48,16 @@ use Tk;
 use PDL::Core;
 use PDL::Graphics::TriD;
 
-BEGIN {
-   use PDL::Config;
-   if ( $PDL::Config{USE_POGL} ) {
-      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
-      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-   } else {
-      eval 'use PDL::Graphics::OpenGL';
-   }
-}
+use OpenGL qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use strict;
 
+our @ISA = qw(Tk::Frame);
 
-@PDL::Graphics::TriD::Tk::ISA = qw(Tk::Frame);
-
-$PDL::Graphics::TriD::Tk::verbose=0;
+our $verbose=0;
 
 Tk::Widget->Construct('Tk');
-
-#$PDL::Graphics::TriD::Tk::VERSION = '$Revision$ ' ;
-#$PDL::Graphics::TriD::Tk::VERSION =~ s/\$Revision$\s*$/$1/;
-#sub Version {return $PDL::Graphics::TriD::Tk::VERSION;}
 
 =head1 FUNCTIONS
 
@@ -282,4 +268,3 @@ jedwards@inmet.gov.br
 =cut
 
 1;
-

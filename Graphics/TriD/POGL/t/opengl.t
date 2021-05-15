@@ -8,7 +8,7 @@ BEGIN{
 }
 
 use Test::More;
-use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
+use_ok("OpenGL", qw(:all));
 use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
 
 # TODO: add runtime tests
