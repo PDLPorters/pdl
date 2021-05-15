@@ -160,8 +160,6 @@ my @cpan_deps = my @prereq = (
   'File::Map'           => 0.57,      # test new mmap implementation
   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
   'Filter::Simple'      => 0.88,      # for new PDL::NiceSlice
-  'Inline'              => 0.83,      # fixed ILSM-finding
-  'Inline::C'           => 0.62,
   'List::Util'          => '1.33',
   'Pod::Parser'         => 0,         # version TBD for PDL::Doc
   'Pod::Select'         => 0,         # version TBD for PDL::Doc
@@ -173,6 +171,9 @@ my @cpan_deps = my @prereq = (
 );
 my %min_version = (
   'OpenGL' => '0.70', # see also Graphics/Makefile.PL
+  'ExtUtils::F77' => '1.26', # eg 1.20 can leave off -lgfortran
+  'Inline'              => 0.83,      # fixed ILSM-finding
+  'Inline::C'           => 0.62,
 );
 for my $opt_dep (sort keys %min_version) {
   (my $file = $opt_dep) =~ s#::#/#g;
@@ -180,8 +181,6 @@ for my $opt_dep (sort keys %min_version) {
   next if eval { $opt_dep->VERSION($min_version{$opt_dep}); 1 };
   push @prereq, $opt_dep => $min_version{$opt_dep};
 }
-
-# push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
 my @exe_files = qw(perldl pdldoc);
 push @exe_files, "pdl$Config{exe_ext}" if $^O !~ /MSWin/;
