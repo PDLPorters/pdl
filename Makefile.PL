@@ -8,40 +8,10 @@ use ExtUtils::MakeMaker::Config;
 use File::Spec;
 
 # file globals(!)
-my ($pdl_f77conf, $forcebuild);
-my ($seen_f77conf);
+my ($pdl_f77conf, $seen_f77conf);
 
 sub checkbuggysetup {
     # detect buggy Perl setups
-    if (!$forcebuild &&
-	$Config{osname} eq 'solaris' &&
-	($Config{cc} =~ /gcc/ || $Config{gccversion} ne '') &&
-	$Config{usemymalloc} eq 'y'
-	) {
-	die <<'EOM';
-
-FATAL BUG IN YOUR PERL SETUP DETECTED. BUILD TERMINATED.
-
-On this platform the combination of gcc and the Perl malloc
-are buggy. The optimizations lead to random coredumps
-and make PDL essentially unusable.
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-WORKAROUND: YOU MUST RECOMPILE PERL WITH 'usemymalloc=n' !!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-You may override and force the build by including the
-'FORCE' switch:
-
-  perl Makefile.PL FORCE
-
-However, you will most likely end up with an unusable
-PDL build unless *all* optimizations are disabled!
-YOU HAVE BEEN WARNED!!
-
-EOM
-  }
-
     my($dot);
     for(@INC) {$dot += $_ eq '.'}
     $dot-- if($INC[-1] eq '.');
@@ -166,15 +136,10 @@ use warnings;
 	if (/^F77CONF=(.*)$/) {
 		$seen_f77conf=1;
 		$pdl_f77conf=$1; ();
-	} elsif (/^FORCE$/i) {
-		$forcebuild=1;
-		();
         } else {
 		$_
 	}
 } @ARGV;
-
-warn "WARNING: forcing build...\n" if $forcebuild;
 
 checkbuggysetup(); # check for buggy Perl setups
 
