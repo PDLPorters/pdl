@@ -147,11 +147,6 @@ checkbuggysetup(); # check for buggy Perl setups
 getpdl_config();
 $seen_f77conf = check_f77conf($seen_f77conf);
 
-# Check environment for SKIP_KNOWN_PROBLEMS
-if (!defined($PDL::Config{SKIP_KNOWN_PROBLEMS}) and defined($ENV{SKIP_KNOWN_PROBLEMS})) {
-   $PDL::Config{SKIP_KNOWN_PROBLEMS} = $ENV{SKIP_KNOWN_PROBLEMS};
-   warn "Makefile.PL: setting SKIP_KNOWN_PROBLEMS Config from environment value: $ENV{SKIP_KNOWN_PROBLEMS}";
-}
 # Add check for POGL if USE_POGL is enabled
 if (!defined($PDL::Config{USE_POGL}) or +$PDL::Config{USE_POGL}) {
    eval "use OpenGL $PDL::Config{POGL_VERSION} qw();";

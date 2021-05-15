@@ -1,6 +1,7 @@
 - remove obsolete and inaccurate doc relating bad values to NaN
 - parse simple complex-number strings
 - SvPDLV gives more comprehensible error if given a hash without "PDL" key
+- drop SKIP_KNOWN_PROBLEMS support
 
 2.047 2021-05-08
 - add PDL::i2C

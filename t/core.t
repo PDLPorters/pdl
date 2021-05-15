@@ -118,13 +118,9 @@ do {
 $x = pdl(pdl(5));
 ok all( $x== pdl(5)), "pdl() can piddlify an ndarray";
 
-TODO: {
-   local $TODO = 'Known_problems bug sf.net #3011879' if exists $ENV{SKIP_KNOWN_PROBLEMS};
-
-   # pdl of mixed-dim pdls: pad within a dimension
-   $x = pdl( zeroes(5), ones(3) );
-   ok all($x == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two ndarrays concatenates them and pads to length" or diag("x=$x\n");
-}
+# pdl of mixed-dim pdls: pad within a dimension
+$x = pdl( zeroes(5), ones(3) );
+ok all($x == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two ndarrays concatenates them and pads to length" or diag("x=$x\n");
 
 # pdl of mixed-dim pdls: pad a whole dimension
 $x = pdl( [[9,9],[8,8]], xvals(3)+1 );
