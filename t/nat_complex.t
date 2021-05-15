@@ -131,14 +131,10 @@ if (PDL::Core::Dev::got_complex_version('asin', 1)) {
   unlike $c_asin_2, qr/nan/i, 'asin of complex gives complex result';
 }
 
-TODO: {
-   local $TODO = "Known_problems sf.net bug #1176614" if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} );
-   # Check stringification of complex ndarray
-   # This is sf.net bug #1176614
-   my $c = czip(9.1234, 4.1234);
-   my $c211 = $c->dummy(2,1);
-   my $c211str = "$c211";
-   ok($c211str=~/(9.123|4.123)/, 'sf.net bug #1176614');
+{
+# Check stringification of complex ndarray
+my $c =  9.1234 + 4.1234*i();
+like($c->dummy(2,1).'', qr/9.123.*4.123/, 'stringify native complex');
 }
 
 #test overloaded operators
