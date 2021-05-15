@@ -128,8 +128,6 @@ use Exporter;
 use File::Spec;
 use File::Basename;
 
-use autodie;
-
 use PDL::Core qw/:Func :Internal/;    # Grab the Core names
 use PDL::Basic;
 use PDL::Types;
@@ -172,7 +170,7 @@ BEGIN {
 
 sub _lsdir_basename {
     my ($dir, $suffix) = @_;
-    opendir my $fh, $dir;
+    opendir my $fh, $dir or barf "$dir: $!";
     map basename($_, $suffix), grep /\Q$suffix\E\z/, readdir $fh;
 }
 
@@ -235,4 +233,3 @@ EOD
 
 # Exit with OK status
 1;
-

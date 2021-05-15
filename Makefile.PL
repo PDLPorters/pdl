@@ -188,7 +188,6 @@ my @prereq = (
            'Storable'            => 1.03,      # for PDL::IO::Storable
            'Term::ReadKey'       => 2.34,      #for perldl shell
            'Text::Balanced'      => 1.89,      # for PDL::NiceSlice
-           'autodie'             => 0,         # for PDL::Graphics::LUT, Centos 7 doesn't have
            'Math::Complex'       => 0,
 	  );
 
