@@ -100,7 +100,7 @@ jobs:
         if: "!matrix.disable-fortran && matrix.os == 'ubuntu-latest'"
         run: |
           sudo apt-get install gfortran
-          cpanm -n ExtUtils::F77
+          cpanm -n ExtUtils::F77 || cat ~/.cpanm/build.log
       - name: Use clang?
         # clang is already installed in Travis-CI environment. Using PERL_MM_OPT does not work with subdirectory Makefile.PLs so we override Config.pm
         # Also, both $Config{cc} and $Config{ld} need to be set because under ELF environments (such as Travis-CI's Ubuntu), this is what Perl's Config.pm does.
@@ -111,23 +111,23 @@ jobs:
           echo "PERL5OPT=-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
       - name: EUMM blead?
         if: matrix.eumm-blead
-        run: cpanm -n --dev ExtUtils::MakeMaker
+        run: cpanm -n --dev ExtUtils::MakeMaker || cat ~/.cpanm/build.log
 
       - name: Ubuntu packages
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get -y update && sudo apt-get install build-essential libx11-dev libgd-dev libhdf4-alt-dev libproj-dev proj-bin libcfitsio-dev libreadline-dev pgplot5 libvpx-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev
-      - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib && cpanm -n --installdeps .
+      - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib && cpanm -n --installdeps . || cat ~/.cpanm/build.log
       - name: Run release tests # before others as may install useful stuff
         if: ${{ matrix.release-test }}
         env:
           RELEASE_TESTING: 1
         run: |
-          cpanm -n --installdeps --with-develop .
-          cpanm -n CPAN::Changes
+          cpanm -n --installdeps --with-develop . || cat ~/.cpanm/build.log
+          cpanm -n CPAN::Changes || cat ~/.cpanm/build.log
           prove -lr xt
       - name: Extra optionals deps
         if: matrix.os == 'ubuntu-latest'
-        run: cpanm -n Term::ReadLine::Gnu PGPLOT Alien::HDF4 Alien::Proj4
+        run: cpanm -n Term::ReadLine::Gnu PGPLOT Alien::HDF4 Alien::Proj4 || cat ~/.cpanm/build.log
 
       - name: Run tests (no coverage)
         if: '!matrix.coverage'
@@ -148,7 +148,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HARNESS_OPTIONS: j4
         run: |
-          cpanm -n Devel::Cover::Report::Coveralls
+          cpanm -n Devel::Cover::Report::Coveralls || cat ~/.cpanm/build.log
           cpanm git://github.com/mohawk2/Devel--Cover.git@deepdirs
           cover -test -relative_only -gcov_chdir -report Coveralls
 
@@ -238,7 +238,7 @@ jobs:
         run: |
           export PATH="/cygdrive/c/cx/bin:$PATH"
           cd $( cygpath -u $GITHUB_WORKSPACE )
-          cpanm -n Devel::CheckLib && cpanm -n --installdeps .
+          cpanm -n Devel::CheckLib && cpanm -n --installdeps . || cat ~/.cpanm/build.log
       - name: Run tests (no coverage)
         env:
           HARNESS_OPTIONS: j4
