@@ -547,12 +547,6 @@ Libtmp/ImageRGB/ppm_quant.c
 Libtmp/ImageRGB/t/imagergb.t
 Libtmp/ImageRGB/t/picnorgb.t
 Libtmp/ImageRGB/t/picrgb.t
-Libtmp/Interpolate/Interpolate.pm
-Libtmp/Interpolate/Makefile.PL
-Libtmp/Interpolate/Slatec/Makefile.PL
-Libtmp/Interpolate/Slatec/Slatec.pm
-Libtmp/Interpolate/t/interp.t
-Libtmp/Interpolate/t/interp_slatec.t
 Libtmp/Makefile.PL
 Libtmp/Minuit/FCN.c
 Libtmp/Minuit/Makefile.PL
