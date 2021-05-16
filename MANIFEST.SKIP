@@ -164,7 +164,6 @@ RCS
 ^Libtmp/GSL/RNG/.*\.c$
 ^Libtmp/GSL/RNG\.(pm|xs|c)
 ^Libtmp/GSL/SF/.*\.c$
-^Libtmp/Gaussian\.pm
 ^Libtmp/Image2D/Image2D\..*
 ^Libtmp/ImageND/ImageND\..*
 ^Libtmp/ImageRGB/ImageRGB\..*

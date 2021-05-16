@@ -426,7 +426,6 @@ Libtmp/FFT/fftn.h
 Libtmp/FFT/Makefile.PL
 Libtmp/FFT/t/fft.t
 Libtmp/Filter/Linear.pm
-Libtmp/Filter/LinPred.pm
 Libtmp/Filter/Makefile.PL
 Libtmp/Fit/Gaussian/gauss.c
 Libtmp/Fit/Gaussian/gaussian.pd
@@ -558,7 +557,9 @@ Libtmp/Minuit/t/minuit.t
 Libtmp/Simplex/Makefile.PL
 Libtmp/Simplex/Simplex.pm
 Libtmp/Simplex/t/simplex.t
+Libtmp/Slatec/Gaussian.pm
 Libtmp/Slatec/Linfit.pm
+Libtmp/Slatec/LinPred.pm
 Libtmp/Slatec/LM.pm
 Libtmp/Slatec/Makefile.PL
 Libtmp/Slatec/slatec.pd

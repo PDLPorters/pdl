@@ -72,7 +72,6 @@ use PDL::Exporter;
 @ISA    = qw( PDL::Exporter );
 
 use PDL::Options ':Func';
-# use PDL::Slatec;  # For matinv()
 use PDL::MatrixOps; # for inv(), using this instead of call to Slatec routine
 
  
