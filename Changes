@@ -4,6 +4,7 @@
 - drop SKIP_KNOWN_PROBLEMS support
 - drop POGL_VERSION, USE_POGL, WITH_3D config; just try building
 - Inline now not a dep but if installed gets updated to suitable version
+- drop WITH_SLATEC config; just try building
 
 2.047 2021-05-08
 - add PDL::i2C
