@@ -73,6 +73,7 @@ print OUT <<'!NO!SUBS!';
 #endif
 
 #include "pdl.h"
+#include "pdlperl.h"
 #include "pdlthread.h"
 /* the next one causes trouble in c++ compiles - exclude for now */
 #ifndef __cplusplus

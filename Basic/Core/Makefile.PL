@@ -84,7 +84,7 @@ WriteMakefile(
 						  Dbg.pm Exporter.pm Config.pm Char.pm/
 		)),
 		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
-			qw/Dev.pm typemap.pdl pdl.h pdlcore.h pdlmagic.h pdlsimple.h
+			qw/Dev.pm typemap.pdl pdl.h pdlperl.h pdlcore.h pdlmagic.h pdlsimple.h
 				pdlthread.h ppport.h/
 		)),
 		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
@@ -96,7 +96,7 @@ WriteMakefile(
  'LIBS'         => [$libs_string],
  'clean'        => {'FILES'  => $cobj .
                    ' pdlconv.c pdlsections.c pdlcore.c '.
-		   'pdl.h pdlsimple.h pdlcore.h '.
+		   'pdl.h pdlperl.h pdlsimple.h pdlcore.h '.
                    'pdldataswitch.c pdlbadvalinit.c '.
 		   'Types.pm Core.c '
 		   },
@@ -104,7 +104,7 @@ WriteMakefile(
    PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
  ),
   depend => {
-    'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdldataswitch.c pdlbadvalinit.c pdl.h pdlcore.h',
+    'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdldataswitch.c pdlbadvalinit.c pdl.h pdlperl.h pdlcore.h',
         # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
   },
   NO_MYMETA => 1,

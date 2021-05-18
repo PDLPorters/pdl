@@ -427,10 +427,9 @@ You might want to use for example C<get_pdl_badvalue> function:
  ANYVAL_TO_CTYPE(bad_a, double, PDL->get_pdl_badvalue(a));
  if( bad_a == 0 ) { ... }
 
-As of PDL 2.014, in pdl.h there are the following macros for handling
+As of PDL 2.014, in F<pdl.h> there are the following macros for handling
 PDL_Anyval from C code:
 
- ANYVAL_TO_SV(out_SV, in_anyval)
  ANYVAL_FROM_CTYPE(out_anyval, out_anyval_type, in_variable)
  ANYVAL_TO_CTYPE(out_variable, out_ctype, in_anyval)
  ANYVAL_EQ_ANYVAL(x, y)
@@ -443,6 +442,14 @@ As of PDL 2.040 (the additional parameters are to detect the badflag,
 and handle caching the bad value for efficiency):
 
  ANYVAL_ISBAD(in_anyval, pdl, badval)
+
+As of PDL 2.048, in F<pdlperl.h> there are:
+
+ ANYVAL_TO_SV(out_SV, in_anyval)
+
+Because these are used in the PDL F<typemap.pdl>, you will need to
+include F<pdlperl.h> in any XS file with functions that take or
+return a C<PDL_Anyval>.
 
 =head1 BUGS
 

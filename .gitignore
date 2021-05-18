@@ -90,6 +90,7 @@ Basic/Core/Config.pm
 Basic/Core/Core.c
 Basic/Core/Types.pm
 Basic/Core/pdl.h
+Basic/Core/pdlperl.h
 Basic/Core/pdlbadvalinit.c
 Basic/Core/pdlconv.c
 Basic/Core/pdlcore.c
