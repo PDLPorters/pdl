@@ -43,7 +43,7 @@ extern Core PDL;
 /***************
  * So many ways to be undefined...
  */
-#define sv_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
+#define sv_is_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
 
 #include <math.h> /* for isfinite */
 !HEADER!
@@ -193,7 +193,7 @@ pdl* SvPDLV ( SV* sv ) {
       /* Scratch hash for the pdl :( - slow but safest. */
 
       /* handle undefined values */
-      if( sv_undef(sv) ) {
+      if( sv_is_undef(sv) ) {
           sv = get_sv("PDL::undefval",1);
           if(SvIV(get_sv("PDL::debug",1))){
             fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%g).\n",SvNV(sv));
@@ -766,7 +766,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
      * Copy the undefval to fill empty spots in the ndarray...
      */
     SV *sv = get_sv("PDL::undefval",0);
-    if ((!sv) || (sv==&PL_sv_undef)) {
+    if (sv_is_undef(sv)) {
        ANYVAL_FROM_CTYPE(undefval, type, 0);
     }
     else {
@@ -1085,7 +1085,7 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
         croak("Non-array, non-PDL element in list");
       }
     } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */
-      if( sv_undef(el) ) {  /* undef case */
+      if( sv_is_undef(el) ) {  /* undef case */
         *pdata = (PDL_$type) undefval; 
         undef_count++;
 
@@ -1130,7 +1130,7 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
     char debug_flag;
     SV *sv;
     sv = get_sv("PDL::debug",0);
-    debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
+    debug_flag = (sv_is_undef(sv)) ? 0 : (char)SvIV(sv);
 
     if(debug_flag) {
       fflush(stdout);
