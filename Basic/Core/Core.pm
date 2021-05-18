@@ -275,7 +275,8 @@ respectively.  The default default values are:
 
 =over 4
 
-The value to use instead of C<undef> when creating pdls.
+The value to use instead of C<undef> when creating pdls. If is
+C<undef>, 0 will be used.
 
 =back
 
@@ -1247,9 +1248,9 @@ sub PDL::new {
    my $value = (@_ >1 ? [@_] : shift);  # ref thyself
    unless(defined $value) {
        if($PDL::debug && $PDL::undefval) {
-	   print STDERR "Warning: PDL::new converted undef to $PDL::undefval ($PDL::undefval)\n";
+	   print STDERR "Warning: PDL::new converted undef to \$PDL::undefval ($PDL::undefval)\n";
        }
-       $value = $PDL::undefval+0
+       $value = ($PDL::undefval//0)+0
    }
    $type = _establish_type($value, $PDL_D) if !defined $type;
 

@@ -87,7 +87,7 @@ ok (($x->nelem == 3  and  all($x == pdl(1,2,3))), "topdl(1,2,3) returns a 3-ndar
 
 # test $PDL::undefval support in pdl (bug #886263)
 #
-is $PDL::undefval, 0, "default value of $PDL::undefval is 0";
+is $PDL::undefval, 0, "default value of \$PDL::undefval is 0";
 
 $x = [ [ 2, undef ], [3, 4 ] ];
 $y = pdl( $x );
@@ -133,8 +133,15 @@ ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can concatenate mixed-
 # same thing, with undefval set differently
 do {
     local($PDL::undefval) = 99;
+    $c = pdl undef;
+    ok all($c == pdl(99)), "explicit, undefval of 99 works" or diag("c=$c\n");
     $c = pdl [1], pdl[2,3,4], pdl[5];
-    ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "undefval works for padding" or diag("c=$c\n");;
+    ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "implicit, undefval works for padding" or diag("c=$c\n");
+    $PDL::undefval = undef;
+    $c = pdl undef;
+    ok all($c == pdl(0)), "explicit, undefval of undef falls back to 0" or diag("c=$c\n");
+    $c = pdl [1], [2,3,4];
+    ok all($c == pdl([1,0,0],[2,3,4])), "implicit, undefval of undef falls back to 0" or diag("c=$c\n");
 } while(0);
 
 # empty pdl cases
