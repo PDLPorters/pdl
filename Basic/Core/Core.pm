@@ -1247,7 +1247,7 @@ sub PDL::new {
    my $type = ref($_[0]) eq 'PDL::Type' ? shift->enum : undef;
    my $value = (@_ >1 ? [@_] : shift);  # ref thyself
    unless(defined $value) {
-       if($PDL::debug && $PDL::undefval) {
+       if($PDL::debug) {
 	   print STDERR "Warning: PDL::new converted undef to \$PDL::undefval ($PDL::undefval)\n";
        }
        $value = ($PDL::undefval//0)+0

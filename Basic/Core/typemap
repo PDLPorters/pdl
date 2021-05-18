@@ -12,24 +12,7 @@ T_PDL
 	$var = PDL_CORE_(SvPDLV)($arg);
 
 T_PDL_ANYVAL
-	if (!SvOK($arg)) {
-		$var.type = -1;
-		$var.value.B = 0;
-	} else if(sv_derived_from($arg,\"PDL\")) {
-		pdl *it = PDL_CORE_(SvPDLV)($arg);
-		$var = PDL_CORE_(at0)(it);
-	} else if (SvIOK($arg)) {
-	\#if IVSIZE == 8
-		$var.type = PDL_LL;
-		$var.value.Q = (PDL_LongLong) SvIV($arg);
-	\#else
-		$var.type = PDL_L;
-		$var.value.L = (PDL_Long) SvIV($arg);
-	\#endif
-	} else {
-		$var.type = PDL_D;
-		$var.value.D = (PDL_Double) SvNV($arg);
-	}
+	ANYVAL_FROM_SV($var, $arg, FALSE, -1)
 
 T_PDLTRANS
 	if(sv_isa($arg,\"PDL::Trans\"))

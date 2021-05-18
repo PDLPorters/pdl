@@ -6,6 +6,7 @@
 - Inline now not a dep but if installed gets updated to suitable version
 - drop WITH_SLATEC config; just try building
 - new pdlperl.h for Perl-specific functions/macros
+- $PDL::undefval can be ndarray
 
 2.047 2021-05-08
 - add PDL::i2C

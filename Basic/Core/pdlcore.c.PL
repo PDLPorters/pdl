@@ -34,16 +34,12 @@ print OUT <<"!WITH!SUBS!";
 print OUT <<'!HEADER!';
 #undef FOODEB
 #include "pdl.h"      /* Data structure declarations */
+#define PDL_IN_CORE /* access funcs directly not through PDL-> */
 #include "pdlcore.h"  /* Core declarations */
 
 
 /* Needed to get badvals from the Core structure (in pdl_avref_<type>) */
 extern Core PDL; 
-
-/***************
- * So many ways to be undefined...
- */
-#define sv_is_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
 
 #include <math.h> /* for isfinite */
 !HEADER!
@@ -101,40 +97,6 @@ print OUT <<'!NO!SUBS!';
     }
 }
 
-
-
-
-/* Check minimum datatype required to represent number */
-#define TESTTYPE(b,a) {a foo = nv; if(nv == foo) return b;}
-int pdl_whichdatatype (IV nv) {
-!NO!SUBS!
-
-# generate the cases for the various types
-
-for my $type (types()) {
-   my ($sym,$ctype) = map $type->$_, qw/sym ctype/;
-   print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-   print OUT << "!WITH!SUBS!";
-        TESTTYPE($sym,$ctype)
-!WITH!SUBS!
-}
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'!NO!SUBS!';
-
-        croak("Something's gone wrong: %ld cannot be converted by whichdatatype", nv);
-}
-
-/* Check minimum, at least float, datatype required to represent number */
-
-int pdl_whichdatatype_double (NV nv) {
-        TESTTYPE(PDL_F,PDL_Float)
-        TESTTYPE(PDL_D,PDL_Double)
-
-        /* Default return type PDL_Double */
-        return PDL_D;
-}
-
 /* Make a scratch dataspace for a scalar pdl */
 
 void pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
@@ -181,40 +143,12 @@ pdl* pdl_SvPDLV ( SV* sv ) {
 
    if ( !SvROK(sv) ) {
       /* The scalar is not a ref, so we can use direct conversion. */
-
       PDL_Anyval data;
-      int datatype;
-      NV tmp_NV;
-      IV tmp_IV;
-
       ret = pdl_create(PDL_PERM);  /* Scratch pdl */
-
       /* Scratch hash for the pdl :( - slow but safest. */
-
-      /* handle undefined values */
-      if( sv_is_undef(sv) ) {
-          sv = get_sv("PDL::undefval",1);
-          if(SvIV(get_sv("PDL::debug",1))){
-            fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%g).\n",SvNV(sv));
-          }
-      }
-
-      /* Figure datatype to use */
-      if ( !SvIOK(sv) )  { /* Perl Double (e.g. 2.0) */
-         tmp_NV = SvNV(sv);
-         datatype = pdl_whichdatatype_double(tmp_NV);
-         ANYVAL_FROM_CTYPE(data, datatype, tmp_NV);
-      } /* end of Perl Double case for data type */
-      else { /* Perl Int (e.g. 2) */
-         tmp_IV = SvIV(sv);
-         datatype = pdl_whichdatatype(tmp_IV);
-         ANYVAL_FROM_CTYPE(data, datatype, tmp_IV);
-      }
-
+      ANYVAL_FROM_SV(data, sv, TRUE, -1);
       pdl_makescratchhash(ret, data);
-
       return ret;
-
    } /* End of scalar case */
 
    if(sv_derived_from(sv, "Math::Complex")) {
@@ -745,27 +679,10 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
   pdl_allocdata (p);
   pdl_make_physical(p);
 
-  {
-    /******
-     * Copy the undefval to fill empty spots in the ndarray...
-     */
-    SV *sv = get_sv("PDL::undefval",0);
-    if (sv_is_undef(sv)) {
-       ANYVAL_FROM_CTYPE(undefval, type, 0);
-    }
-    else {
-       /* Need to set undefvalue from the perl scalar */
-       if (SvIOK(sv)) {
-         ANYVAL_FROM_CTYPE(undefval, type, SvIV(sv));
-       }
-       else if (SvNOK(sv)) {
-         ANYVAL_FROM_CTYPE(undefval, type, SvNV(sv));
-       }
-       else {
-         ANYVAL_FROM_CTYPE(undefval, type, 0); /* this should not happen */
-       }
-    }
-  }
+  /******
+   * Copy the undefval to fill empty spots in the ndarray...
+   */
+  ANYVAL_FROM_SV(undefval, NULL, TRUE, type);
 
   switch (type) {
 !NO!SUBS!
@@ -1062,14 +979,14 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
           pd = (pddex >= 0 && pddex < ndims ? pdims[ pddex ] : 0);
           if(!pd)
               pd = 1;
-          undef_count += pdl_kludge_copy_$type(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data,undefval, p);
+          undef_count += pdl_kludge_copy_$type(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, p);
 
       } else {
         /* The element is a non-PDL, non-AV ref.  Not allowed. */
         croak("Non-array, non-PDL element in list");
       }
     } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */
-      if( sv_is_undef(el) ) {  /* undef case */
+      if( PDL_SV_IS_UNDEF(el) ) {  /* undef case */
         *pdata = (PDL_$type) undefval; 
         undef_count++;
 
@@ -1114,11 +1031,11 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
     char debug_flag;
     SV *sv;
     sv = get_sv("PDL::debug",0);
-    debug_flag = (sv_is_undef(sv)) ? 0 : (char)SvIV(sv);
+    debug_flag = (PDL_SV_IS_UNDEF(sv)) ? 0 : (char)SvIV(sv);
 
     if(debug_flag) {
       fflush(stdout);
-      fprintf(stderr,"Warning: pdl_setav_$type converted undef to $PDL::undefval (%g) %ld time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s");
+      fprintf(stderr,"Warning: pdl_setav_$type converted undef to \$PDL::undefval (%g) %ld time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s");
       fflush(stderr);
     }
   }

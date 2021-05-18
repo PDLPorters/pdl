@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 my $debug = 0;
-$PDL::debug = 1;
+$PDL::debug = $debug;
 
 my $pa = sequence(3,4);
 my $pb = yvals(zeroes(4,3)) + sequence(4);

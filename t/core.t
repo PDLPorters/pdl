@@ -142,6 +142,11 @@ do {
     ok all($c == pdl(0)), "explicit, undefval of undef falls back to 0" or diag("c=$c\n");
     $c = pdl [1], [2,3,4];
     ok all($c == pdl([1,0,0],[2,3,4])), "implicit, undefval of undef falls back to 0" or diag("c=$c\n");
+    $PDL::undefval = inf;
+    $c = pdl undef;
+    ok all($c == inf), "explicit, undefval of PDL scalar works" or diag("c=$c\n");
+    $c = pdl [1], [2,3,4];
+    ok all($c == pdl([1,inf,inf],[2,3,4])), "implicit, undefval of a PDL scalar works" or diag("c=$c\n");
 } while(0);
 
 # empty pdl cases

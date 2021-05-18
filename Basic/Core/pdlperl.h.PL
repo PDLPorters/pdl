@@ -34,9 +34,51 @@ print OUT <<"!GROK!THIS!";
         PUTBACK; FREETMPS; LEAVE; \\
 }
 
+/***************
+ * So many ways to be undefined...
+ */
+#define PDL_SV_IS_UNDEF(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
+
 !GROK!THIS!
 
 print OUT <<'EOF';
+#define ANYVAL_FROM_SV(outany,insv,use_undefval,forced_type) do { \
+    SV *sv2 = insv; \
+    int further_processing = PDL_SV_IS_UNDEF(sv2); \
+    if (further_processing) { \
+        if (!use_undefval) { \
+            outany.type = forced_type >=0 ? forced_type : -1; \
+            outany.value.B = 0; \
+            further_processing = FALSE; \
+        } else { \
+            sv2 = get_sv("PDL::undefval",1); \
+            if(SvIV(get_sv("PDL::debug",1))) \
+                fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%g).\n",SvNV(sv2)); \
+            if (PDL_SV_IS_UNDEF(sv2)) { \
+                outany.type = forced_type >=0 ? forced_type : PDL_B; \
+                outany.value.B = 0; \
+                further_processing = FALSE; \
+            } \
+        } \
+    } else { \
+        further_processing = TRUE; \
+    } \
+    if (further_processing) { \
+        if (sv_derived_from(sv2, "PDL")) { \
+            pdl *it = PDL_CORE_(SvPDLV)(sv2); \
+            outany = PDL_CORE_(at0)(it); \
+        } else if (!SvIOK(sv2)) { /* Perl Double (e.g. 2.0) */ \
+            NV tmp_NV = SvNV(sv2); \
+            int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype_double(tmp_NV); \
+            ANYVAL_FROM_CTYPE(outany, datatype, tmp_NV); \
+        } else { /* Perl Int (e.g. 2) */ \
+            IV tmp_IV = SvIV(sv2); \
+            int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype(tmp_IV); \
+            ANYVAL_FROM_CTYPE(outany, datatype, tmp_IV); \
+        } \
+    } \
+} while (0)
+
 #define ANYVAL_TO_SV(outsv,inany) do { switch (inany.type) { \
 EOF
 for (PDL::Types::types()) {
@@ -54,6 +96,32 @@ print OUT <<'EOF';
    default:      outsv = &PL_sv_undef; \
   } \
  } while (0)
+EOF
+
+print OUT <<'EOF';
+/* Check minimum datatype required to represent number */
+#define PDL_TESTTYPE(b,a) {a foo = nv; if(nv == foo) return b;}
+static inline int _pdl_whichdatatype (IV nv) {
+EOF
+# generate the cases for the various types
+for my $type (PDL::Types::types()) {
+   my ($sym,$ctype) = map $type->$_, qw/sym ctype/;
+   print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+   print OUT << "!WITH!SUBS!";
+        PDL_TESTTYPE($sym,$ctype)
+!WITH!SUBS!
+}
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT <<'EOF';
+        croak("Something's gone wrong: %ld cannot be converted by whichdatatype", nv);
+}
+/* Check minimum, at least float, datatype required to represent number */
+static inline int _pdl_whichdatatype_double (NV nv) {
+        PDL_TESTTYPE(PDL_F,PDL_Float)
+        PDL_TESTTYPE(PDL_D,PDL_Double)
+        /* Default return type PDL_Double */
+        return PDL_D;
+}
 
 /* __PDLPERL_H */
 #endif
