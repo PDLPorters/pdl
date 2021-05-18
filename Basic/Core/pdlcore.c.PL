@@ -182,7 +182,6 @@ pdl* SvPDLV ( SV* sv ) {
    if ( !SvROK(sv) ) {
       /* The scalar is not a ref, so we can use direct conversion. */
 
-      SV *dat;
       PDL_Anyval data;
       int datatype;
       NV tmp_NV;
