@@ -492,8 +492,7 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
 
         PUTBACK;
 
-        if(iswarn) call_pv("PDL::cluck", G_DISCARD);
-        else       call_pv("PDL::barf",  G_DISCARD);
+        call_pv(iswarn ? "PDL::cluck" : "PDL::barf", G_DISCARD);
 
         FREETMPS;
         LEAVE;
