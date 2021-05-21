@@ -295,7 +295,9 @@ ok(tapprox($y->prod->real, $y->prodover->real),
 {
 # Check stringification of complex ndarray
 my $c =  9.1234 + 4.1234*i();
-like($c->dummy(2,1).'', qr/9.123.*4.123/, 'sf.net bug #1176614');
+like($c->dummy(2,1).'', qr/9.123\S*4.123/, 'sf.net bug #1176614');
+$c = PDL->sequence(2, 3, 4)->complex;
+unlike $c.'', qr/\s\+/, 'stringified no space before +';
 }
 
 TODO: {
