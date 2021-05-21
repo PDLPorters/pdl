@@ -9,15 +9,15 @@ PDL_Anyval  T_PDL_ANYVAL
 INPUT
 
 T_PDL
-	$var = SvPDLV($arg);
+	$var = PDL_CORE_(SvPDLV)($arg);
 
 T_PDL_ANYVAL
 	if (!SvOK($arg)) {
 		$var.type = -1;
 		$var.value.B = 0;
 	} else if(sv_derived_from($arg,\"PDL\")) {
-		pdl *it = SvPDLV($arg);
-		$var = pdl_at0(it);
+		pdl *it = PDL_CORE_(SvPDLV)($arg);
+		$var = PDL_CORE_(at0)(it);
 	} else if (SvIOK($arg)) {
 	\#if IVSIZE == 8
 		$var.type = PDL_LL;
@@ -40,7 +40,7 @@ T_PDLTRANS
 OUTPUT
 
 T_PDL
-	SetSV_PDL($arg,$var);
+	PDL_CORE_(SetSV_PDL)($arg,$var);
 
 T_PDL_ANYVAL
 	ANYVAL_TO_SV($arg, $var)

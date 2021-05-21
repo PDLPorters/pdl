@@ -365,7 +365,7 @@ void pdl_initthreadstruct(int nobl,
 	  if (thread->flags) Safefree(thread->flags);
 	  if (thread->pdls) Safefree(thread->pdls);
 
-	  PDLDEBUG_f(pdl_warn("trying to reinitialize already initialized "
+	  PDLDEBUG_f(pdl_pdl_warn("trying to reinitialize already initialized "
 	     "thread (mem-leak!); freeing...");)
 	}
 	PDL_THR_SETMAGIC(thread);
@@ -388,7 +388,7 @@ void pdl_initthreadstruct(int nobl,
 		MAX2(nids,pdls[j]->nthreadids);
 		MAX2(mx,pdls[j]->threadids[0] - realdims[j]);
 	}
-	nthreadids = pdl_malloc(sizeof(PDL_Indx)*nids);
+	nthreadids = pdl_smalloc(sizeof(PDL_Indx)*nids);
 	ndims += mx;  nimpl = mx; thread->nimpl = nimpl;
 
 
@@ -764,5 +764,5 @@ do {                                            \
 
   va_end(args);
 
-  pdl_barf(message);
+  pdl_pdl_barf(message);
 }

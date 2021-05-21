@@ -84,7 +84,7 @@ WriteMakefile(
 						  Dbg.pm Exporter.pm Config.pm Char.pm/
 		)),
 		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
-			qw/Dev.pm typemap.pdl pdl.h pdlperl.h pdlcore.h pdlmagic.h pdlsimple.h
+			qw/Dev.pm typemap pdl.h pdlperl.h pdlcore.h pdlmagic.h pdlsimple.h
 				pdlthread.h ppport.h/
 		)),
 		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',

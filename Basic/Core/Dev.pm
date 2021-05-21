@@ -55,9 +55,7 @@ my $O_NONBLOCK = defined $Config{'o_nonblock'} ? $Config{'o_nonblock'}
 # Return library locations
 
 sub PDL_INCLUDE { '"-I'.whereami_any().'/Core"' };
-sub PDL_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
-# sub PDL_INST_INCLUDE { '-I'.whereami_any().'/Core' };
-# sub PDL_INST_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
+sub PDL_TYPEMAP { whereami_any().'/Core/typemap' };
 
 sub PDL_INST_INCLUDE {&PDL_INCLUDE}
 sub PDL_INST_TYPEMAP {&PDL_TYPEMAP}

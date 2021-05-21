@@ -14,6 +14,7 @@
 #endif
 
 #include "pdl.h"      /* Data structure declarations */
+#define PDL_IN_CORE /* access funcs directly not through PDL-> */
 #include "pdlcore.h"  /* Core declarations */
 
 /* Return a integer or numeric scalar as appropriate */
@@ -41,7 +42,7 @@ static PDL_Indx* pdl_packint( SV* sv, int *ndims ) {
    array = (AV *) SvRV(sv);   /* dereference */
      *ndims = (int) av_len(array) + 1;  /* Number of dimensions */
    /* Array space */
-   dims = (PDL_Indx *) pdl_malloc( (*ndims) * sizeof(*dims) );
+   dims = (PDL_Indx *) pdl_smalloc( (*ndims) * sizeof(*dims) );
    CHECKP(dims);
 
    for(i=0; i<(*ndims); i++) {
@@ -81,7 +82,7 @@ static void pdl_freedata (pdl *a) {
 /* newval = 1 means set flag, 0 means clear it */
 /* thanks to Christian Soeller for this */
 
-void propagate_badflag( pdl *it, int newval ) {
+void pdl_propagate_badflag( pdl *it, int newval ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
     {
@@ -97,14 +98,14 @@ void propagate_badflag( pdl *it, int newval ) {
             else          child->state &= ~PDL_BADVAL;
 
 	    /* make sure we propagate to grandchildren, etc */
-	    propagate_badflag( child, newval );
+	    pdl_propagate_badflag( child, newval );
 
         } /* for: i */
     }
     PDL_END_CHILDLOOP(it)
-} /* propagate_badflag */
+} /* pdl_propagate_badflag */
 
-void propagate_badvalue( pdl *it ) {
+void pdl_propagate_badvalue( pdl *it ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
     {
@@ -120,12 +121,12 @@ void propagate_badvalue( pdl *it ) {
             child->badvalue = it->badvalue;
 
 	    /* make sure we propagate to grandchildren, etc */
-	    propagate_badvalue( child );
+	    pdl_propagate_badvalue( child );
 
         } /* for: i */
     }
     PDL_END_CHILDLOOP(it)
-} /* propagate_badvalue */
+} /* pdl_propagate_badvalue */
 
 
 /* this is horrible - the routines from bad should perhaps be here instead ? */
@@ -159,7 +160,7 @@ DESTROY(sv)
     pdl *self;
   CODE:
     if (  !(  (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVHV) )  ) {
-       self = SvPDLV(sv);
+       self = pdl_SvPDLV(sv);
        PDLDEBUG_f(printf("DESTROYING %p\n",(void*)self);)
        if (self != NULL)
           pdl_destroy(self);
@@ -559,7 +560,7 @@ listref_c(x)
    }
 
    pdl_make_physvaffine( x );
-   inds = pdl_malloc(sizeof(PDL_Indx) * x->ndims); /* GCC -> on stack :( */
+   inds = pdl_smalloc(sizeof(PDL_Indx) * x->ndims); /* GCC -> on stack :( */
    data = PDL_REPRP(x);
    incs = (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs);
    offs = PDL_REPROFFS(x);
@@ -624,6 +625,8 @@ set_c(x,position,value)
     else
        pdl_changed( x , PDL_PARENTDATACHANGED , 0 );
 
+#define PDL_CORE_BOOT(sym) PDL.sym = pdl_ ## sym;
+
 BOOT:
 {
 #if NVSIZE > 8
@@ -633,67 +636,67 @@ BOOT:
    /* Initialize structure of pointers to core C routines */
 
    PDL.Version     = PDL_CORE_VERSION;
-   PDL.SvPDLV      = SvPDLV;
-   PDL.SetSV_PDL   = SetSV_PDL;
-   PDL.create      = pdl_create;
-   PDL.pdlnew      = pdl_external_new;
+   PDL_CORE_BOOT(SvPDLV)
+   PDL_CORE_BOOT(SetSV_PDL)
+   PDL_CORE_BOOT(create)
+   PDL_CORE_BOOT(pdlnew)
    PDL.tmp         = NULL; /* only here for binary back-compat */
-   PDL.destroy     = pdl_destroy;
-   PDL.null        = pdl_null;
-   PDL.copy        = pdl_copy;
-   PDL.hard_copy   = pdl_hard_copy;
-   PDL.converttype = pdl_converttype;
-   PDL.twod        = pdl_twod;
-   PDL.smalloc     = pdl_malloc;
-   PDL.howbig      = pdl_howbig;
-   PDL.packdims    = pdl_packdims;
-   PDL.unpackdims  = pdl_unpackdims;
-   PDL.setdims     = pdl_setdims;
-   PDL.grow        = pdl_grow;
-   PDL.at0         = pdl_at0;
+   PDL_CORE_BOOT(destroy)
+   PDL_CORE_BOOT(null)
+   PDL_CORE_BOOT(copy)
+   PDL_CORE_BOOT(hard_copy)
+   PDL_CORE_BOOT(converttype)
+   PDL_CORE_BOOT(twod)
+   PDL_CORE_BOOT(smalloc)
+   PDL_CORE_BOOT(howbig)
+   PDL_CORE_BOOT(packdims)
+   PDL_CORE_BOOT(unpackdims)
+   PDL_CORE_BOOT(setdims)
+   PDL_CORE_BOOT(grow)
+   PDL_CORE_BOOT(at0)
    PDL.flushcache  = NULL;
-   PDL.reallocdims = pdl_reallocdims;
-   PDL.reallocthreadids = pdl_reallocthreadids;
-   PDL.resize_defaultincs = pdl_resize_defaultincs;
-   PDL.get_threadoffsp = pdl_get_threadoffsp;
-   PDL.thread_copy = pdl_thread_copy;
-   PDL.clearthreadstruct = pdl_clearthreadstruct;
-   PDL.initthreadstruct = pdl_initthreadstruct;
-   PDL.startthreadloop = pdl_startthreadloop;
-   PDL.iterthreadloop = pdl_iterthreadloop;
-   PDL.freethreadloop = pdl_freethreadloop;
-   PDL.thread_create_parameter = pdl_thread_create_parameter;
-   PDL.add_deletedata_magic = pdl_add_deletedata_magic;
+   PDL_CORE_BOOT(reallocdims)
+   PDL_CORE_BOOT(reallocthreadids)
+   PDL_CORE_BOOT(resize_defaultincs)
+   PDL_CORE_BOOT(get_threadoffsp)
+   PDL_CORE_BOOT(thread_copy)
+   PDL_CORE_BOOT(clearthreadstruct)
+   PDL_CORE_BOOT(initthreadstruct)
+   PDL_CORE_BOOT(startthreadloop)
+   PDL_CORE_BOOT(iterthreadloop)
+   PDL_CORE_BOOT(freethreadloop)
+   PDL_CORE_BOOT(thread_create_parameter)
+   PDL_CORE_BOOT(add_deletedata_magic)
 
-   PDL.setdims_careful = pdl_setdims_careful;
-   PDL.put_offs = pdl_put_offs;
-   PDL.get_offs = pdl_get_offs;
-   PDL.get = pdl_get;
-   PDL.set_trans_childtrans = pdl_set_trans_childtrans;
-   PDL.set_trans_parenttrans = pdl_set_trans_parenttrans;
+   PDL_CORE_BOOT(setdims_careful)
+   PDL_CORE_BOOT(put_offs)
+   PDL_CORE_BOOT(get_offs)
+   PDL_CORE_BOOT(get)
+   PDL_CORE_BOOT(set_trans_childtrans)
+   PDL_CORE_BOOT(set_trans_parenttrans)
 
-   PDL.get_convertedpdl = pdl_get_convertedpdl;
+   PDL_CORE_BOOT(get_convertedpdl)
 
-   PDL.make_trans_mutual = pdl_make_trans_mutual;
-   PDL.trans_mallocfreeproc = pdl_trans_mallocfreeproc;
-   PDL.make_physical = pdl_make_physical;
-   PDL.make_physdims = pdl_make_physdims;
-   PDL.make_physvaffine = pdl_make_physvaffine;
-   PDL.pdl_barf      = pdl_barf;
-   PDL.pdl_warn      = pdl_warn;
-   PDL.allocdata     = pdl_allocdata;
-   PDL.safe_indterm  = pdl_safe_indterm;
-   PDL.children_changesoon = pdl_children_changesoon;
-   PDL.changed       = pdl_changed;
-   PDL.vaffinechanged = pdl_vaffinechanged;
+   PDL_CORE_BOOT(make_trans_mutual)
+   PDL_CORE_BOOT(trans_mallocfreeproc)
+   PDL_CORE_BOOT(make_physical)
+   PDL_CORE_BOOT(make_physdims)
+   PDL_CORE_BOOT(make_physvaffine)
+   PDL_CORE_BOOT(pdl_barf)
+   PDL_CORE_BOOT(pdl_warn)
+   PDL_CORE_BOOT(allocdata)
+   PDL_CORE_BOOT(safe_indterm)
+   PDL_CORE_BOOT(children_changesoon)
+   PDL_CORE_BOOT(changed)
+   PDL_CORE_BOOT(vaffinechanged)
 
    PDL.NaN_float  = union_nan_float.f;
    PDL.NaN_double = union_nan_double.d;
    PDL.NaN_cfloat  = union_nan_float.f + I*union_nan_float.f;
    PDL.NaN_cdouble = union_nan_double.d + I*union_nan_double.d;
-   PDL.propagate_badflag = propagate_badflag;
-   PDL.propagate_badvalue = propagate_badvalue;
-   PDL.get_pdl_badvalue = pdl_get_pdl_badvalue;
+   PDL_CORE_BOOT(propagate_badflag)
+   PDL_CORE_BOOT(propagate_badvalue)
+   PDL_CORE_BOOT(get_pdl_badvalue)
 #include "pdlbadvalinit.c"
    /*
       "Publish" pointer to this structure in perl variable for use
@@ -744,7 +747,7 @@ pdl_avref(array_ref, class, type)
      if (strcmp(class,"PDL") == 0) {
         p = pdl_from_array(av,dims,type,NULL); /* populate with data */
         ST(0) = sv_newmortal();
-        SetSV_PDL(ST(0),p);
+        pdl_SetSV_PDL(ST(0),p);
      } else {
        /* call class->initialize method */
        PUSHMARK(SP);
@@ -754,7 +757,7 @@ pdl_avref(array_ref, class, type)
        SPAGAIN;
        psv = POPs;
        PUTBACK;
-       p = SvPDLV(psv); /* and get ndarray from returned object */
+       p = pdl_SvPDLV(psv); /* and get ndarray from returned object */
        ST(0) = psv;
        pdl_from_array(av,dims,type,p); /* populate ;) */
      }
@@ -842,7 +845,7 @@ initialize(class)
           bless_stash = gv_stashsv(class, 0);
         }
         ST(0) = sv_newmortal();
-        SetSV_PDL(ST(0),pdl_null());   /* set a null PDL to this SV * */
+        pdl_SetSV_PDL(ST(0),pdl_null());   /* set a null PDL to this SV * */
         ST(0) = sv_bless(ST(0), bless_stash); /* bless appropriately  */
 	XSRETURN(1);
 
@@ -956,7 +959,7 @@ setdims(x,dims_arg)
 	{
 	        /* This mask avoids all kinds of subtle dereferencing bugs (CED 11/2015) */
 	        if(x->trans || x->vafftrans || x->children.next ) {
-		  pdl_barf("Can't setdims on a PDL that already has children");
+		  pdl_pdl_barf("Can't setdims on a PDL that already has children");
 		}
 
 		/* not sure if this is still necessary with the mask above... (CED 11/2015)  */
@@ -1077,7 +1080,7 @@ threadover_n(...)
 	    pdl_thread pdl_thr;
 	    SV *code = ST(items-1);
 	    for(i=0; i<npdls; i++) {
-		pdls[i] = SvPDLV(ST(i));
+		pdls[i] = pdl_SvPDLV(ST(i));
 		/* XXXXXXXX Bad */
 		pdl_make_physical(pdls[i]);
 		realdims[i] = 0;
@@ -1141,7 +1144,7 @@ threadover(...)
 		croak("threadover: need one realdim and creating flag "
 		      "per pdl!");
 	    for(i=0; i<npdls; i++) {
-		pdls[i] = SvPDLV(ST(i+1));
+		pdls[i] = pdl_SvPDLV(ST(i+1));
 		if (creating[i])
 		  nc += realdims[i];
 		else {
@@ -1193,7 +1196,7 @@ threadover(...)
 		pdl_make_physical(child[i]); /* make sure we can get at
 						the vafftrans          */
 		csv[i] = sv_newmortal();
-		SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
+		pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
 	    }
 	    do {  /* the actual threadloop */
 		pdl_trans_affine *traff;
@@ -1215,7 +1218,7 @@ threadover(...)
 		perl_call_sv(code,G_DISCARD);
 	    } while (pdl_iterthreadloop(&pdl_thr,0));
 	    pdl_freethreadloop(&pdl_thr);
-	    free(pdls);  /* should all these be done with pdl_malloc */
+	    free(pdls);  /* should all these be done with pdl_smalloc */
 	    free(dims);  /* in case the sub barfs ? XXXX            */
 	    free(child);
 	    free(csv);

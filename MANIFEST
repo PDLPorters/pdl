@@ -31,7 +31,6 @@ Basic/Core/pdlthread.c
 Basic/Core/pdlthread.h
 Basic/Core/ppport.h
 Basic/Core/typemap
-Basic/Core/typemap.pdl
 Basic/Core/Types.pm.PL
 Basic/default.perldlrc
 Basic/Gen/Inline/Makefile.PL

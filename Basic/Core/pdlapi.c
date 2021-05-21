@@ -77,7 +77,7 @@ void pdl_allocdata(pdl *it) {
 
 /* Wrapper to pdl_create to be stored in the Core struct and exported
    to external PDL XS modules */
-pdl* pdl_external_new() {
+pdl* pdl_pdlnew() {
   return pdl_create(PDL_PERM);
 }
 /* Return a new pdl - type is PDL_PERM or PDL_TMP - the latter is fatal error because former uses sv_mortal to be freed
@@ -165,7 +165,7 @@ void pdl__free(pdl *it) {
 	    SvREFCNT_dec(it->datasv);
 	    it->data=0;
     } else if(it->data) {
-    	    pdl_warn("Warning: special data without datasv is not freed currently!!");
+	    pdl_pdl_warn("Warning: special data without datasv is not freed currently!!");
     }
     if(it->hdrsv) {
     	SvREFCNT_dec(it->hdrsv);
@@ -646,7 +646,7 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
 	/* this might be due to a croak when performing the trans; so
 	   warn only for now, otherwise we leave trans undestructed ! */
 	if(!flag)
-		pdl_warn("Child not found for pdl %d, %d\n",it, trans);
+		pdl_pdl_warn("Child not found for pdl %d, %d\n",it, trans);
 }
 
 void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)

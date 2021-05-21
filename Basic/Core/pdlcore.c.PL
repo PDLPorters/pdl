@@ -69,7 +69,7 @@ static SV *getref_pdl(pdl *it) {
         return newref;
 }
 
-void SetSV_PDL ( SV *sv, pdl *it ) {
+void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
         SV *newref = getref_pdl(it); /* YUCK!!!! */
         sv_setsv(sv,newref);
         SvREFCNT_dec(newref);
@@ -173,7 +173,7 @@ void pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
    of a single scalar) scalars are automatically converted to PDLs.
 */
 
-pdl* SvPDLV ( SV* sv ) {
+pdl* pdl_SvPDLV ( SV* sv ) {
 
    pdl* ret;
    PDL_Indx fake[1];
@@ -383,7 +383,7 @@ SV* pdl_copy( pdl* a, char* option ) {
 
 
 
-/* Pack dims array - returns dims[] (pdl_malloced) and ndims */
+/* Pack dims array - returns dims[] (pdl_smalloced) and ndims */
 
 PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
 
@@ -399,7 +399,7 @@ PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
 
    *ndims = (PDL_Indx) av_len(array) + 1;  /* Number of dimensions */
 
-   dims = (PDL_Indx *) pdl_malloc( (*ndims) * sizeof(*dims) ); /* Array space */
+   dims = (PDL_Indx *) pdl_smalloc( (*ndims) * sizeof(*dims) ); /* Array space */
    if (dims == NULL)
       croak("Out of memory");
 
@@ -432,20 +432,20 @@ void pdl_unpackdims ( SV* sv, PDL_Indx *dims, PDL_Indx ndims ) {
 PDL_Indx pdl_safe_indterm( PDL_Indx dsz, PDL_Indx at, char *file, int lineno)
 {
   if (!(at >= 0 && at < dsz))
-    pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
+    pdl_pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
           at, dsz-1, file?file:"?", lineno);
   return at;
 }
 
 /*
-   pdl_malloc - utility to get temporary memory space. Uses
+   pdl_smalloc - utility to get temporary memory space. Uses
    a mortal *SV for this so it is automatically freed when the current
    context is terminated without having to call free(). Naughty but
    nice!
 */
 
 
-void* pdl_malloc ( STRLEN nbytes ) {
+void* pdl_smalloc ( STRLEN nbytes ) {
     STRLEN n_a;
    SV* work;
 
@@ -461,7 +461,7 @@ void* pdl_malloc ( STRLEN nbytes ) {
    This routine barfs/warns in a thread-safe manner. If we're in the main thread,
    this calls the perl-level barf/warn. If in a worker thread, we save the
    message to barf/warn in the main thread later
-   For greppability: this is where pdl_barf and pdl_warn are defined
+   For greppability: this is where pdl_pdl_barf and pdl_pdl_warn are defined
 */
 
 static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
@@ -501,7 +501,7 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
 }
 
 #define GEN_PDL_BARF_OR_WARN_I_STDARG(type, iswarn)     \
-    void pdl_##type(const char* pat, ...)               \
+    void pdl_pdl_##type(const char* pat, ...)           \
     {                                                   \
         va_list args;                                   \
         va_start(args, pat);                            \
@@ -562,7 +562,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
   pdl *dest_pdl;           /* Stores PDL argument */
 
   if(dims==NULL) {
-    pdl_barf("av_ndcheck - got a null dim array! This is a bug in PDL.");
+    pdl_pdl_barf("av_ndcheck - got a null dim array! This is a bug in PDL.");
   }
 
   /* Start with a clean slate */
@@ -583,7 +583,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         /* Recurse to find depth inside the array reference */
         newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
         
-      } else if ( (dest_pdl = SvPDLV(el)) ) {
+      } else if ( (dest_pdl = pdl_SvPDLV(el)) ) {
         /* It is a PDL - walk down its dimension list, exactly as if it
          * were a bunch of nested array refs.  We pull the ndims and dims
          * fields out to local variables so that nulls can be treated specially.
@@ -730,7 +730,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
   PDL_Anyval undefval = { -1, 0 };
 
   ndims = av_len(dims)+1;
-  pdims = (PDL_Indx *) pdl_malloc( (ndims) * sizeof(*pdims) );
+  pdims = (PDL_Indx *) pdl_smalloc( (ndims) * sizeof(*pdims) );
   for (i=0; i<ndims; i++) {
      pdims[i] = SvIV(*(av_fetch(dims, ndims-1-i, 0))); /* reverse order */
   }
@@ -1051,7 +1051,7 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
 
       /* If the element was a ref but not an AV, then it should be a PDL */
       pdl *pdl;
-      if( (pdl = SvPDLV(el)) ) {
+      if( (pdl = pdl_SvPDLV(el)) ) {
           /* The element was a PDL - use pdl_kludge_copy to copy it into the destination */
           PDL_Indx pd;
           int pddex;

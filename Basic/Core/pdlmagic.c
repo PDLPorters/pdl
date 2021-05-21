@@ -373,7 +373,7 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 		if(pdl_pthread_##type##_msgs_len != 0)					\
 		{														\
 			pdl_pthread_##type##_msgs_len = 0;					\
-			pdl_##type ("%s", pdl_pthread_##type##_msgs);		\
+			pdl_pdl_##type ("%s", pdl_pthread_##type##_msgs);	\
 			free(pdl_pthread_##type##_msgs);					\
 			pdl_pthread_##type##_msgs	  = NULL;				\
 		}														\
