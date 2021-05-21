@@ -461,6 +461,7 @@ void* pdl_malloc ( STRLEN nbytes ) {
    This routine barfs/warns in a thread-safe manner. If we're in the main thread,
    this calls the perl-level barf/warn. If in a worker thread, we save the
    message to barf/warn in the main thread later
+   For greppability: this is where pdl_barf and pdl_warn are defined
 */
 
 static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
@@ -507,23 +508,8 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
         pdl_barf_or_warn(pat, iswarn, &args);           \
     }
 
-#define GEN_PDL_BARF_OR_WARN_LEGACY(type, iswarn)       \
-    void pdl_##type(pat, va_alist)                      \
-        char *pat;                                      \
-        va_dcl                                          \
-    {                                                   \
-        va_list args;                                   \
-        va_start(args);                                 \
-        pdl_barf_or_warn(pat, iswarn, &args);           \
-    }
-
-#ifdef I_STDARG
 GEN_PDL_BARF_OR_WARN_I_STDARG(barf, 0)
 GEN_PDL_BARF_OR_WARN_I_STDARG(warn, 1)
-#else
-GEN_PDL_BARF_OR_WARN_LEGACY(barf, 0)
-GEN_PDL_BARF_OR_WARN_LEGACY(warn, 1)
-#endif
 
 
 /**********************************************************************
