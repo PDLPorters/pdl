@@ -821,9 +821,6 @@ sub warn_non_numeric_op_wrapper {
 						return $args[1];
 					},
 
-		'x'     =>  sub{my $foo = $_[0]->null();
-				  PDL::Primitive::matmult(@_[0,1],$foo); $foo;},
-
 		'bool'  => sub { return 0 if $_[0]->isnull;
 				 croak("multielement ndarray in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
 				     unless $_[0]->nelem == 1;
