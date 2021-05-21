@@ -1024,10 +1024,6 @@ is ('+') or is not ('-') commutative. See the discussion of argument
 swapping in the section "Calling Conventions and Magic Autogeneration"
 in "perldoc overload".
 
-This is a great example of taking almost as many lines to write cute
-generating code as it would take to just clearly and explicitly write
-down the overload.
-
 =end comment
 
 =cut
@@ -1070,7 +1066,6 @@ sub Cassgn {
 use overload
    (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 ==+Ceq .=-Cassgn)),
    (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt)),
-#final ternary used to make result a scalar, not a PDL:::Complex (thx CED!)
     "<" => sub { confess "Can't compare complex numbers" },
     "<=" => sub { confess "Can't compare complex numbers" },
     ">=" => sub { confess "Can't compare complex numbers" },
@@ -1083,51 +1078,21 @@ use overload
 
 # overwrite PDL's overloading to honour subclass methods in + - * /
 { package PDL;
-no warnings 'redefine';
-
-sub cp(;@) {
-	my $foo;
-	if (ref $_[1]
-		&& (ref $_[1] ne 'PDL')
-		&& defined ($foo = overload::Method($_[1],'+')))
-		{ &$foo($_[1], $_[0], !$_[2])}
-	else { PDL::plus (@_)}
-}
-
-sub cm(;@) {
-	my $foo;
-	if (ref $_[1]
-		&& (ref $_[1] ne 'PDL')
-		&& defined ($foo = overload::Method($_[1],'*')))
-		{ &$foo($_[1], $_[0], !$_[2])}
-	else { PDL::mult (@_)}
-}
-
-sub cmi(;@) {
-	my $foo;
-	if (ref $_[1]
-		&& (ref $_[1] ne 'PDL')
-		&& defined ($foo = overload::Method($_[1],'-')))
-		{ &$foo($_[1], $_[0], !$_[2])}
-	else { PDL::minus (@_)}
-}
-
-sub cd(;@) {
-	my $foo;
-	if (ref $_[1]
-		&& (ref $_[1] ne 'PDL')
-		&& defined ($foo = overload::Method($_[1],'/')))
-		{ &$foo($_[1], $_[0], !$_[2])}
-	else { PDL::divide (@_)}
-}
-
+  no strict 'refs';
+  no warnings 'redefine';
+  my %OP2FUNC;
+  BEGIN { @OP2FUNC{qw(+ * - /)} = qw(plus mult minus divide) }
   # Used in overriding standard PDL +, -, *, / ops in the complex subclass.
-  use overload (
-		 '+' => \&cp,
-		 '*' => \&cm,
-	         '-' => \&cmi,
-		 '/' => \&cd,
-		);
+  use overload map {
+    my $op = $_;
+    my $func = "PDL::$OP2FUNC{$op}";
+    ($_ => sub(;@) {
+	if (ref $_[1]
+		&& (ref $_[1] ne 'PDL')
+		&& defined(my $foo = overload::Method($_[1], $op)))
+	{ &$foo($_[1], $_[0], !$_[2]) }
+	else { $func->(@_) }
+    }) } keys %OP2FUNC;
 }
 
 sub sum {
