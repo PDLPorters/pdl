@@ -171,14 +171,7 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
       }
 
     }else{
-
        die("Sorry, temporary type casting is not allowed now");
-
-       b = a->data;          /* Ptr to old data */
-       a = pdl_tmp();        /* Brand new scratch pdl */
-/*       pdl_clone(*aa,  a);  */ /* Copy old pdl entries */
-       a->data     = pdl_malloc(nbytes); /* Space for changed data */
-       *aa = a;              /* Change passed value to new address */
     }
 
     /* Do the conversion as nested switch statements */
