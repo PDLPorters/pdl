@@ -27,7 +27,6 @@ Basic/Core/pdlmagic.h
 Basic/Core/pdlperl.h.PL
 Basic/Core/pdlsections.g
 Basic/Core/pdlsimple.h.PL
-Basic/Core/pdltest.c
 Basic/Core/pdlthread.c
 Basic/Core/pdlthread.h
 Basic/Core/ppport.h
