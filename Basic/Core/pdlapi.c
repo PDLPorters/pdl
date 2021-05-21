@@ -39,7 +39,7 @@ static int is_parent_of(pdl *it,pdl_trans *trans) {
 
 pdl *pdl_null() {
 	PDL_Indx d[1] = {0};
-	pdl *it = pdl_new();
+	pdl *it = pdl_create(PDL_PERM);
 	PDL_Anyval zero = { PDL_B, 0 };
 	pdl_makescratchhash(it, zero);
 	pdl_setdims(it,d,1);
@@ -75,23 +75,17 @@ void pdl_allocdata(pdl *it) {
 	it->state |= PDL_ALLOCATED;
 }
 
-/* Wrapper to pdl_create so that the pdl_new and pdl_tmp functions
-   can be stored in the Core struct and exported to external
-   PDL XS modules */
+/* Wrapper to pdl_create to be stored in the Core struct and exported
+   to external PDL XS modules */
 pdl* pdl_external_new() {
-  return  pdl_new();
+  return pdl_create(PDL_PERM);
 }
 pdl* pdl_external_tmp() {
-  return pdl_tmp();
+  return pdl_create(PDL_TMP);
 }
 /* Return a new pdl - type is PDL_PERM or PDL_TMP - the latter is auto-freed
  * when current perl context is left
- *
- * pdl_new() and pdl_tmp() are macroes defined in pdlcore.h
- * which just call this routine.
  */
-
-
 pdl* pdl_create(int type) {
      int i;
      pdl* it;

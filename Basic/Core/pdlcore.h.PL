@@ -126,7 +126,7 @@ static const union {unsigned char c[8]; double d;}
   int ndims = 0; \
   PDL_Indx *pdims; \
   pdims = (PDL_Indx *) pdl_malloc( ndims * sizeof(*pdims) ); \
-  b = pdl_new(); \
+  b = pdl_create(PDL_PERM); \
   pdl_setdims(b, pdims, ndims); \
   b->datatype = type; \
   pdl_allocdata(b); \
@@ -190,8 +190,6 @@ void pdl_destroytransform(pdl_trans *trans,int ensure);
 
 pdl *pdl_hard_copy(pdl *src);
 
-#define pdl_new() pdl_create(PDL_PERM)
-#define pdl_tmp() pdl_create(PDL_TMP)
 pdl* pdl_external_new();
 pdl* pdl_external_tmp();
 pdl* pdl_create(int type);

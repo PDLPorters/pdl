@@ -187,7 +187,7 @@ pdl* SvPDLV ( SV* sv ) {
       NV tmp_NV;
       IV tmp_IV;
 
-      ret = pdl_new();  /* Scratch pdl */
+      ret = pdl_create(PDL_PERM);  /* Scratch pdl */
 
       /* Scratch hash for the pdl :( - slow but safest. */
 
@@ -235,7 +235,7 @@ pdl* SvPDLV ( SV* sv ) {
         PUTBACK;
       }
       FREETMPS; LEAVE;
-      ret = pdl_new();  /* Scratch pdl */
+      ret = pdl_create(PDL_PERM);  /* Scratch pdl */
       data.type = PDL_CD;
       data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
       pdl_makescratchhash(ret, data);
@@ -751,7 +751,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
   }
 
   if (p == NULL)
-     p = pdl_new();
+     p = pdl_create(PDL_PERM);
   pdl_setdims (p, pdims, ndims);
   if (type == -1) {
     type = _detect_datatype(av);
