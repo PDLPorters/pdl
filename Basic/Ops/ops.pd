@@ -19,6 +19,8 @@ pp_addpm({At=>'Top'},<<'EOD');
 use strict;
 use warnings;
 
+my %OVERLOADS;
+
 =head1 NAME
 
 PDL::Ops - Fundamental mathematical operators
@@ -86,11 +88,10 @@ sub protect_chars {
 # simple binary operators
 
 sub biop {
-    my ($name,$op,$swap,$doc,%extra) = @_;
+    my ($name,$op,$mutator,$doc,%extra) = @_;
     my $optxt = protect_chars ref $op eq 'ARRAY' ? $op->[1] : $op;
     $op = $op->[0] if ref $op eq 'ARRAY';
-    if ($swap) {
-	$extra{HdrCode} = << 'EOH';
+    $extra{HdrCode} = << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -99,7 +100,6 @@ sub biop {
 
   }
 EOH
-    }
 
     # handle exceptions
     my $badcode = '   ( $PDLSTATEISBAD(a) && $ISBAD(a()) )
@@ -128,6 +128,7 @@ EOH
         delete $extra{Comparison};
     }
 
+    pp_addpm(make_overload($op, $name, $mutator));
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
@@ -172,9 +173,23 @@ This restriction is expected to go away in future releases.
 EOD
 } # sub: biop()
 
+sub make_overload {
+    my ($op, $name, $mutator, $one_arg) = @_;
+    my $ret = <<EOF;
+BEGIN { \$OVERLOADS{'$op'} = @{[$one_arg ? "sub { PDL::$name(\$_[0]) }" : "\\&PDL::$name"]} }
+EOF
+    $ret .= <<EOF if $mutator;
+BEGIN {
+# in1, in2, out, swap if true
+\$OVERLOADS{'$op='} = sub { PDL::$name(\$_[0], \$_[1], \$_[0], 0); \$_[0] };
+}
+EOF
+    $ret;
+}
+
 #simple binary functions
 sub bifunc {
-    my ($name,$func,$swap,$doc,%extra) = @_;
+    my ($name,$func,$mutator,$doc,%extra) = @_;
     my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
     my $isop=0; if ($funcov =~ s/^op//) { $isop = 1; }
     my $funcovp = protect_chars $funcov;
@@ -182,8 +197,7 @@ sub bifunc {
     my $got_complex = PDL::Core::Dev::got_complex_version($func, 2);
     $extra{GenericTypes} = [ grep exists $is_real{$_}, @{$extra{GenericTypes}} ]
 	if !$got_complex and $extra{GenericTypes};
-    if ($swap) {
-	$extra{HdrCode} .= << 'EOH';
+    $extra{HdrCode} .= << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -191,7 +205,6 @@ sub bifunc {
     b = tmp;
   }
 EOH
-    }
     my $ovcall;
     # is this one to be used as a function or operator ?
     if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
@@ -222,6 +235,7 @@ ENDCODE
 	       $SETBAD(c());
 	       else {' . $codestr . " } \n";
 
+    pp_addpm(make_overload($funcov, $name, $mutator));
     pp_def($name,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
@@ -262,7 +276,7 @@ EOD
 
 # simple unary functions and operators
 sub ufunc {
-    my ($name,$func,$doc,%extra) = @_;
+    my ($name,$func,$overload,$doc,%extra) = @_;
     my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
@@ -287,6 +301,7 @@ sub ufunc {
         @Rtypes;
     $codestr .= $complex_bit if $got_complex;
 
+    pp_addpm(make_overload($funcov, $name, 0, 1)) if $overload;
     # do not have to worry about propagation of the badflag when
     # inplace since only input ndarray is a, hence its badflag
     # won't change
@@ -344,26 +359,21 @@ EOD
 #
 
 ## arithmetic ops
-# no swap needed but set anyway fixing sf bug #391
 biop('plus','+',1,'add two ndarrays',GenericTypes => $A);
 biop('mult','*',1,'multiply two ndarrays',GenericTypes => $A);
-
-# all those need swapping
 biop('minus','-',1,'subtract two ndarrays',GenericTypes => $A);
 biop('divide','/',1,'divide two ndarrays', Exception => '$b() == 0', GenericTypes => $A);
 
 ## note: divide should perhaps trap division by zero as well
 
 ## comparison ops
-# need swapping
 # not defined for complex numbers
-biop('gt','>',1,'the binary E<gt> (greater than) operation', Comparison => 2);
-biop('lt','<',1,'the binary E<lt> (less than) operation', Comparison => 2);
-biop('le','<=',1,'the binary E<lt>= (less equal) operation', Comparison => 2);
-biop('ge','>=',1,'the binary E<gt>= (greater equal) operation', Comparison => 2);
-# no swap required but set anyway fixing sf bug #391
-biop('eq','==',1,'binary I<equal to> operation (C<==>)', Comparison => 1, GenericTypes => $A);
-biop('ne','!=',1,'binary I<not equal to> operation (C<!=>)', Comparison => 1, GenericTypes => $A);
+biop('gt','>',0,'the binary E<gt> (greater than) operation', Comparison => 2);
+biop('lt','<',0,'the binary E<lt> (less than) operation', Comparison => 2);
+biop('le','<=',0,'the binary E<lt>= (less equal) operation', Comparison => 2);
+biop('ge','>=',0,'the binary E<gt>= (greater equal) operation', Comparison => 2);
+biop('eq','==',0,'binary I<equal to> operation (C<==>)', Comparison => 1, GenericTypes => $A);
+biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)', Comparison => 1, GenericTypes => $A);
 
 ## bit ops
 # those need to be limited to the right types
@@ -377,21 +387,21 @@ biop('xor','^',1,'binary I<exclusive or> of two ndarrays',GenericTypes => $T,
       Bitwise => 1);
 
 # really an ufunc
-ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
+ufunc('bitnot','~',1,'unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
 bifunc('power',['pow','op**'],1,'raise ndarray C<$a> to the power C<$b>',GenericTypes => [@$C, @$F]);
-bifunc('atan2','atan2',1,'elementwise C<atan2> of two ndarrays',GenericTypes => $F);
+bifunc('atan2','atan2',0,'elementwise C<atan2> of two ndarrays',GenericTypes => $F);
 bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation',unsigned=>1);
-bifunc('spaceship',['SPACE','op<=>'],1,'elementwise "<=>" operation');
+bifunc('spaceship',['SPACE','op<=>'],0,'elementwise "<=>" operation');
 
 # some standard unary functions
-ufunc('sqrt','sqrt','elementwise square root', GenericTypes => $A); # Exception => '$a() < 0');
-ufunc('sin','sin','the sin function', GenericTypes => $A);
-ufunc('cos','cos','the cos function', GenericTypes => $A);
-ufunc('not','!','the elementwise I<not> operation');
-ufunc('exp','exp','the exponential function',GenericTypes => [@$C, @$F]);
-ufunc('log','log','the natural logarithm',GenericTypes => [@$C, @$F], Exception => '$a() <= 0');
+ufunc('sqrt','sqrt',1,'elementwise square root', GenericTypes => $A); # Exception => '$a() < 0');
+ufunc('sin','sin',1,'the sin function', GenericTypes => $A);
+ufunc('cos','cos',1,'the cos function', GenericTypes => $A);
+ufunc('not','!',1,'the elementwise I<not> operation');
+ufunc('exp','exp',1,'the exponential function',GenericTypes => [@$C, @$F]);
+ufunc('log','log',1,'the natural logarithm',GenericTypes => [@$C, @$F], Exception => '$a() <= 0');
 
 # no export these because clash with Test::Deep (re) or internal (_*abs)
 cfunc('re', 'creal', 1, 'Returns the real part of a complex number.');
@@ -421,7 +431,7 @@ pp_export_nothing();
 
 # make log10() work on scalars (returning scalars)
 # as well as ndarrays
-ufunc('log10','log10','the base 10 logarithm', GenericTypes => $A,
+ufunc('log10','log10',0,'the base 10 logarithm', GenericTypes => $A,
       Exception => '$a() <= 0',
       PMCode =>
 '
@@ -582,6 +592,7 @@ Returns the absolute value of a number.
 
 sub PDL::abs { $_[0]->type->real ? goto &PDL::_rabs : goto &PDL::_cabs }
 EOPM
+pp_addpm(make_overload(qw(abs abs), 0, 1));
 
 pp_addpm(<<'EOPM');
 
@@ -627,5 +638,39 @@ sub PDL::i2C ($) {
 EOF
   Code => '$c() = $i() * I;'
 );
+
+pp_addpm(<<'EOF');
+# This is to used warn if an operand is non-numeric or non-PDL.
+sub warn_non_numeric_op_wrapper {
+  require Scalar::Util;
+  my ($cb, $op_name) = @_;
+  return sub {
+    my ($op1, $op2) = @_;
+    warn "'$op2' is not numeric nor a PDL in operator $op_name"
+      unless Scalar::Util::looks_like_number($op2)
+            || ( Scalar::Util::blessed($op2) && $op2->isa('PDL') );
+    $cb->(@_);
+  }
+}
+
+{ package PDL;
+  use Carp;
+  use overload %OVERLOADS,
+    "eq"    => PDL::Ops::warn_non_numeric_op_wrapper(\&PDL::eq, 'eq'),
+    "="     => sub {$_[0]},          # Don't deep copy, just copy reference
+    ".="    => sub {
+      my @args = !$_[2] ? @_[1,0] : @_[0,1];
+      PDL::Ops::assgn(@args);
+      return $args[1];
+    },
+    'bool'  => sub {
+      return 0 if $_[0]->isnull;
+      croak("multielement ndarray in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
+        unless $_[0]->nelem == 1;
+      $_[0]->clump(-1)->at(0);
+    },
+  ;
+}
+EOF
 
 pp_done();

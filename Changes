@@ -8,6 +8,7 @@
 - new pdlperl.h for Perl-specific functions/macros
 - $PDL::undefval can be ndarray
 - replace PDL::Complex stringification with native-complex version
+- overloading now done in PDL::Ops/Primitive where functions defined
 
 2.047 2021-05-08
 - add PDL::i2C
