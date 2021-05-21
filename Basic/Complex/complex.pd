@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use PDL::Types qw(ppdefs ppdefs_complex types);
 my $R = [ppdefs()];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
@@ -12,7 +14,7 @@ pp_beginwrap; # required for overload to work
 # never know....
 pp_bless('PDL::Complex');
 
-pp_addpm {At => Top}, <<'EOD';
+pp_addpm {At => 'Top'}, <<'EOD';
 our $VERSION = '2.009';
    use PDL::Slices;
    use PDL::Types;
@@ -22,7 +24,7 @@ our $VERSION = '2.009';
 EOD
 
 
-pp_addpm {At => Top}, <<'EOD';
+pp_addpm {At => 'Top'}, <<'EOD';
 
 =encoding iso-8859-1
 
@@ -1005,7 +1007,7 @@ sub rCpolynomial {
 
 pp_add_isa 'PDL';
 
-pp_addpm {At => Bot}, <<'EOD';
+pp_addpm {At => 'Bot'}, <<'EOD';
 
 # overload must be here, so that all the functions can be seen
 
