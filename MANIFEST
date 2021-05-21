@@ -3,6 +3,7 @@ Basic/Bad/bad.pd
 Basic/Bad/Makefile.PL
 Basic/Complex/complex.pd
 Basic/Complex/Makefile.PL
+Basic/Complex/t/complex.t
 Basic/Constants.pm
 Basic/Core/Basic.pm
 Basic/Core/Char.pm
@@ -725,7 +726,6 @@ t/basic.t
 t/bigmem.t
 t/bool.t
 t/clump.t
-t/complex.t
 t/config.t
 t/constants.t
 t/constructor.t
