@@ -28,6 +28,7 @@ PDL::Core::Dev::loadmod_Types();
 # version 13 for complex data types (native complex support)
 # version 14: NaN support for native complex, per-PDL badval on
 # version 15: threadid, ndims become PDL_Indx
+# FOR NEXT VERSION DELETE .tmp AND RENAME pdl_barf/pdl_warn/pdlnew WITHOUT pdl_?
 use vars qw( $pdl_core_version );
 $pdl_core_version = 15;
 

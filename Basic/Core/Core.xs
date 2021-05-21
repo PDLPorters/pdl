@@ -637,7 +637,7 @@ BOOT:
    PDL.SetSV_PDL   = SetSV_PDL;
    PDL.create      = pdl_create;
    PDL.pdlnew      = pdl_external_new;
-   PDL.tmp         = pdl_external_tmp;
+   PDL.tmp         = NULL; /* only here for binary back-compat */
    PDL.destroy     = pdl_destroy;
    PDL.null        = pdl_null;
    PDL.copy        = pdl_copy;

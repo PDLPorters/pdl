@@ -80,10 +80,7 @@ void pdl_allocdata(pdl *it) {
 pdl* pdl_external_new() {
   return pdl_create(PDL_PERM);
 }
-pdl* pdl_external_tmp() {
-  return pdl_create(PDL_TMP);
-}
-/* Return a new pdl - type is PDL_PERM or PDL_TMP - the latter is auto-freed
+/* Return a new pdl - type is PDL_PERM or PDL_TMP - the latter is fatal error because former uses sv_mortal to be freed
  * when current perl context is left
  */
 pdl* pdl_create(int type) {
