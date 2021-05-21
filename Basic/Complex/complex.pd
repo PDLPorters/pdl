@@ -1141,9 +1141,30 @@ sub cd(;@) {
         BEGIN{ $^W = $warningFlag;} # Put Back Warnings
 };
 
+sub sum {
+  my($x) = @_;
+  return $x if $x->dims==1;
+  my $tmp = $x->mv(0,-1)->clump(-2)->mv(1,0)->sumover;
+  return $tmp;
+}
+
+sub sumover{
+  my $m = shift;
+  PDL::Ufunc::sumover($m->xchg(0,1));
+}
+
+*PDL::Complex::Csumover=\&sumover; # define through alias
+
+*PDL::Complex::prodover=\&Cprodover; # define through alias
+
+sub prod {
+  my($x) = @_;
+  return $x if $x->dims==1;
+  my $tmp = $x->mv(0,-1)->clump(-2)->mv(1,0)->prodover;
+  return $tmp;
+}
 
 {
-
    our $floatformat  = "%4.4g";    # Default print format for long numbers
    our $doubleformat = "%6.6g";
 
@@ -1176,32 +1197,6 @@ sub cd(;@) {
          return strND($self,$format1,$format2,0);
       }
    }
-
-
-   sub sum {
-      my($x) = @_;
-      return $x if $x->dims==1;
-      my $tmp = $x->mv(0,-1)->clump(-2)->mv(1,0)->sumover;
-      return $tmp;
-   }
-
-   sub sumover{
-      my $m = shift;
-      PDL::Ufunc::sumover($m->xchg(0,1));
-   }
-
-   *PDL::Complex::Csumover=\&sumover; # define through alias
-
-   *PDL::Complex::prodover=\&Cprodover; # define through alias
-
-   sub prod {
-      my($x) = @_;
-      return $x if $x->dims==1;
-      my $tmp = $x->mv(0,-1)->clump(-2)->mv(1,0)->prodover;
-      return $tmp;
-   }
-
-
 
    sub strND {
       my($self,$format1,$format2,$level)=@_;
@@ -1258,7 +1253,6 @@ sub cd(;@) {
       $ret.="]" if $self->getndims() > 1;
       return $ret;
    }
-
 
    sub str2D {
       my($self,$format1,$format2,$level)=@_;
@@ -1422,7 +1416,6 @@ sub cd(;@) {
       $ret .= ' 'x$level."]\n";
       return $ret;
    }
-
 }
 
 =head1 AUTHOR
