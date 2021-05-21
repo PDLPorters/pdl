@@ -1081,15 +1081,7 @@ use overload
 
 # overwrite PDL's overloading to honour subclass methods in + - * /
 { package PDL;
-        my $warningFlag;
-        # This strange usage of BEGINs is to ensure the
-        # warning messages get disabled and enabled in the
-        # proper order. Without the BEGIN's the 'use overload'
-        #  would be called first.
-        BEGIN {$warningFlag = $^W; # Temporarily disable warnings caused by
-               $^W = 0;            # redefining PDL's subs
-              }
-
+no warnings 'redefine';
 
 sub cp(;@) {
 	my $foo;
@@ -1127,7 +1119,6 @@ sub cd(;@) {
 	else { PDL::divide (@_)}
 }
 
-
   # Used in overriding standard PDL +, -, *, / ops in the complex subclass.
   use overload (
 		 '+' => \&cp,
@@ -1135,11 +1126,7 @@ sub cd(;@) {
 	         '-' => \&cmi,
 		 '/' => \&cd,
 		);
-
-
-
-        BEGIN{ $^W = $warningFlag;} # Put Back Warnings
-};
+}
 
 sub sum {
   my($x) = @_;
