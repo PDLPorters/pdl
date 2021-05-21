@@ -9,6 +9,7 @@
 - $PDL::undefval can be ndarray
 - replace PDL::Complex stringification with native-complex version
 - overloading now done in PDL::Ops/Primitive where functions defined
+- overloading honours subclass methods
 
 2.047 2021-05-08
 - add PDL::i2C

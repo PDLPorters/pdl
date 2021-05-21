@@ -747,8 +747,6 @@ sub topdl {PDL->topdl(@_)}
   use overload '""'  =>  \&PDL::Core::string;
 }
 
-sub rswap { if($_[2]) { return @_[1,0]; } else { return @_[0,1]; } }
-
 ##################### Data type/conversion stuff ########################
 
 

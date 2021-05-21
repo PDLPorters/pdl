@@ -536,7 +536,7 @@ pp_def 'Ceq',
         ^,
         PMCode => <<'EOF',
 sub PDL::Complex::Ceq {
-    my @args = reverse &PDL::Core::rswap;
+    my @args = !$_[2] ? @_[1,0] : @_[0,1];
     $args[1] = r2C($args[1]) if ref $args[1] ne __PACKAGE__;
     PDL::Complex::_Ceq_int($args[0], $args[1], my $r = PDL->null);
     $r;
@@ -1057,7 +1057,7 @@ sub initialize {
 
 # so threading doesn't also assign the real value into the imaginary
 sub Cassgn {
-    my @args = reverse &PDL::Core::rswap;
+    my @args = !$_[2] ? @_[1,0] : @_[0,1];
     $args[1] = r2C($args[1]) if ref $args[1] ne __PACKAGE__;
     PDL::Ops::assgn(@args);
     $args[1];
@@ -1075,25 +1075,6 @@ use overload
    '--' => sub { $_[0] -= 1 },
    '""' => sub { PDL::Ops::czip(map $_[0]->slice("($_)"), 0..1)->string },
 ;
-
-# overwrite PDL's overloading to honour subclass methods in + - * /
-{ package PDL;
-  no strict 'refs';
-  no warnings 'redefine';
-  my %OP2FUNC;
-  BEGIN { @OP2FUNC{qw(+ * - /)} = qw(plus mult minus divide) }
-  # Used in overriding standard PDL +, -, *, / ops in the complex subclass.
-  use overload map {
-    my $op = $_;
-    my $func = "PDL::$OP2FUNC{$op}";
-    ($_ => sub(;@) {
-	if (ref $_[1]
-		&& (ref $_[1] ne 'PDL')
-		&& defined(my $foo = overload::Method($_[1], $op)))
-	{ &$foo($_[1], $_[0], !$_[2]) }
-	else { $func->(@_) }
-    }) } keys %OP2FUNC;
-}
 
 sub sum {
   my($x) = @_;
