@@ -35,7 +35,7 @@ T_PDLTRANS
 	if(sv_isa($arg,\"PDL::Trans\"))
 		$var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
 	else
-	        croak(\"$var is not of type PDL::Trans\")
+	        croak(\"$var is not of type PDL::Trans\");
 
 OUTPUT
 

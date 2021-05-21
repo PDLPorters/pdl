@@ -383,23 +383,6 @@ nelem(x)
 	OUTPUT:
 		RETVAL
 
-# Convert PDL to new datatype (called by float(), int() etc.)
-
-# SV *
-# convert(a,datatype)
-#    pdl*	a
-#    int	datatype
-#    CODE:
-#     pdl* b;
-#     pdl_make_physical(a);
-#     RETVAL = pdl_copy(a,""); /* Init value to return */
-#     b = SvPDLV(RETVAL);      /* Map */
-#     pdl_converttype( &b, datatype, PDL_PERM );
-#     PDLDEBUG_f(printf("converted %d, %d, %d, %d\n",a, b, a->datatype, b->datatype));
-
-#     OUTPUT:
-#      RETVAL
-
 
 # Call my howbig function
 
