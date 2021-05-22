@@ -1066,13 +1066,8 @@ sub Cassgn {
 use overload
    (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 ==+Ceq .=-Cassgn)),
    (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt)),
-    "<" => sub { confess "Can't compare complex numbers" },
-    "<=" => sub { confess "Can't compare complex numbers" },
-    ">=" => sub { confess "Can't compare complex numbers" },
-    ">" => sub { confess "Can't compare complex numbers" },
-    "!=" => sub { !($_[0] == $_[1]) },
-   '++' => sub { $_[0] += 1 },
-   '--' => sub { $_[0] -= 1 },
+   (map +($_ => sub { confess "Can't compare complex numbers" }), qw(< > <= >=)),
+   "!=" => sub { !($_[0] == $_[1]) },
    '""' => sub { PDL::Ops::czip(map $_[0]->slice("($_)"), 0..1)->string },
 ;
 

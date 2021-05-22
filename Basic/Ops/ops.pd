@@ -685,6 +685,8 @@ sub warn_non_numeric_op_wrapper {
         unless $_[0]->nelem == 1;
       $_[0]->clump(-1)->at(0);
     },
+    '++' => sub { $_[0] += 1 },
+    '--' => sub { $_[0] -= 1 },
   ;
 }
 EOF
