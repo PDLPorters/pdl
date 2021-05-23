@@ -1,3 +1,4 @@
+2.048 2021-05-24
 - remove obsolete and inaccurate doc relating bad values to NaN
 - parse simple complex-number strings
 - SvPDLV gives more comprehensible error if given a hash without "PDL" key
