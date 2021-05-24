@@ -319,6 +319,26 @@ EOH
 
 pp_addpm <<'EOP';
 
+=head2 from_native
+
+=for ref
+
+Class method to convert a native-complex ndarray to a PDL::Complex object.
+
+=for usage
+
+ PDL::Complex->from_native($native_complex_ndarray)
+
+=cut
+
+sub from_native {
+  my ($class, $ndarray) = @_;
+  return $ndarray if UNIVERSAL::isa($ndarray,'PDL::Complex'); # NOOP if P:C
+  croak "not an ndarray" if !UNIVERSAL::isa($ndarray,'PDL');
+  croak "not a native complex ndarray" if $ndarray->type->real;
+  bless PDL::append($ndarray->re->dummy(0),$ndarray->im->dummy(0)), $class;
+}
+
 =head2 cplx
 
 =for ref

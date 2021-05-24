@@ -1,3 +1,5 @@
+- PDL::Complex->from_native
+
 2.048 2021-05-24
 - remove obsolete and inaccurate doc relating bad values to NaN
 - parse simple complex-number strings
