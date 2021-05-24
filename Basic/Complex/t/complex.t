@@ -53,6 +53,8 @@ $x = pdl('[1+2i 3+4i]');
 $y = eval { PDL::Complex->from_native($x) };
 $ref = pdl([1, 2], [3, 4]);
 ok(tapprox($y->real,$ref), 'from_native works') or diag "x=$x, from_native=", $x->real, "\nexpected: $ref";
+is $y->as_native.'', $x.'', 'as_native';
+is($y->as_native->type, 'cdouble', 'as_native right type');
 
 $ref = pdl([[-2,1],[-3,1]]);
 $x = i() - pdl(2,3);

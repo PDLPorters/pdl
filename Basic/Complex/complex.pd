@@ -339,6 +339,22 @@ sub from_native {
   bless PDL::append($ndarray->re->dummy(0),$ndarray->im->dummy(0)), $class;
 }
 
+=head2 as_native
+
+=for ref
+
+Object method to convert a PDL::Complex object to a native-complex ndarray.
+
+=for usage
+
+ $pdl_complex_obj->as_native
+
+=cut
+
+sub as_native {
+  PDL::Ops::czip(map $_[0]->slice("($_)"), 0..1);
+}
+
 =head2 cplx
 
 =for ref
@@ -1099,7 +1115,7 @@ use overload
    (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt)),
    (map +($_ => sub { confess "Can't compare complex numbers" }), qw(< > <= >=)),
    "!=" => sub { !($_[0] == $_[1]) },
-   '""' => sub { PDL::Ops::czip(map $_[0]->slice("($_)"), 0..1)->string },
+   '""' => sub { $_[0]->as_native->string },
 ;
 
 sub sum {
