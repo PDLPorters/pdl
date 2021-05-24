@@ -15,6 +15,9 @@ pp_beginwrap; # required for overload to work
 pp_bless('PDL::Complex');
 
 pp_addpm {At => 'Top'}, <<'EOD';
+use strict;
+use warnings;
+use Carp;
 our $VERSION = '2.009';
    use PDL::Slices;
    use PDL::Types;
@@ -229,8 +232,11 @@ Comparing complex numbers other than for equality is a fatal error.
 
 my $i;
 BEGIN { $i = bless pdl 0,1 }
-undef *PDL::i;
+undef &PDL::i;
+{
+no warnings 'redefine';
 sub i { $i->copy + (@_ ? $_[0] : 0) };
+}
 EOD
 
 for (qw(Ctan Catan re im i cplx real)) {
@@ -358,7 +364,6 @@ result if you don't want this.
 
 =cut
 
-use Carp;
 sub cplx($) {
    return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just ndarray
    croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
@@ -386,8 +391,9 @@ pp_def 'r2C',
        Doc => 'convert real to complex, assuming an imaginary part of zero',
        PMCode => << 'EOPM',
 
+undef &PDL::r2C;
 *PDL::r2C = \&PDL::Complex::r2C;
-sub PDL::Complex::r2C($) {
+sub PDL::Complex::r2C {
   return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex');
   my $r = __PACKAGE__->initialize;
   &PDL::Complex::_r2C_int($_[0], $r);
@@ -403,7 +409,7 @@ EOPM
 pp_def 'i2C',
        Pars => 'r(); [o]c(m=2)',
        Doc => 'convert imaginary to complex, assuming a real part of zero',
-       PMCode => '*PDL::i2C = \&PDL::Complex::i2C; sub PDL::Complex::i2C($) { my $r = __PACKAGE__->initialize; &PDL::Complex::_i2C_int($_[0], $r); $r }',
+       PMCode => 'undef &PDL::i2C; *PDL::i2C = \&PDL::Complex::i2C; sub PDL::Complex::i2C { my $r = __PACKAGE__->initialize; &PDL::Complex::_i2C_int($_[0], $r); $r }',
        Code => q!
           $c(m=>0) = 0;
           $c(m=>1) = $r();
@@ -959,12 +965,15 @@ imaginary parts are returned as ndarrays (ref eq PDL).
 sub re($) { $_[0]->slice("(0)") }
 sub im($) { $_[0]->slice("(1)") }
 
+{
+no warnings 'redefine';
 # if the argument does anything other than pass through 0-th dim, re-bless
 sub slice (;@) :lvalue {
   my $first = ref $_[1] ? $_[1][0] : (split ',', $_[1])[0];
-  my $class = $first =~ /^[:x]?$/i ? ref($_[0]) : 'PDL';
+  my $class = ($first//'') =~ /^[:x]?$/i ? ref($_[0]) : 'PDL';
   my $ret = bless $_[0]->SUPER::slice(@_[1..$#_]), $class;
   $ret;
+}
 }
 
 EOD
@@ -1028,6 +1037,7 @@ in "perldoc overload".
 
 =cut
 
+my %NO_MUTATE; BEGIN { @NO_MUTATE{qw(atan2 .= ==)} = (); }
 sub _gen_biop {
    local $_ = shift;
    my $sub;
@@ -1039,12 +1049,13 @@ sub _gen_biop {
    } else {
       die;
    }
-   if($1 eq "atan2") { return ($1, $sub) }
+   return ($1, $sub) if exists $NO_MUTATE{$1};
    ($1, $sub, "$1=", $sub);
 }
 
 sub _gen_unop {
    my ($op, $func) = ($_[0] =~ /(.+)@(\w+)/);
+   no strict 'refs';
    *$op = \&$func if $op =~ /\w+/; # create an alias
    ($op, eval 'sub { '.$func.' $_[0] }');
 }
