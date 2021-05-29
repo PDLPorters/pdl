@@ -113,12 +113,18 @@ jobs:
         if: matrix.eumm-blead
         run: cpanm -n --dev ExtUtils::MakeMaker || cat ~/.cpanm/build.log
 
-      - name: Ubuntu packages
+      - name: Ubuntu packages main
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get -y update && sudo apt-get install build-essential libx11-dev libgd-dev libhdf4-alt-dev libproj-dev proj-bin libcfitsio-dev libreadline-dev pgplot5 libvpx-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev libgsl0-dev libnetpbm10-dev
-      - name: Extra optionals deps
+        run: sudo apt-get -y update && sudo apt-get install build-essential libgd-dev libhdf4-alt-dev libproj-dev proj-bin libcfitsio-dev libreadline-dev pgplot5 libvpx-dev libgsl0-dev libnetpbm10-dev
+      - name: Extra optionals deps main
         if: matrix.os == 'ubuntu-latest'
-        run: cpanm -n Term::ReadLine::Gnu PGPLOT Alien::HDF4 Alien::Proj4 OpenGL Inline::C || cat ~/.cpanm/build.log
+        run: cpanm -n Term::ReadLine::Gnu PGPLOT Alien::HDF4 Alien::Proj4 Inline::C || cat ~/.cpanm/build.log
+      - name: Ubuntu packages OpenGL
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install libx11-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev
+      - name: Extra optionals deps OpenGL
+        if: matrix.os == 'ubuntu-latest'
+        run: cpanm -n OpenGL || cat ~/.cpanm/build.log
       - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib && cpanm -n --installdeps . || cat ~/.cpanm/build.log
       - name: Run release tests # before others as may install useful stuff
         if: ${{ matrix.release-test }}
