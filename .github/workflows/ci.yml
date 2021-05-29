@@ -124,7 +124,7 @@ jobs:
         run: sudo apt-get install libx11-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev
       - name: Extra optionals deps OpenGL
         if: matrix.os == 'ubuntu-latest'
-        run: cpanm -n OpenGL || cat ~/.cpanm/build.log
+        run: xvfb-run cpanm -n OpenGL || cat ~/.cpanm/build.log
       - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib && cpanm -n --installdeps . || cat ~/.cpanm/build.log
       - name: Run release tests # before others as may install useful stuff
         if: ${{ matrix.release-test }}
