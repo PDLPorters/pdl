@@ -8,11 +8,29 @@ use PDL::MatrixOps;
 
 sub tapprox {
 	my($pa,$pb,$tol) = @_;
-	$tol = 1e-14 unless defined $tol;
+	$tol //= 1e-14;
 	all approx $pa, $pb, $tol;
 }
 
-my $tol = 1e-14;
+my $tol = 1e-6;
+
+sub check_inplace {
+  my ($in, $cb, $expected, $label) = @_;
+  local $Test::Builder::Level = $Test::Builder::Level + 1;
+  my @expected_dims = $expected->dims;
+  for my $inplace (0, 1) {
+    my $in_copy = $in->copy;
+    my $got;
+    $inplace
+      ? lives_ok { $cb->($in_copy->inplace); $got = $in_copy->copy } "$label inplace=$inplace runs"
+      : lives_ok { $got = $cb->($in_copy) } "$label inplace=$inplace runs";
+    my @got_dims = $got->dims;
+    is_deeply \@got_dims, \@expected_dims, "got and expected same shape"
+      or diag 'got: ', explain \@got_dims, 'expected: ', explain \@expected_dims;
+    ok tapprox($got, $expected, $tol), "$label inplace=$inplace"
+      or diag "got:$got\nexpected:$expected";
+  }
+}
 
 {
 ### Check LU decomposition of a simple matrix
@@ -45,22 +63,24 @@ ok($lu->flat->abs->at(-1) < $tol, "lu_decomp singular matrix small value");
 ### Check inversion -- this also checks lu_backsub
 my $pa = pdl([1,2,3],[4,5,6],[7,1,1]);
 my $opt ={s=>1,lu=>\my @a};
-my $a1 = inv($pa, $opt);
-ok(defined $a1, "3x3 inverse: defined");
+my $inv_expected = pdl <<'EOF';
+[
+ [ 0.055555556 -0.055555556   0.16666667]
+ [  -2.1111111    1.1111111  -0.33333333]
+ [   1.7222222  -0.72222222   0.16666667]
+]
+EOF
+check_inplace($pa, sub { inv($_[0], $opt) }, $inv_expected, "inv 3x3");
 ok(ref ($opt->{lu}->[0]) eq 'PDL',"inverse: lu_decomp first entry is an ndarray");
-ok(tapprox(matmult($a1,$pa),identity(3),$tol),"matrix mult by its inverse gives identity matrix");
+ok(tapprox(matmult($inv_expected,$pa),identity(3),$tol),"matrix mult by its inverse gives identity matrix");
 }
 
 {
 ### Check inv() with added thread dims (simple check)
 my $C22 = pdl([5,5],[5,7.5]);
-my $C22inv;
-lives_ok { $C22inv = $C22->inv } "2x2 inv ran OK";
-ok(tapprox($C22inv,pdl([0.6, -0.4], [-0.4, 0.4])), "2x2 inv gave correct answer");
-my $C222 = $C22->dummy(2,2);
-my $C222inv;
-lives_ok { $C222inv = $C222->inv } "2x2 w/ dummy dims ran OK";
-ok(tapprox($C222inv,pdl([0.6, -0.4], [-0.4, 0.4])->dummy(2,2)), "2x2 w/ dummy dims correct answer");
+my $inv_expected = pdl([0.6, -0.4], [-0.4, 0.4]);
+check_inplace($C22, sub { $_[0]->inv }, $inv_expected, "inv 2x2");
+check_inplace($C22->dummy(2,2), sub { $_[0]->inv }, $inv_expected->dummy(2,2), "inv 2x2 extra dim");
 }
 
 {
@@ -102,13 +122,14 @@ lives_ok { ($lu,$perm,$par) = lu_decomp($pa) } "lu_decomp 2x2 ran OK";
 ok($par==1, "lu_decomp 2x2 correct parity");
 ok(all($perm == pdl(0,1)), "lu_decomp 2x2 correct permutation");
 my $bb = pdl([1,0], [3, 4]);
-my $xx;
-lives_ok { $xx = lu_backsub($lu,$perm,$bb) } "lu_backsub ran OK";
-my $xx_shape = pdl($xx->dims);
-my $bb_shape = pdl($bb->dims);
-ok(all($xx_shape == $bb_shape), "lu_backsub solution and input have same shape");
-ok(tapprox($xx->slice(',(0)'),pdl([-1, 1]),$tol), "lu_backsub LU=A (after depermutation)") or diag "got: $xx";
-my $got = $pa x $xx->transpose;
+my $xx_expected = pdl <<'EOF';
+[
+ [-1  1]
+ [ 5 -1]
+]
+EOF
+check_inplace($bb, sub { lu_backsub($lu,$perm,$_[0]) }, $xx_expected, "lu_backsub");
+my $got = $pa x $xx_expected->transpose;
 ok(tapprox($got,$bb->transpose,$tol), "A x actually == B") or diag "got: $got";
 }
 

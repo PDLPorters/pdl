@@ -927,7 +927,7 @@ sub lu_decomp {
       $parity = $in->((0),(0))->ones;
    }
 
-   my($scales) = $in->abs->maximum; # elementwise by rows
+   my($scales) = $in->copy->abs->maximum; # elementwise by rows
 
    if(($scales==0)->sum) {
       return undef;
