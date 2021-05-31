@@ -141,10 +141,6 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     STRLEN   nbytes;
     int   diffsize;
     PDL_Indx   i;
-#if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
-    dXSARGS;
-#endif
-
     PDLDEBUG_f(printf("pdl_converttype %p, %d, %d, %d\n", (void*)a, a->datatype,
     	targtype, changePerl);)
 
