@@ -1432,20 +1432,6 @@ Convert a symmetric square matrix to triangular vector storage.
 
 pp_addpm({At=>'Bot'},<<'EOD');
 
-sub eigen_c {
-	print STDERR "eigen_c is no longer part of PDL::MatrixOps or PDL::Math; use eigens instead.\n";
-
-##	my($mat) = @_;
-##	my $s = $mat->getdim(0);
-##	my $z = zeroes($s * ($s+1) / 2);
-##	my $ev = zeroes($s);
-##	squaretotri($mat,$z);
-##	my $k = 0 * $mat;
-##	PDL::eigens($z, $k, $ev);
-##	return ($ev, $k);
-}
-
-
 =head1 AUTHOR
 
 Copyright (C) 2002 Craig DeForest (deforest@boulder.swri.edu),
