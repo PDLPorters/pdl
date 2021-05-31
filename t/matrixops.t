@@ -46,10 +46,9 @@ ok($lu->flat->abs->at(-1) < $tol, "lu_decomp singular matrix small value");
 my $pa = pdl([1,2,3],[4,5,6],[7,1,1]);
 my $opt ={s=>1,lu=>\my @a};
 my $a1 = inv($pa, $opt);
-my $identity = zeroes(3,3); (my $tmp = $identity->diagonal(0,1))++;
 ok(defined $a1, "3x3 inverse: defined");
 ok(ref ($opt->{lu}->[0]) eq 'PDL',"inverse: lu_decomp first entry is an ndarray");
-ok(tapprox(matmult($a1,$pa),$identity,$tol),"matrix mult by its inverse gives identity matrix");
+ok(tapprox(matmult($a1,$pa),identity(3),$tol),"matrix mult by its inverse gives identity matrix");
 }
 
 {
@@ -92,8 +91,7 @@ my $a334 = pdl <<'EOF';
 EOF
 my $a334inv;
 lives_ok { $a334inv = $a334->inv } "3x3x4 inv ran OK";
-my $identity = zeroes(3,3); (my $tmp = $identity->diagonal(0,1))++;
-ok(tapprox(matmult($a334,$a334inv),$identity->dummy(2,4)), "3x3x4 inv gave correct answer");
+ok(tapprox(matmult($a334,$a334inv),identity(3)->dummy(2,4)), "3x3x4 inv gave correct answer");
 }
 
 {
