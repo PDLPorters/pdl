@@ -130,21 +130,22 @@ pp_addpm(<<'EOD');
 
 Return an identity matrix of the specified size.  If you hand in a
 scalar, its value is the size of the identity matrix; if you hand in a
-dimensioned PDL, the 0th dimension is the size of the matrix.
+dimensioned PDL, the 0th dimension is the first two dimensions of the
+matrix, with higher dimensions preserved.
 
 =cut
 
 sub identity {
   my $n = shift;
-  my $out = ((UNIVERSAL::isa($n,'PDL')) ? 
-	  (  ($n->getndims > 0) ? 
-	     zeroes($n->dim(0),$n->dim(0)) : 
-	     zeroes($n->at(0),$n->at(0))
-	  ) :
-	  zeroes($n,$n)
-	  );
-  my $tmp; # work around perl -d "feature"
-  ($tmp = $out->diagonal(0,1))++;
+  my $out =
+    !UNIVERSAL::isa($n,'PDL') ? zeroes($n,$n) :
+    $n->getndims == 0 ? zeroes($n->at(0),$n->at(0)) :
+    undef;
+  if (!defined $out) {
+    my @dims = $n->dims;
+    $out = zeroes(@dims[0, 0, 2..$#dims]);
+  }
+  (my $tmp = $out->diagonal(0,1))++; # work around perl -d "feature"
   $out;
 }
 EOD
@@ -269,9 +270,7 @@ sub inv {
     barf("PDL::inv: got a singular matrix or LU decomposition\n");
   }
 
-  my $idenA = $x->zeros;
-  $idenA->diagonal(0,1) .= 1;
-  my $out = lu_backsub($lu,$perm,$par,$idenA)->transpose->sever;
+  my $out = lu_backsub($lu,$perm,$par,identity($x))->transpose->sever;
 
   return $out
     unless($x->is_inplace);

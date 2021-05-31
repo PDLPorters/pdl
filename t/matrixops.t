@@ -145,6 +145,10 @@ ok(all($det == pdl([48,1],[-1,-216])), "threaded determinant");
 {
 ### Check identity and stretcher matrices...
 ok((identity(2)->flat == pdl(1,0,0,1))->all, "identity matrix");
+ok((identity(pdl 2)->flat == pdl(1,0,0,1))->all, "identity matrix with scalar ndarray");
+ok((identity(zeroes 2, 3)->flat == pdl(1,0,0,1))->all, "identity matrix with dimensioned ndarray");
+my @deep_identity_dims = identity(zeroes 2, 3, 4)->dims;
+is_deeply \@deep_identity_dims, [2, 2, 4], "identity matrix with multi-dimensioned ndarray" or diag 'got: ', explain \@deep_identity_dims;
 ok((stretcher(pdl(2,3))->flat == pdl(2,0,0,3))->all, "stretcher 2x2");
 ok((stretcher(pdl([2,3],[3,4]))->flat == pdl(2,0,0,3,3,0,0,4))->all, "stretcher 2x2x2");
 }
