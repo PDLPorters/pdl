@@ -328,4 +328,16 @@ ok( all approx($pz,$pb * 3));
 }
 }
 
+{
+# test inspired by Luis Mochan
+my $A = sequence(2, 2) + 1;
+my $A1 = $A->slice(',1:0'); # interchange two rows
+my $B = pdl(1,1);
+my $x_expected = pdl([[-1, 1]]);
+check_inplace($B, sub { lu_backsub($A->lu_decomp, $_[0]) }, $x_expected, "lu_backsub dims");
+check_inplace($B, sub { lu_backsub($A1->lu_decomp, $_[0]) }, $x_expected, "lu_backsub dims 2");
+my $got = $A x $x_expected->transpose;
+ok(tapprox($got,$B->transpose,$tol), "A x actually == B") or diag "got: $got";
+}
+
 done_testing;

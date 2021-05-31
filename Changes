@@ -3,6 +3,7 @@
 - MatrixOps::identity now preserves higher dims on multi-dim input
 - copy now copies ndarray and leaves original ndarray's inplace alone
 - MatrixOps::lu_decomp now preserves inplace flag on input
+- MatrixOps::lu_backsub now gets output dims right including inplace - thanks @wlmb for report
 
 2.048 2021-05-24
 - remove obsolete and inaccurate doc relating bad values to NaN
