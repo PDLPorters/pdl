@@ -2073,7 +2073,7 @@ accept. The meaning of each type is:
  C - complex double
 
 This is very useful (and important!) when interfacing an external library.
-Default: [qw/B S U L N Q F D C G/]
+Default: [qw/B S U L N Q F D/]
 
 =item Inplace
 
