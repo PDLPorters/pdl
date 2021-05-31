@@ -1,6 +1,7 @@
 - PDL::Complex->from_native / as_native
 - zap obsolete MatrixOps::eigen_c
 - MatrixOps::identity now preserves higher dims on multi-dim input
+- copy now copies ndarray and leaves original ndarray's inplace alone
 
 2.048 2021-05-24
 - remove obsolete and inaccurate doc relating bad values to NaN

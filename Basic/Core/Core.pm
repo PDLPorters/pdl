@@ -1225,23 +1225,11 @@ copies to be made.
 
 =cut
 
-# Inheritable copy method
-#
-# XXX Must be fixed
-# Inplace is handled by the op currently.
-
 sub PDL::copy {
     my $value = shift;
     barf("Argument is an ".ref($value)." not an object") unless blessed($value);
-    my $option  = shift;
-    $option = "" if !defined $option;
-    if ($value->is_inplace) {   # Copy protection
-       $value->set_inplace(0);
-       return $value;
-    }
     # threadI(-1,[]) is just an identity vafftrans with threadId copying ;)
-    my $new = $value->threadI(-1,[])->sever;
-    return $new;
+    $value->threadI(-1,[])->sever;
 }
 
 =head2 hdr_copy

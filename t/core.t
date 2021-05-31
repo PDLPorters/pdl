@@ -215,10 +215,20 @@ is($c2->type,'float','concatentating different datatypes returns the highest typ
 my $i=0;
 map{ ok(all($_==$list[$i]),"cat/dog symmetry for values ($i)"); $i++; }$c2->dog;
 
-# new_or_inplace
 $x = sequence(byte,5);
 
+$x->inplace;
+ok($x->is_inplace,"original item inplace-d true inplace flag");
+$y = $x->copy;
+ok($x->is_inplace,"original item true inplace flag after copy");
+ok(!$y->is_inplace,"copy has false inplace flag");
+$y++;
+ok(all($y!=sequence(byte,5)),"copy returns severed copy of the original thing if inplace is set");
+ok($x->is_inplace,"original item still true inplace flag");
+ok(!$y->is_inplace,"copy still false inplace flag");
+ok(all($x==sequence(byte,5)),"copy really is severed");
 
+# new_or_inplace
 $y = $x->new_or_inplace;
 ok( all($y==$x) && ($y->get_datatype ==  $x->get_datatype), "new_or_inplace with no pref returns something like the orig.");
 
