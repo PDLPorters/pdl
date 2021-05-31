@@ -279,7 +279,7 @@ sub calc_lnvalue ($$$) {
 sub calc_lccovariance {
 	my($this,$vec,$var) = @_;
 	my $tmp = PDL->null;
-	inner2t($vec->xchg(0,1)->thread(3..$#{$this->{NFuncs}}+3),
+	inner2t($vec->transpose->thread(3..$#{$this->{NFuncs}}+3),
 	    	 $this->{CV}->thread(2..$#{$this->{NFuncs}}+2),
 		$vec->thread(3..$#{$this->{NFuncs}}+3),
 		$tmp,
@@ -310,7 +310,7 @@ sub calc_qavg {
 	my $tmp2 = PDL->zeroes(@{$this->{NDims}},@{$this->{NDims}},
 		@cdims, @{$this->{NFuncs}});
 	PDL::Primitive::inner2t(
-			$this->{EigVec}->xchg(0,1),
+			$this->{EigVec}->transpose,
 			$terms->thread(@cids),
 			$this->{EigVec},
 			$tmp1,

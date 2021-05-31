@@ -129,7 +129,7 @@ sub PDL::lmfit {
     $chisq = ($y-$ym)*($y-$ym);
     $chisq *= $isig2;
     $chisq = $chisq->sumover;                   # calculate chi^2
-    $dyda->xchg(0,1)->outer($dyda->xchg(0,1),$alv->mv(0,2));
+    $dyda->transpose->outer($dyda->transpose,$alv->mv(0,2));
     $alv *= $isig2;
     $alv->sumover($al);                         # calculate alpha
     (($y-$ym)*$isig2*$dyda)->sumover($bet);     # calculate beta

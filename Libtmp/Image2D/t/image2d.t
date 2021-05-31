@@ -206,7 +206,7 @@ my $im = zeros(5,5);
 my $im2 = zeroes(5,5);
 my $x = $im->xvals;
 my $y = $im->yvals;
-my $ps = $px->cat($py)->xchg(0,1);
+my $ps = $px->cat($py)->transpose;
 my $im_mask = pnpoly($x,$y,$px,$py);
 ok(sum($im_mask) == 5, "pnpoly old style, 5 pixels inside");
 my $inpixels = pdl q[ 1 1 ; 1 2 ; 1 3 ; 2 1 ; 2 2 ];

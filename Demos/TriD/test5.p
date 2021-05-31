@@ -23,7 +23,7 @@ $g->bind_default("pts");
 
 $y = PDL->zeroes(3,30,30);
 axisvalues($b->slice("(0)"));
-axisvalues($b->slice("(1)")->xchg(0,1));
+axisvalues($b->slice("(1)")->transpose);
 
 $y /= 30;
 

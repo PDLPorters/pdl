@@ -42,7 +42,7 @@ sub new($$) {
 sub predict($$) {
 	my($this,$data) = @_;
 	my $ldata = $data->lags(0,1,$this->{Weights}->getdim(0));
-	inner($ldata->xchg(0,1),$this->{Weights},
+	inner($ldata->transpose,$this->{Weights},
 		(my $pred = PDL->null));
 	return wantarray ?  ($pred,$ldata->slice(":,($this->{Point})")) :
 		$pred ;

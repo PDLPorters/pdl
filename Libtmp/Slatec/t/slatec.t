@@ -28,7 +28,7 @@ $mat = pdl [2,3],[4,5];
 
 $inv = matinv($mat);
 
-inner($mat->dummy(2),$inv->xchg(0,1)->dummy(1),($uni=null));
+inner($mat->dummy(2),$inv->transpose->dummy(1),($uni=null));
 
 ## print STDERR $mat;
 ## print STDERR $inv;
@@ -261,8 +261,8 @@ my $A = identity(4) + ones(4, 4);
 $A->slice('2,0') .= 0; # break symmetry to see if need transpose
 my $B = sequence(2, 4);
 gefa(my $lu=$A->copy, my $ipiv=null, my $info=null);
-gesl($lu, $ipiv, my $x=$B->xchg(0,1)->copy, 1); # 1 = do transpose - why needed!??
-$x = $x->inplace->xchg(0,1);
+gesl($lu, $ipiv, my $x=$B->transpose->copy, 1); # 1 = do transpose because Fortran
+$x = $x->inplace->transpose;
 my $got = $A x $x;
 ok tapprox $got, $B or diag "got: $got";
 

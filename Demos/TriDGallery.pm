@@ -168,8 +168,8 @@ $i=$cz-$cx-$cy;$q=$i*$n;points3d[$y*sin$q,$r*cos$q,$g*sin$q],[$r,$g,$y]}
 actnw q~
 # Fractal mountain range [Tuomas Lukka]
 use PDL;use PDL::Image2D;use PDL::Graphics::TriD; keeptwiddling3d(); $k=ones(5,5) / 25;
-$x=5;$y=ones(1,1)/2;for(1..7){$c=$y->dummy(0,2)->clump(2)->xchg(0,1)->
-dummy(0,2)->clump(2)->xchg(0,1)->copy;$c+=$x*$c->random;$x/=3;
+$x=5;$y=ones(1,1)/2;for(1..7){$c=$y->dummy(0,2)->clump(2)->transpose->
+dummy(0,2)->clump(2)->transpose->copy;$c+=$x*$c->random;$x/=3;
 $y=conv2d($c,$k); imag3d[$y],{Lines => 0}; }
 ~;
 

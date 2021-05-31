@@ -14,8 +14,8 @@ my $A = pdl [
 my $B = sequence(2,4); # column vectors, but must transpose for GSL
 
 LU_decomp(my $lu=$A->copy, my $p=null, my $signum=null);
-LU_solve($lu, $p, $B->xchg(0,1), my $x=null);
-$x = $x->inplace->xchg(0,1);
+LU_solve($lu, $p, $B->transpose, my $x=null);
+$x = $x->inplace->transpose;
 my $got = $A x $x;
 ok all(approx $got, $B) or diag "got:$got\nexpected:$B";
 
@@ -38,8 +38,8 @@ ok($x->approx($r)->all, "tridiag")
 $A = czip($A, 1e-9);
 $B = czip($B, 2);
 LU_decomp($lu=$A->copy, $p=null, $signum=null);
-LU_solve($lu, $p, $B->xchg(0,1), $x=null);
-$x = $x->inplace->xchg(0,1);
+LU_solve($lu, $p, $B->transpose, $x=null);
+$x = $x->inplace->transpose;
 $got = $A x $x;
 ok all(approx $got, $B) or diag "got:$got\nexpected:$B";
 

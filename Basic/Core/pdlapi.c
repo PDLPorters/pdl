@@ -882,7 +882,7 @@ void pdl_make_physical(pdl *it) {
          * called for this ndarray and results in associated memory leaks!
          * On the other hand, if I comment out  !(it->state & PDL_ALLOCATED)
          * then we get errors for cases like 
-         *                  $in = $lut->xchg(0,1)->index($im->dummy(0));
+         *                  $in = $lut->transpose->index($im->dummy(0));
          *                  $in .= pdl -5;
          * Currently ugly fix: detect in initthreadstruct that it has been called before
          * and free all pdl_thread related memory before reallocating

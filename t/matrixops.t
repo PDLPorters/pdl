@@ -92,8 +92,8 @@ my $xx_shape = pdl($xx->dims);
 my $bb_shape = pdl($bb->dims);
 ok(all($xx_shape == $bb_shape), "lu_backsub solution and input have same shape");
 ok(tapprox($xx->slice(',(0)'),pdl([-1, 1]),$tol), "lu_backsub LU=A (after depermutation)") or diag "got: $xx";
-my $got = $pa x $xx->xchg(0,1);
-ok(tapprox($got,$bb->xchg(0,1),$tol), "A x actually == B") or diag "got: $got";
+my $got = $pa x $xx->transpose;
+ok(tapprox($got,$bb->transpose,$tol), "A x actually == B") or diag "got: $got";
 }
 
 {

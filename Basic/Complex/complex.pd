@@ -1127,7 +1127,7 @@ sub sum {
 
 sub sumover{
   my $m = shift;
-  PDL::Ufunc::sumover($m->xchg(0,1));
+  PDL::Ufunc::sumover($m->transpose);
 }
 
 *PDL::Complex::Csumover=\&sumover; # define through alias

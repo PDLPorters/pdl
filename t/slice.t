@@ -148,7 +148,7 @@ ok(tapprox($x->mslice('X',[6,7]),
 
 $lut = pdl [[1,0],[0,1]];
 $im = pdl [1];
-$in = $lut->xchg(0,1)->index($im->dummy(0));
+$in = $lut->transpose->index($im->dummy(0));
 
 is("$in", "
 [

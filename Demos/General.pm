@@ -124,7 +124,7 @@ act q|
 |;
 
 act q|
-	output $y->xchg(0,1);
+	output $y->transpose;
 	output $y->minimum,"\n"; # over first dim.
 	output $y->min,"\n";
 |;

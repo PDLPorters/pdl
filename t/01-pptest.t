@@ -187,8 +187,8 @@ test_foop($x,($y=null));
 ok( tapprox($x,$y) )
   or diag $y;
 
-test_foop($x->xchg(0,1),($y=null));
-ok( tapprox($x->xchg(0,1),$y) )
+test_foop($x->transpose,($y=null));
+ok( tapprox($x->transpose,$y) )
   or diag $y;
 
 my $vaff = $x->dummy(2,3)->xchg(1,2);

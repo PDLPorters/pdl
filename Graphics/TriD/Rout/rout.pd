@@ -289,9 +289,9 @@ sub PDL::Graphics::TriD::Contours::contour_segments {
 			      
 		$this->{ContourSegCnt}[$i] =  $pcnt;
 		$pcnt=$pcnt+1;    
-		$this->{Points} = $this->{Points}->append($segs->slice(":,0:$ncnt,($i)")->xchg(0,1));
+		$this->{Points} = $this->{Points}->append($segs->slice(":,0:$ncnt,($i)")->transpose);
 	}
-	$this->{Points} = $this->{Points}->xchg(0,1);
+	$this->{Points} = $this->{Points}->transpose;
 	
 }
 EOD

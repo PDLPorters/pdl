@@ -101,8 +101,8 @@ sub PDL::fitpoly1d {
       
    my $pow = sequence($order);
    my $M = $x2->dummy(0) ** $pow;
-   my $C = $M->xchg(0,1) x ($M * $wt->dummy(0)) ;
-   my $Y = $M->xchg(0,1) x ($y2->dummy(0) * $wt->dummy(0));
+   my $C = $M->transpose x ($M * $wt->dummy(0)) ;
+   my $Y = $M->transpose x ($y2->dummy(0) * $wt->dummy(0));
 
    # Fitted coefficients vector
 

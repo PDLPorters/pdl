@@ -271,7 +271,7 @@ sub inv {
 
   my $idenA = $x->zeros;
   $idenA->diagonal(0,1) .= 1;
-  my $out = lu_backsub($lu,$perm,$par,$idenA)->xchg(0,1)->sever;
+  my $out = lu_backsub($lu,$perm,$par,$idenA)->transpose->sever;
 
   return $out
     unless($x->is_inplace);
@@ -457,7 +457,7 @@ pp_def("eigens_sym",
       barf "Need real square matrix for eigens_sym" 
             if $#d < 1 or $d[0] != $d[1];
       my ($n) = $d[0];
-      my ($sym) = 0.5*($x + $x->mv(0,1));
+      my ($sym) = 0.5*($x + $x->transpose);
       my ($err) = PDL::max(abs($sym));
       barf "Need symmetric component non-zero for eigens_sym"
           if $err == 0;
@@ -479,7 +479,7 @@ pp_def("eigens_sym",
       
       &PDL::_eigens_sym_int($lt, $ev, $e);
 
-      return $ev->xchg(0,1), $e
+      return $ev->transpose, $e
 	if(wantarray);
       $e;                #just eigenvalues
    }
@@ -489,7 +489,7 @@ pp_def("eigens_sym",
 
 Eigenvalues and -vectors of a symmetric square matrix.  If passed
 an asymmetric matrix, the routine will warn and symmetrize it, by taking
-the average value.  That is, it will solve for 0.5*($a+$a->mv(0,1)).
+the average value.  That is, it will solve for 0.5*($a+$a->transpose).
 
 It\'s threadable, so if C<$a> is 3x3x100, it\'s treated as 100 separate 3x3
 matrices, and both C<$ev> and C<$e> get extra dimensions accordingly.
@@ -618,7 +618,7 @@ pp_def("eigens",
       my $n = $d[0];
       barf "Need real square matrix for eigens" 
             if $#d < 1 or $d[0] != $d[1];
-      my $deviation = PDL::max(abs($x - $x->mv(0,1)))/PDL::max(abs($x));
+      my $deviation = PDL::max(abs($x - $x->transpose))/PDL::max(abs($x));
       if ( $deviation <= 1e-5 ) {
           #taken from eigens_sym code
 
@@ -631,7 +631,7 @@ pp_def("eigens",
       
           &PDL::_eigens_sym_int($lt, $ev, $e);
 
-          return $ev->xchg(0,1), $e   if wantarray;
+          return $ev->transpose, $e   if wantarray;
           return $e;  #just eigenvalues
       }
       else {
@@ -652,7 +652,7 @@ pp_def("eigens",
 
           &PDL::_eigens_int($x->clump(0,1), $ev, $e);
 
-          return $ev->index(0)->xchg(0,1)->sever, $e->index(0)->sever
+          return $ev->index(0)->transpose->sever, $e->index(0)->sever
               if(wantarray);
           return $e->index(0)->sever;  #just eigenvalues
       }
@@ -1158,28 +1158,28 @@ Solve A x = B for matrix A, by back substitution into A's LU decomposition.
 
   # using lu_backsub
   ($lu,$perm,$par) = lu_decomp($A);
-  $x = lu_backsub($lu,$perm,$par, $B->xchg(0,1))->xchg(0,1);
+  $x = lu_backsub($lu,$perm,$par, $B->transpose)->transpose;
 
   # or with Slatec LINPACK
   use PDL::Slatec;
   gefa($lu=$A->copy, $ipiv=null, $info=null);
   # 1 = do transpose because Fortran's idea of rows vs columns
-  gesl($lu, $ipiv, $x=$B->xchg(0,1)->copy, 1);
-  $x = $x->inplace->xchg(0,1);
+  gesl($lu, $ipiv, $x=$B->transpose->copy, 1);
+  $x = $x->inplace->transpose;
 
   # or with LAPACK
   use PDL::LinearAlgebra::Real;
   getrf($lu=$A->copy, $ipiv=null, $info=null);
-  getrs($lu, 1, $x=$B->xchg(0,1)->copy, $ipiv, $info=null); # again, need transpose
-  $x=$x->inplace->xchg(0,1);
+  getrs($lu, 1, $x=$B->transpose->copy, $ipiv, $info=null); # again, need transpose
+  $x=$x->inplace->transpose;
 
   # or with GSL
   use PDL::GSL::LINALG;
   LU_decomp(my $lu=$A->copy, my $p=null, my $signum=null);
   # $B and $x, first dim is because GSL treats as vector, higher dims thread
   # so we transpose in and back out
-  LU_solve($lu, $p, $B->xchg(0,1), my $x=null);
-  $x=$x->inplace->xchg(0,1);
+  LU_solve($lu, $p, $B->transpose, my $x=null);
+  $x=$x->inplace->transpose;
 
   # proof of the pudding is in the eating:
   print $A x $x;

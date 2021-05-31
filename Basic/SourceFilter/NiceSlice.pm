@@ -454,7 +454,7 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
 
   $x(1:4) .= 2;             # concise syntax for ranges
   print $y((0),1:$end);     # use variables in the slice expression
-  $x->xchg(0,1)->(($pos-1)) .= 0; # default method syntax
+  $x->transpose->(($pos-1)) .= 0; # default method syntax
 
   $idx = long 1, 7, 3, 0;   # an ndarray of indices
   $x(-3:2:2,$idx) += 3;     # mix explicit indexing and ranges
@@ -673,7 +673,7 @@ The second syntax that will be recognized is what I called the
 I<default method> syntax. It is the method arrow C<-E<gt>> directly
 followed by an open parenthesis, e.g.
 
-  $x->xchg(0,1)->(($pos)) .= 0;
+  $x->transpose->(($pos)) .= 0;
 
 Note that this conflicts with the use of normal code references, since you
 can write in plain Perl
@@ -704,7 +704,7 @@ The first syntax C<$x(args)> doesn't work with chained method calls. E.g.
 won't work. It can I<only> be used directly following a valid perl variable
 name. Instead, use the I<default method> syntax in such cases:
 
-  $x->xchg(0,1)->(0);
+  $x->transpose->(0);
 
 Similarly, if you have a list of ndarrays C<@pdls>:
 

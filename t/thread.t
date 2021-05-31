@@ -283,7 +283,7 @@ END
 	my $pb = PDL::Core::new_or_inplace($pa);
 #	note "NEW_OR_INPLACE_DONE\n";
 #	$pb->jdump();
-	my $pc = $pb->xchg(0,1);
+	my $pc = $pb->transpose;
 #	$pc->jdump();
 	$pc->make_physical();
 #	$pc->jdump();

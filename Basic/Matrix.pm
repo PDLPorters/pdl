@@ -111,7 +111,7 @@ sub string {
     my ($me,@a) = shift;
     return $me->SUPER::string(@a) unless($me->ndims > 0);
     $me = $me->dummy(1,1) unless($me->ndims > 1);
-    $me->xchg(0,1)->SUPER::string(@a);
+    $me->transpose->SUPER::string(@a);
 }
 
 
@@ -132,11 +132,7 @@ constructs an object of class PDL::Matrix which is an ndarray child class.
 
 sub pdl {
   my $class = shift;
-  my $pdl = $class->SUPER::pdl(@_);
-  if($pdl->ndims > 0) {
-      $pdl = $pdl->dummy(1,1) unless $pdl->ndims > 1;
-      $pdl = $pdl->xchg(0,1);
-  }
+  my $pdl = $class->SUPER::pdl(@_)->transpose;
   bless $pdl, ref $class || $class;
 }
 

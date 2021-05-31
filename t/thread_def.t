@@ -10,7 +10,7 @@ $PDL::debug = $debug;
 
 my $pa = sequence(3,4);
 my $pb = yvals(zeroes(4,3)) + sequence(4);
-my $pc = $pa->xchg(0,1)->slice(':,-1:0');
+my $pc = $pa->transpose->slice(':,-1:0');
 
 # not very useful examples but simple and test the essentials
 thread_define 'tline(a(n);b(n))', over {

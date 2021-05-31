@@ -129,9 +129,9 @@ sub PDL::interlrgb {
     barf "expecting (3,x) input" if ($lut->dims)[0] != 3;
     # do the conversion as an implicitly threaded index lookup
     if ($lut->fflows) {
-      $res = $lut->xchg(0,1)->index($pdl->dummy(0));
+      $res = $lut->transpose->index($pdl->dummy(0));
     } else {
-      $res = $lut->xchg(0,1)->index($pdl->dummy(0))->sever;
+      $res = $lut->transpose->index($pdl->dummy(0))->sever;
     }
     return $res;
 }

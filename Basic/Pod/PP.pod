@@ -262,7 +262,7 @@ of arrays 'in-place'. It will thread automatically - e.g. if
 a 2D array is given it will be called repeatedly for each
 1D row (again check L<PDL::Indexing> for the details of threading).
 And then b() will be a 1D array of sums of each row.
-We could call it with $x->xchg(0,1) to sum the columns instead.
+We could call it with $x->transpose to sum the columns instead.
 And Dataflow tracing etc. will be available.
 
 You can see PP saves the programmer from writing a lot of
@@ -815,7 +815,7 @@ do? From its signature you see that it takes a 2D matrix with equal numbers
 of columns and rows and outputs a matrix of the same size. From a given
 input matrix $a it computes a symmetric output matrix $c (symmetric in
 the matrix sense that A^T = A where ^T means matrix transpose, or in PDL
-parlance $c == $c->xchg(0,1)). It does this by using only the values
+parlance $c == $c->transpose). It does this by using only the values
 on and below the diagonal of $a. In the output matrix $c all values on
 and below the diagonal are the same as those in $a while those above the
 diagonal are a mirror image of those below the diagonal (above and below

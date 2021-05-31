@@ -237,8 +237,8 @@ sub addlabels{
 	 
   }
   if($lp->nelem>0){
-	 $self->{Points} = $self->{Points}->xchg(0,1)
-		->append($lp->reshape(3,$lp->nelem/3)->xchg(0,1))->xchg(0,1);
+	 $self->{Points} = $self->{Points}->transpose
+		->append($lp->reshape(3,$lp->nelem/3)->transpose)->transpose;
 	 $self->{Labels} = [$cnt+1,$cnt+$lp->nelem/3];
 	 $self->{LabelStrings} = $strlist;
 	 $self->{Options}{Font}=$font;

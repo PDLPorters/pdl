@@ -1253,7 +1253,7 @@ sub _rfits_bintable ($$$$) {
 	      }
 
 	      $tmpcol->{data}->hdrcpy(1);
-	      my $td = $tmpcol->{data}->xchg(0,1);
+	      my $td = $tmpcol->{data}->transpose;
 	      $tbl->{$tmpcol->{name}} = $td->reshape($td->dim(0),@tdims);
 	  } else {
 	      print STDERR "rfits: WARNING: invalid TDIM$i field in binary table.  Ignoring.\n";
@@ -1264,7 +1264,7 @@ sub _rfits_bintable ($$$$) {
 	      $tbl->{$tmpcol->{name}} = 
 		  ( ( $tmpcol->{data}->dim(0) == 1 ) 
 		    ? $tmpcol->{data}->slice("(0)") 
-		    : $tmpcol->{data}->xchg(0,1)
+		    : $tmpcol->{data}->transpose
 		  );
 	  }
       }
@@ -1485,7 +1485,7 @@ sub _rfits_unpack_zimage($$$) {
 	if($tbl->{UNCOMPRESSED_DATA}->dim(1) != $tilesize) {
 	    die "rfits: tile size is $tilesize, but uncompressed data rows have size ".$tbl->{UNCOMPRESSED_DATA}->dim(1)."\n";
 	}
-	$tiles->dice_axis(1,$patchup) .= $tbl->{UNCOMPRESSED_DATA}->dice_axis(0,$patchup)->xchg(0,1);
+	$tiles->dice_axis(1,$patchup) .= $tbl->{UNCOMPRESSED_DATA}->dice_axis(0,$patchup)->transpose;
     }
 
     ##########

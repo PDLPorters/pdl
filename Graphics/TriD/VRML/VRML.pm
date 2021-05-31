@@ -198,7 +198,7 @@ sub to_text {
     lines($this->{Points},$cols,$seq,
 	  \$vtxt,\$ctxt,\$vidx,tabs($level+1));
     lines($this->{Points}->xchg(1,2),$cols->xchg(1,2),
-	  $seq->xchg(0,1),undef,\$ctxt,\$vidx,
+	  $seq->transpose,undef,\$ctxt,\$vidx,
 	  tabs($level+1)) if $this->{IsLattice};
     $useidx = 1;
   } elsif ($this->{Title} eq 'IndexedFaceSet') {

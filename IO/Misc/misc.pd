@@ -766,7 +766,7 @@ if ( $options->{VERBOSE} ) {
 # fix 2D pdls to match what wcols generates
 foreach my $col (@ret) {
    next if ref($col) eq "ARRAY";
-   $col = $col->mv(0,1) if $col->ndims == 2;
+   $col = $col->transpose if $col->ndims == 2;
 }
 
 wantarray ? return(@ret) : return $ret[0];

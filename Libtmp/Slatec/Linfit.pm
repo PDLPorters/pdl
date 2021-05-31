@@ -137,9 +137,9 @@ sub PDL::linfit1d {
    
    # Do the fit
       
-   my $M = $fitfuncs->xchg(0,1);
-   my $C = $M->xchg(0,1) x ($M * $wt->dummy(0)) ;
-   my $Y = $M->xchg(0,1) x ($y2->dummy(0) * $wt->dummy(0));
+   my $M = $fitfuncs->transpose;
+   my $C = $M->transpose x ($M * $wt->dummy(0)) ;
+   my $Y = $M->transpose x ($y2->dummy(0) * $wt->dummy(0));
 
    # Fitted coefficients vector
 

@@ -61,7 +61,7 @@ I<any> dimension.
 
 =for example
 
- \$spectrum = $op \$image->xchg(0,1)
+ \$spectrum = $op \$image->transpose
 
 $extras
 
@@ -96,7 +96,7 @@ is the first element of the parameter.
 
 =for example
 
- \$spectrum = $op \$image->xchg(0,1)
+ \$spectrum = $op \$image->transpose
 
 $extras
 
@@ -840,7 +840,7 @@ I<any> dimension.
 
 =for example
 
- $spectrum = pctover $image->xchg(0,1), $p
+ $spectrum = pctover $image->transpose, $p
 
 =cut
 
@@ -884,7 +884,7 @@ I<any> dimension.
 
 =for example
 
- $spectrum = oddpctover $image->xchg(0,1), $p
+ $spectrum = oddpctover $image->transpose, $p
 
 =cut
 

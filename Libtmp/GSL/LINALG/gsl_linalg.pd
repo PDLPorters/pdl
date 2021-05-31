@@ -17,8 +17,8 @@ PDL::GSL::LINALG - PDL interface to linear algebra routines in GSL
   my $B = sequence(2,4); # column vectors
   LU_decomp(my $lu=$A->copy, my $p=null, my $signum=null);
   # transpose so first dim means is vector, higher dims thread
-  LU_solve($lu, $p, $B->xchg(0,1), my $x=null);
-  $x = $x->inplace->xchg(0,1); # now can be matrix-multiplied
+  LU_solve($lu, $p, $B->transpose, my $x=null);
+  $x = $x->inplace->transpose; # now can be matrix-multiplied
 
 =head1 DESCRIPTION
 

@@ -1804,7 +1804,7 @@ sub map {
           my $oc2  = $ocoords->range(
               which(
                   $ocoords->
-                  xchg(0,1)->
+                  transpose->
                   sumover->
                   isfinite
               )

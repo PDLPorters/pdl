@@ -137,7 +137,7 @@ sub _mk_mat {
 	($tmp = $this->{AutoSliceUsed}->slice("-1:$nl"))
 		.= $auc->slice(($n+$nl-1).":$n");
 
-	inner($autocinv->xchg(0,1),$this->{AutoSliceUsed},(my $tdw=PDL->null));
+	inner($autocinv->transpose,$this->{AutoSliceUsed},(my $tdw=PDL->null));
 
 	$this->{AutoCov} = $autocov;
 	$this->{AutoCovInv} = $autocinv;
@@ -152,10 +152,10 @@ sub predict ($$) {
 	my $ldata = $data->lags(0,$this->{LagInterval},$this->{NTotLags}+1);
 	print "PREDICT, weights: $this->{Weights}\n";
 
-	inner($ldata->xchg(0,1)->slice("-$nl:-1"),
+	inner($ldata->transpose->slice("-$nl:-1"),
 	      $this->{Weights}->slice("-$nl:-1"),
 	  (my $pred1=PDL->null));
-	inner($ldata->xchg(0,1)->slice("0:$nl1"),
+	inner($ldata->transpose->slice("0:$nl1"),
 	      $this->{Weights}->slice("0:$nl1"),
 	  (my $pred2=PDL->null));
 
@@ -213,7 +213,7 @@ sub _mk_mat {
 	my $autocinv = inv($autocov);
 
 	$this->{AutoSliceUsed} = $auc->slice("$n:-1");
-	inner($autocinv->xchg(0,1),$this->{AutoSliceUsed},(my $tdw=PDL->null));
+	inner($autocinv->transpose,$this->{AutoSliceUsed},(my $tdw=PDL->null));
 
 	$this->{AutoCov} = $autocov;
 	$this->{AutoCovInv} = $autocinv;
@@ -247,7 +247,7 @@ sub new ($$) {
 		my $ldata = $data->lags(0,$this->{LagInterval},$n);
 # XXX This takes too much space.. define a special function.
 		inner($ldata->slice(":,0"),$ldata, ($atmp=PDL->null));
-		sumover($atmp->xchg(0,1),($auc=PDL->null));
+		sumover($atmp->transpose,($auc=PDL->null));
 		$auc /= $ldata->getdim(0) * $data->getdim(1);
 		$auc -= $da ** 2;
 #		print "AUC: $auc\n";
@@ -277,7 +277,7 @@ sub predict ($$) {
 	my($this,$data) = @_;
 	my $ldata = $data->lags(0,$this->{LagInterval},$this->{NTotLags});
 	print "PREDICT, weights: $this->{Weights}\n";
-	inner($ldata->xchg(0,1)->slice("$this->{LagsBehind}:-1"),
+	inner($ldata->transpose->slice("$this->{LagsBehind}:-1"),
 	      $this->{Weights},
 	  (my $pred=PDL->null));
 	return wantarray ?  ($pred,$ldata->slice(":,(0)")) :

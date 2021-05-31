@@ -36,7 +36,7 @@ if(0) {
 	my $pa0 = zeroes(3,3);
 	#my $pa = $pa0->PDL::Core::new_or_inplace($a0);
 	my $pa = $pa0->copy;
-	my $pb = $pa->xchg(0,1);
+	my $pb = $pa->transpose;
 	note $pa;
 
 	# PDL::Primitive::axisvalues($pb);

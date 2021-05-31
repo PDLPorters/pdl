@@ -9,9 +9,9 @@ PDL::Graphics::TriD -- PDL 3D interface
  # Generate a somewhat interesting sequence of points:
  $t = sequence(100)/10;
  $x = sin($t); $y = cos($t), $z = $t;
- $coords = cat($x, $y, $z)->xchg(0,1);
+ $coords = cat($x, $y, $z)->transpose;
  my $red = cos(2*$t); my $green = sin($t); my $blue = $t;
- $colors = cat($red, $green, $blue)->xchg(0,1);
+ $colors = cat($red, $green, $blue)->transpose;
  
  # After each graph, let the user rotate and
  # wait for him to press 'q', then make new graph
@@ -23,9 +23,9 @@ PDL::Graphics::TriD -- PDL 3D interface
  $surf1 = (rvals(100, 100) / 50)**2 + sin(xvals(100, 100) / 10);
  $surf2 = sqrt(rvals(zeroes(50,50))/2);
  $x = sin($surface); $y = cos($surface), $z = $surface;
- $coords = cat($x, $y, $z)->xchg(0,1);
+ $coords = cat($x, $y, $z)->transpose;
  $red = cos(2*$surface); $green = sin($surface); $blue = $surface;
- $colors = cat($red, $green, $blue)->xchg(0,1);
+ $colors = cat($red, $green, $blue)->transpose;
  imagrgb([$red,$green,$blue]);     # 2-d ndarrays
  lattice3d([$surf1]);
  points3d([$x,$y,$z]);
@@ -225,7 +225,7 @@ meaningful surface (unless you're into fractals, perhaps).
  # the data to look like
  # ((x1, y1, z1), (x2, y2, z2), ...)
  # which is why we have to do the exchange:
- $coords = cat($x, $y, $z)->xchg(0,1);
+ $coords = cat($x, $y, $z)->transpose;
  print "again, with a different coordinate syntax (press q when you're done twiddling)\n";
  line3d $coords;
 
