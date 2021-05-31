@@ -24,8 +24,9 @@ sub check_inplace {
     $inplace
       ? lives_ok { $cb->($in_copy->inplace); $got = $in_copy->copy } "$label inplace=$inplace runs"
       : lives_ok { $got = $cb->($in_copy) } "$label inplace=$inplace runs";
+    fail("got non-PDL ".explain($got)." back"), next if !UNIVERSAL::isa($got, 'PDL');
     my @got_dims = $got->dims;
-    is_deeply \@got_dims, \@expected_dims, "got and expected same shape"
+    is_deeply \@got_dims, \@expected_dims, "got and expected same shape inplace=$inplace"
       or diag 'got: ', explain \@got_dims, 'expected: ', explain \@expected_dims;
     ok tapprox($got, $expected, $tol), "$label inplace=$inplace"
       or diag "got:$got\nexpected:$expected";

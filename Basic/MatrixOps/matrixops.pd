@@ -1290,22 +1290,8 @@ sub lu_backsub {
 THREAD_OK:
 
    # Permute the vector and make a copy if necessary.
-   my $out;
-   # my $nontrivial = ! (($perm==(PDL->xvals($perm->dims)))->all);
-   my $nontrivial = ! (($perm==$perm->xvals)->clump(-1)->andover);
-
-   if($nontrivial) {
-      if($y->is_inplace) {
-         $y .= $y->dummy(1,$y->dim(0))->index($perm->dummy(1,1))->sever;   # TODO: check threading
-         $out = $y;
-      } else {
-         $out = $y->dummy(1,$y->dim(0))->index($perm->dummy(1,1))->sever;  # TODO: check threading
-      }
-   } else {
-      # should check for more matrix dims to thread over
-      # but ignore the issue for now
-      $out = ($y->is_inplace ? $y : $y->copy);
-   }
+   my $out = $y->dummy(1,$y->dim(0))->index($perm->dummy(1));
+   $out = $out->sever if !$y->is_inplace;
    print STDERR "lu_backsub: starting with \$out" . pdl($out->dims) . "\n" if $PDL::debug;
 
    # Make sure threading over lu happens OK...
@@ -1315,7 +1301,6 @@ THREAD_OK:
       do {
          $out = $out->dummy(-1,$lu->dim($out->ndims+1));
       } while($out->ndims < $lu->ndims-1);
-      $out = $out->sever;
    }
 
    ## Do forward substitution into L
@@ -1333,7 +1318,7 @@ THREAD_OK:
    my $ludiag = $lu->diagonal(0,1);
    {
       my $tmp; # work around for perl -d "feature"
-      ($tmp = $out->index($n1)) /= $ludiag->index($n1)->dummy(0,1);        # TODO: check threading
+      ($tmp = $out->index($n1)) /= $ludiag->index($n1)->dummy(0);        # TODO: check threading
    }
 
    for ($row=$n1; $row>0; $row--) {
@@ -1342,9 +1327,13 @@ THREAD_OK:
       ($tmp = $out->index($r1)) -= ($lu->($row:$n1,$r1) *                  # TODO: check thread dims
          $out->($row:$n1)
       )->sumover;
-      ($tmp = $out->index($r1)) /= $ludiag->index($r1)->dummy(0,1);        # TODO: check thread dims
+      ($tmp = $out->index($r1)) /= $ludiag->index($r1)->dummy(0);        # TODO: check thread dims
    }
 
+   if ($y->is_inplace) {
+     $y->setdims([$out->dims]) if !PDL::all($y->shape == $out->shape); # assgn needs same shape
+     $y .= $out;
+   }
    $out;
 }
 
