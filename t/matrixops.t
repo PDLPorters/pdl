@@ -76,9 +76,6 @@ my $a334inv;
 lives_ok { $a334inv = $a334->inv } "3x3x4 inv ran OK";
 my $identity = zeroes(3,3); (my $tmp = $identity->diagonal(0,1))++;
 ok(tapprox(matmult($a334,$a334inv),$identity->dummy(2,4)), "3x3x4 inv gave correct answer");
-undef $a94;       # clean up variables
-undef $a334;      # clean up variables
-undef $a334inv;   # clean up variables
 }
 
 {
@@ -101,8 +98,8 @@ ok(tapprox($got,$bb->xchg(0,1),$tol), "A x actually == B") or diag "got: $got";
 
 {
 ### Check attempted inversion of a singular matrix
-my $b2 = undef; # avoid warning from compiler
 my $pb = pdl([1,2,3],[4,5,6],[7,8,9]);
+my $b2;
 lives_ok { $b2 = inv($pb,{s=>1}) } "inv of singular matrix should not barf if s=>1";
 ok(!defined $b2, "inv of singular matrix undefined if s=>1");
 }
