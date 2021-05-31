@@ -66,12 +66,30 @@ ok(tapprox($C222inv,pdl([0.6, -0.4], [-0.4, 0.4])->dummy(2,2)), "2x2 w/ dummy di
 
 {
 ### Check inv() for matrices with added thread dims (bug #3172882 on sf.net)
-my $a94 = pdl( [  1,  0,  4, -1, -1, -3,  0,  1,  0 ],
-	       [  4, -4, -5,  1, -5, -3, -1, -2,  0 ],
-	       [ -2,  2, -5, -1,  1, -3, -4,  3, -4 ],
-	       [ -1,  4, -4,  2,  1,  3, -3, -4, -3 ],
-	     );
-my $a334 = $a94->reshape(3,3,4);
+my $a334 = pdl <<'EOF';
+[
+ [
+  [ 1  0  4]
+  [-1 -1 -3]
+  [ 0  1  0]
+ ]
+ [
+  [ 4 -4 -5]
+  [ 1 -5 -3]
+  [-1 -2  0]
+ ]
+ [
+  [-2  2 -5]
+  [-1  1 -3]
+  [-4  3 -4]
+ ]
+ [
+  [-1  4 -4]
+  [ 2  1  3]
+  [-3 -4 -3]
+ ]
+]
+EOF
 my $a334inv;
 lives_ok { $a334inv = $a334->inv } "3x3x4 inv ran OK";
 my $identity = zeroes(3,3); (my $tmp = $identity->diagonal(0,1))++;
