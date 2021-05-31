@@ -8,9 +8,9 @@ PDL::Basic -- Basic utility functions for PDL
 This module contains basic utility functions for
 creating and manipulating ndarrays. Most of these functions
 are simplified interfaces to the more flexible functions in
-the modules 
-L<PDL::Primitive> 
-and 
+the modules
+L<PDL::Primitive>
+and
 L<PDL::Slices>.
 
 =head1 SYNOPSIS
@@ -53,7 +53,7 @@ use PDL::Options;
 Fills an ndarray with X index values.  Uses similar specifications to
 L</zeroes> and L</new_from_specification>.
 
-CAVEAT: 
+CAVEAT:
 
 If you use the single argument ndarray form (top row
 in the usage table) the output will have the same type as the input;
@@ -157,7 +157,7 @@ X axis values between endpoints (see L</xvals>).
  $y = $w->ylinvals(-2,-1);
  # calculate Z for X between 0.5 and 1.5 and
  # Y between -2 and -1.
- $z = f($x,$y);            
+ $z = f($x,$y);
 
 C<xlinvals>, C<ylinvals> and C<zlinvals> return an ndarray with the same shape
 as their first argument and linearly scaled values between the two other
@@ -192,7 +192,7 @@ X axis values logarithmically spaced between endpoints (see L</xvals>).
  $y = $w->ylinvals(1e-4,1e3);
  # calculate Z for X between 1e-6 and 1e-3 and
  # Y between 1e-4 and 1e3.
- $z = f($x,$y);            
+ $z = f($x,$y);
 
 C<xlogvals>, C<ylogvals> and C<zlogvals> return an ndarray with the same shape
 as their first argument and logarithmically scaled values between the two other
@@ -325,7 +325,7 @@ dimension index and whose 1st through Nth dimensions are the
 dimensions given in the input.  If you feed in an ndarray instead of a
 perl list, then the dimension list is used, as in L</xvals> etc.
 
-Unlike L</xvals> etc., if you supply an ndarray input, you get 
+Unlike L</xvals> etc., if you supply an ndarray input, you get
 out an ndarray of the default ndarray type: double.   This causes less
 surprises than the previous default of keeping the data type of
 the input ndarray since that rarely made sense in most usages.
@@ -366,19 +366,19 @@ $indices = ndcoords($type,@dimlist);
 
 =cut
 
-sub PDL::ndcoords { 
+sub PDL::ndcoords {
   my $type;
   if(ref $_[0] eq 'PDL::Type') {
     $type = shift;
   }
-  
+
   my @dims = (ref $_[0]) ? (shift)->dims : @_;
   my @d = @dims;
   unshift(@d,scalar(@dims));
   unshift(@d,$type) if defined($type);
 
   $out = PDL->zeroes(@d);
-  
+
   for my $d(0..$#dims) {
     my $w = $out->index($d)->mv($d,0);
     $w .= xvals($w);
@@ -389,7 +389,6 @@ sub PDL::ndcoords {
 *ndcoords = \&PDL::ndcoords;
 *allaxisvals = \&PDL::ndcoords;
 *PDL::allaxisvals = \&PDL::ndcoords;
- 
 
 =head2 hist
 
@@ -410,7 +409,7 @@ or
 If C<hist> is run in list context, C<$xvals> gives the
 computed bin centres as double values.
 
-A nice idiom (with 
+A nice idiom (with
 L<PDL::Graphics::PGPLOT>) is
 
  bin hist $data;  # Plot histogram
@@ -436,7 +435,7 @@ sub PDL::hist {
     my($pdl,$min,$max,$step)=@_;
     my $xvals;
 
-    ($step, $min, $bins, $xvals) = 
+    ($step, $min, $bins, $xvals) =
         _hist_bin_calc($pdl, $min, $max, $step, wantarray());
 
     PDL::Primitive::histogram($pdl->clump(-1),(my $hist = null),
@@ -460,7 +459,7 @@ If requested, C<$xvals> gives the computed bin centres
 as type double values.  C<$data> and C<$wt> should have
 the same dimensionality and extents.
 
-A nice idiom (with 
+A nice idiom (with
 L<PDL::Graphics::PGPLOT>) is
 
  bin whist $data, $wt;  # Plot histogram
@@ -471,7 +470,7 @@ L<PDL::Graphics::PGPLOT>) is
  [13 10 13 10 9 13 9 12 11 10 10 13 7 6 8 10 11 7 12 9 11 11 12 6 12 7]
  pdl> $wt = grandom($y->nelem)
  pdl> $h = whist $y, $wt, 0, 20, 1 # hist with step 1, min 0 and 20 bins
- pdl> p $h                        
+ pdl> p $h
  [0 0 0 0 0 0 -0.49552342  1.7987439 0.39450696  4.0073722 -2.6255299 -2.5084501  2.6458365  4.1671676 0 0 0 0 0 0]
 
 
@@ -483,7 +482,7 @@ sub PDL::whist {
     my($pdl,$wt,$min,$max,$step)=@_;
     my $xvals;
 
-    ($step, $min, $bins, $xvals) = 
+    ($step, $min, $bins, $xvals) =
         _hist_bin_calc($pdl, $min, $max, $step, wantarray());
 
     PDL::Primitive::whistogram($pdl->clump(-1),$wt->clump(-1),
@@ -607,7 +606,7 @@ so now
  distance($w, $centre, \&euclid);
 
 will emulate rvals, while C<\&l1> and C<\&linfty> will generate other
-well-known norms. 
+well-known norms.
 
 =cut
 
@@ -615,7 +614,7 @@ sub rvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->rvals(@_[1..$#_]) :
 sub PDL::rvals { # Return radial distance from given point and offset
     my $class = shift;
     my $opt = pop @_ if ref($_[$#_]) eq "HASH";
-    my %opt = defined $opt ? 
+    my %opt = defined $opt ?
                iparse( {
 			CENTRE  => undef, # needed, otherwise centre/center handling painful
 			Squared => 0,
@@ -653,8 +652,8 @@ This is the routine, for which L</xvals>, L</yvals> etc
 are mere shorthands. C<axisvals> can be used to fill along any dimension,
 using a parameter.
 
-See also L</allaxisvals>, which generates all axis values 
-simultaneously in a form useful for L</range>, L</interpND>, 
+See also L</allaxisvals>, which generates all axis values
+simultaneously in a form useful for L</range>, L</interpND>,
 L</indexND>, etc.
 
 Note the 'from specification' style (see L<zeroes|PDL::Core/zeroes>) is
@@ -735,7 +734,7 @@ sub PDL::similar_assign {
 
 =for ref
 
-transpose rows and columns. 
+transpose rows and columns.
 
 =for usage
 
@@ -748,26 +747,21 @@ transpose rows and columns.
  [
   [0 1 2]
   [3 4 5]
- ]                                                                               
+ ]
  pdl> p transpose( $w )
  [
   [0 3]
   [1 4]
-  [2 5]                                                                          
+  [2 5]
  ]
 
 =cut
 
 sub PDL::transpose {
-	my($this) = @_;
-	if($this->getndims <= 1) {
-	    if($this->getndims==0) {
-		return pdl $this->dummy(0)->dummy(0);
-	    } else {
-		return pdl $this->dummy(0);
-	    }
-	}
-	return $this->xchg(0,1);
+  my ($this) = @_;
+  $this->getndims > 1 ? $this->xchg(0,1) :
+  $this->getndims > 0 ? $this->dummy(0) :
+  $this->dummy(0)->dummy(0);
 }
 
 1;
