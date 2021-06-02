@@ -1,3 +1,5 @@
+- fix pdlperl.h build bug - thanks @jplesnik for report
+
 2.049 2021-05-31
 - PDL::Complex->from_native / as_native
 - zap obsolete MatrixOps::eigen_c
