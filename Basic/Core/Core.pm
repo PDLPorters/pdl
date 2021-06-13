@@ -2827,7 +2827,7 @@ Convert to double datatype
 
 Convert to complex float datatype
 
-=head2 double
+=head2 cdouble
 
 Convert to complex double datatype
 
