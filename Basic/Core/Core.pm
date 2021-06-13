@@ -2849,7 +2849,7 @@ Note that the C<PDL::Type> objects have overloaded comparison and
 stringify operators so that you can compare and print types:
 
  $x = $x->float if $x->type < float;
- $t = $x->type; print "Type is $t\";
+ $t = $x->type; print "Type is $t\n";
 
 =cut
 
@@ -2912,9 +2912,9 @@ Convert ndarray to perl list
  @tmp = list $x;
 
 Obviously this is grossly inefficient for the large datasets PDL is designed to
-handle. This was provided as a get out while PDL matured. It  should now be mostly
+handle. This was provided as a get out while PDL matured. It should now be mostly
 superseded by superior constructs, such as PP/threading. However it is still
-occasionally useful and is provied for backwards compatibility.
+occasionally useful and is provided for backwards compatibility.
 
 =for example
 
