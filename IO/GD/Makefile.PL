@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use Config;
-use Text::ParseWords qw(shellwords);
+use Text::ParseWords qw(shellwords quotewords);
 
 my ($include_path, $lib_path, $linkname);
 my $ppfile = "GD.pd";
@@ -20,13 +20,19 @@ my @lib_locations = (
     '/usr/lib',
     '/usr/local/lib',
     '/lib',
-    shellwords($Config{libpth}),
+    ($^O eq 'MSWin32'
+        ? (split($Config{path_sep}, $ENV{PATH}),
+            (map {s/^-L//;$_} grep /^-L/, map {s/"//g; $_} quotewords('\s+', 1, $Config{ldflags}))
+        )
+        : shellwords($Config{libpth})),
 );
 my @inc_locations = (
     '/usr/include',
     '/usr/local/include',
     $Config{usrinc},
-    (map {s/^-I//;$_} grep /^-I/, shellwords $Config{cppflags}),
+    (map {s/^-I//;$_} grep /^-I/, $^O eq 'MSWin32'
+        ? (map {s/"//g; $_} quotewords('\s+', 1, $Config{cppflags}))
+        : shellwords($Config{cppflags})),
 );
 
 my $msg = "";
