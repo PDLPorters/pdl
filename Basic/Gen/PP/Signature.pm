@@ -45,7 +45,7 @@ the copyright notice should be included in the file.
 =cut
 
 # Eliminate whitespace entries
-sub nospacesplit {map {/^\s*$/?():$_} split $_[0],$_[1]}
+sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub names { $_[0]->{Names} }
 

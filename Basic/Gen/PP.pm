@@ -1648,17 +1648,14 @@ sub ParObjs_DimObjs {
 	return ($dimobjs);
 }
 
-# Eliminate whitespace entries
-sub nospacesplit {map {/^\s*$/?():$_} split $_[0],$_[1]}
-
 sub OtherPars_nft {
     my($otherpars,$dimobjs) = @_;
     my(@names,%types,$type);
     # support 'int ndim => n;' syntax
-    for (nospacesplit ';',$otherpars) {
+    for (PDL::PP::Signature::nospacesplit ';',$otherpars) {
 	if (/^\s*([^=]+)\s*=>\s*(\S+)\s*$/) {
 	    my ($ctype,$dim) = ($1,$2);
-	    $ctype =~ s/(\S+)\s+$/$1/; # get rid of trailing ws
+	    $ctype =~ s/\s+$//; # get rid of trailing ws
 	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
 	    $type = PDL::PP::CType->new(undef,$ctype);
 	    croak "can't set unknown dimension"
