@@ -26,6 +26,7 @@ my @inc_locations = (
     '/usr/include',
     '/usr/local/include',
     $Config{usrinc},
+    (map {s/^-I//;$_} grep /^-I/, shellwords $Config{cppflags}),
 );
 
 my $msg = "";
@@ -120,8 +121,8 @@ my $package = [$ppfile, $lib_name, $package_name];
 my %hash = pdlpp_stdargs($package);
 $hash{VERSION_FROM} = $ppfile;
 $hash{DEFINE} = $PDL::Config{GD_DEFINE};
-$hash{LIBS} = ["-L$lib_path -l$linkname"];
-$hash{INC} = PDL_INCLUDE() . " -I$include_path";
+$hash{LIBS} = [qq{-L"$lib_path" -l$linkname}];
+$hash{INC} = PDL_INCLUDE() . qq{ -I"$include_path"};
 push( @{ $hash{TYPEMAPS} }, 'typemap' );
 
 undef &MY::postamble; # suppress warning

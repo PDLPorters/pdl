@@ -1,3 +1,5 @@
+- also use $Config{cppflags} to find GD includes - thanks @d-lamb for report
+
 2.050 2021-06-02
 - fix pdlperl.h build bug - thanks @jplesnik for report
 
