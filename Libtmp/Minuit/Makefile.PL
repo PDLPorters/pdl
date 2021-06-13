@@ -3,6 +3,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 use ExtUtils::MakeMaker::Config;
 use version;
+use Text::ParseWords qw(shellwords);
 
 # This mess sorts out the Fortran availability
 # Modified from Makefile.PL from Slatec
@@ -93,7 +94,7 @@ if($Config{cc} eq 'cl') {
     my $drive = (split /:/, `gcc -v 2>&1`)[0];
     $drive = substr($drive, -1, 1);
 
-    for(split ' ', ExtUtils::F77->runtime) {
+    for(shellwords ExtUtils::F77->runtime) {
        if($_ =~ /^\-L/) {
          $_ =~ s#^\-L##;
          unless($_ =~ /:/) {$_ = $drive . ':' . $_}

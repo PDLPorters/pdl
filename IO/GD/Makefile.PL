@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use Config;
+use Text::ParseWords qw(shellwords);
 
 my ($include_path, $lib_path, $linkname);
 my $ppfile = "GD.pd";
@@ -19,7 +20,7 @@ my @lib_locations = (
     '/usr/lib',
     '/usr/local/lib',
     '/lib',
-    split(/ /, $Config{libpth}),
+    shellwords($Config{libpth}),
 );
 my @inc_locations = (
     '/usr/include',

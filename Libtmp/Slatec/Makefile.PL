@@ -3,6 +3,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 use Config;
 use version;
+use Text::ParseWords qw(shellwords);
 
 my $msg = "";
 my ($f77);
@@ -59,7 +60,7 @@ if($Config{cc} eq 'cl') {
     my $drive = (split /:/, `gcc -v 2>&1`)[0];
     $drive = substr($drive, -1, 1);
 
-    for(split ' ', ExtUtils::F77->runtime) {
+    for(shellwords ExtUtils::F77->runtime) {
        if($_ =~ /^\-L/) {
          $_ =~ s#^\-L##;
          unless($_ =~ /:/) {$_ = $drive . ':' . $_}
