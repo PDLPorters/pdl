@@ -1,3 +1,5 @@
+- fix IO::Storable bug - thanks @viy2 for report
+
 2.051 2021-06-14
 - also use $Config{cppflags} to find GD includes - thanks @d-lamb for report
 
