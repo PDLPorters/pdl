@@ -1,3 +1,4 @@
+2.052 2021-07-04
 - fix IO::Storable bug - thanks @viy2 for report
 - add PDL::Opt::Simplex example - thanks @ewheelerinc
 - allow POD in pp_line_numbers again - thanks @fantasma13 for report
