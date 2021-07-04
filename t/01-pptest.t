@@ -387,35 +387,28 @@ EOF
 
 do_tests(\%THREADTESTFILES);
 do_tests(\%PPTESTFILES);
-in_dir(
-    sub {
-        hash2files(File::Spec->curdir, \%OTHERPARSFILES);
-        local $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
-        run_ok(qq{"$^X" Makefile.PL});
-        my $cmd = qq{"$Config{make}" test};
-        my $buffer;
-        my $res = run(command => $cmd, buffer => \$buffer);
-        ok !$res, 'Fails to build if invalid';
-        like $buffer, qr/Invalid OtherPars name/, 'Fails if given invalid OtherPars name';
-    },
-);
+do_tests(\%OTHERPARSFILES, qr/Invalid OtherPars name/);
 
 sub do_tests {
-    my ($hash) = @_;
+    my ($hash, $error_re) = @_;
     in_dir(
         sub {
             hash2files(File::Spec->curdir, $hash);
             local $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
             run_ok(qq{"$^X" Makefile.PL});
-            run_ok(qq{"$Config{make}" test});
+            run_ok(qq{"$Config{make}" test}, $error_re);
         },
     );
 }
 
 sub run_ok {
-    my ($cmd) = @_;
-    my $buffer;
-    my $res = run(command => $cmd, buffer => \$buffer);
+    my ($cmd, $error_re) = @_;
+    my $res = run(command => $cmd, buffer => \my $buffer);
+    if ($error_re) {
+        ok !$res, 'Fails to build if invalid';
+        like $buffer, $error_re, 'Fails with expected error';
+        return;
+    }
     if (!$res) {
         ok 0, $cmd;
         diag $buffer;
