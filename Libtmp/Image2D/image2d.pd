@@ -1200,9 +1200,9 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
                    neighbour[nfound++] = $b(m=>i1, n=>j); /* Store label of it */
                if (j>0 && $b(m=>i, n=>j1)>0) /*North*/
                    neighbour[nfound++] = $b(m=>i, n=>j1);
-               if (j>0 && i>0  && $b(m=>i1, n=>j1)>0 && $COMP(con)==8) /*North-West*/
+               if (j>0 && i>0  && $b(m=>i1, n=>j1)>0 && $COMP(con) == 8) /*North-West*/
                    neighbour[nfound++] = $b(m=>i1, n=>j1);
-               if (j>0 && i<(nx-1) && $b(m=>i2, n=>j1)>0 && $COMP(con)==8) /*North-East*/
+               if (j>0 && i<(nx-1) && $b(m=>i2, n=>j1)>0 && $COMP(con) == 8) /*North-East*/
                    neighbour[nfound++] = $b(m=>i2, n=>j1);
 
                if (nfound==0)  { /* Assign new label */

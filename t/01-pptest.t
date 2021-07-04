@@ -151,6 +151,28 @@ pp_deft( 'threadloop_continue',
         ],
        );
 
+# test whitespace problem with POD and pp_addxs
+pp_addxs( '', <<'EOXS' );
+
+int
+just_one()
+     CODE:
+     RETVAL = 1;
+     OUTPUT:
+     RETVAL
+
+=pod
+
+=begin comment
+
+A comment.
+
+=end comment
+
+=cut
+
+EOXS
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline

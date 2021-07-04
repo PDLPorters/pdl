@@ -1023,7 +1023,7 @@ EOD-MakeComp
     /* Cover bizarre case where the source PDL is empty - in that case, change */
     /* all non-barfing boundary conditions to truncation, since we have no data */
     /* to reflect, extend, or mirror. */
-    if($PARENT(dims[0])==0) {
+    if($PARENT(dims[0]) == 0) {
       for(dim=0; dim<$COMP(rdim); dim++) {
         if($COMP(boundary[dim]))
           $COMP(boundary[dim]) = 1; // force truncation
@@ -1405,7 +1405,7 @@ pp_def(
 		 if($COMP(n) < -1)
                         $COMP(n) = $PARENT(ndims) + $COMP(n) + 1;
 
-                 $PRIV(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
+                 $PRIV(nrem) = ($COMP(n) == -1 ? $PARENT(threadids[0]) : $COMP(n));
                  $PRIV(nnew) = $PARENT(ndims) - $PRIV(nrem) + 1;
                  $SETNDIMS($PRIV(nnew));
                  d1=1;
@@ -1782,8 +1782,8 @@ EOD
                 PDL_Indx dumsize;
                 char *s; char *ns;
                 int nums[3]; int nthnum;
-                $COMP(nnew)=0;
-                $COMP(ndum)=0;
+                $COMP(nnew) = 0;
+                $COMP(ndum) = 0;
                 $COMP(nolddims) = 0;
                 if(str[0] == '(')
                         $COMP(nolddims)++;
@@ -1893,7 +1893,7 @@ EOD
                                 if(parentdim >= $PARENT(ndims)) {
 
                                         ok = ( ( $COMP(start[ii]) == 0 ) &&
-                                                ( $COMP(end[ii]) == 0 || $COMP(end[ii])== -1 )
+                                                ( $COMP(end[ii]) == 0 || $COMP(end[ii]) == -1 )
                                         );
                                         if(ok) {
                                                 /* Change this into a dummy dimension, rank 1 */
@@ -3432,7 +3432,7 @@ SLICE-MC
                         start = $COMP(start[i]);
 			end = $COMP(end[i]);
 
-			if( pdsize==0 && start==0 && end==-1 && $COMP(inc[i])==0 ) {
+			if( pdsize==0 && start==0 && end==-1 && $COMP(inc[i]) == 0 ) {
 			  /** Trap special case: full slices of an empty dim are empty **/
 			  $CHILD( dims[ $COMP(odim[i]) ] ) = 0;
                           $PRIV( incs[$COMP(odim[i]) ] ) = 0;

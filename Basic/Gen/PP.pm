@@ -1090,7 +1090,6 @@ sub pp_line_numbers ($$) {
 	# Look for threadloops and loops and add # line directives
 	foreach (split (/\n/, $string)) {
 		# Always add the current line.
-		s/^=/ =/; # so doesn't look like POD
 		push @to_return, "$_\n";
 		# If we need to add a # line directive, do so after incrementing
 		$line++;
