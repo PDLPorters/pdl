@@ -49,7 +49,7 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 
 ################ Exportable functions of the Core ######################
 
-# log10() is now defined in ops.pd
+*at_c = *at_bad_c; # back-compat alias
 
 *howbig       = \&PDL::howbig;	  *unpdl	= \&PDL::unpdl;
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;

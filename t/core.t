@@ -319,6 +319,7 @@ SKIP: {
   is_deeply(longlong($input)->unpdl, $input, 'back convert of 64bit integers');
   my $small_pdl = longlong([ -9000000000000000001, 9000000000000000001 ]);
   is($small_pdl->at(0), -9000000000000000001, 'at/1');
+  is(PDL::Core::at_c($small_pdl, [1]),  9000000000000000001, 'at_c back-compat');
   is(PDL::Core::at_bad_c($small_pdl, [1]),  9000000000000000001, 'at_bad_c/1');
   $small_pdl->set(0, -8888888888888888888);
   PDL::Core::set_c($small_pdl, [1], 8888888888888888888);
