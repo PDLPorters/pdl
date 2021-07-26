@@ -1,3 +1,5 @@
+- work around P:G:Limits::round_pow failing tests with uselongdouble
+
 2.052 2021-07-04
 - fix IO::Storable bug - thanks @viy2 for report
 - add PDL::Opt::Simplex example - thanks @ewheelerinc
