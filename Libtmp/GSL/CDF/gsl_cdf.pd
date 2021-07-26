@@ -1,6 +1,7 @@
-#!/usr/bin/perl
+use strict;
+use warnings;
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 
 $PDL::onlinedoc->scan(__FILE__) if $PDL::onlinedoc;
 
@@ -133,7 +134,7 @@ for my $f (@func_defs) {
   pp_addpm(qq{\n=head2 $desc->[0] (${func_short}_*)\n\n$desc->[1]\n\n=cut\n\n}) if $desc;
   pp_def($function,
     HandleBad => 1,
-    GenericTypes => [D],
+    GenericTypes => ['D'],
     Pars => $p,
     Code => $code,
     BadCode => $badcode,
@@ -150,7 +151,7 @@ sub print_ppdef {
     my ($type, $par) = @$_;
     $pars .= "$type $par(); ";
   }
-  $pars .= "$out [o]out()";
+  $pars .= "$out_type [o]out()";
 
   $code = "\$out() = $function( ";
   $code .= "\$" . $_->[1] . "(), "
@@ -174,7 +175,7 @@ sub print_ppdef {
   return ($pars, $code, $badcode);
 }
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 
