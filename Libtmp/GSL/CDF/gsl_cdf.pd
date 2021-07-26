@@ -3,6 +3,9 @@ use warnings;
 
 pp_addpm({At=>'Top'},<<'EOD');
 
+use strict;
+use warnings;
+
 $PDL::onlinedoc->scan(__FILE__) if $PDL::onlinedoc;
 
 =head1 NAME
