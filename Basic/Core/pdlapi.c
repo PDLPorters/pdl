@@ -48,15 +48,11 @@ pdl *pdl_null() {
 }
 
 pdl *pdl_get_convertedpdl(pdl *old,int type) {
-	if(old->datatype != type) {
-		pdl *it;
-		it = pdl_null();
-		PDL.converttypei_new(old,it,type);
-		if(it->datatype != type) { croak("FOOBAR! HELP!\n"); }
-		return it;
-	} else {
-		return old;
-	}
+	if(old->datatype == type) return old;
+	pdl *it = pdl_null();
+	PDL.converttypei_new(old,it,type);
+	if(it->datatype != type) { croak("FOOBAR! HELP!\n"); }
+	return it;
 }
 
 void pdl_allocdata(pdl *it) {
