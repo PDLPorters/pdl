@@ -2120,11 +2120,15 @@ applies if PDL has been compiled with POSIX threads enabled.
 =cut
 
 # FTypes is specified only in the two internal slice functions
-# converttypei and flowconvert. converttypei is never used anywhere in the
-# core. The related function, converttypei_new, does not appear to ever be
-# defined, but it is named used in converttypei as the GlobalNew, which I
-# presume we'll get to later. At any rate, converttypei appears to be
-# defunct. flowconvert, on the other hand, claims that it 'converts vaffine
+# converttypei and flowconvert.
+
+# converttypei is pp_def-ed in slices.pd, which generates converttypei_NN
+# which is installed as global PDL."converttypei_new" (as that is the
+# "GlobalNew" value in the pp_def) in PDL::Slices's BOOT section.
+# converttypei_new is then used in pdlapi.c's get_convertedpdl which is
+# used in PP::coerce_types if Pars are given type constraints.
+
+# flowconvert, on the other hand, claims that it 'converts vaffine
 # ndarrays without physicalizing them'. However, its only use, in Core.pm,
 # is followed immediately by a "->make_physical->sever", so I don't see the
 # advantage of not making things physical. At any rate, FTypes needs to be
