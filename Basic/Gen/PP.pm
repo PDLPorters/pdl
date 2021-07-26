@@ -2502,7 +2502,7 @@ sub coerce_types {
 	      if $po->{FlagCreat};
 	    $str .= "if($dtype != $_->datatype) {
 	     $_ = PDL->get_convertedpdl($_,$dtype);
-	  }";
+	  }\n";
 	}
     } # foreach: @$parnames
 
