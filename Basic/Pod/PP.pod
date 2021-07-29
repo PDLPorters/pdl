@@ -2136,26 +2136,35 @@ applies if PDL has been compiled with POSIX threads enabled.
 
 =item PMCode
 
-PDL functions allow you to pass in an ndarray into which you want the output
+  pp_def('funcname',
+    Pars => 'a(); [o] b();',
+    PMCode => 'sub PDL::funcname {
+      return PDL::_funcname_int(@_) if @_ == 2; # output arg "b" supplied
+      PDL::_funcname_int(@_, my $out = PDL->null);
+      $out;
+    }',
+    # ...
+  );
+
+PDL functions allow C<[o]> ndarray arguments into which you want the output
 saved. This is handy because you can allocate an output ndarray once and
 reuse it many times; the alternative would be for PDL to create a new ndarray
-each time, which may waste compute cycles or, more likely, RAM. This added
-flexibility comes at the cost of more complexity: PDL::PP has to write
-functions that are smart enough to count the arguments passed to it and
-create new ndarrays on the fly, but only if you want them.
+each time, which may waste compute cycles or, more likely, RAM.
 
-PDL::PP is smart enough to do that, but there are restrictions on argument
-order and the like. If you want a more flexible function, you can write your
-own Perl-side wrapper and specify it in the PMCode key. The string that you
-supply must (should) define a Perl function with a name that matches what you
-gave to pp_def in the first place. When you wish to eventually invoke the
-PP-generated function, you will need to supply all ndarrays in the exact
+PDL functions check the number of arguments they are given, and call
+C<croak> if given the wrong number. By default (with no C<PMCode>
+supplied), any output arguments may be omitted, and PDL::PP provides
+code that can handle this by creating C<null> objects, passing them to
+your code, then returning them on the stack.
+
+If you I<do> supply C<PMCode>, the rest of PDL::PP assumes it will be
+a string that defines a Perl function with the function's name in the
+C<pp_bless> package (C<PDL> by default). As the example implies,
+the PP-generated function name will change from C<< <funcname> >>, to
+C<< _<funcname>_int >>. As also shown above,
+you will need to supply all ndarrays in the exact
 order specified in the signature: output ndarrays are not optional, and the
-PP-generated function will not return anything. The obfuscated name that you
-will call is _<funcname>_int.
-
-I believe this documentation needs further clarification, but this will have
-to do. :-(
+PP-generated function will not return anything.
 
 =item PMFunc
 
