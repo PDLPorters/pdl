@@ -1,3 +1,5 @@
+- officially deprecate PDL::Complex in favour of "native complex" - thanks @wlmb for suggestion
+
 2.054 2021-07-26
 - add PDL::Core::at_c as back-compat alias for at_bad_c
 
