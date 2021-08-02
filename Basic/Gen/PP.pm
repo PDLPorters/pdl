@@ -2685,7 +2685,8 @@ sub make_redodims_thread {
     $str .= " {\n " . make_parnames($pnames,$pobjs) . "
        PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(__pdlthread), \$PRIV(vtable->per_pdl_flags), $noPthreadFlag)
       }\n";
-    $str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
+    $str .= join '',map $pobjs->{$_}->get_xsnormdimchecks, @$pnames;
+    $str .= join '',map $pobjs->{$_}->get_xsphysdimchecks, @$pnames;
     $str .= hdrcheck($pnames,$pobjs);
     $str .= join '',map {$pobjs->{$pnames->[$_]}->
 			     get_incsets($privname[$_])} 0..$nn;

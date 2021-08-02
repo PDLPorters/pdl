@@ -536,6 +536,22 @@ for C<$P>; it's a pointer access, see below) :
 		'
   );
 
+Another possible qualifier is C<[phys]>. If given, this means the pdl
+will have L<PDL::Core/make_physical> called on it.
+
+Additionally, if it has a specified dimension C<d> that has value 1,
+C<d> will not magically be grown if C<d> is larger in another pdl with
+specified dimension C<d>, and instead an exception will be thrown. E.g.:
+
+  pp_def('callf',
+	Pars => 'a(n); [phys] b(n); [o] c()',
+	# ...
+  );
+
+If C<a> had lead dimension of 2 and C<b> of 3, an exception will always
+be thrown. However, if C<b> has lead dimension of 1, it would be silently
+repeated as if it were 2, if it were not a C<phys> parameter.
+
 =head2 Argument dimensions and the signature
 
 Now we have just talked about dimensions of pdls and the signature. How

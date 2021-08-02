@@ -36,7 +36,7 @@ sub new {
   $_->add_inds($dimsobj) for @objects;
   my %ind2use;
   for my $o (@objects) {
-    push @{$ind2use{$_}}, $o for @{$o->{RawInds}};
+    push @{$ind2use{$_}}, $o for map $_->name, @{$o->{IndObjs}};
   }
   $this->{Ind2Use} = \%ind2use;
   $this;

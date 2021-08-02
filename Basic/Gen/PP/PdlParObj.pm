@@ -184,11 +184,6 @@ sub get_nnflag { my($this) = @_;
 
 
 # XXX There might be weird backprop-of-changed stuff for [phys].
-#
-# Have changed code to assume that, if(!$this->{FlagCreat})
-# then __creating[] will == 0
-#  -- see make_redodims_thread() in ../PP.pm
-#
 sub get_xsnormdimchecks {
     my($this) = @_;
     my $pdl   = $this->get_nname;
@@ -229,7 +224,29 @@ EOF
 	$str .= "}";
     }
     return $str;
-} # sub: get_xsnormdimchecks()
+}
+
+sub get_xsphysdimchecks {
+    my($this) = @_;
+    return '' if !$this->{FlagPhys};
+    my $iref = $this->{IndObjs};
+    return '' unless my $ninds = 0+scalar(@$iref);
+    my @sizevars = map $_->get_size, @$iref;
+    my $pdl = $this->get_nname;
+    my $str = PDL::PP::pp_line_numbers(__LINE__, "");
+    for( 0..$#$iref ) {
+        my $iname = $iref->[$_]->name;
+        next if @{ $this->{Sig}->ind_used($iname) } == 1;
+	my $dim = "($pdl)->dims[$_]";
+	$str .= <<EOF;
+    if($sizevars[$_] > 1 && $sizevars[$_] != $dim) {
+        PDL_Indx d = $dim;
+        \$CROAK("Parameter '@{[ $this->name ]}' index '$iname' size %d, but ndarray dim has size %d\\n", $sizevars[$_], d);
+    }
+EOF
+    }
+    $str;
+}
 
 sub get_incname {
 	my($this,$ind) = @_;

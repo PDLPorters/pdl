@@ -56,6 +56,13 @@ pp_deft('foop',
 	Code => 'ppcp($P(b),$P(a1),$SIZE(n));',
 );
 
+# test single-used phys dim of 1 ok
+pp_deft('foop1',
+	Pars => 'byte a1(z); byte [o,phys]b(n)',
+	GenericTypes => [B],
+	Code => 'ppcp($P(b),$P(a1),$SIZE(n));',
+);
+
 # float qualifier
 # and also test if numerals in variable name work
 pp_deft(
@@ -181,7 +188,7 @@ EOF
     't/all.t' => <<'EOF',
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More;
 use Test::Warn;
 use PDL::LiteF;
 use PDL::Types;
@@ -217,6 +224,15 @@ my $vaff = $x->dummy(2,3)->xchg(1,2);
 test_foop($vaff,($y=null));
 ok( tapprox($vaff,$y) )
   or diag ($vaff, $vaff->dump);
+
+eval { test_foop($x,($y=pdl([1]))) };
+isnt $@, '', '[phys] with multi-used mismatched dim of 1 throws exception';
+
+eval { test_foop(pdl([1]),($y=pdl([1]))) };
+is $@, '', '[phys] with multi-used matched dim of 1 no exception';
+
+eval { test_foop1($x,($y=pdl([1]))) };
+is $@, '', '[phys] with single-used dim of 1 throws exception';
 
 # float qualifier
 $x = ones(byte,3000);
@@ -274,6 +290,8 @@ ok(all $xx->slice('(1)') == 699);
     ok( tapprox( $got, $exp ), "continue works in threadloop" )
       or do { diag "got     : $got"; diag "expected: $exp" };
 }
+
+done_testing;
 EOF
 
 );

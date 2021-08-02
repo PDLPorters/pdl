@@ -132,11 +132,14 @@ coerced to agree according to simple rules:
 
 =item * Dims with sizes other than 1 must all agree in size.
 
-=item * Dims of size 1 are expanded as necessary.
+=item * Dims of size 1 are silently repeated as necessary except for C<[phys]> PDLs.
 
 =item * Missing dims are expanded appropriately.
 
 =back
+
+A size-1 dim for C<[phys]> PDLs causes an exception if the dim is used
+in another parameter and has a size greater than 1.
 
 The "size 1" rule implements "generalized scalar" operation, by
 analogy to scalar multiplication.  The "missing dims" rule
