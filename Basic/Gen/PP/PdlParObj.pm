@@ -94,19 +94,15 @@ sub new {
 	for(@{$this->{Flags}}) {
 		/^io$/ and $this->{FlagW}=1 or
 		/^nc$/ and $this->{FlagNCreat}=1 or
-		/^o$/ and $this->{FlagOut}=1 and $this->{FlagCreat}=1 and $this->{FlagW}=1 or
-		/^oca$/ and $this->{FlagOut}=1 and $this->{FlagCreat}=1 and $this->{FlagW}=1
-			and $this->{FlagCreateAlways}=1 or
-		/^t$/ and $this->{FlagTemp}=1 and $this->{FlagCreat}=1 and $this->{FlagW}=1 or
+		/^o$/ and $this->{FlagOut}=$this->{FlagCreat}=$this->{FlagW}=1 or
+		/^oca$/ and $this->{FlagOut}=$this->{FlagCreat}=$this->{FlagW}=$this->{FlagCreateAlways}=1 or
+		/^t$/ and $this->{FlagTemp}=$this->{FlagCreat}=$this->{FlagW}=1 or
 		/^phys$/ and $this->{FlagPhys} = 1 or
 		/^real$/ and $this->{FlagReal} = 1 or
 		/^complex$/ and $this->{FlagComplex} = 1 or
 		/^((?:$typeregex)[+]*)$/ and $this->{Type} = $1 and $this->{FlagTyped} = 1 or
 		confess("Invalid flag $_ given for $string\n");
 	}
-#	if($this->{FlagPhys}) {
-#		# warn("Warning: physical flag not implemented yet");
-#	}
 	if ($this->{FlagTyped} && $this->{Type} =~ s/[+]$// ) {
 	  $this->{FlagTplus} = 1;
 	}
@@ -225,7 +221,7 @@ sub get_xsnormdimchecks {
     if ( $ninds > 0 ) {
 	$str .= "   if(($pdl)->ndims < $ninds) {\n" .
 	    join('', map { 
-		my $size = $iref->[$_-1]->get_size();      
+		my $size = $iref->[$_-1]->get_size();
 		"      if (($pdl)->ndims < $_ && $size <= 1) $size = 1;\n"
 		} (1..$ninds)) 
 # XXX why is this here, commented, and not removed? If re-inserted, be sure to use PDL_COMMENT
