@@ -391,11 +391,6 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
                "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))";
 }
 
-# XXX hacked to create a variable containing the bad value for 
-# this ndarray. 
-# This is a HACK (Doug Burke 07/08/00)
-# XXX
-#
 sub get_xsdatapdecl { 
     my($this,$genlooptype,$asgnonly) = @_;
     my $ptype = $this->adjusted_type($genlooptype);
@@ -405,11 +400,7 @@ sub get_xsdatapdecl {
     my $name = $this->{Name};
     my $declini = ($asgnonly ? "" : "$type *");
     my $cast = ($type ? "($type *)" : "");
-    my $macro = "PDL_REDODIMS";
-    # assuming we always need this
-    # - may not be true - eg if $asgnonly ??
-    # - not needed for floating point types when using NaN as bad values
-    $macro = "PDL_REDODIMS_BADVAL" if $this->{BadFlag} and $ptype;
+    my $macro = ($this->{BadFlag} && $ptype) ? "PDL_REDODIMS_BADVAL" : "PDL_REDODIMS";
     PDL::PP::pp_line_numbers(__LINE__, "$macro($declini, $cast, $type, $flag, $name, $pdl)");
 }
 
