@@ -2560,17 +2560,12 @@ sub NT2Free__ {
     PDL::PP::pp_line_numbers(__LINE__, $decl);
 }
 
-# The undef is just so that PrivIsInc gets set. Is this really
-# needed (well, it is since the rule fails if there aren't 2
-# return values; what I meant is what does PrivIsInc do for
-# us?)
-#
 sub make_incsizes {
 	my($parnames,$parobjs,$dimobjs,$havethreading) = @_;
 	my $str = ($havethreading?"pdl_thread __pdlthread; ":"").
 	  (join '',map {$parobjs->{$_}->get_incdecls} @$parnames).
 	    (join '',map {$_->get_decldim} sort values %$dimobjs);
-	return ($str,undef);
+	return ($str);
 }
 
 sub make_incsize_copy {
@@ -3183,7 +3178,7 @@ $PDL::PP::deftbl =
 
 # Threads
 #
-   PDL::PP::Rule->new(["Priv","PrivIsInc"],
+   PDL::PP::Rule->new("Priv",
 		      ["ParNames","ParObjs","DimsObj","HaveThreading"],
 		      \&make_incsizes),
    PDL::PP::Rule->new("PrivCopyCode",
