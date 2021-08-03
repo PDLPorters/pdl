@@ -19,6 +19,9 @@ Internal module to handle signatures
 
 =cut
 
+# Eliminate whitespace entries
+sub nospacesplit {grep /\S/, split $_[0],$_[1]}
+
 # we pass on $bvalflag to the PdlParObj's created by parse
 # (a hack for PdlParObj::get_xsdatapdecl() which should
 # disappear when (if?) things are done sensibly)
@@ -26,8 +29,11 @@ Internal module to handle signatures
 sub new {
   my ($type,$str,$bvalflag) = @_;
   $bvalflag ||= 0;
-  my ($namep,$objp) = parse($str,$bvalflag);
-  return bless {Names => $namep, Objects => $objp},$type;
+  my $this = bless {}, $type;
+  my @objects = map PDL::PP::PdlParObj->new($_,"PDL_UNDEF_NUMBER",$bvalflag, $this), nospacesplit ';',$str;
+  $this->{Names} = [ map $_->name, @objects ];
+  $this->{Objects} = { map +($_->name => $_), @objects };
+  $this;
 }
 
 *with = \&new;
@@ -44,19 +50,10 @@ the copyright notice should be included in the file.
 
 =cut
 
-# Eliminate whitespace entries
-sub nospacesplit {grep /\S/, split $_[0],$_[1]}
-
 sub names { $_[0]->{Names} }
 
 sub objs { $_[0]->{Objects} }
 
-# Pars -> ParNames, Parobjs
-sub parse {
-  my($str,$bvalflag) = @_;
-  my @objects = map PDL::PP::PdlParObj->new($_,"PDL_UNDEF_NUMBER",$bvalflag), nospacesplit ';',$str;
-  ([ map $_->name, @objects ], { map +($_->name => $_), @objects }, 1);
-}
 
 sub realdims {
   my $this = shift;

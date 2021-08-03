@@ -50,22 +50,6 @@ sub splitprotected ($$) {
   return @chunks;
 }
 
-# null != [0]
-#  - in Core.
-
-#{package PDL;
-# sub isnull {
-#   my $this = shift;
-#   return ($this->getndims==1 && $this->getdim(0)==0) ? 1:0 }
-#}
-
-1;
-
-#__DATA__
-
-# need for $badflag is due to hacked get_xsdatapdecl() 
-# - this should disappear when (if?) things are done sensibly
-#
 my $typeregex = join '|', map $_->ppforcetype, types;
 my $complex_regex = join '|', qw(real complex);
 our $pars_re = qr/^
