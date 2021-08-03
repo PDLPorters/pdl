@@ -1053,7 +1053,7 @@ by its signature. Got it ?
 Another little finesse of writing the code like that: we intentionally
 used C<sumover($pdl-E<gt>clump(2))> instead of C<sum($pdl)> so that we can
 either pass just an image C<(x,y)> or a stack of images C<(x,y,t)> into this
-routine and get either just one x-coordiante or a vector of
+routine and get either just one x-coordinate or a vector of
 x-coordinates (of size t) in return.
 
 Another set of common operations are what one could call "projection
