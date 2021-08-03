@@ -1630,16 +1630,9 @@ sub make_signature {
 	PDL::PP::Signature->new($str,$badflag);
 }
 
-# Parobjs -> DimsObj
-sub ParObjs_DimsObj {
-	my ($sig) = @_;
-	my $dimsobj = PDL::PP::PdlDimsObj->new;
-	$_->add_inds($dimsobj) for values %{ $sig->objs };
-	$dimsobj;
-}
-
 sub OtherPars_nft {
-    my($otherpars,$dimobjs) = @_;
+    my ($otherpars,$sig) = @_;
+    my $dimobjs = $sig && $sig->dims_obj;
     my(@names,%types,$type);
     # support 'int ndim => n;' syntax
     for (PDL::PP::Signature::nospacesplit ';',$otherpars) {
@@ -2557,16 +2550,16 @@ sub NT2Free__ {
 }
 
 sub make_incsizes {
-	my($sig,$dimobjs,$havethreading) = @_;
+	my($sig,$havethreading) = @_;
 	my ($parnames, $parobjs) = ($sig->names, $sig->objs);
 	my $str = ($havethreading?"pdl_thread __pdlthread; ":"").
 	  (join '',map {$parobjs->{$_}->get_incdecls} @$parnames).
-	    (join '',map {$_->get_decldim} sort values %$dimobjs);
+	    (join '',map {$_->get_decldim} $sig->dims_values);
 	return ($str);
 }
 
 sub make_incsize_copy {
-	my($sig,$dimobjs,$copyname,$havethreading) = @_;
+	my($sig,$copyname,$havethreading) = @_;
 	my ($parnames, $parobjs) = ($sig->names, $sig->objs);
 	PDL::PP::pp_line_numbers(__LINE__,
 		($havethreading?
@@ -2575,20 +2568,20 @@ sub make_incsize_copy {
 		 (join '',map {$parobjs->{$_}->get_incdecl_copy(sub{"\$PRIV($_[0])"},
 								sub{"$copyname->$_[0]"})} @$parnames).
 		 (join '',map {$_->get_copydim(sub{"\$PRIV($_[0])"},
-							sub{"$copyname->$_[0]"})} sort values %$dimobjs)
+							sub{"$copyname->$_[0]"})} $sig->dims_values)
 	);
 
 }
 
 sub make_incsize_free {
-	my($sig,$dimobjs,$havethreading) = @_;
+	my($sig,$havethreading) = @_;
 	$havethreading ?
 	  PDL::PP::pp_line_numbers(__LINE__, 'PDL->freethreadloop(&($PRIV(__pdlthread)));')
 	: ''
 }
 
 sub make_parnames {
-  my($pnames,$pobjs,$dobjs) = @_;
+  my ($pnames,$pobjs) = @_;
   my @pdls = map {$pobjs->{$_}} @$pnames;
   my $npdls = $#pdls+1;
   my $join__parnames = join ",",map {qq|"$_"|} @$pnames;
@@ -2668,7 +2661,7 @@ sub hdrcheck {
 } # sub: hdrcheck()
 
 sub make_redodims_thread {
-    my($sig,$dobjs,$pcode, $noPthreadFlag) = @_;
+    my($sig,$pcode, $noPthreadFlag) = @_;
     my $str = PDL::PP::pp_line_numbers(__LINE__, '');
     my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
     my $npdls = @$pnames;
@@ -2682,7 +2675,7 @@ sub make_redodims_thread {
     } else {
       $str .= "PDL_Indx __creating[1];\n";
     }
-    $str .= join '',map {$_->get_initdim."\n"} sort values %$dobjs;
+    $str .= join '',map {$_->get_initdim."\n"} $sig->dims_values;
 
     # if FlagCreat is NOT true, then we set __creating[] to 0
     # and we can use this knowledge below, and in hdrcheck()
@@ -2691,7 +2684,7 @@ sub make_redodims_thread {
       for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
 
     $str .= " {\n$pcode\n}\n";
-    $str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
+    $str .= " {\n " . make_parnames($pnames,$pobjs) . "
        PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(__pdlthread), \$PRIV(vtable->per_pdl_flags), $noPthreadFlag)
       }\n";
     $str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
@@ -3009,17 +3002,16 @@ $PDL::PP::deftbl =
 # fixed nos of real, unthreaded-over dims.
 
    PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag"], \&make_signature),
-   PDL::PP::Rule->new("DimsObj", "SignatureObj", \&ParObjs_DimsObj),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
  #
-   PDL::PP::Rule->new("CallCopy", ["DimsObj", "SignatureObj", "Name", "_P2Child"],
+   PDL::PP::Rule->new("CallCopy", ["SignatureObj", "Name", "_P2Child"],
       sub {
-	  my ($dimObj, $sig, $Name, $hasp2c) = @_;
+	  my ($sig, $Name, $hasp2c) = @_;
 	  return 0 if $hasp2c;
-	  my $noDimmedArgs = scalar(keys %$dimObj);
+	  my $noDimmedArgs = $sig->dims_count;
 	  my $noArgs = @{$sig->names};
 	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
 	  # Check for 2-arg function with 0-dim signatures
@@ -3031,7 +3023,7 @@ $PDL::PP::deftbl =
 
 # "Other pars", the parameters which are usually not pdls.
 
-   PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","DimsObj"], \&OtherPars_nft),
+   PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","SignatureObj"], \&OtherPars_nft),
 
    PDL::PP::Rule->new("DefSyms", "StructName", \&MkDefSyms),
    PDL::PP::Rule->new("NewXSArgs", ["SignatureObj","OtherParNames","OtherParTypes"],
@@ -3132,11 +3124,11 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("NewXSSetTrans", ["SignatureObj","NewXSSymTab"], \&makesettrans),
 
    PDL::PP::Rule->new("ParsedCode",
-		      ["Code","_BadCode","SignatureObj","DimsObj","GenericTypes",
+		      ["Code","_BadCode","SignatureObj","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
 		      sub { return PDL::PP::Code->new(@_); }),
    PDL::PP::Rule->new("ParsedBackCode",
-		      ["BackCode","_BadBackCode","SignatureObj","DimsObj","GenericTypes",
+		      ["BackCode","_BadBackCode","SignatureObj","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
 		      sub { return PDL::PP::Code->new(@_, undef, 'BackCode2'); }),
 
@@ -3176,13 +3168,13 @@ $PDL::PP::deftbl =
 # Threads
 #
    PDL::PP::Rule->new("Priv",
-		      ["SignatureObj","DimsObj","HaveThreading"],
+		      ["SignatureObj","HaveThreading"],
 		      \&make_incsizes),
    PDL::PP::Rule->new("PrivCopyCode",
-		      ["SignatureObj","DimsObj","CopyName","HaveThreading"],
+		      ["SignatureObj","CopyName","HaveThreading"],
 		      \&make_incsize_copy),
    PDL::PP::Rule->new("PrivFreeCode",
-		      ["SignatureObj","DimsObj","HaveThreading"],
+		      ["SignatureObj","HaveThreading"],
 		      "Frees the thread",
 		      \&make_incsize_free),
 
@@ -3190,7 +3182,7 @@ $PDL::PP::deftbl =
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       'PDL_COMMENT("none")'),
    PDL::PP::Rule->new("RedoDimsParsedCode",
-		      ["RedoDimsCode","_BadRedoDimsCode","SignatureObj","DimsObj",
+		      ["RedoDimsCode","_BadRedoDimsCode","SignatureObj",
 		       "GenericTypes","ExtraGenericLoops","HaveThreading","Name"],
 		      'makes the parsed representation from the supplied RedoDimsCode',
 		      sub {
@@ -3198,7 +3190,7 @@ $PDL::PP::deftbl =
 			    if $_[0] =~ m|^/[*] none [*]/$|;
 			  PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-		      ["SignatureObj","DimsObj","RedoDimsParsedCode", '_NoPthread'],
+		      ["SignatureObj","RedoDimsParsedCode", '_NoPthread'],
 		      'makes the redodims function from the various bits and pieces',
 		      \&make_redodims_thread),
 

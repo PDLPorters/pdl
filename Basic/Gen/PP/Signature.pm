@@ -36,6 +36,8 @@ sub new {
   my @objects_sorted = ((grep !$_->{FlagW}, @objects), (grep $_->{FlagW}, @objects));
   $objects_sorted[$_]{Number} = $_ for 0..$#objects_sorted;
   $this->{NamesSorted} = [ map $_->name, @objects_sorted ];
+  $this->{DimsObj} = my $dimsobj = PDL::PP::PdlDimsObj->new;
+  $_->add_inds($dimsobj) for @objects;
   $this;
 }
 
@@ -58,6 +60,9 @@ sub names_sorted { $_[0]->{NamesSorted} }
 
 sub objs { $_[0]->{Objects} }
 
+sub dims_obj { $_[0]->{DimsObj} }
+sub dims_count { scalar keys %{$_[0]->{DimsObj}} }
+sub dims_values { values %{$_[0]->{DimsObj}} }
 
 sub realdims {
   my $this = shift;

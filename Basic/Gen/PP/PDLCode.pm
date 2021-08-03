@@ -14,7 +14,7 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
 # Do the appropriate substitutions in the code.
 sub new {
-    my($type,$code,$badcode,$sig,$indobjs,$generictypes,
+    my($type,$code,$badcode,$sig,$generictypes,
        $extrageneric,$havethreading,$name,
        $dont_add_thrloop, $backcode ) = @_;
     my $parnames = $sig->names_sorted;
@@ -53,7 +53,7 @@ sub new {
 	print "HandleBad: $handlebad\n";
     }
     my $this = bless {
-	IndObjs => $indobjs,
+	IndObjs => $sig->dims_obj,
 	ParNames => $parnames,
 	ParObjs => $sig->objs,
 	Gencurtype => [], # stack to hold GenType in generic loops
