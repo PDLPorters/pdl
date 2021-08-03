@@ -990,25 +990,6 @@ void pdl_changed(pdl *it, int what, int recursing)
 /*	if((it->state & what) == what) { return; } */
 	if(recursing) {
 		it->state |= what;
-		/* The next one is commented out since it breaks
-		   PP functions with more (1) than 1 output arg
-		   (i.e. more than 2 children) (2) that are called
-		   with chained slices of the same parent
-		   and (3) require these args to be physicalized
-		   An example of this scenario (which actually
-		   occurred first in actual code with complex
-		   numbers) is in t/pptest.t (at the end).
-
-		   Presumably the bit of code below that unsets the
-		   vafftransok flag was only inserted
-		   to make the 'foomethod' example work. It
-		   explores changing parameters of a transformation
-		   and making sure that everything flows correctly.
-
-		   Based on this idea removing the statement below should
-		   not break anything and fix the problem with
-		   PP funcs described above (CS 190403) */
-		/* it->state &= ~PDL_OPT_VAFFTRANSOK; */
 		if(pdl__ismagic(it))
 			pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
 			}

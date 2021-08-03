@@ -1276,7 +1276,6 @@ sub pp_def {
 		'CopyFunc',
 		'ReadDataFunc','WriteBackDataFunc',
 		'FreeFunc',
-		'FooFunc',
 		'VTableDef','NewXSInPrelude',
 		}
 		);
@@ -1691,7 +1690,7 @@ sub mkstruct {
 
 sub def_vtable {
     my($vname,$sname,$rdname,$rfname,$wfname,$cpfname,$ffname,
-       $sig,$affine_ok,$foofname) = @_;
+       $sig,$affine_ok) = @_;
     my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
     my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
     my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
@@ -1716,8 +1715,7 @@ sub wrap_vfn {
     my($code,$hdrinfo,$rout,$p2child,$name) = @_;
     my $type = ($name eq "copy" ? "pdl_trans *" : "void");
     my $sname = $hdrinfo->{StructName};
-    my $oargs = ($name eq "foo" ? ",int i1,int i2,int i3" : "");
-    my $str = PDL::PP::pp_line_numbers(__LINE__, qq|$type $rout(pdl_trans *__tr $oargs) {
+    my $str = PDL::PP::pp_line_numbers(__LINE__, qq|$type $rout(pdl_trans *__tr) {
 	$sname *__privtrans = ($sname *) __tr;\n|);
     if ( $p2child ) {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
@@ -3231,7 +3229,6 @@ $PDL::PP::deftbl =
 
    PDL::PP::Rule::Substitute::Usual->new("CopyCode", "CopyCodeNS"),
    PDL::PP::Rule::Substitute::Usual->new("FreeCode", "FreeCodeNS"),
-   PDL::PP::Rule::Substitute::Usual->new("FooCodeSub", "FooCode"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMust"),
 
@@ -3369,16 +3366,10 @@ $PDL::PP::deftbl =
 		      ["FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"free")}),
 
-   PDL::PP::Rule::Returns->new("FoofName", "FooCodeSub", "foomethod"),
-   PDL::PP::Rule->new("FooFunc", ["FooCodeSub","FHdrInfo","FoofName","_P2Child"],
-		      sub {wrap_vfn(@_,"foo")}),
-
-   PDL::PP::Rule::Returns::NULL->new("FoofName"),
-
    PDL::PP::Rule->new("VTableDef",
 		      ["VTableName","StructName","RedoDimsFuncName","ReadDataFuncName",
 		       "WriteBackDataFuncName","CopyFuncName","FreeFuncName",
-		       "SignatureObj","Affine_Ok","FoofName"],
+		       "SignatureObj","Affine_Ok"],
 		      \&def_vtable),
 
    # Maybe accomplish this with an InsertName rule?
@@ -3392,15 +3383,5 @@ $PDL::PP::deftbl =
     ),
 
 ];
-
-sub printtrans {
-	my($bar) = @_;
-	for (qw/StructDecl RedoDimsFunc ReadDataFunc WriteBackFunc
-		VTableDef NewXSCode/) {
-		print "\n\n================================================
-	$_
-=========================================\n",$bar->{$_},"\n" if $::PP_VERBOSE;
-	}
-}
 
 1;
