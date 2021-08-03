@@ -1629,7 +1629,7 @@ sub equivcpoffscode {
 sub Pars_nft {
 	my($str,$badflag) = @_;
 	my $sig = PDL::PP::Signature->new($str,$badflag);
-	return ($sig->names,$sig->objs,1);
+	return ($sig->names,$sig->objs);
 }
 
 # ParNames,Parobjs -> DimObjs
@@ -2677,7 +2677,7 @@ sub hdrcheck {
 } # sub: hdrcheck()
 
 sub make_redodims_thread {
-    my($pnames,$pobjs,$dobjs,$dpars,$pcode, $noPthreadFlag) = @_;
+    my($pnames,$pobjs,$dobjs,$pcode, $noPthreadFlag) = @_;
     my $str = PDL::PP::pp_line_numbers(__LINE__, '');
     my $npdls = @$pnames;
 
@@ -3002,7 +3002,7 @@ $PDL::PP::deftbl =
 #
 # P2Child implicitly means "no data type changes".
 
-   PDL::PP::Rule->new(["USParNames","USParObjs","FOOFOONoConversion","HaveThreading","NewXSName"],
+   PDL::PP::Rule->new(["USParNames","USParObjs","HaveThreading","NewXSName"],
 		      ["P2Child","Name","BadFlag"],
 		      \&NewParentChildPars),
 
@@ -3016,7 +3016,7 @@ $PDL::PP::deftbl =
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
 
-   PDL::PP::Rule->new(["USParNames","USParObjs","DimmedPars"], ["Pars","BadFlag"], \&Pars_nft),
+   PDL::PP::Rule->new(["USParNames","USParObjs"], ["Pars","BadFlag"], \&Pars_nft),
    PDL::PP::Rule->new("DimObjs", ["USParNames","USParObjs"], \&ParObjs_DimObjs),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
@@ -3208,7 +3208,7 @@ $PDL::PP::deftbl =
 			    if $_[0] =~ m|^/[*] none [*]/$|;
 			  PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-		      ["ParNames","ParObjs","DimObjs","DimmedPars","RedoDimsParsedCode", '_NoPthread'],
+		      ["ParNames","ParObjs","DimObjs","RedoDimsParsedCode", '_NoPthread'],
 		      'makes the redodims function from the various bits and pieces',
 		      \&make_redodims_thread),
 
