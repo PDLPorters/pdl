@@ -1626,11 +1626,6 @@ sub equivcpoffscode {
 } # sub: equivcpoffscode()
 
 # Pars -> ParNames, Parobjs
-#
-# XXX
-# - the need for BadFlag is due to hacked get_xsdatapdecl()
-#   in PP/PdlParObj and because the PdlParObjs are created by
-#   PDL::PP::Signature (Doug Burke 07/08/00)
 sub Pars_nft {
 	my($str,$badflag) = @_;
 	my $sig = PDL::PP::Signature->new($str,$badflag);
@@ -1689,36 +1684,10 @@ sub NXArgs {
 	return $nxargs;
 }
 
-# XXX
-# - the need for BadFlag is due to hacked get_xsdatapdecl()
-#   in PP/PdlParObj and because the PdlParObjs are created by
-#   PDL::PP::Signature (Doug Burke 07/08/00)
 sub NewParentChildPars {
     my($p2child,$name,$badflag) = @_;
     return (Pars_nft("PARENT(); [oca]CHILD();",$badflag),0,"${name}_NN");
 }
-
-# XXX
-# - the need for BadFlag is due to hacked get_xsdatapdecl()
-#   in PP/PdlParObj and because the PdlParObjs are created by
-#   PDL::PP::Signature (Doug Burke 07/08/00)
-#
-# however, it looks like this isn't being used anymore,
-# so commenting out.
-#
-#sub ParentChildPars {
-#	my($p2child,$name,$badflag) = @_;
-#	return (Pars_nft("PARENT(); [oca]CHILD();",$badflag),0,"${name}_XX",
-#	"
-#	*$name = \\&PDL::$name;
-#	sub PDL::$name {
-#		my \$this = shift;
-#		my \$foo=\$this->null;
-#		PDL::${name}_XX(\$this,\$foo,\@_);
-#		\$foo
-#	}
-#	");
-#}
 
 sub mkstruct {
 	my($pnames,$pobjs,$comp,$priv,$name) = @_;
@@ -3046,11 +3015,6 @@ $PDL::PP::deftbl =
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
-#
-# XXX
-# - the need for BadFlag is due to hacked get_xsdatapdecl()
-#   in PP/PdlParObj and because the PdlParObjs are created by
-#   PDL::PP::Signature (Doug Burke 07/08/00)
 
    PDL::PP::Rule->new(["USParNames","USParObjs","DimmedPars"], ["Pars","BadFlag"], \&Pars_nft),
    PDL::PP::Rule->new("DimObjs", ["USParNames","USParObjs"], \&ParObjs_DimObjs),
