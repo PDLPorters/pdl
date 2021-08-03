@@ -1632,14 +1632,12 @@ sub Pars_nft {
 	return ($sig->names,$sig->objs);
 }
 
-# ParNames,Parobjs -> DimObjs
-sub ParObjs_DimObjs {
-	my($pnames,$pobjs) = @_;
-	my ($dimobjs) = PDL::PP::PdlDimsObj->new();
-	for(@$pnames) {
-		$pobjs->{$_}->add_inds($dimobjs);
-	}
-	return ($dimobjs);
+# Parobjs -> DimsObj
+sub ParObjs_DimsObj {
+	my ($pobjs) = @_;
+	my $dimsobj = PDL::PP::PdlDimsObj->new;
+	$_->add_inds($dimsobj) for values %$pobjs;
+	$dimsobj;
 }
 
 sub OtherPars_nft {
@@ -3017,13 +3015,13 @@ $PDL::PP::deftbl =
 # fixed nos of real, unthreaded-over dims.
 
    PDL::PP::Rule->new(["USParNames","ParObjs"], ["Pars","BadFlag"], \&Pars_nft),
-   PDL::PP::Rule->new("DimObjs", ["USParNames","ParObjs"], \&ParObjs_DimObjs),
+   PDL::PP::Rule->new("DimsObj", "ParObjs", \&ParObjs_DimsObj),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
  #
-   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "ParObjs", "Name", "_P2Child"],
+   PDL::PP::Rule->new("CallCopy", ["DimsObj", "USParNames", "ParObjs", "Name", "_P2Child"],
       sub {
 	  my ($dimObj, $USParNames, $ParObjs, $Name, $hasp2c) = @_;
 	  return 0 if $hasp2c;
@@ -3039,7 +3037,7 @@ $PDL::PP::deftbl =
 
 # "Other pars", the parameters which are usually not pdls.
 
-   PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","DimObjs"], \&OtherPars_nft),
+   PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","DimsObj"], \&OtherPars_nft),
 
    PDL::PP::Rule->new(["ParNames"], ["USParNames","ParObjs"], \&sort_pnobjs),
 
@@ -3142,11 +3140,11 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("NewXSSetTrans", ["ParNames","ParObjs","NewXSSymTab"], \&makesettrans),
 
    PDL::PP::Rule->new("ParsedCode",
-		      ["Code","_BadCode","ParNames","ParObjs","DimObjs","GenericTypes",
+		      ["Code","_BadCode","ParNames","ParObjs","DimsObj","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
 		      sub { return PDL::PP::Code->new(@_); }),
    PDL::PP::Rule->new("ParsedBackCode",
-		      ["BackCode","_BadBackCode","ParNames","ParObjs","DimObjs","GenericTypes",
+		      ["BackCode","_BadBackCode","ParNames","ParObjs","DimsObj","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
 		      sub { return PDL::PP::Code->new(@_, undef, 'BackCode2'); }),
 
@@ -3186,13 +3184,13 @@ $PDL::PP::deftbl =
 # Threads
 #
    PDL::PP::Rule->new(["Priv","PrivIsInc"],
-		      ["ParNames","ParObjs","DimObjs","HaveThreading"],
+		      ["ParNames","ParObjs","DimsObj","HaveThreading"],
 		      \&make_incsizes),
    PDL::PP::Rule->new("PrivCopyCode",
-		      ["ParNames","ParObjs","DimObjs","CopyName","HaveThreading"],
+		      ["ParNames","ParObjs","DimsObj","CopyName","HaveThreading"],
 		      \&make_incsize_copy),
    PDL::PP::Rule->new("PrivFreeCode",
-		      ["ParNames","ParObjs","DimObjs","HaveThreading"],
+		      ["ParNames","ParObjs","DimsObj","HaveThreading"],
 		      "Frees the thread",
 		      \&make_incsize_free),
 
@@ -3200,7 +3198,7 @@ $PDL::PP::deftbl =
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       'PDL_COMMENT("none")'),
    PDL::PP::Rule->new("RedoDimsParsedCode",
-		      ["RedoDimsCode","_BadRedoDimsCode","ParNames","ParObjs","DimObjs",
+		      ["RedoDimsCode","_BadRedoDimsCode","ParNames","ParObjs","DimsObj",
 		       "GenericTypes","ExtraGenericLoops","HaveThreading","Name"],
 		      'makes the parsed representation from the supplied RedoDimsCode',
 		      sub {
@@ -3208,7 +3206,7 @@ $PDL::PP::deftbl =
 			    if $_[0] =~ m|^/[*] none [*]/$|;
 			  PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-		      ["ParNames","ParObjs","DimObjs","RedoDimsParsedCode", '_NoPthread'],
+		      ["ParNames","ParObjs","DimsObj","RedoDimsParsedCode", '_NoPthread'],
 		      'makes the redodims function from the various bits and pieces',
 		      \&make_redodims_thread),
 
@@ -3345,7 +3343,7 @@ $PDL::PP::deftbl =
    # argument.  Renaming gone wrong?  Anyway I've fixed it to use $_[0] instead of $redodims in the
    # SIZE closure.   -- CED 13-April-2015
    PDL::PP::Rule->new("RedoDimsSub",
-		      ["RedoDims", "RedoDims-PostComp", "_DimObjs"],
+		      ["RedoDims", "RedoDims-PostComp", "_DimsObj"],
 		      sub {
 			my $redodims = $_[0];
 			my $result   = $_[1];
