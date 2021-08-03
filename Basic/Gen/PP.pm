@@ -1625,18 +1625,16 @@ sub equivcpoffscode {
 
 } # sub: equivcpoffscode()
 
-# Pars -> ParNames, Parobjs
-sub Pars_nft {
+sub make_signature {
 	my($str,$badflag) = @_;
-	my $sig = PDL::PP::Signature->new($str,$badflag);
-	return ($sig->names,$sig->objs);
+	PDL::PP::Signature->new($str,$badflag);
 }
 
 # Parobjs -> DimsObj
 sub ParObjs_DimsObj {
-	my ($pobjs) = @_;
+	my ($sig) = @_;
 	my $dimsobj = PDL::PP::PdlDimsObj->new;
-	$_->add_inds($dimsobj) for values %$pobjs;
+	$_->add_inds($dimsobj) for values %{ $sig->objs };
 	$dimsobj;
 }
 
@@ -1673,10 +1671,10 @@ sub OtherPars_nft {
 }
 
 sub NXArgs {
-	my($parnames,$parobjs,$onames,$oobjs) = @_;
+	my($sig,$onames,$oobjs) = @_;
 	my $pdltype = PDL::PP::CType->new(undef,"pdl *__foo__");
 	my $nxargs = [
-		( map {[$_,$pdltype]} @$parnames ),
+		( map {[$_,$pdltype]} @{ $sig->names } ),
 		( map {[$_,$oobjs->{$_}]} @$onames )
 	];
 	return $nxargs;
@@ -1684,12 +1682,12 @@ sub NXArgs {
 
 sub NewParentChildPars {
     my($p2child,$name,$badflag) = @_;
-    return (Pars_nft("PARENT(); [oca]CHILD();",$badflag),0,"${name}_NN");
+    return (make_signature("PARENT(); [oca]CHILD();",$badflag),0,"${name}_NN");
 }
 
 sub mkstruct {
-	my($pnames,$pobjs,$comp,$priv,$name) = @_;
-	my $npdls = $#$pnames+1;
+	my($sig,$comp,$priv,$name) = @_;
+	my $npdls = @{ $sig->names };
 	PDL::PP::pp_line_numbers(__LINE__, qq{typedef struct $name {
 		PDL_TRANS_START($npdls);
 		$priv
@@ -1700,7 +1698,8 @@ sub mkstruct {
 
 sub def_vtable {
     my($vname,$sname,$rdname,$rfname,$wfname,$cpfname,$ffname,
-       $pnames,$pobjs,$affine_ok,$foofname) = @_;
+       $sig,$affine_ok,$foofname) = @_;
+    my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
     my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
     my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
     my $npdls = scalar @$pnames;
@@ -1717,16 +1716,6 @@ sub def_vtable {
 		$ffname,NULL,NULL,$cpfname,
 		sizeof($sname),\"$vname\"
 	 };");
-}
-
-sub sort_pnobjs {
-    my($pnames,$pobjs) = @_;
-    my (@nn);
-    for(@$pnames) { push ( @nn, $_ ) unless $pobjs->{$_}{FlagW}; }
-    for(@$pnames) { push ( @nn, $_ ) if $pobjs->{$_}{FlagW}; }
-    my $no = 0;
-    for(@nn) { $pobjs->{$_}{Number} = $no++; }
-    return (\@nn);
 }
 
 # XXX __privtrans explicit :(
@@ -1746,12 +1735,12 @@ sub wrap_vfn {
 }
 
 sub makesettrans {
-    my($pnames,$pobjs,$symtab) = @_;
+    my($sig,$symtab) = @_;
     my $trans = $symtab->get_symname('_PDL_ThisTrans');
     my $no=0;
     PDL::PP::pp_line_numbers(__LINE__, (join '',map {
 	"$trans->pdls[".($no++)."] = $_;\n"
-	} @$pnames).
+	} @{ $sig->names_sorted }).
 	    "PDL->make_trans_mutual((pdl_trans *)$trans);\n");
 }
 
@@ -1796,9 +1785,9 @@ sub mkVarArgsxscat {
 
 
 sub MakeNows {
-    my($pnames, $symtab) = @_;
+    my($sig, $symtab) = @_;
     my $str = "\n";
-    for(@$pnames) { $str .= "$_ = PDL->make_now($_);\n"; }
+    for(@{ $sig->names }) { $str .= "$_ = PDL->make_now($_);\n"; }
     PDL::PP::pp_line_numbers(__LINE__, $str);
 }
 
@@ -1855,8 +1844,9 @@ sub callPerlInit {
 #
 # Removing useless use of hasp2child in this function. DCM Sept 12, 2011
 sub VarArgsXSHdr {
-  my($name,$xsargs,$parobjs,$optypes,#$hasp2child,
+  my($name,$xsargs,$sig,$optypes,#$hasp2child,
      $pmcode,$hdrcode,$inplacecode,$globalnew,$callcopy,$bitwise) = @_;
+  my $parobjs = $sig->objs;
 
   # Don't do var args processing if the user has pre-defined pmcode
   return 'DO NOT SET!!' if ($pmcode);
@@ -2013,7 +2003,7 @@ END
 # This subroutine produces the code which returns output variables
 # or leaves them as modified input variables.  D. Hunt 4/10/00
 sub VarArgsXSReturn {
-    my($xsargs, $parobjs, $globalnew ) = @_;
+    my($xsargs, $sig, $globalnew ) = @_;
     # don't generate a HDR if globalnew is set
     # globalnew implies internal usage, not XS
     return undef if $globalnew;
@@ -2021,6 +2011,7 @@ sub VarArgsXSReturn {
     # beware of existance tests like this:  $$parobjs{$arg->[0]}{FlagOut}  !
     # this will cause $$parobjs{$arg->[0]} to spring into existance even if $$parobjs{$arg->[0]}{FlagOut}
     # does not exist!!
+    my $parobjs = $sig->objs;
     foreach my $arg (@$xsargs) {
 	my $x = $arg->[0];
 	push (@outs, $x) if (exists ($$parobjs{$x}) and exists ($$parobjs{$x}{FlagOut}));
@@ -2082,7 +2073,8 @@ sub get_badstate {
 # not sure.
 #
 sub findbadstatus {
-    my ( $badflag, $badcode, $xsargs, $parobjs, $optypes, $symtab, $name ) = @_;
+    my ( $badflag, $badcode, $xsargs, $sig, $optypes, $symtab, $name ) = @_;
+    my $parobjs = $sig->objs;
 
     return PDL::PP::pp_line_numbers(__LINE__, $badcode) if defined $badcode;
 
@@ -2161,7 +2153,8 @@ sub findbadstatus {
 # Code section
 #
 sub copybadstatus {
-    my ( $badflag, $badcode, $xsargs, $parobjs, $symtab ) = @_;
+    my ( $badflag, $badcode, $xsargs, $sig, $symtab ) = @_;
+    my $parobjs = $sig->objs;
 
     if (defined $badcode) {
 	# realised in 2.4.3 testing that use of $PRIV at this stage is
@@ -2223,11 +2216,12 @@ sub copybadstatus {
 #     input ndarray is a(), output pidle is 'b'
 #
 sub InplaceCode {
-    my ( $ppname, $xsargs, $parobjs, $arg ) = @_;
+    my ( $ppname, $xsargs, $sig, $arg ) = @_;
     return '' unless defined $arg;
 
     # find input and output ndarrays
     my ( @in, @out );
+    my $parobjs = $sig->objs;
     foreach my $arg (@$xsargs) {
 	my $name = $arg->[0];
 	if ( exists $$parobjs{$name} ) {
@@ -2427,7 +2421,8 @@ sub make_newcoerce {
 # circumstances
 #
 sub coerce_types {
-    my($parnames,$parobjs,$ignore,$newstab,$hasp2child) = @_;
+    my($sig,$ignore,$newstab,$hasp2child) = @_;
+    my ($parnames, $parobjs) = ($sig->names_sorted, $sig->objs);
 
     # assume [oca]CHILD();, although there might be an ignore
     if ( $hasp2child ) {
@@ -2441,7 +2436,7 @@ sub coerce_types {
     }
 
     my $str = "";
-    foreach ( @$parnames ) {
+    foreach ( @{ $sig->names_sorted } ) {
 	next if $ignore->{$_};
 
 	my $po = $parobjs->{$_};
@@ -2471,7 +2466,7 @@ sub coerce_types {
 	     $_ = PDL->get_convertedpdl($_,$dtype);
 	  }\n";
 	}
-    } # foreach: @$parnames
+    }
 
     PDL::PP::pp_line_numbers(__LINE__, $str);
 } # sub: coerce_types()
@@ -2485,7 +2480,8 @@ sub coerce_types {
 # datatype to be that of PARENT (see also coerce_types())
 #
 sub find_datatype {
-    my($parnames,$parobjs,$ignore,$newstab,$gentypes,$hasp2child) = @_;
+    my($sig,$ignore,$newstab,$gentypes,$hasp2child) = @_;
+    my ($parnames, $parobjs) = ($sig->names_sorted, $sig->objs);
 
     my $dtype = "\$PRIV(__datatype)";
 
@@ -2499,7 +2495,7 @@ sub find_datatype {
 	if $hasp2child;
 
     my $str = "$dtype = 0;";
-    foreach ( @$parnames ) {
+    foreach ( @{ $sig->names_sorted } ) {
 	my $po = $parobjs->{$_};
 	next if $ignore->{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
 
@@ -2510,7 +2506,7 @@ sub find_datatype {
 	$str .= "$dtype < $_->datatype) {
 		 	$dtype = $_->datatype;
 		    }\n";
-    } # foreach: @$parnames
+    }
 
     $str .= join '', map { "if($dtype == PDL_$_) {}\nelse " }(@$gentypes);
 
@@ -2561,7 +2557,8 @@ sub NT2Free__ {
 }
 
 sub make_incsizes {
-	my($parnames,$parobjs,$dimobjs,$havethreading) = @_;
+	my($sig,$dimobjs,$havethreading) = @_;
+	my ($parnames, $parobjs) = ($sig->names, $sig->objs);
 	my $str = ($havethreading?"pdl_thread __pdlthread; ":"").
 	  (join '',map {$parobjs->{$_}->get_incdecls} @$parnames).
 	    (join '',map {$_->get_decldim} sort values %$dimobjs);
@@ -2569,7 +2566,8 @@ sub make_incsizes {
 }
 
 sub make_incsize_copy {
-	my($parnames,$parobjs,$dimobjs,$copyname,$havethreading) = @_;
+	my($sig,$dimobjs,$copyname,$havethreading) = @_;
+	my ($parnames, $parobjs) = ($sig->names, $sig->objs);
 	PDL::PP::pp_line_numbers(__LINE__,
 		($havethreading?
 	      "PDL->thread_copy(&(\$PRIV(__pdlthread)),&($copyname->__pdlthread));"
@@ -2583,7 +2581,7 @@ sub make_incsize_copy {
 }
 
 sub make_incsize_free {
-	my($parnames,$parobjs,$dimobjs,$havethreading) = @_;
+	my($sig,$dimobjs,$havethreading) = @_;
 	$havethreading ?
 	  PDL::PP::pp_line_numbers(__LINE__, 'PDL->freethreadloop(&($PRIV(__pdlthread)));')
 	: ''
@@ -2670,8 +2668,9 @@ sub hdrcheck {
 } # sub: hdrcheck()
 
 sub make_redodims_thread {
-    my($pnames,$pobjs,$dobjs,$pcode, $noPthreadFlag) = @_;
+    my($sig,$dobjs,$pcode, $noPthreadFlag) = @_;
     my $str = PDL::PP::pp_line_numbers(__LINE__, '');
+    my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
     my $npdls = @$pnames;
 
     $noPthreadFlag = 0 unless( defined $noPthreadFlag ); # assume we can pthread, unless indicated otherwise
@@ -2995,7 +2994,7 @@ $PDL::PP::deftbl =
 #
 # P2Child implicitly means "no data type changes".
 
-   PDL::PP::Rule->new(["USParNames","ParObjs","HaveThreading","NewXSName"],
+   PDL::PP::Rule->new(["SignatureObj","HaveThreading","NewXSName"],
 		      ["P2Child","Name","BadFlag"],
 		      \&NewParentChildPars),
 
@@ -3009,24 +3008,24 @@ $PDL::PP::deftbl =
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
 
-   PDL::PP::Rule->new(["USParNames","ParObjs"], ["Pars","BadFlag"], \&Pars_nft),
-   PDL::PP::Rule->new("DimsObj", "ParObjs", \&ParObjs_DimsObj),
+   PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag"], \&make_signature),
+   PDL::PP::Rule->new("DimsObj", "SignatureObj", \&ParObjs_DimsObj),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
  #
-   PDL::PP::Rule->new("CallCopy", ["DimsObj", "USParNames", "ParObjs", "Name", "_P2Child"],
+   PDL::PP::Rule->new("CallCopy", ["DimsObj", "SignatureObj", "Name", "_P2Child"],
       sub {
-	  my ($dimObj, $USParNames, $ParObjs, $Name, $hasp2c) = @_;
+	  my ($dimObj, $sig, $Name, $hasp2c) = @_;
 	  return 0 if $hasp2c;
 	  my $noDimmedArgs = scalar(keys %$dimObj);
-	  my $noArgs = scalar(@$USParNames);
+	  my $noArgs = @{$sig->names};
 	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
 	  # Check for 2-arg function with 0-dim signatures
 	  # Check to see if output arg is _not_ explicitly typed:
-	  my $arg2 = $USParNames->[1];
-	  my $ParObj = $ParObjs->{$arg2};
+	  my $arg2 = $sig->names->[1];
+	  my $ParObj = $sig->objs->{$arg2};
 	  !$ParObj->{FlagTyped};
       }),
 
@@ -3034,17 +3033,15 @@ $PDL::PP::deftbl =
 
    PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","DimsObj"], \&OtherPars_nft),
 
-   PDL::PP::Rule->new(["ParNames"], ["USParNames","ParObjs"], \&sort_pnobjs),
-
    PDL::PP::Rule->new("DefSyms", "StructName", \&MkDefSyms),
-   PDL::PP::Rule->new("NewXSArgs", ["USParNames","ParObjs","OtherParNames","OtherParTypes"],
+   PDL::PP::Rule->new("NewXSArgs", ["SignatureObj","OtherParNames","OtherParTypes"],
 		      \&NXArgs),
 
    PDL::PP::Rule::Returns->new("PMCode", undef),
 
    PDL::PP::Rule->new("NewXSSymTab", ["DefSyms","NewXSArgs"], \&AddArgsyms),
 
-   PDL::PP::Rule->new("InplaceCode", ["Name","NewXSArgs","ParObjs","_Inplace"],
+   PDL::PP::Rule->new("InplaceCode", ["Name","NewXSArgs","SignatureObj","_Inplace"],
 		      'Insert code (just after HdrCode) to ensure the routine can be done inplace',
 		      \&InplaceCode),
 
@@ -3056,7 +3053,7 @@ $PDL::PP::deftbl =
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
    PDL::PP::Rule->new("VarArgsXSHdr",
-		      ["Name","NewXSArgs","ParObjs","OtherParTypes",
+		      ["Name","NewXSArgs","SignatureObj","OtherParTypes",
 		       "PMCode","HdrCode","InplaceCode","_GlobalNew","_CallCopy","_Bitwise"],
 		      'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
 		      \&VarArgsXSHdr),
@@ -3065,7 +3062,7 @@ $PDL::PP::deftbl =
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
  #
    PDL::PP::Rule->new("VarArgsXSReturn",
-		      ["NewXSArgs","ParObjs","_GlobalNew"],
+		      ["NewXSArgs","SignatureObj","_GlobalNew"],
 		      "Generate XS trailer for returning output variables",
 		      \&VarArgsXSReturn),
 
@@ -3109,7 +3106,7 @@ $PDL::PP::deftbl =
 		      "Rule to create and initialise the private trans structure",
 		      \&MkPrivStructInit),
 
-   PDL::PP::Rule->new("NewXSMakeNow", ["ParNames","NewXSSymTab"], \&MakeNows),
+   PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj","NewXSSymTab"], \&MakeNows),
    PDL::PP::Rule->new("IgnoreTypesOf", "FTypes", sub {return {map {($_,1)} keys %{$_[0]}}}),
    PDL::PP::Rule::Returns->new("IgnoreTypesOf", {}),
 
@@ -3119,27 +3116,27 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCode", "DefaultFlowCodeNS"),
 
    PDL::PP::Rule->new("NewXSFindDatatypeNS",
-		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","GenericTypes","_P2Child"],
+		      ["SignatureObj","IgnoreTypesOf","NewXSSymTab","GenericTypes","_P2Child"],
 		      \&find_datatype),
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSTypeCoerce", "NoConversion"),
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS",
-		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","_P2Child"],
+		      ["SignatureObj","IgnoreTypesOf","NewXSSymTab","_P2Child"],
 		      \&coerce_types),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
-   PDL::PP::Rule::Returns::EmptyString->new("NewXSStructInit1", ["ParNames","NewXSSymTab"]),
+   PDL::PP::Rule::Returns::EmptyString->new("NewXSStructInit1", ["SignatureObj","NewXSSymTab"]),
 
-   PDL::PP::Rule->new("NewXSSetTrans", ["ParNames","ParObjs","NewXSSymTab"], \&makesettrans),
+   PDL::PP::Rule->new("NewXSSetTrans", ["SignatureObj","NewXSSymTab"], \&makesettrans),
 
    PDL::PP::Rule->new("ParsedCode",
-		      ["Code","_BadCode","ParNames","ParObjs","DimsObj","GenericTypes",
+		      ["Code","_BadCode","SignatureObj","DimsObj","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
 		      sub { return PDL::PP::Code->new(@_); }),
    PDL::PP::Rule->new("ParsedBackCode",
-		      ["BackCode","_BadBackCode","ParNames","ParObjs","DimsObj","GenericTypes",
+		      ["BackCode","_BadBackCode","SignatureObj","DimsObj","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
 		      sub { return PDL::PP::Code->new(@_, undef, 'BackCode2'); }),
 
@@ -3179,13 +3176,13 @@ $PDL::PP::deftbl =
 # Threads
 #
    PDL::PP::Rule->new("Priv",
-		      ["ParNames","ParObjs","DimsObj","HaveThreading"],
+		      ["SignatureObj","DimsObj","HaveThreading"],
 		      \&make_incsizes),
    PDL::PP::Rule->new("PrivCopyCode",
-		      ["ParNames","ParObjs","DimsObj","CopyName","HaveThreading"],
+		      ["SignatureObj","DimsObj","CopyName","HaveThreading"],
 		      \&make_incsize_copy),
    PDL::PP::Rule->new("PrivFreeCode",
-		      ["ParNames","ParObjs","DimsObj","HaveThreading"],
+		      ["SignatureObj","DimsObj","HaveThreading"],
 		      "Frees the thread",
 		      \&make_incsize_free),
 
@@ -3193,7 +3190,7 @@ $PDL::PP::deftbl =
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       'PDL_COMMENT("none")'),
    PDL::PP::Rule->new("RedoDimsParsedCode",
-		      ["RedoDimsCode","_BadRedoDimsCode","ParNames","ParObjs","DimsObj",
+		      ["RedoDimsCode","_BadRedoDimsCode","SignatureObj","DimsObj",
 		       "GenericTypes","ExtraGenericLoops","HaveThreading","Name"],
 		      'makes the parsed representation from the supplied RedoDimsCode',
 		      sub {
@@ -3201,7 +3198,7 @@ $PDL::PP::deftbl =
 			    if $_[0] =~ m|^/[*] none [*]/$|;
 			  PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-		      ["ParNames","ParObjs","DimsObj","RedoDimsParsedCode", '_NoPthread'],
+		      ["SignatureObj","DimsObj","RedoDimsParsedCode", '_NoPthread'],
 		      'makes the redodims function from the various bits and pieces',
 		      \&make_redodims_thread),
 
@@ -3253,7 +3250,7 @@ $PDL::PP::deftbl =
 		      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__, "__privtrans->__pdlthread.inds = 0;") : ""}),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
-		      ["BadFlag","_FindBadStatusCode","NewXSArgs","ParObjs","OtherParTypes","NewXSSymTab","Name"],
+		      ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","NewXSSymTab","Name"],
 		      "Rule to find the bad value status of the input ndarrays",
 		      \&findbadstatus),
 
@@ -3268,7 +3265,7 @@ $PDL::PP::deftbl =
 #    "Rule to copy the default bad values into the trnas structure"],
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
-		      ["BadFlag","_CopyBadStatusCode","NewXSArgs","ParObjs","NewXSSymTab"],
+		      ["BadFlag","_CopyBadStatusCode","NewXSArgs","SignatureObj","NewXSSymTab"],
 		      "Rule to copy the bad value status to the output ndarrays",
 		      \&copybadstatus),
 
@@ -3321,7 +3318,7 @@ $PDL::PP::deftbl =
 		      \&mkxscat),
 
    PDL::PP::Rule->new("StructDecl",
-		      ["ParNames","ParObjs","CompiledRepr","PrivateRepr","StructName"],
+		      ["SignatureObj","CompiledRepr","PrivateRepr","StructName"],
 		      \&mkstruct),
 
    # The RedoDimsSub rule is a bit weird since it takes in the RedoDims target
@@ -3389,7 +3386,7 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("VTableDef",
 		      ["VTableName","StructName","RedoDimsFuncName","ReadDataFuncName",
 		       "WriteBackDataFuncName","CopyFuncName","FreeFuncName",
-		       "ParNames","ParObjs","Affine_Ok","FoofName"],
+		       "SignatureObj","Affine_Ok","FoofName"],
 		      \&def_vtable),
 
    # Maybe accomplish this with an InsertName rule?

@@ -14,9 +14,10 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
 # Do the appropriate substitutions in the code.
 sub new {
-    my($type,$code,$badcode,$parnames,$parobjs,$indobjs,$generictypes,
+    my($type,$code,$badcode,$sig,$indobjs,$generictypes,
        $extrageneric,$havethreading,$name,
        $dont_add_thrloop, $backcode ) = @_;
+    my $parnames = $sig->names_sorted;
 
     die "Error: missing name argument to PDL::PP::Code->new call!\n"
       unless defined $name;
@@ -54,7 +55,7 @@ sub new {
     my $this = bless {
 	IndObjs => $indobjs,
 	ParNames => $parnames,
-	ParObjs => $parobjs,
+	ParObjs => $sig->objs,
 	Gencurtype => [], # stack to hold GenType in generic loops
 	types => 0,  # for thisisloop method
 	ftypes_vars => {},

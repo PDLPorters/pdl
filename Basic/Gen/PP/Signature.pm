@@ -33,6 +33,9 @@ sub new {
   my @objects = map PDL::PP::PdlParObj->new($_,$bvalflag, $this), nospacesplit ';',$str;
   $this->{Names} = [ map $_->name, @objects ];
   $this->{Objects} = { map +($_->name => $_), @objects };
+  my @objects_sorted = ((grep !$_->{FlagW}, @objects), (grep $_->{FlagW}, @objects));
+  $objects_sorted[$_]{Number} = $_ for 0..$#objects_sorted;
+  $this->{NamesSorted} = [ map $_->name, @objects_sorted ];
   $this;
 }
 
@@ -51,6 +54,7 @@ the copyright notice should be included in the file.
 =cut
 
 sub names { $_[0]->{Names} }
+sub names_sorted { $_[0]->{NamesSorted} }
 
 sub objs { $_[0]->{Objects} }
 
