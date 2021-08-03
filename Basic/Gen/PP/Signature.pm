@@ -30,7 +30,7 @@ sub new {
   my ($type,$str,$bvalflag) = @_;
   $bvalflag ||= 0;
   my $this = bless {}, $type;
-  my @objects = map PDL::PP::PdlParObj->new($_,"PDL_UNDEF_NUMBER",$bvalflag, $this), nospacesplit ';',$str;
+  my @objects = map PDL::PP::PdlParObj->new($_,$bvalflag, $this), nospacesplit ';',$str;
   $this->{Names} = [ map $_->name, @objects ];
   $this->{Objects} = { map +($_->name => $_), @objects };
   $this;
