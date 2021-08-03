@@ -31,8 +31,7 @@ use Carp;
 
 sub new {
 	my($type,$name) = @_;
-	my $this = bless {Name => $name},$type;
-	return $this;
+	bless {Name => $name},$type;
 }
 
 # set the value of an index, also used by perl level threading
@@ -40,15 +39,11 @@ sub add_value {
 	my($this,$val) = @_;
 	croak("index values for $this->{Name} must be positive")
 	  unless $val > 0;
-	if(defined $this->{Value}) {
-	  if ($this->{Value} == -1 || $this->{Value} == 1)
-	    { $this->{Value} = $val }
-	  elsif($val != 1 && $val != $this->{Value}) {
-	    croak("For index $this->{Name} conflicting values $this->{Value} and $val given\n");
-		}
-	} else {
-		$this->{Value} = $val;
-	}
+	return $this->{Value} = $val if
+		!defined $this->{Value} or
+		$this->{Value} == -1 or
+		$this->{Value} == 1;
+	croak "For index $this->{Name} conflicting values $this->{Value} and $val given\n" if $val != 1 && $val != $this->{Value};
 }
 
 # This index will take its size value from outside parameter ...
@@ -56,27 +51,27 @@ sub set_from { my($this,$otherpar) = @_;
 	$this->{From} = $otherpar;
 }
 
-sub name {return (shift)->{Name}}
+sub name {$_[0]->{Name}}
 
-sub get_decldim { my($this) = @_;
-	return "PDL_Indx __$this->{Name}_size;";
-}
+sub get_decldim { "PDL_Indx ".$_[0]->get_priv.";"; }
 
 sub get_initdim { my($this) = @_;
-	my $init = '-1';
-	$init = "\$COMP(".$this->{From}->{ProtoName}.")"
-	  if $this->{From};
-	$init = $this->{Value} if defined $this->{Value};
-	"\$PRIV(__$this->{Name}_size) = $init;"
+	my $init = $this->{Value} //
+	  ($this->{From} ? "\$COMP(".$this->{From}{ProtoName}.")" : '-1');
+	$this->get_size." = $init;"
 }
 
 sub get_copydim { my($this,$fromsub,$tosub) = @_;
-	my($iname) = "__$this->{Name}_size";
-	&$tosub($iname) ."=". &$fromsub($iname) .";" ;
+	my $iname = $this->get_priv;
+	$tosub->($iname) ."=". $fromsub->($iname) .";";
 }
 
 sub get_size { my($this) = @_;
-	"\$PRIV(__$this->{Name}_size)"
+	"\$PRIV(".$this->get_priv.")"
+}
+
+sub get_priv { my($this) = @_;
+	"__$this->{Name}_size"
 }
 
 1;
