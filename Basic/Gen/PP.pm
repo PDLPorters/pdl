@@ -1728,7 +1728,7 @@ sub sort_pnobjs {
     for(@$pnames) { push ( @nn, $_ ) if $pobjs->{$_}{FlagW}; }
     my $no = 0;
     for(@nn) { $pobjs->{$_}{Number} = $no++; }
-    return (\@nn,$pobjs);
+    return (\@nn);
 }
 
 # XXX __privtrans explicit :(
@@ -3002,7 +3002,7 @@ $PDL::PP::deftbl =
 #
 # P2Child implicitly means "no data type changes".
 
-   PDL::PP::Rule->new(["USParNames","USParObjs","HaveThreading","NewXSName"],
+   PDL::PP::Rule->new(["USParNames","ParObjs","HaveThreading","NewXSName"],
 		      ["P2Child","Name","BadFlag"],
 		      \&NewParentChildPars),
 
@@ -3016,16 +3016,16 @@ $PDL::PP::deftbl =
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
 
-   PDL::PP::Rule->new(["USParNames","USParObjs"], ["Pars","BadFlag"], \&Pars_nft),
-   PDL::PP::Rule->new("DimObjs", ["USParNames","USParObjs"], \&ParObjs_DimObjs),
+   PDL::PP::Rule->new(["USParNames","ParObjs"], ["Pars","BadFlag"], \&Pars_nft),
+   PDL::PP::Rule->new("DimObjs", ["USParNames","ParObjs"], \&ParObjs_DimObjs),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
  #
-   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "USParObjs", "Name", "_P2Child"],
+   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "ParObjs", "Name", "_P2Child"],
       sub {
-	  my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
+	  my ($dimObj, $USParNames, $ParObjs, $Name, $hasp2c) = @_;
 	  return 0 if $hasp2c;
 	  my $noDimmedArgs = scalar(keys %$dimObj);
 	  my $noArgs = scalar(@$USParNames);
@@ -3033,7 +3033,7 @@ $PDL::PP::deftbl =
 	  # Check for 2-arg function with 0-dim signatures
 	  # Check to see if output arg is _not_ explicitly typed:
 	  my $arg2 = $USParNames->[1];
-	  my $ParObj = $USParObjs->{$arg2};
+	  my $ParObj = $ParObjs->{$arg2};
 	  !$ParObj->{FlagTyped};
       }),
 
@@ -3041,17 +3041,17 @@ $PDL::PP::deftbl =
 
    PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","DimObjs"], \&OtherPars_nft),
 
-   PDL::PP::Rule->new(["ParNames","ParObjs"], ["USParNames","USParObjs"], \&sort_pnobjs),
+   PDL::PP::Rule->new(["ParNames"], ["USParNames","ParObjs"], \&sort_pnobjs),
 
    PDL::PP::Rule->new("DefSyms", "StructName", \&MkDefSyms),
-   PDL::PP::Rule->new("NewXSArgs", ["USParNames","USParObjs","OtherParNames","OtherParTypes"],
+   PDL::PP::Rule->new("NewXSArgs", ["USParNames","ParObjs","OtherParNames","OtherParTypes"],
 		      \&NXArgs),
 
    PDL::PP::Rule::Returns->new("PMCode", undef),
 
    PDL::PP::Rule->new("NewXSSymTab", ["DefSyms","NewXSArgs"], \&AddArgsyms),
 
-   PDL::PP::Rule->new("InplaceCode", ["Name","NewXSArgs","USParObjs","_Inplace"],
+   PDL::PP::Rule->new("InplaceCode", ["Name","NewXSArgs","ParObjs","_Inplace"],
 		      'Insert code (just after HdrCode) to ensure the routine can be done inplace',
 		      \&InplaceCode),
 
@@ -3063,7 +3063,7 @@ $PDL::PP::deftbl =
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
    PDL::PP::Rule->new("VarArgsXSHdr",
-		      ["Name","NewXSArgs","USParObjs","OtherParTypes",
+		      ["Name","NewXSArgs","ParObjs","OtherParTypes",
 		       "PMCode","HdrCode","InplaceCode","_GlobalNew","_CallCopy","_Bitwise"],
 		      'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
 		      \&VarArgsXSHdr),
@@ -3072,7 +3072,7 @@ $PDL::PP::deftbl =
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
  #
    PDL::PP::Rule->new("VarArgsXSReturn",
-		      ["NewXSArgs","USParObjs","_GlobalNew"],
+		      ["NewXSArgs","ParObjs","_GlobalNew"],
 		      "Generate XS trailer for returning output variables",
 		      \&VarArgsXSReturn),
 
@@ -3260,7 +3260,7 @@ $PDL::PP::deftbl =
 		      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__, "__privtrans->__pdlthread.inds = 0;") : ""}),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
-		      ["BadFlag","_FindBadStatusCode","NewXSArgs","USParObjs","OtherParTypes","NewXSSymTab","Name"],
+		      ["BadFlag","_FindBadStatusCode","NewXSArgs","ParObjs","OtherParTypes","NewXSSymTab","Name"],
 		      "Rule to find the bad value status of the input ndarrays",
 		      \&findbadstatus),
 
@@ -3275,7 +3275,7 @@ $PDL::PP::deftbl =
 #    "Rule to copy the default bad values into the trnas structure"],
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
-		      ["BadFlag","_CopyBadStatusCode","NewXSArgs","USParObjs","NewXSSymTab"],
+		      ["BadFlag","_CopyBadStatusCode","NewXSArgs","ParObjs","NewXSSymTab"],
 		      "Rule to copy the bad value status to the output ndarrays",
 		      \&copybadstatus),
 
