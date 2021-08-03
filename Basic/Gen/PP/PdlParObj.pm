@@ -61,9 +61,9 @@ our $pars_re = qr/^
 	\(([^)]*)\)  		# $4: The indices
 /x;
 sub new {
-	my($type,$string,$badflag) = @_;
+	my($type,$string,$badflag,$sig) = @_;
 	$badflag ||= 0;
-	my $this = bless {Number => "PDL_UNDEF_NUMBER", BadFlag => $badflag},$type;
+	my $this = bless {Number => "PDL_UNDEF_NUMBER", BadFlag => $badflag, Sig => $sig},$type;
 	# Parse the parameter string. Note that the regexes for this match were
 	# originally defined here, but were moved to PDL::PP for FullDoc parsing.
 	$string =~ $pars_re

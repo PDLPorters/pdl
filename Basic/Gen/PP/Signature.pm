@@ -22,10 +22,6 @@ Internal module to handle signatures
 # Eliminate whitespace entries
 sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
-# we pass on $bvalflag to the PdlParObj's created by parse
-# (a hack for PdlParObj::get_xsdatapdecl() which should
-# disappear when (if?) things are done sensibly)
-#
 sub new {
   my ($type,$str,$bvalflag) = @_;
   $bvalflag ||= 0;
@@ -38,6 +34,11 @@ sub new {
   $this->{NamesSorted} = [ map $_->name, @objects_sorted ];
   $this->{DimsObj} = my $dimsobj = PDL::PP::PdlDimsObj->new;
   $_->add_inds($dimsobj) for @objects;
+  my %ind2use;
+  for my $o (@objects) {
+    push @{$ind2use{$_}}, $o for @{$o->{RawInds}};
+  }
+  $this->{Ind2Use} = \%ind2use;
   $this;
 }
 
@@ -63,6 +64,8 @@ sub objs { $_[0]->{Objects} }
 sub dims_obj { $_[0]->{DimsObj} }
 sub dims_count { scalar keys %{$_[0]->{DimsObj}} }
 sub dims_values { values %{$_[0]->{DimsObj}} }
+
+sub ind_used { $_[0]->{Ind2Use}{$_[1]} }
 
 sub realdims {
   my $this = shift;
