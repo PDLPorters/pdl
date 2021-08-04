@@ -234,64 +234,6 @@ sever(src)
 		RETVAL
 
 int
-set_data_by_mmap(it,fname,len,shared,writable,creat,mode,trunc)
-	pdl *it
-	char *fname
-	STRLEN len
-	int writable
-	int shared
-	int creat
-	int mode
-	int trunc
-	CODE:
-#ifdef USE_MMAP
-       int fd;
-       pdl_freedata(it);
-       fd = open(fname,(writable && shared ? O_RDWR : O_RDONLY)|
-               (creat ? O_CREAT : 0),mode);
-       if(fd < 0) {
-               croak("Error opening file");
-       }
-       if(trunc) {
-               int error = ftruncate(fd,0);   /* Clear all previous data */
-               
-               if(error)
-               {
-					fprintf(stderr,"Failed to set length of '%s' to %d. errno=%d",fname,(int)len,(int)error);
-					croak("set_data_by_mmap: first ftruncate failed");
-               }
-               
-               error = ftruncate(fd,len); /* And make it long enough */
-               
-               if(error)
-               {
-					fprintf(stderr,"Failed to set length of '%s' to %d. errno=%d",fname,(int)len,(int)error);
-					croak("set_data_by_mmap: second ftruncate failed");
-               }
-       }
-       if(len) {
-		it->data = mmap(0,len,PROT_READ | (writable ?
-					PROT_WRITE : 0),
-				(shared ? MAP_SHARED : MAP_PRIVATE),
-				fd,0);
-		if(!it->data)
-			croak("Error mmapping!");
-       } else {
-               /* Special case: zero-length file */
-               it->data = NULL;
-       }
-       PDLDEBUG_f(printf("PDL::MMap: mapped to %p\n",it->data);)
-       it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
-       pdl_add_deletedata_magic(it, pdl_delete_mmapped_data, len);
-       close(fd);
-#else
-	croak("mmap not supported on this architecture");
-#endif
-       RETVAL = 1;
-OUTPUT:
-       RETVAL
-
-int
 set_state_and_add_deletedata_magic(it,len)
       pdl *it
       STRLEN len

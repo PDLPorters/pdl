@@ -335,13 +335,6 @@ Documentation contributions copyright (C) David Mertens, 2010.
 
 package PDL::IO::FlexRaw;
 
-BEGIN {
-   our $have_file_map = 0;
-
-   eval "use File::Map 0.57 qw(map_file)";
-   $have_file_map = 1 unless $@;
-}
-
 use PDL;
 use Exporter;
 use FileHandle;
@@ -737,26 +730,14 @@ sub mapflex {
     # print "Mapping total size $size\n";
     # use Data::Dumper;
     # print "Options: ", Dumper(\%opts), "\n";
-    if ($have_file_map and not defined($PDL::force_use_mmap_code) ) {
-       $d->set_data_by_file_map($name,
-                            $size,
-                            1,
-                            ($opts{ReadOnly}?0:1),
-                            ($opts{Creat}?1:0),
-                            (0644),
-                            ($opts{Creat} || $opts{Trunc} ? 1:0)
-                         );
-    } else {
-       warn "mapflex: direct mmap support being deprecated, please install File::Map\n";
-       $d->set_data_by_mmap($name,
-                            $size,
-                            1,
-                            ($opts{ReadOnly}?0:1),
-                            ($opts{Creat}?1:0),
-                            (0644),
-                            ($opts{Creat} || $opts{Trunc} ? 1:0)
-                         );
-    }
+    $d->set_data_by_file_map($name,
+        $size,
+        1,
+        ($opts{ReadOnly}?0:1),
+        ($opts{Creat}?1:0),
+        (0644),
+        ($opts{Creat} || $opts{Trunc} ? 1:0)
+    );
 READ:
     foreach $hdr (@$h) {
 		my ($type) = $hdr->{Type};

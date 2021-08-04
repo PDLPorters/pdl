@@ -1,3 +1,5 @@
+- remove (very-)long-deprecated mmap code in favour of File::Map
+
 2.055 2021-08-03
 - officially deprecate PDL::Complex in favour of "native complex" - thanks @wlmb for suggestion
 - throw exception for [phys] Pars with multi-used, non-matching dim of 1 instead of silent repeat
