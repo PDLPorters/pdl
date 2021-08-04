@@ -3982,18 +3982,6 @@ BEGIN {
    }
 }
 
-# Implement File::Map::sys_map bug fix.  Also, might be possible
-# to implement without so many external (non-Core perl) modules.
-#
-# sub pdl_do_sys_map {
-#         my (undef, $length, $protection, $flags, $fh, $offset) = @_;
-#         my $utf8 = File::Map::_check_layers($fh);
-#         my $fd = ($flags & MAP_ANONYMOUS) ? (-1) : fileno($fh);
-#         $offset ||= 0;
-#         File::Map::_mmap_impl($_[0], $length, $protection, $flags, $fd, $offset, $utf8);
-#         return;
-# }
-
 sub PDL::set_data_by_file_map {
    my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
    my $pdl_dataref = $pdl->get_dataref();
@@ -4007,14 +3995,12 @@ sub PDL::set_data_by_file_map {
    binmode $fh;
 
    if ($trunc) {
-      truncate($fh,0) or die "set_data_by_mmap: truncate('$name',0) failed, $!";
-      truncate($fh,$len) or die "set_data_by_mmap: truncate('$name',$len) failed, $!";
+      truncate($fh,0) or die "set_data_by_file_map: truncate('$name',0) failed, $!";
+      truncate($fh,$len) or die "set_data_by_file_map: truncate('$name',$len) failed, $!";
    }
 
    if ($len) {
 
-      #eval {
-      # pdl_do_sys_map(  # will croak if the mapping fails
       if ($PDL::debug) {
          printf STDERR
          "set_data_by_file_map: calling sys_map(%s,%d,%d,%d,%s,%d)\n",
@@ -4026,7 +4012,7 @@ sub PDL::set_data_by_file_map {
          0;
       }
 
-      sys_map(  # will croak if the mapping fails
+      sys_map(
          ${$pdl_dataref},
          $len,
          PROT_READ | ($writable ?  PROT_WRITE : 0),
@@ -4034,11 +4020,6 @@ sub PDL::set_data_by_file_map {
          $fh,
          0
       );
-      #};
-
-         #if ($@) {
-         #die("Error mmapping!, '$@'\n");
-         #}
 
       $pdl->upd_data;
 
