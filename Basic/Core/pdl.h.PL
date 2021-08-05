@@ -263,9 +263,9 @@ typedef struct pdl_transvtable {
   pdl_transvtable *vtable;                                              \
   void (*freeproc)(struct pdl_trans *);  /* Call to free this           \
                                           (means whether malloced or not) */ \
-  int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
+  int bvalflag;                                                         \
   int has_badvalue;                                                     \
-  PDL_Anyval badvalue;                                                      \
+  PDL_Anyval badvalue;                                                  \
   int __datatype
 
 #define PDL_TRANS_START(np) \

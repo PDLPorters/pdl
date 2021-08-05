@@ -3968,14 +3968,13 @@ sub PDL::fhdr {
     return \%hdr;
 }
 
-use Fcntl;
-use File::Map qw(:all);
-
 sub PDL::set_data_by_file_map {
+   require Fcntl;
+   require File::Map;
    my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
    my $pdl_dataref = $pdl->get_dataref();
 
-   sysopen(my $fh, $name, ($writable && $shared ? O_RDWR : O_RDONLY) | ($creat ? O_CREAT : 0), $mode)
+   sysopen(my $fh, $name, ($writable && $shared ? Fcntl::O_RDWR() : Fcntl::O_RDONLY()) | ($creat ? Fcntl::O_CREAT() : 0), $mode)
       or die "Error opening file '$name'\n";
 
    binmode $fh;
@@ -3992,17 +3991,17 @@ sub PDL::set_data_by_file_map {
          "set_data_by_file_map: calling sys_map(%s,%d,%d,%d,%s,%d)\n",
          $pdl_dataref,
          $len,
-         PROT_READ | ($writable ?  PROT_WRITE : 0),
-         ($shared ? MAP_SHARED : MAP_PRIVATE),
+         File::Map::PROT_READ() | ($writable ?  File::Map::PROT_WRITE() : 0),
+         ($shared ? File::Map::MAP_SHARED() : File::Map::MAP_PRIVATE()),
          $fh,
          0;
       }
 
-      sys_map(
+      File::Map::sys_map(
          ${$pdl_dataref},
          $len,
-         PROT_READ | ($writable ?  PROT_WRITE : 0),
-         ($shared ? MAP_SHARED : MAP_PRIVATE),
+         File::Map::PROT_READ() | ($writable ?  File::Map::PROT_WRITE() : 0),
+         ($shared ? File::Map::MAP_SHARED() : File::Map::MAP_PRIVATE()),
          $fh,
          0
       );
