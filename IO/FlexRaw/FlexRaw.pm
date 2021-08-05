@@ -496,6 +496,7 @@ sub mapchunk {
     my ($orig, $pdl, $len, $name) = @_;
     # link $len at $offset from $orig to $pdl.
     # print "linking $len bytes from $offset\n";
+    $pdl->freedata;
     $pdl->set_data_by_offset($orig,$offset);
     local ($flexmapok)=1;
     local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;

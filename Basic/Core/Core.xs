@@ -65,20 +65,6 @@ static SV* pdl_unpackint ( PDL_Indx *dims, int ndims ) {
    return (SV*) array;
 }
 
-/*
- * Free the data if possible; used by mmapper
- * Moved from pdlhash.c July 10 2006 DJB
- */
-static void pdl_freedata (pdl *a) {
-	if(a->datasv) {
-		SvREFCNT_dec(a->datasv);
-		a->datasv=0;
-		a->data=0;
-	} else if(a->data) {
-		die("Trying to free data of untouchable (mmapped?) pdl");
-	}
-}
-
 /* newval = 1 means set flag, 0 means clear it */
 /* thanks to Christian Soeller for this */
 
@@ -244,13 +230,25 @@ set_state_and_add_deletedata_magic(it,len)
       OUTPUT:
             RETVAL
 
+# Free the datasv if possible
+void
+freedata(it)
+      pdl *it
+      CODE:
+	if(it->datasv) {
+		SvREFCNT_dec(it->datasv);
+		it->datasv=0;
+		it->data=0;
+	} else if(it->data) {
+		die("Trying to free data of pdl with data != 0 and datasv==0");
+	}
+
 int
 set_data_by_offset(it,orig,offset)
       pdl *it
       pdl *orig
       STRLEN offset
       CODE:
-              pdl_freedata(it);
               it->data = ((char *) orig->data) + offset;
 	      it->datasv = orig->sv;
               (void)SvREFCNT_inc(it->datasv);

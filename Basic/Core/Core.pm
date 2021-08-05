@@ -3986,9 +3986,6 @@ sub PDL::set_data_by_file_map {
    my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
    my $pdl_dataref = $pdl->get_dataref();
 
-   # Assume we have no data to free for now
-   # pdl_freedata($pdl);
-
    sysopen(my $fh, $name, ($writable && $shared ? O_RDWR : O_RDONLY) | ($creat ? O_CREAT : 0), $mode)
       or die "Error opening file '$name'\n";
 

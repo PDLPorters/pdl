@@ -5,24 +5,6 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-/*
- * DJB July 10 2006
- * moved from pdlhash.c into Core.xs since it only seems to
- * be used there (and is not defined in any .h file so
- * should not be used by code outside Core/)
- *
- * Free the data if possible; used by mmapper
-void pdl_freedata (pdl *a) {
-	if(a->datasv) {
-		SvREFCNT_dec(a->datasv);
-		a->datasv=0;
-		a->data=0;
-	} else if(a->data) {
-		die("Trying to free data of untouchable (mmapped?) pdl");
-	}
-}
-*/
-
 /*  Utility to change the size of the data compt of a pdl */
 
 void pdl_grow (pdl* a, PDL_Indx newsize) {
