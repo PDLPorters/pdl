@@ -3,6 +3,7 @@
 - remove unnecessary Core members to reduce struct size and increase cacheability
 - removed legacy mmap implementation including PDL_MAGIC_DELETEDATA mechanism
 - remove PDL::Constants::{I,J} which returned a PDL::Complex - use PDL::i()
+- n{good,bad}over, sum, prod, *pct, etc now return ndarrays not Perl values
 
 2.055 2021-08-03
 - officially deprecate PDL::Complex in favour of "native complex" - thanks @wlmb for suggestion

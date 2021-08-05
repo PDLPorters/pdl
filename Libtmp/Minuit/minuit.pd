@@ -291,7 +291,7 @@ pp_addpm('
     }
 
     my ($fmin,$fedm,$errdef,$npari,$nparx,$istat) = PDL::Minuit::mnstat();
-    my $n = $npari->sum;
+    my $n = $npari->sum->at;
     my $mat = zeroes($n,$n);
 
     PDL::Minuit::mnemat($mat);

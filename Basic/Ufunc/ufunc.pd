@@ -932,7 +932,7 @@ sub PDL::pct {
 	my(\$x, \$p) = \@_; 
     my \$tmp;
 	\$x->clump(-1)->pctover(\$p, \$tmp=PDL->nullcreate(\$x));
-	return \$tmp->at();
+	return \$tmp;
 }
 
 EOD
@@ -960,7 +960,7 @@ sub PDL::oddpct {
 	my(\$x, \$p) = \@_; 
     my \$tmp;
 	\$x->clump(-1)->oddpctover(\$p, \$tmp=PDL->nullcreate(\$x));
-	return \$tmp->at();
+	return \$tmp;
 }
 
 EOD
@@ -1018,7 +1018,7 @@ This routine handles bad values.
 sub PDL::$name {
 	my(\$x) = \@_; my \$tmp;
 	\$x->clump(-1)->${func}( \$tmp=PDL->nullcreate(\$x) );
-	return \$tmp->at();
+	return \$tmp;
 }
 EOD
 
