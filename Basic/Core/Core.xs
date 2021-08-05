@@ -522,7 +522,6 @@ BOOT:
    PDL_CORE_BOOT(SetSV_PDL)
    PDL_CORE_BOOT(create)
    PDL_CORE_BOOT(pdlnew)
-   PDL.tmp         = NULL; /* only here for binary back-compat */
    PDL_CORE_BOOT(destroy)
    PDL_CORE_BOOT(null)
    PDL_CORE_BOOT(copy)
@@ -536,7 +535,6 @@ BOOT:
    PDL_CORE_BOOT(setdims)
    PDL_CORE_BOOT(grow)
    PDL_CORE_BOOT(at0)
-   PDL.flushcache  = NULL;
    PDL_CORE_BOOT(reallocdims)
    PDL_CORE_BOOT(reallocthreadids)
    PDL_CORE_BOOT(resize_defaultincs)

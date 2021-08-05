@@ -397,11 +397,9 @@ See L<PDL::ParallelCPU> for more information on pthreading.
 # get_offs
 # put_offs
 # setdims_careful
-# tmp
 # destroy
 # twod
 # grow
-# flushcache
 # reallocdims
 # reallocthreadids
 # resize_defaultincs

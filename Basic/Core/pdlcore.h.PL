@@ -28,9 +28,9 @@ PDL::Core::Dev::loadmod_Types();
 # version 13 for complex data types (native complex support)
 # version 14: NaN support for native complex, per-PDL badval on
 # version 15: threadid, ndims become PDL_Indx
-# FOR NEXT VERSION DELETE .tmp AND RENAME pdl_barf/pdl_warn/pdlnew WITHOUT pdl_?
+# version 16: zap tmp, flushcache
 use vars qw( $pdl_core_version );
-$pdl_core_version = 15;
+$pdl_core_version = 16;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -241,14 +241,6 @@ void pdl_trans_changed(pdl_trans *trans,int what);
 void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth);
 void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth);
 
-/* pdlhash.c */
-
-pdl*    pdl_getcache( HV* hash );       /* Retrieve address of $$x{PDL} */
-pdl*    pdl_fillcache( HV* hash, SV* ref);       /* Fill/create $$x{PDL} cache */
-void    pdl_fillcache_partial( HV *hash, pdl *thepdl ) ;
-SV*     pdl_getKey( HV* hash, char* key );  /* Get $$x{Key} SV* with deref */
-void pdl_flushcache( pdl *thepdl );	     /* flush cache */
-
 /* pdlconv.c */
 
 void pdl_writebackdata_vaffine(pdl *it);
@@ -287,7 +279,6 @@ struct Core {
     pdl*   (*SvPDLV)      ( SV*  );
     void   (*SetSV_PDL)   ( SV *sv, pdl *it );
     pdl*   (*pdlnew)      ( );
-    pdl*   (*tmp)         ( );
     pdl*   (*create)      (int type);
     void   (*destroy)     (pdl *it);
     pdl*   (*null)        ();
@@ -303,7 +294,6 @@ struct Core {
                             PDL_Indx ndims );
     void   (*grow)        ( pdl* a, PDL_Indx newsize); /* Change pdl 'Data' size */
     PDL_Anyval (*at0)     ( pdl* x );
-    void (*flushcache)( pdl *thepdl );	     /* flush cache */
     void (*reallocdims) ( pdl *it,PDL_Indx ndims );  /* reallocate dims and incs */
     void (*reallocthreadids) ( pdl *it,PDL_Indx ndims );
     void (*resize_defaultincs) ( pdl *it );     /* Make incs out of dims */
