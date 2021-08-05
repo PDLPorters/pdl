@@ -28,7 +28,7 @@ PDL::Core::Dev::loadmod_Types();
 # version 13 for complex data types (native complex support)
 # version 14: NaN support for native complex, per-PDL badval on
 # version 15: threadid, ndims become PDL_Indx
-# version 16: zap tmp, flushcache, NaN_*
+# version 16: zap tmp, flushcache, NaN_*, qsort_ for complex
 use vars qw( $pdl_core_version );
 $pdl_core_version = 16;
 
@@ -331,7 +331,7 @@ PDL_Indx (*safe_indterm)(PDL_Indx dsz, PDL_Indx at, char *file, int lineno);
 
 # set up the qsort routines
 
-for my $t(PDL::Types::types()) {
+for my $t(grep $_->real, PDL::Types::types()) {
    my ($ctype, $ppsym) = map $t->$_, qw(ctype ppsym);
    print OUT <<EOF;
 void (*qsort_$ppsym) ($ctype *xx, PDL_Indx a, PDL_Indx b );
