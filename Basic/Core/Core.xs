@@ -326,7 +326,7 @@ _ci(...)
 void
 _nan(...)
  PPCODE:
-  PDL_XS_SCALAR(PDL_D, PDL_Double, PDL.NaN_double)
+  PDL_XS_SCALAR(PDL_D, PDL_Double, (PDL_Double)NAN)
 
 void
 _inf(...)
@@ -570,10 +570,6 @@ BOOT:
    PDL_CORE_BOOT(changed)
    PDL_CORE_BOOT(vaffinechanged)
 
-   PDL.NaN_float  = union_nan_float.f;
-   PDL.NaN_double = union_nan_double.d;
-   PDL.NaN_cfloat  = union_nan_float.f + I*union_nan_float.f;
-   PDL.NaN_cdouble = union_nan_double.d + I*union_nan_double.d;
    PDL_CORE_BOOT(propagate_badflag)
    PDL_CORE_BOOT(propagate_badvalue)
    PDL_CORE_BOOT(get_pdl_badvalue)

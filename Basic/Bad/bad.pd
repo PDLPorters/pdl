@@ -910,7 +910,7 @@ operation, it clears the bad flag.
     },
     Code => q{
         if ( $ISBAD(a()) ) {
-            $b() = PDL->NaN_$TFDGC(float,double,cfloat,cdouble);
+            $b() = $TFDGC(NAN,NAN,NAN+I*NAN,NAN+I*NAN);
         }
         else {
             $b() = $a();

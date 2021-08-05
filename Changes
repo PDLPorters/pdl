@@ -1,5 +1,6 @@
 - remove (very-)long-deprecated mmap code in favour of File::Map
 - remove obsolete Core members, update Core version
+- remove unnecessary Core members to reduce struct size and increase cacheability
 
 2.055 2021-08-03
 - officially deprecate PDL::Complex in favour of "native complex" - thanks @wlmb for suggestion

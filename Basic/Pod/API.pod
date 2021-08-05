@@ -360,13 +360,6 @@ is 32bit or 64bit enabled.
 
 =item *
 
-C<float NaN_float> and
-C<double NaN_double>
-
-These are constants to produce the required NaN values.
-
-=item *
-
 C<void pdl_barf(const char* pat,...)> and
 C<void pdl_warn(const char* pat,...)>
 
