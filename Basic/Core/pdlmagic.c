@@ -1,14 +1,4 @@
-#ifndef WIN32
-#define USE_MMAP
-#else
-#undef USE_MMAP
-#endif
-
 #include "pdlcore.h"
-
-#ifdef USE_MMAP
-#include <sys/mman.h>
-#endif
 
 /* Variable storing our the pthread ID for the main PDL thread.
  *  This is used to tell if we are in the main pthread, or in one of
@@ -496,46 +486,3 @@ int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {return 0;}
 int pdl_pthreads_enabled() {return 0;}
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args){ return 0;}
 #endif
-
-/***************************
- *
- * Delete magic
- *
- */
-
-
-void pdl_delete_mmapped_data(pdl *p, Size_t param)
-{
-	if(!p) {return;}
-	if(!p->data) {return;}
-#ifdef USE_MMAP
-	munmap(p->data, param);
-#else
-      /*  croak("internal error: trying to delete mmaped data on unsupported platform"); */
-#endif
-	p->data = 0;
-}
-
-static void *delete_mmapped_cast(pdl_magic *mag)
-{
-	pdl_magic_deletedata *magp = (pdl_magic_deletedata *)mag;
-	magp->func(magp->pdl, magp->param);
-	return NULL;
-}
-
-struct pdl_magic_vtable deletedatamagic_vtable = {
-	delete_mmapped_cast,
-	NULL
-};
-
-void pdl_add_deletedata_magic(pdl *it, void (*func)(pdl *, Size_t param), Size_t param)
-{
-	pdl_magic_deletedata *ptr = malloc(sizeof(pdl_magic_deletedata));
-	ptr->what = PDL_MAGIC_DELETEDATA;
-	ptr->vtable = &deletedatamagic_vtable;
-	ptr->pdl = it;
-	ptr->func = func;
-	ptr->param = param;
-	pdl__magic_add(it, (pdl_magic *)ptr);
-}
-

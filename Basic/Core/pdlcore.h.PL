@@ -28,7 +28,7 @@ PDL::Core::Dev::loadmod_Types();
 # version 13 for complex data types (native complex support)
 # version 14: NaN support for native complex, per-PDL badval on
 # version 15: threadid, ndims become PDL_Indx
-# version 16: zap tmp, flushcache, NaN_*, qsort_ for complex
+# version 16: zap tmp, flushcache, NaN_*, qsort_ for complex, add_deletedata_magic
 use vars qw( $pdl_core_version );
 $pdl_core_version = 16;
 
@@ -291,8 +291,6 @@ int (*iterthreadloop)(pdl_thread *thread, PDL_Indx which);
 void (*freethreadloop)(pdl_thread *thread);
 void (*thread_create_parameter)(pdl_thread *thread,PDL_Indx j,PDL_Indx *dims,
 				int temp);
-void (*add_deletedata_magic) (pdl *it,void (*func)(pdl *, Size_t param), Size_t param); /* Automagic destructor */
-                             /* This needs to be fixed to work correctly for File::Map implementation */
 
 /* XXX NOT YET IMPLEMENTED */
 void (*setdims_careful)(pdl *pdl);

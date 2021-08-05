@@ -175,14 +175,11 @@ PDL::IO::Browser
 PDL::IO::FastRaw
 PDL::IO::FlexRaw
                   Memory-mapped file IO functions (mapfraw
-		  and mapflex) require File::Map 0.47 or
-		  higher.  (Systems with POSIX mmap routines
-		  will work without File::Map but it is
-		  expected that the less-flexible, legacy
-		  implementation will be deprecated)
+		  and mapflex) require File::Map 0.57 or
+		  higher.
 
                                           Built by default if File::Map
-					  or mmap dependencies are met.
+					  dependencies are met.
 
 
 PDL::IO::FITS     Needs Astro::FITS::Header for full support

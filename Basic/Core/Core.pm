@@ -3969,18 +3969,7 @@ sub PDL::fhdr {
 }
 
 use Fcntl;
-
-BEGIN {
-   eval 'use File::Map 0.47 qw(:all)';
-   if ($@) {
-      carp "No File::Map found, using legacy mmap (if available)\n" if $PDL::verbose;
-      sub sys_map;
-      sub PROT_READ();
-      sub PROT_WRITE();
-      sub MAP_SHARED();
-      sub MAP_PRIVATE();
-   }
-}
+use File::Map qw(:all);
 
 sub PDL::set_data_by_file_map {
    my ($pdl,$name,$len,$shared,$writable,$creat,$mode,$trunc) = @_;
@@ -4023,7 +4012,7 @@ sub PDL::set_data_by_file_map {
       if ($PDL::debug) {
          printf STDERR "set_data_by_file_map: length \${\$pdl_dataref} is %d.\n", length ${$pdl_dataref};
       }
-      $pdl->set_state_and_add_deletedata_magic( length ${$pdl_dataref} );
+      $pdl->set_donttouchdata;
 
    } else {
 

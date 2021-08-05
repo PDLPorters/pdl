@@ -1,8 +1,6 @@
 #ifndef WIN32
 #include <unistd.h>
-#include <sys/mman.h>
 #include <fcntl.h>
-#define USE_MMAP
 #endif
 
 #include "EXTERN.h"   /* std perl include */
@@ -220,12 +218,10 @@ sever(src)
 		RETVAL
 
 int
-set_state_and_add_deletedata_magic(it,len)
+set_donttouchdata(it)
       pdl *it
-      STRLEN len
       CODE:
             it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
-            pdl_add_deletedata_magic(it, pdl_delete_mmapped_data, len);
             RETVAL = 1;
       OUTPUT:
             RETVAL
@@ -546,7 +542,6 @@ BOOT:
    PDL_CORE_BOOT(iterthreadloop)
    PDL_CORE_BOOT(freethreadloop)
    PDL_CORE_BOOT(thread_create_parameter)
-   PDL_CORE_BOOT(add_deletedata_magic)
 
    PDL_CORE_BOOT(setdims_careful)
    PDL_CORE_BOOT(put_offs)
