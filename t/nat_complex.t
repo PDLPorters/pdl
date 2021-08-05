@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use PDL::LiteF;
-#use PDL::Complex;
 use PDL::Config;
 use PDL::Core::Dev;
 use PDL::Types qw(ppdefs ppdefs_complex ppdefs_all);
@@ -94,10 +93,10 @@ ok(tapprox(abs2 $x, $cabs**2), 'Cabs2 value') or diag "got: (@{[abs2 $x]}), expe
 ok(carg($x)->type->real, 'Carg type real');
 ok(tapprox(carg($x), atan2($x->im, $x->re)), 'Carg value');
 
-# Check cat'ing of PDL::Complex
+# Check cat'ing
 $y = $x->re->copy + 1;
 my $bigArray = $x->cat($y);
-#ok(abs($bigArray->sum() +  8 - 4*i()) < .0001, 'check cat for PDL::Complex');
+#ok(abs($bigArray->sum() +  8 - 4*i()) < .0001, 'check cat for complex');
 
 if (PDL::Core::Dev::got_complex_version('pow', 2)) {
   ok(tapprox($x**2, $x * $x), '** op complex')

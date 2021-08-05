@@ -178,11 +178,6 @@ such as bindings to the FFTW library, or GSL. Give it a read!
 
 =over
 
-=item * L<PDL::Complex>
-
-Complex number support.  No, PDL does not have complex number
-support built into the core, but this should help you out.
-
 =item * L<PDL::FFT>
 
 PDL's own Fast Fourier Transform.  If you have FFTW, then you

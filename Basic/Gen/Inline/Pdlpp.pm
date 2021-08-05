@@ -383,7 +383,7 @@ Same as C<pp_bless> command. Specifies the package (i.e. class)
 to which your new I<pp_def>ed methods will be added. Defaults
 to C<PDL> if omitted.
 
-    use Inline Pdlpp => Config => BLESS => 'PDL::Complex';
+    use Inline Pdlpp => Config => BLESS => 'PDL::MyPackage';
 
 cf L</PACKAGE>, equivalent for L<PDL::PP/pp_addxs>.
 

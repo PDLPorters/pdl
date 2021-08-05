@@ -50,28 +50,6 @@ The base of the natural logarithms or Euler's number
 
 use constant E     => exp(1);
 
-=head2 I
-
-The imaginary unit, C< I*I == -1 >
-
-=cut
-
-sub I () {
-  require PDL::Complex;
-  goto &PDL::Complex::i;
-}
-
-=head2 J
-
-The imaginary unit for engineers, C< J*J == -1 >
-
-=cut
-
-sub J () {
-  require PDL::Complex;
-  goto &PDL::Complex::i;
-}
-
 =head1 COPYRIGHT & LICENSE
 
 Copyright 2010 Chris Marshall (chm at cpan dot org).

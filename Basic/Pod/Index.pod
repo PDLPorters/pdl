@@ -148,10 +148,6 @@ L<PDL::Char> - PDL subclass which allows reading and writing of fixed-length cha
 
 =item *
 
-L<PDL::Complex> - handle complex numbers
-
-=item *
-
 L<PDL::Compression> - compression utilities
 
 =item *

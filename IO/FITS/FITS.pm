@@ -1755,8 +1755,6 @@ ASCII tables are not yet handled but should be.
 
 Binary tables currently only handle one vector (up to 1-D array) 
 per table entry; the standard allows more, and should be fully implemented.
-This means that PDL::Complex ndarrays currently can not be written to
-disk.
 
 Handling multidim arrays implies that perl multidim lists should also be
 handled.

@@ -86,8 +86,7 @@ act q|
 act q|
   # let's try and read the cursor
 
-  use PDL::Complex;
-  $c =  zeroes(300)->xlinvals(0,12)+i*zeroes(300)->xlinvals(2,10);
+  $c =  czip(zeroes(300)->xlinvals(0,12), zeroes(300)->xlinvals(2,10));
   $sin = sin $c;
   $win->line( $sin->im, $sin->re );
 

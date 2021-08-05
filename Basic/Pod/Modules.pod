@@ -86,10 +86,6 @@ Nicer syntax for slices.
 
 Fundamental operations on ndarrays.
 
-=item L<PDL::Complex>
-
-Complex numbers.
-
 =item L<PDL::Bad>
 
 Bad value support.

@@ -196,11 +196,10 @@ act q|
   #
   
 
-  use PDL::Complex;
   $z50 = zeroes(50);
-  $c = $z50->xlinvals(0,7)+i*$z50->xlinvals(2,4);
-  line im sin $c; hold;      # the imaginary part
-  line re sin $c;            # real
+  $c = czip($z50->xlinvals(0,7), $z50->xlinvals(2,4));
+  line sin($c)->im; hold;      # the imaginary part
+  line sin($c)->re;            # real
   line abs sin $c; release;  # and the modulus
   
 |;
@@ -210,8 +209,7 @@ act q|
   # more complex numbers
   #
   
-  use PDL::Complex;
-  $c =  zeroes(300)->xlinvals(0,12)+i*zeroes(300)->xlinvals(2,10);
+  $c =  czip(zeroes(300)->xlinvals(0,12), zeroes(300)->xlinvals(2,10));
   $sin = sin $c;
   line $sin->im, $sin->re;   # look at the result in the complex plane
   #close the window--we're done!
