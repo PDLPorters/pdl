@@ -18,6 +18,11 @@ jobs:
       IRC_PORT: '6667'
       IRC_NICKNAME: 'pdl-commits'
     steps:
+      - uses: actions/checkout@v2
+      - name: irc push (build messages)
+        if: ${{ github.event_name == 'push' && github.repository == 'PDLPorters/pdl' }}
+        run: |
+            echo "commitmsg="$( git show -s --oneline ${{ join(github.event.commits.*.id, ' ') }} ) >> $GITHUB_ENV
       - name: irc push
         uses: Gottox/irc-message-action@v1.3
         if: ${{ github.event_name == 'push' && github.repository == 'PDLPorters/pdl' }}
@@ -30,7 +35,7 @@ jobs:
           notice: true
           message: |
             ${{ github.actor }} pushed ${{ github.event.ref }} ${{ github.event.compare }}
-            ${{ join(github.event.commits.*.message, ', ') }}
+            ${{ env.commitmsg }}
       - name: irc pull request
         uses: Gottox/irc-message-action@v1.3
         if: ${{ github.event_name == 'pull_request' && github.repository == 'PDLPorters/pdl' }}
