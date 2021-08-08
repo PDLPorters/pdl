@@ -10,16 +10,16 @@ void pdl_grow (pdl* a, PDL_Indx newsize) {
    STRLEN nbytes;
    STRLEN ncurr;
    STRLEN len;
+   nbytes = ((STRLEN) newsize) * pdl_howbig(a->datatype);
+   ncurr  = a->datasv ? SvCUR((SV *)a->datasv) : 0;
+   if (ncurr == nbytes)
+      return;    /* Nothing to be done */
    if(a->state & PDL_DONTTOUCHDATA) {
    	die("Trying to touch data of an untouchable (mmapped?) pdl");
    }
    if(a->datasv == NULL)
    	a->datasv = newSVpv("",0);
    foo = a->datasv;
-   nbytes = ((STRLEN) newsize) * pdl_howbig(a->datatype);
-   ncurr  = SvCUR( foo );
-   if (ncurr == nbytes)
-      return;    /* Nothing to be done */
    if(nbytes > (1024*1024*1024)) {
      SV *sv = get_sv("PDL::BIGPDL",0);
      if(sv == NULL || !(SvTRUE(sv)))

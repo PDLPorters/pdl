@@ -411,9 +411,7 @@ sub PDL::mapfraw {
 	for(@{$hdr->{Dims}}) {
 		$s *= $_;
 	}
-	my $pdl = $class->zeroes(new PDL::Type($hdr->{Type}));
-	$pdl->setdims($hdr->{Dims});
-
+	my $pdl = $class->zeroes(PDL::Type->new($hdr->{Type}));
         $pdl->set_data_by_file_map(
             $name,
             $s,
@@ -423,11 +421,9 @@ sub PDL::mapfraw {
             (0644),
             ($opts->{Creat} || $opts->{Trunc} ? 1:0)
         );
-
-	if($opts->{Creat}) {
-		_writefrawhdr($pdl,$name,$opts);
-	}
-	return $pdl;
+	$pdl->setdims($hdr->{Dims});
+	_writefrawhdr($pdl,$name,$opts) if $opts->{Creat};
+	$pdl;
 }
 
 sub PDL::maptextfraw {
