@@ -19,6 +19,7 @@ typedef struct pdl_magic_vtable {
 #define PDL_MAGIC_MARKCHANGED 0x0001
 #define PDL_MAGIC_MUTATEDPARENT 0x0002
 #define PDL_MAGIC_THREADING 0x0004
+#define PDL_MAGIC_DELETEDATA 0x0008
 
 #define PDL_MAGIC_UNDESTROYABLE     0x4000 /* Someone is referring to this */
 				/* when magic removed, call pdl_destroy */
@@ -54,6 +55,12 @@ typedef struct pdl_magic_changetrans {
 	PDL_MAGICSTART;
 	pdl_trans *tr;
 } pdl_magic_changetrans;
+
+typedef struct pdl_magic_deletedata {
+	PDL_MAGICSTART;
+	void (*func)(pdl *p, Size_t param);
+	Size_t param;
+} pdl_magic_deletedata;
 
 /* #define PDL_PTHREAD */
 /* Defined by MakeMaker */
@@ -125,5 +132,8 @@ int pdl_magic_get_thread(pdl *); /* XXX -> only one thread can handle pdl at onc
 
 void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);
 int pdl_pthreads_enabled(void);
+
+/* Delete data magic */
+void pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, Size_t param), Size_t param);
 
 #endif /* _pdlmagic_H_  */

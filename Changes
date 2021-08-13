@@ -1,3 +1,5 @@
+- restore PDL_MAGIC_DELETEDATA mechanism
+
 2.056 2021-08-08
 - remove (very-)long-deprecated mmap code in favour of File::Map
 - remove obsolete Core members, update Core version

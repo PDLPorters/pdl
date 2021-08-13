@@ -486,3 +486,32 @@ int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {return 0;}
 int pdl_pthreads_enabled() {return 0;}
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args){ return 0;}
 #endif
+
+/***************************
+ *
+ * Delete magic
+ *
+ */
+
+static void *delete_mmapped_cast(pdl_magic *mag)
+{
+	pdl_magic_deletedata *magp = (pdl_magic_deletedata *)mag;
+	magp->func(magp->pdl, magp->param);
+	return NULL;
+}
+
+struct pdl_magic_vtable deletedatamagic_vtable = {
+	delete_mmapped_cast,
+	NULL
+};
+
+void pdl_add_deletedata_magic(pdl *it, void (*func)(pdl *, Size_t param), Size_t param)
+{
+	pdl_magic_deletedata *ptr = malloc(sizeof(pdl_magic_deletedata));
+	ptr->what = PDL_MAGIC_DELETEDATA;
+	ptr->vtable = &deletedatamagic_vtable;
+	ptr->pdl = it;
+	ptr->func = func;
+	ptr->param = param;
+	pdl__magic_add(it, (pdl_magic *)ptr);
+}

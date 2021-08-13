@@ -29,8 +29,9 @@ PDL::Core::Dev::loadmod_Types();
 # version 14: NaN support for native complex, per-PDL badval on
 # version 15: threadid, ndims become PDL_Indx
 # version 16: zap tmp, flushcache, NaN_*, qsort_ for complex, add_deletedata_magic
+# version 17: restore add_deletedata_magic
 use vars qw( $pdl_core_version );
-$pdl_core_version = 16;
+$pdl_core_version = 17;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -291,6 +292,7 @@ int (*iterthreadloop)(pdl_thread *thread, PDL_Indx which);
 void (*freethreadloop)(pdl_thread *thread);
 void (*thread_create_parameter)(pdl_thread *thread,PDL_Indx j,PDL_Indx *dims,
 				int temp);
+void (*add_deletedata_magic) (pdl *it,void (*func)(pdl *, Size_t param), Size_t param); /* Automagic destructor */
 
 /* XXX NOT YET IMPLEMENTED */
 void (*setdims_careful)(pdl *pdl);

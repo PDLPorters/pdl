@@ -542,6 +542,7 @@ BOOT:
    PDL_CORE_BOOT(iterthreadloop)
    PDL_CORE_BOOT(freethreadloop)
    PDL_CORE_BOOT(thread_create_parameter)
+   PDL_CORE_BOOT(add_deletedata_magic)
 
    PDL_CORE_BOOT(setdims_careful)
    PDL_CORE_BOOT(put_offs)
