@@ -180,6 +180,11 @@ A comment.
 
 EOXS
 
+# test whitespace problem with pp_line_numbers and pp_add_boot
+pp_add_boot pp_line_numbers(__LINE__, q{
+        /* nothing happening here */
+});
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline

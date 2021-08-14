@@ -1046,7 +1046,8 @@ sub pp_add_isa {
 
 sub pp_add_boot {
 	my ($boot) = @_;
-	$::PDLXSBOOT .= $boot." ";
+	$boot =~ s/^\s*\n//gm; # XS doesn't like BOOT having blank lines
+	$::PDLXSBOOT .= $boot;
 }
 
 sub pp_bless{
