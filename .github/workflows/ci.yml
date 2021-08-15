@@ -276,9 +276,11 @@ jobs:
       IRC_PORT: '6667'
       IRC_NICKNAME: 'pdl-commits'
     steps:
+      - uses: actions/checkout@v2
       - name: Prepare message
         run: |
           echo "GITHUB_WORKFLOW_URL=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
+          echo "commitmsg="$( git show -s --oneline ${{ join(github.event.commits[0].id, ' ') }} ) >> $GITHUB_ENV
       - name: IRC build success
         uses: Gottox/irc-message-action@v1.3
         if: ${{ ! contains(needs.*.result, 'failure') && ! contains(needs.*.result, 'cancelled') }}
@@ -291,7 +293,7 @@ jobs:
           notice: true
           message: |
             Build status: All builds succeeded [${{ github.event_name }}]: ${{ env.GITHUB_WORKFLOW_URL }}
-            @ ${{ github.sha }} | ${{ github.event.commits[0].author.name }} | «${{ github.event.commits[0].message }}»
+            @ ${{ github.sha }} | ${{ github.event.commits[0].author.name }} | «${{ env.commitmsg }}»
       - name: IRC build failure
         uses: Gottox/irc-message-action@v1.3
         if: ${{ contains(needs.*.result, 'failure') }}
@@ -304,4 +306,4 @@ jobs:
           notice: true
           message: |
             Build status: Some builds failed [${{ github.event_name }}]: ${{ env.GITHUB_WORKFLOW_URL }}
-            @ ${{ github.sha }} | ${{ github.event.commits[0].author.name }} | «${{ github.event.commits[0].message }}»
+            @ ${{ github.sha }} | ${{ github.event.commits[0].author.name }} | «${{ env.commitmsg }}»
