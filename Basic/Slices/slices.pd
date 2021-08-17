@@ -397,6 +397,11 @@ IndexND and IndexNDb were originally separate routines but they are both
 now implemented as a call to L</range>, and have identical syntax to
 one another.
 
+SEE ALSO:
+
+L<PDL::Primitive/whichND> returns N-D indices into a multidimensional
+PDL, suitable for feeding to this.
+
 =cut
 
 sub PDL::indexND {

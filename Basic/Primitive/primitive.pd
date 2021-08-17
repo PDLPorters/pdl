@@ -3534,6 +3534,10 @@ assignment. That means that both of these examples are valid:
   # Used in lvalue context:
   $data->whereND($mask4) .= 0;
 
+SEE ALSO:
+
+L</whichND> returns N-D indices into a multidimensional PDL, from a mask.
+
 =cut
 
 sub PDL::whereND :lvalue {
@@ -3591,7 +3595,7 @@ L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>.
  $coords = whichND($mask);
 
 returns a PDL containing the coordinates of the elements that are non-zero
-in C<$mask>, suitable for use in indexND.  The 0th dimension contains the
+in C<$mask>, suitable for use in L<PDL::Slices/indexND>. The 0th dimension contains the
 full coordinate listing of each point; the 1st dimension lists all the points.
 For example, if $mask has rank 4 and 100 matching elements, then $coords has
 dimension 4x100.
@@ -3623,6 +3627,8 @@ L</which> finds coordinates of nonzero values in a 1-D mask.
 
 L</where> extracts values from a data PDL that are associated
 with nonzero values in a mask PDL.
+
+L<PDL::Slices/indexND> can be fed the coordinates to return the values.
 
 =for example
 
