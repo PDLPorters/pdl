@@ -1,4 +1,5 @@
 - fix pp_add_boot to remove any blank lines (such as added by pp_line_numbers)
+- GSL::CDF now uses barf() on error, not GSL default of core-dump
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism
