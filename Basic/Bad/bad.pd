@@ -181,8 +181,7 @@ C<$x> have that value, they will unceremoniously be marked
 as bad data. See L</setvaltobad>, L</setbadtoval>, and
 L</setbadif> for ways to actually modify the data in ndarrays
 
-If the C<$PDL::Bad::PerPdl> flag is set then it is possible to
-change the bad value on a per-ndarray basis, so
+It is possible to change the bad value on a per-ndarray basis, so
 
     $x = sequence (10);
     $x->badvalue (3); $x->badflag (1);
@@ -190,11 +189,7 @@ change the bad value on a per-ndarray basis, so
     $y->badvalue (4); $y->badflag (1);
 
 will set $x to be C<[0 1 2 BAD 4 5 6 7 8 9]> and $y to be
-C<[0 1 2 3 BAD 5 6 7 8 9]>. If the flag is not set then both
-$x and $y will be set to C<[0 1 2 3 BAD 5 6 7 8 9]>. Please
-note that the code to support per-ndarray bad values is
-I<experimental> in the current release, and it requires that
-you modify the settings under which PDL is compiled.
+C<[0 1 2 3 BAD 5 6 7 8 9]>.
 
 =for bad
 
