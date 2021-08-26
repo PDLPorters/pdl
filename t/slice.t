@@ -61,8 +61,8 @@ $c = $x->slice('*3,');
 sumover($c->clump(-1),($sum=null));
 
 ok(tapprox($y,$c));
-is($sum->at, 9);
-is(join(',',$c->dims), "3,2");
+is($sum->at, 9, 'sum of dummy=3 slice gives right value');
+is(join(',',$c->dims), "3,2", 'right dims with dummy slice');
 
 # test stringify
 $x = zeroes(3,3);
@@ -72,14 +72,14 @@ $x++;
 # $line += 0; # that's how to force an update before interpolation
 my $linepr = "$line";
 
-is($linepr, '[1 1 1]');
+is($linepr, '[1 1 1]', 'right value after collapsing slice (0)');
 
 # Test whether error is properly returned:
 
 $y = zeroes(5,3,3);
 $c = $y->slice(":,:,1");
 
-is(join(',',$c->dims), "5,3,1");
+is(join(',',$c->dims), "5,3,1", 'single-coord slice dims right');
 
 eval { my $d = $c->slice(":,:,2"); "$d" };
 
