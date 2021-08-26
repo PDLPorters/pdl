@@ -435,19 +435,19 @@ void pdl_initthreadstruct(int nobl,
 	thread->ndims = ndims;
 	thread->nimpl = nimpl;
 
-      Newx(thread->inds, thread->ndims * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
+      Newxz(thread->inds, thread->ndims * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
       if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c");
 
-      Newx(thread->dims, thread->ndims, PDL_Indx);
+      Newxz(thread->dims, thread->ndims, PDL_Indx);
       if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
 
-      Newx(thread->offs, thread->npdls * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific offs */
+      Newxz(thread->offs, thread->npdls * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific offs */
       if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c");
 
-      Newx(thread->incs, thread->ndims * npdls, PDL_Indx);
+      Newxz(thread->incs, thread->ndims * npdls, PDL_Indx);
       if(thread->incs == NULL) croak("Failed to allocate memory for thread->incs in pdlthread.c");
 
-      Newx(thread->flags, npdls, char);
+      Newxz(thread->flags, npdls, char);
       if(thread->flags == NULL) croak("Failed to allocate memory for thread->flags in pdlthread.c");
 
 	nth=0; /* Index to dimensions */
