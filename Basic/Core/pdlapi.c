@@ -971,8 +971,6 @@ void pdl_vaffinechanged(pdl *it, int what)
 	pdl_changed(it->vafftrans->from,what,0);
 }
 
-/* This is inefficient: _changed writes back, which it really should not,
-   before a parent is used (?). */
 void pdl_changed(pdl *it, int what, int recursing)
 {
 	pdl_children *c; int i; int j;
@@ -984,10 +982,6 @@ void pdl_changed(pdl *it, int what, int recursing)
 	     pdl_dump(it);
 	);
 
-/* XXX This might save time but is actually unsafe:
- * if a -> b -> c, and c made physical and a changed again,
- * the changedness doesn't propagate to c */
-/*	if((it->state & what) == what) { return; } */
 	if(recursing) {
 		it->state |= what;
 		if(pdl__ismagic(it))

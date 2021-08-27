@@ -101,19 +101,21 @@ pp_def(
        RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
        GenericTypes => [ppdefs_all],
        EquivCPOffsCode => '
-                PDL_Indx i; PDL_Indx poffs=$PRIV(offs); int nd;
-                for(i=0; i<$CHILD_P(nvals); i++) {
-                        $EQUIVCPOFFS(i,poffs);
-                        for(nd=0; nd<$CHILD_P(ndims); nd++) {
-                                poffs += $PRIV(incs[nd]);
-                                if( (nd<$CHILD_P(ndims)-1 &&
-                                     (i+1)%$CHILD_P(dimincs[nd+1])) ||
-                                   nd == $CHILD_P(ndims)-1)
-                                        break;
-                                poffs -= $PRIV(incs[nd]) *
-                                        $CHILD_P(dims[nd]);
-                        }
-                }',
+          if ($CHILD_P(state) & $PARENT_P(state) & PDL_ALLOCATED) {
+            PDL_Indx i, poffs=$PRIV(offs), nd;
+            for(i=0; i<$CHILD_P(nvals); i++) {
+              $EQUIVCPOFFS(i,poffs);
+              for(nd=0; nd<$CHILD_P(ndims); nd++) {
+                poffs += $PRIV(incs[nd]);
+                if( (nd<$CHILD_P(ndims)-1 &&
+                     (i+1)%$CHILD_P(dimincs[nd+1])) ||
+                   nd == $CHILD_P(ndims)-1)
+                        break;
+                poffs -= $PRIV(incs[nd]) *
+                        $CHILD_P(dims[nd]);
+              }
+            }
+          }',
        Doc => undef,    # 'internal',
 );
 
