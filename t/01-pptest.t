@@ -237,7 +237,7 @@ eval { test_foop(pdl([1]),($y=pdl([1]))) };
 is $@, '', '[phys] with multi-used matched dim of 1 no exception';
 
 eval { test_foop1($x,($y=pdl([1]))) };
-is $@, '', '[phys] with single-used dim of 1 throws exception';
+is $@, '', '[phys] with single-used dim of 1 no exception';
 
 # float qualifier
 $x = ones(byte,3000);
