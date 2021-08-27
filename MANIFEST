@@ -209,6 +209,7 @@ Example/Benchmark/Bench.xs
 Example/Benchmark/Makefile.PL
 Example/Benchmark/README.md
 Example/Benchmark/time.pl
+Example/doc-pp
 Example/Fit/lmfit_example.pl
 Example/InlinePdlpp/inlpp.pl
 Example/InlinePdlpp/inlpp_link.pl

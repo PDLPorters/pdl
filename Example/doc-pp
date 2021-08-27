@@ -1,0 +1,32 @@
+#!/usr/bin/env perl
+
+die "Usage: $0 outfile\n" if !@ARGV;
+
+use strict;
+use warnings;
+use PDL::PP;
+use Graph;
+use GraphViz2;
+
+my $g = Graph->new; # should really be hypergraph but GraphViz2 not do yet
+for my $r (@{$PDL::PP::deftbl}) {
+  for my $t (@{$r->{targets}}) {
+    $g->add_edge($t, $_) for map s/_//gr, @{$r->{conditions}||[]};
+  }
+}
+my ($fmt) = $ARGV[0] =~ /\.([^.]+)$/;
+$g->set_graph_attribute(graphviz=>{graph=>{rankdir=>'LR'}});
+GraphViz2->from_graph($g)->run(format=>$fmt,output_file=>$ARGV[0]);
+
+=head1 NAME
+
+doc-pp - Generate graph of pp_def key dependencies with graphviz
+
+=head1 SYNOPSIS
+
+  doc-pp deps.svg
+
+=head1 DESCRIPTION
+
+Uses L<Graph> and L<GraphViz2> to visualise the dependencies between
+keys in L<PDL::PP/pp_def>.
