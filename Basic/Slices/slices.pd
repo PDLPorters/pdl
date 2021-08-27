@@ -2893,13 +2893,11 @@ direct slicing even though the syntax is convenient.
 *slice = \&PDL::slice;
 sub PDL::slice (;@) {
     my ($source, @others) = @_;
-
     # Deal with dicing.  This is lame and slow compared to the
     # faster slicing, but works okay.  We loop over each argument,
     # and if it's a PDL we dispatch it in the most straightforward
     # way.  Single-element and zero-element PDLs are trivial and get
     # converted into slices for faster handling later.
-
     for my $i(0..$#others) {
       if( blessed($others[$i]) && $others[$i]->isa('PDL') ) {
         my $idx = $others[$i];
@@ -2907,29 +2905,22 @@ sub PDL::slice (;@) {
           barf("slice: dicing parameters must be at most 1D (arg $i)\n");
         }
         my $nlm = $idx->nelem;
-
         if($nlm > 1) {
-
-	   #### More than one element - we have to dice (darn it).
+           #### More than one element - we have to dice (darn it).
            my $n = $source->getndims;
            $source = $source->mv($i,0)->index1d($idx)->mv(0,$i);
            $others[$i] = '';
-
         } 
-	elsif($nlm) {
-
+        elsif($nlm) {
            #### One element - convert to a regular slice.
            $others[$i] = $idx->flat->at(0);
-
         }
-	else {
-	
+        else {
            #### Zero elements -- force an extended empty.
            $others[$i] = "1:0:1";
         }
       }
     }
-
     PDL::sliceb($source,\@others);
 }
 
@@ -3439,8 +3430,13 @@ SLICE-MC
                         start = $COMP(start[i]);
 			end = $COMP(end[i]);
 
-			if( pdsize==0 && start==0 && end==-1 && $COMP(inc[i]) == 0 ) {
+			if(
 			  /** Trap special case: full slices of an empty dim are empty **/
+                          (pdsize==0 && start==0 && end==-1 && $COMP(inc[i]) == 0)
+                          ||
+                          /* the values given when PDL::slice gets empty ndarray for index */
+                          (start==1 && end==0 && $COMP(inc[i]) == 1)
+                        ) {
 			  $CHILD( dims[ $COMP(odim[i]) ] ) = 0;
                           $PRIV( incs[$COMP(odim[i]) ] ) = 0;
 			} else {

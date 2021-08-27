@@ -445,4 +445,15 @@ $y++;
 ok( (not $y->allocated) ) ;
 }
 
+my $indices = pdl([]);
+my $got = eval { my $s = pdl([1,2])->slice(pdl(1)); $s.''; $s->nelem };
+is $@, '', 'slice 3-elt ndarray with zero-length ndarray';
+is $got, 1, 'right dim from 2-elt with one index';
+$got = eval { my $s = pdl([1,2])->slice($indices); $s.''; $s->nelem };
+is $@, '', 'slice 2-elt ndarray with zero-length ndarray';
+is $got, 0, 'zero dim from 2-elt';
+$got = eval { my $s = pdl([1])->slice($indices); $s.''; $s->nelem };
+is $@, '', 'slice 1-elt ndarray with zero-length ndarray';
+is $got, 0, 'zero dim from 1-elt';
+
 done_testing;

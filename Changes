@@ -3,6 +3,7 @@
 - propagate_badflag only recurses with children that had different value
 - Example/doc-pp script to use GraphViz2 to show pp_def key dependencies
 - affineinternal only read/write when both parent & child physical
+- allow zero-length ndarray as slice index even for length-1 dim - thanks @trevcs for report (SF#443, GH#229)
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism
