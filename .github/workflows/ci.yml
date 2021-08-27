@@ -12,54 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     if: ${{ always() }}
-    env:
-      IRC_CHANNEL: '#pdl'
-      IRC_SERVER: 'irc.perl.org'
-      IRC_PORT: '6667'
-      IRC_NICKNAME: 'pdl-commits'
     steps:
-      - uses: actions/checkout@v2
-      - name: irc push (build messages)
-        if: ${{ github.event_name == 'push' && github.repository == 'PDLPorters/pdl' }}
-        run: |
-            echo "commitmsg="$( git show -s --oneline ${{ join(github.event.commits.*.id, ' ') }} ) >> $GITHUB_ENV
-      - name: irc push
-        uses: Gottox/irc-message-action@v1.3
-        if: ${{ github.event_name == 'push' && github.repository == 'PDLPorters/pdl' }}
+      - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
-          channel: ${{ env.IRC_CHANNEL }}
-          server: ${{ env.IRC_SERVER }}
-          port: ${{ env.IRC_PORT }}
-          nickname: ${{ env.IRC_NICKNAME }}
-          tls: false
-          notice: true
-          message: |
-            ${{ github.actor }} pushed ${{ github.event.ref }} ${{ github.event.compare }}
-            ${{ env.commitmsg }}
-      - name: irc pull request
-        uses: Gottox/irc-message-action@v1.3
-        if: ${{ github.event_name == 'pull_request' && github.repository == 'PDLPorters/pdl' }}
-        with:
-          channel: ${{ env.IRC_CHANNEL }}
-          server: ${{ env.IRC_SERVER }}
-          port: ${{ env.IRC_PORT }}
-          nickname: ${{ env.IRC_NICKNAME }}
-          tls: false
-          notice: true
-          message: |
-            ${{ github.actor }} ${{ github.event.action }} PR «${{ github.event.pull_request.title }}» ${{ github.event.pull_request.html_url }}
-      - name: irc tag created
-        uses: Gottox/irc-message-action@v1.3
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && github.repository == 'PDLPorters/pdl' }}
-        with:
-          channel: ${{ env.IRC_CHANNEL }}
-          server: ${{ env.IRC_SERVER }}
-          port: ${{ env.IRC_PORT }}
-          nickname: ${{ env.IRC_NICKNAME }}
-          tls: false
-          notice: true
-          message: |
-            ${{ github.actor }} tagged ${{ github.repository }} ${{ github.event.ref }}
+          repository: PDLPorters/pdl
+          target-notifications: true
   ci:
     runs-on: ${{ matrix.os }}
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
@@ -94,18 +51,17 @@ jobs:
             os: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: shogo82148/actions-setup-perl@v1
+      - name: 'ci-dist: target-setup-perl'
+        uses: PDLPorters/devops/github-actions/ci-dist@master
         with:
-          distribution: strawberry # ignored non-windows
+          target-setup-perl: true
           perl-version: ${{ matrix.perl-version }}
-      - run: perl -V
 
       # conditional config
       - name: Maybe gfortran
         if: "!matrix.disable-fortran && matrix.os == 'ubuntu-latest'"
-        run: |
-          sudo apt-get install gfortran
-          cpanm -n ExtUtils::F77 || cat ~/.cpanm/build.log
+        uses: PDLPorters/devops/github-actions/install-dep-gfortran@master
+
       - name: Use clang?
         # clang is already installed in Travis-CI environment. Using PERL_MM_OPT does not work with subdirectory Makefile.PLs so we override Config.pm
         # Also, both $Config{cc} and $Config{ld} need to be set because under ELF environments (such as Travis-CI's Ubuntu), this is what Perl's Config.pm does.
@@ -114,37 +70,33 @@ jobs:
           mkdir build_aux
           echo 'package pdl_config_override; use ExtUtils::MakeMaker::Config; $Config{cc} = $Config{ld} = "clang"; 1;' >> build_aux/pdl_config_override.pm
           echo "PERL5OPT=-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
+
       - name: EUMM blead?
         if: matrix.eumm-blead
-        run: cpanm -n --dev ExtUtils::MakeMaker || cat ~/.cpanm/build.log
+        uses: PDLPorters/devops/github-actions/install-dep-eumm-blead@master
 
-      - name: Ubuntu packages main
+      - name: Install PDL dependencies
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get -y update && sudo apt-get install build-essential libgd-dev libhdf4-alt-dev libproj-dev proj-bin libcfitsio-dev libreadline-dev pgplot5 libvpx-dev libgsl0-dev libnetpbm10-dev
-      - name: Extra optionals deps main
-        if: matrix.os == 'ubuntu-latest'
-        run: cpanm -n Term::ReadLine::Gnu PGPLOT Alien::HDF4 Alien::Proj4 Inline::C || cat ~/.cpanm/build.log
-      - name: Ubuntu packages OpenGL
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install libx11-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev
-      - name: Extra optionals deps OpenGL
-        if: matrix.os == 'ubuntu-latest'
-        run: xvfb-run cpanm -n OpenGL || cat ~/.cpanm/build.log
-      - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib && cpanm -n --installdeps . || cat ~/.cpanm/build.log
-      - name: Run release tests # before others as may install useful stuff
-        if: ${{ matrix.release-test }}
-        env:
-          RELEASE_TESTING: 1
-        run: |
-          cpanm -n --installdeps --with-develop . || cat ~/.cpanm/build.log
-          cpanm -n CPAN::Changes || cat ~/.cpanm/build.log
-          prove -lr xt
+        uses: PDLPorters/devops/github-actions/install-dep-pdl-dep@master
 
-      - name: Run tests (no coverage)
+      - name: 'ci-dist: target-install-dist-perl-deps'
+        uses: PDLPorters/devops/github-actions/ci-dist@master
+        with:
+          target-install-dist-perl-deps: true
+
+      - name: 'ci-dist: target-test-release-testing'
+        uses: PDLPorters/devops/github-actions/ci-dist@master
+        with:
+          target-test-release-testing: true
+          test-enable-release-testing: ${{ matrix.release-test }}
+
+      - name: 'ci-dist: target-test (no coverage)'
+        uses: PDLPorters/devops/github-actions/ci-dist@master
         if: '!matrix.coverage'
-        env:
-          HARNESS_OPTIONS: j4
-        run: perl Makefile.PL && make test
+        with:
+          target-test: true
+          test-enable-coverage: ${{ matrix.coverage }}
+
       - name: Run tests after install (no coverage)
         if: '!matrix.coverage && matrix.test-installed'
         run: |
@@ -153,15 +105,14 @@ jobs:
           make install clean # clean is to ensure no blib
           mv Basic Basic.x # ensure doesn't think is in repo!
           prove -j4 t
-      - name: Run tests (with coverage)
+
+      - name: 'ci-dist: target-test (with coverage)'
+        uses: PDLPorters/devops/github-actions/ci-dist@master
         if: matrix.coverage
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HARNESS_OPTIONS: j4
-        run: |
-          cpanm -n Devel::Cover::Report::Coveralls || cat ~/.cpanm/build.log
-          cpanm git://github.com/mohawk2/Devel--Cover.git@deepdirs
-          cover -test -relative_only -gcov_chdir -report Coveralls
+        with:
+          target-test: true
+          test-enable-coverage: ${{ matrix.coverage }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - run: perl -Iblib/lib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
 
@@ -268,42 +219,11 @@ jobs:
   build-status:
     runs-on: ubuntu-latest
     continue-on-error: true
-    if: ${{ ( github.event_name == 'push' || github.event_name == 'pull_request' || ( github.event_name == 'create' && github.event.ref_type == 'tag' ) ) && ( always() ) && github.repository == 'PDLPorters/pdl' }}
+    if: ${{ always() }}
     needs: [ 'ci', 'ci-ubuntu-containers', 'cygwin' ]
-    env:
-      IRC_CHANNEL: '#pdl'
-      IRC_SERVER: 'irc.perl.org'
-      IRC_PORT: '6667'
-      IRC_NICKNAME: 'pdl-commits'
     steps:
-      - uses: actions/checkout@v2
-      - name: Prepare message
-        run: |
-          echo "GITHUB_WORKFLOW_URL=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_ENV
-          echo "commitmsg="$( git show -s --oneline ${{ join(github.event.commits[0].id, ' ') }} ) >> $GITHUB_ENV
-      - name: IRC build success
-        uses: Gottox/irc-message-action@v1.3
-        if: ${{ ! contains(needs.*.result, 'failure') && ! contains(needs.*.result, 'cancelled') }}
+      - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
-          channel: ${{ env.IRC_CHANNEL }}
-          server: ${{ env.IRC_SERVER }}
-          port: ${{ env.IRC_PORT }}
-          nickname: ${{ env.IRC_NICKNAME }}
-          tls: false
-          notice: true
-          message: |
-            Build status: All builds succeeded [${{ github.event_name }}]: ${{ env.GITHUB_WORKFLOW_URL }}
-            @ ${{ github.sha }} | ${{ github.event.commits[0].author.name }} | «${{ env.commitmsg }}»
-      - name: IRC build failure
-        uses: Gottox/irc-message-action@v1.3
-        if: ${{ contains(needs.*.result, 'failure') }}
-        with:
-          channel: ${{ env.IRC_CHANNEL }}
-          server: ${{ env.IRC_SERVER }}
-          port: ${{ env.IRC_PORT }}
-          nickname: ${{ env.IRC_NICKNAME }}
-          tls: false
-          notice: true
-          message: |
-            Build status: Some builds failed [${{ github.event_name }}]: ${{ env.GITHUB_WORKFLOW_URL }}
-            @ ${{ github.sha }} | ${{ github.event.commits[0].author.name }} | «${{ env.commitmsg }}»
+          repository: PDLPorters/pdl
+          target-build-status: true
+          needs: ${{ toJSON(needs) }}

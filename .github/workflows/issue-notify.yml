@@ -11,33 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     if: ${{ always() }} && github.repository == 'PDLPorters/pdl'
-    env:
-      IRC_CHANNEL: '#pdl'
-      IRC_SERVER: 'irc.perl.org'
-      IRC_PORT: '6667'
-      IRC_NICKNAME: 'pdl-commits'
     steps:
-      - name: irc issue
-        uses: Gottox/irc-message-action@v1.3
-        if: github.event_name == 'issues'
+      - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
-          channel: ${{ env.IRC_CHANNEL }}
-          server: ${{ env.IRC_SERVER }}
-          port: ${{ env.IRC_PORT }}
-          nickname: ${{ env.IRC_NICKNAME }}
-          tls: false
-          notice: true
-          message: |
-            ${{ github.actor }} ${{ github.event.action }} issue #${{ github.event.issue.number }} ${{ github.event.issue.html_url }}
-      - name: irc comment
-        uses: Gottox/irc-message-action@v1.3
-        if: github.event_name == 'issue_comment'
-        with:
-          channel: ${{ env.IRC_CHANNEL }}
-          server: ${{ env.IRC_SERVER }}
-          port: ${{ env.IRC_PORT }}
-          nickname: ${{ env.IRC_NICKNAME }}
-          tls: false
-          notice: true
-          message: |
-            ${{ github.actor }} ${{ github.event.review.state || 'commented' }} on #${{ github.event.issue.number }} ${{ github.event.comment.html_url || github.event.review.html_url }}
+          repository: PDLPorters/pdl
