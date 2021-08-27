@@ -71,18 +71,24 @@ void pdl_propagate_badflag( pdl *it, int newval ) {
     PDL_START_CHILDLOOP(it)
     {
 	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i;
+	int i, need_recurse;
 
 	for( i = trans->vtable->nparents;
 	     i < trans->vtable->npdls; i++ ) {
 
 	    pdl *child = trans->pdls[i];
 
-	    if ( newval ) child->state |=  PDL_BADVAL;
-            else          child->state &= ~PDL_BADVAL;
+	    if ( newval ) {
+		need_recurse = !(child->state & PDL_BADVAL);
+		child->state |=  PDL_BADVAL;
+            } else {
+		need_recurse =  (child->state & PDL_BADVAL);
+		child->state &= ~PDL_BADVAL;
+	    }
 
-	    /* make sure we propagate to grandchildren, etc */
-	    pdl_propagate_badflag( child, newval );
+	    /* make sure we propagate to grandchildren, etc if changed */
+	    if (need_recurse)
+		pdl_propagate_badflag( child, newval );
 
         } /* for: i */
     }
