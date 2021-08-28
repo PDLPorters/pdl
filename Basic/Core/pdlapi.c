@@ -753,7 +753,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 /* Now, if parents are not flowing, just execute the transformation */
 
   if(!pfflag && !(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY)) {
-	int *wd = malloc(sizeof(int) * (size_t)trans->vtable->npdls);
+	int *wd = pdl_smalloc(sizeof(int) * (size_t)trans->vtable->npdls);
 
 	/* mark this transform as non mutual in case we croak during
 	   ensuring it */
@@ -799,7 +799,6 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 			pdl_changed(trans->pdls[i],wd[i],0);
 	}
 	pdl_destroytransform_nonmutual(trans,0);
-      free(wd);
   } else { /* do the full flowing transform */
 
           PDLDEBUG_f(printf("make_trans_mutual flowing!\n"));
