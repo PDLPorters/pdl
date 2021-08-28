@@ -242,14 +242,14 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 
 	}
 
-	/* Go thru each theaded dim and see how many pthreads we can create closest
+	/* Go through each threaded dim and see how many pthreads we can create closest
 	   to the maximum target pthreads */
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		for( k=0; k < nthreadedDims[j]; k++){
 			int pthreadActual = target_pthread +1;
 			int remainder = 1;
-			/* Go from the target pthread to 1, untill we get an even division of the dimension size */
+			/* Go from the target pthread to 1, until we get an even division of the dimension size */
 			while( (pthreadActual > 0) && (remainder > 0) ){
 				pthreadActual--;
 				remainder = threadedDimSizes[j][k] % pthreadActual;
@@ -267,10 +267,6 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 		/* Don't go any further if target pthread achieved */
 		if( maxPthread == target_pthread ) break;
 	}
-
-
-
-
 
 	/*
 	for(j=0; j<npdls; j++) {

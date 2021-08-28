@@ -407,7 +407,7 @@ void pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads)
 }
 
 // Barf/warn function for deferred barf message handling during pthreading We
-// can't barf/warn during ptheading, because perl-level code isn't
+// can't barf/warn during pthreading, because perl-level code isn't
 // threadsafe. This routine does nothing if we're in the main thread (allowing
 // the caller to barf normally, since there are not threading issues then). If
 // we're in a worker thread, this routine stores the message for main-thread
