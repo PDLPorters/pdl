@@ -278,11 +278,7 @@ typedef struct pdl_transvtable {
   /* The pdls involved in the transformation */ \
   pdl *pdls[]
 
-#ifdef PDL_DEBUGGING
 #define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) croak("INVALID " #type "MAGIC NO 0x%p %d\n",it,(int)((it)->magicno)); else (void)0
-#else
-#define PDL_CHKMAGIC_GENERAL(it,this_magic,type)
-#endif
 
 #define PDL_TR_MAGICNO      0x91827364
 #define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO
