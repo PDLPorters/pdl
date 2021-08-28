@@ -744,10 +744,10 @@ our $VERSION = "2.3";
 $VERSION = eval $VERSION;
 
 our $macros = <<'EOF';
-#define PDL_BRACES(...) { __VA_ARGS__ } /* work around syntax limitation */
+#define PDL_RMBRACKETS(...) __VA_ARGS__ /* work around syntax limitation */
 #define PDL_PARNAMES(parnames, realdims, npdls, funcname) \
-  static char *__parnames[] = PDL_BRACES parnames; \
-  static PDL_Indx __realdims[] = PDL_BRACES realdims; \
+  static char *__parnames[] = { PDL_RMBRACKETS parnames }; \
+  static PDL_Indx __realdims[] = { PDL_RMBRACKETS realdims }; \
   static char __funcname[] = funcname; \
   static pdl_errorinfo __einfo = { __funcname, __parnames, npdls };
 
