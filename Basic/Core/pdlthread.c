@@ -105,9 +105,7 @@ PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *nthr, PDL_Indx **inds
 }
 
 void pdl_thread_copy(pdl_thread *from,pdl_thread *to) {
-#ifdef PDL_THREAD_DEBUG
 	to->magicno = from->magicno;
-#endif
 	to->gflags = from->gflags;
 	to->einfo = from->einfo;
 	to->ndims = from->ndims;
@@ -147,9 +145,7 @@ void pdl_clearthreadstruct(pdl_thread *it) {
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
 	it->gflags=0; /* unsets PDL_THREAD_INITIALIZED among others */
-#ifdef PDL_THREAD_DEBUG
 	PDL_THR_CLRMAGIC(it);
-#endif
 }
 
 
@@ -341,7 +337,6 @@ void pdl_initthreadstruct(int nobl,
 	PDL_Indx nthr = 0; PDL_Indx nthrd;
 
 	PDLDEBUG_f(printf("Initthreadloop(%p)\n", (void*)thread);)
-#ifdef PDL_THREAD_DEBUG
 	  /* the following is a fix for a problem in the current core logic
            * see comments in pdl_make_physical in pdlapi.c
            * the if clause detects if this thread has previously been initialized
@@ -366,7 +361,6 @@ void pdl_initthreadstruct(int nobl,
 	     "thread (mem-leak!); freeing...");)
 	}
 	PDL_THR_SETMAGIC(thread);
-#endif
 	thread->gflags = 0;
 
 	thread->npdls = npdls;

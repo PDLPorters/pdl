@@ -9,31 +9,18 @@ typedef struct pdl_errorinfo {
 	int nparamnames;
 } pdl_errorinfo;
 
-
-/* comment out unless debugging
-   Note that full recompile will be needed since this switch
-   changes the pdl_thread struct
-*/
-#define PDL_THREAD_DEBUG
-
 #define PDL_THREAD_MAGICKED 0x0001
 #define PDL_THREAD_MAGICK_BUSY 0x0002
 #define PDL_THREAD_INITIALIZED 0x0004
 
-#ifdef PDL_THREAD_DEBUG
 #define PDL_THR_MAGICNO 0x92314764
 #define PDL_THR_SETMAGIC(it) it->magicno = PDL_THR_MAGICNO
 #define PDL_THR_CLRMAGIC(it) (it)->magicno = 0x99876134
-#else
-#define PDL_THR_CLRMAGIC(it) (void)0
-#endif
 
 /* XXX To avoid mallocs, these should also have "default" values */
 typedef struct pdl_thread {
 	pdl_errorinfo *einfo;
-#ifdef PDL_THREAD_DEBUG
         unsigned int magicno;
-#endif
 	int gflags;	/* Flags about this struct */
 	PDL_Indx ndims;	/* Number of dimensions threaded over */
 	PDL_Indx nimpl;	/* Number of these that are implicit */
