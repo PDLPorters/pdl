@@ -76,14 +76,11 @@ void dump_thread(pdl_thread *thread) {
  */
 PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread )
 {
-  if(thread->gflags & PDL_THREAD_MAGICKED) {
-  	int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
-	return thread->offs + thr * thread->npdls;
-  }
-/* The non-multithreaded case: return just the usual offsets */
-  return thread->offs;
+  /* The non-multithreaded case: return just the usual offsets */
+  if (!(thread->gflags & PDL_THREAD_MAGICKED)) return thread->offs;
+  int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+  return thread->offs + thr * thread->npdls;
 }
-
 
 
 /* Function to get the pthread-specific offset, indexes and pthread number for the supplied thread structure
