@@ -503,7 +503,7 @@ sub myprelude {
 	$str .= PDL::PP::pp_line_numbers(__LINE__, join " \\\n\t",
 	  "#define $macro_name",
 	  'if ( PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return; \
-	   do { register PDL_Indx __tind1=0,__tind2=0; \
+	   do { register PDL_Indx __tind0=0,__tind1=0; \
 		register PDL_Indx __tnpdls = $PRIV(__pdlthread).npdls; \
 		register PDL_Indx __tdims1 = $PRIV(__pdlthread.dims[1]); \
 		register PDL_Indx __tdims0 = $PRIV(__pdlthread.dims[0]); \
@@ -511,15 +511,15 @@ sub myprelude {
 	  (map "register PDL_Indx __tinc0_${_} = \$PRIV(__pdlthread).incs[${_}];", 0..$#{$ord}),
 	  (map "register PDL_Indx __tinc1_${_} = \$PRIV(__pdlthread).incs[__tnpdls+$_];", 0.. $#{$ord}),
 	  (map "$ord->[$_]_datap += __offsp[$_];", 0..$#{$ord}),
-	  'for( __tind2 = 0 ; \
-		__tind2 < __tdims1 ; \
-		__tind2++',
+	  'for( __tind1 = 0 ; \
+		__tind1 < __tdims1 ; \
+		__tind1++',
 		(map "\t\t,$ord->[$_]_datap += __tinc1_${_} - __tinc0_${_} * __tdims0", 0..$#{$ord}),
 	     ')',
 	  '{ \
-	     for( __tind1 = 0 ; \
-		  __tind1 < __tdims0 ; \
-		  __tind1++',
+	     for( __tind0 = 0 ; \
+		  __tind0 < __tdims0 ; \
+		  __tind0++',
 		  (map "\t\t,$ord->[$_]_datap += __tinc0_${_}", 0..$#{$ord}),
 	       ") {",
 	  "PDL_COMMENT(\"This is the tightest threadloop. Make sure inside is optimal.\")\n\n",
