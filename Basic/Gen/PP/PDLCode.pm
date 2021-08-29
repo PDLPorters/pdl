@@ -469,36 +469,6 @@ sub mypostlude {
 	default:barf(\"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);}\n";
 }
 
-
-package PDL::PP::SimpleThreadLoop;
-use Carp;
-our @ISA = "PDL::PP::Block";
-our @CARP_NOT;
-
-sub new { my($type) = @_; bless [],$type; }
-sub myoffs { return 0; }
-sub myprelude {my($this,$parent,$context) = @_;
- my $no;
- my ($ord,$pdls) = $parent->get_pdls();
-PDL::PP::pp_line_numbers(__LINE__, '	PDL_COMMENT("THREADLOOPBEGIN")
- if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
- 	__privtrans))) return;
-   do {
- '.(join '',map "${_}_datap += \$PRIV(__pdlthread).offs[".(0+$no++)."];\n",
- 		@$ord).'
-');
-}
-
-sub mypostlude {my($this,$parent,$context) = @_;
- my $no;
- my ($ord,$pdls) = $parent->get_pdls();
-'	PDL_COMMENT("THREADLOOPEND")
- '.(join '',map "${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n",
- 		@$ord).'
-      } while(PDL->iterthreadloop(&$PRIV(__pdlthread),0));
- '
-}
-
 ####
 #
 # This relies on PP.pm making sure that initthreadloop always sets
@@ -508,7 +478,6 @@ package PDL::PP::ThreadLoop;
 use Carp;
 our @ISA = "PDL::PP::Block";
 our @CARP_NOT;
-
 
 sub new {
 	my $type   = shift;
