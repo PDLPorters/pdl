@@ -822,13 +822,13 @@ $inner_loop .= <<"!WITH!SUBS!";
 !WITH!SUBS!
 
 for my $obj ( types() ) {
-my ($type, $ppsym) = map $obj->$_, qw(shortctype ppsym);
-my $this_inner_loop = sprintf $inner_loop, $type;
+my ($ctype, $shortctype, $ppsym) = map $obj->$_, qw(ctype shortctype ppsym);
+my $this_inner_loop = sprintf $inner_loop, $shortctype;
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<"!WITH!SUBS!";
 
 PDL_Indx pdl_kludge_copy_$ppsym(PDL_Indx poff, // Offset into the dest data array
-                           PDL_$type* pdata,  // Data pointer in the dest data array
+                           $ctype* pdata,  // Data pointer in the dest data array
                            PDL_Indx* pdims,   // Pointer to the dimlist for the dest pdl
                            PDL_Indx ndims,         // Number of dimensions in the dest pdl
                            int level,         // Recursion level
@@ -836,7 +836,7 @@ PDL_Indx pdl_kludge_copy_$ppsym(PDL_Indx poff, // Offset into the dest data arra
                            pdl* source_pdl,   // pointer to the source pdl
                            int plevel,        // level within the source pdl
                            void* pptr,        // Data pointer in the source pdl
-                           PDL_$type undefval, // undefval for the dest pdl
+                           $ctype undefval, // undefval for the dest pdl
                            pdl* p              // pointer to the dest pdl
                            ) {
   PDL_Indx i;
@@ -940,8 +940,8 @@ $this_inner_loop
  *   -  level is the recursion level, which is also the dimension that we are filling
  */
 
-PDL_Indx pdl_setav_$ppsym(PDL_$type* pdata, AV* av,
-                     PDL_Indx* pdims, int ndims, int level, PDL_$type undefval, pdl *p)
+PDL_Indx pdl_setav_$ppsym($ctype* pdata, AV* av,
+                     PDL_Indx* pdims, int ndims, int level, $ctype undefval, pdl *p)
 {
   PDL_Indx cursz = pdims[ndims-1-level]; /* we go from the highest dim inward */
   PDL_Indx len = av_len(av);
@@ -990,24 +990,24 @@ PDL_Indx pdl_setav_$ppsym(PDL_$type* pdata, AV* av,
       }
     } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */
       if( PDL_SV_IS_UNDEF(el) ) {  /* undef case */
-        *pdata = (PDL_$type) undefval; 
+        *pdata = ($ctype) undefval;
         undef_count++;
 
       } else {              /* scalar case */
         if (SvIOK(el)) {
-          *pdata = (PDL_$type) SvIV(el);
+          *pdata = ($ctype) SvIV(el);
         } else {
-          *pdata = (PDL_$type) SvNV(el);
+          *pdata = ($ctype) SvNV(el);
         }
       }
 
       /* Pad dim if we are not deep enough */
       if(level < ndims-1) {
-        PDL_$type *cursor = pdata;
-        PDL_$type *target = pdata + stride;
+        $ctype *cursor = pdata;
+        $ctype *target = pdata + stride;
 
         for( cursor++;  cursor < target; cursor++ ) {
-          *cursor = (PDL_$type)undefval;
+          *cursor = ($ctype)undefval;
           undef_count++;
         }
       }
@@ -1018,13 +1018,13 @@ PDL_Indx pdl_setav_$ppsym(PDL_$type* pdata, AV* av,
   /* in case this dim is incomplete set any remaining elements to the undefval */
 
   if(len < cursz-1 ) {
-    PDL_$type *target = pdata + stride * (cursz - 1 - len);
+    $ctype *target = pdata + stride * (cursz - 1 - len);
     for( ;
          pdata < target;
          pdata++
          ) {
 
-      *pdata = (PDL_$type) undefval;
+      *pdata = ($ctype) undefval;
       undef_count++;
     }
   }
@@ -1046,7 +1046,6 @@ PDL_Indx pdl_setav_$ppsym(PDL_$type* pdata, AV* av,
   return undef_count;
 }
 
-
 !WITH!SUBS!
 
-  } # end type loop
+} # end type loop
