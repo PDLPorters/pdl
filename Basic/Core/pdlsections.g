@@ -22,6 +22,10 @@
 PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims) {
    PDL_Indx i;
    PDL_Indx result;
+   for(i=0; i<ndims; i++) { /* Check */
+      if(pos[i]<-dims[i] || pos[i]>=dims[i])
+         croak("Position out of range");
+   }
    result = offset;
    for (i=0; i<ndims; i++) {
        result = result + (pos[i]+((pos[i]<0)?dims[i]:0))*incs[i];
@@ -45,55 +49,22 @@ PDL_Anyval pdl_at0( pdl* it ) {
 
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, 
 	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
-
-    PDL_Indx i;
-    PDL_Indx ioff;
-    PDL_Anyval result = { -1, 0 };
-
-    for(i=0; i<ndims; i++) { /* Check */
-
-       /* leave pdl_get_offset to handle -ve offsets (i.e. from end of
-          dimension), so elements of pos[] won't be changed */
-
-       if(pos[i]<-dims[i] || pos[i]>=dims[i])
-          croak("Position out of range");
-    }
-
-   ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
-
+   PDL_Anyval result = { -1, 0 };
+   PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
    GENERICLOOP (datatype)
-
       generic *xx = (generic *) x;
       result.type = datatype;
       result.value.generic_ppsym = xx[ioff];
-
    ENDGENERICLOOP
-
    return result;
 }
 
 /* Set value at position (x,y,z...) */
 
 void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value){
-
-    PDL_Indx i;
-    PDL_Indx ioff;
-
-    for(i=0; i<ndims; i++) { /* Check */
-
-       if(pos[i]<-dims[i] || pos[i]>=dims[i])
-          croak("Position out of range");
-    }
-
-   ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
-
+   PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
    GENERICLOOP (datatype)
-
       generic *xx = (generic *) x;
       ANYVAL_TO_CTYPE(xx[ioff], generic, value);
-
    ENDGENERICLOOP
 }
-
-
-
