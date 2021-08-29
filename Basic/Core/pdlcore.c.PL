@@ -48,7 +48,7 @@ extern Core PDL;
 ##############################
 # PDL handling stuff starts here
 #
-print OUT <<'!NO!SUBS!'
+print OUT <<'!NO!SUBS!';
 static SV *getref_pdl(pdl *it) {
         SV *newref;
         if(!it->sv) {
@@ -75,26 +75,10 @@ void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
 /* Size of data type information */
 
 size_t pdl_howbig (int datatype) {
-    switch (datatype) {
-
-!NO!SUBS!
-  ;
-# generate the cases for the various types
-
-for my $type (types()) {
-   my ($sym,$ctype) = map $type->$_, qw/sym ctype/;
-   print OUT << "!WITH!SUBS!";
-    case $sym:
-      return sizeof($ctype);
-!WITH!SUBS!
-}
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'!NO!SUBS!';
-
-    default:
-      croak("Unknown datatype code = %d",datatype);
-    }
+#define X(datatype, generic, generic_ppsym) \
+    return sizeof(generic);
+  PDL_GENERICSWITCH(datatype, X)
+#undef X
 }
 
 /* Make a scratch dataspace for a scalar pdl */
@@ -657,7 +641,7 @@ static int _detect_datatype(AV *av) {
  * Core.xs) - it breaks out to pdl_setav_<type>, below, based on the 
  * type of the destination PDL.
  */
-pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
+pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* p)
 {
   int ndims, i, level=0;
   PDL_Indx *pdims;
@@ -672,46 +656,21 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
   if (p == NULL)
      p = pdl_create(PDL_PERM);
   pdl_setdims (p, pdims, ndims);
-  if (type == -1) {
-    type = _detect_datatype(av);
+  if (dtype == -1) {
+    dtype = _detect_datatype(av);
   }
-  p->datatype = type;
+  p->datatype = dtype;
   pdl_allocdata (p);
   pdl_make_physical(p);
 
   /******
    * Copy the undefval to fill empty spots in the ndarray...
    */
-  ANYVAL_FROM_SV(undefval, NULL, TRUE, type);
-
-  switch (type) {
-!NO!SUBS!
-
-##########
-# Perl snippet autogenerates switch statement to distribute
-# pdl_setav calls...
-#
-  for my $t (types()) {
-    my ($type, $ppsym) = map $t->$_, qw(sym ppsym);
-    print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-    print OUT <<"!WITH!SUBS!";
-  case $type:
-    pdl_setav_$ppsym(p->data,av,pdims,ndims,level, undefval.value.$ppsym, p);
-    break;
-
-!WITH!SUBS!
-
-  }
-#
-# Back to your regularly scheduled C code emission...
-########
-
-  print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-  print OUT <<'!NO!SUBS!';
-  default:
-    croak("pdl_from_array: internal error: got type %d",type);
-    break;
-  }
+  ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
+#define X(dtype, generic, generic_ppsym) \
+    pdl_setav_ ## generic_ppsym(p->data,av,pdims,ndims,level, undefval.value.generic_ppsym, p);
+  PDL_GENERICSWITCH(dtype, X)
+#undef X
   p->state &= ~PDL_NOMYDIMS;
   return p;
 }
