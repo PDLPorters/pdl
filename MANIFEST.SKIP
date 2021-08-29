@@ -49,7 +49,6 @@ RCS
 ^Basic/Core/Core\.c$
 ^Basic/Core/Types\.pm$
 ^Basic/Core/pdlbadvalinit\.c$
-^Basic/Core/pdldataswitch\.c$
 ^Basic/Core/isbigendian.p$
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlcore\.[ch]$

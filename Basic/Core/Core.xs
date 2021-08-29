@@ -118,20 +118,14 @@ void pdl_propagate_badvalue( pdl *it ) {
     PDL_END_CHILDLOOP(it)
 } /* pdl_propagate_badvalue */
 
-
-/* this is horrible - the routines from bad should perhaps be here instead ? */
 PDL_Anyval pdl_get_badvalue( int datatype ) {
     PDL_Anyval retval = { -1, 0 };
-    switch ( datatype ) {
-
-#include "pdldataswitch.c"
-
-      default:
-	croak("Unknown type sent to pdl_get_badvalue\n");
-    }
+#define X(datatype, generic, generic_ppsym, shortctype) \
+    retval.type = datatype; retval.value.generic_ppsym = PDL.bvals.shortctype;
+    PDL_GENERICSWITCH(datatype, X)
+#undef X
     return retval;
-} /* pdl_get_badvalue() */
-
+}
 
 PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
     return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );

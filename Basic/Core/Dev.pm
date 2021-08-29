@@ -542,24 +542,6 @@ EOF
   return $success;
 }
 
-=head2 datatypes_switch
-
-=for ref
-
-prints on C<STDOUT> XS text for F<Core.xs>.
-
-=cut
-
-sub datatypes_switch {
-  loadmod_Types();
-  foreach my $type ( PDL::Types::types() ) {
-    my $typesym = $type->symbol;
-    my $typeppsym = $type->ppsym;
-    my $cname = $type->shortctype;
-    print "\tcase $typesym: retval.type = $typesym; retval.value.$typeppsym = PDL.bvals.$cname; break;\n";
-  }
-}
-
 =head2 generate_core_flags
 
 =for ref

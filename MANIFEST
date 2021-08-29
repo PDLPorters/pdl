@@ -21,7 +21,6 @@ Basic/Core/pdlbadvalinit.c.PL
 Basic/Core/pdlconv.c.PL
 Basic/Core/pdlcore.c.PL
 Basic/Core/pdlcore.h.PL
-Basic/Core/pdldataswitch.c.PL
 Basic/Core/pdlhash.c
 Basic/Core/pdlmagic.c
 Basic/Core/pdlmagic.h
