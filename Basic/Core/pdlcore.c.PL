@@ -746,25 +746,16 @@ PDL_Anyval pdl_at0( pdl* it ) {
 /* Return value at position (x,y,z...) */
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
-    PDL_Anyval result = { -1, 0 };
-    PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
-#define X(datatype, generic, generic_ppsym) \
-      generic *xx = (generic *) x; \
-      result.type = datatype; \
-      result.value.generic_ppsym = xx[ioff];
-   PDL_GENERICSWITCH(datatype, X)
-#undef X
+   PDL_Anyval result = { -1, 0 };
+   PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
+   ANYVAL_FROM_CTYPE_OFFSET(result, datatype, x, ioff);
    return result;
 }
 
 /* Set value at position (x,y,z...) */
 void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value){
-    PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
-#define X(datatype, generic, generic_ppsym) \
-      generic *xx = (generic *) x; \
-      ANYVAL_TO_CTYPE(xx[ioff], generic, value);
-   PDL_GENERICSWITCH(datatype, X)
-#undef X
+   PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
+   ANYVAL_TO_CTYPE_OFFSET(x, ioff, datatype, value);
 }
 
 /*

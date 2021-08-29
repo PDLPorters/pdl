@@ -434,6 +434,15 @@ and handle caching the bad value for efficiency):
 
  ANYVAL_ISBAD(in_anyval, pdl, badval)
 
+As of PDL 2.058, there are:
+
+  ANYVAL_FROM_CTYPE_OFFSET(result, datatype, x, ioff);
+  ANYVAL_TO_CTYPE_OFFSET(x, ioff, datatype, value);
+
+The latter dispatches on both the destination type and the input
+"anyval" type. They are intended for retrieving values from, and setting
+them within, ndarrays.
+
 As of PDL 2.048, in F<pdlperl.h> there are:
 
  ANYVAL_FROM_SV(out_anyval, in_SV, use_undefval, forced_type)

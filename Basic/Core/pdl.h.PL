@@ -100,6 +100,28 @@ default:      outval = 0; \
         } while (0)
 EOF
 
+print OUT <<'EOF';
+#define ANYVAL_FROM_CTYPE_OFFSET(outany,avtype,indata,ioff) do { switch (avtype) { \
+EOF
+print OUT "case @{[$_->sym]}: outany.type = avtype; outany.value.@{[$_->ppsym]} = (@{[$_->ctype]})((@{[$_->ctype]} *)indata)[ioff]; break; \\\n"
+  for PDL::Types::types();
+print OUT <<'EOF';
+   default:      outany.type = -1;     outany.value.B = 0; \
+  } \
+ } while (0)
+EOF
+
+print OUT <<'EOF';
+#define ANYVAL_TO_CTYPE_OFFSET(outdata,ioff,datatype,inany) do { switch (datatype) { \
+EOF
+print OUT "case @{[$_->sym]}: ANYVAL_TO_CTYPE(((@{[$_->ctype]} *)outdata)[ioff], @{[$_->ctype]}, inany); break; \\\n"
+  for PDL::Types::types();
+print OUT <<'EOF';
+default: croak("Not a known data type code=%d", inany.type); \
+            } \
+        } while (0)
+EOF
+
 my $isnan = join " \\\n  ",
   map "(x).type == ".$_->sym." ? @{[$_->isnan('(x).value.'.$_->ppsym)]} :",
   grep $_->usenan, PDL::Types::types();
