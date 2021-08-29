@@ -795,8 +795,75 @@ void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* in
  */
 !NO!SUBS!
 
-for my $type ( map $_->shortctype, types() ) {
+my $inner_loop = <<"!WITH!SUBS!";
+    switch(source_pdl->datatype) {
+!WITH!SUBS!
+# perl loop to emit code for all the PDL types -- ctype gets the C type of 
+# the source PDL, switch_type gets the Perl name, ppsym gets
+# the symbol need to retrieve from a PDL_Anyval, and type_usenan is a
+# boolean indicating whether this type handles NaNs.
+# leave with %1$s for filling in
+foreach my $inner_type ( types() ) {
+  my $switch_type = $inner_type->sym;
+  my $ctype = $inner_type->ctype;
+  my $stype = $inner_type->shortctype;
+  my $ppsym = $inner_type->ppsym;
 
+  my $comp_for_nan =
+      $inner_type->usenan
+      # if not equal, check if both are NaN
+    ? '('.$inner_type->isnan("(($ctype *)pptr)[i]") .' && '.$inner_type->isnan("source_badval.value.$ppsym").')'
+      # otherwise it must be false
+    : '0';
+
+  $inner_loop .= sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+  $inner_loop .= <<"!WITH!SUBS!";
+
+      case ${switch_type}:
+           /* copy data (unless the source pointer is null) */
+      i=0;
+      if(pptr && pdata && pdlsiz) {
+        for(; i<pdlsiz; i++) {
+          if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) {
+              /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */
+              if( (($ctype *)pptr)[i] == source_badval.value.$ppsym || $comp_for_nan ) {
+                  /* bad value in source PDL -- use our own type's bad value instead */
+                  pdata[i] = PDL.bvals.%1\$s;
+                  p->state |= PDL_BADVAL;
+              } else {
+                  pdata[i] = (PDL_%1\$s) ((${ctype} *)pptr)[i];
+              }
+          } else {
+            pdata[i] = (PDL_%1\$s) ((${ctype} *)pptr)[i];
+          }
+        } // end of loop over pdlsiz
+      } else { 
+        // pptr or pdata or pdlsiz are 0
+        if(pdata) 
+          pdata[i] = undefval;
+      }
+        /* pad out, in the innermost dimension */
+      if( !oob ) {
+        for(;  i< pdims[0]-poff; i++) {
+          undef_count++;
+          pdata[i] = undefval;
+        }
+      }
+
+      break;
+!WITH!SUBS!
+} # end of foreach in the perl generator code
+
+$inner_loop .= sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+$inner_loop .= <<"!WITH!SUBS!";
+    default:
+      croak("Internal error - please submit a bug report at https://github.com/PDLPorters/pdl/issues:\\n  pdl_kludge_copy: unknown datatype of %%d.",(int)(source_pdl->datatype));
+      break;
+    }
+!WITH!SUBS!
+
+for my $type ( map $_->shortctype, types() ) {
+my $this_inner_loop = sprintf $inner_loop, $type;
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<"!WITH!SUBS!";
 
@@ -827,8 +894,8 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
     PDL_Indx pdlsiz;
     int oob = (ndims-1-level < 0);         // out-of-bounds flag
 
-    /* Do bounds checking on the source dimension -- if we wander off the end of the 
-     * dimlist, we are doing permissive-slicing kind of stuff (not enough dims in the 
+    /* Do bounds checking on the source dimension -- if we wander off the end of the
+     * dimlist, we are doing permissive-slicing kind of stuff (not enough dims in the
      * source to fully account for the output dimlist); if we wander off the beginning, we
      * are doing dimensional padding.  In either case, we just iterate once.
      */
@@ -844,73 +911,7 @@ PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
 
     /* This is the actual data-copying code. It is generated with a Perl loop, to
      * ensure that all current PDL types get treated. */
-
-    switch(source_pdl->datatype) {
-!WITH!SUBS!
-
-        # perl loop to emit code for all the PDL types -- ctype gets the C type of 
-        # the source PDL, switch_type gets the Perl name, ppsym gets
-        # the symbol need to retrieve from a PDL_Anyval, and type_usenan is a
-        # boolean indicating whether this type handles NaNs.
-        foreach my $inner_type ( types() ) {
-	    my $switch_type = $inner_type->sym;
-	    my $ctype = $inner_type->ctype;
-	    my $stype = $inner_type->shortctype;
-	    my $ppsym = $inner_type->ppsym;
-
-	    my $comp_for_nan =
-	          $inner_type->usenan
-	          # if not equal, check if both are NaN
-	        ? '('.$inner_type->isnan("(($ctype *)pptr)[i]") .' && '.$inner_type->isnan("source_badval.value.$ppsym").')'
-	          # otherwise it must be false
-	        : '0';
-
-        print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-        print OUT <<"!WITH!SUBS!";
-
-      case ${switch_type}:
-           /* copy data (unless the source pointer is null) */
-      i=0;
-      if(pptr && pdata && pdlsiz) {
-        for(; i<pdlsiz; i++) {
-          if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) {
-              /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */
-              if( (($ctype *)pptr)[i] == source_badval.value.$ppsym || $comp_for_nan ) {
-                  /* bad value in source PDL -- use our own type's bad value instead */
-                  pdata[i] = PDL.bvals.$type;
-                  p->state |= PDL_BADVAL;
-              } else {
-                  pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];
-              }
-          } else {
-            pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];
-          }
-        } // end of loop over pdlsiz
-      } else { 
-        // pptr or pdata or pdlsiz are 0
-        if(pdata) 
-          pdata[i] = undefval;
-      }
-        /* pad out, in the innermost dimension */
-      if( !oob ) {
-        for(;  i< pdims[0]-poff; i++) {
-          undef_count++;
-          pdata[i] = undefval;
-        }
-      }
-
-      break;
-!WITH!SUBS!
-
-        } # end of foreach in the perl generator code
-
-      print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-      print OUT <<"!WITH!SUBS!";
-    default:
-      croak("Internal error - please submit a bug report at https://github.com/PDLPorters/pdl/issues:\\n  pdl_kludge_copy: unknown datatype of %d.",(int)(source_pdl->datatype));
-      break;
-    }
-
+$this_inner_loop
     return undef_count;
   }
 
