@@ -1034,17 +1034,7 @@ threadover(...)
 		others[i-npdls-1] = ST(i);
 	    if (nd2 < nc)
 		croak("Not enough dimension info to create pdls");
-#ifdef DEBUG_PTHREAD
-		for (i=0;i<npdls;i++) { /* just for debugging purposes */
-		printf("pdl %d Dims: [",i);
-		for (j=0;j<realdims[i];j++)
-			printf("%d ",pdls[i]->dims[j]);
-		printf("] Incs: [");
-		for (j=0;j<realdims[i];j++)
-			printf("%d ",PDL_REPRINC(pdls[i],j));
-		printf("]\n");
-	        }
-#endif
+	    PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %d ",i); pdl_dump(pdls[i]); });
 	    PDL_THR_CLRMAGIC(&pdl_thr);
 	    pdl_initthreadstruct(0,pdls,realdims,creating,npdls,
 				NULL,&pdl_thr,NULL, 1);
