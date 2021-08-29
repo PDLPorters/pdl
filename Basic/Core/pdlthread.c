@@ -156,15 +156,15 @@ void pdl_dump_threading_info(
   PDL_Indx j, k;
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
-    printf("PDL %ld:\n", j);
+    printf("PDL %"IND_FLAG":\n", j);
     for( k=0; k < nthreadedDims[j]; k++){
-      printf("Thread dim %ld, Dim No %ld, Size %ld\n", k, threadedDims[j][k],
-              threadedDimSizes[j][k]);
+      printf("Thread dim %"IND_FLAG", Dim No %"IND_FLAG", Size %"IND_FLAG"\n",
+        k, threadedDims[j][k], threadedDimSizes[j][k]);
     }
   }
-  printf("\n");
-  printf("Target Pthread = %d\n", target_pthread);
-  printf("maxPthread = %d, maxPthreadPDL = %d, maxPthreadDim = %d\n", maxPthread, maxPthreadPDL, maxPthreadDim);
+  printf("\nTarget Pthread = %d\n"
+    "maxPthread = %d, maxPthreadPDL = %d, maxPthreadDim = %d\n",
+    target_pthread, maxPthread, maxPthreadPDL, maxPthreadDim);
 }
 
 void pdl_find_max_pthread(
