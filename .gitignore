@@ -96,7 +96,6 @@ Basic/Core/pdlconv.c
 Basic/Core/pdlcore.c
 Basic/Core/pdlcore.h
 Basic/Core/pdldataswitch.c
-Basic/Core/pdlsections.c
 Basic/Core/pdlsimple.h
 Basic/Gen/PP/Dump.pm
 Basic/Gen/pptemplate.pod

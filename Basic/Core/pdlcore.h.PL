@@ -151,6 +151,17 @@ void pdl_pdl_warn(const char* pat,...); /* General warn utility */
 PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
 
+PDL_Indx  pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);      /* Offset of pixel x,y,z... */
+PDL_Indx  pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims,           /* Check section */
+                           PDL_Indx ndims );
+void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims,              /* Move down one row */
+                        PDL_Indx ndims );
+PDL_Anyval pdl_at0( pdl* x );
+PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
+             PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
+void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set value at x,y,z... */
+                PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value);
+
 !NO!SUBS!
 
 for my $t ( PDL::Types::types() ) {
@@ -237,19 +248,6 @@ void   pdl_coercetypes( pdl** a, pdl **b, Logical changePerl ); /* Two types to 
 void   pdl_grow  ( pdl* a, PDL_Indx newsize);   /* Change pdl 'Data' size */
 void   pdl_retype( pdl* a, int newtype);      /* Change pdl 'Datatype' value */
 void** pdl_twod( pdl* x );                    /* Return 2D pointer to data array */
-
-/* pdlsections.c */
-
-PDL_Indx  pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);      /* Offset of pixel x,y,z... */
-PDL_Indx  pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims,           /* Check section */
-                           PDL_Indx ndims );
-void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims,              /* Move down one row */
-                        PDL_Indx ndims );
-PDL_Anyval pdl_at0( pdl* x );
-PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
-             PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
-void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set value at x,y,z... */
-                PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value);
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 

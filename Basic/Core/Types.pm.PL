@@ -638,7 +638,7 @@ Returns the macro used to represent this type in C code (eg 'PDL_Long').
 
 =item ppsym
 
-The letter used to represent this type in PP code code (eg 'U' for L<ushort|PDL::Core/ushort>).
+The letter used to represent this type in PP code (eg 'U' for L<ushort|PDL::Core/ushort>).
 
 =item realctype
 

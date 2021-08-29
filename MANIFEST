@@ -26,7 +26,6 @@ Basic/Core/pdlhash.c
 Basic/Core/pdlmagic.c
 Basic/Core/pdlmagic.h
 Basic/Core/pdlperl.h.PL
-Basic/Core/pdlsections.g
 Basic/Core/pdlsimple.h.PL
 Basic/Core/pdlthread.c
 Basic/Core/pdlthread.h

@@ -31,7 +31,7 @@ eval { require Devel::CheckLib };
 
 our @ISA    = qw( Exporter );
 
-our @EXPORT = qw( isbigendian genpp
+our @EXPORT = qw( isbigendian
 	     PDL_INCLUDE PDL_TYPEMAP
 	     PDL_AUTO_INCLUDE PDL_BOOT
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
@@ -205,164 +205,11 @@ sub isbigendian {
     die "ERROR: PDL does not understand your machine's byteorder ($byteorder)\n";
 }
 
-#################### PDL Generic PreProcessor ####################
-#
-# Preprocesses *.g files to *.c files allowing 'generic'
-# type code which is converted to code for each type.
-#
-# e.g. the code:
-#
-#    pdl x;
-#    GENERICLOOP(x.datatype)
-#       generic *xx = x.data;
-#       for(i=0; i<nvals; i++)
-#          xx[i] = i/nvals;
-#    ENDGENERICLOOP
-#
-# is converted into a giant switch statement:
-#
-#     pdl x;
-#     switch (x.datatype) {
-#
-#     case PDL_L:
-#        {
-#           PDL_Long *xx = x.data;
-#           for(i=0; i<nvals; i++)
-#              xx[i] = i/nvals;
-#        }break;
-#
-#     case PDL_F:
-#        {
-#           PDL_Float *xx = x.data;
-#
-#       .... etc. .....
-#
-# 'generic' is globally substituted for each relevant data type.
-#
-# This is used in PDL to write generic functions (taking pdl or void
-# objects) which is still efficient with perl writing the actual C
-# code for each type.
-#
-#     1st version - Karl Glazebrook 4/Aug/1996.
-#
-# Also makes the followings substitutions:
-#
-# (i) O_NONBLOCK - open flag for non-blocking I/O (5/Aug/96)
-#
-
-# return exit code, so 0 = OK
-sub genpp {
-   loadmod_Types();
-   my $gotstart = 0; my @gencode = ();
-   my ($loopvar, $indent);
-
-   while (<>) { # Process files in @ARGV list - result to STDOUT
-
-      # Do the miscellaneous substitutions first
-
-      s/O_NONBLOCK/$O_NONBLOCK/go;   # I/O
-
-      if ( m/ (\s*)? \b GENERICLOOP \s* \( ( [^\)]* ) \) ( \s*; )? /x ){  # Start of generic code
-         #print $MATCH, "=$1=\n";
-
-         die "Found GENERICLOOP while searching for ENDGENERICLOOP\n" if $gotstart;
-         $loopvar = $2;
-         $indent = $1;
-         print $`;
-
-         @gencode = ();  # Start saving code
-         push @gencode, $';
-         $gotstart = 1;
-         next;
-      }
-
-      if ( m/ \b ENDGENERICLOOP ( \s*; )? /x ) {
-
-         die "Found ENDGENERICLOOP while searching for GENERICLOOP\n" unless $gotstart;
-
-         push @gencode, $`;
-
-         print flushgeneric($indent, $loopvar, \@gencode);  # Output the generic code
-
-         print $';  # End of genric code
-         $gotstart = 0;
-         next;
-      }
-
-      if ($gotstart) {
-         push @gencode, $_;
-      }
-      else {
-         print;
-      }
-
-   } # End while
-   0;
-}
-
-sub flushgeneric {  # Construct the generic code switch
-   my ($indent, $loopvar, $gencode) = @_;
-   my @m;
-   push @m, $indent,"switch ($loopvar) {\n\n";
-
-   for my $t (PDL::Types::types()) {
-     my ($case, $type, $ppsym) = map $t->$_, qw(sym ctype ppsym);
-     push @m, $indent,"case $case:\n"; # Start of this case
-     push @m, $indent,"   {";
-
-     # Now output actual code with substitutions
-
-     for  (@$gencode) {
-        my $line = $_;
-
-        $line =~ s/\bgeneric\b/$type/g;
-        $line =~ s/\bgeneric_ppsym\b/$ppsym/g;
-
-        push @m, "   ",$line;
-     }
-
-     push @m, "}break;\n\n";  # End of this case
-   }
-   push @m, $indent,"default:\n";
-   push @m, $indent,'   croak ("Not a known data type code=%d",'.$loopvar.");\n";
-   push @m, $indent,"}";
-
-   join '', @m;
-}
-
 sub _oneliner {
   my ($cmd) = @_;
   require ExtUtils::MM;
   my $MM = bless { NAME => 'Fake' }, 'MM';
   $MM->oneliner($cmd);
-}
-
-sub genpp_cmdline {
-  my ($in, $out) = @_;
-  my $devpm = whereami_any()."/Core/Dev.pm";
-  sprintf(_oneliner(<<'EOF'), $devpm) . qq{ "$in" > "$out"};
-require "%s"; PDL::Core::Dev->import(); exit genpp();
-EOF
-}
-
-# Standard PDL postamble
-#
-# This is called via .../Gen/Inline/Pdlpp.pm, in the case that the INTERNAL
-# flag for the compilation is off (grep "ILSM" in that file to find the reference).
-# If it's ON, then postamble_int gets called instead.
-
-
-sub postamble {
-  my ($self) = @_;
-  sprintf <<'EOF', genpp_cmdline(qw($< $@));
-
-# Rules for the generic preprocessor
-
-.SUFFIXES: .g
-.g.c :
-	%s
-
-EOF
 }
 
 # Expects list in format:

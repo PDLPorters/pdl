@@ -112,8 +112,6 @@ print OUT <<EOF;
 EOF
 
 # set up the badvalues structure
-# - for binary compatability, this is created whatever the
-#   value of $bvalflag and $usenan
 print OUT "typedef struct badvals {\n";
 foreach my $type ( reverse PDL::Types::types() ) {
     my ($realctype, $cname) = map $type->$_, qw(realctype shortctype);
@@ -121,6 +119,22 @@ foreach my $type ( reverse PDL::Types::types() ) {
     printf OUT "   %18s   default_%s;\n",$realctype,$cname;
 }
 print OUT "} badvals;\n";
+
+print OUT <<'EOF';
+#define PDL_GENERICSWITCH(typevar, X) \
+  switch (typevar) { \
+EOF
+foreach my $type ( PDL::Types::types() ) {
+    printf OUT <<'EOF', map $type->$_, qw(symbol ctype ppsym);
+  case %s: { \
+    X(typevar, %s, %s) \
+  } break; \
+EOF
+}
+print OUT <<'EOF';
+   default: croak("Not a known data type code=%d", typevar); \
+}
+EOF
 
 print OUT <<'!NO!SUBS!';
 

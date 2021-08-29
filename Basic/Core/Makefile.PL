@@ -49,31 +49,9 @@ my $pthread_define  = $pthread_library ? ' -DPDL_PTHREAD ' : '';
 
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
-# Extra targets to build
-
-sub make_from_PL ($) {
-    my $head = shift;
-    return "\t" .
-	'$(PERLRUNINST) ' .
-	    "${head}.PL $head\n";
-}
-
-undef &MY::postamble; # suppress warning
-*MY::postamble = sub {
-    PDL::Core::Dev::postamble() . "
-pdlsections.c : pdlsections.g # needs to be spelled out despite inference rule
-
-pdlconv.c.PL pdlcore.c.PL pdlcore.h.PL pdlsimple.h.PL pdl.h.PL pdldataswitch.c.PL pdlbadvalinit.c.PL pdlperl.h.PL :: Types.pm
-
-pdlsections.g pdlapi.c pdlhash.c pdlthread.c :: pdl.h pdlcore.h
-
-pdlmagic.c :: pdlcore.h
-"
-};
-
 my $libs_string = "$pthread_library $malloclib -lm";
 
-my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic pdlsections);
+my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
@@ -81,11 +59,11 @@ WriteMakefile(
   'PM'          => {
 		(map {($_,'$(INST_LIBDIR)/'.$_)} (
 			qw/Core.pm Basic.pm Types.pm
-						  Dbg.pm Exporter.pm Config.pm Char.pm/
+			  Dbg.pm Exporter.pm Config.pm Char.pm/
 		)),
 		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
 			qw/Dev.pm typemap pdl.h pdlperl.h pdlcore.h pdlmagic.h pdlsimple.h
-				pdlthread.h ppport.h/
+			pdlthread.h ppport.h/
 		)),
 		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
 		(map +($_=>'$(INST_LIBDIR)/Complex/'.$_), qw(Overloads.pm)),
@@ -95,17 +73,20 @@ WriteMakefile(
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => [$libs_string],
  'clean'        => {'FILES'  => $cobj .
-                   ' pdlconv.c pdlsections.c pdlcore.c '.
+                   ' pdlconv.c pdlcore.c '.
 		   'pdl.h pdlperl.h pdlsimple.h pdlcore.h '.
                    'pdldataswitch.c pdlbadvalinit.c '.
 		   'Types.pm Core.c '
 		   },
  'INC'          => join(' ',
-   PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
+   PDL::Core::Dev::PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
  ),
   depend => {
     'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdldataswitch.c pdlbadvalinit.c pdl.h pdlperl.h pdlcore.h',
         # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
+    'pdlconv.c.PL pdlcore.c.PL pdlcore.h.PL pdlsimple.h.PL pdl.h.PL pdldataswitch.c.PL pdlbadvalinit.c.PL pdlperl.h.PL' => 'Types.pm',
+    'pdlapi.c pdlhash.c pdlthread.c' => 'pdl.h pdlcore.h',
+    'pdlmagic.c' => 'pdlcore.h',
   },
   NO_MYMETA => 1,
 );

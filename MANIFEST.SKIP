@@ -236,7 +236,6 @@ pdlbasicops\.c$
 pdlconv\.c$
 pdlexamples\.c$
 pdlmoremaths\.c$
-pdlsections\.c$
 pdlstats\.c$
 pure_all
 so_locations
