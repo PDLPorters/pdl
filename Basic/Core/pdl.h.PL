@@ -332,6 +332,9 @@ struct pdl_magic;
  * PDL structure
  * Should be kept under 250 bytes if at all possible, for
  * easier segmentation...
+ * See current size (360 bytes at time of writing) with:
+      perl -Mblib -MInline=with,PDL \
+        -MInline=C,'size_t f() { return sizeof(struct pdl); }' -e 'die f()'
  *
  * The 'sv', 'datasv', and 'hdrsv' fields are all void * to avoid having to
  * load perl.h for C codes that only use PDLs and not the Perl API.
