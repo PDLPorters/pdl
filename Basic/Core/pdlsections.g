@@ -29,56 +29,6 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
    return result;
 }
 
-/* Check validity of section - return number of elements in it */
-
-PDL_Indx pdl_validate_section( PDL_Indx* sec, PDL_Indx* dims, PDL_Indx ndims ){
-
-   PDL_Indx i,start,end,count;
-
-   count=1;
-
-   for(i=0;i<ndims;i++){
-
-       if (dims[i]<=0 || ndims==0)    /* Never happens :-) */
-           croak("PDL object has a dimension <=0 !");
-
-       start = sec[2*i];
-       end   = sec[2*i+1];
-
-       if (start<0 || end<0 || start>end || end>=dims[i])
-            croak("Invalid subsection specified");
-
-       count = count * (end-start+1);
-   }
-   return count;
-}
-
-/* Increment a position pointer array by one row */
-
-void pdl_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, PDL_Indx ndims ) {
-
-    PDL_Indx i;
-    int noescape;
-
-    i=1; noescape=1;
-
-    while(noescape) {
-
-       (pos[i])++;
-
-       if (pos[i]==dims[i]) { /* Carry */
-          if (i>=(ndims)-1)  {
-             noescape = 0; /* Exit */
-          }else{
-             pos[i]=0;
-             i++;
-          }
-       }else{
-          noescape = 0;    /* Exit */
-       }
-    }
-}
-
 /* wrapper for pdl_at where only want first item, cf sclr_c */
 PDL_Anyval pdl_at0( pdl* it ) {
     PDL_Indx nullp = 0;
