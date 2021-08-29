@@ -147,9 +147,9 @@ print OUT <<'EOF';
   switch (typevar) { \
 EOF
 foreach my $type ( PDL::Types::types() ) {
-    printf OUT <<'EOF', map $type->$_, qw(symbol ctype ppsym);
+    printf OUT <<'EOF', map $type->$_, qw(symbol ctype ppsym shortctype);
   case %s: { \
-    X(typevar, %s, %s) \
+    X(typevar, %s, %s, %s) \
   } break; \
 EOF
 }

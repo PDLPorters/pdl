@@ -75,7 +75,7 @@ void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
 /* Size of data type information */
 
 size_t pdl_howbig (int datatype) {
-#define X(datatype, generic, generic_ppsym) \
+#define X(datatype, generic, generic_ppsym, shortctype) \
     return sizeof(generic);
   PDL_GENERICSWITCH(datatype, X)
 #undef X
@@ -667,7 +667,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* p)
    * Copy the undefval to fill empty spots in the ndarray...
    */
   ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
-#define X(dtype, generic, generic_ppsym) \
+#define X(dtype, generic, generic_ppsym, shortctype) \
     pdl_setav_ ## generic_ppsym(p->data,av,pdims,ndims,level, undefval.value.generic_ppsym, p);
   PDL_GENERICSWITCH(dtype, X)
 #undef X
