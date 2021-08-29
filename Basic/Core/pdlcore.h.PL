@@ -165,9 +165,9 @@ void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set valu
 !NO!SUBS!
 
 for my $t ( PDL::Types::types() ) {
-  my ($in, $shorttype, $type) = map $t->$_, qw(sym shortctype ctype);
+  my ($ppsym, $type) = map $t->$_, qw(ppsym ctype);
   print OUT <<"!WITH!SUBS!";
-PDL_Indx pdl_setav_$shorttype($type* pdata, AV* av,
+PDL_Indx pdl_setav_$ppsym($type* pdata, AV* av,
 	PDL_Indx* pdims, PDL_Long ndims, int level, $type undefval, pdl *p);
 !WITH!SUBS!
 }

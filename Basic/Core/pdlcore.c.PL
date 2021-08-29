@@ -692,11 +692,11 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 # pdl_setav calls...
 #
   for my $t (types()) {
-    my ($type, $t2, $ppsym) = map $t->$_, qw(sym shortctype ppsym);
+    my ($type, $ppsym) = map $t->$_, qw(sym ppsym);
     print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
     print OUT <<"!WITH!SUBS!";
   case $type:
-    pdl_setav_$t2(p->data,av,pdims,ndims,level, undefval.value.$ppsym, p);
+    pdl_setav_$ppsym(p->data,av,pdims,ndims,level, undefval.value.$ppsym, p);
     break;
 
 !WITH!SUBS!
@@ -862,12 +862,13 @@ $inner_loop .= <<"!WITH!SUBS!";
     }
 !WITH!SUBS!
 
-for my $type ( map $_->shortctype, types() ) {
+for my $obj ( types() ) {
+my ($type, $ppsym) = map $obj->$_, qw(shortctype ppsym);
 my $this_inner_loop = sprintf $inner_loop, $type;
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<"!WITH!SUBS!";
 
-PDL_Indx pdl_kludge_copy_$type(PDL_Indx poff, // Offset into the dest data array
+PDL_Indx pdl_kludge_copy_$ppsym(PDL_Indx poff, // Offset into the dest data array
                            PDL_$type* pdata,  // Data pointer in the dest data array
                            PDL_Indx* pdims,   // Pointer to the dimlist for the dest pdl
                            PDL_Indx ndims,         // Number of dimensions in the dest pdl
@@ -930,7 +931,7 @@ $this_inner_loop
           :   1    
           );
       for(i=0; i < limit ; i++) {
-          undef_count += pdl_kludge_copy_$type(0, pdata + stride * i,
+          undef_count += pdl_kludge_copy_$ppsym(0, pdata + stride * i,
                                                pdims,
                                                ndims,
                                                level+1,
@@ -980,7 +981,7 @@ $this_inner_loop
  *   -  level is the recursion level, which is also the dimension that we are filling
  */
 
-PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
+PDL_Indx pdl_setav_$ppsym(PDL_$type* pdata, AV* av,
                      PDL_Indx* pdims, int ndims, int level, PDL_$type undefval, pdl *p)
 {
   PDL_Indx cursz = pdims[ndims-1-level]; /* we go from the highest dim inward */
@@ -1005,7 +1006,7 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
 
     if (foo) {
       /* If the element was an AV ref, recurse to walk through that AV, one dim lower */
-      undef_count += pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1, undefval, p);
+      undef_count += pdl_setav_$ppsym(pdata, (AV *) SvRV(el), pdims, ndims, level+1, undefval, p);
 
     } else if( el && SvROK(el) ) {
 
@@ -1022,7 +1023,7 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
           pd = (pddex >= 0 && pddex < ndims ? pdims[ pddex ] : 0);
           if(!pd)
               pd = 1;
-          undef_count += pdl_kludge_copy_$type(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, p);
+          undef_count += pdl_kludge_copy_$ppsym(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, p);
 
       } else {
         /* The element is a non-PDL, non-AV ref.  Not allowed. */
@@ -1078,7 +1079,7 @@ PDL_Indx pdl_setav_$type(PDL_$type* pdata, AV* av,
 
     if(debug_flag) {
       fflush(stdout);
-      fprintf(stderr,"Warning: pdl_setav_$type converted undef to \$PDL::undefval (%g) %ld time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s");
+      fprintf(stderr,"Warning: pdl_setav_$ppsym converted undef to \$PDL::undefval (%g) %ld time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s");
       fflush(stderr);
     }
   }
