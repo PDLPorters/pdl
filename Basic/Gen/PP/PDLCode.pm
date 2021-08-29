@@ -46,7 +46,7 @@ sub new {
 	print "DONT_ADD_THRLOOP!\n" if $dont_add_thrloop;
 	print "EXTRAGEN: {" .
 	  join(" ",
-	       map { "$_=>" . $$extrageneric{$_}} keys %$extrageneric)
+	       map "$_=>$$extrageneric{$_}", keys %$extrageneric)
 	    . "}\n";
 	print "ParNAMES: ",(join ',',@$parnames),"\n";
 	print "GENTYPES: ", @$generictypes, "\n";
@@ -64,7 +64,7 @@ sub new {
         Name => $name,
     }, $type;
 
-    my $inccode = join '',map {$_->get_incregisters();} (sort values %{$this->{ParObjs}});
+    my $inccode = join '',map $_->get_incregisters(), sort values %{$this->{ParObjs}};
 
     # First, separate the code into an array of C fragments (strings),
     # variable references (strings starting with $) and
@@ -337,7 +337,7 @@ sub get_str_int {
       my $it = $this->myitem($parent,$nth);
       last MYLOOP if $nth and !$it;
       $str .= $it;
-      $str .= (join '',map {ref $_ ? $_->get_str($parent,$context) : $_}
+      $str .= join('', map ref $_ ? $_->get_str($parent,$context) : $_,
 	       @{$this}[$this->myoffs()..$#{$this}]);
       $nth++;
   }
@@ -393,9 +393,9 @@ sub new { my($type,$args,$sizeprivs,$parent) = @_;
 
 sub myoffs { return 1; }
 sub myprelude { my($this,$parent,$context) = @_;
-	my $text = ""; my $i;
+	my $text = "";
 	push @$context, map {
-		$i = $parent->make_loopind($_);
+		my $i = $parent->make_loopind($_);
 # Used to be $PRIV(.._size) but now we have it in a register.
 		$text .= "{PDL_COMMENT(\"Open $_\") register PDL_Indx $_;
 			for($_=0; $_<(__$i->[0]_size); $_++) {";
@@ -405,7 +405,7 @@ sub myprelude { my($this,$parent,$context) = @_;
 }
 sub mypostlude { my($this,$parent,$context) = @_;
 	splice @$context, - ($#{$this->[0]}+1);
-	return join '',map {"}} PDL_COMMENT(\"Close $_\")"} @{$this->[0]};
+	return join '', map "}} PDL_COMMENT(\"Close $_\")", @{$this->[0]};
 }
 
 ###########################
@@ -484,7 +484,7 @@ PDL::PP::pp_line_numbers(__LINE__, '	PDL_COMMENT("THREADLOOPBEGIN")
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
  	__privtrans))) return;
    do {
- '.(join '',map {"${_}_datap += \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
+ '.(join '',map "${_}_datap += \$PRIV(__pdlthread).offs[".(0+$no++)."];\n",
  		@$ord).'
 ');
 }
@@ -493,7 +493,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
  my $no;
  my ($ord,$pdls) = $parent->get_pdls();
 '	PDL_COMMENT("THREADLOOPEND")
- '.(join '',map {"${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
+ '.(join '',map "${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n",
  		@$ord).'
       } while(PDL->iterthreadloop(&$PRIV(__pdlthread),0));
  '
@@ -539,19 +539,19 @@ sub myprelude {
 		register PDL_Indx __tdims1 = $PRIV(__pdlthread.dims[1]); \
 		register PDL_Indx __tdims0 = $PRIV(__pdlthread.dims[0]); \
 		register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));',
-	  ( map { "register PDL_Indx __tinc0_${_} = \$PRIV(__pdlthread).incs[${_}];"} 0..$#{$ord}),
-	  ( map { "register PDL_Indx __tinc1_${_} = \$PRIV(__pdlthread).incs[__tnpdls+$_];"} 0.. $#{$ord}),
-	  ( map { $ord->[$_] ."_datap += __offsp[$_];"} 0..$#{$ord} ),
+	  (map "register PDL_Indx __tinc0_${_} = \$PRIV(__pdlthread).incs[${_}];", 0..$#{$ord}),
+	  (map "register PDL_Indx __tinc1_${_} = \$PRIV(__pdlthread).incs[__tnpdls+$_];", 0.. $#{$ord}),
+	  (map "$ord->[$_]_datap += __offsp[$_];", 0..$#{$ord}),
 	  'for( __tind2 = 0 ; \
 		__tind2 < __tdims1 ; \
 		__tind2++',
-		( map { "\t\t," . $ord->[$_] . "_datap += __tinc1_${_} - __tinc0_${_} * __tdims0"} 0..$#{$ord} ),
+		(map "\t\t,$ord->[$_]_datap += __tinc1_${_} - __tinc0_${_} * __tdims0", 0..$#{$ord}),
 	     ')',
 	  '{ \
 	     for( __tind1 = 0 ; \
 		  __tind1 < __tdims0 ; \
 		  __tind1++',
-		  ( map { "\t\t," . $ord->[$_] . "_datap += __tinc0_${_}"} 0..$#{$ord}),
+		  (map "\t\t,$ord->[$_]_datap += __tinc0_${_}", 0..$#{$ord}),
 	       ") {",
 	  "PDL_COMMENT(\"This is the tightest threadloop. Make sure inside is optimal.\")\n\n",
 	);
@@ -571,7 +571,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 	    "\n#define $macro_name",
 	    '}',
 	    '}',
-	    ( map { $ord->[$_] . "_datap -= __tinc1_${_} * __tdims1 + __offsp[${_}];"} 0..$#{$ord} ),
+	    (map "$ord->[$_]_datap -= __tinc1_${_} * __tdims1 + __offsp[${_}];", 0..$#{$ord}),
 	    '} while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));'."\n",
 	    );
     }
@@ -615,7 +615,7 @@ sub new {
 sub myoffs { return 1; }
 sub myprelude {
     my($this,$parent,$context) = @_;
-    return "\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
+    return "\n#if ". (join '||',map "(THISIS_$_(1)+0)", split '',$this->[0])."\n";
 }
 
 sub mypostlude {my($this,$parent,$context) = @_;
@@ -1053,7 +1053,7 @@ sub get_str {my($this,$parent,$context) = @_;
 	print "RESIZEACC: $1 $2, (",(join ',',@p),")\n";
 	warn "RESIZE USED: DO YOU KNOW WHAT YOU ARE DOING???\n";
 
-	return "$s = $2; ".(join '',map {$pdls->{$_}->do_resize($1,$2)} @p);
+	return "$s = $2; ".(join '',map $pdls->{$_}->do_resize($1,$2), @p);
 }
 
 
