@@ -523,7 +523,6 @@ BOOT:
    PDL_CORE_BOOT(copy)
    PDL_CORE_BOOT(hard_copy)
    PDL_CORE_BOOT(converttype)
-   PDL_CORE_BOOT(twod)
    PDL_CORE_BOOT(smalloc)
    PDL_CORE_BOOT(howbig)
    PDL_CORE_BOOT(packdims)

@@ -6,6 +6,7 @@
 - allow zero-length ndarray as slice index even for length-1 dim - thanks @trevcs for report (SF#443, GH#229)
 - replace some malloc/free with smalloc to not leak on exception
 - replace whole genpp infrastructure with generated C macro
+- remove Core.twod, requires recompile
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism

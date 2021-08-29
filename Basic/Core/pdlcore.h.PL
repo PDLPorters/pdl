@@ -30,6 +30,7 @@ PDL::Core::Dev::loadmod_Types();
 # version 15: threadid, ndims become PDL_Indx
 # version 16: zap tmp, flushcache, NaN_*, qsort_ for complex, add_deletedata_magic
 # version 17: restore add_deletedata_magic
+# version 18: zap twod
 use vars qw( $pdl_core_version );
 $pdl_core_version = 17;
 
@@ -244,10 +245,7 @@ void pdl_readdata_vaffine(pdl *it);
 void   pdl_swap(pdl** a, pdl** b);             /* Swap two pdl ptrs */
 void   pdl_converttype( pdl** a, int targtype, /* Change type of a pdl */
                         Logical changePerl );
-void   pdl_coercetypes( pdl** a, pdl **b, Logical changePerl ); /* Two types to same */
 void   pdl_grow  ( pdl* a, PDL_Indx newsize);   /* Change pdl 'Data' size */
-void   pdl_retype( pdl* a, int newtype);      /* Change pdl 'Datatype' value */
-void** pdl_twod( pdl* x );                    /* Return 2D pointer to data array */
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 
@@ -266,7 +264,6 @@ struct Core {
     SV*    (*copy)        ( pdl*, char* );
     pdl*   (*hard_copy)   ( pdl* );
     void   (*converttype) ( pdl**, int, Logical );
-    void** (*twod)        ( pdl* );
     void*  (*smalloc)      ( STRLEN );
     size_t (*howbig)      ( int );
     PDL_Indx*   (*packdims)    ( SV* sv, PDL_Indx *ndims ); /* Pack dims[] into SV aref */
