@@ -163,7 +163,7 @@ void pdl_clearthreadstruct(pdl_thread *it) {
 */
 void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating, int noPthreadFlag ){
 
-	PDL_Indx j, nthrd, totalDims, *nthreadedDims, **threadedDims;
+	PDL_Indx j, nthrd, *nthreadedDims, **threadedDims;
     PDL_Indx **threadedDimSizes;
 	PDL_Indx largest_nvals = 0;  /* The largest PDL size for all the pdls involvled */
 
@@ -195,7 +195,6 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 
 	if( noPthreadFlag ) return;  /* Don't go further if the current pdl function isn't thread-safe */
 
-
 	/* Find the largest nvals */
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
@@ -211,22 +210,16 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 	if( largest_nvals < pdl_autopthread_size )
 		return;
 
-
 	/* Build int arrays of threaded dim numbers and sizes for each pdl */
 	nthreadedDims     = (PDL_Indx*)  malloc(sizeof(PDL_Indx)   * (npdls));
 	threadedDims      = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
 	threadedDimSizes  = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
 
-
-	/* Find total number of dims and allocate */
-	totalDims = 0;
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		threadedDims[j]     = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
 		threadedDimSizes[j] = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
 	}
-
-
 
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
