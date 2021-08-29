@@ -250,7 +250,6 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Valu
              PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
 void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set value at x,y,z... */
                 PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value);
-void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 
