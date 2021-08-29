@@ -148,6 +148,24 @@ void pdl_clearthreadstruct(pdl_thread *it) {
 	PDL_THR_CLRMAGIC(it);
 }
 
+void pdl_dump_threading_info(
+  int npdls, PDL_Indx* creating, int target_pthread,
+  PDL_Indx *nthreadedDims, PDL_Indx **threadedDims, PDL_Indx **threadedDimSizes,
+  int maxPthreadPDL, int maxPthreadDim, int maxPthread
+) {
+  PDL_Indx j, k;
+  for(j=0; j<npdls; j++) {
+    if(creating[j]) continue;
+    printf("PDL %ld:\n", j);
+    for( k=0; k < nthreadedDims[j]; k++){
+      printf("Thread dim %ld, Dim No %ld, Size %ld\n", k, threadedDims[j][k],
+              threadedDimSizes[j][k]);
+    }
+  }
+  printf("\n");
+  printf("Target Pthread = %d\n", target_pthread);
+  printf("maxPthread = %d, maxPthreadPDL = %d, maxPthreadDim = %d\n", maxPthread, maxPthreadPDL, maxPthreadDim);
+}
 
 /* Function to auto-add pthreading magic (i.e. hints for multiple processor threads )
    to the pdls, based on the target number of pthreads and the pdl-threaded dimensions
@@ -261,21 +279,11 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 		if( maxPthread == target_pthread ) break;
 	}
 
-	/*
-	for(j=0; j<npdls; j++) {
-		if(creating[j]) continue;
-		printf("PDL %d:\n", j);
-		for( k=0; k < nthreadedDims[j]; k++){
-			printf("Thread dim %d, Dim No %d, Size %d\n", k, threadedDims[j][k],
-				threadedDimSizes[j][k]);
-		}
-	}
-	printf("\n");
-
-	printf("Target Pthread = %d\n", target_pthread);
-	printf("maxPthread = %d, maxPthreadPDL = %d, maxPthreadDim = %d\n", maxPthread, maxPthreadPDL, maxPthreadDim);
-	*/
-
+	PDLDEBUG_f(pdl_dump_threading_info(
+	  npdls, creating, target_pthread,
+	  nthreadedDims, threadedDims, threadedDimSizes,
+	  maxPthreadPDL, maxPthreadDim, maxPthread
+	));
 
 	/* Add threading magic */
 	if( maxPthread > 1 ){
@@ -293,10 +301,7 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 	free(nthreadedDims);
 	free(threadedDims);
 	free(threadedDimSizes);
-
 }
-
-
 
 /* The assumptions this function makes:
  *  pdls is dynamic and may go away -> copied
