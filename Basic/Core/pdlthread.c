@@ -167,6 +167,74 @@ void pdl_dump_threading_info(
   printf("maxPthread = %d, maxPthreadPDL = %d, maxPthreadDim = %d\n", maxPthread, maxPthreadPDL, maxPthreadDim);
 }
 
+void pdl_find_max_pthread(
+  pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating,
+  int target_pthread,
+  int *p_maxPthread, /* Maximum achievable pthread */
+  int *p_maxPthreadDim, /* Threaded dim number that has the max num pthreads */
+  int *p_maxPthreadPDL /* PDL that has the max (or right at the target) num pthreads */
+) {
+  PDL_Indx j, k, t, nthreadDim;
+  /* Build int arrays of threaded dim numbers and sizes for each pdl */
+  PDL_Indx *nthreadedDims, **threadedDims, **threadedDimSizes;
+  nthreadedDims     = (PDL_Indx*)  malloc(sizeof(PDL_Indx)   * (npdls));
+  threadedDims      = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
+  threadedDimSizes  = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
+  for(j=0; j<npdls; j++) {
+    if(creating[j]) continue;
+    threadedDims[j]     = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
+    threadedDimSizes[j] = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
+  }
+  for(j=0; j<npdls; j++) {
+    if(creating[j]) continue;
+    nthreadDim = 0;
+    for( k=0, t = realdims[j]; t < pdls[j]->ndims; t++, k++ ){
+      threadedDimSizes[j][k] = pdls[j]->dims[t];
+      threadedDims[j][k]      = t;
+      nthreadDim++;
+    }
+    nthreadedDims[j] = nthreadDim;
+  }
+  /* Go through each threaded dim and see how many pthreads we can
+     create closest to the maximum target pthreads */
+  *p_maxPthread = 0;
+  for(j=0; j<npdls; j++) {
+    if(creating[j]) continue;
+    for( k=0; k < nthreadedDims[j]; k++){
+      int pthreadActual = target_pthread +1;
+      int remainder = 1;
+      /* Go from the target pthread to 1, until we get an even division of the dimension size */
+      while( (pthreadActual > 0) && (remainder > 0) ){
+        pthreadActual--;
+        remainder = threadedDimSizes[j][k] % pthreadActual;
+      }
+      if( pthreadActual > *p_maxPthread ){ /* Record this dim if it is the max */
+        *p_maxPthread = pthreadActual;
+        *p_maxPthreadPDL = j;
+        *p_maxPthreadDim = threadedDims[j][k];
+      }
+      /* Don't go any further if target pthread achieved */
+      if( pthreadActual == target_pthread ) break;
+    }
+    /* Don't go any further if target pthread achieved */
+    if( *p_maxPthread == target_pthread ) break;
+  }
+  PDLDEBUG_f(pdl_dump_threading_info(
+    npdls, creating, target_pthread,
+    nthreadedDims, threadedDims, threadedDimSizes,
+    *p_maxPthreadPDL, *p_maxPthreadDim, *p_maxPthread
+  ));
+  /* Free the stuff we allocated */
+  for(j=0; j<npdls; j++) {
+    if(creating[j]) continue;
+    free(threadedDims[j]);
+    free(threadedDimSizes[j]);
+  }
+  free(nthreadedDims);
+  free(threadedDims);
+  free(threadedDimSizes);
+}
+
 /* Function to auto-add pthreading magic (i.e. hints for multiple processor threads )
    to the pdls, based on the target number of pthreads and the pdl-threaded dimensions
    .
@@ -180,20 +248,11 @@ void pdl_dump_threading_info(
      processor threading safe, so no pthreading magic will be added
 */
 void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating, int noPthreadFlag ){
-
-	PDL_Indx j, nthrd, *nthreadedDims, **threadedDims;
-    PDL_Indx **threadedDimSizes;
+	PDL_Indx j, nthrd;
 	PDL_Indx largest_nvals = 0;  /* The largest PDL size for all the pdls involvled */
-
-	int t;             /* Thread index for each pdl */
-	int tdimStart;    /* Start of the threaded dims for each pdl */
-	int k;            /* threadedDims array index for each pdl */
-	int nthreadDim;   /* Number of thread dims for the current pdl */
-
 	int maxPthreadPDL; /* PDL that has the max (or right at the target) num pthreads */
 	int maxPthreadDim; /* Threaded dim number that has the max num pthreads */
 	int maxPthread = 0;    /* Maximum achievable pthread */
-
 	int target_pthread = pdl_autopthread_targ;
 	pdl_autopthread_actual = 0; /* Initialize the global variable indicating actual number of pthreads */
 
@@ -228,79 +287,16 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 	if( largest_nvals < pdl_autopthread_size )
 		return;
 
-	/* Build int arrays of threaded dim numbers and sizes for each pdl */
-	nthreadedDims     = (PDL_Indx*)  malloc(sizeof(PDL_Indx)   * (npdls));
-	threadedDims      = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
-	threadedDimSizes  = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
-
-	for(j=0; j<npdls; j++) {
-		if(creating[j]) continue;
-		threadedDims[j]     = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
-		threadedDimSizes[j] = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
-	}
-
-	for(j=0; j<npdls; j++) {
-		if(creating[j]) continue;
-		tdimStart = realdims[j];
-		nthreadDim = 0;
-		for( k=0, t = tdimStart; t < pdls[j]->ndims; t++, k++ ){
-			threadedDimSizes[j][k] = pdls[j]->dims[t];
-			threadedDims[j][k]      = t;
-			nthreadDim++;
-		}
-		nthreadedDims[j] = nthreadDim;
-
-
-	}
-
-	/* Go through each threaded dim and see how many pthreads we can create closest
-	   to the maximum target pthreads */
-	for(j=0; j<npdls; j++) {
-		if(creating[j]) continue;
-		for( k=0; k < nthreadedDims[j]; k++){
-			int pthreadActual = target_pthread +1;
-			int remainder = 1;
-			/* Go from the target pthread to 1, until we get an even division of the dimension size */
-			while( (pthreadActual > 0) && (remainder > 0) ){
-				pthreadActual--;
-				remainder = threadedDimSizes[j][k] % pthreadActual;
-			}
-
-			if( pthreadActual > maxPthread ){ /* Record this dim if it is the max */
-				maxPthread = pthreadActual;
-				maxPthreadPDL = j;
-				maxPthreadDim = threadedDims[j][k];
-			}
-
-			/* Don't go any further if target pthread achieved */
-			if( pthreadActual == target_pthread ) break;
-		}
-		/* Don't go any further if target pthread achieved */
-		if( maxPthread == target_pthread ) break;
-	}
-
-	PDLDEBUG_f(pdl_dump_threading_info(
-	  npdls, creating, target_pthread,
-	  nthreadedDims, threadedDims, threadedDimSizes,
-	  maxPthreadPDL, maxPthreadDim, maxPthread
-	));
+	pdl_find_max_pthread(
+	  pdls, npdls, realdims, creating, target_pthread,
+	  &maxPthread, &maxPthreadDim, &maxPthreadPDL
+	);
 
 	/* Add threading magic */
 	if( maxPthread > 1 ){
 		pdl_add_threading_magic(pdls[maxPthreadPDL], maxPthreadDim, maxPthread);
 		pdl_autopthread_actual = maxPthread; /* Set the global variable indicating actual number of pthreads */
-
 	}
-
-	/* Free the stuff we allocated */
-	for(j=0; j<npdls; j++) {
-		if(creating[j]) continue;
-		free(threadedDims[j]);
-		free(threadedDimSizes[j]);
-	}
-	free(nthreadedDims);
-	free(threadedDims);
-	free(threadedDimSizes);
 }
 
 /* The assumptions this function makes:
