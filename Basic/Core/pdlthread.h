@@ -1,7 +1,5 @@
-
 #ifndef __PDLTHREAD_H
 #define __PDLTHREAD_H
-
 
 typedef struct pdl_errorinfo {
 	char *funcname;
@@ -39,33 +37,13 @@ typedef struct pdl_thread {
         PDL_Indx mag_nthr;   /* number of threads */
 } pdl_thread;
 
-
 /* Thread per pdl flags */
 #define		PDL_THREAD_VAFFINE_OK	0x01
 
 #define PDL_TVAFFOK(flag) (flag & PDL_THREAD_VAFFINE_OK)
 #define PDL_TREPRINC(pdl,flag,which) (PDL_TVAFFOK(flag) ? \
 		pdl->vafftrans->incs[which] : pdl->dimincs[which])
-
 #define PDL_TREPROFFS(pdl,flag) (PDL_TVAFFOK(flag) ? pdl->vafftrans->offs : 0)
-
-
-/* No extra vars; not sure about the NULL arg, means no per pdl args */
-#define PDL_THREADINIT(thread,pdls,realdims,creating,npdls,info) \
-	  PDL->initthreadstruct(0,pdls,realdims,creating,npdls,info,&thread;\
-				NULL)
-
-#define PDL_THREAD_DECLS(thread)
-
-#define PDL_THREADCREATEPAR(thread,ind,dims,temp) \
-	  PDL->thread_create_parameter(&thread,ind,dims,temp)
-#define PDL_THREADSTART(thread) PDL->startthreadloop(&thread)
-
-#define PDL_THREADITER(thread,ptrs) PDL->iterthreadloop(&thread,0,NULL)
-
-#define PDL_THREAD_INITP(thread,which,ptr) /* Nothing */
-#define PDL_THREAD_P(thread,which,ptr) ((ptr)+(thread).offs[ind])
-#define PDL_THREAD_UPDP(thread,which,ptr) /* Nothing */
 
 /* __PDLTHREAD_H */
 #endif
