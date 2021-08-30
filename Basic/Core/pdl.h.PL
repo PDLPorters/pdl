@@ -139,6 +139,15 @@ foreach my $type ( reverse PDL::Types::types() ) {
 }
 print OUT "} badvals;\n";
 
+print OUT <<'EOF';
+#define PDL_GENERICLIST(X) \
+EOF
+my @methods = qw(symbol ctype ppsym shortctype defbval);
+foreach my $type ( PDL::Types::types() ) {
+    printf OUT ' X('.join(',', ('%s')x@methods).")\\\n", map $type->$_, @methods;
+}
+print OUT "\n\n";
+
 my $gen_switch = <<'EOF';
   switch (typevar) { \
 EOF

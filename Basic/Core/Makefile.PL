@@ -75,16 +75,15 @@ WriteMakefile(
  'clean'        => {'FILES'  => $cobj .
                    ' pdlcore.c '.
 		   'pdl.h pdlperl.h pdlsimple.h pdlcore.h '.
-                   'pdlbadvalinit.c '.
 		   'Types.pm Core.c '
 		   },
  'INC'          => join(' ',
    PDL::Core::Dev::PDL_INCLUDE(), map {length($_) ? qq{"$_"} : ()} $pthread_include, $mallocinc
  ),
   depend => {
-    'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdlbadvalinit.c pdl.h pdlperl.h pdlcore.h',
+    'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdl.h pdlperl.h pdlcore.h',
         # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
-    'pdlcore.c.PL pdlcore.h.PL pdlsimple.h.PL pdl.h.PL pdlbadvalinit.c.PL pdlperl.h.PL' => 'Types.pm',
+    'pdlcore.c.PL pdlcore.h.PL pdlsimple.h.PL pdl.h.PL pdlperl.h.PL' => 'Types.pm',
     'pdlconv.c pdlapi.c pdlhash.c pdlthread.c' => 'pdl.h pdlcore.h',
     'pdlmagic.c' => 'pdlcore.h',
   },

@@ -612,23 +612,6 @@ $name(self)
     } # foreach: keys %flags
 }
 
-=head2 generate_badval_init
-
-=for ref
-
-prints on C<STDOUT> XS text with badval initialisation, for F<Core.xs>.
-
-=cut
-
-sub generate_badval_init {
-  loadmod_Types();
-  for my $type (PDL::Types::types()) {
-    my $typename = $type->shortctype;
-    my $bval = $type->defbval;
-    print "\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";
-  }
-}
-
 =head2 got_complex_version
 
 =for ref

@@ -17,7 +17,6 @@ Basic/Core/Makefile.PL
 Basic/Core/Overloads.pm
 Basic/Core/pdl.h.PL
 Basic/Core/pdlapi.c
-Basic/Core/pdlbadvalinit.c.PL
 Basic/Core/pdlconv.c
 Basic/Core/pdlcore.c.PL
 Basic/Core/pdlcore.h.PL

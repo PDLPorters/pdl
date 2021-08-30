@@ -547,7 +547,10 @@ BOOT:
    PDL_CORE_BOOT(propagate_badflag)
    PDL_CORE_BOOT(propagate_badvalue)
    PDL_CORE_BOOT(get_pdl_badvalue)
-#include "pdlbadvalinit.c"
+#define X(symbol, ctype, ppsym, shortctype, defbval) \
+  PDL.bvals.shortctype = PDL.bvals.default_ ## shortctype = defbval;
+   PDL_GENERICLIST(X)
+#undef X
    /*
       "Publish" pointer to this structure in perl variable for use
        by other modules
