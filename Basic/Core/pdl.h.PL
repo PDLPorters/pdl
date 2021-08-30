@@ -112,14 +112,11 @@ print OUT <<'EOF';
 EOF
 
 print OUT <<'EOF';
-#define ANYVAL_TO_CTYPE_OFFSET(outdata,ioff,datatype,inany) do { switch (datatype) { \
-EOF
-print OUT "case @{[$_->sym]}: ANYVAL_TO_CTYPE(((@{[$_->ctype]} *)outdata)[ioff], @{[$_->ctype]}, inany); break; \\\n"
-  for PDL::Types::types();
-print OUT <<'EOF';
-default: croak("Not a known data type code=%d", inany.type); \
-            } \
-        } while (0)
+/* input vars have to be called exactly these as not expanded */
+#define ANYVAL_TO_CTYPE_OFFSET_X(datatype, generic, generic_ppsym, shortctype) \
+    ANYVAL_TO_CTYPE(((generic *)x)[ioff], generic, value);
+#define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
+    PDL_GENERICSWITCH(datatype, ANYVAL_TO_CTYPE_OFFSET_X)
 EOF
 
 my $isnan = join " \\\n  ",
