@@ -139,20 +139,26 @@ foreach my $type ( reverse PDL::Types::types() ) {
 }
 print OUT "} badvals;\n";
 
-print OUT <<'EOF';
-#define PDL_GENERICSWITCH(typevar, X) \
+my $gen_switch = <<'EOF';
   switch (typevar) { \
 EOF
 foreach my $type ( PDL::Types::types() ) {
-    printf OUT <<'EOF', map $type->$_, qw(symbol ctype ppsym shortctype);
+    $gen_switch .= sprintf <<'EOF', map $type->$_, qw(symbol ctype ppsym shortctype);
   case %s: { \
     X(typevar, %s, %s, %s) \
   } break; \
 EOF
 }
-print OUT <<'EOF';
+$gen_switch .= <<'EOF';
    default: croak("Not a known data type code=%d", typevar); \
 }
+EOF
+print OUT <<EOF;
+#define PDL_GENERICSWITCH(typevar, X) \\
+$gen_switch
+/* for use in inner loops avoiding extreme lambda-calculus stuff */
+#define PDL_GENERICSWITCH2(typevar, X) \\
+$gen_switch
 EOF
 
 print OUT <<'!NO!SUBS!';
