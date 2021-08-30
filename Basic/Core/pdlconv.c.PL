@@ -42,6 +42,35 @@ print OUT <<'!NO!SUBS!';
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
+#define XCODE(code, datatype, generic, generic_ppsym, shortctype) \
+    generic *ap = (generic *) a->data; \
+    generic *pp = (generic *) a->vafftrans->from->data; \
+    pp += a->vafftrans->offs; \
+    for(i=0; i<a->nvals; i++) { \
+        code; \
+        for(j=0; j<a->ndims; j++) { \
+            pp += a->vafftrans->incs[j]; \
+            if((j < a->ndims - 1 && \
+                (i+1) % a->dimincs[j+1]) || \
+               j == a->ndims - 1) \
+                break; \
+            pp -= a->vafftrans->incs[j] * \
+                a->dims[j]; \
+        } \
+        ap ++; \
+    }
+
+#define VAFF_IO(name) \
+void pdl_ ## name(pdl *a) { \
+	PDL_Indx i; \
+	int j; \
+	int intype = a->datatype; \
+	if(!PDL_VAFFOK(a)) { \
+		die("pdl_" #name " without vaffine"); \
+	} \
+	PDL_ENSURE_ALLOCATED(a); \
+    PDL_GENERICSWITCH(intype, X); \
+}
 !NO!SUBS!
 
 # these 2 routines shouldn't need to be changed to handle
@@ -57,40 +86,14 @@ for(['readdata_vaffine', "*ap = *pp"],
     my $code = $_->[1];
 
 print OUT <<"!WITH!SUBS!";
-
-void pdl_${name}(pdl *a) {
-	PDL_Indx i;
-	int j;
-	int intype = a->datatype;
-	if(!PDL_VAFFOK(a)) {
-		die("pdl_$name without vaffine");
-	}
-	PDL_ENSURE_ALLOCATED(a);
-#define X(datatype, generic, generic_ppsym, shortctype) \\
-    generic *ap = (generic *) a->data; \\
-    generic *pp = (generic *) a->vafftrans->from->data; \\
-    pp += a->vafftrans->offs; \\
-    for(i=0; i<a->nvals; i++) { \\
-        $code; \\
-        for(j=0; j<a->ndims; j++) { \\
-            pp += a->vafftrans->incs[j]; \\
-            if((j < a->ndims - 1 && \\
-                (i+1) % a->dimincs[j+1]) || \\
-               j == a->ndims - 1) \\
-                break; \\
-            pp -= a->vafftrans->incs[j] * \\
-                a->dims[j]; \\
-        } \\
-        ap ++; \\
-    }
-    PDL_GENERICSWITCH(intype, X);
+#define X(...) XCODE($code, __VA_ARGS__)
+VAFF_IO($name)
 #undef X
-/***	free(inds); ***/
-}
 !WITH!SUBS!
 } # End of outer perl loop
 
 print OUT <<'!NO!SUBS!';
+#undef XCODE
 
 /* Various conversion utilities for pdl data types */
 
