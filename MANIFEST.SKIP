@@ -50,7 +50,7 @@ RCS
 ^Basic/Core/Types\.pm$
 ^Basic/Core/isbigendian.p$
 ^Basic/Core/pdl\.h$
-^Basic/Core/pdlcore\.[ch]$
+^Basic/Core/pdlcore\.c$
 ^Basic/Core/pdlperl\.h$
 ^Basic/Core/pdlsimple\.h$
 ^Basic/Gen/PP/Dump\.pm$

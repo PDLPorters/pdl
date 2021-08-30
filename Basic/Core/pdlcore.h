@@ -1,19 +1,7 @@
-# -*-perl-*-
+#ifndef __PDLCORE_H
+#define __PDLCORE_H
 
-##############################
-#
-# Be sure to increment $pdl_core_version (about 20 lines below this note)
-# if you change any prototypes or modify the Core structure!
-#
-##############################
-
-use strict;
-use Config;
-use File::Basename qw(&basename &dirname);
-
-require './Dev.pm'; PDL::Core::Dev->import;
-PDL::Core::Dev::loadmod_Types();
-
+/*
 # version 2 is for versions after PDL 2.1.1
 # version 4 has pdl_hard_copy included in the Core structure.
 # version 6 is introduced after 2.4.2, due to the experimental
@@ -30,41 +18,10 @@ PDL::Core::Dev::loadmod_Types();
 # version 15: threadid, ndims become PDL_Indx
 # version 16: zap tmp, flushcache, NaN_*, qsort_ for complex, add_deletedata_magic
 # version 17: restore add_deletedata_magic
-# version 18: zap twod
-use vars qw( $pdl_core_version );
-$pdl_core_version = 17;
+# version 18: zap twod, complex sorters
+*/
 
-# List explicitly here the variables you want Configure to
-# generate.  Metaconfig only looks for shell variables, so you
-# have to mention them as if they were shell variables, not
-# %Config entries.  Thus you write
-#  $startperl
-# to ensure Configure will look for $Config{startperl}.
-
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-my $file;
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//
-	if ($Config{'osname'} eq 'VMS' or
-	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
-
-print "Extracting $file\n";
-open OUT,">$file" or die "Can't create $file: $!";
-chmod 0644, $file;
-
-# In this section, perl variables will be expanded during extraction.
-# You can use $Config{...} to use Configure variables.
-
-
-print OUT <<'!NO!SUBS!';
-/*
- * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
- */
-
-#ifndef __PDLCORE_H
-#define __PDLCORE_H
+#define PDL_CORE_VERSION 18
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
@@ -88,12 +45,6 @@ print OUT <<'!NO!SUBS!';
 #ifndef __cplusplus
 #include "pdlmagic.h"
 #endif
-
-!NO!SUBS!
-
-print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
-
-print OUT <<'!NO!SUBS!';
 
 #define PDL_TMP  0        /* Flags */
 #define PDL_PERM 1
@@ -163,17 +114,11 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Valu
 void  pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Set value at x,y,z... */
                 PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value);
 
-!NO!SUBS!
-
-for my $t ( PDL::Types::types() ) {
-  my ($ppsym, $type) = map $t->$_, qw(ppsym ctype);
-  print OUT <<"!WITH!SUBS!";
-PDL_Indx pdl_setav_$ppsym($type* pdata, AV* av,
-	PDL_Indx* pdims, PDL_Long ndims, int level, $type undefval, pdl *p);
-!WITH!SUBS!
-}
-
-print OUT <<'!NO!SUBS!';
+#define X(symbol, ctype, ppsym, shortctype, defbval) \
+PDL_Indx pdl_setav_ ## ppsym(ctype * pdata, AV* av, \
+	PDL_Indx* pdims, PDL_Long ndims, int level, ctype undefval, pdl *p);
+    PDL_GENERICLIST(X)
+#undef X
 
 /* pdlapi.c */
 
@@ -321,21 +266,11 @@ void (*make_physvaffine)(pdl *it);
 void (*allocdata) (pdl *it);
 PDL_Indx (*safe_indterm)(PDL_Indx dsz, PDL_Indx at, char *file, int lineno);
 
-!NO!SUBS!
-
-# set up the qsort routines
-
-for my $t(grep $_->real, PDL::Types::types()) {
-   my ($ctype, $ppsym) = map $t->$_, qw(ctype ppsym);
-   print OUT <<EOF;
-void (*qsort_$ppsym) ($ctype *xx, PDL_Indx a, PDL_Indx b );
-void (*qsort_ind_$ppsym) ($ctype *xx, PDL_Indx *ix, PDL_Indx a, PDL_Indx b );
-EOF
-}
-
-# storage space for bad values
-
-print OUT <<'!NO!SUBS!';
+#define X(symbol, ctype, ppsym, shortctype, defbval) \
+void (*qsort_ ## ppsym) (ctype *xx, PDL_Indx a, PDL_Indx b ); \
+void (*qsort_ind_ ## ppsym) (ctype *xx, PDL_Indx *ix, PDL_Indx a, PDL_Indx b );
+PDL_GENERICLIST(X)
+#undef X
 
   badvals bvals;  /* store the default bad values */
   void (*propagate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
@@ -350,6 +285,3 @@ typedef struct Core Core;
 
 /* __PDLCORE_H */
 #endif
-
-!NO!SUBS!
-
