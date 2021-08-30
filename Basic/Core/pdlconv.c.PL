@@ -171,58 +171,18 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     }
 
     /* Do the conversion as nested switch statements */
-
-    switch ( intype ) {
-!NO!SUBS!
-
-##### Generate code for each pair of data types #####
-
-for my $t ( PDL::Types::types() ) {
-    my ($in, $intype) = map $t->$_, qw(sym ctype);
-    print OUT <<"!WITH!SUBS!";
-      case ${in}:
-        {
-         $intype *bb = ($intype *) b;
-         i = a->nvals;
-      
-         switch ( targtype ) {
-!WITH!SUBS!
-
-    for my $t2 ( PDL::Types::types() ) {
-	my ($targ, $targtype) = map $t2->$_, qw(sym ctype);
-	next if $in eq $targ; # Skip duplicates
-	print OUT <<"!WITH!SUBS!";
-	   case ${targ}:
-             {
-              $targtype *aa = ($targtype *) a->data;
-              aa += i-1; bb += i-1;
-              while (i--)
-                *aa-- = ($targtype) *bb--;
-             }
-             break;
-
-!WITH!SUBS!
-
-    } # for: $targ
-
-    print OUT <<"!WITH!SUBS!";
-           default:
-             croak("Don't know how to convert datatype $in to #%d", targtype);
-         } /* switch targtype */
-         break;
-        } /* case: $in */
-
-!WITH!SUBS!
-
-} # for: $in
-
-
-#### Trailer ####
-
-print OUT <<'!NO!SUBS!';
-    default:
-      croak("Don't know how to convert datatype %d to %d", intype, targtype);
-    }
+#define X_OUTER(datatype_out, generic_out, generic_ppsym_out, shortctype_out) \
+    generic_out *bb = (generic_out *) b; \
+    i = a->nvals; \
+    PDL_GENERICSWITCH2(targtype, X_INNER);
+#define X_INNER(datatype_in, generic_in, generic_ppsym_in, shortctype_in) \
+    generic_in *aa = (generic_in *) a->data; \
+    aa += i-1; bb += i-1; \
+    while (i--) \
+      *aa-- = (generic_in) *bb--;
+    PDL_GENERICSWITCH(intype, X_OUTER);
+#undef X_INNER
+#undef X_OUTER
 
     if (changePerl) {   /* Tidy up */
 
