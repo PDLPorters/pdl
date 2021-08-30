@@ -1741,21 +1741,10 @@ pp_addpm('
 
 # XS function for the RNG object
 
-my $getsize = <<'EOF';
-#define PDL_GETSIZE(in,size,label) \
-  switch(in->datatype) { \
-   case PDL_INVALID: barf(label " was passed an ndarray of type PDL_INVALID"); break; \
-EOF
-$getsize .= "    case ".$_->sym.": size=sizeof(".$_->ctype."); break; \\\n" for types();
-$getsize .= <<'EOF';
-  }
-EOF
-
 pp_addxs('','
 MODULE = PDL::GSL::RNG PACKAGE = PDL::GSL::RNG
 
 #define DEF_RNG(X) if (!strcmp(TYPE,#X)) rng=gsl_rng_alloc( gsl_rng_ ## X ); strcat(rngs,#X ", ");
-'.$getsize.'
 
 gsl_rng *
 new (CLASS,TYPE)
@@ -1901,7 +1890,7 @@ ran_shuffle(rng, in)
 
   n = in->nvals;
   PDL->make_physical(in);
-  PDL_GETSIZE(in, size, "ran_shuffle")
+  size = PDL->howbig(in->datatype);
   gsl_ran_shuffle(rng,(double *) in->data,n,size);
 
 void
@@ -1917,7 +1906,7 @@ ran_choose(rng, in, out)
   if (in->datatype != out->datatype) barf("Data Types must match for ran_chooser");
   PDL->make_physical(in);
   PDL->make_physical(out);
-  PDL_GETSIZE(in, size, "ran_choose")
+  size = PDL->howbig(in->datatype);
   gsl_ran_choose(rng,(double *) out->data, m, (double *) in->data,n,size);
 
 ');
