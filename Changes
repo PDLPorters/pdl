@@ -7,6 +7,7 @@
 - replace some malloc/free with smalloc to not leak on exception
 - replace whole genpp infrastructure with generated C macro
 - remove Core.twod, requires recompile
+- remove PDL::iscontig
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism

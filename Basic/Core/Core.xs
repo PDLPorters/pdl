@@ -163,27 +163,6 @@ get_trans(self)
                ST(0) = &PL_sv_undef;
 	}
 
-int
-iscontig(x)
-   pdl*	x
-   CODE:
-      RETVAL = 1;
-      pdl_make_physvaffine( x );
-	if PDL_VAFFOK(x) {
-	   int i;
-           PDL_Indx inc=1;
-	   PDLDEBUG_f(printf("vaff check...\n");)
-  	   for (i=0;i<x->ndims;i++) {
-     	      if (PDL_REPRINC(x,i) != inc) {
-		     RETVAL = 0;
-		     break;
-              }
-     	      inc *= x->dims[i];
-  	   }
-        }
-  OUTPUT:
-    RETVAL
-
 INCLUDE_COMMAND: $^X -e "require q{./Dev.pm}; PDL::Core::Dev::generate_core_flags()"
 
 void
