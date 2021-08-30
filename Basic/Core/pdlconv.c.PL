@@ -66,51 +66,28 @@ void pdl_${name}(pdl *a) {
 		die("pdl_$name without vaffine");
 	}
 	PDL_ENSURE_ALLOCATED(a);
-	switch ( intype ) {
-!WITH!SUBS!
-
-##### Generate code for each data type #####
-
-for my $t ( PDL::Types::types() ) {
-    my ($in, $intype) = map $t->$_, qw(sym ctype);
-    print OUT <<"!WITH!SUBS!";
-    case ${in}:
-      {
-	$intype *ap = ($intype *) a->data;
-	$intype *pp = ($intype *) a->vafftrans->from->data;
-	pp += a->vafftrans->offs;
-	for(i=0; i<a->nvals; i++) {
-	    ${code};
-	    for(j=0; j<a->ndims; j++) {
-		pp += a->vafftrans->incs[j];
-		if((j < a->ndims - 1 &&
-		    (i+1) % a->dimincs[j+1]) ||
-		   j == a->ndims - 1)
-		    break;
-		pp -= a->vafftrans->incs[j] *
-		    a->dims[j];
-	    }
-	    ap ++;
-	}
-      }
-      break;
-
-!WITH!SUBS!
-
-} #### End of perl loop ####
-
-#    default:
-#      die("pdl_$name does not recognise the datatype");
-
-print OUT <<'!NO!SUBS!';
-
-    } /* switch( intype ) */
-
+#define X(datatype, generic, generic_ppsym, shortctype) \\
+    generic *ap = (generic *) a->data; \\
+    generic *pp = (generic *) a->vafftrans->from->data; \\
+    pp += a->vafftrans->offs; \\
+    for(i=0; i<a->nvals; i++) { \\
+        $code; \\
+        for(j=0; j<a->ndims; j++) { \\
+            pp += a->vafftrans->incs[j]; \\
+            if((j < a->ndims - 1 && \\
+                (i+1) % a->dimincs[j+1]) || \\
+               j == a->ndims - 1) \\
+                break; \\
+            pp -= a->vafftrans->incs[j] * \\
+                a->dims[j]; \\
+        } \\
+        ap ++; \\
+    }
+    PDL_GENERICSWITCH(intype, X);
+#undef X
 /***	free(inds); ***/
 }
-
-!NO!SUBS!
-
+!WITH!SUBS!
 } # End of outer perl loop
 
 print OUT <<'!NO!SUBS!';
