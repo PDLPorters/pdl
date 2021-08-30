@@ -2932,9 +2932,7 @@ pp_add_exported('', 'slice');
 # This is a kludge to pull arbitrary data out of a single-element PDL, using the Types.pm stuff,
 # to make it easier to slice using single-element PDL arguments inside a slice specifier.
 # The string $sliceb_data_kludge generates some code that physicalizes a PDL, ensures it has
-# only one element, and extracts that element in a type-independent manner.  It's a pain because
-# we have to generate the switch statement using information in the Config typehash.  But it saves
-# time compared to parsing out any passed-in PDLs on the Perl side.
+# only one element, and extracts that element in a type-independent manner.
 #
 $sliceb_data_kludge = <<'KLUDGE';
     { pdl *p = PDL->SvPDLV( *svp );
@@ -2947,20 +2945,11 @@ $sliceb_data_kludge = <<'KLUDGE';
       if( !(p->data) ) {
          barf("slice: no data in slice specifier PDL! I give up.");
       }
-      switch( p->datatype ) {
-KLUDGE
-
-for my $type (PDL::Types::types()) {
-    $sliceb_data_kludge .=
-"        case @{[$type->symbol]}: nn = *( (@{[$type->realctype]} *)(p->data) ); break;\n";
-}
-
-$sliceb_data_kludge .= <<'KLUDGE';
-         default: barf("Unknown PDL type in slice specifier!  This should never happen."); break;
-      }
+#define X(datatype, generic, generic_ppsym, shortctype) \
+    nn = *( (generic *)(p->data) );
+    PDL_GENERICSWITCH(p->datatype, X)
     }
 KLUDGE
-
 
 ##############################
 # sliceb is the core of slice.  The "foo/foob" nomenclature is used to avoid the argument
