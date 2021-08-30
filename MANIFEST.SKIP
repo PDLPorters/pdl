@@ -232,7 +232,6 @@ RCS
 makemakerdflt
 manifypods
 pdlbasicops\.c$
-pdlconv\.c$
 pdlexamples\.c$
 pdlmoremaths\.c$
 pdlstats\.c$

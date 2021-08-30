@@ -1,44 +1,3 @@
-#
-# Create pdlconv.c 
-# - for many different datatypes
-
-use strict;
- 
-use Config;
-use File::Basename qw(&basename &dirname);
-require './Dev.pm'; PDL::Core::Dev->import;
-PDL::Core::Dev::loadmod_Types();
-
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-my $file;
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//                                                              
-    if ($Config{'osname'} eq 'VMS' or
-	$Config{'osname'} eq 'OS2');  # "case-forgiving"
- 
-print "Extracting $file\n";
-open OUT,">$file" or die "Can't create $file: $!";
-chmod 0644, $file;
-
-# $date = `date`; chop $date;
-
-##### HEADER ######
- 
-print OUT <<"!WITH!SUBS!";
- 
-/***************************************************************
-
-    pdlconv.c
-    automatically created by pdlconv.c.PL
-
-****************************************************************/
-
-!WITH!SUBS!
- 
-print OUT <<'!NO!SUBS!';
-
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
@@ -60,6 +19,12 @@ print OUT <<'!NO!SUBS!';
         ap ++; \
     }
 
+/*
+  these 2 routines shouldn't need to be changed to handle
+  bad values, since all they do is copy data from
+  one ndarray to another of the same type
+  (assuming no per-ndarray bad values)
+*/
 #define VAFF_IO(name) \
 void pdl_ ## name(pdl *a) { \
 	PDL_Indx i; \
@@ -71,28 +36,13 @@ void pdl_ ## name(pdl *a) { \
 	PDL_ENSURE_ALLOCATED(a); \
     PDL_GENERICSWITCH(intype, X); \
 }
-!NO!SUBS!
 
-# these 2 routines shouldn't need to be changed to handle
-# bad values, since all they do is copy data from
-# one ndarray to another of the same type
-# (assuming no per-ndarray bad values)
-#
-
-for(['readdata_vaffine', "*ap = *pp"],
-    ['writebackdata_vaffine', "*pp = *ap"]) {
-
-    my $name = $_->[0];
-    my $code = $_->[1];
-
-print OUT <<"!WITH!SUBS!";
-#define X(...) XCODE($code, __VA_ARGS__)
-VAFF_IO($name)
+#define X(...) XCODE(*ap = *pp, __VA_ARGS__)
+VAFF_IO(readdata_vaffine)
 #undef X
-!WITH!SUBS!
-} # End of outer perl loop
-
-print OUT <<'!NO!SUBS!';
+#define X(...) XCODE(*pp = *ap, __VA_ARGS__)
+VAFF_IO(writebackdata_vaffine)
+#undef X
 #undef XCODE
 
 /* Various conversion utilities for pdl data types */
@@ -179,4 +129,3 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 
     a->datatype = targtype;
 }
-!NO!SUBS!
