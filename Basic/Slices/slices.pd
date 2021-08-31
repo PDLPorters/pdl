@@ -2466,8 +2466,7 @@ EOD
                 }
                 $SETDIMS();
                 PDL->reallocthreadids($CHILD_PTR(),
-                        ($PARENT(nthreadids)<=$COMP(id) ?
-                                $COMP(id)+1 : $PARENT(nthreadids)));
+                                PDLMAX($COMP(id)+1, $PARENT(nthreadids)));
                 for(i=0; i<$CHILD(nthreadids); i++) {
                         $CHILD(threadids[i]) =
                          ($PARENT(nthreadids) > i ?
