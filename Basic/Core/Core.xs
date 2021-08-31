@@ -698,8 +698,7 @@ dims_c(x)
 		pdl_make_physdims(x);
 		if (gimme == G_ARRAY) {
 			EXTEND(sp, x->ndims);
-			for(i=0; i<x->ndims; i++)
-				mPUSHi(x->dims[i]);
+			for(i=0; i<x->ndims; i++) mPUSHi(x->dims[i]);
 		}
 		else if (gimme == G_SCALAR) {
 			mXPUSHu(x->ndims);
@@ -730,6 +729,22 @@ getnthreadids(x)
 		RETVAL = x->nthreadids;
 	OUTPUT:
 		RETVAL
+
+void
+threadids_c(x)
+	pdl *x
+	PREINIT:
+		PDL_Indx i;
+		U8 gimme = GIMME_V;
+	PPCODE:
+		pdl_make_physdims(x);
+		if (gimme == G_ARRAY) {
+			EXTEND(sp, x->nthreadids);
+			for(i=0; i<x->nthreadids; i++) mPUSHi(x->threadids[i]);
+		}
+		else if (gimme == G_SCALAR) {
+			mXPUSHu(x->nthreadids);
+		}
 
 int
 getthreadid(x,y)
