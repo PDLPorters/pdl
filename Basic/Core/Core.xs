@@ -688,6 +688,23 @@ getndims(x)
 	OUTPUT:
 		RETVAL
 
+void
+dims_c(x)
+	pdl *x
+	PREINIT:
+		PDL_Indx i;
+		U8 gimme = GIMME_V;
+	PPCODE:
+		pdl_make_physdims(x);
+		if (gimme == G_ARRAY) {
+			EXTEND(sp, x->ndims);
+			for(i=0; i<x->ndims; i++)
+				mPUSHi(x->dims[i]);
+		}
+		else if (gimme == G_SCALAR) {
+			mXPUSHu(x->ndims);
+		}
+
 PDL_Indx
 getdim(x,y)
 	pdl *x

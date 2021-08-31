@@ -752,21 +752,12 @@ sub topdl {PDL->topdl(@_)}
 
 ##################### Data type/conversion stuff ########################
 
-
-# XXX Optimize!
-
 sub PDL::dims {  # Return dimensions as @list
-   my $pdl = PDL->topdl (shift);
-   my @dims = ();
-   for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
-   return @dims;
+   PDL->topdl(shift)->dims_c;
 }
 
 sub PDL::shape {  # Return dimensions as a pdl
-   my $pdl = PDL->topdl (shift);
-   my @dims = ();
-   for(0..$pdl->getndims()-1) {push @dims,($pdl->getdim($_))}
-   return indx(\@dims);
+   indx([PDL->topdl(shift)->dims]);
 }
 
 sub PDL::howbig {
