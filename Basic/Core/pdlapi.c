@@ -99,7 +99,7 @@ pdl* pdl_create(int type) {
      it->dimincs = it->def_dimincs;
      it->ndims = 0;
 
-     it->nthreadids = 0;
+     it->nthreadids = 1;
      it->threadids = it->def_threadids;
      it->threadids[0] = 0;
 
@@ -442,7 +442,7 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 		printf("%s%"IND_FLAG,(i?" ":""),it->dims[i]);
 	}
 	printf(")\n%s   ThreadIds: %p (",spaces,(void*)(it->threadids));
-	for(i=0; i<it->nthreadids+1; i++) {
+	for(i=0; i<it->nthreadids; i++) {
 		printf("%s%"IND_FLAG,(i?" ":""),it->threadids[i]);
 	}
 	if(PDL_VAFFOK(it)) {
@@ -498,16 +498,15 @@ void pdl_reallocdims(pdl *it, PDL_Indx ndims) {
 }
 
 /* Reallocate n threadids. Set the new extra ones to the end */
-/* XXX Check logic */
 void pdl_reallocthreadids(pdl *it, PDL_Indx n) {
 	PDL_Indx i;
 	PDL_Indx *olds; PDL_Indx nold;
 	if(n <= it->nthreadids) {
-		it->nthreadids = n; it->threadids[n] = it->ndims; return;
+		it->nthreadids = n; it->threadids[n-1] = it->ndims; return;
 	}
 	nold = it->nthreadids; olds = it->threadids;
-	if(n > PDL_NTHREADIDS-1) { /* n currently (real quantity)-1 */
-		it->threadids = malloc(sizeof(*(it->threadids))*(n+1));
+	if(n > PDL_NTHREADIDS) {
+		it->threadids = malloc(sizeof(*(it->threadids))*n);
 	} else {
 		it->threadids = it->def_threadids;
 	}
@@ -550,7 +549,7 @@ void pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
    pdl_reallocdims(it,ndims);
    for(i=0; i<ndims; i++) it->dims[i] = dims[i];
    pdl_resize_defaultincs(it);
-   pdl_reallocthreadids(it,0);  /* XXX Maybe trouble */
+   pdl_reallocthreadids(it,1);
    it->threadids[0] = ndims;
    it->state &= ~PDL_NOMYDIMS;
    pdl_changed(it,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
@@ -563,7 +562,7 @@ void pdl_setdims_careful(pdl *it)
 #ifdef DONT_OPTIMIZE
 	pdl_allocdata(it);
 #endif
-        pdl_reallocthreadids(it,0); /* XXX For now */
+        pdl_reallocthreadids(it,1); /* XXX For now */
 }
 
 /* pdl_get is now vaffine aware */

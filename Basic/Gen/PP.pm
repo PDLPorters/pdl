@@ -667,7 +667,7 @@ my @std_redodims = (
 		    SETDELTATHREADIDS => sub {PDL::PP::pp_line_numbers(__LINE__, '
 		{int __ind; PDL->reallocthreadids($CHILD_PTR(),
 			$PARENT(nthreadids));
-		for(__ind=0; __ind<$PARENT(nthreadids)+1; __ind++) {
+		for(__ind=0; __ind<$PARENT(nthreadids); __ind++) {
 			$CHILD(threadids[__ind]) =
 				$PARENT(threadids[__ind]) + ('.$_[0].');
 		}

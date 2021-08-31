@@ -787,7 +787,7 @@ below for usage).
 sub PDL::threadids {  # Return dimensions as @list
    my $pdl = PDL->topdl (shift);
    my @dims = ();
-   for(0..$pdl->getnthreadids()) {push @dims,($pdl->getthreadid($_))}
+   for(0..$pdl->getnthreadids()-1) {push @dims,($pdl->getthreadid($_))}
    return @dims;
 }
 

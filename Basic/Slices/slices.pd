@@ -2467,14 +2467,14 @@ EOD
                 $SETDIMS();
                 PDL->reallocthreadids($CHILD_PTR(),
                                 PDLMAX($COMP(id)+1, $PARENT(nthreadids)));
-                for(i=0; i<$CHILD(nthreadids); i++) {
+                for(i=0; i<$CHILD(nthreadids)-1; i++) {
                         $CHILD(threadids[i]) =
                          ($PARENT(nthreadids) > i ?
                           $PARENT(threadids[i]) : $PARENT(ndims)) +
                          (i <= $COMP(id) ? - $COMP(nrealwhichdims) :
                           $COMP(nwhichdims) - $COMP(nrealwhichdims));
                 }
-                $CHILD(threadids[$CHILD(nthreadids)]) = $CHILD(ndims);
+                $CHILD(threadids[$CHILD(nthreadids)-1]) = $CHILD(ndims);
                 ',
 );
 
