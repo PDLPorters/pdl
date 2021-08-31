@@ -396,8 +396,6 @@ set_c(x,position,value)
     else
        pdl_changed( x , PDL_PARENTDATACHANGED , 0 );
 
-#define PDL_CORE_BOOT(sym) PDL.sym = pdl_ ## sym;
-
 BOOT:
 {
 #if NVSIZE > 8
@@ -407,60 +405,9 @@ BOOT:
    /* Initialize structure of pointers to core C routines */
 
    PDL.Version     = PDL_CORE_VERSION;
-   PDL_CORE_BOOT(SvPDLV)
-   PDL_CORE_BOOT(SetSV_PDL)
-   PDL_CORE_BOOT(create)
-   PDL_CORE_BOOT(pdlnew)
-   PDL_CORE_BOOT(destroy)
-   PDL_CORE_BOOT(null)
-   PDL_CORE_BOOT(hard_copy)
-   PDL_CORE_BOOT(converttype)
-   PDL_CORE_BOOT(smalloc)
-   PDL_CORE_BOOT(howbig)
-   PDL_CORE_BOOT(packdims)
-   PDL_CORE_BOOT(setdims)
-   PDL_CORE_BOOT(grow)
-   PDL_CORE_BOOT(at0)
-   PDL_CORE_BOOT(reallocdims)
-   PDL_CORE_BOOT(reallocthreadids)
-   PDL_CORE_BOOT(resize_defaultincs)
-   PDL_CORE_BOOT(get_threadoffsp)
-   PDL_CORE_BOOT(thread_copy)
-   PDL_CORE_BOOT(clearthreadstruct)
-   PDL_CORE_BOOT(initthreadstruct)
-   PDL_CORE_BOOT(startthreadloop)
-   PDL_CORE_BOOT(iterthreadloop)
-   PDL_CORE_BOOT(freethreadloop)
-   PDL_CORE_BOOT(thread_create_parameter)
-   PDL_CORE_BOOT(add_deletedata_magic)
-
-   PDL_CORE_BOOT(setdims_careful)
-   PDL_CORE_BOOT(put_offs)
-   PDL_CORE_BOOT(get_offs)
-   PDL_CORE_BOOT(get)
-   PDL_CORE_BOOT(set_trans_childtrans)
-   PDL_CORE_BOOT(set_trans_parenttrans)
-
-   PDL_CORE_BOOT(get_convertedpdl)
-
-   PDL_CORE_BOOT(make_trans_mutual)
-   PDL_CORE_BOOT(trans_mallocfreeproc)
-   PDL_CORE_BOOT(make_physical)
-   PDL_CORE_BOOT(make_physdims)
-   PDL_CORE_BOOT(make_physvaffine)
-   PDL_CORE_BOOT(pdl_barf)
-   PDL_CORE_BOOT(pdl_warn)
-   PDL_CORE_BOOT(allocdata)
-   PDL_CORE_BOOT(safe_indterm)
-   PDL_CORE_BOOT(children_changesoon)
-   PDL_CORE_BOOT(changed)
-   PDL_CORE_BOOT(vaffinechanged)
-
-   PDL_CORE_BOOT(propagate_badflag)
-   PDL_CORE_BOOT(propagate_badvalue)
-   PDL_CORE_BOOT(get_pdl_badvalue)
-   PDL_CORE_BOOT(set_datatype)
-   PDL_CORE_BOOT(sever)
+#define X(sym, rettype, args) PDL.sym = pdl_ ## sym;
+   PDL_CORE_LIST(X)
+#undef X
 #define X(symbol, ctype, ppsym, shortctype, defbval) \
   PDL.bvals.shortctype = PDL.bvals.default_ ## shortctype = defbval;
    PDL_GENERICLIST(X)
