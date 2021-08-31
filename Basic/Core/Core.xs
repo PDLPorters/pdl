@@ -885,10 +885,6 @@ hdr(p)
 	OUTPUT:
 	 RETVAL
 
-# fhdr(p) is implemented in perl; see Core.pm.PL if you're looking for it
-#   --CED 9-Feb-2003
-#
-
 SV *
 gethdr(p)
 	pdl *p
