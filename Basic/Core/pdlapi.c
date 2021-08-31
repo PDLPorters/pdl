@@ -506,19 +506,17 @@ void pdl_reallocthreadids(pdl *it, PDL_Indx n) {
 		it->nthreadids = n; it->threadids[n] = it->ndims; return;
 	}
 	nold = it->nthreadids; olds = it->threadids;
-	if(n >= PDL_NTHREADIDS-1) {
+	if(n > PDL_NTHREADIDS-1) { /* n currently (real quantity)-1 */
 		it->threadids = malloc(sizeof(*(it->threadids))*(n+1));
 	} else {
-		/* already is default */
+		it->threadids = it->def_threadids;
 	}
 	it->nthreadids = n;
-
 	if(it->threadids != olds) {
 		for(i=0; i<nold && i<n; i++)
 			it->threadids[i] = olds[i];
 	}
 	if(olds != it->def_threadids) { free(olds); }
-
 	for(i=nold; i<it->nthreadids; i++) {
 		it->threadids[i] = it->ndims;
 	}
