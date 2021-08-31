@@ -2480,42 +2480,6 @@ EOD
 );
 
 
-=head2 identvaff
-=cut
-
-# we don't really need this one since it can be achieved with
-# a ->threadI(-1,[])
-pp_def('identvaff',
-        GenericTypes => [ppdefs_all],
-        P2Child => 1,
-        NoPdlThread => 1,
-        DefaultFlow => 1,
-        Reversible => 1,
-        AffinePriv => 1,
-        RedoDims => '
-                int i;
-                $SETNDIMS($PARENT(ndims));
-                $DOPRIVDIMS();
-                $PRIV(offs) = 0;
-                for(i=0; i<$PARENT(ndims); i++) {
-                        $CHILD(dims[i]) = $PARENT(dims[i]);
-                        $PRIV(incs[i]) = $PARENT(dimincs[i]);
-                }
-                $SETDIMS();
-                $SETDELTATHREADIDS(0);
-                $CHILD(threadids[$CHILD(nthreadids)]) = $CHILD(ndims);
-                ',
-        Doc => <<'EOD',
-=for ref
-
-A vaffine identity transformation (includes thread_id copying).
-
-Mainly for internal use.
-=cut
-EOD
-);
-
-
 =head2 unthread
 =cut
 
