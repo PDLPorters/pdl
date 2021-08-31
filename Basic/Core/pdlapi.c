@@ -1,9 +1,4 @@
-	
 /* pdlapi.c - functions for manipulating pdl structs  */
-/*  - for a while (up to + including 2.2.1) this file */
-/*    created by pdlapi.c.PL [due to bad value code]  */
-/*    we now have dummy functions so do not need to   */
-/*    create the file                                 */
 
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
@@ -1439,3 +1434,76 @@ void pdl_vafftrans_alloc(pdl *it)
 }
 
 #endif
+
+void pdl_set_datatype(pdl *a, int datatype)
+{
+    pdl_make_physical(a);
+    if(a->trans)
+	    pdl_destroytransform(a->trans,1);
+    pdl_converttype( &a, datatype, PDL_PERM );
+}
+
+pdl *pdl_sever(pdl *src)
+{
+    if(src->trans) {
+            pdl_make_physvaffine(src);
+            pdl_destroytransform(src->trans,1);
+    }
+    return src;
+}
+
+/* newval = 1 means set flag, 0 means clear it */
+void pdl_propagate_badflag( pdl *it, int newval ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i, need_recurse;
+	for( i = trans->vtable->nparents;
+	     i < trans->vtable->npdls; i++ ) {
+	    pdl *child = trans->pdls[i];
+	    if ( newval ) {
+		need_recurse = !(child->state & PDL_BADVAL);
+		child->state |=  PDL_BADVAL;
+            } else {
+		need_recurse =  (child->state & PDL_BADVAL);
+		child->state &= ~PDL_BADVAL;
+	    }
+	    /* make sure we propagate to grandchildren, etc if changed */
+	    if (need_recurse)
+		pdl_propagate_badflag( child, newval );
+        } /* for: i */
+    }
+    PDL_END_CHILDLOOP(it)
+} /* pdl_propagate_badflag */
+
+void pdl_propagate_badvalue( pdl *it ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i;
+	for( i = trans->vtable->nparents;
+	     i < trans->vtable->npdls; i++ ) {
+	    pdl *child = trans->pdls[i];
+            child->has_badvalue = 1;
+            child->badvalue = it->badvalue;
+	    /* make sure we propagate to grandchildren, etc */
+	    pdl_propagate_badvalue( child );
+        } /* for: i */
+    }
+    PDL_END_CHILDLOOP(it)
+} /* pdl_propagate_badvalue */
+
+PDL_Anyval pdl_get_badvalue( int datatype ) {
+    PDL_Anyval retval = { -1, 0 };
+#define X(datatype, generic, generic_ppsym, shortctype) \
+    retval.type = datatype; retval.value.generic_ppsym = PDL.bvals.shortctype;
+    PDL_GENERICSWITCH(datatype, X)
+#undef X
+    return retval;
+}
+
+PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
+    return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );
+}

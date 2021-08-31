@@ -63,76 +63,7 @@ static SV* pdl_unpackint ( PDL_Indx *dims, int ndims ) {
    return (SV*) array;
 }
 
-/* newval = 1 means set flag, 0 means clear it */
-/* thanks to Christian Soeller for this */
-
-void pdl_propagate_badflag( pdl *it, int newval ) {
-    PDL_DECL_CHILDLOOP(it)
-    PDL_START_CHILDLOOP(it)
-    {
-	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i, need_recurse;
-
-	for( i = trans->vtable->nparents;
-	     i < trans->vtable->npdls; i++ ) {
-
-	    pdl *child = trans->pdls[i];
-
-	    if ( newval ) {
-		need_recurse = !(child->state & PDL_BADVAL);
-		child->state |=  PDL_BADVAL;
-            } else {
-		need_recurse =  (child->state & PDL_BADVAL);
-		child->state &= ~PDL_BADVAL;
-	    }
-
-	    /* make sure we propagate to grandchildren, etc if changed */
-	    if (need_recurse)
-		pdl_propagate_badflag( child, newval );
-
-        } /* for: i */
-    }
-    PDL_END_CHILDLOOP(it)
-} /* pdl_propagate_badflag */
-
-void pdl_propagate_badvalue( pdl *it ) {
-    PDL_DECL_CHILDLOOP(it)
-    PDL_START_CHILDLOOP(it)
-    {
-	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i;
-
-	for( i = trans->vtable->nparents;
-	     i < trans->vtable->npdls; i++ ) {
-
-	    pdl *child = trans->pdls[i];
-
-            child->has_badvalue = 1;
-            child->badvalue = it->badvalue;
-
-	    /* make sure we propagate to grandchildren, etc */
-	    pdl_propagate_badvalue( child );
-
-        } /* for: i */
-    }
-    PDL_END_CHILDLOOP(it)
-} /* pdl_propagate_badvalue */
-
-PDL_Anyval pdl_get_badvalue( int datatype ) {
-    PDL_Anyval retval = { -1, 0 };
-#define X(datatype, generic, generic_ppsym, shortctype) \
-    retval.type = datatype; retval.value.generic_ppsym = PDL.bvals.shortctype;
-    PDL_GENERICSWITCH(datatype, X)
-#undef X
-    return retval;
-}
-
-PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
-    return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );
-}
-
 MODULE = PDL::Core     PACKAGE = PDL
-
 
 # Destroy a PDL - note if a hash do nothing, the $$x{PDL} component
 # will be destroyed anyway on a separate call
@@ -179,22 +110,6 @@ address(self)
     RETVAL = PTR2IV(self);
   OUTPUT:
     RETVAL
-
-pdl *
-pdl_hard_copy(src)
-	pdl *src;
-
-pdl *
-sever(src)
-	pdl *src;
-	CODE:
-		if(src->trans) {
-			pdl_make_physvaffine(src);
-			pdl_destroytransform(src->trans,1);
-		}
-		RETVAL=src;
-	OUTPUT:
-		RETVAL
 
 int
 set_donttouchdata(it)
@@ -327,7 +242,6 @@ set_debugging(i)
 	pdl_debugging = i;
 	OUTPUT:
 	RETVAL
-
 
 
 SV *
@@ -547,6 +461,8 @@ BOOT:
    PDL_CORE_BOOT(propagate_badflag)
    PDL_CORE_BOOT(propagate_badvalue)
    PDL_CORE_BOOT(get_pdl_badvalue)
+   PDL_CORE_BOOT(set_datatype)
+   PDL_CORE_BOOT(sever)
 #define X(symbol, ctype, ppsym, shortctype, defbval) \
   PDL.bvals.shortctype = PDL.bvals.default_ ## shortctype = defbval;
    PDL_GENERICLIST(X)
@@ -667,6 +583,15 @@ make_physdims(self)
 		RETVAL = self;
 	OUTPUT:
 		RETVAL
+
+void
+pdl_set_datatype(a,datatype)
+   pdl *a
+   int datatype
+
+pdl *
+pdl_sever(src)
+	pdl *src;
 
 void
 pdl_dump(x)
@@ -899,18 +824,6 @@ gethdr(p)
 
 	OUTPUT:
 	 RETVAL
-
-void
-set_datatype(a,datatype)
-   pdl *a
-   int datatype
-   CODE:
-    pdl_make_physical(a);
-    if(a->trans)
-	    pdl_destroytransform(a->trans,1);
-/*     if(! (a->state && PDL_NOMYDIMS)) { */
-    pdl_converttype( &a, datatype, PDL_PERM );
-/*     } */
 
 void
 threadover_n(...)

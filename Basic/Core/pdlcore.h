@@ -182,6 +182,14 @@ void pdl_trans_changed(pdl_trans *trans,int what);
 void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth);
 void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth);
 
+void pdl_set_datatype(pdl *a, int datatype);
+pdl *pdl_sever(pdl *a);
+
+void pdl_propagate_badflag (pdl *it, int newval);
+void pdl_propagate_badvalue (pdl *it);
+PDL_Anyval pdl_get_pdl_badvalue(pdl *it);
+PDL_Anyval pdl_get_badvalue(int datatype);
+
 /* pdlconv.c */
 
 void pdl_writebackdata_vaffine(pdl *it);
@@ -273,12 +281,14 @@ PDL_GENERICLIST(X)
 #undef X
 
   badvals bvals;  /* store the default bad values */
-  void (*propagate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
+  void (*propagate_badflag) (pdl *it, int newval);
   void (*propagate_badvalue) (pdl *it);
   void (*children_changesoon)(pdl *it, int what);
   void (*changed)(pdl *it, int what, int recursing);
   void (*vaffinechanged)(pdl *it, int what);
   PDL_Anyval (*get_pdl_badvalue)(pdl *it);
+  void (*set_datatype)(pdl *a, int datatype);
+  pdl *(*sever)(pdl *a);
 };
 
 typedef struct Core Core;

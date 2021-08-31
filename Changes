@@ -8,6 +8,7 @@
 - replace whole genpp infrastructure with generated C macro
 - remove Core.twod, requires recompile
 - remove PDL::iscontig
+- move all non-SV-using C out of Core.xs to C files
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism
