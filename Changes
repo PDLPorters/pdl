@@ -9,6 +9,7 @@
 - remove Core.twod, requires recompile
 - remove PDL::iscontig
 - move all non-SV-using C out of Core.xs to C files
+- remove unused pdl_copy including from Core struct
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism

@@ -413,7 +413,6 @@ BOOT:
    PDL_CORE_BOOT(pdlnew)
    PDL_CORE_BOOT(destroy)
    PDL_CORE_BOOT(null)
-   PDL_CORE_BOOT(copy)
    PDL_CORE_BOOT(hard_copy)
    PDL_CORE_BOOT(converttype)
    PDL_CORE_BOOT(smalloc)

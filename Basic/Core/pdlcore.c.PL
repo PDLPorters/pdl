@@ -252,55 +252,6 @@ pdl* pdl_SvPDLV ( SV* sv ) {
    return ret;
 }
 
-/* Make a new pdl object as a copy of an old one and return - implement by
-   callback to perl method "copy" or "new" (for scalar upgrade) */
-
-SV* pdl_copy( pdl* a, char* option ) {
-
-   SV* retval;
-   char meth[20];
-
-   dSP ;   int count ;
-
-   retval = newSVpv("",0); /* Create the new SV */
-
-   ENTER ;   SAVETMPS ;   PUSHMARK(sp) ;
-
-   /* Push arguments */
-
-#ifdef FOOBAR
-   if (sv_isobject((SV*)a->hash)) {
-#endif
-       XPUSHs(sv_2mortal(getref_pdl(a)));
-       strcpy(meth,"copy");
-       XPUSHs(sv_2mortal(newSVpv(option, 0))) ;
-#ifdef FOOBAR
-   }
-   else{
-       XPUSHs(perl_get_sv("PDL::name",FALSE)); /* Default object */
-       XPUSHs(sv_2mortal(getref_pdl(a)));
-       strcpy(meth,"new");
-   }
-#endif
-
-   PUTBACK ;
-
-   count = perl_call_method(meth, G_SCALAR); /* Call Perl */
-
-   SPAGAIN;
-
-   if (count !=1)
-      croak("Error calling perl function\n");
-
-   sv_setsv( retval, POPs ); /* Save the perl returned value */
-
-   PUTBACK ;   FREETMPS ;   LEAVE ;
-
-   return retval;
-}
-
-
-
 /* Pack dims array - returns dims[] (pdl_smalloced) and ndims */
 
 PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
