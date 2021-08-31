@@ -733,22 +733,8 @@ setdims(x,dims_arg)
 	 PDL_Indx ndims;
        int i;
 	CODE:
-	{
-	        /* This mask avoids all kinds of subtle dereferencing bugs (CED 11/2015) */
-	        if(x->trans || x->vafftrans || x->children.next ) {
-		  pdl_pdl_barf("Can't setdims on a PDL that already has children");
-		}
-
-		/* not sure if this is still necessary with the mask above... (CED 11/2015)  */
-		pdl_children_changesoon(x,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
 		dims = pdl_packdims(dims_arg,&ndims);
-		pdl_reallocdims(x,ndims);
-		for(i=0; i<ndims; i++) x->dims[i] = dims[i];
-		pdl_resize_defaultincs(x);
-		x->threadids[0] = ndims;
-		x->state &= ~PDL_NOMYDIMS;
-		pdl_changed(x,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
-	}
+		pdl_setdims(x,dims,ndims);
 
 void
 dowhenidle()

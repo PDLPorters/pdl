@@ -543,15 +543,19 @@ void pdl_resize_defaultincs(pdl *it) {
 
 void pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
    PDL_Indx i;
-
+   /* This mask avoids all kinds of subtle dereferencing bugs (CED 11/2015) */
+   if(it->trans || it->vafftrans || it->children.next ) {
+      pdl_pdl_barf("Can't setdims on a PDL that already has children");
+   }
+   /* not sure if this is still necessary with the mask above... (CED 11/2015)  */
+   pdl_children_changesoon(it,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
    pdl_reallocdims(it,ndims);
-
-   for(i=0; i<ndims; i++)
-      it->dims[i] = dims[i];
-
+   for(i=0; i<ndims; i++) it->dims[i] = dims[i];
    pdl_resize_defaultincs(it);
-
    pdl_reallocthreadids(it,0);  /* XXX Maybe trouble */
+   it->threadids[0] = ndims;
+   it->state &= ~PDL_NOMYDIMS;
+   pdl_changed(it,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
 }
 
 /* This is *not* careful! */
