@@ -392,13 +392,10 @@ void pdl_initthreadstruct(int nobl,
 		}
 
 		for(i=0; i<nids; i++) {
-			mx=0; if(pdls[j]->nthreadids <= nids) {
-				MAX2(mx,
+			ndims += nthreadids[i] =
+				PDLMAX(0, pdls[j]->nthreadids <= nids ?
 				     pdls[j]->threadids[i+1]
-				     - pdls[j]->threadids[i]);
-			}
-			ndims += mx;
-			nthreadids[i] = mx;
+				     - pdls[j]->threadids[i] : 0);
 		}
 	}
 
