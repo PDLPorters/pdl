@@ -13,6 +13,12 @@ use PDL::LiteF;
 	$pa->set(0,50);
 	is($pb->at(0), 100);
 	is($pb->at(1), 6);
+
+	# exercise that set_datatype destroys trans
+	# XXX if set datatype of $pa, $pb gets a corrupted value of 64.0000158399343
+	$pb->set_datatype(PDL::float()->enum);
+	$pa->set(0,60);
+	is($pb->at(0), 100);
 }
 
 {
