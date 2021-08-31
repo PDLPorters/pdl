@@ -418,7 +418,6 @@ BOOT:
    PDL_CORE_BOOT(smalloc)
    PDL_CORE_BOOT(howbig)
    PDL_CORE_BOOT(packdims)
-   PDL_CORE_BOOT(unpackdims)
    PDL_CORE_BOOT(setdims)
    PDL_CORE_BOOT(grow)
    PDL_CORE_BOOT(at0)

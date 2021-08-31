@@ -9,7 +9,7 @@
 - remove Core.twod, requires recompile
 - remove PDL::iscontig
 - move all non-SV-using C out of Core.xs to C files
-- remove unused pdl_copy including from Core struct
+- remove unused pdl_{copy,unpackdims} including from Core struct
 - move extra checks and functionality from Core.xs setdims into pdl_setdims, call that
 
 2.057 2021-08-13

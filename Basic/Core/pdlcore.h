@@ -90,8 +90,6 @@ size_t  pdl_howbig (int datatype);           /* Size of data type (bytes) */
 pdl*    pdl_SvPDLV ( SV* sv );               /* Map SV* to pdl struct */
 void	pdl_SetSV_PDL( SV *sv, pdl *it );     /* Outputting a pdl from.. */
 PDL_Indx *    pdl_packdims ( SV *sv, PDL_Indx *ndims ); /* Pack dims[] into SV aref */
-void    pdl_unpackdims ( SV *sv, PDL_Indx *dims,  /* Unpack */
-                         PDL_Indx ndims );
 void*   pdl_smalloc ( STRLEN nbytes );           /* malloc memory - auto free()*/
 
 void pdl_makescratchhash(pdl *ret, PDL_Anyval data);
@@ -219,8 +217,6 @@ struct Core {
     size_t (*howbig)      ( int );
     PDL_Indx*   (*packdims)    ( SV* sv, PDL_Indx *ndims ); /* Pack dims[] into SV aref */
     void   (*setdims)     ( pdl* it, PDL_Indx* dims, PDL_Indx ndims );
-    void   (*unpackdims)  ( SV* sv, PDL_Indx *dims,    /* Unpack */
-                            PDL_Indx ndims );
     void   (*grow)        ( pdl* a, PDL_Indx newsize); /* Change pdl 'Data' size */
     PDL_Anyval (*at0)     ( pdl* x );
     void (*reallocdims) ( pdl *it,PDL_Indx ndims );  /* reallocate dims and incs */

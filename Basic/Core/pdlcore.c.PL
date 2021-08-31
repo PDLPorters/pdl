@@ -279,25 +279,6 @@ PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
    return dims;
 }
 
-/* unpack dims array into PDL SV* */
-
-void pdl_unpackdims ( SV* sv, PDL_Indx *dims, PDL_Indx ndims ) {
-
-   AV*  array;
-   HV* hash;
-   PDL_Indx i;
-
-   hash = (HV*) SvRV( sv );
-   array = newAV();
-   (void)hv_store(hash, "Dims", strlen("Dims"), newRV( (SV*) array), 0 );
-
-   if (ndims==0 )
-      return;
-
-   for(i=0; i<ndims; i++)
-         av_store( array, i, newSViv( (IV)dims[i] ) );
-}
-
 PDL_Indx pdl_safe_indterm( PDL_Indx dsz, PDL_Indx at, char *file, int lineno)
 {
   if (!(at >= 0 && at < dsz))
