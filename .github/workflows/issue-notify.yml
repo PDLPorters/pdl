@@ -10,8 +10,8 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     continue-on-error: true
-    if: ${{ always() }} && github.repository == 'PDLPorters/pdl'
+    if: ${{ always() }}
     steps:
       - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
-          repository: PDLPorters/pdl
+          target-notifications: true
