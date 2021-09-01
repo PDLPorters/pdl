@@ -727,14 +727,10 @@ EOS
 
 print OUT <<'!NO!SUBS!';
 sub badvalue {
-  my $name = "PDL::_badvalue_int$_[0][0]";
-  no strict 'refs';
-  $name->( $_[1] );
+  PDL::_badvalue_int( $_[1], $_[0][0] );
 }
 sub orig_badvalue {
-  my $name = "PDL::_default_badvalue_int$_[0][0]";
-  no strict 'refs';
-  $name->();
+  PDL::_default_badvalue_int($_[0][0]);
 }
 
 # make life a bit easier

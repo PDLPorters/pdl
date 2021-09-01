@@ -267,72 +267,71 @@ static pdl* new_pdlscalar(int datatype)
        }
 EOHDR
 
-my $str;
-foreach my $type ( types() ) {
-    my ($i, $ctype, $realctype, $typesym, $cname) =
-      map $type->$_, qw(enum ctype realctype symbol shortctype);
-    my $storage = "PDL->bvals.$cname";
-
-    my $init_code = << "EOC";
-    pdl* p;
-    $ctype *data;
-    p = new_pdlscalar($typesym);
-    data = ($ctype *) p->data;
-
-EOC
-
-    my $set_code = "if ( val.type != -1 ) { ANYVAL_TO_CTYPE($storage, $ctype, val); }";
-
-    $str .= "
+my $str = <<'EOF';
 pdl *
-_badvalue_int${i}(val)
+_badvalue_int(val, type)
     PDL_Anyval val
+    int type
   CODE:
    {
-    $init_code
-    $set_code
-    *data = ($ctype) $storage;
+    pdl* p = new_pdlscalar(type);
+    if ( val.type != -1 ) {
+#define X(datatype, generic, generic_ppsym, shortctype) \
+    ANYVAL_TO_CTYPE(PDL->bvals.shortctype, generic, val);
+    PDL_GENERICSWITCH(type, X)
+#undef X
+    }
+#define X(datatype, generic, generic_ppsym, shortctype) \
+    *((generic *)p->data) = PDL->bvals.shortctype;
+    PDL_GENERICSWITCH(type, X)
+#undef X
     RETVAL = p;
    }
   OUTPUT:
     RETVAL
 
 pdl *
-_badvalue_per_pdl_int${i}(pdl_val, val)
+_badvalue_per_pdl_int(pdl_val, val, type)
     pdl* pdl_val
     PDL_Anyval val
+    int type
   CODE:
    {
-    $init_code
+    pdl* p = new_pdlscalar(type);
     if ( val.type != -1) {
        pdl_val->badvalue = val;
        pdl_val->has_badvalue = 1;
        PDL->propagate_badvalue( pdl_val );
     }
-
     if (pdl_val->has_badvalue == 0) {
-       *data = ($ctype) $storage;
+#define X(datatype, generic, generic_ppsym, shortctype) \
+       *((generic *)p->data) = PDL->bvals.shortctype;
+       PDL_GENERICSWITCH(type, X)
+#undef X
     } else {
-       ANYVAL_TO_CTYPE(*data, $ctype, pdl_val->badvalue);
+#define X(datatype, generic, generic_ppsym, shortctype) \
+       ANYVAL_TO_CTYPE(*((generic *)p->data), generic, pdl_val->badvalue);
+       PDL_GENERICSWITCH(type, X)
+#undef X
     }
-
     RETVAL = p;
    }
   OUTPUT:
     RETVAL
 
-
 pdl *
-_default_badvalue_int${i}()
+_default_badvalue_int(type)
+    int type
   CODE:
-    $init_code
-    *data = ($ctype) PDL->bvals.default_$cname;
+    pdl* p = new_pdlscalar(type);
+#define X(datatype, generic, generic_ppsym, shortctype) \
+    *((generic *)p->data) = PDL->bvals.default_ ## shortctype;
+    PDL_GENERICSWITCH(type, X)
+#undef X
     RETVAL = p;
   OUTPUT:
     RETVAL
-
-";
-}
+EOF
 
 pp_addxs( "\n$xshdr\n\n$str\n" );
 
@@ -357,16 +356,14 @@ sub PDL::badvalue {
 	    $self->inplace->setbadtoval( $val );
 	    $self->badflag(1);
 	}
-	my $name = "PDL::_badvalue_per_pdl_int$num";
-	return &{$name}($self, $val);
+	return PDL::_badvalue_per_pdl_int($self, $val, $num);
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
 	$num = $self->enum;
     } else {
         # assume it's a number
         $num = $self;
     }
-    my $name = "PDL::_badvalue_int$num";
-    &{$name}( $val );
+    PDL::_badvalue_int( $val, $num );
 }
 
 sub PDL::orig_badvalue {
@@ -381,8 +378,7 @@ sub PDL::orig_badvalue {
         # assume it's a number
         $num = $self;
     }
-    my $name = "PDL::_default_badvalue_int$num";
-    return &${name}();
+    PDL::_default_badvalue_int($num);
 }
 
 ############################################################
