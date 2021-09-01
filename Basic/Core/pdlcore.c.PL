@@ -24,31 +24,20 @@ print "Extracting $file\n";
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
-print OUT <<"!WITH!SUBS!";
-
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT <<'!NO!SUBS!';
 /* pdlcore.c - generated automatically by pdlcore.c.PL */
-
-!WITH!SUBS!
-
-
-print OUT <<'!HEADER!';
 #undef FOODEB
 #include "pdl.h"      /* Data structure declarations */
 #define PDL_IN_CORE /* access funcs directly not through PDL-> */
 #include "pdlcore.h"  /* Core declarations */
-
+#include "pdlperl.h"  /* Core declarations */
 
 /* Needed to get badvals from the Core structure (in pdl_avref_<type>) */
 extern Core PDL; 
 
 #include <math.h> /* for isfinite */
-!HEADER!
 
-
-##############################
-# PDL handling stuff starts here
-#
-print OUT <<'!NO!SUBS!';
 static SV *getref_pdl(pdl *it) {
         SV *newref;
         if(!it->sv) {

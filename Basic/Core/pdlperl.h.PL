@@ -9,8 +9,8 @@ print "Extracting $file\n";
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
-print OUT <<"!GROK!THIS!";
-
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT <<'EOF';
 /*
  * THIS FILE IS GENERATED FROM pdlperl.h.PL! Do NOT edit!
  */
@@ -18,20 +18,38 @@ print OUT <<"!GROK!THIS!";
 #ifndef __PDLPERL_H
 #define __PDLPERL_H
 
-#define PDL_MAKE_PERL_COMPLEX(output,r,i) { \\
-        dSP; int count; double rval = r, ival = i; SV *ret; \\
-        ENTER; SAVETMPS; PUSHMARK(sp); \\
-        perl_require_pv("PDL/Complex/Overloads.pm"); \\
-        mXPUSHn(rval); \\
-        mXPUSHn(ival); \\
-        PUTBACK; \\
-        count = perl_call_pv("PDL::Complex::Overloads::cplx", G_SCALAR); \\
-        SPAGAIN; \\
-        if (count != 1) croak("Failed to create PDL::Complex::Overloads object (%.9g, %.9g)", rval, ival); \\
-        ret = POPs; \\
-        SvREFCNT_inc(ret); \\
-        output = ret; \\
-        PUTBACK; FREETMPS; LEAVE; \\
+#define PDL_XS_SCALAR(type, ctype, val) \
+  SV *b_SV = NULL; \
+  pdl  *b; \
+  int nreturn = 1; \
+  int ndims = 0; \
+  PDL_Indx *pdims; \
+  pdims = (PDL_Indx *) pdl_smalloc( ndims * sizeof(*pdims) ); \
+  b = pdl_create(PDL_PERM); \
+  pdl_setdims(b, pdims, ndims); \
+  b->datatype = type; \
+  pdl_allocdata(b); \
+  ((ctype *)b->data)[0] = val; \
+  b_SV = sv_newmortal(); \
+  pdl_SetSV_PDL(b_SV, b); \
+  if (nreturn > 0) EXTEND(SP, nreturn); \
+  ST(0) = b_SV; \
+  XSRETURN(nreturn);
+
+#define PDL_MAKE_PERL_COMPLEX(output,r,i) { \
+        dSP; int count; double rval = r, ival = i; SV *ret; \
+        ENTER; SAVETMPS; PUSHMARK(sp); \
+        perl_require_pv("PDL/Complex/Overloads.pm"); \
+        mXPUSHn(rval); \
+        mXPUSHn(ival); \
+        PUTBACK; \
+        count = perl_call_pv("PDL::Complex::Overloads::cplx", G_SCALAR); \
+        SPAGAIN; \
+        if (count != 1) croak("Failed to create PDL::Complex::Overloads object (%.9g, %.9g)", rval, ival); \
+        ret = POPs; \
+        SvREFCNT_inc(ret); \
+        output = ret; \
+        PUTBACK; FREETMPS; LEAVE; \
 }
 
 /***************
@@ -39,9 +57,6 @@ print OUT <<"!GROK!THIS!";
  */
 #define PDL_SV_IS_UNDEF(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
 
-!GROK!THIS!
-
-print OUT <<'EOF';
 #define ANYVAL_FROM_SV(outany,insv,use_undefval,forced_type) do { \
     SV *sv2 = insv; \
     int further_processing = PDL_SV_IS_UNDEF(sv2); \

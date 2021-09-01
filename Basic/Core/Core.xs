@@ -14,6 +14,7 @@
 #include "pdl.h"      /* Data structure declarations */
 #define PDL_IN_CORE /* access funcs directly not through PDL-> */
 #include "pdlcore.h"  /* Core declarations */
+#include "pdlperl.h"
 
 /* Return a integer or numeric scalar as appropriate */
 
