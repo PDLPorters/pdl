@@ -113,32 +113,26 @@ print OUT <<'EOF';
  } while (0)
 EOF
 
-print OUT <<'EOF';
-/* Check minimum datatype required to represent number */
-#define PDL_TESTTYPE(b,a) {a foo = nv; if(nv == foo) return b;}
-static inline int _pdl_whichdatatype (IV nv) {
-EOF
-# generate the cases for the various types
-for my $type (PDL::Types::types()) {
-   my ($sym,$ctype) = map $type->$_, qw/sym ctype/;
-   print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-   print OUT << "!WITH!SUBS!";
-        PDL_TESTTYPE($sym,$ctype)
-!WITH!SUBS!
-}
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
+/* Check minimum datatype required to represent number */
+#define PDL_TESTTYPE(sym, ctype) {ctype foo = nv; if(nv == foo) return sym;}
+static inline int _pdl_whichdatatype (IV nv) {
+#define X(sym, ctype, ppsym, shortctype, defbval) \
+  PDL_TESTTYPE(sym, ctype)
+   PDL_GENERICLIST(X)
+#undef X
         croak("Something's gone wrong: %ld cannot be converted by whichdatatype", nv);
 }
 /* Check minimum, at least float, datatype required to represent number */
 static inline int _pdl_whichdatatype_double (NV nv) {
         PDL_TESTTYPE(PDL_F,PDL_Float)
         PDL_TESTTYPE(PDL_D,PDL_Double)
+#undef PDL_TESTTYPE
         /* Default return type PDL_Double */
         return PDL_D;
 }
 
 /* __PDLPERL_H */
 #endif
-
 EOF
