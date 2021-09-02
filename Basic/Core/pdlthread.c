@@ -358,10 +358,6 @@ void pdl_initthreadstruct(int nobl,
 	thread->realdims = realdims;
 	thread->ndims = 0;
 
-	thread->mag_nth = -1;
-	thread->mag_nthpdl = -1;
-        thread->mag_nthr = -1;
-
 	/* Accumulate the maximum number of thread dims across the collection of PDLs */
 	nids=mx=0;
 	for(j=0; j<npdls; j++) {
@@ -372,11 +368,12 @@ void pdl_initthreadstruct(int nobl,
 	nthreadids = pdl_smalloc(sizeof(PDL_Indx)*nids);
 	ndims += mx;  nimpl = mx; thread->nimpl = nimpl;
 
-
 	//printf("In pdl_initthreadstruct for func %s\n", info->funcname);
 	pdl_autopthreadmagic(pdls, npdls, realdims, creating, noPthreadFlag);
 
-
+	thread->mag_nth = -1;
+	thread->mag_nthpdl = -1;
+	thread->mag_nthr = -1;
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		/* Check for magical ndarrays (parallelized) */
@@ -385,12 +382,11 @@ void pdl_initthreadstruct(int nobl,
 		  (nthr = pdl_magic_thread_nthreads(pdls[j],&nthrd))) {
 			thread->mag_nthpdl = j;
 			thread->mag_nth = nthrd - realdims[j];
-                       thread->mag_nthr = nthr;
+			thread->mag_nthr = nthr;
 			if(thread->mag_nth < 0) {
 				pdl_croak_param(info,j,"Cannot magick non-threaded dims \n\t");
 			}
 		}
-
 		for(i=0; i<nids; i++) {
 			ndims += nthreadids[i] =
 				PDLMAX(0, pdls[j]->nthreadids <= nids ?
@@ -398,11 +394,9 @@ void pdl_initthreadstruct(int nobl,
 				     - pdls[j]->threadids[i] : 0);
 		}
 	}
-
 	if(nthr) {
 		thread->gflags |= PDL_THREAD_MAGICKED;
 	}
-
 	if(ndims < nobl) { /* If too few, add enough implicit dims */
 		thread->nextra = nobl - ndims;
 		ndims += thread->nextra;
