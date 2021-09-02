@@ -141,9 +141,7 @@ print OUT "\n\n";
 
 print OUT <<'EOF';
 typedef struct badvals {
-#define X(symbol, ctype, ppsym, shortctype, defbval) \
-  ctype shortctype; \
-  ctype default_ ## shortctype;
+#define X(symbol, ctype, ppsym, shortctype, defbval) ctype shortctype;
 PDL_GENERICLIST(X)
 #undef X
 } badvals;

@@ -325,7 +325,7 @@ _default_badvalue_int(type)
   CODE:
     pdl* p = new_pdlscalar(type);
 #define X(datatype, generic, generic_ppsym, shortctype, defbval) \
-    *((generic *)p->data) = PDL->bvals.default_ ## shortctype;
+    *((generic *)p->data) = defbval;
     PDL_GENERICSWITCH(type, X)
 #undef X
     RETVAL = p;
