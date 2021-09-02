@@ -130,15 +130,6 @@ print OUT <<EOF;
 )
 EOF
 
-# set up the badvalues structure
-print OUT "typedef struct badvals {\n";
-foreach my $type ( reverse PDL::Types::types() ) {
-    my ($realctype, $cname) = map $type->$_, qw(realctype shortctype);
-    printf OUT "   %18s   %s;\n",$realctype,$cname;
-    printf OUT "   %18s   default_%s;\n",$realctype,$cname;
-}
-print OUT "} badvals;\n";
-
 print OUT <<'EOF';
 #define PDL_GENERICLIST(X) \
 EOF
@@ -147,6 +138,16 @@ foreach my $type ( PDL::Types::types() ) {
     printf OUT ' X('.join(',', ('%s')x@methods).")\\\n", map $type->$_, @methods;
 }
 print OUT "\n\n";
+
+print OUT <<'EOF';
+typedef struct badvals {
+#define X(symbol, ctype, ppsym, shortctype, defbval) \
+  ctype shortctype; \
+  ctype default_ ## shortctype;
+PDL_GENERICLIST(X)
+#undef X
+} badvals;
+EOF
 
 my $gen_switch = <<'EOF';
   switch (typevar) { \
