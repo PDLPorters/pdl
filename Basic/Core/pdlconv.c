@@ -1,7 +1,7 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#define XCODE(code, datatype, generic, generic_ppsym, shortctype) \
+#define XCODE(code, datatype, generic, generic_ppsym, shortctype, defbval) \
     generic *ap = (generic *) a->data; \
     generic *pp = (generic *) a->vafftrans->from->data; \
     pp += a->vafftrans->offs; \
@@ -19,12 +19,6 @@
         ap ++; \
     }
 
-/*
-  these 2 routines shouldn't need to be changed to handle
-  bad values, since all they do is copy data from
-  one ndarray to another of the same type
-  (assuming no per-ndarray bad values)
-*/
 #define VAFF_IO(name) \
 void pdl_ ## name(pdl *a) { \
 	PDL_Indx i; \
@@ -101,11 +95,11 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     }
 
     /* Do the conversion as nested switch statements */
-#define X_OUTER(datatype_out, generic_out, generic_ppsym_out, shortctype_out) \
+#define X_OUTER(datatype_out, generic_out, generic_ppsym_out, shortctype_out, defbval_out) \
     generic_out *bb = (generic_out *) b; \
     i = a->nvals; \
     PDL_GENERICSWITCH2(targtype, X_INNER);
-#define X_INNER(datatype_in, generic_in, generic_ppsym_in, shortctype_in) \
+#define X_INNER(datatype_in, generic_in, generic_ppsym_in, shortctype_in, defbval_in) \
     generic_in *aa = (generic_in *) a->data; \
     aa += i-1; bb += i-1; \
     while (i--) \

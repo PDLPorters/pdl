@@ -276,12 +276,12 @@ _badvalue_int(val, type)
    {
     pdl* p = new_pdlscalar(type);
     if ( val.type != -1 ) {
-#define X(datatype, generic, generic_ppsym, shortctype) \
+#define X(datatype, generic, generic_ppsym, shortctype, defbval) \
     ANYVAL_TO_CTYPE(PDL->bvals.shortctype, generic, val);
     PDL_GENERICSWITCH(type, X)
 #undef X
     }
-#define X(datatype, generic, generic_ppsym, shortctype) \
+#define X(datatype, generic, generic_ppsym, shortctype, defbval) \
     *((generic *)p->data) = PDL->bvals.shortctype;
     PDL_GENERICSWITCH(type, X)
 #undef X
@@ -304,12 +304,12 @@ _badvalue_per_pdl_int(pdl_val, val, type)
        PDL->propagate_badvalue( pdl_val );
     }
     if (pdl_val->has_badvalue == 0) {
-#define X(datatype, generic, generic_ppsym, shortctype) \
+#define X(datatype, generic, generic_ppsym, shortctype, defbval) \
        *((generic *)p->data) = PDL->bvals.shortctype;
        PDL_GENERICSWITCH(type, X)
 #undef X
     } else {
-#define X(datatype, generic, generic_ppsym, shortctype) \
+#define X(datatype, generic, generic_ppsym, shortctype, defbval) \
        ANYVAL_TO_CTYPE(*((generic *)p->data), generic, pdl_val->badvalue);
        PDL_GENERICSWITCH(type, X)
 #undef X
@@ -324,7 +324,7 @@ _default_badvalue_int(type)
     int type
   CODE:
     pdl* p = new_pdlscalar(type);
-#define X(datatype, generic, generic_ppsym, shortctype) \
+#define X(datatype, generic, generic_ppsym, shortctype, defbval) \
     *((generic *)p->data) = PDL->bvals.default_ ## shortctype;
     PDL_GENERICSWITCH(type, X)
 #undef X

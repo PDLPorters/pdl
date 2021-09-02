@@ -113,7 +113,7 @@ EOF
 
 print OUT <<'EOF';
 /* input vars have to be called exactly these as not expanded */
-#define ANYVAL_TO_CTYPE_OFFSET_X(datatype, generic, generic_ppsym, shortctype) \
+#define ANYVAL_TO_CTYPE_OFFSET_X(datatype, generic, generic_ppsym, shortctype, defbval) \
     ANYVAL_TO_CTYPE(((generic *)x)[ioff], generic, value);
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
     PDL_GENERICSWITCH(datatype, ANYVAL_TO_CTYPE_OFFSET_X)
@@ -152,9 +152,9 @@ my $gen_switch = <<'EOF';
   switch (typevar) { \
 EOF
 foreach my $type ( PDL::Types::types() ) {
-    $gen_switch .= sprintf <<'EOF', map $type->$_, qw(symbol ctype ppsym shortctype);
+    $gen_switch .= sprintf <<'EOF', map $type->$_, @methods;
   case %s: { \
-    X(typevar, %s, %s, %s) \
+    X(typevar, %s, %s, %s, %s) \
   } break; \
 EOF
 }

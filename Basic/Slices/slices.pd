@@ -2908,7 +2908,7 @@ $sliceb_data_kludge = <<'KLUDGE';
       if( !(p->data) ) {
          barf("slice: no data in slice specifier PDL! I give up.");
       }
-#define X(datatype, generic, generic_ppsym, shortctype) \
+#define X(datatype, generic, generic_ppsym, shortctype, defbval) \
     nn = *( (generic *)(p->data) );
     PDL_GENERICSWITCH(p->datatype, X)
     }
