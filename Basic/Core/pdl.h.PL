@@ -130,14 +130,10 @@ print OUT <<EOF;
 )
 EOF
 
-print OUT <<'EOF';
-#define PDL_GENERICLIST(X) \
-EOF
 my @methods = qw(symbol ctype ppsym shortctype defbval);
-foreach my $type ( PDL::Types::types() ) {
-    printf OUT ' X('.join(',', ('%s')x@methods).")\\\n", map $type->$_, @methods;
-}
-print OUT "\n\n";
+my @generics = map { my $t = $_; [map $t->$_, @methods] } PDL::Types::types();
+print OUT "#define PDL_GENERICLIST(X) \\\n";
+print OUT (map ' X('.join(',', @$_).")\\\n", @generics), "\n\n";
 
 print OUT <<'EOF';
 typedef struct badvals {
@@ -147,20 +143,10 @@ PDL_GENERICLIST(X)
 } badvals;
 EOF
 
-my $gen_switch = <<'EOF';
-  switch (typevar) { \
-EOF
-foreach my $type ( PDL::Types::types() ) {
-    $gen_switch .= sprintf <<'EOF', map $type->$_, @methods;
-  case %s: { \
-    X(typevar, %s, %s, %s, %s) \
-  } break; \
-EOF
-}
-$gen_switch .= <<'EOF';
-   default: croak("Not a known data type code=%d", typevar); \
-}
-EOF
+my $gen_switch = "switch (typevar) { \\\n";
+$gen_switch .= sprintf "case %s: {X(typevar, %s, %s, %s, %s)} break; \\\n", @$_
+  for @generics;
+$gen_switch .= "default: croak(\"Not a known data type code=%d\", typevar); \\\n}\n";
 print OUT <<EOF;
 #define PDL_GENERICSWITCH(typevar, X) \\
 $gen_switch
