@@ -453,11 +453,7 @@ void pdl_initthreadstruct(int nobl,
 	if(nthr) {
 		thread->gflags |= PDL_THREAD_MAGICKED;
 	}
-	if(ndims < nobl) { /* If too few, add enough implicit dims */
-		ndims += thread->nextra = nobl - ndims;
-	} else {
-		thread->nextra = 0;
-	}
+	ndims += thread->nextra = PDLMAX(0, nobl - ndims); /* If too few, add enough implicit dims */
 
 	thread->ndims = ndims;
 	thread->nimpl = nimpl;
