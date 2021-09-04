@@ -422,7 +422,7 @@ void pdl_initthreadstruct(int nobl,
 		MAX2(mx,pdls[j]->threadids[0] - realdims[j]);
 	}
 	nthreadids = pdl_smalloc(sizeof(PDL_Indx)*nids);
-	ndims += mx;  nimpl = mx; thread->nimpl = nimpl;
+	ndims += thread->nimpl = nimpl = mx;
 
 	//printf("In pdl_initthreadstruct for func %s\n", info->funcname);
 	pdl_autopthreadmagic(pdls, npdls, realdims, creating, noPthreadFlag);
@@ -454,8 +454,7 @@ void pdl_initthreadstruct(int nobl,
 		thread->gflags |= PDL_THREAD_MAGICKED;
 	}
 	if(ndims < nobl) { /* If too few, add enough implicit dims */
-		thread->nextra = nobl - ndims;
-		ndims += thread->nextra;
+		ndims += thread->nextra = nobl - ndims;
 	} else {
 		thread->nextra = 0;
 	}
@@ -495,11 +494,11 @@ void pdl_initthreadstruct(int nobl,
 	for(i=0; i<nimpl; i++) {                      // Loop over number of implicit threads
 	  thread->dims[nth] = 1;                      // Start with a size of 1 for this thread
 	  for(j=0; j<thread->npdls; j++) {            // Now loop over the PDLs to be merged
-	    thread->incs[nth*npdls+j] = 0;               
+	    thread->incs[nth*npdls+j] = 0;
 	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
-	    if(thread->pdls[j]->threadids[0]-         // If we're off the end of the currend PDLs dimlist, 
+	    if(thread->pdls[j]->threadids[0]-         // If we're off the end of the current PDLs dimlist,
 	       thread->realdims[j] <= i)              //    then just skip it.
-	      continue; 
+	      continue;
 	    if(pdls[j]->dims[i+realdims[j]] != 1) {   // If the current dim in the current PDL is not 1,
 	      if(thread->dims[nth] != 1) {            //   ... and the current planned size isn't 1, 
 		if(thread->dims[nth] !=
