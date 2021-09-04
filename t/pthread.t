@@ -7,6 +7,31 @@ use Benchmark qw(timethese :hireswallclock);
 plan skip_all => 'No threads' if !PDL::Core::pthreads_enabled;
 
 approx( pdl(0), pdl(0), 0.01); # set eps
+set_autopthread_size(0);
+
+for (
+  [ 6, [6], 6, 0 ],
+  [ 6, [5], 5, 0 ],
+  [ 6, [4], 4, 0 ],
+  [ 6, [7], 6, 0 ],
+  [ 6, [7,12], 6, 1 ],
+  [ 6, [5,12], 6, 1 ],
+  [ 6, [12,7], 6, 0 ],
+  [ 6, [12,5], 6, 0 ],
+  [ 6, [7,5], 6, 0 ],
+  [ 6, [4,5], 5, 1 ],
+  [ 6, [5,4], 5, 0 ],
+  [ 6, [4,5,12], 6, 2 ],
+  [ 4, [9,6,2], 4, 1 ],
+  [ 4, [6,9,2], 4, 0 ],
+) {
+  my ($thr_num, $size, $thr_want, $dim) = @$_;
+  set_autopthread_targ($thr_num);
+  (my $t = zeroes(@$size))++;
+  is(get_autopthread_actual(), $thr_want);
+  is(get_autopthread_dim(), $dim);
+}
+set_autopthread_targ(0);
 
 my ($pa, $pb, $thr_want);
 my @T = (
@@ -17,7 +42,7 @@ my @T = (
     {threaded => sub { $pa **= 1.3 }, unthreaded => sub { $pb **= 1.3 }},
   ],
   [
-    sub { set_autopthread_targ($thr_want = $_[2]); set_autopthread_size(0); },
+    sub { set_autopthread_targ($thr_want = $_[2]) },
     sub { set_autopthread_targ(0); },
     sub { is(get_autopthread_actual(), $thr_want) },
     {threaded => sub { $pa **= 1.3 }},
@@ -30,7 +55,7 @@ for (@T) {
   $pa = zeroes(2000000);
   $pb = zeroes(2000000);
 
-  $thr_on->($pa, 0, 10);
+  $thr_on->($pa, 0, 9);
 
   my $bench = timethese(20, $bench_hash);
   #diag explain $bench;

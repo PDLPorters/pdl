@@ -36,6 +36,10 @@ extern int pdl_debugging;
 #define ANYVAL_ISBAD(inany,pdl,badval) \\
   (ANYVAL_ISNAN(badval) ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval))
 
+typedef struct pdl pdl;
+
+$PDL_DATATYPES
+
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
 /*  Target number of pthreads: Actual will be this number or less.
     A 0 here means no pthreading */
@@ -49,10 +53,7 @@ extern int pdl_autopthread_actual;
     For small PDLs, it probably isn't worth starting multiple pthreads, so this variable
     is used to define that threshold (in M-elements, or 2^20 elements ) */
 extern int pdl_autopthread_size;
-
-typedef struct pdl pdl;
-
-$PDL_DATATYPES
+extern PDL_Indx pdl_autopthread_dim;
 
 $mymalloc
 

@@ -254,10 +254,10 @@ int pdl_pthreads_enabled(void) {return 1;}
 
 static void *pthread_perform(void *vp) {
 	struct ptarg *p = (ptarg *)vp;
-	PDLDEBUG_f(printf("STARTING THREAD %d (%lu)\n",p->no, pthread_self());)
+	PDLDEBUG_f(printf("STARTING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self());)
 	pthread_setspecific(p->mag->key,(void *)&(p->no));
 	(p->func)(p->t);
-	PDLDEBUG_f(printf("ENDING THREAD %d (%lu)\n",p->no, pthread_self());)
+	PDLDEBUG_f(printf("ENDING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self());)
 	return NULL;
 }
 

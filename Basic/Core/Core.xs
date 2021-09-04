@@ -25,6 +25,7 @@ Core PDL; /* Struct holding pointers to shared C routines */
 int pdl_debugging=0;
 int pdl_autopthread_targ   = 0; /* No auto-pthreading unless set using the set_autopthread_targ */
 int pdl_autopthread_actual = 0;
+PDL_Indx pdl_autopthread_dim = -1;
 int pdl_autopthread_size   = 1;
 
 #define CHECKP(p)    if ((p) == NULL) croak("Out of memory")
@@ -206,6 +207,13 @@ int
 get_autopthread_actual()
 	CODE:
 	RETVAL = pdl_autopthread_actual;
+	OUTPUT:
+	RETVAL
+
+int
+get_autopthread_dim()
+	CODE:
+	RETVAL = pdl_autopthread_dim;
 	OUTPUT:
 	RETVAL
 

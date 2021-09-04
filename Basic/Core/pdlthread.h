@@ -35,7 +35,33 @@ typedef struct pdl_thread {
         PDL_Indx mag_nth;    /* magicked thread dim */
         PDL_Indx mag_nthpdl; /* magicked ndarray */
         PDL_Indx mag_nthr;   /* number of threads */
+        PDL_Indx mag_skip;   /* first pthread to skip if remainder, 0=none */
+        PDL_Indx mag_stride; /* the base size to stride, without adding 1 if before drop */
+        /*
+           **
+          t****
+           ****
+           ****
+           --k--->thr (zero-based)
+
+          t=3 (mag_stride)
+          k=2 (mag_skip)
+          offsets=[0,4,8,11,14]
+
+          t****
+           ****
+           ****
+           k----->thr (zero-based)
+
+          t=3 (mag_stride)
+          k=0 (mag_skip)
+          offsets=[0,3,6,9,12]
+
+          offset=thr*t + MIN(thr,k) // see macro PDL_THR_OFFSET
+        */
 } pdl_thread;
+
+#define PDL_THR_OFFSET(thr, thread) ((thr)*((thread)->mag_stride) + PDLMIN((thr),(thread)->mag_skip))
 
 /* Thread per pdl flags */
 #define		PDL_THREAD_VAFFINE_OK	0x01

@@ -25,7 +25,7 @@ my @exports_normal   = (@EXPORT,
       set at flows thread_define over reshape dog cat barf type diagonal
       dummy mslice approx flat sclr squeeze
       get_autopthread_targ set_autopthread_targ get_autopthread_actual
-      get_autopthread_size set_autopthread_size) );
+      get_autopthread_dim get_autopthread_size set_autopthread_size) );
 our @EXPORT_OK = (@exports_internal, @exports_normal);
 our %EXPORT_TAGS = (
    Func     => [@exports_normal],
@@ -3869,6 +3869,26 @@ See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
 *get_autopthread_actual      = \&PDL::get_autopthread_actual;
 
+=head2 get_autopthread_dim
+
+=for ref
+
+Get the actual dimension on which pthreads were used for the last
+pdl processing function.
+
+=for usage
+
+ $autopthread_dim = get_autopthread_dim();
+
+C<$autopthread_dim> is the actual dimension on which pthreads were
+used for the last pdl processing function.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+=cut
+
+*get_autopthread_dim      = \&PDL::get_autopthread_dim;
+
 =head2 set_autopthread_size
 
 =for ref
@@ -3893,7 +3913,7 @@ See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
   set_autopthread_size(1);
 
   # Execute a pdl function, processing will split into two pthreads as long as
-  #  one of the pdl-threaded dimensions is divisible by 2.
+  #  one of the pdl-threaded dimensions is at least 2.
   $x = minimum($y);
 
   # Get the actual number of pthreads that were run.
