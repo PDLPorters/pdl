@@ -1088,12 +1088,12 @@ is now almost too easy
 
 Finally, if you want to apply the operation to all elements (like max over
 all elements or sum over all elements) regardless of the dimensions of
-the ndarray in question C<clump> comes in handy. As an example look at the
-definition of C<sum> (as defined in C<Ufunc.pm>):
+the ndarray in question C<clump> comes in handy. As an example look at a
+definition of C<sum> (summarised from F<Basic/Ufunc/ufunc.pd>):
 
  sub sum {
    PDL::Ufunc::sumover($name->clump(-1),($tmp=null));
-   return $tmp->at(); # return a Perl number, not a 0D ndarray
+   return $tmp; # return a 0D ndarray
  }
 
 We have already mentioned that all basic operations support threading
