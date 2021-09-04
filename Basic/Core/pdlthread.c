@@ -607,14 +607,11 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 	PDL_Indx *inds;
 	if(  (thread->gflags & (PDL_THREAD_MAGICKED | PDL_THREAD_MAGICK_BUSY))
 	     == PDL_THREAD_MAGICKED ) {
-
 		/* If no function supplied (i.e. being called from PDL::thread_over), don't run in parallel */
 		if(!func) {
 			thread->gflags &= ~PDL_THREAD_MAGICKED; /* Cancel thread_magicked */
 		}
 		else{
-
-
 			thread->gflags |= PDL_THREAD_MAGICK_BUSY;
 			/* Do the threadloop magically (i.e. in parallel) */
 			pdl_magic_thread_cast(thread->pdls[thread->mag_nthpdl],
@@ -634,7 +631,6 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 	return 0;
 }
 
-/* This will have to be macroized */
 int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx i,j;
 	int stop = 0;
