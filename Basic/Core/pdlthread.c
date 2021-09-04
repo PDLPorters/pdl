@@ -88,18 +88,18 @@ PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread )
    Input: thread structure
    Outputs: Pointer to pthread-specific offset array (returned by function)
             Pointer to pthread-specific index array (ind Pointer supplied and modified by function)
-	    Pthread index for the current pthread   ( nthr supplied and modified by function)
+	    Pthread index for the current pthread   ( thr supplied and modified by function)
 
 */
-PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *nthr, PDL_Indx **inds)
+PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *pthr, PDL_Indx **inds)
 {
   if(thread->gflags & PDL_THREAD_MAGICKED) {
   	int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
-	*nthr = thr;
+	*pthr = thr;
 	*inds = thread->inds  + thr * thread->ndims;
 	return  thread->offs  + thr * thread->npdls;
   }
-  *nthr = 0;
+  *pthr = 0;
 /* The non-multithreaded case: return just the usual offsets */
   *inds = thread->inds;
   return thread->offs;
@@ -603,7 +603,7 @@ See the manual for why this is impossible");
 int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 			pdl_trans *t) {
 	PDL_Indx i,j;
-	PDL_Indx *offsp; int nthr;
+	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds;
 	if(  (thread->gflags & (PDL_THREAD_MAGICKED | PDL_THREAD_MAGICK_BUSY))
 	     == PDL_THREAD_MAGICKED ) {
@@ -620,13 +620,13 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 			return 1; /* DON'T DO THREADLOOP AGAIN */
 		}
 	}
-	offsp = pdl_get_threadoffsp_int(thread,&nthr, &inds);
+	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
 	for(i=0; i<thread->ndims; i++)
 		inds[i] = 0;
 	for(j=0; j<thread->npdls; j++)
 		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]) +
-			(!nthr?0:
-				nthr * thread->dims[thread->mag_nth] *
+			(!thr?0:
+				thr * thread->dims[thread->mag_nth] *
 				    thread->incs[thread->mag_nth*thread->npdls + j]);
 	return 0;
 }
@@ -635,9 +635,9 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx i,j;
 	int stop = 0;
 	PDL_Indx stopdim;
-	PDL_Indx *offsp; int nthr;
+	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds;
-	offsp = pdl_get_threadoffsp_int(thread,&nthr, &inds);
+	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
 	for(j=0; j<thread->npdls; j++)
 		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 	for(i=nth; i<thread->ndims; i++) {
@@ -649,8 +649,8 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	}
 	if(!stop) return 0;
 	for(j=0; j<thread->npdls; j++) {
-		if (nthr)
-		    offsp[j] += nthr * thread->dims[thread->mag_nth] *
+		if (thr)
+		    offsp[j] += thr * thread->dims[thread->mag_nth] *
 			thread->incs[thread->mag_nth*thread->npdls + j];
 		for(i=nth; i<thread->ndims; i++) {
 		    offsp[j] += thread->incs[i*thread->npdls+j] * inds[i];
