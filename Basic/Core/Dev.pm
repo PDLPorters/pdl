@@ -225,12 +225,14 @@ sub pdlpp_postamble_int {
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
 	my $top = File::Spec->abs2rel($w);
-	my $basic = File::Spec->catdir($top, 'Basic');
-	my $core = File::Spec->catdir($basic, 'Core');
+	my $core = File::Spec->catdir($top, qw(Basic Core));
+	my $coredeps = join ' ', map "$core/$_",
+	    qw(pdl.h pdlcore.h pdlthread.h pdlmagic.h Types.pm);
+	my $gendep = File::Spec->catfile($top, qw(Basic Gen pm_to_blib));
 	$callpack //= '';
 qq|
 
-$pref.pm: $src $core/Types.pm
+$pref.pm: $src $coredeps $gendep
 	\$(PERLRUNINST) \"-MPDL::PP qw[$mod $mod $pref $callpack]\" $src
 
 $pref.xs: $pref.pm
