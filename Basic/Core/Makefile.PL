@@ -83,9 +83,12 @@ WriteMakefile(
   depend => {
     'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdl.h pdlperl.h pdlcore.h',
         # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
-    'pdlcore.c.PL pdlsimple.h.PL pdl.h.PL pdlperl.h.PL' => 'Types.pm',
-    'pdlconv.c pdlapi.c pdlhash.c pdlthread.c' => 'pdl.h pdlcore.h',
-    'pdlmagic.c' => 'pdlcore.h',
+    $cobj => 'pdl.h pdlcore.h pdlthread.h pdlmagic.h',
   },
   NO_MYMETA => 1,
 );
+
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+    "pdlcore.c pdlsimple.h pdl.h pdlperl.h :: Types.pm\n";
+};
