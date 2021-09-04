@@ -651,10 +651,7 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 		else
 		{	stopdim = i; stop = 1; break; }
 	}
-	if(stop) goto calc_offs;
-	return 0;
-calc_offs:
-
+	if(!stop) return 0;
 	for(j=0; j<thread->npdls; j++) {
 		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]) +
 		(!nthr?0:
