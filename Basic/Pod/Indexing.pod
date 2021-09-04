@@ -1488,7 +1488,7 @@ code that uses explicit for-loops (or similar Perl constructs) to achieve
 the same functionality. Especially on supercomputers (with vector
 computing facilities/parallel processing) PDL threading will be
 implemented in a way that takes advantage of the additional facilities
-of these machines. Furthermore, it is a conceptually simply
+of these machines. Furthermore, it is a conceptually simple
 construct (though technical details might get involved at times) and
 can I<greatly> reduce the syntactical complexity of PDL code (but keep
 the admonition for documentation in mind). Once you
