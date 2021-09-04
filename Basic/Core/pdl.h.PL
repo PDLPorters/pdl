@@ -134,6 +134,11 @@ my @methods = qw(symbol ctype ppsym shortctype defbval);
 my @generics = map { my $t = $_; [map $t->$_, @methods] } PDL::Types::types();
 print OUT "#define PDL_GENERICLIST(X) \\\n";
 print OUT (map ' X('.join(',', @$_).")\\\n", @generics), "\n\n";
+print OUT "#define PDL_GENERICLIST2(X, X2) \\\n";
+print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
+# extra as macro gets expanded twice, gets painted blue
+print OUT "#define PDL_GENERICLIST2_(X, X2) \\\n";
+print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
 
 print OUT <<'EOF';
 typedef struct badvals {
@@ -141,18 +146,23 @@ typedef struct badvals {
 PDL_GENERICLIST(X)
 #undef X
 } badvals;
-EOF
 
-my $gen_switch = "switch (typevar) { \\\n";
-$gen_switch .= sprintf "case %s: {X(typevar, %s, %s, %s, %s)} break; \\\n", @$_
-  for @generics;
-$gen_switch .= "default: croak(\"Not a known data type code=%d\", typevar); \\\n}\n";
-print OUT <<EOF;
-#define PDL_GENERICSWITCH(typevar, X) \\
-$gen_switch
+#define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
+  case symbol: { X(symbol, __VA_ARGS__) } break;
+#define PDL_GENERICSWITCH(typevar, X2) \
+  switch (typevar) { \
+    PDL_GENERICLIST2(PDL_GENERICSWITCH_CASE, X2) \
+    default: croak("Not a known data type code=%d", typevar); \
+  }
+/* extra as first one gets painted blue */
+#define PDL_GENERICSWITCH_CASE2(X, symbol, ...) \
+  case symbol: { X(symbol, __VA_ARGS__) } break;
 /* for use in inner loops avoiding extreme lambda-calculus stuff */
-#define PDL_GENERICSWITCH2(typevar, X) \\
-$gen_switch
+#define PDL_GENERICSWITCH2(typevar, X2) \
+  switch (typevar) { \
+    PDL_GENERICLIST2_(PDL_GENERICSWITCH_CASE2, X2) \
+    default: croak("Not a known data type code=%d", typevar); \
+  }
 EOF
 
 print OUT <<'!NO!SUBS!';
