@@ -54,11 +54,16 @@ void dump_thread(pdl_thread *thread) {
 	 thread->gflags,thread->ndims,thread->nimpl,thread->npdls,thread->nextra);
   psp; printf("Mag_nth: %"IND_FLAG", Mag_nthpdl: %"IND_FLAG", Mag_nthr: %"IND_FLAG"\n",
 	 thread->mag_nth,thread->mag_nthpdl,thread->mag_nthr);
-  psp; printf("Dims: "); print_iarr(thread->dims,thread->ndims); printf("\n");
   if (thread->mag_nthr <= 0) {
+    psp; printf("Dims: "); print_iarr(thread->dims,thread->ndims); printf("\n");
     psp; printf("Inds: "); print_iarr(thread->inds,thread->ndims); printf("\n");
     psp; printf("Offs: "); print_iarr(thread->offs,thread->npdls); printf("\n");
   } else {
+    psp; printf("Dims (per thread):\n");
+    for (i=0;i<thread->mag_nthr;i++) {
+      psp; psp; print_iarr(thread->dims + i*thread->ndims,thread->ndims);
+      printf("\n");
+    }
     psp; printf("Inds (per thread):\n");
     for (i=0;i<thread->mag_nthr;i++) {
       psp; psp; print_iarr(thread->inds + i*thread->ndims,thread->ndims);
@@ -89,12 +94,25 @@ void dump_thread(pdl_thread *thread) {
 
 
 /*******
- * pdl_get_threadoffsp - get the pthread-specific offset arrays from a 
- * PDL (TODO: improve function docs)
+ * pdl_get_threaddims - get the pthread-specific threading dims from a PDL
+ *  Input: thread structure
+ *  Outputs: see above (returned by function)
+ */
+PDL_Indx *pdl_get_threaddims(pdl_thread *thread)
+{
+  /* The non-multithreaded case: return just the usual value */
+  if (!(thread->gflags & PDL_THREAD_MAGICKED)) return thread->dims;
+  int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+  return thread->dims + thr * thread->ndims;
+}
+
+
+/*******
+ * pdl_get_threadoffsp - get the pthread-specific offset arrays from a PDL
  *  Input: thread structure
  *  Outputs: Pointer to pthread-specific offset array (returned by function)
  */
-PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread )
+PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread)
 {
   /* The non-multithreaded case: return just the usual offsets */
   if (!(thread->gflags & PDL_THREAD_MAGICKED)) return thread->offs;
@@ -107,19 +125,21 @@ PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread )
    Input: thread structure
    Outputs: Pointer to pthread-specific offset array (returned by function)
             Pointer to pthread-specific index array (ind Pointer supplied and modified by function)
+            Pointer to pthread-specific dims array (dims Pointer supplied and modified by function)
 	    Pthread index for the current pthread   ( thr supplied and modified by function)
-
 */
-PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *pthr, PDL_Indx **inds)
+PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *pthr, PDL_Indx **inds, PDL_Indx **dims)
 {
   if(thread->gflags & PDL_THREAD_MAGICKED) {
   	int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
 	*pthr = thr;
 	*inds = thread->inds  + thr * thread->ndims;
+	*dims = thread->dims  + thr * thread->ndims;
 	return  thread->offs  + thr * thread->npdls;
   }
   *pthr = 0;
 /* The non-multithreaded case: return just the usual offsets */
+  *dims = thread->dims;
   *inds = thread->inds;
   return thread->offs;
 }
@@ -476,7 +496,7 @@ void pdl_initthreadstruct(int nobl,
       Newxz(thread->inds, ndims * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
       if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c");
 
-      Newxz(thread->dims, ndims, PDL_Indx);
+      Newxz(thread->dims, ndims * (nthr>0 ? nthr : 1), PDL_Indx);
       if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
       for(nth=0; nth<ndims; nth++) thread->dims[nth]=1; // all start size 1
 
@@ -572,6 +592,12 @@ void pdl_initthreadstruct(int nobl,
 			die("Cannot magick-thread with non-divisible n!");
 		}
 		thread->dims[thread->mag_nth] = n1;
+		for(i=1; i<nthr; i++)
+		    for(j=0; j<ndims; j++)
+			thread->dims[j + i*ndims] = thread->dims[j];
+		if (n2)
+		    for(i=n2; i<nthr; i++)
+			thread->dims[thread->mag_nth + i*ndims]--;
 	}
 	thread->gflags |= PDL_THREAD_INITIALIZED;
 	PDLDEBUG_f(dump_thread(thread);)
@@ -582,7 +608,6 @@ void pdl_thread_create_parameter(pdl_thread *thread, PDL_Indx j,PDL_Indx *dims,
 {
 	PDL_Indx i;
 	PDL_Indx td = temp ? 0 : thread->nimpl;
-
 	if(!temp && thread->nimpl != thread->ndims - thread->nextra) {
 		pdl_croak_param(thread->einfo,j,
 			"Trying to create parameter while explicitly threading.\
@@ -610,7 +635,7 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 			pdl_trans *t) {
 	PDL_Indx i,j, npdls = thread->npdls;
 	PDL_Indx *offsp; int thr;
-	PDL_Indx *inds;
+	PDL_Indx *inds, *dims;
 	if(  (thread->gflags & (PDL_THREAD_MAGICKED | PDL_THREAD_MAGICK_BUSY))
 	     == PDL_THREAD_MAGICKED ) {
 		/* If no function supplied (i.e. being called from PDL::thread_over), don't run in parallel */
@@ -626,7 +651,7 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 			return 1; /* DON'T DO THREADLOOP AGAIN */
 		}
 	}
-	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
+	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds, &dims);
 	for(j=0; j<npdls; j++)
 	    offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 	if (thr)
@@ -642,11 +667,11 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx i,j;
 	int another_threadloop = 0;
 	PDL_Indx *offsp; int thr;
-	PDL_Indx *inds;
-	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
+	PDL_Indx *inds, *dims;
+	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds, &dims);
 	for(i=nth; i<thread->ndims; i++) {
 		inds[i] ++;
-		if( inds[i] >= thread->dims[i])
+		if( inds[i] >= dims[i])
 			inds[i] = 0;
 		else
 		{	another_threadloop = 1; break; }

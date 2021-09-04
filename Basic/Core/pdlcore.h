@@ -87,6 +87,7 @@ void pdl_readdata_vaffine(pdl *it);
   X(startthreadloop, int, (pdl_thread *thread,void (*func)(pdl_trans *), \
     pdl_trans *)) \
   X(get_threadoffsp, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
+  X(get_threaddims, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(iterthreadloop, int, (pdl_thread *thread, PDL_Indx which)) \
   X(freethreadloop, void, (pdl_thread *thread)) \
   X(thread_create_parameter, void, (pdl_thread *thread,PDL_Indx j, \

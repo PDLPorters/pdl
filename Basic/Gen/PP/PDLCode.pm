@@ -503,8 +503,9 @@ sub myprelude {
        do { register PDL_Indx __tind0=0,__tind1=0; PDL_COMMENT("counters along dim") \
 	    register PDL_Indx __tnpdls = $PRIV(__pdlthread).npdls; \
 	    PDL_COMMENT("dims here are how many steps along those dims") \
-	    register PDL_Indx __tdims1 = $PRIV(__pdlthread.dims[1]); \
-	    register PDL_Indx __tdims0 = $PRIV(__pdlthread.dims[0]); \
+	    PDL_Indx *__tdims = PDL->get_threaddims(&$PRIV(__pdlthread)); \
+	    register PDL_Indx __tdims1 = __tdims[1]; \
+	    register PDL_Indx __tdims0 = __tdims[0]; \
 	    register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));',
       'PDL_COMMENT("incs are each pdl\'s stride")',
       (map "register PDL_Indx __tinc0_$_ = \$PRIV(__pdlthread).incs[$_];", 0..$#$ord),
