@@ -408,7 +408,6 @@ void pdl_initthreadstruct(int nobl,
 	thread->npdls = npdls;
 	thread->pdls = copy_pdl_array(pdls,npdls);
 	thread->realdims = realdims;
-	thread->ndims = 0;
 
 	/* Accumulate the maximum number of thread dims across the collection of PDLs */
 	nids=mx=0;
@@ -454,16 +453,16 @@ void pdl_initthreadstruct(int nobl,
 	thread->ndims = ndims;
 	thread->nimpl = nimpl;
 
-      Newxz(thread->inds, thread->ndims * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
+      Newxz(thread->inds, ndims * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
       if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c");
 
-      Newxz(thread->dims, thread->ndims, PDL_Indx);
+      Newxz(thread->dims, ndims, PDL_Indx);
       if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
 
-      Newxz(thread->offs, thread->npdls * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific offs */
+      Newxz(thread->offs, npdls * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific offs */
       if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c");
 
-      Newxz(thread->incs, thread->ndims * npdls, PDL_Indx);
+      Newxz(thread->incs, ndims * npdls, PDL_Indx);
       if(thread->incs == NULL) croak("Failed to allocate memory for thread->incs in pdlthread.c");
 
       Newxz(thread->flags, npdls, char);
@@ -483,7 +482,7 @@ void pdl_initthreadstruct(int nobl,
 
 	for(nth=0; nth<nimpl; nth++) {                // Loop over number of implicit threads
 	  thread->dims[nth] = 1;                      // Start with a size of 1 for this thread
-	  for(j=0; j<thread->npdls; j++) {            // Now loop over the PDLs to be merged
+	  for(j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
 	    thread->incs[nth*npdls+j] = 0;
 	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
 	    if(thread->pdls[j]->threadids[0]-         // If we're off the end of the current PDLs dimlist,
@@ -519,7 +518,7 @@ void pdl_initthreadstruct(int nobl,
 	for(nthid=0; nthid<nids; nthid++) {
 	for(i=0; i<nthreadids[nthid]; i++) {
 		thread->dims[nth] = 1;
-		for(j=0; j<thread->npdls; j++) {
+		for(j=0; j<npdls; j++) {
 			thread->incs[nth*npdls+j] = 0;
 			if(creating[j]) continue;
 			if(thread->pdls[j]->nthreadids < nthid)
