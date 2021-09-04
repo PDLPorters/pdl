@@ -2,23 +2,7 @@
 #define __PDLCORE_H
 
 /*
-# version 2 is for versions after PDL 2.1.1
-# version 4 has pdl_hard_copy included in the Core structure.
-# version 6 is introduced after 2.4.2, due to the experimental
-#   per-ndarray bad values code (the BADVAL_PER_PDL option)
-# version 7 introduced for some changes to function prototypes
-#   for pthreading (i.e. multi-threading) capabilities
-# version 8 for beginning support for >2GiB ndarrays
-# version 9 for STRLEN/Size_t/Off_t for mmap delete magic
-# version 10 for 64bit index support (PDL index datatype)
-# version 11 for core cleanup (proto-PDL-3)
-# version 12 for PDL_Anyval union data type (full 64bit support)
-# version 13 for complex data types (native complex support)
-# version 14: NaN support for native complex, per-PDL badval on
-# version 15: threadid, ndims become PDL_Indx
-# version 16: zap tmp, flushcache, NaN_*, qsort_ for complex, add_deletedata_magic
-# version 17: restore add_deletedata_magic
-# version 18: zap twod, complex sorters
+# version 18: zap twod, complex sorters, reorganised
 */
 
 #define PDL_CORE_VERSION 18
