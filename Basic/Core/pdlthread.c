@@ -41,7 +41,7 @@ static void print_iarr(PDL_Indx *iarr, int n) {
 void dump_thread(pdl_thread *thread) {
   int i;
   char spaces[] = "    ";
-  printf("DUMPTHREAD %p \n",(void*)thread);
+  printf("DUMPTHREAD %p\n",(void*)thread);
   if (0&& thread->einfo) {
     psp; printf("Funcname: %s\n",thread->einfo->funcname);
     psp; printf("Parameters: ");
@@ -51,7 +51,8 @@ void dump_thread(pdl_thread *thread) {
   }
   psp; printf("Flags: %d, Ndims: %"IND_FLAG", Nimplicit: %"IND_FLAG", Npdls: %"IND_FLAG", Nextra: %"IND_FLAG"\n",
 	 thread->gflags,thread->ndims,thread->nimpl,thread->npdls,thread->nextra);
-
+  psp; printf("Mag_nth: %"IND_FLAG", Mag_nthpdl: %"IND_FLAG", Mag_nthr: %"IND_FLAG"\n",
+	 thread->mag_nth,thread->mag_nthpdl,thread->mag_nthr);
   psp; printf("Dims: "); print_iarr(thread->dims,thread->ndims); printf("\n");
   psp; printf("Inds: "); print_iarr(thread->inds,thread->ndims); printf("\n");
   psp; printf("Offs: "); print_iarr(thread->offs,thread->npdls); printf("\n");
