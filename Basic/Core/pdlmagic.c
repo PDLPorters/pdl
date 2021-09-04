@@ -316,25 +316,23 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	 *	Any barf, warn, etc calls in the spawned pthreads can use this
 	 *	to tell if its a spawned pthread
 	 */
-	pdl_main_pthreadID = pthread_self();   /* should do inside pthread_once() */
-    done_pdl_main_pthreadID_init = 1;
+	pdl_main_pthreadID = pthread_self();
+	done_pdl_main_pthreadID_init = 1;
 
-    for(i=0; i<thread->mag_nthr; i++) {
-        tparg[i].mag = ptr;
-        tparg[i].func = func;
-        tparg[i].t = t;
-        tparg[i].no = i;
-        if (pthread_create(tp+i, NULL, pthread_perform, tparg+i)) {
-            die("Unable to create pthreads!");
-        }
-    }
+	for(i=0; i<thread->mag_nthr; i++) {
+	    tparg[i].mag = ptr;
+	    tparg[i].func = func;
+	    tparg[i].t = t;
+	    tparg[i].no = i;
+	    if (pthread_create(tp+i, NULL, pthread_perform, tparg+i)) {
+		die("Unable to create pthreads!");
+	    }
+	}
 
-    PDLDEBUG_f(printf("JOINING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
-
+	PDLDEBUG_f(printf("JOINING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
 	for(i=0; i<thread->mag_nthr; i++) {
 		pthread_join(tp[i], NULL);
 	}
-
 	PDLDEBUG_f(printf("FINISHED THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
 
 	pthread_key_delete((ptr->key));

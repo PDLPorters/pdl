@@ -249,7 +249,7 @@ void pdl_find_max_pthread(
 */
 void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating, int noPthreadFlag ){
 	PDL_Indx j, nthrd;
-	PDL_Indx largest_nvals = 0;  /* The largest PDL size for all the pdls involvled */
+	PDL_Indx largest_nvals = 0;  /* The largest PDL size for all the pdls involved */
 	int maxPthreadPDL; /* PDL that has the max (or right at the target) num pthreads */
 	int maxPthreadDim; /* Threaded dim number that has the max num pthreads */
 	int maxPthread = 0;    /* Maximum achievable pthread */
