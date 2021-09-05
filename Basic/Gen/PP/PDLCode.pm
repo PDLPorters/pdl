@@ -505,19 +505,19 @@ sub myprelude {
 	    register PDL_Indx __tdims1 = $PRIV(__pdlthread.dims[1]); \
 	    register PDL_Indx __tdims0 = $PRIV(__pdlthread.dims[0]); \
 	    register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));',
-      (map "register PDL_Indx __tinc0_${_} = \$PRIV(__pdlthread).incs[${_}];", 0..$#{$ord}),
-      (map "register PDL_Indx __tinc1_${_} = \$PRIV(__pdlthread).incs[__tnpdls+$_];", 0.. $#{$ord}),
-      (map "$ord->[$_]_datap += __offsp[$_];", 0..$#{$ord}),
+      (map "register PDL_Indx __tinc0_$_ = \$PRIV(__pdlthread).incs[$_];", 0..$#$ord),
+      (map "register PDL_Indx __tinc1_$_ = \$PRIV(__pdlthread).incs[__tnpdls+$_];", 0.. $#$ord),
+      (map $pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];", 0..$#$ord),
       'for( __tind1 = 0 ; \
 	    __tind1 < __tdims1 ; \
 	    __tind1++',
-	    (map "\t\t,$ord->[$_]_datap += __tinc1_${_} - __tinc0_${_} * __tdims0", 0..$#{$ord}),
+	    (map "\t\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$_ - __tinc0_$_ * __tdims0", 0..$#$ord),
 	 ')',
       '{ \
 	 for( __tind0 = 0 ; \
 	      __tind0 < __tdims0 ; \
 	      __tind0++',
-	      (map "\t\t,$ord->[$_]_datap += __tinc0_${_}", 0..$#{$ord}),
+	      (map "\t\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc0_${_}", 0..$#{$ord}),
 	   ") {",
       "PDL_COMMENT(\"This is the tightest threadloop. Make sure inside is optimal.\")\n\n",
     ) . $macro_name;
@@ -534,7 +534,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 	"\n#define $macro_name",
 	'}',
 	'}',
-	(map "$ord->[$_]_datap -= __tinc1_${_} * __tdims1 + __offsp[${_}];", 0..$#{$ord}),
+	(map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_${_} * __tdims1 + __offsp[${_}];", 0..$#{$ord}),
 	'} while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));'."\n",
 	) . $macro_name;
 }
