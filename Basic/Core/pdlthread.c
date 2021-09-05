@@ -55,8 +55,21 @@ void dump_thread(pdl_thread *thread) {
   psp; printf("Mag_nth: %"IND_FLAG", Mag_nthpdl: %"IND_FLAG", Mag_nthr: %"IND_FLAG"\n",
 	 thread->mag_nth,thread->mag_nthpdl,thread->mag_nthr);
   psp; printf("Dims: "); print_iarr(thread->dims,thread->ndims); printf("\n");
-  psp; printf("Inds: "); print_iarr(thread->inds,thread->ndims); printf("\n");
-  psp; printf("Offs: "); print_iarr(thread->offs,thread->npdls); printf("\n");
+  if (thread->mag_nthr <= 0) {
+    psp; printf("Inds: "); print_iarr(thread->inds,thread->ndims); printf("\n");
+    psp; printf("Offs: "); print_iarr(thread->offs,thread->npdls); printf("\n");
+  } else {
+    psp; printf("Inds:\n");
+    for (i=0;i<thread->mag_nthr;i++) {
+      psp; psp; print_iarr(thread->inds + i*thread->ndims,thread->ndims);
+      printf("\n");
+    }
+    psp; printf("Offs:\n");
+    for (i=0;i<thread->mag_nthr;i++) {
+      psp; psp; print_iarr(thread->offs + i*thread->npdls,thread->npdls);
+      printf("\n");
+    }
+  }
   psp; printf("Incs: "); print_iarr(thread->incs,thread->ndims); printf("\n");
   psp; printf("Realdims: "); print_iarr(thread->realdims,thread->npdls); printf("\n");
   psp; printf("Pdls: (");
