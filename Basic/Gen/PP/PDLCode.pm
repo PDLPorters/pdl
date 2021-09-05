@@ -500,17 +500,21 @@ sub myprelude {
     PDL::PP::pp_line_numbers(__LINE__, join " \\\n\t",
       "#define $macro_name",
       'if ( PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return; \
-       do { register PDL_Indx __tind0=0,__tind1=0; \
+       do { register PDL_Indx __tind0=0,__tind1=0; PDL_COMMENT("counters along dim") \
 	    register PDL_Indx __tnpdls = $PRIV(__pdlthread).npdls; \
+	    PDL_COMMENT("dims here are how many steps along those dims") \
 	    register PDL_Indx __tdims1 = $PRIV(__pdlthread.dims[1]); \
 	    register PDL_Indx __tdims0 = $PRIV(__pdlthread.dims[0]); \
 	    register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));',
+      'PDL_COMMENT("incs are each pdl\'s stride")',
       (map "register PDL_Indx __tinc0_$_ = \$PRIV(__pdlthread).incs[$_];", 0..$#$ord),
       (map "register PDL_Indx __tinc1_$_ = \$PRIV(__pdlthread).incs[__tnpdls+$_];", 0.. $#$ord),
+      'PDL_COMMENT("offs are each pthread\'s starting offset into each pdl")',
       (map $pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];", 0..$#$ord),
       'for( __tind1 = 0 ; \
 	    __tind1 < __tdims1 ; \
 	    __tind1++',
+	    'PDL_COMMENT("step by tinc1, undoing inner-loop of tinc0*tdims0")',
 	    (map "\t\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$_ - __tinc0_$_ * __tdims0", 0..$#$ord),
 	 ')',
       '{ \
@@ -534,7 +538,8 @@ sub mypostlude {my($this,$parent,$context) = @_;
 	"\n#define $macro_name",
 	'}',
 	'}',
-	(map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_${_} * __tdims1 + __offsp[${_}];", 0..$#{$ord}),
+	'PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset")',
+	(map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$_ * __tdims1 + __offsp[$_];", 0..$#$ord),
 	'} while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));'."\n",
 	) . $macro_name;
 }
