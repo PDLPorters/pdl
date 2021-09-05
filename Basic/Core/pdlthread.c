@@ -499,7 +499,7 @@ void pdl_initthreadstruct(int nobl,
 	  for(j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
 	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
 	    if(thread->pdls[j]->threadids[0]-         // If we're off the end of the current PDLs dimlist,
-	       thread->realdims[j] <= nth)            //    then just skip it.
+	       realdims[j] <= nth)                    //    then just skip it.
 	      continue;
 	    if(pdls[j]->dims[nth+realdims[j]] != 1) { // If the current dim in the current PDL is not 1,
 	      if(thread->dims[nth] != 1) {            //   ... and the current planned size isn't 1,
@@ -532,8 +532,7 @@ void pdl_initthreadstruct(int nobl,
 	for(i=0; i<nthreadids[nthid]; i++) {
 		for(j=0; j<npdls; j++) {
 			if(creating[j]) continue;
-			if(thread->pdls[j]->nthreadids < nthid)
-				continue;
+			if(thread->pdls[j]->nthreadids < nthid) continue;
 			if(thread->pdls[j]->threadids[nthid+1]-
 			   thread->pdls[j]->threadids[nthid]
 					<= i) continue;
@@ -546,7 +545,7 @@ void pdl_initthreadstruct(int nobl,
 						pdl_croak_param(info,j,"Mismatched Implicit thread dimension %d: should be %d, is %d",
 							i,
 							thread->dims[nth],
-							pdls[j]->dims[i+thread->realdims[j]]);
+							pdls[j]->dims[i+realdims[j]]);
 					}
 				} else {
 					thread->dims[nth] =
