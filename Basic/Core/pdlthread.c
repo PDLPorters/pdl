@@ -41,6 +41,7 @@ static void print_iarr(PDL_Indx *iarr, int n) {
 void dump_thread(pdl_thread *thread) {
   int i;
   char spaces[] = "    ";
+  fflush(stdout);
   printf("DUMPTHREAD %p\n",(void*)thread);
   if (0&& thread->einfo) {
     psp; printf("Funcname: %s\n",thread->einfo->funcname);
@@ -66,6 +67,7 @@ void dump_thread(pdl_thread *thread) {
   for (i=0;i<thread->npdls;i++)
     printf("%s%d",(i?" ":""),thread->flags[i]);
   printf(")\n");
+  fflush(stdout);
 }
 
 
