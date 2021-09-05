@@ -492,9 +492,7 @@ sub myprelude {
     #    function name for backcode is writebackdata
     my $funcName = "readdata";
     $funcName = "writebackdata" if( $backcode );
-
     my ($ord,$pdls) = $parent->get_pdls();
-
     my $loop_key = "emitted_startthreadloop_$funcName";
     my $macro_name = "PDL_STARTTHREADLOOP_$parent->{Name}_$funcName";
     return $macro_name if $parent->{$loop_key};
@@ -985,43 +983,6 @@ sub get_str {my($this,$parent,$context) = @_;
 
 ###########################
 #
-# Encapsulate a ReSizeAccess
-
-package PDL::PP::ReSizeAccess;
-use Carp;
-our @CARP_NOT;
-
-sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
-
-sub get_str {my($this,$parent,$context) = @_;
-	$this->[0] =~ /^([^,]+),([^,]+)$/ or
-		croak "Can't interpret resize str $this->[0]";
-	croak "can't RESIZE undefined dimension $1"
-	  unless defined($parent->{IndObjs}{$1});
-
-	my $s = $parent->{IndObjs}{$1}->get_size();
-
-# XXX NOTE: All ndarrays must be output ndarrays, there must not be
-# a loop over this var (at all!) etc. Should check for these,
-# this is why not yet documented.
-# FURTHER NOTE: RESIZE DOESN'T COPY DATA PROPERLY!
-
-	my($ord,$pdls) = $parent->get_pdls();
-	my @p;
-
-	for(@$ord) {
-		push @p, $_
-			if $pdls->{$_}->has_dim($1);
-	}
-	print "RESIZEACC: $1 $2, (",(join ',',@p),")\n";
-	warn "RESIZE USED: DO YOU KNOW WHAT YOU ARE DOING???\n";
-
-	return "$s = $2; ".(join '',map $pdls->{$_}->do_resize($1,$2), @p);
-}
-
-
-###########################
-#
 # Encapsulate a GentypeAccess
 
 package PDL::PP::GentypeAccess;
@@ -1038,34 +999,4 @@ sub get_str {my($this,$parent,$context) = @_;
   $pobj->adjusted_type($type)->ctype;
 }
 
-########################
-#
-# Type coercion
-#
-# Now, if TYPES:F given and double arguments, will coerce.
-
-package PDL::PP::TypeConv;
-
-sub print_xscoerce { my($this) = @_;
-	$this->printxs("\t__priv->datatype=PDL_B;\n");
-# First, go through all the types, selecting the most general.
-	for(@{$this->{PdlOrder}}) {
-		$this->printxs($this->{Pdls}{$_}->get_xsdatatypetest());
-	}
-# See which types we are allowed to use.
-	$this->printxs("\tif(0) {}\n");
-	for(@{$this->get_generictypes()}) {
-		$this->printxs("\telse if(__priv->datatype <= $_->[2]) __priv->datatype = $_->[2];\n");
-	}
-	$this->{Types} =~ /F/ and (
-		$this->printxs("\telse if(__priv->datatype == PDL_D) {__priv->datatype = PDL_F; PDL_COMMENT(\"Cast double to float\")}\n"));
-	$this->printxs(qq[\telse {croak("Too high type \%d given!\\n",__priv->datatype);}]);
-# Then, coerce everything to this type.
-	for(@{$this->{PdlOrder}}) {
-		$this->printxs($this->{Pdls}{$_}->get_xscoerce());
-	}
-}
-# XXX Should use PDL::Core::Dev;
-
-# return true
 1;
