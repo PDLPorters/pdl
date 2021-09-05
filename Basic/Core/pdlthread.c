@@ -474,6 +474,7 @@ void pdl_initthreadstruct(int nobl,
 
       Newxz(thread->dims, ndims, PDL_Indx);
       if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
+      for(nth=0; nth<ndims; nth++) thread->dims[nth]=1; // all start size 1
 
       Newxz(thread->offs, npdls * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific offs */
       if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c");
@@ -487,8 +488,6 @@ void pdl_initthreadstruct(int nobl,
 	/* populate the per_pdl_flags */
 
 	for (i=0;i<npdls; i++) {
-	  thread->offs[i] = 0; /* initialize offsets */
-	  thread->flags[i] = 0;
 	  if (PDL_VAFFOK(pdls[i]) && VAFFINE_FLAG_OK(flags,i))
 	    thread->flags[i] |= PDL_THREAD_VAFFINE_OK;
 	}
@@ -497,9 +496,7 @@ void pdl_initthreadstruct(int nobl,
 /* Make implicit inds */
 
 	for(nth=0; nth<nimpl; nth++) {                // Loop over number of implicit threads
-	  thread->dims[nth] = 1;                      // Start with a size of 1 for this thread
 	  for(j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
-	    thread->incs[nth*npdls+j] = 0;
 	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
 	    if(thread->pdls[j]->threadids[0]-         // If we're off the end of the current PDLs dimlist,
 	       thread->realdims[j] <= nth)            //    then just skip it.
@@ -533,9 +530,7 @@ void pdl_initthreadstruct(int nobl,
 
 	for(nthid=0; nthid<nids; nthid++) {
 	for(i=0; i<nthreadids[nthid]; i++) {
-		thread->dims[nth] = 1;
 		for(j=0; j<npdls; j++) {
-			thread->incs[nth*npdls+j] = 0;
 			if(creating[j]) continue;
 			if(thread->pdls[j]->nthreadids < nthid)
 				continue;
@@ -565,13 +560,6 @@ void pdl_initthreadstruct(int nobl,
 	}
 	}
 
-/* Make sure that we have the obligatory number of threaddims */
-
-	for(; nth<ndims; nth++) {
-		thread->dims[nth]=1;
-		for(j=0; j<npdls; j++)
-			thread->incs[nth*npdls+j] = 0;
-	}
 /* If threading, make the true offsets and dims.. */
 
 	if(nthr > 0) {
@@ -636,8 +624,6 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 		}
 	}
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
-	for(i=0; i<thread->ndims; i++)
-		inds[i] = 0;
 	for(j=0; j<thread->npdls; j++)
 		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]) +
 			(!thr?0:
