@@ -634,7 +634,6 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx i,j;
 	int stop = 0;
-	PDL_Indx stopdim;
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds;
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
@@ -645,7 +644,7 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 		if( inds[i] >= thread->dims[i])
 			inds[i] = 0;
 		else
-		{	stopdim = i; stop = 1; break; }
+		{	stop = 1; break; }
 	}
 	if(!stop) return 0;
 	for(j=0; j<thread->npdls; j++) {
@@ -656,7 +655,7 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 		    offsp[j] += thread->incs[i*thread->npdls+j] * inds[i];
 		}
 	}
-	return stopdim+1;
+	return 1;
 }
 
 void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...)
