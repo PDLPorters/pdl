@@ -214,7 +214,7 @@ void pdl_find_max_pthread(
   int *p_maxPthreadDim, /* Threaded dim number that has the max num pthreads */
   int *p_maxPthreadPDL /* PDL that has the max (or right at the target) num pthreads */
 ) {
-  PDL_Indx j, k, t, nthreadDim;
+  PDL_Indx j, k, t;
   /* Build int arrays of threaded dim numbers and sizes for each pdl */
   PDL_Indx *nthreadedDims, **threadedDims, **threadedDimSizes;
   nthreadedDims     = (PDL_Indx*)  malloc(sizeof(PDL_Indx)   * (npdls));
@@ -227,13 +227,11 @@ void pdl_find_max_pthread(
   }
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
-    nthreadDim = 0;
     for( k=0, t = realdims[j]; t < pdls[j]->ndims; t++, k++ ){
       threadedDimSizes[j][k] = pdls[j]->dims[t];
       threadedDims[j][k]      = t;
-      nthreadDim++;
     }
-    nthreadedDims[j] = nthreadDim;
+    nthreadedDims[j] = pdls[j]->ndims - realdims[j];
   }
   /* Go through each threaded dim and see how many pthreads we can
      create closest to the maximum target pthreads */
