@@ -604,7 +604,7 @@ See the manual for why this is impossible");
 
 int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 			pdl_trans *t) {
-	PDL_Indx i,j;
+	PDL_Indx i,j, npdls = thread->npdls;
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds;
 	if(  (thread->gflags & (PDL_THREAD_MAGICKED | PDL_THREAD_MAGICK_BUSY))
@@ -623,11 +623,12 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 		}
 	}
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
-	for(j=0; j<thread->npdls; j++)
-		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]) +
-			(!thr?0:
-				thr * thread->dims[thread->mag_nth] *
-				    thread->incs[thread->mag_nth*thread->npdls + j]);
+	for(j=0; j<npdls; j++)
+	    offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
+	if (thr)
+	    for(j=0; j<npdls; j++) offsp[j] +=
+		thr * thread->dims[thread->mag_nth] *
+		    thread->incs[thread->mag_nth*npdls + j];
 	return 0;
 }
 
