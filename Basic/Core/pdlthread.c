@@ -631,9 +631,11 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 	return 0;
 }
 
+/* nth is how many dims are done inside the threadloop itself */
+/* inds is how far along each non-threadloop dim we are */
 int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx i,j;
-	int stop = 0;
+	int another_threadloop = 0;
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds;
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
@@ -644,18 +646,18 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 		if( inds[i] >= thread->dims[i])
 			inds[i] = 0;
 		else
-		{	stop = 1; break; }
+		{	another_threadloop = 1; break; }
 	}
-	if(!stop) return 0;
-	for(j=0; j<thread->npdls; j++) {
+	if (another_threadloop)
+	    for(j=0; j<thread->npdls; j++) {
 		if (thr)
 		    offsp[j] += thr * thread->dims[thread->mag_nth] *
 			thread->incs[thread->mag_nth*thread->npdls + j];
 		for(i=nth; i<thread->ndims; i++) {
 		    offsp[j] += thread->incs[i*thread->npdls+j] * inds[i];
 		}
-	}
-	return 1;
+	    }
+	return another_threadloop;
 }
 
 void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...)
