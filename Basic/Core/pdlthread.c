@@ -639,8 +639,6 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds;
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds);
-	for(j=0; j<thread->npdls; j++)
-		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 	for(i=nth; i<thread->ndims; i++) {
 		inds[i] ++;
 		if( inds[i] >= thread->dims[i])
@@ -650,6 +648,7 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	}
 	if (another_threadloop)
 	    for(j=0; j<thread->npdls; j++) {
+		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 		if (thr)
 		    offsp[j] += thr * thread->dims[thread->mag_nth] *
 			thread->incs[thread->mag_nth*thread->npdls + j];
