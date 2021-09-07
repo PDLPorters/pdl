@@ -51,7 +51,7 @@ sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
 my $libs_string = "$pthread_library $malloclib -lm";
 
-my @cfiles = qw(pdlcore pdlapi pdlhash pdlthread pdlconv pdlmagic);
+my @cfiles = qw(pdlcore pdlapi pdlthread pdlconv pdlmagic);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
