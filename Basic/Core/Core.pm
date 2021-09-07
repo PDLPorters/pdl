@@ -2303,28 +2303,18 @@ obvious that would not break existing scripts.
 sub PDL::new_from_specification{
     my $class = shift;
     my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
-    my $nelems = 1; my @dims;
-    for (@_) {
-       if (ref $_) {
-         barf "Trying to use non-ndarray as dimensions?" unless $_->isa('PDL');
-         barf "Trying to use multi-dim ndarray as dimensions?"
-              if $_->getndims > 1;
-         warn "creating > 10 dim ndarray (ndarray arg)!"
-              if $_->nelem > 10;
-         for my $dim ($_->list) {$nelems *= $dim; push @dims, $dim}
-       } else {
-          if ($_) {  # quiet warnings when $_ is the empty string
-             barf "Dimensions must be non-negative" if $_<0;
-             $nelems *= $_; push @dims, $_
-          } else {
-             $nelems *= 0; push @dims, 0;
-          }
-       }
-    }
+    barf "Dimensions must be non-negative" if grep !ref && ($_||0)<0, @_;
+    barf "Trying to use non-ndarray as dimensions?"
+       if grep ref && !$_->isa('PDL'), @_;
+    barf "Trying to use multi-dim ndarray as dimensions?"
+       if grep ref && $_->getndims > 1, @_;
+    warn "creating > 10 dim ndarray (ndarray arg)!"
+       if grep ref && $_->nelem > 10, @_;
+    my @dims = map ref($_) ? $_->list : $_ || 0, @_;
     my $pdl = $class->initialize();
     $pdl->set_datatype($type);
-    $pdl->setdims([@dims]);
-    print "Dims: ",(join ',',@dims)," DLen: ",(length $ {$pdl->get_dataref}),"\n" if $PDL::debug;
+    $pdl->setdims(\@dims);
+    print "Dims: ",(join ',',@dims)," DLen: ",length(${$pdl->get_dataref}),"\n" if $PDL::debug;
     return $pdl;
 }
 
