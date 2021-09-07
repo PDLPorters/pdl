@@ -16,7 +16,6 @@ PDL::Opt::Simplex -- Simplex optimization routines
   # more involved:
   use PDL;
   use PDL::Opt::Simplex;
-  use Data::Dumper;
 
   my $count = 0;
   # find value of $x that returns a minimum
