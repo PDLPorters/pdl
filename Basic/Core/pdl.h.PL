@@ -140,6 +140,9 @@ print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
 # extra as macro gets expanded twice, gets painted blue
 print OUT "#define PDL_GENERICLIST2_(X, X2) \\\n";
 print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
+my @generics_real = map { my $t = $_; [map $t->$_, @methods] } grep $_->real, PDL::Types::types();
+print OUT "#define PDL_GENERICLIST_REAL(X) \\\n";
+print OUT (map ' X('.join(',', @$_).")\\\n", @generics_real), "\n\n";
 
 print OUT <<'EOF';
 typedef struct badvals {
@@ -469,6 +472,29 @@ struct pdl {
 #define PDL_ENSURE_VAFFTRANS(it) \
   ( ((!it->vafftrans) || (it->vafftrans->ndims < it->ndims)) && \
     (pdl_vafftrans_alloc(it),1) )
+
+/* for use with PDL_GENERICLIST_REAL */
+#define PDL_QSORT(symbol, ctype, ppsym, shortctype, defbval) \
+  void qsort_ ## ppsym(ctype* xx, PDL_Indx a, PDL_Indx b) { \
+     PDL_Indx i,j; \
+     ctype t, median; \
+     i = a; j = b; \
+     median = xx[(i+j) / 2]; \
+     do { \
+        while (xx[i] < median) \
+           i++; \
+        while (median < xx[j]) \
+           j--; \
+        if (i <= j) { \
+           t = xx[i]; xx[i] = xx[j]; xx[j] = t; \
+           i++; j--; \
+        } \
+     } while (i <= j); \
+     if (a < j) \
+        qsort_ ## ppsym(xx,a,j); \
+     if (i < b) \
+        qsort_ ## ppsym(xx,i,b); \
+  }
 
 /* __PDL_H */
 #endif

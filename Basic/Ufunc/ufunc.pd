@@ -483,169 +483,116 @@ EOD
 # note: we export them to the PDL Core structure for use in
 #       other modules (eg Image2D)
 
-for ( grep $_->real, types() ) {
-    my ($ctype, $ppsym) = ($_->ctype, $_->ppsym);
-    pp_add_boot( " PDL->qsort_${ppsym} = pdl_qsort_${ppsym};" .
-		 " PDL->qsort_ind_${ppsym} = pdl_qsort_ind_${ppsym};\n" );
+pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
+PDL_GENERICLIST_REAL(PDL_QSORT)
 
-    pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<"FOO")
-
-      void pdl_qsort_$ppsym($ctype* xx, PDL_Indx a, PDL_Indx b) {
-
-         PDL_Indx i,j;
-
-         $ctype t, median;
-
-         i = a; j = b;
-         median = xx[(i+j) / 2];
-         do {
-            while (xx[i] < median)
-               i++;
-            while (median < xx[j])
-               j--;
-            if (i <= j) {
-               t = xx[i]; xx[i] = xx[j]; xx[j] = t;
-               i++; j--;
-            }
-         } while (i <= j);
-
-         if (a < j)
-            pdl_qsort_$ppsym(xx,a,j);
-         if (i < b)
-            pdl_qsort_$ppsym(xx,i,b);
-
-      }
-
-      void pdl_qsort_ind_$ppsym($ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) {
-
-         PDL_Indx i,j;
-
-         PDL_Indx t;
-        $ctype median;
-
-         i = a; j = b;
-         median = xx[ix[(i+j) / 2]];
-
-         do {
-          while (xx[ix[i]] < median)
-               i++;
-            while (median < xx[ix[j]])
-               j--;
-            if (i <= j) {
-               t = ix[i]; ix[i] = ix[j]; ix[j] = t;
-               i++; j--;
-            }
-         } while (i <= j);
-
-         if (a < j)
-            pdl_qsort_ind_$ppsym(xx,ix,a,j);
-         if (i < b)
-            pdl_qsort_ind_$ppsym(xx,ix,i,b);
-
-      }
-
-
-	/*******
-         * qsortvec helper routines
-	 *   --CED 21-Aug-2003
-	 */
-
-	/* Compare a vector in lexicographic order, returning the
-	 *  equivalent of "<=>". 
- 	 */
-      signed int pdl_cmpvec_$ppsym($ctype *a, $ctype *b, PDL_Indx n) {
-	PDL_Indx i;
-	for(i=0; i<n; a++,b++,i++) {
-	 if( *a < *b ) return -1;
-	 if( *a > *b ) return 1;
-	}
-	return 0;
-     }	
-	
-      void pdl_qsortvec_$ppsym($ctype *xx, PDL_Indx n, PDL_Indx a, PDL_Indx b) {
-		
-	PDL_Indx i,j, median_ind;
-
-	$ctype t;
-	i = a; 
-	j = b;
-
-	median_ind = (i+j)/2;
-
-	do {
-	  while( pdl_cmpvec_$ppsym( &(xx[n*i]), &(xx[n*median_ind]), n )  <  0 ) 
-		i++;
-	  while( pdl_cmpvec_$ppsym( &(xx[n*j]), &(xx[n*median_ind]), n )  >  0 ) 
-		j--;
-	  if(i<=j) {
-		PDL_Indx k;
-		$ctype *aa = &xx[n*i];
-	        $ctype *bb = &xx[n*j];
-		for( k=0; k<n; aa++,bb++,k++ ) {
-		  $ctype z;
-		  z = *aa;
-		  *aa = *bb;
-		  *bb = z;	
-		}
-
-                if (median_ind==i)
-                  median_ind=j;
-                else if (median_ind==j)
-                  median_ind=i;
-
-	        i++; 
-		j--;
-	  }
-	} while (i <= j);
-	
-	if (a < j)
-	  pdl_qsortvec_$ppsym( xx, n, a, j );
-	if (i < b)
-	  pdl_qsortvec_$ppsym( xx, n, i, b );
-	
-      }
-
-      void pdl_qsortvec_ind_$ppsym($ctype *xx, PDL_Indx *ix, PDL_Indx n, PDL_Indx a, PDL_Indx b) {
-		
-	PDL_Indx i,j, median_ind;
-
-	$ctype t;
-	i = a; 
-	j = b;
-
-	median_ind = (i+j)/2;
-
-	do {
-	  while( pdl_cmpvec_$ppsym( &(xx[n*ix[i]]), &(xx[n*ix[median_ind]]), n )  <  0 ) 
-		i++;
-	  while( pdl_cmpvec_$ppsym( &(xx[n*ix[j]]), &(xx[n*ix[median_ind]]), n )  >  0 ) 
-		j--;
-	  if(i<=j) {
-		PDL_Indx k;
-	        k = ix[i];
-	        ix[i] = ix[j];
-		ix[j] = k;	        
-
-                if (median_ind==i)
-                  median_ind=j;
-                else if (median_ind==j)
-                  median_ind=i;
-
-	        i++; 
-		j--;
-	  }
-	} while (i <= j);
-	
-	if (a < j)
-	  pdl_qsortvec_ind_$ppsym( xx, ix, n, a, j );
-	if (i < b)
-	  pdl_qsortvec_ind_$ppsym( xx, ix, n, i, b );
-	
-      }
-
-FOO
-   );
-}
+#define QSORT_OTHER(symbol, ctype, ppsym, shortctype, defbval) \
+  void qsort_ind_ ## ppsym(ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) { \
+     PDL_Indx i,j; \
+     PDL_Indx t; \
+     ctype median; \
+     i = a; j = b; \
+     median = xx[ix[(i+j) / 2]]; \
+     do { \
+      while (xx[ix[i]] < median) \
+           i++; \
+        while (median < xx[ix[j]]) \
+           j--; \
+        if (i <= j) { \
+           t = ix[i]; ix[i] = ix[j]; ix[j] = t; \
+           i++; j--; \
+        } \
+     } while (i <= j); \
+     if (a < j) \
+        qsort_ind_ ## ppsym(xx,ix,a,j); \
+     if (i < b) \
+        qsort_ind_ ## ppsym(xx,ix,i,b); \
+  } \
+ \
+    /******* \
+     * qsortvec helper routines \
+     *   --CED 21-Aug-2003 \
+     */ \
+ \
+    /* Compare a vector in lexicographic order, returning the \
+     *  equivalent of "<=>".  \
+     */ \
+  signed int pdl_cmpvec_ ## ppsym(ctype *a, ctype *b, PDL_Indx n) { \
+    PDL_Indx i; \
+    for(i=0; i<n; a++,b++,i++) { \
+     if( *a < *b ) return -1; \
+     if( *a > *b ) return 1; \
+    } \
+    return 0; \
+ }	 \
+ \
+  void pdl_qsortvec_ ## ppsym(ctype *xx, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
+    PDL_Indx i,j, median_ind; \
+    ctype t; \
+    i = a;  \
+    j = b; \
+    median_ind = (i+j)/2; \
+    do { \
+      while( pdl_cmpvec_ ## ppsym( &(xx[n*i]), &(xx[n*median_ind]), n )  <  0 )  \
+            i++; \
+      while( pdl_cmpvec_ ## ppsym( &(xx[n*j]), &(xx[n*median_ind]), n )  >  0 )  \
+            j--; \
+      if(i<=j) { \
+            PDL_Indx k; \
+            ctype *aa = &xx[n*i]; \
+            ctype *bb = &xx[n*j]; \
+            for( k=0; k<n; aa++,bb++,k++ ) { \
+              ctype z; \
+              z = *aa; \
+              *aa = *bb; \
+              *bb = z;	 \
+            } \
+            if (median_ind==i) \
+              median_ind=j; \
+            else if (median_ind==j) \
+              median_ind=i; \
+            i++;  \
+            j--; \
+      } \
+    } while (i <= j); \
+    if (a < j) \
+      pdl_qsortvec_ ## ppsym( xx, n, a, j ); \
+    if (i < b) \
+      pdl_qsortvec_ ## ppsym( xx, n, i, b ); \
+  } \
+ \
+  void pdl_qsortvec_ind_ ## ppsym(ctype *xx, PDL_Indx *ix, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
+    PDL_Indx i,j, median_ind; \
+    ctype t; \
+    i = a;  \
+    j = b; \
+    median_ind = (i+j)/2; \
+    do { \
+      while( pdl_cmpvec_ ## ppsym( &(xx[n*ix[i]]), &(xx[n*ix[median_ind]]), n )  <  0 )  \
+            i++; \
+      while( pdl_cmpvec_ ## ppsym( &(xx[n*ix[j]]), &(xx[n*ix[median_ind]]), n )  >  0 )  \
+            j--; \
+      if(i<=j) { \
+            PDL_Indx k; \
+            k = ix[i]; \
+            ix[i] = ix[j]; \
+            ix[j] = k;	         \
+            if (median_ind==i) \
+              median_ind=j; \
+            else if (median_ind==j) \
+              median_ind=i; \
+            i++;  \
+            j--; \
+      } \
+    } while (i <= j); \
+    if (a < j) \
+      pdl_qsortvec_ind_ ## ppsym( xx, ix, n, a, j ); \
+    if (i < b) \
+      pdl_qsortvec_ind_ ## ppsym( xx, ix, n, i, b ); \
+  }
+PDL_GENERICLIST_REAL(QSORT_OTHER)
+#undef QSORT_OTHER
+EOF
 
 # when copying the data over to the temporary array,
 # ignore the bad values and then only send the number
@@ -654,7 +601,7 @@ FOO
 
 sub generic_qsort {
     my $pdl = shift;
-    return 'pdl_qsort_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(' . $pdl . '), 0, nn);';
+    return 'qsort_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(' . $pdl . '), 0, nn);';
 }
 
 sub generic_qsortvec {
@@ -759,7 +706,7 @@ BAD is the most common element, the returned value is also BAD.
 
                /* Copy input to buffer for sorting, and sort it */
                loop(n) %{ $sorted() = $data(); %}
-               PDL->qsort_$TBSULNQ(B,S,U,L,N,Q)($P(sorted),0,$SIZE(n)-1);
+               qsort_$TBSULNQ(B,S,U,L,N,Q)($P(sorted),0,$SIZE(n)-1);
       
                /* Walk through the sorted data and find the most common elemen */
                loop(n) %{
@@ -1159,7 +1106,7 @@ Bad values are moved to the end of the array:
     ); # pp_def qsort
 
 sub generic_qsort_ind {
-    return 'pdl_qsort_ind_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(a), $P(indx),
+    return 'qsort_ind_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(a), $P(indx),
             0, nn);';
 }
 

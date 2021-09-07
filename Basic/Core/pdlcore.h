@@ -156,13 +156,6 @@ struct Core {
   rettype (*sym) args;
   PDL_CORE_LIST(X)
 #undef X
-
-  /* defined in ufunc.pd */
-#define X(symbol, ctype, ppsym, shortctype, defbval) \
-void (*qsort_ ## ppsym) (ctype *xx, PDL_Indx a, PDL_Indx b ); \
-void (*qsort_ind_ ## ppsym) (ctype *xx, PDL_Indx *ix, PDL_Indx a, PDL_Indx b );
-PDL_GENERICLIST(X)
-#undef X
 };
 
 typedef struct Core Core;

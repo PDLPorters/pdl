@@ -453,6 +453,10 @@ sub PDL::conv2d {
 
 ); # pp_def: conv2d
 
+pp_addhdr(<<'EOF');
+PDL_GENERICLIST_REAL(PDL_QSORT)
+EOF
+
 pp_def('med2d', Doc=> <<'EOD',
 
 =for ref
@@ -534,7 +538,7 @@ sub PDL::med2d {
 		       } /* for: i1 */
 		 } /* for: j1 */
 
-                 PDL->qsort_D( tmp, 0, count-1 );
+                 qsort_D( tmp, 0, count-1 );
                  $b(m=>i,n=>j) = tmp[(count-1)/2];
 
               } /* for: i */
@@ -576,7 +580,7 @@ sub PDL::med2d {
 		    $SETBAD(b(m=>i,n=>j));
                  } else {
 
-                    PDL->qsort_D( tmp, 0, count-1 );
+                    qsort_D( tmp, 0, count-1 );
                     $b(m=>i,n=>j) = tmp[(count-1)/2];
 
 		 }
