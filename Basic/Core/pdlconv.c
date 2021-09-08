@@ -19,7 +19,7 @@
         ap ++; \
     }
 
-#define VAFF_IO(name) \
+#define VAFF_IO(name, X) \
 void pdl_ ## name(pdl *a) { \
 	PDL_Indx i; \
 	int j; \
@@ -32,10 +32,10 @@ void pdl_ ## name(pdl *a) { \
 }
 
 #define X(...) XCODE(*ap = *pp, __VA_ARGS__)
-VAFF_IO(readdata_vaffine)
+VAFF_IO(readdata_vaffine, X)
 #undef X
 #define X(...) XCODE(*pp = *ap, __VA_ARGS__)
-VAFF_IO(writebackdata_vaffine)
+VAFF_IO(writebackdata_vaffine, X)
 #undef X
 #undef XCODE
 
