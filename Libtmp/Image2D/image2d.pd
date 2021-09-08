@@ -668,7 +668,7 @@ sub PDL::med2df {
 		 } /* for: j1 */
 
                  $b(m=>i,n=>j) =
-                        quick_select_$TBSULNQFD(B,S,U,L,N,Q,F,D) (tmp, count );
+                        quick_select_$PPSYM() (tmp, count );
 
               } /* for: i */
            } /* for: j */

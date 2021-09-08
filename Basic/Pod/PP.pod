@@ -1138,7 +1138,7 @@ type of arguments. The general syntax is
 	$Ttypeletters(type_alternatives)
 
 where C<typeletters> is a permutation of a subset of the letters
-C<BSULNQFD> which stand for Byte, Short, Ushort, etc. and
+C<BSULNQFDGC> which stand for Byte, Short, Ushort, etc. and
 C<type_alternatives> are the expansions when the type of the PP
 operation is equal to that indicated by the respective letter. Let's
 illustrate this incomprehensible description by an example. Assuming
@@ -1168,6 +1168,14 @@ I<physical> refers to some internal optimisations of PDL (for those who
 are familiar with the PDL core we are talking about the vaffine
 optimisations). This macro is mainly for internal use and you shouldn't
 need to use it in any of your normal code.
+
+=item C<$PPSYM>
+
+The C<$PPSYM()> macro is replaced by the value of L<PDL::Types/ppsym> for
+the loop type, or that of the given parameter, similar to
+C<$GENERIC()>. This is useful for e.g. macros that vary by that, avoiding
+the need for things like C<$TXY(X,Y)>. Another benefit is that if an
+operation's GenericTypes get extended, this macro will still be correct.
 
 =item C<$COMP> (and the C<OtherPars> section)
 

@@ -601,13 +601,13 @@ EOF
 
 sub generic_qsort {
     my $pdl = shift;
-    return 'qsort_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(' . $pdl . '), 0, nn);';
+    return 'qsort_$PPSYM() ($P(' . $pdl . '), 0, nn);';
 }
 
 sub generic_qsortvec {
     my $pdl = shift;
     my $ndim = shift;
-    return 'pdl_qsortvec_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(' . $pdl . '), '. $ndim.', 0, nn);';
+    return 'pdl_qsortvec_$PPSYM() ($P(' . $pdl . '), '. $ndim.', 0, nn);';
 }
 
 
@@ -706,7 +706,7 @@ BAD is the most common element, the returned value is also BAD.
 
                /* Copy input to buffer for sorting, and sort it */
                loop(n) %{ $sorted() = $data(); %}
-               qsort_$TBSULNQ(B,S,U,L,N,Q)($P(sorted),0,$SIZE(n)-1);
+               qsort_$PPSYM()($P(sorted),0,$SIZE(n)-1);
       
                /* Walk through the sorted data and find the most common elemen */
                loop(n) %{
@@ -1106,7 +1106,7 @@ Bad values are moved to the end of the array:
     ); # pp_def qsort
 
 sub generic_qsort_ind {
-    return 'qsort_ind_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(a), $P(indx),
+    return 'qsort_ind_$PPSYM() ($P(a), $P(indx),
             0, nn);';
 }
 
@@ -1212,7 +1212,7 @@ Vectors with bad components should be moved to the end of the array:
 sub generic_qsortvec_ind {
     my $pdl = shift;
     my $ndim = shift;
-    return 'pdl_qsortvec_ind_$TBSULNQFD(B,S,U,L,N,Q,F,D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
+    return 'pdl_qsortvec_ind_$PPSYM() ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
 }
 
 pp_def(

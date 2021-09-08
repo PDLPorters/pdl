@@ -502,7 +502,7 @@ pp_def( 'pnminascii',
 			       case '1':
 				/* invert on the fly */
 				$im(n=>i,m=>m) = 1 - (s - '0');
-				goto $TBUSL(B,U,S,L)next;
+				goto $PPSYM()next;
 				break;
 			       case ' ':
 			       case '\t':
@@ -516,7 +516,7 @@ pp_def( 'pnminascii',
 				break;
 			      }
 			    }
-			  $TBUSL(B,U,S,L)next: ;
+			  $PPSYM()next: ;
 			%}
 			}
 		  %}

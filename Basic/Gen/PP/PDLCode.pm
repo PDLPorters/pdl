@@ -609,6 +609,7 @@ sub new { my($type,$str,$parent) = @_;
     elsif($pdl =~ /^SIZE$/) {PDL::PP::SizeAccess->new($pdl,$inds);}
     elsif($pdl =~ /^RESIZE$/) {PDL::PP::ReSizeAccess->new($pdl,$inds);}
     elsif($pdl =~ /^GENERIC$/) {PDL::PP::GentypeAccess->new($pdl,$inds);}
+    elsif($pdl =~ /^PPSYM$/) {PDL::PP::PpsymAccess->new($pdl,$inds);}
     elsif($pdl =~ /^PDL$/) {PDL::PP::PdlAccess->new($pdl,$inds);}
     elsif(!defined $parent->{ParObjs}{$pdl}) {PDL::PP::OtherAccess->new($pdl,$inds);}
     else {
@@ -1001,6 +1002,20 @@ sub get_str {my($this,$parent,$context) = @_;
   croak "generic type access outside a generic loop"
     unless defined(my $type = $parent->{Gencurtype}[-1]);
   return $type->ctype if !$this->[0];
+  my $pobj = $parent->{ParObjs}{$this->[0]} // croak "not a defined parname";
+  $pobj->adjusted_type($type)->ctype;
+}
+
+package PDL::PP::PpsymAccess;
+use Carp;
+our @CARP_NOT;
+
+sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
+
+sub get_str {my($this,$parent,$context) = @_;
+  croak "generic type access outside a generic loop"
+    unless defined(my $type = $parent->{Gencurtype}[-1]);
+  return $type->ppsym if !$this->[0];
   my $pobj = $parent->{ParObjs}{$this->[0]} // croak "not a defined parname";
   $pobj->adjusted_type($type)->ctype;
 }

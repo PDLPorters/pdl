@@ -15,6 +15,7 @@
 - pthreading can be over non-divisible number of threads
 - remove Core.qsort_*
 - zeroes now quicker as only does memset, not assgn operation
+- add $PPSYM()
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism
