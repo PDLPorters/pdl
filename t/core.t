@@ -8,7 +8,6 @@ use Math::Complex ();
 sub tapprox ($$) {
     my ( $x, $y ) = @_;
     my $d = abs( $x - $y );
-    print "diff = [$d]\n";
     return $d <= 0.0001;
 }
 
@@ -429,8 +428,8 @@ for my $type (@types) {
 }
 }
 
-for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i']) {
-  my ($name, $val) = @$_;
+for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i', 'cdouble']) {
+  my ($name, $val, $type) = @$_;
   no strict 'refs';
   my $g = eval { $name->() };
   is $@, '', "$name works with no args";
@@ -441,6 +440,22 @@ for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i']) {
   my $g1 = eval { $name->(2) };
   is $@, '', "$name works with 1 args";
   is_deeply [$g1->dims], [2], 'right dims';
+
+  # from PDL::Core docs of zeroes
+  my (@dims, $w) = (1..3);
+  $w = $name->(byte, @dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'byte';
+  $w = $name->(@dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'double';
+  $w = PDL->$name(byte, @dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'byte';
+  $w = PDL->$name(@dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'double';
+  my $pdl = ones(float, 4, 5);
+  $w = $pdl->$name(byte, @dims); is_deeply [$w->dims], \@dims; is $w->type, $type || 'byte';
+  # usage type (ii):
+  my $y = ones(@dims);
+  $w = $name->($y); is_deeply [$w->dims], \@dims;
+  $w = $y->$name; is_deeply [$w->dims], \@dims;
+  next if $val =~ /\D/;
+  $w = $y->copy; $name->(inplace $w); ok all tapprox $w, pdl($val) or diag "$name got:$w";
+  $w = $y->copy; $w->inplace->$name; ok all tapprox $w, pdl($val);
 }
 
 eval { PDL->is_inplace }; # shouldn't infinite-loop
