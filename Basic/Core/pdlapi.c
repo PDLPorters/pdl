@@ -75,6 +75,7 @@ void pdl_grow(pdl* a, PDL_Indx newsize) {
    (void)SvGROW ( foo, nbytes );
    SvCUR_set( foo, nbytes );
    a->data = (void *) SvPV( foo, len ); a->nvals = newsize;
+   if (nbytes > ncurr) memset(a->data + ncurr, 0, nbytes - ncurr);
 }
 
 void pdl_allocdata(pdl *it) {
