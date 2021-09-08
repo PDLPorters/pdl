@@ -309,26 +309,19 @@ pdl *pdl_hard_copy(pdl *src) {
 	int i;
 	pdl *it = pdl_null();
 	it->state = 0;
-
+	PDLDEBUG_f(printf("pdl_hard_copy (%p): ", src));PDLDEBUG_f(pdl_dump(it);)
 	pdl_make_physical(src); /* Wasteful XXX... should be lazier */
-
 	it->datatype = src->datatype;
-
 	pdl_setdims(it,src->dims,src->ndims);
 	pdl_allocdata(it);
-
 	if(src->state & PDL_NOMYDIMS)
 		it->state |= PDL_NOMYDIMS;
-
 	pdl_reallocthreadids(it,src->nthreadids);
 	for(i=0; i<src->nthreadids; i++) {
 		it->threadids[i] = src->threadids[i];
 	}
-
 	memcpy(it->data,src->data, pdl_howbig(it->datatype) * (size_t)it->nvals);
-
 	return it;
-
 }
 
 static void print_iarr(PDL_Indx *iarr, int n) {
@@ -547,6 +540,7 @@ void pdl_resize_defaultincs(pdl *it) {
 
 void pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
    PDL_Indx i;
+   PDLDEBUG_f(printf("pdl_setdims: "));PDLDEBUG_f(pdl_dump(it);)
    /* This mask avoids all kinds of subtle dereferencing bugs (CED 11/2015) */
    if(it->trans || it->vafftrans || it->children.next ) {
       pdl_pdl_barf("Can't setdims on a PDL that already has children");
