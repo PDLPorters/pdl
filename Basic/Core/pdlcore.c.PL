@@ -214,7 +214,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
         AV *dims, *av;
         int i, depth; 
         int datalevel = -1;
-        pdl *p;
+        pdl *dest_pdl;
 
         av = (AV *)SvRV(sv);
         dims = (AV *)sv_2mortal((SV *)newAV());
@@ -434,19 +434,19 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
          */
         int j;
         short pndims;
-        PDL_Indx *pdims;
+        PDL_Indx *dest_dims;
         PDL_Indx pnvals;
         
         pdl_make_physdims(dest_pdl);
         
         pndims = dest_pdl->ndims;
-        pdims = dest_pdl->dims;
+        dest_dims = dest_pdl->dims;
         pnvals = dest_pdl->nvals;
         
         for(j=0;j<pndims;j++) {
           int jl = pndims-j+level;
           
-          PDL_Indx siz = pdims[j];
+          PDL_Indx siz = dest_dims[j];
           
           if(  av_len(dims) >= jl &&
                av_fetch(dims,jl,0) != NULL &&
@@ -456,7 +456,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
             /* we keep the size if possible, or enlarge if necessary.              */
             oldlen=(PDL_Indx)SvIV(*(av_fetch(dims,jl,0)));
             if(siz > oldlen) {
-              sv_setiv(*(av_fetch(dims,jl,0)),(IV)(pdims[j]));
+              sv_setiv(*(av_fetch(dims,jl,0)),(IV)(dest_dims[j]));
             }
             
           } else {
@@ -567,37 +567,37 @@ static int _detect_datatype(AV *av) {
  * Core.xs) - it breaks out to pdl_setav_<type>, below, based on the 
  * type of the destination PDL.
  */
-pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* p)
+pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
 {
   int ndims, i, level=0;
-  PDL_Indx *pdims;
+  PDL_Indx *dest_dims;
   PDL_Anyval undefval = { -1, 0 };
 
   ndims = av_len(dims)+1;
-  pdims = (PDL_Indx *) pdl_smalloc( (ndims) * sizeof(*pdims) );
+  dest_dims = (PDL_Indx *) pdl_smalloc( (ndims) * sizeof(*dest_dims) );
   for (i=0; i<ndims; i++) {
-     pdims[i] = SvIV(*(av_fetch(dims, ndims-1-i, 0))); /* reverse order */
+     dest_dims[i] = SvIV(*(av_fetch(dims, ndims-1-i, 0))); /* reverse order */
   }
 
-  if (p == NULL)
-     p = pdl_create(PDL_PERM);
-  pdl_setdims (p, pdims, ndims);
+  if (dest_pdl == NULL)
+     dest_pdl = pdl_create(PDL_PERM);
+  pdl_setdims (dest_pdl, dest_dims, ndims);
   if (dtype == -1) {
     dtype = _detect_datatype(av);
   }
-  p->datatype = dtype;
-  pdl_allocdata (p);
-  pdl_make_physical(p);
+  dest_pdl->datatype = dtype;
+  pdl_allocdata (dest_pdl);
+  pdl_make_physical(dest_pdl);
 
   /******
    * Copy the undefval to fill empty spots in the ndarray...
    */
   ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
 #define X(dtype, generic, generic_ppsym, shortctype, defbval) \
-    pdl_setav_ ## generic_ppsym(p->data,av,pdims,ndims,level, undefval.value.generic_ppsym, p);
+    pdl_setav_ ## generic_ppsym(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.generic_ppsym, dest_pdl);
   PDL_GENERICSWITCH(dtype, X)
 #undef X
-  return p;
+  return dest_pdl;
 }
 
 /* Compute offset of (x,y,z,...) position in row-major list */
@@ -657,11 +657,11 @@ void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* in
  * -CED 17-Jun-2004
  *
  * Arguments:
- * poff  is an integer indicating which element along the current direction is being treated (for padding accounting)
- * pdata is a pointer into the destination PDL's data;
- * pdims is a pointer to the destination PDL's dim list;
+ * dest_off  is an integer indicating which element along the current direction is being treated (for padding accounting)
+ * dest_data is a pointer into the destination PDL's data;
+ * dest_dims is a pointer to the destination PDL's dim list;
  * ndims is the size of the destination PDL's dimlist;
- * level is the conjugate dimension along which copying is happening (indexes pdims).
+ * level is the conjugate dimension along which copying is happening (indexes dest_dims).
  *    "conjugate" means that it counts backward through the dimension array.
  * stride is the increment in the data array corresponding to this dimension;
  *
@@ -671,7 +671,7 @@ void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* in
  *   output PDLs. It is allowed to be negative (which is equivalent to the "permissive
  *   slicing" that treats missing dimensions as present and having size 1), but should
  *   not match or exceed pdl->ndims. 
- * pptr is the current offset data pointer into pdl->data.
+ * source_data is the current offset data pointer into pdl->data.
  *
  * Kludge-copy works backward through the dim lists, so that padding is simpler:  if undefval
  * padding is required at any particular dimension level, the padding occupies a contiguous
@@ -699,31 +699,31 @@ foreach my $inner_type ( types() ) {
       case ${switch_type}:
            /* copy data (unless the source pointer is null) */
       i=0;
-      if(pptr && pdata && pdlsiz) {
+      if(source_data && dest_data && pdlsiz) {
         for(; i<pdlsiz; i++) {
           if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) {
               /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */
-              if( (($ctype *)pptr)[i] == source_badval.value.$ppsym || PDL_ISNAN_$ppsym((($ctype *)pptr)[i]) ) {
+              if( (($ctype *)source_data)[i] == source_badval.value.$ppsym || PDL_ISNAN_$ppsym((($ctype *)source_data)[i]) ) {
                   /* bad value in source PDL -- use our own type's bad value instead */
-                  pdata[i] = PDL.bvals.%1\$s;
-                  p->state |= PDL_BADVAL;
+                  dest_data[i] = PDL.bvals.%1\$s;
+                  dest_pdl->state |= PDL_BADVAL;
               } else {
-                  pdata[i] = (PDL_%1\$s) ((${ctype} *)pptr)[i];
+                  dest_data[i] = (PDL_%1\$s) ((${ctype} *)source_data)[i];
               }
           } else {
-            pdata[i] = (PDL_%1\$s) ((${ctype} *)pptr)[i];
+            dest_data[i] = (PDL_%1\$s) ((${ctype} *)source_data)[i];
           }
         } // end of loop over pdlsiz
       } else { 
-        // pptr or pdata or pdlsiz are 0
-        if(pdata) 
-          pdata[i] = undefval;
+        // source_data or dest_data or pdlsiz are 0
+        if(dest_data)
+          dest_data[i] = undefval;
       }
         /* pad out, in the innermost dimension */
       if( !oob ) {
-        for(;  i< pdims[0]-poff; i++) {
+        for(;  i< dest_dims[0]-dest_off; i++) {
           undef_count++;
-          pdata[i] = undefval;
+          dest_data[i] = undefval;
         }
       }
 
@@ -745,17 +745,17 @@ my $this_inner_loop = sprintf $inner_loop, $shortctype;
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<"!WITH!SUBS!";
 
-PDL_Indx pdl_kludge_copy_$ppsym(PDL_Indx poff, // Offset into the dest data array
-                           $ctype* pdata,  // Data pointer in the dest data array
-                           PDL_Indx* pdims,   // Pointer to the dimlist for the dest pdl
+PDL_Indx pdl_kludge_copy_$ppsym(PDL_Indx dest_off, // Offset into the dest data array
+                           $ctype* dest_data,  // Data pointer in the dest data array
+                           PDL_Indx* dest_dims,   // Pointer to the dimlist for the dest pdl
                            PDL_Indx ndims,         // Number of dimensions in the dest pdl
                            int level,         // Recursion level
                            PDL_Indx stride,   // Stride through memory for the current dim
                            pdl* source_pdl,   // pointer to the source pdl
                            int plevel,        // level within the source pdl
-                           void* pptr,        // Data pointer in the source pdl
-                           $ctype undefval, // undefval for the dest pdl
-                           pdl* p              // pointer to the dest pdl
+                           void* source_data, // Data pointer in the source pdl
+                           $ctype undefval,   // undefval for the dest pdl
+                           pdl* dest_pdl      // pointer to the dest pdl
                            ) {
   PDL_Indx i;
   PDL_Indx undef_count = 0;
@@ -808,32 +808,32 @@ $this_inner_loop
           :   1    
           );
       for(i=0; i < limit ; i++) {
-          undef_count += pdl_kludge_copy_$ppsym(0, pdata + stride * i,
-                                               pdims,
+          undef_count += pdl_kludge_copy_$ppsym(0, dest_data + stride * i,
+                                               dest_dims,
                                                ndims,
                                                level+1,
-                                               stride / ((pdims[ndims-2-level]) ? (pdims[ndims-2-level]) : 1),
+                                               stride / ((dest_dims[ndims-2-level]) ? (dest_dims[ndims-2-level]) : 1),
                                                source_pdl,
                                                plevel+1,
-                                               ((PDL_Byte *) pptr) + source_pdl->dimincs[source_pdl->ndims-1-plevel] * i * pdl_howbig(source_pdl->datatype),
+                                               ((PDL_Byte *) source_data) + source_pdl->dimincs[source_pdl->ndims-1-plevel] * i * pdl_howbig(source_pdl->datatype),
                                                undefval,
-                                               p
+                                               dest_pdl
               );
       } /* end of kludge_copy recursion loop */
   } /* end of recursion convenience block */
 
   /* pad the rest of this dim to zero if there are not enough elements in the source PDL... */
-  if(i < pdims[ndims - 1 - level]) {
+  if(i < dest_dims[ndims - 1 - level]) {
       int cursor, target;
 
       cursor = i * stride;
-      target = pdims[ndims-1-level]*stride;
+      target = dest_dims[ndims-1-level]*stride;
       undef_count += target - cursor;
 
       for(;
           cursor < target;
           cursor++) {
-          pdata[cursor] = undefval;
+          dest_data[cursor] = undefval;
       }
 
   } /* end of padding IF statement */
@@ -851,17 +851,17 @@ $this_inner_loop
  * The code is complicated by the "bag-of-stuff" nature of AVs.  We handle 
  * Perl scalars, AVs, *and* PDLs (via pdl_kludge_copy).
  * 
- *   -  pdata is the data pointer from a PDL
+ *   -  dest_data is the data pointer from a PDL
  *   -  av is the array ref (or PDL) to use to fill the data with,
- *   -  pdims is the dimlist
+ *   -  dest_dims is the dimlist
  *   -  ndims is the size of the dimlist
  *   -  level is the recursion level, which is also the dimension that we are filling
  */
 
-PDL_Indx pdl_setav_$ppsym($ctype* pdata, AV* av,
-                     PDL_Indx* pdims, int ndims, int level, $ctype undefval, pdl *p)
+PDL_Indx pdl_setav_$ppsym($ctype* dest_data, AV* av,
+                     PDL_Indx* dest_dims, int ndims, int level, $ctype undefval, pdl *dest_pdl)
 {
-  PDL_Indx cursz = pdims[ndims-1-level]; /* we go from the highest dim inward */
+  PDL_Indx cursz = dest_dims[ndims-1-level]; /* we go from the highest dim inward */
   PDL_Indx len = av_len(av);
   PDL_Indx i,stride=1;
 
@@ -869,10 +869,10 @@ PDL_Indx pdl_setav_$ppsym($ctype* pdata, AV* av,
   PDL_Indx undef_count = 0;
 
   for (i=0;i<ndims-1-level;i++) {
-    stride *= pdims[i];
+    stride *= dest_dims[i];
   }
 
-  for (i=0;i<=len;i++,pdata += stride) { /* note len is actually highest index, not element count */
+  for (i=0;i<=len;i++,dest_data += stride) { /* note len is actually highest index, not element count */
 
     int foo;
 
@@ -883,7 +883,7 @@ PDL_Indx pdl_setav_$ppsym($ctype* pdata, AV* av,
 
     if (foo) {
       /* If the element was an AV ref, recurse to walk through that AV, one dim lower */
-      undef_count += pdl_setav_$ppsym(pdata, (AV *) SvRV(el), pdims, ndims, level+1, undefval, p);
+      undef_count += pdl_setav_$ppsym(dest_data, (AV *) SvRV(el), dest_dims, ndims, level+1, undefval, dest_pdl);
 
     } else if( el && SvROK(el) ) {
 
@@ -897,10 +897,10 @@ PDL_Indx pdl_setav_$ppsym($ctype* pdata, AV* av,
           pdl_make_physical(pdl);
           
           pddex = ndims - 2 - level;
-          pd = (pddex >= 0 && pddex < ndims ? pdims[ pddex ] : 0);
+          pd = (pddex >= 0 && pddex < ndims ? dest_dims[ pddex ] : 0);
           if(!pd)
               pd = 1;
-          undef_count += pdl_kludge_copy_$ppsym(0, pdata,pdims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, p);
+          undef_count += pdl_kludge_copy_$ppsym(0, dest_data,dest_dims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, dest_pdl);
 
       } else {
         /* The element is a non-PDL, non-AV ref.  Not allowed. */
@@ -908,21 +908,21 @@ PDL_Indx pdl_setav_$ppsym($ctype* pdata, AV* av,
       }
     } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */
       if( PDL_SV_IS_UNDEF(el) ) {  /* undef case */
-        *pdata = ($ctype) undefval;
+        *dest_data = ($ctype) undefval;
         undef_count++;
 
       } else {              /* scalar case */
         if (SvIOK(el)) {
-          *pdata = ($ctype) SvIV(el);
+          *dest_data = ($ctype) SvIV(el);
         } else {
-          *pdata = ($ctype) SvNV(el);
+          *dest_data = ($ctype) SvNV(el);
         }
       }
 
       /* Pad dim if we are not deep enough */
       if(level < ndims-1) {
-        $ctype *cursor = pdata;
-        $ctype *target = pdata + stride;
+        $ctype *cursor = dest_data;
+        $ctype *target = dest_data + stride;
 
         for( cursor++;  cursor < target; cursor++ ) {
           *cursor = ($ctype)undefval;
@@ -936,13 +936,13 @@ PDL_Indx pdl_setav_$ppsym($ctype* pdata, AV* av,
   /* in case this dim is incomplete set any remaining elements to the undefval */
 
   if(len < cursz-1 ) {
-    $ctype *target = pdata + stride * (cursz - 1 - len);
+    $ctype *target = dest_data + stride * (cursz - 1 - len);
     for( ;
-         pdata < target;
-         pdata++
+         dest_data < target;
+         dest_data++
          ) {
 
-      *pdata = ($ctype) undefval;
+      *dest_data = ($ctype) undefval;
       undef_count++;
     }
   }
