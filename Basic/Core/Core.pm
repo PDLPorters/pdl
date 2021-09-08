@@ -2221,7 +2221,6 @@ a preferred type.
 sub new_or_inplace {
 	my $pdl = shift;
 	my $preferred = shift;
-	my $force = shift;
 	if(blessed($pdl) && $pdl->is_inplace) {
 		$pdl->set_inplace(0);
 		return $pdl;
@@ -2243,7 +2242,6 @@ sub new_or_inplace {
 		}
 	    }
 	}
-	barf "PDL::Core::new_or_inplace - This can never happen!";
 }
 *PDL::new_or_inplace = \&new_or_inplace;
 
