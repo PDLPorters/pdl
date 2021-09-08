@@ -2388,7 +2388,7 @@ Various forms of usage,
  # usage type (i):
  $w = zeroes([type], $nx, $ny, $nz,...);
  $w = PDL->zeroes([type], $nx, $ny, $nz,...);
- $w = $pdl->zeroes([type], $nx, $ny, $nz,...);
+ $w = $pdl->zeroes([type], $nx, $ny, $nz,...); # all info about $pdl ignored
  # usage type (ii):
  $w = zeroes $y;
  $w = $y->zeroes
