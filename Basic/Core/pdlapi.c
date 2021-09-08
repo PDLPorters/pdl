@@ -965,12 +965,13 @@ void pdl_changed(pdl *it, int what, int recursing)
 {
 	pdl_children *c; int i; int j;
 
-	PDLDEBUG_f(
-          printf("pdl_changed: entry for pdl %p, what %d, recursing: %d\n",
-		 (void*)it,what,recursing);
+	PDLDEBUG_f(do {
+          printf("pdl_changed: entry for pdl %p recursing: %d, what ",
+		 (void*)it,recursing);
+          pdl_dump_flags_fixspace(what,0,PDL_FLAGS_PDL);
 	  if (it->state & PDL_TRACEDEBUG)
 	     pdl_dump(it);
-	);
+	} while (0));
 
 	if(recursing) {
 		it->state |= what;
