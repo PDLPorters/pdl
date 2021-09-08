@@ -73,7 +73,6 @@ WriteMakefile(
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => [$libs_string],
  'clean'        => {'FILES'  => $cobj .
-                   ' pdlcore.c '.
 		   'pdl.h pdlperl.h pdlsimple.h '.
 		   'Types.pm Core.c '
 		   },
@@ -90,5 +89,5 @@ WriteMakefile(
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
-    "pdlcore.c pdlsimple.h pdl.h pdlperl.h :: Types.pm\n";
+    "pdlsimple.h pdl.h pdlperl.h :: Types.pm\n";
 };

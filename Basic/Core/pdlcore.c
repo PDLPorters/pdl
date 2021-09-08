@@ -1,32 +1,3 @@
-# Create pdlcore.c
-# - needed for bad-value handling in whichdatatype
-
-use strict;
-
-use Config;
-use File::Basename qw(&basename &dirname);
-
-require './Dev.pm'; PDL::Core::Dev->import;
-PDL::Core::Dev::loadmod_Types();
-PDL::Types->import(':All');
-
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-my $file;
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//
-    if ($Config{'osname'} eq 'VMS' or
-        $Config{'osname'} eq 'OS2');  # "case-forgiving"
-
-print "Extracting $file\n";
-
-open OUT,">$file" or die "Can't create $file: $!";
-chmod 0644, $file;
-
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'!NO!SUBS!';
-/* pdlcore.c - generated automatically by pdlcore.c.PL */
 #undef FOODEB
 #include "pdl.h"      /* Data structure declarations */
 #define PDL_IN_CORE /* access funcs directly not through PDL-> */
@@ -677,277 +648,217 @@ void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* in
  * padding is required at any particular dimension level, the padding occupies a contiguous
  * block of memory.
  */
-!NO!SUBS!
 
-my $inner_loop = <<"!WITH!SUBS!";
-    switch(source_pdl->datatype) {
-!WITH!SUBS!
-# perl loop to emit code for all the PDL types -- ctype gets the C type of 
-# the source PDL, switch_type gets the Perl name, ppsym gets
-# the symbol need to retrieve from a PDL_Anyval, and type_usenan is a
-# boolean indicating whether this type handles NaNs.
-# leave with %1$s for filling in
-foreach my $inner_type ( types() ) {
-  my $switch_type = $inner_type->sym;
-  my $ctype = $inner_type->ctype;
-  my $stype = $inner_type->shortctype;
-  my $ppsym = $inner_type->ppsym;
-
-  $inner_loop .= sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-  $inner_loop .= <<"!WITH!SUBS!";
-
-      case ${switch_type}:
-           /* copy data (unless the source pointer is null) */
-      i=0;
-      if(source_data && dest_data && pdlsiz) {
-        found_bad = 0;
-        for(; i<pdlsiz; i++) {
-          if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) {
-              /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */
-              if( (($ctype *)source_data)[i] == source_badval.value.$ppsym || PDL_ISNAN_$ppsym((($ctype *)source_data)[i]) ) {
-                  /* bad value in source PDL -- use our own type's bad value instead */
-                  ANYVAL_TO_CTYPE(dest_data[i], $ctype, dest_badval);
-                  found_bad = 1;
-              } else {
-                  dest_data[i] = ((${ctype} *)source_data)[i];
-              }
-          } else {
-            dest_data[i] = ((${ctype} *)source_data)[i];
-          }
-        } // end of loop over pdlsiz
-        if (found_bad) dest_pdl->state |= PDL_BADVAL; /* just once */
-      } else { 
-        // source_data or dest_data or pdlsiz are 0
-        if(dest_data)
-          dest_data[i] = undefval;
-      }
-        /* pad out, in the innermost dimension */
-      if( !oob ) {
-        for(;  i< dest_dims[0]-dest_off; i++) {
-          undef_count++;
-          dest_data[i] = undefval;
-        }
+#define INNERLOOP_X(datatype, ctype, ppsym, shortctype, defbval) \
+      /* copy data (unless the source pointer is null) */ \
+      i=0; \
+      if(source_data && dest_data && pdlsiz) { \
+        found_bad = 0; \
+        for(; i<pdlsiz; i++) { \
+          if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) { \
+              /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */ \
+              if( ((ctype *)source_data)[i] == source_badval.value.ppsym || PDL_ISNAN_ ## ppsym(((ctype *)source_data)[i]) ) { \
+                  /* bad value in source PDL -- use our own type's bad value instead */ \
+                  ANYVAL_TO_CTYPE(dest_data[i], ctype, dest_badval); \
+                  found_bad = 1; \
+              } else { \
+                  dest_data[i] = ((ctype *)source_data)[i]; \
+              } \
+          } else { \
+            dest_data[i] = ((ctype *)source_data)[i]; \
+          } \
+        } /* end of loop over pdlsiz */ \
+        if (found_bad) dest_pdl->state |= PDL_BADVAL; /* just once */ \
+      } else {  \
+        /* source_data or dest_data or pdlsiz are 0 */ \
+        if(dest_data) \
+          dest_data[i] = undefval; \
+      } \
+        /* pad out, in the innermost dimension */ \
+      if( !oob ) { \
+        for(;  i< dest_dims[0]-dest_off; i++) { \
+          undef_count++; \
+          dest_data[i] = undefval; \
+        } \
       }
 
-      break;
-!WITH!SUBS!
-} # end of foreach in the perl generator code
-
-$inner_loop .= sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-$inner_loop .= <<"!WITH!SUBS!";
-    default:
-      croak("Internal error - please submit a bug report at https://github.com/PDLPorters/pdl/issues:\\n  pdl_kludge_copy: unknown datatype of %%d.",(int)(source_pdl->datatype));
-      break;
-    }
-!WITH!SUBS!
-
-for my $obj ( types() ) {
-my ($ctype, $shortctype, $ppsym) = map $obj->$_, qw(ctype shortctype ppsym);
-my $this_inner_loop = sprintf $inner_loop, $shortctype;
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<"!WITH!SUBS!";
-
-PDL_Indx pdl_kludge_copy_$ppsym(PDL_Indx dest_off, // Offset into the dest data array
-                           $ctype* dest_data,  // Data pointer in the dest data array
-                           PDL_Indx* dest_dims,   // Pointer to the dimlist for the dest pdl
-                           PDL_Indx ndims,         // Number of dimensions in the dest pdl
-                           int level,         // Recursion level
-                           PDL_Indx stride,   // Stride through memory for the current dim
-                           pdl* source_pdl,   // pointer to the source pdl
-                           int plevel,        // level within the source pdl
-                           void* source_data, // Data pointer in the source pdl
-                           $ctype undefval,   // undefval for the dest pdl
-                           pdl* dest_pdl      // pointer to the dest pdl
-                           ) {
-  PDL_Indx i;
-  PDL_Indx undef_count = 0;
-
-  /* Can't copy into a level deeper than the number of dims in the output PDL */
-  if(level > ndims ) {
-    fprintf(stderr,"pdl_kludge_copy: level=%d; ndims=%"IND_FLAG"\\n",level,ndims);
-    croak("Internal error - please submit a bug report at https://github.com/PDLPorters/pdl/issues:\\n  pdl_kludge_copy: Assertion failed; ndims-1-level (%"IND_FLAG") < 0!.",ndims-1-level);
-  }
-
-  if(level >= ndims - 1) {
-    /* We are in as far as we can go in the destination PDL, so direct copying is in order. */
-    int pdldim = source_pdl->ndims - 1 - plevel;  // which dim are we working in the source PDL?
-    PDL_Indx pdlsiz;
-    int oob = (ndims-1-level < 0);         // out-of-bounds flag
-
-    /* Do bounds checking on the source dimension -- if we wander off the end of the
-     * dimlist, we are doing permissive-slicing kind of stuff (not enough dims in the
-     * source to fully account for the output dimlist); if we wander off the beginning, we
-     * are doing dimensional padding.  In either case, we just iterate once.
-     */
-    if(pdldim < 0 || pdldim >= source_pdl->ndims) {
-      pdldim = (pdldim < 0) ? (0) : (source_pdl->ndims - 1);
-      pdlsiz = 1;
-    } else {
-      pdlsiz = source_pdl->dims[pdldim];
-    }
-
-    /* This is used inside the switch in order to detect badvalues. */
-    PDL_Anyval source_badval = PDL.get_pdl_badvalue(source_pdl);
-    PDL_Anyval dest_badval = PDL.get_pdl_badvalue(dest_pdl);
-    char found_bad = 0;
-
-    /* This is the actual data-copying code. It is generated with a Perl loop, to
-     * ensure that all current PDL types get treated. */
-$this_inner_loop
-    return undef_count;
-  }
-
-  /* If we are here, we are not at the bottom level yet.  So walk
-   *  across this dim and handle copying one dim deeper via recursion.
-   *  The loop is placed in a convenience block so we can define the 
-   *  dimensional boundscheck flag -- that avoids having to evaluate the complex 
-   *  ternary expression for every loop iteration.
-   */
-  {
-      PDL_Indx limit =  (   
-          (plevel >= 0 && 
-           (source_pdl->ndims - 1 - plevel >= 0)
-          )   
-          ?   (source_pdl->dims[ source_pdl->ndims-1-plevel ])   
-          :   1    
-          );
-      for(i=0; i < limit ; i++) {
-          undef_count += pdl_kludge_copy_$ppsym(0, dest_data + stride * i,
-                                               dest_dims,
-                                               ndims,
-                                               level+1,
-                                               stride / ((dest_dims[ndims-2-level]) ? (dest_dims[ndims-2-level]) : 1),
-                                               source_pdl,
-                                               plevel+1,
-                                               ((PDL_Byte *) source_data) + source_pdl->dimincs[source_pdl->ndims-1-plevel] * i * pdl_howbig(source_pdl->datatype),
-                                               undefval,
-                                               dest_pdl
-              );
-      } /* end of kludge_copy recursion loop */
-  } /* end of recursion convenience block */
-
-  /* pad the rest of this dim to zero if there are not enough elements in the source PDL... */
-  if(i < dest_dims[ndims - 1 - level]) {
-      int cursor, target;
-
-      cursor = i * stride;
-      target = dest_dims[ndims-1-level]*stride;
-      undef_count += target - cursor;
-
-      for(;
-          cursor < target;
-          cursor++) {
-          dest_data[cursor] = undefval;
-      }
-
-  } /* end of padding IF statement */
-
-  return undef_count;
+#define PDL_KLUDGE_COPY_X(X, datatype_out, ctype_out, ppsym_out, shortctype, defbval) \
+PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the dest data array */ \
+                           ctype_out* dest_data,  /* Data pointer in the dest data array */ \
+                           PDL_Indx* dest_dims,/* Pointer to the dimlist for the dest pdl */ \
+                           PDL_Indx ndims,    /* Number of dimensions in the dest pdl */ \
+                           int level,         /* Recursion level */ \
+                           PDL_Indx stride,   /* Stride through memory for the current dim */ \
+                           pdl* source_pdl,   /* pointer to the source pdl */ \
+                           int plevel,        /* level within the source pdl */ \
+                           void* source_data, /* Data pointer in the source pdl */ \
+                           ctype_out undefval,   /* undefval for the dest pdl */ \
+                           pdl* dest_pdl      /* pointer to the dest pdl */ \
+                           ) { \
+  PDL_Indx i; \
+  PDL_Indx undef_count = 0; \
+  /* Can't copy into a level deeper than the number of dims in the output PDL */ \
+  if(level > ndims ) { \
+    fprintf(stderr,"pdl_kludge_copy: level=%d; ndims=%"IND_FLAG"\n",level,ndims); \
+    croak("Internal error - please submit a bug report at https://github.com/PDLPorters/pdl/issues:\n  pdl_kludge_copy: Assertion failed; ndims-1-level (%"IND_FLAG") < 0!.",ndims-1-level); \
+  } \
+  if(level >= ndims - 1) { \
+    /* We are in as far as we can go in the destination PDL, so direct copying is in order. */ \
+    int pdldim = source_pdl->ndims - 1 - plevel;  /* which dim are we working in the source PDL? */ \
+    PDL_Indx pdlsiz; \
+    int oob = (ndims-1-level < 0);         /* out-of-bounds flag */ \
+    /* Do bounds checking on the source dimension -- if we wander off the end of the \
+     * dimlist, we are doing permissive-slicing kind of stuff (not enough dims in the \
+     * source to fully account for the output dimlist); if we wander off the beginning, we \
+     * are doing dimensional padding.  In either case, we just iterate once. \
+     */ \
+    if(pdldim < 0 || pdldim >= source_pdl->ndims) { \
+      pdldim = (pdldim < 0) ? (0) : (source_pdl->ndims - 1); \
+      pdlsiz = 1; \
+    } else { \
+      pdlsiz = source_pdl->dims[pdldim]; \
+    } \
+    /* This is used inside the switch in order to detect badvalues. */ \
+    PDL_Anyval source_badval = PDL.get_pdl_badvalue(source_pdl); \
+    PDL_Anyval dest_badval = PDL.get_pdl_badvalue(dest_pdl); \
+    char found_bad = 0; \
+    /* This is the actual data-copying code. It is generated with a Perl loop, to \
+     * ensure that all current PDL types get treated. */ \
+    PDL_GENERICSWITCH2(source_pdl->datatype, X) \
+    return undef_count; \
+  } \
+  /* If we are here, we are not at the bottom level yet.  So walk \
+   *  across this dim and handle copying one dim deeper via recursion. \
+   *  The loop is placed in a convenience block so we can define the  \
+   *  dimensional boundscheck flag -- that avoids having to evaluate the complex  \
+   *  ternary expression for every loop iteration. \
+   */ \
+  { \
+      PDL_Indx limit =  (    \
+          (plevel >= 0 &&  \
+           (source_pdl->ndims - 1 - plevel >= 0) \
+          )    \
+          ?   (source_pdl->dims[ source_pdl->ndims-1-plevel ])    \
+          :   1     \
+          ); \
+      for(i=0; i < limit ; i++) { \
+          undef_count += pdl_kludge_copy_ ## ppsym_out(0, dest_data + stride * i, \
+                                               dest_dims, \
+                                               ndims, \
+                                               level+1, \
+                                               stride / ((dest_dims[ndims-2-level]) ? (dest_dims[ndims-2-level]) : 1), \
+                                               source_pdl, \
+                                               plevel+1, \
+                                               ((PDL_Byte *) source_data) + source_pdl->dimincs[source_pdl->ndims-1-plevel] * i * pdl_howbig(source_pdl->datatype), \
+                                               undefval, \
+                                               dest_pdl \
+              ); \
+      } /* end of kludge_copy recursion loop */ \
+  } /* end of recursion convenience block */ \
+  /* pad the rest of this dim to zero if there are not enough elements in the source PDL... */ \
+  if(i < dest_dims[ndims - 1 - level]) { \
+      int cursor, target; \
+      cursor = i * stride; \
+      target = dest_dims[ndims-1-level]*stride; \
+      undef_count += target - cursor; \
+      for(; \
+          cursor < target; \
+          cursor++) { \
+          dest_data[cursor] = undefval; \
+      } \
+  } /* end of padding IF statement */ \
+  return undef_count; \
+} \
+ \
+/* \
+ * pdl_setav_<type> loads a new PDL with values from a Perl AV, another PDL, or \
+ * a mix of both.  Heterogeneous sizes are handled by padding the new PDL's \
+ * values out to size with the undefval.  It is only called by pdl_setav in Core.XS, \
+ * via the trampoline pdl_from_array just above. pdl_from_array dispatches execution \
+ * to pdl_setav_<type> according to the type of the destination PDL.  \
+ * \
+ * The code is complicated by the "bag-of-stuff" nature of AVs.  We handle  \
+ * Perl scalars, AVs, *and* PDLs (via pdl_kludge_copy). \
+ *  \
+ *   -  dest_data is the data pointer from a PDL \
+ *   -  av is the array ref (or PDL) to use to fill the data with, \
+ *   -  dest_dims is the dimlist \
+ *   -  ndims is the size of the dimlist \
+ *   -  level is the recursion level, which is also the dimension that we are filling \
+ */ \
+ \
+PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
+                     PDL_Indx* dest_dims, int ndims, int level, ctype_out undefval, pdl *dest_pdl) \
+{ \
+  PDL_Indx cursz = dest_dims[ndims-1-level]; /* we go from the highest dim inward */ \
+  PDL_Indx len = av_len(av); \
+  PDL_Indx i,stride=1; \
+  SV *el, **elp; \
+  PDL_Indx undef_count = 0; \
+  for (i=0;i<ndims-1-level;i++) { \
+    stride *= dest_dims[i]; \
+  } \
+  for (i=0;i<=len;i++,dest_data += stride) { /* note len is actually highest index, not element count */ \
+    int foo; \
+    /* Fetch the next value from the AV */ \
+    elp = av_fetch(av,i,0); \
+    el = (elp ? *elp : 0); \
+    foo = el ? SVavref(el) : 0; \
+    if (foo) { \
+      /* If the element was an AV ref, recurse to walk through that AV, one dim lower */ \
+      undef_count += pdl_setav_ ## ppsym_out(dest_data, (AV *) SvRV(el), dest_dims, ndims, level+1, undefval, dest_pdl); \
+ \
+    } else if( el && SvROK(el) ) { \
+      /* If the element was a ref but not an AV, then it should be a PDL */ \
+      pdl *pdl; \
+      if( !(pdl = pdl_SvPDLV(el)) ) { \
+        /* The element is a non-PDL, non-AV ref.  Not allowed. */ \
+        croak("Non-array, non-PDL element in list"); \
+      } \
+      /* The element was a PDL - use pdl_kludge_copy to copy it into the destination */ \
+      PDL_Indx pd; \
+      int pddex; \
+      pdl_make_physical(pdl); \
+      pddex = ndims - 2 - level; \
+      pd = (pddex >= 0 && pddex < ndims ? dest_dims[ pddex ] : 0); \
+      if(!pd) \
+          pd = 1; \
+      undef_count += pdl_kludge_copy_ ## ppsym_out(0, dest_data,dest_dims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, dest_pdl); \
+    } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */ \
+      if( PDL_SV_IS_UNDEF(el) ) {  /* undef case */ \
+        *dest_data = (ctype_out) undefval; \
+        undef_count++; \
+      } else {              /* scalar case */ \
+        *dest_data = SvIOK(el) ? (ctype_out) SvIV(el) : (ctype_out) SvNV(el); \
+      } \
+      /* Pad dim if we are not deep enough */ \
+      if(level < ndims-1) { \
+        ctype_out *cursor = dest_data; \
+        ctype_out *target = dest_data + stride; \
+        undef_count += stride; \
+        for( cursor++;  cursor < target; cursor++ ) \
+          *cursor = (ctype_out)undefval; \
+      } \
+    } \
+  } /* end of element loop through the supplied AV */ \
+  /* in case this dim is incomplete set any remaining elements to the undefval */ \
+  if(len < cursz-1 ) { \
+    ctype_out *target = dest_data + stride * (cursz - 1 - len); \
+    undef_count += target - dest_data; \
+    for( ; dest_data < target; dest_data++ ) \
+      *dest_data = (ctype_out) undefval; \
+  } \
+  /* If the Perl scalar PDL::debug is set, announce padding */ \
+  if(level==0 && undef_count) { \
+    if(SvTRUE(get_sv("PDL::debug",0))) { \
+      fflush(stdout); \
+      fprintf(stderr,"Warning: pdl_setav_" #ppsym_out " converted undef to $PDL::undefval (%g) %ld time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s"); \
+      fflush(stderr); \
+    } \
+  } \
+  return undef_count; \
 }
 
-/*
- * pdl_setav_<type> loads a new PDL with values from a Perl AV, another PDL, or
- * a mix of both.  Heterogeneous sizes are handled by padding the new PDL's
- * values out to size with the undefval.  It is only called by pdl_setav in Core.XS,
- * via the trampoline pdl_from_array just above. pdl_from_array dispatches execution
- * to pdl_setav_<type> according to the type of the destination PDL. 
- *
- * The code is complicated by the "bag-of-stuff" nature of AVs.  We handle 
- * Perl scalars, AVs, *and* PDLs (via pdl_kludge_copy).
- * 
- *   -  dest_data is the data pointer from a PDL
- *   -  av is the array ref (or PDL) to use to fill the data with,
- *   -  dest_dims is the dimlist
- *   -  ndims is the size of the dimlist
- *   -  level is the recursion level, which is also the dimension that we are filling
- */
-
-PDL_Indx pdl_setav_$ppsym($ctype* dest_data, AV* av,
-                     PDL_Indx* dest_dims, int ndims, int level, $ctype undefval, pdl *dest_pdl)
-{
-  PDL_Indx cursz = dest_dims[ndims-1-level]; /* we go from the highest dim inward */
-  PDL_Indx len = av_len(av);
-  PDL_Indx i,stride=1;
-
-  SV *el, **elp;
-  PDL_Indx undef_count = 0;
-
-  for (i=0;i<ndims-1-level;i++) {
-    stride *= dest_dims[i];
-  }
-
-  for (i=0;i<=len;i++,dest_data += stride) { /* note len is actually highest index, not element count */
-
-    int foo;
-
-    /* Fetch the next value from the AV */
-    elp = av_fetch(av,i,0);
-    el = (elp ? *elp : 0);
-    foo = el ? SVavref(el) : 0;
-
-    if (foo) {
-      /* If the element was an AV ref, recurse to walk through that AV, one dim lower */
-      undef_count += pdl_setav_$ppsym(dest_data, (AV *) SvRV(el), dest_dims, ndims, level+1, undefval, dest_pdl);
-
-    } else if( el && SvROK(el) ) {
-
-      /* If the element was a ref but not an AV, then it should be a PDL */
-      pdl *pdl;
-      if( !(pdl = pdl_SvPDLV(el)) ) {
-        /* The element is a non-PDL, non-AV ref.  Not allowed. */
-        croak("Non-array, non-PDL element in list");
-      }
-      /* The element was a PDL - use pdl_kludge_copy to copy it into the destination */
-      PDL_Indx pd;
-      int pddex;
-      pdl_make_physical(pdl);
-      pddex = ndims - 2 - level;
-      pd = (pddex >= 0 && pddex < ndims ? dest_dims[ pddex ] : 0);
-      if(!pd)
-          pd = 1;
-      undef_count += pdl_kludge_copy_$ppsym(0, dest_data,dest_dims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, dest_pdl);
-    } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */
-      if( PDL_SV_IS_UNDEF(el) ) {  /* undef case */
-        *dest_data = ($ctype) undefval;
-        undef_count++;
-
-      } else {              /* scalar case */
-        *dest_data = SvIOK(el) ? ($ctype) SvIV(el) : ($ctype) SvNV(el);
-      }
-
-      /* Pad dim if we are not deep enough */
-      if(level < ndims-1) {
-        $ctype *cursor = dest_data;
-        $ctype *target = dest_data + stride;
-        undef_count += stride;
-        for( cursor++;  cursor < target; cursor++ )
-          *cursor = ($ctype)undefval;
-      }
-    }
-
-  } /* end of element loop through the supplied AV */
-
-  /* in case this dim is incomplete set any remaining elements to the undefval */
-
-  if(len < cursz-1 ) {
-    $ctype *target = dest_data + stride * (cursz - 1 - len);
-    undef_count += target - dest_data;
-    for( ; dest_data < target; dest_data++ )
-      *dest_data = ($ctype) undefval;
-  }
-
-  /* If the Perl scalar PDL::debug is set, announce padding */
-  if(level==0 && undef_count) {
-    if(SvTRUE(get_sv("PDL::debug",0))) {
-      fflush(stdout);
-      fprintf(stderr,"Warning: pdl_setav_$ppsym converted undef to \$PDL::undefval (%g) %ld time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s");
-      fflush(stderr);
-    }
-  }
-
-  return undef_count;
-}
-
-!WITH!SUBS!
-
-} # end type loop
+PDL_GENERICLIST2(PDL_KLUDGE_COPY_X, INNERLOOP_X)
+#undef PDL_KLUDGE_COPY_X
+#undef INNERLOOP_X
