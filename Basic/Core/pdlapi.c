@@ -331,6 +331,13 @@ pdl *pdl_hard_copy(pdl *src) {
 
 }
 
+static void print_iarr(PDL_Indx *iarr, int n) {
+  int i;
+  printf("(");
+  for (i=0;i<n;i++) printf("%s%"IND_FLAG,(i?" ":""),iarr[i]);
+  printf(")");
+}
+
 #define SET_SPACE(s, nspac) char spaces[PDL_MAXSPACE]; do { \
   int i; \
   if (nspac >= PDL_MAXSPACE) { \
@@ -413,15 +420,11 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 		if(it->pdls[1]->state & PDL_PARENTDIMSCHANGED) {
 			printf("%s   AFFINE, BUT DIMSCHANGED\n",spaces);
 		} else {
-			printf("%s   AFFINE: o:%"IND_FLAG", i:(",spaces,foo->offs);
-			for(i=0; i<foo->pdls[1]->ndims; i++) {
-				printf("%s%"IND_FLAG,(i?" ":""),foo->incs[i]);
-			}
-			printf(") d:(");
-			for(i=0; i<foo->pdls[1]->ndims; i++) {
-				printf("%s%"IND_FLAG,(i?" ":""),foo->pdls[1]->dims[i]);
-			}
-			printf(")\n");
+			printf("%s   AFFINE: o:%"IND_FLAG", i:",spaces,foo->offs);
+			print_iarr(foo->incs, foo->pdls[1]->ndims);
+			printf(" d:");
+			print_iarr(foo->pdls[1]->dims, foo->pdls[1]->ndims);
+			printf("\n");
 		}
 	}
 /*	if(it->vtable->dump) {it->vtable->dump(it);} */
@@ -447,28 +450,22 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 		printf("%s   Data SV: %p, Svlen: %d, data: %p, nvals: %"IND_FLAG"\n", spaces,
 			(void*)(it->datasv), (int)SvCUR((SV*)it->datasv), (void*)(it->data), it->nvals);
 	}
-	printf("%s   Dims: %p (",spaces,(void*)it->dims);
-	for(i=0; i<it->ndims; i++) {
-		printf("%s%"IND_FLAG,(i?" ":""),it->dims[i]);
-	}
-	printf(")\n%s   ThreadIds: %p (",spaces,(void*)(it->threadids));
-	for(i=0; i<it->nthreadids; i++) {
-		printf("%s%"IND_FLAG,(i?" ":""),it->threadids[i]);
-	}
+	printf("%s   Dims: %p ",spaces,(void*)it->dims);
+	print_iarr(it->dims, it->ndims);
+	printf("\n%s   ThreadIds: %p ",spaces,(void*)(it->threadids));
+	print_iarr(it->threadids, it->nthreadids);
 	if(PDL_VAFFOK(it)) {
-		printf(")\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:(",
+		printf("\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:",
 			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
-		for(i=0; i<it->ndims; i++) {
-			printf("%s%"IND_FLAG,(i?" ":""),it->vafftrans->incs[i]);
-		}
+		print_iarr(it->vafftrans->incs, it->ndims);
 	}
 	if(it->state & PDL_ALLOCATED) {
-		printf(")\n%s   First values: (",spaces);
+		printf("\n%s   First values: (",spaces);
 		for(i=0; i<it->nvals && i<10; i++) {
                        printf("%s%f",(i?" ":""),pdl_get_offs(it,i).value.D);
 		}
 	} else {
-		printf(")\n%s   (not allocated",spaces);
+		printf("\n%s   (not allocated",spaces);
 	}
 	printf(")\n");
 	if(it->trans) {
