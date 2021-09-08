@@ -41,13 +41,6 @@ VAFF_IO(writebackdata_vaffine)
 
 /* Various conversion utilities for pdl data types */
 
-/* Swap pdls */
-
-void pdl_swap(pdl** a, pdl** b) {
-   pdl* tmp;
-   tmp = *b; *b=*a; *a=tmp;
-}
-
 /* Change the type of all the data in a pdl struct, either changing the
    original perl structure or making a temporary copy  */
 
