@@ -2236,7 +2236,7 @@ sub new_or_inplace {
 		} else {
 		    # No match - promote it to the first in the list.
 		    $preferred =~ s/\,.*//;
-		    my $out = PDL::new_from_specification('PDL',new PDL::Type($preferred),$pdl->dims);
+		    my $out = PDL->new_from_specification(PDL::Type->new($preferred),$pdl->dims);
 		    $out .= $pdl;
 		    return $out;
 		}
@@ -2301,6 +2301,15 @@ obvious that would not break existing scripts.
 sub PDL::new_from_specification{
     my $class = shift;
     my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
+    my @dims = &_dims_from_args;
+    my $pdl = $class->initialize();
+    $pdl->set_datatype($type);
+    $pdl->setdims(\@dims);
+    print "Dims: ",(join ',',@dims)," DLen: ",length(${$pdl->get_dataref}),"\n" if $PDL::debug;
+    return $pdl;
+}
+
+sub _dims_from_args {
     barf "Dimensions must be non-negative" if grep !ref && ($_||0)<0, @_;
     barf "Trying to use non-ndarray as dimensions?"
        if grep ref && !$_->isa('PDL'), @_;
@@ -2308,12 +2317,7 @@ sub PDL::new_from_specification{
        if grep ref && $_->getndims > 1, @_;
     warn "creating > 10 dim ndarray (ndarray arg)!"
        if grep ref && $_->nelem > 10, @_;
-    my @dims = map ref($_) ? $_->list : $_ || 0, @_;
-    my $pdl = $class->initialize();
-    $pdl->set_datatype($type);
-    $pdl->setdims(\@dims);
-    print "Dims: ",(join ',',@dims)," DLen: ",length(${$pdl->get_dataref}),"\n" if $PDL::debug;
-    return $pdl;
+    map ref($_) ? $_->list : $_ || 0, @_;
 }
 
 =head2 isnull
