@@ -350,7 +350,6 @@ is $x.'', '[2 i]', 'pdl defaults to cdouble if Math::Complex values in arrayref'
 {
 my $pa = zeroes(20);
 $pa->hdrcpy(1);
-$pa->dump;
 $pa->sethdr( {Field1=>'arg1',
 	     Field2=>'arg2'});
 note "pa: ", explain $pa->gethdr();
@@ -435,6 +434,9 @@ for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i']) {
   no strict 'refs';
   my $g = eval { $name->() };
   is $@, '', "$name works with no args";
+  is_deeply [$g->dims], [], 'no args -> no dims';
+  ok !$g->isnull, 'no args -> not null';
+  ok !$g->isempty, 'no args -> not empty';
   like $g.'', qr/^$val/i, "$name() gives back right value";
   my $g1 = eval { $name->(2) };
   is $@, '', "$name works with 1 args";
