@@ -131,6 +131,12 @@ print OUT <<EOF;
 )
 EOF
 
+for my $type (PDL::Types::types()) {
+  my ($ppsym) = map $type->$_, qw(ppsym);
+  my $expr = !$type->usenan ? 'FALSE' : $type->isnan('x');
+  print OUT "#define PDL_ISNAN_$ppsym(x) ($expr)\n";
+}
+
 my @methods = qw(symbol ctype ppsym shortctype defbval);
 my @generics = map { my $t = $_; [map $t->$_, @methods] } PDL::Types::types();
 print OUT "#define PDL_GENERICLIST(X) \\\n";

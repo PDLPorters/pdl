@@ -693,13 +693,6 @@ foreach my $inner_type ( types() ) {
   my $stype = $inner_type->shortctype;
   my $ppsym = $inner_type->ppsym;
 
-  my $comp_for_nan =
-      $inner_type->usenan
-      # if not equal, check if both are NaN
-    ? '('.$inner_type->isnan("(($ctype *)pptr)[i]") .' && '.$inner_type->isnan("source_badval.value.$ppsym").')'
-      # otherwise it must be false
-    : '0';
-
   $inner_loop .= sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
   $inner_loop .= <<"!WITH!SUBS!";
 
@@ -710,7 +703,7 @@ foreach my $inner_type ( types() ) {
         for(; i<pdlsiz; i++) {
           if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) {
               /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */
-              if( (($ctype *)pptr)[i] == source_badval.value.$ppsym || $comp_for_nan ) {
+              if( (($ctype *)pptr)[i] == source_badval.value.$ppsym || PDL_ISNAN_$ppsym((($ctype *)pptr)[i]) ) {
                   /* bad value in source PDL -- use our own type's bad value instead */
                   pdata[i] = PDL.bvals.%1\$s;
                   p->state |= PDL_BADVAL;

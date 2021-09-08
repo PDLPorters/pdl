@@ -805,7 +805,6 @@ Any bad values in the input ndarrays are copied across to the output ndarray.
     GenericTypes => $A,
 ); # pp_def: setvaltobad
 
-my $isnan = join "\n", map 'types('.$_->ppsym.') %{'.$_->isnan('$a()').'%}', grep $_->usenan, types();
 pp_def('setnantobad' . <<'=cut',
 
 =head2 setnantobad
@@ -849,7 +848,7 @@ bad flag is set, it will no
     Code => q[
         int flag = 0;
         threadloop %{
-            if ( ] . $isnan . q[ ) {
+            if ( PDL_ISNAN_$PPSYM()($a()) ) {
                 $SETBAD(b());
                 flag = 1;
             }
