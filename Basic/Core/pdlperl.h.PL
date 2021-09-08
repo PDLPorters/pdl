@@ -52,12 +52,11 @@ print OUT <<'EOF';
 
 #define ANYVAL_FROM_SV(outany,insv,use_undefval,forced_type) do { \
     SV *sv2 = insv; \
-    int further_processing = PDL_SV_IS_UNDEF(sv2); \
-    if (further_processing) { \
+    if (PDL_SV_IS_UNDEF(sv2)) { \
         if (!use_undefval) { \
             outany.type = forced_type >=0 ? forced_type : -1; \
             outany.value.B = 0; \
-            further_processing = FALSE; \
+            break; \
         } else { \
             sv2 = get_sv("PDL::undefval",1); \
             if(SvIV(get_sv("PDL::debug",1))) \
@@ -65,25 +64,21 @@ print OUT <<'EOF';
             if (PDL_SV_IS_UNDEF(sv2)) { \
                 outany.type = forced_type >=0 ? forced_type : PDL_B; \
                 outany.value.B = 0; \
-                further_processing = FALSE; \
+                break; \
             } \
         } \
-    } else { \
-        further_processing = TRUE; \
     } \
-    if (further_processing) { \
-        if (sv_derived_from(sv2, "PDL")) { \
-            pdl *it = PDL_CORE_(SvPDLV)(sv2); \
-            outany = PDL_CORE_(at0)(it); \
-        } else if (!SvIOK(sv2)) { /* Perl Double (e.g. 2.0) */ \
-            NV tmp_NV = SvNV(sv2); \
-            int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype_double(tmp_NV); \
-            ANYVAL_FROM_CTYPE(outany, datatype, tmp_NV); \
-        } else { /* Perl Int (e.g. 2) */ \
-            IV tmp_IV = SvIV(sv2); \
-            int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype(tmp_IV); \
-            ANYVAL_FROM_CTYPE(outany, datatype, tmp_IV); \
-        } \
+    if (sv_derived_from(sv2, "PDL")) { \
+        pdl *it = PDL_CORE_(SvPDLV)(sv2); \
+        outany = PDL_CORE_(at0)(it); \
+    } else if (!SvIOK(sv2)) { /* Perl Double (e.g. 2.0) */ \
+        NV tmp_NV = SvNV(sv2); \
+        int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype_double(tmp_NV); \
+        ANYVAL_FROM_CTYPE(outany, datatype, tmp_NV); \
+    } else { /* Perl Int (e.g. 2) */ \
+        IV tmp_IV = SvIV(sv2); \
+        int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype(tmp_IV); \
+        ANYVAL_FROM_CTYPE(outany, datatype, tmp_IV); \
     } \
 } while (0)
 
