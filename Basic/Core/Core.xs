@@ -485,16 +485,6 @@ pdl_avref(array_ref, class, type)
        pdl_from_array(av,dims,type,p); /* populate ;) */
      }
 
-MODULE = PDL::Core	PACKAGE = PDL
-
-# pdl_null is created/imported with no PREFIX  as pdl_null.
-#  'null' is supplied in Core.pm that calls 'initialize' which calls
-#   the pdl_null here
-
-pdl *
-pdl_null(...)
-
-
 MODULE = PDL::Core     PACKAGE = PDL::Core     PREFIX = pdl_
 
 int
