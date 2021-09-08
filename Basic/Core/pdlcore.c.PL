@@ -889,45 +889,35 @@ PDL_Indx pdl_setav_$ppsym($ctype* dest_data, AV* av,
 
       /* If the element was a ref but not an AV, then it should be a PDL */
       pdl *pdl;
-      if( (pdl = pdl_SvPDLV(el)) ) {
-          /* The element was a PDL - use pdl_kludge_copy to copy it into the destination */
-          PDL_Indx pd;
-          int pddex;
-          
-          pdl_make_physical(pdl);
-          
-          pddex = ndims - 2 - level;
-          pd = (pddex >= 0 && pddex < ndims ? dest_dims[ pddex ] : 0);
-          if(!pd)
-              pd = 1;
-          undef_count += pdl_kludge_copy_$ppsym(0, dest_data,dest_dims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, dest_pdl);
-
-      } else {
+      if( !(pdl = pdl_SvPDLV(el)) ) {
         /* The element is a non-PDL, non-AV ref.  Not allowed. */
         croak("Non-array, non-PDL element in list");
       }
+      /* The element was a PDL - use pdl_kludge_copy to copy it into the destination */
+      PDL_Indx pd;
+      int pddex;
+      pdl_make_physical(pdl);
+      pddex = ndims - 2 - level;
+      pd = (pddex >= 0 && pddex < ndims ? dest_dims[ pddex ] : 0);
+      if(!pd)
+          pd = 1;
+      undef_count += pdl_kludge_copy_$ppsym(0, dest_data,dest_dims,ndims, level+1, stride / pd , pdl, 0, pdl->data, undefval, dest_pdl);
     } else { /* el==0 || SvROK(el)==0: this is a scalar or undef element */
       if( PDL_SV_IS_UNDEF(el) ) {  /* undef case */
         *dest_data = ($ctype) undefval;
         undef_count++;
 
       } else {              /* scalar case */
-        if (SvIOK(el)) {
-          *dest_data = ($ctype) SvIV(el);
-        } else {
-          *dest_data = ($ctype) SvNV(el);
-        }
+        *dest_data = SvIOK(el) ? ($ctype) SvIV(el) : ($ctype) SvNV(el);
       }
 
       /* Pad dim if we are not deep enough */
       if(level < ndims-1) {
         $ctype *cursor = dest_data;
         $ctype *target = dest_data + stride;
-
-        for( cursor++;  cursor < target; cursor++ ) {
+        undef_count += stride;
+        for( cursor++;  cursor < target; cursor++ )
           *cursor = ($ctype)undefval;
-          undef_count++;
-        }
       }
     }
 
@@ -937,24 +927,14 @@ PDL_Indx pdl_setav_$ppsym($ctype* dest_data, AV* av,
 
   if(len < cursz-1 ) {
     $ctype *target = dest_data + stride * (cursz - 1 - len);
-    for( ;
-         dest_data < target;
-         dest_data++
-         ) {
-
+    undef_count += target - dest_data;
+    for( ; dest_data < target; dest_data++ )
       *dest_data = ($ctype) undefval;
-      undef_count++;
-    }
   }
 
   /* If the Perl scalar PDL::debug is set, announce padding */
   if(level==0 && undef_count) {
-    char debug_flag;
-    SV *sv;
-    sv = get_sv("PDL::debug",0);
-    debug_flag = (PDL_SV_IS_UNDEF(sv)) ? 0 : (char)SvIV(sv);
-
-    if(debug_flag) {
+    if(SvTRUE(get_sv("PDL::debug",0))) {
       fflush(stdout);
       fprintf(stderr,"Warning: pdl_setav_$ppsym converted undef to \$PDL::undefval (%g) %ld time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s");
       fflush(stderr);
