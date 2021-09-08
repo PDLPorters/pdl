@@ -592,7 +592,6 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* p)
     pdl_setav_ ## generic_ppsym(p->data,av,pdims,ndims,level, undefval.value.generic_ppsym, p);
   PDL_GENERICSWITCH(dtype, X)
 #undef X
-  p->state &= ~PDL_NOMYDIMS;
   return p;
 }
 
