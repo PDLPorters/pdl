@@ -700,20 +700,22 @@ foreach my $inner_type ( types() ) {
            /* copy data (unless the source pointer is null) */
       i=0;
       if(source_data && dest_data && pdlsiz) {
+        found_bad = 0;
         for(; i<pdlsiz; i++) {
           if(source_pdl->has_badvalue || (source_pdl->state & PDL_BADVAL)) {
               /* Retrieve directly from .value.* instead of using ANYVAL_EQ_ANYVAL */
               if( (($ctype *)source_data)[i] == source_badval.value.$ppsym || PDL_ISNAN_$ppsym((($ctype *)source_data)[i]) ) {
                   /* bad value in source PDL -- use our own type's bad value instead */
-                  dest_data[i] = PDL.bvals.%1\$s;
-                  dest_pdl->state |= PDL_BADVAL;
+                  ANYVAL_TO_CTYPE(dest_data[i], $ctype, dest_badval);
+                  found_bad = 1;
               } else {
-                  dest_data[i] = (PDL_%1\$s) ((${ctype} *)source_data)[i];
+                  dest_data[i] = ((${ctype} *)source_data)[i];
               }
           } else {
-            dest_data[i] = (PDL_%1\$s) ((${ctype} *)source_data)[i];
+            dest_data[i] = ((${ctype} *)source_data)[i];
           }
         } // end of loop over pdlsiz
+        if (found_bad) dest_pdl->state |= PDL_BADVAL; /* just once */
       } else { 
         // source_data or dest_data or pdlsiz are 0
         if(dest_data)
@@ -786,6 +788,8 @@ PDL_Indx pdl_kludge_copy_$ppsym(PDL_Indx dest_off, // Offset into the dest data 
 
     /* This is used inside the switch in order to detect badvalues. */
     PDL_Anyval source_badval = PDL.get_pdl_badvalue(source_pdl);
+    PDL_Anyval dest_badval = PDL.get_pdl_badvalue(dest_pdl);
+    char found_bad = 0;
 
     /* This is the actual data-copying code. It is generated with a Perl loop, to
      * ensure that all current PDL types get treated. */
