@@ -676,12 +676,6 @@ void pdl_make_physdims(pdl *it) {
 	PDLDEBUG_f(printf("Make_physdims_exit %p\n",(void*)it));
 }
 
-void pdl_writeover(pdl *it) {
-	pdl_make_physdims(it);
-	pdl_children_changesoon(it,PDL_PARENTDATACHANGED);
-	it->state &= ~PDL_PARENTDATACHANGED;
-}
-
 /* Order is important: do childtrans first, then parentrans. */
 
 void pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
