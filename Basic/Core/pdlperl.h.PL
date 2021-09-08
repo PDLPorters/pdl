@@ -19,22 +19,15 @@ print OUT <<'EOF';
 #define __PDLPERL_H
 
 #define PDL_XS_SCALAR(type, ctype, val) \
-  SV *b_SV = NULL; \
-  pdl  *b; \
-  int nreturn = 1; \
-  int ndims = 0; \
-  PDL_Indx *pdims; \
-  pdims = (PDL_Indx *) pdl_smalloc( ndims * sizeof(*pdims) ); \
-  b = pdl_create(PDL_PERM); \
-  pdl_setdims(b, pdims, ndims); \
-  b->datatype = type; \
-  pdl_allocdata(b); \
-  ((ctype *)b->data)[0] = val; \
-  b_SV = sv_newmortal(); \
+  SV *b_SV = sv_newmortal(); \
+  pdl *b = pdl_pdlnew(); \
+  PDL_Anyval av; \
+  ANYVAL_FROM_CTYPE(av,type,val); \
+  pdl_makescratchhash(b, av); \
   pdl_SetSV_PDL(b_SV, b); \
-  if (nreturn > 0) EXTEND(SP, nreturn); \
+  EXTEND(SP, 1); \
   ST(0) = b_SV; \
-  XSRETURN(nreturn);
+  XSRETURN(1);
 
 #define PDL_MAKE_PERL_COMPLEX(output,r,i) { \
         dSP; int count; double rval = r, ival = i; SV *ret; \
