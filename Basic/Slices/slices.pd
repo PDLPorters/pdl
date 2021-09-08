@@ -1228,7 +1228,7 @@ sub PDL::rld {
     $c = $_[2];
   } else {
 # XXX Need to improve emulation of threading in auto-generating c
-    my ($size) = $x->sumover->max;
+    my ($size) = $x->sumover->max->sclr;
     my (@dims) = $x->dims;
     shift @dims;
     $c = $y->zeroes($size,@dims);
@@ -1280,7 +1280,7 @@ sub PDL::rle {
   my ($x,$y) = @_==2 ? @_ : (null,null);
   &PDL::_rle_int($c,$x,$y);
   my $max_ind = ($c->ndims<2) ? ($x!=0)->sumover-1 :
-                                ($x!=0)->clump(1..$x->ndims-1)->sumover->max-1;
+                                ($x!=0)->clump(1..$x->ndims-1)->sumover->max->sclr-1;
   return ($x->slice("0:$max_ind"),$y->slice("0:$max_ind"));
 }
 EOC
