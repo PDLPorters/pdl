@@ -443,4 +443,7 @@ for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i']) {
   is_deeply [$g1->dims], [2], 'right dims';
 }
 
+eval { PDL->is_inplace }; # shouldn't infinite-loop
+isnt $@, '', 'is_inplace as class method throws exception';
+
 done_testing;

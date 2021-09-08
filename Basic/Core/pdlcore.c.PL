@@ -114,6 +114,11 @@ pdl* pdl_SvPDLV ( SV* sv ) {
    PDL_Indx fake[1];
    SV *sv2;
 
+   if(sv_derived_from(sv, "PDL") && !SvROK(sv)) {
+      /* object method called as class method */
+      pdl_pdl_barf("called object method on 'PDL' or similar");
+   }
+
    if ( !SvROK(sv) ) {
       /* The scalar is not a ref, so we can use direct conversion. */
       PDL_Anyval data;
