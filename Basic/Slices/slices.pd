@@ -792,7 +792,7 @@ switch(ind_pdl->datatype) {
  default:                              /* Most types: */
    ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
  case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_LL:
-   PDL->converttype(&ind_pdl,PDL_IND,1); /* convert in place. */
+   PDL->converttype(ind_pdl,PDL_IND); /* convert in place. */
    break;
  case PDL_IND:
    PDL->make_physical(ind_pdl);
@@ -899,7 +899,7 @@ switch(ind_pdl->datatype) {
       default:                              /* Most types: */
         size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
       case PDL_B: case PDL_S: case PDL_US: case PDL_L:  case PDL_LL:
-        PDL->converttype(&size_pdl,PDL_IND,1); /* convert in place. */
+        PDL->converttype(size_pdl,PDL_IND); /* convert in place. */
         break;
       case PDL_IND:
         PDL->make_physical(size_pdl);

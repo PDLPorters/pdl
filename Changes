@@ -16,6 +16,7 @@
 - remove Core.qsort_*
 - zeroes now quicker as only does memset, not assgn operation
 - add $PPSYM()
+- change API of PDL->converttype to remove obsolete flag
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism

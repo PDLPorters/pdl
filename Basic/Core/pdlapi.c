@@ -1438,7 +1438,7 @@ void pdl_set_datatype(pdl *a, int datatype)
     pdl_make_physical(a);
     if(a->trans)
 	    pdl_destroytransform(a->trans,1);
-    pdl_converttype( &a, datatype, PDL_PERM );
+    pdl_converttype( a, datatype );
 }
 
 pdl *pdl_sever(pdl *src)

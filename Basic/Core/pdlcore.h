@@ -45,8 +45,6 @@
 #undef warn
 #define warn PDL_CORE_(pdl_warn)
 
-typedef int Logical;
-
 void pdl_makescratchhash(pdl *ret, PDL_Anyval data);
 PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
@@ -69,7 +67,7 @@ void pdl_readdata_vaffine(pdl *it);
   X(destroy, void, (pdl *it)) \
   X(null, pdl*, ()) \
   X(hard_copy, pdl*, ( pdl* )) \
-  X(converttype, void, ( pdl**, int, Logical )) \
+  X(converttype, void, ( pdl*, int )) \
   X(smalloc, void*, ( STRLEN )) \
   X(howbig, size_t, ( int )) \
   X(packdims, PDL_Indx*, ( SV* sv, PDL_Indx *ndims )) \

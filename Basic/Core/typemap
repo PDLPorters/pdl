@@ -1,7 +1,6 @@
 TYPEMAP
 pdl *	T_PDL
 pdl_trans * T_PDLTRANS
-Logical	T_IV
 PDL_Indx  T_IV
 float	T_NV
 PDL_Anyval  T_PDL_ANYVAL

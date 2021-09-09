@@ -53,7 +53,7 @@ void DFF(int* n, double* xval, double* vector){
   PUTBACK;
   px = PDL->SvPDLV(pxsv);
   
-  PDL->converttype( &px, PDL_D, PDL_PERM );
+  PDL->converttype( px, PDL_D );
   PDL->children_changesoon(px,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
   PDL->setdims (px,pdims,ndims);
   px->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;

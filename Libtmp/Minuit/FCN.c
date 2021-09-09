@@ -78,7 +78,7 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   PUTBACK;
   pxval = PDL->SvPDLV(pxvalsv);
  
-  PDL->converttype( &pxval, PDL_D, PDL_PERM );
+  PDL->converttype( pxval, PDL_D );
   PDL->children_changesoon(pxval,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
   PDL->setdims (pxval,pdims,ndims);
   pxval->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
@@ -93,7 +93,7 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   PUTBACK;
   pgrad = PDL->SvPDLV(pgradsv);
   
-  PDL->converttype( &pgrad, PDL_D, PDL_PERM );
+  PDL->converttype( pgrad, PDL_D );
   PDL->children_changesoon(pgrad,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
   PDL->setdims (pgrad,pdims,ndims);
   pgrad->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;

@@ -49,8 +49,7 @@ VAFF_IO(writebackdata_vaffine, X)
  * (at least in the current scheme)
  */
 
-void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
-    pdl* a=*aa;  /* Point to cache */
+void pdl_converttype( pdl* a, int targtype ) {
     int intype;
     void* b;     /* Scratch data ptr */
     SV*   bar;
@@ -58,8 +57,8 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     STRLEN   nbytes;
     int   diffsize;
     PDL_Indx   i;
-    PDLDEBUG_f(printf("pdl_converttype %p, %d, %d, %d\n", (void*)a, a->datatype,
-    	targtype, changePerl);)
+    PDLDEBUG_f(printf("pdl_converttype %p, %d, %d\n", (void*)a, a->datatype,
+	targtype);)
 
     intype = a->datatype;
     if (intype == targtype)
@@ -69,22 +68,15 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 
     nbytes = a->nvals * pdl_howbig(targtype); /* Size of converted data */
 
-    if (changePerl) {   /* Grow data */
-
-      if(a->state & PDL_DONTTOUCHDATA) {
-	croak("Trying to convert of magical (mmaped?) pdl");
-      }
-
-      if (diffsize) {
-         b = a->data;                      /* pointer to old data */
-         a->data     = pdl_smalloc(nbytes); /* Space for changed data */
-      }
-      else{
-         b = a->data; /* In place */
-      }
-
-    }else{
-       die("Sorry, temporary type casting is not allowed now");
+    if(a->state & PDL_DONTTOUCHDATA) {
+      croak("Trying to convert of magical (mmaped?) pdl");
+    }
+    if (diffsize) {
+       b = a->data;                      /* pointer to old data */
+       a->data     = pdl_smalloc(nbytes); /* Space for changed data */
+    }
+    else{
+       b = a->data; /* In place */
     }
 
     /* Do the conversion as nested switch statements */
@@ -101,17 +93,12 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 #undef X_INNER
 #undef X_OUTER
 
-    if (changePerl) {   /* Tidy up */
-
-      /* Store new data */
-
-      if (diffsize) {
-        STRLEN n_a;
-         bar = a->datasv;
-         sv_setpvn( bar, (char*) a->data, nbytes );
-         a->data = (void*) SvPV(bar, n_a);
-      }
-
+    /* Store new data */
+    if (diffsize) {
+      STRLEN n_a;
+       bar = a->datasv;
+       sv_setpvn( bar, (char*) a->data, nbytes );
+       a->data = (void*) SvPV(bar, n_a);
     }
 
     a->datatype = targtype;
