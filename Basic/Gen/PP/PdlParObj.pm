@@ -6,14 +6,14 @@ use Carp;
 use PDL::Types ':All';
 
 our $macros = <<'EOF';
-#define PDL_REDODIMS(declini, cast, type, flag, name, pdlname) \
+#define PDL_DECLARE_PARAMETER(declini, cast, type, flag, name, pdlname) \
   declini name ## _datap = (cast(PDL_REPRP_TRANS(pdlname, flag))); \
   declini name ## _physdatap = (cast(pdlname->data)); \
   (void)name ## _datap; \
   (void)name ## _physdatap;
 
-#define PDL_REDODIMS_BADVAL(declini, cast, type, flag, name, pdlname) \
-  PDL_REDODIMS(declini, cast, type, flag, name, pdlname) \
+#define PDL_DECLARE_PARAMETER_BADVAL(declini, cast, type, flag, name, pdlname) \
+  PDL_DECLARE_PARAMETER(declini, cast, type, flag, name, pdlname) \
   type name ## _badval = 0; \
   PDL_Anyval name ## _anyval_badval = PDL->get_pdl_badvalue(pdlname); \
   (void)name ## _badval; \
@@ -387,7 +387,7 @@ sub get_xsdatapdecl {
     my $name = $this->{Name};
     my $declini = ($asgnonly ? "" : "$type *");
     my $cast = ($type ? "($type *)" : "");
-    my $macro = ($this->{BadFlag} && $ptype) ? "PDL_REDODIMS_BADVAL" : "PDL_REDODIMS";
+    my $macro = "PDL_DECLARE_PARAMETER".(($this->{BadFlag} && $ptype) ? "_BADVAL" : "");
     PDL::PP::pp_line_numbers(__LINE__, "$macro($declini, $cast, $type, $flag, $name, $pdl)");
 }
 
