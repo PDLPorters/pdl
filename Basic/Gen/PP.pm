@@ -886,31 +886,6 @@ our $macros = <<'EOF';
 	priv_free_code \
 	ntpriv_free_code \
     }
-
-#define PDL_PERL_HDRCOPY \
-    if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) { \
-	PDL_COMMENT("call the perl routine _hdr_copy.") \
-	int count; \
-	dSP; \
-	ENTER; \
-	SAVETMPS; \
-	PUSHMARK(SP); \
-	XPUSHs( sv_mortalcopy((SV*)__parent->hdrsv) ); \
-	PUTBACK; \
-	count = call_pv("PDL::_hdr_copy",G_SCALAR); \
-	SPAGAIN; \
-	if (count != 1) \
-	    croak("PDL::_hdr_copy didn\'t return a single value - please report this bug (B)."); \
-	{ PDL_COMMENT("convenience block for tmp var") \
-	    SV *tmp = (SV *) POPs ; \
-	    __it->hdrsv = (void*) tmp; \
-	    if(tmp != &PL_sv_undef ) \
-		(void)SvREFCNT_inc(tmp); \
-	} \
-	__it->state |= PDL_HDRCPY; \
-	FREETMPS; \
-	LEAVE; \
-    }
 EOF
 
 use PDL::Types ':All';
@@ -1621,7 +1596,7 @@ sub wrap_vfn {
 	$sname *__privtrans = ($sname *) __tr;\n|);
     if ( $p2child ) {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
-	$str .= "\tPDL_PERL_HDRCOPY\n" if $name eq "redodims";
+	$str .= "\tif (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) PDL->hdr_copy(__parent, __it);\n" if $name eq "redodims";
     }
     $str .= "\t{\n$code\n\t}\n" if $code;
     "$str\n}\n";

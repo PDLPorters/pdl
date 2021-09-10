@@ -860,3 +860,27 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
 PDL_GENERICLIST2(PDL_KLUDGE_COPY_X, INNERLOOP_X)
 #undef PDL_KLUDGE_COPY_X
 #undef INNERLOOP_X
+
+void pdl_hdr_copy(pdl *parent, pdl *it) {
+  /* call the perl routine _hdr_copy */
+  int count;
+  dSP;
+  ENTER;
+  SAVETMPS;
+  PUSHMARK(SP);
+  XPUSHs( sv_mortalcopy((SV*)parent->hdrsv) );
+  PUTBACK;
+  count = call_pv("PDL::_hdr_copy",G_SCALAR);
+  SPAGAIN;
+  if (count != 1)
+      croak("PDL::_hdr_copy didn\'t return a single value - please report this bug (B).");
+  {
+      SV *tmp = (SV *) POPs ;
+      it->hdrsv = (void*) tmp;
+      if(tmp != &PL_sv_undef )
+          (void)SvREFCNT_inc(tmp);
+  }
+  it->state |= PDL_HDRCPY;
+  FREETMPS;
+  LEAVE;
+}
