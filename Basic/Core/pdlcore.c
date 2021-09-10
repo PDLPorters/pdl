@@ -2,7 +2,7 @@
 #include "pdl.h"      /* Data structure declarations */
 #define PDL_IN_CORE /* access funcs directly not through PDL-> */
 #include "pdlcore.h"  /* Core declarations */
-#include "pdlperl.h"  /* Core declarations */
+#include "pdlperl.h"
 
 /* Needed to get badvals from the Core structure (in pdl_avref_<type>) */
 extern Core PDL; 
@@ -722,8 +722,6 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
     PDL_Anyval source_badval = PDL.get_pdl_badvalue(source_pdl); \
     PDL_Anyval dest_badval = PDL.get_pdl_badvalue(dest_pdl); \
     char found_bad = 0; \
-    /* This is the actual data-copying code. It is generated with a Perl loop, to \
-     * ensure that all current PDL types get treated. */ \
     PDL_GENERICSWITCH2(source_pdl->datatype, X) \
     return undef_count; \
   } \
