@@ -879,7 +879,7 @@ our $macros = <<'EOF';
       XSRETURN(0); \
     }
 
-#define PDL_FREE_CODE(priv_free_code, comp_free_code, ntpriv_free_code) \
+#define PDL_FREE_CODE(comp_free_code, priv_free_code, ntpriv_free_code) \
     PDL_TR_CLRMAGIC(__privtrans); \
     comp_free_code \
     if (__privtrans->__ddone) { \
@@ -2845,7 +2845,7 @@ END
       }),
 
    PDL::PP::Rule->new("FreeCodeNS",
-      ["PrivFreeCode","CompFreeCode","NTPrivFreeCode"],
+      ["CompFreeCode","PrivFreeCode","NTPrivFreeCode"],
       sub {
 	  PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], $_[1], $_[2])") }),
 
