@@ -319,6 +319,7 @@ typedef struct pdl_transvtable {
   int bvalflag;                                                         \
   int has_badvalue;                                                     \
   PDL_Anyval badvalue;                                                  \
+  char dims_redone;                                                     \
   int __datatype
 
 #define PDL_TRANS_START(np) \

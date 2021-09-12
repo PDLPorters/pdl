@@ -807,13 +807,13 @@ our $macros = <<'EOF';
   __copy->vtable = pvt; \
   __copy->__datatype = pdt; \
   __copy->freeproc = NULL; \
-  __copy->__ddone = pdd; \
+  __copy->dims_redone = pdd; \
   {int i; \
    for(i=0; i<__copy->vtable->npdls; i++) \
           __copy->pdls[i] = ppdl; \
   } \
   compcode \
-  if(__copy->__ddone) { \
+  if(__copy->dims_redone) { \
           privcode \
   } \
   return (pdl_trans*)__copy;
@@ -866,7 +866,7 @@ our $macros = <<'EOF';
     clrmagic; \
     PDL_TR_SETMAGIC(sname); \
     sname->flags = affflag; \
-    sname->__ddone = 0; \
+    sname->dims_redone = 0; \
     sname->vtable = &pvtable; \
     sname->freeproc = PDL->trans_mallocfreeproc;
 
@@ -882,7 +882,7 @@ our $macros = <<'EOF';
 #define PDL_FREE_CODE(comp_free_code, priv_free_code, ntpriv_free_code) \
     PDL_TR_CLRMAGIC(__privtrans); \
     comp_free_code \
-    if (__privtrans->__ddone) { \
+    if (__privtrans->dims_redone) { \
 	priv_free_code \
 	ntpriv_free_code \
     }
@@ -2840,7 +2840,7 @@ END
         PDL::PP::pp_line_numbers(__LINE__,
             "$_[2] *__copy = malloc(sizeof($_[2])); memset(__copy, 0, sizeof($_[2]));\n" .
         ($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->__pdlthread);\n") .
-        "PDL_COPYCODE($_[0], $_[1], \$PRIV(has_badvalue), \$PRIV(badvalue), \$PRIV(flags), \$PRIV(vtable), \$PRIV(__datatype), \$PRIV(__ddone), \$PRIV(pdls[i]))\n"
+        "PDL_COPYCODE($_[0], $_[1], \$PRIV(has_badvalue), \$PRIV(badvalue), \$PRIV(flags), \$PRIV(vtable), \$PRIV(__datatype), \$PRIV(dims_redone), \$PRIV(pdls[i]))\n"
         )
       }),
 
@@ -3073,7 +3073,6 @@ END
           PDL_TRANS_START($npdls);
           $priv
           $comp
-          char __ddone; PDL_COMMENT("Dims done")
           } $name;});
       }),
 
@@ -3081,7 +3080,7 @@ END
    # twice (directly and via RedoDims-PostComp). Can this be cleaned up?
    #    [I don't know who put this in, or when -- but I don't understand it.  CED 13-April-2015]
    PDL::PP::Rule->new("RedoDims-PreComp", "RedoDims",
-      sub { PDL::PP::pp_line_numbers(__LINE__, $_[0] . ' $PRIV(__ddone) = 1;') }),
+      sub { PDL::PP::pp_line_numbers(__LINE__, $_[0] . ' $PRIV(dims_redone) = 1;') }),
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
       ["RedoDims-PreComp", "PrivNames", "PrivObjs"], "PRIV"),
 
