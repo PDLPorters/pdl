@@ -2774,7 +2774,7 @@ END
       'makes the parsed representation from the supplied RedoDimsCode',
       sub {
           return 'PDL_COMMENT("no RedoDimsCode")'
-            if $_[0] =~ m|^/[*] none [*]/$|;
+            if $_[0] eq 'PDL_COMMENT("none")';
           PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
       ["SignatureObj","RedoDimsParsedCode", '_NoPthread'],
