@@ -10,9 +10,7 @@ use Carp;
 sub new {
 	my $this = bless {},shift;
 	$this->{Resolve} = shift;
-	if(@_) {
-		$this->parsefrom(shift);
-	}
+	$this->parsefrom(shift) if @_;
 	return $this;
 }
 
@@ -59,61 +57,44 @@ sub protoname { return shift->{ProtoName} }
 
 sub get_copy {
 	my($this,$from,$to) = @_;
-	my ($prev,$close);
-	if($#{$this->{Chain}} >= 0) {
-		# strdup loses portability :(
-		return "($to) = malloc(strlen($from)+1); strcpy($to,$from);"
-		 if $this->{Base} =~ /^\s*char\s*$/;
-                return "($to) = newSVsv($from);"
-                 if $this->{Base} =~ /^\s*SV\s*$/;
-		my $code = $this->get_malloc($to,$from);
-		my ($deref0,$deref1) = ($from,$to);
-		for(@{$this->{Chain}}) {
-			if($_ eq "PTR") {confess("Cannot alloc pointer, must be array");}
-			elsif($_ =~/^ARR\((.*)\)$/) {
-				$no++;
-				$prev .= "
-				  if(!$deref0) {$deref1=0;}
-				  else {int __malloc_ind_$no;
-					for(__malloc_ind_$no = 0;
-						__malloc_ind_$no < $1;
-						__malloc_ind_$no ++) {";
-				$deref0 = $deref0."[__malloc_ind_$no]";
-				$deref1 = $deref1."[__malloc_ind_$no]";
-				$close .= "}}";
-			} else { confess("Invalid decl $_") }
-		}
-		$code .= "$prev $deref1 = $deref0; $close";
-		return $code;
+	return "($to) = ($from);" if !@{$this->{Chain}};
+	# strdup loses portability :(
+	return "($to) = malloc(strlen($from)+1); strcpy($to,$from);"
+	 if $this->{Base} =~ /^\s*char\s*$/;
+	return "($to) = newSVsv($from);" if $this->{Base} =~ /^\s*SV\s*$/;
+	my $code = $this->get_malloc($to,$from);
+	my ($deref0,$deref1,$prev,$close) = ($from,$to);
+	for(@{$this->{Chain}}) {
+		if($_ eq "PTR") {confess("Cannot alloc pointer, must be array");}
+		elsif($_ =~/^ARR\((.*)\)$/) {
+			$no++;
+			$prev .= "
+			  if(!$deref0) {$deref1=0;}
+			  else {int __malloc_ind_$no;
+				for(__malloc_ind_$no = 0;
+					__malloc_ind_$no < $1;
+					__malloc_ind_$no ++) {";
+			$deref0 = $deref0."[__malloc_ind_$no]";
+			$deref1 = $deref1."[__malloc_ind_$no]";
+			$close .= "}}";
+		} else { confess("Invalid decl $_") }
 	}
-	return "($to) = ($from);";
+	$code .= "$prev $deref1 = $deref0; $close";
+	return $code;
 }
 
 sub get_free {
 	my($this,$from) = @_;
 	return "" if !@{$this->{Chain}};
-	my ($prev,$close);
-	return "free($from);"
-	 if $this->{Base} =~ /^\s*char\s*$/;
-	return "SvREFCNT_dec($from);"
-	 if $this->{Base} =~ /^\s*SV\s*$/;
-	my @mallocs;
-	my $str = "{";
-	my $deref = "$from";
-	my $prev = undef;
-	my $close = undef;
-	my $no = 0;
-	for(@{$this->{Chain}}) {
-		$no++;
-		if($no > 1) {croak("Can only free one layer!\n");}
-#			if($_ eq "PTR") {confess("Cannot free pointer, must be array ;) (FIX CType.pm)");}
-		return "free($from);\n ";
-	}
+	return "free($from);" if $this->{Base} =~ /^\s*char\s*$/;
+	return "SvREFCNT_dec($from);" if $this->{Base} =~ /^\s*SV\s*$/;
+	croak("Can only free one layer!\n") if @{$this->{Chain}} > 1;
+	"free($from);";
 }
 
 sub need_malloc {
 	my($this) = @_;
-	return scalar grep /(ARR|PTR)/,(@{$this->{Chain}})
+	grep /(ARR|PTR)/, @{$this->{Chain}};
 }
 
 # Just returns with the array string.
@@ -141,22 +122,6 @@ sub get_malloc {
 	}
 	$str .= "}";
 	return $str;
-}
-
-sub getvar {
-}
-
-# Determine if everything constant and can just declare
-sub need_alloc {
-}
-
-sub alloccode {
-}
-
-sub copycode {
-}
-
-sub freecode {
 }
 
 1;
