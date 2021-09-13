@@ -94,7 +94,6 @@ pp_def(
        AffinePriv => 1,
        DefaultFlow => 1,
        P2Child => 1,
-       NoPdlThread => 1,
        ReadDataFuncName => "pdl_readdata_affineinternal",
        WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
        MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
@@ -136,7 +135,6 @@ pp_def(
         HandleBad => 1,
         P2Child => 1,
         GenericTypes => [ppdefs_all],
-        NoPdlThread => 1,
         DefaultFlow => 1,
         OtherPars => '',
         Reversible => 1,
@@ -734,7 +732,6 @@ EOD
         DefaultFlow => 1,
         Reversible => 1,
         P2Child => 1,
-        NoPdlThread => 1,
 
 #
 # rdim: dimensionality of each range (0 dim of index PDL)
@@ -1383,7 +1380,6 @@ pp_def(
         GlobalNew => 'converttypei_new',
         OtherPars => 'int totype;',
         P2Child => 1,
-        NoPdlThread => 1,
         Identity => 1,
         Reversible => 1,
 # Forced types
@@ -1401,7 +1397,6 @@ pp_def(
         DefaultFlow => 1,
         OtherPars => 'int n',
         P2Child => 1,
-	NoPdlThread=>1,
         Priv => 'int nnew; int nrem;',
         RedoDims => 'int i; PDL_Indx d1;
 
@@ -1448,7 +1443,6 @@ pp_def(
         DefaultFlow => 1,
         Reversible => 1,
         P2Child => 1,
-        NoPdlThread => 1,
         XCHGOnly => 1,
         EquivDimCheck => 'if ($COMP(n1) <0)
                                 $COMP(n1) += $PARENT(threadids[0]);
@@ -1617,7 +1611,6 @@ pp_def(
         DefaultFlow => 1,
         Reversible => 1,
         P2Child => 1,
-        NoPdlThread => 1,
         XCHGOnly => 1,
         EquivDimCheck => 'if ($COMP(n1) <0)
                                 $COMP(n1) += $PARENT(threadids[0]);
@@ -1773,7 +1766,6 @@ depending on whether you prefer error-reporting clarity or speed of execution.
 
 EOD
         P2Child => 1,
-        NoPdlThread => 1,
         DefaultFlow => 1,
         OtherPars => 'char* str',
         Comp => 'int nnew; int nthintact; int intactnew; int ndum;
@@ -2071,7 +2063,6 @@ END
 pp_def( 'affine',
         GenericTypes => [ppdefs_all],
         P2Child => 1,
-        NoPdlThread => 1,
         DefaultFlow => 1,
         Reversible => 1,
         AffinePriv => 1,
@@ -2116,7 +2107,6 @@ pp_def(
         'diagonalI',
         GenericTypes => [ppdefs_all],
         P2Child => 1,
-        NoPdlThread => 1,
         DefaultFlow => 1,
         Reversible => 1,
         AffinePriv => 1,
@@ -2233,7 +2223,6 @@ in the usual way (-1 = last dim).
 =cut
 EOD
         P2Child => 1,
-        NoPdlThread => 1,
         DefaultFlow => 1,
         Reversible => 1, # XXX Not really
         AffinePriv => 1,
@@ -2297,7 +2286,6 @@ is always true (C<m> has to be less than 3).
 =cut
 EOD
         P2Child => 1,
-        NoPdlThread => 1,
         DefaultFlow => 1,
         Reversible => 1, # XXX Not really
         OtherPars => join('', map "PDL_Indx $_;", qw(nthdim nsp)),
@@ -2398,7 +2386,6 @@ Put some dimensions to a threadid.
 
 EOD
         P2Child => 1,
-        NoPdlThread => 1,
         DefaultFlow => 1,
         Reversible => 1,
         AffinePriv => 1,
@@ -2494,7 +2481,6 @@ See [TBD Doc] for details and examples.
 =cut
 EOD
         P2Child => 1,
-        NoPdlThread => 1,
         DefaultFlow => 1,
         Reversible => 1,
         AffinePriv => 1,
@@ -2926,7 +2912,6 @@ pp_def(
         'sliceb',
         GenericTypes => [ppdefs_all],
         P2Child => 1,
-        NoPdlThread => 1,
         DefaultFlow => 1,
         OtherPars => 'SV *args;',
 #

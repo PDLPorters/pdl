@@ -2523,7 +2523,6 @@ END
    ),
 
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
-   PDL::PP::Rule::Returns::Zero->new("NoPdlThread"),
 
 # hmm, need to check on conditional check here (or rather, other bits of code prob need
 # to include it too; see Ops.xs, PDL::assgn)
@@ -2554,12 +2553,12 @@ END
     #   same output...)
     #
    PDL::PP::Rule->new("NewXSStructInit0",
-		      ["NewXSSymTab","VTableName","IsAffineFlag","NoPdlThread"],
+		      ["NewXSSymTab","VTableName","IsAffineFlag","HaveThreading"],
 		      "Rule to create and initialise the private trans structure",
       sub {
-        my( $symtab, $vtable, $affflag, $nopdlthread ) = @_;
+        my( $symtab, $vtable, $affflag, $havethreading ) = @_;
         my $sname = $symtab->get_symname('_PDL_ThisTrans');
-        my $clrmagic = $nopdlthread ?"":"PDL_THR_CLRMAGIC(&$sname->pdlthread)";
+        my $clrmagic = $havethreading?"PDL_THR_CLRMAGIC(&$sname->pdlthread)":"";
         PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_PRIVSTRUCT($sname, $clrmagic, $affflag, $vtable)\n");
       }),
 
@@ -2732,9 +2731,9 @@ END
 # Threads
 #
    PDL::PP::Rule->new("Priv",
-      ["SignatureObj","HaveThreading"],
+      ["SignatureObj"],
       sub {
-        my($sig,$havethreading) = @_;
+        my($sig) = @_;
         my ($parnames, $parobjs) = ($sig->names, $sig->objs);
         my $str = join '',
           (map $parobjs->{$_}->get_incdecls, @$parnames),
@@ -2836,11 +2835,11 @@ END
       sub { PDL::PP::pp_line_numbers(__LINE__, "{".$_[0]."}") }),
 
    PDL::PP::Rule->new("CopyCodeNS",
-      ["PrivCopyCode","CompCopyCode","StructName","NoPdlThread"],
+      ["PrivCopyCode","CompCopyCode","StructName","HaveThreading"],
       sub {
         PDL::PP::pp_line_numbers(__LINE__,
             "$_[2] *__copy = malloc(sizeof($_[2])); memset(__copy, 0, sizeof($_[2]));\n" .
-        ($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->pdlthread);\n") .
+        ($_[3] ? "PDL_THR_CLRMAGIC(&__copy->pdlthread);\n" : "") .
         "PDL_COPYCODE($_[0], $_[1], \$PRIV(has_badvalue), \$PRIV(badvalue), \$PRIV(flags), \$PRIV(vtable), \$PRIV(__datatype), \$PRIV(dims_redone), \$PRIV(pdls[i]))\n"
         )
       }),
