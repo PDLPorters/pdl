@@ -99,7 +99,6 @@ void pdl_readdata_vaffine(pdl *it);
   X(set_trans_parenttrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
   X(get_convertedpdl, pdl *, (pdl *pdl,int type)) \
   X(make_trans_mutual, void, (pdl_trans *trans)) \
-  X(trans_mallocfreeproc, void, (struct pdl_trans *tr)) \
   X(make_physical, void, (pdl *it)) \
   X(make_physdims, void, (pdl *it)) \
   X(pdl_barf, void, (const char* pat,...)) \

@@ -851,8 +851,7 @@ our $macros = <<'EOF';
     PDL_TR_SETMAGIC(sname); \
     sname->flags = affflag; \
     sname->dims_redone = 0; \
-    sname->vtable = &pvtable; \
-    sname->freeproc = PDL->trans_mallocfreeproc;
+    sname->vtable = &pvtable;
 
 #define PDL_XS_RETURN(clause1) \
     if (nreturn) { \

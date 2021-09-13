@@ -1218,10 +1218,6 @@ void pdl__ensure_transdims(pdl_trans *trans)
 	trans->vtable->redodims(trans);
 }
 
-void pdl_trans_mallocfreeproc(struct pdl_trans *tr) {
-	free(tr);
-}
-
 #ifndef DONT_OPTIMIZE
 
 /* Recursive! */

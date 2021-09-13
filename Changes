@@ -17,6 +17,7 @@
 - zeroes now quicker as only does memset, not assgn operation
 - add $PPSYM()
 - change API of PDL->converttype to remove obsolete flag
+- remove unused "copy" mechanism for pdl_trans, stop global override of "freeproc"
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism
