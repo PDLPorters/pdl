@@ -193,6 +193,145 @@ void pdl__free(pdl *it) {
     PDLDEBUG_f(printf("ENDFREE %p\n",(void*)it));
 }
 
+/* Problem with this function: when transformation is destroyed,
+ * there may be several different children with the same name.
+ * Therefore, we cannot croak :(
+ */
+void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
+{
+	PDL_Indx i; pdl_children *c; int flag = 0;
+	if(all) {
+		for(i=0; i<trans->vtable->nparents; i++)
+			if(trans->pdls[i] == it)
+				trans->pdls[i] = NULL;
+	} else {
+		trans->pdls[nth] = 0;
+	}
+	c = &it->children;
+	do {
+		for(i=0; i<PDL_NCHILDREN; i++) {
+			if(c->trans[i] == trans) {
+				c->trans[i] = NULL;
+				flag = 1;
+				if(!all) return;
+				/* return;  Cannot return; might be many times
+				  (e.g. $x+$x) */
+			}
+		}
+		c=c->next;
+	} while(c);
+	/* this might be due to a croak when performing the trans; so
+	   warn only for now, otherwise we leave trans undestructed ! */
+	if(!flag)
+		pdl_pdl_warn("Child not found for pdl %d, %d\n",it, trans);
+}
+
+void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
+{
+	trans->pdls[nth] = 0;
+	it->trans = 0;
+}
+
+/* There is a potential problem here, calling
+   pdl_destroy while the trans structure is not in a defined state.
+   We shall ignore this problem for now and hope it goes away ;)
+   (XXX FIX ME) */
+/* XXX Two next routines are memleaks */
+/* somehow this transform will call (implicitly) redodims twice on
+   an unvaffined pdl; leads to memleak if redodims allocates stuff
+   that is only freed in later call to freefunc */
+void pdl_destroytransform(pdl_trans *trans,int ensure)
+{
+	PDL_Indx j;
+	pdl *foo;
+	pdl *destbuffer[100];
+	int ndest = 0;
+	PDLDEBUG_f(printf("entering pdl_destroytransform %p (ensure %d)\n",
+			  (void*)trans,ensure));
+	if(100 < trans->vtable->npdls) {
+		die("Huge trans");
+	}
+	PDL_TR_CHKMAGIC(trans);
+	if(!trans->vtable) {
+	  die("ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
+	}
+	if(ensure) {
+		PDLDEBUG_f(printf("pdl_destroytransform: ensure\n"));
+		pdl__ensure_trans(trans,0);
+	}
+	for(j=0; j<trans->vtable->nparents; j++) {
+		foo = trans->pdls[j];
+		if(!foo) continue;
+		PDL_CHKMAGIC(foo);
+		PDLDEBUG_f(printf("pdl_removectransform(%p): %p %"IND_FLAG"\n",
+			(void*)trans, (void*)(trans->pdls[j]), j));
+		pdl__removechildtrans(trans->pdls[j],trans,j,1);
+		if(!(foo->state & PDL_DESTROYING) && !foo->sv) {
+			destbuffer[ndest++] = foo;
+		}
+	}
+	for(; j<trans->vtable->npdls; j++) {
+		foo = trans->pdls[j];
+		PDL_CHKMAGIC(foo);
+		PDLDEBUG_f(printf("pdl_removeptransform(%p): %p %"IND_FLAG"\n",
+			(void*)trans, (void*)(trans->pdls[j]), j));
+		pdl__removeparenttrans(trans->pdls[j],trans,j);
+		if(foo->vafftrans) {
+			PDLDEBUG_f(printf("pdl_removevafft: %p\n", (void*)foo));
+			pdl_vafftrans_remove(foo);
+		}
+		if(!(foo->state & PDL_DESTROYING) && !foo->sv) {
+			destbuffer[ndest++] = foo;
+		}
+	}
+	PDL_TR_CHKMAGIC(trans);
+	if(trans->vtable->freetrans) {
+		PDLDEBUG_f(printf("call freetrans\n"));
+		trans->vtable->freetrans(trans); /* Free malloced objects */
+	}
+	PDL_TR_CLRMAGIC(trans);
+	trans->vtable = 0; /* Make sure no-one uses this */
+	if(trans->freeproc) {
+		PDLDEBUG_f(printf("call freeproc\n"));
+		trans->freeproc(trans);
+	} else {
+		PDLDEBUG_f(printf("call free\n"));
+		free(trans);
+	}
+	for(j=0; j<ndest; j++) {
+		pdl_destroy(destbuffer[j]);
+	}
+	PDLDEBUG_f(printf("leaving pdl_destroytransform %p\n", (void*)trans));
+}
+
+void pdl_destroytransform_nonmutual(pdl_trans *trans,int ensure)
+{
+	int i;
+	PDLDEBUG_f(printf("entering pdl_destroytransform_nonmutual\n"));
+	PDL_TR_CHKMAGIC(trans);
+	if(ensure) {
+		pdl__ensure_trans(trans,PDL_PARENTDIMSCHANGED);
+	}
+	PDL_TR_CHKMAGIC(trans);
+	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
+		trans->pdls[i]->state &= ~PDL_NOMYDIMS;
+		if(trans->pdls[i]->trans == trans)
+			trans->pdls[i]->trans = 0;
+	}
+	PDL_TR_CHKMAGIC(trans);
+	if(trans->vtable->freetrans) {
+		trans->vtable->freetrans(trans);
+	}
+	PDL_TR_CLRMAGIC(trans);
+	trans->vtable = 0; /* Make sure no-one uses this */
+	if(trans->freeproc) {
+		trans->freeproc(trans);
+	} else {
+		free(trans);
+	}
+	PDLDEBUG_f(printf("leaving pdl_destroytransform_nonmutual\n"));
+}
+
 void pdl__destroy_childtranses(pdl *it,int ensure) {
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
@@ -608,45 +747,6 @@ void pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 	for(i=1; i<PDL_NCHILDREN; i++)
 		c->next->trans[i] = 0;
 	c->next->next = 0;
-}
-
-/* Problem with this function: when transformation is destroyed,
- * there may be several different children with the same name.
- * Therefore, we cannot croak :(
- */
-void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
-{
-	PDL_Indx i; pdl_children *c; int flag = 0;
-	if(all) {
-		for(i=0; i<trans->vtable->nparents; i++)
-			if(trans->pdls[i] == it)
-				trans->pdls[i] = NULL;
-	} else {
-		trans->pdls[nth] = 0;
-	}
-	c = &it->children;
-	do {
-		for(i=0; i<PDL_NCHILDREN; i++) {
-			if(c->trans[i] == trans) {
-				c->trans[i] = NULL;
-				flag = 1;
-				if(!all) return;
-				/* return;  Cannot return; might be many times
-				  (e.g. $x+$x) */
-			}
-		}
-		c=c->next;
-	} while(c);
-	/* this might be due to a croak when performing the trans; so
-	   warn only for now, otherwise we leave trans undestructed ! */
-	if(!flag)
-		pdl_pdl_warn("Child not found for pdl %d, %d\n",it, trans);
-}
-
-void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
-{
-	trans->pdls[nth] = 0;
-	it->trans = 0;
 }
 
 void pdl_make_physdims(pdl *it) {
@@ -1135,113 +1235,6 @@ void pdl__ensure_transdims(pdl_trans *trans)
 		pdl_make_physdims(trans->pdls[j]);
 	}
 	trans->vtable->redodims(trans);
-}
-
-/* There is a potential problem here, calling
-   pdl_destroy while the trans structure is not in a defined state.
-   We shall ignore this problem for now and hope it goes away ;)
-   (XXX FIX ME) */
-/* XXX Two next routines are memleaks */
-/* somehow this transform will call (implicitly) redodims twice on
-   an unvaffined pdl; leads to memleak if redodims allocates stuff
-   that is only freed in later call to freefunc */
-void pdl_destroytransform(pdl_trans *trans,int ensure)
-{
-	PDL_Indx j;
-	pdl *foo;
-	pdl *destbuffer[100];
-	int ndest = 0;
-
-	PDLDEBUG_f(printf("entering pdl_destroytransform %p (ensure %d)\n",
-			  (void*)trans,ensure));
-	if(100 < trans->vtable->npdls) {
-		die("Huge trans");
-	}
-
-	PDL_TR_CHKMAGIC(trans);
-	if(!trans->vtable) {
-	  die("ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
-	}
-	if(ensure) {
-		PDLDEBUG_f(printf("pdl_destroytransform: ensure\n"));
-		pdl__ensure_trans(trans,0);
-	}
-	for(j=0; j<trans->vtable->nparents; j++) {
-		foo = trans->pdls[j];
-		if(!foo) continue;
-		PDL_CHKMAGIC(foo);
-		PDLDEBUG_f(printf("pdl_removectransform(%p): %p %"IND_FLAG"\n",
-			(void*)trans, (void*)(trans->pdls[j]), j));
-		pdl__removechildtrans(trans->pdls[j],trans,j,1);
-		if(!(foo->state & PDL_DESTROYING) && !foo->sv) {
-			destbuffer[ndest++] = foo;
-		}
-	}
-	for(; j<trans->vtable->npdls; j++) {
-		foo = trans->pdls[j];
-		PDL_CHKMAGIC(foo);
-		PDLDEBUG_f(printf("pdl_removeptransform(%p): %p %"IND_FLAG"\n",
-			(void*)trans, (void*)(trans->pdls[j]), j));
-		pdl__removeparenttrans(trans->pdls[j],trans,j);
-		if(foo->vafftrans) {
-			PDLDEBUG_f(printf("pdl_removevafft: %p\n", (void*)foo));
-			pdl_vafftrans_remove(foo);
-		}
-		if(!(foo->state & PDL_DESTROYING) && !foo->sv) {
-			destbuffer[ndest++] = foo;
-		}
-	}
-	PDL_TR_CHKMAGIC(trans);
-	if(trans->vtable->freetrans) {
-		PDLDEBUG_f(printf("call freetrans\n"));
-		trans->vtable->freetrans(trans); /* Free malloced objects */
-	}
-	PDL_TR_CLRMAGIC(trans);
-	trans->vtable = 0; /* Make sure no-one uses this */
-	if(trans->freeproc) {
-		PDLDEBUG_f(printf("call freeproc\n"));
-		trans->freeproc(trans);
-	} else {
-		PDLDEBUG_f(printf("call free\n"));
-		free(trans);
-	}
-
-	for(j=0; j<ndest; j++) {
-		pdl_destroy(destbuffer[j]);
-	}
-
-	PDLDEBUG_f(printf("leaving pdl_destroytransform %p\n", (void*)trans));
-
-}
-
-void pdl_destroytransform_nonmutual(pdl_trans *trans,int ensure)
-{
-	int i;
-
-	PDLDEBUG_f(printf("entering pdl_destroytransform_nonmutual\n"));
-
-	PDL_TR_CHKMAGIC(trans);
-	if(ensure) {
-		pdl__ensure_trans(trans,PDL_PARENTDIMSCHANGED);
-	}
-	PDL_TR_CHKMAGIC(trans);
-	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-		trans->pdls[i]->state &= ~PDL_NOMYDIMS;
-		if(trans->pdls[i]->trans == trans)
-			trans->pdls[i]->trans = 0;
-	}
-	PDL_TR_CHKMAGIC(trans);
-	if(trans->vtable->freetrans) {
-		trans->vtable->freetrans(trans);
-	}
-	PDL_TR_CLRMAGIC(trans);
-	trans->vtable = 0; /* Make sure no-one uses this */
-	if(trans->freeproc) {
-		trans->freeproc(trans);
-	} else {
-		free(trans);
-	}
-	PDLDEBUG_f(printf("leaving pdl_destroytransform_nonmutual\n"));
 }
 
 void pdl_trans_mallocfreeproc(struct pdl_trans *tr) {
