@@ -490,8 +490,7 @@ sub myprelude {
     #  Set appropriate function from the vtable to supply to threadthreadloop.
     #    Function name from the vtable is readdata for normal code
     #    function name for backcode is writebackdata
-    my $funcName = "readdata";
-    $funcName = "writebackdata" if( $backcode );
+    my $funcName = $backcode ? "writebackdata" : "readdata";
     my ($ord,$pdls) = $parent->get_pdls();
     my $loop_key = "emitted_startthreadloop_$funcName";
     my $macro_name = "PDL_STARTTHREADLOOP_$parent->{Name}_$funcName";
@@ -499,17 +498,17 @@ sub myprelude {
     $parent->{$loop_key} = 1;
     PDL::PP::pp_line_numbers(__LINE__, join " \\\n\t",
       "#define $macro_name",
-      'if ( PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return; \
+      'if ( PDL->startthreadloop(&($PRIV(pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return; \
        do { register PDL_Indx __tind0=0,__tind1=0; PDL_COMMENT("counters along dim") \
-	    register PDL_Indx __tnpdls = $PRIV(__pdlthread).npdls; \
+	    register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls; \
 	    PDL_COMMENT("dims here are how many steps along those dims") \
-	    PDL_Indx *__tdims = PDL->get_threaddims(&$PRIV(__pdlthread)); \
+	    PDL_Indx *__tdims = PDL->get_threaddims(&$PRIV(pdlthread)); \
 	    register PDL_Indx __tdims1 = __tdims[1]; \
 	    register PDL_Indx __tdims0 = __tdims[0]; \
-	    register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));',
+	    register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(pdlthread));',
       'PDL_COMMENT("incs are each pdl\'s stride")',
-      (map "register PDL_Indx __tinc0_$_ = \$PRIV(__pdlthread).incs[$_];", 0..$#$ord),
-      (map "register PDL_Indx __tinc1_$_ = \$PRIV(__pdlthread).incs[__tnpdls+$_];", 0.. $#$ord),
+      (map "register PDL_Indx __tinc0_$_ = \$PRIV(pdlthread).incs[$_];", 0..$#$ord),
+      (map "register PDL_Indx __tinc1_$_ = \$PRIV(pdlthread).incs[__tnpdls+$_];", 0.. $#$ord),
       'PDL_COMMENT("offs are each pthread\'s starting offset into each pdl")',
       (map $pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];", 0..$#$ord),
       'for( __tind1 = 0 ; \
@@ -541,7 +540,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 	'}',
 	'PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset")',
 	(map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$_ * __tdims1 + __offsp[$_];", 0..$#$ord),
-	'} while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));'."\n",
+	'} while(PDL->iterthreadloop(&$PRIV(pdlthread),2));'."\n",
 	) . $macro_name;
 }
 

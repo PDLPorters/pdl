@@ -40,6 +40,8 @@ typedef struct pdl pdl;
 
 $PDL_DATATYPES
 
+#include "pdlthread.h"
+
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
 /*  Target number of pthreads: Actual will be this number or less.
     A 0 here means no pthreading */
@@ -319,6 +321,7 @@ typedef struct pdl_transvtable {
   int bvalflag;                                                         \
   int has_badvalue;                                                     \
   PDL_Anyval badvalue;                                                  \
+  pdl_thread pdlthread;                                                 \
   char dims_redone;                                                     \
   int __datatype
 

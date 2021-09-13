@@ -139,6 +139,7 @@ our @CARP_NOT;
 
 my %INVALID_OTHERPAR = map +($_=>1), qw(
   magicno flags vtable freeproc bvalflag has_badvalue badvalue pdls __datatype
+  pdlthread
 );
 
 use overload ("\"\"" => \&PDL::PP::Rule::stringify);
@@ -2558,7 +2559,7 @@ END
       sub {
         my( $symtab, $vtable, $affflag, $nopdlthread ) = @_;
         my $sname = $symtab->get_symname('_PDL_ThisTrans');
-        my $clrmagic = $nopdlthread ?"":"PDL_THR_CLRMAGIC(&$sname->__pdlthread)";
+        my $clrmagic = $nopdlthread ?"":"PDL_THR_CLRMAGIC(&$sname->pdlthread)";
         PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_PRIVSTRUCT($sname, $clrmagic, $affflag, $vtable)\n");
       }),
 
@@ -2735,9 +2736,9 @@ END
       sub {
         my($sig,$havethreading) = @_;
         my ($parnames, $parobjs) = ($sig->names, $sig->objs);
-        my $str = ($havethreading?"pdl_thread __pdlthread; ":"").
-          (join '',map {$parobjs->{$_}->get_incdecls} @$parnames).
-            (join '',map {$_->get_decldim} $sig->dims_values);
+        my $str = join '',
+          (map $parobjs->{$_}->get_incdecls, @$parnames),
+          (map $_->get_decldim, $sig->dims_values);
         return ($str);
       }),
    PDL::PP::Rule->new("PrivCopyCode",
@@ -2747,7 +2748,7 @@ END
         my ($parnames, $parobjs) = ($sig->names, $sig->objs);
         PDL::PP::pp_line_numbers(__LINE__,
           ($havethreading?
-            "PDL->thread_copy(&(\$PRIV(__pdlthread)),&($copyname->__pdlthread));"
+            "PDL->thread_copy(&(\$PRIV(pdlthread)),&($copyname->pdlthread));"
             : "").
           join('',map {$parobjs->{$_}->get_incdecl_copy(sub{"\$PRIV($_[0])"},
             sub{"$copyname->$_[0]"})} @$parnames).
@@ -2761,7 +2762,7 @@ END
       sub {
         my($sig,$havethreading) = @_;
         $havethreading ?
-          PDL::PP::pp_line_numbers(__LINE__, 'PDL->freethreadloop(&($PRIV(__pdlthread)));')
+          PDL::PP::pp_line_numbers(__LINE__, 'PDL->freethreadloop(&($PRIV(pdlthread)));')
           : ''
       }),
 
@@ -2800,7 +2801,7 @@ END
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
         $str .= " {\n$pcode\n}\n";
         $str .= " {\n " . make_parnames($pnames,$pobjs) . "
-           PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(__pdlthread), \$PRIV(vtable->per_pdl_flags), $noPthreadFlag)
+           PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(pdlthread), \$PRIV(vtable->per_pdl_flags), $noPthreadFlag)
           }\n";
         $str .= join '',map $pobjs->{$_}->get_xsnormdimchecks, @$pnames;
         $str .= join '',map $pobjs->{$_}->get_xsphysdimchecks, @$pnames;
@@ -2839,7 +2840,7 @@ END
       sub {
         PDL::PP::pp_line_numbers(__LINE__,
             "$_[2] *__copy = malloc(sizeof($_[2])); memset(__copy, 0, sizeof($_[2]));\n" .
-        ($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->__pdlthread);\n") .
+        ($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->pdlthread);\n") .
         "PDL_COPYCODE($_[0], $_[1], \$PRIV(has_badvalue), \$PRIV(badvalue), \$PRIV(flags), \$PRIV(vtable), \$PRIV(__datatype), \$PRIV(dims_redone), \$PRIV(pdls[i]))\n"
         )
       }),
@@ -2858,7 +2859,7 @@ END
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustSub1d", "NewXSCoerceMustSub1"),
 
    PDL::PP::Rule->new("NewXSClearThread", "HaveThreading",
-      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__, "__privtrans->__pdlthread.inds = 0;") : ""}),
+      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__, "__privtrans->pdlthread.inds = 0;") : ""}),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
       ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","NewXSSymTab","Name"],

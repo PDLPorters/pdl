@@ -220,7 +220,7 @@ EOF
 	$str .= " PDL_Indx dims[".($ninds+1)."]; PDL_COMMENT(\"Use ninds+1 to avoid smart (stupid) compilers\")";
 	$str .= join "", map "dims[$_] = $sizevars[$_];", 0..$#$iref;
 	my $istemp = $this->{FlagTemp} ? 1 : 0;
-	$str .="\n PDL->thread_create_parameter(&\$PRIV(__pdlthread),$this->{Number},dims,$istemp);\n";
+	$str .="\n PDL->thread_create_parameter(&\$PRIV(pdlthread),$this->{Number},dims,$istemp);\n";
 	$str .= "}";
     }
     return $str;
