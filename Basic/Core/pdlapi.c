@@ -300,6 +300,8 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 		trans->vtable->freetrans(trans); /* Free malloced objects */
 	}
 	PDL_TR_CLRMAGIC(trans);
+	if(trans->vtable->flags & PDL_TRANS_DO_THREAD)
+	  pdl_freethreadloop(&trans->pdlthread);
 	trans->vtable = 0; /* Make sure no-one uses this */
 	if(trans->freeproc) {
 		PDLDEBUG_f(printf("call freeproc\n"));

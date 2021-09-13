@@ -2755,15 +2755,6 @@ END
             sub{"$copyname->$_[0]"})} $sig->dims_values)
         );
       }),
-   PDL::PP::Rule->new("PrivFreeCode",
-      ["SignatureObj","HaveThreading"],
-      "Frees the thread",
-      sub {
-        my($sig,$havethreading) = @_;
-        $havethreading ?
-          PDL::PP::pp_line_numbers(__LINE__, 'PDL->freethreadloop(&($PRIV(pdlthread)));')
-          : ''
-      }),
 
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
@@ -2845,9 +2836,9 @@ END
       }),
 
    PDL::PP::Rule->new("FreeCodeNS",
-      ["CompFreeCode","PrivFreeCode","NTPrivFreeCode"],
+      ["CompFreeCode","NTPrivFreeCode"],
       sub {
-	  PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], $_[1], $_[2])") }),
+	  PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], , $_[1])") }),
 
    PDL::PP::Rule::Substitute::Usual->new("CopyCode", "CopyCodeNS"),
    PDL::PP::Rule::Substitute::Usual->new("FreeCode", "FreeCodeNS"),
@@ -3129,10 +3120,10 @@ END
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","StructName","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","CopyFuncName","FreeFuncName",
-       "SignatureObj","Affine_Ok"],
+       "SignatureObj","Affine_Ok","HaveThreading"],
       sub {
         my($vname,$sname,$rdname,$rfname,$wfname,$cpfname,$ffname,
-           $sig,$affine_ok) = @_;
+           $sig,$affine_ok,$havethreading) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
@@ -3142,10 +3133,11 @@ END
         if($Config{cc} eq 'cl') {
            $join_flags = '""' if $join_flags eq '';
         }
+        my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
         PDL::PP::pp_line_numbers(__LINE__, "static char ${vname}_flags[] =
          { ". $join_flags . "};
          pdl_transvtable $vname = {
-                0,0, $nparents, $npdls, ${vname}_flags,
+                0,$op_flags, $nparents, $npdls, ${vname}_flags,
                 $rdname, $rfname, $wfname,
                 $ffname,NULL,NULL,$cpfname,
                 sizeof($sname),\"$vname\"

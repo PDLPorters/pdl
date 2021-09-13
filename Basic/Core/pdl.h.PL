@@ -254,7 +254,7 @@ typedef enum pdl_transtype { PDL_SLICE, PDL_RETYPE }
         pdl_transtype;
 
 /* Transformation flags */
-#define         PDL_TRANS_AFFINE        0x0001
+#define         PDL_TRANS_DO_THREAD        0x0001
 
 /* Transpdl flags */
 #define         PDL_TPDL_VAFFINE_OK     0x01
