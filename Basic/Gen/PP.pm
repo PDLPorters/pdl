@@ -1665,10 +1665,6 @@ sub get_badstate {
 
 sub NT2Decls_p {&NT2Decls__({ToPtrs=>1},@_);}
 
-sub NT2Copies_p {&NT2Copies__({ToPtrs=>1},@_);}
-
-sub NT2Free_p {&NT2Free__({ToPtrs=>1},@_);}
-
 sub NT2Decls__ {
   my($opts,$onames,$otypes) = @_;
   my $decl;
@@ -1680,27 +1676,17 @@ sub NT2Decls__ {
   PDL::PP::pp_line_numbers(__LINE__, $decl);
 }
 
-sub NT2Copies__ {
-  my($opts,$onames,$otypes,$copyname) = @_;
-  my $decl;
-  my $dopts = {};
-  $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
-  for(@$onames) {
-      $decl .= $otypes->{$_}->get_copy("\$PRIV($_)","$copyname->$_",
-                                       $dopts).";";
-  }
+sub NT2Copies_p {
+  my($onames,$otypes,$copyname) = @_;
+  my $decl = join '', map $otypes->{$_}->get_free("\$PRIV($_)","$copyname->$_",
+    { VarArrays2Ptrs => 1 }).";", @$onames;
   PDL::PP::pp_line_numbers(__LINE__, $decl);
 }
 
-sub NT2Free__ {
-  my($opts,$onames,$otypes) = @_;
-  my $decl;
-  my $dopts = {};
-  $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
-  for(@$onames) {
-      $decl .= $otypes->{$_}->get_free("\$PRIV($_)",
-                                       $dopts).";";
-  }
+sub NT2Free_p {
+  my($onames,$otypes) = @_;
+  my $decl = join '', map $otypes->{$_}->get_free("\$PRIV($_)",
+    { VarArrays2Ptrs => 1 }).";", @$onames;
   PDL::PP::pp_line_numbers(__LINE__, $decl);
 }
 
