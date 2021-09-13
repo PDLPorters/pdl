@@ -1671,23 +1671,24 @@ sub NT2Decls__ {
   my $dopts = {};
   $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
   for(@$onames) {
-      $decl .= $otypes->{$_}->get_decl($_,$dopts).";";
+      my $d = $otypes->{$_}->get_decl($_,$dopts);
+      $decl .= "$d;" if $d;
   }
-  PDL::PP::pp_line_numbers(__LINE__, $decl);
+  $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
 }
 
 sub NT2Copies_p {
   my($onames,$otypes,$copyname) = @_;
   my $decl = join '', map $otypes->{$_}->get_free("\$PRIV($_)","$copyname->$_",
-    { VarArrays2Ptrs => 1 }).";", @$onames;
-  PDL::PP::pp_line_numbers(__LINE__, $decl);
+    { VarArrays2Ptrs => 1 }), @$onames;
+  $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
 }
 
 sub NT2Free_p {
   my($onames,$otypes) = @_;
   my $decl = join '', map $otypes->{$_}->get_free("\$PRIV($_)",
-    { VarArrays2Ptrs => 1 }).";", @$onames;
-  PDL::PP::pp_line_numbers(__LINE__, $decl);
+    { VarArrays2Ptrs => 1 }), @$onames;
+  $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
 }
 
 sub make_parnames {
@@ -2173,7 +2174,6 @@ EOD
 
    PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
    PDL::PP::Rule::InsertName->new("CopyFuncName",     'pdl_${name}_copy'),
-   PDL::PP::Rule::InsertName->new("FreeFuncName",     'pdl_${name}_free'),
    PDL::PP::Rule::InsertName->new("RedoDimsFuncName", 'pdl_${name}_redodims'),
 
    # There used to be a BootStruct rule which just became copied to the XSBootCode
@@ -2824,7 +2824,7 @@ END
    PDL::PP::Rule->new("FreeCodeNS",
       ["CompFreeCode","NTPrivFreeCode"],
       sub {
-	  PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], , $_[1])") }),
+	  (grep $_, @_) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], , $_[1])"): ''}),
 
    PDL::PP::Rule::Substitute::Usual->new("CopyCode", "CopyCodeNS"),
    PDL::PP::Rule::Substitute::Usual->new("FreeCode", "FreeCodeNS"),
@@ -3099,9 +3099,13 @@ END
    PDL::PP::Rule->new("CopyFunc",
 		      ["CopyCode","FHdrInfo","CopyFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"copy")}),
+
+   PDL::PP::Rule->new("FreeFuncName",
+		      ["FreeCode","Name"],
+		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
    PDL::PP::Rule->new("FreeFunc",
 		      ["FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
-		      sub {wrap_vfn(@_,"free")}),
+		      sub {$_[2] eq 'NULL' ? '' : wrap_vfn(@_,"free")}),
 
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","StructName","RedoDimsFuncName","ReadDataFuncName",

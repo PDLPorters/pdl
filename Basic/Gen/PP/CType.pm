@@ -108,26 +108,23 @@ sub get_copy {
 
 sub get_free {
 	my($this,$from) = @_;
+	return "" if !@{$this->{Chain}};
 	my ($prev,$close);
-	if($#{$this->{Chain}} >= 0) {
-		return "free($from);"
-		 if $this->{Base} =~ /^\s*char\s*$/;
-                return "SvREFCNT_dec($from);"
-                 if $this->{Base} =~ /^\s*SV\s*$/;
-		my @mallocs;
-		my $str = "{";
-		my $deref = "$from";
-		my $prev = undef;
-		my $close = undef;
-		my $no = 0;
-		for(@{$this->{Chain}}) {
-			$no++;
-			if($no > 1) {croak("Can only free one layer!\n");}
+	return "free($from);"
+	 if $this->{Base} =~ /^\s*char\s*$/;
+	return "SvREFCNT_dec($from);"
+	 if $this->{Base} =~ /^\s*SV\s*$/;
+	my @mallocs;
+	my $str = "{";
+	my $deref = "$from";
+	my $prev = undef;
+	my $close = undef;
+	my $no = 0;
+	for(@{$this->{Chain}}) {
+		$no++;
+		if($no > 1) {croak("Can only free one layer!\n");}
 #			if($_ eq "PTR") {confess("Cannot free pointer, must be array ;) (FIX CType.pm)");}
-			return "free($from);\n ";
-		}
-	} else {
-		"";
+		return "free($from);\n ";
 	}
 }
 
