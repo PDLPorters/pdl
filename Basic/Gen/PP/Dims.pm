@@ -61,11 +61,6 @@ sub get_initdim { my($this) = @_;
 	$this->get_size." = $init;"
 }
 
-sub get_copydim { my($this,$fromsub,$tosub) = @_;
-	my $iname = $this->get_priv;
-	$tosub->($iname) ."=". $fromsub->($iname) .";";
-}
-
 sub get_size { my($this) = @_;
 	"\$PRIV(".$this->get_priv.")"
 }

@@ -275,14 +275,6 @@ sub get_incregisters {
 	} (0..$#{$this->{IndObjs}}) )
 }
 
-sub get_incdecl_copy {
-	my($this,$fromsub,$tosub) = @_;
-	PDL::PP::pp_line_numbers(__LINE__, join '',map {
-		my $iname = $this->get_incname($_);
-		&$fromsub($iname)."=".&$tosub($iname).";";
-	} (0..$#{$this->{IndObjs}}))
-}
-
 sub get_incsets {
 	my($this,$str) = @_;
 	my $no=0;

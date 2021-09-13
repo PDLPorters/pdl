@@ -75,7 +75,6 @@ void pdl_readdata_vaffine(pdl *it);
   X(reallocdims, void, ( pdl *it,PDL_Indx ndims )) \
   X(reallocthreadids, void, ( pdl *it,PDL_Indx ndims )) \
   X(resize_defaultincs, void, ( pdl *it )) /* Make incs out of dims */ \
-  X(thread_copy, void, (pdl_thread *from,pdl_thread *to)) \
   X(clearthreadstruct, void, (pdl_thread *it)) \
   X(initthreadstruct, void, (int nobl,pdl **pdls,PDL_Indx *realdims, \
     PDL_Indx *creating,PDL_Indx npdls,pdl_errorinfo *info, \

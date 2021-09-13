@@ -802,25 +802,6 @@ our $macros = <<'EOF';
   if(propagate_hdrcpy) \
     name->state |= PDL_HDRCPY;
 
-#define PDL_COPYCODE(privcode, compcode, has_bv, bv, pflags, pvt, pdt, pdd, ppdl) \
-  PDL_TR_CLRMAGIC(__copy); \
-  __copy->has_badvalue = has_bv; \
-  __copy->badvalue = bv; \
-  __copy->flags = pflags; \
-  __copy->vtable = pvt; \
-  __copy->__datatype = pdt; \
-  __copy->freeproc = NULL; \
-  __copy->dims_redone = pdd; \
-  {int i; \
-   for(i=0; i<__copy->vtable->npdls; i++) \
-          __copy->pdls[i] = ppdl; \
-  } \
-  compcode \
-  if(__copy->dims_redone) { \
-          privcode \
-  } \
-  return (pdl_trans*)__copy;
-
 #define PDL_XS_PREAMBLE \
   char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set \
                             by pp_bless ? (CS) */ \
@@ -910,16 +891,6 @@ $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
 
 $PDL::PP::done = 0;  # pp_done has not been called yet
-
-END {
-    #you can uncomment this for testing, but this should remain
-    #commented in production code. This causes pp_done to be called
-    #even when a .pd file aborts with die(), potentially bypassing
-    #problem code when build is re-attempted. Having this commented
-    #means we are a bit more strict: a module must call pp_done in
-    #order to have .xs and .pm files written.
-#  pp_done() unless $PDL::PP::done;
-}
 
 use Carp;
 our @CARP_NOT;
@@ -1252,7 +1223,6 @@ sub pp_def {
 	  unless exists $obj{FreeFunc}; # and $obj{FreeFunc};
 
 	PDL::PP->printxsc(join "\n\n",@obj{'StructDecl','RedoDimsFunc',
-		'CopyFunc',
 		'ReadDataFunc','WriteBackDataFunc',
 		'FreeFunc',
 		'VTableDef','NewXSInPrelude',
@@ -1677,13 +1647,6 @@ sub NT2Decls__ {
   $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
 }
 
-sub NT2Copies_p {
-  my($onames,$otypes,$copyname) = @_;
-  my $decl = join '', map $otypes->{$_}->get_free("\$PRIV($_)","$copyname->$_",
-    { VarArrays2Ptrs => 1 }), @$onames;
-  $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
-}
-
 sub NT2Free_p {
   my($onames,$otypes) = @_;
   my $decl = join '', map $otypes->{$_}->get_free("\$PRIV($_)",
@@ -2003,9 +1966,6 @@ EOD
 
 # some defaults
 #
-   PDL::PP::Rule::Returns->new("CopyName", [],
-       'Sets the CopyName key to the default: __copy', "__copy"),
-
    PDL::PP::Rule->new("DefaultFlowCodeNS", "_DefaultFlow",
        'Sets the code to handle dataflow flags, if applicable',
 		      sub { pp_line_numbers(__LINE__, $_[0] ?
@@ -2173,7 +2133,6 @@ EOD
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "AffinePriv"),
 
    PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
-   PDL::PP::Rule::InsertName->new("CopyFuncName",     'pdl_${name}_copy'),
    PDL::PP::Rule::InsertName->new("RedoDimsFuncName", 'pdl_${name}_redodims'),
 
    # There used to be a BootStruct rule which just became copied to the XSBootCode
@@ -2692,7 +2651,6 @@ END
    PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
 				"COMP"),
 
-   PDL::PP::Rule->new("CompCopyCode", ["CompNames","CompObjs","CopyName"], \&NT2Copies_p),
    PDL::PP::Rule->new("CompFreeCode", ["CompNames","CompObjs"], \&NT2Free_p),
 
 # This is the default
@@ -2709,9 +2667,6 @@ END
    PDL::PP::Rule->new("CompiledRepr",
       ["OtherParNames","OtherParTypes"],
       sub {NT2Decls__({},@_)}),
-   PDL::PP::Rule->new("CompCopyCode",
-		      ["OtherParNames","OtherParTypes","CopyName"],
-		      \&NT2Copies_p),
    PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], \&NT2Free_p),
 
 # Threads
@@ -2725,21 +2680,6 @@ END
           (map $parobjs->{$_}->get_incdecls, @$parnames),
           (map $_->get_decldim, $sig->dims_values);
         return ($str);
-      }),
-   PDL::PP::Rule->new("PrivCopyCode",
-      ["SignatureObj","CopyName","HaveThreading"],
-      sub {
-        my($sig,$copyname,$havethreading) = @_;
-        my ($parnames, $parobjs) = ($sig->names, $sig->objs);
-        PDL::PP::pp_line_numbers(__LINE__,
-          ($havethreading?
-            "PDL->thread_copy(&(\$PRIV(pdlthread)),&($copyname->pdlthread));"
-            : "").
-          join('',map {$parobjs->{$_}->get_incdecl_copy(sub{"\$PRIV($_[0])"},
-            sub{"$copyname->$_[0]"})} @$parnames).
-          join('',map {$_->get_copydim(sub{"\$PRIV($_[0])"},
-            sub{"$copyname->$_[0]"})} $sig->dims_values)
-        );
       }),
 
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
@@ -2791,7 +2731,6 @@ END
 
    PDL::PP::Rule->new(["PrivNames","PrivObjs"], "Priv", \&OtherPars_nft),
    PDL::PP::Rule->new("PrivateRepr", ["PrivNames","PrivObjs"], \&NT2Decls_p),
-   PDL::PP::Rule->new("PrivCopyCode", ["PrivNames","PrivObjs","CopyName"], \&NT2Copies_p),
 
 # avoid clash with freecode above?
 #
@@ -2811,22 +2750,11 @@ END
    PDL::PP::Rule->new("NewXSStructInit2", "NewXSStructInit2DJB",
       sub { PDL::PP::pp_line_numbers(__LINE__, "{".$_[0]."}") }),
 
-   PDL::PP::Rule->new("CopyCodeNS",
-      ["PrivCopyCode","CompCopyCode","StructName","HaveThreading"],
-      sub {
-        PDL::PP::pp_line_numbers(__LINE__,
-            "$_[2] *__copy = malloc(sizeof($_[2])); memset(__copy, 0, sizeof($_[2]));\n" .
-        ($_[3] ? "PDL_THR_CLRMAGIC(&__copy->pdlthread);\n" : "") .
-        "PDL_COPYCODE($_[0], $_[1], \$PRIV(has_badvalue), \$PRIV(badvalue), \$PRIV(flags), \$PRIV(vtable), \$PRIV(__datatype), \$PRIV(dims_redone), \$PRIV(pdls[i]))\n"
-        )
-      }),
-
    PDL::PP::Rule->new("FreeCodeNS",
       ["CompFreeCode","NTPrivFreeCode"],
       sub {
 	  (grep $_, @_) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], , $_[1])"): ''}),
 
-   PDL::PP::Rule::Substitute::Usual->new("CopyCode", "CopyCodeNS"),
    PDL::PP::Rule::Substitute::Usual->new("FreeCode", "FreeCodeNS"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMust"),
@@ -3096,10 +3024,6 @@ END
 		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"writebackdata")}),,
 
-   PDL::PP::Rule->new("CopyFunc",
-		      ["CopyCode","FHdrInfo","CopyFuncName","_P2Child"],
-		      sub {wrap_vfn(@_,"copy")}),
-
    PDL::PP::Rule->new("FreeFuncName",
 		      ["FreeCode","Name"],
 		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
@@ -3109,10 +3033,10 @@ END
 
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","StructName","RedoDimsFuncName","ReadDataFuncName",
-       "WriteBackDataFuncName","CopyFuncName","FreeFuncName",
+       "WriteBackDataFuncName","FreeFuncName",
        "SignatureObj","Affine_Ok","HaveThreading"],
       sub {
-        my($vname,$sname,$rdname,$rfname,$wfname,$cpfname,$ffname,
+        my($vname,$sname,$rdname,$rfname,$wfname,$ffname,
            $sig,$affine_ok,$havethreading) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
@@ -3129,7 +3053,7 @@ END
          pdl_transvtable $vname = {
                 0,$op_flags, $nparents, $npdls, ${vname}_flags,
                 $rdname, $rfname, $wfname,
-                $ffname,NULL,NULL,$cpfname,
+                $ffname,NULL,NULL,
                 sizeof($sname),\"$vname\"
          };");
       }),

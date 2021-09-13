@@ -275,7 +275,6 @@ typedef struct pdl_transvtable {
         void (*dump)(pdl_trans *tr);          /* Dump this transformation */
         void (*findvparent)(pdl_trans *tr);   /* Find a virtual parent and make ready for
                                                  readdata etc. */
-        pdl_trans *(*copy)(pdl_trans *tr);    /* Full copy */
         int structsize;
         char *name;                           /* For debuggers, mostly */
 } pdl_transvtable;

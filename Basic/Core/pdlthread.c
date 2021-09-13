@@ -144,26 +144,6 @@ PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *pthr, PDL_Indx **inds
   return thread->offs;
 }
 
-void pdl_thread_copy(pdl_thread *from,pdl_thread *to) {
-	to->magicno = from->magicno;
-	to->gflags = from->gflags;
-	to->einfo = from->einfo;
-	to->ndims = from->ndims;
-	to->nimpl = from->nimpl;
-	to->npdls = from->npdls;
-
-	to->inds = copy_int_array(from->inds,to->ndims);
-	to->dims = copy_int_array(from->dims,to->ndims);
-	to->offs = copy_int_array(from->offs,to->npdls);
-	to->incs = copy_int_array(from->incs,to->npdls*to->ndims);
-	to->realdims = from->realdims;
-	to->flags = savepvn(from->flags,to->npdls);
-	to->pdls = copy_pdl_array(from->pdls,to->npdls); /* XX MEMLEAK */
-
-	to->mag_nthpdl = from->mag_nth;
-	to->mag_nthpdl = from->mag_nthpdl;
-}
-
 void pdl_freethreadloop(pdl_thread *thread) {
 	PDLDEBUG_f(printf("Freethreadloop(%p, %p %p %p %p %p %p)\n",
 		(void*)thread,
