@@ -18,30 +18,15 @@ sub new {
 
 sub stripptrs {
 	my($this,$str) = @_;
-	if($str =~ /^\s*\w+\s*$/) {
-		$str =~ s/\s//g;
+	if($str =~ s/^\s*(\w+)\s*$/$1/g) {
 		$this->{ProtoName} = $str;
 		return [];
-	} else {
-# Now, recall the different C syntaxes. First priority is a pointer:
-		my $decl;
-		if($str =~ /^\s*\*(.*)$/) {
-			$decl = $this->stripptrs($1);
-			unshift @$decl,"PTR";
-		} elsif($str =~ /^\s*\(.*\)\s*$/) {
-# XXX Should try to see if a funccall.
-			return $this->stripptrs($1);
-		} elsif($str =~ /^(.*)\[([^]]+)\]\s*$/) {
-			my $siz = $2;
-			print "ARR($str): ($siz)\n" if $::PP_VERBOSE;
-			$decl = $this->stripptrs($1);
-			unshift @$decl,"ARR($siz)";
-			print "ARR($str): ($siz)\n" if $::PP_VERBOSE;
-		} else {
-			Carp::confess("Invalid C type '$str'");
-		}
-		return $decl;
 	}
+	# Now, recall the different C syntaxes. First priority is a pointer:
+	return ["PTR", @{$this->stripptrs($1)}] if $str =~ /^\s*\*(.*)$/;
+	return $this->stripptrs($1) if $str =~ /^\s*\(.*\)\s*$/; # XXX Should try to see if a funccall.
+	return ["ARR($2)", @{$this->stripptrs($1)}] if $str =~ /^(.*)\[([^]]+)\]\s*$/;
+	Carp::confess("Invalid C type '$str'");
 }
 
 # XXX Correct to *real* parsing. This is only a subset.
@@ -49,10 +34,8 @@ sub parsefrom {
 	my($this,$str) = @_;
 # First, take the words in the beginning
 	$str =~ /^\s*((?:\w+\b\s*)+)([^[].*)$/;
-	my $base = $1; my $decl = $2;
-	my $foo = $this->stripptrs($decl);
-	$this->{Base} = $base;
-	$this->{Chain} = $foo;
+	$this->{Base} = $1;
+	$this->{Chain} = $this->stripptrs($2);
 }
 
 sub get_decl {
