@@ -684,13 +684,11 @@ my @std_redodims = (
 sub subst_makecomp_private {
 	my($which,$mc,$cn,$co) = @_;
 	return [$mc,{
-#		@::std_childparent,
 		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
 		($cn ?
 			(('DO'.$which.'DIMS') => sub {PDL::PP::pp_line_numbers(__LINE__, join '',
-				map{$$co{$_}->need_malloc ?
-				    $$co{$_}->get_malloc('$PRIV('.$_.')') :
-				    ()} @$cn)}) :
+				map $$co{$_}->get_malloc("\$PRIV($_)"),
+				    grep $$co{$_}->need_malloc, @$cn)}) :
 			()
 		),
 		($which eq "PRIV" ?
