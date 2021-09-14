@@ -1566,7 +1566,7 @@ sub wrap_vfn {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
 	$str .= "\tif (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) PDL->hdr_copy(__parent, __it);\n" if $name eq "redodims";
     }
-    $str .= "\t{\n$code\n\t}\n" if $code;
+    $str .= $code;
     "$str\n}\n";
 }
 
@@ -1702,7 +1702,6 @@ my @names = map { "\$PRIV(pdls[$_])" } 0..$nn;
 # ...{FlagCreat} is true
 #
 my $str = "
-{ PDL_COMMENT(\"convenience block\")
 void *hdrp = NULL;
 char propagate_hdrcpy = 0;
 SV *hdr_copy = NULL;
@@ -1725,7 +1724,6 @@ $str .= '
        if(hdr_copy != &PL_sv_undef)
           SvREFCNT_dec(hdr_copy); PDL_COMMENT("make hdr_copy mortal again")
     } PDL_COMMENT("end of if(hdrp) block")
- } PDL_COMMENT("end of conv. block")
 ';
 PDL::PP::pp_line_numbers(__LINE__, $str);
 
@@ -2681,14 +2679,13 @@ END
 
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
-			       'PDL_COMMENT("none")'),
+			       ''),
    PDL::PP::Rule->new("RedoDimsParsedCode",
       ["RedoDimsCode","_BadRedoDimsCode","SignatureObj",
        "GenericTypes","ExtraGenericLoops","HaveThreading","Name"],
       'makes the parsed representation from the supplied RedoDimsCode',
       sub {
-          return 'PDL_COMMENT("no RedoDimsCode")'
-            if $_[0] eq 'PDL_COMMENT("none")';
+          return '' if !$_[0];
           PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
       ["SignatureObj","RedoDimsParsedCode", '_NoPthread'],
@@ -2712,10 +2709,9 @@ END
         # and in PP/PdlParObj (get_xsnormdimchecks())
         $str .= "__creating[$_] = PDL_CR_SETDIMSCOND(__privtrans,$privname[$_]);\n"
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
-        $str .= " {\n$pcode\n}\n";
-        $str .= " {\n " . make_parnames($pnames,$pobjs) . "
-           PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(pdlthread), \$PRIV(vtable->per_pdl_flags), $noPthreadFlag)
-          }\n";
+        $str .= $pcode;
+        $str .= make_parnames($pnames,$pobjs) . "
+           PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(pdlthread), \$PRIV(vtable->per_pdl_flags), $noPthreadFlag)\n";
         $str .= join '',map $pobjs->{$_}->get_xsnormdimchecks, @$pnames;
         $str .= join '',map $pobjs->{$_}->get_xsphysdimchecks, @$pnames;
         $str .= hdrcheck($pnames,$pobjs);
