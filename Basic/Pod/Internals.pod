@@ -338,7 +338,7 @@ containing bad values, using
 
  pdl> $x->badflag(1)
 
-then I want the state of C<$y> - it's I<child> - to be changed as
+then I want the state of C<$y> - its I<child> - to be changed as
 well (since it will either share or inherit some of C<$x>'s data and
 so be also I<bad>), so that I get a 'B' in the I<State> field:
 
@@ -351,33 +351,7 @@ so be also I<bad>), so that I get a 'B' in the I<State> field:
  $y           Double D [3,3]                -CB          0.00Kb
 
 This bit of magic is performed by the C<propagate_badflag> function,
-which is listed below:
-
- /* newval = 1 means set flag, 0 means clear it */
- /* thanks to Christian Soeller for this */
-
- void propagate_badflag( pdl *it, int newval ) {
-    PDL_DECL_CHILDLOOP(it)
-    PDL_START_CHILDLOOP(it)
-    {
-	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i;
-	for( i = trans->vtable->nparents;
-	     i < trans->vtable->npdls;
-	     i++ ) {
-	    pdl *child = trans->pdls[i];
-
-	    if ( newval ) child->state |=  PDL_BADVAL;
-            else          child->state &= ~PDL_BADVAL;
-
-	    /* make sure we propagate to grandchildren, etc */
-	    propagate_badflag( child, newval );
-
-        } /* for: i */
-    }
-    PDL_END_CHILDLOOP(it)
- } /* propagate_badflag */
-
+which is in F<pdlapi.c>.
 Given an ndarray (C<pdl *it>), the routine loops through each 
 C<pdl_trans> structure, where access to this structure is provided by the 
 C<PDL_CHILDLOOP_THISCHILD> macro.
