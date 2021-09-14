@@ -1982,7 +1982,7 @@ EOD
    PDL::PP::Rule::Returns->new("ExtraGenericLoops", [],
 		'Sets ExtraGenericLoops to an empty hash if it does not already exist', {}),
 
-   PDL::PP::Rule::InsertName->new("StructName", 'pdl_${name}_struct'),
+   PDL::PP::Rule::InsertName->new("StructName", 'pdl_trans__${name}'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
 
    PDL::PP::Rule->new("FHdrInfo", ["Name","StructName"],
