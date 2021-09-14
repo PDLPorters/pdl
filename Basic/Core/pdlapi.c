@@ -3,23 +3,6 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-/* Uncomment the following if you have core dumps or strange
- * behaviour - it may reveal the cause by croaking because of
- * bad magic number.
- */
-
-/* #define DONT_REALLY_FREE
- */
-
-/* This define causes the affine transformations not to be
- * optimized away so $x->slice(...) will always made physical.
- * Uncommenting this define is not recommended at the moment
- */
-
-/* #define DONT_OPTIMIZE
- * #define DONT_VAFFINE
- */
-
 extern Core PDL;
 
 void pdl__ensure_trans(pdl_trans *trans,int what) ;
@@ -153,7 +136,6 @@ void pdl__free(pdl *it) {
 
     it->magicno = 0x42424245;
     PDLDEBUG_f(printf("FREE %p\n",(void*)it));
-#ifndef DONT_REALLY_FREE
     if(it->dims       != it->def_dims)       free((void*)it->dims);
     if(it->dimincs    != it->def_dimincs)    free((void*)it->dimincs);
     if(it->threadids  != it->def_threadids)  free((void*)it->threadids);
@@ -189,7 +171,6 @@ void pdl__free(pdl *it) {
 	it->hdrsv = 0;
     }
     free(it);
-#endif
     PDLDEBUG_f(printf("ENDFREE %p\n",(void*)it));
 }
 
@@ -652,9 +633,6 @@ void pdl_resize_defaultincs(pdl *it) {
 	}
 	it->nvals = inc;
         it->state &= ~PDL_ALLOCATED; /* Need to realloc when phys */
-#ifdef DONT_OPTIMIZE
-	pdl_allocdata(it);
-#endif
 }
 
 /* Init dims & incs - if *incs is NULL ignored (but space is always same for both)  */
@@ -681,9 +659,6 @@ void pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
 void pdl_setdims_careful(pdl *it)
 {
 	pdl_resize_defaultincs(it);
-#ifdef DONT_OPTIMIZE
-	pdl_allocdata(it);
-#endif
         pdl_reallocthreadids(it,1); /* XXX For now */
 }
 
@@ -798,12 +773,10 @@ void pdl_make_trans_mutual(pdl_trans *trans)
   int cfflag=0;
   int pfflag=0;
   PDL_TR_CHKMAGIC(trans);
-
 /* Then, set our children. This is: */
 /* First, determine whether any of our children already have
  * a parent, and whether they need to be updated. If this is
  * the case, we need to do some thinking. */
-
   PDLDEBUG_f(printf("make_trans_mutual %p\n",(void*)trans));
   for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 	if(trans->pdls[i]->trans_parent) fflag ++;
@@ -812,22 +785,16 @@ void pdl_make_trans_mutual(pdl_trans *trans)
   for(i=0; i<trans->vtable->nparents; i++)
 	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY)
 		pfflag++;
-
 /* If children are flowing, croak. It's too difficult to handle
  * properly */
-
   if(cfflag)
 	croak("Sorry, cannot flowing families right now\n");
-
 /* Same, if children have trans yet parents are flowing */
   if(pfflag && fflag)
 	croak("Sorry, cannot flowing families right now (2)\n");
-
 /* Now, if parents are not flowing, just execute the transformation */
-
   if(!pfflag && !(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY)) {
 	int *wd = pdl_smalloc(sizeof(int) * (size_t)trans->vtable->npdls);
-
 	/* mark this transform as non mutual in case we croak during
 	   ensuring it */
 	  trans->flags |= PDL_ITRANS_NONMUTUAL;
@@ -851,15 +818,12 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		   PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
 #endif
 	if(!trans->vtable) {die("INVALID TRANS: has no vtable!\n");}
-
 	/* now actually perform the transformation, i.e. call
 	   transform's redodims and readdata vtable entries
 	 */
 	pdl__ensure_trans(trans,PDL_PARENTDIMSCHANGED); /* XXX Why? */
-
 	/* Es ist vollbracht */
 	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-#ifndef DONT_VAFFINE
 		if( PDL_VAFFOK(trans->pdls[i]) &&
 		    (trans->vtable->per_pdl_flags[i] & PDL_TPDL_VAFFINE_OK) )  {
 			if(wd[i] & PDL_PARENTDIMSCHANGED)
@@ -868,12 +832,10 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 			pdl_vaffinechanged(
 				trans->pdls[i],PDL_PARENTDATACHANGED);
 		} else
-#endif
 			pdl_changed(trans->pdls[i],wd[i],0);
 	}
 	pdl_destroytransform(trans,0);
   } else { /* do the full flowing transform */
-
           PDLDEBUG_f(printf("make_trans_mutual flowing!\n"));
 	  for(i=0; i<trans->vtable->nparents; i++)
 		pdl_set_trans_childtrans(trans->pdls[i],trans,i);
@@ -888,9 +850,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		}
 	  }
   }
-
   PDLDEBUG_f(printf("make_trans_mutual_exit %p\n",(void*)trans));
-
 } /* pdl_make_trans_mutual() */
 
 
@@ -913,8 +873,6 @@ void pdl_make_physical(pdl *it) {
 	        ABORT_RECURSE_GUARD;
 		die("PDL Not physical but doesn't have parent");
 	}
-#ifndef DONT_OPTIMIZE
-#ifndef DONT_VAFFINE
 	if(it->trans_parent->flags & PDL_ITRANS_ISAFFINE) {
 		if(!PDL_VAFFOK(it))
 			pdl_make_physvaffine(it);
@@ -926,12 +884,8 @@ void pdl_make_physical(pdl *it) {
 		PDLDEBUG_f(pdl_dump(it));
 		goto mkphys_end;
 	}
-#endif
-#endif
 	PDL_TR_CHKMAGIC(it->trans_parent);
 	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
-#ifndef DONT_OPTIMIZE
-#ifndef DONT_VAFFINE
 		if(it->trans_parent->vtable->per_pdl_flags[i] &
 		    PDL_TPDL_VAFFINE_OK) {
 			pdl_make_physvaffine(it->trans_parent->pdls[i]);
@@ -939,8 +893,6 @@ void pdl_make_physical(pdl *it) {
                         vaffinepar = vaffinepar || (it->trans_parent->pdls[i]->data != PDL_REPRP(it->trans_parent->pdls[i]));
                 }  
 		else
-#endif
-#endif
 			pdl_make_physical(it->trans_parent->pdls[i]);
 	}
         /* the next one is really strange:
@@ -1136,16 +1088,12 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	PDL_TR_CHKMAGIC(trans);
 
 	for(j=0; j<trans->vtable->nparents; j++) {
-#ifndef DONT_OPTIMIZE
-#ifndef DONT_VAFFINE
 		if(trans->vtable->per_pdl_flags[j] &
 		    PDL_TPDL_VAFFINE_OK) {
 			par_pvaf++;
 			if(!trans->pdls[j]) {return;} /* XXX!!! */
 			pdl_make_physvaffine(trans->pdls[j]);
 		} else {
-#endif
-#endif
 			if(!trans->pdls[j]) {return;} /* XXX!!! */
 			pdl_make_physical(trans->pdls[j]);
 		}
@@ -1153,16 +1101,12 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 
 	for(; j<trans->vtable->npdls; j++) {
 		if(trans->pdls[j]->trans_parent != trans) {
-#ifndef DONT_OPTIMIZE
-#ifndef DONT_VAFFINE
 			if(trans->vtable->per_pdl_flags[j] &
 			    PDL_TPDL_VAFFINE_OK) {
 				par_pvaf++;
 				if(!trans->pdls[j]) {return;} /* XXX!!! */
 				pdl_make_physvaffine(trans->pdls[j]);
 			} else
-#endif
-#endif
                        {       if(!trans->pdls[j]) {return;} /* XXX!!! */
                        PDLDEBUG_f(printf("not vaffine ok: %d\n",
                                          trans->vtable->per_pdl_flags[j]));
@@ -1192,14 +1136,6 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 			pdl_make_physvaffine(((pdl_trans_affine *)(trans))->pdls[1]);
 			pdl_readdata_vaffine(((pdl_trans_affine *)(trans))->pdls[1]);
 		} else {
-#ifdef DONT_VAFFINE
-			PDL_Indx i=0;
-			for(i=0; i<trans->vtable->npdls; i++) {
-				if(!(trans->pdls[i]->state & PDL_ALLOCATED)) {
-					croak("Trying to readdata without physicality");
-				}
-			}
-#endif
 			trans->vtable->readdata(trans);
 		}
 	}
@@ -1217,8 +1153,6 @@ void pdl__ensure_transdims(pdl_trans *trans)
 	}
 	trans->vtable->redodims(trans);
 }
-
-#ifndef DONT_OPTIMIZE
 
 /* Recursive! */
 void pdl_vafftrans_remove(pdl * it)
@@ -1400,8 +1334,6 @@ void pdl_vafftrans_alloc(pdl *it)
 		it->vafftrans->ndims = it->ndims;
 	}
 }
-
-#endif
 
 void pdl_set_datatype(pdl *a, int datatype)
 {
