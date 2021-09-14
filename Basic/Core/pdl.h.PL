@@ -13,6 +13,7 @@ print "Extracting $file\n";
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<"!GROK!THIS!";
 
 /*
@@ -63,6 +64,7 @@ $mymalloc
 
 !GROK!THIS!
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
 static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
   switch (x.type) {
@@ -81,6 +83,7 @@ print OUT <<'EOF';
 }
 EOF
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
 #define ANYVAL_FROM_CTYPE(outany,avtype,inval) do { switch (avtype) { \
 EOF
@@ -92,6 +95,7 @@ print OUT <<'EOF';
  } while (0)
 EOF
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
 #define ANYVAL_TO_CTYPE(outval,ctype,inany) do { switch (inany.type) { \
 EOF

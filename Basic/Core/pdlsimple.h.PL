@@ -1,5 +1,3 @@
-#!/usr/local/bin/perl
-
 use Config;
 use File::Basename qw(&basename &dirname);
 
@@ -28,6 +26,7 @@ print "Extracting $file (with variable substitutions)\n";
 # In this section, perl variables will be expanded during extraction.
 # You can use $Config{...} to use Configure variables.
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<"!GROK!THIS!";
 
 #include <complex.h>

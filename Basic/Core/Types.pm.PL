@@ -328,6 +328,7 @@ my $typevars  = join ', ',gentypevars @types;
 my $packtypes = join ' ', genpacktypes @types;
 my $typenames = join ' ', gentypenames @types;
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'!NO!SUBS!';
 
 ### Generated from Types.pm.PL automatically - do not modify! ###
