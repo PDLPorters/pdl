@@ -39,8 +39,20 @@ static void print_iarr(PDL_Indx *iarr, int n) {
 
 #define psp printf("%s",spaces)
 void dump_thread(pdl_thread *thread) {
-  int i;
+  int i, found=0, sz=0;
   char spaces[] = "    ";
+  int flagval[] = {
+#define X(f) f,
+PDL_LIST_FLAGS_PDLTHREAD(X)
+#undef X
+    0
+  };
+  char *flagchar[] = {
+#define X(f) #f,
+PDL_LIST_FLAGS_PDLTHREAD(X)
+#undef X
+    NULL
+  };
   fflush(stdout);
   printf("DUMPTHREAD %p\n",(void*)thread);
   if (0&& thread->einfo) {
@@ -50,8 +62,17 @@ void dump_thread(pdl_thread *thread) {
       printf("%s ",thread->einfo->paramnames[i]);
     printf("\n");
   }
-  psp; printf("Flags: %d, Ndims: %"IND_FLAG", Nimplicit: %"IND_FLAG", Npdls: %"IND_FLAG", Nextra: %"IND_FLAG"\n",
-	 thread->gflags,thread->ndims,thread->nimpl,thread->npdls,thread->nextra);
+  psp; printf("Flags: ");
+  for (i=0;flagval[i]!=0; i++)
+    if (thread->gflags & flagval[i]) {
+      printf("%s%s",found ? "|":"",flagchar[i]);
+      found = 1;
+      sz += strlen(flagchar[i]);
+      if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;}
+    }
+  printf("\n");
+  psp; printf("Ndims: %"IND_FLAG", Nimplicit: %"IND_FLAG", Npdls: %"IND_FLAG", Nextra: %"IND_FLAG"\n",
+	 thread->ndims,thread->nimpl,thread->npdls,thread->nextra);
   psp; printf("Mag_nth: %"IND_FLAG", Mag_nthpdl: %"IND_FLAG", Mag_nthr: %"IND_FLAG", Mag_skip: %"IND_FLAG", Mag_stride: %"IND_FLAG"\n",
 	 thread->mag_nth,thread->mag_nthpdl,thread->mag_nthr,thread->mag_skip,thread->mag_stride);
   if (thread->mag_nthr <= 0) {

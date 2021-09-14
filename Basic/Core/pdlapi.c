@@ -447,40 +447,47 @@ static void print_iarr(PDL_Indx *iarr, int n) {
 /* some constants for the dump_XXX routines */
 #define PDL_FLAGS_TRANS 0
 #define PDL_FLAGS_PDL 1
-#define PDL_MAXSPACE 256   /* maximal number of prefix spaces in dump routines */
-#define PDL_MAXLIN 60
+#define PDL_FLAGS_VTABLE 2
 void pdl_dump_flags_fixspace(int flags, int nspac, int type)
 {
 	int i;
 	int found = 0;
 	size_t sz = 0;
 	int pdlflagval[] = {
-	    PDL_ALLOCATED,PDL_PARENTDATACHANGED,
-	    PDL_PARENTDIMSCHANGED,PDL_PARENTREPRCHANGED,
-	    PDL_DATAFLOW_F,PDL_DATAFLOW_B,PDL_NOMYDIMS,
-	    PDL_OPT_VAFFTRANSOK,PDL_INPLACE,PDL_DESTROYING,
-	    PDL_DONTTOUCHDATA, PDL_MYDIMS_TRANS, PDL_HDRCPY, 
-	    PDL_BADVAL, PDL_TRACEDEBUG, 0
+#define X(f) f,
+PDL_LIST_FLAGS_PDLSTATE(X)
+#undef X
+	    0
 	};
 	char *pdlflagchar[] = {
-	    "ALLOCATED","PARENTDATACHANGED",
-	    "PARENTDIMSCHANGED","PARENTREPRCHANGED",
-	    "DATAFLOW_F","DATAFLOW_B","NOMYDIMS",
-	    "OPT_VAFFTRANSOK","INPLACE","DESTROYING",
-	    "DONTTOUCHDATA","MYDIMS_TRANS", "HDRCPY",
-            "BADVAL", "TRACEDEBUG"
+#define X(f) #f,
+PDL_LIST_FLAGS_PDLSTATE(X)
+#undef X
+	    NULL
 	};
 	int transflagval[] = {
-	  PDL_ITRANS_REVERSIBLE, PDL_ITRANS_DO_DATAFLOW_F,
-	  PDL_ITRANS_DO_DATAFLOW_B,
-	  PDL_ITRANS_ISAFFINE, PDL_ITRANS_VAFFINEVALID,
-	  PDL_ITRANS_NONMUTUAL, 0
+#define X(f) f,
+PDL_LIST_FLAGS_PDLTRANS(X)
+#undef X
+	    0
 	};
 	char *transflagchar[] = {
-	  "REVERSIBLE", "DO_DATAFLOW_F",
-	  "DO_DATAFLOW_B",
-	  "ISAFFINE", "VAFFINEVALID",
-	  "NONMUTUAL"	  
+#define X(f) #f,
+PDL_LIST_FLAGS_PDLTRANS(X)
+#undef X
+	  NULL
+	};
+	int vtableflagval[] = {
+#define X(f) f,
+PDL_LIST_FLAGS_PDLVTABLE(X)
+#undef X
+	    0
+	};
+	char *vtableflagchar[] = {
+#define X(f) #f,
+PDL_LIST_FLAGS_PDLVTABLE(X)
+#undef X
+	  NULL
 	};
 	int *flagval;
 	char **flagchar;
@@ -488,6 +495,9 @@ void pdl_dump_flags_fixspace(int flags, int nspac, int type)
 	if (type == PDL_FLAGS_PDL) {
 	  flagval = pdlflagval;
 	  flagchar = pdlflagchar;
+	} else if (type == PDL_FLAGS_VTABLE) {
+	  flagval = vtableflagval;
+	  flagchar = vtableflagchar;
 	} else {
 	  flagval = transflagval;
 	  flagchar = transflagchar;
@@ -510,13 +520,16 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	SET_SPACE(spaces, nspac);
 	printf("%sDUMPTRANS %p (%s)\n",spaces,(void*)it,it->vtable->name);
 	pdl_dump_flags_fixspace(it->flags,nspac+3,PDL_FLAGS_TRANS);
+	printf("%s   vtable flags ",spaces);
+	pdl_dump_flags_fixspace(it->vtable->flags,nspac+3,PDL_FLAGS_VTABLE);
 	if(it->flags & PDL_ITRANS_ISAFFINE) {
 		pdl_trans_affine *foo = (pdl_trans_affine *)it;
 		if(it->pdls[1]->state & PDL_PARENTDIMSCHANGED) {
 			printf("%s   AFFINE, BUT DIMSCHANGED\n",spaces);
 		} else {
 			printf("%s   AFFINE: o:%"IND_FLAG", i:",spaces,foo->offs);
-			print_iarr(foo->incs, foo->pdls[1]->ndims);
+			if (foo->incs)
+			  print_iarr(foo->incs, foo->pdls[1]->ndims);
 			printf(" d:");
 			print_iarr(foo->pdls[1]->dims, foo->pdls[1]->ndims);
 			printf("\n");
@@ -778,6 +791,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
  * a parent, and whether they need to be updated. If this is
  * the case, we need to do some thinking. */
   PDLDEBUG_f(printf("make_trans_mutual %p\n",(void*)trans));
+  PDLDEBUG_f(pdl_dump_trans_fixspace(trans,3));
   for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 	if(trans->pdls[i]->trans_parent) fflag ++;
 	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) cfflag++;

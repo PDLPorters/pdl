@@ -244,6 +244,23 @@ print OUT <<'!NO!SUBS!';
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
                 && (pdl)->trans_parent == (pdl_trans *)(wtrans))
 
+#define PDL_LIST_FLAGS_PDLSTATE(X) \
+ X(PDL_ALLOCATED) \
+ X(PDL_PARENTDATACHANGED) \
+ X(PDL_PARENTDIMSCHANGED) \
+ X(PDL_PARENTREPRCHANGED) \
+ X(PDL_DATAFLOW_F) \
+ X(PDL_DATAFLOW_B) \
+ X(PDL_NOMYDIMS) \
+ X(PDL_MYDIMS_TRANS) \
+ X(PDL_OPT_VAFFTRANSOK) \
+ X(PDL_HDRCPY) \
+ X(PDL_BADVAL) \
+ X(PDL_TRACEDEBUG) \
+ X(PDL_INPLACE) \
+ X(PDL_DESTROYING) \
+ X(PDL_DONTTOUCHDATA)
+
 /**************************************************
  *
  * Transformation structure
@@ -259,6 +276,9 @@ typedef enum pdl_transtype { PDL_SLICE, PDL_RETYPE }
 
 /* Transformation flags */
 #define         PDL_TRANS_DO_THREAD        0x0001
+
+#define PDL_LIST_FLAGS_PDLVTABLE(X) \
+  X(PDL_TRANS_DO_THREAD)
 
 /* Transpdl flags */
 #define         PDL_TPDL_VAFFINE_OK     0x01
@@ -289,7 +309,7 @@ typedef struct pdl_transvtable {
 
         /* Reversible transform -- flag indicates data can flow both ways.  */
         /* This is critical in routines that both input from and output to  */
-        /* a non-single-valued pdl: updating must occur.  (Note that the    */         
+        /* a non-single-valued pdl: updating must occur.  (Note that the    */
         /* transform is not necessarily mathematically reversible)          */
 #define  PDL_ITRANS_REVERSIBLE        0x0001
         /* Whether, if a child is changed, this trans should be destroyed or not */
@@ -301,6 +321,17 @@ typedef struct pdl_transvtable {
 #define  PDL_ITRANS_ISAFFINE          0x1000
 #define  PDL_ITRANS_VAFFINEVALID      0x2000
 #define  PDL_ITRANS_NONMUTUAL         0x4000  /* flag for destruction */
+
+#define PDL_LIST_FLAGS_PDLTRANS(X) \
+ X(PDL_ITRANS_REVERSIBLE) \
+ X(PDL_ITRANS_DO_DATAFLOW_F) \
+ X(PDL_ITRANS_DO_DATAFLOW_B) \
+ X(PDL_ITRANS_ISAFFINE) \
+ X(PDL_ITRANS_VAFFINEVALID) \
+ X(PDL_ITRANS_NONMUTUAL)
+
+#define PDL_MAXSPACE 256 /* maximal number of prefix spaces in dump routines */
+#define PDL_MAXLIN 60
 
 // These define struct pdl_trans and all derived structures. There are many
 // structures that defined in other parts of the code that can be referenced
