@@ -3040,13 +3040,13 @@ END
         }
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
         PDL::PP::pp_line_numbers(__LINE__-1, "static char ${vname}_flags[] =
-         { ". $join_flags . "};
-         pdl_transvtable $vname = {
-                0,$op_flags, $nparents, $npdls, ${vname}_flags,
-                $rdname, $rfname, $wfname,
-                $ffname,NULL,NULL,
-                sizeof($sname),\"$vname\"
-         };");
+{ ". $join_flags . "};
+pdl_transvtable $vname = {
+  0,$op_flags, $nparents, $npdls, ${vname}_flags,
+  $rdname, $rfname, $wfname,
+  $ffname,
+  sizeof($sname),\"$vname\"
+};");
       }),
 
    # Maybe accomplish this with an InsertName rule?

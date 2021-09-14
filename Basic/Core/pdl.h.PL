@@ -296,9 +296,6 @@ typedef struct pdl_transvtable {
         void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
         void (*freetrans)(pdl_trans *tr);     /* Free both the contents and it of
                                                  the trans_parent member */
-        void (*dump)(pdl_trans *tr);          /* Dump this transformation */
-        void (*findvparent)(pdl_trans *tr);   /* Find a virtual parent and make ready for
-                                                 readdata etc. */
         int structsize;
         char *name;                           /* For debuggers, mostly */
 } pdl_transvtable;
