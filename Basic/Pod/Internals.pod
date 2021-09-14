@@ -43,7 +43,7 @@ code below demonstrates how to do it:
      print "This is a hash reference,",
 	" the PDL field contains the scalar ref\n";
    } else {
-        print "This is a scalar ref that points to address $$pdl in memory\n";
+     print "This is a scalar ref that points to address $$pdl in memory\n";
    }
 
 The scalar reference points to the numeric address of a C structure of
@@ -258,8 +258,8 @@ output ndarrays are obtained from input ndarrays;
 
 =item *
 
-changes in smartly linked output ndarrays (e.g. the I<child>
-of a sliced I<parent> ndarray) are flown back to the input
+changes in smart-linked output ndarrays (e.g. the I<child>
+of a sliced I<parent> ndarray) are flowed back to the input
 ndarray in transformations where this is supported (the most
 often used example being C<slice> here);
 
@@ -500,7 +500,7 @@ on the same (shared) block of data which they just choose
 to interpret differently (by using different C<dims>, C<dimincs> and
 C<offs> on the same data, compare the C<pdl> structure above).
 Each operation on an ndarray sharing
-data with another one in this way is therefore automatically flown
+data with another one in this way is therefore automatically flowed
 from child to parent and back -- after all they are reading and writing
 the same block of memory. This is currently not Perl thread safe --
 no big loss since the whole PDL core is not reentrant

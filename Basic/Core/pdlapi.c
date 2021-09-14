@@ -789,7 +789,7 @@ void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,PDL_Indx nth)
  * Sets the parent and trans fields of the ndarrays correctly,
  * creating families and the like if necessary.
  * Alternatively may just execute transformation
- * that would require families but is not dataflown.
+ * that would require families but is not dataflowed.
  */
 void pdl_make_trans_mutual(pdl_trans *trans)
 {

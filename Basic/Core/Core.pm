@@ -3310,7 +3310,7 @@ Opposite of 'cat' :). Split N dim ndarray to list of N-1 dim ndarrays
 
 Takes a single N-dimensional ndarray and splits it into a list of N-1 dimensional
 ndarrays. The breakup is done along the last dimension.
-Note the dataflown connection is still preserved by default,
+Note the dataflowed connection is still preserved by default,
 e.g.:
 
 =for example

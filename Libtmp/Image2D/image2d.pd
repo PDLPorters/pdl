@@ -1403,7 +1403,7 @@ pp_addpm(<<'EOPM');
 
 =for ref
 
-return the (dataflown) area of an image described by a polygon
+return the (dataflowed) area of an image described by a polygon
 
 =for usage
 

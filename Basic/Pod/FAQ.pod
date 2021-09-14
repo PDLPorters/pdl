@@ -1063,7 +1063,7 @@ place, of which you can convince yourself by saying
 
 This should not be mistaken for dataflow which connects several
 *different* objects so that data changes are propagated between
-the so linked ndarrays (though, under certain circumstances, dataflown
+the so linked ndarrays (though, under certain circumstances, dataflowed
 ndarrays can share physically the same data).
 
 It is important to keep the "reference nature" of ndarrays in mind
