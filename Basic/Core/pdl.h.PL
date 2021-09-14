@@ -271,9 +271,6 @@ print OUT <<'!NO!SUBS!';
  *
  */
 
-typedef enum pdl_transtype { PDL_SLICE, PDL_RETYPE }
-        pdl_transtype;
-
 /* Transformation flags */
 #define         PDL_TRANS_DO_THREAD        0x0001
 
@@ -286,7 +283,6 @@ typedef enum pdl_transtype { PDL_SLICE, PDL_RETYPE }
 typedef struct pdl_trans pdl_trans;
 
 typedef struct pdl_transvtable {
-        pdl_transtype transtype;
         int flags;
         PDL_Indx nparents;
         PDL_Indx npdls;

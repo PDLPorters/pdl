@@ -421,7 +421,6 @@ The vtable structure in turn looks something like (slightly
 simplified from F<pdl.h> for clarity)
 
   typedef struct pdl_transvtable {
-	pdl_transtype transtype;
 	int flags;
 	int nparents;   /* number of parent pdls (input) */
 	int npdls;      /* number of child pdls (output) */
