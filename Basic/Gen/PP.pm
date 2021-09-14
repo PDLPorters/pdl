@@ -2552,7 +2552,7 @@ END
           next if $ignore->{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
           $str .= "if(";
           $str .= "!(($_->state & PDL_NOMYDIMS) &&
-             $_->trans == NULL) && "
+             $_->trans_parent == NULL) && "
                  if $po->{FlagCreat};
           $str .= "$dtype < $_->datatype) {
                 $dtype = $_->datatype;
@@ -2605,7 +2605,7 @@ END
             $str .= "$_->datatype = $dtype; ";
           } else {
             $str .=
-             "if( ($_->state & PDL_NOMYDIMS) && $_->trans == NULL ) {
+             "if( ($_->state & PDL_NOMYDIMS) && $_->trans_parent == NULL ) {
                  $_->datatype = $dtype;
               } else "
                   if $po->{FlagCreat};

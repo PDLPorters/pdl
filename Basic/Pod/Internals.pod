@@ -58,7 +58,7 @@ of the file F<pdlcore.h>. So what does the structure look like:
 	     /* This is first so most pointer accesses to wrong type are caught */
 	   int state;        /* What's in this pdl */
 
-	   pdl_trans *trans; /* Opaque pointer to internals of transformation from
+	   pdl_trans *trans_parent; /* Opaque pointer to internals of transformation from
 				parent */
 
 	   pdl_vaffine *vafftrans;
@@ -212,7 +212,7 @@ where they come from. For example, the code
 will alter $x. So C<$y> and C<$x> I<know> that they are connected
 via a C<slice>-transformation. This information is stored in the members
 
-   	pdl_trans *trans; 
+	pdl_trans *trans_parent;
    	pdl_vaffine *vafftrans;
 
 Both C<$x> (the I<parent>) and C<$y> (the child) store this information

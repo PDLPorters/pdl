@@ -238,7 +238,7 @@ print OUT <<'!NO!SUBS!';
 #define         PDL_DONTTOUCHDATA       0x4000
   /* Not sure what this does, but PP uses it a lot. -- CED                  */
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
-                && (pdl)->trans == (pdl_trans *)(wtrans))
+                && (pdl)->trans_parent == (pdl_trans *)(wtrans))
 
 /**************************************************
  *
@@ -271,7 +271,7 @@ typedef struct pdl_transvtable {
         void (*readdata)(pdl_trans *tr);      /* Only data, to "data" ptr  */
         void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
         void (*freetrans)(pdl_trans *tr);     /* Free both the contents and it of
-                                                 the trans member */
+                                                 the trans_parent member */
         void (*dump)(pdl_trans *tr);          /* Dump this transformation */
         void (*findvparent)(pdl_trans *tr);   /* Find a virtual parent and make ready for
                                                  readdata etc. */
@@ -378,7 +378,7 @@ typedef struct pdl_vaffine {
                                   PDL_TPDL_VAFFINE_OK))
 
 typedef struct pdl_children {
-        pdl_trans *trans[PDL_NCHILDREN];
+        pdl_trans *trans_parent[PDL_NCHILDREN];
         struct pdl_children *next;
 } pdl_children;
 
@@ -407,7 +407,7 @@ struct pdl {
      /* This is first so most pointer accesses to wrong type are caught */
    int state;        /* What's in this pdl */
 
-   pdl_trans *trans; /* Opaque pointer to internals of transformation from
+   pdl_trans *trans_parent; /* Opaque pointer to internals of transformation from
                         parent */
 
    pdl_vaffine *vafftrans; /* pointer to vaffine transformation
@@ -455,8 +455,8 @@ struct pdl {
                 p##__c = &p->children; \
                 do { \
                         for(p##__i=0; p##__i<PDL_NCHILDREN; p##__i++) { \
-                                if(p##__c->trans[p##__i]) {
-#define PDL_CHILDLOOP_THISCHILD(p) p##__c->trans[p##__i]
+                                if(p##__c->trans_parent[p##__i]) {
+#define PDL_CHILDLOOP_THISCHILD(p) p##__c->trans_parent[p##__i]
 #define PDL_END_CHILDLOOP(p) \
                                 } \
                         } \

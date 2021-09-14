@@ -90,8 +90,8 @@ get_trans(self)
 	pdl *self;
 	CODE:
 	ST(0) = sv_newmortal();
-	if(self->trans)  {
-		sv_setref_pv(ST(0), "PDL::Trans", (void*)(self->trans));
+	if(self->trans_parent)  {
+		sv_setref_pv(ST(0), "PDL::Trans", (void*)(self->trans_parent));
 	} else {
                ST(0) = &PL_sv_undef;
 	}
@@ -920,7 +920,7 @@ threadover(...)
 		for(i=0; i<npdls; i++) {
 		   /* just twiddle the offset - quick and dirty */
 		   /* we must twiddle both !! */
-		   traff = (pdl_trans_affine *) child[i]->trans;
+		   traff = (pdl_trans_affine *) child[i]->trans_parent;
 		   traff->offs = pdl_thr.offs[i];
 		   child[i]->vafftrans->offs = pdl_thr.offs[i];
 		   child[i]->state |= PDL_PARENTDATACHANGED;
