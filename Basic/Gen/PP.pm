@@ -546,19 +546,18 @@ sub dosubst_private {
 		((ref $src) ? %{$src->[1]} : ()),
 		PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
 			       "->$_[0]"},
-		CROAK => sub {PDL::PP::pp_line_numbers(__LINE__, "PDL->pdl_barf(\"Error in $name:\" $_[0])")},
+		CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->pdl_barf(\"Error in $name:\" $_[0])")},
 		NAME => sub {return $name},
 		MODULE => sub {return $::PDLMOD},
 
-		SETPDLSTATEBAD  => sub { PDL::PP::pp_line_numbers(__LINE__, "$_[0]\->state |= PDL_BADVAL") },
-		SETPDLSTATEGOOD => sub { PDL::PP::pp_line_numbers(__LINE__, "$_[0]\->state &= ~PDL_BADVAL") },
-		ISPDLSTATEBAD   => sub { PDL::PP::pp_line_numbers(__LINE__, "(($_[0]\->state & PDL_BADVAL) > 0)") },
-		ISPDLSTATEGOOD  => sub { PDL::PP::pp_line_numbers(__LINE__, "(($_[0]\->state & PDL_BADVAL) == 0)") },
-		BADFLAGCACHE    => sub { PDL::PP::pp_line_numbers(__LINE__, "badflag_cache") },
+		SETPDLSTATEBAD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state |= PDL_BADVAL") },
+		SETPDLSTATEGOOD => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state &= ~PDL_BADVAL") },
+		ISPDLSTATEBAD   => sub { PDL::PP::pp_line_numbers(__LINE__-1, "(($_[0]\->state & PDL_BADVAL) > 0)") },
+		ISPDLSTATEGOOD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "(($_[0]\->state & PDL_BADVAL) == 0)") },
+		BADFLAGCACHE    => sub { PDL::PP::pp_line_numbers(__LINE__-1, "badflag_cache") },
 
 		SETREVERSIBLE => sub {
-		    PDL::PP::pp_line_numbers(__LINE__, "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
-		      "   else \$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n")
+		    PDL::PP::pp_line_numbers(__LINE__-1, $_[0] ? "\$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" : "\$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n")
 		  },
 	       );
     while(
@@ -614,13 +613,13 @@ our @ISA = qw (PDL::PP::Rule::Substitute);
 # This is a copy of the main one for now. Need a better solution.
 #
 my @std_childparent = (
-	CHILD => sub {PDL::PP::pp_line_numbers(__LINE__, '$PRIV(pdls[1]->'.(join ',',@_).")")},
-	PARENT => sub {PDL::PP::pp_line_numbers(__LINE__, '$PRIV(pdls[0]->'.(join ',',@_).")")},
-	CHILD_P => sub {PDL::PP::pp_line_numbers(__LINE__, '$PRIV(pdls[1]->'.(join ',',@_).")")},
-	PARENT_P => sub {PDL::PP::pp_line_numbers(__LINE__, '$PRIV(pdls[0]->'.(join ',',@_).")")},
-	CHILD_PTR => sub {PDL::PP::pp_line_numbers(__LINE__, '$PRIV(pdls[1])')},
-	PARENT_PTR => sub {PDL::PP::pp_line_numbers(__LINE__, '$PRIV(pdls[0])')},
-	COMP => sub {PDL::PP::pp_line_numbers(__LINE__, '$PRIV('.(join ',',@_).")")}
+	CHILD => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1]->'.(join ',',@_).")")},
+	PARENT => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0]->'.(join ',',@_).")")},
+	CHILD_P => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1]->'.(join ',',@_).")")},
+	PARENT_P => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0]->'.(join ',',@_).")")},
+	CHILD_PTR => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1])')},
+	PARENT_PTR => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0])')},
+	COMP => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV('.(join ',',@_).")")}
 );
 
 sub get_std_childparent { return @std_childparent; }
@@ -665,9 +664,9 @@ our @ISA = qw (PDL::PP::Rule);
 # This is a copy of the main one for now. Need a better solution.
 #
 my @std_redodims = (
-		    SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__, "PDL->reallocdims(__it,$_[0])")},
-		    SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__, "PDL->setdims_careful(__it)")},
-		    SETDELTATHREADIDS => sub {PDL::PP::pp_line_numbers(__LINE__, '
+		    SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->reallocdims(__it,$_[0])")},
+		    SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->setdims_careful(__it)")},
+		    SETDELTATHREADIDS => sub {PDL::PP::pp_line_numbers(__LINE__-1, '
 		{int __ind; PDL->reallocthreadids($CHILD_PTR(),
 			$PARENT(nthreadids));
 		for(__ind=0; __ind<$PARENT(nthreadids); __ind++) {
@@ -1560,7 +1559,7 @@ sub wrap_vfn {
     my($code,$hdrinfo,$rout,$p2child,$name) = @_;
     my $type = ($name eq "copy" ? "pdl_trans *" : "void");
     my $sname = $hdrinfo->{StructName};
-    my $str = PDL::PP::pp_line_numbers(__LINE__, qq|$type $rout(pdl_trans *__tr) {
+    my $str = PDL::PP::pp_line_numbers(__LINE__-1, qq|$type $rout(pdl_trans *__tr) {
 	$sname *__privtrans = ($sname *) __tr;\n|);
     if ( $p2child ) {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
@@ -1597,9 +1596,9 @@ sub callPerlInit {
 	my ($to_push, $method) = $callcopy
 	    ? ('parent', 'copy')
 	    : ('sv_2mortal(newSVpv(objname, 0))', 'initialize');
-	$ret .= "PDL_XS_PERLINIT($name, $to_push, $method)\n";
+	$ret .= PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_PERLINIT($name, $to_push, $method)\n");
     }
-    PDL::PP::pp_line_numbers(__LINE__, indent($ret,$ci));
+    indent($ret,$ci);
 } #sub callPerlInit()
 
 # abstract the access to the bad value status
@@ -1609,25 +1608,25 @@ sub callPerlInit {
 # it's also used in one place in PP/PDLCode.pm
 # -- there it's hard-coded
 #
-sub set_badflag   { PDL::PP::pp_line_numbers(__LINE__, '$PRIV(bvalflag) = 1;' . "\n") }
-sub clear_badflag { PDL::PP::pp_line_numbers(__LINE__, '$PRIV(bvalflag) = 0;' . "\n") }
-sub get_badflag   { PDL::PP::pp_line_numbers(__LINE__, '$PRIV(bvalflag)') }
+sub set_badflag   { PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(bvalflag) = 1;' . "\n") }
+sub clear_badflag { PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(bvalflag) = 0;' . "\n") }
+sub get_badflag   { PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(bvalflag)') }
 
-sub get_badflag_priv { PDL::PP::pp_line_numbers(__LINE__, '$PRIV(bvalflag)') }
+sub get_badflag_priv { PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(bvalflag)') }
 
 sub set_badstate {
     my $pdl = shift;
-    PDL::PP::pp_line_numbers(__LINE__, "\$SETPDLSTATEBAD($pdl)")
+    PDL::PP::pp_line_numbers(__LINE__-1, "\$SETPDLSTATEBAD($pdl)")
 }
 
 sub clear_badstate {
     my $pdl = shift;
-    PDL::PP::pp_line_numbers(__LINE__, "\$SETPDLSTATEGOOD($pdl)")
+    PDL::PP::pp_line_numbers(__LINE__-1, "\$SETPDLSTATEGOOD($pdl)")
 }
 
 sub get_badstate {
     my $pdl = shift;
-    PDL::PP::pp_line_numbers(__LINE__, "\$ISPDLSTATEBAD($pdl)")
+    PDL::PP::pp_line_numbers(__LINE__-1, "\$ISPDLSTATEBAD($pdl)")
 }
 
 sub NT2Decls_p {&NT2Decls__({ToPtrs=>1},@_);}
@@ -1639,9 +1638,9 @@ sub NT2Decls__ {
   $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
   for(@$onames) {
       my $d = $otypes->{$_}->get_decl($_,$dopts);
-      $decl .= "$d;" if $d;
+      $decl .= PDL::PP::pp_line_numbers(__LINE__-1, "$d;") if $d;
   }
-  $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
+  $decl;
 }
 
 sub NT2Free_p {
@@ -1661,7 +1660,7 @@ if($Config{cc} eq 'cl') {
   $join__parnames = '""' if $join__parnames eq '';
   $join__realdims = '0' if $join__realdims eq '';
 }
-PDL::PP::pp_line_numbers(__LINE__, "PDL_PARNAMES(($join__parnames), ($join__realdims), $npdls, \"\$MODULE()::\$NAME()\")");
+PDL::PP::pp_line_numbers(__LINE__-1, "PDL_PARNAMES(($join__parnames), ($join__realdims), $npdls, \"\$MODULE()::\$NAME()\")");
 }
 
 ##############################
@@ -1701,11 +1700,11 @@ my @names = map { "\$PRIV(pdls[$_])" } 0..$nn;
 # from RedoDims-setter we know that __creating[] == 0 unless
 # ...{FlagCreat} is true
 #
-my $str = "
+my $str = PDL::PP::pp_line_numbers(__LINE__-1, "
 void *hdrp = NULL;
 char propagate_hdrcpy = 0;
 SV *hdr_copy = NULL;
-";
+");
 
 # Find a header among the possible names
 foreach ( 0 .. $nn ) {
@@ -1725,7 +1724,7 @@ $str .= '
           SvREFCNT_dec(hdr_copy); PDL_COMMENT("make hdr_copy mortal again")
     } PDL_COMMENT("end of if(hdrp) block")
 ';
-PDL::PP::pp_line_numbers(__LINE__, $str);
+$str;
 
 } # sub: hdrcheck()
 
@@ -1998,7 +1997,7 @@ EOD
       sub {
         my($pdimexpr,$hdr,$dimcheck) = @_;
         $pdimexpr =~ s/\$CDIM\b/i/g;
-        PDL::PP::pp_line_numbers(__LINE__, '
+        PDL::PP::pp_line_numbers(__LINE__-1, '
           int i,cor;
           '.$dimcheck.'
           $SETNDIMS($PARENT(ndims));
@@ -2015,7 +2014,7 @@ EOD
       }),
    PDL::PP::Rule->new("RedoDims", ["Identity","FHdrInfo"],
       sub {
-        PDL::PP::pp_line_numbers(__LINE__, '
+        PDL::PP::pp_line_numbers(__LINE__-1, '
           int i;
           $SETNDIMS($PARENT(ndims));
           for(i=0; i<$CHILD(ndims); i++) {
@@ -2060,14 +2059,14 @@ EOD
         # parse 'good' code
         $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
         $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = ($3) ? 0 : \$PP(PARENT)[$2]/g;
-        my $str = $good;
+        my $str = PDL::PP::pp_line_numbers(__LINE__-1, $good);
         if ( defined $bflag and $bflag ) {
           # parse 'bad' code
           $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
           $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/ if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
           $str = 'if( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
         }
-        PDL::PP::pp_line_numbers(__LINE__, $str);
+        $str;
       }),
 
    PDL::PP::Rule->new("BackCode", ["EquivCPOffsCode","BadFlag"],
@@ -2111,14 +2110,14 @@ EOD
         # parse 'good' code
         $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
         $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) \$PP(PARENT)[$2] = \$PP(CHILD)[$1] /g;
-        my $str = $good;
+        my $str = PDL::PP::pp_line_numbers(__LINE__-1, $good);
         if ( defined $bflag and $bflag ) {
           # parse 'bad' code
           $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
           $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } /g;
           $str = 'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
         }
-        PDL::PP::pp_line_numbers(__LINE__, $str);
+        $str;
       }),
 
    PDL::PP::Rule::Returns::Zero->new("Affine_Ok", "EquivCPOffsCode"),
@@ -2263,7 +2262,7 @@ EOD
             unless defined $in;
         die "ERROR: Inplace [$ppname] does not know name of output ndarray\n"
             unless defined $out;
-        PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_INPLACE($in, $out)\n");
+        PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_INPLACE($in, $out)\n");
       }),
 
    PDL::PP::Rule::Returns::EmptyString->new("HdrCode", [],
@@ -2441,7 +2440,7 @@ END
             push (@outs, $x) if (exists ($$parobjs{$x}) and exists ($$parobjs{$x}{FlagOut}));
         }
         my $clause1 = join ';', map "ST($_) = $outs[$_]_SV", 0 .. $#outs;
-        PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_RETURN($clause1)");
+        PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
       }),
 
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","NewXSArgs"],
@@ -2459,7 +2458,7 @@ END
                 "PDL->$gname = $name;"];
       }),
    PDL::PP::Rule->new("NewXSLocals", "NewXSSymTab",
-      sub { PDL::PP::pp_line_numbers(__LINE__, $_[0]->decl_locals()) }
+      sub { PDL::PP::pp_line_numbers(__LINE__-1, $_[0]->decl_locals()) }
    ),
 
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
@@ -2499,15 +2498,15 @@ END
         my( $symtab, $vtable, $affflag, $havethreading ) = @_;
         my $sname = $symtab->get_symname('_PDL_ThisTrans');
         my $clrmagic = $havethreading?"PDL_THR_CLRMAGIC(&$sname->pdlthread)":"";
-        PDL::PP::pp_line_numbers(__LINE__, "PDL_XS_PRIVSTRUCT($sname, $clrmagic, $affflag, $vtable)\n");
+        PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_PRIVSTRUCT($sname, $clrmagic, $affflag, $vtable)\n");
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj","NewXSSymTab"],
       sub {
         my($sig, $symtab) = @_;
-        my $str = "\n";
+        my $str = PDL::PP::pp_line_numbers(__LINE__-1, "\n");
         for(@{ $sig->names }) { $str .= "$_ = PDL->make_now($_);\n"; }
-        PDL::PP::pp_line_numbers(__LINE__, $str);
+        $str;
       }),
    PDL::PP::Rule->new("IgnoreTypesOf", "FTypes", sub {return {map {($_,1)} keys %{$_[0]}}}),
    PDL::PP::Rule::Returns->new("IgnoreTypesOf", {}),
@@ -2544,7 +2543,7 @@ END
           if $hasp2child and $#$gentypes != $ntypes;
         return "$dtype = $$parnames[0]\->datatype;\n\$PRIV(has_badvalue) = $$parnames[0]\->has_badvalue;\n\$PRIV(badvalue) = $$parnames[0]\->badvalue;\n"
           if $hasp2child;
-        my $str = "$dtype = 0;";
+        my $str = PDL::PP::pp_line_numbers(__LINE__-1, "$dtype = 0;");
         foreach ( @{ $sig->names_sorted } ) {
           my $po = $parobjs->{$_};
           next if $ignore->{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
@@ -2557,7 +2556,7 @@ END
             }\n";
         }
         $str .= join '', map { "if($dtype == PDL_$_) {}\nelse " }(@$gentypes);
-        PDL::PP::pp_line_numbers(__LINE__, $str .= "$dtype = PDL_$gentypes->[-1];\n");
+        $str . "$dtype = PDL_$gentypes->[-1];\n";
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
@@ -2581,9 +2580,9 @@ END
           return "" if $ignore->{$child};
           die "ERROR: expected $child to be [oca]\n"
             unless $parobjs->{$child}{FlagCreateAlways};
-          return PDL::PP::pp_line_numbers(__LINE__, "$child\->datatype = \$PRIV(__datatype);\n$child\->has_badvalue = \$PRIV(has_badvalue);\n$child\->badvalue = \$PRIV(badvalue);\n");
+          return PDL::PP::pp_line_numbers(__LINE__-1, "$child\->datatype = \$PRIV(__datatype);\n$child\->has_badvalue = \$PRIV(has_badvalue);\n$child\->badvalue = \$PRIV(badvalue);\n");
         }
-        my $str = "";
+        my $str = PDL::PP::pp_line_numbers(__LINE__-1, "");
         foreach ( @{ $sig->names_sorted } ) {
           next if $ignore->{$_};
           my $po = $parobjs->{$_};
@@ -2612,7 +2611,7 @@ END
               }\n";
           }
         }
-        PDL::PP::pp_line_numbers(__LINE__, $str);
+        $str;
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
@@ -2732,7 +2731,7 @@ END
    PDL::PP::Rule->new("IsReversibleCodeNS", "Reversible",
       sub {
         my($rev) = @_;
-        PDL::PP::pp_line_numbers(__LINE__, $rev eq "1" ? '$SETREVERSIBLE(1)' : $rev)
+        PDL::PP::pp_line_numbers(__LINE__-1, $rev eq "1" ? '$SETREVERSIBLE(1)' : $rev)
       }),
    PDL::PP::Rule::Substitute::Usual->new("IsReversibleCode", "IsReversibleCodeNS"),
 
@@ -2741,7 +2740,7 @@ END
    #
    PDL::PP::Rule::Substitute->new("NewXSStructInit2DJB", "MakeCompiledRepr"),
    PDL::PP::Rule->new("NewXSStructInit2", "NewXSStructInit2DJB",
-      sub { PDL::PP::pp_line_numbers(__LINE__, "{".$_[0]."}") }),
+      sub { PDL::PP::pp_line_numbers(__LINE__-1, "{".$_[0]."}") }),
 
    PDL::PP::Rule->new("FreeCodeNS",
       ["CompFreeCode","NTPrivFreeCode"],
@@ -2756,7 +2755,7 @@ END
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustSub1d", "NewXSCoerceMustSub1"),
 
    PDL::PP::Rule->new("NewXSClearThread", "HaveThreading",
-      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__, "__privtrans->pdlthread.inds = 0;") : ""}),
+      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__-1, "__privtrans->pdlthread.inds = 0;") : ""}),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
       ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","NewXSSymTab","Name"],
@@ -2799,7 +2798,7 @@ END
         my $clear_bad = clear_badflag();
         my $set_bad   = set_badflag();
         my $get_bad   = get_badflag();
-        my $str = $clear_bad;
+        my $str = PDL::PP::pp_line_numbers(__LINE__-1, $clear_bad);
         # set the badflag_cache variable if any input ndarray has the bad flag set
         #
         my $add = 0;
@@ -2832,7 +2831,7 @@ END
       }\n";
           print "\nNOTE: $name does not handle bad values.\n\n" if $::PP_VERBOSE;
         } # if: $badflag
-        PDL::PP::pp_line_numbers(__LINE__, $str)
+        $str
       }),
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
@@ -2862,7 +2861,7 @@ END
             $badcode =~ s/\$PRIV(bvalflag)/\$BADFLAGCACHE()/;
             print "\nPDL::PP WARNING: CopyBadStatusCode contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()\n\n";
           }
-          return PDL::PP::pp_line_numbers(__LINE__, $badcode);
+          return PDL::PP::pp_line_numbers(__LINE__-1, $badcode);
         }
         # names of output variables    (in calling order)
         my @outs;
@@ -2874,7 +2873,7 @@ END
           push (@outs, $x) if (exists ($$parobjs{$x}) and exists ($$parobjs{$x}{FlagOut}));
         }
         my $sname = $symtab->get_symname('_PDL_ThisTrans');
-        my $str = '';
+        my $str = PDL::PP::pp_line_numbers(__LINE__-1, '');
       # It appears that some code in Bad.xs sets the cache value but then
       # this bit of code never gets called. Is this an efficiency issue (ie
       # should we try and optimise away those ocurrences) or does it perform
@@ -2884,8 +2883,7 @@ END
         foreach my $arg ( @outs ) {
           $str .= "  " . set_badstate($arg) . ";\n";
         }
-        $str .= "}\n";
-        PDL::PP::pp_line_numbers(__LINE__, $str);
+        $str . "}\n";
       }),
 
  # expand macros in ...BadStatusCode
@@ -2915,7 +2913,7 @@ END
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {
         my($glb,$xs_c_headers,$hdr,@bits) = @_;
-        my($boot,$prelude,$str);
+        my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, '');
         if($glb) {
           $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
           $boot = $xs_c_headers->[3];
@@ -2925,7 +2923,7 @@ END
           $str = "$hdr \n { $xscode \n}\n\n";
         }
         $str =~ s/(\s*\n)+/\n/g;
-        (PDL::PP::pp_line_numbers(__LINE__, $str),$boot,$prelude)
+        ($str,$boot,$prelude)
       }),
 
  # This rule will fail if the preceding rule succeeds
@@ -2949,7 +2947,7 @@ END
       "Rule to print out XS code when variable argument list XS processing is disabled",
       sub {
         my($glb,$xs_c_headers,$hdr,@bits) = @_;
-        my($boot,$prelude,$str);
+        my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, '');
         if($glb) {
           $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
           $boot = $xs_c_headers->[3];
@@ -2959,7 +2957,7 @@ END
           $str = "$hdr CODE:\n { $xscode XSRETURN(0);\n}\n\n";
         }
         $str =~ s/(\s*\n)+/\n/g;
-        (PDL::PP::pp_line_numbers(__LINE__, $str),$boot,$prelude)
+        ($str,$boot,$prelude)
       }),
 
    PDL::PP::Rule->new("StructDecl",
@@ -2967,7 +2965,7 @@ END
       sub {
         my($sig,$comp,$priv,$name) = @_;
         my $npdls = @{ $sig->names };
-        PDL::PP::pp_line_numbers(__LINE__, qq{typedef struct $name {
+        PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $name {
           PDL_TRANS_START($npdls);
           $priv
           $comp
@@ -2978,7 +2976,7 @@ END
    # twice (directly and via RedoDims-PostComp). Can this be cleaned up?
    #    [I don't know who put this in, or when -- but I don't understand it.  CED 13-April-2015]
    PDL::PP::Rule->new("RedoDims-PreComp", "RedoDims",
-      sub { PDL::PP::pp_line_numbers(__LINE__, $_[0] . ' $PRIV(dims_redone) = 1;') }),
+      sub { $_[0] . PDL::PP::pp_line_numbers(__LINE__-1, ' $PRIV(dims_redone) = 1;') }),
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
       ["RedoDims-PreComp", "PrivNames", "PrivObjs"], "PRIV"),
 
@@ -3041,7 +3039,7 @@ END
            $join_flags = '""' if $join_flags eq '';
         }
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
-        PDL::PP::pp_line_numbers(__LINE__, "static char ${vname}_flags[] =
+        PDL::PP::pp_line_numbers(__LINE__-1, "static char ${vname}_flags[] =
          { ". $join_flags . "};
          pdl_transvtable $vname = {
                 0,$op_flags, $nparents, $npdls, ${vname}_flags,
