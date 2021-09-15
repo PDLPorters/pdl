@@ -53,13 +53,24 @@ sub splitprotected ($$) {
 my $typeregex = join '|', map $_->ppforcetype, types;
 my $complex_regex = join '|', qw(real complex);
 our $pars_re = qr/^
-	\s*((?:$complex_regex|$typeregex)\b[+]*|)\s*	# $1: first option
+	\s*(?:($complex_regex|$typeregex)\b([+]*)|)\s*	# $1,2: first option then plus
 	(?:
-	\[([^]]*)\]   	# $2: The initial [option] part
+	\[([^]]*)\]	# $3: The initial [option] part
 	)?\s*
-	(\w+)          	# $3: The name
-	\(([^)]*)\)  		# $4: The indices
+	(\w+)	  	# $4: The name
+	\(([^)]*)\)	# $5: The indices
 /x;
+my %flag2info = (
+  io => [[qw(FlagW)]],
+  nc => [[qw(FlagNCreat)]],
+  o => [[qw(FlagOut FlagCreat FlagW)]],
+  oca => [[qw(FlagOut FlagCreat FlagW FlagCreateAlways)]],
+  t => [[qw(FlagTemp FlagCreat FlagW)]],
+  phys => [[qw(FlagPhys)]],
+  real => [[qw(FlagReal)]],
+  complex => [[qw(FlagComplex)]],
+  (map +($_->ppforcetype => [[qw(FlagTyped)], 'Type']), types),
+);
 sub new {
 	my($type,$string,$badflag,$sig) = @_;
 	$badflag ||= 0;
@@ -68,26 +79,19 @@ sub new {
 	# originally defined here, but were moved to PDL::PP for FullDoc parsing.
 	$string =~ $pars_re
 		 or confess "Invalid pdl def $string (regex $pars_re)\n";
-	my($opt1,$opt2,$name,$inds) = ($1,$2,$3,$4);
-	map {$_ = '' unless defined($_)} ($opt1,$opt2,$inds); # shut up -w
-	print "PDL: '$opt1', '$opt2', '$name', '$inds'\n"
+	my($opt1,$opt_plus,$opt2,$name,$inds) = map $_ // '', ($1,$2,$3,$4,$5);
+	print "PDL: '$opt1$opt_plus', '$opt2', '$name', '$inds'\n"
 		  if $::PP_VERBOSE;
 # Set my internal variables
 	$this->{Name} = $name;
 	$this->{Flags} = [(split ',',$opt2),($opt1?$opt1:())];
 	for(@{$this->{Flags}}) {
-		/^io$/ and $this->{FlagW}=1 or
-		/^nc$/ and $this->{FlagNCreat}=1 or
-		/^o$/ and $this->{FlagOut}=$this->{FlagCreat}=$this->{FlagW}=1 or
-		/^oca$/ and $this->{FlagOut}=$this->{FlagCreat}=$this->{FlagW}=$this->{FlagCreateAlways}=1 or
-		/^t$/ and $this->{FlagTemp}=$this->{FlagCreat}=$this->{FlagW}=1 or
-		/^phys$/ and $this->{FlagPhys} = 1 or
-		/^real$/ and $this->{FlagReal} = 1 or
-		/^complex$/ and $this->{FlagComplex} = 1 or
-		/^((?:$typeregex)[+]*)$/ and $this->{Type} = $1 and $this->{FlagTyped} = 1 or
-		confess("Invalid flag $_ given for $string\n");
+		confess("Invalid flag $_ given for $string\n")
+			unless my ($set, $store) = @{ $flag2info{$_} || [] };
+		$this->{$store} = $_ if $store;
+		$this->{$_} = 1 for @$set;
 	}
-	if ($this->{FlagTyped} && $this->{Type} =~ s/[+]$// ) {
+	if ($this->{FlagTyped} && $opt_plus) {
 	  $this->{FlagTplus} = 1;
 	}
 	$this->{Type} &&= PDL::Type->new($this->{Type});
@@ -95,11 +99,10 @@ sub new {
 		delete $this->{FlagCreat};
 		delete $this->{FlagCreateAlways};
 	}
-	my @inds = map{
+	$this->{RawInds} = [map{
 		s/\s//g; 		# Remove spaces
 		$_;
-	} split ',', $inds;
-	$this->{RawInds} = [@inds];
+	} split ',', $inds];
 	return $this;
 }
 
