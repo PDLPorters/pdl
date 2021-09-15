@@ -2950,14 +2950,13 @@ END
           } $name;});
       }),
 
-   # The RedoDimsSub rule is a bit weird since it takes in the RedoDims target
-   # twice (directly and via RedoDims-PostComp). Can this be cleaned up?
-   #    [I don't know who put this in, or when -- but I don't understand it.  CED 13-April-2015]
    PDL::PP::Rule->new("RedoDims-PreComp", "RedoDims",
       sub { $_[0] . PDL::PP::pp_line_numbers(__LINE__-1, ' $PRIV(dims_redone) = 1;') }),
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
       ["RedoDims-PreComp", "PrivNames", "PrivObjs"], "PRIV"),
 
+   # The RedoDimsSub rule takes in the RedoDims target
+   # directly as well as via RedoDims-PostComp for better error-reporting
    PDL::PP::Rule->new("RedoDimsSub",
       ["RedoDims", "RedoDims-PostComp", "_DimsObj"],
       sub {
