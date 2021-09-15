@@ -1650,7 +1650,7 @@ sub NT2Free_p {
 }
 
 sub make_parnames {
-my ($pnames,$pobjs) = @_;
+my ($pnames) = @_;
 my $npdls = @$pnames;
 my $join__parnames = join ",",map {qq|"$_"|} @$pnames;
 if($Config{cc} eq 'cl') {
@@ -2705,10 +2705,10 @@ END
         $str .= "__creating[$_] = PDL_CR_SETDIMSCOND(__privtrans,$privname[$_]);\n"
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
         $str .= $pcode;
-        $str .= make_parnames($pnames,$pobjs) . "
+        $str .= make_parnames($pnames) . "
            PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(pdlthread), \$PRIV(vtable)->per_pdl_flags, \$PRIV(vtable)->realdims, $noPthreadFlag)\n";
-        $str .= join '',map $pobjs->{$_}->get_xsnormdimchecks, @$pnames;
-        $str .= join '',map $pobjs->{$_}->get_xsphysdimchecks, @$pnames;
+        $str .= join '',map $_->get_xsnormdimchecks, @$pobjs{@$pnames};
+        $str .= join '',map $_->get_xsphysdimchecks, @$pobjs{@$pnames};
         $str .= hdrcheck($pnames,$pobjs);
         $str .= join '',map {$pobjs->{$pnames->[$_]}->
           get_incsets($privname[$_])} 0..$nn;
@@ -3031,12 +3031,10 @@ END
         my $npdls = scalar @$pnames;
         my $join_flags = join", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1;
-        if($Config{cc} eq 'cl') {
-           $join_flags = '""' if $join_flags eq '';
-        }
+        $join_flags ||= '""' if $Config{cc} eq 'cl';
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
         my $realdims = join ", ",map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
-        $realdims = '0' if $realdims eq '' and $Config{cc} eq 'cl';
+        $realdims ||= '0' if $Config{cc} eq 'cl';
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 static char ${vname}_flags[] = {
   $join_flags
