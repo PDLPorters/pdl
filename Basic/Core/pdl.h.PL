@@ -365,11 +365,11 @@ typedef struct pdl_transvtable {
   /* The pdls involved in the transformation */ \
   pdl *pdls[]
 
-#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) croak("INVALID " #type "MAGIC NO 0x%p %d\n",it,(int)((it)->magicno)); else (void)0
+#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) croak("INVALID " #type "MAGIC NO 0x%p %d%s\n",it,(int)((it)->magicno), ((it)->magicno) == PDL_CLEARED_MAGICNO ? " (cleared)" : ""); else (void)0
 
 #define PDL_TR_MAGICNO      0x91827364
 #define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO
-#define PDL_TR_CLRMAGIC(it) it->magicno = 0x99876134
+#define PDL_TR_CLRMAGIC(it) it->magicno = PDL_CLEARED_MAGICNO
 #define PDL_TR_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it, PDL_TR_MAGICNO, "TRANS ")
 
 // This is a generic parent of all the trans structures. It is a flexible array
@@ -431,6 +431,7 @@ struct pdl_magic;
  */
 
 #define PDL_MAGICNO 0x24645399
+#define PDL_CLEARED_MAGICNO 0x99876134 /* value once "cleared" */
 #define PDL_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it,PDL_MAGICNO,"")
 
 struct pdl {

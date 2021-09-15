@@ -12,7 +12,7 @@
 
 #define PDL_THR_MAGICNO 0x92314764
 #define PDL_THR_SETMAGIC(it) it->magicno = PDL_THR_MAGICNO
-#define PDL_THR_CLRMAGIC(it) (it)->magicno = 0x99876134
+#define PDL_THR_CLRMAGIC(it) (it)->magicno = PDL_CLEARED_MAGICNO
 
 /* XXX To avoid mallocs, these should also have "default" values */
 typedef struct pdl_thread {
