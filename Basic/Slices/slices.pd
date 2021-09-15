@@ -873,7 +873,7 @@ switch(ind_pdl->datatype) {
   PDL_Indx i,ntsize;
 
   if( (size == NULL) || (size == &PL_sv_undef) ) {
-    // NO size was passed in (not normally executed even if you passed in no size to range(),
+    // NO size was passed in, not normally executed even if you passed in no size to range(),
     // as range() generates a size array...
     for(i=0;i<$COMP(rdim);i++)
           $COMP(sizes[i]) = 0;
@@ -945,37 +945,25 @@ switch(ind_pdl->datatype) {
  * Stash coordinates of the corners
  */
 
-{
-  PDL_Indx i,j,k,ioff;
-  PDL_Indx *cptr;
-  PDL_Indx *iter = (PDL_Indx *)(PDL->smalloc((STRLEN) (sizeof(PDL_Indx) * ($COMP(itdim)))));
-
-  /* initialize iterator to loop over index threads */
-  cptr = iter;
-  for(k=0;k<$COMP(itdim);k++)
-    *(cptr++) = 0;
-
-  cptr = $COMP(corners);
-  do {
-    /* accumulate offset into the index from the iterator */
-    for(k=ioff=0;k<$COMP(itdim);k++)
-      ioff += iter[k] * ind_pdl->dimincs[k+1];
-
-    /* Loop over the 0th dim of index, copying coords. */
-    /* This is the natural place to check for permissive ranging; too */
-    /* bad we don't have access to the parent ndarray here... */
-
-    for(j=0;j<$COMP(rdim);j++)
-        *(cptr++) = ((PDL_Indx *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
-
-    /* Increment the iterator -- the test increments, the body carries. */
-    for(k=0; k<$COMP(itdim) && (++(iter[k]))>=($COMP(itdims)[k]) ;k++)
-      iter[k] = 0;
-  } while(k<$COMP(itdim));
-
-
-
-}
+PDL_Indx i,j,k,ioff, iter[$COMP(itdim)];
+/* initialize iterator to loop over index threads */
+PDL_Indx *cptr = iter;
+for(k=0;k<$COMP(itdim);k++)
+  *(cptr++) = 0;
+cptr = $COMP(corners);
+do {
+  /* accumulate offset into the index from the iterator */
+  for(k=ioff=0;k<$COMP(itdim);k++)
+    ioff += iter[k] * ind_pdl->dimincs[k+1];
+  /* Loop over the 0th dim of index, copying coords. */
+  /* This is the natural place to check for permissive ranging; too */
+  /* bad we don't have access to the parent ndarray here... */
+  for(j=0;j<$COMP(rdim);j++)
+      *(cptr++) = ((PDL_Indx *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
+  /* Increment the iterator -- the test increments, the body carries. */
+  for(k=0; k<$COMP(itdim) && (++(iter[k]))>=($COMP(itdims)[k]) ;k++)
+    iter[k] = 0;
+} while(k<$COMP(itdim));
 
 
 $SETREVERSIBLE(1);
@@ -983,227 +971,216 @@ $SETREVERSIBLE(1);
 EOD-MakeComp
 
         RedoDims => <<'EOD-RedoDims' ,
-{
-  PDL_Indx stdim = $PARENT(ndims) - $COMP(rdim);
-  PDL_Indx dim,inc;
-  PDL_Indx i,rdvalid;
+PDL_Indx stdim = $PARENT(ndims) - $COMP(rdim);
+PDL_Indx dim,inc;
+PDL_Indx i,rdvalid;
 
-    // Speed bump for ludicrous cases
-    if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
-      barf("Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
-    }
+  // Speed bump for ludicrous cases
+  if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
+    barf("Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
+  }
 
-    if(stdim < 0)
-      stdim = 0;
+  if(stdim < 0)
+    stdim = 0;
 
-    /* Set dimensionality of child */
-    $CHILD(ndims) = $COMP(itdim) + $COMP(ntsize) + stdim;
-    $SETNDIMS($COMP(itdim)+$COMP(ntsize)+stdim);
+  /* Set dimensionality of child */
+  $CHILD(ndims) = $COMP(itdim) + $COMP(ntsize) + stdim;
+  $SETNDIMS($COMP(itdim)+$COMP(ntsize)+stdim);
 
-    inc = 1;
-    /* Copy size dimensions to child, crunching as we go. */
-    dim = $COMP(itdim);
-    for(i=rdvalid=0;i<$COMP(rdim);i++) {
-      if($COMP(sizes[i])) {
-        rdvalid++;
-        $CHILD(dimincs[dim]) = inc;
-        inc *= ($CHILD(dims[dim++]) = $COMP(sizes[i])); /* assignment */
-      }
-    }
-
-    /* Copy index thread dimensions to child */
-    for(dim=0; dim<$COMP(itdim); dim++) {
+  inc = 1;
+  /* Copy size dimensions to child, crunching as we go. */
+  dim = $COMP(itdim);
+  for(i=rdvalid=0;i<$COMP(rdim);i++) {
+    if($COMP(sizes[i])) {
+      rdvalid++;
       $CHILD(dimincs[dim]) = inc;
-      inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
+      inc *= ($CHILD(dims[dim++]) = $COMP(sizes[i])); /* assignment */
     }
+  }
 
-    /* Copy source thread dimensions to child */
-    dim = $COMP(itdim) + rdvalid;
-    for(i=0;i<stdim;i++) {
-      $CHILD(dimincs[dim]) = inc;
-      inc *= ($CHILD(dims[dim++]) = $PARENT(dims[i+$COMP(rdim)])); /* assignment */
+  /* Copy index thread dimensions to child */
+  for(dim=0; dim<$COMP(itdim); dim++) {
+    $CHILD(dimincs[dim]) = inc;
+    inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
+  }
+
+  /* Copy source thread dimensions to child */
+  dim = $COMP(itdim) + rdvalid;
+  for(i=0;i<stdim;i++) {
+    $CHILD(dimincs[dim]) = inc;
+    inc *= ($CHILD(dims[dim++]) = $PARENT(dims[i+$COMP(rdim)])); /* assignment */
+  }
+
+  /* Cover bizarre case where the source PDL is empty - in that case, change */
+  /* all non-barfing boundary conditions to truncation, since we have no data */
+  /* to reflect, extend, or mirror. */
+  if($PARENT(dims[0]) == 0) {
+    for(dim=0; dim<$COMP(rdim); dim++) {
+      if($COMP(boundary[dim]))
+        $COMP(boundary[dim]) = 1; // force truncation
     }
-
-    /* Cover bizarre case where the source PDL is empty - in that case, change */
-    /* all non-barfing boundary conditions to truncation, since we have no data */
-    /* to reflect, extend, or mirror. */
-    if($PARENT(dims[0]) == 0) {
-      for(dim=0; dim<$COMP(rdim); dim++) {
-        if($COMP(boundary[dim]))
-          $COMP(boundary[dim]) = 1; // force truncation
-      }
-    }
+  }
 
 
-  $CHILD(datatype) = $PARENT(datatype);
+$CHILD(datatype) = $PARENT(datatype);
 
-  $SETDIMS();
-}
+$SETDIMS();
 
 EOD-RedoDims
 
         EquivCPOffsCode => <<'EOD-EquivCPOffsCode',
-{
-  PDL_Indx *iter, *ip;  /* vector iterator */
-  PDL_Indx *sizes, *sp; /* size vector including stdims */
-  PDL_Indx *coords;     /* current coordinates */
+PDL_Indx *iter, *ip;  /* vector iterator */
+PDL_Indx *sp; /* size vector including stdims */
+PDL_Indx *coords;     /* current coordinates */
 
-  PDL_Indx k;           /* index */
-  PDL_Indx item;        /* index thread iterator */
-  PDL_Indx pdim = $PARENT_P(ndims);
-  PDL_Indx rdim = $COMP(rdim);
-  PDL_Indx prdim = (rdim < pdim) ? rdim : pdim;
-  PDL_Indx stdim = pdim - prdim;
+PDL_Indx k;           /* index */
+PDL_Indx item;        /* index thread iterator */
+PDL_Indx pdim = $PARENT_P(ndims);
+PDL_Indx rdim = $COMP(rdim);
+PDL_Indx prdim = (rdim < pdim) ? rdim : pdim;
+PDL_Indx stdim = pdim - prdim;
+PDL_Indx iter2[$PARENT_P(ndims) * 2 + rdim];
+PDL_Indx *sizes  = iter2 + $PARENT_P(ndims);
+coords = sizes + $PARENT_P(ndims);
 
-  /* Allocate iterator and larger size vector -- do it all in one foop
-   * to avoid extra calls to smalloc.
-   */
-    if(!(iter = (PDL_Indx *)(PDL->smalloc((STRLEN) (sizeof(PDL_Indx) * ($PARENT_P(ndims) * 2 + rdim)))))) {
-    barf("couldn't get memory for range iterator");
-  }
-  sizes  = iter + $PARENT_P(ndims);
-  coords = sizes + $PARENT_P(ndims);
-
-  /* Figure out size vector */
-  for(ip = $COMP(sizes), sp = sizes, k=0; k<rdim; k++)
-     *(sp++) = *(ip++);
-  for(; k < $PARENT_P(ndims); k++)
-     *(sp++) = $PARENT_P(dims[k]);
+/* Figure out size vector */
+for(ip = $COMP(sizes), sp = sizes, k=0; k<rdim; k++)
+   *(sp++) = *(ip++);
+for(; k < $PARENT_P(ndims); k++)
+   *(sp++) = $PARENT_P(dims[k]);
 
 
-  /* Loop over all the ranges in the index list */
-  for(item=0; item<$COMP(nitems); item++) {
+/* Loop over all the ranges in the index list */
+for(item=0; item<$COMP(nitems); item++) {
 
-    /* initialize in-range iterator to loop within each range */
-    for(ip = iter, k=0; k<$PARENT_P(ndims); k++)
-      *(ip++) = 0;
+  /* initialize in-range iterator to loop within each range */
+  for(ip = iter2, k=0; k<$PARENT_P(ndims); k++)
+    *(ip++) = 0;
 
-    do {
-      PDL_Indx poff = 0;
-      PDL_Indx coff;
-      PDL_Indx k2;
-      char trunc = 0;       /* Flag used to skip truncation case */
+  do {
+    PDL_Indx poff = 0;
+    PDL_Indx coff;
+    PDL_Indx k2;
+    char trunc = 0;       /* Flag used to skip truncation case */
 
-      /* Collect and boundary-check the current N-D coords */
-      for(k=0; k < prdim; k++){
+    /* Collect and boundary-check the current N-D coords */
+    for(k=0; k < prdim; k++){
 
-        PDL_Indx ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
+      PDL_Indx ck = iter2[k] + $COMP(corners[ item * rdim + k  ]) ;
 
-        /* normal case */
-          if(ck < 0 || ck >= $PARENT_P(dims[k])) {
-            switch($COMP(boundary[k])) {
-            case 0: /* no boundary breakage allowed */
-	      {
-		char barfstr[1024];
-		sprintf(barfstr,"index out-of-bounds in range (index vector #%ld)",item);
-		barf(barfstr);
-	      }
-              break;
-            case 1: /* truncation */
-              trunc = 1;
-              break;
-            case 2: /* extension -- crop */
-              ck = (ck >= $PARENT_P(dims[k])) ? $PARENT_P(dims[k])-1 : 0;
-              break;
-            case 3: /* periodic -- mod it */
-              ck %= $PARENT_P(dims[k]);
-              if(ck < 0)   /* Fix mod breakage in C */
-                ck += $PARENT_P(dims[k]);
-              break;
-            case 4: /* mirror -- reflect off the edges */
-              ck += $PARENT_P(dims[k]);
-              ck %= ($PARENT_P(dims[k]) * 2);
-              if(ck < 0) /* Fix mod breakage in C */
-                ck += $PARENT_P(dims[k])*2;
-              ck -= $PARENT_P(dims[k]);
-              if(ck < 0) {
-                ck *= -1;
-                ck -= 1;
-              }
-              break;
-            default:
-              barf("Unknown boundary condition in range -- bug alert!");
-              break;
+      /* normal case */
+        if(ck < 0 || ck >= $PARENT_P(dims[k])) {
+          switch($COMP(boundary[k])) {
+          case 0: /* no boundary breakage allowed */
+            {
+              char barfstr[1024];
+              sprintf(barfstr,"index out-of-bounds in range (index vector #%ld)",item);
+              barf(barfstr);
             }
+            break;
+          case 1: /* truncation */
+            trunc = 1;
+            break;
+          case 2: /* extension -- crop */
+            ck = (ck >= $PARENT_P(dims[k])) ? $PARENT_P(dims[k])-1 : 0;
+            break;
+          case 3: /* periodic -- mod it */
+            ck %= $PARENT_P(dims[k]);
+            if(ck < 0)   /* Fix mod breakage in C */
+              ck += $PARENT_P(dims[k]);
+            break;
+          case 4: /* mirror -- reflect off the edges */
+            ck += $PARENT_P(dims[k]);
+            ck %= ($PARENT_P(dims[k]) * 2);
+            if(ck < 0) /* Fix mod breakage in C */
+              ck += $PARENT_P(dims[k])*2;
+            ck -= $PARENT_P(dims[k]);
+            if(ck < 0) {
+              ck *= -1;
+              ck -= 1;
+            }
+            break;
+          default:
+            barf("Unknown boundary condition in range -- bug alert!");
+            break;
           }
-
-        coords[k] = ck;
-
-      }
-
-      /* Check extra dimensions -- pick up where k left off... */
-      for( ; k < rdim ; k++) {
-        /* Check for indexing off the end of the dimension list */
-
-        PDL_Indx ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
-
-        switch($COMP(boundary[k])) {
-            case 0: /* No boundary breakage allowed -- nonzero corners cause barfage */
-              if(ck != 0)
-                 barf("Too many dims in range index (and you've forbidden boundary violations)");
-              break;
-            case 1: /* truncation - just truncate if the corner is nonzero */
-              trunc |= (ck != 0);
-              break;
-            case 2: /* extension -- ignore the corner (same as 3) */
-            case 3: /* periodic  -- ignore the corner */
-            case 4: /* mirror -- ignore the corner */
-              ck = 0;
-              break;
-            default:
-              barf("Unknown boundary condition in range -- bug alert!");
-              break;
-          }
-      }
-
-      /* Find offsets into the child and parent arrays, from the N-D coords */
-      /* Note we only loop over real source dims (prdim) to accumulate -- */
-      /* because the offset is trivial and/or we're truncating for virtual */
-      /* dims caused by permissive ranging. */
-      coff = $CHILD_P(dimincs[0]) * item;
-      for(k2 = $COMP(itdim), poff = k = 0;
-          k < prdim;
-          k++) {
-        poff += coords[k]*$PARENT_P(dimincs[k]);
-        if($COMP(sizes[k]))
-          coff += iter[k] * $CHILD_P(dimincs[k2++]);
-      }
-
-      /* Loop the copy over all the source thread dims (above rdim). */
-      do {
-        PDL_Indx poff1 = poff;
-        PDL_Indx coff1 = coff;
-
-        /* Accumulate the offset due to source threading */
-        for(k2 = $COMP(itdim) + $COMP(ntsize), k = rdim;
-            k < pdim;
-            k++) {
-          poff1 += iter[k] * $PARENT_P(dimincs[k]);
-          coff1 += iter[k] * $CHILD_P(dimincs[k2++]);
         }
 
-        /* Finally -- make the copy
-         * EQUIVCPTRUNC works like EQUIVCPOFFS but with checking for
-         * out-of-bounds conditions.
-         */
-        $EQUIVCPTRUNC(coff1,poff1,trunc);
+      coords[k] = ck;
 
-        /* Increment the source thread iterator */
-        for( k=$COMP(rdim);
-             k < $PARENT_P(ndims) && (++(iter[k]) >= $PARENT_P(dims[k]));
-             k++)
-          iter[k] = 0;
-      } while(k < $PARENT_P(ndims)); /* end of source-thread iteration */
+    }
 
-      /* Increment the in-range iterator */
-      for(k = 0;
-          k < $COMP(rdim) && (++(iter[k]) >= $COMP(sizes[k]));
-          k++)
-        iter[k] = 0;
-    } while(k < $COMP(rdim)); /* end of main iteration */
-  } /* end of item do loop */
+    /* Check extra dimensions -- pick up where k left off... */
+    for( ; k < rdim ; k++) {
+      /* Check for indexing off the end of the dimension list */
 
-}
+      PDL_Indx ck = iter2[k] + $COMP(corners[ item * rdim + k  ]) ;
+
+      switch($COMP(boundary[k])) {
+          case 0: /* No boundary breakage allowed -- nonzero corners cause barfage */
+            if(ck != 0)
+               barf("Too many dims in range index (and you've forbidden boundary violations)");
+            break;
+          case 1: /* truncation - just truncate if the corner is nonzero */
+            trunc |= (ck != 0);
+            break;
+          case 2: /* extension -- ignore the corner (same as 3) */
+          case 3: /* periodic  -- ignore the corner */
+          case 4: /* mirror -- ignore the corner */
+            ck = 0;
+            break;
+          default:
+            barf("Unknown boundary condition in range -- bug alert!");
+            break;
+        }
+    }
+
+    /* Find offsets into the child and parent arrays, from the N-D coords */
+    /* Note we only loop over real source dims (prdim) to accumulate -- */
+    /* because the offset is trivial and/or we're truncating for virtual */
+    /* dims caused by permissive ranging. */
+    coff = $CHILD_P(dimincs[0]) * item;
+    for(k2 = $COMP(itdim), poff = k = 0;
+        k < prdim;
+        k++) {
+      poff += coords[k]*$PARENT_P(dimincs[k]);
+      if($COMP(sizes[k]))
+        coff += iter2[k] * $CHILD_P(dimincs[k2++]);
+    }
+
+    /* Loop the copy over all the source thread dims (above rdim). */
+    do {
+      PDL_Indx poff1 = poff;
+      PDL_Indx coff1 = coff;
+
+      /* Accumulate the offset due to source threading */
+      for(k2 = $COMP(itdim) + $COMP(ntsize), k = rdim;
+          k < pdim;
+          k++) {
+        poff1 += iter2[k] * $PARENT_P(dimincs[k]);
+        coff1 += iter2[k] * $CHILD_P(dimincs[k2++]);
+      }
+
+      /* Finally -- make the copy
+       * EQUIVCPTRUNC works like EQUIVCPOFFS but with checking for
+       * out-of-bounds conditions.
+       */
+      $EQUIVCPTRUNC(coff1,poff1,trunc);
+
+      /* Increment the source thread iterator */
+      for( k=$COMP(rdim);
+           k < $PARENT_P(ndims) && (++(iter2[k]) >= $PARENT_P(dims[k]));
+           k++)
+        iter2[k] = 0;
+    } while(k < $PARENT_P(ndims)); /* end of source-thread iteration */
+
+    /* Increment the in-range iterator */
+    for(k = 0;
+        k < $COMP(rdim) && (++(iter2[k]) >= $COMP(sizes[k]));
+        k++)
+      iter2[k] = 0;
+  } while(k < $COMP(rdim)); /* end of main iteration */
+} /* end of item do loop */
 
 EOD-EquivCPOffsCode
 

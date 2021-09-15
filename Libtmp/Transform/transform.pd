@@ -627,18 +627,22 @@ pp_def('map',
  *
  */
 
- short ndims;           /* Number of dimensions we're working in    */
- PDL_Double *tmp;           /* Workspace for prefrobnication            */
- PDL_Indx  *ovec;           /* output pixel loop vector                 */
- PDL_Indx  *ivec;           /* input pixel loop vector                  */
- PDL_Indx  *ibvec;          /* input pixel base offset vector           */
- PDL_Double *dvec;          /* Residual vector for linearization        */
- PDL_Double *tvec;          /* Temporary floating-point vector          */
- PDL_Double *acc;           /* Threaded accumulator                     */
- PDL_Double *wgt;           /* Threaded weight accumulator              */
- PDL_Double *wgt2;          /* Threaded weight accumulator for badval finding   */
- char   *bounds;            /* Boundary condition packed string         */
- PDL_Indx  *index_stash;    /* Stash to store the opening index of dim sample scans */
+ pdl *in  = PDL->SvPDLV($COMP(in));
+ pdl *out = PDL->SvPDLV($COMP(out));
+ pdl *map = PDL->SvPDLV($COMP(map));
+
+ PDL_Indx ndims = map->ndims -1; /* Number of dimensions we're working in */
+ PDL_Double tmp[3*ndims*ndims+ndims]; /* Workspace for prefrobnication */
+ PDL_Indx ovec[ndims];      /* output pixel loop vector                 */
+ PDL_Indx ivec[ndims];      /* input pixel loop vector                  */
+ PDL_Indx ibvec[ndims];     /* input pixel base offset vector           */
+ PDL_Double dvec[ndims];    /* Residual vector for linearization        */
+ PDL_Double tvec[ndims];    /* Temporary floating-point vector          */
+ PDL_Double acc[in->dims[ndims]]; /* Threaded accumulator */
+ PDL_Double wgt[in->dims[ndims]]; /* Threaded weight accumulator */
+ PDL_Double wgt2[in->dims[ndims]]; /* Threaded weight accumulator for badval finding */
+ char bounds[ndims];        /* Boundary condition packed string */
+ PDL_Indx  index_stash[ndims]; /* Stash to store the opening index of dim sample scans */
  char   method;             /* Method identifier (gets one of 'h','g')  */
  PDL_Long   big;            /* Max size of input footprint for each pix */
  PDL_Double blur;           /* Scaling of filter                        */
@@ -658,42 +662,9 @@ pp_def('map',
  static PDL_Double gaussian_lookup[GAUSSIAN_LOOKUP_SIZE + 2];
  static int needs_gaussian_calc = 1;
 
- pdl *in  = PDL->SvPDLV($COMP(in));
- pdl *out = PDL->SvPDLV($COMP(out));
- pdl *map = PDL->SvPDLV($COMP(map));
-
  PDL->make_physical(in);
  PDL->make_physical(out);
  PDL->make_physical(map);
-
- ndims = map->ndims -1;
-
- /*
-  * Allocate all our dynamic workspaces at once
-  * */
- ovec = (PDL_Indx *)(PDL->smalloc( (STRLEN)
-                                   ( + sizeof(PDL_Indx)    * 3 * ndims               // ovec, ivec, ibvec
-                                     + sizeof(PDL_Double) * (3*ndims)                // dvec, tvec
-                                     + sizeof(PDL_Double) * in->dims[ndims]          // acc
-                                     + sizeof(PDL_Double) * in->dims[ndims]          // wgt
-                                     + sizeof(PDL_Double) * in->dims[ndims]          // wgt2
-                                     + sizeof(PDL_Double) * 3 * ndims*ndims + ndims  // tmp (for PDL_xform_aux)
-                                     + sizeof(char) * ndims                          // bounds
-                                     + sizeof(PDL_Indx)   * ndims                    // index_stash
-                                     )
-                                   )
-                );
- ivec   =                   &(ovec[ndims]);
- ibvec  =                   &(ivec[ndims]);
- dvec   =    (PDL_Double *)(&(ibvec[ndims]));
- tvec   =                   &(dvec[ndims]);
- acc    =                   &(tvec[ndims]);
- wgt    =                   &(acc[in->dims[ndims]]);  // weighting for accumulation
- wgt2   =                   &(wgt[in->dims[ndims]]);  // weighting for acc, if no bad values were found
- tmp    =                   &(wgt2[in->dims[ndims]]);
- bounds =          (char *)(&(tmp [3*ndims*ndims+ndims]));
- index_stash = (PDL_Indx *) &(bounds[ndims]);
-
 
 /***
  * Fill in the boundary condition array

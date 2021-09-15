@@ -217,11 +217,10 @@ void pdl_find_max_pthread(
 ) {
   PDL_Indx j, k, t;
   /* Build int arrays of threaded dim numbers and sizes for each pdl */
-  PDL_Indx *nthreadedDims, **threadedDims, **threadedDimSizes;
   PDL_Indx max_remainder = 0;
-  nthreadedDims     = (PDL_Indx*)  malloc(sizeof(PDL_Indx)   * (npdls));
-  threadedDims      = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
-  threadedDimSizes  = (PDL_Indx**) malloc(sizeof(PDL_Indx *) * (npdls));
+  PDL_Indx nthreadedDims[npdls];
+  PDL_Indx *threadedDims[npdls];
+  PDL_Indx *threadedDimSizes[npdls];
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
     threadedDims[j]     = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
@@ -269,9 +268,6 @@ void pdl_find_max_pthread(
     free(threadedDims[j]);
     free(threadedDimSizes[j]);
   }
-  free(nthreadedDims);
-  free(threadedDims);
-  free(threadedDimSizes);
 }
 
 /* Function to auto-add pthreading magic (i.e. hints for multiple
@@ -411,7 +407,6 @@ void pdl_initthreadstruct(int nobl,
 	PDL_Indx nth; /* Index to dimensions */
 	PDL_Indx mx, nids, nimpl, nthid;
 	PDL_Indx mydim;
-	PDL_Indx *nthreadids;
 	PDL_Indx nthr = 0; PDL_Indx nthrd;
 
 	PDLDEBUG_f(printf("Initthreadloop(%p)\n", (void*)thread);)
@@ -452,7 +447,6 @@ void pdl_initthreadstruct(int nobl,
 		MAX2(nids,pdls[j]->nthreadids);
 		MAX2(mx,pdls[j]->threadids[0] - realdims[j]);
 	}
-	nthreadids = pdl_smalloc(sizeof(PDL_Indx)*nids);
 	ndims += thread->nimpl = nimpl = mx;
 
 	//printf("In pdl_initthreadstruct for func %s\n", info->funcname);
@@ -461,6 +455,7 @@ void pdl_initthreadstruct(int nobl,
 	thread->mag_nth = -1;
 	thread->mag_nthpdl = -1;
 	thread->mag_nthr = -1;
+	PDL_Indx nthreadids[nids];
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		/* Check for magical ndarrays (parallelized) */

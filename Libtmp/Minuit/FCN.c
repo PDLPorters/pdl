@@ -54,9 +54,6 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   pdl* pxval;
   SV* pxvalsv;
   
-  int ndims;
-  PDL_Indx *pdims;
-
   dSP;
   ENTER;
   SAVETMPS;
@@ -64,8 +61,8 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   /* get name of function on the Perl side */
   funname = mnfunname;
 
-  ndims = 1;
-  pdims = (PDL_Indx *)  PDL->smalloc( (STRLEN) ((ndims) * sizeof(*pdims)) );
+  int ndims = 1;
+  PDL_Indx pdims[ndims];
   
   pdims[0] = (PDL_Indx) ene;
 

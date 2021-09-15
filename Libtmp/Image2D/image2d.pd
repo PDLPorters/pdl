@@ -547,12 +547,11 @@ sub PDL::med2d {
            free(mapj+1-q_size); free(mapi+1-p_size); free(tmp);
 ',
         BadCode =>
-           init_vars( { vars => 'PDL_Double *tmp, kk, aa; int count, flag;',
-                        malloc => 'tmp = malloc(p_size*q_size*sizeof(PDL_Double));',
-                        check => '(tmp==NULL) || ' } ) .
+           init_vars( { vars => 'PDL_Double kk, aa; int count, flag;' } ) .
            init_map("i") .
            init_map("j") .
 '
+           PDL_Double tmp[p_size*q_size];
            threadloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
@@ -587,7 +586,7 @@ sub PDL::med2d {
               } /* for: i */
            } /* for: j */
            %}
-           free(mapj+1-q_size); free(mapi+1-p_size); free(tmp);
+           free(mapj+1-q_size); free(mapi+1-p_size);
 '
 
 ); # pp_def: med2d
@@ -645,12 +644,11 @@ sub PDL::med2df {
 
 ',
         Code =>
-           init_vars( { vars => '$GENERIC() *tmp, kk; int count;',
-                        malloc => 'tmp = malloc(p_size*q_size*sizeof($GENERIC()));',
-                        check => '(tmp==NULL) || ' } ) .
+           init_vars( { vars => '$GENERIC() kk; int count;' } ) .
            init_map("i") .
            init_map("j") .
 '
+           $GENERIC() tmp[p_size*q_size];
            threadloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
@@ -673,7 +671,7 @@ sub PDL::med2df {
               } /* for: i */
            } /* for: j */
            %}
-           free(mapj+1-q_size); free(mapi+1-p_size); free(tmp);
+           free(mapj+1-q_size); free(mapi+1-p_size);
 ',
 
 ); # pp_def: med2df

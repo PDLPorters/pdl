@@ -808,7 +808,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 	croak("Sorry, cannot flowing families right now (2)\n");
 /* Now, if parents are not flowing, just execute the transformation */
   if(!pfflag && !(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY)) {
-	int *wd = pdl_smalloc(sizeof(int) * (size_t)trans->vtable->npdls);
+	int wd[trans->vtable->npdls];
 	/* mark this transform as non mutual in case we croak during
 	   ensuring it */
 	  trans->flags |= PDL_ITRANS_NONMUTUAL;
@@ -1215,7 +1215,6 @@ void pdl_make_physvaffine(pdl *it)
 	pdl_trans_affine *at;
 	pdl *parent;
 	pdl *current;
-	PDL_Indx *incsleft = 0;
 	PDL_Indx i,j;
 	PDL_Indx inc;
 	PDL_Indx newinc;
@@ -1227,6 +1226,7 @@ void pdl_make_physvaffine(pdl *it)
 
 	pdl_make_physdims(it);
 
+	PDL_Indx incsleft[it->ndims];
 	if(!it->trans_parent) {
 		pdl_make_physical(it);
 		goto mkphys_vaff_end;
@@ -1238,8 +1238,6 @@ void pdl_make_physvaffine(pdl *it)
 	}
 
 	(void)PDL_ENSURE_VAFFTRANS(it);
-	incsleft = malloc(sizeof(*incsleft)*(size_t)it->ndims);
-        PDLDEBUG_f(printf("vaff_malloc: got %p\n",(void*)incsleft));
         for(i=0; i<it->ndims; i++) {
 		it->vafftrans->incs[i] = it->dimincs[i];
 	}
@@ -1328,10 +1326,7 @@ void pdl_make_physvaffine(pdl *it)
 	pdl_make_physical(current);
 
   mkphys_vaff_end:
-       PDLDEBUG_f(printf("vaff_malloc: %p\n",(void*)incsleft));
-       if (incsleft != NULL) free(incsleft);
 	PDLDEBUG_f(printf("Make_physvaffine_exit %p\n",(void*)it));
-
 }
 
 void pdl_vafftrans_alloc(pdl *it)

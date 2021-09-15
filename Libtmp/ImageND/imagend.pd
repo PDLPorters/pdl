@@ -152,7 +152,6 @@ sub PDL::convolve{
    PDL_Indx bndims = $SIZE(q);
    PDL_Indx anvals = $SIZE(m);
    PDL_Indx bnvals = $SIZE(n);
-   PDL_Indx *pos,*off;
    double cc;
 
    PDL_Indx i,i2,j,k,n,offcen,cen,ncen,nrow;
@@ -164,9 +163,7 @@ sub PDL::convolve{
              barf("Second argument must be smaller in all dimensions that first"
 );
 
-   pos = (PDL_Indx*) malloc( andims * sizeof(PDL_Indx) ); /* Init pos[] */
-   if (pos==NULL)
-      barf("Out of Memory\n");
+   PDL_Indx pos[andims];
    for (i=0; i<andims; i++) /* Zero */
        pos[i]=0;
 
@@ -191,10 +188,7 @@ getout_$GENERIC():    i++;
        pos[i]=0;
 
    /* Initialise offset array to handle the relative coords efficiently */
-
-   off = (PDL_Indx*) malloc(bnvals*sizeof(PDL_Indx)); /* Offset array */
-   if (off==NULL)
-      barf("Out of Memory\n");
+   PDL_Indx off[bnvals]; /* Offset array */
 
    i=0;
    while(i<bnvals) {
@@ -220,9 +214,7 @@ getout_$GENERIC():    i++;
             cc += $a( m=> i2 ) * $b(n=>j) ;
         }
         $c(m=>i) = cc;
-     }
-     free(pos); free(off);
-
+    }
 ');
 
 
@@ -739,23 +731,9 @@ Code => <<'EOD'
  *
  */
 
-
   short ndims;
-
-  PDL_Indx   *koffs, *koff;        /* the "s<foo>" variables are static  */
-  $GENERIC() *kvals, *kval;        /* scratchspace designed to avoid dynamic */
-  static PDL_Indx skoffs[256];     /* allocation.  The cost ia about 2k per */
-  static $GENERIC() skvals[256];   /* datatype, or about 20k of memory. */
-
-  $GENERIC() *aptr;
-  $GENERIC() *aaptr;
-
-  PDL_Indx *ivec;
-  static PDL_Indx sivec[16];
-
   PDL_Indx i,j;
-
-  pdl *k     = PDL->SvPDLV($COMP(k));
+  pdl *k =     PDL->SvPDLV($COMP(k));
   pdl *a =     PDL->SvPDLV($COMP(a));
   pdl *aa =    PDL->SvPDLV($COMP(aa));
 
@@ -770,37 +748,19 @@ Code => <<'EOD'
   if(ndims != k->ndims || ndims != aa->ndims)
      barf("convolveND: dims don't agree (should never happen)\n");
 
-  /* Allocate scratchpads if necessary */
-  /* This is done in boneheaded but safe manner ('coz we can't be sure  */
-  /* of the relationship between the size of GENERIC and the size of    */
-  /* a pointer).  */
-  if(k->nvals <= 256) {
-	koffs = skoffs;
-	kvals = skvals;
-  } else {	
-	koffs = (PDL_Indx *)  (PDL->smalloc((STRLEN) (k->nvals * sizeof(PDL_Indx))));
-	kvals = ($GENERIC() *)(PDL->smalloc((STRLEN) (k->nvals * sizeof($GENERIC()))));
-  }
-
-  if(ndims < 16) {
-	ivec = sivec;
-  } else {
-	ivec = (PDL_Indx *) (PDL->smalloc((STRLEN) (ndims * sizeof(PDL_Indx))));
-  }
-
-  if(!ivec || !koffs || !kvals) 
-	barf("convolveND: out of memory\n");
+  PDL_Indx koffs[k->nvals];
+  $GENERIC() kvals[k->nvals];
+  PDL_Indx ivec[ndims];
 
   /************************************/
   /* Fill up the koffs & kvals arrays */
   /* koffs gets relative offsets into aa for each kernel value; */
   /* kvals gets the kernel values in the same order (flattened) */
   for(i=0;i<ndims;ivec[i++] = 0) ; 
-  koff = koffs;
-  kval = kvals;
+  PDL_Indx *koff = koffs;
+  $GENERIC() *kval = kvals;
   j    = 0;                      /* j gets current aa data offset */
-  aptr = ($GENERIC() *)k->data + k->nvals - 1;  
-
+  $GENERIC() *aptr = ($GENERIC() *)k->data + k->nvals - 1;
 
   do {
 	PDL_Indx acc; 
@@ -827,7 +787,7 @@ Code => <<'EOD'
   /* accumulate the appropriate aa-sum and stick it into a. */
   for(i=0;i<ndims;ivec[i++] = 0) ;
   aptr  = a->data;
-  aaptr = aa->data;
+  $GENERIC() *aaptr = aa->data;
   do {
 	$GENERIC() acc = 0;
 	koff = koffs;

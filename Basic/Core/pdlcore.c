@@ -541,11 +541,10 @@ static int _detect_datatype(AV *av) {
 pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
 {
   int ndims, i, level=0;
-  PDL_Indx *dest_dims;
   PDL_Anyval undefval = { -1, 0 };
 
   ndims = av_len(dims)+1;
-  dest_dims = (PDL_Indx *) pdl_smalloc( (ndims) * sizeof(*dest_dims) );
+  PDL_Indx dest_dims[ndims];
   for (i=0; i<ndims; i++) {
      dest_dims[i] = SvIV(*(av_fetch(dims, ndims-1-i, 0))); /* reverse order */
   }

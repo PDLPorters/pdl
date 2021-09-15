@@ -281,15 +281,14 @@ int pdl_magic_get_thread(pdl *it) { /* XXX -> only one thread can handle pdl at 
 }
 
 void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {
-	pdl_magic_pthread *ptr; pthread_t *tp; ptarg *tparg;
 	PDL_Indx i;
 	int clearMagic = 0; /* Flag = 1 if we are temporarily creating pthreading magic in the
 						   supplied pdl.  */
-	SV * barf_msg;	  /* Deferred barf message. Using a perl SV here so it's memory can be freeed by perl
+	SV * barf_msg;	  /* Deferred barf message. Using a perl SV here so it's memory can be freed by perl
 						 after it is sent to croak */
 	SV * warn_msg;	  /* Similar deferred warn message. */
 
-	ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
+	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 	if(!ptr) {
 		/* Magic doesn't exist, create it
 			Probably was deleted before the transformation performed, due to
@@ -306,8 +305,8 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 
 	}
 
-	tp = malloc(sizeof(pthread_t) * thread->mag_nthr);
-	tparg = malloc(sizeof(*tparg) * thread->mag_nthr);
+	pthread_t tp[thread->mag_nthr];
+	ptarg tparg[thread->mag_nthr];
 	pthread_key_create(&(ptr->key),NULL);
 
 	PDLDEBUG_f(printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
@@ -341,10 +340,6 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	if( clearMagic ){
 		pdl_add_threading_magic(it, -1, -1);
 	}
-
-	/* Clean up memory allocated */
-	free(tp);
-	free(tparg);
 
 	// handle any errors that may have occurred in the worker threads I reset the
 	// length before actually barfing/warning because barf() may not come back.
