@@ -34,11 +34,15 @@ sub new {
   $this->{NamesSorted} = [ map $_->name, @objects_sorted ];
   $this->{DimsObj} = my $dimsobj = PDL::PP::PdlDimsObj->new;
   $_->add_inds($dimsobj) for @objects;
-  my %ind2use;
+  my (%ind2use, %ind2obj);
   for my $o (@objects) {
-    push @{$ind2use{$_}}, $o for map $_->name, @{$o->{IndObjs}};
+    for my $io (@{$o->{IndObjs}}) {
+      push @{$ind2use{$io->name}}, $o;
+      $ind2obj{$io->name} = $io;
+    }
   }
   $this->{Ind2Use} = \%ind2use;
+  $this->{Ind2Obj} = \%ind2obj;
   $this;
 }
 
@@ -66,6 +70,7 @@ sub dims_count { scalar keys %{$_[0]->{DimsObj}} }
 sub dims_values { values %{$_[0]->{DimsObj}} }
 
 sub ind_used { $_[0]->{Ind2Use}{$_[1]} }
+sub ind_obj { $_[0]->{Ind2Obj}{$_[1]} }
 
 sub realdims {
   my $this = shift;

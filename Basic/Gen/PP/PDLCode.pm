@@ -56,6 +56,7 @@ sub new {
 	IndObjs => $sig->dims_obj,
 	ParNames => $parnames,
 	ParObjs => $sig->objs,
+	Sig => $sig,
 	Gencurtype => [], # stack to hold GenType in generic loops
 	types => 0,  # for thisisloop method
 	ftypes_vars => {},
@@ -158,6 +159,8 @@ sub new {
     $this->{Code};
 
 } # new()
+
+sub sig {$_[0]->{Sig}}
 
 # This sub determines the index name for this index.
 # For example, a(x,y) and x0 becomes [x,x0]
@@ -384,8 +387,9 @@ sub new { my($type,$args,$sizeprivs,$parent) = @_;
 	for(@{$this->[0]}) {
 		print "SIZP $sizeprivs, $_\n" if $::PP_VERBOSE;
 		my $i = $parent->make_loopind($_);
+		my $i_size = $parent->sig->ind_obj($i->[0])->get_size;
 		$sizeprivs->{$i->[0]} =
-		  "register PDL_Indx __$i->[0]_size = \$PRIV(__$i->[0]_size);\n";
+		  "register PDL_Indx __$i->[0]_size = $i_size;\n";
 		print "SP :",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 	}
 	return $this;
