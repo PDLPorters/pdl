@@ -269,7 +269,7 @@ my $line_re = qr/#\s*line\s+(\d+)\s+"([^"]*)"/;
 sub report_error {
     my ($message, $code) = @_;
     # Just croak if they didn't supply a #line directive:
-    croak($message) if $code !~ $line_re;
+    confess($message) if $code !~ $line_re;
     # Find the line at which the error occurred:
     my $line = 0;
     my $filename;
@@ -901,7 +901,7 @@ our @CARP_NOT;
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-	croak ("can't access undefined pdl ".$this->[0])
+	confess ("can't access undefined pdl ".$this->[0])
 	  unless defined($parent->{ParObjs}{$this->[0]});
 #	$parent->{ParObjs}{$this->[0]}->{FlagPaccess} = 1;
 	$parent->{ParObjs}{$this->[0]}->{FlagPhys} = 1;
@@ -935,7 +935,7 @@ our @CARP_NOT;
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-	croak ("can't access undefined pdl ".$this->[0])
+	confess ("can't access undefined pdl ".$this->[0])
 	  unless defined($parent->{ParObjs}{$this->[0]});
 	$parent->{ParObjs}{$this->[0]}->do_pdlaccess();
 }
@@ -986,7 +986,7 @@ our @CARP_NOT;
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-	croak "can't get SIZE of undefined dimension $this->[0]"
+	confess "can't get SIZE of undefined dimension $this->[0]"
 	  unless defined($parent->{IndObjs}{$this->[0]});
 	$parent->{IndObjs}{$this->[0]}->get_size();
 }
@@ -1002,10 +1002,10 @@ our @CARP_NOT;
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-  croak "generic type access outside a generic loop"
+  confess "generic type access outside a generic loop"
     unless defined(my $type = $parent->{Gencurtype}[-1]);
   return $type->ctype if !$this->[0];
-  my $pobj = $parent->{ParObjs}{$this->[0]} // croak "not a defined parname";
+  my $pobj = $parent->{ParObjs}{$this->[0]} // confess "not a defined parname";
   $pobj->adjusted_type($type)->ctype;
 }
 
@@ -1016,10 +1016,10 @@ our @CARP_NOT;
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-  croak "generic type access outside a generic loop"
+  confess "generic type access outside a generic loop"
     unless defined(my $type = $parent->{Gencurtype}[-1]);
   return $type->ppsym if !$this->[0];
-  my $pobj = $parent->{ParObjs}{$this->[0]} // croak "not a defined parname";
+  my $pobj = $parent->{ParObjs}{$this->[0]} // confess "not a defined parname";
   $pobj->adjusted_type($type)->ctype;
 }
 

@@ -314,6 +314,8 @@ sub init_map {
 
 sub init_vars {
     my $href = shift || { };
+    my $sizevars = shift || [qw(m n p q)];
+    my $compvars = shift || [];
     $href->{vars}   = '' unless defined $href->{vars};
     $href->{malloc} = '' unless defined $href->{malloc};
     $href->{check}  = '' unless defined $href->{check};
@@ -322,10 +324,8 @@ sub init_vars {
     $str .= "int i,j, i1,j1, i2,j2, poff, qoff;";
     $str .=
 	'int opt = $COMP(opt);
-         int m_size = $COMP(__m_size);
-         int n_size = $COMP(__n_size);
-         int p_size = $COMP(__p_size);
-         int q_size = $COMP(__q_size);
+	' . join("\n", map "int ${_}_size = \$SIZE(${_});", @$sizevars) . '
+	' . join("\n", map "int ${_}_size = \$COMP(__${_}_size);", @$compvars) . '
          int *mapi, *mapj;
 
          mapi = (int *) malloc((p_size+m_size)*sizeof(int));
@@ -644,7 +644,7 @@ sub PDL::med2df {
 
 ',
         Code =>
-           init_vars( { vars => '$GENERIC() kk; int count;' } ) .
+           init_vars( { vars => '$GENERIC() kk; int count;' }, [qw(m n)], [qw(p q)] ) .
            init_map("i") .
            init_map("j") .
 '
@@ -792,7 +792,7 @@ EOD
         'int m_size, n_size,  i,j, i1,j1, i2,j2, norm;
          double tmp;
 
-         m_size = $COMP(__m_size); n_size = $COMP(__n_size);
+         m_size = $SIZE(m); n_size = $SIZE(n);
 
       threadloop %{
 
@@ -865,7 +865,7 @@ bad values, depending on the pattern of bad values in the input ndarray.',
          $GENERIC(a) a_val;
 
          flag = 0;
-         m_size = $COMP(__m_size); n_size = $COMP(__n_size);
+         m_size = $SIZE(m); n_size = $SIZE(n);
 
       threadloop %{
 

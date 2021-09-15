@@ -94,10 +94,10 @@ pp_def('LU_decomp',
 gsl_matrix$TDC(,_complex) m;
 gsl_permutation p;
 int s;
-MATRIX_SETUP(m, $PRIV(__m_size), $PRIV(__n_size), $PRIV(__n_size), $P(A))
-PERM_SETUP(p, $PRIV(__p_size), $P(ipiv))
+MATRIX_SETUP(m, $SIZE(m), $SIZE(n), $SIZE(n), $P(A))
+PERM_SETUP(p, $SIZE(p), $P(ipiv))
 gsl_linalg$TDC(,_complex)_LU_decomp(&m, &p, &s);
-PERM_RETURN(p, $PRIV(__p_size), $P(ipiv))
+PERM_RETURN(p, $SIZE(p), $P(ipiv))
 $signum() = s;
 EOF
         Doc => <<'EOF',
@@ -117,12 +117,12 @@ gsl_matrix$TDC(,_complex) m;
 gsl_permutation p;
 gsl_vector$TDC(,_complex) b, x;
 int s;
-MATRIX_SETUP(m, $PRIV(__m_size), $PRIV(__n_size), $PRIV(__n_size), $P(LU))
-PERM_SETUP(p, $PRIV(__p_size), $P(ipiv))
-VECTOR_SETUP(b, $PRIV(__n_size), $P(B))
-VECTOR_SETUP(x, $PRIV(__n_size), $P(x))
+MATRIX_SETUP(m, $SIZE(m), $SIZE(n), $SIZE(n), $P(LU))
+PERM_SETUP(p, $SIZE(p), $P(ipiv))
+VECTOR_SETUP(b, $SIZE(n), $P(B))
+VECTOR_SETUP(x, $SIZE(n), $P(x))
 gsl_linalg$TDC(,_complex)_LU_solve(&m, &p, &b, &x);
-PERM_RETURN(p, $PRIV(__p_size), $P(ipiv))
+PERM_RETURN(p, $SIZE(p), $P(ipiv))
 EOF
         Doc => <<'EOF',
 =for ref
@@ -139,7 +139,7 @@ pp_def('LU_det',
         GenericTypes => [qw(C D)],
         Code => <<'EOF',
 gsl_matrix$TDC(,_complex) m;
-MATRIX_SETUP(m, $PRIV(__m_size), $PRIV(__n_size), $PRIV(__n_size), $P(LU))
+MATRIX_SETUP(m, $SIZE(m), $SIZE(n), $SIZE(n), $P(LU))
 types (D) %{
   $det() = gsl_linalg_LU_det(&m, $signum());
 %}
@@ -162,11 +162,11 @@ pp_def('solve_tridiag',
         GenericTypes => [qw(D)],
         Code => <<'EOF',
 gsl_vector d, sup, sub, b, x;
-VECTOR_SETUP(d, $PRIV(__n_size), $P(diag))
-VECTOR_SETUP(sup, $PRIV(__n_size)-1, $P(superdiag))
-VECTOR_SETUP(sub, $PRIV(__n_size)-1, $P(subdiag))
-VECTOR_SETUP(b, $PRIV(__n_size), $P(B))
-VECTOR_SETUP(x, $PRIV(__n_size), $P(x))
+VECTOR_SETUP(d, $SIZE(n), $P(diag))
+VECTOR_SETUP(sup, $SIZE(n)-1, $P(superdiag))
+VECTOR_SETUP(sub, $SIZE(n)-1, $P(subdiag))
+VECTOR_SETUP(b, $SIZE(n), $P(B))
+VECTOR_SETUP(x, $SIZE(n), $P(x))
 #define CONST_VEC (const gsl_vector *)
 gsl_linalg_solve_tridiag(
   CONST_VEC &d, CONST_VEC &sup, CONST_VEC &sub, CONST_VEC &b, &x

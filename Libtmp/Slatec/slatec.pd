@@ -383,7 +383,7 @@ sub defslatec {
 
     my %lds = map {
           ($_->[0] eq "Mat" and $_->[3] ne "()") ? 
-          ("ld".$_->[2] => "&\$PRIV(__".firstpar($_->[3])."_size)")
+          ("ld".$_->[2] => "&\$SIZE(".firstpar($_->[3]).")")
 	  : ()
     } @args2;
 
@@ -393,7 +393,7 @@ sub defslatec {
       if ( $_->[0] eq "Mat" or $_->[0] eq "IntFlag" ) {
 	  push @funcpars, "\$P($_->[2])";
       } elsif ( $_->[0] eq "Dim" ) {
-	  push @funcpars, "&\$PRIV(__$_->[2]_size)";
+	  push @funcpars, "&\$SIZE($_->[2])";
       } elsif ( $_->[0] eq "MDim" ) {
 	  push @funcpars, $lds{$_->[2]};
       } elsif ( $_->[0] eq "Incfd" or $_->[0] eq "CheckFlag" ) {
@@ -1578,7 +1578,7 @@ pp_def('polfit',
            int k;
            $GENERIC() zero = 0;
 
-           $TFD(polfit,dpolft)'.$uscore.'(&$PRIV(__n_size),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
+           $TFD(polfit,dpolft)'.$uscore.'(&$SIZE(n),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
 	   maxord = ($P(a))[0]+0.5;
 	   ord = ($P(a))[maxord * 3  +  2];
 	   if(ord >= $maxdeg()) {

@@ -616,7 +616,7 @@ sub generic_qsortvec {
 my $copy_to_temp_good = '
            PDL_Indx nn, nn1;
 	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size)-1; ' .
+           nn = $SIZE(n)-1; ' .
        generic_qsort('tmp');
 
 my $copy_to_temp_bad = '
@@ -1065,7 +1065,7 @@ pp_def(
     Code => 
     'PDL_Indx nn;
      loop(n) %{ $b() = $a(); %}
-     nn = $COMP(__n_size)-1;
+     nn = $SIZE(n)-1;
      if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
         barf("You likely passed a scalar argument to qsort, when you should have passed an ndarray (or nothing at all)");
      }
@@ -1115,7 +1115,7 @@ pp_def(
        HandleBad => 1,
        Pars => 'a(n); indx [o]indx(n);',
        Code => 
-       'PDL_Indx nn = $COMP(__n_size)-1;
+       'PDL_Indx nn = $SIZE(n)-1;
         if ($SIZE(n) == 0) return;
         loop(n) %{ 
            $indx() = n; 
@@ -1173,8 +1173,8 @@ pp_def(
     'PDL_Indx nn;
      PDL_Indx nd;
      loop(n,m) %{ $b() = $a(); %}
-     nn = ($COMP(__m_size))-1;
-     nd = $COMP(__n_size);
+     nn = ($SIZE(m))-1;
+     nd = $SIZE(n);
      if (($PDL(a)->dims[0] != $PDL(b)->dims[0] || $PDL(a)->dims[1] != $PDL(b)->dims[1]) && $PDL(a)->dims[1] !=0 && $PDL(b)->dims[1] != 1){
         barf("You likely passed a scalar argument to qsortvec, when you should have passed an ndarray (or nothing at all)");
      }
@@ -1221,11 +1221,11 @@ pp_def(
     Pars => 'a(n,m); indx [o]indx(m);',
     Code => 
     'PDL_Indx nd;
-     PDL_Indx nn=$COMP(__m_size)-1;
+     PDL_Indx nn=$SIZE(m)-1;
      loop(m) %{
         $indx()=m;
      %}
-     nd = $COMP(__n_size);
+     nd = $SIZE(n);
      if ($PDL(a)->ndims >1 && $PDL(a)->dims[1] != $PDL(indx)->dims[0] && $PDL(a)->dims[1]!=0 && $PDL(indx)->dims[0]!=1){
         barf("You likely passed a scalar argument to qsortveci, when you should have passed an ndarray (or nothing at all)");
      }

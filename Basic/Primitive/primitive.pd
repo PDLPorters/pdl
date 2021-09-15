@@ -811,8 +811,8 @@ sub PDL::conv1d {
            int i,i1,i2,poff,pflip;
            double tmp;
            int reflect = $COMP(reflect);
-           int m_size = $COMP(__m_size);
-           int p_size = $COMP(__p_size);
+           int m_size = $SIZE(m);
+           int p_size = $SIZE(p);
 
            poff = (p_size-1)/2;
            for(i=0; i<m_size; i++) {
