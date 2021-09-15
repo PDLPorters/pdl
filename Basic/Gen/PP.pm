@@ -138,7 +138,7 @@ use Carp;
 our @CARP_NOT;
 
 my %INVALID_OTHERPAR = map +($_=>1), qw(
-  magicno flags vtable freeproc bvalflag has_badvalue badvalue pdls __datatype
+  magicno flags vtable bvalflag has_badvalue badvalue pdls __datatype
   pdlthread
 );
 

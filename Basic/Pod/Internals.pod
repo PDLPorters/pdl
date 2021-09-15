@@ -380,8 +380,6 @@ All transformations are implemented as structures
 	int magicno; /* to detect memory overwrites */
 	short flags; /* state of the trans */
 	pdl_transvtable *vtable;   /* the all important vtable */
-	void (*freeproc)(struct pdl_trans *);  /* Call to free this trans
-		(in case we had to malloc some stuff for this trans) */
         pdl *pdls[NP]; /* The pdls involved in the transformation */
 	int __datatype; /* the type of the transformation */
         /* in general more members

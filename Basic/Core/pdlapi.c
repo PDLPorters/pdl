@@ -284,13 +284,8 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 	if(trans->vtable->flags & PDL_TRANS_DO_THREAD)
 	  pdl_freethreadloop(&trans->pdlthread);
 	trans->vtable = 0; /* Make sure no-one uses this */
-	if(trans->freeproc) {
-		PDLDEBUG_f(printf("call freeproc\n"));
-		trans->freeproc(trans);
-	} else {
-		PDLDEBUG_f(printf("call free\n"));
-		free(trans);
-	}
+	PDLDEBUG_f(printf("call free\n"));
+	free(trans);
 	if (ismutual)
 	  for(j=0; j<ndest; j++) {
 		  pdl_destroy(destbuffer[j]);
