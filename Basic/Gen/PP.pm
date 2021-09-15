@@ -837,14 +837,6 @@ our $macros = <<'EOF';
 	PDL->SetSV_PDL(out ## _SV,out); \
     }
 
-#define PDL_XS_PRIVSTRUCT(sname, clrmagic, affflag, pvtable) \
-    sname = malloc(sizeof(*sname)); memset(sname, 0, sizeof(*sname)); \
-    clrmagic; \
-    PDL_TR_SETMAGIC(sname); \
-    sname->flags = affflag; \
-    sname->dims_redone = 0; \
-    sname->vtable = &pvtable;
-
 #define PDL_XS_RETURN(clause1) \
     if (nreturn) { \
       if (nreturn > 0) EXTEND (SP, nreturn); \
@@ -2469,8 +2461,7 @@ END
       sub {
         my( $symtab, $vtable, $affflag, $havethreading ) = @_;
         my $sname = $symtab->get_symname('_PDL_ThisTrans');
-        my $clrmagic = $havethreading?"PDL_THR_CLRMAGIC(&$sname->pdlthread)":"";
-        PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_PRIVSTRUCT($sname, $clrmagic, $affflag, $vtable)\n");
+        PDL::PP::pp_line_numbers(__LINE__-1, "$sname = (void *)PDL->create_trans(sizeof(*$sname), $affflag, &$vtable);\n");
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj","NewXSSymTab"],

@@ -96,6 +96,7 @@ void pdl_readdata_vaffine(pdl *it);
     PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value)) \
   X(set_trans_childtrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
   X(set_trans_parenttrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
+  X(create_trans, pdl_trans *, (size_t sz, short flags, pdl_transvtable *vtable)) \
   X(get_convertedpdl, pdl *, (pdl *pdl,int type)) \
   X(make_trans_mutual, void, (pdl_trans *trans)) \
   X(make_physical, void, (pdl *it)) \
