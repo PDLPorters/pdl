@@ -1564,16 +1564,6 @@ sub wrap_vfn {
     "$str\n}\n";
 }
 
-sub makesettrans {
-    my($sig,$symtab) = @_;
-    my $trans = $symtab->get_symname('_PDL_ThisTrans');
-    my $no=0;
-    PDL::PP::pp_line_numbers(__LINE__, (join '',map {
-	"$trans->pdls[".($no++)."] = $_;\n"
-	} @{ $sig->names_sorted }).
-	    "PDL->make_trans_mutual((pdl_trans *)$trans);\n");
-}
-
 sub indent($$) {
     my ($text,$ind) = @_;
     $text =~ s/^(.*)$/$ind$1/mg;
@@ -2599,7 +2589,15 @@ END
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSStructInit1", ["SignatureObj","NewXSSymTab"]),
 
-   PDL::PP::Rule->new("NewXSSetTrans", ["SignatureObj","NewXSSymTab"], \&makesettrans),
+   PDL::PP::Rule->new("NewXSSetTrans", ["SignatureObj","NewXSSymTab"], sub {
+      my($sig,$symtab) = @_;
+      my $trans = $symtab->get_symname('_PDL_ThisTrans');
+      my $no=0;
+      PDL::PP::pp_line_numbers(__LINE__, (join '',map {
+      "$trans->pdls[".($no++)."] = $_;\n"
+      } @{ $sig->names_sorted }).
+      "PDL->make_trans_mutual((pdl_trans *)$trans);\n");
+   }),
 
    PDL::PP::Rule->new("ParsedCode",
 		      ["Code","_BadCode","SignatureObj","GenericTypes",
