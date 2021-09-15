@@ -1,12 +1,6 @@
 #ifndef __PDLTHREAD_H
 #define __PDLTHREAD_H
 
-typedef struct pdl_errorinfo {
-	char *funcname;
-	char **paramnames;
-	int nparamnames;
-} pdl_errorinfo;
-
 #define PDL_THREAD_MAGICKED 0x0001
 #define PDL_THREAD_MAGICK_BUSY 0x0002
 #define PDL_THREAD_INITIALIZED 0x0004
@@ -22,7 +16,7 @@ typedef struct pdl_errorinfo {
 
 /* XXX To avoid mallocs, these should also have "default" values */
 typedef struct pdl_thread {
-	pdl_errorinfo *einfo;
+	struct pdl_transvtable *transvtable;
         unsigned int magicno;
 	int gflags;	/* Flags about this struct */
 	PDL_Indx ndims;	/* Number of dimensions threaded over */

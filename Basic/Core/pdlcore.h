@@ -52,7 +52,7 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Valu
 void pdl_vafftrans_free(pdl *it);
 void pdl_vafftrans_remove(pdl * it);
 void pdl_vafftrans_alloc(pdl *it);
-void pdl_croak_param(pdl_errorinfo *info, int paramIndex, char *pat, ...);
+void pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
 void pdl_writebackdata_vaffine(pdl *it);
 void pdl_readdata_vaffine(pdl *it);
 
@@ -76,7 +76,7 @@ void pdl_readdata_vaffine(pdl *it);
   X(resize_defaultincs, void, ( pdl *it )) /* Make incs out of dims */ \
   X(clearthreadstruct, void, (pdl_thread *it)) \
   X(initthreadstruct, void, (int nobl,pdl **pdls,PDL_Indx *realdims, \
-    PDL_Indx *creating,PDL_Indx npdls,pdl_errorinfo *info, \
+    PDL_Indx *creating,PDL_Indx npdls,pdl_transvtable *transvtable, \
     pdl_thread *thread,char *flags, int noPthreadFlag )) \
   X(startthreadloop, int, (pdl_thread *thread,void (*func)(pdl_trans *), \
     pdl_trans *)) \

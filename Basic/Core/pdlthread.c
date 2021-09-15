@@ -4,7 +4,6 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-
 #define MAX2(a,b) if((b)>(a)) a=b;
 
 /**** Convenience routines for moving around collections
@@ -55,11 +54,11 @@ PDL_LIST_FLAGS_PDLTHREAD(X)
   };
   fflush(stdout);
   printf("DUMPTHREAD %p\n",(void*)thread);
-  if (0&& thread->einfo) {
-    psp; printf("Funcname: %s\n",thread->einfo->funcname);
+  if (thread->transvtable) {
+    psp; printf("Funcname: %s\n",thread->transvtable->name);
     psp; printf("Parameters: ");
-    for (i=0;i<thread->einfo->nparamnames;i++)
-      printf("%s ",thread->einfo->paramnames[i]);
+    for (i=0;i<thread->transvtable->npdls;i++)
+      printf("%s ",thread->transvtable->par_names[i]);
     printf("\n");
   }
   psp; printf("Flags: ");
@@ -182,7 +181,7 @@ void pdl_freethreadloop(pdl_thread *thread) {
 
 void pdl_clearthreadstruct(pdl_thread *it) {
 	PDLDEBUG_f(printf("Clearthreadloop(%p)\n", (void*)it);)
-	it->einfo = 0;it->inds = 0;it->dims = 0;
+	it->transvtable = 0;it->inds = 0;it->dims = 0;
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
 	it->gflags=0; /* unsets PDL_THREAD_INITIALIZED among others */
@@ -391,7 +390,7 @@ void pdl_thread_mismatch_msg(
  *  pdls is dynamic and may go away -> copied
  *  realdims is static and is NOT copied and NOT freed!!!
  *  creating is only used inside this routine.
- *  errorinfo is assumed static.
+ *  vtable is assumed static.
  *  usevaffine is assumed static. (uses if exists)
  *
  * Only the first thread-magicked pdl is taken into account.
@@ -401,7 +400,7 @@ void pdl_thread_mismatch_msg(
  */
 void pdl_initthreadstruct(int nobl,
 	pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,PDL_Indx npdls,
-	pdl_errorinfo *info,pdl_thread *thread, char *flags, int noPthreadFlag ) {
+	pdl_transvtable *vtable,pdl_thread *thread, char *flags, int noPthreadFlag ) {
 	PDL_Indx i, j;
 	PDL_Indx ndims=0;
 	PDL_Indx nth; /* Index to dimensions */
@@ -449,7 +448,6 @@ void pdl_initthreadstruct(int nobl,
 	}
 	ndims += thread->nimpl = nimpl = mx;
 
-	//printf("In pdl_initthreadstruct for func %s\n", info->funcname);
 	pdl_autopthreadmagic(pdls, npdls, realdims, creating, noPthreadFlag);
 
 	thread->mag_nth = -1;
@@ -466,7 +464,7 @@ void pdl_initthreadstruct(int nobl,
 			thread->mag_nth = nthrd - realdims[j];
 			thread->mag_nthr = nthr;
 			if(thread->mag_nth < 0) {
-				pdl_croak_param(info,j,"Cannot magick non-threaded dims \n\t");
+				pdl_croak_param(vtable,j,"Cannot magick non-threaded dims \n\t");
 			}
 		}
 		for(i=0; i<nids; i++) {
@@ -525,7 +523,7 @@ void pdl_initthreadstruct(int nobl,
 		  pdl_thread_mismatch_msg(
 		    buf0, pdls, thread, nth, j, nimpl, realdims, creating
 		  );
-		  pdl_croak_param(info,j,"%s\n..",buf0);
+		  pdl_croak_param(vtable,j,"%s\n..",buf0);
 		}
 
 		/* If we're still here, they're the same -- OK! */
@@ -557,7 +555,7 @@ void pdl_initthreadstruct(int nobl,
 				if(thread->dims[nth] != 1) {
 					if(thread->dims[nth] !=
 						pdls[j]->dims[mydim]) {
-						pdl_croak_param(info,j,"Mismatched Implicit thread dimension %d: should be %d, is %d",
+						pdl_croak_param(vtable,j,"Mismatched Implicit thread dimension %d: should be %d, is %d",
 							i,
 							thread->dims[nth],
 							pdls[j]->dims[i+realdims[j]]);
@@ -604,7 +602,7 @@ void pdl_thread_create_parameter(pdl_thread *thread, PDL_Indx j,PDL_Indx *dims,
 	PDL_Indx i;
 	PDL_Indx td = temp ? 0 : thread->nimpl;
 	if(!temp && thread->nimpl != thread->ndims - thread->nextra) {
-		pdl_croak_param(thread->einfo,j,
+		pdl_croak_param(thread->transvtable,j,
 			"Trying to create parameter while explicitly threading.\
 See the manual for why this is impossible");
 	}
@@ -683,7 +681,7 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	return another_threadloop;
 }
 
-void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...)
+void pdl_croak_param(pdl_transvtable *vtable,int paramIndex, char *pat, ...)
 {
   // I barf a string such as "PDL: function(a,b,c): Parameter 'b' errormessage"
 
@@ -702,24 +700,24 @@ do {                                            \
   char* msgptr    = message;
   int   remaining = sizeof(message);
 
-  if(info)
+  if(vtable)
   {
-    if(paramIndex < 0 || paramIndex >= info->nparamnames)
+    if(paramIndex < 0 || paramIndex >= vtable->npdls)
     {
       strcat(msgptr, "ERROR: UNKNOWN PARAMETER");
       msgptr_advance();
     }
     else
     {
-      snprintf(msgptr, remaining, "PDL: %s(", info->funcname);
+      snprintf(msgptr, remaining, "PDL: %s(", vtable->name);
       msgptr_advance();
 
-      for(i=0; i<info->nparamnames; i++)
+      for(i=0; i<vtable->npdls; i++)
       {
-        snprintf(msgptr, remaining, "%s", info->paramnames[i]);
+        snprintf(msgptr, remaining, "%s", vtable->par_names[i]);
         msgptr_advance();
 
-        if(i < info->nparamnames-1)
+        if(i < vtable->npdls-1)
         {
           snprintf(msgptr, remaining, ",");
           msgptr_advance();
@@ -727,7 +725,7 @@ do {                                            \
       }
 
       snprintf(msgptr, remaining, "): Parameter '%s':\n",
-               info->paramnames[paramIndex]);
+               vtable->par_names[paramIndex]);
       msgptr_advance();
     }
   }

@@ -745,17 +745,13 @@ $VERSION = eval $VERSION;
 
 our $macros = <<'EOF';
 #define PDL_RMBRACKETS(...) __VA_ARGS__ /* work around syntax limitation */
-#define PDL_PARNAMES(parnames, npdls, funcname) \
-  static char *__parnames[] = { PDL_RMBRACKETS parnames }; \
-  static char __funcname[] = funcname; \
-  static pdl_errorinfo __einfo = { __funcname, __parnames, npdls };
 
-#define PDL_INITTHREADSTRUCT(npdls, pdls, pdlthread, flags, realdims, noPthreadFlag) \
+#define PDL_INITTHREADSTRUCT(vtable, pdls, pdlthread, creating) \
   PDL->initthreadstruct(2,pdls, \
-    realdims,__creating,npdls, \
-    &__einfo,&(pdlthread), \
-    flags, \
-    noPthreadFlag );
+    (vtable)->par_realdims,creating,(vtable)->npdls, \
+    (vtable),&(pdlthread), \
+    (vtable)->per_pdl_flags, \
+    (vtable)->noPthreadFlag );
 
 #define PDL_HDRCHECK1(aux, name) \
   if(!hdrp && aux name->hdrsv && (name->state & PDL_HDRCPY)) { \
@@ -1647,16 +1643,6 @@ sub NT2Free_p {
   my $decl = join '', map $otypes->{$_}->get_free("\$PRIV($_)",
     { VarArrays2Ptrs => 1 }), @$onames;
   $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
-}
-
-sub make_parnames {
-my ($pnames) = @_;
-my $npdls = @$pnames;
-my $join__parnames = join ",",map {qq|"$_"|} @$pnames;
-if($Config{cc} eq 'cl') {
-  $join__parnames = '""' if $join__parnames eq '';
-}
-PDL::PP::pp_line_numbers(__LINE__-1, "PDL_PARNAMES(($join__parnames), $npdls, \"\$MODULE()::\$NAME()\")");
 }
 
 ##############################
@@ -2683,14 +2669,13 @@ END
           return '' if !$_[0];
           PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-      ["SignatureObj","RedoDimsParsedCode", '_NoPthread'],
+      ["SignatureObj","RedoDimsParsedCode"],
       'makes the redodims function from the various bits and pieces',
       sub {
-        my($sig,$pcode, $noPthreadFlag) = @_;
+        my($sig,$pcode) = @_;
         my $str = PDL::PP::pp_line_numbers(__LINE__, '');
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $npdls = @$pnames;
-        $noPthreadFlag = 0 unless( defined $noPthreadFlag ); # assume we can pthread, unless indicated otherwise
         my $nn = $#$pnames;
         my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
         if ($npdls) {
@@ -2704,9 +2689,8 @@ END
         # and in PP/PdlParObj (get_xsnormdimchecks())
         $str .= "__creating[$_] = PDL_DIMS_FROM_TRANS(__privtrans,$privname[$_]);\n"
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
-        $str .= $pcode;
-        $str .= make_parnames($pnames) . "
-           PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(pdlthread), \$PRIV(vtable)->per_pdl_flags, \$PRIV(vtable)->realdims, $noPthreadFlag)\n";
+        $str .= $pcode . "
+           PDL_INITTHREADSTRUCT(\$PRIV(vtable), \$PRIV(pdls), \$PRIV(pdlthread), __creating)\n";
         $str .= join '',map $_->get_xsnormdimchecks, @$pobjs{@$pnames};
         $str .= join '',map $_->get_xsphysdimchecks, @$pobjs{@$pnames};
         $str .= hdrcheck($pnames,$pobjs);
@@ -3018,34 +3002,38 @@ END
 		      ["FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
 		      sub {$_[2] eq 'NULL' ? '' : wrap_vfn(@_,"free")}),
 
+   PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","StructName","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
-       "SignatureObj","Affine_Ok","HaveThreading"],
+       "SignatureObj","Affine_Ok","HaveThreading","NoPthread"],
       sub {
         my($vname,$sname,$rdname,$rfname,$wfname,$ffname,
-           $sig,$affine_ok,$havethreading) = @_;
+           $sig,$affine_ok,$havethreading, $noPthreadFlag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
         my $npdls = scalar @$pnames;
         my $join_flags = join", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1;
-        $join_flags ||= '""' if $Config{cc} eq 'cl';
+        $join_flags ||= '0' if $Config{cc} eq 'cl';
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
         my $realdims = join ", ",map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
         $realdims ||= '0' if $Config{cc} eq 'cl';
+        my $parnames = join ",",map qq|"$_"|, @$pnames;
+        $parnames ||= '""' if $Config{cc} eq 'cl';
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 static char ${vname}_flags[] = {
   $join_flags
 };
 static PDL_Indx ${vname}_realdims[] = { $realdims };
+static char *${vname}_parnames[] = { $parnames };
 pdl_transvtable $vname = {
   $op_flags, $nparents, $npdls, ${vname}_flags,
-  ${vname}_realdims,
+  ${vname}_realdims, ${vname}_parnames, $noPthreadFlag,
   $rdname, $rfname, $wfname,
   $ffname,
-  sizeof($sname),"$vname"
+  sizeof($sname),"$::PDLMOD\::$vname"
 };
 EOF
       }),
