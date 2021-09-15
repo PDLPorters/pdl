@@ -43,6 +43,10 @@ sub new {
   }
   $this->{Ind2Use} = \%ind2use;
   $this->{Ind2Obj} = \%ind2obj;
+  $this->{IndNamesSorted} = [ sort keys %ind2use ];
+  my $i=0; my %ind2index = map +($_=>$i++), @{$this->{IndNamesSorted}};
+  $this->{Ind2Index} = \%ind2index;
+  $ind2obj{$_}->set_index($ind2index{$_}) for keys %ind2index;
   $this;
 }
 
@@ -71,6 +75,8 @@ sub dims_values { values %{$_[0]->{DimsObj}} }
 
 sub ind_used { $_[0]->{Ind2Use}{$_[1]} }
 sub ind_obj { $_[0]->{Ind2Obj}{$_[1]} }
+sub ind_names_sorted { @{$_[0]->{IndNamesSorted}} }
+sub ind_index { $_[0]->{Ind2Index}{$_[1]} }
 
 sub realdims {
   my $this = shift;

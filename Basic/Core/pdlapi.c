@@ -285,6 +285,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 	  pdl_freethreadloop(&trans->pdlthread);
 	trans->vtable = 0; /* Make sure no-one uses this */
 	PDLDEBUG_f(printf("call free\n"));
+	free(trans->ind_sizes);
 	free(trans);
 	if (ismutual)
 	  for(j=0; j<ndest; j++) {
@@ -531,6 +532,8 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 		}
 	}
 /*	if(it->vtable->dump) {it->vtable->dump(it);} */
+	printf("%s   ind_sizes: ",spaces);
+	print_iarr(it->ind_sizes, it->vtable->npdls); printf("\n");
 	printf("%s   INPUTS: (",spaces);
 	for(i=0; i<it->vtable->nparents; i++)
 		printf("%s%p",(i?" ":""),(void*)(it->pdls[i]));
@@ -1420,5 +1423,7 @@ pdl_trans *pdl_create_trans(size_t sz, short flags, pdl_transvtable *vtable) {
     it->dims_redone = 0;
     it->vtable = vtable;
     PDL_THR_CLRMAGIC(&it->pdlthread);
+    it->ind_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->ninds);
+    int i; for (i=0; i<vtable->ninds; i++) it->ind_sizes[i] = -1;
     return it;
 }

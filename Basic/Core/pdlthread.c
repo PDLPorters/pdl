@@ -60,6 +60,11 @@ PDL_LIST_FLAGS_PDLTHREAD(X)
     for (i=0;i<thread->transvtable->npdls;i++)
       printf("%s ",thread->transvtable->par_names[i]);
     printf("\n");
+    psp; printf("Indices: ");
+    for (i=0;i<thread->transvtable->ninds;i++)
+      printf("%s ",thread->transvtable->ind_names[i]);
+    printf("\n");
+    psp; printf("Realdims: "); print_iarr(thread->transvtable->par_realdims,thread->npdls); printf("\n");
   }
   psp; printf("Flags: ");
   for (i=0;flagval[i]!=0; i++)
@@ -438,6 +443,7 @@ void pdl_initthreadstruct(int nobl,
 	thread->npdls = npdls;
 	thread->pdls = copy_pdl_array(pdls,npdls);
 	thread->realdims = realdims;
+	thread->transvtable = vtable;
 
 	/* Accumulate the maximum number of thread dims across the collection of PDLs */
 	nids=mx=0;

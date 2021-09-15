@@ -289,6 +289,8 @@ typedef struct pdl_transvtable {
         char *per_pdl_flags;
         PDL_Indx *par_realdims; /* quantity of dimensions each par has */
         char **par_names;
+        PDL_Indx ninds;
+        char **ind_names; /* sorted names of "indices", eg for a(m), the "m" */
         char noPthreadFlag;
         void (*redodims)(pdl_trans *tr);      /* Only dims and internal trans (makes phys) */
         void (*readdata)(pdl_trans *tr);      /* Only data, to "data" ptr  */
@@ -350,6 +352,7 @@ typedef struct pdl_transvtable {
   int has_badvalue;                                                     \
   PDL_Anyval badvalue;                                                  \
   pdl_thread pdlthread;                                                 \
+  PDL_Indx *ind_sizes;                                                  \
   char dims_redone;                                                     \
   int __datatype
 

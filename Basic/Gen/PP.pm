@@ -139,6 +139,7 @@ our @CARP_NOT;
 
 my %INVALID_OTHERPAR = map +($_=>1), qw(
   magicno flags vtable bvalflag has_badvalue badvalue pdls __datatype
+  ind_sizes
   pdlthread
 );
 
@@ -2643,7 +2644,7 @@ END
         my ($parnames, $parobjs) = ($sig->names, $sig->objs);
         my $str = join '',
           (map $parobjs->{$_}->get_incdecls, @$parnames),
-          (map $_->get_decldim, $sig->dims_values);
+          ;
         return ($str);
       }),
 
@@ -2994,10 +2995,10 @@ END
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","StructName","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
-       "SignatureObj","Affine_Ok","HaveThreading","NoPthread"],
+       "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name"],
       sub {
         my($vname,$sname,$rdname,$rfname,$wfname,$ffname,
-           $sig,$affine_ok,$havethreading, $noPthreadFlag) = @_;
+           $sig,$affine_ok,$havethreading, $noPthreadFlag, $name) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
@@ -3010,18 +3011,24 @@ END
         $realdims ||= '0' if $Config{cc} eq 'cl';
         my $parnames = join ",",map qq|"$_"|, @$pnames;
         $parnames ||= '""' if $Config{cc} eq 'cl';
+        my @indnames = $sig->ind_names_sorted;
+        my $indnames = join ",",map qq|"$_"|, @indnames;
+        $indnames ||= '""' if $Config{cc} eq 'cl';
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 static char ${vname}_flags[] = {
   $join_flags
 };
 static PDL_Indx ${vname}_realdims[] = { $realdims };
 static char *${vname}_parnames[] = { $parnames };
+static char *${vname}_indnames[] = { $indnames };
 pdl_transvtable $vname = {
   $op_flags, $nparents, $npdls, ${vname}_flags,
-  ${vname}_realdims, ${vname}_parnames, $noPthreadFlag,
+  ${vname}_realdims, ${vname}_parnames,
+  @{[scalar @indnames]}, ${vname}_indnames,
+  $noPthreadFlag,
   $rdname, $rfname, $wfname,
   $ffname,
-  sizeof($sname),"$::PDLMOD\::$vname"
+  sizeof($sname),"$::PDLMOD\::$name"
 };
 EOF
       }),

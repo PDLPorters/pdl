@@ -53,7 +53,12 @@ sub set_from { my($this,$otherpar) = @_;
 
 sub name {$_[0]->{Name}}
 
-sub get_decldim { "PDL_Indx ".$_[0]->get_priv.";"; }
+# where it occurs in the C arrays that track it (at least name and size)
+sub set_index {
+  my ($this, $i) = @_;
+  $this->{Index} = $i;
+}
+sub get_index {$_[0]->{Index}}
 
 sub get_initdim { my($this) = @_;
 	my $init = $this->{Value} //
@@ -62,11 +67,7 @@ sub get_initdim { my($this) = @_;
 }
 
 sub get_size { my($this) = @_;
-	"\$PRIV(".$this->get_priv.")"
-}
-
-sub get_priv { my($this) = @_;
-	"__$this->{Name}_size"
+  "\$PRIV(ind_sizes)[@{[$this->get_index]}]"
 }
 
 1;
