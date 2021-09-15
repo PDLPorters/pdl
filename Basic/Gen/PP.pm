@@ -745,15 +745,14 @@ $VERSION = eval $VERSION;
 
 our $macros = <<'EOF';
 #define PDL_RMBRACKETS(...) __VA_ARGS__ /* work around syntax limitation */
-#define PDL_PARNAMES(parnames, realdims, npdls, funcname) \
+#define PDL_PARNAMES(parnames, npdls, funcname) \
   static char *__parnames[] = { PDL_RMBRACKETS parnames }; \
-  static PDL_Indx __realdims[] = { PDL_RMBRACKETS realdims }; \
   static char __funcname[] = funcname; \
   static pdl_errorinfo __einfo = { __funcname, __parnames, npdls };
 
-#define PDL_INITTHREADSTRUCT(npdls, pdls, pdlthread, flags, noPthreadFlag) \
+#define PDL_INITTHREADSTRUCT(npdls, pdls, pdlthread, flags, realdims, noPthreadFlag) \
   PDL->initthreadstruct(2,pdls, \
-    __realdims,__creating,npdls, \
+    realdims,__creating,npdls, \
     &__einfo,&(pdlthread), \
     flags, \
     noPthreadFlag );
@@ -1652,15 +1651,12 @@ sub NT2Free_p {
 
 sub make_parnames {
 my ($pnames,$pobjs) = @_;
-my @pdls = map {$pobjs->{$_}} @$pnames;
-my $npdls = $#pdls+1;
+my $npdls = @$pnames;
 my $join__parnames = join ",",map {qq|"$_"|} @$pnames;
-my $join__realdims = join ",",map {$#{$_->{IndObjs}}+1} @pdls;
 if($Config{cc} eq 'cl') {
   $join__parnames = '""' if $join__parnames eq '';
-  $join__realdims = '0' if $join__realdims eq '';
 }
-PDL::PP::pp_line_numbers(__LINE__-1, "PDL_PARNAMES(($join__parnames), ($join__realdims), $npdls, \"\$MODULE()::\$NAME()\")");
+PDL::PP::pp_line_numbers(__LINE__-1, "PDL_PARNAMES(($join__parnames), $npdls, \"\$MODULE()::\$NAME()\")");
 }
 
 ##############################
@@ -2710,7 +2706,7 @@ END
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
         $str .= $pcode;
         $str .= make_parnames($pnames,$pobjs) . "
-           PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(pdlthread), \$PRIV(vtable->per_pdl_flags), $noPthreadFlag)\n";
+           PDL_INITTHREADSTRUCT($npdls, \$PRIV(pdls), \$PRIV(pdlthread), \$PRIV(vtable)->per_pdl_flags, \$PRIV(vtable)->realdims, $noPthreadFlag)\n";
         $str .= join '',map $pobjs->{$_}->get_xsnormdimchecks, @$pnames;
         $str .= join '',map $pobjs->{$_}->get_xsphysdimchecks, @$pnames;
         $str .= hdrcheck($pnames,$pobjs);
@@ -3033,23 +3029,29 @@ END
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
         my $npdls = scalar @$pnames;
-        my $join_flags = join",",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
+        my $join_flags = join", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1;
         if($Config{cc} eq 'cl') {
            $join_flags = '""' if $join_flags eq '';
         }
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
-        PDL::PP::pp_line_numbers(__LINE__-1, "static char ${vname}_flags[] =
-{ ". $join_flags . "};
+        my $realdims = join ", ",map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
+        $realdims = '0' if $realdims eq '' and $Config{cc} eq 'cl';
+        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+static char ${vname}_flags[] = {
+  $join_flags
+};
+static PDL_Indx ${vname}_realdims[] = { $realdims };
 pdl_transvtable $vname = {
   $op_flags, $nparents, $npdls, ${vname}_flags,
+  ${vname}_realdims,
   $rdname, $rfname, $wfname,
   $ffname,
-  sizeof($sname),\"$vname\"
-};");
+  sizeof($sname),"$vname"
+};
+EOF
       }),
 
-   # Maybe accomplish this with an InsertName rule?
    PDL::PP::Rule->new('PMFunc', 'Name',
      'Sets PMFunc to default symbol table manipulations',
      sub {

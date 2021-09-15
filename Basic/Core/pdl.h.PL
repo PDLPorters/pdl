@@ -287,6 +287,7 @@ typedef struct pdl_transvtable {
         PDL_Indx nparents;
         PDL_Indx npdls;
         char *per_pdl_flags;
+        PDL_Indx *realdims;
         void (*redodims)(pdl_trans *tr);      /* Only dims and internal trans (makes phys) */
         void (*readdata)(pdl_trans *tr);      /* Only data, to "data" ptr  */
         void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
