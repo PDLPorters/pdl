@@ -240,8 +240,8 @@ print OUT <<'!NO!SUBS!';
   /* free this ndarray nor use datasv (which should be null).                */
   /* This means e.g. that the ndarray is mmapped from a file                 */
 #define         PDL_DONTTOUCHDATA       0x4000
-  /* Not sure what this does, but PP uses it a lot. -- CED                  */
-#define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
+  /* whether the given pdl is getting its dims from the given trans */
+#define PDL_DIMS_FROM_TRANS(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
                 && (pdl)->trans_parent == (pdl_trans *)(wtrans))
 
 #define PDL_LIST_FLAGS_PDLSTATE(X) \

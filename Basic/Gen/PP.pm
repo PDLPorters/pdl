@@ -2702,7 +2702,7 @@ END
         # if FlagCreat is NOT true, then we set __creating[] to 0
         # and we can use this knowledge below, and in hdrcheck()
         # and in PP/PdlParObj (get_xsnormdimchecks())
-        $str .= "__creating[$_] = PDL_CR_SETDIMSCOND(__privtrans,$privname[$_]);\n"
+        $str .= "__creating[$_] = PDL_DIMS_FROM_TRANS(__privtrans,$privname[$_]);\n"
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
         $str .= $pcode;
         $str .= make_parnames($pnames) . "
