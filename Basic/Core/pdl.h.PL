@@ -289,6 +289,8 @@ typedef struct pdl_transvtable {
         char *per_pdl_flags;
         PDL_Indx *par_realdims; /* quantity of dimensions each par has */
         char **par_names;
+        PDL_Indx *par_realdim_ind_start; /* each par, where do its inds start in array above */
+        PDL_Indx *par_realdim_ind_ids; /* each realdim, which ind is source */
         PDL_Indx ninds;
         char **ind_names; /* sorted names of "indices", eg for a(m), the "m" */
         char noPthreadFlag;
