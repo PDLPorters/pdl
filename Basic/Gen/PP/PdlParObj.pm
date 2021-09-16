@@ -71,6 +71,18 @@ my %flag2info = (
   complex => [[qw(FlagComplex)]],
   (map +($_->ppforcetype => [[qw(FlagTyped)], 'Type']), types),
 );
+my %flag2c = qw(
+  FlagReal PDL_PARAM_ISREAL
+  FlagComplex PDL_PARAM_ISCOMPLEX
+  FlagTyped PDL_PARAM_ISTYPED
+  FlagTplus PDL_PARAM_ISTPLUS
+  FlagCreat PDL_PARAM_ISCREAT
+  FlagCreateAlways PDL_PARAM_ISCREATEALWAYS
+  FlagOut PDL_PARAM_ISOUT
+  FlagTemp PDL_PARAM_ISTEMP
+  FlagW PDL_PARAM_ISWRITE
+  FlagPhys PDL_PARAM_ISPHYS
+);
 sub new {
 	my($type,$string,$badflag,$sig) = @_;
 	$badflag ||= 0;
@@ -104,6 +116,11 @@ sub new {
 		$_;
 	} split ',', $inds];
 	return $this;
+}
+
+sub cflags {
+  my ($this) = @_;
+  map $flag2c{$_}, grep $this->{$_}, sort keys %flag2c;
 }
 
 sub name {return (shift)->{Name}}

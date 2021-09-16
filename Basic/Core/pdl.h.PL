@@ -289,6 +289,7 @@ typedef struct pdl_transvtable {
         char *per_pdl_flags;
         PDL_Indx *par_realdims; /* quantity of dimensions each par has */
         char **par_names;
+        short *par_flags;
         PDL_Indx *par_realdim_ind_start; /* each par, where do its inds start in array above */
         PDL_Indx *par_realdim_ind_ids; /* each realdim, which ind is source */
         PDL_Indx ninds;
@@ -302,6 +303,29 @@ typedef struct pdl_transvtable {
         int structsize;
         char *name;                           /* For debuggers, mostly */
 } pdl_transvtable;
+
+#define PDL_PARAM_ISREAL             0x0001
+#define PDL_PARAM_ISCOMPLEX          0x0002
+#define PDL_PARAM_ISTYPED            0x0004
+#define PDL_PARAM_ISTPLUS            0x0008
+#define PDL_PARAM_ISCREAT            0x0010
+#define PDL_PARAM_ISCREATEALWAYS     0x0020
+#define PDL_PARAM_ISOUT              0x0040
+#define PDL_PARAM_ISTEMP             0x0080
+#define PDL_PARAM_ISWRITE            0x0100
+#define PDL_PARAM_ISPHYS             0x0200
+
+#define PDL_LIST_FLAGS_PARAMS(X) \
+ X(PDL_PARAM_ISREAL) \
+ X(PDL_PARAM_ISCOMPLEX) \
+ X(PDL_PARAM_ISTYPED) \
+ X(PDL_PARAM_ISTPLUS) \
+ X(PDL_PARAM_ISCREAT) \
+ X(PDL_PARAM_ISCREATEALWAYS) \
+ X(PDL_PARAM_ISOUT) \
+ X(PDL_PARAM_ISTEMP) \
+ X(PDL_PARAM_ISWRITE) \
+ X(PDL_PARAM_ISPHYS)
 
 /* All trans must start with this */
 

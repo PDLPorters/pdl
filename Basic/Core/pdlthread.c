@@ -52,22 +52,43 @@ PDL_LIST_FLAGS_PDLTHREAD(X)
 #undef X
     NULL
   };
+  int paramflagval[] = {
+#define X(f) f,
+PDL_LIST_FLAGS_PARAMS(X)
+#undef X
+    0
+  };
+  char *paramflagchar[] = {
+#define X(f) #f,
+PDL_LIST_FLAGS_PARAMS(X)
+#undef X
+    NULL
+  };
   fflush(stdout);
   printf("DUMPTHREAD %p\n",(void*)thread);
   if (thread->transvtable) {
     pdl_transvtable *vtable = thread->transvtable;
     psp; printf("Funcname: %s\n",vtable->name);
-    psp; printf("Parameters: ");
+    psp; printf("Parameters:\n");
     for (i=0;i<vtable->npdls;i++) {
-      printf("%s(",vtable->par_names[i]);
+      psp; psp; printf("%s(",vtable->par_names[i]);
       found=0;
       for (j=0;j<vtable->par_realdims[i];j++) {
         if (found) printf(","); found=1;
         printf("%s",vtable->ind_names[vtable->par_realdim_ind_ids[vtable->par_realdim_ind_start[i] + j]]);
       }
-      printf("); ");
+      printf("): ");
+      found=0; sz=0;
+      for (j=0;paramflagval[j]!=0; j++)
+        if (thread->transvtable->par_flags[i] & paramflagval[j]) {
+          if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;psp;psp;}
+          printf("%s",found ? "|":""); found = 1;
+          printf("%s",paramflagchar[j]);
+          sz += strlen(paramflagchar[j]);
+        }
+      if (!found) printf("(no flags set)");
+      printf("\n");
     }
-    printf("\n");
     psp; printf("Indices: ");
     for (i=0;i<vtable->ninds;i++)
       printf("%s ",vtable->ind_names[i]);
@@ -75,7 +96,7 @@ PDL_LIST_FLAGS_PDLTHREAD(X)
     psp; printf("Realdims: "); print_iarr(vtable->par_realdims,thread->npdls); printf("\n");
   }
   psp; printf("Flags: ");
-  found=0;
+  found=0; sz=0;
   for (i=0;flagval[i]!=0; i++)
     if (thread->gflags & flagval[i]) {
       printf("%s%s",found ? "|":"",flagchar[i]);

@@ -3009,6 +3009,7 @@ END
         my @realdims = map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
         my $realdims = join(", ", @realdims) || '0';
         my $parnames = join(",",map qq|"$_"|, @$pnames) || '""';
+        my $parflags = join(",\n  ",map join('|', $_->cflags)||'0', @$pobjs{@$pnames}) || '0';
         my $i = 0; my @starts = map { my $ci = $i; $i += $_; $ci } @realdims;
         my $realdim_ind_start = join(", ", @starts) || '0';
         my @rd_inds = map $_->get_index, map @{$_->{IndObjs}}, @$pobjs{@$pnames};
@@ -3021,12 +3022,16 @@ static char ${vname}_flags[] = {
 };
 static PDL_Indx ${vname}_realdims[] = { $realdims };
 static char *${vname}_parnames[] = { $parnames };
+static short ${vname}_parflags[] = {
+  $parflags
+};
 static PDL_Indx ${vname}_realdims_starts[] = { $realdim_ind_start };
 static PDL_Indx ${vname}_realdims_ind_ids[] = { $realdim_inds };
 static char *${vname}_indnames[] = { $indnames };
 pdl_transvtable $vname = {
   $op_flags, $nparents, $npdls, ${vname}_flags,
   ${vname}_realdims, ${vname}_parnames,
+  ${vname}_parflags,
   ${vname}_realdims_starts, ${vname}_realdims_ind_ids,
   @{[scalar @indnames]}, ${vname}_indnames,
   $noPthreadFlag,
