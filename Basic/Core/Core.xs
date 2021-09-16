@@ -826,9 +826,8 @@ threadover(...)
     SV *csv[npdls], *dims[npdls], *incs[npdls], *others[nothers];
     PDL_Indx *creating = pdl_packdims(cdimslist,&nd2);
     PDL_Indx *realdims = pdl_packdims(rdimslist,&nd1);
-    if (nd1 != npdls || nd2 < npdls)
-	croak("threadover: need one realdim and creating flag "
-	      "per pdl!");
+    if (nd1 != npdls) croak("threadover: need one realdim flag per pdl!");
+    if (nd2 != npdls) croak("threadover: need one creating flag per pdl!");
     for(i=0; i<npdls; i++) {
 	pdls[i] = pdl_SvPDLV(ST(i+1));
 	if (creating[i])
