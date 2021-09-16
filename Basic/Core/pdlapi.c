@@ -500,12 +500,13 @@ PDL_LIST_FLAGS_PDLVTABLE(X)
 	}
 
 	printf("%sState: (%d) ",spaces,flags);
+	found = 0; sz = 0;
 	for (i=0;flagval[i]!=0; i++)
 	  if (flags & flagval[i]) {
+	    if (sz>PDL_MAXLIN) {sz=0; printf("\n       %s",spaces);}
 	    printf("%s%s",found ? "|":"",flagchar[i]);
 	    found = 1;
 	    sz += strlen(flagchar[i]);
-	    if (sz>PDL_MAXLIN) {sz=0; printf("\n       %s",spaces);}
 	  }
 	printf("\n");
 }
