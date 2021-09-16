@@ -3003,17 +3003,14 @@ END
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
         my $npdls = scalar @$pnames;
-        my $join_flags = join", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
-                                          0 : $aff} 0..$npdls-1;
-        $join_flags ||= '0' if $Config{cc} eq 'cl';
+        my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
+                                          0 : $aff} 0..$npdls-1) || '0';
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
-        my $realdims = join ", ",map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
-        $realdims ||= '0' if $Config{cc} eq 'cl';
-        my $parnames = join ",",map qq|"$_"|, @$pnames;
-        $parnames ||= '""' if $Config{cc} eq 'cl';
+        my @realdims = map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
+        my $realdims = join(", ", @realdims) || '0';
+        my $parnames = join(",",map qq|"$_"|, @$pnames) || '""';
         my @indnames = $sig->ind_names_sorted;
-        my $indnames = join ",",map qq|"$_"|, @indnames;
-        $indnames ||= '""' if $Config{cc} eq 'cl';
+        my $indnames = join(",", map qq|"$_"|, @indnames) || '""';
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 static char ${vname}_flags[] = {
   $join_flags

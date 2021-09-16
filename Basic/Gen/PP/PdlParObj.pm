@@ -220,7 +220,7 @@ EOF
     $str .= "PDL->make_physical(($pdl));\n" if $this->{FlagPhys};
     if ( $this->{FlagCreat} ) {
 	$str .= "} else {\n";
-	$str .= " PDL_Indx dims[".($ninds+1)."]; PDL_COMMENT(\"Use ninds+1 to avoid smart (stupid) compilers\")";
+	$str .= " PDL_Indx dims[".($ninds || 1)."]; PDL_COMMENT(\"Empty arrays not allowed in C99\")";
 	$str .= join "", map "dims[$_] = $sizevars[$_];", 0..$#$iref;
 	my $istemp = $this->{FlagTemp} ? 1 : 0;
 	$str .="\n PDL->thread_create_parameter(&\$PRIV(pdlthread),$this->{Number},dims,$istemp);\n";
