@@ -314,15 +314,6 @@ sub do_access {
        $text;
 }
 
-sub has_dim {
-	my($this,$ind) = @_;
-	my $h = 0;
-	for(@{$this->{IndObjs}}) {
-		$h++ if $_->name eq $ind;
-	}
-	return $h;
-}
-
 sub do_resize {
 	my($this,$ind,$size) = @_;
 	my @c;my $index = 0;
