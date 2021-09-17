@@ -27,15 +27,9 @@ sub add_params {
 }
 
 sub decl_locals {
-	my($this) = @_;
-	my $str;
-	for(keys %{$this->{Id2Sym}}) {
-		if(!$this->{IsPar}{$_}) {
-			$str .= $this->{Id2Sym}{$_}[1]
-				   ->get_decl($this->{Id2Sym}{$_}[0]).";";
-		}
-	}
-	$str;
+  my($this) = @_;
+  join '', map $this->{Id2Sym}{$_}[1]->get_decl($this->{Id2Sym}{$_}[0]).";",
+    grep !$this->{IsPar}{$_}, keys %{$this->{Id2Sym}};
 }
 
 sub get_params {
