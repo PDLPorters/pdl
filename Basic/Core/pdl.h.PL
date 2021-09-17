@@ -304,6 +304,10 @@ typedef struct pdl_transvtable {
         char *name;                           /* For debuggers, mostly */
 } pdl_transvtable;
 
+/* which ind_id (named dim) for the i-th pdl (aka param) in a vtable, the j-th dim on that param */
+#define PDL_IND_ID(vtable, i, j) \
+  ((vtable)->par_realdim_ind_ids[vtable->par_realdim_ind_start[i] + j])
+
 #define PDL_PARAM_ISREAL             0x0001
 #define PDL_PARAM_ISCOMPLEX          0x0002
 #define PDL_PARAM_ISTYPED            0x0004

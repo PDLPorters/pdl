@@ -75,7 +75,7 @@ PDL_LIST_FLAGS_PARAMS(X)
       found=0;
       for (j=0;j<vtable->par_realdims[i];j++) {
         if (found) printf(","); found=1;
-        printf("%s",vtable->ind_names[vtable->par_realdim_ind_ids[vtable->par_realdim_ind_start[i] + j]]);
+        printf("%s",vtable->ind_names[PDL_IND_ID(vtable, i, j)]);
       }
       printf("): ");
       found=0; sz=0;
