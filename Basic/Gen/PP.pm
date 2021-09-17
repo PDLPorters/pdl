@@ -2351,6 +2351,12 @@ EOD
         $clause3 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
         # Bitwise ops may get five args
         my $bitwise_cond = $bitwise ? " || items == 5" : '';
+        $clause3 = <<EOF . $clause3;
+  else if (items == $nin$bitwise_cond) { PDL_COMMENT("only input variables on stack, create outputs and temps")
+    nreturn = $nallout;
+EOF
+        $clause3 = '' if $nmaxonstack == $nin and !$bitwise;
+        my $clause3_coda = $clause3 ? '}' : '';
         PDL::PP::pp_line_numbers(__LINE__, <<END);
 
 void
@@ -2369,10 +2375,7 @@ $clause_inputs
 $clause1
   }
 $clause2
-  else if (items == $nin$bitwise_cond) { PDL_COMMENT("only input variables on stack, create outputs and temps")
-    nreturn = $nallout;
-$clause3
-  }
+$clause3$clause3_coda
 $hdrcode
 $inplacecode
 END
