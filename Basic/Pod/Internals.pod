@@ -2,6 +2,17 @@
 
 PDL::Internals - description of some aspects of the current internals
 
+=head1 SYNOPSIS
+
+  # let PDL tell you what it's doing
+  use PDL;
+  PDL::Core::set_debugging(1);
+  $pa = sequence(6, 3, 2);
+  $pb = $pa->slice('1:3');
+  $pc = $pb->matmult($pb);
+  $pd = $pc->dsumover;
+  print "pb=$pb\npc=$pc\npd=$pd";
+
 =head1 DESCRIPTION
 
 =head2 Intro
