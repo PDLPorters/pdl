@@ -2115,9 +2115,6 @@ EOD
 
    PDL::PP::Rule::InsertName->new("NewXSName", '_${name}_int'),
 
-   PDL::PP::Rule::Returns->new("EquivPThreadIdExpr", "P2Child",
-			       '$CTID-$PARENT(ndims)+$CHILD(ndims)'),
-
    PDL::PP::Rule::Returns::One->new("HaveThreading"),
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
