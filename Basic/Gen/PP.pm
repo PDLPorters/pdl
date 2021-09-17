@@ -1281,7 +1281,6 @@ $SIG{__DIE__} = sub {print Carp::longmess(@_); die;}
 use PDL::PP::Signature;
 use PDL::PP::Dims;
 use PDL::PP::CType;
-use PDL::PP::XS;
 use PDL::PP::SymTab;
 use PDL::PP::PDLCode;
 
@@ -2396,16 +2395,21 @@ END
 
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","NewXSArgs"],
       sub {
-        my($xsname,$nxargs) = @_;
-        return PDL::PP::XS::mkproto($xsname,$nxargs);
+        my($name,$pars) = @_;
+        my $shortpars = join ',',map {$_->[0]} @$pars;
+        my $longpars = join "\n",map {"\t".$_->[1]->get_decl($_->[0])} @$pars;
+        return<<END;
+
+void
+$name($shortpars)
+$longpars
+END
       }),
    PDL::PP::Rule->new("NewXSCHdrs", ["NewXSName","NewXSArgs","GlobalNew"],
       sub {
         my($name,$pars,$gname) = @_;
-        # Hmmm, do we need $shortpars at all?
-        #my $shortpars = join ',',map {$_->[0]} @$pars;
         my $longpars = join ",",map {$_->[1]->get_decl($_->[0])} @$pars;
-        return ["void $name($longpars) {","}","",
+        return ["void $name($longpars) {","}",
                 "PDL->$gname = $name;"];
       }),
    PDL::PP::Rule->new("NewXSLocals", "NewXSSymTab",
@@ -2817,7 +2821,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
         my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, '');
         if($glb) {
           $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
-          $boot = $xs_c_headers->[3];
+          $boot = $xs_c_headers->[2];
           $str = "$hdr\n";
         } else {
           my $xscode = join '' => @bits;
@@ -2852,11 +2856,11 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
         my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, '');
         if($glb) {
           $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
-          $boot = $xs_c_headers->[3];
+          $boot = $xs_c_headers->[2];
           $str = "$hdr\n";
         } else {
           my $xscode = join '' => @bits;
-          $str = "$hdr CODE:\n { $xscode XSRETURN(0);\n}\n\n";
+          $str = "$hdr CODE:\n $xscode XSRETURN(0);\n\n";
         }
         $str =~ s/(\s*\n)+/\n/g;
         ($str,$boot,$prelude)
