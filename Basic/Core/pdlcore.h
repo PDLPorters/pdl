@@ -97,7 +97,10 @@ void pdl_readdata_vaffine(pdl *it);
   X(set_trans_childtrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
   X(set_trans_parenttrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
   X(create_trans, pdl_trans *, (size_t sz, short flags, pdl_transvtable *vtable)) \
-  X(dim_checks, void, (pdl_transvtable *vtable, pdl **pdls, pdl_thread *pdlthread, PDL_Indx *creating, PDL_Indx *ind_sizes)) \
+  X(dim_checks, void, (pdl_transvtable *vtable, pdl **pdls, \
+    pdl_thread *pdlthread, PDL_Indx *creating, PDL_Indx *ind_sizes)) \
+  X(type_coerce, void, (pdl_transvtable *vtable, pdl **pdls, \
+    pdl_datatypes trans_dtype, PDL_Anyval badvalue, int has_badvalue)) \
   X(get_convertedpdl, pdl *, (pdl *pdl,int type)) \
   X(make_trans_mutual, void, (pdl_trans *trans)) \
   X(make_physical, void, (pdl *it)) \

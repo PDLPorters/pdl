@@ -677,8 +677,6 @@ my @std_redodims = (
 		}
 		')});
 
-##sub get_std_redodims { return @std_redodims; }
-
 # Probably want this directly in the apply routine but leave as is for now
 #
 sub subst_makecomp_private {
@@ -2511,47 +2509,7 @@ END
       #
       sub {
         my($sig,$ignore,$newstab,$hasp2child) = @_;
-        my ($parnames, $parobjs) = ($sig->names_sorted, $sig->objs);
-        # assume [oca]CHILD();, although there might be an ignore
-        if ( $hasp2child ) {
-          my $child = $$parnames[1];
-          return "" if $ignore->{$child};
-          die "ERROR: expected $child to be [oca]\n"
-            unless $parobjs->{$child}{FlagCreateAlways};
-          return PDL::PP::pp_line_numbers(__LINE__-1, "$child\->datatype = \$PRIV(__datatype);\n$child\->has_badvalue = \$PRIV(has_badvalue);\n$child\->badvalue = \$PRIV(badvalue);\n");
-        }
-        my $str = PDL::PP::pp_line_numbers(__LINE__-1, "");
-        my ($no, $trans) = (-1, $newstab->get_symname('_PDL_ThisTrans'));
-        foreach ( @{ $sig->names_sorted } ) {
-          $no++;
-          next if $ignore->{$_};
-          my $po = $parobjs->{$_};
-          my $dtype;
-          if ( $po->{FlagTyped} ) {
-            $dtype = $po->{Type}->sym;
-            $dtype = "PDLMAX($dtype,\$PRIV(__datatype))"
-                if $po->{FlagTplus};
-          } elsif ( $po->{FlagReal} ) {
-            $dtype = '($PRIV(__datatype) < PDL_CF ? $PRIV(__datatype) : $PRIV(__datatype) - (PDL_CF - PDL_F))'
-          } elsif ( $po->{FlagComplex} ) {
-            $dtype = '($PRIV(__datatype) >= PDL_CF ? $PRIV(__datatype) : PDLMAX(PDL_CF, $PRIV(__datatype) + (PDL_CF - PDL_F)))'
-          } else {
-            $dtype = '$PRIV(__datatype)';
-          }
-          if ( $po->{FlagCreateAlways} ) {
-            $str .= "$_->datatype = $dtype; ";
-          } else {
-            $str .=
-             "if( ($_->state & PDL_NOMYDIMS) && $_->trans_parent == NULL ) {
-                 $_->datatype = $dtype;
-              } else "
-                  if $po->{FlagCreat};
-            $str .= "if($dtype != $_->datatype) {
-                 $trans->pdls[$no] = $_ = PDL->get_convertedpdl($_,$dtype);
-              }\n";
-          }
-        }
-        $str;
+        PDL::PP::pp_line_numbers(__LINE__-1, 'PDL->type_coerce($PRIV(vtable), $PRIV(pdls), $PRIV(__datatype), $PRIV(badvalue), $PRIV(has_badvalue));');
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
@@ -2561,6 +2519,15 @@ END
       my $no=0;
       PDL::PP::pp_line_numbers(__LINE__, join '',
         map "$trans->pdls[".($no++)."] = $_;\n",
+        @{ $sig->names_sorted });
+   }),
+
+   PDL::PP::Rule->new("NewXSExtractTransPDLs", ["SignatureObj","NewXSSymTab"], sub {
+      my($sig,$symtab) = @_;
+      my $trans = $symtab->get_symname('_PDL_ThisTrans');
+      my $no=0;
+      PDL::PP::pp_line_numbers(__LINE__, join '',
+        map "$_ = $trans->pdls[".($no++)."];\n",
         @{ $sig->names_sorted });
    }),
 
@@ -2843,6 +2810,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
        #     NewXSCopyBadValues,
        #     NewXSMakeNow,  # this is unnecessary since families never got implemented
        "NewXSFindDatatype","NewXSTypeCoerce",
+       "NewXSExtractTransPDLs",
        "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
        "NewXSClearThread",
@@ -2878,6 +2846,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
        #     NewXSCopyBadValues,
        #     NewXSMakeNow, # this is unnecessary since families never got implemented
        "NewXSFindDatatype","NewXSTypeCoerce",
+       "NewXSExtractTransPDLs",
        "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
        "NewXSClearThread",

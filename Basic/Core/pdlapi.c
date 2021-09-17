@@ -1490,3 +1490,34 @@ void pdl_dim_checks(
   PDLDEBUG_f(printf("pdl_dim_checks after:\n"));
   PDLDEBUG_f(do {printf("  ind_sizes: "); print_iarr(ind_sizes, vtable->ninds);printf("\n");fflush(stdout);}while(0));
 }
+
+void pdl_type_coerce(
+  pdl_transvtable *vtable, pdl **pdls, pdl_datatypes trans_dtype,
+  PDL_Anyval badvalue, int has_badvalue
+) {
+  PDL_Indx i;
+  for (i=0; i<vtable->npdls; i++) {
+    PDL_Indx ninds = vtable->par_realdims[i];
+    pdl *pdl = pdls[i];
+    PDL_Indx ndims = pdl->ndims;
+    short flags = vtable->par_flags[i];
+    pdl_datatypes new_dtype = trans_dtype;
+    if (flags & PDL_PARAM_ISIGNORE) continue;
+    if (flags & PDL_PARAM_ISTYPED) {
+      new_dtype = vtable->par_types[i];
+      if (flags & PDL_PARAM_ISTPLUS) new_dtype = PDLMAX(new_dtype, trans_dtype);
+    } else if (flags & PDL_PARAM_ISREAL) {
+      if (trans_dtype >= PDL_CF) new_dtype = trans_dtype - (PDL_CF - PDL_F);
+    } else if (flags & PDL_PARAM_ISCOMPLEX) {
+      if (trans_dtype < PDL_CF) new_dtype = PDLMAX(PDL_CF, trans_dtype + (PDL_CF - PDL_F));
+    }
+    if ((flags & PDL_PARAM_ISCREATEALWAYS) ||
+       ((flags & PDL_PARAM_ISCREAT) && (pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL)) {
+      pdl->badvalue = badvalue;
+      pdl->has_badvalue = has_badvalue;
+      pdl->datatype = new_dtype;
+    } else if (new_dtype != pdl->datatype) {
+      pdls[i] = pdl_get_convertedpdl(pdl, new_dtype);
+    }
+  }
+}
