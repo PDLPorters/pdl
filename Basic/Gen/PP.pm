@@ -2238,10 +2238,8 @@ EOD
       # thus avoiding the perl layer in calling the routine. D. Hunt 4/11/00
       #
       # The use of 'DO NOT SET!!' looks ugly.
-      #
-      # Removing useless use of hasp2child in this function. DCM Sept 12, 2011
       sub {
-        my($name,$xsargs,$sig,$optypes,#$hasp2child,
+        my($name,$xsargs,$sig,$optypes,
            $pmcode,$hdrcode,$inplacecode,$globalnew,$callcopy,$bitwise) = @_;
         my $parobjs = $sig->objs;
         # Don't do var args processing if the user has pre-defined pmcode
@@ -2353,7 +2351,8 @@ $name(...)
 $svdecls
 $pars
  PPCODE:
-{
+  if (items != $nmaxonstack && !(items == $nin$bitwise_cond) && items != $ninout)
+    croak (\"Usage:  PDL::$name($usageargs) (you may leave temporaries or output variables out of list)\");
   PDL_XS_PACKAGEGET
   if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output and temp vars")
     nreturn = $noutca;
@@ -2364,14 +2363,8 @@ $clause2
     nreturn = $nallout;
 $clause3
   }
-  else {
-    croak (\"Usage:  PDL::$name($usageargs) (you may leave temporaries or output variables out of list)\");
-  }
-}
-{
 $hdrcode
 $inplacecode
-}
 END
       }),
 
