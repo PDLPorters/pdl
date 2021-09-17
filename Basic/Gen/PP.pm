@@ -2275,11 +2275,19 @@ EOD
         # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
         my $svdecls = join ("\n", map { "${ci}SV *${_}_SV = NULL;" } grep { $out{$_} || $outca{$_} || $tmp{$_} } @args);
+        my $clause_inputs = ''; my %already_read; my $cnt = 0;
+        foreach my $i ( 0 .. $#args ) {
+            my $x = $args[$i];
+            last if $out{$x} || $tmp{$x} || $outca{$x} || $other{$x};
+            $already_read{$x} = 1;
+            $clause_inputs .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
+            $cnt++;
+        }
         my @create = ();  # The names of variables which need to be created by calling
                           # the 'initialize' perl routine from the correct package.
         $ci = '    ';  # Current indenting
         # clause for reading in all variables
-        my $clause1 = ''; my $cnt = 0;
+        my $clause1 = ''; $cnt = 0;
         foreach my $i ( 0 .. $#args ) {
             my $x = $args[$i];
             if ($other{$x}) {  # other par
@@ -2288,7 +2296,7 @@ EOD
             } elsif ($outca{$x}) {
                 push (@create, $x);
             } else {
-                $clause1 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
+                $clause1 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n" if !$already_read{$x};
                 $cnt++;
             }
         }
@@ -2313,7 +2321,7 @@ EOD
                     # a temporary or always create variable
                     push (@create, $x);
                 } else { # an input or output variable
-                    $clause2 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
+                    $clause2 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n" if !$already_read{$x};
                     $cnt++;
                 }
             }
@@ -2333,7 +2341,7 @@ EOD
             } elsif ($out{$x} || $tmp{$x} || $outca{$x}) {
                 push (@create, $x);
             } else {
-                $clause3 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
+                $clause3 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n" if !$already_read{$x};
                 $cnt++;
             }
         }
@@ -2353,6 +2361,7 @@ $pars
   if (items != $nmaxonstack && !(items == $nin$bitwise_cond) && items != $ninout)
     croak (\"Usage:  PDL::$name($usageargs) (you may leave temporaries or output variables out of list)\");
   PDL_XS_PACKAGEGET
+$clause_inputs
   if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output and temp vars")
     nreturn = $noutca;
 $clause1

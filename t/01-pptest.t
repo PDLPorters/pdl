@@ -191,6 +191,13 @@ pp_deft('Cpow',
 	Code => '$c(m => 0) = $a(m => 0) + $b(m => 0);',
 );
 
+# test XS args with OtherPars
+pp_deft('gl_arrows',
+	Pars => 'coords(tri=3,n); int indsa(); int indsb();',
+	OtherPars => 'float headlen; float width;',
+	Code => ';', # do nothing
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
