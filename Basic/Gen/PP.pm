@@ -747,10 +747,10 @@ $VERSION = eval $VERSION;
 our $macros = <<'EOF';
 #define PDL_RMBRACKETS(...) __VA_ARGS__ /* work around syntax limitation */
 
-#define PDL_INITTHREADSTRUCT(vtable, pdls, pdlthread, creating) \
-  PDL->initthreadstruct(2,pdls, \
-    (vtable)->par_realdims,creating,(vtable)->npdls, \
-    (vtable),&(pdlthread), \
+#define PDL_INITTHREADSTRUCT(vtable, pdls, pdlthread, creating, ind_sizes) \
+  PDL->initthreadstruct(2,(pdls), \
+    (vtable)->par_realdims,(creating),(vtable)->npdls, \
+    (vtable),(pdlthread), (ind_sizes), \
     (vtable)->per_pdl_flags, \
     (vtable)->noPthreadFlag );
 
@@ -2676,13 +2676,11 @@ END
         $str .= join '',map {$_->get_initdim."\n"} $sig->dims_values;
         # if FlagCreat is NOT true, then we set __creating[] to 0
         # and we can use this knowledge below, and in hdrcheck()
-        # and in PP/PdlParObj (get_xsnormdimchecks())
         $str .= "__creating[$_] = PDL_DIMS_FROM_TRANS(__privtrans,$privname[$_]);\n"
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
-        $str .= $pcode . "
-           PDL_INITTHREADSTRUCT(\$PRIV(vtable), \$PRIV(pdls), \$PRIV(pdlthread), __creating)\n";
-        $str .= join '',map $_->get_xsnormdimchecks, @$pobjs{@$pnames};
-        $str .= join '',map $_->get_xsphysdimchecks, @$pobjs{@$pnames};
+        $str .= $pcode . '
+PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes))
+';
         $str .= hdrcheck($pnames,$pobjs);
         $str .= join '',map {$pobjs->{$pnames->[$_]}->
           get_incsets($privname[$_])} 0..$nn;

@@ -1428,3 +1428,65 @@ pdl_trans *pdl_create_trans(size_t sz, short flags, pdl_transvtable *vtable) {
     int i; for (i=0; i<vtable->ninds; i++) it->ind_sizes[i] = -1;
     return it;
 }
+
+void pdl_dim_checks(
+  pdl_transvtable *vtable, pdl **pdls,
+  pdl_thread *pdlthread, PDL_Indx *creating,
+  PDL_Indx *ind_sizes
+) {
+  PDL_Indx i, j, ind_id;
+  PDLDEBUG_f(printf("pdl_dim_checks %p:\n", ind_sizes));
+  PDLDEBUG_f(do {printf("  ind_sizes: "); print_iarr(ind_sizes, vtable->ninds);printf("\n");}while(0));
+  for (i=0; i<vtable->npdls; i++) {
+    PDL_Indx ninds = vtable->par_realdims[i];
+    pdl *pdl = pdls[i];
+    PDL_Indx ndims = pdl->ndims;
+    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG": ", i));
+    PDLDEBUG_f(pdl_dump(pdl));
+    if (creating[i]) {
+      PDL_Indx dims[PDLMAX(ninds, 1)]; /* Empty arrays not allowed in C99 */
+      for (j=0; j<ninds; j++)
+	dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
+      pdl_thread_create_parameter(
+	pdlthread,i,dims,
+	vtable->par_flags[i] & PDL_PARAM_ISTEMP
+      );
+    } else {
+      PDL_Indx *dims = pdl->dims;
+      if (ninds > 0 && ndims < ninds) {
+	/* Dimensional promotion when number of dims is less than required: */
+	for (j=0; j<ninds; j++) {
+	  ind_id = PDL_IND_ID(vtable, i, j);
+	  if (ndims < j+1 && ind_sizes[ind_id] <= 1) ind_sizes[ind_id] = 1;
+	}
+      }
+      /* Now, the real check. */
+      for (j=0; j<ninds; j++) {
+	ind_id = PDL_IND_ID(vtable, i, j);
+	if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
+	  ind_sizes[ind_id] = dims[j];
+	else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
+	  pdl_pdl_barf("Error in %s: wrong dimensions for parameter '%s'\\n", vtable->name, vtable->par_names[i]);
+      }
+      if (vtable->par_flags[i] & PDL_PARAM_ISPHYS)
+	pdl_make_physical(pdl);
+    }
+  }
+  for (i=0; i<vtable->npdls; i++) {
+    PDL_Indx ninds = vtable->par_realdims[i];
+    pdl *pdl = pdls[i];
+    PDL_Indx *dims = pdl->dims;
+    if (!ninds || !(vtable->par_flags[i] & PDL_PARAM_ISPHYS)) continue;
+    for (j=0; j<ninds; j++) {
+      ind_id = PDL_IND_ID(vtable, i, j);
+      if (ind_sizes[ind_id] > 1 && ind_sizes[ind_id] != dims[j])
+	pdl_pdl_barf(
+	  "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
+	  vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
+	  ind_sizes[ind_id], dims[j]
+	);
+    }
+  }
+  PDLDEBUG_f(printf("pdl_dim_checks after:\n"));
+  PDLDEBUG_f(do {printf("  ind_sizes: "); print_iarr(ind_sizes, vtable->ninds);printf("\n");fflush(stdout);}while(0));
+}

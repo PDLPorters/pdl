@@ -785,7 +785,7 @@ threadover_n(...)
 	realdims[i] = 0;
     }
     PDL_THR_CLRMAGIC(&pdl_thr);
-    pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL, 1);
+    pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL,NULL, 1);
     pdl_startthreadloop(&pdl_thr,NULL,NULL);
     sd = pdl_thr.ndims;
     do {
@@ -844,7 +844,7 @@ threadover(...)
     PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %d ",i); pdl_dump(pdls[i]); });
     PDL_THR_CLRMAGIC(&pdl_thr);
     pdl_initthreadstruct(0,pdls,realdims,creating,npdls,
-			NULL,&pdl_thr,NULL, 1);
+			NULL,&pdl_thr,NULL,NULL, 1);
     for(i=0, nc=npdls; i<npdls; i++)  /* create as necessary */
       if (creating[i]) {
 	PDL_Indx *cp = creating+nc;

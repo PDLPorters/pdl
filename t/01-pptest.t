@@ -185,6 +185,12 @@ pp_add_boot pp_line_numbers(__LINE__, q{
         /* nothing happening here */
 });
 
+# test fixed value for named dim, wrong Code for simplicity
+pp_deft('Cpow',
+	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
+	Code => '$c(m => 0) = $a(m => 0) + $b(m => 0);',
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -295,6 +301,8 @@ ok(all $xx->slice('(1)') == 699);
     ok( tapprox( $got, $exp ), "continue works in threadloop" )
       or do { diag "got     : $got"; diag "expected: $exp" };
 }
+
+test_Cpow(sequence(2), 1);
 
 done_testing;
 EOF

@@ -77,7 +77,7 @@ void pdl_readdata_vaffine(pdl *it);
   X(clearthreadstruct, void, (pdl_thread *it)) \
   X(initthreadstruct, void, (int nobl,pdl **pdls,PDL_Indx *realdims, \
     PDL_Indx *creating,PDL_Indx npdls,pdl_transvtable *transvtable, \
-    pdl_thread *thread,char *flags, int noPthreadFlag )) \
+    pdl_thread *thread,PDL_Indx *ind_sizes,char *flags, int noPthreadFlag)) \
   X(startthreadloop, int, (pdl_thread *thread,void (*func)(pdl_trans *), \
     pdl_trans *)) \
   X(get_threadoffsp, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
@@ -97,6 +97,7 @@ void pdl_readdata_vaffine(pdl *it);
   X(set_trans_childtrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
   X(set_trans_parenttrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
   X(create_trans, pdl_trans *, (size_t sz, short flags, pdl_transvtable *vtable)) \
+  X(dim_checks, void, (pdl_transvtable *vtable, pdl **pdls, pdl_thread *pdlthread, PDL_Indx *creating, PDL_Indx *ind_sizes)) \
   X(get_convertedpdl, pdl *, (pdl *pdl,int type)) \
   X(make_trans_mutual, void, (pdl_trans *trans)) \
   X(make_physical, void, (pdl *it)) \
