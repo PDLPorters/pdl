@@ -2834,7 +2834,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
           $str = "$hdr\n";
         } else {
           my $xscode = join '' => @bits;
-          $str = "$hdr \n { $xscode \n}\n\n";
+          $str = "$hdr \n $xscode\n\n";
         }
         $str =~ s/(\s*\n)+/\n/g;
         ($str,$boot,$prelude)
