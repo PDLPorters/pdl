@@ -2532,8 +2532,6 @@ END
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
-   PDL::PP::Rule::Returns::EmptyString->new("NewXSTypeCoerce", "NoConversion"),
-
    PDL::PP::Rule->new("NewXSTypeCoerceNS",
       ["SignatureObj","IgnoreTypesOf","NewXSSymTab","_P2Child"],
       # Assuming that, if HASP2Child is true, we only have
@@ -2587,8 +2585,6 @@ END
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
-   PDL::PP::Rule::Returns::EmptyString->new("NewXSStructInit1", ["SignatureObj","NewXSSymTab"]),
-
    PDL::PP::Rule->new("NewXSSetTrans", ["SignatureObj","NewXSSymTab"], sub {
       my($sig,$symtab) = @_;
       my $trans = $symtab->get_symname('_PDL_ThisTrans');
@@ -2620,14 +2616,14 @@ END
 #
    PDL::PP::Rule->new(["CompNames","CompObjs"], "Comp", \&OtherPars_nft),
    PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], \&NT2Decls_p),
-   PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
+   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompNames","CompObjs"],
 				"COMP"),
 
    PDL::PP::Rule->new("CompFreeCode", ["CompNames","CompObjs"], \&NT2Free_p),
 
 # This is the default
 #
-   PDL::PP::Rule->new("MakeCompiledRepr",
+   PDL::PP::Rule->new("MakeCompiledReprNS",
       ["OtherParNames","OtherParTypes","NewXSSymTab"],
       sub {
         my($onames,$otypes,$symtab) = @_;
@@ -2708,12 +2704,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       }),
    PDL::PP::Rule::Substitute::Usual->new("IsReversibleCode", "IsReversibleCodeNS"),
 
-   # Needs cleaning up. NewXSStructInit2DJB has been added to make use
-   # of the PDL::PP::Rule::Substitute class.
-   #
-   PDL::PP::Rule::Substitute->new("NewXSStructInit2DJB", "MakeCompiledRepr"),
-   PDL::PP::Rule->new("NewXSStructInit2", "NewXSStructInit2DJB",
-      sub { PDL::PP::pp_line_numbers(__LINE__-1, "{".$_[0]."}") }),
+   PDL::PP::Rule::Substitute->new("MakeCompiledRepr", "MakeCompiledReprNS"),
 
    PDL::PP::Rule->new("FreeCodeNS",
       ["CompFreeCode","NTPrivFreeCode"],
@@ -2875,8 +2866,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
        #     NewXSCopyBadValues,
        #     NewXSMakeNow,  # this is unnecessary since families never got implemented
        "NewXSFindDatatype","NewXSTypeCoerce",
-       "NewXSStructInit1",
-       "NewXSStructInit2",
+       "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
        "NewXSClearThread",
        "NewXSSetTrans",
@@ -2910,8 +2900,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
        #     NewXSCopyBadValues,
        #     NewXSMakeNow, # this is unnecessary since families never got implemented
        "NewXSFindDatatype","NewXSTypeCoerce",
-       "NewXSStructInit1",
-       "NewXSStructInit2",
+       "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
        "NewXSClearThread",
        "NewXSSetTrans",
