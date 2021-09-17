@@ -2102,9 +2102,11 @@ EOD
 # P2Child implicitly means "no data type changes".
 
    PDL::PP::Rule->new(["SignatureObj","HaveThreading","NewXSName"],
-		      ["P2Child","Name","BadFlag"],
+		      ["P2Child","Name","BadFlag","GenericTypes"],
       sub {
-        my($p2child,$name,$badflag) = @_;
+        my($p2child,$name,$badflag,$gentypes) = @_;
+        confess "ERROR: P2Child with gentypes (@$gentypes) not covering ALL types\n"
+          if $p2child and $#$gentypes != $ntypes;
         (make_signature("PARENT(); [oca]CHILD();",$badflag),0,"${name}_NN");
       }),
 
@@ -2480,11 +2482,6 @@ END
         my($sig,$ignore,$newstab,$gentypes,$hasp2child) = @_;
         my ($parnames, $parobjs) = ($sig->names_sorted, $sig->objs);
         my $dtype = "\$PRIV(__datatype)";
-        # TODO XXX
-        #  the check can probably be removed, but left in since I don't know
-        #  what I'm doing (DJB)
-        confess "ERROR: gentypes (@$gentypes) != $ntypes with p2child\n"
-          if $hasp2child and $#$gentypes != $ntypes;
         return "$dtype = $$parnames[0]\->datatype;\n\$PRIV(has_badvalue) = $$parnames[0]\->has_badvalue;\n\$PRIV(badvalue) = $$parnames[0]\->badvalue;\n"
           if $hasp2child;
         my $str = PDL::PP::pp_line_numbers(__LINE__-1, "$dtype = 0;");
