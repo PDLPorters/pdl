@@ -2423,34 +2423,10 @@ END
 
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
 
-# hmm, need to check on conditional check here (or rather, other bits of code prob need
-# to include it too; see Ops.xs, PDL::assgn)
-##
-##           sub { return (defined $_[0]) ? "int \$BADFLAGCACHE() = 0;" : ""; } ],
-##
-## why have I got a "_HandleBad" condition here? it isn't used in the routine
-## and isn't required to fire the rule. Or should we actually check the value of
-## HandleBad (ie to optimize for code that explicitly doesn't handle bad code)?
-## TO DO: Check assgn in ops for this? Not obvious, or at least we need other
-## bits of code work with us (eg the checking of $BADFLAGCACHE in some other
-## rule)
-##
-##    PDL::PP::Rule->new("CacheBadFlagInitNS", "_HandleBad",
-##		      sub { return "\n  int \$BADFLAGCACHE() = 0;\n"; }),
-    PDL::PP::Rule->new("CacheBadFlagInitNS",
+   PDL::PP::Rule->new("CacheBadFlagInitNS",
 		      sub { PDL::PP::pp_line_numbers(__LINE__, "\n  int \$BADFLAGCACHE() = 0;\n") }),
-# The next rule, if done in place of the above, causes Ops.xs to fail to compile
-#    PDL::PP::Rule->new("CacheBadFlagInitNS", "BadFlag",
-#		      sub { return $_[0] ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; }),
    PDL::PP::Rule::Substitute::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS"),
 
-    # need special cases for
-    # a) bad values
-    # b) bad values + GlobalNew
-    # c) bad values + PMCode
-    # - perhaps I should have separate rules (but b and c produce the
-    #   same output...)
-    #
    PDL::PP::Rule->new("NewXSStructInit0",
 		      ["NewXSSymTab","VTableName","IsAffineFlag","HaveThreading"],
 		      "Rule to create and initialise the private trans structure",
