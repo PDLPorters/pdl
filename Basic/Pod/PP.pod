@@ -1610,6 +1610,15 @@ automatically flagged to indicate that it can be executed inplace,
 ie something similar to how C<HandleBad> sets C<BadDoc> if it's not 
 supplied (it's not an ideal solution).
 
+=item FTypes
+
+  # in slices.pd
+  FTypes => {CHILD => '$COMP(totype)'},
+
+The value is a hash-ref mapping parameter-names to an expression giving
+an override of the type for that parameter. The example above shows the
+type being overridden to the C<OtherPars> "totype".
+
 =back
 
 =head2 Other PDL::PP functions to support concise package definition
@@ -2143,9 +2152,6 @@ applies if PDL has been compiled with POSIX threads enabled.
 
 =cut
 
-# FTypes is specified only in the two internal slice functions
-# converttypei and flowconvert.
-
 # converttypei is pp_def-ed in slices.pd, which generates converttypei_NN
 # which is installed as global PDL."converttypei_new" (as that is the
 # "GlobalNew" value in the pp_def) in PDL::Slices's BOOT section.
@@ -2155,8 +2161,7 @@ applies if PDL has been compiled with POSIX threads enabled.
 # flowconvert, on the other hand, claims that it 'converts vaffine
 # ndarrays without physicalizing them'. However, its only use, in Core.pm,
 # is followed immediately by a "->make_physical->sever", so I don't see the
-# advantage of not making things physical. At any rate, FTypes needs to be
-# documented.
+# advantage of not making things physical.
 
 =item PMCode
 
@@ -2606,8 +2611,6 @@ EquivCPOffsCode
 EquivDimCheck
 
 EquivPDimExpr
-
-FTypes (see comment in this POD's source file between NoPthread and PMCode.)
 
 GlobalNew
 
