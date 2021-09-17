@@ -726,15 +726,7 @@ sub new {
 sub extract_args {
     my $self = shift;
     my $pars = shift;
-
-    # The conditions are [<symbol>, conditions...]
-    # - could use slicing here
-    #
-    my @args = ($self->{"makecomp.value"});
-    foreach my $condition (@{$self->{conditions}}) {
-      push @args, $pars->{$condition};
-    }
-    return @args;
+    ($self->{"makecomp.value"}, @$pars{@{$self->{conditions}}});
 }
 
 package PDL::PP;
