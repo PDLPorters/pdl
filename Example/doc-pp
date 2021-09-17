@@ -11,6 +11,7 @@ use GraphViz2;
 my $g = Graph->new; # should really be hypergraph but GraphViz2 not do yet
 for my $r (@{$PDL::PP::deftbl}) {
   for my $t (@{$r->{targets}}) {
+    $g->add_vertex($t);
     $g->add_edge($t, $_) for map s/_//gr, @{$r->{conditions}||[]};
   }
 }
