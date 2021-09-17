@@ -881,6 +881,12 @@ our @CARP_NOT;
 
 my $ntypes = $#PDL::Types::names;
 
+my @code_args_always = qw(SignatureObj GenericTypes ExtraGenericLoops HaveThreading Name);
+sub make_code_args {
+  my ($which) = @_;
+  [$which,"_Bad$which",@code_args_always];
+}
+
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
 sub import {
@@ -2594,12 +2600,10 @@ END
    }),
 
    PDL::PP::Rule->new("ParsedCode",
-		      ["Code","_BadCode","SignatureObj","GenericTypes",
-		       "ExtraGenericLoops","HaveThreading","Name"],
+		      make_code_args("Code"),
 		      sub { return PDL::PP::Code->new(@_); }),
    PDL::PP::Rule->new("ParsedBackCode",
-		      ["BackCode","_BadBackCode","SignatureObj","GenericTypes",
-		       "ExtraGenericLoops","HaveThreading","Name"],
+		      make_code_args("BackCode"),
 		      sub { return PDL::PP::Code->new(@_, undef, 'BackCode2'); }),
 
 # Compiled representations i.e. what the xsub function leaves
@@ -2654,8 +2658,7 @@ END
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       ''),
    PDL::PP::Rule->new("RedoDimsParsedCode",
-      ["RedoDimsCode","_BadRedoDimsCode","SignatureObj",
-       "GenericTypes","ExtraGenericLoops","HaveThreading","Name"],
+      make_code_args("RedoDimsCode"),
       'makes the parsed representation from the supplied RedoDimsCode',
       sub {
           return '' if !$_[0];
