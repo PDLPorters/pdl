@@ -2472,7 +2472,12 @@ END
         for(@{ $sig->names }) { $str .= "$_ = PDL->make_now($_);\n"; }
         $str;
       }),
-   PDL::PP::Rule->new("IgnoreTypesOf", "FTypes", sub {return {map {($_,1)} keys %{$_[0]}}}),
+   PDL::PP::Rule->new("IgnoreTypesOf", ["FTypes","SignatureObj"], sub {
+      my ($ftypes, $sig) = @_;
+      my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
+      $_->{FlagIgnore} = 1 for grep $ftypes->{$_->{Name}}, @$pobjs{@$pnames};
+      +{map +($_,1), keys %$ftypes};
+   }),
    PDL::PP::Rule::Returns->new("IgnoreTypesOf", {}),
 
    PDL::PP::Rule->new("NewXSCoerceMustNS", "FTypes",

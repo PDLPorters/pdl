@@ -82,6 +82,7 @@ my %flag2c = qw(
   FlagTemp PDL_PARAM_ISTEMP
   FlagW PDL_PARAM_ISWRITE
   FlagPhys PDL_PARAM_ISPHYS
+  FlagIgnore PDL_PARAM_ISIGNORE
 );
 sub new {
 	my($type,$string,$badflag,$sig) = @_;

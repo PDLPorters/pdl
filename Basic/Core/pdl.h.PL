@@ -319,6 +319,7 @@ typedef struct pdl_transvtable {
 #define PDL_PARAM_ISTEMP             0x0080
 #define PDL_PARAM_ISWRITE            0x0100
 #define PDL_PARAM_ISPHYS             0x0200
+#define PDL_PARAM_ISIGNORE           0x0400
 
 #define PDL_LIST_FLAGS_PARAMS(X) \
  X(PDL_PARAM_ISREAL) \
@@ -330,7 +331,8 @@ typedef struct pdl_transvtable {
  X(PDL_PARAM_ISOUT) \
  X(PDL_PARAM_ISTEMP) \
  X(PDL_PARAM_ISWRITE) \
- X(PDL_PARAM_ISPHYS)
+ X(PDL_PARAM_ISPHYS) \
+ X(PDL_PARAM_ISIGNORE)
 
 /* All trans must start with this */
 
