@@ -2553,7 +2553,9 @@ END
           return PDL::PP::pp_line_numbers(__LINE__-1, "$child\->datatype = \$PRIV(__datatype);\n$child\->has_badvalue = \$PRIV(has_badvalue);\n$child\->badvalue = \$PRIV(badvalue);\n");
         }
         my $str = PDL::PP::pp_line_numbers(__LINE__-1, "");
+        my ($no, $trans) = (-1, $newstab->get_symname('_PDL_ThisTrans'));
         foreach ( @{ $sig->names_sorted } ) {
+          $no++;
           next if $ignore->{$_};
           my $po = $parobjs->{$_};
           my $dtype;
@@ -2577,7 +2579,7 @@ END
               } else "
                   if $po->{FlagCreat};
             $str .= "if($dtype != $_->datatype) {
-                 $_ = PDL->get_convertedpdl($_,$dtype);
+                 $trans->pdls[$no] = $_ = PDL->get_convertedpdl($_,$dtype);
               }\n";
           }
         }
@@ -2585,13 +2587,19 @@ END
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
-   PDL::PP::Rule->new("NewXSSetTrans", ["SignatureObj","NewXSSymTab"], sub {
+   PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","NewXSSymTab"], sub {
       my($sig,$symtab) = @_;
       my $trans = $symtab->get_symname('_PDL_ThisTrans');
       my $no=0;
-      PDL::PP::pp_line_numbers(__LINE__, (join '',map {
-      "$trans->pdls[".($no++)."] = $_;\n"
-      } @{ $sig->names_sorted }).
+      PDL::PP::pp_line_numbers(__LINE__, join '',
+        map "$trans->pdls[".($no++)."] = $_;\n",
+        @{ $sig->names_sorted });
+   }),
+
+   PDL::PP::Rule->new("NewXSRunTrans", ["NewXSSymTab"], sub {
+      my($symtab) = @_;
+      my $trans = $symtab->get_symname('_PDL_ThisTrans');
+      PDL::PP::pp_line_numbers(__LINE__,
       "PDL->make_trans_mutual((pdl_trans *)$trans);\n");
    }),
 
@@ -2862,6 +2870,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       ["_GlobalNew","_NewXSCHdrs","VarArgsXSHdr","NewXSLocals",
        "CacheBadFlagInit",
        "NewXSStructInit0",
+       "NewXSSetTransPDLs",
        "NewXSFindBadStatus",
        #     NewXSCopyBadValues,
        #     NewXSMakeNow,  # this is unnecessary since families never got implemented
@@ -2869,7 +2878,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
        "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
        "NewXSClearThread",
-       "NewXSSetTrans",
+       "NewXSRunTrans",
        "NewXSCopyBadStatus",
        "VarArgsXSReturn"
       ],
@@ -2896,6 +2905,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       ["_GlobalNew","_NewXSCHdrs","NewXSHdr","NewXSLocals",
        "CacheBadFlagInit",
        "NewXSStructInit0",
+       "NewXSSetTransPDLs",
        "NewXSFindBadStatus",
        #     NewXSCopyBadValues,
        #     NewXSMakeNow, # this is unnecessary since families never got implemented
@@ -2903,7 +2913,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
        "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
        "NewXSClearThread",
-       "NewXSSetTrans",
+       "NewXSRunTrans",
        "NewXSCopyBadStatus"
       ],
       "Rule to print out XS code when variable argument list XS processing is disabled",
