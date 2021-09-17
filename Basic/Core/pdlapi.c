@@ -534,7 +534,7 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	}
 /*	if(it->vtable->dump) {it->vtable->dump(it);} */
 	printf("%s   ind_sizes: ",spaces);
-	print_iarr(it->ind_sizes, it->vtable->npdls); printf("\n");
+	print_iarr(it->ind_sizes, it->vtable->ninds); printf("\n");
 	printf("%s   INPUTS: (",spaces);
 	for(i=0; i<it->vtable->nparents; i++)
 		printf("%s%p",(i?" ":""),(void*)(it->pdls[i]));
