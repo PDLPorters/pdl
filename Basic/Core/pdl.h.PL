@@ -290,6 +290,7 @@ typedef struct pdl_transvtable {
         PDL_Indx *par_realdims; /* quantity of dimensions each par has */
         char **par_names;
         short *par_flags;
+        pdl_datatypes *par_types;
         PDL_Indx *par_realdim_ind_start; /* each par, where do its inds start in array above */
         PDL_Indx *par_realdim_ind_ids; /* each realdim, which ind is source */
         PDL_Indx ninds;

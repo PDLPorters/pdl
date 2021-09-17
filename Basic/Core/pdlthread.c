@@ -64,6 +64,18 @@ PDL_LIST_FLAGS_PARAMS(X)
 #undef X
     NULL
   };
+  int typeval[] = {
+#define X(sym, ctype, ppsym, shortctype, defbval) sym,
+PDL_GENERICLIST(X)
+#undef X
+    -1
+  };
+  char *typechar[] = {
+#define X(sym, ctype, ppsym, shortctype, defbval) #sym,
+PDL_GENERICLIST(X)
+#undef X
+    NULL
+  };
   fflush(stdout);
   printf("DUMPTHREAD %p\n",(void*)thread);
   if (thread->transvtable) {
@@ -77,10 +89,19 @@ PDL_LIST_FLAGS_PARAMS(X)
         if (found) printf(","); found=1;
         printf("%s",vtable->ind_names[PDL_IND_ID(vtable, i, j)]);
       }
+      printf(") (");
+      if (vtable->par_types[i] < 0) printf("no type");
+      else {
+	for (j=0;typeval[j]>=0; j++)
+	  if (vtable->par_types[i] == typeval[j]) {
+	    printf("%s",typechar[j]);
+	    break;
+	  }
+      }
       printf("): ");
       found=0; sz=0;
       for (j=0;paramflagval[j]!=0; j++)
-        if (thread->transvtable->par_flags[i] & paramflagval[j]) {
+        if (vtable->par_flags[i] & paramflagval[j]) {
           if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;psp;psp;}
           printf("%s",found ? "|":""); found = 1;
           printf("%s",paramflagchar[j]);
