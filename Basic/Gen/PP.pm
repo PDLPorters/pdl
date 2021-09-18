@@ -2442,9 +2442,9 @@ END
         PDL::PP::pp_line_numbers(__LINE__-1, "$sname = (void *)PDL->create_trans(sizeof(*$sname), $affflag, &$vtable);\n");
       }),
 
-   PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj","NewXSSymTab"],
+   PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
       sub {
-        my($sig, $symtab) = @_;
+        my($sig) = @_;
         my $str = PDL::PP::pp_line_numbers(__LINE__-1, "\n");
         for(@{ $sig->names }) { $str .= "$_ = PDL->make_now($_);\n"; }
         $str;
@@ -2469,7 +2469,7 @@ END
    PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCode", "DefaultFlowCodeNS"),
 
    PDL::PP::Rule->new("NewXSFindDatatypeNS",
-		      ["SignatureObj","IgnoreTypesOf","NewXSSymTab","GenericTypes","_P2Child"],
+		      ["SignatureObj","IgnoreTypesOf","GenericTypes","_P2Child"],
       # First, finds the greatest datatype, then, if not supported, takes
       # the largest type supported by the function.
       # Not yet optimal.
@@ -2479,7 +2479,7 @@ END
       # datatype to be that of PARENT (see also NewXSTypeCoerceNS-setter)
       #
       sub {
-        my($sig,$ignore,$newstab,$gentypes,$hasp2child) = @_;
+        my($sig,$ignore,$gentypes,$hasp2child) = @_;
         my ($parnames, $parobjs) = ($sig->names_sorted, $sig->objs);
         my $dtype = "\$PRIV(__datatype)";
         return "$dtype = $$parnames[0]\->datatype;\n\$PRIV(has_badvalue) = $$parnames[0]\->has_badvalue;\n\$PRIV(badvalue) = $$parnames[0]\->badvalue;\n"
@@ -2502,16 +2502,7 @@ END
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS",
-      ["SignatureObj","IgnoreTypesOf","NewXSSymTab","_P2Child"],
-      # Assuming that, if HASP2Child is true, we only have
-      # PARENT; CHILD parameters, so we can just take the
-      # datatype to be that of PARENT (which is set up by
-      # NewXSFindDatatypeNS-setter). Little bit complicated because
-      # we need to set CHILD's datatype under certain
-      # circumstances
-      #
       sub {
-        my($sig,$ignore,$newstab,$hasp2child) = @_;
         PDL::PP::pp_line_numbers(__LINE__-1, 'PDL->type_coerce($PRIV(vtable), $PRIV(pdls), $PRIV(__datatype), $PRIV(badvalue), $PRIV(has_badvalue));');
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
@@ -2668,7 +2659,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__-1, "__privtrans->pdlthread.inds = 0;") : ""}),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
-      ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","NewXSSymTab","Name"],
+      ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","Name"],
       "Rule to find the bad value status of the input ndarrays",
       # checks the input ndarrays to see if the routine
       # is being any data containing bad values
@@ -2681,7 +2672,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       # we issue a warning if any ndarrays contain bad values
       # (and set the bvalflag to 0)
       sub {
-        my ( $badflag, $badcode, $xsargs, $sig, $optypes, $symtab, $name ) = @_;
+        my ( $badflag, $badcode, $xsargs, $sig, $optypes, $name ) = @_;
         my $parobjs = $sig->objs;
         return PDL::PP::pp_line_numbers(__LINE__, $badcode) if defined $badcode;
         my @args   = map { $_->[0] } @$xsargs;
