@@ -2422,22 +2422,15 @@ END
         return ["void $name($longpars) {","}",
                 "PDL->$gname = $name;"];
       }),
-   PDL::PP::Rule->new("NewXSLocals", "NewXSSymTab",
-      sub { PDL::PP::pp_line_numbers(__LINE__-1, $_[0]->decl_locals()) }
-   ),
 
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
 
-   PDL::PP::Rule->new("CacheBadFlagInitNS",
-		      sub { PDL::PP::pp_line_numbers(__LINE__, "\n  int \$BADFLAGCACHE() = 0;\n") }),
-   PDL::PP::Rule::Substitute::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS"),
-
    PDL::PP::Rule->new("NewXSStructInit0",
-		      ["StructName","VTableName","IsAffineFlag","HaveThreading"],
+		      ["StructName","StructType","VTableName","IsAffineFlag","HaveThreading"],
 		      "Rule to create and initialise the private trans structure",
       sub {
-        my( $sname, $vtable, $affflag, $havethreading ) = @_;
-        PDL::PP::pp_line_numbers(__LINE__-1, "$sname = (void *)PDL->create_trans(sizeof(*$sname), $affflag, &$vtable);\n");
+        my( $sname, $stype, $vtable, $affflag, $havethreading ) = @_;
+        PDL::PP::pp_line_numbers(__LINE__-1, "$stype *$sname = (void *)PDL->create_trans(sizeof($stype), $affflag, &$vtable);\n");
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
@@ -2692,7 +2685,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
         # set the badflag_cache variable if any input ndarray has the bad flag set
         #
         my $add = 0;
-        my $badflag_str = "  \$BADFLAGCACHE() = ";
+        my $badflag_str = "int \$BADFLAGCACHE() = ";
         foreach my $i ( 0 .. $#args ) {
           my $x = $args[$i];
           unless ( $other{$x} or $out{$x} or $tmp{$x} or $outca{$x}) {
@@ -2742,8 +2735,9 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       sub {
         my ( $badflag, $xsargs, $sig ) = @_;
         my $parobjs = $sig->objs;
-        my @outs = grep exists $$parobjs{$_} && $$parobjs{$_}{FlagOut}, map $_->[0], @$xsargs;
-        return '' if @$xsargs == @outs; # no inputs, no badflag copying needed
+        my @pdl_params = grep exists $$parobjs{$_}, map $_->[0], @$xsargs;
+        my @outs = grep $$parobjs{$_}{FlagOut}, @pdl_params;
+        return '' if @pdl_params == @outs; # no input pdls, no badflag copying needed
         PDL::PP::pp_line_numbers(__LINE__-1, "if (\$BADFLAGCACHE()) {\n") .
           join('', map "  " . set_badstate($_) . ";\n", @outs) .
           "}\n";
@@ -2758,8 +2752,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
  # will not be executed. D. Hunt 4/11/00
  #
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      ["_GlobalNew","_NewXSCHdrs","VarArgsXSHdr","NewXSLocals",
-       "CacheBadFlagInit",
+      ["_GlobalNew","_NewXSCHdrs","VarArgsXSHdr",
        "NewXSStructInit0",
        "NewXSSetTransPDLs",
        "NewXSFindBadStatus",
@@ -2794,8 +2787,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
  # D. Hunt 4/11/00
  #
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      ["_GlobalNew","_NewXSCHdrs","NewXSHdr","NewXSLocals",
-       "CacheBadFlagInit",
+      ["_GlobalNew","_NewXSCHdrs","NewXSHdr",
        "NewXSStructInit0",
        "NewXSSetTransPDLs",
        "NewXSFindBadStatus",
