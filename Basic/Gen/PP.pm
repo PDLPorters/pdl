@@ -2755,18 +2755,9 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
         my ( $badflag, $badcode, $xsargs, $sig, $symtab ) = @_;
         my $parobjs = $sig->objs;
         if (defined $badcode) {
-          # realised in 2.4.3 testing that use of $PRIV at this stage is
-          # dangerous since it may have been freed. So I introduced the
-          # $BFLACACHE variable which stores the $PRIV(bvalflag) value
-          # for use here.
-          # For now make the substitution automatic but it will likely become an
-          # error to use $PRIV(bvalflag) here.
-          #
-          if ($badcode =~ m/\$PRIV(bvalflag)/) {
-            $badcode =~ s/\$PRIV(bvalflag)/\$BADFLAGCACHE()/;
-            print "\nPDL::PP WARNING: CopyBadStatusCode contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()\n\n";
-          }
-          return PDL::PP::pp_line_numbers(__LINE__-1, $badcode);
+          confess "PDL::PP ERROR: CopyBadStatusCode contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()\n\n"
+            if $badcode =~ m/\$PRIV(bvalflag)/;
+          return $badcode;
         }
         # names of output variables    (in calling order)
         my @outs;

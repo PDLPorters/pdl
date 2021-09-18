@@ -19,6 +19,7 @@
 - change API of PDL->converttype to remove obsolete flag
 - remove unused "copy" mechanism for pdl_trans
 - rename (struct pdl).trans -> trans_parent for comprehensibility
+- now an error if CopyBadStatusCode uses $PRIV(bvalflag)
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism
