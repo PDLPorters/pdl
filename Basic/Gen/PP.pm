@@ -541,12 +541,11 @@ our @ISA = qw (PDL::PP::Rule);
 # Probably want this directly in the apply routine but leave as is for now
 #
 sub dosubst_private {
-    my ($src,$symtab,$name) = @_;
+    my ($src,$sname,$name) = @_;
     my $ret = (ref $src ? $src->[0] : $src);
     my %syms = (
 		((ref $src) ? %{$src->[1]} : ()),
-		PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
-			       "->$_[0]"},
+		PRIV => sub {return "$sname->$_[0]"},
 		CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->pdl_barf(\"Error in $name:\" $_[0])")},
 		NAME => sub {return $name},
 		MODULE => sub {return $::PDLMOD},
@@ -582,7 +581,7 @@ sub new {
     die "\$target must be a scalar for PDL::PP::Rule->Substitute" if ref $target;
     die "\$condition must be a scalar for PDL::PP::Rule->Substitute" if ref $condition;
 
-    $class->SUPER::new($target, [$condition, "NewXSSymTab", "Name"],
+    $class->SUPER::new($target, [$condition, "StructName", "Name"],
 				  \&dosubst_private);
 }
 
@@ -638,10 +637,10 @@ sub extract_args {
     # The conditions are [<code>, NewXSSymTab, Name]
     #
     my $code   = $pars->{$self->{conditions}[0]};
-    my $symtab = $pars->{$self->{conditions}[1]};
+    my $sname = $pars->{$self->{conditions}[1]};
     my $name   = $pars->{$self->{conditions}[2]};
 
-    return ([$code,{@std_childparent}],$symtab,$name);
+    return ([$code,{@std_childparent}],$sname,$name);
 }
 
 # Poor name. This is the old "subst_makecomp" routine
@@ -1280,7 +1279,6 @@ $SIG{__DIE__} = sub {print Carp::longmess(@_); die;}
 use PDL::PP::Signature;
 use PDL::PP::Dims;
 use PDL::PP::CType;
-use PDL::PP::SymTab;
 use PDL::PP::PDLCode;
 
 $|=1;
@@ -2140,12 +2138,6 @@ EOD
    PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","SignatureObj"], \&OtherPars_nft),
 
    PDL::PP::Rule::Returns->new("StructName", "__privtrans"),
-   PDL::PP::Rule->new("DefSyms", ["StructName","StructType"],
-      sub {
-        PDL::PP::SymTab->new(
-         _PDL_ThisTrans => [$_[0],PDL::PP::CType->new(undef,"$_[1] *foo")],
-        );
-      }),
 
    PDL::PP::Rule->new("NewXSArgs", ["SignatureObj","OtherParNames","OtherParTypes"],
       sub {
@@ -2159,15 +2151,6 @@ EOD
       }),
 
    PDL::PP::Rule::Returns->new("PMCode", undef),
-
-   PDL::PP::Rule->new("NewXSSymTab", ["DefSyms","NewXSArgs"],
-      sub {
-        my($symtab,$args) = @_;
-        $symtab->add_params(
-          map {($_->[0],$_->[0])} @$args
-        );
-        return $symtab;
-      }),
 
    PDL::PP::Rule->new("InplaceCode", ["Name","NewXSArgs","SignatureObj","_Inplace"],
 		      'Insert code (just after HdrCode) to ensure the routine can be done inplace',

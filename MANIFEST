@@ -40,7 +40,6 @@ Basic/Gen/PP/dump.pp
 Basic/Gen/PP/PDLCode.pm
 Basic/Gen/PP/PdlParObj.pm
 Basic/Gen/PP/Signature.pm
-Basic/Gen/PP/SymTab.pm
 Basic/Gen/pptemplate
 Basic/Lite.pm
 Basic/LiteF.pm
