@@ -2740,43 +2740,28 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       }),
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
-      ["BadFlag","_CopyBadStatusCode","NewXSArgs","SignatureObj","NewXSSymTab"],
+      ["BadFlag","CopyBadStatusCode"],
+      "Use CopyBadStatusCode if given",
+      sub {
+        my ($badflag, $badcode) = @_;
+        confess "PDL::PP ERROR: CopyBadStatusCode contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()"
+          if $badcode =~ m/\$PRIV(bvalflag)/;
+        $badcode;
+      }),
+   PDL::PP::Rule->new("NewXSCopyBadStatusNS",
+      ["BadFlag","NewXSArgs","SignatureObj"],
       "Rule to copy the bad value status to the output ndarrays",
-      # copies over the bad value state to the output ndarrays
-      #
-      # if CopyBadStatusCode is set, use it,
-      # otherwise create the code automatically.
-      #
       # note: this is executed before the trans_mutual call
       # is made, since the state may be changed by the
       # Code section
-      #
       sub {
-        my ( $badflag, $badcode, $xsargs, $sig, $symtab ) = @_;
+        my ( $badflag, $xsargs, $sig ) = @_;
         my $parobjs = $sig->objs;
-        if (defined $badcode) {
-          confess "PDL::PP ERROR: CopyBadStatusCode contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()\n\n"
-            if $badcode =~ m/\$PRIV(bvalflag)/;
-          return $badcode;
-        }
-        # names of output variables    (in calling order)
-        my @outs;
-        foreach my $arg (@$xsargs) {
-          my $x = $arg->[0];
-          push (@outs, $x) if (exists ($$parobjs{$x}) and exists ($$parobjs{$x}{FlagOut}));
-        }
+        my @outs = grep exists $$parobjs{$_} && $$parobjs{$_}{FlagOut}, map $_->[0], @$xsargs;
         return '' if @$xsargs == @outs; # no inputs, no badflag copying needed
-        my $str = PDL::PP::pp_line_numbers(__LINE__-1, '');
-      # It appears that some code in Bad.xs sets the cache value but then
-      # this bit of code never gets called. Is this an efficiency issue (ie
-      # should we try and optimise away those ocurrences) or does it perform
-      # some purpose?
-      #
-        $str = "if (\$BADFLAGCACHE()) {\n";
-        foreach my $arg ( @outs ) {
-          $str .= "  " . set_badstate($arg) . ";\n";
-        }
-        $str . "}\n";
+        PDL::PP::pp_line_numbers(__LINE__-1, "if (\$BADFLAGCACHE()) {\n") .
+          join('', map "  " . set_badstate($_) . ";\n", @outs) .
+          "}\n";
       }),
 
  # expand macros in ...BadStatusCode
