@@ -2395,9 +2395,6 @@ END
         # globalnew implies internal usage, not XS
         return undef if $globalnew;
         my @outs; # names of output variables (in calling order)
-        # beware of existance tests like this:  $$parobjs{$arg->[0]}{FlagOut}  !
-        # this will cause $$parobjs{$arg->[0]} to spring into existance even if $$parobjs{$arg->[0]}{FlagOut}
-        # does not exist!!
         my $parobjs = $sig->objs;
         foreach my $arg (@$xsargs) {
             my $x = $arg->[0];
@@ -2683,15 +2680,10 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       # if $badflag is 0, rather than being undefined, then
       # we issue a warning if any ndarrays contain bad values
       # (and set the bvalflag to 0)
-      #
-      # XXX it looks like output ndarrays are included in the
-      # check. I *think* this is just wasted code, but I'm
-      # not sure.
       sub {
         my ( $badflag, $badcode, $xsargs, $sig, $optypes, $symtab, $name ) = @_;
         my $parobjs = $sig->objs;
         return PDL::PP::pp_line_numbers(__LINE__, $badcode) if defined $badcode;
-        my $sname = $symtab->get_symname('_PDL_ThisTrans');
         my @args   = map { $_->[0] } @$xsargs;
         my %out    = map {
           $_ =>
@@ -2778,14 +2770,11 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
         }
         # names of output variables    (in calling order)
         my @outs;
-        # beware of existance tests like this:  $$parobjs{$arg->[0]}{FlagOut}  !
-        # this will cause $$parobjs{$arg->[0]} to spring into existance even if $$parobjs{$arg->[0]}{FlagOut}
-        # does not exist!!
         foreach my $arg (@$xsargs) {
           my $x = $arg->[0];
           push (@outs, $x) if (exists ($$parobjs{$x}) and exists ($$parobjs{$x}{FlagOut}));
         }
-        my $sname = $symtab->get_symname('_PDL_ThisTrans');
+        return '' if @$xsargs == @outs; # no inputs, no badflag copying needed
         my $str = PDL::PP::pp_line_numbers(__LINE__-1, '');
       # It appears that some code in Bad.xs sets the cache value but then
       # this bit of code never gets called. Is this an efficiency issue (ie
