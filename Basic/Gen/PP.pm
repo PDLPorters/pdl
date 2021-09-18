@@ -837,11 +837,10 @@ our $macros = <<'EOF';
       XSRETURN(0); \
     }
 
-#define PDL_FREE_CODE(comp_free_code, priv_free_code, ntpriv_free_code) \
-    PDL_TR_CLRMAGIC(__privtrans); \
+#define PDL_FREE_CODE(trans, comp_free_code, ntpriv_free_code) \
+    PDL_TR_CLRMAGIC(trans); \
     comp_free_code \
-    if (__privtrans->dims_redone) { \
-	priv_free_code \
+    if ((trans)->dims_redone) { \
 	ntpriv_free_code \
     }
 EOF
@@ -1537,13 +1536,12 @@ sub OtherPars_nft {
     return (\@names,\%types);
 }
 
-# XXX __privtrans explicit :(
 sub wrap_vfn {
-    my($code,$hdrinfo,$rout,$p2child,$name) = @_;
+    my($sname,$code,$hdrinfo,$rout,$p2child,$name) = @_;
     my $type = ($name eq "copy" ? "pdl_trans *" : "void");
-    my $sname = $hdrinfo->{StructName};
+    my $stype = $hdrinfo->{StructType};
     my $str = PDL::PP::pp_line_numbers(__LINE__-1, qq|$type $rout(pdl_trans *__tr) {
-	$sname *__privtrans = ($sname *) __tr;\n|);
+	$stype *$sname = ($stype *) __tr;\n|);
     if ( $p2child ) {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
 	$str .= "\tif (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) PDL->hdr_copy(__parent, __it);\n" if $name eq "redodims";
@@ -1939,11 +1937,11 @@ EOD
    PDL::PP::Rule::Returns->new("ExtraGenericLoops", [],
 		'Sets ExtraGenericLoops to an empty hash if it does not already exist', {}),
 
-   PDL::PP::Rule::InsertName->new("StructName", 'pdl_trans__${name}'),
+   PDL::PP::Rule::InsertName->new("StructType", 'pdl_trans__${name}'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
 
-   PDL::PP::Rule->new("FHdrInfo", ["Name","StructName"],
-		      sub { return { Name => $_[0], StructName => $_[1], }; }),
+   PDL::PP::Rule->new("FHdrInfo", ["Name","StructType"],
+		      sub { return { Name => $_[0], StructType => $_[1], }; }),
 
 # Treat exchanges as affines. Affines assumed to be parent->child.
 # Exchanges may, if the want, handle threadids as well.
@@ -2141,10 +2139,11 @@ EOD
 
    PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","SignatureObj"], \&OtherPars_nft),
 
-   PDL::PP::Rule->new("DefSyms", "StructName",
+   PDL::PP::Rule::Returns->new("StructName", "__privtrans"),
+   PDL::PP::Rule->new("DefSyms", ["StructName","StructType"],
       sub {
         PDL::PP::SymTab->new(
-         _PDL_ThisTrans => ["__privtrans",PDL::PP::CType->new(undef,"$_[0] *foo")],
+         _PDL_ThisTrans => [$_[0],PDL::PP::CType->new(undef,"$_[1] *foo")],
         );
       }),
 
@@ -2434,11 +2433,10 @@ END
    PDL::PP::Rule::Substitute::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS"),
 
    PDL::PP::Rule->new("NewXSStructInit0",
-		      ["NewXSSymTab","VTableName","IsAffineFlag","HaveThreading"],
+		      ["StructName","VTableName","IsAffineFlag","HaveThreading"],
 		      "Rule to create and initialise the private trans structure",
       sub {
-        my( $symtab, $vtable, $affflag, $havethreading ) = @_;
-        my $sname = $symtab->get_symname('_PDL_ThisTrans');
+        my( $sname, $vtable, $affflag, $havethreading ) = @_;
         PDL::PP::pp_line_numbers(__LINE__-1, "$sname = (void *)PDL->create_trans(sizeof(*$sname), $affflag, &$vtable);\n");
       }),
 
@@ -2507,27 +2505,24 @@ END
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
-   PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","NewXSSymTab"], sub {
-      my($sig,$symtab) = @_;
-      my $trans = $symtab->get_symname('_PDL_ThisTrans');
+   PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
+      my($sig,$trans) = @_;
       my $no=0;
       PDL::PP::pp_line_numbers(__LINE__, join '',
         map "$trans->pdls[".($no++)."] = $_;\n",
         @{ $sig->names_sorted });
    }),
 
-   PDL::PP::Rule->new("NewXSExtractTransPDLs", ["SignatureObj","NewXSSymTab"], sub {
-      my($sig,$symtab) = @_;
-      my $trans = $symtab->get_symname('_PDL_ThisTrans');
+   PDL::PP::Rule->new("NewXSExtractTransPDLs", ["SignatureObj","StructName"], sub {
+      my($sig,$trans) = @_;
       my $no=0;
       PDL::PP::pp_line_numbers(__LINE__, join '',
         map "$_ = $trans->pdls[".($no++)."];\n",
         @{ $sig->names_sorted });
    }),
 
-   PDL::PP::Rule->new("NewXSRunTrans", ["NewXSSymTab"], sub {
-      my($symtab) = @_;
-      my $trans = $symtab->get_symname('_PDL_ThisTrans');
+   PDL::PP::Rule->new("NewXSRunTrans", ["StructName"], sub {
+      my($trans) = @_;
       PDL::PP::pp_line_numbers(__LINE__,
       "PDL->make_trans_mutual((pdl_trans *)$trans);\n");
    }),
@@ -2561,10 +2556,9 @@ END
 # This is the default
 #
    PDL::PP::Rule->new("MakeCompiledReprNS",
-      ["OtherParNames","OtherParTypes","NewXSSymTab"],
+      ["OtherParNames","OtherParTypes","StructName"],
       sub {
-        my($onames,$otypes,$symtab) = @_;
-        my $sname = $symtab->get_symname('_PDL_ThisTrans');
+        my($onames,$otypes,$sname) = @_;
         PDL::PP::pp_line_numbers(__LINE__,
           join '', map $otypes->{$_}->get_copy("$_","$sname->$_"), @$onames
         );
@@ -2597,10 +2591,10 @@ END
           return '' if !$_[0];
           PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-      ["SignatureObj","RedoDimsParsedCode"],
+      ["SignatureObj","RedoDimsParsedCode","StructName"],
       'makes the redodims function from the various bits and pieces',
       sub {
-        my($sig,$pcode) = @_;
+        my($sig,$pcode,$sname) = @_;
         my $str = PDL::PP::pp_line_numbers(__LINE__, '');
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $npdls = @$pnames;
@@ -2614,7 +2608,7 @@ END
         $str .= join '',map {$_->get_initdim."\n"} $sig->dims_values;
         # if FlagCreat is NOT true, then we set __creating[] to 0
         # and we can use this knowledge below, and in hdrcheck()
-        $str .= "__creating[$_] = PDL_DIMS_FROM_TRANS(__privtrans,$privname[$_]);\n"
+        $str .= "__creating[$_] = PDL_DIMS_FROM_TRANS($sname,$privname[$_]);\n"
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
         $str .= $pcode . '
 PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes))
@@ -2644,9 +2638,9 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
    PDL::PP::Rule::Substitute->new("MakeCompiledRepr", "MakeCompiledReprNS"),
 
    PDL::PP::Rule->new("FreeCodeNS",
-      ["CompFreeCode","NTPrivFreeCode"],
+      ["StructName","CompFreeCode","NTPrivFreeCode"],
       sub {
-	  (grep $_, @_) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], , $_[1])"): ''}),
+	  (grep $_, @_[1..$#_]) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], $_[1], $_[2])"): ''}),
 
    PDL::PP::Rule::Substitute::Usual->new("FreeCode", "FreeCodeNS"),
 
@@ -2655,8 +2649,8 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
    PDL::PP::Rule::MakeComp->new("NewXSCoerceMustSub1", "NewXSCoerceMust", "FOO"),
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustSub1d", "NewXSCoerceMustSub1"),
 
-   PDL::PP::Rule->new("NewXSClearThread", "HaveThreading",
-      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__-1, "__privtrans->pdlthread.inds = 0;") : ""}),
+   PDL::PP::Rule->new("NewXSClearThread", ["HaveThreading","StructName"],
+      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__-1, "$_[1]->pdlthread.inds = 0;") : ""}),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
       ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","Name"],
@@ -2832,7 +2826,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       }),
 
    PDL::PP::Rule->new("StructDecl",
-      ["SignatureObj","CompiledRepr","PrivateRepr","StructName"],
+      ["SignatureObj","CompiledRepr","PrivateRepr","StructType"],
       sub {
         my($sig,$comp,$priv,$name) = @_;
         my $npdls = @{ $sig->names };
@@ -2866,13 +2860,13 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
       }),
    PDL::PP::Rule::Substitute->new("RedoDimsSubd", "RedoDimsSub"),
    PDL::PP::Rule->new("RedoDimsFunc",
-		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","_P2Child"],
+		      ["StructName","RedoDimsSubd","FHdrInfo","RedoDimsFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"redodims")}),
 
    PDL::PP::Rule::MakeComp->new("ReadDataSub", "ParsedCode", "FOO"),
    PDL::PP::Rule::Substitute->new("ReadDataSubd", "ReadDataSub"),
    PDL::PP::Rule->new("ReadDataFunc",
-		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","_P2Child"],
+		      ["StructName","ReadDataSubd","FHdrInfo","ReadDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"readdata")}),
 
    PDL::PP::Rule::MakeComp->new("WriteBackDataSub", "ParsedBackCode", "FOO"),
@@ -2882,23 +2876,23 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
 
    PDL::PP::Rule->new("WriteBackDataFunc",
-		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","_P2Child"],
+		      ["StructName","WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"writebackdata")}),,
 
    PDL::PP::Rule->new("FreeFuncName",
 		      ["FreeCode","Name"],
 		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
    PDL::PP::Rule->new("FreeFunc",
-		      ["FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
-		      sub {$_[2] eq 'NULL' ? '' : wrap_vfn(@_,"free")}),
+		      ["StructName","FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
+		      sub {$_[3] eq 'NULL' ? '' : wrap_vfn(@_,"free")}),
 
    PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
    PDL::PP::Rule->new("VTableDef",
-      ["VTableName","StructName","RedoDimsFuncName","ReadDataFuncName",
+      ["VTableName","StructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
        "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name"],
       sub {
-        my($vname,$sname,$rdname,$rfname,$wfname,$ffname,
+        my($vname,$stype,$rdname,$rfname,$wfname,$ffname,
            $sig,$affine_ok,$havethreading, $noPthreadFlag, $name) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
@@ -2940,7 +2934,7 @@ pdl_transvtable $vname = {
   $noPthreadFlag,
   $rdname, $rfname, $wfname,
   $ffname,
-  sizeof($sname),"$::PDLMOD\::$name"
+  sizeof($stype),"$::PDLMOD\::$name"
 };
 EOF
       }),
