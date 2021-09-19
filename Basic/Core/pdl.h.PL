@@ -294,6 +294,7 @@ typedef struct pdl_transvtable {
         pdl_datatypes *par_types;
         PDL_Indx *par_realdim_ind_start; /* each par, where do its inds start in array above */
         PDL_Indx *par_realdim_ind_ids; /* each realdim, which ind is source */
+        PDL_Indx nind_ids;
         PDL_Indx ninds;
         char **ind_names; /* sorted names of "indices", eg for a(m), the "m" */
         char noPthreadFlag;
@@ -306,9 +307,12 @@ typedef struct pdl_transvtable {
         char *name;                           /* For debuggers, mostly */
 } pdl_transvtable;
 
+/* offset into either par_realdim_ind_ids or inc_sizes */
+#define PDL_INC_ID(vtable, i, j) \
+  ((vtable)->par_realdim_ind_start[i] + j)
 /* which ind_id (named dim) for the i-th pdl (aka param) in a vtable, the j-th dim on that param */
 #define PDL_IND_ID(vtable, i, j) \
-  ((vtable)->par_realdim_ind_ids[vtable->par_realdim_ind_start[i] + j])
+  ((vtable)->par_realdim_ind_ids[PDL_INC_ID(vtable, i, j)])
 
 #define PDL_PARAM_ISREAL             0x0001
 #define PDL_PARAM_ISCOMPLEX          0x0002
@@ -372,11 +376,6 @@ typedef struct pdl_transvtable {
 // Thus pdl_trans itself ends with a flexible pdl*[] array, which can be used to
 // reference any number of pdl objects. As a result pdl_trans itself can NOT be
 // instantiated
-
-// vparent is the "virtual parent" which is either
-// the parent or grandparent or whatever. The trans -structure must store
-// both the relationship with our current parent and, if necessary, the
-// virtual parent.
 
 #define PDL_TRANS_START_COMMON                                          \
   unsigned int magicno;                                                 \

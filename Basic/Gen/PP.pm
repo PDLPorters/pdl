@@ -2761,7 +2761,7 @@ pdl_transvtable $vname = {
   $op_flags, ${vname}_gentypes, $nparents, $npdls, ${vname}_flags,
   ${vname}_realdims, ${vname}_parnames,
   ${vname}_parflags, ${vname}_partypes,
-  ${vname}_realdims_starts, ${vname}_realdims_ind_ids,
+  ${vname}_realdims_starts, ${vname}_realdims_ind_ids, @{[scalar @rd_inds]},
   @{[scalar @indnames]}, ${vname}_indnames,
   $noPthreadFlag,
   $rdname, $rfname, $wfname,
