@@ -235,11 +235,10 @@ sub get_incsets {
 	my $no=0;
 	PDL::PP::pp_line_numbers(__LINE__, join '',map {
                my $name = $this->get_incname($_);
-               "if($str->ndims <= $_ || $str->dims[$_] <= 1)
-		  \$PRIV($name) = 0; else
-		 \$PRIV($name) = ".($this->{FlagPhys}?
-				   "$str->dimincs[$_];" :
-				   "PDL_REPRINC($str,$_);");
+               "\$PRIV($name) = ($str->ndims <= $_ || $str->dims[$_] <= 1) ? 0 : ".
+                  ($this->{FlagPhys}
+		    ? "$str->dimincs[$_]"
+                    : "PDL_REPRINC($str,$_)").";\n";
 	} (0..$#{$this->{IndObjs}}) )
 }
 
