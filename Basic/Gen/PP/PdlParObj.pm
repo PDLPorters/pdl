@@ -218,7 +218,7 @@ sub get_incdecls {
 	(join '',map {
 		my $name = $this->get_incname($_);
 		"PDL_Indx $name; (void)$name;";
-	} (0..$#{$this->{IndObjs}}) ) . ";"
+	} (0..$#{$this->{IndObjs}}) );
 }
 
 sub get_incregisters {
@@ -272,14 +272,14 @@ sub do_resize {
 		push @c,$index if $_->name eq $ind; $index ++;
 	}
 	my $pdl = $this->get_nname;
-	return PDL::PP::pp_line_numbers(__LINE__, (join '',map {"$pdl->dims[$_] = $size;\n"} @c).
+	return PDL::PP::pp_line_numbers(__LINE__-1, (join '',map {"$pdl->dims[$_] = $size;\n"} @c).
 		"PDL->resize_defaultincs($pdl);PDL->allocdata($pdl);".
 		$this->get_xsdatapdecl(undef,1));
 }
 
 sub do_pdlaccess {
 	my($this) = @_;
-	PDL::PP::pp_line_numbers(__LINE__, '$PRIV(pdls['.$this->{Number}.'])');
+	PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls['.$this->{Number}.'])');
 
 }
 
