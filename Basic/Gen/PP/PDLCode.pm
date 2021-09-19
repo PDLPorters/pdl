@@ -65,14 +65,12 @@ sub new {
         Name => $name,
     }, $type;
 
-    my $inccode = join '',map $_->get_incregisters(), sort values %{$this->{ParObjs}};
-
     # First, separate the code into an array of C fragments (strings),
     # variable references (strings starting with $) and
     # loops (array references, 1. item = variable.
     #
     my ( $threadloops, $coderef, $sizeprivs ) =
-	$this->separate_code( "{$inccode\n$code\n}" );
+	$this->separate_code( "{$code\n}" );
 
     # Now, if there is no explicit threadlooping in the code,
     # enclose everything into it.
@@ -97,7 +95,7 @@ sub new {
     if ( $handlebad ) {
 	print "Processing 'bad' code...\n" if $::PP_VERBOSE;
 	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) =
-	    $this->separate_code( "{$inccode\n$badcode\n}" );
+	    $this->separate_code( "{$badcode\n}" );
 
 	if(!$bad_threadloops && !$dont_add_thrloop && $havethreading) {
 	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;
@@ -154,6 +152,7 @@ sub new {
     # Then, in this form, put it together what we want the code to actually do.
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
     $this->{Code} = (join '',sort values %$sizeprivs).
+       join('',map $_->get_incregisters, sort values %{$sig->objs}).
        $coderef->get_str($this,[])
        ;
     $this->{Code};
