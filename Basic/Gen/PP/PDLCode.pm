@@ -32,7 +32,7 @@ sub new {
     # "backcode" is a flag to the PDL::PP::Threadloop class indicating thre threadloop
     #   is for writeback code (typically used for writeback of data from child to parent PDL
 
-    $dont_add_thrloop = 0 unless defined $dont_add_thrloop;
+    $dont_add_thrloop ||= !$havethreading; # two have identical (though inverted) meaning so only track one
 
     # C++ style comments
     #
@@ -74,7 +74,7 @@ sub new {
 
     # Now, if there is no explicit threadlooping in the code,
     # enclose everything into it.
-    if(!$threadloops && !$dont_add_thrloop && $havethreading) {
+    if(!$threadloops && !$dont_add_thrloop) {
 	print "Adding threadloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
 	if( !$backcode ){ # Normal readbackdata threadloop
@@ -97,7 +97,7 @@ sub new {
 	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) =
 	    $this->separate_code( "{$badcode\n}" );
 
-	if(!$bad_threadloops && !$dont_add_thrloop && $havethreading) {
+	if(!$bad_threadloops && !$dont_add_thrloop) {
 	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;
 	    my $nc = $bad_coderef;
 	    if( !$backcode ){ # Normal readbackdata threadloop

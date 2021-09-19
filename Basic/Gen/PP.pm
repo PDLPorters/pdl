@@ -1485,9 +1485,8 @@ sub OtherPars_nft {
 
 sub wrap_vfn {
     my($sname,$code,$hdrinfo,$rout,$p2child,$name) = @_;
-    my $type = ($name eq "copy" ? "pdl_trans *" : "void");
     my $stype = $hdrinfo->{StructType};
-    my $str = PDL::PP::pp_line_numbers(__LINE__-1, qq|$type $rout(pdl_trans *__tr) {
+    my $str = PDL::PP::pp_line_numbers(__LINE__-1, qq|void $rout(pdl_trans *__tr) {
 	$stype *$sname = ($stype *) __tr;\n|);
     if ( $p2child ) {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
