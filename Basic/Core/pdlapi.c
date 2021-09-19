@@ -553,10 +553,15 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 	pdl_dump_flags_fixspace(it->state,nspac+3,PDL_FLAGS_PDL);
 	printf("%s   transvtable: %p, trans: %p, sv: %p\n",spaces,
 		(void*)(it->trans_parent?it->trans_parent->vtable:0), (void*)(it->trans_parent), (void*)(it->sv));
-	if(it->datasv) {
-		printf("%s   Data SV: %p, Svlen: %d, data: %p, nvals: %"IND_FLAG"\n", spaces,
-			(void*)(it->datasv), (int)SvCUR((SV*)it->datasv), (void*)(it->data), it->nvals);
-	}
+	if(it->datasv)
+		printf("%s   datasv: %p, Svlen: %d\n", spaces,
+			(void*)it->datasv, (int)SvCUR((SV*)it->datasv));
+	if(it->data)
+		printf("%s   data: %p, nvals: %"IND_FLAG"\n", spaces,
+			(void*)(it->data), it->nvals);
+	if(it->hdrsv)
+		printf("%s   hdrsv: %p, reftype %s\n", spaces,
+			(void*)it->hdrsv, sv_reftype((SV*)it->hdrsv, TRUE));
 	printf("%s   Dims: %p ",spaces,(void*)it->dims);
 	print_iarr(it->dims, it->ndims);
 	printf("\n%s   ThreadIds: %p ",spaces,(void*)(it->threadids));
