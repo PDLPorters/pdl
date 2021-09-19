@@ -675,10 +675,8 @@ void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* in
       } \
         /* pad out, in the innermost dimension */ \
       if( !oob ) { \
-        for(;  i< dest_dims[0]-dest_off; i++) { \
-          undef_count++; \
-          dest_data[i] = undefval; \
-        } \
+        undef_count += dest_dims[0]-dest_off-i; \
+        for(; i< dest_dims[0]-dest_off; i++) dest_data[i] = undefval; \
       }
 
 #define PDL_KLUDGE_COPY_X(X, datatype_out, ctype_out, ppsym_out, shortctype, defbval) \
