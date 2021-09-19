@@ -386,6 +386,7 @@ typedef struct pdl_transvtable {
   PDL_Anyval badvalue;                                                  \
   pdl_thread pdlthread;                                                 \
   PDL_Indx *ind_sizes;                                                  \
+  PDL_Indx *inc_sizes;                                                  \
   char dims_redone;                                                     \
   int __datatype
 

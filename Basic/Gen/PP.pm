@@ -139,7 +139,7 @@ our @CARP_NOT;
 
 my %INVALID_OTHERPAR = map +($_=>1), qw(
   magicno flags vtable bvalflag has_badvalue badvalue pdls __datatype
-  ind_sizes
+  inc_sizes ind_sizes
   pdlthread
 );
 
@@ -2401,17 +2401,6 @@ END
 
 # Threads
 #
-   PDL::PP::Rule->new("Priv",
-      ["SignatureObj"],
-      sub {
-        my($sig) = @_;
-        my ($parnames, $parobjs) = ($sig->names, $sig->objs);
-        my $str = join '',
-          (map $parobjs->{$_}->get_incdecls, @$parnames),
-          ;
-        return ($str);
-      }),
-
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       ''),
@@ -2454,8 +2443,6 @@ PDL->hdr_childcopy((pdl_trans *)'.$sname.');
    PDL::PP::Rule->new(["PrivNames","PrivObjs"], "Priv", \&OtherPars_nft),
    PDL::PP::Rule->new("PrivateRepr", ["PrivNames","PrivObjs"], \&NT2Decls_p),
 
-# avoid clash with freecode above?
-#
    PDL::PP::Rule->new("NTPrivFreeCode", ["PrivNames","PrivObjs"], \&NT2Free_p),
 
    PDL::PP::Rule->new("IsReversibleCodeNS", "Reversible",

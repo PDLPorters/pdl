@@ -204,7 +204,8 @@ sub get_nnflag { my($this) = @_;
 }
 
 sub get_incname {
-	my($this,$ind) = @_;
+	my($this,$ind,$for_local) = @_;
+	return "inc_sizes[PDL_INC_ID(__privtrans->vtable,$this->{Number},$ind)]" if !$for_local;
 	if($this->{IndTotCounts}[$ind] > 1) {
 	    "__inc_".$this->{Name}."_".($this->{IndObjs}[$ind]->name).$this->{IndCounts}[$ind];
 	} else {
@@ -212,21 +213,13 @@ sub get_incname {
 	}
 }
 
-sub get_incdecls {
-	my($this) = @_;
-	if(scalar(@{$this->{IndObjs}}) == 0) {return "";}
-	(join '',map {
-		my $name = $this->get_incname($_);
-		"PDL_Indx $name; (void)$name;";
-	} (0..$#{$this->{IndObjs}}) );
-}
-
 sub get_incregisters {
 	my($this) = @_;
 	if(scalar(@{$this->{IndObjs}}) == 0) {return "";}
 	(join '',map {
-		my $name = $this->get_incname($_);
-		"register PDL_Indx $name = \$PRIV($name); (void)$name;\n";
+		my $x = $_;
+		my ($name, $for_local) = map $this->get_incname($x, $_), 0, 1;
+		"register PDL_Indx $for_local = __privtrans->$name; (void)$for_local;\n";
 	} (0..$#{$this->{IndObjs}}) )
 }
 
@@ -235,7 +228,7 @@ sub get_incsets {
 	my $no=0;
 	PDL::PP::pp_line_numbers(__LINE__, join '',map {
                my $name = $this->get_incname($_);
-               "\$PRIV($name) = ($str->ndims <= $_ || $str->dims[$_] <= 1) ? 0 : ".
+               "__privtrans->$name = ($str->ndims <= $_ || $str->dims[$_] <= 1) ? 0 : ".
                   ($this->{FlagPhys}
 		    ? "$str->dimincs[$_]"
                     : "PDL_REPRINC($str,$_)").";\n";
@@ -311,7 +304,7 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 	}
 	if(!defined $index) {confess "Access Index not found: $pdl, $ind, $indname
 		On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n" ;}
-       return "(".($this->get_incname($ind))."*".
+       return "(".($this->get_incname($ind,1))."*".
                "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))";
 }
 
