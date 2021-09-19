@@ -879,3 +879,66 @@ SV *pdl_hdr_copy(SV *hdrp) {
   LEAVE;
   return retval;
 }
+
+/*
+examine the various PDLs that form the output PDL,
+and copy headers as necessary.  The first header found with the hdrcpy
+bit set is used.  This used to do just a simple ref copy but now
+it uses the perl routine PDL::_hdr_copy to do the dirty work.  That
+routine makes a deep copy of the header.  Copies of the deep copy
+are distributed to all the names of the ndarray that are not the source
+of the header.  I believe that is the Right Thing to do but I could be
+wrong.
+Here's the flow:
+  - Check the hdrcpy flag.  If it's set, then check the header
+    to see if it exists.  If it does, we need to call the
+    perl-land PDL::_hdr_copy routine.  There are some shenanigans
+    to keep the return value from evaporating before we've had a
+    chance to do our bit with it.
+  - For each output argument in the function signature, try to put
+    a reference to the new header into that argument's header slot.
+    (For functions with multiple outputs, this produces multiple linked
+    headers -- that could be Wrong; fixing it would require making
+    yet more explicit copies!)
+  - Remortalize the return value from PDL::_hdr_copy, so that we don't
+    leak memory.
+  --CED 12-Apr-2003
+*/
+void pdl_hdr_childcopy(pdl_trans *trans) {
+  void *hdrp = NULL;
+  char propagate_hdrcpy = 0;
+  SV *hdr_copy = NULL;
+  pdl_transvtable *vtable = trans->vtable;
+  pdl **pdls = trans->pdls;
+  PDL_Indx i;
+  for (i=0; i<vtable->npdls; i++) {
+    pdl *pdl = pdls[i];
+    short flags = vtable->par_flags[i];
+    if ((!(flags & PDL_PARAM_ISCREAT) ||
+         ((flags & PDL_PARAM_ISCREAT) && !PDL_DIMS_FROM_TRANS(trans,pdl))) &&
+        pdl->hdrsv && (pdl->state & PDL_HDRCPY)
+    ) {
+      hdrp = pdl->hdrsv;
+      propagate_hdrcpy = ((pdl->state & PDL_HDRCPY) != 0);
+      break;
+    }
+  }
+  if (hdrp) {
+    hdr_copy = ((hdrp == &PL_sv_undef) ? &PL_sv_undef : pdl_hdr_copy(hdrp));
+    /* Found the header -- now copy it into all the right places */
+    for (i=0; i<vtable->npdls; i++) {
+      pdl *pdl = pdls[i];
+      short flags = vtable->par_flags[i];
+      if (!(flags & PDL_PARAM_ISCREAT)) continue;
+      if (pdl->hdrsv != hdrp) {
+        if (pdl->hdrsv && pdl->hdrsv != &PL_sv_undef)
+          (void)SvREFCNT_dec( pdl->hdrsv );
+        if (hdr_copy != &PL_sv_undef) (void)SvREFCNT_inc(hdr_copy);
+        pdl->hdrsv = hdr_copy;
+      }
+      if (propagate_hdrcpy) pdl->state |= PDL_HDRCPY;
+    }
+    if(hdr_copy != &PL_sv_undef)
+      SvREFCNT_dec(hdr_copy); /* make hdr_copy mortal again */
+  }
+}

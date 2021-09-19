@@ -743,23 +743,6 @@ our $macros = <<'EOF';
     (vtable)->per_pdl_flags, \
     (vtable)->noPthreadFlag );
 
-#define PDL_HDRCHECK1(aux, name) \
-  if(!hdrp && aux name->hdrsv && (name->state & PDL_HDRCPY)) { \
-    hdrp = name->hdrsv; \
-    propagate_hdrcpy = ((name->state & PDL_HDRCPY) != 0); \
-  }
-
-#define PDL_HDRCHECK2(name) \
-  if (name->hdrsv != hdrp) { \
-    if (name->hdrsv && name->hdrsv != &PL_sv_undef) \
-      (void)SvREFCNT_dec( name->hdrsv ); \
-    if (hdr_copy != &PL_sv_undef) \
-      (void)SvREFCNT_inc(hdr_copy); \
-    name->hdrsv = hdr_copy; \
-  } \
-  if(propagate_hdrcpy) \
-    name->state |= PDL_HDRCPY;
-
 #define PDL_XS_PREAMBLE \
   char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set \
                             by pp_bless ? (CS) */ \
@@ -1589,74 +1572,6 @@ sub NT2Free_p {
     { VarArrays2Ptrs => 1 }), @$onames;
   $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
 }
-
-##############################
-#
-# hdrcheck -- examine the various PDLs that form the output PDL,
-# and copy headers as necessary.  The last header found with the hdrcpy
-# bit set is used.  This used to do just a simple ref copy but now
-# it uses the perl routine PDL::_hdr_copy to do the dirty work.  That
-# routine makes a deep copy of the header.  Copies of the deep copy
-# are distributed to all the names of the ndarray that are not the source
-# of the header.  I believe that is the Right Thing to do but I could be
-# wrong.
-#
-# It's hard to read this sort of macro stuff so here's the flow:
-#   - Check the hdrcpy flag.  If it's set, then check the header
-#     to see if it exists.  If it doees, we need to call the
-#     perl-land PDL::_hdr_copy routine.  There are some shenanigans
-#     to keep the return value from evaporating before we've had a
-#     chance to do our bit with it.
-#   - For each output argument in the function signature, try to put
-#     a reference to the new header into that argument's header slot.
-#     (For functions with multiple outputs, this produces multiple linked
-#     headers -- that could be Wrong; fixing it would require making
-#     yet more explicit copies!)
-#   - Remortalize the return value from PDL::_hdr_copy, so that we don't
-#     leak memory.
-#
-#   --CED 12-Apr-2003
-#
-
-sub hdrcheck {
-my ($pnames,$pobjs) = @_;
-
-my $nn = $#$pnames;
-my @names = map { "\$PRIV(pdls[$_])" } 0..$nn;
-
-# from RedoDims-setter we know that __creating[] == 0 unless
-# ...{FlagCreat} is true
-#
-my $str = PDL::PP::pp_line_numbers(__LINE__-1, "
-void *hdrp = NULL;
-char propagate_hdrcpy = 0;
-SV *hdr_copy = NULL;
-");
-
-# Find a header among the possible names
-foreach ( 0 .. $nn ) {
-  my $aux = $pobjs->{$pnames->[$_]}{FlagCreat} ? "!__creating[$_] &&" : "";
-  $str .= "PDL_HDRCHECK1($aux, $names[$_])\n";
-}
-
-$str .= <<'EOF';
-    if (hdrp) {
-      hdr_copy = ((hdrp == &PL_sv_undef) ? &PL_sv_undef : PDL->hdr_copy(hdrp));
-EOF
-# if(hdrp) block is still open -- now reassign all the aliases...
-
-# Found the header -- now copy it into all the right places.
-$str .= "PDL_HDRCHECK2($names[$_])\n"
-  for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
-
-$str .= '
-      if(hdr_copy != &PL_sv_undef)
-          SvREFCNT_dec(hdr_copy); PDL_COMMENT("make hdr_copy mortal again")
-    } PDL_COMMENT("end of if(hdrp) block")
-';
-$str;
-
-} # sub: hdrcheck()
 
 ###########################################################
 # Name       : extract_signature_from_fulldoc
@@ -2524,13 +2439,12 @@ END
         }
         $str .= join '',map {$_->get_initdim."\n"} $sig->dims_values;
         # if FlagCreat is NOT true, then we set __creating[] to 0
-        # and we can use this knowledge below, and in hdrcheck()
         $str .= "__creating[$_] = PDL_DIMS_FROM_TRANS($sname,$privname[$_]);\n"
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
         $str .= $pcode . '
 PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes))
+PDL->hdr_childcopy((pdl_trans *)'.$sname.');
 ';
-        $str .= hdrcheck($pnames,$pobjs);
         $str .= join '',map {$pobjs->{$pnames->[$_]}->
           get_incsets($privname[$_])} 0..$nn;
         return $str;
