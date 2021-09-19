@@ -152,6 +152,14 @@ sub new {
     # Then, in this form, put it together what we want the code to actually do.
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
     $this->{Code} = (join '',sort values %$sizeprivs).
+       ($dont_add_thrloop?'':join "\n",
+        'PDL_COMMENT("threadloop declarations")',
+        'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
+        'register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls;',
+        'PDL_COMMENT("dims here are how many steps along those dims")',
+        (map "register PDL_Indx __tinc0_$_ = \$PRIV(pdlthread).incs[$_];", 0..$#$parnames),
+        (map "register PDL_Indx __tinc1_$_ = \$PRIV(pdlthread).incs[__tnpdls+$_];", 0.. $#$parnames),
+       ).
        join('',map $_->get_incregisters, sort values %{$sig->objs}).
        $coderef->get_str($this,[])
        ;
@@ -502,16 +510,12 @@ sub myprelude {
     PDL::PP::pp_line_numbers(__LINE__, join " \\\n\t",
       "#define $macro_name",
       'if ( PDL->startthreadloop(&($PRIV(pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return; \
-       do { register PDL_Indx __tind0=0,__tind1=0; PDL_COMMENT("counters along dim") \
-	    register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls; \
-	    PDL_COMMENT("dims here are how many steps along those dims") \
+       do { \
 	    PDL_Indx *__tdims = PDL->get_threaddims(&$PRIV(pdlthread)); \
 	    register PDL_Indx __tdims1 = __tdims[1]; \
 	    register PDL_Indx __tdims0 = __tdims[0]; \
 	    register PDL_Indx *__offsp = PDL->get_threadoffsp(&$PRIV(pdlthread));',
-      'PDL_COMMENT("incs are each pdl\'s stride")',
-      (map "register PDL_Indx __tinc0_$_ = \$PRIV(pdlthread).incs[$_];", 0..$#$ord),
-      (map "register PDL_Indx __tinc1_$_ = \$PRIV(pdlthread).incs[__tnpdls+$_];", 0.. $#$ord),
+      'PDL_COMMENT("incs are each pdl\'s stride, declared at func start")',
       'PDL_COMMENT("offs are each pthread\'s starting offset into each pdl")',
       (map $pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];", 0..$#$ord),
       'for( __tind1 = 0 ; \
