@@ -1495,9 +1495,33 @@ void pdl_type_coerce(pdl_trans *trans) {
   PDL_Indx i;
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
+  trans->__datatype = -1;
+  if (vtable->npdls == 2 && pdls[0]->has_badvalue
+      && (vtable->par_flags[1] & PDL_PARAM_ISCREATEALWAYS)) {
+    /* P2Child case */
+    trans->has_badvalue = 1;
+    trans->badvalue = pdls[0]->badvalue;
+  }
+  for (i=0; i<vtable->npdls; i++) {
+    pdl *pdl = pdls[i];
+    short flags = vtable->par_flags[i];
+    if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
+      continue;
+    if (trans->__datatype < pdl->datatype && (
+      !(flags & PDL_PARAM_ISCREAT) ||
+      ((flags & PDL_PARAM_ISCREAT) && !((pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL))
+    ))
+      trans->__datatype = pdl->datatype;
+  }
+  int type_match = 0, last_dtype = -1;
+  for (i=0;vtable->gentypes[i]!=-1; i++) {
+    last_dtype = vtable->gentypes[i];
+    if (trans->__datatype != last_dtype) continue;
+    type_match = 1;
+    break;
+  }
+  if (!type_match) trans->__datatype = last_dtype;
   pdl_datatypes trans_dtype = trans->__datatype;
-  PDL_Anyval badvalue = trans->badvalue;
-  int has_badvalue = trans->has_badvalue;
   for (i=0; i<vtable->npdls; i++) {
     PDL_Indx ninds = vtable->par_realdims[i];
     pdl *pdl = pdls[i];
@@ -1515,8 +1539,8 @@ void pdl_type_coerce(pdl_trans *trans) {
     }
     if ((flags & PDL_PARAM_ISCREATEALWAYS) ||
        ((flags & PDL_PARAM_ISCREAT) && (pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL)) {
-      pdl->badvalue = badvalue;
-      pdl->has_badvalue = has_badvalue;
+      pdl->badvalue = trans->badvalue;
+      pdl->has_badvalue = trans->has_badvalue;
       pdl->datatype = new_dtype;
     } else if (new_dtype != pdl->datatype) {
       pdls[i] = pdl_get_convertedpdl(pdl, new_dtype);

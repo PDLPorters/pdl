@@ -2432,39 +2432,6 @@ END
 
    PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCode", "DefaultFlowCodeNS"),
 
-   PDL::PP::Rule->new("NewXSFindDatatypeNS",
-		      ["SignatureObj","IgnoreTypesOf","GenericTypes","_P2Child"],
-      # First, finds the greatest datatype, then, if not supported, takes
-      # the largest type supported by the function.
-      # Not yet optimal.
-      #
-      # Assuming that, if HASP2Child is true, we only have
-      # PARENT; CHILD parameters, so we can just take the
-      # datatype to be that of PARENT (see also NewXSTypeCoerceNS-setter)
-      #
-      sub {
-        my($sig,$ignore,$gentypes,$hasp2child) = @_;
-        my ($parnames, $parobjs) = ($sig->names_sorted, $sig->objs);
-        my $dtype = "\$PRIV(__datatype)";
-        return "$dtype = $$parnames[0]\->datatype;\n\$PRIV(has_badvalue) = $$parnames[0]\->has_badvalue;\n\$PRIV(badvalue) = $$parnames[0]\->badvalue;\n"
-          if $hasp2child;
-        my $str = PDL::PP::pp_line_numbers(__LINE__-1, "$dtype = 0;");
-        foreach ( @{ $sig->names_sorted } ) {
-          my $po = $parobjs->{$_};
-          next if $ignore->{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
-          $str .= "if(";
-          $str .= "!(($_->state & PDL_NOMYDIMS) &&
-             $_->trans_parent == NULL) && "
-                 if $po->{FlagCreat};
-          $str .= "$dtype < $_->datatype) {
-                $dtype = $_->datatype;
-            }\n";
-        }
-        $str .= join '', map { "if($dtype == PDL_$_) {}\nelse " }(@$gentypes);
-        $str . "$dtype = PDL_$gentypes->[-1];\n";
-      }),
-   PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
-
    PDL::PP::Rule->new("NewXSTypeCoerceNS", ["StructName"],
       sub {
         PDL::PP::pp_line_numbers(__LINE__-1, "PDL->type_coerce((pdl_trans *)$_[0]);");
@@ -2731,7 +2698,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
        "NewXSFindBadStatus",
        #     NewXSCopyBadValues,
        #     NewXSMakeNow,  # this is unnecessary since families never got implemented
-       "NewXSFindDatatype","NewXSTypeCoerce",
+       "NewXSTypeCoerce",
        "NewXSExtractTransPDLs",
        "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
@@ -2766,7 +2733,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
        "NewXSFindBadStatus",
        #     NewXSCopyBadValues,
        #     NewXSMakeNow, # this is unnecessary since families never got implemented
-       "NewXSFindDatatype","NewXSTypeCoerce",
+       "NewXSTypeCoerce",
        "NewXSExtractTransPDLs",
        "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
