@@ -1491,11 +1491,13 @@ void pdl_dim_checks(
   PDLDEBUG_f(do {printf("  ind_sizes: "); print_iarr(ind_sizes, vtable->ninds);printf("\n");fflush(stdout);}while(0));
 }
 
-void pdl_type_coerce(
-  pdl_transvtable *vtable, pdl **pdls, pdl_datatypes trans_dtype,
-  PDL_Anyval badvalue, int has_badvalue
-) {
+void pdl_type_coerce(pdl_trans *trans) {
   PDL_Indx i;
+  pdl_transvtable *vtable = trans->vtable;
+  pdl **pdls = trans->pdls;
+  pdl_datatypes trans_dtype = trans->__datatype;
+  PDL_Anyval badvalue = trans->badvalue;
+  int has_badvalue = trans->has_badvalue;
   for (i=0; i<vtable->npdls; i++) {
     PDL_Indx ninds = vtable->par_realdims[i];
     pdl *pdl = pdls[i];

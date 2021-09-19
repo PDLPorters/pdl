@@ -2465,9 +2465,9 @@ END
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
-   PDL::PP::Rule->new("NewXSTypeCoerceNS",
+   PDL::PP::Rule->new("NewXSTypeCoerceNS", ["StructName"],
       sub {
-        PDL::PP::pp_line_numbers(__LINE__-1, 'PDL->type_coerce($PRIV(vtable), $PRIV(pdls), $PRIV(__datatype), $PRIV(badvalue), $PRIV(has_badvalue));');
+        PDL::PP::pp_line_numbers(__LINE__-1, "PDL->type_coerce((pdl_trans *)$_[0]);");
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
