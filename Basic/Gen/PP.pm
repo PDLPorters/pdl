@@ -1073,7 +1073,6 @@ $PDL::PP::macros
 #include "pdl.h"
 #include "pdlcore.h"
 static Core* PDL; PDL_COMMENT("Structure hold core C functions")
-static int __pdl_debugging = 0;
 static int __pdl_boundscheck = 0;
 static SV* CoreSV;       PDL_COMMENT("Gets pointer to perl var holding core structure")
 
@@ -1088,15 +1087,6 @@ $::PDLXSC
 MODULE = $::PDLMOD PACKAGE = $::PDLMOD
 
 PROTOTYPES: ENABLE
-
-int
-set_debugging(i)
-	int i;
-	CODE:
-	RETVAL = __pdl_debugging;
-	__pdl_debugging = i;
-	OUTPUT:
-	RETVAL
 
 int
 set_boundscheck(i)
