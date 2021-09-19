@@ -18,6 +18,7 @@ Basic/Core/Overloads.pm
 Basic/Core/pdl.h.PL
 Basic/Core/pdlapi.c
 Basic/Core/pdlconv.c
+Basic/Core/pdlcore.c
 Basic/Core/pdlcore.h
 Basic/Core/pdlmagic.c
 Basic/Core/pdlmagic.h
