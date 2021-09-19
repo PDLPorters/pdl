@@ -858,26 +858,24 @@ PDL_GENERICLIST2(PDL_KLUDGE_COPY_X, INNERLOOP_X)
 #undef PDL_KLUDGE_COPY_X
 #undef INNERLOOP_X
 
-void pdl_hdr_copy(pdl *parent, pdl *it) {
+SV *pdl_hdr_copy(SV *hdrp) {
   /* call the perl routine _hdr_copy */
   int count;
+  SV *retval;
   dSP;
   ENTER;
   SAVETMPS;
   PUSHMARK(SP);
-  XPUSHs( sv_mortalcopy((SV*)parent->hdrsv) );
+  XPUSHs( hdrp );
   PUTBACK;
   count = call_pv("PDL::_hdr_copy",G_SCALAR);
   SPAGAIN;
   if (count != 1)
       croak("PDL::_hdr_copy didn\'t return a single value - please report this bug (B).");
-  {
-      SV *tmp = (SV *) POPs ;
-      it->hdrsv = (void*) tmp;
-      if(tmp != &PL_sv_undef )
-          (void)SvREFCNT_inc(tmp);
-  }
-  it->state |= PDL_HDRCPY;
+  retval = (SV *) POPs ;
+  if(retval != &PL_sv_undef )
+      (void)SvREFCNT_inc(retval);
   FREETMPS;
   LEAVE;
+  return retval;
 }

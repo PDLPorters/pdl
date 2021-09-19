@@ -117,7 +117,7 @@ void pdl_readdata_vaffine(pdl *it);
   X(get_pdl_badvalue, PDL_Anyval, (pdl *it)) \
   X(get_badvalue, PDL_Anyval, (int datatype)) \
   X(set_datatype, void, (pdl *a, int datatype)) \
-  X(hdr_copy, void, (pdl *parent, pdl *it)) \
+  X(hdr_copy, SV *, (SV *hdrp)) \
   X(dump, void, (pdl *it)) \
   X(sever, pdl *, (pdl *a))
 

@@ -749,30 +749,6 @@ our $macros = <<'EOF';
     propagate_hdrcpy = ((name->state & PDL_HDRCPY) != 0); \
   }
 
-#define PDL_DEEPCOPY \
-  if(hdrp == &PL_sv_undef) \
-    hdr_copy = &PL_sv_undef; \
-  else {  PDL_COMMENT("Call the perl routine _hdr_copy...") \
-    int count; \
-    PDL_COMMENT("Call the perl routine PDL::_hdr_copy(hdrp)") \
-    dSP; \
-    ENTER ; \
-    SAVETMPS ; \
-    PUSHMARK(SP) ; \
-    XPUSHs( hdrp ); \
-    PUTBACK ; \
-    count = call_pv("PDL::_hdr_copy",G_SCALAR); \
-    SPAGAIN ; \
-    if(count != 1) \
-      croak("PDL::_hdr_copy didn't return a single value - please report this bug (A)."); \
-    hdr_copy = (SV *)POPs; \
-    if(hdr_copy && hdr_copy != &PL_sv_undef) { \
-       (void)SvREFCNT_inc(hdr_copy); PDL_COMMENT("Keep hdr_copy from vanishing during FREETMPS") \
-    } \
-    FREETMPS ; \
-    LEAVE ; \
-  } PDL_COMMENT("end of callback  block")
-
 #define PDL_HDRCHECK2(name) \
   if (name->hdrsv != hdrp) { \
     if (name->hdrsv && name->hdrsv != &PL_sv_undef) \
@@ -1532,7 +1508,12 @@ sub wrap_vfn {
 	$stype *$sname = ($stype *) __tr;\n|);
     if ( $p2child ) {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
-	$str .= "\tif (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) PDL->hdr_copy(__parent, __it);\n" if $name eq "redodims";
+	$str .= <<EOF if $name eq "redodims";
+	if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) {
+	  __it->hdrsv = (void*)PDL->hdr_copy(sv_mortalcopy(__parent->hdrsv));
+	  __it->state |= PDL_HDRCPY;
+	}
+EOF
     }
     $str .= $code;
     "$str\n}\n";
@@ -1658,7 +1639,10 @@ foreach ( 0 .. $nn ) {
   $str .= "PDL_HDRCHECK1($aux, $names[$_])\n";
 }
 
-$str .= "if (hdrp) {\nPDL_DEEPCOPY\n";
+$str .= <<'EOF';
+    if (hdrp) {
+      hdr_copy = ((hdrp == &PL_sv_undef) ? &PL_sv_undef : PDL->hdr_copy(hdrp));
+EOF
 # if(hdrp) block is still open -- now reassign all the aliases...
 
 # Found the header -- now copy it into all the right places.
@@ -1666,7 +1650,7 @@ $str .= "PDL_HDRCHECK2($names[$_])\n"
   for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
 
 $str .= '
-       if(hdr_copy != &PL_sv_undef)
+      if(hdr_copy != &PL_sv_undef)
           SvREFCNT_dec(hdr_copy); PDL_COMMENT("make hdr_copy mortal again")
     } PDL_COMMENT("end of if(hdrp) block")
 ';
