@@ -153,9 +153,9 @@ sub new {
 
     # Then, in this form, put it together what we want the code to actually do.
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-    $this->{Code} = "{".(join '',sort values %$sizeprivs).
+    $this->{Code} = (join '',sort values %$sizeprivs).
        $coderef->get_str($this,[])
-       ."}";
+       ;
     $this->{Code};
 
 } # new()
