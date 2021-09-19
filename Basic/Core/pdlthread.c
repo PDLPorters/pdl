@@ -81,6 +81,15 @@ PDL_GENERICLIST(X)
   if (thread->transvtable) {
     pdl_transvtable *vtable = thread->transvtable;
     psp; printf("Funcname: %s\n",vtable->name);
+    psp; printf("Types: ");
+    found=0; sz=0;
+    for (i=0;vtable->gentypes[i]!=-1; i++) {
+      if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;psp;}
+      printf("%s%s",found ? ",":"",typechar[i]);
+      found = 1;
+      sz += strlen(typechar[i]);
+    }
+    printf("\n");
     psp; printf("Parameters:\n");
     for (i=0;i<vtable->npdls;i++) {
       psp; psp; printf("%s(",vtable->par_names[i]);
@@ -120,10 +129,10 @@ PDL_GENERICLIST(X)
   found=0; sz=0;
   for (i=0;flagval[i]!=0; i++)
     if (thread->gflags & flagval[i]) {
+      if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;}
       printf("%s%s",found ? "|":"",flagchar[i]);
       found = 1;
       sz += strlen(flagchar[i]);
-      if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;}
     }
   printf("\n");
   psp; printf("Ndims: %"IND_FLAG", Nimplicit: %"IND_FLAG", Npdls: %"IND_FLAG", Nextra: %"IND_FLAG"\n",

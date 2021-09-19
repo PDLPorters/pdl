@@ -9,7 +9,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 my @TYPE_VERBATIM = qw/
-  realctype ppforcetype usenan real unsigned integer
+  realctype ppforcetype usenan real unsigned integer identifier
 /;
 
 # Figure out the 4 byte integer type on this machine
@@ -255,7 +255,7 @@ sub convertfunc {
 sub gentypehashentry ($$) {
   my ($type,$num) = @_;
   checktypehas $_, $type
-    for qw/identifier pdlctype defaultbadval/, @TYPE_VERBATIM;
+    for qw/pdlctype defaultbadval/, @TYPE_VERBATIM;
   my $convertfunc = convertfunc($type);
   (my $shortctype = $type->{pdlctype}) =~ s/PDL_//;
   my $ppsym = $type->{onecharident} || $type->{identifier};
@@ -383,7 +383,7 @@ my @RTKEYS = map $_->{sym}, @HASHES;
 our %typenames;
 for my $h (@HASHES) {
   my $n = $h->{numval};
-  $typenames{$_} = $n for $n, @$h{qw(sym ioname ctype ppforcetype ppsym)};
+  $typenames{$_} = $n for $n, @$h{qw(sym ioname ctype ppforcetype ppsym identifier)};
 }
 
 =head1 NAME

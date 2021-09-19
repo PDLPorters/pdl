@@ -198,6 +198,13 @@ pp_deft('gl_arrows',
 	Code => ';', # do nothing
 );
 
+# test valid non-single-letter GenericTypes arg
+pp_def( "rice_compress",
+        Pars => 'in(n); [o]out(m); int[o]len(); lbuf(n)',
+        GenericTypes =>['B','S','US','L'],
+        Code => ';', # do nothing
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline

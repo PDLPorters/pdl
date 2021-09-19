@@ -2865,10 +2865,11 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","StructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
-       "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name"],
+       "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name",
+       "GenericTypes"],
       sub {
         my($vname,$stype,$rdname,$rfname,$wfname,$ffname,
-           $sig,$affine_ok,$havethreading, $noPthreadFlag, $name) = @_;
+           $sig,$affine_ok,$havethreading, $noPthreadFlag, $name, $gentypes) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
@@ -2876,6 +2877,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
         my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1) || '0';
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
+        my $gentypes_txt = join(", ", (map PDL::Type->new($_)->sym, @$gentypes), '-1');
         my @realdims = map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
         my $realdims = join(", ", @realdims) || '0';
         my $parnames = join(",",map qq|"$_"|, @$pnames) || '""';
@@ -2888,6 +2890,7 @@ PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, 
         my @indnames = $sig->ind_names_sorted;
         my $indnames = join(",", map qq|"$_"|, @indnames) || '""';
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+static pdl_datatypes ${vname}_gentypes[] = { $gentypes_txt };
 static char ${vname}_flags[] = {
   $join_flags
 };
@@ -2901,7 +2904,7 @@ static PDL_Indx ${vname}_realdims_starts[] = { $realdim_ind_start };
 static PDL_Indx ${vname}_realdims_ind_ids[] = { $realdim_inds };
 static char *${vname}_indnames[] = { $indnames };
 pdl_transvtable $vname = {
-  $op_flags, $nparents, $npdls, ${vname}_flags,
+  $op_flags, ${vname}_gentypes, $nparents, $npdls, ${vname}_flags,
   ${vname}_realdims, ${vname}_parnames,
   ${vname}_parflags, ${vname}_partypes,
   ${vname}_realdims_starts, ${vname}_realdims_ind_ids,

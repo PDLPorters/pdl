@@ -284,6 +284,7 @@ typedef struct pdl_trans pdl_trans;
 
 typedef struct pdl_transvtable {
         int flags;
+        pdl_datatypes *gentypes; /* ordered list of types handled, ending -1 */
         PDL_Indx nparents;
         PDL_Indx npdls;
         char *per_pdl_flags;
