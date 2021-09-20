@@ -1492,7 +1492,7 @@ sub OtherPars_nft {
 }
 
 sub wrap_vfn {
-    my($sname,$code,$hdrinfo,$rout,$p2child,$name) = @_;
+    my($code,$rout,$sname,$hdrinfo,$p2child,$name) = @_;
     my $stype = $hdrinfo->{StructType};
     my $str = PDL::PP::pp_line_numbers(__LINE__-1, qq|void $rout(pdl_trans *__tr) {
 	$stype *$sname = ($stype *) __tr;\n|);
@@ -1502,6 +1502,14 @@ sub wrap_vfn {
     }
     $str .= $code;
     "$str\n}\n";
+}
+
+my @vfn_args_always = qw(StructName FHdrInfo _P2Child);
+sub make_vfn_args {
+  my ($which) = @_;
+  ("${which}Func",["${which}Subd","${which}FuncName",@vfn_args_always],
+    sub {$_[1] eq 'NULL' ? '' : wrap_vfn(@_,lc $which)}
+  );
 }
 
 sub indent($$) {
@@ -2445,7 +2453,7 @@ END
       sub {
 	  (grep $_, @_[1..$#_]) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], $_[1], $_[2])"): ''}),
 
-   PDL::PP::Rule::Substitute::Usual->new("FreeCode", "FreeCodeNS"),
+   PDL::PP::Rule::Substitute::Usual->new("FreeSubd", "FreeCodeNS"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMust"),
 
@@ -2629,15 +2637,11 @@ PDL_TRANS_START($npdls);
         return $result;
       }),
    PDL::PP::Rule::Substitute->new("RedoDimsSubd", "RedoDimsSub"),
-   PDL::PP::Rule->new("RedoDimsFunc",
-		      ["StructName","RedoDimsSubd","FHdrInfo","RedoDimsFuncName","_P2Child"],
-		      sub {wrap_vfn(@_,"redodims")}),
+   PDL::PP::Rule->new(make_vfn_args("RedoDims")),
 
    PDL::PP::Rule::MakeComp->new("ReadDataSub", "ParsedCode", "FOO"),
    PDL::PP::Rule::Substitute->new("ReadDataSubd", "ReadDataSub"),
-   PDL::PP::Rule->new("ReadDataFunc",
-		      ["StructName","ReadDataSubd","FHdrInfo","ReadDataFuncName","_P2Child"],
-		      sub {wrap_vfn(@_,"readdata")}),
+   PDL::PP::Rule->new(make_vfn_args("ReadData")),
 
    PDL::PP::Rule::MakeComp->new("WriteBackDataSub", "ParsedBackCode", "FOO"),
    PDL::PP::Rule::Substitute->new("WriteBackDataSubd", "WriteBackDataSub"),
@@ -2645,16 +2649,12 @@ PDL_TRANS_START($npdls);
    PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_${name}_writebackdata'),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
 
-   PDL::PP::Rule->new("WriteBackDataFunc",
-		      ["StructName","WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","_P2Child"],
-		      sub {wrap_vfn(@_,"writebackdata")}),,
+   PDL::PP::Rule->new(make_vfn_args("WriteBackData")),
 
    PDL::PP::Rule->new("FreeFuncName",
-		      ["FreeCode","Name"],
+		      ["FreeSubd","Name"],
 		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
-   PDL::PP::Rule->new("FreeFunc",
-		      ["StructName","FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
-		      sub {$_[3] eq 'NULL' ? '' : wrap_vfn(@_,"free")}),
+   PDL::PP::Rule->new(make_vfn_args("Free")),
 
    PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
    PDL::PP::Rule->new("VTableDef",
