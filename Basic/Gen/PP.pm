@@ -2637,10 +2637,8 @@ PDL->hdr_childcopy((pdl_trans *)'.$sname.');
         my($sig,$comp,$priv,$name) = @_;
         my $npdls = @{ $sig->names };
         PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $name {
-          PDL_TRANS_START($npdls);
-          $priv
-          $comp
-          } $name;});
+PDL_TRANS_START($npdls);
+@{[ join "\n", grep $_, $priv, $comp ]}} $name;});
       }),
 
    PDL::PP::Rule->new("RedoDims-PreComp", "RedoDims",
