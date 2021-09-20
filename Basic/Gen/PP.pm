@@ -1498,12 +1498,7 @@ sub wrap_vfn {
 	$stype *$sname = ($stype *) __tr;\n|);
     if ( $p2child ) {
 	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
-	$str .= <<EOF if $name eq "redodims";
-	if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) {
-	  __it->hdrsv = (void*)PDL->hdr_copy(sv_mortalcopy(__parent->hdrsv));
-	  __it->state |= PDL_HDRCPY;
-	}
-EOF
+	$str .= "PDL->hdr_childcopy(__tr);\n" if $name eq "redodims";
     }
     $str .= $code;
     "$str\n}\n";
