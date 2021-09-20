@@ -466,7 +466,7 @@ void pdl_thread_mismatch_msg(
 void pdl_initthreadstruct(int nobl,
 	pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,PDL_Indx npdls,
 	pdl_transvtable *vtable,pdl_thread *thread,
-	PDL_Indx *ind_sizes,
+	PDL_Indx *ind_sizes, PDL_Indx *inc_sizes,
 	char *flags, int noPthreadFlag
 ) {
 	PDL_Indx i, j;
@@ -663,6 +663,15 @@ void pdl_initthreadstruct(int nobl,
 	}
 	if (ind_sizes)
 		pdl_dim_checks(vtable, pdls, thread, creating, ind_sizes);
+	if (inc_sizes)
+	  for (i=0; i<vtable->npdls; i++) {
+	    pdl *pdl = pdls[i];
+	    for (j=0; j<vtable->par_realdims[i]; j++)
+	      inc_sizes[PDL_INC_ID(vtable,i,j)] =
+		(pdl->ndims <= j || pdl->dims[j] <= 1) ? 0 :
+		(vtable->par_flags[i] & PDL_PARAM_ISPHYS) ? pdl->dimincs[j] :
+		PDL_REPRINC(pdl,j);
+	  }
 	thread->gflags |= PDL_THREAD_INITIALIZED;
 	PDLDEBUG_f(dump_thread(thread);)
 }

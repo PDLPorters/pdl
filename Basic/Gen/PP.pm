@@ -736,10 +736,10 @@ $VERSION = eval $VERSION;
 our $macros = <<'EOF';
 #define PDL_RMBRACKETS(...) __VA_ARGS__ /* work around syntax limitation */
 
-#define PDL_INITTHREADSTRUCT(vtable, pdls, pdlthread, creating, ind_sizes) \
+#define PDL_INITTHREADSTRUCT(vtable, pdls, pdlthread, creating, ind_sizes, inc_sizes) \
   PDL->initthreadstruct(2,(pdls), \
     (vtable)->par_realdims,(creating),(vtable)->npdls, \
-    (vtable),(pdlthread), (ind_sizes), \
+    (vtable),(pdlthread), (ind_sizes), (inc_sizes), \
     (vtable)->per_pdl_flags, \
     (vtable)->noPthreadFlag );
 
@@ -2430,11 +2430,9 @@ END
         $str .= "__creating[$_] = PDL_DIMS_FROM_TRANS($sname,$privname[$_]);\n"
           for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
         $str .= $pcode . '
-PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes))
+PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes), $PRIV(inc_sizes))
 PDL->hdr_childcopy((pdl_trans *)'.$sname.');
 ';
-        $str .= join '',map {$pobjs->{$pnames->[$_]}->
-          get_incsets($privname[$_])} 0..$nn;
         return $str;
       }),
 
