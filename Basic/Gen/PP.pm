@@ -2414,6 +2414,10 @@ PDL->hdr_childcopy((pdl_trans *)'.$_[0].');
 ';
       }),
 
+   PDL::PP::Rule->new("DimsSetters",
+      ["SignatureObj"],
+      sub { join "\n", map $_->get_initdim, $_[0]->dims_values }),
+
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       ''),
@@ -2424,12 +2428,9 @@ PDL->hdr_childcopy((pdl_trans *)'.$_[0].');
           return '' if !$_[0];
           PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-      ["SignatureObj","RedoDimsParsedCode","DefaultRedoDims"],
+      ["DimsSetters","RedoDimsParsedCode","DefaultRedoDims"],
       'makes the redodims function from the various bits and pieces',
-      sub {
-        my($sig,$pcode,$default) = @_;
-        join "\n", (map $_->get_initdim, $sig->dims_values), $pcode, $default;
-      }),
+      sub { join "\n", @_ }),
 
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
 
@@ -2640,7 +2641,7 @@ PDL_TRANS_START($npdls);
       }),
 
    PDL::PP::Rule->new("RedoDims-PreComp", "RedoDims",
-      sub { $_[0] . PDL::PP::pp_line_numbers(__LINE__-1, ' $PRIV(dims_redone) = 1;') }),
+      sub { $_[0] . PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(dims_redone) = 1;') }),
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
       ["RedoDims-PreComp", "PrivNames", "PrivObjs"], "PRIV"),
 
