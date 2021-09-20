@@ -877,6 +877,21 @@ void pdl_make_trans_mutual(pdl_trans *trans)
   PDLDEBUG_f(printf("make_trans_mutual_exit %p\n",(void*)trans));
 } /* pdl_make_trans_mutual() */
 
+void pdl_default_redodims(pdl_trans *trans) {
+  PDL_Indx creating[trans->vtable->npdls];
+  pdl_transvtable *vtable = trans->vtable;
+  pdl **pdls = trans->pdls;
+  PDL_Indx i;
+  for (i=0; i<vtable->npdls; i++)
+    creating[i] = (vtable->par_flags[i] & PDL_PARAM_ISCREAT) &&
+      PDL_DIMS_FROM_TRANS(trans,pdls[i]);
+  pdl_initthreadstruct(2, pdls,
+    vtable->par_realdims, creating, vtable->npdls, vtable,
+    &trans->pdlthread, trans->ind_sizes, trans->inc_sizes,
+    vtable->per_pdl_flags, vtable->noPthreadFlag);
+  pdl_hdr_childcopy(trans);
+  trans->dims_redone = 1;
+}
 
 void pdl_make_physical(pdl *it) {
 	int i, vaffinepar=0;

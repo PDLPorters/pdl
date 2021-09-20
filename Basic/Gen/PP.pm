@@ -736,13 +736,6 @@ $VERSION = eval $VERSION;
 our $macros = <<'EOF';
 #define PDL_RMBRACKETS(...) __VA_ARGS__ /* work around syntax limitation */
 
-#define PDL_INITTHREADSTRUCT(vtable, pdls, pdlthread, creating, ind_sizes, inc_sizes) \
-  PDL->initthreadstruct(2,(pdls), \
-    (vtable)->par_realdims,(creating),(vtable)->npdls, \
-    (vtable),(pdlthread), (ind_sizes), (inc_sizes), \
-    (vtable)->per_pdl_flags, \
-    (vtable)->noPthreadFlag );
-
 #define PDL_XS_PREAMBLE \
   char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set \
                             by pp_bless ? (CS) */ \
@@ -2401,18 +2394,7 @@ END
 
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
-      sub {
-'PDL_Indx __creating[PDLMAX($PRIV(vtable)->npdls,1)];
-{
-  PDL_Indx i;
-  for (i=0; i<$PRIV(vtable)->npdls; i++)
-    __creating[i] = ($PRIV(vtable)->par_flags[i] & PDL_PARAM_ISCREAT) &&
-      PDL_DIMS_FROM_TRANS(__privtrans,$PRIV(pdls)[i]);
-}
-PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes), $PRIV(inc_sizes))
-PDL->hdr_childcopy((pdl_trans *)'.$_[0].');
-';
-      }),
+      sub { 'PDL->default_redodims((pdl_trans *)'.$_[0].');' }),
 
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],
@@ -2430,7 +2412,7 @@ PDL->hdr_childcopy((pdl_trans *)'.$_[0].');
    PDL::PP::Rule->new("RedoDims",
       ["DimsSetters","RedoDimsParsedCode","DefaultRedoDims"],
       'makes the redodims function from the various bits and pieces',
-      sub { join "\n", @_ }),
+      sub { join "\n", grep $_ && /\S/, @_ }),
 
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
 
@@ -2640,10 +2622,8 @@ PDL_TRANS_START($npdls);
 @{[ join "\n", grep $_, $priv, $comp ]}} $name;});
       }),
 
-   PDL::PP::Rule->new("RedoDims-PreComp", "RedoDims",
-      sub { $_[0] . PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(dims_redone) = 1;') }),
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
-      ["RedoDims-PreComp", "PrivNames", "PrivObjs"], "PRIV"),
+      ["RedoDims", "PrivNames", "PrivObjs"], "PRIV"),
 
    # The RedoDimsSub rule takes in the RedoDims target
    # directly as well as via RedoDims-PostComp for better error-reporting
