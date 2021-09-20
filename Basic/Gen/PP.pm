@@ -1492,8 +1492,7 @@ sub OtherPars_nft {
 }
 
 sub wrap_vfn {
-    my($code,$rout,$sname,$hdrinfo,$p2child,$name) = @_;
-    my $stype = $hdrinfo->{StructType};
+    my($code,$rout,$sname,$stype,$p2child,$name) = @_;
     my $str = PDL::PP::pp_line_numbers(__LINE__-1, qq|void $rout(pdl_trans *__tr) {
 	$stype *$sname = ($stype *) __tr;\n|);
     if ( $p2child ) {
@@ -1504,7 +1503,7 @@ sub wrap_vfn {
     "$str\n}\n";
 }
 
-my @vfn_args_always = qw(StructName FHdrInfo _P2Child);
+my @vfn_args_always = qw(StructName StructType _P2Child);
 sub make_vfn_args {
   my ($which) = @_;
   ("${which}Func",["${which}Subd","${which}FuncName",@vfn_args_always],
@@ -1837,9 +1836,6 @@ EOD
    PDL::PP::Rule::InsertName->new("StructType", 'pdl_trans__${name}'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
 
-   PDL::PP::Rule->new("FHdrInfo", ["Name","StructType"],
-		      sub { return { Name => $_[0], StructType => $_[1], }; }),
-
 # Treat exchanges as affines. Affines assumed to be parent->child.
 # Exchanges may, if the want, handle threadids as well.
 # Same number of dimensions is assumed, though.
@@ -1848,9 +1844,9 @@ EOD
    PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$CHILD(ndims)];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
 
-   PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr","FHdrInfo","_EquivDimCheck"],
+   PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr","_EquivDimCheck"],
       sub {
-        my($pdimexpr,$hdr,$dimcheck) = @_;
+        my($pdimexpr,$dimcheck) = @_;
         $pdimexpr =~ s/\$CDIM\b/i/g;
         PDL::PP::pp_line_numbers(__LINE__-1, '
           int i,cor;
@@ -1867,7 +1863,7 @@ EOD
           $SETDELTATHREADIDS(0);
         ');
       }),
-   PDL::PP::Rule->new("RedoDims", ["Identity","FHdrInfo"],
+   PDL::PP::Rule->new("RedoDims", ["Identity"],
       sub {
         PDL::PP::pp_line_numbers(__LINE__-1, '
           int i;
