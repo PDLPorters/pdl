@@ -347,6 +347,7 @@ is $x.'', '[2 i]', 'pdl defaults to cdouble if Math::Complex values in arrayref'
 }
 
 sub hdr_test {
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
     my ($pb, $hdr, $method) = @_;
     $method ||= 'gethdr';
     note "pb: ", explain my $pbh=$pb->$method;
