@@ -2461,9 +2461,6 @@ PDL->hdr_childcopy((pdl_trans *)'.$sname.');
    PDL::PP::Rule::MakeComp->new("NewXSCoerceMustSub1", "NewXSCoerceMust", "FOO"),
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustSub1d", "NewXSCoerceMustSub1"),
 
-   PDL::PP::Rule->new("NewXSClearThread", ["HaveThreading","StructName"],
-      sub {$_[0] ? PDL::PP::pp_line_numbers(__LINE__-1, "$_[1]->pdlthread.inds = 0;") : ""}),
-
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
       ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","Name"],
       "Rule to find the bad value status of the input ndarrays",
@@ -2581,7 +2578,6 @@ PDL->hdr_childcopy((pdl_trans *)'.$sname.');
        "NewXSExtractTransPDLs",
        "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
-       "NewXSClearThread",
        "NewXSRunTrans",
        "NewXSCopyBadStatus",
        "VarArgsXSReturn"
@@ -2616,7 +2612,6 @@ PDL->hdr_childcopy((pdl_trans *)'.$sname.');
        "NewXSExtractTransPDLs",
        "MakeCompiledRepr",
        "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
-       "NewXSClearThread",
        "NewXSRunTrans",
        "NewXSCopyBadStatus"
       ],

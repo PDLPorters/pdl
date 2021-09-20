@@ -1432,6 +1432,7 @@ pdl_trans *pdl_create_trans(size_t sz, short flags, pdl_transvtable *vtable) {
     it->dims_redone = 0;
     it->vtable = vtable;
     PDL_THR_CLRMAGIC(&it->pdlthread);
+    it->pdlthread.inds = 0;
     it->ind_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->ninds);
     int i; for (i=0; i<vtable->ninds; i++) it->ind_sizes[i] = -1;
     it->inc_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->nind_ids);
