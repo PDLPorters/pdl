@@ -346,40 +346,27 @@ $x = pdl([Math::Complex::cplx(2, 0), Math::Complex::i()]);
 is $x.'', '[2 i]', 'pdl defaults to cdouble if Math::Complex values in arrayref';
 }
 
+sub hdr_test {
+    my ($pb, $hdr, $method) = @_;
+    $method ||= 'gethdr';
+    note "pb: ", explain my $pbh=$pb->$method;
+    is_deeply($pbh,$hdr);
+}
+
 {
 my $pa = zeroes(20);
 $pa->hdrcpy(1);
-$pa->sethdr( {Field1=>'arg1',
-	     Field2=>'arg2'});
+my $hdr = {Field1=>'arg1', Field2=>'arg2'};
+$pa->sethdr($hdr);
 note "pa: ", explain $pa->gethdr();
 ok($pa->hdrcpy);
-{
-	my $pb = $pa+1;
-	note "pb: ", explain $pb->gethdr();
-	ok( defined($pb->gethdr));
-	is_deeply($pa->gethdr,$pb->gethdr);
-}
-{
-	my $pb = ones(20) + $pa;
-	note "pb: ", explain $pb->gethdr();
-	ok( defined($pb->gethdr));
-	is_deeply($pa->gethdr,$pb->gethdr);
-}
-{
-	my $pc = $pa->slice('0:5');
-	note "pc: ", explain $pc->gethdr();
-	is_deeply($pa->gethdr,$pc->gethdr);
-}
-{
-	my $pd = $pa->copy;
-	note "pd: ", explain $pd->gethdr();
-	is_deeply($pa->gethdr,$pd->gethdr);
-}
-{
-	$pa->hdrcpy(0);
-	ok(defined($pa->slice('3')->hdr) && !( keys (%{$pa->slice('3')->hdr})));
-	ok(!defined($pa->slice('3')->gethdr));
-}
+hdr_test($pa+1, $hdr);
+hdr_test(ones(20) + $pa, $hdr);
+hdr_test($pa->slice('0:5'), $hdr);
+hdr_test($pa->copy, $hdr);
+$pa->hdrcpy(0);
+hdr_test($pa->slice('3'), {}, 'hdr');
+hdr_test($pa->slice('3'), undef);
 }
 
 {
