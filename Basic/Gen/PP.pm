@@ -2416,6 +2416,7 @@ END
       sub {
         my($sig,$pcode,$sname) = @_;
         my $str = PDL::PP::pp_line_numbers(__LINE__, '');
+        $str .= join "\n", map $_->get_initdim, $sig->dims_values;
         $str .= '
 PDL_Indx __creating[PDLMAX($PRIV(vtable)->npdls,1)];
 {
@@ -2425,7 +2426,6 @@ PDL_Indx __creating[PDLMAX($PRIV(vtable)->npdls,1)];
       PDL_DIMS_FROM_TRANS(__privtrans,$PRIV(pdls)[i]);
 }
 ';
-        $str .= join '',map {$_->get_initdim."\n"} $sig->dims_values;
         $str .= $pcode . '
 PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes), $PRIV(inc_sizes))
 PDL->hdr_childcopy((pdl_trans *)'.$sname.');

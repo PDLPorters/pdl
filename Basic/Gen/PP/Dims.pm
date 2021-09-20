@@ -62,7 +62,8 @@ sub get_index {$_[0]->{Index}}
 
 sub get_initdim { my($this) = @_;
 	my $init = $this->{Value} //
-	  ($this->{From} ? "\$COMP(".$this->{From}{ProtoName}.")" : '-1');
+	  ($this->{From} ? "\$COMP(".$this->{From}{ProtoName}.")" : undef);
+	return if !defined $init;
 	$this->get_size." = $init;"
 }
 
