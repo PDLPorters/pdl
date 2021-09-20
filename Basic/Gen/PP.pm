@@ -2399,8 +2399,21 @@ END
       sub {NT2Decls__({},@_)}),
    PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], \&NT2Free_p),
 
-# Threads
-#
+   PDL::PP::Rule->new("DefaultRedoDims",
+      ["StructName"],
+      sub {
+'PDL_Indx __creating[PDLMAX($PRIV(vtable)->npdls,1)];
+{
+  PDL_Indx i;
+  for (i=0; i<$PRIV(vtable)->npdls; i++)
+    __creating[i] = ($PRIV(vtable)->par_flags[i] & PDL_PARAM_ISCREAT) &&
+      PDL_DIMS_FROM_TRANS(__privtrans,$PRIV(pdls)[i]);
+}
+PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes), $PRIV(inc_sizes))
+PDL->hdr_childcopy((pdl_trans *)'.$_[0].');
+';
+      }),
+
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       ''),
@@ -2411,26 +2424,11 @@ END
           return '' if !$_[0];
           PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-      ["SignatureObj","RedoDimsParsedCode","StructName"],
+      ["SignatureObj","RedoDimsParsedCode","DefaultRedoDims"],
       'makes the redodims function from the various bits and pieces',
       sub {
-        my($sig,$pcode,$sname) = @_;
-        my $str = PDL::PP::pp_line_numbers(__LINE__, '');
-        $str .= join "\n", map $_->get_initdim, $sig->dims_values;
-        $str .= '
-PDL_Indx __creating[PDLMAX($PRIV(vtable)->npdls,1)];
-{
-  PDL_Indx i;
-  for (i=0; i<$PRIV(vtable)->npdls; i++)
-    __creating[i] = ($PRIV(vtable)->par_flags[i] & PDL_PARAM_ISCREAT) &&
-      PDL_DIMS_FROM_TRANS(__privtrans,$PRIV(pdls)[i]);
-}
-';
-        $str .= $pcode . '
-PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes), $PRIV(inc_sizes))
-PDL->hdr_childcopy((pdl_trans *)'.$sname.');
-';
-        return $str;
+        my($sig,$pcode,$default) = @_;
+        join "\n", (map $_->get_initdim, $sig->dims_values), $pcode, $default;
       }),
 
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
