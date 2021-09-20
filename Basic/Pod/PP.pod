@@ -2523,7 +2523,9 @@ add-ons for PDL|https://arxiv.org/abs/1702.07753>
 
 =head1 CURRENTLY UNDOCUMENTED
 
-Almost everything having to do with L<Slice operation>. This includes much of the following (each entry is followed by a guess/description of where it is used or defined):
+Almost everything having to do with slice operations. This includes much
+of the following (each entry is followed by a guess/description of where
+it is used or defined):
 
 =over 3
 
@@ -2583,6 +2585,10 @@ $SETDELTATHREADIDS()
 
 $SETDIMS()
     PDL::PP::Rule::MakeComp
+
+SETDIMS, SETNDIMS, and SETREVERSIBLE are used in affine
+transformations (specifically, ones which set P2Child to true)
+such as slice and mv.
 
 $SETNDIMS()
     PDL::PP::Rule::MakeComp
