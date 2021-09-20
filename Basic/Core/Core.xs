@@ -814,7 +814,7 @@ threadover(...)
     targs = items - 4;
     if (items > 0) nothers = SvIV(ST(0));
     if(targs <= 0 || nothers < 0 || nothers >= targs)
-    	croak("Usage: threadover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
+	croak("Usage: threadover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
     npdls = targs-nothers;
     int i,dtype=0;
     PDL_Indx j,nc=npdls,nd1,nd2;

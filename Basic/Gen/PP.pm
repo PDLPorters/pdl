@@ -2416,19 +2416,16 @@ END
       sub {
         my($sig,$pcode,$sname) = @_;
         my $str = PDL::PP::pp_line_numbers(__LINE__, '');
-        my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
-        my $npdls = @$pnames;
-        my $nn = $#$pnames;
-        my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
-        if ($npdls) {
-          $str .= "PDL_Indx __creating[$npdls] = {" . join(',', (0) x $npdls) . "};\n";
-        } else {
-          $str .= "PDL_Indx __creating[1];\n";
-        }
+        $str .= '
+PDL_Indx __creating[PDLMAX($PRIV(vtable)->npdls,1)];
+{
+  PDL_Indx i;
+  for (i=0; i<$PRIV(vtable)->npdls; i++)
+    __creating[i] = ($PRIV(vtable)->par_flags[i] & PDL_PARAM_ISCREAT) &&
+      PDL_DIMS_FROM_TRANS(__privtrans,$PRIV(pdls)[i]);
+}
+';
         $str .= join '',map {$_->get_initdim."\n"} $sig->dims_values;
-        # if FlagCreat is NOT true, then we set __creating[] to 0
-        $str .= "__creating[$_] = PDL_DIMS_FROM_TRANS($sname,$privname[$_]);\n"
-          for grep $pobjs->{$pnames->[$_]}{FlagCreat}, 0 .. $nn;
         $str .= $pcode . '
 PDL_INITTHREADSTRUCT($PRIV(vtable), $PRIV(pdls), &$PRIV(pdlthread), __creating, $PRIV(ind_sizes), $PRIV(inc_sizes))
 PDL->hdr_childcopy((pdl_trans *)'.$sname.');
