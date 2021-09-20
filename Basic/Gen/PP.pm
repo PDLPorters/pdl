@@ -827,6 +827,21 @@ sub make_code_args {
   [$which,"_Bad$which",@code_args_always];
 }
 
+my @xscode_args_always = (
+  "_GlobalNew","_NewXSCHdrs",
+  "NewXSStructInit0",
+  "NewXSSetTransPDLs",
+  "NewXSFindBadStatus",
+  #     NewXSCopyBadValues,
+  #     NewXSMakeNow, # this is unnecessary since families never got implemented
+  "NewXSTypeCoerce",
+  "NewXSExtractTransPDLs",
+  "MakeCompiledRepr",
+  "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
+  "NewXSRunTrans",
+  "NewXSCopyBadStatus",
+);
+
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
 sub import {
@@ -2549,23 +2564,12 @@ END
  # will not be executed. D. Hunt 4/11/00
  #
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      ["_GlobalNew","_NewXSCHdrs","VarArgsXSHdr",
-       "NewXSStructInit0",
-       "NewXSSetTransPDLs",
-       "NewXSFindBadStatus",
-       #     NewXSCopyBadValues,
-       #     NewXSMakeNow,  # this is unnecessary since families never got implemented
-       "NewXSTypeCoerce",
-       "NewXSExtractTransPDLs",
-       "MakeCompiledRepr",
-       "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
-       "NewXSRunTrans",
-       "NewXSCopyBadStatus",
+      ["VarArgsXSHdr",@xscode_args_always,
        "VarArgsXSReturn"
       ],
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {
-        my($glb,$xs_c_headers,$hdr,@bits) = @_;
+        my($hdr,$glb,$xs_c_headers,@bits) = @_;
         my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, '');
         if($glb) {
           $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
@@ -2583,22 +2587,10 @@ END
  # D. Hunt 4/11/00
  #
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      ["_GlobalNew","_NewXSCHdrs","NewXSHdr",
-       "NewXSStructInit0",
-       "NewXSSetTransPDLs",
-       "NewXSFindBadStatus",
-       #     NewXSCopyBadValues,
-       #     NewXSMakeNow, # this is unnecessary since families never got implemented
-       "NewXSTypeCoerce",
-       "NewXSExtractTransPDLs",
-       "MakeCompiledRepr",
-       "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
-       "NewXSRunTrans",
-       "NewXSCopyBadStatus"
-      ],
+      ["NewXSHdr",@xscode_args_always],
       "Rule to print out XS code when variable argument list XS processing is disabled",
       sub {
-        my($glb,$xs_c_headers,$hdr,@bits) = @_;
+        my($hdr,$glb,$xs_c_headers,@bits) = @_;
         my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, '');
         if($glb) {
           $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
