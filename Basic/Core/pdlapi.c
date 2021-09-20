@@ -3,6 +3,9 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
+#define REDODIMS(trans) \
+  (trans)->vtable->redodims(trans)
+
 extern Core PDL;
 
 void pdl__ensure_trans(pdl_trans *trans,int what) ;
@@ -745,7 +748,7 @@ void pdl_make_physdims(pdl *it) {
 	   be reset? Otherwise redodims will be called for them again? */
 	PDLDEBUG_f(printf("Make_physdims: calling redodims %p on %p\n",
 			  (void*)(it->trans_parent),(void*)it));
-	it->trans_parent->vtable->redodims(it->trans_parent);
+	REDODIMS(it->trans_parent);
 	/* why this one? will the old allocated data be freed correctly? */
 	if((c & PDL_PARENTDIMSCHANGED) && (it->state & PDL_ALLOCATED)) {
 		it->state &= ~PDL_ALLOCATED;
@@ -939,9 +942,8 @@ void pdl_make_physical(pdl *it) {
          */
 	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
 	   it->state & PDL_PARENTDIMSCHANGED ||
-	   it->state & PDL_PARENTREPRCHANGED) {
-		it->trans_parent->vtable->redodims(it->trans_parent);
-	}
+	   it->state & PDL_PARENTREPRCHANGED)
+		REDODIMS(it->trans_parent);
 	if(!(it->state & PDL_ALLOCATED)) {
 		pdl_allocdata(it);
 	}
@@ -1139,9 +1141,8 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
 	
-	if(flag & PDL_PARENTDIMSCHANGED) {  /* redodims called here... */
-		trans->vtable->redodims(trans);
-	}
+	if(flag & PDL_PARENTDIMSCHANGED)
+		REDODIMS(trans);
 	for(j=0; j<trans->vtable->npdls; j++) {
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
@@ -1172,7 +1173,7 @@ void pdl__ensure_transdims(pdl_trans *trans)
 	for(j=0; j<trans->vtable->nparents; j++) {
 		pdl_make_physdims(trans->pdls[j]);
 	}
-	trans->vtable->redodims(trans);
+	REDODIMS(trans);
 }
 
 /* Recursive! */
