@@ -1330,6 +1330,21 @@ sub make_vfn_args {
   );
 }
 
+sub make_xs_code {
+  my($xscode_before,$xscode_after,$hdr,$glb,$xs_c_headers,@bits) = @_;
+  my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, $hdr);
+  if($glb) {
+    $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
+    $boot = $xs_c_headers->[2];
+    $str .= "\n";
+  } else {
+    my $xscode = join '' => @bits;
+    $str .= " $xscode_before\n $xscode$xscode_after\n\n";
+  }
+  $str =~ s/(\s*\n)+/\n/g;
+  ($str,$boot,$prelude)
+}
+
 sub indent($$) {
     my ($text,$ind) = @_;
     $text =~ s/^(.*)$/$ind$1/mg;
@@ -1821,8 +1836,8 @@ EOD
 	  my ($sig, $Name, $hasp2c) = @_;
 	  my $noDimmedArgs = $sig->dims_count;
 	  my $noArgs = @{$sig->names};
-	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
 	  # Check for 2-arg function with 0-dim signatures
+	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
 	  # Check to see if output arg is _not_ explicitly typed:
 	  my $arg2 = $sig->names->[1];
 	  my $ParObj = $sig->objs->{$arg2};
@@ -2363,20 +2378,7 @@ END
        "VarArgsXSReturn"
       ],
       "Rule to print out XS code when variable argument list XS processing is enabled",
-      sub {
-        my($hdr,$glb,$xs_c_headers,@bits) = @_;
-        my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, '');
-        if($glb) {
-          $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
-          $boot = $xs_c_headers->[2];
-          $str = "$hdr\n";
-        } else {
-          my $xscode = join '' => @bits;
-          $str = "$hdr \n $xscode\n\n";
-        }
-        $str =~ s/(\s*\n)+/\n/g;
-        ($str,$boot,$prelude)
-      }),
+      sub {make_xs_code('','',@_)}),
 
  # This rule will fail if the preceding rule succeeds
  # D. Hunt 4/11/00
@@ -2384,20 +2386,7 @@ END
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
       ["NewXSHdr",@xscode_args_always],
       "Rule to print out XS code when variable argument list XS processing is disabled",
-      sub {
-        my($hdr,$glb,$xs_c_headers,@bits) = @_;
-        my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, '');
-        if($glb) {
-          $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
-          $boot = $xs_c_headers->[2];
-          $str = "$hdr\n";
-        } else {
-          my $xscode = join '' => @bits;
-          $str = "$hdr CODE:\n $xscode XSRETURN(0);\n\n";
-        }
-        $str =~ s/(\s*\n)+/\n/g;
-        ($str,$boot,$prelude)
-      }),
+      sub {make_xs_code('CODE:',' XSRETURN(0);',@_)}),
 
    PDL::PP::Rule->new("StructDecl",
       ["SignatureObj","CompiledRepr","PrivateRepr","StructType"],
