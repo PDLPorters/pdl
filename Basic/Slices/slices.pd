@@ -2366,8 +2366,6 @@ EOD
         DefaultFlow => 1,
         Reversible => 1,
         AffinePriv => 1,
-        CallCopy => 0,  # Don't CallCopy for subclassed objects because PDL::Copy calls ThreadI
-                        #  (Wouldn't cause recursive loop otherwise)
         OtherPars => "PDL_Indx id; SV *list",
         Comp => 'PDL_Indx id; PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];
                         PDL_Indx nrealwhichdims; ',
