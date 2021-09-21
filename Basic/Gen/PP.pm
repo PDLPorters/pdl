@@ -1637,11 +1637,10 @@ EOD
 
 # some defaults
 #
-   PDL::PP::Rule->new("DefaultFlowCodeNS", "_DefaultFlow",
-       'Sets the code to handle dataflow flags, if applicable',
-		      sub { pp_line_numbers(__LINE__, $_[0] ?
-			      '$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;'
-				: 'PDL_COMMENT("No flow")') }),
+   PDL::PP::Rule::Returns->new("DefaultFlowCodeNS", "DefaultFlow",
+       'Sets the code to handle dataflow flags',
+       pp_line_numbers(__LINE__-1,'$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;')),
+   PDL::PP::Rule::Returns::EmptyString->new("DefaultFlowCodeNS", []),
 
 # Question: where is ppdefs defined?
 # Answer: Core/Types.pm
