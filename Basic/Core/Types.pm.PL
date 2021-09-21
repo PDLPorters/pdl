@@ -152,6 +152,7 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	          isnan=>'isnan(%1$s)',
+	          isfinite=>'isfinite(%1$s)',
 	          floatsuffix=>'f',
 	      },
 	      {
@@ -167,6 +168,7 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	          isnan=>'isnan(%1$s)',
+	          isfinite=>'isfinite(%1$s)',
 	          floatsuffix=>'',
 	      },
 # the complex types need to be in the same order as their real
@@ -189,6 +191,7 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	          isnan=>'(isnan(crealf(%1$s)) || isnan(cimagf(%1$s)))',
+	          isfinite=>'(isfinite(crealf(%1$s)) && isfinite(cimagf(%1$s)))',
 	          floatsuffix=>'f',
 	      },
 	      {
@@ -205,6 +208,7 @@ my @types = (
 	          integer=>0,
 	          unsigned=>0,
 	          isnan=>'(isnan(creal(%1$s)) || isnan(cimag(%1$s)))',
+	          isfinite=>'(isfinite(creal(%1$s)) && isfinite(cimag(%1$s)))',
 	          floatsuffix=>'',
 	      },
 	      );
@@ -270,7 +274,7 @@ sub gentypehashentry ($$) {
     shortctype => $shortctype,
     realversion => $type->{realversion} || $ppsym,
     complexversion => $type->{complexversion} || (!$type->{real} ? $ppsym : 'G'),
-    (map +($_ => $type->{$_}), @TYPE_VERBATIM, qw(isnan floatsuffix)),
+    (map +($_ => $type->{$_}), @TYPE_VERBATIM, qw(isnan isfinite floatsuffix)),
   };
 }
 
@@ -657,7 +661,14 @@ See L<badvalue routine in PDL::Bad|PDL::Bad/badvalue> for more details.
 =item isnan
 
 Given a string representing a C value, will return a C expression for
-this type that indicates whether that value is NaN.
+this type that indicates whether that value is NaN (for complex values,
+if I<either> is finite).
+
+=item isfinite
+
+Given a string representing a C value, will return a C expression for
+this type that indicates whether that value is finite (for complex values,
+if I<both> are finite).
 
 =item floatsuffix
 
@@ -713,6 +724,7 @@ sub types { @CACHED_TYPES }
     }
 
     sub isnan { sprintf $_[0][1]{isnan}, $_[1] }
+    sub isfinite { sprintf $_[0][1]{isfinite}, $_[1] }
 
     sub floatsuffix { $_[0][1]{floatsuffix} // 'floatsuffix called on non-float type' }
 

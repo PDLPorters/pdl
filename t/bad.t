@@ -352,6 +352,12 @@ my $fa = pdl( float,  1..4) / 3;
 my $da = pdl( double, 1..4) / 3;
 ok( all($fa->setvaltobad(2/3)->isbad == $da->setvaltobad(2/3)->isbad), "setvaltobad for float ndarray");
 
+my $x_copy = $x->copy;
+$x_copy->set(1, 'Inf');
+$x_copy->inplace->setnonfinitetobad;
+like( PDL::Core::string( $x_copy->clump(-1) ),
+    qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setnonfinitetobad()" );
+
 # simple test for setnantobad
 # - could have a 1D FITS image containing
 #   NaN's and then a simple version of rfits

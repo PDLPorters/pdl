@@ -141,6 +141,8 @@ for my $type (PDL::Types::types()) {
   my ($ppsym) = map $type->$_, qw(ppsym);
   my $expr = !$type->usenan ? 'FALSE' : $type->isnan('x');
   print OUT "#define PDL_ISNAN_$ppsym(x) ($expr)\n";
+  my $expr2 = !$type->usenan ? 'TRUE' : $type->isfinite('x');
+  print OUT "#define PDL_ISFINITE_$ppsym(x) ($expr2)\n";
 }
 
 my @methods = qw(symbol ctype ppsym shortctype defbval);
