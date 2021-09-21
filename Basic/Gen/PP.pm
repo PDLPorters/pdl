@@ -1276,11 +1276,6 @@ sub typemap {
   return ($input);
 }
 
-sub make_signature {
-	my($str,$badflag) = @_;
-	PDL::PP::Signature->new($str,$badflag);
-}
-
 sub OtherPars_nft {
     my ($otherpars,$sig) = @_;
     my $dimobjs = $sig && $sig->dims_obj;
@@ -1817,8 +1812,8 @@ EOD
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
-
-   PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag"], \&make_signature),
+   PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag"],
+      sub { PDL::PP::Signature->new(@_) }),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
