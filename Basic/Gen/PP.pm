@@ -108,36 +108,21 @@ sub report ($$) { print $_[1] if $::PP_VERBOSE; }
 # argument but this is being used to transition to a slightly-different
 # object design
 #
+my $rule_usage = "Usage: PDL::PP::Rule->new(\$targets[,\$conditions[,\$doc],] [,\$ref])\n";
 sub new {
+    die $rule_usage if @_ < 2 or @_ > 5;
     my $class = shift;
     my $self = bless {}, $class;
-    my $usage = "Usage: PDL::PP::Rule->new(\$targets[,\$conditions[,\$doc],] [,\$ref])\n";
-
-    # handle arguments
-    my $nargs = $#_;
-    die $usage if $nargs < 0 or $nargs > 3;
-
     my $targets = shift;
     $targets = [$targets] unless ref $targets eq "ARRAY";
     $self->{targets} = $targets;
-
-    if ($#_ != -1) {
-        if (ref $_[-1] eq "CODE") {
-            $self->{ref} = pop;
-        }
-
-        my ($conditions,$doc) = @_;
-
-        if (defined $conditions) {
-            $conditions = [$conditions] unless ref $conditions eq "ARRAY";
-        } else {
-            $conditions = [];
-        }
-        $self->{conditions} = $conditions;
-        $self->{doc} = $doc if defined $doc;
-    }
-
-    return $self;
+    return $self if !@_;
+    $self->{ref} = pop if ref $_[-1] eq "CODE";
+    my $conditions = shift // [];
+    $conditions = [$conditions] unless ref $conditions eq "ARRAY";
+    $self->{conditions} = $conditions;
+    $self->{doc} = shift if defined $_[0];
+    $self;
 }
 
 # $rule->check_if_targets_exist($pars);
