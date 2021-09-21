@@ -2604,8 +2604,6 @@ BackCode
 
 BadBackCode
 
-CallCopy
-
 Comp (related to $COMP()?)
 
 DefaultFlow

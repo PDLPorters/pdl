@@ -1802,18 +1802,14 @@ EOD
       sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
              "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),
 
-# Parameters in the form 'parent and child(this)'.
-# The names are PARENT and CHILD.
-#
 # P2Child implicitly means "no data type changes".
-
-   PDL::PP::Rule->new(["SignatureObj","HaveThreading","NewXSName"],
-		      ["P2Child","Name","BadFlag","GenericTypes"],
+   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy NewXSName)],
+		      ["P2Child","Name","GenericTypes"],
       sub {
-        my($p2child,$name,$badflag,$gentypes) = @_;
+        my(undef,$name,$gentypes) = @_;
         confess "ERROR: P2Child with gentypes (@$gentypes) not covering ALL types\n"
-          if $p2child and $#$gentypes != $ntypes;
-        (make_signature("PARENT(); [oca]CHILD();",$badflag),0,"${name}_NN");
+          if $#$gentypes != $ntypes;
+        ("PARENT(); [oca]CHILD();",0,0,"${name}_NN");
       }),
 
    PDL::PP::Rule::InsertName->new("NewXSName", '_${name}_int'),
@@ -1829,10 +1825,9 @@ EOD
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
  #
-   PDL::PP::Rule->new("CallCopy", ["SignatureObj", "Name", "_P2Child"],
+   PDL::PP::Rule->new("CallCopy", ["SignatureObj", "Name"],
       sub {
 	  my ($sig, $Name, $hasp2c) = @_;
-	  return 0 if $hasp2c;
 	  my $noDimmedArgs = $sig->dims_count;
 	  my $noArgs = @{$sig->names};
 	  return 0 if !($noDimmedArgs == 0 and $noArgs == 2);
