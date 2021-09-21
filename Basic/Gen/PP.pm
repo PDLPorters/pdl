@@ -401,8 +401,6 @@ sub apply {
     $pars->{$target} = eval "return \"" . $self->{"insertname.value"} . "\";";
 }
 
-# Poor name. This is the old "dosubst" routine
-#
 #   PDL::PP::Rule->new("NewXSCoerceMustSubs", ["NewXSCoerceMustSub1","NewXSSymTab","Name"],
 #	 	      \&dosubst),
 #
@@ -468,8 +466,6 @@ sub new {
 				  \&dosubst_private);
 }
 
-# Poor name. This is the old "dousualsubsts" routine
-#
 #   PDL::PP::Rule->new("CacheBadFlagInit", ["CacheBadFlagInitNS","NewXSSymTab","Name"],
 #		      \&dousualsubsts),
 #
@@ -526,8 +522,6 @@ sub extract_args {
     return ([$code,{@std_childparent}],$sname,$name);
 }
 
-# Poor name. This is the old "subst_makecomp" routine
-#
 #  PDL::PP::Rule->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
 #		      sub {subst_makecomp("COMP",@_)}),
 #
@@ -1178,48 +1172,9 @@ sub TidyType
 # for the variable, returns the correct input typemap entry.
 # Original version: D. Hunt 4/13/00  - Current version J. Brinchmann (06/05/05)
 #
-# This is an extended typemap handler from the one earlier written by
-# Doug Hunt. It should work exactly as the older version, but with extensions.
-# Instead of handling a few special cases explicitly we now use Perl's
-# built-in typemap handling using code taken straight from xsubpp.
-#
-# I have infact kept the old part of the code here because I belive any
-# subsequent hackers might find it very helpful to refer to this code to
-# understand what the following does. So here goes:
-#
-# ------------ OLD TYPEMAP PARSING: ------------------------
-#
-#   # Note that I now just look at the basetype.  I don't
-#   # test whether it is a pointer to the base type or not.
-#   # This is done because it is simpler and I know that the otherpars
-#   # belong to a restricted set of types.  I know a char will really
-#   # be a char *, for example.  I also know that an SV will be an SV *.
-#   #    yes, but how about catching syntax errors in OtherPars (CS)?
-#   #    shouldn't we really parse the perl typemap (we can steal the code
-#   #    from xsubpp)?
-#
-#   my $OLD_PARSING=0;
-#   if ($OLD_PARSING) {
-#     my %typemap = (char     => "(char *)SvPV($arg,PL_na)",
-# 		   short    => "(short)SvIV($arg)",
-# 		   int      => "(int)SvIV($arg)",
-# 		   long     => "(long)SvIV($arg)",
-# 		   double   => "(double)SvNV($arg)",
-# 		   float    => "(float)SvNV($arg)",
-# 		   SV       => "$arg",
-# 		  );
-#     my $basetype = $type->{Base};
-#     $basetype =~ s/\s+//g;  # get rid of whitespace
-#
-#     die "Cannot find $basetype in my (small) typemap" unless exists($typemap{$basetype});
-#     return ($typemap{$basetype});
-#   }
-#
-#--------- END OF THE OLD CODE ---------------
-#
 # The code loads the typemap from the Perl typemap using the loading logic of
 # xsubpp. Do note that I  made the assumption that
-# $Config{}installprivlib}/ExtUtils was the right root directory for the search.
+# $Config{installprivlib}/ExtUtils was the right root directory for the search.
 # This could break on some systems?
 #
 # Also I do _not_ parse the Typemap argument from ExtUtils::MakeMaker because I don't
@@ -1248,9 +1203,6 @@ sub typemap {
 
   # according to MM_Unix 'privlibexp' is the right directory
   #     seems to work even on OS X (where installprivlib breaks things)
-  # if this does not work portably we should split out the typemap finding code
-  # and make it as complex as necessary + save the typemap location
-  # in the PDL::Config hash
   my $_rootdir = $Config{privlibexp}.'/ExtUtils/';
 #  print "_rootdir set to '$_rootdir'\n";
 
@@ -1264,20 +1216,16 @@ sub typemap {
   # Note that the OUTPUT typemap is unlikely to be of use here, but I have kept
   # the source code from xsubpp for tidiness.
   push @tm, &PDL::Core::Dev::PDL_TYPEMAP, 'typemap';
-  my $foundtm = 0;
-  foreach $typemap (@tm) {
-    next unless -f $typemap ;
-    # skip directories, binary files etc.
-    warn("Warning: ignoring non-text typemap file '$typemap'\n"), next
-      unless -T $typemap ;
-    $foundtm = 1;
-    open(TYPEMAP, $typemap)
-      or warn ("Warning: could not open typemap file '$typemap': $!\n"), next;
+  carp "**CRITICAL** PP found no typemap in $_rootdir/typemap; this will cause problems..."
+      unless my @typemaps = grep -f $_ && -T _, @tm;
+  foreach $typemap (@typemaps) {
+    open(my $fh, $typemap)
+      or warn("Warning: could not open typemap file '$typemap': $!\n"), next;
     $mode = 'Typemap';
     $junk = "" ;
     $current = \$junk;
     local $_; # else get "Modification of a read-only value attempted"
-    while (<TYPEMAP>) {
+    while (<$fh>) {
 	next if /^\s*#/;
         my $line_no = $. + 1;
 	if (/^INPUT\s*$/)   { $mode = 'Input';   $current = \$junk;  next; }
@@ -1313,10 +1261,8 @@ sub typemap {
 	    $current = \$output_expr{$_};
 	}
       }
-    close(TYPEMAP);
+    close $fh;
   }
-  carp "**CRITICAL** PP found no typemap in $_rootdir/typemap; this will cause problems..."
-      unless $foundtm;
 
   #
   # Do checks...
