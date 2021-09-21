@@ -696,8 +696,6 @@ $PDL::PP::done = 0;  # pp_done has not been called yet
 use Carp;
 our @CARP_NOT;
 
-my $ntypes = $#PDL::Types::names;
-
 my @xscode_args_always = (
   "_GlobalNew","_NewXSCHdrs",
   "NewXSStructInit0",
@@ -1630,6 +1628,15 @@ EOD
    # The substituted version should then replace "NS" with "Subd"
    # So: FreeCodeNS -> FreeCodeSubd
 
+   PDL::PP::Rule::Croak->new([qw(P2Child GenericTypes)],
+       'Cannot have both P2Child and GenericTypes defined'),
+   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy NewXSName GenericTypes)],
+		      ["P2Child","Name"],
+      sub {
+        my (undef,$name) = @_;
+        ("PARENT(); [oca]CHILD();",0,0,"${name}_NN",[ppdefs_all]);
+      }),
+
 # some defaults
 #
    PDL::PP::Rule::Returns->new("DefaultFlowCodeNS", "DefaultFlow",
@@ -1795,16 +1802,6 @@ EOD
    PDL::PP::Rule->new("XSBootCode", ["AffinePriv","VTableName"],
       sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
              "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),
-
-# P2Child implicitly means "no data type changes".
-   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy NewXSName)],
-		      ["P2Child","Name","GenericTypes"],
-      sub {
-        my(undef,$name,$gentypes) = @_;
-        confess "ERROR: P2Child with gentypes (@$gentypes) not covering ALL types\n"
-          if $#$gentypes != $ntypes;
-        ("PARENT(); [oca]CHILD();",0,0,"${name}_NN");
-      }),
 
    PDL::PP::Rule::InsertName->new("NewXSName", '_${name}_int'),
 

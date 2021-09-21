@@ -98,7 +98,6 @@ pp_def(
        WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
        MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
        RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
-       GenericTypes => [ppdefs_all],
        EquivCPOffsCode => '
           if ($CHILD_P(state) & $PARENT_P(state) & PDL_ALLOCATED) {
             PDL_Indx i, poffs=$PRIV(offs), nd;
@@ -134,7 +133,6 @@ pp_def(
         's_identity',
         HandleBad => 1,
         P2Child => 1,
-        GenericTypes => [ppdefs_all],
         DefaultFlow => 1,
         OtherPars => '',
         Reversible => 1,
@@ -462,7 +460,6 @@ EOD-range
 
 pp_def(
         'rangeb',
-        GenericTypes => [ppdefs_all],
         OtherPars => 'SV *index; SV *size; SV *boundary',
         Doc => <<'EOD',
 =for ref
@@ -1351,7 +1348,6 @@ pp_def('flowconvert',
 
 pp_def(
         'converttypei',
-        GenericTypes => [ppdefs_all],
         HandleBad => 1,
         DefaultFlow => 1,
         GlobalNew => 'converttypei_new',
@@ -1370,7 +1366,6 @@ pp_def(
 # this is just the low level interface
 pp_def(
         '_clump_int',
-        GenericTypes => [ppdefs_all],
         DefaultFlow => 1,
         OtherPars => 'int n',
         P2Child => 1,
@@ -1415,7 +1410,6 @@ pp_def(
 
 pp_def(
         'xchg',
-        GenericTypes => [ppdefs_all],
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
         DefaultFlow => 1,
         Reversible => 1,
@@ -1583,7 +1577,6 @@ EOD
 
 pp_def(
         'mv',
-        GenericTypes => [ppdefs_all],
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
         DefaultFlow => 1,
         Reversible => 1,
@@ -1646,7 +1639,6 @@ EOH
 #
 pp_def(
         'oslice',
-        GenericTypes => [ppdefs_all],
         Doc => << 'EOD',
 =for ref
 
@@ -2038,7 +2030,6 @@ END
 
 
 pp_def( 'affine',
-        GenericTypes => [ppdefs_all],
         P2Child => 1,
         DefaultFlow => 1,
         Reversible => 1,
@@ -2082,7 +2073,6 @@ pp_def( 'affine',
 
 pp_def(
         'diagonalI',
-        GenericTypes => [ppdefs_all],
         P2Child => 1,
         DefaultFlow => 1,
         Reversible => 1,
@@ -2164,7 +2154,6 @@ EOD
 
 pp_def(
         'lags',
-        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2243,7 +2232,6 @@ EOD
 
 pp_def(
         'splitdim',
-        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2347,7 +2335,6 @@ EOD
 
 pp_def(
         'threadI',
-        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2446,7 +2433,6 @@ EOD
 
 pp_def(
         'unthread',
-        GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
 =for ref
 
@@ -2885,7 +2871,6 @@ KLUDGE
 
 pp_def(
         'sliceb',
-        GenericTypes => [ppdefs_all],
         P2Child => 1,
         DefaultFlow => 1,
         OtherPars => 'SV *args;',
