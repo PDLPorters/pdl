@@ -459,8 +459,8 @@ sub new {
     my $target = shift;
     my $condition = shift;
 
-    die "\$target must be a scalar for PDL::PP::Rule->Substitute" if ref $target;
-    die "\$condition must be a scalar for PDL::PP::Rule->Substitute" if ref $condition;
+    die "\$target must be a scalar for PDL::PP::Rule::Substitute" if ref $target;
+    die "\$condition must be a scalar for PDL::PP::Rule::Substitute" if ref $condition;
 
     $class->SUPER::new($target, [$condition, "StructName", "Name"],
 				  \&dosubst_private);
@@ -708,15 +708,15 @@ my @xscode_args_always = (
   "_GlobalNew","_NewXSCHdrs",
   "NewXSStructInit0",
   "NewXSSetTransPDLs",
-  "NewXSFindBadStatus",
+  "NewXSFindBadStatusSubd",
   #     NewXSCopyBadValues,
   #     NewXSMakeNow, # this is unnecessary since families never got implemented
-  "NewXSTypeCoerce",
+  "NewXSTypeCoerceSubd",
   "NewXSExtractTransPDLs",
-  "MakeCompiledRepr",
-  "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
+  "MakeCompiledReprSubd",
+  "NewXSCoerceMustCompSubd","_IsReversibleCodeSubd","DefaultFlowCodeSubd",
   "NewXSRunTrans",
-  "NewXSCopyBadStatus",
+  "NewXSCopyBadStatusSubd",
 );
 
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
@@ -1333,7 +1333,7 @@ sub wrap_vfn {
 my @vfn_args_always = qw(StructName StructType _P2Child);
 sub make_vfn_args {
   my ($which) = @_;
-  ("${which}Func",["${which}Subd","${which}FuncName",@vfn_args_always],
+  ("${which}Func",["${which}CodeSubd","${which}FuncName",@vfn_args_always],
     sub {$_[1] eq 'NULL' ? '' : wrap_vfn(@_,lc $which)}
   );
 }
@@ -1638,6 +1638,8 @@ EOD
    # Suffix 'NS' means, "Needs Substitution". In other words, the string
    # associated with a key that has the suffix "NS" must be run through a
    # Substitute or Substitute::Usual
+   # The substituted version should then replace "NS" with "Subd"
+   # So: FreeCodeNS -> FreeCodeSubd
 
 # some defaults
 #
@@ -2152,15 +2154,15 @@ END
           "$_->datatype = $ftypes->{$_}; ",
           keys %$ftypes);
       }),
-   PDL::PP::Rule::Substitute::Usual->new("NewXSCoerceMust", "NewXSCoerceMustNS"),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSCoerceMustSubd", "NewXSCoerceMustNS"),
 
-   PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCode", "DefaultFlowCodeNS"),
+   PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCodeSubd", "DefaultFlowCodeNS"),
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS", ["StructName"],
       sub {
         PDL::PP::pp_line_numbers(__LINE__-1, "PDL->type_coerce((pdl_trans *)$_[0]);");
       }),
-   PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerceSubd", "NewXSTypeCoerceNS"),
 
    PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
@@ -2259,21 +2261,21 @@ END
         my($rev) = @_;
         PDL::PP::pp_line_numbers(__LINE__-1, $rev eq "1" ? '$SETREVERSIBLE(1)' : $rev)
       }),
-   PDL::PP::Rule::Substitute::Usual->new("IsReversibleCode", "IsReversibleCodeNS"),
+   PDL::PP::Rule::Substitute::Usual->new("IsReversibleCodeSubd", "IsReversibleCodeNS"),
 
-   PDL::PP::Rule::Substitute->new("MakeCompiledRepr", "MakeCompiledReprNS"),
+   PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
 
    PDL::PP::Rule->new("FreeCodeNS",
       ["StructName","CompFreeCode","NTPrivFreeCode"],
       sub {
 	  (grep $_, @_[1..$#_]) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], $_[1], $_[2])"): ''}),
 
-   PDL::PP::Rule::Substitute::Usual->new("FreeSubd", "FreeCodeNS"),
+   PDL::PP::Rule::Substitute::Usual->new("FreeCodeSubd", "FreeCodeNS"),
 
-   PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMust"),
+   PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMustSubd"),
 
-   PDL::PP::Rule::MakeComp->new("NewXSCoerceMustSub1", "NewXSCoerceMust", "FOO"),
-   PDL::PP::Rule::Substitute->new("NewXSCoerceMustSub1d", "NewXSCoerceMustSub1"),
+   PDL::PP::Rule::MakeComp->new("NewXSCoerceMustCompNS", "NewXSCoerceMustSubd", "FOO"),
+   PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustCompNS"),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
       ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","Name"],
@@ -2375,8 +2377,8 @@ END
 
  # expand macros in ...BadStatusCode
  #
-   PDL::PP::Rule::Substitute::Usual->new("NewXSFindBadStatus", "NewXSFindBadStatusNS"),
-   PDL::PP::Rule::Substitute::Usual->new("NewXSCopyBadStatus", "NewXSCopyBadStatusNS"),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSFindBadStatusSubd", "NewXSFindBadStatusNS"),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSCopyBadStatusSubd", "NewXSCopyBadStatusNS"),
 
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule
  # will not be executed. D. Hunt 4/11/00
@@ -2435,9 +2437,9 @@ PDL_TRANS_START($npdls);
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
       ["RedoDims", "PrivNames", "PrivObjs"], "PRIV"),
 
-   # The RedoDimsSub rule takes in the RedoDims target
+   # The RedoDimsCodeNS rule takes in the RedoDims target
    # directly as well as via RedoDims-PostComp for better error-reporting
-   PDL::PP::Rule->new("RedoDimsSub",
+   PDL::PP::Rule->new("RedoDimsCodeNS",
       ["RedoDims", "RedoDims-PostComp", "_DimsObj"],
       sub {
         my ($redodims, $result, $dimobjs) = @_;
@@ -2451,15 +2453,15 @@ PDL_TRANS_START($npdls);
         };
         return $result;
       }),
-   PDL::PP::Rule::Substitute->new("RedoDimsSubd", "RedoDimsSub"),
+   PDL::PP::Rule::Substitute->new("RedoDimsCodeSubd", "RedoDimsCodeNS"),
    PDL::PP::Rule->new(make_vfn_args("RedoDims")),
 
-   PDL::PP::Rule::MakeComp->new("ReadDataSub", "ParsedCode", "FOO"),
-   PDL::PP::Rule::Substitute->new("ReadDataSubd", "ReadDataSub"),
+   PDL::PP::Rule::MakeComp->new("ReadDataCodeNS", "ParsedCode", "FOO"),
+   PDL::PP::Rule::Substitute->new("ReadDataCodeSubd", "ReadDataCodeNS"),
    PDL::PP::Rule->new(make_vfn_args("ReadData")),
 
-   PDL::PP::Rule::MakeComp->new("WriteBackDataSub", "ParsedBackCode", "FOO"),
-   PDL::PP::Rule::Substitute->new("WriteBackDataSubd", "WriteBackDataSub"),
+   PDL::PP::Rule::MakeComp->new("WriteBackDataCodeNS", "ParsedBackCode", "FOO"),
+   PDL::PP::Rule::Substitute->new("WriteBackDataCodeSubd", "WriteBackDataCodeNS"),
 
    PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_${name}_writebackdata'),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
@@ -2467,7 +2469,7 @@ PDL_TRANS_START($npdls);
    PDL::PP::Rule->new(make_vfn_args("WriteBackData")),
 
    PDL::PP::Rule->new("FreeFuncName",
-		      ["FreeSubd","Name"],
+		      ["FreeCodeSubd","Name"],
 		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
    PDL::PP::Rule->new(make_vfn_args("Free")),
 
