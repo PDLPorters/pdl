@@ -1735,14 +1735,11 @@ EOD
         # parse 'good' code
         $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
         $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = ($3) ? 0 : \$PP(PARENT)[$2]/g;
-        my $str = PDL::PP::pp_line_numbers(__LINE__-1, $good);
-        if ( defined $bflag and $bflag ) {
-          # parse 'bad' code
-          $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
-          $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/ if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
-          $str = 'if( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
-        }
-        $str;
+        return PDL::PP::pp_line_numbers(__LINE__-1, $good) if !$bflag;
+        # parse 'bad' code
+        $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
+        $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/ if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
+        PDL::PP::pp_line_numbers(__LINE__-1, 'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}');
       }),
 
    PDL::PP::Rule->new("BackCode", ["EquivCPOffsCode","BadFlag"],
