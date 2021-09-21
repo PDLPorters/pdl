@@ -1630,11 +1630,11 @@ EOD
 
    PDL::PP::Rule::Croak->new([qw(P2Child GenericTypes)],
        'Cannot have both P2Child and GenericTypes defined'),
-   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy NewXSName GenericTypes)],
+   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy NewXSName GenericTypes DefaultFlow)],
 		      ["P2Child","Name"],
       sub {
         my (undef,$name) = @_;
-        ("PARENT(); [oca]CHILD();",0,0,"${name}_NN",[ppdefs_all]);
+        ("PARENT(); [oca]CHILD();",0,0,"${name}_NN",[ppdefs_all],1);
       }),
 
 # some defaults
