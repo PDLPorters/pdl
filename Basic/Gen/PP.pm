@@ -1107,8 +1107,7 @@ EOF
 # final free time (thread, dimmed things).
 
 use Carp;
-$SIG{__DIE__} = sub {print Carp::longmess(@_); die;}
-  if $::PP_VERBOSE;  # seems to give us trouble with 5.6.1
+$SIG{__DIE__} = \&Carp::confess if $::PP_VERBOSE;
 
 use PDL::PP::Signature;
 use PDL::PP::Dims;
@@ -1204,7 +1203,6 @@ sub typemap {
   # according to MM_Unix 'privlibexp' is the right directory
   #     seems to work even on OS X (where installprivlib breaks things)
   my $_rootdir = $Config{privlibexp}.'/ExtUtils/';
-#  print "_rootdir set to '$_rootdir'\n";
 
   # First the system typemaps..
   my @tm = ($_rootdir.'../../../../lib/ExtUtils/typemap',
@@ -1260,7 +1258,7 @@ sub typemap {
 	    $output_expr{$_} = '';
 	    $current = \$output_expr{$_};
 	}
-      }
+    }
     close $fh;
   }
 
@@ -1665,11 +1663,6 @@ EOD
    PDL::PP::Rule::InsertName->new("StructType", 'pdl_trans__${name}'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
 
-# Treat exchanges as affines. Affines assumed to be parent->child.
-# Exchanges may, if the want, handle threadids as well.
-# Same number of dimensions is assumed, though.
-#
-   PDL::PP::Rule->new("AffinePriv", "XCHGOnly", sub { return @_; }),
    PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$CHILD(ndims)];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
 
@@ -1809,9 +1802,6 @@ EOD
    PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
    PDL::PP::Rule::InsertName->new("RedoDimsFuncName", 'pdl_${name}_redodims'),
 
-   # There used to be a BootStruct rule which just became copied to the XSBootCode
-   # rule, so it has been removed.
-   #
    PDL::PP::Rule->new("XSBootCode", ["AffinePriv","VTableName"],
       sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
              "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),

@@ -1420,7 +1420,7 @@ pp_def(
         DefaultFlow => 1,
         Reversible => 1,
         P2Child => 1,
-        XCHGOnly => 1,
+        AffinePriv => 1,
         EquivDimCheck => 'if ($COMP(n1) <0)
                                 $COMP(n1) += $PARENT(threadids[0]);
                           if ($COMP(n2) <0)
@@ -1588,7 +1588,7 @@ pp_def(
         DefaultFlow => 1,
         Reversible => 1,
         P2Child => 1,
-        XCHGOnly => 1,
+        AffinePriv => 1,
         EquivDimCheck => 'if ($COMP(n1) <0)
                                 $COMP(n1) += $PARENT(threadids[0]);
                           if ($COMP(n2) <0)
