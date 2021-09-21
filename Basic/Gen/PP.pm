@@ -1306,21 +1306,26 @@ sub OtherPars_nft {
 }
 
 sub wrap_vfn {
-    my($code,$rout,$sname,$stype,$p2child,$name) = @_;
-    my $str = PDL::PP::pp_line_numbers(__LINE__-1, qq|void $rout(pdl_trans *__tr) {
-	$stype *$sname = ($stype *) __tr;\n|);
-    if ( $p2child ) {
-	$str .= "\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n";
-	$str .= "PDL->hdr_childcopy(__tr);\n" if $name eq "redodims";
-    }
-    $str .= $code;
-    "$str\n}\n";
+  my (
+    $code,$rout,$func_header,
+    $all_func_header,$sname,$stype,
+    $name,
+  ) = @_;
+  my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
+  PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+void $rout(pdl_trans *__tr) {
+  $stype *$sname = ($stype *) __tr;
+$str}
+EOF
 }
 
-my @vfn_args_always = qw(StructName StructType _P2Child);
+my @vfn_args_always = qw(_AllFuncHeader StructName StructType);
 sub make_vfn_args {
   my ($which) = @_;
-  ("${which}Func",["${which}CodeSubd","${which}FuncName",@vfn_args_always],
+  ("${which}Func",
+    ["${which}CodeSubd","${which}FuncName","_${which}FuncHeader",
+      @vfn_args_always
+    ],
     sub {$_[1] eq 'NULL' ? '' : wrap_vfn(@_,lc $which)}
   );
 }
@@ -1659,11 +1664,14 @@ EOD
 
    PDL::PP::Rule::Croak->new([qw(P2Child GenericTypes)],
        'Cannot have both P2Child and GenericTypes defined'),
-   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy NewXSName GenericTypes DefaultFlow)],
+   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy NewXSName GenericTypes DefaultFlow AllFuncHeader RedoDimsFuncHeader)],
 		      ["P2Child","Name"],
       sub {
         my (undef,$name) = @_;
-        ("PARENT(); [oca]CHILD();",0,0,"${name}_NN",[ppdefs_all],1);
+        ("PARENT(); [oca]CHILD();",0,0,"${name}_NN",[ppdefs_all],1,
+          pp_line_numbers(__LINE__-1,"\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n"),
+          pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy(__tr);\n"),
+        );
       }),
 
 # some defaults
