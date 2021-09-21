@@ -1,25 +1,4 @@
-#####################################################################
-#####################################################################
-##
-##
-## Here starts the actual thing.
-##
-## This is way too messy and uncommented. Still. :(
-#
-# DJB August 24 2006
-#   begin cleaning up the code so that it all runs under use strict
-# DJB August 31 2006
-#   moved to use objects for the rule table (ie defvar) in the
-#   hope it's more declarative (since the addition of "::" to
-#   a statement makes it so much-more meaningful :-)
-#
-
-# How to convert from the old deftbl format to the new, object-based,
-# system:
-#
-# What used to be, in $PDL::PP::deftbl
-#   [["Name1"], ["Name2"], $ref_to_sub]]
-# is now
+# $PDL::PP::deftbl is an array-ref of
 #   PDL::PP::Rule->new("Name1", "Name2", $ref_to_sub)
 # where Name1 represents the target of the rule, Name2 the condition,
 # and the subroutine reference is the routine called when the rule is
@@ -27,22 +6,14 @@
 #
 # If there is no condition, the argument can be left out of the call
 # (unless there is a doc string), so
-#   [["Name1"], [], $ref_to_sub]]
-# becomes
 #   PDL::PP::Rule->new("Name1", $ref_to_sub)
 #
 # The target and conditions can also be an array reference, so
-#   [["Name1"], ["Name2","Name3"], $ref_to_sub]]
-#   [["Name1","Name2"], ["Name3"], $ref_to_sub]]
-#   [["Name1","Name2"], ["Name3","Name4"], $ref_to_sub]]
-# become, respectively
 #   PDL::PP::Rule->new("Name1", ["Name2","Name3"], $ref_to_sub)
 #   PDL::PP::Rule->new(["Name1","Name2"], "Name3", $ref_to_sub)
 #   PDL::PP::Rule->new(["Name1","Name2"], ["Name3","Name4], $ref_to_sub)
 #
-# If the old rule had a document string, this is placed between
-# the condition and the subroutine reference. To make processing
-# simpler, if a doc string exists then the condition must also
+# If a doc string exists then the condition must also
 # be supplied, even if it is just [] (ie no condition).
 #
 # There are specialized rules for common situations. The rules for the
@@ -53,8 +24,6 @@
 #
 # PDL::PP::Rule::Returns->new($targets [,$conditions [,$doc]], $value)
 # is used to return a constant. So
-#   [["Name1"], [], sub { "foo" }]
-# becomes
 #   PDL::PP::Rule::Returns->new("Name1", "foo")
 #
 # This class is specialized since there are some common return values:
@@ -66,10 +35,7 @@
 #
 # The InsertName class exists to allow you to return something like
 #   "foo<routine name>bar"
-# The old rules
-#  [["Foo"], ["Name"], sub { return "_pdl_$_[0]_bar"; }]
-#  [["Foo"], ["Name","Arg2"], sub { return "_pdl_$_[0]_bar"; }]
-# become
+# e.g.
 #  PDL::PP::Rule::InsertName->new("Foo", '_pdl_${name}_bar')
 #  PDL::PP::Rule::InsertName->new("Foo", "Arg2", '_pdl_${name}_bar')
 # Note that the Name argument is automatically used as a condition, so
@@ -78,56 +44,25 @@
 #
 # The Substitute rule replaces dollar-signed macros ($P(), $ISBAD(), etc)
 # with the low-level C code to perform the macro.
-#
-# The Substitute class replaces the dosubst rule. The old rule
-#   [["NewXSCoerceMustSubs"], ["NewXSCoerceMustSub1","NewXSSymTab","Name"],
-#	 	      \&dosubst]
-# becomes
 #   PDL::PP::Rule::Substitute("NewXSCoerceMustSubs", "NewXSCoerceMustSub1")
-#
 # PDL::PP::Rule::Substitute->new($target,$condition)
 #   $target and $condition must be scalars.
-#
 #   Implicit conditions are NewXSSymTab and Name
-#
-# The Substitute:Usual class replaces the dousualsubsts rule. The old rule
-#   [["CacheBadFlagInit"], ["CacheBadFlagInitNS","NewXSSymTab","Name"],
-#		      \&dousualsubsts],
-# becomes
-#   PDL::PP::Rule::Substitute::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS")
 #
 # PDL::PP::Rule::Substitute::Usual->new($target, $condition)
 #   $target and $condition must be scalars.
-#
 #   Implicit conditions are NewXSSymTab and Name
 #
-# The MakeComp rule replaces the subst_makecomp routine. The old rule
-#  [["MakeCompiledRepr"], ["MakeComp","CompNames","CompObjs"],
-#		      sub {subst_makecomp("COMP",@_)}]
-# becomes
+# The MakeComp rule creates the compiled representation accessed by $COMP()
 #  PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
 #		      "COMP")
 # PDL::PP::Rule::MakeComp->new($target,$conditions,$symbol)
 #   $target and $symbol must be scalars.
-#
 
 # Notes:
-#   InsertName could become a subclass of Insert since there are
-#   a few rules that just insert conditions into a text string.
-#
 #   Substitute, Substitute::Usual, MakeComp classes feel a bit
 #   ugly. See next point. Also the get_std_childparent method is
 #   a bit of a hack.
-#
-#   DJB thinks that the code fragments themselves could be objects
-#   since they should 'know' what needs doing to them (eg the
-#   substitutions). Not sure whether it would really clarify things.
-#
-# To do:
-#   wrap_vfn could probably be moved into a class.
-#
-#   move the PDL::PP::Rule and subclasses into their own file?
-#
 
 package PDL::PP::Rule;
 
