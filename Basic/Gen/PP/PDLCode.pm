@@ -12,9 +12,15 @@ use strict;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
+my @code_args_always = qw(SignatureObj GenericTypes ExtraGenericLoops HaveThreading Name);
+sub make_args {
+  my ($which) = @_;
+  ("Parsed$which", [$which,"_Bad$which",@code_args_always]);
+}
+
 # Do the appropriate substitutions in the code.
 sub new {
-    my($type,$code,$badcode,$sig,$generictypes,
+    my($class,$code,$badcode,$sig,$generictypes,
        $extrageneric,$havethreading,$name,
        $dont_add_thrloop, $backcode ) = @_;
     my $parnames = $sig->names_sorted;
@@ -63,7 +69,7 @@ sub new {
 	ftypes_type => undef,
         Generictypes => $generictypes,   # so that MacroAccess can check it
         Name => $name,
-    }, $type;
+    }, $class;
 
     # First, separate the code into an array of C fragments (strings),
     # variable references (strings starting with $) and

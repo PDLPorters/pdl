@@ -698,12 +698,6 @@ our @CARP_NOT;
 
 my $ntypes = $#PDL::Types::names;
 
-my @code_args_always = qw(SignatureObj GenericTypes ExtraGenericLoops HaveThreading Name);
-sub make_code_args {
-  my ($which) = @_;
-  [$which,"_Bad$which",@code_args_always];
-}
-
 my @xscode_args_always = (
   "_GlobalNew","_NewXSCHdrs",
   "NewXSStructInit0",
@@ -2186,11 +2180,9 @@ END
       "PDL->make_trans_mutual((pdl_trans *)$trans);\n");
    }),
 
-   PDL::PP::Rule->new("ParsedCode",
-		      make_code_args("Code"),
+   PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
 		      sub { return PDL::PP::Code->new(@_); }),
-   PDL::PP::Rule->new("ParsedBackCode",
-		      make_code_args("BackCode"),
+   PDL::PP::Rule->new(PDL::PP::Code::make_args("BackCode"),
 		      sub { return PDL::PP::Code->new(@_, undef, 'BackCode2'); }),
 
 # Compiled representations i.e. what the xsub function leaves
@@ -2238,14 +2230,13 @@ END
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       ''),
-   PDL::PP::Rule->new("RedoDimsParsedCode",
-      make_code_args("RedoDimsCode"),
+   PDL::PP::Rule->new(PDL::PP::Code::make_args("RedoDimsCode"),
       'makes the parsed representation from the supplied RedoDimsCode',
       sub {
           return '' if !$_[0];
           PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-      ["DimsSetters","RedoDimsParsedCode","DefaultRedoDims"],
+      ["DimsSetters","ParsedRedoDimsCode","DefaultRedoDims"],
       'makes the redodims function from the various bits and pieces',
       sub { join "\n", grep $_ && /\S/, @_ }),
 
