@@ -2036,7 +2036,6 @@ EOD
 
 pp_def( 'axisvalues',
 	Pars => '[o,nc]a(n)',
-        GenericTypes => [ppdefs_all],
 	Code => 'loop(n) %{ $a() = n; %}',
 	GenericTypes => [ppdefs_all],
 	Doc => '
