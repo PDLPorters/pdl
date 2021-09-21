@@ -1435,13 +1435,42 @@ my $pars_re = $PDL::PP::PdlParObj::pars_re;
 #
 $PDL::PP::deftbl =
   [
+   PDL::PP::Rule->new(
+      [qw(RedoDims EquivCPOffsCode HandleBad P2Child Reversible)],
+      ["Identity"],
+      "something to do with dataflow between CHILD & PARENT, I think.",
+      sub {
+        (PDL::PP::pp_line_numbers(__LINE__-1, '
+          int i;
+          $SETNDIMS($PARENT(ndims));
+          for(i=0; i<$CHILD(ndims); i++) {
+            $CHILD(dims[i]) = $PARENT(dims[i]);
+          }
+          $SETDIMS();
+          $SETDELTATHREADIDS(0);
+        '),
+        # NOTE: we use the same bit of code for all-good and bad data -
+        #  see the Code rule
+        # we can NOT assume that PARENT and CHILD have the same type,
+        # hence the version for bad code
+        #
+        # NOTE: we use the same code for 'good' and 'bad' cases - it's
+        # just that when we use it for 'bad' data, we have to change the
+        # definition of the EQUIVCPOFFS macro - see the Code rule
+        PDL::PP::pp_line_numbers(__LINE__,
+            'PDL_Indx i;
+             for(i=0; i<$CHILD_P(nvals); i++)  {
+                $EQUIVCPOFFS(i,i);
+             }'),
+        1, 1, 1);
+      }),
+
    # used as a flag for many of the routines
    # ie should we bother with bad values for this routine?
    # 1     - yes,
    # 0     - no, maybe issue a warning
-   #
    PDL::PP::Rule->new("BadFlag", "_HandleBad",
-		      "Sets BadFlag based upon HandleBad key and PDL's ability to handle bad values",
+		      "Sets BadFlag based upon HandleBad key",
 		      sub { $_[0] }),
 
    ####################
@@ -1616,11 +1645,11 @@ EOD
         return $baddoc_function_pod;
       }
    ),
-   
+
    ##################
    # Done with Docs #
    ##################
-   
+
    # Notes
    # Suffix 'NS' means, "Needs Substitution". In other words, the string
    # associated with a key that has the suffix "NS" must be run through a
@@ -1681,37 +1710,6 @@ EOD
           $SETDIMS();
           $SETDELTATHREADIDS(0);
         ');
-      }),
-   PDL::PP::Rule->new("RedoDims", ["Identity"],
-      sub {
-        PDL::PP::pp_line_numbers(__LINE__-1, '
-          int i;
-          $SETNDIMS($PARENT(ndims));
-          for(i=0; i<$CHILD(ndims); i++) {
-            $CHILD(dims[i]) = $PARENT(dims[i]);
-          }
-          $SETDIMS();
-          $SETDELTATHREADIDS(0);
-        ');
-      }),
-
- # NOTE: we use the same bit of code for all-good and bad data -
- #  see the Code rule
-#
-   PDL::PP::Rule->new("EquivCPOffsCode", "Identity",
-      "something to do with dataflow between CHILD & PARENT, I think.",
-      sub {
-        # we can NOT assume that PARENT and CHILD have the same type,
-        # hence the version for bad code
-        #
-        # NOTE: we use the same code for 'good' and 'bad' cases - it's
-        # just that when we use it for 'bad' data, we have to change the
-        # definition of the EQUIVCPOFFS macro - see the Code rule
-        PDL::PP::pp_line_numbers(__LINE__,
-            'PDL_Indx i;
-             for(i=0; i<$CHILD_P(nvals); i++)  {
-                $EQUIVCPOFFS(i,i);
-             }');
       }),
 
    PDL::PP::Rule->new("Code", ["EquivCPOffsCode","BadFlag"],

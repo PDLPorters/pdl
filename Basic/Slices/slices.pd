@@ -130,10 +130,7 @@ DOC
 
 pp_def(
         's_identity',
-        HandleBad => 1,
-        P2Child => 1,
         OtherPars => '',
-        Reversible => 1,
         Dims => '$COPYDIMS();',
         ParentInds => '$COPYINDS();',
         Identity => 1,
@@ -1345,12 +1342,9 @@ pp_def('flowconvert',
 
 pp_def(
         'converttypei',
-        HandleBad => 1,
         GlobalNew => 'converttypei_new',
         OtherPars => 'int totype;',
-        P2Child => 1,
         Identity => 1,
-        Reversible => 1,
 # Forced types
         FTypes => {CHILD => '$COMP(totype)'},
         Doc => 'internal',
