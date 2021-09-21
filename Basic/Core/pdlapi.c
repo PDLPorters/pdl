@@ -1272,6 +1272,8 @@ void pdl_make_physvaffine(pdl *it)
 	while(t && (t->flags & PDL_ITRANS_ISAFFINE)) {
 		PDL_Indx cur_offset = 0;
 		at = (pdl_trans_affine *)t;
+		if (!at->incs)
+		  pdl_pdl_barf("pdl_make_physvaffine: affine trans has NULL incs\n");
 		parent = t->pdls[0];
 		/* For all dimensions of the childest ndarray */
 		for(i=0; i<it->ndims; i++) {
@@ -1493,7 +1495,7 @@ void pdl_dim_checks(
 	if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
 	  ind_sizes[ind_id] = dims[j];
 	else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
-	  pdl_pdl_barf("Error in %s: wrong dimensions for parameter '%s'\\n", vtable->name, vtable->par_names[i]);
+	  pdl_pdl_barf("Error in %s: wrong dimensions for parameter '%s'\n", vtable->name, vtable->par_names[i]);
       }
       if (vtable->par_flags[i] & PDL_PARAM_ISPHYS)
 	pdl_make_physical(pdl);
