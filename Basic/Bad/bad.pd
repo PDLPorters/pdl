@@ -777,7 +777,7 @@ Set bad all those elements which equal the supplied value.
 
 This is a simpler version of L</setbadif>, but this
 function can be done inplace.  See L</setnantobad>
-if you want to convert NaN/Inf to the bad value.
+if you want to convert NaN to the bad value.
 
 =for bad
 
@@ -815,7 +815,7 @@ pp_def('setnantobad' . <<'=cut',
 
 =for ref
 
-Sets NaN/Inf values in the input ndarray bad
+Sets NaN values in the input ndarray bad
 (only relevant for floating-point ndarrays).
 Can be done inplace.
 
@@ -827,11 +827,11 @@ Can be done inplace.
 =for bad
 
 This method can process ndarrays with bad values: those bad values
-are propagated into the output ndarray. Any value that is not finite
+are propagated into the output ndarray. Any value that is not a number
+(before version 2.040 the test was for "not finite")
 is also set to bad in the output ndarray. If all values from the input
-ndarray are good and finite, the output ndarray will B<not> have its
-bad flag set. One more caveat: if done inplace, and if the input ndarray's
-bad flag is set, it will no
+ndarray are good, the output ndarray will B<not> have its
+bad flag set.
 
 =cut
 
