@@ -128,6 +128,7 @@
 - switch from List::MoreUtils to List::Util to reduce deps
 - bad value per-PDL support now always present, not configurable
 - use C99 isnan() to check for NaN, not isfinite(); complex if either are NaN
+- the above (this note added post facto) changes setnantobad's behaviour to match function name
 - can use NaN as badvalue for all floating-point types
 - BADVAL_USENAN configuration option removed
 - remove checks for _MSC_VER < 1400 as native complex req renders irrelevant
