@@ -103,11 +103,6 @@ sub report ($$) { print $_[1] if $::PP_VERBOSE; }
 #
 # At present you have to have a conditions argument if you supply
 # a doc string
-#
-# It seems strange to make the subroutine reference an optional
-# argument but this is being used to transition to a slightly-different
-# object design
-#
 my $rule_usage = "Usage: PDL::PP::Rule->new(\$targets[,\$conditions[,\$doc],] [,\$ref])\n";
 sub new {
     die $rule_usage if @_ < 2 or @_ > 5;
@@ -125,14 +120,11 @@ sub new {
     $self;
 }
 
-# $rule->check_if_targets_exist($pars);
+# $rule->any_targets_exist($pars);
 #
 # Returns 1 if any of the targets exist in $pars, 0 otherwise.
 # A return value of 1 means that the rule should not be applied.
-#
-# Not 100% happy with use of report here. Needs re-thinking.
-#
-sub check_if_targets_exist {
+sub any_targets_exist {
     my $self = shift;
     my $pars = shift;
 
@@ -147,14 +139,11 @@ sub check_if_targets_exist {
     return 0;
 }
 
-# $rule->check_if_conditions_exist($pars);
+# $rule->all_conditions_exist($pars);
 #
 # Returns 1 if all of the required conditions exist in $pars, 0 otherwise.
 # A return value of 0 means that the rule should not be applied.
-#
-# Not 100% happy with use of report here. Needs re-thinking.
-#
-sub check_if_conditions_exist {
+sub all_conditions_exist {
     my $self = shift;
     my $pars = shift;
 
@@ -174,47 +163,27 @@ sub check_if_conditions_exist {
     return 1;
 }
 
-# $rule->is_valid($pars);
+# $rule->should_apply($pars);
 #
 # Returns 1 if the rule should be applied (ie no targets already
 # exist in $pars and all the required conditions exist in $pars),
 # otherwise 0.
 #
-sub is_valid {
+sub should_apply {
     my $self = shift;
     my $pars = shift;
-
-    return 0 if $self->check_if_targets_exist($pars);
-    return 0 unless $self->check_if_conditions_exist($pars);
+    return 0 if $self->any_targets_exist($pars);
+    return 0 unless $self->all_conditions_exist($pars);
     return 1;
 }
 
 # my @args = $self->extract_args($pars);
-#
-# If this method is called we assume that
-#   $self->check_if_conditions_exist($pars)
-# returns 1.
-#
 sub extract_args {
-    my $self = shift;
-    my $pars = shift;
-
-    my $conditions = $self->{conditions};
-
-    my @args;
-    foreach (@$conditions) {
-		# make a copy of each condition so that any changes to it are not
-		# also made to the original array!
-		my $condition = $_;
-		# Remove any possible underscores (which indicate optional conditions):
-		$condition =~ s/^_//;
-
-		# Note: This will *not* create $pars->{$condition} if it did not already
-		# exist:
-		push @args, $pars->{$condition};
-    }
-
-    return @args;
+    my ($self, $pars) = @_;
+    @$pars{ map {
+        (my $condition = $_) =~ s/^_//; # initial _ = optional condition
+        $condition;
+    } @{ $self->{conditions} } };
 }
 
 # Apply the rule using the supplied $pars hash reference.
@@ -232,9 +201,7 @@ sub apply {
 
     $self->report("Applying: $self\n");
 
-    # Is the rule valid?
-    #
-    return unless $self->is_valid($pars);
+    return unless $self->should_apply($pars);
 
     # Create the argument array for the routine.
     #
@@ -278,14 +245,14 @@ our @CARP_NOT;
 
 
 sub new {
-    croak('Usage: PDL::PP::Ruel::Croak->new(["incompatible", "arguments"], "Croaking message")')
+    croak('Usage: PDL::PP::Rule::Croak->new(["incompatible", "arguments"], "Croaking message")')
 		unless @_ == 3;
     shift->SUPER::new([], @_);
 }
 
 sub apply {
     my ($self, $pars) = @_;
-    croak($self->{doc}) if $self->is_valid($pars);
+    croak($self->{doc}) if $self->should_apply($pars);
 }
 
 package PDL::PP::Rule::Returns;
@@ -323,9 +290,7 @@ sub apply {
 
     $self->report("Applying: $self\n");
 
-    # Is the rule valid?
-    #
-    return unless $self->is_valid($pars);
+    return unless $self->should_apply($pars);
 
     # Set the value
     #
@@ -426,9 +391,7 @@ sub apply {
 
     $self->report("Applying: $self\n");
 
-    # Is the rule valid?
-    #
-    return unless $self->is_valid($pars);
+    return unless $self->should_apply($pars);
 
     # Set the value
     #
