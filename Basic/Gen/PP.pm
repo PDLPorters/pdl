@@ -2181,9 +2181,9 @@ END
    }),
 
    PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
-		      sub { return PDL::PP::Code->new(@_); }),
+		      sub { PDL::PP::Code->new(@_, undef, undef); }),
    PDL::PP::Rule->new(PDL::PP::Code::make_args("BackCode"),
-		      sub { return PDL::PP::Code->new(@_, undef, 'BackCode2'); }),
+		      sub { PDL::PP::Code->new(@_, undef, 1); }),
 
 # Compiled representations i.e. what the xsub function leaves
 # in the trans structure. By default, copies of the parameters
@@ -2232,9 +2232,7 @@ END
 			       ''),
    PDL::PP::Rule->new(PDL::PP::Code::make_args("RedoDimsCode"),
       'makes the parsed representation from the supplied RedoDimsCode',
-      sub {
-          return '' if !$_[0];
-          PDL::PP::Code->new(@_,1); }),
+      sub { return '' if !$_[0]; PDL::PP::Code->new(@_, 1, undef); }),
    PDL::PP::Rule->new("RedoDims",
       ["DimsSetters","ParsedRedoDimsCode","DefaultRedoDims"],
       'makes the redodims function from the various bits and pieces',

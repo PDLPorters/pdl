@@ -20,8 +20,8 @@ sub make_args {
 
 # Do the appropriate substitutions in the code.
 sub new {
-    my($class,$code,$badcode,$sig,$generictypes,
-       $extrageneric,$havethreading,$name,
+    my($class,$code,$badcode,
+       $sig,$generictypes,$extrageneric,$havethreading,$name,
        $dont_add_thrloop, $backcode ) = @_;
     my $parnames = $sig->names_sorted;
 
