@@ -1626,14 +1626,11 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("PdlDoc", ["Name","_Pars","OtherPars","Doc","_BadDoc"],
       sub {
         my ($name,$pars,$otherpars,$doc,$baddoc) = @_;
-        # Allow explcit non-doc using Doc=>undef
-        return '' if $doc eq '' && (!defined $doc) && $doc==undef;
-        return '' if $doc =~ /^\s*internal\s*$/i;
+        return '' if !defined $doc # Allow explcit non-doc using Doc=>undef
+            or $doc =~ /^\s*internal\s*$/i;
         # If the doc string is one line let's have to for the
         # reference card information as well
-        my @splitRes; # temp split variable to get rid of
-                      #  'implicit split to @_ is deprecated' messages
-        $doc = "=for ref\n\n".$doc if( scalar(@splitRes = split("\n", $doc)) <= 1);
+        $doc = "=for ref\n\n".$doc if $doc !~ /\n/;
         $::DOCUMENTED++;
         $pars = "P(); C()" unless $pars;
         # Strip leading whitespace and trailing semicolons and whitespace
