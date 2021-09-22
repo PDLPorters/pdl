@@ -2283,53 +2283,25 @@ END
         my ( $badflag, $badcode, $xsargs, $sig, $optypes, $name ) = @_;
         my $parobjs = $sig->objs;
         return PDL::PP::pp_line_numbers(__LINE__, $badcode) if defined $badcode;
-        my @args   = map { $_->[0] } @$xsargs;
-        my %out    = map {
-          $_ =>
-            exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut})
-              && !exists($$parobjs{$_}{FlagCreateAlways})
-            } @args;
-        my %outca = map {
-          $_ =>
-            exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut})
-              && exists($$parobjs{$_}{FlagCreateAlways})
-            } @args;
-        my %tmp = map {
-          $_ =>
-            exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagTemp})
-            } @args;
-        my %other  = map { $_ => exists($$optypes{$_}) } @args;
+        my @args = map $_->[0], @$xsargs;
+        my %out = map +($_ => exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut})), @args;
+        my %tmp = map +($_ => exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagTemp})), @args;
+        my %other = map { $_ => exists($$optypes{$_}) } @args;
         my $clear_bad = clear_badflag();
         my $set_bad   = set_badflag();
         my $get_bad   = get_badflag();
         my $str = PDL::PP::pp_line_numbers(__LINE__-1, $clear_bad);
         # set the badflag_cache variable if any input ndarray has the bad flag set
-        #
-        my $add = 0;
-        my $badflag_str = "int \$BADFLAGCACHE() = ";
-        foreach my $i ( 0 .. $#args ) {
-          my $x = $args[$i];
-          unless ( $other{$x} or $out{$x} or $tmp{$x} or $outca{$x}) {
-            if ($add) { $badflag_str .= " || "; }
-            else      { $add = 1; }
-            $badflag_str .= get_badstate($args[$i]);
-          }
-        }
-        # It is possible, at present, for $add to be 0. I think this is when
-        # the routine has no input ndarrays, such as fibonacci in primitive.pd,
-        # but there may be other cases. These routines could/should (?)
-        # be marked as NoBadCode to avoid this, or maybe the code here made
-        # smarter. Left as is for now as do not want to add instability into
-        # the 2.4.3 release if I can help it - DJB 23 Jul 2006
-        #
-        if ($add != 0) {
-          $str .= $badflag_str . ";\n  if (\$BADFLAGCACHE()) ${set_bad}\n";
+        my @bval_in = grep !($other{$_} or $out{$_} or $tmp{$_}), @args;
+        if (@bval_in) {
+          $str .= PDL::PP::pp_line_numbers __LINE__-1, "int \$BADFLAGCACHE() = " .
+            join('||', map get_badstate($_), @bval_in) .
+            ";\n  if (\$BADFLAGCACHE()) ${set_bad}\n";
         } else {
           print "\nNOTE: $name has no input bad ndarrays.\n\n" if $::PP_VERBOSE;
         }
         if ( defined($badflag) and $badflag == 0 ) {
-          $str .=
-      "  if ( $get_bad ) {
+          $str .= "  if ( $get_bad ) {
           printf(\"WARNING: $name does not handle bad values.\\n\");
           $clear_bad
       }\n";
