@@ -2058,19 +2058,13 @@ $inplacecode
 END
       }),
 
- ## Added new line for returning (or not returning) variables.  D. Hunt 4/7/00
- # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
- #
+   # globalnew implies internal usage, not XS
+   PDL::PP::Rule::Returns->new("VarArgsXSReturn","GlobalNew",undef),
    PDL::PP::Rule->new("VarArgsXSReturn",
-      ["NewXSArgs","SignatureObj","_GlobalNew"],
-      "Generate XS trailer for returning output variables",
-      # This subroutine produces the code which returns output variables
-      # or leaves them as modified input variables.  D. Hunt 4/10/00
+      ["NewXSArgs","SignatureObj"],
+      "Generate XS trailer to return output variables or leave them as modified input variables",
       sub {
-        my($xsargs, $sig, $globalnew ) = @_;
-        # don't generate a HDR if globalnew is set
-        # globalnew implies internal usage, not XS
-        return undef if $globalnew;
+        my ($xsargs, $sig) = @_;
         my @outs; # names of output variables (in calling order)
         my $parobjs = $sig->objs;
         foreach my $arg (@$xsargs) {
