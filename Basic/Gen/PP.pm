@@ -2287,22 +2287,22 @@ END
       }),
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
-      ["BadFlag","CopyBadStatusCode"],
+      ["CopyBadStatusCode"],
       "Use CopyBadStatusCode if given",
       sub {
-        my ($badflag, $badcode) = @_;
+        my ($badcode) = @_;
         confess "PDL::PP ERROR: CopyBadStatusCode contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()"
           if $badcode =~ m/\$PRIV(bvalflag)/;
         $badcode;
       }),
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
-      ["BadFlag","NewXSArgs","SignatureObj"],
+      ["NewXSArgs","SignatureObj"],
       "Rule to copy the bad value status to the output ndarrays",
       # note: this is executed before the trans_mutual call
       # is made, since the state may be changed by the
       # Code section
       sub {
-        my ( $badflag, $xsargs, $sig ) = @_;
+        my ( $xsargs, $sig ) = @_;
         my $parobjs = $sig->objs;
         my @pdl_params = grep exists $$parobjs{$_}, map $_->[0], @$xsargs;
         my @outs = grep $$parobjs{$_}{FlagOut}, @pdl_params;
