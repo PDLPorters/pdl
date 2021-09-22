@@ -4,7 +4,9 @@
 #include "pdlcore.h"  /* Core declarations */
 
 #define REDODIMS(trans) \
-  (trans)->vtable->redodims(trans)
+  ((trans)->vtable->redodims \
+    ? (trans)->vtable->redodims \
+    : pdl_default_redodims)(trans)
 
 extern Core PDL;
 
@@ -878,6 +880,8 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 } /* pdl_make_trans_mutual() */
 
 void pdl_default_redodims(pdl_trans *trans) {
+  PDLDEBUG_f(printf("pdl_default_redodims "));
+  PDLDEBUG_f(pdl_dump_trans_fixspace(trans,0));
   PDL_Indx creating[trans->vtable->npdls];
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;

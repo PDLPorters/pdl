@@ -1811,9 +1811,6 @@ EOD
    PDL::PP::Rule::Returns::NULL->new("ReadDataFuncName", "AffinePriv"),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "AffinePriv"),
 
-   PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
-   PDL::PP::Rule::InsertName->new("RedoDimsFuncName", 'pdl_${name}_redodims'),
-
    PDL::PP::Rule->new("XSBootCode", ["AffinePriv","VTableName"],
       sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
              "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),
@@ -2228,6 +2225,8 @@ END
       ["SignatureObj"],
       sub { join "\n", map $_->get_initdim, $_[0]->dims_values }),
 
+   PDL::PP::Rule->new("RedoDimsFuncName", [qw(Name _RedoDims _RedoDimsCode DimsSetters)],
+      sub { (scalar grep $_ && /\S/, @_[1..$#_]) ? "pdl_$_[0]_redodims" : 'NULL'}),
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
 			       ''),
@@ -2422,6 +2421,7 @@ PDL_TRANS_START($npdls);
 
    PDL::PP::Rule::MakeComp->new("ReadDataCodeNS", "ParsedCode", "FOO"),
    PDL::PP::Rule::Substitute->new("ReadDataCodeSubd", "ReadDataCodeNS"),
+   PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
    PDL::PP::Rule->new(make_vfn_args("ReadData")),
 
    PDL::PP::Rule::MakeComp->new("WriteBackDataCodeNS", "ParsedBackCode", "FOO"),
