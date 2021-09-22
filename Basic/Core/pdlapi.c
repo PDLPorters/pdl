@@ -1499,7 +1499,11 @@ void pdl_dim_checks(
 	if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
 	  ind_sizes[ind_id] = dims[j];
 	else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
-	  pdl_pdl_barf("Error in %s: wrong dimensions for parameter '%s'\n", vtable->name, vtable->par_names[i]);
+	  pdl_pdl_barf(
+	    "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
+	    vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
+	    ind_sizes[ind_id], dims[j]
+	  );
       }
       if (vtable->par_flags[i] & PDL_PARAM_ISPHYS)
 	pdl_make_physical(pdl);
@@ -1514,7 +1518,7 @@ void pdl_dim_checks(
       ind_id = PDL_IND_ID(vtable, i, j);
       if (ind_sizes[ind_id] > 1 && ind_sizes[ind_id] != dims[j])
 	pdl_pdl_barf(
-	  "Error in %s: parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
+	  "Error in %s: [phys] parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
 	  vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
 	  ind_sizes[ind_id], dims[j]
 	);
