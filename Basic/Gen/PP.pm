@@ -1873,6 +1873,7 @@ EOD
       sub {
         my ( $ppname, $xsargs, $sig, $arg ) = @_;
         return '' if !$arg;
+        confess "Inplace array-ref (@$arg) > 2 elements" if ref($arg) eq "ARRAY" and @$arg > 2;
         # find input and output ndarrays
         my ( @in, @out );
         my $parobjs = $sig->objs;

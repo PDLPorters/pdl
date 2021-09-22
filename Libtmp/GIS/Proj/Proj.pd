@@ -178,7 +178,6 @@ pp_def( '_fwd_trans',
                  [o] x(n);
                  [o] y(n);',
         GenericTypes => ['D'],
-        Inplace => ['lon', 'x', 'lat', 'y'],
         OtherPars => 'char* params;',
         HandleBad => 1,
         Doc => undef,
