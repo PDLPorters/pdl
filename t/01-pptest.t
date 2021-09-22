@@ -198,6 +198,12 @@ pp_deft('gl_arrows',
 	Code => ';', # do nothing
 );
 
+# test XS args with funky Pars ordering
+pp_deft('polyfill_pp',
+	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
+	Code => ';', # do nothing
+);
+
 # test valid non-single-letter GenericTypes arg
 pp_def( "rice_compress",
         Pars => 'in(n); [o]out(m); int[o]len(); lbuf(n)',
@@ -317,6 +323,8 @@ ok(all $xx->slice('(1)') == 699);
 }
 
 test_Cpow(sequence(2), 1);
+
+test_polyfill_pp(zeroes(5,5), ones(2,3), 1);
 
 done_testing;
 EOF

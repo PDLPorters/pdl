@@ -68,6 +68,11 @@ sub names { $_[0]{Names} }
 sub names_sorted { $_[0]{NamesSorted} }
 
 sub objs { $_[0]{Objects} }
+sub names_in { my $o=$_[0]->objs; grep !$o->{$_}{FlagOut} && !$o->{$_}{FlagTemp}, @{$_[0]{Names}} }
+sub names_out { my $o=$_[0]->objs; grep $o->{$_}{FlagOut}, @{$_[0]{Names}} }
+sub names_oca { my $o=$_[0]->objs; grep $o->{$_}{FlagCreateAlways}, @{$_[0]{Names}} }
+sub names_out_nca { my $o=$_[0]->objs; grep $o->{$_}{FlagOut} && !$o->{$_}{FlagCreateAlways}, @{$_[0]{Names}} }
+sub names_tmp { my $o=$_[0]->objs; grep $o->{$_}{FlagTemp}, @{$_[0]{Names}} }
 
 sub dims_obj { $_[0]->{DimsObj} }
 sub dims_count { scalar keys %{$_[0]{DimsObj}} }
