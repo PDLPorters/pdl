@@ -1325,7 +1325,7 @@ my @xscode_args_always = (
   "NewXSTypeCoerceSubd",
   "NewXSExtractTransPDLs",
   "MakeCompiledReprSubd",
-  "NewXSCoerceMustCompSubd","_IsReversibleCodeSubd","DefaultFlowCodeSubd",
+  "NewXSCoerceMustCompSubd","DefaultFlowCodeSubd",
   "NewXSRunTrans",
   "NewXSCopyBadStatusSubd",
 );
@@ -1715,6 +1715,9 @@ EOD
 
    PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$CHILD(ndims)];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
+   PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
+   PDL::PP::Rule::Returns->new("ReversibleFlag", "Reversible", "PDL_ITRANS_REVERSIBLE"),
+   PDL::PP::Rule::Returns::Zero->new("ReversibleFlag"),
 
    PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr","_EquivDimCheck"],
       sub {
@@ -2115,8 +2118,6 @@ END
                 "PDL->$gname = $name;"];
       }),
 
-   PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
-
    PDL::PP::Rule->new("NewXSStructInit0",
 		      ["StructName","StructType","VTableName"],
 		      "Rule to create and initialise the private trans structure",
@@ -2245,13 +2246,6 @@ END
    PDL::PP::Rule->new("PrivateRepr", ["PrivNames","PrivObjs"], \&NT2Decls_p),
 
    PDL::PP::Rule->new("NTPrivFreeCode", ["PrivNames","PrivObjs"], \&NT2Free_p),
-
-   PDL::PP::Rule->new("IsReversibleCodeNS", "Reversible",
-      sub {
-        my($rev) = @_;
-        PDL::PP::pp_line_numbers(__LINE__-1, $rev eq "1" ? '$SETREVERSIBLE(1)' : $rev)
-      }),
-   PDL::PP::Rule::Substitute::Usual->new("IsReversibleCodeSubd", "IsReversibleCodeNS"),
 
    PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
 
@@ -2415,11 +2409,11 @@ PDL_TRANS_START($npdls);
       ["VTableName","StructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
        "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name",
-       "GenericTypes","IsAffineFlag"],
+       "GenericTypes","IsAffineFlag","ReversibleFlag"],
       sub {
         my($vname,$stype,$rdname,$rfname,$wfname,$ffname,
            $sig,$affine_ok,$havethreading, $noPthreadFlag, $name, $gentypes,
-           $affflag) = @_;
+           $affflag, $revflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
@@ -2427,7 +2421,7 @@ PDL_TRANS_START($npdls);
         my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1) || '0';
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
-        my $iflags = $affflag;
+        my $iflags = join('|', grep $_, $affflag, $revflag) || '0';
         my $gentypes_txt = join(", ", (map PDL::Type->new($_)->sym, @$gentypes), '-1');
         my @realdims = map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
         my $realdims = join(", ", @realdims) || '0';
