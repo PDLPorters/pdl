@@ -1316,7 +1316,7 @@ sub make_vfn_args {
 }
 
 my @xscode_args_always = (
-  "_GlobalNew","_NewXSCHdrs",
+  "_NewXSCHdrs",
   "NewXSStructInit0",
   "NewXSSetTransPDLs",
   "NewXSFindBadStatusSubd",
@@ -1331,10 +1331,10 @@ my @xscode_args_always = (
 );
 sub make_xs_code {
   my($xscode_before,$xscode_after,$hdr,
-    $glb,$xs_c_headers,
+    $xs_c_headers,
     @bits) = @_;
   my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, $hdr);
-  if($glb) {
+  if($xs_c_headers) {
     $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
     $boot = $xs_c_headers->[2];
     $str .= "\n";
