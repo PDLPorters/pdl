@@ -1446,9 +1446,9 @@ PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
     return it->has_badvalue ? it->badvalue : pdl_get_badvalue( it->datatype );
 }
 
-pdl_trans *pdl_create_trans(size_t sz, short flags, pdl_transvtable *vtable) {
-    pdl_trans *it = malloc(sz);
-    memset(it, 0, sz);
+pdl_trans *pdl_create_trans(short flags, pdl_transvtable *vtable) {
+    pdl_trans *it = malloc(vtable->structsize);
+    memset(it, 0, vtable->structsize);
     PDL_TR_SETMAGIC(it);
     it->flags = flags;
     it->dims_redone = 0;

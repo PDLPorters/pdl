@@ -2121,7 +2121,7 @@ END
 		      "Rule to create and initialise the private trans structure",
       sub {
         my( $sname, $stype, $vtable, $affflag, $havethreading ) = @_;
-        PDL::PP::pp_line_numbers(__LINE__-1, "$stype *$sname = (void *)PDL->create_trans(sizeof($stype), $affflag, &$vtable);\n");
+        PDL::PP::pp_line_numbers(__LINE__-1, "$stype *$sname = (void *)PDL->create_trans($affflag, &$vtable);\n");
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
