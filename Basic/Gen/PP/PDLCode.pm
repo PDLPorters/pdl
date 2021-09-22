@@ -155,10 +155,11 @@ sub new {
 	push @$coderef,$nc;
     }
 
+    my $pobjs = $sig->objs;
     # Then, in this form, put it together what we want the code to actually do.
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
     $this->{Code} = (join '',sort values %$sizeprivs).
-       ($dont_add_thrloop?'':join "\n",
+       ($dont_add_thrloop?'':PDL::PP::pp_line_numbers __LINE__, join "\n",
         'PDL_COMMENT("threadloop declarations")',
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
         'register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls;',
@@ -166,7 +167,7 @@ sub new {
         (map "register PDL_Indx __tinc0_$_ = \$PRIV(pdlthread).incs[$_];", 0..$#$parnames),
         (map "register PDL_Indx __tinc1_$_ = \$PRIV(pdlthread).incs[__tnpdls+$_];", 0.. $#$parnames),
        ).
-       join('',map $_->get_incregisters, sort values %{$sig->objs}).
+       join('',map $_->get_incregisters, @$pobjs{sort keys %$pobjs}).
        $coderef->get_str($this,[])
        ;
     $this->{Code};
