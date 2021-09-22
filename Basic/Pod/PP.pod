@@ -8,8 +8,8 @@ PDL::PP - Generate PDL routines from concise descriptions
 
 =head1 SYNOPSIS
 
-e.g.
-
+	# let PDL::PP tell you what it's doing
+	$::PP_VERBOSE = 1;
 	pp_def(
 		'sumover',
 		Pars => 'a(n); [o]b();',
