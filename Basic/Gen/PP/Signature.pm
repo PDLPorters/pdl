@@ -64,23 +64,23 @@ the copyright notice should be included in the file.
 
 =cut
 
-sub names { $_[0]->{Names} }
-sub names_sorted { $_[0]->{NamesSorted} }
+sub names { $_[0]{Names} }
+sub names_sorted { $_[0]{NamesSorted} }
 
-sub objs { $_[0]->{Objects} }
+sub objs { $_[0]{Objects} }
 
 sub dims_obj { $_[0]->{DimsObj} }
-sub dims_count { scalar keys %{$_[0]->{DimsObj}} }
-sub dims_values { values %{$_[0]->{DimsObj}} }
+sub dims_count { scalar keys %{$_[0]{DimsObj}} }
+sub dims_values { values %{$_[0]{DimsObj}} }
 
-sub ind_used { $_[0]->{Ind2Use}{$_[1]} }
-sub ind_obj { $_[0]->{Ind2Obj}{$_[1]} }
-sub ind_names_sorted { @{$_[0]->{IndNamesSorted}} }
-sub ind_index { $_[0]->{Ind2Index}{$_[1]} }
+sub ind_used { $_[0]{Ind2Use}{$_[1]} }
+sub ind_obj { $_[0]{Ind2Obj}{$_[1]} }
+sub ind_names_sorted { @{$_[0]{IndNamesSorted}} }
+sub ind_index { $_[0]{Ind2Index}{$_[1]} }
 
 sub realdims {
   my $this = shift;
-  [ map scalar @{$this->{Objects}->{$_}->{RawInds}}, @{$this->{Names}} ];
+  [ map scalar @{$this->{Objects}{$_}{RawInds}}, @{$this->{Names}} ];
 }
 
 sub creating {
@@ -94,7 +94,7 @@ sub checkdims {
   my $this = shift;
   # we have to recreate to keep defaults currently
   $this->{Dims} = PDL::PP::PdlDimsObj->new;
-  $this->{Objects}->{$_}->add_inds($this->{Dims}) for @{$this->{Names}};
+  $this->{Objects}{$_}->add_inds($this->{Dims}) for @{$this->{Names}};
   my $n = @{$this->{Names}};
   croak "not enough pdls to match signature" unless $#_ >= $n-1;
   my @pdls = @_[0..$n-1];
@@ -102,18 +102,18 @@ sub checkdims {
 		     join(' ,',map { "[".join(',',$_->dims)."]," } @pdls)
 		       . "\n"}
   my $i = 0;
-  my @creating = map $this->{Objects}->{$_}->perldimcheck($pdls[$i++]),
+  my @creating = map $this->{Objects}{$_}->perldimcheck($pdls[$i++]),
          @{$this->{Names}};
   $i = 0;
   for (@{$this->{Names}}) {
-    push @creating, $this->{Objects}->{$_}->getcreatedims
+    push @creating, $this->{Objects}{$_}->getcreatedims
       if $creating[$i++];
   }
   $this->{Create} = \@creating;
   $i = 0;
   my $corr = 0;
   for (@{$this->{Names}}) {
-    $corr = $this->{Objects}->{$_}->finalcheck($pdls[$i++]);
+    $corr = $this->{Objects}{$_}->finalcheck($pdls[$i++]);
     next unless $#$corr>-1;
     my ($j,$str) = (0,"");
     for (@$corr) {$str.= ":,"x($_->[0]-$j)."(0),*$_->[1],";
