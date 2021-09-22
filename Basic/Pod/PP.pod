@@ -2152,7 +2152,7 @@ applies if PDL has been compiled with POSIX threads enabled.
 
 =cut
 
-# converttypei is pp_def-ed in slices.pd, which generates converttypei_NN
+# converttypei is pp_def-ed in slices.pd, which generates pdl_converttypei_run
 # which is installed as global PDL."converttypei_new" (as that is the
 # "GlobalNew" value in the pp_def) in PDL::Slices's BOOT section.
 # converttypei_new is then used in pdlapi.c's get_convertedpdl which is
