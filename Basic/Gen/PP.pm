@@ -1864,7 +1864,7 @@ EOD
       #
       # Inplace can be supplied several values
       #   => 1
-      #     assumes fn has an inout and output ndarray (eg 'a(); [o] b();')
+      #     assumes fn has an input and output ndarray (eg 'a(); [o] b();')
       #   => [ 'a' ]
       #     assumes several input ndarrays in sig, so 'a' labels which
       #     one is to be marked inplace
@@ -1872,11 +1872,12 @@ EOD
       #     input ndarray is a(), output ndarray is 'b'
       sub {
         my ( $ppname, $xsargs, $sig, $arg ) = @_;
+        return '' if !$arg;
         # find input and output ndarrays
         my ( @in, @out );
         my $parobjs = $sig->objs;
-        foreach my $arg (@$xsargs) {
-          my $name = $arg->[0];
+        foreach my $xsarg (@$xsargs) {
+          my $name = $xsarg->[0];
           if ( exists $$parobjs{$name} ) {
             if ( exists $$parobjs{$name}{FlagOut} ) {
               push @out, $name;
@@ -1890,17 +1891,9 @@ EOD
         # default vals - only set if we have one input/output ndarray
         $in  = $in[0]  if $#in == 0;
         $out = $out[0] if $#out == 0;
-        if ( ref($arg) eq "ARRAY" ) {
-          my $narg = $#$arg;
-          if ( $narg > -1 ) {
-            $in = $$arg[0];
-            $out = $$arg[1] if $narg > 0;
-          }
-        } elsif ( ref($arg) eq "" ) {
-          return '' unless $arg;
-          # use default values
-        } else {
-          die "ERROR: Inplace rule [$ppname] must be sent either an array ref or a scalar.\n";
+        if ( ref($arg) eq "ARRAY" and @$arg) {
+          $in = $$arg[0];
+          $out = $$arg[1] if @$arg > 1;
         }
         die "ERROR: Inplace [$ppname] does not know name of input ndarray\n"
             unless defined $in;
