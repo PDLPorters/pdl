@@ -696,21 +696,6 @@ $PDL::PP::done = 0;  # pp_done has not been called yet
 use Carp;
 our @CARP_NOT;
 
-my @xscode_args_always = (
-  "_GlobalNew","_NewXSCHdrs",
-  "NewXSStructInit0",
-  "NewXSSetTransPDLs",
-  "NewXSFindBadStatusSubd",
-  #     NewXSCopyBadValues,
-  #     NewXSMakeNow, # this is unnecessary since families never got implemented
-  "NewXSTypeCoerceSubd",
-  "NewXSExtractTransPDLs",
-  "MakeCompiledReprSubd",
-  "NewXSCoerceMustCompSubd","_IsReversibleCodeSubd","DefaultFlowCodeSubd",
-  "NewXSRunTrans",
-  "NewXSCopyBadStatusSubd",
-);
-
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
 sub import {
@@ -1330,8 +1315,24 @@ sub make_vfn_args {
   );
 }
 
+my @xscode_args_always = (
+  "_GlobalNew","_NewXSCHdrs",
+  "NewXSStructInit0",
+  "NewXSSetTransPDLs",
+  "NewXSFindBadStatusSubd",
+  #     NewXSCopyBadValues,
+  #     NewXSMakeNow, # this is unnecessary since families never got implemented
+  "NewXSTypeCoerceSubd",
+  "NewXSExtractTransPDLs",
+  "MakeCompiledReprSubd",
+  "NewXSCoerceMustCompSubd","_IsReversibleCodeSubd","DefaultFlowCodeSubd",
+  "NewXSRunTrans",
+  "NewXSCopyBadStatusSubd",
+);
 sub make_xs_code {
-  my($xscode_before,$xscode_after,$hdr,$glb,$xs_c_headers,@bits) = @_;
+  my($xscode_before,$xscode_after,$hdr,
+    $glb,$xs_c_headers,
+    @bits) = @_;
   my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, $hdr);
   if($glb) {
     $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
