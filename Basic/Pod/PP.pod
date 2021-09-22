@@ -2542,10 +2542,6 @@ $CHILD_P()
 $CHILD_PTR()
     PDL::PP::Rule::Substitute::Usual
 
-$COPYDIMS()
-
-$COPYINDS()
-
 $CROAK()
     PDL::PP::Rule::Substitute::dosubst_private()
 
@@ -2623,8 +2619,6 @@ Identity
 MakeComp
 
 P2Child
-
-ParentInds
 
 Priv
 

@@ -22,6 +22,7 @@
 - now an error if CopyBadStatusCode uses $PRIV(bvalflag)
 - fix setnantobad doc to match behaviour fixed in 2.040, add setnonfinitetobad
 - Inplace now throws error for >2 elements in array-ref
+- remove oslice (after 8 years) and never-used Slices::{s_,}identity
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism
