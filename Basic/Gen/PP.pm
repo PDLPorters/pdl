@@ -1014,7 +1014,7 @@ sub pp_def {
 	PDL::PP->printxsc(join "\n\n",@obj{'StructDecl','RedoDimsFunc',
 		'ReadDataFunc','WriteBackDataFunc',
 		'FreeFunc',
-		'VTableDef','NewXSInPrelude',
+		'VTableDef','RunFunc',
 		}
 		);
 	PDL::PP->printxs($obj{NewXSCode});
@@ -1317,17 +1317,7 @@ sub make_vfn_args {
 
 my @xscode_args_always = (
   "_NewXSCHdrs",
-  "NewXSStructInit0",
-  "NewXSSetTransPDLs",
-  "NewXSFindBadStatusSubd",
-  #     NewXSCopyBadValues,
-  #     NewXSMakeNow, # this is unnecessary since families never got implemented
-  "NewXSTypeCoerceSubd",
-  "NewXSExtractTransPDLs",
-  "MakeCompiledReprSubd",
-  "NewXSCoerceMustCompSubd",
-  "NewXSRunTrans",
-  "NewXSCopyBadStatusSubd",
+  "RunFuncCall",
 );
 sub make_xs_code {
   my($xscode_before,$xscode_after,$hdr,
@@ -1677,7 +1667,7 @@ EOD
 
    PDL::PP::Rule::Croak->new([qw(P2Child GenericTypes)],
        'Cannot have both P2Child and GenericTypes defined'),
-   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy NewXSName GenericTypes DefaultFlow AllFuncHeader RedoDimsFuncHeader)],
+   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy RunFuncName GenericTypes DefaultFlow AllFuncHeader RedoDimsFuncHeader)],
 		      ["P2Child","Name"],
       sub {
         my (undef,$name) = @_;
@@ -2054,12 +2044,24 @@ $name($shortpars)
 $longpars
 END
       }),
-   PDL::PP::Rule->new("NewXSCHdrs", ["NewXSName","NewXSArgs","GlobalNew"],
+   PDL::PP::Rule::InsertName->new("RunFuncName", 'pdl_${name}_run'),
+   PDL::PP::Rule->new("NewXSCHdrs", ["RunFuncName","NewXSArgs","GlobalNew"],
       sub {
         my($name,$pars,$gname) = @_;
         my $longpars = join ",",map {$_->[1]->get_decl($_->[0])} @$pars;
         return ["void $name($longpars) {","}",
                 "PDL->$gname = $name;"];
+      }),
+   PDL::PP::Rule->new("RunFuncCall",["RunFuncName","NewXSArgs"], sub {
+        my ($func_name,$pars) = @_;
+        my $shortpars = join ',',map $_->[0], @$pars;
+        PDL::PP::pp_line_numbers __LINE__-1, "$func_name($shortpars);";
+      }),
+   PDL::PP::Rule->new("RunFuncHdrs", ["RunFuncName","NewXSArgs"],
+      sub {
+        my($name,$pars,$gname) = @_;
+        my $longpars = join ",",map $_->[1]->get_decl($_->[0]), @$pars;
+        return ["void $name($longpars) {","}"];
       }),
 
    PDL::PP::Rule->new("NewXSStructInit0",
@@ -2269,6 +2271,26 @@ END
  #
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindBadStatusSubd", "NewXSFindBadStatusNS"),
    PDL::PP::Rule::Substitute::Usual->new("NewXSCopyBadStatusSubd", "NewXSCopyBadStatusNS"),
+
+   PDL::PP::Rule->new(["RunFunc"],
+      ["RunFuncHdrs",
+        "NewXSStructInit0",
+        "NewXSSetTransPDLs",
+        "NewXSFindBadStatusSubd",
+        #     NewXSCopyBadValues,
+        #     NewXSMakeNow, # this is unnecessary since families never got implemented
+        "NewXSTypeCoerceSubd",
+        "NewXSExtractTransPDLs",
+        "MakeCompiledReprSubd",
+        "NewXSCoerceMustCompSubd",
+        "NewXSRunTrans",
+        "NewXSCopyBadStatusSubd",
+      ],
+      "Generate C function with idiomatic arg list to maybe call from XS",
+      sub {
+        my ($xs_c_headers, @bits) = @_;
+        PDL::PP::pp_line_numbers __LINE__-1, join '', $xs_c_headers->[0], @bits, $xs_c_headers->[1];
+      }),
 
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule
  # will not be executed. D. Hunt 4/11/00

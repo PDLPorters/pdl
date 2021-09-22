@@ -2,6 +2,13 @@
 
 PDL::API - making ndarrays from Perl and C/XS code
 
+=head1 SYNOPSIS
+
+  use PDL;
+  sub mkmyndarray {
+   ...
+  }
+
 =head1 DESCRIPTION
 
 A simple cookbook how to create ndarrays manually.
@@ -12,14 +19,10 @@ routines basically define the PDL API. If you need to
 access ndarrays from C/XS you probably need to know
 about these functions.
 
-=head1 SYNOPSIS
+Also described is the new (as of PDL 2.058) access to PDL operations
+via C functions, which the XS functions now call.
 
-  use PDL;
-  sub mkmyndarray {
-   ...
-  }
-
-=head1 Creating an ndarray manually from Perl
+=head2 Creating an ndarray manually from Perl
 
 Sometimes you want to create an ndarray I<manually>
 from binary data. You can do that at the Perl level.
@@ -49,7 +52,7 @@ required steps.
      return $pdl;
    }
 
-=head1 Creating an ndarray in C
+=head2 Creating an ndarray in C
 
 The following example creates an ndarray at the C level.
 We use the C<Inline> module which is a good way to interface
@@ -203,7 +206,7 @@ The following script demonstrates a simple example:
      return p;
    }
 
-=head1 The gory details
+=head1 IMPLEMENTATION DETAILS
 
 =head2 The Core struct -- getting at PDL core routines at runtime
 
@@ -349,17 +352,6 @@ C<void make_physvaffine(pdl *p)>
 
 =item *
 
-C<void qsort_X(PDL_Xtype *data, PDL_Indx a, PDL_Indx b)> and
-C<void qsort_ind_X(PDL_Xtype *data, PDL_Indx *ix, PDL_Indx a, PDL_Indx b)>
-
-where X is one of B,S,U,L,F,D and Xtype is one of Byte, Short, Ushort,
-Long, Float or Double.  PDL_Indx is the C integer type corresponding to
-appropriate indexing size for the perl configuration (ivsize and ivtype).
-It can be either 'long' or 'long long' depending on whether your perl
-is 32bit or 64bit enabled.
-
-=item *
-
 C<void pdl_barf(const char* pat,...)> and
 C<void pdl_warn(const char* pat,...)>
 
@@ -395,12 +387,6 @@ See L<PDL::ParallelCPU> for more information on pthreading.
 # reallocdims
 # reallocthreadids
 # resize_defaultincs
-
-=head1 SEE ALSO
-
-L<PDL>
-
-L<Inline>
 
 =head2 Handy macros from pdl.h
 
@@ -450,6 +436,37 @@ As of PDL 2.048, in F<pdlperl.h> there are:
 Because these are used in the PDL F<typemap.pdl>, you will need to
 include F<pdlperl.h> in any XS file with functions that take or
 return a C<PDL_Anyval>.
+
+=head2 Access to PDL operations as C functions
+
+As of 2.058, all PDL operations can be accessed from C code in a similar
+way to XS functions, since that is what the XS functions now call. Each
+module defines various C functions and data-structures for each operation,
+as needed to operate as a PDL transformation. The entry point from outside
+(and from XS functions) is a C function called C<pdl_(operationname)_run>,
+with a signature derived from its C<Pars> and C<OtherPars>. E.g.
+
+  # from PDL::Primitive
+  pp_def('wtstat',
+    Pars => 'a(n); wt(n); avg(); [o]b();',
+    OtherPars => 'int deg',
+    # ...
+  );
+
+has the C signature:
+
+  void pdl_wtstat_run(pdl *a, pdl *wt, pdl *avg, pdl *b, int deg);
+
+Not very surprisingly, all C<pdl*> parameters must be initialised (at
+least to C<< PDL->null >> status), and they are changed according to
+the operation's specification. This makes the XS C<_(name)_int>
+non-varargs XS functions very thin layers over this.
+
+=head1 SEE ALSO
+
+L<PDL>
+
+L<Inline>
 
 =head1 BUGS
 
