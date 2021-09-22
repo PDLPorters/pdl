@@ -1887,11 +1887,8 @@ EOD
             }
           }
         }
-        # handle different values of arg
-        my ( $in, $out );
-        # default vals - only set if we have one input/output ndarray
-        $in  = $in[0]  if $#in == 0;
-        $out = $out[0] if $#out == 0;
+        my $in = @in == 1 ? $in[0] : undef;
+        my $out = @out == 1 ? $out[0] : undef;
         if ( ref($arg) eq "ARRAY" and @$arg) {
           $in = $$arg[0];
           $out = $$arg[1] if @$arg > 1;
