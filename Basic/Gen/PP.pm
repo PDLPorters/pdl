@@ -2117,11 +2117,11 @@ END
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
 
    PDL::PP::Rule->new("NewXSStructInit0",
-		      ["StructName","StructType","VTableName","IsAffineFlag","HaveThreading"],
+		      ["StructName","StructType","VTableName"],
 		      "Rule to create and initialise the private trans structure",
       sub {
-        my( $sname, $stype, $vtable, $affflag, $havethreading ) = @_;
-        PDL::PP::pp_line_numbers(__LINE__-1, "$stype *$sname = (void *)PDL->create_trans($affflag, &$vtable);\n");
+        my( $sname, $stype, $vtable ) = @_;
+        PDL::PP::pp_line_numbers(__LINE__-1, "$stype *$sname = (void *)PDL->create_trans(&$vtable);\n");
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
@@ -2442,10 +2442,11 @@ PDL_TRANS_START($npdls);
       ["VTableName","StructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
        "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name",
-       "GenericTypes"],
+       "GenericTypes","IsAffineFlag"],
       sub {
         my($vname,$stype,$rdname,$rfname,$wfname,$ffname,
-           $sig,$affine_ok,$havethreading, $noPthreadFlag, $name, $gentypes) = @_;
+           $sig,$affine_ok,$havethreading, $noPthreadFlag, $name, $gentypes,
+           $affflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
@@ -2453,6 +2454,7 @@ PDL_TRANS_START($npdls);
         my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1) || '0';
         my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
+        my $iflags = $affflag;
         my $gentypes_txt = join(", ", (map PDL::Type->new($_)->sym, @$gentypes), '-1');
         my @realdims = map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
         my $realdims = join(", ", @realdims) || '0';
@@ -2480,7 +2482,7 @@ static PDL_Indx ${vname}_realdims_starts[] = { $realdim_ind_start };
 static PDL_Indx ${vname}_realdims_ind_ids[] = { $realdim_inds };
 static char *${vname}_indnames[] = { $indnames };
 pdl_transvtable $vname = {
-  $op_flags, ${vname}_gentypes, $nparents, $npdls, ${vname}_flags,
+  $op_flags, $iflags, ${vname}_gentypes, $nparents, $npdls, ${vname}_flags,
   ${vname}_realdims, ${vname}_parnames,
   ${vname}_parflags, ${vname}_partypes,
   ${vname}_realdims_starts, ${vname}_realdims_ind_ids, @{[scalar @rd_inds]},
