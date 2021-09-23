@@ -209,51 +209,46 @@ sub _oneliner {
 sub _pp_call_arg {
   "-MPDL::PP=".join ',', @_
 }
-
-sub pdlpp_postamble_int {
-	join '',map { my($src,$pref,$mod,$callpack) = @$_;
-	my $w = whereami_any();
-	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
-	my $top = File::Spec->abs2rel($w);
-	my $core = File::Spec->catdir($top, qw(Basic Core));
-	my $coredeps = join ' ', map "$core/$_",
-	    qw(pdl.h pdlcore.h pdlthread.h pdlmagic.h Types.pm);
-	my $gendep = File::Spec->catfile($top, qw(Basic Gen pm_to_blib));
-	$callpack //= '';
-	my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack);
+sub _postamble {
+  require File::Spec::Functions;
+  my ($w, $internal, $src, $pref, $mod, $callpack) = @_;
+  $callpack //= '';
+  $w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
+  my ($perlrun, $pmdep) = ($internal ? '$(PERLRUNINST)' : "\$(PERL) \"-I$w\"", $src);
+  if ($internal) {
+    my $top = File::Spec::Functions::abs2rel($w);
+    my $core = File::Spec::Functions::catdir($top, qw(Basic Core));
+    my $coredeps = join ' ', map File::Spec::Functions::catfile($core, $_),
+        qw(pdl.h pdlcore.h pdlthread.h pdlmagic.h Types.pm);
+    my $gendep = File::Spec::Functions::catfile($top, qw(Basic Gen pm_to_blib));
+    $pmdep .= " $coredeps $gendep";
+  }
+  my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack);
+  my $install = '';
+  if (!$internal) {
+    my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
+    $install = qq|\n\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
+  }
 qq|
 
-$pref.pm: $src $coredeps $gendep
-	\$(PERLRUNINST) \"$pp_call_arg\" $src
+$pref.pm: $pmdep
+	$perlrun \"$pp_call_arg\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
-|
-	} (@_)
+$install|
+}
+
+sub pdlpp_postamble_int {
+  my $w = whereami_any();
+  join '', map _postamble($w, 1, @$_), @_
 }
 
 # This is the function to be used outside the PDL tree.
 # same format as pdlpp_postamble_int
 sub pdlpp_postamble {
-	join '',map { my($src,$pref,$mod,$callpack) = @$_;
-	my $w = whereami_any();
-	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
-	my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
-	$callpack //= '';
-	my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack);
-qq|
-
-$pref.pm: $src
-	\$(PERL) "-I$w" \"$pp_call_arg\" $src
-
-$pref.xs: $pref.pm
-	\$(TOUCH) \$@
-
-install ::
-	\@echo "Updating PDL documentation database...";
-	$oneliner
-|
-	} (@_)
+  my $w = whereami_any();
+  join '', map _postamble($w, 0, @$_), @_
 }
 
 my %flist_cache;
