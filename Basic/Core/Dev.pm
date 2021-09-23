@@ -228,10 +228,6 @@ $pref.pm: $src $coredeps $gendep
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
-
-$pref.c: $pref.xs
-
-$pref\$(OBJ_EXT): $pref.c
 |
 	} (@_)
 }
@@ -252,10 +248,6 @@ $pref.pm: $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
-
-$pref.c: $pref.xs
-
-$pref\$(OBJ_EXT): $pref.c
 
 install ::
 	\@echo "Updating PDL documentation database...";
