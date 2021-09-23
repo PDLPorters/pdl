@@ -258,16 +258,21 @@ install ::
 	} (@_)
 }
 
+my %flist_cache;
 sub _pp_list_functions {
-  my ($src) = @_;
-  my $w = whereami_any();
   require File::Spec::Functions;
-  my $typespm = File::Spec::Functions::catfile($w, qw(Core Types.pm));
-  system $^X, "$typespm.PL", $typespm if !-f $typespm;
-  require $typespm;
-  local $INC{'PDL/Types.pm'} = 1;
-  require ''.File::Spec::Functions::catfile($w, qw(Gen PP.pm));
-  PDL::PP::list_functions($src);
+  my ($src) = @_;
+  my $abs_src = File::Spec::Functions::rel2abs($src);
+  if (!$flist_cache{$abs_src}) {
+    my $w = whereami_any();
+    my $typespm = File::Spec::Functions::catfile($w, qw(Core Types.pm));
+    system $^X, "$typespm.PL", $typespm if !-f $typespm;
+    require $typespm;
+    local $INC{'PDL/Types.pm'} = 1;
+    require ''.File::Spec::Functions::catfile($w, qw(Gen PP.pm));
+    $flist_cache{$abs_src} = [ PDL::PP::list_functions($src) ];
+  }
+  @{ $flist_cache{$abs_src} };
 }
 
 sub pdlpp_stdargs_int {
