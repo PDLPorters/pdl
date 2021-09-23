@@ -1,11 +1,5 @@
-' # Needed for CPAN indexing?
-package PDL::Bad;
-';
-
 use strict;
 
-use PDL::Config;
-use PDL::Core::Dev;
 use PDL::Types qw(ppdefs_all types);
 my $A = [ppdefs_all()];
 my $AF = [map $_->ppsym, grep !$_->integer, types()]; # all including complex
@@ -20,8 +14,6 @@ pp_addhdr('
 pp_add_exported( '',
 		 'badflag check_badflag badvalue orig_badvalue nbad nbadover ngood ngoodover ' .
 		 'setbadat ' );
-
-require PDL::Core::Dev; PDL::Core::Dev->import;
 
 ## Header
 pp_addpm({At=>'Top'},<<'!NO!SUBS!');
@@ -67,12 +59,12 @@ Set to 1 as of PDL 2.035 as always available.
 
 !NO!SUBS!
 
-pp_addpm(<<"!WITH!SUBS!");
+pp_addpm(<<'!NO!SUBS!');
 
 # really should be constants
-\$PDL::Bad::Status = 1;
-\$PDL::Bad::UseNaN = 0;
-\$PDL::Bad::PerPdl = 1;
+$PDL::Bad::Status = 1;
+$PDL::Bad::UseNaN = 0;
+$PDL::Bad::PerPdl = 1;
 
 use strict;
 
@@ -82,7 +74,7 @@ use PDL::Primitive;
 ############################################################
 ############################################################
 
-!WITH!SUBS!
+!NO!SUBS!
 
 # we want the following to be in PDL, not PDL::Bad, hence
 my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";

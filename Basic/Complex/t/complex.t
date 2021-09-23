@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use PDL::Lite;
 use PDL::Complex;
-use PDL::Config;
 use PDL::Math;
 use Test::More;
 
