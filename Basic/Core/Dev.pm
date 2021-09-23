@@ -206,6 +206,10 @@ sub _oneliner {
 
 # This is the function internal for PDL.
 
+sub _pp_call_arg {
+  "-MPDL::PP qw[@_]"
+}
+
 sub pdlpp_postamble_int {
 	join '',map { my($src,$pref,$mod,$callpack) = @$_;
 	my $w = whereami_any();
@@ -216,10 +220,11 @@ sub pdlpp_postamble_int {
 	    qw(pdl.h pdlcore.h pdlthread.h pdlmagic.h Types.pm);
 	my $gendep = File::Spec->catfile($top, qw(Basic Gen pm_to_blib));
 	$callpack //= '';
+	my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack);
 qq|
 
 $pref.pm: $src $coredeps $gendep
-	\$(PERLRUNINST) \"-MPDL::PP qw[$mod $mod $pref $callpack]\" $src
+	\$(PERLRUNINST) \"$pp_call_arg\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
@@ -239,10 +244,11 @@ sub pdlpp_postamble {
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
 	my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
 	$callpack //= '';
+	my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack);
 qq|
 
 $pref.pm: $src
-	\$(PERL) "-I$w" \"-MPDL::PP qw[$mod $mod $pref $callpack]\" $src
+	\$(PERL) "-I$w" \"$pp_call_arg\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
@@ -355,7 +361,8 @@ sub pdlpp_mkgen {
     File::Path::mkpath(dirname($prefix));
     #there is no way to use PDL::PP from perl code, thus calling via system()
     my @in = map { "-I$_" } @INC, 'inc';
-    my $rv = system($^X, @in, "-MPDL::PP qw[$mod $mod $prefix]", $pd);
+    my $pp_call_arg = _pp_call_arg($mod, $mod, $prefix, '');
+    my $rv = system($^X, @in, $pp_call_arg, $pd);
     if ($rv == 0 && -f "$prefix.pm") {
       $added{$manifestpm} = "mod=$mod pd=$pd (added by pdlpp_mkgen)";
       unlink "$prefix.xs"; #we need only .pm
