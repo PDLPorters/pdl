@@ -723,6 +723,15 @@ sub import {
 	goto &Exporter::import;
 }
 
+sub list_functions {
+  my ($file) = @_;
+  my @funcs;
+  local *PDL::PP::pp_def = sub { push @funcs, (_pp_parsename($_[0]))[0]};
+  local *PDL::PP::pp_done = sub {};
+  require File::Spec::Functions;
+  do ''.File::Spec::Functions::rel2abs($file);
+  @funcs;
+}
 
 # query/set boundschecking
 # if on the generated XS code will have optional boundschecking
