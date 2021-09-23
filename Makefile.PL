@@ -150,6 +150,7 @@ $seen_f77conf = check_f77conf($seen_f77conf);
 # this will make PDL::Core::Dev's functions available
 # in Makefile.PL files in all subdirectories
 require "./Basic/Core/Dev.pm"; PDL::Core::Dev->import();
+$INC{'PDL/Core/Dev.pm'} = 1; # so require P:C:Dev will report success after
 
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/Bugs/;
