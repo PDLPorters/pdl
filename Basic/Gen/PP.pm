@@ -978,27 +978,29 @@ $::PDLPM{Bot}
       }  # unless (nopm) {...
 } # end pp_done
 
+sub _pp_parsename {
+  my ($name) = @_;
+  # See if the 'name' is multiline, in which case we extract the
+  # name and add the FullDoc field
+  return ($name, undef) if $name !~ /\n/;
+  my $fulldoc = $name;
+  # See if the very first thing is a word. That is going to be the
+  # name of the function under consideration
+  if ($fulldoc =~ s/^(\w+)//) {
+    $name = $1;
+  } elsif ($fulldoc =~ /=head2 (\w+)/) {
+    $name = $1;
+  } else {
+    croak('Unable to extract name');
+  }
+  ($name, $fulldoc);
+}
+
 sub pp_def {
 	my($name,%obj) = @_;
-
 	print "*** Entering pp_def for $name\n" if $::PP_VERBOSE;
-	# See if the 'name' is multiline, in which case we extract the
-	# name and add the FullDoc field
-	if ($name =~ /\n/) {
-		my $fulldoc = $name;
-		# See if the very first thing is a word. That is going to be the
-		# name of the function under consideration
-		if ($fulldoc =~ s/^(\w+)//) {
-			$name = $1;
-		}
-		elsif ($fulldoc =~ /=head2 (\w+)/) {
-			$name = $1;
-		}
-		else {
-			croak('Unable to extract name');
-		}
-		$obj{FullDoc} = $fulldoc;
-	}
+	($name, my $fulldoc) = _pp_parsename($name);
+	$obj{FullDoc} = $fulldoc if defined $fulldoc;
 	$obj{Name} = $name;
 	croak("ERROR: pp_def=$name given empty GenericTypes!\n")
 	  if exists $obj{GenericTypes} and !@{ $obj{GenericTypes} || [] };
