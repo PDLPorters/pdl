@@ -269,7 +269,6 @@ sub pdlpp_stdargs_int {
 my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
  require ExtUtils::MakeMaker;
  return (
- 	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
 	 'VERSION_FROM' => "$w/Basic/PDL.pm",
 	 'TYPEMAPS'     => [&PDL_TYPEMAP()],
@@ -288,7 +287,6 @@ sub pdlpp_stdargs {
  my($src,$pref,$mod) = @$rec;
  require ExtUtils::MakeMaker;
  return (
- 	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
 	 'VERSION_FROM' => $src,
 	 'TYPEMAPS'     => [&PDL_INST_TYPEMAP()],
