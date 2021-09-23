@@ -207,7 +207,7 @@ sub _oneliner {
 # This is the function internal for PDL.
 
 sub _pp_call_arg {
-  "-MPDL::PP qw[@_]"
+  "-MPDL::PP=".join ',', @_
 }
 
 sub pdlpp_postamble_int {
