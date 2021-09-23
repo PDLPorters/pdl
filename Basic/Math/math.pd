@@ -1,6 +1,7 @@
 use strict;
 use Config;
 use PDL::Types qw(ppdefs ppdefs_complex types);
+require PDL::Core::Dev;
 
 my $R = [ppdefs()];
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];

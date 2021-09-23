@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use PDL::Types qw(types ppdefs ppdefs_all ppdefs_complex);
+require PDL::Core::Dev;
 
 my $A = [ppdefs_all];
 my $C = [ppdefs_complex];

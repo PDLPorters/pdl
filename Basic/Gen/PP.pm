@@ -67,7 +67,6 @@
 package PDL::PP::Rule;
 
 use strict;
-require PDL::Core::Dev;
 
 use Carp;
 our @CARP_NOT;
@@ -262,7 +261,6 @@ use strict;
 use Carp;
 our @CARP_NOT;
 
-##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
 
 # This class does not treat return values of "DO NOT SET!!"
@@ -302,7 +300,6 @@ package PDL::PP::Rule::Returns::Zero;
 
 use strict;
 
-##use PDL::PP::Rule::Returns;
 our @ISA = qw (PDL::PP::Rule::Returns);
 
 sub new {
@@ -313,7 +310,6 @@ package PDL::PP::Rule::Returns::One;
 
 use strict;
 
-##use PDL::PP::Rule::Returns;
 our @ISA = qw (PDL::PP::Rule::Returns);
 
 sub new {
@@ -324,7 +320,6 @@ package PDL::PP::Rule::Returns::EmptyString;
 
 use strict;
 
-##use PDL::PP::Rule::Returns;
 our @ISA = qw (PDL::PP::Rule::Returns);
 
 sub new {
@@ -335,7 +330,6 @@ package PDL::PP::Rule::Returns::NULL;
 
 use strict;
 
-##use PDL::PP::Rule::Returns;
 our @ISA = qw (PDL::PP::Rule::Returns);
 
 sub new {
@@ -349,7 +343,6 @@ use strict;
 use Carp;
 our @CARP_NOT;
 
-##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
 
 # This class does not treat return values of "DO NOT SET!!"
@@ -416,7 +409,6 @@ use strict;
 use Carp;
 our @CARP_NOT;
 
-##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
 
 # Probably want this directly in the apply routine but leave as is for now
@@ -486,7 +478,6 @@ use strict;
 use Carp;
 our @CARP_NOT;
 
-##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule::Substitute);
 
 # This is a copy of the main one for now. Need a better solution.
@@ -535,7 +526,6 @@ use strict;
 use Carp;
 our @CARP_NOT;
 
-##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
 
 # This is a copy of the main one for now. Need a better solution.
@@ -673,7 +663,6 @@ our $macros = <<'EOF';
     }
 EOF
 
-use PDL::Types ':All';
 use Config;
 use FileHandle;
 use Exporter;
@@ -873,6 +862,7 @@ sub pp_done {
 	print "DONE!\n" if $::PP_VERBOSE;
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
 	(my $fh = FileHandle->new(">$::PDLPREF.xs")) or die "Couldn't open xs file\n";
+        require PDL::Core::Dev;
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD); # don't hardcode in more than one place
 
 $fh->print(pp_line_numbers(__LINE__, qq%
@@ -1007,6 +997,14 @@ sub _pp_parsename {
 }
 
 sub pp_def {
+	require PDL::Core::Dev;
+	require PDL::Types;
+	require PDL::PP::PdlParObj;
+	require PDL::PP::Signature;
+	require PDL::PP::Dims;
+	require PDL::PP::CType;
+	require PDL::PP::PDLCode;
+	PDL::PP::load_deftable();
 	my($name,%obj) = @_;
 	print "*** Entering pp_def for $name\n" if $::PP_VERBOSE;
 	($name, my $fulldoc) = _pp_parsename($name);
@@ -1097,11 +1095,6 @@ EOF
 
 use Carp;
 $SIG{__DIE__} = \&Carp::confess if $::PP_VERBOSE;
-
-use PDL::PP::Signature;
-use PDL::PP::Dims;
-use PDL::PP::CType;
-use PDL::PP::PDLCode;
 
 $|=1;
 
@@ -1276,7 +1269,7 @@ sub OtherPars_nft {
     my $dimobjs = $sig && $sig->dims_obj;
     my(@names,%types,$type);
     # support 'int ndim => n;' syntax
-    for (PDL::PP::Signature::nospacesplit ';',$otherpars) {
+    for (PDL::PP::Signature::nospacesplit(';',$otherpars)) {
 	if (/^\s*([^=]+)\s*=>\s*(\S+)\s*$/) {
 	    my ($ctype,$dim) = ($1,$2);
 	    $ctype =~ s/\s+$//; # get rid of trailing ws
@@ -1448,10 +1441,10 @@ sub extract_signature_from_fulldoc {
 	return;
 }
 
-
+# function to be run by real pp_def so fake pp_def can do without other modules
+sub load_deftable {
 # Build the valid-types regex and valid Pars argument only once. These are
 # also used in PDL::PP::PdlParObj, which is why they are globally available.
-use PDL::PP::PdlParObj;
 my $pars_re = $PDL::PP::PdlParObj::pars_re;
 
 # Set up the rules for translating the pp_def contents.
@@ -1683,7 +1676,7 @@ EOD
 		      ["P2Child","Name"],
       sub {
         my (undef,$name) = @_;
-        ("PARENT(); [oca]CHILD();",0,0,[ppdefs_all],1,
+        ("PARENT(); [oca]CHILD();",0,0,[PDL::Types::ppdefs_all()],1,
           pp_line_numbers(__LINE__-1,"\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n"),
           pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy(__tr);\n"),
         );
@@ -1694,7 +1687,7 @@ EOD
 #
    PDL::PP::Rule->new("GenericTypes", [],
        'Sets GenericTypes flag to all real types known to PDL::Types',
-       sub {[ppdefs]}),
+       sub {[PDL::Types::ppdefs()]}),
 
    PDL::PP::Rule->new("ExtraGenericLoops", "FTypes",
        'Makes ExtraGenericLoops identical to FTypes if the latter exists and the former does not',
@@ -2440,5 +2433,6 @@ EOF
    ),
 
 ];
+}
 
 1;
