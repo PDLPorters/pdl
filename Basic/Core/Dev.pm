@@ -150,20 +150,6 @@ unless ( %PDL::Config ) {
 	if $@;
 }
 
-# Data types to C types mapping
-# get the map from Types.pm
-sub loadmod_Types {
-  # load PDL::Types only if it has not been previously loaded
-  return if grep (m%(PDL|Core)/Types[.]pm$%, keys %INC);
-  eval { require(whereami_any().'/Core/Types.pm') }; # lets dist Types.pm win
-  return if !$@;
-  # if PDL::Types doesn't work try with full path (during build)
-  my $foo = $@;
-  eval { require PDL::Types };
-  return if !$@;
-  die "can't find PDL::Types: $foo and $@";
-}
-
 my $inc = defined $PDL::Config{MALLOCDBG}->{include} ?
   "$PDL::Config{MALLOCDBG}->{include}" : '';
 my $libs = defined $PDL::Config{MALLOCDBG}->{libs} ?
