@@ -346,7 +346,6 @@ INSTALL
 INTERNATIONALIZATION
 IO/Browser/browse.c
 IO/Browser/browser.pd
-IO/Browser/hints/dec_osf.pl
 IO/Browser/Makefile.PL
 IO/Dicom/Dicom.pm
 IO/Dicom/Makefile.PL

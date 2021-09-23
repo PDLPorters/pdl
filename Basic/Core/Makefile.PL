@@ -15,10 +15,7 @@ my $pthread_library = '-lpthread';
 if ( defined $PDL::Config{POSIX_THREADS_LIBS} ) {
     $pthread_library = $PDL::Config{POSIX_THREADS_LIBS};
 }
-if ($^O eq 'dec_osf' and $Config{usemymalloc} ne 'n') {
-    print "\tPerls malloc has problems when perl is not linked with -lpthread\n";
-    $pthread_library = '';
-} elsif ($^O eq 'freebsd' and $Config{libs} !~ /-lc_r/) {
+if ($^O eq 'freebsd' and $Config{libs} !~ /-lc_r/) {
     print "On FreeBSD try building perl with libc_r instead of libc\n";
     $pthread_library = '';
 } elsif ($^O =~ /bsd$/i and $Config{usemymalloc} ne 'y') {
