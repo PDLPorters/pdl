@@ -730,6 +730,7 @@ sub list_functions {
   local *PDL::PP::pp_done = sub {};
   require File::Spec::Functions;
   do ''.File::Spec::Functions::rel2abs($file);
+  die $@ if $@;
   @funcs;
 }
 
