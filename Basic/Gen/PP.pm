@@ -601,8 +601,6 @@ our $VERSION = "2.3";
 $VERSION = eval $VERSION;
 
 our $macros_xs = <<'EOF';
-#define PDL_RMBRACKETS(...) __VA_ARGS__ /* work around syntax limitation */
-
 #define PDL_XS_PREAMBLE \
   char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set \
                             by pp_bless ? (CS) */ \
@@ -668,8 +666,6 @@ PDL_COMMENT("                                                               ")
 PDL_COMMENT("just think of it as a C multiline comment like:                ")
 PDL_COMMENT("                                                               ")
 PDL_COMMENT("   /* Memory access */                                         ")
-
-#define PDL_RMBRACKETS(...) __VA_ARGS__ /* work around syntax limitation */
 
 #define PDL_XS_INPLACE(in, out) \
     if (in->state & PDL_INPLACE && (out != in)) { \
