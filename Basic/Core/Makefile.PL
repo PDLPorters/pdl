@@ -48,6 +48,11 @@ sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
 my $libs_string = "$pthread_library $malloclib -lm";
 
+undef &MY::postamble; # suppress warning
+*MY::postamble = sub {
+    "pdlsimple.h pdl.h pdlperl.h :: Types.pm\n";
+};
+
 my @cfiles = qw(pdlcore pdlapi pdlthread pdlconv pdlmagic);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
@@ -83,8 +88,3 @@ WriteMakefile(
   },
   NO_MYMETA => 1,
 );
-
-undef &MY::postamble; # suppress warning
-*MY::postamble = sub {
-    "pdlsimple.h pdl.h pdlperl.h :: Types.pm\n";
-};
