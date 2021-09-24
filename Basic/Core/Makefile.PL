@@ -75,7 +75,7 @@ WriteMakefile(
  'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => [$libs_string],
- 'clean'        => {'FILES'  => $cobj .
+ 'clean'        => {'FILES'  =>
 		   'pdl.h pdlperl.h pdlsimple.h '.
 		   'Types.pm Core.c '
 		   },
