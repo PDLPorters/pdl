@@ -32,6 +32,8 @@ jobs:
             os: ubuntu-latest
             release-test: true
             coverage: true
+          - perl-version: '5.30'
+            os: ubuntu-latest
             disttest: true
           - perl-version: '5.30'
             os: ubuntu-latest
@@ -92,7 +94,7 @@ jobs:
 
       - name: 'ci-dist: target-test (no coverage)'
         uses: PDLPorters/devops/github-actions/ci-dist@master
-        if: '!matrix.coverage'
+        if: '!matrix.coverage && !matrix.disttest'
         with:
           target-test: true
           test-enable-coverage: ${{ matrix.coverage }}
@@ -120,7 +122,7 @@ jobs:
           test-enable-coverage: ${{ matrix.coverage }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: perl -Iblib/lib -MPDL::Config -MData::Dumper -e '$Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
+      - run: perl -Iblib/lib -MData::Dumper -e 'eval { require PDL::Config }; $Data::Dumper::Sortkeys = 1; print Dumper \%PDL::Config'
 
   ci-ubuntu-containers:
     runs-on: ubuntu-latest
