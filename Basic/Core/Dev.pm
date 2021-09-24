@@ -230,14 +230,14 @@ $install|
 
 sub pdlpp_postamble_int {
   my $w = whereami_any();
-  join '', map _postamble($w, 1, @$_), @_
+  join '', map _postamble($w, 1, @$_), @_;
 }
 
 # This is the function to be used outside the PDL tree.
 # same format as pdlpp_postamble_int
 sub pdlpp_postamble {
   my $w = whereami_any();
-  join '', map _postamble($w, 0, @$_), @_
+  join '', map _postamble($w, 0, @$_), @_;
 }
 
 my %flist_cache;
@@ -257,45 +257,32 @@ sub _pp_list_functions {
   @{ $flist_cache{$abs_src} };
 }
 
+sub _stdargs {
+  my ($w, $internal, $src, $pref, $mod, $callpack) = @_;
+  (
+    NAME  	=> $mod,
+    VERSION_FROM => ($internal ? "$w/Basic/PDL.pm" : $src),
+    TYPEMAPS     => [PDL_TYPEMAP()],
+    OBJECT       => "$pref\$(OBJ_EXT)",
+    PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
+    MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
+    INC          => PDL_INCLUDE()." $inc",
+    LIBS         => [$libs],
+    clean        => {FILES  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
+    ($internal
+      ? (NO_MYMETA => 1)
+      : (dist => {PREOP => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' })
+    ),
+  );
+}
+
 sub pdlpp_stdargs_int {
- my($rec) = @_;
- my($src,$pref,$mod) = @$rec;
- my $w = whereami();
- my $malloclib = exists $PDL::Config{MALLOCDBG}->{libs} ?
-   $PDL::Config{MALLOCDBG}->{libs} : '';
- my $mallocinc = exists $PDL::Config{MALLOCDBG}->{include} ?
-   $PDL::Config{MALLOCDBG}->{include} : '';
-my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
- return (
-	 'NAME'  	=> $mod,
-	 'VERSION_FROM' => "$w/Basic/PDL.pm",
-	 'TYPEMAPS'     => [&PDL_TYPEMAP()],
-	 'OBJECT'       => "$pref\$(OBJ_EXT)",
-	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
-	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
-	 'INC'          => &PDL_INCLUDE()." $inc $mallocinc",
-	 'LIBS'         => $libsarg ? [$libsarg] : [],
-	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
-	 NO_MYMETA => 1,
- );
+  my $w = whereami();
+  _stdargs($w, 1, @{$_[0]});
 }
 
 sub pdlpp_stdargs {
- my($rec) = @_;
- my($src,$pref,$mod) = @$rec;
- return (
-	 'NAME'  	=> $mod,
-	 'VERSION_FROM' => $src,
-	 'TYPEMAPS'     => [&PDL_TYPEMAP()],
-	 'OBJECT'       => "$pref\$(OBJ_EXT)",
-	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
-	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
-	 'INC'          => &PDL_INCLUDE()." $inc",
-	 'LIBS'         => $libs ? ["$libs "] : [],
-	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
-	 'dist'         => {'PREOP'  => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' },
-	 NO_MYMETA => 1,
- );
+  _stdargs(undef, 0, @{$_[0]});
 }
 
 # pdlpp_mkgen($dir)
