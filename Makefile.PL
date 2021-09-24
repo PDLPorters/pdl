@@ -257,7 +257,9 @@ doctest ::
 %HTML%	$(NOECHO) $(ECHO) "doctest: Building PDL documentation web pages in blib ..."
 %HTML%	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)mkhtmldoc.pl
 
-doc_site_install ::
+doc_site_install :: doc_pdldoc_install
+
+doc_pdldoc_install :: pure_install # needs installed .../PDL dir to exist
 	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation database ..."
 	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl "$(DESTDIR)$(INSTALLSITEARCH)"
 %HTML%	$(NOECHO) $(ECHO) "doc_site_install: Building PDL documentation web pages ..."
