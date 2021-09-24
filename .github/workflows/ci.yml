@@ -110,7 +110,8 @@ jobs:
         run: |
           set -e
           [ -f Makefile ] || perl Makefile.PL
-          make install clean # clean is to ensure no blib
+          make install
+          make clean # clean is to ensure no blib
           mv Basic Basic.x # ensure doesn't think is in repo!
           prove -j4 t
 
