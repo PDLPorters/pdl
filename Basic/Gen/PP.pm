@@ -664,9 +664,7 @@ our $macros = <<'EOF';
 EOF
 
 use Config;
-use FileHandle;
 use Exporter;
-
 use Data::Dumper;
 
 our @ISA = qw(Exporter);
@@ -861,7 +859,7 @@ sub pp_done {
 	  : '';
 	print "DONE!\n" if $::PP_VERBOSE;
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
-	(my $fh = FileHandle->new(">$::PDLPREF.xs")) or die "Couldn't open xs file\n";
+	open my $fh, ">", "$::PDLPREF.xs" or die "Couldn't open xs file: $!\n";
         require PDL::Core::Dev;
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD); # don't hardcode in more than one place
 
@@ -937,7 +935,7 @@ unless (nopm) {
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
-	($fh = FileHandle->new(">$::PDLPREF.pm")) or die "Couldn't open pm file\n";
+	open my $fh, ">", "$::PDLPREF.pm" or die "Couldn't open pm file: $!\n";
 
 	$fh->print(qq%
 #
