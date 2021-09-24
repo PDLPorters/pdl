@@ -15,7 +15,7 @@ my $incflags = Alien::Proj4->cflags;
 
 my $ppfile = "Proj4.pd";
 my $package = [$ppfile, 'Proj4', $package_name];
-my %hash = pdlpp_stdargs($package);
+my %hash = pdlpp_stdargs_int($package);
 $hash{VERSION_FROM} = $ppfile;
 #$hash{TYPEMAPS} = [&PDL_TYPEMAP()];
 $hash{LIBS} = [ Alien::Proj4->libs ];

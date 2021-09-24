@@ -124,7 +124,7 @@ if ($msg ne "" && $forcebuild==0) {
 return if $donot;
 
 my $package = [$ppfile, $lib_name, $package_name];
-my %hash = pdlpp_stdargs($package);
+my %hash = pdlpp_stdargs_int($package);
 $hash{VERSION_FROM} = $ppfile;
 $hash{DEFINE} = $PDL::Config{GD_DEFINE};
 $hash{LIBS} = [qq{-L"$lib_path" -l$linkname}];
