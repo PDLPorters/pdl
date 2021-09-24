@@ -1034,12 +1034,13 @@ sub pp_def {
 	croak("ERROR: No FreeFunc for pp_def=$name!\n")
 	  unless exists $obj{FreeFunc}; # and $obj{FreeFunc};
 
-	PDL::PP->printxsc(join "\n\n",@obj{'StructDecl','RedoDimsFunc',
+	my $ctext = join("\n\n",@obj{'StructDecl','RedoDimsFunc',
 		'ReadDataFunc','WriteBackDataFunc',
 		'FreeFunc',
 		'VTableDef','RunFunc',
 		}
 		);
+	PDL::PP->printxsc($ctext);
 	PDL::PP->printxs($obj{NewXSCode});
 	pp_add_boot($obj{XSBootCode} . $obj{BootSetNewXS});
 	PDL::PP->pp_add_exported($name);
