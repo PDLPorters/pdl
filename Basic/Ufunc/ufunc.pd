@@ -487,7 +487,7 @@ pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
 PDL_GENERICLIST_REAL(PDL_QSORT)
 
 #define QSORT_OTHER(symbol, ctype, ppsym, shortctype, defbval) \
-  void qsort_ind_ ## ppsym(ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) { \
+  static inline void qsort_ind_ ## ppsym(ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) { \
      PDL_Indx i,j; \
      PDL_Indx t; \
      ctype median; \
@@ -517,7 +517,7 @@ PDL_GENERICLIST_REAL(PDL_QSORT)
     /* Compare a vector in lexicographic order, returning the \
      *  equivalent of "<=>".  \
      */ \
-  signed int pdl_cmpvec_ ## ppsym(ctype *a, ctype *b, PDL_Indx n) { \
+  static inline signed int pdl_cmpvec_ ## ppsym(ctype *a, ctype *b, PDL_Indx n) { \
     PDL_Indx i; \
     for(i=0; i<n; a++,b++,i++) { \
      if( *a < *b ) return -1; \
@@ -526,7 +526,7 @@ PDL_GENERICLIST_REAL(PDL_QSORT)
     return 0; \
  }	 \
  \
-  void pdl_qsortvec_ ## ppsym(ctype *xx, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
+  static inline void pdl_qsortvec_ ## ppsym(ctype *xx, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
     PDL_Indx i,j, median_ind; \
     ctype t; \
     i = a;  \
@@ -561,7 +561,7 @@ PDL_GENERICLIST_REAL(PDL_QSORT)
       pdl_qsortvec_ ## ppsym( xx, n, i, b ); \
   } \
  \
-  void pdl_qsortvec_ind_ ## ppsym(ctype *xx, PDL_Indx *ix, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
+  static inline void pdl_qsortvec_ind_ ## ppsym(ctype *xx, PDL_Indx *ix, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
     PDL_Indx i,j, median_ind; \
     ctype t; \
     i = a;  \

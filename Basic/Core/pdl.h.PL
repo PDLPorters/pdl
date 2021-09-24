@@ -554,7 +554,7 @@ struct pdl {
 
 /* for use with PDL_GENERICLIST_REAL */
 #define PDL_QSORT(symbol, ctype, ppsym, shortctype, defbval) \
-  void qsort_ ## ppsym(ctype* xx, PDL_Indx a, PDL_Indx b) { \
+  static inline void qsort_ ## ppsym(ctype* xx, PDL_Indx a, PDL_Indx b) { \
      PDL_Indx i,j; \
      ctype t, median; \
      i = a; j = b; \
