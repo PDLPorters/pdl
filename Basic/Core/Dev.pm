@@ -259,16 +259,19 @@ sub _pp_list_functions {
 
 sub _stdargs {
   my ($w, $internal, $src, $pref, $mod, $callpack) = @_;
+  my @cbase = $pref;
+  my @cfiles = map "$_.c", @cbase;
+  my @objs = map "$_\$(OBJ_EXT)", @cbase;
   (
     NAME  	=> $mod,
     VERSION_FROM => ($internal ? "$w/Basic/PDL.pm" : $src),
     TYPEMAPS     => [PDL_TYPEMAP()],
-    OBJECT       => "$pref\$(OBJ_EXT)",
+    OBJECT       => join(' ', @objs),
     PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
     MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
     INC          => PDL_INCLUDE()." $inc",
     LIBS         => [$libs],
-    clean        => {FILES  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
+    clean        => {FILES => "$pref.xs $pref.pm @cfiles"},
     ($internal
       ? (NO_MYMETA => 1)
       : (dist => {PREOP => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' })
