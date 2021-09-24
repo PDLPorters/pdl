@@ -2070,16 +2070,12 @@ END
         return ["void $name($longpars) {","}",
                 "PDL->$gname = $name;"];
       }),
-   PDL::PP::Rule->new("RunFuncCall",["RunFuncName","NewXSArgs"], sub {
+   PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","NewXSArgs"], sub {
         my ($func_name,$pars) = @_;
         my $shortpars = join ',',map $_->[0], @$pars;
-        PDL::PP::pp_line_numbers __LINE__-1, "$func_name($shortpars);";
-      }),
-   PDL::PP::Rule->new("RunFuncHdrs", ["RunFuncName","NewXSArgs"],
-      sub {
-        my($name,$pars,$gname) = @_;
         my $longpars = join ",",map $_->[1]->get_decl($_->[0]), @$pars;
-        return ["void $name($longpars) {","}"];
+        (PDL::PP::pp_line_numbers(__LINE__-1, "$func_name($shortpars);"),
+          "void $func_name($longpars)");
       }),
 
    PDL::PP::Rule->new("NewXSStructInit0",
@@ -2291,7 +2287,7 @@ END
    PDL::PP::Rule::Substitute::Usual->new("NewXSCopyBadStatusSubd", "NewXSCopyBadStatusNS"),
 
    PDL::PP::Rule->new(["RunFunc"],
-      ["RunFuncHdrs",
+      ["RunFuncHdr",
         "NewXSStructInit0",
         "NewXSSetTransPDLs",
         "NewXSFindBadStatusSubd",
@@ -2306,8 +2302,8 @@ END
       ],
       "Generate C function with idiomatic arg list to maybe call from XS",
       sub {
-        my ($xs_c_headers, @bits) = @_;
-        PDL::PP::pp_line_numbers __LINE__-1, join '', $xs_c_headers->[0], @bits, $xs_c_headers->[1];
+        my ($xs_c_header, @bits) = @_;
+        PDL::PP::pp_line_numbers __LINE__-1, join '', "$xs_c_header {\n", @bits, "}\n";
       }),
 
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule
