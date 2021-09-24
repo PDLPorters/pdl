@@ -32,6 +32,7 @@ jobs:
             os: ubuntu-latest
             release-test: true
             coverage: true
+            disttest: true
           - perl-version: '5.30'
             os: ubuntu-latest
             eumm-blead: 1
@@ -95,6 +96,12 @@ jobs:
         with:
           target-test: true
           test-enable-coverage: ${{ matrix.coverage }}
+
+      - name: 'disttest'
+        if: matrix.disttest
+        run: |
+          set -e
+          ( [ -f Makefile ] || $MYPERL Makefile.PL ) && make disttest
 
       - name: Run tests after install (no coverage)
         if: '!matrix.coverage && matrix.test-installed'
