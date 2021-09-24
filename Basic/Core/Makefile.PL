@@ -50,7 +50,8 @@ my $libs_string = "$pthread_library $malloclib -lm";
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
-    "pdlsimple.h pdl.h pdlperl.h :: Types.pm\n";
+    join '', map "$_ :: $_.PL Types.pm\n\t\$(PERLRUN) $_.PL $_\n",
+      qw(pdlsimple.h pdl.h pdlperl.h);
 };
 
 my @cfiles = qw(pdlcore pdlapi pdlthread pdlconv pdlmagic);
@@ -70,7 +71,7 @@ WriteMakefile(
 		qq/IFiles.pm/,'$(INST_LIBDIR)/Install/Files.pm',
 		(map +($_=>'$(INST_LIBDIR)/Complex/'.$_), qw(Overloads.pm)),
 		},
- 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Makefile.PL$/} <*.PL>},
+ 'PL_FILES'     => {map {($_ => nopl $_)} grep !/^Makefile.PL$/, 'Types.pm.PL'},
  'OBJECT'       => 'Core$(OBJ_EXT) ' . $cobj,
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => [$libs_string],
