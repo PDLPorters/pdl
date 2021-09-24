@@ -225,7 +225,7 @@ $pref.pm : $pmdep
 	$perlrun \"$pp_call_arg\" $src
 
 @generanda : $pref.pm
-	\$(TOUCH) \$@
+	\$(NOECHO) \$(TOUCH) \$@
 $install|
 }
 
