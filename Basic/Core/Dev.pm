@@ -42,21 +42,14 @@ our @EXPORT = qw( isbigendian
                 got_complex_version
 		 );
 
-my $O_NONBLOCK = defined $Config{'o_nonblock'} ? $Config{'o_nonblock'}
-                : 'O_NONBLOCK';
-
 # Installation locations
 # beware: whereami_any now appends the /Basic or /PDL directory as appropriate
 
-# The INST are here still just in case we want to change something later.
-
-# print STDERR "executing PDL::Core::Dev from",join(',',caller),"\n";
-
 # Return library locations
-
 sub PDL_INCLUDE { '"-I'.whereami_any().'/Core"' };
 sub PDL_TYPEMAP { whereami_any().'/Core/typemap' };
 
+# The INST are here still just in case we want to change something later.
 *PDL_INST_INCLUDE = \&PDL_INCLUDE;
 *PDL_INST_TYPEMAP = \&PDL_TYPEMAP;
 
