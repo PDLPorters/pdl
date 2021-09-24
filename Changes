@@ -1,3 +1,4 @@
+2.057_01 2021-09-24
 - fix pp_add_boot to remove any blank lines (such as added by pp_line_numbers)
 - GSL::CDF now uses barf() on error, not GSL default of core-dump
 - propagate_badflag only recurses with children that had different value
