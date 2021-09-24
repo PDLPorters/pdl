@@ -23,6 +23,7 @@ PDL::PP - Generate PDL routines from concise descriptions
 	);
 
 	pp_done();
+	# do not call exit() as some processing can be done in same process
 
 =head1 FUNCTIONS
 
