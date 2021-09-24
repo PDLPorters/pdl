@@ -218,12 +218,13 @@ sub _postamble {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
     $install = qq|\n\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
   }
+  my @generanda = "$pref.xs";
 qq|
 
-$pref.pm: $pmdep
+$pref.pm : $pmdep
 	$perlrun \"$pp_call_arg\" $src
 
-$pref.xs: $pref.pm
+@generanda : $pref.pm
 	\$(TOUCH) \$@
 $install|
 }
