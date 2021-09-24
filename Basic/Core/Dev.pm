@@ -57,8 +57,8 @@ my $O_NONBLOCK = defined $Config{'o_nonblock'} ? $Config{'o_nonblock'}
 sub PDL_INCLUDE { '"-I'.whereami_any().'/Core"' };
 sub PDL_TYPEMAP { whereami_any().'/Core/typemap' };
 
-sub PDL_INST_INCLUDE {&PDL_INCLUDE}
-sub PDL_INST_TYPEMAP {&PDL_TYPEMAP}
+*PDL_INST_INCLUDE = \&PDL_INCLUDE;
+*PDL_INST_TYPEMAP = \&PDL_TYPEMAP;
 
 sub PDL_AUTO_INCLUDE {
   my ($symname) = @_;
@@ -150,12 +150,8 @@ unless ( %PDL::Config ) {
 	if $@;
 }
 
-my $inc = defined $PDL::Config{MALLOCDBG}->{include} ?
-  "$PDL::Config{MALLOCDBG}->{include}" : '';
-my $libs = defined $PDL::Config{MALLOCDBG}->{libs} ?
-  "$PDL::Config{MALLOCDBG}->{libs}" : '';
-
-# non-blocking IO configuration
+my $inc = $PDL::Config{MALLOCDBG}{include} || '';
+my $libs = $PDL::Config{MALLOCDBG}{libs} || '';
 
 =head2 isbigendian
 
@@ -297,11 +293,11 @@ sub pdlpp_stdargs {
  return (
 	 'NAME'  	=> $mod,
 	 'VERSION_FROM' => $src,
-	 'TYPEMAPS'     => [&PDL_INST_TYPEMAP()],
+	 'TYPEMAPS'     => [&PDL_TYPEMAP()],
 	 'OBJECT'       => "$pref\$(OBJ_EXT)",
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
 	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
-	 'INC'          => &PDL_INST_INCLUDE()." $inc",
+	 'INC'          => &PDL_INCLUDE()." $inc",
 	 'LIBS'         => $libs ? ["$libs "] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
 	 'dist'         => {'PREOP'  => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' },
