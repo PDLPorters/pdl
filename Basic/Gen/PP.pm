@@ -940,7 +940,7 @@ sub pp_done {
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
 	open my $fh, ">", "$::PDLPREF.xs" or die "Couldn't open xs file: $!\n";
         require PDL::Core::Dev;
-        my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD); # don't hardcode in more than one place
+        my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD);
 
         print $fh sprintf($PDL::PP::header_c, $PP::boundscheck), $::PDLXSC;
         print $fh $PDL::PP::macros_xs, sprintf($PDL::PP::header_xs,
@@ -953,22 +953,19 @@ unless (nopm) {
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
 	open my $fh, ">", "$::PDLPREF.pm" or die "Couldn't open pm file: $!\n";
-
-        $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n=cut\n\n"
-	  : '';
-	print $fh <<EOF
+        $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n=cut\n\n" : '';
+	print $fh <<EOF;
 #
 # GENERATED WITH PDL::PP! Don't modify!
 #
 package $::PDLPACK;
 
 our \@EXPORT_OK = qw($::PDLPMROUT);
-our \%EXPORT_TAGS = (Func=>[\@EXPORT_OK]);
+our %EXPORT_TAGS = (Func=>\\\@EXPORT_OK);
 
 use PDL::Core$::PDLCOREIMPORT;
 use PDL::Exporter;
 use DynaLoader;
-
 
 $::PDL_IFBEGINWRAP[0]
    $::PDLVERSIONSET
