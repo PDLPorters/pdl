@@ -352,6 +352,13 @@ my $fa = pdl( float,  1..4) / 3;
 my $da = pdl( double, 1..4) / 3;
 ok( all($fa->setvaltobad(2/3)->isbad == $da->setvaltobad(2/3)->isbad), "setvaltobad for float ndarray");
 
+my $inf2b = sequence(3);
+$inf2b->set(1, 'Inf');
+$inf2b->set(2, 'NaN');
+$inf2b->inplace->setinftobad;
+like( PDL::Core::string( $inf2b->clump(-1) ),
+    qr{^\[-?0 BAD nan]$}i, "inplace setinftobad()" );
+
 my $x_copy = $x->copy;
 $x_copy->set(1, 'Inf');
 $x_copy->inplace->setnonfinitetobad;

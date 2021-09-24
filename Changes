@@ -24,6 +24,7 @@
 - Inplace now throws error for >2 elements in array-ref
 - remove oslice (after 8 years) and never-used Slices::{s_,}identity
 - all PDL operations now have a C function interface called pdl_(name)_run
+- add setinftobad - thanks @alex-prusevich for suggestion
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism

@@ -852,6 +852,60 @@ bad flag set.
     ],
 ); # pp_def: setnantobad
 
+pp_def('setinftobad' . <<'=cut',
+
+=head2 setinftobad
+
+=for sig
+
+  Signature: (a(); [o]b())
+
+=for ref
+
+Sets non-finite values (for complex, where either is non-finite) in
+the input ndarray bad (only relevant for floating-point ndarrays).
+Can be done inplace.
+
+=for usage
+
+ $y = $x->setinftobad;
+ $x->inplace->setinftobad;
+
+=for bad
+
+This method can process ndarrays with bad values: those bad values
+are propagated into the output ndarray. Any value that is not finite
+is also set to bad in the output ndarray. If all values from the input
+ndarray are finite, the output ndarray will B<not> have its
+bad flag set.
+
+=cut
+
+    HandleBad => 1,
+    GenericTypes => $AF,
+    Inplace => 1,
+    CopyBadStatusCode => q{
+        /* note: not quite the normal check since set b bad within Code */
+        /* we propagate the bad flag even if a was originally bad since */
+        /* there is no easy way to pass this information around */
+        if ( a == b && $ISPDLSTATEBAD(b) )
+            PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
+    },
+    Code => q[
+        int flag = 0;
+        threadloop %{
+            if ( !PDL_ISFINITE_$PPSYM()($a()) && !PDL_ISNAN_$PPSYM()($a()) ) {
+                $SETBAD(b());
+                flag = 1;
+            }
+            else {
+                $b() = $a();
+            }
+        %}
+        if ( flag ) $PDLSTATESETBAD(b);
+    ],
+); # pp_def: setinftobad
+
 pp_def('setnonfinitetobad' . <<'=cut',
 
 =head2 setnonfinitetobad
