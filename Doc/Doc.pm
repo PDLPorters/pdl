@@ -494,8 +494,8 @@ with this object.
 sub savedb {
   my ($this) = @_;
   my $hash = $this->ensuredb();
-  open OUT, ">$this->{Outfile}" or barf "can't write to symdb $this->{Outfile}";
-  binmode OUT;
+  open my $fh, '>', $this->{Outfile} or barf "can't write to symdb $this->{Outfile}: $!";
+  binmode $fh;
   while (my ($name,$mods_hash) = each %$hash) {
     next if 0 == scalar(%$mods_hash);
     while (my ($module,$val) = each %$mods_hash){
@@ -506,7 +506,7 @@ sub savedb {
       }
       delete $val->{Dbfile}; # no need to store Dbfile
       my $txt = join(chr(0),$name,$module,%$val);
-      print OUT pack("S",length($txt)).$txt;
+      print $fh pack("S",length($txt)).$txt;
     }
   }
 }
@@ -672,7 +672,7 @@ sub scan {
 
   # Now parse orig pm/pod
 
-  my $infile =  new IO::File $file;
+  open my $infile, '<', $file;
   # XXXX convert to absolute path
   # my $outfile = '/tmp/'.basename($file).'.pod';
   open my $outfile, '>', \(my $outfile_text);
@@ -711,7 +711,7 @@ sub scan {
   # alright I admit this is kludgy but it works
   # and one can now find modules with 'apropos'
 
-  $infile =  new IO::File $file;
+  open $infile, '<', $file;
   $outfile_text = '';
   $parser = new PDL::PodParser;
   $parser->select('NAME');
@@ -797,7 +797,7 @@ sub funcdocs_fromfile {
   my ($func,$file) = @_;
   barf "can't find file '$file'" unless -f $file;
   local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
-  my $in = new IO::File $file;
+  open my $in, '<', $file;
   my $out = ($#_ > 1 && defined($_[2])) ? $_[2] :
     new IO::File "| pod2text | $PDL::Doc::pager";
   barf "can't open file $file" unless $in;
