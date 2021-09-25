@@ -415,6 +415,7 @@ Libtmp/CallExt/t/callext.t
 Libtmp/Compression/compression.pd
 Libtmp/Compression/Makefile.PL
 Libtmp/Compression/ricecomp.c
+Libtmp/Compression/ricecomp.h
 Libtmp/DiskCache.pm
 Libtmp/FFT/fft.pd
 Libtmp/FFT/fftn.c

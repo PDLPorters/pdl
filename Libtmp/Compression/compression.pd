@@ -1,5 +1,5 @@
 pp_addhdr('
-#include "ricecomp.c"
+#include "ricecomp.h"
 ');
 
 pp_addpm({At=>'Top'},<<'EOD');
