@@ -311,3 +311,4 @@ perldl.conf-fast
 perldl.conf-orig
 perldl.pod
 t/*.dll*
+pp-*.c

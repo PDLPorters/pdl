@@ -766,13 +766,14 @@ our @CARP_NOT;
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
 sub import {
-	my ($mod,$modname, $packname, $prefix, $callpack) = @_;
+	my ($mod,$modname, $packname, $prefix, $callpack, $multi_c) = @_;
 	# Allow for users to not specify the packname
 	($packname, $prefix, $callpack) = ($modname, $packname, $prefix)
 		if ($packname =~ m|/|);
 
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
-	$::CALLPACK = defined $callpack ? $callpack : $::PDLMOD;
+	$::CALLPACK = $callpack || $::PDLMOD;
+	$::PDLMULTI_C = $multi_c; # one pp-*.c per function
 	$::PDLOBJ = "PDL"; # define pp-funcs in this package
 	$::PDLXS="";
 	$::PDLBEGIN="";
@@ -828,6 +829,7 @@ sub pp_setversion {
 sub pp_addhdr {
 	my ($hdr) = @_;
 	$::PDLXSC .= $hdr;
+	$::PDLXSC_header .= $hdr if $::PDLMULTI_C;
 }
 
 sub pp_addpm {
@@ -928,8 +930,15 @@ sub pp_line_numbers ($$) {
 }
 
 sub printxsc {
-	shift;
-	$::PDLXSC .= join '',@_;
+  (undef, my $file) = (shift, shift);
+  my $text = join '',@_;
+  if (defined $file) {
+    open my $fh, '>', $file or confess "open $file: $!";
+    (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
+    print $fh sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck), $::PDLXSC_header, $text;
+  } else {
+    $::PDLXSC .= $text;
+  }
 }
 
 sub pp_done {
@@ -1040,7 +1049,15 @@ sub pp_def {
 		'VTableDef','RunFunc',
 		}
 		);
-	PDL::PP->printxsc($ctext);
+	if ($::PDLMULTI_C) {
+	  PDL::PP->printxsc(undef, <<EOF);
+extern pdl_transvtable $obj{VTableName};
+$obj{RunFuncHdr};
+EOF
+	  PDL::PP->printxsc("pp-$obj{Name}.c", $ctext);
+	} else {
+	  PDL::PP->printxsc(undef, $ctext);
+	}
 	PDL::PP->printxs($obj{NewXSCode});
 	pp_add_boot($obj{XSBootCode} . $obj{BootSetNewXS});
 	PDL::PP->pp_add_exported($name);

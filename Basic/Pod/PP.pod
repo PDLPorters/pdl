@@ -61,8 +61,22 @@ Sets code to be added at the top of the generate .pm file
 
 =for ref
 
-Add code and includes to C section of the generated XS file
+Add code and includes to C section of the generated XS file.
 
+When used in a module that is "multi-C" (one F<.c> file per C<pp_def>ed
+function), you need to bear in mind that as each one is generated, all the
+C<pp_addhdr> so far will be included. Therefore, if you add C functions,
+make sure to make them C<static> to avoid clashes with later F<.c> files.
+But a better practice is make them be separate C files, with any necessary
+F<.h> to be included by them and the F<.pd> file. You can then add them
+to your F<Makefile.PL> (note this is the C<_int> version, see separate
+notes on how to "opt-in" for your own modules):
+
+  my @pack = (["pnm.pd", qw(Pnm PDL::IO::Pnm)]);
+  my %hash = pdlpp_stdargs_int(@pack);
+  $hash{OBJECT} .= ' get$(OBJ_EXT)';
+  sub MY::postamble { pdlpp_postamble_int(@pack); };
+  WriteMakefile(%hash);
 
 =head2 pp_addpm
 

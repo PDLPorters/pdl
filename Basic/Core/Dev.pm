@@ -181,7 +181,7 @@ sub _pp_call_arg {
   "-MPDL::PP=".join ',', @_
 }
 sub _postamble {
-  my ($w, $internal, $src, $pref, $mod, $callpack) = @_;
+  my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
   $callpack //= '';
   $w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
   my ($perlrun, $pmdep) = ($internal ? '$(PERLRUNINST)' : "\$(PERL) \"-I$w\"", $src);
@@ -194,13 +194,14 @@ sub _postamble {
     my $gendep = File::Spec::Functions::catfile($top, qw(Basic Gen pm_to_blib));
     $pmdep .= " $coredeps $gendep";
   }
-  my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack);
+  my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack, $multi_c);
   my $install = '';
   if (!$internal) {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
     $install = qq|\n\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
   }
   my @generanda = "$pref.xs";
+  push @generanda, map "pp-$_.c", _pp_list_functions($src) if $multi_c;
 qq|
 
 $pref.pm : $pmdep
@@ -213,14 +214,14 @@ $install|
 
 sub pdlpp_postamble_int {
   my $w = whereami_any();
-  join '', map _postamble($w, 1, @$_), @_;
+  join '', map _postamble($w, 1, @$_[0..3], 1), @_;
 }
 
 # This is the function to be used outside the PDL tree.
 # same format as pdlpp_postamble_int
 sub pdlpp_postamble {
   my $w = whereami_any();
-  join '', map _postamble($w, 0, @$_), @_;
+  join '', map _postamble($w, 0, @$_[0..3], 0), @_;
 }
 
 my %flist_cache;
@@ -241,8 +242,9 @@ sub _pp_list_functions {
 }
 
 sub _stdargs {
-  my ($w, $internal, $src, $pref, $mod, $callpack) = @_;
+  my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
   my @cbase = $pref;
+  push @cbase, map "pp-$_", _pp_list_functions($src) if $multi_c;
   my @cfiles = map "$_.c", @cbase;
   my @objs = map "$_\$(OBJ_EXT)", @cbase;
   (
@@ -264,11 +266,11 @@ sub _stdargs {
 
 sub pdlpp_stdargs_int {
   my $w = whereami();
-  _stdargs($w, 1, @{$_[0]});
+  _stdargs($w, 1, @{$_[0]}[0..3], 1);
 }
 
 sub pdlpp_stdargs {
-  _stdargs(undef, 0, @{$_[0]});
+  _stdargs(undef, 0, @{$_[0]}[0..3], 0);
 }
 
 # pdlpp_mkgen($dir)

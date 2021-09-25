@@ -80,6 +80,11 @@ pp_addhdr(<<'EOH');
 
 EOH
 
+pp_addhdr(<<'EOH');
+/* declare here for .xs file as now ends up in pp-affineinternal.c */
+void pdl_readdata_affineinternal(pdl_trans *tr);
+void pdl_writebackdata_affineinternal(pdl_trans *tr);
+EOH
 pp_add_boot(
 "  PDL->readdata_affine = pdl_readdata_affineinternal;\n" .
 "     PDL->writebackdata_affine = pdl_writebackdata_affineinternal;\n"
