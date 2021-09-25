@@ -389,6 +389,7 @@ IO/IDL/Makefile.PL
 IO/IDL/README
 IO/IO.pod
 IO/Makefile.PL
+IO/Misc/get.c
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
 IO/Misc/t/misc.t
