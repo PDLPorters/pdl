@@ -1450,6 +1450,12 @@ sub PDL::polyfillv :lvalue {
 
 EOPM
 
+pp_addhdr(<<'EOF');
+int getnewsize(int cols, int rows, float fangle, int *newcols, int *newrows);
+typedef unsigned char imT;    /* image type */
+int rotate(imT *im, imT *out, int cols, int rows, int nc, int nr,
+           float fangle, imT bgval, int antialias);
+EOF
 pp_add_exported('','rotnewsz');
 pp_addxs('
 
