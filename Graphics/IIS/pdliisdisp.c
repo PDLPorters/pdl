@@ -1,3 +1,7 @@
+#include "libiis.h"
+#include "EXTERN.h"
+#include "perl.h"
+
 /***************************************************************
 
    pdliisdisplay.c
