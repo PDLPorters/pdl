@@ -14,15 +14,7 @@ if ($^O =~ /MSWin/i) {
   $hash{DEFINE} = " -DNEEDS_RINT";
 }
 
-# what code do we want compiled and linked in?
-#   rotate.c is included directly into image2d.pd
-#
-#   for $file ( qw( rotate resample ) ) {
-for my $file ( qw( resample ) ) {
-    my $n = "$file\$(OBJ_EXT)";
-    $hash{OBJECT} .= " $n";
-    $hash{clean}{FILES} .= " $n";
-}
+$hash{OBJECT} .= " $_\$(OBJ_EXT)" for qw(rotate resample);
 
 # Add genpp rule
 undef &MY::postamble; # suppress warning

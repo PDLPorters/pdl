@@ -1450,7 +1450,6 @@ sub PDL::polyfillv :lvalue {
 
 EOPM
 
-pp_addhdr('#include "rotate.c"'."\n\n");
 pp_add_exported('','rotnewsz');
 pp_addxs('
 
