@@ -1,5 +1,6 @@
 #include "EXTERN.h"
 #include "perl.h"
+#include "pdlcore.h"
 #include <gsl/gsl_math.h>
 
 SV* ext_funname;
