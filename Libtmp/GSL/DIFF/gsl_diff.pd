@@ -104,8 +104,9 @@ pp_addhdr('
 #include<gsl/gsl_math.h>
 #include<gsl/gsl_diff.h>
 #include <gsl/gsl_errno.h>
-#include "FUNC.c"
 
+double FUNC(double x,void * p);
+void set_funname(SV *fn);
 ');
 
 pp_addpm('
@@ -143,7 +144,8 @@ sub diff_func {
           OtherPars => 'SV* function;',
           Docs => undef,
           Code => <<EOF,
-  ext_funname = \$COMP(function);
+  set_funname(\$COMP(function));
+  gsl_function F;
   F.function = &FUNC;
   F.params = 0;
   gsl_diff_$which (&F, \$x(), \$P(res), \$P(abserr));
