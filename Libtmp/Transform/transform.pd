@@ -418,7 +418,7 @@ pp_addhdr(<<'+==EOD_map_auxiliary==');
  *
  */
 
-void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCol)
+static inline void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
   PDL_Double eps, e2, tol, vt, p, h2, x0, y0, q, r, c0, s0, c2, d1, d2;
@@ -506,7 +506,7 @@ void pdl_xform_svd(PDL_Double *W, PDL_Double *Z, int nRow, int nCol)
  *
  */
 
-PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double *tmp, PDL_Double sv_min) {
+static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double *tmp, PDL_Double sv_min) {
   short ndims;
   PDL_Long i, j, k;
   PDL_Long offset;
