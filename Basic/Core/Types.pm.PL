@@ -289,7 +289,6 @@ sub gentypehashcode {
   my $perlcode = '';
   $perlcode .= "our %typehash = (\n";
   for my $type (@types) {
-    print STDOUT "making ".gentypenames($type)."...\n";
     $perlcode .= "\t".gentypenames($type)." =>\n";
     $perlcode .= Data::Dumper::Dumper(gentypehashentry($type, $i++));
     $perlcode .= "\t\t,\n";
