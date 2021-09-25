@@ -49,7 +49,7 @@ pp_addhdr('
 
 /* Compute offset of (x,y,z,...) position in row-major list */
 
-PDL_Indx ndim_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims) {
+static inline PDL_Indx ndim_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims) {
    PDL_Long i;
    PDL_Indx result,size;
    size = 1;
@@ -62,9 +62,9 @@ PDL_Indx ndim_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims) {
    return result;
 }
 
-/* Increrement a position pointer array by one row */
+/* Increment a position pointer array by one row */
 
-void ndim_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims ) {
+static inline void ndim_row_plusplus ( PDL_Indx* pos, PDL_Indx* dims, PDL_Long ndims ) {
 
     PDL_Long  noescape;
     PDL_Indx i;
