@@ -14,7 +14,7 @@ if ($^O =~ /MSWin/i) {
   $hash{DEFINE} = " -DNEEDS_RINT";
 }
 
-$hash{OBJECT} .= " $_\$(OBJ_EXT)" for qw(rotate resample);
+$hash{OBJECT} .= " $_\$(OBJ_EXT)" for qw(rotate resample select misc);
 
 # Add genpp rule
 undef &MY::postamble; # suppress warning
