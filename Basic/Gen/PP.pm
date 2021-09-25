@@ -700,7 +700,7 @@ PDL_COMMENT("   /* Memory access */                                         ")
 #include "XSUB.h"
 #include "pdl.h"
 #include "pdlcore.h"
-static Core* PDL; PDL_COMMENT("Structure hold core C functions")
+static Core* PDL = NULL; PDL_COMMENT("Structure hold core C functions")
 static int __pdl_boundscheck = 0;
 static SV* CoreSV;       PDL_COMMENT("Gets pointer to perl var holding core structure")
 
@@ -2080,7 +2080,10 @@ END
 		      "Rule to create and initialise the private trans structure",
       sub {
         my( $sname, $stype, $vtable ) = @_;
-        PDL::PP::pp_line_numbers(__LINE__-1, "$stype *$sname = (void *)PDL->create_trans(&$vtable);\n");
+        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+if (!PDL) croak("PDL core struct is NULL, can't continue");
+$stype *$sname = (void *)PDL->create_trans(&$vtable);
+EOF
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
