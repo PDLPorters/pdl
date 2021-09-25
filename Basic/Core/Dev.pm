@@ -84,51 +84,42 @@ sub PDL_BOOT {
 EOR
 }
 
-# whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
 use Cwd qw/abs_path/;
-sub whereami_any {
-	my $dir = (&whereami(1) or &whereami_inst(1) or
-          die "Unable to determine ANY directory path to PDL::Core::Dev module\n");
-	return abs_path($dir);
-}
+my $MY_FILE = abs_path(__FILE__); # capture at load-time because EUMM chdirs
+my $MY_DIR2 = dirname(dirname($MY_FILE));
+my $IS_INST = $MY_DIR2 =~ /PDL\W*$/i;
+sub whereami_any { $MY_DIR2 } # something containing "Core/Dev.pm"
 
+# true arg = something containing "Core/Dev.pm"
+# no good if want "Config.pm" as varies between installed and dev tree
+# hence extra logic in PDL::Config-finding below
 sub whereami {
-   for my $dir (qw|. .. ../.. ../../.. ../../../..|,@INC) {
-      return ($_[0] ? $dir . '/Basic' : $dir)
-	if -e "$dir/Basic/Core/Dev.pm";
-   }
-   die "Unable to determine UNINSTALLED directory path to PDL::Core::Dev module\n"
-    if !$_[0];
-    return undef;
+  return undef if $IS_INST;
+  return $MY_DIR2 if $_[0];
+  dirname($MY_DIR2);
 }
 
 sub whereami_inst {
-   for my $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../.. ../../../..|) {
-      return ($_[0] ? $dir . '/PDL' : $dir)
-	if -e "$dir/PDL/Core/Dev.pm";
-   }
-   die "Unable to determine INSTALLED directory path to PDL::Core::Dev module\n"
-    if !$_[0];
-   return undef;
+  return undef if !$IS_INST;
+  return $MY_DIR2 if $_[0];
+  dirname($MY_DIR2);
 }
 
-#
 # To access PDL's configuration use %PDL::Config. Makefile.PL has been set up
 # to create this variable so it is available during 'perl Makefile.PL' and
 # it can be eval-ed during 'make'
-
 unless ( %PDL::Config ) {
     # look for the distribution and then the installed version
     # (a manual version of whereami_any)
+    require File::Spec::Functions;
     my $dir = whereami(1);
     if ( defined $dir ) {
-	$dir = abs_path($dir . "/Core");
+	$dir = File::Spec::Functions::catdir($dir, qw(Core));
     } else {
 	# as no argument given whereami_inst will die if it fails
         # (and it also returns a slightly different path than whereami(1)
         #  does, since it does not include "/PDL")
-	$dir = whereami_inst;
-	$dir = abs_path($dir . "/PDL");
+	$dir = File::Spec::Functions::catdir(whereami_inst, qw(PDL));
     }
     eval { require "$dir/Config.pm" };
     die "Unable to find PDL's configuration info\n [$@]" if $@;
@@ -190,12 +181,12 @@ sub _pp_call_arg {
   "-MPDL::PP=".join ',', @_
 }
 sub _postamble {
-  require File::Spec::Functions;
   my ($w, $internal, $src, $pref, $mod, $callpack) = @_;
   $callpack //= '';
   $w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
   my ($perlrun, $pmdep) = ($internal ? '$(PERLRUNINST)' : "\$(PERL) \"-I$w\"", $src);
   if ($internal) {
+    require File::Spec::Functions;
     my $top = File::Spec::Functions::abs2rel($w);
     my $core = File::Spec::Functions::catdir($top, qw(Basic Core));
     my $coredeps = join ' ', map File::Spec::Functions::catfile($core, $_),

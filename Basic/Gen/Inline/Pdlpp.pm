@@ -33,8 +33,7 @@ sub validate {
     $o->{ILSM}{INTERNAL} = 0 unless defined $o->{ILSM}{INTERNAL};
     $o->{ILSM}{MAKEFILE} ||= {};
     if (not $o->UNTAINT) {
-      my $w = abs_path(PDL::Core::Dev::whereami_any());
-      $o->{ILSM}{MAKEFILE}{INC} = qq{"-I$w/Core"};
+      $o->{ILSM}{MAKEFILE}{INC} = PDL::Core::Dev::PDL_INCLUDE();
     }
     $o->{ILSM}{AUTO_INCLUDE} ||= ' '; # not '' as Inline::C does ||=
     my @pass_along;
@@ -168,8 +167,7 @@ END
 sub get_maps {
     my $o = shift;
     $o->SUPER::get_maps;
-    my $w = abs_path(PDL::Core::Dev::whereami_any());
-    push @{$o->{ILSM}{MAKEFILE}{TYPEMAPS}}, "$w/Core/typemap.pdl";
+    push @{$o->{ILSM}{MAKEFILE}{TYPEMAPS}}, PDL::Core::Dev::PDL_TYPEMAP();
 }
 
 #==============================================================================
