@@ -700,7 +700,8 @@ PDL_COMMENT("   /* Memory access */                                         ")
 #include "XSUB.h"
 #include "pdl.h"
 #include "pdlcore.h"
-static Core* PDL = NULL; PDL_COMMENT("Structure hold core C functions")
+#define PDL %s
+extern Core* PDL; PDL_COMMENT("Structure hold core C functions")
 static int __pdl_boundscheck = 0;
 static SV* CoreSV;       PDL_COMMENT("Gets pointer to perl var holding core structure")
 
@@ -711,6 +712,8 @@ static SV* CoreSV;       PDL_COMMENT("Gets pointer to perl var holding core stru
 #endif
 EOF
 our $header_xs = pp_line_numbers(__LINE__, <<'EOF');
+
+Core* PDL = NULL; PDL_COMMENT("Structure hold core C functions")
 
 MODULE = %1$s PACKAGE = %1$s
 
@@ -938,7 +941,8 @@ sub pp_done {
         require PDL::Core::Dev;
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD);
 
-        print $fh sprintf($PDL::PP::header_c, $PP::boundscheck), $::PDLXSC;
+        (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
+        print $fh sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck), $::PDLXSC;
         print $fh $PDL::PP::macros_xs, sprintf($PDL::PP::header_xs,
           $::PDLMOD, $::PDLOBJ, $::PDLXS,
           $pdl_boot, $::PDLXSBOOT, $PP::boundscheck,
