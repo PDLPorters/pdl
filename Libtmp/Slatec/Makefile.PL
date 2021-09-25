@@ -7,7 +7,6 @@ use Text::ParseWords qw(shellwords);
 
 my $msg = "";
 my ($f77);
-our ($f2cbased, $g2cbased);
 
 if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
   print "Loading F77 configuration from $PDL::Config{F77CONF}...\n";
@@ -45,10 +44,11 @@ if ($msg ne "") {
 }
 
 my @pack = (["slatec.pd", qw(Slatec PDL::Slatec)]);
-my @slatecfiles = map {s/^slatec\///; s/\.f$//; $_} glob("slatec/*.f");
+my @slatecfiles = map {s/\.f$//; $_} glob("slatec/*.f");
 my %hash = pdlpp_stdargs_int(@pack);
 
-$hash{OBJECT} .= join '', map {" slatec/${_}$Config{obj_ext} "} @slatecfiles;
+my @slatecobj = map "$_\$(OBJ_EXT)", @slatecfiles;
+$hash{OBJECT} .= join ' ', '', 'barf$(OBJ_EXT)', @slatecobj;
 
 if($Config{cc} eq 'cl') {
 # Link to MinGW's libg2c.a and libgcc.a, if appropriate
@@ -74,23 +74,9 @@ if($Config{cc} eq 'cl') {
 }
 
 $hash{LIBS}[0] .= $f77->runtime ;
-$hash{clean}{FILES} .= " SlatecProtos.h f77_underscore" .
-  join '', map {" slatec/$_\$(OBJ_EXT) "} @slatecfiles;
+$hash{clean}{FILES} .= " SlatecProtos.h " . join ' ', @slatecobj;
 
-# Handle multiple compilers
-
-$f2cbased = ($f77->runtime =~ /-lf2c/);
-$g2cbased = ($f77->runtime =~ /-lg2c/) unless $f2cbased;
-my $trail = $f77->trail_;
-
-# Create flag file according to whether or not to use
-# underscores (pretty hacky)
-
-unlink("f77_underscore") if -e "f77_underscore";
-if ($trail) {
-   open OUT, ">f77_underscore" or die "unable to write scratch file";
-   close OUT;
-}
+$hash{DEFINE} .= qq{ "-DPDL_FORTRAN(x)=x}.($f77->trail_ ? '\#\#_' : '').qq{"};
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
@@ -99,21 +85,18 @@ undef &MY::postamble; # suppress warning
 	my $orig = pdlpp_postamble_int(@pack);
 	my $hack_64bit = ($Config{archname}=~m/x86_64/ ?" -fPIC " : "");
 	$orig =~ s/:\s*slatec\.pd/: slatec.pd/;
-	$orig .join "\n",map {
-("
+	$orig .join "\n",map "
 
-slatec/$_\$(OBJ_EXT): slatec/$_.f 
-	$mycompiler -c $hack_64bit -o slatec/$_\$(OBJ_EXT) $mycflags slatec/$_.f
-" )} @slatecfiles;
- 
+$_\$(OBJ_EXT): $_.f
+	$mycompiler -c $hack_64bit -o $_\$(OBJ_EXT) $mycflags $_.f
+", @slatecfiles;
 };
 
 # Remove i386 option for OS X recent versions for better build, dual arch does not work anyway
-my %items;
 if ($Config{osname} =~ /darwin/ && version->parse($Config{osvers}) >= version->parse("14")) { # OS X Mavericks+
        print "Forcing single arch build for SLATEC\n";
-       $items{LDDLFLAGS} = $Config{lddlflags};
-       $items{LDDLFLAGS} =~ s/-arch i386/ /g;
+       $hash{LDDLFLAGS} = $Config{lddlflags};
+       $hash{LDDLFLAGS} =~ s/-arch i386/ /g;
 }
 
 my @fit = qw(Linfit.pm LM.pm);
@@ -124,5 +107,4 @@ my @gauss = qw(Gaussian.pm);
 @{$hash{PM}}{@gauss} = map '$(INST_LIBDIR)/'.$_, @gauss;
 WriteMakefile(
  %hash,
- %items
 );

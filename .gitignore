@@ -293,7 +293,6 @@ Libtmp/Slatec/Slatec.c
 Libtmp/Slatec/Slatec.pm
 Libtmp/Slatec/Slatec.xs
 Libtmp/Slatec/SlatecProtos.h
-Libtmp/Slatec/f77_underscore
 Libtmp/Transform/Cartography/earth_day.ppm
 Libtmp/Transform/Cartography/earth_night.ppm
 Libtmp/Transform/Proj4/Proj4.c

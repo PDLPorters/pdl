@@ -562,6 +562,7 @@ Libtmp/Slatec/Linfit.pm
 Libtmp/Slatec/LinPred.pm
 Libtmp/Slatec/LM.pm
 Libtmp/Slatec/Makefile.PL
+Libtmp/Slatec/barf.c
 Libtmp/Slatec/slatec.pd
 Libtmp/Slatec/slatec/chfcm.f
 Libtmp/Slatec/slatec/chfdv.f

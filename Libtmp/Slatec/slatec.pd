@@ -272,10 +272,6 @@ sub firstpar {
 	$1
 }
 
-# whether or not to append undercores
-
-my $uscore = (-e "f77_underscore" ? "_" : ""); 
-
 # used in defslatec()
 #my %ignore_ppar = ( Incfd => 1, CheckFlag => 1 );
 my %ignore_ppar = ( Incfd => 1 );
@@ -285,7 +281,7 @@ my %prototype = ( F => "float", D => "double" );
 # of pp_def(), using something like:
 #
 #    my $codeproto = "\$T".(join '',map {$_->[0]} @talts)."(".
-#      (join ',',map {$_->[1].$uscore} @talts).") ();";
+#      (join ',',map qq{PDL_FORTRAN($_->[1])}, @talts).") ();";
 #    if ( defined $fpar ) { 
 #      $codeproto = "\$T".(join '',map {$_->[0]} @talts)."(float,double) $codeproto";
 #    }
@@ -377,8 +373,8 @@ sub defslatec {
           [$ftypes{$_},$fnames->{$_}] 
     } sort keys %$fnames;
 
-    my $func = "\$T".(join '',map {$_->[0]} @talts) . "(" . 
-      (join ',',map {$_->[1].$uscore} @talts).")";
+    my $func = "PDL_FORTRAN(\$T".(join '',map {$_->[0]} @talts) . "(" .
+      (join ',',map qq{$_->[1]}, @talts)."))";
     if ( defined $fpar ) { $func = "$fpar = $func"; }
 
     my %lds = map {
@@ -425,7 +421,7 @@ sub defslatec {
 	my $codeproto = "extern ";
 	if ( defined $fpar ) { $codeproto .= "$prototype{$_->[0]} "; }
 	else { $codeproto .= "int "; }
-	$codeproto .= "$_->[1]$uscore ();";
+	$codeproto .= "PDL_FORTRAN($_->[1]) ();";
 	print PROTOS $codeproto . "\n";
     }
 
@@ -468,14 +464,12 @@ ENDDBG
 pp_addhdr(qq|
 #include "SlatecProtos.h"
 
-void MAIN__ () {                                                                
+static void MAIN__ () {
    /* Cheat to define MAIN__ symbol */                                          
    croak("This should never happen");                                           
 }                                                                               
-   
-void slatecbarf$uscore() {
-   croak("slatec called halt");
-}
+
+void PDL_FORTRAN(slatecbarf)();
 
 |);
 
@@ -1578,13 +1572,13 @@ pp_def('polfit',
            int k;
            $GENERIC() zero = 0;
 
-           $TFD(polfit,dpolft)'.$uscore.'(&$SIZE(n),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
+           PDL_FORTRAN($TFD(polfit,dpolft))(&$SIZE(n),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
 	   maxord = ($P(a))[0]+0.5;
 	   ord = ($P(a))[maxord * 3  +  2];
 	   if(ord >= $maxdeg()) {
 	     ord = $maxdeg();
 	   }
-           $TFD(p,dp)coef'.$uscore.'( &(ord), &(zero), $P(coeffs), $P(a));
+           PDL_FORTRAN($TFD(p,dp)coef)( &(ord), &(zero), $P(coeffs), $P(a));
            for(k=ord+1; k<=$maxdeg(); k++)
               ($P(coeffs))[k] = 0;
 ',
@@ -1620,7 +1614,7 @@ pp_def('polfit',
                   $GENERIC() zero = 0;
 
                 /* Do the fit */
-                $TFD(polfit,dpolft)'.$uscore.'
+                PDL_FORTRAN($TFD(polfit,dpolft))
                     (&j,$P(xtmp),$P(ytmp),$P(wtmp),$P(maxdeg),$P(ndeg),$P(eps),$P(rtmp),$P(ierr),$P(a));
 
 		maxord = ($P(a))[0]+0.5;
@@ -1629,7 +1623,7 @@ pp_def('polfit',
 		  ord = $maxdeg();
 		}
 		/* Extract the polynomial coefficients into coeffs -- used for bad values */
-                $TFD(p,dp)coef'.$uscore.'( &(ord), &(zero), $P(coeffs), $P(a));
+                PDL_FORTRAN($TFD(p,dp)coef)( &(ord), &(zero), $P(coeffs), $P(a));
                 for(k=ord+1; k<=$maxdeg(); k++)
                    ($P(coeffs))[k] = 0;
                 j=0;
@@ -1666,7 +1660,7 @@ pp_def('polfit',
 );
 
 #these two need to be done manually because we don't use defslatec for them
-print PROTOS "extern int polfit_ ();\nextern int dpolft_ ();\n";
+print PROTOS "extern int PDL_FORTRAN(polfit) ();\nextern int PDL_FORTRAN(dpolft) ();\n";
 
 close( PROTOS );
 

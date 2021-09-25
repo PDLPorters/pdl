@@ -173,7 +173,6 @@ RCS
 ^Libtmp/Slatec/Slatec.pm
 ^Libtmp/Slatec/Slatec.xs
 ^Libtmp/Slatec/SlatecProtos.h$
-^Libtmp/Slatec/f77_underscore$
 ^Libtmp/Slatec/slatec/.*\.c$
 ^Libtmp/Transform/Cartography/earth_day.ppm
 ^Libtmp/Transform/Cartography/earth_night.ppm
