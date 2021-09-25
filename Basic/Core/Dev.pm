@@ -118,29 +118,20 @@ sub whereami_inst {
 # it can be eval-ed during 'make'
 
 unless ( %PDL::Config ) {
-
     # look for the distribution and then the installed version
     # (a manual version of whereami_any)
-    #
-    my $dir;
-    $dir = whereami(1);
+    my $dir = whereami(1);
     if ( defined $dir ) {
 	$dir = abs_path($dir . "/Core");
     } else {
 	# as no argument given whereami_inst will die if it fails
         # (and it also returns a slightly different path than whereami(1)
         #  does, since it does not include "/PDL")
-	#
 	$dir = whereami_inst;
 	$dir = abs_path($dir . "/PDL");
     }
-
-    my $dir2 = $dir;
-    $dir2 =~ s/\}/\\\}/g;
-    eval sprintf('require q{%s/Config.pm};', $dir2);
-
-    die "Unable to find PDL's configuration info\n [$@]"
-	if $@;
+    eval { require "$dir/Config.pm" };
+    die "Unable to find PDL's configuration info\n [$@]" if $@;
 }
 
 my $inc = $PDL::Config{MALLOCDBG}{include} || '';
