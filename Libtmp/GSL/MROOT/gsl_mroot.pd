@@ -4,8 +4,15 @@ pp_add_exported('','gslmroot_fsolver');
 
 pp_addhdr('
 #include <math.h>
-#include "FUNC.c"
+#include <stdlib.h>
+#include <stdio.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multiroots.h>
 
+void set_funname(SV *fn, PDL_Indx n);
+void DFF(double* xval, double* vector);
+int my_f (const gsl_vector * v, void * params, gsl_vector * df);
+int fsolver (double *xfree, int  nelem, double epsabs, int method);
 ');     
 
 pp_addpm('
@@ -29,8 +36,7 @@ pp_def('fsolver_meat',
         OtherPars => 'SV* function1;',
         Docs => undef,
         Code =>'
-ext_funname1 = $COMP(function1);
-ene = $SIZE(n);
+set_funname($COMP(function1), $SIZE(n));
 fsolver($P(xfree), $SIZE(n),  $epsabs(), $method()); 
 ');  
 

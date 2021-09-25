@@ -6,16 +6,22 @@
 // is separated from the PDL distribution, the copyright notice should be 
 // included in the file.
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multiroots.h>
+#include "EXTERN.h"
+#include "perl.h"
+#include "pdl.h"
+#include "pdlcore.h"
+
+#define PDL PDL_GSL_MROOT
+extern Core *PDL;
 
 static SV* ext_funname1;
-
-static int ene;
-
-int my_f (const gsl_vector * v, void * params, gsl_vector * df);
+static PDL_Indx ene;
+void set_funname(SV *fn, PDL_Indx n) {
+  ext_funname1 = fn;
+  ene = n;
+}
 
 void DFF(double* xval, double* vector){
    //this version tries just to get the output
