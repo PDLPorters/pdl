@@ -559,14 +559,10 @@ pp_addhdr('
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_errno.h>
 
-#include "FUNC.c"
-
-void my_handler (const char * reason,
-                 const char * file,
-                 int line,
-                 int gsl_errno){
-printf("Warning: %s at line %d of GSL file %s\n",reason,line,file);
-}
+double FUNC(double x,void * p);
+void set_funname(SV *fn);
+void dec_func();
+void my_handler (const char * reason, const char * file, int line, int gsl_errno);
 
 ');
 
@@ -594,13 +590,12 @@ pp_def('qng_meat',
 gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 $ierr() = gsl_integration_qng(&F,$a(),$b(),$epsabs(),$epsrel(),$P(result),$P(abserr),(size_t *) $P(neval));
-current_fun--;
+dec_func();
 ');
 
 pp_addpm('
@@ -628,15 +623,14 @@ gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qag(&F,$a(),$b(),$epsabs(),$epsrel(),(size_t) $limit(),$key(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -664,15 +658,14 @@ gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qags(&F,$a(),$b(),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -699,15 +692,14 @@ gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qagp(&F,$P(pts),(size_t) $SIZE(l),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -734,15 +726,14 @@ gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qagi(&F,$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -770,15 +761,14 @@ gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qagiu(&F,$a(),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -806,15 +796,14 @@ gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qagil(&F,$b(),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -841,15 +830,14 @@ gsl_error_handler_t * old_handler;
 if ($gslwarn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
 {gsl_integration_workspace *w;
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qawc(&F,$a(),$b(),$c(),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -881,16 +869,15 @@ gsl_integration_workspace *w;
 
 qtab = gsl_integration_qaws_table_alloc($alpha(),$beta(),$mu(),$nu());
 
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qaws(&F,$a(),$b(),qtab,$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
 gsl_integration_qaws_table_free(qtab);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -933,16 +920,15 @@ if ($sincosopt() == 0){ T = GSL_INTEG_COSINE ;}
 
 qtab = gsl_integration_qawo_table_alloc($omega(),$L(),T,(size_t) $nlevels());
 
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qawo(&F,$a(),$epsabs(),$epsrel(),(size_t) $limit(),w,qtab,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
 gsl_integration_qawo_table_free(qtab);
-current_fun--;
+dec_func();
 }
 ');
 
@@ -985,9 +971,8 @@ if ($sincosopt() == 0){ T = GSL_INTEG_COSINE ;}
 
 qtab = gsl_integration_qawo_table_alloc($omega(),1.,T,(size_t) $nlevels());
 
-current_fun++;
-if (current_fun >= (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
-ext_funname[current_fun] = $COMP(function);
+set_funname($COMP(function));
+gsl_function F;
 F.function = &FUNC;
 F.params = 0;
 
@@ -999,7 +984,7 @@ $ierr() = gsl_integration_qawf(&F,$a(),$epsabs(),(size_t) $limit(),w,cw,qtab,$P(
 gsl_integration_workspace_free(w);
 gsl_integration_workspace_free(cw);
 gsl_integration_qawo_table_free(qtab);
-current_fun--;
+dec_func();
 }
 ');
 

@@ -1,10 +1,31 @@
+#include "EXTERN.h"
+#include "perl.h"
+#include "pdlcore.h"
+#include <gsl/gsl_math.h>
+
+#define PDL PDL_GSL_INTEG
+extern Core *PDL;
+
 #define max_nested_integrals  20
  
-static SV* ext_funname[max_nested_integrals - 1];
+static SV* ext_funname[max_nested_integrals];
 static int current_fun = -1;
-static gsl_function F;
 
-double FUNC(double x,void * p);
+void set_funname(SV *fn) {
+  current_fun++;
+  if (current_fun > (max_nested_integrals)) barf("Too many nested integrals, sorry!\n");
+  ext_funname[current_fun] = fn;
+}
+void dec_func() {
+  current_fun--;
+}
+
+void my_handler (const char * reason,
+                 const char * file,
+                 int line,
+                 int gsl_errno){
+  printf("Warning: %s at line %d of GSL file %s\n",reason,line,file);
+}
 
 double FUNC(double x,void * p){
 
