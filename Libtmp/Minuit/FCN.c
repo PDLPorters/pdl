@@ -1,43 +1,7 @@
-#ifdef NO_TRAILING_USCORE
+#include "FCN.h"
 
-#define MNINIT mninit
-#define MNSETI mnseti
-#define MNPARM mnparm
-#define MNPARS mnpars
-#define MNEXCM mnexcm
-#define MNCOMD mncomd
-#define MNPOUT mnpout
-#define MNSTAT mnstat
-#define MNEMAT mnemat
-#define MNERRS mnerrs
-#define MNCONT mncont
-
-#define ABRE   abre
-#define CIERRA cierra
-
-#else
-
-#define MNINIT mninit_
-#define MNSETI mnseti_
-#define MNPARM mnparm_
-#define MNPARS mnpars_
-#define MNEXCM mnexcm_
-#define MNCOMD mncomd_
-#define MNPOUT mnpout_
-#define MNSTAT mnstat_
-#define MNEMAT mnemat_
-#define MNERRS mnerrs_
-#define MNCONT mncont_
-
-#define ABRE   abre_
-#define CIERRA cierra_
-
-#endif 
-
-static SV* mnfunname;
-static int ene;
-
-void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* futil);
+SV* mnfunname;
+int ene;
 
 void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* futil){
 

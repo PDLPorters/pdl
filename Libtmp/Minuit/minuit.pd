@@ -4,20 +4,7 @@ pp_add_exported('','mn_init mn_def_pars mn_excm mn_pout mn_stat mn_err mn_contou
 
 pp_addhdr('
 #include<string.h>
-#include "FCN.c"
-
-extern void MNINIT(int*,int*,int*);
-extern void MNSETI(char*,int);
-extern void MNPARM(int*,char*,double*,double*,double*,double*,int*,int);
-extern void MNEXCM(void* f,char*,double*,int*,int*,double* futil,int);
-extern void MNPOUT(int*,char*,double*,double*,double*,double*,int*,int);
-extern void MNSTAT(double*,double*,double*,int*,int*,int*);
-extern void MNEMAT(double*,int*); /* Matrix here! */
-extern void MNERRS(int*,double*,double*,double*,double*);
-extern void MNCONT(void* f,int*,int*,int*,double*,double*,int*,double* futil);
-
-extern void ABRE(int*,char*,char*,int,int);
-extern void CIERRA(int*);
+#include "FCN.h"
 ');                   
 		      # add C code to the section preceding 
 		      # the first MODULE keyword
@@ -106,13 +93,6 @@ mnseti(str)
 	 largo = strlen(str);
 	 MNSETI(str,largo);
 ');
-
-# pp_def('mnseti',
-# 	Pars => '',
-#        OtherPars => "char* str",	
-#        Code => 'int largo; largo = strlen($COMP(str));
-#                 MNSETI($COMP(str),largo);
-#       ');  
 
 pp_def('mn_abre',
         Pars => 'int l();',
@@ -221,7 +201,7 @@ pp_def('mnexcm',
         ene = $COMP(numelem);
 	zero = 0.0;
 	mnfunname = $COMP(function);
-        MNEXCM(FCN,$COMP(str),$P(a),$P(ia),$P(ib),&zero,largo); 
+        MNEXCM(FCN,$COMP(str),$P(a),$P(ia),$P(ib),&zero,largo);
        ');
 
 pp_addpm('

@@ -82,7 +82,7 @@ else{
 
 my %hash = pdlpp_stdargs_int(@pack);
 
-$hash{OBJECT} .= join '', map {" minuitlib/${_}$Config{obj_ext} "} @minuitfiles;
+$hash{OBJECT} .= join ' ', '', 'FCN$(OBJ_EXT)', map "minuitlib/${_}\$(OBJ_EXT)", @minuitfiles;
 
 if($Config{cc} eq 'cl') {
 # Link to MinGW's libg2c.a and libgcc.a, if appropriate
@@ -115,18 +115,7 @@ $hash{clean}{FILES} .= join '', map {" minuitlib/$_\$(OBJ_EXT) "} @minuitfiles;
 $f2cbased = ($f77->runtime =~ /-lf2c/);
 $g2cbased = ($f77->runtime =~ /-lg2c/) unless $f2cbased;
 
-$hash{DEFINE} .= $f77->trail_ ? "" : "-DNO_TRAILING_USCORE";
-
-### unless($^O =~ /mswin32/i) {
-###   if (defined($PDL::Config{MINUIT_LIB})){
-###       $hash{MYEXTLIB} .= (" ".$PDL::Config{MINUIT_LIB}." ");
-###   }
-###   else{
-###       $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config{lib_ext} ";
-###       $hash{clean}{FILES} .= " ./minuitlib/libminuit$Config{lib_ext} ";
-###   }
-### }
-
+$hash{DEFINE} .= " -DPDL_USCORE=" . ($f77->trail_ ? "_" : "");
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {

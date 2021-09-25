@@ -544,6 +544,7 @@ Libtmp/ImageRGB/t/picnorgb.t
 Libtmp/ImageRGB/t/picrgb.t
 Libtmp/Makefile.PL
 Libtmp/Minuit/FCN.c
+Libtmp/Minuit/FCN.h
 Libtmp/Minuit/Makefile.PL
 Libtmp/Minuit/minuit.pd
 Libtmp/Minuit/minuitlib/futils.f
