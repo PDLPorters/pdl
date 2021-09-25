@@ -393,6 +393,8 @@ IO/Misc/get.c
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
 IO/Misc/t/misc.t
+IO/Pnm/get.c
+IO/Pnm/get.h
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/pnm.pd
