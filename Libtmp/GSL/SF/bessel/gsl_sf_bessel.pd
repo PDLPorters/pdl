@@ -34,7 +34,7 @@ $e() = r.err;
        Doc =>'Regular Bessel Function J_n(x).'
       );
 
-pp_def('gsl_sf_bessel_J_array',
+pp_def('gsl_sf_bessel_Jn_array',
        GenericTypes => [D],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
@@ -57,7 +57,7 @@ $e() = r.err;
        Doc =>'IrRegular Bessel Function Y_n(x).'
       );
 
-pp_def('gsl_sf_bessel_Y_array',
+pp_def('gsl_sf_bessel_Yn_array',
        GenericTypes => [D],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
@@ -103,7 +103,7 @@ $e() = r.err;
        Doc =>'Scaled Regular Modified Bessel Function exp(-|x|) I_n(x).'
       );
 
-pp_def('gsl_sf_bessel_I_scaled_array',
+pp_def('gsl_sf_bessel_In_scaled_array',
        GenericTypes => [D],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
@@ -149,7 +149,7 @@ $e() = r.err;
        Doc =>'Scaled IrRegular Modified Bessel Function exp(-|x|) K_n(x).'
       );
 
-pp_def('gsl_sf_bessel_K_scaled_array',
+pp_def('gsl_sf_bessel_Kn_scaled_array',
        GenericTypes => [D],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
@@ -172,7 +172,7 @@ $e() = r.err;
        Doc =>'Regular Sphericl Bessel Function J_n(x).'
       );
 
-pp_def('gsl_sf_bessel_j_array',
+pp_def('gsl_sf_bessel_jl_array',
        GenericTypes => [D],
        OtherPars =>'int n=>num',
        Pars=>'double x(); double [o]y(num)',
@@ -195,7 +195,7 @@ $e() = r.err;
        Doc =>'IrRegular Spherical Bessel Function y_n(x).'
       );
 
-pp_def('gsl_sf_bessel_y_array',
+pp_def('gsl_sf_bessel_yl_array',
        GenericTypes => [D],
        OtherPars =>'int n=>num',
        Pars=>'double x(); double [o]y(num)',
@@ -218,7 +218,7 @@ $e() = r.err;
        Doc =>'Scaled Regular Modified Spherical Bessel Function exp(-|x|) i_n(x).'
       );
 
-pp_def('gsl_sf_bessel_i_scaled_array',
+pp_def('gsl_sf_bessel_il_scaled_array',
        GenericTypes => [D],
        OtherPars =>'int n=>num',
        Pars=>'double x(); double [o]y(num)',
@@ -241,7 +241,7 @@ $e() = r.err;
        Doc =>'Scaled IrRegular Modified Spherical Bessel Function exp(-|x|) k_n(x).'
       );
 
-pp_def('gsl_sf_bessel_k_scaled_array',
+pp_def('gsl_sf_bessel_kl_scaled_array',
        GenericTypes => [D],
        OtherPars =>'int n=>num',
        Pars=>'double x(); double [o]y(num)',
