@@ -2129,7 +2129,7 @@ Mark a function as being able to work inplace.
 
  Inplace => 1          if  Pars => 'a(); [o]b();'
  Inplace => ['a']      if  Pars => 'a(); b(); [o]c();'
- Inplace => ['a','b']  if  Pars => 'a(); b(); [o]c(); [o]d();'
+ Inplace => ['a','c']  if  Pars => 'a(); b(); [o]c(); [o]d();'
 
 If bad values are being used, care must be taken to ensure the
 propagation of the badflag when inplace is being used;
