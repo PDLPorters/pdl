@@ -2282,7 +2282,6 @@ EOF
         "NewXSStructInit0",
         "NewXSSetTransPDLs",
         "NewXSFindBadStatusSubd",
-        #     NewXSCopyBadValues,
         #     NewXSMakeNow, # this is unnecessary since families never got implemented
         "NewXSTypeCoerceSubd",
         "NewXSExtractTransPDLs",
