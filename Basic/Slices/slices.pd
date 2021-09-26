@@ -1339,7 +1339,6 @@ pp_def(
         '_clump_int',
         OtherPars => 'int n',
         P2Child => 1,
-        Priv => 'int nnew; int nrem;',
         RedoDims => 'int i; PDL_Indx d1;
 
 	         /* truncate overly long clumps to just clump existing dimensions */
@@ -1349,19 +1348,18 @@ pp_def(
 		 if($COMP(n) < -1)
                         $COMP(n) = $PARENT(ndims) + $COMP(n) + 1;
 
-                 $PRIV(nrem) = ($COMP(n) == -1 ? $PARENT(threadids[0]) : $COMP(n));
-                 $PRIV(nnew) = $PARENT(ndims) - $PRIV(nrem) + 1;
-                 $SETNDIMS($PRIV(nnew));
+                 PDL_Indx nrem = ($COMP(n) == -1 ? $PARENT(threadids[0]) : $COMP(n));
+                 $SETNDIMS($PARENT(ndims) - nrem + 1);
                  d1=1;
-                 for(i=0; i<$PRIV(nrem); i++) {
+                 for(i=0; i<nrem; i++) {
                         d1 *= $PARENT(dims[i]);
                  }
                  $CHILD(dims[0]) = d1;
                  for(; i<$PARENT(ndims); i++) {
-                        $CHILD(dims[i-$PRIV(nrem)+1]) = $PARENT(dims[i]);
+                        $CHILD(dims[i-nrem+1]) = $PARENT(dims[i]);
                  }
                  $SETDIMS();
-                 $SETDELTATHREADIDS(1-$PRIV(nrem));
+                 $SETDELTATHREADIDS(1-nrem);
                  ',
         EquivCPOffsCode => '
                 PDL_Indx i;
