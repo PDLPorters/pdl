@@ -36,7 +36,7 @@ should be included in the file.
 
 EOD
 
-pp_add_exported('',"rcols wcols swcols rgrep rdsa");
+pp_add_exported('',"rcols wcols swcols rgrep");
 
 ############################## PM CODE ########################################
 
@@ -1160,84 +1160,6 @@ of C<$1>, C<$2> etc.
    close($fh) unless $is_handle;
    for (@ret) { $_ = $_->[0]->slice("0:$m")->copy; }; # Truncate
    wantarray ? return(@ret) : return $ret[0];
-}
-
-
-=head2 rdsa
-
-=for ref
-
-  Read a FIGARO/NDF format file.
-
-  Requires non-PDL DSA module. Contact Frossie (frossie@jach.hawaii.edu)
-
-Usage:
-
-=for usage
-
- ([$xaxis],$data) = rdsa($file)
-
-=for example
-
- $x = rdsa 'file.sdf'
-
-Not yet tested with PDL-1.9X versions
-
-=cut
-
-sub rdsa{PDL->rdsa(@_)}
-
-use vars qw/ $dsa_loaded /;
-sub PDL::rdsa {
-    my $class = shift;
-    barf 'Usage: ([$xaxis],$data) = rdsa($file)' if $#_!=0;
-    my $file = shift; my $pdl = $class->new; my $xpdl;
-    eval 'use DSA' unless $dsa_loaded++;
-    barf 'Cannot use DSA library' if $@ ne "";
-
-    my $status = 0;
-
-    # Most of this stuff stolen from Frossie:
-
-    dsa_open($status);
-    dsa_named_input('IMAGE',$file,$status);
-    goto skip if $status != 0;
-
-    dsa_get_range('IMAGE',my $vmin,my $vmax,$status);
-    my @data_dims;
-    dsa_data_size('IMAGE',5, my $data_ndims, \@data_dims, my $data_elements, 
-                  $status);
-    dsa_map_data('IMAGE','READ','FLOAT',my $data_address,my $data_slot,
-                 $status);
-
-    @data_dims = @data_dims[0..$data_ndims-1];
-    print "Dims of $file = @data_dims\n" if $PDL::verbose;
-    $pdl->set_datatype($PDL_F);
-    $pdl->setdims([@data_dims]);
-    my $dref = $pdl->get_dataref;
-    mem2string($data_address,4*$data_elements,$$dref);
-    $pdl->upd_data();
-
-    if (wantarray) { # Map X axis values
-      my @axis_dims;
-      dsa_axis_size('IMAGE',1,5, my $axis_ndims, \@axis_dims,
-                    my $axis_elements, $status);
-      dsa_map_axis_data('IMAGE',1,'READ','FLOAT',my $axis_address,
-                    my $axis_slot,$status);
-      @axis_dims = @axis_dims[0..$axis_ndims-1];
-      $xpdl = $class->new;
-      $xpdl->set_datatype($PDL_F);
-      $xpdl->setdims([@axis_dims]);
-      my $xref = $xpdl->get_dataref;
-      mem2string($axis_address,4*$axis_elements,$$xref);
-      $xpdl->upd_data();
-    }
-
-    skip: dsa_close($status);
-
-    barf("rdsa: obtained DSA error") if $status != 0;
-
-    return ($xpdl,$pdl);
 }
 
 =head2 isbigendian
