@@ -1,3 +1,7 @@
+2.057_02 2021-09-26
+- split internal .pd into one C file per pp_def function allowing parallel build
+- tidy various modules so they don't get symbol clashes from that
+
 2.057_01 2021-09-24
 - fix pp_add_boot to remove any blank lines (such as added by pp_line_numbers)
 - GSL::CDF now uses barf() on error, not GSL default of core-dump
