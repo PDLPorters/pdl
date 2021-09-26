@@ -1026,7 +1026,7 @@ sub pp_def {
 	require PDL::PP::Dims;
 	require PDL::PP::CType;
 	require PDL::PP::PDLCode;
-	PDL::PP::load_deftable();
+	PDL::PP::load_deftable() if !$PDL::PP::deftbl;
 	my($name,%obj) = @_;
 	print "*** Entering pp_def for $name\n" if $::PP_VERBOSE;
 	($name, my $fulldoc) = _pp_parsename($name);
