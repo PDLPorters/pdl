@@ -1394,34 +1394,6 @@ sub callPerlInit {
     indent($ret,$ci);
 } #sub callPerlInit()
 
-# abstract the access to the bad value status
-# - means we can easily change the representation without too
-#   many changes
-#
-# it's also used in one place in PP/PDLCode.pm
-# -- there it's hard-coded
-#
-sub set_badflag   { PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(bvalflag) = 1;' . "\n") }
-sub clear_badflag { PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(bvalflag) = 0;' . "\n") }
-sub get_badflag   { PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(bvalflag)') }
-
-sub get_badflag_priv { PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(bvalflag)') }
-
-sub set_badstate {
-    my $pdl = shift;
-    PDL::PP::pp_line_numbers(__LINE__-1, "\$SETPDLSTATEBAD($pdl)")
-}
-
-sub clear_badstate {
-    my $pdl = shift;
-    PDL::PP::pp_line_numbers(__LINE__-1, "\$SETPDLSTATEGOOD($pdl)")
-}
-
-sub get_badstate {
-    my $pdl = shift;
-    PDL::PP::pp_line_numbers(__LINE__-1, "\$ISPDLSTATEBAD($pdl)")
-}
-
 sub NT2Decls_p {&NT2Decls__({ToPtrs=>1},@_);}
 
 sub NT2Decls__ {
@@ -2256,20 +2228,18 @@ EOF
       sub {
         my ( $badflag, $badcode, $xsargs, $sig, $optypes, $name ) = @_;
         return PDL::PP::pp_line_numbers(__LINE__, $badcode) if defined $badcode;
-        my $clear_bad = clear_badflag();
-        my $set_bad   = set_badflag();
-        my $get_bad   = get_badflag();
+        my $clear_bad = '$PRIV(bvalflag) = 0;';
         my $str = PDL::PP::pp_line_numbers(__LINE__-1, $clear_bad);
         # set the badflag_cache variable if any input ndarray has the bad flag set
         if (my @bval_in = $sig->names_in) {
           $str .= PDL::PP::pp_line_numbers __LINE__-1, "int \$BADFLAGCACHE() = " .
-            join('||', map get_badstate($_), @bval_in) .
-            ";\n  if (\$BADFLAGCACHE()) ${set_bad}\n";
+            join('||', map "\$ISPDLSTATEBAD($_)", @bval_in) .
+            ";\n  if (\$BADFLAGCACHE()) \$PRIV(bvalflag) = 1;\n";
         } else {
           print "\nNOTE: $name has no input bad ndarrays.\n\n" if $::PP_VERBOSE;
         }
         if ( defined($badflag) and $badflag == 0 ) {
-          $str .= "  if ( $get_bad ) {
+          $str .= "  if ( \$PRIV(bvalflag) ) {
           printf(\"WARNING: $name does not handle bad values.\\n\");
           $clear_bad
       }\n";
@@ -2298,7 +2268,7 @@ EOF
         return '' if @{$sig->names} == (my @outs = $sig->names_out); # no input pdls, no badflag copying needed
         PDL::PP::pp_line_numbers(__LINE__-1, join '',
           "if (\$BADFLAGCACHE()) {\n",
-          (map "  " . set_badstate($_) . ";\n", @outs),
+          (map "  \$SETPDLSTATEBAD($_);\n", @outs),
           "}\n");
       }),
 
