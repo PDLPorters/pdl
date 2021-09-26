@@ -91,7 +91,6 @@ Basic/Core/Core.c
 Basic/Core/Types.pm
 Basic/Core/pdl.h
 Basic/Core/pdlperl.h
-Basic/Core/pdlcore.c
 Basic/Core/pdlsimple.h
 Basic/Gen/PP/Dump.pm
 Basic/Gen/pptemplate.pod

@@ -45,10 +45,8 @@ RCS
 ^Basic/Complex/Complex\.pm
 ^Basic/Complex/Complex\.xs
 ^Basic/Core/Config\.pm
-^Basic/Core/Config\.pm
 ^Basic/Core/Core\.c$
 ^Basic/Core/Types\.pm$
-^Basic/Core/isbigendian.p$
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlperl\.h$
 ^Basic/Core/pdlsimple\.h$
@@ -87,7 +85,6 @@ RCS
 ^Doc/docscan$
 ^Doc/pdlfunc\.pod
 ^Doc/pdlhead2item$
-^Gen
 ^Graphics/IIS/IIS\..*
 ^Graphics/PGPLOT/PGPLOT.c
 ^Graphics/PGPLOT/Window/Window.c
