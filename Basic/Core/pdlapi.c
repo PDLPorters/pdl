@@ -1452,6 +1452,7 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     PDL_TR_SETMAGIC(it);
     it->flags = vtable->iflags;
     it->dims_redone = 0;
+    it->bvalflag = 0;
     it->vtable = vtable;
     PDL_THR_CLRMAGIC(&it->pdlthread);
     it->pdlthread.inds = 0;
@@ -1583,4 +1584,22 @@ void pdl_type_coerce(pdl_trans *trans) {
       pdls[i] = pdl_get_convertedpdl(pdl, new_dtype);
     }
   }
+}
+
+char pdl_trans_badflag_from_inputs(pdl_trans *trans) {
+  PDL_Indx i;
+  pdl_transvtable *vtable = trans->vtable;
+  pdl **pdls = trans->pdls;
+  char retval = 0;
+  for (i=0; i<vtable->npdls; i++) {
+    if ((vtable->par_flags[i] & (PDL_PARAM_ISOUT|PDL_PARAM_ISTEMP)) ||
+        !(pdls[i]->state & PDL_BADVAL)) continue;
+    trans->bvalflag = retval = 1;
+    break;
+  }
+  if (retval && (vtable->flags & PDL_TRANS_BADIGNORE)) {
+    printf("WARNING: %s does not handle bad values.\n", vtable->name);
+    trans->bvalflag = 0; /* but still return true */
+  }
+  return retval;
 }

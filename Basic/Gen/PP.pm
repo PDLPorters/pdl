@@ -2213,36 +2213,10 @@ EOF
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustCompNS"),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS", "FindBadStatusCode", sub {@_}),
-   PDL::PP::Rule->new("NewXSFindBadStatusNS",
-      ["BadFlag","SignatureObj","OtherParTypes","Name"],
+   PDL::PP::Rule->new("NewXSFindBadStatusNS", ["StructName"],
       "Rule to find the bad value status of the input ndarrays",
-      # checks the input ndarrays to see if the routine
-      # is being any data containing bad values
-      #
-      # - in the automatic code creation,
-      # if $badflag is 0, rather than being undefined, then
-      # we issue a warning if any ndarrays contain bad values
-      # (and set the bvalflag to 0)
       sub {
-        my ( $badflag, $sig, $optypes, $name ) = @_;
-        my $clear_bad = '$PRIV(bvalflag) = 0;';
-        my $str = PDL::PP::pp_line_numbers(__LINE__-1, $clear_bad);
-        # set the badflag_cache variable if any input ndarray has the bad flag set
-        if (my @bval_in = $sig->names_in) {
-          $str .= PDL::PP::pp_line_numbers __LINE__-1, "int \$BADFLAGCACHE() = " .
-            join('||', map "\$ISPDLSTATEBAD($_)", @bval_in) .
-            ";\n  if (\$BADFLAGCACHE()) \$PRIV(bvalflag) = 1;\n";
-        } else {
-          print "\nNOTE: $name has no input bad ndarrays.\n\n" if $::PP_VERBOSE;
-        }
-        if ( defined($badflag) and $badflag == 0 ) {
-          $str .= "  if ( \$PRIV(bvalflag) ) {
-          printf(\"WARNING: $name does not handle bad values.\\n\");
-          $clear_bad
-      }\n";
-          print "\nNOTE: $name does not handle bad values.\n\n" if $::PP_VERBOSE;
-        } # if: $badflag
-        $str
+        PDL::PP::pp_line_numbers(__LINE__-1, "char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs((pdl_trans *)$_[0]);\n");
       }),
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",

@@ -102,6 +102,7 @@ void pdl_readdata_vaffine(pdl *it);
   X(dim_checks, void, (pdl_transvtable *vtable, pdl **pdls, \
     pdl_thread *pdlthread, PDL_Indx *creating, PDL_Indx *ind_sizes)) \
   X(type_coerce, void, (pdl_trans *trans)) \
+  X(trans_badflag_from_inputs, char, (pdl_trans *trans)) \
   X(get_convertedpdl, pdl *, (pdl *pdl,int type)) \
   X(make_trans_mutual, void, (pdl_trans *trans)) \
   X(make_physical, void, (pdl *it)) \
