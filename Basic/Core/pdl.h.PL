@@ -275,9 +275,13 @@ print OUT <<'!NO!SUBS!';
 
 /* Transformation flags */
 #define         PDL_TRANS_DO_THREAD        0x0001
+#define         PDL_TRANS_BADPROCESS       0x0002
+#define         PDL_TRANS_BADIGNORE        0x0004
 
 #define PDL_LIST_FLAGS_PDLVTABLE(X) \
-  X(PDL_TRANS_DO_THREAD)
+  X(PDL_TRANS_DO_THREAD) \
+  X(PDL_TRANS_BADPROCESS) \
+  X(PDL_TRANS_BADIGNORE)
 
 /* Transpdl flags */
 #define         PDL_TPDL_VAFFINE_OK     0x01

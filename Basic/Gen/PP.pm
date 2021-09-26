@@ -2366,18 +2366,23 @@ PDL_TRANS_START($npdls);
       ["VTableName","StructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
        "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name",
-       "GenericTypes","IsAffineFlag","ReversibleFlag","DefaultFlowFlag"],
+       "GenericTypes","IsAffineFlag","ReversibleFlag","DefaultFlowFlag",
+       "BadFlag"],
       sub {
         my($vname,$stype,$rdname,$rfname,$wfname,$ffname,
            $sig,$affine_ok,$havethreading, $noPthreadFlag, $name, $gentypes,
-           $affflag, $revflag, $flowflag) = @_;
+           $affflag, $revflag, $flowflag, $badflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
         my $npdls = scalar @$pnames;
         my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1) || '0';
-        my $op_flags = $havethreading ? 'PDL_TRANS_DO_THREAD' : '0';
+        my @op_flags;
+        push @op_flags, 'PDL_TRANS_DO_THREAD' if $havethreading;
+        push @op_flags, 'PDL_TRANS_BADPROCESS' if $badflag;
+        push @op_flags, 'PDL_TRANS_BADIGNORE' if defined $badflag and !$badflag;
+        my $op_flags = join('|', @op_flags) || '0';
         my $iflags = join('|', grep $_, $affflag, $revflag, $flowflag) || '0';
         my $gentypes_txt = join(", ", (map PDL::Type->new($_)->sym, @$gentypes), '-1');
         my @realdims = map 0+@{$_->{IndObjs}}, @$pobjs{@$pnames};
