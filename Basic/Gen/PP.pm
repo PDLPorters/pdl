@@ -1680,7 +1680,7 @@ EOD
       sub {
         my (undef,$name) = @_;
         ("PARENT(); [oca]CHILD();",0,0,[PDL::Types::ppdefs_all()],1,
-          pp_line_numbers(__LINE__-1,"\tpdl *__it = ((pdl_trans_affine *)(__tr))->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n"),
+          pp_line_numbers(__LINE__-1,"\tpdl *__it = __tr->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n"),
           pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy(__tr);\n"),
         );
       }),
