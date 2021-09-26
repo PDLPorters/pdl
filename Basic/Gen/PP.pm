@@ -2213,7 +2213,7 @@ EOF
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustCompNS"),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS",
-      ["BadFlag","_FindBadStatusCode","NewXSArgs","SignatureObj","OtherParTypes","Name"],
+      ["BadFlag","_FindBadStatusCode","SignatureObj","OtherParTypes","Name"],
       "Rule to find the bad value status of the input ndarrays",
       # checks the input ndarrays to see if the routine
       # is being any data containing bad values
@@ -2226,7 +2226,7 @@ EOF
       # we issue a warning if any ndarrays contain bad values
       # (and set the bvalflag to 0)
       sub {
-        my ( $badflag, $badcode, $xsargs, $sig, $optypes, $name ) = @_;
+        my ( $badflag, $badcode, $sig, $optypes, $name ) = @_;
         return PDL::PP::pp_line_numbers(__LINE__, $badcode) if defined $badcode;
         my $clear_bad = '$PRIV(bvalflag) = 0;';
         my $str = PDL::PP::pp_line_numbers(__LINE__-1, $clear_bad);
