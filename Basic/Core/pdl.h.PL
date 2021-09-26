@@ -395,6 +395,7 @@ typedef struct pdl_transvtable {
   PDL_Indx *ind_sizes;                                                  \
   PDL_Indx *inc_sizes;                                                  \
   char dims_redone;                                                     \
+  PDL_Indx *incs; PDL_Indx offs; /* only used for affine */             \
   int __datatype
 
 #define PDL_TRANS_START(np) \
@@ -421,16 +422,8 @@ struct pdl_trans {
   PDL_TRANS_START_FLEXIBLE();
 } ;
 
-typedef struct pdl_trans_affine {
-        PDL_TRANS_START(2);
-/* affine relation to parent */
-	PDL_Indx *incs; PDL_Indx offs;
-} pdl_trans_affine;
-
-/* Need to make compatible with pdl_trans_affine */
 typedef struct pdl_vaffine {
 	PDL_TRANS_START(2);
-	PDL_Indx *incs; PDL_Indx offs;
 	PDL_Indx ndims;
 	PDL_Indx def_incs[PDL_NDIMS];
 	pdl *from;

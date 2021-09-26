@@ -874,14 +874,14 @@ threadover(...)
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
     }
     do {  /* the actual threadloop */
-	pdl_trans_affine *traff;
+	pdl_trans *traff;
     	dSP;
 	PUSHMARK(sp);
 	EXTEND(sp,npdls);
 	for(i=0; i<npdls; i++) {
 	   /* just twiddle the offset - quick and dirty */
 	   /* we must twiddle both !! */
-	   traff = (pdl_trans_affine *) child[i]->trans_parent;
+	   traff = child[i]->trans_parent;
 	   traff->offs = pdl_thr.offs[i];
 	   child[i]->vafftrans->offs = pdl_thr.offs[i];
 	   child[i]->state |= PDL_PARENTDATACHANGED;

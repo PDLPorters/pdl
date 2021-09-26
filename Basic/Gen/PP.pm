@@ -1394,8 +1394,6 @@ sub callPerlInit {
     indent($ret,$ci);
 } #sub callPerlInit()
 
-sub NT2Decls_p {&NT2Decls__({ToPtrs=>1},@_);}
-
 sub NT2Decls__ {
   my($opts,$onames,$otypes) = @_;
   my $decl;
@@ -1804,7 +1802,6 @@ EOD
 
    PDL::PP::Rule::Returns::NULL->new("ReadDataFuncName", "AffinePriv"),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "AffinePriv"),
-
    PDL::PP::Rule->new("XSBootCode", ["AffinePriv","VTableName"],
       sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
              "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),
@@ -2149,7 +2146,7 @@ EOF
 # This makes the objects: type + ...
 #
    PDL::PP::Rule->new(["CompNames","CompObjs"], "Comp", \&OtherPars_nft),
-   PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], \&NT2Decls_p),
+   PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], sub {NT2Decls__({ToPtrs=>1},@_)}),
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompNames","CompObjs"],
 				"COMP"),
 
@@ -2194,8 +2191,6 @@ EOF
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
 
    PDL::PP::Rule->new(["PrivNames","PrivObjs"], "Priv", \&OtherPars_nft),
-   PDL::PP::Rule->new("PrivateRepr", ["PrivNames","PrivObjs"], \&NT2Decls_p),
-
    PDL::PP::Rule->new("NTPrivFreeCode", ["PrivNames","PrivObjs"], \&NT2Free_p),
 
    PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
@@ -2286,13 +2281,13 @@ EOF
       sub {make_xs_code('CODE:',' XSRETURN(0);',@_)}),
 
    PDL::PP::Rule->new("StructDecl",
-      ["SignatureObj","CompiledRepr","PrivateRepr","StructType"],
+      ["SignatureObj","CompiledRepr","StructType"],
       sub {
-        my($sig,$comp,$priv,$name) = @_;
+        my($sig,$comp,$name) = @_;
         my $npdls = @{ $sig->names };
         PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $name {
 PDL_TRANS_START($npdls);
-@{[ join "\n", grep $_, $priv, $comp ]}} $name;});
+@{[ join "\n", grep $_, $comp ]}} $name;});
       }),
 
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",

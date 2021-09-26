@@ -526,15 +526,14 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	printf("%s   vtable flags ",spaces);
 	pdl_dump_flags_fixspace(it->vtable->flags,nspac+3,PDL_FLAGS_VTABLE);
 	if(it->flags & PDL_ITRANS_ISAFFINE) {
-		pdl_trans_affine *foo = (pdl_trans_affine *)it;
 		if(it->pdls[1]->state & PDL_PARENTDIMSCHANGED) {
 			printf("%s   AFFINE, BUT DIMSCHANGED\n",spaces);
 		} else {
-			printf("%s   AFFINE: o:%"IND_FLAG", i:",spaces,foo->offs);
-			if (foo->incs)
-			  print_iarr(foo->incs, foo->pdls[1]->ndims);
+			printf("%s   AFFINE: o:%"IND_FLAG", i:",spaces,it->offs);
+			if (it->incs)
+			  print_iarr(it->incs, it->pdls[1]->ndims);
 			printf(" d:");
-			print_iarr(foo->pdls[1]->dims, foo->pdls[1]->ndims);
+			print_iarr(it->pdls[1]->dims, it->pdls[1]->ndims);
 			printf("\n");
 		}
 	}
@@ -1174,8 +1173,8 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 		  /* is it correct to also unset PDL_PARENTREPRCHANGED? */
 		        trans->pdls[1]->state &= ~(PDL_PARENTDIMSCHANGED |
 						  PDL_PARENTREPRCHANGED);
-			pdl_make_physvaffine(((pdl_trans_affine *)(trans))->pdls[1]);
-			pdl_readdata_vaffine(((pdl_trans_affine *)(trans))->pdls[1]);
+			pdl_make_physvaffine(trans->pdls[1]);
+			pdl_readdata_vaffine(trans->pdls[1]);
 		} else {
 			trans->vtable->readdata(trans);
 		}
@@ -1239,7 +1238,6 @@ void pdl_vafftrans_free(pdl *it)
 void pdl_make_physvaffine(pdl *it)
 {
 	pdl_trans *t;
-	pdl_trans_affine *at;
 	pdl *parent;
 	pdl *current;
 	PDL_Indx i,j;
@@ -1275,8 +1273,7 @@ void pdl_make_physvaffine(pdl *it)
 	current = it;
 	while(t && (t->flags & PDL_ITRANS_ISAFFINE)) {
 		PDL_Indx cur_offset = 0;
-		at = (pdl_trans_affine *)t;
-		if (!at->incs)
+		if (!t->incs)
 		  pdl_pdl_barf("pdl_make_physvaffine: affine trans has NULL incs\n");
 		parent = t->pdls[0];
 		/* For all dimensions of the childest ndarray */
@@ -1310,21 +1307,21 @@ void pdl_make_physvaffine(pdl *it)
 						foo -= current->dimincs[k-1] *
 							current->dims[k-1];
 						if(foo<=0) break;
-						if(at->incs[k] !=
-						   at->incs[k-1] *
+						if(t->incs[k] !=
+						   t->incs[k-1] *
 						   current->dims[k-1]) {
 						   /* XXXXX */
 							flag=1;
 						 /*
-	warn("Illegal vaffine; fix loop to break: %d %d %d k=%d s=%d, (%d+%d*%d>%d) %d %d %d %d.\n",at,current,it,
+	warn("Illegal vaffine; fix loop to break: %d %d %d k=%d s=%d, (%d+%d*%d>%d) %d %d %d %d.\n",t,current,it,
 		k,incsign,cur_offset,it->dims[i],ninced,current->dims[j],current->dimincs[j],
-		at->incs[k],at->incs[k-1],current->dims[k-1]);
+		t->incs[k],t->incs[k-1],current->dims[k-1]);
 						*/
 							/* croak("Illegal vaffine; fix loop to break.\n"); */
 						}
 					  }
 					}
-					newinc += at->incs[j]*ninced;
+					newinc += t->incs[j]*ninced;
 					inc %= current->dimincs[j];
 				}
 			}
@@ -1342,10 +1339,10 @@ void pdl_make_physvaffine(pdl *it)
 			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
 				cur_offset = offset_left / current->dimincs[j];
 				offset_left -= cur_offset * current->dimincs[j];
-				newinc += at->incs[j]*cur_offset;
+				newinc += t->incs[j]*cur_offset;
 			}
 			it->vafftrans->offs = newinc;
-			it->vafftrans->offs += at->offs;
+			it->vafftrans->offs += t->offs;
 		}
 		t = parent->trans_parent;
 		current = parent;
@@ -1460,6 +1457,7 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     int i; for (i=0; i<vtable->ninds; i++) it->ind_sizes[i] = -1;
     it->inc_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->nind_ids);
     for (i=0; i<vtable->nind_ids; i++) it->inc_sizes[i] = -1;
+    it->offs = -1;
     return it;
 }
 
