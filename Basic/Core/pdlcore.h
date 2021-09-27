@@ -162,5 +162,19 @@ struct Core {
 
 typedef struct Core Core;
 
+#define PDL_DECLARE_PARAMETER(declini, cast, type, flag, name, pdlname) \
+  declini name ## _datap = (cast(PDL_REPRP_TRANS(pdlname, flag))); \
+  declini name ## _physdatap = (cast(pdlname->data)); \
+  (void)name ## _datap; \
+  (void)name ## _physdatap;
+
+#define PDL_DECLARE_PARAMETER_BADVAL(declini, cast, type, flag, name, pdlname) \
+  PDL_DECLARE_PARAMETER(declini, cast, type, flag, name, pdlname) \
+  type name ## _badval = 0; \
+  PDL_Anyval name ## _anyval_badval = PDL_CORE_(get_pdl_badvalue)(pdlname); \
+  (void)name ## _badval; \
+  (void)name ## _anyval_badval; \
+  ANYVAL_TO_CTYPE(name ## _badval, type, name ## _anyval_badval);
+
 /* __PDLCORE_H */
 #endif
