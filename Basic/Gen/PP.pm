@@ -2366,6 +2366,7 @@ PDL_TRANS_START($npdls);
         my $realdim_inds = join(", ", @rd_inds) || '0';
         my @indnames = $sig->ind_names_sorted;
         my $indnames = join(",", map qq|"$_"|, @indnames) || '""';
+        my $sizeof = "sizeof($stype)";
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 static pdl_datatypes ${vname}_gentypes[] = { $gentypes_txt };
 static char ${vname}_flags[] = {
@@ -2388,7 +2389,7 @@ pdl_transvtable $vname = {
   @{[scalar @indnames]}, ${vname}_indnames,
   $rdname, $rfname, $wfname,
   $ffname,
-  sizeof($stype),"$::PDLMOD\::$name"
+  $sizeof,"$::PDLMOD\::$name"
 };
 EOF
       }),
