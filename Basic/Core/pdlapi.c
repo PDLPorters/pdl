@@ -891,7 +891,7 @@ void pdl_default_redodims(pdl_trans *trans) {
   pdl_initthreadstruct(2, pdls,
     vtable->par_realdims, creating, vtable->npdls, vtable,
     &trans->pdlthread, trans->ind_sizes, trans->inc_sizes,
-    vtable->per_pdl_flags, vtable->noPthreadFlag);
+    vtable->per_pdl_flags, vtable->flags & PDL_TRANS_NO_PARALLEL);
   pdl_hdr_childcopy(trans);
   trans->dims_redone = 1;
 }

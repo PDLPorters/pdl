@@ -277,11 +277,13 @@ print OUT <<'!NO!SUBS!';
 #define         PDL_TRANS_DO_THREAD        0x0001
 #define         PDL_TRANS_BADPROCESS       0x0002
 #define         PDL_TRANS_BADIGNORE        0x0004
+#define         PDL_TRANS_NO_PARALLEL      0x0008
 
 #define PDL_LIST_FLAGS_PDLVTABLE(X) \
   X(PDL_TRANS_DO_THREAD) \
   X(PDL_TRANS_BADPROCESS) \
-  X(PDL_TRANS_BADIGNORE)
+  X(PDL_TRANS_BADIGNORE) \
+  X(PDL_TRANS_NO_PARALLEL)
 
 /* Transpdl flags */
 #define         PDL_TPDL_VAFFINE_OK     0x01
@@ -304,7 +306,6 @@ typedef struct pdl_transvtable {
         PDL_Indx nind_ids;
         PDL_Indx ninds;
         char **ind_names; /* sorted names of "indices", eg for a(m), the "m" */
-        char noPthreadFlag;
         void (*redodims)(pdl_trans *tr);      /* Only dims and internal trans (makes phys) */
         void (*readdata)(pdl_trans *tr);      /* Only data, to "data" ptr  */
         void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */

@@ -2351,6 +2351,7 @@ PDL_TRANS_START($npdls);
         push @op_flags, 'PDL_TRANS_DO_THREAD' if $havethreading;
         push @op_flags, 'PDL_TRANS_BADPROCESS' if $badflag;
         push @op_flags, 'PDL_TRANS_BADIGNORE' if defined $badflag and !$badflag;
+        push @op_flags, 'PDL_TRANS_NO_PARALLEL' if $noPthreadFlag;
         my $op_flags = join('|', @op_flags) || '0';
         my $iflags = join('|', grep $_, $affflag, $revflag, $flowflag) || '0';
         my $gentypes_txt = join(", ", (map PDL::Type->new($_)->sym, @$gentypes), '-1');
@@ -2385,7 +2386,6 @@ pdl_transvtable $vname = {
   ${vname}_parflags, ${vname}_partypes,
   ${vname}_realdims_starts, ${vname}_realdims_ind_ids, @{[scalar @rd_inds]},
   @{[scalar @indnames]}, ${vname}_indnames,
-  $noPthreadFlag,
   $rdname, $rfname, $wfname,
   $ffname,
   sizeof($stype),"$::PDLMOD\::$name"
