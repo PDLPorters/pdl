@@ -2155,15 +2155,17 @@ END
       sub {NT2Decls__({},@_)}),
    PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], \&NT2Free_p),
 
-   PDL::PP::Rule::InsertName->new("StructType", 'pdl_trans__${name}'),
-   PDL::PP::Rule->new("StructDecl",
-      ["SignatureObj","CompiledRepr","StructType"],
+   PDL::PP::Rule->new(["StructDecl","StructType"],
+      ["SignatureObj","CompiledRepr","Name"],
       sub {
         my($sig,$comp,$name) = @_;
+	return ('', 'pdl_trans') if !$comp;
         my $npdls = @{ $sig->names };
-        PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $name {
+        my $stype = "pdl_trans__$name";
+        (PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $stype {
 PDL_TRANS_START($npdls);
-@{[ join "\n", grep $_, $comp ]}} $name;});
+@{[ join "\n", grep $_, $comp ]}} $stype;}),
+        $stype);
       }),
 
    PDL::PP::Rule->new("DefaultRedoDims",
@@ -2366,7 +2368,7 @@ EOF
         my $realdim_inds = join(", ", @rd_inds) || '0';
         my @indnames = $sig->ind_names_sorted;
         my $indnames = join(",", map qq|"$_"|, @indnames) || '""';
-        my $sizeof = "sizeof($stype)";
+        my $sizeof = "sizeof($stype)" . ($stype eq 'pdl_trans' ? "+sizeof(pdl *)*$npdls" : '');
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 static pdl_datatypes ${vname}_gentypes[] = { $gentypes_txt };
 static char ${vname}_flags[] = {
