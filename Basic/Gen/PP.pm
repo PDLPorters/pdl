@@ -1696,7 +1696,6 @@ EOD
    PDL::PP::Rule::Returns->new("ExtraGenericLoops", [],
 		'Sets ExtraGenericLoops to an empty hash if it does not already exist', {}),
 
-   PDL::PP::Rule::InsertName->new("StructType", 'pdl_trans__${name}'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
 
    PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$CHILD(ndims)];PDL_Indx offs; '),
@@ -2065,17 +2064,6 @@ END
           "void $func_name($longpars)");
       }),
 
-   PDL::PP::Rule->new("NewXSStructInit0",
-		      ["StructName","StructType","VTableName"],
-		      "Rule to create and initialise the private trans structure",
-      sub {
-        my( $sname, $stype, $vtable ) = @_;
-        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-if (!PDL) croak("PDL core struct is NULL, can't continue");
-$stype *$sname = (void *)PDL->create_trans(&$vtable);
-EOF
-      }),
-
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
       sub {
         my($sig) = @_;
@@ -2167,6 +2155,17 @@ EOF
       sub {NT2Decls__({},@_)}),
    PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], \&NT2Free_p),
 
+   PDL::PP::Rule::InsertName->new("StructType", 'pdl_trans__${name}'),
+   PDL::PP::Rule->new("StructDecl",
+      ["SignatureObj","CompiledRepr","StructType"],
+      sub {
+        my($sig,$comp,$name) = @_;
+        my $npdls = @{ $sig->names };
+        PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $name {
+PDL_TRANS_START($npdls);
+@{[ join "\n", grep $_, $comp ]}} $name;});
+      }),
+
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
       sub { 'PDL->default_redodims((pdl_trans *)'.$_[0].');' }),
@@ -2243,6 +2242,17 @@ EOF
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindBadStatusSubd", "NewXSFindBadStatusNS"),
    PDL::PP::Rule::Substitute::Usual->new("NewXSCopyBadStatusSubd", "NewXSCopyBadStatusNS"),
 
+   PDL::PP::Rule->new("NewXSStructInit0",
+		      ["StructName","StructType","VTableName"],
+		      "Rule to create and initialise the private trans structure",
+      sub {
+        my( $sname, $stype, $vtable ) = @_;
+        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+if (!PDL) croak("PDL core struct is NULL, can't continue");
+$stype *$sname = (void *)PDL->create_trans(&$vtable);
+EOF
+      }),
+
    PDL::PP::Rule->new(["RunFunc"],
       ["RunFuncHdr",
         "NewXSStructInit0",
@@ -2279,16 +2289,6 @@ EOF
       ["NewXSHdr",@xscode_args_always],
       "Rule to print out XS code when variable argument list XS processing is disabled",
       sub {make_xs_code('CODE:',' XSRETURN(0);',@_)}),
-
-   PDL::PP::Rule->new("StructDecl",
-      ["SignatureObj","CompiledRepr","StructType"],
-      sub {
-        my($sig,$comp,$name) = @_;
-        my $npdls = @{ $sig->names };
-        PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $name {
-PDL_TRANS_START($npdls);
-@{[ join "\n", grep $_, $comp ]}} $name;});
-      }),
 
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
       ["RedoDims", "PrivNames", "PrivObjs"], "PRIV"),
