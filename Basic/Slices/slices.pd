@@ -1605,45 +1605,6 @@ static int cmp_pdll(const void *a_,const void *b_) {
 END
 );
 
-
-pp_def( 'affine',
-        P2Child => 1,
-        Reversible => 1,
-        AffinePriv => 1,
-        GlobalNew => 'affine_new',
-        OtherPars => 'PDL_Indx offspar; SV *dimlist; SV *inclist;',
-        Comp => 'PDL_Indx nd; PDL_Indx offset; PDL_Indx sdims[$COMP(nd)];
-                PDL_Indx sincs[$COMP(nd)];',
-        MakeComp => '
-                PDL_Indx i = 0, n2 = 0;
-                PDL_Indx *tmpi = PDL->packdims(inclist,&n2);
-                PDL_Indx *tmpd = PDL->packdims(dimlist,&($COMP(nd)));
-                if ($COMP(nd) < 0) {
-                      $CROAK("Affine: can not have negative no of dims");
-                }
-                if ($COMP(nd) != n2)
-                      $CROAK("Affine: number of incs does not match dims");
-                $DOCOMPDIMS();
-                $COMP(offset) = offspar;
-                for (i=0; i<$COMP(nd); i++) {
-                        $COMP(sdims)[i] = tmpd[i];
-                        $COMP(sincs)[i] = tmpi[i];
-                }
-                ',
-        RedoDims => '
-                PDL_Indx i;
-                $SETNDIMS($COMP(nd));
-                $DOPRIVDIMS();
-                $PRIV(offs) = $COMP(offset);
-                for (i=0;i<$CHILD(ndims);i++) {
-                        $PRIV(incs)[i] = $COMP(sincs)[i];
-                        $CHILD(dims)[i] = $COMP(sdims)[i];
-                }
-                $SETDIMS();
-                ',
-        Doc => undef,
-);
-
 =head2 diagonalI
 =cut
 

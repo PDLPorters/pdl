@@ -60,3 +60,127 @@ void pdl_writebackdata_affine(pdl_trans *trans) {
   PDL_GENERICSWITCH(trans->__datatype, X)
 #undef X
 }
+
+/* generated from:
+pp_def( 'affine',
+        P2Child => 1,
+        Reversible => 1,
+        AffinePriv => 1,
+        GlobalNew => 'affine_new',
+        OtherPars => 'PDL_Indx offspar; SV *dimlist; SV *inclist;',
+        Comp => 'PDL_Indx nd; PDL_Indx offset; PDL_Indx sdims[$COMP(nd)];
+                PDL_Indx sincs[$COMP(nd)];',
+        MakeComp => '
+                PDL_Indx i = 0, n2 = 0;
+                PDL_Indx *tmpi = pdl_packdims(inclist,&n2);
+                PDL_Indx *tmpd = pdl_packdims(dimlist,&($COMP(nd)));
+                if ($COMP(nd) < 0) {
+                      $CROAK("Affine: can not have negative no of dims");
+                }
+                if ($COMP(nd) != n2)
+                      $CROAK("Affine: number of incs does not match dims");
+                $DOCOMPDIMS();
+                $COMP(offset) = offspar;
+                for (i=0; i<$COMP(nd); i++) {
+                        $COMP(sdims)[i] = tmpd[i];
+                        $COMP(sincs)[i] = tmpi[i];
+                }
+                ',
+        RedoDims => '
+                PDL_Indx i;
+                $SETNDIMS($COMP(nd));
+                $DOPRIVDIMS();
+                $PRIV(offs) = $COMP(offset);
+                for (i=0;i<$CHILD(ndims);i++) {
+                        $PRIV(incs)[i] = $COMP(sincs)[i];
+                        $CHILD(dims)[i] = $COMP(sdims)[i];
+                }
+                $SETDIMS();
+                ',
+        Doc => undef,
+);
+*/
+
+typedef struct pdl_trans__affine {
+  PDL_TRANS_START(2);
+  PDL_Indx  nd;
+  PDL_Indx  offset;
+  PDL_Indx  *sdims;
+  PDL_Indx  *sincs;
+} pdl_trans__affine;
+
+void pdl_affine_redodims(pdl_trans *t) {
+  pdl_trans__affine *trans = (pdl_trans__affine *) t;
+  pdl *__it = t->pdls[1];
+  pdl_hdr_childcopy(t);
+  PDL_Indx i;
+  pdl_reallocdims(__it, trans->nd);
+  trans->incs = malloc(sizeof(*trans->incs) * trans->pdls[1]->ndims);
+  trans->offs = trans->offset;
+  for (i=0;i<trans->pdls[1]->ndims;i++) {
+    trans->incs[i] = trans->sincs[i];
+    trans->pdls[1]->dims[i] = trans->sdims[i];
+  }
+  pdl_setdims_careful(__it);
+}
+
+void pdl_affine_free(pdl_trans *t) {
+  pdl_trans__affine *trans = (pdl_trans__affine *) t;
+  pdl *__it = t->pdls[1];
+  PDL_TR_CLRMAGIC(trans);
+  free(trans->sdims);
+  free(trans->sincs);
+  if ((trans)->dims_redone) free(trans->incs);
+}
+
+static pdl_datatypes pdl_affine_vtable_gentypes[] = { PDL_B, PDL_S, PDL_US, PDL_L, PDL_IND, PDL_LL, PDL_F, PDL_D, PDL_CF, PDL_CD, -1 };
+static char pdl_affine_vtable_flags[] = {
+  PDL_TPDL_VAFFINE_OK, PDL_TPDL_VAFFINE_OK
+};
+static PDL_Indx pdl_affine_vtable_realdims[] = { 0, 0 };
+static char *pdl_affine_vtable_parnames[] = { "PARENT","CHILD" };
+static short pdl_affine_vtable_parflags[] = {
+  0,
+  PDL_PARAM_ISCREAT|PDL_PARAM_ISCREATEALWAYS|PDL_PARAM_ISOUT|PDL_PARAM_ISWRITE
+};
+static pdl_datatypes pdl_affine_vtable_partypes[] = { -1, -1 };
+static PDL_Indx pdl_affine_vtable_realdims_starts[] = { 0, 0 };
+static PDL_Indx pdl_affine_vtable_realdims_ind_ids[] = { 0 };
+static char *pdl_affine_vtable_indnames[] = { "" };
+pdl_transvtable pdl_affine_vtable = {
+  0, PDL_ITRANS_ISAFFINE|PDL_ITRANS_REVERSIBLE|PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B, pdl_affine_vtable_gentypes, 1, 2, pdl_affine_vtable_flags,
+  pdl_affine_vtable_realdims, pdl_affine_vtable_parnames,
+  pdl_affine_vtable_parflags, pdl_affine_vtable_partypes,
+  pdl_affine_vtable_realdims_starts, pdl_affine_vtable_realdims_ind_ids, 0,
+  0, pdl_affine_vtable_indnames,
+  pdl_affine_redodims, NULL, NULL,
+  pdl_affine_free,
+  sizeof(pdl_trans__affine),"affine_new"
+};
+
+void pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *inclist) {
+  pdl_trans__affine *trans = (void *)pdl_create_trans(&pdl_affine_vtable);
+  trans->pdls[0] = PARENT;
+  trans->pdls[1] = CHILD;
+  char badflag_cache = pdl_trans_badflag_from_inputs((pdl_trans *)trans);
+  pdl_type_coerce((pdl_trans *)trans);
+  PARENT = trans->pdls[0];
+  CHILD = trans->pdls[1];
+  PDL_Indx i = 0, n2 = 0;
+  PDL_Indx *tmpi = pdl_packdims(inclist,&n2);
+  PDL_Indx *tmpd = pdl_packdims(dimlist,&(trans->nd));
+  if (trans->nd < 0)
+    pdl_pdl_barf("Error in affine: can not have negative no of dims");
+  if (trans->nd != n2)
+    pdl_pdl_barf("Error in affine: number of incs does not match dims");
+  trans->sdims = malloc(sizeof(* trans->sdims) * trans->nd);
+  trans->sincs = malloc(sizeof(* trans->sincs) * trans->nd);
+  trans->offset = offspar;
+  for (i=0; i<trans->nd; i++) {
+    trans->sdims[i] = tmpd[i];
+    trans->sincs[i] = tmpi[i];
+  }
+  pdl_make_trans_mutual((pdl_trans *)trans);
+  if (badflag_cache)
+    CHILD->state |= PDL_BADVAL;
+}
