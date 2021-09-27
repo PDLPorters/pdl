@@ -1282,19 +1282,6 @@ pp_def('flowconvert',
        Doc => 'internal',
 );
 
-
-pp_def(
-        'converttypei',
-        GlobalNew => 'converttypei_new',
-        OtherPars => 'int totype;',
-        Identity => 1,
-# Forced types
-        FTypes => {CHILD => '$COMP(totype)'},
-        Doc => 'internal',
-);
-
-
-
 # the perl wrapper clump is now defined in Core.pm
 # this is just the low level interface
 pp_def(

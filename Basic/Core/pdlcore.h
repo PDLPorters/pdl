@@ -125,6 +125,7 @@ void pdl_readdata_vaffine(pdl *it);
   X(readdata_affine, void, (pdl_trans *trans)) \
   X(writebackdata_affine, void, (pdl_trans *trans)) \
   X(affine_new, void, (pdl *par,pdl *child,PDL_Indx offs,SV *dims,SV *incs)) \
+  X(converttypei_new, void, (pdl *par,pdl *child,int type)) \
   X(dump, void, (pdl *it)) \
   X(sever, pdl *, (pdl *a))
 
@@ -149,8 +150,6 @@ PDL_GENERICLIST(X)
 struct Core {
   I32    Version;
   badvals bvals;  /* store the default bad values */
-  /* Converttype. Similar */
-  void (*converttypei_new)(pdl *par,pdl *child,int type);
 
 #define X(sym, rettype, args) \
   rettype (*sym) args;
