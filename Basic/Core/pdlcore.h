@@ -122,6 +122,8 @@ void pdl_readdata_vaffine(pdl *it);
   X(set_datatype, void, (pdl *a, int datatype)) \
   X(hdr_copy, SV *, (SV *hdrp)) \
   X(hdr_childcopy, void, (pdl_trans *trans)) \
+  X(readdata_affine, void, (pdl_trans *trans)) \
+  X(writebackdata_affine, void, (pdl_trans *trans)) \
   X(dump, void, (pdl *it)) \
   X(sever, pdl *, (pdl *a))
 
@@ -148,8 +150,6 @@ struct Core {
   badvals bvals;  /* store the default bad values */
 /* Affine trans. THESE ARE SET IN ONE OF THE OTHER Basic MODULES
    and not in Core.xs ! */
-  void (*readdata_affine)(pdl_trans *tr);
-  void (*writebackdata_affine)(pdl_trans *tr);
   void (*affine_new)(pdl *par,pdl *child,PDL_Indx offs,SV *dims,SV *incs);
   /* Converttype. Similar */
   void (*converttypei_new)(pdl *par,pdl *child,int type);

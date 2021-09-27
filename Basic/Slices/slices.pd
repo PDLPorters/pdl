@@ -80,42 +80,6 @@ pp_addhdr(<<'EOH');
 
 EOH
 
-pp_addhdr(<<'EOH');
-/* declare here for .xs file as now ends up in pp-affineinternal.c */
-void pdl_readdata_affineinternal(pdl_trans *tr);
-void pdl_writebackdata_affineinternal(pdl_trans *tr);
-EOH
-pp_add_boot(
-"  PDL->readdata_affine = pdl_readdata_affineinternal;\n" .
-"     PDL->writebackdata_affine = pdl_writebackdata_affineinternal;\n"
-);
-
-pp_def(
-       'affineinternal',
-       HandleBad => 1,
-       AffinePriv => 1,
-       P2Child => 1,
-       ReadDataFuncName => "pdl_readdata_affineinternal",
-       WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
-       EquivCPOffsCode => '
-          if ($CHILD_P(state) & $PARENT_P(state) & PDL_ALLOCATED) {
-            PDL_Indx i, poffs=$PRIV(offs), nd;
-            for(i=0; i<$CHILD_P(nvals); i++) {
-              $EQUIVCPOFFS(i,poffs);
-              for(nd=0; nd<$CHILD_P(ndims); nd++) {
-                poffs += $PRIV(incs[nd]);
-                if( (nd<$CHILD_P(ndims)-1 &&
-                     (i+1)%$CHILD_P(dimincs[nd+1])) ||
-                   nd == $CHILD_P(ndims)-1)
-                        break;
-                poffs -= $PRIV(incs[nd]) *
-                        $CHILD_P(dims[nd]);
-              }
-            }
-          }',
-       Doc => undef,    # 'internal',
-);
-
 =head2 index, index1d, index2d
 
 =cut
