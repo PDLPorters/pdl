@@ -1930,7 +1930,9 @@ EOD
             } elsif ($outca{$x}) {
                 push (@create, $x);
             } else {
-                $clause1 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n" if !$already_read{$x};
+                $clause1 .= "$ci$x = PDL->SvPDLV(".
+		  (($out{$x}||$tmp{$x}) ? "${x}_SV = " : '').
+		  "ST($cnt));\n" if !$already_read{$x};
                 $cnt++;
             }
         }
