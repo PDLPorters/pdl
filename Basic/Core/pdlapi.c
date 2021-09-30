@@ -290,6 +290,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 	  pdl_freethreadloop(&trans->pdlthread);
 	trans->vtable = 0; /* Make sure no-one uses this */
 	PDLDEBUG_f(printf("call free\n"));
+	if (trans->params) free(trans->params);
 	free(trans->ind_sizes);
 	free(trans->inc_sizes);
 	free(trans);
@@ -1444,9 +1445,14 @@ PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
 }
 
 pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
-    pdl_trans *it = malloc(vtable->structsize);
-    memset(it, 0, vtable->structsize);
+    size_t it_sz = sizeof(pdl_trans)+sizeof(pdl *)*vtable->npdls;
+    pdl_trans *it = malloc(it_sz);
+    memset(it, 0, it_sz);
     PDL_TR_SETMAGIC(it);
+    if (vtable->structsize) {
+      it->params = malloc(vtable->structsize);
+      memset(it->params, 0, vtable->structsize);
+    }
     it->flags = vtable->iflags;
     it->dims_redone = 0;
     it->bvalflag = 0;

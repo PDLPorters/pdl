@@ -397,6 +397,7 @@ typedef struct pdl_transvtable {
   PDL_Indx *inc_sizes;                                                  \
   char dims_redone;                                                     \
   PDL_Indx *incs; PDL_Indx offs; /* only used for affine */             \
+  void *params;                                                         \
   int __datatype
 
 #define PDL_TRANS_START(np) \

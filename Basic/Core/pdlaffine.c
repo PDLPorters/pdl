@@ -101,34 +101,33 @@ pp_def( 'affine',
 );
 */
 
-typedef struct pdl_trans__affine {
-  PDL_TRANS_START(2);
+typedef struct pdl_params_affine {
   PDL_Indx  nd;
   PDL_Indx  offset;
   PDL_Indx  *sdims;
   PDL_Indx  *sincs;
-} pdl_trans__affine;
+} pdl_params_affine;
 
-void pdl_affine_redodims(pdl_trans *t) {
-  pdl_trans__affine *trans = (pdl_trans__affine *) t;
-  pdl *__it = t->pdls[1];
-  pdl_hdr_childcopy(t);
+void pdl_affine_redodims(pdl_trans *trans) {
+  pdl_params_affine *params = trans->params;
+  pdl *__it = trans->pdls[1];
+  pdl_hdr_childcopy(trans);
   PDL_Indx i;
-  pdl_reallocdims(__it, trans->nd);
+  pdl_reallocdims(__it, params->nd);
   trans->incs = malloc(sizeof(*trans->incs) * trans->pdls[1]->ndims);
-  trans->offs = trans->offset;
+  trans->offs = params->offset;
   for (i=0;i<trans->pdls[1]->ndims;i++) {
-    trans->incs[i] = trans->sincs[i];
-    trans->pdls[1]->dims[i] = trans->sdims[i];
+    trans->incs[i] = params->sincs[i];
+    trans->pdls[1]->dims[i] = params->sdims[i];
   }
   pdl_setdims_careful(__it);
 }
 
-void pdl_affine_free(pdl_trans *t) {
-  pdl_trans__affine *trans = (pdl_trans__affine *) t;
+void pdl_affine_free(pdl_trans *trans) {
+  pdl_params_affine *params = trans->params;
   PDL_TR_CLRMAGIC(trans);
-  free(trans->sdims);
-  free(trans->sincs);
+  free(params->sdims);
+  free(params->sincs);
   if ((trans)->dims_redone) free(trans->incs);
 }
 
@@ -154,11 +153,12 @@ pdl_transvtable pdl_affine_vtable = {
   0, pdl_affine_vtable_indnames,
   pdl_affine_redodims, NULL, NULL,
   pdl_affine_free,
-  sizeof(pdl_trans__affine),"affine_new"
+  sizeof(pdl_params_affine),"affine_new"
 };
 
 void pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *inclist) {
-  pdl_trans__affine *trans = (void *)pdl_create_trans(&pdl_affine_vtable);
+  pdl_trans *trans = (void *)pdl_create_trans(&pdl_affine_vtable);
+  pdl_params_affine *params = trans->params;
   trans->pdls[0] = PARENT;
   trans->pdls[1] = CHILD;
   char badflag_cache = pdl_trans_badflag_from_inputs((pdl_trans *)trans);
@@ -167,17 +167,17 @@ void pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *incl
   CHILD = trans->pdls[1];
   PDL_Indx i = 0, n2 = 0;
   PDL_Indx *tmpi = pdl_packdims(inclist,&n2);
-  PDL_Indx *tmpd = pdl_packdims(dimlist,&(trans->nd));
-  if (trans->nd < 0)
+  PDL_Indx *tmpd = pdl_packdims(dimlist,&(params->nd));
+  if (params->nd < 0)
     pdl_pdl_barf("Error in affine: can not have negative no of dims");
-  if (trans->nd != n2)
+  if (params->nd != n2)
     pdl_pdl_barf("Error in affine: number of incs does not match dims");
-  trans->sdims = malloc(sizeof(* trans->sdims) * trans->nd);
-  trans->sincs = malloc(sizeof(* trans->sincs) * trans->nd);
-  trans->offset = offspar;
-  for (i=0; i<trans->nd; i++) {
-    trans->sdims[i] = tmpd[i];
-    trans->sincs[i] = tmpi[i];
+  params->sdims = malloc(sizeof(* params->sdims) * params->nd);
+  params->sincs = malloc(sizeof(* params->sincs) * params->nd);
+  params->offset = offspar;
+  for (i=0; i<params->nd; i++) {
+    params->sdims[i] = tmpd[i];
+    params->sincs[i] = tmpi[i];
   }
   pdl_make_trans_mutual((pdl_trans *)trans);
   if (badflag_cache)
@@ -196,15 +196,13 @@ pp_def(
 );
 */
 
-typedef struct pdl_trans__converttypei {
-  PDL_TRANS_START(2);
+typedef struct pdl_params_converttypei {
   int  totype;
-} pdl_trans__converttypei;
+} pdl_params_converttypei;
 
-void pdl_converttypei_redodims(pdl_trans *__tr) {
-  pdl_trans__converttypei *trans = (pdl_trans__converttypei *) __tr;
-  pdl *__it = __tr->pdls[1];
-  pdl_hdr_childcopy(__tr);
+void pdl_converttypei_redodims(pdl_trans *trans) {
+  pdl *__it = trans->pdls[1];
+  pdl_hdr_childcopy(trans);
   PDL_Indx i;
   pdl_reallocdims(__it, trans->pdls[0]->ndims);
   for (i=0; i<trans->pdls[1]->ndims; i++)
@@ -226,28 +224,28 @@ void pdl_converttypei_redodims(pdl_trans *__tr) {
     } \
   }
 
-void pdl_converttypei_readdata(pdl_trans *__tr) {
-  pdl_trans__converttypei *trans = (pdl_trans__converttypei *) __tr;
+void pdl_converttypei_readdata(pdl_trans *trans) {
+  pdl_params_converttypei *params = trans->params;
 #define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_out *, (ctype_out *), ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
   PDL_GENERICSWITCH2(trans->__datatype, X_INNER);
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in *, (ctype_in *), ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(PARENT, CHILD)
-  PDL_GENERICSWITCH(trans->totype, X_OUTER);
+  PDL_GENERICSWITCH(params->totype, X_OUTER);
 #undef X_INNER
 #undef X_OUTER
 }
 
-void pdl_converttypei_writebackdata(pdl_trans *__tr) {
-  pdl_trans__converttypei *trans = (pdl_trans__converttypei *) __tr;
+void pdl_converttypei_writebackdata(pdl_trans *trans) {
+  pdl_params_converttypei *params = trans->params;
 #define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_out *, (ctype_out *), ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
   PDL_GENERICSWITCH2(trans->__datatype, X_INNER);
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in *, (ctype_in *), ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(CHILD, PARENT)
-  PDL_GENERICSWITCH(trans->totype, X_OUTER);
+  PDL_GENERICSWITCH(params->totype, X_OUTER);
 #undef X_INNER
 #undef X_OUTER
 }
@@ -274,18 +272,19 @@ pdl_transvtable pdl_converttypei_vtable = {
   0, pdl_converttypei_vtable_indnames,
   pdl_converttypei_redodims, pdl_converttypei_readdata, pdl_converttypei_writebackdata,
   NULL,
-  sizeof(pdl_trans__converttypei),"converttypei_new"
+  sizeof(pdl_params_converttypei),"converttypei_new"
 };
 
 void pdl_converttypei_new(pdl  *PARENT,pdl  *CHILD,int  totype) {
-  pdl_trans__converttypei *trans = (void *)pdl_create_trans(&pdl_converttypei_vtable);
+  pdl_trans *trans = (void *)pdl_create_trans(&pdl_converttypei_vtable);
+  pdl_params_converttypei *params = trans->params;
   trans->pdls[0] = PARENT;
   trans->pdls[1] = CHILD;
   char badflag_cache = pdl_trans_badflag_from_inputs((pdl_trans *)trans);
   pdl_type_coerce((pdl_trans *)trans);
   PARENT = trans->pdls[0];
   CHILD = trans->pdls[1];
-  CHILD->datatype = trans->totype = trans->totype = totype;
+  CHILD->datatype = params->totype = totype;
   pdl_make_trans_mutual((pdl_trans *)trans);
   if (badflag_cache)
     CHILD->state |= PDL_BADVAL;

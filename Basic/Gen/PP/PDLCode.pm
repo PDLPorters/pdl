@@ -516,7 +516,7 @@ sub myprelude {
     $parent->{$loop_key} = 1;
     PDL::PP::pp_line_numbers(__LINE__, join " \\\n\t",
       "#define $macro_name",
-      'if ( PDL->startthreadloop(&($PRIV(pdlthread)),$PRIV(vtable)->'.$funcName.', __tr) ) return; \
+      'if ( PDL->startthreadloop(&($PRIV(pdlthread)),$PRIV(vtable)->'.$funcName.', __privtrans) ) return; \
        do { \
 	    PDL_Indx *__tdims = PDL->get_threaddims(&$PRIV(pdlthread)); \
 	    register PDL_Indx __tdims1 = __tdims[1]; \

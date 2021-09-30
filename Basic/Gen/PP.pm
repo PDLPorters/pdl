@@ -414,11 +414,12 @@ our @ISA = qw (PDL::PP::Rule);
 # Probably want this directly in the apply routine but leave as is for now
 #
 sub dosubst_private {
-    my ($src,$sname,$name) = @_;
+    my ($src,$sname,$pname,$name) = @_;
     my $ret = (ref $src ? $src->[0] : $src);
     my %syms = (
 		((ref $src) ? %{$src->[1]} : ()),
 		PRIV => sub {return "$sname->$_[0]"},
+		COMP => sub {return "$pname->$_[0]"},
 		CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->pdl_barf(\"Error in $name:\" $_[0])")},
 		NAME => sub {return $name},
 		MODULE => sub {return $::PDLMOD},
@@ -454,7 +455,7 @@ sub new {
     die "\$target must be a scalar for PDL::PP::Rule::Substitute" if ref $target;
     die "\$condition must be a scalar for PDL::PP::Rule::Substitute" if ref $condition;
 
-    $class->SUPER::new($target, [$condition, "StructName", "Name"],
+    $class->SUPER::new($target, [$condition, "StructName", "ParamStructName", "Name"],
 				  \&dosubst_private);
 }
 
@@ -489,7 +490,6 @@ my @std_childparent = (
 	PARENT_P => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0]->'.(join ',',@_).")")},
 	CHILD_PTR => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1])')},
 	PARENT_PTR => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0])')},
-	COMP => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV('.(join ',',@_).")")}
 );
 
 sub get_std_childparent { return @std_childparent; }
@@ -551,7 +551,7 @@ sub subst_makecomp_private {
 		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
 		($cn ?
 			(('DO'.$which.'DIMS') => sub {PDL::PP::pp_line_numbers(__LINE__, join '',
-				map $$co{$_}->get_malloc("\$PRIV($_)"),
+				map $$co{$_}->get_malloc("\$$which($_)"),
 				    grep $$co{$_}->need_malloc, @$cn)}) :
 			()
 		),
@@ -1030,7 +1030,7 @@ sub pp_def {
 	  if exists $obj{Dump} and $obj{Dump} and $::PP_VERBOSE;
 
 	croak("ERROR: No FreeFunc for pp_def=$name!\n")
-	  unless exists $obj{FreeFunc}; # and $obj{FreeFunc};
+	  unless exists $obj{FreeFunc};
 
 	my $ctext = join("\n\n",@obj{'StructDecl','RedoDimsFunc',
 		'ReadDataFunc','WriteBackDataFunc',
@@ -1318,18 +1318,17 @@ sub OtherPars_nft {
 sub wrap_vfn {
   my (
     $code,$rout,$func_header,
-    $all_func_header,$sname,$stype,
+    $all_func_header,$sname,$pname,$ptype,
     $name,
   ) = @_;
   my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
   PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-void $rout(pdl_trans *__tr) {
-  $stype *$sname = ($stype *) __tr;
+void $rout(pdl_trans *$sname) {
+@{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
 $str}
 EOF
 }
-
-my @vfn_args_always = qw(_AllFuncHeader StructName StructType);
+my @vfn_args_always = qw(_AllFuncHeader StructName ParamStructName ParamStructType);
 sub make_vfn_args {
   my ($which) = @_;
   ("${which}Func",
@@ -1660,15 +1659,18 @@ EOD
    # The substituted version should then replace "NS" with "Subd"
    # So: FreeCodeNS -> FreeCodeSubd
 
+   PDL::PP::Rule::Returns->new("StructName", "__privtrans"),
+   PDL::PP::Rule::Returns->new("ParamStructName", "__params"),
+
    PDL::PP::Rule::Croak->new([qw(P2Child GenericTypes)],
        'Cannot have both P2Child and GenericTypes defined'),
    PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy GenericTypes DefaultFlow AllFuncHeader RedoDimsFuncHeader)],
-		      ["P2Child","Name"],
+		      ["P2Child","Name","StructName"],
       sub {
-        my (undef,$name) = @_;
+        my (undef,$name,$sname) = @_;
         ("PARENT(); [oca]CHILD();",0,0,[PDL::Types::ppdefs_all()],1,
-          pp_line_numbers(__LINE__-1,"\tpdl *__it = __tr->pdls[1];\n\tpdl *__parent = __tr->pdls[0];\n"),
-          pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy(__tr);\n"),
+          pp_line_numbers(__LINE__-1,"\tpdl *__it = $sname->pdls[1];\n\tpdl *__parent = $sname->pdls[0];\n"),
+          pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy($sname);\n"),
         );
       }),
 
@@ -1767,13 +1769,10 @@ EOD
       # from copying.
       #                    --CED 27-Jan-2003
       #
-      # sent [EquivCPOffsCode,BadFlag]
-      #
       # this just reverses PARENT & CHILD in the expansion of
       # the $EQUIVCPOFFS macro (ie compared to CodefromEquivCPOffsCode)
       sub {
-        my $good = shift;
-        my $bflag = shift;
+        my ($good, $bflag) = @_;
         my $bad  = $good;
         # parse 'good' code
         $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
@@ -1821,8 +1820,6 @@ EOD
 # "Other pars", the parameters which are usually not pdls.
 
    PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","SignatureObj"], \&OtherPars_nft),
-
-   PDL::PP::Rule::Returns->new("StructName", "__privtrans"),
 
    PDL::PP::Rule->new("NewXSArgs", ["SignatureObj","OtherParNames","OtherParTypes"],
       sub {
@@ -2085,7 +2082,7 @@ END
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS", ["StructName"],
       sub {
-        PDL::PP::pp_line_numbers(__LINE__-1, "PDL->type_coerce((pdl_trans *)$_[0]);");
+        PDL::PP::pp_line_numbers(__LINE__-1, "PDL->type_coerce($_[0]);");
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerceSubd", "NewXSTypeCoerceNS"),
 
@@ -2108,7 +2105,7 @@ END
    PDL::PP::Rule->new("NewXSRunTrans", ["StructName"], sub {
       my($trans) = @_;
       PDL::PP::pp_line_numbers(__LINE__,
-      "PDL->make_trans_mutual((pdl_trans *)$trans);\n");
+      "PDL->make_trans_mutual($trans);\n");
    }),
 
    PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
@@ -2138,11 +2135,11 @@ END
 # This is the default
 #
    PDL::PP::Rule->new("MakeCompiledReprNS",
-      ["OtherParNames","OtherParTypes","StructName"],
+      ["OtherParNames","OtherParTypes","ParamStructName"],
       sub {
-        my($onames,$otypes,$sname) = @_;
+        my($onames,$otypes,$pname) = @_;
         PDL::PP::pp_line_numbers(__LINE__,
-          join '', map $otypes->{$_}->get_copy("$_","$sname->$_"), @$onames
+          join '', map $otypes->{$_}->get_copy($_,"$pname->$_"), @$onames
         );
       }),
    PDL::PP::Rule->new("CompiledRepr",
@@ -2150,22 +2147,20 @@ END
       sub {NT2Decls__({},@_)}),
    PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], sub {NT2Free_p(@_,"COMP")}),
 
-   PDL::PP::Rule->new(["StructDecl","StructType"],
+   PDL::PP::Rule->new(["StructDecl","ParamStructType"],
       ["SignatureObj","CompiledRepr","Name"],
       sub {
         my($sig,$comp,$name) = @_;
-	return ('', 'pdl_trans') if !$comp;
+        return ('', '') if !$comp;
         my $npdls = @{ $sig->names };
-        my $stype = "pdl_trans__$name";
-        (PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $stype {
-PDL_TRANS_START($npdls);
-@{[ join "\n", grep $_, $comp ]}} $stype;}),
-        $stype);
+        my $ptype = "pdl_params_$name";
+        (PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $ptype {\n$comp} $ptype;}),
+        $ptype);
       }),
 
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
-      sub { 'PDL->default_redodims((pdl_trans *)'.$_[0].');' }),
+      sub { 'PDL->default_redodims('.$_[0].');' }),
 
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],
@@ -2207,7 +2202,7 @@ PDL_TRANS_START($npdls);
    PDL::PP::Rule->new("NewXSFindBadStatusNS", ["StructName"],
       "Rule to find the bad value status of the input ndarrays",
       sub {
-        PDL::PP::pp_line_numbers(__LINE__-1, "char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs((pdl_trans *)$_[0]);\n");
+        PDL::PP::pp_line_numbers(__LINE__-1, "char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]);\n");
       }),
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
@@ -2240,13 +2235,14 @@ PDL_TRANS_START($npdls);
    PDL::PP::Rule::Substitute::Usual->new("NewXSCopyBadStatusSubd", "NewXSCopyBadStatusNS"),
 
    PDL::PP::Rule->new("NewXSStructInit0",
-		      ["StructName","StructType","VTableName"],
+		      ["StructName","VTableName","ParamStructName","ParamStructType"],
 		      "Rule to create and initialise the private trans structure",
       sub {
-        my( $sname, $stype, $vtable ) = @_;
+        my( $sname, $vtable, $pname, $ptype ) = @_;
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 if (!PDL) croak("PDL core struct is NULL, can't continue");
-$stype *$sname = (void *)PDL->create_trans(&$vtable);
+pdl_trans *$sname = PDL->create_trans(&$vtable);
+@{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
 EOF
       }),
 
@@ -2329,13 +2325,13 @@ EOF
 
    PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
    PDL::PP::Rule->new("VTableDef",
-      ["VTableName","StructType","RedoDimsFuncName","ReadDataFuncName",
+      ["VTableName","ParamStructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
        "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name",
        "GenericTypes","IsAffineFlag","ReversibleFlag","DefaultFlowFlag",
        "BadFlag"],
       sub {
-        my($vname,$stype,$rdname,$rfname,$wfname,$ffname,
+        my($vname,$ptype,$rdname,$rfname,$wfname,$ffname,
            $sig,$affine_ok,$havethreading, $noPthreadFlag, $name, $gentypes,
            $affflag, $revflag, $flowflag, $badflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
@@ -2363,7 +2359,7 @@ EOF
         my $realdim_inds = join(", ", @rd_inds) || '0';
         my @indnames = $sig->ind_names_sorted;
         my $indnames = join(",", map qq|"$_"|, @indnames) || '""';
-        my $sizeof = "sizeof($stype)" . ($stype eq 'pdl_trans' ? "+sizeof(pdl *)*$npdls" : '');
+        my $sizeof = $ptype ? "sizeof($ptype)" : '0';
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 static pdl_datatypes ${vname}_gentypes[] = { $gentypes_txt };
 static char ${vname}_flags[] = {

@@ -1,5 +1,6 @@
 - remove IO::Misc::rdsa, untested since PDL 1.9 and needing non-CPAN "DSA" module
 - throw error when XS called with inplace input but also explicit output
+- OtherPars to separate struct; pdl_transvtable.structsize of that
 
 2.057_02 2021-09-26
 - split internal .pd into one C file per pp_def function allowing parallel build
