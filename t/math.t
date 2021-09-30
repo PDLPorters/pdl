@@ -18,6 +18,8 @@ ok( tapprox(bessjn(0.8,3),0.010) && tapprox(bessyn(0.2,2),-32.15714) ,"bessjn");
 # test inplace
 my $pa = pdl(0.5,0.0);
 $pa->inplace->bessj0;
+eval { $pa->inplace->bessj0(PDL->null) };
+isnt $@, '', 'check providing explicit output arg to inplace throws exception';
 ok( tapprox($pa,pdl(0.9384,1)), "bessj0 inplace" );
 }
 
