@@ -350,7 +350,7 @@ sub PDL::rebin {
 ',
         Code => '
         int ms = $SIZE(m);
-        int nv = $PRIV(ns);
+        int nv = $COMP(ns);
       int i;
       double u, d;
       $GENERIC(a) av;

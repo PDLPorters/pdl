@@ -1717,9 +1717,9 @@ EOD
         OtherPars => join('', map "PDL_Indx $_;", qw(nthdim step n)),
         RedoDims => '
                 PDL_Indx i;
-                if ($PRIV(nthdim) < 0)  /* the usual conventions */
-                   $PRIV(nthdim) = $PARENT(ndims) + $PRIV(nthdim);
-                if ($PRIV(nthdim) < 0 || $PRIV(nthdim) >= $PARENT(ndims))
+                if ($COMP(nthdim) < 0)  /* the usual conventions */
+                   $COMP(nthdim) = $PARENT(ndims) + $COMP(nthdim);
+                if ($COMP(nthdim) < 0 || $COMP(nthdim) >= $PARENT(ndims))
                    $CROAK("lags: dim out of range");
                 if ($COMP(n) < 1)
                    $CROAK("lags: number of lags must be positive");
@@ -1728,7 +1728,7 @@ EOD
                 $PRIV(offs) = 0;
                 $SETNDIMS($PARENT(ndims)+1);
                 $DOPRIVDIMS();
-                for(i=0; i<$PRIV(nthdim); i++) {
+                for(i=0; i<$COMP(nthdim); i++) {
                         $CHILD(dims)[i] = $PARENT(dims)[i];
                         $PRIV(incs)[i] = $PARENT(dimincs)[i];
                 }
@@ -1791,7 +1791,7 @@ EOD
                 $PRIV(offs) = 0;
                 $SETNDIMS($PARENT(ndims)+1);
                 $DOPRIVDIMS();
-                for(i=0; i<$PRIV(nthdim); i++) {
+                for(i=0; i<$COMP(nthdim); i++) {
                         $CHILD(dims)[i] = $PARENT(dims)[i];
                         $PRIV(incs)[i] = $PARENT(dimincs)[i];
                 }
