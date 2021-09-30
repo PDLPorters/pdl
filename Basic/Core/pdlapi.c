@@ -1592,6 +1592,9 @@ char pdl_trans_badflag_from_inputs(pdl_trans *trans) {
   pdl **pdls = trans->pdls;
   char retval = 0;
   for (i=0; i<vtable->npdls; i++) {
+    pdl *pdl = pdls[i];
+    if (!pdl)
+      pdl_pdl_barf("%s got NULL pointer on param %s", vtable->name, vtable->par_names[i]);
     if ((vtable->par_flags[i] & (PDL_PARAM_ISOUT|PDL_PARAM_ISTEMP)) ||
         !(pdls[i]->state & PDL_BADVAL)) continue;
     trans->bvalflag = retval = 1;
