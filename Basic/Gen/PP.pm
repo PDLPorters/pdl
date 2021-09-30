@@ -1396,8 +1396,8 @@ sub NT2Decls__ {
 }
 
 sub NT2Free_p {
-  my($onames,$otypes) = @_;
-  my $decl = join '', map $otypes->{$_}->get_free("\$PRIV($_)",
+  my($onames,$otypes,$symbol) = @_;
+  my $decl = join '', map $otypes->{$_}->get_free("\$$symbol($_)",
     { VarArrays2Ptrs => 1 }), @$onames;
   $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
 }
@@ -2133,7 +2133,7 @@ END
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompNames","CompObjs"],
 				"COMP"),
 
-   PDL::PP::Rule->new("CompFreeCode", ["CompNames","CompObjs"], \&NT2Free_p),
+   PDL::PP::Rule->new("CompFreeCode", ["CompNames","CompObjs"], sub {NT2Free_p(@_,"COMP")}),
 
 # This is the default
 #
@@ -2148,7 +2148,7 @@ END
    PDL::PP::Rule->new("CompiledRepr",
       ["OtherParNames","OtherParTypes"],
       sub {NT2Decls__({},@_)}),
-   PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], \&NT2Free_p),
+   PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], sub {NT2Free_p(@_,"COMP")}),
 
    PDL::PP::Rule->new(["StructDecl","StructType"],
       ["SignatureObj","CompiledRepr","Name"],
@@ -2187,7 +2187,7 @@ PDL_TRANS_START($npdls);
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
 
    PDL::PP::Rule->new(["PrivNames","PrivObjs"], "Priv", \&OtherPars_nft),
-   PDL::PP::Rule->new("NTPrivFreeCode", ["PrivNames","PrivObjs"], \&NT2Free_p),
+   PDL::PP::Rule->new("NTPrivFreeCode", ["PrivNames","PrivObjs"], sub {NT2Free_p(@_,"PRIV")}),
 
    PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
 
