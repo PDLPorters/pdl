@@ -10,6 +10,7 @@ use PDL::Types ':All';
 # (i.e. text that is within matched brackets)
 my $prebrackreg = qr/^([^\(\{\[]*)/;
 sub splitprotected ($$) {
+  require Text::Balanced;
   my ($re,$txt) = @_;
   return () if !defined $txt || $txt =~ /^\s*$/;
   my ($got,$pre) = (1,'');
