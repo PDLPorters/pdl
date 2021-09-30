@@ -1540,6 +1540,8 @@ void pdl_type_coerce(pdl_trans *trans) {
   }
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
+    if (!pdl)
+      pdl_pdl_barf("%s got NULL pointer on param %s", vtable->name, vtable->par_names[i]);
     short flags = vtable->par_flags[i];
     if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
       continue;
