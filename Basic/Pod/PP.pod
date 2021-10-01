@@ -1991,7 +1991,7 @@ In most cases you can define your Makefile like
   use PDL::Core::Dev;            # Pick up development utilities
   use ExtUtils::MakeMaker;
 
-  $package = ["mylib.pd",Mylib,PDL::Lib::Mylib];
+  $package = ["mylib.pd",Mylib,PDL::Lib::Mylib,'',1];
   %hash = pdlpp_stdargs($package);
   $hash{OBJECT} .= ' additional_Ccode$(OBJ_EXT) ';
   $hash{clean}->{FILES} .= ' todelete_Ccode$(OBJ_EXT) ';
@@ -1999,40 +1999,24 @@ In most cases you can define your Makefile like
 
   sub MY::postamble { pdlpp_postamble($package); }
 
+  # additional_Ccode.c
+  #include "pdl.h"
+  void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
+  {
+    int i;
+    for (i=0;i<len;i++) *dst++=*src++;
+  }
+
 Here, the list in $package is: first: PP source file name,
-then the prefix for the produced files and finally the whole package name.
+then the prefix for the produced files, the whole package name, the
+package to add XS functions to (empty string to use the same as the
+PP functions), and a boolean to dictate whether to have PDL generate a
+separate C file for each PP function (for faster compilation).
+The last feature is opt-in as you have to avoid duplicate symbols when
+linking the library (so separate out C functions into their own file).
 You can modify the hash in whatever way you like but it would be reasonable
 to stay within some limits so that your package will continue to work
 with later versions of PDL.
-
-If you don't want to use prepackaged arguments,
-here is a generic F<Makefile.PL> that you can adapt for your own
-needs:
-
-  # Makefile.PL for a package defined by PP code.
-
-  use PDL::Core::Dev;            # Pick up development utilities
-  use ExtUtils::MakeMaker;
-
-  WriteMakefile(
-   'NAME'  	=> 'PDL::Lib::Mylib',
-   'VERSION_FROM'	=> 'mylib.pd',
-   'TYPEMAPS'     => [&PDL_TYPEMAP()],
-   'OBJECT'       => 'mylib$(OBJ_EXT) additional_Ccode$(OBJ_EXT)',
-   'PM'		=> { 'Mylib.pm'            => '$(INST_LIBDIR)/Mylib.pm'},
-   'INC'          => &PDL_INCLUDE(), # add include dirs as required by your lib
-   'LIBS'         => [''],   # add link directives as necessary
-   'clean'        => {'FILES'  =>
-			  'Mylib.pm Mylib.xs Mylib$(OBJ_EXT)
-			  additional_Ccode$(OBJ_EXT)'},
-  );
-
-  # Add genpp rule; this will invoke PDL::PP on our PP file
-  # the argument is an array reference where the array has three string elements:
-  #   arg1: name of the source file that contains the PP code
-  #   arg2: basename of the xs and pm files to be generated
-  #   arg3: name of the package that is to be generated
-  sub MY::postamble { pdlpp_postamble(["mylib.pd",Mylib,PDL::Lib::Mylib]); }
 
 To make life even easier PDL::Core::Dev defines the function C<pdlpp_stdargs>
 that returns a hash with default values that can be passed (either
@@ -2042,10 +2026,11 @@ as follows:
 
 	(
 	 'NAME'  	=> $mod,
+	 VERSION_FROM   => $src,
 	 'TYPEMAPS'     => [&PDL_TYPEMAP()],
 	 'OBJECT'       => "$pref\$(OBJ_EXT)",
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
-	 MAN3PODS => {"$src" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
+	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
 	 'INC'          => &PDL_INCLUDE(),
 	 'LIBS'         => [''],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT)"},

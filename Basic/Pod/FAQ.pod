@@ -1426,7 +1426,7 @@ Makefile.
     use ExtUtils::MakeMaker;
     PDL::Core::Dev->import();
     
-    $package = ["eight.pd",Eight,PDL::Eight];
+    $package = ["eight.pd",Eight,PDL::Eight,'',1];
     %hash = pdlpp_stdargs($package);
     
     WriteMakefile( %hash );
@@ -1443,6 +1443,10 @@ you and
 C<make install> will
 install it for you. 
 
+The fifth element in the C<$package> array-ref is true. This tells PDL
+to generate one C file per PP function, which with the right C<make>
+options can be compiled in parallel, for a useful speedup of development
+/ installation.
 
 =head2 Q: 7.3    How can I interface package XXX in PDL?  
 
@@ -1553,7 +1557,7 @@ an earlier question.
     use ExtUtils::MakeMaker;
     PDL::Core::Dev->import();
     
-    $package = ["quickstats.pd",Quickstats,PDL::Quickstats];
+    $package = ["quickstats.pd",Quickstats,PDL::Quickstats,'',1];
     %hash = pdlpp_stdargs($package);
     
     WriteMakefile( %hash );

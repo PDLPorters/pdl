@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use PDL::Core::Dev;
-my @pack = (["tests.pd", qw(Tests PDL::Tests)]);
+my @pack = (["tests.pd", qw(Tests PDL::Tests), '', 1]);
 sub MY::postamble {
 	pdlpp_postamble(@pack);
 };  # Add genpp rule

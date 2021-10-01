@@ -221,7 +221,7 @@ sub pdlpp_postamble_int {
 # same format as pdlpp_postamble_int
 sub pdlpp_postamble {
   my $w = whereami_any();
-  join '', map _postamble($w, 0, @$_[0..3], 0), @_;
+  join '', map _postamble($w, 0, @$_), @_;
 }
 
 my %flist_cache;
@@ -270,7 +270,7 @@ sub pdlpp_stdargs_int {
 }
 
 sub pdlpp_stdargs {
-  _stdargs(undef, 0, @{$_[0]}[0..3], 0);
+  _stdargs(undef, 0, @{$_[0]});
 }
 
 # pdlpp_mkgen($dir)
