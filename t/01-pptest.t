@@ -20,7 +20,47 @@ my @pack = (["tests.pd", qw(Tests PDL::Tests)]);
 sub MY::postamble {
 	pdlpp_postamble(@pack);
 };  # Add genpp rule
-WriteMakefile(pdlpp_stdargs(@pack));
+my %hash = pdlpp_stdargs(@pack);
+$hash{OBJECT} .= ' ppcp$(OBJ_EXT)';
+WriteMakefile(%hash);
+EOF
+
+    'ppcp.c' => <<'EOF',
+#include "pdl.h"
+/* to test the $P vaffining */
+void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
+{
+  int i;
+  for (i=0;i<len;i++)
+     *dst++=*src++;
+}
+
+void tinplace_c1(int n, PDL_Float* data)
+{
+  int i;
+  for (i=0;i<n;i++) {
+    data[i] = 599.0;
+  }
+}
+
+void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2)
+{
+  int i;
+  for (i=0;i<n;i++) {
+    data1[i] = 599.0;
+    data2[i] = 699.0;
+  }
+}
+
+void tinplace_c3(int n, PDL_Float* data1, PDL_Float* data2, PDL_Float* data3)
+{
+  int i;
+  for (i=0;i<n;i++) {
+    data1[i] = 599.0;
+    data2[i] = 699.0;
+    data3[i] = 799.0;
+  }
+}
 EOF
 
     'tests.pd' => <<'EOF',
@@ -38,14 +78,7 @@ sub pp_deft {
 }
 
 pp_addhdr('
-/* to test the $P vaffining */
-void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
-{
-  int i;
-
-  for (i=0;i<len;i++)
-     *dst++=*src++;
-}
+void ppcp(PDL_Byte *dst, PDL_Byte *src, int len);
 ');
 
 # test the $P vaffine behaviour
@@ -96,34 +129,9 @@ pp_deft('fooseg',
 ');
 
 pp_addhdr << 'EOH';
-
-void tinplace_c1(int n, PDL_Float* data)
-{
-  int i;
-  for (i=0;i<n;i++) {
-    data[i] = 599.0;
-  }
-}
-
-void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2)
-{
-  int i;
-  for (i=0;i<n;i++) {
-    data1[i] = 599.0;
-    data2[i] = 699.0;
-  }
-}
-
-void tinplace_c3(int n, PDL_Float* data1, PDL_Float* data2, PDL_Float* data3)
-{
-  int i;
-  for (i=0;i<n;i++) {
-    data1[i] = 599.0;
-    data2[i] = 699.0;
-    data3[i] = 799.0;
-  }
-}
-
+void tinplace_c1(int n, PDL_Float* data);
+void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2);
+void tinplace_c3(int n, PDL_Float* data1, PDL_Float* data2, PDL_Float* data3);
 EOH
 
 pp_deft('fooflow1',
