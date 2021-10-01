@@ -201,7 +201,7 @@ sub _postamble {
     $install = qq|\n\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
   }
   my @generanda = "$pref.xs";
-  push @generanda, map "pp-$_.c", _pp_list_functions($src) if $multi_c;
+  push @generanda, map "pp-$_.c", _pp_list_functions($src, $internal) if $multi_c;
 qq|
 
 $pref.pm : $pmdep
@@ -227,15 +227,15 @@ sub pdlpp_postamble {
 my %flist_cache;
 sub _pp_list_functions {
   require File::Spec::Functions;
-  my ($src) = @_;
+  my ($src, $internal) = @_;
   my $abs_src = File::Spec::Functions::rel2abs($src);
   if (!$flist_cache{$abs_src}) {
     my $w = whereami_any();
-    my $typespm = File::Spec::Functions::catfile($w, qw(Core Types.pm));
-    system $^X, "$typespm.PL", $typespm if !-f $typespm;
+    my $typespm = File::Spec::Functions::catfile($w, $internal ? qw(Core) : (), qw(Types.pm));
+    system $^X, "$typespm.PL", $typespm if $internal and !-f $typespm;
     require $typespm;
     local $INC{'PDL/Types.pm'} = 1;
-    require ''.File::Spec::Functions::catfile($w, qw(Gen PP.pm));
+    require ''.File::Spec::Functions::catfile($w, $internal ? qw(Gen) : (), qw(PP.pm));
     $flist_cache{$abs_src} = [ PDL::PP::list_functions($src) ];
   }
   @{ $flist_cache{$abs_src} };
@@ -244,7 +244,7 @@ sub _pp_list_functions {
 sub _stdargs {
   my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
   my @cbase = $pref;
-  push @cbase, map "pp-$_", _pp_list_functions($src) if $multi_c;
+  push @cbase, map "pp-$_", _pp_list_functions($src, $internal) if $multi_c;
   my @cfiles = map "$_.c", @cbase;
   my @objs = map "$_\$(OBJ_EXT)", @cbase;
   (
