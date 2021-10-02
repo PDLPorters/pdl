@@ -194,7 +194,7 @@ sub _postamble {
     my $gendep = File::Spec::Functions::catfile($top, qw(Basic Gen pm_to_blib));
     $pmdep .= " $coredeps $gendep";
   }
-  my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack, $multi_c);
+  my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack, $multi_c||'');
   my $install = '';
   if (!$internal) {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
