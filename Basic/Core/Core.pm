@@ -1142,7 +1142,9 @@ sub _establish_type {
   return $PDL_CD if UNIVERSAL::isa($item, 'Math::Complex');
   return max($item->type->enum, $sofar) if UNIVERSAL::isa($item, 'PDL');
   return $PDL_D if ref($item) ne 'ARRAY';
-  max($sofar, map _establish_type($_, $sofar), @$item);
+  #  only need to recurse for items that are refs
+  #  as $sofar will be $PDL_D at a minimum
+  max ($sofar, map {_establish_type($_, $sofar)} grep {ref} @$item);
 }
 
 sub PDL::new {
