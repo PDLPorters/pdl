@@ -1157,7 +1157,7 @@ sub PDL::new {
        }
        $value = ($PDL::undefval//0)+0
    }
-   $type = _establish_type($value, $PDL_D) if !defined $type;
+   $type //= ref($value) ? _establish_type($value, $PDL_D) : $PDL_D;
 
    return pdl_avref($value,$this,$type) if ref($value) eq "ARRAY";
    my $new = $this->initialize();
