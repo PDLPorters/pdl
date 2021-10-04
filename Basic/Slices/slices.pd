@@ -2651,97 +2651,95 @@ SLICE-MC
                           while(*s) {
                             if( isspace( *s ) ) {
                               s++;  /* ignore and loop again */
-                            } else {
-                              /* not whitespace */
+                              continue;
+                            }
+                            /* not whitespace */
+                            switch(*(s++)) {
+                              case '*':
+                                if(flagged || subargno)
+                                  barf("slice: Erroneous '*' (arg %d)",i);
+                                dummy_flag = flagged = 1;
+                                n0 = 1;  /* default this number to 1 (size 1); '*0' yields an empty */
+                                n1 = 1;  /* no second arg allowed - default to 1 so n0 is element count */
+                                n2 = -1; /* -1 so we count down to n1 from n0 */
+                                break;
 
-                              switch(*(s++)) {
-                                case '*':
-                                  if(flagged || subargno)
-                                    barf("slice: Erroneous '*' (arg %d)",i);
-                                  dummy_flag = flagged = 1;
-                                  n0 = 1;  /* default this number to 1 (size 1); '*0' yields an empty */
-                                  n1 = 1;  /* no second arg allowed - default to 1 so n0 is element count */
-                                  n2 = -1; /* -1 so we count down to n1 from n0 */
-                                  break;
+                              case '(':
+                                if(flagged || subargno)
+                                  barf("slice: Erroneous '(' (arg %d)",i);
+                                squish_flag = flagged = 1;
 
-                                case '(':
-                                  if(flagged || subargno)
-                                    barf("slice: Erroneous '(' (arg %d)",i);
-                                  squish_flag = flagged = 1;
+                                break;
 
-                                  break;
+                              case 'X': case 'x':
+                                if(flagged || subargno > 1)
+                                  barf("slice: Erroneous 'X' (arg %d)",i);
+                                  if(subargno==0) {
+                                    all_flag = flagged = 1;
+                                  }
+                                  else /* subargno is 1 - squish */ {
+                                    squish_flag = squish_closed = flagged = 1;
+                                  }
+                                break;
 
-                                case 'X': case 'x':
-                                  if(flagged || subargno > 1)
-                                    barf("slice: Erroneous 'X' (arg %d)",i);
-                                    if(subargno==0) {
-                                      all_flag = flagged = 1;
-                                    }
-                                    else /* subargno is 1 - squish */ {
-                                      squish_flag = squish_closed = flagged = 1;
-                                    }
-                                  break;
+                              case '+': case '-':
+                              case '0': case '1': case '2': case '3': case '4':
+                              case '5': case '6': case '7': case '8': case '9':
+                               switch(subargno) {
 
-                                case '+': case '-':
-                                case '0': case '1': case '2': case '3': case '4':
-                                case '5': case '6': case '7': case '8': case '9':
-                                 switch(subargno) {
+                                 case 0: /* first arg - change default to 1 element */
+                                         n0 = strtoll(--s, &s, 10);
+                                         n1 = n0;
+                                         if(dummy_flag) {
+                                           n0 = 1;
+                                         }
+                                         break;
 
-                                   case 0: /* first arg - change default to 1 element */
-                                           n0 = strtoll(--s, &s, 10);
-                                           n1 = n0;
-                                           if(dummy_flag) {
-                                             n0 = 1;
-                                           }
-                                           break;
+                                 case 1: /* second arg - parse and keep end */
+                                         n1 = strtoll(--s, &s, 10);
+                                         break;
 
-                                   case 1: /* second arg - parse and keep end */
-                                           n1 = strtoll(--s, &s, 10);
-                                           break;
+                                 case 2: /* third arg - parse and keep inc */
+                                         if( squish_flag || dummy_flag ) {
+                                          barf("slice: erroneous third field in slice specifier (arg %d)",i);
+                                         }
+                                         n2 = strtoll(--s, &s, 10);
+                                         break;
 
-                                   case 2: /* third arg - parse and keep inc */
-                                           if( squish_flag || dummy_flag ) {
-                                            barf("slice: erroneous third field in slice specifier (arg %d)",i);
-                                           }
-                                           n2 = strtoll(--s, &s, 10);
-                                           break;
+                                 default: /* oops */
+                                   barf("slice: too many subargs in scalar slice specifier %d",i);
+                                   break;
+                               }
+                               break;
 
-                                   default: /* oops */
-                                     barf("slice: too many subargs in scalar slice specifier %d",i);
-                                     break;
-                                 }
-                                 break;
+                              case ')':
+                               if( squish_closed || !squish_flag || subargno > 0) {
+                                barf("nslice: erroneous ')' (arg %d)",i);
+                               }
+                               squish_closed = 1;
+                               break;
 
-                                case ')':
-                                 if( squish_closed || !squish_flag || subargno > 0) {
-                                  barf("nslice: erroneous ')' (arg %d)",i);
-                                 }
-                                 squish_closed = 1;
-                                 break;
+                              case ':':
+                               if(squish_flag && !squish_closed) {
+                                 barf("slice: must close squishing parens (arg %d)",i);
+                               }
+                               if( subargno == 0 ) {
+                                 n1 = -1;   /* Set "<n>:" default to get the rest of the range */
+                               }
+                               if( subargno > 1 ) {
+                                 barf("slice: too many ':'s in scalar slice specifier %d",i);
+                               }
+                               subargno++;
+                               break;
 
-                                case ':':
-                                 if(squish_flag && !squish_closed) {
-                                   barf("slice: must close squishing parens (arg %d)",i);
-                                 }
-				 if( subargno == 0 ) {
-				   n1 = -1;   /* Set "<n>:" default to get the rest of the range */
-				 }
-                                 if( subargno > 1 ) {
-                                   barf("slice: too many ':'s in scalar slice specifier %d",i);
-                                 }
-                                 subargno++;
-                                 break;
+                              case ',':
+                               barf("slice: ','  not allowed (yet) in scalar slice specifiers!");
+                               break;
 
-                                case ',':
-                                 barf("slice: ','  not allowed (yet) in scalar slice specifiers!");
-                                 break;
-
-                                default:
-                                 barf("slice: unexpected '%c' in slice specifier (arg %d)",*s,i);
-                                 break;
-                              }
-                            } /* end of conditional in parse loop */
-
+                              default:
+                               barf("slice: unexpected '%c' in slice specifier (arg %d)",*s,i);
+                               break;
+                            }
                           } /* end of parse loop */
 
                         } else /* end of string parsing */ {
