@@ -1,3 +1,5 @@
+- remove legacy pdl_create
+
 2.057_03 2021-10-02
 - remove IO::Misc::rdsa, untested since PDL 1.9 and needing non-CPAN "DSA" module
 - throw error when XS called with inplace input but also explicit output

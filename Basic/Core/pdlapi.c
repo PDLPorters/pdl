@@ -22,7 +22,7 @@ static int is_parent_of(pdl *it,pdl_trans *trans) {
 
 pdl *pdl_null() {
 	PDL_Indx d[1] = {0};
-	pdl *it = pdl_create(PDL_PERM);
+	pdl *it = pdl_pdlnew();
 	PDL_Anyval zero = { PDL_B, 0 };
 	pdl_makescratchhash(it, zero);
 	pdl_setdims(it,d,1);
@@ -80,25 +80,13 @@ void pdl_allocdata(pdl *it) {
 	it->state |= PDL_ALLOCATED;
 }
 
-/* Wrapper to pdl_create to be stored in the Core struct and exported
-   to external PDL XS modules */
 pdl* pdl_pdlnew() {
-  return pdl_create(PDL_PERM);
-}
-/* Return a new pdl - type is PDL_PERM or PDL_TMP - the latter is fatal error because former uses sv_mortal to be freed
- * when current perl context is left
- */
-pdl* pdl_create(int type) {
      int i;
      pdl* it;
-
-     if(type == PDL_TMP) {croak("PDL internal error. FIX!\n");}
-
      it = (pdl*) malloc(sizeof(pdl));
      if (it==NULL)
         croak("Out of Memory\n");
      memset(it, 0, sizeof(pdl));
-
      it->magicno = PDL_MAGICNO;
      it->state = 0;
      it->datatype = 0;
@@ -108,21 +96,16 @@ pdl* pdl_create(int type) {
      it->datasv = 0;
      it->data = 0;
      it->has_badvalue = 0;
-
      it->dims = it->def_dims;
      it->dimincs = it->def_dimincs;
      it->ndims = 0;
-
      it->nthreadids = 1;
      it->threadids = it->def_threadids;
      it->threadids[0] = 0;
-
      for(i=0; i<PDL_NCHILDREN; i++) {it->children.trans_parent[i]=NULL;}
      it->children.next = NULL;
-
      it->magic = 0;
      it->hdrsv = 0;
-
      PDLDEBUG_f(printf("CREATE %p (size=%zu)\n",(void*)it,sizeof(pdl)));
      return it;
 }

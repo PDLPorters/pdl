@@ -28,9 +28,6 @@
 #include "pdlmagic.h"
 #endif
 
-#define PDL_TMP  0        /* Flags */
-#define PDL_PERM 1
-
 #define BIGGESTOF(a,b) ( a->nvals>b->nvals ? a->nvals : b->nvals )
 #define SVavref(x) (SvROK(x) && SvTYPE(SvRV(x))==SVt_PVAV)
 
@@ -60,7 +57,6 @@ void pdl_readdata_vaffine(pdl *it);
   X(SvPDLV, pdl*, ( SV* )) \
   X(SetSV_PDL, void, ( SV *sv, pdl *it )) \
   X(pdlnew, pdl*, ()) \
-  X(create, pdl*, (int type)) \
   X(destroy, void, (pdl *it)) \
   X(null, pdl*, ()) \
   X(hard_copy, pdl*, ( pdl* )) \
