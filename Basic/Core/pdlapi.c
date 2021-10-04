@@ -819,11 +819,6 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 			trans->pdls[i]->trans_parent = trans;
 		}
 	  }
-#ifdef BARBARBAR /* Not done */
-	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++)
-		trans->pdls[i]->state  |=
-		   PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
-#endif
 	if(!trans->vtable) {die("INVALID TRANS: has no vtable!\n");}
 	/* now actually perform the transformation, i.e. call
 	   transform's redodims and readdata vtable entries
