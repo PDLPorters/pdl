@@ -229,8 +229,7 @@ void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 void pdl_destroytransform(pdl_trans *trans,int ensure)
 {
 	PDL_Indx j;
-	pdl *foo;
-	pdl *destbuffer[100];
+	pdl *pdl, *destbuffer[100];
 	int ndest = 0;
 	int ismutual = !(trans->flags & PDL_ITRANS_NONMUTUAL);
 	PDLDEBUG_f(printf("entering pdl_destroytransform %p (ensure %d, ismutual %d)\n",
@@ -248,36 +247,37 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 	}
 	if (ismutual) {
 	  for(j=0; j<trans->vtable->nparents; j++) {
-	    foo = trans->pdls[j];
-	    if(!foo) continue;
-	    PDL_CHKMAGIC(foo);
+	    pdl = trans->pdls[j];
+	    if(!pdl) continue;
+	    PDL_CHKMAGIC(pdl);
 	    PDLDEBUG_f(printf("pdl_removectransform(%p): %p %"IND_FLAG"\n",
-	      (void*)trans, (void*)(trans->pdls[j]), j));
-	    pdl__removechildtrans(trans->pdls[j],trans,j,1);
-	    if(!(foo->state & PDL_DESTROYING) && !foo->sv) {
-	      destbuffer[ndest++] = foo;
+	      (void*)trans, (void*)(pdl), j));
+	    pdl__removechildtrans(pdl,trans,j,1);
+	    if(!(pdl->state & PDL_DESTROYING) && !pdl->sv) {
+	      destbuffer[ndest++] = pdl;
 	    }
 	  }
 	  for(; j<trans->vtable->npdls; j++) {
-	    foo = trans->pdls[j];
-	    PDL_CHKMAGIC(foo);
+	    pdl = trans->pdls[j];
+	    PDL_CHKMAGIC(pdl);
 	    PDLDEBUG_f(printf("pdl_removeptransform(%p): %p %"IND_FLAG"\n",
-	      (void*)trans, (void*)(trans->pdls[j]), j));
-	    pdl__removeparenttrans(trans->pdls[j],trans,j);
-	    if(foo->vafftrans) {
-	      PDLDEBUG_f(printf("pdl_removevafft: %p\n", (void*)foo));
-	      pdl_vafftrans_remove(foo);
+	      (void*)trans, (void*)(pdl), j));
+	    pdl__removeparenttrans(pdl,trans,j);
+	    if(pdl->vafftrans) {
+	      PDLDEBUG_f(printf("pdl_removevafft: %p\n", (void*)pdl));
+	      pdl_vafftrans_remove(pdl);
 	    }
-	    if(!(foo->state & PDL_DESTROYING) && !foo->sv) {
-	      destbuffer[ndest++] = foo;
+	    if(!(pdl->state & PDL_DESTROYING) && !pdl->sv) {
+	      destbuffer[ndest++] = pdl;
 	    }
 	  }
 	} else {
 	  PDL_TR_CHKMAGIC(trans);
 	  for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
-	    trans->pdls[j]->state &= ~PDL_NOMYDIMS;
-	    if(trans->pdls[j]->trans_parent == trans)
-	      trans->pdls[j]->trans_parent = 0;
+	    pdl = trans->pdls[j];
+	    pdl->state &= ~PDL_NOMYDIMS;
+	    if(pdl->trans_parent == trans)
+	      pdl->trans_parent = 0;
 	  }
 	}
 	PDL_TR_CHKMAGIC(trans);
