@@ -2328,26 +2328,23 @@ sub PDL::slice (;@) {
     # way.  Single-element and zero-element PDLs are trivial and get
     # converted into slices for faster handling later.
     for my $i(0..$#others) {
-      if( blessed($others[$i]) && $others[$i]->isa('PDL') ) {
-        my $idx = $others[$i];
-        if($idx->ndims > 1) {
-          barf("slice: dicing parameters must be at most 1D (arg $i)\n");
-        }
-        my $nlm = $idx->nelem;
-        if($nlm > 1) {
-           #### More than one element - we have to dice (darn it).
-           my $n = $source->getndims;
-           $source = $source->mv($i,0)->index1d($idx)->mv(0,$i);
-           $others[$i] = '';
-        } 
-        elsif($nlm) {
-           #### One element - convert to a regular slice.
-           $others[$i] = $idx->flat->at(0);
-        }
-        else {
-           #### Zero elements -- force an extended empty.
-           $others[$i] = "1:0:1";
-        }
+      next if !( blessed(my $idx = $others[$i]) && $others[$i]->isa('PDL') );
+      barf("slice: dicing parameters must be at most 1D (arg $i)\n")
+        if $idx->ndims > 1;
+      my $nlm = $idx->nelem;
+      if($nlm > 1) {
+         #### More than one element - we have to dice (darn it).
+         my $n = $source->getndims;
+         $source = $source->mv($i,0)->index1d($idx)->mv(0,$i);
+         $others[$i] = '';
+      } 
+      elsif($nlm) {
+         #### One element - convert to a regular slice.
+         $others[$i] = $idx->flat->at(0);
+      }
+      else {
+         #### Zero elements -- force an extended empty.
+         $others[$i] = "1:0:1";
       }
     }
     PDL::sliceb($source,\@others);
@@ -2358,14 +2355,12 @@ EOD-slice
 pp_add_exported('', 'slice');
 
 ##########
-# This is a kludge to pull arbitrary data out of a single-element PDL, using the Types.pm stuff,
+# This pulls arbitrary data out of a single-element PDL,
 # to make it easier to slice using single-element PDL arguments inside a slice specifier.
-# The string $sliceb_data_kludge generates some code that physicalizes a PDL, ensures it has
+# The string $sliceb_data_kludge has code that physicalizes a PDL, ensures it has
 # only one element, and extracts that element in a type-independent manner.
-#
 $sliceb_data_kludge = <<'KLUDGE';
     { pdl *p = PDL->SvPDLV( *svp );
-      int i;
       PDL->make_physical(p);
       if(p->nvals==0)
         barf("slice: empty PDL in slice specifier");
