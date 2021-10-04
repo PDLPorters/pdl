@@ -690,11 +690,9 @@ void pdl_setdims_careful(pdl *it)
 /* pdl_get is now vaffine aware */
 PDL_Anyval pdl_get(pdl *it,PDL_Indx *inds) {
         PDL_Indx i;
-        PDL_Indx *incs;
         PDL_Indx offs=PDL_REPROFFS(it);
-        incs = PDL_VAFFOK(it) ? it->vafftrans->incs : it->dimincs;
         for(i=0; i<it->ndims; i++)
-                offs += incs[i] * inds[i];
+                offs += PDL_REPRINC(it,i) * inds[i];
         return pdl_get_offs(PDL_REPRP(it),offs);
 }
 
