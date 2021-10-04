@@ -100,7 +100,7 @@ The three routines thread slightly differently.
 
 =over 3
 
-=item * 
+=item *
 
 C<index> uses direct threading for 1-D indexing across the 0 dim
 of C<$source>.  It can thread over source thread dims or index thread
@@ -2322,13 +2322,19 @@ direct slicing even though the syntax is convenient.
 *slice = \&PDL::slice;
 sub PDL::slice (;@) {
     my ($source, @others) = @_;
-    # Deal with dicing.  This is lame and slow compared to the
-    # faster slicing, but works okay.  We loop over each argument,
-    # and if it's a PDL we dispatch it in the most straightforward
-    # way.  Single-element and zero-element PDLs are trivial and get
-    # converted into slices for faster handling later.
     for my $i(0..$#others) {
-      next if !( blessed(my $idx = $others[$i]) && $others[$i]->isa('PDL') );
+      my $idx = $others[$i];
+      if (ref $idx eq 'ARRAY') {
+        my @arr = map UNIVERSAL::isa($_, 'PDL') ? $_->flat->at(0) : $_, @{$others[$i]};
+        $others[$i] = \@arr;
+        next;
+      }
+      next if !( blessed($idx) && $idx->isa('PDL') );
+      # Deal with dicing.  This is lame and slow compared to the
+      # faster slicing, but works okay.  We loop over each argument,
+      # and if it's a PDL we dispatch it in the most straightforward
+      # way.  Single-element and zero-element PDLs are trivial and get
+      # converted into slices for faster handling later.
       barf("slice: dicing parameters must be at most 1D (arg $i)\n")
         if $idx->ndims > 1;
       my $nlm = $idx->nelem;
@@ -2337,7 +2343,7 @@ sub PDL::slice (;@) {
          my $n = $source->getndims;
          $source = $source->mv($i,0)->index1d($idx)->mv(0,$i);
          $others[$i] = '';
-      } 
+      }
       elsif($nlm) {
          #### One element - convert to a regular slice.
          $others[$i] = $idx->flat->at(0);
@@ -2354,31 +2360,10 @@ EOD-slice
 
 pp_add_exported('', 'slice');
 
-##########
-# This pulls arbitrary data out of a single-element PDL,
-# to make it easier to slice using single-element PDL arguments inside a slice specifier.
-# The string $sliceb_data_kludge has code that physicalizes a PDL, ensures it has
-# only one element, and extracts that element in a type-independent manner.
-$sliceb_data_kludge = <<'KLUDGE';
-    { pdl *p = PDL->SvPDLV( *svp );
-      PDL->make_physical(p);
-      if(p->nvals==0)
-        barf("slice: empty PDL in slice specifier");
-      if(p->nvals > 1)
-        barf("slice: multi-element PDL in slice specifier");
-      if( !(p->data) ) {
-         barf("slice: no data in slice specifier PDL! I give up.");
-      }
-#define X(datatype, generic, generic_ppsym, shortctype, defbval) \
-    nn = *( (generic *)(p->data) );
-    PDL_GENERICSWITCH(p->datatype, X)
-    }
-KLUDGE
-
 ##############################
 # sliceb is the core of slice.  The "foo/foob" nomenclature is used to avoid the argument
 # counting inherent in a direct Code section call -- "slice" is a front-end that just rolls up a
-# whole variable-length argument list into a single AV reference.  
+# whole variable-length argument list into a single AV reference.
 #
 # I'm also too lazy to figure out how to make a PMCode section work right on a dataflow PP operator.
 # -- CED
@@ -2533,18 +2518,8 @@ pp_def(
                          svp = av_fetch(sublist, 0, 0);
                          if(svp && *svp && *svp != &PL_sv_undef) {
 
-			    /* There is a first element.  Check if it's a PDL, then a string, then an IV */
-
-                            if(SvROK(*svp) && sv_isa(*svp, "PDL")) {
-                              PDL_Indx nn;
-SLICE-MC
-. $sliceb_data_kludge  # Quick and dirty single-element parser (from above)
-. <<'SLICE-MC'
-                              n0 = nn;
-                            } else if( SvPOKp(*svp)) {
-
-                               /* Not a PDL but has associated string */
-
+			    /* There is a first element.  Check if it's a string, then an IV */
+                            if( SvPOKp(*svp)) {
                                char *str = SvPVbyte_nolen(*svp);
                                switch(*str) {
                                  case 'X':
@@ -2572,15 +2547,7 @@ SLICE-MC
                           svp = av_fetch(sublist, 1, 0);
 
                           if( svp && *svp && *svp != &PL_sv_undef ) {
-
-			    if( SvROK(*svp) && sv_isa(*svp, "PDL")) {
-			      PDL_Indx nn;
-SLICE-MC
-. $sliceb_data_kludge
-. <<'SLICE-MC'
-                              n1 = nn;
-
-                            } else if( SvPOKp(*svp) ) {
+                            if( SvPOKp(*svp) ) {
 			      /* Second element has a string - make sure it's not 'X'. */
                               char *str = SvPVbyte_nolen(*svp);
                               if(*str == 'X') {
@@ -2601,24 +2568,15 @@ SLICE-MC
                         if( (nelem > 2) && !(all_flag) && !(squish_flag) && !(dummy_flag) ) {
                           svp = av_fetch(sublist, 2, 0);
                           if( svp && *svp && *svp != &PL_sv_undef ) {
-
-			    if(SvROK(*svp) && sv_isa(*svp, "PDL")) {
-			      PDL_Indx nn;
-SLICE-MC
-. $sliceb_data_kludge
-. << 'SLICE-MC'
-                              n2 = nn;
-			    } else {
-                              STRLEN len;
-                              SvPV( *svp, len );
-                              if(len>0) {           /* nonzero length -> actual value given */
-                                n2 = SvIV(*svp);    /* if the step is passed in as 0, it is a squish */
-                                if(n2==0) {
-                                  n1 = n0;
-                                  squish_flag = 1;
-                                }
+                            STRLEN len;
+                            SvPV( *svp, len );
+                            if(len>0) {           /* nonzero length -> actual value given */
+                              n2 = SvIV(*svp);    /* if the step is passed in as 0, it is a squish */
+                              if(n2==0) {
+                                n1 = n0;
+                                squish_flag = 1;
                               }
-			    }
+                            }
                           } /* end of nontrivial third-element parsing */
                         } /* end of third-element parsing  */
                        } /* end of nontrivial sublist parsing */
@@ -2848,7 +2806,6 @@ SLICE-MC
 			  $CHILD( dims[ $COMP(odim[i]) ] ) = 0;
                           $PRIV( incs[$COMP(odim[i]) ] ) = 0;
 			} else {
-			  
 			  /** Regularize and bounds-check the start location **/
 			  if(start < 0)
 			    start += pdsize;
@@ -2860,19 +2817,14 @@ SLICE-MC
 			  barf("slice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0 to %d)",i,start,$COMP(idim[i]),pdsize-1);
 			    }
 			  }
-			  
 			  if( $COMP(odim[i]) < 0) {
-			    
 			    /* squished dim - just update the offset. */
 			    /* start is always defined and regularized if we are here here, since */
 			    /* both idim[i] and odim[i] can't be <0 */
-			    
 			    $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
-			    
 			  } else /* normal operation */ {
 			    PDL_Indx siz;
 			    PDL_Indx inc;
-			    
 			    /** Regularize and bounds-check the end location **/
 			    if(end<0)
                             end += pdsize;
@@ -2880,13 +2832,10 @@ SLICE-MC
 			      PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
 			      barf("slice: slice ends out of bounds in pos %d (end is %d; source dim %d runs 0 to %d)",i,end,$COMP(idim[i]),pdsize-1);
 			    }
-			    
 			    /* regularize inc */
-			    
 			    inc = $COMP(inc[i]);
 			    if(!inc)
 			      inc = (start <= end) ? 1 : -1;
-			    
 			    siz = (end - start + inc) / inc ;
 			    if(siz<0)
 			      siz=0;

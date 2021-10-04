@@ -447,7 +447,7 @@ ok( (not $y->allocated) ) ;
 
 my $indices = pdl([]);
 my $got = eval { my $s = pdl([1,2])->slice(pdl(1)); $s.''; $s->nelem };
-is $@, '', 'slice 3-elt ndarray with zero-length ndarray';
+is $@, '', 'slice 2-elt ndarray with one-length ndarray';
 is $got, 1, 'right dim from 2-elt with one index';
 $got = eval { my $s = pdl([1,2])->slice($indices); $s.''; $s->nelem };
 is $@, '', 'slice 2-elt ndarray with zero-length ndarray';
@@ -455,5 +455,15 @@ is $got, 0, 'zero dim from 2-elt';
 $got = eval { my $s = pdl([1])->slice($indices); $s.''; $s->nelem };
 is $@, '', 'slice 1-elt ndarray with zero-length ndarray';
 is $got, 0, 'zero dim from 1-elt';
+
+my $pa = sequence 10;
+my $c = PDL->pdl(7,6);
+$got = $pa->slice([$c->slice(1),0,0]);
+is "".$got, 6, 'slice did "at" automatically' or diag "got:$got";
+
+my $cmp = pdl(2,4,6);
+my $rg = pdl(2,7,2);
+$got = $pa->slice([$rg->slice(0),$rg->slice(1),$rg->slice(2)]);
+ok all($got == $cmp), 'slice did "at"' or diag "got:$got";
 
 done_testing;
