@@ -1048,7 +1048,7 @@ EOF
 	  PDL::PP->printxsc(undef, $ctext);
 	}
 	PDL::PP->printxs($obj{NewXSCode});
-	pp_add_boot($obj{XSBootCode} . $obj{BootSetNewXS});
+	pp_add_boot($obj{BootSetNewXS});
 	PDL::PP->pp_add_exported($name);
 	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
 	PDL::PP::pp_addpm($obj{PMCode});
@@ -1789,9 +1789,6 @@ EOD
 
    PDL::PP::Rule::Returns::NULL->new("ReadDataFuncName", "AffinePriv"),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "AffinePriv"),
-   PDL::PP::Rule->new("XSBootCode", ["AffinePriv","VTableName"],
-      sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
-             "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),
 
    PDL::PP::Rule::InsertName->new("NewXSName", '_${name}_int'),
 

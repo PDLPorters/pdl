@@ -3,10 +3,14 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#define REDODIMS(trans) \
-  ((trans)->vtable->redodims \
-    ? (trans)->vtable->redodims \
-    : pdl_default_redodims)(trans)
+#define VTABLE_OR_DEFAULT(trans, func, default_func) \
+  ((trans)->vtable->func \
+    ? (trans)->vtable->func \
+    : pdl_ ## default_func)(trans)
+
+#define REDODIMS(trans) VTABLE_OR_DEFAULT(trans, redodims, default_redodims)
+#define READDATA(trans) VTABLE_OR_DEFAULT(trans, readdata, readdata_affine)
+#define WRITEDATA(trans) VTABLE_OR_DEFAULT(trans, writebackdata, writebackdata_affine)
 
 extern Core PDL;
 
@@ -956,7 +960,7 @@ void pdl_make_physical(pdl *it) {
 	 *	}
 	 *}
 	 */
-	it->trans_parent->vtable->readdata(it->trans_parent);
+	READDATA(it->trans_parent);
 	it->state &= (~PDL_ANYCHANGED) & (~PDL_OPT_ANY_OK);
 
   mkphys_end:
@@ -1037,11 +1041,8 @@ void pdl_changed(pdl *it, int what, int recursing)
 			pdl_writebackdata_vaffine(it);
 			pdl_changed(it->vafftrans->from,what,0);
 		} else {
-			if(!it->trans_parent->vtable->writebackdata) {
-				die("Internal error: got so close to reversing irrev.");
-			}
 			PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(it->trans_parent)));
-			it->trans_parent->vtable->writebackdata(it->trans_parent);
+			WRITEDATA(it->trans_parent);
 			for(i=0; i<it->trans_parent->vtable->nparents; i++) {
 				if((it->trans_parent->vtable->per_pdl_flags[i] &
 				    PDL_TPDL_VAFFINE_OK) &&
@@ -1153,7 +1154,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 			pdl_make_physvaffine(trans->pdls[1]);
 			pdl_readdata_vaffine(trans->pdls[1]);
 		} else {
-			trans->vtable->readdata(trans);
+			READDATA(trans);
 		}
 	}
 	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
