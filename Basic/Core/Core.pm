@@ -14,6 +14,7 @@ bootstrap PDL::Core $VERSION;
 use PDL::Types ':All';
 use Config;
 use List::Util qw(max);
+use Scalar::Util 'blessed';
 
 our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
 my @convertfuncs = map $_->convertfunc, PDL::Types::types();
@@ -2074,11 +2075,6 @@ sub PDL::nslice_if_pdl {
 
    unshift @_, $pdl;
    goto &PDL::slice;
-}
-
-sub blessed {
-    my $ref = ref(shift);
-    return $ref =~ /^(REF|SCALAR|ARRAY|HASH|CODE|GLOB||)$/ ? 0 : 1;
 }
 
 # Convert numbers to PDL if not already
