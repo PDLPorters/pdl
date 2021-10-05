@@ -29,10 +29,10 @@ unlink 'foobar.pm';
 
 
 # Analyze the output of pp_line_numbers by checking the line numbering in
-# foobar.xs. Note that the line *after* the #line directive is assigned the
+# foobar.xsn. Note that the line *after* the #line directive is assigned the
 # number of the #line directive. See http://gcc.gnu.org/onlinedocs/cpp/Line-Control.html
-my ($line, $file) = (1, 'foobar.xs');
-open my $fh, '<', 'foobar.xs';
+my ($line, $file) = (1, 'foobar.xsn');
+open my $fh, '<', 'foobar.xsn';
 LINE: while(<$fh>) {
   # Take note of explicit line directives
   if (/#line (\d+) ".*"/) {
@@ -48,7 +48,7 @@ LINE: while(<$fh>) {
   $line++;
 }
 close $fh;
-unlink 'foobar.xs';
+unlink 'foobar.xsn';
 
 __END__
 

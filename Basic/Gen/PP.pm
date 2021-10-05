@@ -935,7 +935,7 @@ sub pp_done {
         $PDL::PP::done = 1;
 	print "DONE!\n" if $::PP_VERBOSE;
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
-	open my $fh, ">", "$::PDLPREF.xs" or die "Couldn't open xs file: $!\n";
+	open my $fh, ">", "$::PDLPREF.xsn" or die "Couldn't open xs file: $!\n";
         require PDL::Core::Dev;
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD);
 
@@ -1043,7 +1043,7 @@ sub pp_def {
 extern pdl_transvtable $obj{VTableName};
 $obj{RunFuncHdr};
 EOF
-	  PDL::PP->printxsc("pp-$obj{Name}.c", $ctext);
+	  PDL::PP->printxsc("pp-$obj{Name}.cn", $ctext);
 	} else {
 	  PDL::PP->printxsc(undef, $ctext);
 	}

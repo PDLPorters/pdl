@@ -32,15 +32,16 @@ eval { require Devel::CheckLib };
 our @ISA    = qw( Exporter );
 
 our @EXPORT = qw( isbigendian
-	     PDL_INCLUDE PDL_TYPEMAP
-	     PDL_AUTO_INCLUDE PDL_BOOT
-		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
-		 pdlpp_postamble_int pdlpp_stdargs_int
-		 pdlpp_postamble pdlpp_stdargs write_dummy_make
-                unsupported getcyglib trylink
-                pdlpp_mkgen
-                got_complex_version
-		 );
+  PDL_INCLUDE PDL_TYPEMAP
+  PDL_AUTO_INCLUDE PDL_BOOT
+  PDL_INST_INCLUDE PDL_INST_TYPEMAP
+  pdlpp_postamble_int pdlpp_stdargs_int
+  pdlpp_postamble pdlpp_stdargs write_dummy_make
+  unsupported getcyglib trylink
+  pdlpp_mkgen
+  got_complex_version
+  mv_or_remove
+);
 
 # Installation locations
 # beware: whereami_any now appends the /Basic or /PDL directory as appropriate
@@ -163,10 +164,10 @@ sub isbigendian {
 }
 
 sub _oneliner {
-  my ($cmd) = @_;
+  my ($cmd, @flags) = @_;
   require ExtUtils::MM;
   my $MM = bless { NAME => 'Fake' }, 'MM';
-  $MM->oneliner($cmd);
+  $MM->oneliner($cmd, \@flags);
 }
 
 # Expects list in format:
@@ -174,8 +175,6 @@ sub _oneliner {
 # source,    prefix,module/package, optional pp_addxs destination
 # The idea is to support in future several packages in same dir - EUMM
 #   7.06 supports
-
-# This is the function internal for PDL.
 
 sub _pp_call_arg {
   "-MPDL::PP=".join ',', @_
@@ -198,18 +197,44 @@ sub _postamble {
   my $install = '';
   if (!$internal) {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
-    $install = qq|\n\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
+    $install = qq|\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
   }
   my @generanda = "$pref.xs";
   push @generanda, map "pp-$_.c", _pp_list_functions($src, $internal) if $multi_c;
+  my $mv_or_remove = _oneliner(q{mv_or_remove({ @ARGV })}, qw(-Mblib -MPDL::Core::Dev));
 qq|
 
 $pref.pm : $pmdep
 	$perlrun \"$pp_call_arg\" $src
 
 @generanda : $pref.pm
-	\$(NOECHO) \$(TOUCH) \$@
+	\$(NOECHO) $mv_or_remove \$(\@)n \$@
 $install|
+}
+
+sub _file_same {
+  my ($from, $to) = @_;
+  require File::Map;
+  File::Map::map_file(my $from_map, $from, '<');
+  File::Map::map_file(my $to_map, $to, '<');
+  $from_map eq $to_map;
+}
+sub mv_or_remove {
+  my ($fromto) = @_;
+  while(my($from, $to) = each %$fromto) {
+    if (! -f $from) {
+      print "Skip $from as not there\n";
+      next;
+    }
+    if (-f $to && -s $from == -s $to && _file_same($from, $to)) {
+      print "Skip $to (unchanged), removing $from\n";
+      unlink $from;
+      next;
+    }
+    print "Renaming $from to $to\n";
+    unlink $to or die "unlink $to: $!" if -f $to;
+    rename $from, $to or die "rename $to: $!";
+  }
 }
 
 sub pdlpp_postamble_int {
@@ -245,7 +270,8 @@ sub _stdargs {
   my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
   my @cbase = $pref;
   push @cbase, map "pp-$_", _pp_list_functions($src, $internal) if $multi_c;
-  my @cfiles = map "$_.c", @cbase;
+  my @cfiles = ("$pref.xs", map "$_.c", @cbase);
+  my @cfiles_n = map $_."n", @cfiles;
   my @objs = map "$_\$(OBJ_EXT)", @cbase;
   (
     NAME  	=> $mod,
@@ -256,7 +282,7 @@ sub _stdargs {
     MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
     INC          => PDL_INCLUDE()." $inc",
     LIBS         => [$libs],
-    clean        => {FILES => "$pref.xs $pref.pm @cfiles"},
+    clean        => {FILES => "$pref.pm @cfiles @cfiles_n"},
     ($internal
       ? (NO_MYMETA => 1)
       : (dist => {PREOP => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' })

@@ -1,5 +1,6 @@
 - remove legacy pdl_create
 - remove long-deprecated nslice
+- multi-C only updates files that have changed, for faster rebuilds
 
 2.057_03 2021-10-02
 - remove IO::Misc::rdsa, untested since PDL 1.9 and needing non-CPAN "DSA" module
