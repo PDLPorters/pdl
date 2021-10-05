@@ -2076,23 +2076,6 @@ sub PDL::nslice_if_pdl {
    goto &PDL::slice;
 }
 
-=head2 nslice
-
-=for ref
-
-C<nslice> was an internally used interface for L<PDL::NiceSlice>,
-but is now merely a springboard to L<PDL::Slices>.  It is deprecated
-and likely to disappear in PDL 3.0.
-
-=cut
-sub PDL::nslice {
-    unless($PDL::nslice_warning_issued) {
-	$PDL::nslice_warning_issued = 1;
-	warn "WARNING: deprecated call to PDL::nslice detected.  Use PDL::slice instead.\n (Warning will be issued only once per session)\n";
-    }
-    goto &PDL::slice;
-}
-
 sub blessed {
     my $ref = ref(shift);
     return $ref =~ /^(REF|SCALAR|ARRAY|HASH|CODE|GLOB||)$/ ? 0 : 1;

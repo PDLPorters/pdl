@@ -337,7 +337,6 @@ the work planned for the future  PDL-2.x releases.
     - .pmc generation via Module::Compile
     - Smarter parsing via Filter::Simple
     - Optimize sourcecode filter for speed
-  * document nslice
   * implement a niceslice method
   * enhance nslice() to handle CODE refs
     * Done but it doesn't buy much since it only

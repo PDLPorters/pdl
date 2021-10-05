@@ -1270,7 +1270,7 @@ switch reporting on:
 
   pdl> report 1;
   pdl> p $x(3:8:2)
-  processed p $x->nslice([3,8,2])
+  processed p $x->slice([3,8,2])
   [3 5 7]
 
 Similarly, switch reporting off as needed

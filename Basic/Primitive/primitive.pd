@@ -1070,7 +1070,7 @@ sub PDL::uniqvec {
    my $nanvec = null;
    $nanvec = $pdl2d->mv(0,-1)->dice($numnan->which)->mv(0,-1);           # the vectors with any NaN values
 
-   # use dice instead of nslice since qsortvec might be packing
+   # use dice instead of slice since qsortvec might be packing
    # the badvals to the front of the array instead of the end like
    # the docs say. If that is the case and it gets fixed, it won't
    # bust uniqvec. DAL 14-March 2006

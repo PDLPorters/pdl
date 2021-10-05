@@ -2150,7 +2150,7 @@ EOD
 ##############################
 # 'slice' is now implemented as a small Perl wrapper around
 # a PP call.  This permits unification of the former slice,
-# dice, and nslice into a single call.  At the moment, dicing
+# and dice into a single call.  At the moment, dicing
 # is implemented a bit kludgily (it is detected in the Perl
 # front-end), but it is serviceable.
 #  --CED 12-Sep-2013
@@ -2653,7 +2653,7 @@ EOD-slice
 
                               case ')':
                                if( squish_closed || !squish_flag || subargno > 0) {
-                                barf("nslice: erroneous ')' (arg %d)",i);
+                                barf("slice: erroneous ')' (arg %d)",i);
                                }
                                squish_closed = 1;
                                break;
