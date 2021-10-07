@@ -1142,6 +1142,8 @@ sub _establish_type {
   return $PDL_CD if UNIVERSAL::isa($item, 'Math::Complex');
   return max($item->type->enum, $sofar) if UNIVERSAL::isa($item, 'PDL');
   return $PDL_D if ref($item) ne 'ARRAY';
+  #  only need to check first item for an array of complex vals 
+  return $MAX_TYPE if _establish_type($item->[0], $sofar) == $MAX_TYPE;
   #  only need to recurse for items that are refs
   #  as $sofar will be $PDL_D at a minimum
   max ($sofar, map _establish_type($_, $sofar), grep ref, @$item);
