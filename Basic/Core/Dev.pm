@@ -40,7 +40,6 @@ our @EXPORT = qw( isbigendian
   unsupported getcyglib trylink
   pdlpp_mkgen
   got_complex_version
-  mv_or_remove
 );
 
 # Installation locations
@@ -201,40 +200,14 @@ sub _postamble {
   }
   my @generanda = "$pref.xs";
   push @generanda, map "pp-$_.c", _pp_list_functions($src, $internal) if $multi_c;
-  my $mv_or_remove = _oneliner(q{mv_or_remove({ @ARGV })}, qw(-Mblib -MPDL::Core::Dev));
 qq|
 
 $pref.pm : $pmdep
 	$perlrun \"$pp_call_arg\" $src
 
 @generanda : $pref.pm
-	\$(NOECHO) $mv_or_remove \$(\@)n \$@
+	\$(NOECHO) \$(NOOP)
 $install|
-}
-
-sub _file_same {
-  my ($from, $to) = @_;
-  require File::Map;
-  File::Map::map_file(my $from_map, $from, '<');
-  File::Map::map_file(my $to_map, $to, '<');
-  $from_map eq $to_map;
-}
-sub mv_or_remove {
-  my ($fromto) = @_;
-  while(my($from, $to) = each %$fromto) {
-    if (! -f $from) {
-      print "Skip $from as not there\n";
-      next;
-    }
-    if (-f $to && -s $from == -s $to && _file_same($from, $to)) {
-      print "Skip $to (unchanged), removing $from\n";
-      unlink $from;
-      next;
-    }
-    print "Renaming $from to $to\n";
-    unlink $to or die "unlink $to: $!" if -f $to;
-    rename $from, $to or die "rename $to: $!";
-  }
 }
 
 sub pdlpp_postamble_int {
@@ -271,7 +244,6 @@ sub _stdargs {
   my @cbase = $pref;
   push @cbase, map "pp-$_", _pp_list_functions($src, $internal) if $multi_c;
   my @cfiles = ("$pref.xs", map "$_.c", @cbase);
-  my @cfiles_n = map $_."n", @cfiles;
   my @objs = map "$_\$(OBJ_EXT)", @cbase;
   (
     NAME  	=> $mod,
@@ -282,7 +254,7 @@ sub _stdargs {
     MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
     INC          => PDL_INCLUDE()." $inc",
     LIBS         => [$libs],
-    clean        => {FILES => "$pref.pm @cfiles @cfiles_n"},
+    clean        => {FILES => "$pref.pm @cfiles"},
     ($internal
       ? (NO_MYMETA => 1)
       : (dist => {PREOP => '$(PERLRUNINST) -MPDL::Core::Dev -e pdlpp_mkgen $(DISTVNAME)' })

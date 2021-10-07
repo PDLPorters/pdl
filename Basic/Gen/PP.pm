@@ -918,10 +918,17 @@ sub pp_line_numbers ($$) {
 	return join('', @to_return);
 }
 
+sub _file_same {
+  my ($from_text, $to_file) = @_;
+  require File::Map;
+  File::Map::map_file(my $to_map, $to_file, '<');
+  $from_text eq $to_map;
+}
 sub _write_file {
   my ($file, $text) = @_;
-  $file = $file."n";
+  return if -f $file && length($text) == -s $file && _file_same($text, $file);
   open my $fh, '>', $file or confess "open $file: $!";
+  binmode $fh; # to guarantee length will be same for same contents
   print $fh $text;
 }
 
