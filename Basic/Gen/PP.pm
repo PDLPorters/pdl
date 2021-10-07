@@ -918,13 +918,20 @@ sub pp_line_numbers ($$) {
 	return join('', @to_return);
 }
 
+sub _write_file {
+  my ($file, $text) = @_;
+  $file = $file."n";
+  open my $fh, '>', $file or confess "open $file: $!";
+  print $fh $text;
+}
+
 sub printxsc {
   (undef, my $file) = (shift, shift);
   my $text = join '',@_;
   if (defined $file) {
-    open my $fh, '>', $file or confess "open $file: $!";
     (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
-    print $fh sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck), $::PDLXSC_header, $text;
+    $text = join '', sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck), $::PDLXSC_header, $text;
+    _write_file($file, $text);
   } else {
     $::PDLXSC .= $text;
   }
@@ -935,16 +942,17 @@ sub pp_done {
         $PDL::PP::done = 1;
 	print "DONE!\n" if $::PP_VERBOSE;
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
-	open my $fh, ">", "$::PDLPREF.xsn" or die "Couldn't open xs file: $!\n";
         require PDL::Core::Dev;
         my $pdl_boot = PDL::Core::Dev::PDL_BOOT('PDL', $::PDLMOD);
-
         (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
-        print $fh sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck), $::PDLXSC;
-        print $fh $PDL::PP::macros_xs, sprintf($PDL::PP::header_xs,
-          $::PDLMOD, $::PDLOBJ, $::PDLXS,
-          $pdl_boot, $::PDLXSBOOT, $PP::boundscheck,
-        );
+        my $text = join '',
+          sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck),
+          $::PDLXSC,
+          $PDL::PP::macros_xs, sprintf($PDL::PP::header_xs,
+            $::PDLMOD, $::PDLOBJ, $::PDLXS,
+            $pdl_boot, $::PDLXSBOOT, $PP::boundscheck,
+          );
+        _write_file("$::PDLPREF.xs", $text);
 
 unless (nopm) {
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
@@ -1043,7 +1051,7 @@ sub pp_def {
 extern pdl_transvtable $obj{VTableName};
 $obj{RunFuncHdr};
 EOF
-	  PDL::PP->printxsc("pp-$obj{Name}.cn", $ctext);
+	  PDL::PP->printxsc("pp-$obj{Name}.c", $ctext);
 	} else {
 	  PDL::PP->printxsc(undef, $ctext);
 	}
