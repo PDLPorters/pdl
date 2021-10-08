@@ -357,13 +357,13 @@ pp_core_importList( '()' );
 
 pp_def( "myexternalfunc",
   Pars => " p(m);  x(n);  [o] y(); [t] work(wn); ",
+  OtherPars => 'int flags;',
     RedoDimsCode => '
     int im = $PDL(p)->dims[0];
     int in = $PDL(x)->dims[0];
     int min = in + im * im;
     int inw = $PDL(work)->dims[0];
     $SIZE(wn) = inw >= min ? inw : min;',
-	OtherPars => 'int flags;',
     Code => 'int foo = 1;  ');
 
 pp_done();
@@ -470,7 +470,7 @@ EOF
 
 do_tests(\%THREADTESTFILES);
 do_tests(\%PPTESTFILES);
-do_tests(\%OTHERPARSFILES, qr/Invalid OtherPars name/);
+do_tests(\%OTHERPARSFILES);
 
 sub do_tests {
     my ($hash, $error_re) = @_;

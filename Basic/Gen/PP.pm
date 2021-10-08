@@ -71,12 +71,6 @@ use strict;
 use Carp;
 our @CARP_NOT;
 
-my %INVALID_OTHERPAR = map +($_=>1), qw(
-  magicno flags vtable bvalflag has_badvalue badvalue pdls __datatype
-  inc_sizes ind_sizes
-  pdlthread
-);
-
 use overload ("\"\"" => \&PDL::PP::Rule::stringify);
 sub stringify {
     my $self = shift;
@@ -1323,7 +1317,6 @@ sub OtherPars_nft {
 	    $type = PDL::PP::CType->new(undef,$_);
 	}
 	my $name = $type->protoname;
-	croak "Invalid OtherPars name: $name" if $INVALID_OTHERPAR{$name};
 	push @names,$name;
 	$types{$name} = $type;
     }
