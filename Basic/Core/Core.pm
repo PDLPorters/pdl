@@ -2014,35 +2014,11 @@ sub PDL::approx {
 
 =for ref
 
-Convenience interface to L<slice|PDL::Slices/slice>,
-allowing easier inclusion of dimensions in perl code.
-
-=for usage
-
- $w = $x->mslice(...);
-
-=for example
-
- # below is the same as $x->slice("5:7,:,3:5:2")
- $w = $x->mslice([5,7],X,[3,5,2]);
+Alias to L<PDL::Slices/slice>.
 
 =cut
 
-# called for colon-less args
-# preserves parens if present
-sub intpars { $_[0] =~ /\(.*\)/ ? '('.int($_[0]).')' : int $_[0] }
-
-sub PDL::mslice {
-        my($pdl) = shift;
-        return $pdl->slice(join ',',(map {
-                        !ref $_ && $_ eq "X" ? ":" :
-                        !ref $_ ? intpars $_ :
-                        ref $_ eq "ARRAY" ?
-                          @$_ > 2 && $_->[2] == 0 ? "(".int($_->[0]).")" :
-                          join ':', map int, @$_ :
-                        die "INVALID SLICE DEF $_"
-                } @_));
-}
+*PDL::mslice = \&PDL::Slices::slice;
 
 =head2 nslice_if_pdl
 

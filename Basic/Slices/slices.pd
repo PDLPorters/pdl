@@ -2314,7 +2314,7 @@ direct slicing even though the syntax is convenient.
  $x->slice([-2,1]);
 EOD-slice
         PMCode => <<'EOD-slice',
-sub PDL::slice (;@) {
+sub PDL::slice {
     my ($source, @others) = @_;
     for my $i(0..$#others) {
       my $idx = $others[$i];
