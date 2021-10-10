@@ -2576,15 +2576,12 @@ $SETDELTATHREADIDS()
 $SETDIMS()
     PDL::PP::Rule::MakeComp
 
-SETDIMS, SETNDIMS, and SETTWOWAY are used in affine
+SETDIMS and SETNDIMS are used in affine
 transformations (specifically, ones which set P2Child to true)
 such as slice and mv.
 
 $SETNDIMS()
     PDL::PP::Rule::MakeComp
-
-$SETTWOWAY()
-    PDL::PP::Rule::Substitute::dosubst_private()
 
 =item Keys
 

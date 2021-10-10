@@ -417,16 +417,11 @@ sub dosubst_private {
 		CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->pdl_barf(\"Error in $name:\" $_[0])")},
 		NAME => sub {return $name},
 		MODULE => sub {return $::PDLMOD},
-
 		SETPDLSTATEBAD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state |= PDL_BADVAL") },
 		SETPDLSTATEGOOD => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state &= ~PDL_BADVAL") },
 		ISPDLSTATEBAD   => sub { PDL::PP::pp_line_numbers(__LINE__-1, "(($_[0]\->state & PDL_BADVAL) > 0)") },
 		ISPDLSTATEGOOD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "(($_[0]\->state & PDL_BADVAL) == 0)") },
 		BADFLAGCACHE    => sub { PDL::PP::pp_line_numbers(__LINE__-1, "badflag_cache") },
-
-		SETTWOWAY => sub {
-		    PDL::PP::pp_line_numbers(__LINE__-1, $_[0] ? "\$PRIV(flags) |= PDL_ITRANS_TWOWAY;\n" : "\$PRIV(flags) &= ~PDL_ITRANS_TWOWAY;\n")
-		  },
 	       );
     while(
 	  $ret =~ s/\$(\w+)\(([^()]*)\)/

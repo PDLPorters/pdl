@@ -695,6 +695,7 @@ EOD
                  PDL_Indx corners[$COMP(rdim) * $COMP(nitems)];
                  char boundary[$COMP(rdim)];
                  ',
+        TwoWay => 1,
         MakeComp => <<'EOD-MakeComp',
 pdl *ind_pdl;
 pdl *size_pdl;
@@ -898,10 +899,6 @@ do {
   for(k=0; k<$COMP(itdim) && (++(iter[k]))>=($COMP(itdims)[k]) ;k++)
     iter[k] = 0;
 } while(k<$COMP(itdim));
-
-
-$SETTWOWAY(1);
-
 EOD-MakeComp
 
         RedoDims => <<'EOD-RedoDims' ,
@@ -2366,6 +2363,7 @@ EOD-slice
                  PDL_Indx end[$COMP(nargs)];
                  ',
         AffinePriv => 1,
+        TwoWay => 1,
         MakeComp => <<'SLICE-MC'
                 int i;
                 int idim;
@@ -2719,8 +2717,6 @@ EOD-slice
 
                 $COMP(idim_top) = idim;
                 $COMP(odim_top) = odim;
-
-                $SETTWOWAY(1);
 
              /*** End of MakeComp for slice       */
              /****************************************/
