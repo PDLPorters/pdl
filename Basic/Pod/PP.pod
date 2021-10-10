@@ -2598,8 +2598,6 @@ Comp (related to $COMP()?)
 
 DefaultFlow
 
-EquivCDimExpr
-
 EquivCPOffsCode
 
 EquivDimCheck

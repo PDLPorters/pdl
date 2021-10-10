@@ -1341,7 +1341,6 @@ pp_def(
                 barf("One of dims %d, %d out of range: should be 0<=dim<%d",
                         $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
         EquivPDimExpr => '(($CDIM == $COMP(n1)) ? $COMP(n2) : ($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM)',
-        EquivCDimExpr => '(($PDIM == $COMP(n1)) ? $COMP(n2) : ($PDIM == $COMP(n2)) ? $COMP(n1) : $PDIM)',
         Doc => <<'EOD',
 =for ref
 
@@ -1513,13 +1512,6 @@ pp_def(
                 (($CDIM > $COMP(n1) || $CDIM < $COMP(n2)) ?
                         $CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM-1))
                 : $CDIM))',
-        EquivCDimExpr => '(($COMP(n2) < $COMP(n1)) ?
-        (($PDIM < $COMP(n2) || $PDIM > $COMP(n1)) ?
-                $PDIM : (($PDIM == $COMP(n1)) ? $COMP(n2) : $PDIM+1))
-        : (($COMP(n1) < $COMP(n2)) ?
-                (($PDIM > $COMP(n2) || $PDIM < $COMP(n1)) ?
-                        $PDIM : (($PDIM == $COMP(n1)) ? $COMP(n2) : $PDIM-1))
-                : $PDIM))',
         Doc => << 'EOD',
 =for ref
 
