@@ -1523,24 +1523,21 @@ the usual cases. The following example demonstrates typical usage:
 =cut
 
 sub PDL::clump {
-  my $ndims = $_[0]->getndims;
-  if ($#_ < 2) {
-    return &PDL::_clump_int(@_);
-  } else {
-    my ($this,@dims) = @_;
-    my $targd = $ndims-1;
-    my @dimmark = (0..$ndims-1);
-    barf "too many dimensions" if @dims > $ndims;
-    for my $dim (@dims) {
-      barf "dimension index $dim larger than greatest dimension"
-	if $dim > $ndims-1 ;
-      $targd = $dim if $targd > $dim;
-      barf "duplicate dimension $dim" if $dimmark[$dim]++ > $dim;
-    }
-    my $clumped = $this->thread(@dims)->unthread(0)->clump(scalar @dims);
-    $clumped = $clumped->mv(0,$targd) if $targd > 0;
-    return $clumped;
+  goto &PDL::_clump_int if @_ < 3;
+  my ($this,@dims) = @_;
+  my $ndims = $this->getndims;
+  my $targd = $ndims-1;
+  my @dimmark = (0..$ndims-1);
+  barf "too many dimensions" if @dims > $ndims;
+  for my $dim (@dims) {
+    barf "dimension index $dim larger than greatest dimension"
+      if $dim > $ndims-1 ;
+    $targd = $dim if $targd > $dim;
+    barf "duplicate dimension $dim" if $dimmark[$dim]++ > $dim;
   }
+  my $clumped = $this->thread(@dims)->unthread(0)->clump(scalar @dims);
+  $clumped = $clumped->mv(0,$targd) if $targd > 0;
+  return $clumped;
 }
 
 =head2 thread_define
