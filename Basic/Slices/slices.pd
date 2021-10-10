@@ -1490,6 +1490,11 @@ EOD
 =head2 mv
 =cut
 
+pp_addhdr(<<'EOF');
+#define EQUIVDIM(dima,dimb,cdim,inc) \
+  ((cdim < PDLMIN(dima,dimb) || cdim > PDLMAX(dima,dimb)) ? \
+    cdim : ((cdim == dimb) ? dima : cdim + inc))
+EOF
 pp_def(
         'mv',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
@@ -1500,18 +1505,15 @@ pp_def(
                                 $COMP(n1) += $PARENT(threadids[0]);
                           if ($COMP(n2) <0)
                                 $COMP(n2) += $PARENT(threadids[0]);
-                          if ($COMP(n1) <0 ||$COMP(n2) <0 ||
-                             $COMP(n1) >= $PARENT(threadids[0]) ||
-                             $COMP(n2) >= $PARENT(threadids[0]))
+          if (PDLMIN($COMP(n1),$COMP(n2)) <0 ||
+              PDLMAX($COMP(n1),$COMP(n2)) >= $PARENT(threadids[0]))
                 barf("One of dims %d, %d out of range: should be 0<=dim<%d",
-                        $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
-        EquivPDimExpr => '(($COMP(n1) < $COMP(n2)) ?
-        (($CDIM < $COMP(n1) || $CDIM > $COMP(n2)) ?
-                $CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM+1))
-        : (($COMP(n2) < $COMP(n1)) ?
-                (($CDIM > $COMP(n1) || $CDIM < $COMP(n2)) ?
-                        $CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM-1))
-                : $CDIM))',
+                    $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
+        EquivPDimExpr => '(
+          $COMP(n1) == $COMP(n2) ? $CDIM :
+          $COMP(n1) < $COMP(n2) ? EQUIVDIM($COMP(n1),$COMP(n2),$CDIM,1) :
+          EQUIVDIM($COMP(n1),$COMP(n2),$CDIM,-1)
+        )',
         Doc => << 'EOD',
 =for ref
 
