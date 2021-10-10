@@ -2023,8 +2023,8 @@ allowing easier inclusion of dimensions in perl code.
 
 =for example
 
- # below is the same as $x->slice("5:7,:,3:4:2")
- $w = $x->mslice([5,7],X,[3,4,2]);
+ # below is the same as $x->slice("5:7,:,3:5:2")
+ $w = $x->mslice([5,7],X,[3,5,2]);
 
 =cut
 
@@ -2036,9 +2036,10 @@ sub PDL::mslice {
         my($pdl) = shift;
         return $pdl->slice(join ',',(map {
                         !ref $_ && $_ eq "X" ? ":" :
-			   ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ?
-			   "(".int(@$_[0]).")" : join ':', map {int $_} @$_ :
                         !ref $_ ? intpars $_ :
+                        ref $_ eq "ARRAY" ?
+                          @$_ > 2 && $_->[2] == 0 ? "(".int($_->[0]).")" :
+                          join ':', map int, @$_ :
                         die "INVALID SLICE DEF $_"
                 } @_));
 }
