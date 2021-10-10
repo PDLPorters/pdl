@@ -1335,11 +1335,10 @@ pp_def(
                                 $COMP(n1) += $PARENT(threadids[0]);
                           if ($COMP(n2) <0)
                                 $COMP(n2) += $PARENT(threadids[0]);
-                          if ($COMP(n1) <0 ||$COMP(n2) <0 ||
-                             $COMP(n1) >= $PARENT(threadids[0]) ||
-                             $COMP(n2) >= $PARENT(threadids[0]))
+          if (PDLMIN($COMP(n1),$COMP(n2)) <0 ||
+              PDLMAX($COMP(n1),$COMP(n2)) >= $PARENT(threadids[0]))
                 barf("One of dims %d, %d out of range: should be 0<=dim<%d",
-                        $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
+                    $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
         EquivPDimExpr => '(($CDIM == $COMP(n1)) ? $COMP(n2) : ($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM)',
         Doc => <<'EOD',
 =for ref
