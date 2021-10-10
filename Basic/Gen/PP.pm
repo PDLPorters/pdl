@@ -424,8 +424,8 @@ sub dosubst_private {
 		ISPDLSTATEGOOD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "(($_[0]\->state & PDL_BADVAL) == 0)") },
 		BADFLAGCACHE    => sub { PDL::PP::pp_line_numbers(__LINE__-1, "badflag_cache") },
 
-		SETREVERSIBLE => sub {
-		    PDL::PP::pp_line_numbers(__LINE__-1, $_[0] ? "\$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" : "\$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n")
+		SETTWOWAY => sub {
+		    PDL::PP::pp_line_numbers(__LINE__-1, $_[0] ? "\$PRIV(flags) |= PDL_ITRANS_TWOWAY;\n" : "\$PRIV(flags) &= ~PDL_ITRANS_TWOWAY;\n")
 		  },
 	       );
     while(
@@ -1449,7 +1449,7 @@ my $pars_re = $PDL::PP::PdlParObj::pars_re;
 $PDL::PP::deftbl =
   [
    PDL::PP::Rule->new(
-      [qw(RedoDims EquivCPOffsCode HandleBad P2Child Reversible)],
+      [qw(RedoDims EquivCPOffsCode HandleBad P2Child TwoWay)],
       ["Identity"],
       "something to do with dataflow between CHILD & PARENT, I think.",
       sub {
@@ -1700,8 +1700,8 @@ EOD
    PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$CHILD(ndims)];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
-   PDL::PP::Rule::Returns->new("ReversibleFlag", "Reversible", "PDL_ITRANS_REVERSIBLE"),
-   PDL::PP::Rule::Returns::Zero->new("ReversibleFlag"),
+   PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
+   PDL::PP::Rule::Returns::Zero->new("TwoWayFlag"),
    PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B"),
    PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
 
@@ -2333,7 +2333,7 @@ EOF
       ["VTableName","ParamStructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
        "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name",
-       "GenericTypes","IsAffineFlag","ReversibleFlag","DefaultFlowFlag",
+       "GenericTypes","IsAffineFlag","TwoWayFlag","DefaultFlowFlag",
        "BadFlag"],
       sub {
         my($vname,$ptype,$rdname,$rfname,$wfname,$ffname,

@@ -355,7 +355,7 @@ typedef struct pdl_transvtable {
         /* This is critical in routines that both input from and output to  */
         /* a non-single-valued pdl: updating must occur.  (Note that the    */
         /* transform is not necessarily mathematically reversible)          */
-#define  PDL_ITRANS_REVERSIBLE        0x0001
+#define  PDL_ITRANS_TWOWAY        0x0001
         /* Whether, if a child is changed, this trans should be destroyed or not */
         /* (flow if set; sever if clear) */
 #define  PDL_ITRANS_DO_DATAFLOW_F     0x0002
@@ -367,7 +367,7 @@ typedef struct pdl_transvtable {
 #define  PDL_ITRANS_NONMUTUAL         0x4000  /* flag for destruction */
 
 #define PDL_LIST_FLAGS_PDLTRANS(X) \
- X(PDL_ITRANS_REVERSIBLE) \
+ X(PDL_ITRANS_TWOWAY) \
  X(PDL_ITRANS_DO_DATAFLOW_F) \
  X(PDL_ITRANS_DO_DATAFLOW_B) \
  X(PDL_ITRANS_ISAFFINE) \

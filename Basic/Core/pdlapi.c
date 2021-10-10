@@ -847,7 +847,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		pdl_set_trans_childtrans(trans->pdls[i],trans,i);
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++)
 		pdl_set_trans_parenttrans(trans->pdls[i],trans,i);
-	  if(!(trans->flags & PDL_ITRANS_REVERSIBLE))
+	  if(!(trans->flags & PDL_ITRANS_TWOWAY))
 		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 		if(trans->pdls[i]->state & PDL_NOMYDIMS) {
@@ -997,7 +997,7 @@ void pdl_children_changesoon(pdl *it, int what)
 	   !(it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
 		pdl_destroytransform(it->trans_parent,1);
 	} else if(it->trans_parent) {
-		if(!(it->trans_parent->flags & PDL_ITRANS_REVERSIBLE)) {
+		if(!(it->trans_parent->flags & PDL_ITRANS_TWOWAY)) {
 			die("PDL: Internal error: Trying to reverse irreversible trans");
 		}
 		for(i=0; i<it->trans_parent->vtable->nparents; i++)

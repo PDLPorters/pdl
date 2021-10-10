@@ -169,7 +169,7 @@ pp_def(
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
-       Reversible => 1,
+       TwoWay => 1,
        Pars => 'a(n); indx ind(); [oca] c();',
        Code =>
        $index_init_good . ' $c() = $a(n => foo);',
@@ -189,7 +189,7 @@ pp_def(
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
-       Reversible => 1,
+       TwoWay => 1,
        Pars => 'a(n); indx ind(m); [oca] c(m);',
        Code =>
        q{
@@ -278,7 +278,7 @@ pp_def(
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
-       Reversible => 1,
+       TwoWay => 1,
        Pars => 'a(na,nb); indx inda(); indx indb(); [oca] c();',
        Code =>
        $index2d_init_good . ' $c() = $a(na => fooa, nb => foob);',
@@ -664,7 +664,7 @@ to tease out the algorithm.
 
 EOD
         HandleBad => 1,
-        Reversible => 1,
+        TwoWay => 1,
         P2Child => 1,
 
 #
@@ -900,7 +900,7 @@ do {
 } while(k<$COMP(itdim));
 
 
-$SETREVERSIBLE(1);
+$SETTWOWAY(1);
 
 EOD-MakeComp
 
@@ -1258,10 +1258,9 @@ pp_def('flowconvert',
        GenericTypes => [ppdefs_all],
        HandleBad => 1,
        DefaultFlow => 1,
-       Reversible => 1,
+       TwoWay => 1,
        Pars => 'PARENT(); [oca]CHILD()',
        OtherPars => 'int totype;',
-       Reversible => 1,
        # Forced types
        FTypes => {CHILD => '$COMP(totype)'},
        Code =>
@@ -1316,7 +1315,7 @@ pp_def(
                         $EQUIVCPOFFS(i,i);
                 }
                 ',
-        Reversible => 1,
+        TwoWay => 1,
         Doc => 'internal',
 );
 
@@ -1328,7 +1327,7 @@ pp_def(
 pp_def(
         'xchg',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
-        Reversible => 1,
+        TwoWay => 1,
         P2Child => 1,
         AffinePriv => 1,
         EquivDimCheck => 'if ($COMP(n1) <0)
@@ -1497,7 +1496,7 @@ EOF
 pp_def(
         'mv',
         OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
-        Reversible => 1,
+        TwoWay => 1,
         P2Child => 1,
         AffinePriv => 1,
         EquivDimCheck => 'if ($COMP(n1) <0)
@@ -1591,7 +1590,7 @@ END
 pp_def(
         'diagonalI',
         P2Child => 1,
-        Reversible => 1,
+        TwoWay => 1,
         AffinePriv => 1,
         OtherPars => 'SV *list',
         Comp => 'PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];',
@@ -1705,7 +1704,7 @@ in the usual way (-1 = last dim).
 =cut
 EOD
         P2Child => 1,
-        Reversible => 1, # XXX Not really
+        TwoWay => 1,
         AffinePriv => 1,
         OtherPars => join('', map "PDL_Indx $_;", qw(nthdim step n)),
         RedoDims => '
@@ -1766,7 +1765,7 @@ is always true (C<m> has to be less than 3).
 =cut
 EOD
         P2Child => 1,
-        Reversible => 1, # XXX Not really
+        TwoWay => 1,
         OtherPars => join('', map "PDL_Indx $_;", qw(nthdim nsp)),
         AffinePriv => 1,
         RedoDims => '
@@ -1814,7 +1813,7 @@ Shift vector elements along with wrap. Flows data back&forth.
 EOD
         Pars=>'x(n); indx shift(); [oca]y(n)',
         DefaultFlow => 1,
-        Reversible => 1,
+        TwoWay => 1,
         Code=>'
         PDL_Indx i,j;
         PDL_Indx n_size = $SIZE(n);
@@ -1864,7 +1863,7 @@ Put some dimensions to a threadid.
 
 EOD
         P2Child => 1,
-        Reversible => 1,
+        TwoWay => 1,
         AffinePriv => 1,
         OtherPars => "PDL_Indx id; SV *list",
         Comp => 'PDL_Indx id; PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];
@@ -1955,7 +1954,7 @@ See [TBD Doc] for details and examples.
 =cut
 EOD
         P2Child => 1,
-        Reversible => 1,
+        TwoWay => 1,
         AffinePriv => 1,
         OtherPars => 'int atind;',
         RedoDims => '
@@ -2721,7 +2720,7 @@ EOD-slice
                 $COMP(idim_top) = idim;
                 $COMP(odim_top) = odim;
 
-                $SETREVERSIBLE(1);
+                $SETTWOWAY(1);
 
              /*** End of MakeComp for slice       */
              /****************************************/

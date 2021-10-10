@@ -64,7 +64,7 @@ void pdl_writebackdata_affine(pdl_trans *trans) {
 /* generated from:
 pp_def( 'affine',
         P2Child => 1,
-        Reversible => 1,
+        TwoWay => 1,
         AffinePriv => 1,
         GlobalNew => 'affine_new',
         OtherPars => 'PDL_Indx offspar; SV *dimlist; SV *inclist;',
@@ -146,7 +146,7 @@ static PDL_Indx pdl_affine_vtable_realdims_starts[] = { 0, 0 };
 static PDL_Indx pdl_affine_vtable_realdims_ind_ids[] = { 0 };
 static char *pdl_affine_vtable_indnames[] = { "" };
 pdl_transvtable pdl_affine_vtable = {
-  0, PDL_ITRANS_ISAFFINE|PDL_ITRANS_REVERSIBLE|PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B, pdl_affine_vtable_gentypes, 1, 2, pdl_affine_vtable_flags,
+  0, PDL_ITRANS_ISAFFINE|PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B, pdl_affine_vtable_gentypes, 1, 2, pdl_affine_vtable_flags,
   pdl_affine_vtable_realdims, pdl_affine_vtable_parnames,
   pdl_affine_vtable_parflags, pdl_affine_vtable_partypes,
   pdl_affine_vtable_realdims_starts, pdl_affine_vtable_realdims_ind_ids, 0,
@@ -265,7 +265,7 @@ static PDL_Indx pdl_converttypei_vtable_realdims_starts[] = { 0, 0 };
 static PDL_Indx pdl_converttypei_vtable_realdims_ind_ids[] = { 0 };
 static char *pdl_converttypei_vtable_indnames[] = { "" };
 pdl_transvtable pdl_converttypei_vtable = {
-  PDL_TRANS_BADPROCESS, PDL_ITRANS_REVERSIBLE|PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B, pdl_converttypei_vtable_gentypes, 1, 2, pdl_converttypei_vtable_flags,
+  PDL_TRANS_BADPROCESS, PDL_ITRANS_TWOWAY|PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B, pdl_converttypei_vtable_gentypes, 1, 2, pdl_converttypei_vtable_flags,
   pdl_converttypei_vtable_realdims, pdl_converttypei_vtable_parnames,
   pdl_converttypei_vtable_parflags, pdl_converttypei_vtable_partypes,
   pdl_converttypei_vtable_realdims_starts, pdl_converttypei_vtable_realdims_ind_ids, 0,
