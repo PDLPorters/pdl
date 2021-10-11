@@ -398,7 +398,7 @@ EOD-range
 
 pp_def(
         'rangeb',
-        OtherPars => 'SV *index; SV *size; SV *boundary',
+        OtherPars => 'pdl *ind_pdl; SV *size; SV *boundary',
         Doc => <<'EOD',
 =for ref
 
@@ -697,19 +697,7 @@ EOD
                  ',
         TwoWay => 1,
         MakeComp => <<'EOD-MakeComp',
-pdl *ind_pdl;
 pdl *size_pdl;
-
-/***
- * Check and condition the index ndarray.  Some of this is apparently
- * done by XS -- but XS doesn't check for existing SVs that are undef.
- */
-if ((index==NULL) || (index == &PL_sv_undef))
-   { $CROAK("rangeb: index variable must be defined"); }
-
-if(!(ind_pdl = PDL->SvPDLV(index))) /* assignment */
-   { $CROAK("rangeb: unable to convert index variable to a PDL"); }
-
 PDL->make_physdims(ind_pdl);
 
 /* Generalized empties are ok, but not in the special 0 dim (the index vector) */

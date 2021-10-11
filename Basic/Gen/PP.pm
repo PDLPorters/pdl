@@ -1301,9 +1301,6 @@ sub OtherPars_nft {
 	    croak "can't set unknown dimension"
 		unless defined($dimobjs->{$dim});
 	    $dimobjs->{$dim}->set_from($type);
-	} elsif(/^\s*pdl\s+\*\s*(\w+)$/) {
-	    # It is an ndarray -> make it a controlling one.
-	    die("Not supported yet");
 	} elsif(/^\s*\(\s*void\s*\)/) {
 	    # suppressing unused param warning - skip
 	    next;
