@@ -1050,3 +1050,159 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
   PDLDEBUG_f(pdl_dump_slice_args(&this_arg));
   return this_arg;
 }
+
+pdl_slice_args* pdl_slice_args_parse(SV* sv) {
+  /*** Make sure we got an array ref as input and extract its corresponding AV ***/
+  if(!(sv && SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))
+    barf("slice requires an ARRAY ref containing zero or more arguments");
+  pdl_slice_args* retval = NULL, *this_arg_ptr = NULL;
+  AV *arglist = (AV *)(SvRV(sv));
+  /* Detect special case of a single comma-delimited string; in that case, */
+  /* split out our own arglist.                                            */
+  if (av_len(arglist) == 0) {
+    /***   single-element list: pull first element ***/
+    SV **svp = av_fetch(arglist, 0, 0);
+    if(svp && *svp && *svp != &PL_sv_undef && SvPOKp(*svp)) {
+      /*** The element exists and is not undef and has a cached string value ***/
+      char *s,*ss;
+      s = ss = SvPVbyte_nolen(*svp);
+      for(;  *ss && *ss != ',';  ss++) {}
+      if(*ss == ',') {
+        char *s1;
+        /* the string contains at least one comma.  ATTACK!      */
+        /* We make a temporary array and populate it with        */
+        /* SVs containing substrings -- basically split(/\,/)... */
+        AV *al = (AV *)sv_2mortal((SV *)(newAV()));
+        do {
+          for(s1=s; *s1 && *s1 != ','; s1++);
+          av_push(al, newSVpvn(s, s1-s));
+          s = (*s1==',') ? ++s1 : s1;
+        } while(*s);
+        arglist = al; /* al is ephemeral and will evaporate at the next perl gc */
+      } /* end of contains-comma case */
+    } /* end of nontrivial single-element detection */
+  }/* end of single-element detection */
+  PDL_Indx nargs = av_len( arglist ) + 1;
+  /**********************************************************************/
+  /**** Loop over the elements of the AV input and parse into values ****/
+  /**** in the start/inc/end array                                   ****/
+  PDL_Indx i, idim, odim;
+  for(odim=idim=i=0; i<nargs; i++) {
+    SV *this;
+    SV **thisp;
+    SV *sv, **svp;
+    char all_flag = 0;
+    char *str;
+    pdl_slice_args this_arg = {0,-1,0}; /* start,end,inc 0=do in RedoDims */
+    thisp = av_fetch( arglist, i, 0 );
+    this = (thisp  ?  *thisp  : 0 );
+    /** Keep the whole dimension if the element is undefined or missing **/
+    all_flag = (  (!this)   ||   (this==&PL_sv_undef)  );
+    if(!all_flag) {
+      /* Main branch -- this element is not an empty string */
+      if(SvROK(this)) {
+        /*** It's a reference - it better be an array ref. ***/
+        int nelem;
+        AV *sublist;
+        if( SvTYPE(SvRV(this)) != SVt_PVAV )
+          barf("slice: non-ARRAY ref in the argument list!");
+        /*** It *is* an array ref!  Expand it into an AV so we can read it. ***/
+        sublist = (AV *)(SvRV(this));
+        nelem = !sublist ? 0 : av_len(sublist) + 1;
+        if(nelem > 3) barf("slice: array refs can have at most 3 elements!");
+        if(nelem==0) {      /* No elements - keep it all */
+          all_flag = 1;
+        } else /* Got at least one element */{
+          /* Load the first into start and check for dummy or all-clear */
+          /* (if element is missing use the default value already in start) */
+          svp = av_fetch(sublist, 0, 0);
+          if(svp && *svp && *svp != &PL_sv_undef) {
+            /* There is a first element.  Check if it's a string, then an IV */
+            if( SvPOKp(*svp)) {
+              char *str = SvPVbyte_nolen(*svp);
+              switch(*str) {
+                case 'X':
+                  all_flag = 1; break;
+                case '*':
+                  this_arg.dummy = 1;
+                  this_arg.start = 1;    /* start is 1 so 2nd field is element count */
+                  this_arg.end = 1;    /* size defaults to 1 for dummy dims */
+                  this_arg.inc = 1;    /* inc is forced to 1 so ['*',0] gives an empty */
+                  break;
+                default:     /* Doesn't start with '*' or 'X' */
+                  this_arg.end = this_arg.start = SvIV(*svp); /* end defaults to start if start is present */
+                  break;
+              }
+            } else /* the element has no associated string - just parse */ {
+              this_arg.end = this_arg.start = SvIV(*svp); /* end defaults to start if start is present */
+            }
+          } /* end of defined check.  if it's undef, leave the n's at their default value. */
+          /* Read the second element into end and check for alternate squish syntax */
+          if( (nelem > 1) && (!all_flag) ) {
+            svp = av_fetch(sublist, 1, 0);
+            if( svp && *svp && *svp != &PL_sv_undef ) {
+              if( SvPOKp(*svp) ) {
+                /* Second element has a string - make sure it's not 'X'. */
+                char *str = SvPVbyte_nolen(*svp);
+                if(*str == 'X') {
+                  this_arg.squish = 1;
+                  this_arg.end = this_arg.start;
+                } else {
+                  this_arg.end = SvIV(*svp);
+                }
+              } else {
+                /* Not a PDL, no string -- just get the IV */
+                this_arg.end = SvIV(*svp);
+              }
+            } /* If not defined, leave at the default */
+          } /* End of second-element check */
+          /*** Now try to read the third element (inc).  ***/
+          if ((nelem > 2) && !(all_flag) && !(this_arg.squish) && !(this_arg.dummy)) {
+            svp = av_fetch(sublist, 2, 0);
+            if ( svp && *svp && *svp != &PL_sv_undef ) {
+              STRLEN len;
+              SvPV( *svp, len );
+              if(len>0) {           /* nonzero length -> actual value given */
+                this_arg.inc = SvIV(*svp);    /* if the step is passed in as 0, it is a squish */
+                if(this_arg.inc==0) {
+                  this_arg.end = this_arg.start;
+                  this_arg.squish = 1;
+                }
+              }
+            } /* end of nontrivial third-element parsing */
+          } /* end of third-element parsing  */
+        } /* end of nontrivial sublist parsing */
+      } else /* this argument is not an ARRAY ref - parse as a scalar */ {
+        if(SvPOKp(this)) {
+          /* this argument has a cached string */
+          STRLEN len;
+          char *s = SvPVbyte(this, len);
+          this_arg = PDL_CORE_(slice_args_parse_string)(s);
+        } else /* end of string parsing */ {
+          /* Simplest case -- there's no cached string, so it   */
+          /* must be a number.  In that case it's a simple      */
+          /* extraction.  Treated as a separate case for speed. */
+          this_arg.end = this_arg.start = SvNV(this);
+          this_arg.inc = 0;
+        }
+      } /* end of scalar handling */
+    } /* end of defined-element handling (!all_flag) */
+    if( (!all_flag) + (!this_arg.squish) + (!this_arg.dummy) < 2 )
+      barf("Looks like you triggered a bug in  slice.  two flags set in dim %d",i);
+    /* Force all_flag case to be a "normal" slice */
+    if(all_flag) {
+      this_arg.start = 0;
+      this_arg.end = -1;
+      this_arg.inc = 1;
+    }
+    if (!retval)
+      this_arg_ptr = retval = pdl_smalloc(sizeof(*retval));
+    else {
+      this_arg_ptr = this_arg_ptr->next = pdl_smalloc(sizeof(*retval));
+    }
+    /* Copy parsed values into the limits */
+    *this_arg_ptr = this_arg;
+  } /* end of arg-parsing loop */
+  PDLDEBUG_f(pdl_dump_slice_args(retval));
+  return retval;
+}
