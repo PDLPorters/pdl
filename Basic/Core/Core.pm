@@ -23,7 +23,7 @@ my @exports_normal   = (@EXPORT,
   @convertfuncs,
   qw(nelem dims shape null
       convert inplace zeroes zeros ones nan inf i list listindices unpdl
-      set at flows thread_define over reshape dog cat barf type diagonal
+      set at flows thread_define over reshape dog cat barf type
       dummy mslice approx flat sclr squeeze
       get_autopthread_targ set_autopthread_targ get_autopthread_actual
       get_autopthread_dim get_autopthread_size set_autopthread_size) );
@@ -74,7 +74,6 @@ BEGIN {
     *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
     *dog          = \&PDL::dog;       *cat 	         = \&PDL::cat;
     *type         = \&PDL::type;      *approx        = \&PDL::approx;
-    *diagonal     = \&PDL::diagonal;
     *dummy        = \&PDL::dummy;
     *mslice       = \&PDL::mslice;
     *isempty      = \&PDL::isempty;
@@ -1661,46 +1660,6 @@ Same as L</thread1>, i.e. uses thread id 1.
 sub PDL::thread {
 	my $var = shift;
 	$var->threadI(1,\@_);
-}
-
-=head2 diagonal
-
-=for ref
-
-Returns the multidimensional diagonal over the specified dimensions.
-
-=for usage
-
- $d = $x->diagonal(dim1, dim2,...)
-
-=for example
-
- pdl> $x = zeroes(3,3,3);
- pdl> ($y = $x->diagonal(0,1))++;
- pdl> p $x
- [
-  [
-   [1 0 0]
-   [0 1 0]
-   [0 0 1]
-  ]
-  [
-   [1 0 0]
-   [0 1 0]
-   [0 0 1]
-  ]
-  [
-   [1 0 0]
-   [0 1 0]
-   [0 0 1]
-  ]
- ]
-
-=cut
-
-sub PDL::diagonal {
-	my $var = shift;
-	$var->diagonalI(\@_);
 }
 
 =head2 thread1

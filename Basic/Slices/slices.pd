@@ -1581,11 +1581,8 @@ static int cmp_pdll(const void *a_,const void *b_) {
 END
 );
 
-=head2 diagonalI
-=cut
-
 pp_def(
-        'diagonalI',
+        'diagonal',
         P2Child => 1,
         TwoWay => 1,
         AffinePriv => 1,
@@ -1638,6 +1635,9 @@ pp_def(
                         }
                 $SETDIMS();
         ',
+        PMCode => << 'EOD',
+sub PDL::diagonal { shift->_diagonal_int(my $o=PDL->null, \@_); $o }
+EOD
         Doc => << 'EOD',
 =for ref
 
@@ -1648,6 +1648,10 @@ diagonalized.
 The other diagonalized dimensions are removed. So if C<$x> has dimensions
 C<(5,3,5,4,6,5)> then after
 
+=for usage
+
+ $d = $x->diagonal(dim1, dim2,...)
+
 =for example
 
  $y = $x->diagonal(0,2,5);
@@ -1657,6 +1661,27 @@ C<$y-E<gt>at(2,1,0,1)> refers
 to C<$x-E<gt>at(2,1,2,0,1,2)>.
 
 NOTE: diagonal doesn't handle threadids correctly. XXX FIX
+
+ pdl> $x = zeroes(3,3,3);
+ pdl> ($y = $x->diagonal(0,1))++;
+ pdl> p $x
+ [
+  [
+   [1 0 0]
+   [0 1 0]
+   [0 0 1]
+  ]
+  [
+   [1 0 0]
+   [0 1 0]
+   [0 0 1]
+  ]
+  [
+   [1 0 0]
+   [0 1 0]
+   [0 0 1]
+  ]
+ ]
 =cut
 EOD
 );
