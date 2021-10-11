@@ -1452,6 +1452,7 @@ $PDL::PP::deftbl =
           }
           $SETDIMS();
           $SETDELTATHREADIDS(0);
+          $PRIV(dims_redone) = 1;
         '),
         # NOTE: we use the same bit of code for all-good and bad data -
         #  see the Code rule
@@ -1669,7 +1670,7 @@ EOD
         my (undef,$name,$sname) = @_;
         ("PARENT(); [oca]CHILD();",0,0,[PDL::Types::ppdefs_all()],1,
           pp_line_numbers(__LINE__-1,"\tpdl *__it = $sname->pdls[1];\n\tpdl *__parent = $sname->pdls[0];\n"),
-          pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy($sname);\n"),
+          pp_line_numbers(__LINE__-1,"PDL->hdr_childcopy($sname);\n$sname->dims_redone = 1;\n"),
         );
       }),
 
@@ -1713,6 +1714,7 @@ EOD
           }
           $SETDIMS();
           $SETDELTATHREADIDS(0);
+          $PRIV(dims_redone) = 1;
         ');
       }),
 

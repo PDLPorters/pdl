@@ -121,6 +121,7 @@ void pdl_affine_redodims(pdl_trans *trans) {
     trans->pdls[1]->dims[i] = params->sdims[i];
   }
   pdl_setdims_careful(__it);
+  trans->dims_redone = 1;
 }
 
 void pdl_affine_free(pdl_trans *trans) {
@@ -211,6 +212,7 @@ void pdl_converttypei_redodims(pdl_trans *trans) {
   pdl_reallocthreadids(trans->pdls[1], trans->pdls[0]->nthreadids);
   for (i=0; i<trans->pdls[0]->nthreadids; i++)
     trans->pdls[1]->threadids[i] = trans->pdls[0]->threadids[i];
+  trans->dims_redone = 1;
 }
 
 #define COPYCONVERT(from_pdl, to_pdl) \
