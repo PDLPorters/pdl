@@ -1,3 +1,5 @@
 TYPEMAP
 GslSpline *	T_PTROBJ
 GslAccel *	T_PTROBJ
+gsl_spline * T_PTR
+gsl_interp_accel * T_PTR

@@ -75,7 +75,7 @@ typedef gsl_interp_accel GslAccel;
 
 pp_def('init',
         Pars => 'double x(n); double y(n);',
-        OtherPars => 'IV spl',
+        OtherPars => 'gsl_spline *spl',
         Doc => <<'EOF',
 =for ref
 
@@ -126,7 +126,7 @@ Example:
     $spl = PDL::GSL::INTERP->init('cspline',$x,$y,{Sort => 0});
 =cut
 EOF
-        Code =>'GSLERR(gsl_spline_init,(INT2PTR(gsl_spline *, $COMP(spl)),$P(x),$P(y),$SIZE(n)));',
+        Code =>'GSLERR(gsl_spline_init,($COMP(spl),$P(x),$P(y),$SIZE(n)));',
         PMCode => <<'EOF',
 sub init {
   my $opt;
@@ -153,7 +153,7 @@ EOF
 
 pp_def('eval',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'IV spl;IV acc;',
+        OtherPars => 'gsl_spline *spl;gsl_interp_accel *acc;',
         Doc => <<'EOF',
 =for ref
 
@@ -189,17 +189,17 @@ EOF
         if ($ISBAD($x())) {
           $out() = $x();
 	} else {
-	  GSLERR(gsl_spline_eval_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
+	  GSLERR(gsl_spline_eval_e,($COMP(spl), $x(), $COMP(acc), $P(out)));
         }
         ',
 
         Code =>'
-GSLERR(gsl_spline_eval_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
+GSLERR(gsl_spline_eval_e,($COMP(spl), $x(), $COMP(acc), $P(out)));
 ');
 
 pp_def('deriv',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'IV spl;IV acc;',
+        OtherPars => 'gsl_spline *spl;gsl_interp_accel *acc;',
         PMCode => <<'EOF',
 sub deriv {
   my ($obj,$x) = @_;
@@ -231,12 +231,12 @@ Example:
 =cut
 EOF
 	Code =>'
-GSLERR(gsl_spline_eval_deriv_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
+GSLERR(gsl_spline_eval_deriv_e,($COMP(spl), $x(), $COMP(acc), $P(out)));
 ');
 
 pp_def('deriv2',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'IV spl;IV acc;',
+        OtherPars => 'gsl_spline *spl;gsl_interp_accel *acc;',
         Doc => <<'EOF',
 =for ref
 
@@ -268,12 +268,12 @@ sub deriv2 {
 }
 EOF
 	Code =>'
-GSLERR(gsl_spline_eval_deriv2_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
+GSLERR(gsl_spline_eval_deriv2_e,($COMP(spl), $x(), $COMP(acc), $P(out)));
 ');
 
 pp_def('integ',
         Pars => 'double a(); double b(); double [o] out();',
-	OtherPars => 'IV spl;IV acc;',
+        OtherPars => 'gsl_spline *spl;gsl_interp_accel *acc;',
         Doc => <<'EOF',
 =for ref
 
@@ -305,7 +305,7 @@ sub integ {
 }
 EOF
 	Code =>'
-GSLERR(gsl_spline_eval_integ_e,( INT2PTR(gsl_spline *, $COMP(spl)), $a(), $b(), INT2PTR(gsl_interp_accel *, $COMP(acc)),$P(out)));
+GSLERR(gsl_spline_eval_integ_e,($COMP(spl), $a(), $b(), $COMP(acc),$P(out)));
 ');
 
 # XS functions for the INTERP objects
@@ -371,6 +371,5 @@ pp_export_nothing;
 
 pp_add_boot('gsl_set_error_handler_off();
 ');
-
 
 pp_done();

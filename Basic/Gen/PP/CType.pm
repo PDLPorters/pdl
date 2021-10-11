@@ -63,9 +63,10 @@ sub get_copy {
 	 if $this->{Base} =~ /^\s*char\s*$/;
 	return "($to) = newSVsv($from);" if $this->{Base} =~ /^\s*SV\s*$/;
 	my $code = $this->get_malloc($to,$from);
+	return "($to) = ($from);" if !defined $code; # pointer
 	my ($deref0,$deref1,$prev,$close) = ($from,$to);
 	for(@{$this->{Chain}}) {
-		if($_ eq "PTR") {confess("Cannot alloc pointer, must be array");}
+		if($_ eq "PTR") {confess("Cannot copy pointer, must be array");}
 		elsif($_ =~/^ARR\((.*)\)$/) {
 			$no++;
 			$prev .= "
@@ -85,7 +86,7 @@ sub get_copy {
 
 sub get_free {
 	my($this,$from) = @_;
-	return "" if !@{$this->{Chain}};
+	return "" if !@{$this->{Chain}} or $this->{Chain}[0] eq 'PTR';
 	return "free($from);" if $this->{Base} =~ /^\s*char\s*$/;
 	return "SvREFCNT_dec($from);" if $this->{Base} =~ /^\s*SV\s*$/;
 	croak("Can only free one layer!\n") if @{$this->{Chain}} > 1;
@@ -97,7 +98,7 @@ sub need_malloc {
 	grep /(ARR|PTR)/, @{$this->{Chain}};
 }
 
-# Just returns with the array string.
+# returns with the array string - undef if a pointer not needing malloc
 sub get_malloc {
 	my($this,$assignto) = @_;
 	my $str = "{";
@@ -106,7 +107,7 @@ sub get_malloc {
 	my $close = undef;
 	my $no = 0;
 	for(@{$this->{Chain}}) {
-		if($_ eq "PTR") {confess("Cannot alloc pointer, must be array");}
+		if($_ eq "PTR") {return}
 		elsif($_ =~/^ARR\((.*)\)$/) {
 			$str .= "$prev $assignto =
 				malloc(sizeof(* $assignto) * $1);

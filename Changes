@@ -3,7 +3,7 @@
 - multi-C only updates files that have changed, for faster rebuilds
 - because OtherPars are now in a separate struct, no restriction on names
 - mslice is just an alias to Slices::slice
-- allow pdl * as OtherPars
+- allow any pointer including pdl * as OtherPars
 
 2.057_03 2021-10-02
 - remove IO::Misc::rdsa, untested since PDL 1.9 and needing non-CPAN "DSA" module

@@ -1490,15 +1490,6 @@ create a C<typemap> file in the directory where your PP file resides and
 when it is built it is automatically read in to figure out the appropriate
 translation between the C type and Perl's built-in type.
 
-That said, there are a couple of important differences from the general 
-handling of types in XS. The first, and probably most important, is that
-at the moment pointers to types are not allowed in the C<OtherPars>
-section. To get around this limitation you must use the C<IV> type
-(thanks to Judd Taylor for pointing out that this is necessary for
-portability).
-
-It is probably best to illustrate this with a couple of code-snippets:
-
 For instance the C<gsl_spline_init> function has the following C 
 declaration:
 
@@ -1507,51 +1498,26 @@ declaration:
 
 Clearly the C<xa> and C<ya> arrays are candidates for being passed
 in as ndarrays and the C<size> argument is just the length of these
-ndarrays so that can be handled by the C<$SIZE()> macro in PP. The
-problem is the pointer to the C<gsl_spline> type. The natural solution
-would be to write an C<OtherPars> declaration of the form
+ndarrays so that can be handled by the C<$SIZE()> macro in PP.
+Write an C<OtherPars> declaration of the form
 
     OtherPars => 'gsl_spline *spl'
 
-and write a short C<typemap> file which handled this type. This does
-not work at present however! So what you have to do is to go around
-the problem slightly (and in some ways this is easier too!):
+and write a short C<typemap> file which handles this type:
 
+    TYPEMAP
+    gsl_spline * T_PTR
 
-The solution is to declare C<spline> in the C<OtherPars> section using
-an "Integer Value", C<IV>. This hides the nature of the variable from
-PP and you then need to (well to avoid compiler warnings at least!) 
-perform a type cast when you use the variable in your code. Thus
-C<OtherPars> should take the form:
+and use it in the code:
 
-    OtherPars => 'IV spl'
-
-and when you use it in the code you will write
-
-    INT2PTR(gsl_spline *, $COMP(spl))
-
-where the Perl API macro C<INT2PTR> has been used to handle the pointer
-cast to avoid compiler warnings and problems for machines with mixed 32bit
-and 64bit Perl configurations.  Putting this together as Andres Jordan has
-done (with the modification using C<IV> by Judd Taylor) in the
-C<gsl_interp.pd> in the distribution source you get:
-
-     pp_def('init_meat',
-            Pars => 'double x(n); double y(n);',
-            OtherPars => 'IV spl',
-            Code =>'
-	 gsl_spline_init,( INT2PTR(gsl_spline *, $COMP(spl)), $P(x),$P(y),$SIZE(n)));'
+    pp_def('init_meat',
+      Pars => 'double x(n); double y(n);',
+      OtherPars => 'gsl_spline *spl',
+      Code =>'gsl_spline_init,($COMP(spl),$P(x),$P(y),$SIZE(n)));'
     );
 
 where I have removed a macro wrapper call, but that would obscure the
 discussion.
-
-The other minor difference as compared to the standard typemap handling
-in Perl, is that the user cannot specify non-standard typemap locations or
-typemap filenames using the C<TYPEMAPS> option in MakeMaker... Thus you
-can only use a file called C<typemap> and/or the C<IV> trick above.
-
-
 
 =head2 Other useful PP keys in data operation definitions
 
