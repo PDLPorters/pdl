@@ -449,4 +449,7 @@ for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i', 'cdo
 eval { PDL->is_inplace }; # shouldn't infinite-loop
 isnt $@, '', 'is_inplace as class method throws exception';
 
+is sequence(3)->get_trans, undef, 'get_trans without trans undef';
+isnt sequence(3)->slice()->get_trans, undef, 'get_trans with trans defined';
+
 done_testing;
