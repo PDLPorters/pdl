@@ -62,4 +62,3 @@ BOOT:
    if (CoreSV==NULL)
      croak("This module requires use of PDL::Core first");
    PDL = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
-                                  

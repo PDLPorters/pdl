@@ -572,11 +572,11 @@ EOC
 
 pp_def( '_gd_image_to_pdl_true',
         Pars => 'byte [o] img(x,y,z);',
-        OtherPars => 'IV img_ptr',
+        OtherPars => 'gdImagePtr img_ptr',
         Doc => undef,
         Code => <<'ENDCODE' );
 int xsize, ysize, x2, y2, z2;
-gdImagePtr im = INT2PTR(gdImagePtr, $COMP(img_ptr));
+gdImagePtr im = $COMP(img_ptr);
 char* func = "PDL::IO::GD::_gd_image_to_pdl_true(): ";
 char str[255];
 
@@ -605,12 +605,12 @@ ENDCODE
 
 pp_def( '_gd_image_to_pdl',
         Pars => 'byte [o] img(x,y);',
-        OtherPars => 'IV img_ptr',
+        OtherPars => 'gdImagePtr img_ptr',
         Doc => undef,
         Code => <<'ENDCODE' );
 int xsize, ysize, x2, y2;
 char* func = "PDL::IO::GD::_gd_image_to_pdl(): ";
-gdImagePtr im = INT2PTR(gdImagePtr, $COMP(img_ptr));
+gdImagePtr im = $COMP(img_ptr);
 char str[255];
 
 xsize = gdImageSX(im);
@@ -1997,9 +1997,9 @@ sub generate_pp_def_members
         #
         pp_def( $pdlpp_name,
             Pars => $pdlpp_arg_list,
-            OtherPars => 'IV img_ptr;',
+            OtherPars => 'gdImagePtr img_ptr',
             Doc => undef,
-            Code => "$orig_name( INT2PTR(gdImagePtr, \$COMP(img_ptr)), $pdlpp_call_arg_list );" );
+            Code => "$orig_name( \$COMP(img_ptr), $pdlpp_call_arg_list );" );
 
         # Add the OO code:
         
