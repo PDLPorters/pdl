@@ -943,6 +943,16 @@ void pdl_hdr_childcopy(pdl_trans *trans) {
   }
 }
 
+void pdl_dump_slice_args(pdl_slice_args* args) {
+  printf("slice_args (%p):\n", args);
+  while (args) {
+    printf("  start=%"IND_FLAG", end=%"IND_FLAG", inc=%"IND_FLAG", squish=%d, dummy=%d, next=%p\n",
+      args->start, args->end, args->inc, args->squish, args->dummy, args->next
+    );
+    args = args->next;
+  }
+}
+
 /****************************************************************/
 /*** String handling part of slice is here.  Parse out each   ***/
 /*** term:                                                    ***/
@@ -955,7 +965,7 @@ void pdl_hdr_childcopy(pdl_trans *trans) {
 /***  X            - keep this dim in its entirety            ***/
 /****************************************************************/
 pdl_slice_args pdl_slice_args_parse_string(char* s) {
-  PDLDEBUG_f(printf("input: '%s'\n", s));
+  PDLDEBUG_f(printf("slice_args_parse_string input: '%s'\n", s));
   STRLEN len;
   int subargno = 0;
   char flagged = 0;
@@ -1037,6 +1047,6 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
   } /* end of parse loop */
   this_arg.squish = squish_flag;
   this_arg.dummy = dummy_flag;
-  PDLDEBUG_f(printf("output: start=%"IND_FLAG", end=%"IND_FLAG", inc=%"IND_FLAG", squish=%d, dummy=%d\n", this_arg.start, this_arg.end, this_arg.inc, this_arg.squish, this_arg.dummy));
+  PDLDEBUG_f(pdl_dump_slice_args(&this_arg));
   return this_arg;
 }
