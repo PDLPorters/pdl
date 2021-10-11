@@ -514,6 +514,13 @@ struct pdl {
    void *hdrsv; /* "header", settable from Perl */
 };
 
+typedef struct pdl_slice_args {
+  PDL_Indx start; /* maps to start index of slice range (inclusive) */
+  PDL_Indx end; /* maps to end index of slice range (inclusive) */
+  PDL_Indx inc; /* maps to increment of slice range */
+  char dummy, squish; /* boolean */
+  struct pdl_slice_args *next; /* NULL is last */
+} pdl_slice_args;
 
 /*************
  * Some macros for looping over the children of a given PDL

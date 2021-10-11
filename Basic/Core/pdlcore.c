@@ -942,3 +942,101 @@ void pdl_hdr_childcopy(pdl_trans *trans) {
       SvREFCNT_dec(hdr_copy); /* make hdr_copy mortal again */
   }
 }
+
+/****************************************************************/
+/*** String handling part of slice is here.  Parse out each   ***/
+/*** term:                                                    ***/
+/***   <n> (or NV) - extract one element <n> from this dim    ***/
+/***   <n>:<m>     - extract <n> to <m>; autoreverse if nec.  ***/
+/***   <n>:<m>:<s> - extract <n> to <m>, stepping by <s>      ***/
+/***  (<n>)        - extract element and discard this dim     ***/
+/***  *<n>         - insert a dummy dimension of size <n>     ***/
+/***  :            - keep this dim in its entirety            ***/
+/***  X            - keep this dim in its entirety            ***/
+/****************************************************************/
+pdl_slice_args pdl_slice_args_parse_string(char* s) {
+  PDLDEBUG_f(printf("input: '%s'\n", s));
+  STRLEN len;
+  int subargno = 0;
+  char flagged = 0;
+  char squish_closed = 0, all_flag = 0, squish_flag = 0, dummy_flag = 0;
+  pdl_slice_args this_arg = {0,-1,0}; /* start,end,inc 0=do in RedoDims */
+  PDL_Indx i;
+  while(*s) {
+    if( isspace( *s ) ) {
+      s++;  /* ignore and loop again */
+      continue;
+    }
+    /* not whitespace */
+    switch(*(s++)) {
+      case '*':
+        if(flagged || subargno)
+          barf("slice: Erroneous '*' (arg %d)",i);
+        dummy_flag = flagged = 1;
+        this_arg.start = 1;  /* default this number to 1 (size 1); '*0' yields an empty */
+        this_arg.end = 1;  /* no second arg allowed - default to 1 so start is element count */
+        this_arg.inc = -1; /* -1 so we count down to end from start */
+        break;
+      case '(':
+        if(flagged || subargno)
+          barf("slice: Erroneous '(' (arg %d)",i);
+        squish_flag = flagged = 1;
+        break;
+      case 'X': case 'x':
+        if(flagged || subargno > 1)
+          barf("slice: Erroneous 'X' (arg %d)",i);
+        if(subargno==0) {
+          all_flag = flagged = 1;
+        } else /* subargno is 1 - squish */ {
+          squish_flag = squish_closed = flagged = 1;
+        }
+        break;
+      case '+': case '-':
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        switch(subargno) {
+          case 0: /* first arg - change default to 1 element */
+            this_arg.end = this_arg.start = strtoll(--s, &s, 10);
+            if(dummy_flag)
+              this_arg.start = 1;
+            break;
+          case 1: /* second arg - parse and keep end */
+            this_arg.end = strtoll(--s, &s, 10);
+            break;
+          case 2: /* third arg - parse and keep inc */
+            if ( squish_flag || dummy_flag )
+              barf("slice: erroneous third field in slice specifier (arg %d)",i);
+            this_arg.inc = strtoll(--s, &s, 10);
+            break;
+          default: /* oops */
+            barf("slice: too many subargs in scalar slice specifier %d",i);
+            break;
+        }
+        break;
+      case ')':
+        if( squish_closed || !squish_flag || subargno > 0)
+          barf("slice: erroneous ')' (arg %d)",i);
+        squish_closed = 1;
+        break;
+      case ':':
+        if(squish_flag && !squish_closed)
+          barf("slice: must close squishing parens (arg %d)",i);
+        if( subargno == 0 )
+          this_arg.end = -1;   /* Set "<n>:" default to get the rest of the range */
+        if( subargno > 1 )
+          barf("slice: too many ':'s in scalar slice specifier %d",i);
+        subargno++;
+        break;
+      case ',':
+        barf("slice: ','  not allowed (yet) in scalar slice specifiers!");
+        break;
+      default:
+        barf("slice: unexpected '%c' in slice specifier (arg %d)",*s,i);
+        break;
+    }
+  } /* end of parse loop */
+  this_arg.squish = squish_flag;
+  this_arg.dummy = dummy_flag;
+  PDLDEBUG_f(printf("output: start=%"IND_FLAG", end=%"IND_FLAG", inc=%"IND_FLAG", squish=%d, dummy=%d\n", this_arg.start, this_arg.end, this_arg.inc, this_arg.squish, this_arg.dummy));
+  return this_arg;
+}

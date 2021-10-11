@@ -2346,7 +2346,7 @@ EOD-slice
 # Comp stash definitions:
 #  nargs - number of args in original call
 #  odim[]   - maps argno to output dim (or -1 for squished dims)
-#  idim[]   - maps argno to input dim  (or -1 for squished dims)
+#  idim[]   - maps argno to input dim  (or -1 for dummy dims)
 #  odim_top - one more than the highest odim encountered
 #  idim_top - one more than the highest idim encountered
 #  start[]  - maps argno to start index of slice range (inclusive)
@@ -2553,134 +2553,24 @@ EOD-slice
                        } /* end of nontrivial sublist parsing */
 
                      } else /* this argument is not an ARRAY ref - parse as a scalar */ {
-
-                        /****************************************************************/
-                        /*** String handling part of slice is here.  Parse out each   ***/
-                        /*** term:                                                    ***/
-                        /***   <n> (or NV) - extract one element <n> from this dim    ***/
-                        /***   <n>:<m>     - extract <n> to <m>; autoreverse if nec.  ***/
-                        /***   <n>:<m>:<s> - extract <n> to <m>, stepping by <s>      ***/
-                        /***  (<n>)        - extract element and discard this dim     ***/
-                        /***  *<n>         - insert a dummy dimension of size <n>     ***/
-                        /***  :            - keep this dim in its entirety            ***/
-                        /***  X            - keep this dim in its entirety            ***/
-                        /****************************************************************/
-
-                        if(SvPOKp(this)) {
-                          /* this argument has a cached string */
-
-                          char *s;
-                          STRLEN len;
-                          int subargno = 0;
-                          int flagged = 0;
-                          int squish_closed = 0;
-                          s = SvPVbyte(this, len);
-
-                          /* Very stoopid parsing - should probably make some calls to perl string utilities... */
-                          while(*s) {
-                            if( isspace( *s ) ) {
-                              s++;  /* ignore and loop again */
-                              continue;
-                            }
-                            /* not whitespace */
-                            switch(*(s++)) {
-                              case '*':
-                                if(flagged || subargno)
-                                  barf("slice: Erroneous '*' (arg %d)",i);
-                                dummy_flag = flagged = 1;
-                                n0 = 1;  /* default this number to 1 (size 1); '*0' yields an empty */
-                                n1 = 1;  /* no second arg allowed - default to 1 so n0 is element count */
-                                n2 = -1; /* -1 so we count down to n1 from n0 */
-                                break;
-
-                              case '(':
-                                if(flagged || subargno)
-                                  barf("slice: Erroneous '(' (arg %d)",i);
-                                squish_flag = flagged = 1;
-
-                                break;
-
-                              case 'X': case 'x':
-                                if(flagged || subargno > 1)
-                                  barf("slice: Erroneous 'X' (arg %d)",i);
-                                  if(subargno==0) {
-                                    all_flag = flagged = 1;
-                                  }
-                                  else /* subargno is 1 - squish */ {
-                                    squish_flag = squish_closed = flagged = 1;
-                                  }
-                                break;
-
-                              case '+': case '-':
-                              case '0': case '1': case '2': case '3': case '4':
-                              case '5': case '6': case '7': case '8': case '9':
-                               switch(subargno) {
-
-                                 case 0: /* first arg - change default to 1 element */
-                                         n0 = strtoll(--s, &s, 10);
-                                         n1 = n0;
-                                         if(dummy_flag) {
-                                           n0 = 1;
-                                         }
-                                         break;
-
-                                 case 1: /* second arg - parse and keep end */
-                                         n1 = strtoll(--s, &s, 10);
-                                         break;
-
-                                 case 2: /* third arg - parse and keep inc */
-                                         if( squish_flag || dummy_flag ) {
-                                          barf("slice: erroneous third field in slice specifier (arg %d)",i);
-                                         }
-                                         n2 = strtoll(--s, &s, 10);
-                                         break;
-
-                                 default: /* oops */
-                                   barf("slice: too many subargs in scalar slice specifier %d",i);
-                                   break;
-                               }
-                               break;
-
-                              case ')':
-                               if( squish_closed || !squish_flag || subargno > 0) {
-                                barf("slice: erroneous ')' (arg %d)",i);
-                               }
-                               squish_closed = 1;
-                               break;
-
-                              case ':':
-                               if(squish_flag && !squish_closed) {
-                                 barf("slice: must close squishing parens (arg %d)",i);
-                               }
-                               if( subargno == 0 ) {
-                                 n1 = -1;   /* Set "<n>:" default to get the rest of the range */
-                               }
-                               if( subargno > 1 ) {
-                                 barf("slice: too many ':'s in scalar slice specifier %d",i);
-                               }
-                               subargno++;
-                               break;
-
-                              case ',':
-                               barf("slice: ','  not allowed (yet) in scalar slice specifiers!");
-                               break;
-
-                              default:
-                               barf("slice: unexpected '%c' in slice specifier (arg %d)",*s,i);
-                               break;
-                            }
-                          } /* end of parse loop */
-
-                        } else /* end of string parsing */ {
-
-                          /* Simplest case -- there's no cached string, so it   */
-                          /* must be a number.  In that case it's a simple      */
-                          /* extraction.  Treated as a separate case for speed. */
-                          n0 = SvNV(this);
-                          n1 = SvNV(this);
-                          n2 = 0;
-                        }
-
+                       if(SvPOKp(this)) {
+                         /* this argument has a cached string */
+                         STRLEN len;
+                         char *s = SvPVbyte(this, len);
+                         pdl_slice_args this_arg = PDL_CORE_(slice_args_parse_string)(s);
+                         n0 = this_arg.start;
+                         n1 = this_arg.end;
+                         n2 = this_arg.inc;
+                         squish_flag = this_arg.squish;
+                         dummy_flag = this_arg.dummy;
+                       } else /* end of string parsing */ {
+                         /* Simplest case -- there's no cached string, so it   */
+                         /* must be a number.  In that case it's a simple      */
+                         /* extraction.  Treated as a separate case for speed. */
+                         n0 = SvNV(this);
+                         n1 = SvNV(this);
+                         n2 = 0;
+                       }
                      } /* end of scalar handling */
 
                   } /* end of defined-element handling (!all_flag) */

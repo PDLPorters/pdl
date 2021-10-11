@@ -123,7 +123,8 @@ void pdl_readdata_vaffine(pdl *it);
   X(affine_new, void, (pdl *par,pdl *child,PDL_Indx offs,SV *dims,SV *incs)) \
   X(converttypei_new, void, (pdl *par,pdl *child,int type)) \
   X(dump, void, (pdl *it)) \
-  X(sever, pdl *, (pdl *a))
+  X(sever, pdl *, (pdl *a)) \
+  X(slice_args_parse_string, pdl_slice_args, ( char* ))
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \
