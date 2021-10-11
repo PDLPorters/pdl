@@ -4,6 +4,7 @@ pdl_trans * T_PDLTRANS
 PDL_Indx  T_IV
 float	T_NV
 PDL_Anyval  T_PDL_ANYVAL
+pdl_slice_args * T_PDL_SLICEARGS
 
 INPUT
 
@@ -18,6 +19,9 @@ T_PDLTRANS
 		$var = INT2PTR(pdl_trans *,SvIV(SvRV($arg)));
 	else
 	        croak(\"$var is not of type PDL::Trans\");
+
+T_PDL_SLICEARGS
+	$var = PDL_CORE_(slice_args_parse)($arg);
 
 OUTPUT
 

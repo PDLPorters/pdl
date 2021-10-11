@@ -2341,7 +2341,7 @@ sub PDL::slice {
 }
 EOD-slice
         P2Child => 1,
-        OtherPars => 'SV *args;',
+        OtherPars => 'pdl_slice_args *arglist;',
 #
 # Comp stash definitions:
 #  nargs - number of args in original call
@@ -2365,7 +2365,6 @@ EOD-slice
         AffinePriv => 1,
         TwoWay => 1,
         MakeComp => <<'SLICE-MC'
-                pdl_slice_args *arglist = PDL_CORE_(slice_args_parse)(args);
                 int nargs = 0;
                 pdl_slice_args *argsptr = arglist;
                 while (argsptr) nargs++, argsptr = argsptr->next;
