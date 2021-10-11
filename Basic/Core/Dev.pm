@@ -182,7 +182,7 @@ sub _postamble {
   my ($w, $internal, $src, $pref, $mod, $callpack, $multi_c) = @_;
   $callpack //= '';
   $w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
-  my ($perlrun, $pmdep) = ($internal ? '$(PERLRUNINST)' : "\$(PERL) \"-I$w\"", $src);
+  my ($perlrun, $pmdep, $install) = ($internal ? '$(PERLRUNINST)' : "\$(PERL) \"-I$w\"", $src, '');
   if ($internal) {
     require File::Spec::Functions;
     my $top = File::Spec::Functions::abs2rel($w);
@@ -191,15 +191,13 @@ sub _postamble {
         qw(pdl.h pdlcore.h pdlthread.h pdlmagic.h Types.pm);
     my $gendep = File::Spec::Functions::catfile($top, qw(Basic Gen pm_to_blib));
     $pmdep .= " $coredeps $gendep";
-  }
-  my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack, $multi_c||'');
-  my $install = '';
-  if (!$internal) {
+  } else {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
     $install = qq|\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;
   }
   my @generanda = "$pref.xs";
   push @generanda, map "pp-$_.c", _pp_list_functions($src, $internal) if $multi_c;
+  my $pp_call_arg = _pp_call_arg($mod, $mod, $pref, $callpack, $multi_c||'');
 qq|
 
 $pref.pm : $pmdep
