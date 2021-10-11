@@ -2146,11 +2146,10 @@ END
    PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], sub {NT2Free_p(@_,"COMP")}),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
-      ["SignatureObj","CompiledRepr","Name"],
+      ["CompiledRepr","Name"],
       sub {
-        my($sig,$comp,$name) = @_;
+        my($comp,$name) = @_;
         return ('', '') if !$comp;
-        my $npdls = @{ $sig->names };
         my $ptype = "pdl_params_$name";
         (PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $ptype {\n$comp} $ptype;}),
         $ptype);
