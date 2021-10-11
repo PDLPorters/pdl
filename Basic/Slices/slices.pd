@@ -2697,21 +2697,12 @@ EOD-slice
                   }
 
                   /* Copy parsed values into the limits */
-                  $COMP(start[i]) = n0;
-                  $COMP(end[i])   = n1;
-                  $COMP(inc[i])   = n2;
-
+                  $COMP(start)[i] = n0;
+                  $COMP(end)[i]   = n1;
+                  $COMP(inc)[i]   = n2;
                   /* Deal with dimensions */
-                  if(squish_flag) {
-                    $COMP(odim[i]) = -1;
-                  } else {
-                    $COMP(odim[i]) = odim++;
-                  }
-                  if(dummy_flag) {
-                    $COMP(idim[i]) = -1;
-                  } else {
-                    $COMP(idim[i]) = idim++;
-                  }
+                  $COMP(odim)[i] = squish_flag ? -1 : odim++;
+                  $COMP(idim)[i] = dummy_flag ? -1 : idim++;
 
                 } /* end of arg-parsing loop */
 
