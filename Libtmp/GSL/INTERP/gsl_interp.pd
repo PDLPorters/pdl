@@ -34,12 +34,49 @@ C<b>. Since good Perl coding practices discourage the use of Perl
 variables C<$a> and C<$b>, here we refer to Parameters C<a> and C<b>
 as C<$pa> and C<$pb>, respectively, and Limits (of domain or
 integration) as C<$la> and C<$lb>.
+EOD
 
+pp_addpm({At=>Bot},<<'EOD');
+=head1 BUGS
 
-=head1 FUNCTIONS
+Feedback is welcome.
 
-=head2 init()
+=head1 SEE ALSO
 
+L<PDL>
+
+The GSL documentation for interpolation is online at
+L<https://www.gnu.org/software/gsl/doc/html/interp.html>
+
+=head1 AUTHOR
+
+This file copyright (C) 2003 Andres Jordan <andresj@physics.rutgers.edu>
+All rights reserved. There is no warranty. You are allowed to redistribute this
+software/documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL interpolation module was written by Gerard Jungman.
+
+=cut
+EOD
+
+pp_addhdr('
+#include<string.h>
+#include<math.h>
+#include<gsl/gsl_errno.h>
+#include<gsl/gsl_spline.h>
+#include "gslerr.h"
+
+typedef gsl_spline GslSpline;
+typedef gsl_interp_accel GslAccel;
+
+');
+
+pp_def('init',
+        Pars => 'double x(n); double y(n);',
+        OtherPars => 'IV spl',
+        Doc => <<'EOF',
 =for ref
 
 The init method initializes a new instance of INTERP. It needs as
@@ -87,14 +124,41 @@ Example:
 
     # no sorting done on x, user is certain that x is monotonically increasing
     $spl = PDL::GSL::INTERP->init('cspline',$x,$y,{Sort => 0});
+=cut
+EOF
+        Code =>'GSLERR(gsl_spline_init,(INT2PTR(gsl_spline *, $COMP(spl)),$P(x),$P(y),$SIZE(n)));',
+        PMCode => <<'EOF',
+sub init {
+  my $opt;
+  if (ref($_[$#_]) eq 'HASH'){ $opt = pop @_; }
+  else{ $opt = {Sort => 1}; }
+  my ($class,$type,$x,$y) = @_;
+  if( (ref($x) ne 'PDL') || (ref($y) ne 'PDL') ){
+    barf("Have to pass ndarrays as arguments to init method\n");
+  }
+  if($$opt{Sort} != 0){
+    my $idx = PDL::Ufunc::qsorti($x);
+    $x = $x->index($idx);
+    $y = $y->index($idx);
+  }
+  my $ene = nelem($x);
+  my $obj1 = new_spline($type,$ene);
+  my $obj2 = new_accel();
+  _init_int($x,$y,$$obj1);
+  my @ret_a = ($obj1,$obj2);
+  return bless(\@ret_a, $class);
+}
+EOF
+);
 
-=head2 eval()
-
+pp_def('eval',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'IV spl;IV acc;',
+        Doc => <<'EOF',
 =for ref
 
 The function eval returns the interpolating function at a given point.
 It will barf with an "input domain error" if you try to extrapolate.
-
 
 =for usage
 
@@ -108,14 +172,49 @@ Example:
 
     my $res = $spl->eval($x)
 
-=head2 deriv()
+=cut
+EOF
+        PMCode => <<'EOF',
+sub eval {
+  my $opt;
+  my ($obj,$x) = @_;
+  my $s_obj = $$obj[0];
+  my $a_obj = $$obj[1];
+  _eval_int($x,my $o=PDL->null,$$s_obj,$$a_obj);
+  $o;
+}
+EOF
+	HandleBad => 1,
+        BadCode => '
+        if ($ISBAD($x())) {
+          $out() = $x();
+	} else {
+	  GSLERR(gsl_spline_eval_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
+        }
+        ',
 
+        Code =>'
+GSLERR(gsl_spline_eval_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
+');
+
+pp_def('deriv',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'IV spl;IV acc;',
+        PMCode => <<'EOF',
+sub deriv {
+  my ($obj,$x) = @_;
+  my $s_obj = $$obj[0];
+  my $a_obj = $$obj[1];
+  _deriv_int($x,my $o=PDL->null,$$s_obj,$$a_obj);
+  $o;
+}
+EOF
+        Doc => <<'EOF',
 =for ref
 
 The deriv function returns the derivative of the
 interpolating function at a given point.
 It will barf with an "input domain error" if you try to extrapolate.
-
 
 =for usage
 
@@ -129,15 +228,21 @@ Example:
 
     my $res = $spl->deriv($x)
 
-=head2 deriv2()
+=cut
+EOF
+	Code =>'
+GSLERR(gsl_spline_eval_deriv_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
+');
 
+pp_def('deriv2',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'IV spl;IV acc;',
+        Doc => <<'EOF',
 =for ref
 
 The deriv2 function returns the second derivative
 of the interpolating function at a given point.
 It will barf with an "input domain error" if you try to extrapolate.
-
-
 
 =for usage
 
@@ -151,14 +256,30 @@ Example:
 
     my $res = $spl->deriv2($x)
 
-=head2 integ()
+=cut
+EOF
+        PMCode => <<'EOF',
+sub deriv2 {
+  my ($obj,$x) = @_;
+  my $s_obj = $$obj[0];
+  my $a_obj = $$obj[1];
+  _deriv2_int($x,my $o=PDL->null,$$s_obj,$$a_obj);
+  $o;
+}
+EOF
+	Code =>'
+GSLERR(gsl_spline_eval_deriv2_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
+');
 
+pp_def('integ',
+        Pars => 'double a(); double b(); double [o] out();',
+	OtherPars => 'IV spl;IV acc;',
+        Doc => <<'EOF',
 =for ref
 
 The integ function returns the integral
 of the interpolating function between two points.
 It will barf with an "input domain error" if you try to extrapolate.
-
 
 =for usage
 
@@ -172,156 +293,20 @@ Example:
 
     my $res = $spl->integ($la,$lb)
 
-=head1 BUGS
-
-Feedback is welcome.
-
-=head1 SEE ALSO
-
-L<PDL>
-
-The GSL documentation for interpolation is online at
-L<https://www.gnu.org/software/gsl/doc/html/interp.html>
-
-=head1 AUTHOR
-
-This file copyright (C) 2003 Andres Jordan <andresj@physics.rutgers.edu>
-All rights reserved. There is no warranty. You are allowed to redistribute this
-software/documentation under certain conditions. For details, see the file
-COPYING in the PDL distribution. If this file is separated from the
-PDL distribution, the copyright notice should be included in the file.
-
-The GSL interpolation module was written by Gerard Jungman.
-
 =cut
-
-
-EOD
-
-pp_addhdr('
-#include<string.h>
-#include<math.h>
-#include<gsl/gsl_errno.h>
-#include<gsl/gsl_spline.h>
-#include "gslerr.h"
-
-typedef gsl_spline GslSpline;
-typedef gsl_interp_accel GslAccel;
-
-');
-
-pp_addpm('
-sub init{
-  my $opt;
-  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
-  else{ $opt = {Sort => 1}; }
-  my ($class,$type,$x,$y) = @_;
-  if( (ref($x) ne \'PDL\') || (ref($y) ne \'PDL\') ){
-    barf("Have to pass ndarrays as arguments to init method\n");
-  }
-  if($$opt{Sort} != 0){
-    my $idx = PDL::Ufunc::qsorti($x);
-    $x = $x->index($idx);
-    $y = $y->index($idx);
-  }
-  my $ene = nelem($x);
-  my $obj1 = new_spline($type,$ene);
-  my $obj2 = new_accel();
-  init_meat($x,$y,$$obj1);
-  my @ret_a = ($obj1,$obj2);
-  return bless(\@ret_a, $class);
-}
-');
-
-pp_def('init_meat',
-        Pars => 'double x(n); double y(n);',
-        OtherPars => 'IV spl',
-        Doc => undef,
-        Code =>'
-GSLERR(gsl_spline_init,( INT2PTR(gsl_spline *, $COMP(spl)), $P(x),$P(y),$SIZE(n)));'
-);
-
-pp_addpm('
-sub eval{
-  my $opt;
-  my ($obj,$x) = @_;
-  my $s_obj = $$obj[0];
-  my $a_obj = $$obj[1];
-  return eval_meat($x,$$s_obj,$$a_obj);
-}
-');
-
-pp_def('eval_meat',
-        Pars => 'double x(); double [o] out();',
-        OtherPars => 'IV spl;IV acc;',
-        Doc => undef,
-
-        # BadCode added 5/31/2005, D. Hunt
-	HandleBad => 1,
-        BadCode => '
-        if ($ISBAD($x())) {
-          $out() = $x();
-	} else {
-   	  GSLERR(gsl_spline_eval_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
-        }
-        ',
-
-        Code =>'
-GSLERR(gsl_spline_eval_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
-');
-
-
-pp_addpm('
-sub deriv{
-  my ($obj,$x) = @_;
-  my $s_obj = $$obj[0];
-  my $a_obj = $$obj[1];
-  return  eval_deriv_meat($x,$$s_obj,$$a_obj);
-}
-');
-
-pp_def('eval_deriv_meat',
-        Pars => 'double x(); double [o] out();',
-        OtherPars => 'IV spl;IV acc;',
-        Doc => undef,
-	Code =>'
-GSLERR(gsl_spline_eval_deriv_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
-');
-
-pp_addpm('
-sub deriv2{
-  my ($obj,$x) = @_;
-  my $s_obj = $$obj[0];
-  my $a_obj = $$obj[1];
-  return  eval_deriv2_meat($x,$$s_obj,$$a_obj);
-}
-');
-
-pp_def('eval_deriv2_meat',
-        Pars => 'double x(); double [o] out();',
-        OtherPars => 'IV spl;IV acc;',
-        Doc => undef,
-	Code =>'
-GSLERR(gsl_spline_eval_deriv2_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
-');
-
-pp_addpm('
-sub integ{
+EOF
+        PMCode => <<'EOF',
+sub integ {
   my ($obj,$la,$lb) = @_;
   my $s_obj = $$obj[0];
   my $a_obj = $$obj[1];
-  return eval_integ_meat($la,$lb,$$s_obj,$$a_obj);
+  _integ_int($la,$lb,my $o=PDL->null,$$s_obj,$$a_obj);
+  $o;
 }
-');
-
-pp_def('eval_integ_meat',
-        Pars => 'double a(); double b(); double [o] out();',
-	OtherPars => 'IV spl;IV acc;',
-        Doc => undef,
+EOF
 	Code =>'
 GSLERR(gsl_spline_eval_integ_e,( INT2PTR(gsl_spline *, $COMP(spl)), $a(), $b(), INT2PTR(gsl_interp_accel *, $COMP(acc)),$P(out)));
 ');
-
 
 # XS functions for the INTERP objects
 
