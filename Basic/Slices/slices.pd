@@ -1561,7 +1561,7 @@ pp_add_exported('', 'using');
 
 pp_addhdr(<<END
 static int cmp_pdll(const void *a_,const void *b_) {
-        int *a = (int *)a_; int *b=(int *)b_;
+        PDL_Indx *a = (PDL_Indx *)a_; PDL_Indx *b=(PDL_Indx *)b_;
         if(*a>*b) return 1;
         else if(*a==*b) return 0;
         else return -1;
@@ -1577,15 +1577,14 @@ pp_def(
         OtherPars => 'SV *list',
         Comp => 'PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];',
         MakeComp => '
-                PDL_Indx i,j;
+                PDL_Indx i;
                 PDL_Indx *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
-                if($COMP(nwhichdims) < 1) {
-                        $CROAK("Diagonal: must have at least 1 dimension");
-                }
+                if($COMP(nwhichdims) < 1)
+                  $CROAK("Diagonal: must have at least 1 dimension");
                 $DOCOMPDIMS();
                 for(i=0; i<$COMP(nwhichdims); i++)
                         $COMP(whichdims)[i] = tmp[i];
-                qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(int),
+                qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(PDL_Indx),
                         cmp_pdll);
         ',
         RedoDims => '
