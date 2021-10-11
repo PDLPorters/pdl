@@ -2354,10 +2354,10 @@ EOD-slice
 #  end[]    - maps argno to end index of slice range (inclusive)
 #
         Comp => 'int nargs;
-                 int odim[$COMP(nargs)];
-                 int idim[$COMP(nargs)];
-                 int idim_top;
-                 int odim_top;
+                 PDL_Indx odim[$COMP(nargs)];
+                 PDL_Indx idim[$COMP(nargs)];
+                 PDL_Indx idim_top;
+                 PDL_Indx odim_top;
                  PDL_Indx start[$COMP(nargs)];
                  PDL_Indx inc[$COMP(nargs)];
                  PDL_Indx end[$COMP(nargs)];
@@ -2366,10 +2366,10 @@ EOD-slice
         TwoWay => 1,
         MakeComp => <<'SLICE-MC'
                 int i;
-                int idim;
-                int odim;
-                int imax;
                 int nargs;
+                PDL_Indx idim;
+                PDL_Indx odim;
+                PDL_Indx imax;
                 AV *arglist;
 
                 /*** Make sure we got an array ref as input and extract its corresponding AV ***/
