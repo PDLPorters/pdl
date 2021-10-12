@@ -2157,7 +2157,7 @@ END
 
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
-      sub { 'PDL->default_redodims('.$_[0].');' }),
+      sub { "PDL->redodims_default($_[0]);" }),
 
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],

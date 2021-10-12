@@ -8,7 +8,7 @@
     ? (trans)->vtable->func \
     : pdl_ ## default_func)(trans)
 
-#define REDODIMS(trans) VTABLE_OR_DEFAULT(trans, redodims, default_redodims)
+#define REDODIMS(trans) VTABLE_OR_DEFAULT(trans, redodims, redodims_default)
 #define READDATA(trans) VTABLE_OR_DEFAULT(trans, readdata, readdata_affine)
 #define WRITEDATA(trans) VTABLE_OR_DEFAULT(trans, writebackdata, writebackdata_affine)
 
@@ -859,8 +859,8 @@ void pdl_make_trans_mutual(pdl_trans *trans)
   PDLDEBUG_f(printf("make_trans_mutual_exit %p\n",(void*)trans));
 } /* pdl_make_trans_mutual() */
 
-void pdl_default_redodims(pdl_trans *trans) {
-  PDLDEBUG_f(printf("pdl_default_redodims "));
+void pdl_redodims_default(pdl_trans *trans) {
+  PDLDEBUG_f(printf("pdl_redodims_default "));
   PDLDEBUG_f(pdl_dump_trans_fixspace(trans,0));
   PDL_Indx creating[trans->vtable->npdls];
   pdl_transvtable *vtable = trans->vtable;
