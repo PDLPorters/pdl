@@ -7,8 +7,6 @@
 /* Needed to get badvals from the Core structure (in pdl_avref_<type>) */
 extern Core PDL; 
 
-#include <math.h> /* for isfinite */
-
 static SV *getref_pdl(pdl *it) {
         SV *newref;
         if(!it->sv) {
@@ -218,28 +216,17 @@ pdl* pdl_SvPDLV ( SV* sv ) {
 }
 
 /* Pack dims array - returns dims[] (pdl_smalloced) and ndims */
-
 PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
-
-   SV*  bar;
-   AV*  array;
-   PDL_Indx i;
-   PDL_Indx *dims;
-
    if (!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))  /* Test */
        return NULL;
-
-   array = (AV *) SvRV(sv);   /* dereference */
-
+   AV *array = (AV *) SvRV(sv);   /* dereference */
    *ndims = (PDL_Indx) av_len(array) + 1;  /* Number of dimensions */
-
-   dims = (PDL_Indx *) pdl_smalloc( (*ndims) * sizeof(*dims) ); /* Array space */
+   PDL_Indx *dims = (PDL_Indx *) pdl_smalloc( (*ndims) * sizeof(*dims) ); /* Array space */
    if (dims == NULL)
       croak("Out of memory");
-
+   PDL_Indx i;
    for(i=0; i<(*ndims); i++) {
-      bar = *(av_fetch( array, i, 0 )); /* Fetch */
-      dims[i] = (PDL_Indx) SvIV(bar);
+      dims[i] = (PDL_Indx) SvIV(*(av_fetch( array, i, 0 )));
    }
    return dims;
 }
