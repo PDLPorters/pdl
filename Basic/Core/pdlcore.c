@@ -4,9 +4,6 @@
 #include "pdlcore.h"  /* Core declarations */
 #include "pdlperl.h"
 
-/* Needed to get badvals from the Core structure (in pdl_avref_<type>) */
-extern Core PDL; 
-
 static SV *getref_pdl(pdl *it) {
         SV *newref;
         if(!it->sv) {
@@ -703,8 +700,8 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
       pdlsiz = source_pdl->dims[pdldim]; \
     } \
     /* This is used inside the switch in order to detect badvalues. */ \
-    PDL_Anyval source_badval = PDL.get_pdl_badvalue(source_pdl); \
-    PDL_Anyval dest_badval = PDL.get_pdl_badvalue(dest_pdl); \
+    PDL_Anyval source_badval = pdl_get_pdl_badvalue(source_pdl); \
+    PDL_Anyval dest_badval = pdl_get_pdl_badvalue(dest_pdl); \
     char found_bad = 0; \
     PDL_GENERICSWITCH2(source_pdl->datatype, X) \
     return undef_count; \
