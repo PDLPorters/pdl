@@ -1575,29 +1575,29 @@ pp_def(
         TwoWay => 1,
         AffinePriv => 1,
         OtherPars => 'SV *list',
-        Comp => 'PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];',
+        Comp => 'PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];',
         MakeComp => '
                 PDL_Indx i;
-                PDL_Indx *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
-                if($COMP(nwhichdims) < 1)
+                PDL_Indx *tmp= PDL->packdims(list,&($COMP(whichdims_count)));
+                if($COMP(whichdims_count) < 1)
                   $CROAK("Diagonal: must have at least 1 dimension");
                 $DOCOMPDIMS();
-                for(i=0; i<$COMP(nwhichdims); i++)
+                for(i=0; i<$COMP(whichdims_count); i++)
                         $COMP(whichdims)[i] = tmp[i];
-                qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(PDL_Indx),
+                qsort($COMP(whichdims), $COMP(whichdims_count), sizeof(PDL_Indx),
                         cmp_pdll);
         ',
         RedoDims => '
                 int nthp,nthc,nthd; int cd = $COMP(whichdims[0]);
-                $SETNDIMS($PARENT(ndims)-$COMP(nwhichdims)+1);
+                $SETNDIMS($PARENT(ndims)-$COMP(whichdims_count)+1);
                 $DOPRIVDIMS();
                 $PRIV(offs) = 0;
-                if ($COMP(whichdims)[$COMP(nwhichdims)-1] >= $PARENT(ndims) ||
+                if ($COMP(whichdims)[$COMP(whichdims_count)-1] >= $PARENT(ndims) ||
                         $COMP(whichdims)[0] < 0)
                         $CROAK("Diagonal: dim out of range");
                 nthd=0; nthc=0;
                 for(nthp=0; nthp<$PARENT(ndims); nthp++)
-                        if (nthd < $COMP(nwhichdims) &&
+                        if (nthd < $COMP(whichdims_count) &&
                             nthp == $COMP(whichdims)[nthd]) {
                                 if (!nthd) {
                                         $CHILD(dims)[cd] = $PARENT(dims)[cd];
@@ -1875,17 +1875,17 @@ EOD
         TwoWay => 1,
         AffinePriv => 1,
         OtherPars => "PDL_Indx id; SV *list",
-        Comp => 'PDL_Indx id; PDL_Indx nwhichdims; PDL_Indx whichdims[$COMP(nwhichdims)];
+        Comp => 'PDL_Indx id; PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];
                         PDL_Indx nrealwhichdims; ',
         MakeComp => '
                 PDL_Indx i,j;
-                PDL_Indx *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
+                PDL_Indx *tmp= PDL->packdims(list,&($COMP(whichdims_count)));
                 $DOCOMPDIMS();
-                for(i=0; i<$COMP(nwhichdims); i++)
+                for(i=0; i<$COMP(whichdims_count); i++)
                         $COMP(whichdims)[i] = tmp[i];
                 $COMP(nrealwhichdims) = 0;
-                for(i=0; i<$COMP(nwhichdims); i++) {
-                        for(j=i+1; j<$COMP(nwhichdims); j++)
+                for(i=0; i<$COMP(whichdims_count); i++) {
+                        for(j=i+1; j<$COMP(whichdims_count); j++)
                                 if($COMP(whichdims[i]) == $COMP(whichdims[j]) &&
                                    $COMP(whichdims[i]) != -1) {
                                 $CROAK("Thread: duplicate arg %d %d %d",
@@ -1907,9 +1907,9 @@ EOD
                         flag=0;
                         if($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0 &&
                            i == $PARENT(threadids[$COMP(id)])) {
-                           nthc += $COMP(nwhichdims);
+                           nthc += $COMP(whichdims_count);
                         }
-                        for(j=0; j<$COMP(nwhichdims); j++) {
+                        for(j=0; j<$COMP(whichdims_count); j++) {
                                 if($COMP(whichdims[j] == i)) {flag=1; break;}
                         }
                         if(flag) {
@@ -1919,7 +1919,7 @@ EOD
                         $PRIV(incs[nthc]) = $PARENT(dimincs[i]);
                         nthc++;
                 }
-                for(i=0; i<$COMP(nwhichdims); i++) {
+                for(i=0; i<$COMP(whichdims_count); i++) {
                         int cdim,pdim;
                         cdim = i +
                          ($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0?
@@ -1942,7 +1942,7 @@ EOD
                          ($PARENT(nthreadids) > i ?
                           $PARENT(threadids[i]) : $PARENT(ndims)) +
                          (i <= $COMP(id) ? - $COMP(nrealwhichdims) :
-                          $COMP(nwhichdims) - $COMP(nrealwhichdims));
+                          $COMP(whichdims_count) - $COMP(nrealwhichdims));
                 }
                 $CHILD(threadids[$CHILD(nthreadids)-1]) = $CHILD(ndims);
                 ',
