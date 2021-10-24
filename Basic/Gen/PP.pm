@@ -1880,7 +1880,7 @@ EOD
       ["Name","NewXSArgs","SignatureObj","OtherParTypes",
        "PMCode","HdrCode","InplaceCode","InplaceCheck","_CallCopy","_Bitwise"],
       'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
-      # This subroutine is called when no 'otherpars' exist.
+      # This subroutine operates when no 'PMCode' exists.
       # This writes an XS header which handles variable argument lists,
       # thus avoiding the perl layer in calling the routine. D. Hunt 4/11/00
       #
@@ -1889,7 +1889,7 @@ EOD
         my($name,$xsargs,$sig,$optypes,
            $pmcode,$hdrcode,$inplacecode,$inplacecheck,$callcopy,$bitwise) = @_;
         # Don't do var args processing if the user has pre-defined pmcode
-        return 'DO NOT SET!!' if ($pmcode);
+        return 'DO NOT SET!!' if $pmcode;
         my $ci = '  ';  # current indenting
         my $pars = join "\n",map {$ci.$_->[1]->get_decl($_->[0]).";"} @$xsargs;
         my @args   = map { $_->[0] } @$xsargs;
