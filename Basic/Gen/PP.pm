@@ -1297,7 +1297,7 @@ sub OtherPars_nft {
 	    my ($ctype,$dim) = ($1,$2);
 	    $ctype =~ s/\s+$//; # get rid of trailing ws
 	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
-	    $type = PDL::PP::CType->new(undef,$ctype);
+	    $type = PDL::PP::CType->new($ctype);
 	    croak "can't set unknown dimension"
 		unless defined($dimobjs->{$dim});
 	    $dimobjs->{$dim}->set_from($type);
@@ -1305,7 +1305,7 @@ sub OtherPars_nft {
 	    # suppressing unused param warning - skip
 	    next;
 	} else {
-	    $type = PDL::PP::CType->new(undef,$_);
+	    $type = PDL::PP::CType->new($_);
 	}
 	my $name = $type->protoname;
 	push @names,$name;
@@ -1822,7 +1822,7 @@ EOD
    PDL::PP::Rule->new("NewXSArgs", ["SignatureObj","OtherParNames","OtherParTypes"],
       sub {
         my($sig,$onames,$oobjs) = @_;
-        my $pdltype = PDL::PP::CType->new(undef,"pdl *__foo__");
+        my $pdltype = PDL::PP::CType->new("pdl *__foo__");
         my $nxargs = [
           ( map {[$_,$pdltype]} @{ $sig->names } ),
           ( map {[$_,$oobjs->{$_}]} @$onames )

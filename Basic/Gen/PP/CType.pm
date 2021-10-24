@@ -9,7 +9,6 @@ use Carp;
 
 sub new {
 	my $this = bless {},shift;
-	$this->{Resolve} = shift;
 	$this->parsefrom(shift) if @_;
 	return $this;
 }
