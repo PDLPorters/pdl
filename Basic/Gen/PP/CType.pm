@@ -100,30 +100,16 @@ sub need_malloc {
 
 # returns with the array string - undef if a pointer not needing malloc
 sub get_malloc {
-	my($this,$assignto) = @_;
-	my $str = "{";
-	my $deref = "$assignto";
-	my $prev = undef;
-	my $close = undef;
-	my $no = 0;
-	for(@{$this->{Chain}}) {
-		my ($type, $arg) = @$_;
-		if($type eq "PTR") {return}
-		elsif($type eq "ARR") {
-			$str .= "$prev $assignto =
-				malloc(sizeof(* $assignto) * $arg);
-				";
-			$no++;
-			$prev = "{int __malloc_ind_$no;
-				for(__malloc_ind_$no = 0;
-					__malloc_ind_$no < $arg;
-					__malloc_ind_$no ++) {";
-			$deref = $deref."[__malloc_ind_$no]";
-			$close .= "}}";
-		} else { confess("Invalid decl (@$_)") }
-	}
-	$str .= "}";
-	return $str;
+  my($this,$assignto) = @_;
+  my $str = "";
+  for(@{$this->{Chain}}) {
+    my ($type, $arg) = @$_;
+    if($type eq "PTR") {return}
+    elsif($type eq "ARR") {
+      $str .= "$assignto = malloc(sizeof(*$assignto) * $arg);\n";
+    } else { confess("Invalid decl (@$_)") }
+  }
+  return $str;
 }
 
 1;
