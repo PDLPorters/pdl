@@ -23,7 +23,7 @@ Internal module to handle signatures
 sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub new {
-  my ($type,$str,$bvalflag) = @_;
+  my ($type,$str,$bvalflag,$otherpars,$otherpars_func) = @_;
   $bvalflag ||= 0;
   my $this = bless {}, $type;
   my @objects = map PDL::PP::PdlParObj->new($_,$bvalflag, $this), nospacesplit ';',$str;
@@ -47,6 +47,7 @@ sub new {
   my $i=0; my %ind2index = map +($_=>$i++), @{$this->{IndNamesSorted}};
   $this->{Ind2Index} = \%ind2index;
   $ind2obj{$_}->set_index($ind2index{$_}) for keys %ind2index;
+  @$this{qw(OtherNames OtherObjs)} = $otherpars_func->($otherpars,$this) if $otherpars_func;
   $this;
 }
 
@@ -82,6 +83,9 @@ sub ind_used { $_[0]{Ind2Use}{$_[1]} }
 sub ind_obj { $_[0]{Ind2Obj}{$_[1]} }
 sub ind_names_sorted { @{$_[0]{IndNamesSorted}} }
 sub ind_index { $_[0]{Ind2Index}{$_[1]} }
+
+sub othernames { $_[0]{OtherNames} }
+sub otherobjs { $_[0]{OtherObjs} }
 
 sub realdims {
   my $this = shift;

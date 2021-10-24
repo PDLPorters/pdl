@@ -1797,8 +1797,9 @@ EOD
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
-   PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag"],
-      sub { PDL::PP::Signature->new(@_) }),
+# Also "Other pars", the parameters which are usually not pdls.
+   PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag","OtherPars"],
+      sub { PDL::PP::Signature->new(@_, \&OtherPars_nft) }),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
@@ -1815,13 +1816,10 @@ EOD
 	  !$sig->objs->{$sig->names->[1]}{FlagTyped};
       }),
 
-# "Other pars", the parameters which are usually not pdls.
-
-   PDL::PP::Rule->new(["OtherParNames","OtherParTypes"], ["OtherPars","SignatureObj"], \&OtherPars_nft),
-
-   PDL::PP::Rule->new("NewXSArgs", ["SignatureObj","OtherParNames","OtherParTypes"],
+   PDL::PP::Rule->new("NewXSArgs", ["SignatureObj"],
       sub {
-        my($sig,$onames,$oobjs) = @_;
+        my ($sig) = @_;
+        my ($onames,$oobjs) = map $sig->$_, qw(othernames otherobjs);
         my $pdltype = PDL::PP::CType->new("pdl *__foo__");
         my $nxargs = [
           ( map {[$_,$pdltype]} @{ $sig->names } ),
@@ -1877,7 +1875,7 @@ EOD
    # globalnew implies internal usage, not XS
    PDL::PP::Rule::Returns->new("VarArgsXSHdr","GlobalNew",undef),
    PDL::PP::Rule->new("VarArgsXSHdr",
-      ["Name","NewXSArgs","SignatureObj","OtherParTypes",
+      ["Name","NewXSArgs","SignatureObj",
        "PMCode","HdrCode","InplaceCode","InplaceCheck","_CallCopy","_Bitwise"],
       'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
       # This subroutine operates when no 'PMCode' exists.
@@ -1886,7 +1884,7 @@ EOD
       #
       # The use of 'DO NOT SET!!' looks ugly.
       sub {
-        my($name,$xsargs,$sig,$optypes,
+        my($name,$xsargs,$sig,
            $pmcode,$hdrcode,$inplacecode,$inplacecheck,$callcopy,$bitwise) = @_;
         # Don't do var args processing if the user has pre-defined pmcode
         return 'DO NOT SET!!' if $pmcode;
@@ -1896,6 +1894,7 @@ EOD
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
         my %tmp = map +($_=>1), $sig->names_tmp;
+        my $optypes = $sig->otherobjs;
         my %other  = map { $_ => exists($$optypes{$_}) } @args;
         # remember, othervars *are* input vars
         my $nout   = (grep { $_ } values %out);
@@ -2133,17 +2132,20 @@ END
 # This is the default
 #
    PDL::PP::Rule->new("MakeCompiledReprNS",
-      ["OtherParNames","OtherParTypes","ParamStructName"],
+      ["SignatureObj","ParamStructName"],
       sub {
-        my($onames,$otypes,$pname) = @_;
+        my ($sig,$pname) = @_;
+        my ($onames,$otypes) = map $sig->$_, qw(othernames otherobjs);
         PDL::PP::pp_line_numbers(__LINE__,
           join '', map $otypes->{$_}->get_copy($_,"$pname->$_"), @$onames
         );
       }),
    PDL::PP::Rule->new("CompiledRepr",
-      ["OtherParNames","OtherParTypes"],
-      sub {NT2Decls__({},@_)}),
-   PDL::PP::Rule->new("CompFreeCode", ["OtherParNames","OtherParTypes"], sub {NT2Free_p(@_,"COMP")}),
+      ["SignatureObj"],
+      sub {NT2Decls__({},map $_[0]->$_, qw(othernames otherobjs))}),
+   PDL::PP::Rule->new("CompFreeCode",
+      ["SignatureObj"],
+      sub {NT2Free_p((map $_[0]->$_, qw(othernames otherobjs)),"COMP")}),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
       ["CompiledRepr","Name"],
