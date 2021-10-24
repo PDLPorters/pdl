@@ -2111,11 +2111,11 @@ END
 		      sub { PDL::PP::Code->new(@_, undef, 1); }),
 
 # Compiled representations i.e. what the xsub function leaves
-# in the trans structure. By default, copies of the parameters
+# in the params structure. By default, copies of the parameters
 # but in many cases (e.g. slice) a benefit can be obtained
 # by parsing the string in that function.
 
-# If the user wishes to specify his own code and compiled representation,
+# If the user wishes to specify their own code and compiled representation,
 # The next two definitions allow this.
 # Because of substitutions that will be there,
 # makecompiledrepr et al are array refs, 0th element = string,
