@@ -236,14 +236,10 @@ void pdl_converttypei_readdata(pdl_trans *trans) {
   COPYCONVERT(PARENT, CHILD)
   PDL_GENERICSWITCH(params->totype, X_OUTER);
 #undef X_INNER
-#undef X_OUTER
 }
 
 void pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_params_converttypei *params = trans->params;
-#define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_out *, (ctype_out *), ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
-  PDL_GENERICSWITCH2(trans->__datatype, X_INNER);
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in *, (ctype_in *), ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(CHILD, PARENT)
