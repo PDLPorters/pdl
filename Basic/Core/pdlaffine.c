@@ -85,6 +85,8 @@ pp_def( 'affine',
                         $COMP(sdims)[i] = tmpd[i];
                         $COMP(sincs)[i] = tmpi[i];
                 }
+                free(tmpi);
+                free(tmpd);
                 ',
         RedoDims => '
                 PDL_Indx i;
@@ -180,6 +182,8 @@ void pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *incl
     params->sdims[i] = tmpd[i];
     params->sincs[i] = tmpi[i];
   }
+  free(tmpi);
+  free(tmpd);
   pdl_make_trans_mutual((pdl_trans *)trans);
   if (badflag_cache)
     CHILD->state |= PDL_BADVAL;

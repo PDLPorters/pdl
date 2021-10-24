@@ -1584,6 +1584,7 @@ pp_def(
                 $DOCOMPDIMS();
                 for(i=0; i<$COMP(whichdims_count); i++)
                         $COMP(whichdims)[i] = tmp[i];
+                free(tmp);
                 qsort($COMP(whichdims), $COMP(whichdims_count), sizeof(PDL_Indx),
                         cmp_pdll);
         ',
@@ -1883,6 +1884,7 @@ EOD
                 $DOCOMPDIMS();
                 for(i=0; i<$COMP(whichdims_count); i++)
                         $COMP(whichdims)[i] = tmp[i];
+                free(tmp);
                 $COMP(nrealwhichdims) = 0;
                 for(i=0; i<$COMP(whichdims_count); i++) {
                         for(j=i+1; j<$COMP(whichdims_count); j++)

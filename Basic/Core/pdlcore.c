@@ -212,13 +212,13 @@ pdl* pdl_SvPDLV ( SV* sv ) {
    return ret;
 }
 
-/* Pack dims array - returns dims[] (pdl_smalloced) and ndims */
+/* Pack dims array - returns dims[] (malloced) and ndims */
 PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
    if (!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))  /* Test */
        return NULL;
    AV *array = (AV *) SvRV(sv);   /* dereference */
    *ndims = (PDL_Indx) av_len(array) + 1;  /* Number of dimensions */
-   PDL_Indx *dims = (PDL_Indx *) pdl_smalloc( (*ndims) * sizeof(*dims) ); /* Array space */
+   PDL_Indx *dims = (PDL_Indx *) malloc( (*ndims) * sizeof(*dims) ); /* Array space */
    if (dims == NULL)
       croak("Out of memory");
    PDL_Indx i;

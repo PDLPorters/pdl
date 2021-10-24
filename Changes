@@ -1,3 +1,5 @@
+- packdims to use malloc not pdl_smalloc
+
 2.057_04 2021-10-12
 - remove legacy pdl_create
 - remove long-deprecated nslice
