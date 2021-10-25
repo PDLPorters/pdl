@@ -1931,7 +1931,6 @@ In most cases you can define your Makefile like
   $package = ["mylib.pd",Mylib,PDL::Lib::Mylib,'',1];
   %hash = pdlpp_stdargs($package);
   $hash{OBJECT} .= ' additional_Ccode$(OBJ_EXT) ';
-  $hash{clean}->{FILES} .= ' todelete_Ccode$(OBJ_EXT) ';
   WriteMakefile(%hash);
 
   sub MY::postamble { pdlpp_postamble($package); }
