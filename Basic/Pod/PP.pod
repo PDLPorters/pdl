@@ -1268,9 +1268,6 @@ That should do it.
 
 =back
 
-
-
-
 The only PP function that we have used in the examples so far is C<loop>.
 Additionally, there are currently two other functions which are recognised
 in the C<Code> section:
@@ -2505,15 +2502,19 @@ $CHILD_PTR()
 $CROAK()
     PDL::PP::Rule::Substitute::dosubst_private()
 
-$DOCOMPDIMS()
-    Used in slices.pd, defined where?
-    Answer: PDL::PP::Rule::MakeComp
+$DOCOMPALLOC()
 
-$DOPRIVDIMS()
-    Used in slices.pd, defined where?
-    Code comes from PDL::PP::CType::get_malloc, which is called by PDL::PP::CType::get_copy, which is called by PDL::PP::CopyOtherPars, PDL::PP::NT2Copies__, and PDL::PP::make_incsize_copy.  But none of those three at first glance seem to have anything to do with $DOPRIVDIMS
-    Answer: PDL::PP::Rule::MakeComp
+Defined in L<PDL::PP::Rule::MakeComp>, allocates memory for any C<Comp>
+arrays, after their size has been determined, e.g. here after
+C<$COMP(whichdims_count)> has been set:
 
+    Comp => 'PDL_Indx whichdims[$COMP(whichdims_count)]',
+
+$DOPRIVALLOC()
+
+As above, except the key is C<Priv>; because it is "Priv", this is only
+for entries in the C<pdl_trans> itself, and almost certainly only for
+operations where C<AffinePriv> is true.
 
 $EQUIVCPOFFS()
 
@@ -2527,9 +2528,6 @@ $PARENT_P()
 
 $PARENT_PTR()
     PDL::PP::Rule::Substitute::Usual
-
-
-$PDIM()
 
 $PRIV()
     PDL::PP::Rule::Substitute::dosubst_private()

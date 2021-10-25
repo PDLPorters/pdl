@@ -534,7 +534,7 @@ sub subst_makecomp_private {
 	return [$mc,{
 		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
 		($cn ?
-			(('DO'.$which.'DIMS') => sub {PDL::PP::pp_line_numbers(__LINE__, join '',
+			(('DO'.$which.'ALLOC') => sub {PDL::PP::pp_line_numbers(__LINE__, join '',
 				map $$co{$_}->get_malloc("\$$which($_)"),
 				    grep $$co{$_}->need_malloc, @$cn)}) :
 			()
@@ -1700,7 +1700,7 @@ EOD
           int i,cor;
           '.$dimcheck.'
           $SETNDIMS($PARENT(ndims));
-          $DOPRIVDIMS();
+          $DOPRIVALLOC();
           $PRIV(offs) = 0;
           for(i=0; i<$CHILD(ndims); i++) {
             cor = '.$pdimexpr.';

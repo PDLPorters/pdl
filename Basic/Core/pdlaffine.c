@@ -79,7 +79,7 @@ pp_def( 'affine',
                 }
                 if ($COMP(nd) != n2)
                       $CROAK("Affine: number of incs does not match dims");
-                $DOCOMPDIMS();
+                $DOCOMPALLOC();
                 $COMP(offset) = offspar;
                 for (i=0; i<$COMP(nd); i++) {
                         $COMP(sdims)[i] = tmpd[i];
@@ -91,7 +91,7 @@ pp_def( 'affine',
         RedoDims => '
                 PDL_Indx i;
                 $SETNDIMS($COMP(nd));
-                $DOPRIVDIMS();
+                $DOPRIVALLOC();
                 $PRIV(offs) = $COMP(offset);
                 for (i=0;i<$CHILD(ndims);i++) {
                         $PRIV(incs)[i] = $COMP(sincs)[i];
