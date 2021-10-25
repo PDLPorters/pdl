@@ -2121,11 +2121,13 @@ END
    PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], sub {NT2Decls__({ToPtrs=>1},@_)}),
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompNames","CompObjs"],
 				"COMP"),
-
    PDL::PP::Rule->new("CompFreeCode", ["CompNames","CompObjs"], sub {NT2Free_p(@_,"COMP")}),
 
 # This is the default
 #
+   PDL::PP::Rule->new("CompiledRepr",
+      ["SignatureObj"],
+      sub {NT2Decls__({},map $_[0]->$_, qw(othernames otherobjs))}),
    PDL::PP::Rule->new("MakeCompiledReprNS",
       ["SignatureObj","ParamStructName"],
       sub {
@@ -2135,9 +2137,6 @@ END
           join '', map $otypes->{$_}->get_copy($_,"$pname->$_"), @$onames
         );
       }),
-   PDL::PP::Rule->new("CompiledRepr",
-      ["SignatureObj"],
-      sub {NT2Decls__({},map $_[0]->$_, qw(othernames otherobjs))}),
    PDL::PP::Rule->new("CompFreeCode",
       ["SignatureObj"],
       sub {NT2Free_p((map $_[0]->$_, qw(othernames otherobjs)),"COMP")}),
