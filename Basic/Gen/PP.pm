@@ -502,9 +502,6 @@ sub extract_args {
     return ([$code,{@std_childparent}],$sname,$name);
 }
 
-#  PDL::PP::Rule->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
-#		      sub {subst_makecomp("COMP",@_)}),
-#
 # PDL::PP::Rule::MakeComp->new($target,$conditions,$symbol)
 #   $target and $symbol must be scalars.
 #
@@ -520,17 +517,15 @@ our @ISA = qw (PDL::PP::Rule);
 # This is a copy of the main one for now. Need a better solution.
 #
 my @std_redodims = (
-		    SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->reallocdims(__it,$_[0])")},
-		    SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->setdims_careful(__it)")},
-		    SETDELTATHREADIDS => sub {PDL::PP::pp_line_numbers(__LINE__-1, '
-		{int __ind; PDL->reallocthreadids($CHILD_PTR(),
-			$PARENT(nthreadids));
-		for(__ind=0; __ind<$PARENT(nthreadids); __ind++) {
-			$CHILD(threadids[__ind]) =
-				$PARENT(threadids[__ind]) + ('.$_[0].');
-		}
-		}
-		')});
+  SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->reallocdims(__it,$_[0])")},
+  SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->setdims_careful(__it)")},
+  SETDELTATHREADIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
+{int __ind; PDL->reallocthreadids(\$CHILD_PTR(), \$PARENT(nthreadids));
+for(__ind=0; __ind<\$PARENT(nthreadids); __ind++)
+  \$CHILD(threadids[__ind]) = \$PARENT(threadids[__ind]) + ($_[0]);
+}
+EOF
+);
 
 # Probably want this directly in the apply routine but leave as is for now
 #
