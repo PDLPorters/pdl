@@ -439,7 +439,7 @@ If you are just interested in communicating with some external
 library (for example some linear algebra/matrix library), you'll usually
 want the 'data operation' so we are going to discuss that first.
 
-=head1 Data operation
+=head1 DATA OPERATION
 
 =head2 A simple example
 
@@ -962,12 +962,14 @@ returns 0).
 The C preprocessor symbol C<PDL_BAD_CODE> is defined when the bad code
 is compiled, so that you can reduce the amount of code you write.  The
 BadCode section can use the same macros and looping constructs as the
-Code section.  However, it wouldn't be much use without the following
+Code section.
+
+=head2 Other bad-value macros
+
+However, it wouldn't be much use without the following
 additional macros:
 
-=over 4
-
-=item $ISBAD(var)
+=head3 $ISBAD(var)
 
 To check whether an ndarray's value is bad, use the C<$ISBAD> macro:
 
@@ -977,32 +979,53 @@ You can also access given elements of an ndarray:
 
  if ( $ISBAD(a(n=>l)) ) { printf("element %d of a() is bad\n", l); }
 
-=item $ISGOOD(var)
+=head3 $ISGOOD(var)
 
 This is the opposite of the C<$ISBAD> macro.
 
-=item $SETBAD(var)
+=head3 $SETBAD(var)
 
 For when you want to set an element of an ndarray bad.
 
-=item $ISBADVAR(c_var,pdl)
+=head3 $ISBADVAR(c_var,pdl)
 
 If you have cached the value of an ndarray C<$a()> into a c-variable (C<foo> say),
 then to check whether it is bad, use C<$ISBADVAR(foo,a)>.
 
-=item $ISGOODVAR(c_var,pdl)
+=head3 $ISGOODVAR(c_var,pdl)
 
 As above, but this time checking that the cached value
 isn't bad.
 
-=item $SETBADVAR(c_var,pdl)
+=head3 $SETBADVAR(c_var,pdl)
 
 To copy the bad value for an ndarray into a c variable, use
 C<$SETBADVAR(foo,a)>.
 
-=back
+I<TODO:> mention the C<FindBadStatusCode> and
+C<CopyBadStatusCode> options to C<pp_def>, as well as the
+C<BadDoc> key.
 
 I<TODO:> mention C<$PPISBAD()> etc macros.
+
+=head2 PDL STATE macros
+
+If you want access to the value of the badflag for a given
+ndarray, you can use the PDL STATE macros:
+
+=over 4
+
+=item $ISPDLSTATEBAD(pdl)
+
+=item $ISPDLSTATEGOOD(pdl)
+
+=item $SETPDLSTATEBAD(pdl)
+
+=item $SETPDLSTATEGOOD(pdl)
+
+=back
+
+=head2 Bad-value examples
 
 Using these macros, the above code could be specified as:
 
@@ -1037,25 +1060,6 @@ using the same code for both of the C<Code> and C<BadCode> sections:
        $SETBAD(c());
     }
     #endif PDL_BAD_CODE
-
-If you want access to the value of the badflag for a given
-ndarray, you can use the PDL STATE macros:
-
-=over 4
-
-=item $ISPDLSTATEBAD(pdl)
-
-=item $ISPDLSTATEGOOD(pdl)
-
-=item $SETPDLSTATEBAD(pdl)
-
-=item $SETPDLSTATEGOOD(pdl)
-
-=back
-
-I<TODO:> mention the C<FindBadStatusCode> and
-C<CopyBadStatusCode> options to C<pp_def>, as well as the
-C<BadDoc> key.
 
 =head2 Interfacing your own/library functions using PP
 
@@ -1136,15 +1140,13 @@ to see the calls to C<pp_def> and friends. Try it with F<ops.pd> and
 F<slatec.pd>. If you're interested (or want to enhance it), the source
 is in Basic/Gen/PP/Dump.pm
 
-=head2 Other macros and functions in the Code section
+=head2 Other macros in the Code section
 
 Macros: So far we have encountered the C<$SIZE>, C<$GENERIC> and C<$P> macros.
 Now we are going to quickly explain the other macros that are expanded in the
 C<Code> section of PDL::PP along with examples of their usage.
 
-=over 3
-
-=item C<$T>
+=head3 $T
 
 The C<$T> macro is used for type switches. This is very useful when you have
 to use different external (e.g. library) functions depending on the input
@@ -1176,7 +1178,7 @@ on the type of the transformation):
 There is a limitation that the comma-separated values cannot have
 parentheses.
 
-=item C<$PP>
+=head3 $PP
 
 The C<$PP> macro is used for a so called I<physical pointer access>. The
 I<physical> refers to some internal optimisations of PDL (for those who
@@ -1184,7 +1186,7 @@ are familiar with the PDL core we are talking about the vaffine
 optimisations). This macro is mainly for internal use and you shouldn't
 need to use it in any of your normal code.
 
-=item C<$PPSYM>
+=head3 $PPSYM
 
 The C<$PPSYM()> macro is replaced by the value of L<PDL::Types/ppsym> for
 the loop type, or that of the given parameter, similar to
@@ -1192,7 +1194,7 @@ C<$GENERIC()>. This is useful for e.g. macros that vary by that, avoiding
 the need for things like C<$TXY(X,Y)>. Another benefit is that if an
 operation's GenericTypes get extended, this macro will still be correct.
 
-=item C<$COMP> (and the C<OtherPars> section)
+=head3 $COMP (and the OtherPars section)
 
 The C<$COMP> macro is used to access non-pdl values in the code section. Its
 name is derived from the implementation of transformations in PDL. The
@@ -1264,17 +1266,13 @@ dimension parameter as C<-1>:
   $x = hist($y);
   setdim($x,-1);
 
-That should do it.
-
-=back
+=head2 Other functions in the Code section
 
 The only PP function that we have used in the examples so far is C<loop>.
 Additionally, there are currently two other functions which are recognised
 in the C<Code> section:
 
-=over 2
-
-=item threadloop
+=head3 threadloop
 
 As we heard above the signature of a PP defined function defines the
 dimensions of all the pdl arguments involved in a I<primitive> operation.
@@ -1348,8 +1346,7 @@ especially CPU intensive code) only once per thread, i.e.
 		   }'
    );
 
-
-=item types
+=head3 types
 
 The types function works similar to the C<$T> macro. However, with the
 C<types> function the code in the following block (delimited by C<%{>
@@ -1382,8 +1379,6 @@ minimise effort needed to make your code work with new types:
       map 'types('.$_->ppsym.') %{$'.$c.'() = '.$name.'($'.$x.'(),$'.$y.'());%}',
       @Rtypes;
     ($got_complex ? $complex_bit : '') . $real_bit;
-
-=back
 
 =head2 The RedoDimsCode Section
 
@@ -1473,17 +1468,17 @@ first dimension of the output ndarray with have its dimension
 adjusted, but other threading dimensions will be assigned
 just as if there were no C<RedoDimsCode>.
 
-=head2 Typemap handling in the C<OtherPars> section
+=head2 Typemap handling in the OtherPars section
 
 The C<OtherPars> section discussed above is very often absolutely
 crucial when you interface external libraries with PDL. However in
 many cases the external libraries either use derived types or
 pointers of various types.
 
-The standard way to handle this in Perl is to use a C<typemap> file.
+The standard way to handle this in Perl is to use a F<typemap> file.
 This is discussed in some detail in L<perlxs> in the standard
 Perl documentation. In PP the functionality is very similar, so you can
-create a C<typemap> file in the directory where your PP file resides and
+create a F<typemap> file in the directory where your PP file resides and
 when it is built it is automatically read in to figure out the appropriate
 translation between the C type and Perl's built-in type.
 
@@ -1500,7 +1495,7 @@ Write an C<OtherPars> declaration of the form
 
     OtherPars => 'gsl_spline *spl'
 
-and write a short C<typemap> file which handles this type:
+and write a short F<typemap> file which handles this type:
 
     TYPEMAP
     gsl_spline * T_PTR
@@ -1531,9 +1526,7 @@ of arguments, which will be a little tricky.
 
 An incomplete list of the available keys:
 
-=over 4
-
-=item Inplace
+=head3 Inplace
 
 Setting this key marks the routine as working inplace - ie
 the input and output ndarrays are the same. An example is
@@ -1588,7 +1581,7 @@ automatically flagged to indicate that it can be executed inplace,
 ie something similar to how C<HandleBad> sets C<BadDoc> if it's not 
 supplied (it's not an ideal solution).
 
-=item FTypes
+=head3 FTypes
 
   # in slices.pd
   FTypes => {CHILD => '$COMP(totype)'},
@@ -1596,8 +1589,6 @@ supplied (it's not an ideal solution).
 The value is a hash-ref mapping parameter-names to an expression giving
 an override of the type for that parameter. The example above shows the
 type being overridden to the C<OtherPars> "totype".
-
-=back
 
 =head2 Other PDL::PP functions to support concise package definition
 
@@ -1775,7 +1766,6 @@ be called using the $object->method syntax).
 For these cases you can call pp_export_nothing() to clear out the export list. Example (At 
 the end of the .pd file):
 
-
   pp_export_nothing();
   pp_done();
 
@@ -1836,7 +1826,7 @@ notice. The replacement module can be passed as an argument like this:
 
 Note that function affects I<only> the runtime warning and the POD.
 
-=head1 Making your PP function "private"
+=head1 MAKING YOUR PP FUNCTION PRIVATE
 
 Let's say that you have a function in your module called PDL::foo that
 uses the PP function C<bar_pp> to do the heavy lifting. But you don't
@@ -1860,12 +1850,11 @@ accessible via PDL::bar_pp due to Perl's module design. But making
 it private will cause the user to go very far out of his or her way
 to use it, so he or she shoulders the consequences!
 
-=head1 Slice operation
+=head1 SLICE OPERATION
 
 The slice operation section of this manual is provided using
-dataflow and lazy evaluation: when you need it, ask Tjl to write it.
-a delivery in a week from when I receive the email is 95% probable and
-two week delivery is 99% probable.
+dataflow and lazy evaluation: when you need it, ask the maintainers to
+write it.
 
 And anyway, the slice operations require a much more intimate knowledge
 of PDL internals than the data operations. Furthermore, the complexity
@@ -1890,11 +1879,6 @@ C<EquivCPOffsCode> should I<not> need changing, since
 any changes are absorbed into the definition of the
 C<$EQUIVCPOFFS()> macro (i.e. it is handled automatically
 by PDL::PP).
-
-=head2 A few notes on writing a slicing routine...
-
-The following few paragraphs describe writing of a new slicing routine
-('range'); any errors are CED's. (--CED 26-Aug-2002)
 
 =head1 Handling of C<warn> and C<barf> in PP Code
 
@@ -1993,25 +1977,23 @@ your best bet will be to read the source code :-( or ask on the list
 
 Unless otherwise specified, the arguments are strings.
 
-=over 4
-
-=item Pars
+=head3 Pars
 
 define the signature of your function
 
-=item OtherPars
+=head3 OtherPars
 
 arguments which are not pdls. Default: nothing. This is a semi-colon
 separated list of arguments, e.g.,
 C<< OtherPars=>'int k; double value; char* fd' >>. See C<$COMP(x)> and
 also the same entry in L<Appendix B|/Appendix B: PP macros and functions>.
 
-=item Code
+=head3 Code
 
 the actual code that implements the functionality; several PP macros and
 PP functions are recognised in the string value
 
-=item HandleBad
+=head3 HandleBad
 
 If set to 1, the routine is assumed to support bad values and the code in
 the BadCode key is used if bad values are present;
@@ -2019,12 +2001,12 @@ it also sets things up so that the C<$ISBAD()> etc macros can be used.
 If set to 0, cause the routine to print a warning if any of the input ndarrays 
 have their bad flag set.
 
-=item BadCode
+=head3 BadCode
 
 Give the code to be used if bad values may be present in the input ndarrays.
 Only used if C<HandleBad =E<gt> 1>.
 
-=item GenericTypes
+=head3 GenericTypes
 
 An array reference. The array may contain any subset of the one-character
 strings given below, which specify which types your operation will
@@ -2044,7 +2026,7 @@ accept. The meaning of each type is:
 This is very useful (and important!) when interfacing an external library.
 Default: [qw/B S U L N Q F D/]
 
-=item Inplace
+=head3 Inplace
 
 Mark a function as being able to work inplace. 
 
@@ -2056,7 +2038,7 @@ If bad values are being used, care must be taken to ensure the
 propagation of the badflag when inplace is being used;
 for instance see the code for C<replacebad> in F<Basic/Bad/bad.pd>. 
 
-=item Doc
+=head3 Doc
 
 Used to specify a documentation string in Pod format. See PDL::Doc
 for information on PDL documentation conventions. Note: in
@@ -2070,7 +2052,7 @@ If you really want the function NOT to be documented in any way at this point
 (e.g. for an internal routine, or because you are doing it elsewhere in the
 code) explicitly specify C<Doc=E<gt>undef>.
 
-=item BadDoc
+=head3 BadDoc
 
 Contains the text returned by the C<badinfo> command (in C<perldl>) or
 the C<-b> switch to the C<pdldoc> shell script. In many cases, you will
@@ -2078,7 +2060,7 @@ not need to specify this, since the information can be automatically
 created by PDL::PP. However, as befits computer-generated text, it's
 rather stilted; it may be much better to do it yourself!
 
-=item NoPthread
+=head3 NoPthread
 
 Optional flag to indicate the PDL function should B<not> use processor threads (i.e.
 pthreads or POSIX threads) to split up work across multiple CPU cores. This option
@@ -2093,7 +2075,7 @@ applies if PDL has been compiled with POSIX threads enabled.
 # is followed immediately by a "->make_physical->sever", so I don't see the
 # advantage of not making things physical.
 
-=item PMCode
+=head3 PMCode
 
   pp_def('funcname',
     Pars => 'a(); [o] b();',
@@ -2125,7 +2107,7 @@ you will need to supply all ndarrays in the exact
 order specified in the signature: output ndarrays are not optional, and the
 PP-generated function will not return anything.
 
-=item PMFunc
+=head3 PMFunc
 
 When pp_def generates functions, it typically defines them in the PDL
 package. Then, in the .pm file that it generates for your module, it
@@ -2145,86 +2127,76 @@ PMFunc has no other side-effects, so you could use it to insert arbitrary
 Perl code into your module if you like. However, you should use pp_addpm
 if you want to add Perl code to your module.
 
-=back
-
 =head1 Appendix B: PP macros and functions
 
 =head2 Macros
 
-=over 7
-
-=item $I<variablename_from_sig>()
+=head3 $I<variablename_from_sig>()
 
 access a pdl (by its name) that was specified in the signature
 
-=item $COMP(x)
+=head3 $COMP(x)
 
 access a value in the private data structure of this transformation (mainly
 used to use an argument that is specified in the C<OtherPars> section)
 
-=item $SIZE(n)
+=head3 $SIZE(n)
 
 replaced at runtime by the actual size of a I<named> dimension (as specified
 in the I<signature>)
 
-=item $GENERIC()
+=head3 $GENERIC()
 
 replaced by the C type that is equal to the runtime type of the operation
 
-=item $P(a)
+=head3 $P(a)
 
 a pointer to the data of the PDL named C<a> in the signature. Useful for
 interfacing to C functions
 
-=item $PP(a)
+=head3 $PP(a)
 
 a physical pointer access to pdl C<a>; mainly for internal use
 
-=item $TXXX(Alternative,Alternative)
+=head3 $TXYZ(AlternativeX,AlternativeY,AlternativeZ)
 
 expansion alternatives according to runtime type of operation,
 where XXX is some string that is matched by C</[BSULNQFD+]/>.
 
-=item $PDL(a)
+=head3 $PDL(a)
 
 return a pointer to the pdl data structure (pdl *) of ndarray C<a>
 
-=item $ISBAD(a())
+=head3 $ISBAD(a())
 
 returns true if the value stored in C<a()> equals the bad value
 for this ndarray. 
 Requires C<HandleBad> being set to 1.
 
-=item $ISGOOD(a())
+=head3 $ISGOOD(a())
 
 returns true if the value stored in C<a()> does not equal the bad value
 for this ndarray.
 Requires C<HandleBad> being set to 1.
 
-=item $SETBAD(a())
+=head3 $SETBAD(a())
 
 Sets C<a()> to equal the bad value for this ndarray.
 Requires C<HandleBad> being set to 1.
 
-=back
-
 =head2 functions
 
-=over 3
-
-=item C<loop(DIMS) %{ ... %}>
+=head3 C<loop(DIMS) %{ ... %}>
 
 loop over named dimensions; limits are generated automatically by PP
 
-=item C<threadloop %{ ... %}>
+=head3 C<threadloop %{ ... %}>
 
 enclose following code in a thread loop
 
-=item C<types(TYPES) %{ ... %}>
+=head3 C<types(TYPES) %{ ... %}>
 
 execute following code if type of operation is any of C<TYPES>
-
-=back
 
 =head1 Appendix C: Functions imported by PDL::PP
 
@@ -2238,40 +2210,38 @@ symbol tables into which the code is created.
 PDL::PP's main purpose is to make it easy for you to wrap the threading
 engine around your own C code, but you can do some other things, too.
 
-=over
-
-=item pp_def
+=head3 pp_def
 
 Used to wrap the threading engine around your C code. Virtually all of this
 document discusses the use of pp_def.
 
-=item pp_done
+=head3 pp_done
 
 Indicates you are done with PDL::PP and that it should generate its .xs
 and .pm files based upon the other pp_* functions that you have called.
 This function takes no arguments.
 
-=item pp_addxs
+=head3 pp_addxs
 
 This lets you add XS code to your .xs file. This is useful if you want to
 create Perl-accessible functions that invoke C code but cannot or should not
 invoke the threading engine. XS is the standard means by which you wrap
 Perl-accessible C code. You can learn more at L<perlxs>.
 
-=item pp_add_boot
+=head3 pp_add_boot
 
 This function adds whatever string you pass to the XS BOOT section. The BOOT
 section is C code that gets called by Perl when your module is loaded and is
 useful for automatic initialization. You can learn more about XS and the BOOT
 section at L<perlxs>.
 
-=item pp_addhdr
+=head3 pp_addhdr
 
 Adds pure-C code to your XS file. XS files are structured such that pure C
 code must come before XS specifications. This allows you to specify such
 C code.
 
-=item pp_boundscheck
+=head3 pp_boundscheck
 
 PDL normally checks the bounds of your accesses before making them. You can
 turn that on or off at runtime by setting MyPackage::set_boundscheck. This
@@ -2282,8 +2252,6 @@ without any argumens.
 NOTE: I have not found anything about bounds checking in other documentation.
 That needs to be addressed.
 
-=back
-
 =head2 Generating Perl Code
 
 Many functions imported when you use PDL::PP allow you to modify the
@@ -2291,9 +2259,7 @@ contents of the generated .pm file. In addition to pp_def and pp_done,
 the role of these functions is primarily to add code to various parts of
 your generated .pm file.
 
-=over
-
-=item pp_addpm
+=head3 pp_addpm
 
 Adds Perl code to the generated .pm file. PDL::PP actually keeps track of
 three different sections of generated code: the Top, the Middle, and the
@@ -2325,19 +2291,17 @@ the bottom of your pod, you will thoroughly confuse CPAN. On the other hand,
 if in the middle of your .pd file, you add some Perl code destined for the
 bottom or top of your .pm file, you only have yourself to confuse. :-)
 
-=item pp_beginwrap
+=head3 pp_beginwrap
 
 Adds BEGIN-block wrapping. Certain declarations can be wrapped in BEGIN
 blocks, though the default behavior is to have no such wrapping.
 
-=item pp_addbegin
+=head3 pp_addbegin
 
 Sets code to be added to the top of your .pm file, even above code that you
 specify with C<< pp_addpm({At => 'Top'}, ...) >>. Unlike pp_addpm, calling
 this overwrites whatever was there before. Generally, you probably shouldn't
 use it.
-
-=back
 
 =head2 Tracking Line Numbers
 
@@ -2345,9 +2309,7 @@ When you get compile errors, either from your C-like code or your Perl
 code, it can help to make those errors back to the line numbers in the source
 file at which the error occurred.
 
-=over
-
-=item pp_line_numbers
+=head3 pp_line_numbers
 
 Takes a line number and a (usually long) string of code. The line number
 should indicate the line at which the quote begins. This is usually Perl's
@@ -2355,17 +2317,13 @@ C<__LINE__> literal, unless you are using heredocs, in which case it is
 C<__LINE__ + 1>. The returned string has #line directives interspersed to
 help the compiler report errors on the proper line.
 
-=back
-
 =head2 Modifying the Symbol Table and Export Behavior
 
 PDL::PP usually exports all functions generated using pp_def, and usually
 installs them into the PDL symbol table. However, you can modify this
 behavior with these functions.
 
-=over
-
-=item pp_bless
+=head3 pp_bless
 
 Sets the package (symbol table) to which the XS code is added. The default
 is PDL, which is generally what you want. If you use the default blessing
@@ -2382,14 +2340,14 @@ cannot invoke them as PDL methods, and must invoke them as:
 Of course, you could always use the PMFunc key to add your function to the
 PDL symbol table, but why do that?
 
-=item pp_add_isa
+=head3 pp_add_isa
 
 Adds to the list of modules from which your B<module> inherits. The default
 list is
 
  qw(PDL::Exporter DynaLoader)
 
-=item pp_core_importlist
+=head3 pp_core_importlist
 
 At the top of your generated .pm file is a line that looks like this:
 
@@ -2413,20 +2371,20 @@ will lead to the following use statement:
 
  use PDL::Core ':Internal';
 
-=item pp_setversion
+=head3 pp_setversion
 
 Sets your module's version. The version must be consistent between the .xs
 and the .pm file, and is used to ensure that your Perl's libraries do not
 suffer from version skew.
 
-=item pp_add_exported
+=head3 pp_add_exported
 
 Adds to the export list whatever names you give it.  Functions created using
 pp_def are automatically added to the list. This function is useful if you
 define any Perl functions using pp_addpm or pp_addxs that you want exported
 as well.
 
-=item pp_export_nothing
+=head3 pp_export_nothing
 
 This resets the list of exported symbols to nothing. This is probably better
 called C<pp_export_clear>, since you can add exported symbols after calling
@@ -2434,11 +2392,7 @@ C<pp_export_nothing>. When called just before calling pp_done, this ensures
 that your module does not export anything, for example, if you only want
 programmers to use your functions as methods.
 
-=back
-
 =head1 SEE ALSO
-
-I<PDL>
 
 For the concepts of threading and slicing check L<PDL::Indexing>.
 
@@ -2446,7 +2400,7 @@ L<PDL::Internals>
 
 L<PDL::BadValues> for information on bad values
 
-I<perlxs>, I<perlxstut>
+L<perlxs>, L<perlxstut>
 
 L<Practical Magick with C, PDL, and PDL::PP -- a guide to compiled
 add-ons for PDL|https://arxiv.org/abs/1702.07753>
@@ -2457,9 +2411,7 @@ Almost everything having to do with slice operations. This includes much
 of the following (each entry is followed by a guess/description of where
 it is used or defined):
 
-=over 3
-
-=item MACROS
+=head2 MACROS
 
 $CDIM()
 
@@ -2520,7 +2472,7 @@ such as slice and mv.
 $SETNDIMS()
     PDL::PP::Rule::MakeComp
 
-=item Keys
+=head2 Keys
 
 AffinePriv
 
@@ -2558,8 +2510,6 @@ WriteBckDataFuncName
 
 XCHGOnly
 
-=back
-
 =head1 BUGS
 
 Although PDL::PP is quite flexible and thoroughly used, there are surely
@@ -2573,4 +2523,3 @@ Glaazebrook (kgb@aaocbn1.aao.GOV.AU) and Christian Soeller
 Documentation updates Copyright(C) 2011 David Mertens
 (dcmertens.perl@gmail.com). This documentation is licensed under the same
 terms as Perl itself.
-
