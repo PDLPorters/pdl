@@ -1579,7 +1579,7 @@ pp_def(
         MakeComp => '
                 PDL_Indx i;
                 PDL_Indx *tmp= PDL->packdims(list,&($COMP(whichdims_count)));
-                if($COMP(whichdims_count) < 1)
+                if ($COMP(whichdims_count) < 1)
                   $CROAK("Diagonal: must have at least 1 dimension");
                 $DOCOMPDIMS();
                 for(i=0; i<$COMP(whichdims_count); i++)

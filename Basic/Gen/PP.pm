@@ -2117,11 +2117,6 @@ END
 
 # If the user wishes to specify their own code and compiled representation,
 # The next two definitions allow this.
-# Because of substitutions that will be there,
-# makecompiledrepr et al are array refs, 0th element = string,
-# 1th element = hashref of translated names
-# This makes the objects: type + ...
-#
    PDL::PP::Rule->new(["CompNames","CompObjs"], "Comp", \&OtherPars_nft),
    PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], sub {NT2Decls__({ToPtrs=>1},@_)}),
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompNames","CompObjs"],
