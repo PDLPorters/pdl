@@ -2530,8 +2530,6 @@ TwoWay
 
 WriteBckDataFuncName
 
-XCHGOnly
-
 =head1 BUGS
 
 Although PDL::PP is quite flexible and thoroughly used, there are surely
