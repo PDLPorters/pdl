@@ -55,27 +55,19 @@ pp_addhdr('
 
 /* rely on optimiser for this to produce sensible code */
 #define PERM_SETUP(p, psize, datap) \\
-  gsl_permutation *p ## _local = NULL; \\
-  if (sizeof(PDL_Indx) == sizeof(size_t)) { \\
-    p.data = datap; \\
-  } else { \\
-    p ## _local = gsl_permutation_alloc(psize); \\
-    size_t *p ## _local_data = p ## _local->data; \\
-    size_t p ## _i_local = 0; \\
-    for (p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
-      p ## _local_data[p ## _i_local] = datap[p ## _i_local]; \\
-    } \\
-    p.data = p ## _local_data; \\
+  gsl_permutation *p ## _local = gsl_permutation_alloc(psize); \\
+  size_t *p ## _local_data = p ## _local->data; \\
+  size_t p ## _i_local = 0; \\
+  for (p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
+    p ## _local_data[p ## _i_local] = datap[p ## _i_local]; \\
   } \\
+  p.data = p ## _local_data; \\
   p.size = psize;
 #define PERM_RETURN(p, psize, datap) \\
-  if (sizeof(PDL_Indx) != sizeof(size_t)) { \\
-    size_t *p ## _local_data = p ## _local->data; \\
-    size_t p ## _i_local = 0; \\
-    for (p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
-      datap[p ## _i_local] = p ## _local_data[p ## _i_local]; \\
-    } \\
-  }
+  for (p ## _i_local = 0; p ## _i_local < (size_t)psize; p ## _i_local++) { \\
+    datap[p ## _i_local] = p ## _local_data[p ## _i_local]; \\
+  } \\
+  gsl_permutation_free(p ## _local);
 
 #define VECTOR_SETUP(v, vsize, datap) \\
   v.size = vsize; \\
