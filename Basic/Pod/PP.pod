@@ -1266,6 +1266,32 @@ dimension parameter as C<-1>:
   $x = hist($y);
   setdim($x,-1);
 
+The default values available via C<$COMP()> are the C<OtherPars> as
+noted above, which get copied in. However, this can be overridden by
+supplying C<Comp> and C<MakeComp> keys:
+
+  pp_def(
+    'diagonal',
+    OtherPars => 'SV *list',
+    Comp => 'PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];',
+    MakeComp => '
+      PDL_Indx i;
+      PDL_Indx *tmp= PDL->packdims(list,&($COMP(whichdims_count)));
+      if ($COMP(whichdims_count) < 1)
+        $CROAK("Diagonal: must have at least 1 dimension");
+      $DOCOMPALLOC(); /* malloc()s the whichdims */
+      for(i=0; i<$COMP(whichdims_count); i++)
+        $COMP(whichdims)[i] = tmp[i];
+      free(tmp);
+      /* ... */
+    ',
+    # ...
+  );
+
+The C<MakeComp> code is placed in the C<pdl_(funcname)_run>, so access
+to C<Pars> (which will just be C<pdl *>s)/C<OtherPars> values is just
+via their names, not a macro.
+
 =head2 Other functions in the Code section
 
 The only PP function that we have used in the examples so far is C<loop>.
@@ -2480,8 +2506,6 @@ BackCode
 
 BadBackCode
 
-Comp (related to $COMP()?)
-
 DefaultFlow
 
 EquivCPOffsCode
@@ -2493,8 +2517,6 @@ EquivPDimExpr
 GlobalNew
 
 Identity
-
-MakeComp
 
 P2Child
 
