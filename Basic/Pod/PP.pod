@@ -2153,6 +2153,22 @@ PMFunc has no other side-effects, so you could use it to insert arbitrary
 Perl code into your module if you like. However, you should use pp_addpm
 if you want to add Perl code to your module.
 
+=head3 ReadDataFuncName
+
+Allows overriding the default function-name, for reading data transformed
+by this operation. Mainly used internally to set it to C<NULL>, in which
+case a default affine-orientated function will be called instead.
+
+=head3 WriteBackDataFuncName
+
+As above, but for writing transformed data from a child of this
+transformation back to the parent when C<BackCode> is supplied.
+
+=head3 AffinePriv
+
+Flag to indicate this is an affine transformation whose C<Priv> (contents
+of the C<pdl_trans>) contains data that will need allocating and freeing.
+
 =head1 Appendix B: PP macros and functions
 
 =head2 Macros
@@ -2209,6 +2225,10 @@ Requires C<HandleBad> being set to 1.
 
 Sets C<a()> to equal the bad value for this ndarray.
 Requires C<HandleBad> being set to 1.
+
+=head3 $PRIV()
+
+To access fields in the C<pdl_trans>, eg C<$PRIV(offs)>.
 
 =head2 functions
 
@@ -2480,9 +2500,6 @@ $PARENT_P()
 $PARENT_PTR()
     PDL::PP::Rule::Substitute::Usual
 
-$PRIV()
-    PDL::PP::Rule::Substitute::dosubst_private()
-
 $RESIZE()
 
 $SETDELTATHREADIDS()
@@ -2499,8 +2516,6 @@ $SETNDIMS()
     PDL::PP::Rule::MakeComp
 
 =head2 Keys
-
-AffinePriv
 
 BackCode
 
@@ -2520,15 +2535,9 @@ Identity
 
 P2Child
 
-Priv
-
-ReadDataFuncName
-
 RedoDims (related to RedoDimsCode ?)
 
 TwoWay
-
-WriteBckDataFuncName
 
 =head1 BUGS
 
