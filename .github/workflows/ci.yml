@@ -78,7 +78,6 @@ jobs:
         uses: PDLPorters/devops/github-actions/install-dep-eumm-blead@master
 
       - name: Install PDL dependencies
-        if: matrix.os == 'ubuntu-latest'
         uses: PDLPorters/devops/github-actions/install-dep-pdl-dep@master
 
       - name: 'ci-dist: target-install-dist-perl-deps'
