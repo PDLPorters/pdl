@@ -2367,6 +2367,19 @@ C<CHILD> parameter at the second given offset.
 Similar, but if the expression given as the third parameter is false,
 instead set the C<CHILD>'s value to 0.
 
+=head3 $DOCOMPALLOC()
+
+Allocates memory for any C<Comp> arrays, after their size has been
+determined, e.g. here after C<$COMP(whichdims_count)> has been set:
+
+    Comp => 'PDL_Indx whichdims[$COMP(whichdims_count)]',
+
+=head3 $DOPRIVALLOC()
+
+As above, except the key is C<Priv>; because it is "Priv", this is only
+for entries in the C<pdl_trans> itself, and almost certainly only for
+operations where C<AffinePriv> is true.
+
 =head2 functions
 
 =head3 C<loop(DIMS) %{ ... %}>
@@ -2597,20 +2610,6 @@ it is used or defined):
 =head2 MACROS
 
 $CDIM()
-
-$DOCOMPALLOC()
-
-Defined in L<PDL::PP::Rule::MakeComp>, allocates memory for any C<Comp>
-arrays, after their size has been determined, e.g. here after
-C<$COMP(whichdims_count)> has been set:
-
-    Comp => 'PDL_Indx whichdims[$COMP(whichdims_count)]',
-
-$DOPRIVALLOC()
-
-As above, except the key is C<Priv>; because it is "Priv", this is only
-for entries in the C<pdl_trans> itself, and almost certainly only for
-operations where C<AffinePriv> is true.
 
 $RESIZE()
 
