@@ -2226,6 +2226,13 @@ transformation back to the parent when C<BackCode> is supplied.
 Flag to indicate this is an affine transformation whose C<Priv> (contents
 of the C<pdl_trans>) contains data that will need allocating and freeing.
 
+=head3 GlobalNew
+
+If supplied, will prevent generation of an XS function, and assigns the
+generated C "run" function into the named slot in the C<Core> struct. This
+is not used as of 2.058, and instead the relevant C functions are in
+F<pdlaffine.c>.
+
 =head1 Appendix B: PP macros and functions
 
 =head2 Macros
@@ -2565,8 +2572,6 @@ BadBackCode
 DefaultFlow
 
 EquivCPOffsCode
-
-GlobalNew
 
 Identity
 
