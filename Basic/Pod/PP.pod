@@ -2383,6 +2383,28 @@ As above, except the key is C<Priv>; because it is "Priv", this is only
 for entries in the C<pdl_trans> itself, and almost certainly only for
 operations where C<AffinePriv> is true.
 
+=head3 $SETNDIMS()
+
+For affine transformations (specifically, ones which set P2Child to true),
+set the child's C<ndims> to the given value and allocate a suitably-sized
+array of dimension values.
+
+=head3 $SETDIMS()
+
+Similarly for affine transformations, after the above and then the actual
+dimension sizes are set, use this to resize the child ndarray to the
+right size.
+
+=head3 $SETDELTATHREADIDS()
+
+Similarly again, this sets the child's C<nthreadids> to the same as the
+parent's, allocates space for the C<threadids>, then sets the child's
+ones to the same as the parent's plus the given value.
+
+To get a flavour of what C<threadids> are for, in the normal way of things
+the first (0th) one in the parent is the highest dimension-number in it.
+See L<PDL::Indexing> for more.
+
 =head2 functions
 
 =head3 C<loop(DIMS) %{ ... %}>
@@ -2603,27 +2625,6 @@ L<perlxs>, L<perlxstut>
 
 L<Practical Magick with C, PDL, and PDL::PP -- a guide to compiled
 add-ons for PDL|https://arxiv.org/abs/1702.07753>
-
-=head1 CURRENTLY UNDOCUMENTED
-
-Almost everything having to do with slice operations. This includes much
-of the following (each entry is followed by a guess/description of where
-it is used or defined):
-
-=head2 MACROS
-
-$SETDELTATHREADIDS()
-    PDL::PP::Rule::MakeComp
-
-$SETDIMS()
-    PDL::PP::Rule::MakeComp
-
-SETDIMS and SETNDIMS are used in affine
-transformations (specifically, ones which set P2Child to true)
-such as slice and mv.
-
-$SETNDIMS()
-    PDL::PP::Rule::MakeComp
 
 =head1 BUGS
 
