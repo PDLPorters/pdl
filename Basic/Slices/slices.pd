@@ -956,16 +956,16 @@ PDL_Indx k;           /* index */
 PDL_Indx item;        /* index thread iterator */
 PDL_Indx pdim = $PARENT_P(ndims);
 PDL_Indx rdim = $COMP(rdim);
-PDL_Indx prdim = (rdim < pdim) ? rdim : pdim;
+PDL_Indx prdim = PDLMIN(rdim,pdim);
 PDL_Indx stdim = pdim - prdim;
-PDL_Indx iter2[$PARENT_P(ndims) * 2 + rdim];
-PDL_Indx *sizes  = iter2 + $PARENT_P(ndims);
-coords = sizes + $PARENT_P(ndims);
+PDL_Indx iter2[pdim * 2 + rdim];
+PDL_Indx *sizes  = iter2 + pdim;
+coords = sizes + pdim;
 
 /* Figure out size vector */
 for(ip = $COMP(sizes), sp = sizes, k=0; k<rdim; k++)
    *(sp++) = *(ip++);
-for(; k < $PARENT_P(ndims); k++)
+for(; k < pdim; k++)
    *(sp++) = $PARENT_P(dims[k]);
 
 
@@ -973,7 +973,7 @@ for(; k < $PARENT_P(ndims); k++)
 for(item=0; item<$COMP(nitems); item++) {
 
   /* initialize in-range iterator to loop within each range */
-  for(ip = iter2, k=0; k<$PARENT_P(ndims); k++)
+  for(ip = iter2, k=0; k<pdim; k++)
     *(ip++) = 0;
 
   do {
@@ -1088,10 +1088,10 @@ for(item=0; item<$COMP(nitems); item++) {
 
       /* Increment the source thread iterator */
       for( k=$COMP(rdim);
-           k < $PARENT_P(ndims) && (++(iter2[k]) >= $PARENT_P(dims[k]));
+           k < pdim && (++(iter2[k]) >= $PARENT_P(dims[k]));
            k++)
         iter2[k] = 0;
-    } while(k < $PARENT_P(ndims)); /* end of source-thread iteration */
+    } while(k < pdim); /* end of source-thread iteration */
 
     /* Increment the in-range iterator */
     for(k = 0;
