@@ -1766,7 +1766,7 @@ EOD
       #                    --CED 27-Jan-2003
       #
       # this just reverses PARENT & CHILD in the expansion of
-      # the $EQUIVCPOFFS macro (ie compared to CodefromEquivCPOffsCode)
+      # the $EQUIVCPOFFS macro (ie compared to Code from EquivCPOffsCode)
       sub {
         my ($good, $bflag) = @_;
         my $bad  = $good;

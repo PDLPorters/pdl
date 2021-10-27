@@ -2263,6 +2263,34 @@ C<iflags> such as to inform the trans's error checks connected to dataflow.
 If true, sets C<RedoDims> C<EquivCPOffsCode> C<HandleBad> C<P2Child>
 C<TwoWay> such that the function is a dataflowing identity transformation.
 
+=head3 BackCode
+
+For dataflowing functions, this value (which gets parsed) overrides the
+operation of that from children ndarrays to parents.
+
+=head3 BadBackCode
+
+Same but taking account of bad values.
+
+=head3 EquivCPOffsCode
+
+If supplied, allows concise control of copying to Child from Parent the
+data considered Equivalent at each given Offset (hence the name); the
+C<Code> and C<BackCode> will be generated from this.
+
+Example:
+
+  pp_def(
+    '_clump_int',
+    OtherPars => 'int n',
+    P2Child => 1,
+    RedoDims => # omitted
+    EquivCPOffsCode => '
+      PDL_Indx i;
+      for(i=0; i<$PDL(CHILD)->nvals; i++) $EQUIVCPOFFS(i,i);
+    ',
+  );
+
 =head1 Appendix B: PP macros and functions
 
 =head2 Macros
@@ -2328,6 +2356,16 @@ To access fields in the C<pdl_trans>, eg C<$PRIV(offs)>.
 
 Calls C<pdl_barf> with the supplied (var-args) message, adding the
 function name at the start.
+
+=head3 $EQUIVCPOFFS()
+
+Copy from the C<PARENT> parameter at the first given offset, to the
+C<CHILD> parameter at the second given offset.
+
+=head3 $EQUIVCPTRUNC()
+
+Similar, but if the expression given as the third parameter is false,
+instead set the C<CHILD>'s value to 0.
 
 =head2 functions
 
@@ -2574,10 +2612,6 @@ As above, except the key is C<Priv>; because it is "Priv", this is only
 for entries in the C<pdl_trans> itself, and almost certainly only for
 operations where C<AffinePriv> is true.
 
-$EQUIVCPOFFS()
-
-$EQUIVCPTRUNC()
-
 $RESIZE()
 
 $SETDELTATHREADIDS()
@@ -2592,14 +2626,6 @@ such as slice and mv.
 
 $SETNDIMS()
     PDL::PP::Rule::MakeComp
-
-=head2 Keys
-
-BackCode
-
-BadBackCode
-
-EquivCPOffsCode
 
 =head1 BUGS
 
