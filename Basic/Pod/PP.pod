@@ -2611,8 +2611,6 @@ it is used or defined):
 
 $CDIM()
 
-$RESIZE()
-
 $SETDELTATHREADIDS()
     PDL::PP::Rule::MakeComp
 

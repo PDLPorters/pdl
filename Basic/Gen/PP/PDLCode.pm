@@ -611,7 +611,6 @@ my %access2class = (
   P => 'PDL::PP::PointerAccess',
   PP => 'PDL::PP::PhysPointerAccess',
   SIZE => 'PDL::PP::SizeAccess',
-  RESIZE => 'PDL::PP::ReSizeAccess',
   GENERIC => 'PDL::PP::GentypeAccess',
   PPSYM => 'PDL::PP::PpsymAccess',
   PDL => 'PDL::PP::PdlAccess',
