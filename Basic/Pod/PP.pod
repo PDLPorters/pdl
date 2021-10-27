@@ -168,7 +168,7 @@ be able to do this 'in-place' - i.e, not to have to make a memory copy
 of the section. PP handles all the necessary element and offset
 arithmetic for you. There are also the notions of threading (repeated
 calling of the same routine for multiple slices, see L<PDL::Indexing>)
-and dataflow (see L<PDL::Dataflow>) which use of PP allows.
+and dataflow (see L<PDL::Dataflow>, and L</DefaultFlow>) which use of PP allows.
 
 In much of what follows we will assume familiarity of the reader with
 the concepts of implicit and explicit threading and index manipulations
@@ -1935,18 +1935,13 @@ to use it, so he or she shoulders the consequences!
 
 =head1 SLICE OPERATION
 
-The slice operation section of this manual is provided using
-dataflow and lazy evaluation: when you need it, ask the maintainers to
-write it.
-
-And anyway, the slice operations require a much more intimate knowledge
+The slice operations require a much more intimate knowledge
 of PDL internals than the data operations. Furthermore, the complexity
 of the issues involved is considerably higher than that in the average
-data operation. If you would like to convince yourself of this fact
-take a look at the F<Basic/Slices/slices.pd> file in the PDL
-distribution :-). Nevertheless,
+data operation. Nevertheless,
 functions generated using the slice operations are at the heart of the
 index manipulation and dataflow capabilities of PDL.
+You can get started by reading the section on L</P2Child>.
 
 Also, there are a lot of dirty issues with virtual ndarrays and
 vaffines which we shall entirely skip here.
@@ -2232,6 +2227,31 @@ If supplied, will prevent generation of an XS function, and assigns the
 generated C "run" function into the named slot in the C<Core> struct. This
 is not used as of 2.058, and instead the relevant C functions are in
 F<pdlaffine.c>.
+
+=head3 P2Child
+
+Forces C<Pars> to be C<PARENT> and C<CHILD>, the function's
+C<GenericTypes> to be all of them, no C<HaveThreading> or C<CallCopy>,
+and turns on C<DefaultFlow> (so do not supply any of those args).
+Intended for affine transformations with dataflow.
+
+=head3 DefaultFlow
+
+If true, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
+C<iflags> such that the trans will start with dataflow both forwards
+and backwards.
+
+=head3 HaveThreading
+
+Default true. If so, generate code implementing threading (see
+L<PDL::Indexing>).
+
+=head3 CallCopy
+
+For parameters that get created, normally the C<< PDL->initialize >>
+will be used (or on a subclass). If this is true (which is the default
+for simple functions i.e. 2-arg with 0-dim signatures), instead the
+first argument's C<copy> method will be used.
 
 =head1 Appendix B: PP macros and functions
 
@@ -2569,13 +2589,9 @@ BackCode
 
 BadBackCode
 
-DefaultFlow
-
 EquivCPOffsCode
 
 Identity
-
-P2Child
 
 TwoWay
 
