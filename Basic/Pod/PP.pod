@@ -1494,6 +1494,38 @@ first dimension of the output ndarray with have its dimension
 adjusted, but other threading dimensions will be assigned
 just as if there were no C<RedoDimsCode>.
 
+=head3 RedoDims passed directly
+
+A C<RedoDimsCode> value as above gets processed, including expanding
+macros, and adding type-generic loops. For very specific purposes,
+you may not want this processing done to your dimension-updating code,
+probably in "slice"-like functions.
+
+Then, instead of passing a C<RedoDimsCode> value, you can pass a
+C<RedoDims> value (which the C<RedoDimsCode> would otherwise get
+processed into). Because you will probably want to access the ndarrays,
+the following macros are provided. They are named assuming you will have
+the first parameter as C<PARENT> and the second as C<CHILD>, which is
+the case if you passed a true C<P2Child> value, which you will basically
+always want to do for this scenario.
+
+=over
+
+=item $CHILD_PTR()
+
+=item $PARENT_PTR()
+
+These expand to a C<pdl *> pointer, e.g. to pass to a PDL API function.
+
+=item $CHILD()
+
+=item $PARENT()
+
+These expand to a lookup into C<pdl> struct, e.g. C<$CHILD(ndims)>
+looks up the C<ndims> value for the child parameter.
+
+=back
+
 =head2 Typemap handling in the OtherPars section
 
 The C<OtherPars> section discussed above is very often absolutely
@@ -2461,12 +2493,6 @@ it is used or defined):
 
 $CDIM()
 
-$CHILD()
-    PDL::PP::Rule::Substitute::Usual
-
-$CHILD_PTR()
-    PDL::PP::Rule::Substitute::Usual
-
 $CROAK()
     PDL::PP::Rule::Substitute::dosubst_private()
 
@@ -2487,12 +2513,6 @@ operations where C<AffinePriv> is true.
 $EQUIVCPOFFS()
 
 $EQUIVCPTRUNC()
-
-$PARENT()
-    PDL::PP::Rule::Substitute::Usual
-
-$PARENT_PTR()
-    PDL::PP::Rule::Substitute::Usual
 
 $RESIZE()
 
@@ -2528,8 +2548,6 @@ GlobalNew
 Identity
 
 P2Child
-
-RedoDims (related to RedoDimsCode ?)
 
 TwoWay
 
