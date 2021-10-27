@@ -83,12 +83,8 @@ sub new {
     if(!$threadloops && !$dont_add_thrloop) {
 	print "Adding threadloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
-	if( !$backcode ){ # Normal readbackdata threadloop
-		$coderef = PDL::PP::ThreadLoop->new();
-	}
-	else{  # writebackcode threadloop
-		$coderef = PDL::PP::BackCodeThreadLoop->new();
-	}
+	$coderef = $backcode
+	  ? PDL::PP::BackCodeThreadLoop->new() : PDL::PP::ThreadLoop->new();
 	push @{$coderef},$nc;
     }
 
