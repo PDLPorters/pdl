@@ -954,7 +954,7 @@ PDL_Indx *coords;     /* current coordinates */
 
 PDL_Indx k;           /* index */
 PDL_Indx item;        /* index thread iterator */
-PDL_Indx pdim = $PARENT_P(ndims);
+PDL_Indx pdim = $PDL(PARENT)->ndims;
 PDL_Indx rdim = $COMP(rdim);
 PDL_Indx prdim = PDLMIN(rdim,pdim);
 PDL_Indx stdim = pdim - prdim;
@@ -966,7 +966,7 @@ coords = sizes + pdim;
 for(ip = $COMP(sizes), sp = sizes, k=0; k<rdim; k++)
    *(sp++) = *(ip++);
 for(; k < pdim; k++)
-   *(sp++) = $PARENT_P(dims[k]);
+   *(sp++) = $PDL(PARENT)->dims[k];
 
 
 /* Loop over all the ranges in the index list */
@@ -988,7 +988,7 @@ for(item=0; item<$COMP(nitems); item++) {
       PDL_Indx ck = iter2[k] + $COMP(corners[ item * rdim + k  ]) ;
 
       /* normal case */
-        if(ck < 0 || ck >= $PARENT_P(dims[k])) {
+        if(ck < 0 || ck >= $PDL(PARENT)->dims[k]) {
           switch($COMP(boundary[k])) {
           case 0: /* no boundary breakage allowed */
             {
@@ -1001,19 +1001,19 @@ for(item=0; item<$COMP(nitems); item++) {
             trunc = 1;
             break;
           case 2: /* extension -- crop */
-            ck = (ck >= $PARENT_P(dims[k])) ? $PARENT_P(dims[k])-1 : 0;
+            ck = (ck >= $PDL(PARENT)->dims[k]) ? $PDL(PARENT)->dims[k]-1 : 0;
             break;
           case 3: /* periodic -- mod it */
-            ck %= $PARENT_P(dims[k]);
+            ck %= $PDL(PARENT)->dims[k];
             if(ck < 0)   /* Fix mod breakage in C */
-              ck += $PARENT_P(dims[k]);
+              ck += $PDL(PARENT)->dims[k];
             break;
           case 4: /* mirror -- reflect off the edges */
-            ck += $PARENT_P(dims[k]);
-            ck %= ($PARENT_P(dims[k]) * 2);
+            ck += $PDL(PARENT)->dims[k];
+            ck %= ($PDL(PARENT)->dims[k] * 2);
             if(ck < 0) /* Fix mod breakage in C */
-              ck += $PARENT_P(dims[k])*2;
-            ck -= $PARENT_P(dims[k]);
+              ck += $PDL(PARENT)->dims[k]*2;
+            ck -= $PDL(PARENT)->dims[k];
             if(ck < 0) {
               ck *= -1;
               ck -= 1;
@@ -1058,13 +1058,13 @@ for(item=0; item<$COMP(nitems); item++) {
     /* Note we only loop over real source dims (prdim) to accumulate -- */
     /* because the offset is trivial and/or we're truncating for virtual */
     /* dims caused by permissive ranging. */
-    coff = $CHILD_P(dimincs[0]) * item;
+    coff = $PDL(CHILD)->dimincs[0] * item;
     for(k2 = $COMP(itdim), poff = k = 0;
         k < prdim;
         k++) {
-      poff += coords[k]*$PARENT_P(dimincs[k]);
+      poff += coords[k]*$PDL(PARENT)->dimincs[k];
       if($COMP(sizes[k]))
-        coff += iter2[k] * $CHILD_P(dimincs[k2++]);
+        coff += iter2[k] * $PDL(CHILD)->dimincs[k2++];
     }
 
     /* Loop the copy over all the source thread dims (above rdim). */
@@ -1076,8 +1076,8 @@ for(item=0; item<$COMP(nitems); item++) {
       for(k2 = $COMP(itdim) + $COMP(ntsize), k = rdim;
           k < pdim;
           k++) {
-        poff1 += iter2[k] * $PARENT_P(dimincs[k]);
-        coff1 += iter2[k] * $CHILD_P(dimincs[k2++]);
+        poff1 += iter2[k] * $PDL(PARENT)->dimincs[k];
+        coff1 += iter2[k] * $PDL(CHILD)->dimincs[k2++];
       }
 
       /* Finally -- make the copy
@@ -1088,7 +1088,7 @@ for(item=0; item<$COMP(nitems); item++) {
 
       /* Increment the source thread iterator */
       for( k=$COMP(rdim);
-           k < pdim && (++(iter2[k]) >= $PARENT_P(dims[k]));
+           k < pdim && (++(iter2[k]) >= $PDL(PARENT)->dims[k]);
            k++)
         iter2[k] = 0;
     } while(k < pdim); /* end of source-thread iteration */
@@ -1296,7 +1296,7 @@ pp_def(
                  ',
         EquivCPOffsCode => '
                 PDL_Indx i;
-                for(i=0; i<$CHILD_P(nvals); i++) {
+                for(i=0; i<$PDL(CHILD)->nvals; i++) {
                         $EQUIVCPOFFS(i,i);
                 }
                 ',

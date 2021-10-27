@@ -475,8 +475,6 @@ our @ISA = qw (PDL::PP::Rule::Substitute);
 my @std_childparent = (
 	CHILD => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1]->'.(join ',',@_).")")},
 	PARENT => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0]->'.(join ',',@_).")")},
-	CHILD_P => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1]->'.(join ',',@_).")")},
-	PARENT_P => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0]->'.(join ',',@_).")")},
 	CHILD_PTR => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1])')},
 	PARENT_PTR => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0])')},
 );

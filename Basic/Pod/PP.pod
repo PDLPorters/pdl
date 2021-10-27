@@ -2464,9 +2464,6 @@ $CDIM()
 $CHILD()
     PDL::PP::Rule::Substitute::Usual
 
-$CHILD_P()
-    PDL::PP::Rule::Substitute::Usual
-
 $CHILD_PTR()
     PDL::PP::Rule::Substitute::Usual
 
@@ -2492,9 +2489,6 @@ $EQUIVCPOFFS()
 $EQUIVCPTRUNC()
 
 $PARENT()
-    PDL::PP::Rule::Substitute::Usual
-
-$PARENT_P()
     PDL::PP::Rule::Substitute::Usual
 
 $PARENT_PTR()
