@@ -2287,6 +2287,11 @@ Requires C<HandleBad> being set to 1.
 
 To access fields in the C<pdl_trans>, eg C<$PRIV(offs)>.
 
+=head3 $CROAK()
+
+Calls C<pdl_barf> with the supplied (var-args) message, adding the
+function name at the start.
+
 =head2 functions
 
 =head3 C<loop(DIMS) %{ ... %}>
@@ -2517,9 +2522,6 @@ it is used or defined):
 =head2 MACROS
 
 $CDIM()
-
-$CROAK()
-    PDL::PP::Rule::Substitute::dosubst_private()
 
 $DOCOMPALLOC()
 
