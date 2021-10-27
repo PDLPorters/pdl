@@ -1551,6 +1551,9 @@ C<EquivPDimExpr> and maybe a C<EquivDimCheck>:
     ',
   );
 
+C<EquivPDimExpr> is evaluated within a loop, and the value of the relevant
+dimension is available using the macro C<$CDIM> as shown above.
+
 =head2 Typemap handling in the OtherPars section
 
 The C<OtherPars> section discussed above is very often absolutely
@@ -2608,8 +2611,6 @@ of the following (each entry is followed by a guess/description of where
 it is used or defined):
 
 =head2 MACROS
-
-$CDIM()
 
 $SETDELTATHREADIDS()
     PDL::PP::Rule::MakeComp
