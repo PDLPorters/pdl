@@ -1526,6 +1526,31 @@ looks up the C<ndims> value for the child parameter.
 
 =back
 
+=head3 RedoDims generated from EquivPDimExpr and EquivDimCheck
+
+Another way to generate the C<RedoDims> code is to supply a
+C<EquivPDimExpr> and maybe a C<EquivDimCheck>:
+
+  pp_def(
+    'xchg',
+    OtherPars => 'PDL_Indx n1; PDL_Indx n2;',
+    TwoWay => 1,
+    P2Child => 1,
+    AffinePriv => 1,
+    EquivDimCheck => '
+      if ($COMP(n1) <0) $COMP(n1) += $PARENT(threadids[0]);
+      if ($COMP(n2) <0) $COMP(n2) += $PARENT(threadids[0]);
+      if (PDLMIN($COMP(n1),$COMP(n2)) <0 ||
+          PDLMAX($COMP(n1),$COMP(n2)) >= $PARENT(threadids[0]))
+            barf("One of dims %d, %d out of range: should be 0<=dim<%d",
+                $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
+    EquivPDimExpr => '
+      (($CDIM == $COMP(n1)) ? $COMP(n2) :
+       ($CDIM == $COMP(n2)) ? $COMP(n1) :
+       $CDIM)
+    ',
+  );
+
 =head2 Typemap handling in the OtherPars section
 
 The C<OtherPars> section discussed above is very often absolutely
@@ -2538,10 +2563,6 @@ BadBackCode
 DefaultFlow
 
 EquivCPOffsCode
-
-EquivDimCheck
-
-EquivPDimExpr
 
 GlobalNew
 
