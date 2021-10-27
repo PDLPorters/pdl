@@ -2253,6 +2253,16 @@ will be used (or on a subclass). If this is true (which is the default
 for simple functions i.e. 2-arg with 0-dim signatures), instead the
 first argument's C<copy> method will be used.
 
+=head3 TwoWay
+
+If true, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
+C<iflags> such as to inform the trans's error checks connected to dataflow.
+
+=head3 Identity
+
+If true, sets C<RedoDims> C<EquivCPOffsCode> C<HandleBad> C<P2Child>
+C<TwoWay> such that the function is a dataflowing identity transformation.
+
 =head1 Appendix B: PP macros and functions
 
 =head2 Macros
@@ -2590,10 +2600,6 @@ BackCode
 BadBackCode
 
 EquivCPOffsCode
-
-Identity
-
-TwoWay
 
 =head1 BUGS
 
