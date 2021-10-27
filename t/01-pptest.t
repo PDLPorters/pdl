@@ -339,22 +339,17 @@ EOF
 
 );
 
-my %OTHERPARSFILES = (
+my %BADOTHERPARSFILES = (
     'Makefile.PL' => <<'EOF',
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 use PDL::Core::Dev;
 my @pack = (["otherpars.pd", qw(Otherpars PDL::Otherpars)]);
-sub MY::postamble {
-	pdlpp_postamble(@pack);
-};  # Add genpp rule
+sub MY::postamble { pdlpp_postamble(@pack) }
 WriteMakefile(pdlpp_stdargs(@pack));
 EOF
-
     'otherpars.pd' => <<'EOF',
-pp_core_importList( '()' );
-
 pp_def( "myexternalfunc",
   Pars => " p(m);  x(n);  [o] y(); [t] work(wn); ",
   OtherPars => 'int flags;',
@@ -366,6 +361,40 @@ pp_def( "myexternalfunc",
     $SIZE(wn) = inw >= min ? inw : min;',
     Code => 'int foo = 1;  ');
 
+pp_def( "myexternalfunc2",
+  Pars => "x(m);",
+  OtherPars => 'int I;',
+  Code => 'int foo = 1;  '
+);
+
+pp_done();
+EOF
+
+    't/all.t' => <<'EOF',
+use strict;
+use warnings;
+use Test::More tests => 1;
+use PDL::LiteF;
+use_ok 'PDL::Otherpars';
+EOF
+
+);
+
+my %BADPARSFILES = (
+    'Makefile.PL' => <<'EOF',
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
+use PDL::Core::Dev;
+my @pack = (["otherpars.pd", qw(Otherpars PDL::Otherpars)]);
+sub MY::postamble { pdlpp_postamble(@pack) }
+WriteMakefile(pdlpp_stdargs(@pack));
+EOF
+    'otherpars.pd' => <<'EOF',
+pp_def( "myexternalfunc3",
+  Pars => "I(m);",
+  Code => 'int foo = 1;  '
+);
 pp_done();
 EOF
 
@@ -470,7 +499,8 @@ EOF
 
 do_tests(\%THREADTESTFILES);
 do_tests(\%PPTESTFILES);
-do_tests(\%OTHERPARSFILES);
+do_tests(\%BADOTHERPARSFILES, qr/Invalid OtherPars name/);
+do_tests(\%BADPARSFILES, qr/Invalid Pars name/);
 
 sub do_tests {
     my ($hash, $error_re) = @_;

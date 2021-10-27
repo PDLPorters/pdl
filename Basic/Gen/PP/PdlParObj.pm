@@ -5,6 +5,10 @@ use warnings;
 use Carp;
 use PDL::Types ':All';
 
+our %INVALID_PAR = map +($_=>1), qw(
+  I
+);
+
 # split regex $re separated arglist
 # but ignore bracket-protected bits
 # (i.e. text that is within matched brackets)
@@ -80,6 +84,8 @@ sub new {
 	my($opt1,$opt_plus,$opt2,$name,$inds) = map $_ // '', ($1,$2,$3,$4,$5);
 	print "PDL: '$opt1$opt_plus', '$opt2', '$name', '$inds'\n"
 		  if $::PP_VERBOSE;
+	croak "Invalid Pars name: $name"
+	  if $INVALID_PAR{$name};
 # Set my internal variables
 	$this->{Name} = $name;
 	$this->{Flags} = [(split ',',$opt2),($opt1?$opt1:())];

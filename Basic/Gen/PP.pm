@@ -1303,6 +1303,8 @@ sub OtherPars_nft {
 	    $type = PDL::PP::CType->new($_);
 	}
 	my $name = $type->protoname;
+	croak "Invalid OtherPars name: $name"
+	  if $PDL::PP::PdlParObj::INVALID_PAR{$name};
 	push @names,$name;
 	$types{$name} = $type;
     }

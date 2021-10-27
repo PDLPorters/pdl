@@ -1,5 +1,6 @@
 - packdims to use malloc not pdl_smalloc
 - (DO{COMP,PRIV})DIMS -> more-accurate ${1}ALLOC
+- stop Pars or OtherPars called "I" - thanks Judd Taylor for report
 
 2.057_04 2021-10-12
 - remove legacy pdl_create
