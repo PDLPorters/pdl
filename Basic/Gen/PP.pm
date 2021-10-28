@@ -1811,18 +1811,6 @@ EOD
 	  !$sig->objs->{$sig->names->[1]}{FlagTyped};
       }),
 
-   PDL::PP::Rule->new("NewXSArgs", ["SignatureObj"],
-      sub {
-        my ($sig) = @_;
-        my ($onames,$oobjs) = map $sig->$_, qw(othernames otherobjs);
-        my $pdltype = PDL::PP::CType->new("pdl *__foo__");
-        my $nxargs = [
-          ( map {[$_,$pdltype]} @{ $sig->names } ),
-          ( map {[$_,$oobjs->{$_}]} @$onames )
-        ];
-        return $nxargs;
-      }),
-
    PDL::PP::Rule::Returns->new("PMCode", undef),
 
    PDL::PP::Rule->new(["InplaceCode","InplaceCheck"], ["SignatureObj","Inplace"],
@@ -1870,7 +1858,7 @@ EOD
    # globalnew implies internal usage, not XS
    PDL::PP::Rule::Returns->new("VarArgsXSHdr","GlobalNew",undef),
    PDL::PP::Rule->new("VarArgsXSHdr",
-      ["Name","NewXSArgs","SignatureObj",
+      ["Name","SignatureObj",
        "PMCode","HdrCode","InplaceCode","InplaceCheck","_CallCopy","_Bitwise"],
       'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
       # This subroutine operates when no 'PMCode' exists.
@@ -1879,13 +1867,13 @@ EOD
       #
       # The use of 'DO NOT SET!!' looks ugly.
       sub {
-        my($name,$xsargs,$sig,
+        my($name,$sig,
            $pmcode,$hdrcode,$inplacecode,$inplacecheck,$callcopy,$bitwise) = @_;
         # Don't do var args processing if the user has pre-defined pmcode
         return 'DO NOT SET!!' if $pmcode;
         my $ci = '  ';  # current indenting
-        my $pars = join "\n",map {$ci.$_->[1]->get_decl($_->[0]).";"} @$xsargs;
-        my @args   = map { $_->[0] } @$xsargs;
+        my $pars = join "\n",map "$ci$_;", $sig->alldecls(1);
+        my @args = $sig->alldecls(0);
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
         my %tmp = map +($_=>1), $sig->names_tmp;
@@ -2020,11 +2008,11 @@ END
         PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
       }),
 
-   PDL::PP::Rule->new("NewXSHdr", ["NewXSName","NewXSArgs"],
+   PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
       sub {
-        my($name,$pars) = @_;
-        my $shortpars = join ',',map {$_->[0]} @$pars;
-        my $longpars = join "\n",map {"\t".$_->[1]->get_decl($_->[0])} @$pars;
+        my($name,$sig) = @_;
+        my $shortpars = join ',', $sig->alldecls(0);
+        my $longpars = join "\n", map "\t$_", $sig->alldecls(1);
         return<<END;
 
 void
@@ -2033,17 +2021,17 @@ $longpars
 END
       }),
    PDL::PP::Rule::InsertName->new("RunFuncName", 'pdl_${name}_run'),
-   PDL::PP::Rule->new("NewXSCHdrs", ["RunFuncName","NewXSArgs","GlobalNew"],
+   PDL::PP::Rule->new("NewXSCHdrs", ["RunFuncName","SignatureObj","GlobalNew"],
       sub {
-        my($name,$pars,$gname) = @_;
-        my $longpars = join ",",map {$_->[1]->get_decl($_->[0])} @$pars;
+        my($name,$sig,$gname) = @_;
+        my $longpars = join ",", $sig->alldecls(1);
         return ["void $name($longpars) {","}",
                 "PDL->$gname = $name;"];
       }),
-   PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","NewXSArgs"], sub {
-        my ($func_name,$pars) = @_;
-        my $shortpars = join ',',map $_->[0], @$pars;
-        my $longpars = join ",",map $_->[1]->get_decl($_->[0]), @$pars;
+   PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
+        my ($func_name,$sig) = @_;
+        my $shortpars = join ',', $sig->alldecls(0);
+        my $longpars = join ",", $sig->alldecls(1);
         (PDL::PP::pp_line_numbers(__LINE__-1, "$func_name($shortpars);"),
           "void $func_name($longpars)");
       }),

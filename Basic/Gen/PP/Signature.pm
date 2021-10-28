@@ -87,6 +87,18 @@ sub ind_index { $_[0]{Ind2Index}{$_[1]} }
 sub othernames { $_[0]{OtherNames} }
 sub otherobjs { $_[0]{OtherObjs} }
 
+sub allnames { [@{$_[0]{Names}}, @{$_[0]{OtherNames}}] }
+sub allobjs {
+  my $pdltype = PDL::PP::CType->new("pdl *__foo__");
+  +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]{OtherObjs}} };
+}
+sub alldecls {
+  my ($self, $long) = @_;
+  return @{$self->allnames} if !$long;
+  my $objs = $self->allobjs;
+  map $objs->{$_}->get_decl($_), @{$self->allnames};
+}
+
 sub realdims {
   my $this = shift;
   [ map scalar @{$this->{Objects}{$_}{RawInds}}, @{$this->{Names}} ];
