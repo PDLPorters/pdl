@@ -84,24 +84,35 @@ sub ind_obj { $_[0]{Ind2Obj}{$_[1]} }
 sub ind_names_sorted { @{$_[0]{IndNamesSorted}} }
 sub ind_index { $_[0]{Ind2Index}{$_[1]} }
 
-sub othernames { $_[0]{OtherNames} }
-sub otherobjs { $_[0]{OtherObjs} }
+sub othernames {
+  my ($self, $for_xs) = @_;
+  return $self->{OtherNames} if $for_xs;
+  my @raw_names = @{$self->{OtherNames}};
+  \@raw_names;
+}
+sub otherobjs {
+  my ($self, $for_xs) = @_;
+  return $self->{OtherObjs} if $for_xs;
+  my $objs = $self->{OtherObjs};
+  my @raw_names = @{$self->{OtherNames}};
+  +{ map +($_=>$objs->{$_}), @raw_names };
+}
 
-sub allnames { [@{$_[0]{Names}}, @{$_[0]{OtherNames}}] }
+sub allnames { [@{$_[0]{Names}}, @{$_[0]->othernames($_[1])}] }
 sub allobjs {
   my $pdltype = PDL::PP::CType->new("pdl *__foo__");
-  +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]{OtherObjs}} };
+  +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]->otherobjs($_[1])} };
 }
 sub alldecls {
-  my ($self, $long) = @_;
-  return @{$self->allnames} if !$long;
-  my $objs = $self->allobjs;
-  map $objs->{$_}->get_decl($_), @{$self->allnames};
+  my ($self, $long, $for_xs) = @_;
+  return @{$self->allnames($for_xs)} if !$long;
+  my $objs = $self->allobjs($for_xs);
+  map $objs->{$_}->get_decl($_), @{$self->allnames($for_xs)};
 }
 sub getcomp {
   my ($self) = @_;
-  my $objs = $self->otherobjs;
-  join '', map "$_;", grep $_, map $objs->{$_}->get_decl($_), @{$self->othernames};
+  my $objs = $self->otherobjs(0);
+  join '', map "$_;", grep $_, map $objs->{$_}->get_decl($_), @{$self->othernames(0)};
 }
 
 sub realdims {
