@@ -297,7 +297,7 @@ sub get_xsdatapdecl {
     my $declini = ($asgnonly ? "" : "$type *");
     my $cast = ($type ? "($type *)" : "");
     my $macro = "PDL_DECLARE_PARAMETER".(($this->{BadFlag} && $ptype) ? "_BADVAL" : "");
-    PDL::PP::pp_line_numbers(__LINE__, "$macro($declini, $cast, $type, $flag, $name, $pdl)");
+    PDL::PP::pp_line_numbers(__LINE__-1, "$macro($declini, $cast, $type, $flag, $name, $pdl)");
 }
 
 1;
