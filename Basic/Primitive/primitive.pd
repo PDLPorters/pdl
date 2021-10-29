@@ -1132,18 +1132,16 @@ for my $opt (
 	     ) {
     my $name = $opt->[0];
     my $op   = $opt->[1];
+    my $code = '$c() = ($a() '.$op.' $b()) ? $b() : $a();';
     pp_def(
 	   $name,
 	   HandleBad => 1,
 	   Pars => 'a(); b(); [o] c()',
-	   Code =>
-	   '$c() = ($a() '.$op.' $b()) ? $b() : $a();',
+	   Code => $code,
 	   BadCode =>
 	   'if ( $ISBAD(a()) || $ISBAD(b()) ) {
                $SETBAD(c());
-            } else {
-	       $c() = ($a() '.$op.' $b()) ? $b() : $a();
-            }',
+            } else { '.$code.' }',
 	   Doc =>  'clip (threshold) C<$a> by C<$b> (C<$b> is '.
 	   ($name eq 'hclip' ? 'upper' : 'lower').' bound)',
           PMCode=><<"EOD",
@@ -1636,46 +1634,31 @@ for(
      }
     )
 {
+my $p1 = 'register int j;
+	register int maxj = $SIZE(m)-1;
+	register double min  = $COMP(min);
+	register double step = $COMP(step);
+	threadloop %{
+	   loop(m) %{ $hist() = 0; %}
+	%}
+	threadloop %{
+	   loop(n) %{';
+my $p2 = '
+	      j = (int) (($in()-min)/step);
+	      if (j<0) j=0;
+	      if (j > maxj) j = maxj;
+	      ($hist(m => j))'.$_->{HistOp}.';';
+my $p3 = '
+	   %}
+	%}';
 pp_def($_->{Name},
        Pars => 'in(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(m)',
        GenericTypes => [ppdefs_all],
        # set outdim by Par!
        OtherPars => 'double step; double min; int msize => m',
        HandleBad => 1,
-       Code =>
-       'register int j;
-	register int maxj = $SIZE(m)-1;
-	register double min  = $COMP(min);
-	register double step = $COMP(step);
-	threadloop %{
-	   loop(m) %{ $hist() = 0; %}
-	%}
-	threadloop %{
-	   loop(n) %{
-	      j = (int) (($in()-min)/step);
-	      if (j<0) j=0;
-	      if (j > maxj) j = maxj;
-	      ($hist(m => j))'.$_->{HistOp}.';
-	   %}
-	%}',
-       BadCode =>
-       'register int j;
-	register int maxj = $SIZE(m)-1;
-	register double min  = $COMP(min);
-	register double step = $COMP(step);
-	threadloop %{
-	   loop(m) %{ $hist() = 0; %}
-	%}
-	threadloop %{
-	   loop(n) %{
-              if ( $ISGOOD(in()) ) {
-	         j = (int) (($in()-min)/step);
-	         if (j<0) j=0;
-	         if (j > maxj) j = maxj;
-	         ($hist(m => j))'.$_->{HistOp}.';
-              }
-	   %}
-	%}',
+       Code => $p1.$p2.$p3,
+       BadCode => $p1.'if ( $ISGOOD(in()) ) {'.$p2.'}'.$p3,
 	Doc=>$_->{Doc});
 }
 
@@ -1786,6 +1769,29 @@ for(
 	}
     )
 {
+       my $p1 = 'register int ja,jb;
+	register int maxja = $SIZE(ma)-1;
+	register int maxjb = $SIZE(mb)-1;
+	register double mina = $COMP(mina);
+	register double minb = $COMP(minb);
+	register double stepa = $COMP(stepa);
+	register double stepb = $COMP(stepb);
+	threadloop %{
+	   loop(ma,mb) %{ $hist() = 0; %}
+	%}
+	threadloop %{
+	   loop(n) %{';
+       my $p2 = '
+	      ja = (int) (($ina()-mina)/stepa);
+	      jb = (int) (($inb()-minb)/stepb);
+	      if (ja<0) ja=0;
+	      if (ja > maxja) ja = maxja;
+	      if (jb<0) jb=0;
+	      if (jb > maxjb) jb = maxjb;
+	      ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';';
+       my $p3 = '
+	   %}
+	%}';
 pp_def($_->{Name},
        Pars => 'ina(n); inb(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(ma,mb)',
        GenericTypes => [ppdefs_all],
@@ -1793,54 +1799,8 @@ pp_def($_->{Name},
        OtherPars => 'double stepa; double mina; int masize => ma;
 	             double stepb; double minb; int mbsize => mb;',
        HandleBad => 1,
-       Code =>
-       'register int ja,jb;
-	register int maxja = $SIZE(ma)-1;
-	register int maxjb = $SIZE(mb)-1;
-	register double mina = $COMP(mina);
-	register double minb = $COMP(minb);
-	register double stepa = $COMP(stepa);
-	register double stepb = $COMP(stepb);
-	threadloop %{
-	   loop(ma,mb) %{ $hist() = 0; %}
-	%}
-	threadloop %{
-	   loop(n) %{
-	      ja = (int) (($ina()-mina)/stepa);
-	      jb = (int) (($inb()-minb)/stepb);
-	      if (ja<0) ja=0;
-	      if (ja > maxja) ja = maxja;
-	      if (jb<0) jb=0;
-	      if (jb > maxjb) jb = maxjb;
-	      ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
-	   %}
-	%}
-	',
-       BadCode =>
-       'register int ja,jb;
-	register int maxja = $SIZE(ma)-1;
-	register int maxjb = $SIZE(mb)-1;
-	register double mina = $COMP(mina);
-	register double minb = $COMP(minb);
-	register double stepa = $COMP(stepa);
-	register double stepb = $COMP(stepb);
-	threadloop %{
-	   loop(ma,mb) %{ $hist() = 0; %}
-	%}
-	threadloop %{
-	   loop(n) %{
-              if ( $ISGOOD(ina()) && $ISGOOD(inb()) ) {
-	         ja = (int) (($ina()-mina)/stepa);
-	         jb = (int) (($inb()-minb)/stepb);
-	         if (ja<0) ja=0;
-	         if (ja > maxja) ja = maxja;
-	         if (jb<0) jb=0;
-	         if (jb > maxjb) jb = maxjb;
-	         ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
-              }
-	   %}
-	%}
-	',
+       Code => $p1.$p2.$p3,
+       BadCode => $p1.'if ( $ISGOOD(ina()) && $ISGOOD(inb()) ) {'.$p2.'}'.$p3,
 	Doc=> $_->{Doc});
 }
 
@@ -3358,27 +3318,23 @@ EOD
 	  }
 	 )
 {
+    my $p1 = $_->{Variables} .'
+                 loop(n) %{
+			if ( $mask() ';
+    my $p2 = '
+			) {
+				$inds(m => dm) = n;
+				dm++;
+			}'.$_->{Elseclause} . "\n".
+		' %}';
     pp_def($_->{Name},
 	   HandleBad => 1,
 	   Doc => $_->{Doc},
 	   Pars => $_->{Pars},
 	   GenericTypes => [ppdefs_all],
 	   PMCode => $_->{PMCode},
-	   Code => $_->{Variables} .
-                 'loop(n) %{
-		       if($mask()) {
-				$inds(m => dm) = n;
-				dm++;
-			}'.$_->{Elseclause} . "\n".
-		' %}',
-	   BadCode => $_->{Variables} .
-                 'loop(n) %{
-			if ( $mask() && $ISGOOD($mask()) ) {
-				$inds(m => dm) = n;
-				dm++;
-			}'.$_->{Elseclause} . "\n".
-		' %}',
-
+	   Code => $p1.$p2,
+	   BadCode => $p1.' && $ISGOOD($mask())'.$p2,
 #		the next one is currently a dirty hack
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
