@@ -874,7 +874,6 @@ sub pp_addxs {
 #   FirstKey => ...,
 #   Code => pp_line_numbers(__LINE__, $x . $y . $c),
 #   OtherKey => ...
-
 sub pp_line_numbers ($$) {
 	my ($line, $string) = @_;
 	# The line needs to be incremented by one for the bookkeeping to work
@@ -883,8 +882,7 @@ sub pp_line_numbers ($$) {
 	my (undef, $filename) = caller;
 	# Escape backslashes:
 	$filename =~ s/\\/\\\\/g;
-	my @to_return = "\n#line $line \"$filename\"\n";
-
+	my @to_return = "\nPDL_LINENO_START $line \"$filename\"\n";
 	# Look for threadloops and loops and add # line directives
 	foreach (split (/\n/, $string)) {
 		# Always add the current line.
@@ -892,11 +890,29 @@ sub pp_line_numbers ($$) {
 		# If we need to add a # line directive, do so after incrementing
 		$line++;
 		if (/%\{/ or /%}/) {
-			push @to_return, "#line $line \"$filename\"\n";
+			push @to_return, "PDL_LINENO_END\n";
+			push @to_return, "PDL_LINENO_START $line \"$filename\"\n";
 		}
 	}
-
+	push @to_return, "PDL_LINENO_END\n";
 	return join('', @to_return);
+}
+sub _pp_linenumber_fill {
+  my ($file, $text) = @_;
+  my (@stack, @to_return) = [$file, 1];
+  foreach (split (/\n/, $text)) {
+    $_->[1]++ for @stack;
+    push(@to_return, $_), next if !/^(\s*)PDL_LINENO_(?:START (\S+) "(.*)"|(END))$/;
+    my ($ci, $new_line, $new_file, $is_end) = ($1, $2, $3, $4);
+    if ($is_end) {
+      pop @stack;
+      push @to_return, qq{$ci#line $stack[-1][1] "$stack[-1][0]"};
+    } else {
+      push @stack, [$new_file, $new_line-1];
+      push @to_return, qq{$ci#line @{[$stack[-1][1]+1]} "$stack[-1][0]"};
+    }
+  }
+  join '', map "$_\n", @to_return;
 }
 
 sub _file_same {
@@ -907,6 +923,7 @@ sub _file_same {
 }
 sub _write_file {
   my ($file, $text) = @_;
+  $text = _pp_linenumber_fill($file, $text);
   return if -f $file && length($text) == -s $file && _file_same($text, $file);
   open my $fh, '>', $file or confess "open $file: $!";
   binmode $fh; # to guarantee length will be same for same contents
