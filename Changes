@@ -1,4 +1,3 @@
-- packdims to use malloc not pdl_smalloc
 - (DO{COMP,PRIV})DIMS -> more-accurate ${1}ALLOC
 - stop Pars or OtherPars called "I" - thanks Judd Taylor for report
 - pp_line_numbers restores line numbering after end of given text

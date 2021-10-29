@@ -277,7 +277,6 @@ at_bad_c(x,position)
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
 	x->ndims);
-   free(pos);
    badflag = (x->state & PDL_BADVAL) > 0;
    if (badflag && ANYVAL_ISBAD(result, x, pdl_get_badvalue(x->datatype)))
      RETVAL = newSVpvn( "BAD", 3 );
@@ -378,7 +377,6 @@ set_c(x,position,value)
     pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
 	x->ndims,value);
-    free(pos);
     if (PDL_VAFFOK(x))
        pdl_vaffinechanged(x, PDL_PARENTDATACHANGED);
     else
@@ -691,7 +689,6 @@ setdims(x,dims_arg)
 	CODE:
 		dims = pdl_packdims(dims_arg,&ndims);
 		pdl_setdims(x,dims,ndims);
-		free(dims);
 
 void
 dowhenidle()
@@ -859,7 +856,6 @@ threadover(...)
 	/* And make it nonnull, now that we've created it */
 	pdls[i]->state &= (~PDL_NOMYDIMS);
       }
-    free(creating);
     pdl_startthreadloop(&pdl_thr,NULL,NULL);
     for(i=0; i<npdls; i++) { /* will the SV*'s be properly freed? */
 	dims[i] = newRV(pdl_unpackint(pdls[i]->dims,realdims[i]));
@@ -877,7 +873,6 @@ threadover(...)
 	csv[i] = sv_newmortal();
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
     }
-    free(realdims);
     do {  /* the actual threadloop */
 	pdl_trans *traff;
     	dSP;
