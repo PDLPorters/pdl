@@ -1393,18 +1393,6 @@ sub callPerlInit {
     indent($ret,$ci);
 } #sub callPerlInit()
 
-sub NT2Decls__ {
-  my($opts,$onames,$otypes) = @_;
-  my $decl;
-  my $dopts = {};
-  $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
-  for(@$onames) {
-      my $d = $otypes->{$_}->get_decl($_,$dopts);
-      $decl .= "$d;" if $d;
-  }
-  $decl;
-}
-
 sub NT2Free_p {
   my($onames,$otypes,$symbol) = @_;
   join '', map $otypes->{$_}->get_free("\$$symbol($_)",
@@ -2112,7 +2100,10 @@ END
 # If the user wishes to specify their own code and compiled representation,
 # The next two definitions allow this.
    PDL::PP::Rule->new(["CompNames","CompObjs"], "Comp", \&OtherPars_nft),
-   PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], sub {NT2Decls__({ToPtrs=>1},@_)}),
+   PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], sub {
+      my ($onames,$otypes) = @_;
+      join '', map "$_;", grep $_, map $otypes->{$_}->get_decl($_, { VarArrays2Ptrs => 1 }), @$onames;
+   }),
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompNames","CompObjs"],
 				"COMP"),
    PDL::PP::Rule->new("CompFreeCode", ["CompNames","CompObjs"], sub {NT2Free_p(@_,"COMP")}),
@@ -2121,7 +2112,7 @@ END
 #
    PDL::PP::Rule->new("CompiledRepr",
       ["SignatureObj"],
-      sub {NT2Decls__({},map $_[0]->$_, qw(othernames otherobjs))}),
+      sub { $_[0]->getcomp }),
    PDL::PP::Rule->new("MakeCompiledReprNS",
       ["SignatureObj","ParamStructName"],
       sub {

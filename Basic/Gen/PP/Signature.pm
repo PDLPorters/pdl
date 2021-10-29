@@ -98,6 +98,11 @@ sub alldecls {
   my $objs = $self->allobjs;
   map $objs->{$_}->get_decl($_), @{$self->allnames};
 }
+sub getcomp {
+  my ($self) = @_;
+  my $objs = $self->otherobjs;
+  join '', map "$_;", grep $_, map $objs->{$_}->get_decl($_), @{$self->othernames};
+}
 
 sub realdims {
   my $this = shift;
