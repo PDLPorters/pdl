@@ -69,12 +69,12 @@ sub get_copy {
 		if($type eq "PTR") {confess("Cannot copy pointer, must be array");}
 		elsif($type eq "ARR") {
 			$no++;
-			$prev .= "
+			$prev .= PDL::PP::pp_line_numbers(__LINE__-1, "
 			  if(!$deref0) {$deref1=0;}
 			  else {int __malloc_ind_$no;
 				for(__malloc_ind_$no = 0;
 					__malloc_ind_$no < $arg;
-					__malloc_ind_$no ++) {";
+					__malloc_ind_$no ++) {");
 			$deref0 = $deref0."[__malloc_ind_$no]";
 			$deref1 = $deref1."[__malloc_ind_$no]";
 			$close .= "}}";
@@ -106,7 +106,7 @@ sub get_malloc {
     my ($type, $arg) = @$_;
     if($type eq "PTR") {return}
     elsif($type eq "ARR") {
-      $str .= "$assignto = malloc(sizeof(*$assignto) * $arg);\n";
+      $str .= PDL::PP::pp_line_numbers(__LINE__-1, "$assignto = malloc(sizeof(*$assignto) * $arg);\n");
     } else { confess("Invalid decl (@$_)") }
   }
   return $str;
