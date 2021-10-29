@@ -532,7 +532,7 @@ sub subst_makecomp_private {
 	return [$mc,{
 		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
 		($cn ?
-			(('DO'.$which.'ALLOC') => sub {PDL::PP::pp_line_numbers(__LINE__, join '',
+			(('DO'.$which.'ALLOC') => sub {join('',
 				map $$co{$_}->get_malloc("\$$which($_)"),
 				    grep $$co{$_}->need_malloc, @$cn)}) :
 			()
@@ -1383,16 +1383,15 @@ sub NT2Decls__ {
   $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
   for(@$onames) {
       my $d = $otypes->{$_}->get_decl($_,$dopts);
-      $decl .= PDL::PP::pp_line_numbers(__LINE__-1, "$d;") if $d;
+      $decl .= "$d;" if $d;
   }
   $decl;
 }
 
 sub NT2Free_p {
   my($onames,$otypes,$symbol) = @_;
-  my $decl = join '', map $otypes->{$_}->get_free("\$$symbol($_)",
+  join '', map $otypes->{$_}->get_free("\$$symbol($_)",
     { VarArrays2Ptrs => 1 }), @$onames;
-  $decl ? PDL::PP::pp_line_numbers(__LINE__, $decl) : '';
 }
 
 ###########################################################
@@ -1728,7 +1727,7 @@ EOD
         # parse 'good' code
         $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
         $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = ($3) ? 0 : \$PP(PARENT)[$2]/g;
-        return PDL::PP::pp_line_numbers(__LINE__-1, $good) if !$bflag;
+        return $good if !$bflag;
         # parse 'bad' code
         $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
         $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/ if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
@@ -1773,7 +1772,7 @@ EOD
         # parse 'good' code
         $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
         $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) \$PP(PARENT)[$2] = \$PP(CHILD)[$1] /g;
-        return PDL::PP::pp_line_numbers(__LINE__-1, $good) if !$bflag;
+        return $good if !$bflag;
         # parse 'bad' code
         $bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
         $bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } /g;
@@ -2049,9 +2048,9 @@ END
    PDL::PP::Rule->new("NewXSCoerceMustNS", "FTypes",
       sub {
         my($ftypes) = @_;
-        PDL::PP::pp_line_numbers(__LINE__, join '', map
-          "$_->datatype = $ftypes->{$_}; ",
-          keys %$ftypes);
+        join '', map
+          PDL::PP::pp_line_numbers(__LINE__, "$_->datatype = $ftypes->{$_};"),
+          keys %$ftypes;
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSCoerceMustSubd", "NewXSCoerceMustNS"),
 
@@ -2064,17 +2063,17 @@ END
    PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
       my $no=0;
-      PDL::PP::pp_line_numbers(__LINE__, join '',
-        map "$trans->pdls[".($no++)."] = $_;\n",
-        @{ $sig->names_sorted });
+      join '',
+        map PDL::PP::pp_line_numbers(__LINE__, "$trans->pdls[".($no++)."] = $_;\n"),
+        @{ $sig->names_sorted };
    }),
 
    PDL::PP::Rule->new("NewXSExtractTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
       my $no=0;
-      PDL::PP::pp_line_numbers(__LINE__, join '',
-        map "$_ = $trans->pdls[".($no++)."];\n",
-        @{ $sig->names_sorted });
+      join '',
+        map PDL::PP::pp_line_numbers(__LINE__, "$_ = $trans->pdls[".($no++)."];\n"),
+        @{ $sig->names_sorted };
    }),
 
    PDL::PP::Rule->new("NewXSRunTrans", ["StructName"], sub {
@@ -2194,7 +2193,7 @@ END
       sub {
         my ( $sig ) = @_;
         return '' if @{$sig->names} == (my @outs = $sig->names_out); # no input pdls, no badflag copying needed
-        PDL::PP::pp_line_numbers(__LINE__-1, join '',
+        PDL::PP::pp_line_numbers(__LINE__, join '',
           "if (\$BADFLAGCACHE()) {\n",
           (map "  \$SETPDLSTATEBAD($_);\n", @outs),
           "}\n");
