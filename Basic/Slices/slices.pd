@@ -1576,7 +1576,7 @@ pp_def(
         AffinePriv => 1,
         OtherPars => 'SV *list',
         Comp => 'PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];',
-        MakeComp => '
+        MakeComp => pp_line_numbers(__LINE__-1, '
                 PDL_Indx i;
                 PDL_Indx *tmp= PDL->packdims(list,&($COMP(whichdims_count)));
                 if ($COMP(whichdims_count) < 1)
@@ -1587,8 +1587,8 @@ pp_def(
                 free(tmp);
                 qsort($COMP(whichdims), $COMP(whichdims_count), sizeof(PDL_Indx),
                         cmp_pdll);
-        ',
-        RedoDims => '
+        '),
+        RedoDims => pp_line_numbers(__LINE__-1, '
                 int nthp,nthc,nthd; int cd = $COMP(whichdims[0]);
                 $SETNDIMS($PARENT(ndims)-$COMP(whichdims_count)+1);
                 $DOPRIVALLOC();
@@ -1622,7 +1622,7 @@ pp_def(
                                 nthc++;
                         }
                 $SETDIMS();
-        ',
+        '),
         PMCode => << 'EOD',
 sub PDL::diagonal { shift->_diagonal_int(my $o=PDL->null, \@_); $o }
 EOD
