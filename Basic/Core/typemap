@@ -5,6 +5,7 @@ PDL_Indx  T_IV
 float	T_NV
 PDL_Anyval  T_PDL_ANYVAL
 pdl_slice_args * T_PDL_SLICEARGS
+PDL_Indx * T_PDL_DIMLIST
 
 INPUT
 
@@ -22,6 +23,10 @@ T_PDLTRANS
 
 T_PDL_SLICEARGS
 	$var = PDL_CORE_(slice_args_parse)($arg);
+
+T_PDL_DIMLIST
+	PDL_Indx ${var}_count;
+	$var = PDL_CORE_(packdims)($arg, &${var}_count);
 
 OUTPUT
 
