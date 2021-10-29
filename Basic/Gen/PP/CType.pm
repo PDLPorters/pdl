@@ -22,7 +22,7 @@ sub stripptrs {
 	# Now, recall the different C syntaxes. First priority is a pointer:
 	return [["PTR"], @{$this->stripptrs($1)}] if $str =~ /^\s*\*(.*)$/;
 	return $this->stripptrs($1) if $str =~ /^\s*\(.*\)\s*$/; # XXX Should try to see if a funccall.
-	return [["ARR",$2], @{$this->stripptrs($1)}] if $str =~ /^(.*)\[([^]]+)\]\s*$/;
+	return [["ARR",$2], @{$this->stripptrs($1)}] if $str =~ /^(.*)\[([^]]*)\]\s*$/;
 	Carp::confess("Invalid C type '$str'");
 }
 
@@ -69,6 +69,7 @@ sub get_copy {
 		if($type eq "PTR") {confess("Cannot copy pointer, must be array");}
 		elsif($type eq "ARR") {
 			$no++;
+			$arg = "$this->{ProtoName}_count" if $this->is_array;
 			$prev .= PDL::PP::pp_line_numbers(__LINE__-1, "
 			  if(!$deref0) {$deref1=0;}
 			  else {int __malloc_ind_$no;
@@ -106,6 +107,7 @@ sub get_malloc {
     my ($type, $arg) = @$_;
     if($type eq "PTR") {return}
     elsif($type eq "ARR") {
+      $arg = "$this->{ProtoName}_count" if $this->is_array;
       $str .= PDL::PP::pp_line_numbers(__LINE__-1, "$assignto = malloc(sizeof(*$assignto) * $arg);\n");
     } else { confess("Invalid decl (@$_)") }
   }
