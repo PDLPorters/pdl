@@ -1341,7 +1341,7 @@ sub make_xs_code {
   my($xscode_before,$xscode_after,$hdr,
     $xs_c_headers,
     @bits) = @_;
-  my($str,$boot,$prelude) = PDL::PP::pp_line_numbers(__LINE__-1, $hdr);
+  my($str,$boot,$prelude) = $hdr;
   if($xs_c_headers) {
     $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
     $boot = $xs_c_headers->[2];
