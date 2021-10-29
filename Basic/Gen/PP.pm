@@ -2037,12 +2037,7 @@ END
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
-      sub {
-        my($sig) = @_;
-        my $str = PDL::PP::pp_line_numbers(__LINE__-1, "\n");
-        for(@{ $sig->names }) { $str .= "$_ = PDL->make_now($_);\n"; }
-        $str;
-      }),
+      sub { join '', map PDL::PP::pp_line_numbers(__LINE__-1, "$_ = PDL->make_now($_);\n"), @{ $_[0]->names } }),
    PDL::PP::Rule->new("IgnoreTypesOf", ["FTypes","SignatureObj"], sub {
       my ($ftypes, $sig) = @_;
       my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
