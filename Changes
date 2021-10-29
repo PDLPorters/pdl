@@ -1,7 +1,7 @@
 - (DO{COMP,PRIV})DIMS -> more-accurate ${1}ALLOC
 - stop Pars or OtherPars called "I" - thanks Judd Taylor for report
 - pp_line_numbers restores line numbering after end of given text
-- add T_PDL_DIMLIST to typemap
+- allow "CTYPE var[]" as OtherPars, add T_PDL_DIMLIST to typemap
 
 2.057_04 2021-10-12
 - remove legacy pdl_create

@@ -1292,6 +1292,28 @@ The C<MakeComp> code is placed in the C<pdl_(funcname)_run>, so access
 to C<Pars> (which will just be C<pdl *>s)/C<OtherPars> values is just
 via their names, not a macro.
 
+As of 2.058, you can instead give a C99 "incomplete
+array" type parameter as an C<OtherPars> entry:
+
+  pp_def(
+    'diagonal',
+    OtherPars => 'PDL_Indx whichdims[]',
+    MakeComp => '
+      if ($COMP(whichdims_count) < 1)
+        $CROAK("Diagonal: must have at least 1 dimension");
+      /* ... */
+    ',
+    # ...
+  );
+
+There is an XS F<typemap> entry (only for C<PDL_Indx> array types for
+now) that adds a C<(varname)_count> variable having extracted the index
+numbers from an array-ref parameter, and sets the count variable to the
+right value. PP then makes a copy of the data available. The C function
+(here, C<pdl_diagonal_run>)'s caller (here, the generated XS function)
+is responsible for freeing the array passed in (here, PDL's C<smalloc>
+function is used, so the user need do nothing different).
+
 =head2 Other functions in the Code section
 
 The only PP function that we have used in the examples so far is C<loop>.
