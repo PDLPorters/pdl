@@ -1574,16 +1574,10 @@ pp_def(
         P2Child => 1,
         TwoWay => 1,
         AffinePriv => 1,
-        OtherPars => 'SV *list',
-        Comp => 'PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];',
+        OtherPars => 'PDL_Indx whichdims[]',
         MakeComp => pp_line_numbers(__LINE__-1, '
-                PDL_Indx i;
-                PDL_Indx *tmp= PDL->packdims(list,&($COMP(whichdims_count)));
                 if ($COMP(whichdims_count) < 1)
                   $CROAK("Diagonal: must have at least 1 dimension");
-                $DOCOMPALLOC();
-                for(i=0; i<$COMP(whichdims_count); i++)
-                        $COMP(whichdims)[i] = tmp[i];
                 qsort($COMP(whichdims), $COMP(whichdims_count), sizeof(PDL_Indx),
                         cmp_pdll);
         '),
