@@ -1874,15 +1874,10 @@ EOD
         P2Child => 1,
         TwoWay => 1,
         AffinePriv => 1,
-        OtherPars => "PDL_Indx id; SV *list",
-        Comp => 'PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];
-                        PDL_Indx nrealwhichdims; ',
+        OtherPars => "PDL_Indx id; PDL_Indx whichdims[]",
+        Comp => 'PDL_Indx nrealwhichdims',
         MakeComp => '
                 PDL_Indx i,j;
-                PDL_Indx *tmp= PDL->packdims(list,&($COMP(whichdims_count)));
-                $DOCOMPALLOC();
-                for(i=0; i<$COMP(whichdims_count); i++)
-                        $COMP(whichdims)[i] = tmp[i];
                 $COMP(nrealwhichdims) = 0;
                 for(i=0; i<$COMP(whichdims_count); i++) {
                         for(j=i+1; j<$COMP(whichdims_count); j++)
