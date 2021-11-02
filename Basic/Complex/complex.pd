@@ -1010,7 +1010,7 @@ sub im($) { $_[0]->slice("(1)") }
 {
 no warnings 'redefine';
 # if the argument does anything other than pass through 0-th dim, re-bless
-sub slice (;@) :lvalue {
+sub slice :lvalue {
   my $first = ref $_[1] ? $_[1][0] : (split ',', $_[1])[0];
   my $class = ($first//'') =~ /^[:x]?$/i ? ref($_[0]) : 'PDL';
   my $ret = bless $_[0]->SUPER::slice(@_[1..$#_]), $class;
