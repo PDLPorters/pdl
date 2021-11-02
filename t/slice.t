@@ -194,7 +194,8 @@ $y = $x->reorder(@newDimOrder);
 # since doing floating-point arithmetic here, should probably
 # use a better test than "eq" here
 #
-is($y->average->average->sum , 72.5, "Test of reorder");
+my $got = [$y->dims];
+is_deeply($got, [2,3,5], "Test of reorder") or diag explain $got;
 
 $x = zeroes(3,4);
 $y = $x->dummy(-1,2);
@@ -446,7 +447,7 @@ ok( (not $y->allocated) ) ;
 }
 
 my $indices = pdl([]);
-my $got = eval { my $s = pdl([1,2])->slice(pdl(1)); $s.''; $s->nelem };
+$got = eval { my $s = pdl([1,2])->slice(pdl(1)); $s.''; $s->nelem };
 is $@, '', 'slice 2-elt ndarray with one-length ndarray';
 is $got, 1, 'right dim from 2-elt with one index';
 $got = eval { my $s = pdl([1,2])->slice($indices); $s.''; $s->nelem };
