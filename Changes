@@ -2,6 +2,7 @@
 - stop Pars or OtherPars called "I" - thanks Judd Taylor for report
 - pp_line_numbers restores line numbering after end of given text
 - allow "CTYPE var[]" as OtherPars, add T_PDL_DIMLIST to typemap
+- pnminraw etc to take $filehandle not just name of glob
 
 2.057_04 2021-10-12
 - remove legacy pdl_create

@@ -128,14 +128,14 @@ sub PDL::rpnm {
     # catch STDERR
     open(SAVEERR, ">&STDERR");
     open(STDERR, ">$efile") || barf "Can't redirect stderr";
-    my $succeed = open(PNM, $file);
+    my $succeed = open(my $fh, $file);
     # redirection now in effect for child
     # close(STDERR);
     open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
     rbarf $efile,"Can't open pnm file '$file'" unless $succeed;
-    binmode PNM;
+    binmode $fh;
 
-    read(PNM,(my $magic),2);
+    read($fh,(my $magic),2);
     rbarf $efile, "Oops, this is not a PNM file" unless $magic =~ /P[1-6]/;
     print "reading pnm file with magic $magic\n" if $PDL::debug>1;
 
@@ -148,7 +148,7 @@ sub PDL::rpnm {
 
     # get the header information
     my ($line, $pgot, @dims) = ("",0,0,0,0);
-    while (($pgot<$params) && ($line=<PNM>)) {
+    while (($pgot<$params) && ($line=<$fh>)) {
        $line =~ s/#.*$//;
 	next if $line =~ /^\s*$/;    # just white space
 	while ($line !~ /^\s*$/ && $pgot < $params) {
@@ -186,11 +186,11 @@ TYPES:	{  my $pdlt;
     my $npdl = $isrgb ? $pdl->clump(2) : $pdl;
     if ($israw) {
        pnminraw (convert(pdl(0),$type), $npdl, $Dims[0], $Dims[1],
-	 $magic eq "P4", 'PDL::IO::Pnm::PNM');
+	 $magic eq "P4", $fh);
     } else {
        my $form = $1 if $magic =~ /P([1-3])/;
        pnminascii (convert(pdl(0),$type), $npdl, $Dims[0], $Dims[1],
-	$form, 'PDL::IO::Pnm::PNM');
+	$form, $fh);
     }
     print("loaded pnm file, $dims[0]x$dims[1], gmax: $dims[2]",
 	   $isrgb ? ", RGB data":"", $israw ? ", raw" : " ASCII"," data\n")
@@ -277,18 +277,18 @@ sub PDL::wpnm {
     my $pref = ($file !~ /^\s*[|>]/) ? ">" : "";  # test for plain file name
     open(SAVEERR, ">&STDERR");
     open(STDERR, ">$efile") || barf "Can't redirect stderr";
-    my $succeed = open(PNM, $pref . $file);
+    my $succeed = open(my $fh, $pref . $file);
     # close(STDERR);
     open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
     rbarf $efile, "Can't open pnm file" unless $succeed;
-    binmode PNM;
+    binmode $fh;
 
     $max =$pdl->max;
     print "writing ". ($israw ? "raw" : "ascii") .
       "format with magic $magic, max=$max\n" if $PDL::debug;
     # write header
-    print PNM "$magic\n";
-    print PNM "$Dims[-2] $Dims[-1]\n";
+    print $fh "$magic\n";
+    print $fh "$Dims[-2] $Dims[-1]\n";
     if ($type !~ /PBM/) {	# fix maxval for raw output formats
        my $outmax = 0;
 
@@ -300,7 +300,7 @@ sub PDL::wpnm {
           $outmax = $max;
        };
 
-       print PNM "$outmax\n" unless $type =~ /PBM/;
+       print $fh "$outmax\n" unless $type =~ /PBM/;
     };
 
     # if rgb clump first two dims together
@@ -319,10 +319,10 @@ sub PDL::wpnm {
           }
        }
     }
-    pnmout($out,$israw,$type eq "PBM",'PDL::IO::Pnm::PNM');
+    pnmout($out,$israw,$type eq "PBM",$fh);
 
     # check if our child returned an error (in case of a pipe)
-    if (!(close PNM)) {
+    if (!(close $fh)) {
       my $err = show_err($efile,0);
       barf "wpnm: pbmconverter error: $err";
     }
@@ -367,17 +367,11 @@ EOD
 pp_def('pnminraw',
 	Pars => 'type(); byte+ [o] im(m,n)',
 	OtherPars => 'int ms => m; int ns => n;
-			int isbin; char* fd',
+			int isbin; PerlIO *fp',
 	GenericTypes => [B,U,L],
 	Code => 'int ms, ns, i,j,k,bit,llen;
-		 PerlIO *fp;
-		 IO *io;
 		 PDL_Byte *buf, *bp;
 		 $GENERIC() *gbp;
-
-		 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
-		 if (!io || !(fp = IoIFP(io)))
-			barf("Can\'t figure out FP");
 		 ms = $SIZE(m); ns = $SIZE(n);
 		 llen = ($COMP(isbin) ? ((ms+7) / 8) : (ms * sizeof($GENERIC())));
 		 /* allocate a buffer of length llen */
@@ -386,7 +380,7 @@ pp_def('pnminraw',
 			barf("Error getting mem for line buffer");
 		 threadloop %{  /* with top to bottom inversion */
 			for (i=ns-1; i>= 0; i--) {
-			   if (PerlIO_read(fp,buf,llen) != llen)
+			   if (PerlIO_read($COMP(fp),buf,llen) != llen)
 				barf("Error reading pnm file");
 			   if ($COMP(isbin))  /* unpack buffer */
 				for (j=0,bp=buf,bit=0; j<ms; j++, bit++) {
@@ -427,16 +421,10 @@ EOH
 pp_def( 'pnminascii',
 	Pars => 'type(); byte+ [o] im(m,n)',
 	OtherPars => 'int ms => m; int ns => n;
-			int format; char* fd',
+			int format; PerlIO *fp',
 	GenericTypes => [B,U,S,L],
 	Code => q?
 		 int ms, ns, s, i;
-		 PerlIO *fp;
-		 IO *io;
-
-		 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
-		 if (!io || !(fp = IoIFP(io)))
-			barf("Can\'t figure out FP");
 		 ms = $SIZE(m); ns = $SIZE(n);
 
 		 switch ($COMP(format)) {
@@ -444,10 +432,10 @@ pp_def( 'pnminascii',
 		   threadloop %{  /* with top to bottom inversion */
 			for (i=ns-1; i>= 0; i--) {
 			loop(m) %{
-			    while ((s = PerlIO_getc(fp)) != EOF) {
+			    while ((s = PerlIO_getc($COMP(fp))) != EOF) {
 			      switch (s) {
 			       case '#': /* comment, skip rest of line */
-				SWALLOWLINE(fp);
+				SWALLOWLINE($COMP(fp));
 				break;
 			       case '0':
 			       case '1':
@@ -478,7 +466,7 @@ pp_def( 'pnminascii',
 			PDL_Long j;
 			for (i=ns-1; i>= 0; i--) {
 			  loop(m) %{
-			    if (getint(fp,&j) <= 0)
+			    if (getint($COMP(fp),&j) <= 0)
 		  		barf("found garbage, aborting"); /* for now */
 			    $im(n=>i,m=>m) = j;
 			  %}
@@ -505,15 +493,9 @@ Read in an ascii pnm file.
 pp_def(	'pnmout',
 	Pars => 'a(m);',
 	'NoPthread' => 1, # Pthreading doesn't make sense for an IO function
-	OtherPars => "int israw; int isbin; char *fd",
+	OtherPars => "int israw; int isbin; PerlIO *fp",
 	GenericTypes => [B,U,S,L],
-	Code => 'PerlIO *fp;
-		 IO *io;
-
-		 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
-		 if (!io || !(fp = IoIFP(io)))
-			barf("Can\'t figure out FP");
-
+	Code => '
 		 if ($COMP(israw)) {
 		    if ($COMP(isbin)) {
 		    	threadloop %{
@@ -522,19 +504,19 @@ pp_def(	'pnmout',
 			    k = (k << 1) | ($a() < 1);
 			    bit++;
 	  			if (bit==8) {
-				  PerlIO_putc(fp,k);
+				  PerlIO_putc($COMP(fp),k);
 				  bit = k = 0;
 			        }
 		 	  %}
 			  if (bit) {
 			    k = k << (8-bit);
-			    PerlIO_putc(fp,k);
+			    PerlIO_putc($COMP(fp),k);
 			  }
 		       %}
 		    } else {
 		      int len = $SIZE(m) * sizeof($GENERIC());
 		      threadloop %{
-		 	if (PerlIO_write(fp,$P(a),len) != len)
+			if (PerlIO_write($COMP(fp),$P(a),len) != len)
 				barf("Error writing pnm file");
 		      %}
 		    }
@@ -542,13 +524,13 @@ pp_def(	'pnmout',
 		    int len=0;
 		    threadloop %{
 			loop(m) %{
-				PerlIO_printf(fp,"%3d ",$COMP(isbin) ?
+				PerlIO_printf($COMP(fp),"%3d ",$COMP(isbin) ?
 					($a() < 1) :$a());
 				len +=4;
-				if (len>58) { PerlIO_printf(fp,"\n"); len=0; }
+				if (len>58) { PerlIO_printf($COMP(fp),"\n"); len=0; }
 		 	%}
                  	if (len<=58)
-                     		PerlIO_printf(fp,"\n");
+				PerlIO_printf($COMP(fp),"\n");
 		    %}
 		}
 ', Doc => '
