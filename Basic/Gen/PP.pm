@@ -1281,7 +1281,7 @@ sub typemap {
   # Do checks...
   #
   # First reconstruct the type declaration to look up in type_kind
-  my $full_type=TidyType($type->get_decl('')); # Skip the variable name
+  my $full_type=TidyType($type->get_decl('', {VarArrays2Ptrs=>1})); # Skip the variable name
   die "The type =$full_type= does not have a typemap entry!\n" unless exists($type_kind{$full_type});
   my $typemap_kind = $type_kind{$full_type};
   # Look up the conversion from the INPUT typemap. Note that we need to do some
