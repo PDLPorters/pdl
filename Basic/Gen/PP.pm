@@ -1873,7 +1873,7 @@ EOD
         # Don't do var args processing if the user has pre-defined pmcode
         return 'DO NOT SET!!' if $pmcode;
         my $ci = '  ';  # current indenting
-        my $pars = join "\n",map "$ci$_;", $sig->alldecls(1, 1);
+        my $pars = join "\n",map "$ci$_;", $sig->alldecls(1, 0);
         my @args = $sig->alldecls(0, 1);
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
