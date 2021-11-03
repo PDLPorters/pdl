@@ -118,6 +118,12 @@ sub getcomp {
   my $objs = $self->otherobjs(0);
   join '', map "$_;", grep $_, map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1}), @{$self->othernames(0)};
 }
+sub getfree {
+  my ($self,$symbol) = @_;
+  my $objs = $self->otherobjs(0);
+  join '', map $objs->{$_}->get_free("\$$symbol($_)",
+    { VarArrays2Ptrs => 1 }), @{$self->othernames(0)};
+}
 
 sub realdims {
   my $this = shift;

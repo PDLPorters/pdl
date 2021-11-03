@@ -54,7 +54,7 @@
 #   Implicit conditions are NewXSSymTab and Name
 #
 # The MakeComp rule creates the compiled representation accessed by $COMP()
-#  PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
+#  PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompObj"],
 #		      "COMP")
 # PDL::PP::Rule::MakeComp->new($target,$conditions,$symbol)
 #   $target and $symbol must be scalars.
@@ -528,7 +528,8 @@ EOF
 # Probably want this directly in the apply routine but leave as is for now
 #
 sub subst_makecomp_private {
-	my($which,$mc,$cn,$co) = @_;
+	my($which,$mc,$cobj) = @_;
+	my ($cn,$co) = !$cobj ? () : map $cobj->$_, qw(othernames otherobjs);
 	return [$mc,{
 		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
 		($cn ?
@@ -1390,12 +1391,6 @@ sub callPerlInit {
     indent($ret,$ci);
 } #sub callPerlInit()
 
-sub NT2Free_p {
-  my($onames,$otypes,$symbol) = @_;
-  join '', map $otypes->{$_}->get_free("\$$symbol($_)",
-    { VarArrays2Ptrs => 1 }), @$onames;
-}
-
 ###########################################################
 # Name       : extract_signature_from_fulldoc
 # Usage      : $sig = extract_signature_from_fulldoc($fulldoc)
@@ -2096,14 +2091,12 @@ END
 
 # If the user wishes to specify their own code and compiled representation,
 # The next two definitions allow this.
-   PDL::PP::Rule->new(["CompNames","CompObjs"], "Comp", \&OtherPars_nft),
-   PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], sub {
-      my ($onames,$otypes) = @_;
-      join '', map "$_;", grep $_, map $otypes->{$_}->get_decl($_, { VarArrays2Ptrs => 1 }), @$onames;
-   }),
-   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompNames","CompObjs"],
+   PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
+      sub { PDL::PP::Signature->new('', @_, \&OtherPars_nft) }),
+   PDL::PP::Rule->new("CompiledRepr", "CompObj", sub { $_[0]->getcomp }),
+   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompObj"],
 				"COMP"),
-   PDL::PP::Rule->new("CompFreeCode", ["CompNames","CompObjs"], sub {NT2Free_p(@_,"COMP")}),
+   PDL::PP::Rule->new("CompFreeCode", "CompObj", sub {$_[0]->getfree("COMP")}),
 
 # This is the default
 #
@@ -2119,9 +2112,7 @@ END
           join '', map $otypes->{$_}->get_copy($_,"$pname->$_"), @$onames
         );
       }),
-   PDL::PP::Rule->new("CompFreeCode",
-      ["SignatureObj"],
-      sub {NT2Free_p((map $_[0]->$_, qw(othernames otherobjs)),"COMP")}),
+   PDL::PP::Rule->new("CompFreeCode", "SignatureObj", sub {$_[0]->getfree("COMP")}),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
       ["CompiledRepr","Name"],
@@ -2156,8 +2147,9 @@ END
 
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
 
-   PDL::PP::Rule->new(["PrivNames","PrivObjs"], "Priv", \&OtherPars_nft),
-   PDL::PP::Rule->new("NTPrivFreeCode", ["PrivNames","PrivObjs"], sub {NT2Free_p(@_,"PRIV")}),
+   PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
+      sub { PDL::PP::Signature->new('', @_, \&OtherPars_nft) }),
+   PDL::PP::Rule->new("NTPrivFreeCode", "PrivObj", sub {$_[0]->getfree("PRIV")}),
 
    PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
 
@@ -2259,7 +2251,7 @@ EOF
       sub {make_xs_code('CODE:',' XSRETURN(0);',@_)}),
 
    PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
-      ["RedoDims", "PrivNames", "PrivObjs"], "PRIV"),
+      ["RedoDims", "PrivObj"], "PRIV"),
 
    # The RedoDimsCodeNS rule takes in the RedoDims target
    # directly as well as via RedoDims-PostComp for better error-reporting
