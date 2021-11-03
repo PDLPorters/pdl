@@ -124,6 +124,13 @@ sub getfree {
   join '', map $objs->{$_}->get_free("\$$symbol($_)",
     { VarArrays2Ptrs => 1 }), @{$self->othernames(0)};
 }
+sub getcopy {
+  my ($self) = @_;
+  my $objs = $self->otherobjs(0);
+  PDL::PP::pp_line_numbers(__LINE__,
+    join '', map $objs->{$_}->get_copy($_,"\$COMP($_)"), @{$self->othernames(0)}
+  );
+}
 
 sub realdims {
   my $this = shift;

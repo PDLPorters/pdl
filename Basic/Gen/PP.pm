@@ -2100,18 +2100,9 @@ END
 
 # This is the default
 #
-   PDL::PP::Rule->new("CompiledRepr",
-      ["SignatureObj"],
-      sub { $_[0]->getcomp }),
-   PDL::PP::Rule->new("MakeCompiledReprNS",
-      ["SignatureObj","ParamStructName"],
-      sub {
-        my ($sig,$pname) = @_;
-        my ($onames,$otypes) = map $sig->$_, qw(othernames otherobjs);
-        PDL::PP::pp_line_numbers(__LINE__,
-          join '', map $otypes->{$_}->get_copy($_,"$pname->$_"), @$onames
-        );
-      }),
+   PDL::PP::Rule->new("CompiledRepr", "SignatureObj", sub { $_[0]->getcomp }),
+   PDL::PP::Rule->new("MakeComp", "SignatureObj", sub { $_[0]->getcopy }),
+   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS","MakeComp","COMP"),
    PDL::PP::Rule->new("CompFreeCode", "SignatureObj", sub {$_[0]->getfree("COMP")}),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
