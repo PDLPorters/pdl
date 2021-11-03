@@ -1211,16 +1211,10 @@ another example that illustrates typical usage of both new features:
 
   pp_def('pnmout',
 	Pars => 'a(m)',
-	OtherPars => "char* fd",
+	OtherPars => "PerlIO *fp",
 	GenericTypes => [qw(B U S L)],
-	Code => 'PerlIO *fp;
-		 IO *io;
-
-               io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
-		 if (!io || !(fp = IoIFP(io)))
-			croak("Can\'t figure out FP");
-
-		 if (PerlIO_write(fp,$P(a),len) != len)
+	Code => '
+		 if (PerlIO_write($COMP(fp),$P(a),len) != len)
 				croak("Error writing pnm file");
   ');
 
@@ -1235,8 +1229,8 @@ section follow those in the C<Pars> section when invoking the function, i.e.
 
 When you want to access this parameter inside the code section you
 have to tell PP by using the C<$COMP> macro, i.e. you write
-C<$COMP(fd)> as in the example. Otherwise PP wouldn't know that the
-C<fd> you are referring to is the same as that specified in the
+C<$COMP(fp)> as in the example. Otherwise PP wouldn't know that the
+C<fp> you are referring to is the same as that specified in the
 C<OtherPars> section.
 
 Another use for the C<OtherPars> section is to set a named dimension
@@ -1342,20 +1336,13 @@ function:
 
   pp_def('pnmout',
 	Pars => 'a(m)',
-	OtherPars => "char* fd",
+	OtherPars => "PerlIO *fp",
 	GenericTypes => [qw(B U S L)],
-	Code => 'PerlIO *fp;
-		 IO *io;
+	Code => '
 		 int len;
-
-               io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
-		 if (!io || !(fp = IoIFP(io)))
-			croak("Can\'t figure out FP");
-
 		 len = $SIZE(m) * sizeof($GENERIC());
-
 		 threadloop %{
-		    if (PerlIO_write(fp,$P(a),len) != len)
+		    if (PerlIO_write($COMP(fp),$P(a),len) != len)
 				croak("Error writing pnm file");
 		 %}
   ');
@@ -2088,7 +2075,7 @@ define the signature of your function
 
 arguments which are not pdls. Default: nothing. This is a semi-colon
 separated list of arguments, e.g.,
-C<< OtherPars=>'int k; double value; char* fd' >>. See C<$COMP(x)> and
+C<< OtherPars=>'int k; double value; PerlIO *fp' >>. See C<$COMP(x)> and
 also the same entry in L<Appendix B|/Appendix B: PP macros and functions>.
 
 =head3 Code

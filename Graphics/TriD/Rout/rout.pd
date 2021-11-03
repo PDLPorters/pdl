@@ -204,24 +204,17 @@ sub trid {
 
 pp_def('vrmlcoordsvert',
 	Pars => 'vertices(n=3)',
-	OtherPars => 	'char* space; char* fd',
+	OtherPars => 	'char* space; PerlIO *fp',
 	GenericTypes => [F,D],
 	Code => q@
-		 PerlIO *fp;
-		 IO *io;
 		 PDL_Byte *buf, *bp;
 		 char *spc = $COMP(space);
 		 char formchar = $TFD(' ','l');
 		 char formatstr[25];
-
-		 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
-		 if (!io || !(fp = IoIFP(io)))
-			barf("Can\'t figure out FP");
 		 sprintf(formatstr,"%s%%.3%cf %%.3%cf %%.3%cf,\n",spc,
 			formchar,formchar,formchar);
-
 		threadloop %{
-			PerlIO_printf(fp,formatstr,@.trid(vertices,n).');
+			PerlIO_printf($COMP(fp),formatstr,@.trid(vertices,n).');
 		%}'
 );
 
