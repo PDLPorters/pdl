@@ -100,7 +100,7 @@ my $envi_keywords = {
 };
 
 my $envi_required_keywords = [];
-foreach (keys %$envi_keywords) {
+foreach (sort keys %$envi_keywords) {
    push @$envi_required_keywords, $_ if $envi_keywords->{$_};
 }
 

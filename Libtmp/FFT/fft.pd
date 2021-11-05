@@ -619,7 +619,7 @@ my %ah = (B => '',
 	  D => 'fabs'
     );
 
-our $abs_string .= "types($_) %{" . $ah{$_} . '(br) > ' . $ah{$_} . "(bi)%}\n" foreach (keys %ah);
+our $abs_string .= "types($_) %{" . $ah{$_} . '(br) > ' . $ah{$_} . "(bi)%}\n" foreach (sort keys %ah);
 
 pp_def('cdiv',
 	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',

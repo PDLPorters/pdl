@@ -621,7 +621,7 @@ sub load_projection_information
     
     my $info = {};
     
-    foreach my $projection ( keys %$descriptions )
+    foreach my $projection ( sort keys %$descriptions )
     {
         my $description = $descriptions->{$projection};
     

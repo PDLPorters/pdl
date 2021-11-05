@@ -60,7 +60,7 @@ my %formats = ('PNM'  => ['pnm',1,0,0.01],
 # netpbm has too many bugs on various platforms
 my @allowed = ();
 ## for ('PNM') { push @allowed, $_
-for (keys %formats) {
+for (sort keys %formats) {
    if (PDL->rpiccan($_) && PDL->wpiccan($_) && defined $formats{$_}) {
       push @allowed, $_;
    }

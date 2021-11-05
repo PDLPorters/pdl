@@ -179,8 +179,7 @@ operations can be used with C<reduce>.
 
 *canreduce = \&PDL::canreduce;
 sub PDL::canreduce {
-  my ($this) = @_;
-  return keys %reduce;
+  sort keys %reduce;
 }
 
 =head1 AUTHOR

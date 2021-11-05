@@ -45,7 +45,7 @@ sub set_axis {
 # Bind all unbound things here...
 sub scalethings {
 	my($this) = @_;
-	for(keys %{$this->{UnBound}}) {
+	for(sort keys %{$this->{UnBound}}) {
 		$this->bind_default($_);
 	}
 	for(values %{$this->{Axis}}) {

@@ -121,7 +121,7 @@ sub PDL::AutoLoader::reloader {
    # Now check functions and reload if changed
 
    my ($file, $old_t);
-   for my $func (keys %PDL::AutoLoader::FileInfo) {
+   for my $func (sort keys %PDL::AutoLoader::FileInfo) {
        ($file, $old_t) = @{ $PDL::AutoLoader::FileInfo{$func} };
        if ( (stat($file))[9]>$old_t ) { # Reload
           print "Reloading $file as file changed...\n" if $PDL::verbose;

@@ -52,7 +52,7 @@ sub new {
 	print "DONT_ADD_THRLOOP!\n" if $dont_add_thrloop;
 	print "EXTRAGEN: {" .
 	  join(" ",
-	       map "$_=>$$extrageneric{$_}", keys %$extrageneric)
+	       map "$_=>$$extrageneric{$_}", sort keys %$extrageneric)
 	    . "}\n";
 	print "ParNAMES: ",(join ',',@$parnames),"\n";
 	print "GENTYPES: ", @$generictypes, "\n";
@@ -140,11 +140,11 @@ sub new {
     # Do we have extra generic loops?
     # If we do, first reverse the hash:
     my %glh;
-    for(keys %$extrageneric) {
+    for(sort keys %$extrageneric) {
 	push @{$glh{$extrageneric->{$_}}},$_;
     }
     my $no = 0;
-    for(keys %glh) {
+    for(sort keys %glh) {
 	my $nc = $coderef;
 	$coderef = PDL::PP::GenericLoop->new($generictypes,$no++,
 					    $glh{$_},$_);

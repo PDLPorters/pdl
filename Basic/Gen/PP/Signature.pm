@@ -46,7 +46,7 @@ sub new {
   $this->{IndNamesSorted} = [ sort keys %ind2use ];
   my $i=0; my %ind2index = map +($_=>$i++), @{$this->{IndNamesSorted}};
   $this->{Ind2Index} = \%ind2index;
-  $ind2obj{$_}->set_index($ind2index{$_}) for keys %ind2index;
+  $ind2obj{$_}->set_index($ind2index{$_}) for sort keys %ind2index;
   @$this{qw(OtherNames OtherObjs)} = $this->_otherPars_nft($otherpars||'');
   $this;
 }

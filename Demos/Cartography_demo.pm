@@ -72,7 +72,7 @@ act q&
   ### Map data are stored natively in Plate Caree format. 
   ### The image contains a FITS header that contains coordinate system info.
   print "FITS HEADER INFORMATION:\n";
-  for $_(keys %{$map->hdr}){
+  for $_(sort keys %{$map->hdr}){
     next if(m/SIMPLE/ || m/HISTORY/ || m/COMMENT/);
     printf ("  %8s: %10s%s", $_, $map->hdr->{$_}, (++$i%3) ? "  " : "\n"); 
   }

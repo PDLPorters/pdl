@@ -718,11 +718,11 @@ sub options {
     foreach my $userkey (sort keys %user) {
 
       # Check for matches in the default set
-      my @matched = $self->compare_with_list(0, $userkey, keys %base);
+      my @matched = $self->compare_with_list(0, $userkey, sort keys %base);
 
       # If we had no matches, check the synonyms list
       if ($#matched == -1) {
-	@matched = $self->compare_with_list(0, $userkey, keys %syn);
+	@matched = $self->compare_with_list(0, $userkey, sort keys %syn);
 
 	# If we have matched then convert the key to the actual
 	# value stored in the object
@@ -793,14 +793,14 @@ sub translate {
   # Now need to go through each of the keys
   # and if the corresponding key exists in the translation
   # hash we need to check that a valid translation exists
-  foreach my $key ( keys %opt ) {
+  foreach my $key ( sort keys %opt ) {
     if (exists $trans{$key}) {
       # Okay so a translation might exist
       # Now compare keys in the hash in the hash
       my %subhash = %{$trans{$key}};
 
       my @matched =
-	$self->compare_with_list(1, $opt{$key}, keys %subhash);
+	$self->compare_with_list(1, $opt{$key}, sort keys %subhash);
 
       # At this point we have matched the userkey to a key in the
       # dictionary. If there is no translation dont say anything

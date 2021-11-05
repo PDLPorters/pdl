@@ -857,7 +857,7 @@ sub PDL::wcols {
    my $header;
    if ( ref( $_[-1] ) eq "HASH" ) {
        my $opt = pop;
-       foreach my $key ( keys %$opt ) {
+       foreach my $key ( sort keys %$opt ) {
            if ( $key =~ /^H/i ) { $header = $opt->{$key}; }             # option: HEADER
 	   elsif ( $key =~ /^COLSEP/i ) { $usecolsep = $opt->{$key}; }  # option: COLSEP
 	   elsif ( $key =~ /^FORMAT/i ) { $format_string = $opt->{$key}; }  # option: FORMAT

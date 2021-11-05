@@ -232,7 +232,7 @@ sub do_access {
 # If not all substitutions made, the user probably made a spelling
 # error. Barf.
 	if(scalar(keys %subst) != 0) {
-		confess("Substitutions left: ".(join ',',keys %subst)."\n");
+		confess("Substitutions left: ".(join ',',sort keys %subst)."\n");
 	}
        $text;
 }

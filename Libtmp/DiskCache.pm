@@ -201,7 +201,6 @@ Get chatty.
 
 sub PDL::DiskCache::TIEARRAY { 
   my($class,$f,$opt) = @_;
-
   croak "PDL::DiskCache needs array ref as 2nd arg (did you pass an array instead?)\n"
     if(ref $f ne 'ARRAY');
   my($new) = {files   => $f                                # File list
@@ -216,10 +215,7 @@ sub PDL::DiskCache::TIEARRAY {
 	      , opt     => {}    # Options stashed here for later reference
               , cache_next => 0  # Next cache slot to be used
 	      };
-  foreach $_(keys %{$opt}) {
-    $new->{opt}->{$_} = $opt->{$_};
-  }
-
+  @{$new->{opt}}{keys %$opt} = values %$opt;
   return bless($new,$class);
 }
 

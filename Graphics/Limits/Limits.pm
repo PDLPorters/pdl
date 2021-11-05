@@ -689,7 +689,7 @@ sub parse_vecspec
   {
     # complain about keys we don't use
     my @badkeys = grep { ! defined $vecspeckeys{$_} } keys %$ukeys;
-    die( "illegal keys: ", join(' ,', @badkeys), "\n" )
+    die( "illegal keys: ", join(' ,', sort @badkeys), "\n" )
       if @badkeys;
 
     # copy keys we need

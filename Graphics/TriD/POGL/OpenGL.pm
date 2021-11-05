@@ -224,9 +224,7 @@ sub new {
       if(defined($class_or_hash->{Options})){
          return bless $self,ref($class_or_hash);
       }else{
-         foreach(keys %$self){
-            $class_or_hash->{$_} = $self->{$_};
-         }
+         @$class_or_hash{keys %$self} = values %$self;
          return $class_or_hash;
       }
    }

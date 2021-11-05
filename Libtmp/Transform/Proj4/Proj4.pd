@@ -325,7 +325,7 @@ sub update_proj_string
     delete( $self->{params}->{proj_params} );
     my $proj_string = "";
     
-    foreach my $param ( keys %{ $self->{params} } )
+    foreach my $param ( sort keys %{ $self->{params} } )
     {
         next unless defined( $self->{params}->{$param} );
         

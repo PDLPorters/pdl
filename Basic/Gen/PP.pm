@@ -1861,7 +1861,7 @@ EOD
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
-        my $svdecls = join "\n", map "${ci}SV *${_}_SV = NULL;", keys %tmp, $sig->names_out;
+        my $svdecls = join "\n", map "${ci}SV *${_}_SV = NULL;", sort(keys %tmp), $sig->names_out;
         my $clause_inputs = ''; my %already_read; my $cnt = 0;
         foreach my $x (@args) {
             last if $out{$x} || $tmp{$x} || $outca{$x} || $other{$x};
@@ -2018,7 +2018,7 @@ END
         my($ftypes) = @_;
         join '', map
           PDL::PP::pp_line_numbers(__LINE__, "$_->datatype = $ftypes->{$_};"),
-          keys %$ftypes;
+          sort keys %$ftypes;
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSCoerceMustSubd", "NewXSCoerceMustNS"),
 

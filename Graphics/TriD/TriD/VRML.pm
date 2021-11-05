@@ -305,11 +305,11 @@ sub PDL::Graphics::TriD::Image::vdraw {
 sub PDL::Graphics::TriD::Graph::tovrml {
 	my($this) = @_;
 	my @children = ();
-	for(keys %{$this->{Axis}}) {
+	for(sort keys %{$this->{Axis}}) {
 		if($_ eq "Default") {next}
 		push @children, @{$this->{Axis}{$_}->tovrml_axis($this)};
 	}
-	for(keys %{$this->{Data}}) {
+	for(sort keys %{$this->{Data}}) {
 	    push @children,
 	     $this->{Data}{$_}->tovrml_graph($this,$this->get_points($_));
 	}
@@ -432,10 +432,7 @@ use PDL::Core '';  # barf
 
 sub new {
   my ($type,%hash) = @_;
-  my $this = bless {},$type;
-  $this->{Mode} = 'VRML';
-  for (keys %hash) { $this->{$_} = $hash{$_} }
-  return $this;
+  bless {Mode => 'VRML', %hash},$type;
 }
 
 sub gifmode {
@@ -450,7 +447,7 @@ sub vrmlmode {
 
 sub set {
   my ($this,%hash) = @_;
-  for (keys %hash) { $this->{$_} = $hash{$_} }
+  @$this{keys %hash} = values %hash;
   return $this;
 }
 

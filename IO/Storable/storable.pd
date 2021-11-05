@@ -318,7 +318,7 @@ sub STORABLE_thaw {
   if (defined $hashref) {
     croak "serial data with hashref!" unless !defined $serial ||
       $serial eq "";
-    for (keys %$hashref) { $pdl->{$_} = $hashref->{$_} }
+    @$pdl{keys %$hashref} = values %$hashref;
   } else {
     # all the magic is happening in pdlunpack
     $pdl->pdlunpack($serial); # unpack our serial into this sv

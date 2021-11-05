@@ -677,7 +677,7 @@ my %search = (
 );
 
 for my $mode (
-    keys %search
+    sort keys %search
   )
 {
 

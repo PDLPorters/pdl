@@ -942,7 +942,7 @@ own code.
  my $entry = $entries[0];
  my ($func_name, undef, $sym_hash) = @$entry;
  print "mpdl info:\n";
- foreach my $key (keys %$sym_hash) {
+ foreach my $key (sort keys %$sym_hash) {
      # Unpack the entry
      print "---$key---\n$sym_hash->{$key}\n";
  }

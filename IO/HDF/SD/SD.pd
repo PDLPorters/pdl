@@ -660,7 +660,7 @@ sub Chunking
 sub SDgetvariablenames
 {
     my($self) = @_;
-    return keys %{$self->{DATASET}};
+    return sort keys %{$self->{DATASET}};
 } # End of SDgetvariablenames()...
 sub SDgetvariablename
 {
@@ -702,11 +702,11 @@ sub SDgetattributenames
     {
         return( undef )
             unless defined( $self->{DATASET}->{$name} );
-        return keys %{ $self->{DATASET}->{$name}->{ATTRS} };
+        return sort keys %{ $self->{DATASET}->{$name}->{ATTRS} };
     }
     else 
     {
-        return keys %{ $self->{GLOBATTR} };
+        return sort keys %{ $self->{GLOBATTR} };
     }
 } # End of SDgetattributenames()...
 # Wrapper (this is now defunct):

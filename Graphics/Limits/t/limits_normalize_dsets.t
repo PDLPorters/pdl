@@ -49,13 +49,13 @@ my $args = { %attr, KeySpec => [ { data => 'x' }, { data => 'y' }, ] };
 
 
 	my %d1 = %{$dsets[0]};
-	for (keys(%d1)) {
+	for (sort keys(%d1)) {
 	    print "1: $_: $d1{$_}\n";
 	    my @d1 = @{$d1{$_}};
 	    print "  @d1\n";
 	    }
 	my %d2 = %{$dsets[1]};
-	for (keys(%d2)) {
+	for (sort keys(%d2)) {
 	    print "2: $_: $d2{$_}\n";
 	    my @d2 = @{$d2{$_}};
 	    print "  @d2\n";

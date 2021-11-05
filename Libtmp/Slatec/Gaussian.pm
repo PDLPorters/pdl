@@ -349,7 +349,7 @@ sub fromweighteddata {
 	my($this,$data,$wt) = @_;
 }
 
-sub ph {my($x) = @_; for (keys %$x) {next if !ref $x->{$_} or
+sub ph {my($x) = @_; for (sort keys %$x) {next if !ref $x->{$_} or
 	(ref $x->{$_}) eq "ARRAY";
    print "$_ :",$x->{$_},"\n	Dims:[",
 	(join ',',@{$x->{$_}{Dims}}),"]\n";}}

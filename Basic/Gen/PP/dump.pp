@@ -83,7 +83,7 @@ sub pp_def {
     }   
    } else {
        print "pp_def('$name',\n";
-	 foreach (keys(%hash)) {
+	 foreach (sort keys(%hash)) {
 	   if ($_ =~ /(Generic)*Types/) {
 	    print "$_ => [" . join(',',@{$hash{$_}}) . "]\n";
 	   } else {

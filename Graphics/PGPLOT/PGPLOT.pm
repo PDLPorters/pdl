@@ -368,7 +368,7 @@ sub _get_windownumber {
       $windownumber = $name;
     } else {
       print "Valid window names: \n";
-      foreach my $k (keys %_WINDOWNAMES) {
+      foreach my $k (sort keys %_WINDOWNAMES) {
 	print "$k\n";
       }
       barf ("I cannot switch to window $name - no such name\n");
@@ -476,7 +476,7 @@ names of the open windows respectively.
 sub window_list {
   my @numbers=();
   my @names=();
-  foreach (keys %_WINDOWNAMES) {
+  foreach (sort keys %_WINDOWNAMES) {
     if (ref($_WINDOWNAMES{$_}) eq 'PDL::Graphics::PGPLOT::Window') {
       push @names, $_;
     } else {

@@ -74,9 +74,7 @@ sub new {
 
 sub add {
   my ($this,%items) = @_;
-  for (keys %items) {
-    $this->{Container}{$_} = $items{$_};
-  }
+  @{$this->{Container}}{keys %items} = values %items;
   return $this;
 }
 
@@ -155,13 +153,8 @@ sub checkoptions {
   my ($this,$options) = @_;
   my $aopts = $this->getvopts();
   for (keys %$aopts) {
-    if (!defined $options->{$_}) {
-      $this->{$_} = $aopts->{$_};
-    } else {
-      $this->{$_} = delete $options->{$_};
-    }
+    $this->{$_} = !defined($options->{$_}) ? $aopts->{$_} : delete $options->{$_};
   }
-
   if (keys %$options) {
     barf "Invalid options left: ".(join ',',%$options);
   }
@@ -313,7 +306,7 @@ sub uses {
 
 sub ensure_protos {
   my $this = shift;
-  for (keys %{$this->{Uses}}) {
+  for (sort keys %{$this->{Uses}}) {
     barf "unknown Prototype $_" unless defined $PDL::Graphics::VRML::Protos{$_};
     delete $this->{Uses}->{$_};
     $this->add_proto($PDL::Graphics::VRML::Protos{$_});
@@ -336,7 +329,7 @@ sub print {
   print VRML "$this->{Header}\n";
   print VRML $this->{Info}->to_text;
   print VRML $this->{NaviInfo}->to_text;
-  for (keys %{$this->{Protos}}) { print VRML $this->{Protos}->{$_}->to_text }
+  for (sort keys %{$this->{Protos}}) { print VRML $this->{Protos}->{$_}->to_text }
   barf "no scene hierarchy" unless defined $this->{Scene};
   print VRML $this->{Scene}->to_text;
   close VRML if $#_ > -1;

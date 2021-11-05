@@ -323,7 +323,7 @@ sub _check_attr {
     return unless $self->{flags}{changed};
 
     my @emsg;
-    foreach my $name ( keys %{ $self->{attributes} } ) {
+    foreach my $name ( sort keys %{ $self->{attributes} } ) {
 	if( $self->{attributes}{$name}{required} ) {
 	    push @emsg, $name unless defined($self->{values}{$name});
 	}

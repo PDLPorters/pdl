@@ -292,7 +292,7 @@ sub pdlpp_mkgen {
 
   my @pairs = ();
   my $manifest = ExtUtils::Manifest::maniread($file);
-  for (keys %$manifest) {
+  for (sort keys %$manifest) {
     next if $_ !~ m/\.pd$/;     # skip non-pd files
     next if $_ =~ m/^(t|xt)\//; # skip *.pd files in test subdirs
     next unless -f $_;

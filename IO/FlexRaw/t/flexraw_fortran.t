@@ -322,7 +322,7 @@ EOT
 } # foreach: $pdltype == 'float', 'double'
 
 # 1d, all types, normal way round, f77 specifier
-foreach my $pdltype (keys %types) {
+foreach my $pdltype (sort keys %types) {
     print STDERR "Type $pdltype\n" if $Verbose;
     my $f77type = $types{$pdltype};
     my $val = $exprf;
@@ -372,7 +372,7 @@ EOT
 } # foreach: $pdltype ( keys %types )
 
 # 1 dimensional, no f77 specifier (format words explicitly ignored)
-foreach my $pdltype (keys %types) {
+foreach my $pdltype (sort keys %types) {
     print STDERR "Type $pdltype\n" if $Verbose;
     my $f77type = $types{$pdltype};
     my $val = $exprf;
@@ -426,7 +426,7 @@ EOT
 }
 
 # 2 dimensional
-foreach my $pdltype (keys %types) {
+foreach my $pdltype (sort keys %types) {
     print STDERR "Type $pdltype\n" if $Verbose;
     my $f77type = $types{$pdltype};
     my $val = $expr2f;

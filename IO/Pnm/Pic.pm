@@ -137,7 +137,7 @@ sub init_converter_table {
 
 
   my $key;
-  for $key (keys %converter) {
+  for $key (sort keys %converter) {
 
     $converter{$key}->{Rok} = inpath($converter{$key}->{'get'})
       if defined($converter{$key}->{'get'});
@@ -155,7 +155,7 @@ sub init_converter_table {
   print "using big grays\n" if $PDL::IO::Pic::debug &&
     $PDL::IO::Pic::biggrays;
 
-  for (keys %converter) {
+  for (sort keys %converter) {
     $converter{$_}->{ushortok} = $PDL::IO::Pic::biggrays ?
       (m/GIF/ ? 0 : 1) : (m/GIF|RAST|IFF/ ? 0 : 1);
   }
@@ -856,7 +856,7 @@ sub piccan {
     return $converter{$format}->{$rw};
   } else {
     my @formats = ();
-    for (keys %converter) {push @formats, $_ if $converter{$_}->{$rw}}
+    for (sort keys %converter) {push @formats, $_ if $converter{$_}->{$rw}}
     return @formats;
   }
 }
