@@ -2087,7 +2087,7 @@ END
 
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],
-      sub { join "\n", map $_->get_initdim, $_[0]->dims_values }),
+      sub { join "\n", sort map $_->get_initdim, $_[0]->dims_values }),
 
    PDL::PP::Rule->new("RedoDimsFuncName", [qw(Name _RedoDims _RedoDimsCode DimsSetters)],
       sub { (scalar grep $_ && /\S/, @_[1..$#_]) ? "pdl_$_[0]_redodims" : 'NULL'}),
