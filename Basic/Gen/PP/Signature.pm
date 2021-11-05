@@ -62,7 +62,7 @@ sub _otherPars_nft {
 	    $ctype =~ s/\s+$//; # get rid of trailing ws
 	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
 	    $type = PDL::PP::CType->new($ctype);
-	    croak "can't set unknown dimension"
+	    croak "can't set unknown dimension '$dim' from '$otherpars'"
 		unless defined($dimobjs->{$dim});
 	    $dimobjs->{$dim}->set_from($type);
 	} elsif(/^\s*\(\s*void\s*\)/) {
