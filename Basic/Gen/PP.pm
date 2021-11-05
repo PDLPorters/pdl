@@ -2089,21 +2089,16 @@ END
 # but in many cases (e.g. slice) a benefit can be obtained
 # by parsing the string in that function.
 
-# If the user wishes to specify their own code and compiled representation,
-# The next two definitions allow this.
+# If the user wishes to specify their own MakeComp code and Comp content,
+# The next definitions allow this.
    PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
       sub { PDL::PP::Signature->new('', @_, \&OtherPars_nft) }),
+   PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
+   PDL::PP::Rule->new("MakeComp", "CompObj", sub { $_[0]->getcopy }), # provide default
    PDL::PP::Rule->new("CompiledRepr", "CompObj", sub { $_[0]->getcomp }),
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompObj"],
 				"COMP"),
    PDL::PP::Rule->new("CompFreeCode", "CompObj", sub {$_[0]->getfree("COMP")}),
-
-# This is the default
-#
-   PDL::PP::Rule->new("CompiledRepr", "SignatureObj", sub { $_[0]->getcomp }),
-   PDL::PP::Rule->new("MakeComp", "SignatureObj", sub { $_[0]->getcopy }),
-   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS","MakeComp","COMP"),
-   PDL::PP::Rule->new("CompFreeCode", "SignatureObj", sub {$_[0]->getfree("COMP")}),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
       ["CompiledRepr","Name"],
