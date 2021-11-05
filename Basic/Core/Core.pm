@@ -1311,21 +1311,12 @@ sub PDL::_deep_hdr_copy {
   my $val = shift;
 
   if(ref $val eq 'HASH') {
-    my (%a,$key);
-    for $key(keys %$val) {
-      my $value = $val->{$key};
-      $a{$key} = (ref $value) ? PDL::_deep_hdr_copy($value) : $value;
-    }
+    my %a;
+    @a{keys %$val} = map ref($_) ? PDL::_deep_hdr_copy($_) : $_, values %$val;
     return \%a;
   }
 
-  if(ref $val eq 'ARRAY') {
-    my (@a,$z);
-    for $z(@$val) {
-      push(@a,(ref $z) ? PDL::_deep_hdr_copy($z) : $z);
-    }
-    return \@a;
-  }
+  return [map ref($_) ? PDL::_deep_hdr_copy($_) : $_, @$val] if ref $val eq 'ARRAY';
 
   if(ref $val eq 'SCALAR') {
     my $x = $$val;
@@ -1790,8 +1781,6 @@ my %info = (
                                sprintf "%$ivdformat", $_[0]->address }
 		 },
 	   );
-
-my $allowed = join '',keys %info;
 
 # print the dimension information about a pdl in some appropriate form
 sub dimstr {
