@@ -1295,35 +1295,6 @@ sub typemap {
   return ($input);
 }
 
-sub OtherPars_nft {
-    my ($otherpars,$sig) = @_;
-    my $dimobjs = $sig && $sig->dims_obj;
-    my(@names,%types,$type);
-    # support 'int ndim => n;' syntax
-    for (PDL::PP::Signature::nospacesplit(';',$otherpars)) {
-	if (/^\s*([^=]+)\s*=>\s*(\S+)\s*$/) {
-	    my ($ctype,$dim) = ($1,$2);
-	    $ctype =~ s/\s+$//; # get rid of trailing ws
-	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
-	    $type = PDL::PP::CType->new($ctype);
-	    croak "can't set unknown dimension"
-		unless defined($dimobjs->{$dim});
-	    $dimobjs->{$dim}->set_from($type);
-	} elsif(/^\s*\(\s*void\s*\)/) {
-	    # suppressing unused param warning - skip
-	    next;
-	} else {
-	    $type = PDL::PP::CType->new($_);
-	}
-	my $name = $type->protoname;
-	croak "Invalid OtherPars name: $name"
-	  if $PDL::PP::PdlParObj::INVALID_PAR{$name};
-	push @names,$name;
-	$types{$name} = $type;
-    }
-    return (\@names,\%types);
-}
-
 sub wrap_vfn {
   my (
     $code,$rout,$func_header,
@@ -1790,7 +1761,7 @@ EOD
 # fixed nos of real, unthreaded-over dims.
 # Also "Other pars", the parameters which are usually not pdls.
    PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag","OtherPars"],
-      sub { PDL::PP::Signature->new(@_, \&OtherPars_nft) }),
+      sub { PDL::PP::Signature->new(@_) }),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
@@ -2092,7 +2063,7 @@ END
 # If the user wishes to specify their own MakeComp code and Comp content,
 # The next definitions allow this.
    PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
-      sub { PDL::PP::Signature->new('', @_, \&OtherPars_nft) }),
+      sub { PDL::PP::Signature->new('', @_) }),
    PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
    PDL::PP::Rule->new("MakeComp", "CompObj", sub { $_[0]->getcopy }), # provide default
    PDL::PP::Rule->new("CompiledRepr", "CompObj", sub { $_[0]->getcomp }),
@@ -2134,7 +2105,7 @@ END
    PDL::PP::Rule::Returns::EmptyString->new("Priv"),
 
    PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
-      sub { PDL::PP::Signature->new('', @_, \&OtherPars_nft) }),
+      sub { PDL::PP::Signature->new('', @_) }),
    PDL::PP::Rule->new("NTPrivFreeCode", "PrivObj", sub {$_[0]->getfree("PRIV")}),
 
    PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),

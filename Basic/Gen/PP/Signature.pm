@@ -23,7 +23,7 @@ Internal module to handle signatures
 sub nospacesplit {grep /\S/, split $_[0],$_[1]}
 
 sub new {
-  my ($type,$str,$bvalflag,$otherpars,$otherpars_func) = @_;
+  my ($type,$str,$bvalflag,$otherpars) = @_;
   $bvalflag ||= 0;
   my $this = bless {}, $type;
   my @objects = map PDL::PP::PdlParObj->new($_,$bvalflag, $this), nospacesplit ';',$str;
@@ -47,8 +47,37 @@ sub new {
   my $i=0; my %ind2index = map +($_=>$i++), @{$this->{IndNamesSorted}};
   $this->{Ind2Index} = \%ind2index;
   $ind2obj{$_}->set_index($ind2index{$_}) for keys %ind2index;
-  @$this{qw(OtherNames OtherObjs)} = $otherpars_func->($otherpars,$this) if $otherpars_func;
+  @$this{qw(OtherNames OtherObjs)} = $this->_otherPars_nft($otherpars||'');
   $this;
+}
+
+sub _otherPars_nft {
+    my ($sig,$otherpars) = @_;
+    my $dimobjs = $sig && $sig->dims_obj;
+    my(@names,%types,$type);
+    # support 'int ndim => n;' syntax
+    for (nospacesplit(';',$otherpars)) {
+	if (/^\s*([^=]+)\s*=>\s*(\S+)\s*$/) {
+	    my ($ctype,$dim) = ($1,$2);
+	    $ctype =~ s/\s+$//; # get rid of trailing ws
+	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
+	    $type = PDL::PP::CType->new($ctype);
+	    croak "can't set unknown dimension"
+		unless defined($dimobjs->{$dim});
+	    $dimobjs->{$dim}->set_from($type);
+	} elsif(/^\s*\(\s*void\s*\)/) {
+	    # suppressing unused param warning - skip
+	    next;
+	} else {
+	    $type = PDL::PP::CType->new($_);
+	}
+	my $name = $type->protoname;
+	croak "Invalid OtherPars name: $name"
+	  if $PDL::PP::PdlParObj::INVALID_PAR{$name};
+	push @names,$name;
+	$types{$name} = $type;
+    }
+    return (\@names,\%types);
 }
 
 *with = \&new;
