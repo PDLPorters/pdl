@@ -2055,11 +2055,10 @@ END
    PDL::PP::Rule->new(PDL::PP::Code::make_args("BackCode"),
 		      sub { PDL::PP::Code->new(@_, undef, 1); }),
 
-# Compiled representations i.e. what the xsub function leaves
+# Compiled representations i.e. what the RunFunc function leaves
 # in the params structure. By default, copies of the parameters
 # but in many cases (e.g. slice) a benefit can be obtained
 # by parsing the string in that function.
-
 # If the user wishes to specify their own MakeComp code and Comp content,
 # The next definitions allow this.
    PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
