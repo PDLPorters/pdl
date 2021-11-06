@@ -1261,8 +1261,9 @@ dimension parameter as C<-1>:
   setdim($x,-1);
 
 The default values available via C<$COMP()> are the C<OtherPars> as
-noted above, which get copied in. However, this can be overridden by
-supplying C<Comp> and C<MakeComp> keys:
+noted above, which get copied in. However, this can be added to (previous
+to 2.058, replaced) by supplying C<Comp> and/or C<MakeComp> keys (the
+defaults will happen first):
 
   pp_def(
     'diagonal',

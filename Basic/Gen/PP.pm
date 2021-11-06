@@ -2065,11 +2065,12 @@ END
    PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
       sub { PDL::PP::Signature->new('', @_) }),
    PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
-   PDL::PP::Rule->new("MakeComp", "CompObj", sub { $_[0]->getcopy }), # provide default
+   PDL::PP::Rule->new("MakeCompOther", "SignatureObj", sub { $_[0]->getcopy }),
+   PDL::PP::Rule->new("MakeCompTotal", [qw(MakeCompOther _MakeComp)], sub { join "\n", grep $_, @_ }),
    PDL::PP::Rule->new("CompStructOther", "SignatureObj", sub {$_[0]->getcomp}),
    PDL::PP::Rule->new("CompStructComp", [qw(CompObj Comp)], sub {$_[0]->getcomp}),
    PDL::PP::Rule->new("CompStruct", [qw(CompStructOther _CompStructComp)], sub { join "\n", grep $_, @_ }),
-   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompObj"],
+   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeCompTotal","CompObj"],
 				"COMP"),
    PDL::PP::Rule->new("CompFreeCodeOther", "SignatureObj", sub {$_[0]->getfree("COMP")}),
    PDL::PP::Rule->new("CompFreeCodeComp", [qw(CompObj Comp)], sub {$_[0]->getfree("COMP")}),
