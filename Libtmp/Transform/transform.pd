@@ -610,8 +610,8 @@ static inline PDL_Double PDL_xform_aux ( pdl *map, PDL_Indx *coords, PDL_Double 
 pp_add_exported('map');
 pp_def('map',
         Pars=>'k0()',  # Dummy to set type (should match the type of "in").
-        OtherPars=>'SV *in; SV *out; SV *map; SV *boundary; SV *method;
-                    SV *big; SV *blur; SV *sv_min; SV *flux; SV *bv',
+        OtherPars=>'pdl *in; pdl *out; pdl *map; SV *boundary; SV *method;
+                    long big; double blur; double sv_min; char flux; SV *bv',
         Code => <<'+==EOD_map_c_code==',
 
 /*
@@ -627,9 +627,9 @@ pp_def('map',
  *
  */
 
- pdl *in  = PDL->SvPDLV($COMP(in));
- pdl *out = PDL->SvPDLV($COMP(out));
- pdl *map = PDL->SvPDLV($COMP(map));
+ pdl *in  = $COMP(in);
+ pdl *out = $COMP(out);
+ pdl *map = $COMP(map);
 
  PDL_Indx ndims = map->ndims -1; /* Number of dimensions we're working in */
  PDL_Double tmp[3*ndims*ndims+ndims]; /* Workspace for prefrobnication */
@@ -713,19 +713,19 @@ pp_def('map',
 /***
  * Parse out the 'method', 'big', 'blur', and 'sv_min' arguments
  */
- big    = labs((PDL_Long)   (SvNV($COMP(big))));
+ big    = labs($COMP(big));
  if(big <= 0)
    barf("%s","map: 'big' parameter must be >0");
 
- blur   = fabs((PDL_Double) (SvNV($COMP(blur))));
+ blur   = fabs($COMP(blur));
  if(blur < 0)
    barf("%s","map: 'blur' parameter must be >= 0");
 
- sv_min = fabs((PDL_Double) (SvNV($COMP(sv_min))));
+ sv_min = fabs($COMP(sv_min));
  if(sv_min < 0)
    barf("%s","map: 'sv_min' parameter must be >= 0");
 
- flux   = (SvNV($COMP(flux)) != 0);
+ flux   = $COMP(flux) != 0;
 
  {
   char *mstr;
