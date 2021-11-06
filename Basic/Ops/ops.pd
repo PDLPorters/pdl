@@ -227,9 +227,6 @@ EOH
     if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
     else       { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"; }
 
-    my $complex_bit = join "\n",
-      map 'types('.$_->ppsym.') %{$c() = c'.$func.$_->floatsuffix.'($a(),$b());%}',
-      @Ctypes;
     my $codestr;
     if ($extra{unsigned}){
 #a little dance to avoid the MOD macro warnings for byte & ushort datatypes
@@ -245,7 +242,9 @@ ENDCODE
         @Rtypes;
     }
     delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
-    $codestr .= $complex_bit if $got_complex;
+    $codestr .= !$got_complex ? '' : join "\n",
+      map 'types('.$_->ppsym.') %{$c() = c'.$func.$_->floatsuffix.'($a(),$b());%}',
+      @Ctypes;
 
     my $badcodestr;
     $badcodestr = 'if ( $ISBAD(a()) || $ISBAD(b()) )
@@ -310,13 +309,12 @@ sub ufunc {
 	#      See also `biop()`.
 	delete $extra{Exception};
     }
-    my $complex_bit = join "\n",
-      map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}',
-      @Ctypes;
     my $codestr = join "\n",
         map 'types('.$_->ppsym.') %{$b() = ($GENERIC(b))'.$func.'('.($func=~/[a-z]/?'(double)':'').'$a());%}',
         @Rtypes;
-    $codestr .= $complex_bit if $got_complex;
+    $codestr .= !$got_complex ? '' : join "\n",
+      map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}',
+      @Ctypes;
 
     pp_addpm(make_overload($funcov, $name, 0, 1)) if $overload;
     # do not have to worry about propagation of the badflag when
