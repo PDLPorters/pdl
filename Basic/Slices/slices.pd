@@ -1874,8 +1874,8 @@ EOD
         P2Child => 1,
         TwoWay => 1,
         AffinePriv => 1,
-        OtherPars => "PDL_Indx id_in; SV *list",
-        Comp => 'PDL_Indx id; PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];
+        OtherPars => "PDL_Indx id; SV *list",
+        Comp => 'PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];
                         PDL_Indx nrealwhichdims; ',
         MakeComp => '
                 PDL_Indx i,j;
@@ -1895,7 +1895,6 @@ EOD
                                 $COMP(nrealwhichdims) ++;
                         }
                 }
-                $COMP(id) = id_in;
                 ',
         RedoDims => '
                 PDL_Indx nthc,i,j,flag;
