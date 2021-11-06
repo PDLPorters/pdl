@@ -122,7 +122,7 @@ fft_free()
 ');
 pp_def('_fft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
-	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
+	NoPthread => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => $F,
 	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), -1, 1.);',
 	Doc=>undef
@@ -130,7 +130,7 @@ pp_def('_fft',
 
 pp_def('_ifft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
-	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
+	NoPthread => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => $F,
 	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
 	Doc=>undef
@@ -405,73 +405,6 @@ sub PDL::ifftnd {
 }
 
 EOD
-
-# This version uses the fft routines' internal row/column swapping.
-# Doing this instead through PDL seems quicker at the moment.
-
-if (0) {
-pp_def('fftnd',
-	Pars => 'int dims(n); [o,nc]real(m); [o,nc]imag(m);',
-	GenericTypes => $F,
-        PMCode => '
-
-sub PDL::fftnd{
-    barf("Usage: fftnd(real(*), imag(*)") if $#_ != 1;
-    my($r,$i) = @_;
-    my(@dimsr) = $r->dims;
-    my(@dimsi) = $i->dims;
-    my($dimsr) = long \@dimsr;
-    foreach(@dimsr) {
-	barf "Real and imaginary arrays must have same dimensions"
-	  if ($_ != shift @dimsi);
-    }
-    &PDL::_fftnd_int($dimsr, $r->clump(-1), $i->clump(-1));
-}
-
-',
-	Code => ' int *dima, ns=$SIZE(n), j;
-	dima = (int *) malloc(ns*sizeof(int));
-	if (!dima)
-	   barf("fftnd: Out of memory for dimension array");
-	for (j=0;j<ns;j++)
-	  dima[j] = $dims(n=>j);
-	fftn$TFD(f,)(ns, dima, $P(real),$P(imag), 1, 1.);
-	free(dima);
-',
-	Doc=>'N-dimensional FFT [inplace].'
-);
-
-pp_def('ifftnd',
-	Pars => 'int dims(n); [o,nc]real(m); [o,nc]imag(m);',
-	GenericTypes => $F,
-        PMCode => '
-
-sub PDL::ifftnd{
-    barf("Usage: ifftnd(real(*), imag(*)") if $#_ != 1;
-    my($r,$i) = @_;
-    my(@dimsr) = $r->dims;
-    my(@dimsi) = $i->dims;
-    my($dimsr) = long \@dimsi;
-    foreach(@dimsr) {
-	barf "Real and imaginary arrays must have same dimensions"
-	  if ($_ != shift @dimsi);
-    }
-    &PDL::_ifftnd_int($dimsr, $r->clump(-1), $i->clump(-1));
-}
-
-',
-	Code => ' int *dima, ns=$SIZE(n), j;
-	dima = (int *) malloc(ns*sizeof(int));
-	if (!dima)
-	   barf("ifftnd: Out of memory for dimension array");
-	for (j=0;j<ns;j++)
-	  dima[j] = $dims(n=>j);
-	fftn$TFD(f,)(ns, dima, $P(real),$P(imag), -1, -1.);
-	free(dima);
-',
-	Doc=>'N-dimensional inverse FFT [inplace].'
-);
-}
 
 pp_addpm(<<'EOD');
 
