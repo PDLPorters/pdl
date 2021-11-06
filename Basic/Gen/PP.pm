@@ -2069,7 +2069,9 @@ END
    PDL::PP::Rule->new("CompStruct", "CompObj", sub { $_[0]->getcomp }),
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompObj"],
 				"COMP"),
-   PDL::PP::Rule->new("CompFreeCode", "CompObj", sub {$_[0]->getfree("COMP")}),
+   PDL::PP::Rule->new("CompFreeCodeOther", "SignatureObj", sub {$_[0]->getfree("COMP")}),
+   PDL::PP::Rule->new("CompFreeCodeComp", [qw(CompObj Comp)], sub {$_[0]->getfree("COMP")}),
+   PDL::PP::Rule->new("CompFreeCode", [qw(CompFreeCodeOther _CompFreeCodeComp)], sub { join "\n", grep $_, @_ }),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
       ["CompStruct","Name"],
