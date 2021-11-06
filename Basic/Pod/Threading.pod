@@ -22,7 +22,7 @@ and two-dimensional collections of data. Having no good term to describe
 their object, PDL developers coined the term "I<ndarray>" to give a name to
 their data type.
 
-A I<ndarray> consists of a series of numbers organized as an N-dimensional
+An I<ndarray> consists of a series of numbers organized as an N-dimensional
 data set. ndarrays provide efficient storage and fast computation of large
 N-dimensional matrices. They are highly optimized for numerical work.
 
@@ -62,7 +62,7 @@ Let's start with a two-dimensional I<ndarray>:
     [88 89 90 91 92 93 94 95 96 97 98]
   ]
 
-The C<info> method gives you basic information about a I<ndarray>:
+The C<info> method gives you basic information about an I<ndarray>:
 
   pdl> p $x->info
   PDL: Double D [11,9]

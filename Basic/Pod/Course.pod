@@ -280,7 +280,7 @@ Slatec or GSL.
 
 Implements an interface to all the functions that return ndarrays with
 one less dimension (for example, C<sumover>), such that they can be
-called by suppling their name, as a string.
+called by supplying their name, as a string.
 
 =back
 

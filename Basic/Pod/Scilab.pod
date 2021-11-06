@@ -38,7 +38,7 @@ and two-dimensional collections of data. Having no good term to describe
 their object, PDL developers coined the term "I<ndarray>" to give a name to
 their data type.
 
-A I<ndarray> consists of a series of numbers organized as an N-dimensional
+An I<ndarray> consists of a series of numbers organized as an N-dimensional
 data set. ndarrays provide efficient storage and fast computation of large
 N-dimensional matrices. They are highly optimized for numerical work.
 
@@ -481,7 +481,7 @@ speed. Use I<ndarrays> instead. To learn more, see the next section.
 
 =head2 ndarrays vs Perl Arrays
 
-It is important to note the difference between a I<ndarray> and a Perl
+It is important to note the difference between an I<ndarray> and a Perl
 array. Perl has a general-purpose array object that can hold any
 type of element:
 
