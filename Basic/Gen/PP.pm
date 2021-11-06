@@ -1289,7 +1289,7 @@ sub typemap {
   # Look up the conversion from the INPUT typemap. Note that we need to do some
   # massaging of this.
   my $input = $input_expr{$typemap_kind};
-  $input =~ s/^(.*?)=\s*//; # Remove all before =
+  $input =~ s/^(.*?)=\s*//s; # Remove all before =
   $input =~ s/\$(var|\{var\})/$oname/g;
   $input =~ s/\$(arg|\{arg\})/$arg/g;
   $input =~ s/\$(type|\{type\})/$full_type/g;
