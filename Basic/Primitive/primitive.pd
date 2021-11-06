@@ -278,17 +278,15 @@ EOPM
 	atdi = &($a(t=>1, h=>0)) - &($a(t=>0,h=>0));
 	btdi = &($b(t=>1, w=>0)) - &($b(t=>0,w=>0));
 
-
 	// Loop over tiles
 	for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
-	   hlim = ( oh + tsiz > $SIZE(h) )  ?  $SIZE(h)  :  oh + tsiz;
+	   hlim = PDLMIN(oh + tsiz, $SIZE(h));
 
 	   for(   ow=0;   ow < $SIZE(w);   ow += tsiz   ) {
-	      wlim = ( ow + tsiz > $SIZE(w) )  ?  $SIZE(w)  :  ow + tsiz;
+	      wlim = PDLMIN(ow + tsiz, $SIZE(w));
 
 	      for(   ot=0;   ot < $SIZE(t);  ot += tsiz   ) {
-	         tlim = (ot + tsiz > $SIZE(t) )  ?  $SIZE(t)  :  ot + tsiz;
-
+	         tlim = PDLMIN(ot + tsiz, $SIZE(t));
 
 	         for(  ih=oh; ih<hlim; ih++  ) {
 		    for(  iw=ow; iw<wlim; iw++  ) {
@@ -1127,12 +1125,12 @@ clip (threshold) C<$a> by C<$b> (C<$b> is lower bound)
 =cut
 
 for my $opt (
-	     ['hclip','>'],
-	     ['lclip','<']
+	     ['hclip','PDLMIN'],
+	     ['lclip','PDLMAX']
 	     ) {
     my $name = $opt->[0];
     my $op   = $opt->[1];
-    my $code = '$c() = ($a() '.$op.' $b()) ? $b() : $a();';
+    my $code = '$c() = '.$op.'($b(), $a());';
     pp_def(
 	   $name,
 	   HandleBad => 1,
@@ -1189,12 +1187,12 @@ pp_def(
 	HandleBad => 1,
 	Pars => 'a(); l(); h(); [o] c()',
 	Code =>
-	'$c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );',
+	'$c() = PDLMIN($h(), PDLMAX($l(), $a()));',
 	BadCode => <<'EOBC',
 	 if( $ISBAD(a()) || $ISBAD(l()) || $ISBAD(h()) ) {
 	   $SETBAD(c());
          } else {
-           $c() = ( $a() > $h() )   ?   $h()   :  ( $a() < $l()   ?   $l()   :   $a()   );
+           $c() = PDLMIN($h(), PDLMAX($l(), $a()));
          }
 EOBC
        PMCode => <<'EOPM',
@@ -2333,8 +2331,7 @@ for my $func ( [
                    }
                    $idx() = low >= n1 ? n1
                          : up        ? low + 1
-                         : low < 0   ? 0
-                         :           low ;
+                         : PDLMAX(low, 0);
                    ----
            ],
             ref =>
