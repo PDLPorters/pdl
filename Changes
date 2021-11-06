@@ -1,3 +1,5 @@
+- Math operators call *f for float (so could call *l for long double)
+
 2.058 2021-11-06
 - no changes from 2.057_05
 

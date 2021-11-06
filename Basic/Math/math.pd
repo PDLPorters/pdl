@@ -160,15 +160,18 @@ my (@besbifuncs) = qw(jn yn); # "
 # Need igamma, ibeta, and a fall-back implementation of the above
 
 sub code_ufunc {
-    my ($name) = @_;
+    my ($name, $float_different) = @_;
     my $got_complex = PDL::Core::Dev::got_complex_version($name, 1);
     my $complex_bit = !$got_complex ? '' : join "\n",
       map 'types('.$_->ppsym.') %{$b() = c'.$name.$_->floatsuffix.'($a());%}',
       @Ctypes;
-    my $real_bit = join "\n",
+    my $realsame_bit = join "\n",
       map 'types('.$_->ppsym.') %{$b() = '.$name.'($a());%}',
-      @Rtypes;
-    $complex_bit . $real_bit;
+      $float_different ? (grep $_->integer, @Rtypes) : @Rtypes;
+    my $realdiff_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$b() = '.$name.$_->floatsuffix.'($a());%}',
+      $float_different ? (grep !$_->integer, @Rtypes) : ();
+    $complex_bit . $realsame_bit . $realdiff_bit;
 }
 sub badcode_ufunc {
     'if ( $ISBAD(a()) ) { $SETBAD(b()); } else {' . "\n" .
@@ -177,20 +180,23 @@ sub badcode_ufunc {
 }
 
 sub code_bifunc {
-    my $name = $_[0]; my $x = $_[1] || 'a'; my $y = $_[2] || 'b';
-    my $c = $_[3] || 'c';
+    my ($name, $float_different) = @_[0,1];
+    my $x = $_[2] || 'a'; my $y = $_[3] || 'b'; my $c = $_[4] || 'c';
     my $got_complex = PDL::Core::Dev::got_complex_version($name, 2);
     my $complex_bit = !$got_complex ? '' : join "\n",
       map 'types('.$_->ppsym.') %{$'.$c.'() = c'.$name.$_->floatsuffix.'($'.$x.'(),$'.$y.'());%}',
       @Ctypes;
-    my $real_bit = join "\n",
+    my $realsame_bit = join "\n",
       map 'types('.$_->ppsym.') %{$'.$c.'() = '.$name.'($'.$x.'(),$'.$y.'());%}',
-      @Rtypes;
-    $complex_bit . $real_bit;
+      $float_different ? (grep $_->integer, @Rtypes) : @Rtypes;
+    my $realdiff_bit = join "\n",
+      map 'types('.$_->ppsym.') %{$'.$c.'() = '.$name.$_->floatsuffix.'($'.$x.'(),$'.$y.'());%}',
+      $float_different ? (grep !$_->integer, @Rtypes) : ();
+    $complex_bit . $realsame_bit . $realdiff_bit;
 }
 sub badcode_bifunc {
-    my $name = $_[0]; my $x = $_[1] || 'a'; my $y = $_[2] || 'b';
-    my $c = $_[3] || 'c';
+    my ($name, $float_different) = @_[0,1];
+    my $x = $_[2] || 'a'; my $y = $_[3] || 'b'; my $c = $_[4] || 'c';
     'if ( $ISBAD('.$x.'()) || $ISBAD('.$y.'()) ) { $SETBAD('.$c.'()); } else {' . "\n" .
 	code_bifunc(@_) .
     "}\n";
@@ -210,8 +216,8 @@ foreach my $func (@ufuncs1) {
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
-	   Code => code_ufunc($func),
-	   BadCode => badcode_ufunc($func),
+	   Code => code_ufunc($func, 1),
+	   BadCode => badcode_ufunc($func, 1),
 	   );
 }
 # real types
@@ -222,8 +228,8 @@ foreach my $func (@ufuncs1g) {
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
-	   Code => code_ufunc($func),
-	   BadCode => badcode_ufunc($func),
+	   Code => code_ufunc($func, 1),
+	   BadCode => badcode_ufunc($func, 1),
 	   );
 }
 
@@ -236,8 +242,8 @@ foreach my $func (@bifuncs1) {
 	   Inplace => [ 'a' ],
 	   GenericTypes => [($got_complex ? @$C : ()), @$R],
 	   Doc => inplace_doc( $func ),
-	   Code => code_bifunc($func),
-	   BadCode => badcode_bifunc($func),
+	   Code => code_bifunc($func, 1),
+	   BadCode => badcode_bifunc($func, 1),
 	   );
 }
 
@@ -250,8 +256,8 @@ foreach my $func (@ufuncs2) {
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
-	   Code => code_ufunc($func),
-	   BadCode => badcode_ufunc($func),
+	   Code => code_ufunc($func, 1),
+	   BadCode => badcode_ufunc($func, 1),
 	   );
 }
 
@@ -264,8 +270,8 @@ foreach my $func (@besufuncs) {
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
 	   Doc => inplace_doc( $fname ),
-	   Code => code_ufunc($func),
-	   BadCode => badcode_ufunc($func),
+	   Code => code_ufunc($func, 0),
+	   BadCode => badcode_ufunc($func, 0),
 	   );
 }
 
@@ -278,8 +284,8 @@ foreach my $func (@besbifuncs) {
 	   Pars => 'a(); int n(); [o]b();',
 	   Inplace => [ 'a' ],
 	   Doc => inplace_doc( $fname ),
-	   Code => code_bifunc($func,'n','a','b'),
-	   BadCode => badcode_bifunc($func,'n','a','b'),
+	   Code => code_bifunc($func,0,'n','a','b'),
+	   BadCode => badcode_bifunc($func,0,'n','a','b'),
 	   );
 }
 
