@@ -398,7 +398,7 @@ EOD-range
 
 pp_def(
         'rangeb',
-        OtherPars => 'pdl *ind_pdl; SV *size; SV *boundary',
+        OtherPars => 'pdl *ind_pdl; SV *size; SV *boundary_sv',
         Doc => <<'EOD',
 =for ref
 
@@ -739,7 +739,7 @@ switch(ind_pdl->datatype) {
 {
   char *bstr;
   STRLEN blen;
-  bstr = SvPV(boundary,blen);
+  bstr = SvPV(boundary_sv,blen);
 
   if(blen == 0) {
     /* If no boundary is specified then every dim gets forbidden */
@@ -1874,7 +1874,7 @@ EOD
         P2Child => 1,
         TwoWay => 1,
         AffinePriv => 1,
-        OtherPars => "PDL_Indx id; SV *list",
+        OtherPars => "PDL_Indx id_in; SV *list",
         Comp => 'PDL_Indx id; PDL_Indx whichdims_count; PDL_Indx whichdims[$COMP(whichdims_count)];
                         PDL_Indx nrealwhichdims; ',
         MakeComp => '
@@ -1895,7 +1895,7 @@ EOD
                                 $COMP(nrealwhichdims) ++;
                         }
                 }
-                $COMP(id) = id;
+                $COMP(id) = id_in;
                 ',
         RedoDims => '
                 PDL_Indx nthc,i,j,flag;
