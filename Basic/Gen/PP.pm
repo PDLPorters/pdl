@@ -2066,13 +2066,13 @@ END
       sub { PDL::PP::Signature->new('', @_) }),
    PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
    PDL::PP::Rule->new("MakeComp", "CompObj", sub { $_[0]->getcopy }), # provide default
-   PDL::PP::Rule->new("CompiledRepr", "CompObj", sub { $_[0]->getcomp }),
+   PDL::PP::Rule->new("CompStruct", "CompObj", sub { $_[0]->getcomp }),
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeComp","CompObj"],
 				"COMP"),
    PDL::PP::Rule->new("CompFreeCode", "CompObj", sub {$_[0]->getfree("COMP")}),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
-      ["CompiledRepr","Name"],
+      ["CompStruct","Name"],
       sub {
         my($comp,$name) = @_;
         return ('', '') if !$comp;
@@ -2080,6 +2080,8 @@ END
         (PDL::PP::pp_line_numbers(__LINE__-1, qq{typedef struct $ptype {\n$comp} $ptype;}),
         $ptype);
       }),
+
+   PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
 
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
@@ -2107,8 +2109,6 @@ END
    PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
       sub { PDL::PP::Signature->new('', @_) }),
    PDL::PP::Rule->new("NTPrivFreeCode", "PrivObj", sub {$_[0]->getfree("PRIV")}),
-
-   PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
 
    PDL::PP::Rule->new("FreeCodeNS",
       ["StructName","CompFreeCode","NTPrivFreeCode"],
