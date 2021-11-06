@@ -62,8 +62,7 @@ and Craig DeForest (deforest@boulder.swri.edu).
 EOPM
 
 pp_addhdr('
-#include <math.h>
-#include <complex.h>
+#include <tgmath.h>
 
 /* MOD requires hackage to map properly into the positive-definite numbers. */
 /* Resurrect the old MOD operator as the unsigned BU_MOD to get around this. --DAL 27-Jun-2008 */
@@ -232,22 +231,15 @@ EOH
 #a little dance to avoid the MOD macro warnings for byte & ushort datatypes
       $codestr = << "ENDCODE";
   types(BU) %{ \$c() = (\$GENERIC(c))BU_$func(\$a(),\$b()); %}
-  types(SLNFD) %{ \$c() = (\$GENERIC(c))$func(\$a(),\$b()); %}
+  types(SLNFDGC) %{ \$c() = (\$GENERIC(c))$func(\$a(),\$b()); %}
   types(Q) %{ \$c() = (\$GENERIC(c))Q_$func(\$a(),\$b()); %}
 ENDCODE
 #end dance
     } else {
-      $codestr = join "\n",
-        map 'types('.$_->ppsym.') %{$c() = ($GENERIC(c))'.$func.'((double)$a(),(double)$b());%}',
-        @Rtypes;
+      $codestr = '$c() = ($GENERIC(c))'.$func.'($a(),$b());';
     }
     delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
-    $codestr .= !$got_complex ? '' : join "\n",
-      map 'types('.$_->ppsym.') %{$c() = c'.$func.$_->floatsuffix.'($a(),$b());%}',
-      @Ctypes;
-
-    my $badcodestr;
-    $badcodestr = 'if ( $ISBAD(a()) || $ISBAD(b()) )
+    my $badcodestr = 'if ( $ISBAD(a()) || $ISBAD(b()) )
 	       $SETBAD(c());
 	       else {' . $codestr . " } \n";
 
@@ -309,13 +301,7 @@ sub ufunc {
 	#      See also `biop()`.
 	delete $extra{Exception};
     }
-    my $codestr = join "\n",
-        map 'types('.$_->ppsym.') %{$b() = ($GENERIC(b))'.$func.'('.($func=~/[a-z]/?'(double)':'').'$a());%}',
-        @Rtypes;
-    $codestr .= !$got_complex ? '' : join "\n",
-      map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}',
-      @Ctypes;
-
+    my $codestr = '$b() = ($GENERIC(b))'.$func.'($a());';
     pp_addpm(make_overload($funcov, $name, 0, 1)) if $overload;
     # do not have to worry about propagation of the badflag when
     # inplace since only input ndarray is a, hence its badflag
@@ -510,10 +496,7 @@ See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for detai
 sub cfunc {
     my ($name, $func, $make_real, $doc, %extra) = @_;
     my $badcode = '$ISBAD(complexv())';
-    my $codestr = "\$b() = $func\$T" .
-      join('', map $_->ppsym, @Ctypes) .
-      "(". join(',', map $_->floatsuffix, @Ctypes) .
-      ")(\$complexv());";
+    my $codestr = "\$b() = $func(\$complexv());";
     pp_def($name,
 	   GenericTypes=>$C,
 	   Pars => 'complexv(); '.($make_real ? 'real' : '').' [o]b()',

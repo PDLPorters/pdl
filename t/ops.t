@@ -93,7 +93,8 @@ ok($pa->at(0) == 16, 'sqrt orig value ok');
 $pa = cdouble pdl 16,64,9,-1;
 if ($can_complex_power) {
   $pb = sqrt($pa);
-  ok(approx(i()**2, -1),'i squared = -1');
+  my $got = i()**2;
+  ok(approx($got, -1),'i squared = -1') or diag "got=$got";
   ok(all( approx($pb,(cdouble 4,8,3,i()))),'sqrt of pdl(16,64,9,-1)');
 }
 is $pa->at(0), '16', 'sqrt orig value ok';

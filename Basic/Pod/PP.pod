@@ -1416,6 +1416,10 @@ minimise effort needed to make your code work with new types:
       @Rtypes;
     ($got_complex ? $complex_bit : '') . $real_bit;
 
+(although you should first check whether F<tgmath.h> already has a
+type-generic version of the function you want to call, in which case
+the above becomes unnecessary).
+
 =head2 The RedoDimsCode Section
 
 The C<RedoDimsCode> key is an optional key that is used to
