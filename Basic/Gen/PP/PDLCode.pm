@@ -586,16 +586,17 @@ use Carp;
 use PDL::Types ':All';
 our @ISA = "PDL::PP::Block";
 our @CARP_NOT;
-my $types = join '', ppdefs_all; # BSUL....
+my %types = map +($_=>1), ppdefs_all; # BSUL....
 
 sub new {
     my($type,$ts,$parent) = @_;
-    $ts =~ /^[$types]+$/ or confess "Invalid type access with '$ts', not found in [$types]!";
-    bless [$ts],$type; }
+    my @bad = grep !$types{$_}, my @ts = split '', $ts;
+    confess "Invalid type access (@bad) in '$ts'!" if @bad;
+    bless [\@ts],$type; }
 sub myoffs { return 1; }
 sub myprelude {
     my($this,$parent,$context) = @_;
-    return "\n#if ". (join '||',map "(THISIS_$_(1)+0)", split '',$this->[0])."\n";
+    return "\n#if ". (join '||',map "(THISIS_$_(1)+0)", @{$this->[0]})."\n";
 }
 
 sub mypostlude {my($this,$parent,$context) = @_;
