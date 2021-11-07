@@ -276,9 +276,7 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 }
 
 sub get_xsdatapdecl { 
-    my($this,$genlooptype) = @_;
-    my $ptype = $this->adjusted_type($genlooptype);
-    my $ctype = $ptype->ctype;
+    my($this,$ctype) = @_;
     my $pdl = $this->get_nname;
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};

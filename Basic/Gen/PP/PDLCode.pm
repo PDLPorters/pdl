@@ -509,8 +509,8 @@ sub myitem {
     @$parent{qw(ftypes_type ftypes_vars)} = ($item, $this->[2]) if defined $this->[1];
     join '',
 	PDL::PP::pp_line_numbers(__LINE__-1, "\t} break; case @{[$item->sym]}: {\n"),
-	map $parent->{ParObjs}{$_}->get_xsdatapdecl($item),
-	    sort keys %{$this->[2]};
+	map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype),
+	    map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
 }
 
 sub mypostlude {
