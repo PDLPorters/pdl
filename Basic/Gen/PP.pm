@@ -1300,7 +1300,6 @@ sub wrap_vfn {
   my (
     $code,$rout,$func_header,
     $all_func_header,$sname,$pname,$ptype,
-    $name,
   ) = @_;
   my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
   PDL::PP::pp_line_numbers(__LINE__, <<EOF);
