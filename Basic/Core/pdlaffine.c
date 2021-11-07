@@ -31,8 +31,8 @@ pp_def(
 */
 
 #define COPYDATA(ctype, from_id, to_id) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype *, (ctype *), ctype, (trans->vtable->per_pdl_flags[to_id]), to_pdl, (trans->pdls[to_id])) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype *, (ctype *), ctype, (trans->vtable->per_pdl_flags[from_id]), from_pdl, (trans->pdls[from_id])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[to_id]), to_pdl, (trans->pdls[to_id])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[from_id]), from_pdl, (trans->pdls[from_id])) \
   PDL_Indx i, poffs=trans->offs, nd; \
   for (i=0; i<trans->pdls[to_id]->nvals ; i++) { \
     to_pdl_physdatap[i] = (trans->bvalflag && from_pdl_physdatap[poffs] == from_pdl_badval) \
@@ -229,10 +229,10 @@ void pdl_converttypei_redodims(pdl_trans *trans) {
 void pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_params_converttypei *params = trans->params;
 #define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_out *, (ctype_out *), ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
   PDL_GENERICSWITCH2(trans->__datatype, X_INNER);
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_in *, (ctype_in *), ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(PARENT, CHILD)
   PDL_GENERICSWITCH(params->totype, X_OUTER);
 #undef X_INNER
@@ -241,7 +241,7 @@ void pdl_converttypei_readdata(pdl_trans *trans) {
 void pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_params_converttypei *params = trans->params;
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_in *, (ctype_in *), ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(CHILD, PARENT)
   PDL_GENERICSWITCH(params->totype, X_OUTER);
 #undef X_INNER

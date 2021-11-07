@@ -290,14 +290,12 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 sub get_xsdatapdecl { 
     my($this,$genlooptype,$asgnonly) = @_;
     my $ptype = $this->adjusted_type($genlooptype);
-    my $type = $ptype->ctype;
+    my $ctype = $ptype->ctype;
     my $pdl = $this->get_nname;
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};
-    my $declini = ($asgnonly ? "" : "$type *");
-    my $cast = ($type ? "($type *)" : "");
     my $macro = "PDL_DECLARE_PARAMETER".(($this->{BadFlag} && $ptype) ? "_BADVAL" : "");
-    PDL::PP::pp_line_numbers(__LINE__-1, "$macro($declini, $cast, $type, $flag, $name, $pdl)");
+    PDL::PP::pp_line_numbers(__LINE__-1, "$macro($ctype, $flag, $name, $pdl)");
 }
 
 1;
