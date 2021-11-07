@@ -294,7 +294,7 @@ sub get_xsdatapdecl {
     my $pdl = $this->get_nname;
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};
-    my $macro = "PDL_DECLARE_PARAMETER".(($this->{BadFlag} && $ptype) ? "_BADVAL" : "");
+    my $macro = "PDL_DECLARE_PARAMETER".($this->{BadFlag} ? "_BADVAL" : "");
     PDL::PP::pp_line_numbers(__LINE__-1, "$macro($ctype, $flag, $name, $pdl)");
 }
 
