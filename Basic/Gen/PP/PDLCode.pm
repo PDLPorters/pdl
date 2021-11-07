@@ -460,7 +460,6 @@ sub myprelude {
 	if defined $this->[1] and $parent->{ftypes_type};
     <<WARNING_EATER;
 PDL_COMMENT("Start generic loop")
-@{[$parent->thisisloop($this->[1])]}
 	switch($this->[3]) { case -42: PDL_COMMENT("Warning eater") {(void)1;
 WARNING_EATER
 }
