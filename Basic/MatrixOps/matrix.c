@@ -112,17 +112,17 @@ int *IntVectorAlloc(const int n) {
  *
  */
 
-SSL_Complex **SSL_ComplexMatrixAlloc(const int n) {
+complex double **SSL_ComplexMatrixAlloc(const int n) {
 
   int       i;
-  SSL_Complex **temp;
+  complex double **temp;
 
-  temp=(SSL_Complex **)calloc(n, sizeof(SSL_Complex *));
+  temp=(complex double **)calloc(n, sizeof(complex double *));
   if (temp==NULL)
     SSLerror("No memory available in routine SSL_ComplexMatrixAlloc");
   else {
     for(i=0; i<n; i++) {
-      temp[i]=(SSL_Complex *)calloc(n, sizeof(SSL_Complex));
+      temp[i]=(complex double *)calloc(n, sizeof(complex double));
       if (temp[i]==NULL)
 	SSLerror("No memory available in routine SSL_ComplexMatrixAlloc");
     } /* for i=1..n */
@@ -137,11 +137,11 @@ SSL_Complex **SSL_ComplexMatrixAlloc(const int n) {
  *
  */
        
-SSL_Complex *SSL_ComplexVectorAlloc(const int n) {
+complex double *SSL_ComplexVectorAlloc(const int n) {
 
-  SSL_Complex *temp;
+  complex double *temp;
 
-  temp=(SSL_Complex *)calloc(n, sizeof(SSL_Complex));
+  temp=(complex double *)calloc(n, sizeof(complex double));
   if (temp==NULL) 
     SSLerror("No memory available in routine SSL_ComplexVectorAlloc");
   return temp;
@@ -201,7 +201,7 @@ void MatrixFree(const int n, double **matrix) {
   free((void *)matrix);
 } /* MatrixFree */
 
-void SSL_ComplexMatrixFree(const int n, SSL_Complex **matrix) {
+void SSL_ComplexMatrixFree(const int n, complex double **matrix) {
 
   int i;
 
@@ -220,7 +220,7 @@ void IntVectorFree(const int n, int *vector) {
   free((void *)vector);
 } /* IntVectorFree */
 
-void SSL_ComplexVectorFree(const int n, SSL_Complex *vector) {
+void SSL_ComplexVectorFree(const int n, complex double *vector) {
 
   free((void *)vector);
 } /* SSL_ComplexVectorFree */

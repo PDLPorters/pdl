@@ -22,6 +22,6 @@
 #include <stdio.h>
 #include "complex.h"
 
-extern void Eigen(int, int, double **, int, double, int, SSL_Complex *, SSL_Complex **);
+extern void Eigen(int, int, double **, int, double, int, complex double *, complex double **);
 
 #endif /* SSL_EIGEN_SSL */

@@ -27,7 +27,7 @@
  *
  */
 
-#include "complex.h"
+#include <complex.h>
 #include "matrix.h"
 #include <math.h>
 #include <stdio.h>
@@ -92,18 +92,18 @@ void NormalizingMatrix(int n, double **A, int fixedref, int *ref,
 		       double **V, double eps) {
 
   int      j, col, block;
-  SSL_Complex  c1, c2, c3;
+  complex double  c1, c2, c3;
   double   cd1, cd2, sqrnorm, norm, normi, max;
 
   col=1;
   do {
     if (fixedref==0) {
       *ref=1;
-      SSL_ComplexAssign(V[*ref-1][col-1], V[*ref-1][col], &c1);
-      max=SSL_ComplexNorm(c1);
+      c1 = V[*ref-1][col-1] + I * V[*ref-1][col];
+      max=cabs(c1);
       for(j=2; j<=n; j++) {
-	SSL_ComplexAssign(V[j-1][col-1], V[j-1][col], &c2);
-	sqrnorm=SSL_ComplexNorm(c2);
+	c2 = V[j-1][col-1] + I * V[j-1][col];
+	sqrnorm=cabs(c2);
 	if (sqrnorm>max) {
 	  *ref=j;
 	  max=sqrnorm;
@@ -112,12 +112,12 @@ void NormalizingMatrix(int n, double **A, int fixedref, int *ref,
     } /* if fixedref */
     BlockCheck(A, n, col, &block, eps);
     if (block==1) {
-      SSL_ComplexAssign(V[*ref-1][col-1], V[*ref-1][col], &c1);
+      c1 = V[*ref-1][col-1] + I * V[*ref-1][col];
       for(j=1; j<=n; j++) {
-	SSL_ComplexAssign(V[j-1][col-1], V[j-1][col], &c2);
-	SSL_ComplexDiv(c2, c1, &c3);
-	V[j-1][col-1]=c3.re;
-	V[j-1][col]=c3.im;
+	c2 = V[j-1][col-1] + I * V[j-1][col];
+	c3 = c2 / c1;
+	V[j-1][col-1]=creal(c3);
+	V[j-1][col]=cimag(c3);
       } /* for j */
       col+=2;
     } /* if */
@@ -473,7 +473,7 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
   int     i, j, k, l, m, na, its, en, dummy;
   double  p, q, r, s, t, w, x, y, z, ra, sa, vr, vi, norm;
   int     notlast;
-  SSL_Complex c1, c2, c3;
+  complex double c1, c2, c3;
 
   *fail=0;
   for(i=1; i<=(low-1); i++) {
@@ -741,11 +741,11 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
 	  h[na-1][en-1]=-q/h[en-1][na-1];
 	} /* if */ 
 	else {
-	  SSL_ComplexAssign(-h[na-1][en-1], 0.0, &c1);
-	  SSL_ComplexAssign(h[na-1][na-1]-p, q, &c2);
-	  SSL_ComplexDiv(c1, c2, &c3);
-	  h[na-1][na-1]=c3.re;
-	  h[na-1][en-1]=c3.im;
+	  c1 = -h[na-1][en-1];
+	  c2 = h[na-1][na-1]-p + I * q;
+	  c3 = c1 / c2;
+	  h[na-1][na-1]=creal(c3);
+	  h[na-1][en-1]=cimag(c3);
 	} /* else */
 	h[en-1][na-1]=1.0;
 	h[en-1][en-1]=0.0;
@@ -765,11 +765,11 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
 	  else {
 	    m=i;
 	    if (wi[i-1]==0.0) {
-	      SSL_ComplexAssign(-ra, -sa, &c1);
-	      SSL_ComplexAssign(w, q, &c2);
-	      SSL_ComplexDiv(c1, c2, &c3);
-	      h[i-1][na-1]=c3.re;
-	      h[i-1][en-1]=c3.im;
+	      c1 = -ra + I * -sa;
+	      c2 = w + I * q;
+	      c3 = c1 / c2;
+	      h[i-1][na-1]=creal(c3);
+	      h[i-1][en-1]=cimag(c3);
 	    } /* if */
 	    else {
 	      x=h[i-1][i];
@@ -778,22 +778,21 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
 	      vi=(wr[i-1]-p)*2.0*q;
 	      if ((vr==0.0) && (vi==0.0)) 
 		vr=macheps*norm*(fabs(w)+fabs(q)+fabs(x)+fabs(y)+fabs(z));
-	      SSL_ComplexAssign(x*r-z*ra+q*sa, x*s-z*sa-q*ra, &c1);
-	      SSL_ComplexAssign(vr, vi, &c2);
-	      SSL_ComplexDiv(c1, c2, &c3);
-	      h[i-1][na-1]=c3.re;
-	      h[i-1][en-1]=c3.im;
+	      c1 = x*r-z*ra+q*sa + I * x*s-z*sa-q*ra;
+	      c2 = vr + I * vi;
+	      c3 = c1 / c2;
+	      h[i-1][na-1]=creal(c3);
+	      h[i-1][en-1]=cimag(c3);
 	      if (fabs(x)>(fabs(z)+fabs(q))) {
 		h[i][na-1]=(-ra-w*h[i-1][na-1]+q*h[i-1][en-1])/x;
 		h[i][en-1]=(-sa-w*h[i-1][en-1]-q*h[i-1][na-1])/x;
 	      } /* if */
 	      else {
-		SSL_ComplexAssign(-r-y*h[i-1][na-1], -s-y*h[i-1][en-1],
-			      &c1);
-		SSL_ComplexAssign(z, q, &c2);
-		SSL_ComplexDiv(c1, c2, &c3);
-		h[i][na-1]=c3.re;
-		h[i][en-1]=c3.im;
+		c1 = -r-y*h[i-1][na-1] + I * -s-y*h[i-1][en-1];
+		c2 = z + I * q;
+		c3 = c1 / c2;
+		h[i][na-1]=creal(c3);
+		h[i][en-1]=cimag(c3);
 	      } /* else */
 	    } /* else */
 	  } /* else */
@@ -840,7 +839,7 @@ void hqr2(int n, int low, int upp, int maxits, double macheps,
 } /* hqr2 */
 	  
 void Eigen(int n, int ref, double **AJAC, int maxit, double eps, 
-	   int fixedref, SSL_Complex *values, SSL_Complex **vectors) {
+	   int fixedref, complex double *values, complex double **vectors) {
 
   double  *wr, *wi, *bald, **T, **A;
   int     i, j, ballow, balhi, max, block;
@@ -900,11 +899,11 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
   do {
     BlockCheck(A, n, i, &block, eps);
     if (block==1) {
-      SSL_ComplexAssign(A[i-1][i-1], A[i-1][i], &values[i-1]);
-      SSL_ComplexAssign(A[i][i], A[i][i-1], &values[i]);
+      values[i-1] = A[i-1][i-1] + I * A[i-1][i];
+      values[i] = A[i][i] + I * A[i][i-1];
       i+=2;
     } else {
-      SSL_ComplexAssign(A[i-1][i-1], 0.0, &values[i-1]);
+      values[i-1] = A[i-1][i-1] + I * 0.0;
       i++;
     } /* if else */
   } while (i!=(n+1));
@@ -913,13 +912,13 @@ void Eigen(int n, int ref, double **AJAC, int maxit, double eps,
     BlockCheck(A, n, i, &block, eps);
     if (block==1) {
       for(j=1; j<=n; j++)
-	SSL_ComplexAssign(T[j-1][i-1], T[j-1][i], &vectors[i-1][j-1]);
+	vectors[i-1][j-1] = T[j-1][i-1] + I * T[j-1][i];
       for(j=1; j<=n; j++)
-	SSL_ComplexAssign(T[j-1][i-1], -T[j-1][i], &vectors[i][j-1]);
+	vectors[i][j-1] = T[j-1][i-1] + I * -T[j-1][i];
       i+=2;
     } else {
       for(j=1; j<=n; j++)
-	SSL_ComplexAssign(T[j-1][i-1], 0.0, &vectors[i-1][j-1]);
+	vectors[i-1][j-1] = T[j-1][i-1];
       i++;
     } /* if else */
   } while (i!=(n+1));

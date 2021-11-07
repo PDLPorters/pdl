@@ -23,20 +23,20 @@
 #define SSL_MATRIX_H_
 
 #include "sslib.h"
-#include "complex.h"
+#include <complex.h>
 
 extern double  **MatrixAlloc(const int);
 extern double   *VectorAlloc(const int);
 extern int      *IntVectorAlloc(const int);
-extern SSL_Complex  *SSL_ComplexVectorAlloc(const int);
-extern SSL_Complex **SSL_ComplexMatrixAlloc(const int);
+extern complex double  *SSL_ComplexVectorAlloc(const int);
+extern complex double **SSL_ComplexMatrixAlloc(const int);
 extern void      MatrixMul(const int, double **, double **, double **);
 extern void      Transpose(const int, double **, double **);
 extern void      MatrixFree(const int, double **);
 extern void      VectorFree(const int, double *);
 extern void      IntVectorFree(const int, int *);
-extern void      SSL_ComplexMatrixFree(const int, SSL_Complex **);
-extern void      SSL_ComplexVectorFree(const int, SSL_Complex *);
+extern void      SSL_ComplexMatrixFree(const int, complex double **);
+extern void      SSL_ComplexVectorFree(const int, complex double *);
 extern void      LUfact(const int, double **, int *);
 extern void      LUsubst(const int, double **, int *, double *);
 extern void      GaussSeidel(const int, double **, double *, double *, double, int); 

@@ -7,7 +7,7 @@ my %hash = pdlpp_stdargs_int(@pack);
 
 $hash{OBJECT} = "" unless exists $hash{OBJECT};
 
-foreach my $file (qw (blas eigens simq svd eigen complex matrix sslib)) {
+foreach my $file (qw (blas eigens simq svd eigen matrix sslib)) {
     $hash{OBJECT} .= " $file\$(OBJ_EXT)";
 }
 

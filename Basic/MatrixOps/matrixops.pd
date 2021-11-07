@@ -525,7 +525,6 @@ pp_def("eigens",
 	Pars => '[phys]a(m); [o,phys]ev(l,n,n); [o,phys]e(l,n)',
 	GenericTypes => ['D'],
 	Code => '
-	    #include "complex.h"
 	    #include "eigen.h"
 
 	    register int sn = $SIZE(n);
@@ -551,8 +550,8 @@ pp_def("eigens",
 	    }
 
 	    Eigen( sn, 0, (double **) foo, 20*sn, 1e-13, 0, 
-		   (SSL_Complex *)( $P(e) ),
-                   (SSL_Complex **) bar
+		   (complex double *)( $P(e) ),
+                   (complex double **) bar
 		 );
             Safefree(foo);
             Safefree(bar);
