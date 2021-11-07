@@ -14,11 +14,7 @@ sub is_sys_func {
 
 # Files for each routine (.c assumed)
 
-my %source = qw( acosh acosh
-	      asinh asinh
-	      atanh atanh
-	      erf ndtr
-	      erfc ndtr
+my %source = qw(
 	      j0 j0
 	      j1 j1
 	      jn jn

@@ -47,9 +47,6 @@ Basic/Lite.pm
 Basic/LiteF.pm
 Basic/Lvalue.pm
 Basic/Makefile.PL
-Basic/Math/acosh.c
-Basic/Math/asinh.c
-Basic/Math/atanh.c
 Basic/Math/const.c
 Basic/Math/cpoly.c
 Basic/Math/cpoly.h

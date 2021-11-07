@@ -7,15 +7,10 @@
 #ifndef __CEXTRACT__
 #if __STDC__
 
-extern double asinh ( double xx );
 extern double j0 ( double x );
 extern double y0 ( double x );
 extern double jn ( int n, double x );
 extern double ndtr ( double a );
-extern double erfc ( double a );
-extern double erf ( double x );
-extern double acosh ( double x );
-extern double atanh ( double x );
 extern double j1 ( double x );
 extern double y1 ( double x );
 extern int mtherr ( char *name, int code );
@@ -25,15 +20,10 @@ extern double yn ( int n, double x );
 
 #else /* __STDC__ */
 
-extern double asinh (/* double xx */);
 extern double j0 (/* double x */);
 extern double y0 (/* double x */);
 extern double jn (/* int n, double x */);
 extern double ndtr (/* double a */);
-extern double erfc (/* double a */);
-extern double erf (/* double x */);
-extern double acosh (/* double x */);
-extern double atanh (/* double x */);
 extern double j1 (/* double x */);
 extern double y1 (/* double x */);
 extern int mtherr (/* char *name, int code */);

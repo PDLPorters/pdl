@@ -46,96 +46,6 @@
  * erfc underflow    x > 37.519379347       0.0
  *
  */
-/*							erf.c
- *
- *	Error function
- *
- *
- *
- * SYNOPSIS:
- *
- * double x, y, erf();
- *
- * y = erf( x );
- *
- *
- *
- * DESCRIPTION:
- *
- * The integral is
- *
- *                           x
- *                            -
- *                 2         | |          2
- *   erf(x)  =  --------     |    exp( - t  ) dt.
- *              sqrt(pi)   | |
- *                          -
- *                           0
- *
- * The magnitude of x is limited to 9.231948545 for DEC
- * arithmetic; 1 or -1 is returned outside this range.
- *
- * For 0 <= |x| < 1, erf(x) = x * P4(x**2)/Q5(x**2); otherwise
- * erf(x) = 1 - erfc(x).
- *
- *
- *
- * ACCURACY:
- *
- *                      Relative error:
- * arithmetic   domain     # trials      peak         rms
- *    DEC       0,1         14000       4.7e-17     1.5e-17
- *    IEEE      0,1         30000       3.7e-16     1.0e-16
- *
- */
-/*							erfc.c
- *
- *	Complementary error function
- *
- *
- *
- * SYNOPSIS:
- *
- * double x, y, erfc();
- *
- * y = erfc( x );
- *
- *
- *
- * DESCRIPTION:
- *
- *
- *  1 - erf(x) =
- *
- *                           inf.
- *                             -
- *                  2         | |          2
- *   erfc(x)  =  --------     |    exp( - t  ) dt
- *               sqrt(pi)   | |
- *                           -
- *                            x
- *
- *
- * For small x, erfc(x) = 1 - erf(x); otherwise rational
- * approximations are computed.
- *
- *
- *
- * ACCURACY:
- *
- *                      Relative error:
- * arithmetic   domain     # trials      peak         rms
- *    DEC       0, 9.2319   12000       5.1e-16     1.2e-16
- *    IEEE      0,26.6417   30000       5.7e-14     1.5e-14
- *
- *
- * ERROR MESSAGES:
- *
- *   message         condition              value returned
- * erfc underflow    x > 9.231948545 (DEC)       0.0
- *
- *
- */
 
 
 /*
@@ -210,7 +120,6 @@ static double U[] = {
 
 #ifndef ANSIPROT
 double polevl(), p1evl(), exp(), log(), fabs();
-double erf(), erfc();
 #endif
 
 double ndtr(a)
@@ -233,69 +142,4 @@ else
 	}
 
 return(y);
-}
-
-
-double erfc(a)
-double a;
-{
-double p,q,x,y,z;
-
-
-if( a < 0.0 )
-	x = -a;
-else
-	x = a;
-
-if( x < 1.0 )
-	return( 1.0 - erf(a) );
-
-z = -a * a;
-
-if( z < -MAXLOG )
-	{
-under:
-	mtherr( "erfc", UNDERFLOW );
-	if( a < 0 )
-		return( 2.0 );
-	else
-		return( 0.0 );
-	}
-
-z = exp(z);
-
-if( x < 8.0 )
-	{
-	p = polevl( x, P, 8 );
-	q = p1evl( x, Q, 8 );
-	}
-else
-	{
-	p = polevl( x, R, 5 );
-	q = p1evl( x, S, 6 );
-	}
-y = (z * p)/q;
-
-if( a < 0 )
-	y = 2.0 - y;
-
-if( y == 0.0 )
-	goto under;
-
-return(y);
-}
-
-
-
-double erf(x)
-double x;
-{
-double y, z;
-
-if( fabs(x) > 1.0 )
-	return( 1.0 - erfc(x) );
-z = x * x;
-y = x * polevl( z, T, 4 ) / p1evl( z, U, 5 );
-return( y );
-
 }
