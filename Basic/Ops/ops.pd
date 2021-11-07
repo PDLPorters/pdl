@@ -230,9 +230,7 @@ EOH
     if ($extra{unsigned}){
 #a little dance to avoid the MOD macro warnings for byte & ushort datatypes
       $codestr = << "ENDCODE";
-  types(BU) %{ \$c() = (\$GENERIC(c))BU_$func(\$a(),\$b()); %}
-  types(SLNFDGC) %{ \$c() = (\$GENERIC(c))$func(\$a(),\$b()); %}
-  types(Q) %{ \$c() = (\$GENERIC(c))Q_$func(\$a(),\$b()); %}
+\$c() = (\$GENERIC(c))\$TBSULNQFD(BU_,,BU_,,,Q_,,)$func(\$a(),\$b());
 ENDCODE
 #end dance
     } else {
