@@ -342,20 +342,24 @@ sub get_str {
 }
 
 sub get_str_int {
-    my ( $this, $parent, $context ) = @_;
-
-    my $nth=0;
-    my $str = "";
+  my ( $this, $parent, $context ) = @_;
+  my $nth=0;
+  my $str = "";
   MYLOOP: while(1) {
-      my $it = $this->myitem($parent,$nth);
-      last MYLOOP if $nth and !$it;
-      $str .= $it;
-      $str .= join('', map ref $_ ? $_->get_str($parent,$context) : $_,
-	       @{$this}[$this->myoffs()..$#{$this}]);
-      $nth++;
+    my $it = $this->myitem($parent,$nth);
+    last MYLOOP if $nth and !$it;
+    $str .= $it;
+    $str .= join '', $this->get_contained($parent,$context);
+    $nth++;
   }
-    return $str;
+  return $str;
 } # get_str_int()
+
+sub get_contained {
+  my ($this, $parent, $context) = @_;
+  map ref($_) ? $_->get_str($parent, $context) : $_,
+    @$this[$this->myoffs..$#$this];
+}
 
 ###########################
 #
