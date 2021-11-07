@@ -64,7 +64,6 @@ sub new {
 	ParObjs => $sig->objs,
 	Sig => $sig,
 	Gencurtype => [], # stack to hold GenType in generic loops
-	types => 0,  # for thisisloop method
 	ftypes_vars => {},
 	ftypes_type => undef,
         Generictypes => $generictypes,   # so that MacroAccess can check it
@@ -230,7 +229,6 @@ sub separate_code {
 		push @stack,$ob;
 	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%\{/) {
 		my $ob = PDL::PP::Types->new($1,$this);
-		$this->{types} = 1; # thisisloop method
 		push @{$stack[-1]},$ob;
 		push @stack,$ob;
 	    } elsif($control =~ /^threadloop\s*%\{/) {
@@ -291,15 +289,6 @@ sub report_error {
 	    }
     }
     die "$message at $filename line $line\n";
-}
-
-use PDL::Types ':All';
-my @ppdefs = ppdefs_all();
-sub thisisloop {
-    my ($this, $name, @extra) = @_;
-    !$this->{types} ? '' : join '',
-	map "#undef THISIS${name}_$_->[0]\n#define THISIS${name}_$_->[0](a)$_->[1]\n",
-	(map [$_, ''], @ppdefs), map [$_->ppsym, ' a'], @extra;
 }
 
 ###########################
@@ -432,11 +421,6 @@ sub mypostlude { my($this,$parent,$context) = @_;
 ###########################
 #
 # Encapsulate a generic type loop
-#
-# we use the value of $parent->{types}
-# to determine whether to define/undefine the THISISxxx macros
-# (makes the xs code easier to read)
-#
 package PDL::PP::GenericLoop;
 our @ISA = "PDL::PP::Block";
 
@@ -475,7 +459,6 @@ sub myitem {
     @$parent{qw(ftypes_type ftypes_vars)} = ($item, $this->[2]) if defined $this->[1];
     join '',
 	PDL::PP::pp_line_numbers(__LINE__-1, "\t} break; case @{[$item->sym]}: {\n"),
-	$parent->thisisloop($this->[1], $item),
 	map $parent->{ParObjs}{$_}->get_xsdatapdecl($item),
 	    sort keys %{$this->[2]};
 }
@@ -596,15 +579,15 @@ sub new {
     my($type,$ts,$parent) = @_;
     my @bad = grep !$types{$_}, my @ts = split '', $ts;
     confess "Invalid type access (@bad) in '$ts'!" if @bad;
-    bless [\@ts],$type; }
+    bless [+{map +($_=>1), @ts}],$type; }
 sub myoffs { return 1; }
-sub myprelude {
-    my($this,$parent,$context) = @_;
-    return "\n#if ". (join '||',map "(THISIS_$_(1)+0)", @{$this->[0]})."\n";
-}
 
-sub mypostlude {my($this,$parent,$context) = @_;
-	"\n#endif\n"
+sub get_str {
+  my ($this,$parent,$context) = @_;
+  confess "types() outside a generic loop"
+    unless defined(my $type = $parent->{Gencurtype}[-1]);
+  return '' if !$this->[0]{$type->ppsym};
+  join '', $this->get_contained($parent,$context);
 }
 
 
