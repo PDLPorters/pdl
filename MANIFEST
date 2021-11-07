@@ -78,7 +78,6 @@ Basic/MatrixOps/matrix.c
 Basic/MatrixOps/matrix.h
 Basic/MatrixOps/matrixops.pd
 Basic/MatrixOps/NOTES
-Basic/MatrixOps/protos.h
 Basic/MatrixOps/README.ssl
 Basic/MatrixOps/simq.c
 Basic/MatrixOps/sslib.c

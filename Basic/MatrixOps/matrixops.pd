@@ -1,6 +1,5 @@
 pp_addhdr('
 #include <math.h>
-#include "protos.h"
 ');
 
 use strict;
