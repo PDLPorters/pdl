@@ -130,7 +130,6 @@ sub new {
     print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
 
     # Enclose it all in a genericloop.
-    # XXX Make genericloop understand denied pointers;...
     my $nc = $coderef;
     $coderef = PDL::PP::GenericLoop->new($generictypes, undef,
 	  [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
