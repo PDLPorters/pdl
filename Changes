@@ -1,3 +1,4 @@
+2.060 2021-11-08
 - work around more recent GCC not tgmath-ing log10 for complex
 
 2.059 2021-11-08
