@@ -237,18 +237,6 @@ sub do_access {
        $text;
 }
 
-sub do_resize {
-	my($this,$ind,$size) = @_;
-	my @c;my $index = 0;
-	for(@{$this->{IndObjs}}) {
-		push @c,$index if $_->name eq $ind; $index ++;
-	}
-	my $pdl = $this->get_nname;
-	return PDL::PP::pp_line_numbers(__LINE__-1, (join '',map {"$pdl->dims[$_] = $size;\n"} @c).
-		"PDL->resize_defaultincs($pdl);PDL->allocdata($pdl);".
-		$this->get_xsdatapdecl(undef,1));
-}
-
 sub do_pdlaccess {
 	my($this) = @_;
 	PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls['.$this->{Number}.'])');
@@ -288,7 +276,7 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 }
 
 sub get_xsdatapdecl { 
-    my($this,$genlooptype,$asgnonly) = @_;
+    my($this,$genlooptype) = @_;
     my $ptype = $this->adjusted_type($genlooptype);
     my $ctype = $ptype->ctype;
     my $pdl = $this->get_nname;
