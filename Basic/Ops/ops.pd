@@ -300,6 +300,13 @@ sub ufunc {
 	delete $extra{Exception};
     }
     my $codestr = '$b() = ($GENERIC(b))'.$func.'($a());';
+    if (delete $extra{NoTgmath} and $got_complex) {
+        # don't bother if not got complex version
+        $codestr = join "\n",
+            'types('.join('', map $_->ppsym, @Rtypes).') %{'.$codestr.'%}',
+            (map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}', @Ctypes),
+            ;
+    }
     pp_addpm(make_overload($funcov, $name, 0, 1)) if $overload;
     # do not have to worry about propagation of the badflag when
     # inplace since only input ndarray is a, hence its badflag
@@ -432,6 +439,7 @@ pp_export_nothing();
 # as well as ndarrays
 ufunc('log10','log10',0,'the base 10 logarithm', GenericTypes => $A,
       Exception => '$a() <= 0',
+      NoTgmath => 1, # glibc for at least GCC 8.3.0 won't tgmath log10 though 7.1.0 did
       PMCode =>
 '
 sub PDL::log10 {
