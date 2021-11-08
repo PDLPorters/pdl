@@ -229,6 +229,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Warn;
+BEGIN { $ENV{PDL_AUTOPTHREAD_TARG} = 1 } # for continue-in-threadloop test
 use PDL::LiteF;
 use PDL::Types;
 use PDL::Dbg;
