@@ -1,7 +1,7 @@
 - removed supplied Cephes functions that C99 mandates
 - Ops,Math to use tgmath.h not own $T() stuff
 - MatrixOps switch from bespoke SSLib complex to C99 native complex
-- Core::online_cpus
+- Core::online_cpus, used to set_autopthread_targ if no env var set
 
 2.058 2021-11-06
 - no changes from 2.057_05

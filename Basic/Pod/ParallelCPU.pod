@@ -2,7 +2,6 @@
 
 PDL::ParallelCPU - Parallel processor multi-threading support in PDL
 
-
 =head1 DESCRIPTION
 
 PDL has support for splitting up numerical processing
@@ -10,6 +9,9 @@ between multiple parallel processor threads (or pthreads) using the I<set_autopt
 and I<set_autopthread_size> functions.
 This can improve processing performance (by greater than 2-4X in most cases)
 by taking advantage of multi-core and/or multi-processor machines.
+
+As of 2.059, L<PDL::Core/online_cpus> is used to set the number of
+threads used if C<PDL_AUTOPTHREAD_TARG> is not set.
 
 =head1 SYNOPSIS
 

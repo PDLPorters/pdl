@@ -330,7 +330,8 @@ sub cluck { goto &Carp::cluck }
 *PDL::cluck = \&cluck;
 
 ########## Set Auto-PThread Based On Environment Vars ############
-PDL::set_autopthread_targ( $ENV{PDL_AUTOPTHREAD_TARG} ) if( defined ( $ENV{PDL_AUTOPTHREAD_TARG} ) );
+$ENV{PDL_AUTOPTHREAD_TARG} //= online_cpus();
+PDL::set_autopthread_targ( $ENV{PDL_AUTOPTHREAD_TARG} ) if $ENV{PDL_AUTOPTHREAD_TARG} > 1;
 PDL::set_autopthread_size( $ENV{PDL_AUTOPTHREAD_SIZE} ) if( defined ( $ENV{PDL_AUTOPTHREAD_SIZE} ) );
 ##################################################################
 
@@ -3707,6 +3708,14 @@ Switch on/off automatic header copying, with PDL pass-through
 
 C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL
 itself.  That makes it convenient for inline use in expressions.
+
+=head2 online_cpus
+
+=for ref
+
+Returns the number of available processors cores. Used to set the number
+of threads with L</set_autopthread_targ> if C<$ENV{PDL_AUTOPTHREAD_TARG}>
+is not set.
 
 =head2 set_autopthread_targ
 
