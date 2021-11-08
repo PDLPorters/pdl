@@ -240,7 +240,6 @@ sub do_access {
 sub do_pdlaccess {
 	my($this) = @_;
 	PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls['.$this->{Number}.'])');
-
 }
 
 sub do_pointeraccess {
@@ -281,7 +280,7 @@ sub get_xsdatapdecl {
     my $flag = $this->get_nnflag;
     my $name = $this->{Name};
     my $macro = "PDL_DECLARE_PARAMETER".($this->{BadFlag} ? "_BADVAL" : "");
-    PDL::PP::pp_line_numbers(__LINE__-1, "$macro($ctype, $flag, $name, $pdl)");
+    "$macro($ctype, $flag, $name, $pdl)";
 }
 
 1;

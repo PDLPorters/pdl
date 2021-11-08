@@ -163,12 +163,25 @@ sub new {
         $this->threadloop_start,
         $this->threadloop_end,
        ).
+       $this->params_declare.
        join('',map $_->get_incregisters, @$pobjs{sort keys %$pobjs}).
        $coderef->get_str($this,[])
        ;
     $this->{Code};
 
 } # new()
+
+sub params_declare {
+    my ($this) = @_;
+    my ($ord,$pdls) = $this->get_pdls;
+    my @decls = map $_->get_xsdatapdecl("PDL_PARAMTYPE_".$_->name),
+      map $pdls->{$_}, @$ord;
+    my @param_names = map "PDL_PARAMTYPE_$_", @$ord;
+    PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+#define PDL_DECLARE_PARAMS_$this->{Name}(@{[join ',', @param_names]}) \\
+  @{[join " \\\n", @decls]}
+EOF
+}
 
 sub func_name { $_[1] ? "writebackdata" : "readdata" }
 sub threadloop_start_name { "PDL_STARTTHREADLOOP_$_[0]{Name}" }
@@ -507,10 +520,15 @@ sub myitem {
     my $item = $this->[0]->[$nth] || return "";
     $parent->{Gencurtype}[-1] = $item;
     @$parent{qw(ftypes_type ftypes_vars)} = ($item, $this->[2]) if defined $this->[1];
+    my ($ord,$pdls) = $parent->get_pdls;
+    my @param_ctypes = map $pdls->{$_}->adjusted_type($item)->ctype, @$ord;
+    my $decls = keys %{$this->[2]} == @$ord
+      ? PDL::PP::pp_line_numbers(__LINE__-1, "\t\tPDL_DECLARE_PARAMS_$parent->{Name}(@{[join ',', @param_ctypes]})\n")
+      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype),
+          map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
     join '',
 	PDL::PP::pp_line_numbers(__LINE__-1, "\t} break; case @{[$item->sym]}: {\n"),
-	map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype),
-	    map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
+	$decls;
 }
 
 sub mypostlude {
