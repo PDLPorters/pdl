@@ -1,4 +1,3 @@
-- Math operators call *f for float (so could call *l for long double)
 - removed supplied Cephes functions that C99 mandates
 - Ops,Math to use tgmath.h not own $T() stuff
 - MatrixOps switch from bespoke SSLib complex to C99 native complex
