@@ -62,8 +62,6 @@ typedef struct pdl_magic_deletedata {
 	Size_t param;
 } pdl_magic_deletedata;
 
-/* #define PDL_PTHREAD */
-/* Defined by MakeMaker */
 #ifdef PDL_PTHREAD
 
 /* This is a workaround to a perl CORE "feature" where they define a

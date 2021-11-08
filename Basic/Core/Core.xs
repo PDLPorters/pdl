@@ -212,6 +212,13 @@ _inf(...)
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
 
+int
+online_cpus()
+  CODE:
+    RETVAL = pdl_online_cpus();
+  OUTPUT:
+    RETVAL
+
 unsigned int
 is_scalar_SvPOK(arg)
 	SV* arg;

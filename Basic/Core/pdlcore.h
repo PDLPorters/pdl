@@ -125,7 +125,8 @@ void pdl_readdata_vaffine(pdl *it);
   X(dump, void, (pdl *it)) \
   X(sever, pdl *, (pdl *a)) \
   X(slice_args_parse_string, pdl_slice_args, ( char* )) \
-  X(slice_args_parse, pdl_slice_args*, ( SV* ))
+  X(slice_args_parse, pdl_slice_args*, ( SV* )) \
+  X(online_cpus, int, ())
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \
