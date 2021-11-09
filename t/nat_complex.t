@@ -66,12 +66,21 @@ for (float, double, cfloat, cdouble) {
   is $@, '' or diag explain [$bv, $obv];
 }
 
+{
 # dataflow from complex to real
 my $ar = $x->re;
 $ar++;
-ok(tapprox($x->re, -$ref->slice("0,")->squeeze), 'no complex to real dataflow');
+ok(tapprox($x->re, -$ref->slice("0,")->squeeze + 1), 'complex to real dataflow') or diag "got=".$x->re;
+my $ai = $x->im;
 $x+=i;
-ok(tapprox($x->im, -$ref->slice("1,")*2), 'no dataflow after conversion');
+my $expected = pdl(-2, -2);
+ok(tapprox($x->im, $expected), 'dataflow after conversion')
+  or diag "got=".$x->im, "\nexpected=$expected";
+$ai++;
+$expected++;
+ok(tapprox($x->im, $expected), 'dataflow after change ->im')
+  or diag "got=".$x->im, "\nexpected=$expected";
+}
 
 # Check that converting from re/im to mag/ang and
 #  back we get the same thing

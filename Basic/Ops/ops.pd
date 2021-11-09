@@ -410,9 +410,13 @@ ufunc('exp','exp',1,'the exponential function',GenericTypes => [@$C, @$F]);
 ufunc('log','log',1,'the natural logarithm',GenericTypes => [@$C, @$F], Exception => '$a() <= 0');
 
 # no export these because clash with Test::Deep (re) or internal (_*abs)
-cfunc('re', 'creal', 1, 'Returns the real part of a complex number.');
-cfunc('im', 'cimag', 1, 'Returns the imaginary part of a complex number.');
-cfunc('_cabs', 'cabs', 1, 'Returns the absolute (length) of a complex number.',
+cfunc('re', 'creal', 1, 'Returns the real part of a complex number.',
+  '$complexv() = $b() + I * cimag($complexv());'
+);
+cfunc('im', 'cimag', 1, 'Returns the imaginary part of a complex number.',
+  '$complexv() = creal($complexv()) + I * $b();'
+);
+cfunc('_cabs', 'cabs', 1, 'Returns the absolute (length) of a complex number.', undef,
     PMFunc=>'',
 );
 my $rabs_code = '
@@ -500,29 +504,34 @@ See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for detai
 # special functions for complex data types that don't work well with
 # the ufunc/bifunc logic
 sub cfunc {
-    my ($name, $func, $make_real, $doc, %extra) = @_;
-    my $badcode = '$ISBAD(complexv())';
-    my $codestr = "\$b() = $func(\$complexv());";
+    my ($name, $func, $make_real, $doc, $backcode, %extra) = @_;
+    my $codestr = pp_line_numbers(__LINE__-1,"\$b() = $func(\$complexv());");
     pp_def($name,
 	   GenericTypes=>$C,
 	   Pars => 'complexv(); '.($make_real ? 'real' : '').' [o]b()',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
-	   Code => pp_line_numbers(__LINE__,
-	       $codestr
+	   Code => $codestr,
+	   BadCode => pp_line_numbers(__LINE__-1, 'if ($ISBAD(complexv()))
+	     $SETBAD(b());
+	     else {' . "\n" . $codestr . "}\n"
 	   ),
-	   BadCode =>
-		    pp_line_numbers(__LINE__, 'if ( ' . $badcode . ' )
-		    $SETBAD(b());
-		    else {' . "\n" . $codestr . "}\n"
-		    ),
+	   !$backcode ? () : (
+	     DefaultFlow => 1,
+	     TwoWay => 1,
+	     BackCode => $backcode,
+	     BadBackCode => pp_line_numbers(__LINE__-1, 'if ($ISBAD(b()))
+	       $SETBAD(complexv());
+	       else {' . "\n" . $backcode . "}\n"
+	     ),
+	   ),
 	   %extra,
 	   Doc => $doc);
 }
 
-cfunc('carg', 'carg', 1, 'Returns the polar angle of a complex number.');
-cfunc('conj', 'conj', 0, 'complex conjugate.');
+cfunc('carg', 'carg', 1, 'Returns the polar angle of a complex number.', undef);
+cfunc('conj', 'conj', 0, 'complex conjugate.', undef);
 
 pp_def('czip',
   Pars => 'r(); i(); complex [o]c()',
