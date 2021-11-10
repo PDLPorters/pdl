@@ -1,4 +1,5 @@
 - native-complex ->re and ->im methods do two-way dataflow
+- fix pp_line_numbers change not being done right for .pm
 
 2.060 2021-11-08
 - work around more recent GCC not tgmath-ing log10 for complex

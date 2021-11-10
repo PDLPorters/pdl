@@ -965,9 +965,8 @@ unless (nopm) {
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
-	open my $fh, ">", "$::PDLPREF.pm" or die "Couldn't open pm file: $!\n";
         $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n=cut\n\n" : '';
-	print $fh <<EOF;
+        _write_file("$::PDLPREF.pm", <<EOF);
 #
 # GENERATED WITH PDL::PP! Don't modify!
 #

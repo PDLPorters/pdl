@@ -425,7 +425,7 @@ EOF
     'threadtest.pd' => <<'EOF',
 # previously in t/inline-comment-test.t
 
-pp_addpm('');
+pp_addpm(pp_line_numbers(__LINE__-1, q{ sub myfunc { } }));
 
 pp_def('testinc',
         Pars => 'a(); [o] b()',
