@@ -2856,6 +2856,11 @@ large datasets PDL is designed to handle. Sometimes, however, you really
 want to move your data back to Perl, and with proper dimensionality,
 unlike C<list>.
 
+If you want to round-trip data including the use of C<PDL::undefval>,
+C<unpdl> does not support this. However, it is suggested you would
+generate an index-set with C<< $pdl->whereND($pdl == $PDL::undefval)
+>>, then loop over the Perl data, setting those locations to C<undef>.
+
 =for example
 
  use JSON;
