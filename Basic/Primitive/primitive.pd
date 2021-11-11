@@ -1900,7 +1900,7 @@ have the same sized dimensions.
 '
    );
 
-pp_addpm(<<'EOD')
+pp_addpm(<<'EOD');
 
 =head2 glue
 
@@ -1978,11 +1978,7 @@ sub PDL::glue{
     $x->xchg(0,$dim);
 }
 
-
-
-
 EOD
-;
 
 =head2 axisvalues
 
@@ -3363,7 +3359,7 @@ EOD
 	   );
 }
 
-pp_addpm(<<'EOD'
+pp_addpm(<<'EOD');
 
 =head2 where
 
@@ -3408,7 +3404,6 @@ WARNING: The first argument
 the exact same dimensions (or horrible things happen). You *cannot*
 thread over a smaller mask, for example.
 
-
 =cut
 
 sub PDL::where {
@@ -3432,11 +3427,10 @@ sub PDL::where {
 *where = \&PDL::where;
 
 EOD
-);
 
 pp_add_exported("", 'where');
 
-pp_addpm(<<'EOD'
+pp_addpm(<<'EOD');
 
 =head2 whereND
 
@@ -3525,11 +3519,10 @@ sub PDL::whereND :lvalue {
 *whereND = \&PDL::whereND;
 
 EOD
-);
 
 pp_add_exported("", 'whereND');
 
-pp_addpm(<<'EOD'
+pp_addpm(<<'EOD');
 
 =head2 whichND
 
@@ -3644,7 +3637,6 @@ sub PDL::whichND {
 }
 
 EOD
-);
 
 pp_add_exported("", 'whichND');
 
@@ -3653,7 +3645,7 @@ pp_add_exported("", 'whichND');
 #
 
 
-pp_addpm(<<'EOD'
+pp_addpm(<<'EOD');
 
 =head2 setops
 
@@ -3835,14 +3827,10 @@ sub PDL::setops {
 
 }
 EOD
-);
-
 
 pp_add_exported("", 'setops');
 
-
-
-pp_addpm(<<'EOD'
+pp_addpm(<<'EOD');
 
 =head2 intersect
 
@@ -3879,11 +3867,8 @@ sub PDL::intersect {
 }
 
 EOD
-);
 
 pp_add_exported("", 'intersect');
-
-
 
 pp_addpm({At=>'Bot'},<<'EOD');
 
@@ -3904,6 +3889,5 @@ Updated for CPAN viewing compatibility by David Mertens.
 =cut
 
 EOD
-
 
 pp_done();
