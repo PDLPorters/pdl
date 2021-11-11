@@ -845,6 +845,46 @@ and open source. It doesn't have PDL's unique features, but it is
 very similar to MATLAB. Scilab comes with B<Xcos> (previously Scicos),
 a graphical system modeler and simulator similar to Simulink.
 
+=head1 COMPARISON: REPEATED COPY OF MATRIX
+
+In MATLAB, the C<repmat> function works like so:
+
+  > A = reshape(0:5, 3, 2)' # similar to PDL::sequence(3, 2)
+  ans =
+     0   1   2
+     3   4   5
+  > repmat(A, 2, 3) # double rows, triple columns
+  ans =
+     0   1   2   0   1   2   0   1   2
+     3   4   5   3   4   5   3   4   5
+     0   1   2   0   1   2   0   1   2
+     3   4   5   3   4   5   3   4   5
+
+This works (at least in Octave) at least up to 3 dimensions.
+
+The PDL analog:
+
+  sub repmat {
+    my $f=shift;
+    my @n=@_; #number of repetitions along dimension
+    my $sl = join ',', map ":,*$_", @n; # insert right-size dummy after each real
+    my $r = $f->slice($sl); #result
+    $r = $r->clump($_, $_+1) for 0..$#n;
+    $r;
+  }
+  > p $x = sequence(3,2)
+  [
+   [0 1 2]
+   [3 4 5]
+  ]
+  > p repmat($x, 3, 2) # triple columns, double rows
+  [
+   [0 1 2 0 1 2 0 1 2]
+   [3 4 5 3 4 5 3 4 5]
+   [0 1 2 0 1 2 0 1 2]
+   [3 4 5 3 4 5 3 4 5]
+  ]
+
 =head1 COMPARISON: FLOYD-WARSHALL ALGORITHM
 
 In L<graph theory|https://en.wikipedia.org/wiki/Graph_theory>, an
