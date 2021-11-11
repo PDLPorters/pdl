@@ -716,6 +716,7 @@ Perldl2/TODO
 README
 t/00-report-prereqs.t
 t/01-pptest.t
+t/02-pdl-core-version.t
 t/autoload.t
 t/bad.t
 t/basic.t
