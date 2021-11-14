@@ -965,7 +965,7 @@ sub pp_done {
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
         $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n=cut\n\n" : '';
-        _write_file("$::PDLPREF.pm", <<EOF);
+        _write_file("$::PDLPREF.pm", join "\n\n", <<EOF, $::PDLBEGIN, $::PDLPM{Top}, $::FUNCSPOD, @::PDLPM{qw(Middle Bot)}, '# Exit with OK status', "1;\n");
 #
 # GENERATED WITH PDL::PP! Don't modify!
 #
@@ -984,20 +984,6 @@ $::PDL_IFBEGINWRAP[0]
    push \@PDL::Core::PP, __PACKAGE__;
    bootstrap $::PDLMOD $::PDLMODVERSION;
 $::PDL_IFBEGINWRAP[-1]
-
-$::PDLBEGIN
-
-$::PDLPM{Top}
-
-$::FUNCSPOD
-
-$::PDLPM{Middle};
-
-$::PDLPM{Bot}
-
-# Exit with OK status
-
-1;
 EOF
 } # end pp_done
 
