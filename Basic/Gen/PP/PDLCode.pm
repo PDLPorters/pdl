@@ -118,10 +118,8 @@ sub new {
 	# containing a string - see PDL::PP::Loop)
 	while ( my ( $bad_key, $bad_str ) = each %$bad_sizeprivs ) {
 	    my $str = $$sizeprivs{$bad_key};
-	    if ( defined $str ) {
-		die "ERROR: sizeprivs problem in PP/PDLCode.pm (BadVal stuff)\n"
-		    unless $str eq $bad_str;
-	    }
+	    die "ERROR: sizeprivs problem in PP/PDLCode.pm (BadVal stuff)\n"
+		if defined $str and $str ne $bad_str;
 	    $$sizeprivs{$bad_key} = $bad_str;  # copy over
 	}
 
