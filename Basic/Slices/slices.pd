@@ -695,7 +695,6 @@ EOD
                  PDL_Indx corners[$COMP(rdim) * $COMP(nitems)];
                  char boundary[$COMP(rdim)];
                  ',
-        TwoWay => 1,
         MakeComp => <<'EOD-MakeComp',
 pdl *size_pdl;
 PDL->make_physdims(ind_pdl);
