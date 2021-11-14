@@ -960,8 +960,7 @@ sub pp_done {
             $pdl_boot, $::PDLXSBOOT, $PP::boundscheck,
           );
         _write_file("$::PDLPREF.xs", $text);
-
-unless (nopm) {
+        return if nopm;
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
@@ -1000,7 +999,6 @@ $::PDLPM{Bot}
 
 1;
 EOF
-      }  # unless (nopm)
 } # end pp_done
 
 sub _pp_parsename {
