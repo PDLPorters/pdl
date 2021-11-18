@@ -2007,11 +2007,23 @@ and alters its argument.
 '
        ); # pp_def: axisvalues
 
+pp_addhdr(<<'EOH');
 
-pp_addpm(<<'EOD');
+#ifndef Drand01
+#define Drand01() (((double)rand()) / (RAND_MAX+1.0))
+#endif
 
-=head2 random
+EOH
 
+pp_def(
+	'random',
+	Pars=>'a();',
+        GenericTypes => [ppdefs_all],
+	PMFunc => '',
+	Code =>
+	'$a() = Drand01();',
+	'NoPthread' => 1, # random isn't threadsafe
+	Doc=> <<'EOF',
 =for ref
 
 Constructor which returns ndarray of random numbers
@@ -2031,49 +2043,7 @@ a template.
 You can use the perl function L<srand|perlfunc/srand> to seed the random
 generator. For further details consult Perl's  L<srand|perlfunc/srand>
 documentation.
-
-=head2 randsym
-
-=for ref
-
-Constructor which returns ndarray of random numbers
-
-=for usage
-
- $x = randsym([type], $nx, $ny, $nz,...);
- $x = randsym $y;
-
-etc (see L<zeroes|PDL::Core/zeroes>).
-
-This is the uniform distribution between 0 and 1 (excluding both 0 and
-1, cf L</random>). The arguments are the same as C<zeroes> (q.v.) -
-i.e. one can specify dimensions, types or give a template.
-
-You can use the perl function L<srand|perlfunc/srand> to seed the random
-generator. For further details consult Perl's  L<srand|perlfunc/srand>
-documentation.
-
-=cut
-
-EOD
-
-pp_addhdr(<<'EOH');
-
-#ifndef Drand01
-#define Drand01() (((double)rand()) / (RAND_MAX+1.0))
-#endif
-
-EOH
-
-pp_def(
-	'random',
-	Pars=>'a();',
-        GenericTypes => [ppdefs_all],
-	PMFunc => '',
-	Code =>
-	'$a() = Drand01();',
-	'NoPthread' => 1, # random isn't threadsafe
-	Doc=>undef,
+EOF
 	PMCode=><<'EOD',
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
 sub PDL::random {
@@ -2095,7 +2065,26 @@ pp_def(
 	'double tmp;
 	 do tmp = Drand01(); while (tmp == 0.0); /* 0 < tmp < 1 */
          $a() = tmp;',
-	Doc=>undef,
+	Doc=> <<'EOF',
+=for ref
+
+Constructor which returns ndarray of random numbers
+
+=for usage
+
+ $x = randsym([type], $nx, $ny, $nz,...);
+ $x = randsym $y;
+
+etc (see L<zeroes|PDL::Core/zeroes>).
+
+This is the uniform distribution between 0 and 1 (excluding both 0 and
+1, cf L</random>). The arguments are the same as C<zeroes> (q.v.) -
+i.e. one can specify dimensions, types or give a template.
+
+You can use the perl function L<srand|perlfunc/srand> to seed the random
+generator. For further details consult Perl's  L<srand|perlfunc/srand>
+documentation.
+EOF
 	PMCode=><<'EOD',
 sub randsym { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->randsym : PDL->randsym(@_) }
 sub PDL::randsym {
