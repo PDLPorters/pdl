@@ -2010,14 +2010,12 @@ and alters its argument.
 pp_addhdr(<<'EOH');
 #include <time.h>
 
-#ifndef Drand01
-#define Drand01() (((double)rand()) / (RAND_MAX+1.0))
-#endif
-
 extern int pdl_srand_called;
-void pdl_srand(pTHX_ uint64_t *s, unsigned int seed);
+extern uint64_t pdl_rand_state[];
+void pdl_srand(uint64_t *s, unsigned int seed);
+double pdl_drand(uint64_t *s);
 #define PDL_MAYBE_SRAND \
-  if (!pdl_srand_called) pdl_srand(aTHX_ NULL, time(NULL));
+  if (!pdl_srand_called) pdl_srand(pdl_rand_state, time(NULL));
 EOH
 
 pp_def(
@@ -2025,7 +2023,7 @@ pp_def(
 	Pars=>'a();',
 	GenericTypes => ['Q'],
 	Code => <<'EOF',
-pdl_srand(aTHX_ NULL, (unsigned int)$a());
+pdl_srand(pdl_rand_state, (unsigned int)$a());
 EOF
 	NoPthread => 1,
 	HaveThreading => 0,
@@ -2058,7 +2056,7 @@ pp_def(
 	Code => <<'EOF',
 PDL_MAYBE_SRAND
 threadloop %{
-  $a() = Drand01();
+  $a() = pdl_drand(pdl_rand_state);
 %}
 EOF
 	'NoPthread' => 1, # random isn't threadsafe
@@ -2103,7 +2101,7 @@ pp_def(
 PDL_MAYBE_SRAND
 threadloop %{
   double tmp;
-  do tmp = Drand01(); while (tmp == 0.0); /* 0 < tmp < 1 */
+  do tmp = pdl_drand(pdl_rand_state); while (tmp == 0.0); /* 0 < tmp < 1 */
   $a() = tmp;
 %}
 EOF
