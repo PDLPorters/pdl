@@ -7,6 +7,7 @@ my @pack = (["primitive.pd", qw(Primitive PDL::Primitive)]);
 
 my %hash = pdlpp_stdargs_int(@pack);
 $hash{LIBS}->[0] .= ' -lm';
+$hash{OBJECT} .= ' xoshiro256plus$(OBJ_EXT)';
 
 # If we don't do this, and Perl core is using the wrapped API, then it will
 # call (say) srand48_r(), and get its random numbers from drand48_r(), but we

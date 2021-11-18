@@ -2008,20 +2008,59 @@ and alters its argument.
        ); # pp_def: axisvalues
 
 pp_addhdr(<<'EOH');
+#include <time.h>
 
 #ifndef Drand01
 #define Drand01() (((double)rand()) / (RAND_MAX+1.0))
 #endif
 
+extern int pdl_srand_called;
+void pdl_srand(pTHX_ uint64_t *s, unsigned int seed);
+#define PDL_MAYBE_SRAND \
+  if (!pdl_srand_called) pdl_srand(aTHX_ NULL, time(NULL));
 EOH
+
+pp_def(
+	'srand',
+	Pars=>'a();',
+	GenericTypes => ['Q'],
+	Code => <<'EOF',
+pdl_srand(aTHX_ NULL, (unsigned int)$a());
+EOF
+	NoPthread => 1,
+	HaveThreading => 0,
+	Doc=> <<'EOF',
+=for ref
+
+Seed random-number generator with a 64-bit int.
+
+=for usage
+
+ srand(); # uses current time
+ srand(5); # fixed number e.g. for testing
+
+EOF
+	PMCode=><<'EOD',
+sub srand { UNIVERSAL::isa($_[0], 'PDL') ? $_[0]->srand : PDL->random(@_) }
+sub PDL::srand {
+   my $pdl = shift;
+   $pdl //= longlong(time);
+   PDL::_srand_int($pdl);
+}
+EOD
+);
 
 pp_def(
 	'random',
 	Pars=>'a();',
         GenericTypes => [ppdefs_all],
 	PMFunc => '',
-	Code =>
-	'$a() = Drand01();',
+	Code => <<'EOF',
+PDL_MAYBE_SRAND
+threadloop %{
+  $a() = Drand01();
+%}
+EOF
 	'NoPthread' => 1, # random isn't threadsafe
 	Doc=> <<'EOF',
 =for ref
@@ -2040,9 +2079,8 @@ excluding 1 itself). The arguments are the same as C<zeroes>
 (q.v.) - i.e. one can specify dimensions, types or give
 a template.
 
-You can use the perl function L<srand|perlfunc/srand> to seed the random
-generator. For further details consult Perl's  L<srand|perlfunc/srand>
-documentation.
+You can use the PDL function L</srand> to seed the random generator.
+If it has not been called yet, it will be with the current time.
 EOF
 	PMCode=><<'EOD',
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
@@ -2061,10 +2099,14 @@ pp_def(
 	Pars=>'a();',
         GenericTypes => [ppdefs_all],
 	PMFunc => '',
-	Code =>
-	'double tmp;
-	 do tmp = Drand01(); while (tmp == 0.0); /* 0 < tmp < 1 */
-         $a() = tmp;',
+	Code => <<'EOF',
+PDL_MAYBE_SRAND
+threadloop %{
+  double tmp;
+  do tmp = Drand01(); while (tmp == 0.0); /* 0 < tmp < 1 */
+  $a() = tmp;
+%}
+EOF
 	Doc=> <<'EOF',
 =for ref
 
@@ -2081,9 +2123,8 @@ This is the uniform distribution between 0 and 1 (excluding both 0 and
 1, cf L</random>). The arguments are the same as C<zeroes> (q.v.) -
 i.e. one can specify dimensions, types or give a template.
 
-You can use the perl function L<srand|perlfunc/srand> to seed the random
-generator. For further details consult Perl's  L<srand|perlfunc/srand>
-documentation.
+You can use the PDL function L</srand> to seed the random generator.
+If it has not been called yet, it will be with the current time.
 EOF
 	PMCode=><<'EOD',
 sub randsym { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->randsym : PDL->randsym(@_) }
@@ -2115,10 +2156,8 @@ This is generated using the math library routine C<ndtri>.
 
 Mean = 0, Stddev = 1
 
-
-You can use the perl function L<srand|perlfunc/srand> to seed the random
-generator. For further details consult Perl's  L<srand|perlfunc/srand>
-documentation.
+You can use the PDL function L</srand> to seed the random generator.
+If it has not been called yet, it will be with the current time.
 
 =cut
 
