@@ -212,6 +212,13 @@ _inf(...)
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
 
+IV
+seed()
+  CODE:
+    RETVAL = pdl_pdl_seed();
+  OUTPUT:
+    RETVAL
+
 int
 online_cpus()
   CODE:

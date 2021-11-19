@@ -12,6 +12,8 @@
 #include "XSUB.h"  /* for the win32 perlCAPI crap */
 #include "ppport.h"  /* include this AFTER XSUB.h */
 
+#include <stdint.h>
+
 #if defined(CONTEXT) && defined(__osf__)
 #undef CONTEXT
 #endif
@@ -127,7 +129,8 @@ void pdl_readdata_vaffine(pdl *it);
   X(slice_args_parse_string, pdl_slice_args, ( char* )) \
   X(slice_args_parse, pdl_slice_args*, ( SV* )) \
   X(online_cpus, int, ()) \
-  X(magic_get_thread, int, (pdl *))
+  X(magic_get_thread, int, (pdl *)) \
+  X(pdl_seed, uint64_t, ())
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \

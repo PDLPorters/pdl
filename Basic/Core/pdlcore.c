@@ -1190,3 +1190,23 @@ pdl_slice_args* pdl_slice_args_parse(SV* sv) {
   PDLDEBUG_f(pdl_dump_slice_args(retval));
   return retval;
 }
+
+/* pdl_seed() - prefix as "seed" #define-d by Perl
+ *
+ * Used to seed PDL's built-in RNG.
+ */
+uint64_t pdl_pdl_seed() {
+	/* This implementation is from section 7.1 Seeding of
+	 *
+	 * Helmut G. Katzgraber. "Random Numbers in Scientific Computing:
+	 * An Introduction". <https://arxiv.org/abs/1005.4117v1>.
+	 */
+	uint64_t s, pid;
+	/* Start of Perl-specific symbols */
+	Time_t seconds;
+	pid = (uint64_t)PerlProc_getpid();
+	(void)time(&seconds);
+	/* End of Perl-specific symbols */
+	s = (uint64_t)seconds;
+	return abs(((s*181)*((pid-83)*359))%104729);
+}

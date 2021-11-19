@@ -2008,7 +2008,7 @@ void pdl_srand(uint64_t **s, uint64_t seed, int n);
 double pdl_drand(uint64_t *s);
 #define PDL_MAYBE_SRAND \
   if (pdl_srand_threads < 0) \
-    pdl_srand(&pdl_rand_state, (uint64_t)time(NULL), PDL->online_cpus());
+    pdl_srand(&pdl_rand_state, PDL->pdl_seed(), PDL->online_cpus());
 #define PDL_RAND_SET_OFFSET(v, thr, pdl) \
   if (v < 0) \
     v = thr.mag_nthr >= 0 ? PDL->magic_get_thread(pdl) % PDL->online_cpus() : 0
@@ -2038,11 +2038,7 @@ L<PDL::Core/online_cpus>.
 EOF
 	PMCode=><<'EOD',
 *srand = \&PDL::srand;
-sub PDL::srand {
-   my $pdl = shift;
-   $pdl //= longlong(time);
-   PDL::_srand_int($pdl);
-}
+sub PDL::srand { PDL::_srand_int($_[0] // PDL::Core::seed()) }
 EOD
 );
 
