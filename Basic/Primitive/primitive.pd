@@ -2039,7 +2039,7 @@ Seed random-number generator with a 64-bit int.
 
 EOF
 	PMCode=><<'EOD',
-sub srand { UNIVERSAL::isa($_[0], 'PDL') ? $_[0]->srand : PDL->random(@_) }
+*srand = \&PDL::srand;
 sub PDL::srand {
    my $pdl = shift;
    $pdl //= longlong(time);
