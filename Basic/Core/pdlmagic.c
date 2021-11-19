@@ -268,15 +268,11 @@ int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {
 	return ptr->nthreads;
 }
 
-int pdl_magic_get_thread(pdl *it) { /* XXX -> only one thread can handle pdl at once */
-	pdl_magic_pthread *ptr;
-	int *p;
-	ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
-	if(!ptr) {die("Invalid pdl_magic_get_thread!");}
-	p = (int*)pthread_getspecific(ptr->key);
-	if(!p) {
-		die("Invalid pdl_magic_get_thread specific!!!!");
-	}
+int pdl_magic_get_thread(pdl *it) {
+	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
+	if(!ptr) die("Invalid pdl_magic_get_thread!");
+	int *p = (int*)pthread_getspecific(ptr->key);
+	if(!p) die("Invalid pdl_magic_get_thread specific!!!!");
 	return *p;
 }
 

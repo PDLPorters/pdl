@@ -126,7 +126,7 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args);
 void pdl_add_threading_magic(pdl *,PDL_Indx nthdim, PDL_Indx nthreads);
 
 int pdl_magic_thread_nthreads(pdl *,PDL_Indx *nthdim);
-int pdl_magic_get_thread(pdl *); /* XXX -> only one thread can handle pdl at once */
+int pdl_magic_get_thread(pdl *);
 
 void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);
 int pdl_pthreads_enabled(void);
