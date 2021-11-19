@@ -108,6 +108,7 @@ Basic/Pod/Tips.pod
 Basic/Pod/Tutorials.pod
 Basic/Primitive/Makefile.PL
 Basic/Primitive/primitive.pd
+Basic/Primitive/xoshiro256plus.c
 Basic/Reduce.pm
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
@@ -552,12 +553,12 @@ Libtmp/Minuit/t/minuit.t
 Libtmp/Simplex/Makefile.PL
 Libtmp/Simplex/Simplex.pm
 Libtmp/Simplex/t/simplex.t
+Libtmp/Slatec/barf.c
 Libtmp/Slatec/Gaussian.pm
 Libtmp/Slatec/Linfit.pm
 Libtmp/Slatec/LinPred.pm
 Libtmp/Slatec/LM.pm
 Libtmp/Slatec/Makefile.PL
-Libtmp/Slatec/barf.c
 Libtmp/Slatec/slatec.pd
 Libtmp/Slatec/slatec/chfcm.f
 Libtmp/Slatec/slatec/chfdv.f
