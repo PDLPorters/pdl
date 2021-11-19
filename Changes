@@ -1,3 +1,4 @@
+2.062 2021-11-19
 - Primitive::srand() added, random() calls if not done yet - thanks @whumann for report
 - Primitive::random() et al to use xoroshiro256plus instead of Perl's rand()
 - Primitive::random() et al able to pthread
