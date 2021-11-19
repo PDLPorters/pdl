@@ -2,14 +2,6 @@ use strict;
 use PDL::Types qw(ppdefs_all types);
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 
-pp_addhdr(<<'EOD');
-
-#ifndef RAND_MAX
-#error "You must have a working RAND_MAX! Something's wrong with your include files"
-#endif
-
-EOD
-
 pp_addpm({At=>'Top'},<<'EOD');
 
 use PDL::Slices;
@@ -2010,12 +2002,16 @@ and alters its argument.
 pp_addhdr(<<'EOH');
 #include <time.h>
 
-extern int pdl_srand_called;
-extern uint64_t pdl_rand_state[];
-void pdl_srand(uint64_t *s, unsigned int seed);
+extern int pdl_srand_threads;
+extern uint64_t *pdl_rand_state;
+void pdl_srand(uint64_t **s, uint64_t seed, int n);
 double pdl_drand(uint64_t *s);
 #define PDL_MAYBE_SRAND \
-  if (!pdl_srand_called) pdl_srand(pdl_rand_state, time(NULL));
+  if (pdl_srand_threads < 0) \
+    pdl_srand(&pdl_rand_state, (uint64_t)time(NULL), PDL->online_cpus());
+#define PDL_RAND_SET_OFFSET(v, thr, pdl) \
+  if (v < 0) \
+    v = thr.mag_nthr >= 0 ? PDL->magic_get_thread(pdl) % PDL->online_cpus() : 0
 EOH
 
 pp_def(
@@ -2023,14 +2019,16 @@ pp_def(
 	Pars=>'a();',
 	GenericTypes => ['Q'],
 	Code => <<'EOF',
-pdl_srand(pdl_rand_state, (unsigned int)$a());
+pdl_srand(&pdl_rand_state, (uint64_t)$a(), PDL->online_cpus());
 EOF
 	NoPthread => 1,
 	HaveThreading => 0,
 	Doc=> <<'EOF',
 =for ref
 
-Seed random-number generator with a 64-bit int.
+Seed random-number generator with a 64-bit int. Will generate seed data
+for a number of threads equal to the return-value of
+L<PDL::Core/online_cpus>.
 
 =for usage
 
@@ -2055,11 +2053,12 @@ pp_def(
 	PMFunc => '',
 	Code => <<'EOF',
 PDL_MAYBE_SRAND
+int rand_offset = -1;
 threadloop %{
-  $a() = pdl_drand(pdl_rand_state);
+  PDL_RAND_SET_OFFSET(rand_offset, $PRIV(pdlthread), $PDL(a));
+  $a() = pdl_drand(pdl_rand_state + 4*rand_offset);
 %}
 EOF
-	'NoPthread' => 1, # random isn't threadsafe
 	Doc=> <<'EOF',
 =for ref
 
@@ -2093,15 +2092,16 @@ EOD
 
 pp_def(
 	'randsym',
-	'NoPthread' => 1, # random isn't threadsafe
 	Pars=>'a();',
         GenericTypes => [ppdefs_all],
 	PMFunc => '',
 	Code => <<'EOF',
 PDL_MAYBE_SRAND
+int rand_offset = -1;
 threadloop %{
+  PDL_RAND_SET_OFFSET(rand_offset, $PRIV(pdlthread), $PDL(a));
   double tmp;
-  do tmp = pdl_drand(pdl_rand_state); while (tmp == 0.0); /* 0 < tmp < 1 */
+  do tmp = pdl_drand(pdl_rand_state + 4*rand_offset); while (tmp == 0.0); /* 0 < tmp < 1 */
   $a() = tmp;
 %}
 EOF

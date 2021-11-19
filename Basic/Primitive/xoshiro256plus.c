@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 
 /* https://prng.di.unimi.it/xoshiro256plus.c, made re-entrant for PDL */
 /*  Written in 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
@@ -114,16 +115,21 @@ uint64_t splitmix64_next(uint64_t *x) {
 	return z ^ (z >> 31);
 }
 
-int pdl_srand_called = 0;
-uint64_t pdl_rand_state[4];
+int pdl_srand_threads = -1; /* how many threads initialised for */
+uint64_t *pdl_rand_state;
 
-/* suitably-initialises a 4-long array */
-void pdl_srand(uint64_t *s, unsigned int seed) {
-  uint64_t x = (uint64_t)seed;
+/* suitably-initialises n 4-long arrays */
+void pdl_srand(uint64_t **sptr, uint64_t seed, int n) {
+  uint64_t x = seed, *s = *sptr;
+  if (pdl_srand_threads < n) {
+    if (*sptr) free(*sptr);
+    *sptr = s = malloc(n * 4 * sizeof(*s));
+    pdl_srand_threads = n;
+  }
+  n *= 4;
   int i;
-  for (i = 0; i < 4; i++)
+  for (i = 0; i < n; i++)
     s[i] = splitmix64_next(&x);
-  pdl_srand_called = 1;
 }
 
 double pdl_drand(uint64_t *s) {
