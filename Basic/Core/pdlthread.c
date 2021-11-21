@@ -551,14 +551,14 @@ void pdl_initthreadstruct(int nobl,
 	thread->ndims = ndims;
 	thread->nimpl = nimpl;
 
-      Newxz(thread->inds, ndims * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
+      Newxz(thread->inds, ndims * PDLMAX(nthr, 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
       if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c");
 
-      Newxz(thread->dims, ndims * (nthr>0 ? nthr : 1), PDL_Indx);
+      Newxz(thread->dims, ndims * PDLMAX(nthr, 1), PDL_Indx);
       if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
       for(nth=0; nth<ndims; nth++) thread->dims[nth]=1; // all start size 1
 
-      Newxz(thread->offs, npdls * (nthr>0 ? nthr : 1), PDL_Indx); /* Create space for pthread-specific offs */
+      Newxz(thread->offs, npdls * PDLMAX(nthr, 1), PDL_Indx); /* Create space for pthread-specific offs */
       if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c");
 
       Newxz(thread->incs, ndims * npdls, PDL_Indx);
