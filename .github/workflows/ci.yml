@@ -84,6 +84,7 @@ jobs:
         uses: PDLPorters/devops/github-actions/ci-dist@master
         with:
           target-install-dist-perl-deps: true
+          dist-perl-deps-configure: ExtUtils::MakeMaker Devel::CheckLib
 
       - name: 'ci-dist: target-test-release-testing'
         uses: PDLPorters/devops/github-actions/ci-dist@master
