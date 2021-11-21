@@ -1996,8 +1996,6 @@ and alters its argument.
        ); # pp_def: axisvalues
 
 pp_addhdr(<<'EOH');
-#include <time.h>
-
 extern int pdl_srand_threads;
 extern uint64_t *pdl_rand_state;
 void pdl_srand(uint64_t **s, uint64_t seed, int n);
