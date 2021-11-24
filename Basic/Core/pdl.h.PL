@@ -491,9 +491,8 @@ struct pdl {
                           never get destroyed */
    void *datasv;        /* Pointer to SV containing data. We own one inc of refcnt */
    void *data;            /* Pointer to actual data (in SV), or NULL if we have no data      */
-   /* bad value stored as double, since get_badvalue returns a double */
    PDL_Anyval badvalue; /* BAD value is stored as a PDL_Anyval for portability */
-   int has_badvalue;     /* flag is required by pdlapi.c (compare to PDL_BADVAL above -- why two? --CED) */
+   int has_badvalue;     /* whether this pdl has non-default badval */
    PDL_Indx nvals; /* Actual size of data (not quite nelem in case of dummy) */
    pdl_datatypes datatype; /* One of the usual suspects (PDL_L, PDL_D, etc.) */
    PDL_Indx   *dims;      /* Array of data dimensions - could point below or to an allocated array */
