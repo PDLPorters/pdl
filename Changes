@@ -1,3 +1,5 @@
+- define, use PDL_REPRINCS
+
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal
 

@@ -432,8 +432,8 @@ typedef struct pdl_vaffine {
 } pdl_vaffine;
 
 #define PDL_VAFFOK(pdl) (pdl->state & PDL_OPT_VAFFTRANSOK)
-#define PDL_REPRINC(pdl,which) (PDL_VAFFOK(pdl) ? \
-                pdl->vafftrans->incs[which] : pdl->dimincs[which])
+#define PDL_REPRINCS(pdl) (PDL_VAFFOK(pdl) ? pdl->vafftrans->incs : pdl->dimincs)
+#define PDL_REPRINC(pdl,which) (PDL_REPRINCS(pdl)[which])
 
 #define PDL_REPROFFS(pdl) (PDL_VAFFOK(pdl) ? pdl->vafftrans->offs : 0)
 

@@ -289,7 +289,7 @@ at_bad_c(x,position)
          croak("Invalid position");
 
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
-        (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
+        PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims);
    badflag = (x->state & PDL_BADVAL) > 0;
    if (badflag && ANYVAL_ISBAD(result, x, pdl_get_badvalue(x->datatype)))
@@ -332,7 +332,7 @@ listref_c(x)
 
    pdl_make_physvaffine( x );
    data = PDL_REPRP(x);
-   incs = (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs);
+   incs = PDL_REPRINCS(x);
    offs = PDL_REPROFFS(x);
    av = newAV();
    av_extend(av,x->nvals);
@@ -389,7 +389,7 @@ set_c(x,position,value)
 
     pdl_children_changesoon( x , PDL_PARENTDATACHANGED );
     pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
-        (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
+        PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims,value);
     if (PDL_VAFFOK(x))
        pdl_vaffinechanged(x, PDL_PARENTDATACHANGED);
@@ -873,8 +873,7 @@ threadover(...)
     pdl_startthreadloop(&pdl_thr,NULL,NULL);
     for(i=0; i<npdls; i++) { /* will the SV*'s be properly freed? */
 	dims[i] = newRV(pdl_unpackint(pdls[i]->dims,realdims[i]));
-	incs[i] = newRV(pdl_unpackint(PDL_VAFFOK(pdls[i]) ?
-	pdls[i]->vafftrans->incs: pdls[i]->dimincs,realdims[i]));
+	incs[i] = newRV(pdl_unpackint(PDL_REPRINCS(pdls[i]),realdims[i]));
 	/* need to make sure we get the vaffine (grand)parent */
 	if (PDL_VAFFOK(pdls[i]))
 	   pdls[i] = pdls[i]->vafftrans->from;
