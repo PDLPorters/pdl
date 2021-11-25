@@ -718,9 +718,9 @@ void pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 void pdl_make_physdims(pdl *it) {
 	PDL_Indx i;
 	int c = (it->state & (PDL_PARENTDIMSCHANGED | PDL_PARENTREPRCHANGED)) ;
-	PDLDEBUG_f(printf("Make_physdims %p\n",(void*)it));
+	PDLDEBUG_f(printf("Make_physdims %p (%X)\n",(void*)it, c));
         PDL_CHKMAGIC(it);
-	if(!(it->state & (PDL_PARENTDIMSCHANGED | PDL_PARENTREPRCHANGED))) {
+	if(!c) {
 	  PDLDEBUG_f(printf("Make_physdims_exit (NOP) %p\n",(void*)it));
 	  return;
 	}
