@@ -946,20 +946,6 @@ void pdl_make_physical(pdl *it) {
 	if(!(it->state & PDL_ALLOCATED)) {
 		pdl_allocdata(it);
 	}
-	/* Make parents physical first. XXX Needs more reasonable way */
-	/* Already done
-	 *	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
-	 *		pdl_make_physical(it->trans_parent->pdls[i]);
-	 *	}
-	*/
-	/*
-	 * We think we made them physical or physvaffine already...
-	 * for(i=0; i<it->trans_parent->vtable->npdls; i++) {
-	 *	if(!(it->trans_parent->pdls[i]->state & PDL_ALLOCATED)) {
-	 *		croak("Trying to readdata without physicality");
-	 *	}
-	 *}
-	 */
 	READDATA(it->trans_parent);
 	it->state &= (~PDL_ANYCHANGED) & (~PDL_OPT_ANY_OK);
 
