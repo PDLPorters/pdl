@@ -262,21 +262,17 @@ sclr_c(it)
 
 
 SV *
-at_bad_c(x,position)
+at_bad_c(x,pos)
    pdl*	x
-   SV *	position
+   PDL_Indx *pos
    PREINIT:
-    PDL_Indx * pos;
-    PDL_Indx npos;
     PDL_Indx ipos;
     int badflag;
     PDL_Anyval result = { -1, 0 };
    CODE:
     pdl_make_physvaffine( x );
 
-    pos = pdl_packdims( position, &npos);
-
-    if (pos == NULL || npos < x->ndims)
+    if (pos == NULL || pos_count < x->ndims)
        croak("Invalid position");
 
     /*  allow additional trailing indices
@@ -284,7 +280,7 @@ at_bad_c(x,position)
      *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
      *  infinite dim ndarray
      */
-    for (ipos=x->ndims; ipos<npos; ipos++)
+    for (ipos=x->ndims; ipos<pos_count; ipos++)
       if (pos[ipos] != 0)
          croak("Invalid position");
 
@@ -363,19 +359,16 @@ listref_c(x)
    RETVAL
 
 void
-set_c(x,position,value)
+set_c(x,pos,value)
     pdl*	x
-    SV*	position
+    PDL_Indx *pos
     PDL_Anyval	value
    PREINIT:
-    PDL_Indx * pos;
-    PDL_Indx npos;
     PDL_Indx ipos;
    CODE:
     pdl_make_physvaffine( x );
 
-    pos = pdl_packdims( position, &npos);
-    if (pos == NULL || npos < x->ndims)
+    if (pos == NULL || pos_count < x->ndims)
        croak("Invalid position");
 
     /*  allow additional trailing indices
@@ -383,7 +376,7 @@ set_c(x,position,value)
      *  [3,1,5] ndarray is treated as an [3,1,5,1,1,1,....]
      *  infinite dim ndarray
      */
-    for (ipos=x->ndims; ipos<npos; ipos++)
+    for (ipos=x->ndims; ipos<pos_count; ipos++)
       if (pos[ipos] != 0)
          croak("Invalid position");
 
@@ -693,16 +686,11 @@ getthreadid(x,y)
 		RETVAL
 
 void
-setdims(x,dims_arg)
+setdims(x,dims)
 	pdl *x
-      SV * dims_arg
-      PREINIT:
-	 PDL_Indx * dims;
-	 PDL_Indx ndims;
-       int i;
+	PDL_Indx *dims
 	CODE:
-		dims = pdl_packdims(dims_arg,&ndims);
-		pdl_setdims(x,dims,ndims);
+		pdl_setdims(x,dims,dims_count);
 
 void
 dowhenidle()
