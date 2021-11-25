@@ -674,12 +674,12 @@ void pdl_setdims_careful(pdl *it)
         pdl_reallocthreadids(it,1); /* XXX For now */
 }
 
-/* pdl_get is now vaffine aware */
 PDL_Anyval pdl_get(pdl *it,PDL_Indx *inds) {
         PDL_Indx i;
         PDL_Indx offs=PDL_REPROFFS(it);
+        PDL_Indx *incs=PDL_REPRINCS(it);
         for(i=0; i<it->ndims; i++)
-                offs += PDL_REPRINC(it,i) * inds[i];
+                offs += incs[i] * inds[i];
         return pdl_get_offs(PDL_REPRP(it),offs);
 }
 
