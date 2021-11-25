@@ -1030,39 +1030,29 @@ non-NaN and non-BAD containing vectors, followed by the NaN vectors.
 =cut
 
 sub PDL::uniqvec {
-
    my($pdl) = shift;
 
    return $pdl if ( $pdl->nelem == 0 || $pdl->ndims < 2 );
    return $pdl if ( $pdl->slice("(0)")->nelem < 2 );                     # slice isn't cheap but uniqvec isn't either
 
-   my $pdl2d = null;
-   $pdl2d = $pdl->mv(0,-1)->clump($pdl->ndims-1)->mv(-1,0);              # clump all but dim(0)
+   my $pdl2d = $pdl->mv(0,-1)->clump($pdl->ndims-1)->mv(-1,0);              # clump all but dim(0)
 
-   my $ngood = null;
-   $ngood = $pdl2d->ones->sumover;
-   $ngood = $pdl2d->ngoodover if $pdl->badflag;  # number of good values each vector
-   my $ngood2 = null;
-   $ngood2 = $ngood->where($ngood);                                      # number of good values with no all-BADs
+   my $ngood = $pdl->badflag ? $pdl2d->ngoodover : $pdl2d->ones->sumover;
+   my $ngood2 = $ngood->where($ngood);                                      # number of good values with no all-BADs
 
    $pdl2d = $pdl2d->mv(0,-1)->dice($ngood->which)->mv(-1,0);             # remove all-BAD vectors
 
+   my $numnan = ($pdl2d!=$pdl2d)->sumover;                                  # works since no all-BADs to confuse
 
-   my $numnan = null;
-   $numnan = ($pdl2d!=$pdl2d)->sumover;                                  # works since no all-BADs to confuse
-
-   my $presrt = null;
-   $presrt = $pdl2d->mv(0,-1)->dice($numnan->not->which)->mv(0,-1);      # remove vectors with any NaN values
-   my $nanvec = null;
-   $nanvec = $pdl2d->mv(0,-1)->dice($numnan->which)->mv(0,-1);           # the vectors with any NaN values
+   my $presrt = $pdl2d->mv(0,-1)->dice($numnan->not->which)->mv(0,-1);      # remove vectors with any NaN values
+   my $nanvec = $pdl2d->mv(0,-1)->dice($numnan->which)->mv(0,-1);           # the vectors with any NaN values
 
    # use dice instead of slice since qsortvec might be packing
    # the badvals to the front of the array instead of the end like
    # the docs say. If that is the case and it gets fixed, it won't
    # bust uniqvec. DAL 14-March 2006
 
-   my $srt = null;
-   $srt = $presrt->qsortvec->mv(0,-1);                                   # BADs are sorted by qsortvec
+   my $srt = $presrt->qsortvec->mv(0,-1);                                   # BADs are sorted by qsortvec
    my $srtdice = $srt;
    my $somebad = null;
    if ($srt->badflag) {
@@ -1070,19 +1060,13 @@ sub PDL::uniqvec {
       $somebad = $srt->dice($srt->mv(0,-1)->nbadover->which);
    }
 
-   my $uniq = null;
-   if ($srtdice->nelem > 0) {
-      $uniq = ($srtdice != $srtdice->rotate(-1))->mv(0,-1)->orover->which;
-   } else {
-      $uniq = $srtdice->orover->which;
-   }
+   my $uniq = $srtdice->nelem > 0
+     ? ($srtdice != $srtdice->rotate(-1))->mv(0,-1)->orover->which
+     : $srtdice->orover->which;
 
-   my $ans = null;
-   if ( $uniq->nelem > 0 ) {
-      $ans = $srtdice->dice($uniq);
-   } else {
-      $ans = ($srtdice->nelem > 0) ? $srtdice->slice("0,:") : $srtdice;
-   }
+   my $ans = $uniq->nelem > 0 ? $srtdice->dice($uniq) :
+      ($srtdice->nelem > 0) ? $srtdice->slice("0,:") :
+      $srtdice;
    return $ans->append($somebad)->append($nanvec->mv(0,-1))->mv(0,-1);
 }
 
