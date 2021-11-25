@@ -1035,11 +1035,8 @@ sub PDL::uniqvec {
    return $pdl if ( $pdl->nelem == 0 || $pdl->ndims < 2 );
    return $pdl if ( $pdl->slice("(0)")->nelem < 2 );                     # slice isn't cheap but uniqvec isn't either
 
-   my $pdl2d = $pdl->mv(0,-1)->clump($pdl->ndims-1)->mv(-1,0);              # clump all but dim(0)
-
-   my $ngood = $pdl->badflag ? $pdl2d->ngoodover : $pdl2d->ones->sumover;
-   my $ngood2 = $ngood->where($ngood);                                      # number of good values with no all-BADs
-
+   my $pdl2d = $pdl->clump(1..$pdl->ndims-1);
+   my $ngood = $pdl2d->ngoodover;
    $pdl2d = $pdl2d->mv(0,-1)->dice($ngood->which)->mv(-1,0);             # remove all-BAD vectors
 
    my $numnan = ($pdl2d!=$pdl2d)->sumover;                                  # works since no all-BADs to confuse
