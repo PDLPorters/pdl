@@ -649,7 +649,6 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 			trans->pdls[i]->trans_parent = trans;
 		}
 	  }
-	if(!trans->vtable) {die("INVALID TRANS: has no vtable!\n");}
 	/* now actually perform the transformation, i.e. call
 	   transform's redodims and readdata vtable entries
 	 */
