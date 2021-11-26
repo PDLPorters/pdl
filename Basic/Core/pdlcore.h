@@ -55,6 +55,11 @@ void pdl_writebackdata_vaffine(pdl *it);
 void pdl_readdata_vaffine(pdl *it);
 
 /* pdlutil.c */
+typedef enum {
+  PDL_FLAGS_TRANS,
+  PDL_FLAGS_PDL,
+  PDL_FLAGS_VTABLE
+} pdl_flags;
 void pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
 void pdl_print_iarr(PDL_Indx *iarr, int n);
 void pdl_dump_thread(pdl_thread *thread);

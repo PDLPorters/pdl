@@ -427,11 +427,7 @@ pdl *pdl_hard_copy(pdl *src) {
   spaces[i] = '\0'; \
 } while (0)
 
-/* some constants for the dump_XXX routines */
-#define PDL_FLAGS_TRANS 0
-#define PDL_FLAGS_PDL 1
-#define PDL_FLAGS_VTABLE 2
-void pdl_dump_flags_fixspace(int flags, int nspac, int type)
+void pdl_dump_flags_fixspace(int flags, int nspac, pdl_flags type)
 {
 	int i;
 	int found = 0;
@@ -475,17 +471,20 @@ PDL_LIST_FLAGS_PDLVTABLE(X)
 	int *flagval;
 	char **flagchar;
 	SET_SPACE(spaces, nspac);
-	if (type == PDL_FLAGS_PDL) {
-	  flagval = pdlflagval;
-	  flagchar = pdlflagchar;
-	} else if (type == PDL_FLAGS_VTABLE) {
-	  flagval = vtableflagval;
-	  flagchar = vtableflagchar;
-	} else {
-	  flagval = transflagval;
-	  flagchar = transflagchar;
-	}
-
+	switch (type) {
+          case PDL_FLAGS_PDL: {
+            flagval = pdlflagval;
+            flagchar = pdlflagchar;
+            break; }
+          case PDL_FLAGS_VTABLE: {
+            flagval = vtableflagval;
+            flagchar = vtableflagchar;
+            break; }
+          default: {
+            flagval = transflagval;
+            flagchar = transflagchar;
+          }
+        }
 	printf("%sState: (%d) ",spaces,flags);
 	found = 0; sz = 0;
 	for (i=0;flagval[i]!=0; i++)
