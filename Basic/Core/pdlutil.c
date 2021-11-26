@@ -1,5 +1,6 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
+#include <stdarg.h>
 
 #define msgptr_advance()                        \
 do {                                            \
@@ -18,6 +19,37 @@ do {                                            \
   spaces[i] = '\0'; \
 } while (0)
 #define psp printf("%s",spaces)
+
+/* modified from glibc printf(3) */
+pdl_error pdl_make_error(pdl_error_type e, const char *fmt, ...) {
+  pdl_error PDL_err = {e, NULL, 0};
+  int size = 0;
+  char *p = NULL;
+  va_list ap;
+  /* Determine required size */
+  va_start(ap, fmt);
+  size = vsnprintf(p, size, fmt, ap);
+  va_end(ap);
+  if (size < 0) return PDL_err;
+  size++;             /* For '\0' */
+  p = malloc(size);
+  if (p == NULL) return PDL_err;
+  va_start(ap, fmt);
+  size = vsnprintf(p, size, fmt, ap);
+  va_end(ap);
+  if (size < 0) {
+    free(p);
+    return PDL_err;
+  }
+  PDL_err.message = p;
+  PDL_err.needs_free = 1;
+  return PDL_err;
+}
+
+pdl_error pdl_make_error_simple(pdl_error_type e, const char *msg) {
+  pdl_error PDL_err = {e, msg, 0};
+  return PDL_err;
+}
 
 void pdl_croak_param(pdl_transvtable *vtable,int paramIndex, char *pat, ...)
 {

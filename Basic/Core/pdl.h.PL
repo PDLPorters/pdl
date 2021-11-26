@@ -283,6 +283,17 @@ PDL_GENERICLIST(X)
 
 typedef struct pdl_trans pdl_trans;
 
+typedef enum {
+  PDL_ENONE = 0, /* usable as boolean */
+  PDL_EUSERERROR, /* user error, no need to destroy */
+  PDL_EFATAL
+} pdl_error_type;
+typedef struct {
+  pdl_error_type error;
+  const char *message; /* if error but this NULL, parsing/alloc error */
+  char needs_free;
+} pdl_error;
+
 typedef struct pdl_transvtable {
         int flags;
         int iflags; /* flags that are starting point for pdl_trans.flags */
