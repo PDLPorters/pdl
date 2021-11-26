@@ -57,6 +57,7 @@ void pdl_readdata_vaffine(pdl *it);
 /* pdlutil.c */
 void pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
 void pdl_print_iarr(PDL_Indx *iarr, int n);
+void pdl_dump_thread(pdl_thread *thread);
 
 #define PDL_CORE_LIST(X) \
   X(SvPDLV, pdl*, ( SV* )) \
