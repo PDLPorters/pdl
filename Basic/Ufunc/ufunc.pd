@@ -43,7 +43,7 @@ sub projectdocs {
     my $name = shift;
     my $op = shift;
     my $extras = shift;
-    return <<EOD;
+    <<EOD;
 
 =for ref
 
@@ -75,7 +75,7 @@ sub cumuprojectdocs {
     my $name = shift;
     my $op = shift;
     my $extras = shift;
-    return <<EOD;
+    <<EOD;
 
 =for ref
 
@@ -601,13 +601,13 @@ EOF
 
 sub generic_qsort {
     my $pdl = shift;
-    return 'qsort_$PPSYM() ($P(' . $pdl . '), 0, nn);';
+    'qsort_$PPSYM() ($P(' . $pdl . '), 0, nn);';
 }
 
 sub generic_qsortvec {
     my $pdl = shift;
     my $ndim = shift;
-    return 'pdl_qsortvec_$PPSYM() ($P(' . $pdl . '), '. $ndim.', 0, nn);';
+    'pdl_qsortvec_$PPSYM() ($P(' . $pdl . '), '. $ndim.', 0, nn);';
 }
 
 
@@ -879,7 +879,7 @@ sub PDL::pct {
 	my(\$x, \$p) = \@_; 
     my \$tmp;
 	\$x->clump(-1)->pctover(\$p, \$tmp=PDL->nullcreate(\$x));
-	return \$tmp;
+	\$tmp;
 }
 
 EOD
@@ -907,7 +907,7 @@ sub PDL::oddpct {
 	my(\$x, \$p) = \@_; 
     my \$tmp;
 	\$x->clump(-1)->oddpctover(\$p, \$tmp=PDL->nullcreate(\$x));
-	return \$tmp;
+	\$tmp;
 }
 
 EOD
@@ -965,7 +965,7 @@ This routine handles bad values.
 sub PDL::$name {
 	my(\$x) = \@_; my \$tmp;
 	\$x->clump(-1)->${func}( \$tmp=PDL->nullcreate(\$x) );
-	return \$tmp;
+	\$tmp;
 }
 EOD
 
@@ -1047,7 +1047,7 @@ and therefore ignore whether the values are bad.
 sub PDL::minmax {
   my ($x)=@_; my $tmp;
   my @arr = $x->clump(-1)->minmaximum;
-  return map {$_->sclr} @arr[0,1]; # return as scalars !
+  map $_->sclr, @arr[0,1]; # as scalars !
 }
 
 EOPM
@@ -1106,7 +1106,7 @@ Bad values are moved to the end of the array:
     ); # pp_def qsort
 
 sub generic_qsort_ind {
-    return 'qsort_ind_$PPSYM() ($P(a), $P(indx),
+    'qsort_ind_$PPSYM() ($P(a), $P(indx),
             0, nn);';
 }
 
@@ -1212,7 +1212,7 @@ Vectors with bad components should be moved to the end of the array:
 sub generic_qsortvec_ind {
     my $pdl = shift;
     my $ndim = shift;
-    return 'pdl_qsortvec_ind_$PPSYM() ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
+    'pdl_qsortvec_ind_$PPSYM() ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
 }
 
 pp_def(
