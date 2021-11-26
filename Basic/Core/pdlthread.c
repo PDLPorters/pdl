@@ -476,7 +476,7 @@ void pdl_initthreadstruct(int nobl,
 	PDL_Indx mydim;
 	PDL_Indx nthr = 0; PDL_Indx nthrd;
 
-	PDLDEBUG_f(printf("Initthreadloop(%p)\n", (void*)thread);)
+	PDLDEBUG_f(printf("initthreadstruct(%p)\n", (void*)thread);)
 	  /* the following is a fix for a problem in the current core logic
            * see comments in pdl_make_physical in pdlapi.c
            * the if clause detects if this thread has previously been initialized
