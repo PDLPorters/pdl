@@ -187,7 +187,7 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
 				c->trans_parent[i] = NULL;
 				flag = 1;
 				if(!all) return;
-				/* return;  Cannot return; might be many times
+				/* Can't return; might be many times
 				  (e.g. $x+$x) */
 			}
 		}
@@ -1045,7 +1045,6 @@ void pdl_make_physvaffine(pdl *it)
 	if(!it->trans_parent) {
 		pdl_make_physical(it);
 		goto mkphys_vaff_end;
-		/* croak("Trying to make physvaffine without parent!\n"); */
 	}
 	if(!(it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) {
 		pdl_make_physical(it);
@@ -1107,7 +1106,6 @@ void pdl_make_physvaffine(pdl *it)
 		k,incsign,cur_offset,it->dims[i],ninced,current->dims[j],current->dimincs[j],
 		t->incs[k],t->incs[k-1],current->dims[k-1]);
 						*/
-							/* croak("Illegal vaffine; fix loop to break.\n"); */
 						}
 					  }
 					}
