@@ -7,6 +7,17 @@ do {                                            \
   msgptr    += N;                               \
   remaining -= N;                               \
 } while(0)
+#define SET_SPACE(s, nspac) char spaces[PDL_MAXSPACE]; do { \
+  int i; \
+  if (nspac >= PDL_MAXSPACE) { \
+    printf("too many spaces requested: %d" \
+           "  (increase PDL_MAXSPACE in pdlapi.c), returning\n",nspac); \
+    return; \
+  } \
+  for(i=0; i<nspac; i++) spaces[i]=' '; \
+  spaces[i] = '\0'; \
+} while (0)
+#define psp printf("%s",spaces)
 
 void pdl_croak_param(pdl_transvtable *vtable,int paramIndex, char *pat, ...)
 {
@@ -65,7 +76,6 @@ void pdl_print_iarr(PDL_Indx *iarr, int n) {
   printf(")");
 }
 
-#define psp printf("%s",spaces)
 void pdl_dump_thread(pdl_thread *thread) {
   int i, j, found=0, sz=0;
   char spaces[] = "    ";
@@ -279,4 +289,158 @@ void pdl_thread_mismatch_msg(
     sprintf(s,"\n");
     s += strlen(s);
   }
+}
+
+void pdl_dump_flags_fixspace(int flags, int nspac, pdl_flags type)
+{
+	int i;
+	int found = 0;
+	size_t sz = 0;
+	int pdlflagval[] = {
+#define X(f) f,
+PDL_LIST_FLAGS_PDLSTATE(X)
+#undef X
+	    0
+	};
+	char *pdlflagchar[] = {
+#define X(f) #f,
+PDL_LIST_FLAGS_PDLSTATE(X)
+#undef X
+	    NULL
+	};
+	int transflagval[] = {
+#define X(f) f,
+PDL_LIST_FLAGS_PDLTRANS(X)
+#undef X
+	    0
+	};
+	char *transflagchar[] = {
+#define X(f) #f,
+PDL_LIST_FLAGS_PDLTRANS(X)
+#undef X
+	  NULL
+	};
+	int vtableflagval[] = {
+#define X(f) f,
+PDL_LIST_FLAGS_PDLVTABLE(X)
+#undef X
+	    0
+	};
+	char *vtableflagchar[] = {
+#define X(f) #f,
+PDL_LIST_FLAGS_PDLVTABLE(X)
+#undef X
+	  NULL
+	};
+	int *flagval;
+	char **flagchar;
+	SET_SPACE(spaces, nspac);
+	switch (type) {
+          case PDL_FLAGS_PDL: {
+            flagval = pdlflagval;
+            flagchar = pdlflagchar;
+            break; }
+          case PDL_FLAGS_VTABLE: {
+            flagval = vtableflagval;
+            flagchar = vtableflagchar;
+            break; }
+          default: {
+            flagval = transflagval;
+            flagchar = transflagchar;
+          }
+        }
+	printf("%sState: (%d) ",spaces,flags);
+	found = 0; sz = 0;
+	for (i=0;flagval[i]!=0; i++)
+	  if (flags & flagval[i]) {
+	    if (sz>PDL_MAXLIN) {sz=0; printf("\n       %s",spaces);}
+	    printf("%s%s",found ? "|":"",flagchar[i]);
+	    found = 1;
+	    sz += strlen(flagchar[i]);
+	  }
+	printf("\n");
+}
+
+/* Dump a transformation (don't dump the pdls, just pointers to them */
+void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
+	PDL_Indx i;
+	SET_SPACE(spaces, nspac);
+	printf("%sDUMPTRANS %p (%s)\n",spaces,(void*)it,it->vtable->name);
+	pdl_dump_flags_fixspace(it->flags,nspac+3,PDL_FLAGS_TRANS);
+	printf("%s   vtable flags ",spaces);
+	pdl_dump_flags_fixspace(it->vtable->flags,nspac+3,PDL_FLAGS_VTABLE);
+	if(it->flags & PDL_ITRANS_ISAFFINE) {
+		if(it->pdls[1]->state & PDL_PARENTDIMSCHANGED) {
+			printf("%s   AFFINE, BUT DIMSCHANGED\n",spaces);
+		} else {
+			printf("%s   AFFINE: o:%"IND_FLAG", i:",spaces,it->offs);
+			if (it->incs)
+			  pdl_print_iarr(it->incs, it->pdls[1]->ndims);
+			printf(" d:");
+			pdl_print_iarr(it->pdls[1]->dims, it->pdls[1]->ndims);
+			printf("\n");
+		}
+	}
+/*	if(it->vtable->dump) {it->vtable->dump(it);} */
+	printf("%s   ind_sizes: ",spaces);
+	pdl_print_iarr(it->ind_sizes, it->vtable->ninds); printf("\n");
+	printf("%s   inc_sizes: ",spaces);
+	pdl_print_iarr(it->inc_sizes, it->vtable->nind_ids); printf("\n");
+	printf("%s   INPUTS: (",spaces);
+	for(i=0; i<it->vtable->nparents; i++)
+		printf("%s%p",(i?" ":""),(void*)(it->pdls[i]));
+	printf(")     OUTPUTS: (");
+	for(;i<it->vtable->npdls; i++)
+		printf("%s%p",(i?" ":""),(void*)(it->pdls[i]));
+	printf(")\n");
+}
+
+void pdl_dump_fixspace(pdl *it,int nspac)
+{
+	PDL_DECL_CHILDLOOP(it)
+	PDL_Indx i;
+	SET_SPACE(spaces, nspac);
+	printf("%sDUMPING %p     datatype: %d\n",spaces,(void*)it,it->datatype);
+	pdl_dump_flags_fixspace(it->state,nspac+3,PDL_FLAGS_PDL);
+	printf("%s   transvtable: %p, trans: %p, sv: %p\n",spaces,
+		(void*)(it->trans_parent?it->trans_parent->vtable:0), (void*)(it->trans_parent), (void*)(it->sv));
+	if(it->datasv)
+		printf("%s   datasv: %p, Svlen: %d\n", spaces,
+			(void*)it->datasv, (int)SvCUR((SV*)it->datasv));
+	if(it->data)
+		printf("%s   data: %p, nvals: %"IND_FLAG"\n", spaces,
+			(void*)(it->data), it->nvals);
+	if(it->hdrsv)
+		printf("%s   hdrsv: %p, reftype %s\n", spaces,
+			(void*)it->hdrsv, sv_reftype((SV*)it->hdrsv, TRUE));
+	printf("%s   Dims: %p ",spaces,(void*)it->dims);
+	pdl_print_iarr(it->dims, it->ndims);
+	printf("\n%s   ThreadIds: %p ",spaces,(void*)(it->threadids));
+	pdl_print_iarr(it->threadids, it->nthreadids);
+	if(PDL_VAFFOK(it)) {
+		printf("\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:",
+			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
+		pdl_print_iarr(it->vafftrans->incs, it->ndims);
+	}
+	if(it->state & PDL_ALLOCATED) {
+		printf("\n%s   First values: (",spaces);
+		for(i=0; i<it->nvals && i<10; i++) {
+                       printf("%s%f",(i?" ":""),pdl_get_offs(it,i).value.D);
+		}
+	} else {
+		printf("\n%s   (not allocated",spaces);
+	}
+	printf(")\n");
+	if(it->trans_parent) {
+		pdl_dump_trans_fixspace(it->trans_parent,nspac+3);
+	}
+	printf("%s   CHILDREN:\n",spaces);
+	PDL_START_CHILDLOOP(it)
+		pdl_dump_trans_fixspace(PDL_CHILDLOOP_THISCHILD(it),nspac+4);
+	PDL_END_CHILDLOOP(it)
+	/* XXX phys etc. also */
+}
+
+void pdl_dump (pdl *it) {
+	pdl_dump_fixspace(it,0);
 }
