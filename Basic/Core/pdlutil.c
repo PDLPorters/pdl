@@ -224,3 +224,59 @@ void pdl_dump_threading_info(
     "maxPthread = %d, maxPthreadPDL = %d, maxPthreadDim = %d\n",
     target_pthread, maxPthread, maxPthreadPDL, maxPthreadDim);
 }
+
+void pdl_thread_mismatch_msg(
+  char *s,
+  pdl **pdls, pdl_thread *thread,
+  PDL_Indx i, PDL_Indx j, PDL_Indx nimpl,
+  PDL_Indx *realdims,PDL_Indx *creating
+) {
+  /* This probably uses a lot more lines than necessary */
+  int ii,jj,maxrealdims;
+  sprintf(s,
+    "  Mismatched implicit thread dimension %"IND_FLAG": size %"IND_FLAG" vs. %"IND_FLAG"\nThere are %"IND_FLAG" PDLs in the expression; %"IND_FLAG" thread dim%s.\n",
+    i,thread->dims[i],pdls[j]->dims[i+realdims[j]],
+    thread->npdls,nimpl,(nimpl==1)?"":"s"
+  );
+  s += strlen(s);
+  for(ii=maxrealdims=0; ii<thread->npdls; ii++)
+    if(thread->realdims[ii]>maxrealdims)
+      maxrealdims=thread->realdims[ii];
+  sprintf(s,  "   PDL IN EXPR.    "); s += strlen(s);
+  if(maxrealdims > 0) {
+    char format[80];
+    sprintf(format,"%%%ds",8 * maxrealdims + 3);
+    sprintf(s,format,"ACTIVE DIMS | ");
+    s += strlen(s);
+  }
+  sprintf(s,"THREAD DIMS\n");
+  s += strlen(s);
+  for(ii=0; ii<thread->npdls; ii++) {
+    sprintf(s,"   #%3d (%s",ii,creating[ii]?"null)\n":"normal): ");
+    s += strlen(s);
+    if(creating[ii])
+      continue;
+    if(maxrealdims == 1) {
+      sprintf(s,"    ");
+      s += strlen(s);
+    }
+    for(jj=0; jj< maxrealdims - thread->realdims[ii]; jj++) {
+      sprintf(s,"%8s"," ");
+      s += strlen(s);
+    }
+    for(jj=0; jj< thread->realdims[ii]; jj++) {
+      sprintf(s,"%8"IND_FLAG,pdls[ii]->dims[jj]);
+      s += strlen(s);
+    }
+    if(maxrealdims) {
+      sprintf(s," | ");
+      s += strlen(s);
+    }
+    for(jj=0; jj<nimpl && jj + thread->realdims[ii] < pdls[ii]->ndims; jj++) {
+      sprintf(s,"%8"IND_FLAG,pdls[ii]->dims[jj+thread->realdims[ii]]);
+      s += strlen(s);
+    }
+    sprintf(s,"\n");
+    s += strlen(s);
+  }
+}

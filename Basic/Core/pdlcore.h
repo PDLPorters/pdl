@@ -63,6 +63,12 @@ void pdl_dump_threading_info(
   PDL_Indx *nthreadedDims, PDL_Indx **threadedDims, PDL_Indx **threadedDimSizes,
   int maxPthreadPDL, int maxPthreadDim, int maxPthread
 );
+void pdl_thread_mismatch_msg(
+  char *s,
+  pdl **pdls, pdl_thread *thread,
+  PDL_Indx i, PDL_Indx j, PDL_Indx nimpl,
+  PDL_Indx *realdims,PDL_Indx *creating
+);
 
 #define PDL_CORE_LIST(X) \
   X(SvPDLV, pdl*, ( SV* )) \
