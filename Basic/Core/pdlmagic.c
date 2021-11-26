@@ -247,9 +247,10 @@ pdl_magic *pdl_add_fammutmagic(pdl *it,pdl_trans *ft)
 
 typedef struct ptarg {
 	pdl_magic_pthread *mag;
-	void (*func)(pdl_trans *);
+	pdl_error (*func)(pdl_trans *);
 	pdl_trans *t;
 	int no;
+	pdl_error error_return;
 } ptarg;
 
 int pdl_pthreads_enabled(void) {return 1;}
@@ -259,7 +260,7 @@ static void *pthread_perform(void *vp) {
 	struct ptarg *p = (ptarg *)vp;
 	PDLDEBUG_f(printf("STARTING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self());)
 	pthread_setspecific(p->mag->key,(void *)&(p->no));
-	(p->func)(p->t);
+	p->error_return = (p->func)(p->t);
 	PDLDEBUG_f(printf("ENDING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self());)
 	return NULL;
 }
@@ -279,7 +280,7 @@ int pdl_magic_get_thread(pdl *it) {
 	return *p;
 }
 
-pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {
+pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
 	int clearMagic = 0; /* Flag = 1 if we are temporarily creating pthreading magic in the
@@ -317,6 +318,7 @@ pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, 
 	    tparg[i].func = func;
 	    tparg[i].t = t;
 	    tparg[i].no = i;
+	    tparg[i].error_return = PDL_err;
 	    if (pthread_create(tp+i, NULL, pthread_perform, tparg+i)) {
 		return pdl_make_error_simple(PDL_EFATAL, "Unable to create pthreads!");
 	    }
@@ -336,25 +338,22 @@ pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, 
 		PDL_RETERROR(PDL_err, pdl_add_threading_magic(it, -1, -1));
 	}
 
-	// handle any errors that may have occurred in the worker threads I reset the
-	// length before actually barfing/warning because barf() may not come back.
-	// In that case, I'll have len==0, but an unfreed pointer. This memory will
-	// be reclaimed the next time we barf/warn something (since I'm using
-	// realloc). If we never barf/warn again, we'll hold onto this memory until
-	// the interpreter exits. This is a one-time penalty, though so it's fine
-#define handle_deferred_errors(type)							\
+#define handle_deferred_errors(type, action)							\
 	do{															\
 		if(pdl_pthread_##type##_msgs_len != 0)					\
 		{														\
 			pdl_pthread_##type##_msgs_len = 0;					\
-			pdl_pdl_##type ("%s", pdl_pthread_##type##_msgs);	\
+			action;	\
 			free(pdl_pthread_##type##_msgs);					\
 			pdl_pthread_##type##_msgs	  = NULL;				\
 		}														\
 	} while(0)
 
-	handle_deferred_errors(warn);
-	handle_deferred_errors(barf);
+	handle_deferred_errors(warn, pdl_pdl_warn("%s", pdl_pthread_warn_msgs));
+	handle_deferred_errors(barf, PDL_err = pdl_error_accumulate(PDL_err, pdl_make_error(PDL_EFATAL, "%s", pdl_pthread_barf_msgs)));
+	for(i=0; i<thread->mag_nthr; i++) {
+	    PDL_err = pdl_error_accumulate(PDL_err, tparg[i].error_return);
+	}
 	return PDL_err;
 }
 
@@ -526,7 +525,7 @@ int pdl_online_cpus(void)
 /* Dummy versions */
 pdl_error pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
 int pdl_magic_get_thread(pdl *it) {return 0;}
-pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
+pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
 int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {return 0;}
 int pdl_pthreads_enabled() {return 0;}
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args){ return 0;}

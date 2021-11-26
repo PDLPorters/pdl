@@ -1987,7 +1987,7 @@ double pdl_drand(uint64_t *s);
   if (v < 0) { \
     if (thr.mag_nthr >= 0) { \
       int thr_no = PDL->magic_get_thread(pdl); \
-      if (thr_no < 0) die("Invalid pdl_magic_get_thread!"); \
+      if (thr_no < 0) return PDL->make_error_simple(PDL_EFATAL, "Invalid pdl_magic_get_thread!"); \
       v = thr_no == 0 ? thr_no : thr_no % PDL->online_cpus(); \
     } else { \
       v = 0; \

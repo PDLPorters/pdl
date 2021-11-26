@@ -49,8 +49,8 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Valu
 void pdl_vafftrans_free(pdl *it);
 void pdl_vafftrans_remove(pdl * it);
 pdl_error pdl_vafftrans_alloc(pdl *it);
-void pdl_writebackdata_vaffine(pdl *it);
-void pdl_readdata_vaffine(pdl *it);
+pdl_error pdl_writebackdata_vaffine(pdl *it);
+pdl_error pdl_readdata_vaffine(pdl *it);
 
 /* pdlutil.c */
 typedef enum {
@@ -97,8 +97,8 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
     PDL_Indx *creating,PDL_Indx npdls,pdl_transvtable *transvtable, \
     pdl_thread *thread,PDL_Indx *ind_sizes,PDL_Indx *inc_sizes, \
     char *flags, int noPthreadFlag)) \
-  X(redodims_default, void, (pdl_trans *)) \
-  X(startthreadloop, int, (pdl_thread *thread,void (*func)(pdl_trans *), \
+  X(redodims_default, pdl_error, (pdl_trans *)) \
+  X(startthreadloop, int, (pdl_thread *thread,pdl_error (*func)(pdl_trans *), \
     pdl_trans *, pdl_error *)) \
   X(get_threadoffsp, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(get_threaddims, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
@@ -134,8 +134,8 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(set_datatype, pdl_error, (pdl *a, int datatype)) \
   X(hdr_copy, SV *, (SV *hdrp)) \
   X(hdr_childcopy, void, (pdl_trans *trans)) \
-  X(readdata_affine, void, (pdl_trans *trans)) \
-  X(writebackdata_affine, void, (pdl_trans *trans)) \
+  X(readdata_affine, pdl_error, (pdl_trans *trans)) \
+  X(writebackdata_affine, pdl_error, (pdl_trans *trans)) \
   X(affine_new, pdl_error, (pdl *par,pdl *child,PDL_Indx offs,SV *dims,SV *incs)) \
   X(converttypei_new, pdl_error, (pdl *par,pdl *child,int type)) \
   X(dump, void, (pdl *it)) \

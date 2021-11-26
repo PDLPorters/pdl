@@ -131,7 +131,7 @@ pdl_error pdl_add_threading_magic(pdl *,PDL_Indx nthdim, PDL_Indx nthreads);
 int pdl_magic_thread_nthreads(pdl *,PDL_Indx *nthdim);
 int pdl_magic_get_thread(pdl *);
 
-pdl_error pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);
+pdl_error pdl_magic_thread_cast(pdl *,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);
 int pdl_pthreads_enabled(void);
 
 /* Delete data magic */

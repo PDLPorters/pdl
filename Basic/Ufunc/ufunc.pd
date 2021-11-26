@@ -1110,7 +1110,7 @@ pp_def(
        Pars => 'a(n); indx [o]indx(n);',
        Code => 
        'PDL_Indx nn = $SIZE(n)-1;
-        if ($SIZE(n) == 0) return;
+        if ($SIZE(n) == 0) return PDL_err;
         loop(n) %{ 
            $indx() = n; 
         %}
@@ -1120,7 +1120,7 @@ pp_def(
        ' . generic_qsort_ind(),
        BadCode =>
        'register PDL_Indx nn = 0, nb = $SIZE(n) - 1;
-        if ($SIZE(n) == 0) return;
+        if ($SIZE(n) == 0) return PDL_err;
         loop(n) %{ 
            if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
            else                { $indx(n=>nb) = n; nb--; }

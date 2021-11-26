@@ -4,13 +4,14 @@
 #include "pdlcore.h"  /* Core declarations */
 
 #define VTABLE_OR_DEFAULT(trans, func, default_func) \
-  ((trans)->vtable->func \
+  PDL_RETERROR(PDL_err, ((trans)->vtable->func \
     ? (trans)->vtable->func \
-    : pdl_ ## default_func)(trans)
+    : pdl_ ## default_func)(trans))
 
 #define REDODIMS(trans) do { \
     if (trans->dims_redone) { \
 	FREETRANS(trans, 0); \
+	if (PDL_err.error) return PDL_err; \
 	trans->dims_redone = 0; \
     } \
     VTABLE_OR_DEFAULT(trans, redodims, redodims_default); \
@@ -20,7 +21,8 @@
 #define FREETRANS(trans, destroy) \
     if(trans->vtable->freetrans) { \
 	PDLDEBUG_f(printf("call freetrans\n")); \
-	trans->vtable->freetrans(trans, destroy); \
+	PDL_err = trans->vtable->freetrans(trans, destroy); \
+	    /* ignore error for now as need to still free rest */ \
 	if (destroy) PDL_TR_CLRMAGIC(trans); \
     }
 
@@ -689,7 +691,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   return PDL_err;
 } /* pdl_make_trans_mutual() */
 
-void pdl_redodims_default(pdl_trans *trans) {
+pdl_error pdl_redodims_default(pdl_trans *trans) {
+  pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_redodims_default "));
   PDLDEBUG_f(pdl_dump_trans_fixspace(trans,0));
   PDL_Indx creating[trans->vtable->npdls];
@@ -699,12 +702,13 @@ void pdl_redodims_default(pdl_trans *trans) {
   for (i=0; i<vtable->npdls; i++)
     creating[i] = (vtable->par_flags[i] & PDL_PARAM_ISCREAT) &&
       PDL_DIMS_FROM_TRANS(trans,pdls[i]);
-  pdl_barf_if_error(pdl_initthreadstruct(2, pdls,
+  PDL_RETERROR(PDL_err, pdl_initthreadstruct(2, pdls,
     vtable->par_realdims, creating, vtable->npdls, vtable,
     &trans->pdlthread, trans->ind_sizes, trans->inc_sizes,
     vtable->per_pdl_flags, vtable->flags & PDL_TRANS_NO_PARALLEL));
   pdl_hdr_childcopy(trans);
   trans->dims_redone = 1;
+  return PDL_err;
 }
 
 pdl_error pdl_make_physical(pdl *it) {
@@ -733,7 +737,7 @@ pdl_error pdl_make_physical(pdl *it) {
 	}
 	if(PDL_VAFFOK(it)) {
 	  PDLDEBUG_f(printf("Make_phys: VAFFOK\n"));
-		pdl_readdata_vaffine(it);
+		PDL_RETERROR(PDL_err, pdl_readdata_vaffine(it));
 		it->state &= (~PDL_ANYCHANGED);
 		PDLDEBUG_f(pdl_dump(it));
 		goto mkphys_end;
@@ -843,7 +847,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
 		if((trans->flags & PDL_ITRANS_ISAFFINE) &&
 		   (PDL_VAFFOK(it))) {
 		  PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
-			pdl_writebackdata_vaffine(it);
+			PDL_RETERROR(PDL_err, pdl_writebackdata_vaffine(it));
 			PDL_RETERROR(PDL_err, pdl_changed(it->vafftrans->from,what,0));
 		} else {
 			PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));
@@ -909,7 +913,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what)
 		        trans->pdls[1]->state &= ~(PDL_PARENTDIMSCHANGED |
 						  PDL_PARENTREPRCHANGED);
 			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[1]));
-			pdl_readdata_vaffine(trans->pdls[1]);
+			PDL_RETERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
 		} else {
 			READDATA(trans);
 		}

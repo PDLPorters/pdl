@@ -697,7 +697,7 @@ EOD
                  ',
         MakeComp => <<'EOD-MakeComp',
 pdl *size_pdl;
-PDL->barf_if_error(PDL->make_physdims(ind_pdl));
+PDL_RETERROR(PDL_err, PDL->make_physdims(ind_pdl));
 
 /* Generalized empties are ok, but not in the special 0 dim (the index vector) */
 if(ind_pdl->dims[0] == 0)
@@ -712,10 +712,10 @@ switch(ind_pdl->datatype) {
    ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
    if (!ind_pdl) $CROAK("Error in hard_copy");
  case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_LL:
-   PDL->barf_if_error(PDL->converttype(ind_pdl,PDL_IND)); /* convert in place. */
+   PDL_RETERROR(PDL_err, PDL->converttype(ind_pdl,PDL_IND)); /* convert in place. */
    break;
  case PDL_IND:
-   PDL->barf_if_error(PDL->make_physical(ind_pdl));
+   PDL_RETERROR(PDL_err, PDL->make_physical(ind_pdl));
    break;
 }
 
@@ -818,10 +818,10 @@ switch(ind_pdl->datatype) {
         size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
         if (!size_pdl) $CROAK("Error in hard_copy");
       case PDL_B: case PDL_S: case PDL_US: case PDL_L:  case PDL_LL:
-        PDL->barf_if_error(PDL->converttype(size_pdl,PDL_IND)); /* convert in place. */
+        PDL_RETERROR(PDL_err, PDL->converttype(size_pdl,PDL_IND)); /* convert in place. */
         break;
       case PDL_IND:
-        PDL->barf_if_error(PDL->make_physical(size_pdl));
+        PDL_RETERROR(PDL_err, PDL->make_physical(size_pdl));
         break;
       }
 
@@ -1871,7 +1871,7 @@ EOD
                         }
                 }
                 $SETDIMS();
-                PDL->barf_if_error(PDL->reallocthreadids($CHILD_PTR(),
+                PDL_RETERROR(PDL_err, PDL->reallocthreadids($CHILD_PTR(),
                                 PDLMAX($COMP(id)+1, $PARENT(nthreadids))));
                 for(i=0; i<$CHILD(nthreadids)-1; i++) {
                         $CHILD(threadids[i]) =

@@ -534,7 +534,7 @@ See the manual for why this is impossible");
 	return PDL_err;
 }
 
-int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
+int pdl_startthreadloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 			pdl_trans *t, pdl_error *error_ret) {
 	PDL_Indx j, npdls = thread->npdls;
 	PDL_Indx *offsp; int thr;

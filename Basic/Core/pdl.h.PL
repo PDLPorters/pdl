@@ -310,10 +310,10 @@ typedef struct pdl_transvtable {
         PDL_Indx nind_ids;
         PDL_Indx ninds;
         char **ind_names; /* sorted names of "indices", eg for a(m), the "m" */
-        void (*redodims)(pdl_trans *tr);      /* Only dims and internal trans (makes phys) */
-        void (*readdata)(pdl_trans *tr);      /* Only data, to "data" ptr  */
-        void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
-        void (*freetrans)(pdl_trans *tr, char);
+        pdl_error (*redodims)(pdl_trans *tr); /* Only dims and internal trans (makes phys) */
+        pdl_error (*readdata)(pdl_trans *tr); /* Only data, to "data" ptr  */
+        pdl_error (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
+        pdl_error (*freetrans)(pdl_trans *tr, char);
         int structsize;
         char *name;                           /* For debuggers, mostly */
 } pdl_transvtable;
@@ -556,7 +556,10 @@ typedef struct pdl_slice_args {
 #define PDL_RETERROR(rv, expr) \
   do { rv = expr; if (rv.error) return rv; } while (0)
 
-#define PDL_ENSURE_ALLOCATED(it) ( (void)((it->state & PDL_ALLOCATED) || ((pdl_allocdata(it)),1)) )
+#define PDL_ENSURE_ALLOCATED(it) \
+  if (!(it->state & PDL_ALLOCATED)) { \
+    PDL_RETERROR(PDL_err, pdl_allocdata(it)); \
+  }
 
 /* for use with PDL_GENERICLIST_REAL */
 #define PDL_QSORT(symbol, ctype, ppsym, shortctype, defbval) \

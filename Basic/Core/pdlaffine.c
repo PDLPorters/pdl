@@ -47,18 +47,22 @@ pp_def(
     } \
   }
 
-void pdl_readdata_affine(pdl_trans *trans) {
-  if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return;
+pdl_error pdl_readdata_affine(pdl_trans *trans) {
+  pdl_error PDL_err = {0, NULL, 0};
+  if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return PDL_err;
 #define X(sym, ctype, ppsym, shortctype, defbval) COPYDATA(ctype, 0, 1)
-  PDL_GENERICSWITCH(trans->__datatype, X, croak("Not a known data type code=%d", trans->__datatype))
+  PDL_GENERICSWITCH(trans->__datatype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
 #undef X
+  return PDL_err;
 }
 
-void pdl_writebackdata_affine(pdl_trans *trans) {
-  if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return;
+pdl_error pdl_writebackdata_affine(pdl_trans *trans) {
+  pdl_error PDL_err = {0, NULL, 0};
+  if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return PDL_err;
 #define X(sym, ctype, ppsym, shortctype, defbval) COPYDATA(ctype, 1, 0)
-  PDL_GENERICSWITCH(trans->__datatype, X, croak("Not a known data type code=%d", trans->__datatype))
+  PDL_GENERICSWITCH(trans->__datatype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
 #undef X
+  return PDL_err;
 }
 
 /* generated from:
@@ -110,30 +114,34 @@ typedef struct pdl_params_affine {
   PDL_Indx  *sincs;
 } pdl_params_affine;
 
-void pdl_affine_redodims(pdl_trans *trans) {
+pdl_error pdl_affine_redodims(pdl_trans *trans) {
+  pdl_error PDL_err = {0, NULL, 0};
   pdl_params_affine *params = trans->params;
   pdl *__it = trans->pdls[1];
   pdl_hdr_childcopy(trans);
   PDL_Indx i;
-  pdl_barf_if_error(pdl_reallocdims(__it, params->nd));
+  PDL_RETERROR(PDL_err, pdl_reallocdims(__it, params->nd));
   trans->incs = malloc(sizeof(*trans->incs) * trans->pdls[1]->ndims);
-  if (!trans->incs) croak("Out of Memory\n");
+  if (!trans->incs) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
   trans->offs = params->offset;
   for (i=0;i<trans->pdls[1]->ndims;i++) {
     trans->incs[i] = params->sincs[i];
     trans->pdls[1]->dims[i] = params->sdims[i];
   }
-  pdl_barf_if_error(pdl_setdims_careful(__it));
+  PDL_RETERROR(PDL_err, pdl_setdims_careful(__it));
   trans->dims_redone = 1;
+  return PDL_err;
 }
 
-void pdl_affine_free(pdl_trans *trans, char destroy) {
+pdl_error pdl_affine_free(pdl_trans *trans, char destroy) {
+  pdl_error PDL_err = {0, NULL, 0};
   pdl_params_affine *params = trans->params;
   if (destroy) {
     free(params->sdims);
     free(params->sincs);
   }
   if ((trans)->dims_redone) free(trans->incs);
+  return PDL_err;
 }
 
 static pdl_datatypes pdl_affine_vtable_gentypes[] = { PDL_B, PDL_S, PDL_US, PDL_L, PDL_IND, PDL_LL, PDL_F, PDL_D, PDL_CF, PDL_CD, -1 };
@@ -212,18 +220,20 @@ typedef struct pdl_params_converttypei {
   int  totype;
 } pdl_params_converttypei;
 
-void pdl_converttypei_redodims(pdl_trans *trans) {
+pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
+  pdl_error PDL_err = {0, NULL, 0};
   pdl *__it = trans->pdls[1];
   pdl_hdr_childcopy(trans);
   PDL_Indx i;
-  pdl_barf_if_error(pdl_reallocdims(__it, trans->pdls[0]->ndims));
+  PDL_RETERROR(PDL_err, pdl_reallocdims(__it, trans->pdls[0]->ndims));
   for (i=0; i<trans->pdls[1]->ndims; i++)
     trans->pdls[1]->dims[i] = trans->pdls[0]->dims[i];
-  pdl_barf_if_error(pdl_setdims_careful(__it));
+  PDL_RETERROR(PDL_err, pdl_setdims_careful(__it));
   pdl_reallocthreadids(trans->pdls[1], trans->pdls[0]->nthreadids);
   for (i=0; i<trans->pdls[0]->nthreadids; i++)
     trans->pdls[1]->threadids[i] = trans->pdls[0]->threadids[i];
   trans->dims_redone = 1;
+  return PDL_err;
 }
 
 #define COPYCONVERT(from_pdl, to_pdl) \
@@ -237,27 +247,30 @@ void pdl_converttypei_redodims(pdl_trans *trans) {
     } \
   }
 
-void pdl_converttypei_readdata(pdl_trans *trans) {
+pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
+  pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
 #define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
-  PDL_GENERICSWITCH2(trans->__datatype, X_INNER, croak("Not a known data type code=%d", trans->__datatype))
+  PDL_GENERICSWITCH2(trans->__datatype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(PARENT, CHILD)
-  PDL_GENERICSWITCH(params->totype, X_OUTER, croak("Not a known data type code=%d", params->totype))
+  PDL_GENERICSWITCH(params->totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", params->totype))
 #undef X_INNER
+  return PDL_err;
 }
 
-void pdl_converttypei_writebackdata(pdl_trans *trans) {
+pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(CHILD, PARENT)
-  PDL_GENERICSWITCH(params->totype, X_OUTER, croak("Not a known data type code=%d", params->totype))
+  PDL_GENERICSWITCH(params->totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", params->totype))
 #undef X_INNER
 #undef X_OUTER
+  return PDL_err;
 }
 
 static pdl_datatypes pdl_converttypei_vtable_gentypes[] = { PDL_B, PDL_S, PDL_US, PDL_L, PDL_IND, PDL_LL, PDL_F, PDL_D, PDL_CF, PDL_CD, -1 };

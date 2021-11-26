@@ -418,7 +418,7 @@ sub dosubst_private {
       ((ref $src) ? %{$src->[1]} : ()),
       PRIV => sub {return "$sname->$_[0]"},
       COMP => sub {return "$pname->$_[0]"},
-      CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->pdl_barf(\"Error in $name:\" $_[0])")},
+      CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "return PDL->make_error(PDL_EUSERERROR, \"Error in $name:\" $_[0])")},
       NAME => sub {return $name},
       MODULE => sub {return $::PDLMOD},
       SETPDLSTATEBAD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state |= PDL_BADVAL") },
@@ -536,10 +536,10 @@ our @ISA = qw (PDL::PP::Rule);
 # This is a copy of the main one for now. Need a better solution.
 #
 my @std_redodims = (
-  SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error(PDL->reallocdims(__it,$_[0]));")},
-  SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error(PDL->setdims_careful(__it));")},
+  SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->reallocdims(__it,$_[0]));")},
+  SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->setdims_careful(__it));")},
   SETDELTATHREADIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
-{int __ind; PDL->barf_if_error(PDL->reallocthreadids(\$CHILD_PTR(), \$PARENT(nthreadids)));
+{int __ind; PDL_RETERROR(PDL_err, PDL->reallocthreadids(\$CHILD_PTR(), \$PARENT(nthreadids)));
 for(__ind=0; __ind<\$PARENT(nthreadids); __ind++)
   \$CHILD(threadids[__ind]) = \$PARENT(threadids[__ind]) + ($_[0]);
 }
@@ -1307,9 +1307,9 @@ sub wrap_vfn {
   ) = @_;
   my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
   my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
-  my $closing = '';
+  my $closing = 'return PDL_err;';
   PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-void $rout(pdl_trans *$sname$extra_args) {
+pdl_error $rout(pdl_trans *$sname$extra_args) {
 $opening
 @{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
 $str$closing}
@@ -1995,8 +1995,8 @@ END
         my($name,$sig,$gname) = @_;
         my $longpars = join ",", $sig->alldecls(1, 0);
         my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
-        my $closing = '';
-        return ["void $name($longpars) {$opening","$closing}",
+        my $closing = 'return PDL_err;';
+        return ["pdl_error $name($longpars) {$opening","$closing}",
                 "PDL->$gname = $name;"];
       }),
    PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
@@ -2029,7 +2029,7 @@ END
    PDL::PP::Rule->new("NewXSTypeCoerceNS", ["StructName"],
       sub {
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-PDL->barf_if_error(PDL->type_coerce($_[0]));
+PDL_RETERROR(PDL_err, PDL->type_coerce($_[0]));
 EOF
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerceSubd", "NewXSTypeCoerceNS"),
@@ -2053,7 +2053,7 @@ EOF
    PDL::PP::Rule->new("NewXSRunTrans", ["StructName"], sub {
       my($trans) = @_;
       PDL::PP::pp_line_numbers(__LINE__,
-      "PDL->barf_if_error(PDL->make_trans_mutual($trans));\n");
+      "PDL_RETERROR(PDL_err, PDL->make_trans_mutual($trans));\n");
    }),
 
    PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
@@ -2095,7 +2095,7 @@ EOF
 
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
-      sub { "PDL->redodims_default($_[0]);" }),
+      sub { "PDL_RETERROR(PDL_err, PDL->redodims_default($_[0]));" }),
 
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],
@@ -2137,7 +2137,7 @@ EOF
       "Rule to find the bad value status of the input ndarrays",
       sub {
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-PDL->barf_if_error(PDL->trans_check_pdls($_[0]));
+PDL_RETERROR(PDL_err, PDL->trans_check_pdls($_[0]));
 char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]);
 EOF
       }),

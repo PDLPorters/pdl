@@ -193,16 +193,16 @@ sub threadloop_start {
     PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 #define $macro_name(funcName) \\
 __thrloopval = PDL->startthreadloop(&(\$PRIV(pdlthread)),\$PRIV(vtable)->funcName, __privtrans, &PDL_err); \\
-PDL->barf_if_error(PDL_err); \\
-if ( __thrloopval < 0 ) die("Error starting threadloop"); \\
-if ( __thrloopval ) return; \\
+if (PDL_err.error) return PDL_err; \\
+if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error starting threadloop"); \\
+if ( __thrloopval ) return PDL_err; \\
        do { \\
 	    PDL_Indx *__tdims = PDL->get_threaddims(&\$PRIV(pdlthread)); \\
-	    if (!__tdims) die("Error in get_threaddims"); \\
+	    if (!__tdims) return PDL->make_error_simple(PDL_EFATAL, "Error in get_threaddims"); \\
 	    register PDL_Indx __tdims1 = __tdims[1]; \\
 	    register PDL_Indx __tdims0 = __tdims[0]; \\
 	    register PDL_Indx *__offsp = PDL->get_threadoffsp(&\$PRIV(pdlthread)); \\
-	    if (!__offsp ) die("Error in get_threadoffsp"); \\
+	    if (!__offsp ) return PDL->make_error_simple(PDL_EFATAL, "Error in get_threadoffsp"); \\
       PDL_COMMENT("incs are each pdl's stride, declared at func start") \\
       PDL_COMMENT("offs are each pthread's starting offset into each pdl") \\
 @{[ join " \\\n", map $pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];", 0..$#$ord ]} \\
@@ -233,7 +233,7 @@ sub threadloop_end {
 PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset") \\
 @{[ join " \\\n", map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$ord->[$_] * __tdims1 + __offsp[$_];", 0..$#$ord ]} \\
 __thrloopval = PDL->iterthreadloop(&\$PRIV(pdlthread),2); \\
-if ( __thrloopval < 0 ) die("Error in iterthreadloop"); \\
+if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error in iterthreadloop"); \\
 } while(__thrloopval);
 EOF
 }
@@ -554,7 +554,7 @@ sub mypostlude {
     $parent->{ftypes_type} = undef if defined $this->[1];
     my $supported = join '', map $_->ppsym, @{$this->[0]};
     "\tbreak;}
-	default:barf(\"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);}\n";
+	default:return PDL->make_error(PDL_EUSERERROR, \"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);}\n";
 }
 
 ####
