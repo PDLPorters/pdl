@@ -1339,8 +1339,6 @@ void pdl_type_coerce(pdl_trans *trans) {
   }
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
-    if (!pdl)
-      pdl_pdl_barf("%s got NULL pointer on param %s", vtable->name, vtable->par_names[i]);
     short flags = vtable->par_flags[i];
     if (flags & (PDL_PARAM_ISIGNORE|PDL_PARAM_ISTYPED|PDL_PARAM_ISCREATEALWAYS))
       continue;
@@ -1394,10 +1392,8 @@ char pdl_trans_badflag_from_inputs(pdl_trans *trans) {
   char retval = 0;
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
-    if (!pdl)
-      pdl_pdl_barf("%s got NULL pointer on param %s", vtable->name, vtable->par_names[i]);
     if ((vtable->par_flags[i] & (PDL_PARAM_ISOUT|PDL_PARAM_ISTEMP)) ||
-        !(pdls[i]->state & PDL_BADVAL)) continue;
+        !(pdl->state & PDL_BADVAL)) continue;
     trans->bvalflag = retval = 1;
     break;
   }
@@ -1406,4 +1402,14 @@ char pdl_trans_badflag_from_inputs(pdl_trans *trans) {
     trans->bvalflag = 0; /* but still return true */
   }
   return retval;
+}
+
+void pdl_trans_check_pdls(pdl_trans *trans) {
+  PDL_Indx i;
+  pdl_transvtable *vtable = trans->vtable;
+  pdl **pdls = trans->pdls;
+  for (i=0; i<vtable->npdls; i++) {
+    if (!pdls[i])
+      pdl_pdl_barf("%s got NULL pointer on param %s", vtable->name, vtable->par_names[i]);
+  }
 }

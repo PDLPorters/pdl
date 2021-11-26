@@ -152,7 +152,8 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(slice_args_parse, pdl_slice_args*, ( SV* )) \
   X(online_cpus, int, ()) \
   X(magic_get_thread, int, (pdl *)) \
-  X(pdl_seed, uint64_t, ())
+  X(pdl_seed, uint64_t, ()) \
+  X(trans_check_pdls, void, (pdl_trans *trans))
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \

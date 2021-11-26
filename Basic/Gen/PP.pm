@@ -2114,7 +2114,10 @@ END
    PDL::PP::Rule->new("NewXSFindBadStatusNS", ["StructName"],
       "Rule to find the bad value status of the input ndarrays",
       sub {
-        PDL::PP::pp_line_numbers(__LINE__-1, "char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]);\n");
+        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+PDL->trans_check_pdls($_[0]);
+char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]);
+EOF
       }),
 
    PDL::PP::Rule->new("NewXSCopyBadStatusNS",
