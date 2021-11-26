@@ -205,3 +205,22 @@ PDL_GENERICLIST(X)
   printf(")\n");
   fflush(stdout);
 }
+
+void pdl_dump_threading_info(
+  int npdls, PDL_Indx* creating, int target_pthread,
+  PDL_Indx *nthreadedDims, PDL_Indx **threadedDims, PDL_Indx **threadedDimSizes,
+  int maxPthreadPDL, int maxPthreadDim, int maxPthread
+) {
+  PDL_Indx j, k;
+  for(j=0; j<npdls; j++) {
+    if(creating[j]) continue;
+    printf("PDL %"IND_FLAG":\n", j);
+    for( k=0; k < nthreadedDims[j]; k++){
+      printf("Thread dim %"IND_FLAG", Dim No %"IND_FLAG", Size %"IND_FLAG"\n",
+        k, threadedDims[j][k], threadedDimSizes[j][k]);
+    }
+  }
+  printf("\nTarget Pthread = %d\n"
+    "maxPthread = %d, maxPthreadPDL = %d, maxPthreadDim = %d\n",
+    target_pthread, maxPthread, maxPthreadPDL, maxPthreadDim);
+}

@@ -58,6 +58,11 @@ void pdl_readdata_vaffine(pdl *it);
 void pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
 void pdl_print_iarr(PDL_Indx *iarr, int n);
 void pdl_dump_thread(pdl_thread *thread);
+void pdl_dump_threading_info(
+  int npdls, PDL_Indx* creating, int target_pthread,
+  PDL_Indx *nthreadedDims, PDL_Indx **threadedDims, PDL_Indx **threadedDimSizes,
+  int maxPthreadPDL, int maxPthreadDim, int maxPthread
+);
 
 #define PDL_CORE_LIST(X) \
   X(SvPDLV, pdl*, ( SV* )) \
