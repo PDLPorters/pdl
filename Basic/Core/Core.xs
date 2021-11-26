@@ -28,8 +28,6 @@ int pdl_autopthread_actual = 0;
 PDL_Indx pdl_autopthread_dim = -1;
 int pdl_autopthread_size   = 1;
 
-#define CHECKP(p)    if ((p) == NULL) croak("Out of memory")
-
 static SV* pdl_unpackint ( PDL_Indx *dims, int ndims ) {
 
    AV*  array;
