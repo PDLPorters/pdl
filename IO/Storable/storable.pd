@@ -46,6 +46,7 @@ make_null(sv)
          * connect below
          */
         pdl *it = PDL->pdlnew();
+        if (!it) PDL->pdl_barf("Failed to create new pdl");
 	it->datatype = PDL_B;
 	it->data = PDL->smalloc((STRLEN) (PDL->howbig(it->datatype)));
         dat = newSVpv(it->data,PDL->howbig(it->datatype));

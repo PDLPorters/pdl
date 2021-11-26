@@ -251,10 +251,10 @@ pp_addhdr <<'EOHDR';
 static pdl* new_pdlscalar(int datatype)
        {
          pdl *p = PDL->pdlnew();
+         if (!p) return p;
          PDL->setdims (p, NULL, 0);  /* set dims */
          p->datatype = datatype;         /* and data type */
          PDL->allocdata (p);             /* allocate the data chunk */
-
          return p;
        }
 EOHDR
@@ -267,6 +267,7 @@ _badvalue_int(val, type)
   CODE:
    {
     pdl* p = new_pdlscalar(type);
+    if (!p) PDL->pdl_barf("Error making new pdl");
     if ( val.type != -1 ) {
 #define X(datatype, generic, generic_ppsym, shortctype, defbval) \
     ANYVAL_TO_CTYPE(PDL->bvals.shortctype, generic, val);
@@ -290,6 +291,7 @@ _badvalue_per_pdl_int(pdl_val, val, type)
   CODE:
    {
     pdl* p = new_pdlscalar(type);
+    if (!p) PDL->pdl_barf("Error making new pdl");
     if ( val.type != -1) {
        pdl_val->badvalue = val;
        pdl_val->has_badvalue = 1;
@@ -316,6 +318,7 @@ _default_badvalue_int(type)
     int type
   CODE:
     pdl* p = new_pdlscalar(type);
+    if (!p) PDL->pdl_barf("Error making new pdl");
 #define X(datatype, generic, generic_ppsym, shortctype, defbval) \
     *((generic *)p->data) = defbval;
     PDL_GENERICSWITCH(type, X)

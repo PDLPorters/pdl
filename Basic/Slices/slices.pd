@@ -710,6 +710,7 @@ if(ind_pdl->dims[0] == 0)
 switch(ind_pdl->datatype) {
  default:                              /* Most types: */
    ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
+   if (!ind_pdl) PDL->pdl_barf("Error in hard_copy");
  case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_LL:
    PDL->converttype(ind_pdl,PDL_IND); /* convert in place. */
    break;
@@ -817,6 +818,7 @@ switch(ind_pdl->datatype) {
       switch(size_pdl->datatype) {
       default:                              /* Most types: */
         size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
+        if (!size_pdl) PDL->pdl_barf("Error in hard_copy");
       case PDL_B: case PDL_S: case PDL_US: case PDL_L:  case PDL_LL:
         PDL->converttype(size_pdl,PDL_IND); /* convert in place. */
         break;

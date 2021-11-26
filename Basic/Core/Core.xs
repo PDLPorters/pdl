@@ -549,7 +549,9 @@ initialize(class)
           bless_stash = gv_stashsv(class, 0);
         }
         ST(0) = sv_newmortal();
-        pdl_SetSV_PDL(ST(0),pdl_null());   /* set a null PDL to this SV * */
+        pdl *n = pdl_null();
+        if (!n) pdl_pdl_barf("Error making null pdl");
+        pdl_SetSV_PDL(ST(0),n);   /* set a null PDL to this SV * */
         ST(0) = sv_bless(ST(0), bless_stash); /* bless appropriately  */
 	XSRETURN(1);
 
@@ -864,6 +866,7 @@ threadover(...)
 	if (PDL_VAFFOK(pdls[i]))
 	   pdls[i] = pdls[i]->vafftrans->from;
 	child[i]=pdl_null();
+	if (!child[i]) pdl_pdl_barf("Error making null pdl");
 	/*  instead of pdls[i] its vaffine parent !!!XXX */
 	PDL.affine_new(pdls[i],child[i],pdl_thr.offs[i],dims[i],
 					incs[i]);

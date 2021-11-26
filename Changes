@@ -1,4 +1,5 @@
 - define, use PDL_REPRINCS
+- PDL.{pdlnew,null} return NULL on error, not croak
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal

@@ -27,6 +27,7 @@ static int is_parent_of(pdl *it,pdl_trans *trans) {
 pdl *pdl_null() {
 	PDL_Indx d[1] = {0};
 	pdl *it = pdl_pdlnew();
+	if (!it) return it;
 	PDL_Anyval zero = { PDL_B, 0 };
 	pdl_makescratchhash(it, zero);
 	pdl_setdims(it,d,1);
@@ -37,6 +38,7 @@ pdl *pdl_null() {
 pdl *pdl_get_convertedpdl(pdl *old,int type) {
 	if(old->datatype == type) return old;
 	pdl *it = pdl_null();
+	if (!it) return it;
 	pdl_converttypei_new(old,it,type);
 	return it;
 }
@@ -87,8 +89,7 @@ pdl* pdl_pdlnew() {
      int i;
      pdl* it;
      it = (pdl*) malloc(sizeof(pdl));
-     if (it==NULL)
-        croak("Out of Memory\n");
+     if (it==NULL) return it;
      memset(it, 0, sizeof(pdl));
      it->magicno = PDL_MAGICNO;
      it->state = 0;
@@ -399,6 +400,7 @@ void pdl_destroy(pdl *it) {
 pdl *pdl_hard_copy(pdl *src) {
 	int i;
 	pdl *it = pdl_null();
+	if (!it) return it;
 	it->state = 0;
 	PDLDEBUG_f(printf("pdl_hard_copy (%p): ", src));PDLDEBUG_f(pdl_dump(it);)
 	pdl_make_physical(src); /* Wasteful XXX... should be lazier */
@@ -1375,7 +1377,8 @@ void pdl_type_coerce(pdl_trans *trans) {
       pdl->datatype = new_dtype;
     } else if (new_dtype != pdl->datatype) {
       pdls[i] = pdl_get_convertedpdl(pdl, new_dtype);
-      if(pdls[i]->datatype != new_dtype) { croak("FOOBAR! HELP!\n"); }
+      if (!pdls[i]) pdl_pdl_barf("%s got NULL pointer from get_convertedpdl on param %s", vtable->name, vtable->par_names[i]);
+      if(pdls[i]->datatype != new_dtype) pdl_pdl_barf("type not expected value after get_convertedpdl\n");
     }
   }
 }

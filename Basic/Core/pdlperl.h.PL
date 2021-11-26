@@ -21,6 +21,7 @@ print OUT <<'EOF';
 #define PDL_XS_SCALAR(type, ctype, val) \
   SV *b_SV = sv_newmortal(); \
   pdl *b = pdl_pdlnew(); \
+  if (!b) XSRETURN_UNDEF; \
   PDL_Anyval av; \
   ANYVAL_FROM_CTYPE(av,type,val); \
   pdl_makescratchhash(b, av); \

@@ -79,6 +79,7 @@ C<ndims> as zero.
    static pdl* new_pdl(int datatype, PDL_Indx dims[], int ndims)
    {
      pdl *p = PDL->pdlnew();
+     if (!p) return p;
      PDL->setdims (p, dims, ndims);  /* set dims */
      p->datatype = datatype;         /* and data type */
      PDL->allocdata (p);             /* allocate the data chunk */
@@ -157,7 +158,7 @@ The following script demonstrates a simple example:
 			int ndims, DelMagic delete_magic, int delparam)
    {
      pdl* npdl = PDL->pdlnew(); /* get the empty container */
-
+     if (!npdl) return npdl;
      PDL->setdims(npdl,dims,ndims); /* set dims      */
      npdl->datatype = datatype;     /* and data type */
      npdl->data = data;             /* point it to your data */
@@ -311,12 +312,17 @@ C<pdlnew> returns an empty pdl object that needs further initialization
 to turn it into a proper ndarray. Example:
 
   pdl *p = PDL->pdlnew();
+  if (!p) return p;
   PDL->setdims(p,dims,ndims);
   p->datatype = PDL_B;
+
+Returns C<NULL> if a problem occurred, so check for that.
 
 =item *
 
 C<pdl *null()>
+
+Returns C<NULL> if a problem occurred, so check for that.
 
 =item *
 

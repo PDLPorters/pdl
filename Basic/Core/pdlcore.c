@@ -89,6 +89,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       /* The scalar is not a ref, so we can use direct conversion. */
       PDL_Anyval data;
       ret = pdl_pdlnew();  /* Scratch pdl */
+      if (!ret) return ret;
       /* Scratch hash for the pdl :( - slow but safest. */
       ANYVAL_FROM_SV(data, sv, TRUE, -1);
       pdl_makescratchhash(ret, data);
@@ -114,6 +115,7 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       }
       FREETMPS; LEAVE;
       ret = pdl_pdlnew();  /* Scratch pdl */
+      if (!ret) return ret;
       data.type = PDL_CD;
       data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
       pdl_makescratchhash(ret, data);
@@ -535,6 +537,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
 
   if (dest_pdl == NULL)
      dest_pdl = pdl_pdlnew();
+  if (!dest_pdl) return dest_pdl;
   pdl_setdims (dest_pdl, dest_dims, ndims);
   if (dtype == -1) {
     dtype = _detect_datatype(av);
