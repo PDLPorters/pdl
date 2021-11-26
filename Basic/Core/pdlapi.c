@@ -38,7 +38,6 @@ pdl *pdl_get_convertedpdl(pdl *old,int type) {
 	if(old->datatype == type) return old;
 	pdl *it = pdl_null();
 	pdl_converttypei_new(old,it,type);
-	if(it->datatype != type) { croak("FOOBAR! HELP!\n"); }
 	return it;
 }
 
@@ -1376,6 +1375,7 @@ void pdl_type_coerce(pdl_trans *trans) {
       pdl->datatype = new_dtype;
     } else if (new_dtype != pdl->datatype) {
       pdls[i] = pdl_get_convertedpdl(pdl, new_dtype);
+      if(pdls[i]->datatype != new_dtype) { croak("FOOBAR! HELP!\n"); }
     }
   }
 }
