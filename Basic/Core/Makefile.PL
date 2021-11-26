@@ -54,7 +54,7 @@ undef &MY::postamble; # suppress warning
       qw(pdlsimple.h pdl.h pdlperl.h);
 };
 
-my @cfiles = qw(pdlcore pdlapi pdlthread pdlconv pdlmagic pdlaffine);
+my @cfiles = qw(pdlcore pdlapi pdlthread pdlconv pdlmagic pdlaffine pdlutil);
 my $cobj = join ' ', map qq{$_\$(OBJ_EXT)}, @cfiles;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',

@@ -27,6 +27,7 @@ Basic/Core/pdlperl.h.PL
 Basic/Core/pdlsimple.h.PL
 Basic/Core/pdlthread.c
 Basic/Core/pdlthread.h
+Basic/Core/pdlutil.c
 Basic/Core/ppport.h
 Basic/Core/typemap
 Basic/Core/Types.pm.PL
