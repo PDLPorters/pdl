@@ -3,6 +3,22 @@
 SV* mnfunname;
 int ene;
 
+#define PDL_FCN_SETUP(pvar) \
+  pdl *pvar; \
+  PUSHMARK(SP); \
+  XPUSHs(sv_2mortal(newSVpv("PDL", 0))); \
+  PUTBACK; \
+  perl_call_method("initialize", G_SCALAR); \
+  SPAGAIN; \
+  SV *pvar ## sv = POPs; \
+  PUTBACK; \
+  pvar = PDL->SvPDLV(pvar ## sv); \
+  PDL->converttype( pvar, PDL_D ); \
+  PDL->children_changesoon(pvar,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED); \
+  PDL->setdims (pvar,pdims,ndims); \
+  pvar->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA; \
+  PDL->changed(pvar,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
+
 void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* futil){
 
   SV* funname;
@@ -11,12 +27,6 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   double* x;
 
   I32 ax ; 
-  
-  pdl* pgrad;
-  SV* pgradsv;
-
-  pdl* pxval;
-  SV* pxvalsv;
   
   dSP;
   ENTER;
@@ -30,35 +40,8 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   
   pdims[0] = (PDL_Indx) ene;
 
-  PUSHMARK(SP);
-  XPUSHs(sv_2mortal(newSVpv("PDL", 0)));
-  PUTBACK;
-  perl_call_method("initialize", G_SCALAR);
-  SPAGAIN;
-  pxvalsv = POPs;
-  PUTBACK;
-  pxval = PDL->SvPDLV(pxvalsv);
- 
-  PDL->converttype( pxval, PDL_D );
-  PDL->children_changesoon(pxval,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
-  PDL->setdims (pxval,pdims,ndims);
-  pxval->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
-  PDL->changed(pxval,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
-
-  PUSHMARK(SP);
-  XPUSHs(sv_2mortal(newSVpv("PDL", 0)));
-  PUTBACK;
-  perl_call_method("initialize", G_SCALAR);
-  SPAGAIN;
-  pgradsv = POPs;
-  PUTBACK;
-  pgrad = PDL->SvPDLV(pgradsv);
-  
-  PDL->converttype( pgrad, PDL_D );
-  PDL->children_changesoon(pgrad,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
-  PDL->setdims (pgrad,pdims,ndims);
-  pgrad->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
-  PDL->changed(pgrad,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
+  PDL_FCN_SETUP(pxval)
+  PDL_FCN_SETUP(pgrad)
 
   pxval->data = (void *) xval;
   pgrad->data = (void *) grad;  
