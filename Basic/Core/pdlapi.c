@@ -416,13 +416,6 @@ pdl *pdl_hard_copy(pdl *src) {
 	return it;
 }
 
-static void print_iarr(PDL_Indx *iarr, int n) {
-  int i;
-  printf("(");
-  for (i=0;i<n;i++) printf("%s%"IND_FLAG,(i?" ":""),iarr[i]);
-  printf(")");
-}
-
 #define SET_SPACE(s, nspac) char spaces[PDL_MAXSPACE]; do { \
   int i; \
   if (nspac >= PDL_MAXSPACE) { \
@@ -519,17 +512,17 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 		} else {
 			printf("%s   AFFINE: o:%"IND_FLAG", i:",spaces,it->offs);
 			if (it->incs)
-			  print_iarr(it->incs, it->pdls[1]->ndims);
+			  pdl_print_iarr(it->incs, it->pdls[1]->ndims);
 			printf(" d:");
-			print_iarr(it->pdls[1]->dims, it->pdls[1]->ndims);
+			pdl_print_iarr(it->pdls[1]->dims, it->pdls[1]->ndims);
 			printf("\n");
 		}
 	}
 /*	if(it->vtable->dump) {it->vtable->dump(it);} */
 	printf("%s   ind_sizes: ",spaces);
-	print_iarr(it->ind_sizes, it->vtable->ninds); printf("\n");
+	pdl_print_iarr(it->ind_sizes, it->vtable->ninds); printf("\n");
 	printf("%s   inc_sizes: ",spaces);
-	print_iarr(it->inc_sizes, it->vtable->nind_ids); printf("\n");
+	pdl_print_iarr(it->inc_sizes, it->vtable->nind_ids); printf("\n");
 	printf("%s   INPUTS: (",spaces);
 	for(i=0; i<it->vtable->nparents; i++)
 		printf("%s%p",(i?" ":""),(void*)(it->pdls[i]));
@@ -558,13 +551,13 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 		printf("%s   hdrsv: %p, reftype %s\n", spaces,
 			(void*)it->hdrsv, sv_reftype((SV*)it->hdrsv, TRUE));
 	printf("%s   Dims: %p ",spaces,(void*)it->dims);
-	print_iarr(it->dims, it->ndims);
+	pdl_print_iarr(it->dims, it->ndims);
 	printf("\n%s   ThreadIds: %p ",spaces,(void*)(it->threadids));
-	print_iarr(it->threadids, it->nthreadids);
+	pdl_print_iarr(it->threadids, it->nthreadids);
 	if(PDL_VAFFOK(it)) {
 		printf("\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:",
 			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
-		print_iarr(it->vafftrans->incs, it->ndims);
+		pdl_print_iarr(it->vafftrans->incs, it->ndims);
 	}
 	if(it->state & PDL_ALLOCATED) {
 		printf("\n%s   First values: (",spaces);
@@ -1437,7 +1430,7 @@ void pdl_dim_checks(
 ) {
   PDL_Indx i, j, ind_id;
   PDLDEBUG_f(printf("pdl_dim_checks %p:\n", ind_sizes));
-  PDLDEBUG_f(do {printf("  ind_sizes: "); print_iarr(ind_sizes, vtable->ninds);printf("\n");}while(0));
+  PDLDEBUG_f(do {printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n");}while(0));
   for (i=0; i<vtable->npdls; i++) {
     PDL_Indx ninds = vtable->par_realdims[i];
     pdl *pdl = pdls[i];
@@ -1493,7 +1486,7 @@ void pdl_dim_checks(
     }
   }
   PDLDEBUG_f(printf("pdl_dim_checks after:\n"));
-  PDLDEBUG_f(do {printf("  ind_sizes: "); print_iarr(ind_sizes, vtable->ninds);printf("\n");fflush(stdout);}while(0));
+  PDLDEBUG_f(do {printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n");fflush(stdout);}while(0));
 }
 
 void pdl_type_coerce(pdl_trans *trans) {

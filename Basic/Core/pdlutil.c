@@ -57,3 +57,10 @@ void pdl_croak_param(pdl_transvtable *vtable,int paramIndex, char *pat, ...)
 
   pdl_pdl_barf(message);
 }
+
+void pdl_print_iarr(PDL_Indx *iarr, int n) {
+  int i;
+  printf("(");
+  for (i=0;i<n;i++) printf("%s%"IND_FLAG,(i?" ":""),iarr[i]);
+  printf(")");
+}

@@ -28,14 +28,6 @@ static pdl **copy_pdl_array (pdl **from, int size) {
  * dump_thread and helpers -- debugging routine used for 
  * describing internal state 
  */
-static void print_iarr(PDL_Indx *iarr, int n) {
-  int i;
-  printf("(");
-  for (i=0;i<n;i++)
-    printf("%s%"IND_FLAG,(i?" ":""),iarr[i]);  // IND_FLAG in pdl.h, at build time from Types.pm.PL
-  printf(")");
-}
-
 #define psp printf("%s",spaces)
 void dump_thread(pdl_thread *thread) {
   int i, j, found=0, sz=0;
@@ -123,7 +115,7 @@ PDL_GENERICLIST(X)
     for (i=0;i<vtable->ninds;i++)
       printf("%s ",vtable->ind_names[i]);
     printf("\n");
-    psp; printf("Realdims: "); print_iarr(vtable->par_realdims,thread->npdls); printf("\n");
+    psp; printf("Realdims: "); pdl_print_iarr(vtable->par_realdims,thread->npdls); printf("\n");
   }
   psp; printf("Flags: ");
   found=0; sz=0;
@@ -140,32 +132,32 @@ PDL_GENERICLIST(X)
   psp; printf("Mag_nth: %"IND_FLAG", Mag_nthpdl: %"IND_FLAG", Mag_nthr: %"IND_FLAG", Mag_skip: %"IND_FLAG", Mag_stride: %"IND_FLAG"\n",
 	 thread->mag_nth,thread->mag_nthpdl,thread->mag_nthr,thread->mag_skip,thread->mag_stride);
   if (thread->mag_nthr <= 0) {
-    psp; printf("Dims: "); print_iarr(thread->dims,thread->ndims); printf("\n");
-    psp; printf("Inds: "); print_iarr(thread->inds,thread->ndims); printf("\n");
-    psp; printf("Offs: "); print_iarr(thread->offs,thread->npdls); printf("\n");
+    psp; printf("Dims: "); pdl_print_iarr(thread->dims,thread->ndims); printf("\n");
+    psp; printf("Inds: "); pdl_print_iarr(thread->inds,thread->ndims); printf("\n");
+    psp; printf("Offs: "); pdl_print_iarr(thread->offs,thread->npdls); printf("\n");
   } else {
     psp; printf("Dims (per thread):\n");
     for (i=0;i<thread->mag_nthr;i++) {
-      psp; psp; print_iarr(thread->dims + i*thread->ndims,thread->ndims);
+      psp; psp; pdl_print_iarr(thread->dims + i*thread->ndims,thread->ndims);
       printf("\n");
     }
     psp; printf("Inds (per thread):\n");
     for (i=0;i<thread->mag_nthr;i++) {
-      psp; psp; print_iarr(thread->inds + i*thread->ndims,thread->ndims);
+      psp; psp; pdl_print_iarr(thread->inds + i*thread->ndims,thread->ndims);
       printf("\n");
     }
     psp; printf("Offs (per thread):\n");
     for (i=0;i<thread->mag_nthr;i++) {
-      psp; psp; print_iarr(thread->offs + i*thread->npdls,thread->npdls);
+      psp; psp; pdl_print_iarr(thread->offs + i*thread->npdls,thread->npdls);
       printf("\n");
     }
   }
   psp; printf("Incs (per pdl):\n");
   for (i=0;i<thread->npdls;i++) {
-    psp; psp; print_iarr(thread->incs + i*thread->ndims,thread->ndims);
+    psp; psp; pdl_print_iarr(thread->incs + i*thread->ndims,thread->ndims);
     printf("\n");
   }
-  psp; printf("Realdims: "); print_iarr(thread->realdims,thread->npdls); printf("\n");
+  psp; printf("Realdims: "); pdl_print_iarr(thread->realdims,thread->npdls); printf("\n");
   psp; printf("Pdls: (");
   for (i=0;i<thread->npdls;i++)
     printf("%s%p",(i?" ":""),(void*)(thread->pdls[i]));

@@ -51,9 +51,12 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Valu
 void pdl_vafftrans_free(pdl *it);
 void pdl_vafftrans_remove(pdl * it);
 void pdl_vafftrans_alloc(pdl *it);
-void pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
 void pdl_writebackdata_vaffine(pdl *it);
 void pdl_readdata_vaffine(pdl *it);
+
+/* pdlutil.c */
+void pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
+void pdl_print_iarr(PDL_Indx *iarr, int n);
 
 #define PDL_CORE_LIST(X) \
   X(SvPDLV, pdl*, ( SV* )) \
