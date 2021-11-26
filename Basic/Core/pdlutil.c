@@ -476,3 +476,27 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 void pdl_dump (pdl *it) {
 	pdl_dump_fixspace(it,0);
 }
+
+void pdl_barf_if_error(pdl_error err) {
+  if (!err.error) return;
+  const char *msg = err.message;
+  if (err.needs_free) {
+    char *cpy = pdl_smalloc(strlen(msg) + 1);
+    strcpy(cpy, err.message);
+    free((void *)err.message);
+    msg = cpy;
+  }
+  pdl_pdl_barf(msg);
+}
+
+pdl_error pdl_error_accumulate(pdl_error err_current, pdl_error err_new) {
+  if (!err_new.error) return err_current;
+  if (!err_current.error) return err_new;
+  pdl_error PDL_err = pdl_make_error(
+    PDLMAX(err_current.error, err_current.error),
+    "%s\n%s", err_current.message, err_new.message
+  );
+  if (err_current.needs_free) free((void *)err_current.message);
+  if (err_new.needs_free) free((void *)err_new.message);
+  return PDL_err;
+}

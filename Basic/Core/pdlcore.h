@@ -146,7 +146,9 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(pdl_seed, uint64_t, ()) \
   X(trans_check_pdls, void, (pdl_trans *trans)) \
   X(make_error, pdl_error, (pdl_error_type e, const char *fmt, ...)) \
-  X(make_error_simple, pdl_error, (pdl_error_type e, const char *msg))
+  X(make_error_simple, pdl_error, (pdl_error_type e, const char *msg)) \
+  X(barf_if_error, void, (pdl_error err)) \
+  X(error_accumulate, pdl_error, (pdl_error err_current, pdl_error err_new))
 
 /*************** Function prototypes *********************/
 #define X(sym, rettype, args) \
