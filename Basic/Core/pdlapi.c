@@ -1049,7 +1049,9 @@ void pdl_make_physvaffine(pdl *it)
 		goto mkphys_vaff_end;
 	}
 
-	(void)PDL_ENSURE_VAFFTRANS(it);
+	if (!it->vafftrans || it->vafftrans->ndims < it->ndims)
+	  pdl_vafftrans_alloc(it);
+
         for(i=0; i<it->ndims; i++) {
 		it->vafftrans->incs[i] = it->dimincs[i];
 	}

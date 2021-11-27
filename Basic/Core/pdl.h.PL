@@ -553,9 +553,6 @@ typedef struct pdl_slice_args {
 #define END_RECURSE_GUARD __nrec--;
 
 #define PDL_ENSURE_ALLOCATED(it) ( (void)((it->state & PDL_ALLOCATED) || ((pdl_allocdata(it)),1)) )
-#define PDL_ENSURE_VAFFTRANS(it) \
-  ( ((!it->vafftrans) || (it->vafftrans->ndims < it->ndims)) && \
-    (pdl_vafftrans_alloc(it),1) )
 
 /* for use with PDL_GENERICLIST_REAL */
 #define PDL_QSORT(symbol, ctype, ppsym, shortctype, defbval) \
