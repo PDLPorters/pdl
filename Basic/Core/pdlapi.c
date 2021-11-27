@@ -142,9 +142,6 @@ void pdl__free(pdl *it) {
 	free(p1);
 	p1 = p2;
     }
-/* Free the phys representation */
-/* XXX MEMLEAK */
-/*    it->vtable->freetrans(it,it->trans_parent); */
 
 /* Call special freeing magic, if exists */
     if(PDL_ISMAGIC(it)) {
