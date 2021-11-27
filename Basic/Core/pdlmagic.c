@@ -184,6 +184,7 @@ pdl_magic *pdl_add_svmagic(pdl *it,SV *func)
 {
 	AV *av;
 	pdl_magic_perlfunc *ptr = malloc(sizeof(pdl_magic_perlfunc));
+	if (!ptr) return NULL;
 	ptr->what = PDL_MAGIC_MARKCHANGED | PDL_MAGIC_DELAYED;
 	ptr->vtable = &svmagic_vtable;
 	ptr->sv = newSVsv(func);
@@ -225,6 +226,7 @@ struct pdl_magic_vtable familymutmagic_vtable = {
 pdl_magic *pdl_add_fammutmagic(pdl *it,pdl_trans *ft)
 {
 	pdl_magic_fammut *ptr = malloc(sizeof(pdl_magic_fammut));
+	if (!ptr) return NULL;
 	ptr->what = PDL_MAGIC_MUTATEDPARENT;
 	ptr->vtable = &familymutmagic_vtable;
 	ptr->ftr = ft;
@@ -387,6 +389,7 @@ void pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads)
 	}
 
 	ptr = malloc(sizeof(pdl_magic_pthread));
+	if (!ptr) croak("Out of memory");
 	ptr->what = PDL_MAGIC_THREADING;
 	ptr->vtable = NULL;
 	ptr->next = NULL;
@@ -545,6 +548,7 @@ struct pdl_magic_vtable deletedatamagic_vtable = {
 void pdl_add_deletedata_magic(pdl *it, void (*func)(pdl *, Size_t param), Size_t param)
 {
 	pdl_magic_deletedata *ptr = malloc(sizeof(pdl_magic_deletedata));
+	if (!ptr) croak("Out of memory");
 	ptr->what = PDL_MAGIC_DELETEDATA;
 	ptr->vtable = &deletedatamagic_vtable;
 	ptr->pdl = it;

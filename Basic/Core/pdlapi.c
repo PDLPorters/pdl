@@ -89,7 +89,7 @@ pdl* pdl_pdlnew() {
      int i;
      pdl* it;
      it = (pdl*) malloc(sizeof(pdl));
-     if (it==NULL) return it;
+     if (!it) return it;
      memset(it, 0, sizeof(pdl));
      it->magicno = PDL_MAGICNO;
      it->state = 0;
@@ -423,7 +423,7 @@ void pdl_reallocdims(pdl *it, PDL_Indx ndims) {
       if (ndims>PDL_NDIMS) {  /* Need to malloc */
          it->dims = malloc(ndims*sizeof(*(it->dims)));
          it->dimincs = malloc(ndims*sizeof(*(it->dimincs)));
-         if (it->dims==NULL || it->dimincs==NULL)
+         if (!it->dims || !it->dimincs)
             croak("Out of Memory\n");
       }
       else {
@@ -444,6 +444,7 @@ void pdl_reallocthreadids(pdl *it, PDL_Indx n) {
 	nold = it->nthreadids; olds = it->threadids;
 	if(n > PDL_NTHREADIDS) {
 		it->threadids = malloc(sizeof(*(it->threadids))*n);
+		if (!it->threadids) croak("Out of Memory\n");
 	} else {
 		it->threadids = it->def_threadids;
 	}
@@ -532,6 +533,7 @@ void pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 		c=c->next;
 	} while(1) ;
 	c->next = malloc(sizeof(pdl_children));
+	if (!c->next) croak("Out of Memory\n");
 	c->next->trans_parent[0] = trans;
 	for(i=1; i<PDL_NCHILDREN; i++)
 		c->next->trans_parent[i] = 0;
@@ -1143,6 +1145,7 @@ void pdl_vafftrans_alloc(pdl *it)
 {
 	if(!it->vafftrans) {
 		it->vafftrans = malloc(sizeof(*(it->vafftrans)));
+		if (!it->vafftrans) croak("Out of Memory\n");
 		it->vafftrans->incs = 0;
 		it->vafftrans->ndims = 0;
 	}
@@ -1150,6 +1153,7 @@ void pdl_vafftrans_alloc(pdl *it)
 		if(it->vafftrans->incs) free(it->vafftrans->incs);
 		it->vafftrans->incs = malloc(sizeof(*(it->vafftrans->incs))
 					     * (size_t)it->ndims);
+		if (!it->vafftrans->incs) croak("Out of Memory\n");
 		it->vafftrans->ndims = it->ndims;
 	}
 }
@@ -1230,10 +1234,12 @@ PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
 pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     size_t it_sz = sizeof(pdl_trans)+sizeof(pdl *)*vtable->npdls;
     pdl_trans *it = malloc(it_sz);
+    if (!it) return it;
     memset(it, 0, it_sz);
     PDL_TR_SETMAGIC(it);
     if (vtable->structsize) {
       it->params = malloc(vtable->structsize);
+      if (!it->params) return NULL;
       memset(it->params, 0, vtable->structsize);
     }
     it->flags = vtable->iflags;
@@ -1243,8 +1249,10 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     PDL_THR_CLRMAGIC(&it->pdlthread);
     it->pdlthread.inds = 0;
     it->ind_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->ninds);
+    if (!it->ind_sizes) return NULL;
     int i; for (i=0; i<vtable->ninds; i++) it->ind_sizes[i] = -1;
     it->inc_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->nind_ids);
+    if (!it->inc_sizes) return NULL;
     for (i=0; i<vtable->nind_ids; i++) it->inc_sizes[i] = -1;
     it->offs = -1;
     return it;

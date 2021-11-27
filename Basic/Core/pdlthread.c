@@ -114,7 +114,9 @@ void pdl_find_max_pthread(
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
     threadedDims[j]     = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
+    if (!threadedDims[j]) croak("Out of Memory\n");
     threadedDimSizes[j] = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
+    if (!threadedDimSizes[j]) croak("Out of Memory\n");
   }
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;

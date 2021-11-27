@@ -115,6 +115,7 @@ void pdl_affine_redodims(pdl_trans *trans) {
   PDL_Indx i;
   pdl_reallocdims(__it, params->nd);
   trans->incs = malloc(sizeof(*trans->incs) * trans->pdls[1]->ndims);
+  if (!trans->incs) croak("Out of Memory\n");
   trans->offs = params->offset;
   for (i=0;i<trans->pdls[1]->ndims;i++) {
     trans->incs[i] = params->sincs[i];
@@ -174,7 +175,9 @@ void pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *incl
   if (params->nd != n2)
     pdl_pdl_barf("Error in affine: number of incs does not match dims");
   params->sdims = malloc(sizeof(* params->sdims) * params->nd);
+  if (!params->sdims) croak("Out of Memory\n");
   params->sincs = malloc(sizeof(* params->sincs) * params->nd);
+  if (!params->sincs) croak("Out of Memory\n");
   params->offset = offspar;
   for (i=0; i<params->nd; i++) {
     params->sdims[i] = tmpd[i];

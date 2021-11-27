@@ -704,7 +704,7 @@ bind(p,c)
 	SV *c
 	PROTOTYPE: $&
 	CODE:
-		pdl_add_svmagic(p,c);
+		if (!pdl_add_svmagic(p,c)) croak("Failed to add magic");
 		XSRETURN(0);
 
 void

@@ -1187,6 +1187,7 @@ pdl_slice_args* pdl_slice_args_parse(SV* sv) {
     else {
       this_arg_ptr = this_arg_ptr->next = pdl_smalloc(sizeof(*retval));
     }
+    if (!this_arg_ptr) croak("Out of Memory\n");
     /* Copy parsed values into the limits */
     *this_arg_ptr = this_arg;
   } /* end of arg-parsing loop */
