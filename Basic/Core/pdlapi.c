@@ -395,12 +395,12 @@ void pdl_destroy(pdl *it) {
 
 /* Straight copy, no dataflow */
 pdl *pdl_hard_copy(pdl *src) {
+	pdl_make_physical(src); /* Wasteful XXX... should be lazier */
 	int i;
 	pdl *it = pdl_null();
 	if (!it) return it;
 	it->state = 0;
 	PDLDEBUG_f(printf("pdl_hard_copy (%p): ", src));PDLDEBUG_f(pdl_dump(it);)
-	pdl_make_physical(src); /* Wasteful XXX... should be lazier */
 	it->datatype = src->datatype;
 	pdl_setdims(it,src->dims,src->ndims);
 	pdl_allocdata(it);
