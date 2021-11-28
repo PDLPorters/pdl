@@ -33,6 +33,7 @@ PDL_Indx *pdl_get_threaddims(pdl_thread *thread)
   /* The non-multithreaded case: return just the usual value */
   if (!(thread->gflags & PDL_THREAD_MAGICKED)) return thread->dims;
   int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+  if (thr < 0) die("Invalid pdl_magic_get_thread!");
   return thread->dims + thr * thread->ndims;
 }
 
@@ -47,6 +48,7 @@ PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread)
   /* The non-multithreaded case: return just the usual offsets */
   if (!(thread->gflags & PDL_THREAD_MAGICKED)) return thread->offs;
   int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+  if (thr < 0) die("Invalid pdl_magic_get_thread!");
   return thread->offs + thr * thread->npdls;
 }
 
@@ -61,7 +63,8 @@ PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread)
 PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *pthr, PDL_Indx **inds, PDL_Indx **dims)
 {
   if(thread->gflags & PDL_THREAD_MAGICKED) {
-  	int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+	int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+	if (thr < 0) die("Invalid pdl_magic_get_thread!");
 	*pthr = thr;
 	*inds = thread->inds  + thr * thread->ndims;
 	*dims = thread->dims  + thr * thread->ndims;

@@ -1985,8 +1985,15 @@ double pdl_drand(uint64_t *s);
   if (pdl_srand_threads < 0) \
     pdl_srand(&pdl_rand_state, PDL->pdl_seed(), PDL->online_cpus());
 #define PDL_RAND_SET_OFFSET(v, thr, pdl) \
-  if (v < 0) \
-    v = thr.mag_nthr >= 0 ? PDL->magic_get_thread(pdl) % PDL->online_cpus() : 0
+  if (v < 0) { \
+    if (thr.mag_nthr >= 0) { \
+      int thr_no = PDL->magic_get_thread(pdl); \
+      if (thr_no < 0) die("Invalid pdl_magic_get_thread!"); \
+      v = thr_no == 0 ? thr_no : thr_no % PDL->online_cpus(); \
+    } else { \
+      v = 0; \
+    } \
+  }
 EOH
 
 pp_def(

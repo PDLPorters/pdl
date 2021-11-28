@@ -272,9 +272,9 @@ int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {
 
 int pdl_magic_get_thread(pdl *it) {
 	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
-	if(!ptr) die("Invalid pdl_magic_get_thread!");
+	if(!ptr) return -1;
 	int *p = (int*)pthread_getspecific(ptr->key);
-	if(!p) die("Invalid pdl_magic_get_thread specific!!!!");
+	if(!p) return -1;
 	return *p;
 }
 
