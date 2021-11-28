@@ -147,7 +147,7 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(affine_new, void, (pdl *par,pdl *child,PDL_Indx offs,SV *dims,SV *incs)) \
   X(converttypei_new, void, (pdl *par,pdl *child,int type)) \
   X(dump, void, (pdl *it)) \
-  X(sever, pdl *, (pdl *a)) \
+  X(sever, void, (pdl *a)) \
   X(slice_args_parse_string, pdl_slice_args, ( char* )) \
   X(slice_args_parse, pdl_slice_args*, ( SV* )) \
   X(online_cpus, int, ()) \

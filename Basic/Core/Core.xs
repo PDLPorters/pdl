@@ -518,6 +518,11 @@ pdl_set_datatype(a,datatype)
 pdl *
 pdl_sever(src)
 	pdl *src;
+	CODE:
+		pdl_sever(src);
+		RETVAL = src;
+	OUTPUT:
+		RETVAL
 
 void
 pdl_dump(x)

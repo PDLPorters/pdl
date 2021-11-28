@@ -2,6 +2,7 @@
 - PDL.{pdlnew,null,get_thread{dims,offsp{,_int}}} return NULL on error, not croak
 - PDL.trans_check_pdls
 - PDL.{magic_get_thread,{start,iter}threadloop} return -1 not die
+- PDL.sever returns void not pdl * (Perl interface stays same)
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal

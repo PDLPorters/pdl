@@ -1137,13 +1137,11 @@ void pdl_set_datatype(pdl *a, int datatype)
     pdl_converttype( a, datatype );
 }
 
-pdl *pdl_sever(pdl *src)
+void pdl_sever(pdl *src)
 {
-    if(src->trans_parent) {
-            pdl_make_physvaffine(src);
-            pdl_destroytransform(src->trans_parent,1);
-    }
-    return src;
+    if (!src->trans_parent) return;
+    pdl_make_physvaffine(src);
+    pdl_destroytransform(src->trans_parent,1);
 }
 
 /* newval = 1 means set flag, 0 means clear it */
