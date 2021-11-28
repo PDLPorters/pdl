@@ -884,27 +884,6 @@ void pdl_changed(pdl *it, int what, int recursing)
 	PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n",(void*)it));
 }
 
-/* This transformation changes soon, so make sure the children
- * who don't flow go away
- * XXX Should be able to specify which children. */
-void pdl_trans_changesoon(pdl_trans *trans,int what)
-{
-	int i;
-	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-		pdl_children_changesoon_c(trans->pdls[i],what);
-	}
-}
-
-/* Changed, just propagate changes to children
- * XXX should be able to specify which children */
-void pdl_trans_changed(pdl_trans *trans,int what)
-{
-	int i;
-	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-		pdl_changed(trans->pdls[i],what,1);
-	}
-}
-
 /* Make sure transformation is done */
 void pdl__ensure_trans(pdl_trans *trans,int what)
 {
