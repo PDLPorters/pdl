@@ -157,10 +157,10 @@ sub PDL::convolve{
    PDL_Indx i,i2,j,k,n,offcen,cen,ncen,nrow;
 
    if (andims != bndims)
-      barf("Arguments do not have the same dimensionality");
+      $CROAK("Arguments do not have the same dimensionality");
    for(i=0; i<andims; i++)
          if (dimsb[i]>dimsa[i])
-             barf("Second argument must be smaller in all dimensions that first"
+             $CROAK("Second argument must be smaller in all dimensions that first"
 );
 
    PDL_Indx pos[andims];
@@ -738,7 +738,7 @@ Code => <<'EOD'
   pdl *aa =    PDL->SvPDLV($COMP(aa));
 
   if(!k || !a || !aa) 
-    barf("convolveND: Can't convert args to PDLs (should never happen)\n");
+    $CROAK("convolveND: Can't convert args to PDLs - should never happen\n");
 
   PDL->make_physical(aa);
   PDL->make_physical(a);
@@ -746,7 +746,7 @@ Code => <<'EOD'
 
   ndims = aa->ndims;
   if(ndims != k->ndims || ndims != aa->ndims)
-     barf("convolveND: dims don't agree (should never happen)\n");
+     $CROAK("convolveND: dims don't agree - should never happen\n");
 
   PDL_Indx koffs[k->nvals];
   $GENERIC() kvals[k->nvals];
