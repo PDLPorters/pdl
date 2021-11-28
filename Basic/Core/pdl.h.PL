@@ -170,7 +170,7 @@ print OUT <<'EOF';
       return 0;
   }
 }
-#define ANYVAL_ISBAD(inany,pdl,badval) \
+#define ANYVAL_ISBAD(inany,badval) \
   (ANYVAL_ISNAN(badval) ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval))
 EOF
 

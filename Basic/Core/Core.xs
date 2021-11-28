@@ -286,7 +286,7 @@ at_bad_c(x,pos)
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims);
    badflag = (x->state & PDL_BADVAL) > 0;
-   if (badflag && ANYVAL_ISBAD(result, x, pdl_get_badvalue(x->datatype)))
+   if (badflag && ANYVAL_ISBAD(result, pdl_get_badvalue(x->datatype)))
      RETVAL = newSVpvn( "BAD", 3 );
    else
      ANYVAL_TO_SV(RETVAL, result);
@@ -335,7 +335,7 @@ listref_c(x)
    for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
    while(!stop) {
       pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
-      if (badflag && ANYVAL_ISBAD(pdl_val, x, pdl_badval)) {
+      if (badflag && ANYVAL_ISBAD(pdl_val, pdl_badval)) {
 	 sv = newSVpvn( "BAD", 3 );
       } else {
 	 ANYVAL_TO_SV(sv, pdl_val);

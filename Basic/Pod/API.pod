@@ -420,10 +420,19 @@ As of PDL 2.039 there is:
 
  ANYVAL_ISNAN(anyval)
 
-As of PDL 2.040 (the additional parameters are to detect the badflag,
-and handle caching the bad value for efficiency):
+As of PDL 2.040 (changed parameter list in 2.064) - you need to check
+the badflag first:
 
- ANYVAL_ISBAD(in_anyval, pdl, badval)
+ ANYVAL_ISBAD(in_anyval, badval)
+
+e.g.
+
+ int badflag = (x->state & PDL_BADVAL) > 0;
+ PDL_Anyval badval = pdl_get_pdl_badvalue(x);
+ if (badflag && ANYVAL_ISBAD(result, badval))
+   RETVAL = newSVpvn( "BAD", 3 );
+ else
+   ANYVAL_TO_SV(RETVAL, result);
 
 As of PDL 2.058, there are:
 
