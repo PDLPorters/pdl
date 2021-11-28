@@ -1775,13 +1775,13 @@ EOD
         RedoDims => '
                 PDL_Indx i = $COMP(nthdim);
                 PDL_Indx nsp = $COMP(nsp);
-                if(nsp == 0) {die("Splitdim: Cannot split to 0\n");}
+                if(nsp == 0) {$CROAK("Cannot split to 0\n");}
                 if(i <0 || i >= $PARENT(ndims)) {
-                        die("Splitdim: nthdim (%"IND_FLAG") must not be negative or greater or equal to number of dims (%"IND_FLAG")\n",
+                        $CROAK("nthdim %"IND_FLAG" must not be negative or greater or equal to number of dims %"IND_FLAG"\n",
                                 i, $PARENT(ndims));
                 }
                 if(nsp > $PARENT(dims[i])) {
-                        die("Splitdim: nsp (%"IND_FLAG") cannot be greater than dim (%"IND_FLAG")\n",
+                        $CROAK("nsp %"IND_FLAG" cannot be greater than dim %"IND_FLAG"\n",
                                 nsp, $PARENT(dims[i]));
                 }
                 $PRIV(offs) = 0;

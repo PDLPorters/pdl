@@ -232,7 +232,7 @@ is("$y", "[1 1 1]", "mslice 2");
 $x = zeroes(3,3);
 $y = $x->splitdim(3,3);
 eval '$y->make_physdims';
-like($@, qr/^Splitdim: nthdim/, "make_physdim: Splitdim");
+like($@, qr/splitdim:nthdim/, "make_physdim: Splitdim");
 
 $x = sequence 5,5;
 $y = $x->diagonal(0,1);
