@@ -50,14 +50,14 @@ pp_def(
 void pdl_readdata_affine(pdl_trans *trans) {
   if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return;
 #define X(sym, ctype, ppsym, shortctype, defbval) COPYDATA(ctype, 0, 1)
-  PDL_GENERICSWITCH(trans->__datatype, X)
+  PDL_GENERICSWITCH(trans->__datatype, X, croak("Not a known data type code=%d", trans->__datatype))
 #undef X
 }
 
 void pdl_writebackdata_affine(pdl_trans *trans) {
   if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return;
 #define X(sym, ctype, ppsym, shortctype, defbval) COPYDATA(ctype, 1, 0)
-  PDL_GENERICSWITCH(trans->__datatype, X)
+  PDL_GENERICSWITCH(trans->__datatype, X, croak("Not a known data type code=%d", trans->__datatype))
 #undef X
 }
 
@@ -233,11 +233,11 @@ void pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_params_converttypei *params = trans->params;
 #define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
-  PDL_GENERICSWITCH2(trans->__datatype, X_INNER);
+  PDL_GENERICSWITCH2(trans->__datatype, X_INNER, croak("Not a known data type code=%d", trans->__datatype))
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(PARENT, CHILD)
-  PDL_GENERICSWITCH(params->totype, X_OUTER);
+  PDL_GENERICSWITCH(params->totype, X_OUTER, croak("Not a known data type code=%d", params->totype))
 #undef X_INNER
 }
 
@@ -246,7 +246,7 @@ void pdl_converttypei_writebackdata(pdl_trans *trans) {
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(CHILD, PARENT)
-  PDL_GENERICSWITCH(params->totype, X_OUTER);
+  PDL_GENERICSWITCH(params->totype, X_OUTER, croak("Not a known data type code=%d", params->totype))
 #undef X_INNER
 #undef X_OUTER
 }

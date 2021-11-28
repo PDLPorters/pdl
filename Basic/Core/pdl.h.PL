@@ -123,7 +123,7 @@ print OUT <<'EOF';
 #define ANYVAL_TO_CTYPE_OFFSET_X(datatype, generic, generic_ppsym, shortctype, defbval) \
     ANYVAL_TO_CTYPE(((generic *)x)[ioff], generic, value);
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
-    PDL_GENERICSWITCH(datatype, ANYVAL_TO_CTYPE_OFFSET_X)
+    PDL_GENERICSWITCH(datatype, ANYVAL_TO_CTYPE_OFFSET_X, croak("Not a known data type code=%d", datatype))
 EOF
 
 my $isnan = join " \\\n  ",
@@ -167,19 +167,19 @@ PDL_GENERICLIST(X)
 
 #define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
-#define PDL_GENERICSWITCH(typevar, X2) \
+#define PDL_GENERICSWITCH(typevar, X2, dflt) \
   switch (typevar) { \
     PDL_GENERICLIST2(PDL_GENERICSWITCH_CASE, X2) \
-    default: croak("Not a known data type code=%d", typevar); \
+    default: dflt; \
   }
 /* extra as first one gets painted blue */
 #define PDL_GENERICSWITCH_CASE2(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
 /* for use in inner loops avoiding extreme lambda-calculus stuff */
-#define PDL_GENERICSWITCH2(typevar, X2) \
+#define PDL_GENERICSWITCH2(typevar, X2, dflt) \
   switch (typevar) { \
     PDL_GENERICLIST2_(PDL_GENERICSWITCH_CASE2, X2) \
-    default: croak("Not a known data type code=%d", typevar); \
+    default: dflt; \
   }
 EOF
 

@@ -28,7 +28,7 @@ void pdl_ ## name(pdl *a) { \
 		die("pdl_" #name " without vaffine"); \
 	} \
 	PDL_ENSURE_ALLOCATED(a); \
-    PDL_GENERICSWITCH(intype, X); \
+    PDL_GENERICSWITCH(intype, X, croak("Not a known data type code=%d", intype)) \
 }
 
 #define X(...) XCODE(*ap = *pp, __VA_ARGS__)
@@ -83,13 +83,13 @@ void pdl_converttype( pdl* a, int targtype ) {
 #define X_OUTER(datatype_out, generic_out, generic_ppsym_out, shortctype_out, defbval_out) \
     generic_out *bb = (generic_out *) b; \
     i = a->nvals; \
-    PDL_GENERICSWITCH2(targtype, X_INNER);
+    PDL_GENERICSWITCH2(targtype, X_INNER, croak("Not a known data type code=%d", targtype))
 #define X_INNER(datatype_in, generic_in, generic_ppsym_in, shortctype_in, defbval_in) \
     generic_in *aa = (generic_in *) a->data; \
     aa += i-1; bb += i-1; \
     while (i--) \
       *aa-- = (generic_in) *bb--;
-    PDL_GENERICSWITCH(intype, X_OUTER);
+    PDL_GENERICSWITCH(intype, X_OUTER, croak("Not a known data type code=%d", intype))
 #undef X_INNER
 #undef X_OUTER
 
