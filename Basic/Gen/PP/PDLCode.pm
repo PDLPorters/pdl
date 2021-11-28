@@ -194,9 +194,11 @@ sub threadloop_start {
 if ( PDL->startthreadloop(&(\$PRIV(pdlthread)),\$PRIV(vtable)->funcName, __privtrans) ) return; \\
        do { \\
 	    PDL_Indx *__tdims = PDL->get_threaddims(&\$PRIV(pdlthread)); \\
+	    if (!__tdims) die("Error in get_threaddims"); \\
 	    register PDL_Indx __tdims1 = __tdims[1]; \\
 	    register PDL_Indx __tdims0 = __tdims[0]; \\
 	    register PDL_Indx *__offsp = PDL->get_threadoffsp(&\$PRIV(pdlthread)); \\
+	    if (!__offsp ) die("Error in get_threadoffsp"); \\
       PDL_COMMENT("incs are each pdl's stride, declared at func start") \\
       PDL_COMMENT("offs are each pthread's starting offset into each pdl") \\
 @{[ join " \\\n", map $pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];", 0..$#$ord ]} \\
