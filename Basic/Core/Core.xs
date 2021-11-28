@@ -196,17 +196,17 @@ get_autopthread_dim()
 void
 _ci(...)
  PPCODE:
-  PDL_XS_SCALAR(PDL_CD, PDL_CDouble, 0 + 1I)
+  PDL_XS_SCALAR(PDL_CD, 0 + 1I)
 
 void
 _nan(...)
  PPCODE:
-  PDL_XS_SCALAR(PDL_D, PDL_Double, (PDL_Double)NAN)
+  PDL_XS_SCALAR(PDL_D, (PDL_Double)NAN)
 
 void
 _inf(...)
  PPCODE:
-  PDL_XS_SCALAR(PDL_D, PDL_Double, INFINITY)
+  PDL_XS_SCALAR(PDL_D, INFINITY)
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
 

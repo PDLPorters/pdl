@@ -18,7 +18,7 @@ print OUT <<'EOF';
 #ifndef __PDLPERL_H
 #define __PDLPERL_H
 
-#define PDL_XS_SCALAR(type, ctype, val) \
+#define PDL_XS_SCALAR(type, val) \
   SV *b_SV = sv_newmortal(); \
   pdl *b = pdl_pdlnew(); \
   if (!b) XSRETURN_UNDEF; \
