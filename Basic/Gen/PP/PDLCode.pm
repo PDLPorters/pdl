@@ -153,6 +153,7 @@ sub new {
     $this->{Code} = (join '',sort values %$sizeprivs).
        ($dont_add_thrloop?'':PDL::PP::pp_line_numbers __LINE__, join "\n",
         'PDL_COMMENT("threadloop declarations")',
+        'int __thrloopval;',
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
         'register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls;',
         'PDL_COMMENT("dims here are how many steps along those dims")',
@@ -191,7 +192,9 @@ sub threadloop_start {
     my $macro_name = $this->threadloop_start_name;
     PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 #define $macro_name(funcName) \\
-if ( PDL->startthreadloop(&(\$PRIV(pdlthread)),\$PRIV(vtable)->funcName, __privtrans) ) return; \\
+__thrloopval = PDL->startthreadloop(&(\$PRIV(pdlthread)),\$PRIV(vtable)->funcName, __privtrans); \\
+if ( __thrloopval < 0 ) die("Error starting threadloop"); \\
+if ( __thrloopval ) return; \\
        do { \\
 	    PDL_Indx *__tdims = PDL->get_threaddims(&\$PRIV(pdlthread)); \\
 	    if (!__tdims) die("Error in get_threaddims"); \\
@@ -228,7 +231,9 @@ sub threadloop_end {
 } \\
 PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset") \\
 @{[ join " \\\n", map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$_ * __tdims1 + __offsp[$_];", 0..$#$ord ]} \\
-} while(PDL->iterthreadloop(&\$PRIV(pdlthread),2));
+__thrloopval = PDL->iterthreadloop(&\$PRIV(pdlthread),2); \\
+if ( __thrloopval < 0 ) die("Error in iterthreadloop"); \\
+} while(__thrloopval);
 EOF
 }
 

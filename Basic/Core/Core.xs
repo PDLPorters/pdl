@@ -788,7 +788,7 @@ threadover_n(...)
     }
     PDL_THR_CLRMAGIC(&pdl_thr);
     pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL,NULL,NULL, 1);
-    pdl_startthreadloop(&pdl_thr,NULL,NULL);
+    if (pdl_startthreadloop(&pdl_thr,NULL,NULL) < 0) croak("Error starting threadloop");
     sd = pdl_thr.ndims;
     do {
     	dSP;
@@ -803,7 +803,9 @@ threadover_n(...)
 	}
     	PUTBACK;
 	perl_call_sv(code,G_DISCARD);
-    } while( (sd = pdl_iterthreadloop(&pdl_thr,0)) );
+	sd = pdl_iterthreadloop(&pdl_thr,0);
+	if ( sd < 0 ) die("Error in iterthreadloop");
+    } while( sd );
     pdl_freethreadloop(&pdl_thr);
 
 void
@@ -858,7 +860,7 @@ threadover(...)
 	/* And make it nonnull, now that we've created it */
 	pdls[i]->state &= (~PDL_NOMYDIMS);
       }
-    pdl_startthreadloop(&pdl_thr,NULL,NULL);
+    if (pdl_startthreadloop(&pdl_thr,NULL,NULL) < 0) croak("Error starting threadloop");
     for(i=0; i<npdls; i++) { /* will the SV*'s be properly freed? */
 	dims[i] = newRV(pdl_unpackint(pdls[i]->dims,realdims[i]));
 	incs[i] = newRV(pdl_unpackint(PDL_REPRINCS(pdls[i]),realdims[i]));
@@ -875,6 +877,7 @@ threadover(...)
 	csv[i] = sv_newmortal();
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
     }
+    int thrloopval;
     do {  /* the actual threadloop */
 	pdl_trans *traff;
     	dSP;
@@ -893,5 +896,7 @@ threadover(...)
 	  PUSHs(others[i]);   /* pass the OtherArgs onto the stack */
     	PUTBACK;
 	perl_call_sv(code,G_DISCARD);
-    } while (pdl_iterthreadloop(&pdl_thr,0));
+	thrloopval = pdl_iterthreadloop(&pdl_thr,0);
+	if ( thrloopval < 0 ) die("Error in iterthreadloop");
+    } while( thrloopval );
     pdl_freethreadloop(&pdl_thr);

@@ -500,7 +500,7 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 		}
 	}
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds, &dims);
-	if (!offsp) die("Error in pdl_get_threadoffsp_int");
+	if (!offsp) return -1;
 	for(j=0; j<npdls; j++)
 	    offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 	if (thr)
@@ -517,7 +517,7 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds, *dims;
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds, &dims);
-	if (!offsp) die("Error in pdl_get_threadoffsp_int");
+	if (!offsp) return -1;
 	for(i=nth; i<thread->ndims; i++) {
 		inds[i] ++;
 		if( inds[i] >= dims[i])
