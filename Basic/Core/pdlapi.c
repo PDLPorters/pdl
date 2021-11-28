@@ -951,16 +951,6 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	}
 }
 
-void pdl__ensure_transdims(pdl_trans *trans)
-{
-	PDL_Indx j;
-	PDL_TR_CHKMAGIC(trans);
-	for(j=0; j<trans->vtable->nparents; j++) {
-		pdl_make_physdims(trans->pdls[j]);
-	}
-	REDODIMS(trans);
-}
-
 /* Recursive! */
 void pdl_vafftrans_remove(pdl * it)
 {
