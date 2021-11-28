@@ -34,9 +34,6 @@ extern int pdl_debugging;
 #define PDLDEBUG_f(a)
 #endif
 
-#define ANYVAL_ISBAD(inany,pdl,badval) \\
-  (ANYVAL_ISNAN(badval) ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval))
-
 typedef struct pdl pdl;
 
 $PDL_DATATYPES
@@ -60,28 +57,46 @@ extern PDL_Indx pdl_autopthread_dim;
 
 $mymalloc
 
-#define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
-
 !GROK!THIS!
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+my @methods = qw(symbol ctype ppsym shortctype defbval);
+my @generics = map { my $t = $_; [map $t->$_, @methods] } PDL::Types::types();
+print OUT "#define PDL_GENERICLIST(X) \\\n";
+print OUT (map ' X('.join(',', @$_).")\\\n", @generics), "\n\n";
+print OUT "#define PDL_GENERICLIST2(X, X2) \\\n";
+print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
+# extra as macro gets expanded twice, gets painted blue
+print OUT "#define PDL_GENERICLIST2_(X, X2) \\\n";
+print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
+my @generics_real = map { my $t = $_; [map $t->$_, @methods] } grep $_->real, PDL::Types::types();
+print OUT "#define PDL_GENERICLIST_REAL(X) \\\n";
+print OUT (map ' X('.join(',', @$_).")\\\n", @generics_real), "\n\n";
 print OUT <<'EOF';
-static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
-  switch (x.type) {
-EOF
-for my $o (PDL::Types::types()) { # outer
-  print OUT "    case @{[$o->sym]}:\n      switch (y.type) {\n";
-  for my $i (PDL::Types::types()) { # inner
-    print OUT "        case @{[$i->sym]}: return (x.value.".$o->ppsym." == y.value.".$i->ppsym.") ? 1 : 0;\n";
+#define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
+  case symbol: { X(symbol, __VA_ARGS__) } break;
+#define PDL_GENERICSWITCH(typevar, X2, dflt) \
+  switch (typevar) { \
+    PDL_GENERICLIST2(PDL_GENERICSWITCH_CASE, X2) \
+    default: dflt; \
   }
-  print OUT "        default: return 0;\n      }\n";
-}
-print OUT <<'EOF';
-    default:
-      return 0;
+/* extra as first one gets painted blue */
+#define PDL_GENERICSWITCH_CASE2(X, symbol, ...) \
+  case symbol: { X(symbol, __VA_ARGS__) } break;
+/* for use in inner loops avoiding extreme lambda-calculus stuff */
+#define PDL_GENERICSWITCH2(typevar, X2, dflt) \
+  switch (typevar) { \
+    PDL_GENERICLIST2_(PDL_GENERICSWITCH_CASE2, X2) \
+    default: dflt; \
   }
-}
 EOF
+
+for my $type (PDL::Types::types()) {
+  my ($ppsym) = map $type->$_, qw(ppsym);
+  my $expr = !$type->usenan ? 'FALSE' : $type->isnan('x');
+  print OUT "#define PDL_ISNAN_$ppsym(x) ($expr)\n";
+  my $expr2 = !$type->usenan ? 'TRUE' : $type->isfinite('x');
+  print OUT "#define PDL_ISFINITE_$ppsym(x) ($expr2)\n";
+}
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
@@ -137,53 +152,35 @@ print OUT <<EOF;
 )
 EOF
 
-for my $type (PDL::Types::types()) {
-  my ($ppsym) = map $type->$_, qw(ppsym);
-  my $expr = !$type->usenan ? 'FALSE' : $type->isnan('x');
-  print OUT "#define PDL_ISNAN_$ppsym(x) ($expr)\n";
-  my $expr2 = !$type->usenan ? 'TRUE' : $type->isfinite('x');
-  print OUT "#define PDL_ISFINITE_$ppsym(x) ($expr2)\n";
-}
-
-my @methods = qw(symbol ctype ppsym shortctype defbval);
-my @generics = map { my $t = $_; [map $t->$_, @methods] } PDL::Types::types();
-print OUT "#define PDL_GENERICLIST(X) \\\n";
-print OUT (map ' X('.join(',', @$_).")\\\n", @generics), "\n\n";
-print OUT "#define PDL_GENERICLIST2(X, X2) \\\n";
-print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
-# extra as macro gets expanded twice, gets painted blue
-print OUT "#define PDL_GENERICLIST2_(X, X2) \\\n";
-print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
-my @generics_real = map { my $t = $_; [map $t->$_, @methods] } grep $_->real, PDL::Types::types();
-print OUT "#define PDL_GENERICLIST_REAL(X) \\\n";
-print OUT (map ' X('.join(',', @$_).")\\\n", @generics_real), "\n\n";
-
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
+#define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
+static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
+  switch (x.type) {
+EOF
+for my $o (PDL::Types::types()) { # outer
+  print OUT "    case @{[$o->sym]}:\n      switch (y.type) {\n";
+  for my $i (PDL::Types::types()) { # inner
+    print OUT "        case @{[$i->sym]}: return (x.value.".$o->ppsym." == y.value.".$i->ppsym.") ? 1 : 0;\n";
+  }
+  print OUT "        default: return 0;\n      }\n";
+}
+print OUT <<'EOF';
+    default:
+      return 0;
+  }
+}
+#define ANYVAL_ISBAD(inany,pdl,badval) \
+  (ANYVAL_ISNAN(badval) ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval))
+EOF
+
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT <<'!NO!SUBS!';
 typedef struct badvals {
 #define X(symbol, ctype, ppsym, shortctype, defbval) ctype shortctype;
 PDL_GENERICLIST(X)
 #undef X
 } badvals;
-
-#define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
-  case symbol: { X(symbol, __VA_ARGS__) } break;
-#define PDL_GENERICSWITCH(typevar, X2, dflt) \
-  switch (typevar) { \
-    PDL_GENERICLIST2(PDL_GENERICSWITCH_CASE, X2) \
-    default: dflt; \
-  }
-/* extra as first one gets painted blue */
-#define PDL_GENERICSWITCH_CASE2(X, symbol, ...) \
-  case symbol: { X(symbol, __VA_ARGS__) } break;
-/* for use in inner loops avoiding extreme lambda-calculus stuff */
-#define PDL_GENERICSWITCH2(typevar, X2, dflt) \
-  switch (typevar) { \
-    PDL_GENERICLIST2_(PDL_GENERICSWITCH_CASE2, X2) \
-    default: dflt; \
-  }
-EOF
-
-print OUT <<'!NO!SUBS!';
 
 /*
  * Define the pdl C data structure which maps onto the original PDL
