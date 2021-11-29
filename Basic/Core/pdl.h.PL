@@ -24,6 +24,7 @@ print OUT <<"!GROK!THIS!";
 #define __PDL_H
 
 #include <complex.h>
+#include <math.h>
 
 #define PDL_DEBUGGING 1
 
@@ -92,9 +93,9 @@ EOF
 
 for my $type (PDL::Types::types()) {
   my ($ppsym) = map $type->$_, qw(ppsym);
-  my $expr = !$type->usenan ? 'FALSE' : $type->isnan('x');
+  my $expr = !$type->usenan ? 0 : $type->isnan('x') . '?1:0'; # isnan can return any non-0
   print OUT "#define PDL_ISNAN_$ppsym(x) ($expr)\n";
-  my $expr2 = !$type->usenan ? 'TRUE' : $type->isfinite('x');
+  my $expr2 = !$type->usenan ? 1 : $type->isfinite('x') . '?1:0';
   print OUT "#define PDL_ISFINITE_$ppsym(x) ($expr2)\n";
 }
 
@@ -133,41 +134,40 @@ print OUT <<'EOF';
  } while (0)
 EOF
 
-print OUT <<'EOF';
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT <<'!NO!SUBS!';
 /* input vars have to be called exactly these as not expanded */
 #define ANYVAL_TO_CTYPE_OFFSET_X(datatype, generic, generic_ppsym, shortctype, defbval) \
     ANYVAL_TO_CTYPE(((generic *)x)[ioff], generic, value);
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
     PDL_GENERICSWITCH(datatype, ANYVAL_TO_CTYPE_OFFSET_X, croak("Not a known data type code=%d", datatype))
-EOF
 
-my $isnan = join " \\\n  ",
-  map "(x).type == ".$_->sym." ? @{[$_->isnan('(x).value.'.$_->ppsym)]} :",
-  grep $_->usenan, PDL::Types::types();
-print OUT <<EOF;
-#define ANYVAL_ISNAN(x) (\\
-  (x).type < PDL_F ? 0 : \\
-  $isnan \\
-  (croak("ANYVAL_ISNAN should not get here, had type %d", (x).type), 1) \\
-)
-EOF
+#define ANYVAL_ISNAN(x) _anyval_isnan(x)
+static inline int _anyval_isnan(PDL_Anyval x) {
+#define X(datatype, ctype, ppsym, shortctype, defbval) \
+  return PDL_ISNAN_ ## ppsym(x.value.ppsym);
+  PDL_GENERICSWITCH(x.type, X, return -1)
+#undef X
+}
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'!NO!SUBS!';
 #define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
 static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
 #define X_OUTER(datatype_x, ctype_x, ppsym_x, shortctype_x, defbval_x) \
   ctype_x cvalue_x = x.value.ppsym_x; \
-  PDL_GENERICSWITCH2(y.type, X_INNER, return 0)
+  PDL_GENERICSWITCH2(y.type, X_INNER, return -1)
 #define X_INNER(datatype_y, ctype_y, ppsym_y, shortctype_y, defbval_y) \
   return (cvalue_x == y.value.ppsym_y) ? 1 : 0;
-  PDL_GENERICSWITCH(x.type, X_OUTER, return 0)
+  PDL_GENERICSWITCH(x.type, X_OUTER, return -1)
 #undef X_INNER
 #undef X_OUTER
 }
 
-#define ANYVAL_ISBAD(inany,badval) \
-  (ANYVAL_ISNAN(badval) ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval))
+#define ANYVAL_ISBAD(inany,badval) _anyval_isbad(inany,badval)
+static inline int _anyval_isbad(PDL_Anyval inany, PDL_Anyval badval) {
+  int isnan_badval = ANYVAL_ISNAN(badval);
+  if (isnan_badval == -1) return -1;
+  return isnan_badval ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval);
+}
 
 typedef struct badvals {
 #define X(symbol, ctype, ppsym, shortctype, defbval) ctype shortctype;

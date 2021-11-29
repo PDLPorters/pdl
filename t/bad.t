@@ -399,8 +399,9 @@ for my $t (map +([$_, undef], [$_, 'nan']), grep !$_->integer, types()) {
   my $p = sequence $t->[0], 2;
   $p->badvalue($t->[1]) if defined $t->[1];
   $p->setbadat(1);
-  eval {is $p.'', '[0 BAD]', "badvalue works right $t->[0], bv=".explain($->[1])};
-  is $@, '';
+  my $msg = "badvalue works right $t->[0], bv=".(explain($t->[1]))[0];
+  eval {is $p.'', '[0 BAD]', $msg};
+  is $@, '', $msg;
 }
 
 ## Name: "isn't numeric in null operation" warning could be more helpful

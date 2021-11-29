@@ -414,14 +414,15 @@ PDL_Anyval from C code:
 
  ANYVAL_FROM_CTYPE(out_anyval, out_anyval_type, in_variable)
  ANYVAL_TO_CTYPE(out_variable, out_ctype, in_anyval)
- ANYVAL_EQ_ANYVAL(x, y)
+ ANYVAL_EQ_ANYVAL(x, y) /* returns -1 on type error */
 
-As of PDL 2.039 there is:
+As of PDL 2.039 (returns -1 rather than croaking on failure as of
+2.064) there is:
 
  ANYVAL_ISNAN(anyval)
 
-As of PDL 2.040 (changed parameter list in 2.064) - you need to check
-the badflag first:
+As of PDL 2.040 (changed parameter list, also returns -1 rather than
+croaking on failure, in 2.064) - you need to check the badflag first:
 
  ANYVAL_ISBAD(in_anyval, badval)
 
@@ -429,9 +430,14 @@ e.g.
 
  int badflag = (x->state & PDL_BADVAL) > 0;
  PDL_Anyval badval = pdl_get_pdl_badvalue(x);
- if (badflag && ANYVAL_ISBAD(result, badval))
-   RETVAL = newSVpvn( "BAD", 3 );
- else
+ if (badflag) {
+   int isbad = ANYVAL_ISBAD(result, badval);
+   if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", result.type, badval.type);
+   if (isbad)
+     RETVAL = newSVpvn( "BAD", 3 );
+   else
+     ANYVAL_TO_SV(RETVAL, result);
+ } else
    ANYVAL_TO_SV(RETVAL, result);
 
 As of PDL 2.058, there are:

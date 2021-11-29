@@ -287,9 +287,14 @@ at_bad_c(x,pos)
 	x->ndims);
    badflag = (x->state & PDL_BADVAL) > 0;
    PDL_Anyval badval = pdl_get_pdl_badvalue(x);
-   if (badflag && ANYVAL_ISBAD(result, badval))
-     RETVAL = newSVpvn( "BAD", 3 );
-   else
+   if (badflag) {
+     int isbad = ANYVAL_ISBAD(result, badval);
+     if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", result.type, badval.type);
+     if (isbad)
+       RETVAL = newSVpvn( "BAD", 3 );
+     else
+       ANYVAL_TO_SV(RETVAL, result);
+   } else
      ANYVAL_TO_SV(RETVAL, result);
 
     OUTPUT:
@@ -336,8 +341,13 @@ listref_c(x)
    for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
    while(!stop) {
       pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
-      if (badflag && ANYVAL_ISBAD(pdl_val, pdl_badval)) {
-	 sv = newSVpvn( "BAD", 3 );
+      if (badflag) {
+	 int isbad = ANYVAL_ISBAD(pdl_val, pdl_badval);
+	 if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", pdl_val.type, pdl_badval.type);
+	 if (isbad)
+	    sv = newSVpvn( "BAD", 3 );
+	 else
+	    ANYVAL_TO_SV(sv, pdl_val);
       } else {
 	 ANYVAL_TO_SV(sv, pdl_val);
       }
