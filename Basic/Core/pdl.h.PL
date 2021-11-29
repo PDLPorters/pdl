@@ -153,29 +153,22 @@ print OUT <<EOF;
 EOF
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'EOF';
+print OUT <<'!NO!SUBS!';
 #define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
 static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
-  switch (x.type) {
-EOF
-for my $o (PDL::Types::types()) { # outer
-  print OUT "    case @{[$o->sym]}:\n      switch (y.type) {\n";
-  for my $i (PDL::Types::types()) { # inner
-    print OUT "        case @{[$i->sym]}: return (x.value.".$o->ppsym." == y.value.".$i->ppsym.") ? 1 : 0;\n";
-  }
-  print OUT "        default: return 0;\n      }\n";
+#define X_OUTER(datatype_x, ctype_x, ppsym_x, shortctype_x, defbval_x) \
+  ctype_x cvalue_x = x.value.ppsym_x; \
+  PDL_GENERICSWITCH2(y.type, X_INNER, return 0)
+#define X_INNER(datatype_y, ctype_y, ppsym_y, shortctype_y, defbval_y) \
+  return (cvalue_x == y.value.ppsym_y) ? 1 : 0;
+  PDL_GENERICSWITCH(x.type, X_OUTER, return 0)
+#undef X_INNER
+#undef X_OUTER
 }
-print OUT <<'EOF';
-    default:
-      return 0;
-  }
-}
+
 #define ANYVAL_ISBAD(inany,badval) \
   (ANYVAL_ISNAN(badval) ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval))
-EOF
 
-print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<'!NO!SUBS!';
 typedef struct badvals {
 #define X(symbol, ctype, ppsym, shortctype, defbval) ctype shortctype;
 PDL_GENERICLIST(X)
