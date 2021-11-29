@@ -249,6 +249,12 @@ is( PDL::Core::string($x), 'BAD', 'can convert PDL to string' );
 is( $x->at, 'BAD', 'at() returns BAD for a bad value' );
 isnt( $x->sclr, 'BAD', 'sclr() ignores bad value' );
 
+$x = pdl 4;
+$x->badflag(1);
+$x->badvalue(4);
+is( $x->at, 'BAD', 'at() returns BAD for a bad value with non-default badvalue' );
+is( $x->sclr, 4, 'sclr() ignores bad value' );
+
 $x = pdl(0.5,double->badvalue,0);
 $x->badflag(1);
 $y = bessj0($x);

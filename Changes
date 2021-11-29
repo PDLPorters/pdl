@@ -4,6 +4,7 @@
 - PDL.{magic_get_thread,{start,iter}threadloop} return -1 not die
 - PDL.sever returns void not pdl * (Perl interface stays same)
 - ANYVAL_ISBAD interface change
+- fix ->at with pdl having non-default badvalue
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal

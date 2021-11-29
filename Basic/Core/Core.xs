@@ -286,7 +286,8 @@ at_bad_c(x,pos)
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims);
    badflag = (x->state & PDL_BADVAL) > 0;
-   if (badflag && ANYVAL_ISBAD(result, pdl_get_badvalue(x->datatype)))
+   PDL_Anyval badval = pdl_get_pdl_badvalue(x);
+   if (badflag && ANYVAL_ISBAD(result, badval))
      RETVAL = newSVpvn( "BAD", 3 );
    else
      ANYVAL_TO_SV(RETVAL, result);
