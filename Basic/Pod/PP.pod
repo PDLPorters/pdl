@@ -1272,6 +1272,7 @@ defaults will happen first):
     MakeComp => '
       PDL_Indx i;
       PDL_Indx *tmp= PDL->packdims(list,&($COMP(whichdims_count)));
+      if (!tmp) $CROAK("Failed to packdims for creating");
       if ($COMP(whichdims_count) < 1)
         $CROAK("Diagonal: must have at least 1 dimension");
       $DOCOMPALLOC(); /* malloc()s the whichdims */

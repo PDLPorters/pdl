@@ -73,7 +73,9 @@ pp_def( 'affine',
         MakeComp => '
                 PDL_Indx i = 0, n2 = 0;
                 PDL_Indx *tmpi = pdl_packdims(inclist,&n2);
+                if (!tmpi) $CROAK("Failed to packdims for tmpi");
                 PDL_Indx *tmpd = pdl_packdims(dimlist,&($COMP(nd)));
+                if (!tmpd) $CROAK("Failed to packdims for tmpd");
                 if ($COMP(nd) < 0) {
                       $CROAK("Affine: can not have negative no of dims");
                 }
@@ -169,7 +171,9 @@ void pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *incl
   CHILD = trans->pdls[1];
   PDL_Indx i = 0, n2 = 0;
   PDL_Indx *tmpi = pdl_packdims(inclist,&n2);
+  if (!tmpi) pdl_pdl_barf("Failed to packdims for tmpi");
   PDL_Indx *tmpd = pdl_packdims(dimlist,&(params->nd));
+  if (!tmpd) pdl_pdl_barf("Failed to packdims for tmpd");
   if (params->nd < 0)
     pdl_pdl_barf("Error in affine: can not have negative no of dims");
   if (params->nd != n2)

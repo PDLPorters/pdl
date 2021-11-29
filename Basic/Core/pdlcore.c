@@ -221,8 +221,7 @@ PDL_Indx* pdl_packdims ( SV* sv, PDL_Indx *ndims ) {
    AV *array = (AV *) SvRV(sv);   /* dereference */
    *ndims = (PDL_Indx) av_len(array) + 1;  /* Number of dimensions */
    PDL_Indx *dims = (PDL_Indx *) pdl_smalloc( (*ndims) * sizeof(*dims) ); /* Array space */
-   if (dims == NULL)
-      croak("Out of memory");
+   if (dims == NULL) return NULL;
    PDL_Indx i;
    for(i=0; i<(*ndims); i++) {
       dims[i] = (PDL_Indx) SvIV(*(av_fetch( array, i, 0 )));
@@ -574,12 +573,12 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
 
 /* wrapper for pdl_at where only want first item, cf sclr_c */
 PDL_Anyval pdl_at0( pdl* it ) {
+    PDL_Anyval result = { -1, 0 };
     PDL_Indx nullp = 0;
     PDL_Indx dummyd = 1;
     PDL_Indx dummyi = 1;
     pdl_make_physvaffine( it );
-    if (it->nvals < 1)
-       croak("ndarray must have at least one element");
+    if (it->nvals < 1) { return result; }
     return pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
             &dummyi, PDL_REPROFFS(it),1);
 }
