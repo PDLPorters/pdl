@@ -256,12 +256,12 @@ pp_def(
 	GenericTypes => [B],
 	OtherPars => 'int psz => p',
 	Code => 'int status;
-		 if ($SIZE(m) != 3) barf("need RGB data (3,x,...)");
+		 if ($SIZE(m) != 3) $CROAK("need RGB data (3,x,...)");
 	         status = ppm_quant($P(a), NULL, NULL, $SIZE(n),
 				$SIZE(o),$P(b), NULL, $P(c), 0,
 				$SIZE(p), 1);
 		 if (!status)
-	   		barf("ppm_quant returned error status");'
+			$CROAK("ppm_quant returned error status");'
 );
 
 pp_done();

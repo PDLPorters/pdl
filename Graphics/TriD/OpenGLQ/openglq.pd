@@ -154,7 +154,7 @@ pp_def(
 		SV *sv = $COMP(arr);
 		AV *arr;
 		if(!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV)) {
-			barf("gl_texts requires an array ref");
+			$CROAK("gl_texts requires an array ref");
 		}
 		arr = (AV *)SvRV(sv);
 

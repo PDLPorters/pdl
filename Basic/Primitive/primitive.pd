@@ -647,7 +647,7 @@ pp_def(
     'loop(n) %{
         register PDL_Indx foo = $ind();
         if ( foo<0 || foo>=$SIZE(m) ) {
-           barf("PDL::indadd: invalid index");
+           $CROAK("PDL::indadd: invalid index");
         }
         $sum(m => foo) += $a();
     %}',
@@ -655,7 +655,7 @@ pp_def(
     'loop(n) %{
         register PDL_Indx foo = $ind();
         if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
-           barf("PDL::indadd: invalid index");
+           $CROAK("PDL::indadd: invalid index");
         }
         if ( $ISBAD(a()) ) { $SETBAD(sum(m => foo)); }
         else               { $sum(m => foo) += $a(); }
@@ -2805,7 +2805,7 @@ pp_def('interpolate',
 		   }
 		   jh = jl+1;
 		   if ((d = $x(n => jh)-$x(n => jl)) == 0)
-			barf("identical abscissas");
+			$CROAK("identical abscissas");
 		   d = ($x(n => jh)-$xi())/d;
 		   $yi() = d*$y(n => jl) + (1-d)*$y(n => jh);
                    $err() = carp;
@@ -3345,7 +3345,7 @@ EOD
 		PDL_Indx i;
 
 		if (dpdl->ndims != 1)
-		  barf("dimflag currently works only with 1D pdls");
+		  $CROAK("dimflag currently works only with 1D pdls");
 
 		if(dpdl->state & PDL_BADVAL)
 		  for (i=0; i<dpdl->dims[0]; i++) {

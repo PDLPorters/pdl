@@ -204,7 +204,7 @@ sub init_vars {
 	 ';
     $str .= $href->{malloc} . "\n";
     $str .= "if ($href->{check} (mapi==NULL) || (mapj==NULL))\n";
-    $str .= '  barf("Out of Memory");
+    $str .= '  $CROAK("Out of Memory");
 
          poff = p_size/2; mapi += p_size-1;
          qoff = q_size/2; mapj += q_size-1;
@@ -1021,7 +1021,7 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
       PDL_Long ny = $SIZE(n);
 
       if ($COMP(con)!=4 && $COMP(con)!=8)
-         barf("In ccNcompt, connectivity must be 4 or 8, you gave %d",$COMP(con));
+         $CROAK("In ccNcompt, connectivity must be 4 or 8, you gave %d",$COMP(con));
       loop(n) %{ loop(m) %{ /* Copy */
          $b() = $a();
       %} %}
@@ -1033,7 +1033,7 @@ where the second parameter specifies the connectivity (4 or 8) of the labeling.
       if (pass==1) {
          equiv = (PDL_Long*) malloc((newlabel+1)*sizeof(PDL_Long));
          if (equiv==(PDL_Long*)0)
-            barf("Out of memory");
+            $CROAK("Out of memory");
          for(i=0;i<=newlabel;i++)
              equiv[i]=i;
       }
@@ -1425,7 +1425,7 @@ EOD
       %}
   }
   else {
-    barf("the second matrix must be greater than first! (bilin2d)");
+    $CROAK("the second matrix must be greater than first! (bilin2d)");
   }
 ');
 
@@ -1558,7 +1558,7 @@ else if(ox < ix && oy >= iy) {
     }
   %}
 }
-else barf("I am not supposed to be here, please report the bug to <chri@infis.univ.ts.it>");
+else $CROAK("I am not supposed to be here, please report the bug to <chri@infis.univ.ts.it>");
   ');
 
 # functions to make handling 2D polynomial mappings a bit easier

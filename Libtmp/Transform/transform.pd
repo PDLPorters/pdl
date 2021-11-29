@@ -702,7 +702,7 @@ pp_def('map',
         {
           char buf[BUFSIZ];
           sprintf(buf,"Error in map: Unknown boundary condition '%c'",bstr[i]);
-          barf("%s", buf);
+          $CROAK("%s", buf);
         }
         break;
       }
@@ -715,15 +715,15 @@ pp_def('map',
  */
  big    = labs($COMP(big));
  if(big <= 0)
-   barf("%s","map: 'big' parameter must be >0");
+   $CROAK("%s","map: 'big' parameter must be >0");
 
  blur   = fabs($COMP(blur));
  if(blur < 0)
-   barf("%s","map: 'blur' parameter must be >= 0");
+   $CROAK("%s","map: 'blur' parameter must be >= 0");
 
  sv_min = fabs($COMP(sv_min));
  if(sv_min < 0)
-   barf("%s","map: 'sv_min' parameter must be >= 0");
+   $CROAK("%s","map: 'sv_min' parameter must be >= 0");
 
  flux   = $COMP(flux) != 0;
 
@@ -775,7 +775,7 @@ pp_def('map',
       {
         char err[80];
         sprintf(err,"Bug in map: unknown method '%c'",*mstr);
-        barf("%s", err);
+        $CROAK("%s", err);
       }
       break;
     }
@@ -875,7 +875,7 @@ pp_def('map',
        if(j<0 || j >= in->dims[i]) {
          switch(bounds[i]) {
          case 0: /* no breakage allowed */
-           barf("%s","index out-of-bounds in map");
+           $CROAK("%s","index out-of-bounds in map");
            break;
          case 1: /* truncation */
            t_vio++;
@@ -903,7 +903,7 @@ pp_def('map',
            }
            break;
          default:
-           barf("%s", "Unknown boundary condition in map -- bug alert!");
+           $CROAK("%s", "Unknown boundary condition in map -- bug alert!");
            break;
          }
        }
@@ -1073,7 +1073,7 @@ pp_def('map',
            {
              char buf[80];
              sprintf(buf,"This can't happen: method='%c'",method);
-             barf("%s", buf);
+             $CROAK("%s", buf);
            }
          }
 

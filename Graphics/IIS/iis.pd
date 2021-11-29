@@ -466,7 +466,7 @@ pp_def('_iis',
    /* Open pipes etc */
 
    if (frame<1 || frame>4)
-       barf("$iisframe must be in range 1--4");
+       $CROAK("$iisframe must be in range 1--4");
 
     iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_b),
        (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
@@ -603,7 +603,7 @@ pp_def( '_iiscirc',
    /* Open pipes etc */
 
    if (frame<1 || frame>4)
-       barf("$iisframe must be in range 1--4");
+       $CROAK("$iisframe must be in range 1--4");
 
    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_a),
         (int)SvIV( perl_get_sv("fbconfig", FALSE) ),

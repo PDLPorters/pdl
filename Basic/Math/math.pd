@@ -400,7 +400,7 @@ pp_def("polyroots",
                     double *rr, double *ri );
               int deg = (int)$SIZE(n)-1;
               if (cpoly($P(cr), $P(ci), deg, $P(rr), $P(ri)))
-                 barf("PDL::Math::polyroots failed");
+                 $CROAK("PDL::Math::polyroots failed");
 ',
       , Doc => '
 

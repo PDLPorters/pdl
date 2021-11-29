@@ -444,7 +444,7 @@ pp_def("eigens_sym",
 		extern void eigens( double *A, double *RR, double *E, int N );
 		register int sn = $SIZE (n);
 		if($SIZE (m) != (sn * (sn + 1))/2) {
-			barf("Wrong sized args for eigens_sym");
+			$CROAK("Wrong sized args for eigens_sym");
 		}
 		eigens($P (a), $P (ev), $P (e), sn);
 ',
@@ -536,11 +536,11 @@ pp_def("eigens",
             New(111, bar, sn, void*);
 
             if($SIZE (l) != 2) {
-	        barf("eigens internal error...");
+	        $CROAK("eigens internal error...");
             }
             if($SIZE (m) != (sn * sn )) {
 		fprintf(stderr,"m=%"IND_FLAG", sn=%d\n",$SIZE(m),sn);
-		barf("Wrong sized args for eigens");
+		$CROAK("Wrong sized args for eigens");
 	    }
 
 	    for(  i=j=0;  i<$SIZE(m);  i += sn  ) {
@@ -728,7 +728,7 @@ pp_def(
               extern void SVD( double *W, double *Z, int nRow, int nCol );
               int sm = $SIZE (m), sn = $SIZE (n), i;
               if (sm<sn) {
-		  barf("svd requires input ndarrays to have m >= n (you have m=%d and n=%d). Try inputting the transpose.  See the docs for svd.",sm,sn);
+		  $CROAK("svd requires input ndarrays to have m >= n; you have m=%d and n=%d. Try inputting the transpose.  See the docs for svd.",sm,sn);
               }
               double *w, *t, zv;
               t = w = (double *) malloc(sn*(sm+sn)*sizeof(double));
@@ -1396,7 +1396,7 @@ pp_def("squaretotri",
 	Code => '
             register int mna=0, nb=0, ns = $SIZE (n);
 	    if($SIZE (m) != (ns * (ns+1))/2) {
-	       barf("Wrong sized args for squaretotri");
+	       $CROAK("Wrong sized args for squaretotri");
 	    }
             threadloop %{
 		loop(m) %{

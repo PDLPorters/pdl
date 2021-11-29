@@ -83,7 +83,7 @@ $SIZE(n)=$COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1;
 ',
 	   Code => <<'EOC',
            int i;
-           if($x()<-1||$x()>1) barf("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f. Try normalizing your input.",$x());
+           if($x()<-1||$x()>1) $CROAK("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f. Try normalizing your input.",$x());
 	   switch ($COMP(norm)){
 	       case 'P' :
 		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_NONE, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
@@ -112,7 +112,7 @@ EOC
 	   if ( $ISBAD( x() ) ) {
               loop(n) %{ $SETBAD ( y() ); %}
 	   } else {
-             if($x()<-1||$x()>1) barf("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f",$x());
+             if($x()<-1||$x()>1) $CROAK("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f",$x());
 	     switch ($COMP(norm)) {
 		   case 'P' :
 		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_NONE, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
