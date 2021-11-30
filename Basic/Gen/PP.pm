@@ -446,14 +446,22 @@ sub dosubst_private {
       PDL => sub { $sig->objs->{$_[0]}->do_pdlaccess },
       SIZE => sub { $sig->ind_obj($_[0])->get_size },
    );
-    while(
-	  $ret =~ s/\$(\w+)\s*\(([^()]*)\)/
-	  my ($kw, $arg) = ($1, $2);
-	  $arg =~ s:^\s*(.*?)\s*$:$1:;
-	  confess("$kw not defined in '$ret'!") if !defined $syms{$kw};
-	  $syms{$kw}->($arg)/ge
-	 ) {};
+    while (my ($before, $kw, $args, $other) = macro_extract($ret)) {
+      confess("$kw not defined in '$ret'!") if !$syms{$kw};
+      $ret = join '', $before, $syms{$kw}->($args), $other;
+    }
     $ret;
+}
+
+sub macro_extract {
+  require Text::Balanced;
+  my ($text) = @_;
+  return unless $text =~ /\$(\w+)\s*(?=\()/;
+  my ($before, $kw, $other) = ($`, $1, $');
+  (my $bracketed, $other) = Text::Balanced::extract_bracketed($other, '(")');
+  $bracketed = substr $bracketed, 1, -1; # chop off brackets
+  $bracketed =~ s:^\s*(.*?)\s*$:$1:;
+  ($before, $kw, $bracketed, $other);
 }
 
 sub new {
