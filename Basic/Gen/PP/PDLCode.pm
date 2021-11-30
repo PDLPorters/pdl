@@ -304,6 +304,8 @@ sub separate_code {
 	    push @{$stack[-1]},$ob;
 	    push @stack,$ob;
 	    $threadloops ++;
+	} elsif($control =~ /^%}/) {
+	    pop @stack;
 	} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
 	    push @{$stack[-1]},PDL::PP::PPBadAccess->new($1,$2,$3,$this);
 	} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
@@ -314,8 +316,6 @@ sub separate_code {
 	    push @{$stack[-1]},PDL::PP::PDLStateBadAccess->new($1,$2,$3,$this);
 	} elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
 	    push @{$stack[-1]},PDL::PP::Access->new($control,$this);
-	} elsif($control =~ /^%}/) {
-	    pop @stack;
 	} else {
 	    confess("Invalid control: $control\n");
 	}
