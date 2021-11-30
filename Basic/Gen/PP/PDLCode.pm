@@ -273,9 +273,6 @@ sub separate_code {
 	# of them
 	s/^(.*?) # First, some noise is allowed. This may be bad.
 	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
-                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]\w*\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
-###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
-                |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
 	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
 		|\bloop\s*\([^)]+\)\s*%\{   # loop(..) %{
 		|\btypes\s*\([^)]+\)\s*%\{  # types(..) %{
@@ -287,7 +284,6 @@ sub separate_code {
 	# Store the user code.
 	# Some day we shall parse everything.
 	push @{$stack[-1]},$1;
-	if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
 	# Then, our control.
 	if (!$control) { print("No \$2!\n") if $::PP_VERBOSE; next; }
 	if($control =~ /^loop\s*\(([^)]+)\)\s*%\{/) {
@@ -306,14 +302,8 @@ sub separate_code {
 	    $threadloops ++;
 	} elsif($control =~ /^%}/) {
 	    pop @stack;
-	} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
-	    push @{$stack[-1]},PDL::PP::PPBadAccess->new($1,$2,$3,$this);
-	} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
-	    push @{$stack[-1]},PDL::PP::BadVarAccess->new($1,$2,$3,$this);
 	} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
 	    push @{$stack[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
-	} elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-	    push @{$stack[-1]},PDL::PP::PDLStateBadAccess->new($1,$2,$3,$this);
 	} elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
 	    push @{$stack[-1]},PDL::PP::Access->new($control,$this);
 	} else {
@@ -622,12 +612,8 @@ use Carp;
 our @CARP_NOT;
 
 my %access2class = (
-  P => 'PDL::PP::PointerAccess',
-  PP => 'PDL::PP::PhysPointerAccess',
-  SIZE => 'PDL::PP::SizeAccess',
   GENERIC => 'PDL::PP::GentypeAccess',
   PPSYM => 'PDL::PP::PpsymAccess',
-  PDL => 'PDL::PP::PdlAccess',
 );
 
 sub new { my($type,$str,$parent) = @_;
@@ -729,242 +715,6 @@ sub get_str {
 
 ###########################
 #
-# Encapsulate a check on whether a value is good or bad
-# handles both checking (good/bad) and setting (bad)
-#
-# Integer types (BSUL) + floating point when no NaN (FD)
-#   $ISBADVAR(foo,a)  -> foo == a_badval
-#   $ISGOODVAR(foo,a)    foo != a_badval
-#   $SETBADVAR(foo,a)    foo  = a_badval
-#
-# floating point with NaN
-#   $ISBADVAR(foo,a)  -> !isnan(foo) == 0
-#   $ISGOODVAR(foo,a)    !isnan(foo) != 0
-#   $SETBADVAR(foo,a)    foo          = PDL->bvals.Float (or .Double)
-#
-
-package PDL::PP::BadVarAccess;
-use Carp;
-our @CARP_NOT;
-
-sub new {
-    my ( $type, $opcode, $var_name, $name, $parent ) = @_;
-
-    # trying to avoid auto creation of hash elements
-    my $check = $parent->{ParObjs};
-    die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
-	"  unknown ndarray <$name>\n"
-	unless exists($check->{$name}) and defined($check->{$name});
-
-    bless [$opcode, $var_name, $name], $type;
-}
-
-our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
-
-sub get_str {
-    my($this,$parent,$context) = @_;
-
-    my $opcode   = $this->[0];
-    my $var_name = $this->[1];
-    my $name = $this->[2];
-
-    print "PDL::PP::BadVarAccess sent [$opcode] [$var_name] [$name]\n" if $::PP_VERBOSE;
-
-    my $op = $ops{$opcode};
-    die "ERROR: unknown check <$opcode> sent to PDL::PP::BadVarAccess\n"
-	unless defined $op;
-
-    my $obj = $parent->{ParObjs}{$name};
-    die "ERROR: something screwy in PDL::PP::BadVarAccess (PP/PDLCode.pm)\n"
-	unless defined( $obj );
-
-    my ( $lhs, $rhs ) = $parent->convert(
-	$name, $var_name, "${name}_badval", $opcode, $obj
-    );
-
-    print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
-    return "$lhs $op $rhs";
-}
-
-
-###########################
-#
-# Encapsulate a check on whether a value is good or bad using PP
-# handles both checking (good/bad) and setting (bad)
-
-# this is only an initial attempt - it will, almost certainly,
-# need more work as more code is converted to handle bad values
-#
-# currently it can only handle cases like
-#  $PPISBAD(PARENT,[i])  -> PARENT_physdatap[i] == PARENT_badval
-#  etc
-#
-# if we use NaN's, then
-#  $PPISBAD(PARENT,[i])   -> !isnan(PARENT_physdatap[i]) == 0
-#  $PPISGOOD(PARENT,[i])  -> !isnan(PARENT_physdatap[i]) != 0
-#  $PPSETBAD(PARENT,[i])  -> PARENT_physdatap[i]          = PDL->bvals.Float (or .Double)
-#
-
-package PDL::PP::PPBadAccess;
-use Carp;
-our @CARP_NOT;
-
-sub new {
-    my ( $type, $opcode, $name, $inds, $parent ) = @_;
-
-    $opcode =~ s/^PP//;
-    bless [$opcode, $name, $inds], $type;
-}
-
-# PP is stripped in new()
-our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
-
-sub get_str {
-    my($this,$parent,$context) = @_;
-
-    my $opcode = $this->[0];
-    my $name   = $this->[1];
-    my $inds   = $this->[2];
-
-    print "PDL::PP::PPBadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
-
-    my $op = $ops{$opcode};
-    die "\nERROR: unknown check <$opcode> sent to PDL::PP::PPBadAccess\n"
-	unless defined $op;
-
-    my $obj = $parent->{ParObjs}{$name};
-    die "\nERROR: ParObjs does not seem to exist for <$name> = problem in PDL::PP::PPBadAccess\n"
-	unless defined $obj;
-
-    my ( $lhs, $rhs ) = $parent->convert(
-	$name, $obj->do_physpointeraccess() . "$inds", "${name}_badval", $opcode, $obj
-    );
-
-    print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
-    return "$lhs $op $rhs";
-}
-
-
-###########################
-#
-# Encapsulate a check on whether the state flag of an ndarray
-# is set/change this state
-#
-# $PDLSTATEISBAD(a)    ->  ($PDL(a)->state & PDL_BADVAL) > 0
-# $PDLSTATEISGOOD(a)   ->  ($PDL(a)->state & PDL_BADVAL) == 0
-#
-# $PDLSTATESETBAD(a)   ->  ($PDL(a)->state |= PDL_BADVAL)
-# $PDLSTATESETGOOD(a)  ->  ($PDL(a)->state &= ~PDL_BADVAL)
-#
-
-package PDL::PP::PDLStateBadAccess;
-use Carp;
-our @CARP_NOT;
-
-sub new {
-    my ( $type, $op, $val, $name, $parent ) = @_;
-
-    # $op  is one of: IS SET
-    # $val is one of: GOOD BAD
-
-    # trying to avoid auto creation of hash elements
-    my $check = $parent->{ParObjs};
-    die "\nIt looks like you have tried a \$PDLSTATE${op}${val}() macro on an\n" .
-	"  unknown ndarray <$name>\n"
-	unless exists($check->{$name}) and defined($check->{$name});
-
-    bless [$op, $val, $name], $type;
-}
-
-our %ops  = (
-	     IS  => { GOOD => '== 0', BAD => '> 0' },
-	     SET => { GOOD => '&= ~', BAD => '|= ' },
-	     );
-
-sub get_str {
-    my($this,$parent,$context) = @_;
-
-    my $op   = $this->[0];
-    my $val  = $this->[1];
-    my $name = $this->[2];
-
-    print "PDL::PP::PDLStateBadAccess sent [$op] [$val] [$name]\n" if $::PP_VERBOSE;
-
-    my $opcode = $ops{$op}{$val};
-    my $type = $op . $val;
-    die "ERROR: unknown check <$type> sent to PDL::PP::PDLStateBadAccess\n"
-	unless defined $opcode;
-
-    my $obj = $parent->{ParObjs}{$name};
-    die "\nERROR: ParObjs does not seem to exist for <$name> = problem in PDL::PP::PDLStateBadAccess\n"
-	unless defined $obj;
-
-    my $state = $obj->do_pdlaccess() . "->state";
-
-    my $str;
-    if ( $op eq 'IS' ) {
-	$str = "($state & PDL_BADVAL) $opcode";
-    } elsif ( $op eq 'SET' ) {
-	$str = "$state ${opcode}PDL_BADVAL";
-    }
-
-    print "DBG:  [$str]\n" if $::PP_VERBOSE;
-    return $str;
-}
-
-
-###########################
-#
-# Encapsulate a Pointeraccess
-
-package PDL::PP::PointerAccess;
-use Carp;
-our @CARP_NOT;
-
-sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
-
-sub get_str {my($this,$parent,$context) = @_;
-	confess ("can't access undefined pdl ".$this->[0])
-	  unless defined($parent->{ParObjs}{$this->[0]});
-#	$parent->{ParObjs}{$this->[0]}->{FlagPaccess} = 1;
-	$parent->{ParObjs}{$this->[0]}->{FlagPhys} = 1;
-	$parent->{ParObjs}{$this->[0]}->do_pointeraccess();
-}
-
-
-###########################
-#
-# Encapsulate a PhysPointeraccess
-
-package PDL::PP::PhysPointerAccess;
-use Carp;
-our @CARP_NOT;
-
-sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
-
-sub get_str {my($this,$parent,$context) = @_;
-	$parent->{ParObjs}{$this->[0]}->do_physpointeraccess()
-	 if defined($parent->{ParObjs}{$this->[0]});
-}
-
-###########################
-#
-# Encapsulate a PDLaccess
-
-package PDL::PP::PdlAccess;
-use Carp;
-our @CARP_NOT;
-
-sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
-
-sub get_str {my($this,$parent,$context) = @_;
-	confess ("can't access undefined pdl ".$this->[0])
-	  unless defined($parent->{ParObjs}{$this->[0]});
-	$parent->{ParObjs}{$this->[0]}->do_pdlaccess();
-}
-
-###########################
-#
 # Encapsulate a macroaccess
 
 package PDL::PP::MacroAccess;
@@ -997,22 +747,6 @@ sub get_str {
     $type2value->{$parent->{Gencurtype}[-1]->ppsym};
 }
 
-
-###########################
-#
-# Encapsulate a SizeAccess
-
-package PDL::PP::SizeAccess;
-use Carp;
-our @CARP_NOT;
-
-sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
-
-sub get_str {my($this,$parent,$context) = @_;
-	confess "can't get SIZE of undefined dimension $this->[0]"
-	  unless defined($parent->{IndObjs}{$this->[0]});
-	$parent->{IndObjs}{$this->[0]}->get_size();
-}
 
 ###########################
 #

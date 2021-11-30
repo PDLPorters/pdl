@@ -405,29 +405,53 @@ our @CARP_NOT;
 
 our @ISA = qw (PDL::PP::Rule);
 
+sub badflag_isset {
+  PDL::PP::pp_line_numbers(__LINE__-1, "($_[0]->state & PDL_BADVAL)")
+}
+
+sub isbad {
+  my ($val, $badvalname) = @_;
+  PDL::PP::pp_line_numbers(__LINE__-1, "($val == ${badvalname}_badval)");
+}
+
 # Probably want this directly in the apply routine but leave as is for now
 #
 sub dosubst_private {
-    my ($src,$sname,$pname,$name) = @_;
+    my ($src,$sname,$pname,$name,$sig) = @_;
     my $ret = (ref $src ? $src->[0] : $src);
     my %syms = (
-		((ref $src) ? %{$src->[1]} : ()),
-		PRIV => sub {return "$sname->$_[0]"},
-		COMP => sub {return "$pname->$_[0]"},
-		CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->pdl_barf(\"Error in $name:\" $_[0])")},
-		NAME => sub {return $name},
-		MODULE => sub {return $::PDLMOD},
-		SETPDLSTATEBAD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state |= PDL_BADVAL") },
-		SETPDLSTATEGOOD => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state &= ~PDL_BADVAL") },
-		ISPDLSTATEBAD   => sub { PDL::PP::pp_line_numbers(__LINE__-1, "(($_[0]\->state & PDL_BADVAL) > 0)") },
-		ISPDLSTATEGOOD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "(($_[0]\->state & PDL_BADVAL) == 0)") },
-		BADFLAGCACHE    => sub { PDL::PP::pp_line_numbers(__LINE__-1, "badflag_cache") },
-	       );
+      ((ref $src) ? %{$src->[1]} : ()),
+      PRIV => sub {return "$sname->$_[0]"},
+      COMP => sub {return "$pname->$_[0]"},
+      CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->pdl_barf(\"Error in $name:\" $_[0])")},
+      NAME => sub {return $name},
+      MODULE => sub {return $::PDLMOD},
+      SETPDLSTATEBAD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state |= PDL_BADVAL") },
+      SETPDLSTATEGOOD => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state &= ~PDL_BADVAL") },
+      ISPDLSTATEBAD   => \&badflag_isset,
+      ISPDLSTATEGOOD  => sub {"!".badflag_isset($_[0])},
+      BADFLAGCACHE    => sub { PDL::PP::pp_line_numbers(__LINE__-1, "badflag_cache") },
+      PDLSTATESETBAD => sub { PDL::PP::pp_line_numbers(__LINE__-1, $sig->objs->{$_[0]}->do_pdlaccess."->state |= PDL_BADVAL") },
+      PDLSTATESETGOOD => sub { PDL::PP::pp_line_numbers(__LINE__-1, $sig->objs->{$_[0]}->do_pdlaccess."->state &= ~PDL_BADVAL") },
+      PDLSTATEISBAD => sub {badflag_isset($sig->objs->{$_[0]}->do_pdlaccess)},
+      PDLSTATEISGOOD => sub {"!".badflag_isset($sig->objs->{$_[0]}->do_pdlaccess)},
+      PP => sub { $sig->objs->{$_[0]}->do_physpointeraccess },
+      PPISBAD => sub { my ($name, $inds) = split /\s*,\s*/, $_[0]; isbad($sig->objs->{$name}->do_physpointeraccess.$inds, $name) },
+      PPISGOOD => sub { my ($name, $inds) = split /\s*,\s*/, $_[0]; "!".isbad($sig->objs->{$name}->do_physpointeraccess.$inds, $name) },
+      PPSETBAD => sub { my ($name, $inds) = split /\s*,\s*/, $_[0]; PDL::PP::pp_line_numbers(__LINE__-1, $sig->objs->{$name}->do_physpointeraccess."$inds = ${name}_badval") },
+      ISBADVAR => sub { isbad(split /\s*,\s*/, $_[0]) },
+      ISGOODVAR => sub { "!".isbad(split /\s*,\s*/, $_[0]) },
+      SETBADVAR => sub { my ($vname, $name) = split /\s*,\s*/, $_[0]; PDL::PP::pp_line_numbers(__LINE__-1, "$vname = ${name}_badval") },
+      P => sub { (my $o = $sig->objs->{$_[0]})->{FlagPhys} = 1; $o->do_pointeraccess; },
+      PDL => sub { $sig->objs->{$_[0]}->do_pdlaccess },
+      SIZE => sub { $sig->ind_obj($_[0])->get_size },
+   );
     while(
-	  $ret =~ s/\$(\w+)\(([^()]*)\)/
-	  (defined $syms{$1} or
-	   confess("$1 not defined in '$ret'!")) and
-	  (&{$syms{$1}}($2))/ge
+	  $ret =~ s/\$(\w+)\s*\(([^()]*)\)/
+	  my ($kw, $arg) = ($1, $2);
+	  $arg =~ s:^\s*(.*?)\s*$:$1:;
+	  confess("$kw not defined in '$ret'!") if !defined $syms{$kw};
+	  $syms{$kw}->($arg)/ge
 	 ) {};
     $ret;
 }
@@ -444,7 +468,7 @@ sub new {
     die "\$target must be a scalar for PDL::PP::Rule::Substitute" if ref $target;
     die "\$condition must be a scalar for PDL::PP::Rule::Substitute" if ref $condition;
 
-    $class->SUPER::new($target, [$condition, "StructName", "ParamStructName", "Name"],
+    $class->SUPER::new($target, [$condition, qw(StructName ParamStructName Name SignatureObj)],
 				  \&dosubst_private);
 }
 
