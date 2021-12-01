@@ -346,16 +346,6 @@ sub report_error {
     die "$message at $filename line $line\n";
 }
 
-###########################
-#
-# used by BadAccess code to know when to use NaN support
-# - since 2.040, use per-PDL code
-#
-sub convert {
-    my ( $this, $name, $lhs, $rhs, $opcode, $pobj ) = @_;
-    ($lhs, $rhs);
-}
-
 #####################################################################
 #
 # Encapsulate the parsing code objects
@@ -704,9 +694,7 @@ sub get_str {
     die "ERROR: something screwy in PDL::PP::BadAccess (PP/PDLCode.pm)\n"
 	unless defined( $obj );
 
-    my ( $lhs, $rhs ) = $parent->convert(
-	$name, $obj->do_access($inds,$context), "${name}_badval", $opcode, $obj
-    );
+    my ( $lhs, $rhs ) = ($obj->do_access($inds,$context), "${name}_badval");
 
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
