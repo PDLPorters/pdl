@@ -251,6 +251,11 @@ sub make_loopind { my($this,$ind) = @_;
 	return [$ind,$orig];
 }
 
+my %access2class = (
+  GENERIC => 'PDL::PP::GentypeAccess',
+  PPSYM => 'PDL::PP::PpsymAccess',
+);
+
 # my ( $threadloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
 #
 # separates the code into an array of C fragments (strings),
@@ -305,7 +310,13 @@ sub separate_code {
 	} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
 	    push @{$stack[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
 	} elsif($control =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/) {
-	    push @{$stack[-1]},PDL::PP::Access->new($1,$2,$this);
+	    my ($pdl, $inds, @add) = ($1, $2);
+	    if($pdl =~ /^T/) {@add = PDL::PP::MacroAccess->new($pdl,$inds,
+				   $this->{Generictypes},$this->{Name});}
+	    elsif(my $c = $access2class{$pdl}) {@add = $c->new($pdl,$inds)}
+	    elsif($this->{ParObjs}{$pdl}) {@add = PDL::PP::Access->new($pdl,$inds)}
+	    else {@add = "\$$pdl($inds)"}
+	    push @{$stack[-1]}, @add;
 	} else {
 	    confess("Invalid control: $control\n");
 	}
@@ -601,33 +612,14 @@ package PDL::PP::Access;
 use Carp;
 our @CARP_NOT;
 
-my %access2class = (
-  GENERIC => 'PDL::PP::GentypeAccess',
-  PPSYM => 'PDL::PP::PpsymAccess',
-);
-
 sub new { my($type,$pdl,$inds,$parent) = @_;
-    if($pdl =~ /^T/) {PDL::PP::MacroAccess->new($pdl,$inds,
-			   $parent->{Generictypes},$parent->{Name});}
-    elsif(my $c = $access2class{$pdl}) {$c->new($pdl,$inds)}
-    elsif(!defined $parent->{ParObjs}{$pdl}) {PDL::PP::OtherAccess->new($pdl,$inds);}
-    else {
-	bless [$pdl,$inds],$type;
-    }
+    bless [$pdl,$inds],$type;
 }
 
 sub get_str { my($this,$parent,$context) = @_;
     $parent->{ParObjs}{$this->[0]}->do_access($this->[1],$context)
 	if defined($parent->{ParObjs}{$this->[0]});
 }
-
-###########################
-#
-# Just some other substituted thing.
-
-package PDL::PP::OtherAccess;
-sub new { my($type,$pdl,$inds) = @_; bless [$pdl,$inds],$type; }
-sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 
 ###########################
 #
