@@ -304,8 +304,8 @@ sub separate_code {
 	    pop @stack;
 	} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
 	    push @{$stack[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
-	} elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
-	    push @{$stack[-1]},PDL::PP::Access->new($control,$this);
+	} elsif($control =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/) {
+	    push @{$stack[-1]},PDL::PP::Access->new($1,$2,$this);
 	} else {
 	    confess("Invalid control: $control\n");
 	}
@@ -606,10 +606,7 @@ my %access2class = (
   PPSYM => 'PDL::PP::PpsymAccess',
 );
 
-sub new { my($type,$str,$parent) = @_;
-    $str =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/ or
-	    confess ("Access wrong: '$str'\n");
-    my($pdl,$inds) = ($1,$2);
+sub new { my($type,$pdl,$inds,$parent) = @_;
     if($pdl =~ /^T/) {PDL::PP::MacroAccess->new($pdl,$inds,
 			   $parent->{Generictypes},$parent->{Name});}
     elsif(my $c = $access2class{$pdl}) {$c->new($pdl,$inds)}
