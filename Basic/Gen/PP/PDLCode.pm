@@ -291,18 +291,10 @@ sub process {
 	    $$threadloops_ref++;
 	} elsif($control =~ /^%}/) {
 	    pop @$stack_ref;
-	} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
-	    push @{$stack_ref->[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
-	} elsif($control =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/) {
-	    my ($pdl, $inds, @add) = ($1, $2);
-	    if($pdl =~ /^T/) {@add = PDL::PP::MacroAccess->new($pdl,$inds,
-				   $this->{Generictypes},$this->{Name});}
-	    elsif(my $c = $access2class{$pdl}) {@add = $c->new($pdl,$inds)}
-	    elsif($this->{ParObjs}{$pdl}) {@add = PDL::PP::Access->new($pdl,$inds)}
-	    else {@add = "\$$pdl($inds)"}
-	    push @{$stack_ref->[-1]}, @add;
 	} else {
-	    confess("Invalid control: $control\n");
+	    my ($rest, @add) = $this->expand($control.$code);
+	    push @{$stack_ref->[-1]}, @add;
+	    $code = $rest;
 	}
     } # while: $code
 }
@@ -323,6 +315,27 @@ sub separate_code {
     $this->process($code, \@stack, \$threadloops, $sizeprivs);
     ( $threadloops, $coderef, $sizeprivs );
 } # sub: separate_code()
+
+sub expand {
+    my ($this, $text) = @_;
+    my (undef, $pdl, $inds, $rest) = PDL::PP::Rule::Substitute::macro_extract($text);
+    my @add;
+    if($pdl =~ /^T/) {@add = PDL::PP::MacroAccess->new($pdl,$inds,
+			   $this->{Generictypes},$this->{Name});}
+    elsif(my $c = $access2class{$pdl}) {@add = $c->new($pdl,$inds)}
+    elsif($pdl =~ /^(ISBAD|ISGOOD|SETBAD)$/) {
+	$inds =~ s/^\$?([a-zA-Z_]\w*)\s*//; # $ is optional
+	@add = PDL::PP::BadAccess->new($pdl,$1,$inds,$this);
+    }
+    elsif($this->{ParObjs}{$pdl}) {@add = PDL::PP::Access->new($pdl,$inds)}
+    else {
+	@add = "\$$pdl(";
+	# assumption: the only "control" that will happen in macro args is another macro
+	$this->process($inds, [\@add], undef, undef);
+	push @add, ")";
+    }
+    ($rest, @add);
+}
 
 # This is essentially a collection of regexes that look for standard code
 # errors and croaks with an explanation if they are found.
@@ -654,7 +667,7 @@ our @CARP_NOT;
 
 sub new {
     my ( $type, $opcode, $name, $inds, $parent ) = @_;
-
+    $inds = substr $inds, 1, -1; # chop off brackets
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
     die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
