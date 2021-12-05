@@ -65,12 +65,12 @@ SV *
 get_trans(self)
 	pdl *self;
 	CODE:
-	ST(0) = sv_newmortal();
+	RETVAL = newSV(0);
 	if(self->trans_parent)  {
-		sv_setref_pv(ST(0), "PDL::Trans", (void*)(self->trans_parent));
-	} else {
-               ST(0) = &PL_sv_undef;
+		sv_setref_pv(RETVAL, "PDL::Trans", (void*)(self->trans_parent));
 	}
+	OUTPUT:
+	RETVAL
 
 INCLUDE_COMMAND: $^X -e "require q{./Dev.pm}; PDL::Core::Dev::generate_core_flags()"
 
@@ -247,7 +247,7 @@ SV *
 sclr_c(it)
    pdl* it
    PREINIT:
-	PDL_Anyval result = { -1, 0 };
+	PDL_Anyval result = { -1, {0} };
    CODE:
         /* get the first element of an ndarray and return as
          * Perl scalar (autodetect suitable type IV or NV)
@@ -267,7 +267,7 @@ at_bad_c(x,pos)
    PREINIT:
     PDL_Indx ipos;
     int badflag;
-    PDL_Anyval result = { -1, 0 };
+    PDL_Anyval result = { -1, {0} };
    CODE:
     pdl_make_physvaffine( x );
 
@@ -318,8 +318,8 @@ listref_c(x)
    int stop = 0;
    AV *av;
    SV *sv;
-   PDL_Anyval pdl_val =    { -1, 0 };
-   PDL_Anyval pdl_badval = { -1, 0 };
+   PDL_Anyval pdl_val =    { -1, {0} };
+   PDL_Anyval pdl_badval = { -1, {0} };
   CODE:
     /*
     # note:
@@ -435,7 +435,6 @@ pdl_avref(array_ref, class, type)
      int type
   PREINIT:
      AV *dims, *av;
-     int i, depth;
      int datalevel = -1;
      SV* psv;
      pdl* p;
@@ -455,8 +454,7 @@ pdl_avref(array_ref, class, type)
 
      av_store(dims,0,newSViv((IV) av_len(av)+1));
 
-     /* even if we contain nothing depth is one */
-     depth = 1 + av_ndcheck(av,dims,0,&datalevel);
+     av_ndcheck(av,dims,0,&datalevel);
 
      /* printf("will make type %s\n",class); */
      /*
@@ -465,8 +463,8 @@ pdl_avref(array_ref, class, type)
      */
      if (strcmp(class,"PDL") == 0) {
         p = pdl_from_array(av,dims,type,NULL); /* populate with data */
-        ST(0) = sv_newmortal();
-        pdl_SetSV_PDL(ST(0),p);
+        RETVAL = newSV(0);
+        pdl_SetSV_PDL(RETVAL,p);
      } else {
        /* call class->initialize method */
        PUSHMARK(SP);
@@ -477,9 +475,12 @@ pdl_avref(array_ref, class, type)
        psv = POPs;
        PUTBACK;
        p = pdl_SvPDLV(psv); /* and get ndarray from returned object */
-       ST(0) = psv;
+       RETVAL = psv;
+       SvREFCNT_inc(psv);
        pdl_from_array(av,dims,type,p); /* populate ;) */
      }
+     OUTPUT:
+     RETVAL
 
 MODULE = PDL::Core     PACKAGE = PDL::Core     PREFIX = pdl_
 
@@ -568,19 +569,17 @@ SV *
 initialize(class)
 	SV *class
         PREINIT:
-	HV *bless_stash;
-        PPCODE:
-        if (SvROK(class)) { /* a reference to a class */
-	  bless_stash = SvSTASH(SvRV(class));
-        } else {            /* a class name */
-          bless_stash = gv_stashsv(class, 0);
-        }
-        ST(0) = sv_newmortal();
+        CODE:
+        HV *bless_stash = SvROK(class)
+          ? SvSTASH(SvRV(class)) /* a reference to a class */
+          : gv_stashsv(class, 0); /* a class name */
+        RETVAL = newSV(0);
         pdl *n = pdl_null();
         if (!n) pdl_pdl_barf("Error making null pdl");
-        pdl_SetSV_PDL(ST(0),n);   /* set a null PDL to this SV * */
-        ST(0) = sv_bless(ST(0), bless_stash); /* bless appropriately  */
-	XSRETURN(1);
+        pdl_SetSV_PDL(RETVAL,n);   /* set a null PDL to this SV * */
+        RETVAL = sv_bless(RETVAL, bless_stash); /* bless appropriately  */
+        OUTPUT:
+        RETVAL
 
 SV *
 get_dataref(self)
@@ -602,7 +601,7 @@ get_datatype(self)
 	OUTPUT:
 	RETVAL
 
-int
+void
 upd_data(self)
 	pdl *self
       PREINIT:
@@ -612,7 +611,6 @@ upd_data(self)
 		croak("Trying to touch dataref of magical (mmaped?) pdl");
 	}
        self->data = SvPV((SV*)self->datasv,n_a);
-	XSRETURN(0);
 
 void
 set_dataflow_f(self,value)
@@ -640,6 +638,7 @@ getndims(x)
 	ALIAS:
 	     PDL::ndims = 1
 	CODE:
+		(void)ix;
 		pdl_make_physdims(x);
 		RETVAL = x->ndims;
 	OUTPUT:
@@ -668,6 +667,7 @@ getdim(x,y)
 	ALIAS:
 	     PDL::dim = 1
 	CODE:
+		(void)ix;
 		pdl_make_physdims(x);
 		if (y < 0) y += x->ndims;
 		if (y < 0) croak("negative dim index too large");
@@ -739,7 +739,6 @@ sethdr(p,h)
 	pdl *p
 	SV *h
       PREINIT:
-	HV* hash;
 	CODE:
 		if(p->hdrsv == NULL) {
 		      p->hdrsv =  &PL_sv_undef; /*(void*) newSViv(0);*/
@@ -823,7 +822,7 @@ threadover_n(...)
 	EXTEND(sp,items);
 	PUSHs(sv_2mortal(newSViv((sd-1))));
 	for(i=0; i<npdls; i++) {
-		PDL_Anyval pdl_val = { -1, 0 };
+		PDL_Anyval pdl_val = { -1, {0} };
 		pdl_val = pdl_get_offs(pdls[i],pdl_thr.offs[i]);
 		ANYVAL_TO_SV(sv, pdl_val);
 		PUSHs(sv_2mortal(sv));
@@ -848,7 +847,7 @@ threadover(...)
 	croak("Usage: threadover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
     npdls = targs-nothers;
     int i,dtype=0;
-    PDL_Indx j,nc=npdls,nd1,nd2;
+    PDL_Indx nc=npdls,nd1,nd2;
     SV* rdimslist = ST(items-3);
     SV* cdimslist = ST(items-2);
     SV *code = ST(items-1);

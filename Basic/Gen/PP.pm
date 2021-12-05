@@ -610,7 +610,8 @@ our $macros_xs = <<'EOF';
                             by pp_bless ? (CS) */ \
   HV *bless_stash = 0; \
   SV *parent = 0; \
-  int   nreturn;
+  int   nreturn = 0; \
+  (void)nreturn;
 
 #define PDL_XS_PACKAGEGET \
   PDL_COMMENT("Check if you can get a package name for this input value.  ") \

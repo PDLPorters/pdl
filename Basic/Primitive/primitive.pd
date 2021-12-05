@@ -245,9 +245,8 @@ sub PDL::matmult {
 EOPM
 	Code => <<'EOC',
 	PDL_Indx ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
-        $GENERIC() *ad, *bd, *cd;
+        $GENERIC() *ad, *bd;
         PDL_Indx atdi, btdi;
-	PDL_Indx resh, resw, rest;
 	PDL_Indx tsiz = 64;
 
 	// Zero the output
@@ -2791,7 +2790,7 @@ pp_def('interpolate',
   		   while (jh-jl > 1)  /* binary search */
     			{
       				m = (jh+jl) >> 1;
-      				if ($xi() > $x(n => m) == up)
+				if (($xi() > $x(n => m)) == up)
 					jl = m;
       				else
 					jh = m;

@@ -8,15 +8,7 @@
 
 /**** Convenience routines for moving around collections
  **** of indices and PDL pointers.
- **** (Note that copy_int_array is confusingly named since it
- **** doesn't copy ints, it copies PDL_Indx's.)
  ****/
-static PDL_Indx *copy_int_array (PDL_Indx *from, int size) {
-  int *to;
-  Newx (to, size, int);
-  return (PDL_Indx *) CopyD (from, to, size, int);
-}
-
 static pdl **copy_pdl_array (pdl **from, int size) {
   pdl **to;
   Newx (to, size, pdl*);
@@ -481,7 +473,7 @@ See the manual for why this is impossible");
 
 int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 			pdl_trans *t) {
-	PDL_Indx i,j, npdls = thread->npdls;
+	PDL_Indx j, npdls = thread->npdls;
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds, *dims;
 	if(  (thread->gflags & (PDL_THREAD_MAGICKED | PDL_THREAD_MAGICK_BUSY))

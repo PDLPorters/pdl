@@ -53,11 +53,11 @@ void eigens( A, RR, E, N )
 double A[], RR[], E[];
 int N;
 {
-int IND, L, LL, LM, M, MM, MQ, I, J, K, IA, LQ;
+int IND, L, LL, LM, M, MM, MQ, I, J, IA, LQ;
 int IQ, IM, IL, NLI, NMI;
-double ANORM, ANORMX, AIA, THR, ALM, QI, ALL, AMM, X, Y;
+double ANORM, ANORMX, AIA, THR, ALM, ALL, AMM, X, Y;
 double SINX, SINX2, COSX, COSX2, SINCS, AIL, AIM;
-double RLI, RMI, Q, V;
+double RLI, RMI;
 double sqrt(), fabs();
 static double RANGE = 1.0e-10; /*3.0517578e-5;*/
 

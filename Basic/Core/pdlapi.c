@@ -28,7 +28,7 @@ pdl *pdl_null() {
 	PDL_Indx d[1] = {0};
 	pdl *it = pdl_pdlnew();
 	if (!it) return it;
-	PDL_Anyval zero = { PDL_B, 0 };
+	PDL_Anyval zero = { PDL_B, {0} };
 	pdl_makescratchhash(it, zero);
 	pdl_setdims(it,d,1);
 	it->state |= PDL_NOMYDIMS;
@@ -45,7 +45,6 @@ pdl *pdl_get_convertedpdl(pdl *old,int type) {
 
 void pdl_grow(pdl* a, PDL_Indx newsize) {
    SV* foo;
-   HV* hash;
    STRLEN nbytes;
    STRLEN ncurr;
    STRLEN len;
@@ -1150,7 +1149,7 @@ void pdl_propagate_badflag( pdl *it, int newval ) {
     PDL_START_CHILDLOOP(it)
     {
 	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i, need_recurse;
+	int i;
 	for( i = trans->vtable->nparents;
 	     i < trans->vtable->npdls; i++ ) {
 	    pdl *child = trans->pdls[i];
@@ -1187,7 +1186,7 @@ void pdl_propagate_badvalue( pdl *it ) {
 } /* pdl_propagate_badvalue */
 
 PDL_Anyval pdl_get_badvalue( int datatype ) {
-    PDL_Anyval retval = { -1, 0 };
+    PDL_Anyval retval = { -1, {0} };
 #define X(datatype, ctype, ppsym, shortctype, defbval) \
     retval.type = datatype; retval.value.ppsym = PDL.bvals.shortctype;
     PDL_GENERICSWITCH(datatype, X, croak("Not a known data type code=%d", datatype))
@@ -1324,9 +1323,7 @@ void pdl_type_coerce(pdl_trans *trans) {
   if (!type_match) trans->__datatype = last_dtype;
   pdl_datatypes trans_dtype = trans->__datatype;
   for (i=0; i<vtable->npdls; i++) {
-    PDL_Indx ninds = vtable->par_realdims[i];
     pdl *pdl = pdls[i];
-    PDL_Indx ndims = pdl->ndims;
     short flags = vtable->par_flags[i];
     pdl_datatypes new_dtype = trans_dtype;
     if (flags & PDL_PARAM_ISIGNORE) continue;

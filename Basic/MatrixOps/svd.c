@@ -101,7 +101,7 @@ int main()
 void SVD(double *W, double *Z, int nRow, int nCol)
 {
   int i, j, k, EstColRank, RotCount, SweepCount, slimit;
-  double eps, e2, tol, vt, p, h2, x0, y0, q, r, c0, s0, c2, d1, d2;
+  double eps, e2, tol, vt, p, x0, y0, q, r, c0, s0, d1, d2;
   eps = TOLERANCE;
   /*set a limit on the number of sweeps allowed. A suggested limit is slimit=max([nCol/4],6).*/
   slimit = nCol/4;

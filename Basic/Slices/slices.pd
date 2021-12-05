@@ -869,7 +869,7 @@ switch(ind_pdl->datatype) {
  * Stash coordinates of the corners
  */
 
-PDL_Indx i,j,k,ioff, iter[$COMP(itdim)];
+PDL_Indx j,k,ioff, iter[$COMP(itdim)];
 /* initialize iterator to loop over index threads */
 PDL_Indx *cptr = iter;
 for(k=0;k<$COMP(itdim);k++)
@@ -949,7 +949,7 @@ $SETDIMS();
 EOD-RedoDims
 
         EquivCPOffsCode => <<'EOD-EquivCPOffsCode',
-PDL_Indx *iter, *ip;  /* vector iterator */
+PDL_Indx *ip;  /* vector iterator */
 PDL_Indx *sp; /* size vector including stdims */
 PDL_Indx *coords;     /* current coordinates */
 
@@ -958,7 +958,6 @@ PDL_Indx item;        /* index thread iterator */
 PDL_Indx pdim = $PDL(PARENT)->ndims;
 PDL_Indx rdim = $COMP(rdim);
 PDL_Indx prdim = PDLMIN(rdim,pdim);
-PDL_Indx stdim = pdim - prdim;
 PDL_Indx iter2[pdim * 2 + rdim];
 PDL_Indx *sizes  = iter2 + pdim;
 coords = sizes + pdim;
@@ -1175,7 +1174,7 @@ sub PDL::rle {
 }
 EOC
         Code=>'
-          PDL_Indx j=0,sn=$SIZE(n);
+          PDL_Indx j=0;
           $GENERIC(c) cv, clv;
           clv = $c(n=>0);
           $b(m=>0) = clv;

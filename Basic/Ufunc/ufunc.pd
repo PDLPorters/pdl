@@ -528,7 +528,6 @@ PDL_GENERICLIST_REAL(PDL_QSORT)
  \
   static inline void pdl_qsortvec_ ## ppsym(ctype *xx, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
     PDL_Indx i,j, median_ind; \
-    ctype t; \
     i = a;  \
     j = b; \
     median_ind = (i+j)/2; \
@@ -563,7 +562,6 @@ PDL_GENERICLIST_REAL(PDL_QSORT)
  \
   static inline void pdl_qsortvec_ind_ ## ppsym(ctype *xx, PDL_Indx *ix, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
     PDL_Indx i,j, median_ind; \
-    ctype t; \
     i = a;  \
     j = b; \
     median_ind = (i+j)/2; \
@@ -701,8 +699,8 @@ BAD is the most common element, the returned value is also BAD.
 	 Code => <<'EOCODE',
 	       PDL_Indx i = 0;
 	       PDL_Indx most = 0;
-	       $GENERIC() curmode;
-               $GENERIC() curval;
+	       $GENERIC() curmode = 0;
+               $GENERIC() curval = 0;
 
                /* Copy input to buffer for sorting, and sort it */
                loop(n) %{ $sorted() = $data(); %}
@@ -1267,7 +1265,7 @@ for my $which (
 	    HandleBad => 1,
 	    Pars => 'a(n); [o]c();', 
 	    Code => 
-	    '$GENERIC() cur;
+	    '$GENERIC() cur = 0;
 	     int flag = 0;
 	     loop(n) %{
 		if( !flag || ($a() '.$op.' cur ) || IsNaN(cur) ) { cur = $a(); flag = 1;}
@@ -1280,7 +1278,7 @@ for my $which (
              }     
 		     ',
 	    BadCode => 
-	    '$GENERIC() cur;
+	    '$GENERIC() cur = 0;
              int flag = 0;
 	     loop(n) %{
 	 	if( $ISGOOD(a()) && ($a()*0 == 0) && (!flag || $a() '.$op.' cur)) {cur = $a(); flag = 1;}
@@ -1304,14 +1302,13 @@ for ways of masking NaNs.
 	    HandleBad => 1,
 	    Pars => 'a(n); indx [o] c();', 
 	    Code => 
-	    '$GENERIC() cur;
-             PDL_Indx curind;
-	     int flag = 0;
+	    '$GENERIC() cur = 0;
+             PDL_Indx curind = -1;
 	     loop(n) %{
-		if(!flag || $a() '.$op.' cur || IsNaN(cur))
-		   {cur = $a(); curind = n;flag=1;}
+		if(curind == -1 || $a() '.$op.' cur || IsNaN(cur))
+		   {cur = $a(); curind = n;}
 	     %}
-	     if(flag && !IsNaN(cur)) {
+	     if(curind != -1 && !IsNaN(cur)) {
 	       $c() = curind;
 	     } else {
 	          $SETBAD(c());
@@ -1319,13 +1316,13 @@ for ways of masking NaNs.
 	     }
 	       ',
 	    BadCode => 
-	    '$GENERIC() cur;
-             PDL_Indx curind; int flag = 0; /* should set curind to -1 and check for that, then do not need flag */
+	    '$GENERIC() cur = 0;
+             PDL_Indx curind = -1;
 	     loop(n) %{
-	 	if( $ISGOOD(a()) && (!flag || $a() '.$op.' cur)) 
-                   {cur = $a(); curind = n; flag = 1;}
+		if( $ISGOOD(a()) && (curind == -1 || $a() '.$op.' cur))
+                   {cur = $a(); curind = n;}
 	     %}
-             if ( flag && !IsNaN(cur) ) { $c() = curind; }
+             if ( curind != -1 && !IsNaN(cur) ) { $c() = curind; }
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    CopyBadStatusCode => '',
 	    Doc => "Like $name but returns the index rather than the value",
@@ -1339,7 +1336,7 @@ otherwise the bad flag is cleared for the output ndarray.',
 	    HandleBad => 0,   # just a marker 
 	    Pars => 'a(n); indx [o]c(m);',
 	    Code =>
-	    '$GENERIC() cur; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
+	    '$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
 	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
 	     loop(m) %{
 		 curind = ns;

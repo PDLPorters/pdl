@@ -53,7 +53,6 @@ void pdl_converttype( pdl* a, int targtype ) {
     int intype;
     void* b;     /* Scratch data ptr */
     SV*   bar;
-    HV*   hash;
     STRLEN   nbytes;
     int   diffsize;
     PDL_Indx   i;

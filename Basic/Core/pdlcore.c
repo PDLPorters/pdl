@@ -7,7 +7,6 @@
 static SV *getref_pdl(pdl *it) {
         SV *newref;
         if(!it->sv) {
-                SV *ref;
                 HV *stash = gv_stashpv("PDL",TRUE);
                 SV *psv = newSViv(PTR2IV(it));
                 it->sv = psv;
@@ -40,7 +39,6 @@ size_t pdl_howbig (int datatype) {
 
 void pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
   STRLEN n_a;
-  HV *hash;
   SV *dat; PDL_Indx fake[1];
   
   /* Compress to smallest available type.  */
@@ -77,7 +75,6 @@ void pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
 pdl* pdl_SvPDLV ( SV* sv ) {
 
    pdl* ret;
-   PDL_Indx fake[1];
    SV *sv2;
 
    if(sv_derived_from(sv, "PDL") && !SvROK(sv)) {
@@ -180,16 +177,14 @@ pdl* pdl_SvPDLV ( SV* sv ) {
     if(SvTYPE(SvRV(sv)) == SVt_PVAV) {
         /* This is similar to pdl_avref in Core.xs.PL -- we do the same steps here. */
         AV *dims, *av;
-        int i, depth; 
         int datalevel = -1;
-        pdl *dest_pdl;
 
         av = (AV *)SvRV(sv);
         dims = (AV *)sv_2mortal((SV *)newAV());
         av_store(dims,0,newSViv( (IV) av_len(av)+1 ) );
         
         /* Pull sizes using av_ndcheck */
-        depth = 1 + av_ndcheck(av,dims,0,&datalevel);
+        av_ndcheck(av,dims,0,&datalevel);
 
         return pdl_from_array(av, dims, -1, NULL); /* -1 means pdltype autodetection */
 
@@ -391,14 +386,9 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         int j;
         short pndims;
         PDL_Indx *dest_dims;
-        PDL_Indx pnvals;
-        
         pdl_make_physdims(dest_pdl);
-        
         pndims = dest_pdl->ndims;
         dest_dims = dest_pdl->dims;
-        pnvals = dest_pdl->nvals;
-        
         for(j=0;j<pndims;j++) {
           int jl = pndims-j+level;
           
@@ -526,7 +516,7 @@ static int _detect_datatype(AV *av) {
 pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
 {
   int ndims, i, level=0;
-  PDL_Anyval undefval = { -1, 0 };
+  PDL_Anyval undefval = { -1, {0} };
 
   ndims = av_len(dims)+1;
   PDL_Indx dest_dims[ndims];
@@ -573,7 +563,7 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
 
 /* wrapper for pdl_at where only want first item, cf sclr_c */
 PDL_Anyval pdl_at0( pdl* it ) {
-    PDL_Anyval result = { -1, 0 };
+    PDL_Anyval result = { -1, {0} };
     PDL_Indx nullp = 0;
     PDL_Indx dummyd = 1;
     PDL_Indx dummyi = 1;
@@ -586,7 +576,7 @@ PDL_Anyval pdl_at0( pdl* it ) {
 /* Return value at position (x,y,z...) */
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
-   PDL_Anyval result = { -1, 0 };
+   PDL_Anyval result = { -1, {0} };
    PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
    if (ioff < 0) return result;
    ANYVAL_FROM_CTYPE_OFFSET(result, datatype, x, ioff);
@@ -954,12 +944,11 @@ void pdl_dump_slice_args(pdl_slice_args* args) {
 /****************************************************************/
 pdl_slice_args pdl_slice_args_parse_string(char* s) {
   PDLDEBUG_f(printf("slice_args_parse_string input: '%s'\n", s));
-  STRLEN len;
   int subargno = 0;
   char flagged = 0;
-  char squish_closed = 0, all_flag = 0, squish_flag = 0, dummy_flag = 0;
+  char squish_closed = 0, squish_flag = 0, dummy_flag = 0;
   pdl_slice_args this_arg = {0,-1,0}; /* start,end,inc 0=do in RedoDims */
-  PDL_Indx i;
+  PDL_Indx i = 0;
   while(*s) {
     if( isspace( *s ) ) {
       s++;  /* ignore and loop again */
@@ -984,7 +973,7 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
         if(flagged || subargno > 1)
           barf("slice: Erroneous 'X' (arg %d)",i);
         if(subargno==0) {
-          all_flag = flagged = 1;
+          flagged = 1;
         } else /* subargno is 1 - squish */ {
           squish_flag = squish_closed = flagged = 1;
         }
@@ -1032,6 +1021,7 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
         barf("slice: unexpected '%c' in slice specifier (arg %d)",*s,i);
         break;
     }
+    i++;
   } /* end of parse loop */
   this_arg.squish = squish_flag;
   this_arg.dummy = dummy_flag;
@@ -1074,13 +1064,12 @@ pdl_slice_args* pdl_slice_args_parse(SV* sv) {
   /**********************************************************************/
   /**** Loop over the elements of the AV input and parse into values ****/
   /**** in the start/inc/end array                                   ****/
-  PDL_Indx i, idim, odim;
-  for(odim=idim=i=0; i<nargs; i++) {
+  PDL_Indx i;
+  for(i=0; i<nargs; i++) {
     SV *this;
     SV **thisp;
-    SV *sv, **svp;
+    SV **svp;
     char all_flag = 0;
-    char *str;
     pdl_slice_args this_arg = {0,-1,0}; /* start,end,inc 0=do in RedoDims */
     thisp = av_fetch( arglist, i, 0 );
     this = (thisp  ?  *thisp  : 0 );
