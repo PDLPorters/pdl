@@ -253,6 +253,7 @@ sclr_c(it)
          * Perl scalar (autodetect suitable type IV or NV)
          */
         result = pdl_at0(it);
+        if (result.type < 0) croak("Position out of range");
         ANYVAL_TO_SV(RETVAL, result);
 
     OUTPUT:
@@ -285,6 +286,7 @@ at_bad_c(x,pos)
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims);
+    if (result.type < 0) croak("Position out of range");
    badflag = (x->state & PDL_BADVAL) > 0;
    PDL_Anyval badval = pdl_get_pdl_badvalue(x);
    if (badflag) {
@@ -341,6 +343,7 @@ listref_c(x)
    for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
    while(!stop) {
       pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
+      if (pdl_val.type < 0) croak("Position out of range");
       if (badflag) {
 	 int isbad = ANYVAL_ISBAD(pdl_val, pdl_badval);
 	 if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", pdl_val.type, pdl_badval.type);

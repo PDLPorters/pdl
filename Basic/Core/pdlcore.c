@@ -562,7 +562,7 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
    PDL_Indx result;
    for(i=0; i<ndims; i++) { /* Check */
       if(pos[i]<-dims[i] || pos[i]>=dims[i])
-         croak("Position out of range");
+         return -1;
    }
    result = offset;
    for (i=0; i<ndims; i++) {
@@ -588,6 +588,7 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
    PDL_Anyval result = { -1, 0 };
    PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
+   if (ioff < 0) return result;
    ANYVAL_FROM_CTYPE_OFFSET(result, datatype, x, ioff);
    return result;
 }
@@ -595,6 +596,7 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 /* Set value at position (x,y,z...) */
 void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value){
    PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
+   if (ioff < 0) croak("Position out of range");
    ANYVAL_TO_CTYPE_OFFSET(x, ioff, datatype, value);
 }
 

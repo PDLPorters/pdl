@@ -72,6 +72,7 @@ print OUT <<'EOF';
     if (sv_derived_from(sv2, "PDL")) { \
         pdl *it = PDL_CORE_(SvPDLV)(sv2); \
         outany = PDL_CORE_(at0)(it); \
+        if (outany.type < 0) croak("Position out of range"); \
     } else if (!SvIOK(sv2)) { /* Perl Double (e.g. 2.0) */ \
         NV tmp_NV = SvNV(sv2); \
         int datatype = forced_type >=0 ? forced_type : _pdl_whichdatatype_double(tmp_NV); \
