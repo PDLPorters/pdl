@@ -169,6 +169,9 @@ static inline int _anyval_isbad(PDL_Anyval inany, PDL_Anyval badval) {
   return isnan_badval ? ANYVAL_ISNAN(inany) : ANYVAL_EQ_ANYVAL(inany, badval);
 }
 
+#define PDL_ISBAD(inval,badval,ppsym) \
+  (PDL_ISNAN_ ## ppsym(badval) ? PDL_ISNAN_ ## ppsym(inval) : inval == badval)
+
 typedef struct badvals {
 #define X(symbol, ctype, ppsym, shortctype, defbval) ctype shortctype;
 PDL_GENERICLIST(X)
