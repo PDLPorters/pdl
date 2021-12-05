@@ -670,8 +670,7 @@ sub PDL::convolveND {
                ->sever;
 
   if($fft) {
-    #  The eval here keeps conflicts from happening at compile time
-    eval "use PDL::FFT" ;
+    require PDL::FFT;
 
     print "convolveND: using FFT method\n" if($PDL::debug);
 

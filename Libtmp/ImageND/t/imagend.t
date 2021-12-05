@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
-use PDL;
+use PDL::LiteF;
 use PDL::ImageND;
 use PDL::NiceSlice;
 
