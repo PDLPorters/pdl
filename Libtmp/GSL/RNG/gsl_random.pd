@@ -1818,7 +1818,7 @@ DEF_RNG(waterman14)
 DEF_RNG(zuf)
 DEF_RNG(default)
   if (rng==NULL) {
-    barf("Unknown RNG, plese use one of the following: %s", rngs);
+    barf("Unknown RNG, please use one of the following: %s", rngs);
   }
   else
   RETVAL = rng;

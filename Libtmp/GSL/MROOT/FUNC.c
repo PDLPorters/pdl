@@ -167,7 +167,7 @@ int fsolver (double *xfree, int  nelem, double epsabs, int method)
   case 1 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_hybrid;  break;
   case 2 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_dnewton; break;
   case 3 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_broyden; break;
-  default: barf("Something is wrong: could not assing fsolver type...\n"); break;
+  default: barf("Something is wrong: could not assign fsolver type...\n"); break;
   }
   
 
