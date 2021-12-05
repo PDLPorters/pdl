@@ -6,6 +6,7 @@
 - ANYVAL_ISBAD interface change
 - fix ->at with pdl having non-default badvalue
 - macro args can contain () eg $CROAK("%d", $SIZE(n))
+- remove Slices::flowconvert
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal

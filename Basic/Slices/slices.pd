@@ -1235,38 +1235,6 @@ first instance of C<0> in each row of C<$x> should be considered.
 EOD
 );
 
-# this one can convert vaffine ndarrays without(!) physicalising them
-# maybe it can replace 'converttypei' in the future?
-#
-# XXX do not know whether the HandleBad stuff will work here
-#
-pp_def('flowconvert',
-       GenericTypes => [ppdefs_all],
-       HandleBad => 1,
-       DefaultFlow => 1,
-       TwoWay => 1,
-       Pars => 'PARENT(); [oca]CHILD()',
-       OtherPars => 'int totype;',
-       # Forced types
-       FTypes => {CHILD => '$COMP(totype)'},
-       Code =>
-       '$CHILD() = $PARENT();',
-       BadCode =>
-       'if ( $ISBAD(PARENT()) ) {
-           $SETBAD(CHILD());
-        } else {
-           $CHILD() = $PARENT();
-        }',
-       BackCode => '$PARENT() = $CHILD();',
-       BadBackCode =>
-       'if ( $ISBAD(CHILD()) ) {
-           $SETBAD(PARENT());
-        } else {
-           $PARENT() = $CHILD();
-        }',
-       Doc => 'internal',
-);
-
 # the perl wrapper clump is now defined in Core.pm
 # this is just the low level interface
 pp_def(

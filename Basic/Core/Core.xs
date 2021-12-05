@@ -511,13 +511,21 @@ make_physvaffine(self)
 	OUTPUT:
 		RETVAL
 
-
 pdl *
 make_physdims(self)
 	pdl *self;
 	CODE:
 		pdl_make_physdims(self);
 		RETVAL = self;
+	OUTPUT:
+		RETVAL
+
+pdl *
+_convert_int(self, new_dtype)
+	pdl *self;
+	int new_dtype;
+	CODE:
+		RETVAL = pdl_get_convertedpdl(self, new_dtype);
 	OUTPUT:
 		RETVAL
 

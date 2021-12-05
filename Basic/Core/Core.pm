@@ -2637,9 +2637,7 @@ sub PDL::convert {
   $type = $type->enum if ref($type) eq 'PDL::Type';
   barf 'Usage: $y = convert($x, $newtypenum)'."\n" unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
-  # make_physical-call: temporary stopgap to work around core bug
-  my $conv = $pdl->flowconvert($type)->make_physical->sever;
-  return $conv;
+  $pdl->_convert_int($type)->sever;
 }
 
 =head2 Datatype_conversions
