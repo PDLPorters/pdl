@@ -270,13 +270,12 @@ sub separate_code {
     my @stack = ($coderef);
     my $threadloops = 0;
     my $sizeprivs = {};
-    local $_ = $code;
-    while($_) {
+    while($code) {
 	# Parse next statement
 	# I'm not convinced that having the checks twice is a good thing,
 	# since it makes it easy (for me at least) to forget to update one
 	# of them
-	s/^(.*?) # First, some noise is allowed. This may be bad.
+	$code =~ s/^(.*?) # First, some noise is allowed. This may be bad.
 	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
 	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
 		|\bloop\s*\([^)]+\)\s*%\{   # loop(..) %{
@@ -284,7 +283,7 @@ sub separate_code {
 		|\bthreadloop\s*%\{         # threadloop %{
 		|%}                        # %}
 		|$)//xs
-		    or confess("Invalid program $_");
+		    or confess("Invalid program $code");
 	my $control = $2;
 	# Store the user code.
 	# Some day we shall parse everything.
@@ -320,7 +319,7 @@ sub separate_code {
 	} else {
 	    confess("Invalid control: $control\n");
 	}
-    } # while: $_
+    } # while: $code
     ( $threadloops, $coderef, $sizeprivs );
 } # sub: separate_code()
 
