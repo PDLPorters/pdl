@@ -56,7 +56,7 @@ print "Info: y = ", $y->info($i), "\n";
 print "Info: c = ", $c->info($i), "\n";
 
 # let's check that it gets through to a child of a child
-ok( $c->badflag, "badflag propagated throufh to a child" );
+ok( $c->badflag, "badflag propagated through to a child" );
 
 # can we change bad values
 is( byte->badvalue, byte->orig_badvalue, "byte bad value is set to the default value" );

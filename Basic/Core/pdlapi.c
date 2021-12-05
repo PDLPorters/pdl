@@ -1154,11 +1154,10 @@ void pdl_propagate_badflag( pdl *it, int newval ) {
 	for( i = trans->vtable->nparents;
 	     i < trans->vtable->npdls; i++ ) {
 	    pdl *child = trans->pdls[i];
+	    char need_recurse = (!!newval != !!(child->state & PDL_BADVAL));
 	    if ( newval ) {
-		need_recurse = !(child->state & PDL_BADVAL);
 		child->state |=  PDL_BADVAL;
             } else {
-		need_recurse =  (child->state & PDL_BADVAL);
 		child->state &= ~PDL_BADVAL;
 	    }
 	    /* make sure we propagate to grandchildren, etc if changed */
