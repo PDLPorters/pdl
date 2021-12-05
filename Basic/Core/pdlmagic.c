@@ -282,10 +282,6 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	PDL_Indx i;
 	int clearMagic = 0; /* Flag = 1 if we are temporarily creating pthreading magic in the
 						   supplied pdl.  */
-	SV * barf_msg;	  /* Deferred barf message. Using a perl SV here so it's memory can be freed by perl
-						 after it is sent to croak */
-	SV * warn_msg;	  /* Similar deferred warn message. */
-
 	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 	if(!ptr) {
 		/* Magic doesn't exist, create it
