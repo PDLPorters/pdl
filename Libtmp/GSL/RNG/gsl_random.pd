@@ -1514,14 +1514,11 @@ pp_defnd(
 
 pp_addpm('
        sub ran_additive_gaussian {
-	 my ($obj,$sigma,@var) = @_;
-	 if (ref($var[0]) eq \'PDL\') {
-	   ran_additive_gaussian_meat($var[0],$sigma,$$obj);
-	   return $var[0];
-	 }
-	 else {
-	   barf("In additive gaussian mode you must specify an ndarray!");
-	 }
+	 my ($obj,$sigma,$var) = @_;
+	 barf("In additive gaussian mode you must specify an ndarray!")
+	   if ref($var) ne \'PDL\';
+	 ran_additive_gaussian_meat($var,$sigma,$$obj);
+	 return $var;
        }
        ');
 
@@ -1533,14 +1530,11 @@ pp_defnd(
 
 pp_addpm('
        sub ran_additive_poisson {
-	 my ($obj,$sigma,@var) = @_;
-	 if (ref($var[0]) eq \'PDL\') {
-	   ran_additive_poisson_meat($var[0],$sigma,$$obj);
-	   return $var[0];
-	 }
-	 else {
-	   barf("In additive poisson mode you must specify an ndarray!");
-	 }
+	 my ($obj,$sigma,$var) = @_;
+	 barf("In additive poisson mode you must specify an ndarray!")
+	   if ref($var) ne \'PDL\';
+	 ran_additive_poisson_meat($var,$sigma,$$obj);
+	 return $var;
        }
        ');
 
@@ -1552,14 +1546,11 @@ pp_defnd(
 
 pp_addpm('
        sub ran_feed_poisson {
-	 my ($obj,@var) = @_;
-	 if (ref($var[0]) eq \'PDL\') {
-	   ran_feed_poisson_meat($var[0],$$obj);
-	   return $var[0];
-	 }
-	 else {
-	   barf("In poisson mode you must specify an ndarray!");
-	 }
+	 my ($obj,$var) = @_;
+	 barf("In poisson mode you must specify an ndarray!")
+	   if ref($var) ne \'PDL\';
+	 ran_feed_poisson_meat($var,$$obj);
+	 return $var;
        }
        ');
 
@@ -1577,14 +1568,10 @@ $x(n=>1)=yy;
 pp_addpm('
        sub ran_bivariate_gaussian {
 	 my ($obj,$sigma_x,$sigma_y,$rho,$n) = @_;
-	 if ($n>0) {
-	   my $p = zeroes(2,$n);
-	   ran_bivariate_gaussian_meat($p,$sigma_x,$sigma_y,$rho,$$obj);
-	   return $p;
-	 }
-	 else {
-	   barf("Not enough parameters for gaussian bivariate!");
-	 }
+	 barf("Not enough parameters for gaussian bivariate!") if $n<=0;
+	 my $p = zeroes(2,$n);
+	 ran_bivariate_gaussian_meat($p,$sigma_x,$sigma_y,$rho,$$obj);
+	 return $p;
        }
        ');
 
@@ -1625,17 +1612,13 @@ loop (n) %{ $x() = xxx[n]; %}');
 pp_addpm('
        sub ran_dir {
 	 my ($obj,$ndim,$n) = @_;
-	 if ($n>0) {
-	   my $p = zeroes($ndim,$n);
-	   if ($ndim==2) { ran_dir_2d_meat($p,$$obj); }
-	   elsif ($ndim==3) { ran_dir_3d_meat($p,$$obj); }
-	   elsif ($ndim>=4 && $ndim<=' . $MAX_DIMENSIONS . ') { ran_dir_nd_meat($p,$ndim,$$obj); }
-	   else { barf("Bad number of dimensions!"); }
-	   return $p;
-	 }
-	 else {
-	   barf("Not enough parameters for random vectors!");
-	 }
+	 barf("Not enough parameters for random vectors!") if $n<=0;
+	 my $p = zeroes($ndim,$n);
+	 if ($ndim==2) { ran_dir_2d_meat($p,$$obj); }
+	 elsif ($ndim==3) { ran_dir_3d_meat($p,$$obj); }
+	 elsif ($ndim>=4 && $ndim<=' . $MAX_DIMENSIONS . ') { ran_dir_nd_meat($p,$ndim,$$obj); }
+	 else { barf("Bad number of dimensions!"); }
+	 return $p;
        }
        ');
 
@@ -1714,28 +1697,20 @@ loop (n) %{ $x() = (xx-0.5)*$COMP(m); xx = 4.0*(1-xx)*xx; %}');
 pp_addpm('
        sub ran_ver {
 	 my ($obj,$x0,$r,$n) = @_;
-	 if ($n>0) {
-	   my $p = zeroes($n);
-	   ran_ver_meat($p,$x0,$r,$n,$$obj);
-	   return $p;
-	 }
-	 else {
-	   barf("Not enough parameters for ran_ver!");
-	 }
+	 barf("Not enough parameters for ran_ver!") if $n<=0;
+	 my $p = zeroes($n);
+	 ran_ver_meat($p,$x0,$r,$n,$$obj);
+	 return $p;
        }
        ');
 
 pp_addpm('
        sub ran_caos {
 	 my ($obj,$m,$n) = @_;
-	 if ($n>0) {
-	   my $p = zeroes($n);
-	   ran_caos_meat($p,$m,$n,$$obj);
-	   return $p;
-	 }
-	 else {
-	   barf("Not enough parameters for ran_caos!");
-	 }
+	 barf("Not enough parameters for ran_caos!") if $n<=0;
+	 my $p = zeroes($n);
+	 ran_caos_meat($p,$m,$n,$$obj);
+	 return $p;
        }
        ');
 

@@ -6,7 +6,7 @@
 #  do not want to duplicate that effort here.
 
 use Test::More;
-use PDL;
+use PDL::LiteF;
 use PDL::GSL::RNG;
 
 $image = zeroes(10,10);
