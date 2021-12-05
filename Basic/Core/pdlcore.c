@@ -30,8 +30,8 @@ void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
 /* Size of data type information */
 
 size_t pdl_howbig (int datatype) {
-#define X(datatype, generic, generic_ppsym, shortctype, defbval) \
-    return sizeof(generic);
+#define X(datatype, ctype, ppsym, shortctype, defbval) \
+    return sizeof(ctype);
   PDL_GENERICSWITCH(datatype, X, croak("Not a known data type code=%d", datatype))
 #undef X
 }
@@ -549,8 +549,8 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
    * Copy the undefval to fill empty spots in the ndarray...
    */
   ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
-#define X(dtype, generic, generic_ppsym, shortctype, defbval) \
-    pdl_setav_ ## generic_ppsym(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.generic_ppsym, dest_pdl);
+#define X(dtype, ctype, ppsym, shortctype, defbval) \
+    pdl_setav_ ## ppsym(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.ppsym, dest_pdl);
   PDL_GENERICSWITCH(dtype, X, croak("Not a known data type code=%d", dtype))
 #undef X
   return dest_pdl;

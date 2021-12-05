@@ -137,8 +137,8 @@ EOF
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'!NO!SUBS!';
 /* input vars have to be called exactly these as not expanded */
-#define ANYVAL_TO_CTYPE_OFFSET_X(datatype, generic, generic_ppsym, shortctype, defbval) \
-    ANYVAL_TO_CTYPE(((generic *)x)[ioff], generic, value);
+#define ANYVAL_TO_CTYPE_OFFSET_X(datatype, ctype, ppsym, shortctype, defbval) \
+    ANYVAL_TO_CTYPE(((ctype *)x)[ioff], ctype, value);
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
     PDL_GENERICSWITCH(datatype, ANYVAL_TO_CTYPE_OFFSET_X, croak("Not a known data type code=%d", datatype))
 

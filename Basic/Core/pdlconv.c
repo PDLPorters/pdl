@@ -1,9 +1,9 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#define XCODE(code, datatype, generic, generic_ppsym, shortctype, defbval) \
-    generic *ap = (generic *) a->data; \
-    generic *pp = (generic *) a->vafftrans->from->data; \
+#define XCODE(code, datatype, ctype, ppsym, shortctype, defbval) \
+    ctype *ap = (ctype *) a->data; \
+    ctype *pp = (ctype *) a->vafftrans->from->data; \
     pp += a->vafftrans->offs; \
     for(i=0; i<a->nvals; i++) { \
         code; \
@@ -80,15 +80,15 @@ void pdl_converttype( pdl* a, int targtype ) {
     }
 
     /* Do the conversion as nested switch statements */
-#define X_OUTER(datatype_out, generic_out, generic_ppsym_out, shortctype_out, defbval_out) \
-    generic_out *bb = (generic_out *) b; \
+#define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
+    ctype_out *bb = (ctype_out *) b; \
     i = a->nvals; \
     PDL_GENERICSWITCH2(targtype, X_INNER, croak("Not a known data type code=%d", targtype))
-#define X_INNER(datatype_in, generic_in, generic_ppsym_in, shortctype_in, defbval_in) \
-    generic_in *aa = (generic_in *) a->data; \
+#define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
+    ctype_in *aa = (ctype_in *) a->data; \
     aa += i-1; bb += i-1; \
     while (i--) \
-      *aa-- = (generic_in) *bb--;
+      *aa-- = (ctype_in) *bb--;
     PDL_GENERICSWITCH(intype, X_OUTER, croak("Not a known data type code=%d", intype))
 #undef X_INNER
 #undef X_OUTER
