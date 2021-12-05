@@ -139,44 +139,29 @@ print_state (size_t iter, gsl_multiroot_fsolver * s)
 
 int fsolver (double *xfree, int  nelem, double epsabs, int method) 
 {
-
   gsl_multiroot_fsolver_type *T;
   gsl_multiroot_fsolver *s;
-  
   int status;
   size_t i, iter = 0;
-  
   size_t n = nelem;
   double p[1] = { nelem };
   int iloop;
-
   //  struct func_params p = {1.0, 10.0};
-
   gsl_multiroot_function func = {&my_f, n,  p};
-  
   gsl_vector *x = gsl_vector_alloc (n);
-  
   for (iloop=0;iloop<nelem; iloop++) {
     //printf("in fsovler2D, C side, input is %g \n",xfree[iloop]);
     gsl_vector_set (x, iloop, xfree[iloop]);
   }
-  
-
   switch (method){
   case 0 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_hybrids; break;
   case 1 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_hybrid;  break;
   case 2 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_dnewton; break;
   case 3 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_broyden; break;
-  default: barf("Something is wrong: could not assign fsolver type...\n"); break;
+  default: return GSL_EINVAL; break;
   }
-  
-
   s = gsl_multiroot_fsolver_alloc (T, nelem);
-  
-
   gsl_multiroot_fsolver_set (s, &func, x);
-
- 
   do
     {
       iter++;
@@ -189,18 +174,12 @@ int fsolver (double *xfree, int  nelem, double epsabs, int method)
 	  gsl_multiroot_test_residual (s->f, epsabs);
     }
   while (status == GSL_CONTINUE && iter < 1000);
-  
   if (status) 
       warn ("Final status = %s\n", gsl_strerror (status));
-
   for (iloop=0;iloop<nelem; iloop++) {
     xfree[iloop] = gsl_vector_get (s->x, iloop);
   }
-  
   gsl_multiroot_fsolver_free (s);
   gsl_vector_free (x);
-
-
-  return 0;
-
+  return GSL_SUCCESS;
 }

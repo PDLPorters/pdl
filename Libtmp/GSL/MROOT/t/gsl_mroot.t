@@ -4,7 +4,7 @@
 #  The GSL library already has a extensive test suite, and we
 #  do not want to duplicate that effort here.
 
-use PDL;
+use PDL::LiteF;
 use PDL::GSL::MROOT;
 use Test::More;
 
