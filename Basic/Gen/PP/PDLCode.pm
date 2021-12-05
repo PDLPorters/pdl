@@ -663,7 +663,6 @@ sub get_str { my($this,$parent,$context) = @_;
 
 package PDL::PP::BadAccess;
 use Carp;
-our @CARP_NOT;
 
 sub new {
     my ( $type, $opcode, $name, $inds, $parent ) = @_;
@@ -673,33 +672,31 @@ sub new {
     die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
 	"  unknown ndarray <$name($inds)>\n"
 	unless exists($check->{$name}) and defined($check->{$name});
-
     return bless [$opcode, $name, $inds], $type;
 }
 
-our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+sub _isbad { "PDL_ISBAD($_[0],$_[1],$_[2])" }
+our %ops = (
+    ISBAD => \&_isbad,
+    ISGOOD => sub {'!'.&_isbad},
+    SETBAD => sub{join '=', @_[0,1]},
+);
 
 sub get_str {
     my($this,$parent,$context) = @_;
-
-    my $opcode = $this->[0];
-    my $name   = $this->[1];
-    my $inds   = $this->[2];
-
+    my ($opcode, $name, $inds) = @$this;
+    confess "generic type access outside a generic loop in $name"
+      unless defined $parent->{Gencurtype}[-1];
     print "PDL::PP::BadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
-
     my $op = $ops{$opcode};
     die "ERROR: unknown check <$opcode> sent to PDL::PP::BadAccess\n"
 	unless defined $op;
-
     my $obj = $parent->{ParObjs}{$name};
     die "ERROR: something screwy in PDL::PP::BadAccess (PP/PDLCode.pm)\n"
 	unless defined( $obj );
-
     my ( $lhs, $rhs ) = ($obj->do_access($inds,$context), "${name}_badval");
-
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
-    return "$lhs $op $rhs";
+    return $op->($lhs, $rhs, $obj->adjusted_type($parent->{Gencurtype}[-1])->ppsym);
 }
 
 

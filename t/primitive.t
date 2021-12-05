@@ -291,6 +291,13 @@ ok(int(sum($b1))==12, "append");
 ok(tapprox($im->hclip(5)->sum,83), "hclip" );
 ok(tapprox($im->lclip(5)->sum,176), "lclip" );
 ok(tapprox($im->clip(5,7)->sum,140), "clip" );
+# with NaN badvalue
+$im = sequence(3);
+$im->badvalue(nan());
+$im->badflag(1);
+$im->set(1, nan());
+my $clipped = $im->lclip(0);
+is $clipped.'', '[0 BAD 2]', 'ISBAD() works when badvalue is NaN';
 
 # indadd Test:
 $a1 = pdl( 1,2,3);
