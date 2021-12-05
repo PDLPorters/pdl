@@ -256,25 +256,10 @@ my %access2class = (
   PPSYM => 'PDL::PP::PpsymAccess',
 );
 
-# my ( $threadloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
-#
-# separates the code into an array of C fragments (strings),
-# variable references (strings starting with $) and
-# loops (array references, 1. item = variable.
-#
-sub separate_code {
-    my ( $this, $code ) = @_;
-    # First check for standard code errors:
-    catch_code_errors($code);
-    my $coderef = PDL::PP::Block->new;
-    my @stack = ($coderef);
-    my $threadloops = 0;
-    my $sizeprivs = {};
+sub process {
+    my ($this, $code, $stack_ref, $threadloops_ref, $sizeprivs) = @_;
     while($code) {
 	# Parse next statement
-	# I'm not convinced that having the checks twice is a good thing,
-	# since it makes it easy (for me at least) to forget to update one
-	# of them
 	$code =~ s/^(.*?) # First, some noise is allowed. This may be bad.
 	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
 	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
@@ -287,27 +272,27 @@ sub separate_code {
 	my $control = $2;
 	# Store the user code.
 	# Some day we shall parse everything.
-	push @{$stack[-1]},$1;
+	push @{$stack_ref->[-1]},$1;
 	# Then, our control.
 	if (!$control) { print("No \$2!\n") if $::PP_VERBOSE; next; }
 	if($control =~ /^loop\s*\(([^)]+)\)\s*%\{/) {
 	    my $ob = PDL::PP::Loop->new([split ',',$1], $sizeprivs,$this);
 	    print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-	    push @{$stack[-1]},$ob;
-	    push @stack,$ob;
+	    push @{$stack_ref->[-1]},$ob;
+	    push @$stack_ref,$ob;
 	} elsif($control =~ /^types\s*\(([^)]+)\)\s*%\{/) {
 	    my $ob = PDL::PP::Types->new($1,$this);
-	    push @{$stack[-1]},$ob;
-	    push @stack,$ob;
+	    push @{$stack_ref->[-1]},$ob;
+	    push @$stack_ref,$ob;
 	} elsif($control =~ /^threadloop\s*%\{/) {
 	    my $ob = PDL::PP::ThreadLoop->new;
-	    push @{$stack[-1]},$ob;
-	    push @stack,$ob;
-	    $threadloops ++;
+	    push @{$stack_ref->[-1]},$ob;
+	    push @$stack_ref,$ob;
+	    $$threadloops_ref++;
 	} elsif($control =~ /^%}/) {
-	    pop @stack;
+	    pop @$stack_ref;
 	} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
-	    push @{$stack[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
+	    push @{$stack_ref->[-1]},PDL::PP::BadAccess->new($1,$2,$3,$this);
 	} elsif($control =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/) {
 	    my ($pdl, $inds, @add) = ($1, $2);
 	    if($pdl =~ /^T/) {@add = PDL::PP::MacroAccess->new($pdl,$inds,
@@ -315,11 +300,27 @@ sub separate_code {
 	    elsif(my $c = $access2class{$pdl}) {@add = $c->new($pdl,$inds)}
 	    elsif($this->{ParObjs}{$pdl}) {@add = PDL::PP::Access->new($pdl,$inds)}
 	    else {@add = "\$$pdl($inds)"}
-	    push @{$stack[-1]}, @add;
+	    push @{$stack_ref->[-1]}, @add;
 	} else {
 	    confess("Invalid control: $control\n");
 	}
     } # while: $code
+}
+
+# my ( $threadloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
+#
+# separates the code into an array of C fragments (strings),
+# variable references (strings starting with $) and
+# loops (array references, 1. item = variable.
+#
+sub separate_code {
+    my ( $this, $code ) = @_;
+    # First check for standard code errors:
+    catch_code_errors($code);
+    my @stack = my $coderef = PDL::PP::Block->new;
+    my $threadloops = 0;
+    my $sizeprivs = {};
+    $this->process($code, \@stack, \$threadloops, $sizeprivs);
     ( $threadloops, $coderef, $sizeprivs );
 } # sub: separate_code()
 
