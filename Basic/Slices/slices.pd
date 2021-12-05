@@ -992,11 +992,7 @@ for(item=0; item<$COMP(nitems); item++) {
         if(ck < 0 || ck >= $PDL(PARENT)->dims[k]) {
           switch($COMP(boundary[k])) {
           case 0: /* no boundary breakage allowed */
-            {
-              char barfstr[1024];
-              sprintf(barfstr,"index out-of-bounds in range (index vector #%ld)",item);
-              barf(barfstr);
-            }
+            $CROAK("index out-of-bounds in range (index vector #%ld)",item);
             break;
           case 1: /* truncation */
             trunc = 1;
