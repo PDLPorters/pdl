@@ -409,11 +409,6 @@ sub badflag_isset {
   PDL::PP::pp_line_numbers(__LINE__-1, "($_[0]->state & PDL_BADVAL)")
 }
 
-sub isbad {
-  my ($val, $badvalname) = @_;
-  PDL::PP::pp_line_numbers(__LINE__-1, "($val == ${badvalname}_badval)");
-}
-
 # Probably want this directly in the apply routine but leave as is for now
 #
 sub dosubst_private {
@@ -436,12 +431,6 @@ sub dosubst_private {
       PDLSTATEISBAD => sub {badflag_isset($sig->objs->{$_[0]}->do_pdlaccess)},
       PDLSTATEISGOOD => sub {"!".badflag_isset($sig->objs->{$_[0]}->do_pdlaccess)},
       PP => sub { $sig->objs->{$_[0]}->do_physpointeraccess },
-      PPISBAD => sub { my ($name, $inds) = split /\s*,\s*/, $_[0]; isbad($sig->objs->{$name}->do_physpointeraccess.$inds, $name) },
-      PPISGOOD => sub { my ($name, $inds) = split /\s*,\s*/, $_[0]; "!".isbad($sig->objs->{$name}->do_physpointeraccess.$inds, $name) },
-      PPSETBAD => sub { my ($name, $inds) = split /\s*,\s*/, $_[0]; PDL::PP::pp_line_numbers(__LINE__-1, $sig->objs->{$name}->do_physpointeraccess."$inds = ${name}_badval") },
-      ISBADVAR => sub { isbad(split /\s*,\s*/, $_[0]) },
-      ISGOODVAR => sub { "!".isbad(split /\s*,\s*/, $_[0]) },
-      SETBADVAR => sub { my ($vname, $name) = split /\s*,\s*/, $_[0]; PDL::PP::pp_line_numbers(__LINE__-1, "$vname = ${name}_badval") },
       P => sub { (my $o = $sig->objs->{$_[0]})->{FlagPhys} = 1; $o->do_pointeraccess; },
       PDL => sub { $sig->objs->{$_[0]}->do_pdlaccess },
       SIZE => sub { $sig->ind_obj($_[0])->get_size },

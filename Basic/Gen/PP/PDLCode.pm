@@ -323,9 +323,19 @@ sub expand {
     if($pdl =~ /^T/) {@add = PDL::PP::MacroAccess->new($pdl,$inds,
 			   $this->{Generictypes},$this->{Name});}
     elsif(my $c = $access2class{$pdl}) {@add = $c->new($pdl,$inds)}
-    elsif($pdl =~ /^(ISBAD|ISGOOD|SETBAD)$/) {
-	$inds =~ s/^\$?([a-zA-Z_]\w*)\s*//; # $ is optional
-	@add = PDL::PP::BadAccess->new($pdl,$1,$inds,$this);
+    elsif($pdl =~ /^(PP|)(ISBAD|ISGOOD|SETBAD)(VAR|)$/) {
+	my ($opcode, $name) = ($2);
+	my $get = $1 || $3;
+	if (!$get) {
+	    $inds =~ s/^\$?([a-zA-Z_]\w*)\s*//; # $ is optional
+	    $name = $1;
+	    $inds = substr $inds, 1, -1; # chop off brackets
+	} elsif ($get eq 'PP') {
+	    ($name, $inds) = split /\s*,\s*/, $inds;
+	} else {
+	    ($inds, $name) = $inds =~ /(.*)\s*,\s*(\w+)/;
+	}
+	@add = PDL::PP::BadAccess->new($opcode,$get,$name,$inds,$this);
     }
     elsif($this->{ParObjs}{$pdl}) {@add = PDL::PP::Access->new($pdl,$inds)}
     else {
@@ -638,41 +648,16 @@ sub get_str { my($this,$parent,$context) = @_;
 #
 # Encapsulate a check on whether a value is good or bad
 # handles both checking (good/bad) and setting (bad)
-#
-# Integer types (BSUL) + floating point when no NaN (FD)
-#   $ISBAD($a(n))  -> $a(n) == a_badval
-#   $ISGOOD($a())     $a()  != a_badval
-#   $SETBAD($a())     $a()   = a_badval
-#
-# floating point with NaN
-#   $ISBAD($a(n))  -> !isnan($a(n)) == 0
-#   $ISGOOD($a())     !isnan($a())  != 0
-#   $SETBAD($a())     $a()           = PDL->bvals.Float (or .Double)
-#
-# I've also got it so that the $ on the pdl name is not
-# necessary - so $ISBAD(a(n)) is also accepted, so as to reduce the
-# amount of line noise. This is actually done by the regexp
-# in the separate_code() sub at the end of the file.
-#
-# note:
-#   we also expand out $a(n) etc as well here
-#
-# To do:
-#   need to allow use of F,D without NaN
-#
 
 package PDL::PP::BadAccess;
 use Carp;
 
 sub new {
-    my ( $type, $opcode, $name, $inds, $parent ) = @_;
-    $inds = substr $inds, 1, -1; # chop off brackets
-    # trying to avoid auto creation of hash elements
-    my $check = $parent->{ParObjs};
+    my ( $type, $opcode, $get, $name, $inds, $parent ) = @_;
     die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
 	"  unknown ndarray <$name($inds)>\n"
-	unless exists($check->{$name}) and defined($check->{$name});
-    return bless [$opcode, $name, $inds], $type;
+	unless defined($parent->{ParObjs}{$name});
+    bless [$opcode, $get, $name, $inds], $type;
 }
 
 sub _isbad { "PDL_ISBAD($_[0],$_[1],$_[2])" }
@@ -681,22 +666,26 @@ our %ops = (
     ISGOOD => sub {'!'.&_isbad},
     SETBAD => sub{join '=', @_[0,1]},
 );
+my %getters = (
+    '' => sub {my ($obj, $inds, $context)=@_; $obj->do_access($inds,$context)},
+    PP => sub {my ($obj, $inds)=@_; $obj->do_physpointeraccess.$inds},
+    VAR => sub {my ($obj, $inds)=@_; $inds},
+);
 
 sub get_str {
-    my($this,$parent,$context) = @_;
-    my ($opcode, $name, $inds) = @$this;
+    my ($this,$parent,$context) = @_;
+    my ($opcode, $get, $name, $inds) = @$this;
     confess "generic type access outside a generic loop in $name"
       unless defined $parent->{Gencurtype}[-1];
     print "PDL::PP::BadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
-    my $op = $ops{$opcode};
     die "ERROR: unknown check <$opcode> sent to PDL::PP::BadAccess\n"
-	unless defined $op;
-    my $obj = $parent->{ParObjs}{$name};
+	unless defined( my $op = $ops{$opcode} );
     die "ERROR: something screwy in PDL::PP::BadAccess (PP/PDLCode.pm)\n"
-	unless defined( $obj );
-    my ( $lhs, $rhs ) = ($obj->do_access($inds,$context), "${name}_badval");
+	unless defined( my $obj = $parent->{ParObjs}{$name} );
+    my $lhs = $getters{$get}->($obj, $inds, $context);
+    my $rhs = "${name}_badval";
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
-    return $op->($lhs, $rhs, $obj->adjusted_type($parent->{Gencurtype}[-1])->ppsym);
+    $op->($lhs, $rhs, $obj->adjusted_type($parent->{Gencurtype}[-1])->ppsym);
 }
 
 
