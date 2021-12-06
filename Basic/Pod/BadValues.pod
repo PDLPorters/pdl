@@ -72,7 +72,7 @@ L<perldl|PDL::perldl> or L<pdl2|PDL::Perldl2> or the C<-b> option to
 L<pdldoc|PDL::pdldoc>.  This facility is currently a 'proof of concept'
 (or, more realistically, a quick hack) so expect it to be rough around the edges.
 
-Each ndarray contains a flag - accessible via C<$pdl-E<gt>badflag> - to say 
+Each ndarray contains a flag - accessible via C<< $pdl->badflag >> - to say
 whether there's any bad data present: 
 
 =over 4
@@ -93,7 +93,7 @@ but it will run slower since you are going to have to handle the presence of bad
 =back
 
 If you create an ndarray, it will have its bad-value flag set to 0. To change 
-this, use C<$pdl-E<gt>badflag($new_bad_status)>, where C<$new_bad_status> can be 0 or 1.
+this, use C<< $pdl->badflag($new_bad_status) >>, where C<$new_bad_status> can be 0 or 1.
 When a routine creates an ndarray, its bad-value flag will depend on the input
 ndarrays: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), the 
 bad-value flag will be set true if any of the input ndarrays contain bad values.
@@ -134,7 +134,7 @@ one).
 
 =item *
 
-C<$x-E<gt>badflag(1)> should propagate the badflag to BOTH parents and
+C<< $x->badflag(1) >> should propagate the badflag to BOTH parents and
 children.
 
 =back
@@ -161,7 +161,7 @@ To change the current bad value, supply the new number to badvalue - eg
   $pdl->badvalue(2.3), byte->badvalue(2), badvalue(5,-3e34). 
 
 I<Note>: the value is silently converted to the correct C type, and
-returned - i.e. C<byte-E<gt>badvalue(-26)> returns 230 on my Linux machine.
+returned - i.e. C<< byte->badvalue(-26) >> returns 230 on my Linux machine.
 
 Note that changes to the bad value are I<NOT> propagated to previously-created
 ndarrays - they will still have the bad value set, but suddenly the elements
@@ -327,7 +327,7 @@ If the option
    HandleBad => 1
 
 is given, then many things happen.  For integer types, the readdata code 
-automatically creates a variable called C<E<lt>pdl nameE<gt>_badval>, 
+automatically creates a variable called C<(pdl name)_badval>,
 which contains the bad value for that ndarray (see
 C<get_xsdatapdecl()> in F<Basic/Gen/PP/PdlParObjs.pm>).  However, do not 
 hard code this name into your code!
@@ -489,16 +489,16 @@ Needs a fair bit of work to PDL::PP::PDLCode.
 
 =item *
 
-C<$pdl-E<gt>baddata()> now updates all the children of this ndarray
+C<< $pdl->badflag() >> now updates all the children of this ndarray
 as well. However, not sure what to do with parents, since:
 
   $y = $x->slice(); 
-  $y->baddata(0)
+  $y->badflag(0)
 
 doesn't mean that C<$x> shouldn't have its badvalue cleared.
 however, after
 
-  $y->baddata(1)
+  $y->badflag(1)
 
 it's sensible to assume that the parents now get flagged as
 containing bad values.

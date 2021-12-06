@@ -329,7 +329,7 @@ suggested above input and output ndarrays are referred to as parents
 and children, respectively.
 
 An example of processing the children of an ndarray is provided
-by the C<baddata> method of L<PDL::Bad>.
+by the method L<PDL::Bad/badflag>.
 
 Consider the following situation:
 
