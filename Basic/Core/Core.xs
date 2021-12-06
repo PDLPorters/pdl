@@ -671,10 +671,7 @@ getdim(x,y)
 		pdl_make_physdims(x);
 		if (y < 0) y += x->ndims;
 		if (y < 0) croak("negative dim index too large");
-		if (y < x->ndims)
-                   RETVAL = x->dims[y];
-                else
-		   RETVAL = 1; /* return size 1 for all other dims */
+		RETVAL = y < x->ndims ? x->dims[y] : 1; /* all other dims=1 */
 	OUTPUT:
 		RETVAL
 
