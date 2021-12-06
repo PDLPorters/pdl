@@ -201,10 +201,6 @@ void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	it->trans_parent = 0;
 }
 
-/* There is a potential problem here, calling
-   pdl_destroy while the trans structure is not in a defined state.
-   We shall ignore this problem for now and hope it goes away ;)
-   (XXX FIX ME) */
 /* XXX Two next routines are memleaks */
 /* somehow this transform will call (implicitly) redodims twice on
    an unvaffined pdl; leads to memleak if redodims allocates stuff
@@ -369,7 +365,6 @@ void pdl_destroy(pdl *it) {
     if(it->trans_parent) {
       PDLDEBUG_f(printf("Destr_trans. %p %d\n",(void*)(it->trans_parent), it->trans_parent->flags);)
         /* Ensure only if there are other children! */
-	/* XXX Bad: tmp! */
       pdl_destroytransform(it->trans_parent,(it->trans_parent->vtable->npdls
 				      - it->trans_parent->vtable->nparents > 1));
     }
