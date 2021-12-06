@@ -629,17 +629,16 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 	   ensuring it */
 	  trans->flags |= PDL_ITRANS_NONMUTUAL;
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-		pdl_children_changesoon(trans->pdls[i],
-			wd[i]=(trans->pdls[i]->state & PDL_NOMYDIMS ?
+		pdl *child = trans->pdls[i];
+		pdl_children_changesoon(child,
+			wd[i]=(child->state & PDL_NOMYDIMS ?
 			 PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED));
-	  }
-	  /* mark all pdls that have been given as nulls (PDL_NOMYDIMS)
-	     as getting their dims from this trans */
-	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-		if(trans->pdls[i]->state & PDL_NOMYDIMS) {
-			trans->pdls[i]->state &= ~PDL_NOMYDIMS;
-			trans->pdls[i]->state |= PDL_MYDIMS_TRANS;
-			trans->pdls[i]->trans_parent = trans;
+		/* mark all pdls that have been given as nulls (PDL_NOMYDIMS)
+		   as getting their dims from this trans */
+		if(child->state & PDL_NOMYDIMS) {
+			child->state &= ~PDL_NOMYDIMS;
+			child->state |= PDL_MYDIMS_TRANS;
+			child->trans_parent = trans;
 		}
 	  }
 	/* now actually perform the transformation, i.e. call
@@ -648,31 +647,30 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 	pdl__ensure_trans(trans,PDL_PARENTDIMSCHANGED); /* XXX Why? */
 	/* Es ist vollbracht */
 	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-		if( PDL_VAFFOK(trans->pdls[i]) &&
+		pdl *child = trans->pdls[i];
+		if( PDL_VAFFOK(child) &&
 		    (trans->vtable->per_pdl_flags[i] & PDL_TPDL_VAFFINE_OK) )  {
 			if(wd[i] & PDL_PARENTDIMSCHANGED)
-				pdl_changed(trans->pdls[i],
-					PDL_PARENTDIMSCHANGED,0);
-			pdl_vaffinechanged(
-				trans->pdls[i],PDL_PARENTDATACHANGED);
+				pdl_changed(child, PDL_PARENTDIMSCHANGED,0);
+			pdl_vaffinechanged(child,PDL_PARENTDATACHANGED);
 		} else
-			pdl_changed(trans->pdls[i],wd[i],0);
+			pdl_changed(child,wd[i],0);
 	}
 	pdl_destroytransform(trans,0);
   } else { /* do the full flowing transform */
           PDLDEBUG_f(printf("make_trans_mutual flowing!\n"));
 	  for(i=0; i<trans->vtable->nparents; i++)
 		pdl_set_trans_childtrans(trans->pdls[i],trans,i);
-	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++)
-		pdl_set_trans_parenttrans(trans->pdls[i],trans,i);
-	  if(!(trans->flags & PDL_ITRANS_TWOWAY))
-		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
-		if(trans->pdls[i]->state & PDL_NOMYDIMS) {
-			trans->pdls[i]->state &= ~PDL_NOMYDIMS;
-			trans->pdls[i]->state |= PDL_MYDIMS_TRANS;
+		pdl *child = trans->pdls[i];
+		pdl_set_trans_parenttrans(child,trans,i);
+		if(child->state & PDL_NOMYDIMS) {
+			child->state &= ~PDL_NOMYDIMS;
+			child->state |= PDL_MYDIMS_TRANS;
 		}
 	  }
+	  if(!(trans->flags & PDL_ITRANS_TWOWAY))
+		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
   }
   PDLDEBUG_f(printf("make_trans_mutual_exit %p\n",(void*)trans));
 } /* pdl_make_trans_mutual() */
