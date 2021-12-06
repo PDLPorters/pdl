@@ -408,8 +408,7 @@ pdl *pdl_hard_copy(pdl *src) {
 	return it;
 }
 
-/* Reallocate this PDL to have ndims dimensions. The previous dims
-   are copied. */
+/* Reallocate this PDL to have ndims dimensions. */
 void pdl_reallocdims(pdl *it, PDL_Indx ndims) {
    if (it->ndims < ndims) {  /* Need to realloc for more */
       if(it->dims != it->def_dims) free(it->dims);
@@ -453,7 +452,7 @@ void pdl_reallocthreadids(pdl *it, PDL_Indx n) {
 	}
 }
 
-/* Calculate default increments and grow the PDL data */
+/* Recalculate default increments and grow the PDL data */
 
 void pdl_resize_defaultincs(pdl *it) {
 	PDL_Indx inc = 1;

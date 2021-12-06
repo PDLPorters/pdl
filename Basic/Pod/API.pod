@@ -372,27 +372,104 @@ cause segfaults during pthreading.
 
 See L<PDL::ParallelCPU> for more information on pthreading.
 
+=item *
+
+  safe_indterm
+
+Checks given offset is within given ndarray's bounds, else throws an
+exception.
+
+=item *
+
+  converttype
+
+Affine transformation used only by C<set_datatype> to convert an ndarray's
+type. Works in place if it can. Not bad-value aware.
+
+=item *
+
+  converttypei_new
+
+Affine transformation used only by C<get_convertedpdl> to convert an
+ndarray's type. Unlike C<converttype>, also copies over C<threadids>. Not
+bad-value aware.
+
+=item *
+
+  get_convertedpdl
+
+Used by L<PDL::Core/convert>.
+
+=item *
+
+  affine_new
+
+Creates a child vaffine ndarray from given parent ndarray, with given offs
+(starting point for that pthread in that ndarray), inclist and dims.
+
+=item *
+
+  make_trans_mutual
+
+Triggers the actual running of a previously-set-up C<pdl_trans>.
+
+=item *
+
+  get
+
+Get data at given coordinates.
+
+=item *
+
+  get_offs
+
+Get data at given offset.
+
+=item *
+
+  put_offs
+
+Put data at given offset.
+
+=item *
+
+  setdims_careful
+
+Despite the name, just calls C<resize_defaultincs> then
+C<reallocthreadids> with one.
+
+=item *
+
+  destroy
+
+Destroy ndarray.
+
+=item *
+
+  reallocdims
+
+Cause the ndarray to have given number of dimensions, destroying
+previous ones.
+
+=item *
+
+  reallocthreadids
+
+Reallocate n threadids. Set the new extra ones to the end.
+
+=item *
+
+  resize_defaultincs
+
+Recalculate default increments from C<dims>, and grow the PDL data.
+
+=item *
+
+  grow
+
+Set the C<data> member to contain ndarray's number of elements.
+
 =back
-
-=cut
-
-# ones that are not clear:
-# safe_indterm
-# converttypei_new
-# converttype
-# get_convertedpdl
-# affine_new
-# make_trans_mutual
-# make_now
-# get
-# get_offs
-# put_offs
-# setdims_careful
-# destroy
-# grow
-# reallocdims
-# reallocthreadids
-# resize_defaultincs
 
 =head2 Handy macros from pdl.h
 

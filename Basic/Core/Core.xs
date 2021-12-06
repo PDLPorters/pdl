@@ -895,7 +895,7 @@ threadover(...)
 	child[i]=pdl_null();
 	if (!child[i]) pdl_pdl_barf("Error making null pdl");
 	/*  instead of pdls[i] its vaffine parent !!!XXX */
-	PDL.affine_new(pdls[i],child[i],pdl_thr.offs[i],dims[i],
+	pdl_affine_new(pdls[i],child[i],pdl_thr.offs[i],dims[i],
 					incs[i]);
 	pdl_make_physical(child[i]); /* make sure we can get at
 					the vafftrans          */
