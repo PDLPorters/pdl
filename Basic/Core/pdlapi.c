@@ -105,8 +105,8 @@ pdl* pdl_pdlnew() {
      it->nthreadids = 1;
      it->threadids = it->def_threadids;
      it->threadids[0] = 0;
-     for(i=0; i<PDL_NCHILDREN; i++) {it->children.trans_parent[i]=NULL;}
-     it->children.next = NULL;
+     for(i=0; i<PDL_NCHILDREN; i++) {it->child_transes.trans[i]=NULL;}
+     it->child_transes.next = NULL;
      it->magic = 0;
      it->hdrsv = 0;
      PDLDEBUG_f(printf("CREATE %p (size=%zu)\n",(void*)it,sizeof(pdl)));
@@ -116,38 +116,31 @@ pdl* pdl_pdlnew() {
 /* Explicit free. Do not use, use destroy instead, which causes this
    to be called when the time is right */
 void pdl__free(pdl *it) {
-    pdl_children *p1,*p2;
     PDL_CHKMAGIC(it);
-
     /* now check if magic is still there */
     if (pdl__ismagic(it)) {
       PDLDEBUG_f(printf("%p is still magic\n",(void*)it));
       PDLDEBUG_f(pdl__print_magic(it));
     }
-
     it->magicno = 0x42424245;
     PDLDEBUG_f(printf("FREE %p\n",(void*)it));
     if(it->dims       != it->def_dims)       free((void*)it->dims);
     if(it->dimincs    != it->def_dimincs)    free((void*)it->dimincs);
     if(it->threadids  != it->def_threadids)  free((void*)it->threadids);
-
     if(it->vafftrans) {
 	pdl_vafftrans_free(it);
     }
-
-    p1 = it->children.next;
+    pdl_child_transes *p1 = it->child_transes.next;
     while(p1) {
-	p2 = p1->next;
+	pdl_child_transes *p2 = p1->next;
 	free(p1);
 	p1 = p2;
     }
-
 /* Call special freeing magic, if exists */
     if(PDL_ISMAGIC(it)) {
 	pdl__call_magic(it, PDL_MAGIC_DELETEDATA);
 	pdl__magic_free(it);
     }
-
     if(it->datasv) {
 	    SvREFCNT_dec(it->datasv);
 	    it->data=0;
@@ -168,7 +161,7 @@ void pdl__free(pdl *it) {
  */
 void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
 {
-	PDL_Indx i; pdl_children *c; int flag = 0;
+	PDL_Indx i; int flag = 0;
 	if(all) {
 		for(i=0; i<trans->vtable->nparents; i++)
 			if(trans->pdls[i] == it)
@@ -176,19 +169,16 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
 	} else {
 		trans->pdls[nth] = 0;
 	}
-	c = &it->children;
-	do {
-		for(i=0; i<PDL_NCHILDREN; i++) {
-			if(c->trans_parent[i] == trans) {
-				c->trans_parent[i] = NULL;
-				flag = 1;
-				if(!all) return;
-				/* Can't return; might be many times
-				  (e.g. $x+$x) */
-			}
+	PDL_DECL_CHILDLOOP(it);
+	PDL_START_CHILDLOOP(it)
+		if(PDL_CHILDLOOP_THISCHILD(it) == trans) {
+			PDL_CHILDLOOP_THISCHILD(it) = NULL;
+			flag = 1;
+			if(!all) return;
+			/* Can't return; might be many times
+			  (e.g. $x+$x) */
 		}
-		c=c->next;
-	} while(c);
+	PDL_END_CHILDLOOP(it)
 	/* this might be due to a croak when performing the trans; so
 	   warn only for now, otherwise we leave trans undestructed ! */
 	if(!flag)
@@ -297,9 +287,9 @@ void pdl__destroy_childtranses(pdl *it,int ensure) {
   Therefore, simple rules:
    - allowed to destroy if
       1. a parent with max. 1 backwards propagating transformation
-      2. a child with no children 
+      2. a child with no child_transes
 
-  When an ndarray is destroyed, it must tell its children and/or
+  When an ndarray is destroyed, it must tell its child_transes and/or
   parent.
 
 */
@@ -321,7 +311,7 @@ void pdl_destroy(pdl *it) {
 	    it->sv = NULL;
     }
 
-    /* 1. count the children that do flow */
+    /* 1. count the child_transes that do flow */
     PDL_START_CHILDLOOP(it)
 	curt = PDL_CHILDLOOP_THISCHILD(it);
 	if(PDL_CHILDLOOP_THISCHILD(it)->flags & (PDL_ITRANS_DO_DATAFLOW_F|
@@ -349,7 +339,7 @@ void pdl_destroy(pdl *it) {
 /* Also not here */
     if(it->trans_parent && nforw) goto soft_destroy;
 
-/* Also, we do not wish to destroy if the children would be larger
+/* Also, we do not wish to destroy if the child_transes would be larger
  * than the parent and are currently not allocated (e.g. lags).
  * Because this is too much work to check, we refrain from destroying
  * for now if there is an affine child that is not allocated
@@ -470,8 +460,8 @@ void pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
    PDL_Indx i;
    PDLDEBUG_f(printf("pdl_setdims: "));PDLDEBUG_f(pdl_dump(it);)
    /* This mask avoids all kinds of subtle dereferencing bugs (CED 11/2015) */
-   if(it->trans_parent || it->vafftrans || it->children.next ) {
-      pdl_pdl_barf("Can't setdims on a PDL that already has children");
+   if(it->trans_parent || it->vafftrans || it->child_transes.next ) {
+      pdl_pdl_barf("Can't setdims on a PDL that already has child_transes");
    }
    /* not sure if this is still necessary with the mask above... (CED 11/2015)  */
    pdl_children_changesoon(it,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
@@ -513,23 +503,23 @@ void pdl_put_offs(pdl *it, PDL_Indx offs, PDL_Anyval value) {
 
 void pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 {
-	int i; pdl_children *c;
+	int i; pdl_child_transes *c;
 	trans->pdls[nth] = it;
-	c = &it->children;
+	c = &it->child_transes;
 	do {
 		for(i=0; i<PDL_NCHILDREN; i++) {
-			if(! c->trans_parent[i]) {
-				c->trans_parent[i] = trans; return;
+			if(! c->trans[i]) {
+				c->trans[i] = trans; return;
 			}
 		}
 		if(!c->next) break;
 		c=c->next;
 	} while(1) ;
-	c->next = malloc(sizeof(pdl_children));
+	c->next = malloc(sizeof(pdl_child_transes));
 	if (!c->next) croak("Out of Memory\n");
-	c->next->trans_parent[0] = trans;
+	c->next->trans[0] = trans;
 	for(i=1; i<PDL_NCHILDREN; i++)
-		c->next->trans_parent[i] = 0;
+		c->next->trans[i] = 0;
 	c->next->next = 0;
 }
 
@@ -820,7 +810,7 @@ void pdl_vaffinechanged(pdl *it, int what)
 
 void pdl_changed(pdl *it, int what, int recursing)
 {
-	pdl_children *c; int i; int j;
+	int i; int j;
 
 	PDLDEBUG_f(do {
           printf("pdl_changed: entry for pdl %p recursing: %d, what ",
@@ -858,19 +848,13 @@ void pdl_changed(pdl *it, int what, int recursing)
 			}
 		}
 	} else {
-		c=&it->children;
-		do {
-			for(i=0; i<PDL_NCHILDREN; i++) {
-				if(c->trans_parent[i]) {
-					for(j=c->trans_parent[i]->vtable->nparents;
-						j<c->trans_parent[i]->vtable->npdls;
-						j++) {
-						pdl_changed(c->trans_parent[i]->pdls[j],what,1);
-					}
-				}
+		PDL_DECL_CHILDLOOP(it);
+		PDL_START_CHILDLOOP(it)
+			pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
+			for(j=t->vtable->nparents; j<t->vtable->npdls; j++) {
+				pdl_changed(t->pdls[j],what,1);
 			}
-			c=c->next;
-		} while(c);
+		PDL_END_CHILDLOOP(it)
 	}
 	PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n",(void*)it));
 }
