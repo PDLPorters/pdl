@@ -68,7 +68,6 @@ Basic/Math/quiet_nan.c
 Basic/Math/rint.c
 Basic/Math/yn.c
 Basic/Matrix.pm
-Basic/MatrixOps/blas.c
 Basic/MatrixOps/eigen.c
 Basic/MatrixOps/eigen.h
 Basic/MatrixOps/eigens.c
