@@ -102,9 +102,7 @@ of the file F<pdlcore.h>. So what does the structure look like:
 
 This is quite a structure for just storing some data in - what is going on?
 
-=over 5
-
-=item Data storage
+=head3 Data storage
 
 We are going to start with some of the simpler members: first of all,
 there is the member
@@ -144,7 +142,7 @@ F<pdl.h>). Currently we have byte, short, unsigned short, long, index
 (either long or long long), long long, float and double (plus complex
 equivalents) types, see also L<PDL::Types>.
 
-=item Dimensions
+=head3 Dimensions
 
 The number of dimensions in the ndarray is given by the member
 
@@ -175,7 +173,7 @@ by code like
 but this is not always the right thing to do,
 at least without checking for certain things first.
 
-=item Default storage
+=head3 Default storage
 
 Since the vast majority of ndarrays don't have more than 6 dimensions,
 it is more efficient to have default storage for the dimensions and dimincs
@@ -191,7 +189,7 @@ The same applies for the threadids:
 
    	unsigned char def_threadids[PDL_NTHREADIDS];
 
-=item Magic
+=head3 Magic
 
 It is possible to attach magic to ndarrays, much like Perl's own magic
 mechanism. If the member pointer
@@ -201,7 +199,7 @@ mechanism. If the member pointer
 is nonzero, the PDL has some magic attached to it. The implementation
 of magic can be gleaned from the file F<pdlmagic.c> in the distribution.
 
-=item State
+=head3 State
 
 One of the first members of the structure is 
 
@@ -211,7 +209,7 @@ The possible flags and their meanings are given in C<pdl.h>.
 These are mainly used to implement the lazy evaluation mechanism
 and keep track of ndarrays in these operations.
 
-=item Transformations and virtual affine transformations
+=head3 Transformations and virtual affine transformations
 
 As you should already know, ndarrays often carry information about
 where they come from. For example, the code
@@ -231,7 +229,7 @@ about the transformation in appropriate slots of the C<pdl> structure.
 C<pdl_trans> and C<pdl_vaffine> are structures that we will look at in
 more detail below.
 
-=item The Perl SVs
+=head3 The Perl SVs
 
 When ndarrays are referred to through Perl SVs, we store an additional
 reference to it in the member
@@ -248,8 +246,6 @@ Also, we store an opaque
 which is just for use by the user to hook up arbitrary data with this sv.
 This one is generally manipulated through L<sethdr|PDL::Core/sethdr> and
 L<gethdr|PDL::Core/gethdr> calls.
-
-=back
 
 =head2 Smart references and transformations: slicing and dicing
 
@@ -479,6 +475,9 @@ accessible (F<pdlapi.c>):
 Responsible for the actual
 computations of the child data from the parents or parent data
 from those of the children, respectively (the dataflow aspect).
+C<readdata> populates the children from the parents, and C<writebackdata>
+implements updating the parent(s) from the child(ren) if dataflow is
+part of that transformation.
 The PDL core makes sure that these are called as needed when
 ndarray data is accessed (lazy-evaluation). The general API
 function to ensure that an ndarray is up-to-date is
