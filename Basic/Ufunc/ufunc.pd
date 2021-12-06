@@ -34,10 +34,6 @@ use PDL::Slices;
 use Carp;
 EOD
 
-pp_addhdr(<<'EOD');
-#define IsNaN(x) (x*0 != 0)
-EOD
-
 # helper functions
 sub projectdocs {
     my $name = shift;
@@ -1268,9 +1264,9 @@ for my $which (
 	    '$GENERIC() cur = 0;
 	     int flag = 0;
 	     loop(n) %{
-		if( !flag || ($a() '.$op.' cur ) || IsNaN(cur) ) { cur = $a(); flag = 1;}
+		if( !flag || ($a() '.$op.' cur ) || PDL_ISNAN_$PPSYM()(cur) ) { cur = $a(); flag = 1;}
 	     %}
-	     if(flag && !IsNaN(cur)) {
+	     if(flag && !PDL_ISNAN_$PPSYM()(cur)) {
 	     	     $c() = cur;
              } else {
 	             $SETBAD(c());
@@ -1305,10 +1301,10 @@ for ways of masking NaNs.
 	    '$GENERIC() cur = 0;
              PDL_Indx curind = -1;
 	     loop(n) %{
-		if(curind == -1 || $a() '.$op.' cur || IsNaN(cur))
+		if(curind == -1 || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur))
 		   {cur = $a(); curind = n;}
 	     %}
-	     if(curind != -1 && !IsNaN(cur)) {
+	     if(curind != -1 && !PDL_ISNAN_$PPSYM()(cur)) {
 	       $c() = curind;
 	     } else {
 	          $SETBAD(c());
@@ -1322,7 +1318,7 @@ for ways of masking NaNs.
 		if( $ISGOOD(a()) && (curind == -1 || $a() '.$op.' cur))
                    {cur = $a(); curind = n;}
 	     %}
-             if ( curind != -1 && !IsNaN(cur) ) { $c() = curind; }
+             if ( curind != -1 && !PDL_ISNAN_$PPSYM()(cur) ) { $c() = curind; }
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    CopyBadStatusCode => '',
 	    Doc => "Like $name but returns the index rather than the value",
@@ -1346,7 +1342,7 @@ otherwise the bad flag is cleared for the output ndarray.',
 				if($c(m=>nm) == n) {flag=1; break;}
 			}
 			if(!flag &&
-			   ((curind == ns) || $a() '.$op.' cur || IsNaN(cur)))
+			   ((curind == ns) || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur)))
 				{cur = $a(); curind = n;}
 		 %}
 		 $c() = curind;
