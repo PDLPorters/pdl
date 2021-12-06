@@ -1,11 +1,9 @@
 #ifndef __PDLCORE_H
 #define __PDLCORE_H
 
-/*
-# version 18: zap twod, complex sorters, reorganised
-*/
+/* version 19: various deletions and adjustments */
 
-#define PDL_CORE_VERSION 18
+#define PDL_CORE_VERSION 19
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
@@ -116,8 +114,6 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(get, PDL_Anyval, (pdl *pdl,PDL_Indx *inds)) \
   X(set, void, ( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, \
     PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value)) \
-  X(set_trans_childtrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
-  X(set_trans_parenttrans, void, (pdl *it, pdl_trans *trans,PDL_Indx nth)) \
   X(create_trans, pdl_trans *, (pdl_transvtable *vtable)) \
   X(dim_checks, void, (pdl_transvtable *vtable, pdl **pdls, \
     pdl_thread *pdlthread, PDL_Indx *creating, PDL_Indx *ind_sizes)) \
