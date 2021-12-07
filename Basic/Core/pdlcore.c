@@ -1029,7 +1029,7 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
   return this_arg;
 }
 
-pdl_slice_args* pdl_slice_args_parse(SV* sv) {
+pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
   /*** Make sure we got an array ref as input and extract its corresponding AV ***/
   if(!(sv && SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))
     barf("slice requires an ARRAY ref containing zero or more arguments");
@@ -1154,7 +1154,7 @@ pdl_slice_args* pdl_slice_args_parse(SV* sv) {
           /* this argument has a cached string */
           STRLEN len;
           char *s = SvPVbyte(this, len);
-          this_arg = PDL_CORE_(slice_args_parse_string)(s);
+          this_arg = pdl_slice_args_parse_string(s);
         } else /* end of string parsing */ {
           /* Simplest case -- there's no cached string, so it   */
           /* must be a number.  In that case it's a simple      */
