@@ -294,7 +294,7 @@ void pdl__destroy_childtranses(pdl *it,int ensure) {
 
 */
 void pdl_destroy(pdl *it) {
-    int nback=0,nback2=0,nforw=0,nundest=0,nundestp=0;
+    int nback=0,nback2=0,nforw=0;
     int nafn=0;
     pdl_trans *curt;
     PDL_DECL_CHILDLOOP(it);
@@ -371,8 +371,8 @@ void pdl_destroy(pdl *it) {
    return;
 
   soft_destroy:
-    PDLDEBUG_f(printf("May have dependencies, not destr. %p, nu(%d, %d), nba(%d, %d), nforw(%d), tra(%p), nafn(%d)\n",
-				(void*)it, nundest, nundestp, nback, nback2, nforw, (void*)(it->trans_parent), nafn);)
+    PDLDEBUG_f(printf("May have dependencies, not destr. %p, nba(%d, %d), nforw(%d), tra(%p), nafn(%d)\n",
+				(void*)it, nback, nback2, nforw, (void*)(it->trans_parent), nafn);)
     it->state &= ~PDL_DESTROYING;
 }
 
