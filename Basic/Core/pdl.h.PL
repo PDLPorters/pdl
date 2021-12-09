@@ -420,7 +420,6 @@ struct pdl_trans {
 typedef struct pdl_vaffine {
 	PDL_TRANS_START(2);
 	PDL_Indx ndims;
-	PDL_Indx def_incs[PDL_NDIMS];
 	pdl *from;
 } pdl_vaffine;
 
