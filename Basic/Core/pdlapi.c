@@ -11,6 +11,11 @@
 #define REDODIMS(trans) VTABLE_OR_DEFAULT(trans, redodims, redodims_default)
 #define READDATA(trans) VTABLE_OR_DEFAULT(trans, readdata, readdata_affine)
 #define WRITEDATA(trans) VTABLE_OR_DEFAULT(trans, writebackdata, writebackdata_affine)
+#define FREETRANS(trans) \
+    if(trans->vtable->freetrans) { \
+	    PDLDEBUG_f(printf("call freetrans\n")); \
+	    trans->vtable->freetrans(trans); /* Free malloced objects */ \
+    }
 
 extern Core PDL;
 
@@ -250,10 +255,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 	  }
 	}
 	PDL_TR_CHKMAGIC(trans);
-	if(trans->vtable->freetrans) {
-		PDLDEBUG_f(printf("call freetrans\n"));
-		trans->vtable->freetrans(trans); /* Free malloced objects */
-	}
+	FREETRANS(trans);
 	PDL_TR_CLRMAGIC(trans);
 	if(trans->vtable->flags & PDL_TRANS_DO_THREAD)
 	  pdl_freethreadloop(&trans->pdlthread);
