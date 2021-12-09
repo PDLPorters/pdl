@@ -420,7 +420,7 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 	if(PDL_VAFFOK(it)) {
 		printf("\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:",
 			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);
-		pdl_print_iarr(it->vafftrans->incs, it->ndims);
+		pdl_print_iarr(PDL_REPRINCS(it), it->vafftrans->ndims);
 	}
 	if(it->state & PDL_ALLOCATED) {
 		printf("\n%s   First values: (",spaces);
