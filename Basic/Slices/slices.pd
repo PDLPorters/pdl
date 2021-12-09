@@ -1677,7 +1677,7 @@ EOD
         RedoDims => '
                 PDL_Indx i;
                 if ($COMP(nthdim) < 0)  /* the usual conventions */
-                   $COMP(nthdim) = $PARENT(ndims) + $COMP(nthdim);
+                   $COMP(nthdim) += $PARENT(ndims);
                 if ($COMP(nthdim) < 0 || $COMP(nthdim) >= $PARENT(ndims))
                    $CROAK("lags: dim out of range");
                 if ($COMP(n) < 1)
@@ -2352,13 +2352,9 @@ EOD-slice
 SLICE-MC
            ,
            RedoDims => q{
-                  int o_ndims_extra = 0;
                   PDL_Indx i;
 		  PDL_Indx PDIMS;
-
-                  if( $COMP(idim_top) < $PARENT(ndims) ) {
-                    o_ndims_extra = $PARENT(ndims) - $COMP(idim_top);
-                  }
+                  int o_ndims_extra = PDLMAX(0, $PARENT(ndims) - $COMP(idim_top));
 
                   /* slurped dims from the arg parsing, plus any extra thread dims */
                   $SETNDIMS( $COMP(odim_top) + o_ndims_extra );
@@ -2424,8 +2420,7 @@ SLICE-MC
 			    PDL_Indx siz;
 			    PDL_Indx inc;
 			    /** Regularize and bounds-check the end location **/
-			    if(end<0)
-                            end += pdsize;
+			    if(end<0) end += pdsize;
 			    if( end < 0 || end >= pdsize ) {
 			      PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
 			      $CROAK("slice: slice ends out of bounds in pos %d (end is %d; source dim %d runs 0 to %d)",i,end,$COMP(idim[i]),pdsize-1);
@@ -2434,9 +2429,7 @@ SLICE-MC
 			    inc = $COMP(inc[i]);
 			    if(!inc)
 			      inc = (start <= end) ? 1 : -1;
-			    siz = (end - start + inc) / inc ;
-			    if(siz<0)
-			      siz=0;
+			    siz = PDLMAX(0, (end - start + inc) / inc);
 			    $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
 			    $PRIV(  incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * inc;
 			    $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
