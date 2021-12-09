@@ -943,7 +943,7 @@ sub _file_same {
   my ($from_text, $to_file) = @_;
   require File::Map;
   File::Map::map_file(my $to_map, $to_file, '<');
-  s/^\s*#line[^\n]*\n//gm for $from_text, (my $to_text = $to_map);
+  s/^[^\n]*#line[^\n]*?\n//gm for $from_text, (my $to_text = $to_map);
   $from_text eq $to_text;
 }
 sub _write_file {
