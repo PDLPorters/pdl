@@ -433,8 +433,7 @@ simplified from F<pdl.h> for clarity)
 	void (*redodims)(pdl_trans *tr);  /* figure out dims of children */
 	void (*readdata)(pdl_trans *tr);  /* flow parents to children  */
 	void (*writebackdata)(pdl_trans *tr); /* flow backwards */
-	void (*freetrans)(pdl_trans *tr); /* Free both the contents and it of
-					the trans member */
+	void (*freetrans)(pdl_trans *tr, char);
   	int structsize;
 	char *name; /* the function's name */
   } pdl_transvtable;
@@ -489,8 +488,11 @@ XS/C (see F<Core.xs> for some examples).
 
 =head3 freetrans
 
-Frees dynamically allocated memory associated
-with the trans as needed.
+Frees dynamically allocated memory associated with the trans as needed.
+If C<redodims> has previously been called, it will free any
+vaffine-associated memory. If the C<destroy> parameter is true, it will
+also free any bespoke C<params>-connected memory - this will not be the
+case if called before doing another C<redodims>.
 Again, functions built with L<PDL::PP> make sure that
 freeing via these callbacks happens at the right times.
 

@@ -255,6 +255,8 @@ void pdl_initthreadstruct(int nobl,
 	    thread->gflags & PDL_THREAD_INITIALIZED) {
 	  PDLDEBUG_f(printf("REINITIALIZING already initialized thread\n");)
 	  PDLDEBUG_f(pdl_dump_thread(thread);)
+	  PDLDEBUG_f(pdl_pdl_warn("trying to reinitialize already initialized "
+	     "thread (mem-leak!); freeing...");)
 	  /* return; */ /* try again, should (!?) work */
 
 	  if (thread->inds) Safefree(thread->inds);
@@ -263,9 +265,6 @@ void pdl_initthreadstruct(int nobl,
 	  if (thread->incs) Safefree(thread->incs);
 	  if (thread->flags) Safefree(thread->flags);
 	  if (thread->pdls) Safefree(thread->pdls);
-
-	  PDLDEBUG_f(pdl_pdl_warn("trying to reinitialize already initialized "
-	     "thread (mem-leak!); freeing...");)
 	}
 	PDL_THR_SETMAGIC(thread);
 	thread->gflags = 0;

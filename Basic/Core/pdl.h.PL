@@ -302,8 +302,7 @@ typedef struct pdl_transvtable {
         void (*redodims)(pdl_trans *tr);      /* Only dims and internal trans (makes phys) */
         void (*readdata)(pdl_trans *tr);      /* Only data, to "data" ptr  */
         void (*writebackdata)(pdl_trans *tr); /* "data" ptr to parent or granny */
-        void (*freetrans)(pdl_trans *tr);     /* Free both the contents and it of
-                                                 the trans_parent member */
+        void (*freetrans)(pdl_trans *tr, char);
         int structsize;
         char *name;                           /* For debuggers, mostly */
 } pdl_transvtable;

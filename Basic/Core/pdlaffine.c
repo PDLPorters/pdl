@@ -127,11 +127,12 @@ void pdl_affine_redodims(pdl_trans *trans) {
   trans->dims_redone = 1;
 }
 
-void pdl_affine_free(pdl_trans *trans) {
+void pdl_affine_free(pdl_trans *trans, char destroy) {
   pdl_params_affine *params = trans->params;
-  PDL_TR_CLRMAGIC(trans);
-  free(params->sdims);
-  free(params->sincs);
+  if (destroy) {
+    free(params->sdims);
+    free(params->sincs);
+  }
   if ((trans)->dims_redone) free(trans->incs);
 }
 

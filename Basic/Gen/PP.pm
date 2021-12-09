@@ -683,9 +683,10 @@ PDL_COMMENT("   /* Memory access */                                         ")
 #define PDL_XS_INPLACE_CHECK(in) \
     if (in->state & PDL_INPLACE) barf("inplace input but output given");
 
-#define PDL_FREE_CODE(trans, comp_free_code, ntpriv_free_code) \
-    PDL_TR_CLRMAGIC(trans); \
-    comp_free_code \
+#define PDL_FREE_CODE(trans, destroy, comp_free_code, ntpriv_free_code) \
+    if (destroy) { \
+	comp_free_code \
+    } \
     if ((trans)->dims_redone) { \
 	ntpriv_free_code \
     }
@@ -1131,9 +1132,6 @@ EOF
 
 }
 
-# Worst memleaks: not freeing things at redodims or
-# final free time (thread, dimmed things).
-
 use Carp;
 $SIG{__DIE__} = \&Carp::confess if $::PP_VERBOSE;
 
@@ -1305,23 +1303,23 @@ sub typemap {
 sub wrap_vfn {
   my (
     $code,$rout,$func_header,
-    $all_func_header,$sname,$pname,$ptype,
+    $all_func_header,$sname,$pname,$ptype,$extra_args,
   ) = @_;
   my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
   PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-void $rout(pdl_trans *$sname) {
+void $rout(pdl_trans *$sname$extra_args) {
 @{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
 $str}
 EOF
 }
 my @vfn_args_always = qw(_AllFuncHeader StructName ParamStructName ParamStructType);
 sub make_vfn_args {
-  my ($which) = @_;
+  my ($which, $extra_args) = @_;
   ("${which}Func",
     ["${which}CodeSubd","${which}FuncName","_${which}FuncHeader",
       @vfn_args_always
     ],
-    sub {$_[1] eq 'NULL' ? '' : wrap_vfn(@_,lc $which)}
+    sub {$_[1] eq 'NULL' ? '' : wrap_vfn(@_,$extra_args//'')}
   );
 }
 
@@ -2123,7 +2121,7 @@ END
    PDL::PP::Rule->new("FreeCodeNS",
       ["StructName","CompFreeCode","NTPrivFreeCode"],
       sub {
-	  (grep $_, @_[1..$#_]) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], $_[1], $_[2])"): ''}),
+	  (grep $_, @_[1..$#_]) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], destroy, $_[1], $_[2])"): ''}),
 
    PDL::PP::Rule::Substitute::Usual->new("FreeCodeSubd", "FreeCodeNS"),
 
@@ -2258,7 +2256,7 @@ EOF
    PDL::PP::Rule->new("FreeFuncName",
 		      ["FreeCodeSubd","Name"],
 		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
-   PDL::PP::Rule->new(make_vfn_args("Free")),
+   PDL::PP::Rule->new(make_vfn_args("Free", ", char destroy")),
 
    PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
    PDL::PP::Rule->new("VTableDef",

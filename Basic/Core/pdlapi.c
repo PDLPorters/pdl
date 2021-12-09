@@ -8,13 +8,20 @@
     ? (trans)->vtable->func \
     : pdl_ ## default_func)(trans)
 
-#define REDODIMS(trans) VTABLE_OR_DEFAULT(trans, redodims, redodims_default)
+#define REDODIMS(trans) do { \
+    if (trans->dims_redone) { \
+	FREETRANS(trans, 0); \
+	trans->dims_redone = 0; \
+    } \
+    VTABLE_OR_DEFAULT(trans, redodims, redodims_default); \
+  } while (0)
 #define READDATA(trans) VTABLE_OR_DEFAULT(trans, readdata, readdata_affine)
 #define WRITEDATA(trans) VTABLE_OR_DEFAULT(trans, writebackdata, writebackdata_affine)
-#define FREETRANS(trans) \
+#define FREETRANS(trans, destroy) \
     if(trans->vtable->freetrans) { \
-	    PDLDEBUG_f(printf("call freetrans\n")); \
-	    trans->vtable->freetrans(trans); /* Free malloced objects */ \
+	PDLDEBUG_f(printf("call freetrans\n")); \
+	trans->vtable->freetrans(trans, destroy); \
+	if (destroy) PDL_TR_CLRMAGIC(trans); \
     }
 
 extern Core PDL;
@@ -196,10 +203,6 @@ void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	it->trans_parent = 0;
 }
 
-/* XXX Two next routines are memleaks */
-/* somehow this transform will call (implicitly) redodims twice on
-   an unvaffined pdl; leads to memleak if redodims allocates stuff
-   that is only freed in later call to freefunc */
 void pdl_destroytransform(pdl_trans *trans,int ensure)
 {
 	PDL_Indx j;
@@ -255,8 +258,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 	  }
 	}
 	PDL_TR_CHKMAGIC(trans);
-	FREETRANS(trans);
-	PDL_TR_CLRMAGIC(trans);
+	FREETRANS(trans, 1);
 	if(trans->vtable->flags & PDL_TRANS_DO_THREAD)
 	  pdl_freethreadloop(&trans->pdlthread);
 	trans->vtable = 0; /* Make sure no-one uses this */
@@ -727,17 +729,12 @@ void pdl_make_physical(pdl *it) {
 	}
         /* the next one is really strange:
          *
-         * why do we need to call redodims if   !(it->state & PDL_ALLOCATED)   ???
-         * this results in a) redodims called twice if make_physdims had already been
-         * called for this ndarray and results in associated memory leaks!
          * On the other hand, if I comment out  !(it->state & PDL_ALLOCATED)
          * then we get errors for cases like 
          *                  $in = $lut->transpose->index($im->dummy(0));
          *                  $in .= pdl -5;
          * Currently ugly fix: detect in initthreadstruct that it has been called before
          * and free all pdl_thread related memory before reallocating
-         * NOTE: this does not catch leaks when additional memory was allocated from with
-         *       redodims!!!!!
          *
          * The real question is: why do we need another call to
          * redodims if !(it->state & PDL_ALLOCATED)??????
