@@ -260,7 +260,7 @@ void pdl_destroytransform(pdl_trans *trans,int ensure)
 	PDL_TR_CHKMAGIC(trans);
 	FREETRANS(trans, 1);
 	if(trans->vtable->flags & PDL_TRANS_DO_THREAD)
-	  pdl_freethreadloop(&trans->pdlthread);
+	  pdl_freethreadstruct(&trans->pdlthread);
 	trans->vtable = 0; /* Make sure no-one uses this */
 	PDLDEBUG_f(printf("call free\n"));
 	if (trans->params) free(trans->params);

@@ -69,8 +69,8 @@ PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *pthr, PDL_Indx **inds
   return thread->offs;
 }
 
-void pdl_freethreadloop(pdl_thread *thread) {
-	PDLDEBUG_f(printf("Freethreadloop(%p, %p %p %p %p %p %p)\n",
+void pdl_freethreadstruct(pdl_thread *thread) {
+	PDLDEBUG_f(printf("freethreadstruct(%p, %p %p %p %p %p %p)\n",
 		(void*)thread,
 		(void*)(thread->inds), (void*)(thread->dims), (void*)(thread->offs),
 		(void*)(thread->incs), (void*)(thread->flags), (void*)(thread->pdls));)
@@ -85,7 +85,7 @@ void pdl_freethreadloop(pdl_thread *thread) {
 }
 
 void pdl_clearthreadstruct(pdl_thread *it) {
-	PDLDEBUG_f(printf("Clearthreadloop(%p)\n", (void*)it);)
+	PDLDEBUG_f(printf("clearthreadstruct(%p)\n", (void*)it);)
 	it->transvtable = 0;it->inds = 0;it->dims = 0;
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;

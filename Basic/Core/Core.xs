@@ -829,7 +829,7 @@ threadover_n(...)
 	sd = pdl_iterthreadloop(&pdl_thr,0);
 	if ( sd < 0 ) die("Error in iterthreadloop");
     } while( sd );
-    pdl_freethreadloop(&pdl_thr);
+    pdl_freethreadstruct(&pdl_thr);
 
 void
 threadover(...)
@@ -924,4 +924,4 @@ threadover(...)
 	thrloopval = pdl_iterthreadloop(&pdl_thr,0);
 	if ( thrloopval < 0 ) die("Error in iterthreadloop");
     } while( thrloopval );
-    pdl_freethreadloop(&pdl_thr);
+    pdl_freethreadstruct(&pdl_thr);

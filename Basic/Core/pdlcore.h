@@ -103,7 +103,7 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(get_threadoffsp, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(get_threaddims, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(iterthreadloop, int, (pdl_thread *thread, PDL_Indx which)) \
-  X(freethreadloop, void, (pdl_thread *thread)) \
+  X(freethreadstruct, void, (pdl_thread *thread)) \
   X(thread_create_parameter, void, (pdl_thread *thread,PDL_Indx j, \
     PDL_Indx *dims, int temp)) \
   X(add_deletedata_magic, void,  (pdl *it,void (*func)(pdl *, Size_t param), \
