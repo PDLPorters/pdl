@@ -58,10 +58,8 @@ void DFF(double* xval, double* vector){
   px = PDL->SvPDLV(pxsv);
   
   PDL->converttype( px, PDL_D );
-  PDL->children_changesoon(px,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
   PDL->setdims (px,pdims,ndims);
   px->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
-  PDL->changed(px,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
 
   px->data = (void *) xval;
 

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use PDL;
+use PDL::LiteF;
 use Test::More;
 use PDL::Minuit;
 use File::Temp qw( tempfile tempdir );

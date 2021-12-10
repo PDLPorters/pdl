@@ -14,10 +14,8 @@ int ene;
   PUTBACK; \
   pvar = PDL->SvPDLV(pvar ## sv); \
   PDL->converttype( pvar, PDL_D ); \
-  PDL->children_changesoon(pvar,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED); \
   PDL->setdims (pvar,pdims,ndims); \
-  pvar->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA; \
-  PDL->changed(pvar,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0);
+  pvar->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
 
 void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* futil){
 
