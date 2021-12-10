@@ -238,16 +238,10 @@ PDL_Indx pdl_safe_indterm( PDL_Indx dsz, PDL_Indx at, char *file, int lineno)
    context is terminated without having to call free(). Naughty but
    nice!
 */
-
-
 void* pdl_smalloc ( STRLEN nbytes ) {
     STRLEN n_a;
-   SV* work;
-
-   work = sv_2mortal(newSVpv("", 0));
-
+   SV* work = sv_2mortal(newSVpv("", 0));
    SvGROW( work, nbytes);
-
    return (void *) SvPV(work, n_a);
 }
 
