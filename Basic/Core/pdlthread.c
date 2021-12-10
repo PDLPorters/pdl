@@ -244,33 +244,14 @@ void pdl_initthreadstruct(int nobl,
 	PDL_Indx nthr = 0; PDL_Indx nthrd;
 
 	PDLDEBUG_f(printf("initthreadstruct(%p)\n", (void*)thread);)
-	  /* the following is a fix for a problem in the current core logic
-           * see comments in pdl_make_physical in pdlapi.c
-           * the if clause detects if this thread has previously been initialized
-           * if yes free the stuff that was allocated in the last run
-           * just returning is not! good enough (I tried it)
-           * CS
-           */
-	if (thread->magicno == PDL_THR_MAGICNO &&
-	    thread->gflags & PDL_THREAD_INITIALIZED) {
-	  PDLDEBUG_f(printf("REINITIALIZING already initialized thread\n");)
-	  PDLDEBUG_f(pdl_dump_thread(thread);)
-	  PDLDEBUG_f(pdl_pdl_warn("trying to reinitialize already initialized "
-	     "thread (mem-leak!); freeing...");)
-	  /* return; */ /* try again, should (!?) work */
-
-	  if (thread->inds) Safefree(thread->inds);
-	  if (thread->dims) Safefree(thread->dims);
-	  if (thread->offs) Safefree(thread->offs);
-	  if (thread->incs) Safefree(thread->incs);
-	  if (thread->flags) Safefree(thread->flags);
-	  if (thread->pdls) Safefree(thread->pdls);
-	}
+	char already_alloced = (thread->magicno == PDL_THR_MAGICNO &&
+	    thread->gflags & PDL_THREAD_INITIALIZED);
+	PDL_Indx already_nthr = already_alloced ? thread->mag_nthr : -1;
+	PDL_Indx already_ndims = already_alloced ? thread->ndims : -1;
 	PDL_THR_SETMAGIC(thread);
 	thread->gflags = 0;
 
 	thread->npdls = npdls;
-	thread->pdls = copy_pdl_array(pdls,npdls);
 	thread->realdims = realdims;
 	thread->transvtable = vtable;
 
@@ -317,24 +298,31 @@ void pdl_initthreadstruct(int nobl,
 	thread->ndims = ndims;
 	thread->nimpl = nimpl;
 
-      Newxz(thread->inds, ndims * PDLMAX(nthr, 1), PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
-      if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c");
+	PDL_Indx nthr1 = PDLMAX(nthr, 1);
+	if (!already_alloced || already_nthr != nthr1 || ndims != already_ndims) {
+	  if (already_alloced) {
+	    Safefree(thread->inds);
+	    Safefree(thread->dims);
+	    Safefree(thread->offs);
+	  }
+	  Newxz(thread->inds, ndims * nthr1, PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
+	  if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c");
+	  Newxz(thread->dims, ndims * nthr1, PDL_Indx);
+	  if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
+	  Newxz(thread->offs, npdls * nthr1, PDL_Indx); /* Create space for pthread-specific offs */
+	  if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c");
+	}
+	for(nth=0; nth<ndims; nth++) thread->dims[nth]=1; // all start size 1
 
-      Newxz(thread->dims, ndims * PDLMAX(nthr, 1), PDL_Indx);
-      if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
-      for(nth=0; nth<ndims; nth++) thread->dims[nth]=1; // all start size 1
-
-      Newxz(thread->offs, npdls * PDLMAX(nthr, 1), PDL_Indx); /* Create space for pthread-specific offs */
-      if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c");
-
-      Newxz(thread->incs, ndims * npdls, PDL_Indx);
-      if(thread->incs == NULL) croak("Failed to allocate memory for thread->incs in pdlthread.c");
-
-      Newxz(thread->flags, npdls, char);
-      if(thread->flags == NULL) croak("Failed to allocate memory for thread->flags in pdlthread.c");
+	if (!already_alloced) {
+	  thread->pdls = copy_pdl_array(pdls,npdls);
+	  Newxz(thread->incs, ndims * npdls, PDL_Indx);
+	  if(thread->incs == NULL) croak("Failed to allocate memory for thread->incs in pdlthread.c");
+	  Newxz(thread->flags, npdls, char);
+	  if(thread->flags == NULL) croak("Failed to allocate memory for thread->flags in pdlthread.c");
+	}
 
 	/* populate the per_pdl_flags */
-
 	for (i=0;i<npdls; i++) {
 	  if (PDL_VAFFOK(pdls[i]) && VAFFINE_FLAG_OK(flags,i))
 	    thread->flags[i] |= PDL_THREAD_VAFFINE_OK;
@@ -346,7 +334,7 @@ void pdl_initthreadstruct(int nobl,
 	for(nth=0; nth<nimpl; nth++) {                // Loop over number of implicit threads
 	  for(j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
 	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
-	    if(thread->pdls[j]->threadids[0]-         // If we're off the end of the current PDLs dimlist,
+	    if(pdls[j]->threadids[0]-         // If we're off the end of the current PDLs dimlist,
 	       realdims[j] <= nth)                    //    then just skip it.
 	      continue;
 	    if(pdls[j]->dims[nth+realdims[j]] != 1) { // If the current dim in the current PDL is not 1,
@@ -380,11 +368,11 @@ void pdl_initthreadstruct(int nobl,
 	for(i=0; i<nthreadids[nthid]; i++) {
 		for(j=0; j<npdls; j++) {
 			if(creating[j]) continue;
-			if(thread->pdls[j]->nthreadids < nthid) continue;
-			if(thread->pdls[j]->threadids[nthid+1]-
-			   thread->pdls[j]->threadids[nthid]
+			if(pdls[j]->nthreadids < nthid) continue;
+			if(pdls[j]->threadids[nthid+1]-
+			   pdls[j]->threadids[nthid]
 					<= i) continue;
-			mydim = i+thread->pdls[j]->threadids[nthid];
+			mydim = i+pdls[j]->threadids[nthid];
 			if(pdls[j]->dims[mydim]
 					!= 1) {
 				if(thread->dims[nth] != 1) {

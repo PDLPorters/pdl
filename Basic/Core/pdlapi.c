@@ -727,21 +727,8 @@ void pdl_make_physical(pdl *it) {
 		else
 			pdl_make_physical(it->trans_parent->pdls[i]);
 	}
-        /* the next one is really strange:
-         *
-         * On the other hand, if I comment out  !(it->state & PDL_ALLOCATED)
-         * then we get errors for cases like 
-         *                  $in = $lut->transpose->index($im->dummy(0));
-         *                  $in .= pdl -5;
-         * Currently ugly fix: detect in initthreadstruct that it has been called before
-         * and free all pdl_thread related memory before reallocating
-         *
-         * The real question is: why do we need another call to
+        /* XXX The real question is: why do we need another call to
          * redodims if !(it->state & PDL_ALLOCATED)??????
-         * changed it so that redodims only called if
-         *            (!(it->state & PDL_ALLOCATED) && vaffinepar)
-         * i.e. at least one of the parent ndarrays is a real vaffine
-         * CS
          */
 	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
 	   it->state & PDL_PARENTDIMSCHANGED ||
