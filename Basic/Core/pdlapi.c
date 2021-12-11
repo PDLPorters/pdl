@@ -790,34 +790,35 @@ void pdl_changed(pdl *it, int what, int recursing)
 		if(pdl__ismagic(it))
 			pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);
 			}
-	if(it->trans_parent && !recursing &&		(it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
-		if((it->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
+	if(it->trans_parent && !recursing && (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
+		pdl_trans *trans = it->trans_parent;
+		if((trans->flags & PDL_ITRANS_ISAFFINE) &&
 		   (PDL_VAFFOK(it))) {
 		  PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
 			pdl_writebackdata_vaffine(it);
 			pdl_changed(it->vafftrans->from,what,0);
 		} else {
-			PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(it->trans_parent)));
-			WRITEDATA(it->trans_parent);
-			for(i=0; i<it->trans_parent->vtable->nparents; i++) {
-				if((it->trans_parent->vtable->per_pdl_flags[i] &
+			PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));
+			WRITEDATA(trans);
+			for(i=0; i<trans->vtable->nparents; i++) {
+				if((trans->vtable->per_pdl_flags[i] &
 				    PDL_TPDL_VAFFINE_OK) &&
-				   (it->trans_parent->pdls[i]->trans_parent) &&
-				   (it->trans_parent->pdls[i]->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
-				   (PDL_VAFFOK(it->trans_parent->pdls[i]))
+				   (trans->pdls[i]->trans_parent) &&
+				   (trans->pdls[i]->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
+				   (PDL_VAFFOK(trans->pdls[i]))
 				   ) {
-					pdl_changed(it->trans_parent->pdls[i]->vafftrans->from,what,0);
+					pdl_changed(trans->pdls[i]->vafftrans->from,what,0);
 				} else {
-					pdl_changed(it->trans_parent->pdls[i],what,0);
+					pdl_changed(trans->pdls[i],what,0);
 				}
 			}
 		}
 	} else {
 		PDL_DECL_CHILDLOOP(it);
 		PDL_START_CHILDLOOP(it)
-			pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
-			for(j=t->vtable->nparents; j<t->vtable->npdls; j++) {
-				pdl_changed(t->pdls[j],what,1);
+			pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+			for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
+				pdl_changed(trans->pdls[j],what,1);
 			}
 		PDL_END_CHILDLOOP(it)
 	}
