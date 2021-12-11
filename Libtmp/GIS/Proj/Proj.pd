@@ -68,7 +68,9 @@ parameters.
 Returns two pdls for x and y values respectively. The units are dependent on Proj4
 behavior. They will be PDL->null if an error has occurred.
 
-BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements 
+=for bad
+
+Ignores bad elements of $lat and $lon, and sets the corresponding elements
 of $x and $y to BAD
 
 =cut
@@ -95,7 +97,9 @@ parameters.
 Returns two pdls for lat and lon values respectively. The units are dependent on Proj4
 behavior. They will be PDL->null if an error has occurred.
 
-BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements 
+=for bad
+
+Ignores bad elements of $lat and $lon, and sets the corresponding elements
 of $x and $y to BAD
 
 =cut
@@ -147,8 +151,6 @@ pp_def( '_fwd_trans',
         OtherPars => 'char* params;',
         HandleBad => 1,
         Doc => undef,
-        #BadDoc => 'Ignores bad elements of $lat and $lon, and sets '
-        #          . 'the corresponding elements of $x and $y to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_fwd_trans()";
@@ -251,8 +253,6 @@ pp_def( '_fwd_trans_inplace',
         OtherPars => 'char* params; int quiet;',
         HandleBad => 1,
         Doc => undef,
-        #BadDoc => 'Ignores bad elements of $lat and $lon, and sets '
-        #          . 'the corresponding elements of $x and $y to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_fwd_trans_inplace()";
@@ -344,8 +344,6 @@ pp_def( '_inv_trans',
         OtherPars => 'char* params;',
         HandleBad => 1,
         Doc => undef,
-        #BadDoc => 'Ignores bad elements of $x and $y, and sets '
-        #          . 'the corresponding elements of $lon and $lat to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
 projUV in, out;
@@ -447,8 +445,6 @@ pp_def( '_inv_trans_inplace',
         OtherPars => 'char* params; int quiet;',
         HandleBad => 1,
         Doc => undef,
-        #BadDoc => 'Ignores bad elements of $x and $y, and sets '
-        #          . 'the corresponding elements of $lon and $lat to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_inv_trans_inplace()";
