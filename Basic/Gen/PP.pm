@@ -2218,25 +2218,8 @@ EOF
       "Rule to print out XS code when variable argument list XS processing is disabled",
       sub {make_xs_code('CODE:',' XSRETURN(0);',@_)}),
 
-   PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
+   PDL::PP::Rule::MakeComp->new("RedoDimsCodeNS",
       ["RedoDims", "PrivObj"], "PRIV"),
-
-   # The RedoDimsCodeNS rule takes in the RedoDims target
-   # directly as well as via RedoDims-PostComp for better error-reporting
-   PDL::PP::Rule->new("RedoDimsCodeNS",
-      ["RedoDims", "RedoDims-PostComp", "_DimsObj"],
-      sub {
-        my ($redodims, $result, $dimobjs) = @_;
-        $result->[1]{"SIZE"} = sub {
-          my ($dimname) = @_;
-          unless (defined $dimobjs->{$dimname}) {
-            eval { require PDL::IO::Dumper };
-            croak "can't get SIZE of undefined dimension (RedoDims=$redodims).\nredodims is $redodims\ndimobjs is ".PDL::IO::Dumper::sdump($dimobjs)."\n"
-          }
-          return $dimobjs->{$dimname}->get_size();
-        };
-        return $result;
-      }),
    PDL::PP::Rule::Substitute->new("RedoDimsCodeSubd", "RedoDimsCodeNS"),
    PDL::PP::Rule->new(make_vfn_args("RedoDims")),
 
