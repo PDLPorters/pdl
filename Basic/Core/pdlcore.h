@@ -115,8 +115,6 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(set, void, ( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, \
     PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value)) \
   X(create_trans, pdl_trans *, (pdl_transvtable *vtable)) \
-  X(dim_checks, void, (pdl_transvtable *vtable, pdl **pdls, \
-    pdl_thread *pdlthread, PDL_Indx *creating, PDL_Indx *ind_sizes)) \
   X(type_coerce, void, (pdl_trans *trans)) \
   X(trans_badflag_from_inputs, char, (pdl_trans *trans)) \
   X(get_convertedpdl, pdl *, (pdl *pdl,int type)) \

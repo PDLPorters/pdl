@@ -11,6 +11,7 @@
 - bad values of NaN now work right with $ISBAD() etc
 - rename PDL.slice_args_parse to slice_args_parse_sv
 - stop redodims leaking memory
+- remove PDL.dim_checks from Core
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal
