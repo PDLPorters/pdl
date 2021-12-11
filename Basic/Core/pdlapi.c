@@ -463,7 +463,7 @@ void pdl_resize_defaultincs(pdl *it) {
 void pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
    PDL_Indx i;
    PDLDEBUG_f(printf("pdl_setdims: "));PDLDEBUG_f(pdl_dump(it);)
-   pdl_children_changesoon(it,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
+   pdl_children_changesoon(it);
    pdl_reallocdims(it,ndims);
    for(i=0; i<ndims; i++) it->dims[i] = dims[i];
    pdl_resize_defaultincs(it);
@@ -618,9 +618,9 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 	  trans->flags |= PDL_ITRANS_NONMUTUAL;
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 		pdl *child = trans->pdls[i];
-		pdl_children_changesoon(child,
-			wd[i]=(child->state & PDL_NOMYDIMS ?
-			 PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED));
+		wd[i]=(child->state & PDL_NOMYDIMS ?
+		 PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
+		pdl_children_changesoon(child);
 		/* mark all pdls that have been given as nulls (PDL_NOMYDIMS)
 		   as getting their dims from this trans */
 		if(child->state & PDL_NOMYDIMS) {
@@ -740,7 +740,7 @@ void pdl_make_physical(pdl *it) {
 	END_RECURSE_GUARD;
 }
 
-void pdl_children_changesoon_c(pdl *it,int what)
+void pdl_children_changesoon_c(pdl *it)
 {
 	pdl_trans *t;
 	int i;
@@ -751,7 +751,7 @@ void pdl_children_changesoon_c(pdl *it,int what)
 			pdl_destroytransform(t,1);
 		} else {
 			for(i=t->vtable->nparents; i<t->vtable->npdls; i++) {
-				pdl_children_changesoon_c(t->pdls[i],what);
+				pdl_children_changesoon_c(t->pdls[i]);
 			}
 		}
 	PDL_END_CHILDLOOP(it)
@@ -761,8 +761,7 @@ void pdl_children_changesoon_c(pdl *it,int what)
    parent.
    If the children of this are not writeback, separate them.
  */
-
-void pdl_children_changesoon(pdl *it, int what)
+void pdl_children_changesoon(pdl *it)
 {
 	unsigned int i;
 	if(it->trans_parent &&
@@ -773,10 +772,10 @@ void pdl_children_changesoon(pdl *it, int what)
 			die("PDL: Internal error: Trying to reverse irreversible trans");
 		}
 		for(i=0; i<it->trans_parent->vtable->nparents; i++)
-			pdl_children_changesoon(it->trans_parent->pdls[i],what);
+			pdl_children_changesoon(it->trans_parent->pdls[i]);
 		return;
 	}
-	pdl_children_changesoon_c(it,what);
+	pdl_children_changesoon_c(it);
 }
 
 /* what should always be PARENTDATA */
