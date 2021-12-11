@@ -831,8 +831,6 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	int flag=what;
 	int par_pvaf=0;
 	PDL_TR_CHKMAGIC(trans);
-	for(j=0; j<trans->vtable->npdls; j++)
-		if(!trans->pdls[j]) return; /* XXX!!! */
 	for(j=0; j<trans->vtable->nparents; j++) {
 		if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
 			par_pvaf++;
