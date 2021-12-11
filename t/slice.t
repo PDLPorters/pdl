@@ -240,13 +240,13 @@ is("$y", "[0 6 12 18 24]", "diagonal");
 
 $x = sequence 10;
 eval '$y = $x->lags(1,1,1)->make_physdims';
-like($@, qr/lags: dim out of range/, "make_physdim: out of range");
+like($@, qr/lags:\s*dim out of range/, "make_physdim: out of range");
 
 eval '$y = $x->lags(0,-1,1)->make_physdims';
-like($@, qr/lags: step must be positive/, "make_physdim: negative step");
+like($@, qr/lags:\s*step must be positive/, "make_physdim: negative step");
 
 eval '$y = $x->lags(0,1,11)->make_physdims';
-like($@, qr/too large/, "make_pyhsdim: too large");
+like($@, qr/too large/, "make_physdim: too large");
 
 ##############################
 # Tests of some edge cases

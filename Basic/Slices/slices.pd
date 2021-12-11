@@ -154,13 +154,13 @@ EOD
 my $index_init_good =
        'register PDL_Indx foo = $ind();
         if( foo<0 || foo>=$SIZE(n) ) {
-           $CROAK("PDL::index: invalid index %d (valid range 0..%d)",
+           $CROAK("invalid index %d (valid range 0..%d)",
                 foo,$SIZE(n)-1);
         }';
 my $index_init_bad =
        'register PDL_Indx foo = $ind();
         if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
-           $CROAK("PDL::index: invalid index %d (valid range 0..%d)",
+           $CROAK("invalid index %d (valid range 0..%d)",
                 foo,$SIZE(n)-1);
         }';
 
@@ -197,7 +197,7 @@ pp_def(
          for(i=0;i<$SIZE(m);i++) {
                   PDL_Indx foo = $ind(m=>i);
                   if( foo<0 || foo >= $SIZE(n) ) {
-                   $CROAK("PDL::index1d: invalid index %d at pos %d (valid range 0..%d)",
+                   $CROAK("invalid index %d at pos %d (valid range 0..%d)",
                      foo, i, $SIZE(n)-1);
                   }
                   $c(m=>i) = $a(n=>foo);
@@ -212,7 +212,7 @@ pp_def(
                      $SETBAD(c(m=>i));
                  } else {
                    if( foo<0 || foo >= $SIZE(n) ) {
-                     $CROAK("PDL::index1d: invalid/bad index %d at pos %d (valid range 0..%d)",
+                     $CROAK("invalid/bad index %d at pos %d (valid range 0..%d)",
                       foo, i, $SIZE(n)-1);
                    }
                    $c(m=>i) = $a(n=>foo);
@@ -224,7 +224,7 @@ pp_def(
          for(i=0;i<$SIZE(m);i++) {
                 PDL_Indx foo = $ind(m=>i);
                 if( foo<0 || foo >= $SIZE(n) ) {
-                 $CROAK("PDL::index1d: invalid index %d at pos %d (valid range 0..%d)",
+                 $CROAK("invalid index %d at pos %d (valid range 0..%d)",
                    foo, i, $SIZE(n)-1);
                 }
                 $a(n=>foo) = $c(m=>i);
@@ -238,7 +238,7 @@ pp_def(
                    /* do nothing */
                  } else {
                    if( foo<0 || foo >= $SIZE(n) ) {
-                     $CROAK("PDL::index1d: invalid/bad index %d at pos %d (valid range 0..%d)",
+                     $CROAK("invalid/bad index %d at pos %d (valid range 0..%d)",
                       foo, i, $SIZE(n)-1);
                    }
                    $a(n=>foo) = $c(m=>i);
@@ -254,23 +254,23 @@ my $index2d_init_good =
        'register PDL_Indx fooa,foob;
         fooa = $inda();
         if( fooa<0 || fooa>=$SIZE(na) ) {
-           $CROAK("PDL::index: invalid x-index %d (valid range 0..%d)",
+           $CROAK("invalid x-index %d (valid range 0..%d)",
                 fooa,$SIZE(na)-1);
         }
         foob = $indb();
         if( foob<0 || foob>=$SIZE(nb) ) {
-           $CROAK("PDL::index: invalid y-index %d (valid range 0..%d)",
+           $CROAK("invalid y-index %d (valid range 0..%d)",
                 foob,$SIZE(nb)-1);
         }';
 my $index2d_init_bad =
        'register PDL_Indx fooa,foob;
         fooa = $inda();
         if( $ISBADVAR(fooa,inda) || fooa<0 || fooa>=$SIZE(na) ) {
-           $CROAK("PDL::index: invalid index 1");
+           $CROAK("invalid index 1");
         }
         foob = $indb();
         if( $ISBADVAR(foob,indb) || foob<0 || foob>=$SIZE(nb) ) {
-           $CROAK("PDL::index: invalid index 2");
+           $CROAK("invalid index 2");
         }';
 
 pp_def(
@@ -701,7 +701,7 @@ PDL->make_physdims(ind_pdl);
 
 /* Generalized empties are ok, but not in the special 0 dim (the index vector) */
 if(ind_pdl->dims[0] == 0)
-    { $CROAK("rangeb: can't handle Empty indices -- call range instead"); }
+    { $CROAK("can't handle Empty indices -- call range instead"); }
 
 /***
  * Ensure that the index is a PDL_Indx.  If there's no loss of information,
@@ -768,11 +768,9 @@ switch(ind_pdl->datatype) {
       default:
         {
           /* No need to check if i < blen -- this will barf out the
-           * first time it gets hit.  I didn't use $ CROAK 'coz that
-           * macro doesn't let you pass in a string variable -- only a
-           * constant.
+           * first time it gets hit.
            */
-          $CROAK("Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
+          $CROAK("Unknown boundary condition '%c' in range",bstr[i]);
         }
         break;
       } // end of switch
@@ -805,7 +803,7 @@ switch(ind_pdl->datatype) {
     /* Normal case with sizes present in a PDL */
 
     if(!(size_pdl = PDL->SvPDLV(size))) /* assignment */
-      $CROAK("Unable to convert size to a PDL in range");
+      $CROAK("Unable to convert size to a PDL");
 
     if(size_pdl->nvals == 0) {
       // no values in the size_pdl - Empty or Null.  Just copy 0s to all the range dims
@@ -838,7 +836,7 @@ switch(ind_pdl->datatype) {
         /* Check for nonnegativity of sizes.  The rdim>0 mask ensures that */
         /* we don't barf on the Empty PDL (as an index). */
         if( $COMP(rdim) > 0 && $COMP(sizes[0]) < 0 ) {
-          $CROAK("  Negative range size is not allowed in range\n");
+          $CROAK("Negative range size is not allowed\n");
         }
       }
       else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) {
@@ -848,11 +846,11 @@ switch(ind_pdl->datatype) {
                                 0
                             );
           if($COMP(sizes[i]) < 0)
-                $CROAK("  Negative range sizes are not allowed in range\n");
+                $CROAK("Negative range sizes are not allowed\n");
         }
       }
       else {
-        $CROAK(" Size must match index's 0th dim in range\n");
+        $CROAK("Size must match index's 0th dim\n");
       }
 
     } /* end of nonempty size-ndarray code */
@@ -1541,7 +1539,7 @@ pp_def(
         OtherPars => 'PDL_Indx whichdims[]',
         MakeComp => pp_line_numbers(__LINE__-1, '
                 if ($COMP(whichdims_count) < 1)
-                  $CROAK("Diagonal: must have at least 1 dimension");
+                  $CROAK("must have at least 1 dimension");
                 qsort($COMP(whichdims), $COMP(whichdims_count), sizeof(PDL_Indx),
                         cmp_pdll);
         '),
@@ -1552,7 +1550,7 @@ pp_def(
                 $PRIV(offs) = 0;
                 if ($COMP(whichdims)[$COMP(whichdims_count)-1] >= $PARENT(ndims) ||
                         $COMP(whichdims)[0] < 0)
-                        $CROAK("Diagonal: dim out of range");
+                        $CROAK("dim out of range");
                 nthd=0; nthc=0;
                 for(nthp=0; nthp<$PARENT(ndims); nthp++)
                         if (nthd < $COMP(whichdims_count) &&
@@ -1564,7 +1562,7 @@ pp_def(
                                 }
                                 if (nthd && $COMP(whichdims)[nthd] ==
                                     $COMP(whichdims)[nthd-1])
-                                       $CROAK("Diagonal: dims must be unique");
+                                       $CROAK("dims must be unique");
                                 nthd++; /* advance pointer into whichdims */
                                 if($CHILD(dims)[cd] !=
                                     $PARENT(dims)[nthp]) {
@@ -1679,11 +1677,11 @@ EOD
                 if ($COMP(nthdim) < 0)  /* the usual conventions */
                    $COMP(nthdim) += $PARENT(ndims);
                 if ($COMP(nthdim) < 0 || $COMP(nthdim) >= $PARENT(ndims))
-                   $CROAK("lags: dim out of range");
+                   $CROAK("dim out of range");
                 if ($COMP(n) < 1)
-                   $CROAK("lags: number of lags must be positive");
+                   $CROAK("number of lags must be positive");
                 if ($COMP(step) < 1)
-                   $CROAK("lags: step must be positive");
+                   $CROAK("step must be positive");
                 $PRIV(offs) = 0;
                 $SETNDIMS($PARENT(ndims)+1);
                 $DOPRIVALLOC();
@@ -1693,8 +1691,7 @@ EOD
                 }
                 $CHILD(dims)[i] = $PARENT(dims)[i] - $COMP(step) * ($COMP(n)-1);
                 if ($CHILD(dims)[i] < 1)
-                  $CROAK("lags: product of step size and "
-                         "number of lags too large");
+                  $CROAK("product of step size and number of lags too large");
                 $CHILD(dims)[i+1] = $COMP(n);
                 $PRIV(incs)[i] = ($PARENT(dimincs)[i]);
                 $PRIV(incs)[i+1] = - $PARENT(dimincs)[i] * $COMP(step);
@@ -1841,7 +1838,7 @@ EOD
                         for(j=i+1; j<$COMP(whichdims_count); j++)
                                 if($COMP(whichdims[i]) == $COMP(whichdims[j]) &&
                                    $COMP(whichdims[i]) != -1) {
-                                $CROAK("Thread: duplicate arg %d %d %d",
+                                $CROAK("duplicate arg %d %d %d",
                                         i,j,$COMP(whichdims[i]));
                         }
                         if($COMP(whichdims)[i] != -1) {
@@ -2367,7 +2364,7 @@ SLICE-MC
                       /** Belt-and-suspenders **/
                       if( ($COMP(idim[i]) < 0)  && ($COMP(odim[i]) < 0)  ) {
                         PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-                        $CROAK("slice: Hmmm, both dummy and squished -- this can never happen.  I quit.");
+                        $CROAK("Hmmm, both dummy and squished -- this can never happen.  I quit.");
                       }
 
                       /** First handle dummy dims since there's no input from the parent **/
@@ -2406,9 +2403,9 @@ SLICE-MC
 			  if( start < 0 || start >= pdsize ) {
 			    PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
 			    if(i >= $PARENT( ndims )) {
-			      $CROAK("slice: slice has too many dims (indexes dim %d; highest is %d)",i,$PARENT( ndims )-1);
+			      $CROAK("slice has too many dims (indexes dim %d; highest is %d)",i,$PARENT( ndims )-1);
 			    } else {
-			  $CROAK("slice: slice starts out of bounds in pos %d (start is %d; source dim %d runs 0 to %d)",i,start,$COMP(idim[i]),pdsize-1);
+			  $CROAK("slice starts out of bounds in pos %d (start is %d; source dim %d runs 0 to %d)",i,start,$COMP(idim[i]),pdsize-1);
 			    }
 			  }
 			  if( $COMP(odim[i]) < 0) {
@@ -2423,7 +2420,7 @@ SLICE-MC
 			    if(end<0) end += pdsize;
 			    if( end < 0 || end >= pdsize ) {
 			      PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
-			      $CROAK("slice: slice ends out of bounds in pos %d (end is %d; source dim %d runs 0 to %d)",i,end,$COMP(idim[i]),pdsize-1);
+			      $CROAK("slice ends out of bounds in pos %d (end is %d; source dim %d runs 0 to %d)",i,end,$COMP(idim[i]),pdsize-1);
 			    }
 			    /* regularize inc */
 			    inc = $COMP(inc[i]);
