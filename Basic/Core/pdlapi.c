@@ -831,13 +831,13 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	int flag=what;
 	int par_pvaf=0;
 	PDL_TR_CHKMAGIC(trans);
+	for(j=0; j<trans->vtable->npdls; j++)
+		if(!trans->pdls[j]) return; /* XXX!!! */
 	for(j=0; j<trans->vtable->nparents; j++) {
 		if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j)) {
 			par_pvaf++;
-			if(!trans->pdls[j]) {return;} /* XXX!!! */
 			pdl_make_physvaffine(trans->pdls[j]);
 		} else {
-			if(!trans->pdls[j]) {return;} /* XXX!!! */
 			pdl_make_physical(trans->pdls[j]);
 		}
 	}
@@ -845,15 +845,12 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 		if(trans->pdls[j]->trans_parent != trans) {
 			if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j)) {
 				par_pvaf++;
-				if(!trans->pdls[j]) {return;} /* XXX!!! */
 				pdl_make_physvaffine(trans->pdls[j]);
-			} else
-                       {       if(!trans->pdls[j]) {return;} /* XXX!!! */
-                       PDLDEBUG_f(printf("not vaffine ok: %d\n",
-                                         trans->vtable->per_pdl_flags[j]));
-		       
+			} else {
+				PDLDEBUG_f(printf("not vaffine ok: %d\n",
+				     trans->vtable->per_pdl_flags[j]));
 				pdl_make_physical(trans->pdls[j]);
-                       }
+			}
 		}
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
