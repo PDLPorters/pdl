@@ -829,12 +829,9 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 {
 	int j;
 /* Make parents physical */
-	int flag=0;
+	int flag=what;
 	int par_pvaf=0;
-	flag |= what;
-
 	PDL_TR_CHKMAGIC(trans);
-
 	for(j=0; j<trans->vtable->nparents; j++) {
 		if(trans->vtable->per_pdl_flags[j] &
 		    PDL_TPDL_VAFFINE_OK) {
@@ -846,7 +843,6 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 			pdl_make_physical(trans->pdls[j]);
 		}
 	}
-
 	for(; j<trans->vtable->npdls; j++) {
 		if(trans->pdls[j]->trans_parent != trans) {
 			if(trans->vtable->per_pdl_flags[j] &
@@ -860,19 +856,16 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
                                          trans->vtable->per_pdl_flags[j]));
 		       
 				pdl_make_physical(trans->pdls[j]);
-
                        }
 		}
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
-	
 	if(flag & PDL_PARENTDIMSCHANGED)
 		REDODIMS(trans);
 	for(j=0; j<trans->vtable->npdls; j++) {
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
 	}
-
 	if(flag & (PDL_PARENTDATACHANGED | PDL_PARENTDIMSCHANGED)) {
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		  /* Attention: this assumes affine = p2child */
@@ -894,14 +887,13 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 /* Recursive! */
 void pdl_vafftrans_remove(pdl * it)
 {
-	pdl_trans *t; int i;
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
-		t = PDL_CHILDLOOP_THISCHILD(it);
-		if(t->flags & PDL_ITRANS_ISAFFINE) {
-			for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
-				pdl_vafftrans_remove(t->pdls[i]);
-		}
+		pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
+		if(!(t->flags & PDL_ITRANS_ISAFFINE)) continue;
+		int i;
+		for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
+			pdl_vafftrans_remove(t->pdls[i]);
 	PDL_END_CHILDLOOP(it)
 	pdl_vafftrans_free(it);
 }
