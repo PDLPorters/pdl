@@ -18,7 +18,7 @@ $VERSION = "1.32";
 
 # when switch to Alien::Proj4 as separate module
 # use Alien::Proj4;
-pp_addpm(<<'EODOC');
+pp_addpm({At=>'Top'},<<'EODOC');
 =head1 NAME
 
 PDL::GIS::Proj - PDL interface to the Proj4 projection library.
@@ -28,42 +28,13 @@ PDL::GIS::Proj - PDL interface to the Proj4 projection library.
 PDL interface to the Proj4 projection library.
 
 For more information on the proj library, see: http://www.remotesensing.org/proj/
+EODOC
 
+pp_addpm({At=>'Bot'},<<'EODOC');
 =head1 AUTHOR
 
 Judd Taylor, Orbital Systems, Ltd.
 judd dot t at orbitalsystems dot com
-
-=head1 DATE
-
-18 March 2003
-
-=head1 CHANGES
-
-=head2 1.32 (29 March 2006) Judd Taylor
-
-    - Getting ready to merge this into the PDL CVS. 
-    
-=head2 1.31 (???) Judd Taylor
-
-    - Can't remember what was in that version
-
-=head2 1.30 (16 September 2003) Judd Taylor
-
-    - The get_proj_info() function actually works now.
-
-=head2 1.20 (24 April 2003) Judd Taylor
-
-    - Added get_proj_info().
-
-=head2 1.10 (23 April 2003) Judd Taylor
-
-    - Changed from using the proj_init() type API in projects.h to the
-    - proj_init_plus() API in proj_api.h. The old one was not that stable...
-
-=head2 1.00 (18 March 2003) Judd Taylor
-
-    - Initial version
 
 =head1 COPYRIGHT NOTICE
 
@@ -74,11 +45,6 @@ GPL Now!
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-=head1 SUBROUTINES
-
-=cut
-
 
 EODOC
 
@@ -186,7 +152,6 @@ pp_def( '_fwd_trans',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_fwd_trans()";
-char errstr[255];
 projUV in, out;
 projPJ proj;
 const double d2r = DEG_TO_RAD;
@@ -220,7 +185,6 @@ EOCODE
         BadCode => <<'EOBAD');
 /* vars needed: */
 char* func = "_fwd_trans()";
-char errstr[255];
 projUV in, out;
 projPJ proj;
 const double d2r = DEG_TO_RAD;
@@ -292,7 +256,6 @@ pp_def( '_fwd_trans_inplace',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_fwd_trans_inplace()";
-char errstr[255];
 projUV in, out;
 projPJ proj;
 const double d2r = DEG_TO_RAD;
@@ -326,7 +289,6 @@ EOCODE
         BadCode => <<'EOBAD');
 /* vars needed: */
 char* func = "_fwd_trans_inplace[BADCODE]()";
-char errstr[255];
 projUV in, out;
 projPJ proj;
 const double d2r = DEG_TO_RAD;
@@ -359,10 +321,9 @@ threadloop
             $SETBAD( lat() );
             if( loud )
             {
-                sprintf(errstr, "%s: Projection conversion failed at (%f, %f): %s\n",
+                fprintf(stderr, "%s: Projection conversion failed at (%f, %f): %s\n",
                         func, $lon(), $lat(), pj_strerrno(pj_errno));
-                fprintf( stderr, "%s", errstr );
-                fprintf( stderr, "%s: NOTE: Subsequent errors may have occurred, but I'm only reporting the first!\n", func );   
+                fprintf(stderr, "%s: NOTE: Subsequent errors may have occurred, but I'm only reporting the first!\n", func);
             }
         }
     }
@@ -387,7 +348,6 @@ pp_def( '_inv_trans',
         #          . 'the corresponding elements of $lon and $lat to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
-char errstr[255];
 projUV in, out;
 projPJ proj;
 const double r2d = RAD_TO_DEG;
@@ -421,7 +381,6 @@ EOCODE
 
         BadCode => <<'EOBAD' );
 /* vars needed: */
-char errstr[255];
 projUV in, out;
 projPJ proj;
 const double r2d = RAD_TO_DEG;
@@ -493,7 +452,6 @@ pp_def( '_inv_trans_inplace',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_inv_trans_inplace()";
-char errstr[255];
 projUV in, out;
 projPJ proj;
 const double r2d = RAD_TO_DEG;
@@ -527,7 +485,6 @@ EOCODE
         BadCode => <<'EOBAD' );
 /* vars needed: */
 char* func = "_inv_trans_inplace[BADCODE]()";
-char errstr[255];
 projUV in, out;
 projPJ proj;
 const double r2d = RAD_TO_DEG;
@@ -561,10 +518,9 @@ threadloop
             if( loud )
             {
                 /* Don't croak, just set the output to bad: */
-                sprintf(errstr, "%s: Projection conversion failed at (%f, %f): %s\n",
+                fprintf(stderr, "%s: Projection conversion failed at (%f, %f): %s\n",
                         func, $x(), $y(), pj_strerrno(pj_errno));
-                fprintf( stderr, "%s", errstr );
-                fprintf( stderr, "%s: NOTE: Subsequent errors may have occurred, but I'm only reporting the first!\n", func );
+                fprintf(stderr, "%s: NOTE: Subsequent errors may have occurred, but I'm only reporting the first!\n", func);
             }
         }
     }
