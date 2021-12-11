@@ -800,15 +800,15 @@ void pdl_changed(pdl *it, int what, int recursing)
 			PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));
 			WRITEDATA(trans);
 			for(i=0; i<trans->vtable->nparents; i++) {
-				if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) &&
-				   (trans->pdls[i]->trans_parent) &&
-				   (trans->pdls[i]->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
-				   (PDL_VAFFOK(trans->pdls[i]))
-				   ) {
-					pdl_changed(trans->pdls[i]->vafftrans->from,what,0);
-				} else {
-					pdl_changed(trans->pdls[i],what,0);
-				}
+				pdl *pdl = trans->pdls[i];
+				pdl_changed(
+				    (VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) &&
+				       pdl->trans_parent &&
+				       (pdl->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
+				       PDL_VAFFOK(pdl))
+				    ? pdl->vafftrans->from
+				    : pdl,
+				    what,0);
 			}
 		}
 	} else {
