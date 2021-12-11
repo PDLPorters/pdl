@@ -1764,9 +1764,18 @@ EOD
         ',
 );
 
-=head2 rotate
-=cut
-
+my $rotate_code = '
+        PDL_Indx i,j;
+        PDL_Indx n_size = $SIZE(n);
+        if (n_size == 0)
+          $CROAK("can not shift zero size ndarray (n_size is zero)");
+        j = ($shift()) % n_size;
+        if (j < 0)
+                j += n_size;
+        for(i=0; i<n_size; i++,j++) {
+            if (j == n_size)
+               j = 0;
+';
 pp_def('rotate',
         GenericTypes => [ppdefs_all],
         Doc => <<'EOD',
@@ -1778,38 +1787,16 @@ EOD
         Pars=>'x(n); indx shift(); [oca]y(n)',
         DefaultFlow => 1,
         TwoWay => 1,
-        Code=>'
-        PDL_Indx i,j;
-        PDL_Indx n_size = $SIZE(n);
-        if (n_size == 0)
-          $CROAK("can not shift zero size ndarray (n_size is zero)");
-        j = ($shift()) % n_size;
-        if (j < 0)
-                j += n_size;
-        for(i=0; i<n_size; i++,j++) {
-            if (j == n_size)
-               j = 0;
+        Code=>$rotate_code.'
             $y(n=>j) = $x(n=>i);
         }',
-        BackCode=>'
-        PDL_Indx i,j;
-        PDL_Indx n_size = $SIZE(n);
-        j = ($shift()) % n_size;
-        if (j < 0)
-                j += n_size;
-        for(i=0; i<n_size; i++,j++) {
-            if (j == n_size)
-               j = 0;
+        BackCode=>$rotate_code.'
             $x(n=>i) = $y(n=>j);
         }
         '
 );
 
 # This is a bit tricky. Hope I haven't missed any cases.
-
-=head2 threadI
-=cut
-
 pp_def(
         'threadI',
         Doc => <<'EOD',
