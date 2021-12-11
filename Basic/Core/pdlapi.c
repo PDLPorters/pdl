@@ -480,25 +480,10 @@ void pdl_setdims_careful(pdl *it)
         pdl_reallocthreadids(it,1); /* XXX For now */
 }
 
-PDL_Anyval pdl_get(pdl *it,PDL_Indx *inds) {
-        PDL_Indx i;
-        PDL_Indx offs=PDL_REPROFFS(it);
-        PDL_Indx *incs=PDL_REPRINCS(it);
-        for(i=0; i<it->ndims; i++)
-                offs += incs[i] * inds[i];
-        return pdl_get_offs(PDL_REPRP(it),offs);
-}
-
 PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
 	PDL_Indx dummy1=offs+1; PDL_Indx dummy2=1;
 	return pdl_at(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1);
 }
-
-void pdl_put_offs(pdl *it, PDL_Indx offs, PDL_Anyval value) {
-	PDL_Indx dummy1=offs+1; PDL_Indx dummy2=1;
-	pdl_set(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1, value);
-}
-
 
 void pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 {

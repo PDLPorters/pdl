@@ -109,9 +109,7 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(add_deletedata_magic, void,  (pdl *it,void (*func)(pdl *, Size_t param), \
     Size_t param)) /* Automagic destructor */ \
   X(setdims_careful, void, (pdl *pdl)) \
-  X(put_offs, void, (pdl *pdl,PDL_Indx offs, PDL_Anyval val)) \
   X(get_offs, PDL_Anyval, (pdl *pdl,PDL_Indx offs)) \
-  X(get, PDL_Anyval, (pdl *pdl,PDL_Indx *inds)) \
   X(set, void, ( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, \
     PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value)) \
   X(create_trans, pdl_trans *, (pdl_transvtable *vtable)) \
