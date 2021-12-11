@@ -463,7 +463,7 @@ void pdl_resize_defaultincs(pdl *it) {
 void pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
    PDL_Indx i;
    PDLDEBUG_f(printf("pdl_setdims: "));PDLDEBUG_f(pdl_dump(it);)
-   pdl_children_changesoon(it);
+   pdl_changesoon(it);
    pdl_reallocdims(it,ndims);
    for(i=0; i<ndims; i++) it->dims[i] = dims[i];
    pdl_resize_defaultincs(it);
@@ -605,7 +605,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		pdl *child = trans->pdls[i];
 		wd[i]=(child->state & PDL_NOMYDIMS ?
 		 PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
-		pdl_children_changesoon(child);
+		pdl_changesoon(child);
 		/* mark all pdls that have been given as nulls (PDL_NOMYDIMS)
 		   as getting their dims from this trans */
 		if(child->state & PDL_NOMYDIMS) {
@@ -746,7 +746,7 @@ void pdl_children_changesoon_c(pdl *it)
    parent.
    If the children of this are not writeback, separate them.
  */
-void pdl_children_changesoon(pdl *it)
+void pdl_changesoon(pdl *it)
 {
 	unsigned int i;
 	if(it->trans_parent &&
@@ -757,7 +757,7 @@ void pdl_children_changesoon(pdl *it)
 			die("PDL: Internal error: Trying to reverse irreversible trans");
 		}
 		for(i=0; i<it->trans_parent->vtable->nparents; i++)
-			pdl_children_changesoon(it->trans_parent->pdls[i]);
+			pdl_changesoon(it->trans_parent->pdls[i]);
 		return;
 	}
 	pdl_children_changesoon_c(it);

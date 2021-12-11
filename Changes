@@ -12,6 +12,7 @@
 - rename PDL.slice_args_parse to slice_args_parse_sv
 - stop redodims leaking memory
 - remove PDL.{dim_checks,get,put_offs} from Core
+- rename PDL.children_changesoon to changesoon
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal
