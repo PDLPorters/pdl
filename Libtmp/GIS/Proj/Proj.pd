@@ -143,10 +143,10 @@ pp_add_exported('', ' fwd_transform inv_transform get_proj_info ');
 # Forward transformation:
 #
 pp_def( '_fwd_trans',
-        Pars => 'lon(n);
-                 lat(n);
-                 [o] x(n);
-                 [o] y(n);',
+        Pars => 'lon();
+                 lat();
+                 [o] x();
+                 [o] y();',
         GenericTypes => ['D'],
         OtherPars => 'char* params;',
         HandleBad => 1,
@@ -166,8 +166,7 @@ if( proj == NULL )
 }
 
 /* Loop over the values converting as we go */
-loop (n)
-%{
+threadloop %{
     in.u = $lon() * d2r;
     in.v = $lat() * d2r;
 
@@ -199,8 +198,7 @@ if( proj == NULL )
 }
 
 /* Loop over the values converting as we go */
-loop (n)
-%{
+threadloop %{
     if ( $ISBAD(lon()) || $ISBAD(lat()) )
     {
         $SETBAD(x());
@@ -268,8 +266,7 @@ if( proj == NULL )
 }
 
 /* Loop over the values converting as we go */
-threadloop
-%{
+threadloop %{
     in.u = $lon() * d2r;
     in.v = $lat() * d2r;
 
@@ -302,8 +299,7 @@ if( proj == NULL )
 }
 
 /* Loop over the values converting as we go */
-threadloop
-%{
+threadloop %{
     if ( !($ISBAD(lon()) || $ISBAD(lat())) )
     {
         in.u = $lon() * d2r;
@@ -336,10 +332,10 @@ EOBAD
 # Inverse Transformation:
 #
 pp_def( '_inv_trans',
-        Pars => 'x(n);
-                 y(n);
-                 [o] lon(n);
-                 [o] lat(n);',
+        Pars => 'x();
+                 y();
+                 [o] lon();
+                 [o] lat();',
         GenericTypes => ['D'],
         OtherPars => 'char* params;',
         HandleBad => 1,
@@ -358,8 +354,7 @@ if( proj == NULL )
 }
 
 /* Loop over the values converting as we go */
-loop (n)
-%{
+threadloop %{
     in.u = $x();
     in.v = $y();
 
@@ -391,8 +386,7 @@ if( proj == NULL )
 }
 
 /* Loop over the values converting as we go */
-loop (n)
-%{
+threadloop %{
     if ( $ISBAD(x()) || $ISBAD(y()) )
     {
         $SETBAD(lon());
@@ -460,8 +454,7 @@ if( proj == NULL )
 }
 
 /* Loop over the values converting as we go */
-threadloop
-%{
+threadloop %{
     in.u = $x();
     in.v = $y();
 
@@ -494,8 +487,7 @@ if( proj == NULL )
 }
 
 /* Loop over the values converting as we go */
-threadloop
-%{
+threadloop %{
     if ( ! ($ISBAD(x()) || $ISBAD(y())) )
     {
         in.u = $x();
@@ -656,8 +648,3 @@ ENDPM
 pp_add_exported('', ' load_projection_information ');
 
 pp_done();
-
-
-
-
-
