@@ -622,7 +622,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 		pdl *child = trans->pdls[i];
 		if( PDL_VAFFOK(child) &&
-		    (trans->vtable->per_pdl_flags[i] & PDL_TPDL_VAFFINE_OK) )  {
+		    VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) )  {
 			if(wd[i] & PDL_PARENTDIMSCHANGED)
 				pdl_changed(child, PDL_PARENTDIMSCHANGED,0);
 			pdl_vaffinechanged(child,PDL_PARENTDATACHANGED);
@@ -698,8 +698,7 @@ void pdl_make_physical(pdl *it) {
 	}
 	PDL_TR_CHKMAGIC(it->trans_parent);
 	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
-		if(it->trans_parent->vtable->per_pdl_flags[i] &
-		    PDL_TPDL_VAFFINE_OK) {
+		if(VAFFINE_FLAG_OK(it->trans_parent->vtable->per_pdl_flags,i)) {
 			pdl_make_physvaffine(it->trans_parent->pdls[i]);
                         /* check if any of the parents is a vaffine */
                         vaffinepar = vaffinepar || (it->trans_parent->pdls[i]->data != PDL_REPRP(it->trans_parent->pdls[i]));
@@ -801,8 +800,7 @@ void pdl_changed(pdl *it, int what, int recursing)
 			PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));
 			WRITEDATA(trans);
 			for(i=0; i<trans->vtable->nparents; i++) {
-				if((trans->vtable->per_pdl_flags[i] &
-				    PDL_TPDL_VAFFINE_OK) &&
+				if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) &&
 				   (trans->pdls[i]->trans_parent) &&
 				   (trans->pdls[i]->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
 				   (PDL_VAFFOK(trans->pdls[i]))
@@ -834,8 +832,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	int par_pvaf=0;
 	PDL_TR_CHKMAGIC(trans);
 	for(j=0; j<trans->vtable->nparents; j++) {
-		if(trans->vtable->per_pdl_flags[j] &
-		    PDL_TPDL_VAFFINE_OK) {
+		if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j)) {
 			par_pvaf++;
 			if(!trans->pdls[j]) {return;} /* XXX!!! */
 			pdl_make_physvaffine(trans->pdls[j]);
@@ -846,8 +843,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	}
 	for(; j<trans->vtable->npdls; j++) {
 		if(trans->pdls[j]->trans_parent != trans) {
-			if(trans->vtable->per_pdl_flags[j] &
-			    PDL_TPDL_VAFFINE_OK) {
+			if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j)) {
 				par_pvaf++;
 				if(!trans->pdls[j]) {return;} /* XXX!!! */
 				pdl_make_physvaffine(trans->pdls[j]);
