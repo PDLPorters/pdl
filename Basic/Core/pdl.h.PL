@@ -430,11 +430,10 @@ typedef struct pdl_vaffine {
 
 #define PDL_REPRP(pdl) (PDL_VAFFOK(pdl) ? pdl->vafftrans->from->data : pdl->data)
 
+#define PDL_TR_VAFFOK(flag) (flag & PDL_TPDL_VAFFINE_OK)
 #define PDL_REPRP_TRANS(pdl,flag) ((PDL_VAFFOK(pdl) && \
-      (flag & PDL_TPDL_VAFFINE_OK)) ? pdl->vafftrans->from->data : pdl->data)
-
-#define VAFFINE_FLAG_OK(flags,i) ((flags == NULL) ? 1 : (flags[i] & \
-                                  PDL_TPDL_VAFFINE_OK))
+      PDL_TR_VAFFOK(flag)) ? pdl->vafftrans->from->data : pdl->data)
+#define VAFFINE_FLAG_OK(flags,i) ((flags == NULL) ? 1 : PDL_TR_VAFFOK(flags[i]))
 
 typedef struct pdl_child_transes {
         pdl_trans *trans[PDL_NCHILDREN];
