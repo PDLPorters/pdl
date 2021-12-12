@@ -60,8 +60,6 @@ the work planned for the future  PDL-2.x releases.
    * PDL::GSL::XXX
      - need more complete libgsl bindings
      - Alien::GSL
-   * PDL::GIS::Proj
-     - duplicate code with Alien::Proj4 needs de-dup-ing
    * PDL::Graphics::TriD
      - Alien::OpenGL, GLU, GLEW, GLUT, GLUI...
      - test with pixel buffer context(?)

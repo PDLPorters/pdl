@@ -127,23 +127,12 @@ ok(1);
 # TEST 14:
 # Get projection descriptions:
 my $projections = load_projection_descriptions();
-#use Data::Dumper;
-#my $dd = Data::Dumper->new( [$projections], ['projections'] );
-#$dd->Indent(1);
-#print STDERR $dd->Dump();
-ok(1);
+#diag explain $projections;
 
 # TEST 15:
 # Get full projection information:
 my $info = load_projection_information();
-#use Data::Dumper;
-#foreach ( sort keys %$info )
-#{
-#    my $dd2 = Data::Dumper->new( [ $info->{$_} ], [ $_ ] );
-#    $dd2->Indent(1);
-#    print STDERR $dd2->Dump() . "\n";
-#}
-ok(1);
+#diag explain $info;
 
 done_testing;
 

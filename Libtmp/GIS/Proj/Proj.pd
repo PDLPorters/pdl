@@ -16,8 +16,6 @@ use strict;
 use vars qw( $VERSION );
 $VERSION = "1.32";
 
-# when switch to Alien::Proj4 as separate module
-# use Alien::Proj4;
 pp_addpm({At=>'Top'},<<'EODOC');
 =head1 NAME
 
@@ -53,9 +51,12 @@ EODOC
 # Header files:
 #
 pp_addhdr(<<'EOHDR');
-#include "projects.h"
-#include "proj_api.h"
+#include "proj.h"
 #include <string.h>
+
+/* from proj_api.h */
+#define RAD_TO_DEG      57.295779513082321
+#define DEG_TO_RAD      .017453292519943296
 
 EOHDR
 
@@ -81,40 +82,35 @@ EOPM
 pp_add_exported('', ' get_proj_info ');
 
 my $code_head = <<'EOF';
-projUV in, out;
-projPJ proj;
-const double d2r = DEG_TO_RAD, r2d = RAD_TO_DEG;
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
+PJ_COORD in, out;
+PJ *proj = proj_create( NULL, $COMP(params) ); /* Init the projection */
 if( proj == NULL )
-{
-    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
-}
+    $CROAK("%s: Projection initialization failed: %s\n", func, proj_errno_string(proj_errno(proj)));
 /* Loop over the values converting as we go */
 threadloop %{
 EOF
 my $code_foot = <<'EOF';
 %}
-pj_free(proj);
+proj_destroy(proj);
 EOF
 
 sub wrap_code {
   my ($name, $ins, $outs, $is_fwd) = @_;
   my $setup = <<EOF;
-    in.u = \$$ins->[0]() @{[$is_fwd ? ' * d2r' : '']};
-    in.v = \$$ins->[1]() @{[$is_fwd ? ' * d2r' : '']};
-    out = pj_@{[$is_fwd ? 'fwd' : 'inv']}(in, proj);
-    if (out.u == HUGE_VAL)
+    in.uv.u = \$$ins->[0]() @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
+    in.uv.v = \$$ins->[1]() @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
+    out = proj_trans(proj, PJ_@{[$is_fwd ? 'FWD' : 'INV']}, in);
+    if (out.uv.u == HUGE_VAL)
     {
 EOF
   my $save = <<EOF;
     }
-    \$$outs->[0]() = out.u@{[$is_fwd ? '' : ' * r2d']};
-    \$$outs->[1]() = out.v@{[$is_fwd ? '' : ' * r2d']};
+    \$$outs->[0]() = out.uv.u@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
+    \$$outs->[1]() = out.uv.v@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
 EOF
   my $body = $setup.<<EOF.$save;
         \$CROAK("%s: Projection conversion failed at (%f, %f): %s\\n",
-                func, @{[ join ',', map '$'.$_.'()', @$ins ]}, pj_strerrno(pj_errno));
+                func, @{[ join ',', map '$'.$_.'()', @$ins ]}, proj_errno_string(proj_errno(proj)));
 EOF
   my $code = join '', qq{char* func = "$name()";},
     $code_head,
@@ -212,21 +208,15 @@ pp_def( 'inv_trans_inplace',
 # Utility functions for getting projection description information (in a general case).
 #
 
-# when switch to Alien::Proj4 as separate module, replace with:
-# pp_addpm(<<'ENDPM' );
-# sub load_projection_descriptions {
-#     return Alien::Proj4->load_projection_descriptions;
-# }
-# ENDPM
 pp_addxs('', <<'ENDXS' );
 
 HV* 
 load_projection_descriptions()
     CODE:
-        struct PJ_LIST *lp;
+        const PJ_OPERATIONS *lp;
         SV* scalar_val;
         RETVAL = newHV();
-        for (lp = pj_get_list_ref() ; lp->id ; ++lp) 
+        for (lp = proj_list_operations() ; lp->id ; ++lp)
         {
             scalar_val  = newSVpv( *lp->descr, 0 );
             hv_store( RETVAL, lp->id, strlen( lp->id ), scalar_val, 0 );
@@ -236,16 +226,6 @@ load_projection_descriptions()
 
 ENDXS
 pp_add_exported('', ' load_projection_descriptions ');
-
-#
-# Perl code to finish loading the projetion information by parsing the descriptions:
-#
-# when switch to Alien::Proj4 as separate module, replace with:
-# pp_addpm(<<'ENDPM' );
-# sub load_projection_information {
-#     return Alien::Proj4->load_projection_information;
-# }
-# ENDPM
 
 pp_addpm( <<'ENDPM' );
 

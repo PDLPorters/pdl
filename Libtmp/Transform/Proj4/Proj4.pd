@@ -365,8 +365,10 @@ ENDPM
 push( @export_funcs, 't_proj' );
 
 # Add in the auto-generated projection classes:
-require Alien::Proj4;
-my $projections = Alien::Proj4->load_projection_information();
+my $projections = eval {
+  require PDL::GIS::Proj;
+  PDL::GIS::Proj::load_projection_information();
+} || {};
 
 foreach my $name ( sort keys %$projections )
 {

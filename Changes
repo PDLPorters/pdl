@@ -14,6 +14,7 @@
 - remove PDL.{dim_checks,get,put_offs} from Core
 - rename PDL.children_changesoon to changesoon
 - GIS::Proj inplace funcs set output bad if any input bad
+- switched GIS::Proj to PROJ 6 API
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal
