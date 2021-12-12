@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use PDL;
+use PDL::LiteF;
 use PDL::Transform::Proj4;
 use Test::More;
 

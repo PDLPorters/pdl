@@ -15,7 +15,7 @@ pp_add_isa( 'PDL::Transform' );
 my @export_funcs = ();
 
 pp_addbegin( <<'ENDBEGIN' );
-use PDL;
+use PDL::LiteF;
 use PDL::NiceSlice;
 use PDL::Transform;
 use PDL::GIS::Proj;

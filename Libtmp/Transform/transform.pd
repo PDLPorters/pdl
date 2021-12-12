@@ -257,7 +257,7 @@ use overload 'x' => \&_compose_op;
 use overload '**' => \&_pow_op;
 use overload '!'  => \&t_inverse;
 
-use PDL;
+use PDL::LiteF;
 use PDL::MatrixOps;
 
 our $PI = 3.1415926535897932384626;

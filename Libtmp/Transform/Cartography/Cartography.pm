@@ -254,7 +254,8 @@ BEGIN {
   %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 }
 
-use PDL;
+use PDL::LiteF;
+use PDL::Math;
 use PDL::Transform;
 use PDL::MatrixOps;
 use PDL::NiceSlice;
@@ -418,9 +419,10 @@ C<earth_coast> is just a quick-and-dirty way of loading the file
 sub earth_coast {
     my $fn = "PDL/Transform/Cartography/earth_coast.vec.fits";
     local $_;
+    require PDL::IO::FITS;
     foreach(@INC) {
 	my $file = "$_/$fn";
-	return rfits($file) if(-e $file);
+	return PDL::IO::FITS::rfits($file) if(-e $file);
     }
     barf("earth_coast: $fn not found in \@INC.\n");
 }
