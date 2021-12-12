@@ -36,8 +36,8 @@ print "Inputs:\n\t\$lon = $lon\n\t\$lat = $lat\n";
 print "Result:\n\t\$x = $x\n\t\$y = $y\n";
 #print_hi_prec( "x", $x );
 #print_hi_prec( "y", $y );
-ok( sub { tapprox( $x, $x_exp ) } );
-ok( sub { tapprox( $y, $y_exp ) } );
+ok( tapprox( $x, $x_exp ) );
+ok( tapprox( $y, $y_exp ) );
 
 # TEST 3 & 4:
 print "\nTesting inverse transformation...\n";
@@ -45,8 +45,8 @@ print "Perl level params: \'$proj\'\n";
 my ($lon2, $lat2) = inv_transform($x, $y, $proj);
 print "Inputs:\n\t\$x = $x\n\t\$y = $y\n";
 print "Results:\n\t\$lon2 = $lon2\n\t\$lat2 = $lat2\n";
-ok( sub { tapprox( $lon2, $lon ) } );
-ok( sub { tapprox( $lat2, $lat ) } );
+ok( tapprox( $lon2, $lon ) );
+ok( tapprox( $lat2, $lat ) );
 
 # Do the corners of a cyl eq map, and see what we get...
 print "\nCorners of a cylindrical equidistant projection:\n";
@@ -62,8 +62,8 @@ my $y3_exp = double [ 10018754.17139462,  -10018754.17139462,  10018754.17139462
 my ($x3, $y3) = fwd_transform($lon3, $lat3, $cyl_eq);
 print "Inputs:\n\t\$lon3 = $lon3\n\t\$lat3 = $lat3\n";
 print "Result:\n\t\$x3 = $x3\n\t\$y3 = $y3\n";
-ok( sub { tapprox( $x3, $x3_exp ) } );
-ok( sub { tapprox( $y3, $y3_exp ) } );
+ok( tapprox( $x3, $x3_exp ) );
+ok( tapprox( $y3, $y3_exp ) );
 
 #print_hi_prec( "x3", $x3 );
 #print_hi_prec( "y3", $y3 );
@@ -92,8 +92,8 @@ print "Result:\n\t\$lon = $lon\n\t\$lat = $lat\n";
 #print "\$lat INFO:\n" . $lat->info($format) . "\n";
 #print_hi_prec("lon", $lon);
 #print_hi_prec("lat", $lat);
-ok( sub { tapprox( $lon, $x_exp ) } );
-ok( sub { tapprox( $lat, $y_exp ) } );
+ok( tapprox( $lon, $x_exp ) );
+ok( tapprox( $lat, $y_exp ) );
 
 # TEST 9 & 10:
 print "\nInverse:\n";
@@ -104,8 +104,8 @@ my $lat_exp = float [  0.0,  33.0,  77.0];
 
 inv_trans_inplace($lon, $lat, $proj);
 print "Result:\n\t\$lon = $lon\n\t\$lat = $lat\n";
-ok( sub { tapprox( $lon, $lon_exp ) } );
-ok( sub { tapprox( $lat, $lat_exp ) } );
+ok( tapprox( $lon, $lon_exp ) );
+ok( tapprox( $lat, $lat_exp ) );
 
 # TEST 11:
 print "\nTesting get_proj_info()...\n";
