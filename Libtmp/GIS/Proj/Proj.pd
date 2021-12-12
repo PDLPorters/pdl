@@ -1,5 +1,5 @@
 #
-# Proj.pd - PP def file for the Proj4->PDL interface.
+# Proj.pd - PP def file for the PROJ->PDL interface.
 #
 # COPYRIGHT NOTICE:
 #
@@ -19,13 +19,11 @@ $VERSION = "1.32";
 pp_addpm({At=>'Top'},<<'EODOC');
 =head1 NAME
 
-PDL::GIS::Proj - PDL interface to the Proj4 projection library.
+PDL::GIS::Proj - PDL interface to the PROJ projection library.
 
 =head1 DESCRIPTION
 
-PDL interface to the Proj4 projection library.
-
-For more information on the proj library, see: http://www.remotesensing.org/proj/
+For more information on the PROJ library, see: L<http://www.proj.org/>
 EODOC
 
 pp_addpm({At=>'Bot'},<<'EODOC');
@@ -95,22 +93,22 @@ proj_destroy(proj);
 EOF
 
 sub wrap_code {
-  my ($name, $ins, $outs, $is_fwd) = @_;
+  my ($name, $in, $out, $is_fwd) = @_;
   my $setup = <<EOF;
-    in.uv.u = \$$ins->[0]() @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
-    in.uv.v = \$$ins->[1]() @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
+    in.uv.u = \$$in(n=>0) @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
+    in.uv.v = \$$in(n=>1) @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
     out = proj_trans(proj, PJ_@{[$is_fwd ? 'FWD' : 'INV']}, in);
     if (out.uv.u == HUGE_VAL)
     {
 EOF
   my $save = <<EOF;
     }
-    \$$outs->[0]() = out.uv.u@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
-    \$$outs->[1]() = out.uv.v@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
+    \$$out(n=>0) = out.uv.u@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
+    \$$out(n=>1) = out.uv.v@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
 EOF
   my $body = $setup.<<EOF.$save;
         \$CROAK("%s: Projection conversion failed at (%f, %f): %s\\n",
-                func, @{[ join ',', map '$'.$_.'()', @$ins ]}, proj_errno_string(proj_errno(proj)));
+                func, \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
 EOF
   my $code = join '', qq{char* func = "$name()";},
     $code_head,
@@ -118,13 +116,13 @@ EOF
     $code_foot,
     ;
   my $badbody = <<EOF;
-if ( @{[ join '||', map '$ISBAD('.$_.'())', @$ins ]} )
+if ( @{[ join '||', map "\$ISBAD($in(n=>$_))", 0,1 ]} )
 {
-@{[ join "\n", map '$SETBAD('.$_.'());', @$outs ]}
+@{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
 }
 else
 {
-$setup@{[ join "\n", map '$SETBAD('.$_.'());', @$outs ]}$save
+$setup@{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}$save
 }
 EOF
   my $badcode = join '', qq{char* func = "$name\[BADCODE]()";},
@@ -136,6 +134,7 @@ EOF
     GenericTypes => ['D'],
     OtherPars => 'char* params;',
     HandleBad => 1,
+    Inplace => 1,
     );
 }
 
@@ -143,47 +142,37 @@ EOF
 # Forward transformation:
 #
 pp_def( 'fwd_transform',
-        Pars => 'lon(); lat(); [o] x(); [o] y();',
+        Pars => 'lonlat(n=2); [o] xy(n);',
         Doc => <<'EOF',
 =for ref
 
-Proj4 forward transformation $params is a string of the projection
+PROJ forward transformation $params is a string of the projection
 transformation parameters.
 
-Returns two pdls for x and y values respectively. The units are dependent
-on Proj4 behavior. They will be PDL->null if an error has occurred.
+Returns a pdl with x, y values at positions 0, 1. The units are dependent
+on PROJ behavior. They will be PDL->null if an error has occurred.
 
 =for bad
 
 Ignores bad elements of $lat and $lon, and sets the corresponding elements
 of $x and $y to BAD
 EOF
-        wrap_code('fwd_transform', [qw(lon lat)], [qw(x y)], 1),
-);
-
-#
-# INPLACE Forward transformation: (Call this one directly)
-#
-
-pp_def( 'fwd_trans_inplace',
-        Pars => '[io] lon(); [io] lat();',
-        Doc => undef,
-        wrap_code('fwd_trans_inplace',[qw(lon lat)], [qw(lon lat)], 1),
+        wrap_code('fwd_transform', 'lonlat', 'xy', 1),
 );
 
 #
 # Inverse Transformation:
 #
 pp_def( 'inv_transform',
-        Pars => 'x(); y(); [o] lon(); [o] lat();',
+        Pars => 'xy(n=2); [o] lonlat(n);',
         Doc => <<'EOF',
 =for ref
 
-Proj4 inverse transformation $params is a string of the projection
+PROJ inverse transformation $params is a string of the projection
 transformation parameters.
 
-Returns two pdls for lat and lon values respectively. The units are
-dependent on Proj4 behavior. They will be PDL->null if an error has
+Returns a pdl with lon, lat values at positions 0, 1. The units are
+dependent on PROJ behavior. They will be PDL->null if an error has
 occurred.
 
 =for bad
@@ -191,17 +180,7 @@ occurred.
 Ignores bad elements of $lat and $lon, and sets the corresponding elements
 of $x and $y to BAD
 EOF
-        wrap_code('inv_transform', [qw(x y)], [qw(lon lat)], 0),
-);
-
-#
-# INPLACE Inverse Transformation: (call it directly)
-#
-
-pp_def( 'inv_trans_inplace',
-        Pars => '[io] x(); [io] y();',
-        Doc => undef,
-        wrap_code('inv_trans_inplace', [qw(x y)], [qw(x y)], 0),
+        wrap_code('inv_transform', 'xy', 'lonlat', 0),
 );
 
 #

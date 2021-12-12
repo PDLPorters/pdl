@@ -275,11 +275,11 @@ sub new
     #my $dd = Data::Dumper->new( [$self->{params}], ["$sub: params"] );
     #$dd->Indent(1);
     #print STDERR $dd->Dump();
-    
+
     ##############################
     # The meat -- just copy and paste from Transform.pm :)
     #    (and do some proj stuff here as well)
-    
+
     # Forward transformation:
     $self->{func} = sub 
     {
@@ -288,10 +288,10 @@ sub new
         my $out = $in->new_or_inplace();
         # Always set the badflag to 1 here, to handle possible bad projection values:
         $out->badflag(1);
-        PDL::GIS::Proj::fwd_trans_inplace( $out->((0)), $out->((1)), $opt->{proj_params} );
-        return $out;
+        $out->inplace(1);
+        PDL::GIS::Proj::fwd_transform( $out, $opt->{proj_params} );
     };
-  
+
     # Inverse transformation:
     $self->{inv} = sub 
     {
@@ -300,10 +300,10 @@ sub new
         my $out = $in->new_or_inplace();
         # Always set the badflag to 1 here, to handle possible bad projection values:
         $out->badflag(1);
-        PDL::GIS::Proj::inv_trans_inplace( $out->((0)), $out->((1)), $opt->{proj_params} );
-        return $out;
+        $out->inplace(1);
+        PDL::GIS::Proj::inv_transform( $out, $opt->{proj_params} );
     };
-  
+
     return $self;
 } # End of new()...
 
