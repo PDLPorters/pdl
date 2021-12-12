@@ -258,12 +258,7 @@ EOCODE
         in.u = $lon() * d2r;
         in.v = $lat() * d2r;
         out = pj_fwd(in, proj);
-        if (out.u != HUGE_VAL)
-        {
-            $lon() = out.u;
-            $lat() = out.v;
-        }
-        else
+        if (out.u == HUGE_VAL)
         {
             $SETBAD( lon() );
             $SETBAD( lat() );
@@ -273,6 +268,11 @@ EOCODE
                         func, $lon(), $lat(), pj_strerrno(pj_errno));
                 fprintf(stderr, "%s: NOTE: Subsequent errors may have occurred, but I'm only reporting the first!\n", func);
             }
+        }
+        else
+        {
+            $lon() = out.u;
+            $lat() = out.v;
         }
     }
 EOBAD
@@ -367,12 +367,7 @@ EOCODE
         in.u = $x();
         in.v = $y();
         out = pj_inv(in, proj);
-        if (out.u != HUGE_VAL)
-        {
-            $x() = out.u * r2d;
-            $y() = out.v * r2d;
-        }
-        else
+        if (out.u == HUGE_VAL)
         {
             $SETBAD( x() );
             $SETBAD( y() );
@@ -383,6 +378,11 @@ EOCODE
                         func, $x(), $y(), pj_strerrno(pj_errno));
                 fprintf(stderr, "%s: NOTE: Subsequent errors may have occurred, but I'm only reporting the first!\n", func);
             }
+        }
+        else
+        {
+            $x() = out.u * r2d;
+            $y() = out.v * r2d;
         }
     }
 EOBAD
