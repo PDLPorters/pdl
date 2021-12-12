@@ -139,6 +139,30 @@ EOPM
 
 pp_add_exported('', ' fwd_transform inv_transform get_proj_info ');
 
+sub wrap_code {
+  my ($name, $vars, $body) = @_;
+  join '', qq{char* func = "$name()";$vars},
+    <<'EOF',
+projUV in, out;
+projPJ proj;
+const double d2r = DEG_TO_RAD, r2d = RAD_TO_DEG;
+/* Init the projection */
+proj = pj_init_plus( $COMP(params) );
+if( proj == NULL )
+{
+    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
+}
+/* Loop over the values converting as we go */
+threadloop %{
+EOF
+    $body,
+    <<'EOF',
+%}
+pj_free(proj);
+EOF
+  ;
+}
+
 #
 # Forward transformation:
 #
@@ -151,25 +175,9 @@ pp_def( '_fwd_trans',
         OtherPars => 'char* params;',
         HandleBad => 1,
         Doc => undef,
-        Code => <<'EOCODE',
-/* vars needed: */
-char* func = "_fwd_trans()";
-projUV in, out;
-projPJ proj;
-const double d2r = DEG_TO_RAD;
-
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
-if( proj == NULL )
-{
-    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
-}
-
-/* Loop over the values converting as we go */
-threadloop %{
+        Code => wrap_code('_fwd_trans', '', <<'EOCODE'),
     in.u = $lon() * d2r;
     in.v = $lat() * d2r;
-
     out = pj_fwd(in, proj);
     if (out.u == HUGE_VAL)
     {
@@ -178,27 +186,9 @@ threadloop %{
     }
     $x() = out.u;
     $y() = out.v;
-%}
-pj_free(proj);
 EOCODE
 
-
-        BadCode => <<'EOBAD');
-/* vars needed: */
-char* func = "_fwd_trans()";
-projUV in, out;
-projPJ proj;
-const double d2r = DEG_TO_RAD;
-
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
-if( proj == NULL )
-{
-    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
-}
-
-/* Loop over the values converting as we go */
-threadloop %{
+        BadCode => wrap_code('_fwd_trans[BADCODE]', '', <<'EOBAD'));
     if ( $ISBAD(lon()) || $ISBAD(lat()) )
     {
         $SETBAD(x());
@@ -208,7 +198,6 @@ threadloop %{
     {
         in.u = $lon() * d2r;
         in.v = $lat() * d2r;
-
         out = pj_fwd(in, proj);
         if (out.u == HUGE_VAL)
         {
@@ -218,7 +207,6 @@ threadloop %{
         $x() = out.u;
         $y() = out.v;
     }
-%}
 EOBAD
 
 #
@@ -251,25 +239,9 @@ pp_def( '_fwd_trans_inplace',
         OtherPars => 'char* params; int quiet;',
         HandleBad => 1,
         Doc => undef,
-        Code => <<'EOCODE',
-/* vars needed: */
-char* func = "_fwd_trans_inplace()";
-projUV in, out;
-projPJ proj;
-const double d2r = DEG_TO_RAD;
-
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
-if( proj == NULL )
-{
-    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
-}
-
-/* Loop over the values converting as we go */
-threadloop %{
+        Code => wrap_code('_fwd_trans_inplace', 'int loud = ! $COMP(quiet);',<<'EOCODE'),
     in.u = $lon() * d2r;
     in.v = $lat() * d2r;
-
     out = pj_fwd(in, proj);
     if (out.u == HUGE_VAL)
     {
@@ -278,33 +250,13 @@ threadloop %{
     }
     $lon() = out.u;
     $lat() = out.v;
-%}
-pj_free(proj);
 EOCODE
 
-
-        BadCode => <<'EOBAD');
-/* vars needed: */
-char* func = "_fwd_trans_inplace[BADCODE]()";
-projUV in, out;
-projPJ proj;
-const double d2r = DEG_TO_RAD;
-int loud = ! $COMP(quiet);
-
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
-if( proj == NULL )
-{
-    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
-}
-
-/* Loop over the values converting as we go */
-threadloop %{
+        BadCode => wrap_code('_fwd_trans_inplace[BADCODE]', 'int loud = ! $COMP(quiet);',<<'EOBAD'));
     if ( !($ISBAD(lon()) || $ISBAD(lat())) )
     {
         in.u = $lon() * d2r;
         in.v = $lat() * d2r;
-
         out = pj_fwd(in, proj);
         if (out.u != HUGE_VAL)
         {
@@ -323,10 +275,7 @@ threadloop %{
             }
         }
     }
-%}
-pj_free(proj);
 EOBAD
-
 
 #
 # Inverse Transformation:
@@ -340,53 +289,19 @@ pp_def( '_inv_trans',
         OtherPars => 'char* params;',
         HandleBad => 1,
         Doc => undef,
-        Code => <<'EOCODE',
-/* vars needed: */
-projUV in, out;
-projPJ proj;
-const double r2d = RAD_TO_DEG;
-
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
-if( proj == NULL )
-{
-    $CROAK("Projection initialization failed: %s\n", pj_strerrno(pj_errno));
-}
-
-/* Loop over the values converting as we go */
-threadloop %{
+        Code => wrap_code('_inv_trans', '', <<'EOCODE'),
     in.u = $x();
     in.v = $y();
-
     out = pj_inv(in, proj);
     if (out.u == HUGE_VAL)
     {
         $CROAK("Projection conversion failed: %s\n", pj_strerrno(pj_errno));
     }
-
     $lon() = out.u * r2d;
     $lat() = out.v * r2d;
-%}
-
-pj_free(proj);
 EOCODE
 
-
-        BadCode => <<'EOBAD' );
-/* vars needed: */
-projUV in, out;
-projPJ proj;
-const double r2d = RAD_TO_DEG;
-
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
-if( proj == NULL )
-{
-    $CROAK("Projection initialization failed: %s\n", pj_strerrno(pj_errno));
-}
-
-/* Loop over the values converting as we go */
-threadloop %{
+        BadCode => wrap_code('_inv_trans[BADCODE]', '', <<'EOBAD'));
     if ( $ISBAD(x()) || $ISBAD(y()) )
     {
         $SETBAD(lon());
@@ -396,18 +311,14 @@ threadloop %{
     {
         in.u = $x();
         in.v = $y();
-
         out = pj_inv(in, proj);
         if (out.u == HUGE_VAL)
         {
             $CROAK("Projection conversion failed: %s\n", pj_strerrno(pj_errno));
         }
-
         $lon() = out.u * r2d;
         $lat() = out.v * r2d;
     }
-%}
-pj_free(proj);
 EOBAD
 
 #
@@ -424,7 +335,6 @@ sub inv_trans_inplace
     my $lat = shift;
     my $params = shift;
     my $quiet = shift || 0;
-    
     _inv_trans_inplace( $lon, $lat, $params, $quiet );
 } # End of fwd_trans_inplace()...
 
@@ -439,60 +349,23 @@ pp_def( '_inv_trans_inplace',
         OtherPars => 'char* params; int quiet;',
         HandleBad => 1,
         Doc => undef,
-        Code => <<'EOCODE',
-/* vars needed: */
-char* func = "_inv_trans_inplace()";
-projUV in, out;
-projPJ proj;
-const double r2d = RAD_TO_DEG;
-
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
-if( proj == NULL )
-{
-    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
-}
-
-/* Loop over the values converting as we go */
-threadloop %{
+        Code => wrap_code('_inv_trans_inplace', 'int loud = ! $COMP(quiet);', <<'EOCODE'),
     in.u = $x();
     in.v = $y();
-
     out = pj_inv(in, proj);
     if (out.u == HUGE_VAL)
     {
         $CROAK("%s: Projection conversion failed: %s\n", func, pj_strerrno(pj_errno));
     }
-
     $x() = out.u * r2d;
     $y() = out.v * r2d;
-%}
-pj_free(proj);
 EOCODE
 
-
-        BadCode => <<'EOBAD' );
-/* vars needed: */
-char* func = "_inv_trans_inplace[BADCODE]()";
-projUV in, out;
-projPJ proj;
-const double r2d = RAD_TO_DEG;
-int loud = ! $COMP(quiet);
-
-/* Init the projection */
-proj = pj_init_plus( $COMP(params) );
-if( proj == NULL )
-{
-    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
-}
-
-/* Loop over the values converting as we go */
-threadloop %{
+        BadCode => wrap_code('_inv_trans_inplace[BADCODE]', 'int loud = ! $COMP(quiet);', <<'EOBAD'));
     if ( ! ($ISBAD(x()) || $ISBAD(y())) )
     {
         in.u = $x();
         in.v = $y();
-
         out = pj_inv(in, proj);
         if (out.u != HUGE_VAL)
         {
@@ -512,8 +385,6 @@ threadloop %{
             }
         }
     }
-%}
-pj_free(proj);
 EOBAD
 
 #
@@ -534,7 +405,6 @@ load_projection_descriptions()
         struct PJ_LIST *lp;
         SV* scalar_val;
         RETVAL = newHV();
-
         for (lp = pj_get_list_ref() ; lp->id ; ++lp) 
         {
             scalar_val  = newSVpv( *lp->descr, 0 );
@@ -545,7 +415,6 @@ load_projection_descriptions()
 
 ENDXS
 pp_add_exported('', ' load_projection_descriptions ');
-
 
 #
 # Perl code to finish loading the projetion information by parsing the descriptions:
@@ -642,7 +511,6 @@ sub load_projection_information
 
     return $info;
 } # End of load_projection_information()...
-
 
 ENDPM
 pp_add_exported('', ' load_projection_information ');
