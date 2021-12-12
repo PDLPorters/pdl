@@ -234,7 +234,7 @@ pp_add_exported('', 'fwd_trans_inplace');
 pp_def( '_fwd_trans_inplace',
         Pars => '[io] lon();
                  [io] lat();',
-        GenericTypes => ['F', 'D'],
+        GenericTypes => ['D'],
         OtherPars => 'char* params;',
         HandleBad => 1,
         Doc => undef,
@@ -342,7 +342,7 @@ pp_add_exported('', 'inv_trans_inplace');
 pp_def( '_inv_trans_inplace',
         Pars => '[io] x();
                  [io] y();',
-        GenericTypes => ['F','D'],
+        GenericTypes => ['D'],
         OtherPars => 'char* params;',
         HandleBad => 1,
         Doc => undef,
