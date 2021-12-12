@@ -162,7 +162,7 @@ const double d2r = DEG_TO_RAD;
 proj = pj_init_plus( $COMP(params) );
 if( proj == NULL )
 {
-    croak("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
+    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
 }
 
 /* Loop over the values converting as we go */
@@ -173,7 +173,7 @@ threadloop %{
     out = pj_fwd(in, proj);
     if (out.u == HUGE_VAL)
     {
-        croak("%s: Projection conversion failed at (%f, %f): %s\n",
+        $CROAK("%s: Projection conversion failed at (%f, %f): %s\n",
                 func, $lon(), $lat(), pj_strerrno(pj_errno));
     }
     $x() = out.u;
@@ -194,7 +194,7 @@ const double d2r = DEG_TO_RAD;
 proj = pj_init_plus( $COMP(params) );
 if( proj == NULL )
 {
-    croak("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
+    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
 }
 
 /* Loop over the values converting as we go */
@@ -212,7 +212,7 @@ threadloop %{
         out = pj_fwd(in, proj);
         if (out.u == HUGE_VAL)
         {
-            croak("%s: Projection conversion failed at (%f, %f): %s\n",
+            $CROAK("%s: Projection conversion failed at (%f, %f): %s\n",
                     func, $lon(), $lat(), pj_strerrno(pj_errno));
         }
         $x() = out.u;
@@ -262,7 +262,7 @@ const double d2r = DEG_TO_RAD;
 proj = pj_init_plus( $COMP(params) );
 if( proj == NULL )
 {
-    croak("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
+    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
 }
 
 /* Loop over the values converting as we go */
@@ -273,7 +273,7 @@ threadloop %{
     out = pj_fwd(in, proj);
     if (out.u == HUGE_VAL)
     {
-        croak("%s: Projection conversion failed at (%f, %f): %s\n",
+        $CROAK("%s: Projection conversion failed at (%f, %f): %s\n",
                 func, $lon(), $lat(), pj_strerrno(pj_errno));
     }
     $lon() = out.u;
@@ -295,7 +295,7 @@ int loud = ! $COMP(quiet);
 proj = pj_init_plus( $COMP(params) );
 if( proj == NULL )
 {
-    croak("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
+    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
 }
 
 /* Loop over the values converting as we go */
@@ -350,7 +350,7 @@ const double r2d = RAD_TO_DEG;
 proj = pj_init_plus( $COMP(params) );
 if( proj == NULL )
 {
-    croak("Projection initialization failed: %s\n", pj_strerrno(pj_errno));
+    $CROAK("Projection initialization failed: %s\n", pj_strerrno(pj_errno));
 }
 
 /* Loop over the values converting as we go */
@@ -361,7 +361,7 @@ threadloop %{
     out = pj_inv(in, proj);
     if (out.u == HUGE_VAL)
     {
-        croak("Projection conversion failed: %s\n", pj_strerrno(pj_errno));
+        $CROAK("Projection conversion failed: %s\n", pj_strerrno(pj_errno));
     }
 
     $lon() = out.u * r2d;
@@ -382,7 +382,7 @@ const double r2d = RAD_TO_DEG;
 proj = pj_init_plus( $COMP(params) );
 if( proj == NULL )
 {
-    croak("Projection initialization failed: %s\n", pj_strerrno(pj_errno));
+    $CROAK("Projection initialization failed: %s\n", pj_strerrno(pj_errno));
 }
 
 /* Loop over the values converting as we go */
@@ -400,7 +400,7 @@ threadloop %{
         out = pj_inv(in, proj);
         if (out.u == HUGE_VAL)
         {
-            croak("Projection conversion failed: %s\n", pj_strerrno(pj_errno));
+            $CROAK("Projection conversion failed: %s\n", pj_strerrno(pj_errno));
         }
 
         $lon() = out.u * r2d;
@@ -450,7 +450,7 @@ const double r2d = RAD_TO_DEG;
 proj = pj_init_plus( $COMP(params) );
 if( proj == NULL )
 {
-    croak("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
+    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
 }
 
 /* Loop over the values converting as we go */
@@ -461,7 +461,7 @@ threadloop %{
     out = pj_inv(in, proj);
     if (out.u == HUGE_VAL)
     {
-        croak("%s: Projection conversion failed: %s\n", func, pj_strerrno(pj_errno));
+        $CROAK("%s: Projection conversion failed: %s\n", func, pj_strerrno(pj_errno));
     }
 
     $x() = out.u * r2d;
@@ -483,7 +483,7 @@ int loud = ! $COMP(quiet);
 proj = pj_init_plus( $COMP(params) );
 if( proj == NULL )
 {
-    croak("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
+    $CROAK("%s: Projection initialization failed: %s\n", func, pj_strerrno(pj_errno));
 }
 
 /* Loop over the values converting as we go */
