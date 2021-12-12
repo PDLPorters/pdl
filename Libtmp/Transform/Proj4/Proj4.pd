@@ -285,13 +285,9 @@ sub new
     {
         my $in = shift;
         my $opt = shift;
-        my $sub = "PDL::Transform::Proj4->{func}()";
-        
         my $out = $in->new_or_inplace();
-        
         # Always set the badflag to 1 here, to handle possible bad projection values:
         $out->badflag(1);
-        
         PDL::GIS::Proj::fwd_trans_inplace( $out->((0)), $out->((1)), $opt->{proj_params}, 1 );
         return $out;
     };
@@ -301,13 +297,9 @@ sub new
     {
         my $in = shift;
         my $opt = shift;
-        my $sub = "PDL::Transform::Proj4->{inv}()";
-        
         my $out = $in->new_or_inplace();
-        
         # Always set the badflag to 1 here, to handle possible bad projection values:
         $out->badflag(1);
-        
         PDL::GIS::Proj::inv_trans_inplace( $out->((0)), $out->((1)), $opt->{proj_params}, 1 );
         return $out;
     };
