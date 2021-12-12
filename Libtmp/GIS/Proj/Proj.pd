@@ -46,6 +46,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+=cut
 EODOC
 
 #
@@ -59,64 +60,6 @@ pp_addhdr(<<'EOHDR');
 EOHDR
 
 pp_addpm(<<'EOPM');
-
-=head2 fwd_transform($lon(pdl), $lat(pdl), $params)
-
-Proj4 forward transformation $params is a string of the projection transformation
-parameters.
-
-Returns two pdls for x and y values respectively. The units are dependent on Proj4
-behavior. They will be PDL->null if an error has occurred.
-
-=for bad
-
-Ignores bad elements of $lat and $lon, and sets the corresponding elements
-of $x and $y to BAD
-
-=cut
-
-
-sub fwd_transform
-{
-    my ($lon, $lat, $params) = @_;
-    my $x = null;
-    my $y = null;
-
-    #print "Projection transformation parameters: \'$params\'\n";
-
-    _fwd_trans( $lon, $lat, $x, $y, $params );
-
-    return ($x, $y);
-} # End of fwd_transform()...
-
-=head2 inv_transform($x(pdl), $y(pdl), $params)
-
-Proj4 inverse transformation $params is a string of the projection transformation
-parameters.
-
-Returns two pdls for lat and lon values respectively. The units are dependent on Proj4
-behavior. They will be PDL->null if an error has occurred.
-
-=for bad
-
-Ignores bad elements of $lat and $lon, and sets the corresponding elements
-of $x and $y to BAD
-
-=cut
-
-
-sub inv_transform
-{
-    my ($x, $y, $params) = @_;
-    my $lon = null;
-    my $lat = null;
-
-    #print "Projection transformation parameters: \'$params\'\n";
-
-    _inv_trans( $x, $y, $lon, $lat, $params );
-    return ($lon, $lat);
-} # End of fwd_transform()...
-
 =head2 get_proj_info($params_string)
 
 Returns a string with information about what parameters proj will
@@ -126,7 +69,6 @@ it might not work with all shells. I've tested it with bash.
 
 =cut
 
-
 sub get_proj_info
 {
     my $params = shift;
@@ -134,10 +76,9 @@ sub get_proj_info
     pop(@a);
     return join("\n", @a);
 } # End of get_proj_info()...
-
 EOPM
 
-pp_add_exported('', ' fwd_transform inv_transform get_proj_info ');
+pp_add_exported('', ' get_proj_info ');
 
 my $code_head = <<'EOF';
 projUV in, out;
@@ -205,81 +146,66 @@ EOF
 #
 # Forward transformation:
 #
-pp_def( '_fwd_trans',
-        Pars => 'lon();
-                 lat();
-                 [o] x();
-                 [o] y();',
-        Doc => undef,
-        wrap_code('_fwd_trans', [qw(lon lat)], [qw(x y)], 1),
+pp_def( 'fwd_transform',
+        Pars => 'lon(); lat(); [o] x(); [o] y();',
+        Doc => <<'EOF',
+=for ref
+
+Proj4 forward transformation $params is a string of the projection
+transformation parameters.
+
+Returns two pdls for x and y values respectively. The units are dependent
+on Proj4 behavior. They will be PDL->null if an error has occurred.
+
+=for bad
+
+Ignores bad elements of $lat and $lon, and sets the corresponding elements
+of $x and $y to BAD
+EOF
+        wrap_code('fwd_transform', [qw(lon lat)], [qw(x y)], 1),
 );
 
 #
 # INPLACE Forward transformation: (Call this one directly)
 #
 
-
-pp_addpm( <<'ENDPM' );
-#
-# Wrapper sub for _fwd_trans_inplace that sets a default for the quiet variable.
-# 
-sub fwd_trans_inplace
-{
-    my $lon = shift;
-    my $lat = shift;
-    my $params = shift;
-    
-    _fwd_trans_inplace( $lon, $lat, $params );
-} # End of fwd_trans_inplace()...
-
-ENDPM
-
-pp_add_exported('', 'fwd_trans_inplace');
-
-pp_def( '_fwd_trans_inplace',
-        Pars => '[io] lon();
-                 [io] lat();',
+pp_def( 'fwd_trans_inplace',
+        Pars => '[io] lon(); [io] lat();',
         Doc => undef,
-        wrap_code('_fwd_trans_inplace',[qw(lon lat)], [qw(lon lat)], 1),
+        wrap_code('fwd_trans_inplace',[qw(lon lat)], [qw(lon lat)], 1),
 );
 
 #
 # Inverse Transformation:
 #
-pp_def( '_inv_trans',
-        Pars => 'x();
-                 y();
-                 [o] lon();
-                 [o] lat();',
-        Doc => undef,
-        wrap_code('_inv_trans', [qw(x y)], [qw(lon lat)], 0),
+pp_def( 'inv_transform',
+        Pars => 'x(); y(); [o] lon(); [o] lat();',
+        Doc => <<'EOF',
+=for ref
+
+Proj4 inverse transformation $params is a string of the projection
+transformation parameters.
+
+Returns two pdls for lat and lon values respectively. The units are
+dependent on Proj4 behavior. They will be PDL->null if an error has
+occurred.
+
+=for bad
+
+Ignores bad elements of $lat and $lon, and sets the corresponding elements
+of $x and $y to BAD
+EOF
+        wrap_code('inv_transform', [qw(x y)], [qw(lon lat)], 0),
 );
 
 #
 # INPLACE Inverse Transformation: (call it directly)
 #
 
-pp_addpm( <<'ENDPM' );
-#
-# Wrapper sub for _fwd_trans_inplace that sets a default for the quiet variable.
-# 
-sub inv_trans_inplace
-{
-    my $lon = shift;
-    my $lat = shift;
-    my $params = shift;
-    _inv_trans_inplace( $lon, $lat, $params );
-} # End of fwd_trans_inplace()...
-
-ENDPM
-
-pp_add_exported('', 'inv_trans_inplace');
-
-pp_def( '_inv_trans_inplace',
-        Pars => '[io] x();
-                 [io] y();',
+pp_def( 'inv_trans_inplace',
+        Pars => '[io] x(); [io] y();',
         Doc => undef,
-        wrap_code('_inv_trans_inplace', [qw(x y)], [qw(x y)], 0),
+        wrap_code('inv_trans_inplace', [qw(x y)], [qw(x y)], 0),
 );
 
 #
