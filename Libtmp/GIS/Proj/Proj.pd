@@ -139,10 +139,7 @@ EOPM
 
 pp_add_exported('', ' fwd_transform inv_transform get_proj_info ');
 
-sub wrap_code {
-  my ($name, $body) = @_;
-  join '', qq{char* func = "$name()";},
-    <<'EOF',
+my $code_head = <<'EOF';
 projUV in, out;
 projPJ proj;
 const double d2r = DEG_TO_RAD, r2d = RAD_TO_DEG;
@@ -155,12 +152,54 @@ if( proj == NULL )
 /* Loop over the values converting as we go */
 threadloop %{
 EOF
-    $body,
-    <<'EOF',
+my $code_foot = <<'EOF';
 %}
 pj_free(proj);
 EOF
-  ;
+
+sub wrap_code {
+  my ($name, $ins, $outs, $is_fwd) = @_;
+  my $setup = <<EOF;
+    in.u = \$$ins->[0]() @{[$is_fwd ? ' * d2r' : '']};
+    in.v = \$$ins->[1]() @{[$is_fwd ? ' * d2r' : '']};
+    out = pj_@{[$is_fwd ? 'fwd' : 'inv']}(in, proj);
+    if (out.u == HUGE_VAL)
+    {
+EOF
+  my $save = <<EOF;
+    }
+    \$$outs->[0]() = out.u@{[$is_fwd ? '' : ' * r2d']};
+    \$$outs->[1]() = out.v@{[$is_fwd ? '' : ' * r2d']};
+EOF
+  my $body = $setup.<<EOF.$save;
+        \$CROAK("%s: Projection conversion failed at (%f, %f): %s\\n",
+                func, @{[ join ',', map '$'.$_.'()', @$ins ]}, pj_strerrno(pj_errno));
+EOF
+  my $code = join '', qq{char* func = "$name()";},
+    $code_head,
+    $body,
+    $code_foot,
+    ;
+  my $badbody = <<EOF;
+if ( @{[ join '||', map '$ISBAD('.$_.'())', @$ins ]} )
+{
+@{[ join "\n", map '$SETBAD('.$_.'());', @$outs ]}
+}
+else
+{
+$setup@{[ join "\n", map '$SETBAD('.$_.'());', @$outs ]}$save
+}
+EOF
+  my $badcode = join '', qq{char* func = "$name\[BADCODE]()";},
+    $code_head,
+    $badbody,
+    $code_foot,
+    ;
+  (Code => $code, BadCode => $badcode,
+    GenericTypes => ['D'],
+    OtherPars => 'char* params;',
+    HandleBad => 1,
+    );
 }
 
 #
@@ -171,43 +210,9 @@ pp_def( '_fwd_trans',
                  lat();
                  [o] x();
                  [o] y();',
-        GenericTypes => ['D'],
-        OtherPars => 'char* params;',
-        HandleBad => 1,
         Doc => undef,
-        Code => wrap_code('_fwd_trans', <<'EOCODE'),
-    in.u = $lon() * d2r;
-    in.v = $lat() * d2r;
-    out = pj_fwd(in, proj);
-    if (out.u == HUGE_VAL)
-    {
-        $CROAK("%s: Projection conversion failed at (%f, %f): %s\n",
-                func, $lon(), $lat(), pj_strerrno(pj_errno));
-    }
-    $x() = out.u;
-    $y() = out.v;
-EOCODE
-
-        BadCode => wrap_code('_fwd_trans[BADCODE]', <<'EOBAD'));
-    if ( $ISBAD(lon()) || $ISBAD(lat()) )
-    {
-        $SETBAD(x());
-        $SETBAD(y());
-    }
-    else
-    {
-        in.u = $lon() * d2r;
-        in.v = $lat() * d2r;
-        out = pj_fwd(in, proj);
-        if (out.u == HUGE_VAL)
-        {
-            $CROAK("%s: Projection conversion failed at (%f, %f): %s\n",
-                    func, $lon(), $lat(), pj_strerrno(pj_errno));
-        }
-        $x() = out.u;
-        $y() = out.v;
-    }
-EOBAD
+        wrap_code('_fwd_trans', [qw(lon lat)], [qw(x y)], 1),
+);
 
 #
 # INPLACE Forward transformation: (Call this one directly)
@@ -234,46 +239,9 @@ pp_add_exported('', 'fwd_trans_inplace');
 pp_def( '_fwd_trans_inplace',
         Pars => '[io] lon();
                  [io] lat();',
-        GenericTypes => ['D'],
-        OtherPars => 'char* params;',
-        HandleBad => 1,
         Doc => undef,
-        Code => wrap_code('_fwd_trans_inplace',<<'EOCODE'),
-    in.u = $lon() * d2r;
-    in.v = $lat() * d2r;
-    out = pj_fwd(in, proj);
-    if (out.u == HUGE_VAL)
-    {
-        $CROAK("%s: Projection conversion failed at (%f, %f): %s\n",
-                func, $lon(), $lat(), pj_strerrno(pj_errno));
-    }
-    $lon() = out.u;
-    $lat() = out.v;
-EOCODE
-
-        BadCode => wrap_code('_fwd_trans_inplace[BADCODE]',<<'EOBAD'));
-    if ( $ISBAD(lon()) || $ISBAD(lat()) )
-    {
-        $SETBAD( lon() );
-        $SETBAD( lat() );
-    }
-    else
-    {
-        in.u = $lon() * d2r;
-        in.v = $lat() * d2r;
-        out = pj_fwd(in, proj);
-        if (out.u == HUGE_VAL)
-        {
-            $SETBAD( lon() );
-            $SETBAD( lat() );
-        }
-        else
-        {
-            $lon() = out.u;
-            $lat() = out.v;
-        }
-    }
-EOBAD
+        wrap_code('_fwd_trans_inplace',[qw(lon lat)], [qw(lon lat)], 1),
+);
 
 #
 # Inverse Transformation:
@@ -283,41 +251,9 @@ pp_def( '_inv_trans',
                  y();
                  [o] lon();
                  [o] lat();',
-        GenericTypes => ['D'],
-        OtherPars => 'char* params;',
-        HandleBad => 1,
         Doc => undef,
-        Code => wrap_code('_inv_trans', <<'EOCODE'),
-    in.u = $x();
-    in.v = $y();
-    out = pj_inv(in, proj);
-    if (out.u == HUGE_VAL)
-    {
-        $CROAK("Projection conversion failed: %s\n", pj_strerrno(pj_errno));
-    }
-    $lon() = out.u * r2d;
-    $lat() = out.v * r2d;
-EOCODE
-
-        BadCode => wrap_code('_inv_trans[BADCODE]', <<'EOBAD'));
-    if ( $ISBAD(x()) || $ISBAD(y()) )
-    {
-        $SETBAD(lon());
-        $SETBAD(lat());
-    }
-    else
-    {
-        in.u = $x();
-        in.v = $y();
-        out = pj_inv(in, proj);
-        if (out.u == HUGE_VAL)
-        {
-            $CROAK("Projection conversion failed: %s\n", pj_strerrno(pj_errno));
-        }
-        $lon() = out.u * r2d;
-        $lat() = out.v * r2d;
-    }
-EOBAD
+        wrap_code('_inv_trans', [qw(x y)], [qw(lon lat)], 0),
+);
 
 #
 # INPLACE Inverse Transformation: (call it directly)
@@ -342,45 +278,9 @@ pp_add_exported('', 'inv_trans_inplace');
 pp_def( '_inv_trans_inplace',
         Pars => '[io] x();
                  [io] y();',
-        GenericTypes => ['D'],
-        OtherPars => 'char* params;',
-        HandleBad => 1,
         Doc => undef,
-        Code => wrap_code('_inv_trans_inplace', <<'EOCODE'),
-    in.u = $x();
-    in.v = $y();
-    out = pj_inv(in, proj);
-    if (out.u == HUGE_VAL)
-    {
-        $CROAK("%s: Projection conversion failed: %s\n", func, pj_strerrno(pj_errno));
-    }
-    $x() = out.u * r2d;
-    $y() = out.v * r2d;
-EOCODE
-
-        BadCode => wrap_code('_inv_trans_inplace[BADCODE]', <<'EOBAD'));
-    if ( $ISBAD(x()) || $ISBAD(y()) )
-    {
-        $SETBAD( x() );
-        $SETBAD( y() );
-    }
-    else
-    {
-        in.u = $x();
-        in.v = $y();
-        out = pj_inv(in, proj);
-        if (out.u == HUGE_VAL)
-        {
-            $SETBAD( x() );
-            $SETBAD( y() );
-        }
-        else
-        {
-            $x() = out.u * r2d;
-            $y() = out.v * r2d;
-        }
-    }
-EOBAD
+        wrap_code('_inv_trans_inplace', [qw(x y)], [qw(x y)], 0),
+);
 
 #
 # Utility functions for getting projection description information (in a general case).
