@@ -272,7 +272,7 @@ at_bad_c(x,pos)
     pdl_make_physvaffine( x );
 
     if (pos == NULL || pos_count < x->ndims)
-       croak("Invalid position");
+       barf("Invalid position with pos=%p, count=%"IND_FLAG" for ndarray with %"IND_FLAG" dims", pos, pos_count, x->ndims);
 
     /*  allow additional trailing indices
      *  which must be all zero, i.e. a
@@ -281,17 +281,17 @@ at_bad_c(x,pos)
      */
     for (ipos=x->ndims; ipos<pos_count; ipos++)
       if (pos[ipos] != 0)
-         croak("Invalid position");
+         barf("Invalid position %"IND_FLAG" at dimension %"IND_FLAG, pos[ipos], ipos);
 
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims);
-    if (result.type < 0) croak("Position out of range");
+    if (result.type < 0) barf("Position %"IND_FLAG" out of range", pos);
    badflag = (x->state & PDL_BADVAL) > 0;
    PDL_Anyval badval = pdl_get_pdl_badvalue(x);
    if (badflag) {
      int isbad = ANYVAL_ISBAD(result, badval);
-     if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", result.type, badval.type);
+     if (isbad == -1) barf("ANYVAL_ISBAD error on types %d, %d", result.type, badval.type);
      if (isbad)
        RETVAL = newSVpvn( "BAD", 3 );
      else
