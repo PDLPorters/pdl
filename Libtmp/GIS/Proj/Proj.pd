@@ -233,8 +233,8 @@ ENDPM
 pp_add_exported('', 'fwd_trans_inplace');
 
 pp_def( '_fwd_trans_inplace',
-        Pars => 'lon();
-                 lat();',
+        Pars => '[io] lon();
+                 [io] lat();',
         GenericTypes => ['F', 'D'],
         OtherPars => 'char* params; int quiet;',
         HandleBad => 1,
@@ -253,7 +253,12 @@ pp_def( '_fwd_trans_inplace',
 EOCODE
 
         BadCode => wrap_code('_fwd_trans_inplace[BADCODE]', 'int loud = ! $COMP(quiet);',<<'EOBAD'));
-    if ( !($ISBAD(lon()) || $ISBAD(lat())) )
+    if ( $ISBAD(lon()) || $ISBAD(lat()) )
+    {
+        $SETBAD( lon() );
+        $SETBAD( lat() );
+    }
+    else
     {
         in.u = $lon() * d2r;
         in.v = $lat() * d2r;
@@ -343,8 +348,8 @@ ENDPM
 pp_add_exported('', 'inv_trans_inplace');
 
 pp_def( '_inv_trans_inplace',
-        Pars => 'x();
-                 y();',
+        Pars => '[io] x();
+                 [io] y();',
         GenericTypes => ['F','D'],
         OtherPars => 'char* params; int quiet;',
         HandleBad => 1,
@@ -362,7 +367,12 @@ pp_def( '_inv_trans_inplace',
 EOCODE
 
         BadCode => wrap_code('_inv_trans_inplace[BADCODE]', 'int loud = ! $COMP(quiet);', <<'EOBAD'));
-    if ( ! ($ISBAD(x()) || $ISBAD(y())) )
+    if ( $ISBAD(x()) || $ISBAD(y()) )
+    {
+        $SETBAD( x() );
+        $SETBAD( y() );
+    }
+    else
     {
         in.u = $x();
         in.v = $y();
