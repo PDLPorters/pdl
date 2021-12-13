@@ -1192,9 +1192,10 @@ void pdl_type_coerce(pdl_trans *trans) {
       pdl->has_badvalue = trans->has_badvalue;
       pdl->datatype = new_dtype;
     } else if (new_dtype != pdl->datatype) {
-      pdls[i] = pdl_get_convertedpdl(pdl, new_dtype);
-      if (!pdls[i]) pdl_pdl_barf("%s got NULL pointer from get_convertedpdl on param %s", vtable->name, vtable->par_names[i]);
-      if(pdls[i]->datatype != new_dtype) pdl_pdl_barf("type not expected value after get_convertedpdl\n");
+      pdl = pdl_get_convertedpdl(pdl, new_dtype);
+      if (!pdl) pdl_pdl_barf("%s got NULL pointer from get_convertedpdl on param %s", vtable->name, vtable->par_names[i]);
+      if(pdl->datatype != new_dtype) pdl_pdl_barf("type not expected value after get_convertedpdl\n");
+      pdls[i] = pdl;
     }
   }
 }
