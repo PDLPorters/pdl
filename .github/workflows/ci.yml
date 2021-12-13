@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        perl-version: ['5.14'] # Alien::proj no work on 5.10
+        perl-version: ['5.10']
         include:
           - perl-version: '5.30'
             os: ubuntu-latest
