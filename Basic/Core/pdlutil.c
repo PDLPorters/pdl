@@ -156,9 +156,9 @@ PDL_GENERICLIST(X)
     found=0; sz=0;
     for (i=0;vtable->gentypes[i]!=-1; i++) {
       if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;psp;}
-      printf("%s%s",found ? ",":"",typechar[i]);
+      printf("%s%s",found ? ",":"",typechar[vtable->gentypes[i]]);
       found = 1;
-      sz += strlen(typechar[i]);
+      sz += strlen(typechar[vtable->gentypes[i]]);
     }
     printf("\n");
     psp; printf("Parameters:\n");
