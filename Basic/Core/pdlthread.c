@@ -93,13 +93,14 @@ void pdl_clearthreadstruct(pdl_thread *it) {
 	PDL_THR_CLRMAGIC(it);
 }
 
-void pdl_find_max_pthread(
+pdl_error pdl_find_max_pthread(
   pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating,
   int target_pthread,
   int *p_maxPthread, /* Maximum achievable pthread */
   int *p_maxPthreadDim, /* Threaded dim number that has the max num pthreads */
   int *p_maxPthreadPDL /* PDL that has the max (or right at the target) num pthreads */
 ) {
+  pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx j, k, t;
   /* Build int arrays of threaded dim numbers and sizes for each pdl */
   PDL_Indx max_remainder = 0;
@@ -109,9 +110,9 @@ void pdl_find_max_pthread(
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
     threadedDims[j]     = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
-    if (!threadedDims[j]) croak("Out of Memory\n");
+    if (!threadedDims[j]) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
     threadedDimSizes[j] = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
-    if (!threadedDimSizes[j]) croak("Out of Memory\n");
+    if (!threadedDimSizes[j]) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
   }
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
@@ -155,6 +156,7 @@ void pdl_find_max_pthread(
     free(threadedDims[j]);
     free(threadedDimSizes[j]);
   }
+  return PDL_err;
 }
 
 /* Function to auto-add pthreading magic (i.e. hints for multiple
@@ -164,7 +166,8 @@ void pdl_find_max_pthread(
    called this function is not multiple processor threading safe,
    so no pthreading magic will be added.
 */
-void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating, int noPthreadFlag ){
+pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx* creating, int noPthreadFlag ){
+	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx j, nthrd;
 	PDL_Indx largest_nvals = 0;  /* The largest PDL size for all the pdls involved */
 	int maxPthreadPDL; /* PDL that has the max (or right at the target) num pthreads */
@@ -175,7 +178,7 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 	pdl_autopthread_dim = -1; /* Initialize the global variable indicating actual dim pthreaded on */
 
 	/* Don't do anything if auto_pthreading is turned off (i.e. equal zero) */
-	if( !target_pthread ) return;
+	if( !target_pthread ) return PDL_err;
 
 	/* Remove any existing threading magic */
 	for(j=0; j<npdls; j++) {
@@ -184,11 +187,11 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 		/* Remove thread magic, if there is some set for this pdl */
 		if( pdls[j]->magic &&
 		  (pdl_magic_thread_nthreads(pdls[j],&nthrd))) {
-			pdl_add_threading_magic(pdls[j], -1, -1);
+			PDL_RETERROR(PDL_err, pdl_add_threading_magic(pdls[j], -1, -1));
 		}
 	}
 
-	if( noPthreadFlag ) return;  /* Don't go further if the current pdl function isn't thread-safe */
+	if( noPthreadFlag ) return PDL_err;  /* Don't go further if the current pdl function isn't thread-safe */
 
 	/* Find the largest nvals */
 	for(j=0; j<npdls; j++) {
@@ -203,26 +206,28 @@ void 	pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_Indx*
 
 	/* Don't do anything if we are lower than the threshold */
 	if( largest_nvals < pdl_autopthread_size )
-		return;
+		return PDL_err;
 
-	pdl_find_max_pthread(
+	PDL_RETERROR(PDL_err, pdl_find_max_pthread(
 	  pdls, npdls, realdims, creating, target_pthread,
 	  &maxPthread, &maxPthreadDim, &maxPthreadPDL
-	);
+	));
 
 	/* Add threading magic */
 	if( maxPthread > 1 ){
-		pdl_add_threading_magic(pdls[maxPthreadPDL], maxPthreadDim, maxPthread);
+		PDL_RETERROR(PDL_err, pdl_add_threading_magic(pdls[maxPthreadPDL], maxPthreadDim, maxPthread));
 		pdl_autopthread_actual = maxPthread; /* Set the global variable indicating actual number of pthreads */
 		pdl_autopthread_dim = maxPthreadDim;
 	}
+	return PDL_err;
 }
 
-void pdl_dim_checks(
+pdl_error pdl_dim_checks(
   pdl_transvtable *vtable, pdl **pdls,
   pdl_thread *pdlthread, PDL_Indx *creating,
   PDL_Indx *ind_sizes
 ) {
+  pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i, j, ind_id;
   PDLDEBUG_f(printf("pdl_dim_checks %p:\n", ind_sizes));
   PDLDEBUG_f(do {printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n");}while(0));
@@ -236,10 +241,10 @@ void pdl_dim_checks(
       PDL_Indx dims[PDLMAX(ninds, 1)]; /* Empty arrays not allowed in C99 */
       for (j=0; j<ninds; j++)
 	dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
-      pdl_thread_create_parameter(
+      PDL_RETERROR(PDL_err, pdl_thread_create_parameter(
 	pdlthread,i,dims,
 	vtable->par_flags[i] & PDL_PARAM_ISTEMP
-      );
+      ));
     } else {
       PDL_Indx *dims = pdl->dims;
       if (ninds > 0 && ndims < ninds) {
@@ -255,14 +260,14 @@ void pdl_dim_checks(
 	if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
 	  ind_sizes[ind_id] = dims[j];
 	else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
-	  pdl_pdl_barf(
+	  return pdl_make_error(PDL_EUSERERROR,
 	    "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
 	    vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
 	    ind_sizes[ind_id], dims[j]
 	  );
       }
       if (vtable->par_flags[i] & PDL_PARAM_ISPHYS)
-	pdl_make_physical(pdl);
+	PDL_RETERROR(PDL_err, pdl_make_physical(pdl));
     }
   }
   for (i=0; i<vtable->npdls; i++) {
@@ -273,7 +278,7 @@ void pdl_dim_checks(
     for (j=0; j<ninds; j++) {
       ind_id = PDL_IND_ID(vtable, i, j);
       if (ind_sizes[ind_id] > 1 && ind_sizes[ind_id] != dims[j])
-	pdl_pdl_barf(
+	return pdl_make_error(PDL_EUSERERROR,
 	  "Error in %s: [phys] parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
 	  vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
 	  ind_sizes[ind_id], dims[j]
@@ -282,6 +287,7 @@ void pdl_dim_checks(
   }
   PDLDEBUG_f(printf("pdl_dim_checks after:\n"));
   PDLDEBUG_f(do {printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n");fflush(stdout);}while(0));
+  return PDL_err;
 }
 
 /* The assumptions this function makes:
@@ -296,12 +302,13 @@ void pdl_dim_checks(
  *  noPthreadFlag is a flag to indicate the pdl thread is not pthreading safe
  *   (i.e. don't attempt to create multiple posix threads to execute)
  */
-void pdl_initthreadstruct(int nobl,
+pdl_error pdl_initthreadstruct(int nobl,
 	pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,PDL_Indx npdls,
 	pdl_transvtable *vtable,pdl_thread *thread,
 	PDL_Indx *ind_sizes, PDL_Indx *inc_sizes,
 	char *flags, int noPthreadFlag
 ) {
+	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i, j;
 	PDL_Indx ndims=0;
 	PDL_Indx nth; /* Index to dimensions */
@@ -330,7 +337,7 @@ void pdl_initthreadstruct(int nobl,
 	}
 	ndims += thread->nimpl = nimpl = mx;
 
-	pdl_autopthreadmagic(pdls, npdls, realdims, creating, noPthreadFlag);
+	PDL_RETERROR(PDL_err, pdl_autopthreadmagic(pdls, npdls, realdims, creating, noPthreadFlag));
 
 	thread->mag_nth = -1;
 	thread->mag_nthpdl = -1;
@@ -346,7 +353,7 @@ void pdl_initthreadstruct(int nobl,
 			thread->mag_nth = nthrd - realdims[j];
 			thread->mag_nthr = nthr;
 			if(thread->mag_nth < 0) {
-				pdl_croak_param(vtable,j,"Cannot magick non-threaded dims \n\t");
+				return pdl_croak_param(vtable,j,"Cannot magick non-threaded dims \n\t");
 			}
 		}
 		for(i=0; i<nids; i++) {
@@ -372,20 +379,20 @@ void pdl_initthreadstruct(int nobl,
 	    Safefree(thread->offs);
 	  }
 	  Newxz(thread->inds, ndims * nthr1, PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
-	  if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c");
+	  if(thread->inds == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->inds in pdlthread.c");
 	  Newxz(thread->dims, ndims * nthr1, PDL_Indx);
-	  if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c");
+	  if(thread->dims == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->dims in pdlthread.c");
 	  Newxz(thread->offs, npdls * nthr1, PDL_Indx); /* Create space for pthread-specific offs */
-	  if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c");
+	  if(thread->offs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->offs in pdlthread.c");
 	}
 	for(nth=0; nth<ndims; nth++) thread->dims[nth]=1; // all start size 1
 
 	if (!already_alloced) {
 	  thread->pdls = copy_pdl_array(pdls,npdls);
 	  Newxz(thread->incs, ndims * npdls, PDL_Indx);
-	  if(thread->incs == NULL) croak("Failed to allocate memory for thread->incs in pdlthread.c");
+	  if(thread->incs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->incs in pdlthread.c");
 	  Newxz(thread->flags, npdls, char);
-	  if(thread->flags == NULL) croak("Failed to allocate memory for thread->flags in pdlthread.c");
+	  if(thread->flags == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->flags in pdlthread.c");
 	}
 
 	/* populate the per_pdl_flags */
@@ -412,7 +419,7 @@ void pdl_initthreadstruct(int nobl,
 		  pdl_thread_mismatch_msg(
 		    buf0, pdls, thread, nth, j, nimpl, realdims, creating
 		  );
-		  pdl_croak_param(vtable,j,"%s\n..",buf0);
+		  return pdl_croak_param(vtable,j,"%s\n..",buf0);
 		}
 
 		/* If we're still here, they're the same -- OK! */
@@ -444,7 +451,7 @@ void pdl_initthreadstruct(int nobl,
 				if(thread->dims[nth] != 1) {
 					if(thread->dims[nth] !=
 						pdls[j]->dims[mydim]) {
-						pdl_croak_param(vtable,j,"Mismatched Implicit thread dimension %d: should be %d, is %d",
+						return pdl_croak_param(vtable,j,"Mismatched Implicit thread dimension %d: should be %d, is %d",
 							i,
 							thread->dims[nth],
 							pdls[j]->dims[i+realdims[j]]);
@@ -482,7 +489,7 @@ void pdl_initthreadstruct(int nobl,
 			thread->dims[thread->mag_nth + i*ndims]--;
 	}
 	if (ind_sizes)
-		pdl_dim_checks(vtable, pdls, thread, creating, ind_sizes);
+		PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, thread, creating, ind_sizes));
 	if (inc_sizes)
 	  for (i=0; i<vtable->npdls; i++) {
 	    pdl *pdl = pdls[i];
@@ -494,19 +501,21 @@ void pdl_initthreadstruct(int nobl,
 	  }
 	thread->gflags |= PDL_THREAD_INITIALIZED;
 	PDLDEBUG_f(pdl_dump_thread(thread);)
+	return PDL_err;
 }
 
-void pdl_thread_create_parameter(pdl_thread *thread, PDL_Indx j,PDL_Indx *dims,
+pdl_error pdl_thread_create_parameter(pdl_thread *thread, PDL_Indx j,PDL_Indx *dims,
 				 int temp)
 {
+	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
 	PDL_Indx td = temp ? 0 : thread->nimpl;
 	if(!temp && thread->nimpl != thread->ndims - thread->nextra) {
-		pdl_croak_param(thread->transvtable,j,
+		return pdl_croak_param(thread->transvtable,j,
 			"Trying to create parameter while explicitly threading.\
 See the manual for why this is impossible");
 	}
-	pdl_reallocdims(thread->pdls[j], thread->realdims[j] + td);
+	PDL_RETERROR(PDL_err, pdl_reallocdims(thread->pdls[j], thread->realdims[j] + td));
 	for(i=0; i<thread->realdims[j]; i++)
 		thread->pdls[j]->dims[i] = dims[i];
 	if (!temp)
@@ -522,10 +531,11 @@ See the manual for why this is impossible");
 		  temp ? 0 :
 		  PDL_REPRINC(thread->pdls[j],i+thread->realdims[j]);
 	}
+	return PDL_err;
 }
 
 int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
-			pdl_trans *t) {
+			pdl_trans *t, pdl_error *error_ret) {
 	PDL_Indx j, npdls = thread->npdls;
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds, *dims;
@@ -538,8 +548,12 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 		else{
 			thread->gflags |= PDL_THREAD_MAGICK_BUSY;
 			/* Do the threadloop magically (i.e. in parallel) */
-			pdl_magic_thread_cast(thread->pdls[thread->mag_nthpdl],
+			pdl_error PDL_err = pdl_magic_thread_cast(thread->pdls[thread->mag_nthpdl],
 				func,t, thread);
+			if (PDL_err.error) {
+			    *error_ret = PDL_err;
+			    return 1;
+			}
 			thread->gflags &= ~PDL_THREAD_MAGICK_BUSY;
 			return 1; /* DON'T DO THREADLOOP AGAIN */
 		}

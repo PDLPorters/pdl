@@ -2,7 +2,7 @@
 - PDL.{pdlnew,null,get_thread{dims,offsp{,_int}}} return NULL on error, not croak
 - PDL.{trans_check_pdls,barf_if_error,error_accumulate}
 - PDL.{magic_get_thread,{start,iter}threadloop} return -1 not die
-- PDL.sever returns void not pdl * (Perl interface stays same)
+- PDL.sever returns pdl_error not pdl * (Perl interface stays same)
 - ANYVAL_ISBAD interface change
 - fix ->at with pdl having non-default badvalue
 - macro args can contain () eg $CROAK("%d", $SIZE(n))

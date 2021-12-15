@@ -99,7 +99,7 @@ typedef struct pdl_trmagic_family {
 /* __ = Don't call from outside pdl if you don't know what you're doing */
 
 void pdl__magic_add(pdl *,pdl_magic *);
-void pdl__magic_rm(pdl *,pdl_magic *);
+pdl_error pdl__magic_rm(pdl *,pdl_magic *);
 void pdl__magic_free(pdl *);
 
 int pdl__magic_isundestroyable(pdl *);
@@ -123,15 +123,15 @@ pdl_trans *pdl_find_mutatedtrans(pdl *it);
 /* Deferred barfing and warning when pthreading  */
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args);
 
-void pdl_add_threading_magic(pdl *,PDL_Indx nthdim, PDL_Indx nthreads);
+pdl_error pdl_add_threading_magic(pdl *,PDL_Indx nthdim, PDL_Indx nthreads);
 
 int pdl_magic_thread_nthreads(pdl *,PDL_Indx *nthdim);
 int pdl_magic_get_thread(pdl *);
 
-void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);
+pdl_error pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);
 int pdl_pthreads_enabled(void);
 
 /* Delete data magic */
-void pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, Size_t param), Size_t param);
+pdl_error pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, Size_t param), Size_t param);
 
 #endif /* _pdlmagic_H_  */

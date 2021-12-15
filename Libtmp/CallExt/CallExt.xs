@@ -38,8 +38,8 @@ _callext_int(...)
         New( 42, x, npdl, pdlsimple* ); /* Ptr array */
         for(i=0; i<npdl; i++) {
            t = PDL->SvPDLV(ST(i+1));
-	   PDL->make_physical(t); 
-	   PDL->make_physdims(t); 
+	   PDL->barf_if_error(PDL->make_physical(t));
+	   PDL->barf_if_error(PDL->make_physdims(t));
 	   New(42, x[i], 1, pdlsimple); /* Each ptr */
 	   x[i]->datatype = t->datatype;
 	   x[i]->data     = t->data;

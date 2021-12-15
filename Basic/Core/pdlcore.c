@@ -380,7 +380,7 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
         int j;
         short pndims;
         PDL_Indx *dest_dims;
-        pdl_make_physdims(dest_pdl);
+        pdl_barf_if_error(pdl_make_physdims(dest_pdl));
         pndims = dest_pdl->ndims;
         dest_dims = dest_pdl->dims;
         for(j=0;j<pndims;j++) {
@@ -526,8 +526,10 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
     dtype = _detect_datatype(av);
   }
   dest_pdl->datatype = dtype;
-  pdl_allocdata (dest_pdl);
-  pdl_make_physical(dest_pdl);
+  pdl_error err = pdl_allocdata (dest_pdl);
+  if (err.error) return NULL;
+  err = pdl_make_physical(dest_pdl);
+  if (err.error) return NULL;
 
   /******
    * Copy the undefval to fill empty spots in the ndarray...
@@ -535,7 +537,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
   ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
 #define X(dtype, ctype, ppsym, shortctype, defbval) \
     pdl_setav_ ## ppsym(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.ppsym, dest_pdl);
-  PDL_GENERICSWITCH(dtype, X, croak("Not a known data type code=%d", dtype))
+  PDL_GENERICSWITCH(dtype, X, return NULL)
 #undef X
   return dest_pdl;
 }
@@ -561,7 +563,8 @@ PDL_Anyval pdl_at0( pdl* it ) {
     PDL_Indx nullp = 0;
     PDL_Indx dummyd = 1;
     PDL_Indx dummyi = 1;
-    pdl_make_physvaffine( it );
+    pdl_error err = pdl_make_physvaffine( it );
+    if (err.error) { return result; }
     if (it->nvals < 1) { return result; }
     return pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
             &dummyi, PDL_REPROFFS(it),1);
@@ -578,10 +581,12 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 }
 
 /* Set value at position (x,y,z...) */
-void pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value){
+pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Indx* incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value){
+   pdl_error PDL_err = {0, NULL, 0};
    PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offs, ndims);
-   if (ioff < 0) croak("Position out of range");
+   if (ioff < 0) return pdl_make_error_simple(PDL_EUSERERROR, "Position out of range");
    ANYVAL_TO_CTYPE_OFFSET(x, ioff, datatype, value);
+   return PDL_err;
 }
 
 /*
@@ -785,7 +790,7 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
       /* The element was a PDL - use pdl_kludge_copy to copy it into the destination */ \
       PDL_Indx pd; \
       int pddex; \
-      pdl_make_physical(pdl); \
+      pdl_barf_if_error(pdl_make_physical(pdl)); \
       pddex = ndims - 2 - level; \
       pd = (pddex >= 0 && pddex < ndims ? dest_dims[ pddex ] : 0); \
       if(!pd) \
@@ -936,8 +941,9 @@ void pdl_dump_slice_args(pdl_slice_args* args) {
 /***  :            - keep this dim in its entirety            ***/
 /***  X            - keep this dim in its entirety            ***/
 /****************************************************************/
-pdl_slice_args pdl_slice_args_parse_string(char* s) {
+pdl_error pdl_slice_args_parse_string(char* s, pdl_slice_args *retvalp) {
   PDLDEBUG_f(printf("slice_args_parse_string input: '%s'\n", s));
+  pdl_error PDL_error = {0, NULL, 0};
   int subargno = 0;
   char flagged = 0;
   char squish_closed = 0, squish_flag = 0, dummy_flag = 0;
@@ -952,7 +958,7 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
     switch(*(s++)) {
       case '*':
         if(flagged || subargno)
-          barf("slice: Erroneous '*' (arg %d)",i);
+          return pdl_make_error(PDL_EUSERERROR, "slice: Erroneous '*' (arg %d)",i);
         dummy_flag = flagged = 1;
         this_arg.start = 1;  /* default this number to 1 (size 1); '*0' yields an empty */
         this_arg.end = 1;  /* no second arg allowed - default to 1 so start is element count */
@@ -960,12 +966,12 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
         break;
       case '(':
         if(flagged || subargno)
-          barf("slice: Erroneous '(' (arg %d)",i);
+          return pdl_make_error(PDL_EUSERERROR, "slice: Erroneous '(' (arg %d)",i);
         squish_flag = flagged = 1;
         break;
       case 'X': case 'x':
         if(flagged || subargno > 1)
-          barf("slice: Erroneous 'X' (arg %d)",i);
+          return pdl_make_error(PDL_EUSERERROR, "slice: Erroneous 'X' (arg %d)",i);
         if(subargno==0) {
           flagged = 1;
         } else /* subargno is 1 - squish */ {
@@ -986,33 +992,33 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
             break;
           case 2: /* third arg - parse and keep inc */
             if ( squish_flag || dummy_flag )
-              barf("slice: erroneous third field in slice specifier (arg %d)",i);
+              return pdl_make_error(PDL_EUSERERROR, "slice: erroneous third field in slice specifier (arg %d)",i);
             this_arg.inc = strtoll(--s, &s, 10);
             break;
           default: /* oops */
-            barf("slice: too many subargs in scalar slice specifier %d",i);
+            return pdl_make_error(PDL_EUSERERROR, "slice: too many subargs in scalar slice specifier %d",i);
             break;
         }
         break;
       case ')':
         if( squish_closed || !squish_flag || subargno > 0)
-          barf("slice: erroneous ')' (arg %d)",i);
+          return pdl_make_error(PDL_EUSERERROR, "slice: erroneous ')' (arg %d)",i);
         squish_closed = 1;
         break;
       case ':':
         if(squish_flag && !squish_closed)
-          barf("slice: must close squishing parens (arg %d)",i);
+          return pdl_make_error(PDL_EUSERERROR, "slice: must close squishing parens (arg %d)",i);
         if( subargno == 0 )
           this_arg.end = -1;   /* Set "<n>:" default to get the rest of the range */
         if( subargno > 1 )
-          barf("slice: too many ':'s in scalar slice specifier %d",i);
+          return pdl_make_error(PDL_EUSERERROR, "slice: too many ':'s in scalar slice specifier %d",i);
         subargno++;
         break;
       case ',':
-        barf("slice: ','  not allowed (yet) in scalar slice specifiers!");
+        return pdl_make_error_simple(PDL_EUSERERROR, "slice: ','  not allowed (yet) in scalar slice specifiers!");
         break;
       default:
-        barf("slice: unexpected '%c' in slice specifier (arg %d)",*s,i);
+        return pdl_make_error(PDL_EUSERERROR, "slice: unexpected '%c' in slice specifier (arg %d)",*s,i);
         break;
     }
     i++;
@@ -1020,7 +1026,8 @@ pdl_slice_args pdl_slice_args_parse_string(char* s) {
   this_arg.squish = squish_flag;
   this_arg.dummy = dummy_flag;
   PDLDEBUG_f(pdl_dump_slice_args(&this_arg));
-  return this_arg;
+  *retvalp = this_arg;
+  return PDL_error;
 }
 
 pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
@@ -1148,7 +1155,7 @@ pdl_slice_args* pdl_slice_args_parse_sv(SV* sv) {
           /* this argument has a cached string */
           STRLEN len;
           char *s = SvPVbyte(this, len);
-          this_arg = pdl_slice_args_parse_string(s);
+          pdl_barf_if_error(pdl_slice_args_parse_string(s, &this_arg));
         } else /* end of string parsing */ {
           /* Simplest case -- there's no cached string, so it   */
           /* must be a number.  In that case it's a simple      */

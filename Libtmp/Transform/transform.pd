@@ -662,9 +662,9 @@ pp_def('map',
  static PDL_Double gaussian_lookup[GAUSSIAN_LOOKUP_SIZE + 2];
  static int needs_gaussian_calc = 1;
 
- PDL->make_physical(in);
- PDL->make_physical(out);
- PDL->make_physical(map);
+ PDL_RETERROR(PDL_err, PDL->make_physical(in));
+ PDL_RETERROR(PDL_err, PDL->make_physical(out));
+ PDL_RETERROR(PDL_err, PDL->make_physical(map));
 
 /***
  * Fill in the boundary condition array

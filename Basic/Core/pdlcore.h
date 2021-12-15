@@ -1,7 +1,7 @@
 #ifndef __PDLCORE_H
 #define __PDLCORE_H
 
-/* version 19: various deletions and adjustments */
+/* version 19: various deletions, return pdl_error */
 
 #define PDL_CORE_VERSION 19
 
@@ -48,7 +48,7 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Valu
              PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
 void pdl_vafftrans_free(pdl *it);
 void pdl_vafftrans_remove(pdl * it);
-void pdl_vafftrans_alloc(pdl *it);
+pdl_error pdl_vafftrans_alloc(pdl *it);
 void pdl_writebackdata_vaffine(pdl *it);
 void pdl_readdata_vaffine(pdl *it);
 
@@ -58,7 +58,7 @@ typedef enum {
   PDL_FLAGS_PDL,
   PDL_FLAGS_VTABLE
 } pdl_flags;
-void pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
+pdl_error pdl_croak_param(pdl_transvtable *transvtable, int paramIndex, char *pat, ...);
 void pdl_print_iarr(PDL_Indx *iarr, int n);
 void pdl_dump_thread(pdl_thread *thread);
 void pdl_dump_threading_info(
@@ -79,72 +79,72 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(SvPDLV, pdl*, ( SV* )) \
   X(SetSV_PDL, void, ( SV *sv, pdl *it )) \
   X(pdlnew, pdl*, ()) \
-  X(destroy, void, (pdl *it)) \
+  X(destroy, pdl_error, (pdl *it)) \
   X(null, pdl*, ()) \
   X(hard_copy, pdl*, ( pdl* )) \
-  X(converttype, void, ( pdl*, int )) \
+  X(converttype, pdl_error, ( pdl*, int )) \
   X(smalloc, void*, ( STRLEN )) \
   X(howbig, size_t, ( int )) \
   X(packdims, PDL_Indx*, ( SV* sv, PDL_Indx *ndims )) \
-  X(setdims, void, ( pdl* it, PDL_Indx* dims, PDL_Indx ndims )) \
-  X(grow, void, ( pdl* a, PDL_Indx newsize)) \
+  X(setdims, pdl_error, ( pdl* it, PDL_Indx* dims, PDL_Indx ndims )) \
+  X(grow, pdl_error, ( pdl* a, PDL_Indx newsize)) \
   X(at0, PDL_Anyval, ( pdl* x )) \
-  X(reallocdims, void, ( pdl *it,PDL_Indx ndims )) \
-  X(reallocthreadids, void, ( pdl *it,PDL_Indx ndims )) \
+  X(reallocdims, pdl_error, ( pdl *it,PDL_Indx ndims )) \
+  X(reallocthreadids, pdl_error, ( pdl *it,PDL_Indx ndims )) \
   X(resize_defaultincs, void, ( pdl *it )) /* Make incs out of dims */ \
   X(clearthreadstruct, void, (pdl_thread *it)) \
-  X(initthreadstruct, void, (int nobl,pdl **pdls,PDL_Indx *realdims, \
+  X(initthreadstruct, pdl_error, (int nobl,pdl **pdls,PDL_Indx *realdims, \
     PDL_Indx *creating,PDL_Indx npdls,pdl_transvtable *transvtable, \
     pdl_thread *thread,PDL_Indx *ind_sizes,PDL_Indx *inc_sizes, \
     char *flags, int noPthreadFlag)) \
   X(redodims_default, void, (pdl_trans *)) \
   X(startthreadloop, int, (pdl_thread *thread,void (*func)(pdl_trans *), \
-    pdl_trans *)) \
+    pdl_trans *, pdl_error *)) \
   X(get_threadoffsp, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(get_threaddims, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(iterthreadloop, int, (pdl_thread *thread, PDL_Indx which)) \
   X(freethreadstruct, void, (pdl_thread *thread)) \
-  X(thread_create_parameter, void, (pdl_thread *thread,PDL_Indx j, \
+  X(thread_create_parameter, pdl_error, (pdl_thread *thread,PDL_Indx j, \
     PDL_Indx *dims, int temp)) \
-  X(add_deletedata_magic, void,  (pdl *it,void (*func)(pdl *, Size_t param), \
+  X(add_deletedata_magic, pdl_error,  (pdl *it,void (*func)(pdl *, Size_t param), \
     Size_t param)) /* Automagic destructor */ \
-  X(setdims_careful, void, (pdl *pdl)) \
+  X(setdims_careful, pdl_error, (pdl *pdl)) \
   X(get_offs, PDL_Anyval, (pdl *pdl,PDL_Indx offs)) \
-  X(set, void, ( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, \
+  X(set, pdl_error, ( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, \
     PDL_Indx *incs, PDL_Indx offs, PDL_Indx ndims, PDL_Anyval value)) \
   X(create_trans, pdl_trans *, (pdl_transvtable *vtable)) \
-  X(type_coerce, void, (pdl_trans *trans)) \
+  X(type_coerce, pdl_error, (pdl_trans *trans)) \
   X(trans_badflag_from_inputs, char, (pdl_trans *trans)) \
   X(get_convertedpdl, pdl *, (pdl *pdl,int type)) \
-  X(make_trans_mutual, void, (pdl_trans *trans)) \
-  X(make_physical, void, (pdl *it)) \
-  X(make_physdims, void, (pdl *it)) \
+  X(make_trans_mutual, pdl_error, (pdl_trans *trans)) \
+  X(make_physical, pdl_error, (pdl *it)) \
+  X(make_physdims, pdl_error, (pdl *it)) \
   X(pdl_barf, void, (const char* pat,...)) \
   X(pdl_warn, void, (const char* pat,...)) \
-  X(make_physvaffine, void, (pdl *it)) \
-  X(allocdata, void, (pdl *it)) \
+  X(make_physvaffine, pdl_error, (pdl *it)) \
+  X(allocdata, pdl_error, (pdl *it)) \
   X(safe_indterm, PDL_Indx, (PDL_Indx dsz, PDL_Indx at, char *file, int lineno)) \
   X(propagate_badflag, void, (pdl *it, int newval)) \
   X(propagate_badvalue, void, (pdl *it)) \
-  X(changesoon, void, (pdl *it)) \
-  X(changed, void, (pdl *it, int what, int recursing)) \
-  X(vaffinechanged, void, (pdl *it, int what)) \
+  X(changesoon, pdl_error, (pdl *it)) \
+  X(changed, pdl_error, (pdl *it, int what, int recursing)) \
+  X(vaffinechanged, pdl_error, (pdl *it, int what)) \
   X(get_pdl_badvalue, PDL_Anyval, (pdl *it)) \
   X(get_badvalue, PDL_Anyval, (int datatype)) \
-  X(set_datatype, void, (pdl *a, int datatype)) \
+  X(set_datatype, pdl_error, (pdl *a, int datatype)) \
   X(hdr_copy, SV *, (SV *hdrp)) \
   X(hdr_childcopy, void, (pdl_trans *trans)) \
   X(readdata_affine, void, (pdl_trans *trans)) \
   X(writebackdata_affine, void, (pdl_trans *trans)) \
-  X(affine_new, void, (pdl *par,pdl *child,PDL_Indx offs,SV *dims,SV *incs)) \
-  X(converttypei_new, void, (pdl *par,pdl *child,int type)) \
+  X(affine_new, pdl_error, (pdl *par,pdl *child,PDL_Indx offs,SV *dims,SV *incs)) \
+  X(converttypei_new, pdl_error, (pdl *par,pdl *child,int type)) \
   X(dump, void, (pdl *it)) \
-  X(sever, void, (pdl *a)) \
+  X(sever, pdl_error, (pdl *a)) \
   X(slice_args_parse_sv, pdl_slice_args*, ( SV* )) \
   X(online_cpus, int, ()) \
   X(magic_get_thread, int, (pdl *)) \
   X(pdl_seed, uint64_t, ()) \
-  X(trans_check_pdls, void, (pdl_trans *trans)) \
+  X(trans_check_pdls, pdl_error, (pdl_trans *trans)) \
   X(make_error, pdl_error, (pdl_error_type e, const char *fmt, ...)) \
   X(make_error_simple, pdl_error, (pdl_error_type e, const char *msg)) \
   X(barf_if_error, void, (pdl_error err)) \

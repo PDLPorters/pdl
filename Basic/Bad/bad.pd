@@ -252,9 +252,11 @@ static pdl* new_pdlscalar(int datatype)
        {
          pdl *p = PDL->pdlnew();
          if (!p) return p;
-         PDL->setdims (p, NULL, 0);  /* set dims */
+         pdl_error err = PDL->setdims(p, NULL, 0);  /* set dims */
+         if (err.error) { PDL->destroy(p); return NULL; }
          p->datatype = datatype;         /* and data type */
-         PDL->allocdata (p);             /* allocate the data chunk */
+         err = PDL->allocdata (p);       /* allocate the data chunk */
+         if (err.error) { PDL->destroy(p); return NULL; }
          return p;
        }
 EOHDR

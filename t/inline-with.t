@@ -46,10 +46,11 @@ static pdl* new_pdl(int datatype, PDL_Indx dims[], int ndims)
 {
   pdl *p = PDL->pdlnew();
   if (!p) return p;
-  PDL->setdims (p, dims, ndims);  /* set dims */
-  p->datatype = datatype;         /* and data type */
-  PDL->allocdata (p);             /* allocate the data chunk */
-
+  pdl_error err = PDL->setdims(p, dims, ndims);  /* set dims */
+  if (err.error) { PDL->destroy(p); return NULL; }
+  p->datatype = datatype;  /* and data type */
+  err = PDL->allocdata(p); /* allocate the data chunk */
+  if (err.error) { PDL->destroy(p); return NULL; }
   return p;
 }
 

@@ -1851,7 +1851,7 @@ ran_discrete_preproc(rng, p)
 	 barf("Bad input to ran_discrete_preproc!");
        }
        n = p->dims[0];
-       PDL->make_physical(p);
+       PDL->barf_if_error(PDL->make_physical(p));
        RETVAL = gsl_ran_discrete_preproc(n,(double *) p->data);
      OUTPUT:
        RETVAL
@@ -1864,7 +1864,7 @@ ran_shuffle(rng, in)
   int size, n;
 
   n = in->nvals;
-  PDL->make_physical(in);
+  PDL->barf_if_error(PDL->make_physical(in));
   size = PDL->howbig(in->datatype);
   gsl_ran_shuffle(rng,(double *) in->data,n,size);
 
@@ -1879,8 +1879,8 @@ ran_choose(rng, in, out)
   n = in->nvals;
   m = out->nvals;
   if (in->datatype != out->datatype) barf("Data Types must match for ran_chooser");
-  PDL->make_physical(in);
-  PDL->make_physical(out);
+  PDL->barf_if_error(PDL->make_physical(in));
+  PDL->barf_if_error(PDL->make_physical(out));
   size = PDL->howbig(in->datatype);
   gsl_ran_choose(rng,(double *) out->data, m, (double *) in->data,n,size);
 

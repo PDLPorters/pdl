@@ -80,10 +80,11 @@ C<ndims> as zero.
    {
      pdl *p = PDL->pdlnew();
      if (!p) return p;
-     PDL->setdims (p, dims, ndims);  /* set dims */
+     pdl_error err = PDL->setdims(p, NULL, 0);  /* set dims */
+     if (err.error) { PDL->destroy(p); return NULL; }
      p->datatype = datatype;         /* and data type */
-     PDL->allocdata (p);             /* allocate the data chunk */
-
+     err = PDL->allocdata (p);       /* allocate the data chunk */
+     if (err.error) { PDL->destroy(p); return NULL; }
      return p;
    }
 
@@ -91,6 +92,7 @@ C<ndims> as zero.
    {
      PDL_Indx dims[] = {5,5,5};
      pdl *p = new_pdl(PDL_F,dims,3);
+     if (!p) return p;
      PDL_Float *dataf = (PDL_Float *) p->data;
      PDL_Indx i; /* dimensions might be 64bits */
 
@@ -338,23 +340,23 @@ C<int howbig(int pdl_datatype)>
 
 =item *
 
-C<void add_deletedata_magic(pdl *p, void (*func)(pdl*, int), int param)>
+C<pdl_error add_deletedata_magic(pdl *p, void (*func)(pdl*, int), int param)>
 
 =item *
 
-C<void allocdata(pdl *p)>
+C<pdl_error allocdata(pdl *p)>
 
 =item *
 
-C<void make_physical(pdl *p)>
+C<pdl_error make_physical(pdl *p)>
 
 =item *
 
-C<void make_physdims(pdl *p)>
+C<pdl_error make_physdims(pdl *p)>
 
 =item *
 
-C<void make_physvaffine(pdl *p)>
+C<pdl_error make_physvaffine(pdl *p)>
 
 =item *
 
@@ -371,6 +373,11 @@ and C<< PDL->warn >>. This is to keep any XS or PP code from calling perl's C<ba
 cause segfaults during pthreading.
 
 See L<PDL::ParallelCPU> for more information on pthreading.
+
+B<NB> As of 2.064, it is B<highly recommended> that you do not call
+C<barf> at all in PP code, but instead use C<$CROAK()>. This will return
+a C<pdl_error> which will transparently be used to throw the correct
+exception in Perl code, but can be handled suitably by non-Perl callers.
 
 =item *
 

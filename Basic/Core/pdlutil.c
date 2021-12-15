@@ -51,9 +51,9 @@ pdl_error pdl_make_error_simple(pdl_error_type e, const char *msg) {
   return PDL_err;
 }
 
-void pdl_croak_param(pdl_transvtable *vtable,int paramIndex, char *pat, ...)
+pdl_error pdl_croak_param(pdl_transvtable *vtable,int paramIndex, char *pat, ...)
 {
-  // I barf a string such as "PDL: function(a,b,c): Parameter 'b' errormessage"
+  // I make a pdl_error with a string such as "PDL: function(a,b,c): Parameter 'b' errormessage"
 
   char message  [4096] = {'\0'};
   int i;
@@ -98,7 +98,7 @@ void pdl_croak_param(pdl_transvtable *vtable,int paramIndex, char *pat, ...)
 
   va_end(args);
 
-  pdl_pdl_barf(message);
+  return pdl_make_error(PDL_EUSERERROR, "%s", message);
 }
 
 void pdl_print_iarr(PDL_Indx *iarr, int n) {

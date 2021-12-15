@@ -57,7 +57,7 @@ void DFF(double* xval, double* vector){
   PUTBACK;
   px = PDL->SvPDLV(pxsv);
   
-  PDL->converttype( px, PDL_D );
+  PDL->barf_if_error(PDL->converttype( px, PDL_D ));
   PDL->setdims (px,pdims,ndims);
   px->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
 
@@ -88,7 +88,7 @@ void DFF(double* xval, double* vector){
   pvectorsv = ST(0);
   pvector = PDL->SvPDLV(pvectorsv);
   
-  PDL->make_physical(pvector);
+  PDL->barf_if_error(PDL->make_physical(pvector));
   
   xpass  =  (double *) pvector->data;
   

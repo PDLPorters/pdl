@@ -327,6 +327,12 @@ the author (Tjl) currently favors the hash syntax like the above -
 it's not too much more characters than the corresponding array
 syntax but much easier to understand and change.
 
+As of 2.064, the C<Code> must not just C<return>, since the signature of
+the generated functions has changed from returning C<void> to returning a
+C<pdl_error>, which is pre-initialised to a successful return value. You
+can easily just replace the C<return;> with C<return PDL_err;>, which
+is the variable's name.
+
 We should mention here also the ability to get the pointer to the
 beginning of the data in memory - a prerequisite for interfacing
 PDL to some libraries. This is handled with the C<$P(var)> directive,
@@ -1215,7 +1221,7 @@ another example that illustrates typical usage of both new features:
 	GenericTypes => [qw(B U S L)],
 	Code => '
 		 if (PerlIO_write($COMP(fp),$P(a),len) != len)
-				croak("Error writing pnm file");
+				$CROAK("Error writing pnm file");
   ');
 
 This function is used to write data from a pdl to a file. The file descriptor
@@ -1345,7 +1351,7 @@ function:
 		 len = $SIZE(m) * sizeof($GENERIC());
 		 threadloop %{
 		    if (PerlIO_write($COMP(fp),$P(a),len) != len)
-				croak("Error writing pnm file");
+				$CROAK("Error writing pnm file");
 		 %}
   ');
 
@@ -1379,7 +1385,7 @@ especially CPU intensive code) only once per thread, i.e.
                         %}
 		        break;
 		    default:
-			croak("unknown mode");
+			$CROAK("unknown mode");
 		   }'
    );
 
@@ -1557,7 +1563,7 @@ C<EquivPDimExpr> and maybe a C<EquivDimCheck>:
       if ($COMP(n2) <0) $COMP(n2) += $PARENT(threadids[0]);
       if (PDLMIN($COMP(n1),$COMP(n2)) <0 ||
           PDLMAX($COMP(n1),$COMP(n2)) >= $PARENT(threadids[0]))
-            barf("One of dims %d, %d out of range: should be 0<=dim<%d",
+            $CROAK("One of dims %d, %d out of range: should be 0<=dim<%d",
                 $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
     EquivPDimExpr => '
       (($CDIM == $COMP(n1)) ? $COMP(n2) :
@@ -1989,6 +1995,11 @@ is completed, and then call the perl versions of these routines.
 
 See L<PDL::ParallelCPU> for more information on pthreading.
 
+B<NB> As of 2.064, it is B<highly recommended> that you do not call
+C<barf> at all in PP code, but instead use C<$CROAK()>. This will return
+a C<pdl_error> which will transparently be used to throw the correct
+exception in Perl code, but can be handled suitably by non-Perl callers.
+
 =head1 MAKEFILES FOR PP FILES
 
 If you are going to generate a package from your PP file (typical file
@@ -2372,8 +2383,11 @@ To access fields in the C<pdl_trans>, eg C<$PRIV(offs)>.
 
 =head3 $CROAK()
 
-Calls C<pdl_barf> with the supplied (var-args) message, adding the
-function name at the start.
+Returns a C<pdl_error> with the supplied (var-args) message, adding the
+function name at the start, which will cause a C<barf> within the Perl
+code. This is (as of 2.064) a change in PDL functions' API, so that
+callers can handle exceptions in their preferred way, which may not use
+Perl at all.
 
 =head3 $EQUIVCPOFFS()
 

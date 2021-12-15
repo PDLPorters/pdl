@@ -34,8 +34,9 @@ void pdl__magic_add(pdl *it,pdl_magic *mag)
 	mag->next = NULL;
 }
 
-void pdl__magic_rm(pdl *it,pdl_magic *mag)
+pdl_error pdl__magic_rm(pdl *it,pdl_magic *mag)
 {
+        pdl_error PDL_err = {0, NULL, 0};
         pdl_magic **foo = (pdl_magic **)(&(it->magic));
 	int found = 0;
 	while(*foo) {
@@ -48,9 +49,9 @@ void pdl__magic_rm(pdl *it,pdl_magic *mag)
 		}
 	}
 	if( !found ){
-		die("PDL:Magic not found: Internal error\n");
+		return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Magic not found: Internal error\n");
 	}
-	return;
+	return PDL_err;
 }
 
 void pdl__magic_free(pdl *it)
@@ -278,7 +279,8 @@ int pdl_magic_get_thread(pdl *it) {
 	return *p;
 }
 
-void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {
+pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {
+	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
 	int clearMagic = 0; /* Flag = 1 if we are temporarily creating pthreading magic in the
 						   supplied pdl.  */
@@ -289,13 +291,13 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 			pdl lazy evaluation.
 		*/
 
-		pdl_add_threading_magic(it, thread->mag_nth, thread->mag_nthr);
+		PDL_RETERROR(PDL_err, pdl_add_threading_magic(it, thread->mag_nth, thread->mag_nthr));
 		clearMagic = 1; /* Set flag to delete magic later */
 
 		/* Try to get magic again */
 		ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 
-		if(!ptr) {die("Invalid pdl_magic_thread_cast!");}
+		if(!ptr) {return pdl_make_error_simple(PDL_EFATAL, "Invalid pdl_magic_thread_cast!");}
 
 	}
 
@@ -318,7 +320,7 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	    tparg[i].t = t;
 	    tparg[i].no = i;
 	    if (pthread_create(tp+i, NULL, pthread_perform, tparg+i)) {
-		die("Unable to create pthreads!");
+		return pdl_make_error_simple(PDL_EFATAL, "Unable to create pthreads!");
 	    }
 	}
 
@@ -332,7 +334,7 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 
 	/* Remove pthread magic if we created in this function */
 	if( clearMagic ){
-		pdl_add_threading_magic(it, -1, -1);
+		PDL_RETERROR(PDL_err, pdl_add_threading_magic(it, -1, -1));
 	}
 
 	// handle any errors that may have occurred in the worker threads I reset the
@@ -354,44 +356,44 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 
 	handle_deferred_errors(warn);
 	handle_deferred_errors(barf);
+	return PDL_err;
 }
 
 /* Function to remove threading magic (added by pdl_add_threading_magic) */
-void pdl_rm_threading_magic(pdl *it)
+pdl_error pdl_rm_threading_magic(pdl *it)
 {
+	pdl_error PDL_err = {0, NULL, 0};
 	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
-
 	/* Don't do anything if threading magic not found */
-	if( !ptr) return;
-
+	if( !ptr) return PDL_err;
 	/* Remove magic */
-	pdl__magic_rm(it, (pdl_magic *) ptr);
-
+	PDL_RETERROR(PDL_err, pdl__magic_rm(it, (pdl_magic *) ptr));
 	/* Free magic */
 	free( ptr );
+	return PDL_err;
 }
 
 /* Function to add threading magic (i.e. identify which PDL dimension should
    be pthreaded and how many pthreads to create
    Note: If nthdim and nthreads = -1 then any pthreading magic is removed */
-void pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads)
+pdl_error pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads)
 {
-      pdl_magic_pthread *ptr;
-
+	pdl_error PDL_err = {0, NULL, 0};
+	pdl_magic_pthread *ptr;
 	/* Remove threading magic if called with parms -1, -1 */
 	if( (nthdim == -1) && ( nthreads == -1 ) ){
-		 pdl_rm_threading_magic(it);
-		 return;
+		 PDL_RETERROR(PDL_err, pdl_rm_threading_magic(it));
+		 return PDL_err;
 	}
-
 	ptr = malloc(sizeof(pdl_magic_pthread));
-	if (!ptr) croak("Out of memory");
+	if (!ptr) return pdl_make_error_simple(PDL_EFATAL, "Out of memory");
 	ptr->what = PDL_MAGIC_THREADING;
 	ptr->vtable = NULL;
 	ptr->next = NULL;
 	ptr->nthdim = nthdim;
 	ptr->nthreads = nthreads;
 	pdl__magic_add(it,(pdl_magic *)ptr);
+	return PDL_err;
 }
 
 // Barf/warn function for deferred barf message handling during pthreading We
@@ -514,9 +516,9 @@ int pdl_online_cpus(void)
 
 #else
 /* Dummy versions */
-void pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads) {}
+pdl_error pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
 int pdl_magic_get_thread(pdl *it) {return 0;}
-void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {}
+pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
 int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {return 0;}
 int pdl_pthreads_enabled() {return 0;}
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args){ return 0;}
@@ -541,14 +543,16 @@ struct pdl_magic_vtable deletedatamagic_vtable = {
 	NULL
 };
 
-void pdl_add_deletedata_magic(pdl *it, void (*func)(pdl *, Size_t param), Size_t param)
+pdl_error pdl_add_deletedata_magic(pdl *it, void (*func)(pdl *, Size_t param), Size_t param)
 {
+	pdl_error PDL_err = {0, NULL, 0};
 	pdl_magic_deletedata *ptr = malloc(sizeof(pdl_magic_deletedata));
-	if (!ptr) croak("Out of memory");
+	if (!ptr) return pdl_make_error_simple(PDL_EFATAL, "Out of memory");
 	ptr->what = PDL_MAGIC_DELETEDATA;
 	ptr->vtable = &deletedatamagic_vtable;
 	ptr->pdl = it;
 	ptr->func = func;
 	ptr->param = param;
 	pdl__magic_add(it, (pdl_magic *)ptr);
+	return PDL_err;
 }

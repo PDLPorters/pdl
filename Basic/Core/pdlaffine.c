@@ -115,7 +115,7 @@ void pdl_affine_redodims(pdl_trans *trans) {
   pdl *__it = trans->pdls[1];
   pdl_hdr_childcopy(trans);
   PDL_Indx i;
-  pdl_reallocdims(__it, params->nd);
+  pdl_barf_if_error(pdl_reallocdims(__it, params->nd));
   trans->incs = malloc(sizeof(*trans->incs) * trans->pdls[1]->ndims);
   if (!trans->incs) croak("Out of Memory\n");
   trans->offs = params->offset;
@@ -123,7 +123,7 @@ void pdl_affine_redodims(pdl_trans *trans) {
     trans->incs[i] = params->sincs[i];
     trans->pdls[1]->dims[i] = params->sdims[i];
   }
-  pdl_setdims_careful(__it);
+  pdl_barf_if_error(pdl_setdims_careful(__it));
   trans->dims_redone = 1;
 }
 
@@ -161,36 +161,39 @@ pdl_transvtable pdl_affine_vtable = {
   sizeof(pdl_params_affine),"affine_new"
 };
 
-void pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *inclist) {
+pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *inclist) {
+  pdl_error PDL_err = {0, NULL, 0};
   pdl_trans *trans = (void *)pdl_create_trans(&pdl_affine_vtable);
   pdl_params_affine *params = trans->params;
   trans->pdls[0] = PARENT;
   trans->pdls[1] = CHILD;
+  PDL_RETERROR(PDL_err, pdl_trans_check_pdls(trans));
   char badflag_cache = pdl_trans_badflag_from_inputs((pdl_trans *)trans);
   pdl_type_coerce((pdl_trans *)trans);
   PARENT = trans->pdls[0];
   CHILD = trans->pdls[1];
   PDL_Indx i = 0, n2 = 0;
   PDL_Indx *tmpi = pdl_packdims(inclist,&n2);
-  if (!tmpi) pdl_pdl_barf("Failed to packdims for tmpi");
+  if (!tmpi) return pdl_make_error_simple(PDL_EFATAL, "Failed to packdims for tmpi");
   PDL_Indx *tmpd = pdl_packdims(dimlist,&(params->nd));
-  if (!tmpd) pdl_pdl_barf("Failed to packdims for tmpd");
+  if (!tmpd) return pdl_make_error_simple(PDL_EFATAL, "Failed to packdims for tmpd");
   if (params->nd < 0)
-    pdl_pdl_barf("Error in affine: can not have negative no of dims");
+    return pdl_make_error_simple(PDL_EUSERERROR, "Error in affine: can not have negative no of dims");
   if (params->nd != n2)
-    pdl_pdl_barf("Error in affine: number of incs does not match dims");
+    return pdl_make_error_simple(PDL_EUSERERROR, "Error in affine: number of incs does not match dims");
   params->sdims = malloc(sizeof(* params->sdims) * params->nd);
-  if (!params->sdims) croak("Out of Memory\n");
+  if (!params->sdims) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
   params->sincs = malloc(sizeof(* params->sincs) * params->nd);
-  if (!params->sincs) croak("Out of Memory\n");
+  if (!params->sincs) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
   params->offset = offspar;
   for (i=0; i<params->nd; i++) {
     params->sdims[i] = tmpd[i];
     params->sincs[i] = tmpi[i];
   }
-  pdl_make_trans_mutual((pdl_trans *)trans);
+  PDL_RETERROR(PDL_err, pdl_make_trans_mutual((pdl_trans *)trans));
   if (badflag_cache)
     CHILD->state |= PDL_BADVAL;
+  return PDL_err;
 }
 
 /* generated from:
@@ -213,10 +216,10 @@ void pdl_converttypei_redodims(pdl_trans *trans) {
   pdl *__it = trans->pdls[1];
   pdl_hdr_childcopy(trans);
   PDL_Indx i;
-  pdl_reallocdims(__it, trans->pdls[0]->ndims);
+  pdl_barf_if_error(pdl_reallocdims(__it, trans->pdls[0]->ndims));
   for (i=0; i<trans->pdls[1]->ndims; i++)
     trans->pdls[1]->dims[i] = trans->pdls[0]->dims[i];
-  pdl_setdims_careful(__it);
+  pdl_barf_if_error(pdl_setdims_careful(__it));
   pdl_reallocthreadids(trans->pdls[1], trans->pdls[0]->nthreadids);
   for (i=0; i<trans->pdls[0]->nthreadids; i++)
     trans->pdls[1]->threadids[i] = trans->pdls[0]->threadids[i];
@@ -247,6 +250,7 @@ void pdl_converttypei_readdata(pdl_trans *trans) {
 }
 
 void pdl_converttypei_writebackdata(pdl_trans *trans) {
+  pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
@@ -281,17 +285,20 @@ pdl_transvtable pdl_converttypei_vtable = {
   sizeof(pdl_params_converttypei),"converttypei_new"
 };
 
-void pdl_converttypei_new(pdl  *PARENT,pdl  *CHILD,int  totype) {
+pdl_error pdl_converttypei_new(pdl  *PARENT,pdl  *CHILD,int  totype) {
+  pdl_error PDL_err = {0, NULL, 0};
   pdl_trans *trans = (void *)pdl_create_trans(&pdl_converttypei_vtable);
   pdl_params_converttypei *params = trans->params;
   trans->pdls[0] = PARENT;
   trans->pdls[1] = CHILD;
+  PDL_RETERROR(PDL_err, pdl_trans_check_pdls(trans));
   char badflag_cache = pdl_trans_badflag_from_inputs((pdl_trans *)trans);
   pdl_type_coerce((pdl_trans *)trans);
   PARENT = trans->pdls[0];
   CHILD = trans->pdls[1];
   CHILD->datatype = params->totype = totype;
-  pdl_make_trans_mutual((pdl_trans *)trans);
+  PDL_RETERROR(PDL_err, pdl_make_trans_mutual((pdl_trans *)trans));
   if (badflag_cache)
     CHILD->state |= PDL_BADVAL;
+  return PDL_err;
 }

@@ -739,9 +739,9 @@ Code => <<'EOD'
   if(!k || !a || !aa) 
     $CROAK("convolveND: Can't convert args to PDLs - should never happen\n");
 
-  PDL->make_physical(aa);
-  PDL->make_physical(a);
-  PDL->make_physical(k); 
+  PDL_RETERROR(PDL_err, PDL->make_physical(aa));
+  PDL_RETERROR(PDL_err, PDL->make_physical(a));
+  PDL_RETERROR(PDL_err, PDL->make_physical(k));
 
   ndims = aa->ndims;
   if(ndims != k->ndims || ndims != aa->ndims)

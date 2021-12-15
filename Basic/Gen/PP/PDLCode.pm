@@ -192,7 +192,8 @@ sub threadloop_start {
     my $macro_name = $this->threadloop_start_name;
     PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 #define $macro_name(funcName) \\
-__thrloopval = PDL->startthreadloop(&(\$PRIV(pdlthread)),\$PRIV(vtable)->funcName, __privtrans); \\
+__thrloopval = PDL->startthreadloop(&(\$PRIV(pdlthread)),\$PRIV(vtable)->funcName, __privtrans, &PDL_err); \\
+PDL->barf_if_error(PDL_err); \\
 if ( __thrloopval < 0 ) die("Error starting threadloop"); \\
 if ( __thrloopval ) return; \\
        do { \\

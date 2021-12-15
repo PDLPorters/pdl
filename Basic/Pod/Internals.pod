@@ -430,10 +430,10 @@ simplified from F<pdl.h> for clarity)
 	int nparents;   /* number of parent pdls (input) */
 	int npdls;      /* number of child pdls (output) */
 	char *per_pdl_flags;  /* optimization flags */
-	void (*redodims)(pdl_trans *tr);  /* figure out dims of children */
-	void (*readdata)(pdl_trans *tr);  /* flow parents to children  */
-	void (*writebackdata)(pdl_trans *tr); /* flow backwards */
-	void (*freetrans)(pdl_trans *tr, char);
+	pdl_error (*redodims)(pdl_trans *tr);  /* figure out dims of children */
+	pdl_error (*readdata)(pdl_trans *tr);  /* flow parents to children  */
+	pdl_error (*writebackdata)(pdl_trans *tr); /* flow backwards */
+	pdl_error (*freetrans)(pdl_trans *tr, char);
   	int structsize;
 	char *name; /* the function's name */
   } pdl_transvtable;
@@ -467,7 +467,7 @@ to be created and is called from within the API function that
 should be called to ensure that the dimensions of an ndarray are
 accessible (F<pdlapi.c>):
 
-   void pdl_make_physdims(pdl *it)
+   pdl_error pdl_make_physdims(pdl *it)
 
 =head3 readdata and writebackdata
 
@@ -481,7 +481,7 @@ The PDL core makes sure that these are called as needed when
 ndarray data is accessed (lazy-evaluation). The general API
 function to ensure that an ndarray is up-to-date is
 
-  void pdl_make_physvaffine(pdl *it)
+  pdl_error pdl_make_physvaffine(pdl *it)
 
 which should be called before accessing ndarray data from
 XS/C (see F<Core.xs> for some examples).
@@ -529,7 +529,7 @@ F<pdlcore.h> in F<Basic/Core>) and looks something like
     pdl*   (*pdlnew)      ( );
     pdl*   (*tmp)         ( );
     pdl*   (*create)      (int type);
-    void   (*destroy)     (pdl *it);
+    pdl_error (*destroy)     (pdl *it);
     ...
  }
  typedef struct Core Core;

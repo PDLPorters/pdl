@@ -13,7 +13,7 @@ int ene;
   SV *pvar ## sv = POPs; \
   PUTBACK; \
   pvar = PDL->SvPDLV(pvar ## sv); \
-  PDL->converttype( pvar, PDL_D ); \
+  PDL->barf_if_error(PDL->converttype( pvar, PDL_D )); \
   PDL->setdims (pvar,pdims,ndims); \
   pvar->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
 

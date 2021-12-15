@@ -49,7 +49,8 @@ VAFF_IO(writebackdata_vaffine, X)
  * (at least in the current scheme)
  */
 
-void pdl_converttype( pdl* a, int targtype ) {
+pdl_error pdl_converttype( pdl* a, int targtype ) {
+    pdl_error PDL_err = {0, NULL, 0};
     int intype;
     void* b;     /* Scratch data ptr */
     SV*   bar;
@@ -61,14 +62,14 @@ void pdl_converttype( pdl* a, int targtype ) {
 
     intype = a->datatype;
     if (intype == targtype)
-       return;
+       return PDL_err;
 
     diffsize = pdl_howbig(targtype) != pdl_howbig(a->datatype);
 
     nbytes = a->nvals * pdl_howbig(targtype); /* Size of converted data */
 
     if(a->state & PDL_DONTTOUCHDATA) {
-      croak("Trying to convert of magical (mmaped?) pdl");
+      return pdl_make_error_simple(PDL_EUSERERROR, "Trying to convert of magical (mmaped?) pdl");
     }
     if (diffsize) {
        b = a->data;                      /* pointer to old data */
@@ -82,13 +83,13 @@ void pdl_converttype( pdl* a, int targtype ) {
 #define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
     ctype_out *bb = (ctype_out *) b; \
     i = a->nvals; \
-    PDL_GENERICSWITCH2(targtype, X_INNER, croak("Not a known data type code=%d", targtype))
+    PDL_GENERICSWITCH2(targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
     ctype_in *aa = (ctype_in *) a->data; \
     aa += i-1; bb += i-1; \
     while (i--) \
       *aa-- = (ctype_in) *bb--;
-    PDL_GENERICSWITCH(intype, X_OUTER, croak("Not a known data type code=%d", intype))
+    PDL_GENERICSWITCH(intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
 #undef X_INNER
 #undef X_OUTER
 
@@ -101,4 +102,5 @@ void pdl_converttype( pdl* a, int targtype ) {
     }
 
     a->datatype = targtype;
+    return PDL_err;
 }

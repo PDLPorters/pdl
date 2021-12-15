@@ -536,10 +536,10 @@ our @ISA = qw (PDL::PP::Rule);
 # This is a copy of the main one for now. Need a better solution.
 #
 my @std_redodims = (
-  SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->reallocdims(__it,$_[0])")},
-  SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->setdims_careful(__it)")},
+  SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error(PDL->reallocdims(__it,$_[0]));")},
+  SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error(PDL->setdims_careful(__it));")},
   SETDELTATHREADIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
-{int __ind; PDL->reallocthreadids(\$CHILD_PTR(), \$PARENT(nthreadids));
+{int __ind; PDL->barf_if_error(PDL->reallocthreadids(\$CHILD_PTR(), \$PARENT(nthreadids)));
 for(__ind=0; __ind<\$PARENT(nthreadids); __ind++)
   \$CHILD(threadids[__ind]) = \$PARENT(threadids[__ind]) + ($_[0]);
 }
@@ -1306,10 +1306,13 @@ sub wrap_vfn {
     $all_func_header,$sname,$pname,$ptype,$extra_args,
   ) = @_;
   my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
+  my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
+  my $closing = '';
   PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 void $rout(pdl_trans *$sname$extra_args) {
+$opening
 @{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
-$str}
+$str$closing}
 EOF
 }
 my @vfn_args_always = qw(_AllFuncHeader StructName ParamStructName ParamStructType);
@@ -1996,15 +1999,17 @@ END
       sub {
         my($name,$sig,$gname) = @_;
         my $longpars = join ",", $sig->alldecls(1, 0);
-        return ["void $name($longpars) {","}",
+        my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
+        my $closing = '';
+        return ["void $name($longpars) {$opening","$closing}",
                 "PDL->$gname = $name;"];
       }),
    PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
         my ($func_name,$sig) = @_;
         my $shortpars = join ',', $sig->alldecls(0, 0);
         my $longpars = join ",", $sig->alldecls(1, 0);
-        (PDL::PP::pp_line_numbers(__LINE__-1, "$func_name($shortpars);"),
-          "void $func_name($longpars)");
+        (PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error($func_name($shortpars));"),
+          "pdl_error $func_name($longpars)");
       }),
 
    PDL::PP::Rule->new("NewXSMakeNow", ["SignatureObj"],
@@ -2028,7 +2033,9 @@ END
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS", ["StructName"],
       sub {
-        PDL::PP::pp_line_numbers(__LINE__-1, "PDL->type_coerce($_[0]);");
+        PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+PDL->barf_if_error(PDL->type_coerce($_[0]));
+EOF
       }),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerceSubd", "NewXSTypeCoerceNS"),
 
@@ -2051,7 +2058,7 @@ END
    PDL::PP::Rule->new("NewXSRunTrans", ["StructName"], sub {
       my($trans) = @_;
       PDL::PP::pp_line_numbers(__LINE__,
-      "PDL->make_trans_mutual($trans);\n");
+      "PDL->barf_if_error(PDL->make_trans_mutual($trans));\n");
    }),
 
    PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
@@ -2135,7 +2142,7 @@ END
       "Rule to find the bad value status of the input ndarrays",
       sub {
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-PDL->trans_check_pdls($_[0]);
+PDL->barf_if_error(PDL->trans_check_pdls($_[0]));
 char \$BADFLAGCACHE() = PDL->trans_badflag_from_inputs($_[0]);
 EOF
       }),
@@ -2197,7 +2204,9 @@ EOF
       "Generate C function with idiomatic arg list to maybe call from XS",
       sub {
         my ($xs_c_header, @bits) = @_;
-        PDL::PP::pp_line_numbers __LINE__-1, join '', "$xs_c_header {\n", @bits, "}\n";
+        my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
+        my $closing = 'return PDL_err;';
+        PDL::PP::pp_line_numbers __LINE__-1, join '', "$xs_c_header {\n$opening\n", @bits, "$closing\n}\n";
       }),
 
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule

@@ -56,7 +56,7 @@ DESTROY(sv)
        self = pdl_SvPDLV(sv);
        PDLDEBUG_f(printf("DESTROYING %p\n",(void*)self);)
        if (self != NULL)
-          pdl_destroy(self);
+          pdl_barf_if_error(pdl_destroy(self));
     }
 
 # Return the transformation object or an undef otherwise.
@@ -129,7 +129,7 @@ PDL_Indx
 nelem(x)
 	pdl *x
 	CODE:
-		pdl_make_physdims(x);
+		pdl_barf_if_error(pdl_make_physdims(x));
 		RETVAL = x->nvals;
 	OUTPUT:
 		RETVAL
@@ -269,7 +269,7 @@ at_bad_c(x,pos)
     int badflag;
     PDL_Anyval result = { -1, {0} };
    CODE:
-    pdl_make_physvaffine( x );
+    pdl_barf_if_error(pdl_make_physvaffine( x ));
 
     if (pos == NULL || pos_count < x->ndims)
        barf("Invalid position with pos=%p, count=%"IND_FLAG" for ndarray with %"IND_FLAG" dims", pos, pos_count, x->ndims);
@@ -332,7 +332,7 @@ listref_c(x)
       pdl_badval = pdl_get_pdl_badvalue( x );
    }
 
-   pdl_make_physvaffine( x );
+   pdl_barf_if_error(pdl_make_physvaffine( x ));
    data = PDL_REPRP(x);
    incs = PDL_REPRINCS(x);
    offs = PDL_REPROFFS(x);
@@ -378,7 +378,7 @@ set_c(x,pos,value)
    PREINIT:
     PDL_Indx ipos;
    CODE:
-    pdl_make_physvaffine( x );
+    pdl_barf_if_error(pdl_make_physvaffine( x ));
 
     if (pos == NULL || pos_count < x->ndims)
        croak("Invalid position");
@@ -392,12 +392,12 @@ set_c(x,pos,value)
       if (pos[ipos] != 0)
          croak("Invalid position");
 
-    pdl_changesoon( x );
+    pdl_barf_if_error(pdl_changesoon( x ));
     pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims,value);
     if (PDL_VAFFOK(x))
-       pdl_vaffinechanged(x, PDL_PARENTDATACHANGED);
+       pdl_barf_if_error(pdl_vaffinechanged(x, PDL_PARENTDATACHANGED));
     else
        pdl_changed( x , PDL_PARENTDATACHANGED , 0 );
 
@@ -501,7 +501,7 @@ pdl *
 make_physical(self)
 	pdl *self;
 	CODE:
-		pdl_make_physical(self);
+		pdl_barf_if_error(pdl_make_physical(self));
 		RETVAL = self;
 	OUTPUT:
 		RETVAL
@@ -510,7 +510,7 @@ pdl *
 make_physvaffine(self)
 	pdl *self;
 	CODE:
-		pdl_make_physvaffine(self);
+		pdl_barf_if_error(pdl_make_physvaffine(self));
 		RETVAL = self;
 	OUTPUT:
 		RETVAL
@@ -519,7 +519,7 @@ pdl *
 make_physdims(self)
 	pdl *self;
 	CODE:
-		pdl_make_physdims(self);
+		pdl_barf_if_error(pdl_make_physdims(self));
 		RETVAL = self;
 	OUTPUT:
 		RETVAL
@@ -534,15 +534,17 @@ _convert_int(self, new_dtype)
 		RETVAL
 
 void
-pdl_set_datatype(a,datatype)
+set_datatype(a,datatype)
    pdl *a
    int datatype
+   CODE:
+     pdl_barf_if_error(pdl_set_datatype(a, datatype));
 
 pdl *
 pdl_sever(src)
 	pdl *src;
 	CODE:
-		pdl_sever(src);
+		pdl_barf_if_error(pdl_sever(src));
 		RETVAL = src;
 	OUTPUT:
 		RETVAL
@@ -556,12 +558,14 @@ pdl_add_threading_magic(it,nthdim,nthreads)
 	pdl *it
 	int nthdim
 	int nthreads
+	CODE:
+		pdl_barf_if_error(pdl_add_threading_magic(it,nthdim,nthreads));
 
 void
 pdl_remove_threading_magic(it)
 	pdl *it
 	CODE:
-		pdl_add_threading_magic(it,-1,-1);
+		pdl_barf_if_error(pdl_add_threading_magic(it,-1,-1));
 
 MODULE = PDL::Core	PACKAGE = PDL
 
@@ -588,7 +592,7 @@ get_dataref(self)
 	if(self->state & PDL_DONTTOUCHDATA) {
 		croak("Trying to get dataref to magical (mmaped?) pdl");
 	}
-	pdl_make_physical(self); /* XXX IS THIS MEMLEAK WITHOUT MORTAL? */
+	pdl_barf_if_error(pdl_make_physical(self)); /* XXX IS THIS MEMLEAK WITHOUT MORTAL? */
 	RETVAL = (newRV(self->datasv));
 	OUTPUT:
 	RETVAL
@@ -639,7 +643,7 @@ getndims(x)
 	     PDL::ndims = 1
 	CODE:
 		(void)ix;
-		pdl_make_physdims(x);
+		pdl_barf_if_error(pdl_make_physdims(x));
 		RETVAL = x->ndims;
 	OUTPUT:
 		RETVAL
@@ -651,7 +655,7 @@ dims_c(x)
 		PDL_Indx i;
 		U8 gimme = GIMME_V;
 	PPCODE:
-		pdl_make_physdims(x);
+		pdl_barf_if_error(pdl_make_physdims(x));
 		if (gimme == G_ARRAY) {
 			EXTEND(sp, x->ndims);
 			for(i=0; i<x->ndims; i++) mPUSHi(x->dims[i]);
@@ -668,7 +672,7 @@ getdim(x,y)
 	     PDL::dim = 1
 	CODE:
 		(void)ix;
-		pdl_make_physdims(x);
+		pdl_barf_if_error(pdl_make_physdims(x));
 		if (y < 0) y += x->ndims;
 		if (y < 0) croak("negative dim index too large");
 		RETVAL = y < x->ndims ? x->dims[y] : 1; /* all other dims=1 */
@@ -679,7 +683,7 @@ int
 getnthreadids(x)
 	pdl *x
 	CODE:
-		pdl_make_physdims(x);
+		pdl_barf_if_error(pdl_make_physdims(x));
 		RETVAL = x->nthreadids;
 	OUTPUT:
 		RETVAL
@@ -691,7 +695,7 @@ threadids_c(x)
 		PDL_Indx i;
 		U8 gimme = GIMME_V;
 	PPCODE:
-		pdl_make_physdims(x);
+		pdl_barf_if_error(pdl_make_physdims(x));
 		if (gimme == G_ARRAY) {
 			EXTEND(sp, x->nthreadids);
 			for(i=0; i<x->nthreadids; i++) mPUSHi(x->threadids[i]);
@@ -714,7 +718,7 @@ setdims(x,dims)
 	pdl *x
 	PDL_Indx *dims
 	CODE:
-		pdl_setdims(x,dims,dims_count);
+		pdl_barf_if_error(pdl_setdims(x,dims,dims_count));
 
 void
 dowhenidle()
@@ -760,7 +764,7 @@ SV *
 hdr(p)
 	pdl *p
 	CODE:
-		pdl_make_physdims(p);
+		pdl_barf_if_error(pdl_make_physdims(p));
 
                 /* Make sure that in the undef case we return not */
                 /* undef but an empty hash ref. */
@@ -778,7 +782,7 @@ SV *
 gethdr(p)
 	pdl *p
 	CODE:
-		pdl_make_physdims(p);
+		pdl_barf_if_error(pdl_make_physdims(p));
 
                 if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
 	            RETVAL = &PL_sv_undef;
@@ -806,12 +810,14 @@ threadover_n(...)
     for(i=0; i<npdls; i++) {
 	pdls[i] = pdl_SvPDLV(ST(i));
 	/* XXXXXXXX Bad */
-	pdl_make_physical(pdls[i]);
+	pdl_barf_if_error(pdl_make_physical(pdls[i]));
 	realdims[i] = 0;
     }
     PDL_THR_CLRMAGIC(&pdl_thr);
-    pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL,NULL,NULL, 1);
-    if (pdl_startthreadloop(&pdl_thr,NULL,NULL) < 0) croak("Error starting threadloop");
+    pdl_barf_if_error(pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL,NULL,NULL, 1));
+    pdl_error error_ret = {0, NULL, 0};
+    if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting threadloop");
+    pdl_barf_if_error(error_ret);
     sd = pdl_thr.ndims;
     do {
     	dSP;
@@ -862,7 +868,7 @@ threadover(...)
 	if (creating[i])
 	  nc += realdims[i];
 	else {
-	  pdl_make_physical(pdls[i]); /* is this what we want?XXX */
+	  pdl_barf_if_error(pdl_make_physical(pdls[i])); /* is this what we want?XXX */
 	  dtype = PDLMAX(dtype,pdls[i]->datatype);
 	}
     }
@@ -872,20 +878,22 @@ threadover(...)
 	croak("Not enough dimension info to create pdls");
     PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %d ",i); pdl_dump(pdls[i]); });
     PDL_THR_CLRMAGIC(&pdl_thr);
-    pdl_initthreadstruct(0,pdls,realdims,creating,npdls,
-			NULL,&pdl_thr,NULL,NULL,NULL, 1);
+    pdl_barf_if_error(pdl_initthreadstruct(0,pdls,realdims,creating,npdls,
+			NULL,&pdl_thr,NULL,NULL,NULL, 1));
     for(i=0, nc=npdls; i<npdls; i++)  /* create as necessary */
       if (creating[i]) {
 	PDL_Indx *cp = creating+nc;
 	pdls[i]->datatype = dtype;
-	pdl_thread_create_parameter(&pdl_thr,i,cp,0);
+	pdl_barf_if_error(pdl_thread_create_parameter(&pdl_thr,i,cp,0));
 	nc += realdims[i];
-	pdl_make_physical(pdls[i]);
+	pdl_barf_if_error(pdl_make_physical(pdls[i]));
 	PDLDEBUG_f(pdl_dump(pdls[i]));
 	/* And make it nonnull, now that we've created it */
 	pdls[i]->state &= (~PDL_NOMYDIMS);
       }
-    if (pdl_startthreadloop(&pdl_thr,NULL,NULL) < 0) croak("Error starting threadloop");
+    pdl_error error_ret = {0, NULL, 0};
+    if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting threadloop");
+    pdl_barf_if_error(error_ret);
     for(i=0; i<npdls; i++) { /* will the SV*'s be properly freed? */
 	dims[i] = newRV(pdl_unpackint(pdls[i]->dims,realdims[i]));
 	incs[i] = newRV(pdl_unpackint(PDL_REPRINCS(pdls[i]),realdims[i]));
@@ -895,9 +903,9 @@ threadover(...)
 	child[i]=pdl_null();
 	if (!child[i]) pdl_pdl_barf("Error making null pdl");
 	/*  instead of pdls[i] its vaffine parent !!!XXX */
-	pdl_affine_new(pdls[i],child[i],pdl_thr.offs[i],dims[i],
-					incs[i]);
-	pdl_make_physical(child[i]); /* make sure we can get at
+	pdl_barf_if_error(pdl_affine_new(pdls[i],child[i],pdl_thr.offs[i],dims[i],
+		incs[i]));
+	pdl_barf_if_error(pdl_make_physical(child[i])); /* make sure we can get at
 					the vafftrans          */
 	csv[i] = sv_newmortal();
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
