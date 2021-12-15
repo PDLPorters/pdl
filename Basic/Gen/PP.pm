@@ -1326,15 +1326,11 @@ sub make_vfn_args {
   );
 }
 
-my @xscode_args_always = (
-  "_NewXSCHdrs",
-  "RunFuncCall",
-);
 sub make_xs_code {
-  my($xscode_before,$xscode_after,$hdr,
+  my($xscode_before,$xscode_after,$str,
     $xs_c_headers,
     @bits) = @_;
-  my($str,$boot,$prelude) = $hdr;
+  my($boot,$prelude);
   if($xs_c_headers) {
     $prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
     $boot = $xs_c_headers->[2];
@@ -2213,9 +2209,7 @@ EOF
  # will not be executed. D. Hunt 4/11/00
  #
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      ["VarArgsXSHdr",@xscode_args_always,
-       "VarArgsXSReturn"
-      ],
+      [qw(VarArgsXSHdr _NewXSCHdrs RunFuncCall VarArgsXSReturn)],
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {make_xs_code('','',@_)}),
 
@@ -2223,7 +2217,7 @@ EOF
  # D. Hunt 4/11/00
  #
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      ["NewXSHdr",@xscode_args_always],
+      [qw(NewXSHdr _NewXSCHdrs RunFuncCall)],
       "Rule to print out XS code when variable argument list XS processing is disabled",
       sub {make_xs_code('CODE:',' XSRETURN(0);',@_)}),
 
