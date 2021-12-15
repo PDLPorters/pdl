@@ -422,7 +422,7 @@ void pdl_initthreadstruct(int nobl,
 		  pdls[j]->dims[nth+realdims[j]];
 	      }
 
-	      thread->incs[nth*npdls+j] =                      // Update the corresponding data stride
+	      PDL_THR_INC(thread->incs, npdls, j, nth) =       // Update the corresponding data stride
 		PDL_TREPRINC(pdls[j],flags[j],nth+realdims[j]);//   from the PDL or from its vafftrans if relevant.
 	    }
 	  }
@@ -453,7 +453,7 @@ void pdl_initthreadstruct(int nobl,
 					thread->dims[nth] =
 						pdls[j]->dims[mydim];
 				}
-				thread->incs[nth*npdls+j] =
+				PDL_THR_INC(thread->incs, npdls, j, nth) =
 					PDL_TREPRINC(pdls[j],flags[j],mydim);
 			}
 		}
@@ -518,7 +518,7 @@ See the manual for why this is impossible");
 	thread->pdls[j]->threadids[0] = td + thread->realdims[j];
 	pdl_resize_defaultincs(thread->pdls[j]);
 	for(i=0; i<thread->nimpl; i++) {
-		thread->incs[thread->npdls*i + j] =
+		PDL_THR_INC(thread->incs, thread->npdls, j, i) =
 		  temp ? 0 :
 		  PDL_REPRINC(thread->pdls[j],i+thread->realdims[j]);
 	}
@@ -550,7 +550,7 @@ int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),
 	    offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 	if (thr)
 	    for(j=0; j<npdls; j++) offsp[j] += PDL_THR_OFFSET(thr, thread) *
-		thread->incs[thread->mag_nth*npdls + j];
+		PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
 	return 0;
 }
 
@@ -575,9 +575,9 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 		if (thr)
 		    offsp[j] += PDL_THR_OFFSET(thr, thread) *
-			thread->incs[thread->mag_nth*thread->npdls + j];
+			PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
 		for(i=nth; i<thread->ndims; i++) {
-		    offsp[j] += thread->incs[i*thread->npdls+j] * inds[i];
+		    offsp[j] += PDL_THR_INC(thread->incs, thread->npdls, j, i) * inds[i];
 		}
 	    }
 	return another_threadloop;

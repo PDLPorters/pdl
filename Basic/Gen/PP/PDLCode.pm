@@ -157,8 +157,8 @@ sub new {
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
         'register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls;',
         'PDL_COMMENT("dims here are how many steps along those dims")',
-        (map "register PDL_Indx __tinc0_$parnames->[$_] = \$PRIV(pdlthread).incs[$_];", 0..$#$parnames),
-        (map "register PDL_Indx __tinc1_$parnames->[$_] = \$PRIV(pdlthread).incs[__tnpdls+$_];", 0..$#$parnames),
+        (map "register PDL_Indx __tinc0_$parnames->[$_] = PDL_THR_INC(\$PRIV(pdlthread).incs,__tnpdls,$_,0);", 0..$#$parnames),
+        (map "register PDL_Indx __tinc1_$parnames->[$_] = PDL_THR_INC(\$PRIV(pdlthread).incs,__tnpdls,$_,1);", 0..$#$parnames),
         $this->threadloop_start,
         $this->threadloop_end,
        ).

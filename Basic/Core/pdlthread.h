@@ -61,6 +61,7 @@ typedef struct pdl_thread {
 } pdl_thread;
 
 #define PDL_THR_OFFSET(thr, thread) ((thr)*((thread)->mag_stride) + PDLMIN((thr),(thread)->mag_skip))
+#define PDL_THR_INC(incs, npdls, p, d) ((incs)[(d)*(npdls) + (p)])
 
 /* Thread per pdl flags */
 #define		PDL_THREAD_VAFFINE_OK	0x01

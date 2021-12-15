@@ -231,9 +231,9 @@ PDL_GENERICLIST(X)
       printf("\n");
     }
   }
-  psp; printf("Incs (per pdl):\n");
-  for (i=0;i<thread->npdls;i++) {
-    psp; psp; pdl_print_iarr(thread->incs + i*thread->ndims,thread->ndims);
+  psp; printf("Incs (per dim):\n");
+  for (i=0;i<thread->ndims;i++) {
+    psp; psp; pdl_print_iarr(&PDL_THR_INC(thread->incs, thread->npdls, 0, i),thread->npdls);
     printf("\n");
   }
   psp; printf("Realdims: "); pdl_print_iarr(thread->realdims,thread->npdls); printf("\n");
