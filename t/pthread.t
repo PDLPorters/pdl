@@ -28,8 +28,8 @@ for (
   my ($thr_num, $size, $thr_want, $dim) = @$_;
   set_autopthread_targ($thr_num);
   (my $t = zeroes(@$size))++;
-  is(get_autopthread_actual(), $thr_want);
-  is(get_autopthread_dim(), $dim);
+  is(get_autopthread_actual(), $thr_want, "right pthread no");
+  is(get_autopthread_dim(), $dim, "right pthread dim");
 }
 set_autopthread_targ(0);
 
@@ -40,17 +40,19 @@ my @T = (
     sub { $_[0]->remove_threading_magic },
     sub {},
     {threaded => sub { $pa **= 1.3 }, unthreaded => sub { $pb **= 1.3 }},
+    'explicit',
   ],
   [
     sub { set_autopthread_targ($thr_want = $_[2]) },
     sub { set_autopthread_targ(0); },
-    sub { is(get_autopthread_actual(), $thr_want) },
+    sub { is(get_autopthread_actual(), $thr_want, "right threadno auto") },
     {threaded => sub { $pa **= 1.3 }},
+    'auto',
   ],
 );
 
 for (@T) {
-  my ($thr_on, $thr_off, $thr_check, $bench_hash) = @$_;
+  my ($thr_on, $thr_off, $thr_check, $bench_hash, $label) = @$_;
   {
   $pa = zeroes(2000000);
   $pb = zeroes(2000000);
@@ -62,7 +64,7 @@ for (@T) {
 
   $thr_check->();
 
-  ok(all(approx $pa,$pb), 'pa and pb match');
+  ok all(approx $pa,$pb), "pa and pb match $label" or diag "diff at:", ($pa != $pb)->whichND."";
   }
 
   {
@@ -72,7 +74,7 @@ for (@T) {
   my $pc = inner $pa, $pb;
   $thr_off->($pa);
   my $cc = $pa->sumover;
-  ok(all approx($pc,$cc));
+  ok all(approx($pc,$cc)), "inner $label" or diag "pc=$pc\ncc=$cc";
   }
 
   {
@@ -83,7 +85,7 @@ for (@T) {
   $pa+=1;
   $thr_off->($pb);
   $pb+=1;
-  ok( all approx($pa, $pb));
+  ok all(approx $pa, $pb), "+= $label";
   }
 
   ### Multi-dimensional incrementing case ###
@@ -93,7 +95,7 @@ for (@T) {
     $pa = zeroes(3, 200000,2,2);
     $thr_on->($pa, 1, 2);
     $pa += 1;
-    ok( $pa->max < 1.1 ); # Should never be greater than 1
+    ok( $pa->max < 1.1, "multi-run $label" ); # Should never be greater than 1
   }
 
   {
@@ -120,11 +122,11 @@ for (@T) {
 
   # Check for writeback to the parent PDL working (should have three ones in the array)
   my $lutExSum = $lutEx->sum;
-  ok( all approx($lutExSum, pdl(3)) );
+  ok all(approx($lutExSum, pdl(3))), "writeback $label";
 
   # Check for inplace assignment working. $in should be all ones
   my $inSum = $in->sum;
-  ok( all approx($inSum, pdl(2) ) );
+  ok all(approx($inSum, pdl(2) )), "inplace $label";
   }
 
   {
@@ -156,11 +158,11 @@ for (@T) {
 
   # Check for writeback to the parent PDL working (should have three ones in the array)
   my $lutExSum = $lutEx->sum;
-  ok( all approx($lutExSum, pdl(5)) );
+  ok all(approx($lutExSum, pdl(5))), "writeback with different magic $label";
 
   # Check for inplace assignment working. $in should be all ones
   my $inSum = $in->sum;
-  ok( all approx($inSum, pdl(2) ) );
+  ok all(approx($inSum, pdl(2))), "inplace with different magic $label";
   }
 }
 
