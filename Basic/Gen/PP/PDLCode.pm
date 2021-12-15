@@ -157,8 +157,8 @@ sub new {
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
         'register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls;',
         'PDL_COMMENT("dims here are how many steps along those dims")',
-        (map "register PDL_Indx __tinc0_$_ = \$PRIV(pdlthread).incs[$_];", 0..$#$parnames),
-        (map "register PDL_Indx __tinc1_$_ = \$PRIV(pdlthread).incs[__tnpdls+$_];", 0.. $#$parnames),
+        (map "register PDL_Indx __tinc0_$parnames->[$_] = \$PRIV(pdlthread).incs[$_];", 0..$#$parnames),
+        (map "register PDL_Indx __tinc1_$parnames->[$_] = \$PRIV(pdlthread).incs[__tnpdls+$_];", 0..$#$parnames),
         $this->threadloop_start,
         $this->threadloop_end,
        ).
@@ -209,13 +209,13 @@ if ( __thrloopval ) return; \\
 	    __tind1 < __tdims1 ; \\
 	    __tind1++ \\
 	    PDL_COMMENT("step by tinc1, undoing inner-loop of tinc0*tdims0") \\
-@{[ join " \\\n", map "\t\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$_ - __tinc0_$_ * __tdims0", 0..$#$ord ]} \\
+@{[ join " \\\n", map "\t\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$ord->[$_] - __tinc0_$ord->[$_] * __tdims0", 0..$#$ord ]} \\
 	 ) \\
       { \\
 	 for( __tind0 = 0 ; \\
 	      __tind0 < __tdims0 ; \\
 	      __tind0++ \\
-@{[ join " \\\n", map "\t\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc0_${_}", 0..$#{$ord} ]} \\
+@{[ join " \\\n", map "\t\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc0_$ord->[$_]", 0..$#{$ord} ]} \\
 	   ) { \\
       PDL_COMMENT("This is the tightest threadloop. Make sure inside is optimal.")
 EOF
@@ -230,7 +230,7 @@ sub threadloop_end {
 } \\
 } \\
 PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset") \\
-@{[ join " \\\n", map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$_ * __tdims1 + __offsp[$_];", 0..$#$ord ]} \\
+@{[ join " \\\n", map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$ord->[$_] * __tdims1 + __offsp[$_];", 0..$#$ord ]} \\
 __thrloopval = PDL->iterthreadloop(&\$PRIV(pdlthread),2); \\
 if ( __thrloopval < 0 ) die("Error in iterthreadloop"); \\
 } while(__thrloopval);
