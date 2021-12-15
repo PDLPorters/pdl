@@ -2346,8 +2346,6 @@ SLICE-MC
                   $PRIV(offs) = 0;  /* Offset vector to start of slice */
 
                   for(i=0; i<$COMP(nargs); i++) {
-                      PDL_Indx start, end;
-
                       /** Belt-and-suspenders **/
                       if( ($COMP(idim[i]) < 0)  && ($COMP(odim[i]) < 0)  ) {
                         PDL->changed($CHILD_PTR(), PDL_PARENTDIMSCHANGED, 0);
@@ -2360,20 +2358,12 @@ SLICE-MC
                          $CHILD( dims[ $COMP(odim[i]) ] ) = $COMP(end[i]) - $COMP(start[i]) + 1;
                          $PRIV( incs[ $COMP(odim[i]) ] ) = 0;
                       } else {
-                        PDL_Indx pdsize;
-
                         /** This is not a dummy dim -- deal with a regular slice along it.     **/
                         /** Get parent dim size for this idim, and/or allow permissive slicing **/
-
-                        if( $COMP(idim[i]) < $PARENT(ndims)) {
-                          pdsize = $PARENT( dims[$COMP(idim[i])] );
-                        } else {
-                          pdsize = 1;
-                        }
-
-                        start = $COMP(start[i]);
-			end = $COMP(end[i]);
-
+			PDL_Indx pdsize = $COMP(idim[i]) < $PARENT(ndims) ?
+			    $PARENT(dims)[$COMP(idim)[i]] : 1;
+			PDL_Indx start = $COMP(start)[i];
+			PDL_Indx end = $COMP(end)[i];
 			if(
 			  /** Trap special case: full slices of an empty dim are empty **/
                           (pdsize==0 && start==0 && end==-1 && $COMP(inc[i]) == 0)
@@ -2381,8 +2371,8 @@ SLICE-MC
                           /* the values given when PDL::slice gets empty ndarray for index */
                           (start==1 && end==0 && $COMP(inc[i]) == 1)
                         ) {
-			  $CHILD( dims[ $COMP(odim[i]) ] ) = 0;
-                          $PRIV( incs[$COMP(odim[i]) ] ) = 0;
+			  $CHILD(dims)[$COMP(odim)[i]] = 0;
+			  $PRIV(incs)[$COMP(odim)[i]] = 0;
 			} else {
 			  /** Regularize and bounds-check the start location **/
 			  if(start < 0)
@@ -2401,8 +2391,6 @@ SLICE-MC
 			    /* both idim[i] and odim[i] can't be <0 */
 			    $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
 			  } else /* normal operation */ {
-			    PDL_Indx siz;
-			    PDL_Indx inc;
 			    /** Regularize and bounds-check the end location **/
 			    if(end<0) end += pdsize;
 			    if( end < 0 || end >= pdsize ) {
@@ -2410,13 +2398,12 @@ SLICE-MC
 			      $CROAK("slice ends out of bounds in pos %d (end is %d; source dim %d runs 0 to %d)",i,end,$COMP(idim[i]),pdsize-1);
 			    }
 			    /* regularize inc */
-			    inc = $COMP(inc[i]);
+			    PDL_Indx inc = $COMP(inc)[i];
 			    if(!inc)
 			      inc = (start <= end) ? 1 : -1;
-			    siz = PDLMAX(0, (end - start + inc) / inc);
-			    $CHILD( dims[ $COMP(odim[i]) ] ) = siz;
-			    $PRIV(  incs[ $COMP(odim[i]) ] ) = $PARENT( dimincs[ $COMP(idim[i]) ] ) * inc;
-			    $PRIV(offs) += start * $PARENT( dimincs[ $COMP(idim[i]) ] );
+			    $CHILD( dims )[ $COMP(odim)[i] ] = PDLMAX(0, (end - start + inc) / inc);
+			    $PRIV(  incs )[ $COMP(odim)[i] ] = $PARENT(dimincs)[ $COMP(idim)[i] ] * inc;
+			    $PRIV(offs) += start * $PARENT( dimincs )[ $COMP(idim)[i] ];
 			  } /* end of normal slice case */
 			} /* end of trapped strange slice case */
                       } /* end of non-dummy slice case */
@@ -2425,8 +2412,8 @@ SLICE-MC
                   /* Now fill in thread dimensions as needed.  idim and odim persist from the parsing loop */
                   /* up above. */
                   for(i=0; i<o_ndims_extra; i++) {
-                    $CHILD( dims   [ $COMP(odim_top) + i ] ) = $PARENT( dims   [ $COMP(idim_top) + i ] );
-                    $PRIV( incs[ $COMP(odim_top) + i ] ) = $PARENT( dimincs[ $COMP(idim_top) + i ] );
+                    $CHILD(dims)[ $COMP(odim_top) + i ] = $PARENT(dims)[ $COMP(idim_top) + i ];
+                    $PRIV(incs)[ $COMP(odim_top) + i ] = $PARENT(dimincs)[ $COMP(idim_top) + i ];
                   }
 
                 $SETDIMS();
