@@ -121,6 +121,7 @@ pdl_trans *pdl_find_mutatedtrans(pdl *it);
 /* Threading magic */
 
 /* Deferred barfing and warning when pthreading  */
+char pdl_pthread_main_thread();
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args);
 
 pdl_error pdl_add_threading_magic(pdl *,PDL_Indx nthdim, PDL_Indx nthreads);

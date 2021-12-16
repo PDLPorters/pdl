@@ -395,6 +395,10 @@ pdl_error pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads)
 	return PDL_err;
 }
 
+char pdl_pthread_main_thread() {
+  return !done_pdl_main_pthreadID_init || pthread_equal( pdl_main_pthreadID, pthread_self() );
+}
+
 // Barf/warn function for deferred barf message handling during pthreading We
 // can't barf/warn during pthreading, because perl-level code isn't
 // threadsafe. This routine does nothing if we're in the main thread (allowing
@@ -407,8 +411,7 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 	int*   len;
 
 	/* Don't do anything if we are in the main pthread */
-	if( !done_pdl_main_pthreadID_init || pthread_equal( pdl_main_pthreadID, pthread_self() ) )
-		return 0;
+	if (pdl_pthread_main_thread()) return 0;
 
 	if(iswarn)
 	{
