@@ -1842,7 +1842,7 @@ EOD
         # Don't do var args processing if the user has pre-defined pmcode
         return 'DO NOT SET!!' if $pmcode;
         my $ci = '  ';  # current indenting
-        my $pars = join "\n",map "$ci$_;", $sig->alldecls(1, 0);
+        my $pars = join "\n",map "$ci$_ = 0;", $sig->alldecls(1, 0);
         my @args = $sig->alldecls(0, 1);
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
@@ -1860,7 +1860,6 @@ EOD
         my $ninout = $nin + $nout;
         my $nallout = $nout + $noutca;
         my $usageargs = join (",", @args);
-        $ci = '  ';  # Current indenting
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
@@ -1899,8 +1898,8 @@ EOD
         if ($nmaxonstack == $ninout) {
             $clause2 = '';
         } else {
-            $clause2 = "\n  else if (items == $ninout) { PDL_COMMENT(\"all but temps on stack, read in output, create temps\")" .
-                "    nreturn = $noutca;\n";
+            $clause2 = "\n  else if (items == $ninout) { PDL_COMMENT(\"all but temps on stack, read in output, create temps\")\n" .
+                "${ci}nreturn = $noutca;\n";
             $cnt = 0;
             foreach my $x (@args) {
                 if ($other{$x}) {
