@@ -74,10 +74,10 @@ sub PDL_BOOT {
 #define aTHX_
 #endif
    if (SvTRUE (ERRSV)) Perl_croak(aTHX_ "%s",SvPV_nolen (ERRSV));
-   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
-   if (CoreSV==NULL)
+   if (!(CoreSV = perl_get_sv("PDL::SHARE",FALSE))) /* SV* value */
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
-   $symname = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
+   if (!($symname = INT2PTR(Core*,SvIV( CoreSV )))) /* Core* value */
+     Perl_croak(aTHX_ "Got NULL pointer for $symname");
    if ($symname->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "[$symname->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] $module needs to be recompiled against the newly installed PDL", $symname->Version, PDL_CORE_VERSION, XS_VERSION);
 
