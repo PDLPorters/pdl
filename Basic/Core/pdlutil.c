@@ -29,18 +29,27 @@ pdl_error pdl_make_error(pdl_error_type e, const char *fmt, ...) {
   int size = vsnprintf(NULL, 0, fmt, ap);
   va_end(ap);
   if (size < 0) return PDL_err;
-  size++;             /* For '\0' */
+  char needs_free = 1;
   char *p = NULL;
-  p = malloc(size);
-  if (p == NULL) return PDL_err;
-  va_start(ap, fmt);
-  size = vsnprintf(p, size, fmt, ap);
-  va_end(ap);
-  if (size < 0) {
-    free(p);
-    return PDL_err;
+  if (pdl_pthread_main_thread()) {
+    size++;             /* For '\0' */
+    p = malloc(size);
+    if (p == NULL) return PDL_err;
+    va_start(ap, fmt);
+    size = vsnprintf(p, size, fmt, ap);
+    va_end(ap);
+    if (size < 0) {
+      free(p);
+      return PDL_err;
+    }
+  } else {
+    size_t len = 0;
+    va_start(ap, fmt);
+    pdl_pthread_realloc_vsnprintf(&p, &len, size, fmt, &ap, 0);
+    va_end(ap);
+    needs_free = 2;
   }
-  return (pdl_error){e, p, 1};
+  return (pdl_error){e, p, needs_free};
 }
 
 pdl_error pdl_make_error_simple(pdl_error_type e, const char *msg) {
@@ -474,13 +483,22 @@ void pdl_dump (pdl *it) {
 	pdl_dump_fixspace(it,0);
 }
 
+void pdl_error_free(pdl_error e) {
+  if (e.needs_free == 1) {
+    free((void *)e.message);
+  } else {
+    /* needs mutex-protected and de-Perl-ified */
+    pdl_pthread_free((void *)e.message);
+  }
+}
+
 void pdl_barf_if_error(pdl_error err) {
   if (!err.error) return;
   const char *msg = err.message;
   if (err.needs_free) {
     char *cpy = pdl_smalloc(strlen(msg) + 1);
     strcpy(cpy, err.message);
-    free((void *)err.message);
+    pdl_error_free(err);
     msg = cpy;
   }
   pdl_pdl_barf(msg);
@@ -493,7 +511,7 @@ pdl_error pdl_error_accumulate(pdl_error err_current, pdl_error err_new) {
     PDLMAX(err_current.error, err_current.error),
     "%s\n%s", err_current.message, err_new.message
   );
-  if (err_current.needs_free) free((void *)err_current.message);
-  if (err_new.needs_free) free((void *)err_new.message);
+  if (err_current.needs_free) pdl_error_free(err_current);
+  if (err_new.needs_free) pdl_error_free(err_new);
   return PDL_err;
 }

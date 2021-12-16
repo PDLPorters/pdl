@@ -14,9 +14,9 @@ static int done_pdl_main_pthreadID_init = 0;
  *  altogether later
  */
 static char* pdl_pthread_barf_msgs     = NULL;
-static int   pdl_pthread_barf_msgs_len = 0;
+static size_t pdl_pthread_barf_msgs_len = 0;
 static char* pdl_pthread_warn_msgs     = NULL;
-static int   pdl_pthread_warn_msgs_len = 0;
+static size_t pdl_pthread_warn_msgs_len = 0;
 
 #endif
 
@@ -408,7 +408,7 @@ char pdl_pthread_main_thread() {
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 {
 	char** msgs;
-	int*   len;
+	size_t* len;
 
 	/* Don't do anything if we are in the main pthread */
 	if (pdl_pthread_main_thread()) return 0;
@@ -416,42 +416,17 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 	if(iswarn)
 	{
 		msgs = &pdl_pthread_warn_msgs;
-		len	 = &pdl_pthread_warn_msgs_len;
+		len = &pdl_pthread_warn_msgs_len;
 	}
 	else
 	{
 		msgs = &pdl_pthread_barf_msgs;
-		len	 = &pdl_pthread_barf_msgs_len;
+		len = &pdl_pthread_barf_msgs_len;
 	}
 
+	size_t extralen = vsnprintf(NULL, 0, pat, *args);
 	// add the new complaint to the list
-	{
-		static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-		pthread_mutex_lock( &mutex );
-		{
-			/* In the chunk I'm adding I need to store the actual data and trailing newline. */
-			int extralen = vsnprintf(NULL, 0, pat, *args) + 1;
-
-			/* 1 more for the trailing '\0'. (For windows, we first #undef realloc
-			   so that the system realloc function is used instead of the PerlMem_realloc
-			   macro. This currently works fine, though could conceivably require some
-			   tweaking in the future if it's found to cause any problem.) */
-#ifdef WIN32
-#undef realloc
-#endif
-            /* FIXME: Common realloc mistake: 'msgs' nulled but not freed upon failure */
-			*msgs = realloc(*msgs, *len + extralen + 1);
-			vsnprintf( *msgs + *len, extralen + 1, pat, *args);
-
-			/* update the length-so-far. This does NOT include the trailing '\0' */
-			*len += extralen;
-
-			/* add the newline to the end */
-			(*msgs)[*len-1] = '\n';
-			(*msgs)[*len  ] = '\0';
-		}
-		pthread_mutex_unlock( &mutex );
-	}
+	pdl_pthread_realloc_vsnprintf(msgs, len, extralen, pat, args, 1);
 
 	if(iswarn)
 	{
@@ -462,6 +437,37 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 	/* Exit the current pthread. Since this was a barf call, and we should be halting execution */
 	pthread_exit(NULL);
 	return 0;
+}
+
+void pdl_pthread_realloc_vsnprintf(char **p, size_t *len, size_t extralen, const char *pat, va_list *args, char add_newline) {
+  static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_lock( &mutex );
+  /* (For windows, we first #undef realloc
+     so that the system realloc function is used instead of the PerlMem_realloc
+     macro. This currently works fine, though could conceivably require some
+     tweaking in the future if it's found to cause any problem.) */
+#ifdef WIN32
+#undef realloc
+#endif
+/* FIXME: Common realloc mistake: 'msgs' nulled but not freed upon failure */
+  if (add_newline) extralen += 1;
+  *p = realloc(*p, *len + extralen + 1); /* +1 for '\0' at end */
+  vsnprintf(*p + *len, extralen + 1, pat, *args);
+  /* update the length-so-far. This does NOT include the trailing '\0' */
+  *len += extralen;
+  if (add_newline)(*p)[*len] = '\n';
+  (*p)[*len+1] = '\0';
+  pthread_mutex_unlock( &mutex );
+}
+
+void pdl_pthread_free(void *p) {
+#ifdef WIN32 /* same reasons as above */
+#undef free
+#endif
+  static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_lock( &mutex );
+  free(p);
+  pthread_mutex_unlock( &mutex );
 }
 
 /* copied from git@github.com:git/git.git 2.34-ish thread-util.c */

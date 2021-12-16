@@ -123,6 +123,8 @@ pdl_trans *pdl_find_mutatedtrans(pdl *it);
 /* Deferred barfing and warning when pthreading  */
 char pdl_pthread_main_thread();
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args);
+void pdl_pthread_realloc_vsnprintf(char **p, size_t *len, size_t extralen, const char *pat, va_list *args, char add_newline);
+void pdl_pthread_free(void *p);
 
 pdl_error pdl_add_threading_magic(pdl *,PDL_Indx nthdim, PDL_Indx nthreads);
 
