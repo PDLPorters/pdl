@@ -304,9 +304,6 @@ pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, 
 	pthread_t tp[thread->mag_nthr];
 	ptarg tparg[thread->mag_nthr];
 	pthread_key_create(&(ptr->key),NULL);
-
-	PDLDEBUG_f(printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
-
 	/* Get the pthread ID of this main thread we are in.
 	 *	Any barf, warn, etc calls in the spawned pthreads can use this
 	 *	to tell if its a spawned pthread
@@ -314,6 +311,7 @@ pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, 
 	pdl_main_pthreadID = pthread_self();
 	done_pdl_main_pthreadID_init = 1;
 
+	PDLDEBUG_f(printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
 	for(i=0; i<thread->mag_nthr; i++) {
 	    tparg[i].mag = ptr;
 	    tparg[i].func = func;
@@ -331,6 +329,7 @@ pdl_error pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, 
 	PDLDEBUG_f(printf("FINISHED THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
 
 	pthread_key_delete((ptr->key));
+	done_pdl_main_pthreadID_init = 0;
 
 	/* Remove pthread magic if we created in this function */
 	if( clearMagic ){
