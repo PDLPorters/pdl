@@ -22,16 +22,15 @@ do {                                            \
 
 /* modified from glibc printf(3) */
 pdl_error pdl_make_error(pdl_error_type e, const char *fmt, ...) {
-  pdl_error PDL_err = {e, NULL, 0};
-  int size = 0;
-  char *p = NULL;
+  pdl_error PDL_err = {PDL_EFATAL, "make_error problem", 0};
   va_list ap;
   /* Determine required size */
   va_start(ap, fmt);
-  size = vsnprintf(p, size, fmt, ap);
+  int size = vsnprintf(NULL, 0, fmt, ap);
   va_end(ap);
   if (size < 0) return PDL_err;
   size++;             /* For '\0' */
+  char *p = NULL;
   p = malloc(size);
   if (p == NULL) return PDL_err;
   va_start(ap, fmt);
@@ -41,9 +40,7 @@ pdl_error pdl_make_error(pdl_error_type e, const char *fmt, ...) {
     free(p);
     return PDL_err;
   }
-  PDL_err.message = p;
-  PDL_err.needs_free = 1;
-  return PDL_err;
+  return (pdl_error){e, p, 1};
 }
 
 pdl_error pdl_make_error_simple(pdl_error_type e, const char *msg) {
