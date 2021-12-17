@@ -667,7 +667,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 				PDL_RETERROR(PDL_err, pdl_changed(child,
 					PDL_PARENTDIMSCHANGED,0));
 			PDL_RETERROR(PDL_err, pdl_vaffinechanged(
-				trans->pdls[i],PDL_PARENTDATACHANGED));
+				child,PDL_PARENTDATACHANGED));
 		} else
 			PDL_RETERROR(PDL_err, pdl_changed(child,wd[i],0));
 	}
