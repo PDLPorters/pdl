@@ -393,13 +393,12 @@ set_c(x,pos,value)
          croak("Invalid position");
 
     pdl_barf_if_error(pdl_changesoon( x ));
-    pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
+    pdl_barf_if_error(pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
-	x->ndims,value);
-    if (PDL_VAFFOK(x))
-       pdl_barf_if_error(pdl_vaffinechanged(x, PDL_PARENTDATACHANGED));
-    else
-       pdl_changed( x , PDL_PARENTDATACHANGED , 0 );
+	x->ndims,value));
+    pdl_barf_if_error(PDL_VAFFOK(x)
+      ? pdl_vaffinechanged(x, PDL_PARENTDATACHANGED)
+      : pdl_changed(x, PDL_PARENTDATACHANGED, 0));
 
 BOOT:
 {
