@@ -28,7 +28,45 @@
 
 extern Core PDL;
 
-pdl_error pdl__ensure_trans(pdl_trans *trans,int what);
+/* Make sure transformation is done */
+pdl_error pdl__ensure_trans(pdl_trans *trans,int what)
+{
+	pdl_error PDL_err = {0, NULL, 0};
+	PDLDEBUG_f(printf("pdl__ensure_trans\n"));
+	PDL_TR_CHKMAGIC(trans);
+	PDL_Indx j, flag=what, par_pvaf=0;
+/* Make parents physical */
+	for(j=0; j<trans->vtable->nparents; j++) {
+		if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
+			par_pvaf++;
+		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
+	}
+	for(; j<trans->vtable->npdls; j++) {
+		if(trans->pdls[j]->trans_parent != trans) {
+			if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
+				par_pvaf++;
+			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
+		}
+		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
+	}
+	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(trans);
+	for(j=0; j<trans->vtable->npdls; j++)
+		if(trans->pdls[j]->trans_parent == trans)
+			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
+	if(flag & (PDL_PARENTDATACHANGED | PDL_PARENTDIMSCHANGED)) {
+		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
+		  /* Attention: this assumes affine = p2child */
+		  /* need to signal that redodims has already been called */
+		        trans->pdls[1]->state &= ~PDL_PARENTDIMSCHANGED;
+			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[1]));
+			PDL_RETERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
+		} else
+			READDATA(trans);
+	}
+	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
+		trans->pdls[j]->state &= ~PDL_ANYCHANGED;
+	return PDL_err;
+}
 
 pdl *pdl_null() {
 	PDL_Indx d[1] = {0};
@@ -838,52 +876,6 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
 		PDL_END_CHILDLOOP(it)
 	}
 	PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n",(void*)it));
-	return PDL_err;
-}
-
-/* Make sure transformation is done */
-pdl_error pdl__ensure_trans(pdl_trans *trans,int what)
-{
-	pdl_error PDL_err = {0, NULL, 0};
-	PDLDEBUG_f(printf("pdl__ensure_trans\n"));
-	int j;
-/* Make parents physical */
-	int flag=what;
-	int par_pvaf=0;
-	PDL_TR_CHKMAGIC(trans);
-	for(j=0; j<trans->vtable->nparents; j++) {
-		if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
-			par_pvaf++;
-		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
-	}
-	for(; j<trans->vtable->npdls; j++) {
-		if(trans->pdls[j]->trans_parent != trans) {
-			if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
-				par_pvaf++;
-			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
-		}
-		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
-	}
-	if(flag & PDL_PARENTDIMSCHANGED)
-		REDODIMS(trans);
-	for(j=0; j<trans->vtable->npdls; j++) {
-		if(trans->pdls[j]->trans_parent == trans)
-			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
-	}
-	if(flag & (PDL_PARENTDATACHANGED | PDL_PARENTDIMSCHANGED)) {
-		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
-		  /* Attention: this assumes affine = p2child */
-		  /* need to signal that redodims has already been called */
-		        trans->pdls[1]->state &= ~PDL_PARENTDIMSCHANGED;
-			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[1]));
-			PDL_RETERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
-		} else {
-			READDATA(trans);
-		}
-	}
-	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
-		trans->pdls[j]->state &= ~PDL_ANYCHANGED;
-	}
 	return PDL_err;
 }
 
