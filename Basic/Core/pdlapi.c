@@ -309,15 +309,6 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure)
 	return PDL_err;
 }
 
-pdl_error pdl__destroy_childtranses(pdl *it,int ensure) {
-	pdl_error PDL_err = {0, NULL, 0};
-	PDL_DECL_CHILDLOOP(it);
-	PDL_START_CHILDLOOP(it)
-		PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it),ensure));
-	PDL_END_CHILDLOOP(it)
-	return PDL_err;
-}
-
 /*
 
   A ndarray may be
@@ -392,7 +383,9 @@ pdl_error pdl_destroy(pdl *it) {
 	goto soft_destroy;
     }
 
-    PDL_RETERROR(PDL_err, pdl__destroy_childtranses(it,1));
+    PDL_START_CHILDLOOP(it)
+	PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it),1));
+    PDL_END_CHILDLOOP(it)
 
     pdl_trans *trans = it->trans_parent;
     if(trans) {
