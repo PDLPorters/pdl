@@ -310,7 +310,6 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure)
 }
 
 /*
-
   A ndarray may be
    - a parent of something - just ensure & destroy
    - a child of something - just ensure & destroy
@@ -323,13 +322,11 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure)
 
   When an ndarray is destroyed, it must tell its child_transes and/or
   parent.
-
 */
 pdl_error pdl_destroy(pdl *it) {
     pdl_error PDL_err = {0, NULL, 0};
     int nback=0,nback2=0,nforw=0;
     int nafn=0;
-    pdl_trans *curt;
     PDL_DECL_CHILDLOOP(it);
     PDL_CHKMAGIC(it);
     PDLDEBUG_f(printf("pdl_destroy %p\n",(void*)it);)
@@ -346,11 +343,10 @@ pdl_error pdl_destroy(pdl *it) {
 
     /* 1. count the child_transes that do flow */
     PDL_START_CHILDLOOP(it)
-	curt = PDL_CHILDLOOP_THISCHILD(it);
-	if(PDL_CHILDLOOP_THISCHILD(it)->flags & (PDL_ITRANS_DO_DATAFLOW_F|
-						 PDL_ITRANS_DO_DATAFLOW_B))
+	pdl_trans *curt = PDL_CHILDLOOP_THISCHILD(it);
+	if(curt->flags & (PDL_ITRANS_DO_DATAFLOW_F| PDL_ITRANS_DO_DATAFLOW_B))
 		nforw ++;
-	if(PDL_CHILDLOOP_THISCHILD(it)->flags & PDL_ITRANS_DO_DATAFLOW_B)
+	if(curt->flags & PDL_ITRANS_DO_DATAFLOW_B)
 	{
 		nback ++;
 		/* Cases where more than two in relationship
@@ -358,11 +354,8 @@ pdl_error pdl_destroy(pdl *it) {
 		if(curt->vtable->npdls > 2) nback2++;
 	}
 
-	if(PDL_CHILDLOOP_THISCHILD(it)->flags & PDL_ITRANS_ISAFFINE) {
-		if(!(curt->pdls[1]->state & PDL_ALLOCATED)) {
-			nafn ++;
-		}
-	}
+	if ((curt->flags & PDL_ITRANS_ISAFFINE) && !(curt->pdls[1]->state & PDL_ALLOCATED))
+		nafn ++;
     PDL_END_CHILDLOOP(it)
 
 /* First case where we may not destroy */
@@ -388,17 +381,12 @@ pdl_error pdl_destroy(pdl *it) {
     PDL_END_CHILDLOOP(it)
 
     pdl_trans *trans = it->trans_parent;
-    if(trans) {
+    if (trans)
         /* Ensure only if there are other children! */
       PDL_RETERROR(PDL_err, pdl_destroytransform(trans,trans->vtable->npdls
 				      - trans->vtable->nparents > 1));
-    }
 
-/* Here, this is a child but has no children */
-    goto hard_destroy;
-
-
-   hard_destroy:
+/* Here, this is a child but has no children - fall through to hard_destroy */
 
    PDL_RETERROR(PDL_err, pdl__free(it));
    PDLDEBUG_f(printf("pdl_destroy end %p\n",(void*)it);)
