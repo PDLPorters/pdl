@@ -597,6 +597,7 @@ pdl_error pdl_make_physdims(pdl *it) {
 pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 {
 	pdl_error PDL_err = {0, NULL, 0};
+	PDLDEBUG_f(printf("pdl_set_trans_childtrans\n"));
 	PDL_RETERROR(PDL_err, pdl__addchildtrans(it,trans,nth));
 /* Determine if we want to do dataflow */
 	trans->flags |= (
@@ -618,21 +619,18 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDLDEBUG_f(pdl_dump_trans_fixspace(trans,3));
   pdl_transvtable *vtable = trans->vtable;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
-  int fflag=0;
-  int cfflag=0;
-  int pfflag=0;
+  int fflag=0, cfflag=0, pfflag=0;
   PDL_TR_CHKMAGIC(trans);
 /* Then, set our children. This is: */
 /* First, determine whether any of our children already have
  * a parent, and whether they need to be updated. If this is
  * the case, we need to do some thinking. */
-  for(i=nparents; i<npdls; i++) {
+  for(i=0; i<nparents; i++)
+	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) pfflag++;
+  for(; i<npdls; i++) {
 	if(trans->pdls[i]->trans_parent) fflag ++;
 	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) cfflag++;
   }
-  for(i=0; i<nparents; i++)
-	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY)
-		pfflag++;
 /* If children are flowing, croak. It's too difficult to handle
  * properly */
   if(cfflag)
@@ -640,25 +638,34 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 /* Same, if children have trans yet parents are flowing */
   if(pfflag && fflag)
 	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now (2)\n");
-/* Now, if parents are not flowing, just execute the transformation */
-  if(!pfflag && !(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY)) {
-	int wd[npdls];
-	/* mark this transform as non mutual in case we croak during
-	   ensuring it */
-	  trans->flags |= PDL_ITRANS_NONMUTUAL;
-	  for(i=nparents; i<npdls; i++) {
-		pdl *child = trans->pdls[i];
-		wd[i]=(child->state & PDL_NOMYDIMS ?
-		 PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
+  char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
+  if (dataflow) {
+	  for(i=0; i<nparents; i++)
+		PDL_RETERROR(PDL_err, pdl_set_trans_childtrans(trans->pdls[i],trans,i));
+	  if(!(trans->flags & PDL_ITRANS_TWOWAY))
+		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
+  } else
+	  trans->flags |= PDL_ITRANS_NONMUTUAL; /* in case we croak during ensuring it */
+  int wd[npdls];
+  for(i=nparents; i<npdls; i++) {
+	pdl *child = trans->pdls[i];
+	wd[i]=(child->state & PDL_NOMYDIMS ?
+	    PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
+	if (dataflow) {
+		/* This is because for "+=" (a = a + b) we must check for
+		   previous parent transformations and mutate if they exist
+		   if no dataflow. */
+		child->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
+	} else
 		PDL_RETERROR(PDL_err, pdl_changesoon(child));
-		/* mark all pdls that have been given as nulls (PDL_NOMYDIMS)
-		   as getting their dims from this trans */
-		if(child->state & PDL_NOMYDIMS) {
-			child->state &= ~PDL_NOMYDIMS;
-			child->state |= PDL_MYDIMS_TRANS;
-			child->trans_parent = trans;
-		}
-	  }
+	char isnull = !!(child->state & PDL_NOMYDIMS);
+	if (dataflow || isnull) child->trans_parent = trans;
+	if (isnull) {
+		child->state &= ~PDL_NOMYDIMS;
+		child->state |= PDL_MYDIMS_TRANS;
+	}
+  }
+  if (!dataflow) {
 	/* now actually perform the transformation, i.e. call
 	   transform's redodims and readdata vtable entries
 	 */
@@ -674,24 +681,6 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		    PDL_RETERROR(PDL_err, pdl_vaffinechanged(child,PDL_PARENTDATACHANGED));
 	}
 	PDL_RETERROR(PDL_err, pdl_destroytransform(trans,0));
-  } else { /* do the full flowing transform */
-          PDLDEBUG_f(printf("make_trans_mutual flowing!\n"));
-	  for(i=0; i<nparents; i++)
-		PDL_RETERROR(PDL_err, pdl_set_trans_childtrans(trans->pdls[i],trans,i));
-	  for(i=nparents; i<npdls; i++) {
-		pdl *child = trans->pdls[i];
-		child->trans_parent = trans;
-		/* This is because for "+=" (a = a + b) we must check for
-		   previous parent transformations and mutate if they exist
-		   if no dataflow. */
-		child->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
-		if(child->state & PDL_NOMYDIMS) {
-			child->state &= ~PDL_NOMYDIMS;
-			child->state |= PDL_MYDIMS_TRANS;
-		}
-	  }
-	  if(!(trans->flags & PDL_ITRANS_TWOWAY))
-		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
   }
   PDLDEBUG_f(printf("make_trans_mutual_exit %p\n",(void*)trans));
   return PDL_err;
