@@ -29,7 +29,7 @@
 extern Core PDL;
 
 /* Make sure transformation is done */
-pdl_error pdl__ensure_trans(pdl_trans *trans,int what)
+pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDLDEBUG_f(printf("pdl__ensure_trans\n"));
@@ -63,8 +63,17 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what)
 		} else
 			READDATA(trans);
 	}
-	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
-		trans->pdls[j]->state &= ~PDL_ANYCHANGED;
+	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
+		pdl *child = trans->pdls[j];
+		child->state &= ~PDL_ANYCHANGED;
+		if (!wd) continue;
+		char isvaffine = (PDL_VAFFOK(child) &&
+		    VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j));
+		if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
+		    PDL_RETERROR(PDL_err, pdl_changed(child,wd[j],0));
+		if (isvaffine)
+		    PDL_RETERROR(PDL_err, pdl_changed(child->vafftrans->from,PDL_PARENTDATACHANGED,0));
+	}
 	return PDL_err;
 }
 
@@ -247,7 +256,7 @@ void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	it->trans_parent = 0;
 }
 
-pdl_error pdl_destroytransform(pdl_trans *trans,int ensure)
+pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_TR_CHKMAGIC(trans);
@@ -259,7 +268,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure)
 	if(100 < trans->vtable->npdls)
 		return pdl_make_error_simple(PDL_EFATAL, "Huge trans");
 	if(ensure)
-		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED));
+		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
 	PDL_Indx j;
 	pdl *destbuffer[100];
 	int ndest = 0;
@@ -377,14 +386,14 @@ pdl_error pdl_destroy(pdl *it) {
     }
 
     PDL_START_CHILDLOOP(it)
-	PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it),1));
+	PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it),1,NULL));
     PDL_END_CHILDLOOP(it)
 
     pdl_trans *trans = it->trans_parent;
     if (trans)
         /* Ensure only if there are other children! */
       PDL_RETERROR(PDL_err, pdl_destroytransform(trans,trans->vtable->npdls
-				      - trans->vtable->nparents > 1));
+				      - trans->vtable->nparents > 1,NULL));
 
 /* Here, this is a child but has no children - fall through to hard_destroy */
 
@@ -644,23 +653,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 	if (isnull)
 	    child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
-  if (!dataflow) {
-	/* now actually perform the transformation, i.e. call
-	   transform's redodims and readdata vtable entries
-	 */
-	PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,PDL_PARENTDIMSCHANGED)); /* XXX Why? */
-	/* Es ist vollbracht */
-	for(i=nparents; i<npdls; i++) {
-		pdl *child = trans->pdls[i];
-		char isvaffine = (PDL_VAFFOK(child) &&
-		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,i));
-		if (!isvaffine || (wd[i] & PDL_PARENTDIMSCHANGED))
-		    PDL_RETERROR(PDL_err, pdl_changed(child,wd[i],0));
-		if (isvaffine)
-		    PDL_RETERROR(PDL_err, pdl_changed(child->vafftrans->from,PDL_PARENTDATACHANGED,0));
-	}
-	PDL_RETERROR(PDL_err, pdl_destroytransform(trans,0));
-  }
+  if (!dataflow)
+	PDL_RETERROR(PDL_err, pdl_destroytransform(trans,1,wd));
   PDLDEBUG_f(printf("make_trans_mutual_exit %p\n",(void*)trans));
   return PDL_err;
 } /* pdl_make_trans_mutual() */
@@ -754,7 +748,7 @@ pdl_error pdl_children_changesoon_c(pdl *it)
 		for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
 		    PDL_RETERROR(PDL_err, pdl_children_changesoon_c(t->pdls[i]));
 	    else
-		PDL_RETERROR(PDL_err, pdl_destroytransform(t,1));
+		PDL_RETERROR(PDL_err, pdl_destroytransform(t,1,NULL));
 	PDL_END_CHILDLOOP(it)
 	return PDL_err;
 }
@@ -774,9 +768,8 @@ pdl_error pdl_changesoon(pdl *it)
 	    for(i=0; i<it->trans_parent->vtable->nparents; i++)
 		PDL_RETERROR(PDL_err, pdl_changesoon(it->trans_parent->pdls[i]));
 	    return PDL_err;
-	} else {
-	    PDL_RETERROR(PDL_err, pdl_destroytransform(it->trans_parent,1));
-	}
+	} else
+	    PDL_RETERROR(PDL_err, pdl_destroytransform(it->trans_parent,1,NULL));
     }
     PDL_RETERROR(PDL_err, pdl_children_changesoon_c(it));
     return PDL_err;
@@ -1016,7 +1009,7 @@ pdl_error pdl_set_datatype(pdl *a, int datatype)
     pdl_error PDL_err = {0, NULL, 0};
     PDL_RETERROR(PDL_err, pdl_make_physical(a));
     if(a->trans_parent)
-	    PDL_RETERROR(PDL_err, pdl_destroytransform(a->trans_parent,1));
+	PDL_RETERROR(PDL_err, pdl_destroytransform(a->trans_parent,1,NULL));
     PDL_RETERROR(PDL_err, pdl_converttype( a, datatype ));
     return PDL_err;
 }
@@ -1026,7 +1019,7 @@ pdl_error pdl_sever(pdl *src)
     pdl_error PDL_err = {0, NULL, 0};
     if (!src->trans_parent) return PDL_err;
     PDL_RETERROR(PDL_err, pdl_make_physvaffine(src));
-    PDL_RETERROR(PDL_err, pdl_destroytransform(src->trans_parent,1));
+    PDL_RETERROR(PDL_err, pdl_destroytransform(src->trans_parent,1,NULL));
     return PDL_err;
 }
 
