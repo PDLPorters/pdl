@@ -206,8 +206,7 @@ PDL_GENERICLIST(X)
 #define  PDL_PARENTDIMSCHANGED   0x0004
   /* Physical data representation of the parent has changed (e.g.           */
   /* physical transposition), so incs etc. need to be recalculated.         */
-#define  PDL_PARENTREPRCHANGED   0x0008
-#define  PDL_ANYCHANGED          (PDL_PARENTDATACHANGED|PDL_PARENTDIMSCHANGED|PDL_PARENTREPRCHANGED)
+#define  PDL_ANYCHANGED          (PDL_PARENTDATACHANGED|PDL_PARENTDIMSCHANGED)
   /* Dataflow tracking flags -- F/B for forward/back.  These get set        */
   /* by transformations when they are set up.                               */
 #define  PDL_DATAFLOW_F          0x0010
@@ -243,7 +242,6 @@ PDL_GENERICLIST(X)
  X(PDL_ALLOCATED) \
  X(PDL_PARENTDATACHANGED) \
  X(PDL_PARENTDIMSCHANGED) \
- X(PDL_PARENTREPRCHANGED) \
  X(PDL_DATAFLOW_F) \
  X(PDL_DATAFLOW_B) \
  X(PDL_NOMYDIMS) \

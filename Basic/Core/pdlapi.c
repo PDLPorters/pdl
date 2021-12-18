@@ -541,14 +541,14 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 pdl_error pdl_make_physdims(pdl *it) {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
-	int c = (it->state & (PDL_PARENTDIMSCHANGED | PDL_PARENTREPRCHANGED)) ;
+	int c = (it->state & PDL_PARENTDIMSCHANGED) ;
 	PDLDEBUG_f(printf("make_physdims %p (%X)\n",(void*)it, c));
         PDL_CHKMAGIC(it);
 	if(!c) {
 	  PDLDEBUG_f(printf("make_physdims exit (NOP) %p\n",(void*)it));
 	  return PDL_err;
 	}
-	it->state &= ~(PDL_PARENTDIMSCHANGED | PDL_PARENTREPRCHANGED);
+	it->state &= ~PDL_PARENTDIMSCHANGED;
 	/* the fact that a PARENTXXXCHANGED flag is set seems
 	   to imply that this pdl has an associated trans ? */
 	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
@@ -753,8 +753,7 @@ pdl_error pdl_make_physical(pdl *it) {
          * redodims if !(it->state & PDL_ALLOCATED)??????
          */
 	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
-	   it->state & PDL_PARENTDIMSCHANGED ||
-	   it->state & PDL_PARENTREPRCHANGED)
+	   it->state & PDL_PARENTDIMSCHANGED)
 		REDODIMS(it->trans_parent);
 	if(!(it->state & PDL_ALLOCATED)) {
 		PDL_RETERROR(PDL_err, pdl_allocdata(it));
@@ -908,9 +907,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what)
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		  /* Attention: this assumes affine = p2child */
 		  /* need to signal that redodims has already been called */
-		  /* is it correct to also unset PDL_PARENTREPRCHANGED? */
-		        trans->pdls[1]->state &= ~(PDL_PARENTDIMSCHANGED |
-						  PDL_PARENTREPRCHANGED);
+		        trans->pdls[1]->state &= ~PDL_PARENTDIMSCHANGED;
 			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[1]));
 			PDL_RETERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
 		} else {
