@@ -128,7 +128,6 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(propagate_badvalue, void, (pdl *it)) \
   X(changesoon, pdl_error, (pdl *it)) \
   X(changed, pdl_error, (pdl *it, int what, int recursing)) \
-  X(vaffinechanged, pdl_error, (pdl *it, int what)) \
   X(get_pdl_badvalue, PDL_Anyval, (pdl *it)) \
   X(get_badvalue, PDL_Anyval, (int datatype)) \
   X(set_datatype, pdl_error, (pdl *a, int datatype)) \

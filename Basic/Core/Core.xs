@@ -396,9 +396,7 @@ set_c(x,pos,value)
     pdl_barf_if_error(pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims,value));
-    pdl_barf_if_error(PDL_VAFFOK(x)
-      ? pdl_vaffinechanged(x, PDL_PARENTDATACHANGED)
-      : pdl_changed(x, PDL_PARENTDATACHANGED, 0));
+    pdl_barf_if_error(pdl_changed(PDL_VAFFOK(x)?x->vafftrans->from:x, PDL_PARENTDATACHANGED, 0));
 
 BOOT:
 {

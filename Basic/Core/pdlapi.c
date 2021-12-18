@@ -657,7 +657,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		if (!isvaffine || (wd[i] & PDL_PARENTDIMSCHANGED))
 		    PDL_RETERROR(PDL_err, pdl_changed(child,wd[i],0));
 		if (isvaffine)
-		    PDL_RETERROR(PDL_err, pdl_vaffinechanged(child,PDL_PARENTDATACHANGED));
+		    PDL_RETERROR(PDL_err, pdl_changed(child->vafftrans->from,PDL_PARENTDATACHANGED,0));
 	}
 	PDL_RETERROR(PDL_err, pdl_destroytransform(trans,0));
   }
@@ -780,18 +780,6 @@ pdl_error pdl_changesoon(pdl *it)
     }
     PDL_RETERROR(PDL_err, pdl_children_changesoon_c(it));
     return PDL_err;
-}
-
-/* what should always be PARENTDATA */
-pdl_error pdl_vaffinechanged(pdl *it, int what)
-{
-	pdl_error PDL_err = {0, NULL, 0};
-	if(!PDL_VAFFOK(it)) {
-		return pdl_make_error_simple(PDL_EUSERERROR, "pdl_vaffinechanged: used on non-vaffine!");
-	}
-	PDLDEBUG_f(printf("pdl_vaffinechanged: writing back data, triggered by pdl %p, using parent %p\n",(void*)it,(void*)(it->vafftrans->from))); 
-	PDL_RETERROR(PDL_err, pdl_changed(it->vafftrans->from,what,0));
-	return PDL_err;
 }
 
 pdl_error pdl_changed(pdl *it, int what, int recursing)

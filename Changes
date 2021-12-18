@@ -16,6 +16,7 @@
 - GIS::Proj inplace funcs set output bad if any input bad
 - switched GIS::Proj to PROJ 6 API
 - PDL.make_error{,_simple} for error-handling instead of croak et al - can't just return as generated functions no longer return void
+- remove PDL.vaffinechanged
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal
