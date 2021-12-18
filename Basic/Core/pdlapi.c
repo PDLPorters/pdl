@@ -583,8 +583,7 @@ pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 /* This is because for "+=" (a = a + b) we must check for
    previous parent transformations and mutate if they exist
    if no dataflow. */
-
-pdl_error pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,PDL_Indx nth)
+pdl_error pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	if((it->trans_parent || is_parent_of(it,trans))
@@ -593,7 +592,6 @@ pdl_error pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,PDL_Indx nth)
 	}
 	it->trans_parent = trans;
 	it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
-	trans->pdls[nth] = it;
 	return PDL_err;
 }
 
@@ -674,7 +672,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		PDL_RETERROR(PDL_err, pdl_set_trans_childtrans(trans->pdls[i],trans,i));
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 		pdl *child = trans->pdls[i];
-		PDL_RETERROR(PDL_err, pdl_set_trans_parenttrans(child,trans,i));
+		PDL_RETERROR(PDL_err, pdl_set_trans_parenttrans(child,trans));
 		if(child->state & PDL_NOMYDIMS) {
 			child->state &= ~PDL_NOMYDIMS;
 			child->state |= PDL_MYDIMS_TRANS;
