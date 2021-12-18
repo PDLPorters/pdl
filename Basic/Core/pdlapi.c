@@ -28,7 +28,7 @@
 
 extern Core PDL;
 
-pdl_error pdl__ensure_trans(pdl_trans *trans,int what) ;
+pdl_error pdl__ensure_trans(pdl_trans *trans,int what);
 
 static int is_parent_of(pdl *it,pdl_trans *trans) {
 	int i;
@@ -528,7 +528,7 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 		}
 		if(!c->next) break;
 		c=c->next;
-	} while(1) ;
+	} while(1);
 	c->next = malloc(sizeof(pdl_child_transes));
 	if (!c->next) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
 	c->next->trans[0] = trans;
@@ -541,7 +541,7 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 pdl_error pdl_make_physdims(pdl *it) {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
-	int c = (it->state & PDL_PARENTDIMSCHANGED) ;
+	int c = (it->state & PDL_PARENTDIMSCHANGED);
 	PDLDEBUG_f(printf("make_physdims %p (%X)\n",(void*)it, c));
         PDL_CHKMAGIC(it);
 	if(!c) {
@@ -575,10 +575,9 @@ pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_RETERROR(PDL_err, pdl__addchildtrans(it,trans,nth));
 /* Determine if we want to do dataflow */
-	if(it->state & PDL_DATAFLOW_F)
-		trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
-	if(it->state & PDL_DATAFLOW_B)
-		trans->flags |= PDL_ITRANS_DO_DATAFLOW_B;
+	trans->flags |= (
+	    (it->state & PDL_DATAFLOW_F ? PDL_ITRANS_DO_DATAFLOW_F : 0) |
+	    (it->state & PDL_DATAFLOW_B ? PDL_ITRANS_DO_DATAFLOW_B : 0));
 	return PDL_err;
 }
 
@@ -594,7 +593,7 @@ pdl_error pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,PDL_Indx nth)
 		return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, families not allowed now (i.e. You cannot modify dataflowing pdl)\n");
 	}
 	it->trans_parent = trans;
-	it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED ;
+	it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
 	trans->pdls[nth] = it;
 	return PDL_err;
 }
