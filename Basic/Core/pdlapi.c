@@ -521,13 +521,13 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 	trans->pdls[nth] = it;
 	c = &it->child_transes;
 	do {
-		for(i=0; i<PDL_NCHILDREN; i++) {
-			if(! c->trans[i]) {
-				c->trans[i] = trans; return PDL_err;
-			}
-		}
-		if(!c->next) break;
-		c=c->next;
+	    if (c->next) { c=c->next; continue; } else {
+		for(i=0; i<PDL_NCHILDREN; i++)
+		    if(! c->trans[i]) {
+			c->trans[i] = trans; return PDL_err;
+		    }
+		break;
+	    }
 	} while(1);
 	c->next = malloc(sizeof(pdl_child_transes));
 	if (!c->next) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
