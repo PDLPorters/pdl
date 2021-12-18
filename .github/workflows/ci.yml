@@ -50,7 +50,7 @@ jobs:
           - perl-version: '5.26'
             os: windows-latest
           - perl-version: '5.30'
-            os: macos-11 # clang 12.0.0 segfaults on "latest" (= macos-10)
+            os: macos-latest
     steps:
       - uses: actions/checkout@v2
       - name: 'ci-dist: target-setup-perl'
