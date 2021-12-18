@@ -517,9 +517,8 @@ PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
 pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	int i; pdl_child_transes *c;
+	int i; pdl_child_transes *c = &it->child_transes;
 	trans->pdls[nth] = it;
-	c = &it->child_transes;
 	do {
 	    if (c->next) { c=c->next; continue; } else {
 		for(i=0; i<PDL_NCHILDREN; i++)
@@ -529,12 +528,12 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
 		break;
 	    }
 	} while(1);
-	c->next = malloc(sizeof(pdl_child_transes));
-	if (!c->next) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
-	c->next->trans[0] = trans;
+	c = c->next = malloc(sizeof(pdl_child_transes));
+	if (!c) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
+	c->trans[0] = trans;
 	for(i=1; i<PDL_NCHILDREN; i++)
-		c->next->trans[i] = 0;
-	c->next->next = 0;
+		c->trans[i] = 0;
+	c->next = 0;
 	return PDL_err;
 }
 
