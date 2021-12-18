@@ -740,18 +740,15 @@ pdl_error pdl_make_physical(pdl *it) {
 pdl_error pdl_children_changesoon_c(pdl *it)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	pdl_trans *t;
 	int i;
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
-		t = PDL_CHILDLOOP_THISCHILD(it);
-		if(!(t->flags & PDL_ITRANS_DO_DATAFLOW_F)) {
-			PDL_RETERROR(PDL_err, pdl_destroytransform(t,1));
-		} else {
-			for(i=t->vtable->nparents; i<t->vtable->npdls; i++) {
-				PDL_RETERROR(PDL_err, pdl_children_changesoon_c(t->pdls[i]));
-			}
-		}
+	    pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
+	    if (t->flags & PDL_ITRANS_DO_DATAFLOW_F)
+		for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
+		    PDL_RETERROR(PDL_err, pdl_children_changesoon_c(t->pdls[i]));
+	    else
+		PDL_RETERROR(PDL_err, pdl_destroytransform(t,1));
 	PDL_END_CHILDLOOP(it)
 	return PDL_err;
 }
@@ -762,21 +759,21 @@ pdl_error pdl_children_changesoon_c(pdl *it)
  */
 pdl_error pdl_changesoon(pdl *it)
 {
-	pdl_error PDL_err = {0, NULL, 0};
-	unsigned int i;
-	if(it->trans_parent &&
-	   !(it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B)) {
-		PDL_RETERROR(PDL_err, pdl_destroytransform(it->trans_parent,1));
-	} else if(it->trans_parent) {
-		if(!(it->trans_parent->flags & PDL_ITRANS_TWOWAY)) {
-			return pdl_make_error_simple(PDL_EUSERERROR, "PDL: Internal error: Trying to reverse irreversible trans");
-		}
-		for(i=0; i<it->trans_parent->vtable->nparents; i++)
-			PDL_RETERROR(PDL_err, pdl_changesoon(it->trans_parent->pdls[i]));
-		return PDL_err;
+    pdl_error PDL_err = {0, NULL, 0};
+    unsigned int i;
+    if (it->trans_parent) {
+	if (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B) {
+	    if(!(it->trans_parent->flags & PDL_ITRANS_TWOWAY))
+		return pdl_make_error_simple(PDL_EUSERERROR, "PDL: Internal error: Trying to reverse irreversible trans");
+	    for(i=0; i<it->trans_parent->vtable->nparents; i++)
+		PDL_RETERROR(PDL_err, pdl_changesoon(it->trans_parent->pdls[i]));
+	    return PDL_err;
+	} else {
+	    PDL_RETERROR(PDL_err, pdl_destroytransform(it->trans_parent,1));
 	}
-	PDL_RETERROR(PDL_err, pdl_children_changesoon_c(it));
-	return PDL_err;
+    }
+    PDL_RETERROR(PDL_err, pdl_children_changesoon_c(it));
+    return PDL_err;
 }
 
 /* what should always be PARENTDATA */
