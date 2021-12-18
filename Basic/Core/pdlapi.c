@@ -572,17 +572,6 @@ pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	return PDL_err;
 }
 
-/* This is because for "+=" (a = a + b) we must check for
-   previous parent transformations and mutate if they exist
-   if no dataflow. */
-pdl_error pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans)
-{
-	pdl_error PDL_err = {0, NULL, 0};
-	it->trans_parent = trans;
-	it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
-	return PDL_err;
-}
-
 /* Called with a filled pdl_trans struct.
  * Sets the parent and trans fields of the ndarrays correctly,
  * creating families and the like if necessary.
@@ -660,7 +649,11 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		PDL_RETERROR(PDL_err, pdl_set_trans_childtrans(trans->pdls[i],trans,i));
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 		pdl *child = trans->pdls[i];
-		PDL_RETERROR(PDL_err, pdl_set_trans_parenttrans(child,trans));
+		child->trans_parent = trans;
+		/* This is because for "+=" (a = a + b) we must check for
+		   previous parent transformations and mutate if they exist
+		   if no dataflow. */
+		child->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
 		if(child->state & PDL_NOMYDIMS) {
 			child->state &= ~PDL_NOMYDIMS;
 			child->state |= PDL_MYDIMS_TRANS;
