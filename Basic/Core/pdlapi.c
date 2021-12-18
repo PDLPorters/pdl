@@ -576,7 +576,10 @@ pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 {
   pdl_error PDL_err = {0, NULL, 0};
-  PDL_Indx i;
+  PDLDEBUG_f(printf("make_trans_mutual %p\n",(void*)trans));
+  PDLDEBUG_f(pdl_dump_trans_fixspace(trans,3));
+  pdl_transvtable *vtable = trans->vtable;
+  PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
   int fflag=0;
   int cfflag=0;
   int pfflag=0;
@@ -585,13 +588,11 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 /* First, determine whether any of our children already have
  * a parent, and whether they need to be updated. If this is
  * the case, we need to do some thinking. */
-  PDLDEBUG_f(printf("make_trans_mutual %p\n",(void*)trans));
-  PDLDEBUG_f(pdl_dump_trans_fixspace(trans,3));
-  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
+  for(i=nparents; i<npdls; i++) {
 	if(trans->pdls[i]->trans_parent) fflag ++;
 	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) cfflag++;
   }
-  for(i=0; i<trans->vtable->nparents; i++)
+  for(i=0; i<nparents; i++)
 	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY)
 		pfflag++;
 /* If children are flowing, croak. It's too difficult to handle
@@ -603,11 +604,11 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now (2)\n");
 /* Now, if parents are not flowing, just execute the transformation */
   if(!pfflag && !(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY)) {
-	int wd[trans->vtable->npdls];
+	int wd[npdls];
 	/* mark this transform as non mutual in case we croak during
 	   ensuring it */
 	  trans->flags |= PDL_ITRANS_NONMUTUAL;
-	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
+	  for(i=nparents; i<npdls; i++) {
 		pdl *child = trans->pdls[i];
 		wd[i]=(child->state & PDL_NOMYDIMS ?
 		 PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
@@ -625,24 +626,21 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 	 */
 	PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,PDL_PARENTDIMSCHANGED)); /* XXX Why? */
 	/* Es ist vollbracht */
-	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
+	for(i=nparents; i<npdls; i++) {
 		pdl *child = trans->pdls[i];
-		if( PDL_VAFFOK(child) &&
-		    VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) )  {
-			if(wd[i] & PDL_PARENTDIMSCHANGED)
-				PDL_RETERROR(PDL_err, pdl_changed(child,
-					PDL_PARENTDIMSCHANGED,0));
-			PDL_RETERROR(PDL_err, pdl_vaffinechanged(
-				child,PDL_PARENTDATACHANGED));
-		} else
-			PDL_RETERROR(PDL_err, pdl_changed(child,wd[i],0));
+		char isvaffine = (PDL_VAFFOK(child) &&
+		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,i));
+		if (!isvaffine || (wd[i] & PDL_PARENTDIMSCHANGED))
+		    PDL_RETERROR(PDL_err, pdl_changed(child,wd[i],0));
+		if (isvaffine)
+		    PDL_RETERROR(PDL_err, pdl_vaffinechanged(child,PDL_PARENTDATACHANGED));
 	}
 	PDL_RETERROR(PDL_err, pdl_destroytransform(trans,0));
   } else { /* do the full flowing transform */
           PDLDEBUG_f(printf("make_trans_mutual flowing!\n"));
-	  for(i=0; i<trans->vtable->nparents; i++)
+	  for(i=0; i<nparents; i++)
 		PDL_RETERROR(PDL_err, pdl_set_trans_childtrans(trans->pdls[i],trans,i));
-	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
+	  for(i=nparents; i<npdls; i++) {
 		pdl *child = trans->pdls[i];
 		child->trans_parent = trans;
 		/* This is because for "+=" (a = a + b) we must check for
@@ -665,8 +663,8 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_redodims_default "));
   PDLDEBUG_f(pdl_dump_trans_fixspace(trans,0));
-  PDL_Indx creating[trans->vtable->npdls];
   pdl_transvtable *vtable = trans->vtable;
+  PDL_Indx creating[vtable->npdls];
   pdl **pdls = trans->pdls;
   PDL_Indx i;
   for (i=0; i<vtable->npdls; i++)
