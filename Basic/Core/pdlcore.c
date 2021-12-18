@@ -1,4 +1,3 @@
-#undef FOODEB
 #include "pdl.h"      /* Data structure declarations */
 #define PDL_IN_CORE /* access funcs directly not through PDL-> */
 #include "pdlcore.h"  /* Core declarations */
@@ -740,25 +739,27 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
       } \
   } /* end of padding IF statement */ \
   return undef_count; \
-} \
- \
-/* \
- * pdl_setav_<type> loads a new PDL with values from a Perl AV, another PDL, or \
- * a mix of both.  Heterogeneous sizes are handled by padding the new PDL's \
- * values out to size with the undefval.  It is only called by pdl_setav in Core.XS, \
- * via the trampoline pdl_from_array just above. pdl_from_array dispatches execution \
- * to pdl_setav_<type> according to the type of the destination PDL.  \
- * \
- * The code is complicated by the "bag-of-stuff" nature of AVs.  We handle  \
- * Perl scalars, AVs, *and* PDLs (via pdl_kludge_copy). \
- *  \
- *   -  dest_data is the data pointer from a PDL \
- *   -  av is the array ref (or PDL) to use to fill the data with, \
- *   -  dest_dims is the dimlist \
- *   -  ndims is the size of the dimlist \
- *   -  level is the recursion level, which is also the dimension that we are filling \
- */ \
- \
+}
+PDL_GENERICLIST2(PDL_KLUDGE_COPY_X, INNERLOOP_X)
+#undef PDL_KLUDGE_COPY_X
+
+/*
+ * pdl_setav_<type> loads a new PDL with values from a Perl AV, another PDL, or
+ * a mix of both.  Heterogeneous sizes are handled by padding the new PDL's
+ * values out to size with the undefval.  It is only called by pdl_setav in Core.XS,
+ * via the trampoline pdl_from_array just above. pdl_from_array dispatches execution
+ * to pdl_setav_<type> according to the type of the destination PDL.
+ *
+ * The code is complicated by the "bag-of-stuff" nature of AVs.  We handle
+ * Perl scalars, AVs, *and* PDLs (via pdl_kludge_copy).
+ *
+ *   -  dest_data is the data pointer from a PDL
+ *   -  av is the array ref (or PDL) to use to fill the data with,
+ *   -  dest_dims is the dimlist
+ *   -  ndims is the size of the dimlist
+ *   -  level is the recursion level, which is also the dimension that we are filling
+ */
+#define PDL_SETAV_X(X, datatype_out, ctype_out, ppsym_out, shortctype, defbval) \
 PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
                      PDL_Indx* dest_dims, int ndims, int level, ctype_out undefval, pdl *dest_pdl) \
 { \
@@ -831,8 +832,8 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
   return undef_count; \
 }
 
-PDL_GENERICLIST2(PDL_KLUDGE_COPY_X, INNERLOOP_X)
-#undef PDL_KLUDGE_COPY_X
+PDL_GENERICLIST2(PDL_SETAV_X, INNERLOOP_X)
+#undef PDL_SETAV_X
 #undef INNERLOOP_X
 
 SV *pdl_hdr_copy(SV *hdrp) {
