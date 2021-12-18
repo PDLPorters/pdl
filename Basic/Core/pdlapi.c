@@ -212,25 +212,22 @@ void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 pdl_error pdl_destroytransform(pdl_trans *trans,int ensure)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	PDL_Indx j;
-	pdl *pdl, *destbuffer[100];
-	int ndest = 0;
+	PDL_TR_CHKMAGIC(trans);
 	int ismutual = !(trans->flags & PDL_ITRANS_NONMUTUAL);
 	PDLDEBUG_f(printf("pdl_destroytransform %p (ensure %d, ismutual %d)\n",
 			  (void*)trans,ensure,ismutual));
-	if(100 < trans->vtable->npdls) {
+	if(!trans->vtable)
+		return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
+	if(100 < trans->vtable->npdls)
 		return pdl_make_error_simple(PDL_EFATAL, "Huge trans");
-	}
-	PDL_TR_CHKMAGIC(trans);
-	if(!trans->vtable) {
-	  return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
-	}
-	if(ensure) {
+	if(ensure)
 		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED));
-	}
+	PDL_Indx j;
+	pdl *destbuffer[100];
+	int ndest = 0;
 	if (ismutual) {
 	  for(j=0; j<trans->vtable->nparents; j++) {
-	    pdl = trans->pdls[j];
+	    pdl *pdl = trans->pdls[j];
 	    if(!pdl) continue;
 	    PDL_CHKMAGIC(pdl);
 	    pdl__removechildtrans(pdl,trans,j,1);
@@ -239,7 +236,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure)
 	    }
 	  }
 	  for(; j<trans->vtable->npdls; j++) {
-	    pdl = trans->pdls[j];
+	    pdl *pdl = trans->pdls[j];
 	    PDL_CHKMAGIC(pdl);
 	    pdl__removeparenttrans(pdl,trans,j);
 	    if(pdl->vafftrans) {
@@ -250,15 +247,13 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure)
 	    }
 	  }
 	} else {
-	  PDL_TR_CHKMAGIC(trans);
 	  for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
-	    pdl = trans->pdls[j];
+	    pdl *pdl = trans->pdls[j];
 	    pdl->state &= ~PDL_NOMYDIMS;
 	    if(pdl->trans_parent == trans)
 	      pdl->trans_parent = 0;
 	  }
 	}
-	PDL_TR_CHKMAGIC(trans);
 	FREETRANS(trans, 1);
 	if(trans->vtable->flags & PDL_TRANS_DO_THREAD)
 	  pdl_freethreadstruct(&trans->pdlthread);
