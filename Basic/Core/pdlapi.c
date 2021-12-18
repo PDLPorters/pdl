@@ -30,14 +30,6 @@ extern Core PDL;
 
 pdl_error pdl__ensure_trans(pdl_trans *trans,int what);
 
-static int is_parent_of(pdl *it,pdl_trans *trans) {
-	int i;
-	for(i=0; i<trans->vtable->nparents; i++) {
-		if(trans->pdls[i] == it)  return 1;
-	}
-	return 0;
-}
-
 pdl *pdl_null() {
 	PDL_Indx d[1] = {0};
 	pdl *it = pdl_pdlnew();
@@ -586,10 +578,6 @@ pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 pdl_error pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	if((it->trans_parent || is_parent_of(it,trans))
-	   /* && (it->state & PDL_DATAFLOW_F) */ ) {
-		return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, families not allowed now (i.e. You cannot modify dataflowing pdl)\n");
-	}
 	it->trans_parent = trans;
 	it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
 	return PDL_err;
