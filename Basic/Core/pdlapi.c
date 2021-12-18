@@ -641,10 +641,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		PDL_RETERROR(PDL_err, pdl_changesoon(child));
 	char isnull = !!(child->state & PDL_NOMYDIMS);
 	if (dataflow || isnull) child->trans_parent = trans;
-	if (isnull) {
-		child->state &= ~PDL_NOMYDIMS;
-		child->state |= PDL_MYDIMS_TRANS;
-	}
+	if (isnull)
+	    child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
   if (!dataflow) {
 	/* now actually perform the transformation, i.e. call
@@ -737,7 +735,7 @@ pdl_error pdl_make_physical(pdl *it) {
 		PDL_RETERROR(PDL_err, pdl_allocdata(it));
 	}
 	READDATA(it->trans_parent);
-	it->state &= (~PDL_ANYCHANGED) & (~PDL_OPT_ANY_OK);
+	it->state &= ~(PDL_ANYCHANGED | PDL_OPT_ANY_OK);
 
   mkphys_end:
 	PDLDEBUG_f(printf("make_physical exit %p\n",(void*)it));
