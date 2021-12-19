@@ -268,11 +268,9 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 			  (void*)trans,ensure,ismutual));
 	if(!trans->vtable)
 		return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
-	if(100 < trans->vtable->npdls)
-		return pdl_make_error_simple(PDL_EFATAL, "Huge trans");
 	if(ensure)
 		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
-	pdl *destbuffer[100];
+	pdl *destbuffer[trans->vtable->npdls];
 	int ndest = 0;
 	if (ismutual) {
 	  for(j=0; j<trans->vtable->nparents; j++) {
