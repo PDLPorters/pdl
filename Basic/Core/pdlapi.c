@@ -639,8 +639,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   int wd[npdls];
   for(i=nparents; i<npdls; i++) {
 	pdl *child = trans->pdls[i];
-	wd[i]=(child->state & PDL_NOMYDIMS ?
-	    PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
+	char isnull = !!(child->state & PDL_NOMYDIMS);
+	wd[i]=(isnull ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
 	if (dataflow) {
 		/* This is because for "+=" (a = a + b) we must check for
 		   previous parent transformations and mutate if they exist
@@ -648,7 +648,6 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		child->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
 	} else
 		PDL_RETERROR(PDL_err, pdl_changesoon(child));
-	char isnull = !!(child->state & PDL_NOMYDIMS);
 	if (dataflow || isnull) child->trans_parent = trans;
 	if (isnull)
 	    child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
