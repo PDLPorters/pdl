@@ -139,21 +139,9 @@ sub any_targets_exist {
 sub all_conditions_exist {
     my $self = shift;
     my $pars = shift;
-
-    my $conditions = $self->{conditions};
-
-    foreach my $condition (@$conditions) {
-
-	# skip if not a required condition
-	next if substr($condition,0,1) eq "_";
-
-	unless (exists $pars->{$condition}) {
-	    $self->report("--skipping since CONDITION $condition does not exist\n");
-	    return 0;
-	}
-    }
-
-    return 1;
+    return 1 unless my @nonexist = grep !ref() && !exists $pars->{$_}, @{$self->{conditions}};
+    $self->report("--skipping since CONDITIONs (@nonexist) do not exist\n");
+    0;
 }
 
 # $rule->should_apply($pars);
@@ -173,10 +161,7 @@ sub should_apply {
 # my @args = $self->extract_args($pars);
 sub extract_args {
     my ($self, $pars) = @_;
-    @$pars{ map {
-        (my $condition = $_) =~ s/^_//; # initial _ = optional condition
-        $condition;
-    } @{ $self->{conditions} } };
+    @$pars{ map ref($_) eq "SCALAR" ? $$_ : $_, @{ $self->{conditions} } };
 }
 
 # Apply the rule using the supplied $pars hash reference.
@@ -1315,11 +1300,11 @@ $opening
 $str$closing}
 EOF
 }
-my @vfn_args_always = qw(_AllFuncHeader StructName ParamStructName ParamStructType);
+my @vfn_args_always = (\"AllFuncHeader", qw(StructName ParamStructName ParamStructType));
 sub make_vfn_args {
   my ($which, $extra_args) = @_;
   ("${which}Func",
-    ["${which}CodeSubd","${which}FuncName","_${which}FuncHeader",
+    ["${which}CodeSubd","${which}FuncName",\"${which}FuncHeader",
       @vfn_args_always
     ],
     sub {$_[1] eq 'NULL' ? '' : wrap_vfn(@_,$extra_args//'')}
@@ -1439,7 +1424,7 @@ $PDL::PP::deftbl =
    # ie should we bother with bad values for this routine?
    # 1     - yes,
    # 0     - no, maybe issue a warning
-   PDL::PP::Rule->new("BadFlag", "_HandleBad",
+   PDL::PP::Rule->new("BadFlag", \"HandleBad",
 		      "Sets BadFlag based upon HandleBad key",
 		      sub { $_[0] }),
 
@@ -1536,7 +1521,7 @@ $PDL::PP::deftbl =
    # could be really clever and include the sig to see about
    # input/output params, for instance
    
-   PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
+   PDL::PP::Rule->new("BadDoc", ["BadFlag","Name",\"CopyBadStatusCode"],
               'Sets the default documentation for handling of bad values',
       sub {
          my ( $bf, $name, $code ) = @_;
@@ -1572,7 +1557,7 @@ $PDL::PP::deftbl =
          return $fulldoc;
       }
    ),
-   PDL::PP::Rule->new("PdlDoc", ["Name","_Pars","OtherPars","Doc","_BadDoc"],
+   PDL::PP::Rule->new("PdlDoc", ["Name",\"Pars","OtherPars","Doc",\"BadDoc"],
       sub {
         my ($name,$pars,$otherpars,$doc,$baddoc) = @_;
         return '' if !defined $doc # Allow explcit non-doc using Doc=>undef
@@ -1662,7 +1647,7 @@ EOD
    PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
    PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
 
-   PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr","_EquivDimCheck"],
+   PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr",\"EquivDimCheck"],
       sub {
         my($pdimexpr,$dimcheck) = @_;
         $pdimexpr =~ s/\$CDIM\b/i/g;
@@ -1829,7 +1814,7 @@ EOD
    PDL::PP::Rule::Returns->new("VarArgsXSHdr","GlobalNew",undef),
    PDL::PP::Rule->new("VarArgsXSHdr",
       ["Name","SignatureObj",
-       "PMCode","HdrCode","InplaceCode","InplaceCheck","_CallCopy","_Bitwise"],
+       "PMCode","HdrCode","InplaceCode","InplaceCheck",\"CallCopy",\"Bitwise"],
       'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
       # This subroutine operates when no 'PMCode' exists.
       # This writes an XS header which handles variable argument lists,
@@ -2071,15 +2056,15 @@ EOF
       sub { PDL::PP::Signature->new('', @_) }),
    PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
    PDL::PP::Rule->new("MakeCompOther", "SignatureObj", sub { $_[0]->getcopy }),
-   PDL::PP::Rule->new("MakeCompTotal", [qw(MakeCompOther _MakeComp)], sub { join "\n", grep $_, @_ }),
+   PDL::PP::Rule->new("MakeCompTotal", ["MakeCompOther", \"MakeComp"], sub { join "\n", grep $_, @_ }),
    PDL::PP::Rule->new("CompStructOther", "SignatureObj", sub {$_[0]->getcomp}),
    PDL::PP::Rule->new("CompStructComp", [qw(CompObj Comp)], sub {$_[0]->getcomp}),
-   PDL::PP::Rule->new("CompStruct", [qw(CompStructOther _CompStructComp)], sub { join "\n", grep $_, @_ }),
+   PDL::PP::Rule->new("CompStruct", ["CompStructOther", \"CompStructComp"], sub { join "\n", grep $_, @_ }),
    PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeCompTotal","CompObj"],
 				"COMP"),
    PDL::PP::Rule->new("CompFreeCodeOther", "SignatureObj", sub {$_[0]->getfree("COMP")}),
    PDL::PP::Rule->new("CompFreeCodeComp", [qw(CompObj Comp)], sub {$_[0]->getfree("COMP")}),
-   PDL::PP::Rule->new("CompFreeCode", [qw(CompFreeCodeOther _CompFreeCodeComp)], sub { join "\n", grep $_, @_ }),
+   PDL::PP::Rule->new("CompFreeCode", ["CompFreeCodeOther", \"CompFreeCodeComp"], sub { join "\n", grep $_, @_ }),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
       ["CompStruct","Name"],
@@ -2101,7 +2086,7 @@ EOF
       ["SignatureObj"],
       sub { join "\n", sort map $_->get_initdim, $_[0]->dims_values }),
 
-   PDL::PP::Rule->new("RedoDimsFuncName", [qw(Name _RedoDims _RedoDimsCode DimsSetters)],
+   PDL::PP::Rule->new("RedoDimsFuncName", ["Name", \"RedoDims", \"RedoDimsCode", "DimsSetters"],
       sub { (scalar grep $_ && /\S/, @_[1..$#_]) ? "pdl_$_[0]_redodims" : 'NULL'}),
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
 			       'Code that can be inserted to set the size of output ndarrays dynamically based on input ndarrays; is parsed',
@@ -2208,7 +2193,7 @@ EOF
  # will not be executed. D. Hunt 4/11/00
  #
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      [qw(VarArgsXSHdr _NewXSCHdrs RunFuncCall VarArgsXSReturn)],
+      [qw(VarArgsXSHdr), \"NewXSCHdrs", qw(RunFuncCall VarArgsXSReturn)],
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {make_xs_code('','',@_)}),
 
@@ -2216,7 +2201,7 @@ EOF
  # D. Hunt 4/11/00
  #
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      [qw(NewXSHdr _NewXSCHdrs RunFuncCall)],
+      ["NewXSHdr", \"NewXSCHdrs", "RunFuncCall"],
       "Rule to print out XS code when variable argument list XS processing is disabled",
       sub {make_xs_code('CODE:',' XSRETURN(0);',@_)}),
 

@@ -15,7 +15,7 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 my @code_args_always = qw(SignatureObj GenericTypes ExtraGenericLoops HaveThreading Name);
 sub make_args {
   my ($which) = @_;
-  ("Parsed$which", [$which,"_Bad$which",@code_args_always]);
+  ("Parsed$which", [$which,\"Bad$which",@code_args_always]);
 }
 
 # Do the appropriate substitutions in the code.
