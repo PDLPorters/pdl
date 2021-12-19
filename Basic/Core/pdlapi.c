@@ -260,7 +260,10 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_TR_CHKMAGIC(trans);
-	int ismutual = !(trans->flags & PDL_ITRANS_NONMUTUAL);
+	PDL_Indx j, pfflag=0;
+	for(j=0; j<trans->vtable->nparents; j++)
+	    if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) pfflag++;
+	int ismutual = (pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
 	PDLDEBUG_f(printf("pdl_destroytransform %p (ensure %d, ismutual %d)\n",
 			  (void*)trans,ensure,ismutual));
 	if(!trans->vtable)
@@ -269,7 +272,6 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 		return pdl_make_error_simple(PDL_EFATAL, "Huge trans");
 	if(ensure)
 		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
-	PDL_Indx j;
 	pdl *destbuffer[100];
 	int ndest = 0;
 	if (ismutual) {
@@ -631,8 +633,8 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDLDEBUG_f(pdl_dump_trans_fixspace(trans,3));
   pdl_transvtable *vtable = trans->vtable;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
-  int pfflag=0;
   PDL_TR_CHKMAGIC(trans);
+  int pfflag=0;
   PDL_RETERROR(PDL_err, pdl_trans_flow_checks(trans, &pfflag));
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
   if (dataflow) {
@@ -640,8 +642,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		PDL_RETERROR(PDL_err, pdl_set_trans_childtrans(trans->pdls[i],trans,i));
 	  if(!(trans->flags & PDL_ITRANS_TWOWAY))
 		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
-  } else
-	  trans->flags |= PDL_ITRANS_NONMUTUAL; /* in case we croak during ensuring it */
+  }
   int wd[npdls];
   for(i=nparents; i<npdls; i++) {
 	pdl *child = trans->pdls[i];

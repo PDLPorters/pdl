@@ -364,16 +364,12 @@ typedef struct pdl_transvtable {
 #define  PDL_ITRANS_DO_DATAFLOW_ANY   (PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B)
 
 #define  PDL_ITRANS_ISAFFINE          0x1000
-#define  PDL_ITRANS_VAFFINEVALID      0x2000
-#define  PDL_ITRANS_NONMUTUAL         0x4000  /* flag for destruction */
 
 #define PDL_LIST_FLAGS_PDLTRANS(X) \
  X(PDL_ITRANS_TWOWAY) \
  X(PDL_ITRANS_DO_DATAFLOW_F) \
  X(PDL_ITRANS_DO_DATAFLOW_B) \
- X(PDL_ITRANS_ISAFFINE) \
- X(PDL_ITRANS_VAFFINEVALID) \
- X(PDL_ITRANS_NONMUTUAL)
+ X(PDL_ITRANS_ISAFFINE)
 
 #define PDL_MAXSPACE 256 /* maximal number of prefix spaces in dump routines */
 #define PDL_MAXLIN 60
