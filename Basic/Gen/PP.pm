@@ -1659,7 +1659,7 @@ EOD
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
    PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
    PDL::PP::Rule::Returns::Zero->new("TwoWayFlag"),
-   PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_F|PDL_ITRANS_DO_DATAFLOW_B"),
+   PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
    PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
 
    PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr","_EquivDimCheck"],

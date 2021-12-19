@@ -353,7 +353,7 @@ pdl_error pdl_destroy(pdl *it) {
     /* 1. count the child_transes that do flow */
     PDL_START_CHILDLOOP(it)
 	pdl_trans *curt = PDL_CHILDLOOP_THISCHILD(it);
-	if(curt->flags & (PDL_ITRANS_DO_DATAFLOW_F| PDL_ITRANS_DO_DATAFLOW_B))
+	if(curt->flags & PDL_ITRANS_DO_DATAFLOW_F)
 		nforw ++;
 	if(curt->flags & PDL_ITRANS_DO_DATAFLOW_B)
 	{
