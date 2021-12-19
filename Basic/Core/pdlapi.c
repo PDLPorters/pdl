@@ -596,6 +596,28 @@ pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	return PDL_err;
 }
 
+static inline pdl_error pdl_trans_flow_checks(pdl_trans *trans, int *ret) {
+  pdl_error PDL_err = {0, NULL, 0};
+  int pfflag=0;
+  PDL_Indx i;
+/* Then, set our children. This is: */
+/* First, determine whether any of our children already have
+ * a parent, and whether they need to be updated. If this is
+ * the case, we need to do some thinking. */
+  for(i=0; i<trans->vtable->nparents; i++)
+    if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) pfflag++;
+  for(; i<trans->vtable->npdls; i++) {
+/* If children are flowing, croak. It's too difficult to handle properly */
+    if(trans->pdls[i]->state & PDL_DATAFLOW_ANY)
+	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now\n");
+/* Same, if children have trans yet parents are flowing */
+    if(trans->pdls[i]->trans_parent && pfflag)
+	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now (2)\n");
+  }
+  *ret = pfflag;
+  return PDL_err;
+}
+
 /* Called with a filled pdl_trans struct.
  * Sets the parent and trans fields of the ndarrays correctly,
  * creating families and the like if necessary.
@@ -609,25 +631,9 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDLDEBUG_f(pdl_dump_trans_fixspace(trans,3));
   pdl_transvtable *vtable = trans->vtable;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
-  int fflag=0, cfflag=0, pfflag=0;
+  int pfflag=0;
   PDL_TR_CHKMAGIC(trans);
-/* Then, set our children. This is: */
-/* First, determine whether any of our children already have
- * a parent, and whether they need to be updated. If this is
- * the case, we need to do some thinking. */
-  for(i=0; i<nparents; i++)
-	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) pfflag++;
-  for(; i<npdls; i++) {
-	if(trans->pdls[i]->trans_parent) fflag ++;
-	if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) cfflag++;
-  }
-/* If children are flowing, croak. It's too difficult to handle
- * properly */
-  if(cfflag)
-	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now\n");
-/* Same, if children have trans yet parents are flowing */
-  if(pfflag && fflag)
-	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now (2)\n");
+  PDL_RETERROR(PDL_err, pdl_trans_flow_checks(trans, &pfflag));
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
   if (dataflow) {
 	  for(i=0; i<nparents; i++)
