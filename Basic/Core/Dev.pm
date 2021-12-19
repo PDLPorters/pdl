@@ -206,6 +206,7 @@ qq|
 
 $pref.pm : $pmdep
 	$perlrun \"$pp_call_arg\" $src
+	\$(TOUCH) $pref.pm
 
 @generanda : $pref.pm
 	\$(NOECHO) \$(NOOP)
