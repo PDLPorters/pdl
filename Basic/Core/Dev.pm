@@ -522,7 +522,7 @@ my %flags = (
     vaffine => { FLAG => "OPT_VAFFTRANSOK" },
     anychgd => { FLAG => "ANYCHANGED" },
     dimschgd => { FLAG => "PARENTDIMSCHANGED" },
-    tracedebug => { FLAG => "TRACEDEBUG", set => 1},
+    tracedebug => { set => 1},
 );
 
 sub generate_core_flags {
@@ -531,46 +531,19 @@ sub generate_core_flags {
     # to ndarray's state
     foreach my $name ( sort keys %flags ) {
         my $flag = "PDL_" . ($flags{$name}{FLAG} || uc($name));
-        if ( $flags{$name}{set} ) {
-            print <<"!WITH!SUBS!";
+        my $with_mode = $flags{$name}{set} || $flags{$name}{postset};
+        printf <<'EOF', $name, ($with_mode ? ",mode=0" : ''), ($with_mode ? "        int mode\n" : '');
 int
-$name(x,mode=0)
+%s(x%s)
         pdl *x
-        int mode
-        CODE:
-        if (items>1)
-           { setflag(x->state,$flag,mode); }
-        RETVAL = ((x->state & $flag) > 0);
-        OUTPUT:
-        RETVAL
-
-!WITH!SUBS!
-        } elsif ($flags{$name}{postset}) {
-            print <<"!WITH!SUBS!";
-int
-$name(x,mode=0)
-        pdl *x
-        int mode
-        CODE:
-        RETVAL = ((x->state & $flag) > 0);
-        if (items>1)
-           { setflag(x->state,$flag,mode); }
-        OUTPUT:
-        RETVAL
-
-!WITH!SUBS!
-        } else {
-            print <<"!WITH!SUBS!";
-int
-$name(self)
-        pdl *self
-        CODE:
-        RETVAL = ((self->state & $flag) > 0);
-        OUTPUT:
-        RETVAL
-
-!WITH!SUBS!
-        }
+%s        CODE:
+EOF
+        my $set = "        if (items>1) setflag(x->state,$flag,mode);\n";
+        my $ret = "        RETVAL = ((x->state & $flag) > 0);\n";
+        print $set if $flags{$name}{set};
+        print $ret;
+        print $set if $flags{$name}{postset};
+        print "        OUTPUT:\n        RETVAL\n\n";
     } # foreach: keys %flags
 }
 
