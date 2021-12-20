@@ -258,10 +258,10 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_TR_CHKMAGIC(trans);
-	PDL_Indx j, pfflag=0;
-	for(j=0; j<trans->vtable->nparents; j++)
-	    if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) pfflag++;
-	int ismutual = (pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
+	PDL_Indx j;
+	int ismutual = (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
+	if (!ismutual) for(j=0; j<trans->vtable->nparents; j++)
+	  if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
 	PDLDEBUG_f(printf("pdl_destroytransform %p (ensure %d, ismutual %d)\n",
 			  (void*)trans,ensure,ismutual));
 	if(!trans->vtable)
@@ -272,31 +272,26 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	int ndest = 0;
 	if (ismutual) {
 	  for(j=0; j<trans->vtable->nparents; j++) {
-	    pdl *pdl = trans->pdls[j];
-	    if(!pdl) continue;
-	    PDL_CHKMAGIC(pdl);
-	    pdl__removechildtrans(pdl,trans,j,1);
-	    if(!(pdl->state & PDL_DESTROYING) && !pdl->sv) {
-	      destbuffer[ndest++] = pdl;
-	    }
+	    pdl *parent = trans->pdls[j];
+	    if(!parent) continue;
+	    PDL_CHKMAGIC(parent);
+	    pdl__removechildtrans(parent,trans,j,1);
+	    if(!(parent->state & PDL_DESTROYING) && !parent->sv)
+	      destbuffer[ndest++] = parent;
 	  }
 	  for(; j<trans->vtable->npdls; j++) {
-	    pdl *pdl = trans->pdls[j];
-	    PDL_CHKMAGIC(pdl);
-	    pdl__removeparenttrans(pdl,trans,j);
-	    if(pdl->vafftrans) {
-	      pdl_vafftrans_remove(pdl);
-	    }
-	    if(!(pdl->state & PDL_DESTROYING) && !pdl->sv) {
-	      destbuffer[ndest++] = pdl;
-	    }
+	    pdl *child = trans->pdls[j];
+	    PDL_CHKMAGIC(child);
+	    pdl__removeparenttrans(child,trans,j);
+	    if(child->vafftrans) pdl_vafftrans_remove(child);
+	    if(!(child->state & PDL_DESTROYING) && !child->sv)
+	      destbuffer[ndest++] = child;
 	  }
 	} else {
 	  for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
-	    pdl *pdl = trans->pdls[j];
-	    pdl->state &= ~PDL_NOMYDIMS;
-	    if(pdl->trans_parent == trans)
-	      pdl->trans_parent = 0;
+	    pdl *child = trans->pdls[j];
+	    if(child->trans_parent == trans)
+	      child->trans_parent = 0;
 	  }
 	}
 	FREETRANS(trans, 1);
@@ -308,10 +303,8 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	free(trans->ind_sizes);
 	free(trans->inc_sizes);
 	free(trans);
-	if (ismutual)
-	  for(j=0; j<ndest; j++) {
-		  PDL_RETERROR(PDL_err, pdl_destroy(destbuffer[j]));
-	  }
+	for(j=0; j<ndest; j++)
+		PDL_RETERROR(PDL_err, pdl_destroy(destbuffer[j]));
 	PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", (void*)trans));
 	return PDL_err;
 }
