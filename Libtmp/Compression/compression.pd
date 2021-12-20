@@ -15,9 +15,8 @@ into a smaller PDL.  Algorithms typically work on a single dimension
 and thread over other dimensions, producing a threaded table of
 compressed values if more than one dimension is fed in.
 
-The Rice algorithm, in particular, is designed to be identical to the 
+The Rice algorithm, in particular, is designed to be identical to the
 RICE_1 algorithm used in internal FITS-file compression (see PDL::IO::FITS).
-
 
 =head1 SYNOPSIS
 
@@ -68,7 +67,6 @@ terms than PDL itself; that notice is present in the file "ricecomp.c".
 
 =cut
 
-
 EOD
 
 pp_addpm(<<'EOD');
@@ -77,17 +75,15 @@ pp_addpm(<<'EOD');
 
 =cut
 
-
 EOD
 
 pp_def(
 	"rice_compress",
 	HandleBad => 0,
-	Pars => 'in(n); [o]out(m); int[o]len(); lbuf(n)',
+	Pars => 'in(n); [o]out(m); int[o]len()',
 	OtherPars => "int blocksize", # in OtherPars to avoid autopromotion
 	GenericTypes =>['B','S','US','L'],
 	Doc => <<'EOD',
-
 =for ref
 
 Squishes an input PDL along the 0 dimension by Rice compression.  In
@@ -134,16 +130,11 @@ Working on astronomical or solar image data, typical compression ratios of
   ($out, $len, $blocksize, $dim0) = $pdl->rice_compress;
 
   $new = $out->rice_expand;
-
-=cut
-
-
 EOD
 	PMCode => <<'EOD',
 sub PDL::rice_compress {
     my $in = shift;
     my $blocksize = shift || 32;
-
     ## Reject floating-point inputs
     if( $in->type != byte &&
         $in->type != short &&
@@ -152,54 +143,33 @@ sub PDL::rice_compress {
 	) {
 	die("rice_compress: input needs to have type byte, short, ushort, or long, not ".($in->type)."\n");
     }
-
     # output buffer starts the same size; truncate at the end.
     my ($out) = zeroes($in);
-
-    # line buffer is here to make sure we don't get fouled up by transpositions
-    my ($lbuf) = zeroes($in->type, $in->dim(0)); 
-
     # lengths go here
     my ($len) = zeroes(long, $in->slice("(0)")->dims);
-
-    &PDL::_rice_compress_int( $in, $out, $len, $lbuf, $blocksize  );
-    
+    &PDL::_rice_compress_int( $in, $out, $len, $blocksize  );
     $l = $len->max;
     $out = $out->slice("0:".($l-1))->sever;
-    
-    if(wantarray) {
-    return ($out, $in->dim(0), $blocksize, $len);
-    } else {
-    return $out;
-    }
+    return wantarray ? ($out, $in->dim(0), $blocksize, $len) : $out;
 }
 EOD
 	Code => <<'EOD',
-
-// Copy current row into the row buffer (to ensure 
-// contiguous location in memory)
-loop(n) %{
- $lbuf() = $in();
-%}
-
-$len() = 1 + ( rcomp( &($lbuf(n=>0)),
-       	       	      sizeof($lbuf(n=>0)),
+$len() = 1 + ( rcomp( $P(in),
+		      sizeof($GENERIC(in)),
 		      $SIZE(n),
-	 	      (unsigned char *)(&($out(m=>0))),
-         	      $SIZE(m) * sizeof($out(m=>0)),
-         	      $COMP(blocksize)
+		      (unsigned char *)($P(out)),
+		      $SIZE(m) * sizeof($GENERIC(out)),
+		      $COMP(blocksize)
 	            )
-                - 1 
-              ) / sizeof($out(m=>0));
-
-	
+                - 1
+              ) / sizeof($GENERIC(out));
 EOD
 );
 
 pp_def(
 	"rice_expand",
 	HandleBad=>0,
-	Pars=>'in(n); [o]out(m); lbuf(n)',
+	Pars=>'in(n); [o]out(m);',
 	OtherPars=>'int blocksize',
 	GenericTypes=>['B','S','US','L'],
 	Doc=><<'EOD',
@@ -217,35 +187,21 @@ sub PDL::rice_expand {
     my $squished = shift;
     my $dim0 =shift;
     my $blocksize = shift || 32;
-    
     # Allocate output array
     my $out = zeroes( $squished->slice("(0),*$dim0") );
-       
-    # Allocate row buffer to avoid weird memory edge case
-    my $lbuf = zeroes($squished->type, $squished->dim(0));
-   
-   &PDL::_rice_expand_int( $squished, $out, $lbuf, $blocksize );
-
-   return $out;
+    &PDL::_rice_expand_int( $squished, $out, $blocksize );
+    return $out;
 }
 EOD
 	Code=><<'EOD',
-
-loop(n) %{
-	$lbuf() = $in();
-%}
-
-rdecomp( (unsigned char *)(&($lbuf(n=>0))),
-	 $SIZE(n) * sizeof($lbuf(n=>0)),
-	 &($out(m=>0)),
-	 sizeof($out(m=>0)),
+rdecomp( (unsigned char *)($P(in)),
+	 $SIZE(n) * sizeof($GENERIC(in)),
+	 $P(out),
+	 sizeof($GENERIC(out)),
 	 $SIZE(m),
 	 $COMP(blocksize)
 	 );
-
 EOD
 );
 
-
 pp_done();
-

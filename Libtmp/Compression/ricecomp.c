@@ -463,6 +463,22 @@ static int done_outputing_bits(Buffer *buffer)
  *   0 is returned.
  */
 
+static int nonzero_count[] = {
+  0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
+  5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6,
+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+  6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+  7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+};
+
 int rdecomp (unsigned char *c,		/* input buffer			    */
 	     int clen,			/* length of input (bytes)	    */
 	     void *array,	        /* output array		 	    */
@@ -475,8 +491,7 @@ int rdecomp (unsigned char *c,		/* input buffer			    */
   unsigned char *cend, bytevalue;
   unsigned int b, diff, lastpix;
   int fsmax, fsbits, bbits;
-  static int *nonzero_count = (int *)NULL;
-  
+
   /*
    * From bsize derive:
    * FSBITS = # bits required to store FS
@@ -485,8 +500,7 @@ int rdecomp (unsigned char *c,		/* input buffer			    */
    *
    * (These magic numbers have to match the ones in rcomp above.)
    */
-  
-  
+
   switch (bsize) {
   case 1:
     fsbits = 3;
@@ -505,31 +519,8 @@ int rdecomp (unsigned char *c,		/* input buffer			    */
     fflush(stderr);
     return 1;
   }
-  
-  bbits = 1<<fsbits;
 
-  if (nonzero_count == (int *) NULL) {
-    /*
-     * nonzero_count is lookup table giving number of bits
-     * in 8-bit values not including leading zeros; gets allocated 
-     * and calculated the first time through
-     */
-    
-    /*  NOTE!!!  This memory never gets freed (permanent table)  */
-    nonzero_count = (int *) malloc(256*sizeof(int));
-    if (nonzero_count == (int *) NULL) {
-      fprintf(stderr,"rdecomp: insufficient memory!\n");
-      fflush(stderr);
-      return 1;
-    }
-    nzero = 8;
-    k = 128;
-    for (i=255; i>=0; ) {
-      for ( ; i>=k; i--) nonzero_count[i] = nzero;
-      k = k/2;
-      nzero--;
-    }
-  }
+  bbits = 1<<fsbits;
 
     /*
      * Decode in blocks of nblock pixels
@@ -540,7 +531,7 @@ int rdecomp (unsigned char *c,		/* input buffer			    */
 
 
     cend = c + clen;
-    
+
     lastpix = 0;
     switch(bsize) {
     case 4:
@@ -693,4 +684,3 @@ int rdecomp (unsigned char *c,		/* input buffer			    */
     }
     return 0;
 }
-
