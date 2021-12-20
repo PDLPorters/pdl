@@ -2321,14 +2321,16 @@ for details on using ndarrays in the dimensions list.
 sub zeroes { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::zeroes($_[0]) : PDL->zeroes(@_) }
 sub PDL::zeroes {
     my $class = shift;
-    if (ref $class and UNIVERSAL::isa($class, 'PDL') and $class->is_inplace) {
+    my $ispdl = ref $class && UNIVERSAL::isa($class, 'PDL');
+    if ($ispdl and $class->is_inplace) {
         $class .= 0; # resets the "inplace"
         return $class;
     }
-    my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
-    my @dims = _dims_from_args(
-      ref $class && UNIVERSAL::isa($class, 'PDL') && !@_ ? $class->dims : @_
-    );
+    my $type =
+      ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0] :
+      $ispdl ? $class->get_datatype :
+      $PDL_D;
+    my @dims = _dims_from_args($ispdl && !@_ ? $class->dims : @_);
     my $pdl = $class->initialize();
     $pdl->set_datatype($type);
     $pdl->setdims(\@dims);

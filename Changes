@@ -17,6 +17,7 @@
 - switched GIS::Proj to PROJ 6 API
 - PDL.make_error{,_simple} for error-handling instead of croak et al - can't just return as generated functions no longer return void
 - remove PDL.vaffinechanged
+- fix zeroes() regression from 2.057_01 where zeroes($byte_pdl) would give double
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal

@@ -446,6 +446,8 @@ for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i', 'cdo
   $w = $y->copy; $w->inplace->$name; ok all tapprox $w, pdl($val);
 }
 
+is short(1)->zeroes->type, 'short', '$existing->zeroes right type';
+
 eval { PDL->is_inplace }; # shouldn't infinite-loop
 isnt $@, '', 'is_inplace as class method throws exception';
 
