@@ -138,8 +138,8 @@ pdl_error pdl_allocdata(pdl *it) {
 	PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
 		it->datatype));
 	PDL_RETERROR(PDL_err, pdl_grow(it,nvals));
-	PDLDEBUG_f(pdl_dump(it));
 	it->state |= PDL_ALLOCATED;
+	PDLDEBUG_f(pdl_dump(it));
 	return PDL_err;
 }
 
@@ -538,7 +538,7 @@ void pdl_resize_defaultincs(pdl *it) {
 pdl_error pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
    pdl_error PDL_err = {0, NULL, 0};
    PDL_Indx i;
-   PDLDEBUG_f(printf("pdl_setdims: "));PDLDEBUG_f(pdl_dump(it);)
+   PDLDEBUG_f(printf("pdl_setdims %p: ", it));PDLDEBUG_f(pdl_print_iarr(dims, ndims));PDLDEBUG_f(printf("\n"));
    PDL_RETERROR(PDL_err, pdl_changesoon(it));
    PDL_RETERROR(PDL_err, pdl_reallocdims(it,ndims));
    for(i=0; i<ndims; i++) it->dims[i] = dims[i];
@@ -680,7 +680,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   }
   if (!dataflow)
 	PDL_RETERROR(PDL_err, pdl_destroytransform(trans,1,wd));
-  PDLDEBUG_f(printf("make_trans_mutual_exit %p\n",(void*)trans));
+  PDLDEBUG_f(printf("make_trans_mutual exit %p\n",(void*)trans));
   return PDL_err;
 } /* pdl_make_trans_mutual() */
 

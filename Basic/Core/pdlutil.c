@@ -407,6 +407,7 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	pdl_dump_flags_fixspace(it->flags,nspac+3,PDL_FLAGS_TRANS);
 	printf("%s   vtable flags ",spaces);
 	pdl_dump_flags_fixspace(it->vtable->flags,nspac+3,PDL_FLAGS_VTABLE);
+	fflush(stdout);
 	if(it->flags & PDL_ITRANS_ISAFFINE) {
 		if(it->pdls[1]->state & PDL_PARENTDIMSCHANGED) {
 			printf("%s   AFFINE, BUT DIMSCHANGED\n",spaces);
