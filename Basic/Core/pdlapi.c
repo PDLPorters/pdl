@@ -591,8 +591,7 @@ pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	PDL_RETERROR(PDL_err, pdl__addchildtrans(it,trans,nth));
 /* Determine if we want to do dataflow */
 	trans->flags |= (
-	    (it->state & PDL_DATAFLOW_F ? PDL_ITRANS_DO_DATAFLOW_F : 0) |
-	    (it->state & PDL_DATAFLOW_B ? PDL_ITRANS_DO_DATAFLOW_B : 0));
+	    (it->state & PDL_DATAFLOW_F ? PDL_ITRANS_DO_DATAFLOW_F : 0));
 	return PDL_err;
 }
 
@@ -635,12 +634,9 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   int pfflag=0;
   PDL_RETERROR(PDL_err, pdl_trans_flow_checks(trans, &pfflag));
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
-  if (dataflow) {
+  if (dataflow)
 	  for(i=0; i<nparents; i++)
 		PDL_RETERROR(PDL_err, pdl_set_trans_childtrans(trans->pdls[i],trans,i));
-	  if(!(trans->flags & PDL_ITRANS_TWOWAY))
-		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
-  }
   int wd[npdls];
   for(i=nparents; i<npdls; i++) {
 	pdl *child = trans->pdls[i];
@@ -768,7 +764,7 @@ pdl_error pdl_changesoon(pdl *it)
     if (it->trans_parent) {
 	if (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B) {
 	    if(!(it->trans_parent->flags & PDL_ITRANS_TWOWAY))
-		return pdl_make_error_simple(PDL_EUSERERROR, "PDL: Internal error: Trying to reverse irreversible trans");
+		return pdl_make_error_simple(PDL_EUSERERROR, "PDL: Internal error: Trying to writeback non-TWOWAY trans");
 	    for(i=0; i<it->trans_parent->vtable->nparents; i++)
 		PDL_RETERROR(PDL_err, pdl_changesoon(it->trans_parent->pdls[i]));
 	    return PDL_err;

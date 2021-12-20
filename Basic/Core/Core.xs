@@ -623,16 +623,6 @@ set_dataflow_f(self,value)
 	else
 		self->state &= ~PDL_DATAFLOW_F;
 
-void
-set_dataflow_b(self,value)
-	pdl *self;
-	int value;
-	CODE:
-	if(value)
-		self->state |= PDL_DATAFLOW_B;
-	else
-		self->state &= ~PDL_DATAFLOW_B;
-
 int
 getndims(x)
 	pdl *x

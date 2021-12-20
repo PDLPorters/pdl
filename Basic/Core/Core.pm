@@ -798,7 +798,7 @@ sub PDL::pdl { my $x = shift; return $x->new(@_) }
 
 =for ref
 
-Turn on/off dataflow
+Turn on dataflow, forward only.
 
 =for usage
 
@@ -809,7 +809,6 @@ Turn on/off dataflow
 sub PDL::doflow {
 	my $this = shift;
 	$this->set_dataflow_f(1);
-	$this->set_dataflow_b(1);
 }
 
 =head2 flows

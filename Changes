@@ -19,6 +19,7 @@
 - remove PDL.vaffinechanged
 - fix zeroes() regression from 2.057_01 where zeroes($byte_pdl) would give double
 - make PDL::Compression functions thread-safe
+- remove Core::set_dataflow_b
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal
