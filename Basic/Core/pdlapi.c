@@ -529,11 +529,11 @@ PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
 	return pdl_at(it->data, it->datatype, &offs, &dummy1, &dummy2, 0, 1);
 }
 
-pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth)
+pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 {
 	pdl_error PDL_err = {0, NULL, 0};
+	PDLDEBUG_f(printf("pdl__addchildtrans\n"));
 	int i; pdl_child_transes *c = &it->child_transes;
-	trans->pdls[nth] = it;
 	do {
 	    if (c->next) { c=c->next; continue; } else {
 		for(i=0; i<PDL_NCHILDREN; i++)
@@ -582,19 +582,6 @@ pdl_error pdl_make_physdims(pdl *it) {
 	return PDL_err;
 }
 
-/* Order is important: do childtrans first, then parentrans. */
-
-pdl_error pdl_set_trans_childtrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
-{
-	pdl_error PDL_err = {0, NULL, 0};
-	PDLDEBUG_f(printf("pdl_set_trans_childtrans\n"));
-	PDL_RETERROR(PDL_err, pdl__addchildtrans(it,trans,nth));
-/* Determine if we want to do dataflow */
-	trans->flags |= (
-	    (it->state & PDL_DATAFLOW_F ? PDL_ITRANS_DO_DATAFLOW_F : 0));
-	return PDL_err;
-}
-
 static inline pdl_error pdl_trans_flow_checks(pdl_trans *trans, int *ret) {
   pdl_error PDL_err = {0, NULL, 0};
   int pfflag=0;
@@ -635,8 +622,11 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDL_RETERROR(PDL_err, pdl_trans_flow_checks(trans, &pfflag));
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
   if (dataflow)
-	  for(i=0; i<nparents; i++)
-		PDL_RETERROR(PDL_err, pdl_set_trans_childtrans(trans->pdls[i],trans,i));
+    for(i=0; i<nparents; i++) {
+      pdl *parent = trans->pdls[i];
+      PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
+      if (parent->state & PDL_DATAFLOW_F) trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
+    }
   int wd[npdls];
   for(i=nparents; i<npdls; i++) {
 	pdl *child = trans->pdls[i];
