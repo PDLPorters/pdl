@@ -234,13 +234,11 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
 	}
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
-		if(PDL_CHILDLOOP_THISCHILD(it) == trans) {
-			PDL_CHILDLOOP_THISCHILD(it) = NULL;
-			flag = 1;
-			if(!all) return;
-			/* Can't return; might be many times
-			  (e.g. $x+$x) */
-		}
+		if (PDL_CHILDLOOP_THISCHILD(it) != trans) continue;
+		PDL_CHILDLOOP_THISCHILD(it) = NULL;
+		if(!all) return;
+		flag = 1;
+		/* Can't return; might be many times (e.g. $x+$x) */
 	PDL_END_CHILDLOOP(it)
 	/* this might be due to a croak when performing the trans; so
 	   warn only for now, otherwise we leave trans undestructed ! */
