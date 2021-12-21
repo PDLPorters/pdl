@@ -106,8 +106,10 @@ pdl_error pdl_grow(pdl* a, PDL_Indx newsize) {
    STRLEN len;
    nbytes = ((STRLEN) newsize) * pdl_howbig(a->datatype);
    ncurr  = a->datasv ? SvCUR((SV *)a->datasv) : 0;
-   if (ncurr == nbytes)
+   if (ncurr == nbytes) {
+      a->state |= PDL_ALLOCATED;
       return PDL_err;    /* Nothing to be done */
+   }
    if(a->state & PDL_DONTTOUCHDATA) {
       return pdl_make_error_simple(PDL_EUSERERROR, "Trying to touch data of an untouchable (mmapped?) pdl");
    }
