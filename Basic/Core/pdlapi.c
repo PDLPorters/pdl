@@ -172,6 +172,50 @@ pdl* pdl_pdlnew() {
      return it;
 }
 
+void pdl_vafftrans_free(pdl *it)
+{
+	if(it->vafftrans && it->vafftrans->incs)
+		free(it->vafftrans->incs);
+	if(it->vafftrans)
+		free(it->vafftrans);
+	it->vafftrans=0;
+	it->state &= ~PDL_OPT_VAFFTRANSOK;
+}
+
+pdl_error pdl_vafftrans_alloc(pdl *it)
+{
+	pdl_error PDL_err = {0, NULL, 0};
+	if(!it->vafftrans) {
+		it->vafftrans = malloc(sizeof(*(it->vafftrans)));
+		if (!it->vafftrans) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
+		it->vafftrans->incs = 0;
+		it->vafftrans->ndims = 0;
+	}
+	if(!it->vafftrans->incs || it->vafftrans->ndims < it->ndims ) {
+		if(it->vafftrans->incs) free(it->vafftrans->incs);
+		it->vafftrans->incs = malloc(sizeof(*(it->vafftrans->incs))
+					     * (size_t)it->ndims);
+		if (!it->vafftrans->incs) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
+		it->vafftrans->ndims = it->ndims;
+	}
+	return PDL_err;
+}
+
+/* Recursive! */
+void pdl_vafftrans_remove(pdl * it)
+{
+	PDLDEBUG_f(printf("pdl_vafftrans_remove: %p\n", (void*)it));
+	PDL_DECL_CHILDLOOP(it);
+	PDL_START_CHILDLOOP(it)
+		pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
+		if(!(t->flags & PDL_ITRANS_ISAFFINE)) continue;
+		int i;
+		for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
+			pdl_vafftrans_remove(t->pdls[i]);
+	PDL_END_CHILDLOOP(it)
+	pdl_vafftrans_free(it);
+}
+
 /* Explicit free. Do not use, use destroy instead, which causes this
    to be called when the time is right */
 pdl_error pdl__free(pdl *it) {
@@ -803,31 +847,6 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
     return PDL_err;
 }
 
-/* Recursive! */
-void pdl_vafftrans_remove(pdl * it)
-{
-	PDLDEBUG_f(printf("pdl_vafftrans_remove: %p\n", (void*)it));
-	PDL_DECL_CHILDLOOP(it);
-	PDL_START_CHILDLOOP(it)
-		pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
-		if(!(t->flags & PDL_ITRANS_ISAFFINE)) continue;
-		int i;
-		for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
-			pdl_vafftrans_remove(t->pdls[i]);
-	PDL_END_CHILDLOOP(it)
-	pdl_vafftrans_free(it);
-}
-
-void pdl_vafftrans_free(pdl *it)
-{
-	if(it->vafftrans && it->vafftrans->incs)
-		free(it->vafftrans->incs);
-	if(it->vafftrans)
-		free(it->vafftrans);
-	it->vafftrans=0;
-	it->state &= ~PDL_OPT_VAFFTRANSOK;
-}
-
 /* Current assumptions: only
  * "slice" and "diagonal"-type things supported.
  *
@@ -963,25 +982,6 @@ pdl_error pdl_make_physvaffine(pdl *it)
 
   mkphys_vaff_end:
 	PDLDEBUG_f(printf("make_physvaffine exit %p\n",(void*)it));
-	return PDL_err;
-}
-
-pdl_error pdl_vafftrans_alloc(pdl *it)
-{
-	pdl_error PDL_err = {0, NULL, 0};
-	if(!it->vafftrans) {
-		it->vafftrans = malloc(sizeof(*(it->vafftrans)));
-		if (!it->vafftrans) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
-		it->vafftrans->incs = 0;
-		it->vafftrans->ndims = 0;
-	}
-	if(!it->vafftrans->incs || it->vafftrans->ndims < it->ndims ) {
-		if(it->vafftrans->incs) free(it->vafftrans->incs);
-		it->vafftrans->incs = malloc(sizeof(*(it->vafftrans->incs))
-					     * (size_t)it->ndims);
-		if (!it->vafftrans->incs) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
-		it->vafftrans->ndims = it->ndims;
-	}
 	return PDL_err;
 }
 

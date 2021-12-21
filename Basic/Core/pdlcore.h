@@ -46,9 +46,6 @@ PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
              PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
-void pdl_vafftrans_free(pdl *it);
-void pdl_vafftrans_remove(pdl * it);
-pdl_error pdl_vafftrans_alloc(pdl *it);
 pdl_error pdl_writebackdata_vaffine(pdl *it);
 pdl_error pdl_readdata_vaffine(pdl *it);
 
