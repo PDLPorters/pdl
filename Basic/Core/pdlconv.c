@@ -53,22 +53,18 @@ VAFF_IO(writebackdata_vaffine, X)
 
 pdl_error pdl_converttype( pdl* a, int targtype ) {
     pdl_error PDL_err = {0, NULL, 0};
-    int intype;
     void* b;     /* Scratch data ptr */
-    SV*   bar;
-    STRLEN   nbytes;
-    int   diffsize;
     PDL_Indx   i;
     PDLDEBUG_f(printf("pdl_converttype %p, %d, %d\n", (void*)a, a->datatype,
 	targtype);)
 
-    intype = a->datatype;
+    int intype = a->datatype;
     if (intype == targtype)
        return PDL_err;
 
-    diffsize = pdl_howbig(targtype) != pdl_howbig(a->datatype);
+    int diffsize = pdl_howbig(targtype) != pdl_howbig(a->datatype);
 
-    nbytes = a->nvals * pdl_howbig(targtype); /* Size of converted data */
+    STRLEN nbytes = a->nvals * pdl_howbig(targtype); /* Size of converted data */
 
     if(a->state & PDL_DONTTOUCHDATA) {
       return pdl_make_error_simple(PDL_EUSERERROR, "Trying to convert of magical (mmaped?) pdl");
@@ -97,8 +93,8 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 
     /* Store new data */
     if (diffsize) {
-      STRLEN n_a;
-       bar = a->datasv;
+       STRLEN n_a;
+       SV *bar = a->datasv;
        sv_setpvn( bar, (char*) a->data, nbytes );
        a->data = (void*) SvPV(bar, n_a);
     }
