@@ -534,20 +534,27 @@ void pdl_resize_defaultincs(pdl *it) {
 }
 
 /* Init dims & incs - if *incs is NULL ignored (but space is always same for both)  */
-
 pdl_error pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
-   pdl_error PDL_err = {0, NULL, 0};
-   PDL_Indx i;
-   PDLDEBUG_f(printf("pdl_setdims %p: ", it));PDLDEBUG_f(pdl_print_iarr(dims, ndims));PDLDEBUG_f(printf("\n"));
-   PDL_RETERROR(PDL_err, pdl_changesoon(it));
-   PDL_RETERROR(PDL_err, pdl_reallocdims(it,ndims));
-   for(i=0; i<ndims; i++) it->dims[i] = dims[i];
-   pdl_resize_defaultincs(it);
-   PDL_RETERROR(PDL_err, pdl_reallocthreadids(it,1));
-   it->threadids[0] = ndims;
-   it->state &= ~PDL_NOMYDIMS;
-   PDL_RETERROR(PDL_err, pdl_changed(it,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED,0));
-   return PDL_err;
+  pdl_error PDL_err = {0, NULL, 0};
+  PDLDEBUG_f(printf("pdl_setdims %p: ", it));PDLDEBUG_f(pdl_print_iarr(dims, ndims));PDLDEBUG_f(printf("\n"));
+  PDL_Indx i, old_nvals = it->nvals, new_nvals = 1;
+  for (i=0; i<ndims; i++) new_nvals *= dims[i];
+  int what = (old_nvals == new_nvals) ? 0 : PDL_PARENTDATACHANGED;
+  if ((it->state & PDL_NOMYDIMS) || ndims != it->ndims)
+    what |= PDL_PARENTDIMSCHANGED;
+  else
+    for (i=0; i<ndims; i++)
+      if (dims[i] != it->dims[i]) { what |= PDL_PARENTDIMSCHANGED; break; }
+  if (!what) { PDLDEBUG_f(printf("pdl_setdims NOOP\n")); return PDL_err; }
+  PDL_RETERROR(PDL_err, pdl_changesoon(it));
+  PDL_RETERROR(PDL_err, pdl_reallocdims(it,ndims));
+  for(i=0; i<ndims; i++) it->dims[i] = dims[i];
+  pdl_resize_defaultincs(it);
+  PDL_RETERROR(PDL_err, pdl_reallocthreadids(it,1));
+  it->threadids[0] = ndims;
+  it->state &= ~PDL_NOMYDIMS;
+  PDL_RETERROR(PDL_err, pdl_changed(it,what,0));
+  return PDL_err;
 }
 
 /* This is *not* careful! */
