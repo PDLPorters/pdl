@@ -521,16 +521,15 @@ pdl_error pdl_reallocthreadids(pdl *it, PDL_Indx n) {
 	return PDL_err;
 }
 
-/* Recalculate default increments and grow the PDL data */
-
+/* Recalculate default increments */
 void pdl_resize_defaultincs(pdl *it) {
-	PDL_Indx inc = 1;
-	unsigned int i=0;
-	for(i=0; i<it->ndims; i++) {
-		it->dimincs[i] = inc; inc *= it->dims[i];
-	}
-	it->nvals = inc;
-        it->state &= ~PDL_ALLOCATED; /* Need to realloc when phys */
+    PDL_Indx inc = 1, i = 0;
+    for(i=0; i<it->ndims; i++) {
+	it->dimincs[i] = inc; inc *= it->dims[i];
+    }
+    if (it->nvals != inc) /* Need to realloc only if nvals changed */
+	it->state &= ~PDL_ALLOCATED;
+    it->nvals = inc;
 }
 
 /* Init dims & incs - if *incs is NULL ignored (but space is always same for both)  */
