@@ -132,7 +132,7 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(hdr_childcopy, void, (pdl_trans *trans)) \
   X(readdata_affine, pdl_error, (pdl_trans *trans)) \
   X(writebackdata_affine, pdl_error, (pdl_trans *trans)) \
-  X(affine_new, pdl_error, (pdl *par,pdl *child,PDL_Indx offs,SV *dims,SV *incs)) \
+  X(affine_new, pdl_error, (pdl *par,pdl *child,PDL_Indx offs,PDL_Indx *dims,PDL_Indx ndims,PDL_Indx *incs,PDL_Indx nincs)) \
   X(converttypei_new, pdl_error, (pdl *par,pdl *child,int type)) \
   X(dump, void, (pdl *it)) \
   X(sever, pdl_error, (pdl *a)) \

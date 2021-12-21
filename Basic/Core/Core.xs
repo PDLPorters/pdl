@@ -28,19 +28,6 @@ int pdl_autopthread_actual = 0;
 PDL_Indx pdl_autopthread_dim = -1;
 int pdl_autopthread_size   = 1;
 
-static SV* pdl_unpackint ( PDL_Indx *dims, int ndims ) {
-
-   AV*  array;
-   int i;
-
-   array = newAV();
-
-   for(i=0; i<ndims; i++) /* if ndims == 0, nothing stored -> ok */
-         av_store( array, i, newSViv( (IV)dims[i] ) );
-
-   return (SV*) array;
-}
-
 MODULE = PDL::Core     PACKAGE = PDL
 
 # Destroy a PDL - note if a hash do nothing, the $$x{PDL} component
@@ -843,7 +830,7 @@ threadover(...)
     SV *code = ST(items-1);
     pdl_thread pdl_thr;
     pdl *pdls[npdls], *child[npdls];
-    SV *csv[npdls], *dims[npdls], *incs[npdls], *others[nothers];
+    SV *csv[npdls], *others[nothers];
     PDL_Indx *creating = pdl_packdims(cdimslist,&nd2);
     if (!creating) croak("Failed to packdims for creating");
     PDL_Indx *realdims = pdl_packdims(rdimslist,&nd1);
@@ -881,17 +868,17 @@ threadover(...)
     pdl_error error_ret = {0, NULL, 0};
     if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting threadloop");
     pdl_barf_if_error(error_ret);
-    for(i=0; i<npdls; i++) { /* will the SV*'s be properly freed? */
-	dims[i] = newRV(pdl_unpackint(pdls[i]->dims,realdims[i]));
-	incs[i] = newRV(pdl_unpackint(PDL_REPRINCS(pdls[i]),realdims[i]));
+    for(i=0; i<npdls; i++) {
+	PDL_Indx *thesedims = pdls[i]->dims, *theseincs = PDL_REPRINCS(pdls[i]);
 	/* need to make sure we get the vaffine (grand)parent */
 	if (PDL_VAFFOK(pdls[i]))
 	   pdls[i] = pdls[i]->vafftrans->from;
 	child[i]=pdl_null();
 	if (!child[i]) pdl_pdl_barf("Error making null pdl");
 	/*  instead of pdls[i] its vaffine parent !!!XXX */
-	pdl_barf_if_error(pdl_affine_new(pdls[i],child[i],pdl_thr.offs[i],dims[i],
-		incs[i]));
+	pdl_barf_if_error(pdl_affine_new(pdls[i],child[i],pdl_thr.offs[i],
+		thesedims,realdims[i],
+		theseincs,realdims[i]));
 	pdl_barf_if_error(pdl_make_physical(child[i])); /* make sure we can get at
 					the vafftrans          */
 	csv[i] = sv_newmortal();

@@ -71,25 +71,21 @@ pp_def( 'affine',
         TwoWay => 1,
         AffinePriv => 1,
         GlobalNew => 'affine_new',
-        OtherPars => 'PDL_Indx offspar; SV *dimlist; SV *inclist;',
+        OtherPars => 'PDL_Indx offspar; PDL_Indx dims[]; PDL_Indx incs[]',
         Comp => 'PDL_Indx nd; PDL_Indx offset; PDL_Indx sdims[$COMP(nd)];
                 PDL_Indx sincs[$COMP(nd)];',
         MakeComp => '
-                PDL_Indx i = 0, n2 = 0;
-                PDL_Indx *tmpi = pdl_packdims(inclist,&n2);
-                if (!tmpi) $CROAK("Failed to packdims for tmpi");
-                PDL_Indx *tmpd = pdl_packdims(dimlist,&($COMP(nd)));
-                if (!tmpd) $CROAK("Failed to packdims for tmpd");
-                if ($COMP(nd) < 0) {
+                PDL_Indx i = 0;
+                $COMP(nd) = dims_count;
+                if ($COMP(nd) < 0)
                       $CROAK("Affine: can not have negative no of dims");
-                }
-                if ($COMP(nd) != n2)
+                if ($COMP(nd) != incs_count)
                       $CROAK("Affine: number of incs does not match dims");
                 $DOCOMPALLOC();
                 $COMP(offset) = offspar;
                 for (i=0; i<$COMP(nd); i++) {
-                        $COMP(sdims)[i] = tmpd[i];
-                        $COMP(sincs)[i] = tmpi[i];
+                        $COMP(sdims)[i] = dims[i];
+                        $COMP(sincs)[i] = incs[i];
                 }
                 ',
         RedoDims => '
@@ -169,7 +165,7 @@ pdl_transvtable pdl_affine_vtable = {
   sizeof(pdl_params_affine),"affine_new"
 };
 
-pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV *inclist) {
+pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,PDL_Indx *dims,PDL_Indx dims_count, PDL_Indx *incs, PDL_Indx incs_count) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_trans *trans = (void *)pdl_create_trans(&pdl_affine_vtable);
   pdl_params_affine *params = trans->params;
@@ -180,14 +176,11 @@ pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV 
   pdl_type_coerce((pdl_trans *)trans);
   PARENT = trans->pdls[0];
   CHILD = trans->pdls[1];
-  PDL_Indx i = 0, n2 = 0;
-  PDL_Indx *tmpi = pdl_packdims(inclist,&n2);
-  if (!tmpi) return pdl_make_error_simple(PDL_EFATAL, "Failed to packdims for tmpi");
-  PDL_Indx *tmpd = pdl_packdims(dimlist,&(params->nd));
-  if (!tmpd) return pdl_make_error_simple(PDL_EFATAL, "Failed to packdims for tmpd");
+  PDL_Indx i = 0;
+  params->nd = dims_count;
   if (params->nd < 0)
     return pdl_make_error_simple(PDL_EUSERERROR, "Error in affine: can not have negative no of dims");
-  if (params->nd != n2)
+  if (params->nd != incs_count)
     return pdl_make_error_simple(PDL_EUSERERROR, "Error in affine: number of incs does not match dims");
   params->sdims = malloc(sizeof(* params->sdims) * params->nd);
   if (!params->sdims) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
@@ -195,8 +188,8 @@ pdl_error pdl_affine_new(pdl *PARENT,pdl *CHILD,PDL_Indx offspar,SV *dimlist,SV 
   if (!params->sincs) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
   params->offset = offspar;
   for (i=0; i<params->nd; i++) {
-    params->sdims[i] = tmpd[i];
-    params->sincs[i] = tmpi[i];
+    params->sdims[i] = dims[i];
+    params->sincs[i] = incs[i];
   }
   PDL_RETERROR(PDL_err, pdl_make_trans_mutual((pdl_trans *)trans));
   if (badflag_cache)
