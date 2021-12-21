@@ -248,13 +248,15 @@ my $empty = zeroes(0);
 ok($empty->nelem==0,"you can make an empty PDL with zeroes(0)");
 ok("$empty" =~ m/Empty/, "an empty PDL prints 'Empty'");
 
-ok($null->info =~ /^PDL->null$/, "null ndarray's info is 'PDL->null'");
+is $null->info, 'PDL->null', "null ndarray's info is 'PDL->null'";
 my $mt_info = $empty->info;
 $mt_info =~m/\[([\d,]+)\]/;
 my $mt_info_dims = pdl("$1");
 ok(any($mt_info_dims==0), "empty ndarray's info contains a 0 dimension");
-ok($null->isnull && $null->isempty, "a null ndarray is both null and empty");
-ok(!$empty->isnull && $empty->isempty, "an empty ndarray is empty but not null");
+ok($null->isnull, "a null ndarray is null");
+ok($null->isempty, "a null ndarray is empty") or diag $null->info;
+ok(!$empty->isnull, "an empty ndarray is not null");
+ok($empty->isempty, "an empty ndarray is empty");
 
 $x = short pdl(3,4,5,6);
 eval { $x->reshape(2,2);};
