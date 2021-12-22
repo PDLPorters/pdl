@@ -52,10 +52,6 @@ make_null(sv)
         dat = newSVpv(it->data,PDL->howbig(it->datatype));
         it->data = SvPV(dat,n_a);
         it->datasv = dat;
-        PDL->setdims(it, fake, 0); /* However, there are 0 dims in scalar */
-        it->nvals = 1;
-        /* PDL->set(it->data, it->datatype, NULL, NULL, NULL, 0, 0, 0.0); */
-
         /* a null ndarray  */
 	PDL->setdims(it,fake,1);
 	it->state |= PDL_NOMYDIMS;

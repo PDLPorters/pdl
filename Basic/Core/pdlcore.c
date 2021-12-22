@@ -35,42 +35,32 @@ size_t pdl_howbig (int datatype) {
 }
 
 /* Make a scratch dataspace for a scalar pdl */
-
 void pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
   STRLEN n_a;
-  SV *dat; PDL_Indx fake[1];
-  
+  SV *dat;
   /* Compress to smallest available type.  */
   ret->datatype = data.type;
-
   /* Create a string SV of apropriate size.  The string is arbitrary
    * and just has to be larger than the largest datatype.   */
   dat = newSVpvn("                                ",pdl_howbig(ret->datatype));
-  
   ret->data = SvPV(dat,n_a);
   ret->datasv = dat;
   /* Refcnt should be 1 already... */
-    
   /* Make the whole pdl mortal so destruction happens at the right time.
    * If there are dangling references, pdlapi.c knows not to actually
    * destroy the C struct. */
   sv_2mortal(getref_pdl(ret));
-  
-  pdl_setdims(ret, fake, 0); /* 0 dims in a scalar */
+  pdl_setdims(ret, NULL, 0); /* 0 dims in a scalar */
   ret->nvals = 1;            /* 1 val  in a scalar */
-  
   /* NULLs should be ok because no dimensions. */
   pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data);
-  
 }
-
 
 /*
   "Convert" a perl SV into a pdl (alright more like a mapping as
    the data block is not actually copied in the most common case
    of a single scalar) scalars are automatically converted to PDLs.
 */
-
 pdl* pdl_SvPDLV ( SV* sv ) {
 
    pdl* ret;
