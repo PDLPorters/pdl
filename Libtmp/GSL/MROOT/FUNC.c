@@ -24,83 +24,48 @@ void set_funname(SV *fn, PDL_Indx n) {
 }
 
 void DFF(double* xval, double* vector){
-   //this version tries just to get the output
-  SV* funname;
-
-  double* xpass; int i;
-  int count;
-  I32 ax ; 
-
-  pdl* px;
-  SV* pxsv;
-
-  pdl* pvector;
-  SV* pvectorsv;
-
-  int ndims;
-
+  //this version tries just to get the output
   dSP;
   ENTER;
   SAVETMPS;
 
-  ndims = 1;
-  PDL_Indx pdims[ndims];
-  
-  pdims[0] = (PDL_Indx) ene;
-
-  PUSHMARK(SP);
-  XPUSHs(sv_2mortal(newSVpv("PDL", 0)));
-  PUTBACK;
-  perl_call_method("initialize", G_SCALAR);
-  SPAGAIN;
-  pxsv = POPs;
-  PUTBACK;
-  px = PDL->SvPDLV(pxsv);
-  
-  PDL->barf_if_error(PDL->converttype( px, PDL_D ));
-  PDL->setdims (px,pdims,ndims);
+  pdl* px = PDL->pdlnew();
+  if (!px) PDL->pdl_barf("Failed to create pdl");
+  SV* pxsv = sv_newmortal();
+  PDL->SetSV_PDL(pxsv, px);
+  int ndims = 1;
+  PDL_Indx pdims[] = { (PDL_Indx) ene };
+  PDL->barf_if_error(PDL->setdims(px,pdims,ndims));
+  px->datatype = PDL_D;
+  px->data = (void *) xval;
   px->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
 
-  px->data = (void *) xval;
-
   /* get function name on the perl side */
-  funname = ext_funname1;
-
   PUSHMARK(SP);
-
   XPUSHs(pxsv);
-
   PUTBACK;
-
-  count=call_sv(funname,G_SCALAR);
-
-
+  int count=call_sv(ext_funname1,G_SCALAR);
   SPAGAIN; 
   SP -= count ;
-  ax = (SP - PL_stack_base) + 1 ;
-
+  I32 ax = (SP - PL_stack_base) + 1 ;
   if (count!=1)
     croak("error calling perl function\n");
 
   /* recover output value */
-
-
-  pvectorsv = ST(0);
-  pvector = PDL->SvPDLV(pvectorsv);
-  
+  pdl* pvector = PDL->SvPDLV(ST(0));
   PDL->barf_if_error(PDL->make_physical(pvector));
-  
-  xpass  =  (double *) pvector->data;
-  
-  
+
+  double *xpass  =  (double *) pvector->data;
+  PDL_Indx i;
   for(i=0;i<ene;i++) {
     vector[i] =  xpass[i];
   }
-   
+
+  px->data = NULL;
+
   PUTBACK;
   FREETMPS;
   LEAVE;
-
 }
 
 
