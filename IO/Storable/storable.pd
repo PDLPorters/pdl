@@ -37,7 +37,6 @@ void
 make_null(sv)
         SV *sv
         CODE:
-        PDL_Indx fake[1] = {0};
         STRLEN n_a;
         /* we basically mimic pdl_null but without letting
          * it give us a it->sv ! We have our own to which we
@@ -49,9 +48,6 @@ make_null(sv)
 	it->data = PDL->smalloc((STRLEN) (PDL->howbig(it->datatype)));
         it->datasv = newSVpv(it->data,PDL->howbig(it->datatype));
         it->data = SvPV((SV *)it->datasv,n_a);
-        /* a null ndarray  */
-	PDL->setdims(it,fake,1);
-	it->state |= PDL_NOMYDIMS;
         /* connect pdl struct to this sv */
         sv_setiv(SvRV(sv),PTR2IV(it));
         it->sv = SvRV(sv);

@@ -79,12 +79,10 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 
 pdl *pdl_null() {
 	PDL_Anyval zero = { PDL_B, {0} };
-	pdl *it = pdl_scalar(zero);
+	pdl *it = pdl_pdlnew();
 	if (!it) return it;
-	PDL_Indx d[1] = {0};
-	pdl_error PDL_err = pdl_setdims(it,d,1);
+	pdl_error PDL_err = pdl_makescratchhash(it, zero);
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }
-	it->state |= PDL_NOMYDIMS;
 	return it;
 }
 
@@ -94,7 +92,7 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 	pdl_error PDL_err = pdl_makescratchhash(it, anyval);
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }
 	it->threadids[0] = it->ndims = 0; /* 0 dims in a scalar */
-	it->state &= ~PDL_ALLOCATED; /* size changed */
+	it->state &= ~(PDL_ALLOCATED|PDL_NOMYDIMS); /* size changed, has dims */
 	it->nvals = 1;            /* 1 val  in a scalar */
 	return it;
 }
@@ -156,13 +154,11 @@ pdl_error pdl_allocdata(pdl *it) {
 }
 
 pdl* pdl_pdlnew() {
-     int i;
      pdl* it;
      it = (pdl*) malloc(sizeof(pdl));
      if (!it) return it;
      memset(it, 0, sizeof(pdl));
      it->magicno = PDL_MAGICNO;
-     it->state = 0;
      it->datatype = 0;
      it->trans_parent = NULL;
      it->vafftrans = NULL;
@@ -170,12 +166,15 @@ pdl* pdl_pdlnew() {
      it->datasv = 0;
      it->data = 0;
      it->has_badvalue = 0;
+     it->state = PDL_NOMYDIMS;
      it->dims = it->def_dims;
+     it->nvals = it->dims[0] = 0;
      it->dimincs = it->def_dimincs;
-     it->ndims = 0;
+     it->dimincs[0] = 1;
      it->nthreadids = 1;
      it->threadids = it->def_threadids;
-     it->threadids[0] = 0;
+     it->threadids[0] = it->ndims = 1;
+     PDL_Indx i;
      for(i=0; i<PDL_NCHILDREN; i++) {it->child_transes.trans[i]=NULL;}
      it->child_transes.next = NULL;
      it->magic = 0;
