@@ -456,4 +456,11 @@ isnt $@, '', 'is_inplace as class method throws exception';
 is sequence(3)->get_trans, undef, 'get_trans without trans undef';
 isnt sequence(3)->slice()->get_trans, undef, 'get_trans with trans defined';
 
+eval {
+  my $notouch = sequence(4);
+  $notouch->set_donttouchdata;
+  $notouch->setdims([2,2]);
+};
+is $@, '', 'setdims to same total size of set_donttouchdata should be fine';
+
 done_testing;
