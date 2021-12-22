@@ -35,7 +35,8 @@ size_t pdl_howbig (int datatype) {
 }
 
 /* Make a scratch dataspace for a scalar pdl */
-void pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
+pdl_error pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
+  pdl_error PDL_err = {0, NULL, 0};
   STRLEN n_a;
   /* Create a string SV of apropriate size.  The string is arbitrary
    * and just has to be larger than the largest datatype.   */
@@ -46,10 +47,11 @@ void pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
    * If there are dangling references, pdlapi.c knows not to actually
    * destroy the C struct. */
   sv_2mortal(getref_pdl(ret));
-  pdl_setdims(ret, NULL, 0); /* 0 dims in a scalar */
+  PDL_RETERROR(PDL_err, pdl_setdims(ret, NULL, 0)); /* 0 dims in a scalar */
   ret->nvals = 1;            /* 1 val  in a scalar */
   /* NULLs should be ok because no dimensions. */
-  pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data);
+  PDL_RETERROR(PDL_err, pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data));
+  return PDL_err;
 }
 
 /*
@@ -74,7 +76,8 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       if (!ret) return ret;
       /* Scratch hash for the pdl :( - slow but safest. */
       ANYVAL_FROM_SV(data, sv, TRUE, -1);
-      pdl_makescratchhash(ret, data);
+      pdl_error PDL_err = pdl_makescratchhash(ret, data);
+      if (PDL_err.error) { pdl_destroy(ret); return NULL; }
       return ret;
    } /* End of scalar case */
 
@@ -100,7 +103,8 @@ pdl* pdl_SvPDLV ( SV* sv ) {
       if (!ret) return ret;
       data.type = PDL_CD;
       data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
-      pdl_makescratchhash(ret, data);
+      pdl_error PDL_err = pdl_makescratchhash(ret, data);
+      if (PDL_err.error) { pdl_destroy(ret); return NULL; }
       return ret;
    }
 

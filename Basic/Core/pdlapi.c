@@ -82,8 +82,9 @@ pdl *pdl_null() {
 	pdl *it = pdl_pdlnew();
 	if (!it) return it;
 	PDL_Anyval zero = { PDL_B, {0} };
-	pdl_makescratchhash(it, zero);
-	pdl_error PDL_err = pdl_setdims(it,d,1);
+	pdl_error PDL_err = pdl_makescratchhash(it, zero);
+	if (PDL_err.error) { pdl_destroy(it); return NULL; }
+	PDL_err = pdl_setdims(it,d,1);
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }
 	it->state |= PDL_NOMYDIMS;
 	return it;
