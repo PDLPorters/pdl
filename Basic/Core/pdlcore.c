@@ -510,12 +510,13 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
   if (dest_pdl == NULL)
      dest_pdl = pdl_pdlnew();
   if (!dest_pdl) return dest_pdl;
-  pdl_setdims (dest_pdl, dest_dims, ndims);
+  pdl_error err = pdl_setdims (dest_pdl, dest_dims, ndims);
+  if (err.error) return NULL;
   if (dtype == -1) {
     dtype = _detect_datatype(av);
   }
   dest_pdl->datatype = dtype;
-  pdl_error err = pdl_allocdata (dest_pdl);
+  err = pdl_allocdata (dest_pdl);
   if (err.error) return NULL;
   err = pdl_make_physical(dest_pdl);
   if (err.error) return NULL;
