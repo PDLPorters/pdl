@@ -37,11 +37,9 @@ void
 make_null(sv)
         SV *sv
         CODE:
-        SV *newref, *dat;
         PDL_Indx fake[1] = {0};
         STRLEN n_a;
-
-        /* we basically mimick pdl_null but without letting
+        /* we basically mimic pdl_null but without letting
          * it give us a it->sv ! We have our own to which we
          * connect below
          */
@@ -49,39 +47,32 @@ make_null(sv)
         if (!it) PDL->pdl_barf("Failed to create new pdl");
 	it->datatype = PDL_B;
 	it->data = PDL->smalloc((STRLEN) (PDL->howbig(it->datatype)));
-        dat = newSVpv(it->data,PDL->howbig(it->datatype));
-        it->data = SvPV(dat,n_a);
-        it->datasv = dat;
+        it->datasv = newSVpv(it->data,PDL->howbig(it->datatype));
+        it->data = SvPV((SV *)it->datasv,n_a);
         /* a null ndarray  */
 	PDL->setdims(it,fake,1);
 	it->state |= PDL_NOMYDIMS;
-
         /* connect pdl struct to this sv */
         sv_setiv(SvRV(sv),PTR2IV(it));
         it->sv = SvRV(sv);
         /* printf("it->sv = %d\n",it->sv); */
         PDL->SetSV_PDL(sv,it);
 
-
 void
 swapEndian( to, elem_size )
      SV* to
      int elem_size
-
      CODE:
      int i,j;
      STRLEN len;
      char* str = SvPV(to, len);
-
      for( i=0; i<len/elem_size; i++ )
-     {
        for( j=0; j<elem_size/2; j++ )
        {
          char tmp = str[i*elem_size + j];
          str[i*elem_size + j] = str[(i+1)*elem_size - 1 - j];
          str[(i+1)*elem_size - 1 - j] = tmp;
        }
-     }
 
 EOXS
 

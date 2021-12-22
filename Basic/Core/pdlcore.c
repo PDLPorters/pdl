@@ -37,14 +37,10 @@ size_t pdl_howbig (int datatype) {
 /* Make a scratch dataspace for a scalar pdl */
 void pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
   STRLEN n_a;
-  SV *dat;
-  /* Compress to smallest available type.  */
-  ret->datatype = data.type;
   /* Create a string SV of apropriate size.  The string is arbitrary
    * and just has to be larger than the largest datatype.   */
-  dat = newSVpvn("                                ",pdl_howbig(ret->datatype));
-  ret->data = SvPV(dat,n_a);
-  ret->datasv = dat;
+  ret->datasv = newSVpvn("                                ",pdl_howbig(ret->datatype = data.type));
+  ret->data = SvPV((SV *)ret->datasv,n_a);
   /* Refcnt should be 1 already... */
   /* Make the whole pdl mortal so destruction happens at the right time.
    * If there are dangling references, pdlapi.c knows not to actually
