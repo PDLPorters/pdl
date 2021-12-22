@@ -78,6 +78,7 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(pdlnew, pdl*, ()) \
   X(destroy, pdl_error, (pdl *it)) \
   X(null, pdl*, ()) \
+  X(scalar, pdl*, (PDL_Anyval anyval)) \
   X(hard_copy, pdl*, ( pdl* )) \
   X(converttype, pdl_error, ( pdl*, int )) \
   X(smalloc, void*, ( STRLEN )) \

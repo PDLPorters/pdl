@@ -247,20 +247,6 @@ sub PDL::check_badflag {
 
 !NO!SUBS!
 
-pp_addhdr <<'EOHDR';
-static pdl* new_pdlscalar(int datatype)
-       {
-         pdl *p = PDL->pdlnew();
-         if (!p) return p;
-         pdl_error err = PDL->setdims(p, NULL, 0);  /* set dims */
-         if (err.error) { PDL->destroy(p); return NULL; }
-         p->datatype = datatype;         /* and data type */
-         err = PDL->allocdata (p);       /* allocate the data chunk */
-         if (err.error) { PDL->destroy(p); return NULL; }
-         return p;
-       }
-EOHDR
-
 my $str = <<'EOF';
 pdl *
 _badvalue_int(val, type)
@@ -268,7 +254,8 @@ _badvalue_int(val, type)
     int type
   CODE:
    {
-    pdl* p = new_pdlscalar(type);
+    PDL_Anyval newval = {type, {0}};
+    pdl* p = PDL->scalar(newval);
     if (!p) PDL->pdl_barf("Error making new pdl");
     if ( val.type != -1 ) {
 #define X(datatype, ctype, ppsym, shortctype, defbval) \
@@ -292,7 +279,8 @@ _badvalue_per_pdl_int(pdl_val, val, type)
     int type
   CODE:
    {
-    pdl* p = new_pdlscalar(type);
+    PDL_Anyval newval = {type, {0}};
+    pdl* p = PDL->scalar(newval);
     if (!p) PDL->pdl_barf("Error making new pdl");
     if ( val.type != -1) {
        pdl_val->badvalue = val;
@@ -319,7 +307,8 @@ pdl *
 _default_badvalue_int(type)
     int type
   CODE:
-    pdl* p = new_pdlscalar(type);
+    PDL_Anyval val = {type, {0}};
+    pdl* p = PDL->scalar(val);
     if (!p) PDL->pdl_barf("Error making new pdl");
 #define X(datatype, ctype, ppsym, shortctype, defbval) \
     *((ctype *)p->data) = defbval;

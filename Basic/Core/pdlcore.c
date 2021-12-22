@@ -47,8 +47,6 @@ pdl_error pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
    * If there are dangling references, pdlapi.c knows not to actually
    * destroy the C struct. */
   sv_2mortal(getref_pdl(ret));
-  PDL_RETERROR(PDL_err, pdl_setdims(ret, NULL, 0)); /* 0 dims in a scalar */
-  ret->nvals = 1;            /* 1 val  in a scalar */
   /* NULLs should be ok because no dimensions. */
   PDL_RETERROR(PDL_err, pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data));
   return PDL_err;
@@ -72,13 +70,8 @@ pdl* pdl_SvPDLV ( SV* sv ) {
    if ( !SvROK(sv) ) {
       /* The scalar is not a ref, so we can use direct conversion. */
       PDL_Anyval data;
-      ret = pdl_pdlnew();  /* Scratch pdl */
-      if (!ret) return ret;
-      /* Scratch hash for the pdl :( - slow but safest. */
       ANYVAL_FROM_SV(data, sv, TRUE, -1);
-      pdl_error PDL_err = pdl_makescratchhash(ret, data);
-      if (PDL_err.error) { pdl_destroy(ret); return NULL; }
-      return ret;
+      return pdl_scalar(data);
    } /* End of scalar case */
 
    if(sv_derived_from(sv, "Math::Complex")) {
@@ -99,13 +92,9 @@ pdl* pdl_SvPDLV ( SV* sv ) {
         PUTBACK;
       }
       FREETMPS; LEAVE;
-      ret = pdl_pdlnew();  /* Scratch pdl */
-      if (!ret) return ret;
       data.type = PDL_CD;
       data.value.C = (PDL_CDouble)(vals[0] + I * vals[1]);
-      pdl_error PDL_err = pdl_makescratchhash(ret, data);
-      if (PDL_err.error) { pdl_destroy(ret); return NULL; }
-      return ret;
+      return pdl_scalar(data);
    }
 
    /* If execution reaches here, then sv is NOT a scalar

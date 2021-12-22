@@ -63,13 +63,13 @@ ok(all($e == $e_sort), "inplace lexicographical sorting with bad values");
 # Test sf.net bug 379 "Passing qsort an extra argument causes a segfault"
 # (also qsorti, qsortvec, qsortveci)
 eval { random(15)->qsort(5); };
-ok($@ ne '', "qsort extra argument");
+isnt($@, '', "qsort extra argument");
 eval { random(15)->qsorti(5); };
-ok($@ ne '', "qsorti extra argument");
+isnt($@, '', "qsorti extra argument");
 eval {random(10,4)->qsortvec(5); };
-ok($@ ne '', "qsortvec extra argument");
+isnt($@, '', "qsortvec extra argument");
 eval {random(10,4)->qsortveci(2); };
-ok(@$ ne '', "qsortveci extra argument");
+isnt($@, '', "qsortveci extra argument");
 #but the dimension size checks for those cases shouldn't derail trivial qsorts:
 is(pdl(5)->qsort,pdl(5),'trivial qsort');
 is(pdl(8)->qsorti,pdl(0),'trivial qsorti');

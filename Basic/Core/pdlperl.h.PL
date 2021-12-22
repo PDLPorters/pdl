@@ -19,12 +19,11 @@ print OUT <<'EOF';
 #define __PDLPERL_H
 
 #define PDL_XS_SCALAR(type, val) \
-  SV *b_SV = sv_newmortal(); \
-  pdl *b = pdl_pdlnew(); \
-  if (!b) XSRETURN_UNDEF; \
   PDL_Anyval av; \
   ANYVAL_FROM_CTYPE(av,type,val); \
-  pdl_makescratchhash(b, av); \
+  pdl *b = pdl_scalar(av); \
+  if (!b) XSRETURN_UNDEF; \
+  SV *b_SV = sv_newmortal(); \
   pdl_SetSV_PDL(b_SV, b); \
   EXTEND(SP, 1); \
   ST(0) = b_SV; \

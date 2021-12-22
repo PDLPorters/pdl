@@ -1,3 +1,5 @@
+- add PDL.scalar
+
 2.063_01 2021-11-21
 - define, use PDL_REPRINCS
 - PDL.{pdlnew,null,get_thread{dims,offsp{,_int}}} return NULL on error, not croak

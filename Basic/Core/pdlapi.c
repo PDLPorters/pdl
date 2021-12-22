@@ -78,15 +78,24 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 }
 
 pdl *pdl_null() {
-	PDL_Indx d[1] = {0};
-	pdl *it = pdl_pdlnew();
-	if (!it) return it;
 	PDL_Anyval zero = { PDL_B, {0} };
-	pdl_error PDL_err = pdl_makescratchhash(it, zero);
-	if (PDL_err.error) { pdl_destroy(it); return NULL; }
-	PDL_err = pdl_setdims(it,d,1);
+	pdl *it = pdl_scalar(zero);
+	if (!it) return it;
+	PDL_Indx d[1] = {0};
+	pdl_error PDL_err = pdl_setdims(it,d,1);
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }
 	it->state |= PDL_NOMYDIMS;
+	return it;
+}
+
+pdl *pdl_scalar(PDL_Anyval anyval) {
+	pdl *it = pdl_pdlnew();
+	if (!it) return it;
+	pdl_error PDL_err = pdl_makescratchhash(it, anyval);
+	if (PDL_err.error) { pdl_destroy(it); return NULL; }
+	it->threadids[0] = it->ndims = 0; /* 0 dims in a scalar */
+	it->state &= ~PDL_ALLOCATED; /* size changed */
+	it->nvals = 1;            /* 1 val  in a scalar */
 	return it;
 }
 
