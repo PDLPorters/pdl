@@ -260,46 +260,39 @@ sub pdlpp_stdargs {
 #     perl -MPDL::Core::Dev -e pdlpp_mkgen DirName
 #
 sub pdlpp_mkgen {
+  require File::Spec::Functions;
+  require File::Copy;
   my $dir = @_ > 0 ? $_[0] : $ARGV[0];
   die "pdlpp_mkgen: unspecified directory" unless defined $dir && -d $dir;
   my $file = "$dir/MANIFEST";
-  die "pdlpp_mkgen: non-existing '$dir/MANIFEST'" unless -f $file;
-
+  die "pdlpp_mkgen: non-existing '$file\'" unless -f $file;
   my @pairs = ();
   my $manifest = ExtUtils::Manifest::maniread($file);
-  for (sort keys %$manifest) {
-    next if $_ !~ m/\.pd$/;     # skip non-pd files
-    next if $_ =~ m/^(t|xt)\//; # skip *.pd files in test subdirs
-    next unless -f $_;
+  for (grep !/^(t|xt)\// && /\.pd$/ && -f, sort keys %$manifest) {
     my $content = do { local $/; open my $in, '<', $_; <$in> };
-    if ($content =~ /=head1\s+NAME\s+(\S+)\s+/sg) {
-      push @pairs, [$_, $1];
-    }
-    else {
-      warn "pdlpp_mkgen: unknown module name for '$_' (use proper '=head1 NAME' section)\n";
-    }
+    warn("pdlpp_mkgen: unknown module name for '$_' (use proper '=head1 NAME' section)\n"), next
+      if !(my ($name) = $content =~ /=head1\s+NAME\s+(\S+)\s+/sg);
+    push @pairs, [$_, $name];
   }
-
   my %added = ();
+  my @in = map "-I".File::Spec::Functions::rel2abs($_), @INC, 'inc';
   for (@pairs) {
     my ($pd, $mod) = @$_;
     (my $prefix = $mod) =~ s|::|/|g;
-    my $manifestpm = "GENERATED/$prefix.pm";
-    $prefix = "$dir/GENERATED/$prefix";
-    File::Path::mkpath(dirname($prefix));
+    my $basename = (split '/', $prefix)[-1];
+    my $basefile = "$basename.pm";
+    my $outfile = File::Spec::Functions::rel2abs("$dir/GENERATED/$prefix.pm");
+    File::Path::mkpath(dirname($outfile));
+    my $old_cwd = Cwd::cwd();
+    chdir dirname($pd);
     #there is no way to use PDL::PP from perl code, thus calling via system()
-    my @in = map { "-I$_" } @INC, 'inc';
-    my $pp_call_arg = _pp_call_arg($mod, $mod, $prefix, '');
-    my $rv = system($^X, @in, $pp_call_arg, $pd);
-    if ($rv == 0 && -f "$prefix.pm") {
-      $added{$manifestpm} = "mod=$mod pd=$pd (added by pdlpp_mkgen)";
-      unlink "$prefix.xs"; #we need only .pm
-    }
-    else {
-      warn "pdlpp_mkgen: cannot convert '$pd'\n";
-    }
+    my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '');
+    my $rv = system($^X, @in, $pp_call_arg, File::Spec::Functions::abs2rel(basename($pd)));
+    die "pdlpp_mkgen: cannot convert '$pd'\n" unless $rv == 0 && -f $basefile;
+    File::Copy::copy($basefile, $outfile) or die "$outfile: $!";
+    chdir $old_cwd or die "chdir $old_cwd: $!";
+    $added{"GENERATED/$prefix.pm"} = "mod=$mod pd=$pd (added by pdlpp_mkgen)";
   }
-
   if (scalar(keys %added) > 0) {
     #maniadd works only with this global variable
     local $ExtUtils::Manifest::MANIFEST = $file;
