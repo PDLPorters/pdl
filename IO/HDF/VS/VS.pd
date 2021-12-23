@@ -2,7 +2,7 @@ pp_addpm({At => Top}, <<'EOD');
 
 =head1 NAME 
 
-PDL::IO::HDF - An interface library for HDF4 files.
+PDL::IO::HDF::VS - An interface library for HDF4 files.
 
 =head1 SYNOPSIS
 
