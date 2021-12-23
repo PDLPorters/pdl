@@ -68,6 +68,7 @@ EOF
 pp_deprecate_module( infavor => "PDL::Test::Fancy" );
 our $VERSION = '0.01'; # so the Makefile.PL's VERSION_FROM picks it up
 pp_setversion(qq{'0.01'}); # this doesn't use $VERSION only to check a bug is fixed
+pp_add_macros(SUCC => sub { "($_[0] + 1)" });
 
 sub pp_deft {
     my ($name,%hash) = @_;
@@ -165,6 +166,12 @@ pp_deft( 'threadloop_continue',
 	 %}
         ],
        );
+
+pp_deft('succ',
+  Pars => 'a(); [o] b()',
+  GenericTypes => ['F'],
+  Code => '$b() = $SUCC($a());',
+);
 
 # test whitespace problem with POD and pp_addxs
 pp_addxs( '', <<'EOXS' );
@@ -334,6 +341,8 @@ ok(all $xx->slice('(1)') == 699);
 test_Cpow(sequence(2), 1);
 
 test_polyfill_pp(zeroes(5,5), ones(2,3), 1);
+
+is test_succ(2)."", 3, 'test pp_add_macros works';
 
 done_testing;
 EOF

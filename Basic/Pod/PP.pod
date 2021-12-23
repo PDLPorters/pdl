@@ -84,12 +84,24 @@ notes on how to "opt-in" for your own modules):
 
 Add code to the generated .pm file
 
-
 =head2 pp_addxs
 
 =for ref
 
 Add extra XS code to the generated XS file
+
+=head2 pp_add_macros
+
+=for ref
+
+Add extra C<$MACRO()> definitions for these functions. Note these generate
+C code.
+
+=for example
+
+  pp_add_macros(SUCC => sub { "($_[0] + 1)" });
+  # ...
+    Code => '$a() = $SUCC($b());',
 
 =head2 pp_beginwrap
 

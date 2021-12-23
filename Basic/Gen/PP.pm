@@ -419,6 +419,7 @@ sub dosubst_private {
       P => sub { (my $o = $sig->objs->{$_[0]})->{FlagPhys} = 1; $o->do_pointeraccess; },
       PDL => sub { $sig->objs->{$_[0]}->do_pdlaccess },
       SIZE => sub { $sig->ind_obj($_[0])->get_size },
+      %PDL::PP::macros,
    );
     while (my ($before, $kw, $args, $other) = macro_extract($ret)) {
       confess("$kw not defined in '$ret'!") if !$syms{$kw};
@@ -730,16 +731,16 @@ use Data::Dumper;
 
 our @ISA = qw(Exporter);
 
-@PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
+our @EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
 		      pp_core_importList pp_beginwrap pp_setversion
                       pp_addbegin pp_boundscheck pp_line_numbers
-                      pp_deprecate_module/;
+                      pp_deprecate_module pp_add_macros/;
 
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
 
-$PDL::PP::done = 0;  # pp_done has not been called yet
+our $done = 0;  # pp_done has not been called yet
 
 use Carp;
 our @CARP_NOT;
@@ -781,6 +782,13 @@ sub list_functions {
   do ''.File::Spec::Functions::rel2abs($file);
   die $@ if $@;
   @funcs;
+}
+
+our %macros;
+
+sub pp_add_macros {
+  confess "Usage: pp_add_macros(name=>sub {},...)" if @_%2;
+  %macros = (%macros, @_);
 }
 
 # query/set boundschecking
