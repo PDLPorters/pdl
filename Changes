@@ -1,3 +1,4 @@
+2.063_02 2021-11-23
 - add PDL.scalar
 - add dummy pdl_pthread_main_thread for when no POSIX threads
 - PDL.pdlnew to make a null pdl except not ALLOCATED
