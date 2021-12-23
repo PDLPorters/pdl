@@ -124,7 +124,6 @@ void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
   X(safe_indterm, PDL_Indx, (PDL_Indx dsz, PDL_Indx at, char *file, int lineno)) \
   X(propagate_badflag, void, (pdl *it, int newval)) \
   X(propagate_badvalue, void, (pdl *it)) \
-  X(changesoon, pdl_error, (pdl *it)) \
   X(changed, pdl_error, (pdl *it, int what, int recursing)) \
   X(get_pdl_badvalue, PDL_Anyval, (pdl *it)) \
   X(get_badvalue, PDL_Anyval, (int datatype)) \

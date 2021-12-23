@@ -798,7 +798,25 @@ sub PDL::pdl { my $x = shift; return $x->new(@_) }
 
 =for ref
 
-Turn on dataflow, forward only.
+Turn on dataflow, forward only. This means any transformations (a.k.a. PDL
+operations) applied to this ndarray afterwards will have forward dataflow:
+
+  $x = sequence 3;
+  $x->doflow;
+  $y = $x + 1;
+  $x += 3;
+  print "$y\n"; # [4 5 6]
+
+As of 2.064, the core API does I<not> automatically sever transformations
+that have forward dataflow into them:
+
+  # following from the above
+  $y->set(1, 9); # value now [4 9 6]
+  $x += 11;
+  print "$y\n"; # [15 16 17] - previously would have been [4 9 6]
+
+If you want to sever such transformations, call L</sever> on the child
+ndarray (above, C<$y>).
 
 =for usage
 

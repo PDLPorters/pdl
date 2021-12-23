@@ -39,7 +39,8 @@ use PDL::LiteF;
 	my $pb = $pa + $pa;
 	is($pb->at(0), 4);
 	is($pb->at(1), 6);
-	$pb->set(0,50); # This must break the dataflow completely
+	$pb->set(0,50);
+	$pb->sever; # As of 2.064 you must break the dataflow manually
 	is($pb->at(0), 50);
 	is($pb->at(1), 6);
 	is($pa->at(0), 2);

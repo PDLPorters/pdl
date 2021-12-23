@@ -556,7 +556,6 @@ pdl_error pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
     for (i=0; i<ndims; i++)
       if (dims[i] != it->dims[i]) { what |= PDL_PARENTDIMSCHANGED; break; }
   if (!what) { PDLDEBUG_f(printf("pdl_setdims NOOP\n")); return PDL_err; }
-  PDL_RETERROR(PDL_err, pdl_changesoon(it));
   PDL_RETERROR(PDL_err, pdl_reallocdims(it,ndims));
   for(i=0; i<ndims; i++) it->dims[i] = dims[i];
   pdl_resize_defaultincs(it);
@@ -689,8 +688,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 		   previous parent transformations and mutate if they exist
 		   if no dataflow. */
 		child->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
-	} else
-		PDL_RETERROR(PDL_err, pdl_changesoon(child));
+	}
 	if (dataflow || isnull) child->trans_parent = trans;
 	if (isnull)
 	    child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
@@ -777,44 +775,6 @@ pdl_error pdl_make_physical(pdl *it) {
 	PDLDEBUG_f(printf("make_physical exit %p\n",(void*)it));
 	END_RECURSE_GUARD;
 	return PDL_err;
-}
-
-pdl_error pdl_children_changesoon_c(pdl *it)
-{
-	pdl_error PDL_err = {0, NULL, 0};
-	int i;
-	PDL_DECL_CHILDLOOP(it);
-	PDL_START_CHILDLOOP(it)
-	    pdl_trans *t = PDL_CHILDLOOP_THISCHILD(it);
-	    if (t->flags & PDL_ITRANS_DO_DATAFLOW_F)
-		for(i=t->vtable->nparents; i<t->vtable->npdls; i++)
-		    PDL_RETERROR(PDL_err, pdl_children_changesoon_c(t->pdls[i]));
-	    else
-		PDL_RETERROR(PDL_err, pdl_destroytransform(t,1,NULL));
-	PDL_END_CHILDLOOP(it)
-	return PDL_err;
-}
-
-/* Change soon: if this is not writeback, separate from
-   parent.
-   If the children of this are not writeback, separate them.
- */
-pdl_error pdl_changesoon(pdl *it)
-{
-    pdl_error PDL_err = {0, NULL, 0};
-    unsigned int i;
-    if (it->trans_parent) {
-	if (it->trans_parent->flags & PDL_ITRANS_DO_DATAFLOW_B) {
-	    if(!(it->trans_parent->flags & PDL_ITRANS_TWOWAY))
-		return pdl_make_error_simple(PDL_EUSERERROR, "PDL: Internal error: Trying to writeback non-TWOWAY trans");
-	    for(i=0; i<it->trans_parent->vtable->nparents; i++)
-		PDL_RETERROR(PDL_err, pdl_changesoon(it->trans_parent->pdls[i]));
-	    return PDL_err;
-	} else
-	    PDL_RETERROR(PDL_err, pdl_destroytransform(it->trans_parent,1,NULL));
-    }
-    PDL_RETERROR(PDL_err, pdl_children_changesoon_c(it));
-    return PDL_err;
 }
 
 pdl_error pdl_changed(pdl *it, int what, int recursing)

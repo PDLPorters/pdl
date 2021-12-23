@@ -379,7 +379,6 @@ set_c(x,pos,value)
       if (pos[ipos] != 0)
          croak("Invalid position");
 
-    pdl_barf_if_error(pdl_changesoon( x ));
     pdl_barf_if_error(pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
         PDL_REPRINCS(x), PDL_REPROFFS(x),
 	x->ndims,value));
