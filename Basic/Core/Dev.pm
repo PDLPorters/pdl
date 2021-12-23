@@ -189,7 +189,7 @@ sub _postamble {
     my $core = File::Spec::Functions::catdir($top, qw(Basic Core));
     $pmdep .= join ' ', '',
       File::Spec::Functions::catfile($top, qw(Basic Gen pm_to_blib)),
-      File::Spec::Functions::catfile($core, qw(Types.pm)),
+      File::Spec::Functions::catfile($core, qw(pm_to_blib)),
       ;
     $cdep .= join ' ', map File::Spec::Functions::catfile($core, $_),
       qw(pdl.h pdlcore.h pdlthread.h pdlmagic.h);
