@@ -286,7 +286,7 @@ sub pdlpp_mkgen {
     my $old_cwd = Cwd::cwd();
     chdir dirname($pd);
     #there is no way to use PDL::PP from perl code, thus calling via system()
-    my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '');
+    my $pp_call_arg = _pp_call_arg($mod, $mod, $basename, '', 1);
     my $rv = system($^X, @in, $pp_call_arg, File::Spec::Functions::abs2rel(basename($pd)));
     die "pdlpp_mkgen: cannot convert '$pd'\n" unless $rv == 0 && -f $basefile;
     File::Copy::copy($basefile, $outfile) or die "$outfile: $!";
