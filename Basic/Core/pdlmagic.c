@@ -524,6 +524,7 @@ int pdl_online_cpus(void)
 #else
 /* Dummy versions */
 pdl_error pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
+char pdl_pthread_main_thread() { return 1; }
 int pdl_magic_get_thread(pdl *it) {return 0;}
 pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
 int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {return 0;}

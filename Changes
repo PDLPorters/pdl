@@ -1,4 +1,5 @@
 - add PDL.scalar
+- add dummy pdl_pthread_main_thread for when no POSIX threads
 
 2.063_01 2021-11-21
 - define, use PDL_REPRINCS
