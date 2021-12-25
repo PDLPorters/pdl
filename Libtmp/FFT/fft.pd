@@ -41,28 +41,7 @@ the in-place flag.  That should be fixed.
 
 The underlying C library upon which this module is based performs FFTs
 on both single precision and double precision floating point ndarrays.
-Performing FFTs on integer data types is not reliable.  Consider the
-following FFT on ndarrays of type 'double':
-
-	$r = pdl(0,1,0,1);
-	$i = zeroes($r);
-	fft($r,$i);
-	print $r,$i;
-	[2 0 -2 0] [0 0 0 0]
-
-But if $r and $i are unsigned short integers (ushorts):
-
-	$r = pdl(ushort,0,1,0,1);
-	$i = zeroes($r);
-	fft($r,$i);
-	print $r,$i;
-	[2 0 65534 0] [0 0 0 0]
-
-This used to occur because L<PDL::PP> converts the ushort
-ndarrays to floats or doubles, performs the FFT on them, and then
-converts them back to ushort, causing the overflow where the amplitude
-of the frequency should be -2.
-
+The PP functions are defined to only take those data types.
 Therefore, if you pass in an ndarray of integer datatype (byte, short,
 ushort, long) to any of the routines in PDL::FFT, your data will be
 promoted to a double-precision ndarray.  If you pass in a float, the
@@ -511,6 +490,7 @@ EOD
 
 pp_def('convmath',
 	Pars => '[o,nc]a(m); [o,nc]b(m);',
+	GenericTypes => $F,
 	Code => '
 	$GENERIC() t1, t2;
 	loop(m) %{
@@ -526,6 +506,7 @@ pp_def('convmath',
 
 pp_def('cmul',
 	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
+	GenericTypes => $F,
 	Code => '
 	$GENERIC() ar, ai, br, bi;
 	   ar = $ar();
@@ -556,6 +537,7 @@ our $abs_string .= "types($_) %{" . $ah{$_} . '(br) > ' . $ah{$_} . "(bi)%}\n" f
 
 pp_def('cdiv',
 	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
+	GenericTypes => $F,
 	Code => '
 	$GENERIC() ar, ai, br, bi, tt, dn;
 	   ar = $ar();
