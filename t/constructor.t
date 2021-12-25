@@ -155,7 +155,7 @@ is $p->ndims, 2, "piddlifying two 0-PDLs makes a 2D-PDL";
 is $p->dim(0),0, "piddlifying two empty ndarrays makes a 0x2-PDL";
 is $p->dim(1),2, "piddlifying two empty ndarrays makes a 0x2-PDL";
 eval { $p->at(0,0) };
-ok( $@ =~ m/^Position\s*\d+\s*out of range/ , "can't index an empty PDL with at" );
+like $@, qr/^Position\s*\d+\s*out of range/, "can't index an empty PDL with at";
 
 $p = pdl(pdl([4]),5);
 is $p->ndims, 2,  "catenating a 1-PDL and a scalar yields a 2D PDL";
