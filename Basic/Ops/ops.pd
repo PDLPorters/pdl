@@ -229,8 +229,12 @@ EOH
     my $codestr;
     if ($extra{unsigned}){
 #a little dance to avoid the MOD macro warnings for byte & ushort datatypes
+      my $t = join '', map $_->ppsym, grep $_->real, types();
+      my $v = join ',', map
+        $_->unsigned ? 'BU_' : $_->ppsym eq 'Q' ? 'Q_' : '',
+        grep $_->real, types();
       $codestr = << "ENDCODE";
-\$c() = (\$GENERIC(c))\$TBSULNQFD(BU_,,BU_,,,Q_,,)$func(\$a(),\$b());
+\$c() = (\$GENERIC(c))\$T$t($v)$func(\$a(),\$b());
 ENDCODE
 #end dance
     } else {
