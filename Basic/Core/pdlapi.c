@@ -77,6 +77,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 
 pdl *pdl_null() {
 	PDL_Anyval zero = { PDL_B, {0} };
+	PDLDEBUG_f(printf("pdl_null\n"));
 	pdl *it = pdl_pdlnew();
 	if (!it) return it;
 	pdl_error PDL_err = pdl_makescratchhash(it, zero);
@@ -85,6 +86,7 @@ pdl *pdl_null() {
 }
 
 pdl *pdl_scalar(PDL_Anyval anyval) {
+	PDLDEBUG_f(printf("pdl_scalar type=%d\n", anyval.type));
 	pdl *it = pdl_pdlnew();
 	if (!it) return it;
 	pdl_error PDL_err = pdl_makescratchhash(it, anyval);
@@ -97,6 +99,7 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 
 pdl *pdl_get_convertedpdl(pdl *old,int type) {
 	if(old->datatype == type) return old;
+	PDLDEBUG_f(printf("pdl_get_convertedpdl\n"));
 	pdl *it = pdl_null();
 	if (!it) return it;
 	pdl_error PDL_err = pdl_converttypei_new(old,it,type);
@@ -458,6 +461,7 @@ pdl *pdl_hard_copy(pdl *src) {
 	pdl_error PDL_err = pdl_make_physical(src); /* Wasteful XXX... should be lazier */
 	if (PDL_err.error) return NULL;
 	int i;
+	PDLDEBUG_f(printf("pdl_hard_copy\n"));
 	pdl *it = pdl_null();
 	if (!it) return it;
 	it->state = 0;
@@ -1112,6 +1116,7 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
       pdl->has_badvalue = trans->has_badvalue;
       pdl->datatype = new_dtype;
     } else if (new_dtype != pdl->datatype) {
+      PDLDEBUG_f(printf("pdl_type_coerce (%s) pdl=%"IND_FLAG" from %d to %d\n", vtable->name, i, pdl->datatype, new_dtype));
       pdl = pdl_get_convertedpdl(pdl, new_dtype);
       if (!pdl)
         return pdl_make_error(PDL_EFATAL, "%s got NULL pointer from get_convertedpdl on param %s", vtable->name, vtable->par_names[i]);
