@@ -612,8 +612,8 @@ pdl_error pdl_make_physdims(pdl *it) {
 	  return PDL_err;
 	}
 	it->state &= ~PDL_PARENTDIMSCHANGED;
-	/* the fact that a PARENTXXXCHANGED flag is set seems
-	   to imply that this pdl has an associated trans ? */
+	PDLDEBUG_f(printf("make_physdims %p TRANS:\n",(void*)it));
+	PDLDEBUG_f(pdl_dump_trans_fixspace(it->trans_parent,3));
 	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
 		PDL_RETERROR(PDL_err, pdl_make_physdims(it->trans_parent->pdls[i]));
 	}
