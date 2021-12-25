@@ -42,11 +42,9 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
 	}
 	for(; j<trans->vtable->npdls; j++) {
-		if(trans->pdls[j]->trans_parent != trans) {
-			if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
-				par_pvaf++;
-			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
-		}
+		if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
+			par_pvaf++;
+		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
 	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(trans);
