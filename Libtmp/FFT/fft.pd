@@ -89,7 +89,7 @@ pp_addhdr('
 pp_def('fft',
 	Pars => '[io]real(n); [io]imag(n);',
 	GenericTypes => $F,
-	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), -1, 1.);',
+	Code => 'fftn$TFDE(f,,l)($SIZE(n), NULL, $P(real), $P(imag), -1, 1.);',
 	Doc=><<'EOF',
 =for ref
 
@@ -136,7 +136,7 @@ EOF
 pp_def('ifft',
 	Pars => '[io]real(n); [io]imag(n);',
 	GenericTypes => $F,
-	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
+	Code => 'fftn$TFDE(f,,l)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
 	Doc=><<'EOF',
 =for ref
 

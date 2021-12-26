@@ -332,7 +332,8 @@ listref_c(x)
       pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
       if (pdl_val.type < 0) croak("Position out of range");
       if (badflag) {
-	 int isbad = ANYVAL_ISBAD(pdl_val, pdl_badval);
+	 /* volatile because gcc optimiser otherwise won't recalc for complex double when long-double code added */
+	 volatile int isbad = ANYVAL_ISBAD(pdl_val, pdl_badval);
 	 if (isbad == -1) croak("ANYVAL_ISBAD error on types %d, %d", pdl_val.type, pdl_badval.type);
 	 if (isbad)
 	    sv = newSVpvn( "BAD", 3 );
@@ -386,10 +387,6 @@ set_c(x,pos,value)
 
 BOOT:
 {
-#if NVSIZE > 8
-   fprintf(stderr, "Your perl NV has more precision than PDL_Double.  There will be loss of floating point precision!\n");
-#endif
-
    /* Initialize structure of pointers to core C routines */
 
    PDL.Version     = PDL_CORE_VERSION;

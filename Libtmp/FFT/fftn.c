@@ -44,7 +44,7 @@
 /*{{{ notes: */
 /*
  * Public:
- *	fftn / fftnf
+ *	fftn / fftnf / fftnl
  *	(these are documented in the header file)
  *
  * Private:
@@ -262,6 +262,22 @@ factorize (int nPass, int * kt, int *factor)
    return nFactor;
 }
 
+/*{{{ defines for re-including long double precision */
+#ifdef FFT_LDOUBLE
+# undef REAL
+# undef FFTN
+# undef FFTNS
+# undef FFTRADIX
+# undef FFTRADIXS
+# define REAL		long double
+# define FFTN		fftnl
+# define FFTNS		"fftnl"
+# define FFTRADIX	fftradixl
+# define FFTRADIXS	"fftradixl"
+# include __FILE__			/* include this file again */
+#endif
+/*}}}*/
+
 /*{{{ defines for re-including double precision */
 #ifdef FFT_DOUBLE
 # undef REAL
@@ -269,7 +285,6 @@ factorize (int nPass, int * kt, int *factor)
 # undef FFTNS
 # undef FFTRADIX
 # undef FFTRADIXS
-/* defines for double */
 # define REAL		double
 # define FFTN		fftn
 # define FFTNS		"fftn"
@@ -286,7 +301,6 @@ factorize (int nPass, int * kt, int *factor)
 # undef FFTNS
 # undef FFTRADIX
 # undef FFTRADIXS
-/* defines for float */
 # define REAL		float
 # define FFTN		fftnf		/* trailing 'f' for float */
 # define FFTNS		"fftnf"		/* name for error message */

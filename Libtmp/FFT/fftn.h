@@ -99,6 +99,13 @@ extern "C" {
 		     int   /* isign */,
 		     float /* scaling */);
 
+   extern int fftnl (size_t /* ndim */,
+		     const size_t /* dims */[],
+		     long double /* Re */[],
+		     long double /* Im */[],
+		     int   /* isign */,
+		     long double /* scaling */);
+
 #ifdef __cplusplus
 }
 #endif

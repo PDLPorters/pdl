@@ -994,7 +994,7 @@ operation, it clears the bad flag.
     },
     Code => q{
         if ( $ISBAD(a()) ) {
-            $b() = $TFDGC(NAN,NAN,NAN+I*NAN,NAN+I*NAN);
+            $b() = $TFDEGCH(NAN,NAN,NAN,NAN+I*NAN,NAN+I*NAN,NAN+I*NAN);
         }
         else {
             $b() = $a();

@@ -14,9 +14,9 @@ sub tapprox {
         $d < 0.0001;
 }
 
-is_deeply [ ppdefs() ], [qw(A B S U L K N Q P F D)];
-is_deeply [ ppdefs_complex() ], [qw(G C)];
-is_deeply [ ppdefs_all() ], [qw(A B S U L K N Q P F D G C)];
+is_deeply [ ppdefs() ], [qw(A B S U L K N Q P F D E)];
+is_deeply [ ppdefs_complex() ], [qw(G C H)];
+is_deeply [ ppdefs_all() ], [qw(A B S U L K N Q P F D E G C H)];
 
 my $ref = pdl([[-2,1],[-3,1]]);
 my $ref2 = squeeze(czip($ref->slice("0,"), $ref->slice("1,")));
@@ -54,7 +54,7 @@ ok !$got->type->real, 'complex type';
 
 ok !i(2, 3)->type->real, 'i(2, 3) returns complex type';
 
-for (float, double, cfloat, cdouble) {
+for (float, double, ldouble, cfloat, cdouble, cldouble) {
   my $got = pdl $_, '[0 BAD]';
   my $bv = $got->badvalue;
   my $obv = $got->orig_badvalue;
@@ -63,7 +63,7 @@ for (float, double, cfloat, cdouble) {
   is $got->isbad.'', '[0 1]', "$_ isbad";
   # this captures a failure in IO/Flexraw/t/iotypes.t
   eval { ok $bv == $obv, 'can equality-check badvalue and orig_badvalue' };
-  is $@, '' or diag explain [$bv, $obv];
+  is $@, '', 'no error from ==' or diag explain [$bv, $obv];
 }
 
 {

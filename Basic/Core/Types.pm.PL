@@ -205,6 +205,23 @@ my @types = (
 	          isfinite=>'isfinite(%1$s)',
 	          floatsuffix=>'',
 	      },
+	      {
+		  identifier => 'LD',
+		  onecharident => 'E',   # only needed if different from identifier
+		  pdlctype => 'PDL_LDouble',
+		  realctype => 'long double',
+		  ppforcetype => 'ldouble',
+		  usenan => 1,
+		  packtype => 'D*',
+	          defaultbadval => '-LDBL_MAX',
+	          real=>1,
+		  complexversion=> 'CLD',
+	          integer=>0,
+	          unsigned=>0,
+	          isnan=>'isnan(%1$s)',
+	          isfinite=>'isfinite(%1$s)',
+	          floatsuffix=>'l',
+	      },
 # the complex types need to be in the same order as their real
 # counterparts, because the "real" ppforcetype relies on a fixed interval
 # between real and complex versions
@@ -244,6 +261,23 @@ my @types = (
 	          isnan=>'(isnan(creal(%1$s)) || isnan(cimag(%1$s)))',
 	          isfinite=>'(isfinite(creal(%1$s)) && isfinite(cimag(%1$s)))',
 	          floatsuffix=>'',
+	      },
+	      {
+		  identifier => 'CLD',
+		  onecharident => 'H',   # only needed if different from identifier
+		  pdlctype => 'PDL_CLDouble',
+		  realctype => 'complex long double',
+		  ppforcetype => 'cldouble',
+		  usenan => 1,
+		  packtype => '(DD)*',
+	          defaultbadval => '(-LDBL_MAX - I*LDBL_MAX)',
+	          real=>0,
+	          realversion=>'LD',
+	          integer=>0,
+	          unsigned=>0,
+	          isnan=>'(isnan(creall(%1$s)) || isnan(cimagl(%1$s)))',
+	          isfinite=>'(isfinite(creall(%1$s)) && isfinite(cimagl(%1$s)))',
+	          floatsuffix=>'l',
 	      },
 	      );
 
