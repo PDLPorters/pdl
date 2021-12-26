@@ -2,6 +2,8 @@
 #define PDL_IN_CORE
 #include "pdlcore.h"
 
+#define PDL_ALL_GENTYPES { PDL_B, PDL_S, PDL_US, PDL_L, PDL_IND, PDL_LL, PDL_F, PDL_D, PDL_CF, PDL_CD, -1 }
+
 /* generated from:
 pp_def(
        'affineinternal',
@@ -140,7 +142,7 @@ pdl_error pdl_affine_free(pdl_trans *trans, char destroy) {
   return PDL_err;
 }
 
-static pdl_datatypes pdl_affine_vtable_gentypes[] = { PDL_B, PDL_S, PDL_US, PDL_L, PDL_IND, PDL_LL, PDL_F, PDL_D, PDL_CF, PDL_CD, -1 };
+static pdl_datatypes pdl_affine_vtable_gentypes[] = PDL_ALL_GENTYPES;
 static char pdl_affine_vtable_flags[] = {
   PDL_TPDL_VAFFINE_OK, PDL_TPDL_VAFFINE_OK
 };
@@ -266,7 +268,7 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   return PDL_err;
 }
 
-static pdl_datatypes pdl_converttypei_vtable_gentypes[] = { PDL_B, PDL_S, PDL_US, PDL_L, PDL_IND, PDL_LL, PDL_F, PDL_D, PDL_CF, PDL_CD, -1 };
+static pdl_datatypes pdl_converttypei_vtable_gentypes[] = PDL_ALL_GENTYPES;
 static char pdl_converttypei_vtable_flags[] = {
   0, 0
 };
