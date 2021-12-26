@@ -123,12 +123,7 @@ my @types = (
 	ppforcetype => 'longlong',
 	usenan => 0,
 	packtype => 'q*',
-	defaultbadval => 'LONG_MIN', # this is far from optimal
-		                     # but LLONG_MIN/LLONG_MAX are probably
-		                     # nonportable
-	                             # on the other hand 2^63 should be the
-                                     # value of llong_max which we should be
-                                     # able to compute at runtime ?!
+	defaultbadval => 'LLONG_MIN',
 	real=>1,
 	integer=>1,
 	unsigned=>0,

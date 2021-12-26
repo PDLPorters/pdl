@@ -1,5 +1,6 @@
 - pdlpp_mkgen runs .pd files in correct dir
 - PDL.changesoon removed
+- longlong default bad value now LLONG_MIN
 
 2.063_03 2021-11-23
 - add pp_add_macros
