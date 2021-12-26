@@ -219,7 +219,8 @@ SKIP:
   my $xdata = indx(0xeb * ones(8));
   my $n = sequence(indx,8);
   my $exact = indx(1,235,55225,12977875,3049800625,716703146875,168425239515625,39579931286171875);
-  ok(all($exact - ipow($xdata,$n) == indx(0)), 'ipow');
+  my $got = ipow($xdata,$n);
+  ok(all($exact - $got == indx(0)), 'ipow') or diag "got=$got\nexpected=$exact";
 }
 
 #### Modulus checks ####
