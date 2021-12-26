@@ -412,6 +412,7 @@ Libtmp/Compression/compression.pd
 Libtmp/Compression/Makefile.PL
 Libtmp/Compression/ricecomp.c
 Libtmp/Compression/ricecomp.h
+Libtmp/Compression/t/basic.t
 Libtmp/DiskCache.pm
 Libtmp/FFT/fft.pd
 Libtmp/FFT/fftn.c
