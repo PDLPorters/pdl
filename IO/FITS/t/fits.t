@@ -339,4 +339,7 @@ ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
 unlink $fname if -e $fname;
 }
 
+eval { is_deeply [rfits('t/m51.fits.fz')->dims], [384,384], 'right dims from compressed FITS file' };
+is $@, '', 'no error with compressed FITS file';
+
 done_testing();

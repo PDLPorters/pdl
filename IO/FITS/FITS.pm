@@ -1397,7 +1397,8 @@ sub _rfits_unpack_zimage($$$) {
 
     my $hdr = $tbl->{hdr};
 
-    my $tc = $tile_compressors->{$hdr->{ZCMPTYPE}};
+    (my $cmptype = $hdr->{ZCMPTYPE}) =~ s/\s+//g;
+    my $tc = $tile_compressors->{$cmptype};
     unless(defined $tc) {
 	print STDERR "WARNING: rfits: Compressed image has unsupported comp. type ('$hdr->{ZCMPTYPE}').\n";
 	return $tbl;

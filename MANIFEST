@@ -353,6 +353,7 @@ IO/FastRaw/t/fastraw.t
 IO/FITS/FITS.pm
 IO/FITS/Makefile.PL
 IO/FITS/t/fits.t
+IO/FITS/t/m51.fits.fz
 IO/FlexRaw/FlexRaw.pm
 IO/FlexRaw/Makefile.PL
 IO/FlexRaw/t/flexraw.t
