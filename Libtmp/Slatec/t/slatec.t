@@ -219,7 +219,7 @@ my $ismon;
 ( $ismon, $err ) = chcm($x, $f, $d, 1);
 
 ok(($err->getndims==0) & ($err->sum == 0));
-ok($ismon->get_datatype == 3);
+ok($ismon->get_datatype == long->enum);
 ok(tapprox($ismon,$ans));
 
 ## Test: chia
