@@ -47,6 +47,19 @@ sub typeof_PDL_i64 {
 #
 my @types = (
 	     {
+	      identifier => 'SB',
+	      onecharident => 'A',   # only needed if different from identifier
+	      pdlctype => 'PDL_SByte',# to be defined in pdl.h
+	      realctype => 'char',
+	      ppforcetype => 'sbyte', # for some types different from ctype
+	      usenan => 0,           # do we need NaN handling for this type?
+	      packtype => 'c*',      # the perl pack type
+	      defaultbadval => 'CHAR_MIN',
+	      real=>1,
+	      integer=>1,
+	      unsigned=>0,
+	     },
+	     {
 	      identifier => 'B',
 	      pdlctype => 'PDL_Byte',# to be defined in pdl.h
 	      realctype => 'unsigned char',
@@ -95,6 +108,19 @@ my @types = (
 	      integer=>1,
 	      unsigned=>0,
 	     },
+	     {
+	      identifier => 'UL',
+	      onecharident => 'K',   # only needed if different from identifier
+	      pdlctype => 'PDL_ULong',
+	      realctype => 'unsigned ' . &typeof_PDL_Long,
+	      ppforcetype => 'uint',
+	      usenan => 0,
+	      packtype => 'L*',
+	      defaultbadval => 'UINT_MAX',
+	      real=>1,
+	      integer=>1,
+	      unsigned=>1,
+	     },
 
 # The PDL_Indx type will be either the same as PDL_Long or, probably,
 # the same as PDL_LongLong depending on the platform.  Will need to
@@ -127,6 +153,19 @@ my @types = (
 	real=>1,
 	integer=>1,
 	unsigned=>0,
+      },
+       {
+	identifier => 'ULL',
+	onecharident => 'P',   # only needed if different from identifier
+	pdlctype => 'PDL_ULongLong',
+	realctype => 'unsigned ' . &typeof_PDL_i64,
+	ppforcetype => 'ulonglong',
+	usenan => 0,
+	packtype => 'Q*',
+	defaultbadval => 'ULLONG_MAX',
+	real=>1,
+	integer=>1,
+	unsigned=>1,
       },
 
 # IMPORTANT:

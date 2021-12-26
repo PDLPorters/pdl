@@ -2663,7 +2663,7 @@ sub PDL::convert {
 
 =for ref
 
-byte|short|ushort|long|indx|longlong|float|double|cfloat|cdouble (shorthands to convert datatypes)
+sbyte|byte|short|ushort|long|ulong|indx|longlong|ulonglong|float|double|cfloat|cdouble (shorthands to convert datatypes)
 
 =for usage
 

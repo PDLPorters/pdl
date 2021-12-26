@@ -2,7 +2,7 @@
 #define PDL_IN_CORE
 #include "pdlcore.h"
 
-#define PDL_ALL_GENTYPES { PDL_B, PDL_S, PDL_US, PDL_L, PDL_IND, PDL_LL, PDL_F, PDL_D, PDL_CF, PDL_CD, -1 }
+#define PDL_ALL_GENTYPES { PDL_SB, PDL_B, PDL_S, PDL_US, PDL_L, PDL_UL, PDL_IND, PDL_LL, PDL_ULL, PDL_F, PDL_D, PDL_CF, PDL_CD, -1 }
 
 /* generated from:
 pp_def(
