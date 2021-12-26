@@ -154,15 +154,17 @@ sub PDL::rice_compress {
 }
 EOD
 	Code => <<'EOD',
-$len() = 1 + ( rcomp( $P(in),
+int len;
+char *err = rcomp( $P(in),
 		      sizeof($GENERIC(in)),
 		      $SIZE(n),
 		      (unsigned char *)($P(out)),
 		      $SIZE(m) * sizeof($GENERIC(out)),
-		      $COMP(blocksize)
-	            )
-                - 1
-              ) / sizeof($GENERIC(out));
+		      $COMP(blocksize),
+		      &len
+	            );
+if (err) $CROAK("%s", err);
+$len() = 1 + ( len - 1 ) / sizeof($GENERIC(out));
 EOD
 );
 
@@ -194,13 +196,14 @@ sub PDL::rice_expand {
 }
 EOD
 	Code=><<'EOD',
-rdecomp( (unsigned char *)($P(in)),
+char *err = rdecomp( (unsigned char *)($P(in)),
 	 $SIZE(n) * sizeof($GENERIC(in)),
 	 $P(out),
 	 sizeof($GENERIC(out)),
 	 $SIZE(m),
 	 $COMP(blocksize)
 	 );
+if (err) $CROAK("%s", err);
 EOD
 );
 
