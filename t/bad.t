@@ -128,7 +128,7 @@ is( PDL::Core::string($x),
   );
 
 $x = byte->badvalue * ones(byte,3,2);
-is( $x->get_datatype, 0, "datatype remains a byte" );
+is( $x->get_datatype, byte->enum, "datatype remains a byte" );
 $x->badflag(1);
 is( PDL::Core::string( PDL::zcover($x) ), "[BAD BAD]", "zcover() okay" );
 $x->set(1,1,1);
