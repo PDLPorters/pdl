@@ -669,4 +669,10 @@ subtest "Throw a warning when badvalue is set to 0 or 1 and a comparison operato
 	};
 };
 
+subtest "locf" => sub {
+  my $withbad = pdl '[BAD 1 BAD 3 BAD 5]';
+  my $locf = $withbad->locf;
+  is $locf."", '[0 1 1 3 3 5]', 'locf worked';
+};
+
 done_testing;

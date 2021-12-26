@@ -2,6 +2,7 @@
 - PDL.changesoon removed
 - longlong default bad value now LLONG_MIN
 - add signed byte (SB), unsigned long (UL) and longlong (ULL)
+- add Bad::locf - thanks @kmx
 
 2.063_03 2021-11-23
 - add pp_add_macros

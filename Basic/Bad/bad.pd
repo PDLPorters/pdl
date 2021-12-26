@@ -1116,6 +1116,26 @@ its bad value flag set to true.
     GenericTypes => $A,
 ); # pp_def: copybad
 
+pp_def('locf',
+    Pars => 'a(n); [o]b(n);',
+    HandleBad => 1,
+    GenericTypes => $A,
+    Doc => <<'EOF',
+=for ref
+
+Last Observation Carried Forward - replace
+every BAD value with the most recent non-BAD value prior to it.
+Any leading BADs will be set to 0.
+EOF
+    Code => q{
+        $GENERIC() tmp = 0;
+        loop(n) %{
+            if ( $ISGOOD(a()) ) tmp = $a();
+            $b() = tmp;
+        %}
+    },
+);
+
 #########################################################
 
 pp_addpm({At=>'Bot'},<<'!WITHOUT!SUBS!');
