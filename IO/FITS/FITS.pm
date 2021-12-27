@@ -541,21 +541,16 @@ sub PDL::rfits {
    push(@extensions,$pdl) if(wantarray);
    $currentext++;
   } while( wantarray && !$fh->eof() );}  # Repeat if we are in list context
-   
- $fh->close;
- if(wantarray) { 
-     ## By default, ditch primary HDU placeholder 
-     if( ref($extensions[0]) eq 'HASH'  and 
-	 $extensions[0]->{SIMPLE} and
-	 exists($extensions[0]->{NAXIS}) and
-	 $extensions[0]->{NAXIS} == 0
-	 ) {
-	 shift @extensions;
-     }
-     # Return all the extensions 
-     return @extensions;
- } 
- return $pdl;
+
+  $fh->close;
+  return $pdl if !wantarray;
+  ## By default, ditch primary HDU placeholder 
+  shift @extensions if ref($extensions[0]) eq 'HASH' and
+      $extensions[0]->{SIMPLE} and
+      exists($extensions[0]->{NAXIS}) and
+      $extensions[0]->{NAXIS} == 0
+      ;
+  @extensions; # Return all the extensions
 }
 
 
@@ -1269,16 +1264,10 @@ sub _rfits_bintable ($$$$) {
   } # End of postfrobnication loop over columns
 
   ### Check whether this is actually a compressed image, in which case we hand it off to the image decompressor
-  if($hdr->{ZIMAGE} && $hdr->{ZCMPTYPE} && $opt->{expand}) {
-      eval 'use PDL::Compression;';
-      if($@) {
-	  die "rfits: error while loading PDL::Compression to unpack tile-compressed image.\n\t$@\n\tUse option expand=>0 to get the binary table.\n";
-      }
-      return _rfits_unpack_zimage($tbl,$opt);
-  }
-
-  ### Done!
-  return $tbl;
+  return $tbl if !($hdr->{ZIMAGE} && $hdr->{ZCMPTYPE} && $opt->{expand});
+  eval { require PDL::Compression };
+  die "rfits: error while loading PDL::Compression to unpack tile-compressed image.\n\t$@\n\tUse option expand=>0 to get the binary table.\n" if $@;
+  return _rfits_unpack_zimage($tbl,$opt);
 }
 
 
@@ -1534,9 +1523,6 @@ sub _rfits_unpack_zimage($$$) {
 
     return $pdl;
 }
-
-
-    
 
 =head2 wfits()
 
