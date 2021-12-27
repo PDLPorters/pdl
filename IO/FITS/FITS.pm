@@ -1,3 +1,22 @@
+package PDL::IO::FITS;
+
+use strict;
+
+our $VERSION = 0.92; # Will be 1.0 when ascii table read/write works.
+our @EXPORT_OK = qw( rfits rfitshdr wfits );
+our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+our @ISA = ('PDL::Exporter');
+
+use PDL::Core;
+use PDL::Config;
+use PDL::IO::Misc;
+use PDL::Exporter;
+use PDL::Primitive;
+use PDL::Types;
+use PDL::Options;
+use PDL::Bad;
+use Carp;
+
 =head1 NAME
 
 PDL::IO::FITS -- Simple FITS support for PDL
@@ -47,51 +66,19 @@ PDL distribution, the copyright notice should be pasted into in this file.
 
 =cut
 
-use strict;
+# Check if there's Astro::FITS::Header support, and set flag.
+# Kludgy but it only has to run once, on first load.  --CED
+$PDL::Astro_FITS_Header = eval {
+    require Astro::FITS::Header;
+    Astro::FITS::Header->VERSION(1.12);
+    1;
+};
 
-BEGIN {
-
-  package PDL::IO::FITS;
-
-  $PDL::IO::FITS::VERSION = 0.92; # Will be 1.0 when ascii table read/write works.
-
-  our @EXPORT_OK = qw( rfits rfitshdr wfits );
-  our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
-  our @ISA = ('PDL::Exporter');
-
-  use PDL::Core;
-  use PDL::Config;
-  use PDL::IO::Misc;
-  use PDL::Exporter;
-  use PDL::Primitive;
-  use PDL::Types;
-  use PDL::Options;
-  use PDL::Bad;
-#  use PDL::NiceSlice;
-  use Carp;
-  use strict;
-
-  ##############################
-  #
-  # Check if there's Astro::FITS::Header support, and set flag.
-  # Kludgy but it only has to run once, on first load.  --CED
-  #
-  eval "use Astro::FITS::Header;";
-  $PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
-  if($PDL::Astro_FITS_Header) {
-    my($x) = $Astro::FITS::Header::VERSION;
-    $x =~ s/[^0-9\.].*//;
-    $PDL::Astro_FITS_Header = 0 if($x < 1.12);
-  }
-
-  unless($PDL::Astro_FITS_Header) {
-    unless($ENV{"PDL_FITS_LEGACY"} || $PDL::Config{FITS_LEGACY}) {
-      print(STDERR "\n\nWARNING: Can't find the Astro::FITS::Header module, limiting FITS support.\n\n  PDL will use the deprecated legacy perl hash handling code but will not\n  properly support tables, FITS extensions, or COMMENT cards. You really\n  ought to install the Astro::FITS::Header module, available from\n  'http://www.cpan.org'.  (You can also get rid of this message by setting\n  the environment variable 'PDL_FITS_LEGACY' or the global PDL config value (in perldl.conf)\n  \$PDL::Config{FITS_LEGACY} to 1.\n\n");
-    }
+unless($PDL::Astro_FITS_Header) {
+  unless($ENV{"PDL_FITS_LEGACY"} || $PDL::Config{FITS_LEGACY}) {
+    print(STDERR "\n\nWARNING: Can't find the Astro::FITS::Header module, limiting FITS support.\n\n  PDL will use the deprecated legacy perl hash handling code but will not\n  properly support tables, FITS extensions, or COMMENT cards. You really\n  ought to install the Astro::FITS::Header module, available from\n  'http://www.cpan.org'.  (You can also get rid of this message by setting\n  the environment variable 'PDL_FITS_LEGACY' or the global PDL config value (in perldl.conf)\n  \$PDL::Config{FITS_LEGACY} to 1.\n\n");
   }
 }
-
-package PDL::IO::FITS;
 
 ## declare subroutines 
 
