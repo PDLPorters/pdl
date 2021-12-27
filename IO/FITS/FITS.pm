@@ -520,25 +520,17 @@ sub PDL::rfits {
      $pdl = $foo;
 
    } else {
-     
      ##########
      # Switch based on extension type to do the dirty work of reading
      # the data.  Handlers are listed in the _Extension patch-panel.
-     
-     if (ref $PDL::IO::FITS::_Extension->{$ext_type} ) {
-       
+     if (ref(my $reader = $PDL::IO::FITS::_Extension->{$ext_type})) {
        # Pass $pdl into the extension reader for easier use -- but
        # it just gets overwritten (and disappears) if ignored.
-       
-       $pdl = &{$PDL::IO::FITS::_Extension->{$ext_type}}($fh,$foo,$opt,$pdl);
-       
+       $pdl = $reader->($fh,$foo,$opt,$pdl);
      } else {
-
        print STDERR "rfits: Ignoring unknown extension '$ext_type'...\n"
 	 if($PDL::verbose || $PDL::debug);
-       
        $pdl = undef;
-
      }
    }
 
@@ -548,11 +540,9 @@ sub PDL::rfits {
    #
    push(@extensions,$pdl) if(wantarray);
    $currentext++;
- 
   } while( wantarray && !$fh->eof() );}  # Repeat if we are in list context
    
  $fh->close;
-  
  if(wantarray) { 
      ## By default, ditch primary HDU placeholder 
      if( ref($extensions[0]) eq 'HASH'  and 
