@@ -33,8 +33,8 @@ ok( tapprox($x->pctover( 2.0), $a_sort->at($x->dim(0)-1)), "pct above 1 for 25-e
 # test for sf.net bug report 2753869
 #
 $x = sequence(10);
-ok( tapprox($x->pctover(0.2 ), 1.8 ), "20th percential of 10-elem ndarray [SF bug 2753869]");
-ok( tapprox($x->pctover(0.23), 2.07), "23rd percential of 10-elem ndarray [SF bug 2753869]");
+ok( tapprox($x->pctover(0.2 ), 1.8 ), "20th percentile of 10-elem ndarray [SF bug 2753869]");
+ok( tapprox($x->pctover(0.23), 2.07), "23rd percentile of 10-elem ndarray [SF bug 2753869]");
 
 # test for sf.net bug report 2110074
 #

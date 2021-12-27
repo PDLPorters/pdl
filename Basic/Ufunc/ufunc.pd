@@ -1049,6 +1049,14 @@ EOPM
 pp_add_exported('', 'minmax');
 #pp_add_exported('', 'minmax_ind');
 
+sub qsort_croak {
+    my ($out, $insizedim, $outsizedim) = @_;
+    'if ($PDL(a)->dims['.$insizedim.'] != $PDL('.$out.')->dims['.$outsizedim.'] && $PDL(a)->dims['.$insizedim.'] > 1)
+        /* last term detects non-trivial sort */
+        $CROAK("You likely passed a scalar argument, when you should have passed an ndarray (or nothing at all)");
+    '
+}
+
 # move all bad values to the end of the array
 #
 pp_def(
@@ -1058,21 +1066,17 @@ pp_def(
     Pars => 'a(n); [o]b(n);',
     Code => 
     'PDL_Indx nn;
+     '.qsort_croak('b',0,0).'
      loop(n) %{ $b() = $a(); %}
      nn = $SIZE(n)-1;
-     if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
-        $CROAK("You likely passed a scalar argument to qsort, when you should have passed an ndarray (or nothing at all)");
-     }
-    ' . generic_qsort('b'),
+     '.generic_qsort('b'),
     BadCode =>
     'register PDL_Indx nn = 0, nb = $SIZE(n) - 1;
+     '.qsort_croak('b',0,0).'
      loop(n) %{ 
         if ( $ISGOOD(a()) ) { $b(n=>nn) = $a(); nn++; }
         else                { $SETBAD(b(n=>nb)); nb--; }
      %}
-     if ($PDL(a)->dims[0] != $PDL(b)->dims[0] && $PDL(b)->dims[0]!=0 && $PDL(b)->dims[0]!=1){
-        $CROAK("You likely passed a scalar argument to qsort, when you should have passed an ndarray (or nothing at all)");
-     }
      if ( nn != 0 ) {
         nn -= 1;
      ' . generic_qsort('b') . ' }',
@@ -1111,23 +1115,19 @@ pp_def(
        Code => 
        'PDL_Indx nn = $SIZE(n)-1;
         if ($SIZE(n) == 0) return PDL_err;
+        '.qsort_croak('indx',0,0).'
         loop(n) %{ 
            $indx() = n; 
         %}
-        if ($PDL(a)->dims[0] != $PDL(indx)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(indx)->dims[0]!=1){
-           $CROAK("You likely passed a scalar argument to qsorti, when you should have passed an ndarray (or nothing at all)");
-        }
-       ' . generic_qsort_ind(),
+        '.generic_qsort_ind(),
        BadCode =>
        'register PDL_Indx nn = 0, nb = $SIZE(n) - 1;
         if ($SIZE(n) == 0) return PDL_err;
+        '.qsort_croak('indx',0,0).'
         loop(n) %{ 
            if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
            else                { $indx(n=>nb) = n; nb--; }
         %}
-         if ($PDL(a)->dims[0] != $PDL(indx)->dims[0] && $PDL(a)->dims[0]!=0 && $PDL(indx)->dims[0]!=1){
-            $CROAK("You likely passed a scalar argument to qsorti, when you should have passed an ndarray (or nothing at all)");
-        }
         if ( nn != 0 ) {
            nn -= 1;
         ' . generic_qsort_ind() . ' }',
@@ -1166,13 +1166,11 @@ pp_def(
     Code => 
     'PDL_Indx nn;
      PDL_Indx nd;
+     '.qsort_croak('b',1,1).'
      loop(n,m) %{ $b() = $a(); %}
      nn = ($SIZE(m))-1;
      nd = $SIZE(n);
-     if (($PDL(a)->dims[0] != $PDL(b)->dims[0] || $PDL(a)->dims[1] != $PDL(b)->dims[1]) && $PDL(a)->dims[1] !=0 && $PDL(b)->dims[1] != 1){
-        $CROAK("You likely passed a scalar argument to qsortvec, when you should have passed an ndarray (or nothing at all)");
-     }
-    ' . generic_qsortvec('b','nd'),
+     '.generic_qsortvec('b','nd'),
     Doc => '
 =for ref
 
@@ -1216,14 +1214,12 @@ pp_def(
     Code => 
     'PDL_Indx nd;
      PDL_Indx nn=$SIZE(m)-1;
+     '.qsort_croak('indx',1,0).'
      loop(m) %{
         $indx()=m;
      %}
      nd = $SIZE(n);
-     if ($PDL(a)->ndims >1 && $PDL(a)->dims[1] != $PDL(indx)->dims[0] && $PDL(a)->dims[1]!=0 && $PDL(indx)->dims[0]!=1){
-        $CROAK("You likely passed a scalar argument to qsortveci, when you should have passed an ndarray (or nothing at all)");
-     }
-    ' . generic_qsortvec_ind('a','nd'),
+     '.generic_qsortvec_ind('a','nd'),
     Doc => '
 =for ref
 
