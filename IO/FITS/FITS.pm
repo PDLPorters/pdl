@@ -1926,344 +1926,319 @@ sub PDL::wfits {
 			     "binary" 
 	      );
 	  _wfits_table($fh,$pdl,$table_type);
-      } elsif( UNIVERSAL::isa($pdl,'PDL') ) {
+	  next;
+      }
+      if( !UNIVERSAL::isa($pdl,'PDL') ) {
+	  # Not a PDL and not a hash ref
+	  barf("wfits: unknown data type - quitting");
+      }
+      ### Regular image writing.
+      $BITPIX = "" unless defined $BITPIX;
+      if ($BITPIX eq "") {
+	  $BITPIX =   8 if $pdl->get_datatype == $PDL_B;
+	  $BITPIX =  16 if $pdl->get_datatype == $PDL_S || $pdl->get_datatype == $PDL_US;
+	  $BITPIX =  32 if $pdl->get_datatype == $PDL_L;
+	  $BITPIX =  64 if $pdl->get_datatype == $PDL_LL;
+	  $BITPIX = -32 if $pdl->get_datatype == $PDL_F;
+	  $BITPIX = -64 if $pdl->get_datatype == $PDL_D;
+	  $BITPIX = 8 * PDL::Core::howbig($PDL_IND) if($pdl->get_datatype==$PDL_IND);
+      }
+      if ($BITPIX eq "") {
+	  $BITPIX = -64;
+	  warn "wfits: PDL has an unsupported datatype -- defaulting to 64-bit float.\n";
+      }
 
-	  ### Regular image writing.
-	  
-	  $BITPIX = "" unless defined $BITPIX;
-	  if ($BITPIX eq "") {
-	      $BITPIX =   8 if $pdl->get_datatype == $PDL_B;
-	      $BITPIX =  16 if $pdl->get_datatype == $PDL_S || $pdl->get_datatype == $PDL_US;
-	      $BITPIX =  32 if $pdl->get_datatype == $PDL_L;
-	      $BITPIX =  64 if $pdl->get_datatype == $PDL_LL;
-	      $BITPIX = -32 if $pdl->get_datatype == $PDL_F;
-	      $BITPIX = -64 if $pdl->get_datatype == $PDL_D;
-	      $BITPIX = 8 * PDL::Core::howbig($PDL_IND) if($pdl->get_datatype==$PDL_IND);
-	  }
-	  if ($BITPIX eq "") {
-	      $BITPIX = -64;
-	      warn "wfits: PDL has an unsupported datatype -- defaulting to 64-bit float.\n";
-	  }
+      my $convert = sub { return $_[0] }; # Default - do nothing
+      $convert = sub {byte($_[0])}     if $BITPIX ==   8;
+      $convert = sub {short($_[0])}    if $BITPIX ==  16;
+      $convert = sub {long($_[0])}     if $BITPIX ==  32;
+      $convert = sub {longlong($_[0])} if $BITPIX == 64;
+      $convert = sub {float($_[0])}    if $BITPIX == -32;
+      $convert = sub {double($_[0])}   if $BITPIX == -64;
 
-	  my $convert = sub { return $_[0] }; # Default - do nothing
-	  $convert = sub {byte($_[0])}     if $BITPIX ==   8;
-	  $convert = sub {short($_[0])}    if $BITPIX ==  16;
-	  $convert = sub {long($_[0])}     if $BITPIX ==  32;
-	  $convert = sub {longlong($_[0])} if $BITPIX == 64;
-	  $convert = sub {float($_[0])}    if $BITPIX == -32;
-	  $convert = sub {double($_[0])}   if $BITPIX == -64;
-	  
-	  # Automatically figure output scaling
-	  
-	  my $bzero = 0; my $bscale = 1;
-	  if ($BITPIX>0) {
-	      my $min = $pdl->min;
-	      my $max = $pdl->max;
-	      my ($dmin,$dmax) = (0, 2**8-1)     if $BITPIX == 8;
-	      ($dmin,$dmax) = (-2**15, 2**15-1)  if $BITPIX == 16;
-	      ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
-	      ($dmin,$dmax) = (-(pdl(longlong,1)<<63), (pdl(longlong,1)<<63)-1) if $BITPIX==64;
+      # Automatically figure output scaling
+      my $bzero = 0; my $bscale = 1;
+      if ($BITPIX>0) {
+	  my $min = $pdl->min;
+	  my $max = $pdl->max;
+	  my ($dmin,$dmax) = (0, 2**8-1)     if $BITPIX == 8;
+	  ($dmin,$dmax) = (-2**15, 2**15-1)  if $BITPIX == 16;
+	  ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
+	  ($dmin,$dmax) = (-(pdl(longlong,1)<<63), (pdl(longlong,1)<<63)-1) if $BITPIX==64;
+	  if ($min<$dmin || $max>$dmax) {
+	      $bzero = $min - $dmin;
+	      $max -= $bzero;
+	      $bscale = $max/$dmax if $max>$dmax;
+	  }
+	  print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
+      }
 
-	      if ($min<$dmin || $max>$dmax) {
-		  $bzero = $min - $dmin;
-		  $max -= $bzero;
-		  $bscale = $max/$dmax if $max>$dmax;
-	      }
-	      print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
-	  }
-	  
-	  # Check for tile-compression format for the image, and handle it.
-	  # We add the image-compression format tags and reprocess the whole
-	  # shebang as a binary table.
-	  if($opt->{compress}) {
-	      croak "Placeholder -- tile compression not yet supported\n";
-	  }
-	  
-	  
-	  ##############################
-	  ## Check header and prepare to write it out
-	  
-	  my($h) = $pdl->gethdr();
-	  
-	  # Extra logic: if we got handed a vanilla hash that that is *not* an Astro::FITS::Header, but 
-	  # looks like it's a FITS header encoded in a hash, then attempt to process it with 
-	  # Astro::FITS::Header before writing it out -- this helps with cleanup of tags.
-	  if($PDL::Astro_FITS_Header and 
-	     defined($h) and
-	     ref($h) eq 'HASH' and
-	     !defined( tied %$h )
-	      ) {
-	      
-	      my $all_valid_fits = 1;
-	      for my $k(keys %$h) {
-		  if(length($k) > 8 or
-		     $k !~ m/^[A-Z_][A-Z\d\_]*$/i
-		      ) {
-		      $all_valid_fits = 0;
-		      last;
-		  }
-	      }
-	      
-	      if($all_valid_fits) {
-		  # All the keys look like valid FITS header keywords -- so 
-		  # create a tied FITS header object and use that instead.
-		  my $afh = new Astro::FITS::Header( );
-		  my %hh;
-		  tie %hh, "Astro::FITS::Header", $afh;
-		  for (keys %$h) {
-		      $hh{$_} = $h->{$_};
-		  }
-		  $h = \%hh;
+      # Check for tile-compression format for the image, and handle it.
+      # We add the image-compression format tags and reprocess the whole
+      # shebang as a binary table.
+      if($opt->{compress}) {
+	  croak "Placeholder -- tile compression not yet supported\n";
+      }
+
+      ##############################
+      ## Check header and prepare to write it out
+      my($h) = $pdl->gethdr();
+      # Extra logic: if we got handed a vanilla hash that that is *not* an Astro::FITS::Header, but 
+      # looks like it's a FITS header encoded in a hash, then attempt to process it with 
+      # Astro::FITS::Header before writing it out -- this helps with cleanup of tags.
+      if($PDL::Astro_FITS_Header and 
+	 defined($h) and
+	 ref($h) eq 'HASH' and
+	 !defined( tied %$h )
+	  ) {
+	  my $all_valid_fits = 1;
+	  for my $k(keys %$h) {
+	      if(length($k) > 8 or
+		 $k !~ m/^[A-Z_][A-Z\d\_]*$/i
+		  ) {
+		  $all_valid_fits = 0;
+		  last;
 	      }
 	  }
-	  
-	  # Now decide whether to emit a hash or an AFH object
-	  if(defined($h) && 
-	     ( (defined (tied %$h)) && 
-	       (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header")))
-	      ){
-	      my $k;
-	      
-	      ##n############################
-	      ## Tied-hash code -- I'm too lazy to incorporate this into KGB's
-	      ## direct hash handler below, so I've more or less just copied and
-	      ## pasted with some translation.  --CED
-	      ##
-	      my $hdr = tied %$h;
-	      
-	      #
-	      # Put advertising comment in the SIMPLE field
-	      #n
-	      if($issue_nullhdu) {
-		  $h->{XTENSION} = "IMAGE";
-	      } else {
-		  $h->{SIMPLE} = 'T';
-		  my(@a) = $hdr->itembyname('SIMPLE');
-		  $a[0]->comment('Created with PDL (http://pdl.perl.org)');
-		  # and register it as a LOGICAL rather than a string
-		  $a[0]->type('LOGICAL');
+	  if($all_valid_fits) {
+	      # All the keys look like valid FITS header keywords -- so 
+	      # create a tied FITS header object and use that instead.
+	      my $afh = new Astro::FITS::Header( );
+	      my %hh;
+	      tie %hh, "Astro::FITS::Header", $afh;
+	      for (keys %$h) {
+		  $hh{$_} = $h->{$_};
 	      }
-	      
-	      #
-	      # Use tied interface to set all the keywords.  Note that this
-	      # preserves existing per-line comments, only changing the values.
-	      #
-	      $h->{BITPIX} = $BITPIX;
-	      $h->{NAXIS} = $pdl->getndims;
-	      my $correction = 0;
-	      for $k(1..$h->{NAXIS}) { 
-		  $correction |= (exists $h->{"NAXIS$k"} and 
-				  $h->{"NAXIS$k"} != $pdl->dim($k-1)
-                      );
-		  $h->{"NAXIS$k"} = $pdl->getdim($k-1); 
-	      }
-	      carp("Warning: wfits corrected dimensions of FITS header") 
-		  if($correction);
-	      
-	      $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
-	      $h->{BSCALE} = $bscale if($bscale != 1);
-	      $h->{BZERO}  = $bzero  if($bzero  != 0);
-	      
-	      if ( $pdl->badflag() ) {
-		  if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0));
-				       $h->{BLANK} = $x->badvalue->sclr; }
-		  else               { delete $h->{BLANK}; }
-	      }
-	      
-	      # Use object interface to sort the lines. This is complicated by
-	      # the need for an arbitrary number of NAXIS<n> lines in the middle
-	      # of the sorting.  Keywords with a trailing '1' in the sorted-order
-	      # list get looped over.
-	      my($kk) = 0; 
-	      my(@removed_naxis) = ();
-	      for $k(0..$#PDL::IO::FITS::wfits_keyword_order) {
-		  my($kn) = 0;
-		  
-		  my @index;
-		  do {            # Loop over numericised keywords (e.g. NAXIS1)
-		      
-		      my $kw = $PDL::IO::FITS::wfits_keyword_order[$k]; # $kw get keyword
-		      $kw .= (++$kn) if( $kw =~ s/\d$//);               # NAXIS1 -> NAXIS<n>
-		      @index = $hdr->index($kw);
-		      
-		      if(defined $index[0]) {
-			  if($kn <= $pdl->getndims){
-			      $hdr->insert($kk, $hdr->remove($index[0])) 
-				  unless ($index[0] == $kk) ;
-			      $kk++;
-			  } 
-			  else{ #remove e.g. NAXIS3 from hdr if NAXIS==2
-			      $hdr->removebyname($kw);
-			      push(@removed_naxis,$kw);
-			  }
-		      }
-		  } while((defined $index[0]) && $kn);
-	      }
-	      
-	      foreach my $naxis(@removed_naxis){
-		  $naxis =~ m/(\d)$/;
-		  my $n = $1;
-		  foreach my $kw(@PDL::IO::FITS::wfits_numbered_keywords){
-		      $hdr->removebyname($kw . $n);
-		  }
-	      }
-	      #
-	      # Delete the END card if necessary (for later addition at the end)
-	      #
-	      $hdr->removebyname('END');
-	      
-	      #
-	      # Make sure that the HISTORY lines all come at the end
-	      # 
-	      my @hindex = $hdr->index('HISTORY');
-	      for $k(0..$#hindex) {
-		  $hdr->insert(-1-$k, $hdr->remove($hindex[-1-$k]));
-	      }
-	      
-	      #
-	      # Make sure the last card is an END
-	      #
-	      $hdr->insert(scalar($hdr->cards),
-			   Astro::FITS::Header::Item->new(Keyword=>'END'));
-	      
-	      #
-	      # Write out all the cards, and note how many bytes for later padding.
-	      #
-	      my $s = join("",$hdr->cards);
-	      
-	      $fh->print( $s );
-	      $nbytes = length $s;
+	      $h = \%hh;
+	  }
+      }
+
+      # Now decide whether to emit a hash or an AFH object
+      if(defined($h) && 
+	 ( (defined (tied %$h)) && 
+	   (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header")))
+	  ){
+	  my $k;
+	  ##n############################
+	  ## Tied-hash code -- I'm too lazy to incorporate this into KGB's
+	  ## direct hash handler below, so I've more or less just copied and
+	  ## pasted with some translation.  --CED
+	  ##
+	  my $hdr = tied %$h;
+	  #
+	  # Put advertising comment in the SIMPLE field
+	  #n
+	  if($issue_nullhdu) {
+	      $h->{XTENSION} = "IMAGE";
 	  } else {
-	      ##
-	      ## Legacy emitter (note different advertisement in the SIMPLE
-	      ## comment, for debugging!)
-	      ##
+	      $h->{SIMPLE} = 'T';
+	      my(@a) = $hdr->itembyname('SIMPLE');
+	      $a[0]->comment('Created with PDL (http://pdl.perl.org)');
+	      # and register it as a LOGICAL rather than a string
+	      $a[0]->type('LOGICAL');
+	  }
+	  #
+	  # Use tied interface to set all the keywords.  Note that this
+	  # preserves existing per-line comments, only changing the values.
+	  #
+	  $h->{BITPIX} = $BITPIX;
+	  $h->{NAXIS} = $pdl->getndims;
+	  my $correction = 0;
+	  for $k(1..$h->{NAXIS}) { 
+	      $correction |= (exists $h->{"NAXIS$k"} and 
+			      $h->{"NAXIS$k"} != $pdl->dim($k-1)
+		  );
+	      $h->{"NAXIS$k"} = $pdl->getdim($k-1); 
+	  }
+	  carp("Warning: wfits corrected dimensions of FITS header") 
+	      if($correction);
+	  $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
+	  $h->{BSCALE} = $bscale if($bscale != 1);
+	  $h->{BZERO}  = $bzero  if($bzero  != 0);
+	  if ( $pdl->badflag() ) {
+	      if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0));
+				   $h->{BLANK} = $x->badvalue->sclr; }
+	      else               { delete $h->{BLANK}; }
+	  }
+	  # Use object interface to sort the lines. This is complicated by
+	  # the need for an arbitrary number of NAXIS<n> lines in the middle
+	  # of the sorting.  Keywords with a trailing '1' in the sorted-order
+	  # list get looped over.
+	  my($kk) = 0; 
+	  my(@removed_naxis) = ();
+	  for $k(0..$#PDL::IO::FITS::wfits_keyword_order) {
+	      my($kn) = 0;
+	      my @index;
+	      do {            # Loop over numericised keywords (e.g. NAXIS1)
+		  
+		  my $kw = $PDL::IO::FITS::wfits_keyword_order[$k]; # $kw get keyword
+		  $kw .= (++$kn) if( $kw =~ s/\d$//);               # NAXIS1 -> NAXIS<n>
+		  @index = $hdr->index($kw);
+		  if(defined $index[0]) {
+		      if($kn <= $pdl->getndims){
+			  $hdr->insert($kk, $hdr->remove($index[0])) 
+			      unless ($index[0] == $kk) ;
+			  $kk++;
+		      } 
+		      else{ #remove e.g. NAXIS3 from hdr if NAXIS==2
+			  $hdr->removebyname($kw);
+			  push(@removed_naxis,$kw);
+		      }
+		  }
+	      } while((defined $index[0]) && $kn);
+	  }
 
-	      if($issue_nullhdu) {
-		  $fh->printf( "%-80s", "XTENSION= 'IMAGE'" );
-	      } else {
-		  $fh->printf( "%-80s", "SIMPLE  =                    T / PDL::IO::FITS::wfits (http://pdl.perl.org)" );
+	  foreach my $naxis(@removed_naxis){
+	      $naxis =~ m/(\d)$/;
+	      my $n = $1;
+	      foreach my $kw(@PDL::IO::FITS::wfits_numbered_keywords){
+		  $hdr->removebyname($kw . $n);
 	      }
-	      
-	      $nbytes = 80; # Number of bytes written so far
-	      
-	      # Write FITS header
-	      
-	      %hdr = ();
-	      if (defined($h)) {
-		  for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
-	      }
-	      
-	      delete $hdr{SIMPLE}; delete $hdr{'END'};
-	      
-	      $hdr{BITPIX} =  $BITPIX;
-	      $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
-	      wheader($fh, 'BITPIX');
-	      
-	      $ndims = $pdl->getndims; # Dimensions of data array
-	      $hdr{NAXIS}  = $ndims;
-	      wheader($fh, 'NAXIS');
-	      for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
-	      for $k (1..$ndims) { wheader($fh,"NAXIS$k") }
-	      
-	      if ($bscale != 1 || $bzero  != 0) {
-		  $hdr{BSCALE} =  $bscale;
-		  $hdr{BZERO}  =  $bzero;
-		  wheader($fh,'BSCALE');
-		  wheader($fh,'BZERO');
-	      }
-	      wheader($fh,'BUNIT');
-	      
-	      # IF badflag is set
-	      #   and BITPIX > 0 - ensure the header contains the BLANK keyword
-	      #                    (make sure it's for the correct type)
-	      #   otherwise      - make sure the BLANK keyword is removed
-	      if ( $pdl->badflag() ) {
-		  if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0)); $hdr{BLANK} = $x->badvalue->sclr; }
-		  else               { delete $hdr{BLANK}; }
-	      }
-	      
-	      for $k (sort fits_field_cmp keys %hdr) { 
-		  wheader($fh,$k) unless $k =~ m/HISTORY/;
-	      }
-	      wheader($fh, 'HISTORY'); # Make sure that HISTORY entries come last.
-	      $fh->printf( "%-80s", "END" );
-	      $nbytes += 80;
 	  }
+	  #
+	  # Delete the END card if necessary (for later addition at the end)
+	  #
+	  $hdr->removebyname('END');
+
+	  #
+	  # Make sure that the HISTORY lines all come at the end
+	  # 
+	  my @hindex = $hdr->index('HISTORY');
+	  for $k(0..$#hindex) {
+	      $hdr->insert(-1-$k, $hdr->remove($hindex[-1-$k]));
+	  }
+
+	  #
+	  # Make sure the last card is an END
+	  #
+	  $hdr->insert(scalar($hdr->cards),
+		       Astro::FITS::Header::Item->new(Keyword=>'END'));
 	  
 	  #
-	  # Pad the header to a legal value and write the rest of the FITS file.
+	  # Write out all the cards, and note how many bytes for later padding.
 	  #
-	  $nbytes %= 2880;
-	  $fh->print( " "x(2880-$nbytes) )
-	      if $nbytes != 0; # Fill up HDU
-	  
-	  # Decide how to byte swap - note does not quite work yet. Needs hack
-	  # to IO.xs
-	  
-	  my $bswap = sub {};     # Null routine
-	  if ( !isbigendian() ) { # Need to set a byte swap routine
-	      $bswap = \&bswap2 if $BITPIX==16;
-	      $bswap = \&bswap4 if $BITPIX==32 || $BITPIX==-32;
-	      $bswap = \&bswap8 if $BITPIX==-64 || $BITPIX==64;
+	  my $s = join("",$hdr->cards);
+
+	  $fh->print( $s );
+	  $nbytes = length $s;
+      } else {
+	  ##
+	  ## Legacy emitter (note different advertisement in the SIMPLE
+	  ## comment, for debugging!)
+	  ##
+
+	  if($issue_nullhdu) {
+	      $fh->printf( "%-80s", "XTENSION= 'IMAGE'" );
+	  } else {
+	      $fh->printf( "%-80s", "SIMPLE  =                    T / PDL::IO::FITS::wfits (http://pdl.perl.org)" );
 	  }
-	  
-	  # Write FITS data
-	  
-	  my $p1d = $pdl->copy->reshape($pdl->nelem); # Data as 1D stream;
-	  
-	  $off = 0;
-	  $sz  = PDL::Core::howbig(&$convert($p1d->slice('0:0'))->get_datatype);
-	  
-	  $nbytes = $p1d->getdim(0) * $sz;
-	  
-	  # Transfer data in blocks (because might need to byte swap)
-	  # Buffer is also type converted on the fly
-	  
-	  my $BUFFSZ = 360*2880; # = ~1Mb - must be multiple of 2880
-	  my $tmp;
-	  
-	  if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
-	      # just print up a message - conversion is actually done in the loop
-	      print "Converting PDL bad value to NaN\n" if $PDL::verbose;
+
+	  $nbytes = 80; # Number of bytes written so far
+
+	  # Write FITS header
+
+	  %hdr = ();
+	  if (defined($h)) {
+	      for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
 	  }
+
+	  delete $hdr{SIMPLE}; delete $hdr{'END'};
+
+	  $hdr{BITPIX} =  $BITPIX;
+	  $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
+	  wheader($fh, 'BITPIX');
+
+	  $ndims = $pdl->getndims; # Dimensions of data array
+	  $hdr{NAXIS}  = $ndims;
+	  wheader($fh, 'NAXIS');
+	  for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
+	  for $k (1..$ndims) { wheader($fh,"NAXIS$k") }
 	  
-	  while ($nbytes - $off > $BUFFSZ) {
-	      
-	      # Data to be transferred
-	      
-	      $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
-				  -$bzero)/$bscale );
-	      
-	      # if there are bad values present, and output type is floating-point,
-	      # convert the bad values to NaN's.  We can ignore integer types, since
-	      # we have set the BLANK keyword
-	      #
-	      if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
-		  $buff->inplace->setbadtonan();
-	      }
-	      
-	      &$bswap($buff);
-	      $fh->print( ${$buff->get_dataref} );
-	      $off += $BUFFSZ;
+	  if ($bscale != 1 || $bzero  != 0) {
+	      $hdr{BSCALE} =  $bscale;
+	      $hdr{BZERO}  =  $bzero;
+	      wheader($fh,'BSCALE');
+	      wheader($fh,'BZERO');
 	  }
-	  $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
-	  
+	  wheader($fh,'BUNIT');
+
+	  # IF badflag is set
+	  #   and BITPIX > 0 - ensure the header contains the BLANK keyword
+	  #                    (make sure it's for the correct type)
+	  #   otherwise      - make sure the BLANK keyword is removed
+	  if ( $pdl->badflag() ) {
+	      if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0)); $hdr{BLANK} = $x->badvalue->sclr; }
+	      else               { delete $hdr{BLANK}; }
+	  }
+
+	  for $k (sort fits_field_cmp keys %hdr) { 
+	      wheader($fh,$k) unless $k =~ m/HISTORY/;
+	  }
+	  wheader($fh, 'HISTORY'); # Make sure that HISTORY entries come last.
+	  $fh->printf( "%-80s", "END" );
+	  $nbytes += 80;
+      }
+
+      #
+      # Pad the header to a legal value and write the rest of the FITS file.
+      #
+      $nbytes %= 2880;
+      $fh->print( " "x(2880-$nbytes) )
+	  if $nbytes != 0; # Fill up HDU
+
+      # Decide how to byte swap - note does not quite work yet. Needs hack
+      # to IO.xs
+
+      my $bswap = sub {};     # Null routine
+      if ( !isbigendian() ) { # Need to set a byte swap routine
+	  $bswap = \&bswap2 if $BITPIX==16;
+	  $bswap = \&bswap4 if $BITPIX==32 || $BITPIX==-32;
+	  $bswap = \&bswap8 if $BITPIX==-64 || $BITPIX==64;
+      }
+
+      # Write FITS data
+      my $p1d = $pdl->copy->reshape($pdl->nelem); # Data as 1D stream;
+
+      $off = 0;
+      $sz  = PDL::Core::howbig(&$convert($p1d->slice('0:0'))->get_datatype);
+      $nbytes = $p1d->getdim(0) * $sz;
+      # Transfer data in blocks (because might need to byte swap)
+      # Buffer is also type converted on the fly
+      my $BUFFSZ = 360*2880; # = ~1Mb - must be multiple of 2880
+      my $tmp;
+
+      if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+	  # just print up a message - conversion is actually done in the loop
+	  print "Converting PDL bad value to NaN\n" if $PDL::verbose;
+      }
+
+      while ($nbytes - $off > $BUFFSZ) {
+	  # Data to be transferred
+	  $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
+			      -$bzero)/$bscale );
+	  # if there are bad values present, and output type is floating-point,
+	  # convert the bad values to NaN's.  We can ignore integer types, since
+	  # we have set the BLANK keyword
+	  #
 	  if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
 	      $buff->inplace->setbadtonan();
 	  }
-	  
 	  &$bswap($buff);
 	  $fh->print( ${$buff->get_dataref} );
-	  # Fill HDU and close
-	  # note that for the data space the fill character is \0 not " "
-	  #
-	  $fh->print( "\0"x(($BUFFSZ - $buff->getdim(0) * $sz)%2880) );
-      } # end of image writing block 
-      else { 
-	  # Not a PDL and not a hash ref
-	  barf("wfits: unknown data type - quitting");
-     }
+	  $off += $BUFFSZ;
+      }
+      $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
+
+      if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+	  $buff->inplace->setbadtonan();
+      }
+
+      &$bswap($buff);
+      $fh->print( ${$buff->get_dataref} );
+      # Fill HDU and close
+      # note that for the data space the fill character is \0 not " "
+      #
+      $fh->print( "\0"x(($BUFFSZ - $buff->getdim(0) * $sz)%2880) );
   } # end of output loop
   $fh->close();
   1;
