@@ -1186,13 +1186,14 @@ pp_def(
            loop(n) %{ if ($ISBAD(b(m=>copy_dest))) { anybad_b = 1; break; } %}
            if (anybad_b) copy_dest = nb--;
          } while (anybad_b);
-         loop(n) %{
-           /* as in-place we know same badval source and dest */
-           $GENERIC() tmp = $b(m=>copy_dest);
-           $b(m=>copy_dest) = $a();
-           $a() = tmp;
-         %}
-         if (m == nb-1) { nn += 2; break; } /* run out of "good" vectors */
+         if (m != copy_dest)
+           loop(n) %{
+             /* as in-place we know same badval source and dest */
+             $GENERIC() tmp = $b(m=>copy_dest);
+             $b(m=>copy_dest) = $a();
+             $a() = tmp;
+           %}
+         if (m >= nb-1) { nn = nb+1; break; } /* run out of "good" vectors */
        } else {
          loop(n) %{
            if ($ISGOOD(a())) $b(m=>copy_dest) = $a();
