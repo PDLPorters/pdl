@@ -1779,42 +1779,37 @@ BEGIN {
     ('CTYPE','CRPIX','CRVAL','CDELT','CROTA');
 }
 
-# Until we do a rewrite these have to be file global since they
-# are used by the wheader routine
-my (%hdr, $nbytes);
-
 # Local utility routine of wfits()
-sub wheader ($$) {
-    my $fh = shift;
-    my $k = shift;
+sub wheader {
+    my ($fh, $k, $hdr, $nbytes) = @_;
   
     if ($k =~ m/(HISTORY|COMMENT)/) {
 	my $hc = $1;
-	return unless ref($hdr{$k}) eq 'ARRAY';
-	foreach my $line (@{$hdr{$k}}) {
+	return $nbytes unless ref($hdr->{$k}) eq 'ARRAY';
+	foreach my $line (@{$hdr->{$k}}) {
 	    $fh->printf( "$hc %-72s", substr($line,0,72) );
 	    $nbytes += 80;
 	}
-	delete $hdr{$k};
+	delete $hdr->{$k};
     } else {
 	# Check that we are dealing with a scalar value in the header
 	# Need to make sure that the header does not include PDLs or
-	# other structures. Return unless $hdr{$k} is a scalar.
-	my($hdrk) = $hdr{$k};
+	# other structures. Return unless $hdr->{$k} is a scalar.
+	my($hdrk) = $hdr->{$k};
     
 	if(ref $hdrk eq 'ARRAY') {
 	    $hdrk = join("\n",@$hdrk);
 	}
     
-	return unless not ref($hdrk);
+	return $nbytes unless not ref($hdrk);
     
 	if ($hdrk eq "") {
 	    $fh->printf( "%-80s", substr($k,0,8) );
 	} else {
 	    $fh->printf( "%-8s= ", substr($k,0,8) );
       
-	    my $com = ( ref $hdr{COMMENT} eq 'HASH' ) ?
-		$hdr{COMMENT}{$k} : undef;
+	    my $com = ( ref $hdr->{COMMENT} eq 'HASH' ) ?
+		$hdr->{COMMENT}{$k} : undef;
       
 	    if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
 		my $cl=60-($com ? 2 : 0);
@@ -1848,10 +1843,10 @@ sub wheader ($$) {
 		 }
 	     }
 	}
-	$nbytes += 80; delete $hdr{$k};
+	$nbytes += 80; delete $hdr->{$k};
     }
-    delete $hdr{COMMENT}{$k} if ref $hdr{COMMENT} eq 'HASH';
-    1;
+    delete $hdr->{COMMENT}{$k} if ref $hdr->{COMMENT} eq 'HASH';
+    $nbytes;
 }
 
 # Write a PDL to a FITS format file
@@ -1917,6 +1912,7 @@ sub PDL::wfits {
   if($issue_nullhdu) {
       _wfits_nullhdu($fh);
   }
+  my ($nbytes, %hdr) = 0;
 
   for $pdl(@outputs) {
 
@@ -2146,21 +2142,21 @@ sub PDL::wfits {
 
 	  $hdr{BITPIX} =  $BITPIX;
 	  $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
-	  wheader($fh, 'BITPIX');
+	  $nbytes = wheader($fh, 'BITPIX', \%hdr, $nbytes);
 
 	  $ndims = $pdl->getndims; # Dimensions of data array
 	  $hdr{NAXIS}  = $ndims;
-	  wheader($fh, 'NAXIS');
+	  $nbytes = wheader($fh, 'NAXIS', \%hdr, $nbytes);
 	  for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
-	  for $k (1..$ndims) { wheader($fh,"NAXIS$k") }
+	  for $k (1..$ndims) { $nbytes = wheader($fh,"NAXIS$k", \%hdr, $nbytes) }
 	  
 	  if ($bscale != 1 || $bzero  != 0) {
 	      $hdr{BSCALE} =  $bscale;
 	      $hdr{BZERO}  =  $bzero;
-	      wheader($fh,'BSCALE');
-	      wheader($fh,'BZERO');
+	      $nbytes = wheader($fh,'BSCALE', \%hdr, $nbytes);
+	      $nbytes = wheader($fh,'BZERO', \%hdr, $nbytes);
 	  }
-	  wheader($fh,'BUNIT');
+	  $nbytes = wheader($fh,'BUNIT', \%hdr, $nbytes);
 
 	  # IF badflag is set
 	  #   and BITPIX > 0 - ensure the header contains the BLANK keyword
@@ -2172,9 +2168,9 @@ sub PDL::wfits {
 	  }
 
 	  for $k (sort fits_field_cmp keys %hdr) { 
-	      wheader($fh,$k) unless $k =~ m/HISTORY/;
+	      $nbytes = wheader($fh,$k, \%hdr, $nbytes) unless $k =~ m/HISTORY/;
 	  }
-	  wheader($fh, 'HISTORY'); # Make sure that HISTORY entries come last.
+	  $nbytes = wheader($fh, 'HISTORY', \%hdr, $nbytes); # Make sure that HISTORY entries come last.
 	  $fh->printf( "%-80s", "END" );
 	  $nbytes += 80;
       }
