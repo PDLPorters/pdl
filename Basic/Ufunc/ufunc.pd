@@ -1164,13 +1164,46 @@ pp_def(
     Inplace => 1,
     Pars => 'a(n,m); [o]b(n,m);',
     Code => 
-    'PDL_Indx nn;
-     PDL_Indx nd;
+    'PDL_Indx nn = ($SIZE(m))-1;
+     PDL_Indx nd = $SIZE(n);
      '.qsort_croak('b',1,1).'
-     loop(n,m) %{ $b() = $a(); %}
-     nn = ($SIZE(m))-1;
-     nd = $SIZE(n);
+     if ($P(a) != $P(b)) loop(n,m) %{ $b() = $a(); %}
      '.generic_qsortvec('b','nd'),
+    BadCode =>
+    'register PDL_Indx nn = 0, nb = $SIZE(m) - 1;
+     char is_inplace = ($P(a) == $P(b));
+     PDL_Indx nd = $SIZE(n);
+     '.qsort_croak('b',1,1).'
+     loop(m) %{
+       char allgood_a = 1;
+       loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
+       PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
+       if (is_inplace) {
+         if (allgood_a) continue; /* nothing to do */
+         char anybad_b = 0;
+         do {
+           anybad_b = 0;
+           loop(n) %{ if ($ISBAD(b(m=>copy_dest))) { anybad_b = 1; break; } %}
+           if (anybad_b) copy_dest = nb--;
+         } while (anybad_b);
+         loop(n) %{
+           /* as in-place we know same badval source and dest */
+           $GENERIC() tmp = $b(m=>copy_dest);
+           $b(m=>copy_dest) = $a();
+           $a() = tmp;
+         %}
+         if (m == nb-1) { nn += 2; break; } /* run out of "good" vectors */
+       } else {
+         loop(n) %{
+           if ($ISGOOD(a())) $b(m=>copy_dest) = $a();
+           else              $SETBAD(b(m=>copy_dest));
+         %}
+       }
+     %}
+     if ( nn != 0 ) {
+       nn -= 1;' .
+       generic_qsortvec('b','nd') .'
+     }',
     Doc => '
 =for ref
 
@@ -1191,13 +1224,19 @@ the 1st dimension is list order.  Higher dimensions are threaded over.
   [  4   2]
  ]
  
-
 =cut
-
 ',
-    BadDoc =>
-'
-Vectors with bad components should be moved to the end of the array:
+    BadDoc => '
+Vectors with bad components are moved to the end of the array:
+
+  pdl> p $p = pdl("[0 0] [-100 0] [BAD 0] [100 0]")->qsortvec
+
+  [
+   [-100    0]
+   [   0    0]
+   [ 100    0]
+   [ BAD    0]
+  ]
 ',
     ); # pp_def qsortvec
 
@@ -1212,14 +1251,27 @@ pp_def(
     HandleBad => 1,
     Pars => 'a(n,m); indx [o]indx(m);',
     Code => 
-    'PDL_Indx nd;
+    'PDL_Indx nd = $SIZE(n);
      PDL_Indx nn=$SIZE(m)-1;
      '.qsort_croak('indx',1,0).'
      loop(m) %{
         $indx()=m;
      %}
-     nd = $SIZE(n);
      '.generic_qsortvec_ind('a','nd'),
+    BadCode =>
+    'register PDL_Indx nn = 0, nb = $SIZE(m) - 1;
+     PDL_Indx nd = $SIZE(n);
+     '.qsort_croak('indx',1,0).'
+     loop(m) %{
+       char allgood_a = 1;
+       loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
+       PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
+       $indx(m=>copy_dest) = m;
+     %}
+     if ( nn != 0 ) {
+       nn -= 1;' .
+       generic_qsortvec_ind('a','nd') .'
+     }',
     Doc => '
 =for ref
 
@@ -1237,11 +1289,10 @@ Additional dimensions are threaded over: each plane is sorted separately,
 so qsortveci may be thought of as a collapse operator of sorts (groan).
 
 =cut
-
 ',
-    BadDoc =>
-'
-Vectors with bad components should be moved to the end of the array:
+    BadDoc => '
+Vectors with bad components are moved to the end of the array as
+for L</qsortvec>.
 ',
     ); 
 

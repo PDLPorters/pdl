@@ -3,6 +3,7 @@
 - longlong default bad value now LLONG_MIN
 - add signed byte (SB), unsigned long (UL) and longlong (ULL)
 - add Bad::locf - thanks @kmx
+- fix qsortvec* with bad values - thanks @d-lamb for report
 
 2.063_03 2021-11-23
 - add pp_add_macros

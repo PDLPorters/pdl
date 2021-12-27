@@ -40,25 +40,27 @@ ok( tapprox($x->pctover(0.23), 2.07), "23rd percentile of 10-elem ndarray [SF bu
 #
 ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
 
-# Test inplace sorting
 $d->inplace->qsort;
 ok(all($d == $d_sort), "inplace sorting");
 
-# Test inplace sorting with bad values
 $d->setbadat(3);
 $d_sort = $d->qsort;
 $d->inplace->qsort;
 ok(all($d == $d_sort), "inplace sorting with bad values");
 
-# Test inplace lexicographical sorting
 $e->inplace->qsortvec;
 ok(all($e == $e_sort), "inplace lexicographical sorting");
 
-# Test inplace lexicographical sorting with bad values
+my $ei = $e->copy;
+$ei->setbadat(1,3);
+my $ei_sort = $ei->qsortveci;
+is $ei_sort."", '[0 1 2 4 5 3]', "qsortveci with bad values"
+  or diag "got:$ei_sort";
+
 $e->setbadat(1,3);
 $e_sort = $e->qsortvec;
 $e->inplace->qsortvec;
-ok(all($e == $e_sort), "inplace lexicographical sorting with bad values");
+ok(all($e == $e_sort), "inplace lexicographical sorting with bad values") or diag "inplace=$e\nnormal=$e_sort";
 
 # Test sf.net bug 379 "Passing qsort an extra argument causes a segfault"
 # (also qsorti, qsortvec, qsortveci)
@@ -76,6 +78,19 @@ is(pdl(8)->qsorti,pdl(0),'trivial qsorti');
 ok(all(pdl(42,41)->qsortvec == pdl(42,41)->dummy(1)),'trivial qsortvec');
 is(pdl(53,35)->qsortveci,pdl(0),'trivial qsortveci');
 
+# test qsort moves vectors with BAD components to end
+is pdl("0 -100 BAD 100")->qsort."", '[-100 0 100 BAD]', 'qsort moves BAD elts to end';
+
+# test qsortvec moves vectors with BAD components to end - GH#252
+is pdl("[0 0] [-100 0] [BAD 0] [100 0]")->qsortvec."", <<'EOF', 'qsortvec moves vectors with BAD components to end';
+
+[
+ [-100    0]
+ [   0    0]
+ [ 100    0]
+ [ BAD    0]
+]
+EOF
 
 # test for sf.net bug report 3234141 "max() fails on nan"
 #   NaN values are handled inconsistently by min, minimum, max, maximum...
