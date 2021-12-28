@@ -73,12 +73,15 @@ $PDL::Astro_FITS_Header = eval {
     Astro::FITS::Header->VERSION(1.12);
     1;
 };
-
-unless($PDL::Astro_FITS_Header) {
-  unless($ENV{"PDL_FITS_LEGACY"} || $PDL::Config{FITS_LEGACY}) {
-    print(STDERR "\n\nWARNING: Can't find the Astro::FITS::Header module, limiting FITS support.\n\n  PDL will use the deprecated legacy perl hash handling code but will not\n  properly support tables, FITS extensions, or COMMENT cards. You really\n  ought to install the Astro::FITS::Header module, available from\n  'http://www.cpan.org'.  (You can also get rid of this message by setting\n  the environment variable 'PDL_FITS_LEGACY' or the global PDL config value (in perldl.conf)\n  \$PDL::Config{FITS_LEGACY} to 1.\n\n");
-  }
-}
+warn <<'EOF' if !$PDL::Astro_FITS_Header and !($ENV{"PDL_FITS_LEGACY"} || $PDL::Config{FITS_LEGACY});
+WARNING: Can't find the Astro::FITS::Header module, limiting FITS support.
+  PDL will use the deprecated legacy perl hash handling code but will not
+  properly support tables, FITS extensions, or COMMENT cards. You really
+  ought to install the Astro::FITS::Header module, available from
+  'http://www.cpan.org'.  (You can also get rid of this message by setting
+  the environment variable 'PDL_FITS_LEGACY' or the global PDL config
+  value (in perldl.conf) $PDL::Config{FITS_LEGACY} to 1.
+EOF
 
 ## declare subroutines 
 
@@ -515,7 +518,7 @@ sub PDL::rfits {
        # it just gets overwritten (and disappears) if ignored.
        $pdl = $reader->($fh,$foo,$opt,$pdl);
      } else {
-       print STDERR "rfits: Ignoring unknown extension '$ext_type'...\n"
+       warn "rfits: Ignoring unknown extension '$ext_type'...\n"
 	 if($PDL::verbose || $PDL::debug);
        $pdl = undef;
      }
@@ -787,10 +790,8 @@ $PDL::IO::FITS_bintable_handlers = {
   ]
   ,'A' => [  sub { # constructor               # String  - handle as perl list
                my($rowlen, $extra, $nrows, $szptr) = @_;
-               my($i,@a);
                $$szptr += $rowlen;
-               for $i(1..$nrows) { push(@a,' 'x$rowlen); }
-               \@a;
+               [(' 'x$rowlen) x $nrows];
             }
           , sub { # reader 
               my( $list, $row, $strptr, $rpt ) = @_;
@@ -858,7 +859,7 @@ sub _wrcomplx { # complex-number writer
 sub _fncomplx { # complex-number finisher-upper
   my( $type, $pdl, $n, $hdr, $opt)  = shift;
   eval 'bswap'.(PDL::Core::howbig($type)).'($pdl)';
-  print STDERR "Ignoring poorly-defined TSCAL/TZERO for complex data in col. $n (".$hdr->{"TTYPE$n"}.").\n" 
+  warn "Ignoring poorly-defined TSCAL/TZERO for complex data in col. $n (".$hdr->{"TTYPE$n"}.").\n"
     if( length($hdr->{"TSCAL$n"}) or length($hdr->{"TZERO$n"}) );
   return $pdl->reorder(2,1,0);
 }
@@ -927,7 +928,7 @@ sub _fnP {
 	elsif( $post == 4 ) { bswap4($pdl); }
 	elsif( $post == 8 ) { bswap8($pdl); }
 	elsif( $post != 1 ) {
-	    print STDERR "Unknown swapsize $post!  This is a bug.  You (may) lose..\n";
+	    warn "Unknown swapsize $post!  This is a bug.  You (may) lose..\n";
 	}
     }
 
@@ -935,9 +936,8 @@ sub _fnP {
     my $tscal = defined($hdr->{"TSCAL$n"}) ? $hdr->{"TSCAL$n"} : 1.0;
     my $valid_tzero = ($tzero != 0.0);
     my $valid_tscal = ($tscal != 1.0);
-    if( length($hdr->{"TZERO$n"}) or length($hdr->{"TSCAL$n"})) {
-	print STDERR "Ignoring TSCAL/TZERO keywords for binary table array column - sorry, my mind is blown!\n";
-    }
+    warn "Ignoring TSCAL/TZERO keywords for binary table array column - sorry, my mind is blown!\n"
+	if length($hdr->{"TZERO$n"}) or length($hdr->{"TSCAL$n"});
     return $pdl->mv(-1,0);
 }
 
@@ -954,7 +954,7 @@ sub _rfits_bintable ($$$$) {
   my $opt = shift;
   ##shift;  ### (ignore $pdl argument)
 
-  print STDERR "Warning: BINTABLE extension should have BITPIX=8, found ".$hdr->{BITPIX}.".  Winging it...\n" unless($hdr->{BITPIX} == 8);
+  warn "Warning: BINTABLE extension should have BITPIX=8, found ".$hdr->{BITPIX}.".  Winging it...\n" unless($hdr->{BITPIX} == 8);
     
   ### Allocate the main table hash
   my $tbl = {};    # Table is indexed by name
@@ -1136,7 +1136,7 @@ sub _rfits_bintable ($$$$) {
 	elsif( $post == 4 ) { bswap4($tmpcol->{data}); }
 	elsif( $post == 8 ) { bswap8($tmpcol->{data}); }
 	elsif( $post != 1 ) {
-	  print STDERR "Unknown swapsize $post for column $i ("
+	  warn "Unknown swapsize $post for column $i ("
 	    . $tmpcol->{name} . ")!  This is a bug.  Winging it.\n";
 	}
       }
@@ -1156,7 +1156,7 @@ sub _rfits_bintable ($$$$) {
 	if ( $valid_tzero or $valid_tscal ) {
 	  if ( $tmpcol->{type} =~ m/[ALX]/i ) {
 	    
-	    print STDERR "Ignoring illegal TSCAL/TZERO keywords for col $i (" .
+	    warn "Ignoring illegal TSCAL/TZERO keywords for col $i (" .
 	      $tmpcol->{name} . "); type is $tmpcol->{type})\n";
 	    
 	  } else { # Not an illegal type -- do the scaling
@@ -1218,17 +1218,16 @@ sub _rfits_bintable ($$$$) {
 	      @tdims = map { $_+0 } split(/\,/,$x);
 	      my $tdims = pdl(@tdims);
 	      my $tds = $tdims->prodover;
-	      if($tds > $tmpcol->{data}->dim(0)) {
-		  die("rfits: TDIM$i is too big in binary table.  I give up.\n");
-	      } elsif($tds < $tmpcol->{data}->dim(0)) {
-		  print STDERR "rfits: WARNING: TDIM$i is too small in binary table.  Carrying on...\n";
-	      }
+	      die("rfits: TDIM$i is too big in binary table.  I give up.\n")
+		  if $tds > $tmpcol->{data}->dim(0);
+	      warn "rfits: WARNING: TDIM$i is too small in binary table.  Carrying on...\n"
+		  if $tds < $tmpcol->{data}->dim(0);
 
 	      $tmpcol->{data}->hdrcpy(1);
 	      my $td = $tmpcol->{data}->transpose;
 	      $tbl->{$tmpcol->{name}} = $td->reshape($td->dim(0),@tdims);
 	  } else {
-	      print STDERR "rfits: WARNING: invalid TDIM$i field in binary table.  Ignoring.\n";
+	      warn "rfits: WARNING: invalid TDIM$i field in binary table.  Ignoring.\n";
 	  }
       } else {
 	  # Copy the PDL out to the table itself.
@@ -1244,7 +1243,7 @@ sub _rfits_bintable ($$$$) {
       # End of PDL postfrobnication case
     } elsif(defined $post) {
       
-      print STDERR "Postfrobnication bug detected in column $i ("
+      warn "Postfrobnication bug detected in column $i ("
 	. $tmpcol->{name}. ").  Winging it.\n";
       
     }
@@ -1366,7 +1365,7 @@ sub _rfits_unpack_zimage($$$) {
     (my $cmptype = $hdr->{ZCMPTYPE}) =~ s/\s+//g;
     my $tc = $tile_compressors->{$cmptype};
     unless(defined $tc) {
-	print STDERR "WARNING: rfits: Compressed image has unsupported comp. type ('$hdr->{ZCMPTYPE}').\n";
+	warn "WARNING: rfits: Compressed image has unsupported comp. type ('$hdr->{ZCMPTYPE}').\n";
 	return $tbl;
     }
 
@@ -1374,29 +1373,19 @@ sub _rfits_unpack_zimage($$$) {
     # Declare the output image
     my $type;
     unless($type_table->{$hdr->{ZBITPIX}}) {
-	print STDERR "WARNING: rfits: unrecognized ZBITPIX value $hdr->{ZBITPIX} in compressed image. Assuming -64.\n";
+	warn "WARNING: rfits: unrecognized ZBITPIX value $hdr->{ZBITPIX} in compressed image. Assuming -64.\n";
 	$type = $type_table_2->{-64};
     } else {
 	$type = $type_table_2->{$hdr->{ZBITPIX}};
     }
-    my @dims;
-    for my $i(1..$hdr->{ZNAXIS}) {
-	push(@dims,$hdr->{"ZNAXIS$i"});
-    }
+    my @dims = @$hdr{map "ZNAXIS$_", 1..$hdr->{ZNAXIS}};
 
     my $pdl = PDL->new_from_specification( $type, @dims );
 
     ############
     # Calculate tile size and allocate a working tile.
-    my @tiledims;
-    for my $i(1..$hdr->{ZNAXIS}) {
-	if($hdr->{"ZTILE$i"}) {
-	    push(@tiledims, $hdr->{"ZTILE$i"});
-	} else {
-	    push(@tiledims, (($i==1) ? $hdr->{ZNAXIS1} : 1)  );
-	}
-    }
-
+    my @tiledims = map $hdr->{"ZTILE$_"} || (($_==1) ? $hdr->{ZNAXIS1} : 1),
+	1..$hdr->{ZNAXIS};
 
 #    my $tile = PDL->new_from_specification( $type, @tiledims ); 
     my $tiledims = pdl(@tiledims);
@@ -1406,16 +1395,14 @@ sub _rfits_unpack_zimage($$$) {
     my $ntiles = ( pdl(@dims) / pdl(@tiledims) )->ceil;
     my $tilecount = $ntiles->prodover;
 
-    if($tilecount != $tbl->{COMPRESSED_DATA}->dim(0)) {
-	printf STDERR "WARNING: rfits: compressed data has $hdr->{NAXIS2} rows; we expected $tilecount (",join("x",list $ntiles),").  Winging it...\n";
-    }
+    warn "WARNING: rfits: compressed data has $hdr->{NAXIS2} rows; we expected $tilecount (",join("x",list $ntiles),").  Winging it...\n"
+	if $tilecount != $tbl->{COMPRESSED_DATA}->dim(0);
 
     ##########
     # Quantization - ignore for now
-    if($hdr->{ZQUANTIZ}) {
-	printf STDERR "WARNING: rfits: ignoring quantization/dithering (ZQUANTIZ=$hdr->{ZQUANTIZ})\n";
-    }
-    
+    warn "WARNING: rfits: ignoring quantization/dithering (ZQUANTIZ=$hdr->{ZQUANTIZ})\n"
+	if $hdr->{ZQUANTIZ};
+
     ##########
     # Snarf up compression parameters
     my $params = {};
@@ -2255,7 +2242,7 @@ sub _rows {
   return 1+$#$var if(ref $var eq 'ARRAY');
   return 1 unless(ref $var);
   
-  print STDERR "Warning: _rows found an unacceptable ref. ".ref $var.". Ignoring...\n"
+  warn "Warning: _rows found an unacceptable ref. ".ref $var.". Ignoring...\n"
     if($PDL::verbose);
   
   return undef;
