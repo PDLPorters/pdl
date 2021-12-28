@@ -1866,13 +1866,6 @@ sub PDL::wfits {
 	  print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
       }
 
-      # Check for tile-compression format for the image, and handle it.
-      # We add the image-compression format tags and reprocess the whole
-      # shebang as a binary table.
-      if($opt->{compress}) {
-	  croak "Placeholder -- tile compression not yet supported\n";
-      }
-
       ##############################
       ## Check header and prepare to write it out
       my($h) = $pdl->gethdr();
@@ -1904,6 +1897,13 @@ sub PDL::wfits {
 	      }
 	      $h = \%hh;
 	  }
+      }
+
+      # Check for tile-compression format for the image, and handle it.
+      # We add the image-compression format tags and reprocess the whole
+      # shebang as a binary table.
+      if($opt->{compress}) {
+	  croak "Placeholder -- tile compression not yet supported\n";
       }
 
       # Now decide whether to emit a hash or an AFH object
