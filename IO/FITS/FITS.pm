@@ -1801,9 +1801,17 @@ sub wheader {
 
 # Write a PDL to a FITS format file
 #
+my %wfits_reftype = map +($_=>1), qw(PDL HASH ARRAY);
 sub PDL::wfits {
   barf 'Usage: wfits($pdl,$file,[$BITPIX],[{options}])' if $#_<1 || $#_>3;
   my ($pdl,$file,$x,$y) = @_;
+
+  #### Figure output type
+  barf "wfits: needs a HASH, ARRAY or PDL argument to write out\n" if !ref $pdl;
+  barf "wfits: unknown ref type ".ref($pdl)."\n" if !$wfits_reftype{ref $pdl};
+  my $issue_nullhdu = !UNIVERSAL::isa($pdl,'PDL');
+  my @outputs = ref($pdl) eq 'ARRAY' ? @$pdl : $pdl;
+
   my ($opt, $BITPIX);
 
   local $\ = undef;  # fix sf.net bug #3394327 
@@ -1815,8 +1823,6 @@ sub PDL::wfits {
       $BITPIX = $x;
       $opt = $y;
   }
-
-  my ($k, $buff, $off, $ndims, $sz);
 
   $file =~ s/^(~)/glob($1)/e; # tilde expansion
 
@@ -1832,26 +1838,6 @@ sub PDL::wfits {
   }
   else{
     $file = ">$file";
-  }
-  
-  #### Figure output type
-
-  my @outputs = ();
-  my $issue_nullhdu;
-
-  if( UNIVERSAL::isa($pdl,'PDL') ) {
-      $issue_nullhdu = 0;
-      push(@outputs, $pdl);
-  } elsif( ref($pdl) eq 'HASH' ) {
-      $issue_nullhdu = 1;
-      push(@outputs, $pdl);
-  } elsif( ref($pdl) eq 'ARRAY' ) {
-      $issue_nullhdu = 1;
-      @outputs = @$pdl;
-  } elsif( length(ref($pdl))==0 ) {
-      barf "wfits: needs a HASH or PDL argument to write out\n";
-  } else {
-      barf "wfits: unknown ref type ".ref($pdl)."\n";
   }
 
   ## Open file & prepare to write binary info
@@ -1964,7 +1950,6 @@ sub PDL::wfits {
 	 ( (defined (tied %$h)) && 
 	   (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header")))
 	  ){
-	  my $k;
 	  ##n############################
 	  ## Tied-hash code -- I'm too lazy to incorporate this into KGB's
 	  ## direct hash handler below, so I've more or less just copied and
@@ -1990,7 +1975,7 @@ sub PDL::wfits {
 	  $h->{BITPIX} = $BITPIX;
 	  $h->{NAXIS} = $pdl->getndims;
 	  my $correction = 0;
-	  for $k(1..$h->{NAXIS}) { 
+	  for my $k(1..$h->{NAXIS}) {
 	      $correction |= (exists $h->{"NAXIS$k"} and 
 			      $h->{"NAXIS$k"} != $pdl->dim($k-1)
 		  );
@@ -2002,7 +1987,7 @@ sub PDL::wfits {
 	  $h->{BSCALE} = $bscale if($bscale != 1);
 	  $h->{BZERO}  = $bzero  if($bzero  != 0);
 	  if ( $pdl->badflag() ) {
-	      if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0));
+	      if ( $BITPIX > 0 ) { my $x = $convert->(pdl(0.0));
 				   $h->{BLANK} = $x->badvalue->sclr; }
 	      else               { delete $h->{BLANK}; }
 	  }
@@ -2012,7 +1997,7 @@ sub PDL::wfits {
 	  # list get looped over.
 	  my($kk) = 0; 
 	  my(@removed_naxis) = ();
-	  for $k(0..$#PDL::IO::FITS::wfits_keyword_order) {
+	  for my $k(0..$#PDL::IO::FITS::wfits_keyword_order) {
 	      my($kn) = 0;
 	      my @index;
 	      do {            # Loop over numericised keywords (e.g. NAXIS1)
@@ -2050,7 +2035,7 @@ sub PDL::wfits {
 	  # Make sure that the HISTORY lines all come at the end
 	  # 
 	  my @hindex = $hdr->index('HISTORY');
-	  for $k(0..$#hindex) {
+	  for my $k(0..$#hindex) {
 	      $hdr->insert(-1-$k, $hdr->remove($hindex[-1-$k]));
 	  }
 
@@ -2094,11 +2079,11 @@ sub PDL::wfits {
 	  $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
 	  $nbytes = wheader($fh, 'BITPIX', \%hdr, $nbytes);
 
-	  $ndims = $pdl->getndims; # Dimensions of data array
+	  my $ndims = $pdl->getndims; # Dimensions of data array
 	  $hdr{NAXIS}  = $ndims;
 	  $nbytes = wheader($fh, 'NAXIS', \%hdr, $nbytes);
-	  for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
-	  for $k (1..$ndims) { $nbytes = wheader($fh,"NAXIS$k", \%hdr, $nbytes) }
+	  for my $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
+	  for my $k (1..$ndims) { $nbytes = wheader($fh,"NAXIS$k", \%hdr, $nbytes) }
 	  
 	  if ($bscale != 1 || $bzero  != 0) {
 	      $hdr{BSCALE} =  $bscale;
@@ -2113,11 +2098,11 @@ sub PDL::wfits {
 	  #                    (make sure it's for the correct type)
 	  #   otherwise      - make sure the BLANK keyword is removed
 	  if ( $pdl->badflag() ) {
-	      if ( $BITPIX > 0 ) { my $x = &$convert(pdl(0.0)); $hdr{BLANK} = $x->badvalue->sclr; }
+	      if ( $BITPIX > 0 ) { $hdr{BLANK} = $convert->(pdl(0.0))->badvalue->sclr; }
 	      else               { delete $hdr{BLANK}; }
 	  }
 
-	  for $k (sort fits_field_cmp keys %hdr) { 
+	  for my $k (sort fits_field_cmp keys %hdr) {
 	      $nbytes = wheader($fh,$k, \%hdr, $nbytes) unless $k =~ m/HISTORY/;
 	  }
 	  $nbytes = wheader($fh, 'HISTORY', \%hdr, $nbytes); # Make sure that HISTORY entries come last.
@@ -2145,8 +2130,8 @@ sub PDL::wfits {
       # Write FITS data
       my $p1d = $pdl->copy->reshape($pdl->nelem); # Data as 1D stream;
 
-      $off = 0;
-      $sz  = PDL::Core::howbig(&$convert($p1d->slice('0:0'))->get_datatype);
+      my $off = 0;
+      my $sz  = PDL::Core::howbig($convert->($p1d->slice('0:0'))->get_datatype);
       $nbytes = $p1d->getdim(0) * $sz;
       # Transfer data in blocks (because might need to byte swap)
       # Buffer is also type converted on the fly
@@ -2160,7 +2145,7 @@ sub PDL::wfits {
 
       while ($nbytes - $off > $BUFFSZ) {
 	  # Data to be transferred
-	  $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
+	  my $buff = $convert->( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
 			      -$bzero)/$bscale );
 	  # if there are bad values present, and output type is floating-point,
 	  # convert the bad values to NaN's.  We can ignore integer types, since
@@ -2173,7 +2158,7 @@ sub PDL::wfits {
 	  $fh->print( ${$buff->get_dataref} );
 	  $off += $BUFFSZ;
       }
-      $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
+      my $buff = $convert->( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
 
       if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
 	  $buff->inplace->setbadtonan();
