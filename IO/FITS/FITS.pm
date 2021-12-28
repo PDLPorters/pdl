@@ -1280,69 +1280,63 @@ our $hdrconv = {
 ## or out (of the uncompressor); actual tile shape is fed in as $params->{tiledims}, so 
 ## higher-than-1D compression algorithms can be used.
 our $tile_compressors = {
-          'GZIP_1' => undef
-	      , 'RICE_1' => [ ### RICE_1 compressor
-			      sub { my ($tiles, $tbl, $params) = @_; 
-				    my ($compressed,$len) = $tiles->rice_compress($params->{BLOCKSIZE} || 32);
-				    $tbl->{ZNAME1} = "BLOCKSIZE";
-				    $tbl->{ZVAL1} = $params->{BLOCKSIZE};
-				    $tbl->{ZNAME2} = "BYTEPIX";
-				    $tbl->{ZVAL2} = PDL::howbig($tiles->get_datatype);
-				    # Convert the compressed data to a byte array...
-				    if($tbl->{ZVAL2} != 1) {
-					my @dims = $compressed->dims;
-					$dims[0] *= $tbl->{ZVAL2};
-					my $cd2 = zeroes( byte, @dims );
-					my $cdr = $compressed->get_dataref;
-					my $cd2r = $cd2->get_dataref;
-					$$cd2r = $$cdr;
-					$cd2->upd_data;
-					$compressed = $cd2;
-				    }
-				    $tbl->{COMPRESSED_DATA} = $compressed->mv(0,-1);
-				    $tbl->{len_COMPRESSED_DATA} = $len;
-			      },
-			      ### RICE_1 expander
-			      sub { my ($tilesize, $tbl, $params) = @_;
-				    my $compressed = $tbl->{COMPRESSED_DATA} -> mv(-1,0);
-				    my $bytepix = $params->{BYTEPIX} || 4;
-
-				    # Put the compressed tile bitstream into a variable of appropriate type.
-				    # This works by direct copying of the PDL data, which sidesteps local 
-				    # byteswap issues in the usual case that the compressed stream is type 
-				    # byte.  But it does add the extra complication that we have to pad the 
-				    # compressed array out to a factor-of-n elements in certain cases.
-
-				    if( PDL::howbig($compressed->get_datatype) != $bytepix ) {
-					my @dims = $compressed->dims;
-					my $newdim0;
-					my $scaledim0;
-
-					$scaledim0 = $dims[0] * PDL::howbig($compressed->get_datatype) / $bytepix;
-					$newdim0 = pdl($scaledim0)->ceil;
-
-					if($scaledim0 != $newdim0) {
-					    my $padding = zeroes($compressed->type, 
-							      ($newdim0-$scaledim0) * $bytepix / PDL::howbig($compressed->get_datatype), 
-							      @dims[1..$#dims]
-						);
-					    $compressed = $compressed->append($padding);
-					}
-					
-					my $c2 = zeroes( $type_table_2->{$bytepix * 8}, $newdim0, @dims[1..$#dims] );
-
-					my $c2dr = $c2->get_dataref;
-					my $cdr = $compressed->get_dataref;
-					substr($$c2dr,0,length($$cdr)) = $$cdr;
-					$c2->upd_data;
-					$compressed = $c2;
-				    }
-
-				    return $compressed->rice_expand( $tilesize, $params->{BLOCKSIZE} || 32);
-			      }
-			      ]
-	, 'PLIO_1' => undef
-	, 'HCOMPRESS_1' => undef
+  'GZIP_1' => undef,
+  'RICE_1' => [
+    sub { ### RICE_1 compressor
+      my ($tiles, $tbl, $params) = @_;
+      my ($compressed,$len) = $tiles->rice_compress($params->{BLOCKSIZE} || 32);
+      $tbl->{ZNAME1} = "BLOCKSIZE";
+      $tbl->{ZVAL1} = $params->{BLOCKSIZE};
+      $tbl->{ZNAME2} = "BYTEPIX";
+      $tbl->{ZVAL2} = PDL::howbig($tiles->get_datatype);
+      # Convert the compressed data to a byte array...
+      if($tbl->{ZVAL2} != 1) {
+	my @dims = $compressed->dims;
+	$dims[0] *= $tbl->{ZVAL2};
+	my $cd2 = zeroes( byte, @dims );
+	my $cdr = $compressed->get_dataref;
+	my $cd2r = $cd2->get_dataref;
+	$$cd2r = $$cdr;
+	$cd2->upd_data;
+	$compressed = $cd2;
+      }
+      $tbl->{COMPRESSED_DATA} = $compressed->mv(0,-1);
+      $tbl->{len_COMPRESSED_DATA} = $len;
+    },
+    sub { ### RICE_1 expander
+      my ($tilesize, $tbl, $params) = @_;
+      my $compressed = $tbl->{COMPRESSED_DATA} -> mv(-1,0);
+      my $bytepix = $params->{BYTEPIX} || 4;
+      # Put the compressed tile bitstream into a variable of appropriate type.
+      # This works by direct copying of the PDL data, which sidesteps local
+      # byteswap issues in the usual case that the compressed stream is type
+      # byte.  But it does add the extra complication that we have to pad the
+      # compressed array out to a factor-of-n elements in certain cases.
+      if( PDL::howbig($compressed->get_datatype) != $bytepix ) {
+	my @dims = $compressed->dims;
+	my $newdim0;
+	my $scaledim0;
+	$scaledim0 = $dims[0] * PDL::howbig($compressed->get_datatype) / $bytepix;
+	$newdim0 = pdl($scaledim0)->ceil;
+	if($scaledim0 != $newdim0) {
+	  my $padding = zeroes($compressed->type,
+	    ($newdim0-$scaledim0) * $bytepix / PDL::howbig($compressed->get_datatype),
+	    @dims[1..$#dims]
+	  );
+	  $compressed = $compressed->append($padding);
+	}
+	my $c2 = zeroes( $type_table_2->{$bytepix * 8}, $newdim0, @dims[1..$#dims] );
+	my $c2dr = $c2->get_dataref;
+	my $cdr = $compressed->get_dataref;
+	substr($$c2dr,0,length($$cdr)) = $$cdr;
+	$c2->upd_data;
+	$compressed = $c2;
+      }
+      $compressed->rice_expand( $tilesize, $params->{BLOCKSIZE} || 32);
+    }
+  ],
+  'PLIO_1' => undef,
+  'HCOMPRESS_1' => undef,
 };
 
 sub _rfits_unpack_zimage($$$) {
@@ -1360,30 +1354,24 @@ sub _rfits_unpack_zimage($$$) {
 
     #############
     # Declare the output image
-    my $type;
-    unless($type_table->{$hdr->{ZBITPIX}}) {
+    my $type = $type_table_2->{$hdr->{ZBITPIX}};
+    unless($type) {
 	warn "WARNING: rfits: unrecognized ZBITPIX value $hdr->{ZBITPIX} in compressed image. Assuming -64.\n";
 	$type = $type_table_2->{-64};
-    } else {
-	$type = $type_table_2->{$hdr->{ZBITPIX}};
     }
     my @dims = @$hdr{map "ZNAXIS$_", 1..$hdr->{ZNAXIS}};
-
     my $pdl = PDL->new_from_specification( $type, @dims );
 
     ############
     # Calculate tile size and allocate a working tile.
     my @tiledims = map $hdr->{"ZTILE$_"} || (($_==1) ? $hdr->{ZNAXIS1} : 1),
 	1..$hdr->{ZNAXIS};
-
-#    my $tile = PDL->new_from_specification( $type, @tiledims ); 
     my $tiledims = pdl(@tiledims);
     my $tilesize = $tiledims->prodover;
     ###########
     # Calculate tile counts and compare to the number of stored tiles
     my $ntiles = ( pdl(@dims) / pdl(@tiledims) )->ceil;
     my $tilecount = $ntiles->prodover;
-
     warn "WARNING: rfits: compressed data has $hdr->{NAXIS2} rows; we expected $tilecount (",join("x",list $ntiles),").  Winging it...\n"
 	if $tilecount != $tbl->{COMPRESSED_DATA}->dim(0);
 
@@ -1419,15 +1407,13 @@ sub _rfits_unpack_zimage($$$) {
     
     ##########
     # Restore all the tiles at once
-    my $tiles = &{$tc->[1]}( $tilesize, $tbl, $params ); # gets a (tilesize x ntiles) output
+    my $tiles = $tc->[1]->( $tilesize, $tbl, $params ); # gets a (tilesize x ntiles) output
     my $patchup = which($tbl->{len_COMPRESSED_DATA} <= 0);
     if($patchup->nelem) {
-	unless(defined $tbl->{UNCOMPRESSED_DATA}) {
-	    die "rfits: need some uncompressed data for missing compressed rows, but none were found!\n";
-	}
-	if($tbl->{UNCOMPRESSED_DATA}->dim(1) != $tilesize) {
-	    die "rfits: tile size is $tilesize, but uncompressed data rows have size ".$tbl->{UNCOMPRESSED_DATA}->dim(1)."\n";
-	}
+	die "rfits: need some uncompressed data for missing compressed rows, but none were found!\n"
+	    unless defined $tbl->{UNCOMPRESSED_DATA};
+	die "rfits: tile size is $tilesize, but uncompressed data rows have size ".$tbl->{UNCOMPRESSED_DATA}->dim(1)."\n"
+	    if $tbl->{UNCOMPRESSED_DATA}->dim(1) != $tilesize;
 	$tiles->dice_axis(1,$patchup) .= $tbl->{UNCOMPRESSED_DATA}->dice_axis(0,$patchup)->transpose;
     }
 
@@ -1437,9 +1423,8 @@ sub _rfits_unpack_zimage($$$) {
     my $cutup = $pdl->range( $tiledex, [@tiledims], 't') # < ntiles, tilesize0..tilesizen >
 	->mv(0,-1)                                       # < tilesize0..tilesizen, ntiles >
 	->clump($tiledims->nelem);                       # < tilesize, ntiles >
-
     $cutup .= $tiles; # dump all the tiles at once into the image - they flow back to $pdl.
-    undef $cutup;     # sever connection to prevent expensive future dataflow.
+    $cutup->sever;    # sever connection to prevent expensive future dataflow.
 
     ##########
     # Perform scaling if necessary ( Just the ZIMAGE quantization step )
@@ -1454,33 +1439,20 @@ sub _rfits_unpack_zimage($$$) {
     delete $hdr->{GCOUNT};
 
     # Copy the mandated name-conversions
-    for my $k(keys %$hdrconv) {
-	if($hdr->{$k}) {
-	    $hdr->{$hdrconv->{$k}} = $hdr->{$k};
-	    delete $hdr->{$k};
-	}
+    for my $k (grep $hdr->{$_}, keys %$hdrconv) {
+	$hdr->{$hdrconv->{$k}} = $hdr->{$k};
+	delete $hdr->{$k};
     }
 
     # Copy the ZNAXIS* keywords to NAXIS*
-    foreach (grep /^NAXIS/,keys %$hdr){
-	if (exists($hdr->{'Z'.$_}) && defined($hdr->{'Z'.$_})){
-	    $hdr->{$_} = $hdr->{'Z'.$_};
-	}
-    }
+    $hdr->{$_} = $hdr->{"Z$_"}
+	for grep /^NAXIS/ && defined($hdr->{"Z$_"}), keys %$hdr;
 
     # Clean up the ZFOO extensions and table cruft
-    for my $k(keys %{$hdr}) {
-	delete $hdr->{$k} if(
-	    $k=~ m/^Z/ ||
-	    $k eq "TFIELDS" ||
-	    $k =~ m/^TTYPE/ ||
-	    $k =~ m/^TFORM/
-	    );
-    }
+    delete @$hdr{grep m/^(?:TTYPE|TFORM|Z|TFIELDS$)/, keys %$hdr};
 
-    if(exists $hdr->{BSCALE} || exists $hdr->{BLANK}) {
-	$pdl = treat_bscale($pdl, $hdr);
-    }
+    $pdl = treat_bscale($pdl, $hdr)
+	if exists $hdr->{BSCALE} || exists $hdr->{BLANK};
     $pdl->sethdr($hdr);
     $pdl->hdrcpy($opt->{hdrcpy});
 
@@ -2763,6 +2735,4 @@ sub _wfits_nullhdu ($) {
   }
 }
 
-    
 1;
-
