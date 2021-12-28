@@ -36,13 +36,13 @@ use warnings;
 
 ################################################################################
 # figure out what's good in an ndarray after a possible transformation which could
-# generate Infs or NaN's.  If only everyone used PDL::Bad::UseNaN...
+# generate Infs or NaN's.
 sub set_mask
 {
   my ( $mask, $data ) = @_;
   my $badflag = $data->badflag();
   $data->badflag(1);
-  $mask .= $PDL::Bad::UseNaN ? (! $data->isbad ) : ( $data->isfinite & ! $data->isbad );
+  $mask .= ( $data->isfinite & ! $data->isbad );
   $data->badflag($badflag);
 }
 

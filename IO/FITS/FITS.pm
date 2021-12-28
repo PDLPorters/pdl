@@ -2138,7 +2138,7 @@ sub PDL::wfits {
       my $BUFFSZ = 360*2880; # = ~1Mb - must be multiple of 2880
       my $tmp;
 
-      if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+      if ( $pdl->badflag() and $BITPIX < 0 ) {
 	  # just print up a message - conversion is actually done in the loop
 	  print "Converting PDL bad value to NaN\n" if $PDL::verbose;
       }
@@ -2151,7 +2151,7 @@ sub PDL::wfits {
 	  # convert the bad values to NaN's.  We can ignore integer types, since
 	  # we have set the BLANK keyword
 	  #
-	  if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+	  if ( $pdl->badflag() and $BITPIX < 0 ) {
 	      $buff->inplace->setbadtonan();
 	  }
 	  &$bswap($buff);
@@ -2160,7 +2160,7 @@ sub PDL::wfits {
       }
       my $buff = $convert->( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
 
-      if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+      if ( $pdl->badflag() and $BITPIX < 0 ) {
 	  $buff->inplace->setbadtonan();
       }
 
