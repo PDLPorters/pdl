@@ -1155,38 +1155,29 @@ sub _rfits_bintable ($$$$) {
 	
 	if ( $valid_tzero or $valid_tscal ) {
 	  if ( $tmpcol->{type} =~ m/[ALX]/i ) {
-	    
 	    warn "Ignoring illegal TSCAL/TZERO keywords for col $i (" .
 	      $tmpcol->{name} . "); type is $tmpcol->{type})\n";
 	    
 	  } else { # Not an illegal type -- do the scaling
-	    
 	    # (Normal execution path) 
 	    # Use PDL's cleverness to work out the final datatype...
-	    
 	    my $tmp;
 	    my $pdl = $tmpcol->{data};
-	    
+
 	    if($pdl->badflag() == 0) {
-	      
 	      $tmp = $pdl->flat()->slice("0:0");
-	      
 	    } elsif($pdl->ngood > 0) {
-	      
 	      my $index = which( $pdl->flat()->isbad()==0 )->at(0);
 	      $tmp = $pdl->flat()->slice("${index}:${index}");
-	      
 	    } else { # Do nothing if it's all bad....
 	      $tmp = $pdl;
 	    }
-	    
+
 	    # Figure out the type by scaling the single element.
 	    $tmp = ($tmp - $tzero) * $tscal;
-	    
 	    # Convert the whole PDL as necessary for the scaling.
 	    $tmpcol->{data} = $pdl->convert($tmp->type) 
 	      if($tmp->get_datatype != $pdl->get_datatype);
-	    
 	    # Do the scaling.
 	    $tmpcol->{data} -= $tzero;
 	    $tmpcol->{data} *= $tscal;
@@ -1987,8 +1978,7 @@ sub PDL::wfits {
 	  $h->{BSCALE} = $bscale if($bscale != 1);
 	  $h->{BZERO}  = $bzero  if($bzero  != 0);
 	  if ( $pdl->badflag() ) {
-	      if ( $BITPIX > 0 ) { my $x = $convert->(pdl(0.0));
-				   $h->{BLANK} = $x->badvalue->sclr; }
+	      if ( $BITPIX > 0 ) { $h->{BLANK} = $convert->(pdl(0.0))->badvalue->sclr; }
 	      else               { delete $h->{BLANK}; }
 	  }
 	  # Use object interface to sort the lines. This is complicated by
