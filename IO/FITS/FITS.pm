@@ -83,11 +83,6 @@ WARNING: Can't find the Astro::FITS::Header module, limiting FITS support.
   value (in perldl.conf) $PDL::Config{FITS_LEGACY} to 1.
 EOF
 
-## declare subroutines 
-
-sub _wfits_nullhdu ($);
-sub _wfits_table ($$$);
-
 =head2 rfits()
 
 =for ref
@@ -1683,17 +1678,12 @@ converted to NaN (if necessary) before writing.
 
 *wfits = \&PDL::wfits;
 
-BEGIN {
-  @PDL::IO::FITS::wfits_keyword_order = 
-    ('SIMPLE','BITPIX','NAXIS','NAXIS1','BUNIT','BSCALE','BZERO');
-  @PDL::IO::FITS::wfits_numbered_keywords =
-    ('CTYPE','CRPIX','CRVAL','CDELT','CROTA');
-}
+our @wfits_keyword_order = qw(SIMPLE BITPIX NAXIS NAXIS1 BUNIT BSCALE BZERO);
+our @wfits_numbered_keywords = qw(CTYPE CRPIX CRVAL CDELT CROTA);
 
 # Local utility routine of wfits()
 sub wheader {
     my ($fh, $k, $hdr, $nbytes) = @_;
-  
     if ($k =~ m/(HISTORY|COMMENT)/) {
 	my $hc = $1;
 	return $nbytes unless ref($hdr->{$k}) eq 'ARRAY';
@@ -1706,22 +1696,15 @@ sub wheader {
 	# Check that we are dealing with a scalar value in the header
 	# Need to make sure that the header does not include PDLs or
 	# other structures. Return unless $hdr->{$k} is a scalar.
-	my($hdrk) = $hdr->{$k};
-    
-	if(ref $hdrk eq 'ARRAY') {
-	    $hdrk = join("\n",@$hdrk);
-	}
-    
-	return $nbytes unless not ref($hdrk);
-    
+	my $hdrk = $hdr->{$k};
+	$hdrk = join("\n",@$hdrk) if ref $hdrk eq 'ARRAY';
+	return $nbytes if ref($hdrk);
 	if ($hdrk eq "") {
 	    $fh->printf( "%-80s", substr($k,0,8) );
 	} else {
 	    $fh->printf( "%-8s= ", substr($k,0,8) );
-      
 	    my $com = ( ref $hdr->{COMMENT} eq 'HASH' ) ?
 		$hdr->{COMMENT}{$k} : undef;
-      
 	    if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
 		my $cl=60-($com ? 2 : 0);
 		my $end=' ' x $cl;
@@ -1737,16 +1720,12 @@ sub wheader {
 	     } else {
 		 # Handle strings, truncating as necessary
 		 # (doesn't do multicard strings like Astro::FITS::Header does)
-        
 		 # Convert single quotes to doubled single quotes 
 		 # (per FITS standard)
-		 my($st) = $hdrk;
-		 $st =~ s/\'/\'\'/g;
-        
+		 (my $st = $hdrk) =~ s/\'/\'\'/g;
 		 my $sl=length($st)+2;
 		 my $cl=70-$sl-($com ? 2 : 0);
 		 $fh->print( "'$st'" );
-        
 		 if (defined $com) {
 		     $fh->printf( " /%-$ {cl}s", substr($com, 0, $cl) );
 		 } else {
@@ -1758,6 +1737,21 @@ sub wheader {
     }
     delete $hdr->{COMMENT}{$k} if ref $hdr->{COMMENT} eq 'HASH';
     $nbytes;
+}
+
+# ordered hash: [ \@key_order, \%hdr, \%type, \%comment ]
+sub _k_add {
+    my ($ohash, $key, $val, $type, $comment) = @_;
+    my ($k_o, $hdr, $t, $com) = @$ohash;
+    if (exists $hdr->{$key}) {
+	$hdr->{$key} = [$hdr->{$key}] if ref $hdr->{$key} ne 'ARRAY';
+	push @{$hdr->{$key}}, $val;
+    } else {
+	push @$k_o, $key;
+	$hdr->{$key} = $val;
+    }
+    $t->{$key} = $type if defined $type;
+    $com->{$key} = $comment if defined $comment;
 }
 
 # Write a PDL to a FITS format file
@@ -1809,7 +1803,6 @@ sub PDL::wfits {
   if($issue_nullhdu) {
       _wfits_nullhdu($fh);
   }
-  my ($nbytes, %hdr) = 0;
 
   for $pdl(@outputs) {
 
@@ -1899,6 +1892,57 @@ sub PDL::wfits {
 	  }
       }
 
+      # ordered hash with type and comment capability
+      my (@key_order, %ohdr, %type, %comment);
+      my $use_afh = defined($h) && defined(tied %$h) &&
+	   UNIVERSAL::isa(tied %$h,"Astro::FITS::Header");
+      if ($use_afh) {
+	  # Delete the END card if necessary (for later addition at the end)
+	  tied(%$h)->removebyname('END');
+	  %ohdr = %$h;
+      } else {
+	  @ohdr{map uc, keys %$h} = values %$h if $h;
+	  delete $ohdr{END};
+      }
+      my $ohash = [ \@key_order, \%ohdr, \%type, \%comment ];
+      _k_add($ohash, $issue_nullhdu
+	  ? qw(XTENSION IMAGE)
+	  : (qw(SIMPLE T LOGICAL), 'Created with PDL (http://pdl.perl.org)'));
+      _k_add($ohash, 'BITPIX', $BITPIX);
+      _k_add($ohash, 'NAXIS', $pdl->getndims);
+      my $correction = 0;
+      for (1..$pdl->getndims) {
+	  $correction ||= exists $ohdr{"NAXIS$_"} &&
+			  $ohdr{"NAXIS$_"} != $pdl->dim($_-1);
+	  _k_add($ohash, "NAXIS$_", $pdl->getdim($_-1));
+      }
+      carp "Warning: wfits corrected dimensions of FITS header" if $correction;
+      _k_add($ohash, 'BUNIT', "Data Value") unless exists $ohdr{BUNIT};
+      _k_add($ohash, 'BSCALE', $bscale) if $bscale != 1;
+      _k_add($ohash, 'BZERO', $bzero) if $bzero  != 0;
+      if ( $pdl->badflag() ) {
+	  if ( $BITPIX > 0 ) { _k_add($ohash, 'BLANK', $convert->(pdl(0.0))->badvalue->sclr); }
+	  else               { delete $ohdr{BLANK}; }
+      }
+      my %removed_naxis;
+      for my $kw_base (map {(my $r=$_)=~s/\d$//;$r} grep /\d$/, @wfits_keyword_order) {
+	  my $kn = 0;
+	  do {            # Loop over numericised keywords (e.g. NAXIS1)
+	      my $kw = $kw_base;
+	      $kw .= ++$kn; # NAXIS1 -> NAXIS<n>
+	      last if !exists $ohdr{$kw};
+	      next if $kn <= $pdl->getndims;
+	      #remove e.g. NAXIS3 from afhdr if NAXIS==2
+	      delete $ohdr{$kw};
+	      delete $h->{$kw} if $use_afh;
+	      $removed_naxis{$kn} = 1;
+	  } while(1);
+      }
+      foreach my $n (sort keys %removed_naxis){
+	  delete @ohdr{map $_.$n, @wfits_numbered_keywords};
+	  delete @$h{map $_.$n, @wfits_numbered_keywords} if $use_afh;
+      }
+
       # Check for tile-compression format for the image, and handle it.
       # We add the image-compression format tags and reprocess the whole
       # shebang as a binary table.
@@ -1906,165 +1950,52 @@ sub PDL::wfits {
 	  croak "Placeholder -- tile compression not yet supported\n";
       }
 
+      my $nbytes = 0;
       # Now decide whether to emit a hash or an AFH object
-      if(defined($h) && 
-	 ( (defined (tied %$h)) && 
-	   (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header")))
-	  ){
-	  ##n############################
-	  ## Tied-hash code -- I'm too lazy to incorporate this into KGB's
-	  ## direct hash handler below, so I've more or less just copied and
-	  ## pasted with some translation.  --CED
-	  ##
-	  my $hdr = tied %$h;
-	  #
-	  # Put advertising comment in the SIMPLE field
-	  #n
-	  if($issue_nullhdu) {
-	      $h->{XTENSION} = "IMAGE";
-	  } else {
-	      $h->{SIMPLE} = 'T';
-	      my(@a) = $hdr->itembyname('SIMPLE');
-	      $a[0]->comment('Created with PDL (http://pdl.perl.org)');
-	      # and register it as a LOGICAL rather than a string
-	      $a[0]->type('LOGICAL');
-	  }
-	  #
+      if ($use_afh) {
+	  my $afhdr = tied %$h;
 	  # Use tied interface to set all the keywords.  Note that this
 	  # preserves existing per-line comments, only changing the values.
-	  #
-	  $h->{BITPIX} = $BITPIX;
-	  $h->{NAXIS} = $pdl->getndims;
-	  my $correction = 0;
-	  for my $k(1..$h->{NAXIS}) {
-	      $correction |= (exists $h->{"NAXIS$k"} and 
-			      $h->{"NAXIS$k"} != $pdl->dim($k-1)
-		  );
-	      $h->{"NAXIS$k"} = $pdl->getdim($k-1); 
+	  for my $key (@key_order) {
+	      $h->{$key} = $ohdr{$key};
+	      my ($afhitem) = $afhdr->itembyname($key);
+	      $afhitem->type($type{$key}) if defined $type{$key};
+	      $afhitem->comment($comment{$key}) if defined $comment{$key};
 	  }
-	  carp("Warning: wfits corrected dimensions of FITS header") 
-	      if($correction);
-	  $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
-	  $h->{BSCALE} = $bscale if($bscale != 1);
-	  $h->{BZERO}  = $bzero  if($bzero  != 0);
-	  if ( $pdl->badflag() ) {
-	      if ( $BITPIX > 0 ) { $h->{BLANK} = $convert->(pdl(0.0))->badvalue->sclr; }
-	      else               { delete $h->{BLANK}; }
-	  }
-	  # Use object interface to sort the lines. This is complicated by
+	  # sort the lines. This is complicated by
 	  # the need for an arbitrary number of NAXIS<n> lines in the middle
 	  # of the sorting.  Keywords with a trailing '1' in the sorted-order
 	  # list get looped over.
-	  my($kk) = 0; 
-	  my(@removed_naxis) = ();
-	  for my $k(0..$#PDL::IO::FITS::wfits_keyword_order) {
-	      my($kn) = 0;
-	      my @index;
+	  my $kk = 0;
+	  for my $kw_base (@wfits_keyword_order) {
+	      my $kn = 0;
 	      do {            # Loop over numericised keywords (e.g. NAXIS1)
-		  
-		  my $kw = $PDL::IO::FITS::wfits_keyword_order[$k]; # $kw get keyword
-		  $kw .= (++$kn) if( $kw =~ s/\d$//);               # NAXIS1 -> NAXIS<n>
-		  @index = $hdr->index($kw);
-		  if(defined $index[0]) {
-		      if($kn <= $pdl->getndims){
-			  $hdr->insert($kk, $hdr->remove($index[0])) 
-			      unless ($index[0] == $kk) ;
-			  $kk++;
-		      } 
-		      else{ #remove e.g. NAXIS3 from hdr if NAXIS==2
-			  $hdr->removebyname($kw);
-			  push(@removed_naxis,$kw);
-		      }
-		  }
-	      } while((defined $index[0]) && $kn);
+		  my $kw = $kw_base;
+		  $kw .= ++$kn if $kw =~ s/\d$//; # NAXIS1 -> NAXIS<n>
+		  last if !(my ($ind) = $afhdr->index($kw));
+		  $afhdr->insert($kk, $afhdr->remove($ind)) if $ind != $kk;
+		  $kk++;
+	      } while($kn);
 	  }
-
-	  foreach my $naxis(@removed_naxis){
-	      $naxis =~ m/(\d)$/;
-	      my $n = $1;
-	      foreach my $kw(@PDL::IO::FITS::wfits_numbered_keywords){
-		  $hdr->removebyname($kw . $n);
-	      }
-	  }
-	  #
-	  # Delete the END card if necessary (for later addition at the end)
-	  #
-	  $hdr->removebyname('END');
-
-	  #
 	  # Make sure that the HISTORY lines all come at the end
-	  # 
-	  my @hindex = $hdr->index('HISTORY');
-	  for my $k(0..$#hindex) {
-	      $hdr->insert(-1-$k, $hdr->remove($hindex[-1-$k]));
-	  }
-
-	  #
+	  my @hindex = $afhdr->index('HISTORY');
+	  $afhdr->insert(-1-$_, $afhdr->remove($hindex[-1-$_])) for 0..$#hindex;
 	  # Make sure the last card is an END
-	  #
-	  $hdr->insert(scalar($hdr->cards),
+	  $afhdr->insert(scalar($afhdr->cards),
 		       Astro::FITS::Header::Item->new(Keyword=>'END'));
-	  
-	  #
 	  # Write out all the cards, and note how many bytes for later padding.
-	  #
-	  my $s = join("",$hdr->cards);
-
+	  my $s = join("",$afhdr->cards);
 	  $fh->print( $s );
 	  $nbytes = length $s;
       } else {
-	  ##
-	  ## Legacy emitter (note different advertisement in the SIMPLE
-	  ## comment, for debugging!)
-	  ##
-
-	  if($issue_nullhdu) {
-	      $fh->printf( "%-80s", "XTENSION= 'IMAGE'" );
-	  } else {
-	      $fh->printf( "%-80s", "SIMPLE  =                    T / PDL::IO::FITS::wfits (http://pdl.perl.org)" );
+	  my %hdr = %ohdr;
+	  for my $key (@key_order) {
+	      $hdr{$key} = $ohdr{$key};
+	      $hdr{COMMENT}{$key} = $comment{$key} if defined $comment{$key};
+	      $nbytes = wheader($fh, $key, \%hdr, $nbytes);
 	  }
-
-	  $nbytes = 80; # Number of bytes written so far
-
-	  # Write FITS header
-
-	  %hdr = ();
-	  if (defined($h)) {
-	      for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
-	  }
-
-	  delete $hdr{SIMPLE}; delete $hdr{'END'};
-
-	  $hdr{BITPIX} =  $BITPIX;
-	  $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
-	  $nbytes = wheader($fh, 'BITPIX', \%hdr, $nbytes);
-
-	  my $ndims = $pdl->getndims; # Dimensions of data array
-	  $hdr{NAXIS}  = $ndims;
-	  $nbytes = wheader($fh, 'NAXIS', \%hdr, $nbytes);
-	  for my $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
-	  for my $k (1..$ndims) { $nbytes = wheader($fh,"NAXIS$k", \%hdr, $nbytes) }
-	  
-	  if ($bscale != 1 || $bzero  != 0) {
-	      $hdr{BSCALE} =  $bscale;
-	      $hdr{BZERO}  =  $bzero;
-	      $nbytes = wheader($fh,'BSCALE', \%hdr, $nbytes);
-	      $nbytes = wheader($fh,'BZERO', \%hdr, $nbytes);
-	  }
-	  $nbytes = wheader($fh,'BUNIT', \%hdr, $nbytes);
-
-	  # IF badflag is set
-	  #   and BITPIX > 0 - ensure the header contains the BLANK keyword
-	  #                    (make sure it's for the correct type)
-	  #   otherwise      - make sure the BLANK keyword is removed
-	  if ( $pdl->badflag() ) {
-	      if ( $BITPIX > 0 ) { $hdr{BLANK} = $convert->(pdl(0.0))->badvalue->sclr; }
-	      else               { delete $hdr{BLANK}; }
-	  }
-
-	  for my $k (sort fits_field_cmp keys %hdr) {
-	      $nbytes = wheader($fh,$k, \%hdr, $nbytes) unless $k =~ m/HISTORY/;
-	  }
+	  $nbytes = wheader($fh, $_, \%hdr, $nbytes)
+	      for sort fits_field_cmp grep !/HISTORY/, keys %hdr;
 	  $nbytes = wheader($fh, 'HISTORY', \%hdr, $nbytes); # Make sure that HISTORY entries come last.
 	  $fh->printf( "%-80s", "END" );
 	  $nbytes += 80;
@@ -2151,7 +2082,7 @@ of some FITS header fields.  Sort your hash keys using "fits_field_cmp" and
 you will get (e.g.) your "TTYPE" fields in the correct order even if there
 are 140 of them.
 
-This is a standard kludgey perl comparison sub -- it uses the magical
+This is a standard perl comparison sub -- it uses the magical
 $a and $b variables, rather than normal argument passing.
 
 =cut
@@ -2654,7 +2585,7 @@ sub _print_to_fits ($$$) {
 #   can not think of a sensible name for the extension so calling
 #   it TABLE for now
 #
-sub _wfits_table ($$$) {
+sub _wfits_table {
   my $fh = shift;
   my $hash = shift;
   my $tbl = shift;
@@ -2700,7 +2631,7 @@ sub _wfits_table ($$$) {
   # Add heap dump
 }
 
-sub _wfits_nullhdu ($) {
+sub _wfits_nullhdu {
   my $fh = shift;
   if($Astro::FITS::Header) {
     my $h = Astro::FITS::Header->new();
