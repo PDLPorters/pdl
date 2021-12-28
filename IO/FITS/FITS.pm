@@ -1247,6 +1247,18 @@ sub _rfits_bintable ($$$$) {
   return _rfits_unpack_zimage($tbl,$opt);
 }
 
+## List of the eight mandatory keywords and their ZIMAGE preservation pigeonholes, for copying after we
+## expand an image.
+our $hdrconv = {
+    "ZSIMPLE" => "SIMPLE",
+    "ZTENSION" => "XTENSION",
+    "ZEXTEND" => "EXTEND",
+    "ZBLOCKED" => "BLOCKED",
+    "ZPCOUNT" => "PCOUNT",
+    "ZGCOUNT" => "GCOUNT",
+    "ZHECKSUM" => "CHECKSUM",
+    "ZDATASUM" => "DATASUM"
+};
 
 ##############################
 ##############################
@@ -1332,20 +1344,6 @@ our $tile_compressors = {
 	, 'PLIO_1' => undef
 	, 'HCOMPRESS_1' => undef
 };
-
-## List of the eight mandatory keywords and their ZIMAGE preservation pigeonholes, for copying after we
-## expand an image.
-our $hdrconv = {
-    "ZSIMPLE" => "SIMPLE",
-    "ZTENSION" => "XTENSION",
-    "ZEXTEND" => "EXTEND",
-    "ZBLOCKED" => "BLOCKED",
-    "ZPCOUNT" => "PCOUNT",
-    "ZGCOUNT" => "GCOUNT",
-    "ZHECKSUM" => "CHECKSUM",
-    "ZDATASUM" => "DATASUM"
-};
-
 
 sub _rfits_unpack_zimage($$$) {
     my $tbl = shift;
