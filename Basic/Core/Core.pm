@@ -3019,7 +3019,7 @@ return a single value from an ndarray as a scalar, ignoring whether it is bad.
   $val = $x(10)->sclr;
   $val = sclr inner($x,$y);
 
-The C<sclr> method is useful to turn an ndarray into a normal Perl
+The C<sclr> method is useful to turn a single-element ndarray into a normal Perl
 scalar. Its main advantage over using C<at> for this purpose is the fact
 that you do not need to worry if the ndarray is 0D, 1D or higher dimensional.
 Using C<at> you have to supply the correct number of zeroes, e.g.
@@ -3030,43 +3030,16 @@ Using C<at> you have to supply the correct number of zeroes, e.g.
   print $y->at(); # error: needs at least one zero
 
 C<sclr> is generally used when a Perl scalar is required instead
-of a one-element ndarray. If the input is a multielement ndarray
-the first value is returned as a Perl scalar. You can optionally
-switch on checks to ensure that the input ndarray has only one element:
-
-  PDL->sclr({Check => 'warn'}); # carp if called with multi-el pdls
-  PDL->sclr({Check => 'barf'}); # croak if called with multi-el pdls
-
-are the commands to switch on warnings or raise an error if
-a multielement ndarray is passed as input. Note that these options
-can only be set when C<sclr> is called as a class method (see
-example above). Use
-
-  PDL->sclr({Check=>0});
-
-to switch these checks off again (default setting);
-When called as a class method the resulting check mode is returned
-(0: no checking, 1: warn, 2: barf).
+of a one-element ndarray. As of 2.064, if the input is a multielement ndarray
+it will throw an exception.
 
 =cut
 
-my $chkmode = 0; # default mode no checks
-use PDL::Options;
 sub PDL::sclr {
   my $this = shift;
-  if (ref $this) { # instance method
-    carp "multielement ndarray in 'sclr' call"
-      if ($chkmode == 1 && $this->nelem > 1);
-    croak "multielement ndarray in 'sclr' call"
-      if ($chkmode == 2 && $this->nelem > 1);
-    return sclr_c($this);
-  } else {  # class method
-    my $check = (iparse({Check=>0},ifhref($_[0])))[1];
-    if (lc($check) eq 'warn') {$chkmode = 1}
-    elsif (lc($check) eq 'barf') {$chkmode = 2}
-    else {$chkmode = $check != 0 ? 1 : 0}
-    return $chkmode;
-  }
+  confess "multielement ndarray in 'sclr' call"
+    if $this->nelem > 1;
+  return sclr_c($this);
 }
 
 =head2 cat

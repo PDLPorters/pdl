@@ -6,6 +6,7 @@
 - fix qsortvec* with bad values - thanks @d-lamb for report
 - hook @drzowie-created RICE_1 compression up to wfits
 - PDL::FFT now thread- and 64-bit-safe
+- sclr to croak if called on multi-element array
 
 2.063_03 2021-11-23
 - add pp_add_macros

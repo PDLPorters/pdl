@@ -23,18 +23,13 @@ my $c_dbl  = $a_dbl->slice('4:7');
 # test 'sclr' method
 #
 is $b_long->sclr, 5, "sclr test of 1-elem pdl (long)";
-is $c_long->sclr, 4, "sclr test of 3-elem pdl (long)";
 
 ok tapprox( $b_dbl->sclr, 5 ), "sclr test of 1-elem pdl (dbl)";
-ok tapprox( $c_dbl->sclr, 4 ), "sclr test of 3-elem pdl (dbl)";
 
-# switch multielement check on
-is( PDL->sclr({Check=>'barf'}), 2, "changed error mode of sclr" );
-
-eval '$c_long->sclr';
+eval { $c_long->sclr };
 like $@, qr/multielement ndarray in 'sclr' call/, "sclr failed on multi-element ndarray (long)";
 
-eval '$c_dbl->sclr';
+eval { $c_dbl->sclr };
 like $@, qr/multielement ndarray in 'sclr' call/, "sclr failed on multi-element ndarray (dbl)";
 
 # test reshape barfing with negative args

@@ -680,7 +680,7 @@ sub warn_non_numeric_op_wrapper {
     },
     'bool'  => sub {
       return 0 if $_[0]->isnull;
-      croak("multielement ndarray in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
+      confess("multielement ndarray in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
         unless $_[0]->nelem == 1;
       $_[0]->clump(-1)->at(0);
     },
