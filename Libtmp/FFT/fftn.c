@@ -322,8 +322,8 @@ fftradixf (float Re[], float Im[],
  *
  */
 int
-FFTN (int ndim,
-      const int dims [],
+FFTN (size_t ndim,
+      const size_t dims [],
       REAL Re [],
       REAL Im [],
       int iSign,

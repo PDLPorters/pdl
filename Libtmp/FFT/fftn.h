@@ -84,16 +84,16 @@
 extern "C" {
 #endif
    /* double precision routine */
-   extern int fftn (int /* ndim */,
-		    const int /* dims */[],
+   extern int fftn (size_t /* ndim */,
+		    const size_t /* dims */[],
 		    double /* Re */[],
 		    double /* Im */[],
 		    int /* isign */,
 		    double /* scaling */);
 
    /* float precision routine */
-   extern int fftnf (int /* ndim */,
-		     const int /* dims */[],
+   extern int fftnf (size_t /* ndim */,
+		     const size_t /* dims */[],
 		     float /* Re */[],
 		     float /* Im */[],
 		     int   /* isign */,
