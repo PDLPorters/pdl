@@ -1,7 +1,9 @@
+use strict;
+use warnings;
 use PDL::Types qw(types);
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::FFT - FFTs for PDL
@@ -407,9 +409,7 @@ sub PDL::fftconvolve {
     $ki = $kr->zeroes;
     fftnd($kr,$ki);
 
-    $cr = $imr->zeroes;
-    $ci = $imi->zeroes;
-    cmul($imr,$imi,$kr,$ki,$cr,$ci);
+    my ($cr, $ci) = cmul($imr,$imi,$kr,$ki);
 
     ifftnd($cr,$ci);
     $_[0] = $cr;
@@ -496,53 +496,7 @@ pp_def('cmul',
 	Doc => 'Complex multiplication'
 );
 
-use Config;
-use strict;
-use warnings;
-#define the abs <-> datatype mapping
-my %ah = (B => '',
-	  U => '',
-	  S => 'abs',
-	  L => $Config{'intsize'}==4?'abs':($Config{'longsize'}==4?'labs':'abs'),
-	  N => $Config{'ivtype'}eq'long'?'labs':($Config{'ivtype'}eq'longlong'?'llabs':'abs'),
-	  Q => 'labs',
-	  F => 'fabsf',
-	  D => 'fabs'
-    );
-
-our $abs_string .= "types($_) %{" . $ah{$_} . '(br) > ' . $ah{$_} . "(bi)%}\n" foreach (sort keys %ah);
-
-pp_def('cdiv',
-	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
-	GenericTypes => $F,
-	Code => '
-	$GENERIC() ar, ai, br, bi, tt, dn;
-	   ar = $ar();
-	   ai = $ai();
-	   br = $br();
-	   bi = $bi();
-          if (' . $abs_string . ') {
-	     tt = bi/br;
-	     dn = br + tt*bi;
-	     $cr() = (ar+tt*ai)/dn;
-	     $ci() = (ai-tt*ar)/dn;
-	   } else {
-	     tt = br/bi;
-	     dn = br*tt + bi;
-	     $cr() = (ar*tt+ai)/dn;
-	     $ci() = (ai*tt-ar)/dn;
-           }
-',
-	Doc => 'Complex division'
-);
-
-pp_addpm(<<'ENDPM');
-
-1; # OK
-
-ENDPM
-
-pp_addpm(<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 BUGS
 
@@ -566,4 +520,3 @@ PDL distribution, the copyright notice should be included in the file.
 EOD
 
 pp_done();
-
