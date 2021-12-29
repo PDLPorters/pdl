@@ -1386,19 +1386,15 @@ sub _rfits_unpack_zimage($$$) {
 
     ##########
     # Enumerate tile coordinates for looping, and the corresponding row number
-    my ($step, @steps, $steps);
-    $step = 1;
+    my ($step, @steps) = 1;
     for my $i(0..$ntiles->nelem-1) {
 	push(@steps, $step);
 	$step *= $ntiles->at($i);
     }
-    $step = pdl(@steps);
 
     # $tiledex is 2-D (coordinate-index, list-index) and enumerates all tiles by image
-    # location; $tilerow is 1-D (list-index) and enumerates all tiles by row in the bintable
+    # location
     my $tiledex = PDL::ndcoords($ntiles->list)->mv(0,-1)->clump($ntiles->dim(0))->mv(-1,0);
-    $TMP::tiledex = $tiledex;
-    my $tilerow = ($tiledex * $step)->sumover;
     
     ##########
     # Restore all the tiles at once
