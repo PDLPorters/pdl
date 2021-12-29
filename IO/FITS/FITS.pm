@@ -2360,8 +2360,8 @@ sub _prep_table {
 	      $lengths->ndims != 1 ||
 	      $lengths->dim(0) != $var->dim(0)
 	      ) {
-	      die <<'FOO';
-wfits(): you specified a 'len_$keysbyname{$colnames[$i]}' field in
+	      die <<FOO;
+wfits(): you specified a '$lname' field in
     your binary table output hash, indicating a variable-length array for
     each row of the output table, but I'm having trouble interpreting it.
     Either your source column isn't a 2-D PDL, or your length column isn't
@@ -2386,14 +2386,14 @@ FOO
 	      my $row = shift;
 	      my $col = shift;
 	      
-	      my $len = $hash->{"len_".$keysbyname{$colnames[$i]}};
+	      my $len = $hash->{$lname};
 	      my $l;
 	      if(ref $len eq 'ARRAY') {
 		  $l = $len->[$row];
 	      } elsif( UNIVERSAL::isa($len,'PDL') ) {
 		  $l = $len->dice_axis(0,$row)->sclr;
 	      } elsif( ref $len ) {
-		  die "wfits: Couldn't understand length spec 'len_".$keysbyname{$colnames[$i]}."' in bintable output (length spec must be a PDL or array ref).\n";
+		  die "wfits: Couldn't understand length spec '$lname' in bintable output (length spec must be a PDL or array ref).\n";
 	      } else {
 		  $l = $len;
 	      }
@@ -2425,7 +2425,7 @@ FOO
 
 	  # Having defined the conversion routine, now modify tstr to make this a heap-array
 	  # reference.
-	  $tstr = sprintf("P%s(%d)",$tstr, $hash->{"len_".$keysbyname{$colnames[$i]}}->max );
+	  $tstr = sprintf("P%s(%d)",$tstr, $hash->{$lname}->max );
 	  $rpt = 1;
 	  $bytes = 8; # two longints per row in the main table.
       }
