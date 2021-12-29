@@ -183,7 +183,6 @@ EOF
 pp_add_exported('',"fftnd ifftnd fftconvolve realfft realifft kernctr");
 
 pp_addpm(<<'EOD');
-
 use Carp;
 use PDL::Core qw/:Func/;
 use PDL::Basic qw/:Func/;
@@ -345,10 +344,6 @@ sub PDL::ifftnd {
     undef;
 }
 
-EOD
-
-pp_addpm(<<'EOD');
-
 =head2 fftconvolve()
 
 =for ref
@@ -389,72 +384,9 @@ sub PDL::fftconvolve {
     $_[1] = $c->im->sever;
     @_;
 }
-
-sub PDL::fftconvolve_inplace {
-    barf "Must have image & kernel for fftconvolve" if $#_ != 1;
-    my ($hr, $hi) = @_;
-    if (!$hr->type->real) {
-	$hi=$hr->im;
-	$hr=$hr->re;
-    }
-    my ($n) = $hr->getndims;
-    todecimal($hr);   # Convert to double unless already float or double
-    todecimal($hi);   # Convert to double unless already float or double
-    # need the copy in case $r and $i point to same memory
-    $hi = $hi->copy;
-    $hr = $hr->copy;
-    fftnd($hr,$hi);
-    convmath($hr->clump(-1),$hi->clump(-1));
-    my ($str1, $str2, $tmp, $i);
-    chop($str1 = '-1:1,' x $n);
-    chop($str2 = '1:-1,' x $n);
-
-# FIX: do these inplace -- cuts the arithmetic by a factor 2 as well.
-
-    ($tmp = $hr->slice($str2)) += $hr->slice($str1)->copy;
-    ($tmp = $hi->slice($str2)) -= $hi->slice($str1)->copy;
-    for ($i = 0; $i<$n; $i++) {
-	chop ($str1 = ('(0),' x $i).'-1:1,'.('(0),'x($n-$i-1)));
-	chop ($str2 = ('(0),' x $i).'1:-1,'.('(0),'x($n-$i-1)));
-	($tmp = $hr->slice($str2)) += $hr->slice($str1)->copy;
-        ($tmp = $hi->slice($str2)) -= $hi->slice($str1)->copy;
-    }
-    $hr->clump(-1)->set(0,$hr->clump(-1)->at(0)*2);
-    $hi->clump(-1)->set(0,0.);
-    ifftnd($hr,$hi);
-    # convert back to complex if input was complex
-    if (!$_[0]->type->real) {
-	$_[0]= czip($hr, $hi);
-	return $_[0];
-    } else {
-        $_[0] = $hr; $_[1] = $hi;
-        return ($hr,$hi);
-    }
-}
-
 EOD
 
-# convmath does local part of the maths necessary to handle a,b which
-# result from FFT of image & kernel in parallel.
-
-pp_def('convmath',
-	Pars => '[io]a(m); [io]b(m);',
-	GenericTypes => $F,
-	Code => '
-	$GENERIC() t1, t2;
-	loop(m) %{
-	   t1 = $a();
-           t2 = $b();
-	   $a() = t1*t2/2;
-	   $b() = (t2*t2-t1*t1)/4;
-        %}
-',
-#	Doc => undef,
-	Doc => 'Internal routine doing maths for convolution'
-);
-
 pp_addpm({At=>'Bot'},<<'EOD');
-
 =head1 BUGS
 
 Where the source is marked `FIX', could re-implement using phase-shift
@@ -471,9 +403,7 @@ documentation under certain conditions. For details, see the file
 COPYING in the PDL distribution. If this file is separated from the
 PDL distribution, the copyright notice should be included in the file.
 
-
 =cut
-
 EOD
 
 pp_done();
