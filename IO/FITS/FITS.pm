@@ -1739,13 +1739,8 @@ sub wheader {
 sub _k_add {
     my ($ohash, $key, $val, $type, $comment) = @_;
     my ($k_o, $hdr, $t, $com) = @$ohash;
-    if (exists $hdr->{$key}) {
-	$hdr->{$key} = [$hdr->{$key}] if ref $hdr->{$key} ne 'ARRAY';
-	push @{$hdr->{$key}}, $val;
-    } else {
-	push @$k_o, $key;
-	$hdr->{$key} = $val;
-    }
+    push @$k_o, $key;
+    $hdr->{$key} = $val;
     $t->{$key} = $type if defined $type;
     $com->{$key} = $comment if defined $comment;
 }
