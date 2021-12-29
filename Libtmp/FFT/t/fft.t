@@ -6,6 +6,8 @@ use PDL::FFT;
 use Test::More;
 use Test::Exception;
 
+set_autopthread_size(0);
+
 sub tapprox {
         my($pa,$pb) = @_;
 	all approx $pa, $pb, 0.01;

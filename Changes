@@ -5,6 +5,7 @@
 - add Bad::locf - thanks @kmx
 - fix qsortvec* with bad values - thanks @d-lamb for report
 - hook @drzowie-created RICE_1 compression up to wfits
+- PDL::FFT now thread-safe
 
 2.063_03 2021-11-23
 - add pp_add_macros

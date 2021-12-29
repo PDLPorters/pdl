@@ -72,8 +72,7 @@ C<< $kx = $real->xlinvals(-($N/2-0.5)/$N/$D,($N/2-0.5)/$N/$D)->rotate(-($N-1)/2)
 
 =head1 ALTERNATIVE FFT PACKAGES
 
-Various other modules - such as 
-L<PDL::FFTW> and L<PDL::Slatec> - 
+Various other modules - such as L<PDL::FFTW3> and L<PDL::Slatec> -
 contain FFT routines.
 However, unlike PDL::FFT, these modules are optional,
 and so may not be installed.
@@ -87,21 +86,9 @@ int fftn (int ndim, const int dims[], double Re[], double Im[],
 	    int iSign, double scaling);
 int fftnf (int ndim, const int dims[], float Re[], float Im[],
 	    int iSign, float scaling);
-void fft_free();
-');
-pp_addxs('','
-
-int
-fft_free()
-   CODE:
-     fft_free();
-     RETVAL = 1;
-   OUTPUT:
-     RETVAL
 ');
 pp_def('_fft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
-	NoPthread => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => $F,
 	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), -1, 1.);',
 	Doc=>undef
@@ -109,7 +96,6 @@ pp_def('_fft',
 
 pp_def('_ifft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
-	NoPthread => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => $F,
 	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
 	Doc=>undef
@@ -125,12 +111,6 @@ use PDL::Basic qw/:Func/;
 use PDL::Types;
 use PDL::ImageND qw/kernctr/; # moved to ImageND since FFTW uses it too
 use PDL::Ops qw/czip/;
-
-END {
-  # tidying up required after using fftn
-  print "Freeing FFT space\n" if $PDL::verbose;
-  fft_free();
-}
 
 sub todecimal {
     my ($arg) = @_;

@@ -44,7 +44,6 @@
 /*{{{ notes: */
 /*
  * Public:
- *	fft_free
  *	fftn / fftnf
  *	(these are documented in the header file)
  *
@@ -193,37 +192,11 @@ D__FILE__=\"fftn.c\" */
 #endif
 /*}}}*/
 
-/*{{{ static parameters - for memory management */
-static size_t SpaceAlloced = 0;
-static size_t MaxPermAlloced = 0;
-
-/* temp space, (void *) since both float and double routines use it */
-static void * Tmp0 = NULL;	/* temp space for real part */
-static void * Tmp1 = NULL;	/* temp space for imaginary part */
-static void * Tmp2 = NULL;	/* temp space for Cosine values */
-static void * Tmp3 = NULL;	/* temp space for Sine values */
-static int  * Perm = NULL;	/* Permutation vector */
-
 #define NFACTOR	11
-static int factor [NFACTOR];
-/*}}}*/
-
-/*{{{ fft_free() */
-void
-fft_free (void)
-{
-   SpaceAlloced = MaxPermAlloced = 0;
-   if (Tmp0) { free (Tmp0); Tmp0 = NULL; }
-   if (Tmp1) { free (Tmp1); Tmp1 = NULL; }
-   if (Tmp2) { free (Tmp2); Tmp2 = NULL; }
-   if (Tmp3) { free (Tmp3); Tmp3 = NULL; }
-   if (Perm) { free (Perm); Perm = NULL; }
-}
-/*}}}*/
 
 /* return the number of factors */
 static int
-factorize (int nPass, int * kt)
+factorize (int nPass, int * kt, int *factor)
 {
    int nFactor = 0;
    int j, jj;
@@ -464,7 +437,6 @@ FFTN (int ndim,
 
    Dimension_Error:
    fprintf (stderr, "Error: " FFTNS "() - dimension error\n");
-   fft_free ();	/* free-up memory */
    return -1;
 }
 
@@ -485,17 +457,18 @@ FFTRADIX (REAL Re [],
 	  int maxFactors,
 	  int maxPerm)
 {
-   int ii, nFactor, kspan, ispan, inc;
+   int ii, nFactor, factor[NFACTOR], kspan, ispan, inc;
    int j, jc, jf, jj, k, k1, k3, kk, kt, nn, ns, nt;
 
    REALFIX radf;
    REALFIX c1, c2, c3, cd;
    REALFIX s1, s2, s3, sd;
 
-   REALFIX * Rtmp = NULL;		/* temp space for real part*/
-   REALFIX * Itmp = NULL;		/* temp space for imaginary part */
-   REALFIX * Cos = NULL;		/* Cosine values */
-   REALFIX * Sin = NULL;		/* Sine values */
+   REALFIX Rtmp[maxFactors];		/* temp space for real part*/
+   REALFIX Itmp[maxFactors];		/* temp space for imaginary part */
+   REALFIX Cos[maxFactors];		/* Cosine values */
+   REALFIX Sin[maxFactors];		/* Sine values */
+   int Perm[maxPerm];
 
 #ifndef FFT_RADIX4
    REALFIX s60 = SIN60;		/* sin(60 deg) */
@@ -526,58 +499,6 @@ FFTRADIX (REAL Re [],
    if (nPass < 2)
      return 0;
 
-   /* allocate storage */
-   if (SpaceAlloced < maxFactors * sizeof (REALFIX))
-     {
-#ifdef SUN_BROKEN_REALLOC
-	if (!SpaceAlloced)	/* first time */
-	  {
-	     SpaceAlloced = maxFactors * sizeof (REALFIX);
-	     Tmp0 = malloc (SpaceAlloced);
-	     Tmp1 = malloc (SpaceAlloced);
-	     Tmp2 = malloc (SpaceAlloced);
-	     Tmp3 = malloc (SpaceAlloced);
-	  }
-	else
-	  {
-#endif
-	     SpaceAlloced = maxFactors * sizeof (REALFIX);
-	     Tmp0 = realloc (Tmp0, SpaceAlloced);
-	     Tmp1 = realloc (Tmp1, SpaceAlloced);
-	     Tmp2 = realloc (Tmp2, SpaceAlloced);
-	     Tmp3 = realloc (Tmp3, SpaceAlloced);
-#ifdef SUN_BROKEN_REALLOC
-	  }
-#endif
-     }
-   else
-     {
-	/* allow full use of alloc'd space */
-	maxFactors = SpaceAlloced / sizeof (REALFIX);
-     }
-   if (MaxPermAlloced < maxPerm)
-     {
-#ifdef SUN_BROKEN_REALLOC
-	if (!MaxPermAlloced)	/* first time */
-	  Perm = malloc (maxPerm * sizeof(int));
-	else
-#endif
-	  Perm = realloc (Perm, maxPerm * sizeof(int));
-	MaxPermAlloced = maxPerm;
-     }
-   else
-     {
-	/* allow full use of alloc'd space */
-	maxPerm = MaxPermAlloced;
-     }
-   if (!Tmp0 || !Tmp1 || !Tmp2 || !Tmp3 || !Perm) goto Memory_Error;
-
-   /* assign pointers */
-   Rtmp = (REALFIX *) Tmp0;
-   Itmp = (REALFIX *) Tmp1;
-   Cos  = (REALFIX *) Tmp2;
-   Sin  = (REALFIX *) Tmp3;
-
    /*
     * Function Body
     */
@@ -606,7 +527,7 @@ FFTRADIX (REAL Re [],
    jf = 0;
    /* determine the factors of n */
 
-   nFactor = factorize (nPass, &kt);
+   nFactor = factorize (nPass, &kt, factor);
    /* test that nFactors is in range */
    if (nFactor > NFACTOR)
      {
@@ -774,7 +695,6 @@ FFTRADIX (REAL Re [],
 	 /* transform for odd factors */
 #ifdef FFT_RADIX4
 	 fprintf (stderr, "Error: " FFTRADIXS "(): compiled for radix 2/4 only\n");
-	 fft_free ();		/* free-up memory */
 	 return -1;
 	 break;
 #else	/* FFT_RADIX4 */
@@ -1201,7 +1121,6 @@ Permute_Single:
    /* alloc or other problem, do some clean-up */
 Memory_Error:
    fprintf (stderr, "Error: " FFTRADIXS "() - insufficient memory.\n");
-   fft_free ();			/* free-up memory */
    return -1;
 }
 #endif	/* _FFTN_C */
