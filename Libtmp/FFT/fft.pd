@@ -86,57 +86,22 @@ EOD
 pp_addhdr('
 #include "fftn.h"
 ');
-pp_def('_fft',
-	Pars => '[o,nc]real(n); [o,nc]imag(n);',
+pp_def('fft',
+	Pars => '[io]real(n); [io]imag(n);',
 	GenericTypes => $F,
 	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), -1, 1.);',
-	Doc=>undef
-);
-
-pp_def('_ifft',
-	Pars => '[o,nc]real(n); [o,nc]imag(n);',
-	GenericTypes => $F,
-	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
-	Doc=>undef
-);
-
-pp_add_exported('',"fft ifft fftnd ifftnd fftconvolve realfft realifft kernctr");
-
-pp_addpm(<<'EOD');
-
-use Carp;
-use PDL::Core qw/:Func/;
-use PDL::Basic qw/:Func/;
-use PDL::Types;
-use PDL::ImageND qw/kernctr/; # moved to ImageND since FFTW uses it too
-use PDL::Ops qw/czip/;
-
-sub todecimal {
-    my ($arg) = @_;
-    $arg = $arg->double if (($arg->get_datatype != $PDL_F) && 
-			   ($arg->get_datatype != $PDL_D));
-    $_[0] = $arg;
-1;}
-
-=head2 fft()
-
+	Doc=><<'EOF',
 =for ref
 
 Complex 1-D FFT of the "real" and "imag" arrays [inplace]. A single
 cfloat/cdouble input ndarray can also be used.
 
-=for sig
-
-  Signature: ([o,nc]real(n); [o,nc]imag(n))
-
 =for usage
 
-fft($real,$imag);
-
-=cut
-
-*fft = \&PDL::fft;
-
+  fft($real,$imag);
+  fft($complex);
+EOF
+	PMCode=><<'EOF',
 sub PDL::fft {
 	# Convert the first argument to decimal and check for trouble.
 	my ($re, $im) = @_;
@@ -158,33 +123,32 @@ sub PDL::fft {
 			if ($message =~ /undefined value/);
 		barf($message);
 	}
-	_fft($re,$im);
+	PDL::_fft_int($re,$im);
 	if (!$_[0]->type->real) {
 		$_[0]= czip($re, $im);
 	} else {
 		$_[0]=$re,$_[1]=$im;
 	}
 }
+EOF
+);
 
-=head2 ifft()
-
+pp_def('ifft',
+	Pars => '[io]real(n); [io]imag(n);',
+	GenericTypes => $F,
+	Code => 'fftn$TFD(f,)($SIZE(n), NULL, $P(real), $P(imag), 1, -1.);',
+	Doc=><<'EOF',
 =for ref
 
 Complex inverse 1-D FFT of the "real" and "imag" arrays [inplace]. A single
 cfloat/cdouble input ndarray can also be used.
 
-=for sig
-
-  Signature: ([o,nc]real(n); [o,nc]imag(n))
-
 =for usage
 
-ifft($real,$imag);
-
-=cut
-
-*ifft = \&PDL::ifft;
-
+  ifft($real,$imag);
+  ifft($complex);
+EOF
+	PMCode=><<'EOF',
 sub PDL::ifft {
 	# Convert the first argument to decimal and check for trouble.
 	my ($re, $im) = @_;
@@ -206,13 +170,33 @@ sub PDL::ifft {
 			if ($message =~ /undefined value/);
 		barf($message);
 	}
-	_ifft($re,$im);
+	PDL::_ifft_int($re,$im);
 	if (!$_[0]->type->real) {
 		$_[0]= czip($re, $im);
 	} else {
 		$_[0]=$re,$_[1]=$im;
 	}
 }
+EOF
+);
+
+pp_add_exported('',"fftnd ifftnd fftconvolve realfft realifft kernctr");
+
+pp_addpm(<<'EOD');
+
+use Carp;
+use PDL::Core qw/:Func/;
+use PDL::Basic qw/:Func/;
+use PDL::Types;
+use PDL::ImageND qw/kernctr/; # moved to ImageND since FFTW uses it too
+use PDL::Ops qw/czip/;
+
+sub todecimal {
+    my ($arg) = @_;
+    $arg = $arg->double if (($arg->get_datatype != $PDL_F) &&
+			   ($arg->get_datatype != $PDL_D));
+    $_[0] = $arg;
+1;}
 
 =head2 realfft()
 
@@ -454,7 +438,7 @@ EOD
 # result from FFT of image & kernel in parallel.
 
 pp_def('convmath',
-	Pars => '[o,nc]a(m); [o,nc]b(m);',
+	Pars => '[io]a(m); [io]b(m);',
 	GenericTypes => $F,
 	Code => '
 	$GENERIC() t1, t2;
