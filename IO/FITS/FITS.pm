@@ -2556,7 +2556,7 @@ sub _wfits_table {
   add_hdr_item $h, "NAXIS1", $hdr->{NAXIS1}, 'int', 'Bytes per row';
   add_hdr_item $h, "NAXIS2", $hdr->{NAXIS2}, 'int', 'Number of rows';
   add_hdr_item $h, "PCOUNT", length($heap), 'int', ($tbl eq 'ascii' ? undef : "No heap") ;
-  add_hdr_item $h, "THEAP", "0", "(No gap before heap)" if(length($heap));
+  add_hdr_item $h, "THEAP", "0", 'int', "(No gap before heap)" if(length($heap));
   add_hdr_item $h, "GCOUNT", 1, 'int';
   add_hdr_item $h, "TFIELDS", $hdr->{TFIELDS},'int';
   add_hdr_item $h, "HDUNAME", "TABLE", 'string';

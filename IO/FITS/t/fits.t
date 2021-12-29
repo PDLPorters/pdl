@@ -331,7 +331,18 @@ ok( sum(abs(convert($x,short)-$y)) < 1.0e-5, "  and the values" );
 unlink $fname if -e $fname;
 }
 
-eval { is_deeply [rfits('t/m51.fits.fz')->dims], [384,384], 'right dims from compressed FITS file' };
-is $@, '', 'no error with compressed FITS file';
+{
+my $m51 = rfits('t/m51.fits.fz');
+is_deeply [$m51->dims], [384,384], 'right dims from compressed FITS file';
+(undef, my $fname) = File::Temp::tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
+my $m51_2;
+if ($PDL::Astro_FITS_Header) {
+my $m51_tbl = rfits('t/m51.fits.fz',{expand=>0});
+wfits($m51_tbl, $fname);
+$m51_2 = rfits($fname);
+ok all(approx $m51, $m51_2), 'read back written-out bintable FITS file' or diag "got:", $m51_2->info;
+}
+unlink $fname if -e $fname;
+}
 
 done_testing();
