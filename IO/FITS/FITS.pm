@@ -1034,7 +1034,6 @@ sub _rfits_bintable ($$$$) {
     
     
   }  ### End of prefrobnication loop...
-  
 
   barf "Calculated row length is $rowlen, hdr claims ".$hdr->{NAXIS1}
        . ".  Giving up.  (Set \$PDL::debug for more detailed info)\n"
@@ -1272,14 +1271,13 @@ our $hdrconv = {
 ## Master jump table for compressors/uncompressors.
 ## 0 element of each array ref is the compressor; 1 element is the uncompressor.
 ## Uncompressed tiles are reshaped to rows of a tile table handed in (to the compressor)
-## or out (of the uncompressor); actual tile shape is fed in as $params->{tiledims}, so 
-## higher-than-1D compression algorithms can be used.
+## or out (of the uncompressor)
 our $tile_compressors = {
   'GZIP_1' => undef,
   'RICE_1' => [
     sub { ### RICE_1 compressor
       my ($tiles, $tbl, $params) = @_;
-      my ($compressed,$len) = $tiles->rice_compress($params->{BLOCKSIZE} || 32);
+      my ($compressed,undef,undef,$len) = $tiles->rice_compress($params->{BLOCKSIZE} || 32);
       $tbl->{ZNAME1} = "BLOCKSIZE";
       $tbl->{ZVAL1} = $params->{BLOCKSIZE};
       $tbl->{ZNAME2} = "BYTEPIX";
@@ -1525,18 +1523,9 @@ by much less than the dynamic range of the image).
 
 =back
 
-=item tilesize (default C<[-1,1]>)
+=item BLOCKSIZE (RICE_1 only; default C<32>)
 
-This specifies the dimension of the compression tiles, in pixels.  You
-can hand in a PDL, a scalar, or an array ref. If you specify fewer
-dimensions than exist in the image, the last dim is repeated - so "32"
-yields 32x32 pixel tiles in a 2-D image.  A dim of -1 in any dimension
-duplicates the image size, so the default C<[-1,1]> causes compression
-along individual rows.
-
-=item tilesize (RICE_1 only; default C<32>)
-
-For RICE_1, BLOCKSIZE indicates the number of pixel samples to use
+For RICE_1, indicates the number of pixel samples to use
 for each compression block within the compression algorithm.  The 
 blocksize is independent of the tile dimensions.  For RICE
 compression the pixels from each tile are arranged in normal pixel 
@@ -1647,10 +1636,9 @@ called C<Y> and the second column is C<X>.
 
 =item * multi-value handling
 
-If you feed in a perl list rather than a PDL or a hash, then 
+If you feed in a perl array-ref rather than a PDL or a hash, then
 each element is written out as a separate HDU in the FITS file.  
-Each element of the list must be a PDL or a hash. [This is not implemented
-yet but should be soon!]
+Each element of the list must be a PDL or a hash.
 
 =item * DEVEL NOTES
 
@@ -2402,7 +2390,7 @@ FOO
 	      if(ref $len eq 'ARRAY') {
 		  $l = $len->[$row];
 	      } elsif( UNIVERSAL::isa($len,'PDL') ) {
-		  $l = $len->dice_axis(0,$row);
+		  $l = $len->dice_axis(0,$row)->sclr;
 	      } elsif( ref $len ) {
 		  die "wfits: Couldn't understand length spec 'len_".$keysbyname{$colnames[$i]}."' in bintable output (length spec must be a PDL or array ref).\n";
 	      } else {
