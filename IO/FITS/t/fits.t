@@ -341,6 +341,9 @@ my $m51_tbl = rfits('t/m51.fits.fz',{expand=>0});
 wfits($m51_tbl, $fname);
 $m51_2 = rfits($fname);
 ok all(approx $m51, $m51_2), 'read back written-out bintable FITS file' or diag "got:", $m51_2->info;
+$m51->wfits($fname, {compress=>1});
+$m51_2 = rfits($fname);
+ok all(approx $m51, $m51_2), 'read back written-out compressed FITS file' or diag "got:", $m51_2->info;
 }
 unlink $fname if -e $fname;
 }

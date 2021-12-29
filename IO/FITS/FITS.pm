@@ -1508,8 +1508,6 @@ FITS standard, by adding an option hash to the arguments:
 
 =item compress 
 
-CURRENTLY UNIMPLEMENTED.  Below describes the envisioned usage.
-
 This can be either unity, in which case Rice compression is used,
 or a (case-insensitive) string matching the CFITSIO compression 
 type names.  Currently supported compression algorithms are:
@@ -1737,6 +1735,7 @@ sub _k_add {
 # Write a PDL to a FITS format file
 #
 my %wfits_reftype = map +($_=>1), qw(PDL HASH ARRAY);
+my %wfits_zpreserve = (reverse(%$hdrconv), map +($_=>"Z$_"), qw(BITPIX NAXIS));
 sub PDL::wfits {
   barf 'Usage: wfits($pdl,$file,[$BITPIX],[{options}])' if $#_<1 || $#_>3;
   my ($pdl,$file,$x,$y) = @_;
@@ -1926,8 +1925,26 @@ sub PDL::wfits {
       # Check for tile-compression format for the image, and handle it.
       # We add the image-compression format tags and reprocess the whole
       # shebang as a binary table.
-      if($opt->{compress}) {
-	  croak "Placeholder -- tile compression not yet supported\n";
+      if(my $cmptype = $opt->{compress}) {
+	  $cmptype = 'RICE_1' if $cmptype eq '1';
+	  confess "wfits: given unknown compress '$cmptype'"
+	      unless my $tc = $tile_compressors->{$cmptype};
+	  _k_add($ohash, qw(ZIMAGE T LOGICAL));
+	  _k_add($ohash, 'ZCMPTYPE', $cmptype);
+	  _k_add($ohash, $wfits_zpreserve{$_}, delete $ohdr{$_})
+	      for sort grep exists $ohdr{$_}, keys %wfits_zpreserve;
+	  _k_add($ohash, "ZNAXIS$_", $ohdr{"NAXIS$_"}) for 1..$pdl->getndims;
+#	  _k_add($ohash, "ZTILE$_", delete $ohdr{"NAXIS$_"}) for 1..$pdl->getndims;
+	  $tc->[0]->( $pdl, \%ohdr, $opt );
+	  my %tbl;
+	  $tbl{$_} = delete $ohdr{$_} for map $_."COMPRESSED_DATA", '', 'len_';
+	  $tbl{hdr} = \%ohdr;
+	  if (!$issue_nullhdu) {
+	      _wfits_nullhdu($fh); # needed only once
+	      $issue_nullhdu = 1;
+	  }
+	  _wfits_table($fh,\%tbl,'binary');
+	  next;
       }
 
       my $nbytes = 0;
@@ -2397,12 +2414,10 @@ FOO
 	      } else {
 		  $l = $len;
 	      }
-	      
 	      # The standard says we should give a zero-offset 
 	      # pointer if the current row is zero-length; hence
 	      # the ternary operator.
 	      my $ret = pdl( $l, $l ? length($heap) : 0)->long;
-
 
 	      if($l) {
 		  # This echoes the normal-table swap and accumulation 
