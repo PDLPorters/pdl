@@ -2149,25 +2149,12 @@ our %bintable_types = (
 
 sub _prep_table {
   my ($hash,$tbl,$nosquish) = @_;
-  
-  my $ohash;
-
-  my $hdr = $hash->{hdr};
-  
-  my $heap = "";
-
-  # Make a local copy of the header.
-  my $h = {};
-  if(defined $hdr) {
-    local $_;
-    for (keys %$hdr) {$h->{$_} = $hdr->{$_}};
-  }
-  $hdr = $h;
-
-  $tbl = $hash->{tbl} unless defined($tbl);
-
   barf "_prep_table called without a HASH reference as the first argument"
     unless ref $hash eq 'HASH';
+  my $ohash = {};
+  my %hdr = %{$hash->{hdr} || {}};
+  $tbl //= $hdr{tbl};
+  my $heap = "";
 
   #####
   # Figure out how many columns are in the table
@@ -2191,7 +2178,6 @@ sub _prep_table {
       barf "_prep_table: inconsistent number of rows ($rkey: $rows vs. $key: $r)\n";
     }
   }
-  
   print "Table seems to have $rows rows...\n"
     if($PDL::verbose);
 
@@ -2206,14 +2192,11 @@ sub _prep_table {
 
   for my $key(@colkeys) {
     my $name = $key;
-
     $name =~ tr/[a-z]/[A-Z]/;   # Uppercaseify (required by FITS standard)
     $name =~ s/\s+/_/g;         # Remove whitespace (required by FITS standard)
-    
     unless($nosquish) {     
       $name =~ s/[^A-Z0-9_-]//g;  # Squish (recommended by FITS standard)
     }
-    
     ### Disambiguate...
     if(defined $ohash->{$name}) {
       my $iter = 1;
@@ -2222,15 +2205,12 @@ sub _prep_table {
            while(defined $ohash->{$name2});
       $name = $name2;
     }
-
     $ohash->{$name} = $hash->{$key};
     $keysbyname{$name} = $key;
     $namesbykey{$key} = $name;
-
     print "\tkey '$key'\t-->\tname '$name'\n"
       if($PDL::debug || (($name ne $key) and $PDL::verbose));
   }
-
 
   # The first element of colnames is ignored (since FITS starts the
   # count at 1)
@@ -2240,20 +2220,16 @@ sub _prep_table {
 
   ### Allocate any table columns that are already in the header...
   local $_;
-  map { for my $x(1) { # [Shenanigans to make next work right]
+  for (sort fits_field_cmp keys %hdr) {
     next unless m/^TTYPE(\d*)$/;
-
     my $num = $1;
-    
     if($num > $cols || $num < 1) {
       print "Ignoring illegal column number $num ( should be in range 1..$cols )\n"
 	if($PDL::verbose);
-      delete $hdr->{$_};
+      delete $hdr{$_};
       next;
     }
-
-    my $key = $hdr->{$_};
-
+    my $key = $hdr{$_};
     my $name;
     unless( $name = $namesbykey{$key}) { # assignment
       $name = $key;
@@ -2263,18 +2239,15 @@ sub _prep_table {
 	next;
       }
     }
-
     $colnames[$num] = $name;
     $colnums{$name} = $num;
-  } } sort fits_field_cmp keys %$hdr;
+  }
 
   ### Allocate all other table columns in alphabetical order...
   my $i = 0;
-  for my $k (@colkeys) {
-    my $name = $namesbykey{$k};
-
+  for my $name (@namesbykey{@colkeys}) {
     unless($colnums{$name}) {
-      while($colnames[++$i]) { }
+      1 while($colnames[++$i]);
       $colnames[$i] = $name;
       $colnums{$name} = $i;
     } else { $i++; }
@@ -2296,14 +2269,13 @@ sub _prep_table {
   my @fieldvars = ();    # Gets refs to all the fields of the hash.
 
   if($tbl eq 'binary') {
-    $hdr->{XTENSION} = 'BINTABLE';
-    $hdr->{BITPIX} = 8;
-    $hdr->{NAXIS} = 2;
-    #$hdr->{NAXIS1} = undef; # Calculated below; inserted here as placeholder.
-    $hdr->{NAXIS2} = $rows;
-    $hdr->{PCOUNT} = 0; # Change this is variable-arrays are adopted
-    $hdr->{GCOUNT} = 1;
-    $hdr->{TFIELDS} = $cols;
+    $hdr{XTENSION} = 'BINTABLE';
+    $hdr{BITPIX} = 8;
+    $hdr{NAXIS} = 2;
+    $hdr{NAXIS2} = $rows;
+    $hdr{PCOUNT} = 0; # Change this is variable-arrays are adopted
+    $hdr{GCOUNT} = 1;
+    $hdr{TFIELDS} = $cols;
 
     # Figure out data types, and accumulate a row length at the same time.
 
@@ -2320,7 +2292,7 @@ sub _prep_table {
       $fieldvars[$i] = $hash->{$keysbyname{$colnames[$i]}};
       my $var = $fieldvars[$i];
 
-      $hdr->{"TTYPE$i"} = $colnames[$i];
+      $hdr{"TTYPE$i"} = $colnames[$i];
       my $tform;
       
       my $tstr;
@@ -2475,16 +2447,16 @@ FOO
       }
 
       
-      $hdr->{"TFORM$i"} = "$rpt$tstr";
+      $hdr{"TFORM$i"} = "$rpt$tstr";
 
       if(UNIVERSAL::isa($var, 'PDL') and $var->ndims > 1) {
-	  $hdr->{"TDIM$i"} = "(".join(",",$var->slice("(0)")->dims).")";
+	  $hdr{"TDIM$i"} = "(".join(",",$var->slice("(0)")->dims).")";
       }
 
       $rowlen += ($field_len[$i] = $rpt * $bytes);
     }
       
-    $hdr->{NAXIS1} = $rowlen;
+    $hdr{NAXIS1} = $rowlen;
     
     ## Now accumulate the binary table
 
@@ -2532,9 +2504,7 @@ FOO
     if( (length $table) != $table_size ) {
       print "Warning: Table length is ".(length $table)."; expected $table_size\n";
     }
-
-    return ($hdr,$table, $heap);
-      
+    return (\%hdr,$table, $heap);
   } elsif($tbl eq 'ascii') {
     barf "ASCII tables not yet supported...\n";
   } else {
@@ -2585,7 +2555,7 @@ sub _wfits_table {
   my $fh = shift;
   my $hash = shift;
   my $tbl = shift;
-  
+
   barf "FITS BINTABLES are not supported without the Astro::FITS::Header module.\nGet it from www.cpan.org.\n"
     unless($PDL::Astro_FITS_Header);
 
