@@ -1277,9 +1277,10 @@ our $tile_compressors = {
   'RICE_1' => [
     sub { ### RICE_1 compressor
       my ($tiles, $tbl, $params) = @_;
-      my ($compressed,undef,undef,$len) = $tiles->rice_compress($params->{BLOCKSIZE} || 32);
+      my $blocksize = $params->{BLOCKSIZE} || 32;
+      my ($compressed,undef,undef,$len) = $tiles->rice_compress($blocksize);
       $tbl->{ZNAME1} = "BLOCKSIZE";
-      $tbl->{ZVAL1} = $params->{BLOCKSIZE};
+      $tbl->{ZVAL1} = $blocksize;
       $tbl->{ZNAME2} = "BYTEPIX";
       $tbl->{ZVAL2} = PDL::howbig($tiles->get_datatype);
       # Convert the compressed data to a byte array...
