@@ -82,10 +82,7 @@ and so may not be installed.
 EOD
 
 pp_addhdr('
-int fftn (int ndim, const int dims[], double Re[], double Im[],
-	    int iSign, double scaling);
-int fftnf (int ndim, const int dims[], float Re[], float Im[],
-	    int iSign, float scaling);
+#include "fftn.h"
 ');
 pp_def('_fft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',

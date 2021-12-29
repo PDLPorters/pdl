@@ -193,6 +193,7 @@ D__FILE__=\"fftn.c\" */
 /*}}}*/
 
 #define NFACTOR	11
+#define REALFIX       	long double
 
 /* return the number of factors */
 static int
@@ -261,7 +262,6 @@ factorize (int nPass, int * kt, int *factor)
 #  define FFT_FLOAT
 # endif
 #else
-# undef REALFIX
 # undef REAL
 # undef FFTN
 # undef FFTNS
@@ -269,7 +269,6 @@ factorize (int nPass, int * kt, int *factor)
 # undef FFTRADIXS
 /* defines for double */
 # define REAL		double
-# define REALFIX       	double
 # define FFTN		fftn
 # define FFTNS		"fftn"
 # define FFTRADIX	fftradix
@@ -286,14 +285,12 @@ fftradix (double Re[], double Im[],
 /*{{{ defines for re-including float precision */
 #ifdef FFT_FLOAT
 # undef REAL
-# undef REALFIX
 # undef FFTN
 # undef FFTNS
 # undef FFTRADIX
 # undef FFTRADIXS
 /* defines for float */
 # define REAL		float
-# define REALFIX       	double
 # define FFTN		fftnf		/* trailing 'f' for float */
 # define FFTNS		"fftnf"		/* name for error message */
 # define FFTRADIX	fftradixf	/* trailing 'f' for float */
