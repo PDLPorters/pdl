@@ -192,8 +192,7 @@ use PDL::Ops qw/czip/;
 
 sub todecimal {
     my ($arg) = @_;
-    $arg = $arg->double if (($arg->get_datatype != $PDL_F) &&
-			   ($arg->get_datatype != $PDL_D));
+    $arg = $arg->double if $arg->type->integer;
     $_[0] = $arg;
 1;}
 
