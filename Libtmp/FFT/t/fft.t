@@ -44,9 +44,13 @@ ok (tapprox($pd->im,0), "fft zeroes using complex ndarrays");
 ok (tapprox($pa,$pb), "m51 image recovered");
 
 $pb = $pa->copy;
-$pc = $pb->zeroes; fftnd($pb,$pc); ifftnd($pb,$pc);
+$pc = $pb->zeroes;
+$pd=czip($pb, $pc);
+fftnd($pb,$pc); ifftnd($pb,$pc);
 ok ( tapprox($pc,0), "fftnd zeroes");
 ok ( tapprox($pa,$pb), "fftnd real image");
+fftnd($pd); ifftnd($pd);
+ok ( tapprox($pd,$pb), "fftnd native complex image with imag zeroes");
 
 $pb = $pa->slice("1:35,1:69");
 $pc = $pb->copy; fftnd($pb,$pc); ifftnd($pb,$pc);

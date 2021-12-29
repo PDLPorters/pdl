@@ -139,8 +139,7 @@ fft($real,$imag);
 
 sub PDL::fft {
 	# Convert the first argument to decimal and check for trouble.
-	my $re=$_[0];
-	my $im=$_[1];
+	my ($re, $im) = @_;
 	if (!$re->type->real) {
 		$im=$re->im;
 		$re=$re->re;
@@ -167,7 +166,6 @@ sub PDL::fft {
 	}
 }
 
-
 =head2 ifft()
 
 =for ref
@@ -189,8 +187,7 @@ ifft($real,$imag);
 
 sub PDL::ifft {
 	# Convert the first argument to decimal and check for trouble.
-	my $re=$_[0];
-	my $im=$_[1];
+	my ($re, $im) = @_;
 	if (!$re->type->real) {
 		$im=$re->im;
 		$re=$re->re;
@@ -293,11 +290,12 @@ N-dimensional FFT over all pdl dims of input (inplace)
 *fftnd = \&PDL::fftnd;
 
 sub PDL::fftnd {
-    barf "Must have real and imaginary parts for fftnd" if $#_ != 1;
     my ($r,$i) = @_;
+    barf "Must have real and imaginary parts or complex for fftnd"
+      if $r->type->real and @_ != 2;
     if (!$r->type->real) {
-	$i=im $r;
-	$r=re $r;
+	$i=$r->im;
+	$r=$r->re;
     }
     my ($n) = $r->getndims;
     barf "Dimensions of real and imag must be the same for fft"
@@ -335,11 +333,12 @@ N-dimensional inverse FFT over all pdl dims of input (inplace)
 *ifftnd = \&PDL::ifftnd;
 
 sub PDL::ifftnd {
-    barf "Must have real and imaginary parts for ifftnd" if $#_ != 1;
     my ($r,$i) = @_;
+    barf "Must have real and imaginary parts or complex for ifftnd"
+      if $r->type->real and @_ != 2;
     if (!$r->type->real) {
-	$r=re $r;
-	$i=im $r;
+	$i=$r->im;
+	$r=$r->re;
     }
     my ($n) = $r->getndims;
     barf "Dimensions of real and imag must be the same for ifft"
