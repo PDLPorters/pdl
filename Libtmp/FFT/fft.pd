@@ -396,25 +396,14 @@ these fft routines is for kernel sizes roughly 7x7.
 
 sub PDL::fftconvolve {
     barf "Must have image & kernel for fftconvolve" if $#_ != 1;
-    my ($im, $k) = @_;
-
-    my ($ar,$ai,$kr,$ki,$cr,$ci);
-
-    $imr = $im->copy;
-    $imi = $imr->zeros;
-    fftnd($imr, $imi);
-
-    $kr = $k->copy;
-    $ki = $kr->zeroes;
-    fftnd($kr,$ki);
-
-    my ($cr, $ci) = cmul($imr,$imi,$kr,$ki);
-
-    ifftnd($cr,$ci);
-    $_[0] = $cr;
-    $_[1] = $ci;
-
-    ($cr,$ci);
+    my ($im, $k) = map $_->r2C, @_;
+    fftnd($im);
+    fftnd($k);
+    my $c = $im * $k;
+    ifftnd($c);
+    $_[0] = $c->re->sever;
+    $_[1] = $c->im->sever;
+    @_;
 }
 
 sub PDL::fftconvolve_inplace {
@@ -478,21 +467,6 @@ pp_def('convmath',
 ',
 #	Doc => undef,
 	Doc => 'Internal routine doing maths for convolution'
-);
-
-pp_def('cmul',
-	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
-	GenericTypes => $F,
-	Code => '
-	$GENERIC() ar, ai, br, bi;
-	   ar = $ar();
-	   ai = $ai();
-	   br = $br();
-	   bi = $bi();
-	   $cr() = ar*br-ai*bi;
-	   $ci() = ar*bi+ai*br;
-',
-	Doc => 'Complex multiplication'
 );
 
 pp_addpm({At=>'Bot'},<<'EOD');

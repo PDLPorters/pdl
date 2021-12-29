@@ -37,10 +37,6 @@ ifft($pd);
 ok (tapprox($pc,0), "fft zeroes");
 ok (tapprox($pd->im,0), "fft zeroes using complex ndarrays");
 
-#print "\n",$pc->info("Type: %T Dim: %-15D State: %S"),"\n";
-#print "Max: ",$pc->max,"\n";
-#print "Min: ",$pc->min,"\n";
-   
 ok (tapprox($pa,$pb), "m51 image recovered");
 
 $pb = $pa->copy;
