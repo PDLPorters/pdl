@@ -164,7 +164,7 @@ char *err = rcomp( $P(in),
 		      &len
 	            );
 if (err) $CROAK("%s", err);
-$len() = 1 + ( len - 1 ) / sizeof($GENERIC(out));
+$len() = len;
 EOD
 );
 

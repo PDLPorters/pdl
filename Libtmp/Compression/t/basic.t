@@ -7,7 +7,8 @@ use PDL::IO::FITS;
 
 my $m51 = rfits('../../m51.fits');
 
-my ($y, $xsize) = $m51->rice_compress;
+my ($y, $xsize, undef, $len) = $m51->rice_compress;
+is $len->max->sclr, 373, 'right maximum length';
 my $m51_2 = eval { $y->rice_expand($xsize) };
 is $@, '', 'no error';
 ok all(approx($m51, $m51_2)), 'decompress same as original';
