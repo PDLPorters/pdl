@@ -384,7 +384,7 @@ is($pc->get_datatype, $PDL_B, "C also byte");
 note "C ($pb * 3) is $pc";
 
 my $pd = $pb * 600.0;
-is($pd->get_datatype, $PDL_F, "D promoted to float");
+is($pd->get_datatype, $PDL_D, "pdl-ed NV is double, D promoted to double");
 note "D ($pb * 600) is $pd";
 
 my $pi = 4*atan2(1,1);

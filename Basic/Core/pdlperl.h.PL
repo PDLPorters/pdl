@@ -112,9 +112,8 @@ static inline int _pdl_whichdatatype (IV nv) {
 #undef X
         croak("Something's gone wrong: %ld cannot be converted by whichdatatype", nv);
 }
-/* Check minimum, at least float, datatype required to represent number */
+/* Check minimum, at least double, datatype required to represent number */
 static inline int _pdl_whichdatatype_double (NV nv) {
-        PDL_TESTTYPE(PDL_F,PDL_Float)
         PDL_TESTTYPE(PDL_D,PDL_Double)
         PDL_TESTTYPE(PDL_D,PDL_LDouble)
 #undef PDL_TESTTYPE
