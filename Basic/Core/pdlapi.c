@@ -76,7 +76,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 }
 
 pdl *pdl_null() {
-	PDL_Anyval zero = { PDL_B, {0} };
+	PDL_Anyval zero = { PDL_D, {.D=0.0} };
 	PDLDEBUG_f(printf("pdl_null\n"));
 	pdl *it = pdl_pdlnew();
 	if (!it) return it;
@@ -159,7 +159,7 @@ pdl* pdl_pdlnew() {
      if (!it) return it;
      memset(it, 0, sizeof(pdl));
      it->magicno = PDL_MAGICNO;
-     it->datatype = 0;
+     it->datatype = PDL_D;
      it->trans_parent = NULL;
      it->vafftrans = NULL;
      it->sv = NULL;
