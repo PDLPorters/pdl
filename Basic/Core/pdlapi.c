@@ -129,7 +129,6 @@ pdl_error pdl_grow(pdl* a, PDL_Indx newsize) {
      SV *sv = get_sv("PDL::BIGPDL",0);
      if(sv == NULL || !(SvTRUE(sv)))
        return pdl_make_error_simple(PDL_EUSERERROR, "Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable)");
-     fflush(stdout);
    }
    (void)SvGROW ( foo, nbytes );
    SvCUR_set( foo, nbytes );
@@ -236,8 +235,7 @@ pdl_error pdl__free(pdl *it) {
     PDL_CHKMAGIC(it);
     /* now check if magic is still there */
     if (pdl__ismagic(it)) {
-      PDLDEBUG_f(printf("%p is still magic\n",(void*)it));
-      PDLDEBUG_f(pdl__print_magic(it));
+      PDLDEBUG_f(printf("%p is still magic\n",(void*)it);pdl__print_magic(it));
     }
     it->magicno = 0x42424245;
     if(it->dims       != it->def_dims)       free((void*)it->dims);
@@ -385,9 +383,9 @@ pdl_error pdl_destroy(pdl *it) {
     int nafn=0;
     PDL_DECL_CHILDLOOP(it);
     PDL_CHKMAGIC(it);
-    PDLDEBUG_f(printf("pdl_destroy %p\n",(void*)it);)
+    PDLDEBUG_f(printf("pdl_destroy %p\n",(void*)it));
     if(it->state & PDL_DESTROYING) {
-        PDLDEBUG_f(printf("  already destroying, returning\n");)
+        PDLDEBUG_f(printf("  already destroying, returning\n"));
 	return PDL_err;
     }
     it->state |= PDL_DESTROYING;
@@ -428,7 +426,7 @@ pdl_error pdl_destroy(pdl *it) {
  */
     if(nafn) goto soft_destroy;
     if(pdl__magic_isundestroyable(it)) {
-        PDLDEBUG_f(printf("pdl_destroy not destroying as magic %p\n",(void*)it);)
+        PDLDEBUG_f(printf("pdl_destroy not destroying as magic %p\n",(void*)it));
 	goto soft_destroy;
     }
 
@@ -445,12 +443,12 @@ pdl_error pdl_destroy(pdl *it) {
 /* Here, this is a child but has no children - fall through to hard_destroy */
 
    PDL_RETERROR(PDL_err, pdl__free(it));
-   PDLDEBUG_f(printf("pdl_destroy end %p\n",(void*)it);)
+   PDLDEBUG_f(printf("pdl_destroy end %p\n",(void*)it));
    return PDL_err;
 
   soft_destroy:
     PDLDEBUG_f(printf("pdl_destroy may have dependencies, not destroy %p, nba(%d, %d), nforw(%d), tra(%p), nafn(%d)\n",
-				(void*)it, nback, nback2, nforw, (void*)(it->trans_parent), nafn);)
+				(void*)it, nback, nback2, nforw, (void*)(it->trans_parent), nafn));
     it->state &= ~PDL_DESTROYING;
     return PDL_err;
 }
@@ -465,7 +463,7 @@ pdl *pdl_hard_copy(pdl *src) {
 	pdl *it = pdl_null();
 	if (!it) return it;
 	it->state = 0;
-	PDLDEBUG_f(printf("pdl_hard_copy (%p): ", src));PDLDEBUG_f(pdl_dump(it);)
+	PDLDEBUG_f(printf("pdl_hard_copy (%p): ", src);pdl_dump(it));
 	it->datatype = src->datatype;
 	PDL_err = pdl_setdims(it,src->dims,src->ndims);
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }
@@ -548,7 +546,7 @@ void pdl_resize_defaultincs(pdl *it) {
 /* Init dims & incs - if *incs is NULL ignored (but space is always same for both)  */
 pdl_error pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
   pdl_error PDL_err = {0, NULL, 0};
-  PDLDEBUG_f(printf("pdl_setdims %p: ", it));PDLDEBUG_f(pdl_print_iarr(dims, ndims));PDLDEBUG_f(printf("\n"));
+  PDLDEBUG_f(printf("pdl_setdims %p: ", it);pdl_print_iarr(dims, ndims);printf("\n"));
   PDL_Indx i, old_nvals = it->nvals, new_nvals = 1;
   for (i=0; i<ndims; i++) new_nvals *= dims[i];
   int what = (old_nvals == new_nvals) ? 0 : PDL_PARENTDATACHANGED;
@@ -616,8 +614,8 @@ pdl_error pdl_make_physdims(pdl *it) {
 	  return PDL_err;
 	}
 	it->state &= ~PDL_PARENTDIMSCHANGED;
-	PDLDEBUG_f(printf("make_physdims %p TRANS:\n",(void*)it));
-	PDLDEBUG_f(pdl_dump_trans_fixspace(it->trans_parent,3));
+	PDLDEBUG_f(printf("make_physdims %p TRANS:\n",(void*)it);
+	    pdl_dump_trans_fixspace(it->trans_parent,3));
 	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
 		PDL_RETERROR(PDL_err, pdl_make_physdims(it->trans_parent->pdls[i]));
 	}
@@ -666,8 +664,7 @@ static inline pdl_error pdl_trans_flow_checks(pdl_trans *trans, int *ret) {
 pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 {
   pdl_error PDL_err = {0, NULL, 0};
-  PDLDEBUG_f(printf("make_trans_mutual %p\n",(void*)trans));
-  PDLDEBUG_f(pdl_dump_trans_fixspace(trans,3));
+  PDLDEBUG_f(printf("make_trans_mutual %p\n",(void*)trans);pdl_dump_trans_fixspace(trans,3));
   pdl_transvtable *vtable = trans->vtable;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
   PDL_TR_CHKMAGIC(trans);
@@ -703,8 +700,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 
 pdl_error pdl_redodims_default(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
-  PDLDEBUG_f(printf("pdl_redodims_default "));
-  PDLDEBUG_f(pdl_dump_trans_fixspace(trans,0));
+  PDLDEBUG_f(printf("pdl_redodims_default ");pdl_dump_trans_fixspace(trans,0));
   pdl_transvtable *vtable = trans->vtable;
   PDL_Indx creating[vtable->npdls];
   pdl **pdls = trans->pdls;
@@ -783,12 +779,12 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
 {
     pdl_error PDL_err = {0, NULL, 0};
     int i; int j;
-    PDLDEBUG_f(do {
+    PDLDEBUG_f(
       printf("pdl_changed: entry for pdl %p recursing: %d, what ",
 	     (void*)it,recursing);
       pdl_dump_flags_fixspace(what,0,PDL_FLAGS_PDL);
       if (it->state & PDL_TRACEDEBUG) pdl_dump(it);
-    } while (0));
+    );
     if(recursing) {
 	it->state |= what;
 	if(pdl__ismagic(it)) pdl__call_magic(it,PDL_MAGIC_MARKCHANGED);

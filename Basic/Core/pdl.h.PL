@@ -30,7 +30,7 @@ print OUT <<"!GROK!THIS!";
 
 #ifdef PDL_DEBUGGING
 extern int pdl_debugging;
-#define PDLDEBUG_f(a)           if(pdl_debugging) a
+#define PDLDEBUG_f(a)           if(pdl_debugging) { a; fflush(stdout); }
 #else
 #define PDLDEBUG_f(a)
 #endif

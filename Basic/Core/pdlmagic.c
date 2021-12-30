@@ -258,10 +258,10 @@ int pdl_pthreads_enabled(void) {return 1;}
 
 static void *pthread_perform(void *vp) {
 	struct ptarg *p = (ptarg *)vp;
-	PDLDEBUG_f(printf("STARTING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self());)
+	PDLDEBUG_f(printf("STARTING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self()));
 	pthread_setspecific(p->mag->key,(void *)&(p->no));
 	p->error_return = (p->func)(p->t);
-	PDLDEBUG_f(printf("ENDING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self());)
+	PDLDEBUG_f(printf("ENDING THREAD %d (%lu)\n",p->no, (long unsigned)pthread_self()));
 	return NULL;
 }
 
@@ -312,7 +312,7 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 	pdl_main_pthreadID = pthread_self();
 	done_pdl_main_pthreadID_init = 1;
 
-	PDLDEBUG_f(printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
+	PDLDEBUG_f(printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
 	for(i=0; i<thread->mag_nthr; i++) {
 	    tparg[i].mag = ptr;
 	    tparg[i].func = func;
@@ -324,11 +324,11 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 	    }
 	}
 
-	PDLDEBUG_f(printf("JOINING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
+	PDLDEBUG_f(printf("JOINING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
 	for(i=0; i<thread->mag_nthr; i++) {
 		pthread_join(tp[i], NULL);
 	}
-	PDLDEBUG_f(printf("FINISHED THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key));)
+	PDLDEBUG_f(printf("FINISHED THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
 
 	pthread_key_delete((ptr->key));
 	done_pdl_main_pthreadID_init = 0;

@@ -73,7 +73,7 @@ void pdl_freethreadstruct(pdl_thread *thread) {
 	PDLDEBUG_f(printf("freethreadstruct(%p, %p %p %p %p %p %p)\n",
 		(void*)thread,
 		(void*)(thread->inds), (void*)(thread->dims), (void*)(thread->offs),
-		(void*)(thread->incs), (void*)(thread->flags), (void*)(thread->pdls));)
+		(void*)(thread->incs), (void*)(thread->flags), (void*)(thread->pdls)));
 	if(!thread->inds) {return;}
 	Safefree(thread->inds);
 	Safefree(thread->dims);
@@ -85,7 +85,7 @@ void pdl_freethreadstruct(pdl_thread *thread) {
 }
 
 void pdl_clearthreadstruct(pdl_thread *it) {
-	PDLDEBUG_f(printf("clearthreadstruct(%p)\n", (void*)it);)
+	PDLDEBUG_f(printf("clearthreadstruct(%p)\n", (void*)it));
 	it->transvtable = 0;it->inds = 0;it->dims = 0;
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
@@ -229,14 +229,14 @@ pdl_error pdl_dim_checks(
 ) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i, j, ind_id;
-  PDLDEBUG_f(printf("pdl_dim_checks %p:\n", ind_sizes));
-  PDLDEBUG_f(do {printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n");}while(0));
+  PDLDEBUG_f(printf("pdl_dim_checks %p:\n", ind_sizes);
+    printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n"));
   for (i=0; i<vtable->npdls; i++) {
     PDL_Indx ninds = vtable->par_realdims[i];
     pdl *pdl = pdls[i];
     PDL_Indx ndims = pdl->ndims;
-    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG" ndims=%"IND_FLAG"): ", i, creating[i], ninds, ndims));
-    PDLDEBUG_f(pdl_dump(pdl));
+    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG" ndims=%"IND_FLAG"): ", i, creating[i], ninds, ndims);
+      pdl_dump(pdl));
     if (creating[i]) {
       PDL_Indx dims[PDLMAX(ninds, 1)]; /* Empty arrays not allowed in C99 */
       for (j=0; j<ninds; j++)
@@ -285,8 +285,9 @@ pdl_error pdl_dim_checks(
 	);
     }
   }
-  PDLDEBUG_f(printf("pdl_dim_checks after:\n"));
-  PDLDEBUG_f(do {printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n");fflush(stdout);}while(0));
+  PDLDEBUG_f(printf("pdl_dim_checks after:\n");
+    printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);
+    printf("\n"));
   return PDL_err;
 }
 
@@ -316,7 +317,7 @@ pdl_error pdl_initthreadstruct(int nobl,
 	PDL_Indx mydim;
 	PDL_Indx nthr = 0; PDL_Indx nthrd;
 
-	PDLDEBUG_f(printf("initthreadstruct(%p)\n", (void*)thread);)
+	PDLDEBUG_f(printf("initthreadstruct(%p)\n", (void*)thread));
 	char already_alloced = (thread->magicno == PDL_THR_MAGICNO &&
 	    thread->gflags & PDL_THREAD_INITIALIZED);
 	PDL_Indx already_nthr = already_alloced ? thread->mag_nthr : -1;
@@ -500,7 +501,7 @@ pdl_error pdl_initthreadstruct(int nobl,
 		PDL_REPRINC(pdl,j);
 	  }
 	thread->gflags |= PDL_THREAD_INITIALIZED;
-	PDLDEBUG_f(pdl_dump_thread(thread);)
+	PDLDEBUG_f(pdl_dump_thread(thread));
 	return PDL_err;
 }
 

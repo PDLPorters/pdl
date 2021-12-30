@@ -56,7 +56,7 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     void* b;     /* Scratch data ptr */
     PDL_Indx   i;
     PDLDEBUG_f(printf("pdl_converttype %p, %d, %d\n", (void*)a, a->datatype,
-	targtype);)
+	targtype));
 
     int intype = a->datatype;
     if (intype == targtype)

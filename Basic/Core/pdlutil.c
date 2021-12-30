@@ -153,7 +153,6 @@ PDL_GENERICLIST(X)
 #undef X
     NULL
   };
-  fflush(stdout);
   printf("DUMPTHREAD %p\n",(void*)thread);
   if (thread->transvtable) {
     pdl_transvtable *vtable = thread->transvtable;
@@ -251,7 +250,6 @@ PDL_GENERICLIST(X)
   for (i=0;i<thread->npdls;i++)
     printf("%s%d",(i?" ":""),thread->flags[i]);
   printf(")\n");
-  fflush(stdout);
 }
 
 void pdl_dump_threading_info(
@@ -407,7 +405,6 @@ void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	pdl_dump_flags_fixspace(it->flags,nspac+3,PDL_FLAGS_TRANS);
 	printf("%s   vtable flags ",spaces);
 	pdl_dump_flags_fixspace(it->vtable->flags,nspac+3,PDL_FLAGS_VTABLE);
-	fflush(stdout);
 	if(it->flags & PDL_ITRANS_ISAFFINE) {
 		if(it->pdls[1]->state & PDL_PARENTDIMSCHANGED) {
 			printf("%s   AFFINE, BUT DIMSCHANGED\n",spaces);
