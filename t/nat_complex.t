@@ -14,9 +14,9 @@ sub tapprox {
         $d < 0.0001;
 }
 
-is_deeply [ ppdefs() ], [qw(A B S U L K N Q P F D E)];
+is_deeply [ ppdefs() ], [qw(A B S U L K N P Q F D E)];
 is_deeply [ ppdefs_complex() ], [qw(G C H)];
-is_deeply [ ppdefs_all() ], [qw(A B S U L K N Q P F D E G C H)];
+is_deeply [ ppdefs_all() ], [qw(A B S U L K N P Q F D E G C H)];
 
 my $ref = pdl([[-2,1],[-3,1]]);
 my $ref2 = squeeze(czip($ref->slice("0,"), $ref->slice("1,")));

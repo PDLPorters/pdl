@@ -141,6 +141,19 @@ my @types = (
 
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
+       { # this one before LL so last integer is signed, to avoid default-type (last in list) changing to unsigned
+	identifier => 'ULL',
+	onecharident => 'P',   # only needed if different from identifier
+	pdlctype => 'PDL_ULongLong',
+	realctype => 'unsigned ' . &typeof_PDL_i64,
+	ppforcetype => 'ulonglong',
+	usenan => 0,
+	packtype => 'Q*',
+	defaultbadval => 'ULLONG_MAX',
+	real=>1,
+	integer=>1,
+	unsigned=>1,
+      },
        {
 	identifier => 'LL',
 	onecharident => 'Q',   # only needed if different from identifier
@@ -153,19 +166,6 @@ my @types = (
 	real=>1,
 	integer=>1,
 	unsigned=>0,
-      },
-       {
-	identifier => 'ULL',
-	onecharident => 'P',   # only needed if different from identifier
-	pdlctype => 'PDL_ULongLong',
-	realctype => 'unsigned ' . &typeof_PDL_i64,
-	ppforcetype => 'ulonglong',
-	usenan => 0,
-	packtype => 'Q*',
-	defaultbadval => 'ULLONG_MAX',
-	real=>1,
-	integer=>1,
-	unsigned=>1,
       },
 
 # IMPORTANT:
