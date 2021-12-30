@@ -399,7 +399,6 @@ sub new { my($type) = @_; bless [],$type; }
 
 sub myoffs { 0 }
 sub myprelude {}
-sub myitem { "" }
 sub mypostlude {}
 
 sub get_str {
@@ -415,10 +414,11 @@ sub get_str_int {
   my $nth=0;
   my $str = "";
   MYLOOP: while(1) {
-    my $it = $this->myitem($parent,$nth);
+    my $it = $this->can('myitemstart') && $this->myitemstart($parent,$nth);
     last MYLOOP if $nth and !$it;
     $str .= $it;
     $str .= join '', $this->get_contained($parent,$context);
+    $str .= $it if $it = $this->can('myitemend') && $this->myitemend($parent,$nth);
     $nth++;
   }
   return $str;
@@ -528,13 +528,13 @@ sub myprelude {
 	if defined $this->[1] and $parent->{ftypes_type};
     <<WARNING_EATER;
 PDL_COMMENT("Start generic loop")
-	switch($this->[3]) { case -42: PDL_COMMENT("Warning eater") {(void)1;
+	switch($this->[3]) {
 WARNING_EATER
 }
 
-sub myitem {
+sub myitemstart {
     my ($this,$parent,$nth) = @_;
-    my $item = $this->[0]->[$nth] || return "";
+    my $item = $this->[0][$nth] || return "";
     $parent->{Gencurtype}[-1] = $item;
     @$parent{qw(ftypes_type ftypes_vars)} = ($item, $this->[2]) if defined $this->[1];
     my ($ord,$pdls) = $parent->get_pdls;
@@ -544,8 +544,14 @@ sub myitem {
       : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
     join '',
-	PDL::PP::pp_line_numbers(__LINE__-1, "\t} break; case @{[$item->sym]}: {\n"),
+	PDL::PP::pp_line_numbers(__LINE__-1, "case @{[$item->sym]}: {\n"),
 	$decls;
+}
+
+sub myitemend {
+    my ($this,$parent,$nth) = @_;
+    my $item = $this->[0][$nth] || return "";
+    PDL::PP::pp_line_numbers(__LINE__-1, "} break;\n");
 }
 
 sub mypostlude {
@@ -553,8 +559,7 @@ sub mypostlude {
     pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
     $parent->{ftypes_type} = undef if defined $this->[1];
     my $supported = join '', map $_->ppsym, @{$this->[0]};
-    "\tbreak;}
-	default:return PDL->make_error(PDL_EUSERERROR, \"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);}\n";
+    "\n\tdefault:return PDL->make_error(PDL_EUSERERROR, \"PP INTERNAL ERROR in $parent->{Name}: unhandled datatype(%d), only handles ($supported)! PLEASE MAKE A BUG REPORT\\n\", $this->[3]);}\n";
 }
 
 ####
