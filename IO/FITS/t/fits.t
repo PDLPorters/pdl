@@ -288,9 +288,9 @@ SKIP:{
 
 	$x = rvals(longlong,7,7);
 	eval { wfits($x, $file); };
-	ok(!$@, sprintf("writing a longlong image succeeded %s",($@?"($@)":"")));
+	is $@, '', "writing a longlong image succeeded";
 	eval { $y = rfits($file); };
-	ok(!$@, sprintf("Reading the longlong image succeeded %s",($@?"($@)":"")));
+	is $@, '', "Reading the longlong image succeeded";
 	ok(ref($y->hdr) eq "HASH", "Reading the longlong image produced a PDL with a hash header");
 	ok($y->hdr->{BITPIX} == 64, "BITPIX value was correct");
 	ok(all($y==$x),"The new image matches the old one (longlong)");

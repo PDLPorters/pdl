@@ -205,7 +205,7 @@ my $lo=xvals(long,5)+32766;
 my $fl=float(xvals(5)+0.2);
 my @list = ($lo,$so,$fl,$by);
 my $c2 = cat(@list);
-is($c2->type,'float','concatentating different datatypes returns the highest type');
+is($c2->type,'float','concatenating different datatypes returns the highest type');
 my $i=0;
 map{ ok(all($_==$list[$i]),"cat/dog symmetry for values ($i)"); $i++; }$c2->dog;
 

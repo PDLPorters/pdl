@@ -33,13 +33,10 @@ rim($out2, $file, {FORMAT => $fmt});
 
 my $out3 = PDL->rpic($file, {FORMAT => $fmt});
 
-# Test 1
 ok(sum(abs($out1 - $out2)) == 0, "\$out1 & \$out2 are the same");
 
-# Test 2
 ok(sum(abs($out3 - $out2)) == 0, "\$out3 & \$out2 are the same");
 
-# Test 3
 ok(sum(abs($out1 - $in  )) == 0, "\$out1 & \$in are the same");
 
 done_testing;

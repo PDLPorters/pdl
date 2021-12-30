@@ -337,7 +337,7 @@ sub PDL::rfits {
 
   $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
   $file = "uncompress -c $file |" if $file =~ /\.Z$/;
-  
+
   my $fh = IO::File->new( $file )
       or barf "FITS file $file not found";
   binmode $fh;
@@ -351,19 +351,17 @@ sub PDL::rfits {
    my $foo={};       # To go in pdl
    my @history=();
    my @cards = ();
-   
+
    $pdl = $class->new;
- 
 
    # If $opt->{data} is false, then the reading routines leave the
    # file alone, so the file pointer is left at the end of the last
    # header.  Skip over the unread data to the next extension...
-   
+
    if( wantarray and !$opt->{data} and @extensions) {
        while( $fh->read($line,80) && ($line !~ /^XTENSION=/) && !$fh->eof() ) {
 	   $fh->read($line,2880-80);
        };
-       
        return @extensions 
 	   if($fh->eof());
 

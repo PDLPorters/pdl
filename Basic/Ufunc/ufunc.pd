@@ -269,8 +269,8 @@ foreach my $func ( sort keys %over ) {
     my $op    = $over{$func}{op};
     my $check = $over{$func}{check};
 
-    my %extra = {};
-    unless ( defined $over{$func}{alltypes} and $over{$func}{alltypes} ) {
+    my %extra;
+    unless ( $over{$func}{alltypes} ) {
 	$extra{GenericTypes} = $T,
     }
 
