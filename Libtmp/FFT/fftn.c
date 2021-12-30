@@ -262,13 +262,8 @@ factorize (int nPass, int * kt, int *factor)
    return nFactor;
 }
 
-/* re-include this source file on the second pass through */
 /*{{{ defines for re-including double precision */
-#ifdef FFT_NODOUBLE
-# ifndef FFT_FLOAT
-#  define FFT_FLOAT
-# endif
-#else
+#ifdef FFT_DOUBLE
 # undef REAL
 # undef FFTN
 # undef FFTNS
@@ -280,7 +275,6 @@ factorize (int nPass, int * kt, int *factor)
 # define FFTNS		"fftn"
 # define FFTRADIX	fftradix
 # define FFTRADIXS	"fftradix"
-/* double precision routine */
 # include __FILE__			/* include this file again */
 #endif
 /*}}}*/
