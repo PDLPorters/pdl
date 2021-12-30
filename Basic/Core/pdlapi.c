@@ -1109,8 +1109,7 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
     } else if (flags & PDL_PARAM_ISCOMPLEX) {
       if (trans_dtype < PDL_CF) new_dtype = PDLMAX(PDL_CF, trans_dtype + (PDL_CF - PDL_F));
     }
-    if ((flags & PDL_PARAM_ISCREATEALWAYS) ||
-       ((flags & PDL_PARAM_ISCREAT) && (pdl->state & PDL_NOMYDIMS) && pdl->trans_parent == NULL)) {
+    if ((pdl->state & PDL_NOMYDIMS) && (!pdl->trans_parent || pdl->trans_parent == trans)) {
       pdl->badvalue = trans->badvalue;
       pdl->has_badvalue = trans->has_badvalue;
       pdl->datatype = new_dtype;
