@@ -86,7 +86,7 @@ pdl *pdl_null() {
 }
 
 pdl *pdl_scalar(PDL_Anyval anyval) {
-	PDLDEBUG_f(printf("pdl_scalar type=%d\n", anyval.type));
+	PDLDEBUG_f(printf("pdl_scalar type=%d Bval=%d\n", anyval.type, (int)anyval.value.B));
 	pdl *it = pdl_pdlnew();
 	if (!it) return it;
 	pdl_error PDL_err = pdl_makescratchhash(it, anyval);
