@@ -7,6 +7,7 @@
 - hook @drzowie-created RICE_1 compression up to wfits
 - PDL::FFT now thread- and 64-bit-safe
 - sclr to croak if called on multi-element array
+- $TXYZ() macros fatal error if any of trans's GenericTypes not dealt with
 
 2.063_03 2021-11-23
 - add pp_add_macros

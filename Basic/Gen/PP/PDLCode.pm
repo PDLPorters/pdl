@@ -708,7 +708,7 @@ sub new {
     my @lst = split ',', $inds, -1;
     confess "Macroaccess: different nos of args $pdl $inds\n" if @lst != @ilst;
     my %type2value; @type2value{@ilst} = @lst;
-    warn "$name has no Macro for generic type $_ (has $pdl)\n"
+    confess "$name has no Macro for generic type $_ (has $pdl)\n"
 	for grep !exists $type2value{$_}, @$gentypes;
     my %gts; @gts{@$gentypes} = ();
     warn "Macro for unsupported generic type identifier $_\n"
