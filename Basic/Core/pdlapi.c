@@ -966,7 +966,10 @@ pdl_error pdl_set_datatype(pdl *a, int datatype)
     PDL_RETERROR(PDL_err, pdl_make_physical(a));
     if(a->trans_parent)
 	PDL_RETERROR(PDL_err, pdl_destroytransform(a->trans_parent,1,NULL));
-    PDL_RETERROR(PDL_err, pdl_converttype( a, datatype ));
+    if (a->state & PDL_NOMYDIMS)
+	a->datatype = datatype;
+    else
+	PDL_RETERROR(PDL_err, pdl_converttype( a, datatype ));
     return PDL_err;
 }
 
