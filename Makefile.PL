@@ -331,6 +331,18 @@ return $text
 
 }
 
+# the modules to test the ones in full PDL
+my @basics; BEGIN { @basics = (
+  [qw(IO Misc)],
+  [qw(Libtmp Compression)],
+  [qw(IO FITS)],
+  [qw(Libtmp ImageRGB)],
+  [qw(IO Pnm)],
+  [qw(IO Storable)],
+  [qw(Libtmp Image2D)],
+  [qw(Libtmp ImageND)],
+  [qw(Libtmp FFT)],
+) }
 sub coretarget {
     my ($self) = @_;
     # remember the fundamental ones end up far to right as much deps on them
@@ -342,7 +354,7 @@ sub coretarget {
     # all a left's rights are made concurrently, no sequence - list ALL prereqs
     my @left2rights = (
         [
-            basics => [
+            coregen => [
                 [ [ qw(Basic) ], [ qw(pm_to_blib) ], ],
                 [ [ qw(Basic Core) ], [ qw(pm_to_blib) ], ],
                 [ [ qw(Basic Gen) ], [ qw(all) ], ],
@@ -351,12 +363,30 @@ sub coretarget {
         [
             core => [
                 [ [ qw(Basic SourceFilter) ], [ qw(pm_to_blib) ], ],
-                map { [
+                map [
                     [ 'Basic', $_ ],
-                    [ 'pm_to_blib', 'dynamic' ],
-                    [ 'basics' ],
+                    [ qw(pm_to_blib dynamic) ],
+                    [ 'coregen' ],
                 # the modules in PDL::LiteF, used in t/core.t
-                ] } qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps),
+                ], qw(Core Ops Primitive Ufunc Slices Bad Math MatrixOps),
+            ]
+        ],
+        [
+            basic => [
+                map [
+                    $_,
+                    [ qw(pm_to_blib dynamic) ],
+                    [ 'core' ],
+                ], @basics,
+            ]
+        ],
+        [
+            basictest => [
+                map [
+                    $_,
+                    [ 'test' ],
+                    [ 'basic' ],
+                ], @basics,
             ]
         ],
     );
