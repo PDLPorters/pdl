@@ -79,6 +79,7 @@ WriteMakefile(
     'Core$(OBJ_EXT)' => '$(INST_ARCHLIB)$(DFSEP).exists pm_to_blib pdl.h pdlperl.h pdlcore.h',
         # Core.xs needs blib/arch for -Mblib to work, as well as pm_to_blib
     $cobj => 'pdl.h pdlcore.h pdlthread.h pdlmagic.h',
+    'pdlcore$(OBJ_EXT)' => 'pdlperl.h',
   },
   NO_MYMETA => 1,
 );
