@@ -1422,7 +1422,7 @@ $PDL::PP::deftbl =
         # definition of the EQUIVCPOFFS macro - see the Code rule
         PDL::PP::pp_line_numbers(__LINE__,
             'PDL_Indx i;
-             for(i=0; i<$CHILD_P(nvals); i++)  {
+             for(i=0; i<$PDL(CHILD)->nvals; i++)  {
                 $EQUIVCPOFFS(i,i);
              }'),
         1, 1, 1);
