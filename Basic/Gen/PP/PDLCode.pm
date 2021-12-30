@@ -526,10 +526,7 @@ sub myprelude {
     push @{$parent->{Gencurtype}}, undef; # so that $GENERIC can get at it
     die "ERROR: need to rethink NaN support in GenericLoop\n"
 	if defined $this->[1] and $parent->{ftypes_type};
-    <<WARNING_EATER;
-PDL_COMMENT("Start generic loop")
-	switch($this->[3]) {
-WARNING_EATER
+    qq[PDL_COMMENT("Start generic loop")\n\tswitch($this->[3]) {\n];
 }
 
 sub myitemstart {
@@ -691,7 +688,10 @@ sub get_str {
     my $lhs = $getters{$get}->($obj, $inds, $context);
     my $rhs = "${name}_badval";
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
-    $op->($lhs, $rhs, $obj->adjusted_type($parent->{Gencurtype}[-1])->ppsym);
+    my $type = exists $parent->{ftypes_vars}{$name}
+	? $parent->{ftypes_type}
+	: $obj->adjusted_type($parent->{Gencurtype}[-1]);
+    $op->($lhs, $rhs, $type->ppsym);
 }
 
 

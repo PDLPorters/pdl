@@ -2191,7 +2191,7 @@ EOF
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
       ["NewXSHdr", "NewXSCHdrs", "RunFuncCall"],
       "Non-varargs XS code when GlobalNew given",
-      sub {make_xs_code('CODE:',' XSRETURN(0);',@_)}),
+      sub {(undef,(make_xs_code('CODE:',' XSRETURN(0);',@_))[1..2])}),
    # if PMCode supplied, no var-args stuff
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
       ["PMCode","NewXSHdr", \"NewXSCHdrs", "RunFuncCall"],
