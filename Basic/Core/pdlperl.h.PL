@@ -116,6 +116,7 @@ static inline int _pdl_whichdatatype (IV nv) {
 static inline int _pdl_whichdatatype_double (NV nv) {
         PDL_TESTTYPE(PDL_F,PDL_Float)
         PDL_TESTTYPE(PDL_D,PDL_Double)
+        PDL_TESTTYPE(PDL_D,PDL_LDouble)
 #undef PDL_TESTTYPE
         /* Default return type PDL_Double */
         return PDL_D;
