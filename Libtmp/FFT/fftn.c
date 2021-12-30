@@ -195,6 +195,13 @@ D__FILE__=\"fftn.c\" */
 #define NFACTOR	11
 #define REALFIX       	long double
 
+/*
+ * use macros to access the Real/Imaginary parts so that it's possible
+ * to substitute different macros if a complex struct is used
+ */
+#define Re_Data(i)	Re[i]
+#define Im_Data(i)	Im[i]
+
 /* return the number of factors */
 static int
 factorize (int nPass, int * kt, int *factor)
@@ -274,10 +281,6 @@ factorize (int nPass, int * kt, int *factor)
 # define FFTRADIX	fftradix
 # define FFTRADIXS	"fftradix"
 /* double precision routine */
-static int
-fftradix (double Re[], double Im[],
-	  size_t nTotal, size_t nPass, size_t nSpan, int isign,
-	  int maxFactors, int maxPerm);
 # include __FILE__			/* include this file again */
 #endif
 /*}}}*/
@@ -295,154 +298,14 @@ fftradix (double Re[], double Im[],
 # define FFTNS		"fftnf"		/* name for error message */
 # define FFTRADIX	fftradixf	/* trailing 'f' for float */
 # define FFTRADIXS	"fftradixf"	/* name for error message */
-/* float precision routine */
-static int
-fftradixf (float Re[], float Im[],
-	   size_t nTotal, size_t nPass, size_t nSpan, int isign,
-	   int maxFactors, int maxPerm);
 # include __FILE__			/* include this file again */
 #endif
 /*}}}*/
 #else	/* _FFTN_C */
 
-/*
- * use macros to access the Real/Imaginary parts so that it's possible
- * to substitute different macros if a complex struct is used
- */
-
-#ifndef Re_Data
-# define Re_Data(i)	Re[i]
-# define Im_Data(i)	Im[i]
-#endif
-
-/*
- *
- */
-int
-FFTN (size_t ndim,
-      const size_t dims [],
-      REAL Re [],
-      REAL Im [],
-      int iSign,
-      REAL scaling)
-{
-   size_t nTotal;
-   int maxFactors, maxPerm;
-
-   /*
-    * tally the number of elements in the data array
-    * and determine the number of dimensions
-    */
-   nTotal = 1;
-   if (ndim)
-     {
-	if (dims != NULL)
-	  {
-	     int i;
-	     /* number of dimensions was specified */
-	     for (i = 0; i < ndim; i++)
-	       {
-		  if (dims [i] <= 0) goto Dimension_Error;
-		  nTotal *= dims [i];
-	       }
-	  }
-	else
-	  nTotal *= ndim;
-     }
-   else
-     {
-	int i;
-	/* determine # of dimensions from zero-terminated list */
-	if (dims == NULL) goto Dimension_Error;
-	for (ndim = i = 0; dims [i]; i++)
-	  {
-	     if (dims [i] <= 0)
-	       goto Dimension_Error;
-	     nTotal *= dims [i];
-	     ndim++;
-	  }
-     }
-
-   /* determine maximum number of factors and permuations */
-#if 1
-   /*
-    * follow John Beale's example, just use the largest dimension and don't
-    * worry about excess allocation.  May be someone else will do it?
-    */
-   if (dims != NULL)
-     {
-	int i;
-	for (maxFactors = maxPerm = 1, i = 0; i < ndim; i++)
-	  {
-	     if (dims [i] > maxFactors) maxFactors = dims [i];
-	     if (dims [i] > maxPerm) maxPerm = dims [i];
-	  }
-     }
-   else
-     {
-	maxFactors = maxPerm = nTotal;
-     }
-#else
-   /* use the constants used in the original Fortran code */
-   maxFactors = 23;
-   maxPerm = 209;
-#endif
-   /* loop over the dimensions: */
-   if (dims != NULL)
-     {
-	size_t nSpan = 1;
-	int i;
-
-	for (i = 0; i < ndim; i++)
-	  {
-	     int ret;
-	     nSpan *= dims [i];
-	     ret = FFTRADIX (Re, Im, nTotal, dims [i], nSpan, iSign,
-			     maxFactors, maxPerm);
-	     /* exit, clean-up already done */
-	     if (ret)
-	       return ret;
-          }
-     }
-   else
-     {
-	int ret;
-	ret = FFTRADIX (Re, Im, nTotal, nTotal, nTotal, iSign,
-			maxFactors, maxPerm);
-	/* exit, clean-up already done */
-	if (ret)
-	  return ret;
-     }
-
-   /* Divide through by the normalizing constant: */
-   if (scaling && scaling != 1.0)
-     {
-	int i;
-
-	if (iSign < 0) iSign = -iSign;
-	if (scaling < 0.0)
-	  scaling = (scaling < -1.0) ? sqrt (nTotal) : nTotal;
-
-	scaling = 1.0 / scaling;	/* multiply is often faster */
-	for (i = 0; i < nTotal; i += iSign)
-	  {
-	     Re_Data (i) *= scaling;
-	     Im_Data (i) *= scaling;
-	  }
-     }
-   return 0;
-
-   Dimension_Error:
-   fprintf (stderr, "Error: " FFTNS "() - dimension error\n");
-   return -1;
-}
-
 /*----------------------------------------------------------------------*/
 /*
  * singleton's mixed radix routine
- *
- * could move allocation out to fftn(), but leave it here so that it's
- * possible to make this a standalone function
  */
 static int
 FFTRADIX (REAL Re [],
@@ -1118,6 +981,128 @@ Permute_Single:
    /* alloc or other problem, do some clean-up */
 Memory_Error:
    fprintf (stderr, "Error: " FFTRADIXS "() - insufficient memory.\n");
+   return -1;
+}
+
+/*
+ *
+ */
+int
+FFTN (size_t ndim,
+      const size_t dims [],
+      REAL Re [],
+      REAL Im [],
+      int iSign,
+      REAL scaling)
+{
+   size_t nTotal;
+   int maxFactors, maxPerm;
+
+   /*
+    * tally the number of elements in the data array
+    * and determine the number of dimensions
+    */
+   nTotal = 1;
+   if (ndim)
+     {
+	if (dims != NULL)
+	  {
+	     int i;
+	     /* number of dimensions was specified */
+	     for (i = 0; i < ndim; i++)
+	       {
+		  if (dims [i] <= 0) goto Dimension_Error;
+		  nTotal *= dims [i];
+	       }
+	  }
+	else
+	  nTotal *= ndim;
+     }
+   else
+     {
+	int i;
+	/* determine # of dimensions from zero-terminated list */
+	if (dims == NULL) goto Dimension_Error;
+	for (ndim = i = 0; dims [i]; i++)
+	  {
+	     if (dims [i] <= 0)
+	       goto Dimension_Error;
+	     nTotal *= dims [i];
+	     ndim++;
+	  }
+     }
+
+   /* determine maximum number of factors and permuations */
+#if 1
+   /*
+    * follow John Beale's example, just use the largest dimension and don't
+    * worry about excess allocation.  May be someone else will do it?
+    */
+   if (dims != NULL)
+     {
+	int i;
+	for (maxFactors = maxPerm = 1, i = 0; i < ndim; i++)
+	  {
+	     if (dims [i] > maxFactors) maxFactors = dims [i];
+	     if (dims [i] > maxPerm) maxPerm = dims [i];
+	  }
+     }
+   else
+     {
+	maxFactors = maxPerm = nTotal;
+     }
+#else
+   /* use the constants used in the original Fortran code */
+   maxFactors = 23;
+   maxPerm = 209;
+#endif
+   /* loop over the dimensions: */
+   if (dims != NULL)
+     {
+	size_t nSpan = 1;
+	int i;
+
+	for (i = 0; i < ndim; i++)
+	  {
+	     int ret;
+	     nSpan *= dims [i];
+	     ret = FFTRADIX (Re, Im, nTotal, dims [i], nSpan, iSign,
+			     maxFactors, maxPerm);
+	     /* exit, clean-up already done */
+	     if (ret)
+	       return ret;
+          }
+     }
+   else
+     {
+	int ret;
+	ret = FFTRADIX (Re, Im, nTotal, nTotal, nTotal, iSign,
+			maxFactors, maxPerm);
+	/* exit, clean-up already done */
+	if (ret)
+	  return ret;
+     }
+
+   /* Divide through by the normalizing constant: */
+   if (scaling && scaling != 1.0)
+     {
+	int i;
+
+	if (iSign < 0) iSign = -iSign;
+	if (scaling < 0.0)
+	  scaling = (scaling < -1.0) ? sqrt (nTotal) : nTotal;
+
+	scaling = 1.0 / scaling;	/* multiply is often faster */
+	for (i = 0; i < nTotal; i += iSign)
+	  {
+	     Re_Data (i) *= scaling;
+	     Im_Data (i) *= scaling;
+	  }
+     }
+   return 0;
+
+   Dimension_Error:
+   fprintf (stderr, "Error: " FFTNS "() - dimension error\n");
    return -1;
 }
 #endif	/* _FFTN_C */
