@@ -57,6 +57,8 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     PDL_Indx   i;
     PDLDEBUG_f(printf("pdl_converttype %p, %d, %d\n", (void*)a, a->datatype,
 	targtype));
+    if(a->state & PDL_DONTTOUCHDATA)
+      return pdl_make_error_simple(PDL_EUSERERROR, "Trying to converttype magical (mmaped?) pdl");
 
     int intype = a->datatype;
     if (intype == targtype)
@@ -66,9 +68,6 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 
     STRLEN nbytes = a->nvals * pdl_howbig(targtype); /* Size of converted data */
 
-    if(a->state & PDL_DONTTOUCHDATA) {
-      return pdl_make_error_simple(PDL_EUSERERROR, "Trying to convert of magical (mmaped?) pdl");
-    }
     if (diffsize) {
        b = a->data;                      /* pointer to old data */
        a->data     = pdl_smalloc(nbytes); /* Space for changed data */
