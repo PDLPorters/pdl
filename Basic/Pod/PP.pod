@@ -2187,13 +2187,6 @@ is typically set to 1 if the underlying PDL function is not threadsafe. If this 
 isn't present, then the function is assumed to be threadsafe. This option only
 applies if PDL has been compiled with POSIX threads enabled. 
 
-=cut
-
-# flowconvert, on the other hand, claims that it 'converts vaffine
-# ndarrays without physicalizing them'. However, its only use, in Core.pm,
-# is followed immediately by a "->make_physical->sever", so I don't see the
-# advantage of not making things physical.
-
 =head3 PMCode
 
   pp_def('funcname',
