@@ -272,8 +272,8 @@ pdl_error pdl__free(pdl *it) {
 
 void pdl__removechildtrans(pdl *it,pdl_trans *trans)
 {
-	PDLDEBUG_f(printf("pdl__removechildtrans(%p): %p\n",
-	  (void*)trans, (void*)(it)));
+	PDLDEBUG_f(printf("pdl__removechildtrans(%s=%p): %p\n",
+	  trans->vtable->name, (void*)trans, (void*)(it)));
 	PDL_Indx i; int flag = 0;
 	for(i=0; i<trans->vtable->nparents; i++)
 		if(trans->pdls[i] == it)
@@ -293,8 +293,8 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans)
 
 void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 {
-	PDLDEBUG_f(printf("pdl__removeparenttrans(%p): %p %"IND_FLAG"\n",
-	  (void*)trans, (void*)(it), nth));
+	PDLDEBUG_f(printf("pdl__removeparenttrans(%s=%p): %p %"IND_FLAG"\n",
+	  trans->vtable->name, (void*)trans, (void*)(it), nth));
 	trans->pdls[nth] = 0;
 	it->trans_parent = 0;
 }
@@ -309,7 +309,8 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 		return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
 	if (!ismutual) for(j=0; j<trans->vtable->nparents; j++)
 	  if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
-	PDLDEBUG_f(printf("pdl_destroytransform %p (ensure %d, ismutual %d)\n",
+	PDLDEBUG_f(printf("pdl_destroytransform %s=%p (ensure=%d ismutual=%d)\n",
+			  trans->vtable ? trans->vtable->name : "NULL",
 			  (void*)trans,ensure,ismutual));
 	if(ensure)
 		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
