@@ -270,27 +270,18 @@ pdl_error pdl__free(pdl *it) {
     return PDL_err;
 }
 
-/* Problem with this function: when transformation is destroyed,
- * there may be several different children with the same name.
- * Therefore, we cannot croak :(
- */
-void pdl__removechildtrans(pdl *it,pdl_trans *trans, PDL_Indx nth,int all)
+void pdl__removechildtrans(pdl *it,pdl_trans *trans)
 {
-	PDLDEBUG_f(printf("pdl__removechildtrans(%p): %p %"IND_FLAG"\n",
-	  (void*)trans, (void*)(it), nth));
+	PDLDEBUG_f(printf("pdl__removechildtrans(%p): %p\n",
+	  (void*)trans, (void*)(it)));
 	PDL_Indx i; int flag = 0;
-	if(all) {
-		for(i=0; i<trans->vtable->nparents; i++)
-			if(trans->pdls[i] == it)
-				trans->pdls[i] = NULL;
-	} else {
-		trans->pdls[nth] = 0;
-	}
+	for(i=0; i<trans->vtable->nparents; i++)
+		if(trans->pdls[i] == it)
+			trans->pdls[i] = NULL;
 	PDL_DECL_CHILDLOOP(it);
 	PDL_START_CHILDLOOP(it)
 		if (PDL_CHILDLOOP_THISCHILD(it) != trans) continue;
 		PDL_CHILDLOOP_THISCHILD(it) = NULL;
-		if(!all) return;
 		flag = 1;
 		/* Can't return; might be many times (e.g. $x+$x) */
 	PDL_END_CHILDLOOP(it)
@@ -329,7 +320,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	    pdl *parent = trans->pdls[j];
 	    if(!parent) continue;
 	    PDL_CHKMAGIC(parent);
-	    pdl__removechildtrans(parent,trans,j,1);
+	    pdl__removechildtrans(parent,trans);
 	    if(!(parent->state & PDL_DESTROYING) && !parent->sv)
 	      destbuffer[ndest++] = parent;
 	  }
