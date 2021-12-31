@@ -305,12 +305,12 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	PDL_TR_CHKMAGIC(trans);
 	PDL_Indx j;
 	int ismutual = (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY);
+	if (!trans->vtable)
+		return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
 	if (!ismutual) for(j=0; j<trans->vtable->nparents; j++)
 	  if (trans->pdls[j]->state & PDL_DATAFLOW_ANY) { ismutual=1; break; }
 	PDLDEBUG_f(printf("pdl_destroytransform %p (ensure %d, ismutual %d)\n",
 			  (void*)trans,ensure,ismutual));
-	if(!trans->vtable)
-		return pdl_make_error(PDL_EFATAL, "ZERO VTABLE DESTTRAN 0x%p %d\n",trans,ensure);
 	if(ensure)
 		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
 	pdl *destbuffer[trans->vtable->npdls];
