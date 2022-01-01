@@ -5,8 +5,8 @@ BEGIN {
       'Module::Compile'     => 'PDL/NiceSlice/ModuleCompile.pm',
    );  # to validate names
 
-   ## $PDL::NiceSlice::engine = $engine_ok{'Filter::Simple'};  # default engine type
    ## TODO: Add configuration argument to perldl.conf
+   ## $PDL::NiceSlice::engine = $engine_ok{'Filter::Simple'};  # default engine type
    $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
 
    if ( exists $ENV{PDL_NICESLICE_ENGINE} ) {
