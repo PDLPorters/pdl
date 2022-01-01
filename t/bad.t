@@ -64,6 +64,18 @@ $x = pdl(1,2,3,4,5);
 $x->setbadat(2);
 is( PDL::Core::string($x), "[1 2 BAD 4 5]", "setbadat worked" );
 
+$y = $x->copy;
+is $y."", "[1 2 BAD 4 5]", "y correct bad before set_datatype";
+$y->set_datatype(ushort->enum);
+is $y."", "[1 2 BAD 4 5]", "y correct bad after set_datatype";
+
+$y = $x->copy;
+$y->badvalue('nan');
+$y->setbadat(2);
+is $y."", "[1 2 BAD 4 5]", "y correct bad before set_datatype with badval=nan";
+$y->set_datatype(ushort->enum);
+is $y."", "[1 2 BAD 4 5]", "y correct bad after set_datatype with badval=nan";
+
 # now check that badvalue() changes the ndarray
 # (only for integer types)
 $x = convert($x,ushort);
@@ -71,7 +83,7 @@ my $badval = $x->badvalue;
 $x->badvalue(44);
 is( PDL::Core::string($x), "[1 2 BAD 4 5]", "changed badvalue" );
 $x->badflag(0);
-is( PDL::Core::string($x), "[1 2 44 4 5]", "can remove the bad value setting" );
+is( PDL::Core::string($x), "[1 2 44 4 5]", "can remove the badflag setting" );
 # restore the bad value
 $x->badvalue($badval);
 

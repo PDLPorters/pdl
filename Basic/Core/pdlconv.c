@@ -41,20 +41,9 @@ VAFF_IO(writebackdata_vaffine, X)
 #undef X
 #undef XCODE
 
-/* Various conversion utilities for pdl data types */
-
-/* Change the type of all the data in a pdl struct, either changing the
-   original perl structure or making a temporary copy  */
-
-/* 
- * it seems this does not have to be aware of bad values
- * (at least in the current scheme)
- */
-
 pdl_error pdl_converttype( pdl* a, int targtype ) {
     pdl_error PDL_err = {0, NULL, 0};
     void* b;     /* Scratch data ptr */
-    PDL_Indx   i;
     PDLDEBUG_f(printf("pdl_converttype %p, %d, %d\n", (void*)a, a->datatype,
 	targtype));
     if(a->state & PDL_DONTTOUCHDATA)
@@ -76,18 +65,34 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
        b = a->data; /* In place */
     }
 
+#define THIS_ISBAD(from_badval_isnan, from_badval, from_val) \
+  ((from_badval_isnan) \
+    ? isnan((double)(from_val)) \
+    : (from_val) == (from_badval))
 #define X_OUTER(datatype_from, ctype_from, ppsym_from, shortctype_from, defbval_from) \
+    PDL_Indx i = a->nvals; \
     ctype_from *bb = (ctype_from *) b; \
-    i = a->nvals; \
+    ctype_from from_badval = pdl_get_pdl_badvalue(a).value.ppsym_from; \
+    char from_badval_isnan = PDL_ISNAN_##ppsym_from(from_badval); \
     PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
 #define X_INNER(datatype_to, ctype_to, ppsym_to, shortctype_to, defbval_to) \
     ctype_to *aa = (ctype_to *) a->data; \
     aa += i-1; bb += i-1; \
-    while (i--) \
-      *aa-- = (ctype_to) *bb--;
+    if (a->state & PDL_BADVAL) { \
+      ctype_to to_badval = defbval_to; \
+      a->has_badvalue = 0; \
+      while (i--) { \
+        *aa-- = THIS_ISBAD(from_badval_isnan, from_badval, *bb) \
+          ? to_badval : (ctype_to) *bb; \
+        bb--; \
+      } \
+    } else \
+      while (i--) \
+        *aa-- = (ctype_to) *bb--;
     PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
 #undef X_INNER
 #undef X_OUTER
+#undef THIS_ISBAD
 
     /* Store new data */
     if (diffsize) {
