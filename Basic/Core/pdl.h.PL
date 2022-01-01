@@ -75,18 +75,18 @@ print OUT (map ' X('.join(',', @$_).")\\\n", @generics_real), "\n\n";
 print OUT <<'EOF';
 #define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
-#define PDL_GENERICSWITCH(typevar, X2, dflt) \
+#define PDL_GENERICSWITCH(LISTER2, typevar, X2, dflt) \
   switch (typevar) { \
-    PDL_GENERICLIST2(PDL_GENERICSWITCH_CASE, X2) \
+    LISTER2(PDL_GENERICSWITCH_CASE, X2) \
     default: dflt; \
   }
 /* extra as first one gets painted blue */
 #define PDL_GENERICSWITCH_CASE2(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
 /* for use in inner loops avoiding extreme lambda-calculus stuff */
-#define PDL_GENERICSWITCH2(typevar, X2, dflt) \
+#define PDL_GENERICSWITCH2(LISTER2, typevar, X2, dflt) \
   switch (typevar) { \
-    PDL_GENERICLIST2_(PDL_GENERICSWITCH_CASE2, X2) \
+    LISTER2(PDL_GENERICSWITCH_CASE2, X2) \
     default: dflt; \
   }
 EOF
@@ -140,13 +140,13 @@ print OUT <<'!NO!SUBS!';
 #define ANYVAL_TO_CTYPE_OFFSET_X(datatype, ctype, ppsym, shortctype, defbval) \
     ANYVAL_TO_CTYPE(((ctype *)x)[ioff], ctype, value);
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
-    PDL_GENERICSWITCH(datatype, ANYVAL_TO_CTYPE_OFFSET_X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype))
+    PDL_GENERICSWITCH(PDL_GENERICLIST2, datatype, ANYVAL_TO_CTYPE_OFFSET_X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype))
 
 #define ANYVAL_ISNAN(x) _anyval_isnan(x)
 static inline int _anyval_isnan(PDL_Anyval x) {
 #define X(datatype, ctype, ppsym, shortctype, defbval) \
   return PDL_ISNAN_ ## ppsym(x.value.ppsym);
-  PDL_GENERICSWITCH(x.type, X, return -1)
+  PDL_GENERICSWITCH(PDL_GENERICLIST2, x.type, X, return -1)
 #undef X
 }
 
@@ -154,10 +154,10 @@ static inline int _anyval_isnan(PDL_Anyval x) {
 static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
 #define X_OUTER(datatype_x, ctype_x, ppsym_x, shortctype_x, defbval_x) \
   ctype_x cvalue_x = x.value.ppsym_x; \
-  PDL_GENERICSWITCH2(y.type, X_INNER, return -1)
+  PDL_GENERICSWITCH2(PDL_GENERICLIST2_, y.type, X_INNER, return -1)
 #define X_INNER(datatype_y, ctype_y, ppsym_y, shortctype_y, defbval_y) \
   return (cvalue_x == y.value.ppsym_y) ? 1 : 0;
-  PDL_GENERICSWITCH(x.type, X_OUTER, return -1)
+  PDL_GENERICSWITCH(PDL_GENERICLIST2, x.type, X_OUTER, return -1)
 #undef X_INNER
 #undef X_OUTER
 }

@@ -29,7 +29,7 @@ pdl_error pdl_ ## name(pdl *a) { \
 		return pdl_make_error_simple(PDL_EUSERERROR, "pdl_" #name " without vaffine"); \
 	} \
 	PDL_ENSURE_ALLOCATED(a); \
-    PDL_GENERICSWITCH(intype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype)) \
+    PDL_GENERICSWITCH(PDL_GENERICLIST2, intype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype)) \
     return PDL_err; \
 }
 
@@ -80,13 +80,13 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 #define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
     ctype_out *bb = (ctype_out *) b; \
     i = a->nvals; \
-    PDL_GENERICSWITCH2(targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
+    PDL_GENERICSWITCH2(PDL_GENERICLIST2_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
 #define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
     ctype_in *aa = (ctype_in *) a->data; \
     aa += i-1; bb += i-1; \
     while (i--) \
       *aa-- = (ctype_in) *bb--;
-    PDL_GENERICSWITCH(intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
+    PDL_GENERICSWITCH(PDL_GENERICLIST2, intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
 #undef X_INNER
 #undef X_OUTER
 
