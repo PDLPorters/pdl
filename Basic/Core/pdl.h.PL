@@ -61,17 +61,27 @@ $mymalloc
 !GROK!THIS!
 
 my @methods = qw(symbol ctype ppsym shortctype defbval);
-my @generics = map { my $t = $_; [map $t->$_, @methods] } PDL::Types::types();
-print OUT "#define PDL_TYPELIST_ALL(X) \\\n";
-print OUT (map ' X('.join(',', @$_).")\\\n", @generics), "\n\n";
-print OUT "#define PDL_TYPELIST2_ALL(X, X2) \\\n";
-print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
+sub makeg { map { my $t = $_; [map $t->$_, @methods] } grep $_[0]->($_), PDL::Types::types() }
+sub makelister {
+  my ($name, $is2, $underscore, @list) = @_;
+  my $suff = $is2 ? '2' : '';
+  my $arg1 = $is2 ? 'X, X2' : 'X';
+  my $arg2 = $is2 ? 'X2, ' : '';
+  $underscore = $underscore ? '_' : '';
+  ("#define PDL_TYPELIST${suff}_$name$underscore($arg1) \\\n",
+    (map " X($arg2".join(',', @$_).")\\\n", @list), "\n\n");
+}
+my @generics = makeg(sub {1});
+my @generics_real = makeg(sub {$_[0]->real});
+my @generics_complex = makeg(sub {!$_[0]->real});
+print OUT makelister('ALL', 0, 0, @generics);
+print OUT makelister('ALL', 1, 0, @generics);
 # extra as macro gets expanded twice, gets painted blue
-print OUT "#define PDL_TYPELIST2_ALL_(X, X2) \\\n";
-print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
-my @generics_real = map { my $t = $_; [map $t->$_, @methods] } grep $_->real, PDL::Types::types();
-print OUT "#define PDL_TYPELIST_REAL(X) \\\n";
-print OUT (map ' X('.join(',', @$_).")\\\n", @generics_real), "\n\n";
+print OUT makelister('ALL', 1, 1, @generics);
+print OUT makelister('REAL', 0, 0, @generics_real);
+print OUT makelister('REAL', 1, 0, @generics_real);
+print OUT makelister('COMPLEX', 0, 0, @generics_real);
+print OUT makelister('COMPLEX', 1, 0, @generics_real);
 print OUT <<'EOF';
 #define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
