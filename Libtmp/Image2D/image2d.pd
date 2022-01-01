@@ -127,7 +127,7 @@ pp_addhdr('
 
 #define X(symbol, ctype, ppsym, shortctype, defbval) \
   ctype quick_select_ ## ppsym(ctype arr[], int n);
-PDL_GENERICLIST_REAL(X)
+PDL_TYPELIST_REAL(X)
 #undef X
 ');
 
@@ -325,7 +325,7 @@ sub PDL::conv2d {
 ); # pp_def: conv2d
 
 pp_addhdr(<<'EOF');
-PDL_GENERICLIST_REAL(PDL_QSORT)
+PDL_TYPELIST_REAL(PDL_QSORT)
 EOF
 
 pp_def('med2d', Doc=> <<'EOD',

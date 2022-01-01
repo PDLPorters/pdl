@@ -108,7 +108,7 @@ print OUT <<'EOF';
 static inline int _pdl_whichdatatype (IV nv) {
 #define X(sym, ctype, ppsym, shortctype, defbval) \
   PDL_TESTTYPE(sym, ctype)
-   PDL_GENERICLIST(X)
+   PDL_TYPELIST_ALL(X)
 #undef X
         croak("Something's gone wrong: %ld cannot be converted by whichdatatype", nv);
 }

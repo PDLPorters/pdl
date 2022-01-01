@@ -155,7 +155,7 @@ PDL_CORE_LIST(X)
 #define X(symbol, ctype, ppsym, shortctype, defbval) \
 PDL_Indx pdl_setav_ ## ppsym(ctype * pdata, AV* av, \
 	PDL_Indx* pdims, PDL_Long ndims, int level, ctype undefval, pdl *p);
-PDL_GENERICLIST(X)
+PDL_TYPELIST_ALL(X)
 #undef X
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */

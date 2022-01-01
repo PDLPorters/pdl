@@ -395,7 +395,7 @@ BOOT:
 #undef X
 #define X(symbol, ctype, ppsym, shortctype, defbval) \
   PDL.bvals.shortctype = defbval;
-   PDL_GENERICLIST(X)
+   PDL_TYPELIST_ALL(X)
 #undef X
    /*
       "Publish" pointer to this structure in perl variable for use

@@ -143,13 +143,13 @@ PDL_LIST_FLAGS_PARAMS(X)
   };
   int typeval[] = {
 #define X(sym, ctype, ppsym, shortctype, defbval) sym,
-PDL_GENERICLIST(X)
+PDL_TYPELIST_ALL(X)
 #undef X
     -1
   };
   char *typechar[] = {
 #define X(sym, ctype, ppsym, shortctype, defbval) #sym,
-PDL_GENERICLIST(X)
+PDL_TYPELIST_ALL(X)
 #undef X
     NULL
   };

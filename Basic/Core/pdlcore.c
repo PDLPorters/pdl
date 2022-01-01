@@ -30,7 +30,7 @@ void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
 size_t pdl_howbig (int datatype) {
 #define X(datatype, ctype, ppsym, shortctype, defbval) \
     return sizeof(ctype);
-  PDL_GENERICSWITCH(PDL_GENERICLIST2, datatype, X, croak("Not a known data type code=%d", datatype))
+  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, datatype, X, croak("Not a known data type code=%d", datatype))
 #undef X
 }
 
@@ -520,7 +520,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
   ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
 #define X(dtype, ctype, ppsym, shortctype, defbval) \
     pdl_setav_ ## ppsym(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.ppsym, dest_pdl);
-  PDL_GENERICSWITCH(PDL_GENERICLIST2, dtype, X, return NULL)
+  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, dtype, X, return NULL)
 #undef X
   return dest_pdl;
 }
@@ -679,7 +679,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
     PDL_Anyval source_badval = pdl_get_pdl_badvalue(source_pdl); \
     PDL_Anyval dest_badval = pdl_get_pdl_badvalue(dest_pdl); \
     char found_bad = 0; \
-    PDL_GENERICSWITCH(PDL_GENERICLIST2_, source_pdl->datatype, X, croak("Not a known data type code=%d", source_pdl->datatype)) \
+    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL_, source_pdl->datatype, X, croak("Not a known data type code=%d", source_pdl->datatype)) \
     return undef_count; \
   } \
   /* If we are here, we are not at the bottom level yet.  So walk \
@@ -724,7 +724,7 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
   } /* end of padding IF statement */ \
   return undef_count; \
 }
-PDL_GENERICLIST2(PDL_KLUDGE_COPY_X, INNERLOOP_X)
+PDL_TYPELIST2_ALL(PDL_KLUDGE_COPY_X, INNERLOOP_X)
 #undef PDL_KLUDGE_COPY_X
 
 /*
@@ -816,7 +816,7 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
   return undef_count; \
 }
 
-PDL_GENERICLIST2(PDL_SETAV_X, INNERLOOP_X)
+PDL_TYPELIST2_ALL(PDL_SETAV_X, INNERLOOP_X)
 #undef PDL_SETAV_X
 #undef INNERLOOP_X
 

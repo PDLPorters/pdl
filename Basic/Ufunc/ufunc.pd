@@ -480,7 +480,7 @@ EOD
 #       other modules (eg Image2D)
 
 pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
-PDL_GENERICLIST_REAL(PDL_QSORT)
+PDL_TYPELIST_REAL(PDL_QSORT)
 
 #define QSORT_OTHER(symbol, ctype, ppsym, shortctype, defbval) \
   static inline void qsort_ind_ ## ppsym(ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) { \
@@ -584,7 +584,7 @@ PDL_GENERICLIST_REAL(PDL_QSORT)
     if (i < b) \
       pdl_qsortvec_ind_ ## ppsym( xx, ix, n, i, b ); \
   }
-PDL_GENERICLIST_REAL(QSORT_OTHER)
+PDL_TYPELIST_REAL(QSORT_OTHER)
 #undef QSORT_OTHER
 EOF
 

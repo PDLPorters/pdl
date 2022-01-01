@@ -62,15 +62,15 @@ $mymalloc
 
 my @methods = qw(symbol ctype ppsym shortctype defbval);
 my @generics = map { my $t = $_; [map $t->$_, @methods] } PDL::Types::types();
-print OUT "#define PDL_GENERICLIST(X) \\\n";
+print OUT "#define PDL_TYPELIST_ALL(X) \\\n";
 print OUT (map ' X('.join(',', @$_).")\\\n", @generics), "\n\n";
-print OUT "#define PDL_GENERICLIST2(X, X2) \\\n";
+print OUT "#define PDL_TYPELIST2_ALL(X, X2) \\\n";
 print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
 # extra as macro gets expanded twice, gets painted blue
-print OUT "#define PDL_GENERICLIST2_(X, X2) \\\n";
+print OUT "#define PDL_TYPELIST2_ALL_(X, X2) \\\n";
 print OUT (map ' X(X2, '.join(',', @$_).")\\\n", @generics), "\n\n";
 my @generics_real = map { my $t = $_; [map $t->$_, @methods] } grep $_->real, PDL::Types::types();
-print OUT "#define PDL_GENERICLIST_REAL(X) \\\n";
+print OUT "#define PDL_TYPELIST_REAL(X) \\\n";
 print OUT (map ' X('.join(',', @$_).")\\\n", @generics_real), "\n\n";
 print OUT <<'EOF';
 #define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
@@ -140,13 +140,13 @@ print OUT <<'!NO!SUBS!';
 #define ANYVAL_TO_CTYPE_OFFSET_X(datatype, ctype, ppsym, shortctype, defbval) \
     ANYVAL_TO_CTYPE(((ctype *)x)[ioff], ctype, value);
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
-    PDL_GENERICSWITCH(PDL_GENERICLIST2, datatype, ANYVAL_TO_CTYPE_OFFSET_X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype))
+    PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, datatype, ANYVAL_TO_CTYPE_OFFSET_X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype))
 
 #define ANYVAL_ISNAN(x) _anyval_isnan(x)
 static inline int _anyval_isnan(PDL_Anyval x) {
 #define X(datatype, ctype, ppsym, shortctype, defbval) \
   return PDL_ISNAN_ ## ppsym(x.value.ppsym);
-  PDL_GENERICSWITCH(PDL_GENERICLIST2, x.type, X, return -1)
+  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, x.type, X, return -1)
 #undef X
 }
 
@@ -154,10 +154,10 @@ static inline int _anyval_isnan(PDL_Anyval x) {
 static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
 #define X_OUTER(datatype_x, ctype_x, ppsym_x, shortctype_x, defbval_x) \
   ctype_x cvalue_x = x.value.ppsym_x; \
-  PDL_GENERICSWITCH2(PDL_GENERICLIST2_, y.type, X_INNER, return -1)
+  PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, y.type, X_INNER, return -1)
 #define X_INNER(datatype_y, ctype_y, ppsym_y, shortctype_y, defbval_y) \
   return (cvalue_x == y.value.ppsym_y) ? 1 : 0;
-  PDL_GENERICSWITCH(PDL_GENERICLIST2, x.type, X_OUTER, return -1)
+  PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, x.type, X_OUTER, return -1)
 #undef X_INNER
 #undef X_OUTER
 }
@@ -174,7 +174,7 @@ static inline int _anyval_isbad(PDL_Anyval inany, PDL_Anyval badval) {
 
 typedef struct badvals {
 #define X(symbol, ctype, ppsym, shortctype, defbval) ctype shortctype;
-PDL_GENERICLIST(X)
+PDL_TYPELIST_ALL(X)
 #undef X
 } badvals;
 
@@ -553,7 +553,7 @@ typedef struct pdl_slice_args {
     PDL_RETERROR(PDL_err, pdl_allocdata(it)); \
   }
 
-/* for use with PDL_GENERICLIST_REAL */
+/* for use with PDL_TYPELIST_REAL */
 #define PDL_QSORT(symbol, ctype, ppsym, shortctype, defbval) \
   static inline void qsort_ ## ppsym(ctype* xx, PDL_Indx a, PDL_Indx b) { \
      PDL_Indx i,j; \

@@ -10,7 +10,7 @@
 
 #define ELEM_SWAP(ctype,a,b) { register ctype t=(a);(a)=(b);(b)=t; }
 
-/* for use with PDL_GENERICLIST_REAL */
+/* for use with PDL_TYPELIST_REAL */
 #define X(symbol, ctype, ppsym, shortctype, defbval) \
   ctype quick_select_ ## ppsym(ctype arr[], int n) \
   { \
@@ -52,6 +52,6 @@
         high = hh - 1; \
     } \
   }
-PDL_GENERICLIST_REAL(X)
+PDL_TYPELIST_REAL(X)
 #undef ELEM_SWAP
 #undef X
