@@ -387,15 +387,13 @@ typedef struct pdl_transvtable {
   short flags;                                                          \
   pdl_transvtable *vtable;                                              \
   int bvalflag;                                                         \
-  int has_badvalue;                                                     \
-  PDL_Anyval badvalue;                                                  \
   pdl_thread pdlthread;                                                 \
   PDL_Indx *ind_sizes;                                                  \
   PDL_Indx *inc_sizes;                                                  \
   char dims_redone;                                                     \
   PDL_Indx *incs; PDL_Indx offs; /* only used for affine */             \
   void *params;                                                         \
-  int __datatype
+  pdl_datatypes __datatype
 
 #define PDL_TRANS_START(np) \
   PDL_TRANS_START_COMMON; \
