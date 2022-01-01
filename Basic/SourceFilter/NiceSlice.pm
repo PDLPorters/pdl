@@ -145,7 +145,7 @@ sub splitprotected ($$) {
   return @chunks;
 }
 
-# a pattern that finds occurences of the form
+# a pattern that finds occurrences of the form
 #
 #  $var(
 #
@@ -341,7 +341,7 @@ sub reinstator_regexp{
     return qr/$reinstr/o; # allow trailing comments
 }
 
-# save eval of findslice that should be used within perldl or pdl2
+# safe eval of findslice that should be used within perldl or pdl2
 # as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
@@ -367,8 +367,6 @@ sub perldlpp {
      }
  }
 
- my $new;
-
  ##############################
  ## This block sort-of echoes import(), below...
  ## Crucial difference: we don't give up the ghost on termination conditions, only
@@ -380,7 +378,7 @@ sub perldlpp {
  my $terminator = terminator_regexp($class);
  my $reinstator = reinstator_regexp($class);
 
- my($status, $off, $end);
+ my($status, $off, $end, $new);
  eval {
      do {
 	 my $data = "";
@@ -603,7 +601,7 @@ Instead say:
   print $y;
 
 Source filters I<must> be executed at compile time to be effective. And
-C<PDL::NiceFilter> is just a source filter (although it is not
+C<PDL::NiceSlice> is just a source filter (although it is not
 necessarily obvious for the casual user).
 
 =head1 The new slicing syntax
@@ -1054,8 +1052,7 @@ when working with L<Inline::Pdlpp>, see below.
 =head2 Possible interaction with L<Inline::Pdlpp>
 
 There is currently an undesired interaction between C<PDL::NiceSlice>
-and the new L<Inline::Pdlpp> module (currently only in 
-PDL CVS). Since PP code generally
+and L<Inline::Pdlpp>. Since PP code generally
 contains expressions of the type C<$var()> (to access ndarrays, etc)
 C<PDL::NiceSlice> recognizes those I<incorrectly> as
 slice expressions and does its substitutions. This is not a problem
@@ -1077,7 +1074,6 @@ Pdlpp code (see above):
   __Pdlpp__
 
   ... inline stuff
-
 
 Otherwise switch C<PDL::NiceSlice> explicitly off around the
 Inline::Pdlpp code:
