@@ -275,8 +275,9 @@ at_bad_c(x,pos)
 	x->ndims);
     if (result.type < 0) barf("Position %"IND_FLAG" out of range", pos);
    badflag = (x->state & PDL_BADVAL) > 0;
-   PDL_Anyval badval = pdl_get_pdl_badvalue(x);
    if (badflag) {
+     PDL_Anyval badval = pdl_get_pdl_badvalue(x);
+     if (badval.type < 0) barf("Error getting badvalue, type=%d", badval.type);
      int isbad = ANYVAL_ISBAD(result, badval);
      if (isbad == -1) barf("ANYVAL_ISBAD error on types %d, %d", result.type, badval.type);
      if (isbad)
@@ -317,6 +318,7 @@ listref_c(x)
    int badflag = (x->state & PDL_BADVAL) > 0;
    if (badflag) {
       pdl_badval = pdl_get_pdl_badvalue( x );
+      if (pdl_badval.type < 0) barf("Error getting badvalue, type=%d", pdl_badval.type);
    }
 
    pdl_barf_if_error(pdl_make_physvaffine( x ));

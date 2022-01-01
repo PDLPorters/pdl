@@ -677,7 +677,9 @@ PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the des
     } \
     /* This is used inside the switch in order to detect badvalues. */ \
     PDL_Anyval source_badval = pdl_get_pdl_badvalue(source_pdl); \
+    if (source_badval.type < 0) barf("Error getting badvalue, type=%d", source_badval.type); \
     PDL_Anyval dest_badval = pdl_get_pdl_badvalue(dest_pdl); \
+    if (dest_badval.type < 0) barf("Error getting badvalue, type=%d", dest_badval.type); \
     char found_bad = 0; \
     PDL_GENERICSWITCH(PDL_TYPELIST2_ALL_, source_pdl->datatype, X, croak("Not a known data type code=%d", source_pdl->datatype)) \
     return undef_count; \

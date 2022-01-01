@@ -489,7 +489,9 @@ You might want to use for example C<get_pdl_badvalue> function:
 
  /* THIS IS CORRECT */
  double bad_a;
- ANYVAL_TO_CTYPE(bad_a, double, PDL->get_pdl_badvalue(a));
+ PDL_Anyval bv = PDL->get_pdl_badvalue(a);
+ if (bv.type < 0) croak("error getting badvalue");
+ ANYVAL_TO_CTYPE(bad_a, double, bv);
  if( bad_a == 0 ) { ... }
 
 As of PDL 2.014, in F<pdl.h> there are the following macros for handling

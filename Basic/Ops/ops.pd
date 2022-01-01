@@ -118,8 +118,12 @@ EOF
 	$extra{HdrCode} .= <<'EOH';
            {
              complex double bad_a, bad_b;
-             ANYVAL_TO_CTYPE(bad_a, complex double, PDL->get_pdl_badvalue(a));
-             ANYVAL_TO_CTYPE(bad_b, complex double, PDL->get_pdl_badvalue(b));
+             PDL_Anyval a_badval = PDL->get_pdl_badvalue(a);
+             if (a_badval.type < 0) barf("Error getting badvalue, type=%d", a_badval.type);
+             ANYVAL_TO_CTYPE(bad_a, complex double, a_badval);
+             PDL_Anyval b_badval = PDL->get_pdl_badvalue(b);
+             if (b_badval.type < 0) barf("Error getting badvalue, type=%d", b_badval.type);
+             ANYVAL_TO_CTYPE(bad_b, complex double, b_badval);
              if( bad_a == 0 || bad_a == 1 || bad_b == 0 || bad_b == 1 ) {
                warn("Badvalue is set to 0 or 1. This will cause data loss when using badvalues for comparison operators.");
              }
