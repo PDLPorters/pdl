@@ -30,7 +30,7 @@ our $VERSION = '1.001';
 $VERSION = eval $VERSION;
 
 $PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debug : 0;
-# replace all occurences of the form
+# replace all occurrences of the form
 #
 #   $pdl(args);
 # or
@@ -211,7 +211,7 @@ sub procargs {
   return "($args)";
 }
 
-# this is the real workhorse that translates occurences
+# this is the real workhorse that translates occurrences
 # of $x(args) into $args->slice(processed_arglist)
 #
 sub findslice {
