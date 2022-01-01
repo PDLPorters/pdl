@@ -1017,7 +1017,7 @@ void pdl_propagate_badvalue( pdl *it ) {
 } /* pdl_propagate_badvalue */
 
 PDL_Anyval pdl_get_badvalue( int datatype ) {
-    PDL_Anyval retval = { -1, {0} };
+    PDL_Anyval retval = { PDL_INVALID, {0} };
 #define X(datatype, ctype, ppsym, shortctype, defbval) \
     retval.type = datatype; retval.value.ppsym = PDL.bvals.shortctype;
     PDL_GENERICSWITCH(datatype, X, return retval)

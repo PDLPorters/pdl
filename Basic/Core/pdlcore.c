@@ -491,7 +491,7 @@ static int _detect_datatype(AV *av) {
 pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
 {
   int ndims, i, level=0;
-  PDL_Anyval undefval = { -1, {0} };
+  PDL_Anyval undefval = { PDL_INVALID, {0} };
 
   ndims = av_len(dims)+1;
   PDL_Indx dest_dims[ndims];
@@ -542,7 +542,7 @@ PDL_Indx pdl_get_offset(PDL_Indx* pos, PDL_Indx* dims, PDL_Indx *incs, PDL_Indx 
 
 /* wrapper for pdl_at where only want first item, cf sclr_c */
 PDL_Anyval pdl_at0( pdl* it ) {
-    PDL_Anyval result = { -1, {0} };
+    PDL_Anyval result = { PDL_INVALID, {0} };
     PDL_Indx nullp = 0;
     PDL_Indx dummyd = 1;
     PDL_Indx dummyi = 1;
@@ -556,7 +556,7 @@ PDL_Anyval pdl_at0( pdl* it ) {
 /* Return value at position (x,y,z...) */
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims,
 	PDL_Indx* incs, PDL_Indx offset, PDL_Indx ndims) {
-   PDL_Anyval result = { -1, {0} };
+   PDL_Anyval result = { PDL_INVALID, {0} };
    PDL_Indx ioff = pdl_get_offset(pos, dims, incs, offset, ndims);
    if (ioff < 0) return result;
    ANYVAL_FROM_CTYPE_OFFSET(result, datatype, x, ioff);

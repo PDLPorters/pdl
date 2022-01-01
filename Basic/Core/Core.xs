@@ -234,7 +234,7 @@ SV *
 sclr_c(it)
    pdl* it
    PREINIT:
-	PDL_Anyval result = { -1, {0} };
+	PDL_Anyval result = { PDL_INVALID, {0} };
    CODE:
         /* get the first element of an ndarray and return as
          * Perl scalar (autodetect suitable type IV or NV)
@@ -254,7 +254,7 @@ at_bad_c(x,pos)
    PREINIT:
     PDL_Indx ipos;
     int badflag;
-    PDL_Anyval result = { -1, {0} };
+    PDL_Anyval result = { PDL_INVALID, {0} };
    CODE:
     pdl_barf_if_error(pdl_make_physvaffine( x ));
 
@@ -305,8 +305,8 @@ listref_c(x)
    int stop = 0;
    AV *av;
    SV *sv;
-   PDL_Anyval pdl_val =    { -1, {0} };
-   PDL_Anyval pdl_badval = { -1, {0} };
+   PDL_Anyval pdl_val =    { PDL_INVALID, {0} };
+   PDL_Anyval pdl_badval = { PDL_INVALID, {0} };
   CODE:
     /*
     # note:
@@ -795,7 +795,7 @@ threadover_n(...)
 	EXTEND(sp,items);
 	PUSHs(sv_2mortal(newSViv((sd-1))));
 	for(i=0; i<npdls; i++) {
-		PDL_Anyval pdl_val = { -1, {0} };
+		PDL_Anyval pdl_val = { PDL_INVALID, {0} };
 		pdl_val = pdl_get_offs(pdls[i],pdl_thr.offs[i]);
 		ANYVAL_TO_SV(sv, pdl_val);
 		PUSHs(sv_2mortal(sv));
