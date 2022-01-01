@@ -189,7 +189,18 @@ my $ai = translate_and_run 'my $i = which $pa < 0; $pa($i);';
 ok(isempty $ai );
 
 {
+my $expected = q{
+CREATE TABLE $table (
+CHECK ( yr = $yr )
+) INHERITS ($schema.master_table)
+};
 use PDL::NiceSlice;
+my $got = q{
+CREATE TABLE $table (
+CHECK ( yr = $yr )
+) INHERITS ($schema.master_table)
+};
+is $got, $expected, 'NiceSlice leaves strings along';
 
 my $data = join '', <DATA>;
 like $data, qr/we've got data/, "we've got data";

@@ -9,6 +9,7 @@
 - sclr to croak if called on multi-element array
 - $TXYZ() macros fatal error if any of trans's GenericTypes not dealt with
 - add long double both real (LD) and complex (CLD)
+- NiceSlice uses the better Filter::Simple version as is now quick
 
 2.063_03 2021-11-23
 - add pp_add_macros
