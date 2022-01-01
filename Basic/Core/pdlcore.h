@@ -71,6 +71,7 @@ void pdl_thread_mismatch_msg(
 );
 void pdl_dump_flags_fixspace(int flags, int nspac, pdl_flags type);
 void pdl_dump_trans_fixspace(pdl_trans *it, int nspac);
+void pdl_dump_anyval(PDL_Anyval v);
 
 #define PDL_CORE_LIST(X) \
   X(SvPDLV, pdl*, ( SV* )) \
