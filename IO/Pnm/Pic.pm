@@ -151,13 +151,8 @@ sub init_converter_table {
     }
   }
 
-  $PDL::IO::Pic::biggrays = &hasbiggrays();
-  print "using big grays\n" if $PDL::IO::Pic::debug &&
-    $PDL::IO::Pic::biggrays;
-
   for (sort keys %converter) {
-    $converter{$_}->{ushortok} = $PDL::IO::Pic::biggrays ?
-      (m/GIF/ ? 0 : 1) : (m/GIF|RAST|IFF/ ? 0 : 1);
+    $converter{$_}{ushortok} = (m/GIF/ ? 0 : 1);
   }
 }
 
@@ -167,34 +162,6 @@ sub inpath {
   my $exe = $^O =~ /win32/i ? '.exe' : '';
   for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe" || $prog =~ /^NONE$/}
   return 0;
-}
-
-
-sub hasbiggrays {
-  my ($checked,$form) = (0,'');
-  require IO::File;
-  for (&rpiccan()) { next if /^PNM$/; $form = $_; $checked=1; last }
-  unless ($checked) {
-    warn "PDL::IO::Pic - couldn't find any pbm converter"
-      if $PDL::IO::Pic::debug;
-    return 0;
-  }
-  *SAVEERR = *SAVEERR;  # stupid fix to shut up -w (AKA pain-in-the-...-flag)
-  open(SAVEERR, ">&STDERR");
-  my $tmp = new_tmpfile IO::File or barf "couldn't open tmpfile";
-  my $pos = $tmp->getpos;
-  my $txt;
-  { local *IN;
-    *IN = *$tmp;  # doesn't seem to work otherwise
-    open(STDERR,">&IN") or barf "couldn't redirect stdder";
-
-    system("$converter{$form}->{get} -version");
-    open(STDERR, ">&PDL::IO::Pic::SAVEERR");
-    $tmp->setpos($pos);  # rewind
-    $txt = join '',<IN>;
-    close IN; undef $tmp;
-  }
-  return ($txt =~ /PGM_BIGGRAYS/);
 }
 
 =head1 FUNCTIONS
