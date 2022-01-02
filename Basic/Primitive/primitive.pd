@@ -165,6 +165,23 @@ Threading occurs in the usual way, but as both the 0 and 1 dimension
 (if present) are included in the operation, you must be sure that
 you don't try to thread over either of those dims.
 
+Of note, due to how Perl v5.14.0 and above implement operator overloading of
+the C<x> operator, the use of parentheses for the left operand creates a list
+context, that is
+
+ pdl> ( $x * $y ) x $z
+ ERROR: Argument "..." isn't numeric in repeat (x) ...
+
+treats C<$z> as a numeric count for the list repeat operation and does not call
+the scalar form of the overloaded operator. To use the operator in this case,
+use a scalar context:
+
+ pdl> scalar( $x * $y ) x $z
+
+or by calling L</matmult> directly:
+
+ pdl> ( $x * $y )->matmult( $z )
+
 EXAMPLES
 
 Here are some simple ways to define vectors and matrices:
