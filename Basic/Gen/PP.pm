@@ -1639,11 +1639,11 @@ EOD
        'Sets GenericTypes flag to all real types known to PDL::Types',
        sub {[PDL::Types::ppdefs()]}),
 
-   PDL::PP::Rule->new("ExtraGenericLoops", "FTypes",
-       'Makes ExtraGenericLoops identical to FTypes if the latter exists and the former does not',
+   PDL::PP::Rule->new("ExtraGenericSwitches", "FTypes",
+       'Makes ExtraGenericSwitches identical to FTypes if the latter exists and the former does not',
        sub {return $_[0]}),
-   PDL::PP::Rule::Returns->new("ExtraGenericLoops", [],
-		'Sets ExtraGenericLoops to an empty hash if it does not already exist', {}),
+   PDL::PP::Rule::Returns->new("ExtraGenericSwitches", [],
+       'Sets ExtraGenericSwitches to an empty hash if it does not already exist', {}),
 
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
 

@@ -12,7 +12,7 @@ use strict;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
-my @code_args_always = qw(SignatureObj GenericTypes ExtraGenericLoops HaveThreading Name);
+my @code_args_always = qw(SignatureObj GenericTypes ExtraGenericSwitches HaveThreading Name);
 sub make_args {
   my ($which) = @_;
   ("Parsed$which", [$which,\"Bad$which",@code_args_always]);
@@ -129,7 +129,7 @@ sub new {
 
     # Enclose it all in a genericloop.
     my $nc = $coderef;
-    $coderef = PDL::PP::GenericLoop->new($generictypes, undef,
+    $coderef = PDL::PP::GenericSwitch->new($generictypes, undef,
 	  [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
     push @{$coderef},$nc;
 
@@ -142,7 +142,7 @@ sub new {
     my $no = 0;
     for(sort keys %glh) {
 	my $nc = $coderef;
-	$coderef = PDL::PP::GenericLoop->new($generictypes,$no++,
+	$coderef = PDL::PP::GenericSwitch->new($generictypes,$no++,
 					    $glh{$_},$_);
 	push @$coderef,$nc;
     }
@@ -389,10 +389,6 @@ sub report_error {
 # 	new - constructor
 #	get_str - get the string to be put into the xsub.
 
-###########################
-#
-# Encapsulate a block
-
 package PDL::PP::Block;
 
 sub new { my($type) = @_; bless [],$type; }
@@ -459,10 +455,6 @@ if ( \$PRIV(bvalflag) ) { PDL_COMMENT("** do 'bad' Code **")
 EOF
 }
 
-###########################
-#
-# Encapsulate a loop
-
 package PDL::PP::Loop;
 our @ISA = "PDL::PP::Block";
 
@@ -498,10 +490,7 @@ sub mypostlude { my($this,$parent,$context) = @_;
 	return join '', map PDL::PP::pp_line_numbers(__LINE__-1, "}} PDL_COMMENT(\"Close $_\")"), @{$this->[0]};
 }
 
-###########################
-#
-# Encapsulate a generic type loop
-package PDL::PP::GenericLoop;
+package PDL::PP::GenericSwitch;
 our @ISA = "PDL::PP::Block";
 
 # make the typetable from info in PDL::Types
@@ -524,7 +513,7 @@ sub myoffs {4}
 sub myprelude {
     my ($this,$parent,$context) = @_;
     push @{$parent->{Gencurtype}}, undef; # so that $GENERIC can get at it
-    die "ERROR: need to rethink NaN support in GenericLoop\n"
+    die "ERROR: need to rethink NaN support in GenericSwitch\n"
 	if defined $this->[1] and $parent->{ftypes_type};
     qq[PDL_COMMENT("Start generic loop")\n\tswitch($this->[3]) {\n];
 }
@@ -630,10 +619,6 @@ sub get_str {
 }
 
 
-###########################
-#
-# Encapsulate an access
-
 package PDL::PP::Access;
 use Carp;
 our @CARP_NOT;
@@ -648,10 +633,8 @@ sub get_str { my($this,$parent,$context) = @_;
 }
 
 ###########################
-#
 # Encapsulate a check on whether a value is good or bad
 # handles both checking (good/bad) and setting (bad)
-
 package PDL::PP::BadAccess;
 use Carp;
 
@@ -695,10 +678,6 @@ sub get_str {
 }
 
 
-###########################
-#
-# Encapsulate a macroaccess
-
 package PDL::PP::MacroAccess;
 use Carp;
 use PDL::Types ':All';
@@ -728,11 +707,6 @@ sub get_str {
       unless defined $parent->{Gencurtype}[-1];
     $type2value->{$parent->{Gencurtype}[-1]->ppsym};
 }
-
-
-###########################
-#
-# Encapsulate a GentypeAccess
 
 package PDL::PP::GentypeAccess;
 use Carp;
