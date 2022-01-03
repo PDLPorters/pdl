@@ -57,19 +57,6 @@ sub show_err {
   unlink $file;
   return $err unless $showflag;
 }
-
-# barf after showing any accumulated errors
-sub rbarf {
-  my $err = show_err(shift, 0);
-  $err = '' unless defined $err;
-  barf @_,"converter error: $err";
-}
-
-# carp after showing any accumulated errors
-sub rcarp {
-  show_err(shift);
-  carp @_;
-}
 EOD
 
 pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
@@ -132,11 +119,11 @@ sub PDL::rpnm {
     # redirection now in effect for child
     # close(STDERR);
     open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
-    rbarf $efile,"Can't open pnm file '$file'" unless $succeed;
+    barf "Can't open pnm file '$file'" unless $succeed;
     binmode $fh;
 
     read($fh,(my $magic),2);
-    rbarf $efile, "Oops, this is not a PNM file" unless $magic =~ /P[1-6]/;
+    barf "Oops, this is not a PNM file" unless $magic =~ /P[1-6]/;
     print "reading pnm file with magic $magic\n" if $PDL::debug>1;
 
     my ($isrgb,$israw,$params) = (0,0,3);
@@ -155,7 +142,7 @@ sub PDL::rpnm {
 	    if ($line =~ /\s*(\S+)(.*)$/) {
 		$dims[$pgot++] = $1; $line = $2; }
 	    else {
-		rbarf $efile, "no valid header info in pnm";}
+		barf "no valid header info in pnm";}
 	}
     }
 
@@ -168,13 +155,13 @@ TYPES:	{  my $pdlt;
 	         last TYPES;
 	       }
 	   }
-	   rbarf $efile, "rraw: data from ascii pnm file out of range";
+	   barf "rraw: data from ascii pnm file out of range";
         }
     };
 
     # the file ended prematurely
-    rbarf $efile, "no valid header info in pnm" if $pgot < $params;
-    rbarf $efile,
+    barf "no valid header info in pnm" if $pgot < $params;
+    barf
         "Dimensions must be > 0" if ($dims[0] <= 0) || ($dims[1] <= 0);
 
     my @Dims = @dims[0,1];
@@ -280,7 +267,7 @@ sub PDL::wpnm {
     my $succeed = open(my $fh, $pref . $file);
     # close(STDERR);
     open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
-    rbarf $efile, "Can't open pnm file" unless $succeed;
+    barf "Can't open pnm file" unless $succeed;
     binmode $fh;
 
     $max =$pdl->max;
