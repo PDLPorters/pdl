@@ -35,7 +35,7 @@ use File::Temp qw( tempfile );
 sub dmax {
     my $type = shift;
     my $sz = 8*howbig($type);
-    $sz-- if ($type == $PDL_S || $type == $PDL_L);  # signed types
+    $sz-- if !PDL::Type->new($type)->unsigned;
     return ((1 << $sz)-1);
 }
 EOD
