@@ -111,15 +111,7 @@ sub PDL::rpnm {
         $pdl = $pdl->initialize;
     }
 
-    my ($errfh, $efile) = tempfile();
-    # catch STDERR
-    open(SAVEERR, ">&STDERR");
-    open(STDERR, ">$efile") || barf "Can't redirect stderr";
-    my $succeed = open(my $fh, $file);
-    # redirection now in effect for child
-    # close(STDERR);
-    open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
-    barf "Can't open pnm file '$file'" unless $succeed;
+    open my $fh, $file or barf "Can't open pnm file '$file'";
     binmode $fh;
 
     read($fh,(my $magic),2);
@@ -182,7 +174,6 @@ TYPES:	{  my $pdlt;
     print("loaded pnm file, $dims[0]x$dims[1], gmax: $dims[2]",
 	   $isrgb ? ", RGB data":"", $israw ? ", raw" : " ASCII"," data\n")
 	if $PDL::debug;
-    unlink($efile);
 
     # need to byte swap for little endian platforms
     unless ( isbigendian() ) {
