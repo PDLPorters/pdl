@@ -84,7 +84,6 @@ sub PDL::rpnm {
        if $#_<0 || $#_>2;
     my ($pdl,$file,$maybe) = @_;
 
-
     if (ref($file)) { # $file is really a pdl in this case
 	$pdl = $file;
 	$file = $maybe;
@@ -96,13 +95,15 @@ sub PDL::rpnm {
     binmode $fh;
 
     read($fh,(my $magic),2);
-    barf "Oops, this is not a PNM file" unless $magic =~ /P[1-6]/;
+    barf "Oops, this is not a PNM file" unless $magic =~ /P([1-6])/;
+    my $magicno = $1;
     print "reading pnm file with magic $magic\n" if $PDL::debug>1;
 
-    my ($isrgb,$israw,$params) = (0,0,3);
-    $israw = 1 if $magic =~ /P[4-6]/;
-    $isrgb = 1 if $magic =~ /P[36]/;
-    if ($magic =~ /P[14]/) {  # PBM data
+    my $params = 3;
+    my $israw = $magicno > 3 ? 1 : 0;
+    my $isrgb = ($magicno % 3) == 0;
+    my $ispbm = ($magicno % 3) == 1;
+    if ($ispbm) {  # PBM data
 	$params = 2;
 	$dims[2] = 1; }
 
@@ -146,11 +147,10 @@ TYPES:	{  my $pdlt;
     my $npdl = $isrgb ? $pdl->clump(2) : $pdl;
     if ($israw) {
        pnminraw (convert(pdl(0),$type), $npdl, $Dims[0], $Dims[1],
-	 $magic eq "P4", $fh);
+	 $ispbm, $fh);
     } else {
-       my $form = $1 if $magic =~ /P([1-3])/;
        pnminascii (convert(pdl(0),$type), $npdl, $Dims[0], $Dims[1],
-	$form, $fh);
+	$magicno, $fh);
     }
     print("loaded pnm file, $dims[0]x$dims[1], gmax: $dims[2]",
 	   $isrgb ? ", RGB data":"", $israw ? ", raw" : " ASCII"," data\n")
@@ -160,7 +160,6 @@ TYPES:	{  my $pdlt;
     $pdl->type->bswap->($pdl) if !isbigendian() and $israw;
     return $pdl;
 }
-
 
 =head2 wpnm
 
