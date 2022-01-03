@@ -21,12 +21,14 @@ sub rpnm_unlink {
   my $file = File::Spec->catfile($tmpdir, "temp.$ext");
   wpnm($data, $file, $format, $raw);
   my $pdl = rpnm($file);
+  open my $fh, '<', $file;
+  my $pdl2 = rpnm($fh);
+  ok all($pdl == $pdl2), 'rpnm from fh same as from disk file';
   unlink $file;
   return $pdl;
 }
 
-$PDL::debug = $PDL::debug = 0;
-$PDL::debug = 1 if defined($ARGV[0]) && $ARGV[0] =~ /-v/;
+$PDL::debug = $PDL::debug = 1 if defined($ARGV[0]) && $ARGV[0] =~ /-v/;
 
 #              [FORMAT, extension, ushort-divisor,
 #               only RGB/no RGB/any (1/-1/0), mxdiff]
@@ -34,9 +36,6 @@ $PDL::debug = 1 if defined($ARGV[0]) && $ARGV[0] =~ /-v/;
 my @formats = ( ['PNM', 'pnm',  1, 0, 0.01],
 	        ['GIF', 'gif',256, 0, 0.01],
 	        ['TIFF','tif',  1, 0, 0.01],);
-
-## GIF doesn't handle 16-bit so it has 2 * 2 tests
-## while the other formats have 2 * 3 tests each
 
 my $im1 = ushort([[0,65535,0], [256,256,256], [65535,256,65535]]);
 my $im2 = byte($im1/256);

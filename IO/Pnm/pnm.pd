@@ -55,7 +55,7 @@ Read a pnm (portable bitmap/pixmap, pbm/ppm) file into an ndarray.
 
   Usage:  $im = rpnm $file;
 
-Reads a file in pnm format (ascii or raw) into a pdl (magic numbers P1-P6).
+Reads a file (or open file-handle) in pnm format (ascii or raw) into a pdl (magic numbers P1-P6).
 Based on the input format it returns pdls with arrays of size (width,height)
 if binary or grey value data (pbm and pgm) or (3,width,height) if rgb
 data (ppm). This also means for a palette image that the distinction between
@@ -90,7 +90,12 @@ sub PDL::rpnm {
       ? (splice @_, 0, 2)[1] : shift->initialize;
     my $file = shift;
 
-    open my $fh, $file or barf "Can't open pnm file '$file': $!";
+    my $fh;
+    if (ref $file) {
+      $fh = $file;
+    } else {
+      open $fh, $file or barf "Can't open pnm file '$file': $!";
+    }
     binmode $fh;
 
     read($fh,(my $magic),2);
