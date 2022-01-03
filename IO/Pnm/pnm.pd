@@ -85,15 +85,10 @@ inplace transpose/inversion that way.
 sub rpnm {PDL->rpnm(@_)}
 sub PDL::rpnm {
     barf 'Usage: $im = rpnm($file) or $im = $pdl->rpnm($file)'
-       if $#_<0 || $#_>2;
-    my ($pdl,$file,$maybe) = @_;
-
-    if (ref($file)) { # $file is really a pdl in this case
-	$pdl = $file;
-	$file = $maybe;
-    } else {
-        $pdl = $pdl->initialize;
-    }
+       if !@_ || @_>3;
+    my $pdl = ref($_[1]) && UNIVERSAL::isa($_[1], 'PDL')
+      ? (splice @_, 0, 2)[1] : shift->initialize;
+    my $file = shift;
 
     open my $fh, $file or barf "Can't open pnm file '$file': $!";
     binmode $fh;
@@ -121,12 +116,10 @@ sub PDL::rpnm {
     }
     # the file ended prematurely
     barf "no valid header info in pnm" if $pgot < $params;
-
-    my @eligible = grep $dims[2] <= dmax($_), $PDL_B,$PDL_US,$PDL_L;
-    barf "rraw: data from ascii pnm file out of range" if !@eligible;
-    my $type = $eligible[0];
-
     barf "Dimensions must be > 0" if ($dims[0] <= 0) || ($dims[1] <= 0);
+
+    my ($type) = grep $dims[2] <= dmax($_), $PDL_B,$PDL_US,$PDL_L;
+    barf "rraw: data from ascii pnm file out of range" if !defined $type;
 
     my @Dims = @dims[0,1];
     $Dims[0] *= 3 if $isrgb;
