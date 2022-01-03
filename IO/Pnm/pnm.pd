@@ -167,19 +167,18 @@ packages.
 
 =cut
 
+my %type2base = (PBM => 1, PGM => 2, PPM => 3);
 *wpnm = \&PDL::wpnm;
 sub PDL::wpnm {
     barf ('Usage: wpnm($pdl,$filename,$format[,$raw]) ' .
 	   'or $pdl->wpnm($filename,$format[,$raw])') if $#_ < 2;
     my ($pdl,$file,$type,$raw) = @_;
-    my ($israw,$max,$isrgb,$magic) = (0,255,0,"");
+    barf "wpnm: unknown format '$type'" if !exists $type2base{$type};
 
     # need to copy input arg since bswap[24] work inplace
     # might be better if the bswap calls detected if run in
     # void context
     my $swap_inplace = $pdl->is_inplace;
-
-    barf "wpnm: unknown format '$type'" if $type !~ /P[PGB]M/;
 
     # check the data
     my @Dims = $pdl->dims;
@@ -187,34 +186,32 @@ sub PDL::wpnm {
 	if ($type =~ /PPM/) && (($#Dims != 2) || ($Dims[0] != 3));
     barf "wpnm: expecting 2D (w,h) input"
 	if ($type =~ /P[GB]M/) && ($#Dims != 1);
-    barf "wpnm: user should convert float and double data to appropriate type"
-	if ($pdl->get_datatype == $PDL_F) || ($pdl->get_datatype == $PDL_D);
-    barf "wpnm: expecting prescaled data"
-	if (($pdl->get_datatype != $PDL_B) || ($pdl->get_datatype != $PDL_US)) &&
-	    ($pdl->min < 0);
+    barf "wpnm: user should convert float etc data to appropriate type"
+	if !$pdl->type->integer;
+    my $max = $pdl->max;
+    barf "wpnm: expecting prescaled data (0-65535)"
+	if $pdl->min < 0 or $max > 65535;
 
     # check for raw format
-    $israw = 1 if (($pdl->get_datatype == $PDL_B) || ($pdl->get_datatype == $PDL_US) || ($type =~ /PBM/));
-    $israw = 0 if (defined($raw) && !$raw);
+    my $israw =
+      (defined($raw) && !$raw) ? 0 :
+      (($pdl->get_datatype == $PDL_B) || ($pdl->get_datatype == $PDL_US) || ($type eq 'PBM')) ? 3 :
+      0;
 
-    $magic = $israw ? "P4" : "P1" if $type =~ /PBM/;
-    $magic = $israw ? "P5" : "P2" if $type =~ /PGM/;
-    $magic = $israw ? "P6" : "P3" if $type =~ /PPM/;
-    $isrgb = 1 if $magic =~ /P[36]/;
+    my $magic = 'P' . ($type2base{$type} + $israw);
+    my $isrgb = $type eq 'PPM';
 
     my $pref = ($file !~ /^\s*[|>]/) ? ">" : "";  # test for plain file name
     open my $fh, $pref . $file or barf "Can't open pnm file: $!";
     binmode $fh;
 
-    $max =$pdl->max;
     print "writing ". ($israw ? "raw" : "ascii") .
       "format with magic $magic, max=$max\n" if $PDL::debug;
     # write header
     print $fh "$magic\n";
     print $fh "$Dims[-2] $Dims[-1]\n";
-    if ($type !~ /PBM/) {	# fix maxval for raw output formats
+    if ($type ne 'PBM') {	# fix maxval for raw output formats
        my $outmax = 0;
-
        if ($max < 256) {
           $outmax =   "255";
        } elsif ($max < 65536) {
@@ -222,28 +219,18 @@ sub PDL::wpnm {
        } else {
           $outmax = $max;
        };
-
-       print $fh "$outmax\n" unless $type =~ /PBM/;
+       print $fh "$outmax\n";
     };
 
     # if rgb clump first two dims together
     my $out = ($isrgb ? $pdl->slice(':,:,-1:0')->clump(2)
 		 : $pdl->slice(':,-1:0'));
-
     # handle byte swap issues for little endian platforms
-    unless ( isbigendian() ) {
-       if ($israw ) {
-          # make copy if needed
-          $out = $out->copy unless $swap_inplace;
-          if ( (255 < $max) and ($max < 65536)) {
-             $out->bswap2;
-          } elsif ($max >= 65536) {
-             $out->bswap4;
-          }
-       }
+    if (!isbigendian() and $israw) {
+      $out = $out->copy unless $swap_inplace;
+      $out->type->bswap->($out);
     }
     pnmout($out,$israw,$type eq "PBM",$fh);
-
     # check if our child returned an error (in case of a pipe)
     barf "wpnm: pbmconverter error: $!" if !close $fh;
 }
@@ -313,7 +300,6 @@ pp_def('pnminraw',
 			   }
 			}
 		 %}', Doc => '
-
 =for ref
 
 Read in a raw pnm file.
@@ -322,9 +308,6 @@ read a raw pnm file. The C<type> argument is only there to
 determine the type of the operation when creating C<im> or trigger
 the appropriate type conversion (maybe we want a byte+ here so that
 C<im> follows I<strictly> the type of C<type>).
-
-=cut
-
 '
 
 );
@@ -396,10 +379,6 @@ pp_def( 'pnminascii',
 =for ref
 
 Read in an ascii pnm file.
-
-=cut
-
-
 '
 );
 
@@ -455,10 +434,6 @@ Write a line of pnm data.
 
 This function is implemented this way so that threading works
 naturally.
-
-=cut
-
-
 ');
 
 pp_done();
