@@ -3250,13 +3250,9 @@ The output ndarrays are set bad if the original ndarray has its bad flag set.
 sub PDL::dog {
   my $opt = ref($_[-1]) eq 'HASH' ? pop @_ : {};
   my $p = shift;
-  my @res; my $s = ":,"x($p->getndims-1);
-  for my $i (0..$p->getdim($p->getndims-1)-1) {
-     $res[$i] = $p->slice($s."(".$i.")");
-     $res[$i] = $res[$i]->copy if $$opt{Break};
-     $i++;
-  }
-  return @res;
+  my $s = ":,"x($p->getndims-1);
+  my @res = map $p->slice($s."(".$_.")"), 0..$p->dim(-1)-1;
+  $$opt{Break} ? map $_->copy, @res : @res
 }
 
 ###################### Misc internal routines ####################
