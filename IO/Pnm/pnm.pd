@@ -111,7 +111,7 @@ sub PDL::rpnm {
         $pdl = $pdl->initialize;
     }
 
-    open my $fh, $file or barf "Can't open pnm file '$file'";
+    open my $fh, $file or barf "Can't open pnm file '$file': $!";
     binmode $fh;
 
     read($fh,(my $magic),2);
@@ -241,24 +241,13 @@ sub PDL::wpnm {
     $israw = 1 if (($pdl->get_datatype == $PDL_B) || ($pdl->get_datatype == $PDL_US) || ($type =~ /PBM/));
     $israw = 0 if (defined($raw) && !$raw);
 
-
     $magic = $israw ? "P4" : "P1" if $type =~ /PBM/;
     $magic = $israw ? "P5" : "P2" if $type =~ /PGM/;
     $magic = $israw ? "P6" : "P3" if $type =~ /PPM/;
     $isrgb = 1 if $magic =~ /P[36]/;
 
-    # catch STDERR and sigpipe
-    my ($errfh, $efile) = tempfile();
-    local $SIG{"PIPE"} = sub { show_err($efile);
-			       die "Bad write to pipe $? $!"; };
-
     my $pref = ($file !~ /^\s*[|>]/) ? ">" : "";  # test for plain file name
-    open(SAVEERR, ">&STDERR");
-    open(STDERR, ">$efile") || barf "Can't redirect stderr";
-    my $succeed = open(my $fh, $pref . $file);
-    # close(STDERR);
-    open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
-    barf "Can't open pnm file" unless $succeed;
+    open my $fh, $pref . $file or barf "Can't open pnm file: $!";
     binmode $fh;
 
     $max =$pdl->max;
@@ -300,10 +289,7 @@ sub PDL::wpnm {
     pnmout($out,$israw,$type eq "PBM",$fh);
 
     # check if our child returned an error (in case of a pipe)
-    if (!(close $fh)) {
-      my $err = show_err($efile,0);
-      barf "wpnm: pbmconverter error: $err";
-    }
+    barf "wpnm: pbmconverter error: $!" if !close $fh;
     unlink($efile);
 }
 
