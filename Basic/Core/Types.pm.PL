@@ -1,9 +1,3 @@
-#
-# this script is executed directly from the top-level Makefile.PL
-# (ie before the standard "loop through the directories" behaviour
-#  of the WriteMakefile() call in that file)
-#
-
 use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
@@ -723,13 +717,13 @@ The value returned by C<ctype> without the 'PDL_' prefix.
 =item badvalue
 
 The special numerical value used to represent bad values for this type.
-See L<badvalue routine in PDL::Bad|PDL::Bad/badvalue> for more details.
+See L<PDL::Bad/badvalue> for more details.
 
 =item isnan
 
 Given a string representing a C value, will return a C expression for
 this type that indicates whether that value is NaN (for complex values,
-if I<either> is finite).
+if I<either> is NaN).
 
 =item isfinite
 
@@ -741,8 +735,6 @@ if I<both> are finite).
 
 The string appended to floating-point functions for this floating-point
 type. Dies if called on non-floating-point type.
-
-=cut
 
 =item orig_badvalue
 
