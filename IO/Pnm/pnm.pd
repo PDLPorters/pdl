@@ -157,12 +157,7 @@ TYPES:	{  my $pdlt;
 	if $PDL::debug;
 
     # need to byte swap for little endian platforms
-    unless ( isbigendian() ) {
-       if ($israw ) {
-          $pdl->bswap2 if $type==$PDL_US or $pdl->type == ushort;
-          $pdl->bswap4 if $type==$PDL_L;  # not likely, but supported anyway
-       }
-    }
+    $pdl->type->bswap->($pdl) if !isbigendian() and $israw;
     return $pdl;
 }
 

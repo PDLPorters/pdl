@@ -339,7 +339,7 @@ use PDL;
 use Exporter;
 use FileHandle;
 use PDL::Types ':All';
-use PDL::IO::Misc qw(bswap2 bswap4 bswap8);
+use PDL::IO::Misc qw(bswap4);
 
 @PDL::IO::FlexRaw::ISA = qw/Exporter/;
 
@@ -608,10 +608,7 @@ READ:
 	if ($swapbyte) {
 	  my $method = $flexswap{$type};
 	  $pdl->$method if $method;
-# 	    bswap2($pdl) if $pdl->get_datatype == $PDL_S;
-# 	    bswap4($pdl) if $pdl->get_datatype == $PDL_L
-# 		|| $pdl->get_datatype == $PDL_F;
-# 	    bswap8($pdl) if $pdl->get_datatype == $PDL_D;
+# 	    $pdl->type->bswap($pdl);
 	}
 	if ($newfile && $f77mode) {
 	    if ($zipt || $swapbyte) {

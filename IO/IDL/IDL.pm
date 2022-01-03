@@ -104,6 +104,7 @@ IDL objects contain compiled code.
     
   }
 use strict;
+use PDL::Types;
   
 =head2 ridl
 
@@ -824,26 +825,15 @@ sub r_byte_pdl {
 
 sub r_n_pdl {
     my($flags,$dims,$type) = @_;
-    
+    $type = PDL::Type->new($type);
     my $nelem = pdl($dims)->prod;
-    my $dsize = PDL::Core::howbig($type);
-    my $hunksize = $dsize * $nelem;
-
+    my $hunksize = PDL::Core::howbig($type->enum) * $nelem;
     my $pdl = PDL->new_from_specification($type,@$dims);
     my $dref = $pdl->get_dataref();
-    
     my $len = sysread(IDLSAV, $$dref, $hunksize - ($hunksize % -4) );
     $pdl->upd_data;
-    
     print "bytes were ",join(",",unpack "C"x($hunksize-($hunksize%-4)),$$dref),"\n" if($PDL::debug);
-    
-    
-    if($swab) {
-	bswap2($pdl) if($dsize==2);
-	bswap4($pdl) if($dsize==4);
-	bswap8($pdl) if($dsize==8);
-    }
-
+    $type->bswap($pdl) if $swab;
     $pdl;
 }
 

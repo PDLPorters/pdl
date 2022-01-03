@@ -623,23 +623,10 @@ sub _rfits_image($$$$) {
   $fh->read( my $dummy, 2880 - (($rdct-1) % 2880) - 1 );
   $pdl->upd_data();
 
-  if (!isbigendian() ) {
-    # Need to byte swap on little endian machines
-    bswap2($pdl) if $pdl->get_datatype == $PDL_S;
-    bswap4($pdl) if $pdl->get_datatype == $PDL_L || $pdl->get_datatype == $PDL_F;
-    bswap8($pdl) if $pdl->get_datatype == $PDL_D || $pdl->get_datatype==$PDL_LL;
-  }
-  
-  if(exists $opt->{bscale}) {
-      $pdl = treat_bscale($pdl, $foo);
-  }
-  
-  # Header
-  
+  $pdl->type->bswap->($pdl) if !isbigendian(); # Need to byte swap on little endian machines
+  $pdl = treat_bscale($pdl, $foo) if exists $opt->{bscale};
   $pdl->sethdr($foo);
-
   $pdl->hdrcpy($opt->{hdrcpy});
-
   return $pdl;
 } 
 
@@ -851,7 +838,7 @@ sub _wrcomplx { # complex-number writer
 }
 sub _fncomplx { # complex-number finisher-upper
   my( $type, $pdl, $n, $hdr, $opt)  = shift;
-  eval 'bswap'.(PDL::Core::howbig($type)).'($pdl)';
+  $pdl->type->bswap->($pdl) if !isbigendian(); # Need to byte swap on little endian machines
   warn "Ignoring poorly-defined TSCAL/TZERO for complex data in col. $n (".$hdr->{"TTYPE$n"}.").\n"
     if( length($hdr->{"TSCAL$n"}) or length($hdr->{"TZERO$n"}) );
   return $pdl->reorder(2,1,0);
@@ -915,16 +902,7 @@ sub _wrP {
 
 sub _fnP {
     my( $type, $pdl, $n, $hdr, $opt ) = @_;
-    my $post = PDL::Core::howbig($type);
-    unless( isbigendian() ) {
-	if(    $post == 2 ) { bswap2($pdl); }
-	elsif( $post == 4 ) { bswap4($pdl); }
-	elsif( $post == 8 ) { bswap8($pdl); }
-	elsif( $post != 1 ) {
-	    warn "Unknown swapsize $post!  This is a bug.  You (may) lose..\n";
-	}
-    }
-
+    $pdl->type->bswap->($pdl) if !isbigendian(); # Need to byte swap on little endian machines
     my $tzero = defined($hdr->{"TZERO$n"}) ? $hdr->{"TZERO$n"} : 0.0;
     my $tscal = defined($hdr->{"TSCAL$n"}) ? $hdr->{"TSCAL$n"} : 1.0;
     my $valid_tzero = ($tzero != 0.0);
@@ -1108,35 +1086,17 @@ sub _rfits_bintable ($$$$) {
   for my $i(1..$hdr->{TFIELDS}) { # Postfrobnication loop
     my $tmpcol = $tmp->[$i];
     my $post = $tmpcol->{handler}->[3];
-    
     if(ref $post eq 'CODE') {
       # Do postprocessing on all special types
-      
       $tbl->{$tmpcol->{name}} = &$post($tmpcol->{data}, $i, $hdr, $opt);
-      
     } elsif( (ref ($tmpcol->{data})) eq 'PDL' ) {
       # Do standard PDL-type postprocessing
-      
-      ## Is this call to upd_data necessary?
-      ## I think not. (reinstate if there are bugs)
-      # $tmpcol->{data}->upd_data;
-      
-      
       # Do swapping as necessary
-      unless( isbigendian() ) {
-	if(    $post == 2 ) { bswap2($tmpcol->{data}); }
-	elsif( $post == 4 ) { bswap4($tmpcol->{data}); }
-	elsif( $post == 8 ) { bswap8($tmpcol->{data}); }
-	elsif( $post != 1 ) {
-	  warn "Unknown swapsize $post for column $i ("
-	    . $tmpcol->{name} . ")!  This is a bug.  Winging it.\n";
-	}
-      }
-    
+      $tmpcol->{data}->type->bswap->($tmpcol->{data}) if !isbigendian();
+
       # Apply scaling and badval keys, which are illegal for A, L, and X
       # types but legal for anyone else.  (A shouldn't be here, L and X 
       # might be)
-      
       if($opt->{bscale}) {
 	my $tzero = defined($hdr->{"TZERO$i"}) ? $hdr->{"TZERO$i"} : 0.0;
 	my $tscal = defined($hdr->{"TSCAL$i"}) ? $hdr->{"TSCAL$i"} : 1.0;
@@ -2003,16 +1963,6 @@ sub PDL::wfits {
       $fh->print( " "x(2880-$nbytes) )
 	  if $nbytes != 0; # Fill up HDU
 
-      # Decide how to byte swap - note does not quite work yet. Needs hack
-      # to IO.xs
-
-      my $bswap = sub {};     # Null routine
-      if ( !isbigendian() ) { # Need to set a byte swap routine
-	  $bswap = \&bswap2 if $BITPIX==16;
-	  $bswap = \&bswap4 if $BITPIX==32 || $BITPIX==-32;
-	  $bswap = \&bswap8 if $BITPIX==-64 || $BITPIX==64;
-      }
-
       # Write FITS data
       my $p1d = $pdl->copy->reshape($pdl->nelem); # Data as 1D stream;
 
@@ -2040,7 +1990,7 @@ sub PDL::wfits {
 	  if ( $pdl->badflag() and $BITPIX < 0 ) {
 	      $buff->inplace->setbadtonan();
 	  }
-	  &$bswap($buff);
+	  $buff->type->bswap->($buff) if !isbigendian();
 	  $fh->print( ${$buff->get_dataref} );
 	  $off += $BUFFSZ;
       }
@@ -2050,7 +2000,7 @@ sub PDL::wfits {
 	  $buff->inplace->setbadtonan();
       }
 
-      &$bswap($buff);
+      $buff->type->bswap->($buff) if !isbigendian();
       $fh->print( ${$buff->get_dataref} );
       # Fill HDU and close
       # note that for the data space the fill character is \0 not " "
@@ -2423,12 +2373,7 @@ FOO
 		  my $tmp = $csub ? &$csub($var, $row, $col) : $var;
 		  $tmp = $tmp->slice("0:".($l-1))->sever;
 		  
-		  if(!isbigendian()) {
-		      bswap2($tmp) if($tmp->get_datatype == $PDL_S);
-		      bswap4($tmp) if($tmp->get_datatype == $PDL_L ||
-				      $tmp->get_datatype == $PDL_F);
-		      bswap8($tmp) if($tmp->get_datatype == $PDL_D);
-		  }
+		  $tmp->type->bswap->($tmp) if !isbigendian();
 		  my $t = $tmp->get_dataref;
 		  $heap .= $$t;
 	      }
@@ -2472,14 +2417,7 @@ FOO
 
 	  ## This would go faster if moved outside the loop but I'm too
 	  ## lazy to do it Right just now.  Perhaps after it actually works.
-	  ##
-	  if(!isbigendian()) {
-	    bswap2($tmp) if($tmp->get_datatype == $PDL_S);
-	    bswap4($tmp) if($tmp->get_datatype == $PDL_L ||
-			    $tmp->get_datatype == $PDL_F);
-	    bswap8($tmp) if($tmp->get_datatype == $PDL_D);
-	  }
-
+	  $tmp->type->bswap->($tmp) if !isbigendian();
 	  my $t = $tmp->get_dataref;  
 	  $tmp = $$t;
 	} else {                                  # Only other case is ASCII just now...

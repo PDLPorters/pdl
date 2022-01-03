@@ -12,6 +12,7 @@
 - NiceSlice uses the better Filter::Simple version as is now quick
 - IO::Pic::wpic assume PBM can do 16-bits per sample as exists since 2003
 - added PDL::Graphics, an overview of modules - thanks @mascip
+- add Type::bswap
 
 2.063_03 2021-11-23
 - add pp_add_macros

@@ -743,6 +743,14 @@ type. (You can change the value that represents bad values for each type
 during runtime.) See the
 L<orig_badvalue routine in PDL::Bad|PDL::Bad/orig_badvalue> for more details.
 
+=item bswap
+
+Returns the appropriate C<bswap*> from L<PDL::IO::Misc> for the size of
+this type, including a no-op for types of size 1. Note this means a
+one-line construction means you must call the return value:
+
+  $pdl->type->bswap->($pdl);
+
 =back
 
 =cut
@@ -786,6 +794,20 @@ sub types { @CACHED_TYPES }
     sub isfinite { sprintf $_[0][1]{isfinite}, $_[1] }
 
     sub floatsuffix { $_[0][1]{floatsuffix} // 'floatsuffix called on non-float type' }
+
+    my %bswap_cache;
+    sub bswap {
+      PDL::Core::barf('Usage: $type->bswap with no args') if @_ > 1;
+      return $bswap_cache{$_[0][0]} if $bswap_cache{$_[0][0]};
+      my $size = PDL::Core::howbig($_[0][0]);
+      return $bswap_cache{$_[0][0]} = sub {} if $size < 2;
+      require PDL::IO::Misc;
+      $bswap_cache{$_[0][0]} =
+        $size == 2 ? \&PDL::bswap2 :
+        $size == 4 ? \&PDL::bswap4 :
+        $size == 8 ? \&PDL::bswap8 :
+        PDL::Core::barf("bswap couldn't find swap function for $_[0][1]{shortctype}");
+    }
 
 !NO!SUBS!
 
