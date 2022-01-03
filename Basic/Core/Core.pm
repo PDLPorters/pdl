@@ -3248,7 +3248,7 @@ The output ndarrays are set bad if the original ndarray has its bad flag set.
 =cut
 
 sub PDL::dog {
-  my $opt = pop @_ if ref($_[-1]) eq 'HASH';
+  my $opt = ref($_[-1]) eq 'HASH' ? pop @_ : {};
   my $p = shift;
   my @res; my $s = ":,"x($p->getndims-1);
   for my $i (0..$p->getdim($p->getndims-1)-1) {
