@@ -7,6 +7,10 @@
 pp_add_exported('',"rpnm wpnm");
 
 pp_addpm({At=>Top},<<'EOD');
+
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::IO::Pnm -- pnm format I/O for PDL
@@ -99,17 +103,13 @@ sub PDL::rpnm {
     my $magicno = $1;
     print "reading pnm file with magic $magic\n" if $PDL::debug>1;
 
-    my $params = 3;
     my $israw = $magicno > 3 ? 1 : 0;
     my $isrgb = ($magicno % 3) == 0;
     my $ispbm = ($magicno % 3) == 1;
-    if ($ispbm) {  # PBM data
-	$params = 2;
-	$dims[2] = 1; }
-
+    my ($params, @dims) = ($ispbm ? 2 : 3, 0, 0, $ispbm ? 1 : 0);
     # get the header information
-    my ($line, $pgot, @dims) = ("",0,0,0,0);
-    while (($pgot<$params) && ($line=<$fh>)) {
+    my $pgot = 0;
+    while (($pgot<$params) && defined(my $line=<$fh>)) {
        $line =~ s/#.*$//;
 	next if $line =~ /^\s*$/;    # just white space
 	while ($line !~ /^\s*$/ && $pgot < $params) {
@@ -120,23 +120,13 @@ sub PDL::rpnm {
 	}
     }
 
-    my $type = $PDL_B;
-    do {
-TYPES:	{  my $pdlt;
-	   foreach $pdlt ($PDL_B,$PDL_US,$PDL_L){
-	     if ($dims[2] <= dmax($pdlt))
-	       { $type = $pdlt;
-	         last TYPES;
-	       }
-	   }
-	   barf "rraw: data from ascii pnm file out of range";
-        }
-    };
+    my @eligible = grep $dims[2] <= dmax($_), $PDL_B,$PDL_US,$PDL_L;
+    barf "rraw: data from ascii pnm file out of range" if !@eligible;
+    my $type = $eligible[0];
 
     # the file ended prematurely
     barf "no valid header info in pnm" if $pgot < $params;
-    barf
-        "Dimensions must be > 0" if ($dims[0] <= 0) || ($dims[1] <= 0);
+    barf "Dimensions must be > 0" if ($dims[0] <= 0) || ($dims[1] <= 0);
 
     my @Dims = @dims[0,1];
     $Dims[0] *= 3 if $isrgb;
@@ -265,7 +255,6 @@ sub PDL::wpnm {
 
     # check if our child returned an error (in case of a pipe)
     barf "wpnm: pbmconverter error: $!" if !close $fh;
-    unlink($efile);
 }
 
 
@@ -275,10 +264,6 @@ sub PDL::wpnm {
 1;
 
 =head1 BUGS
-
-The stderr of the converters is redirected to a file. The filename is
-currently generated in a probably non-portable way. A method that avoids
-a file (and is portable) would be preferred.
 
 C<rpnm> currently relies on the fact that the header is separated
 from the image data by a newline. This is not required by the p[bgp]m
