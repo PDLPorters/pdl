@@ -38,25 +38,6 @@ sub dmax {
     $sz-- if ($type == $PDL_S || $type == $PDL_L);  # signed types
     return ((1 << $sz)-1);
 }
-
-# output any errors that have accumulated
-sub show_err {
-  my ($file,$showflag) = @_;
-  my $err;
-  $showflag = 1 unless defined $showflag;
-  if (-s "$file") {
-    open(INPUT,$file) or barf "Can't open error file";
-    if ($showerr) {
-      while (<INPUT>) {
-       print STDERR "converter: $_";
-      }} else {
-       $err = join('',<INPUT>);
-    }
-  }
-  close INPUT;
-  unlink $file;
-  return $err unless $showflag;
-}
 EOD
 
 pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
