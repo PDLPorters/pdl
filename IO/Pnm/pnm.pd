@@ -119,21 +119,19 @@ sub PDL::rpnm {
 		barf "no valid header info in pnm";}
 	}
     }
+    # the file ended prematurely
+    barf "no valid header info in pnm" if $pgot < $params;
 
     my @eligible = grep $dims[2] <= dmax($_), $PDL_B,$PDL_US,$PDL_L;
     barf "rraw: data from ascii pnm file out of range" if !@eligible;
     my $type = $eligible[0];
 
-    # the file ended prematurely
-    barf "no valid header info in pnm" if $pgot < $params;
     barf "Dimensions must be > 0" if ($dims[0] <= 0) || ($dims[1] <= 0);
 
     my @Dims = @dims[0,1];
     $Dims[0] *= 3 if $isrgb;
-    if ($pdl->getndims==1 && $pdl->getdim(0)==0 && $isrgb) { #input pdl is null
-	local $PDL::debug = 0; # shut up
-	$pdl = $pdl->zeroes(PDL::Type->new($type),3,@dims[0,1]);
-    }
+    $pdl = $pdl->zeroes(PDL::Type->new($type),3,@dims[0,1])
+      if $pdl->isnull and $isrgb;
     my $npdl = $isrgb ? $pdl->clump(2) : $pdl;
     if ($israw) {
        pnminraw (convert(pdl(0),$type), $npdl, $Dims[0], $Dims[1],
