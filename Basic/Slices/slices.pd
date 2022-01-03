@@ -711,7 +711,7 @@ switch(ind_pdl->datatype) {
  default:                              /* Most types: */
    ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
    if (!ind_pdl) $CROAK("Error in hard_copy");
- case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_LL:
+ case PDL_SB: case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_UL: case PDL_LL: case PDL_ULL:
    PDL_RETERROR(PDL_err, PDL->converttype(ind_pdl,PDL_IND)); /* convert in place. */
    break;
  case PDL_IND:
@@ -817,7 +817,7 @@ switch(ind_pdl->datatype) {
       default:                              /* Most types: */
         size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
         if (!size_pdl) $CROAK("Error in hard_copy");
-      case PDL_B: case PDL_S: case PDL_US: case PDL_L:  case PDL_LL:
+      case PDL_SB: case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_UL: case PDL_LL: case PDL_ULL:
         PDL_RETERROR(PDL_err, PDL->converttype(size_pdl,PDL_IND)); /* convert in place. */
         break;
       case PDL_IND:
