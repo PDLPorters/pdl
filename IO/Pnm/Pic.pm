@@ -34,7 +34,7 @@ package PDL::IO::Pic;
 use strict;
 use warnings;
 
-our @EXPORT_OK = qw(wmpeg rim wim rpic wpic rpiccan wpiccan imageformat);
+our @EXPORT_OK = ('imageformat', map +("r$_", "w$_"), qw(mpeg im pic piccan));
 our %EXPORT_TAGS = (Func => \@EXPORT_OK);
 our ($Dflags, %converter);
 our @ISA    = qw( PDL::Exporter );
@@ -653,6 +653,38 @@ sub PDL::wim {
   wpic(@args);
 }
 
+=head2 rmpeg
+
+=for ref
+
+Read an image sequence (a (3,x,y,n) byte pdl) from an animation.
+
+=for usage
+
+  $ndarray = rmpeg('movie.mpg'); # $ndarray is (3,x,y,nframes) byte
+
+Reads a stack of RGB images from a movie. While the
+format generated is nominally MPEG, the file extension
+is used to determine the video encoder type.
+It uses the program C<ffmpeg>, and throws an exception if not found.
+
+=cut
+
+*rmpeg = \&PDL::rmpeg;
+sub PDL::rmpeg {
+  barf 'Usage: rmpeg($filename)' if @_ != 1;
+  my ($file) = @_;
+  die "rmpeg: ffmpeg not found in PATH" if !inpath('ffmpeg');
+  open my $fh, '-|', qw(ffmpeg -loglevel quiet -i), $file, qw(-f image2pipe -codec:v ppm -)
+    or barf "spawning ffmpeg failed: $?";
+  binmode $fh;
+  my @frames;
+  while (!eof $fh) {
+    push @frames, rpnm $fh;
+  }
+  cat(@frames);
+}
+
 =head2 wmpeg
 
 =for ref
@@ -720,7 +752,6 @@ mean...
 =cut
 
 *wmpeg = \&PDL::wmpeg;
-
 sub PDL::wmpeg {
    barf 'Usage: wmpeg($pdl,$filename) or $pdl->wmpeg($filename)' if @_ != 2;
    my ($pdl,$file) = @_;
@@ -735,23 +766,19 @@ sub PDL::wmpeg {
    barf "input must be byte (3,x,y,z)" if (@Dims != 4) || ($Dims[0] != 3)
    || ($pdl->get_datatype != $PDL_B);
    my $nims = $Dims[3];
-   # write all the images as ppms and write the appropriate parameter file
-   my ($i,$fname);
-   # add blank cells to each image to fit with 16N x 16N mpeg standard
-   # $frame is full frame, insert each image in as $inset
+   # $frame is 16N x 16N frame (per mpeg standard), insert each image in as $inset
    my (@MDims) = (3,map(16*int(($_+15)/16),@Dims[1..2]));
    my ($frame) = zeroes(byte,@MDims);
    my ($inset) = $frame->slice(join(',',
          map(int(($MDims[$_]-$Dims[$_])/2).':'.
             int(($MDims[$_]+$Dims[$_])/2-1),0..2)));
-   my $range = sprintf "[%d-%d]",0,$nims-1;
    local $SIG{PIPE} = 'IGNORE';
-   open my $fh, "| ffmpeg -f image2pipe -vcodec ppm -i -  $file"
+   open my $fh, '|-', qw(ffmpeg -loglevel quiet -f image2pipe -codec:v ppm -i -), $file
       or barf "spawning ffmpeg failed: $?";
    binmode $fh;
    # select ((select ($fh), $| = 1)[0]);  # may need for win32
    my (@slices) = $pdl->dog;
-   for ($i=0; $i<$nims; $i++) {
+   for (my $i=0; $i<$nims; $i++) {
       local $PDL::debug = 1;
       print STDERR "Writing frame $i, " . $frame->slice(':,:,-1:0')->clump(2)->info . "\n";
       $inset .= $slices[$i];
