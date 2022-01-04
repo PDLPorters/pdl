@@ -31,10 +31,14 @@ temporary directory). For this to work you need the program ffmpeg also.
 
 package PDL::IO::Pic;
 
+use strict;
+use warnings;
 
-@EXPORT_OK = qw( wmpeg rim wim rpic wpic rpiccan wpiccan imageformat);
+our @EXPORT_OK = qw(wmpeg rim wim rpic wpic rpiccan wpiccan imageformat);
+our %EXPORT_TAGS = (Func => \@EXPORT_OK);
+our ($Dflags, %converter);
+our @ISA    = qw( PDL::Exporter );
 
-%EXPORT_TAGS = (Func => [@EXPORT_OK]);
 use PDL::Core;
 use PDL::Exporter;
 use PDL::Types;
@@ -46,12 +50,6 @@ use File::Basename;
 use SelfLoader;
 use File::Spec;
 require File::Temp;
-
-use strict;
-use vars qw( $Dflags @ISA %converter );
-
-@ISA    = qw( PDL::Exporter );
-
 
 =head2 Configuration
 
@@ -724,30 +722,19 @@ mean...
 *wmpeg = \&PDL::wmpeg;
 
 sub PDL::wmpeg {
-   barf 'Usage: wmpeg($pdl,$filename) ' .
-   'or $pdl->wmpeg($filename)' if $#_ != 1;
-
+   barf 'Usage: wmpeg($pdl,$filename) or $pdl->wmpeg($filename)' if @_ != 2;
    my ($pdl,$file) = @_;
-
    # return undef if no ffmpeg in path
    if (! inpath('ffmpeg')) {
       warn("wmpeg: ffmpeg not found in PATH");
       return;
    }
-
    my @Dims = $pdl->dims;
    # too strict in general but alright for the moment
    # especially restriction to byte will have to be relaxed
    barf "input must be byte (3,x,y,z)" if (@Dims != 4) || ($Dims[0] != 3)
    || ($pdl->get_datatype != $PDL_B);
    my $nims = $Dims[3];
-   my $tmp = File::Temp::tempdir(CLEANUP=>1);
-
-   # get tmpdir for parameter file
-   # see PDL-2.4.6 version for original code
-
-   # check the pdl for correct dimensionality
-
    # write all the images as ppms and write the appropriate parameter file
    my ($i,$fname);
    # add blank cells to each image to fit with 16N x 16N mpeg standard
@@ -759,22 +746,18 @@ sub PDL::wmpeg {
             int(($MDims[$_]+$Dims[$_])/2-1),0..2)));
    my $range = sprintf "[%d-%d]",0,$nims-1;
    local $SIG{PIPE} = 'IGNORE';
-   open MPEG, "| ffmpeg -f image2pipe -vcodec ppm -i -  $file"
+   open my $fh, "| ffmpeg -f image2pipe -vcodec ppm -i -  $file"
       or barf "spawning ffmpeg failed: $?";
-   binmode MPEG;
-   # select ((select (MPEG), $| = 1)[0]);  # may need for win32
+   binmode $fh;
+   # select ((select ($fh), $| = 1)[0]);  # may need for win32
    my (@slices) = $pdl->dog;
    for ($i=0; $i<$nims; $i++) {
       local $PDL::debug = 1;
       print STDERR "Writing frame $i, " . $frame->slice(':,:,-1:0')->clump(2)->info . "\n";
       $inset .= $slices[$i];
-      print MPEG "P6\n$MDims[1] $MDims[2]\n255\n";
-      pnmout($frame->slice(':,:,-1:0')->clump(2), 1, 0, 'PDL::IO::Pic::MPEG');
+      print $fh "P6\n$MDims[1] $MDims[2]\n255\n";
+      pnmout($frame->slice(':,:,-1:0')->clump(2), 1, 0, $fh);
    }
-   # clean up
-   close MPEG;
-
-   # rm tmpdir and files if needed
    return 1;
 }
 
@@ -877,18 +860,16 @@ sub chkext {
 sub chkform {
     my $file = shift;
     my ($format, $magic, $len, $ext) = ("","",0,"");
-
-    open(IMG, $file) or barf "Can't open image file";
-    binmode IMG;
+    open my $fh, $file or barf "Can't open image file";
+    binmode $fh;
     # should first check if file is long enough
-    $len = read(IMG, $magic,12);
+    $len = read($fh, $magic,12);
     if (!defined($len) ||$len != 12) {
 	barf "end of file when checking magic number";
-	close IMG;
+	close $fh;
 	return 'UNKNOWN';
     }
-    close IMG;
-
+    close $fh;
     return 'PNM'  if $magic =~ /^P[1-6]/;
     return 'GIF'  if $magic =~ /(^GIF87a)|(^GIF89a)/;
     return 'TIFF' if $magic =~ /(^MM)|(^II)/;
@@ -900,8 +881,6 @@ sub chkform {
     return 'PS'   if $magic =~ /%!\s*PS/;
     return 'FITS' if $magic =~ /^SIMPLE  \=/;
     return 'PNG'  if $magic =~ /^.PNG\r/;
-
-
     return chkext(getext($file));    # then try extensions
 }
 
