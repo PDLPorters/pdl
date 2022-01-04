@@ -47,7 +47,7 @@ use PDL::Config;
 use File::Basename;
 use SelfLoader;
 use File::Spec;
-require File::Temp;
+use Text::ParseWords qw(shellwords);
 
 =head2 Configuration
 
@@ -275,15 +275,23 @@ sub PDL::rpic {
       }
     }
 
-    my $flags = $converter{$type}->{FLAGS};
-    $flags = "$Dflags" unless defined($flags);
-    $flags .= " $$hints{XTRAFLAGS}" if defined($$hints{XTRAFLAGS});
-    my $cmd = qq{$converter{$type}->{get} $flags "$file" |};
-    $cmd = $file if $converter{$type}->{'get'} =~ /^NONE/;
-
-    print("conversion by '$cmd'\n") if $PDL::IO::Pic::debug > 10;
-
-    return rpnm($pdl,$cmd);
+    my $fh;
+    if ($converter{$type}->{'get'} =~ /^NONE/) {
+      open $fh, $file;
+    } else {
+      my @cmd = $converter{$type}->{get};
+      push @cmd, shellwords $converter{$type}->{FLAGS} // $Dflags;
+      push @cmd, shellwords $$hints{XTRAFLAGS} if defined($$hints{XTRAFLAGS});
+      open $fh, '-|', @cmd, $file
+        or barf "spawning '@cmd' failed: $? ($!)";
+      print "conversion by '@cmd'\n" if $PDL::IO::Pic::debug > 10;
+    }
+    binmode $fh;
+    my @frames;
+    while (!eof $fh) {
+      push @frames, rpnm $fh;
+    }
+    @frames == 1 ? $frames[0] : cat(@frames);
 }
 
 =head2 wpic

@@ -15,6 +15,7 @@
 - add Type::bswap
 - IO::Pnm::{r,w}pnm can work on open file-handle
 - IO::Pic::rmpeg added
+- IO::Pic::rpic will return an n+1-dim ndarray if multiple images in file
 
 2.063_03 2021-11-23
 - add pp_add_macros
