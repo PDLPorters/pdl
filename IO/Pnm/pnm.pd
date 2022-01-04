@@ -151,7 +151,7 @@ sub PDL::rpnm {
 
 =for ref
 
-Write a pnm (portable bitmap/pixmap, pbm/ppm) file into a file.
+Write a pnm (portable bitmap/pixmap, pbm/ppm) file into a file or open file-handle.
 
 =for usage
 
@@ -207,7 +207,12 @@ sub PDL::wpnm {
     my $isrgb = $type eq 'PPM';
 
     my $pref = ($file !~ /^\s*[|>]/) ? ">" : "";  # test for plain file name
-    open my $fh, $pref . $file or barf "Can't open pnm file: $!";
+    my ($already_open, $fh) = 0;
+    if (ref $file) {
+      $fh = $file, $already_open = 1;
+    } else {
+      open $fh, $pref . $file or barf "Can't open pnm file: $!";
+    }
     binmode $fh;
 
     print "writing ". ($israw ? "raw" : "ascii") .
@@ -237,7 +242,7 @@ sub PDL::wpnm {
     }
     pnmout($out,$israw,$type eq "PBM",$fh);
     # check if our child returned an error (in case of a pipe)
-    barf "wpnm: pbmconverter error: $!" if !close $fh;
+    barf "wpnm: pbmconverter error: $!" if !$already_open and !close $fh;
 }
 
 

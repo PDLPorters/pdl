@@ -13,7 +13,7 @@
 - IO::Pic::wpic assume PBM can do 16-bits per sample as exists since 2003
 - added PDL::Graphics, an overview of modules - thanks @mascip
 - add Type::bswap
-- IO::Pnm::rpnm can read open file-handle
+- IO::Pnm::{r,w}pnm can work on open file-handle
 - IO::Pic::rmpeg added
 
 2.063_03 2021-11-23

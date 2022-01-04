@@ -21,7 +21,11 @@ sub rpnm_unlink {
   my $file = File::Spec->catfile($tmpdir, "temp.$ext");
   wpnm($data, $file, $format, $raw);
   my $pdl = rpnm($file);
-  open my $fh, '<', $file;
+  unlink $file;
+  open my $fh, '>', $file;
+  wpnm($data, $fh, $format, $raw);
+  close $fh;
+  open $fh, '<', $file;
   my $pdl2 = rpnm($fh);
   ok all($pdl == $pdl2), 'rpnm from fh same as from disk file';
   unlink $file;
