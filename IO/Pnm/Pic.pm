@@ -4,8 +4,6 @@ PDL::IO::Pic -- image I/O for PDL
 
 =head1 DESCRIPTION
 
-=head2 Image I/O for PDL based on the netpbm package.
-
 This package implements I/O for a number of popular image formats
 by exploiting the xxxtopnm and pnmtoxxx converters from the netpbm package
 (which is based on the original pbmplus by Jef Poskanzer).
@@ -698,13 +696,8 @@ Write an image sequence (a (3,x,y,n) byte pdl) as an animation.
 Writes a stack of RGB images as a movie.  While the
 format generated is nominally MPEG, the file extension
 is used to determine the video encoder type.
-
-  E.g.:
-    .mpg for MPEG-1 encoding
-    .mp4 for MPEG-4 encoding
-
-  And even:
-    .gif for GIF animation (uncompressed)
+E.g. F<.mpg> for MPEG-1 encoding, F<.mp4> for MPEG-4 encoding, F<.gif>
+for GIF animation
 
 C<wmpeg> requires a 4-D pdl of type B<byte> as
 input.  The first dim B<has> to be of size 3 since
@@ -713,19 +706,30 @@ C<wmpeg> returns 1 on success and undef on failure.
 
 =for example
 
-  $anim->wmpeg("GreatAnimation.mpg")
-      or die "can't create mpeg1 output";
+  use strict; use warnings;
+  use PDL;
+  use PDL::IO::Pic;
+  my ($width, $height, $framecount, $xvel, $maxheight, $ballsize) = (320, 80, 100, 15, 60, 8);
+  my $frames = zeros byte, $width, $height, $framecount;
+  my $coords = yvals(3, $framecount); # coords for drawing ball, all val=frameno
+  my ($xcoords, $ycoords) = map $coords->slice($_), 0, 1;
+  $xcoords *= $xvel; # moves $xvel pixels/frame
+  $xcoords .= $width - abs(($xcoords % (2*$width)) - $width); # back and forth
+  my $sqrtmaxht = sqrt $maxheight;
+  $ycoords .= indx($maxheight - ((($ycoords % (2*$sqrtmaxht)) - $sqrtmaxht)**2));
+  my $val = pdl(byte,250);  # start with white
+  $frames->range($coords, [$ballsize,$ballsize,1], 't') .= $val;
+  $frames = $frames->dummy(0, 3)->copy; # now make the movie
+  $frames->wmpeg('bounce.gif');  # or bounce.mp4, ffmpeg deals OK
 
-  $anim->wmpeg("GreatAnimation.mp4")
-      or die "can't create mpeg4 output";
+  # iterate running this with:
+  rm bounce.gif; perl scriptname.pl && animate bounce.gif
 
 Some of the input data restrictions will have to
 be relaxed in the future but routine serves as
 a proof of principle at the moment. It uses the
 program ffmpeg to encode the frames into video.
-The arguments and parameters used for ffmpeg have
-not been tuned. This is a first implementation
-replacing mpeg_encode by ffmpeg. Currently, wmpeg
+Currently, wmpeg
 doesn't allow modification of the parameters
 written through its calling interface. This will
 change in the future as needed.
@@ -740,14 +744,6 @@ problem of having to hold a huge amount of data
 in memory to be passed into wmpeg (when you are,
 e.g. writing a large animation from PDL3D rendered
 fly-throughs).
-
-Having said that, the actual storage requirements
-might not be so big in the future any more if
-you could pass 'virtual' transform pdls into
-wmpeg that will only be actually calculated when
-accessed by the wpic routines, you know what I
-mean...
-
 
 =cut
 

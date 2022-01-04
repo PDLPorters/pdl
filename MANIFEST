@@ -208,7 +208,6 @@ Example/InlinePdlpp/inlppminimal.pl
 Example/InlinePdlpp/Module/Makefile.PL
 Example/InlinePdlpp/Module/MyInlineMod.pm
 Example/InlinePdlpp/Module/t/myinlinemod.t
-Example/IO/wmpeg.pl
 Example/PGPLOT/pgplot.pl
 Example/PGPLOT/std_pgplot.pl
 Example/Simplex/tsimp2.pl
