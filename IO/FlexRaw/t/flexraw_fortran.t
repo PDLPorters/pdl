@@ -5,6 +5,7 @@ use Config;
 use Test::More;
 use File::Temp qw(tempfile);
 use File::Spec;
+use File::Which ();
 
 my $prog_iter;
 
@@ -140,14 +141,6 @@ sub codefold {
 
    $newcode = $oldcode if $@;
    return $newcode;
-}
-
-sub inpath {
-  my ($prog) = @_;
-  my $pathsep = $^O =~ /win32/i ? ';' : ':';
-  my $exe = $^O =~ /win32/i ? '.exe' : '';
-  for (split $pathsep, $ENV{PATH}) { return 1 if -x "$_/$prog$exe" }
-  return 0;
 }
 
 # createData $head, $code
@@ -538,11 +531,11 @@ foreach (@req) {
 ok( $ok, "readflex combined types" );
 
 SKIP: {
-   my $compress = inpath('compress') ? 'compress' : 'gzip'; # some linuxes don't have compress
+   my $compress = File::Which::which('compress') ? 'compress' : 'gzip'; # some linuxes don't have compress
    $compress = 'gzip' if $^O eq 'cygwin';                   # fix bogus compress script prob
 
    if ( $^O eq 'MSWin32' ) {    # fix for ASPerl + MinGW, needs to be more general
-      skip "No compress or gzip command on MSWin32", 1 unless inpath($compress) and $^O;
+      skip "No compress or gzip command on MSWin32", 1 unless File::Which::which($compress) and $^O;
    }
 
 # Try compressed data
