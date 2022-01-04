@@ -768,22 +768,17 @@ sub PDL::wmpeg {
    my $nims = $Dims[3];
    # $frame is 16N x 16N frame (per mpeg standard), insert each image in as $inset
    my (@MDims) = (3,map(16*int(($_+15)/16),@Dims[1..2]));
-   my ($frame) = zeroes(byte,@MDims);
-   my ($inset) = $frame->slice(join(',',
-         map(int(($MDims[$_]-$Dims[$_])/2).':'.
-            int(($MDims[$_]+$Dims[$_])/2-1),0..2)));
+   my $frame = zeroes(byte,@MDims);
+   my $inset = $frame->slice(join ',',
+         map int(($MDims[$_]-$Dims[$_])/2).':'.
+            int(($MDims[$_]+$Dims[$_])/2-1),0..2);
    local $SIG{PIPE} = 'IGNORE';
    open my $fh, '|-', qw(ffmpeg -loglevel quiet -f image2pipe -codec:v ppm -i -), $file
       or barf "spawning ffmpeg failed: $?";
    binmode $fh;
-   # select ((select ($fh), $| = 1)[0]);  # may need for win32
-   my (@slices) = $pdl->dog;
-   for (my $i=0; $i<$nims; $i++) {
-      local $PDL::debug = 1;
-      print STDERR "Writing frame $i, " . $frame->slice(':,:,-1:0')->clump(2)->info . "\n";
-      $inset .= $slices[$i];
-      print $fh "P6\n$MDims[1] $MDims[2]\n255\n";
-      pnmout($frame->slice(':,:,-1:0')->clump(2), 1, 0, $fh);
+   for ($pdl->dog) {
+      $inset .= $_;
+      wpnm($frame, $fh, 'PPM', 1);
    }
    return 1;
 }
