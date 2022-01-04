@@ -76,16 +76,15 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
        b = a->data; /* In place */
     }
 
-    /* Do the conversion as nested switch statements */
-#define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
-    ctype_out *bb = (ctype_out *) b; \
+#define X_OUTER(datatype_from, ctype_from, ppsym_from, shortctype_from, defbval_from) \
+    ctype_from *bb = (ctype_from *) b; \
     i = a->nvals; \
     PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, targtype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", targtype))
-#define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
-    ctype_in *aa = (ctype_in *) a->data; \
+#define X_INNER(datatype_to, ctype_to, ppsym_to, shortctype_to, defbval_to) \
+    ctype_to *aa = (ctype_to *) a->data; \
     aa += i-1; bb += i-1; \
     while (i--) \
-      *aa-- = (ctype_in) *bb--;
+      *aa-- = (ctype_to) *bb--;
     PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, intype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", intype))
 #undef X_INNER
 #undef X_OUTER
