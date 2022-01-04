@@ -254,7 +254,7 @@ at_bad_c(x,pos)
    PREINIT:
     PDL_Indx ipos;
     int badflag;
-    PDL_Anyval result = { PDL_INVALID, {0} };
+    volatile PDL_Anyval result = { PDL_INVALID, {0} };
    CODE:
     pdl_barf_if_error(pdl_make_physvaffine( x ));
 
@@ -276,7 +276,7 @@ at_bad_c(x,pos)
     if (result.type < 0) barf("Position %"IND_FLAG" out of range", pos);
    badflag = (x->state & PDL_BADVAL) > 0;
    if (badflag) {
-     PDL_Anyval badval = pdl_get_pdl_badvalue(x);
+     volatile PDL_Anyval badval = pdl_get_pdl_badvalue(x);
      if (badval.type < 0) barf("Error getting badvalue, type=%d", badval.type);
      int isbad = ANYVAL_ISBAD(result, badval);
      if (isbad == -1) barf("ANYVAL_ISBAD error on types %d, %d", result.type, badval.type);
@@ -306,8 +306,8 @@ listref_c(x)
    int stop = 0;
    AV *av;
    SV *sv;
-   PDL_Anyval pdl_val =    { PDL_INVALID, {0} };
-   PDL_Anyval pdl_badval = { PDL_INVALID, {0} };
+   volatile PDL_Anyval pdl_val = { PDL_INVALID, {0} }; /* same reason as below */
+   volatile PDL_Anyval pdl_badval = { PDL_INVALID, {0} };
   CODE:
     /*
     # note:
