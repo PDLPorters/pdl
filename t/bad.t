@@ -50,11 +50,6 @@ is( $y->badflag, 0, "slice handling okay with no badflag" );
 
 $x->badflag(1);
 
-my $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
-print "Info: x = ", $x->info($i), "\n";
-print "Info: y = ", $y->info($i), "\n";
-print "Info: c = ", $c->info($i), "\n";
-
 # let's check that it gets through to a child of a child
 ok( $c->badflag, "badflag propagated through to a child" );
 
@@ -77,7 +72,6 @@ $x->badvalue(44);
 is( PDL::Core::string($x), "[1 2 BAD 4 5]", "changed badvalue" );
 $x->badflag(0);
 is( PDL::Core::string($x), "[1 2 44 4 5]", "can remove the bad value setting" );
-
 # restore the bad value
 $x->badvalue($badval);
 
@@ -211,10 +205,7 @@ $x = sequence( byte, 2, 3 );
 $y = $x->slice("(1),:");
 my $mask = sequence( byte, 2, 3 );
 $mask = $mask->setbadif( ($mask % 3) == 2 );
-print "x,y == ", $x->badflag, ",", $y->badflag, "\n";
 $x->inplace->copybad( $mask );
-print "x,y == ", $x->badflag, ",", $y->badflag, "\n";
-print "$x $y\n";
 is( $y->badflag, 1, "badflag propagated using inplace copybad()" );
 
 # test some of the qsort functions
@@ -288,8 +279,6 @@ $x = sequence(3,3);
 $c = $x->slice(',(1)');
 $y = $x->setbadif( $x % 2 );
 $x->inplace->plus($y,0);
-print $x;
-print "$c\n";
 is( PDL::Core::string($c), "[BAD 8 BAD]", "inplace biop - plus()" );
 
 # test bifunc fns
@@ -297,25 +286,16 @@ $x = sequence(3,3);
 $c = $x->slice(',(1)');
 $y = $x->setbadif( $x % 3 != 0 );
 $x->inplace->power($y,0);
-print $x;
-print "$c\n";
 is( PDL::Core::string($c), "[27 BAD BAD]", "inplace bifunc - power()" );
 
 # test histogram (using hist)
 $x = pdl( qw/1 2 3 4 5 4 3 2 2 1/ );
 $x->setbadat(1);
 $y = hist $x, 0, 6, 1;
-print "values:    $x\n";
-print "histogram: $y\n";
 is( PDL::Core::string($y), "[0 2 2 2 2 1]", "hist()" );
 
-#$y = $x->isfinite;
-#print "isfinite(X): datatype = [",$y->get_datatype,"]\n";
-
 $x->inplace->isfinite;
-#print "X: datatype = [",$x->get_datatype,"]\n";
 is( PDL::Core::string($x), "[1 0 1 1 1 1 1 1 1 1]", "isfinite()" );
-#print "X: datatype = [",$x->get_datatype,"]\n";
 
 # histogram2d
 $x = long(1,1,1,2,2);
