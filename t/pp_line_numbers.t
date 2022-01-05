@@ -1,6 +1,6 @@
 # DO NOT MODIFY - IT IS VERY FINICKY; see notes below.
-
-$^W = 0;
+use strict;
+use warnings;
 
 # Five tests for each of two types:
 use Test::More tests => 10;

@@ -1,4 +1,6 @@
 # Test the error reporting for malformed PDL::PP code.
+use strict;
+use warnings;
 use Test::More tests => 3;
 
 # Load up PDL::PP

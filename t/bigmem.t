@@ -1,11 +1,5 @@
-#!/usr/bin/perl
-#
-# Created on: Thu 17 Sep 2015 09:21:15 AM 
-# Last saved: Thu 17 Sep 2015 02:35:49 PM 
-#
-# This is a start at tests to verify PDL operation with pdls having
-# large numbers of elements (more than than 32bits binary)
-#
+use strict;
+use warnings;
 use Test::More;
 
 BEGIN {
