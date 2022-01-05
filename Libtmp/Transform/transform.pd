@@ -235,6 +235,9 @@ are both Transform methods and PDL methods.
 
 =cut
 
+use strict;
+use warnings;
+
 +======EOD======
 
 
@@ -1827,11 +1830,9 @@ sub map {
 
           ### Eliminate fancy newfangled output header pointing tags if they exist
           ### These are the CROTA<n>, PCi_j, and CDi_j.
-          for $k(keys %{$out->hdr})      {
-              if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+[A-Z]?$)/ ){
-                  delete $out->hdr->{$k};
-              }
-          }
+          delete @{$out->hdr}{
+              grep /(^CROTA\d*$)|(^(CD|PC)\d+_\d+[A-Z]?$)/, keys %{$out->hdr}
+          };
       } else {
           # Non-rectified output -- generate a CDi_j matrix instead of the simple formalism.
           # We have to deal with a linear transformation: we've got:  (scaling) x !input x (t x input),
@@ -1873,15 +1874,10 @@ sub map {
           }
 
           ## Eliminate competing header pointing tags if they exist
-          for $k(keys %{$out->hdr}) {
-              if( $k =~ m/(^CROTA\d*$)|(^(PC)\d+_\d+[A-Z]?$)|(CDELT\d*$)/ ) {
-                  delete $out->hdr->{$k};
-              }
-          }
+          delete @{$out->hdr}{
+              grep /(^CROTA\d*$)|(^(PC)\d+_\d+[A-Z]?$)|(CDELT\d*$)/, keys %{$out->hdr}
+          };
       }
-
-
-
     }
 
   $out->hdrcpy(1);
@@ -1932,15 +1928,11 @@ sub map {
   ## Condition the threading -- pixelwise interpolator only threads
   ## in 1 dimension, so squish all thread dimensions into 1, if necessary
   my @iddims = $idx->dims;
-  if($in->ndims == $#iddims) {
-        $in2 = $in->dummy(-1,1);
-  } else {
-        $in2 = ( $in
-                ->reorder($nd..$in->ndims-1, 0..$nd-1)
-                ->clump($in->ndims - $nd)
-                ->mv(0,-1)
-               );
-  }
+  my $in2 = $in->ndims == $#iddims
+    ? $in->dummy(-1,1)
+    : $in->reorder($nd..$in->ndims-1, 0..$nd-1)
+      ->clump($in->ndims - $nd)
+      ->mv(0,-1);
 
   ####################
   # Allocate the output array
@@ -2533,7 +2525,7 @@ sub t_lookup {
 
         # $oloop runs over (point, index) for all points in the output table, in
         # $p->{table} output space
-        $oloop = ndcoords($itable->mv(-1,0)->slice("(0)"))->
+        my $oloop = ndcoords($itable->mv(-1,0)->slice("(0)"))->
             double->
             mv(0,-1)->
             clump($itable->ndims-1);  # oloop: (pixel, index)
@@ -2552,7 +2544,7 @@ sub t_lookup {
 
         my $itable_flattened = zeroes($oloop);
 
-        for $i(0..$oloop->dim(0)-1) {
+        for my $i (0..$oloop->dim(0)-1) {
 
             my $olp = $oloop->slice("($i)");                # olp runs (index)
             my $diff = ($pt - $olp);                 # diff runs (index, x, y, ...)
@@ -2799,7 +2791,7 @@ sub PDL::Transform::Linear::new {
                        $angle = $angle->at(0)
                          if(UNIVERSAL::isa($angle,'PDL'));
 
-                       my($x) = $angle * $DEG2RAD;
+                       my($x) = $angle * $PDL::Transform::DEG2RAD;
                        $subm .= $subm x pdl([cos($x),-sin($x)],[sin($x),cos($x)]);
                        $m .= $m x $i;
                      };
@@ -3131,7 +3123,7 @@ sub t_fits {
       $cr = $hdr->{CROTA} unless defined $cr;
       $cr = $hdr->{CROTA1} unless defined $cr;
 
-      $cr *= $DEG2RAD;
+      $cr *= $PDL::Transform::DEG2RAD;
         # Rotation matrix rotates counterclockwise to get from sci to pixel coords
         # (detector has been rotated ccw, according to FITS standard)
       $cpm .= pdl( [cos($cr), sin($cr)],[-sin($cr),cos($cr)] );
@@ -3409,7 +3401,7 @@ sub t_radial {
 
   $me->{params}->{u} = _opt($o,['u','unit','Unit'],'radians');
   ### Replace this kludge with a units call
-  $me->{params}->{angunit} = ($me->{params}->{u} =~ m/^d/i) ? $RAD2DEG : 1.0;
+  $me->{params}->{angunit} = ($me->{params}->{u} =~ m/^d/i) ? $PDL::Transform::RAD2DEG : 1.0;
   print "radial: conversion is $me->{params}->{angunit}\n" if($PDL::Transform::debug);
 
   $me->{name} = "radial (direct)";
@@ -3439,7 +3431,7 @@ sub t_radial {
       my($d1) = $d->slice("(1)");
 
       # (mod operator on atan2 puts everything in the interval [0,2*PI).)
-      ($tmp = $out->slice("(0)")) .= (atan2(-$d1,$d0) % (2*$PI)) * $me->{params}->{angunit};
+      ($tmp = $out->slice("(0)")) .= (atan2(-$d1,$d0) % (2*$PDL::Transform::PI)) * $me->{params}->{angunit};
 
       ($tmp = $out->slice("(1)")) .= (defined $o->{r0}) ?
               0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
@@ -3722,7 +3714,7 @@ sub t_cubic {
               + &{$o->{cuberoot}}( 0.5 * ( $alpha - $inner_root ) )
             );
 
-        $d += $origin;
+        $d += $me->{params}{origin};
 
         if($data->is_inplace) {
             $data .= $dd;
@@ -3941,7 +3933,7 @@ sub t_spherical {
 
     my $unit = _opt($o,['u','unit','Unit']);
     $me->{params}->{angunit} = ($unit =~ m/^d/i) ?
-        $DEG2RAD : undef;
+        $PDL::Transform::DEG2RAD : undef;
 
     $me->{name} = "spherical";
 
@@ -4102,7 +4094,7 @@ sub t_projective {
     $me->{params}->{matrix} = $matrix;
     $me->{params}->{matinv} = $inv;
 
-  } elsif(defined ($p=pdl(_opt($o,['p','point','points','Point','Points'])))) {
+  } elsif(defined (my $p=pdl(_opt($o,['p','point','points','Point','Points'])))) {
     die "t_projective: points array should be 2(x,y) x 2(in,out) x 4(point)\n\t(only 2-D points spec is available just now, sorry)\n"
       unless($p->dims==3 && all(pdl($p->dims)==pdl(2,2,4)));
 
@@ -4129,7 +4121,6 @@ sub t_projective {
 
     $me->{params}->{matinv} = $matrix->inv;
   }
-
 
   $me->{params}->{idim} = 2 unless defined $me->{params}->{idim};
   $me->{params}->{odim} = $me->{params}->{idim};
