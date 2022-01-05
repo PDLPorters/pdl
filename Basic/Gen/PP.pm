@@ -822,18 +822,19 @@ sub pp_addhdr {
 }
 
 sub pp_addpm {
- 	my $pm = shift;
- 	my $pos;
- 	if (ref $pm) {
- 	  my $opt = $pm;
- 	  $pm = shift;
- 	  croak "unknown option" unless defined $opt->{At} &&
- 	    $opt->{At} =~ /^(Top|Bot|Middle)$/;
- 	  $pos = $opt->{At};
- 	} else {
- 	  $pos = 'Middle';
- 	}
- 	$::PDLPM{$pos} .= "$pm\n\n";
+	my $pm = shift;
+	my $pos;
+	if (ref $pm) {
+	  my $opt = $pm;
+	  $pm = shift;
+	  croak "unknown option" unless defined $opt->{At} &&
+	    $opt->{At} =~ /^(Top|Bot|Middle)$/;
+	  $pos = $opt->{At};
+	} else {
+	  $pos = 'Middle';
+	}
+	my @c = caller;
+	$::PDLPM{$pos} .= _pp_line_number_file(@c[1,2], $pm) . "\n\n";
 }
 
 sub pp_add_exported {
@@ -893,13 +894,13 @@ sub pp_addxs {
 #   Code => pp_line_numbers(__LINE__, $x . $y . $c),
 #   OtherKey => ...
 sub pp_line_numbers ($$) {
-	my ($line, $string) = @_;
+  _pp_line_number_file((caller)[1], @_);
+}
+sub _pp_line_number_file {
+	my ($filename, $line, $string) = @_;
 	# The line needs to be incremented by one for the bookkeeping to work
 	$line++;
-	# Get the source filename using caller()
-	my (undef, $filename) = caller;
-	# Escape backslashes:
-	$filename =~ s/\\/\\\\/g;
+	$filename =~ s/\\/\\\\/g; # Escape backslashes
 	my @to_return = "\nPDL_LINENO_START $line \"$filename\"\n";
 	# Look for threadloops and loops and add # line directives
 	foreach (split (/\n/, $string)) {
