@@ -753,7 +753,6 @@ t/subclass.t
 t/thread.t
 t/thread_def.t
 t/ufunc.t
-TODO
 utils/perldlpp.pl
 win32/INSTALL
 win32/win32f77.pl
