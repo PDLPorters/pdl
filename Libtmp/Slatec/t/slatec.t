@@ -1,9 +1,11 @@
+use strict;
+use warnings;
 use PDL::LiteF;
 use Test::More;
 use PDL::Slatec;
 use PDL::MatrixOps qw(identity);
 
-kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+kill 'INT', $$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub tapprox {
 	my($x,$y,$c,$d) = @_;
@@ -15,7 +17,7 @@ sub tapprox {
 
 my $mat = pdl [1,0.1],[0.1,2];
 
-($eigvals,$eigvecs) = eigsys($mat);
+my ($eigvals,$eigvecs) = eigsys($mat);
 
 ## print STDERR $eigvecs,$eigvals,"\n";
 
@@ -26,27 +28,18 @@ ok(tapprox($eigvecs,pdl([0.995,-0.0985],[0.0985,0.995])));
 
 $mat = pdl [2,3],[4,5];
 
-$inv = matinv($mat);
+my $inv = matinv($mat);
 
-inner($mat->dummy(2),$inv->transpose->dummy(1),($uni=null));
-
-## print STDERR $mat;
-## print STDERR $inv;
-
-## print STDERR $uni;
-
+inner($mat->dummy(2), $inv->transpose->dummy(1), my $uni=null);
 ok(tapprox($uni,pdl[1,0],[0,1]));
 
-$det = $mat->det;
-## $det->dump;
-$deti = $inv->det;
-## $deti->dump;
+my $det = $mat->det;
+my $deti = $inv->det;
 
 ok(tapprox($det,-2));
 ok(tapprox($deti,-0.5));
 
 # Now do the polynomial fitting tests
-
 
 # Set up tests x, y and weight
 my $y = pdl (1,4,9,16,25,36,49,64.35,32);
@@ -59,20 +52,13 @@ my $maxdeg = 5;
 
 # Test with a bad value
 $y->inplace->setbadat(3);
-($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
-
-## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-## print STDERR "poly = $r\n";
+my ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
 ok(($ierr == 1));
 
 # Test with all bad values
 $y = zeroes(9)->setbadif(1);
 ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
-
-## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-## print STDERR "poly = $r\n";
-
 ok(($ierr == 2));
 
 # Now test threading over a 2 by N matrix
@@ -102,16 +88,11 @@ $maxdeg = 7;
 $eps = pdl(0);
 
 # Do the fit
-my ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
-
-## print STDERR "NDEG, EPS, IERR: $ndeg, $eps, $ierr\n";
-## print STDERR "poly = $r\n";
+($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 
 ok(($ierr == 1));
 
-
 # Test POLYCOEF                                                               
-
 my $c = pdl(4);           # Expand about x = 4;
 
 my $tc = polycoef($ndeg, $c, $a1);
@@ -210,7 +191,7 @@ ok(all( abs(($fe - $answer)/$answer) < 1.0e-5 ) );
 #
 $x   = float( 1, 2, 3, 5, 6, 7 );
 $f   = float( 1, 2, 3, 4, 3, 4 );
-$ans = long(  1, 1, 1, -1, 1, 2 );
+my $ans = long(  1, 1, 1, -1, 1, 2 );
 
 ( $d, $err ) = chim($x, $f);
 ok(($err->getndims==0) & ($err->sum == 2)); # 2 switches in monotonicity
@@ -229,12 +210,12 @@ $f = $x * $x;
 ( $d, $err ) = chim($x, $f);
 
 $ans = pdl( 9.0**3, (8.0**3-1.0**3) ) / 3.0;
-( $int, $err ) = chia($x, $f, $d, 1, pdl(0.0,1.0), pdl(9.0,8.0));
+( my $int, $err ) = chia($x, $f, $d, 1, pdl(0.0,1.0), pdl(9.0,8.0));
 ok(all($err == 0));
 ok(all( abs($int-$ans) < 0.04 ) );
 
-$hi = pdl( $x->at(9), $x->at(7) );
-$lo = pdl( $x->at(0), $x->at(1) );
+my $hi = pdl( $x->at(9), $x->at(7) );
+my $lo = pdl( $x->at(0), $x->at(1) );
 $ans = ($hi**3 - $lo**3) / 3;
 ( $int, $err ) = chid( $x, $f, $d, 1, pdl(0,1), pdl(9,7) );
 ok(all($err == 0));
@@ -261,7 +242,7 @@ my $A = identity(4) + ones(4, 4);
 $A->slice('2,0') .= 0; # break symmetry to see if need transpose
 my $B = sequence(2, 4);
 gefa(my $lu=$A->copy, my $ipiv=null, my $info=null);
-gesl($lu, $ipiv, my $x=$B->transpose->copy, 1); # 1 = do transpose because Fortran
+gesl($lu, $ipiv, $x=$B->transpose->copy, 1); # 1 = do transpose because Fortran
 $x = $x->inplace->transpose;
 my $got = $A x $x;
 ok tapprox $got, $B or diag "got: $got";
