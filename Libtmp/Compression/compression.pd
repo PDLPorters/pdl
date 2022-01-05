@@ -27,6 +27,8 @@ RICE_1 algorithm used in internal FITS-file compression (see PDL::IO::FITS).
 
 =cut
 
+use strict;
+use warnings;
 
 EOD
 
@@ -148,8 +150,8 @@ sub PDL::rice_compress {
     # lengths go here
     my ($len) = zeroes(long, $in->slice("(0)")->dims);
     &PDL::_rice_compress_int( $in, $out, $len, $blocksize  );
-    $l = $len->max;
-    $out = $out->slice("0:".($l-1))->sever;
+    my $l = $len->max;
+    my $out = $out->slice("0:".($l-1))->sever;
     return wantarray ? ($out, $in->dim(0), $blocksize, $len) : $out;
 }
 EOD
