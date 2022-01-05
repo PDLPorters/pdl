@@ -4,6 +4,8 @@
 #  The GSL library already has a extensive test suite, and we
 #  do not want to duplicate that effort here.
 
+use strict;
+use warnings;
 use Test::More;
 use PDL;
 use PDL::GSL::INTEG;

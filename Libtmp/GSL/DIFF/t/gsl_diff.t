@@ -4,11 +4,13 @@
 #  The GSL library already has a extensive test suite, and we
 #  do not want to duplicate that effort here.
 
+use strict;
+use warnings;
 use Test::More;
 use PDL;
 use PDL::GSL::DIFF;
 
-@res = gsldiff(\&myf,1.5);
+my @res = gsldiff(\&myf,1.5);
 
 ok(abs($res[0]- 28.4632075095177) < 1e-6 );
 

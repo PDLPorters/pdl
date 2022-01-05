@@ -5,6 +5,8 @@
 #  The GSL library already has a extensive test suite, and we
 #  do not want to duplicate that effort here.
 
+use strict;
+use warnings;
 use PDL;
 use PDL::GSL::INTERP;
 use Test::More;

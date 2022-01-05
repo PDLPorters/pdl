@@ -4,6 +4,8 @@
 #  The GSL library already has a extensive test suite, and we
 #  do not want to duplicate that effort here.
 
+use strict;
+use warnings;
 use PDL::LiteF;
 use PDL::GSL::MROOT;
 use Test::More;
@@ -11,7 +13,7 @@ use Test::More;
 my $init = pdl (-10.00, -5.0);
 my $epsabs = 1e-7;
 
-$res = gslmroot_fsolver($init, \&rosenbrock,{Method => 0, EpsAbs => $epsabs});
+my $res = gslmroot_fsolver($init, \&rosenbrock,{Method => 0, EpsAbs => $epsabs});
 
 my @res = list ($res);
 

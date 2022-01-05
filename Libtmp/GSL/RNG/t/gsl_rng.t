@@ -5,17 +5,19 @@
 #  The GSL library already has a extensive test suite, and we
 #  do not want to duplicate that effort here.
 
+use strict;
+use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::GSL::RNG;
 
-$image = zeroes(10,10);
-$ndim = 2;
-$name = '';
-$sigma = 1;
+my $image = zeroes(10,10);
+my $ndim = 2;
+my $name = '';
+my $sigma = 1;
 
 # new() function Test: 
-$rng = PDL::GSL::RNG->new('taus');
+my $rng = PDL::GSL::RNG->new('taus');
 
 ok(1,'new() function');
 
@@ -28,7 +30,7 @@ my $rng2 = PDL::GSL::RNG->new('taus')->set_seed(666);
 is(ref $rng2, 'PDL::GSL::RNG', 'PDL::GSL::RNG->new(..)->set_seed(..)');
 
 # min() function Test: 
-$min = $rng->min(); $max = $rng->max();
+my $min = $rng->min(); my $max = $rng->max();
 
 ok(1,'min() function');
 
@@ -43,9 +45,8 @@ $name = $rng->name();
 ok(1,'name() function');
 
 # get_uniform() function Test: 
-$x = zeroes 5,6; $max=100;
-
-$o = $rng->get_uniform(10,10); $rng->get_uniform($x);
+my $x = zeroes 5,6; $max=100;
+my $o = $rng->get_uniform(10,10); $rng->get_uniform($x);
 
 ok(1,'get_uniform() function');
 
@@ -79,8 +80,7 @@ $rng->ran_gaussian($sigma,$x);
 ok(1,'ran_gaussian() function');
 
 # $rng->ran_gaussian_var() function Test: 
-$sigma_pdl = rvals zeroes 11,11; $o = $rng->ran_gaussian_var($sigma_pdl);
-
+my $sigma_pdl = rvals zeroes 11,11; $o = $rng->ran_gaussian_var($sigma_pdl);
 
 ok(1,'ran_gaussian_var() method');
 
@@ -110,9 +110,9 @@ $o = $rng->ran_dir($ndim,12);
 ok(1,'ran_dir() method');
 
 # ran_discrete_preproc() function Test: 
-$prob = pdl [0.1,0.3,0.6];
+my $prob = pdl [0.1,0.3,0.6];
 
-$discrete_dist_handle = $rng->ran_discrete_preproc($prob);
+my $discrete_dist_handle = $rng->ran_discrete_preproc($prob);
 
 $o = $rng->ran_discrete($discrete_dist_handle,100);
 
