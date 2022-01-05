@@ -1,4 +1,3 @@
-
 =head1 NAME
 
 PDL::AutoLoader - MatLab style AutoLoader for PDL
@@ -99,6 +98,10 @@ modules and functions, see L<local::lib>.
 
 =cut
 
+use strict;
+use warnings;
+
+our @PDLLIB;
 BEGIN{
    if (defined $ENV{"PDLLIB"}) {
       if ( $^O eq 'MSWin32' ) { # win32 flavors
@@ -125,7 +128,7 @@ sub PDL::AutoLoader::reloader {
        ($file, $old_t) = @{ $PDL::AutoLoader::FileInfo{$func} };
        if ( (stat($file))[9]>$old_t ) { # Reload
           print "Reloading $file as file changed...\n" if $PDL::verbose;
-	  &PDL::AutoLoader::autoloader_do($file);
+	  PDL::AutoLoader::autoloader_do($file);
 	  $PDL::AutoLoader::FileInfo{$func} = [ $file, (stat($file))[9] ];
        }
    }
@@ -143,7 +146,7 @@ sub PDL::AutoLoader::import {
 #	}
 
 my $pkg = (caller())[0];
-my $toeval = "package $pkg;\n";
+my $toeval = "package $pkg; no strict; no warnings;\n";
 
 # Make sure that the eval gets NiceSlice if we have it in this level
 # (it's a drag that preprocessors aren't transitive...)
@@ -153,7 +156,6 @@ $toeval .= <<'EOD';
 $PDLLIB_CT = 0;
 
 push @PERLDL::AUTO, \&PDL::AutoLoader::reloader;
-
 
 sub AUTOLOAD {
     local @INC = @INC;
@@ -186,7 +188,7 @@ sub AUTOLOAD {
 	  
 	  print "found $file\n" if $PDL::verbose;
 
-	  &PDL::AutoLoader::autoloader_do($file);
+	  PDL::AutoLoader::autoloader_do($file);
 	  
 	  
 	  # Remember autoloaded functions and do some reasonably
@@ -202,7 +204,6 @@ sub AUTOLOAD {
 
 	  die $s."\tWhile parsing file `$file':\n$@\n" if($@);
 	  die $s."\tFile `$file' doesn't \n\tdefine ${AUTOLOAD}().\n"
-	  
 	}
       }
 
@@ -221,13 +222,10 @@ eval $toeval;
 
 sub PDL::AutoLoader::autoloader_do {
   my ($file) = shift;
-  
   if(defined($PDL::NiceSlice::VERSION)) {
-    
     print "AutoLoader: NiceSlice enabled...\n" if($PDL::debug);
-    
     if(open(AUTOLOAD_FILE,"<$file")) {
-      my($script) = &PDL::NiceSlice::perldlpp("PDL::NiceSlice", join("",<AUTOLOAD_FILE>));
+      my($script) = PDL::NiceSlice::perldlpp("PDL::NiceSlice", join("",<AUTOLOAD_FILE>));
       eval $script;
     }
   } else {
@@ -239,24 +237,11 @@ sub PDL::AutoLoader::autoloader_do {
 
 # Expand directories recursively...
 sub PDL::AutoLoader::expand_dir {
-  local $d;  
-  local @list;  
-  local @subdirs;  
-
-  local $dir = shift;
-    
-  if(! -d $dir) { return undef; }
-  push(@list,$dir);
-
-  opendir(FOO,$dir);
-
-  @subdirs = grep((!m/^\./ && ($_="$dir/$_") && (-d $_)), readdir(FOO));
-  closedir FOO;
-
-  while(defined ($d = shift @subdirs)) {
-    push(@list,&PDL::AutoLoader::expand_dir($d));
-  }
-  return @list;
+  my $dir = shift;
+  return undef if !-d $dir;
+  opendir my($dh), $dir;
+  ($dir, map PDL::AutoLoader::expand_dir($_),
+    grep +(!m/^\./ && ($_="$dir/$_") && (-d $_)), readdir $dh);
 }
 
 
@@ -298,7 +283,7 @@ sub PDL::AutoLoader::expand_path {
 	
 	# If there's a leading '+', include all subdirs too.
 	push(@PDLLIB_EXPANDED,
-	     s/^\+// ? &PDL::AutoLoader::expand_dir($_) : $_
+	     s/^\+// ? PDL::AutoLoader::expand_dir($_) : $_
 	     );
     }
 
