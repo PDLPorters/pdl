@@ -7,6 +7,8 @@ BEGIN{
 	  $ENV{'PERL_DL_NONLAZY'}=0;
 }
 
+use strict;
+use warnings;
 use Test::More;
 use_ok("OpenGL", qw(:all));
 use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
