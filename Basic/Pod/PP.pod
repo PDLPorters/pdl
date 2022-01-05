@@ -2026,8 +2026,6 @@ it.
 
 In most cases you can define your Makefile like
 
-  # Makefile.PL for a package defined by PP code.
-
   use PDL::Core::Dev;            # Pick up development utilities
   use ExtUtils::MakeMaker;
 
@@ -2046,7 +2044,7 @@ In most cases you can define your Makefile like
     for (i=0;i<len;i++) *dst++=*src++;
   }
 
-Here, the list in $package is: first: PP source file name,
+Here, the list in C<$package> is: first: PP source file name,
 then the prefix for the produced files, the whole package name, the
 package to add XS functions to (empty string to use the same as the
 PP functions), and a boolean to dictate whether to have PDL generate a
@@ -2078,6 +2076,16 @@ as follows:
 Here, C<$src> is the name of the source file with PP code, C<$pref> the
 prefix for the generated .pm and .xs files and C<$mod> the name of the
 extension module to generate.
+
+If your C<VERSION_FROM> provides a version, PP will use that to set the
+C<XS_VERSION>. If you need to influence the value of that variable so
+that L<XSLoader> etc don't reject the loaded dynamic library, you can
+use this workaround in a C<pp_addpm> (the C<BEGIN> is because the
+C<bootstrap> happens at runtime, and your code appears after that call,
+but with a C<BEGIN> it will take place beforehand):
+
+  our $VERSION; BEGIN { $VERSION = '2.019106' };
+  our $XS_VERSION; BEGIN { $XS_VERSION = $VERSION };
 
 =head1 INTERNALS
 
