@@ -123,6 +123,7 @@ my @cpan_deps = my @prereq = (
   'Convert::UU'         => 0,         # for PDL::IO::Dumper
   'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
   'File::Map'           => 0.57,      # test new mmap implementation
+  'File::Which'         => 0,
   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
   'Filter::Simple'      => 0.88,      # for new PDL::NiceSlice
   'List::Util'          => '1.33',

@@ -17,6 +17,7 @@
 - IO::Pic::rmpeg added
 - IO::Pic::rpic will return an n+1-dim ndarray if multiple images in file
 - set_datatype (and PDL.converttype) now badval-aware
+- add dependency on File::Which
 
 2.063_03 2021-11-23
 - add pp_add_macros

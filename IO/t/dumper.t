@@ -1,18 +1,11 @@
 use strict;
 use Test::More;
 use Config;
-
-sub inpath {
-  my ($prog) = @_;
-  for ( split $Config{path_sep}, $ENV{PATH} ) {
-    return 1 if -x "$_/$prog$Config{exe_ext}"
-  }
-  return;
-}
+use File::Which ();
 
 BEGIN {
    eval "use Convert::UU;";
-   my $hasuuencode = !$@ || (inpath('uuencode') && inpath('uudecode'));
+   my $hasuuencode = !$@ || (File::Which::which('uuencode') && File::Which::which('uudecode'));
 
    if ($hasuuencode) {
       plan tests => 17;

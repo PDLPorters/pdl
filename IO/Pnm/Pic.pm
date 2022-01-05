@@ -48,6 +48,7 @@ use File::Basename;
 use SelfLoader;
 use File::Spec;
 use Text::ParseWords qw(shellwords);
+use File::Which ();
 
 =head2 Configuration
 
@@ -135,29 +136,21 @@ sub init_converter_table {
   my $key;
   for $key (sort keys %converter) {
 
-    $converter{$key}->{Rok} = inpath($converter{$key}->{'get'})
+    $converter{$key}->{Rok} = File::Which::which($converter{$key}->{'get'})
       if defined($converter{$key}->{'get'});
 
-    $converter{$key}->{Wok} = inpath($converter{$key}->{'put'})
+    $converter{$key}->{Wok} = File::Which::which($converter{$key}->{'put'})
       if defined($converter{$key}->{'put'});
 
     if (defined $converter{$key}->{Prefilt}) {
       my $filt = $1 if $converter{$key}->{Prefilt} =~ /^\s*(\S+)\s+/;
-      $converter{$key}->{Wok} = inpath($filt) if $converter{$key}->{Wok};
+      $converter{$key}->{Wok} = File::Which::which($filt) if $converter{$key}->{Wok};
     }
   }
 
   for (sort keys %converter) {
     $converter{$_}{ushortok} = (m/GIF/ ? 0 : 1);
   }
-}
-
-sub inpath {
-  my ($prog) = @_;
-  my $pathsep = $^O =~ /win32/i ? ';' : ':';
-  my $exe = $^O =~ /win32/i ? '.exe' : '';
-  for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe" || $prog =~ /^NONE$/}
-  return 0;
 }
 
 =head1 FUNCTIONS
@@ -680,7 +673,7 @@ It uses the program C<ffmpeg>, and throws an exception if not found.
 sub PDL::rmpeg {
   barf 'Usage: rmpeg($filename)' if @_ != 1;
   my ($file) = @_;
-  die "rmpeg: ffmpeg not found in PATH" if !inpath('ffmpeg');
+  die "rmpeg: ffmpeg not found in PATH" if !File::Which::which('ffmpeg');
   open my $fh, '-|', qw(ffmpeg -loglevel quiet -i), $file, qw(-f image2pipe -codec:v ppm -)
     or barf "spawning ffmpeg failed: $?";
   binmode $fh;
@@ -760,7 +753,7 @@ sub PDL::wmpeg {
    barf 'Usage: wmpeg($pdl,$filename) or $pdl->wmpeg($filename)' if @_ != 2;
    my ($pdl,$file) = @_;
    # return undef if no ffmpeg in path
-   if (! inpath('ffmpeg')) {
+   if (! File::Which::which('ffmpeg')) {
       warn("wmpeg: ffmpeg not found in PATH");
       return;
    }
