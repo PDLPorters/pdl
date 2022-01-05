@@ -17,12 +17,14 @@ simplicity and availability.
 =cut
 
 package PDL::Constants;
+use strict;
+use warnings;
 our $VERSION = "0.02";
 $VERSION = eval $VERSION;
 
 require Exporter;
-@ISA = qw(Exporter);
-@EXPORT_OK = qw(PI DEGRAD E I J);  # symbols to export
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(PI DEGRAD E I J);  # symbols to export
 
 use PDL::Lite;
 

@@ -23,9 +23,11 @@ perldl or pdl2 shell.
 
 package PDL::Dbg;
 
+use strict;
+use warnings;
 # used by info
-$PDL::Dbg::Title = "Type   Dimension       Flow  State          Mem";
-$PDL::Dbg::Infostr = "%6T %-15D  %3F   %-5S  %12M";
+our $Title = "Type   Dimension       Flow  State          Mem";
+our $Infostr = "%6T %-15D  %3F   %-5S  %12M";
 
 package PDL;
 
@@ -111,19 +113,16 @@ sub px {
   my $package = $#_ > -1 ? shift : caller;
   my $classname = $arg;
   # find the correct package
-  $package .= "::" unless $package =~ /::$/;
-  *stab = *{"main::"};
-  while ($package =~ /(\w+?::)/g){
-    *stab = $ {stab}{$1};
-  }
+  my $stab = \%main::;
+  $stab = $stab->{$1} for grep length, split /::/, $package;
   print "$classname variables in package $package\n\n";
   my $title = "Name         $PDL::Dbg::Title\n";
   print $title;
   print '-'x(length($title)+3)."\n";
   my ($pdl,$npdls,$key,$val,$info) = ((),0,"","","");
-  # while (($key,$val) = each(%stab)) {
-  foreach $key ( sort { lc($a) cmp lc($b) } keys(%stab) ) {
-     $val = $stab{$key};
+  # while (($key,$val) = each(%$stab)) {
+  foreach $key ( sort { lc($a) cmp lc($b) } keys(%$stab) ) {
+     $val = $stab->{$key};
      $pdl = ${"$package$key"};
      # print info for all objects derived from this class
      if (UNIVERSAL::isa($pdl,$classname)) {

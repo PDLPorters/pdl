@@ -17,22 +17,24 @@ no user-serviceable parts inside.
 =cut
 
 package PDL::Install::Files;
+use strict;
+use warnings;
 # support ExtUtils::Depends
 require PDL::Core::Dev;
 
 our $VERSION = '2.009';
 
-$self = {
+my $self = {
   'typemaps' => [ &PDL::Core::Dev::PDL_TYPEMAP ],
   'inc' => &PDL::Core::Dev::PDL_INCLUDE,
   'libs' => '',
   'deps' => [],
 };
-@deps = @{ $self->{deps} };
-@typemaps = @{ $self->{typemaps} };
-$libs = $self->{libs};
-$inc = $self->{inc};
-$CORE = undef;
+my @deps = @{ $self->{deps} };
+my @typemaps = @{ $self->{typemaps} };
+my $libs = $self->{libs};
+my $inc = $self->{inc};
+my $CORE = undef;
 foreach (@INC) {
   if ( -f "$_/PDL/Install/Files.pm") { $CORE = $_ . "/PDL/Install/"; last; }
 }

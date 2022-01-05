@@ -22,16 +22,18 @@ L<PDL::Slices>.
 =cut
 
 package PDL::Basic;
+use strict;
+use warnings;
 use PDL::Core '';
 use PDL::Types;
 use PDL::Exporter;
 use PDL::Options;
 
-@ISA=qw/PDL::Exporter/;
-@EXPORT_OK = qw/ ndcoords rvals axisvals allaxisvals xvals yvals zvals sec ins hist whist
+our @ISA=qw/PDL::Exporter/;
+our @EXPORT_OK = qw/ ndcoords rvals axisvals allaxisvals xvals yvals zvals sec ins hist whist
 	similar_assign transpose sequence xlinvals ylinvals
 	zlinvals axislinvals/;
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 # Exportable functions
 *axisvals       = \&PDL::axisvals;		
@@ -371,19 +373,15 @@ sub PDL::ndcoords {
   if(ref $_[0] eq 'PDL::Type') {
     $type = shift;
   }
-
   my @dims = (ref $_[0]) ? (shift)->dims : @_;
   my @d = @dims;
   unshift(@d,scalar(@dims));
   unshift(@d,$type) if defined($type);
-
-  $out = PDL->zeroes(@d);
-
+  my $out = PDL->zeroes(@d);
   for my $d(0..$#dims) {
     my $w = $out->index($d)->mv($d,0);
     $w .= xvals($w);
   }
-
   $out;
 }
 *ndcoords = \&PDL::ndcoords;
@@ -425,22 +423,16 @@ L<PDL::Graphics::PGPLOT>) is
 =cut
 
 sub PDL::hist {
-
     my $usage = "\n" . '  Usage:          $hist  = hist($data)' . "\n" .
                        '                  $hist  = hist($data,$min,$max,$step)' . "\n" .
                        '          ($xvals,$hist) = hist($data)' . "\n" .
                        '          ($xvals,$hist) = hist($data,$min,$max,$step)' . "\n" ;
     barf($usage) if $#_<0;
-
     my($pdl,$min,$max,$step)=@_;
-    my $xvals;
-
-    ($step, $min, $bins, $xvals) =
+    ($step, $min, my $bins, my $xvals) =
         _hist_bin_calc($pdl, $min, $max, $step, wantarray());
-
     PDL::Primitive::histogram($pdl->clump(-1),(my $hist = null),
 			      $step,$min,$bins);
-
     return wantarray() ? ($xvals,$hist) : $hist;
 }
 
@@ -480,9 +472,7 @@ sub PDL::whist {
     barf('Usage: ([$xvals],$hist) = whist($data,$wt,[$min,$max,$step])')
             if @_ < 2;
     my($pdl,$wt,$min,$max,$step)=@_;
-    my $xvals;
-
-    ($step, $min, $bins, $xvals) =
+    ($step, $min, my $bins, my $xvals) =
         _hist_bin_calc($pdl, $min, $max, $step, wantarray());
 
     PDL::Primitive::whistogram($pdl->clump(-1),$wt->clump(-1),
