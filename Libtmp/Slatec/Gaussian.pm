@@ -116,11 +116,12 @@ the copyright notice should be included in the file.
 =cut
 
 package PDL::Gaussian;
+use strict;
+use warnings;
 use PDL::Core '';
 use PDL::Slatec;
 use PDL::Primitive;
 use PDL::Slices;
-# use PDL::Lib::LLSQRout;
 
 sub new {
 	my($type,$ndims,$nfuncs) = @_;

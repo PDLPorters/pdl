@@ -106,16 +106,18 @@ unnormalised units.
 =cut
 
 package PDL::Fit::Linfit;
-
-@EXPORT_OK  = qw( linfit1d );
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+use strict;
+use warnings;
 
 use PDL::Core;
 use PDL::Basic;
 use PDL::Exporter;
-@ISA    = qw( PDL::Exporter );
 use PDL::Options ':Func';
 use PDL::Slatec; # For matinv()
+
+our @EXPORT_OK  = qw( linfit1d );
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+our @ISA = qw( PDL::Exporter );
 
 sub PDL::linfit1d {
    my $opthash = ref($_[-1]) eq "HASH" ? pop(@_) : {} ; 
@@ -126,41 +128,22 @@ sub PDL::linfit1d {
       ($y, $fitfuncs) = @_;
       $x = $y->xvals;
    }
-   
    my $wt = $opt{Weights};
-   
    # Internally normalise data
-   
    my $ymean = (abs($y)->sum)/($y->nelem);
    $ymean = 1 if $ymean == 0;
    my $y2 = $y / $ymean;
-   
    # Do the fit
-      
    my $M = $fitfuncs->transpose;
    my $C = $M->transpose x ($M * $wt->dummy(0)) ;
    my $Y = $M->transpose x ($y2->dummy(0) * $wt->dummy(0));
-
    # Fitted coefficients vector
-
-   $c = matinv($C) x $Y;
-   
+   my $c = matinv($C) x $Y;
    # Fitted data
-
-   $yfit = ($M x $c)->clump(2); # Remove first dim=1
-   
-   $yfit *= $ymean; # Un-normalise
-   if (wantarray) {
-      my $coeff = $c->clump(2);
-      $coeff *= $ymean; # Un-normalise
-      return ($yfit, $coeff);
-   }
-   else{
-      return $yfit;
-   }  
-   
+   my $yfit = ($M x $c)->clump(2) * $ymean; # Remove first dim=1, un-normalise
+   return $yfit if !wantarray;
+   return ($yfit, $c->clump(2) * $ymean); # Un-normalise
 }
-*linfit1d = \&PDL::linfit1d;
-
+*linfit1d = *linfit1d = \&PDL::linfit1d;
 
 1;
