@@ -6,11 +6,13 @@
 # VRMLProto
 
 package PDL::Graphics::VRMLProto;
+use strict;
+use warnings;
 use Exporter;
 use PDL::Core '';
 
-@ISA = qw/ Exporter /;
-@EXPORT = qw/ vrp fv3f fmstr /;
+our @ISA = qw/ Exporter /;
+our @EXPORT = qw/ vrp fv3f fmstr /;
 
 sub new {
   my $type = shift;
@@ -54,9 +56,9 @@ sub to_text {
 package PDL::Graphics::VRMLNode;
 use Exporter;
 
-@ISA = qw/ Exporter /;
-@EXPORT = qw/ vrn vrml3v /;
-@EXPORT_OK = qw/ tabs postfix prefix /;
+our @ISA = qw/ Exporter /;
+our @EXPORT = qw/ vrn vrml3v /;
+our @EXPORT_OK = qw/ tabs postfix prefix /;
 
 sub vrn {
   return PDL::Graphics::VRMLNode->new(@_);
@@ -134,7 +136,7 @@ sub vrml3v {
 # VRMLPdlNode
 
 package PDL::Graphics::VRMLPdlNode;
-@ISA = qw/ PDL::Graphics::VRMLNode /;
+our @ISA = qw/ PDL::Graphics::VRMLNode /;
 use PDL::Lite;
 use PDL::Core qw(barf);
 use PDL::Dbg;
