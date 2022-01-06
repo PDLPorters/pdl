@@ -556,7 +556,6 @@ sub mypostlude {
 package PDL::PP::ThreadLoop;
 use Carp;
 our @ISA = "PDL::PP::Block";
-our @CARP_NOT;
 
 sub new {
 	my $type   = shift;
@@ -579,7 +578,6 @@ sub mypostlude {my($this,$parent,$context) = @_;
 package PDL::PP::BackCodeThreadLoop;
 use Carp;
 our @ISA = "PDL::PP::ThreadLoop";
-our @CARP_NOT;
 
 sub myprelude {
     my($this,$parent,$context, $backcode) = @_;
@@ -600,7 +598,6 @@ package PDL::PP::Types;
 use Carp;
 use PDL::Types ':All';
 our @ISA = "PDL::PP::Block";
-our @CARP_NOT;
 my %types = map +($_=>1), ppdefs_all; # BSUL....
 
 sub new {
@@ -621,7 +618,6 @@ sub get_str {
 
 package PDL::PP::Access;
 use Carp;
-our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds,$parent) = @_;
     bless [$pdl,$inds],$type;
@@ -682,7 +678,6 @@ package PDL::PP::MacroAccess;
 use Carp;
 use PDL::Types ':All';
 my $types = join '',ppdefs_all;
-our @CARP_NOT;
 
 sub new {
     my ($type, $pdl, $inds, $gentypes, $name) = @_;
@@ -710,7 +705,6 @@ sub get_str {
 
 package PDL::PP::GentypeAccess;
 use Carp;
-our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -724,7 +718,6 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::PpsymAccess;
 use Carp;
-our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 

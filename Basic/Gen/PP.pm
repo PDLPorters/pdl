@@ -69,7 +69,6 @@ package PDL::PP::Rule;
 use strict;
 
 use Carp;
-our @CARP_NOT;
 
 use overload ("\"\"" => \&PDL::PP::Rule::stringify);
 sub stringify {
@@ -219,8 +218,6 @@ package PDL::PP::Rule::Croak;
 # incompatible arguments.
 our @ISA = qw(PDL::PP::Rule);
 use Carp;
-our @CARP_NOT;
-
 
 sub new {
     croak('Usage: PDL::PP::Rule::Croak->new(["incompatible", "arguments"], "Croaking message")')
@@ -234,11 +231,8 @@ sub apply {
 }
 
 package PDL::PP::Rule::Returns;
-
 use strict;
-
 use Carp;
-our @CARP_NOT;
 
 our @ISA = qw (PDL::PP::Rule);
 
@@ -318,10 +312,7 @@ sub new {
 package PDL::PP::Rule::InsertName;
 
 use strict;
-
 use Carp;
-our @CARP_NOT;
-
 our @ISA = qw (PDL::PP::Rule);
 
 # This class does not treat return values of "DO NOT SET!!"
@@ -384,10 +375,7 @@ sub apply {
 package PDL::PP::Rule::Substitute;
 
 use strict;
-
 use Carp;
-our @CARP_NOT;
-
 our @ISA = qw (PDL::PP::Rule);
 
 sub badflag_isset {
@@ -471,9 +459,7 @@ sub new {
 package PDL::PP::Rule::Substitute::Usual;
 
 use strict;
-
 use Carp;
-our @CARP_NOT;
 
 our @ISA = qw (PDL::PP::Rule::Substitute);
 
@@ -513,9 +499,7 @@ sub extract_args {
 package PDL::PP::Rule::MakeComp;
 
 use strict;
-
 use Carp;
-our @CARP_NOT;
 
 our @ISA = qw (PDL::PP::Rule);
 
@@ -743,7 +727,6 @@ $::PP_VERBOSE    = 0;
 our $done = 0;  # pp_done has not been called yet
 
 use Carp;
-our @CARP_NOT;
 
 sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
