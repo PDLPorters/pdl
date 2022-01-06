@@ -1,5 +1,7 @@
+use strict;
+use warnings;
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::Fit::Gaussian - routines for fitting gaussians
@@ -94,20 +96,21 @@ SEE ALSO: fitgauss1d() to fit centre as well.
 
 =cut
 
+use strict;
+use warnings;
+
 EOD
 pp_addhdr('
 #include "gauss.c"
 ');
-          
-  
-   
-for $name ('fitgauss1d','fitgauss1dr') {
+
+for my $name ('fitgauss1d','fitgauss1dr') {
 pp_def($name,
 	Pars => 'xval(n); data(n); '.($name eq 'fitgauss1dr' ? '' : '[o]xcentre();'). 
                 '[o]peak_ht(); [o]fwhm(); 
 	         [o]background();int [o]err(); [o]datafit(n); 
 	         [t]sig(n);  [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);',
-	GenericTypes => [D],
+	GenericTypes => ['D'],
 	Code => '
 	  int i, nb;
           double ymax, xmax, xmin, val, xval, xcenguess, bkg, par[NPAR], a[NPAR][NPAR];
@@ -185,14 +188,7 @@ pp_def($name,
 );
 }
 
-pp_addpm(<<'ENDPM');
-
-1; # OK
-
-ENDPM
-
 pp_addpm(<<'EOD');
-
 =head1 BUGS
 
 May not converge for weird data, still pretty good!
@@ -207,9 +203,7 @@ documentation under certain conditions. For details, see the file
 COPYING in the PDL distribution. If this file is separated from the
 PDL distribution, the copyright notice should be included in the file.
 
-
 =cut
-
 EOD
 
 pp_done();

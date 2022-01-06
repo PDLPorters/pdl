@@ -43,7 +43,6 @@ mean of the abs value) which are common in large polynomial
 series but the returned fit, coeffs are in
 unnormalised units.
 
-
 =for example
 
   $yfit = fitpoly1d $data,2; # Least-squares line fit
@@ -58,23 +57,22 @@ unnormalised units.
   Options:
      Weights    Weights to use in fit, e.g. 1/$sigma**2 (default=1)
 
-
 =cut
 
 package PDL::Fit::Polynomial;
 
-@EXPORT_OK  = qw( fitpoly1d );
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
-
+use strict;
+use warnings;
 use PDL::Core;
 use PDL::Basic;
 use PDL::Exporter;
-@ISA    = qw( PDL::Exporter );
-
 use PDL::Options ':Func';
 use PDL::MatrixOps; # for inv(), using this instead of call to Slatec routine
 
- 
+our @EXPORT_OK  = qw( fitpoly1d );
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+our @ISA    = qw( PDL::Exporter );
+
 sub PDL::fitpoly1d {
    my $opthash = ref($_[-1]) eq "HASH" ? pop(@_) : {} ; 
    my %opt = parse( { Weights=>ones(1) }, $opthash ) ;
@@ -84,11 +82,11 @@ sub PDL::fitpoly1d {
       ($y, $order) = @_;
       $x = $y->xvals;
    }
-   
+
    my $wt = $opt{Weights};
-   
+
    # Internally normalise data
-   
+
    # means for each 1D data set
    my $xmean = (abs($x)->average)->dummy(0);  # dummy for correct threading
    my $ymean = (abs($y)->average)->dummy(0);
@@ -96,9 +94,9 @@ sub PDL::fitpoly1d {
    ($tmp = $xmean->where($xmean == 0)) .= 1 if any $xmean == 0;
    my $y2 = $y / $ymean;
    my $x2 = $x / $xmean;
-   
+
    # Do the fit
-      
+
    my $pow = sequence($order);
    my $M = $x2->dummy(0) ** $pow;
    my $C = $M->transpose x ($M * $wt->dummy(0)) ;
@@ -113,18 +111,8 @@ sub PDL::fitpoly1d {
    
    # Fitted data
 
-   $yfit = ($M x $a1)->clump(2); # Remove first dim=1
-   
-   $yfit *= $ymean; # Un-normalise
-   if (wantarray) {
-      my $coeff = $a1->clump(2);
-      $coeff *= $ymean / ($xmean ** $pow); # Un-normalise
-      return ($yfit, $coeff);
-   }
-   else{
-      return $yfit;
-   }  
-   
+   my $yfit = ($M x $a1)->clump(2) * $ymean; # Remove first dim=1, un-normalise
+   return wantarray ? ($yfit, $a1->clump(2) * $ymean / ($xmean ** $pow)) : $yfit;
 }
 *fitpoly1d = \&PDL::fitpoly1d;
 
@@ -145,11 +133,6 @@ documentation under certain conditions. For details, see the file
 COPYING in the PDL distribution. If this file is separated from the
 PDL distribution, the copyright notice should be included in the file.
 
-
 =cut
 
-
-
 1;
-
-
