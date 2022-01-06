@@ -1,9 +1,15 @@
+use strict;
+use warnings;
+
 use PDL::Types qw(types);
 
 pp_bless('PDL::GSL::RNG'); # make the functions generated go into our namespace, and
 				# not PDL's namespace
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSL::RNG - PDL interface to RNG and randist routines in GSL
@@ -1336,7 +1342,7 @@ sub pp_defnd { # hide the docs
 pp_defnd(
        'gsl_get_uniform_meat',
        Pars => '[o]a()',
-       GenericTypes => [F,D],
+       GenericTypes => ['F','D'],
        OtherPars => 'IV rng',
        Code => '
 $a() = gsl_rng_uniform(INT2PTR(gsl_rng *, $COMP(rng)));');
@@ -1344,7 +1350,7 @@ $a() = gsl_rng_uniform(INT2PTR(gsl_rng *, $COMP(rng)));');
 pp_defnd(
        'gsl_get_uniform_pos_meat',
        Pars => '[o]a()',
-       GenericTypes => [F,D],
+       GenericTypes => ['F','D'],
        OtherPars => 'IV rng',
        Code => '
 $a() = gsl_rng_uniform_pos(INT2PTR(gsl_rng *, $COMP(rng)));');
@@ -1367,7 +1373,7 @@ $a() = gsl_rng_uniform_int(INT2PTR(gsl_rng *, $COMP(rng)),$COMP(n));');
 
 sub add_randist {
   my ($name,$npar) = @_;
-  my ($pars1,$fcall1,$arglist);
+  my ($pars1,$pars2,$fcall1,$fcall2,$arglist);
 
   if ($npar==1) {
     $pars1='double a; IV rng';
@@ -1598,7 +1604,7 @@ $x(n=>1)=yy;
 $x(n=>2)=zz;
 ');
 
-$MAX_DIMENSIONS = 100;
+my $MAX_DIMENSIONS = 100;
 
 pp_defnd(
 	'ran_dir_nd_meat',

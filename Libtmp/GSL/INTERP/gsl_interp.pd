@@ -1,6 +1,12 @@
+use strict;
+use warnings;
+
 pp_bless('PDL::GSL::INTERP');  # make the functions generated go into our namespace
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSL::INTERP - PDL interface to Interpolation routines in GSL
@@ -36,7 +42,7 @@ as C<$pa> and C<$pb>, respectively, and Limits (of domain or
 integration) as C<$la> and C<$lb>.
 EOD
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 BUGS
 
 Feedback is welcome.

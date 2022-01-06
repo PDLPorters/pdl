@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 pp_bless('PDL::GSL::MROOT');
 
 pp_add_exported('','gslmroot_fsolver');
@@ -63,7 +66,9 @@ sub gslmroot_fsolver {
 EOF
 );
 
-pp_addpm({At=>Top},<<'EOD');       
+pp_addpm({At=>'Top'},<<'EOD');       
+use strict;
+use warnings;
 
 =head1 NAME
                                                                     
@@ -107,7 +112,7 @@ to the algorithms in the GSL library that do not use derivatives.
   }
 EOD
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 SEE ALSO
 
 L<PDL>

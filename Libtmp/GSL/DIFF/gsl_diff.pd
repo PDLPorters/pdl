@@ -1,4 +1,11 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSL::DIFF - PDL interface to numerical differentiation routines in GSL
@@ -31,7 +38,7 @@ GNU Scientific Library.
    }
 EOD
 
-pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
+pp_addpm({At=>'Bot'},<<'EOD'); # the rest of FUNCTIONS section
 =head2 gsldiff
 
 =for ref
@@ -128,7 +135,7 @@ sub gsldiff{
     ($res,$abserr) = PDL::GSL::DIFF::diff_forward($x,$f);
   }
   else{
-    barf("Unknown differentiation method $method in gsldiff\n");
+    barf("Unknown differentiation method $$opt{Method} in gsldiff\n");
   }
   return ($res,$abserr);
 }

@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSL::INTEG - PDL interface to numerical integration routines in GSL
@@ -103,7 +109,7 @@ Please check the GSL documentation for more information.
 
 EOD
 
-pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
+pp_addpm({At=>'Bot'},<<'EOD'); # the rest of FUNCTIONS section
 =head2 gslinteg_qng - Non-adaptive Gauss-Kronrod integration
 
 This function applies the Gauss-Kronrod 10-point, 21-point, 43-point and 87-point
