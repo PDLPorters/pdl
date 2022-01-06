@@ -27,6 +27,8 @@ are currently regarded experimental.
 =cut
 
 package PDL::Lvalue;
+use strict;
+use warnings;
 
 # list of functions that can be used as lvalue subs
 # extend as necessary

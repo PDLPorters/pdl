@@ -1,6 +1,8 @@
 # This is the new Filter::Simple engine for PDL::NiceSlice
 #
 use Filter::Simple;
+use strict;
+use warnings;
 
 FILTER_ONLY
    all => sub { s/\r\n/\n/g if $^V lt v5.14.0 and $^O eq 'MSWin32'; },

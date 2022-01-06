@@ -1,4 +1,6 @@
 use PDL::Types qw(ppdefs_all);
+use strict;
+use warnings;
 
 pp_addpm({At => 'Top'},<< 'EOD');
 
@@ -61,6 +63,8 @@ C<-E<gt>copy> they would not.
 
 =cut
 
+use strict;
+use warnings;
 use PDL::Core ':Internal';
 use Scalar::Util 'blessed';
 
@@ -80,11 +84,7 @@ pp_addhdr(<<'EOH');
 
 EOH
 
-=head2 index, index1d, index2d
-
-=cut
-
-$doc = <<'EOD';
+my $doc = <<'EOD';
 =for ref
 
 C<index>, C<index1d>, and C<index2d> provide rudimentary index indirection.

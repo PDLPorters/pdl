@@ -1,5 +1,7 @@
 ## package Foo;
 use Module::Compile -base;
+use strict;
+use warnings;
 
 sub pmc_compile {
     my ($class, $source) = @_;

@@ -82,17 +82,15 @@ and everything else works the way you think it should.
 =cut
 
 package PDL::Matrix;
+use strict;
+use warnings;
 
-@EXPORT_OK = ();
-
-
-#use PDL::Core;
-#use PDL::Slatec;
 use PDL::Exporter;
 use Carp;
 
-@ISA = qw/PDL::Exporter PDL/;
-
+our @EXPORT_OK;
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+our @ISA = qw/PDL::Exporter PDL/;
 our $VERSION = "0.5";
 $VERSION = eval $VERSION;
 
@@ -169,7 +167,7 @@ dimensions (n x 1)
 
 sub vpdl {
   my $pdl = PDL->pdl(@_);
-  bless $pdl, PDL::Matrix;
+  bless $pdl, __PACKAGE__;
 }
 push @EXPORT_OK, "vpdl";
 
@@ -379,8 +377,6 @@ sub stringifyTeX {
 sub printTeX {
   print stringifyTeX(@_)."\n";
 }
-
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 1;
 

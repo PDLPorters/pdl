@@ -1,6 +1,8 @@
 # This original Filter::Util::Call-based
 # PDL::NiceSlice engine.
 #
+use strict;
+use warnings;
 use Filter::Util::Call;
 
 ##############################
@@ -11,7 +13,7 @@ use Filter::Util::Call;
 #
 sub import {
     my ($class) = @_;
-    ($file,$offset) = (caller)[1,2];  # for error reporting
+    my ($file,$offset) = (caller)[1,2];  # for error reporting
     $offset++;
     
     ## Parse class name into a regexp suitable for filtration

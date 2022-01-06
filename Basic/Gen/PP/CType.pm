@@ -3,6 +3,8 @@
 # or resolved (into an object) from resolveobj.
 
 package PDL::PP::CType;
+use strict;
+use warnings;
 use Carp;
 
 # new PDL::PP::CType(resolveobj,str)
@@ -64,6 +66,7 @@ sub get_copy {
 	my $code = $this->get_malloc($to,$from);
 	return "($to) = ($from);" if !defined $code; # pointer
 	my ($deref0,$deref1,$prev,$close) = ($from,$to);
+        my $no = 0;
 	for(@{$this->{Chain}}) {
 		my ($type, $arg) = @$_;
 		if($type eq "PTR") {confess("Cannot copy pointer, must be array");}

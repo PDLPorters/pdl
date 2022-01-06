@@ -6,6 +6,8 @@ package   # have to break this up so the
           # CPAN indexer doesn't barf
           Inline;
 
+use strict;
+use warnings;
 #==============================================================================
 # override the original Inline::install method
 # to allow Inline::Pdlpp code to be installed

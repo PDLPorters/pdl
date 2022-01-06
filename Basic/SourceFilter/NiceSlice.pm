@@ -22,10 +22,10 @@ BEGIN {
    }
 }
 
-no warnings;
-
 package PDL::NiceSlice;
 
+use strict;
+use warnings;
 our $VERSION = '1.001';
 $VERSION = eval $VERSION;
 
@@ -176,7 +176,7 @@ sub onearg ($) {
     $args[0] = 0 if !defined $args[0] || $args[0] =~ /^\s*$/;
     $args[1] = -1 if !defined $args[1] || $args[1] =~ /^\s*$/;
     $args[2] = undef if !defined $args[2] || $args[2] =~ /^\s*$/;
-    return "[".join(',',@args)."]"; # replace single ':' with ','
+    return "[".join(',',grep defined,@args)."]"; # replace single ':' with ','
   }
   # the (pos) syntax, i.e. 0D slice
   return "[$arg,0,0]" if $arg =~ s/^\s*\((.*)\)\s*$/$1/; # use the new [x,x,0]
@@ -378,7 +378,7 @@ sub perldlpp {
  my $terminator = terminator_regexp($class);
  my $reinstator = reinstator_regexp($class);
 
- my($status, $off, $end, $new);
+ my($status, $off, $end, $new, $count);
  eval {
      do {
 	 my $data = "";
