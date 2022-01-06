@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::LEGENDRE - PDL interface to GSL Special Functions
@@ -7,11 +13,7 @@ PDL::GSLSF::LEGENDRE - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -22,7 +24,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_legendre_Pl',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -35,7 +37,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_legendre_Pl_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -45,7 +47,7 @@ GSLERR(gsl_sf_legendre_Pl_array,($COMP(l)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_legendre_Ql',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -58,7 +60,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_legendre_Plm',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l; int m',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -74,7 +76,7 @@ my $v = `gsl-config --version`;
 if (defined($v) && $v>=2.0){
 
     pp_def('gsl_sf_legendre_array',
-	   GenericTypes => [D],
+	   GenericTypes => ['D'],
 	   OtherPars => 'char norm;  int lmax; int csphase',
 	   Pars => 'double x(); double [o]y(n); double [t]work(wn)',
 	   RedoDimsCode => '
@@ -199,7 +201,7 @@ Note that this function is called differently than the corresponding GSL functio
 } elsif (defined($v) && $v<2.0) {
 
 pp_def('gsl_sf_legendre_Plm_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l=>num; int m',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -210,7 +212,7 @@ gsl_sf_legendre_Plm_array has been deprecated in GSL version 2.0. It is included
       );
 
 pp_def('gsl_sf_legendre_sphPlm_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n=>num; int m',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -225,7 +227,7 @@ die("Could not determine GSL version from gsl-config, so can not determine which
 }
 
 pp_def('gsl_sf_legendre_sphPlm',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l; int m',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -238,7 +240,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_conicalP_half',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double lambda',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -251,7 +253,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_conicalP_mhalf',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double lambda',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -264,7 +266,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_conicalP_0',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double lambda',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -277,7 +279,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_conicalP_1',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double lambda',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -290,7 +292,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_conicalP_sph_reg',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l; double lambda',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -303,7 +305,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_conicalP_cyl_reg_e',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int m; double lambda',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -316,7 +318,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_legendre_H3d',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l; double lambda; double eta',
        Pars=>'double [o]y(); double [o]e()',
        Code =>'
@@ -329,7 +331,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_legendre_H3d_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int l=>num; double lambda; double eta',
        Pars=>'double [o]y(num)',
        Code =>'
@@ -338,7 +340,7 @@ GSLERR(gsl_sf_legendre_H3d_array,($COMP(l)-1,$COMP(lambda),$COMP(eta),$P(y)))
        Doc =>'Array of H3d(ell), for l from 0 to n-1.'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 

@@ -6,7 +6,7 @@
 
 pp_add_exported('',"rpnm wpnm");
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 
 use strict;
 use warnings;
@@ -44,7 +44,7 @@ sub dmax {
 }
 EOD
 
-pp_addpm({At=>Bot},<<'EOD'); # the rest of FUNCTIONS section
+pp_addpm({At=>'Bot'},<<'EOD'); # the rest of FUNCTIONS section
 =head2 rpnm
 
 =for ref

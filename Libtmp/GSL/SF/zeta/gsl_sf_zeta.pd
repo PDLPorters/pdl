@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::ZETA - PDL interface to GSL Special Functions
@@ -7,11 +13,7 @@ PDL::GSLSF::ZETA - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -22,7 +24,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_zeta',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -34,7 +36,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_hzeta',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double q',
        Pars=>'double s(); double [o]y(); double [o]e()',
        Code =>'
@@ -47,7 +49,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_eta',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -58,7 +60,7 @@ $e() = r.err;
        Doc =>'Eta Function eta(s) = (1-2^(1-s)) zeta(s)'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 

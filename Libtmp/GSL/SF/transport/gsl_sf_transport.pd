@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::TRANSPORT - PDL interface to GSL Special Functions
@@ -11,11 +17,7 @@ This is an interface to the Special Function package present in the GNU Scientif
 Transport function:
   J(n,x) := Integral[ t^n e^t /(e^t - 1)^2, {t,0,x}]
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -28,7 +30,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_transport_2',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -40,7 +42,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_transport_3',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -52,7 +54,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_transport_4',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -64,7 +66,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_transport_5',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -75,7 +77,7 @@ $e() = r.err;
        Doc =>'J(5,x)'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

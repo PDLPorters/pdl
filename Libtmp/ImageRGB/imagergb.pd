@@ -7,7 +7,7 @@ pp_addhdr('
 
 ############################## PM CODE ########################################
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 

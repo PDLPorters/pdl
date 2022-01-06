@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::EXPINT - PDL interface to GSL Special Functions
@@ -7,11 +13,7 @@ PDL::GSLSF::EXPINT - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -24,7 +26,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_expint_E1',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -36,7 +38,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_expint_E2',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -48,7 +50,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_expint_Ei',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -60,7 +62,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_Shi',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -72,7 +74,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_Chi',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -84,7 +86,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_expint_3',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -96,7 +98,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_Si',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -108,7 +110,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_Ci',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -120,7 +122,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_atanint',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -133,7 +135,7 @@ $e() = r.err;
 
 
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

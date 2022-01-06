@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::DEBYE - PDL interface to GSL Special Functions
@@ -7,11 +13,7 @@ PDL::GSLSF::DEBYE - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -22,7 +24,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_debye_1',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -34,7 +36,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_debye_2',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -46,7 +48,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_debye_3',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -58,7 +60,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_debye_4',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -69,7 +71,7 @@ $e() = r.err;
        Doc =>'D_n(x) := n/x^n Integrate[t^n/(e^t - 1), {t,0,x}]'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

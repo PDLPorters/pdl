@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::COULOMB - PDL interface to GSL Special Functions
@@ -23,7 +29,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_hydrogenicR',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n; int l; double z',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -36,7 +42,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_coulomb_wave_FGp_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double lam_min; int kmax=>n; double eta',
        Pars=>'double x(); double [o]fc(n); double [o]fcp(n); double [o]gc(n); double [o]gcp(n); int [o]ovfw(); double [o]fe(n); double [o]ge(n);',
        Code =>'
@@ -53,7 +59,7 @@ else {$ovfw()=0;}}
 
 
 pp_def('gsl_sf_coulomb_wave_sphF_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double lam_min; int kmax=>n; double eta',
        Pars=>'double x(); double [o]fc(n); int [o]ovfw(); double [o]fe(n);',
        Code =>'
@@ -69,7 +75,7 @@ else {$ovfw()=0;}}
       );
 
 pp_def('gsl_sf_coulomb_CL_e',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double L(); double eta();  double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -81,7 +87,7 @@ $e() = r.err;
       );
 
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::AIRY - PDL interface to GSL Special Functions
@@ -6,8 +12,6 @@ PDL::GSLSF::AIRY - PDL interface to GSL Special Functions
 =head1 DESCRIPTION
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
-
-=head1 SYNOPSIS
 
 =cut
 
@@ -24,7 +28,7 @@ sub airy_func {
   my ($which, $doc) = @_;
   pp_def($which,
     Doc => $doc,
-    GenericTypes => [D],
+    GenericTypes => ['D'],
     Pars=>'double x(); double [o]y(); double [o]e()',
     Code => <<EOF,
 gsl_sf_result r;
@@ -56,7 +60,7 @@ airy_func(
   'Derivative Scaled Airy Function Bi(x). Bi`(x) for x < 0  and exp(+2/3 x^{3/2}) Bi`(x) for  x > 0.'
 );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

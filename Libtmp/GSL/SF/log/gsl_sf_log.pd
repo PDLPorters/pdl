@@ -1,4 +1,4 @@
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::GSLSF::LOG - PDL interface to GSL Special Functions
@@ -7,11 +7,7 @@ PDL::GSLSF::LOG - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -24,7 +20,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_log',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -37,7 +33,7 @@ $e() = r.err;
 
 
 pp_def('gsl_sf_complex_log',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
        Code =>'
 gsl_sf_result r;
@@ -52,7 +48,7 @@ $ye() = ri.err;
       );
 
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::GAMMA - PDL interface to GSL Special Functions
@@ -7,11 +13,7 @@ PDL::GSLSF::GAMMA - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -24,7 +26,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_lngamma',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]s(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -38,7 +40,7 @@ $s() = sgn;
       );
 
 pp_def('gsl_sf_gamma',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -50,7 +52,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_gammastar',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -62,7 +64,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_gammainv',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -74,7 +76,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_lngamma_complex',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
        Code =>'
 gsl_sf_result r;
@@ -89,7 +91,7 @@ $ye() = ri.err;
       );
 
 pp_def('gsl_sf_taylorcoeff',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars => 'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -102,7 +104,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_fact',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -114,7 +116,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_doublefact',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -126,7 +128,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_lnfact',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -138,7 +140,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_lndoublefact',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -150,7 +152,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_lnchoose',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'n(); m(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -162,7 +164,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_choose',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'n(); m(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -174,7 +176,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_lnpoch',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars => 'double a',
        Pars=>'double x(); double [o]y(); double [o]s(); double [o]e()',
        Code =>'
@@ -189,7 +191,7 @@ $s() = sgn;
       );
 
 pp_def('gsl_sf_poch',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars => 'double a',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -202,7 +204,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_pochrel',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars => 'double a',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -215,7 +217,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_gamma_inc_Q',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars => 'double a',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -228,7 +230,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_gamma_inc_P',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars => 'double a',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -241,7 +243,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_lnbeta',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double a(); double b(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -253,7 +255,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_beta',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
 	OtherPars => '',
        Pars=>'double a(); double b();double [o]y(); double [o]e()',
        Code =>'
@@ -265,7 +267,7 @@ $e() = r.err;
        Doc =>'Beta Function B(a,b)'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

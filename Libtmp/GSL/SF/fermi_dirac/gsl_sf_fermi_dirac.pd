@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::FERMI_DIRAC - PDL interface to GSL Special Functions
@@ -17,11 +23,7 @@ Incomplete Fermi-Dirac Integrals:
 
  F_j(x,b) := 1/Gamma[j+1] Integral[ t^j /(Exp[t-x] + 1), {t,b,Infinity}]
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -34,7 +36,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_fermi_dirac_int',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars => 'int j',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -47,7 +49,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_fermi_dirac_mhalf',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -59,7 +61,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_fermi_dirac_half',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -71,7 +73,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_fermi_dirac_3half',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -83,7 +85,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_fermi_dirac_inc_0',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
 	OtherPars => 'double b',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -95,7 +97,7 @@ $e() = r.err;
        Doc =>'Incomplete integral F_0(x,b) = ln(1 + e^(b-x)) - (b-x)'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

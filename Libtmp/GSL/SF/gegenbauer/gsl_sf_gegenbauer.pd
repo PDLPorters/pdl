@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::GEGENBAUER - PDL interface to GSL Special Functions
@@ -7,11 +13,7 @@ PDL::GSLSF::GEGENBAUER - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -22,7 +24,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_gegenpoly_n',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n; double lambda',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -35,7 +37,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_gegenpoly_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n=>num; double lambda',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -44,7 +46,7 @@ GSLERR(gsl_sf_gegenpoly_array,($COMP(n)-1,$COMP(lambda),$x(),$P(y)))
        Doc =>'Calculate array of Gegenbauer polynomials from 0 to n-1.'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 

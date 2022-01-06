@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::COUPLING - PDL interface to GSL Special Functions
@@ -7,10 +13,7 @@ PDL::GSLSF::COUPLING - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
 
 EOD
 
@@ -22,7 +25,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_coupling_3j',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'ja(); jb(); jc(); ma(); mb(); mc(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -34,7 +37,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_coupling_6j',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'ja(); jb(); jc(); jd(); je(); jf(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -46,7 +49,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_coupling_9j',
-       GenericTypes => [L],
+       GenericTypes => ['L'],
        Pars=>'ja(); jb(); jc(); jd(); je(); jf(); jg(); jh(); ji(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -58,7 +61,7 @@ $e() = r.err;
       );
 
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::POLY - PDL interface to GSL Special Functions
@@ -10,11 +16,7 @@ This is an interface to the Special Function package present in the GNU Scientif
 NOTE: this should actually be PDL::POLY for consistency but I don't want to get into edits
 changing the directory structure at this time.  These fixes should allow things to build.
 
-=head1 SYNOPSIS
-
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -28,7 +30,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_poly_eval',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double c(m); double [o]y()',
        Code =>'
 $y() = gsl_poly_eval($P(c),$SIZE(m),$x());
@@ -36,7 +38,7 @@ $y() = gsl_poly_eval($P(c),$SIZE(m),$x());
        Doc =>'c[0] + c[1] x + c[2] x^2 + ... + c[m-1] x^(m-1)'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>

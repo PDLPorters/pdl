@@ -1,4 +1,4 @@
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::Graphics::TriD::Rout - Helper routines for Three-dimensional graphics
@@ -460,7 +460,7 @@ pp_def('contour_segments_internal',
 );
 
 			
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 

@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::BESSEL - PDL interface to GSL Special Functions
@@ -7,10 +13,7 @@ PDL::GSLSF::BESSEL - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
-=head1 SYNOPSIS
-
 =cut
-
 
 EOD
 
@@ -22,7 +25,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_bessel_Jn',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -35,7 +38,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_Jn_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -45,7 +48,7 @@ GSLERR(gsl_sf_bessel_Jn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_Yn',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -58,7 +61,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_Yn_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -68,7 +71,7 @@ GSLERR(gsl_sf_bessel_Yn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_In',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -81,7 +84,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_I_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -91,7 +94,7 @@ GSLERR(gsl_sf_bessel_In_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_In_scaled',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -104,7 +107,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_In_scaled_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -114,7 +117,7 @@ GSLERR(gsl_sf_bessel_In_scaled_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_Kn',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -127,7 +130,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_K_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -137,7 +140,7 @@ GSLERR(gsl_sf_bessel_Kn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_Kn_scaled',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -150,7 +153,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_Kn_scaled_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int s; int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -160,7 +163,7 @@ GSLERR(gsl_sf_bessel_Kn_scaled_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_jl',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -173,7 +176,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_jl_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -183,7 +186,7 @@ GSLERR(gsl_sf_bessel_jl_array,($COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_yl',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -196,7 +199,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_yl_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -206,7 +209,7 @@ GSLERR(gsl_sf_bessel_yl_array,($COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_il_scaled',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -219,7 +222,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_il_scaled_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -229,7 +232,7 @@ GSLERR(gsl_sf_bessel_il_scaled_array,($COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_kl_scaled',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -242,7 +245,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_kl_scaled_array',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'int n=>num',
        Pars=>'double x(); double [o]y(num)',
        Code =>'
@@ -252,7 +255,7 @@ GSLERR(gsl_sf_bessel_kl_scaled_array,($COMP(n)-1,$x(),$P(y)))
       );
 
 pp_def('gsl_sf_bessel_Jnu',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -265,7 +268,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_Ynu',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -278,7 +281,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_Inu_scaled',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -291,7 +294,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_Inu',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -304,7 +307,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_Knu_scaled',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -317,7 +320,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_Knu',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -330,7 +333,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_bessel_lnKnu',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars =>'double n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -343,7 +346,7 @@ $e() = r.err;
       );
 
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 
@@ -357,12 +360,9 @@ PDL distribution, the copyright notice should be included in the file.
 The GSL SF modules were written by G. Jungman.
 
 =cut
-
-
 EOD
 
 pp_add_boot('gsl_set_error_handler_off();
 ');
-
 
 pp_done();

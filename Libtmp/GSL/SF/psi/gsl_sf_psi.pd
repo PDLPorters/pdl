@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GSLSF::PSI - PDL interface to GSL Special Functions
@@ -9,14 +15,9 @@ This is an interface to the Special Function package present in the GNU Scientif
 
 Poly-Gamma Functions
 
-psi(m,x) := (d/dx)^m psi(0,x) = (d/dx)^{m+1} log(gamma(x))
-
-
-=head1 SYNOPSIS
+  psi(m,x) := (d/dx)^m psi(0,x) = (d/dx)^{m+1} log(gamma(x))
 
 =cut
-
-
 EOD
 
 # PP interface to GSL
@@ -29,7 +30,7 @@ pp_addhdr('
 ');
 
 pp_def('gsl_sf_psi',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -41,7 +42,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_psi_1piy',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
@@ -53,7 +54,7 @@ $e() = r.err;
       );
 
 pp_def('gsl_sf_psi_n',
-       GenericTypes => [D],
+       GenericTypes => ['D'],
        OtherPars => 'int n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
@@ -65,7 +66,7 @@ $e() = r.err;
        Doc =>'Poly-Gamma Function psi^(n)(x)'
       );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
@@ -78,8 +79,6 @@ PDL distribution, the copyright notice should be included in the file.
 The GSL SF modules were written by G. Jungman.
 
 =cut
-
-
 EOD
 
 pp_add_boot('gsl_set_error_handler_off();
