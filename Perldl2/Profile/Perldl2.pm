@@ -1,13 +1,12 @@
 package PDL::Perldl2::Profile::Perldl2;
-#
-# Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Fri 16 Dec 2011 03:19:27 PM 
-#
 
+use strict;
+use warnings;
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
-$PDL::Perldl2::Profile::Perldl2::VERSION = 0.008;
+our $VERSION = 0.008;
+$PERLDL::PROMPT = $PERLDL::PROMPT; # suppress warning
 
 with 'Devel::REPL::Profile';
 

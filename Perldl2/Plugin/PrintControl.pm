@@ -1,5 +1,7 @@
 package PDL::Perldl2::Plugin::PrintControl;
 
+use strict;
+use warnings;
 use Devel::REPL::Plugin;
 
 use namespace::clean -except => [ 'meta' ];

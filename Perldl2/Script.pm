@@ -1,5 +1,7 @@
 package PDL::Perldl2::Script;
 
+use strict;
+use warnings;
 use Moose;
 
 use namespace::clean -except => [ qw(meta) ];

@@ -1,5 +1,7 @@
 package PDL::Perldl2::Plugin::CleanErrors;
 
+use strict;
+use warnings;
 use Devel::REPL::Plugin;
 
 use namespace::clean -except => [ 'meta' ];
@@ -39,7 +41,6 @@ Devel::REPL shell, through the Moose and Class::MOP stuff and
 including Lexical::Persistence as well.  This plugin, which
 is loaded by default, strips out the non-PDL stuff to make the
 error messages much more concise.
-
 
 =head1 SEE ALSO
 
