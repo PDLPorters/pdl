@@ -32,15 +32,15 @@ the copyright notice should be included in the file.
 
 package PDL::IO::Dicom;
 
+use strict;
+use warnings;
 use PDL;
 use PDL::Core;
 use PDL::IO::Misc;
 
 use Exporter;
-@ISA = qw( Exporter ); 
-@EXPORT = qw( rdcm );
-
-use strict;
+our @ISA = qw( Exporter ); 
+our @EXPORT = qw( rdcm );
 
 my $debug = 0;
 

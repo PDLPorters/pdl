@@ -35,13 +35,14 @@ C<maximum>, C<average>, etc).
 # - allow general subs?
 
 package PDL::Reduce;
+use strict;
+use warnings;
 use PDL::Core ''; # barf
 use PDL::Exporter;
-use strict;
 
-@PDL::Reduce::ISA = qw/PDL::Exporter/;
-@PDL::Reduce::EXPORT_OK = qw/reduce canreduce/;
-%PDL::Reduce::EXPORT_TAGS = (Func=>[@PDL::Reduce::EXPORT_OK]);
+our @ISA = qw/PDL::Exporter/;
+our @EXPORT_OK = qw/reduce canreduce/;
+our %EXPORT_TAGS = (Func=>[@PDL::Reduce::EXPORT_OK]);
 
 # maps operations onto underlying PDL primitives
 my %reduce = (

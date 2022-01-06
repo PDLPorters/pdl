@@ -640,20 +640,20 @@ method.
 # 
 # '
 
-package PDL::Graphics::TriD::Basic;
 package PDL::Graphics::TriD;
 
+use strict;
+use warnings;
 use PDL::Exporter;
 use PDL::Core '';  # barf
-use vars qw/@ISA @EXPORT_OK %EXPORT_TAGS/;
-@ISA = qw/PDL::Exporter/;
-@EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
+our @ISA = qw/PDL::Exporter/;
+our @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
   spheres3d describe3d imagrgb imagrgb3d hold3d release3d
   keeptwiddling3d nokeeptwiddling3d
   twiddle3d grabpic3d tridsettings/;
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+our $verbose;
 
-#use strict;
 use PDL::Graphics::TriD::Object;
 use PDL::Graphics::TriD::Window;
 use PDL::Graphics::TriD::ViewPort;
@@ -662,9 +662,9 @@ use PDL::Graphics::TriD::Quaternion;
 use PDL::Graphics::TriD::Objects;
 use PDL::Graphics::TriD::Rout;
 
-
 # Then, see which display method are we using:
 
+$PDL::Graphics::TriD::device = $PDL::Graphics::TriD::device;
 BEGIN {
 	my $dev;
 	$dev ||= $::PDL::Graphics::TriD::device; # First, take it from this variable.
@@ -698,6 +698,7 @@ BEGIN {
 
 
 # currently only used by VRML backend
+$PDL::Graphics::TriD::Settings = $PDL::Graphics::TriD::Settings;
 sub tridsettings {return $PDL::Graphics::TriD::Settings}
 
 # Allowable forms:
@@ -755,7 +756,7 @@ sub checkargs {
 	if(ref $_[$#_] eq "HASH" and $PDL::Graphics::TriD::verbose) {
 
 	  print "enter checkargs \n";
-		for([KeepTwiddling,\&keeptwiddling3d]) {
+		for(['KeepTwiddling',\&keeptwiddling3d]) {
 		  print "checkargs >$_<\n";
 			if(defined $_[$#_]{$_->[0]}) {
 				&{$_->[1]}(delete $_[$#_]{$_->[0]});
@@ -764,16 +765,16 @@ sub checkargs {
 	}
 }
 
-*keeptwiddling3d = \&PDL::keeptwiddling3d;
+*keeptwiddling3d=*keeptwiddling3d=\&PDL::keeptwiddling3d;
 sub PDL::keeptwiddling3d {
 	$PDL::Graphics::TriD::keeptwiddling = (defined $_[0] ? $_[0] : 1);
 }
-*nokeeptwiddling3d = \&PDL::nokeeptwiddling3d;
+*nokeeptwiddling3d=*nokeeptwiddling3d=\&PDL::nokeeptwiddling3d;
 sub PDL::nokeeptwiddling3d {
 	$PDL::Graphics::TriD::keeptwiddling = 0 ;
 }
 keeptwiddling3d();
-*twiddle3d = \&PDL::twiddle3d;
+*twiddle3d = *twiddle3d = \&PDL::twiddle3d;
 sub PDL::twiddle3d {
 	twiddle_current();
 }
@@ -798,7 +799,7 @@ sub graph_object {
 
 # Plotting routines that use the whole viewport
 
-*describe3d=\&PDL::describe3d;
+*describe3d=*describe3d=\&PDL::describe3d;
 sub PDL::describe3d {
 	require PDL::Graphics::TriD::TextObjects;
 	my ($text) = @_;
@@ -808,15 +809,13 @@ sub PDL::describe3d {
 #	$win->twiddle();
 }
 
-*imagrgb=\&PDL::imagrgb;
+*imagrgb=*imagrgb=\&PDL::imagrgb;
 sub PDL::imagrgb {
 	require PDL::Graphics::TriD::Image;
 	my (@data) = @_; &checkargs;
 	my $win = PDL::Graphics::TriD::get_current_window();
 	my $imag = new PDL::Graphics::TriD::Image(@data);
-
 	$win->clear_viewports();
-
 	$win->current_viewport()->add_object($imag);
 	$win->twiddle();
 }
@@ -824,7 +823,7 @@ sub PDL::imagrgb {
 # Plotting routines that use the 3D graph
 
 # Call: line3d([$x,$y,$z],[$color]);
-*line3d=\&PDL::line3d;
+*line3d=*line3d=\&PDL::line3d;
 sub PDL::line3d { 
     &checkargs;
     my $obj = new PDL::Graphics::TriD::LineStrip(@_);
@@ -832,7 +831,7 @@ sub PDL::line3d {
     &graph_object($obj);
 }
 
-*contour3d=\&PDL::contour3d;
+*contour3d=*contour3d=\&PDL::contour3d;
 sub PDL::contour3d { 
 #  &checkargs;
   require PDL::Graphics::TriD::Contours;
@@ -840,53 +839,52 @@ sub PDL::contour3d {
 }
 
 # XXX Should enable different positioning...
-*imagrgb3d=\&PDL::imagrgb3d;
+*imagrgb3d=*imagrgb3d=\&PDL::imagrgb3d;
 sub PDL::imagrgb3d { &checkargs;
 	require PDL::Graphics::TriD::Image;
 	&graph_object(new PDL::Graphics::TriD::Image(@_));
 }
 
-*imag3d_ns=\&PDL::imag3d_ns;
+*imag3d_ns=*imag3d_ns=\&PDL::imag3d_ns;
 sub PDL::imag3d_ns {  &checkargs;
 	&graph_object(new PDL::Graphics::TriD::SLattice(@_));
 }
 
-*imag3d=\&PDL::imag3d;
+*imag3d=*imag3d=\&PDL::imag3d;
 sub PDL::imag3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::SLattice_S(@_));
 }
 
 ####################################################################
 ################ JNK 15mar11 added section start ###################
-*STrigrid_S_imag3d=\&PDL::STrigrid_S_imag3d;
+*STrigrid_S_imag3d=*STrigrid_S_imag3d=\&PDL::STrigrid_S_imag3d;
 sub PDL::STrigrid_S_imag3d { &checkargs;
   &graph_object(new PDL::Graphics::TriD::STrigrid_S(@_)); }
-        
-*STrigrid_imag3d=\&PDL::STrigrid_imag3d;
+
+*STrigrid_imag3d=*STrigrid_imag3d=\&PDL::STrigrid_imag3d;
 sub PDL::STrigrid_imag3d { &checkargs;
   &graph_object(new PDL::Graphics::TriD::STrigrid(@_)); }
 ################ JNK 15mar11 added section finis ###################
 ####################################################################
 
-*mesh3d=\&PDL::mesh3d;
-*lattice3d=\&PDL::mesh3d;
-*PDL::lattice3d=\&PDL::mesh3d;
+*mesh3d=*mesh3d=\&PDL::mesh3d;
+*lattice3d=*lattice3d=\&PDL::mesh3d;
+*PDL::lattice3d=*PDL::lattice3d=\&PDL::mesh3d;
 sub PDL::mesh3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::Lattice(@_));
 }
 
-*points3d=\&PDL::points3d;
+*points3d=*points3d=\&PDL::points3d;
 sub PDL::points3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::Points(@_));
 }
 
-
-*spheres3d=\&PDL::spheres3d;
+*spheres3d=*spheres3d=\&PDL::spheres3d;
 sub PDL::spheres3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::Spheres(@_));
 }
 
-*grabpic3d=\&PDL::grabpic3d;
+*grabpic3d=*grabpic3d=\&PDL::grabpic3d;
 sub PDL::grabpic3d {
 	my $win = PDL::Graphics::TriD::get_current_window();
 	barf "backend doesn't support grabing the rendered scene"
@@ -900,8 +898,8 @@ $PDL::Graphics::TriD::hold_on = 0;
 sub PDL::hold3d {$PDL::Graphics::TriD::hold_on =(!defined $_[0] ? 1 : $_[0]);}
 sub PDL::release3d {$PDL::Graphics::TriD::hold_on = 0;}
 
-*hold3d=\&PDL::hold3d;
-*release3d=\&PDL::release3d;
+*hold3d=*hold3d=\&PDL::hold3d;
+*release3d=*release3d=\&PDL::release3d;
 
 sub get_new_graph {
     print "get_new_graph: calling PDL::Graphics::TriD::get_current_window...\n" if($PDL::debug_trid);

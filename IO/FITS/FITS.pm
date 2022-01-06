@@ -1,6 +1,7 @@
 package PDL::IO::FITS;
 
 use strict;
+use warnings;
 
 our $VERSION = 0.92; # Will be 1.0 when ascii table read/write works.
 our @EXPORT_OK = qw( rfits rfitshdr wfits );

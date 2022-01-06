@@ -23,11 +23,12 @@ useful.
 =cut
 
 package PDL::Filter::Linear;
+use strict;
+use warnings;
 use PDL;
 use PDL::Basic;
 use PDL::Slices;
 use PDL::Primitive;
-use strict;
 
 sub new($$) {
 	my($type,$pars) = @_;

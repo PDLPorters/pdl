@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 # Run ops.t with the experimental ‘bitwise’ feature enabled.
 
 BEGIN {

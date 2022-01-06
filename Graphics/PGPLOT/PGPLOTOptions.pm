@@ -118,19 +118,17 @@ plots with PlotPosition.
 For the moment see the C<PDL::Graphics::PGPLOT::Window> documentation for
 these.
 
-
 =cut
 
 package PDL::Graphics::PGPLOTOptions;
 
-
 # use PDL::Core qw/:Func :Internal/;
 use Exporter;
 use strict;
-use vars qw(@ISA @EXPORT_OK);
+use warnings;
 
-@ISA = ('Exporter');
-@EXPORT_OK = qw(default_options set_pgplot_options);
+our @ISA = ('Exporter');
+our @EXPORT_OK = qw(default_options set_pgplot_options);
 
 #
 # To be able to set options outside of PGPLOT in the .perldlrc I will

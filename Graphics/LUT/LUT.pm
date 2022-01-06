@@ -1,4 +1,3 @@
-
 =head1 NAME
 
 PDL::Graphics::LUT - provides access to a number of look-up tables
@@ -121,8 +120,11 @@ the copyright notice should be included in the file.
 
 package PDL::Graphics::LUT;
 
+use strict;
+use warnings;
 # Just a plain function exporting package
 use Exporter;
+use Carp;
 
 # attempt to avoid Unix-specific file/directory names
 use File::Spec;
@@ -136,40 +138,34 @@ use PDL::IO::Misc;
 use PDL::IO::FITS;
 
 # should be careful that $suffix is a valid length on non-Unix systems
-$suffix = ".fits";
-use vars qw( $tabledir $rampdir $suffix );
+our ($suffix, $tabledir, $rampdir) = ".fits";
 
 # should really use EXPORT_OK
-@EXPORT    = qw( lut_names lut_ramps lut_data );
-@EXPORT_OK = qw( $tabledir $rampdir $suffix );
-@ISA       = qw( Exporter );
-
-use strict;
-
-############################################################################
+our @EXPORT    = qw( lut_names lut_ramps lut_data );
+our @EXPORT_OK = qw( $tabledir $rampdir $suffix );
+our @ISA       = qw( Exporter );
 
 # can we find the data?
-BEGIN {
-    my $d = File::Spec->catdir( "PDL", "Graphics", "LUT" );
-    my $lutdir = undef;
-    foreach my $path ( @INC ) {
-	my $check = File::Spec->catdir( $path, $d );
-	if ( -d $check ) { $lutdir = $check; last; }
-    }
-    barf "Unable to find directory ${d} within the perl libraries.\n"
-	unless defined $lutdir;
-    $tabledir = File::Spec->catdir( $lutdir, "tables" );
-    $rampdir  = File::Spec->catdir( $lutdir, "ramps" );
-    barf "Unable to find directory ${tabledir} within the perl libraries.\n"
-	unless -d $tabledir;
-    barf "Unable to find directory ${rampdir} within the perl libraries.\n"
-	unless -d $rampdir;
+my $d = File::Spec->catdir( "PDL", "Graphics", "LUT" );
+my $lutdir = undef;
+foreach my $path ( @INC ) {
+    my $check = File::Spec->catdir( $path, $d );
+    if ( -d $check ) { $lutdir = $check; last; }
 }
+barf "Unable to find directory ${d} within the perl libraries.\n"
+    unless defined $lutdir;
+$tabledir = File::Spec->catdir( $lutdir, "tables" );
+$rampdir  = File::Spec->catdir( $lutdir, "ramps" );
+barf "Unable to find directory $tabledir within the perl libraries.\n"
+    unless -d $tabledir;
+barf "Unable to find directory $rampdir within the perl libraries.\n"
+    unless -d $rampdir;
 
 ############################################################################
 
 sub _lsdir_basename {
     my ($dir, $suffix) = @_;
+    confess "called with undef dir" if !defined $dir;
     opendir my $fh, $dir or barf "$dir: $!";
     map basename($_, $suffix), grep /\Q$suffix\E\z/, readdir $fh;
 }
@@ -188,8 +184,8 @@ sub lut_data ($;$$) {
     my $reverse = $#_ != -1 ? shift : 0;
     my $ramp    = $#_ != -1 ? shift : "ramp";
 
-    my $lfile = File::Spec->catfile( $tabledir, "${table}${suffix}" );
-    my $rfile = File::Spec->catfile( $rampdir, "${ramp}${suffix}" );
+    my $lfile = File::Spec->catfile( $tabledir, "$table$suffix" );
+    my $rfile = File::Spec->catfile( $rampdir, "$ramp$suffix" );
     print "Reading colour table and intensity ramp from:\n $lfile\n $rfile\n"
 	if $PDL::verbose;
 

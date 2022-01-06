@@ -151,11 +151,10 @@ C<routine> method.
 
 =cut
 
-#' fool emacs
-
 package PDL::Func;
 
 use strict;
+use warnings;
 use Carp;
 
 ####################################################################

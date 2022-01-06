@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use Config;
 use PDL::Types qw(ppdefs ppdefs_complex types);
 require PDL::Core::Dev;
@@ -10,6 +11,9 @@ my @Rtypes = grep $_->real, types();
 my @Ctypes = grep !$_->real, types();
 
 pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::Math - extended mathematical operations and special functions

@@ -9,6 +9,7 @@
 #
 
 use strict;
+use warnings;
 #use PDL;
 use vars qw( $VERSION );
 
@@ -19,6 +20,9 @@ $VERSION = "2.1";
 #####################################
 
 pp_addpm({ At => 'Top' }, <<'ENDPM');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::IO::GD - Interface to the GD image library.
@@ -2189,8 +2193,8 @@ sub add_basic_xs
     my $arg_decl_string = "";
     foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
     {
-        my $name = $info->{ARGS}->{$num}->{NAME};
-        my $type = $info->{ARGS}->{$num}->{TYPE};
+        my $name = $info->{ARGS}{$num}{NAME};
+        my $type = $info->{ARGS}{$num}{TYPE};
         
         # Handle perl's handling of pointers:
         my $call_name = $name;
@@ -2280,7 +2284,7 @@ sub parse_prototype
     
     # Figure out the args:
     my $arg_count = 1;
-    foreach my $arg ( split (/,/, $args) ) 
+    foreach my $arg ( grep /\w/, split /,/, $args ) 
     {
         my ($name) = ($arg =~ /(\w+)$/);
         $arg =~ s/$name$//; # arg now contains the full C type

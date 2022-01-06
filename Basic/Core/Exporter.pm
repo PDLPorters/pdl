@@ -51,6 +51,8 @@ following shows typical usage near the top of a simple PDL module:
 =cut
 
 package PDL::Exporter;
+use strict;
+use warnings;
 
 use Exporter;
 

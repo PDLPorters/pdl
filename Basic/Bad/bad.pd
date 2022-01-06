@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 use PDL::Types qw(ppdefs_all types);
 my $A = [ppdefs_all()];

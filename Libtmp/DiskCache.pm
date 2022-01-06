@@ -70,8 +70,6 @@ That is sort-of good but also sort-of dangerous.  You wouldn't want to
 PDL::Dumper::sdump() a large PDL::DiskCache, for example -- that would defeat
 the purpose of using a PDL::DiskCache in the first place.
 
-
-
 =head1 Author, license, no warranty
 
 Copyright 2001, Craig DeForest
@@ -90,12 +88,16 @@ This package comes with NO WARRANTY.
 
 =cut
 
-######################################################################
-# Package initialization
-$PDL::DiskCache::VERSION = 1.1;
- 
+package PDL::DiskCache;
 use strict;
+use warnings;
 use Carp;
+use base qw(Exporter);
+
+our $VERSION = 1.1;
+our @EXPORT = qw(
+  diskcache
+);
 
 =head2 diskcache
 
@@ -111,18 +113,15 @@ Options
 
 =item
 
-See the TIEARRAY options,below.
+See the TIEARRAY options, below.
 
 =back
 
 =cut
 
-sub diskcache {
-  my($f,$opt) = @_;
-  return PDL::DiskCache::new('PDL::DiskCache',$f,$opt);
-}
+sub diskcache { __PACKAGE__->new(@_) }
 
-sub PDL::DiskCache::new {
+sub new {
   my($class,$f,$opt) = @_;
   my($x)=[];
 
@@ -137,8 +136,6 @@ sub PDL::DiskCache::new {
     return $x;
   }
 }
-
-*PDL::DiskCache::diskcache = *diskcache;
 
 =head2 TIEARRAY
 
@@ -199,7 +196,7 @@ Get chatty.
 
 =cut
 
-sub PDL::DiskCache::TIEARRAY { 
+sub TIEARRAY {
   my($class,$f,$opt) = @_;
   croak "PDL::DiskCache needs array ref as 2nd arg (did you pass an array instead?)\n"
     if(ref $f ne 'ARRAY');
@@ -232,7 +229,7 @@ and must be written to disk.
 
 =cut
 
-sub PDL::DiskCache::purge {
+sub purge {
   my($me,$n) = @_,1;
   $me = (tied @{$me}) if("$me" =~ m/^PDL\:\:DiskCache\=ARRAY/);
 
@@ -240,7 +237,6 @@ sub PDL::DiskCache::purge {
   
   print "purging $n items..." if($me->{opt}->{verbose});
 
-    
   my($dex) = $me->{cache_next};
 
   local($_);
@@ -270,7 +266,7 @@ sub PDL::DiskCache::purge {
   print "...done with purge.\n" if($me->{opt}->{verbose});
 }
 
-sub PDL::DiskCache::FETCH {
+sub FETCH {
   my($me,$i) = @_;
 
   if($i < 0 || $i >= $me->{n}) {
@@ -309,7 +305,7 @@ sub PDL::DiskCache::FETCH {
   $me->{cache}->[$x];
 }
 
-sub PDL::DiskCache::STORE {
+sub STORE {
   my($me, $i, $val) = @_;
 
   if( $me->{slot}->[$i] ) {
@@ -336,13 +332,13 @@ sub PDL::DiskCache::STORE {
 
 }
  
-sub PDL::DiskCache::FETCHSIZE { 
+sub FETCHSIZE {
   my($me) = shift;
 
   $me->{n};
 }
 
-sub PDL::DiskCache::STORESIZE { 
+sub STORESIZE {
   my($me,$newsize) = @_;
 
   if($newsize > $me->{n}) {
@@ -379,7 +375,7 @@ For ro caches, this is a not-too-slow (but safe) no-op.
 
 =cut
 
-sub PDL::DiskCache::sync {
+sub sync {
   my($me) = shift;
   $me = (tied @{$me}) if("$me" =~ m/^PDL\:\:DiskCache\=ARRAY/);
   my($syncn) = shift;
@@ -413,11 +409,7 @@ ensure that the files get flushed out, e.g. to use 'em somewhere else.
 
 =cut
 
-sub PDL::DiskCache::DESTROY {
-  my($me) = shift;
-
-  $me->sync;
-}
+sub DESTROY { shift->sync }
 
 # return true
 1;

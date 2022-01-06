@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use File::Basename;
 use PDL::LiteF;
 use PDL::Core ':Internal'; # For howbig()

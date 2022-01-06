@@ -1,12 +1,11 @@
+use strict;
+use warnings;
 use Test::More;
 use PDL::LiteF;
 use Config;
-kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
+kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 use Test::Exception;
 require PDL::Core::Dev;
-
-use strict;
-use warnings;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 

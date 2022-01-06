@@ -1,6 +1,7 @@
 #package;
 
 use strict;
+use warnings;
 
 # This file contains functions to build .pd from the HDF prototypes
 

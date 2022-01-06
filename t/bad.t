@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::Math;
@@ -391,7 +392,7 @@ for my $t (map +([$_, undef], [$_, 'nan']), grep !$_->integer, types()) {
   my $p = sequence $t->[0], 2;
   $p->badvalue($t->[1]) if defined $t->[1];
   $p->setbadat(1);
-  my $msg = "badvalue works right $t->[0], bv=".(explain($t->[1]))[0];
+  my $msg = "badvalue works right $t->[0], bv=".join '', grep $_, explain($t->[1]);
   eval {is $p.'', '[0 BAD]', $msg};
   is $@, '', $msg;
 }

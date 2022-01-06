@@ -3,6 +3,7 @@
 # 07 Apr 2006
 
 use strict;
+use warnings;
 use PDL;
 use Test::More;
 use File::Temp qw(tempdir);

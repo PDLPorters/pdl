@@ -1,4 +1,5 @@
 use strict; 
+use warnings;
 use PDL::LiteF;
 use PDL::IO::Misc;
 use File::Temp qw( tempfile tempdir );

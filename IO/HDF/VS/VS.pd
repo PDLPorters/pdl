@@ -1,4 +1,9 @@
-pp_addpm({At => Top}, <<'EOD');
+use strict;
+use warnings;
+
+pp_addpm({At => 'Top'}, <<'EOD');
+use strict;
+use warnings;
 
 =head1 NAME 
 
@@ -21,9 +26,7 @@ For more information on HDF4, see http://www.hdfgroup.org/products/hdf4/
 =head1 FUNCTIONS
 
 =cut
-
 EOD
-
 
 pp_addhdr(<<'EOH');
 
@@ -323,7 +326,6 @@ pp_addpm(<<'EOPM');
 
 use PDL::Primitive;
 use PDL::Basic;
-use strict;
 
 use PDL::IO::HDF;
 

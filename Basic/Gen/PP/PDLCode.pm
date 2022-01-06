@@ -5,10 +5,10 @@
 #
 
 package PDL::PP::Code;
-use Carp;
-our @CARP_NOT;
 
 use strict;
+use warnings;
+use Carp;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
@@ -400,8 +400,8 @@ sub mypostlude {}
 sub get_str {
     my ($this,$parent,$context) = @_;
     my $str = $this->myprelude($parent,$context);
-    $str .= $this->get_str_int($parent,$context);
-    $str .= $this->mypostlude($parent,$context);
+    $str .= $this->get_str_int($parent,$context)//'';
+    $str .= $this->mypostlude($parent,$context)//'';
     return $str;
 }
 
@@ -412,7 +412,7 @@ sub get_str_int {
   MYLOOP: while(1) {
     my $it = $this->can('myitemstart') && $this->myitemstart($parent,$nth);
     last MYLOOP if $nth and !$it;
-    $str .= $it;
+    $str .= $it//'';
     $str .= join '', $this->get_contained($parent,$context);
     $str .= $it if $it = $this->can('myitemend') && $this->myitemend($parent,$nth);
     $nth++;

@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::Dbg;
@@ -81,7 +82,7 @@ $c = $y->slice(":,:,1");
 
 is(join(',',$c->dims), "5,3,1", 'single-coord slice dims right');
 
-eval { my $d = $c->slice(":,:,2"); "$d" };
+eval { my $d = $c->slice(":,:,2"); $d->string };
 
 like($@, qr/out of bounds/, 'check slice bounds error handling') or diag "ERROR WAS: '$@'\n" if $@;
 
@@ -99,11 +100,11 @@ $d = $c->slice("3:5,:");
 $e = $d->slice(":,(0)");
 $f = $d->slice(":,(1)");
 
-"$y";
-"$c"; 
-"$d";
-"$e";
-"$f";
+$y->string;
+$c->string; 
+$d->string;
+$e->string;
+$f->string;
 
 is("$e", "[7 9 11]");
 is("$f", "[7 9 11]");
@@ -447,18 +448,18 @@ ok( (not $y->allocated) ) ;
 }
 
 my $indices = pdl([]);
-$got = eval { my $s = pdl([1,2])->slice(pdl(1)); $s.''; $s->nelem };
+$got = eval { my $s = pdl([1,2])->slice(pdl(1)); $s->string; $s->nelem };
 is $@, '', 'slice 2-elt ndarray with one-length ndarray';
 is $got, 1, 'right dim from 2-elt with one index';
-$got = eval { my $s = pdl([1,2])->slice($indices); $s.''; $s->nelem };
+$got = eval { my $s = pdl([1,2])->slice($indices); $s->string; $s->nelem };
 is $@, '', 'slice 2-elt ndarray with zero-length ndarray';
 is $got, 0, 'zero dim from 2-elt';
-$got = eval { my $s = pdl([1])->slice($indices); $s.''; $s->nelem };
+$got = eval { my $s = pdl([1])->slice($indices); $s->string; $s->nelem };
 is $@, '', 'slice 1-elt ndarray with zero-length ndarray';
 is $got, 0, 'zero dim from 1-elt';
 
 my $pa = sequence 10;
-my $c = PDL->pdl(7,6);
+$c = PDL->pdl(7,6);
 $got = $pa->slice([$c->slice(1),0,0]);
 is "".$got, 6, 'slice did "at" automatically' or diag "got:$got";
 

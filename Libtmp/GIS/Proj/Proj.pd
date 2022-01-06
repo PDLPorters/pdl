@@ -12,11 +12,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 use strict;
+use warnings;
 
-use vars qw( $VERSION );
-$VERSION = "1.32";
+our $VERSION = "1.32";
 
 pp_addpm({At=>'Top'},<<'EODOC');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::GIS::Proj - PDL interface to the PROJ projection library.
@@ -225,12 +228,14 @@ sub load_projection_information
         chomp @lines;
         # Full name of this projection:
         ($hash->{NAME}, my $temp) = splice @lines, 0, 2;
-        # The second line is usually a list of projection types this one is:
-        $temp =~ s/no inv\.*,*//;
-        $temp =~ s/or//;
-        my @temp_types = split(/[,&\s]/, $temp );
-        my @types = grep( /.+/, @temp_types );
-        $hash->{CATEGORIES} = \@types;
+        if ($temp) {
+          # The second line is usually a list of projection types this one is:
+          $temp =~ s/no inv\.*,*//;
+          $temp =~ s/or//;
+          my @temp_types = split(/[,&\s]/, $temp );
+          my @types = grep( /.+/, @temp_types );
+          $hash->{CATEGORIES} = \@types;
+        }
         # If there's more than 2 lines, then it usually is a listing of parameters:
         # General parameters for all projections:
         $hash->{PARAMS}->{GENERAL} = 

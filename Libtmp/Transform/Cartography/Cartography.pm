@@ -241,34 +241,29 @@ auxiliary functions (no leading 't_').
 use PDL::Transform;
 
 package PDL::Transform::Cartography;
+use strict;
+use warnings;
 use PDL::Core ':Internal'; # Load 'topdl' (internal routine)
 
-@ISA = ( 'Exporter','PDL::Transform' );
-our $VERSION = "0.6";
-$VERSION = eval $VERSION;
-
-BEGIN {
-  use Exporter ();
-  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_utm t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
-  @EXPORT = @EXPORT_OK;
-  %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
-}
-
+use Exporter ();
 use PDL::LiteF;
 use PDL::Math;
 use PDL::Transform;
 use PDL::MatrixOps;
 use PDL::NiceSlice;
-
 use Carp;
 
+our @ISA = ( 'Exporter','PDL::Transform' );
+our $VERSION = "0.6";
+$VERSION = eval $VERSION;
+our @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_utm t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
+our @EXPORT = @EXPORT_OK;
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
 
 ##############################
 # Steal _opt from PDL::Transform.
 *PDL::Transform::Cartography::_opt = \&PDL::Transform::_opt;
 use overload '""' => \&_strval;
-
-use strict;
 
 our $PI = $PDL::Transform::PI;
 our $DEG2RAD = $PDL::Transform::DEG2RAD;
@@ -528,7 +523,7 @@ it is probably not worth the computational overhead.
 
 =cut
 
-*PDL::clean_lines = \&clean_lines;
+*PDL::clean_lines = *PDL::clean_lines = \&clean_lines;
 sub clean_lines {
     my($lines) = shift;
     my($x) = shift;
@@ -2256,7 +2251,7 @@ OPTIONS
 
 =cut
 
-*t_aitoff = \&t_hammer;
+*t_aitoff = *t_aitoff = \&t_hammer;
 
 sub t_hammer {
   my($me) = _new(@_,"Hammer/Aitoff Projection");
@@ -2506,7 +2501,7 @@ sub t_vertical {
     $me->_finish;
   }
 
-*t_zenithal = \&t_vertical;
+*t_zenithal = *t_zenithal = \&t_vertical;
 
 ######################################################################
 

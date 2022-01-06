@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use PDL::Types qw(types ppdefs_complex ppdefs_all);
 
 my $T = [map $_->ppsym, grep $_->integer, types];
@@ -6,6 +7,8 @@ my $C = [ppdefs_complex];
 my $A = [ppdefs_all];
 
 pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
 
 =head1 NAME
 

@@ -70,12 +70,13 @@ the copyright notice should be included in the file.
 =cut
 
 package PDL::Filter::LinSmooth;
+use strict;
+use warnings;
 use PDL;
 use PDL::Basic;
 use PDL::Slatec;
 use PDL::Slices;
 use PDL::Primitive;
-use strict;
 
 @PDL::Filter::LinSmooth::ISA = qw/PDL::Filter::LinPred/;
 

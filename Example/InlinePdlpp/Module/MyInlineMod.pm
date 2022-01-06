@@ -22,16 +22,15 @@ in a module that can be installed in the usual way.
 
 package PDL::MyInlineMod;
 
-# use strict;  # strict results in trouble with barewords when using Inline :(
-# no strict 'vars';
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
-
+use strict;
+use warnings;
 require PDL::Exporter;
-@ISA = qw(PDL::Exporter);
+our @ISA = qw(PDL::Exporter);
 # functions you want to export into the caller's name space
-@EXPORT_OK = qw(myinc plus2);
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+our @EXPORT_OK = qw(myinc plus2);
+our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
+our $VERSION;
 BEGIN { # in BEGIN to make sure we can use $VERSION in the
         # 'use Inline...' call below
 $VERSION = '0.60'; # Inline requires this to be a *string* that matches
@@ -114,6 +113,3 @@ perl(1).
 L<Inline>.
 
 L<Inline::Pdlpp>.
-
-=cut
-

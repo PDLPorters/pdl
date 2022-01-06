@@ -20,15 +20,16 @@ see Numerical Recipes, chapter 15 "Modeling of data".
 
 package PDL::Fit::LM;
 
-@EXPORT_OK  = qw( lmfit tlmfit);
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
-
+use strict;
+use warnings;
 use PDL::Core;
 use PDL::Exporter;
 use PDL::Options;
 use PDL::Slatec; # for matrix inversion
 
-@ISA    = qw( PDL::Exporter );
+our @EXPORT_OK  = qw(lmfit tlmfit);
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+our @ISA    = qw( PDL::Exporter );
 
 =head2 lmfit
 

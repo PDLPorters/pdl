@@ -3,8 +3,8 @@ package PDL::Char;
 @ISA = qw (PDL);
 use overload ("\"\""   =>  \&PDL::Char::string);
 use strict;
+use warnings;
 use vars ('$level', '@dims'); # Global Vars used
-
 
 =head1 NAME
 

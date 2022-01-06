@@ -104,6 +104,7 @@ IDL objects contain compiled code.
     
   }
 use strict;
+use warnings;
 use PDL::Types;
   
 =head2 ridl

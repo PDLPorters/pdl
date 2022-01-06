@@ -1,4 +1,10 @@
+use strict;
+use warnings;
+
 pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
+
 =head1 NAME
 
 PDL::Graphics::TriD::Rout - Helper routines for Three-dimensional graphics
@@ -12,7 +18,7 @@ EOD
 
 pp_def(
 	'combcoords',
-	GenericTypes => [F,D],
+	GenericTypes => ['F','D'],
 	DefaultFlow => 1,
 	Pars => 'x(); y(); z();
 		float [o]coords(tri=3);',
@@ -40,7 +46,7 @@ EOT
 # Returns (r = |dist|+d) a*r^-2 + b*r^-1 + c*r^-0.5
 pp_def(
 	'repulse',
-	GenericTypes => [F,D],
+	GenericTypes => ['F','D'],
 	Pars => 'coords(nc,np);
 		 [o]vecs(nc,np);
 		 int [t]links(np);',
@@ -146,7 +152,7 @@ For definition of the potential, see the actual function.
 
 pp_def(
 	'attract',
-	GenericTypes => [F,D],
+	GenericTypes => ['F','D'],
 	Pars => 'coords(nc,np);
 		int from(nl);
 		int to(nl);
@@ -205,7 +211,7 @@ sub trid {
 pp_def('vrmlcoordsvert',
 	Pars => 'vertices(n=3)',
 	OtherPars => 	'char* space; PerlIO *fp',
-	GenericTypes => [F,D],
+	GenericTypes => ['F','D'],
 	Code => q@
 		 PDL_Byte *buf, *bp;
 		 char *spc = $COMP(space);
@@ -214,7 +220,7 @@ pp_def('vrmlcoordsvert',
 		 sprintf(formatstr,"%s%%.3%cf %%.3%cf %%.3%cf,\n",spc,
 			formchar,formchar,formchar);
 		threadloop %{
-			PerlIO_printf($COMP(fp),formatstr,@.trid(vertices,n).');
+			PerlIO_printf($COMP(fp),formatstr,@.trid('vertices','n').');
 		%}'
 );
 
@@ -296,7 +302,7 @@ pp_def('contour_segments_internal',
             points(d,m,n); 
             float [o]segs(d,q);
 				int [o] cnt();',
-	GenericTypes => [F],
+	GenericTypes => ['F'],
 	Code => '
 		int ds, ms, ns;
 		float dist;

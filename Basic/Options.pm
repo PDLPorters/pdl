@@ -1,4 +1,3 @@
-
 package PDL::Options;
 
 =head1 NAME
@@ -37,9 +36,8 @@ A simplified (non-OO) interface is provided.
 =cut
 
 use strict;
+use warnings;
 use Carp;
-
-use vars qw/$VERSION %EXPORT_TAGS %DEF_SYNS @ISA/;
 
 require Exporter;
 
@@ -48,9 +46,9 @@ require Exporter;
 our $VERSION = '0.92';
 $VERSION = eval $VERSION;
 
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
-%EXPORT_TAGS = (
+our %EXPORT_TAGS = (
 		'Func' => [qw/
 			   parse iparse ifhref
 			   /]
@@ -59,7 +57,7 @@ $VERSION = eval $VERSION;
 Exporter::export_tags('Func');
 
 # List of default synonyms
-%DEF_SYNS = (
+our %DEF_SYNS = (
 	     COLOR  => 'COLOUR',
 	     COLOUR => 'COLOR',
 	     CENTER => 'CENTRE',
@@ -890,10 +888,7 @@ sub compare_with_list {
 	# exact match even if alternatives exist (eg COL will always
 	# match just COL if the keys are COL and COLOUR)
 	# First do the exact match (case insensitive)
-      {
-	local $^W = undef; # To silence warnings about uninitialised values
 	@result =  grep { /^$key$/i } @list;
-      }
 	# If this match came up with something then we will use it
 	# Else we will try a minimum match (assuming flag is true)
 
@@ -906,9 +901,6 @@ sub compare_with_list {
     }
     return @result;
 }
-
-
-
 
 =back
 

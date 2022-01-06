@@ -67,6 +67,7 @@
 package PDL::PP::Rule;
 
 use strict;
+use warnings;
 
 use Carp;
 
@@ -876,11 +877,12 @@ sub pp_addxs {
 #   FirstKey => ...,
 #   Code => pp_line_numbers(__LINE__, $x . $y . $c),
 #   OtherKey => ...
-sub pp_line_numbers ($$) {
+sub pp_line_numbers {
   _pp_line_number_file((caller)[1], @_);
 }
 sub _pp_line_number_file {
 	my ($filename, $line, $string) = @_;
+	confess "pp_line_numbers called with undef" if !defined $string;
 	# The line needs to be incremented by one for the bookkeeping to work
 	$line++;
 	$filename =~ s/\\/\\\\/g; # Escape backslashes
@@ -938,7 +940,7 @@ sub printxsc {
   my $text = join '',@_;
   if (defined $file) {
     (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
-    $text = join '', sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck), $::PDLXSC_header, $text;
+    $text = join '', sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck), $::PDLXSC_header//'', $text;
     _write_file($file, $text);
   } else {
     $::PDLXSC .= $text;
@@ -958,13 +960,14 @@ sub pp_done {
           $::PDLXSC,
           $PDL::PP::macros_xs, sprintf($PDL::PP::header_xs,
             $::PDLMOD, $::PDLOBJ, $::PDLXS,
-            $pdl_boot, $::PDLXSBOOT, $PP::boundscheck,
+            $pdl_boot, $::PDLXSBOOT//'', $PP::boundscheck,
           );
         _write_file("$::PDLPREF.xs", $text);
         return if nopm;
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
+        $::PDLMODVERSION //= '';
         $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n=cut\n\n" : '';
         _write_file("$::PDLPREF.pm", join "\n\n", <<EOF, $::PDLBEGIN, $::PDLPM{Top}, $::FUNCSPOD, @::PDLPM{qw(Middle Bot)}, '# Exit with OK status', "1;\n");
 #
@@ -1031,7 +1034,7 @@ sub pp_def {
 	croak("ERROR: No FreeFunc for pp_def=$name!\n")
 	  unless exists $obj{FreeFunc};
 
-	my $ctext = join("\n\n",@obj{'StructDecl','RedoDimsFunc',
+	my $ctext = join("\n\n",grep $_, @obj{'StructDecl','RedoDimsFunc',
 		'ReadDataFunc','WriteBackDataFunc',
 		'FreeFunc',
 		'VTableDef','RunFunc',
@@ -1047,10 +1050,10 @@ EOF
 	  PDL::PP->printxsc(undef, $ctext);
 	}
 	PDL::PP->printxs($obj{NewXSCode});
-	pp_add_boot($obj{BootSetNewXS});
+	pp_add_boot($obj{BootSetNewXS}) if $obj{BootSetNewXS};
 	PDL::PP->pp_add_exported($name);
 	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
-	PDL::PP::pp_addpm($obj{PMCode});
+	PDL::PP::pp_addpm($obj{PMCode}) if defined $obj{PMCode};
 	PDL::PP::pp_addpm($obj{PMFunc}."\n");
 
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;

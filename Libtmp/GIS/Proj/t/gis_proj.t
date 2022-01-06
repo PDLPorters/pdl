@@ -7,6 +7,7 @@
 #
 
 use strict;
+use warnings;
 use PDL::LiteF;
 use Test::More;
 use PDL::GIS::Proj;

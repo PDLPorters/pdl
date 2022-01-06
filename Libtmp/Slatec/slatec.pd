@@ -1,4 +1,9 @@
+use strict;
+use warnings;
+
 pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
 
 =head1 NAME
 

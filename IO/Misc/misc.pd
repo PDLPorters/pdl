@@ -2,7 +2,11 @@
 require PDL::Core::Dev;
 my $isbigendian = PDL::Core::Dev::isbigendian();
 
+use strict;
+use warnings;
 pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -1309,7 +1313,7 @@ EOPM
 pp_def('_rasc',
        Pars => '[o] nums(n); int [o] ierr(n)',
        OtherPars => 'int num => n; PerlIO *fp',
-       GenericTypes => [F,D],
+       GenericTypes => ['F','D'],
        Code => q@ 
                  int ns, i, j;
                  ns = $SIZE(n);

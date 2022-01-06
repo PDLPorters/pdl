@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use Test::More;
 use PDL::LiteF;
 use PDL::Types;
@@ -280,7 +281,7 @@ my $a1 = PDL->sequence(10,10,3,4);
 
 # $PDL::whichND_no_warning = 1;
 # ($x, $y, $z, $w)=whichND($a1 == 203);
-my ($x, $y, $z, $w) = whichND($a1 == 203)->mv(0,-1)->dog;  # quiet deprecation warning
+($x, $y, $z, my $w) = whichND($a1 == 203)->mv(0,-1)->dog;  # quiet deprecation warning
 ok($a1->at($x->list,$y->list,$z->list,$w->list) == 203, "whichND" );
 
 $a1 = pdl(1,2,3,4);

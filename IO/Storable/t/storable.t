@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use Test::More;
 use Storable qw/freeze thaw retrieve/;
 use PDL::LiteF;

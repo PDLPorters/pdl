@@ -1,8 +1,10 @@
 package PDL::Graphics2D;
 
+use strict;
+use warnings;
 use Exporter 'import'; # gives you Exporter's import() method directly
-@EXPORT = qw(imag2d imag2d_update twiddle);     # symbols to export on request
-@EXPORT_OK = qw(imag2d imag2d_update twiddle);  # symbols to export on request
+our @EXPORT = qw(imag2d imag2d_update twiddle);     # symbols to export on request
+our @EXPORT_OK = qw(imag2d imag2d_update twiddle);  # symbols to export on request
 
 =head1 NAME
 

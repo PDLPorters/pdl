@@ -1,4 +1,3 @@
-
 =head1 NAME
 
 PDL::Opt::Simplex -- Simplex optimization routines
@@ -126,14 +125,13 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution, 
 the copyright notice should be included in the file.
 
-
-
 =cut
 
 package PDL::Opt::Simplex;
+use strict;
+use warnings;
 use PDL;
 use PDL::Primitive;
-use strict;
 use PDL::Exporter;
 
 # use AutoLoader;

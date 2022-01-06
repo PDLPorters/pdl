@@ -4,6 +4,7 @@
 # Judd Taylor, USF IMaRS
 #
 use strict;
+use warnings;
 use PDL;
 use Test::More;
 use PDL::IO::HDF::VS;

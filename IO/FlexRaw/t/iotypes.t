@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 use PDL::LiteF;
 use PDL::Types ':All';
 use PDL::IO::FlexRaw;

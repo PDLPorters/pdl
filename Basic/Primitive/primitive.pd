@@ -1,9 +1,11 @@
 use strict;
+use warnings;
 use PDL::Types qw(ppdefs_all types);
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
 
 pp_addpm({At=>'Top'},<<'EOD');
-
+use strict;
+use warnings;
 use PDL::Slices;
 use Carp;
 
@@ -3094,7 +3096,7 @@ sub PDL::interpND {
 	  my $s0 = $gradient->slice("(0)");   # Just-under-gradient
 	  my $s1 = $gradient->slice("(1)");   # Just-over-gradient
 
-	  $bb = $y->slice("($i)");
+	  my $bb = $y->slice("($i)");
 
 	  # Collapse the sample...
 	  $samp = ( $a0 +
@@ -3632,7 +3634,7 @@ sub PDL::whichND {
     return $mask ? pdl(indx,0) : PDL::new_from_specification('PDL',indx,0);
   }
 
-  $ind = $mask->flat->which->dummy(0,$mask->getndims)->make_physical;
+  my $ind = $mask->flat->which->dummy(0,$mask->getndims)->make_physical;
   if($ind->nelem==0) {
       # In the empty case, explicitly return the correct type of structured empty
       return PDL::new_from_specification('PDL',indx,$mask->ndims, 0);
@@ -3640,14 +3642,13 @@ sub PDL::whichND {
 
   my $mult = ones($mask->getndims)->long;
   my @mdims = $mask->dims;
-  my $i;
 
-  for $i(0..$#mdims-1) {
+  for my $i (0..$#mdims-1) {
    # use $tmp for 5.005_03 compatibility
    (my $tmp = $mult->index($i+1)) .= $mult->index($i)*$mdims[$i];
   }
 
-  for $i(0..$#mdims) {
+  for my $i (0..$#mdims) {
    my($s) = $ind->index($i);
    $s /= $mult->index($i);
    $s %= $mdims[$i];

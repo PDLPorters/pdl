@@ -1,6 +1,9 @@
 use strict;
+use warnings;
 
 pp_addpm({At=>'Top'},<<'EOD');
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -20,8 +23,6 @@ of anywhere else to put them.
 use PDL;  # ensure qsort routine available
 use PDL::Math;
 use Carp;
-
-use strict;
 
 EOD
 
