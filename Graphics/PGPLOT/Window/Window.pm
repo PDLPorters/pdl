@@ -2242,10 +2242,9 @@ To select a region of the X-axis:
 
 =cut
 
-
-#'
-
 package PDL::Graphics::PGPLOT::Window;
+use strict;
+use warnings;
 require Exporter;
 
 use PDL::Core qw/:Func :Internal/; # Grab the Core names
@@ -2257,21 +2256,15 @@ use PDL::Options;
 use PDL::Graphics::State;
 use PDL::Graphics::PGPLOTOptions qw(default_options);
 use PDL::Slices;
-use PDL::NiceSlice;
-use SelfLoader;
-BEGIN {
-  eval { require PGPLOT; PGPLOT->import; 1 }
-    or die "Dependency on PGPLOT is not satisfied: $@";
-}
+use PGPLOT;
 
 require DynaLoader;
 
-@ISA = qw( Exporter SelfLoader DynaLoader );
-@EXPORT = qw( pgwin );
+our @ISA = qw( Exporter DynaLoader );
+our @EXPORT = qw( pgwin );
 
 bootstrap PDL::Graphics::PGPLOT::Window;
 $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
-
 
 ####
 # Helper routines to handle signal avoidance:
@@ -2353,8 +2346,7 @@ sub catch_signals (&) {
   local($_, $@);
   if($sig_nest == 0) {
     foreach $_(@sigs) {
-      no warnings;  # mask out warning in case $SIG{$_} is undef or "".
-      next if ($SIG{$_} == \&signal_catcher);
+      next if ($SIG{$_}//0) == \&signal_catcher;
       $sig_handlers{$_}=$SIG{$_};
       $SIG{$_}=\&signal_catcher;
     }
@@ -2364,8 +2356,6 @@ sub catch_signals (&) {
   &release_signals;
   die $@ if $@;
 }
-
-
 
 sub release_signals {
   local($_);
@@ -2464,6 +2454,7 @@ sub pgwin {
     return PDL::Graphics::PGPLOT::Window->new(@a);
 }
 
+my $dev;
 sub new {
   my $type = shift;
 
@@ -2475,10 +2466,7 @@ sub new {
 
   # options are either given in a hash reference, or as a list
   # (which is converted to a hash reference to make the code easier)
-  my $u_opt;
-  if ( ref($_[0]) eq "HASH" ) { $u_opt = shift; }
-  else                        { $u_opt = { @_ }; }
-#  $u_opt={} unless defined($u_opt);
+  my $u_opt = ref($_[0]) eq "HASH" ? shift : { @_ };
 
   my $opt = $WindowOptions->options($u_opt);
   $WindowOptions->full_options(0);
@@ -2489,7 +2477,6 @@ sub new {
   if (exists $user_options->{Device}) {
     $dev = $opt->{Device}
   } elsif (!defined($dev) || $dev eq "") {
-    # Fall back on the default if first time or use $DEV otherwise..
     $dev = $PREVIOUS_DEVICE || $opt->{Device};
   }
   $PREVIOUS_DEVICE = $dev;
@@ -2522,7 +2509,7 @@ sub new {
 	      'WindowWidth'   => $opt->{WindowWidth},
 	      'NX'	      => $opt->{NXPanel}	  || 1,
 	      'NY'	      => $opt->{NYPanel}	  || 1,
-	      'Device'	      => $opt->{Device}		  || $DEV,
+	      'Device'	      => $opt->{Device}		  || $dev,
 	      'CurrentPanel'  => 0,
 	      '_env_options'  => undef,
 	      'State'         => undef,
@@ -2597,8 +2584,8 @@ are adjusted according to whether we have a hardcopy device or not.
 =cut
 
 # bit: 2=>height; 1=>width; 0=>aspect
-$DefaultWindowWidth = 6;
-$DefaultWindowAspect=0.618;
+my $DefaultWindowWidth = 6;
+my $DefaultWindowAspect=0.618;
 
 # These are thunks to handle regularizing window values in _setup_window.
 # Index is binary by validity of value.  0 = undefined (or 0), 1 = ok.
@@ -2606,7 +2593,7 @@ $DefaultWindowAspect=0.618;
 # Return value is ($aspect, $height).
 #
 # If nothing is defined we try to grab the latest values from PGPLOT itself.
-$__setup_subs = [
+my @__setup_subs = (
   sub { my($vs_x1,$vs_x2,$vs_y1,$vs_y2);                        # 0 (000)
 	catch_signals {
           pgqvsz(1,$vs_x1,$vs_x2,$vs_y1,$vs_y2);
@@ -2620,11 +2607,10 @@ $__setup_subs = [
   sub { ($DefaultWindowAspect, $_[1]); },                       # 2 (010)
   sub { @_; },                                                  # 3 (011)
   sub { ($DefaultWindowAspect, $_[2] / $_[0]); },               # 4 (100)
-  sub { ($_[0], $_[2] / $_[0] ) },                              # 5 (101)
-  sub { ($_[2] / $_[1], $_[1] ) },                              # 6 (110)
+  sub { ($_[0], $_[2] / $_[0]) },                               # 5 (101)
+  sub { ($_[2] / $_[1], $_[1]) },                               # 6 (110)
   sub { ($_[2] / $_[1], $_[1] ) } # use W and H; ignore Aspect  # 7 (111)
-];
-
+);
 
 sub _setup_window {
   my $self = shift;
@@ -2635,13 +2621,9 @@ sub _setup_window {
   }
 
   my $unit = _parse_unit($opt->{Unit}) || 1;
-
   my $aspect = $opt->{AspectRatio};
-
-  my($width,$height);
-
-  $width  = $opt->{WindowXSize} || $opt->{WindowWidth};
-  $height = $opt->{WindowYSize};
+  my $width  = $opt->{WindowXSize} || $opt->{WindowWidth};
+  my $height = $opt->{WindowYSize};
 
   if(defined $opt->{Size}) {
     if(ref $opt->{Size} eq 'ARRAY') {
@@ -2655,14 +2637,12 @@ sub _setup_window {
     }
   }
 
-  ($aspect,$width) = &{$__setup_subs->[ ((!!($aspect))   ) |
-					((!!($width ))<<1) |
-					((!!($height))<<2)
-					]}($aspect,$width,$height);
-  $self->{AspectRatio} = $aspect;
-  $self->{WindowWidth} = $width;
+  my $subindex = ($aspect ? 1 : 0) +
+                 ($width  ? 2 : 0) +
+                 ($height ? 4 : 0);
+  @$self{qw(AspectRatio WindowWidth)} = ($aspect,$width) =
+    $__setup_subs[$subindex]->($aspect,$width,$height);
 
-  #
   # PGPLOT seems not to include full unit support in (e.g.) the pgpap
   # command -- so check here and convert mm->inches if necessary.
   # This is a real kludge that should be replaced with Real Units Conversion
@@ -3117,9 +3097,8 @@ if the item is not recognised or the information is not available.
 
 sub info {
     my $self = shift;
-    my @inq;
-    if ( wantarray() ) { @inq = @_; }
-    else               { push @ing, $_[0]; }
+    my @inq = wantarray ? @_ : $_[0];
+
     $self->focus();
     my @ans;
     catch_signals {
@@ -3237,7 +3216,7 @@ specification, or return undef if it won't go.
 
 =cut
 
-@__unit_match = (
+my @__unit_match = (
   qr/^((\s*0)|(n(orm(al(ized)?)?)?))\s*$/i,
   qr/^((\s*1)|(i(n(ch(es)?)?)?))\s*$/i,
   qr/^((\s*2)|(m(m|(illimeter))?s?))\s*$/i,
@@ -3770,7 +3749,7 @@ sub initenv{
       barf "The PlotPosition must be given as an array reference!" unless
         ref($o->{PlotPosition}) eq 'ARRAY';
       my ($x0, $x1, $y0, $y1)=@{$o->{PlotPosition}};
-      print "pgsvp($wx0,$wx1,$wy0,$wy1);\n" if($PDL::Graphics::PGPLOT::debug);
+      print "pgsvp($x0,$x1,$y0,$y1);\n" if($PDL::Graphics::PGPLOT::debug);
       pgsvp ($x0, $x1, $y0, $y1);
     }
 
@@ -4016,7 +3995,7 @@ sub _image_xyrange {
       if(ref $opt->{XRange} ne 'ARRAY');
     @xvals = @{$opt->{XRange}};
   } else {
-    @xvals = ($tr->(0:2)*pdl[
+    @xvals = ($tr->slice('0:2')*pdl[
 			         [1, 0.5, 0.5],
 			         [1, 0.5, $nx+0.5],
 			         [1, $nx+0.5, 0.5],
@@ -4030,7 +4009,7 @@ sub _image_xyrange {
       if(ref $opt->{YRange} ne 'ARRAY');
     @yvals = @{$opt->{YRange}};
   } else {
-    @yvals = ($tr->(3:5)*pdl[
+    @yvals = ($tr->slice('3:5')*pdl[
 				     [1, 0.5, 0.5],
 				     [1, 0.5, $ny+0.5],
 				     [1, $ny+0.5, 0.5],
@@ -4179,6 +4158,10 @@ information on the Representation of World Coordinate Systems in FITS.
 
 } # "closure" around _FITS_tr
 
+my $label_params = [
+  [2.0,  3.2, 2.2], # default
+  [1.0, 2.7, 2.2], # tightened
+];
 sub label_axes {
   # print "label_axes: got ",join(",",@_),"\n";
   my $self = shift;
@@ -4236,11 +4219,6 @@ sub label_axes {
     # from the pglab.f file.  The parameters are shrunk inward if NYPanel > 1
     # or if the option "TightLabels" is set.  You can also explicitly set
     # it to 0 to get the original broken  behavior.  [CED 2002 Aug 29]
-
-    $label_params = [ [2.0,  3.2, 2.2], # default
-                      [1.0, 2.7, 2.2], # tightened
-                      ]
-                        unless defined($label_params);
 
     my($p) = $label_params->[ ( ($self->{NY} > 1 && !defined $o->{TightLabels})
                                 || $o->{TightLabels}
@@ -4640,7 +4618,7 @@ sub env {
 
       if (defined($fillcontours)) {
         pgbbuf();
-        if (ref $fillcontours ne PDL) {
+        if (ref $fillcontours ne 'PDL') {
           $fillcontours = zeroes($ncont - 1)->xlinvals(0,1)->dummy(0,3);
         } elsif ($fillcontours->getndims == 1) {
           $fillcontours = $fillcontours->dummy(0,3);
@@ -4653,11 +4631,11 @@ sub env {
         # Loop over filled contours (perhaps should be done in PP for speed)
         # Do not shade negative and 0-levels
         for ($i = 0; $i < ($ncont - 1); $i++) {
-          pgscr(16, list $fillcontours->(:,$i));
+          pgscr(16, list $fillcontours->slice(":,$i"));
           pgsci(16);
           pgconf($image->get_dataref, $nx, $ny,
                  1, $nx, 1, $ny,
-                 list($contours->($i:($i+1))), $tr->get_dataref);
+                 list($contours->slice("$i:(".($i+1))), $tr->get_dataref);
         }
         pgscr(16, $cr, $cg, $cb); # Restore color index 16
         pgebuf();
@@ -4687,7 +4665,7 @@ sub env {
         $self->_set_colour($labelcolour);
         foreach $label (@{$labels}) {
           pgconl( $image->get_dataref, $nx,$ny,1,$nx,1,$ny,
-                  $contours->(($count)),
+                  $contours->slice("($count)"),
                   $tr->get_dataref, $label, $intval, $minint);
           $count++;
         }
@@ -4796,8 +4774,8 @@ EOD
       # loop over the axes to calculate plot limits
       for my $ax (@axes_to_do)
 	{
-	  $axis = $d{$ax};
-	  $range = uc $ax . 'range';
+	  my $axis = $d{$ax};
+	  my $range = uc $ax . 'range';
 
 	  # user may have specified range limits already; pull them in
 	  ($axis->{min},$axis->{max}) = @{$o->{$range}}
@@ -5095,8 +5073,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	   ) { # $xy, $p case -- split $xy into $x and $y.
 
 	foreach $_(@$c){
-	  push(@$x,$_->((0)));
-	  push(@$y,$_->((1)));
+	  push(@$x,$_->slice("(0)"));
+	  push(@$y,$_->slice("(1)"));
 	}
 	$p = $d;
 
@@ -5111,9 +5089,9 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       my($c) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
 
       foreach $_(@$c) {
-	push(@$x,$_->((0)));
-	push(@$y,$_->((1)));
-	push(@$p, ($_->dim(0) >= 3) ? $_->((2)) : 1);
+	push(@$x,$_->slice("(0)"));
+	push(@$y,$_->slice("(1)"));
+	push(@$p, ($_->dim(0) >= 3) ? $_->slice("(2)") : 1);
       }
     }
 
@@ -5124,8 +5102,6 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     barf "lines: x and y lists have different numbers of elements"
       if($#$x != $#$y);
 
-    barf "lines: \$o->\{Missing\} must be an array ref if specified\n" if (defined $o->{Missing} && ref $o->{Missing} ne 'ARRAY');
-
     ##############################
     # Now $x, $y, and $p all have array refs containing their respective
     # vectors.  Set up pgplot (copy-and-pasted from line; this is probably
@@ -5133,6 +5109,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     #
     $opt = {} unless defined($opt);
     my($o,$u_opt) = $self->_parse_options($line_options,$opt);
+
+    barf "lines: \$o->\{Missing\} must be an array ref if specified\n" if (defined $o->{Missing} && ref $o->{Missing} ne 'ARRAY');
 
     $self->_check_move_or_erase($o->{Panel},$o->{Erase});
 
@@ -5154,7 +5132,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	}
 	my($mask) = (isfinite $vals);
 	$mask &= ($vals != $missing) if(defined $missing);
-	$mask->(1:-1) &= (($pp->(0:-2) != 0) | ($pp->(1:-1) != 0));
+	$mask->slice("1:-1") &= (($pp->slice("0:-2") != 0) | ($pp->slice("1:-1") != 0));
 	my($c,$d) = minmax(where($vals,$mask));
 	$min .= $c;
 	$max .= $d;
@@ -5164,8 +5142,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	my($pp) = $#$p ? $p->[$i] : $p->[0]; # allow scalar pen in array case
         $pp = pdl($pp) unless UNIVERSAL::isa($pp,'PDL');
 	my $miss = defined $o->{Missing} ? $o->{Missing}->[$i] : undef;
-	&$thunk($u_opt->{XRange},$x->[$i],$miss,$xmin->(($i)),$xmax->(($i)),$pp);
-	&$thunk($u_opt->{YRange},$y->[$i],$miss,$ymin->(($i)),$ymax->(($i)),$pp);
+	&$thunk($u_opt->{XRange},$x->[$i],$miss,$xmin->slice("($i)"),$xmax->slice("($i)"),$pp);
+	&$thunk($u_opt->{YRange},$y->[$i],$miss,$ymin->slice("($i)"),$ymax->slice("($i)"),$pp);
       }
 
       $xmin = $xmin->min;
@@ -5204,8 +5182,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
           if($pp->nelem == 1);
 
         $pp = $pp->copy; # Make a duplicate to scribble on
-        $pp->(0:-2) *= ($xx->(0:-2) + $xx->(1:-1))->isfinite;
-        $pp->(0:-2) *= ($yy->(0:-2) + $yy->(1:-1))->isfinite;
+        $pp->slice("0:-2") *= ($xx->slice("0:-2") + $xx->slice("1:-1"))->isfinite;
+        $pp->slice("0:-2") *= ($yy->slice("0:-2") + $yy->slice("1:-1"))->isfinite;
 
         my($pn,$pval) = rle($pp);
         my($pos,$run,$rl) = (0,0,0);
@@ -5216,8 +5194,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
             my($pv);
             if($pv = $pval->at($run)) { # (assignment) Skip runs with pen value=0
                 my $top = $pos+$rl;   $top-- if($top == $xx->dim(0));
-                my $x0 = float $xx->($pos:$top);
-                my $y0 = float $yy->($pos:$top);
+                my $x0 = float $xx->slice("$pos:$top");
+                my $y0 = float $yy->slice("$pos:$top");
 
                 $self->_set_colour(abs($pv)*(defined $o->{Colour} ? $o->{Colour}:1));
 
@@ -5230,8 +5208,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
                 }
 
                 if(defined($miss)) {
-                    my $mpt = defined $miss ? $miss->($pos:$top) : undef;
-                    pggapline($x0->nelem,$miss->($pos:$top),$x0->get_dataref, $y0->get_dataref);
+                    my $mpt = defined $miss ? $miss->slice("$pos:$top") : undef;
+                    pggapline($x0->nelem,$miss->slice("$pos:$top"),$x0->get_dataref, $y0->get_dataref);
                 } else {
                     pgline($x0->nelem,$x0->get_dataref,$y0->get_dataref,);
                 }
@@ -5307,7 +5285,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 
       if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
       if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
-      print("line: xmin=$xmin; xmax=$max; ymin=$ymin; ymax=$ymax\n")
+      print("line: xmin=$xmin; xmax=$xmax; ymin=$ymin; ymax=$ymax\n")
 	if($PDL::verbose);
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     }
@@ -5473,7 +5451,7 @@ sub arrow {
 
     sub draw_wedge {
 	my $self = shift;
-	if ( !defined($wegde_options) ) {
+	if ( !defined($wedge_options) ) {
 	    $wedge_options =
 		$self->{PlotOptions}->extend({
 		    Side => 'R',
@@ -5629,7 +5607,7 @@ sub arrow {
 
     # Check on ITF value hardcoded in.
     $itf = $u_opt->{ITF} if exists($u_opt->{ITF});
-    barf ( "illegal ITF value `$val'") if $itf > 2 || $itf < 0;
+    barf ( "illegal ITF value `$itf'") if $itf > 2 || $itf < 0;
 
     ## Option checker thunk gets defined only on first run-through.
     our $checker = sub {
@@ -5741,18 +5719,16 @@ sub imag1 {
   my $self = shift;
   my ($in,$opt)=_extract_hash(@_);
 
-  if (!defined($im_options)) {
-    $im_options = $self->{PlotOptions}->extend({
-      Min => undef,
-      Max => undef,
-      DrawWedge => 0,
-      Wedge => undef,
-      XTitle => undef,
-      YTitle => undef,
-      Title  => undef,
-      Justify => 1
-      });
-  }
+  my $im_options = $self->{PlotOptions}->extend({
+    Min => undef,
+    Max => undef,
+    DrawWedge => 0,
+    Wedge => undef,
+    XTitle => undef,
+    YTitle => undef,
+    Title  => undef,
+    Justify => 1
+    });
 
   # Let us parse the options if any.
   $opt = {} if !defined($opt);
@@ -5792,7 +5768,7 @@ sub rgbi {
   my($in,$opt) = _extract_hash(@_);
   my($image) = shift @$in;
   if(UNIVERSAL::isa($image,'PDL')) {
-    @dims = $image->dims;
+    my @dims = $image->dims;
     if($dims[0] == 3 && $dims[1] > 3 && $dims[2] > 3) {
       print "rgbi: Hmmm... Found (rgb,X,Y) [deprecated] rather than (X,Y,rgb) [approved]."
 	if($PDL::debug || $PDL::verbose);
@@ -5871,7 +5847,7 @@ sub rgbi {
 	#
 	my $wcs = $$u_opt{WCS} || "";
 
-	%opt2 = %{$u_opt}; # copy options
+	my %opt2 = %$u_opt; # copy options
 	delete $opt2{WCS};
 	$opt2{Transform} = _FITS_tr($pane,$pdl,{WCS => $wcs});
 
@@ -5911,7 +5887,7 @@ sub rgbi {
         my $mkaxis = sub {
 	  my ($typ,$unit) = @_;
 	  our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
-	  $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
+	  my $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
 	  $s =~ s/\%u/$unit/;
 	  $s =~ s/\%t/$typ/;
 	  $s;
@@ -6001,7 +5977,7 @@ sub rgbi {
       # now check if we're using the last one specified
       if ( ! $arg[0] ) {
 	shift @arg;
-	unshift @arg, @{$self-{CTAB}->{ctab}};
+	unshift @arg, @{$self->{CTAB}->{ctab}};
 	$brightness = $self->{CTAB}->{brightness};
 	$contrast = $self->{CTAB}->{contrast};
       } else {
@@ -6029,10 +6005,10 @@ EOD
       $n = $t[0];
       $ctab   = float($ctab) if $ctab->get_datatype != $PDL_F;
       my $nn = $n-1;
-      $levels = $ctab->(0:$nn,0:0);
-      $red    = $ctab->(0:$nn,1:1);
-      $green  = $ctab->(0:$nn,2:2);
-      $blue   = $ctab->(0:$nn,3:3);
+      $levels = $ctab->slice("0:$nn,0:0");
+      $red    = $ctab->slice("0:$nn,1:1");
+      $green  = $ctab->slice("0:$nn,2:2");
+      $blue   = $ctab->slice("0:$nn,3:3");
     } else {
       ($levels, $red, $green, $blue, $contrast, $brightness) = @arg;
       $self->_checkarg($levels,1);  $n = nelem($levels);
@@ -6067,8 +6043,7 @@ EOD
     barf 'Usage: ctab_info( )' if $#$in> -1;
 
     return () unless $self->{CTAB};
-    return @{$self->{CTAB}->{ctab}}, $self-{CTAB}->{contrast},
-      $self->{CTAB}->{brightness};
+    return @{$self->{CTAB}}{qw(ctab contrast brightness)};
   }
 }
 
@@ -6294,8 +6269,7 @@ sub tcircle {
     $self->release unless $tmp_hold;
 }
 
-PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
-   PDL::over {
+PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2', sub {
      my ($x,$y,$r,$ind,$self,$opt)=@_;
      $self->circle($x,$y,$r,$opt->[$ind->at(0)] || {} );
  };
@@ -6701,7 +6675,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
           my $t_width  = $o->{TextFraction}*$o->{Width}/$dx;
           my $t_height = $o->{Height}/$vfactor/$n_lines/$dy; # XXX is $vfactor==(1+VertSpace) correct?
 
-          $t_chsz = ($t_width < $t_height ? $t_width*$chsz : $t_height*$chsz);
+          my $t_chsz = ($t_width < $t_height ? $t_width*$chsz : $t_height*$chsz);
 
           $required_charsize = $t_chsz if $t_chsz < $required_charsize;
 
@@ -6747,7 +6721,6 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
         my $ymid = 0.5 * ($$ybox[2] + $$ybox[0]);
 
         if (defined($myopt{symbol}[$i])) {
-
           pgpt(1, $xmid, $ymid, $t_o->{Symbol});
 
         } else {
@@ -6778,7 +6751,7 @@ PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2',
 
 
 {
-  $cursor_options = undef;
+  my $cursor_options = undef;
   sub cursor {
 
     my $self = shift;
@@ -6903,9 +6876,4 @@ the copyright notice should be included in the file.
 
 =cut
 
-#
-
 1;
-
-__DATA__
-

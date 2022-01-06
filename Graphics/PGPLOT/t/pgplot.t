@@ -10,22 +10,12 @@ use strict;
 use warnings;
 use PDL;
 use Test::More;
+use PGPLOT;
+use PDL::Graphics::PGPLOT;
+use PDL::Graphics::PGPLOT::Window;
 
-sub eval_skip {
-   eval "use $_[0]";
-   plan skip_all => "$_[0] not installed" if $@;
-}
-
-BEGIN {
-   plan skip_all => "DISPLAY environment variable not set"
-      if !exists $ENV{'DISPLAY'} and !exists $ENV{HARNESS_ACTIVE};
-   eval_skip "PGPLOT";
-   eval_skip "PDL::Graphics::PGPLOT";
-   eval_skip "PDL::Graphics::PGPLOT::Window";
-   eval_skip "ExtUtils::F77";
-}
-
-diag "F77 Method: $_, ", explain(ExtUtils::F77->$_) for qw(runtime runtimeok trail_ compiler cflags);
+plan skip_all => "DISPLAY environment variable not set"
+  if !exists $ENV{'DISPLAY'} and !exists $ENV{HARNESS_ACTIVE};
 
 sub get_answer () {
     print STDERR "Does this look OK (y/n, y is default)? :";

@@ -141,24 +141,19 @@ To open two windows, one small and square, one large and wide:
 
 package PDL::Graphics::PGPLOT;
 
+use strict;
+use warnings;
+
 # Just a plain function exporting package
 
 use PDL::Core qw/:Func :Internal/; # Grab the Core names
 use PDL::Graphics::PGPLOTOptions qw(default_options);
 use PDL::Graphics::PGPLOT::Window;
-BEGIN {
-  eval { require PGPLOT; PGPLOT->import; 1 }
-    or die "Dependency on PGPLOT is not satisfied: $@";
-}
+use PGPLOT;
 use Exporter;
 
-use strict;
-
-use vars qw (@ISA @EXPORT);
-
-@ISA = ('Exporter');
-
-@EXPORT = qw( dev hold release rel env bin errb line points
+our @ISA = qw(Exporter);
+our @EXPORT = qw( dev hold release rel env bin errb line points
 	      fits_imag imag imag1 fits_cont cont fits_vect vect
 	      draw_wedge ctab ctab_info hi2d poly CtoF77coords
 	      new_window focus_window window_list close_window
