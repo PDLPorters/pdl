@@ -2562,10 +2562,10 @@ then the connection is first severed.
 
 *reshape = \&PDL::reshape;
 sub PDL::reshape{
-    if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
-	return $_[0]->slice( map { $_==1 ? [0,0,0] : [] } $_[0]->dims);
-    }
     my $pdl = topdl($_[0]);
+    if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
+	return $pdl->slice( map $_==1 ? [0,0,0] : [], $pdl->dims);
+    }
     $pdl->sever;
     my $nelem = $pdl->nelem;
     my @dims = grep defined, @_[1..$#_];
