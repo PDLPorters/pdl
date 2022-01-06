@@ -45,7 +45,6 @@ use PDL::IO::Pnm;
 use PDL::Options;
 use PDL::Config;
 use File::Basename;
-use SelfLoader;
 use File::Spec;
 use Text::ParseWords qw(shellwords);
 use File::Which ();
@@ -810,12 +809,6 @@ sub PDL::imageformat {
     return chkform($file);
 }
 
-1; # Return OK status
-
-__DATA__
-
-# SelfLoaded code
-
 sub piccan {
   my $class = shift;
   my $rw = (shift =~ /r/i) ? 'Rok' : 'Wok';
@@ -1004,5 +997,6 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
-
 =cut
+
+1; # Return OK status
