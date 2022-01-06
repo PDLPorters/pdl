@@ -2,22 +2,22 @@
 # pod format but with special interpretation of some =for directives)
 
 package PDL::PodParser;
+use strict;
+use warnings;
 use PDL::Core '';
 use Pod::Select;
 use File::Spec;
 use File::Basename;
 
-@ISA = qw(Pod::Select);
+our @ISA = qw(Pod::Select);
 
-%Title = ('Example' => 'Example',
+our %Title = ('Example' => 'Example',
 	  'Ref'     => 'Reference',
 	  'Sig'     => 'Signature',
 	  'Opt'     => 'Options',
 	  'Usage'   => 'Usage',
           'Bad'     => 'Bad value support',  
 	 );
-
-
 
 sub new {
   my $class = shift;
@@ -780,7 +780,7 @@ sub funcdocs {
   my ($this,$func,$module,$fout) = @_;
   my $hash = $this->ensuredb;
   barf "unknown function '$func'" unless defined($hash->{$func});
-  barf "funcdocs now requires 3 arguments" if UNIVERSAL::isa($module,IO::File);
+  barf "funcdocs now requires 3 arguments" if UNIVERSAL::isa($module,'IO::File');
   my $file = $hash->{$func}->{$module}->{File};
   my $dbf = $hash->{$func}->{$module}->{Dbfile};
   if (!File::Spec->file_name_is_absolute($file) && $dbf) {

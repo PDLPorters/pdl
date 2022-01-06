@@ -41,11 +41,10 @@ package PDL::Doc::Perldl;
 
 use Exporter;
 use strict;
-use vars qw(@ISA @EXPORT);
+use warnings;
 
-@ISA = qw(Exporter);
-
-@EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
+our @ISA = qw(Exporter);
+our @EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
 
 use PDL::Doc;
 use Pod::Select;
@@ -99,7 +98,7 @@ sub printmatch {
 sub shortmod {
   my $module = shift;
   $module =~ s/::$//;
-  unless ($PERLDL::long_mod_names){
+  unless ($PERLDL::long_mod_names && $PERLDL::long_mod_names){ # silence warn
       $module =~ s/^PDL::/P::/;
       $module =~ s/^P::Graphics::/P::G::/;
       #additional abbreviation substitutions go here
