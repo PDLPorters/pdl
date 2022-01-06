@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -24,6 +26,8 @@ loaded.
  
 =cut
 
+use strict;
+use warnings;
 
 EOD
 
@@ -39,8 +43,6 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
-
-
 EOD
 
 # N-dim utilities
@@ -502,13 +504,12 @@ sub PDL::kernctr {
 	  $strk .= $strk[$n][$y & 1];
 	}
 	chop ($stri); chop ($strk);
-	($t = $newk->slice($stri)) .= $kern->slice($strk);
+	(my $t = $newk->slice($stri)) .= $kern->slice($strk);
     }
     $newk;
 }
 
 EOPM
-
 
 pp_def(
        'convolveND',
