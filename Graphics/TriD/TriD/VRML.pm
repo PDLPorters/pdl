@@ -31,12 +31,10 @@ at C<http://vrml.sgi.com/> or C<http://www.vrml.org/>
 
 =cut
 
-#'
-
-###################################
-##
 package PDL::Graphics::TriD::VRML;
 
+use strict;
+use warnings;
 use PDL::Core '';  # barf
 use PDL::Graphics::VRML;
 use PDL::LiteF;
@@ -68,7 +66,7 @@ sub PDL::Graphics::TriD::Logo::tovrml {
 						'material' =>
 						  $this->{Material}->tovrml),
 					  'geometry' => $indface)),
-			vrn(Viewpoint,
+			vrn('Viewpoint',
 				position => '0 0 25',
 				description => "\"PDL Logo\""
 			)
@@ -81,28 +79,28 @@ sub PDL::Graphics::TriD::Logo::tovrml {
 sub PDL::Graphics::TriD::Description::tovrml {
 	my($this) = @_;
 #	print "DESCRTIPTION : TOVRML\n";
-	return vrn(Transform,
+	return vrn('Transform',
 	 	rotation => '1 0.1 0 1.1',
 		translation => '1.5 0 0.5',
 		children => [
-		vrn(Shape,
-			geometry => vrn(Text,
+		vrn('Shape',
+			geometry => vrn('Text',
 					string => $this->{TText},
-					fontStyle =>     vrn(FontStyle,
+					fontStyle =>     vrn('FontStyle',
 							    'family' => "\"SANS\"",
 							   size => '0.075',
 							   spacing => '1.33',
 							   justify => '["BEGIN","MIDDLE"]'
 							 ),
 			),
-			appearance => vrn(Appearance,
-				material => vrn(Material,
+			appearance => vrn('Appearance',
+				material => vrn('Material',
 					   diffuseColor => '0.9 0.9 0.9',
 					   ambientIntensity => '0.1'
 				)
 			)
 		),
-		vrn(Viewpoint,
+		vrn('Viewpoint',
 			position => '0 0 3',
 			description => "\"Description\""
 		)
@@ -333,7 +331,7 @@ sub PDL::Graphics::TriD::EuclidAxes::tovrml_axis {
 						 "0,3,-1"]));
   my ($vert,$indx,$j) = ([],[],0);
   my @children = ($lset);
-  for $dim (0..2) {
+  for my $dim (0..2) {
     my @coords = (0,0,0);
     my @coords0 = (0,0,0);
     for(0..2) {
@@ -423,7 +421,7 @@ sub geturl {
   my ($url) = @_;
   my $client = new Win32::DDE::Client ('Netscape','WWW_OpenURL');
   checkerr($client);
-  $status = $client->Request("\"$url\",,0xFFFFFFFF,0x1");
+  my $status = $client->Request("\"$url\",,0xFFFFFFFF,0x1");
   barf "can't disconnect" unless $client->Disconnect;
 }
 
@@ -562,6 +560,7 @@ sub save { &{$_[0]->{Type}->{save}}(@_) }
 
 package PDL::Graphics::TriD::VRML;
 $PDL::Graphics::VRML::cur = undef;
+$PDL::Graphics::TriD::create_window_sub =
 $PDL::Graphics::TriD::create_window_sub = sub {
 	return new PDL::Graphics::TriD::Window;
 };
@@ -604,6 +603,7 @@ use fields qw/Width Height Interactive _ViewPorts _CurrentViewPort
               VRMLTop DefMaterial/;
 use strict;
 
+$PDL::Graphics::TriD::VRML::fontstyle = $PDL::Graphics::TriD::VRML::fontstyle;
 sub gdriver {
   my($this) = @_;
 
@@ -722,6 +722,7 @@ EOH
   }
 }
 
+$PDL::Graphics::TriD::keeptwiddling = $PDL::Graphics::TriD::keeptwiddling;
 sub twiddle {
   my $this = shift;
   if ($PDL::Graphics::TriD::keeptwiddling) {

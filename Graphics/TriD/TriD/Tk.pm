@@ -44,14 +44,14 @@ control TriD object orientation and size respectively.
 =cut
 
 package PDL::Graphics::TriD::Tk;
+use strict;
+use warnings;
 use Tk;
 use PDL::Core;
 use PDL::Graphics::TriD;
 
 use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
-
-use strict;
 
 our @ISA = qw(Tk::Frame);
 
@@ -98,8 +98,7 @@ callbacks and calls the appropriate TriD display functions.
 
 =cut
 
-
-
+{ no warnings 'redefine';
 sub MainLoop
 {
   my ($self) = @_;
@@ -110,8 +109,6 @@ sub MainLoop
     while (Tk::MainWindow->Count)
     {
       DoOneEvent(Tk::DONT_WAIT());
-      
-
       if(defined $self->{GLwin}){
 	if( &XPending()){
 	  my @e = &glpXNextEvent();
@@ -119,7 +116,6 @@ sub MainLoop
 #	    print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
 #	    $self->reshape($e[1],$e[2]);
 #	  }
-
 	  $self->refresh();
 	}
 	my $job=shift(@{$self->{WorkQue}});
@@ -130,6 +126,7 @@ sub MainLoop
       }
     }
   }
+}
 }
 
 =head2 GLinit

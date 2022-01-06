@@ -1,5 +1,7 @@
 package PDL::Graphics::TriD::Surface;
 
+use strict;
+use warnings;
 use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Lite;

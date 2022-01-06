@@ -1,6 +1,8 @@
 package PDL::Graphics::TriD::OOGL;
+use strict;
+use warnings;
 
-$PDL::Graphics::TriD::create_window_sub = sub {
+$PDL::Graphics::TriD::create_window_sub = $PDL::Graphics::TriD::create_window_sub = sub {
    return new PDL::Graphics::TriD::OOGL::Window;
 };
 

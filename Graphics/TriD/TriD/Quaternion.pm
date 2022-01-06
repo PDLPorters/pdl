@@ -10,6 +10,9 @@
 
 package PDL::Graphics::TriD::Quaternion;
 
+use strict;
+use warnings;
+
 sub new {
 	my($type,$c,$x,$y,$z) = @_;
 	my $this;

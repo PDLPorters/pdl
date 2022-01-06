@@ -1,11 +1,13 @@
 package PDL::Graphics::TriD::Logo;
+use strict;
+use warnings;
 use PDL::Lite;
 
-@ISA=qw/PDL::Graphics::TriD::Object/;
+our @ISA=qw/PDL::Graphics::TriD::Object/;
 
 sub new {
   my ($type,$pos,$size) = @_;
-  $this = bless {},$type;
+  my $this = bless {},$type;
   $this->{Points} = PDL->pdl ([
 			       [  0.843,  0.852,      0],
 			       [  0.843,  0.852,     -1],
@@ -473,9 +475,7 @@ sub new {
 
 1;
 
-
 # ***add these lines to, e.g. tvrml2.pl
 #
 # use PDL::Graphics::TriD::Logo;
 # $win->add_object(new PDL::Graphics::TriD::Logo);
-

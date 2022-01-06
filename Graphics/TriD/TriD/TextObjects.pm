@@ -3,7 +3,10 @@
 
 package PDL::Graphics::TriD::Description;
 
-@ISA=qw/PDL::Graphics::TriD::Object/;
+use strict;
+use warnings;
+
+our @ISA=qw/PDL::Graphics::TriD::Object/;
 
 sub new {
 	my($type,$text) = @_;

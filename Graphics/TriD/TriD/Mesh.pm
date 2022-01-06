@@ -22,10 +22,12 @@
 
 package PDL::Graphics::TriD::Mesh;
 
+use strict;
+use warnings;
 use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::LiteF;
-@ISA=qw/PDL::Graphics::TriD::Object/;
+our @ISA=qw/PDL::Graphics::TriD::Object/;
 
 # For now, x and y coordinates = values.
 
@@ -50,12 +52,12 @@ sub printdims {print $_[0].": ".(join ', ',$_[1]->dims)," and ",
 		(join ', ',$_[1]->threadids),"\n"}
 
 sub get_boundingbox {
-	my($this) = @_;
+	my ($this, $x, $y, $c) = @_;
 	my $foo = PDL->zeroes(6)->double;
-	$A = $this->{Vertices}; printdims "A",$A;
-	$B = $x->thread(0); printdims "B",$B;
-	$C = $y->clump(-1); printdims "C",$C;
-	$D = $c->unthread(1); printdims "D",$D;
+	my $A = $this->{Vertices}; printdims "A",$A;
+	my $B = $x->thread(0); printdims "B",$B;
+	my $C = $y->clump(-1); printdims "C",$C;
+	my $D = $c->unthread(1); printdims "D",$D;
 
 	$this->{Vertices}->thread(0);
 
@@ -151,15 +153,15 @@ sub pdltotrianglemesh {
 	my($pdl,$x0,$x1,$y0,$y1) = @_;
 	if($#{$pdl->{Dims}} != 1) { barf "Too many dimensions for PDL::GL::Mesh: $#{$pdl->{Dims}}  \n"; }
 	my ($d0,$d1); my($x,$y);
-	$xincr = ($x1 - $x0) / ($pdl->{Dims}[0]-1.0);
-	$yincr = ($y1 - $y0) / ($pdl->{Dims}[1]-1.0);
+	my $xincr = ($x1 - $x0) / ($pdl->{Dims}[0]-1.0);
+	my $yincr = ($y1 - $y0) / ($pdl->{Dims}[1]-1.0);
 	$x = $x0;
 	my($v00,$v01,$v11,$v10);
 	my($nx,$ny);
 	for $d0 (0..$pdl->{Dims}[0]-2) {
 		$y = $y0;
 		for $d1 (0..$pdl->{Dims}[1]-2) {
-			glBegin(GL_TRIANGLE_STRIP);
+			glBegin('GL_TRIANGLE_STRIP');
 			($v00,$v01,$v11,$v10) =
 			  (PDL::Core::at($pdl,$d0,$d1)
 			  ,PDL::Core::at($pdl,$d0,$d1+1)
@@ -175,7 +177,7 @@ sub pdltotrianglemesh {
 			glVertex3d($x+$xincr,$y+$yincr,$v11);
 			glEnd();
 			if(0) {
-				glBegin(GL_LINES);
+				glBegin('GL_LINES');
 				glVertex3d($x,$y,$v00);
 				glVertex3d($x+$nx/10,$y+$ny/10,$v00+1/10);
 				glEnd();
@@ -190,7 +192,7 @@ sub pdl2normalizedmeshlist {
 	my($pdl) = @_;
 	my $mult = 1.0/($pdl->{Dims}[0]-1);
 	my $lno = glGenLists(1);
-	glNewList($lno,GL_COMPILE);
+	glNewList($lno,'GL_COMPILE');
 	pdltotrianglemesh($pdl, 0, 1, 0, ($pdl->{Dims}[1]-1)*$mult);
 	glEndList();
 	return $lno;

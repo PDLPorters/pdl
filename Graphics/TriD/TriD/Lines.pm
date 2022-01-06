@@ -1,10 +1,11 @@
-
 package PDL::Graphics::TriD::LinesFOOOLD;
-@ISA=qw/PDL::Graphics::TriD::Object/;
-
+use strict;
+use warnings;
 use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Lite;
+
+our @ISA=qw/PDL::Graphics::TriD::Object/;
 
 sub new {
 	my($type,$x,$y,$z,$color) = @_;
@@ -20,7 +21,7 @@ sub new {
 sub get_boundingbox {
 	my ($this) = @_;
 	my (@mins,@maxs);
-	for (X,Y,Z) {
+	for (qw(X Y Z)) {
 		push @mins, $this->{$_}->min();
 		push @maxs, $this->{$_}->max();
 	}

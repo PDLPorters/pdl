@@ -22,12 +22,11 @@ PDL::Graphics::TriD::Contours - 3D Surface contours for TriD
 
 package PDL::Graphics::TriD::Contours;
 use strict;
+use warnings;
 use PDL;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Rout;
 use PDL::Graphics::TriD::Labels;
-#use Data::Dumper;
-
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/ContourSegCnt Labels LabelStrings/;
 
@@ -206,7 +205,6 @@ sub addlabels{
   my $lp=pdl->null;
 
   my $pcnt = 0;
-  my $cnt;
   my $offset = pdl[0.5,0.5,0.5];
 
   for(my $i=0; $i<= $#{$self->{ContourSegCnt}}; $i++){

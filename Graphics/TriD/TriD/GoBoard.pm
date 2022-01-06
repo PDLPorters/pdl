@@ -7,6 +7,8 @@
 
 package PDL::Graphics::TriD::GoBoard;
 
+use strict;
+use warnings;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw /Data InLays BG/;
 

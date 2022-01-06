@@ -14,6 +14,7 @@ package PDL::Graphics::TriD::Control3D;
 
 package PDL::Graphics::TriD::SimpleController;
 use strict;
+use warnings;
 use fields qw/WOrigin WRotation CDistance CRotation/;
 
 sub new{

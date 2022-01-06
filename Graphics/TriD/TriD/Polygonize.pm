@@ -2,6 +2,8 @@
 
 package PDL::Graphics::TriD::StupidPolygonize;
 
+use strict;
+use warnings;
 use PDL::Core '';
 
 # A very simplistic polygonizer...
@@ -9,8 +11,8 @@ use PDL::Core '';
 
 sub stupidpolygonize {
 	my($center, $initrad, $npatches, $nrounds, $func) = @_;
-	$x = PDL->zeroes(PDL::float(),3,$npatches,$npatches);
-	$mult = 2*3.14 / ($npatches-1);
+	my $x = PDL->zeroes(PDL::float(),3,$npatches,$npatches);
+	my $mult = 2*3.14 / ($npatches-1);
 	my $ya = ($x->slice("(0)"))->xvals;
 	$ya *= $mult;
 	my $za = ($x->slice("(0)"))->yvals;
@@ -27,7 +29,7 @@ sub stupidpolygonize {
 	my $inita = $x->copy;
 	for(1..$nrounds) {
 		$cur /= 2;
-		$vp = $func->($x);
+		my $vp = $func->($x);
 		my $vps = ($vp > 0);
 		$vps -= 0.5; $vps *= 2;
 		$x += $vps->dummy(0) * $cur * $add;

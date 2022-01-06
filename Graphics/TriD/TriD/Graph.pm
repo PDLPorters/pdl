@@ -1,9 +1,10 @@
 package PDL::Graphics::TriD::Graph;
+use strict;
+use warnings;
 use base qw/PDL::Graphics::TriD::Object/;
 use PDL::LiteF; # XXX F needed?
 
 use fields qw(Data DataBind UnBound DefaultAxes Axis );
-
 
 sub add_dataseries {
   my($this,$data,$name) = @_;
@@ -117,7 +118,7 @@ sub changed {}
 package PDL::Graphics::TriD::EuclidAxes;
 
 sub new {
-	my($type) = @_; bless {Names => [X,Y,Z]},$type;
+	my($type) = @_; bless {Names => [qw(X Y Z)]},$type;
 }
 
 sub init_scale {
@@ -184,7 +185,7 @@ use PDL::Core '';
 
 sub new {
 	my($type) = @_; 
-	bless {Names => [LON,LAT,Pressure]},$type;
+	bless {Names => [qw(LON LAT Pressure)]},$type;
 }
 
 sub init_scale {
@@ -296,10 +297,9 @@ sub transform {
 package PDL::Graphics::TriD::PolarStereoAxes;
 use PDL::Core '';
 
-
 sub new {
 	my($type) = @_; 
-	bless {Names => [LONGITUDE,LATITUDE,HEIGHT]},$type;
+	bless {Names => [qw(LONGITUDE LATITUDE HEIGHT)]},$type;
 }
 
 sub init_scale {

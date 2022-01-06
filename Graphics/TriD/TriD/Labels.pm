@@ -8,7 +8,6 @@ PDL::Graphics::TriD::Labels -- Text tools
 					  {Strings=>$strlist
 					   ,Font=>$font});
 
-
 =head1 WARNING
 
 This module is experimental and the interface will probably change.
@@ -27,13 +26,13 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
-
 =cut
 package PDL::Graphics::TriD::Labels;
 
+use strict;
+use warnings;
 use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
-
 use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::GObject/;
 
@@ -45,6 +44,7 @@ sub gdraw {
 	glEnable(&GL_LIGHTING);
 }
 
+$PDL::Graphics::TriD::GL::fontbase = $PDL::Graphics::TriD::GL::fontbase;
 sub get_valid_options {
   return {UseDefcols => 0, Font=>$PDL::Graphics::TriD::GL::fontbase, Strings => [] }
 }

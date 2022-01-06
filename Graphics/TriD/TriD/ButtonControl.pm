@@ -32,12 +32,11 @@ controllers should inherit from.  By itself it does not do much.  It
 defines ButtonPress and ButtonRelease functions which are expected by
 the Event loop.
 
-
-
 =cut
 
 package PDL::Graphics::TriD::ButtonControl;
 use strict;
+use warnings;
 use fields qw/Win W H SC/;
 
 sub new {
@@ -82,10 +81,10 @@ sub ButtonRelease{
 
 =cut
 
+$PDL::Graphics::TriD::cur = $PDL::Graphics::TriD::cur; # warnings
+
 sub ButtonPress{
   my ($this,$x,$y) = @_;
-
-  
 #
 # GL (0,0) point is Lower left X and Tk is upper left.
 #

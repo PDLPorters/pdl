@@ -4,9 +4,12 @@
 #
 #package PDL::Graphics::TriD::GL;
 
+use strict;
+use warnings;
 use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 
+$PDL::Graphics::TriD::create_window_sub = # warnings
 $PDL::Graphics::TriD::create_window_sub = sub {
   return PDL::Graphics::TriD::GL::Window->new(@_);
 };
@@ -133,7 +136,7 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
    
         my (@nadd,@nc,@ns);
 
-	for $dim (0..1) {
+	for my $dim (0..1) {
 	  my $width = $this->{Scale}[$dim][1]-$this->{Scale}[$dim][0];
 	  if($width > 100){
 	    $nadd[$dim] = 10;
@@ -151,7 +154,7 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
 	# can be changed to topo heights?
 	my $verts = zeroes(3,$ns[0],$ns[1]);
 
-	($t = $verts->slice("2")) .= 1012.5;
+	(my $t = $verts->slice("2")) .= 1012.5;
 	($t = $verts->slice("0")) .= $verts->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
 	($t = $verts->slice("1")) .= $verts->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
 
@@ -779,7 +782,7 @@ sub twiddle {
          }
   }
   if(!defined $getout) {
-	 $getout = not $PDL::Graphics::TriD::keeptwiddling;
+	 $getout = not ($PDL::Graphics::TriD::keeptwiddling && $PDL::Graphics::TriD::keeptwiddling);
   }
   
   $this->display();

@@ -4,6 +4,7 @@
 package PDL::Graphics::TriD::Object;
 
 use strict;
+use warnings;
 
 use fields qw(Objects ValidList ChangedSub List VRML);
 sub new{

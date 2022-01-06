@@ -29,6 +29,8 @@ the copyright notice should be included in the file.
 =cut
 
 package PDL::Graphics::TriD::MathGraph;
+use strict;
+use warnings;
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/ArrowLen ArrowWidth/;
 use OpenGL qw(:all);
@@ -50,6 +52,7 @@ sub get_valid_options {
 }
 
 package PDL::GraphEvolverOLD;
+our $verbose;
 use PDL::LiteF;
 
 sub new {
@@ -62,7 +65,7 @@ sub set_links {
 	my($this,$from,$to,$strength) = @_;
 	my $cd = $this->{NNodes};
 	$this->{DistMult} = PDL->zeroes($cd,$cd);
-	$distmult = PDL->zeroes($cd,$cd);
+	my $distmult = PDL->zeroes($cd,$cd);
 	(my $t1 = $this->{DistMult}->index2d($from,$to)) += $strength;
 	(my $t2 = $this->{DistMult}->index2d($to,$from)) += $strength;
 	print "DM: $distmult\n" if $verbose;
@@ -133,7 +136,7 @@ sub step {
 #	$verbose=1;
 	my($this) = @_;
 	my $c = $this->{Coords};
-	my $velr = repulse($c,@{$this}{BoxSize,DMult,A,B,C,D});
+	my $velr = repulse($c,@$this{qw(BoxSize DMult A B C D)});
 	my $vela;
 	if("ARRAY" eq ref $this->{From}) {
 		my $ind;
@@ -144,13 +147,12 @@ sub step {
 		   	$this->{Strength}[$_],$this->{M},$this->{MS});
 		}
 	} else {
-		$vela = attract($c,@{$this}{From,To,Strength},$this->{M},
-			$this->{MS});
+		$vela = attract($c,@$this{qw(From To Strength M MS)});
 	}
 
 #	print "V: $velr $vela\n";
 
-	$tst = 0.10;
+	my $tst = 0.10;
 	$this->{Velo} += $tst * 0.02 * ($velr + $vela);
 	$this->{Velo} *=
 	  ((0.92*50/(50+sqrt(($this->{Velo}**2)->sumover->dummy(0)))))**$tst;

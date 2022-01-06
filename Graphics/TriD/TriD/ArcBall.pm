@@ -10,14 +10,14 @@
 # This needs a faster implementation (?)
 
 package PDL::Graphics::TriD::QuaterController;
+use strict;
+use warnings;
 use base qw(PDL::Graphics::TriD::ButtonControl);
 use fields qw /Inv Quat/;
 
 sub new {
   my($type,$win,$inv,$quat) = @_;
   my $this = $type->SUPER::new($win);
-  
-
   $this->{Inv} = $inv;
   $this->{Quat} = (defined($quat) ? $quat :
 			new PDL::Graphics::TriD::Quaternion(1,0,0,0));
@@ -116,7 +116,5 @@ sub normxy2qua {
 	$qua->normalize_this();
 	return $qua;
 }
-
-
 
 1;

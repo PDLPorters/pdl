@@ -4,14 +4,11 @@
 # to both
 # 
 
-# A function declaration so indirect object method works when defining $ev
-# in new_viewport:
-sub PDL::Graphics::TriD::EventHandler::new;
-
 package PDL::Graphics::TriD::Window;
+use strict;
+use warnings;
 use PDL::Graphics::TriD::ViewPort;
 use Data::Dumper;
-use strict;
 
 sub new {
   my($arg,$options) = @_;
@@ -61,7 +58,7 @@ sub add_object {
 
 sub new_viewport {
   my($this,$x0,$y0,$x1,$y1, $options) = @_;
-  my $vp = new PDL::Graphics::TriD::ViewPort($x0,$y0,$x1,$y1);
+  my $vp = PDL::Graphics::TriD::ViewPort->new($x0,$y0,$x1,$y1);
 #
   print "Adding viewport $x0,$y0,$x1,$y1\n" if($PDL::Graphics::TriD::verbose);
   push @{$this->{_ViewPorts}}, $vp;
@@ -79,14 +76,14 @@ sub new_viewport {
          }
 
 	 my $ev = $options->{EHandler};
-	 $ev = new PDL::Graphics::TriD::EventHandler($vp) unless defined($ev);
+	 $ev = PDL::Graphics::TriD::EventHandler->new($vp) unless defined($ev);
 	 my $cont = $options->{Transformer};
-	 $cont = new PDL::Graphics::TriD::SimpleController() unless defined($cont);
+	 $cont = PDL::Graphics::TriD::SimpleController->new unless defined($cont);
 
 	 $vp->transformer($cont);
     if(ref($ev)){
-		$ev->set_button(0,new PDL::Graphics::TriD::ArcCone( $vp, 0, $cont->{WRotation}));
-		$ev->set_button(2,new PDL::Graphics::TriD::SimpleScaler( $vp, \$cont->{CDistance}));
+		$ev->set_button(0,PDL::Graphics::TriD::ArcCone->new( $vp, 0, $cont->{WRotation}));
+		$ev->set_button(2,PDL::Graphics::TriD::SimpleScaler->new( $vp, \$cont->{CDistance}));
 		$vp->eventhandler($ev);
 	 }
   }

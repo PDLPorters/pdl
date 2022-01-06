@@ -1,4 +1,3 @@
-
 # What makes this complicated is that we want
 # imag(3,x,y,z,q,d,f)
 # appear in one 2D image, flattened out appropriately, with
@@ -8,7 +7,9 @@
 # an ndarray of the imag dimensions from the flat ndarray.
 
 package PDL::Graphics::TriD::Image;
-@ISA=qw/PDL::Graphics::TriD::Object/;
+use strict;
+use warnings;
+our @ISA=qw/PDL::Graphics::TriD::Object/;
 use PDL::Lite;
 
 my $defaultvert = PDL->pdl([
@@ -21,7 +22,7 @@ my $defaultvert = PDL->pdl([
 # r,g,b = 0..1
 sub new {
 	my($type,$color,$opts) = @_;
-	my $im = PDL::Graphics::TriD::realcoords(COLOR,$color);
+	my $im = PDL::Graphics::TriD::realcoords('COLOR',$color);
 	my $this = {
 		Im => $im,
 		Opts => $opts,
