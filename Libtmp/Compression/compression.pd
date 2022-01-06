@@ -149,9 +149,9 @@ sub PDL::rice_compress {
     my ($out) = zeroes($in);
     # lengths go here
     my ($len) = zeroes(long, $in->slice("(0)")->dims);
-    &PDL::_rice_compress_int( $in, $out, $len, $blocksize  );
+    PDL::_rice_compress_int( $in, $out, $len, $blocksize  );
     my $l = $len->max;
-    my $out = $out->slice("0:".($l-1))->sever;
+    $out = $out->slice("0:".($l-1))->sever;
     return wantarray ? ($out, $in->dim(0), $blocksize, $len) : $out;
 }
 EOD
@@ -193,7 +193,7 @@ sub PDL::rice_expand {
     my $blocksize = shift || 32;
     # Allocate output array
     my $out = zeroes( $squished->slice("(0),*$dim0") );
-    &PDL::_rice_expand_int( $squished, $out, $blocksize );
+    PDL::_rice_expand_int( $squished, $out, $blocksize );
     return $out;
 }
 EOD

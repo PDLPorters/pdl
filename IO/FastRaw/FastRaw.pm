@@ -311,8 +311,9 @@ the copyright notice should be included in the file.
 =cut
 
 package PDL::IO::FastRaw;
+use strict;
+use warnings;
 
-## use version; our $VERSION = qv('0.0.3');
 our $VERSION = '0.000003';
 $VERSION = eval $VERSION;
 
@@ -321,10 +322,9 @@ use PDL::Core '';
 use PDL::Exporter;
 use FileHandle;
 
-@PDL::IO::FastRaw::ISA = qw/PDL::Exporter/;
-
-@EXPORT_OK = qw/writefraw readfraw mapfraw maptextfraw/;
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+our @ISA = qw/PDL::Exporter/;
+our @EXPORT_OK = qw/writefraw readfraw mapfraw maptextfraw/;
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
 
 # Exported functions
 
@@ -371,27 +371,23 @@ sub PDL::writefraw {
 }
 
 sub PDL::readfraw {
-        my $class = shift;
-	my($name,$opts) = @_;
-	my $d = new FileHandle "$name"
-	 or barf "Couldn't open '$name' for reading";
-	binmode $d;
-	my $hdr = _read_frawhdr($name,$opts);
-	my $pdl = $class->zeroes ((new PDL::Type($hdr->{Type})), @{$hdr->{Dims}});
-	my $len = length ${$pdl->get_dataref};
-# wrong.
-#       $d->sysread(${$pdl->get_dataref},$len) == $len
-#         or barf "Couldn't read enough data from '$name'";
-        my $index = 0;
-        my $data;
-        my $retlen;
-        while (($retlen = $d->sysread($data, $len)) != 0) {
-                substr(${$pdl->get_dataref},$index,$len) = $data;
-                $index += $retlen;
-               $len -= $retlen;
-        }
-	$pdl->upd_data();
-	return $pdl;
+  my $class = shift;
+  my($name,$opts) = @_;
+  my $d = new FileHandle $name or barf "Couldn't open '$name' for reading";
+  binmode $d;
+  my $hdr = _read_frawhdr($name,$opts);
+  my $pdl = $class->zeroes(PDL::Type->new($hdr->{Type}), @{$hdr->{Dims}});
+  my $len = length ${$pdl->get_dataref};
+  my $index = 0;
+  my $data;
+  my $retlen;
+  while (($retlen = $d->sysread($data, $len)) != 0) {
+    substr(${$pdl->get_dataref},$index,$len) = $data;
+    $index += $retlen;
+    $len -= $retlen;
+  }
+  $pdl->upd_data();
+  return $pdl;
 }
 
 sub PDL::mapfraw {
@@ -399,15 +395,13 @@ sub PDL::mapfraw {
 	my($name,$opts) = @_;
 	my $hdr;
 	if($opts->{Dims}) {
-		my $datatype = $opts->{Datatype};
-		if(!defined $datatype) {$datatype = $PDL_D;}
-		$hdr->{Type} = $datatype;
+		$hdr->{Type} = $opts->{Datatype} // double->enum;
 		$hdr->{Dims} = $opts->{Dims};
 		$hdr->{NDims} = scalar(@{$opts->{Dims}});
 	} else {
 		$hdr = _read_frawhdr($name,$opts);
 	}
-	$s = PDL::Core::howbig($hdr->{Type});
+	my $s = PDL::Core::howbig($hdr->{Type});
 	for(@{$hdr->{Dims}}) {
 		$s *= $_;
 	}

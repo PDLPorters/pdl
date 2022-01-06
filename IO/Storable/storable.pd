@@ -24,11 +24,10 @@ be able to store and retrieve ndarrays via Storable.
 
 =cut
 
+use strict;
+use warnings;
+
 EOPM
-
-pp_addhdr << 'EOH';
-
-EOH
 
 pp_addxs << 'EOXS';
 MODULE = PDL::Storable     PACKAGE = PDL

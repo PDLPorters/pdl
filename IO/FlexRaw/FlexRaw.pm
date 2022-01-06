@@ -334,51 +334,32 @@ Documentation contributions copyright (C) David Mertens, 2010.
 =cut
 
 package PDL::IO::FlexRaw;
-
+use strict;
+use warnings;
 use PDL;
 use Exporter;
 use FileHandle;
 use PDL::Types ':All';
 use PDL::IO::Misc qw(bswap4);
 
-@PDL::IO::FlexRaw::ISA = qw/Exporter/;
-
-@EXPORT = qw/writeflex writeflexhdr readflex mapflex/;
+our @ISA = qw/Exporter/;
+our @EXPORT = qw/writeflex writeflexhdr readflex mapflex/;
 
 # Cast type numbers in concrete, for external file's sake...
-%flexnames = ( map {(typefld($_,'numval') => typefld($_,'ioname'))}
+my %flexnames = ( map {(typefld($_,'numval') => typefld($_,'ioname'))}
 	       typesrtkeys());
-%flextypes = ( map {(typefld($_,'ioname') => typefld($_,'numval'),
+my %flextypes = ( map {(typefld($_,'ioname') => typefld($_,'numval'),
 		     typefld($_,'numval') => typefld($_,'numval'),
 		     lc typefld($_,'ppsym') =>  typefld($_,'numval'),
 		    )}
 	       typesrtkeys());
-%flexswap = ( map {my $val = typefld($_,'numval');
+my %flexswap = ( map {my $val = typefld($_,'numval');
 		   my $nb = PDL::Core::howbig($val);
 		   ($val =>  $nb > 1 ? "bswap$nb" : undef)}
 	      typesrtkeys());
 
-# use Data::Dumper;
-# print Dumper \%flexnames;
-# print Dumper \%flextypes;
-# print Dumper \%flexswap;
-
-# %flexnames = (
-#    $PDL_B => 'byte', $PDL_S => 'short',
-#    $PDL_US => 'ushort', $PDL_L => 'long',
-#    $PDL_F => 'float', $PDL_D => 'double');
-
-# %flextypes = (
-# 'byte'   => $PDL_B, '0' => $PDL_B, 'b' => $PDL_B, 'c' => $PDL_B,
-# 'short'  => $PDL_S, '1' => $PDL_S, 's' => $PDL_S,
-# 'ushort' => $PDL_US,'2' => $PDL_US,'u' => $PDL_US,
-# 'long'   => $PDL_L, '3' => $PDL_L, 'l' => $PDL_L,
-# 'float'  => $PDL_F, '4' => $PDL_F, 'f' => $PDL_F,
-# 'double' => $PDL_D, '5' => $PDL_D, 'd' => $PDL_D
-# );
-
-$PDL::IO::FlexRaw::verbose = 0;
-$PDL::IO::FlexRaw::writeflexhdr = defined($PDL::FlexRaw::IO::writeflexhdr) ? $PDL::FlexRaw::IO::writeflexhdr : 0;
+our $verbose = 0;
+our $writeflexhdr //= 0;
 
 sub _read_flexhdr {
     my ($hname) = @_;
@@ -394,7 +375,7 @@ sub _read_flexhdr {
     seek $hfile, 0, 0;  # reset file pointer to beginning
  ITEM:
  while (!eof($hfile)) {
-    my (@dims) = (); my ($ndims) = -1, ($mode) = -2;
+    my ($ndims, $mode, @dims) = (-1, -2);
     my ($have_badvalue) = undef;
     my ($badvalue) = undef;
     LINE:
@@ -475,34 +456,33 @@ sub _read_flexhdr {
 }
 
 sub readchunk {
-    my ($d, $pdl, $len, $name) = @_;
+    my ($d, $pdl, $len, $name, $offset) = @_;
     my ($nread);
     print "Reading $len at $offset from $name\n"
-      if $PDL::IO::FlexRaw::verbose;
+      if $verbose;
     ($nread = read($d, ${$pdl->get_dataref}, $len)) == $len
 	or barf "Couldn't read $len bytes at offset $offset from '$name', got $nread";
     $pdl->upd_data();
-    $offset += $len;
-    return 1;
+    $len;
 }
 
+our $flexmapok;
 sub myhandler {
     $flexmapok = 0;
     barf "Data out of alignment, can't map further\n";
-    die;
 }
 
 sub mapchunk {
-    my ($orig, $pdl, $len, $name) = @_;
+    my ($orig, $pdl, $len, $name, $offset) = @_;
     # link $len at $offset from $orig to $pdl.
     # print "linking $len bytes from $offset\n";
     $pdl->freedata;
     $pdl->set_data_by_offset($orig,$offset);
-    local ($flexmapok)=1;
+    local $flexmapok=1;
     local $SIG{BUS} = \&myhandler unless $^O =~ /MSWin32/i;
     local $SIG{FPE} = \&myhandler;
     eval {$pdl->clump(-1)->at(0)};
-    $offset += $len;
+    $_[4] += $len; # mutate input
     $flexmapok;
 }
 
@@ -511,7 +491,7 @@ sub readflex {
 		if $#_ > 1;
     my ($name,$h) = @_;
     my ($hdr, $pdl, $len, @out, $chunk, $chunkread, $data);
-    local ($offset) = 0;
+    my $offset = 0;
     my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
     my $d;
     # print("readflex: name is $name\n");
@@ -603,7 +583,7 @@ READ:
 			    ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
 	$len = length $ {$pdl->get_dataref};
 
-	&readchunk($d,$pdl,$len,$name) or last READ;
+	$offset += readchunk($d,$pdl,$len,$name, $offset);
 	$chunkread += $len;
 	if ($swapbyte) {
 	  my $method = $flexswap{$type};
@@ -646,14 +626,14 @@ READ:
 	if ($f77mode && $chunk->at == $chunkread) {
 	    $chunkread = 0;
 	    my ($check) = $chunk->copy;
-	    &readchunk($d,$check,4,$name) or last READ;
+	    $offset += readchunk($d,$check,4,$name,$offset);
 	    bswap4($check) if $swapbyte;
 	    if ($check->at ne $chunk->at) {
 		barf "F77 file format error for $check cf $chunk";
 		last READ;
 	    }
 	    if (!eof($d)) {
-		&readchunk($d,$chunk,4,$name) or last READ;
+		$offset += readchunk($d,$chunk,4,$name,$offset);
 		bswap4($chunk) if $swapbyte;
 	    } else {
 		last READ;
@@ -673,7 +653,7 @@ sub mapflex {
     my (%opts) = ( 'ReadOnly' => 0, 'Creat' => 0, 'Trunc' => 0 );
 
     my ($hdr, $d, $pdl, $len, @out, $chunk, $chunkread);
-    local ($offset) = 0;
+    my $offset = 0;
     my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
 
     foreach (@_) {
@@ -762,7 +742,7 @@ READ:
 					ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
 		$len = length $ {$pdl->get_dataref};
 
-		&mapchunk($d,$pdl,$len,$name) or last READ;
+		&mapchunk($d,$pdl,$len,$name,$offset) or last READ;
 		$chunkread += $len;
 		if ($newfile && $f77mode) {
 			if ($opts{Creat}) {
@@ -783,7 +763,7 @@ READ:
 		if ($f77mode && $chunk->at == $chunkread) {
 			$chunkread = 0;
 			my ($check) = $chunk->copy;
-			&mapchunk($d,$check,4,$name) or last READ;
+			&mapchunk($d,$check,4,$name,$offset) or last READ;
 			if ($opts{Creat}) {
 				$check->set(0,$size-8);
 				} else {
@@ -792,7 +772,7 @@ READ:
 					last READ;
 				}
 			}
-			barf "Will only map first f77 data statement" if ($offset < $size);
+			barf "Will only map first f77 data statement" if $offset < $size;
 			last READ;
 		}
     }
@@ -820,7 +800,7 @@ sub writeflex {
          or barf "Couldn't open '$name' for writing";
       binmode $d;
    }
-   foreach $pdl (@_) {
+   foreach my $pdl (@_) {
       barf $usage if ! ref $pdl;
       # print join(' ',$pdl->getndims,$pdl->dims),"\n";
       push @{$hdr}, {
@@ -830,11 +810,11 @@ sub writeflex {
          BadFlag => $pdl->badflag,
          BadValue => (($pdl->badvalue == $pdl->orig_badvalue) ? undef : $pdl->badvalue),
       };
-      print $d $ {$pdl->get_dataref};
+      print $d ${$pdl->get_dataref};
    }
    if (defined wantarray) {
       # list or scalar context
-      writeflexhdr($name, $hdr) if $isname and $PDL::IO::FlexRaw::writeflexhdr;
+      writeflexhdr($name, $hdr) if $isname and $writeflexhdr;
       return $hdr;
    } else {
       # void context so write header file
@@ -866,5 +846,3 @@ sub writeflexhdr {
 }
 
 1;
-
-

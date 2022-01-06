@@ -1,4 +1,6 @@
-pp_addpm({At => Top}, <<'EOD');
+use strict;
+use warnings;
+pp_addpm({At => 'Top'}, <<'EOD');
 
 =head1 NAME 
 
@@ -98,6 +100,8 @@ interchangeably.
 
 =cut
 
+use strict;
+use warnings;
 
 EOD
 
@@ -1526,7 +1530,7 @@ sub SDput
     $stride = pack ("L*", @$stride);
     $data->make_physical();
 
-    $res = _SDwritedata( $self->{DATASET}->{$name}->{SDSID}, $start, $stride, $dimsize, $data );
+    my $res = _SDwritedata( $self->{DATASET}->{$name}->{SDSID}, $start, $stride, $dimsize, $data );
     return( undef )
         if ($res == PDL::IO::HDF->FAIL);
 
@@ -1547,7 +1551,7 @@ sub SDput
         my $dimname = " "x(PDL::IO::HDF->MAX_NC_NAME);
         my $size = 0;
         my $num_dim_attrs = 0;
-        $res = _SDdiminfo( $dim_id, $dimname, $size, $numtype=0, $num_dim_attrs);
+        $res = _SDdiminfo( $dim_id, $dimname, $size, my $numtype=0, $num_dim_attrs);
         
         return( undef )
             if ($res == PDL::IO::HDF->FAIL);

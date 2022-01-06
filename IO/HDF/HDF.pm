@@ -1,6 +1,5 @@
 package PDL::IO::HDF;
 
-
 =head1 NAME
 
 PDL::IO::HDF - A PDL interface to the HDF4 library.
@@ -36,6 +35,8 @@ interfaces, for that see the docs on those modules.
 
 =cut
 
+use strict;
+use warnings;
 our $VERSION = '2.0';
 $VERSION = eval $VERSION;
 
@@ -44,10 +45,6 @@ use PDL::Basic;
 
 use PDL::IO::HDF::SD;
 use PDL::IO::HDF::VS;
-
-#
-# Constants:
-#
 
 =head1 CONSTANTS
 
@@ -216,7 +213,7 @@ use constant FAIL => -1;
 # NOTE: Since the keys & values below are constants, we need the () around them:
 
 #typemap pour convertir typePDL->typeHDF
-$SDtypeTMAP = {
+our $SDtypeTMAP = {
     PDL::byte->[0]   => (DFNT_UINT8), 
     PDL::short->[0]  => (DFNT_INT16),
     PDL::ushort->[0] => (DFNT_UINT16), 
@@ -227,7 +224,7 @@ $SDtypeTMAP = {
 };
 
 #typemap pour convertir typeHDF->typePDL
-$SDinvtypeTMAP = {
+our $SDinvtypeTMAP = {
     (DFNT_INT8)    => sub { PDL::byte(@_); }, #badtype
     (DFNT_UINT8)   => sub { PDL::byte(@_); },
     (DFNT_INT16)   => sub { PDL::short(@_); },
@@ -240,7 +237,7 @@ $SDinvtypeTMAP = {
     (DFNT_CHAR)    => sub { PDL::byte(@_); } #badtype
 };
 
-$SDinvtypeTMAP2 = {
+our $SDinvtypeTMAP2 = {
     (DFNT_INT8)    => PDL::byte,
     (DFNT_UINT8)   => PDL::byte,
     (DFNT_INT16)   => PDL::short,

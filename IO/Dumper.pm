@@ -87,48 +87,27 @@ This package comes with NO WARRANTY.
 
 =cut
 
-# use PDL::NiceSlice;
-
 package PDL::IO::Dumper;
+use strict;
+use warnings;
 use File::Temp;
 
+use Exporter ();
 
-BEGIN{
-  use Exporter ();
+our $VERSION = '1.3.2';
 
-  package PDL::IO::Dumper;
+our @ISA = qw( Exporter ) ;
+our @EXPORT_OK = qw( fdump sdump frestore deep_copy);
+our @EXPORT = @EXPORT_OK;
+our %EXPORT_TAGS = ( Func=>\@EXPORT_OK);
 
-  $PDL::IO::Dumper::VERSION = '1.3.2';
-  
-  @PDL::IO::Dumper::ISA = ( Exporter ) ;
-  @PDL::IO::Dumper::EXPORT_OK = qw( fdump sdump frestore deep_copy);
-  @PDL::IO::Dumper::EXPORT = @EXPORT_OK;
-  %PDL::IO::Dumper::EXPORT_TAGS = ( Func=>[@EXPORT_OK]);
-
-  eval "use Convert::UU;";
-  $PDL::IO::Dumper::convert_ok = !$@;
-
-  my $checkprog = sub {
-      my($prog) = $_[0];
-      my $pathsep = $^O =~ /win32/i ? ';' : ':';
-      my $exe = $^O =~ /win32/i ? '.exe' : '';
-      for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
-      return 0;
-  };
-  # make sure not to use uuencode/uudecode
-  # on MSWin32 systems (it doesn't work)
-  # Force Convert::UU for BSD systems to see if that fixes uudecode problem
-  if (($^O !~ /(MSWin32|bsd)$/) or ($^O eq 'gnukfreebsd')) {
-     $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode') and ($^O !~ /MSWin32/);
-  }
-
-  use PDL;
-  use PDL::Exporter;
-  use PDL::Config;
-  use Data::Dumper 2.121;
-  use Carp;
-  use IO::File;
-}
+use Convert::UU;
+use PDL;
+use PDL::Exporter;
+use PDL::Config;
+use Data::Dumper 2.121;
+use Carp;
+use IO::File;
 
 ######################################################################
 
@@ -250,7 +229,7 @@ sub PDL::IO::Dumper::frestore {
 
   my $fh = IO::File->new( "<$fname" );
   unless ( defined $fh ) {
-    Carp::cluck("frestore:  couldn't open '$file'\n");
+    Carp::cluck("frestore:  couldn't open '$fname'\n");
     return undef;
   }
 
@@ -360,10 +339,7 @@ sub PDL::IO::Dumper::stringify_PDL{
   my($pdlflat) = $pdl->flat;
   my($t) = $pdl->type;
 
-  my($s);
-  my(@s);
   my($dmp_elt);
-
   if(defined $PDL::IO::Dumper::stringify_formats{$t}) {
     $dmp_elt = eval "sub { sprintf '$PDL::IO::Dumper::stringify_formats{$t}',shift }";
   } else {
@@ -373,17 +349,15 @@ sub PDL::IO::Dumper::stringify_PDL{
     }
     $dmp_elt = sub { my($x) = shift; "$x"; };
   }
-  $i = 0;
 
-  my($i);
-  for($i = 0; $i < $pdl->nelem; $i++) {
+  my(@s);
+  for (my $i = 0; $i < $pdl->nelem; $i++) {
     push(@s, &{$dmp_elt}( $pdlflat->slice("($i)") )  );
   }
-
  
   ## Assemble all the strings and bracket with a pdl() call.
   
-  $s = ($PDL::IO::Dumper::stringify_formats{$t}?$t:'pdl').
+  my $s = ($PDL::IO::Dumper::stringify_formats{$t}?$t:'pdl').
        "(" . join(   "," , @s  ) .   ")".
        (($_->getndims > 1) && ("->reshape(" . join(",",$pdl->dims) . ")"));
 
@@ -427,28 +401,15 @@ my $uudecode_string = "|uudecode";
 $uudecode_string .= " -s" if (($^O =~ m/darwin|((free|open)bsd)|dragonfly/) and ($^O ne 'gnukfreebsd'));
 
 sub PDL::IO::Dumper::uudecode_PDL {
-    my $lines = shift;
-    my $out;
-    my $fname = _make_tmpname();
-    if($PDL::IO::Dumper::uudecode_ok) {
-        local $SIG{PIPE}= sub {}; # Prevent crashing if uudecode exits
-	my $fh = IO::File->new( $uudecode_string );
-	$lines =~ s/^[^\n]*\n/begin 664 $fname\n/o;
-	$fh->print( $lines );
-	$fh->close;
-    }
-    elsif($PDL::IO::Dumper::convert_ok) {
-	my $fh = IO::File->new(">$fname");
-	my $fits = Convert::UU::uudecode($lines);
-	$fh->print( $fits );
-	$fh->close();
-    } else {
-      barf("Need either uudecode(1) or Convert::UU to decode dumped PDL.\n");
-  }
-
+  my $lines = shift;
+  my $out;
+  my $fname = _make_tmpname();
+  my $fh = IO::File->new(">$fname");
+  my $fits = Convert::UU::uudecode($lines);
+  $fh->print( $fits );
+  $fh->close();
   $out = rfits($fname);
   unlink($fname);
-
   $out;
 }
  
@@ -498,21 +459,12 @@ sub PDL::IO::Dumper::dump_PDL {
       ##
       my $fname = _make_tmpname();
       wfits($_,$fname);
-      my(@uulines);
-
-      if($PDL::IO::Dumper::uudecode_ok) {
-	  my $fh = IO::File->new( "uuencode $fname $fname |" );
-	  @uulines = <$fh>;
-	  $fh->close;
-    } elsif($PDL::IO::Dumper::convert_ok) {
 	# Convert::UU::uuencode does not accept IO::File handles
         # (at least in version 0.52 of the module)
 	#
-	open(FITSFILE,"<$fname");
-	@uulines = ( Convert::UU::uuencode(*FITSFILE) );
-    } else {
-	barf("dump_PDL: Requires either uuencode or Convert:UU");
-    }
+      local *FITSFILE;
+      open(FITSFILE,"<$fname");
+      my @uulines = ( Convert::UU::uuencode(*FITSFILE) );
       unlink $fname;
       
       ## 

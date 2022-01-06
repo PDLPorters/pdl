@@ -14,9 +14,13 @@ cursor terminal browser for ndarrays.
 
 =cut
 
+use strict;
+use warnings;
 
 EOD
 
+use strict;
+use warnings;
 use PDL::Types;
 
 pp_addhdr('void browse(int type, int nc, int nr, void *in);');
@@ -49,7 +53,7 @@ around a PDL array using the cursor keys.
 
 
 EOD
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 

@@ -9,10 +9,10 @@ kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 use strict;
 use warnings;
 
-# Load the testing harness and PDL
-use Test::More tests => 12;
+use Test::More;
 use PDL;
 use File::Temp qw(tempdir);
+use PDL::IO::FlexRaw;
 
 $PDL::debug = 0;
 
@@ -21,9 +21,6 @@ $PDL::debug = 0;
 my $tmpdir = tempdir( CLEANUP=>1 );
 my $name = $tmpdir . "/tmp0";
 unlink $name, $name . '.hdr';	# just to be absolutely sure
-
-# **TEST 1** make sure FastRaw loads
-BEGIN { use_ok( 'PDL::IO::FlexRaw' ); }
 
 # Set up the working filename and make sure we're working with a clean slate:
 
@@ -116,8 +113,6 @@ SKIP: {
 
 # Clean things up a bit
 unlink $name, $name . '.hdr';
-undef $x;
-undef $y;
 
 # Test the file header options:
 
@@ -125,3 +120,5 @@ undef $y;
 # Test using file handles instead of file names
 # test read_flexhdr
 # test gzip stuff
+
+done_testing;

@@ -1,23 +1,9 @@
 use strict;
+use warnings;
+use PDL::IO::Dumper;
 use Test::More;
 use Config;
-use File::Which ();
-
-BEGIN {
-   eval "use Convert::UU;";
-   my $hasuuencode = !$@ || (File::Which::which('uuencode') && File::Which::which('uudecode'));
-
-   if ($hasuuencode) {
-      plan tests => 17;
-   } else {
-      plan skip_all => "Skip neither uuencode/decode nor Convert:UU is available\n";
-   }
-
-   use PDL;
-}
-
-########### First test the load...
-use_ok('PDL::IO::Dumper');
+use PDL::LiteF;
 
 ########### Dump several items and make sure we get 'em back...
 # a: trivial
@@ -67,4 +53,4 @@ is ref($x), 'ARRAY' or diag explain $a;
 ok(eval('$x->[0]->hdrcpy() == 1 && $x->[1]->hdrcpy() == 0'), 'Check hdrcpy()\'s persist');
 ok(eval('($x->[0]->gethdr()->{ok}==1) && ($x->[1]->gethdr()->{ok}==2)'), 'Check gethdr() values persist');
 
-# end
+done_testing;
