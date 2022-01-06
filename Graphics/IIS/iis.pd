@@ -1,6 +1,7 @@
+use strict;
+use warnings;
 
-pp_addpm({At=>Top},<<'EOD');
-
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::Graphics::IIS - Display PDL images on IIS devices (saoimage/ximtool)
@@ -71,6 +72,8 @@ using the module this will guarantee correct file names!
 
 =cut
 
+use strict;
+use warnings;
 
 EOD
 
@@ -619,7 +622,7 @@ pp_def( '_iiscirc',
 '); # End of iiscirc_c pp_def
 
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 BUGS
 

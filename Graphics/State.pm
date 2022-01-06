@@ -41,8 +41,6 @@ by calling C<remove> with the number in the stack. No further interaction
 is implemented except C<clear> which clears the stack and C<copy> which
 returns a "deep" copy of the state.
 
-
-
 =head1 AUTHOR
 
 Jarle Brinchmann (jarle@astro.ox.ac.uk) after some prodding by
@@ -54,10 +52,11 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
-
 =cut
 
 package PDL::Graphics::State;
+use strict;
+use warnings;
 
 #
 # This is a very simple package to deal with the graphics state.

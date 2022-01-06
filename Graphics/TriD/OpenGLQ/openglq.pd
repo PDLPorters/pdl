@@ -1,4 +1,10 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+use warnings;
+use PDL::Types qw(types ppdefs_all);
+
+my $F = [map $_->ppsym, grep $_->real && !$_->integer, types];
+
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::Graphics::OpenGLQ - quick routines to plot lots of stuff from ndarrays.
@@ -20,9 +26,7 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution, 
 the copyright notice should be included in the file.
 
-
 =cut
-
 
 EOD
 
@@ -45,11 +49,11 @@ pp_addhdr('
 #');
 
 
-@internal = (Doc => 'internal');
+my @internal = (Doc => 'internal');
 
 pp_def(
 	'line_3x_3c',
-	GenericTypes => [F,D],
+	GenericTypes => $F,
 	Pars => 'coords(tri=3,n); colors(tri,n);',
 	Code => '
 		glBegin(GL_LINE_STRIP);
@@ -70,12 +74,12 @@ pp_def(
 	@internal
 );
 
-sub TRI {return "$_[0]$_[1](tri => 0),
-		 $_[0]$_[1](tri => 1),
-		 $_[0]$_[1](tri => 2)"}
+sub TRI {my $s = join '', @_; return "$s(tri => 0),
+		 $s(tri => 1),
+		 $s(tri => 2)"}
 sub COLOR{ "
 			glColor3f(
-				".  TRI('$colors',$_[0])
+				".  TRI('$colors',@_)
 				."
 			);
 	" };
@@ -90,25 +94,25 @@ sub ADCOLOR{ "
 	" };
 sub VERTEX{ "
 			glVertex3f(
-				".  TRI('$coords',$_[0])
+				".  TRI('$coords',@_)
 				."
 			);
 " };
 sub NORMAL{ "
 			glNormal3f(
-				".  TRI('$norm',$_[0])
+				".  TRI('$norm',@_)
 				."
 			);
 	" };
 sub RPOS{ "
 			glRasterPos3f(
-				".  TRI('$coords',$_[0])
+				".  TRI('$coords',@_)
 				."
 			);
 	" };
 
 pp_def('gl_points',
-	GenericTypes => [F,D],
+	GenericTypes => $F,
 	Pars => 'coords(tri=3); colors(tri);',
 	Code => '
 		glBegin(GL_POINTS);
@@ -121,7 +125,7 @@ pp_def('gl_points',
 
 pp_def(
 	'gl_lines',
-	GenericTypes => [F,D],
+	GenericTypes => $F,
 	Pars => 'coords(tri,x);colors(tri,x);',
 	Code => '
 		glBegin(GL_LINES);
@@ -134,7 +138,7 @@ pp_def(
 
 pp_def(
 	'gl_line_strip',
-	GenericTypes => [F,D],
+	GenericTypes => $F,
 	Pars => 'coords(tri,x);colors(tri,x);',
 	Code => '
 		glBegin(GL_LINE_STRIP);
@@ -147,7 +151,7 @@ pp_def(
 
 pp_def(
  	'gl_texts',
- 	GenericTypes => [F,D],
+	GenericTypes => $F,
  	Pars => 'coords(tri,x); ',
 	OtherPars => 'int base; SV *arr',
 	Code => '
@@ -177,7 +181,7 @@ pp_def(
 	@internal
 );
 
-for $m (
+for my $m (
 {Suf => '_mat',
  Func => \&ADCOLOR},
 {Suf => '',
@@ -203,16 +207,16 @@ for(
 },
 {Name => 'gl_triangles_wn',
  NormalArgs => 'norma(tri); normb(tri); normc(tri);',
- (map {("NormalCode".($_ eq 'A'?'':$_),NORMAL(lc $_))} (A..C)),
+ (map {("NormalCode".($_ eq 'A'?'':$_),NORMAL(lc $_))} ('A'..'C')),
 }) {
 # This may be suboptimal but should still be fast enough..
 # We only do triangles with this.
 pp_def(
 	$_->{Name}.$m->{Suf},
-	GenericTypes => [F,D],
+	GenericTypes => $F,
 	Pars => 'coordsa(tri=3); coordsb(tri);
 		 coordsc(tri);'.
-		 $_->{NormalArgs}.
+		 ($_->{NormalArgs}//'').
 		 'colorsa(tri); colorsb(tri);
 		 colorsc(tri);
 		 ',
@@ -220,11 +224,11 @@ pp_def(
 		float tmp1[3]; float tmp2[3];
 		glBegin(GL_TRIANGLES);
 		threadloop %{'.
-			$_->{NormalCode}
+			($_->{NormalCode}//'')
 			.&{$m->{Func}}("a").VERTEX("a").
-			$_->{NormalCodeB}
+			($_->{NormalCodeB}//'')
 	  		.&{$m->{Func}}("b").VERTEX("b").
-			$_->{NormalCodeC}
+			($_->{NormalCodeC}//'')
 			.&{$m->{Func}}("c").VERTEX("c").'
 		%}
 		glEnd();
