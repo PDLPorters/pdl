@@ -1,16 +1,17 @@
-
 package PDL::CallExt;
 
-@EXPORT_OK  = qw( callext callext_cc );
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
-@EXPORT = @EXPORT_OK;
-
+use strict;
+use warnings;
 use Config;
 use PDL::Core;
 use PDL::Exporter;
 use DynaLoader;
 use Carp;
-@ISA    = qw( PDL::Exporter DynaLoader );
+
+our @ISA    = qw( PDL::Exporter DynaLoader );
+our @EXPORT_OK  = qw( callext callext_cc );
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+our @EXPORT = @EXPORT_OK;
 
 bootstrap PDL::CallExt;
 
