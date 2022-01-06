@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 pp_bless('PDL::Minuit');
 
 pp_add_exported('','mn_init mn_def_pars mn_excm mn_pout mn_stat mn_err mn_contour mn_emat');
@@ -5,11 +7,11 @@ pp_add_exported('','mn_init mn_def_pars mn_excm mn_pout mn_stat mn_err mn_contou
 pp_addhdr('
 #include<string.h>
 #include "FCN.h"
-');                   
+');
 		      # add C code to the section preceding 
 		      # the first MODULE keyword
 
-pp_addpm({At=>Top},<<'EOD');       # add perl code to the perl module that PP will create
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::Minuit -- a PDL interface to the Minuit library
@@ -32,13 +34,11 @@ See the test file minuit.t in the test (t/) directory for a basic example.
 EOD
 
 pp_addpm('
+use strict;
+use warnings;
 
 # Package variable
 my $mn_options;
-
-');
-
-pp_addpm('
 sub mn_init{
   my $fun_ref = shift;
 
@@ -67,9 +67,8 @@ sub mn_init{
   if (defined (my $logfile = $mn_options->{Log})){ 
     if (-e $logfile) { unlink $logfile; }   
     PDL::Minuit::mn_abre($mn_options->{Unit},$logfile,\'new\');
-    print STDERR "# Opening file $logfile....\n";
   }
- 			
+
   PDL::Minuit::mninit(5,$mn_options->{Unit},$mn_options->{Unit});
   PDL::Minuit::mnseti($mn_options->{Title});
 
@@ -116,8 +115,7 @@ sub mn_def_pars{
 
   #print "Unit :".$mn_options->{Unit}."\n";
 
-  my @names = ();
-  for (my $i=0; $i < $n; $i++) { $names[$i] = "Par_$i"; }
+  my @names = map "Par_$_", 0..$n-1;
   my $lo_bounds = zeroes($n);
   my $up_bounds = zeroes($n);
 
@@ -126,10 +124,10 @@ sub mn_def_pars{
      $lo_bounds = $opts->{Lower_bounds} if defined $opts->{Lower_bounds};
      $up_bounds = $opts->{Upper_bounds} if defined $opts->{Upper_bounds};
      if (defined($opts->{Names})){
-     	$names_t = $opts->{Names};
-     	barf " Names has to be an array reference" unless ref($names_t) eq \'ARRAY\';
-     	@names = @$names_t;
-     	barf " Names has to have as many elements as there are parameters " unless ( @names == $n);
+	my $names_t = $opts->{Names};
+	barf "Names has to be an array reference" unless ref($names_t) eq \'ARRAY\';
+	@names = @$names_t;
+	barf "Names has to have as many elements as there are parameters " unless ( @names == $n);
      }
   }
 
@@ -618,7 +616,6 @@ The Minuit documentation is online at
 
   http://wwwasdoc.web.cern.ch/wwwasdoc/minuit/minmain.html
 
-
 =head1 AUTHOR
 
 This file copyright (C) 2007 Andres Jordan <ajordan@eso.org>.
@@ -632,5 +629,3 @@ PDL distribution, the copyright notice should be included in the file.
 EOD
 
 pp_done();  # you will need this to finish pp processing
-
-
