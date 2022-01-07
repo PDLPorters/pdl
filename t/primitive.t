@@ -42,6 +42,12 @@ ok(tapprox($y->which, PDL->pdl(0,1,2,7,8,10,11)), "which");
 
 ok(tapprox($c->where($y), PDL->pdl(10,11,12,17,18,20,21)), "where with mask");
 
+{
+  my $orig = ones(byte, 300);
+  my $xvals = $orig->xvals;
+  is $xvals->at(280), 280, 'non-wrapped xvals from byte ndarray';
+}
+
 ##############################
 # originally in pptest
 $x = ones(byte,3000);

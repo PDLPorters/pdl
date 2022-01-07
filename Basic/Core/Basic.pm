@@ -53,7 +53,8 @@ our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 =for ref
 
 Fills an ndarray with X index values.  Uses similar specifications to
-L</zeroes> and L</new_from_specification>.
+L</zeroes> and L</new_from_specification>, except that as of 2.064,
+the returned ndarray will be at least type C<double>.
 
 CAVEAT:
 
@@ -224,13 +225,13 @@ sub xvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->xvals : PDL->xvals(
 sub yvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->yvals : PDL->yvals(@_) }
 sub zvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zvals : PDL->zvals(@_) }
 sub PDL::xvals {
-    axisvals2(&PDL::Core::_construct,0);
+    axisvals2(&PDL::Core::_construct,0,0);
 }
 sub PDL::yvals {
-    axisvals2(&PDL::Core::_construct,1);
+    axisvals2(&PDL::Core::_construct,1,0);
 }
 sub PDL::zvals {
-    axisvals2(&PDL::Core::_construct,2);
+    axisvals2(&PDL::Core::_construct,2,0);
 }
 
 sub _dimcheck {
@@ -499,9 +500,10 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 sub sequence { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->sequence : PDL->sequence(@_) }
 sub PDL::sequence {
+    my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
     my $pdl = &PDL::Core::_construct;
     my $bar = $pdl->clump(-1)->inplace;
-    axisvals2($bar,0);
+    axisvals2($bar,0,$type_given);
     return $pdl;
 }
 
@@ -626,7 +628,6 @@ sub PDL::axisvals {
 		# This is 'kind of' consistency...
 		$dummy .= 0;
 		return $dummy;
-#		barf("Too few dimensions given to axisvals $nth\n");
 	}
 	my $bar = $dummy->xchg(0,$nth);
 	PDL::Primitive::axisvalues($bar);
@@ -635,12 +636,13 @@ sub PDL::axisvals {
 
 # We need this version for xvals etc to work in place
 sub axisvals2 {
-	my($dummy,$nth) = @_;
+	my($dummy,$nth,$keep_type) = @_;
+	$dummy = PDL::Core::double($dummy)
+	  if !$keep_type && $dummy->get_datatype < PDL::Core::double()->enum;
 	if($dummy->getndims() <= $nth) {
 		# This is 'kind of' consistency...
 		$dummy .= 0;
 		return $dummy;
-#		barf("Too few dimensions given to axisvals $nth\n");
 	}
 	my $bar = $dummy->xchg(0,$nth);
 	PDL::Primitive::axisvalues($bar);
