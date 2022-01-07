@@ -9,34 +9,27 @@ sub tapprox {
     $d < 1.0e-6;
 }
 
-# test rvals
-#  synonym for centre/center
-#  squared option
-#  (x|y|z)(lin|log)vals, axisvals
-
 my $x0 = pdl( [ 2, 1, 2 ], [ 1, 0, 1 ], [ 2, 1, 2 ] );
 
 my $a1 = rvals(3,3);
-#print "\na1: $a1\n";
-ok( tapprox( $x0->sqrt, $a1 ), "centered rvals" ); # 1
+ok( tapprox( $x0->sqrt, $a1 ), "centered rvals" ) or diag $a1;
 
 my $a2 = rvals(3,3,{squared=>1});
-#print "\na2: $a2\n";
-ok( tapprox( $x0, $a2 ), "centered rvals squared" ); # 2
+ok( tapprox( $x0, $a2 ), "centered rvals squared" ) or diag $a2;
 
 my $x1 = pdl( [ 8, 5, 4 ], [ 5, 2, 1 ], [ 4, 1, 0 ] );
 
 my $a3 = rvals(3,3,{centre=>[2,2]});
-#print "\na3: $a3\n";
-ok( tapprox( $x1->sqrt, $a3 ), "non-centered rvals" ); # 3
+ok( tapprox( $x1->sqrt, $a3 ), "non-centered rvals" ) or diag $a3;
 
 my $a4 = rvals(3,3,{center=>[2,2]});
-#print "\na4: $a4\n";
-ok( tapprox( $x1->sqrt, $a4 ), "centre/center synonyms" ); # 4
+ok( tapprox( $x1->sqrt, $a4 ), "centre/center synonyms" ) or diag $a4;
 
-ok( tapprox( $x1->sqrt, rvals(3,3,{ceNteR=>[2,2]}) ), "ceNteR option capitalization" ); # 5
+my $a5 = rvals(3,3,{ceNteR=>[2,2]});
+ok( tapprox( $x1->sqrt, $a5 ), "ceNteR option capitalization" ) or diag $a5;
 
-ok( tapprox( $x1, rvals(3,3,{center=>[2,2],squared=>1}) ), "both center and squared options" ); # 6
+my $a6 = rvals(3,3,{center=>[2,2],squared=>1});
+ok( tapprox( $x1, $a6 ), "both center and squared options" ) or diag $a6;
 
 # test (x|y|z)(lin|log)vals: shape and values
 {
