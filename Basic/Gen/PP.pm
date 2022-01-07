@@ -957,7 +957,7 @@ sub pp_done {
         (my $mod_underscores = $::PDLMOD) =~ s#::#_#g;
         my $text = join '',
           sprintf($PDL::PP::header_c, $mod_underscores, $PP::boundscheck),
-          $::PDLXSC,
+          $::PDLXSC//'',
           $PDL::PP::macros_xs, sprintf($PDL::PP::header_xs,
             $::PDLMOD, $::PDLOBJ, $::PDLXS,
             $pdl_boot, $::PDLXSBOOT//'', $PP::boundscheck,
