@@ -501,7 +501,7 @@ sub sequence { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->sequence : PDL->
 sub PDL::sequence {
     my $pdl = &PDL::Core::_construct;
     my $bar = $pdl->clump(-1)->inplace;
-    $bar->xvals;
+    axisvals2($bar,0);
     return $pdl;
 }
 
