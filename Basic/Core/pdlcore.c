@@ -246,28 +246,18 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
      * the perl-level PDL::barf() or PDL::cluck()
      */
 
-    { /* scope block for C89 compatibility */
-
-        SV * sv;
-
-        dSP;
-        ENTER;
-        SAVETMPS;
-        PUSHMARK(SP);
-
-        sv = sv_2mortal(newSV(0));
-        sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));
-        va_end(*args);
-
-        XPUSHs(sv);
-
-        PUTBACK;
-
-        call_pv(iswarn ? "PDL::cluck" : "PDL::barf", G_DISCARD);
-
-        FREETMPS;
-        LEAVE;
-    } /* end C89 compatibility scope block */
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    SV *sv = sv_2mortal(newSV(0));
+    sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));
+    va_end(*args);
+    XPUSHs(sv);
+    PUTBACK;
+    call_pv(iswarn ? "PDL::cluck" : "PDL::barf", G_DISCARD);
+    FREETMPS;
+    LEAVE;
 }
 
 #define GEN_PDL_BARF_OR_WARN_I_STDARG(type, iswarn)     \
