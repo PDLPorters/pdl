@@ -603,7 +603,6 @@ sub typesynonyms {
   my $add = join "\n",
       map {"#define PDL_".typefld($_,'ppsym')." ".typefld($_,'sym')}
         grep {"PDL_".typefld($_,'ppsym') ne typefld($_,'sym')} typesrtkeys;
-  print "adding...\n$add\n";
   return "$add\n";
 }
 
@@ -616,9 +615,6 @@ return C header text for F<pdl.h> and F<pdlsimple.h>.
 =cut
 
 sub datatypes_header {
-    require Config;
-    warn "Using new 64bit index support\n" if $Config::Config{'ivsize'}==8;
-
     my $enum = join ', ', 'PDL_INVALID=-1', map $_->{sym}, @HASHES;
     my $typedefs = join '', map "typedef $_->{realctype} $_->{ctype};\n", @HASHES;
     my $union = join "\n", map "    $_->{ctype} $_->{ppsym};", @HASHES;
