@@ -55,7 +55,7 @@ _callext_int(...)
         for(i=0; i<npdl; i++) /* Free stuff */
 	   Safefree(x[i]);
 	Safefree(x);
-	   
+
 BOOT:
    /* Get pointer to structure of core shared C routines */
    if (!(CoreSV = perl_get_sv("PDL::SHARE",FALSE))) /* SV* value */

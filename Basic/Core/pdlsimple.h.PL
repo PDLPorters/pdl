@@ -32,7 +32,7 @@ print OUT <<"!GROK!THIS!";
 #include <complex.h>
 #ifndef __PDL_H
 
-/* These are kept automaticallu in sync with pdl.h during perl build */
+/* These are kept automatically in sync with pdl.h during perl build */
 
 $PDL_DATATYPES
 
@@ -56,5 +56,4 @@ struct pdlsimple {
 };
 
 typedef struct pdlsimple pdlsimple;
-
 !GROK!THIS!
