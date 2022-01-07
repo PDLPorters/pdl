@@ -909,7 +909,7 @@ sub _fnP {
     my $valid_tzero = ($tzero != 0.0);
     my $valid_tscal = ($tscal != 1.0);
     warn "Ignoring TSCAL/TZERO keywords for binary table array column - sorry, my mind is blown!\n"
-	if length($hdr->{"TZERO$n"}) or length($hdr->{"TSCAL$n"});
+	if grep defined && length, map $hdr->{"$_$n"}, qw(TZERO TSCAL);
     return $pdl->mv(-1,0);
 }
 
