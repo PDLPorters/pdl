@@ -622,6 +622,16 @@ our $macros_xs = <<'EOF';
     } else { \
       XSRETURN(0); \
     }
+
+#define PDL_XS_INPLACE(in, out) \
+    if (in->state & PDL_INPLACE && (out != in)) { \
+	in->state &= ~PDL_INPLACE; PDL_COMMENT("unset") \
+	out = in; \
+	PDL->SetSV_PDL(out ## _SV,out); \
+    }
+
+#define PDL_XS_INPLACE_CHECK(in) \
+    if (in->state & PDL_INPLACE) barf("inplace input but output given");
 EOF
 
 our $header_c = pp_line_numbers(__LINE__, <<'EOF');
@@ -643,16 +653,6 @@ PDL_COMMENT("                                                               ")
 PDL_COMMENT("just think of it as a C multiline comment like:                ")
 PDL_COMMENT("                                                               ")
 PDL_COMMENT("   /* Memory access */                                         ")
-
-#define PDL_XS_INPLACE(in, out) \
-    if (in->state & PDL_INPLACE && (out != in)) { \
-	in->state &= ~PDL_INPLACE; PDL_COMMENT("unset") \
-	out = in; \
-	PDL->SetSV_PDL(out ## _SV,out); \
-    }
-
-#define PDL_XS_INPLACE_CHECK(in) \
-    if (in->state & PDL_INPLACE) barf("inplace input but output given");
 
 #define PDL_FREE_CODE(trans, destroy, comp_free_code, ntpriv_free_code) \
     if (destroy) { \
