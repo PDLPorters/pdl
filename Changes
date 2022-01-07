@@ -19,7 +19,7 @@
 - set_datatype (and PDL.converttype) now badval-aware
 - add dependency on File::Which - thanks @zmughal
 - pp_addpm automatically adds line-number from .pd to aid debugging
-- PDL_Indx now a C ptrdiff_t to simplify config
+- PDL_Indx now a C ptrdiff_t, PDL_*Long now C {,u}int{32,64}_t to simplify config
 
 2.063_03 2021-11-23
 - add pp_add_macros

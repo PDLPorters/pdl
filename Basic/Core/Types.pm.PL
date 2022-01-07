@@ -20,17 +20,6 @@ sub packtypeof_PDL_Indx {
    }
 }
 
-sub typeof_PDL_Long {
-   return 'int'  if $Config{'intsize'}==4;
-   return 'long' if $Config{'longsize'}==4;
-   die "Can not find an integer datatype of size 4 bytes!!!\n";
-}
-
-sub typeof_PDL_i64 {
-  return $Config{i64type} or
-    die "Can not find an integer 64 bit type";
-}
-
 # Data types *must* be listed in order of complexity!!
 # this is critical for type conversions!!!
 #
@@ -88,11 +77,11 @@ my @types = (
 	     {
 	      identifier => 'L',
 	      pdlctype => 'PDL_Long',
-	      realctype => &typeof_PDL_Long,
+	      realctype => 'int32_t',
 	      ppforcetype => 'int',
 	      usenan => 0,
 	      packtype => 'l*',
-	      defaultbadval => 'INT_MIN',
+	      defaultbadval => 'INT32_MIN',
 	      real=>1,
 	      integer=>1,
 	      unsigned=>0,
@@ -101,11 +90,11 @@ my @types = (
 	      identifier => 'UL',
 	      onecharident => 'K',   # only needed if different from identifier
 	      pdlctype => 'PDL_ULong',
-	      realctype => 'unsigned ' . &typeof_PDL_Long,
+	      realctype => 'uint32_t',
 	      ppforcetype => 'uint',
 	      usenan => 0,
 	      packtype => 'L*',
-	      defaultbadval => 'UINT_MAX',
+	      defaultbadval => 'UINT32_MAX',
 	      real=>1,
 	      integer=>1,
 	      unsigned=>1,
@@ -134,11 +123,11 @@ my @types = (
 	identifier => 'ULL',
 	onecharident => 'P',   # only needed if different from identifier
 	pdlctype => 'PDL_ULongLong',
-	realctype => 'unsigned ' . &typeof_PDL_i64,
+	realctype => 'uint64_t',
 	ppforcetype => 'ulonglong',
 	usenan => 0,
 	packtype => 'Q*',
-	defaultbadval => 'ULLONG_MAX',
+	defaultbadval => 'UINT64_MAX',
 	real=>1,
 	integer=>1,
 	unsigned=>1,
@@ -147,11 +136,11 @@ my @types = (
 	identifier => 'LL',
 	onecharident => 'Q',   # only needed if different from identifier
 	pdlctype => 'PDL_LongLong',
-	realctype => &typeof_PDL_i64,
+	realctype => 'int64_t',
 	ppforcetype => 'longlong',
 	usenan => 0,
 	packtype => 'q*',
-	defaultbadval => 'LLONG_MIN',
+	defaultbadval => 'INT64_MIN',
 	real=>1,
 	integer=>1,
 	unsigned=>0,

@@ -256,7 +256,7 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
     if (size < 0) {
       sv_setpv(sv, "vsnprintf error");
     } else {
-      size++;             /* For '\0' */
+      size += 2;             /* For '\0' + 1 as CentOS 7 is off by 1 */
       char buf[size];
       size = vsnprintf(buf, size, pat, *args);
       va_end(*args);
