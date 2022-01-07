@@ -223,21 +223,22 @@ See L</xlogvals> for more information.
 sub xvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->xvals : PDL->xvals(@_) }
 sub yvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->yvals : PDL->yvals(@_) }
 sub zvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zvals : PDL->zvals(@_) }
-sub PDL::xvals {
+sub _construct {
     my $class = shift;
-    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    scalar(@_) ? $class->new_from_specification(@_) : $class->new_or_inplace;
+}
+sub PDL::xvals {
+    my $pdl = &_construct;
     axisvals2($pdl,0);
     return $pdl;
 }
 sub PDL::yvals {
-    my $class = shift;
-    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    my $pdl = &_construct;
     axisvals2($pdl,1);
     return $pdl;
 }
 sub PDL::zvals {
-    my $class = shift;
-    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    my $pdl = &_construct;
     axisvals2($pdl,2);
     return $pdl;
 }
