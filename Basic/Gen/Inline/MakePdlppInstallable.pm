@@ -28,6 +28,7 @@ use warnings;
 #==============================================================================
 
 # copied verbatim from Inline 0.43 apart from language_id check below
+{ no warnings 'redefine';
 sub install {
     my ($module, $DIRECTORY);
     my $o = shift;
@@ -72,6 +73,7 @@ sub install {
       "$o->{API}{modpname}/$o->{API}{modfname}.$o->{INLINE}{ILSM_suffix}";
     unshift @::INC, $o->{API}{install_lib};
     $o->{INLINE}{object_ready} = 0;
+}
 }
 
 
