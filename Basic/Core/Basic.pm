@@ -224,19 +224,13 @@ sub xvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->xvals : PDL->xvals(
 sub yvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->yvals : PDL->yvals(@_) }
 sub zvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zvals : PDL->zvals(@_) }
 sub PDL::xvals {
-    my $pdl = &PDL::Core::_construct;
-    axisvals2($pdl,0);
-    return $pdl;
+    axisvals2(&PDL::Core::_construct,0);
 }
 sub PDL::yvals {
-    my $pdl = &PDL::Core::_construct;
-    axisvals2($pdl,1);
-    return $pdl;
+    axisvals2(&PDL::Core::_construct,1);
 }
 sub PDL::zvals {
-    my $pdl = &PDL::Core::_construct;
-    axisvals2($pdl,2);
-    return $pdl;
+    axisvals2(&PDL::Core::_construct,2);
 }
 
 sub PDL::xlinvals {
@@ -661,8 +655,7 @@ sub PDL::axisvals {
 
 # We need this version for xvals etc to work in place
 sub axisvals2 {
-	my($this,$nth) = @_;
-	my $dummy = shift;
+	my($dummy,$nth) = @_;
 	if($dummy->getndims() <= $nth) {
 		# This is 'kind of' consistency...
 		$dummy .= 0;
