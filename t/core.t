@@ -200,10 +200,10 @@ ok( ($x->ndims==2 and $x->dim(0)==2 and $x->dim(1)==2), 'weird cat case has the 
 ok( all( $x == pdl([1,1],[2,3]) ), "cat does the right thing with catting a 0-pdl and 2-pdl together");
 $@='';
 
-my $lo=xvals(long,5)+32766;
-my $so=xvals(short,5)+32766;
-my $fl=float(xvals(5)+0.2); # different as 0.2 is an NV so now a double
-my $by=xvals(byte,5)+253;
+my $lo=sequence(long,5)+32766;
+my $so=sequence(short,5)+32766;
+my $fl=float(sequence(5)+0.2); # different as 0.2 is an NV so now a double
+my $by=sequence(byte,5)+253;
 my @list = ($lo,$so,$fl,$by);
 my $c2 = cat(@list);
 is($c2->type,'float','concatenating different datatypes returns the highest type');
