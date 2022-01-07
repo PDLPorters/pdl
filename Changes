@@ -24,16 +24,16 @@
 - xvals etc now return at least a double
 - Primitive::{fibonacci,axisvalues} not output-only but can work inplace
 
-2.063_03 2021-11-23
+2.063_03 2021-12-23
 - add pp_add_macros
 
-2.063_02 2021-11-23
+2.063_02 2021-12-23
 - add PDL.scalar
 - add dummy pdl_pthread_main_thread for when no POSIX threads
 - PDL.pdlnew to make a null pdl except not ALLOCATED
 - stopped disabling pthreads on BSD
 
-2.063_01 2021-11-21
+2.063_01 2021-12-21
 - define, use PDL_REPRINCS
 - PDL.{pdlnew,null,get_thread{dims,offsp{,_int}}} return NULL on error, not croak
 - PDL.{trans_check_pdls,barf_if_error,error_accumulate}
