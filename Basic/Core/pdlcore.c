@@ -251,8 +251,17 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
     SAVETMPS;
     PUSHMARK(SP);
     SV *sv = sv_2mortal(newSV(0));
-    sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));
+    int size = vsnprintf(NULL, 0, pat, *args);
     va_end(*args);
+    if (size < 0) {
+      sv_setpv(sv, "vsnprintf error");
+    } else {
+      size++;             /* For '\0' */
+      char buf[size];
+      size = vsnprintf(buf, size, pat, *args);
+      va_end(*args);
+      sv_setpv(sv, size < 0 ? "vsnprintf error" : buf);
+    }
     XPUSHs(sv);
     PUTBACK;
     call_pv(iswarn ? "PDL::cluck" : "PDL::barf", G_DISCARD);
