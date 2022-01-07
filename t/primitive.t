@@ -21,25 +21,14 @@ sub tapprox {
 }
 
 my $x = PDL->pdl([[5,4,3],[2,3,1.5]]);
-
 ok(tapprox($x->average(), PDL->pdl([4, 2.16666])), "average");
 ok(tapprox($x->sumover(), PDL->pdl([12, 6.5])), "sumover");
 ok(tapprox($x->prodover(), PDL->pdl([60, 9])), "prodover");
 
 my $y = PDL->pdl(4,3,1,0,0,0,0,5,2,0,3,6);
-# diag "Y: $y\n";
 my $c = ($y->xvals) + 10;
-# diag "C: $c\n";
-
-# diag "YW: ", $y->where, "\n";
 ok(tapprox($y->where($y>4), PDL->pdl(5,6)), "where with >");
 ok(tapprox($y->which, PDL->pdl(0,1,2,7,8,10,11)), "which");
-
-# diag "Y, ",$y->which();
-# diag "C: $c\n";
-# diag "\nCI, ", $c->index($y->which());
-# diag "D\n";
-
 ok(tapprox($c->where($y), PDL->pdl(10,11,12,17,18,20,21)), "where with mask");
 
 {
@@ -268,7 +257,6 @@ ok(tapprox($statsRes[6],4.462), "stats: float rms");
 
 my $ones = ones(5,5);
 @statsRes = $im->stats($ones);
-# print "StatRes with moments = ".join(", ",@statsRes)."\n";
 ok(tapprox($statsRes[0],5.36), "stats: trivial weights mean" );
 ok(tapprox($statsRes[1],4.554), "stats: trivial weights prms" );
 ok(tapprox($statsRes[2],3), "stats: trivial weights median" );

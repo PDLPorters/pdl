@@ -16,8 +16,6 @@
 #include "pdlcore.h"  /* Core declarations */
 #include "pdlperl.h"
 
-/* Return a integer or numeric scalar as appropriate */
-
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
 
 Core PDL; /* Struct holding pointers to shared C routines */

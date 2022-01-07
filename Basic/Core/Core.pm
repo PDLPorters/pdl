@@ -2635,22 +2635,20 @@ Generic datatype conversion function
 
  $y = convert($x, $newtype);
 
+C<$newtype> is a type number or L<PDL::Type> object, for convenience they are
+returned by C<long()> etc when called without arguments.
+
 =for example
 
  $y = convert $x, long;
  $y = convert $x, ushort;
 
-C<$newtype> is a type number or L<PDL::Type> object, for convenience they are
-returned by C<long()> etc when called without arguments.
-
 =cut
-
-# type to type conversion functions (with automatic conversion to pdl vars)
 
 sub PDL::convert {
   # we don't allow inplace conversion at the moment
   # (not sure what needs to be changed)
-  barf 'Usage: $y = convert($x, $newtype)'."\n" if $#_!=1;
+  barf 'Usage: $y = convert($x, $newtype)'."\n" if @_ != 2;
   my ($pdl,$type)= @_;
   $pdl = topdl($pdl); # Allow normal numbers
   $type = $type->enum if ref($type) eq 'PDL::Type';
