@@ -1333,7 +1333,7 @@ for my $which (
              if ( flag ) { $c() = cur; }
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    CopyBadStatusCode => '',
-	    Doc => projectdocs($name,$name),
+	    Doc => projectdocs($name,$name,''),
 	    BadDoc => 
 'Output is set bad if all elements of the input are bad,
 otherwise the bad flag is cleared for the output ndarray.
