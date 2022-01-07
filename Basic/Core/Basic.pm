@@ -223,22 +223,18 @@ See L</xlogvals> for more information.
 sub xvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->xvals : PDL->xvals(@_) }
 sub yvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->yvals : PDL->yvals(@_) }
 sub zvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zvals : PDL->zvals(@_) }
-sub _construct {
-    my $class = shift;
-    scalar(@_) ? $class->new_from_specification(@_) : $class->new_or_inplace;
-}
 sub PDL::xvals {
-    my $pdl = &_construct;
+    my $pdl = &PDL::Core::_construct;
     axisvals2($pdl,0);
     return $pdl;
 }
 sub PDL::yvals {
-    my $pdl = &_construct;
+    my $pdl = &PDL::Core::_construct;
     axisvals2($pdl,1);
     return $pdl;
 }
 sub PDL::zvals {
-    my $pdl = &_construct;
+    my $pdl = &PDL::Core::_construct;
     axisvals2($pdl,2);
     return $pdl;
 }
@@ -529,8 +525,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 sub sequence { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->sequence : PDL->sequence(@_) }
 sub PDL::sequence {
-    my $class = shift;
-    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    my $pdl = &PDL::Core::_construct;
     my $bar = $pdl->clump(-1)->inplace;
     my $foo = $bar->xvals;
     return $pdl;
@@ -603,15 +598,13 @@ well-known norms.
 
 sub rvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->rvals(@_[1..$#_]) : PDL->rvals(@_) }
 sub PDL::rvals { # Return radial distance from given point and offset
-    my $class = shift;
     my $opt = pop @_ if ref($_[$#_]) eq "HASH";
     my %opt = defined $opt ?
                iparse( {
 			CENTRE  => undef, # needed, otherwise centre/center handling painful
 			Squared => 0,
 		       }, $opt ) : ();
-    my $r =  scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-
+    my $r = &PDL::Core::_construct;
     my @pos;
     @pos = @{$opt{CENTRE}} if defined $opt{CENTRE};
     my $offset;

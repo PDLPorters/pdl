@@ -2389,10 +2389,12 @@ for details on using ndarrays in the dimensions list.
 
 =cut
 
+sub _construct {
+    @_>1 ? $_[0]->new_from_specification(@_[1..$#_]) : $_[0]->new_or_inplace;
+}
 sub ones { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::ones($_[0]) : PDL->ones(@_) }
 sub PDL::ones {
-    my $class = shift;
-    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    my $pdl = &_construct;
     $pdl.=1;
     return $pdl;
 }
@@ -2420,8 +2422,7 @@ for details on using ndarrays in the dimensions list.
 
 sub nan { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::nan($_[0]) : PDL->nan(@_) }
 sub PDL::nan {
-    my $class = shift;
-    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    my $pdl = &_construct;
     $pdl .= PDL::_nan();
     return $pdl;
 }
@@ -2449,8 +2450,7 @@ for details on using ndarrays in the dimensions list.
 
 sub inf { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::inf($_[0]) : PDL->inf(@_) }
 sub PDL::inf {
-    my $class = shift;
-    my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    my $pdl = &_construct;
     $pdl .= PDL::_inf();
     return $pdl;
 }
