@@ -2136,7 +2136,7 @@ a list ref containing several of them, or a string containing several of them),
 then the copy is coerced into the first preferred type listed if it is not
 already one of the preferred types.
 
-Note that if the inplace flag is set, no coersion happens even if you specify
+Note that if the inplace flag is set, no coercion happens even if you specify
 a preferred type.
 
 =cut
