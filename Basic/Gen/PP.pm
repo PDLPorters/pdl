@@ -760,8 +760,11 @@ sub import {
 sub list_functions {
   my ($file) = @_;
   my @funcs;
+  undef &PDL::PP::pp_def;
   local *PDL::PP::pp_def = sub { push @funcs, (_pp_parsename($_[0]))[0]};
+  undef &PDL::PP::pp_done;
   local *PDL::PP::pp_done = sub {};
+  $_ = '' for $::PDLMOD, $::CALLPACK, $::PDLOBJ; # stop warnings
   require File::Spec::Functions;
   do ''.File::Spec::Functions::rel2abs($file);
   die $@ if $@;
