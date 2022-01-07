@@ -21,6 +21,7 @@
 - pp_addpm automatically adds line-number from .pd to aid debugging
 - PDL_Indx now a C ptrdiff_t, PDL_*Long now C {,u}int{32,64}_t to simplify config
 - xvals etc now return at least a double
+- Primitive::{fibonacci,axisvalues} not output-only but can work inplace
 
 2.063_03 2021-11-23
 - add pp_add_macros

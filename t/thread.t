@@ -254,8 +254,7 @@ SKIP: { # XXX DISABLED
 END
 	my $pb = PDL::Core::new_or_inplace($pa);
 	my $pc = $pb->transpose;
-	$pc->make_physical();
-	axisvalues($pc);
+	axisvalues($pc->inplace);
 	is("$pc", <<END);
 
 [

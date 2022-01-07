@@ -591,7 +591,7 @@ sub PDL::rvals { # Return radial distance from given point and offset
     for ($i=0; $i<$r->getndims; $i++) {
          $offset = (defined $pos[$i] ? $pos[$i] : int($r->getdim($i)/2));
 	 # Note careful coding for speed and min memory footprint
-	 PDL::Primitive::axisvalues($tmp->xchg(0,$i));
+	 PDL::Primitive::axisvalues($tmp->xchg(0,$i)->inplace);
 	 $tmp -= $offset; $tmp *= $tmp;
          $r += $tmp;
     }
@@ -630,7 +630,7 @@ sub PDL::axisvals {
 		return $dummy;
 	}
 	my $bar = $dummy->xchg(0,$nth);
-	PDL::Primitive::axisvalues($bar);
+	PDL::Primitive::axisvalues($bar->inplace);
 	return $dummy;
 }
 
@@ -645,7 +645,7 @@ sub axisvals2 {
 		return $dummy;
 	}
 	my $bar = $dummy->xchg(0,$nth);
-	PDL::Primitive::axisvalues($bar);
+	PDL::Primitive::axisvalues($bar->inplace);
 	return $dummy;
 }
 sub PDL::sec {

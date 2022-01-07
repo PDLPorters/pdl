@@ -1612,7 +1612,8 @@ pp_def($_->{Name},
 ###########################################################
 
 pp_def('fibonacci',
-        Pars => '[o]x(n);',
+        Pars => 'i(n); indx [o]x(n)',
+        Inplace => 1,
         GenericTypes => [ppdefs_all],
 	Doc=>'Constructor - a vector with Fibonacci\'s sequence',
 	PMFunc=>'',
@@ -1620,8 +1621,11 @@ pp_def('fibonacci',
 sub fibonacci { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->fibonacci : PDL->fibonacci(@_) }
 sub PDL::fibonacci{
    my $x = &PDL::Core::_construct;
-   PDL::_fibonacci_int($x->clump(-1));
-   return $x;
+   my $is_inplace = $x->is_inplace;
+   my ($in, $out) = $x->clump(-1);
+   $out = $is_inplace ? $in->inplace : PDL->null;
+   PDL::_fibonacci_int($in, $out);
+   $out;
 }
 EOD
      Code => '
@@ -1760,7 +1764,8 @@ sub PDL::glue{
 EOD
 
 pp_def( 'axisvalues',
-	Pars => '[o,nc]a(n)',
+	Pars => 'i(n); indx [o]a(n)',
+	Inplace => 1,
 	Code => 'loop(n) %{ $a() = n; %}',
 	GenericTypes => [ppdefs_all],
 	Doc => undef,
