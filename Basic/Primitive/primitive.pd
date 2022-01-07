@@ -1764,7 +1764,7 @@ sub PDL::glue{
 EOD
 
 pp_def( 'axisvalues',
-	Pars => 'i(n); indx [o]a(n)',
+	Pars => 'i(n); [o]a(n)',
 	Inplace => 1,
 	Code => 'loop(n) %{ $a() = n; %}',
 	GenericTypes => [ppdefs_all],
