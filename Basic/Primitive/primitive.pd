@@ -42,23 +42,11 @@ For explanation of the signature format, see L<PDL::PP>.
 
 EOD
 
-=head1 FUNCTIONS
-
-=cut
-
 ################################################################
 #  a whole bunch of quite basic functions for inner, outer
 #  and matrix products (operations that are not normally
 #  available via operator overloading)
 ################################################################
-
-=head2 inner
-
-=for sig
-
-  Signature: (a(n); b(n); [o]c())
-
-=cut
 
 pp_def(
        'inner',
@@ -102,14 +90,6 @@ as it will not contain any bad values.
 ',
        ); # pp_def( inner )
 
-=head2 outer
-
-=for sig
-
-  Signature: (a(n); b(m); [o]c(n,m))
-
-=cut
-
 pp_def(
        'outer',
        HandleBad => 1,
@@ -128,7 +108,6 @@ pp_def(
           }
         %}',
        Doc => '
-
 =for ref
 
 outer product over one dimension
@@ -136,14 +115,9 @@ outer product over one dimension
 Naturally, it is possible to achieve the effects of outer
 product simply by threading over the "C<*>"
 operator but this function is provided for convenience.
-
-=cut
-
 '); # pp_def( outer )
 
-
 pp_addpm(<<'EOD');
-
 =head2 x
 
 =for sig
@@ -343,14 +317,6 @@ For usage, see L</x>, a description of the overloaded 'x' operator
 EOD
 	);
 
-=head2 innerwt
-
-=for sig
-
-  Signature: (a(n); b(n); c(n); [o]d())
-
-=cut
-
 pp_def(
        'innerwt',
        HandleBad => 1,
@@ -387,14 +353,6 @@ Weighted (i.e. triple) inner product
 '
        );
 
-=head2 inner2
-
-=for sig
-
-  Signature: (a(n); b(n,m); c(m); [o]d())
-
-=cut
-
 pp_def(
        'inner2',
        HandleBad => 1,
@@ -418,7 +376,6 @@ pp_def(
         if ( flag ) { $d() = tmp; }
         else        { $SETBAD(d()); }',
        Doc => '
-
 =for ref
 
 Inner product of two vectors and a matrix
@@ -427,19 +384,8 @@ Inner product of two vectors and a matrix
 
 Note that you should probably not thread over C<a> and C<c> since that would be
 very wasteful. Instead, you should use a temporary for C<b*c>.
-
-=cut
-
 '
        );
-
-=head2 inner2d
-
-=for sig
-
-  Signature: (a(n,m); b(n,m); [o]c())
-
-=cut
 
 pp_def(
        'inner2d',
@@ -477,14 +423,6 @@ Equivalent to
 
 '
        );
-
-=head2 inner2t
-
-=for sig
-
-  Signature: (a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k)))
-
-=cut
 
 pp_def(
        'inner2t',
@@ -561,14 +499,6 @@ sub crassgn {
 	\$a(tri => $_[2])*\$b(tri => $_[1]);"
 }
 
-=head2 crossp
-
-=for sig
-
-  Signature: (a(tri=3); b(tri); [o] c(tri))
-
-=cut
-
 pp_def('crossp',
        Doc => <<'EOD',
 
@@ -595,16 +525,6 @@ EOD
        crassgn(1,2,0)."\n".
        crassgn(2,0,1),
        );
-
-=head2 norm
-
-=for sig
-
-  Signature: (vec(n); [o] norm(n))
-
-Normalises a vector to unit Euclidean length
-
-=cut
 
 pp_def('norm',
        HandleBad => 1,
@@ -721,14 +641,6 @@ Threaded Example:
 
 ');
 
-=head2 conv1d
-
-=for sig
-
-  Signature: (a(m); kern(p); [o]b(m); int reflect)
-
-=cut
-
 # 1D convolution
 # useful for threaded 1D filters
 pp_addhdr('
@@ -804,7 +716,7 @@ sub PDL::conv1d {
       if $#_<1 || $#_>2;
    my($x,$kern) = @_;
    my $c = $#_ == 2 ? $_[2] : PDL->null;
-   &PDL::_conv1d_int($x,$kern,$c,
+   PDL::_conv1d_int($x,$kern,$c,
 		     !(defined $opt && exists $$opt{Boundary}) ? 0 :
 		     lc $$opt{Boundary} eq "reflect");
    return $c;
@@ -836,14 +748,6 @@ sub PDL::conv1d {
            }
 ');
 
-
-=head2 in
-
-=for sig
-
-  Signature: (a(); b(n); [o] c())
-
-=cut
 
 # this can be achieved by
 #  ($x->dummy(0) == $y)->orover
@@ -879,10 +783,8 @@ and is generally faster.
 EOD
 );
 
-
 pp_add_exported ('', 'uniq');
 pp_addpm (<< 'EOPM');
-
 =head2 uniq
 
 =for ref
@@ -939,12 +841,10 @@ sub PDL::uniq {
    }
    return $answ;
 }
-
 EOPM
 
 pp_add_exported ('', 'uniqind');
 pp_addpm (<< 'EOPM');
-
 =head2 uniqind
 
 =for ref
@@ -1011,7 +911,6 @@ EOPM
 
 pp_add_exported ('', 'uniqvec');
 pp_addpm (<< 'EOPM');
-
 =head2 uniqvec
 
 =for ref
@@ -1093,24 +992,6 @@ EOPM
 
 # clipping
 
-=head2 hclip
-
-=for sig
-
-  Signature: (a(); b(); [o] c())
-
-clip (threshold) C<$a> by C<$b> (C<$b> is upper bound)
-
-=head2 lclip
-
-=for sig
-
-  Signature: (a(); b(); [o] c())
-
-clip (threshold) C<$a> by C<$b> (C<$b> is lower bound)
-
-=cut
-
 for my $opt (
 	     ['hclip','PDLMIN'],
 	     ['lclip','PDLMAX']
@@ -1136,7 +1017,7 @@ sub PDL::$name {
    if (\$x->is_inplace) {
        \$x->set_inplace(0); \$c = \$x;
    } elsif (\$#_ > 1) {\$c=\$_[2]} else {\$c=PDL->nullcreate(\$x)}
-   &PDL::_${name}_int(\$x,\$y,\$c);
+   PDL::_${name}_int(\$x,\$y,\$c);
    return \$c;
 }
 EOD
@@ -1147,7 +1028,6 @@ EOD
 pp_add_exported('', 'clip');
 
 pp_addpm(<<'EOD');
-
 =head2 clip
 
 =for ref
@@ -1166,7 +1046,6 @@ wrapper around L</hclip> and
 L</lclip>.
 
 =cut
-
 EOD
 
 pp_def(
@@ -1205,11 +1084,11 @@ sub PDL::clip {
       $d = PDL->nullcreate($x);
   }
   if(defined($l) && defined($h)) {
-      &PDL::_clip_int($x,$l,$h,$d);
+      PDL::_clip_int($x,$l,$h,$d);
   } elsif( defined($l) ) {
-      &PDL::_lclip_int($x,$l,$d);
+      PDL::_lclip_int($x,$l,$d);
   } elsif( defined($h) ) {
-      &PDL::_hclip_int($x,$h,$d);
+      PDL::_hclip_int($x,$h,$d);
   } else {
       die "This can't happen (clip contingency) - file a bug";
   }
@@ -1222,14 +1101,6 @@ EOPM
 ############################################################
 # elementary statistics and histograms
 ############################################################
-
-=head2 wtstat
-
-=for sig
-
-  Signature: (a(n); wt(n); avg(); [o]b(); int deg)
-
-=cut
 
 pp_def(
        'wtstat',
@@ -1270,7 +1141,6 @@ pp_def(
         else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
        CopyBadStatusCode => '',
        Doc => '
-
 =for ref
 
 Weighted statistical moment of given degree
@@ -1279,23 +1149,14 @@ This calculates a weighted statistic over the vector C<a>.
 The formula is
 
  b() = (sum_i wt_i * (a_i ** degree - avg)) / (sum_i wt_i)
-
-=cut
-
 ',
        BadDoc => '
-
 =for bad
 
 Bad values are ignored in any calculation; C<$b> will only
 have its bad flag set if the output contains any bad data.
-
-=cut
-
 ',
        );
-
-
 
 pp_def('statsover',
 	HandleBad => 1,
@@ -1395,7 +1256,7 @@ sub PDL::statsover {
    my $max = PDL->nullcreate($data);
    my $adev = PDL->nullcreate($data);
    my $prms = PDL->nullcreate($data);
-   &PDL::_statsover_int($data, $weights, $mean, $prms, $median, $min, $max, $adev, $rms);
+   PDL::_statsover_int($data, $weights, $mean, $prms, $median, $min, $max, $adev, $rms);
 
    return $mean unless wantarray;
    return ($mean, $prms, $median, $min, $max, $adev, $rms);
@@ -1475,7 +1336,6 @@ the sample size.  If all data are bad then the output data are marked bad.
 
 pp_add_exported('','stats');
 pp_addpm(<<'EOD');
-
 =head2 stats
 
 =for ref
@@ -1520,16 +1380,7 @@ sub PDL::stats {
 }
 EOD
 
-=head2 histogram
-
-=for sig
-
-  Signature: (in(n); int+[o] hist(m); double step; double min; int msize => m)
-
-=cut
-
 my $histogram_doc = <<'EOD';
-
 =for ref
 
 Calculates a histogram for given stepsize and minimum.
@@ -1563,16 +1414,7 @@ For a higher-level interface, see L<hist|PDL::Basic/hist>.
 
 EOD
 
-=head2 whistogram
-
-=for sig
-
-  Signature: (in(n); float+ wt(n);float+[o] hist(m); double step; double min; int msize => m)
-
-=cut
-
 my $whistogram_doc = <<'EOD';
-
 =for ref
 
 Calculates a histogram from weighted data for given stepsize and minimum.
@@ -1600,9 +1442,7 @@ you want.
  [0 0.2 0.5 0]
 
 =cut
-
 EOD
-
 
 for(
     {Name => 'histogram',
@@ -1647,17 +1487,7 @@ pp_def($_->{Name},
 	Doc=>$_->{Doc});
 }
 
-=head2 histogram2d
-
-=for sig
-
-  Signature: (ina(n); inb(n); int+[o] hist(ma,mb); double stepa; double mina; int masize => ma;
-	             double stepb; double minb; int mbsize => mb;)
-
-=cut
-
 my $histogram2d_doc = <<'EOD';
-
 =for ref
 
 Calculates a 2d histogram.
@@ -1689,20 +1519,9 @@ upper limit is put in the last bin.
  ]
 
 =cut
-
 EOD
 
-=head2 whistogram2d
-
-=for sig
-
-  Signature: (ina(n); inb(n); float+ wt(n);float+[o] hist(ma,mb); double stepa; double mina; int masize => ma;
-	             double stepb; double minb; int mbsize => mb;)
-
-=cut
-
 my $whistogram2d_doc = <<'EOD';
-
 =for ref
 
 Calculates a 2d histogram from weighted data.
@@ -1733,11 +1552,8 @@ upper limit is put in the last bin.
   [  0 0.1   0]
  ]
 
-
 =cut
-
 EOD
-
 
 for(
     {Name => 'histogram2d',
@@ -1795,16 +1611,6 @@ pp_def($_->{Name},
 # random numbers
 ###########################################################
 
-=head2 fibonacci
-
-=for sig
-
-  Signature: ([o]x(n))
-
-Constructor - a vector with Fibonacci's sequence
-
-=cut
-
 pp_def('fibonacci',
         Pars => '[o]x(n);',
         GenericTypes => [ppdefs_all],
@@ -1813,9 +1619,8 @@ pp_def('fibonacci',
 	PMCode=><<'EOD',
 sub fibonacci { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->fibonacci : PDL->fibonacci(@_) }
 sub PDL::fibonacci{
-   my $class = shift;
-   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-   &PDL::_fibonacci_int($x->clump(-1));
+   my $x = &PDL::Core::_construct;
+   PDL::_fibonacci_int($x->clump(-1));
    return $x;
 }
 EOD
@@ -1833,14 +1638,6 @@ EOD
            }
         %}
 ');
-
-=head2 append
-
-=for sig
-
-  Signature: (a(n); b(m); [o] c(mn))
-
-=cut
 
 pp_def('append',
 	Pars => 'a(n); b(m); [o] c(mn)',
@@ -1861,7 +1658,6 @@ pp_def('append',
 		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
 		 %}',
 	Doc => '
-
 =for ref
 
 append two ndarrays by concatenating along their first dimensions
@@ -1881,14 +1677,10 @@ Similar functions include L</glue> (below), which can append more
 than two ndarrays along an arbitrary dimension, and
 L<cat|PDL::Core/cat>, which can append more than two ndarrays that all
 have the same sized dimensions.
-
-=cut
-
 '
    );
 
 pp_addpm(<<'EOD');
-
 =head2 glue
 
 =for usage
@@ -1967,31 +1759,11 @@ sub PDL::glue{
 
 EOD
 
-=head2 axisvalues
-
-=for sig
-
-  Signature: ([o,nc]a(n))
-
-=cut
-
 pp_def( 'axisvalues',
 	Pars => '[o,nc]a(n)',
 	Code => 'loop(n) %{ $a() = n; %}',
 	GenericTypes => [ppdefs_all],
-	Doc => '
-
-=for ref
-
-Internal routine
-
-C<axisvalues> is the internal primitive that implements
-L<axisvals|PDL::Basic/axisvals>
-and alters its argument.
-
-=cut
-
-'
+	Doc => undef,
        ); # pp_def: axisvalues
 
 pp_addhdr(<<'EOH');
@@ -2080,7 +1852,7 @@ sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->rand
 sub PDL::random {
    my $class = shift;
    my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-   &PDL::_random_int($x);
+   PDL::_random_int($x);
    return $x;
 }
 EOD
@@ -2125,14 +1897,13 @@ sub randsym { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->randsym : PDL->ra
 sub PDL::randsym {
    my $class = shift;
    my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-   &PDL::_randsym_int($x);
+   PDL::_randsym_int($x);
    return $x;
 }
 EOD
 );
 
 pp_addpm(<<'EOD');
-
 =head2 grandom
 
 =for ref
@@ -2177,7 +1948,6 @@ pp_add_exported('','vsearch');
 # generic front end; defaults to vsearch_sample for backwards compatibility
 
 pp_addpm(<<'EOD');
-
 =head2 vsearch
 
 =for sig
@@ -2781,14 +2551,6 @@ for my $func ( [
 # routines somehow related to interpolation
 ###############################################################
 
-=head2 interpolate
-
-=for sig
-
-  Signature: (xi(); x(n); y(n); [o] yi(); int [o] err())
-
-=cut
-
 pp_def('interpolate',
        HandleBad => 0,
        BadDoc => 'needs major (?) work to handles bad values',
@@ -2862,7 +2624,6 @@ EOD
 
 pp_add_exported('', 'interpol');
 pp_addpm(<<'EOD');
-
 =head2 interpol
 
 =for sig
@@ -2907,7 +2668,6 @@ EOD
 
 pp_add_exported('','interpND');
 pp_addpm(<<'EOD');
-
 =head2 interpND
 
 =for ref
@@ -3161,7 +2921,6 @@ EOD
 
 pp_add_exported("", 'one2nd');
 pp_addpm(<<'EOD');
-
 =head2 one2nd
 
 =for ref
@@ -3211,14 +2970,6 @@ sub PDL::one2nd {
 
 EOD
 
-=head2 which
-
-=for sig
-
-  Signature: (mask(n); indx [o] inds(m))
-
-=cut
-
 my $doc_which = <<'EOD';
 
 =for ref
@@ -3263,14 +3014,6 @@ L</whichND> returns N-D indices into a multidimensional PDL.
 =cut
 
 EOD
-
-=head2 which_both
-
-=for sig
-
-  Signature: (mask(n); indx [o] inds(m); indx [o]notinds(q))
-
-=cut
 
 my $doc_which_both = <<'EOD';
 
@@ -3382,7 +3125,6 @@ EOD
 }
 
 pp_addpm(<<'EOD');
-
 =head2 where
 
 =for ref
@@ -3453,7 +3195,6 @@ EOD
 pp_add_exported("", 'where');
 
 pp_addpm(<<'EOD');
-
 =head2 whereND
 
 =for ref
@@ -3545,7 +3286,6 @@ EOD
 pp_add_exported("", 'whereND');
 
 pp_addpm(<<'EOD');
-
 =head2 whichND
 
 =for ref
@@ -3667,7 +3407,6 @@ pp_add_exported("", 'whichND');
 
 
 pp_addpm(<<'EOD');
-
 =head2 setops
 
 =for ref
@@ -3852,7 +3591,6 @@ EOD
 pp_add_exported("", 'setops');
 
 pp_addpm(<<'EOD');
-
 =head2 intersect
 
 =for ref
