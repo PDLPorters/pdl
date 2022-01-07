@@ -233,60 +233,41 @@ sub PDL::zvals {
     axisvals2(&PDL::Core::_construct,2);
 }
 
+sub _dimcheck {
+  my ($pdl, $whichdim, $name) = @_;
+  my $dim = $pdl->getdim($whichdim);
+  barf "Must have at least two elements in dimension for $name" if $dim <= 1;
+  $dim;
+}
+sub _linvals {
+  my ($pdl, $v1, $v2, $dim, $method) = @_;
+  $pdl->$method * (($v2 - $v1) / ($dim-1)) + $v1;
+}
 sub PDL::xlinvals {
-	my $dim = $_[0]->getdim(0);
-	barf "Must have at least two elements in dimension for xlinvals"
-		if $dim <= 1;
-	return $_[0]->xvals * (($_[2] - $_[1]) / ($dim-1)) + $_[1];
+  _linvals(@_[0..2], _dimcheck($_[0], 0, 'xlinvals'), 'xvals');
 }
-
 sub PDL::ylinvals {
-	my $dim = $_[0]->getdim(1);
-	barf "Must have at least two elements in dimension for ylinvals"
-		if $dim <= 1;
-	return $_[0]->yvals * (($_[2] - $_[1]) / ($dim-1)) + $_[1];
+  _linvals(@_[0..2], _dimcheck($_[0], 1, 'ylinvals'), 'yvals');
 }
-
 sub PDL::zlinvals {
-	my $dim = $_[0]->getdim(2);
-	barf "Must have at least two elements in dimension for zlinvals"
-		if $dim <= 1;
-	return $_[0]->zvals * (($_[2] - $_[1]) / ($dim-1)) + $_[1];
+  _linvals(@_[0..2], _dimcheck($_[0], 2, 'zlinvals'), 'zvals');
 }
 
+sub _logvals {
+  my ($pdl, $min, $max, $dim, $method) = @_;
+  barf "min and max must be positive" if $min <= 0 || $max <= 0;
+  my ($lmin,$lmax) = map log($_), $min, $max;
+  exp($pdl->$method * (($lmax - $lmin) / ($dim-1)) + $lmin);
+}
 sub PDL::xlogvals {
-	my $dim = $_[0]->getdim(0);
-	barf "Must have at least two elements in dimension for xlogvals"
-		if $dim <= 1;
-	my ($xmin,$xmax) = @_[1,2];
-	barf "xmin and xmax must be positive"
-	  if $xmin <= 0 || $xmax <= 0;
-	my ($lxmin,$lxmax) = (log($xmin), log($xmax));
-	return exp($_[0]->xvals * (($lxmax - $lxmin) / ($dim-1)) + $lxmin);
+  _logvals(@_[0..2], _dimcheck($_[0], 0, 'xlogvals'), 'xvals');
 }
-
 sub PDL::ylogvals {
-	my $dim = $_[0]->getdim(1);
-	barf "Must have at least two elements in dimension for xlogvals"
-		if $dim <= 1;
-	my ($xmin,$xmax) = @_[1,2];
-	barf "xmin and xmax must be positive"
-	  if $xmin <= 0 || $xmax <= 0;
-	my ($lxmin,$lxmax) = (log($xmin), log($xmax));
-	return exp($_[0]->yvals * (($lxmax - $lxmin) / ($dim-1)) + $lxmin);
+  _logvals(@_[0..2], _dimcheck($_[0], 1, 'ylogvals'), 'yvals');
 }
-
 sub PDL::zlogvals {
-	my $dim = $_[0]->getdim(2);
-	barf "Must have at least two elements in dimension for xlogvals"
-		if $dim <= 1;
-	my ($xmin,$xmax) = @_[1,2];
-	barf "xmin and xmax must be positive"
-	  if $xmin <= 0 || $xmax <= 0;
-	my ($lxmin,$lxmax) = (log($xmin), log($xmax));
-	return exp($_[0]->zvals * (($lxmax - $lxmin) / ($dim-1)) + $lxmin);
+  _logvals(@_[0..2], _dimcheck($_[0], 2, 'zlogvals'), 'zvals');
 }
-
 
 =head2 allaxisvals
 
@@ -299,9 +280,9 @@ L</range>, and L</interpND>).  See L</ndcoords> for more detail.
 
 =for usage
 
-$indices = allaxisvals($pdl);
-$indices = allaxisvals(@dimlist);
-$indices = allaxisvals($type,@dimlist);
+  $indices = allaxisvals($pdl);
+  $indices = allaxisvals(@dimlist);
+  $indices = allaxisvals($type,@dimlist);
 
 =cut
 
@@ -325,9 +306,9 @@ the input ndarray since that rarely made sense in most usages.
 
 =for usage
 
-$indices = ndcoords($pdl);
-$indices = ndcoords(@dimlist);
-$indices = ndcoords($type,@dimlist);
+  $indices = ndcoords($pdl);
+  $indices = ndcoords(@dimlist);
+  $indices = ndcoords($type,@dimlist);
 
 =for example
 
@@ -355,7 +336,6 @@ $indices = ndcoords($type,@dimlist);
   This variable is   Byte D [2,2,3]              P            0.01Kb
   pdl> help $c;
   This variable is   Long D [2,2,3]              P            0.05Kb
-
 
 =cut
 
@@ -521,7 +501,7 @@ sub sequence { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->sequence : PDL->
 sub PDL::sequence {
     my $pdl = &PDL::Core::_construct;
     my $bar = $pdl->clump(-1)->inplace;
-    my $foo = $bar->xvals;
+    $bar->xvals;
     return $pdl;
 }
 
@@ -698,13 +678,11 @@ sub PDL::ins {
 }
 
 sub PDL::similar_assign {
-	my($from,$to) = @_;
-	if((join ',',@{$from->dims}) ne (join ',',@{$to->dims})) {
-		barf "Similar_assign: dimensions [".
-			(join ',',@{$from->dims})."] and [".
-			(join ',',@{$to->dims})."] do not match!\n";
-	}
-	$to .= $from;
+  my($from,$to) = @_;
+  if((my $fd = join ',',@{$from->dims}) ne (my $td = join ',',@{$to->dims})) {
+    barf "Similar_assign: dimensions [$fd] and [$td] do not match!\n";
+  }
+  $to .= $from;
 }
 
 =head2 transpose
