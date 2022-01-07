@@ -2633,14 +2633,14 @@ Generic datatype conversion function
 
 =for usage
 
- $y = convert($x, $newtypenum);
+ $y = convert($x, $newtype);
 
 =for example
 
- $y = convert $x, long
- $y = convert $x, ushort
+ $y = convert $x, long;
+ $y = convert $x, ushort;
 
-C<$newtype> is a type B<number>, for convenience they are
+C<$newtype> is a type number or L<PDL::Type> object, for convenience they are
 returned by C<long()> etc when called without arguments.
 
 =cut
@@ -2650,11 +2650,11 @@ returned by C<long()> etc when called without arguments.
 sub PDL::convert {
   # we don't allow inplace conversion at the moment
   # (not sure what needs to be changed)
-  barf 'Usage: $y = convert($x, $newtypenum)'."\n" if $#_!=1;
+  barf 'Usage: $y = convert($x, $newtype)'."\n" if $#_!=1;
   my ($pdl,$type)= @_;
-  $pdl = pdl($pdl) unless ref $pdl; # Allow normal numbers
+  $pdl = topdl($pdl); # Allow normal numbers
   $type = $type->enum if ref($type) eq 'PDL::Type';
-  barf 'Usage: $y = convert($x, $newtypenum)'."\n" unless Scalar::Util::looks_like_number($type);
+  barf 'Usage: $y = convert($x, $newtype)'."\n" unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
   $pdl->_convert_int($type)->sever;
 }
