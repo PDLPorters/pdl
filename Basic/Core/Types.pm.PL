@@ -20,11 +20,6 @@ sub packtypeof_PDL_Indx {
    }
 }
 
-sub typeof_PDL_Indx {
-   warn "Types.pm.PL: using typedef $Config{'ivtype'} PDL_Indx\n";
-   return $Config{'ivtype'} 
-}
-
 sub typeof_PDL_Long {
    return 'int'  if $Config{'intsize'}==4;
    return 'long' if $Config{'longsize'}==4;
@@ -123,11 +118,11 @@ my @types = (
         identifier => 'IND',
         onecharident => 'N',   # only needed if different from identifier
         pdlctype => 'PDL_Indx',
-        realctype => &typeof_PDL_Indx,
+        realctype => 'ptrdiff_t',
         ppforcetype => 'indx',
         usenan => 0,
         packtype => &packtypeof_PDL_Indx,
-        defaultbadval => 'LONG_MIN',
+        defaultbadval => 'PTRDIFF_MIN',
         real=>1,
         integer=>1,
         unsigned=>0,
@@ -637,20 +632,7 @@ sub datatypes_header {
 
     my $enum = join ', ', 'PDL_INVALID=-1', map $_->{sym}, @HASHES;
     my $typedefs = join '', map "typedef $_->{realctype} $_->{ctype};\n", @HASHES;
-    $typedefs .= "typedef struct {\n  pdl_datatypes type;\n  union {\n";
-    $typedefs .= join '', map "  $_->{ctype} $_->{ppsym};\n", @HASHES;
-    $typedefs .= "  } value;\n} PDL_Anyval;\n";
-
-    my $indx_type = typefld('PDL_IND','realctype');
-    $typedefs .= '#define IND_FLAG ';
-    if ($indx_type eq 'long'){
-	$typedefs .= qq|"ld"|;
-    } elsif ($indx_type eq 'long long'){
-	$typedefs .= qq|"lld"|;
-    } else {
-	$typedefs .= qq|"d"|;
-    }
-    $typedefs .= "\n";
+    my $union = join "\n", map "    $_->{ctype} $_->{ppsym};", @HASHES;
 
     <<EOD . "\n".typesynonyms()."\n";
 
@@ -665,6 +647,13 @@ typedef enum { $enum } pdl_datatypes;
 /* Define the pdl data types */
 
 $typedefs
+
+typedef struct {
+  pdl_datatypes type;
+  union {
+$union
+  } value;
+} PDL_Anyval;
 
 /*****************************************************************************/
 

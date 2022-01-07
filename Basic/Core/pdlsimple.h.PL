@@ -30,6 +30,8 @@ print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<"!GROK!THIS!";
 
 #include <complex.h>
+#include <stddef.h>
+#include <stdint.h>
 #ifndef __PDL_H
 
 /* These are kept automatically in sync with pdl.h during perl build */
@@ -52,7 +54,7 @@ struct pdlsimple {
    void       *data;  /* Generic pointer to the data block */
    PDL_Indx  nvals;  /* Number of data values */
    PDL_Indx  *dims;  /* Array of data dimensions */
-   PDL_Long   ndims;  /* Number of data dimensions */
+   PDL_Indx  ndims;  /* Number of data dimensions */
 };
 
 typedef struct pdlsimple pdlsimple;

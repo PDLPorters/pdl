@@ -25,6 +25,10 @@ print OUT <<"!GROK!THIS!";
 
 #include <complex.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#define IND_FLAG "td"
 
 #define PDL_DEBUGGING 1
 
