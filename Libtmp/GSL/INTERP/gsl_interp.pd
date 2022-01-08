@@ -72,7 +72,7 @@ pp_addhdr('
 #include<math.h>
 #include<gsl/gsl_errno.h>
 #include<gsl/gsl_spline.h>
-#include "gslerr.h"
+#include "../gslerr.h"
 
 typedef gsl_spline GslSpline;
 typedef gsl_interp_accel GslAccel;

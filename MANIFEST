@@ -443,12 +443,12 @@ Libtmp/GSL/DIFF/FUNC.c
 Libtmp/GSL/DIFF/gsl_diff.pd
 Libtmp/GSL/DIFF/Makefile.PL
 Libtmp/GSL/DIFF/t/gsl_diff.t
+Libtmp/GSL/gslerr.h
 Libtmp/GSL/INTEG/FUNC.c
 Libtmp/GSL/INTEG/gsl_integ.pd
 Libtmp/GSL/INTEG/Makefile.PL
 Libtmp/GSL/INTEG/t/gsl_integ.t
 Libtmp/GSL/INTERP/gsl_interp.pd
-Libtmp/GSL/INTERP/gslerr.h
 Libtmp/GSL/INTERP/Makefile.PL
 Libtmp/GSL/INTERP/t/gsl_interp.t
 Libtmp/GSL/INTERP/typemap
@@ -499,7 +499,6 @@ Libtmp/GSL/SF/gamma/gsl_sf_gamma.pd
 Libtmp/GSL/SF/gamma/Makefile.PL
 Libtmp/GSL/SF/gegenbauer/gsl_sf_gegenbauer.pd
 Libtmp/GSL/SF/gegenbauer/Makefile.PL
-Libtmp/GSL/SF/gslerr.h
 Libtmp/GSL/SF/hyperg/gsl_sf_hyperg.pd
 Libtmp/GSL/SF/hyperg/Makefile.PL
 Libtmp/GSL/SF/laguerre/gsl_sf_laguerre.pd

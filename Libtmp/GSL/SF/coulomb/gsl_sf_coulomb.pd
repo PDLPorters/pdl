@@ -25,7 +25,7 @@ EOD
 pp_addhdr('
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_errno.h>
-#include "../gslerr.h"
+#include "../../gslerr.h"
 ');
 
 pp_def('gsl_sf_hydrogenicR',
@@ -51,7 +51,7 @@ s = gsl_sf_coulomb_wave_FGp_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$PP
 if (s==GSL_EOVRFLW) {
 $ovfw()=1;
 }
-else {if (s) {sprintf(buf,"Error in gsl_sf_coulomb_wave_FGp_array: %s",gsl_strerror(s));$CROAK("%s", buf);}
+else {if (s) $CROAK("Error in gsl_sf_coulomb_wave_FGp_array: %s",gsl_strerror(s));
 else {$ovfw()=0;}}
 ',
        Doc =>' Coulomb wave functions F_{lam_F}(eta,x), G_{lam_G}(eta,x) and their derivatives; lam_G := lam_F - k_lam_G. if ovfw is signaled then F_L(eta,x)  =  fc[k_L] * exp(fe) and similar. '
@@ -68,7 +68,7 @@ s = gsl_sf_coulomb_wave_sphF_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$P
 if (s==GSL_EOVRFLW) {
 $ovfw()=1;
 }
-else {if (s) {sprintf(buf,"Error in gsl_sf_coulomb_wave_sphF_array: %s",gsl_strerror(s));$CROAK("%s", buf);}
+else {if (s) $CROAK("Error in gsl_sf_coulomb_wave_sphF_array: %s",gsl_strerror(s));
 else {$ovfw()=0;}}
 ',
        Doc =>' Coulomb wave function divided by the argument, F(xi, eta)/xi. This is the function which reduces to spherical Bessel functions in the limit eta->0. '

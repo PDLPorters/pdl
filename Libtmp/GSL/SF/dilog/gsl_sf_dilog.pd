@@ -20,7 +20,7 @@ EOD
 
 pp_addhdr('
 #include <gsl/gsl_sf.h>
-#include "../gslerr.h"
+#include "../../gslerr.h"
 ');
 
 pp_def('gsl_sf_dilog',

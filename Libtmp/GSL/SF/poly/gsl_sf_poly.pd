@@ -25,7 +25,7 @@ pp_addhdr('
 
 #include <gsl/gsl_poly.h>
 
-#include "../gslerr.h"
+#include "../../gslerr.h"
 
 ');
 
