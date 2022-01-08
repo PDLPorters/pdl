@@ -29,6 +29,8 @@ use warnings;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Points Colors Options/;
 
+$PDL::Graphics::TriD::verbose //= 0;
+
 sub new {
 	my($type,$points,$colors,$options) = @_;
 

@@ -5,7 +5,7 @@ $SIG{__DIE__} = sub {die Carp::longmess(@_);};
 
 use PDL;
 
-#$PDL::Graphics::TriD::verbose=1;
+$PDL::Graphics::TriD::verbose //= 0;
 
 use PDL::Graphics::TriD;
 

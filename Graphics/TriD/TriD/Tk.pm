@@ -54,8 +54,9 @@ use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 our @ISA = qw(Tk::Frame);
-
 our $verbose=0;
+
+$PDL::Graphics::TriD::verbose //= 0;
 
 Tk::Widget->Construct('Tk');
 

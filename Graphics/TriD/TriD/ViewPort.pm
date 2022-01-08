@@ -7,6 +7,8 @@ package PDL::Graphics::TriD::ViewPort;
 use strict;
 use warnings;
 
+$PDL::Graphics::TriD::verbose //= 0;
+
 sub new {
      my($type,$x0,$y0,$w,$h) = @_;
 	  

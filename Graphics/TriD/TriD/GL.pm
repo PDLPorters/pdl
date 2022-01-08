@@ -27,6 +27,7 @@ sub PDL::Graphics::TriD::Material::togl{
 }
 
 $PDL::Graphics::TriD::any_cannots = 0;
+$PDL::Graphics::TriD::verbose //= 0;
 
 sub PDL::Graphics::TriD::Object::cannot_mklist {
 	return 0;

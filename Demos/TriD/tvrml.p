@@ -8,7 +8,7 @@ BEGIN {
 use PDL::Graphics::TriD;
 use PDL::LiteF;
 use Carp;
-#	$PDL::Graphics::TriD::verbose=1;
+$PDL::Graphics::TriD::verbose //= 0;
 $SIG{__DIE__} = sub {print Carp::longmess(@_); die;};
 
 $set = tridsettings();

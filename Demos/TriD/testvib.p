@@ -4,7 +4,7 @@ use PDL;
 
 use PDL::Graphics::TriD;
 
-# $PDL::Graphics::TriD::verbose=1;
+$PDL::Graphics::TriD::verbose //= 0;
 
 $offs = 0.0;
 

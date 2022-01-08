@@ -8,7 +8,7 @@ use PDL::NiceSlice;
 use PDL::Graphics::TriD;
 
 # $PDL::debug_trid=1;
-# $PDL::Graphics::TriD::verbose = 100;
+$PDL::Graphics::TriD::verbose //= 0;
 
 $size = 25;
 

@@ -8,7 +8,7 @@ use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Image;
 use PDL::IO::Pic;
 
-$PDL::Graphics::TriD::verbose=0;
+$PDL::Graphics::TriD::verbose //= 0;
 
 my $win = PDL::Graphics::TriD::get_current_window();
 my $vp = $win->new_viewport(0,0,1,1);

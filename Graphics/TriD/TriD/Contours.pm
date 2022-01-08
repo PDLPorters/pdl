@@ -30,6 +30,8 @@ use PDL::Graphics::TriD::Labels;
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/ContourSegCnt Labels LabelStrings/;
 
+$PDL::Graphics::TriD::verbose //= 0;
+
 =head1 FUNCTIONS
 
 =head2 new()

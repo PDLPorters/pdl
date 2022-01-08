@@ -32,7 +32,7 @@ $win->clear_objects();
 $win->add_object($x);
 $win->add_object($y);
 
-#$PDL::Graphics::TriD::verbose=1;
+$PDL::Graphics::TriD::verbose //= 0;
 #$win->twiddle();
 #exit;
 

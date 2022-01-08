@@ -16,6 +16,8 @@ use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Lite;
 
+$PDL::Graphics::TriD::verbose //= 0;
+
 sub new {
 	my($type,$opts) = @_;
 	my $this = $type->SUPER::new();

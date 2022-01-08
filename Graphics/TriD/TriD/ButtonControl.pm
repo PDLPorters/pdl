@@ -39,6 +39,8 @@ use strict;
 use warnings;
 use fields qw/Win W H SC/;
 
+$PDL::Graphics::TriD::verbose //= 0;
+
 sub new {
   my ($class,$win) = @_;
   

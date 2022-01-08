@@ -630,7 +630,7 @@ method.
 # 
 # $PDL::Graphics::TriD::offline
 # $PDL::Graphics::TriD::Settings 
-# $PDL::Graphics::TriD::verbose
+$PDL::Graphics::TriD::verbose //= 0;
 # $PDL::Graphics::TriD::keeptwiddling
 # $PDL::Graphics::TriD::hold_on
 # $PDL::Graphics::TriD::curgraph

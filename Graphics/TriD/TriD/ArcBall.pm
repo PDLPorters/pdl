@@ -15,6 +15,8 @@ use warnings;
 use base qw(PDL::Graphics::TriD::ButtonControl);
 use fields qw /Inv Quat/;
 
+$PDL::Graphics::TriD::verbose //= 0;
+
 sub new {
   my($type,$win,$inv,$quat) = @_;
   my $this = $type->SUPER::new($win);

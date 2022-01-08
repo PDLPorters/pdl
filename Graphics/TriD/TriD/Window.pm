@@ -10,6 +10,8 @@ use warnings;
 use PDL::Graphics::TriD::ViewPort;
 use Data::Dumper;
 
+$PDL::Graphics::TriD::verbose //= 0;
+
 sub new {
   my($arg,$options) = @_;
 
