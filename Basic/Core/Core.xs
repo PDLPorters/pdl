@@ -16,6 +16,17 @@
 #include "pdlcore.h"  /* Core declarations */
 #include "pdlperl.h"
 
+#define TRANS_PDLS(from, to) \
+    pdl_transvtable *vtable = trans->vtable; \
+    if (!vtable) croak("This transformation doesn't have a vtable!"); \
+    PDL_Indx i; \
+    EXTEND(SP, to - from); \
+    for (i=from; i<to; i++) { \
+      SV *sv = sv_newmortal(); \
+      pdl_SetSV_PDL(sv, trans->pdls[i]); \
+      PUSHs(sv); \
+    }
+
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
 
 Core PDL; /* Struct holding pointers to shared C routines */
@@ -189,6 +200,20 @@ void
 _inf(...)
  PPCODE:
   PDL_XS_SCALAR(PDL_D, INFINITY)
+
+MODULE = PDL::Core     PACKAGE = PDL::Trans
+
+void
+parents(trans)
+  pdl_trans *trans
+  PPCODE:
+    TRANS_PDLS(0, vtable->nparents)
+
+void
+children(trans)
+  pdl_trans *trans
+  PPCODE:
+    TRANS_PDLS(vtable->nparents, vtable->npdls)
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
 

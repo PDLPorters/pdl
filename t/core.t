@@ -456,8 +456,14 @@ is short(1)->zeroes->type, 'short', '$existing->zeroes right type';
 eval { PDL->is_inplace }; # shouldn't infinite-loop
 isnt $@, '', 'is_inplace as class method throws exception';
 
-is sequence(3)->trans_parent, undef, 'trans_parent without trans undef';
-isnt sequence(3)->slice()->trans_parent, undef, 'trans_parent with trans defined';
+my $s = sequence(3);
+is $s->trans_parent, undef, 'trans_parent without trans undef';
+my $slice = $s->slice;
+isnt +(my $tp=$slice->trans_parent), undef, 'trans_parent with trans defined';
+my @parents = $tp->parents;
+is ${$parents[0]}, $$s, 'correct parent ndarray';
+my @children = $tp->children;
+is ${$children[0]}, $$slice, 'correct child ndarray';
 
 eval {
   my $notouch = sequence(4);
