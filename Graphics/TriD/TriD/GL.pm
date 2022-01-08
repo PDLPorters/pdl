@@ -6,6 +6,7 @@
 
 use strict;
 use warnings;
+no warnings 'redefine';
 use OpenGL qw(:all);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 
@@ -830,7 +831,7 @@ sub twiddle {
 		#			print "HANDLING $this->{EHandler}\n";
 		foreach my $vp (@{$this->{_ViewPorts}}) {
 		  if(defined($vp->{EHandler})) {
-			 $hap += $vp->{EHandler}->event(@e);
+			 $hap += $vp->{EHandler}->event(@e) || 0;
 		  }
 		}
 	 }
@@ -846,12 +847,8 @@ sub twiddle {
   return $quit;
 }
 
-
-
-
 sub setlist { my($this,$list) = @_;
 	$this->{List} = $list;
-
 }
 
 # Resize window.

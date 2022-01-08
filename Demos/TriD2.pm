@@ -78,7 +78,7 @@ actnw q|
 	$o0 = imagrgb3d($pic, {Points => [[0,0,0],[0,1,0],[0,1,1],[0,0,1]]});
 
 	# Because we have the data in $pic, we could just as easily
-	# save it in a jpeg using the PDL::Io::Pic module - or read
+	# save it in a jpeg using the PDL::IO::Pic module - or read
 	# it from one.
         # [press 'q' in the graphics window when done]
 |;
