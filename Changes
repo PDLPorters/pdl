@@ -1,3 +1,5 @@
+- rename PDL::get_trans to trans_parent
+
 2.063_04 2022-01-07
 - pdlpp_mkgen runs .pd files in correct dir
 - PDL.changesoon removed

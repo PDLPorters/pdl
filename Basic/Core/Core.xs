@@ -47,7 +47,7 @@ DESTROY(sv)
 # Return the transformation object or an undef otherwise.
 
 pdl_trans *
-get_trans(self)
+trans_parent(self)
 	pdl *self;
 	CODE:
 	RETVAL = self->trans_parent;

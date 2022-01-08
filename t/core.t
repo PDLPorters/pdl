@@ -456,8 +456,8 @@ is short(1)->zeroes->type, 'short', '$existing->zeroes right type';
 eval { PDL->is_inplace }; # shouldn't infinite-loop
 isnt $@, '', 'is_inplace as class method throws exception';
 
-is sequence(3)->get_trans, undef, 'get_trans without trans undef';
-isnt sequence(3)->slice()->get_trans, undef, 'get_trans with trans defined';
+is sequence(3)->trans_parent, undef, 'trans_parent without trans undef';
+isnt sequence(3)->slice()->trans_parent, undef, 'trans_parent with trans defined';
 
 eval {
   my $notouch = sequence(4);
