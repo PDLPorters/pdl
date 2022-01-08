@@ -46,14 +46,11 @@ DESTROY(sv)
 
 # Return the transformation object or an undef otherwise.
 
-SV *
+pdl_trans *
 get_trans(self)
 	pdl *self;
 	CODE:
-	RETVAL = newSV(0);
-	if(self->trans_parent)  {
-		sv_setref_pv(RETVAL, "PDL::Trans", (void*)(self->trans_parent));
-	}
+	RETVAL = self->trans_parent;
 	OUTPUT:
 	RETVAL
 
