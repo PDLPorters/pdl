@@ -99,7 +99,6 @@ print_state (size_t iter, gsl_multiroot_fsolver * s)
   return 1;
 }
 
-
 int fsolver (double *xfree, int  nelem, double epsabs, int method) 
 {
   gsl_multiroot_fsolver_type *T;
@@ -130,11 +129,9 @@ int fsolver (double *xfree, int  nelem, double epsabs, int method)
       iter++;
       //printf("GSL iter %d \n",iter);
       status = gsl_multiroot_fsolver_iterate (s);
-      
       if (status)   /* check if solver is stuck */
 	break;
-      status =
-	  gsl_multiroot_test_residual (s->f, epsabs);
+      status = gsl_multiroot_test_residual (s->f, epsabs);
     }
   while (status == GSL_CONTINUE && iter < 1000);
   if (status) 

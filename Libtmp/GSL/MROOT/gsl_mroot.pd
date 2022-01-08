@@ -13,7 +13,6 @@ pp_addhdr('
 #include <gsl/gsl_multiroots.h>
 
 void set_funname(SV *fn, PDL_Indx n);
-void DFF(double* xval, double* vector);
 int my_f (const gsl_vector * v, void * params, gsl_vector * df);
 int fsolver (double *xfree, int  nelem, double epsabs, int method);
 ');     

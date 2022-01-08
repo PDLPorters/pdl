@@ -51,6 +51,7 @@ EOD
 
 pp_addhdr('
 #include <gsl/gsl_linalg.h>
+#include "../gslerr.h"
 
 #define MATRIX_SETUP(m, rows, cols, lda, datap) \\
   m.size1 = rows; \\
@@ -94,7 +95,7 @@ gsl_permutation p;
 int s;
 MATRIX_SETUP(m, $SIZE(m), $SIZE(n), $SIZE(n), $P(A))
 PERM_SETUP(p, $SIZE(p), $P(ipiv))
-gsl_linalg$TDC(,_complex)_LU_decomp(&m, &p, &s);
+GSLERR(gsl_linalg$TDC(,_complex)_LU_decomp, (&m, &p, &s))
 PERM_RETURN(p, $SIZE(p), $P(ipiv))
 $signum() = s;
 EOF
@@ -119,7 +120,7 @@ MATRIX_SETUP(m, $SIZE(m), $SIZE(n), $SIZE(n), $P(LU))
 PERM_SETUP(p, $SIZE(p), $P(ipiv))
 VECTOR_SETUP(b, $SIZE(n), $P(B))
 VECTOR_SETUP(x, $SIZE(n), $P(x))
-gsl_linalg$TDC(,_complex)_LU_solve(&m, &p, &b, &x);
+GSLERR(gsl_linalg$TDC(,_complex)_LU_solve, (&m, &p, &b, &x))
 PERM_RETURN(p, $SIZE(p), $P(ipiv))
 EOF
         Doc => <<'EOF',
@@ -166,9 +167,9 @@ VECTOR_SETUP(sub, $SIZE(n)-1, $P(subdiag))
 VECTOR_SETUP(b, $SIZE(n), $P(B))
 VECTOR_SETUP(x, $SIZE(n), $P(x))
 #define CONST_VEC (const gsl_vector *)
-gsl_linalg_solve_tridiag(
+GSLERR(gsl_linalg_solve_tridiag, (
   CONST_VEC &d, CONST_VEC &sup, CONST_VEC &sub, CONST_VEC &b, &x
-);
+))
 #undef CONST_VEC
 EOF
         Doc => <<'EOF',
@@ -179,5 +180,8 @@ GSL does not have a complex function.
 
 EOF
 );
+
+pp_add_boot('gsl_set_error_handler_off();
+');
 
 pp_done();

@@ -1889,9 +1889,7 @@ ran_choose(rng, in, out)
   PDL->barf_if_error(PDL->make_physical(out));
   size = PDL->howbig(in->datatype);
   gsl_ran_choose(rng,(double *) out->data, m, (double *) in->data,n,size);
-
 ');
-
 
 pp_core_importList(' qw/ zeroes long barf  /');  # import just a named list to our namespace, so we don't get warning
 				     # messages like 'warning 'min' redefined at line ...'
@@ -1900,6 +1898,5 @@ pp_export_nothing;  # set to not export anything. (This is a OO package, it does
 
 pp_add_boot('gsl_set_error_handler_off();
 ');
-
 
 pp_done();
