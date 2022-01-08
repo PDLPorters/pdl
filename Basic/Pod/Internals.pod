@@ -89,7 +89,7 @@ of the file F<pdlcore.h>. So what does the structure look like:
 	   unsigned char *threadids;  /* Starting index of the thread index set n */
 	   unsigned char nthreadids;
 
-	   pdl_child_transes child_transes;
+	   pdl_trans_children trans_children;
 
 	   PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
 	   PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */

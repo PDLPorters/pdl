@@ -206,7 +206,7 @@ PDL_TYPELIST_ALL(X)
 */
 
 #define PDL_NDIMS      6 /* Number of dims[] to preallocate */
-#define PDL_NCHILDREN  8 /* Number of child_transes ptrs to preallocate */
+#define PDL_NCHILDREN  8 /* Number of trans_children ptrs to preallocate */
 #define PDL_NTHREADIDS 4 /* Number of different threadids/pdl to preallocate */
 
 /* Constants for pdl.state - not all combinations make sense */
@@ -452,10 +452,10 @@ typedef struct pdl_vaffine {
       PDL_TR_VAFFOK(flag)) ? pdl->vafftrans->from->data : pdl->data)
 #define VAFFINE_FLAG_OK(flags,i) ((flags == NULL) ? 1 : PDL_TR_VAFFOK(flags[i]))
 
-typedef struct pdl_child_transes {
+typedef struct pdl_trans_children {
         pdl_trans *trans[PDL_NCHILDREN];
-        struct pdl_child_transes *next;
-} pdl_child_transes;
+        struct pdl_trans_children *next;
+} pdl_trans_children;
 
 struct pdl_magic;
 
@@ -509,7 +509,7 @@ struct pdl {
    PDL_Indx *threadids;  /* Starting index of the thread index set n */
    PDL_Indx nthreadids;
 
-   pdl_child_transes child_transes;
+   pdl_trans_children trans_children;
 
    PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
    PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
@@ -529,12 +529,12 @@ typedef struct pdl_slice_args {
 } pdl_slice_args;
 
 /*************
- * Some macros for looping over the child_transes of a given PDL
+ * Some macros for looping over the trans_children of a given PDL
  */
 #define PDL_DECL_CHILDLOOP(p) \
-                int p##__i; pdl_child_transes *p##__c;
+                int p##__i; pdl_trans_children *p##__c;
 #define PDL_START_CHILDLOOP(p) \
-                p##__c = &p->child_transes; \
+                p##__c = &p->trans_children; \
                 do { \
                         for(p##__i=0; p##__i<PDL_NCHILDREN; p##__i++) { \
                                 if(p##__c->trans[p##__i]) {

@@ -175,8 +175,8 @@ pdl* pdl_pdlnew() {
      it->threadids = it->def_threadids;
      it->threadids[0] = it->ndims = 1;
      PDL_Indx i;
-     for(i=0; i<PDL_NCHILDREN; i++) {it->child_transes.trans[i]=NULL;}
-     it->child_transes.next = NULL;
+     for(i=0; i<PDL_NCHILDREN; i++) {it->trans_children.trans[i]=NULL;}
+     it->trans_children.next = NULL;
      it->magic = 0;
      it->hdrsv = 0;
      PDLDEBUG_f(printf("pdl_pdlnew %p (size=%zu)\n",(void*)it,sizeof(pdl)));
@@ -244,9 +244,9 @@ pdl_error pdl__free(pdl *it) {
     if(it->vafftrans) {
 	pdl_vafftrans_free(it);
     }
-    pdl_child_transes *p1 = it->child_transes.next;
+    pdl_trans_children *p1 = it->trans_children.next;
     while(p1) {
-	pdl_child_transes *p2 = p1->next;
+	pdl_trans_children *p2 = p1->next;
 	free(p1);
 	p1 = p2;
     }
@@ -364,9 +364,9 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
   Therefore, simple rules:
    - allowed to destroy if
       1. a parent with max. 1 backwards propagating transformation
-      2. a child with no child_transes
+      2. a child with no trans_children
 
-  When an ndarray is destroyed, it must tell its child_transes and/or
+  When an ndarray is destroyed, it must tell its trans_children and/or
   parent.
 */
 pdl_error pdl_destroy(pdl *it) {
@@ -387,7 +387,7 @@ pdl_error pdl_destroy(pdl *it) {
 	    it->sv = NULL;
     }
 
-    /* 1. count the child_transes that do flow */
+    /* 1. count the trans_children that do flow */
     PDL_START_CHILDLOOP(it)
 	pdl_trans *curt = PDL_CHILDLOOP_THISCHILD(it);
 	if(curt->flags & PDL_ITRANS_DO_DATAFLOW_F)
@@ -411,7 +411,7 @@ pdl_error pdl_destroy(pdl *it) {
 /* Also not here */
     if(it->trans_parent && nforw) goto soft_destroy;
 
-/* Also, we do not wish to destroy if the child_transes would be larger
+/* Also, we do not wish to destroy if the trans_children would be larger
  * than the parent and are currently not allocated (e.g. lags).
  * Because this is too much work to check, we refrain from destroying
  * for now if there is an affine child that is not allocated
@@ -576,7 +576,7 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDLDEBUG_f(printf("pdl__addchildtrans\n"));
-	int i; pdl_child_transes *c = &it->child_transes;
+	int i; pdl_trans_children *c = &it->trans_children;
 	do {
 	    if (c->next) { c=c->next; continue; } else {
 		for(i=0; i<PDL_NCHILDREN; i++)
@@ -586,7 +586,7 @@ pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 		break;
 	    }
 	} while(1);
-	c = c->next = malloc(sizeof(pdl_child_transes));
+	c = c->next = malloc(sizeof(pdl_trans_children));
 	if (!c) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
 	c->trans[0] = trans;
 	for(i=1; i<PDL_NCHILDREN; i++)
