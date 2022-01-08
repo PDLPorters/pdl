@@ -211,17 +211,13 @@ $data &= 0;
 ok(all($data == 0), 'and assign complex');
 }
 
-SKIP:
-{
-  skip("ipow skipped without 64bit support", 1) if $Config{ivsize} < 8;
-  # check ipow routine
-  my $xdata = indx(0xeb * ones(8));
-  my $n = sequence(indx,8);
-  is $n->type, 'indx', 'sequence with specified type has that type';
-  my $exact = indx(1,235,55225,12977875,3049800625,716703146875,168425239515625,39579931286171875);
-  my $got = ipow($xdata,$n);
-  ok(all($exact - $got == indx(0)), 'ipow') or diag "got=$got\nexpected=$exact";
-}
+# check ipow routine
+my $xdata = longlong(0xeb * ones(8));
+my $n = sequence(longlong,8);
+is $n->type, 'longlong', 'sequence with specified type has that type';
+my $exact = longlong(1,235,55225,12977875,3049800625,716703146875,168425239515625,39579931286171875);
+my $got = ipow($xdata,$n);
+ok(all($exact - $got == longlong(0)), 'ipow') or diag "got=$got\nexpected=$exact";
 
 #### Modulus checks ####
 
