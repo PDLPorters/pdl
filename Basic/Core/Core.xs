@@ -56,7 +56,6 @@ DESTROY(sv)
     }
 
 # Return the transformation object or an undef otherwise.
-
 pdl_trans *
 trans_parent(self)
 	pdl *self;
@@ -64,6 +63,19 @@ trans_parent(self)
 	RETVAL = self->trans_parent;
 	OUTPUT:
 	RETVAL
+
+void
+trans_children(self)
+  pdl *self
+  PPCODE:
+    PDL_DECL_CHILDLOOP(self);
+    PDL_START_CHILDLOOP(self)
+      pdl_trans *t = PDL_CHILDLOOP_THISCHILD(self);
+      if (!t) continue;
+      SV *sv = sv_newmortal();
+      sv_setref_pv(sv, "PDL::Trans", (void*)t);
+      XPUSHs(sv);
+    PDL_END_CHILDLOOP(self)
 
 INCLUDE_COMMAND: $^X -e "require q{./Dev.pm}; PDL::Core::Dev::generate_core_flags()"
 

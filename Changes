@@ -1,6 +1,6 @@
 - rename PDL::get_trans to trans_parent
 - add PDL::Trans::{parents,children}
-- rename pdl.child_transes to trans_children
+- rename pdl.child_transes to trans_children, add PDL::trans_children
 
 2.063_04 2022-01-07
 - pdlpp_mkgen runs .pd files in correct dir
