@@ -156,7 +156,7 @@ start-up modules.
 =cut
 
 # set the version:
-our $VERSION = '2.063_05';
+our $VERSION = '2.064';
 
 # Main loader of standard PDL package
 
