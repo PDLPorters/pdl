@@ -214,7 +214,7 @@ sub new {
       die "Could not create OpenGL window";
    }
 
-#  psuedo-hash style see note above  
+#  pseudo-hash style see note above
 #  no strict 'refs';
 #  my $self = bless [ \%{"$class\::FIELDS"}], $class;
    #
@@ -234,9 +234,9 @@ sub new {
 =head2 default GLUT callbacks
 
 These routines are set as the default GLUT callbacks for when GLUT windows
-are used for PDL/POGL.  Their only function at the moment is to drive an
+are used for PDL/POGL.  Their only function at the moment is to drive a
 fake XEvent queue to feed the existing TriD GUI controls.  At some point,
-the X11 stuff will the deprecated and we can rewrite this more cleanly.
+the X11 stuff will be deprecated and we can rewrite this more cleanly.
 
 =cut
 
