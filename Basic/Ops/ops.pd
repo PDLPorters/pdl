@@ -97,7 +97,6 @@ sub biop {
     tmp = a;
     a = b;
     b = tmp;
-
   }
 EOH
 

@@ -157,8 +157,7 @@ my $pa = pdl 1;
 my $sq2 = sqrt 2; # perl sqrt
 $pa->inplace->plus(1,0);  # trailing 0 is ugly swap-flag
 ok(all( approx($pa, pdl 2)), 'inplace plus');
-my $warning_shutup;
-$warning_shutup = $warning_shutup = sqrt $pa->inplace;
+my $warning_shutup = sqrt $pa->inplace;
 ok(all( approx( $pa, pdl($sq2))), 'inplace pdl sqrt vs perl scalar sqrt');
 my $pb = pdl 4;
 ok(all( approx( 2, sqrt($pb->inplace))),'perl scalar vs inplace pdl sqrt');

@@ -1692,7 +1692,7 @@ consider this excerpt from F<Basic/Bad/bad.pd>:
 Since this routine removes all bad values, the output ndarray had
 its bad flag cleared. If run inplace (so C<a == b>), then we have to
 tell all the children of C<a> that the bad flag has been cleared (to
-save time we make sure that we call C<PDL-E<gt>propagate_badgflag> only
+save time we make sure that we call C<< PDL->propagate_badflag >> only
 if the input ndarray had its bad flag set).
 
 NOTE: one idea is that the documentation for the routine could be 
