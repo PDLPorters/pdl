@@ -102,7 +102,9 @@ package PDL::Graphics::OpenGL::OO;
 use PDL::Graphics::TriD::Window qw();
 use PDL::Options;
 use strict;
-my $debug = 0;
+
+$PDL::Graphics::TriD::verbose //= 0;
+
 my (@fakeXEvents) = ();
 my (@winObjects) = ();
 #
@@ -170,12 +172,12 @@ sub new {
 
    my $self;
    if ( $window_type =~ /x11/i ) {       # X11 windows
-      print STDERR "Creating X11 OO window\n" if $debug;
+      print STDERR "Creating X11 OO window\n" if $PDL::Graphics::TriD::verbose;
       $self =  OpenGL::glpcOpenWindow(
          $p->{x},$p->{y},$p->{width},$p->{height},
          $p->{parent},$p->{mask}, $p->{steal}, @{$p->{attributes}});
    } else {                              # GLUT or FreeGLUT windows
-      print STDERR "Creating GLUT OO window\n" if $debug;
+      print STDERR "Creating GLUT OO window\n" if $PDL::Graphics::TriD::verbose;
       OpenGL::glutInit() unless OpenGL::done_glutInit();        # make sure glut is initialized
       OpenGL::glutInitWindowPosition( $p->{x}, $p->{y} );
       OpenGL::glutInitWindowSize( $p->{width}, $p->{height} );      
@@ -249,18 +251,18 @@ sub _pdl_display_wrapper {
 
 sub _pdl_fake_exit_handler {
    my ($win) = shift;
-   print "_pdl_fake_exit_handler: clicked for window $win\n" if $debug;
+   print "_pdl_fake_exit_handler: clicked for window $win\n" if $PDL::Graphics::TriD::verbose;
    # Need to clean up better and exit/transition cleanly
 }
 
 sub _pdl_fake_ConfigureNotify {
-   print "_pdl_fake_ConfigureNotify: got (@_)\n" if $debug;
+   print "_pdl_fake_ConfigureNotify: got (@_)\n" if $PDL::Graphics::TriD::verbose;
    OpenGL::glutPostRedisplay();
    push @fakeXEvents, [ 22, @_ ];
 }
 
 sub _pdl_fake_KeyPress {
-   print "_pdl_fake_KeyPress: got (@_)\n" if $debug;
+   print "_pdl_fake_KeyPress: got (@_)\n" if $PDL::Graphics::TriD::verbose;
    push @fakeXEvents, [ 2, chr($_[0]) ];
 }
 
@@ -270,7 +272,7 @@ sub _pdl_fake_KeyPress {
    my $last_fake_mouse_state;
 
    sub _pdl_fake_button_event {
-      print "_pdl_fake_button_event: got (@_)\n" if $debug;
+      print "_pdl_fake_button_event: got (@_)\n" if $PDL::Graphics::TriD::verbose;
       $last_fake_mouse_state = $fake_mouse_state;
       if ( $_[1] == 0 ) {       # a press
          $fake_mouse_state |= $button_to_mask[$_[0]];
@@ -284,7 +286,7 @@ sub _pdl_fake_KeyPress {
    }
 
    sub _pdl_fake_MotionNotify {
-      print "_pdl_fake_MotionNotify: got (@_)\n" if $debug;
+      print "_pdl_fake_MotionNotify: got (@_)\n" if $PDL::Graphics::TriD::verbose;
       push @fakeXEvents, [ 6, $fake_mouse_state, @_ ];
    }
 
@@ -319,7 +321,7 @@ sub XPending {
    my($self) = @_;
    if ( $self->{window_type} eq 'glut' ) {
       # monitor state of @fakeXEvents, return number on queue
-      print STDERR "OO::XPending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n" if $debug > 1;
+      print STDERR "OO::XPending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n" if $PDL::Graphics::TriD::verbose > 1;
       scalar( @{$self->{xevents}} );
    } else {
       OpenGL::XPending($self->{Display});
@@ -392,7 +394,7 @@ sub AUTOLOAD {
   return if($sub =~ /DESTROY/);
   $sub =~ s/.*:://;
   $sub = "OpenGL::$sub";
-  if(defined $debug){
+  if(defined $PDL::Graphics::TriD::verbose){
     print "In AUTOLOAD: $sub at ",__FILE__," line ",__LINE__,".\n";
   }
   no strict 'refs';
