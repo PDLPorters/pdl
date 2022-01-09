@@ -7,7 +7,8 @@
 use strict;
 use warnings;
 no warnings 'redefine';
-use OpenGL qw(:all);
+use OpenGL qw/ :glfunctions :glconstants gluPerspective gluOrtho2D /;
+use OpenGL::GLUT qw( :all );
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 $PDL::Graphics::TriD::create_window_sub = # warnings
@@ -227,9 +228,11 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		my $nc = $s->[0];
 		for(0..$ndiv) {
 			&glRasterPos3f(@coords);
-			if ( OpenGL::done_glutInit() ) {
-			   OpenGL::glutBitmapString($fontbase, sprintf("%.3f",$nc));
+			if ( done_glutInit() ) {
+warn "inited\n";
+			   glutBitmapString($fontbase, sprintf("%.3f",$nc));
 			} else {
+warn "NOT inited\n";
 			   OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
 			}
 			glBegin(GL_LINES);
@@ -243,8 +246,8 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		}
 		$coords0[$dim] = 1.1;
 		&glRasterPos3f(@coords0);
-		if ( OpenGL::done_glutInit() ) {
-			OpenGL::glutBitmapString($fontbase, $this->{Names}[$dim]);
+		if ( done_glutInit() ) {
+			glutBitmapString($fontbase, $this->{Names}[$dim]);
 		} else {
 			OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
 		}
@@ -633,7 +636,8 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 #
 package PDL::Graphics::TriD::Window;
 
-use OpenGL qw(:all);
+use OpenGL qw/ :glfunctions :glconstants :glxconstants /;
+use OpenGL::GLUT qw( :all );
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use base qw/PDL::Graphics::TriD::Object/;
@@ -652,7 +656,7 @@ sub gdriver {
 	 print "WARNING: Graphics Driver already defined for this window \n";
 	 return;
   }
-  my @db = GLX_DOUBLEBUFFER;
+  my @db = OpenGL::GLX_DOUBLEBUFFER;
 
   if($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
 
@@ -1006,7 +1010,6 @@ sub set_button {
 	$this->{Buttons}[$butno] = $act;
 }
 
-  
 ######################################################################
 ######################################################################
 # VIEWPORT MINI_PACKAGE FOLLOWS!
@@ -1016,7 +1019,8 @@ use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands 
               DefMaterial AspectRatio Graphs/;
 
-use OpenGL qw(:all);
+use OpenGL qw/ :glfunctions :glconstants :glufunctions /;
+use OpenGL::GLUT qw( :all );
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Graphics::OpenGLQ;
 

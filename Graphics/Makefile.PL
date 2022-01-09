@@ -4,7 +4,11 @@ use ExtUtils::MakeMaker;
 
 my @subdirs = qw(PGPLOT LUT IIS Limits);
 
-if (eval { require OpenGL; OpenGL->VERSION(0.70); 1 }) {
+if (eval {
+  require OpenGL; OpenGL->VERSION(0.70);
+  require OpenGL::GLUT; OpenGL::GLUT->VERSION(0.71);
+  1
+}) {
   unshift @subdirs, "TriD";
 } else {
   print "Will not build TriD graphics.\n";
