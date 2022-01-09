@@ -1709,6 +1709,15 @@ The value is a hash-ref mapping parameter-names to an expression giving
 an override of the type for that parameter. The example above shows the
 type being overridden to the C<OtherPars> "totype".
 
+=head3 OtherParsDefaults
+
+  OtherPars => 'int a; int b',
+  OtherParsDefaults => { b => 0 },
+
+Allows specifying default values for C<OtherPars>. It is an error to
+specify a default for one that is before another that does not have
+a default.
+
 =head2 Other PDL::PP functions to support concise package definition
 
 So far, we have described the C<pp_def> and C<pp_done> functions. PDL::PP

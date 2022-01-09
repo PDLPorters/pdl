@@ -142,13 +142,13 @@ ok(ref($w) eq "PDL::Derived3", "check type after adding");
 my $a1 = PDL::Derived3->null();
 ok(ref($a1) eq "PDL::Derived3", "check type after calling null");
 
-##### Check the type for a byops2 operation:
+##### Check the type for a biops2 operation:
 $w = ($x == $z);
-ok(ref($w) eq "PDL::Derived3", "check type for byops2 operation");
+ok(ref($w) eq "PDL::Derived3", "check type for biops2 operation");
 
-##### Check the type for a byops3 operation:
+##### Check the type for a biops3 operation:
 $w = ($x | $z);
-ok(ref($w) eq "PDL::Derived3", "check type for byops3 operation");
+ok(ref($w) eq "PDL::Derived3", "check type for biops3 operation");
 
 ##### Check the type for a ufuncs1 operation:
 $w = sqrt($z);

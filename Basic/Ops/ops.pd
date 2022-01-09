@@ -134,6 +134,7 @@ EOH
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
+	   OtherParsDefaults => { swap => 0 },
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
@@ -160,15 +161,15 @@ $doc
 
 =for example
 
-   \$c = $name \$x, \$y, 0;     # explicit call with trailing 0
-   \$c = \$x $op \$y;           # overloaded call
-   \$x->inplace->$name(\$y,0);  # modify \$x inplace
+   \$c = \$x $op \$y;        # overloaded call
+   \$c = $name \$x, \$y;     # explicit call with default swap of 0
+   \$c = $name \$x, \$y, 1;  # explicit call with trailing 1 to swap args
+   \$x->inplace->$name(\$y); # modify \$x inplace
 
 It can be made to work inplace with the C<< \$x->inplace >> syntax.
 This function is used to overload the binary C<$optxt> operator.
-Note that when calling this function explicitly you need to supply
-a third argument that should generally be zero (see first example).
-This restriction is expected to go away in future releases.
+As of 2.065, when calling this function explicitly you can omit
+the third argument (see second example), or supply it (see third one).
 
 =cut
 
@@ -178,7 +179,7 @@ EOD
 sub make_overload {
     my ($op, $name, $mutator, $bitwise, $one_arg) = @_;
     my $ret;
-    my $bitwise_passon = $bitwise ? '$_[2]?@_[1,0]:@_[0,1],0' : '@_';
+    my $bitwise_passon = $bitwise ? '$_[2]?@_[1,0]:@_[0,1]' : '@_';
     if ($one_arg) {
       $ret = <<EOF;
 BEGIN { \$OVERLOADS{'$op'} = sub { PDL::$name(\$_[0]) } }

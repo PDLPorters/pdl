@@ -144,9 +144,9 @@ ok (all( approx(atan2(pdl(1,1), pdl(1,1)), ones(2) * atan2(1,1))), 'atan2');
 {
 my $pa = sequence (3,4);
 my $pb = sequence (3,4) + 1;
-ok (all( approx($pa->or2($pb,0), $pa | $pb)), 'or2');
-ok (all( approx($pa->and2($pb,0), $pa & $pb)), 'and2');
-ok (all( approx($pb->minus($pa,0), $pb - $pa)), 'explicit minus call');
+ok (all( approx($pa->or2($pb), $pa | $pb)), 'or2');
+ok (all( approx($pa->and2($pb), $pa & $pb)), 'and2');
+ok (all( approx($pb->minus($pa), $pb - $pa)), 'explicit minus call');
 ok (all( approx($pb - $pa, ones(3,4))), 'pdl subtraction');
 }
 
@@ -155,7 +155,7 @@ ok (all( approx($pb - $pa, ones(3,4))), 'pdl subtraction');
 {
 my $pa = pdl 1;
 my $sq2 = sqrt 2; # perl sqrt
-$pa->inplace->plus(1,0);  # trailing 0 is ugly swap-flag
+$pa->inplace->plus(1);
 ok(all( approx($pa, pdl 2)), 'inplace plus');
 my $warning_shutup = sqrt $pa->inplace;
 ok(all( approx( $pa, pdl($sq2))), 'inplace pdl sqrt vs perl scalar sqrt');

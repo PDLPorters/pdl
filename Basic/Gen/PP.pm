@@ -1808,14 +1808,22 @@ EOD
 
    PDL::PP::Rule->new("VarArgsXSHdr",
       ["Name","SignatureObj",
-       "HdrCode","InplaceCode","InplaceCheck",\"CallCopy"],
+       "HdrCode","InplaceCode","InplaceCheck",\"CallCopy",\"OtherParsDefaults"],
       'XS code to process input arguments based on supplied Pars argument to pp_def; not done if GlobalNew or PMCode supplied',
       sub {
         my($name,$sig,
-           $hdrcode,$inplacecode,$inplacecheck,$callcopy) = @_;
+           $hdrcode,$inplacecode,$inplacecheck,$callcopy,$defaults) = @_;
         my $optypes = $sig->otherobjs(1);
         my @args = $sig->alldecls(0, 1);
         my %other  = map +($_ => exists($$optypes{$_})), @args;
+        if (keys %{ $defaults ||= {} } < keys %other) {
+          my $default_seen = '';
+          for (@args) {
+            $default_seen = $_ if exists $defaults->{$_};
+            confess "got default-less arg '$_' after default-ful arg '$default_seen'"
+              if $default_seen and !exists $defaults->{$_};
+          }
+        }
         my $ci = '  ';  # current indenting
         my $pars = join "\n",map "$ci$_ = 0;", $sig->alldecls(1, 0);
         my %out = map +($_=>1), $sig->names_out_nca;
@@ -1831,7 +1839,8 @@ EOD
         my $nin    = $ntot - ($nout + $noutca + $ntmp);
         my $ninout = $nin + $nout;
         my $nallout = $nout + $noutca;
-        my $usageargs = join (",", @args);
+        my $ndefault = keys %$defaults;
+        my $usageargs = join ",", map exists $defaults->{$_} ? "$_=$defaults->{$_}" : $_, @args;
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
@@ -1892,10 +1901,14 @@ EOD
         }
         # clause for reading in input and creating output and temp vars
         my $clause3 = '';
+        my $defaults_rawcond = $ndefault ? "items == ($nin-$ndefault)" : '';
         $cnt = 0;
         foreach my $x (@args) {
             if ($other{$x}) {
-                $clause3 .= "$ci$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n";
+                my $setter = typemap($x, $$optypes{$x}, "ST($cnt)");
+                $clause3 .= "$ci$x = " . (exists $defaults->{$x}
+                  ? "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)"
+                  : $setter) . ";\n";
                 $cnt++;
             } elsif ($out{$x} || $tmp{$x} || $outca{$x}) {
                 push (@create, $x);
@@ -1906,12 +1919,13 @@ EOD
         }
         # Add code for creating output variables via call to 'initialize' perl routine
         $clause3 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
+        my $defaults_cond = $ndefault ? " || $defaults_rawcond" : '';
         $clause3 = <<EOF . $clause3;
-  else if (items == $nin) { PDL_COMMENT("only input variables on stack, create outputs and temps")
+  else if (items == $nin$defaults_cond) { PDL_COMMENT("only input variables on stack, create outputs and temps")
     nreturn = $nallout;
 EOF
         $clause3 = '' if $nmaxonstack == $nin;
-        my $clause3_coda = $clause3 ? '}' : '';
+        my $clause3_coda = $clause3 ? '  }' : '';
         PDL::PP::pp_line_numbers(__LINE__, <<END);
 
 void
@@ -1921,7 +1935,7 @@ $name(...)
 $svdecls
 $pars
  PPCODE:
-  if (items != $nmaxonstack && !(items == $nin) && items != $ninout)
+  if (items != $nmaxonstack && !(items == $nin$defaults_cond) && items != $ninout)
     croak (\"Usage:  PDL::$name($usageargs) (you may leave temporaries or output variables out of list)\");
   PDL_XS_PACKAGEGET
 $clause_inputs

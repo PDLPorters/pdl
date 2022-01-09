@@ -1,5 +1,6 @@
 - switch TriD stuff to use OpenGL::GLUT for GLUT functionality
 - GLUT TriD now reopens the window on next draw if was closed
+- bifuncs like Ops::plus no longer need explicit swap parameter
 
 2.064 2022-01-08
 - enable perldl -glut on Win32
