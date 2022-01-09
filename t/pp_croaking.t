@@ -1,7 +1,7 @@
 # Test the error reporting for malformed PDL::PP code.
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More;
 
 # Load up PDL::PP
 use PDL::PP qw(foo::bar foo::bar foobar);
@@ -31,3 +31,4 @@ TODO: {
 	unlike($@, qr/PP\.pm/, 'Should not report error as coming from PDL::PP');
 };
 
+done_testing;

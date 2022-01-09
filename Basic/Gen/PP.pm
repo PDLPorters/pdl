@@ -1813,20 +1813,19 @@ EOD
       sub {
         my($name,$sig,
            $hdrcode,$inplacecode,$inplacecheck,$callcopy,$bitwise) = @_;
-        # Don't do var args processing if the user has pre-defined pmcode
+        my $optypes = $sig->otherobjs(1);
+        my @args = $sig->alldecls(0, 1);
+        my %other  = map +($_ => exists($$optypes{$_})), @args;
         my $ci = '  ';  # current indenting
         my $pars = join "\n",map "$ci$_ = 0;", $sig->alldecls(1, 0);
-        my @args = $sig->alldecls(0, 1);
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
         my %tmp = map +($_=>1), $sig->names_tmp;
-        my $optypes = $sig->otherobjs(1);
-        my %other  = map { $_ => exists($$optypes{$_}) } @args;
-        # remember, othervars *are* input vars
-        my $nout   = (grep { $_ } values %out);
-        my $noutca = (grep { $_ } values %outca);
-        my $nother = (grep { $_ } values %other);
-        my $ntmp   = (grep { $_ } values %tmp);
+        # remember, otherpars *are* input vars
+        my $nout   = grep $_, values %out;
+        my $noutca = grep $_, values %outca;
+        my $nother = grep $_, values %other;
+        my $ntmp   = grep $_, values %tmp;
         my $ntot   = @args;
         my $nmaxonstack = $ntot - $noutca;
         my $nin    = $ntot - ($nout + $noutca + $ntmp);

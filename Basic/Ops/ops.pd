@@ -165,7 +165,7 @@ $doc
    \$c = \$x $op \$y;           # overloaded call
    \$x->inplace->$name(\$y,0);  # modify \$x inplace
 
-It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
+It can be made to work inplace with the C<< \$x->inplace >> syntax.
 This function is used to overload the binary C<$optxt> operator.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
