@@ -229,10 +229,8 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		for(0..$ndiv) {
 			&glRasterPos3f(@coords);
 			if ( done_glutInit() ) {
-warn "inited\n";
 			   glutBitmapString($fontbase, sprintf("%.3f",$nc));
 			} else {
-warn "NOT inited\n";
 			   OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
 			}
 			glBegin(GL_LINES);

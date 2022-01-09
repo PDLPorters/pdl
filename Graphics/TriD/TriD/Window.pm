@@ -218,6 +218,7 @@ sub AUTOLOAD {
   my ($self,@args)=@_;
   use vars qw($AUTOLOAD);
   my $sub = $AUTOLOAD;
+  return if $sub =~ /::DESTROY$/;
   
 # If an unrecognized function is called for window it trys to apply it
 # to all of the defined ViewPorts
