@@ -816,6 +816,13 @@ sub twiddle {
 		  print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
 		  $this->reshape($e[1],$e[2]);
 		  $hap=1;
+		} elsif ($e[0] == DestroyNotify) {
+		  print "DESTROYNOTIFE\n" if $PDL::Graphics::TriD::verbose;
+		  $quit = 1;
+		  $hap=1;
+		  undef $this->{_GLObject};
+		  $PDL::Graphics::TriD::cur = $PDL::Graphics::TriD::current_window = undef;
+		  last TWIDLOOP;
 		} elsif($e[0] == KeyPress) {
 		  print "KEYPRESS: '$e[1]'\n" if($PDL::Graphics::TriD::verbose);
 		  if((lc $e[1]) eq "q") {
@@ -845,7 +852,7 @@ sub twiddle {
 		}
 		if($getout) {last TWIDLOOP}
 	 }
-	 undef @e;
+	 @e = ();
   }
   print "STOPTWIDDLE\n" if($PDL::Graphics::TriD::verbose);
   return $quit;
@@ -932,7 +939,10 @@ sub read_picture {
 
 package PDL::Graphics::TriD::EventHandler;
 
-use OpenGL qw(ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask);
+use OpenGL qw(
+  ConfigureNotify MotionNotify DestroyNotify
+  ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask
+);
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use fields qw/X Y Buttons VP/;

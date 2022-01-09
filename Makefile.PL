@@ -137,7 +137,7 @@ my @cpan_deps = my @prereq = (
 );
 my %min_version = (
   'OpenGL' => '0.70', # see also Graphics/Makefile.PL
-  'OpenGL::GLUT' => '0.71', # see also Graphics/Makefile.PL
+  'OpenGL::GLUT' => '0.72', # see also Graphics/Makefile.PL
   'ExtUtils::F77' => '1.26', # eg 1.20 can leave off -lgfortran
   'Inline'              => 0.83,      # fixed ILSM-finding
   'Inline::C'           => 0.62,

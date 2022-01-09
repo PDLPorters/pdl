@@ -6,7 +6,7 @@ my @subdirs = qw(PGPLOT LUT IIS Limits);
 
 if (eval {
   require OpenGL; OpenGL->VERSION(0.70);
-  require OpenGL::GLUT; OpenGL::GLUT->VERSION(0.71);
+  require OpenGL::GLUT; OpenGL::GLUT->VERSION(0.72);
   1
 }) {
   unshift @subdirs, "TriD";
