@@ -1,3 +1,6 @@
+2.066 2022-01-10
+- re-release without erroneous OpenGL::GLUT requires dep
+
 2.065 2022-01-10
 - switch TriD stuff to use OpenGL::GLUT for GLUT functionality
 - GLUT TriD now reopens the window on next draw if was closed
