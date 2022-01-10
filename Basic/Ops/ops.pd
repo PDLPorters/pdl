@@ -99,7 +99,6 @@ sub biop {
     b = tmp;
   }
 EOH
-
     # handle exceptions
     my $badcode = '   ( $PDLSTATEISBAD(a) && $ISBAD(a()) )
                    || ( $PDLSTATEISBAD(b) && $ISBAD(b()) )';
@@ -131,7 +130,7 @@ EOH
         delete $extra{Comparison};
     }
 
-    pp_addpm(make_overload($op, $name, $mutator));
+    pp_addpm(make_overload($op, $name, $mutator, delete $extra{Bitwise}));
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
@@ -177,8 +176,9 @@ EOD
 } # sub: biop()
 
 sub make_overload {
-    my ($op, $name, $mutator, $one_arg) = @_;
+    my ($op, $name, $mutator, $bitwise, $one_arg) = @_;
     my $ret;
+    my $bitwise_passon = $bitwise ? '$_[2]?@_[1,0]:@_[0,1],0' : '@_';
     if ($one_arg) {
       $ret = <<EOF;
 BEGIN { \$OVERLOADS{'$op'} = sub { PDL::$name(\$_[0]) } }
@@ -188,7 +188,7 @@ EOF
 {
   my (\$foo, \$overload_sub);
   BEGIN { \$OVERLOADS{'$op'} = \$overload_sub = sub(;\@) {
-      return PDL::$name(\@_) unless ref \$_[1]
+      return PDL::$name($bitwise_passon) unless ref \$_[1]
               && (ref \$_[1] ne 'PDL')
               && defined(\$foo = overload::Method(\$_[1], '$op'))
               && \$foo != \$overload_sub; # recursion guard
@@ -314,7 +314,7 @@ sub ufunc {
             (map 'types('.$_->ppsym.') %{$b() = c'.$func.$_->floatsuffix.'($a());%}', @Ctypes),
             ;
     }
-    pp_addpm(make_overload($funcov, $name, 0, 1)) if $overload;
+    pp_addpm(make_overload($funcov, $name, 0, 0, 1)) if $overload;
     # do not have to worry about propagation of the badflag when
     # inplace since only input ndarray is a, hence its badflag
     # won't change
@@ -612,7 +612,7 @@ Returns the absolute value of a number.
 
 sub PDL::abs { $_[0]->type->real ? goto &PDL::_rabs : goto &PDL::_cabs }
 EOPM
-pp_addpm(make_overload(qw(abs abs), 0, 1));
+pp_addpm(make_overload(qw(abs abs), 0, 0, 1));
 
 pp_addpm(<<'EOPM');
 

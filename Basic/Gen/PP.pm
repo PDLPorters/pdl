@@ -1808,11 +1808,11 @@ EOD
 
    PDL::PP::Rule->new("VarArgsXSHdr",
       ["Name","SignatureObj",
-       "HdrCode","InplaceCode","InplaceCheck",\"CallCopy",\"Bitwise"],
+       "HdrCode","InplaceCode","InplaceCheck",\"CallCopy"],
       'XS code to process input arguments based on supplied Pars argument to pp_def; not done if GlobalNew or PMCode supplied',
       sub {
         my($name,$sig,
-           $hdrcode,$inplacecode,$inplacecheck,$callcopy,$bitwise) = @_;
+           $hdrcode,$inplacecode,$inplacecheck,$callcopy) = @_;
         my $optypes = $sig->otherobjs(1);
         my @args = $sig->alldecls(0, 1);
         my %other  = map +($_ => exists($$optypes{$_})), @args;
@@ -1906,13 +1906,11 @@ EOD
         }
         # Add code for creating output variables via call to 'initialize' perl routine
         $clause3 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
-        # Bitwise ops may get five args
-        my $bitwise_cond = $bitwise ? " || items == 5" : '';
         $clause3 = <<EOF . $clause3;
-  else if (items == $nin$bitwise_cond) { PDL_COMMENT("only input variables on stack, create outputs and temps")
+  else if (items == $nin) { PDL_COMMENT("only input variables on stack, create outputs and temps")
     nreturn = $nallout;
 EOF
-        $clause3 = '' if $nmaxonstack == $nin and !$bitwise;
+        $clause3 = '' if $nmaxonstack == $nin;
         my $clause3_coda = $clause3 ? '}' : '';
         PDL::PP::pp_line_numbers(__LINE__, <<END);
 
@@ -1923,7 +1921,7 @@ $name(...)
 $svdecls
 $pars
  PPCODE:
-  if (items != $nmaxonstack && !(items == $nin$bitwise_cond) && items != $ninout)
+  if (items != $nmaxonstack && !(items == $nin) && items != $ninout)
     croak (\"Usage:  PDL::$name($usageargs) (you may leave temporaries or output variables out of list)\");
   PDL_XS_PACKAGEGET
 $clause_inputs
