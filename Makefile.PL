@@ -120,7 +120,6 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/Bugs/;
 
 my @cpan_deps = my @prereq = (
-  'Convert::UU'         => 0,         # for PDL::IO::Dumper
   'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
   'File::Map'           => 0.57,      # test new mmap implementation
   'File::Which'         => 0,

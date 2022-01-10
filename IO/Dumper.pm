@@ -23,8 +23,7 @@ output is for non-PDL expressions. To that end, small PDLs (up to 8
 elements) are stored as inline perl expressions, midsized PDLs (up to
 200 elements) are stored as perl expressions above the main data
 structure, and large PDLs are stored as FITS files that are uuencoded
-and included in the dump string. (You have to have access to either 
-uuencode(1) or the CPAN module Convert::UU for this to work).
+and included in the dump string.
 
 No attempt is made to shrink the output string -- for example, inlined
 PDL expressions all include explicit reshape() and typecast commands,
@@ -51,38 +50,6 @@ reference topology will cause Dumper to buzz forever.  That will
 likely be fixed in a future version.  Meanwhile a warning message finds
 likely cases.
 
-
-=head1 Author, copyright, no warranty
-
-Copyright 2002, Craig DeForest.
-
-This code may be distributed under the same terms as Perl itself
-(license available at L<http://ww.perl.org>).  Copying, reverse
-engineering, distribution, and modification are explicitly allowed so
-long as this notice is preserved intact and modified versions are
-clearly marked as such.
-
-This package comes with NO WARRANTY.
-
-=head1 HISTORY
-
-=over 3 
-
-=item * 1.0: initial release
-
-=item * 1.1 (26-Feb-2002): Shorter form for short PDLs; more readability
-
-=item * 1.2 (28-Feb-2002): Added deep_copy() -- exported convenience function
-  for "eval sdump"
-
-=item * 1.3 (15-May-2002): Added checking for tied objects in gethdr()
-  [workaround for hole in Data::Dumper]
-
-=item * 1.4 (15-Jan-2003): Added support for Convert::UU as well as
-  command-line uu{en|de}code
-
-=back
-
 =head1 FUNCTIONS
 
 =cut
@@ -91,23 +58,18 @@ package PDL::IO::Dumper;
 use strict;
 use warnings;
 use File::Temp;
-
 use Exporter ();
-
-our $VERSION = '1.3.2';
-
-our @ISA = qw( Exporter ) ;
-our @EXPORT_OK = qw( fdump sdump frestore deep_copy);
-our @EXPORT = @EXPORT_OK;
-our %EXPORT_TAGS = ( Func=>\@EXPORT_OK);
-
-use Convert::UU;
 use PDL;
 use PDL::Exporter;
 use PDL::Config;
 use Data::Dumper 2.121;
 use Carp;
-use IO::File;
+
+our $VERSION = '1.3.2';
+our @ISA = qw( Exporter ) ;
+our @EXPORT_OK = qw( fdump sdump frestore deep_copy);
+our @EXPORT = @EXPORT_OK;
+our %EXPORT_TAGS = ( Func=>\@EXPORT_OK);
 
 ######################################################################
 
@@ -190,14 +152,13 @@ structure and exit.
 
 sub PDL::IO::Dumper::fdump { 
   my($struct,$file) = @_;
-  my $fh = IO::File->new( ">$file" );
+  open my $fh, ">", $file;
   unless ( defined $fh ) {
       Carp::cluck ("fdump: couldn't open '$file'\n");
       return undef;
   }
-  $fh->print( "####################\n## PDL::IO::Dumper dump file -- eval this in perl/PDL.\n\n" );
-  $fh->print( sdump($struct) );
-  $fh->close();
+  print $fh "####################\n## PDL::IO::Dumper dump file -- eval this in perl/PDL.\n\n";
+  print $fh sdump($struct);
   return $struct;
 }
 
@@ -226,17 +187,12 @@ file and executes it in an eval.  It's paired with fdump().
 sub PDL::IO::Dumper::frestore {
   local($_);
   my($fname) = shift;
-
-  my $fh = IO::File->new( "<$fname" );
+  open my $fh, "<", $fname;
   unless ( defined $fh ) {
     Carp::cluck("frestore:  couldn't open '$fname'\n");
     return undef;
   }
-
   my($file) = join("",<$fh>);
-  
-  $fh->close;
-
   return eval $file;
 }
 
@@ -374,40 +330,34 @@ sub PDL::IO::Dumper::stringify_PDL{
 Recover a PDL from a uuencoded string [Internal routine]
 
 This routine encapsulates uudecoding of the dumped string for large ndarrays. 
-It's separate to encapsulate the decision about which method of uudecoding
-to try (both the built-in Convert::UU and the shell command uudecode(1) 
-are supported).
 
 =cut
 
-# should we use OS/library-level routines for creating
-# a temporary filename?
-#
 sub _make_tmpname () {
-    # should we use File::Spec routines to create the file name?
     return File::Temp::tmpnam() . ".fits";
 }
-
-# For uudecode_PDL:
-#
-# uudecode on OS-X needs the -s option otherwise it strips off the
-# path of the data file - which messes things up. We could change the
-# logic so that we explicitly tell uudecode where to create the output
-# file, except that this is also OS-dependent (-o <filename> on OS-X/linux,
-# -p on solaris/OS-X to write to stdout, any others?),
-# so we go this way for now as it is less-likely to break things
-#
-my $uudecode_string = "|uudecode";
-$uudecode_string .= " -s" if (($^O =~ m/darwin|((free|open)bsd)|dragonfly/) and ($^O ne 'gnukfreebsd'));
 
 sub PDL::IO::Dumper::uudecode_PDL {
   my $lines = shift;
   my $out;
   my $fname = _make_tmpname();
-  my $fh = IO::File->new(">$fname");
-  my $fits = Convert::UU::uudecode($lines);
-  $fh->print( $fits );
-  $fh->close();
+  my @result;
+  my $mode = my $file = "";
+  while ($lines =~ m/\G(.*?(\n|\r|\r\n|\n\r))/gc) {
+    my $line = $1;
+    if ($file eq "" and !$mode){
+      ($mode,$file) = $line =~ /^begin\s+(\d+)\s+(.+)$/ ;
+      next;
+    }
+    next if $file eq "" and !$mode;
+    last if $line =~ /^end/;
+    my $string = substr($line,0,int((((ord($line) - 32) & 077) + 2) / 3)*4+1);
+    push @result, unpack("u", $string) // "";
+  }
+  my $fits = join "",@result;
+  open my $fh, ">", $fname;
+  print $fh $fits;
+  close $fh;
   $out = rfits($fname);
   unlink($fname);
   $out;
@@ -459,14 +409,18 @@ sub PDL::IO::Dumper::dump_PDL {
       ##
       my $fname = _make_tmpname();
       wfits($_,$fname);
-	# Convert::UU::uuencode does not accept IO::File handles
-        # (at least in version 0.52 of the module)
-	#
-      local *FITSFILE;
-      open(FITSFILE,"<$fname");
-      my @uulines = ( Convert::UU::uuencode(*FITSFILE) );
+      open my $fh,"<", $fname;
+      my $mode = "644";
+      my $file = "uuencode.uu";
+      my @uulines = "begin $mode $file\n";
+      binmode($fh);
+      my $in = do { local $/; <$fh> };
+      pos($in)=0;
+      push @uulines, pack("u", $1) while $in =~ m/\G(.{1,45})/sgc;
+      push @uulines, "`\n", "end\n";
+      close $fh;
       unlink $fname;
-      
+
       ## 
       ## Generate commands to uudecode the FITS file and resnarf it
       ##
@@ -578,5 +532,19 @@ sub PDL::IO::Dumper::find_PDLs {
   }
   return $out;
 }
-      
+
+=head1 AUTHOR
+
+Copyright 2002, Craig DeForest.
+
+This code may be distributed under the same terms as Perl itself
+(license available at L<http://www.perl.org>).  Copying, reverse
+engineering, distribution, and modification are explicitly allowed so
+long as this notice is preserved intact and modified versions are
+clearly marked as such.
+
+This package comes with NO WARRANTY.
+
+=cut
+
 1;
