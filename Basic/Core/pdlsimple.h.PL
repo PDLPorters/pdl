@@ -2,7 +2,6 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 require './Types.pm';
-my $PDL_DATATYPES = PDL::Types::datatypes_header();
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -27,7 +26,7 @@ print "Extracting $file (with variable substitutions)\n";
 # You can use $Config{...} to use Configure variables.
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<"!GROK!THIS!";
+print OUT <<'EOF';
 
 #include <complex.h>
 #include <stddef.h>
@@ -35,8 +34,37 @@ print OUT <<"!GROK!THIS!";
 #ifndef __PDL_H
 
 /* These are kept automatically in sync with pdl.h during perl build */
+EOF
 
-$PDL_DATATYPES
+my @methods = qw(symbol ctype ppsym shortctype defbval realctype);
+sub makeg { map { my $t = $_; [map $t->$_, @methods] } grep $_[0]->($_), PDL::Types::types() }
+sub makelister {
+  my ($name, $is2, $underscore, @list) = @_;
+  my $suff = $is2 ? '2' : '';
+  my $arg1 = $is2 ? 'X, X2' : 'X';
+  my $arg2 = $is2 ? 'X2, ' : '';
+  $underscore = $underscore ? '_' : '';
+  ("#define PDL_TYPELIST${suff}_$name$underscore($arg1) \\\n",
+    (map " X($arg2".join(',', @$_).")\\\n", @list), "\n\n");
+}
+my @generics = makeg(sub {1});
+print OUT makelister('ALL', 0, 0, @generics);
+
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT <<'EOF';
+
+#define X(sym, ...) \
+  , sym
+typedef enum {
+   PDL_INVALID=-1
+PDL_TYPELIST_ALL(X)
+} pdl_datatypes;
+#undef X
+
+#define X(sym, ctype, ppsym, shortctype, defbval, realctype, ...) \
+  typedef realctype ctype;
+PDL_TYPELIST_ALL(X)
+#undef X
 
 #endif
 
@@ -49,13 +77,11 @@ $PDL_DATATYPES
    PP anyway (which is fairly trivial).
 */
 
-struct pdlsimple {
-   int     datatype;  /* whether byte/int/float etc. */
+typedef struct {
+   pdl_datatypes datatype;  /* whether byte/int/float etc. */
    void       *data;  /* Generic pointer to the data block */
    PDL_Indx  nvals;  /* Number of data values */
    PDL_Indx  *dims;  /* Array of data dimensions */
    PDL_Indx  ndims;  /* Number of data dimensions */
-};
-
-typedef struct pdlsimple pdlsimple;
-!GROK!THIS!
+} pdlsimple;
+EOF

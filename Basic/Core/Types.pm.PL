@@ -606,45 +606,6 @@ sub typesynonyms {
   return "$add\n";
 }
 
-=head2 datatypes_header
-
-=for ref
-
-return C header text for F<pdl.h> and F<pdlsimple.h>.
-
-=cut
-
-sub datatypes_header {
-    my $enum = join ', ', 'PDL_INVALID=-1', map $_->{sym}, @HASHES;
-    my $typedefs = join '', map "typedef $_->{realctype} $_->{ctype};\n", @HASHES;
-    my $union = join "\n", map "    $_->{ctype} $_->{ppsym};", @HASHES;
-
-    <<EOD . "\n".typesynonyms()."\n";
-
-/*****************************************************************************/
-/*** This section of .h file generated automatically by ***/
-/*** PDL::Types::datatypes_header() - don't edit manually ***/
-
-/* Data types/sizes [must be in order of complexity] */
-
-typedef enum { $enum } pdl_datatypes;
-
-/* Define the pdl data types */
-
-$typedefs
-
-typedef struct {
-  pdl_datatypes type;
-  union {
-$union
-  } value;
-} PDL_Anyval;
-
-/*****************************************************************************/
-
-EOD
-}
-
 =head1 PDL::Type OBJECTS
 
 This module declares one class - C<PDL::Type> - objects of this class

@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 require './Types.pm';
-my $PDL_DATATYPES = PDL::Types::datatypes_header();
 
 require './Config.pm';
 die "No PDL::Config found" unless %PDL::Config;
@@ -14,7 +13,7 @@ open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
-print OUT <<"!GROK!THIS!";
+print OUT <<'EOF';
 
 /*
  * THIS FILE IS GENERATED FROM pdl.h.PL! Do NOT edit!
@@ -40,31 +39,9 @@ extern int pdl_debugging;
 #endif
 
 typedef struct pdl pdl;
+EOF
 
-$PDL_DATATYPES
-
-#include "pdlthread.h"
-
-/* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
-/*  Target number of pthreads: Actual will be this number or less.
-    A 0 here means no pthreading */
-extern int pdl_autopthread_targ;
-
-/*  Actual number of pthreads: This is the number of pthreads created for the last
-    operation where pthreading was used
-    A 0 here means no pthreading */
-extern int pdl_autopthread_actual;
-/* Minimum size of the target PDL involved in pdl function to attempt pthreading (in MBytes )
-    For small PDLs, it probably isn't worth starting multiple pthreads, so this variable
-    is used to define that threshold (in M-elements, or 2^20 elements ) */
-extern int pdl_autopthread_size;
-extern PDL_Indx pdl_autopthread_dim;
-
-$mymalloc
-
-!GROK!THIS!
-
-my @methods = qw(symbol ctype ppsym shortctype defbval);
+my @methods = qw(symbol ctype ppsym shortctype defbval realctype);
 sub makeg { map { my $t = $_; [map $t->$_, @methods] } grep $_[0]->($_), PDL::Types::types() }
 sub makelister {
   my ($name, $is2, $underscore, @list) = @_;
@@ -86,6 +63,52 @@ print OUT makelister('REAL', 0, 0, @generics_real);
 print OUT makelister('REAL', 1, 0, @generics_real);
 print OUT makelister('COMPLEX', 0, 0, @generics_real);
 print OUT makelister('COMPLEX', 1, 0, @generics_real);
+
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
+print OUT <<'EOF';
+
+#define X(sym, ...) \
+  , sym
+typedef enum {
+   PDL_INVALID=-1
+PDL_TYPELIST_ALL(X)
+} pdl_datatypes;
+#undef X
+
+#define X(sym, ctype, ppsym, shortctype, defbval, realctype, ...) \
+  typedef realctype ctype;
+PDL_TYPELIST_ALL(X)
+#undef X
+
+typedef struct {
+  pdl_datatypes type;
+  union {
+#define X(sym, ctype, ppsym, shortctype, defbval, realctype, ...) \
+    ctype ppsym;
+PDL_TYPELIST_ALL(X)
+#undef X
+  } value;
+} PDL_Anyval;
+
+#include "pdlthread.h"
+
+/* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
+/*  Target number of pthreads: Actual will be this number or less.
+    A 0 here means no pthreading */
+extern int pdl_autopthread_targ;
+
+/*  Actual number of pthreads: This is the number of pthreads created for the last
+    operation where pthreading was used
+    A 0 here means no pthreading */
+extern int pdl_autopthread_actual;
+/* Minimum size of the target PDL involved in pdl function to attempt pthreading (in MBytes )
+    For small PDLs, it probably isn't worth starting multiple pthreads, so this variable
+    is used to define that threshold (in M-elements, or 2^20 elements ) */
+extern int pdl_autopthread_size;
+extern PDL_Indx pdl_autopthread_dim;
+EOF
+print OUT "$mymalloc\n";
+
 print OUT <<'EOF';
 #define PDL_GENERICSWITCH_CASE(X, symbol, ...) \
   case symbol: { X(symbol, __VA_ARGS__) } break;
