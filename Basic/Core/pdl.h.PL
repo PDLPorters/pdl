@@ -80,14 +80,16 @@ PDL_TYPELIST_ALL(X)
 PDL_TYPELIST_ALL(X)
 #undef X
 
-typedef struct {
-  pdl_datatypes type;
-  union {
+typedef union {
 #define X(sym, ctype, ppsym, shortctype, defbval, realctype, ...) \
-    ctype ppsym;
+  ctype ppsym;
 PDL_TYPELIST_ALL(X)
 #undef X
-  } value;
+} PDL_Value;
+
+typedef struct {
+  pdl_datatypes type;
+  PDL_Value value;
 } PDL_Anyval;
 
 #include "pdlthread.h"
