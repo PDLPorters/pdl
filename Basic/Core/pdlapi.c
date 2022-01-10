@@ -107,50 +107,42 @@ pdl *pdl_get_convertedpdl(pdl *old,int type) {
 	return it;
 }
 
-pdl_error pdl_grow(pdl* a, PDL_Indx newsize) {
-   pdl_error PDL_err = {0, NULL, 0};
-   SV* foo;
-   STRLEN nbytes;
-   STRLEN ncurr;
-   STRLEN len;
-   nbytes = ((STRLEN) newsize) * pdl_howbig(a->datatype);
-   ncurr  = a->datasv ? SvCUR((SV *)a->datasv) : 0;
-   if (ncurr == nbytes) {
-      a->state |= PDL_ALLOCATED;
-      return PDL_err;    /* Nothing to be done */
-   }
-   if(a->state & PDL_DONTTOUCHDATA) {
-      return pdl_make_error_simple(PDL_EUSERERROR, "Trying to touch data of an untouchable (mmapped?) pdl");
-   }
-   if(a->datasv == NULL)
-      a->datasv = newSVpv("",0);
-   foo = a->datasv;
-   if(nbytes > (1024*1024*1024)) {
-     SV *sv = get_sv("PDL::BIGPDL",0);
-     if(sv == NULL || !(SvTRUE(sv)))
-       return pdl_make_error_simple(PDL_EUSERERROR, "Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable)");
-   }
-   (void)SvGROW ( foo, nbytes );
-   SvCUR_set( foo, nbytes );
-   a->data = (void *) SvPV( foo, len ); a->nvals = newsize;
-   if (nbytes > ncurr) memset(a->data + ncurr, 0, nbytes - ncurr);
-   return PDL_err;
-}
-
 pdl_error pdl_allocdata(pdl *it) {
-	pdl_error PDL_err = {0, NULL, 0};
-	int i;
-	PDL_Indx nvals=1;
-	for(i=0; i<it->ndims; i++) {
-			nvals *= it->dims[i];
-	}
-	it->nvals = nvals;
-	PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
-		it->datatype));
-	PDL_RETERROR(PDL_err, pdl_grow(it,nvals));
-	it->state |= PDL_ALLOCATED;
-	PDLDEBUG_f(pdl_dump(it));
-	return PDL_err;
+  pdl_error PDL_err = {0, NULL, 0};
+  PDL_Indx i, nvals=1;
+  for(i=0; i<it->ndims; i++)
+    nvals *= it->dims[i];
+  it->nvals = nvals;
+  PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
+	  it->datatype));
+  SV* foo;
+  STRLEN nbytes;
+  STRLEN ncurr;
+  STRLEN len;
+  nbytes = ((STRLEN) nvals) * pdl_howbig(it->datatype);
+  ncurr  = it->datasv ? SvCUR((SV *)it->datasv) : 0;
+  if (ncurr == nbytes) {
+    it->state |= PDL_ALLOCATED;
+    return PDL_err;    /* Nothing to be done */
+  }
+  if(it->state & PDL_DONTTOUCHDATA) {
+    return pdl_make_error_simple(PDL_EUSERERROR, "Trying to touch data of an untouchable (mmapped?) pdl");
+  }
+  if(it->datasv == NULL)
+    it->datasv = newSVpv("",0);
+  foo = it->datasv;
+  if(nbytes > (1024*1024*1024)) {
+    SV *sv = get_sv("PDL::BIGPDL",0);
+    if(sv == NULL || !(SvTRUE(sv)))
+      return pdl_make_error_simple(PDL_EUSERERROR, "Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable)");
+  }
+  (void)SvGROW ( foo, nbytes );
+  SvCUR_set( foo, nbytes );
+  it->data = (void *) SvPV( foo, len );
+  if (nbytes > ncurr) memset(it->data + ncurr, 0, nbytes - ncurr);
+  it->state |= PDL_ALLOCATED;
+  PDLDEBUG_f(pdl_dump(it));
+  return PDL_err;
 }
 
 pdl* pdl_pdlnew() {

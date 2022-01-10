@@ -470,12 +470,6 @@ Reallocate n threadids. Set the new extra ones to the end.
 
 Recalculate default increments from C<dims>, and grow the PDL data.
 
-=item *
-
-  grow
-
-Set the C<data> member to contain ndarray's number of elements.
-
 =back
 
 =head2 Handy macros from pdl.h

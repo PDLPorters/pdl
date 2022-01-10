@@ -1,9 +1,8 @@
 #ifndef __PDLCORE_H
 #define __PDLCORE_H
 
-/* version 19: various deletions, return pdl_error */
-
-#define PDL_CORE_VERSION 19
+/* version 20: memory-management changes */
+#define PDL_CORE_VERSION 20
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
@@ -86,7 +85,6 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(howbig, size_t, ( int )) \
   X(packdims, PDL_Indx*, ( SV* sv, PDL_Indx *ndims )) \
   X(setdims, pdl_error, ( pdl* it, PDL_Indx* dims, PDL_Indx ndims )) \
-  X(grow, pdl_error, ( pdl* a, PDL_Indx newsize)) \
   X(at0, PDL_Anyval, ( pdl* x )) \
   X(reallocdims, pdl_error, ( pdl *it,PDL_Indx ndims )) \
   X(reallocthreadids, pdl_error, ( pdl *it,PDL_Indx ndims )) \
