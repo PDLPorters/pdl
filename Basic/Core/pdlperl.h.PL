@@ -106,7 +106,7 @@ print OUT <<'EOF';
 /* Check minimum datatype required to represent number */
 #define PDL_TESTTYPE(sym, ctype) {ctype foo = nv; if(nv == foo) return sym;}
 static inline int _pdl_whichdatatype (IV nv) {
-#define X(sym, ctype, ppsym, shortctype, defbval) \
+#define X(sym, ctype, ...) \
   PDL_TESTTYPE(sym, ctype)
    PDL_TYPELIST_ALL(X)
 #undef X

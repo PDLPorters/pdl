@@ -52,7 +52,7 @@ pp_def(
 pdl_error pdl_readdata_affine(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return PDL_err;
-#define X(sym, ctype, ppsym, shortctype, defbval) COPYDATA(ctype, 0, 1)
+#define X(sym, ctype, ...) COPYDATA(ctype, 0, 1)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, trans->__datatype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
 #undef X
   return PDL_err;
@@ -61,7 +61,7 @@ pdl_error pdl_readdata_affine(pdl_trans *trans) {
 pdl_error pdl_writebackdata_affine(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   if (!(trans->pdls[0]->state & trans->pdls[1]->state & PDL_ALLOCATED)) return PDL_err;
-#define X(sym, ctype, ppsym, shortctype, defbval) COPYDATA(ctype, 1, 0)
+#define X(sym, ctype, ...) COPYDATA(ctype, 1, 0)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, trans->__datatype, X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
 #undef X
   return PDL_err;
@@ -245,10 +245,10 @@ pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
 pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
-#define X_OUTER(datatype_out, ctype_out, ppsym_out, shortctype_out, defbval_out) \
+#define X_OUTER(datatype_out, ctype_out, ...) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
   PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, trans->__datatype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
-#define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
+#define X_INNER(datatype_in, ctype_in, ...) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(PARENT, CHILD)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, params->totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", params->totype))
@@ -259,7 +259,7 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
 pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
-#define X_INNER(datatype_in, ctype_in, ppsym_in, shortctype_in, defbval_in) \
+#define X_INNER(datatype_in, ctype_in, ...) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
   COPYCONVERT(CHILD, PARENT)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, params->totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", params->totype))

@@ -28,7 +28,7 @@ void pdl_SetSV_PDL ( SV *sv, pdl *it ) {
 /* Size of data type information */
 
 size_t pdl_howbig (int datatype) {
-#define X(datatype, ctype, ppsym, shortctype, defbval) \
+#define X(datatype, ctype, ...) \
     return sizeof(ctype);
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, datatype, X, croak("Not a known data type code=%d", datatype))
 #undef X
@@ -517,7 +517,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int dtype, pdl* dest_pdl)
    */
   PDLDEBUG_f(printf("pdl_from_array type: %d\n", dtype));
   ANYVAL_FROM_SV(undefval, NULL, TRUE, dtype);
-#define X(dtype, ctype, ppsym, shortctype, defbval) \
+#define X(dtype, ctype, ppsym, ...) \
     pdl_setav_ ## ppsym(dest_pdl->data,av,dest_dims,ndims,level, undefval.value.ppsym, dest_pdl);
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, dtype, X, return NULL)
 #undef X
@@ -607,7 +607,7 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
  * block of memory.
  */
 
-#define INNERLOOP_X(datatype, ctype, ppsym, shortctype, defbval) \
+#define INNERLOOP_X(datatype, ctype, ppsym, ...) \
       /* copy data (unless the source pointer is null) */ \
       i=0; \
       if(source_data && dest_data && pdlsiz) { \
@@ -638,7 +638,7 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
         for(; i< dest_dims[0]-dest_off; i++) dest_data[i] = undefval; \
       }
 
-#define PDL_KLUDGE_COPY_X(X, datatype_out, ctype_out, ppsym_out, shortctype, defbval) \
+#define PDL_KLUDGE_COPY_X(X, datatype_out, ctype_out, ppsym_out, ...) \
 PDL_Indx pdl_kludge_copy_ ## ppsym_out(PDL_Indx dest_off, /* Offset into the dest data array */ \
                            ctype_out* dest_data,  /* Data pointer in the dest data array */ \
                            PDL_Indx* dest_dims,/* Pointer to the dimlist for the dest pdl */ \
@@ -744,7 +744,7 @@ PDL_TYPELIST2_ALL(PDL_KLUDGE_COPY_X, INNERLOOP_X)
  *   -  ndims is the size of the dimlist
  *   -  level is the recursion level, which is also the dimension that we are filling
  */
-#define PDL_SETAV_X(X, datatype_out, ctype_out, ppsym_out, shortctype, defbval) \
+#define PDL_SETAV_X(X, datatype_out, ctype_out, ppsym_out, ...) \
 PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
                      PDL_Indx* dest_dims, int ndims, int level, ctype_out undefval, pdl *dest_pdl) \
 { \

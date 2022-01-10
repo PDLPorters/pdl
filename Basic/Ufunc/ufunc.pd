@@ -485,7 +485,7 @@ EOD
 pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
 PDL_TYPELIST_REAL(PDL_QSORT)
 
-#define QSORT_OTHER(symbol, ctype, ppsym, shortctype, defbval) \
+#define QSORT_OTHER(symbol, ctype, ppsym, ...) \
   static inline void qsort_ind_ ## ppsym(ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) { \
      PDL_Indx i,j; \
      PDL_Indx t; \

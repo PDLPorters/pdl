@@ -126,7 +126,7 @@ pp_addhdr('
 #define rint(X) floor( X + 0.5 )
 #endif
 
-#define X(symbol, ctype, ppsym, shortctype, defbval) \
+#define X(symbol, ctype, ppsym, ...) \
   ctype quick_select_ ## ppsym(ctype arr[], int n);
 PDL_TYPELIST_REAL(X)
 #undef X

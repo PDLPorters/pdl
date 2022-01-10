@@ -259,12 +259,12 @@ _badvalue_int(val, type)
     pdl* p = PDL->scalar(newval);
     if (!p) PDL->pdl_barf("Error making new pdl");
     if ( val.type != -1 ) {
-#define X(datatype, ctype, ppsym, shortctype, defbval) \
+#define X(datatype, ctype, ppsym, shortctype, ...) \
     ANYVAL_TO_CTYPE(PDL->bvals.shortctype, ctype, val);
     PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
 #undef X
     }
-#define X(datatype, ctype, ppsym, shortctype, defbval) \
+#define X(datatype, ctype, ppsym, shortctype, ...) \
     *((ctype *)p->data) = PDL->bvals.shortctype;
     PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
 #undef X
@@ -289,12 +289,12 @@ _badvalue_per_pdl_int(pdl_val, val, type)
        PDL->propagate_badvalue( pdl_val );
     }
     if (pdl_val->has_badvalue == 0) {
-#define X(datatype, ctype, ppsym, shortctype, defbval) \
+#define X(datatype, ctype, ppsym, shortctype, ...) \
        *((ctype *)p->data) = PDL->bvals.shortctype;
        PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
 #undef X
     } else {
-#define X(datatype, ctype, ppsym, shortctype, defbval) \
+#define X(datatype, ctype, ...) \
        ANYVAL_TO_CTYPE(*((ctype *)p->data), ctype, pdl_val->badvalue);
        PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
 #undef X
@@ -311,7 +311,7 @@ _default_badvalue_int(type)
     PDL_Anyval val = {type, {0}};
     pdl* p = PDL->scalar(val);
     if (!p) PDL->pdl_barf("Error making new pdl");
-#define X(datatype, ctype, ppsym, shortctype, defbval) \
+#define X(datatype, ctype, ppsym, shortctype, defbval, ...) \
     *((ctype *)p->data) = defbval;
     PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, type, X, croak("Not a known data type code=%d", type))
 #undef X

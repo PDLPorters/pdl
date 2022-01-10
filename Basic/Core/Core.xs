@@ -427,7 +427,7 @@ BOOT:
 #define X(sym, rettype, args) PDL.sym = pdl_ ## sym;
    PDL_CORE_LIST(X)
 #undef X
-#define X(symbol, ctype, ppsym, shortctype, defbval) \
+#define X(symbol, ctype, ppsym, shortctype, defbval, ...) \
   PDL.bvals.shortctype = defbval;
    PDL_TYPELIST_ALL(X)
 #undef X

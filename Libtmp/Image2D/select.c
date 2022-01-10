@@ -11,7 +11,7 @@
 #define ELEM_SWAP(ctype,a,b) { register ctype t=(a);(a)=(b);(b)=t; }
 
 /* for use with PDL_TYPELIST_REAL */
-#define X(symbol, ctype, ppsym, shortctype, defbval) \
+#define X(symbol, ctype, ppsym, ...) \
   ctype quick_select_ ## ppsym(ctype arr[], int n) \
   { \
     int low, high ; \

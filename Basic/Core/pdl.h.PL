@@ -151,14 +151,14 @@ EOF
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'!NO!SUBS!';
 /* input vars have to be called exactly these as not expanded */
-#define ANYVAL_TO_CTYPE_OFFSET_X(datatype, ctype, ppsym, shortctype, defbval) \
+#define ANYVAL_TO_CTYPE_OFFSET_X(datatype, ctype, ...) \
     ANYVAL_TO_CTYPE(((ctype *)x)[ioff], ctype, value);
 #define ANYVAL_TO_CTYPE_OFFSET(x,ioff,datatype,value) \
     PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, datatype, ANYVAL_TO_CTYPE_OFFSET_X, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", datatype))
 
 #define ANYVAL_ISNAN(x) _anyval_isnan(x)
 static inline int _anyval_isnan(PDL_Anyval x) {
-#define X(datatype, ctype, ppsym, shortctype, defbval) \
+#define X(datatype, ctype, ppsym, ...) \
   return PDL_ISNAN_ ## ppsym(x.value.ppsym);
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, x.type, X, return -1)
 #undef X
@@ -166,10 +166,10 @@ static inline int _anyval_isnan(PDL_Anyval x) {
 
 #define ANYVAL_EQ_ANYVAL(x,y) (_anyval_eq_anyval(x,y))
 static inline int _anyval_eq_anyval(PDL_Anyval x, PDL_Anyval y) {
-#define X_OUTER(datatype_x, ctype_x, ppsym_x, shortctype_x, defbval_x) \
+#define X_OUTER(datatype_x, ctype_x, ppsym_x, ...) \
   ctype_x cvalue_x = x.value.ppsym_x; \
   PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, y.type, X_INNER, return -1)
-#define X_INNER(datatype_y, ctype_y, ppsym_y, shortctype_y, defbval_y) \
+#define X_INNER(datatype_y, ctype_y, ppsym_y, ...) \
   return (cvalue_x == y.value.ppsym_y) ? 1 : 0;
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, x.type, X_OUTER, return -1)
 #undef X_INNER
@@ -187,7 +187,7 @@ static inline int _anyval_isbad(PDL_Anyval inany, PDL_Anyval badval) {
   (PDL_ISNAN_ ## ppsym(badval) ? PDL_ISNAN_ ## ppsym(inval) : inval == badval)
 
 typedef struct badvals {
-#define X(symbol, ctype, ppsym, shortctype, defbval) ctype shortctype;
+#define X(symbol, ctype, ppsym, shortctype, ...) ctype shortctype;
 PDL_TYPELIST_ALL(X)
 #undef X
 } badvals;
@@ -568,7 +568,7 @@ typedef struct pdl_slice_args {
   }
 
 /* for use with PDL_TYPELIST_REAL */
-#define PDL_QSORT(symbol, ctype, ppsym, shortctype, defbval) \
+#define PDL_QSORT(symbol, ctype, ppsym, ...) \
   static inline void qsort_ ## ppsym(ctype* xx, PDL_Indx a, PDL_Indx b) { \
      PDL_Indx i,j; \
      ctype t, median; \

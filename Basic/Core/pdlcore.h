@@ -153,7 +153,7 @@ void pdl_dump_anyval(PDL_Anyval v);
 PDL_CORE_LIST(X)
 #undef X
 
-#define X(symbol, ctype, ppsym, shortctype, defbval) \
+#define X(symbol, ctype, ppsym, ...) \
 PDL_Indx pdl_setav_ ## ppsym(ctype * pdata, AV* av, \
 	PDL_Indx* pdims, PDL_Long ndims, int level, ctype undefval, pdl *p);
 PDL_TYPELIST_ALL(X)
