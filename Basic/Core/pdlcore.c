@@ -6,11 +6,8 @@
 static SV *getref_pdl(pdl *it) {
         SV *newref;
         if(!it->sv) {
-                HV *stash = gv_stashpv("PDL",TRUE);
-                SV *psv = newSViv(PTR2IV(it));
-                it->sv = psv;
-                newref = newRV_noinc(it->sv);
-                (void)sv_bless(newref,stash);
+                newref = newRV_noinc(it->sv = newSViv(PTR2IV(it)));
+                (void)sv_bless(newref,gv_stashpv("PDL",TRUE));
         } else {
                 newref = newRV_inc(it->sv);
                 SvAMAGIC_on(newref);
