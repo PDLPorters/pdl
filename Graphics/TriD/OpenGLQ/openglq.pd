@@ -166,10 +166,9 @@ pp_def(
 		glListBase($COMP(base));
 
 		loop(x) %{
-                       STRLEN n_a;
 			SV *elem = *(av_fetch(arr, x, 0));
 			if(elem) {
-                               char *str = SvPV(elem,n_a);
+                               char *str = SvPV_nolen(elem);
 				'.RPOS().'
 				glCallLists(strlen(str),GL_UNSIGNED_BYTE,
 					(GLubyte*)str);

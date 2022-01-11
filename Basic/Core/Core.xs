@@ -623,12 +623,11 @@ void
 upd_data(self)
 	pdl *self
       PREINIT:
-       STRLEN n_a;
 	CODE:
 	if(self->state & PDL_DONTTOUCHDATA) {
 		croak("Trying to touch dataref of magical (mmaped?) pdl");
 	}
-       self->data = SvPV((SV*)self->datasv,n_a);
+       self->data = SvPV_nolen((SV*)self->datasv);
 
 void
 set_dataflow_f(self,value)

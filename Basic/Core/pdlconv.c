@@ -96,10 +96,9 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 
     /* Store new data */
     if (diffsize) {
-       STRLEN n_a;
        SV *bar = a->datasv;
        sv_setpvn( bar, (char*) a->data, nbytes );
-       a->data = (void*) SvPV(bar, n_a);
+       a->data = (void*) SvPV_nolen(bar);
     }
 
     a->datatype = targtype;

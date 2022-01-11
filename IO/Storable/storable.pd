@@ -36,7 +36,6 @@ void
 make_null(sv)
         SV *sv
         CODE:
-        STRLEN n_a;
         /* we basically mimic pdl_null but without letting
          * it give us a it->sv ! We have our own to which we
          * connect below
@@ -46,7 +45,7 @@ make_null(sv)
 	it->datatype = PDL_B;
 	it->data = PDL->smalloc((STRLEN) (PDL->howbig(it->datatype)));
         it->datasv = newSVpv(it->data,PDL->howbig(it->datatype));
-        it->data = SvPV((SV *)it->datasv,n_a);
+        it->data = SvPV_nolen((SV *)it->datasv);
         /* connect pdl struct to this sv */
         sv_setiv(SvRV(sv),PTR2IV(it));
         it->sv = SvRV(sv);

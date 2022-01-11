@@ -421,13 +421,11 @@ MODULE = PDL::Graphics::IIS PACKAGE = PDL::Graphics::IIS
 void
 _iiscur_int()
    PPCODE:
-    STRLEN n_a;
-    STRLEN n_b;
     float x,y;
     char ch;
     int   frame       = (int)SvIV( perl_get_sv("iisframe", FALSE) );
 
-    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_b),
+    iis_open(SvPV_nolen(perl_get_sv("fifi",FALSE)),SvPV_nolen(perl_get_sv("fifo",FALSE)),
        (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
        (int)SvIV( perl_get_sv("fb_x", FALSE) ),
        (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
@@ -453,7 +451,6 @@ pp_def('_iis',
         Code => '
 
    int   frame = (int)SvIV( perl_get_sv("iisframe", FALSE) );
-
    unsigned short hdr[8];
    unsigned char *data;
    int j,nlines, x,y, offx, offy, nx, ny, nx2, ny2, baseX, baseY, m1, n1;
@@ -463,15 +460,13 @@ pp_def('_iis',
    char wcsbuf[SZ_WCSTEXT];
    char title[33];  /* 32 chars + null terminator */
    int chan;
-   STRLEN n_a;
-   STRLEN n_b;
 
    /* Open pipes etc */
 
    if (frame<1 || frame>4)
        $CROAK("$iisframe must be in range 1--4");
 
-    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_b),
+    iis_open(SvPV_nolen(perl_get_sv("fifi",FALSE)),SvPV_nolen(perl_get_sv("fifo",FALSE)),
        (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
        (int)SvIV( perl_get_sv("fb_x", FALSE) ),
        (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
@@ -601,14 +596,13 @@ pp_def( '_iiscirc',
         Code => '
 
    int   frame = (int)SvIV( perl_get_sv("iisframe", FALSE) );
-   STRLEN n_a;
 
    /* Open pipes etc */
 
    if (frame<1 || frame>4)
        $CROAK("$iisframe must be in range 1--4");
 
-   iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_a),
+   iis_open(SvPV_nolen(perl_get_sv("fifi",FALSE)),SvPV_nolen(perl_get_sv("fifo",FALSE)),
         (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
         (int)SvIV( perl_get_sv("fb_x", FALSE) ),
         (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
