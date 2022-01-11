@@ -12,7 +12,6 @@ BEGIN {
 }
 
 use PDL;
-$PDL::BIGPDL = 1;  # should this be the defaults for 64bit index support?
 
 # Tests for PDL::Core
 #

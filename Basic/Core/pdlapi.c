@@ -115,12 +115,9 @@ pdl_error pdl_allocdata(pdl *it) {
   it->nvals = nvals;
   PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
 	  it->datatype));
-  SV* foo;
-  STRLEN nbytes;
-  STRLEN ncurr;
   STRLEN len;
-  nbytes = ((STRLEN) nvals) * pdl_howbig(it->datatype);
-  ncurr  = it->datasv ? SvCUR((SV *)it->datasv) : 0;
+  STRLEN nbytes = ((STRLEN) nvals) * pdl_howbig(it->datatype);
+  STRLEN ncurr  = it->datasv ? SvCUR((SV *)it->datasv) : 0;
   if (ncurr == nbytes) {
     it->state |= PDL_ALLOCATED;
     return PDL_err;    /* Nothing to be done */
@@ -130,12 +127,7 @@ pdl_error pdl_allocdata(pdl *it) {
   }
   if(it->datasv == NULL)
     it->datasv = newSVpv("",0);
-  foo = it->datasv;
-  if(nbytes > (1024*1024*1024)) {
-    SV *sv = get_sv("PDL::BIGPDL",0);
-    if(sv == NULL || !(SvTRUE(sv)))
-      return pdl_make_error_simple(PDL_EUSERERROR, "Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable)");
-  }
+  SV* foo = it->datasv;
   (void)SvGROW ( foo, nbytes );
   SvCUR_set( foo, nbytes );
   it->data = (void *) SvPV( foo, len );
