@@ -37,13 +37,12 @@ size_t pdl_howbig (int datatype) {
 /* Make a scratch dataspace for a scalar pdl */
 pdl_error pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
   pdl_error PDL_err = {0, NULL, 0};
-  STRLEN n_a;
   size_t datasize = pdl_howbig(ret->datatype = data.type);
   PDLDEBUG_f(printf("pdl_makescratchhash type=%d size=%zd Bval=%d\n", data.type, datasize, (int)data.value.B));
   /* Create a string SV of apropriate size.  The string is arbitrary
    * and just has to be larger than the largest datatype.   */
   ret->datasv = newSVpvn("                                ",datasize);
-  ret->data = SvPV((SV *)ret->datasv,n_a);
+  ret->data = SvPV_nolen((SV *)ret->datasv);
   /* Refcnt should be 1 already... */
   /* Make the whole pdl mortal so destruction happens at the right time.
    * If there are dangling references, pdlapi.c knows not to actually
@@ -220,10 +219,9 @@ PDL_Indx pdl_safe_indterm( PDL_Indx dsz, PDL_Indx at, char *file, int lineno)
    nice!
 */
 void* pdl_smalloc ( STRLEN nbytes ) {
-    STRLEN n_a;
    SV* work = sv_2mortal(newSVpv("", 0));
    SvGROW( work, nbytes);
-   return (void *) SvPV(work, n_a);
+   return (void *) SvPV_nolen(work);
 }
 
 /*********** Stuff for barfing *************/

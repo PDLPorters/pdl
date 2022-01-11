@@ -111,7 +111,6 @@ pdl_error pdl_allocdata(pdl *it) {
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
 	  it->datatype));
-  STRLEN len;
   STRLEN nbytes = ((STRLEN) it->nvals) * pdl_howbig(it->datatype);
   STRLEN ncurr  = it->datasv ? SvCUR((SV *)it->datasv) : 0;
   if (ncurr == nbytes)
@@ -123,7 +122,7 @@ pdl_error pdl_allocdata(pdl *it) {
   SV* foo = it->datasv;
   (void)SvGROW ( foo, nbytes );
   SvCUR_set( foo, nbytes );
-  it->data = (void *) SvPV( foo, len );
+  it->data = (void *) SvPV_nolen( foo );
   if (nbytes > ncurr) memset(it->data + ncurr, 0, nbytes - ncurr);
   it->state |= PDL_ALLOCATED;
   PDLDEBUG_f(pdl_dump(it));
