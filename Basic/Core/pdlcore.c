@@ -38,7 +38,7 @@ size_t pdl_howbig (int datatype) {
 pdl_error pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
   pdl_error PDL_err = {0, NULL, 0};
   size_t datasize = pdl_howbig(ret->datatype = data.type);
-  PDLDEBUG_f(printf("pdl_makescratchhash type=%d size=%zd Bval=%d\n", data.type, datasize, (int)data.value.B));
+  PDLDEBUG_f(printf("pdl_makescratchhash size=%zd type=%d val=", datasize, data.type); pdl_dump_anyval(data); printf("\n"););
   /* Create a string SV of apropriate size.  The string is arbitrary
    * and just has to be larger than the largest datatype.   */
   ret->datasv = newSVpvn("                                ",datasize);
