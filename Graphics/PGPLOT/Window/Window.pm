@@ -1413,7 +1413,7 @@ Turn on automatic logarithmic scaling in C<line> and C<points>
 Setting the argument to 1 turns on automatic log scaling and setting it to
 zero turns it off again. The function can be used in both the object
 oriented and standard interface. To learn more, see the documentation for
-the L</axis option|axis>.
+the L<axis option|/axis>.
 
 =for example
 
