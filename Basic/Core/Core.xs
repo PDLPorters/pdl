@@ -607,6 +607,8 @@ get_dataref(self)
 		croak("Trying to get dataref to magical (mmaped?) pdl");
 	}
 	pdl_barf_if_error(pdl_make_physical(self)); /* XXX IS THIS MEMLEAK WITHOUT MORTAL? */
+	if (!self->datasv)
+	  pdl_pdl_barf("Tried to get_dataref but datasv NULL after make_physical");
 	RETVAL = (newRV(self->datasv));
 	OUTPUT:
 	RETVAL
