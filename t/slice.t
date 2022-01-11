@@ -172,7 +172,7 @@ $y = $x->slice('0:-10');
 is("$y", "[0]", "slice 0:-n picks first element");
 
 $y = $x->slice('0:-14');
-eval '"$y";';
+eval { $y->string };
 like($@, qr/slice ends out of bounds/);
 
 # Test of dice and dice_axis
@@ -232,7 +232,7 @@ is("$y", "[1 1 1]", "mslice 2");
 
 $x = zeroes(3,3);
 $y = $x->splitdim(3,3);
-eval '$y->make_physdims';
+eval { $y->make_physdims };
 like($@, qr/splitdim:nthdim/, "make_physdim: Splitdim");
 
 $x = sequence 5,5;
@@ -240,40 +240,40 @@ $y = $x->diagonal(0,1);
 is("$y", "[0 6 12 18 24]", "diagonal");
 
 $x = sequence 10;
-eval '$y = $x->lags(1,1,1)->make_physdims';
+eval { $y = $x->lags(1,1,1)->make_physdims };
 like($@, qr/lags:\s*dim out of range/, "make_physdim: out of range");
 
-eval '$y = $x->lags(0,-1,1)->make_physdims';
+eval { $y = $x->lags(0,-1,1)->make_physdims };
 like($@, qr/lags:\s*step must be positive/, "make_physdim: negative step");
 
-eval '$y = $x->lags(0,1,11)->make_physdims';
+eval { $y = $x->lags(0,1,11)->make_physdims };
 like($@, qr/too large/, "make_physdim: too large");
 
 ##############################
 # Tests of some edge cases
 $x = sequence(10);
-eval '$y = $x->slice("5")';
-ok(!$@, "simple slice works");
+eval { $y = $x->slice("5") };
+is $@, '', "simple slice works";
 ok(($y->nelem==1 and $y==5), "simple slice works right");
 
-eval '$y = $x->slice("5:")';
-ok(!$@, "empty second specifier works");
+eval { $y = $x->slice("5:") };
+is $@, '', "empty second specifier works";
 ok(($y->nelem == 5  and  all($y == pdl(5,6,7,8,9))), "empty second specifier works right");
 
-eval '$y = $x->slice(":5")';
-ok(!$@, "empty first specifier works");
+eval { $y = $x->slice(":5") };
+is $@, '', "empty first specifier works";
 ok(($y->nelem == 6  and  all($y == pdl(0,1,2,3,4,5))), "empty first specifier works right");
 
 ##############################
 # White space in slice specifier
-eval ' $y = $x->slice(" 4:");';
-ok(!$@,"slice with whitespace worked - 1");
+eval {  $y = $x->slice(" 4:") };
+is $@, '',"slice with whitespace worked - 1";
 ok(($y->nelem==6 and all($y==pdl(4,5,6,7,8,9))),"slice with whitespace works right - 1");
-eval ' $y = $x->slice(" :4");';
-ok(!$@,"slice with whitespace worked - 2");
+eval { $y = $x->slice(" :4") };
+is $@, '',"slice with whitespace worked - 2";
 ok(($y->nelem==5 and all($y==pdl(0,1,2,3,4))),"slice with whitespace works right - 2");
-eval ' $y = $x->slice(" 3: 4 ");';
-ok(!$@,"slice with whitespace worked - 3");
+eval { $y = $x->slice(" 3: 4 ") };
+is $@, '',"slice with whitespace worked - 3";
 ok(($y->nelem==2 and all($y==pdl(3,4))),"slice with whitespace works right - 3");
 
 ##############################
@@ -281,30 +281,35 @@ ok(($y->nelem==2 and all($y==pdl(3,4))),"slice with whitespace works right - 3")
 
 $x = xvals(5,5)+10*yvals(5,5);
 
-eval '$y = $x->slice("1,2,(0)")->make_physical';
-ok(!$@);
+eval { $y = $x->slice("1,2,(0)")->make_physical };
+is $@, '';
 is($y->ndims, 2, "slice->make_physical: ndims");
 is(pdl($y->dims)->sumover, 2, "slice->make_physical: dims");
 
-eval '$c = $x->slice("1,2,(1)")->make_physical';
+eval { $c = $x->slice("1,2,(1)")->make_physical };
 like($@, qr/too many dims/i, "slice->make_physical: too many dims");
 
 # Hmmm, think these could be split up but not sure exactly what is being
 # tested so leave as is (ish)
 #
-eval '$d = $x->slice("0:1,2:3,0")->make_physical';
-ok(!$@);
-ok(eval '$d->ndims == 3 && ((pdl($d->dims) == pdl(2,2,1))->sumover == 3)' && !$@);
+eval { $d = $x->slice("0:1,2:3,0")->make_physical };
+is $@, '';
+is $d->ndims, 3;
+is +(pdl($d->dims) == pdl(2,2,1))->sumover, 3;
+is $d->ndims, 3;
+is +(pdl($d->dims) == pdl(2,2,1))->sumover, 3;
 
-eval '$d = $x->slice("0:1,2:3,0")->xchg(0,2)';
-ok(!$@, "slice->xchg");
+eval { $d = $x->slice("0:1,2:3,0")->xchg(0,2) };
+is $@, '', "slice->xchg";
 
-ok(eval '$d->ndims == 3 && ((pdl($d->dims) == pdl(1,2,2))->sumover == 3)' && !$@);
+is $d->ndims, 3;
+is +(pdl($d->dims) == pdl(1,2,2))->sumover, 3;
 
-eval '$e = $x->dummy(6,2)';
-ok(!$@, "dummy");
+eval { $e = $x->dummy(6,2) };
+is $@, '', "dummy";
 
-ok(eval '$e->ndims == 7 && ((pdl($e->dims) == pdl(5,5,1,1,1,1,2))->sumover==7)' && !$@);
+is $e->ndims, 7;
+is +(pdl($e->dims) == pdl(5,5,1,1,1,1,2))->sumover, 7;
 
 ##############################
 # Tests of indexND (Nowadays this is just another call to range)
@@ -314,16 +319,16 @@ my ($source, $index, $dest, $z);
 # Basic indexND operation
 $source = 10*xvals(10,10) + yvals(10,10);
 $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
-eval '$x = $source->indexND( $index )';
-ok(!$@);
-ok(eval 'zcheck($x != pdl([23,45],[67,89]))', "eval of zcheck 1");
+eval { $x = $source->indexND( $index ) };
+is $@, '';
+ok(eval { zcheck($x != pdl([23,45],[67,89])) }, "eval of zcheck 1");
 
 # Threaded indexND operation
 $source = 100*xvals(10,10,2)+10*yvals(10,10,2)+zvals(10,10,2);
 $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
-eval '$x = $source->indexND($index)';
-ok(!$@);
-ok(eval 'zcheck($x != pdl([[230,450],[670,890]],[[231,451],[671,891]]))', "eval of zcheck 2");
+eval { $x = $source->indexND($index) };
+is $@, '';
+ok(eval { zcheck($x != pdl([[230,450],[670,890]],[[231,451],[671,891]])) }, "eval of zcheck 2");
 
 
 ##############################
@@ -333,37 +338,37 @@ ok(eval 'zcheck($x != pdl([[230,450],[670,890]],[[231,451],[671,891]]))', "eval 
 $source = 10*xvals(10,10) + yvals(10,10);
 $index = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 
-eval '$dest = $source->range($index);';
-ok(!$@);
-ok(eval 'zcheck($dest != pdl([23,45],[67,89]));', "eval of zcheck 3");
+eval { $dest = $source->range($index); };
+is $@, '';
+ok(eval { zcheck($dest != pdl([23,45],[67,89])); }, "eval of zcheck 3");
 
 # Make a 3x3 range at each index
-eval '$dest = $source->range($index,3);';
-ok(!$@);
+eval { $dest = $source->range($index,3); };
+is $@, '';
 
 # Check that the range has the correct size
 is($dest->ndims, 4, "ndims after range");
 ok(zcheck(pdl($dest->dims) != pdl(2,2,3,3)), "zcheck after range");
 
 #### Check boundary conditions
-eval '$z = $dest->copy;'; # Should throw range-out-of-bounds error
+eval { $z = $dest->copy; }; # Should throw range-out-of-bounds error
 ok($@); # should check actual error message here
 
 ## Truncation
-eval '$z = $source->range($index,3,"t")->copy;';
-ok(!$@);  # Should NOT throw range-out-of-bounds error.
+eval { $z = $source->range($index,3,"t")->copy; };
+is $@, '';  # Should NOT throw range-out-of-bounds error.
 ok(zcheck($z->slice("(1),(1)") != pdl([[89,99,0],[0,0,0],[0,0,0]])));
 
 ## Truncation on one axis, periodic on another; string syntax
-eval '$z = $source->range($index,3,"tp")';
+eval { $z = $source->range($index,3,"tp") };
 ok(zcheck($z->slice("(1),(1)") != pdl([[89,99,0],[80,90,0],[81,91,0]])));
 
 ## Periodic on first axis, extension on another; list syntax
-eval '$z = $source->range($index,3,["e","p"]);';
+eval { $z = $source->range($index,3,["e","p"]); };
 ok(zcheck($z->slice("(1),(1)") != pdl([[89,99,99],[80,90,90],[81,91,91]])));
 
 our $mt;
-eval 'our $mt = which(pdl(0))';
+eval { $mt = which(pdl(0)) };
 ok("$mt" =~ m/^Empty/);
 
 our $dex = pdl(5,4,3);
@@ -383,20 +388,19 @@ $x = pdl(5,5,5,5);
 $z = $x->range($mt);
 ok("$z" eq 'Empty[0]');
 
-$z .= 2;
-ok(1);            # should *not* segfault!
-ok(all($x==5));   # should *not* change $x!
+$z .= 2; # should *not* segfault!
+ok all($x==5), 'empty range .= no mutate';   # should *not* change $x!
 
 ### Check slicing of a null PDL
 
 $x = PDL->null;
 
-eval '$y = $x->slice("")->nelem';
-ok(!$@);
+eval { $y = $x->slice("")->nelem };
+is $@, '', 'null->slice no error';
 ok($y==0);
 
-eval '$y = $x->slice(0)->nelem';
-ok($@ =~ m/out of bounds/);
+eval { $y = $x->slice(0)->nelem };
+like $@, qr/out of bounds/;
 
 for my $start (0, 4, -4, 20, -20) {
 	for my $stop (0, 4, -4, 20, -20) {
