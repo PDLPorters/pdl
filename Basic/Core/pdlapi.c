@@ -109,22 +109,15 @@ pdl *pdl_get_convertedpdl(pdl *old,int type) {
 
 pdl_error pdl_allocdata(pdl *it) {
   pdl_error PDL_err = {0, NULL, 0};
-  PDL_Indx i, nvals=1;
-  for(i=0; i<it->ndims; i++)
-    nvals *= it->dims[i];
-  it->nvals = nvals;
   PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
 	  it->datatype));
   STRLEN len;
-  STRLEN nbytes = ((STRLEN) nvals) * pdl_howbig(it->datatype);
+  STRLEN nbytes = ((STRLEN) it->nvals) * pdl_howbig(it->datatype);
   STRLEN ncurr  = it->datasv ? SvCUR((SV *)it->datasv) : 0;
-  if (ncurr == nbytes) {
-    it->state |= PDL_ALLOCATED;
+  if (ncurr == nbytes)
     return PDL_err;    /* Nothing to be done */
-  }
-  if(it->state & PDL_DONTTOUCHDATA) {
+  if(it->state & PDL_DONTTOUCHDATA)
     return pdl_make_error_simple(PDL_EUSERERROR, "Trying to touch data of an untouchable (mmapped?) pdl");
-  }
   if(it->datasv == NULL)
     it->datasv = newSVpv("",0);
   SV* foo = it->datasv;
