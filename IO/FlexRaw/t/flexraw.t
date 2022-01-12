@@ -12,6 +12,7 @@ use warnings;
 use Test::More;
 use PDL;
 use File::Temp qw(tempdir);
+use File::Spec::Functions;
 use PDL::IO::FlexRaw;
 
 $PDL::debug = 0;
@@ -19,8 +20,7 @@ $PDL::debug = 0;
 # Get a temporary directory and file name, which obviously we'll need for testing
 # saving and reading of data.
 my $tmpdir = tempdir( CLEANUP=>1 );
-my $name = $tmpdir . "/tmp0";
-unlink $name, $name . '.hdr';	# just to be absolutely sure
+my $name = catfile($tmpdir, "tmp0");
 
 # Set up the working filename and make sure we're working with a clean slate:
 

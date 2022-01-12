@@ -11,7 +11,6 @@ use File::Which ();
 my $prog_iter;
 
 (undef, my $data) = tempfile("rawXXXX", SUFFIX=>'_data', TMPDIR=>1);
-$data =~ s/\\/\//g if $^O =~ /MSWin32/;
 my $hdr = $data . '.hdr';
 (my $head = $data) =~ s/_data$//;
 
@@ -23,8 +22,7 @@ my $DEBUG = 0;
 $PDL::Verbose = 0;
 $Verbose |= $PDL::Verbose;
 
-my $exec = $^O =~ /win32/i ? '.exe' : '';
-my $null = $^O =~ /win32/i ? ' 2>nul' : ' 2>/dev/null';
+my $null = ' 2>' . File::Spec->devnull;
 
 my $datalen = length($data);
 eval "use PDL::Slatec";
@@ -162,8 +160,8 @@ sub createData {
     # system with $head as the argument
     #
     if($^O =~ /mswin32/i) {
-      die '$head [' . $head . '] should match /^[A-Z]:\//'
-            unless $head =~ /^[A-Z]:\//;
+      die '$head [' . $head . '] should match /^[A-Z]:/'
+            unless $head =~ /^[A-Z]:/;
       }      
     else {
       die '$head [' . $head . '] must start with a / or ./'
@@ -178,21 +176,21 @@ sub createData {
     print $fh $code;
     close $fh;
 
-    if (-e "$prog$exec") {
-        my $success = unlink "$prog$exec";
+    if (-e "$prog$Config{_exe}") {
+        my $success = unlink "$prog$Config{_exe}";
         if (!$success) {
             #  Antivirus might be holding on to the exec
             #  file so use a different name
             #  Poss path length issues?
             #  See $dalen in 2nd begin block$prog_iter++;
-            warn "Unable to delete $prog$exec, generating new name"
+            warn "Unable to delete $prog$Config{_exe}, generating new name"
               if $Verbose;
             $prog_iter++;
             $prog .= $prog_iter;
         };
     }
 
-    system("$F77 $F77flags -o $prog$exec $file".
+    system("$F77 $F77flags -o $prog$Config{_exe} $file".
 	     (($Verbose || $DEBUG)?'': $null));
     
     unlink $data if -f $data;
@@ -201,7 +199,7 @@ sub createData {
     die "ERROR: code did not create data file $data\n"
       unless -e $data;
 
-    unlink $prog.$exec, $file;
+    unlink $prog.$Config{_exe}, $file;
 
 } # sub: createData()
 

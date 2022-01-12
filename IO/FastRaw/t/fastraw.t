@@ -3,13 +3,14 @@ use warnings;
 use Test::More;
 use PDL::LiteF;
 use File::Temp qw(tempdir);
+use File::Spec::Functions;
+use PDL::IO::FastRaw;
 # PDL::Core::set_debugging(1);
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 my $tmpdir = tempdir( CLEANUP=>1 );
-my $name = $tmpdir . "/tmp0";
-my $header = $tmpdir . "/headerfile" . $$;
-unlink $name, $name . '.hdr', $header;	# just to be absolutely sure
+my $name = catfile($tmpdir, "tmp0");
+my $header = catfile($tmpdir, "headerfile" . $$);
 
 # A function that tells us if two ndarrays are approximately the same
 sub tapprox {
@@ -17,9 +18,6 @@ sub tapprox {
 	my $c = abs($x-$y);
 	return (max($c) < 0.01);
 }
-
-# **TEST 1** make sure FastRaw loads
-BEGIN { use_ok( 'PDL::IO::FastRaw' ); }
 
 # Set up the working filename and make sure we're working with a clean slate:
 
