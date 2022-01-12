@@ -48,7 +48,6 @@ our @EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
 
 use PDL::Doc;
 use Pod::Select;
-use IO::File;
 use Pod::PlainText;
 use Term::ReadKey; #for GetTerminalSize
 
@@ -257,7 +256,7 @@ sub finddoc  {
 
     # print out the matches
 
-    my $out = IO::File->new( "| pod2text | $PDL::Doc::pager" );
+    open my $out, "| pod2text | $PDL::Doc::pager";
     
     if($subfield) {
       if($subfield <= @match) {
@@ -304,7 +303,7 @@ sub finddoc  {
 	   unless ($absfile) {
 	       die "Documentation error: couldn't find absolute path to $relfile\n";
 	   }
-	   my $in = IO::File->new("<$absfile");
+	   open my $in, "<", $absfile;
 	   print $out join("",<$in>);
        } else {
           if(defined $m->[2]{CustomFile}) {
@@ -748,7 +747,7 @@ sub badinfo {
 	    }
 	}
 	if ($pagerstr){
-	    my $out = new IO::File "| pod2text | $PDL::Doc::pager";
+	    open my $out, "| pod2text | $PDL::Doc::pager";
 	    print $out $pagerstr, $noinfostr;
 	} else {
 	    print $noinfostr;

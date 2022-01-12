@@ -20,8 +20,6 @@ use Getopt::Std;
 use Pod::Html;
 use Cwd;
 
-use IO::File; # for hack_links()
-
 $opt_v = 0;
 $opt_s = '';
 
@@ -59,21 +57,18 @@ sub fix_pdl_dot_html ($) {
 ##fixes that. Shamelessly ripped off hack_html().
     my $infile = shift;
     my $outfile = "${infile}.n";
-
-    my $ifh = new IO::File "<$infile"
-	or die "ERROR: Unable to read from <$infile>\n";
-    my $ofh = new IO::File ">$outfile"
-	or die "ERROR: Unable to write to <$outfile>\n";
-
+    open my $ifh, "<", $infile
+	or die "ERROR: Unable to read from <$infile>: $!\n";
+    open my $ofh, ">", $outfile
+	or die "ERROR: Unable to write to <$outfile>: $!\n";
     # assume that links do not break across a line
     while ( <$ifh> ) {
 	# fix the links
 	s{\.\.\/PDL\.html}{PDL.html}g;
 	print $ofh $_;
     }
-    $ifh->close;
-    $ofh->close;
-
+    close $ifh;
+    close $ofh;
     rename $outfile, $infile
 	or die "ERROR: Unable to rename $outfile\n";
 }
@@ -81,44 +76,37 @@ sub fix_pdl_dot_html ($) {
 sub fix_html_path ($) {
     my $infile = shift;
     my $outfile = "${infile}.n";
-
-    my $ifh = new IO::File "<$infile"
-	or die "ERROR: Unable to read from <$infile>\n";
-    my $ofh = new IO::File ">$outfile"
-	or die "ERROR: Unable to write to <$outfile>\n";
-
+    open my $ifh, "<", $infile
+	or die "ERROR: Unable to read from <$infile>: $!\n";
+    open my $ofh, ">", $outfile
+	or die "ERROR: Unable to write to <$outfile>: $!\n";
     # assume that links do not break across a line
     while ( <$ifh> ) {
 	# fix the links
 	s{a href="$strip_path}{a href="$add_path}g;
 	print $ofh $_;
     }
-    $ifh->close;
-    $ofh->close;
-
-    rename $outfile, $infile
-	or die "ERROR: Unable to rename $outfile\n";
+    close $ifh;
+    close $ofh;
+    rename $outfile, $infile or die "ERROR: Unable to rename $outfile\n";
 }
 
 sub fix_pp_inline ($) {
     my $infile = shift;
     my $outfile = "${infile}.n";
-    
-    my $ifh = new IO::File "<$infile"
-	or die "ERROR Unable to read from <$infile>\n";
-    my $ofh = new IO::File ">$outfile"
-	or die "ERROR: Unable to write to <$outfile>\n";
-    
+    open my $ifh, "<", $infile
+	or die "ERROR: Unable to read from <$infile>: $!\n";
+    open my $ofh, ">", $outfile
+	or die "ERROR: Unable to write to <$outfile>: $!\n";
     # assume that links do not break across a line
     while ( <$ifh> ) {
 	#fix the links
 	s|a href="../Inline/Pdlpp.html"|a href="./PP-Inline.html"|g;
 	print $ofh $_;
     }
-    $ifh->close;
-    $ofh->close;
-    rename $outfile, $infile
-	or die "ERROR: Unable to rename $outfile\n";
+    close $ifh;
+    close $ofh;
+    rename $outfile, $infile or die "ERROR: Unable to rename $outfile\n";
 }
 
 ##############################################################

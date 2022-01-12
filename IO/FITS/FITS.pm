@@ -339,8 +339,7 @@ sub PDL::rfits {
   $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
   $file = "uncompress -c $file |" if $file =~ /\.Z$/;
 
-  my $fh = IO::File->new( $file )
-      or barf "FITS file $file not found";
+  open my $fh, $file or barf "FITS file $file not found: $!";
   binmode $fh;
 
   my @extensions;  # This accumulates the list in list context...
@@ -360,17 +359,17 @@ sub PDL::rfits {
    # header.  Skip over the unread data to the next extension...
 
    if( wantarray and !$opt->{data} and @extensions) {
-       while( $fh->read($line,80) && ($line !~ /^XTENSION=/) && !$fh->eof() ) {
-	   $fh->read($line,2880-80);
+       while( read($fh,$line,80) && ($line !~ /^XTENSION=/) && !$fh->eof() ) {
+	   read($fh,$line,2880-80);
        };
        return @extensions 
-	   if($fh->eof());
+	   if(eof $fh);
 
    } else {
-       my $ct = $fh->read($line,80);
+       my $ct = read $fh, $line,80;
        barf "file $file is not in FITS-format:\n$line\n"
 	   if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
-       last hdu if($fh->eof() || !$ct);
+       last hdu if(eof($fh) || !$ct);
    }
 
    $nbytes = 80; # Number of bytes read from this extension (1 line so far)
@@ -399,11 +398,11 @@ sub PDL::rfits {
 
     skipper: while(1) {
       # Move to next record
-      $nbytes += $fh->read($line,2880-80);
-      barf "Unexpected end of FITS file\n" if $fh->eof();
+      $nbytes += read $fh,$line,2880-80;
+      barf "Unexpected end of FITS file\n" if eof $fh;
       # Read start of next record
-      $nbytes += $fh->read($line,80);
-      barf "Unexpected end of FITS file\n" if $fh->eof();
+      $nbytes += read $fh,$line,80;
+      barf "Unexpected end of FITS file\n" if eof $fh;
       # Check if we have found the new extension
       # if not move on
 
@@ -426,11 +425,11 @@ sub PDL::rfits {
      ## and pass them to Astro::FITS::Header.
 
      do {
-       $nbytes += $fh->read($line, 80);
+       $nbytes += read $fh, $line, 80;
        push(@cards,$line);
-     } while(!$fh->eof() && $line !~ m/^END(\s|\000)/);
+     } while(!eof($fh) && $line !~ m/^END(\s|\000)/);
 
-     $nbytes += $fh->read(my $dummy, 2879 - ($nbytes-1)%2880);
+     $nbytes += read $fh, my $dummy, 2879 - ($nbytes-1)%2880;
 
      my($hdr) = Astro::FITS::Header->new(Cards => \@cards);
      my(%hdrhash);
@@ -463,15 +462,15 @@ sub PDL::rfits {
           }
        } # non-blank
        last hdr_legacy if ((defined $name) && $name eq "END");
-       $nbytes += $fh->read($line, 80);
-     } while(!$fh->eof()); }
+       $nbytes += read $fh, $line, 80;
+     } while !eof $fh; }
 
      # Clean up HISTORY card
      $$foo{"HISTORY"} = \@history if $#history >= 0;
    
      # Step to end of header block in file
      my $skip = 2879 - ($nbytes-1)%2880;
-     $fh->read(my $dummy, $skip) if $skip; 
+     read $fh, my $dummy, $skip if $skip;
      $nbytes += $skip;
 
    } # End of legacy header parsing
@@ -524,9 +523,9 @@ sub PDL::rfits {
    #
    push(@extensions,$pdl) if(wantarray);
    $currentext++;
-  } while( wantarray && !$fh->eof() );}  # Repeat if we are in list context
+  } while( wantarray && !eof $fh );}  # Repeat if we are in list context
 
-  $fh->close;
+  close $fh;
   return $pdl if !wantarray;
   ## By default, ditch primary HDU placeholder 
   shift @extensions if ref($extensions[0]) eq 'HASH' and
@@ -620,8 +619,8 @@ sub _rfits_image($$$$) {
   
   # Read the data and pad to the next HDU
   my $rdct = $size * PDL::Core::howbig($pdl->get_datatype);
-  $fh->read( $$dref, $rdct );
-  $fh->read( my $dummy, 2880 - (($rdct-1) % 2880) - 1 );
+  read $fh, $$dref, $rdct;
+  read $fh, my $dummy, 2880 - (($rdct-1) % 2880) - 1;
   $pdl->upd_data();
 
   $pdl->type->bswap->($pdl) if !isbigendian(); # Need to byte swap on little endian machines
@@ -1035,10 +1034,10 @@ sub _rfits_bintable ($$$$) {
 
   print "Reading $n1 bytes of table data and $n2 bytes of heap data....\n"
     if($PDL::verbose);
-  $fh->read($rawtable, $n1);
+  read $fh, $rawtable, $n1;
 
   if($n2) {
-      $fh->read($heap, $n2)
+      read $fh, $heap, $n2;
   } else {
       $heap = which(pdl(0)); # empty PDL
   }
@@ -1630,7 +1629,7 @@ sub wheader {
 	my $hc = $1;
 	return $nbytes unless ref($hdr->{$k}) eq 'ARRAY';
 	foreach my $line (@{$hdr->{$k}}) {
-	    $fh->printf( "$hc %-72s", substr($line,0,72) );
+	    printf $fh "$hc %-72s", substr($line,0,72);
 	    $nbytes += 80;
 	}
 	delete $hdr->{$k};
@@ -1642,23 +1641,22 @@ sub wheader {
 	$hdrk = join("\n",@$hdrk) if ref $hdrk eq 'ARRAY';
 	return $nbytes if ref($hdrk);
 	if ($hdrk eq "") {
-	    $fh->printf( "%-80s", substr($k,0,8) );
+	    printf $fh "%-80s", substr($k,0,8);
 	} else {
-	    $fh->printf( "%-8s= ", substr($k,0,8) );
+	    printf $fh "%-8s= ", substr($k,0,8);
 	    my $com = ( ref $hdr->{COMMENT} eq 'HASH' ) ?
 		$hdr->{COMMENT}{$k} : undef;
 	    if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
 		my $cl=60-($com ? 2 : 0);
 		my $end=' ' x $cl;
 		$end =' /'. $com if($com);
-		$fh->printf( "%20s%-50s", substr($hdrk,0,20),
-			     substr($end, 0, 50) );
+		printf $fh "%20s%-50s", substr($hdrk,0,20), substr($end, 0, 50);
              } elsif ($hdrk eq 'F' or $hdrk eq 'T') {
 		 # Logical flags ?
-		 $fh->printf( "%20s", $hdrk );
+		 printf $fh "%20s", $hdrk;
 		 my $end=' ' x 50;
 		 $end =' /'.$com if($com);
-		 $fh->printf( "%-50s", $end );
+		 printf $fh "%-50s", $end;
 	     } else {
 		 # Handle strings, truncating as necessary
 		 # (doesn't do multicard strings like Astro::FITS::Header does)
@@ -1667,11 +1665,11 @@ sub wheader {
 		 (my $st = $hdrk) =~ s/\'/\'\'/g;
 		 my $sl=length($st)+2;
 		 my $cl=70-$sl-($com ? 2 : 0);
-		 $fh->print( "'$st'" );
+		 print $fh "'$st'";
 		 if (defined $com) {
-		     $fh->printf( " /%-$ {cl}s", substr($com, 0, $cl) );
+		     printf $fh " /%-${cl}s", substr($com, 0, $cl);
 		 } else {
-		     $fh->printf( "%-$ {cl}s", ' ' x $cl );
+		     printf $fh "%-${cl}s", ' ' x $cl;
 		 }
 	     }
 	}
@@ -1734,8 +1732,8 @@ sub PDL::wfits {
   }
 
   ## Open file & prepare to write binary info
-  my $fh = IO::File->new( $file )
-      or barf "Unable to create FITS file $file\n";
+  open my $fh, $file
+      or barf "Unable to create FITS file $file: $!\n";
   binmode $fh;
 
   if($issue_nullhdu) {
@@ -1941,7 +1939,7 @@ sub PDL::wfits {
 		       Astro::FITS::Header::Item->new(Keyword=>'END'));
 	  # Write out all the cards, and note how many bytes for later padding.
 	  my $s = join("",$afhdr->cards);
-	  $fh->print( $s );
+	  print $fh $s;
 	  $nbytes = length $s;
       } else {
 	  my %hdr = %ohdr;
@@ -1953,7 +1951,7 @@ sub PDL::wfits {
 	  $nbytes = wheader($fh, $_, \%hdr, $nbytes)
 	      for sort fits_field_cmp grep !/HISTORY/, keys %hdr;
 	  $nbytes = wheader($fh, 'HISTORY', \%hdr, $nbytes); # Make sure that HISTORY entries come last.
-	  $fh->printf( "%-80s", "END" );
+	  printf $fh "%-80s", "END";
 	  $nbytes += 80;
       }
 
@@ -1961,7 +1959,7 @@ sub PDL::wfits {
       # Pad the header to a legal value and write the rest of the FITS file.
       #
       $nbytes %= 2880;
-      $fh->print( " "x(2880-$nbytes) )
+      print $fh " "x(2880-$nbytes)
 	  if $nbytes != 0; # Fill up HDU
 
       # Write FITS data
@@ -1992,7 +1990,7 @@ sub PDL::wfits {
 	      $buff->inplace->setbadtonan();
 	  }
 	  $buff->type->bswap->($buff) if !isbigendian();
-	  $fh->print( ${$buff->get_dataref} );
+	  print $fh ${$buff->get_dataref};
 	  $off += $BUFFSZ;
       }
       my $buff = $convert->( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
@@ -2002,13 +2000,13 @@ sub PDL::wfits {
       }
 
       $buff->type->bswap->($buff) if !isbigendian();
-      $fh->print( ${$buff->get_dataref} );
+      print $fh ${$buff->get_dataref};
       # Fill HDU and close
       # note that for the data space the fill character is \0 not " "
       #
-      $fh->print( "\0"x(($BUFFSZ - $buff->getdim(0) * $sz)%2880) );
+      print $fh "\0"x(($BUFFSZ - $buff->getdim(0) * $sz)%2880);
   } # end of output loop
-  $fh->close();
+  close $fh;
   1;
 }
 
@@ -2457,7 +2455,7 @@ sub _print_to_fits ($$$) {
     my $blank = shift;
 
     my $len = ((length $data) - 1) % 2880 + 1;
-    $fh->print( $data . ($blank x (2880-$len)) );
+    print $fh $data . ($blank x (2880-$len));
 }
   
 {

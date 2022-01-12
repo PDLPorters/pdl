@@ -1232,15 +1232,16 @@ pp_addpm(<<'EOPM');
 
 sub rasc {PDL->rasc(@_)}
 sub PDL::rasc {
-  use IO::File;
   my ($pdl, $file, $num) = @_;
   $num = -1 unless defined $num;
-  my $fi = $file;
-  my $is_openhandle = defined fileno $fi ? 1 : 0;
-  unless ($is_openhandle) {
+  my $is_openhandle = defined fileno $file;
+  my $fi;
+  if ($is_openhandle) {
+    $fi = $file;
+  } else {
     barf 'usage: rasc $pdl, "filename"|FILEHANDLE, [$num_to_read]'
        if !defined $file || ref $file;
-    $fi = new IO::File "<$file" or barf "Can't open $file";
+    open $fi, "<", $file or barf "Can't open $file";
   }
   $pdl->_rasc(my $ierr=null,$num,$fi);
   close $fi unless $is_openhandle;

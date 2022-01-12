@@ -410,7 +410,6 @@ alternatives.
 
 package PDL::Doc;
 use PDL::Core '';
-use IO::File;  # for file handles
 use File::Basename;
 use PDL::Doc::Config;
 
@@ -780,7 +779,7 @@ sub funcdocs {
   my ($this,$func,$module,$fout) = @_;
   my $hash = $this->ensuredb;
   barf "unknown function '$func'" unless defined($hash->{$func});
-  barf "funcdocs now requires 3 arguments" if UNIVERSAL::isa($module,'IO::File');
+  barf "funcdocs now requires 3 arguments" if defined fileno $module;
   my $file = $hash->{$func}->{$module}->{File};
   my $dbf = $hash->{$func}->{$module}->{Dbfile};
   if (!File::Spec->file_name_is_absolute($file) && $dbf) {
@@ -797,16 +796,12 @@ sub funcdocs_fromfile {
   my ($func,$file) = @_;
   barf "can't find file '$file'" unless -f $file;
   local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
-  open my $in, '<', $file;
-  my $out = ($#_ > 1 && defined($_[2])) ? $_[2] :
-    new IO::File "| pod2text | $PDL::Doc::pager";
-  barf "can't open file $file" unless $in;
+  open my $in, '<', $file or barf "can't open file $file";
+  my $out = $_[2];
+  open $out, "| pod2text | $PDL::Doc::pager" if !defined $out;
   barf "can't open output handle" unless $out;
   getfuncdocs($func,$in,$out);
-
-  if (ref $out eq 'GLOB') {
-  	print $out "Docs from $file\n\n"; } else {
-	$out->print("Docs from $file\n\n"); }
+  print $out "Docs from $file\n\n";
 }
 
 sub extrdoc {

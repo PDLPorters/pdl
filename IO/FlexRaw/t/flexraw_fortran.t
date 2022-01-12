@@ -59,19 +59,17 @@ sub byte4swap {
     my ($ofile) = $file.'~';
     my ($word);
 
-    my $ifh = IO::File->new( "<$file" )
-      or die "Can't open $file to read";
-    my $ofh = IO::File->new( ">$ofile" )
-      or die "Can't open $ofile to write";
+    open my $ifh, "<", $file or die "Can't open $file to read: $!";
+    open my $ofh, ">", $ofile or die "Can't open $ofile to write: $!";
     binmode $ifh;
     binmode $ofh;
-    while ( !$ifh->eof ) {
-	$ifh->read( $word, 4 );
+    while ( !eof $ifh ) {
+	read $ifh, $word, 4;
 	$word = pack 'c4',reverse unpack 'c4',$word;
-	$ofh->print( $word );
+	print $ofh $word;
     }
-    $ofh->close;
-    $ifh->close;
+    close $ofh;
+    close $ifh;
     rename $ofile, $file;
 }
 
@@ -80,16 +78,14 @@ sub byte8swap {
     my ($ofile) = $file.'~';
     my ($word);
 
-    my $ifh = IO::File->new( "<$file" )
-      or die "Can't open $file to read";
-    my $ofh = IO::File->new( ">$ofile" )
-      or die "Can't open $ofile to write";
+    open my $ifh, "<", $file or die "Can't open $file to read: $!";
+    open my $ofh, ">", $ofile or die "Can't open $ofile to write: $!";
     binmode $ifh;
     binmode $ofh;
     while ( !$ifh->eof ) {
-	$ifh->read( $word, 8 );
+	read $ifh, $word, 8;
 	$word = pack 'c8',reverse unpack 'c8',$word;
-	$ofh->print( $word );
+	print $ofh $word;
     }
     $ofh->close;
     $ifh->close;
@@ -177,10 +173,10 @@ sub createData {
     my $file = ${head} . '.f';
     my $prog = $head;
 
-    my $fh = IO::File->new( "> $file" )
-      or die "ERROR: Unable to write F77 code to $file\n";
-    $fh->print( $code );
-    $fh->close;
+    open my $fh, ">", $file
+      or die "ERROR: Unable to write F77 code to $file: $!\n";
+    print $fh $code;
+    close $fh;
 
     if (-e "$prog$exec") {
         my $success = unlink "$prog$exec";
