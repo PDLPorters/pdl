@@ -26,7 +26,6 @@ use strict;
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::FlexRaw;
-use FileHandle;
 use Config;
 
 my $verbose = 1;  # for diagnostics
@@ -138,8 +137,8 @@ sub _read_envihdr {
    }
 
    # open hdr file
-   my $hdrfile = FileHandle->new("$hdrname")
-      or barf "_read_envihdr: couldn't open '$hdrname' for reading";
+   open my $hdrfile, '<', $hdrname
+      or barf "_read_envihdr: couldn't open '$hdrname' for reading: $!";
    binmode $hdrfile;
 
    if ( eof($hdrfile) ) {
@@ -231,7 +230,6 @@ sub _read_envihdr {
    }
    # close hdr file
    close $hdrfile;
-
    return $hdr;
 }
 

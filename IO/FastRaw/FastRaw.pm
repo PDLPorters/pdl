@@ -320,7 +320,6 @@ $VERSION = eval $VERSION;
 require Exporter;
 use PDL::Core '';
 use PDL::Exporter;
-use FileHandle;
 
 our @ISA = qw/PDL::Exporter/;
 our @EXPORT_OK = qw/writefraw readfraw mapfraw maptextfraw/;
@@ -336,8 +335,8 @@ sub maptextfraw  {PDL->maptextfraw(@_)}
 sub _read_frawhdr {
 	my($name,$opts) = @_;
 	my $hname = $opts->{Header} || "$name.hdr";
-	my $h = new FileHandle "$hname"
-	 or barf "Couldn't open '$hname' for reading";
+	open my $h, '<', $hname
+	 or barf "Couldn't open '$hname' for reading: $!";
 	chomp(my $tid = <$h>);
 	chomp(my $ndims = <$h>);
 	chomp(my $str = <$h>); if(!defined $str) {barf("Format error in '$hname'");}
@@ -355,8 +354,8 @@ sub _read_frawhdr {
 sub _writefrawhdr {
 	my($pdl,$name,$opts) = @_;
 	my $hname = $opts->{Header} || "$name.hdr";
-	my $h = new FileHandle ">$hname"
-	 or barf "Couldn't open '$hname' for writing";
+	open my $h, '>', $hname
+	 or barf "Couldn't open '$hname' for writing: $!";
 	print $h map {"$_\n"} ($pdl->get_datatype,
 		$pdl->getndims, (join ' ',$pdl->dims));
 }
@@ -364,8 +363,8 @@ sub _writefrawhdr {
 sub PDL::writefraw {
 	my($pdl,$name,$opts) = @_;
 	_writefrawhdr($pdl,$name,$opts);
-	my $d = new FileHandle ">$name"
-	 or barf "Couldn't open '$name' for writing";
+	open my $d, '>', $name
+	 or barf "Couldn't open '$name' for writing: $!";
 	binmode $d;
 	print $d ${$pdl->get_dataref};
 }
@@ -373,7 +372,7 @@ sub PDL::writefraw {
 sub PDL::readfraw {
   my $class = shift;
   my($name,$opts) = @_;
-  my $d = new FileHandle $name or barf "Couldn't open '$name' for reading";
+  open my $d, '<', $name or barf "Couldn't open '$name' for reading: $!";
   binmode $d;
   my $hdr = _read_frawhdr($name,$opts);
   my $pdl = $class->zeroes(PDL::Type->new($hdr->{Type}), @{$hdr->{Dims}});
@@ -381,7 +380,7 @@ sub PDL::readfraw {
   my $index = 0;
   my $data;
   my $retlen;
-  while (($retlen = $d->sysread($data, $len)) != 0) {
+  while (($retlen = sysread $d, $data, $len) != 0) {
     substr(${$pdl->get_dataref},$index,$len) = $data;
     $index += $retlen;
     $len -= $retlen;

@@ -1,18 +1,10 @@
-
-use PDL::LiteF;
-# PDL::Core::set_debugging(1);
-kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
 use strict;
 use warnings;
-
-# Load the testing harness and PDL
-use Test::More tests => 10;
-use PDL;
-
-# Get a temporary directory and file name, which obviously we'll need for testing
-# saving and reading of data.
+use Test::More;
+use PDL::LiteF;
 use File::Temp qw(tempdir);
+# PDL::Core::set_debugging(1);
+kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 my $tmpdir = tempdir( CLEANUP=>1 );
 my $name = $tmpdir . "/tmp0";
@@ -115,3 +107,5 @@ SKIP:
 
 # Clean things up for exit
 unlink $name, $header;
+
+done_testing;

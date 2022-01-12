@@ -17,7 +17,6 @@ sub tooogl {
 }
 
 package PDL::Graphics::TriD::GL::Window;
-use FileHandle;
 
 sub new {my($type) = @_;
    my($this) = bless {},$type;
@@ -26,10 +25,10 @@ sub new {my($type) = @_;
 sub update_list {
    local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
    my($this) = @_;
-   my $fh = new FileHandle("|togeomview");
+   open my $fh, "|", "togeomview";
    my $str = join "\n",map {$_->tooogl()} (@{$this->{Objects}}) ;
    print $str;
-   $fh->print($str);
+   print $fh $str;
 }
 
 sub twiddle {

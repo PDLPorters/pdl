@@ -338,7 +338,6 @@ use strict;
 use warnings;
 use PDL;
 use Exporter;
-use FileHandle;
 use PDL::Types ':All';
 use PDL::IO::Misc qw(bswap4);
 
@@ -363,8 +362,8 @@ our $writeflexhdr //= 0;
 
 sub _read_flexhdr {
     my ($hname) = @_;
-    my $hfile = new FileHandle "$hname"
-	or barf "Couldn't open '$hname' for reading";
+    open my $hfile, $hname
+	or barf "Couldn't open '$hname' for reading: $!";
     binmode $hfile;
     my ($newfile) = 1;
     my ($tid, @str);
@@ -537,8 +536,8 @@ sub readflex {
 	  }
 	}
 	my ($size) = (stat $name)[7];
-	$d = new FileHandle $data
-	    or barf "Couldn't open '$data' for reading";
+	open $d, $data
+	    or barf "Couldn't open '$data' for reading: $!";
 	binmode $d;
 	$h = _read_flexhdr("$name.hdr")
 	    unless $h;
@@ -796,8 +795,8 @@ sub writeflex {
       barf $usage if ref $name;
       $isname = 1;
       my $modename = ($name =~ /^[+]?[><|]/) ? $name : ">$name";
-      $d = new FileHandle $modename
-         or barf "Couldn't open '$name' for writing";
+      open $d, $modename
+         or barf "Couldn't open '$name' for writing: $!";
       binmode $d;
    }
    foreach my $pdl (@_) {
@@ -827,8 +826,8 @@ sub writeflexhdr {
     barf 'Usage writeflex("filename", $hdr)' if $#_!=1 || !ref $_[1];
     my($name) = shift; my ($hdr) = shift;
     my $hname = "$name.hdr";
-    my $h = new FileHandle ">$hname"
-	or barf "Couldn't open '$hname' for writing";
+    open my $h, '>', $hname
+        or barf "Couldn't open '$hname' for writing: $!";
     binmode $h;
     print $h
 	"# Output from PDL::IO::writeflex, data in $name\n";
