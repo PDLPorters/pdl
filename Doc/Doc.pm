@@ -679,7 +679,7 @@ sub scan {
   # Handle RPM etc. case where we are building away from the final
   # location. Alright it's a hack - KGB
   my $file2 = $file;
-  $file2 =~ s/^$ENV{BUILDROOTPREFIX}// if $ENV{BUILDROOTPREFIX} ne "";
+  $file2 =~ s/^$ENV{BUILDROOTPREFIX}// if $ENV{BUILDROOTPREFIX};
 
   my $parser = new PDL::PodParser;
   $parser->{verbose} = $verbose;
@@ -728,12 +728,12 @@ sub scan {
        ($name,$does) = (undef,undef) unless $does =~ /shell|script/i;
      }
    }
-   $does = 'Hmmm ????' if $does =~ /^\s*$/;
+   $does = 'Hmmm ????' if $does and $does =~ /^\s*$/;
    my $type = ($file =~ /\.pod$/ ? 
 	       ($does =~ /shell|script/i && $name =~ /^[a-z][a-z0-9]*$/) ? 'Script:' 
 	       : 'Manual:'
 	       : 'Module:');
-   $hash->{$name}->{$name} = {Ref=>"$type $does",File=>$file2} if $name !~ /^\s*$/;
+   $hash->{$name}{$name} = {Ref=>"$type $does",File=>$file2} if $name and $name !~ /^\s*$/;
    return $n;
 }
 
