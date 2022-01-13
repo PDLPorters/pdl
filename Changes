@@ -1,3 +1,5 @@
+- add pdl.nbytes
+
 2.067 2022-01-13
 - remove PDL.grow from API
 - remove $PDL::BIGPDL check for 1GB data

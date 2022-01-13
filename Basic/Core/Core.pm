@@ -3924,7 +3924,7 @@ sub PDL::set_data_by_file_map {
       if ($PDL::debug) {
          printf STDERR "set_data_by_file_map: length \${\$pdl_dataref} is %d.\n", length ${$pdl_dataref};
       }
-      $pdl->set_donttouchdata;
+      $pdl->set_donttouchdata($len);
 
    } else {
 

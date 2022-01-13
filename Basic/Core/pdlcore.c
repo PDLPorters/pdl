@@ -40,6 +40,7 @@ pdl_error pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
    * and just has to be larger than the largest datatype.   */
   ret->datasv = newSVpvn("                                ",datasize);
   ret->data = SvPV_nolen((SV *)ret->datasv);
+  ret->nbytes = datasize;
   /* Refcnt should be 1 already... */
   /* Make the whole pdl mortal so destruction happens at the right time.
    * If there are dangling references, pdlapi.c knows not to actually

@@ -111,8 +111,8 @@ pdl_error pdl_allocdata(pdl *it) {
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
 	  it->datatype));
-  STRLEN nbytes = ((STRLEN) it->nvals) * pdl_howbig(it->datatype);
-  STRLEN ncurr  = it->datasv ? SvCUR((SV *)it->datasv) : 0;
+  PDL_Indx nbytes = it->nvals * pdl_howbig(it->datatype);
+  PDL_Indx ncurr  = it->nbytes;
   if (ncurr == nbytes)
     return PDL_err;    /* Nothing to be done */
   if(it->state & PDL_DONTTOUCHDATA)
@@ -121,9 +121,10 @@ pdl_error pdl_allocdata(pdl *it) {
     it->datasv = newSVpv("",0);
   SV* foo = it->datasv;
   (void)SvGROW ( foo, nbytes );
-  SvCUR_set( foo, nbytes );
+  SvCUR_set( foo, (STRLEN) nbytes );
   it->data = (void *) SvPV_nolen( foo );
   if (nbytes > ncurr) memset(it->data + ncurr, 0, nbytes - ncurr);
+  it->nbytes = nbytes;
   it->state |= PDL_ALLOCATED;
   PDLDEBUG_f(pdl_dump(it));
   return PDL_err;
@@ -144,7 +145,7 @@ pdl* pdl_pdlnew() {
      it->has_badvalue = 0;
      it->state = PDL_NOMYDIMS;
      it->dims = it->def_dims;
-     it->nvals = it->dims[0] = 0;
+     it->nbytes = it->nvals = it->dims[0] = 0;
      it->dimincs = it->def_dimincs;
      it->dimincs[0] = 1;
      it->nthreadids = 1;

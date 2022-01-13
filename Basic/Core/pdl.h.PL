@@ -525,7 +525,8 @@ struct pdl {
    void *data;            /* Pointer to actual data (in SV), or NULL if we have no data      */
    PDL_Anyval badvalue; /* BAD value is stored as a PDL_Anyval for portability */
    int has_badvalue;     /* whether this pdl has non-default badval */
-   PDL_Indx nvals; /* Actual size of data (not quite nelem in case of dummy) */
+   PDL_Indx nvals; /* Real number of elements (not quite nelem in case of dummy) */
+   PDL_Indx nbytes; /* number of bytes allocated in data */
    pdl_datatypes datatype; /* One of the usual suspects (PDL_L, PDL_D, etc.) */
    PDL_Indx   *dims;      /* Array of data dimensions - could point below or to an allocated array */
    PDL_Indx   *dimincs;   /* Array of data default increments, aka strides through memory for each dim (0 for dummies) */

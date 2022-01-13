@@ -397,7 +397,7 @@ $x = PDL->null;
 
 eval { $y = $x->slice("")->nelem };
 is $@, '', 'null->slice no error';
-ok($y==0);
+is $y, 0;
 
 eval { $y = $x->slice(0)->nelem };
 like $@, qr/out of bounds/;

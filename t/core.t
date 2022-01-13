@@ -467,8 +467,8 @@ my @children = $tp->children;
 is ${$children[0]}, $$slice, 'correct child ndarray';
 
 my $notouch = sequence(4);
-$notouch->set_donttouchdata;
-eval { $notouch->setdims([2,2]) };
+$notouch->set_donttouchdata(4 * PDL::Core::howbig($notouch->get_datatype));
+eval { $notouch->setdims([2,2]); $notouch->make_physical; };
 is $@, '', 'setdims to same total size of set_donttouchdata should be fine';
 eval { $notouch->setdims([3,2]); $notouch->make_physical; };
 isnt $@, '', 'setdims/make_physical to different size of set_donttouchdata should fail';

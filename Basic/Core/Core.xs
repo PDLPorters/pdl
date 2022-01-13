@@ -95,10 +95,12 @@ address(self)
     RETVAL
 
 int
-set_donttouchdata(it)
+set_donttouchdata(it,size)
       pdl *it
+      IV size
       CODE:
             it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
+            it->nbytes = size;
             RETVAL = 1;
       OUTPUT:
             RETVAL
