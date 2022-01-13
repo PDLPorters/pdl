@@ -97,4 +97,11 @@ is($a1->at(1,0), 1, "xvals 1,0 == 1");
 is($a1->at(2,0), 2, "xvals 2,0 == 2");
 is($a1->at(1,1), 1, "xvals 1,1 == 1");
 
+# sequence as instance method
+my $seq_src = pdl(indx, [9,8,7]);
+my $seq_dst = $seq_src->sequence;
+is $seq_dst->type, $seq_src->type, 'sequence as instance-method should maintain type';
+is_deeply [$seq_dst->dims], [$seq_src->dims], "sequence as instance-method should maintain dims";
+is_deeply [$seq_dst->list], [0..($seq_src->nelem-1)], "sequence as instance-method should enumerate all elements";
+
 done_testing;

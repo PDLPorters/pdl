@@ -501,6 +501,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 sub sequence { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->sequence : PDL->sequence(@_) }
 sub PDL::sequence {
     my $type_given = grep +(ref($_[$_])||'') eq 'PDL::Type', 0..1;
+    $type_given ||= ref($_[0]) && UNIVERSAL::isa($_[0], 'PDL'); # instance method
     my $pdl = &PDL::Core::_construct;
     my $bar = $pdl->clump(-1)->inplace;
     axisvals2($bar,0,$type_given);
