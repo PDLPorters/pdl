@@ -1,5 +1,6 @@
 - remove PDL.grow from API
 - remove $PDL::BIGPDL check for 1GB data
+- fix 2.064 regression in $pdl->sequence - thanks @moocow-the-bovine
 
 2.066 2022-01-10
 - re-release without erroneous OpenGL::GLUT requires dep
