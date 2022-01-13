@@ -27,8 +27,6 @@ my $null = ' 2>' . File::Spec->devnull;
 my $datalen = length($data);
 eval "use PDL::Slatec";
 plan skip_all => "Skipped tests as no Slatec" if $@;
-plan skip_all => "Skipped tests for 64 bit architecture: $1"
-  if $Config{archname} =~ /(x86_64|ia64)/;
 plan skip_all => "temp file path too long for f77 ($datalen chars), skipping all tests"
   if $datalen > 70;
 eval "use ExtUtils::F77";
