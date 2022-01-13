@@ -319,7 +319,7 @@ $text .= "\n" . ::coretarget($self);
 my $coretest = join ' ', map File::Spec->catfile('t', $_.'.t'), qw(
   01-pptest autoload bad basic bool clump config constructor core croak lvalue
   math matrix matrixops nat_complex ops-bitwise ops pdl_from_string
-  pp_croaking pp_line_numbers primitive pthread reduce
+  pdlchar pp_croaking pp_line_numbers primitive pthread reduce
   slice subclass thread thread_def ufunc
 );
 $text .= <<EOF;
