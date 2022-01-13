@@ -16,7 +16,7 @@ my $x = long(2 + ones(2,2));
 
 my $y = func($x);
 
-ok( (sum($y) == 4*29), 'Check autoload of func.pdl' );
+ok sum($y) == 4*29, 'Check autoload of func.pdl' or diag "got=$y";
 
 #check that tilde expansion works (not applicable on MS Windows)
 SKIP: {
