@@ -1,7 +1,7 @@
 #include "FCN.h"
 
 SV* mnfunname;
-int ene;
+PDL_Indx ene;
 
 #define PDL_FCN_SETUP(pvar, pdata) \
   pdl* pvar = PDL->pdlnew(); \
@@ -13,13 +13,13 @@ int ene;
   pvar->data = (void *) pdata; \
   pvar->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
 
-void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* futil){
+void FCN(PDL_Indx* npar,double* grad,double* fval,double* xval,int* iflag,double* futil){
   dSP;
   ENTER;
   SAVETMPS;
 
   PDL_Indx ndims = 1, i;
-  PDL_Indx pdims[] = { (PDL_Indx) ene };
+  PDL_Indx pdims[] = { ene };
 
   PDL_FCN_SETUP(pgrad, grad)
   PDL_FCN_SETUP(pxval, xval)

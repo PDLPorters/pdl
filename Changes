@@ -1,3 +1,5 @@
+- Minuit 64-bit safe
+
 2.068 2022-01-14
 - add pdl.nbytes
 - specify SByte as explicitly "signed" as C99 allows unsigned if not say
