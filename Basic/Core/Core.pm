@@ -1209,7 +1209,7 @@ sub PDL::new {
       } else {
          $new->setdims([]);
          ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );
-         $new->upd_data();
+         $new->upd_data;
       }
    }
    elsif (blessed($value)) { # Object

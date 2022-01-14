@@ -43,7 +43,6 @@ VAFF_IO(writebackdata_vaffine, X)
 
 pdl_error pdl_converttype( pdl* a, int targtype ) {
     pdl_error PDL_err = {0, NULL, 0};
-    void* b;     /* Scratch data ptr */
     PDLDEBUG_f(printf("pdl_converttype %p, %d, %d\n", (void*)a, a->datatype,
 	targtype));
     if(a->state & PDL_DONTTOUCHDATA)
@@ -53,17 +52,13 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
     if (intype == targtype)
        return PDL_err;
 
-    int diffsize = pdl_howbig(targtype) != pdl_howbig(a->datatype);
-
     STRLEN nbytes = a->nvals * pdl_howbig(targtype); /* Size of converted data */
+    STRLEN ncurr = a->nvals * pdl_howbig(intype);
+    char diffsize = ncurr != nbytes;
 
-    if (diffsize) {
-       b = a->data;                      /* pointer to old data */
-       a->data     = pdl_smalloc(nbytes); /* Space for changed data */
-    }
-    else{
-       b = a->data; /* In place */
-    }
+    void *b = a->data; /* pointer to old data */
+    if (diffsize)
+       a->data = pdl_smalloc(nbytes); /* Space for changed data */
 
 #define THIS_ISBAD(from_badval_isnan, from_badval, from_val) \
   ((from_badval_isnan) \
@@ -96,9 +91,8 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 
     /* Store new data */
     if (diffsize) {
-       SV *bar = a->datasv;
-       sv_setpvn( bar, (char*) a->data, nbytes );
-       a->data = (void*) SvPV_nolen(bar);
+      sv_setpvn((SV*) a->datasv, (char*) a->data, nbytes);
+      a->data = SvPV_nolen((SV*) a->datasv);
     }
 
     a->datatype = targtype;
