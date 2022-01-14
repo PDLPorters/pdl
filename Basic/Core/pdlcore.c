@@ -34,13 +34,12 @@ size_t pdl_howbig (int datatype) {
 /* Make a scratch dataspace for a scalar pdl */
 pdl_error pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
   pdl_error PDL_err = {0, NULL, 0};
-  size_t datasize = pdl_howbig(ret->datatype = data.type);
-  PDLDEBUG_f(printf("pdl_makescratchhash size=%zd type=%d val=", datasize, data.type); pdl_dump_anyval(data); printf("\n"););
-  /* Create a string SV of apropriate size.  The string is arbitrary
-   * and just has to be larger than the largest datatype.   */
-  ret->datasv = newSVpvn("                                ",datasize);
-  ret->data = SvPV_nolen((SV *)ret->datasv);
-  ret->nbytes = datasize;
+  PDLDEBUG_f(printf("pdl_makescratchhash type=%d val=", data.type); pdl_dump_anyval(data); printf("\n"););
+  ret->datatype = data.type;
+  ret->ndims = 0; pdl_resize_defaultincs(ret);
+  PDL_RETERROR(PDL_err, pdl_allocdata(ret));
+  ret->ndims = 1; ret->dims[0] = 0; pdl_resize_defaultincs(ret);
+  ret->state &= ~PDL_ALLOCATED;
   /* Refcnt should be 1 already... */
   /* Make the whole pdl mortal so destruction happens at the right time.
    * If there are dangling references, pdlapi.c knows not to actually
