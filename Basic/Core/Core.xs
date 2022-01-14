@@ -556,6 +556,14 @@ set_datatype(a,datatype)
    CODE:
      pdl_barf_if_error(pdl_set_datatype(a, datatype));
 
+int
+get_datatype(self)
+	pdl *self
+	CODE:
+	RETVAL = self->datatype;
+	OUTPUT:
+	RETVAL
+
 pdl *
 pdl_sever(src)
 	pdl *src;
@@ -612,14 +620,6 @@ get_dataref(self)
 	if (!self->datasv)
 	  pdl_pdl_barf("Tried to get_dataref but datasv NULL after make_physical");
 	RETVAL = (newRV(self->datasv));
-	OUTPUT:
-	RETVAL
-
-int
-get_datatype(self)
-	pdl *self
-	CODE:
-	RETVAL = self->datatype;
 	OUTPUT:
 	RETVAL
 
