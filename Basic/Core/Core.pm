@@ -2571,8 +2571,8 @@ sub PDL::reshape{
     my @dims = grep defined, @_[1..$#_];
     for my $dim(@dims) { barf "reshape: invalid dim size '$dim'" if $dim < 0 }
     @dims = grep($_ != 1, $pdl->dims) if @dims == 0; # get rid of dims of size 1
-    $pdl->setdims([@dims]);
-    $pdl->upd_data;
+    $pdl->setdims(\@dims);
+    $pdl->make_physical;
     if ($pdl->nelem > $nelem) {
 	my $tmp=$pdl->clump(-1)->slice("$nelem:-1");
 	$tmp .= 0;
