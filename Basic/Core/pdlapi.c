@@ -98,8 +98,8 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 }
 
 pdl *pdl_get_convertedpdl(pdl *old,int type) {
-	if(old->datatype == type) return old;
 	PDLDEBUG_f(printf("pdl_get_convertedpdl\n"));
+	if(old->datatype == type) return old;
 	pdl *it = pdl_null();
 	if (!it) return it;
 	pdl_error PDL_err = pdl_converttypei_new(old,it,type);
