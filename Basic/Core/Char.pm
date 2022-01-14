@@ -1,10 +1,11 @@
 package PDL::Char;
 
-@ISA = qw (PDL);
-use overload ("\"\""   =>  \&PDL::Char::string);
 use strict;
 use warnings;
-use vars ('$level', '@dims'); # Global Vars used
+our @ISA = qw (PDL);
+use overload '""' => \&PDL::Char::string;
+
+sub import {} # override the PDL one to avoid the big import list
 
 =head1 NAME
 
@@ -79,24 +80,23 @@ sub new {
   my $self  = PDL->initialize();
   $self->set_datatype($ptype);
   $value = 0 if !defined($value);
-  $level = 0; @dims = (); # package vars
   my $maxlength;      # max length seen for all character strings
   my $samelen	= 1;  # Flag = 1 if all character strings are the same length
 
   # 1st Pass thru the perl array structure, assume all strings the same length
-  my $str = _rcharpack($value,\$maxlength,\$samelen);
+  my @dims;
+  my $str = _rcharpack($value,\$maxlength,\$samelen,0,\@dims);
   unless( $samelen){  # Strings weren't the same length, go thru again and null pad to
 	      	     # the max length.
-	$str = _rcharpack2($value,$maxlength);
+	$str = _rcharpack2($value,$maxlength,0,\@dims);
   }
   $self->setdims([reverse @dims]);
   ${$self->get_dataref} = $str;
   $self->upd_data();
   return bless $self, $type;
 }
-				
+
 # Take an N-D perl array of strings and pack it into a single string, 
-# updating the $level and @dims package vars on the way.  
 # Used by the 'char' constructor
 #
 #  References supplied so $maxlength and $samelen are updated along the way as well.
@@ -107,26 +107,24 @@ sub new {
 sub _rcharpack {
 
   my $w = shift;		     # Input string
-  my ($maxlenref, $samelenref) = @_; # reference to $maxlength, $samelen
+  my ($maxlenref, $samelenref, $level, $dims) = @_; # reference to $maxlength, $samelen
 
   my ($ret,$type);
   
   $ret = "";
   if (ref($w) eq "ARRAY") {
 
-    PDL::Core::barf('Array is not rectangular') if (defined($dims[$level]) and 
-					$dims[$level] != scalar(@$w));
-    $dims[$level] = scalar (@$w);
+    PDL::Core::barf('Array is not rectangular') if (defined($dims->[$level]) and
+					$dims->[$level] != scalar(@$w));
+    $dims->[$level] = scalar (@$w);
     $level++;
     
     $type = ref($$w[0]);
     for(@$w) {
       PDL::Core::barf('Array is not rectangular') unless $type eq ref($_); # Equal types
-      $ret .= _rcharpack($_,$maxlenref, $samelenref);
+      $ret .= _rcharpack($_,$maxlenref, $samelenref, $level, $dims);
     }
-    
-    $level--;
-    
+
   }elsif (ref(\$w) eq "SCALAR") { 
     my $len = length($w);
 
@@ -135,7 +133,7 @@ sub _rcharpack {
     # Save the max length:
     $$maxlenref = $len if( !defined($$maxlenref) || $len > $$maxlenref); # see if this is the max length seen so far
 
-    $dims[$level] = $len;
+    $dims->[$level] = $len;
     $ret = $w;
     
   }else{
@@ -154,7 +152,7 @@ sub _rcharpack {
 sub _rcharpack2 {
 
   my $w = shift;		  # Input string
-  my ($maxlen) = @_; 		  # Length to pad strings to
+  my ($maxlen, $level, $dims) = @_; 		  # Length to pad strings to
 
   my ($ret,$type);
   
@@ -163,20 +161,18 @@ sub _rcharpack2 {
 
     #  Checks not needed the second time thru (removed)
 
-    $dims[$level] = scalar (@$w);
+    $dims->[$level] = scalar (@$w);
     $level++;
     
     $type = ref($$w[0]);
     for(@$w) {
-      $ret .= _rcharpack2($_,$maxlen);
+      $ret .= _rcharpack2($_,$maxlen,$level,$dims);
     }
-    
-    $level--;
     
   }elsif (ref(\$w) eq "SCALAR") { 
     my $len = length($w);
 
-    $dims[$level] = $maxlen;
+    $dims->[$level] = $maxlen;
     $ret = $w.("\00" x ($maxlen - $len));
   }
   return $ret;

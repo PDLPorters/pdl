@@ -1,9 +1,7 @@
-#!/bin/perl -w
-
 ## Test of PDL::Char subclass -- treating byte PDLs as matrices of fixed strings
 
 use Test::More;
-use PDL;
+use PDL::LiteF;
 use PDL::Char;
 use strict;
 use warnings;
