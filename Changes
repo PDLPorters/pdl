@@ -1,4 +1,5 @@
 - add pdl.nbytes
+- specify SByte as explicitly "signed" as C99 allows unsigned if not say
 
 2.067 2022-01-13
 - remove PDL.grow from API
