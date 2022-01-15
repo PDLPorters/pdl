@@ -13,7 +13,7 @@ PDL_Indx ene;
   pvar->data = (void *) pdata; \
   pvar->state |= PDL_ALLOCATED | PDL_DONTTOUCHDATA;
 
-void FCN(PDL_Indx* npar,double* grad,double* fval,double* xval,int* iflag,double* futil){
+void FCN(PDL_LongLong* npar,double* grad,double* fval,double* xval,int* iflag,double* futil){
   dSP;
   ENTER;
   SAVETMPS;

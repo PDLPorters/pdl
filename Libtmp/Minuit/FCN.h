@@ -26,17 +26,17 @@ extern Core *PDL;
 extern SV* mnfunname;
 extern PDL_Indx ene;
 
-extern void MNINIT(PDL_Indx*,PDL_Indx*,PDL_Indx*);
+extern void MNINIT(PDL_LongLong*,PDL_LongLong*,PDL_LongLong*);
 extern void MNSETI(char*,PDL_Indx);
-extern void MNPARM(PDL_Indx*,char*,double*,double*,double*,double*,PDL_Indx*,PDL_Indx);
-extern void MNEXCM(void* f,char*,double*,PDL_Indx*,PDL_Indx*,double* futil,PDL_Indx);
-extern void MNPOUT(PDL_Indx*,char*,double*,double*,double*,double*,PDL_Indx*,PDL_Indx);
-extern void MNSTAT(double*,double*,double*,PDL_Indx*,PDL_Indx*,PDL_Indx*);
-extern void MNEMAT(double*,PDL_Indx*); /* Matrix here! */
-extern void MNERRS(PDL_Indx*,double*,double*,double*,double*);
-extern void MNCONT(void* f,PDL_Indx*,PDL_Indx*,PDL_Indx*,double*,double*,PDL_Indx*,double* futil);
+extern void MNPARM(PDL_LongLong*,char*,double*,double*,double*,double*,PDL_LongLong*,PDL_Indx);
+extern void MNEXCM(void* f,char*,double*,PDL_LongLong*,PDL_LongLong*,double* futil,PDL_Indx);
+extern void MNPOUT(PDL_LongLong*,char*,double*,double*,double*,double*,PDL_LongLong*,PDL_Indx);
+extern void MNSTAT(double*,double*,double*,PDL_LongLong*,PDL_LongLong*,PDL_LongLong*);
+extern void MNEMAT(double*,PDL_LongLong*); /* Matrix here! */
+extern void MNERRS(PDL_LongLong*,double*,double*,double*,double*);
+extern void MNCONT(void* f,PDL_LongLong*,PDL_LongLong*,PDL_LongLong*,double*,double*,PDL_LongLong*,double* futil);
 
-extern void ABRE(PDL_Indx*,char*,char*,PDL_Indx,PDL_Indx);
-extern void CIERRA(PDL_Indx*);
+extern void ABRE(PDL_LongLong*,char*,char*,PDL_Indx,PDL_Indx);
+extern void CIERRA(PDL_LongLong*);
 
-void FCN(PDL_Indx* npar,double* grad,double* fval,double* xval,int* iflag,double* futil);
+void FCN(PDL_LongLong* npar,double* grad,double* fval,double* xval,int* iflag,double* futil);

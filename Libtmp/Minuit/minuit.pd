@@ -80,7 +80,7 @@ sub mn_init{
 ');
 
 pp_def('mninit',
-        Pars => 'indx a();indx b(); indx c();',
+        Pars => 'longlong a();longlong b(); longlong c();',
         Code => 'MNINIT($P(a),$P(b),$P(c));
       ');
 pp_addxs('','
@@ -93,14 +93,14 @@ mnseti(str)
 ');
 
 pp_def('mn_abre',
-        Pars => 'indx l();',
+        Pars => 'longlong l();',
         OtherPars => 'char* nombre; char* mode;',
         Code => '
          PDL_Indx l1,l2; l1 = strlen($COMP(nombre)); l2 = strlen($COMP(mode));
          ABRE($P(l),$COMP(nombre),$COMP(mode),l1,l2);
 ');
 pp_def('mn_cierra',
-        Pars => 'indx l();',
+        Pars => 'longlong l();',
         Code => 'CIERRA($P(l));'
 );
 
@@ -143,7 +143,7 @@ sub mn_def_pars{
 		       $lo_bounds->slice("($i)"),
 		       $up_bounds->slice("($i)"),
 		       $names[$i]);
-     barf "Problem initializing parameter $i in Minuit " unless ($iflag == 0);
+     barf "Problem initializing parameter $i in Minuit, got $iflag" unless ($iflag == 0);
   }
   
   if (defined (my $logfile = $mn_options->{Log})){
@@ -153,7 +153,7 @@ sub mn_def_pars{
 ');
 
 pp_def('mnparm',
-       Pars => 'indx a(); double b(); double c(); double d(); double e(); indx [o] ia()',
+       Pars => 'longlong a(); double b(); double c(); double d(); double e(); longlong [o] ia()',
        OtherPars => "char* str",
        Code => ' PDL_Indx largo=strlen($COMP(str));
                  MNPARM($P(a),$COMP(str),$P(b),$P(c),$P(d),$P(e),$P(ia),largo);
@@ -191,7 +191,7 @@ sub mn_excm{
 ');
 
 pp_def('mnexcm',
-	Pars =>'double a(n); indx ia(); indx [o] ib();',
+	Pars =>'double a(n); longlong ia(); longlong [o] ib();',
 	OtherPars => 'char* str; SV* function; IV numelem;',
 	Code => 'double zero;
         PDL_Indx largo=strlen($COMP(str));
@@ -229,7 +229,7 @@ pp_addpm('
 ');
 
 pp_def('mnpout',
-	Pars => 'indx ia(); double [o] a(); double [o] b(); double [o] c(); double [o] d();indx [o] ib();',
+	Pars => 'longlong ia(); double [o] a(); double [o] b(); double [o] c(); double [o] d();longlong [o] ib();',
 	OtherPars => 'SV* str;',
 	Code => 'STRLEN largo; SV* tempo; char* uuu;
 	tempo = SvRV($COMP(str));
@@ -255,7 +255,7 @@ pp_addpm('
   }
 ');
 pp_def('mnstat',
-        Pars => 'double [o] a(); double [o] b(); double [o] c(); indx [o] ia(); indx [o] ib(); indx [o] ic();',
+        Pars => 'double [o] a(); double [o] b(); double [o] c(); longlong [o] ia(); longlong [o] ib(); longlong [o] ic();',
         Code => 'MNSTAT($P(a),$P(b),$P(c),$P(ia),$P(ib),$P(ic));
        ');
 
@@ -311,7 +311,7 @@ pp_addpm('
   }
 ');
 pp_def('mnerrs',
-	Pars => 'indx ia(); double [o] a(); double [o] b(); double [o] c(); double [o] d();',
+	Pars => 'longlong ia(); double [o] a(); double [o] b(); double [o] c(); double [o] d();',
         Code => 'MNERRS($P(ia),$P(a),$P(b),$P(c),$P(d));
        ');
 
@@ -345,7 +345,7 @@ pp_addpm('
 ');
 
 pp_def('mncont',
-        Pars => 'indx ia(); indx ib(); indx ic(); double [o] a(n); double [o] b(n); indx [o] id();',
+        Pars => 'longlong ia(); longlong ib(); longlong ic(); double [o] a(n); double [o] b(n); longlong [o] id();',
         OtherPars => 'SV* function; IV numelem;',
         Code => ' double zero;
 	zero = 0.0; 

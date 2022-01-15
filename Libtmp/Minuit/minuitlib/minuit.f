@@ -1,7 +1,7 @@
 cdeck  id>, minuit. 
       subroutine minuit(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
       parameter (mne=100 , mni=50)
       parameter (mnihl=mni*(mni+1)/2)
       character*10 cpnam
@@ -169,7 +169,7 @@ c  ......................entry to set unit numbers  - - - - - - - - - -
 cdeck  id>, mnamin. 
       subroutine mnamin(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        called  from many places.  initializes the value of amin by
 cc        calling the user function. prints out the function value and
 cc        parameter values if print flag value is high enough.
@@ -224,7 +224,7 @@ c
 cdeck  id>, mnbins. 
       subroutine mnbins(a1,a2,naa,bl,bh,nb,bwid)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 c         subroutine to determine reasonable histogram intervals
 c         given absolute upper and lower bounds  a1 and a2
 c         and desired maximum number of bins naa
@@ -284,7 +284,7 @@ c          request for one bin is difficult case
 cdeck  id>, mncalf. 
       subroutine mncalf(fcn,pvec,ycalf,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        called only from mnimpr.  transforms the function fcn
 cc        by dividing out the quadratic part in order to find further
 cc        minima.    calculates  ycalf = (f-fmin)/(x-xmin)*v*(x-xmin)
@@ -352,7 +352,7 @@ c
 cdeck  id>, mncler. 
       subroutine mncler
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        called from minuit and by option from mnexcm
 cc        resets the parameter list to undefined
       parameter (mne=100 , mni=50)
@@ -413,7 +413,7 @@ c
 cdeck  id>, mncntr. 
       subroutine mncntr(fcn,ke1,ke2,ierrf,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       to print function contours in two variables, on line printer
 cc
       parameter (mne=100 , mni=50)
@@ -596,7 +596,7 @@ c                 finished.  reset input values
 cdeck  id>, mncont. 
       subroutine mncont(fcn,ke1,ke2,nptu,xptu,yptu,ierrf,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       find nptu points along a contour where the function
 cc             fmin (x(ke1),x(ke2)) =  amin+up
 cc       where fmin is the minimum of fcn with respect to all
@@ -858,8 +858,8 @@ c                 print out the coordinates around the contour
       endif
 c                                    . . contour finished. reset v
       itaur = 1
-      call mnfree(1)
-      call mnfree(1)
+      call mnfree(1_8)
+      call mnfree(1_8)
       do 1100 j= 1, mpar*(mpar+1)/2
  1100 vhmat(j) = vthmat(j)
       do 1120 i= 1, mpar
@@ -899,7 +899,7 @@ cdeck  id>, mncrck.
       subroutine mncrck(crdbuf,maxcwd,comand,lnc,
      +                         mxp,   plist, llist,ierr,isyswr)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc
 cc       called from mnread.
 cc       cracks the free-format input, expecting zero or more
@@ -1020,7 +1020,7 @@ c                                  end loop over numeric fields
 cdeck  id>, mncros. 
       subroutine mncros(fcn,aopt,iercr,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       find point where mneval=amin+up, along the line through
 cc       xmid,ymid with direction xdir,ydir,   where x and y are
 cc       parameters ke1 and ke2.  if ke2=0 (from minos), then
@@ -1331,7 +1331,7 @@ c                in any case
 cdeck  id>, mncuve. 
       subroutine mncuve(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        makes sure that the current point is a local
 cc        minimum and that the error matrix exists,
 cc        or at least something good enough for minos and mncont
@@ -1415,7 +1415,7 @@ c
 cdeck  id>, mnderi. 
       subroutine mnderi(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        calculates the first derivatives of fcn (grd),
 cc        either by finite differences or by transforming the user-
 cc        supplied derivatives to internal coordinates,
@@ -1568,7 +1568,7 @@ c                                        .  derivatives calc by fcn
 cdeck  id>, mndxdi. 
       subroutine mndxdi(pint,ipar,dxdi)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        calculates the transformation factor between external and
 cc        internal parameter values.     this factor is one for
 cc        parameters which are not limited.     called from mnemat.
@@ -1617,7 +1617,7 @@ c
 cdeck  id>, mneig.  
       subroutine mneig(a,ndima,n,mits,work,precis,ifault)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 c
       dimension a(ndima,*),work(*)
       data zero,one,two/0.0,1.0,2.0/
@@ -1805,7 +1805,7 @@ c
 cdeck  id>, mnemat. 
       subroutine mnemat(emat,ndim)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
       dimension emat(ndim,ndim)
 cc        calculates the external error matrix from the internal
 cc        to be called by user, who must dimension emat at (ndim,ndim)
@@ -1889,7 +1889,7 @@ c                    iz is number of columns to be printed in row i
 cdeck  id>, mnerrs. 
       subroutine mnerrs(number,eplus,eminus,eparab,gcc)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc    called by user, utility routine to get minos errors
 cc    if number is positive, then it is external parameter number,
 cc                  if negative, it is -internal number.
@@ -1967,7 +1967,7 @@ c                  error.  parameter number not valid
 cdeck  id>, mneval. 
       subroutine mneval(fcn,anext,fnext,ierev,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc      evaluates the function being analyzed by mncros, which is
 cc      generally the minimum of fcn with respect to all remaining
 cc      variable parameters.  common block /mn7xcr/ contains the
@@ -2034,7 +2034,7 @@ cc
 cdeck  id>, mnexcm. 
       subroutine mnexcm(fcn,comand,plist,llist,ierflg,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        interprets a command and takes appropriate action,
 cc        either directly by skipping to the corresponding code in
 cc        mnexcm, or by setting up a call to a subroutine
@@ -2263,7 +2263,7 @@ c                                        . . (also release) ....
       else
          chwhy = ' already variable.'
          if (iint .gt. 0)      go to 930
-         krl = -iabs(iext)
+         krl = -abs(iext)
          call mnfree(krl)
          lfreed = .true.
       endif
@@ -2464,7 +2464,7 @@ c                                 . . . . . . . . . . . . . . . . . .
 cdeck  id>, mnexin. 
       subroutine mnexin(pint)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        transforms the external parameter values u to internal
 cc        values in the dense array pint. subroutine mnpint is used.
 cc
@@ -2516,7 +2516,7 @@ c
 cdeck  id>, mnfixp. 
       subroutine mnfixp(iint,ierr)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        removes parameter iint from the internal (variable) parameter
 cc        list, and arranges the rest of the list to fill the hole.
 cc
@@ -2625,7 +2625,7 @@ c                    remove one row and one column from variance matrix
 cdeck  id>, mnfree. 
       subroutine mnfree(k)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        restores one or more fixed parameter(s) to variable status
 cc        by inserting it into the internal parameter list at the
 cc        appropriate place.
@@ -2676,7 +2676,7 @@ c--       is = internal number of parameter being restored
       if (npfix .lt. 1)  write (isyswr,500)
       if (k.eq.1 .or. k.eq.0)  go to 40
 c                   release parameter with specified external number
-      ka = iabs(k)
+      ka = abs(k)
       if (niofex(ka) .eq. 0)  go to 15
       write (isyswr,540)
   540 format (' ignored.  parameter specified is already variable.')
@@ -2762,7 +2762,7 @@ c         if different from internal, external values are taken
 cdeck  id>, mngrad. 
       subroutine mngrad(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       called from mnset
 cc       interprets the set grad command, which informs minuit whether
 cc       the first derivatives of fcn will be calculated by the user
@@ -2861,7 +2861,7 @@ c
 cdeck  id>, mnhess. 
       subroutine mnhess(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        calculates the full second-derivative matrix of fcn
 cc        by taking finite differences. when calculating diagonal
 cc        elements, it may iterate so that step size is nearly that
@@ -3111,7 +3111,7 @@ c                              failure to invert 2nd deriv matrix
 cdeck  id>, mnhes1. 
       subroutine mnhes1(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc      called from mnhess and mngrad
 cc      calculate first derivatives (grd) and uncertainties (dgrd)
 cc         and appropriate step sizes gstep
@@ -3217,7 +3217,7 @@ c                                        end of first deriv. loop
 cdeck  id>, mnimpr. 
       subroutine mnimpr(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        attempts to improve on a good local minimum by finding a
 cc        better one.   the quadratic part of fcn is removed by mncalf
 cc        and this transformed function is minimized using the simplex
@@ -3435,7 +3435,7 @@ c                                        . . . return to previous region
 cdeck  id>, mninex. 
       subroutine mninex(pint)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        transforms from internal coordinates (pint) to external
 cc        parameters (u).   the minimizing routines which work in
 cc        internal coordinates call this routine before calling fcn.
@@ -3489,7 +3489,7 @@ c
 cdeck  id>, mninit. 
       subroutine mninit (i1,i2,i3)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        this is the main initialization subroutine for minuit
 cc     it initializes some constants in common
 cc                (including the logical i/o unit nos.),
@@ -3613,7 +3613,7 @@ c         used by mnpint to set variables "near" the physical limits
 cdeck  id>, mnintr. 
       subroutine mnintr(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       called by user. interfaces to mnread to allow user to change
 cc       easily from fortran-callable to interactive mode.
 cc
@@ -3654,8 +3654,7 @@ c
      +          cvrsn*6,  covmes(0:3)*22, cstatu*10, chpt*1
       logical   lwarn, lrepor, limset, lnolim, lnewmn, lphead
       external fcn,futil
-      iflgin = 3
-      call mnread(fcn,iflgin,iflgut,futil)
+      call mnread(fcn,3,iflgut,futil)
       write (isyswr,'(2a/)')  ' end of minuit command input. ',
      +      '   return to user program.'
       return
@@ -3663,7 +3662,7 @@ c
 cdeck  id>, mnlims. 
       subroutine mnlims(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       called from mnset
 cc       interprets the set lim command, to reset the parameter limits
 cc
@@ -3802,7 +3801,7 @@ c
 cdeck  id>, mnline. 
       subroutine mnline(fcn,start,fstart,step,slope,toler,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        perform a line search from position start
 cc        along direction step, where the length of vector step
 cc                   gives the expected position of minimum.
@@ -4052,11 +4051,12 @@ c            stop because within tolerance
 cdeck  id>, mnmatu. 
       subroutine mnmatu(kode)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        prints the covariance matrix v when kode=1.
 cc        always prints the global correlations, and
 cc        calculates and prints the individual correlation coefficients
 cc
+      integer kode
       parameter (mne=100 , mni=50)
       parameter (mnihl=mni*(mni+1)/2)
       character*10 cpnam
@@ -4149,7 +4149,7 @@ c     ncoef is number of coeff. that fit on one line, not to exceed 20
 cdeck  id>, mnmigr. 
       subroutine mnmigr(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        performs a local function minimization using basically the
 cc        method of davidon-fletcher-powell as modified by fletcher
 cc        ref. -- fletcher, comp.j. 13,317 (1970)   "switching method"
@@ -4484,7 +4484,7 @@ c                                           come here in any case
 cdeck  id>, mnmnos. 
       subroutine mnmnos(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        performs a minos error analysis on those parameters for
 cc        which it is requested on the minos command.
 cc
@@ -4592,7 +4592,7 @@ c                                        . . . new minimum found . . . .
 cdeck  id>, mnmnot. 
       subroutine mnmnot(fcn,ilax,ilax2,val2pl,val2mi,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        performs a minos error analysis on one parameter.
 cc        the parameter ilax is varied, and the minimum of the
 cc        function with respect to the other parameters is followed
@@ -4758,7 +4758,7 @@ c
 c                                        . . parameter finished. reset v
 c                       normal termination
       itaur = 1
-      call mnfree(1)
+      call mnfree(1_8)
       do 550 j= 1, mpar*(mpar+1)/2
   550 vhmat(j) = vthmat(j)
       do 595 i= 1, mpar
@@ -4779,7 +4779,7 @@ c                       new minimum
       isw(4) = 0
       sav = u(ilax)
       itaur = 1
-      call mnfree(1)
+      call mnfree(1_8)
       u(ilax) = sav
       call mnexin(x)
       edm = bigedm
@@ -4793,7 +4793,7 @@ c                       in any case
 cdeck  id>, mnparm. 
       subroutine mnparm(k,cnamj,uk,wk,a,b,ierflg)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        called from mnread and user-callable
 cc    implements one parameter definition, that is:
 cc          k     (external) parameter number
@@ -5026,7 +5026,7 @@ c                   error on input, unable to implement request  . . . .
 cdeck  id>, mnpfit. 
       subroutine mnpfit(parx2p,pary2p,npar2p,coef2p,sdev2p)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 c
 c     to fit a parabola to npar2p points
 c
@@ -5038,6 +5038,7 @@ c   coef2p(1...3)  coefficients of the fitted parabola
 c   y=coef2p(1) + coef2p(2)*x + coef2p(3)*x**2
 c   sdev2p= variance
 c   method : chi**2 = min equation solved explicitly
+      integer npar2p
       dimension parx2p(npar2p),pary2p(npar2p),coef2p(npar2p)
       dimension cz(3)
 c
@@ -5089,7 +5090,7 @@ c--- center x values for reasons of machine precision
 cdeck  id>, mnpint. 
       subroutine mnpint(pexti,i,pinti)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        calculates the internal parameter value pinti corresponding
 cc        to the external value pexti for parameter i.
 cc
@@ -5163,7 +5164,7 @@ c--                          there are two limits
 cdeck  id>, mnplot. 
       subroutine mnplot(xpt,ypt,chpt,nxypt,nunit,npagwd,npagln)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        plots points in array xypt onto one page with labelled axes
 cc        nxypt is the number of points to be plotted
 cc        xpt(i) = x-coord. of ith point
@@ -5305,7 +5306,7 @@ c
 cdeck  id>, mnpout. 
       subroutine mnpout(iuext,chnam,val,err,xlolim,xuplim,iuint)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc     user-called
 cc   provides the user with information concerning the current status
 cc          of parameter number iuext. namely, it returns:
@@ -5395,7 +5396,7 @@ c                parameter is undefined
 cdeck  id>, mnprin. 
       subroutine mnprin  (inkode,fval)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        prints the values of the parameters at the time of the call.
 cc        also prints other relevant information such as function value,
 cc        estimated distance to minimum, parameter errors, step sizes.
@@ -5408,6 +5409,7 @@ c                  3    values, errors, step sizes, first derivs.
 c                  4    values, parabolic errors, minos errors
 c    when inkode=5, mnprin chooses ikode=1,2, or 3, according to isw(2)
 c
+      integer inkode
       parameter (mne=100 , mni=50)
       parameter (mnihl=mni*(mni+1)/2)
       character*10 cpnam
@@ -5617,7 +5619,7 @@ c
 cdeck  id>, mnpsdf. 
       subroutine mnpsdf
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        calculates the eigenvalues of v to see if positive-def.
 cc        if not, adds constant along diagonal to make positive.
       parameter (mne=100 , mni=50)
@@ -5720,7 +5722,7 @@ c
 cdeck  id>, mnrazz. 
       subroutine mnrazz(ynew,pnew,y,jh,jl)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        called only by mnsimp (and mnimpr) to add a new point
 cc        and remove an old one from the current simplex, and get the
 cc        estimated distance to minimum.
@@ -5800,7 +5802,7 @@ c
 cdeck  id>, mnread. 
       subroutine mnread(fcn,iflgin,iflgut,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        called from minuit.  reads all user input to minuit.
 cc     this routine is highly unstructured and defies normal logic.
 cc
@@ -5822,6 +5824,7 @@ cc                       4: read in covariance matrix
 cc     for example, when iflgin=3, but iflgdo=1, then it should read
 cc       a title, but this was requested by a command, not by minuit.
 cc
+      integer iflgin
       parameter (mne=100 , mni=50)
       parameter (mnihl=mni*(mni+1)/2)
       character*10 cpnam
@@ -6078,7 +6081,7 @@ c                                              . . . . error conditions
 cdeck  id>, mnrn15. 
       subroutine mnrn15(val,inseed)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 c         this is a super-portable random number generator.
 c         it should not overflow on any 32-bit machine.
 c         the cycle is only ~10**9, so use with care!
@@ -6101,12 +6104,13 @@ c               "entry" to set seed, flag is val=3.
 cdeck  id>, mnrset. 
       subroutine mnrset(iopt)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        called from mncler and whenever problem changes, for example
 cc        after set limits, set param, call fcn 6
 cc    if iopt=1,
 cc        resets function value and errors to undefined
 cc    if iopt=0, sets only minos errors to undefined
+      integer iopt
       parameter (mne=100 , mni=50)
       parameter (mnihl=mni*(mni+1)/2)
       character*10 cpnam
@@ -6170,7 +6174,7 @@ c
 cdeck  id>, mnsave. 
       subroutine mnsave
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       writes current parameter values and step sizes onto file isyssa
 cc          in format which can be reread by minuit for restarting.
 cc       the covariance matrix is also output if it exists.
@@ -6290,7 +6294,7 @@ c
 cdeck  id>, mnscan. 
       subroutine mnscan(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        scans the values of fcn as a function of one parameter
 cc        and plots the resulting values as a curve using mnplot.
 cc        it may be called to scan one parameter or all parameters.
@@ -6424,7 +6428,7 @@ c         finished with all parameters
 cdeck  id>, mnseek. 
       subroutine mnseek(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc   performs a rough (but global) minimization by monte carlo search.
 cc        each time a new minimum is found, the search area is shifted
 cc        to be centered at the best value.  random points are chosen
@@ -6553,7 +6557,7 @@ c                               end search loop
 cdeck  id>, mnset.  
       subroutine mnset(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        called from mnexcm
 cc        interprets the commands that start with set and show
 cc
@@ -6985,7 +6989,7 @@ c                               illegal command
 cdeck  id>, mnseti. 
       subroutine mnseti(tit)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       called by user to set or change title of current task.
 cc
       parameter (mne=100 , mni=50)
@@ -7031,7 +7035,7 @@ c
 cdeck  id>, mnsimp. 
       subroutine mnsimp(fcn,futil)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        performs a minimization using the simplex method of nelder
 cc        and mead (ref. -- comp. j. 7,308 (1965)).
 cc
@@ -7238,7 +7242,7 @@ c                                        . . . . . .  end main loop
 cdeck  id>, mnstat. 
       subroutine mnstat(fmin,fedm,errdef,npari,nparx,istat)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc       user-called
 cc       provides the user with information concerning the current status
 cc          of the current minimization. namely, it returns:
@@ -7308,7 +7312,7 @@ c
 cdeck  id>, mnstin. 
       subroutine mnstin(crdbuf,ierr)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc called from mnread.
 cc implements the set input command to change input units.
 cc if command is: 'set input'   'set input 0'   or  '*eof',
@@ -7469,7 +7473,7 @@ c                      revert to previous input file
       else
         isysrd = istkrd(nstkrd)
         nstkrd = nstkrd - 1
-        if (nstkrd .eq. 0)  isw(6) = iabs(isw(6))
+        if (nstkrd .eq. 0)  isw(6) = abs(isw(6))
         if (isw(5) .ge. 0)  then
           inquire(unit=isysrd,named=lname,name=cfname)
           cmode = 'batch mode      '
@@ -7511,7 +7515,7 @@ c                      serious error
 cdeck  id>, mntiny. 
       subroutine mntiny(epsp1,epsbak)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        compares its argument with the value 1.0, and returns
 cc        the value .true. if they are equal.  to find epsmac
 cc        safely by foiling the fortran optimizer
@@ -7543,7 +7547,7 @@ c           is .true. if cfname contains unprintable characters.
 cdeck  id>, mnvert. 
       subroutine mnvert(a,l,m,n,ifail)
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        inverts a symmetric matrix.   matrix is first scaled to
 cc        have all ones on the diagonal (equivalent to change of units)
 cc        but no pivoting is done since matrix is positive-definite.
@@ -7640,7 +7644,7 @@ c             stored in a circular buffer of length maxmes.
 c         if called with corg=cmes='sho', it prints the messages in
 c             the circular buffer, fifo, and empties the buffer.
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
       parameter (mne=100 , mni=50)
       parameter (mnihl=mni*(mni+1)/2)
       character*10 cpnam
@@ -7749,7 +7753,7 @@ c             'sho warnings', ask if any suppressed mess in buffer
 cdeck  id>, mnwerr. 
       subroutine mnwerr
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc          calculates the werr, external parameter errors,
 cc      and the global correlation coefficients, to be called
 cc      whenever a new covariance matrix is available.
@@ -7834,7 +7838,7 @@ c                          global correlation coefficients
 cdeck  id>, stand.  
       subroutine stand
 c ************ double precision version *************
-      implicit double precision (a-h,o-z)
+      implicit double precision (a-h,o-z), integer*8(i-n)
 cc        optional user-supplied subroutine is called whenever the
 cc        command "standard" appears.
 cc
