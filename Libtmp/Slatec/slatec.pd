@@ -496,10 +496,10 @@ sub PDL::eigsys {
 	my($h) = @_;
 	$h = float($h);
 	rs($h, 
-		(my $eigval=PDL->null),
-		(long (pdl (1))),(my $eigmat=PDL->null),
-		(my $fvone = PDL->null),(my $fvtwo = PDL->null),
-		(my $errflag=PDL->null)
+		my $eigval=PDL->null,
+		1,my $eigmat=PDL->null,
+		my $fvone = PDL->null,my $fvtwo = PDL->null,
+		my $errflag=PDL->null
 	);
 #	print $covar,$eigval,$eigmat,$fvone,$fvtwo,$errflag;
 	if(sum($errflag) > 0) {
@@ -523,7 +523,7 @@ sub PDL::matinv {
 	if(sum($info) > 0) {
 		barf("Uninvertible matrix given to inv: $m\n");
 	}
-	gedi($m,$ipvt,(pdl 0,0),(null),(long( pdl (1))));
+	gedi($m,$ipvt,pdl(0,0),null,1);
 	$m;
 }
 
@@ -535,7 +535,7 @@ sub PDL::detslatec {
 	if(sum($info) > 0) {
 		barf("Uninvertible matrix given to inv: $m\n");
 	}
-	gedi($m,$ipvt,(my $det=null),(null),(long( pdl (10))));
+	gedi($m,$ipvt,my $det=null,null,10);
 	return $det->slice('(0)')*10**$det->slice('(1)');
 }
 
