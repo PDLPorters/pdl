@@ -158,19 +158,22 @@ use Test::Exception;
 		{
 			my $pb = $pa->map($t,{method=>'s',pix=>1});
 			my $wndb = $pb->whichND;
-			ok($wndb->nelem==2 and all($wndb==pdl([[3,4]])) and approx($pb->slice(3,4),1),'offset with sample is a simple offset');
+			ok(all($wndb==pdl([[3,4]])),'right boolean') or diag $wndb;
+			ok(approx($pb->slice(3,4),1),'offset with sample is a simple offset') or diag $pb;
 		}
 
 		{
 			my $pb = $pa->map($t,{method=>'l',pix=>1});
 			my $wndb = $pb->whichND;
-			ok($wndb->nelem==4 and all($wndb==pdl([[3,4],[4,4]])) and all(approx($pb->slice([3,4],4),0.5)),'offset with linear interpolation does the right thing');
+			ok(all($wndb==pdl([[3,4],[4,4]])),'right boolean') or diag $wndb;
+			ok(all(approx($pb->slice([3,4],4),0.5)),'offset with linear interpolation does the right thing') or diag $pb;
 		}
 
 		{
 			my $pb = $pa->map($t,{method=>'h',pix=>1});
 			my $wndb = $pb->whichND;
-			ok($wndb->nelem==4 and all($wndb==pdl([[3,4],[4,4]])) and all(approx($pb->slice([3,4],4),0.5)),'offset with hanning interpolation does the right thing');
+			ok(all($wndb==pdl([[3,4],[4,4]])),'right boolean') or diag $wndb;
+			ok(all(approx($pb->slice([3,4],4),0.5)),'offset with hanning interpolation does the right thing') or diag $pb;
 		}
 	}
 
