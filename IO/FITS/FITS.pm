@@ -852,44 +852,36 @@ sub _nuP {
     my( $type, $rowlen, $extra, $nrows, $szptr, $hdr, $i, $tbl ) = @_;
     $extra =~ s/\((.*)\)/$1/; # strip parens from $extra in-place
     $$szptr += 8;
-
     if($rowlen != 1) {
 	die("rfits: variable-length record has a repeat count that isn't unity! (got $rowlen); I give up.");
     }
-
     # declare the PDL.  Fill it with the blank value or (failing that) 0.
     # Since P repeat count is required to be 0 or 1, we don't need an additional dimension for the 
     # repeat count -- the variable-length rows take that role.
     my $pdl = PDL->new_from_specification($type, $extra, $nrows);
     $pdl .= ($hdr->{"TNULL$i"} || 0);
-
     my $lenpdl = zeroes(long, $nrows);
     $tbl->{"len_".$hdr->{"TTYPE$i"}} = $lenpdl;
-
     return $pdl;
 }
+
 sub _rdP {
     my( $type, $pdl, $row, $strptr, $rpt, $extra, $heap_ptr, $tbl, $i ) = @_; 
     $extra =~ s/\((.*)\)/$1/; 
     my $s = $pdl->get_dataref;
-
     # Read current offset and length
     my $oflen = pdl(long,0,0);
     my $ofs = $oflen->get_dataref;
     substr($$ofs,0,8) = substr($$strptr, 0, 8, '');
     $oflen->upd_data;
-    bswap4($oflen);
-    
+    $oflen->type->bswap->($oflen) if !isbigendian(); # Need to byte swap on little endian machines
     # Now get 'em
     my $rlen = $extra * PDL::Core::howbig($type); # rpt should be unity, otherwise we'd have to multiply it in.
     my $readlen = $oflen->at(0) * PDL::Core::howbig($type);
-
     # Store the length of this row in the header field.
     $tbl->{"len_".$tbl->{hdr}->{"TTYPE$i"}}->dice_axis(0,$row) .= $oflen->at(0);
-
     print "_rdP: pdl is ",join("x",$pdl->dims),"; reading row $row - readlen is $readlen\n"
 	if($PDL::debug);
-
     # Copy the data into the output PDL.
     my $of = $oflen->at(1);
     substr($$s, $row*$rlen, $readlen) = substr($$heap_ptr, $of, $readlen);
