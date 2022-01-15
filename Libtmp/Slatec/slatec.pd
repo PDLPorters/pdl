@@ -267,9 +267,6 @@ use strict;
 
 # for MDim, ld[str] is interpreted as "leading dimension of ..."
 
-# Making the BAD BAD BAD assumption that PDL_Long == int 
-# in fortran. BAD BAD BAD XXX (I'm going to regret this)
-
 my %ftypes = (S => 'F', D => 'D');
 
 sub firstpar {
@@ -278,7 +275,6 @@ sub firstpar {
 }
 
 # used in defslatec()
-#my %ignore_ppar = ( Incfd => 1, CheckFlag => 1 );
 my %ignore_ppar = ( Incfd => 1 );
 my %prototype = ( F => "float", D => "double" );
 
@@ -364,7 +360,9 @@ sub defslatec {
       } else {
 	  (($_->[0] eq "Mat" or $_->[0] eq "FuncRet")
            and join '',@{$_}[1,2,3]) or
-	  (($_->[0] eq "IntFlag" or $_->[0] eq "FortranIndex" or $_->[0] eq "CheckFlag")
+	  (($_->[0] eq "FortranIndex")
+           and "indx ".join '',@{$_}[1,2,3]) or
+	  (($_->[0] eq "IntFlag" or $_->[0] eq "CheckFlag")
            and "int ".join '',@{$_}[1,2,3]) or
 	  die "Invalid ppars ",(join ',',@$_),"\n";
       }
@@ -413,12 +411,12 @@ sub defslatec {
     my @ifincode;
     foreach ( @args2 ) {
       if ( $_->[0] eq "Incfd" ) {
-	  push @ifincode, "int _" . lc($_->[0]) . " = 1;";
+	  push @ifincode, "PDL_Indx _" . lc($_->[0]) . " = 1;";
       } elsif ( $_->[0] eq "CheckFlag" ) {
-	  push @ifincode, "int _" . lc($_->[0]) . " = \$$_->[2]();";
+	  push @ifincode, "PDL_Indx _" . lc($_->[0]) . " = \$$_->[2]();";
       } elsif ( $_->[0] eq "FortranIndex" ) {
 	  # convert from C to F77 index
-	  push @ifincode, "int _$_->[2] = \$$_->[2]() + 1;"
+	  push @ifincode, "PDL_Indx _$_->[2] = \$$_->[2]() + 1;"
       }
     }
 
@@ -1569,12 +1567,12 @@ Error status returned by C<$ierr>:
 #  bar runs across polynomial coefficients.
 #
 pp_def('polfit',
-  Pars => 'x(n); y(n); w(n); int maxdeg(); int [o]ndeg(); [o]eps(); [o]r(n); int [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
+  Pars => 'x(n); y(n); w(n); indx maxdeg(); indx [o]ndeg(); [o]eps(); [o]r(n); indx [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
   OtherPars => '',
   Code => '
-           int maxord;
-           int ord;
-           int k;
+           PDL_Indx maxord;
+           PDL_Indx ord;
+           PDL_Indx k;
            $GENERIC() zero = 0;
 
            PDL_FORTRAN($TFD(polfit,dpolft))(&$SIZE(n),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
@@ -1590,9 +1588,9 @@ pp_def('polfit',
   GenericTypes => ['F','D'],
   HandleBad => 1, 
   NoBadifNaN => 1,
-  BadCode => 'int ns = $SIZE(n);
-              int i;
-	      int j = 0; 
+  BadCode => 'PDL_Indx ns = $SIZE(n);
+              PDL_Indx i;
+	      PDL_Indx j = 0;
               if($SIZE(n)<$maxdeg()) {
                 $CROAK("polfit: Must have at least <n> points to fit <n> coefficients");
               }
@@ -1613,9 +1611,9 @@ pp_def('polfit',
                 $ierr() = 2;
               } else {
                   /* Found enough good datapoints for a fit -- do the fit */
-		  int k;
-		  int ord;
-		  int maxord;
+		  PDL_Indx k;
+		  PDL_Indx ord;
+		  PDL_Indx maxord;
                   $GENERIC() zero = 0;
 
                 /* Do the fit */
@@ -1643,7 +1641,7 @@ pp_def('polfit',
                      /* The number in ord is not the number of coefficients in the polynomial, it is the highest */
                      /* order coefficient -- so 3 for a cubic, which has 4 coefficients. */
 	             /* --CED */
-		     int ii;
+		     PDL_Indx ii;
                      $GENERIC() acc = 0;
                      for( ii=ord; ii>0; ii-- ) {
                         acc += $coeffs(bar=>ii);

@@ -200,8 +200,8 @@ my $ismon;
 ( $ismon, $err ) = chcm($x, $f, $d, 1);
 
 ok(($err->getndims==0) & ($err->sum == 0));
-ok($ismon->get_datatype == long->enum);
-ok(tapprox($ismon,$ans));
+ok($ismon->get_datatype == long->enum) or diag $ismon->type;
+ok(tapprox($ismon,$ans)) or diag $ismon, "\nexpected:\n", $ans;
 
 ## Test: chia
 #
