@@ -200,7 +200,11 @@ C                 This interval has opposite sense from curve so far.
                ELSE
 C                 At this point, both are nonzero with same sign, and
 C                 we have already eliminated case both +-1.
-                  ISMON(N) = ISIGN (3, ISMON(N))
+                  IF ( ISMON(N).LT.0 ) THEN
+                      ISMON(N) = -3
+                  ELSE
+                      ISMON(N) = 3
+                  END IF
                ENDIF
             ENDIF
          ENDIF
