@@ -55,6 +55,7 @@ C           names, changed routine name from XERCTL to XERCNT.  (RWC)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  XERCNT
       implicit integer(i-n)
+      integer*4 NERR, LEVEL
       CHARACTER*(*) LIBRAR, SUBROU, MESSG
 C***FIRST EXECUTABLE STATEMENT  XERCNT
       RETURN

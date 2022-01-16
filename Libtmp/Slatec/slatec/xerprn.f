@@ -76,7 +76,7 @@ C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  XERPRN
       implicit integer(i-n)
       CHARACTER*(*) PREFIX, MESSG
-      INTEGER NPREF, NWRAP
+      INTEGER*4 NPREF, NWRAP
       CHARACTER*148 CBUFF
       INTEGER IU(5), NUNIT
       CHARACTER*2 NEWLIN

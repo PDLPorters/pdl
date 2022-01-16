@@ -40,6 +40,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  XGETUA
       implicit integer(i-n)
+      integer*4 N, INDEX
       DIMENSION IUNITA(5)
 C***FIRST EXECUTABLE STATEMENT  XGETUA
       N = J4SAVE(5,0,.FALSE.)

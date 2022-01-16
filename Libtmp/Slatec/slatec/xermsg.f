@@ -185,6 +185,7 @@ C           XERCTL to XERCNT.  (RWC)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  XERMSG
       implicit integer(i-n)
+      integer*4 NERR, LEVEL
       CHARACTER*(*) LIBRAR, SUBROU, MESSG
       CHARACTER*8 XLIBR, XSUBR
       CHARACTER*72  TEMP
