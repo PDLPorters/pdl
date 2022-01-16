@@ -73,7 +73,7 @@ C   890831  REVISION DATE from Version 3.2
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SNRM2
-      INTEGER NEXT
+      INTEGER*4 NEXT
       REAL SX(*), CUTLO, CUTHI, HITEST, SUM, XMAX, ZERO, ONE
       SAVE CUTLO, CUTHI, ZERO, ONE
       DATA ZERO, ONE /0.0E0, 1.0E0/
