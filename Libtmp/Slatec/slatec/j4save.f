@@ -1,5 +1,5 @@
 *DECK J4SAVE
-      FUNCTION J4SAVE (IWHICH, IVALUE, ISET)
+      integer FUNCTION J4SAVE (IWHICH, IVALUE, ISET)
 C***BEGIN PROLOGUE  J4SAVE
 C***SUBSIDIARY
 C***PURPOSE  Save or recall global variables needed by error
