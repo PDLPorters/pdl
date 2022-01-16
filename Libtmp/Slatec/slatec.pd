@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use PDL::Types;
 
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
@@ -343,7 +344,7 @@ sub defslatec {
       } else {
 	  (($_->[0] eq "Mat" or $_->[0] eq "FuncRet")
            and join '',@{$_}[1,2,3]) or
-	  (($_->[0] eq "FortranIndex")
+	  (($_->[0] eq "FortranIndex" or $_->[0] eq "Degree")
            and "indx ".join '',@{$_}[1,2,3]) or
 	  (($_->[0] eq "IntFlag" or $_->[0] eq "CheckFlag")
            and "int ".join '',@{$_}[1,2,3]) or
@@ -369,21 +370,29 @@ sub defslatec {
 	  : ()
     } @args2;
 
-    my @funcpars;
+    my (@funcpars, @protos);
     foreach ( @args2 ) {
       next if $_->[0] eq "FuncRet";
-      if ( $_->[0] eq "Mat" or $_->[0] eq "IntFlag" ) {
+      if ( $_->[0] eq "Mat" or $_->[0] eq "IntFlag" or $_->[0] eq "Degree" ) {
 	  push @funcpars, "\$P($_->[2])";
+	  push @protos,
+	    $_->[0] eq "Mat" ? sub {PDL::Type->new($_[0])->ctype." *"} :
+	    $_->[0] eq "IntFlag" ? sub {"PDL_Long *"} :
+	    sub {"PDL_Indx *"};
       } elsif ( $_->[0] eq "Dim" ) {
 	  push @funcpars, "&\$SIZE($_->[2])";
+	  push @protos, sub {"PDL_Indx *"};
       } elsif ( $_->[0] eq "MDim" ) {
 	  push @funcpars, $lds{$_->[2]};
+	  push @protos, sub {"PDL_Indx *"};
       } elsif ( $_->[0] eq "Incfd" or $_->[0] eq "CheckFlag" ) {
 	  push @funcpars, "&_" . lc($_->[0]);
+	  push @protos, $_->[0] eq "Incfd" ? sub {"PDL_Indx *"} : sub {"PDL_Long *"};
       } elsif ( $_->[0] eq "FortranIndex" ) {
 	  push @funcpars, "&_$_->[2]"; 
+	  push @protos, sub {"PDL_Indx *"};
       } else {
-	  die "Invalid args2";
+	  die "Invalid args2 (@$_)";
       }
     }
 
@@ -396,18 +405,19 @@ sub defslatec {
       if ( $_->[0] eq "Incfd" ) {
 	  push @ifincode, "PDL_Indx _" . lc($_->[0]) . " = 1;";
       } elsif ( $_->[0] eq "CheckFlag" ) {
-	  push @ifincode, "PDL_Indx _" . lc($_->[0]) . " = \$$_->[2]();";
+	  push @ifincode, "PDL_Long _" . lc($_->[0]) . " = \$$_->[2]();";
       } elsif ( $_->[0] eq "FortranIndex" ) {
 	  # convert from C to F77 index
 	  push @ifincode, "PDL_Indx _$_->[2] = \$$_->[2]() + 1;"
       }
     }
 
-    foreach ( @talts ) {
+    foreach my $t ( @talts ) {
 	my $codeproto = "extern ";
-	if ( defined $fpar ) { $codeproto .= "$prototype{$_->[0]} "; }
+	if ( defined $fpar ) { $codeproto .= "$prototype{$t->[0]} "; }
 	else { $codeproto .= "int "; }
-	$codeproto .= "PDL_FORTRAN($_->[1]) ();";
+	$codeproto .= "PDL_FORTRAN($t->[1])(" .
+	  join(',', map $_->($t->[0]), @protos) . ");";
 	pp_addhdr($codeproto . "\n");
     }
 
@@ -454,8 +464,14 @@ static void MAIN__ () {
 }
 
 /* these two need to be done manually because we don't use defslatec for them */
-extern int PDL_FORTRAN(polfit) ();
-extern int PDL_FORTRAN(dpolft) ();
+extern int PDL_FORTRAN(polfit)(
+  PDL_Indx *N, PDL_Float *X, PDL_Float *Y, PDL_Float *W, PDL_Indx *MAXDEG,
+  PDL_Indx *NDEG, PDL_Float *EPS, PDL_Float *R, PDL_Indx *IERR, PDL_Float *A
+);
+extern int PDL_FORTRAN(dpolft)(
+  PDL_Indx *N, PDL_Double *X, PDL_Double *Y, PDL_Double *W, PDL_Indx *MAXDEG,
+  PDL_Indx *NDEG, PDL_Double *EPS, PDL_Double *R, PDL_Indx *IERR, PDL_Double *A
+);
 void PDL_FORTRAN(slatecbarf)();
 
 |);
@@ -799,7 +815,7 @@ defslatec(
 defslatec(
       'pcoef', {S => 'pcoef', D => 'dpcoef'},
       '
-      IntFlag  l ();
+      Degree   l ();
       Mat      c ();
       Mat [o]  tc (bar);
       Mat      a (foo);
@@ -1610,7 +1626,7 @@ pp_def('polfit',
 		  ord = $maxdeg();
 		}
 		/* Extract the polynomial coefficients into coeffs -- used for bad values */
-                PDL_FORTRAN($TFD(p,dp)coef)( &(ord), &(zero), $P(coeffs), $P(a));
+                PDL_FORTRAN($TFD(,d)pcoef)(&(ord), &(zero), $P(coeffs), $P(a));
                 for(k=ord+1; k<=$maxdeg(); k++)
                    ($P(coeffs))[k] = 0;
                 j=0;
