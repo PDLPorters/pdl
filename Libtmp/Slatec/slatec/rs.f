@@ -70,6 +70,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  RS
 C
+      implicit integer(i-n)
       INTEGER N,NM,IERR,MATZ
       REAL A(NM,*),W(*),Z(NM,*),FV1(*),FV2(*)
 C

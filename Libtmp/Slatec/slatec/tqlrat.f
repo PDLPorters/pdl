@@ -64,6 +64,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  TQLRAT
 C
+      implicit integer(i-n)
       INTEGER I,J,L,M,N,II,L1,MML,IERR
       REAL D(*),E2(*)
       REAL B,C,F,G,H,P,R,S,MACHEP

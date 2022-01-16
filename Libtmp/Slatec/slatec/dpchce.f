@@ -110,6 +110,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  IC(2), N, INCFD, IERR
       DOUBLE PRECISION  VC(2), X(*), H(*), SLOPE(*), D(INCFD,*)
 C

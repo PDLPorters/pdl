@@ -18,6 +18,7 @@ C   890831  Modified array declarations.  (WRB)
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   900402  Added TYPE section.  (WRB)
 C***END PROLOGUE  RADB2
+      implicit integer(i-n)
       DIMENSION CC(IDO,2,*), CH(IDO,L1,2), WA1(*)
 C***FIRST EXECUTABLE STATEMENT  RADB2
       DO 101 K=1,L1

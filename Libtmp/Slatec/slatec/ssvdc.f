@@ -110,6 +110,7 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SSVDC
+      implicit integer(i-n)
       INTEGER LDX,N,P,LDU,LDV,JOB,INFO
       REAL X(LDX,*),S(*),E(*),U(LDU,*),V(LDV,*),WORK(*)
 C

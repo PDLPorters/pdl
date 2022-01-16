@@ -42,6 +42,7 @@ C   900821  Modified to correct problem with a negative increment.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  IDAMAX
+      implicit integer(i-n)
       DOUBLE PRECISION DX(*), DMAX, XMAG
       INTEGER I, INCX, IX, N
 C***FIRST EXECUTABLE STATEMENT  IDAMAX

@@ -42,6 +42,7 @@ C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C   920618  Slight restructuring of code.  (RWC, WRB)
 C***END PROLOGUE  ISAMAX
+      implicit integer(i-n)
       REAL SX(*), SMAX, XMAG
       INTEGER I, INCX, IX, N
 C***FIRST EXECUTABLE STATEMENT  ISAMAX

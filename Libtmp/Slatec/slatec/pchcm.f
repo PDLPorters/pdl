@@ -137,6 +137,7 @@ C        c. Change the real declarations to double precision.
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD, ISMON(N), IERR
       REAL  X(N), F(INCFD,N), D(INCFD,N)
       LOGICAL  SKIP

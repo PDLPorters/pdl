@@ -52,6 +52,7 @@ C   900402  Added TYPE section.  (WRB)
 C   910411  Added KEYWORDS section.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  J4SAVE
+      implicit integer(i-n)
       LOGICAL ISET
       INTEGER IPARAM(9)
       SAVE IPARAM

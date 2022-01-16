@@ -131,6 +131,7 @@ C        will be counted (at least) twice in the total returned in IERR.
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD, NE, IERR
       DOUBLE PRECISION  X(*), F(INCFD,*), D(INCFD,*), XE(*), FE(*)
       LOGICAL  SKIP

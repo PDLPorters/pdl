@@ -37,6 +37,7 @@ C           handler XERMSG.  (BKS)
 C***END PROLOGUE  XERBLA
 C
 C     ..    Scalar Arguments ..
+      implicit integer(i-n)
       INTEGER            INFO
       CHARACTER*6        SRNAME
       CHARACTER*2        XERN1

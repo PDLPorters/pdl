@@ -86,6 +86,7 @@ C        c. Change the constant ZERO to double precision.
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  NE, NEXT(2), IERR
       REAL  X1, X2, F1, F2, D1, D2, XE(*), FE(*)
 C

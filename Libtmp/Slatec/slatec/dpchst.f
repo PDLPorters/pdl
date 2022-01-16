@@ -40,6 +40,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       DOUBLE PRECISION  ARG1, ARG2
 C
 C  DECLARE LOCAL VARIABLES.

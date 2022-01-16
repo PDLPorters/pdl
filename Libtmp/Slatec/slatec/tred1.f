@@ -66,6 +66,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  TRED1
 C
+      implicit integer(i-n)
       INTEGER I,J,K,L,N,II,NM,JP1
       REAL A(NM,*),D(*),E(*),E2(*)
       REAL F,G,H,SCALE

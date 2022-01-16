@@ -24,6 +24,7 @@ C   890831  Modified array declarations.  (WRB)
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   900402  Added TYPE section.  (WRB)
 C***END PROLOGUE  RADBG
+      implicit integer(i-n)
       DIMENSION CH(IDO,L1,*), CC(IDO,IP,*), C1(IDO,L1,*),
      +          C2(IDL1,*), CH2(IDL1,*), WA(*)
 C***FIRST EXECUTABLE STATEMENT  RADBG

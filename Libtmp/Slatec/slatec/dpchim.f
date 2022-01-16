@@ -137,6 +137,7 @@ C        e. Change the constants ZERO and THREE to single precision.
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD, IERR
       DOUBLE PRECISION  X(*), F(INCFD,*), D(INCFD,*)
 C

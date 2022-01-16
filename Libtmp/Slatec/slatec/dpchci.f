@@ -90,6 +90,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD
       DOUBLE PRECISION  H(*), SLOPE(*), D(INCFD,*)
 C

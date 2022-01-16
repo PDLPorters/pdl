@@ -69,6 +69,7 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DPODI
+      implicit integer(i-n)
       INTEGER LDA,N,JOB
       DOUBLE PRECISION A(LDA,*)
       DOUBLE PRECISION DET(2)

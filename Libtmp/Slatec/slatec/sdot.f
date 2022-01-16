@@ -43,6 +43,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920310  Corrected definition of LX in DESCRIPTION.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SDOT
+      implicit integer(i-n)
       REAL SX(*), SY(*)
 C***FIRST EXECUTABLE STATEMENT  SDOT
       SDOT = 0.0E0

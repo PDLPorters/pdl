@@ -57,6 +57,7 @@ C           XERSVE.  (RWC)
 C   910626  Added LIBTAB and SUBTAB to SAVE statement.  (BKS)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  XERSVE
+      implicit integer(i-n)
       PARAMETER (LENTAB=10)
       INTEGER LUN(5)
       CHARACTER*(*) LIBRAR, SUBROU, MESSG

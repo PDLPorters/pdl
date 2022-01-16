@@ -157,6 +157,7 @@ C**End
 C
 C  Declare arguments.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD, KNOTYP, NKNOTS, NDIM, KORD, IERR
       REAL  X(*), F(INCFD,*), D(INCFD,*), T(*), BCOEF(*)
 C

@@ -88,6 +88,7 @@ C           because of non-standard Fortran 77 arguments in the
 C           call to CFFTB1.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  RFFTB
+      implicit integer(i-n)
       DIMENSION R(*), WSAVE(*)
 C***FIRST EXECUTABLE STATEMENT  RFFTB
       IF (N .EQ. 1) RETURN

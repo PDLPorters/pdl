@@ -70,6 +70,7 @@ C   890531  REVISION DATE from Version 3.2
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  EZFFTF
+      implicit integer(i-n)
       DIMENSION R(*), A(*), B(*), WSAVE(*)
 C***FIRST EXECUTABLE STATEMENT  EZFFTF
       IF (N-2) 101,102,103

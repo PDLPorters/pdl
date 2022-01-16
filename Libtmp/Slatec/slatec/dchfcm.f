@@ -86,6 +86,7 @@ C        c. Change the constants ZERO, ONE, ... to single precision.
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       DOUBLE PRECISION  D1, D2, DELTA, D1MACH
 C
 C  DECLARE LOCAL VARIABLES.

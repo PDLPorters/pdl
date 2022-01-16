@@ -123,6 +123,7 @@ C   900911  Added variable YP to DOUBLE PRECISION declaration.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C   920527  Corrected erroneous statements in DESCRIPTION.  (WRB)
 C***END PROLOGUE  DPOLFT
+      implicit integer(i-n)
       INTEGER I,IDEGF,IERR,J,JP1,JPAS,K1,K1PJ,K2,K2PJ,K3,K3PI,K4,
      * K4PI,K5,K5PI,KSIG,M,MAXDEG,MOP1,NDEG,NDER,NFAIL
       DOUBLE PRECISION TEMD1,TEMD2

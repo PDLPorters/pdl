@@ -43,6 +43,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920310  Corrected definition of LX in DESCRIPTION.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DDOT
+      implicit integer(i-n)
       DOUBLE PRECISION DX(*), DY(*)
 C***FIRST EXECUTABLE STATEMENT  DDOT
       DDOT = 0.0D0

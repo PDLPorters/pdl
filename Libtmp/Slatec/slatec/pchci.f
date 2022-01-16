@@ -89,6 +89,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD
       REAL  H(*), SLOPE(*), D(INCFD,*)
 C

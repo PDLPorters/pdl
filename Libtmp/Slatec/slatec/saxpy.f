@@ -45,6 +45,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920310  Corrected definition of LX in DESCRIPTION.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SAXPY
+      implicit integer(i-n)
       REAL SX(*), SY(*), SA
 C***FIRST EXECUTABLE STATEMENT  SAXPY
       IF (N.LE.0 .OR. SA.EQ.0.0E0) RETURN

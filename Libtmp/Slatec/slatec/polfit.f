@@ -121,6 +121,7 @@ C   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C   920527  Corrected erroneous statements in DESCRIPTION.  (WRB)
 C***END PROLOGUE  POLFIT
+      implicit integer(i-n)
       DOUBLE PRECISION TEMD1,TEMD2
       DIMENSION X(*), Y(*), W(*), R(*), A(*)
       DIMENSION CO(4,3)

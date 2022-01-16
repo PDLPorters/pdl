@@ -74,6 +74,7 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DGESL
+      implicit integer(i-n)
       INTEGER LDA,N,IPVT(*),JOB
       DOUBLE PRECISION A(LDA,*),B(*)
 C

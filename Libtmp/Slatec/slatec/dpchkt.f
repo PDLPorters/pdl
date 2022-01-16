@@ -45,6 +45,7 @@ C**End
 C
 C  Declare arguments.
 C
+      implicit integer(i-n)
       INTEGER  N, KNOTYP
       DOUBLE PRECISION  X(*), T(*)
 C

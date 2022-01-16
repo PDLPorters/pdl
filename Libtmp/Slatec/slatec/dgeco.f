@@ -73,6 +73,7 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DGECO
+      implicit integer(i-n)
       INTEGER LDA,N,IPVT(*)
       DOUBLE PRECISION A(LDA,*),Z(*)
       DOUBLE PRECISION RCOND

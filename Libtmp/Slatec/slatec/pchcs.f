@@ -90,6 +90,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD, IERR
       REAL  SWITCH, H(*), SLOPE(*), D(INCFD,*)
 C

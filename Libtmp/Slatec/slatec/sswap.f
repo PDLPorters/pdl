@@ -44,6 +44,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920310  Corrected definition of LX in DESCRIPTION.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SSWAP
+      implicit integer(i-n)
       REAL SX(*), SY(*), STEMP1, STEMP2, STEMP3
 C***FIRST EXECUTABLE STATEMENT  SSWAP
       IF (N .LE. 0) RETURN

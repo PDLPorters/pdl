@@ -58,6 +58,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  K, IERR
       REAL  X(K), S(K)
 C

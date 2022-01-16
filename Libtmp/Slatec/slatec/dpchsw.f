@@ -77,6 +77,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  IEXTRM, IERR
       DOUBLE PRECISION  DFMAX, D1, D2, H, SLOPE
 C

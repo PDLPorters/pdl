@@ -103,6 +103,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD, IA, IB, IERR
       REAL  X(*), F(INCFD,*), D(INCFD,*)
       LOGICAL  SKIP

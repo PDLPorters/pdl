@@ -55,6 +55,7 @@ C   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ)
 C   900510  Convert XERRWV calls to XERMSG calls.  (RWC)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DP1VLU
+      implicit integer(i-n)
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       INTEGER I,IC,ILO,IN,INP1,IUP,K1,K1I,K2,K3,K3P1,K3PN,K4,K4P1,K4PN,
      * KC,L,LM1,LP1,MAXORD,N,NDER,NDO,NDP1,NORD

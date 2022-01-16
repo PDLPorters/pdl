@@ -134,6 +134,7 @@ C        e. Change the constants ZERO and THREE to double precision.
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD, IERR
       REAL  X(*), F(INCFD,*), D(INCFD,*)
 C

@@ -149,6 +149,7 @@ C        c. Change the constants ZERO, HALF, ... to single precision.
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  IC(2), N, INCFD, NWK, IERR
       DOUBLE PRECISION  VC(2), X(*), F(INCFD,*), D(INCFD,*), WK(2,*)
 C

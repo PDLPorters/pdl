@@ -115,6 +115,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  N, INCFD, IERR
       DOUBLE PRECISION  X(*), F(INCFD,*), D(INCFD,*), A, B
       LOGICAL  SKIP

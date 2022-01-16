@@ -60,6 +60,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       INTEGER  K, IERR
       DOUBLE PRECISION  X(K), S(K)
 C

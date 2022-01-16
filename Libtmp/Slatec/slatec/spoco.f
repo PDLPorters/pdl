@@ -76,6 +76,7 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SPOCO
+      implicit integer(i-n)
       INTEGER LDA,N,INFO
       REAL A(LDA,*),Z(*)
       REAL RCOND

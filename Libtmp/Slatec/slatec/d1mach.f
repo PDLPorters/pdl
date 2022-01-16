@@ -69,6 +69,7 @@ C           (BKS, WRB)
 C   930201  Added DEC Alpha and SGI constants.  (RWC and WRB)
 C***END PROLOGUE  D1MACH
 C
+      implicit integer(i-n)
       INTEGER SMALL(4)
       INTEGER LARGE(4)
       INTEGER RIGHT(4)

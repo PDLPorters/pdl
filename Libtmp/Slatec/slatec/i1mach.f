@@ -90,6 +90,7 @@ C   930618  Corrected I1MACH(5) for Convex -p8 and -pd8 compiler
 C           options.  (DWL, RWC and WRB).
 C***END PROLOGUE  I1MACH
 C
+      implicit integer(i-n)
       INTEGER IMACH(16),OUTPUT
       SAVE IMACH
       EQUIVALENCE (IMACH(4),OUTPUT)

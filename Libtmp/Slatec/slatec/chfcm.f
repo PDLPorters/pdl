@@ -86,6 +86,7 @@ C        c. Change the constants ZERO, ONE, ... to double precision.
 C
 C  DECLARE ARGUMENTS.
 C
+      implicit integer(i-n)
       REAL  D1, D2, DELTA
 C
 C  DECLARE LOCAL VARIABLES.
