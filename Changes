@@ -11,6 +11,7 @@
 - remove PDL.grow from API
 - remove $PDL::BIGPDL check for 1GB data
 - fix 2.064 regression in $pdl->sequence - thanks @moocow-the-bovine
+- PDL_CORE_VERSION 20
 
 2.066 2022-01-10
 - re-release without erroneous OpenGL::GLUT requires dep
@@ -89,6 +90,7 @@
 - make PDL::Compression functions thread-safe
 - remove Core::set_dataflow_b
 - PDL.affine_new to take PDL_Indx* not SV*
+- PDL_CORE_VERSION 19
 
 2.063 2021-11-19
 - PDL::Core::seed - thanks @zmughal
@@ -167,9 +169,11 @@
 - remove oslice (after 8 years) and never-used Slices::{s_,}identity
 - all PDL operations now have a C function interface called pdl_(name)_run
 - add setinftobad - thanks @alex-prusevich for suggestion
+- PDL_CORE_VERSION 18
 
 2.057 2021-08-13
 - restore PDL_MAGIC_DELETEDATA mechanism
+- PDL_CORE_VERSION 17
 
 2.056 2021-08-08
 - remove (very-)long-deprecated mmap code in favour of File::Map
@@ -179,6 +183,7 @@
 - remove PDL::Constants::{I,J} which returned a PDL::Complex - use PDL::i()
 - n{good,bad}over, sum, prod, *pct, etc now return ndarrays not Perl values
 - make PDL::IO::FastRaw::mapfraw not allocate RAM
+- PDL_CORE_VERSION 16
 
 2.055 2021-08-03
 - officially deprecate PDL::Complex in favour of "native complex" - thanks @wlmb for suggestion
@@ -267,9 +272,10 @@
 
 2.040_01 2021-04-28
 - all C dimension- and threadid-related things now typed PDL_Indx
+- PDL_CORE_VERSION 15
 
 2.040 2021-04-27
-- pdl_core_version 14 for Core struct updates
+- PDL_CORE_VERSION 14 for Core struct updates
 - drop unused dep Module::Compile
 - switch from List::MoreUtils to List::Util to reduce deps
 - bad value per-PDL support now always present, not configurable
