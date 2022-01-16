@@ -74,7 +74,7 @@ if($Config{cc} eq 'cl') {
 }
 
 $hash{LIBS}[0] .= $f77->runtime ;
-$hash{clean}{FILES} .= " SlatecProtos.h " . join ' ', @slatecobj;
+$hash{clean}{FILES} .= join ' ', '', @slatecobj;
 
 $hash{DEFINE} .= qq{ "-DPDL_FORTRAN(x)=x}.($f77->trail_ ? '\#\#_' : '').qq{"};
 

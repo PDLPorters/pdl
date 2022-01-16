@@ -278,23 +278,6 @@ sub firstpar {
 my %ignore_ppar = ( Incfd => 1 );
 my %prototype = ( F => "float", D => "double" );
 
-# an alternative is to declare the function in the Code section
-# of pp_def(), using something like:
-#
-#    my $codeproto = "\$T".(join '',map {$_->[0]} @talts)."(".
-#      (join ',',map qq{PDL_FORTRAN($_->[1])}, @talts).") ();";
-#    if ( defined $fpar ) { 
-#      $codeproto = "\$T".(join '',map {$_->[0]} @talts)."(float,double) $codeproto";
-#    }
-#    $codeproto = "extern $codeproto";
-#
-# and then add `$codeproto . "\n" .' to the beginning of the Code
-# section.
-#
-# this then gets rid of the need of the prototype file. 
-#
-open( PROTOS, "> SlatecProtos.h" );
-
 # defslatec( $pdlname, $funcnames, $argstr, $docstring, $funcref )
 #
 # $pdlname is the name of the PDL function to be created
@@ -425,7 +408,7 @@ sub defslatec {
 	if ( defined $fpar ) { $codeproto .= "$prototype{$_->[0]} "; }
 	else { $codeproto .= "int "; }
 	$codeproto .= "PDL_FORTRAN($_->[1]) ();";
-	print PROTOS $codeproto . "\n";
+	pp_addhdr($codeproto . "\n");
     }
 
     # add on the function reference, if supplied, to the start of
@@ -465,13 +448,14 @@ ENDDBG
 } # sub: defslatec()
 
 pp_addhdr(qq|
-#include "SlatecProtos.h"
-
 static void MAIN__ () {
    /* Cheat to define MAIN__ symbol */                                          
    croak("This should never happen");                                           
-}                                                                               
+}
 
+/* these two need to be done manually because we don't use defslatec for them */
+extern int PDL_FORTRAN(polfit) ();
+extern int PDL_FORTRAN(dpolft) ();
 void PDL_FORTRAN(slatecbarf)();
 
 |);
@@ -1661,11 +1645,6 @@ pp_def('polfit',
           in one variable. C<x()>, C<y()> and C<w()> must be of the same type.
 	  This version handles bad values appropriately',
 );
-
-#these two need to be done manually because we don't use defslatec for them
-print PROTOS "extern int PDL_FORTRAN(polfit) ();\nextern int PDL_FORTRAN(dpolft) ();\n";
-
-close( PROTOS );
 
 ##################################################################
 ##################################################################
