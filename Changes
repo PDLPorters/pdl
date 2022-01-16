@@ -1,5 +1,6 @@
+2.068_01 2022-01-16
 - Minuit 64-bit safe
-- Slatec 64-bit safe
+- Slatec 64-bit improvements
 - fix IO::FITS::rfits with variable-length data to work on bigendian
 
 2.068 2022-01-14
