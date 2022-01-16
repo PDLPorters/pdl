@@ -61,7 +61,7 @@ jobs:
 
       # conditional config
       - name: Maybe gfortran
-        if: "!matrix.disable-fortran && matrix.os == 'ubuntu-latest'"
+        if: "!matrix.disable-fortran"
         uses: PDLPorters/devops/github-actions/install-dep-gfortran@master
 
       - name: Use clang?
