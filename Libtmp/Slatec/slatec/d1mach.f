@@ -70,6 +70,7 @@ C   930201  Added DEC Alpha and SGI constants.  (RWC and WRB)
 C***END PROLOGUE  D1MACH
 C
       implicit integer*8(i-n)
+      integer*4 I
       INTEGER*8 SMALL(4)
       INTEGER*8 LARGE(4)
       INTEGER*8 RIGHT(4)

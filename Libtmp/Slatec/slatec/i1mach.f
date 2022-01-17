@@ -91,6 +91,7 @@ C           options.  (DWL, RWC and WRB).
 C***END PROLOGUE  I1MACH
 C
       implicit integer*8(i-n)
+      integer*4 I
       INTEGER*8 IMACH(16),OUTPUT
       SAVE IMACH
       EQUIVALENCE (IMACH(4),OUTPUT)
