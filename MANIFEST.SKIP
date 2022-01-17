@@ -200,8 +200,6 @@ RCS
 ^cygwin/max_memory.c
 ^cygwin/rtool.txt
 ^cygwin/tmalloc.pl
-^debian/filter-test.pl
-^debian/patched/
 ^gsl.pl
 ^inv-data.pl
 ^patch

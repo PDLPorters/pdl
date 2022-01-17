@@ -17,11 +17,7 @@ build-stamp
 configure-stamp
 patch-stamp
 test-stamp
-debian/pdl.debhelper.log
-debian/pdl/
-debian/files
-debian/*.debhelper
-debian/*.substvars
+debian/
 
 # Junk
 
