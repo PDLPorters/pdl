@@ -266,18 +266,10 @@ END
 
 use strict;
 
-# for MDim, ld[str] is interpreted as "leading dimension of ..."
-
-my %ftypes = (S => 'F', D => 'D');
-
 sub firstpar {
 	$_[0] =~ /^\(([^),]+)[),]/ or die "Can't find first par from $_[0]";
 	$1
 }
-
-# used in defslatec()
-my %ignore_ppar = ( Incfd => 1 );
-my %prototype = ( F => "float", D => "double" );
 
 # defslatec( $pdlname, $funcnames, $argstr, $docstring, $funcref )
 #
@@ -299,7 +291,7 @@ my %prototype = ( F => "float", D => "double" );
 #        done in FORTRAN array order, and PDL has a much richer way
 #        of accessing parts of an array we force the data to be 1D).
 #   CheckFlag
-#     - the PCHIP routined may change the value from 0 to 1 if an
+#     - the PCHIP routines may change the value from 0 to 1 if an
 #       error occurs but the checks were successful. As this complicates
 #       things we copy the user value to a temporary variable,
 #       so that the sent in value is not changed.
@@ -307,6 +299,7 @@ my %prototype = ( F => "float", D => "double" );
 #     - pchid()/dpchid() require FORTRAN array indices, so 
 #       this type flags that we should add 1 onto the input values
 #       before sending to the slatec function
+# for MDim, ld[str] is interpreted as "leading dimension of ..."
 #
 # $docstring gives the text to be used as the function documentation
 #
@@ -315,12 +308,30 @@ my %prototype = ( F => "float", D => "double" );
 # text within $docstring. This string gets printed out
 # in the perldl or pdl2 shell after a '?? string' command
 #
+my %KIND2I = (
+  Mat => ['', sub{"\$P($_[0]->[2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
+  FuncRet => ['', sub {()}, sub {()}],
+  FortranIndex => ['indx ', sub {"&_$_[0]->[2]"}, sub {"PDL_Indx *"},
+    # convert from C to F77 index
+    sub {"PDL_Indx _$_[0][2] = \$$_[0][2]() + 1;"}],
+  Degree => ['indx ', sub{"\$P($_[0]->[2])"}, sub {"PDL_Indx *"}],
+  IntFlag => ['int ', sub{"\$P($_[0]->[2])"}, sub {"PDL_Long *"}],
+  CheckFlag => ['int ', sub {"&_" . lc($_->[0])}, sub {"PDL_Long *"},
+    sub {"PDL_Long _" . lc($_[0][0]) . " = \$$_[0][2]();"}],
+  Dim => [undef, sub {"&\$SIZE($_[0]->[2])"}, sub {"PDL_Indx *"}],
+  MDim => [undef, sub {$_[1]{$_[0]->[2]}}, sub {"PDL_Indx *"}],
+  Incfd => [undef, sub {"&_" . lc($_->[0])}, sub {"PDL_Indx *"},
+    sub {"PDL_Indx _" . lc($_[0][0]) . " = 1;"}],
+);
+my %ignore_ppar = map +($_=>1), qw(Incfd Dim MDim);
+my %prototype = ( F => "float", D => "double" );
+my %ftypes = (S => 'F', D => 'D');
 sub defslatec {
 
     my $debug = 0;  # print out calls to pp_def
 
     my($pname,$fnames,$argstr,$docstring,$funcref) = @_;
-    my @args = map {/^\s*$/ ? () : $_} split ';', $argstr;
+    my @args = grep /\S/, split ';', $argstr;
     my @args2 = map {
 		/^\s*([a-zA-Z]+)\s+ 	# "Type name"
 		  ((?:\[[^]]*\])?)\s* 	# Options
@@ -331,94 +342,31 @@ sub defslatec {
 
     # is this for a function (Type name eq "FuncRet")
     # or a subroutine?
-    my $fpar;
-    foreach ( @args2 ) { 
-      next unless $_->[0] eq "FuncRet";
-      die "Only one FuncRet allowed in pars list.\n" if defined $fpar;
-      $fpar = "\$$_->[2]()";
-    }
+    die "Only one FuncRet allowed in pars list.\n"
+      if (my @funcret = grep $_->[0] eq "FuncRet", @args2) > 1;
+    my $fpar = @funcret ? "\$$funcret[0]->[2]()" : undef;
 
-    my @ppars = map {
-      if($_->[0] =~ /^M?Dim$/ or defined $ignore_ppar{$_->[0]} ) {
-	  ()
-      } else {
-	  (($_->[0] eq "Mat" or $_->[0] eq "FuncRet")
-           and join '',@{$_}[1,2,3]) or
-	  (($_->[0] eq "FortranIndex" or $_->[0] eq "Degree")
-           and "indx ".join '',@{$_}[1,2,3]) or
-	  (($_->[0] eq "IntFlag" or $_->[0] eq "CheckFlag")
-           and "int ".join '',@{$_}[1,2,3]) or
-	  die "Invalid ppars ",(join ',',@$_),"\n";
-      }
-    } @args2;
+    my $pars = join ';', map
+      +($KIND2I{$_->[0]}[0] // die "Invalid ppars ",join(',',@$_),"\n") . join('', @$_[1..3]),
+      grep !$ignore_ppar{$_->[0]}, @args2;
 
-    # uncomment the following line to see what perl thinks the input pars are
-    ##print "Pars: ",(join ';',@ppars),"\n";
-	
-    my @talts = map { 
-          defined $ftypes{$_} or die "FTYPE $_ NOT THERE\n";
-          [$ftypes{$_},$fnames->{$_}] 
-    } sort keys %$fnames;
+    my @talts = map
+      [$ftypes{$_} // die("FTYPE $_ NOT THERE\n"),$fnames->{$_}],
+      sort keys %$fnames;
 
-    my $func = "PDL_FORTRAN(\$T".(join '',map {$_->[0]} @talts) . "(" .
-      (join ',',map qq{$_->[1]}, @talts)."))";
+    my $func = "PDL_FORTRAN(\$T".join('',map {$_->[0]} @talts) . "(" .
+      join(',',map qq{$_->[1]}, @talts)."))";
     if ( defined $fpar ) { $func = "$fpar = $func"; }
 
-    my %lds = map {
-          ($_->[0] eq "Mat" and $_->[3] ne "()") ? 
-          ("ld".$_->[2] => "&\$SIZE(".firstpar($_->[3]).")")
-	  : ()
-    } @args2;
+    my %lds = map +("ld".$_->[2] => "&\$SIZE(".firstpar($_->[3]).")"),
+      grep $_->[0] eq "Mat" && $_->[3] ne "()", @args2;
+    my $funcargs = join ',', map $KIND2I{$_->[0]}[1]->($_, \%lds), @args2;
 
-    my (@funcpars, @protos);
-    foreach ( @args2 ) {
-      next if $_->[0] eq "FuncRet";
-      if ( $_->[0] eq "Mat" or $_->[0] eq "IntFlag" or $_->[0] eq "Degree" ) {
-	  push @funcpars, "\$P($_->[2])";
-	  push @protos,
-	    $_->[0] eq "Mat" ? sub {PDL::Type->new($_[0])->ctype." *"} :
-	    $_->[0] eq "IntFlag" ? sub {"PDL_Long *"} :
-	    sub {"PDL_Indx *"};
-      } elsif ( $_->[0] eq "Dim" ) {
-	  push @funcpars, "&\$SIZE($_->[2])";
-	  push @protos, sub {"PDL_Indx *"};
-      } elsif ( $_->[0] eq "MDim" ) {
-	  push @funcpars, $lds{$_->[2]};
-	  push @protos, sub {"PDL_Indx *"};
-      } elsif ( $_->[0] eq "Incfd" or $_->[0] eq "CheckFlag" ) {
-	  push @funcpars, "&_" . lc($_->[0]);
-	  push @protos, $_->[0] eq "Incfd" ? sub {"PDL_Indx *"} : sub {"PDL_Long *"};
-      } elsif ( $_->[0] eq "FortranIndex" ) {
-	  push @funcpars, "&_$_->[2]"; 
-	  push @protos, sub {"PDL_Indx *"};
-      } else {
-	  die "Invalid args2 (@$_)";
-      }
-    }
-
-    # _incfd     = 1 makes sure PCHIP code treats ndarray as 1D
-    # _checkflag - copy input data to a temporary variable, in case
-    #              the PCHIP routine decides to change it
-    #
-    my @ifincode;
-    foreach ( @args2 ) {
-      if ( $_->[0] eq "Incfd" ) {
-	  push @ifincode, "PDL_Indx _" . lc($_->[0]) . " = 1;";
-      } elsif ( $_->[0] eq "CheckFlag" ) {
-	  push @ifincode, "PDL_Long _" . lc($_->[0]) . " = \$$_->[2]();";
-      } elsif ( $_->[0] eq "FortranIndex" ) {
-	  # convert from C to F77 index
-	  push @ifincode, "PDL_Indx _$_->[2] = \$$_->[2]() + 1;"
-      }
-    }
-
+    my @protos = map $KIND2I{$_->[0]}[2], @args2;
     foreach my $t ( @talts ) {
-	my $codeproto = "extern ";
-	if ( defined $fpar ) { $codeproto .= "$prototype{$t->[0]} "; }
-	else { $codeproto .= "int "; }
-	$codeproto .= "PDL_FORTRAN($t->[1])(" .
-	  join(',', map $_->($t->[0]), @protos) . ");";
-	pp_addhdr($codeproto . "\n");
+	pp_addhdr((defined $fpar ? "$prototype{$t->[0]} " : "int ")
+	  . "PDL_FORTRAN($t->[1])(" .
+	  join(',', map $_->($t->[0]), @protos) . ");\n");
     }
 
     # add on the function reference, if supplied, to the start of
@@ -429,31 +377,24 @@ sub defslatec {
       $docstring = '';
     }
 
-    # If debug flag set, then print out pp_def call for each call to defslatec
-    if ($debug) {
-      my $pars = (join ';',@ppars);
-      my $code = (join '',@ifincode) . "\n " . $func . "  (". (join ',',@funcpars) . ");\n";
-      my $generictypes = "[" . join (", ", map {$_->[0]} @talts) . "],\n";
-      print <<"ENDDBG";
-pp_def($pname,
-  Pars => $pars,
-  OtherPars => '',
-  Code => $code,
-  GenericTypes => $generictypes,
-  Doc => $docstring
+    # _incfd     = 1 makes sure PCHIP code treats ndarray as 1D
+    # _checkflag - copy input data to a temporary variable, in case
+    #              the PCHIP routine decides to change it
+    my @ifincode = map +($KIND2I{$_->[0]}[3]||sub{})->($_), @args2;
+    my $code = join("\n", @ifincode, "$func($funcargs);");
+    print <<"ENDDBG" if $debug;
+pp_def('$pname',
+  Pars => '$pars',
+  Code => '$code',
+  GenericTypes => [@{[join ", ", map $_->[0], @talts]}],
+  Doc => '$docstring',
 );
 ENDDBG
-}
-
     pp_def($pname,
-      Pars => (join ';',@ppars),
-      OtherPars => '',
-      Code => (join '',@ifincode) . "\n " .
-               $func . "  (". (join ',',@funcpars) . ");\n",
-#              . (join '',@ifoutcode),
-      GenericTypes => [map {$_->[0]} @talts],
-      Doc => $docstring
-#      %$opts,
+      Pars => $pars,
+      Code => $code,
+      GenericTypes => [map $_->[0], @talts],
+      Doc => $docstring,
     );
 } # sub: defslatec()
 
@@ -1265,7 +1206,7 @@ defslatec(
            FuncRet [o]  ans     ();
            IntFlag [o]  ierr    ();
           ',
-'Evaluate the definite integral of a a piecewise
+'Evaluate the definite integral of a piecewise
 cubic Hermite function over an arbitrary interval,
 given by C<[$la,$lb]>. C<$d> should contain the derivative values, computed by L</chim>.
 See L</chid> if the integration limits are
