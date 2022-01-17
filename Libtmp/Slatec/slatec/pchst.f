@@ -38,7 +38,7 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       REAL  ARG1, ARG2
 C
 C  DECLARE LOCAL VARIABLES.

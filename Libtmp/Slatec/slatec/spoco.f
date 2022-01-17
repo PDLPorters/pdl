@@ -76,20 +76,20 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SPOCO
-      implicit integer(i-n)
-      INTEGER LDA,N,INFO
+      implicit integer*8(i-n)
+      INTEGER*8 LDA,N,INFO
       REAL A(LDA,*),Z(*)
       REAL RCOND
 C
       REAL SDOT,EK,T,WK,WKM
       REAL ANORM,S,SASUM,SM,YNORM
-      INTEGER I,J,JM1,K,KB,KP1
+      INTEGER*8 I,J,JM1,K,KB,KP1
 C
 C     FIND NORM OF A USING ONLY UPPER HALF
 C
 C***FIRST EXECUTABLE STATEMENT  SPOCO
       DO 30 J = 1, N
-         Z(J) = SASUM(J,A(1,J),1)
+         Z(J) = SASUM(J,A(1,J),1_8)
          JM1 = J - 1
          IF (JM1 .LT. 1) GO TO 20
          DO 10 I = 1, JM1
@@ -123,7 +123,7 @@ C
             IF (Z(K) .NE. 0.0E0) EK = SIGN(EK,-Z(K))
             IF (ABS(EK-Z(K)) .LE. A(K,K)) GO TO 60
                S = A(K,K)/ABS(EK-Z(K))
-               CALL SSCAL(N,S,Z,1)
+               CALL SSCAL(N,S,Z,1_8)
                EK = S*EK
    60       CONTINUE
             WK = EK - Z(K)
@@ -149,8 +149,8 @@ C
   100       CONTINUE
             Z(K) = WK
   110    CONTINUE
-         S = 1.0E0/SASUM(N,Z,1)
-         CALL SSCAL(N,S,Z,1)
+         S = 1.0E0/SASUM(N,Z,1_8)
+         CALL SSCAL(N,S,Z,1_8)
 C
 C        SOLVE R*Y = W
 C
@@ -158,30 +158,30 @@ C
             K = N + 1 - KB
             IF (ABS(Z(K)) .LE. A(K,K)) GO TO 120
                S = A(K,K)/ABS(Z(K))
-               CALL SSCAL(N,S,Z,1)
+               CALL SSCAL(N,S,Z,1_8)
   120       CONTINUE
             Z(K) = Z(K)/A(K,K)
             T = -Z(K)
-            CALL SAXPY(K-1,T,A(1,K),1,Z(1),1)
+            CALL SAXPY(K-1,T,A(1,K),1_8,Z(1),1_8)
   130    CONTINUE
-         S = 1.0E0/SASUM(N,Z,1)
-         CALL SSCAL(N,S,Z,1)
+         S = 1.0E0/SASUM(N,Z,1_8)
+         CALL SSCAL(N,S,Z,1_8)
 C
          YNORM = 1.0E0
 C
 C        SOLVE TRANS(R)*V = Y
 C
          DO 150 K = 1, N
-            Z(K) = Z(K) - SDOT(K-1,A(1,K),1,Z(1),1)
+            Z(K) = Z(K) - SDOT(K-1,A(1,K),1_8,Z(1),1_8)
             IF (ABS(Z(K)) .LE. A(K,K)) GO TO 140
                S = A(K,K)/ABS(Z(K))
-               CALL SSCAL(N,S,Z,1)
+               CALL SSCAL(N,S,Z,1_8)
                YNORM = S*YNORM
   140       CONTINUE
             Z(K) = Z(K)/A(K,K)
   150    CONTINUE
-         S = 1.0E0/SASUM(N,Z,1)
-         CALL SSCAL(N,S,Z,1)
+         S = 1.0E0/SASUM(N,Z,1_8)
+         CALL SSCAL(N,S,Z,1_8)
          YNORM = S*YNORM
 C
 C        SOLVE R*Z = V
@@ -190,16 +190,16 @@ C
             K = N + 1 - KB
             IF (ABS(Z(K)) .LE. A(K,K)) GO TO 160
                S = A(K,K)/ABS(Z(K))
-               CALL SSCAL(N,S,Z,1)
+               CALL SSCAL(N,S,Z,1_8)
                YNORM = S*YNORM
   160       CONTINUE
             Z(K) = Z(K)/A(K,K)
             T = -Z(K)
-            CALL SAXPY(K-1,T,A(1,K),1,Z(1),1)
+            CALL SAXPY(K-1,T,A(1,K),1_8,Z(1),1_8)
   170    CONTINUE
 C        MAKE ZNORM = 1.0
-         S = 1.0E0/SASUM(N,Z,1)
-         CALL SSCAL(N,S,Z,1)
+         S = 1.0E0/SASUM(N,Z,1_8)
+         CALL SSCAL(N,S,Z,1_8)
          YNORM = S*YNORM
 C
          IF (ANORM .NE. 0.0E0) RCOND = YNORM/ANORM

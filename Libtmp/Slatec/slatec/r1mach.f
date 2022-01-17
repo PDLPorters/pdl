@@ -68,12 +68,12 @@ C           (BKS, WRB)
 C   930201  Added DEC Alpha and SGI constants.  (RWC and WRB)
 C***END PROLOGUE  R1MACH
 C
-      implicit integer(i-n)
-      INTEGER SMALL(2)
-      INTEGER LARGE(2)
-      INTEGER RIGHT(2)
-      INTEGER DIVER(2)
-      INTEGER LOG10(2)
+      implicit integer*8(i-n)
+      INTEGER*8 SMALL(2)
+      INTEGER*8 LARGE(2)
+      INTEGER*8 RIGHT(2)
+      INTEGER*8 DIVER(2)
+      INTEGER*8 LOG10(2)
 C
       REAL RMACH(5)
       SAVE RMACH

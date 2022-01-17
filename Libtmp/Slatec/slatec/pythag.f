@@ -19,7 +19,7 @@ C   890531  Changed all specific intrinsics to generic.  (WRB)
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   900402  Added TYPE section.  (WRB)
 C***END PROLOGUE  PYTHAG
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       REAL A,B
 C
       REAL P,Q,R,S,T

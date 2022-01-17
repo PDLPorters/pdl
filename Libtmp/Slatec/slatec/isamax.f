@@ -1,5 +1,5 @@
 *DECK ISAMAX
-      INTEGER FUNCTION ISAMAX (N, SX, INCX)
+      INTEGER*8 FUNCTION ISAMAX (N, SX, INCX)
 C***BEGIN PROLOGUE  ISAMAX
 C***PURPOSE  Find the smallest index of that component of a vector
 C            having the maximum magnitude.
@@ -42,9 +42,9 @@ C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C   920618  Slight restructuring of code.  (RWC, WRB)
 C***END PROLOGUE  ISAMAX
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       REAL SX(*), SMAX, XMAG
-      INTEGER I, INCX, IX, N
+      INTEGER*8 I, INCX, IX, N
 C***FIRST EXECUTABLE STATEMENT  ISAMAX
       ISAMAX = 0
       IF (N .LE. 0) RETURN

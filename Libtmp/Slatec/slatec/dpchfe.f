@@ -131,14 +131,14 @@ C        will be counted (at least) twice in the total returned in IERR.
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  N, INCFD, NE, IERR
+      implicit integer*8(i-n)
+      INTEGER*8  N, INCFD, NE, IERR
       DOUBLE PRECISION  X(*), F(INCFD,*), D(INCFD,*), XE(*), FE(*)
       LOGICAL  SKIP
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  I, IERC, IR, J, JFIRST, NEXT(2), NJ
+      INTEGER*8  I, IERC, IR, J, JFIRST, NEXT(2), NJ
 C
 C  VALIDITY-CHECK ARGUMENTS.
 C

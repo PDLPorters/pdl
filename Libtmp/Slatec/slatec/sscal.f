@@ -42,9 +42,9 @@ C   900821  Modified to correct problem with a negative increment.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SSCAL
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       REAL SA, SX(*)
-      INTEGER I, INCX, IX, M, MP1, N
+      INTEGER*8 I, INCX, IX, M, MP1, N
 C***FIRST EXECUTABLE STATEMENT  SSCAL
       IF (N .LE. 0) RETURN
       IF (INCX .EQ. 1) GOTO 20

@@ -21,7 +21,7 @@ C   890831  Modified array declarations.  (WRB)
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   900402  Added TYPE section.  (WRB)
 C***END PROLOGUE  RADF4
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DIMENSION CC(IDO,L1,4), CH(IDO,4,*), WA1(*), WA2(*), WA3(*)
 C***FIRST EXECUTABLE STATEMENT  RADF4
       HSQT2 = .5*SQRT(2.)

@@ -67,13 +67,13 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SGEDI
-      implicit integer(i-n)
-      INTEGER LDA,N,IPVT(*),JOB
+      implicit integer*8(i-n)
+      INTEGER*8 LDA,N,IPVT(*),JOB
       REAL A(LDA,*),DET(2),WORK(*)
 C
       REAL T
       REAL TEN
-      INTEGER I,J,K,KB,KP1,L,NM1
+      INTEGER*8 I,J,K,KB,KP1,L,NM1
 C***FIRST EXECUTABLE STATEMENT  SGEDI
 C
 C     COMPUTE DETERMINANT
@@ -106,13 +106,13 @@ C
          DO 100 K = 1, N
             A(K,K) = 1.0E0/A(K,K)
             T = -A(K,K)
-            CALL SSCAL(K-1,T,A(1,K),1)
+            CALL SSCAL(K-1,T,A(1,K),1_8)
             KP1 = K + 1
             IF (N .LT. KP1) GO TO 90
             DO 80 J = KP1, N
                T = A(K,J)
                A(K,J) = 0.0E0
-               CALL SAXPY(K,T,A(1,K),1,A(1,J),1)
+               CALL SAXPY(K,T,A(1,K),1_8,A(1,J),1_8)
    80       CONTINUE
    90       CONTINUE
   100    CONTINUE
@@ -130,10 +130,10 @@ C
   110       CONTINUE
             DO 120 J = KP1, N
                T = WORK(J)
-               CALL SAXPY(N,T,A(1,J),1,A(1,K),1)
+               CALL SAXPY(N,T,A(1,J),1_8,A(1,K),1_8)
   120       CONTINUE
             L = IPVT(K)
-            IF (L .NE. K) CALL SSWAP(N,A(1,K),1,A(1,L),1)
+            IF (L .NE. K) CALL SSWAP(N,A(1,K),1_8,A(1,L),1_8)
   130    CONTINUE
   140    CONTINUE
   150 CONTINUE

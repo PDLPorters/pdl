@@ -1,5 +1,5 @@
 *DECK CHFCM
-      INTEGER FUNCTION CHFCM (D1, D2, DELTA)
+      INTEGER*8 FUNCTION CHFCM (D1, D2, DELTA)
 C***BEGIN PROLOGUE  CHFCM
 C***SUBSIDIARY
 C***PURPOSE  Check a single cubic for monotonicity.
@@ -86,12 +86,12 @@ C        c. Change the constants ZERO, ONE, ... to double precision.
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       REAL  D1, D2, DELTA
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  ISMON, ITRUE
+      INTEGER*8  ISMON, ITRUE
       REAL  A, B, EPS, FOUR, ONE, PHI, TEN, THREE, TWO, ZERO
       SAVE ZERO, ONE, TWO, THREE, FOUR
       SAVE TEN

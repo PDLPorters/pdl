@@ -77,8 +77,8 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  IEXTRM, IERR
+      implicit integer*8(i-n)
+      INTEGER*8  IEXTRM, IERR
       DOUBLE PRECISION  DFMAX, D1, D2, H, SLOPE
 C
 C  DECLARE LOCAL VARIABLES.

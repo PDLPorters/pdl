@@ -138,16 +138,16 @@ C        c. Change the double precision declarations to real.
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER N, INCFD, ISMON(N), IERR
+      implicit integer*8(i-n)
+      INTEGER*8 N, INCFD, ISMON(N), IERR
       DOUBLE PRECISION  X(N), F(INCFD,N), D(INCFD,N)
       LOGICAL  SKIP
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER I, NSEG
+      INTEGER*8 I, NSEG
       DOUBLE PRECISION  DELTA
-      INTEGER DCHFCM
+      INTEGER*8 DCHFCM
 C
 C  VALIDITY-CHECK ARGUMENTS.
 C

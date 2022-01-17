@@ -74,12 +74,12 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DGESL
-      implicit integer(i-n)
-      INTEGER LDA,N,IPVT(*),JOB
+      implicit integer*8(i-n)
+      INTEGER*8 LDA,N,IPVT(*),JOB
       DOUBLE PRECISION A(LDA,*),B(*)
 C
       DOUBLE PRECISION DDOT,T
-      INTEGER K,KB,L,NM1
+      INTEGER*8 K,KB,L,NM1
 C***FIRST EXECUTABLE STATEMENT  DGESL
       NM1 = N - 1
       IF (JOB .NE. 0) GO TO 50
@@ -95,7 +95,7 @@ C
                B(L) = B(K)
                B(K) = T
    10       CONTINUE
-            CALL DAXPY(N-K,T,A(K+1,K),1,B(K+1),1)
+            CALL DAXPY(N-K,T,A(K+1,K),1_8,B(K+1),1_8)
    20    CONTINUE
    30    CONTINUE
 C
@@ -105,7 +105,7 @@ C
             K = N + 1 - KB
             B(K) = B(K)/A(K,K)
             T = -B(K)
-            CALL DAXPY(K-1,T,A(1,K),1,B(1),1)
+            CALL DAXPY(K-1,T,A(1,K),1_8,B(1),1_8)
    40    CONTINUE
       GO TO 100
    50 CONTINUE
@@ -114,7 +114,7 @@ C        JOB = NONZERO, SOLVE  TRANS(A) * X = B
 C        FIRST SOLVE  TRANS(U)*Y = B
 C
          DO 60 K = 1, N
-            T = DDOT(K-1,A(1,K),1,B(1),1)
+            T = DDOT(K-1,A(1,K),1_8,B(1),1_8)
             B(K) = (B(K) - T)/A(K,K)
    60    CONTINUE
 C
@@ -123,7 +123,7 @@ C
          IF (NM1 .LT. 1) GO TO 90
          DO 80 KB = 1, NM1
             K = N - KB
-            B(K) = B(K) + DDOT(N-K,A(K+1,K),1,B(K+1),1)
+            B(K) = B(K) + DDOT(N-K,A(K+1,K),1_8,B(K+1),1_8)
             L = IPVT(K)
             IF (L .EQ. K) GO TO 70
                T = B(L)

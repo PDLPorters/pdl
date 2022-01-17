@@ -60,13 +60,13 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  K, IERR
+      implicit integer*8(i-n)
+      INTEGER*8  K, IERR
       DOUBLE PRECISION  X(K), S(K)
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  I, J
+      INTEGER*8  I, J
       DOUBLE PRECISION  VALUE, ZERO
       SAVE ZERO
       DATA  ZERO /0.D0/

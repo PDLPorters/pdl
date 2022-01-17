@@ -1,5 +1,5 @@
 *DECK IDAMAX
-      INTEGER FUNCTION IDAMAX (N, DX, INCX)
+      INTEGER*8 FUNCTION IDAMAX (N, DX, INCX)
 C***BEGIN PROLOGUE  IDAMAX
 C***PURPOSE  Find the smallest index of that component of a vector
 C            having the maximum magnitude.
@@ -42,9 +42,9 @@ C   900821  Modified to correct problem with a negative increment.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  IDAMAX
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DOUBLE PRECISION DX(*), DMAX, XMAG
-      INTEGER I, INCX, IX, N
+      INTEGER*8 I, INCX, IX, N
 C***FIRST EXECUTABLE STATEMENT  IDAMAX
       IDAMAX = 0
       IF (N .LE. 0) RETURN

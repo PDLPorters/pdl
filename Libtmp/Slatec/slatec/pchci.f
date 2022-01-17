@@ -89,13 +89,13 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  N, INCFD
+      implicit integer*8(i-n)
+      INTEGER*8  N, INCFD
       REAL  H(*), SLOPE(*), D(INCFD,*)
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  I, NLESS1
+      INTEGER*8  I, NLESS1
       REAL  DEL1, DEL2, DMAX, DMIN, DRAT1, DRAT2, HSUM, HSUMT3, THREE,
      *      W1, W2, ZERO
       SAVE ZERO, THREE

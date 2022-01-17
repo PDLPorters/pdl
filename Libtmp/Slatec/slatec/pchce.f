@@ -109,13 +109,13 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  IC(2), N, INCFD, IERR
+      implicit integer*8(i-n)
+      INTEGER*8  IC(2), N, INCFD, IERR
       REAL  VC(2), X(*), H(*), SLOPE(*), D(INCFD,*)
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  IBEG, IEND, IERF, INDEX, J, K
+      INTEGER*8  IBEG, IEND, IERF, INDEX, J, K
       REAL  HALF, STEMP(3), THREE, TWO, XTEMP(4), ZERO
       SAVE ZERO, HALF, TWO, THREE
       REAL  PCHDF, PCHST

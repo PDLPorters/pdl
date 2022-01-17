@@ -55,8 +55,8 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DPCOEF
 C
-      implicit integer(i-n)
-      INTEGER I,L,LL,LLP1,LLP2,NEW,NR
+      implicit integer*8(i-n)
+      INTEGER*8 I,L,LL,LLP1,LLP2,NEW,NR
       DOUBLE PRECISION A(*),C,FAC,SAVE,TC(*)
 C***FIRST EXECUTABLE STATEMENT  DPCOEF
       LL = ABS(L)

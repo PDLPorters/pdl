@@ -69,12 +69,12 @@ C           (BKS, WRB)
 C   930201  Added DEC Alpha and SGI constants.  (RWC and WRB)
 C***END PROLOGUE  D1MACH
 C
-      implicit integer(i-n)
-      INTEGER SMALL(4)
-      INTEGER LARGE(4)
-      INTEGER RIGHT(4)
-      INTEGER DIVER(4)
-      INTEGER LOG10(4)
+      implicit integer*8(i-n)
+      INTEGER*8 SMALL(4)
+      INTEGER*8 LARGE(4)
+      INTEGER*8 RIGHT(4)
+      INTEGER*8 DIVER(4)
+      INTEGER*8 LOG10(4)
 C
       DOUBLE PRECISION DMACH(5)
       SAVE DMACH

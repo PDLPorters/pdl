@@ -56,7 +56,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  PCOEF
 C
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DIMENSION A(*), TC(*)
 C***FIRST EXECUTABLE STATEMENT  PCOEF
       LL = ABS(L)

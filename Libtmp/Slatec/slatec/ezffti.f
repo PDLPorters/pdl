@@ -39,7 +39,7 @@ C   881128  Modified by Dick Valent to meet prologue standards.
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  EZFFTI
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DIMENSION WSAVE(*)
 C***FIRST EXECUTABLE STATEMENT  EZFFTI
       IF (N .EQ. 1) RETURN

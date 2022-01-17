@@ -68,13 +68,13 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DGEDI
-      implicit integer(i-n)
-      INTEGER LDA,N,IPVT(*),JOB
+      implicit integer*8(i-n)
+      INTEGER*8 LDA,N,IPVT(*),JOB
       DOUBLE PRECISION A(LDA,*),DET(2),WORK(*)
 C
       DOUBLE PRECISION T
       DOUBLE PRECISION TEN
-      INTEGER I,J,K,KB,KP1,L,NM1
+      INTEGER*8 I,J,K,KB,KP1,L,NM1
 C***FIRST EXECUTABLE STATEMENT  DGEDI
 C
 C     COMPUTE DETERMINANT
@@ -107,13 +107,13 @@ C
          DO 100 K = 1, N
             A(K,K) = 1.0D0/A(K,K)
             T = -A(K,K)
-            CALL DSCAL(K-1,T,A(1,K),1)
+            CALL DSCAL(K-1,T,A(1,K),1_8)
             KP1 = K + 1
             IF (N .LT. KP1) GO TO 90
             DO 80 J = KP1, N
                T = A(K,J)
                A(K,J) = 0.0D0
-               CALL DAXPY(K,T,A(1,K),1,A(1,J),1)
+               CALL DAXPY(K,T,A(1,K),1_8,A(1,J),1_8)
    80       CONTINUE
    90       CONTINUE
   100    CONTINUE
@@ -131,10 +131,10 @@ C
   110       CONTINUE
             DO 120 J = KP1, N
                T = WORK(J)
-               CALL DAXPY(N,T,A(1,J),1,A(1,K),1)
+               CALL DAXPY(N,T,A(1,J),1_8,A(1,K),1_8)
   120       CONTINUE
             L = IPVT(K)
-            IF (L .NE. K) CALL DSWAP(N,A(1,K),1,A(1,L),1)
+            IF (L .NE. K) CALL DSWAP(N,A(1,K),1_8,A(1,L),1_8)
   130    CONTINUE
   140    CONTINUE
   150 CONTINUE

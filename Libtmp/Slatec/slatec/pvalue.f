@@ -55,7 +55,7 @@ C   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ)
 C   900510  Convert XERRWV calls to XERMSG calls.  (RWC)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  PVALUE
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DIMENSION YP(*),A(*)
       CHARACTER*8 XERN1, XERN2
 C***FIRST EXECUTABLE STATEMENT  PVALUE

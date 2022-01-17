@@ -73,21 +73,21 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DGECO
-      implicit integer(i-n)
-      INTEGER LDA,N,IPVT(*)
+      implicit integer*8(i-n)
+      INTEGER*8 LDA,N,IPVT(*)
       DOUBLE PRECISION A(LDA,*),Z(*)
       DOUBLE PRECISION RCOND
 C
       DOUBLE PRECISION DDOT,EK,T,WK,WKM
       DOUBLE PRECISION ANORM,S,DASUM,SM,YNORM
-      INTEGER INFO,J,K,KB,KP1,L
+      INTEGER*8 INFO,J,K,KB,KP1,L
 C
 C     COMPUTE 1-NORM OF A
 C
 C***FIRST EXECUTABLE STATEMENT  DGECO
       ANORM = 0.0D0
       DO 10 J = 1, N
-         ANORM = MAX(ANORM,DASUM(N,A(1,J),1))
+         ANORM = MAX(ANORM,DASUM(N,A(1,J),1_8))
    10 CONTINUE
 C
 C     FACTOR
@@ -111,7 +111,7 @@ C
          IF (Z(K) .NE. 0.0D0) EK = SIGN(EK,-Z(K))
          IF (ABS(EK-Z(K)) .LE. ABS(A(K,K))) GO TO 30
             S = ABS(A(K,K))/ABS(EK-Z(K))
-            CALL DSCAL(N,S,Z,1)
+            CALL DSCAL(N,S,Z,1_8)
             EK = S*EK
    30    CONTINUE
          WK = EK - Z(K)
@@ -143,25 +143,25 @@ C
    90    CONTINUE
          Z(K) = WK
   100 CONTINUE
-      S = 1.0D0/DASUM(N,Z,1)
-      CALL DSCAL(N,S,Z,1)
+      S = 1.0D0/DASUM(N,Z,1_8)
+      CALL DSCAL(N,S,Z,1_8)
 C
 C     SOLVE TRANS(L)*Y = W
 C
       DO 120 KB = 1, N
          K = N + 1 - KB
-         IF (K .LT. N) Z(K) = Z(K) + DDOT(N-K,A(K+1,K),1,Z(K+1),1)
+         IF (K .LT. N) Z(K) = Z(K) + DDOT(N-K,A(K+1,K),1_8,Z(K+1),1_8)
          IF (ABS(Z(K)) .LE. 1.0D0) GO TO 110
             S = 1.0D0/ABS(Z(K))
-            CALL DSCAL(N,S,Z,1)
+            CALL DSCAL(N,S,Z,1_8)
   110    CONTINUE
          L = IPVT(K)
          T = Z(L)
          Z(L) = Z(K)
          Z(K) = T
   120 CONTINUE
-      S = 1.0D0/DASUM(N,Z,1)
-      CALL DSCAL(N,S,Z,1)
+      S = 1.0D0/DASUM(N,Z,1_8)
+      CALL DSCAL(N,S,Z,1_8)
 C
       YNORM = 1.0D0
 C
@@ -172,15 +172,15 @@ C
          T = Z(L)
          Z(L) = Z(K)
          Z(K) = T
-         IF (K .LT. N) CALL DAXPY(N-K,T,A(K+1,K),1,Z(K+1),1)
+         IF (K .LT. N) CALL DAXPY(N-K,T,A(K+1,K),1_8,Z(K+1),1_8)
          IF (ABS(Z(K)) .LE. 1.0D0) GO TO 130
             S = 1.0D0/ABS(Z(K))
-            CALL DSCAL(N,S,Z,1)
+            CALL DSCAL(N,S,Z,1_8)
             YNORM = S*YNORM
   130    CONTINUE
   140 CONTINUE
-      S = 1.0D0/DASUM(N,Z,1)
-      CALL DSCAL(N,S,Z,1)
+      S = 1.0D0/DASUM(N,Z,1_8)
+      CALL DSCAL(N,S,Z,1_8)
       YNORM = S*YNORM
 C
 C     SOLVE  U*Z = V
@@ -189,17 +189,17 @@ C
          K = N + 1 - KB
          IF (ABS(Z(K)) .LE. ABS(A(K,K))) GO TO 150
             S = ABS(A(K,K))/ABS(Z(K))
-            CALL DSCAL(N,S,Z,1)
+            CALL DSCAL(N,S,Z,1_8)
             YNORM = S*YNORM
   150    CONTINUE
          IF (A(K,K) .NE. 0.0D0) Z(K) = Z(K)/A(K,K)
          IF (A(K,K) .EQ. 0.0D0) Z(K) = 1.0D0
          T = -Z(K)
-         CALL DAXPY(K-1,T,A(1,K),1,Z(1),1)
+         CALL DAXPY(K-1,T,A(1,K),1_8,Z(1),1_8)
   160 CONTINUE
 C     MAKE ZNORM = 1.0
-      S = 1.0D0/DASUM(N,Z,1)
-      CALL DSCAL(N,S,Z,1)
+      S = 1.0D0/DASUM(N,Z,1_8)
+      CALL DSCAL(N,S,Z,1_8)
       YNORM = S*YNORM
 C
       IF (ANORM .NE. 0.0D0) RCOND = YNORM/ANORM

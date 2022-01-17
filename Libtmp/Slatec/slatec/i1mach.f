@@ -1,5 +1,5 @@
 *DECK I1MACH
-      INTEGER FUNCTION I1MACH (I)
+      INTEGER*8 FUNCTION I1MACH (I)
 C***BEGIN PROLOGUE  I1MACH
 C***PURPOSE  Return integer machine dependent constants.
 C***LIBRARY   SLATEC
@@ -90,8 +90,8 @@ C   930618  Corrected I1MACH(5) for Convex -p8 and -pd8 compiler
 C           options.  (DWL, RWC and WRB).
 C***END PROLOGUE  I1MACH
 C
-      implicit integer(i-n)
-      INTEGER IMACH(16),OUTPUT
+      implicit integer*8(i-n)
+      INTEGER*8 IMACH(16),OUTPUT
       SAVE IMACH
       EQUIVALENCE (IMACH(4),OUTPUT)
 C

@@ -27,6 +27,6 @@ C   861211  REVISION DATE from Version 3.2
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C***END PROLOGUE  FDUMP
 C***FIRST EXECUTABLE STATEMENT  FDUMP
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       RETURN
       END

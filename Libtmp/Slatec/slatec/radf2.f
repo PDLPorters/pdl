@@ -18,7 +18,7 @@ C   890831  Modified array declarations.  (WRB)
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   900402  Added TYPE section.  (WRB)
 C***END PROLOGUE  RADF2
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DIMENSION CH(IDO,2,*), CC(IDO,L1,2), WA1(*)
 C***FIRST EXECUTABLE STATEMENT  RADF2
       DO 101 K=1,L1

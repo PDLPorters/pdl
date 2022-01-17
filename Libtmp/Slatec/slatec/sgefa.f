@@ -58,12 +58,12 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SGEFA
-      implicit integer(i-n)
-      INTEGER LDA,N,IPVT(*),INFO
+      implicit integer*8(i-n)
+      INTEGER*8 LDA,N,IPVT(*),INFO
       REAL A(LDA,*)
 C
       REAL T
-      INTEGER ISAMAX,J,K,KP1,L,NM1
+      INTEGER*8 ISAMAX,J,K,KP1,L,NM1
 C
 C     GAUSSIAN ELIMINATION WITH PARTIAL PIVOTING
 C
@@ -76,7 +76,7 @@ C***FIRST EXECUTABLE STATEMENT  SGEFA
 C
 C        FIND L = PIVOT INDEX
 C
-         L = ISAMAX(N-K+1,A(K,K),1) + K - 1
+         L = ISAMAX(N-K+1,A(K,K),1_8) + K - 1
          IPVT(K) = L
 C
 C        ZERO PIVOT IMPLIES THIS COLUMN ALREADY TRIANGULARIZED
@@ -94,7 +94,7 @@ C
 C           COMPUTE MULTIPLIERS
 C
             T = -1.0E0/A(K,K)
-            CALL SSCAL(N-K,T,A(K+1,K),1)
+            CALL SSCAL(N-K,T,A(K+1,K),1_8)
 C
 C           ROW ELIMINATION WITH COLUMN INDEXING
 C
@@ -104,7 +104,7 @@ C
                   A(L,J) = A(K,J)
                   A(K,J) = T
    20          CONTINUE
-               CALL SAXPY(N-K,T,A(K+1,K),1,A(K+1,J),1)
+               CALL SAXPY(N-K,T,A(K+1,K),1_8,A(K+1,J),1_8)
    30       CONTINUE
          GO TO 50
    40    CONTINUE

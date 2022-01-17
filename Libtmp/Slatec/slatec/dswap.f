@@ -44,7 +44,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920310  Corrected definition of LX in DESCRIPTION.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DSWAP
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DOUBLE PRECISION DX(*), DY(*), DTEMP1, DTEMP2, DTEMP3
 C***FIRST EXECUTABLE STATEMENT  DSWAP
       IF (N .LE. 0) RETURN

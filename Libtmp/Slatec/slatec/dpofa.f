@@ -54,13 +54,13 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  DPOFA
-      implicit integer(i-n)
-      INTEGER LDA,N,INFO
+      implicit integer*8(i-n)
+      INTEGER*8 LDA,N,INFO
       DOUBLE PRECISION A(LDA,*)
 C
       DOUBLE PRECISION DDOT,T
       DOUBLE PRECISION S
-      INTEGER J,JM1,K
+      INTEGER*8 J,JM1,K
 C***FIRST EXECUTABLE STATEMENT  DPOFA
          DO 30 J = 1, N
             INFO = J
@@ -68,7 +68,7 @@ C***FIRST EXECUTABLE STATEMENT  DPOFA
             JM1 = J - 1
             IF (JM1 .LT. 1) GO TO 20
             DO 10 K = 1, JM1
-               T = A(K,J) - DDOT(K-1,A(1,K),1,A(1,J),1)
+               T = A(K,J) - DDOT(K-1,A(1,K),1_8,A(1,J),1_8)
                T = T/A(K,K)
                A(K,J) = T
                S = S + T*T

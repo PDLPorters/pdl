@@ -44,13 +44,13 @@ C**End
 C
 C  Declare arguments.
 C
-      implicit integer(i-n)
-      INTEGER  N, KNOTYP
+      implicit integer*8(i-n)
+      INTEGER*8  N, KNOTYP
       REAL  X(*), T(*)
 C
 C  Declare local variables.
 C
-      INTEGER  J, K, NDIM
+      INTEGER*8  J, K, NDIM
       REAL  HBEG, HEND
 C***FIRST EXECUTABLE STATEMENT  PCHKT
 C

@@ -158,13 +158,13 @@ C**End
 C
 C  Declare arguments.
 C
-      implicit integer(i-n)
-      INTEGER  N, INCFD, KNOTYP, NKNOTS, NDIM, KORD, IERR
+      implicit integer*8(i-n)
+      INTEGER*8  N, INCFD, KNOTYP, NKNOTS, NDIM, KORD, IERR
       DOUBLE PRECISION  X(*), F(INCFD,*), D(INCFD,*), T(*), BCOEF(*)
 C
 C  Declare local variables.
 C
-      INTEGER  K, KK
+      INTEGER*8  K, KK
       DOUBLE PRECISION  DOV3, HNEW, HOLD
       CHARACTER*8  LIBNAM, SUBNAM
 C***FIRST EXECUTABLE STATEMENT  DPCHBS

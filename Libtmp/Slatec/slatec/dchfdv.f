@@ -97,13 +97,13 @@ C        c. Change the constant ZERO to single precision.
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  NE, NEXT(2), IERR
+      implicit integer*8(i-n)
+      INTEGER*8  NE, NEXT(2), IERR
       DOUBLE PRECISION  X1, X2, F1, F2, D1, D2, XE(*), FE(*), DE(*)
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  I
+      INTEGER*8  I
       DOUBLE PRECISION  C2, C2T2, C3, C3T3, DEL1, DEL2, DELTA, H, X,
      *  XMI, XMA, ZERO
       SAVE ZERO

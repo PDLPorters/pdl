@@ -57,7 +57,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SROTG
 C***FIRST EXECUTABLE STATEMENT  SROTG
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       IF (ABS(SA) .LE. ABS(SB)) GO TO 10
 C
 C *** HERE ABS(SA) .GT. ABS(SB) ***

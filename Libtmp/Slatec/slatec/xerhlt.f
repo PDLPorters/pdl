@@ -33,7 +33,7 @@ C   900510  Changed calling sequence to delete length of character
 C           and changed routine name from XERABT to XERHLT.  (RWC)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  XERHLT
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       CHARACTER*(*) MESSG
 C***FIRST EXECUTABLE STATEMENT  XERHLT
       CALL SLATECBARF

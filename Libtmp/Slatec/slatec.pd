@@ -311,17 +311,17 @@ sub firstpar {
 my %KIND2I = (
   Mat => ['', sub{"\$P($_[0]->[2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
   FuncRet => ['', sub {()}, sub {()}],
-  FortranIndex => ['indx ', sub {"&_$_[0]->[2]"}, sub {"PDL_Indx *"},
+  FortranIndex => ['longlong ', sub {"&_$_[0]->[2]"}, sub {"PDL_LongLong *"},
     # convert from C to F77 index
-    sub {"PDL_Indx _$_[0][2] = \$$_[0][2]() + 1;"}],
-  Degree => ['indx ', sub{"\$P($_[0]->[2])"}, sub {"PDL_Indx *"}],
-  IntFlag => ['int ', sub{"\$P($_[0]->[2])"}, sub {"PDL_Long *"}],
-  CheckFlag => ['int ', sub {"&_" . lc($_->[0])}, sub {"PDL_Long *"},
-    sub {"PDL_Long _" . lc($_[0][0]) . " = \$$_[0][2]();"}],
-  Dim => [undef, sub {"&\$SIZE($_[0]->[2])"}, sub {"PDL_Indx *"}],
-  MDim => [undef, sub {$_[1]{$_[0]->[2]}}, sub {"PDL_Indx *"}],
-  Incfd => [undef, sub {"&_" . lc($_->[0])}, sub {"PDL_Indx *"},
-    sub {"PDL_Indx _" . lc($_[0][0]) . " = 1;"}],
+    sub {"PDL_LongLong _$_[0][2] = \$$_[0][2]() + 1;"}],
+  Degree => ['longlong ', sub{"\$P($_[0]->[2])"}, sub {"PDL_LongLong *"}],
+  IntFlag => ['longlong ', sub{"\$P($_[0]->[2])"}, sub {"PDL_LongLong *"}],
+  CheckFlag => ['longlong ', sub {"&_" . lc($_->[0])}, sub {"PDL_LongLong *"},
+    sub {"PDL_LongLong _" . lc($_[0][0]) . " = \$$_[0][2]();"}],
+  Dim => [undef, sub {"&\$SIZE($_[0]->[2])"}, sub {"PDL_LongLong *"}],
+  MDim => [undef, sub {$_[1]{$_[0]->[2]}}, sub {"PDL_LongLong *"}],
+  Incfd => [undef, sub {"&_" . lc($_->[0])}, sub {"PDL_LongLong *"},
+    sub {"PDL_LongLong _" . lc($_[0][0]) . " = 1;"}],
 );
 my %ignore_ppar = map +($_=>1), qw(Incfd Dim MDim);
 my %prototype = ( F => "float", D => "double" );
@@ -364,7 +364,7 @@ sub defslatec {
 
     my @protos = map $KIND2I{$_->[0]}[2], @args2;
     foreach my $t ( @talts ) {
-	pp_addhdr((defined $fpar ? "$prototype{$t->[0]} " : "int ")
+	pp_addhdr((defined $fpar ? "$prototype{$t->[0]} " : "PDL_LongLong ")
 	  . "PDL_FORTRAN($t->[1])(" .
 	  join(',', map $_->($t->[0]), @protos) . ");\n");
     }
@@ -405,13 +405,13 @@ static void MAIN__ () {
 }
 
 /* these two need to be done manually because we don't use defslatec for them */
-extern int PDL_FORTRAN(polfit)(
-  PDL_Indx *N, PDL_Float *X, PDL_Float *Y, PDL_Float *W, PDL_Indx *MAXDEG,
-  PDL_Indx *NDEG, PDL_Float *EPS, PDL_Float *R, PDL_Indx *IERR, PDL_Float *A
+void PDL_FORTRAN(polfit)(
+  PDL_LongLong *N, PDL_Float *X, PDL_Float *Y, PDL_Float *W, PDL_LongLong *MAXDEG,
+  PDL_LongLong *NDEG, PDL_Float *EPS, PDL_Float *R, PDL_LongLong *IERR, PDL_Float *A
 );
-extern int PDL_FORTRAN(dpolft)(
-  PDL_Indx *N, PDL_Double *X, PDL_Double *Y, PDL_Double *W, PDL_Indx *MAXDEG,
-  PDL_Indx *NDEG, PDL_Double *EPS, PDL_Double *R, PDL_Indx *IERR, PDL_Double *A
+void PDL_FORTRAN(dpolft)(
+  PDL_LongLong *N, PDL_Double *X, PDL_Double *Y, PDL_Double *W, PDL_LongLong *MAXDEG,
+  PDL_LongLong *NDEG, PDL_Double *EPS, PDL_Double *R, PDL_LongLong *IERR, PDL_Double *A
 );
 void PDL_FORTRAN(slatecbarf)();
 
@@ -1508,12 +1508,12 @@ Error status returned by C<$ierr>:
 #  bar runs across polynomial coefficients.
 #
 pp_def('polfit',
-  Pars => 'x(n); y(n); w(n); indx maxdeg(); indx [o]ndeg(); [o]eps(); [o]r(n); indx [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
+  Pars => 'x(n); y(n); w(n); longlong maxdeg(); longlong [o]ndeg(); [o]eps(); [o]r(n); longlong [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
   OtherPars => '',
   Code => '
-           PDL_Indx maxord;
-           PDL_Indx ord;
-           PDL_Indx k;
+           PDL_LongLong maxord;
+           PDL_LongLong ord;
+           PDL_LongLong k;
            $GENERIC() zero = 0;
 
            PDL_FORTRAN($TFD(polfit,dpolft))(&$SIZE(n),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
@@ -1529,9 +1529,9 @@ pp_def('polfit',
   GenericTypes => ['F','D'],
   HandleBad => 1, 
   NoBadifNaN => 1,
-  BadCode => 'PDL_Indx ns = $SIZE(n);
-              PDL_Indx i;
-	      PDL_Indx j = 0;
+  BadCode => 'PDL_LongLong ns = $SIZE(n);
+              PDL_LongLong i;
+	      PDL_LongLong j = 0;
               if($SIZE(n)<$maxdeg()) {
                 $CROAK("polfit: Must have at least <n> points to fit <n> coefficients");
               }
@@ -1552,9 +1552,9 @@ pp_def('polfit',
                 $ierr() = 2;
               } else {
                   /* Found enough good datapoints for a fit -- do the fit */
-		  PDL_Indx k;
-		  PDL_Indx ord;
-		  PDL_Indx maxord;
+		  PDL_LongLong k;
+		  PDL_LongLong ord;
+		  PDL_LongLong maxord;
                   $GENERIC() zero = 0;
 
                 /* Do the fit */
@@ -1582,7 +1582,7 @@ pp_def('polfit',
                      /* The number in ord is not the number of coefficients in the polynomial, it is the highest */
                      /* order coefficient -- so 3 for a cubic, which has 4 coefficients. */
 	             /* --CED */
-		     PDL_Indx ii;
+		     PDL_LongLong ii;
                      $GENERIC() acc = 0;
                      for( ii=ord; ii>0; ii-- ) {
                         acc += $coeffs(bar=>ii);

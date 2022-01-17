@@ -69,14 +69,14 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SPODI
-      implicit integer(i-n)
-      INTEGER LDA,N,JOB
+      implicit integer*8(i-n)
+      INTEGER*8 LDA,N,JOB
       REAL A(LDA,*)
       REAL DET(2)
 C
       REAL T
       REAL S
-      INTEGER I,J,JM1,K,KP1
+      INTEGER*8 I,J,JM1,K,KP1
 C***FIRST EXECUTABLE STATEMENT  SPODI
 C
 C     COMPUTE DETERMINANT
@@ -108,13 +108,13 @@ C
          DO 100 K = 1, N
             A(K,K) = 1.0E0/A(K,K)
             T = -A(K,K)
-            CALL SSCAL(K-1,T,A(1,K),1)
+            CALL SSCAL(K-1,T,A(1,K),1_8)
             KP1 = K + 1
             IF (N .LT. KP1) GO TO 90
             DO 80 J = KP1, N
                T = A(K,J)
                A(K,J) = 0.0E0
-               CALL SAXPY(K,T,A(1,K),1,A(1,J),1)
+               CALL SAXPY(K,T,A(1,K),1_8,A(1,J),1_8)
    80       CONTINUE
    90       CONTINUE
   100    CONTINUE
@@ -126,11 +126,11 @@ C
             IF (JM1 .LT. 1) GO TO 120
             DO 110 K = 1, JM1
                T = A(K,J)
-               CALL SAXPY(K,T,A(1,J),1,A(1,K),1)
+               CALL SAXPY(K,T,A(1,J),1_8,A(1,K),1_8)
   110       CONTINUE
   120       CONTINUE
             T = A(J,J)
-            CALL SSCAL(J,T,A(1,J),1)
+            CALL SSCAL(J,T,A(1,J),1_8)
   130    CONTINUE
   140 CONTINUE
       RETURN

@@ -1,5 +1,5 @@
 *DECK DCHFCM
-      INTEGER FUNCTION DCHFCM (D1, D2, DELTA)
+      INTEGER*8 FUNCTION DCHFCM (D1, D2, DELTA)
 C***BEGIN PROLOGUE  DCHFCM
 C***SUBSIDIARY
 C***PURPOSE  Check a single cubic for monotonicity.
@@ -86,12 +86,12 @@ C        c. Change the constants ZERO, ONE, ... to single precision.
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DOUBLE PRECISION  D1, D2, DELTA, D1MACH
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER ISMON, ITRUE
+      INTEGER*8 ISMON, ITRUE
       DOUBLE PRECISION  A, B, EPS, FOUR, ONE, PHI, TEN, THREE, TWO,
      * ZERO
       SAVE ZERO, ONE, TWO, THREE, FOUR

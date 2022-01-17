@@ -99,7 +99,7 @@ C   881128  Modified by Dick Valent to meet prologue standards.
 C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  EZFFTB
-      implicit integer(i-n)
+      implicit integer*8(i-n)
       DIMENSION R(*), A(*), B(*), WSAVE(*)
 C***FIRST EXECUTABLE STATEMENT  EZFFTB
       IF (N-2) 101,102,103

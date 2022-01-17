@@ -216,14 +216,14 @@ C        f. Change the constant  ZERO  to single precision.
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  IC(2), N, INCFD, NWK, IERR
+      implicit integer*8(i-n)
+      INTEGER*8  IC(2), N, INCFD, NWK, IERR
       DOUBLE PRECISION  VC(2), SWITCH, X(*), F(INCFD,*), D(INCFD,*),
      * WK(NWK)
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  I, IBEG, IEND, NLESS1
+      INTEGER*8  I, IBEG, IEND, NLESS1
       DOUBLE PRECISION  ZERO
       SAVE ZERO
       DATA  ZERO /0.D0/

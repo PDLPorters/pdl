@@ -111,14 +111,14 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  N, INCFD, IERR
+      implicit integer*8(i-n)
+      INTEGER*8  N, INCFD, IERR
       REAL  X(*), F(INCFD,*), D(INCFD,*), A, B
       LOGICAL  SKIP
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  I, IA, IB, IERD, IL, IR
+      INTEGER*8  I, IA, IB, IERD, IL, IR
       REAL  VALUE, XA, XB, ZERO
       SAVE ZERO
       REAL  CHFIE, PCHID

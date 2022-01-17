@@ -110,12 +110,12 @@ C   900326  Removed duplicate information from DESCRIPTION section.
 C           (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SSVDC
-      implicit integer(i-n)
-      INTEGER LDX,N,P,LDU,LDV,JOB,INFO
+      implicit integer*8(i-n)
+      INTEGER*8 LDX,N,P,LDU,LDV,JOB,INFO
       REAL X(LDX,*),S(*),E(*),U(LDU,*),V(LDV,*),WORK(*)
 C
 C
-      INTEGER I,ITER,J,JOBU,K,KASE,KK,L,LL,LLS,LM1,LP1,LS,LU,M,MAXIT,
+      INTEGER*8 I,ITER,J,JOBU,K,KASE,KK,L,LL,LLS,LM1,LP1,LS,LU,M,MAXIT,
      1        MM,MM1,MP1,NCT,NCTP1,NCU,NRT,NRTP1
       REAL SDOT,T
       REAL B,C,CS,EL,EMM1,F,G,SNRM2,SCALE,SHIFT,SL,SM,SN,SMM1,T1,TEST,
@@ -152,10 +152,10 @@ C
 C           COMPUTE THE TRANSFORMATION FOR THE L-TH COLUMN AND
 C           PLACE THE L-TH DIAGONAL IN S(L).
 C
-            S(L) = SNRM2(N-L+1,X(L,L),1)
+            S(L) = SNRM2(N-L+1,X(L,L),1_8)
             IF (S(L) .EQ. 0.0E0) GO TO 10
                IF (X(L,L) .NE. 0.0E0) S(L) = SIGN(S(L),X(L,L))
-               CALL SSCAL(N-L+1,1.0E0/S(L),X(L,L),1)
+               CALL SSCAL(N-L+1,1.0E0/S(L),X(L,L),1_8)
                X(L,L) = 1.0E0 + X(L,L)
    10       CONTINUE
             S(L) = -S(L)
@@ -167,8 +167,8 @@ C
 C
 C              APPLY THE TRANSFORMATION.
 C
-               T = -SDOT(N-L+1,X(L,L),1,X(L,J),1)/X(L,L)
-               CALL SAXPY(N-L+1,T,X(L,L),1,X(L,J),1)
+               T = -SDOT(N-L+1,X(L,L),1_8,X(L,J),1_8)/X(L,L)
+               CALL SAXPY(N-L+1,T,X(L,L),1_8,X(L,J),1_8)
    30       CONTINUE
 C
 C           PLACE THE L-TH ROW OF X INTO  E FOR THE
@@ -191,10 +191,10 @@ C
 C           COMPUTE THE L-TH ROW TRANSFORMATION AND PLACE THE
 C           L-TH SUPER-DIAGONAL IN E(L).
 C
-            E(L) = SNRM2(P-L,E(LP1),1)
+            E(L) = SNRM2(P-L,E(LP1),1_8)
             IF (E(L) .EQ. 0.0E0) GO TO 80
                IF (E(LP1) .NE. 0.0E0) E(L) = SIGN(E(L),E(LP1))
-               CALL SSCAL(P-L,1.0E0/E(L),E(LP1),1)
+               CALL SSCAL(P-L,1.0E0/E(L),E(LP1),1_8)
                E(LP1) = 1.0E0 + E(LP1)
    80       CONTINUE
             E(L) = -E(L)
@@ -206,10 +206,10 @@ C
                   WORK(I) = 0.0E0
    90          CONTINUE
                DO 100 J = LP1, P
-                  CALL SAXPY(N-L,E(J),X(LP1,J),1,WORK(LP1),1)
+                  CALL SAXPY(N-L,E(J),X(LP1,J),1_8,WORK(LP1),1_8)
   100          CONTINUE
                DO 110 J = LP1, P
-                  CALL SAXPY(N-L,-E(J)/E(LP1),WORK(LP1),1,X(LP1,J),1)
+                CALL SAXPY(N-L,-E(J)/E(LP1),WORK(LP1),1_8,X(LP1,J),1_8)
   110          CONTINUE
   120       CONTINUE
             IF (.NOT.WANTV) GO TO 140
@@ -253,11 +253,11 @@ C
                LP1 = L + 1
                IF (NCU .LT. LP1) GO TO 220
                DO 210 J = LP1, NCU
-                  T = -SDOT(N-L+1,U(L,L),1,U(L,J),1)/U(L,L)
-                  CALL SAXPY(N-L+1,T,U(L,L),1,U(L,J),1)
+                  T = -SDOT(N-L+1,U(L,L),1_8,U(L,J),1_8)/U(L,L)
+                  CALL SAXPY(N-L+1,T,U(L,L),1_8,U(L,J),1_8)
   210          CONTINUE
   220          CONTINUE
-               CALL SSCAL(N-L+1,-1.0E0,U(L,L),1)
+               CALL SSCAL(N-L+1,-1.0E0,U(L,L),1_8)
                U(L,L) = 1.0E0 + U(L,L)
                LM1 = L - 1
                IF (LM1 .LT. 1) GO TO 240
@@ -285,8 +285,8 @@ C
             IF (L .GT. NRT) GO TO 320
             IF (E(L) .EQ. 0.0E0) GO TO 320
                DO 310 J = LP1, P
-                  T = -SDOT(P-L,V(LP1,L),1,V(LP1,J),1)/V(LP1,L)
-                  CALL SAXPY(P-L,T,V(LP1,L),1,V(LP1,J),1)
+                  T = -SDOT(P-L,V(LP1,L),1_8,V(LP1,J),1_8)/V(LP1,L)
+                  CALL SAXPY(P-L,T,V(LP1,L),1_8,V(LP1,J),1_8)
   310          CONTINUE
   320       CONTINUE
             DO 330 I = 1, P
@@ -387,7 +387,7 @@ C
                   F = -SN*E(K-1)
                   E(K-1) = CS*E(K-1)
   500          CONTINUE
-               IF (WANTV) CALL SROT(P,V(1,K),1,V(1,M),1,CS,SN)
+               IF (WANTV) CALL SROT(P,V(1,K),1_8,V(1,M),1_8,CS,SN)
   510       CONTINUE
          GO TO 610
 C
@@ -402,7 +402,7 @@ C
                S(K) = T1
                F = -SN*E(K)
                E(K) = CS*E(K)
-               IF (WANTU) CALL SROT(N,U(1,K),1,U(1,L-1),1,CS,SN)
+               IF (WANTU) CALL SROT(N,U(1,K),1_8,U(1,L-1),1_8,CS,SN)
   530       CONTINUE
          GO TO 610
 C
@@ -440,7 +440,7 @@ C
                E(K) = CS*E(K) - SN*S(K)
                G = SN*S(K+1)
                S(K+1) = CS*S(K+1)
-               IF (WANTV) CALL SROT(P,V(1,K),1,V(1,K+1),1,CS,SN)
+               IF (WANTV) CALL SROT(P,V(1,K),1_8,V(1,K+1),1_8,CS,SN)
                CALL SROTG(F,G,CS,SN)
                S(K) = F
                F = CS*E(K) + SN*S(K+1)
@@ -448,7 +448,7 @@ C
                G = SN*E(K+1)
                E(K+1) = CS*E(K+1)
                IF (WANTU .AND. K .LT. N)
-     1            CALL SROT(N,U(1,K),1,U(1,K+1),1,CS,SN)
+     1            CALL SROT(N,U(1,K),1_8,U(1,K+1),1_8,CS,SN)
   560       CONTINUE
             E(M-1) = F
             ITER = ITER + 1
@@ -462,7 +462,7 @@ C           MAKE THE SINGULAR VALUE  POSITIVE.
 C
             IF (S(L) .GE. 0.0E0) GO TO 580
                S(L) = -S(L)
-               IF (WANTV) CALL SSCAL(P,-1.0E0,V(1,L),1)
+               IF (WANTV) CALL SSCAL(P,-1.0E0,V(1,L),1_8)
   580       CONTINUE
 C
 C           ORDER THE SINGULAR VALUE.
@@ -473,9 +473,9 @@ C
                S(L) = S(L+1)
                S(L+1) = T
                IF (WANTV .AND. L .LT. P)
-     1            CALL SSWAP(P,V(1,L),1,V(1,L+1),1)
+     1            CALL SSWAP(P,V(1,L),1_8,V(1,L+1),1_8)
                IF (WANTU .AND. L .LT. N)
-     1            CALL SSWAP(N,U(1,L),1,U(1,L+1),1)
+     1            CALL SSWAP(N,U(1,L),1_8,U(1,L+1),1_8)
                L = L + 1
             GO TO 590
   600       CONTINUE

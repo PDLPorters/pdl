@@ -58,13 +58,13 @@ C**End
 C
 C  DECLARE ARGUMENTS.
 C
-      implicit integer(i-n)
-      INTEGER  K, IERR
+      implicit integer*8(i-n)
+      INTEGER*8  K, IERR
       REAL  X(K), S(K)
 C
 C  DECLARE LOCAL VARIABLES.
 C
-      INTEGER  I, J
+      INTEGER*8  I, J
       REAL  VALUE, ZERO
       SAVE ZERO
       DATA  ZERO /0./
