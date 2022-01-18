@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use version;
 
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
@@ -72,8 +73,8 @@ $e() = r.err;
        Doc =>'P_lm(x)'
       );
 
-my $v = `gsl-config --version`;
-if (defined($v) && $v>=2.0){
+chomp(my $v = `gsl-config --version`);
+if (defined($v) && version->parse($v)>=version->parse(2.0)){
 
     pp_def('gsl_sf_legendre_array',
 	   GenericTypes => ['D'],
@@ -198,7 +199,7 @@ Note that this function is called differently than the corresponding GSL functio
 	);
 
 
-} elsif (defined($v) && $v<2.0) {
+} elsif (defined($v) && version->parse($v)<version->parse(2.0)) {
 
 pp_def('gsl_sf_legendre_Plm_array',
        GenericTypes => ['D'],
