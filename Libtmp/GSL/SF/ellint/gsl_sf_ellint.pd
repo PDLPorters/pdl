@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use version;
 
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
@@ -84,9 +85,9 @@ $e() = r.err;
        Doc =>'Legendre form of incomplete elliptic integrals P(phi,k,n) = Integral[(1 + n Sin[t]^2)^(-1)/Sqrt[1 - k^2 Sin[t]^2], {t, 0, phi}]'
       );
 
-my $v = `gsl-config --version`;
+chomp(my $v = `gsl-config --version`);
 
-if($v < 2.0) {
+if(version->parse($v) < version->parse(2.0)) {
 
 pp_def('gsl_sf_ellint_D',
        GenericTypes => ['D'],
