@@ -53,7 +53,7 @@ C   910411  Added KEYWORDS section.  (WRB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  J4SAVE
       implicit integer*8(i-n)
-      integer*4 IWHICH
+      integer*4 IWHICH, IVALUE
       LOGICAL ISET
       INTEGER*8 IPARAM(9)
       SAVE IPARAM
