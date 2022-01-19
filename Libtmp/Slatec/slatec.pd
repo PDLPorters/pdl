@@ -272,8 +272,8 @@ sub firstpar {
 }
 sub intcopy {
   my ($cvarname, $rvalue) = @_; # closures
-  (sub {"&_".$cvarname->(@_)}, sub {"PDL_LongLong *"},
-    sub {"PDL_LongLong _".$cvarname->(@_)." = ".$rvalue->(@_).";"});
+  (sub {"&".$cvarname->(@_)}, sub {"PDL_LongLong *"},
+    sub {"PDL_LongLong ".$cvarname->(@_)." = ".$rvalue->(@_).";"});
 }
 
 # defslatec( $pdlname, $funcnames, $argstr, $docstring, $funcref )
@@ -319,7 +319,7 @@ my %KIND2I = (
     # convert from C to F77 index so add 1
   FortranIndex => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]() + 1"})],
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
-  IntCopy => ['longlong ', intcopy(sub {lc $_[0][2]}, sub {"\$$_[0][2]()"})],
+  IntCopy => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]()"})],
   Dim => [undef, sub {"&\$SIZE($_[0][2])"}, sub {"PDL_LongLong *"}],
   MDim => [undef, sub {$_[1]{$_[0][2]}}, sub {"PDL_LongLong *"}],
   Incfd => [undef, intcopy(sub {$_[0][2]}, sub {1})],
