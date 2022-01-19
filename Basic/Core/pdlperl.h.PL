@@ -104,18 +104,18 @@ EOF
 print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  __FILE__;
 print OUT <<'EOF';
 /* Check minimum datatype required to represent number */
-#define PDL_TESTTYPE(sym, ctype) {ctype foo = nv; if(nv == foo) return sym;}
-static inline int _pdl_whichdatatype (IV nv) {
+#define PDL_TESTTYPE(sym, ctype, v) {ctype foo = v; if (v == foo) return sym;}
+static inline int _pdl_whichdatatype (IV iv) {
 #define X(sym, ctype, ...) \
-  PDL_TESTTYPE(sym, ctype)
+  PDL_TESTTYPE(sym, ctype, iv)
    PDL_TYPELIST_ALL(X)
 #undef X
-        croak("Something's gone wrong: %ld cannot be converted by whichdatatype", nv);
+        croak("Something's gone wrong: %lld cannot be converted by whichdatatype", (long long)iv);
 }
 /* Check minimum, at least double, datatype required to represent number */
 static inline int _pdl_whichdatatype_double (NV nv) {
-        PDL_TESTTYPE(PDL_D,PDL_Double)
-        PDL_TESTTYPE(PDL_D,PDL_LDouble)
+        PDL_TESTTYPE(PDL_D,PDL_Double, nv)
+        PDL_TESTTYPE(PDL_D,PDL_LDouble, nv)
 #undef PDL_TESTTYPE
         /* Default return type PDL_Double */
         return PDL_D;

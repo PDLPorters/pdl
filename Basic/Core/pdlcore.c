@@ -805,7 +805,7 @@ PDL_Indx pdl_setav_ ## ppsym_out(ctype_out* dest_data, AV* av, \
   if(level==0 && undef_count) { \
     if(SvTRUE(get_sv("PDL::debug",0))) { \
       fflush(stdout); \
-      fprintf(stderr,"Warning: pdl_setav_" #ppsym_out " converted undef to $PDL::undefval (%g) %ld time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s"); \
+      fprintf(stderr,"Warning: pdl_setav_" #ppsym_out " converted undef to $PDL::undefval (%g) %"IND_FLAG" time%s\\n",(double)undefval,undef_count,undef_count==1?"":"s"); \
       fflush(stderr); \
     } \
   } \
