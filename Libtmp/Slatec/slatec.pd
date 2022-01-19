@@ -316,9 +316,8 @@ sub intcopy {
 my %KIND2I = (
   Mat => ['', sub{"\$P($_[0][2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
   FuncRet => ['', sub {()}, sub {()}],
-  FortranIndex => ['longlong ', sub {"&_$_[0][2]"}, sub {"PDL_LongLong *"},
-    # convert from C to F77 index
-    sub {"PDL_LongLong _$_[0][2] = \$$_[0][2]() + 1;"}],
+    # convert from C to F77 index so add 1
+  FortranIndex => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]() + 1"})],
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
   IntCopy => ['longlong ', intcopy(sub {lc $_[0][2]}, sub {"\$$_[0][2]()"})],
   Dim => [undef, sub {"&\$SIZE($_[0][2])"}, sub {"PDL_LongLong *"}],
