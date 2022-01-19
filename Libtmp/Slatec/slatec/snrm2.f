@@ -74,7 +74,7 @@ C   891214  Prologue converted to Version 4.0 format.  (BAB)
 C   920501  Reformatted the REFERENCES section.  (WRB)
 C***END PROLOGUE  SNRM2
       implicit integer*8(i-n)
-      INTEGER*4 NEXT
+      INTEGER NEXT
       REAL SX(*), CUTLO, CUTHI, HITEST, SUM, XMAX, ZERO, ONE
       SAVE CUTLO, CUTHI, ZERO, ONE
       DATA ZERO, ONE /0.0E0, 1.0E0/
