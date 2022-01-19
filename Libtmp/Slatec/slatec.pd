@@ -295,7 +295,7 @@ sub intcopy {
 #       (this allows the PCHIP routines to use 2D data, but as it's
 #        done in FORTRAN array order, and PDL has a much richer way
 #        of accessing parts of an array we force the data to be 1D).
-#   CheckFlag
+#   IntCopy
 #     - the PCHIP routines may change the value from 0 to 1 if an
 #       error occurs but the checks were successful. As this complicates
 #       things we copy the user value to a temporary variable,
@@ -314,16 +314,16 @@ sub intcopy {
 # in the perldl or pdl2 shell after a '?? string' command
 #
 my %KIND2I = (
-  Mat => ['', sub{"\$P($_[0]->[2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
+  Mat => ['', sub{"\$P($_[0][2])"}, sub {PDL::Type->new($_[0])->ctype." *"}],
   FuncRet => ['', sub {()}, sub {()}],
-  FortranIndex => ['longlong ', sub {"&_$_[0]->[2]"}, sub {"PDL_LongLong *"},
+  FortranIndex => ['longlong ', sub {"&_$_[0][2]"}, sub {"PDL_LongLong *"},
     # convert from C to F77 index
     sub {"PDL_LongLong _$_[0][2] = \$$_[0][2]() + 1;"}],
-  Integer => ['longlong ', sub{"\$P($_[0]->[2])"}, sub {"PDL_LongLong *"}],
-  CheckFlag => ['longlong ', intcopy(sub {lc $_[0][0]}, sub {"\$$_[0][2]()"})],
-  Dim => [undef, sub {"&\$SIZE($_[0]->[2])"}, sub {"PDL_LongLong *"}],
-  MDim => [undef, sub {$_[1]{$_[0]->[2]}}, sub {"PDL_LongLong *"}],
-  Incfd => [undef, sub {"&_" . lc($_->[0])}, sub {"PDL_LongLong *"},
+  Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
+  IntCopy => ['longlong ', intcopy(sub {lc $_[0][2]}, sub {"\$$_[0][2]()"})],
+  Dim => [undef, sub {"&\$SIZE($_[0][2])"}, sub {"PDL_LongLong *"}],
+  MDim => [undef, sub {$_[1]{$_[0][2]}}, sub {"PDL_LongLong *"}],
+  Incfd => [undef, sub {"&_" . lc($_[0][0])}, sub {"PDL_LongLong *"},
     sub {"PDL_LongLong _" . lc($_[0][0]) . " = 1;"}],
 );
 my %ignore_ppar = map +($_=>1), qw(Incfd Dim MDim);
@@ -1093,7 +1093,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        dummy;
-           CheckFlag    check   ();
+           IntCopy      check   ();
            Dim          ne;
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
@@ -1151,7 +1151,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        dummy;
-           CheckFlag    check    ();
+           IntCopy      check    ();
            Dim          ne;
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
@@ -1203,7 +1203,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        dummy;
-           CheckFlag    check    ();
+           IntCopy      check    ();
            Mat          la    ();
            Mat          lb    ();
            FuncRet [o]  ans     ();
@@ -1268,7 +1268,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        dummy;
-           CheckFlag    check    ();
+           IntCopy      check    ();
            FortranIndex ia      ();
            FortranIndex ib      ();
            FuncRet [o]  ans     ();
@@ -1321,7 +1321,7 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        dummy;
-           CheckFlag    check    ();
+           IntCopy      check    ();
            Integer [o]  ismon   (n);
            Integer [o]  ierr    ();
           ',
