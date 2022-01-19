@@ -320,8 +320,8 @@ my %KIND2I = (
   FortranIndex => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]() + 1"})],
   Integer => ['longlong ', sub{"\$P($_[0][2])"}, sub {"PDL_LongLong *"}],
   IntCopy => ['longlong ', intcopy(sub {$_[0][2]}, sub {"\$$_[0][2]()"})],
-  Dim => [undef, sub {"&\$SIZE($_[0][2])"}, sub {"PDL_LongLong *"}],
-  MDim => [undef, sub {$_[1]{$_[0][2]}}, sub {"PDL_LongLong *"}],
+  Dim => [undef, intcopy(sub {"dim_$_[0][2]"}, sub {"\$SIZE($_[0][2])"})],
+  MDim => [undef, intcopy(sub {$_[0][2]}, sub {$_[1]{$_[0][2]}})],
   Incfd => [undef, intcopy(sub {$_[0][2]}, sub {1})],
 );
 my %ignore_ppar = map +($_=>1), qw(Incfd Dim MDim);
@@ -359,7 +359,7 @@ sub defslatec {
       join(',',map qq{$_->[1]}, @talts)."))";
     if ( defined $fpar ) { $func = "$fpar = $func"; }
 
-    my %lds = map +("ld".$_->[2] => "&\$SIZE(".firstpar($_->[3]).")"),
+    my %lds = map +("ld".$_->[2] => "\$SIZE(".firstpar($_->[3]).")"),
       grep $_->[0] eq "Mat" && $_->[3] ne "()", @args2;
     my $funcargs = join ',', map $KIND2I{$_->[0]}[1]->($_, \%lds), @args2;
 
@@ -381,7 +381,7 @@ sub defslatec {
     # _incfd     = 1 makes sure PCHIP code treats ndarray as 1D
     # _checkflag - copy input data to a temporary variable, in case
     #              the PCHIP routine decides to change it
-    my @ifincode = map +($KIND2I{$_->[0]}[3]||sub{})->($_), @args2;
+    my @ifincode = map +($KIND2I{$_->[0]}[3]||sub{})->($_, \%lds), @args2;
     my $code = join("\n", @ifincode, "$func($funcargs);");
     print <<"ENDDBG" if $debug;
 pp_def('$pname',
@@ -1512,12 +1512,10 @@ pp_def('polfit',
   Pars => 'x(n); y(n); w(n); longlong maxdeg(); longlong [o]ndeg(); [o]eps(); [o]r(n); longlong [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
   OtherPars => '',
   Code => '
-           PDL_LongLong maxord;
-           PDL_LongLong ord;
-           PDL_LongLong k;
+           PDL_LongLong maxord, ord, k, ns = $SIZE(n);
            $GENERIC() zero = 0;
 
-           PDL_FORTRAN($TFD(polfit,dpolft))(&$SIZE(n),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
+           PDL_FORTRAN($TFD(polfit,dpolft))(&ns,$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
 	   maxord = ($P(a))[0]+0.5;
 	   ord = ($P(a))[maxord * 3  +  2];
 	   if(ord >= $maxdeg()) {
@@ -1530,12 +1528,9 @@ pp_def('polfit',
   GenericTypes => ['F','D'],
   HandleBad => 1, 
   NoBadifNaN => 1,
-  BadCode => 'PDL_LongLong ns = $SIZE(n);
-              PDL_LongLong i;
-	      PDL_LongLong j = 0;
-              if($SIZE(n)<$maxdeg()) {
-                $CROAK("polfit: Must have at least <n> points to fit <n> coefficients");
-              }
+  BadCode => 'PDL_LongLong ns = $SIZE(n), i, j = 0;
+              if(ns<$maxdeg())
+                $CROAK("Must have at least <n> points to fit <n> coefficients");
 
               for (i=0;i<ns;i++) {   /* get rid of bad values.  Call polfit with [xyw]tmp instead of [xyz]. */
                 if ($ISGOOD(y(n=>i)) && $ISGOOD(x(n=>i)) && $ISGOOD(w(n=>i))) {
