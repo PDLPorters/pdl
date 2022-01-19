@@ -314,8 +314,7 @@ my %KIND2I = (
   FortranIndex => ['longlong ', sub {"&_$_[0]->[2]"}, sub {"PDL_LongLong *"},
     # convert from C to F77 index
     sub {"PDL_LongLong _$_[0][2] = \$$_[0][2]() + 1;"}],
-  Degree => ['longlong ', sub{"\$P($_[0]->[2])"}, sub {"PDL_LongLong *"}],
-  IntFlag => ['longlong ', sub{"\$P($_[0]->[2])"}, sub {"PDL_LongLong *"}],
+  Integer => ['longlong ', sub{"\$P($_[0]->[2])"}, sub {"PDL_LongLong *"}],
   CheckFlag => ['longlong ', sub {"&_" . lc($_->[0])}, sub {"PDL_LongLong *"},
     sub {"PDL_LongLong _" . lc($_[0][0]) . " = \$$_[0][2]();"}],
   Dim => [undef, sub {"&\$SIZE($_[0]->[2])"}, sub {"PDL_LongLong *"}],
@@ -605,8 +604,8 @@ defslatec(
 	 Mat 	[o] 	v	(p,p);
 	 MDim 		ldv;
 	 Mat 	[o] 	work	(n);
-	 IntFlag   	job	();
-	 IntFlag [o]	info	();
+	 Integer   	job	();
+	 Integer [o]	info	();
 	',
 'singular value decomposition of a matrix'
 );
@@ -618,7 +617,7 @@ defslatec(
 	 Dim		n;
 	 Mat 		rcond	();
 	 Mat	[o]	z	(n);
-	 IntFlag [o]	info	();
+	 Integer [o]	info	();
 	',
 'Factor a real symmetric positive definite matrix
 and estimate the condition number of the matrix.'
@@ -629,7 +628,7 @@ defslatec(
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
-	 IntFlag [o]	ipvt	(n);
+	 Integer [o]	ipvt	(n);
 	 Mat	 [o]	rcond	();
 	 Mat	 [o]	z	(n);
 	',
@@ -642,8 +641,8 @@ defslatec(
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
-	 IntFlag [o]	ipvt	(n);
-	 IntFlag [o]	info	();
+	 Integer [o]	ipvt	(n);
+	 Integer [o]	info	();
 	',
 'Factor a matrix using Gaussian elimination.'
 );
@@ -658,7 +657,7 @@ defslatec(
 	 MDim		lda;
 	 Dim		n;
 	 Mat	[o]	det	(two=2);
-	 IntFlag	job	();
+	 Integer	job	();
 	',
 'Compute the determinant and inverse of a certain real
 symmetric positive definite matrix using the factors
@@ -670,10 +669,10 @@ defslatec(
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
-	 IntFlag [o]	ipvt	(n);
+	 Integer [o]	ipvt	(n);
 	 Mat	 [o]	det	(two=2);
 	 Mat	 [o]	work	(n);
-	 IntFlag	job	();
+	 Integer	job	();
 	',
 'Compute the determinant and inverse of a matrix using the
 factors computed by L</geco> or L</gefa>.'
@@ -685,9 +684,9 @@ defslatec(
 	'Mat		a	(lda,n);
 	 MDim		lda;
 	 Dim		n;
-	 IntFlag	ipvt	(n);
+	 Integer	ipvt	(n);
 	 Mat		b	(n);
-	 IntFlag	job	();
+	 Integer	job	();
 	',
 'Solve the real system C<A*X=B> or C<TRANS(A)*X=B> using the
 factors computed by L</geco> or L</gefa>.'
@@ -699,11 +698,11 @@ defslatec(
 	 Dim		n;
 	 Mat		a	(n,n);
 	 Mat	[o]	w	(n);
-	 IntFlag	matz	();
+	 Integer	matz	();
 	 Mat	[o]	z	(n,n);
 	 Mat	[t]	fvone	(n);
 	 Mat	[t]	fvtwo	(n);
-	 IntFlag [o]	ierr	();
+	 Integer [o]	ierr	();
 	',
 'This subroutine calls the recommended sequence of
 subroutines from the eigensystem subroutine package (EISPACK)
@@ -715,7 +714,7 @@ of a REAL SYMMETRIC matrix.'
 # XXX wsave : at least 3n+15
 defslatec(
 	'ezffti', {S => 'ezffti'},
-	'IntFlag	n	();
+	'Integer	n	();
 	 Mat [o]	wsave(foo);
 	',
 'Subroutine ezffti initializes the work array C<wsave()>
@@ -756,7 +755,7 @@ defslatec(
 defslatec(
       'pcoef', {S => 'pcoef', D => 'dpcoef'},
       '
-      Degree   l ();
+      Integer   l ();
       Mat      c ();
       Mat [o]  tc (bar);
       Mat      a (foo);
@@ -768,7 +767,7 @@ C<c> and C<a()> must be of the same type.'
 defslatec(
       'pvalue', {S => 'pvalue', D => 'dp1vlu'},
       '
-      IntFlag  l ();
+      Integer  l ();
       Dim      nder;
       Mat      x    ();
       Mat [o]  yfit ();
@@ -793,7 +792,7 @@ defslatec(
            Mat          f       (n);
            Mat     [o]  d       (n);
            Incfd        dummy;
-           IntFlag [o]  ierr    ();
+           Integer [o]  ierr    ();
           ',
 'Calculate the derivatives at the given set of points (C<$x,$f>,
 where C<$x> is strictly increasing).
@@ -846,7 +845,7 @@ monotonicity (data still valid).
 #
 defslatec(
 	  'chic', {S => 'pchic', D => 'dpchic'},
-	  'IntFlag      ic      (two=2);
+	  'Integer      ic      (two=2);
            Mat          vc      (two=2);
            Mat          mflag   ();
            Dim          n;
@@ -856,7 +855,7 @@ defslatec(
            Incfd        dummy;
            Mat          wk      (nwk);
            Dim          nwk;
-           IntFlag [o]  ierr    ();
+           Integer [o]  ierr    ();
           ',
 'Calculate the derivatives at the given points (C<$x,$f>,
 where C<$x> is strictly increasing).
@@ -978,7 +977,7 @@ for monotonicity.
 # as above, have made wk an actual ndarray, rather than a [t]
 defslatec(
 	  'chsp', {S => 'pchsp', D => 'dpchsp'},
-	  'IntFlag      ic      (two=2);
+	  'Integer      ic      (two=2);
            Mat          vc      (two=2);
            Dim          n;
            Mat          x       (n);
@@ -987,7 +986,7 @@ defslatec(
            Incfd        dummy;
            Mat          wk      (nwk);
            Dim          nwk;
-           IntFlag [o]  ierr    ();
+           Integer [o]  ierr    ();
           ',
 'Calculate the derivatives, using cubic spline interpolation,
 at the given points (C<$x,$f>), with the specified
@@ -1095,7 +1094,7 @@ defslatec(
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
            Mat     [o]  de      (ne);
-           IntFlag [o]  ierr    ();
+           Integer [o]  ierr    ();
           ',
 'Given a piecewise cubic Hermite function - such as from
 L</chim> - evaluate the function (C<$fe>) and 
@@ -1152,7 +1151,7 @@ defslatec(
            Dim          ne;
            Mat          xe      (ne);
            Mat     [o]  fe      (ne);
-           IntFlag [o]  ierr    ();
+           Integer [o]  ierr    ();
           ',
 'Given a piecewise cubic Hermite function - such as from
 L</chim> - evaluate the function (C<$fe>) at
@@ -1204,7 +1203,7 @@ defslatec(
            Mat          la    ();
            Mat          lb    ();
            FuncRet [o]  ans     ();
-           IntFlag [o]  ierr    ();
+           Integer [o]  ierr    ();
           ',
 'Evaluate the definite integral of a piecewise
 cubic Hermite function over an arbitrary interval,
@@ -1269,7 +1268,7 @@ defslatec(
            FortranIndex ia      ();
            FortranIndex ib      ();
            FuncRet [o]  ans     ();
-           IntFlag [o]  ierr    ();
+           Integer [o]  ierr    ();
           ',
 'Evaluate the definite integral of a a piecewise
 cubic Hermite function between C<x($ia)> and
@@ -1319,8 +1318,8 @@ defslatec(
            Mat          d       (n);
            Incfd        dummy;
            CheckFlag    check    ();
-           IntFlag [o]  ismon   (n);
-           IntFlag [o]  ierr    ();
+           Integer [o]  ismon   (n);
+           Integer [o]  ierr    ();
           ',
 'The outout ndarray C<$ismon> indicates over
 which intervals the function is monotonic.
@@ -1411,13 +1410,13 @@ defslatec(
            Mat          f       (n);
            Mat          d       (n);
            Incfd        dummy;
-           IntFlag      knotyp  ();
-           IntFlag      nknots  ();
+           Integer      knotyp  ();
+           Integer      nknots  ();
            Mat          t       (tsize);
            Mat     [o]  bcoef   (bsize);
-           IntFlag [o]  ndim    ();
-           IntFlag [o]  kord    ();
-           IntFlag [o]  ierr    ();
+           Integer [o]  ndim    ();
+           Integer [o]  kord    ();
+           Integer [o]  ierr    ();
           ',
 'The resulting B-spline representation of the data
 (i.e. C<nknots>, C<t>, C<bcoeff>, C<ndim>, and
