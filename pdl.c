@@ -8,8 +8,6 @@
  * If you feed in a single non-switch argument it gets prepended with a 
  * "-" to let perldl know that it's an input file.  That way you can be lazy
  * and say "#!/usr/bin/pdl" at the top of your script.
- * 
- * Don't modify this .c code -- modify the generator, pdl.PL, instead.
  *
  * CED 21-Jul-2004
  */
@@ -31,13 +29,15 @@ int main(int argc, char **argv) {
   if(pid==0) {
     dup2(pipes[1],1);
     dup2(pipes[1],2);
-    system("which perldl");
-    exit(0);
+    exit(system("which perldl"));
   }
-  read(pipes[0],perldl,BUFSIZ);
   pid = wait(&status);
   if(! WIFEXITED(status) ) {
     fprintf(stderr,"Hmmm... couldn't seem to find perldl anywhere. Quitting.\n");
+    goto exit;
+  }
+  if( read(pipes[0],perldl,BUFSIZ) <= 0 ) {
+    fprintf(stderr, "Read error - quitting.\n");
     goto exit;
   }
 
