@@ -9,7 +9,7 @@ my $prefile = "";
    $prefile = <>;
 }
 
-my ($postfile) = &PDL::NiceSlice::perldlpp("PDL::NiceSlice", $prefile);
+my ($postfile) = PDL::NiceSlice->perldlpp($prefile);
 
 print $postfile;
 

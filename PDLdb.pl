@@ -640,7 +640,7 @@ sub eval {
         # $usercontext built in DB::DB near the comment
         # "set up the context for DB::eval ..."
         # Evaluate and save any results.
-        $evalarg = PDL::NiceSlice::perldlpp('PDL::NiceSlice',$evalarg);
+        $evalarg = PDL::NiceSlice->perldlpp($evalarg);
         @res = eval "$usercontext $evalarg;\n";  # '\n' for nice recursive debug
 
         # Restore those old values.
