@@ -3354,8 +3354,7 @@ L<PDL::Slices/indexND> can be fed the coordinates to return the values.
 
 *whichND = \&PDL::whichND;
 sub PDL::whichND {
-  my $mask = shift;
-  $mask = PDL::pdl('PDL',$mask) unless(UNIVERSAL::isa($mask,'PDL'));
+  my $mask = PDL->topdl(shift);
 
   # List context: generate a perl list by dimension
   if(wantarray) {
