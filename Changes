@@ -1,5 +1,6 @@
 - improve GSL version parsing - thanks @d-lamb
 - Slatec to work again with 32-bit pointer size
+- got_complex_version to check for long-double version to reduce build fails
 
 2.068_02 2022-01-17
 - Slatec 64-bit safe
