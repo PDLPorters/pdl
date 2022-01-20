@@ -73,34 +73,33 @@ $x = whichND( $r % 12 == 0 );
 
 # Nontrivial case gives correct coordinates
 ok(eval { sum($x != pdl([0,0],[2,1],[4,2],[6,3],[8,4],[0,6],[2,7],[4,8],[6,9]))==0 }, "whichND");
-ok($x->type eq 'indx', "whichND returns indx-type ndarray for non-trivial case");
+is $x->type, 'indx', "whichND returns indx-type ndarray for non-trivial case";
 # Empty case gives matching Empty
 $x = whichND( $r*0 );
-ok($x->nelem==0, "whichND( 0*\$r ) gives an Empty PDL");
-ok($x->ndims==2, "whichND( 0*\$r ) has 2 dims");
-ok(($x->dim(0)==2 and $x->dim(1)==0), "whichND( 0*\$r ) is 2x0");
-ok($x->type eq 'indx', "whichND( 0*\$r) type is indx");
+is $x->nelem, 0, "whichND( 0*\$r ) gives an Empty PDL";
+is_deeply [$x->dims], [2,0], "whichND( 0*\$r ) is 2x0";
+is $x->type, 'indx', "whichND( 0*\$r) type is indx";
 
 # Scalar PDLs are treated as 1-PDLs
 $x = whichND(pdl(5));
-ok($x->nelem==1 && $x==0, "whichND scalar PDL");
-ok($x->type eq 'indx', "whichND returns indx-type ndarray for scalar ndarray mask");
+is $x->nelem, 1, "whichND scalar PDL";
+is $x, 0, "whichND scalar PDL";
+is $x->type, 'indx', "whichND returns indx ndarray for scalar ndarray mask";
 
 # Scalar empty case returns a 1-D vector of size 0
 $x = whichND(pdl(0));
-ok($x->nelem==0,  "whichND of 0 scalar is empty");
-ok($x->ndims==1,  "whichND of 0 scalar has 1 dim");
-ok($x->dim(0)==0, "whichND of 0 scalar: return 0 dim size is 0");
-ok($x->type eq 'indx', "whichND returns indx-type ndarray for scalar empty case");
+is $x->nelem, 0,  "whichND of 0 scalar is empty";
+is_deeply [$x->dims], [0], "whichND of 0 scalar: return 0 dim size is 0";
+is $x->type, 'indx', "whichND returns indx-type ndarray for scalar empty case";
 
 # Empty case returns Empty
 $y = whichND( which(pdl(0)) );                              
-ok($y->nelem==0, "whichND of Empty mask");
-ok($y->type eq 'indx', "whichND returns indx-type ndarray for empty case");
+is $y->nelem, 0, "whichND of Empty mask";
+is $y->type, 'indx', "whichND returns indx-type ndarray for empty case";
 
 # Nontrivial empty mask case returns matching Empty -- whichND(Empty[2x0x2]) should return Empty[3x0]
 $y = whichND(zeroes(2,0,2));
-ok(($y->ndims==2 and $y->dim(0)==3 and $y->dim(1)==0), "whichND(Empty[2x0x2]) returns Empty[3x0]");
+is_deeply [$y->dims], [3,0], "whichND(Empty[2x0x2]) returns Empty[3x0]";
 
 ##############################
 # Simple test case for interpND
@@ -110,8 +109,8 @@ $x = xvals(10,10)+yvals(10,10)*10;
 $index = cat(3+xvals(5,5)*0.25,7+yvals(5,5)*0.25)->reorder(2,0,1);
 $z = 73+xvals(5,5)*0.25+2.5*yvals(5,5);
 eval { $y = $x->interpND($index) };
-ok(!$@);
-ok(sum($y != $z) == 0, "interpND");
+is $@, '';
+is sum($y != $z), 0, "interpND";
 
 ##############################
 # Test glue
@@ -120,7 +119,7 @@ $y = yvals(2,2,2);
 $c = zvals(2,2,2);
 our $d;
 eval { $d = $x->glue(1,$y,$c) };
-ok(!$@);
+is $@, '';
 ok(zcheck($d - pdl([[0,1],[0,1],[0,0],[1,1],[0,0],[0,0]],
                    [[0,1],[0,1],[0,0],[1,1],[1,1],[1,1]])), "glue");
 
@@ -139,16 +138,22 @@ ok(! any isfinite $c->average, "isfinite of Empty");
 $x = pdl([[0,1],[2,2],[0,1]]);
 $y = $x->uniqvec;
 eval { $c = all($y==pdl([[0,1],[2,2]])) };
-ok(!$@ && $c && $y->ndims==2, "uniqvec");
+is $@, '';
+ok $c, "uniqvec";
+is $y->ndims, 2, "uniqvec";
 
 $x = pdl([[0,1]])->uniqvec;
 eval { $c = all($x==pdl([[0,1]])) };
-ok(!$@ && $c && $x->ndims==2, "uniqvec");
+is $@, '';
+ok $c, "uniqvec";
+is $x->ndims, 2, "uniqvec";
 
 $x = pdl([[0,1,2]]); $x = $x->glue(1,$x,$x);
 $y = $x->uniqvec;
 eval { $c = all($y==pdl([0,1,2])) };
-ok(!$@ && $c && $y->ndims==2, "uniqvec");
+is $@, '';
+ok $c, "uniqvec";
+is $y->ndims, 2, "uniqvec";
 
 ##############################
 # Test bad handling in selector
@@ -181,12 +186,16 @@ ok (all($intersect_test==pdl(-5,0)), 'Intersect test values');
 $x = pdl([0,1,2,2,0,1]);
 $y = $x->uniqind;
 eval { $c = all($y==pdl([0,1,3])) };
-ok(!$@ && $c && $y->ndims==1, "uniqind");
+is $@, '';
+ok $c, "uniqind";
+is $y->ndims, 1, "uniqind";
 
 $y = pdl(1,1,1,1,1)->uniqind;         # SF bug 3076570
 ok(! $y->isempty);
 eval { $c = all($y==pdl([0])) };
-ok(!$@ && $c && $y->ndims==1, "uniqind, SF bug 3076570");
+is $@, '';
+ok $c, "uniqind";
+is $y->ndims, 1, "uniqind, SF bug 3076570";
 
 ##############################
 # Test whereND
