@@ -2140,28 +2140,20 @@ a preferred type.
 
 sub new_or_inplace {
 	my $pdl = shift;
-	my $preferred = shift;
 	if(blessed($pdl) && $pdl->is_inplace) {
 		$pdl->set_inplace(0);
 		return $pdl;
-	} else {
-	    unless(defined($preferred)) {
-		return blessed($pdl) ? $pdl->copy : null();
-	    } else {
-		$preferred = join(",",@$preferred) if(ref($preferred) eq 'ARRAY');
-		my $s = "".$pdl->type;
-		if($preferred =~ m/(^|\,)$s(\,|$)/i) {
-		    # Got a match - the PDL is one of the preferred types.
-		    return $pdl->copy();
-		} else {
-		    # No match - promote it to the first in the list.
-		    $preferred =~ s/\,.*//;
-		    my $out = PDL->new_from_specification(PDL::Type->new($preferred),$pdl->dims);
-		    $out .= $pdl;
-		    return $out;
-		}
-	    }
 	}
+	my $preferred = shift;
+	return blessed($pdl) ? $pdl->copy : null() if !defined $preferred;
+	$preferred = join ",",@$preferred if ref $preferred eq 'ARRAY';
+	my $s = "".$pdl->type;
+	return $pdl->copy if $preferred =~ m/(^|\,)$s(\,|$)/i; # Got a match - the PDL is one of the preferred types.
+	# No match - promote it to the first in the list.
+	$preferred =~ s/\,.*//;
+	my $out = PDL->new_from_specification(PDL::Type->new($preferred),$pdl->dims);
+	$out .= $pdl;
+	return $out;
 }
 *PDL::new_or_inplace = \&new_or_inplace;
 
