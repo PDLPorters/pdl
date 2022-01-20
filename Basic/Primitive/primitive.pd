@@ -3369,20 +3369,13 @@ sub PDL::whichND {
   }
 
   # Scalar context: generate an N-D index ndarray
-
-  unless($mask->nelem) {
-      return PDL->new_from_specification(indx,$mask->ndims,0);
-  }
-
-  unless($mask->getndims) {
-    return $mask ? pdl(indx,0) : PDL->new_from_specification(indx,0);
-  }
+  return PDL->new_from_specification(indx,$mask->ndims,0) if !$mask->nelem;
+  return $mask ? pdl(indx,0) : PDL->new_from_specification(indx,0)
+    if !$mask->getndims;
 
   my $ind = $mask->flat->which->dummy(0,$mask->getndims)->make_physical;
-  if($ind->nelem==0) {
-      # In the empty case, explicitly return the correct type of structured empty
-      return PDL->new_from_specification(indx,$mask->ndims, 0);
-  }
+  # In the empty case, explicitly return the correct type of structured empty
+  return PDL->new_from_specification(indx,$mask->ndims, 0) if !$ind->nelem;
 
   my $mult = ones($mask->getndims)->long;
   my @mdims = $mask->dims;
