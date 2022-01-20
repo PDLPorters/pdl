@@ -887,7 +887,7 @@ sub PDL::uniqind {
   # Different from uniq we sort and store the result in an intermediary
   my $aflat = $arr->flat;
   my $nanind = which($aflat!=$aflat);                        # NaN indexes
-  my $good = $aflat->sequence->long->where($aflat==$aflat);  # good indexes
+  my $good = PDL->sequence(indx, $aflat->dims)->where($aflat==$aflat);  # good indexes
   my $i_srt = $aflat->where($aflat==$aflat)->qsorti;         # no BAD or NaN values for qsorti
   my $srt = $aflat->where($aflat==$aflat)->index($i_srt);
   my $uniqind;
@@ -3377,7 +3377,7 @@ sub PDL::whichND {
   # In the empty case, explicitly return the correct type of structured empty
   return PDL->new_from_specification(indx,$mask->ndims, 0) if !$ind->nelem;
 
-  my $mult = ones($mask->getndims)->long;
+  my $mult = ones(indx, $mask->getndims);
   my @mdims = $mask->dims;
 
   for my $i (0..$#mdims-1) {
