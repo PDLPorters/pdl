@@ -79,7 +79,7 @@ sub PDL_BOOT {
    if (!($symname = INT2PTR(Core*,SvIV( CoreSV )))) /* Core* value */
      Perl_croak(aTHX_ "Got NULL pointer for $symname");
    if ($symname->Version != PDL_CORE_VERSION)
-     Perl_croak(aTHX_ "[$symname->Version: \%d PDL_CORE_VERSION: \%d XS_VERSION: \%s] $module needs to be recompiled against the newly installed PDL", $symname->Version, PDL_CORE_VERSION, XS_VERSION);
+     Perl_croak(aTHX_ "[$symname->Version: \%ld PDL_CORE_VERSION: \%ld XS_VERSION: \%s] $module needs to be recompiled against the newly installed PDL", (long int)$symname->Version, (long int)PDL_CORE_VERSION, XS_VERSION);
 
 EOR
 }
