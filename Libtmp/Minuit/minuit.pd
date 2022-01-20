@@ -283,7 +283,7 @@ pp_addpm('
 ');
 pp_def('mnemat',
         Pars => 'double [o] mat(n,n);',
-        Code => 'PDL_Indx numrows = $SIZE(n);
+        Code => 'PDL_LongLong numrows = $SIZE(n);
         MNEMAT($P(mat),&numrows);
        ');
 
