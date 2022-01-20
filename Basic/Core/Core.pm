@@ -2129,7 +2129,8 @@ Return back either the argument pdl or a copy of it depending on whether
 it be flagged in-place or no.  Handy for building inplace-aware functions.
 
 If you specify a preferred type (must be one of the usual PDL type strings,
-a list ref containing several of them, or a string containing several of them),
+a list ref containing several of them, or a comma-separated string
+containing several of them),
 then the copy is coerced into the first preferred type listed if it is not
 already one of the preferred types.
 
@@ -2146,14 +2147,11 @@ sub new_or_inplace {
 	}
 	my $preferred = shift;
 	return blessed($pdl) ? $pdl->copy : null() if !defined $preferred;
-	$preferred = join ",",@$preferred if ref $preferred eq 'ARRAY';
+	$preferred = [split ",",$preferred] if ref $preferred ne 'ARRAY';
 	my $s = "".$pdl->type;
-	return $pdl->copy if $preferred =~ m/(^|\,)$s(\,|$)/i; # Got a match - the PDL is one of the preferred types.
+	return $pdl->copy if grep $_ eq $s, @$preferred; # the PDL is one of the preferred types.
 	# No match - promote it to the first in the list.
-	$preferred =~ s/\,.*//;
-	my $out = PDL->new_from_specification(PDL::Type->new($preferred),$pdl->dims);
-	$out .= $pdl;
-	return $out;
+	return $pdl->convert(PDL::Type->new($preferred->[0]));
 }
 *PDL::new_or_inplace = \&new_or_inplace;
 
