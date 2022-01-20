@@ -452,10 +452,6 @@ a single Empty PDL, you get back the Empty PDL (no padding).
 
 =cut
 
-sub pdl {PDL->pdl(@_)}
-
-sub piddle {PDL->pdl(@_)}
-
 =head2 null
 
 =for ref
@@ -791,7 +787,8 @@ sub PDL::threadids {  # Return dimensions as @list
 
 ################# Creation/copying functions #######################
 
-
+sub piddle {PDL->pdl(@_)}
+sub pdl {PDL->pdl(@_)}
 sub PDL::pdl { my $x = shift; return $x->new(@_) }
 
 =head2 doflow
