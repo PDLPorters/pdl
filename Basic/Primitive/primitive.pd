@@ -2776,11 +2776,7 @@ sub PDL::interpND {
   my($opt) = (defined $options) ? $options : {};
 
   my($method)   = $opt->{m} || $opt->{meth} || $opt->{method} || $opt->{Method};
-  if(!defined $method) {
-	$method = ($source->type <= zeroes(long,1)->type) ?
-	   	   'sample' :
-	           'linear';
-  }
+  $method //= $source->type->integer ? 'sample' : 'linear';
 
   my($boundary) = $opt->{b} || $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
   my($bad) = $opt->{bad} || $opt->{Bad} || 0.0;
