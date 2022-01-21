@@ -101,6 +101,11 @@ is $y->type, 'indx', "whichND returns indx-type ndarray for empty case";
 $y = whichND(zeroes(2,0,2));
 is_deeply [$y->dims], [3,0], "whichND(Empty[2x0x2]) returns Empty[3x0]";
 
+$r = zeroes(7, 7); $r->set(3, 4, 1);
+is $r->whichND.'', <<EOF, 'whichND works right (was failing on 32-bit)';
+\n[\n [3 4]\n]
+EOF
+
 ##############################
 # Simple test case for interpND
 my $index;
