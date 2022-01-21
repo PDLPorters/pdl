@@ -69,8 +69,8 @@ jobs:
         # Also, both $Config{cc} and $Config{ld} need to be set because under ELF environments (such as Travis-CI's Ubuntu), this is what Perl's Config.pm does.
         if: matrix.use-clang
         run: |
-          mkdir build_aux
-          echo 'package pdl_config_override; use ExtUtils::MakeMaker::Config; $Config{cc} = $Config{ld} = "clang"; 1;' >> build_aux/pdl_config_override.pm
+          [ -d build_aux ] || mkdir build_aux
+          echo 'package pdl_config_override; use ExtUtils::MakeMaker::Config; $Config{cc} = $Config{ld} = "clang"; 1;' > build_aux/pdl_config_override.pm
           echo "PERL5OPT=${PERL5OPT:+${PERL5OPT} }-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
 
       - name: EUMM blead?
