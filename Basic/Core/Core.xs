@@ -105,6 +105,14 @@ set_donttouchdata(it,size)
       OUTPUT:
             RETVAL
 
+IV
+nbytes(self)
+  pdl *self;
+  CODE:
+    RETVAL = self->nbytes;
+  OUTPUT:
+    RETVAL
+
 # Free the datasv if possible
 void
 freedata(it)
