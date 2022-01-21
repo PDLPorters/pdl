@@ -71,7 +71,7 @@ jobs:
         run: |
           mkdir build_aux
           echo 'package pdl_config_override; use ExtUtils::MakeMaker::Config; $Config{cc} = $Config{ld} = "clang"; 1;' >> build_aux/pdl_config_override.pm
-          echo "PERL5OPT=-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
+          echo "PERL5OPT=${PERL5OPT:+${PERL5OPT} }-I$(pwd)/build_aux -Mpdl_config_override" >> $GITHUB_ENV
 
       - name: EUMM blead?
         if: matrix.eumm-blead
