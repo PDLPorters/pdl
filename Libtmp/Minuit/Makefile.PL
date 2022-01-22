@@ -124,32 +124,18 @@ undef &MY::postamble; # suppress warning
 	my $orig = pdlpp_postamble_int(@pack);
 	my $hack_64bit = ($Config{archname}=~m/x86_64|i686/ ?" -fPIC " : "");
 	$orig =~ s/:\s*minuit\.pd/: minuit.pd/;
+	$orig .= "FFLAGS = $hack_64bit $mycflags \$(OPTIMIZE)\n";
 	$orig .= join "\n",map {
-	    ("
-
-minuitlib/$_\$(OBJ_EXT): minuitlib/$_.f 
-	$mycompiler -c $hack_64bit -o minuitlib/$_\$(OBJ_EXT) $mycflags minuitlib/$_.f
+	    ("minuitlib/$_\$(OBJ_EXT): minuitlib/$_.f
+	$mycompiler -c \$(FFLAGS) -o minuitlib/$_\$(OBJ_EXT) minuitlib/$_.f
 " )} @minuitfiles;
-
-	if (!defined($PDL::Config{MINUIT_LIB})){
-          my $libbuild;
-          if($Config{cc} eq 'cl') {
-            $libbuild = "
-
+	if (!defined($PDL::Config{MINUIT_LIB})) {
+          my $outflag = $Config{cc} eq 'cl' ? '-out:' : 'rv ';
+          $orig .= "
 minuitlib/libminuit\$(LIB_EXT): minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
-	\$(AR) -out:minuitlib/libminuit\$(LIB_EXT) minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
+	\$(AR) ${outflag}minuitlib/libminuit\$(LIB_EXT) minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
 	\$(RANLIB) minuitlib/libminuit\$(LIB_EXT)
 ";
-          }
-          else {
-	      $libbuild = "
-
-minuitlib/libminuit\$(LIB_EXT): minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
-	\$(AR) rv minuitlib/libminuit\$(LIB_EXT) minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
-	\$(RANLIB) minuitlib/libminuit\$(LIB_EXT)
-";
-          }
-	    $orig .= $libbuild;
 	}
 	return $orig;
 };
@@ -164,6 +150,5 @@ if ($Config{osname} =~ /darwin/ && version->parse($Config{osvers}) >=version->pa
 
 WriteMakefile(
  %hash,
- VERSION => "0.1",   # This is overridden by VERSION_FROM in %hash 
  %items
 );

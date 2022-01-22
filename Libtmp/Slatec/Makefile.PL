@@ -83,13 +83,11 @@ undef &MY::postamble; # suppress warning
         my $mycompiler     = $f77->compiler();
         my $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@pack);
-	my $hack_64bit = ($Config{archname}=~m/x86_64|i686/ ?" -fPIC " : "");
+	my $hack_64bit = $Config{archname}=~m/x86_64|i686/ ?" -fPIC " : "";
 	$orig =~ s/:\s*slatec\.pd/: slatec.pd/;
-	$orig .join "\n",map "
-
-$_\$(OBJ_EXT): $_.f
-	$mycompiler -c $hack_64bit -o $_\$(OBJ_EXT) $mycflags $_.f
-", @slatecfiles;
+	$orig .= "FFLAGS = $hack_64bit $mycflags \$(OPTIMIZE)\n";
+	join "\n", $orig, map "$_\$(OBJ_EXT): $_.f
+	$mycompiler -c \$(FFLAGS) -o $_\$(OBJ_EXT) $_.f", @slatecfiles;
 };
 
 # Remove i386 option for OS X recent versions for better build, dual arch does not work anyway
