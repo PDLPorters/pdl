@@ -441,8 +441,8 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 	printf("%s   transvtable: %p, trans: %p, sv: %p\n",spaces,
 		(void*)(it->trans_parent?it->trans_parent->vtable:0), (void*)(it->trans_parent), (void*)(it->sv));
 	if(it->datasv)
-		printf("%s   datasv: %p, Svlen: %d\n", spaces,
-			(void*)it->datasv, (int)SvCUR((SV*)it->datasv));
+		printf("%s   datasv: %p, Svlen: %d, refcnt: %d\n", spaces,
+			(void*)it->datasv, (int)SvCUR((SV*)it->datasv), (int)SvREFCNT((SV*)it->datasv));
 	if(it->data)
 		printf("%s   data: %p, nbytes: %"IND_FLAG", nvals: %"IND_FLAG"\n", spaces,
 			(void*)(it->data), it->nbytes, it->nvals);
