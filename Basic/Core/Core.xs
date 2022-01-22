@@ -911,7 +911,7 @@ threadover(...)
 	/* need to make sure we get the vaffine (grand)parent */
 	if (PDL_VAFFOK(pdls[i]))
 	   pdls[i] = pdls[i]->vafftrans->from;
-	child[i]=pdl_null();
+	child[i]=pdl_pdlnew();
 	if (!child[i]) pdl_pdl_barf("Error making null pdl");
 	/*  instead of pdls[i] its vaffine parent !!!XXX */
 	pdl_barf_if_error(pdl_affine_new(pdls[i],child[i],pdl_thr.offs[i],

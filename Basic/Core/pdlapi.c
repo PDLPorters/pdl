@@ -429,7 +429,7 @@ pdl *pdl_hard_copy(pdl *src) {
 	if (PDL_err.error) return NULL;
 	int i;
 	PDLDEBUG_f(printf("pdl_hard_copy\n"));
-	pdl *it = pdl_null();
+	pdl *it = pdl_pdlnew();
 	if (!it) return it;
 	it->state = 0;
 	PDLDEBUG_f(printf("pdl_hard_copy (%p): ", src);pdl_dump(it));
