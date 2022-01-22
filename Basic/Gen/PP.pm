@@ -599,7 +599,7 @@ our $macros_xs = <<'EOF';
 #define PDL_XS_PERLINIT(name, to_push, method) \
   if (strcmp(objname,"PDL") == 0) { PDL_COMMENT("shortcut if just PDL") \
      name ## _SV = sv_newmortal(); \
-     name = PDL->null(); \
+     name = PDL->pdlnew(); \
      if (!name) PDL->pdl_barf("Error making null pdl"); \
      PDL->SetSV_PDL(name ## _SV, name); \
      if (bless_stash) name ## _SV = sv_bless(name ## _SV, bless_stash); \
