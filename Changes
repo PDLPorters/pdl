@@ -1,3 +1,6 @@
+2.068_04 2022-01-22
+- fix bug in memory allocation revealed on 32-bit
+
 2.068_03 2022-01-20
 - improve GSL version parsing - thanks @d-lamb
 - Slatec to work again with 32-bit pointer size
