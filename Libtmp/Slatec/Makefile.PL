@@ -83,7 +83,7 @@ undef &MY::postamble; # suppress warning
         my $mycompiler     = $f77->compiler();
         my $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@pack);
-	my $hack_64bit = ($Config{archname}=~m/x86_64/ ?" -fPIC " : "");
+	my $hack_64bit = ($Config{archname}=~m/x86_64|i686/ ?" -fPIC " : "");
 	$orig =~ s/:\s*slatec\.pd/: slatec.pd/;
 	$orig .join "\n",map "
 
