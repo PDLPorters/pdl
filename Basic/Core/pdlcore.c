@@ -31,26 +31,6 @@ size_t pdl_howbig (int datatype) {
 #undef X
 }
 
-/* Make a scratch dataspace for a scalar pdl */
-pdl_error pdl_makescratchhash(pdl *ret, PDL_Anyval data) {
-  pdl_error PDL_err = {0, NULL, 0};
-  PDLDEBUG_f(printf("pdl_makescratchhash type=%d val=", data.type); pdl_dump_anyval(data); printf("\n"););
-  ret->datatype = data.type;
-  ret->ndims = 0; pdl_resize_defaultincs(ret);
-  PDL_RETERROR(PDL_err, pdl_allocdata(ret));
-  ret->ndims = 1; ret->dims[0] = 0; pdl_resize_defaultincs(ret);
-  ret->state &= ~PDL_ALLOCATED;
-  PDLDEBUG_f(printf("pdl_makescratchhash after alloc: "); pdl_dump(ret););
-  /* Refcnt should be 1 already... */
-  /* Make the whole pdl mortal so destruction happens at the right time.
-   * If there are dangling references, pdlapi.c knows not to actually
-   * destroy the C struct. */
-  sv_2mortal(getref_pdl(ret));
-  /* NULLs should be ok because no dimensions. */
-  PDL_RETERROR(PDL_err, pdl_set(ret->data, ret->datatype, NULL, NULL, NULL, 0, 0, data));
-  return PDL_err;
-}
-
 /*
   "Convert" a perl SV into a pdl (alright more like a mapping as
    the data block is not actually copied in the most common case

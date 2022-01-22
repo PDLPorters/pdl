@@ -2,7 +2,7 @@
 #define __PDLCORE_H
 
 /* version 20: memory-management changes */
-/* on 21, unify pdl_broadcast per_pdl_flags, par_flags; remove threadloop #defines; change creating to char; relocate struct pdl.value appropriately */
+/* on 21, unify pdl_broadcast per_pdl_flags, par_flags; remove threadloop #defines; change creating to char; relocate struct pdl.value appropriately, remove pdl_null */
 #define PDL_CORE_VERSION 20
 #define startbroadcastloop startthreadloop
 #define pdl_startbroadcastloop pdl_startthreadloop
@@ -46,7 +46,6 @@
 #undef warn
 #define warn PDL_CORE_(pdl_warn)
 
-pdl_error pdl_makescratchhash(pdl *ret, PDL_Anyval data);
 PDL_Indx av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
 PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Value at x,y,z,... */
