@@ -1,3 +1,6 @@
+2.068_05 2022-01-23
+- build and test-false-negative-avoidance improvements
+
 2.068_04 2022-01-22
 - fix bug in memory allocation revealed on 32-bit
 
