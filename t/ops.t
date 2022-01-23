@@ -9,7 +9,8 @@ require PDL::Core::Dev;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-my $can_complex_power = PDL::Core::Dev::got_complex_version('pow', 2);
+my $can_complex_power = PDL::Core::Dev::got_complex_version('pow', 2)
+  && PDL::Core::Dev::got_complex_version('exp', 1);
 
 approx(pdl(0), pdl(0), 0.01); # set eps
 
