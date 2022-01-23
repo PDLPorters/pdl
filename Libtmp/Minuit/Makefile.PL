@@ -86,28 +86,26 @@ $hash{OBJECT} .= join ' ', '', 'FCN$(OBJ_EXT)', map "minuitlib/${_}\$(OBJ_EXT)",
 
 if($Config{cc} eq 'cl') {
 # Link to MinGW's libg2c.a and libgcc.a, if appropriate
-# First check that ExtUtils::F77 is available
-  eval{require ExtUtils::F77};
-  unless($@) {
-    my @f = ();
-
-    my $drive = (split /:/, `gcc -v 2>&1`)[0];
-    $drive = substr($drive, -1, 1);
-
-    for(shellwords ExtUtils::F77->runtime) {
-       if($_ =~ /^\-L/) {
-         $_ =~ s#^\-L##;
-         unless($_ =~ /:/) {$_ = $drive . ':' . $_}
-         if(-e $_ . '/libg2c.a') {push @f, $_ . '/libg2c.a'}
-         if(-e $_ . '/libgcc.a') {push @f, $_ . '/libgcc.a'}
-       }
-    }
-    $hash{LDFROM} = $hash{OBJECT};
-    for(@f) {$hash{LDFROM} .= ' ' . $_}
+  my @f = ();
+  my $drive = (split /:/, `gcc -v 2>&1`)[0];
+  $drive = substr($drive, -1, 1);
+  for(grep /^-L/, shellwords $77->runtime) {
+     $_ =~ s#^-L##;
+     unless($_ =~ /:/) {$_ = $drive . ':' . $_}
+     if(-e $_ . '/libg2c.a') {push @f, $_ . '/libg2c.a'}
+     if(-e $_ . '/libgcc.a') {push @f, $_ . '/libgcc.a'}
   }
+  $hash{LDFROM} = join ' ', $hash{OBJECT}, @f;
 }
 
-$hash{LIBS}[0] .= $f77->runtime ;
+my $fortran_libs = $f77->runtime;
+if ($fortran_libs =~ /quadmath.*gfortran/) { # wrong order, thanks EUMM
+  my @words = shellwords $fortran_libs;
+  my @other = grep !/quadmath/, @words;
+  my @quadmath = grep /quadmath/, @words;
+  $fortran_libs = join ' ', map /\s/ ? qq{"$_"} : $_, @other, @quadmath;
+}
+$hash{LIBS}[0] .= $fortran_libs;
 $hash{clean}{FILES} .= join '', map {" minuitlib/$_\$(OBJ_EXT) "} @minuitfiles;
 
 # Handle multiple compilers
