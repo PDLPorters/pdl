@@ -1165,7 +1165,7 @@ pp_def(
 sub PDL::rle {
   my $c = shift;
   my ($x,$y) = @_==2 ? @_ : (null,null);
-  &PDL::_rle_int($c,$x,$y);
+  PDL::_rle_int($c,$x,$y);
   my $max_ind = ($c->ndims<2) ? ($x!=0)->sumover-1 :
                                 ($x!=0)->clump(1..$x->ndims-1)->sumover->max->sclr-1;
   return ($x->slice("0:$max_ind"),$y->slice("0:$max_ind"));
@@ -1222,6 +1222,13 @@ first instance of C<0> in each row of C<$x> should be considered.
   my ($ta,$tb) = where($as,$bs,$as!=0); #only the non-zero elements of $x
   print $c(:,($_)) . " rle==> " , ($ta,$tb) , "\trld==> " . rld($ta,$tb) . "\n";
  }
+
+ # the inverse of (chance of all 6 3d6 rolls being >= each possible sum)
+ ($nrolls, $ndice, $dmax) = (6, 3, 6);
+ ($x, $x1) = (allaxisvals(($dmax) x $ndice)+1)->sumover->flat->qsort->rle;
+ $y = $x->cumusumover;
+ $yprob1x = $y->slice('-1:0')->double / $y->slice('(-1)');
+ $z = cat($x1, 1 / $yprob1x**$nrolls)->transpose;
 
 =cut
 
