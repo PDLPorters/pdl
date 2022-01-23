@@ -139,14 +139,8 @@ typedef struct
 	double i;
 	} cmplxl;
 
-
-/* Get ANSI function prototypes, if you want them. */
-#ifdef __STDC__
 #define ANSIPROT
 #include "protos.h"
-#else
-int mtherr();
-#endif
 
 /* Variable for error reporting.  See mtherr.c.  */
 extern int merror;

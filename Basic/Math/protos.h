@@ -5,7 +5,6 @@
  *   Created: Fri Nov 28 17:00:03 1997
  */
 #ifndef __CEXTRACT__
-#if __STDC__
 
 extern double j0 ( double x );
 extern double y0 ( double x );
@@ -18,18 +17,4 @@ extern double polevl ( double x, double coef[], int N );
 extern double p1evl ( double x, double coef[], int N );
 extern double yn ( int n, double x );
 
-#else /* __STDC__ */
-
-extern double j0 (/* double x */);
-extern double y0 (/* double x */);
-extern double jn (/* int n, double x */);
-extern double ndtr (/* double a */);
-extern double j1 (/* double x */);
-extern double y1 (/* double x */);
-extern int mtherr (/* char *name, int code */);
-extern double polevl (/* double x, double coef[], int N */);
-extern double p1evl (/* double x, double coef[], int N */);
-extern double yn (/* int n, double x */);
-
-#endif /* __STDC__ */
 #endif /* __CEXTRACT__ */
