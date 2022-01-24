@@ -447,6 +447,7 @@ are distributed along with PDL.
 sub earth_image {
   my($nd) = shift;
   my $f;
+  require PDL::IO::Pic;
   my $dir = "PDL/Transform/Cartography/earth_";
   $f = ($nd =~ m/^n/i) ? "${dir}night.jpg" : "${dir}day.jpg";
   
@@ -457,7 +458,7 @@ sub earth_image {
     my $file = "$_/$f";
     if(-e $file) {
       $found = 1;
-      $im = rpic($file)->mv(0,-1);
+      $im = PDL::IO::Pic::rpic($file)->mv(0,-1);
     }
     last if defined($im);
   }
