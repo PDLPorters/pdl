@@ -250,7 +250,6 @@ use PDL::LiteF;
 use PDL::Math;
 use PDL::Transform;
 use PDL::MatrixOps;
-use PDL::NiceSlice;
 use Carp;
 
 our @ISA = ( 'Exporter','PDL::Transform' );
@@ -344,12 +343,12 @@ sub graticule {
     # First do parallels.
     my $xp = xvals(360/$step + 1 + !!$two_cols, $np + 1) * $step       - 180 * (!$lonpos);
     my $yp = yvals(360/$step + 1 + !!$two_cols, $np + 1) * 180/$np     -  90;
-    $xp->(-1,:) .= $yp->(-1,:) .= asin(pdl(1.1)) if($two_cols);
+    $xp->slice("-1,:") .= $yp->slice("-1,:") .= asin(pdl(1.1)) if($two_cols);
 
     # Next do meridians.
     my $xm = yvals( 180/$step + 1 + !!$two_cols,  $nm + !!$dup  ) * 360/$nm   - 180 * (!$lonpos);
     my $ym = xvals( 180/$step + 1 + !!$two_cols,  $nm + !!$dup  ) * $step     - 90;
-    $xm->(-1,:) .= $ym->(-1,:) .= asin(pdl(1.1)) if($two_cols);
+    $xm->slice("-1,:") .= $ym->slice("-1,:") .= asin(pdl(1.1)) if($two_cols);
 
     
     if($two_cols) {
@@ -357,8 +356,8 @@ sub graticule {
 		    $yp->flat->append($ym->flat)
 	    )->mv(1,0);
     } else {
-	 our $pp = (zeroes($xp)-1); $pp->((-1)) .= 0;
-	 our $pm = (zeroes($xm)-1); $pm->((-1)) .= 0;
+	 our $pp = (zeroes($xp)-1); $pp->slice("(-1)") .= 0;
+	 our $pm = (zeroes($xm)-1); $pm->slice("(-1)") .= 0;
 
 	if(wantarray) {
 	    return (  pdl( $xp->flat->append($xm->flat),
@@ -541,35 +540,35 @@ sub clean_lines {
     } else {
 	if(!defined($x)) {
 	    # duplex case no thresh
-	    $l = $lines->(0:1);
-	    $p = $lines->is_inplace ? $lines->((2)) : $lines->((2))->sever;
+	    $l = $lines->slice("0:1");
+	    $p = $lines->is_inplace ? $lines->slice("(2)") : $lines->slice("(2)")->sever;
 	} elsif(UNIVERSAL::isa($x,'PDL') && 
-		$lines->((0))->nelem == $x->nelem) {
+		$lines->slice("(0)")->nelem == $x->nelem) {
 	    # Separate case no thresh
 	    $l = $lines;
 	    $p = $x->is_inplace ? $x : $x->copy;;
 	} else {
 	    # duplex case with thresh
-	    $l = $lines->(0:1);
-	    $p = $lines->is_inplace ? $lines->((2)) : $lines->((2))->sever;
+	    $l = $lines->slice("0:1");
+	    $p = $lines->is_inplace ? $lines->slice("(2)") : $lines->slice("(2)")->sever;
 	    $th = $x;
 	}
     }
 
     my $pok = (($p != 0) & isfinite($p));
     # Kludge to work around minmax bug (nans confuse it!)
-    my($l0) = $l->((0));
+    my($l0) = $l->slice("(0)");
     my($x0,$x1) = $l0->where(isfinite($l0) & $pok)->minmax;
     my($xth) = abs($x1-$x0) * $th;
 
-    my($l1) = $l->((1));
+    my($l1) = $l->slice("(1)");
     ($x0,$x1) = $l1->where(isfinite($l1) & $pok)->minmax;
     my($yth) = abs($x1-$x0) * $th;
 
-    my $diff = abs($l->(:,1:-1) - $l->(:,0:-2));
+    my $diff = abs($l->slice(":,1:-1") - $l->slice(":,0:-2"));
 
     $diff->where(!isfinite($diff)) .= 2*($xth + $yth); 
-    $p->where(($diff->((0)) > $xth) | ($diff->((1)) > $yth)) .= 0;
+    $p->where(($diff->slice("(0)") > $xth) | ($diff->slice("(1)") > $yth)) .= 0;
     if(wantarray){
 	return($l,$p);
     } else {
@@ -649,8 +648,8 @@ sub new {
     my($l) = _opt($o,['l','L']);
     my($b_angle) = _opt($o,['b','B']);
 
-    $or->(0) .= $l if defined($l);
-    $or->(1) .= $b_angle if defined($b_angle);
+    $or->slice("0") .= $l if defined($l);
+    $or->slice("1") .= $b_angle if defined($b_angle);
 
     my $roll = topdl(_opt($o,['r','roll','Roll','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');
@@ -697,8 +696,8 @@ sub new {
 # options.
 sub PDL::Transform::Cartography::_finish {
   my($me) = shift;
-  if( ($me->{params}->{o}->(0) != 0) || 
-      ($me->{params}->{o}->(1) != 0) ||
+  if( ($me->{params}->{o}->slice("0") != 0) ||
+      ($me->{params}->{o}->slice("1") != 0) ||
       ($me->{params}->{roll} != 0) 
       ) {
       my $out = t_compose($me,t_rot_sphere($me->{options}));
@@ -790,21 +789,21 @@ sub t_unit_sphere {
     my $out = zeroes(@dims);
     
     my($thetaphi) = ((defined $o->{conv} && $o->{conv} != 1.0) ? 
-		     $d->(0:1) * $o->{conv} : $d->(0:1)
+		     $d->slice("0:1") * $o->{conv} : $d->slice("0:1")
 		     );
 
-    my $th = $thetaphi->((0));
-    my $ph = $thetaphi->((1));
+    my $th = $thetaphi->slice("(0)");
+    my $ph = $thetaphi->slice("(1)");
 
     # use x as a holding tank for the cos-phi multiplier
-    $out->((0)) .= $o->{r} * cos($ph) ;
-    $out->((1)) .= $out->((0)) * sin($th);
-    $out->((0)) *= cos($th);
+    $out->slice("(0)") .= $o->{r} * cos($ph) ;
+    $out->slice("(1)") .= $out->slice("(0)") * sin($th);
+    $out->slice("(0)") *= cos($th);
 
-    $out->((2)) .= $o->{r} * sin($ph);
+    $out->slice("(2)") .= $o->{r} * sin($ph);
 
     if($d->dim(0) > 2) {
-	$out->(3:-1) .= $d->(2:-1);
+	$out->slice("3:-1") .= $d->slice("2:-1");
     }
 
     $out;
@@ -814,20 +813,20 @@ sub t_unit_sphere {
   $me->{inv} = sub {
     my($d,$o) = @_;
 	
-    my($d0,$d1,$d2) = ($d->((0)),$d->((1)),$d->((2)));
-    my($r) = sqrt(($d->(0:2)*$d->(0:2))->sumover);
+    my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
+    my($r) = sqrt(($d->slice("0:2")*$d->slice("0:2"))->sumover);
     my(@dims) = $d->dims;
     $dims[0]--;
     my($out) = zeroes(@dims);
     
-    $out->((0)) .= atan2($d1,$d0);
-    $out->((1)) .= asin($d2/$r);
+    $out->slice("(0)") .= atan2($d1,$d0);
+    $out->slice("(1)") .= asin($d2/$r);
 
     if($d->dim(0) > 3) {
-	$out->(2:-1) .= $d->(3:-1);
+	$out->slice("2:-1") .= $d->slice("3:-1");
     }
 
-    $out->(0:1) /= $o->{conv}
+    $out->slice("0:1") /= $o->{conv}
       if(defined $o->{conv} && $o->{conv} != 1.0);
 
     $out;
@@ -1003,20 +1002,20 @@ sub t_orthographic {
 	my ($out) = $o->{t_int}->apply($d);
 	if($o->{m}) {
 	    my $idx;
-	    $idx = whichND($out->((2)) < 0) 
+	    $idx = whichND($out->slice("(2)") < 0)
 		if($o->{m} == 1);
-	    $idx = whichND($out->((2)) > 0)
+	    $idx = whichND($out->slice("(2)") > 0)
 		if($o->{m} == 2);
 	    if(defined $idx && ref $idx eq 'PDL' && $idx->nelem){
-	      $out->((0))->range($idx) .= $o->{bad};
-	      $out->((1))->range($idx) .= $o->{bad};
+	      $out->slice("(0)")->range($idx) .= $o->{bad};
+	      $out->slice("(1)")->range($idx) .= $o->{bad};
 	    }
 	}
 
 	my($d0) = $out->dim(0);
 
 	# Remove the Z direction
-	($d0 > 3) ? $out->(pdl(0,1,3..$d0-1)) : $out->(0:1);
+	($d0 > 3) ? $out->slice(pdl(0,1,3..$d0-1)) : $out->slice("0:1");
 
     };
 
@@ -1024,16 +1023,16 @@ sub t_orthographic {
     # having its own 2-d inverse instead of calling the internal one.
     $me->{inv} = sub {
 	my($d,$o) = @_;
-	my($d1) = $d->(0:1);
+	my($d1) = $d->slice("0:1");
 	my(@dims) = $d->dims;
 	$dims[0]++;
 	my($out) = zeroes(@dims);
-	$out->(0:1) .= $d1;
-	$out->(3:-1) .= $d->(2:-1) 
+	$out->slice("0:1") .= $d1;
+	$out->slice("3:-1") .= $d->slice("2:-1")
 	    if($dims[0] > 3);
 
-	$out->((2)) .= sqrt(1 - ($d1*$d1)->sumover);
-	$out->((2)) *= -1 if($o->{m} == 2);
+	$out->slice("(2)") .= sqrt(1 - ($d1*$d1)->sumover);
+	$out->slice("(2)") *= -1 if($o->{m} == 2);
 
 	$o->{t_int}->invert($out);
     };
@@ -1087,16 +1086,16 @@ sub t_caree {
     $me->{func} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
-	$out->(0:1) *= $o->{conv};
-	$out->(0) *= $p->{stretch};
+	$out->slice("0:1") *= $o->{conv};
+	$out->slice("0") *= $p->{stretch};
 	$out;
     };
     
     $me->{inv} = sub {
 	my($d,$o)= @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
-	$out->(0:1) /= $o->{conv};
-	$out->(0) /= $p->{stretch};
+	$out->slice("0:1") /= $o->{conv};
+	$out->slice("0") /= $p->{stretch};
 	$out;
     };
     
@@ -1191,14 +1190,14 @@ sub t_mercator {
 
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	$out->(0:1) *= $o->{conv};
+	$out->slice("0:1") *= $o->{conv};
 
-	$out->((1)) .= log(tan($out->((1))/2 + $PI/4));
-	$out->((1)) .= $out->((1))->clip(@{$o->{c}})
+	$out->slice("(1)") .= log(tan($out->slice("(1)")/2 + $PI/4));
+	$out->slice("(1)") .= $out->slice("(1)")->clip(@{$o->{c}})
 	    unless($o->{c}->[0] == $o->{c}->[1]);
 
-	$out->(0:1) *= $o->{stretch};
-	$out->(0:1) /= $o->{oconv} if(defined $o->{oconv});
+	$out->slice("0:1") *= $o->{stretch};
+	$out->slice("0:1") /= $o->{oconv} if(defined $o->{oconv});
 			    
 	$out;
     };
@@ -1207,10 +1206,10 @@ sub t_mercator {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace? $d : $d->copy;
 
-	$out->(0:1) *= $o->{oconv} if defined($o->{oconv});
-	$out->(0:1) /= $o->{stretch};
-	$out->((1)) .= (atan(exp($out->((1)))) - $PI/4)*2;
-	$out->(0:1) /= $o->{conv};
+	$out->slice("0:1") *= $o->{oconv} if defined($o->{oconv});
+	$out->slice("0:1") /= $o->{stretch};
+	$out->slice("(1)") .= (atan(exp($out->slice("(1)"))) - $PI/4)*2;
+	$out->slice("0:1") /= $o->{conv};
 
 	$out;
     };
@@ -1317,8 +1316,8 @@ sub t_utm {
   ## Define our zone and NS offset 
   my $subzone = _opt($opt,['sz', 'subzone', 'SubZone'],1);
   my $offset = zeroes(2);
-  $offset->(0) .= 5e5*(2*$PI/40e6)/$x->{params}->{oconv};
-  $offset->(1) .= ($subzone < 0) ? $PI/2/$x->{params}->{oconv} : 0;
+  $offset->slice("0") .= 5e5*(2*$PI/40e6)/$x->{params}->{oconv};
+  $offset->slice("1") .= ($subzone < 0) ? $PI/2/$x->{params}->{oconv} : 0;
 
   my $merid = ($zone * 6) - 183;
 
@@ -1396,18 +1395,18 @@ sub t_sin_lat {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	$out->(0:1) *= $me->{params}->{conv};
-	$out->((1)) .= sin($out->((1))) / $o->{stretch};
-	$out->((0)) *= $o->{stretch};
+	$out->slice("0:1") *= $me->{params}->{conv};
+	$out->slice("(1)") .= sin($out->slice("(1)")) / $o->{stretch};
+	$out->slice("(0)") *= $o->{stretch};
 	$out;
     };
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
-	$out->((1)) .= asin($out->((1)) * $o->{stretch});
-	$out->((0)) /= $o->{stretch};
-	$out->(0:1) /= $me->{params}->{conv};
+	$out->slice("(1)") .= asin($out->slice("(1)") * $o->{stretch});
+	$out->slice("(0)") /= $o->{stretch};
+	$out->slice("0:1") /= $me->{params}->{conv};
 	$out;
     };
 
@@ -1449,25 +1448,25 @@ sub t_sinusoidal {
   $me->{func} = sub {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
-    $out->(0:1) *= $o->{conv};
+    $out->slice("0:1") *= $o->{conv};
 
-    $out->((0)) *= cos($out->((1)));
+    $out->slice("(0)") *= cos($out->slice("(1)"));
     $out;
   };
 
   $me->{inv} = sub {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
-    my($x) = $out->((0));
-    my($y) = $out->((1));
+    my($x) = $out->slice("(0)");
+    my($y) = $out->slice("(1)");
     
-    $x /= cos($out->((1)));
+    $x /= cos($out->slice("(1)"));
 
     my($rej) = ( (abs($x)>$PI) | (abs($y)>($PI/2)) )->flat;
-    $x->flat->($rej) .= $o->{bad};
-    $y->flat->($rej) .= $o->{bad};
+    $x->flat->slice($rej) .= $o->{bad};
+    $y->flat->slice($rej) .= $o->{bad};
     
-    $out->(0:1) /= $o->{conv};
+    $out->slice("0:1") /= $o->{conv};
     $out;
   };
 
@@ -1501,7 +1500,7 @@ sub _c_new {
 	if($p->{std}->nelem == 1);
     
     $me->{params}->{cylindrical} = 1
-	if(approx($p->{std}->(0),-$p->{std}->(1)));
+	if(approx($p->{std}->slice("0"),-$p->{std}->slice("1")));
 
     $me;
 }
@@ -1566,11 +1565,11 @@ sub t_conic {
 	return t_caree($me->{options});
     }
 
-    $p->{n} = ((cos($p->{std}->((0))) - cos($p->{std}->((1)))) 
+    $p->{n} = ((cos($p->{std}->slice("(0)")) - cos($p->{std}->slice("(1)")))
 	       /
-	       ($p->{std}->((1)) - $p->{std}->((0))));
+	       ($p->{std}->slice("(1)") - $p->{std}->slice("(0)")));
 
-    $p->{G} = cos($p->{std}->((0)))/$p->{n} + $p->{std}->((0));
+    $p->{G} = cos($p->{std}->slice("(0)"))/$p->{n} + $p->{std}->slice("(0)");
 
     $me->{otype} = ['Conic X','Conic Y'];
     $me->{ounit} = ['Proj. radians','Proj. radians'];
@@ -1579,11 +1578,11 @@ sub t_conic {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	my($rho) = $o->{G} - $d->((1)) * $o->{conv};
-	my($theta) = $o->{n} * $d->((0)) * $o->{conv};
+	my($rho) = $o->{G} - $d->slice("(1)") * $o->{conv};
+	my($theta) = $o->{n} * $d->slice("(0)") * $o->{conv};
 	
-	$out->((0)) .= $rho * sin($theta);
-	$out->((1)) .= $o->{G} - $rho * cos($theta);
+	$out->slice("(0)") .= $rho * sin($theta);
+	$out->slice("(1)") .= $o->{G} - $rho * cos($theta);
 
 	$out;
     };
@@ -1592,22 +1591,22 @@ sub t_conic {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	my($x) = $d->((0));
-	my($y) = $o->{G} - $d->((1));
+	my($x) = $d->slice("(0)");
+	my($y) = $o->{G} - $d->slice("(1)");
 	my($rho) = sqrt($x*$x + $y*$y);
 	$rho *= -1 if($o->{n}<0);
 
 	my($theta) = ($o->{n} < 0) ? atan2(-$x,-$y) : atan2($x,$y);
     
-	$out->((1)) .= $o->{G} - $rho;
-	$out->((1))->where(($out->((1)) < -$PI/2) | ($out->((1)) > $PI/2))
+	$out->slice("(1)") .= $o->{G} - $rho;
+	$out->slice("(1)")->where(($out->slice("(1)") < -$PI/2) | ($out->slice("(1)") > $PI/2))
 	    .= $o->{bad};
 
-	$out->((0)) .= $theta / $o->{n};
-	$out->((0))->where(($out->((0)) < -$PI) | ($out->((0)) > $PI/2))
+	$out->slice("(0)") .= $theta / $o->{n};
+	$out->slice("(0)")->where(($out->slice("(0)") < -$PI) | ($out->slice("(0)") > $PI/2))
 	    .= $o->{bad};
 
-	$out->(0:1) /= $o->{conv};
+	$out->slice("0:1") /= $o->{conv};
 
 	$out;
     };
@@ -1684,8 +1683,8 @@ sub t_albers  {
     }
 
     $p->{n} = sin($p->{std})->sumover / 2;
-    $p->{C} = (cos($p->{std}->((1)))*cos($p->{std}->((1))) + 
-		     2 * $p->{n} * sin($p->{std}->((1))) );
+    $p->{C} = (cos($p->{std}->slice("(1)"))*cos($p->{std}->slice("(1)")) +
+		     2 * $p->{n} * sin($p->{std}->slice("(1)")) );
     $p->{rho0} = sqrt($p->{C}) / $p->{n}; 
 
     $me->{otype} = ['Conic X','Conic Y'];
@@ -1695,11 +1694,11 @@ sub t_albers  {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	my($rho) = sqrt( $o->{C} - 2 * $o->{n} * sin($d->((1)) * $o->{conv}) ) / $o->{n};
-	my($theta) = $o->{n} * $d->((0)) * $o->{conv};
+	my($rho) = sqrt( $o->{C} - 2 * $o->{n} * sin($d->slice("(1)") * $o->{conv}) ) / $o->{n};
+	my($theta) = $o->{n} * $d->slice("(0)") * $o->{conv};
 
-	$out->((0)) .= $rho * sin($theta);
-	$out->((1)) .= $p->{rho0} - $rho * cos($theta);
+	$out->slice("(0)") .= $rho * sin($theta);
+	$out->slice("(1)") .= $p->{rho0} - $rho * cos($theta);
 	$out;
     };
 
@@ -1708,18 +1707,18 @@ sub t_albers  {
 
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	my($x) = $d->((0));
-	my($y) = $o->{rho0} - $d->((1));
+	my($x) = $d->slice("(0)");
+	my($y) = $o->{rho0} - $d->slice("(1)");
 
 	my($theta) = ($o->{n} < 0) ? atan2 -$x,-$y : atan2 $x, $y;
 	my($rho) = sqrt( $x*$x + $y*$y ) * $o->{n};
 
-	$out->((1)) .= asin( ( $o->{C} - ( $rho * $rho ) ) / (2 * $o->{n}) );
+	$out->slice("(1)") .= asin( ( $o->{C} - ( $rho * $rho ) ) / (2 * $o->{n}) );
 
-	$out->((0)) .= $theta / $o->{n};
-	$out->((0))->where(($out->((0))>$PI) | ($out->((0))<-$PI)) .= $o->{bad};
+	$out->slice("(0)") .= $theta / $o->{n};
+	$out->slice("(0)")->where(($out->slice("(0)")>$PI) | ($out->slice("(0)")<-$PI)) .= $o->{bad};
 
-	$out->(0:1) /= $o->{conv};
+	$out->slice("0:1") /= $o->{conv};
 
 	$out;
     };
@@ -1796,21 +1795,21 @@ sub t_lambert {
     $p->{c} = [$p->{c}->list];
 
     # Prefrobnicate
-    if(approx($p->{std}->((0)),$p->{std}->((1)))) {
-	$p->{n} = sin($p->{std}->((0)));
+    if(approx($p->{std}->slice("(0)"),$p->{std}->slice("(1)"))) {
+	$p->{n} = sin($p->{std}->slice("(0)"));
     } else {
-	$p->{n} = (log(cos($p->{std}->((0)))/cos($p->{std}->((1)))) 
+	$p->{n} = (log(cos($p->{std}->slice("(0)"))/cos($p->{std}->slice("(1)")))
 		   / 
-		   log( tan( $PI/4 + $p->{std}->((1))/2 ) 
+		   log( tan( $PI/4 + $p->{std}->slice("(1)")/2 )
 			/ 
-			tan( $PI/4 + $p->{std}->((0))/2 ) 
+			tan( $PI/4 + $p->{std}->slice("(0)")/2 )
 			)
 		   );
     }
 
-    $p->{F} = ( cos($p->{std}->((0))) 
+    $p->{F} = ( cos($p->{std}->slice("(0)"))
 		*
-		( tan( $PI/4 + $p->{std}->((0))/2 ) ** $p->{n} ) / $p->{n}
+		( tan( $PI/4 + $p->{std}->slice("(0)")/2 ) ** $p->{n} ) / $p->{n}
 		);
 
     $p->{rho0} = $p->{F};
@@ -1823,15 +1822,15 @@ sub t_lambert {
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
 	my($cl) = ( ($o->{c}->[0] == $o->{c}->[1]) ? 
-		    $d->((1))*$o->{conv} : 
-		    ($d->((1))->clip(@{$o->{c}}) * $o->{conv})
+		    $d->slice("(1)")*$o->{conv} :
+		    ($d->slice("(1)")->clip(@{$o->{c}}) * $o->{conv})
 		    );
 
 	my($rho) = $o->{F} / ( tan($PI/4 + ($cl)/2 ) ** $o->{n} );
-	my($theta) = $o->{n} * $d->((0)) * $o->{conv};
+	my($theta) = $o->{n} * $d->slice("(0)") * $o->{conv};
 
-	$out->((0)) .= $rho * sin($theta);
-	$out->((1)) .= $o->{rho0} - $rho * cos($theta);
+	$out->slice("(0)") .= $rho * sin($theta);
+	$out->slice("(1)") .= $o->{rho0} - $rho * cos($theta);
 	$out;
     };
 
@@ -1839,22 +1838,22 @@ sub t_lambert {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 	
-	my($x) = $d->((0));
-	my($y) = $o->{rho0} - $d->((1));
+	my($x) = $d->slice("(0)");
+	my($y) = $o->{rho0} - $d->slice("(1)");
 
 	my($rho) = sqrt($x * $x + $y * $y);
 	$rho *= -1 if($o->{n} < 0);
 	my($theta) = ($o->{n} < 0) ? atan2(-$x,-$y):(atan2 $x,$y);
 
 
-	$out->((0)) .= $theta / $o->{n};
-	$out->((0))->where(($out->((0)) > $PI) | ($out->((0)) < -$PI)) .= $o->{bad};
+	$out->slice("(0)") .= $theta / $o->{n};
+	$out->slice("(0)")->where(($out->slice("(0)") > $PI) | ($out->slice("(0)") < -$PI)) .= $o->{bad};
 
 
-	$out->((1)) .= 2 * atan(($o->{F}/$rho)**(1.0/$o->{n})) - $PI/2;
-	$out->((1))->where(($out->((1)) > $PI/2) | ($out->((1)) < -$PI/2)) .= $o->{bad};
+	$out->slice("(1)") .= 2 * atan(($o->{F}/$rho)**(1.0/$o->{n})) - $PI/2;
+	$out->slice("(1)")->where(($out->slice("(1)") > $PI/2) | ($out->slice("(1)") < -$PI/2)) .= $o->{bad};
 
-	$out->(0:1) /= $o->{conv};
+	$out->slice("0:1") /= $o->{conv};
 
 	$out;
     };
@@ -1909,17 +1908,17 @@ sub t_stereographic {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	my($th,$ph) = ($out->((0)) * $o->{conv},
-		       $out->((1)) * $o->{conv});
+	my($th,$ph) = ($out->slice("(0)") * $o->{conv},
+		       $out->slice("(1)") * $o->{conv});
 
 	my($cph) = cos($ph); # gets re-used 
 	my($k) = 2 * $o->{k0} / (1 + cos($th) * $cph);
-	$out->((0)) .= $k * $cph * sin($th);
-	$out->((1)) .= $k * sin($ph);
+	$out->slice("(0)") .= $k * $cph * sin($th);
+	$out->slice("(1)") .= $k * sin($ph);
 
 	my($cl0) = 2*$o->{k0} / (1 + cos($o->{c}));
-	$out->((0))->where($k>$cl0) .= $o->{bad};
-	$out->((1))->where($k>$cl0) .= $o->{bad};
+	$out->slice("(0)")->where($k>$cl0) .= $o->{bad};
+	$out->slice("(1)")->where($k>$cl0) .= $o->{bad};
 	$out;
     };
 
@@ -1927,15 +1926,15 @@ sub t_stereographic {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 	
-	my($x) = $d->((0));
-	my($y) = $d->((1));
+	my($x) = $d->slice("(0)");
+	my($y) = $d->slice("(1)");
 	my($rho) = sqrt($x*$x + $y*$y);
 	my($c) = 2 * atan2($rho,2*$o->{k0});
 	
-	$out->((0)) .= atan2($x * sin($c), $rho * cos($c));
-	$out->((1)) .= asin($y * sin($c) / $rho);
+	$out->slice("(0)") .= atan2($x * sin($c), $rho * cos($c));
+	$out->slice("(1)") .= asin($y * sin($c) / $rho);
 	
-	$out ->(0:1) /= $o->{conv};
+	$out ->slice("0:1") /= $o->{conv};
 	$out;
     };
 
@@ -1994,21 +1993,21 @@ sub t_gnomonic {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	my($th,$ph) = ($out->((0)) * $o->{conv},
-		       $out->((1)) * $o->{conv});
+	my($th,$ph) = ($out->slice("(0)") * $o->{conv},
+		       $out->slice("(1)") * $o->{conv});
 
 	my($cph) = cos($ph); # gets re-used 
 
 	my($k) = $o->{k0} / (cos($th) * $cph);
 	my($cl0) = $o->{k0} / (cos($o->{c}));
 
-	$out->((0)) .= $k * $cph * sin($th);
-	$out->((1)) .= $k * sin($ph);
+	$out->slice("(0)") .= $k * $cph * sin($th);
+	$out->slice("(1)") .= $k * sin($ph);
 
 	my $idx = whichND(($k > $cl0)  | ($k < 0) | (!isfinite($k)));
 	if($idx->nelem) {
-	  $out->((0))->range($idx) .= $o->{bad};
-	  $out->((1))->range($idx) .= $o->{bad};
+	  $out->slice("(0)")->range($idx) .= $o->{bad};
+	  $out->slice("(1)")->range($idx) .= $o->{bad};
 	}
 
 	$out;
@@ -2018,22 +2017,22 @@ sub t_gnomonic {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	my($x) = $d->((0));
-	my($y) = $d->((1));
+	my($x) = $d->slice("(0)");
+	my($y) = $d->slice("(1)");
 
 	my($rho) = sqrt($x*$x + $y*$y);
 	my($c) = atan($rho/$o->{k0});
 
-	$out->((0)) .= atan2($x * sin($c), $rho * cos($c));
-	$out->((1)) .= asin($y * sin($c) / $rho);
+	$out->slice("(0)") .= atan2($x * sin($c), $rho * cos($c));
+	$out->slice("(1)") .= asin($y * sin($c) / $rho);
 
 	my $idx = whichND($rho==0);
 
 	if($idx->nelem) {
-	  $out->((0))->range($idx) .= 0;
-	  $out->((1))->range($idx) .= 0;
+	  $out->slice("(0)")->range($idx) .= 0;
+	  $out->slice("(1)")->range($idx) .= 0;
 	}
-	$out->(0:1) /= $o->{conv};
+	$out->slice("0:1") /= $o->{conv};
 	$out;
     };
 
@@ -2094,15 +2093,15 @@ sub t_az_eqd {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
     
-    my($ph) = $d->((1)) * $o->{conv};
-    my($th) = $d->((0)) * $o->{conv};
+    my($ph) = $d->slice("(1)") * $o->{conv};
+    my($th) = $d->slice("(0)") * $o->{conv};
 
     my $cos_c = cos($ph) * cos($th);
     my $c = acos($cos_c);
     my $k = $c / sin($c);
     $k->where($c==0) .= 1;
     
-    my($x,$y) = ($out->((0)), $out->((1)));
+    my($x,$y) = ($out->slice("(0)"), $out->slice("(1)"));
 
     $x .= $k * cos($ph) * sin($th);
     $y .= $k * sin($ph);
@@ -2119,21 +2118,21 @@ sub t_az_eqd {
   $me->{inv} = sub {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
-    my($x) = $d->((0));
-    my($y) = $d->((1));
+    my($x) = $d->slice("(0)");
+    my($y) = $d->slice("(1)");
 
-    my $rho = sqrt(($d->(0:1)*$d->(0:1))->sumover);
+    my $rho = sqrt(($d->slice("0:1")*$d->slice("0:1"))->sumover);
     # Order is important -- ((0)) overwrites $x if is_inplace!
-    $out->((0)) .= atan2( $x * sin($rho), $rho * cos $rho );
-    $out->((1)) .= asin( $y * sin($rho) / $rho );
+    $out->slice("(0)") .= atan2( $x * sin($rho), $rho * cos $rho );
+    $out->slice("(1)") .= asin( $y * sin($rho) / $rho );
 
     my $idx = whichND($rho == 0);
     if($idx->nelem) {
-      $out->((0))->range($idx) .= 0;
-      $out->((1))->range($idx) .= 0;
+      $out->slice("(0)")->range($idx) .= 0;
+      $out->slice("(1)")->range($idx) .= 0;
     }
 
-    $out->(0:1) /= $o->{conv};
+    $out->slice("0:1") /= $o->{conv};
 
     $out;
   };
@@ -2182,14 +2181,14 @@ sub t_az_eqa {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
     
-    my($ph) = $d->((1)) * $o->{conv};
-    my($th) = $d->((0)) * $o->{conv};
+    my($ph) = $d->slice("(1)") * $o->{conv};
+    my($th) = $d->slice("(0)") * $o->{conv};
 				
     my($c) = acos(cos($ph) * cos($th));
     my($rho) = 2 * sin($c/2);
     my($k) = 1.0/cos($c/2);
 
-    my($x,$y) = ($out->((0)),$out->((1)));
+    my($x,$y) = ($out->slice("(0)"),$out->slice("(1)"));
     $x .= $k * cos($ph) * sin($th);
     $y .= $k * sin($ph);
 
@@ -2206,12 +2205,12 @@ sub t_az_eqa {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
 
-    my($x,$y) = ($d->((0)),$d->((1)));
-    my($ph,$th) = ($out->((0)),$out->((1)));
+    my($x,$y) = ($d->slice("(0)"),$d->slice("(1)"));
+    my($ph,$th) = ($out->slice("(0)"),$out->slice("(1)"));
     my($rho) = sqrt($x*$x + $y*$y);
     my($c) = 2 * asin($rho/2);
 
-    $ph .= asin($d->((1)) * sin($c) / $rho);
+    $ph .= asin($d->slice("(1)") * sin($c) / $rho);
     $th .= atan2($x * sin($c),$rho * cos($c));
 
     $ph /= $o->{conv};
@@ -2265,9 +2264,9 @@ sub t_hammer {
   $me->{func} = sub {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
-    $out->(0:1) *= $o->{conv};
-    my($th) = $out->((0));
-    my($ph) = $out->((1));
+    $out->slice("0:1") *= $o->{conv};
+    my($th) = $out->slice("(0)");
+    my($ph) = $out->slice("(1)");
     my($t) = sqrt( 2 / (1 + cos($ph) * cos($th/2)));
     $th .= 2 * $t * cos($ph) * sin($th/2);
     $ph .= $t * sin($ph);
@@ -2278,8 +2277,8 @@ sub t_hammer {
   $me->{inv} = sub {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
-    my($x) = $out->((0));
-    my($y) = $out->((1));
+    my($x) = $out->slice("(0)");
+    my($y) = $out->slice("(1)");
 
     my($rej) = which(($x*$x/8 + $y*$y/2)->flat > 1);
     
@@ -2288,10 +2287,10 @@ sub t_hammer {
     $x .= 2 * atan( ($z * $x) / (4 * $zz - 2) );
     $y .= asin($y * $z);
     
-    $out->(0:1) /= $o->{conv};
+    $out->slice("0:1") /= $o->{conv};
 
-    $x->flat->($rej) .= $o->{bad};
-    $y->flat->($rej) .= $o->{bad};
+    $x->flat->slice($rej) .= $o->{bad};
+    $y->flat->slice($rej) .= $o->{bad};
 
     $out;
   };
@@ -2413,8 +2412,8 @@ sub t_vertical {
     $me->{func} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
-	my($th) = $d->((0))*$o->{conv};
-	my($ph) = $d->((1))*$o->{conv};
+	my($th) = $d->slice("(0)")*$o->{conv};
+	my($ph) = $d->slice("(1)")*$o->{conv};
 
 	my($cph) = cos($ph);
 
@@ -2429,17 +2428,17 @@ sub t_vertical {
 	  my($theta) = asin(1/$o->{r0});
 	}
 	
-	$out->(0:1) /= ($o->{r0} - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
+	$out->slice("0:1") /= ($o->{r0} - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
   	  if($o->{t});
 
 
 
-	$out->((0)) .= $cph * sin($th);
-	$out->((1)) .= sin($ph);
+	$out->slice("(0)") .= $cph * sin($th);
+	$out->slice("(1)") .= sin($ph);
 
 	# Handle singularity at the origin
-	$k->where(($out->((0)) == 0) & ($out->((1)) == 0)) .= 0;
-	$out->(0:1) *= $k->dummy(0,2);
+	$k->where(($out->slice("(0)") == 0) & ($out->slice("(1)") == 0)) .= 0;
+	$out->slice("0:1") *= $k->dummy(0,2);
 
 	if($o->{m}) {
 	    my $idx;
@@ -2449,8 +2448,8 @@ sub t_vertical {
 		if($o->{m} == 2);
 
 	    if(defined $idx && ref $idx eq 'PDL' && $idx->nelem){
-	      $out->((0))->range($idx) .= $o->{bad};
-	      $out->((1))->range($idx) .= $o->{bad};
+	      $out->slice("(0)")->range($idx) .= $o->{bad};
+	      $out->slice("(1)")->range($idx) .= $o->{bad};
 	    }
 	}
 
@@ -2465,10 +2464,10 @@ sub t_vertical {
 	# Reverse the hemisphere if the mask is set to 'far'
 	my($P) = ($o->{m} == 2) ? -$o->{r0} : $o->{r0};
 
-	$out->(0:1) *= ($P - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
+	$out->slice("0:1") *= ($P - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
      	    if($o->{t});
 
-	my($rho) = sqrt(sumover($d->(0:1) * $d->(0:1)));
+	my($rho) = sqrt(sumover($d->slice("0:1") * $d->slice("0:1")));
 	my($sin_c) = ( (  $P - sqrt( 1 - ($rho*$rho * ($P+1)/($P-1)) ) ) /
 		       ( ($P-1)/$rho + $rho/($P-1) )
 		       );
@@ -2483,10 +2482,10 @@ sub t_vertical {
 	}
 
 	
-	$out->((0)) .= atan( $d->((0)) * $sin_c / ($rho * $cos_c) );
-	$out->((1)) .= asin( $d->((1)) * $sin_c / $rho );
+	$out->slice("(0)") .= atan( $d->slice("(0)") * $sin_c / ($rho * $cos_c) );
+	$out->slice("(1)") .= asin( $d->slice("(1)") * $sin_c / $rho );
 
-	$out->(0:1) /= $o->{conv};
+	$out->slice("0:1") /= $o->{conv};
 
 	$out;
     };
@@ -2704,7 +2703,7 @@ sub t_perspective {
 			[0,0,0])
 		   )
 	       * $p->{tconv}
-	       )->append(zeroes(3))->(0:2);
+	       )->append(zeroes(3))->slice("0:2");
 
     $p->{pmat} = _rotmat( (- $p->{p})->list );
     
@@ -2715,7 +2714,7 @@ sub t_perspective {
 		   );
 
     if(defined($p->{c})) {
-      $p->{c} = (topdl($p->{c}) * $p->{tconv})->append(zeroes(3))->(0:2);
+      $p->{c} = (topdl($p->{c}) * $p->{tconv})->append(zeroes(3))->slice("0:2");
 
       $p->{pmat} = ( _rotmat( 0,-$PI/2,0 ) x 
 		     _rotmat( (-$p->{c})->list ) 
@@ -2767,7 +2766,7 @@ sub t_perspective {
     $me->{params}->{sph_origin} = (
 				   topdl([-$me->{params}->{r0},0,0]) x 
 				   $p->{pmat}
-				   )->(:,(0));
+				   )->slice(":,(0)");
 
     #
     # Finally, the meat -- the forward function!
@@ -2776,7 +2775,7 @@ sub t_perspective {
       my($d,$o) = @_;
 
       my($out) = $d->is_inplace ? $d : $d->copy;
-      $out->(0:1) *= $o->{conv};
+      $out->slice("0:1") *= $o->{conv};
 
       # If we're outside the sphere, do hemisphere filtering
       my $idx;
@@ -2784,10 +2783,10 @@ sub t_perspective {
 	$idx = null;
       } else {
 	# Great-circle distance to origin
-	my($cos_c) = ( sin($o->{o}->((1))) * sin($out->((1)))
+	my($cos_c) = ( sin($o->{o}->slice("(1)")) * sin($out->slice("(1)"))
 		     +
-		     cos($o->{o}->((1))) * cos($out->((1))) * 
-		     cos($out->((0)) - $o->{o}->((0)))
+		     cos($o->{o}->slice("(1)")) * cos($out->slice("(1)")) *
+		     cos($out->slice("(0)") - $o->{o}->slice("(0)"))
 		     );
 
 	my($thresh) = (1.0/$o->{r0});
@@ -2807,26 +2806,26 @@ sub t_perspective {
       my $dc = $out->apply($o->{prefilt});
 
       ## Apply the tangent-plane transform, and scale by the magnification.
-      my $dcyz = $dc->(1:2);
+      my $dcyz = $dc->slice("1:2");
 
       my $r = ( $dcyz * $dcyz ) -> sumover -> sqrt ;     
       my $rscale;
       if( $o->{mag} == 1.0 ) {
-	  $rscale = - 1.0 / $dc->((0));
+	  $rscale = - 1.0 / $dc->slice("(0)");
       } else {
 	  print "(using magnification...)\n" if $PDL::verbose;
-	  $rscale = - tan( $o->{mag} * atan( $r / $dc->((0)) ) ) / $r;
+	  $rscale = - tan( $o->{mag} * atan( $r / $dc->slice("(0)") ) ) / $r;
       }
       $r *= $rscale;
-      $out->(0:1) .= $dcyz * $rscale->dummy(0,1);
+      $out->slice("0:1") .= $dcyz * $rscale->dummy(0,1);
 
       # Chuck points that are outside the FOV: glue those points
       # onto the removal list.   The conditional works around a bug 
       # in 2.3.4cvs and earlier: null ndarrays make append() crash.
       my $w;
       if(ref $o->{f} eq 'ARRAY') {
-	$w = whichND( ( abs($dcyz->((0))) > $o->{f}->[0] ) |
-		      ( abs($dcyz->((1))) > $o->{f}->[1] ) |
+	$w = whichND( ( abs($dcyz->slice("(0)")) > $o->{f}->[0] ) |
+		      ( abs($dcyz->slice("(1)")) > $o->{f}->[1] ) |
 		      ($r < 0)
 		      );
       } else {
@@ -2837,12 +2836,12 @@ sub t_perspective {
 	if($w->nelem);
 
       if($idx->nelem) {
-	$out->((0))->range($idx) .= $o->{bad};
-	$out->((1))->range($idx) .= $o->{bad};
+	$out->slice("(0)")->range($idx) .= $o->{bad};
+	$out->slice("(1)")->range($idx) .= $o->{bad};
       }
 
       ## Scale by the output conversion factor
-      $out->(0:1) /= $o->{tconv};
+      $out->slice("0:1") /= $o->{tconv};
 
       $out;
     };
@@ -2855,15 +2854,15 @@ sub t_perspective {
 	my($d,$o) = @_;
 
 	my($out) = $d->is_inplace ? $d : $d->copy;
-	$out->(0:1) *= $o->{tconv};
+	$out->slice("0:1") *= $o->{tconv};
 
-	my $oyz = $out->(0:1) ;
+	my $oyz = $out->slice("0:1") ;
 
 	## Inverse-magnify if required
 	if($o->{mag} != 1.0) {
 	  my $r = ($oyz * $oyz)->sumover->sqrt;
 	  my $scale = tan( atan( $r ) / $o->{mag} ) / $r;
-	  $out->(0:1) *= $scale->dummy(0,1);
+	  $out->slice("0:1") *= $scale->dummy(0,1);
 	}
 	
 	## Solve for the X coordinate of the surface.  
@@ -2871,8 +2870,8 @@ sub t_perspective {
 	## so here we just figure out the coefficients and plug into
 	## the quadratic formula.  $y here is actually -B/2.
 	my $a1 = ($oyz * $oyz)->sumover + 1;
-	my $y = ( $o->{sph_origin}->((0)) 
-		  - ($o->{sph_origin}->(1:2) * $oyz)->sumover
+	my $y = ( $o->{sph_origin}->slice("(0)")
+		  - ($o->{sph_origin}->slice("1:2") * $oyz)->sumover
 		  );
 	my $c = topdl($o->{r0}*$o->{r0} - 1);
 	
@@ -2886,10 +2885,10 @@ sub t_perspective {
 	}
 
 	## Assemble the 3-space coordinates of the points
-	my $int = $out->(0)->append($out);
+	my $int = $out->slice("0")->append($out);
 	$int->sever;
-	$int->((0)) .= -1.0;
-	$int->(0:2) *= $x->dummy(0,3);
+	$int->slice("(0)") .= -1.0;
+	$int->slice("0:2") *= $x->dummy(0,3);
 
 	## convert back to (lon,lat) coordinates...
 	$out .= $int->invert($o->{prefilt});	
@@ -2900,10 +2899,10 @@ sub t_perspective {
 	    $idx = null;
 	} else {
 	    # Great-circle distance to origin
-	    my($cos_c) = ( sin($o->{o}->((1))) * sin($out->((1)))
+	    my($cos_c) = ( sin($o->{o}->slice("(1)")) * sin($out->slice("(1)"))
 			   +
-			   cos($o->{o}->((1))) * cos($out->((1))) * 
-			   cos($out->((0)) - $o->{o}->((0)))
+			   cos($o->{o}->slice("(1)")) * cos($out->slice("(1)")) *
+			   cos($out->slice("(0)") - $o->{o}->slice("(0)"))
 			   );
 	    
 	    my($thresh) = (1.0/$o->{r0});
@@ -2919,12 +2918,12 @@ sub t_perspective {
 	}	
 
 	## Convert to the units the user requested
-	$out->(0:1) /= $o->{conv};
+	$out->slice("0:1") /= $o->{conv};
 
 	## Mark bad values
 	if($idx->nelem) {
-	    $out->((0))->range($idx) .= $o->{bad};
-	    $out->((1))->range($idx) .= $o->{bad};
+	    $out->slice("(0)")->range($idx) .= $o->{bad};
+	    $out->slice("(1)")->range($idx) .= $o->{bad};
 	}
 
 	$out;
