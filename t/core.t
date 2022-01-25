@@ -12,6 +12,10 @@ sub tapprox ($$) {
     return $d <= 0.0001;
 }
 
+for my $type (PDL::Types::types()) {
+   ok defined pdl($type, 0), "constructing PDL of type $type";
+}
+
 my $a_long = sequence long, 10;
 my $a_dbl  = sequence 10;
 
