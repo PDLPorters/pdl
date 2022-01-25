@@ -16,6 +16,13 @@ use Config;
 use List::Util qw(max);
 use Scalar::Util 'blessed';
 
+# If "D" is available for pack().
+# See commit <https://github.com/Perl/perl5/commit/77a2054ea312b030904555167b764e4510dbcac6>
+# and PR <https://github.com/Perl/perl5/pull/18517>.
+our $CAN_PACK_D =
+  ( $^V < v5.33.7 && $Config{d_longdbl} && $Config{uselongdouble} )
+  || ( $^V >= v5.33.7 && $Config{d_longdbl} );
+
 our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
 my @convertfuncs = map $_->convertfunc, PDL::Types::types();
 my @exports_internal = qw(howbig threadids topdl);
@@ -1201,6 +1208,11 @@ sub PDL::new {
          # special case when running on a perl without 64bit int support
          # we have to avoid pack("q", ...) in this case
          # because it dies with error: "Invalid type 'q' in pack"
+         $new->setdims([]);
+         set_c($new, [0], $value);
+      } elsif (! $CAN_PACK_D && $pack[$new->get_datatype] =~ /^(\QD*\E|\Q(DD)*\E)$/ ) {
+         # if "D" is not available for pack(),
+         # it dies with error: "Invalid type 'D' in pack".
          $new->setdims([]);
          set_c($new, [0], $value);
       } else {
