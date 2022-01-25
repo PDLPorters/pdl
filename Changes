@@ -1,3 +1,5 @@
+- fix PDL::new bug in creating longdouble (#374) - thanks @zmughal
+
 2.068_05 2022-01-23
 - build and test-false-negative-avoidance improvements
 
