@@ -1,3 +1,4 @@
+2.068_06 2022-01-25
 - fix PDL::new bug in creating longdouble (#374) - thanks @zmughal
 
 2.068_05 2022-01-23
