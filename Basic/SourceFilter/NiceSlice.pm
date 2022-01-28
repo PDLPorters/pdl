@@ -52,34 +52,28 @@ require PDL; # get PDL version number
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
 
-# Try overriding the current extract_quotelike() routine
+sub my_extract_quotelike (;$$)
+{
+  my $textref = $_[0] ? \$_[0] : \$_;
+  my $wantarray = wantarray;
+  my $pre  = defined $_[1] ? $_[1] : '\s*';
+  my @match = Text::Balanced::_match_quotelike($textref,$pre,0,0);        # do not match // alone as m//
+  return Text::Balanced::_fail($wantarray, $textref) unless @match;
+  return Text::Balanced::_succeed($wantarray, $textref,
+                  $match[2], $match[18]-$match[2],        # MATCH
+                  @match[18,19],                          # REMAINDER
+                  @match[0,1],                            # PREFIX
+                  @match[2..17],                          # THE BITS
+                  @match[20,21],                          # ANY FILLET?
+                 );
+}
+BEGIN {
+# override the current extract_quotelike() routine
 # needed before using Filter::Simple to work around a bug
 # between Text::Balanced and Filter::Simple for our purpose.
-#
-
-BEGIN {
-
-   no warnings;  # quiet warnings for this
-
-   sub Text::Balanced::extract_quotelike (;$$)
-   {
-      my $textref = $_[0] ? \$_[0] : \$_;
-      my $wantarray = wantarray;
-      my $pre  = defined $_[1] ? $_[1] : '\s*';
-   
-      my @match = Text::Balanced::_match_quotelike($textref,$pre,0,0);        # do not match // alone as m//
-      return Text::Balanced::_fail($wantarray, $textref) unless @match;
-      return Text::Balanced::_succeed($wantarray, $textref,
-                      $match[2], $match[18]-$match[2],        # MATCH
-                      @match[18,19],                          # REMAINDER
-                      @match[0,1],                            # PREFIX
-                      @match[2..17],                          # THE BITS
-                      @match[20,21],                          # ANY FILLET?
-                     );
-   };
-
-};
-
+no warnings 'redefine';
+*Text::Balanced::extract_quotelike = \&my_extract_quotelike;
+}
 
 # a call stack for error processing
 my @callstack = ('stackbottom');
