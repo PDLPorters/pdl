@@ -1,3 +1,4 @@
+2.069 2022-01-28
 - PDL::NiceSlice override Text::Balanced::extract_multiple for performance
 
 2.068_07 2022-01-28
