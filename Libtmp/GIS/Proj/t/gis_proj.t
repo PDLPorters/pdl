@@ -22,6 +22,9 @@ sub tapprox
     $res;
 }
 
+my @version = eval { proj_version() };
+is $@, '', 'proj_version no die';
+
 print "Testing forward transformation...\n";
 my $proj = "+proj=merc +ellps=WGS72 +lon_0=80.25w +lat_0=30n";
 print "Perl level params: \'$proj\'\n";

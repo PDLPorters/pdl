@@ -206,10 +206,24 @@ load_projection_descriptions()
     OUTPUT:
         RETVAL
 
+void
+proj_version(...)
+  PPCODE:
+    EXTEND(sp, 3);
+    mPUSHu(PROJ_VERSION_MAJOR);
+    mPUSHu(PROJ_VERSION_MINOR);
+    mPUSHu(PROJ_VERSION_PATCH);
+
 ENDXS
-pp_add_exported('', ' load_projection_descriptions ');
+pp_add_exported('', ' load_projection_descriptions proj_version ');
 
 pp_addpm( <<'ENDPM' );
+
+=head2 proj_version
+
+Returns a 3-element list with PROJ major, minor, patch version-numbers.
+
+=cut
 
 my %SKIP = map +($_=>1), qw(
   and or Special for Madagascar

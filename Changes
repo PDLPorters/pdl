@@ -1,3 +1,5 @@
+- add GIS::Proj::proj_version
+
 2.069 2022-01-28
 - PDL::NiceSlice override Text::Balanced::extract_multiple for performance
 
