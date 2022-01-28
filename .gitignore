@@ -70,6 +70,8 @@ perlmain.c
 *.gcov
 cover_db/
 
+nytprof*
+
 # Directory specific build files
 # These can either be in the specific directories or specified
 # with full patch in the top level directory (as here).
