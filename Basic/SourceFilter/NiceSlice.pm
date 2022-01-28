@@ -52,6 +52,107 @@ require PDL; # get PDL version number
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
 
+# this is purely for performance reasons - patch submitted to repo
+my %ref_not_regex = map +($_=>1), qw(CODE Text::Balanced::Extractor);
+sub my_extract_multiple (;$$$$)	# ($text, $functions_ref, $max_fields, $ignoreunknown)
+{
+	my $textref = defined($_[0]) ? \$_[0] : \$_;
+	my $posbug = pos;
+	my ($lastpos, $firstpos);
+	my @fields = ();
+	#for ($$textref)
+	{
+		my @func = defined $_[1] ? @{$_[1]} : die "in overridden extract_multiple must supply functions";
+		my $max  = defined $_[2] && $_[2]>0 ? $_[2] : 1_000_000_000;
+		my $igunk = $_[3];
+		pos $$textref ||= 0;
+		unless (wantarray)
+		{
+			use Carp;
+			carp "extract_multiple reset maximal count to 1 in scalar context"
+				if $^W && defined($_[2]) && $max > 1;
+			$max = 1
+		}
+		my $unkpos;
+		my $func;
+		my $class;
+		my @class;
+		foreach $func ( @func )
+		{
+			if (ref($func) eq 'HASH')
+			{
+				push @class, (keys %$func)[0];
+				$func = (values %$func)[0];
+			}
+			else
+			{
+				push @class, undef;
+			}
+			$func = qr/\G$func/ if !$ref_not_regex{ref $func};
+		}
+		FIELD: while (pos($$textref) < length($$textref))
+		{
+			my ($field, $rem);
+			my @bits;
+			foreach my $i ( 0..$#func )
+			{
+				my $pref;
+				$func = $func[$i];
+				$class = $class[$i];
+				$lastpos = pos $$textref;
+				if (ref($func) eq 'CODE')
+					{ ($field,$rem,$pref) = @bits = $func->($$textref) }
+				elsif (ref($func) eq 'Text::Balanced::Extractor')
+					{ @bits = $field = $func->extract($$textref) }
+				elsif( $$textref =~ m/$func[$i]/gc )
+					{ @bits = $field = defined($1)
+                                ? $1
+                                : substr($$textref, $-[0], $+[0] - $-[0])
+                    }
+				$pref ||= "";
+				if (defined($field) && length($field))
+				{
+					if (!$igunk) {
+						$unkpos = $lastpos
+							if length($pref) && !defined($unkpos);
+						if (defined $unkpos)
+						{
+							push @fields, substr($$textref, $unkpos, $lastpos-$unkpos).$pref;
+							$firstpos = $unkpos unless defined $firstpos;
+							undef $unkpos;
+							last FIELD if @fields == $max;
+						}
+					}
+					push @fields, $class
+						? bless (\$field, $class)
+						: $field;
+					$firstpos = $lastpos unless defined $firstpos;
+					$lastpos = pos $$textref;
+					last FIELD if @fields == $max;
+					next FIELD;
+				}
+			}
+			if ($$textref =~ /\G(.)/gcs)
+			{
+				$unkpos = pos($$textref)-1
+					unless $igunk || defined $unkpos;
+			}
+		}
+		if (defined $unkpos)
+		{
+			push @fields, substr($$textref, $unkpos);
+			$firstpos = $unkpos unless defined $firstpos;
+			$lastpos = length $$textref;
+		}
+		last;
+	}
+	pos $$textref = $lastpos;
+	return @fields if wantarray;
+	$firstpos ||= 0;
+	eval { substr($$textref,$firstpos,$lastpos-$firstpos)="";
+	       pos $$textref = $firstpos };
+	return $fields[0];
+}
 sub my_extract_quotelike (;$$)
 {
   my $textref = $_[0] ? \$_[0] : \$_;
@@ -73,6 +174,7 @@ BEGIN {
 # between Text::Balanced and Filter::Simple for our purpose.
 no warnings 'redefine';
 *Text::Balanced::extract_quotelike = \&my_extract_quotelike;
+*Text::Balanced::extract_multiple = \&my_extract_multiple;
 }
 
 # a call stack for error processing
