@@ -3,6 +3,7 @@ use warnings;
 use PDL::LiteF;
 use Test::More;
 use PDL::Transform::Proj4;
+use PDL::GIS::Proj qw(proj_version);
 
 my $test_jpegtopnm = 1;
 if($^O =~ /MSWin32/i) {
@@ -15,6 +16,7 @@ plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not 
     if !$test_jpegtopnm;
 
 my @projections = sort keys %{PDL::GIS::Proj::load_projection_information()};
+my @proj_version = proj_version();
 
 # Test integration with PDL::Transform
 
@@ -217,7 +219,7 @@ sub get_ref_ortho_slices {
  [0 0 0 0 0 0 0 0 0 0]
 ]
 END
-    push(@slices, <<"END");
+    push(@slices, $proj_version[0] < 8 ? <<"END" : <<"END");
 
 [
  [0 0 0 3 3 3 3 0 0 1]
@@ -232,7 +234,21 @@ END
  [0 0 0 0 0 0 0 3 3 3]
 ]
 END
-    push(@slices, <<"END");
+
+[
+ [0 0 0 3 3 3 3 0 0 0]
+ [0 0 0 3 3 3 3 1 0 0]
+ [0 0 0 0 3 3 3 3 0 0]
+ [0 0 0 0 3 3 3 3 1 0]
+ [0 0 0 0 0 3 3 3 1 0]
+ [0 0 0 0 0 3 3 3 3 0]
+ [0 0 0 0 0 3 3 3 3 1]
+ [0 0 0 0 0 0 3 3 3 3]
+ [0 0 0 0 0 0 3 3 3 3]
+ [0 0 0 0 0 0 0 3 3 3]
+]
+END
+    push(@slices, $proj_version[0] < 8 ? <<"END" : <<"END");
 
 [
  [59 61 61 61 59 55 56 60 64 66]
@@ -247,6 +263,20 @@ END
  [63 53 52 61 71 49 49 51 53 56]
 ]
 END
+
+[
+ [61 59 59 59 57 53 54 60 64 66]
+ [63 57 57 57 55 48 50 58 64 66]
+ [63 57 57 57 55 47 49 58 65 66]
+ [56 58 65 63 54 40 44 55 64 62]
+ [53 58 59 54 47 47 50 59 67 46]
+ [53 58 56 51 45 51 53 61 68 52]
+ [54 57 53 51 49 52 54 61 66 66]
+ [62 55 53 60 66 50 51 55 59 67]
+ [63 53 52 61 71 49 49 51 53 56]
+ [62 50 52 54 55 53 51 49 48 48]
+]
+END
     push(@slices, <<"END");
 
 [
@@ -262,7 +292,7 @@ END
  [1 1 1 1 1 1 1 1 1 1]
 ]
 END
-    push(@slices, <<"END");
+    push(@slices, $proj_version[0] < 8 ? <<"END" : <<"END");
 
 [
  [155 159   8   0   9   3   4   0   0   0]
@@ -275,6 +305,20 @@ END
  [ 37 138  34 211  71  17   1   0   1  10]
  [  0   0   0   0   1   0   0   9  20  11]
  [  0   0   0   0   0   1   5   2   0   0]
+]
+END
+
+[
+ [202 200   0   7   0   0   4   0   0   0]
+ [197 136  14   3   1   2   2   5   5   2]
+ [  3   2   4   0   0   2   3   1   0   0]
+ [  9   2   0   0   0   0   0   0   0   0]
+ [  0   1   0   0  16   0  16   4   7   0]
+ [  0   0   0   0   1   9   8 186  73 184]
+ [233 222 241 241 223 248 248 245 248 247]
+ [  8  81   9   1  38  10   8  13   7  39]
+ [  0   0   0   0   0   0   5  17  18   4]
+ [  0   0   0   0   0   0   5   2   0   0]
 ]
 END
     return @slices;

@@ -1,4 +1,5 @@
 - add GIS::Proj::proj_version
+- fix Transform::Proj4 tests to work with ortho results in PROJ >6.3.1 (assumed 8+)
 
 2.069 2022-01-28
 - PDL::NiceSlice override Text::Balanced::extract_multiple for performance
