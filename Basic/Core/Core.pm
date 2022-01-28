@@ -16,12 +16,11 @@ use Config;
 use List::Util qw(max);
 use Scalar::Util 'blessed';
 
+# If quad (q/Q) is available for pack().
+our $CAN_PACK_QUAD = !! eval { my $packed = pack "Q", 0; 1 };
+
 # If "D" is available for pack().
-# See commit <https://github.com/Perl/perl5/commit/77a2054ea312b030904555167b764e4510dbcac6>
-# and PR <https://github.com/Perl/perl5/pull/18517>.
-our $CAN_PACK_D =
-  ( $^V < v5.33.7 && $Config{d_longdbl} && $Config{uselongdouble} )
-  || ( $^V >= v5.33.7 && $Config{d_longdbl} );
+our $CAN_PACK_D = !! eval { my $packed = pack "D", 0; 1 };
 
 our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
 my @convertfuncs = map $_->convertfunc, PDL::Types::types();
@@ -1204,7 +1203,7 @@ sub PDL::new {
          # new was passed a string argument that doesn't look like a number
          # so we can process as a Matlab-style data entry format.
 		return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
-      } elsif ($Config{ivsize} < 8 && $pack[$new->get_datatype] eq 'q*') {
+      } elsif (! $CAN_PACK_QUAD && $pack[$new->get_datatype] =~ /^q\*$/i ) {
          # special case when running on a perl without 64bit int support
          # we have to avoid pack("q", ...) in this case
          # because it dies with error: "Invalid type 'q' in pack"
