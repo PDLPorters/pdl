@@ -5,7 +5,6 @@ use strict;
 use warnings;
 
 FILTER_ONLY
-   all => sub { s/\r\n/\n/g if $^V lt v5.14.0 and $^O eq 'MSWin32'; },
    code_no_comments =>
       sub {
       my ($text1,$text2) = ($_,'');
