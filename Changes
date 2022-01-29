@@ -1,3 +1,4 @@
+2.071 2022-01-29
 - fix segfault bug in qsortvec - thanks @zmughal for investigation and report
 
 2.070 2022-01-28
