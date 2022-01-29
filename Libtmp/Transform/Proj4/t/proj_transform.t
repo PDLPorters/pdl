@@ -17,6 +17,7 @@ plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not 
 
 my @projections = sort keys %{PDL::GIS::Proj::load_projection_information()};
 my @proj_version = proj_version();
+diag "PROJ version: (@proj_version)";
 
 # Test integration with PDL::Transform
 
