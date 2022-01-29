@@ -395,21 +395,16 @@ pp_def(
 	Doc => projectdocs( 'average', 'average', '' ),
 	);
 
-pp_addpm("*PDL::avgover = \\&PDL::average;\n");
-pp_addpm("*avgover = \\&PDL::average;\n");
-pp_add_exported('PDL::PP avgover');
+sub synonym {
+    my ($name, $synonym) = @_;
+    pp_add_exported('', $synonym);
+    pp_addpm(
+"=head2 $synonym\n\n=for ref\n\n  Synonym for $name.\n\n=cut\n
+*PDL::$synonym = *$synonym = \\&PDL::$name;"
+    );
+}
 
-pp_addpm(<<'EOD');
-=head2 avgover
-
-=for ref
-
-  Synonym for average.
-
-=cut
-
-EOD
-
+synonym(qw(average avgover));
 
 # do the above calculation, but in complex double precision
 pp_def(
@@ -461,19 +456,7 @@ pp_def(
 "precision." ),
 	);
 
-pp_add_exported('PDL::PP davgover');
-pp_addpm(<<'EOD');
-=head2 davgover
-
-=for ref
-
-  Synonym for daverage.
-
-=cut
-
-*PDL::davgover = \&PDL::daverage;
-*davgover = \&PDL::daverage;
-EOD
+synonym(qw(daverage davgover));
 
 pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
 PDL_TYPELIST_REAL(PDL_QSORT)
@@ -850,8 +833,7 @@ I<any> dimension.
 );
 
 pp_add_exported('', 'pct');
-pp_addpm(<<"EOD");
-
+pp_addpm(<<'EOD');
 =head2 pct
 
 =for ref
@@ -863,23 +845,20 @@ interpolated.
 
 =for usage
 
- \$x = pct(\$data, \$pct);
+ $x = pct($data, $pct);
 
 =cut
 
-*pct = \\&PDL::pct;
+*pct = \&PDL::pct;
 sub PDL::pct {
-	my(\$x, \$p) = \@_; 
-    my \$tmp;
-	\$x->clump(-1)->pctover(\$p, \$tmp=PDL->nullcreate(\$x));
-	\$tmp;
+	my($x, $p) = @_;
+	$x->clump(-1)->pctover($p, my $tmp=PDL->nullcreate($x));
+	$tmp;
 }
-
 EOD
 
 pp_add_exported('', 'oddpct');
-pp_addpm(<<"EOD");
-
+pp_addpm(<<'EOD');
 =head2 oddpct
 
 =for ref
@@ -891,18 +870,16 @@ result.
 
 =for usage
 
- \$x = oddpct(\$data, \$pct);
+ $x = oddpct($data, $pct);
 
 =cut
 
-*oddpct = \\&PDL::oddpct;
+*oddpct = \&PDL::oddpct;
 sub PDL::oddpct {
-	my(\$x, \$p) = \@_; 
-    my \$tmp;
-	\$x->clump(-1)->oddpctover(\$p, \$tmp=PDL->nullcreate(\$x));
-	\$tmp;
+	my($x, $p) = @_;
+	$x->clump(-1)->oddpctover($p, my $tmp=PDL->nullcreate($x));
+	$tmp;
 }
-
 EOD
 
 
@@ -933,9 +910,7 @@ for my $op ( ['avg','average','average'],
     my $func = $op->[1];
     my $text = $op->[2];
    pp_add_exported('', $name);
-
    pp_addpm(<<"EOD");
-
 =head2 $name
 
 =for ref
@@ -1046,7 +1021,6 @@ sub PDL::minmax {
 EOPM
 
 pp_add_exported('', 'minmax');
-#pp_add_exported('', 'minmax_ind');
 
 sub qsort_croak {
     my ($out, $insizedim, $outsizedim) = @_;
@@ -1297,11 +1271,10 @@ for L</qsortvec>.
     ); 
 
 for my $which (
-	       ['minimum','<'],
-	       ['maximum','>'] 
+	       [qw(minimum < minover)],
+	       [qw(maximum > maxover)],
 	       ) {
-    my $name = $which->[0];
-    my $op   = $which->[1];
+    my ($name, $op, $synonym) = @$which;
 
     pp_def( 
 	    $name,
@@ -1339,6 +1312,7 @@ see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
 for ways of masking NaNs.
 ',
 	    );
+    synonym($name, $synonym);
 
     pp_def( 
 	    "${name}_ind",
@@ -1373,6 +1347,7 @@ for ways of masking NaNs.
 'Output is set bad if all elements of the input are bad,
 otherwise the bad flag is cleared for the output ndarray.',
 	    );
+    synonym("${name}_ind", "${synonym}_ind");
 
     pp_def( 
 	    "${name}_n_ind",
@@ -1397,98 +1372,8 @@ otherwise the bad flag is cleared for the output ndarray.',
 	    Doc => "Returns the index of C<m> $name elements",
 	    BadDoc => 'Not yet been converted to ignore bad values',
 	    );
-
+    synonym("${name}_n_ind", "${synonym}_n_ind");
 } # foreach: $which
-
-pp_addpm("*PDL::maxover = \\&PDL::maximum;\n");
-pp_addpm("*maxover = \\&PDL::maximum;\n");
-pp_add_exported('PDL::PP maxover');
-
-pp_addpm(<<'EOD');
-=head2 maxover
-
-=for ref
-
-  Synonym for maximum.
-
-=cut
-
-EOD
-
-pp_addpm("*PDL::maxover_ind = \\&PDL::maximum_ind;\n");
-pp_addpm("*maxover_ind = \\&PDL::maximum_ind;\n");
-pp_add_exported('PDL::PP maxover_ind');
-
-pp_addpm(<<'EOD');
-=head2 maxover_ind
-
-=for ref
-
-  Synonym for maximum_ind.
-
-=cut
-
-EOD
-
-pp_addpm("*PDL::maxover_n_ind = \\&PDL::maximum_n_ind;\n");
-pp_addpm("*maxover_n_ind = \\&PDL::maximum_n_ind;\n");
-pp_add_exported('PDL::PP maxover_n_ind');
-
-pp_addpm(<<'EOD');
-=head2 maxover_n_ind
-
-=for ref
-
-  Synonym for maximum_n_ind.
-
-=cut
-
-EOD
-
-pp_addpm("*PDL::minover = \\&PDL::minimum;\n");
-pp_addpm("*minover = \\&PDL::minimum;\n");
-pp_add_exported('PDL::PP minover');
-
-pp_addpm(<<'EOD');
-=head2 minover
-
-=for ref
-
-  Synonym for minimum.
-
-=cut
-
-EOD
-
-pp_addpm("*PDL::minover_ind = \\&PDL::minimum_ind;\n");
-pp_addpm("*minover_ind = \\&PDL::minimum_ind;\n");
-pp_add_exported('PDL::PP minover_ind');
-
-pp_addpm(<<'EOD');
-=head2 minover_ind
-
-=for ref
-
-  Synonym for minimum_ind.
-
-=cut
-
-EOD
-
-pp_addpm("*PDL::minover_n_ind = \\&PDL::minimum_n_ind;\n");
-pp_addpm("*minover_n_ind = \\&PDL::minimum_n_ind;\n");
-pp_add_exported('PDL::PP minover_n_ind');
-
-pp_addpm(<<'EOD');
-=head2 minover_n_ind
-
-=for ref
-
-  Synonym for minimum_n_ind
-
-=cut
-
-EOD
 
 pp_def( 
 	'minmaximum',
@@ -1560,20 +1445,7 @@ Otherwise they will have their bad flags cleared,
 since they will not contain any bad values.',
 	); # pp_def minmaximum
 
-pp_addpm("*PDL::minmaxover = \\&PDL::minmaximum;\n");
-pp_addpm("*minmaxover = \\&PDL::minmaximum;\n");
-pp_add_exported('PDL::PP minmaxover');
-
-pp_addpm(<<'EOD');
-=head2 minmaxover
-
-=for ref
-
-  Synonym for minmaximum.
-
-=cut
-
-EOD
+synonym(qw(minmaximum minmaxover));
 
 pp_addpm({At=>'Bot'},<<'EOD');
 
@@ -1589,8 +1461,6 @@ from the PDL distribution, the copyright notice should be included in
 the file.
 
 =cut
-
 EOD
 
 pp_done();
-
