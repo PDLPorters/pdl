@@ -485,7 +485,7 @@ EOD
 pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
 PDL_TYPELIST_REAL(PDL_QSORT)
 
-#define QSORT_OTHER(symbol, ctype, ppsym, ...) \
+#define X(symbol, ctype, ppsym, ...) \
   static inline void qsort_ind_ ## ppsym(ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) { \
      PDL_Indx i,j; \
      PDL_Indx t; \
@@ -506,8 +506,11 @@ PDL_TYPELIST_REAL(PDL_QSORT)
         qsort_ind_ ## ppsym(xx,ix,a,j); \
      if (i < b) \
         qsort_ind_ ## ppsym(xx,ix,i,b); \
-  } \
- \
+  }
+PDL_TYPELIST_REAL(X)
+#undef X
+
+#define X(symbol, ctype, ppsym, ...) \
     /******* \
      * qsortvec helper routines \
      *   --CED 21-Aug-2003 \
@@ -523,8 +526,11 @@ PDL_TYPELIST_REAL(PDL_QSORT)
      if( *a > *b ) return 1; \
     } \
     return 0; \
- }	 \
- \
+ }
+PDL_TYPELIST_REAL(X)
+#undef X
+
+#define X(symbol, ctype, ppsym, ...) \
   static inline void pdl_qsortvec_ ## ppsym(ctype *xx, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
     PDL_Indx i,j, median_ind; \
     i = a;  \
@@ -557,8 +563,11 @@ PDL_TYPELIST_REAL(PDL_QSORT)
       pdl_qsortvec_ ## ppsym( xx, n, a, j ); \
     if (i < b) \
       pdl_qsortvec_ ## ppsym( xx, n, i, b ); \
-  } \
- \
+  }
+PDL_TYPELIST_REAL(X)
+#undef X
+
+#define X(symbol, ctype, ppsym, ...) \
   static inline void pdl_qsortvec_ind_ ## ppsym(ctype *xx, PDL_Indx *ix, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
     PDL_Indx i,j, median_ind; \
     i = a;  \
@@ -587,8 +596,8 @@ PDL_TYPELIST_REAL(PDL_QSORT)
     if (i < b) \
       pdl_qsortvec_ind_ ## ppsym( xx, ix, n, i, b ); \
   }
-PDL_TYPELIST_REAL(QSORT_OTHER)
-#undef QSORT_OTHER
+PDL_TYPELIST_REAL(X)
+#undef X
 EOF
 
 # when copying the data over to the temporary array,
