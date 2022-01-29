@@ -461,10 +461,7 @@ pp_def(
 "precision." ),
 	);
 
-pp_addpm("*PDL::davgover = \\&PDL::daverage;\n");
-pp_addpm("*davgover = \\&PDL::daverage;\n");
 pp_add_exported('PDL::PP davgover');
-
 pp_addpm(<<'EOD');
 =head2 davgover
 
@@ -474,17 +471,14 @@ pp_addpm(<<'EOD');
 
 =cut
 
+*PDL::davgover = \&PDL::daverage;
+*davgover = \&PDL::daverage;
 EOD
-
-
-# Internal utility sorting routine for median/qsort/qsortvec routines.
-#
-# note: we export them to the PDL Core structure for use in
-#       other modules (eg Image2D)
 
 pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
 PDL_TYPELIST_REAL(PDL_QSORT)
 
+/* Internal utility sorting routine for median/qsort/qsortvec routines. */
 #define X(symbol, ctype, ppsym, ...) \
   static inline void qsort_ind_ ## ppsym(ctype* xx,  PDL_Indx* ix, PDL_Indx a, PDL_Indx b) { \
      PDL_Indx i,j; \
@@ -515,9 +509,7 @@ PDL_TYPELIST_REAL(X)
      * qsortvec helper routines \
      *   --CED 21-Aug-2003 \
      */ \
- \
-    /* Compare a vector in lexicographic order, returning the \
-     *  equivalent of "<=>".  \
+    /* Compare a vector in lexicographic order, return equivalent of "<=>". \
      */ \
   static inline signed int pdl_cmpvec_ ## ppsym(ctype *a, ctype *b, PDL_Indx n) { \
     PDL_Indx i; \
@@ -600,11 +592,6 @@ PDL_TYPELIST_REAL(X)
 #undef X
 EOF
 
-# when copying the data over to the temporary array,
-# ignore the bad values and then only send the number
-# of good elements to the sort routines
-#
-
 sub generic_qsort {
     my $pdl = shift;
     'qsort_$PPSYM() ($P(' . $pdl . '), 0, nn);';
@@ -616,15 +603,15 @@ sub generic_qsortvec {
     'pdl_qsortvec_$PPSYM() ($P(' . $pdl . '), '. $ndim.', 0, nn);';
 }
 
-
+# when copying the data over to the temporary array,
+# ignore the bad values and then only send the number
+# of good elements to the sort routines
 # should use threadloop ?
-#
 my $copy_to_temp_good = '
            PDL_Indx nn, nn1;
 	   loop(n) %{ $tmp() = $a(); %}
            nn = $SIZE(n)-1; ' .
        generic_qsort('tmp');
-
 my $copy_to_temp_bad = '
         register PDL_Indx nn = 0;
 	loop(n) %{ 
