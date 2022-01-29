@@ -329,7 +329,7 @@ sub make_average {
 	'$GENERIC(b) tmp = 0;
 	if($SIZE(n)) {
 	   loop(n) %{ tmp += $a(); %} ; 
-   	   $b() = tmp / ($GENERIC(b)) $SIZE(n);
+	   $b() = tmp / ($GENERIC(b)) $SIZE(n);
         }
           else { $GENERIC(b) foo = 0.25; 
 	         if(foo == 0) {  /* Cheesy check for floating-pointiness */
@@ -360,6 +360,318 @@ make_average('d', 'double',
 "Unlike L<average|/average>, the calculation is performed in double
 precision."
 );
+
+for my $which (
+	       [qw(minimum < minover)],
+	       [qw(maximum > maxover)],
+	       ) {
+    my ($name, $op, $synonym) = @$which;
+
+    pp_def(
+	    $name,
+	    HandleBad => 1,
+	    Pars => 'a(n); [o]c();',
+	    Code =>
+	    '$GENERIC() cur = 0;
+	     int flag = 0;
+	     loop(n) %{
+		if( !flag || ($a() '.$op.' cur ) || PDL_ISNAN_$PPSYM()(cur) ) { cur = $a(); flag = 1;}
+	     %}
+	     if(flag && !PDL_ISNAN_$PPSYM()(cur)) {
+		     $c() = cur;
+             } else {
+	             $SETBAD(c());
+		     $PDLSTATESETBAD(c);
+             }
+		     ',
+	    BadCode =>
+	    '$GENERIC() cur = 0;
+             int flag = 0;
+	     loop(n) %{
+		if( $ISGOOD(a()) && ($a()*0 == 0) && (!flag || $a() '.$op.' cur)) {cur = $a(); flag = 1;}
+	     %}
+             if ( flag ) { $c() = cur; }
+             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+	    CopyBadStatusCode => '',
+	    Doc => projectdocs($name,$name,''),
+	    BadDoc =>
+'Output is set bad if all elements of the input are bad,
+otherwise the bad flag is cleared for the output ndarray.
+
+Note that C<NaNs> are considered to be valid values;
+see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
+for ways of masking NaNs.
+',
+	    );
+    synonym($name, $synonym);
+
+    pp_def(
+	    "${name}_ind",
+	    HandleBad => 1,
+	    Pars => 'a(n); indx [o] c();',
+	    Code =>
+	    '$GENERIC() cur = 0;
+             PDL_Indx curind = -1;
+	     loop(n) %{
+		if(curind == -1 || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur))
+		   {cur = $a(); curind = n;}
+	     %}
+	     if(curind != -1 && !PDL_ISNAN_$PPSYM()(cur)) {
+	       $c() = curind;
+	     } else {
+	          $SETBAD(c());
+                  $PDLSTATESETBAD(c);
+	     }
+	       ',
+	    BadCode =>
+	    '$GENERIC() cur = 0;
+             PDL_Indx curind = -1;
+	     loop(n) %{
+		if( $ISGOOD(a()) && (curind == -1 || $a() '.$op.' cur))
+                   {cur = $a(); curind = n;}
+	     %}
+             if ( curind != -1 && !PDL_ISNAN_$PPSYM()(cur) ) { $c() = curind; }
+             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+	    CopyBadStatusCode => '',
+	    Doc => "Like $name but returns the index rather than the value",
+	    BadDoc =>
+'Output is set bad if all elements of the input are bad,
+otherwise the bad flag is cleared for the output ndarray.',
+	    );
+    synonym("${name}_ind", "${synonym}_ind");
+
+    pp_def(
+	    "${name}_n_ind",
+	    HandleBad => 0,   # just a marker
+	    Pars => 'a(n); indx [o]c(m);',
+	    Code =>
+	    '$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
+	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
+	     loop(m) %{
+		 curind = ns;
+		 loop(n) %{
+			PDL_Indx nm; int flag=0;
+			for(nm=0; nm<m; nm++) {
+				if($c(m=>nm) == n) {flag=1; break;}
+			}
+			if(!flag &&
+			   ((curind == ns) || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur)))
+				{cur = $a(); curind = n;}
+		 %}
+		 $c() = curind;
+	     %}',
+	    Doc => "Returns the index of C<m> $name elements",
+	    BadDoc => 'Not yet been converted to ignore bad values',
+	    );
+    synonym("${name}_n_ind", "${synonym}_n_ind");
+} # foreach: $which
+
+pp_def(
+	'minmaximum',
+	HandleBad => 1,
+	Pars => 'a(n); [o]cmin(); [o] cmax(); indx [o]cmin_ind(); indx [o]cmax_ind();',
+	Code =>
+	'$GENERIC() curmin = 0, curmax = 0; /* Handle null ndarray --CED */
+         PDL_Indx curmin_ind = 0, curmax_ind = 0;
+
+	 loop(n) %{
+            if ( !n ) {
+               curmin = curmax = $a();
+               curmin_ind = curmax_ind = n;
+            } else {
+               if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
+	       if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
+            }
+	 %}
+	 $cmin() = curmin; $cmin_ind() = curmin_ind;
+         $cmax() = curmax; $cmax_ind() = curmax_ind;',
+	CopyBadStatusCode => '',
+	BadCode =>
+	'$GENERIC() curmin = 0, curmax = 0;
+         PDL_Indx curmin_ind = 0, curmax_ind = 0; int flag = 0;
+
+	 loop(n) %{
+            if ( $ISGOOD(a()) ) {
+               if ( !flag ) {
+                  curmin = curmax = $a();
+                  curmin_ind = curmax_ind = n;
+                  flag = 1;
+               } else {
+                  if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
+                  if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
+               }
+            } /* ISGOOD */
+	 %}
+         if ( flag ) { /* Handle null ndarray */
+            $cmin() = curmin; $cmin_ind() = curmin_ind;
+            $cmax() = curmax; $cmax_ind() = curmax_ind;
+         } else {
+            $SETBAD(cmin()); $SETBAD(cmin_ind());
+            $SETBAD(cmax()); $SETBAD(cmax_ind());
+            $PDLSTATESETBAD(cmin); $PDLSTATESETBAD(cmin_ind);
+            $PDLSTATESETBAD(cmax); $PDLSTATESETBAD(cmax_ind);
+         }',
+	Doc =>
+'
+=for ref
+
+Find minimum and maximum and their indices for a given ndarray;
+
+=for usage
+
+ pdl> $x=pdl [[-2,3,4],[1,0,3]]
+ pdl> ($min, $max, $min_ind, $max_ind)=minmaximum($x)
+ pdl> p $min, $max, $min_ind, $max_ind
+ [-2 0] [4 3] [0 1] [2 2]
+
+See also L</minmax>, which clumps the ndarray together.
+
+=cut
+',
+	BadDoc =>
+'If C<a()> contains only bad data, then the output ndarrays will
+be set bad, along with their bad flag.
+Otherwise they will have their bad flags cleared,
+since they will not contain any bad values.',
+	); # pp_def minmaximum
+synonym(qw(minmaximum minmaxover));
+
+# Generate small ops functions to do entire array
+# How to handle a return value of BAD - ie what
+# datatype to use?
+for my $op ( ['avg','average','average'],
+	     ['sum','sumover','sum'],
+	     ['prod','prodover','product'],
+
+	     ['davg','daverage','average (in double precision)'],
+	     ['dsum','dsumover','sum (in double precision)'],
+	     ['dprod','dprodover','product (in double precision)'],
+
+	     ['zcheck','zcover','check for zero'],
+	     ['and','andover','logical and'],
+	     ['band','bandover','bitwise and'],
+	     ['or','orover','logical or'],
+	     ['bor','borover','bitwise or'],
+	     ['min','minimum','minimum'],
+	     ['max','maximum','maximum'],
+	     ['median', 'medover', 'median'],
+	     ['mode', 'modeover', 'mode'],
+	     ['oddmedian','oddmedover','oddmedian']) {
+    my $name = $op->[0];
+    my $func = $op->[1];
+    my $text = $op->[2];
+   pp_add_exported('', $name);
+   pp_addpm(<<"EOD");
+=head2 $name
+
+=for ref
+
+Return the $text of all elements in an ndarray.
+
+See the documentation for L</$func> for more information.
+
+=for usage
+
+ \$x = $name(\$data);
+
+=for bad
+
+This routine handles bad values.
+
+=cut
+
+*$name = \\&PDL::$name;
+sub PDL::$name {
+	my(\$x) = \@_; my \$tmp;
+	\$x->clump(-1)->${func}( \$tmp=PDL->nullcreate(\$x) );
+	\$tmp;
+}
+EOD
+
+} # for $op
+
+pp_add_exported('','any all');
+pp_addpm(<<'EOPM');
+
+=head2 any
+
+=for ref
+
+Return true if any element in ndarray set
+
+Useful in conditional expressions:
+
+=for example
+
+ if (any $x>15) { print "some values are greater than 15\n" }
+
+=for bad
+
+See L</or> for comments on what happens when all elements
+in the check are bad.
+
+=cut
+
+*any = \&or;
+*PDL::any = \&PDL::or;
+
+=head2 all
+
+=for ref
+
+Return true if all elements in ndarray set
+
+Useful in conditional expressions:
+
+=for example
+
+ if (all $x>15) { print "all values are greater than 15\n" }
+
+=for bad
+
+See L</and> for comments on what happens when all elements
+in the check are bad.
+
+=cut
+
+*all = \&and;
+*PDL::all = \&PDL::and;
+
+=head2 minmax
+
+=for ref
+
+Returns a list with minimum and maximum values of an ndarray.
+
+=for usage
+
+ ($mn, $mx) = minmax($pdl);
+
+This routine does I<not> thread over the dimensions of C<$pdl>;
+it returns the minimum and maximum values of the whole ndarray.
+See L</minmaximum> if this is not what is required.
+The two values are returned as Perl scalars similar to min/max,
+and therefore ignore whether the values are bad.
+
+=for example
+
+ pdl> $x = pdl [1,-2,3,5,0]
+ pdl> ($min, $max) = minmax($x);
+ pdl> p "$min $max\n";
+ -2 5
+
+=cut
+
+*minmax = \&PDL::minmax;
+sub PDL::minmax {
+  my ($x)=@_; my $tmp;
+  my @arr = $x->clump(-1)->minmaximum;
+  map $_->sclr, @arr[0,1]; # as scalars !
+}
+
+EOPM
+
+pp_add_exported('', 'minmax');
 
 pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
 PDL_TYPELIST_REAL(PDL_QSORT)
@@ -560,13 +872,11 @@ some circumstances.
 
 ); # pp_def: oddmedover
 
-
 pp_def('modeover',
        HandleBad=>undef,
        Pars => 'data(n); [o]out(); [t]sorted(n);',
        GenericTypes=>$T,
        Doc=>projectdocs('mode','modeover','
-
 The mode is the single element most frequently found in a 
 discrete data set.
 
@@ -662,9 +972,7 @@ and recommended by NIST.
            double np, pp1, pp2;
            nn -= 1; ' .  generic_qsort('tmp') .
            $find_pct_interpolate . '}',
-
-); 
-
+);
 
 pp_def('oddpctover',
         HandleBad => 1,
@@ -744,146 +1052,6 @@ sub PDL::oddpct {
 	$tmp;
 }
 EOD
-
-
-# Generate small ops functions to do entire array
-#
-# How to handle a return value of BAD - ie what
-# datatype to use?
-#
-for my $op ( ['avg','average','average'],
-	     ['sum','sumover','sum'],
-	     ['prod','prodover','product'],
-
-	     ['davg','daverage','average (in double precision)'],
-	     ['dsum','dsumover','sum (in double precision)'],
-	     ['dprod','dprodover','product (in double precision)'],
-
-	     ['zcheck','zcover','check for zero'],
-	     ['and','andover','logical and'],
-	     ['band','bandover','bitwise and'],
-	     ['or','orover','logical or'],
-	     ['bor','borover','bitwise or'],
-	     ['min','minimum','minimum'],
-	     ['max','maximum','maximum'],
-	     ['median', 'medover', 'median'],
-	     ['mode', 'modeover', 'mode'],
-	     ['oddmedian','oddmedover','oddmedian']) {
-    my $name = $op->[0];
-    my $func = $op->[1];
-    my $text = $op->[2];
-   pp_add_exported('', $name);
-   pp_addpm(<<"EOD");
-=head2 $name
-
-=for ref
-
-Return the $text of all elements in an ndarray.
-
-See the documentation for L</$func> for more information.
-
-=for usage
-
- \$x = $name(\$data);
-
-=for bad
-
-This routine handles bad values.
-
-=cut
-
-*$name = \\&PDL::$name;
-sub PDL::$name {
-	my(\$x) = \@_; my \$tmp;
-	\$x->clump(-1)->${func}( \$tmp=PDL->nullcreate(\$x) );
-	\$tmp;
-}
-EOD
-
-} # for $op
-
-pp_add_exported('','any all');
-pp_addpm(<<'EOPM');
-
-=head2 any
-
-=for ref
-
-Return true if any element in ndarray set
-
-Useful in conditional expressions:
-
-=for example
-
- if (any $x>15) { print "some values are greater than 15\n" }
-
-=for bad
-
-See L</or> for comments on what happens when all elements
-in the check are bad.
-
-=cut
-
-*any = \&or;
-*PDL::any = \&PDL::or;
-
-=head2 all
-
-=for ref
-
-Return true if all elements in ndarray set
-
-Useful in conditional expressions:
-
-=for example
-
- if (all $x>15) { print "all values are greater than 15\n" }
-
-=for bad
-
-See L</and> for comments on what happens when all elements
-in the check are bad.
-
-=cut
-
-*all = \&and;
-*PDL::all = \&PDL::and;
-
-=head2 minmax
-
-=for ref
-
-Returns a list with minimum and maximum values of an ndarray.
-
-=for usage
-
- ($mn, $mx) = minmax($pdl);
-
-This routine does I<not> thread over the dimensions of C<$pdl>; 
-it returns the minimum and maximum values of the whole ndarray.
-See L</minmaximum> if this is not what is required.
-The two values are returned as Perl scalars similar to min/max,
-and therefore ignore whether the values are bad.
-
-=for example
-
- pdl> $x = pdl [1,-2,3,5,0]
- pdl> ($min, $max) = minmax($x);
- pdl> p "$min $max\n";
- -2 5
-
-=cut
-
-*minmax = \&PDL::minmax;
-sub PDL::minmax {
-  my ($x)=@_; my $tmp;
-  my @arr = $x->clump(-1)->minmaximum;
-  map $_->sclr, @arr[0,1]; # as scalars !
-}
-
-EOPM
-
-pp_add_exported('', 'minmax');
 
 sub qsort_croak {
     my ($out, $insizedim, $outsizedim) = @_;
@@ -986,11 +1154,8 @@ Quicksort a vector and return index of elements in ascending order.
  print $x->index($ix); # Sorted list
 
 =cut
-
 '
        ); # pp_def: qsorti
-
-
 
 # move all bad values to the end of the array
 #
@@ -1132,183 +1297,6 @@ Vectors with bad components are moved to the end of the array as
 for L</qsortvec>.
 ',
     ); 
-
-for my $which (
-	       [qw(minimum < minover)],
-	       [qw(maximum > maxover)],
-	       ) {
-    my ($name, $op, $synonym) = @$which;
-
-    pp_def( 
-	    $name,
-	    HandleBad => 1,
-	    Pars => 'a(n); [o]c();', 
-	    Code => 
-	    '$GENERIC() cur = 0;
-	     int flag = 0;
-	     loop(n) %{
-		if( !flag || ($a() '.$op.' cur ) || PDL_ISNAN_$PPSYM()(cur) ) { cur = $a(); flag = 1;}
-	     %}
-	     if(flag && !PDL_ISNAN_$PPSYM()(cur)) {
-	     	     $c() = cur;
-             } else {
-	             $SETBAD(c());
-		     $PDLSTATESETBAD(c);
-             }     
-		     ',
-	    BadCode => 
-	    '$GENERIC() cur = 0;
-             int flag = 0;
-	     loop(n) %{
-	 	if( $ISGOOD(a()) && ($a()*0 == 0) && (!flag || $a() '.$op.' cur)) {cur = $a(); flag = 1;}
-	     %}
-             if ( flag ) { $c() = cur; }
-             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
-	    CopyBadStatusCode => '',
-	    Doc => projectdocs($name,$name,''),
-	    BadDoc => 
-'Output is set bad if all elements of the input are bad,
-otherwise the bad flag is cleared for the output ndarray.
-
-Note that C<NaNs> are considered to be valid values;
-see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
-for ways of masking NaNs.
-',
-	    );
-    synonym($name, $synonym);
-
-    pp_def( 
-	    "${name}_ind",
-	    HandleBad => 1,
-	    Pars => 'a(n); indx [o] c();', 
-	    Code => 
-	    '$GENERIC() cur = 0;
-             PDL_Indx curind = -1;
-	     loop(n) %{
-		if(curind == -1 || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur))
-		   {cur = $a(); curind = n;}
-	     %}
-	     if(curind != -1 && !PDL_ISNAN_$PPSYM()(cur)) {
-	       $c() = curind;
-	     } else {
-	          $SETBAD(c());
-                  $PDLSTATESETBAD(c);
-	     }
-	       ',
-	    BadCode => 
-	    '$GENERIC() cur = 0;
-             PDL_Indx curind = -1;
-	     loop(n) %{
-		if( $ISGOOD(a()) && (curind == -1 || $a() '.$op.' cur))
-                   {cur = $a(); curind = n;}
-	     %}
-             if ( curind != -1 && !PDL_ISNAN_$PPSYM()(cur) ) { $c() = curind; }
-             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
-	    CopyBadStatusCode => '',
-	    Doc => "Like $name but returns the index rather than the value",
-	    BadDoc => 
-'Output is set bad if all elements of the input are bad,
-otherwise the bad flag is cleared for the output ndarray.',
-	    );
-    synonym("${name}_ind", "${synonym}_ind");
-
-    pp_def( 
-	    "${name}_n_ind",
-	    HandleBad => 0,   # just a marker 
-	    Pars => 'a(n); indx [o]c(m);',
-	    Code =>
-	    '$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
-	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
-	     loop(m) %{
-		 curind = ns;
-		 loop(n) %{
-		 	PDL_Indx nm; int flag=0;
-		 	for(nm=0; nm<m; nm++) {
-				if($c(m=>nm) == n) {flag=1; break;}
-			}
-			if(!flag &&
-			   ((curind == ns) || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur)))
-				{cur = $a(); curind = n;}
-		 %}
-		 $c() = curind;
-	     %}',
-	    Doc => "Returns the index of C<m> $name elements",
-	    BadDoc => 'Not yet been converted to ignore bad values',
-	    );
-    synonym("${name}_n_ind", "${synonym}_n_ind");
-} # foreach: $which
-
-pp_def( 
-	'minmaximum',
-	HandleBad => 1,
-	Pars => 'a(n); [o]cmin(); [o] cmax(); indx [o]cmin_ind(); indx [o]cmax_ind();',
-	Code => 
-	'$GENERIC() curmin = 0, curmax = 0; /* Handle null ndarray --CED */
-         PDL_Indx curmin_ind = 0, curmax_ind = 0;
-
-	 loop(n) %{
-            if ( !n ) {
-               curmin = curmax = $a();
-               curmin_ind = curmax_ind = n;
-            } else {
-               if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
-	       if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
-            }
-	 %}
-	 $cmin() = curmin; $cmin_ind() = curmin_ind;
-         $cmax() = curmax; $cmax_ind() = curmax_ind;',
-	CopyBadStatusCode => '',
-	BadCode => 
-	'$GENERIC() curmin = 0, curmax = 0;
-         PDL_Indx curmin_ind = 0, curmax_ind = 0; int flag = 0;
-	
-	 loop(n) %{
-            if ( $ISGOOD(a()) ) {
-               if ( !flag ) {
-                  curmin = curmax = $a();
-                  curmin_ind = curmax_ind = n;
-                  flag = 1;
-               } else {
-                  if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
-                  if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
-               }
-            } /* ISGOOD */
-	 %}
-         if ( flag ) { /* Handle null ndarray */
-            $cmin() = curmin; $cmin_ind() = curmin_ind;
-            $cmax() = curmax; $cmax_ind() = curmax_ind;
-         } else {
-            $SETBAD(cmin()); $SETBAD(cmin_ind());
-            $SETBAD(cmax()); $SETBAD(cmax_ind());
-            $PDLSTATESETBAD(cmin); $PDLSTATESETBAD(cmin_ind);
-            $PDLSTATESETBAD(cmax); $PDLSTATESETBAD(cmax_ind);
-         }',
-	Doc =>
-'
-=for ref
-
-Find minimum and maximum and their indices for a given ndarray;
-
-=for usage
-
- pdl> $x=pdl [[-2,3,4],[1,0,3]]
- pdl> ($min, $max, $min_ind, $max_ind)=minmaximum($x)
- pdl> p $min, $max, $min_ind, $max_ind
- [-2 0] [4 3] [0 1] [2 2]
-
-See also L</minmax>, which clumps the ndarray together.
-
-=cut
-
-',
-	BadDoc =>
-'If C<a()> contains only bad data, then the output ndarrays will
-be set bad, along with their bad flag.
-Otherwise they will have their bad flags cleared,
-since they will not contain any bad values.',
-	); # pp_def minmaximum
-
-synonym(qw(minmaximum minmaxover));
 
 pp_addpm({At=>'Bot'},<<'EOD');
 
