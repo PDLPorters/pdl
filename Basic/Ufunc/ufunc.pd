@@ -366,10 +366,21 @@ is the natural (and correct) choice for binned data, of course.
 ~)
 ); # intover
 
-pp_def( 
-	'average',
+sub synonym {
+    my ($name, $synonym) = @_;
+    pp_add_exported('', $synonym);
+    pp_addpm(
+"=head2 $synonym\n\n=for ref\n\n  Synonym for $name.\n\n=cut\n
+*PDL::$synonym = *$synonym = \\&PDL::$name;"
+    );
+}
+
+sub make_average {
+  my ($prefix, $outpar_type, $extra) = @_;
+  pp_def(
+	"${prefix}average",
 	HandleBad => 1,
-	Pars => 'a(n); int+ [o]b();',
+	Pars => "a(n); $outpar_type [o]b();",
 	Code => 
 	'$GENERIC(b) tmp = 0;
 	if($SIZE(n)) {
@@ -383,80 +394,28 @@ pp_def(
 	             $b() = sqrt(-1);  /* Cheesy NaN -- CED */
 		 }
 	        }',
-
 	BadCode => 
 	'$GENERIC(b) tmp = 0;
          PDL_Indx cnt = 0;
 	 loop(n) %{ 
             if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
          %}
-         if ( cnt ) { $b() = tmp / ($GENERIC(b)) cnt; }
+         if ( cnt ) { $b() = tmp / cnt; }
          else       { $SETBAD(b()); }',
-	Doc => projectdocs( 'average', 'average', '' ),
+	Doc => projectdocs( 'average', "${prefix}average", $extra||'' ),
 	);
-
-sub synonym {
-    my ($name, $synonym) = @_;
-    pp_add_exported('', $synonym);
-    pp_addpm(
-"=head2 $synonym\n\n=for ref\n\n  Synonym for $name.\n\n=cut\n
-*PDL::$synonym = *$synonym = \\&PDL::$name;"
-    );
+  synonym(map "$prefix$_", qw(average avgover));
 }
 
-synonym(qw(average avgover));
-
-# do the above calculation, but in complex double precision
-pp_def(
-	'caverage',
-	HandleBad => 1,
-	Pars => 'a(n); cdouble [o]b();',
-	Code =>
-	'complex double tmp = 0;
-	if($SIZE(n)) {
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp / $SIZE(n);
-	}
-	  else { $b() = 0; }',
-	BadCode =>
-	'complex double tmp = 0;
-         PDL_Indx cnt = 0;
-	 loop(n) %{
-            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
-         %}
-         if ( cnt ) { $b() = tmp / cnt; }
-         else       { $SETBAD(b()); }',
-	Doc => projectdocs( 'average', 'daverage',
-"Unlike L<average|/average>, the calculation is performed in complex double\n" .
-"precision." ),
-	);
-
-# do the above calculation, but in double precision
-pp_def( 
-	'daverage',
-	HandleBad => 1,
-	Pars => 'a(n); double [o]b();',
-	Code => 
-	'double tmp = 0;
-	if($SIZE(n)) {
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp / $SIZE(n); 
-	}
-	  else { $b() = 0; }',
-	BadCode => 
-	'double tmp = 0;
-         PDL_Indx cnt = 0;
-	 loop(n) %{ 
-            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
-         %}
-         if ( cnt ) { $b() = tmp / cnt; }
-         else       { $SETBAD(b()); }',
-	Doc => projectdocs( 'average', 'daverage', 
-"Unlike L</average>, the calculation is performed in double\n" .
-"precision." ),
-	);
-
-synonym(qw(daverage davgover));
+make_average('', 'int+');
+make_average('c', 'cdouble',
+"Unlike L<average|/average>, the calculation is performed in complex double
+precision."
+);
+make_average('d', 'double',
+"Unlike L<average|/average>, the calculation is performed in double
+precision."
+);
 
 pp_addhdr(PDL::PP::pp_line_numbers(__LINE__, <<'EOF'));
 PDL_TYPELIST_REAL(PDL_QSORT)
