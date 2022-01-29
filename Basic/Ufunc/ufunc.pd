@@ -698,36 +698,15 @@ my $find_pct_interpolate = '
 pp_def('pctover',
         HandleBad => 1,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
-        Doc => '
-
-=for ref
-
-Project via percentile to N-1 dimensions
-
-This function reduces the dimensionality of an ndarray by one by finding
-the specified percentile (p) along the 1st dimension.  The specified
+        Doc => projectdocs('specified percentile', 'pctover',
+'The specified
 percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between data points, the result is interpolated.  Values outside
 the allowed range are clipped to 0.0 or 1.0 respectively.  The algorithm
 implemented here is based on the interpolation variant described at
 L<http://en.wikipedia.org/wiki/Percentile> as used by Microsoft Excel
 and recommended by NIST.
-
-By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
-I<any> dimension.
-
-=for usage
-
- $y = pctover($x, $p);
-
-=for example
-
- $spectrum = pctover $image->transpose, $p
-
-=cut
-
-
-',
+'),
        Code => '
            double np, pp1, pp2;
            PDL_Indx nn2;
@@ -746,32 +725,13 @@ I<any> dimension.
 pp_def('oddpctover',
         HandleBad => 1,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
-	Doc => '
-
-Project via percentile to N-1 dimensions
-
-This function reduces the dimensionality of an ndarray by one by finding
-the specified percentile along the 1st dimension.  The specified
+        Doc => projectdocs('specified percentile', 'oddpctover',
+'The specified
 percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between two values, the nearest data value is the result.
 The algorithm implemented is from the textbook version described
 first at L<http://en.wikipedia.org/wiki/Percentile>.
-
-By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
-I<any> dimension.
-
-=for usage
-
- $y = oddpctover($x, $p);
-
-=for example
-
- $spectrum = oddpctover $image->transpose, $p
-
-=cut
-
-
-',
+'),
        Code => '
            PDL_Indx np;
 	   ' . $copy_to_temp_good . '
