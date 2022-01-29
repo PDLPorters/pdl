@@ -134,10 +134,10 @@ foreach my $func ( sort keys %over ) {
     my $init = $over{$func}{init};
 
     pp_def(
-	   $func,
+	   $_->[0].$func,
 	   HandleBad => 1,
-	   Pars => 'a(n); int+ [o]b();',
-	   GenericTypes=>$A,
+	   Pars => "a(n); $_->[1] [o]b();",
+	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
 	   Code => 
 	   '$GENERIC(b) tmp = ' . $init . ';
 	    loop(n) %{ tmp ' . $op . ' $a(); %}
@@ -150,59 +150,24 @@ foreach my $func ( sort keys %over ) {
             %}
             if ( flag ) { $b() = tmp; }
             else        { $SETBAD(b()); }',
-	   Doc => projectdocs( $name, $func, '' ),
-	   );
-
-    # as above, but in complex double precision
-    pp_def(
-	   "c$func",
-	   HandleBad => 1,
-	   GenericTypes=>$C,
-	   Pars => 'a(n); cdouble [o]b();',
-	   Code =>
-	   'complex double tmp = ' . $init . ';
-	    loop(n) %{ tmp ' . $op . ' $a(); %}
-	    $b() = tmp;',
-	   BadCode =>
-	   'complex double tmp = ' . $init . ';
-            int flag = 0;
-	    loop(n) %{
-               if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
-            %}
-            if ( flag ) { $b() = tmp; }
-            else        { $SETBAD(b()); }',
-	   Doc => projectdocs( $name, "d$func",
-"Unlike L<$func|/$func>, the calculations are performed in complex double\n" .
-"precision." ),
-	   );
-
-    pp_def(
-	   "d$func",
-	   HandleBad => 1,
-	   Pars => 'a(n); double [o]b();',
-	   Code => 
-	   'double tmp = ' . $init . ';
-	    loop(n) %{ tmp ' . $op . ' $a(); %}
-	    $b() = tmp;',
-	   BadCode => 
-	   'double tmp = ' . $init . ';
-            int flag = 0;
-	    loop(n) %{ 
-               if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
-            %}
-            if ( flag ) { $b() = tmp; }
-            else        { $SETBAD(b()); }',
-	   Doc => projectdocs( $name, "d$func", 
-"Unlike L</$func>, the calculations are performed in double\n" .
-"precision." ),
-	   );
+	   Doc => projectdocs( $name, $_->[0].$func, $_->[3] ),
+	   ) for (
+      ['', 'int+', $A, ''],
+      ['c', 'cdouble', $C,
+"Unlike L</$func>, the calculations are performed in complex double
+precision."
+      ],
+      ['d', 'double', undef,
+"Unlike L</$func>, the calculations are performed in double precision."
+      ],
+    );
 
     my $cfunc = "cumu${func}";
     pp_def(
-	   $cfunc,
+	   $_->[0].$cfunc,
 	   HandleBad => 1,
-	   Pars => 'a(n); int+ [o]b(n);',
-	   GenericTypes=>$A,
+	   Pars => "a(n); $_->[1] [o]b(n);",
+	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
 	   Code => 
            '$GENERIC(b) tmp = ' . $init . ';
 	    loop(n) %{ 
@@ -218,35 +183,14 @@ foreach my $func ( sort keys %over ) {
 	          $b() = tmp;
                }
 	    %}',
-	   Doc => cumuprojectdocs( $name, $cfunc, '' ),
-	   );
-
-    # as above but in double precision
-    pp_def(
-	   "d$cfunc",
-	   HandleBad => 1,
-	   Pars => 'a(n); double [o]b(n);',
-	   Code => 
-           'double tmp = ' . $init . ';
-	    loop(n) %{ 
-               tmp ' . $op . ' $a();
-	       $b() = tmp;
-	    %}',
-	   BadCode => 
-	   'double tmp = ' . $init . ';
-	    loop(n) %{ 
-               if ( $ISBAD(a()) ) { $SETBAD(b()); }
-               else {
-                  tmp ' . $op . ' $a();
-	          $b() = tmp;
-               }
-	    %}',
-	   Doc => cumuprojectdocs( $name, $cfunc, 
-"Unlike L</cumu$func>, the calculations are performed in double\n" .
-"precision." ),
-	   );
+	   Doc => cumuprojectdocs( $name, $_->[0].$cfunc, $_->[3] ),
+	   ) for (
+      ['', 'int+', $A, ''],
+      ['d', 'double', undef,
+"Unlike L</$cfunc>, the calculations are performed in double precision."
+      ],
+    );
 } # foreach: my $func
-
 
 %over = 
     (
