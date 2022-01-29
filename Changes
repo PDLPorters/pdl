@@ -1,3 +1,5 @@
+- fix segfault bug in qsortvec - thanks @zmughal for investigation and report
+
 2.070 2022-01-28
 - add GIS::Proj::proj_version
 - fix Transform::Proj4 tests to work with ortho results in PROJ >6.3.1 (assumed 8+)

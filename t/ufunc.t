@@ -11,6 +11,8 @@ sub tapprox ($$) {
     return $check;
 }
 
+my $p = pdl([]); $p->setdims([1,0]); $p->qsortvec; # shouldn't segfault!
+
 # set up test arrays
 #
 my $x = pdl(0,0,6,3,5,0,7,14,94,5,5,8,7,7,1,6,7,13,10,2,101,19,7,7,5);  # sf.net bug #2019651

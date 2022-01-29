@@ -1047,6 +1047,7 @@ sub qsort_croak {
     'if ($PDL(a)->dims['.$insizedim.'] != $PDL('.$out.')->dims['.$outsizedim.'] && $PDL(a)->dims['.$insizedim.'] > 1)
         /* last term detects non-trivial sort */
         $CROAK("You likely passed a scalar argument, when you should have passed an ndarray (or nothing at all)");
+     if ($PDL(a)->nvals == 0) return PDL_err;
     '
 }
 
