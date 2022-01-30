@@ -1,3 +1,4 @@
+2.072 2022-01-30
 - fix bug in qsortveci that broke PDL::VectorValued - thanks @zmughal for report
 
 2.071 2022-01-29
