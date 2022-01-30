@@ -2078,17 +2078,11 @@ slice will change the parent.
 
 sub PDL::dice_axis {
   my($self,$axis,$idx) = @_;
-
-  # Convert to PDLs: array refs using new, otherwise use topdl:
-  my $ix = (ref($idx) eq 'ARRAY') ? ref($self)->new($idx) : ref($self)->topdl($idx);
-  my $n = $self->getndims;
-  my $x = $ix->getndims;
-  barf("index_axis: index must be <=1D") if $x>1;
+  my $ix = ref($self)->topdl($idx);
+  barf("dice_axis: index must be <=1D") if $ix->getndims > 1;
   return $self->mv($axis,0)->index1d($ix)->mv(0,$axis);
 }
 *dice_axis = \&PDL::dice_axis;
-
-
 EOD
 
 ##############################
