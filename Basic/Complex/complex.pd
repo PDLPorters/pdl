@@ -238,7 +238,6 @@ Comparing complex numbers other than for equality is a fatal error.
 
 my $i;
 BEGIN { $i = bless pdl 0,1 }
-undef &PDL::i;
 {
 no warnings 'redefine';
 sub i { $i->copy + (@_ ? $_[0] : 0) };
