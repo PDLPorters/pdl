@@ -720,7 +720,7 @@ PDL_TYPELIST_REAL(X)
 PDL_TYPELIST_REAL(X)
 #undef X
 
-#define PDL_QSORTVEC(ppsym, INDEXTERM, swapcode) \
+#define PDL_QSORTVEC(ppsym, RECURSE, INDEXTERM, swapcode) \
     PDL_Indx i,j, median_ind; \
     i = a;  \
     j = b; \
@@ -728,7 +728,7 @@ PDL_TYPELIST_REAL(X)
     do { \
       while( pdl_cmpvec_ ## ppsym( &(xx[n*INDEXTERM(i)]), &(xx[n*INDEXTERM(median_ind)]), n )  <  0 )  \
             i++; \
-      while( pdl_cmpvec_ ## ppsym( &(xx[n*j]), &(xx[n*median_ind]), n )  >  0 )  \
+      while( pdl_cmpvec_ ## ppsym( &(xx[n*INDEXTERM(j)]), &(xx[n*INDEXTERM(median_ind)]), n )  >  0 )  \
             j--; \
       if(i<=j) { \
             PDL_Indx k; \
@@ -742,19 +742,19 @@ PDL_TYPELIST_REAL(X)
       } \
     } while (i <= j); \
     if (a < j) \
-      pdl_qsortvec_ ## ppsym( xx, n, a, j ); \
+      RECURSE( ppsym, a, j ); \
     if (i < b) \
-      pdl_qsortvec_ ## ppsym( xx, n, i, b );
+      RECURSE( ppsym, i, b );
 
 #define PDL_QSORTVEC_INDEXTERM(indexterm) indexterm
+#define PDL_QSORTVEC_RECURSE(ppsym, ...) pdl_qsortvec_ ## ppsym(xx, n, __VA_ARGS__)
 #define X(symbol, ctype, ppsym, ...) \
   static inline void pdl_qsortvec_ ## ppsym(ctype *xx, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
-    PDL_QSORTVEC(ppsym, PDL_QSORTVEC_INDEXTERM, \
+    PDL_QSORTVEC(ppsym, PDL_QSORTVEC_RECURSE, PDL_QSORTVEC_INDEXTERM, \
             ctype *aa = &xx[n*i]; \
             ctype *bb = &xx[n*j]; \
             for( k=0; k<n; aa++,bb++,k++ ) { \
-              ctype z; \
-              z = *aa; \
+              ctype z = *aa; \
               *aa = *bb; \
               *bb = z; \
             } \
@@ -763,11 +763,13 @@ PDL_TYPELIST_REAL(X)
 PDL_TYPELIST_REAL(X)
 #undef X
 #undef PDL_QSORTVEC_INDEXTERM
+#undef PDL_QSORTVEC_RECURSE
 
 #define PDL_QSORTVEC_INDEXTERM(indexterm) ix[indexterm]
+#define PDL_QSORTVEC_RECURSE(ppsym, ...) pdl_qsortvec_ind_ ## ppsym(xx, ix, n, __VA_ARGS__)
 #define X(symbol, ctype, ppsym, ...) \
   static inline void pdl_qsortvec_ind_ ## ppsym(ctype *xx, PDL_Indx *ix, PDL_Indx n, PDL_Indx a, PDL_Indx b) { \
-    PDL_QSORTVEC(ppsym, PDL_QSORTVEC_INDEXTERM, \
+    PDL_QSORTVEC(ppsym, PDL_QSORTVEC_RECURSE, PDL_QSORTVEC_INDEXTERM, \
             k = ix[i]; \
             ix[i] = ix[j]; \
             ix[j] = k; \
@@ -775,8 +777,9 @@ PDL_TYPELIST_REAL(X)
   }
 PDL_TYPELIST_REAL(X)
 #undef X
-#undef PDL_QSORTVEC
 #undef PDL_QSORTVEC_INDEXTERM
+#undef PDL_QSORTVEC_RECURSE
+#undef PDL_QSORTVEC
 EOF
 
 sub generic_qsort {

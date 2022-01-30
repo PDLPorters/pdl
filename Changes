@@ -1,3 +1,5 @@
+- fix bug in qsortveci that broke PDL::VectorValued - thanks @zmughal for report
+
 2.071 2022-01-29
 - fix segfault bug in qsortvec - thanks @zmughal for investigation and report
 

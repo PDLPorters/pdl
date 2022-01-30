@@ -12,6 +12,8 @@ sub tapprox ($$) {
 }
 
 my $p = pdl([]); $p->setdims([1,0]); $p->qsortvec; # shouldn't segfault!
+my $p2d  = pdl([[1,2],[3,4],[1,3],[1,2],[3,3]]);
+is $p2d->dice_axis(1,$p2d->qsortveci).'', $p2d->qsortvec.'', "qsortveci";
 
 # set up test arrays
 #
