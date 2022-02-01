@@ -247,6 +247,11 @@ pdl_error pdl_dim_checks(
       ));
     } else {
       PDL_Indx *dims = pdl->dims;
+      if (pdl->state & PDL_NOMYDIMS)
+        return pdl_make_error(PDL_EUSERERROR,
+          "Error in %s: input parameter '%s' is null\n",
+          vtable->name, vtable->par_names[i]
+        );
       if (ninds > 0 && ndims < ninds) {
 	/* Dimensional promotion when number of dims is less than required: */
 	for (j=0; j<ninds; j++) {

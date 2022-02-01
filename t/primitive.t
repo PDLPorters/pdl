@@ -293,6 +293,12 @@ ok($a1->at($x->list,$y->list,$z->list,$w->list) == 203, "whichND" );
 $a1 = pdl(1,2,3,4);
 my $b1 = append($a1,2);
 ok(int(sum($b1))==12, "append");
+$b1 = append(null, null);
+ok !$b1->isnull, 'append(null, null) returns non-null';
+ok $b1->isempty, 'append(null, null) returns an empty';
+append(null, null, $b1);
+ok !$b1->isnull, 'append(null, null, b1) sets non-null';
+ok $b1->isempty, 'append(null, null, b1) sets an empty';
 
 # clip tests
 ok(tapprox($im->hclip(5)->sum,83), "hclip" );

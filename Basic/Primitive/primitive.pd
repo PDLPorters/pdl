@@ -1649,6 +1649,23 @@ pp_def('append',
 # note that ideally we want to say '$SIZE(mn) = $SIZE(m)+$SIZE(n);'
 # but that requires placing RedoDimsParsedCode *after* assignment of
 # childdims to $SIZE(XXX)!!!  XXXXXmake that workXXXXX
+        PMCode => pp_line_numbers(__LINE__-1, '
+sub PDL::append {
+  my ($i1, $i2, $o) = map PDL->topdl($_), @_;
+  if (grep $_->isempty, $i1, $i2) {
+    if (!defined $o) {
+      return $i2->copy if $i1->isempty;
+      return $i1->isnull ? PDL->zeroes(0) : $i1->copy;
+    } else {
+      $o .= $i2->isnull ? PDL->zeroes(0) : $i2, return $o if $i1->isempty;
+      $o .= $i1->isnull ? PDL->zeroes(0) : $i1, return $o;
+    }
+  }
+  $o //= PDL->null;
+  PDL::_append_int($i1, $i2, $o);
+  $o;
+}
+        '),
 	RedoDimsCode => '
 		pdl * dpdla = $PDL(a);
 		pdl * dpdlb = $PDL(b);

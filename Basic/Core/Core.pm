@@ -463,6 +463,7 @@ a single Empty PDL, you get back the Empty PDL (no padding).
 =for ref
 
 Returns a 'null' ndarray.
+It is an error to pass one of these as an input to a function.
 
 =for usage
 

@@ -129,6 +129,14 @@ pp_deft('fooseg',
 	   loop(n) %{ $b() = $a(); %}
 ');
 
+# adapted from PDL::NDBin: if in=null and b is a scalar, was SEGV-ing
+pp_deft( '_flatten_into',
+        Pars => "in(m); indx b(m); [o] idx(m)",
+        Code => '
+                loop(m) %{ $idx() = $in(); %}
+        ',
+);
+
 pp_addhdr << 'EOH';
 void tinplace_c1(int n, PDL_Float* data);
 void tinplace_c2(int n, PDL_Float* data1, PDL_Float* data2);
@@ -300,15 +308,17 @@ is( join(',',$x->dims), "10" );
 ok( tapprox($x,sequence(10)) );
 
 # this used to segv under solaris according to Karl
-{ no warnings 'uninitialized';
+{
   my $ny=7;
   $x = double xvals zeroes (20,$ny);
   test_fooseg $x, $y=null;
-
   ok( 1 );  # if we get here at all that is alright
   ok( tapprox($x,$y) )
     or diag($x, "\n", $y);
 }
+
+eval { test__flatten_into(null, 2) };
+ok 1; #was also segfaulting
 
 # test the bug alluded to in the comments in
 # pdl_changed (pdlapi.c)
