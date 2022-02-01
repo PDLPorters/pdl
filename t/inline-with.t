@@ -16,11 +16,12 @@ BEGIN {
    # See if Inline loads without trouble, or bail out
    eval {
       require Inline;
+      require Inline::C;
       Inline->import (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1);
 #      Inline->import ('NOCLEAN');
       1;
    } or do {
-      plan skip_all => "Skipped: Inline not installed";
+      plan skip_all => "Skipped: Inline or Inline::C not installed";
    };
 
    if( $Inline::VERSION < 0.83 ) {

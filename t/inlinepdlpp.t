@@ -7,9 +7,10 @@ BEGIN {
   mkdir $inline_test_dir unless -d $inline_test_dir;
   eval {
     require Inline;
+    require Inline::C;
     Inline->import(Config => DIRECTORY => $inline_test_dir, FORCE_BUILD => 1);
     1;
-  } || plan skip_all => "Skipped: Inline not installed";
+  } || plan skip_all => "Skipped: Inline or Inline::C not installed";
   note "Inline Version: $Inline::VERSION\n";
   eval { Inline->VERSION(0.43) };
   plan skip_all => "Skipped: not got Inline >= 0.43" if $@;
