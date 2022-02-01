@@ -108,11 +108,9 @@ EOF
 
 ##############################
 # Simple test case for interpND
-my $index;
-my $z;
 $x = xvals(10,10)+yvals(10,10)*10;
-$index = cat(3+xvals(5,5)*0.25,7+yvals(5,5)*0.25)->reorder(2,0,1);
-$z = 73+xvals(5,5)*0.25+2.5*yvals(5,5);
+my $index = cat(3+xvals(5,5)*0.25,7+yvals(5,5)*0.25)->reorder(2,0,1);
+my $z = 73+xvals(5,5)*0.25+2.5*yvals(5,5);
 eval { $y = $x->interpND($index) };
 is $@, '';
 is sum($y != $z), 0, "interpND";
