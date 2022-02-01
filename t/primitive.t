@@ -14,8 +14,8 @@ sub tapprox {
     }
     my $d = max( abs($x-$y) );
     if($d >= 0.01) {
+use Carp; confess "SHIT";
        diag "APPROX: $x $y\n";
-       diag "# APPROXFAIL: $x $y\n";
     }
     $d < 0.01;
 }

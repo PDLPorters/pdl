@@ -12,7 +12,7 @@ use Carp;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
-my @code_args_always = qw(SignatureObj GenericTypes ExtraGenericSwitches HaveThreading Name);
+my @code_args_always = qw(BadFlag SignatureObj GenericTypes ExtraGenericSwitches HaveThreading Name);
 sub make_args {
   my ($which) = @_;
   ("Parsed$which", [$which,\"Bad$which",@code_args_always]);
@@ -21,7 +21,7 @@ sub make_args {
 # Do the appropriate substitutions in the code.
 sub new {
     my($class,$code,$badcode,
-       $sig,$generictypes,$extrageneric,$havethreading,$name,
+       $handlebad, $sig,$generictypes,$extrageneric,$havethreading,$name,
        $dont_add_thrloop, $backcode ) = @_;
     my $parnames = $sig->names_sorted;
 
@@ -30,8 +30,7 @@ sub new {
     confess "Error: empty or undefined GenericTypes!\n"
       unless @{$generictypes || []};
 
-    # simple way of handling bad code check
-    my $handlebad = defined($badcode);
+    $badcode //= $code if $handlebad;
 
     # last two arguments may not be supplied
     #
@@ -75,7 +74,7 @@ sub new {
     # loops (array references, 1. item = variable.
     #
     my ( $threadloops, $coderef, $sizeprivs ) =
-	$this->separate_code( "{$code\n}" );
+	$this->separate_code( "{\n$code\n}" );
 
     # Now, if there is no explicit threadlooping in the code,
     # enclose everything into it.
@@ -93,10 +92,10 @@ sub new {
     #
     # NOTE: amalgamate sizeprivs from good and bad code
     #
-    if ( $handlebad ) {
+    if ( $handlebad && ($code ne $badcode || $badcode =~ /PDL_BAD_CODE/) ) {
 	print "Processing 'bad' code...\n" if $::PP_VERBOSE;
 	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) =
-	    $this->separate_code( "{$badcode\n}" );
+	    $this->separate_code( "{\n$badcode\n}" );
 
 	if(!$bad_threadloops && !$dont_add_thrloop) {
 	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;

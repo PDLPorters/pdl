@@ -930,7 +930,8 @@ do not have a way of ignoring part of the data.
 
 This causes PDL::PP to write extra code that ensures the BadCode
 section is used, and that the C<$ISBAD()> macro (and its brethren)
-work.
+work. If no C<BadCode> is supplied, the C<Code> section will be used,
+on the assumption it will use C<#ifdef PDL_BAD_CODE> to handle bad values.
 
 =item HandleBad is not given
 
@@ -1065,19 +1066,19 @@ Since this is Perl, TMTOWTDI, so you could also write:
     }',
 
 You can reduce code repetition using the C C<PDL_BAD_CODE> macro,
-using the same code for both of the C<Code> and C<BadCode> sections:
+supplying only the C<Code> section:
 
+ Code => '
     #ifdef PDL_BAD_CODE
     if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
     #endif PDL_BAD_CODE
-
        $c() = $a() + $b();
-
     #ifdef PDL_BAD_CODE
     } else {
        $SETBAD(c());
     }
     #endif PDL_BAD_CODE
+ ',
 
 =head2 Interfacing your own/library functions using PP
 
@@ -2140,7 +2141,10 @@ have their bad flag set.
 =head3 BadCode
 
 Give the code to be used if bad values may be present in the input ndarrays.
-Only used if C<HandleBad =E<gt> 1>.
+Only used if C<< HandleBad => 1 >>.
+If C<HandleBad> is true and C<BadCode> is not supplied, the C<Code>
+section will be reused, on the assumption it will use
+C<#ifdef PDL_BAD_CODE> to handle bad values.
 
 =head3 GenericTypes
 

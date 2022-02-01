@@ -138,12 +138,10 @@ EOH
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
-	   Code => pp_line_numbers(__LINE__,
-	   "\$c() = \$a() $op \$b();"),
-	   BadCode => pp_line_numbers(__LINE__, qq{
-	       if ( $badcode  )
-	           \$SETBAD(c());
-	       else
+	   Code => pp_line_numbers(__LINE__-1, qq{
+		#ifdef PDL_BAD_CODE
+	        if ( $badcode ) \$SETBAD(c()); else
+		#endif
 	           \$c() = \$a() $op \$b();
 	   }),
 	   CopyBadStatusCode => pp_line_numbers(__LINE__,
@@ -245,9 +243,6 @@ ENDCODE
       $codestr = '$c() = ($GENERIC(c))'.$func.'($a(),$b());';
     }
     delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
-    my $badcodestr = 'if ( $ISBAD(a()) || $ISBAD(b()) )
-	       $SETBAD(c());
-	       else {' . $codestr . " } \n";
 
     pp_addpm(make_overload($funcov, $name, $mutator));
     pp_def($name,
@@ -256,8 +251,15 @@ ENDCODE
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
-	   Code => pp_line_numbers(__LINE__, $codestr),
-	   BadCode => pp_line_numbers(__LINE__, $badcodestr),
+	   Code => pp_line_numbers(__LINE__, qq{
+		#ifdef PDL_BAD_CODE
+	        if ( \$ISBAD(a()) || \$ISBAD(b()) ) \$SETBAD(c()); else {
+		#endif
+	           $codestr
+		#ifdef PDL_BAD_CODE
+		}
+		#endif
+	   }),
 	   CopyBadStatusCode =>
 	   pp_line_numbers(__LINE__, 'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
@@ -325,14 +327,15 @@ sub ufunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
-	   Code => pp_line_numbers(__LINE__,
-	       $codestr
-	   ),
-	   BadCode =>
-		    pp_line_numbers(__LINE__, 'if ( ' . $badcode . ' )
-		    $SETBAD(b());
-		    else {' . "\n" . $codestr . "}\n"
-		    ),
+	   Code => pp_line_numbers(__LINE__, qq{
+		#ifdef PDL_BAD_CODE
+	        if ( $badcode ) \$SETBAD(b()); else {
+		#endif
+	           $codestr
+		#ifdef PDL_BAD_CODE
+		}
+		#endif
+	   }),
 	   %extra,
 	   Doc => << "EOD");
 =for ref
@@ -436,11 +439,12 @@ pp_def ( '_rabs',
 	HandleBad => 1,
 	NoBadifNaN => 1,
 	    Inplace => 1,
-	BadCode => '
-	       if ( $ISBAD(a()) )
-	           $SETBAD(b());
-	       else ' . $rabs_code,
-	Code=>$rabs_code,
+	Code => pp_line_numbers(__LINE__, qq{
+	  #ifdef PDL_BAD_CODE
+	  if ( \$ISBAD(a()) ) \$SETBAD(b()); else
+	  #endif
+	     $rabs_code
+	}),
 	Doc=>undef,
 	PMFunc=>'',
 );
@@ -473,26 +477,17 @@ sub PDL::log10 {
 '
 );
 
-# note: the extra code that adding 'HandleBad => 1' creates is
-# unneeded here. Things could be made clever enough to work this out,
-# but it's very low priority.
-# It does add doc information though, and lets people know it's been
-# looked at for bad value support
-# DJB adds: not completely sure about this now that I have added code
-# to avoid a valgrind-reported error (see the CacheBadFlagInit rule
-# in PP.pm)
-#
-# Can't this be handled in Core.pm when '.=' is overloaded ?
-#
 pp_def(
        'assgn',
        HandleBad => 1,
        GenericTypes => $A,
        Pars => 'a(); [o]b();',
-       Code =>
-       pp_line_numbers(__LINE__, '$b() = $a();'),
-       BadCode =>
-       pp_line_numbers(__LINE__, 'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = $a(); }'),
+       Code => pp_line_numbers(__LINE__-1, q{
+	    #ifdef PDL_BAD_CODE
+	    if ( $ISBAD(a()) ) $SETBAD(b()); else
+	    #endif
+	       $b() = $a();
+       }),
        Doc =>
 'Plain numerical assignment. This is used to implement the ".=" operator',
 		BadDoc =>
@@ -520,19 +515,24 @@ sub cfunc {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Inplace => 1,
-	   Code => $codestr,
-	   BadCode => pp_line_numbers(__LINE__-1, 'if ($ISBAD(complexv()))
-	     $SETBAD(b());
-	     else {' . "\n" . $codestr . "}\n"
-	   ),
+	   Code => pp_line_numbers(__LINE__, qq{
+	      #ifdef PDL_BAD_CODE
+	      if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else
+	      #endif
+		 $codestr
+	   }),
 	   !$backcode ? () : (
 	     DefaultFlow => 1,
 	     TwoWay => 1,
-	     BackCode => $backcode,
-	     BadBackCode => pp_line_numbers(__LINE__-1, 'if ($ISBAD(b()))
-	       $SETBAD(complexv());
-	       else {' . "\n" . $backcode . "}\n"
-	     ),
+	     BackCode => pp_line_numbers(__LINE__, qq{
+		#ifdef PDL_BAD_CODE
+		if ( \$ISBAD(b()) ) \$SETBAD(complexv()); else {
+		#endif
+		   $backcode
+		#ifdef PDL_BAD_CODE
+		}
+		#endif
+	     }),
 	   ),
 	   %extra,
 	   Doc => $doc);

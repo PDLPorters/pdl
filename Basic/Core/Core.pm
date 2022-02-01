@@ -1477,32 +1477,15 @@ sub PDL::dummy($$;$) {
    barf("Missing position argument to dummy()") unless defined $dim;  # required argument
    $dim = $pdl->getndims+1+$dim if $dim < 0;
    $size = defined($size) ? (1 * $size) : 1;  # make $size a number (sf feature # 3479009)
-
    barf("For safety, <pos> < -(dims+1) forbidden in dummy.  min="
 	 . -($pdl->getndims+1).", pos=". ($dim-1-$pdl->getndims) ) if($dim<0);
-
    # Avoid negative repeat count warning that came with 5.21 and later.
    my $dim_diff = $dim - $pdl->getndims;
    my($s) = ',' x ( $dim_diff > 0 ? $pdl->getndims : $dim );
    $s .= '*1,'  x ( $dim_diff > 0 ? $dim_diff : 0 );
    $s .= "*$size";
-
    $pdl->slice($s);
 }
-
-
-## Cheesy, slow way
-#   while ($dim>$pdl->getndims){
-#     print STDERR "."; flush STDERR;
-#     $pdl = $pdl->dummy($pdl->getndims,1);
-#   }
-#
-#   barf ("too high/low dimension in call to dummy, allowed min/max=0/"
-# 	 . $_[0]->getndims)
-#     if $dim>$pdl->getndims || $dim < 0;
-#
-#   $_[2] = 1 if ($#_ < 2);
-#   $pdl->slice((','x$dim)."*$_[2]");
 
 =head2 clump
 

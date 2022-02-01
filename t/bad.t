@@ -283,7 +283,7 @@ is( PDL::Core::string( $x->rotate(2) ), "[4 5 0 1 BAD]", "rotate()" );
 $x = float( 2, 0, 2, 2 )->setvaltobad(0.0);
 $y = $x->norm;
 $c = $x/sqrt(sum($x*$x));
-ok( all( approx( $y, $c, ABSTOL ) ), "norm()" );
+ok( all( approx( $y, $c, ABSTOL ) ), "norm()" ) or diag "got=$y\nexpected=$c";
 
 # propagation of badflag using inplace ops (ops.pd)
 

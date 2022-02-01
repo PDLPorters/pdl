@@ -164,26 +164,29 @@ my (@besbifuncs) = qw(jn yn); # "
 # Need igamma, ibeta, and a fall-back implementation of the above
 
 sub code_ufunc {
-    my ($name) = @_;
-    '$b() = '.$name.'($a());';
+<<EOF
+#ifdef PDL_BAD_CODE
+if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else {
+#endif
+  \$b() = $_[0](\$a());
+#ifdef PDL_BAD_CODE
 }
-sub badcode_ufunc {
-    'if ( $ISBAD(a()) ) { $SETBAD(b()); } else {' . "\n" .
-	code_ufunc(@_) .
-    "}\n";
+#endif
+EOF
 }
 
 sub code_bifunc {
     my $name = $_[0];
     my $x = $_[1] || 'a'; my $y = $_[2] || 'b'; my $c = $_[3] || 'c';
-    '$'.$c.'() = '.$name.'($'.$x.'(),$'.$y.'());',
+<<EOF
+#ifdef PDL_BAD_CODE
+if ( \$ISBAD($x()) || \$ISBAD($y()) ) { \$SETBAD($c()); } else {
+#endif
+  \$$c() = $name(\$$x(),\$$y());
+#ifdef PDL_BAD_CODE
 }
-sub badcode_bifunc {
-    my $name = $_[0];
-    my $x = $_[1] || 'a'; my $y = $_[2] || 'b'; my $c = $_[3] || 'c';
-    'if ( $ISBAD('.$x.'()) || $ISBAD('.$y.'()) ) { $SETBAD('.$c.'()); } else {' . "\n" .
-	code_bifunc(@_) .
-    "}\n";
+#endif
+EOF
 }
 
 sub inplace_doc {
@@ -201,7 +204,6 @@ foreach my $func (@ufuncs1) {
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
 	   Code => code_ufunc($func),
-	   BadCode => badcode_ufunc($func),
 	   );
 }
 # real types
@@ -213,7 +215,6 @@ foreach my $func (@ufuncs1g) {
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
 	   Code => code_ufunc($func),
-	   BadCode => badcode_ufunc($func),
 	   );
 }
 
@@ -227,7 +228,6 @@ foreach my $func (@bifuncs1) {
 	   GenericTypes => [($got_complex ? @$C : ()), @$R],
 	   Doc => inplace_doc( $func ),
 	   Code => code_bifunc($func),
-	   BadCode => badcode_bifunc($func),
 	   );
 }
 
@@ -241,7 +241,6 @@ foreach my $func (@ufuncs2) {
 	   Inplace => 1,
 	   Doc => inplace_doc( $func ),
 	   Code => code_ufunc($func),
-	   BadCode => badcode_ufunc($func),
 	   );
 }
 
@@ -255,7 +254,6 @@ foreach my $func (@besufuncs) {
 	   Inplace => 1,
 	   Doc => inplace_doc( $fname ),
 	   Code => code_ufunc($func),
-	   BadCode => badcode_ufunc($func),
 	   );
 }
 
@@ -269,7 +267,6 @@ foreach my $func (@besbifuncs) {
 	   Inplace => [ 'a' ],
 	   Doc => inplace_doc( $fname ),
 	   Code => code_bifunc($func,'n','a','b'),
-	   BadCode => badcode_bifunc($func,'n','a','b'),
 	   );
 }
 
@@ -278,18 +275,17 @@ if ($^O !~ /win32/i) {
 	   HandleBad => 1,
 	   Pars => 'a(); [o]b(); int[o]s()',
 	   Doc => $doco{"lgamma"},
-	   Code =>
-	   'extern int signgam;
-	    $b() = lgamma($a());
-	    $s() = signgam;',     # what happens to signgam if $a() is bad?
-	   BadCode =>
-	   'extern int signgam;
-            if ( $ISBAD(a()) ) {
-               $SETBAD(b()); $SETBAD(s());
-            } else {
-               $b() = lgamma($a());
-               $s() = signgam;
-            }',
+	   Code => '
+	    extern int signgam;
+	    #ifdef PDL_BAD_CODE
+	    if ( $ISBAD(a()) ) { $SETBAD(b()); $SETBAD(s()); } else {
+	    #endif
+	      $b() = lgamma($a());
+	      $s() = signgam;
+	    #ifdef PDL_BAD_CODE
+	    }
+	    #endif
+	   ',     # what happens to signgam if $a() is bad?
 	   );
 } # if: os !~ win32
 
@@ -298,16 +294,16 @@ elsif ($Config{cc} =~ /\bgcc/i) {
 	   HandleBad => 1,
 	   Pars => 'a(); [o]b(); int[o]s()',
 	   Doc => $doco{"lgamma"},
-	   Code =>
-	   '$b() = lgamma($a());
-	    $s() = tgamma($a()) < 0 ? -1 : 1;',     # what happens to signgam if $a() is bad?
-	   BadCode =>
-	   'if ( $ISBAD(a()) ) {
-               $SETBAD(b()); $SETBAD(s());
-            } else {
-               $b() = lgamma($a());
-               $s() = tgamma($a()) < 0 ? -1 : 1;
-            }',
+	   Code => '
+	    #ifdef PDL_BAD_CODE
+	    if ( $ISBAD(a()) ) { $SETBAD(b()); $SETBAD(s()); } else {
+	    #endif
+	    $b() = lgamma($a());
+	    $s() = tgamma($a()) < 0 ? -1 : 1;
+	    #ifdef PDL_BAD_CODE
+	    }
+	    #endif
+	    ',     # what happens to signgam if $a() is bad?
 	   );
 } # elsif: cc =~ /\bgcc/i
 

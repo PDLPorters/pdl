@@ -138,18 +138,23 @@ foreach my $func ( sort keys %over ) {
 	   HandleBad => 1,
 	   Pars => "a(n); $_->[1] [o]b();",
 	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
-	   Code => 
-	   '$GENERIC(b) tmp = ' . $init . ';
-	    loop(n) %{ tmp ' . $op . ' $a(); %}
-	    $b() = tmp;',
-	   BadCode => 
-	   '$GENERIC(b) tmp = ' . $init . ';
+           Code => qq{
+            \$GENERIC(b) tmp = $init;
             int flag = 0;
-	    loop(n) %{ 
-               if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
+            loop(n) %{
+            #ifdef PDL_BAD_CODE
+            if ( \$ISGOOD(a()) ) { flag = 1;
+            #endif
+              tmp $op \$a();
+            #ifdef PDL_BAD_CODE
+            }
+            #endif
             %}
-            if ( flag ) { $b() = tmp; }
-            else        { $SETBAD(b()); }',
+            #ifdef PDL_BAD_CODE
+            if ( !flag ) \$SETBAD(b()); else
+            #endif
+            \$b() = tmp;
+           },
 	   Doc => projectdocs( $name, $_->[0].$func, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
@@ -168,21 +173,19 @@ precision."
 	   HandleBad => 1,
 	   Pars => "a(n); $_->[1] [o]b(n);",
 	   $_->[2] ? (GenericTypes=>$_->[2]) : (),
-	   Code => 
-           '$GENERIC(b) tmp = ' . $init . ';
-	    loop(n) %{ 
-               tmp ' . $op . ' $a();
-	       $b() = tmp;
-	    %}',
-	   BadCode => 
-	   '$GENERIC(b) tmp = ' . $init . ';
-	    loop(n) %{ 
-               if ( $ISBAD(a()) ) { $SETBAD(b()); }
-               else {
-                  tmp ' . $op . ' $a();
-	          $b() = tmp;
-               }
-	    %}',
+           Code => qq{
+            \$GENERIC(b) tmp = $init;
+            loop(n) %{
+            #ifdef PDL_BAD_CODE
+              if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else {
+            #endif
+                tmp $op \$a();
+                \$b() = tmp;
+            #ifdef PDL_BAD_CODE
+              }
+            #endif
+            %}
+           },
 	   Doc => cumuprojectdocs( $name, $_->[0].$cfunc, $_->[3] ),
 	   ) for (
       ['', 'int+', $A, ''],
@@ -226,18 +229,24 @@ foreach my $func ( sort keys %over ) {
 	   HandleBad => 1,
 	   %extra,
 	   Pars => 'a(n); ' . $otype . ' [o]b();',
-	   Code =>
-	   $def . '=' . $init . ';
-            loop(n) %{ ' . $op . ' if (' . $check . ') break; %}
-            $b() = tmp;',
-	   BadCode =>
-	    $def . '=' . $init .';
+           Code => qq{
+	    $def = $init;
             int flag = 0;
             loop(n) %{
-               if ( $ISGOOD(a()) ) { ' . $op . ' flag = 1; if (' . $check . ') break; }
+            #ifdef PDL_BAD_CODE
+            if ( \$ISGOOD(a()) ) { flag = 1;
+            #endif
+              $op
+              if ( $check ) break;
+            #ifdef PDL_BAD_CODE
+            }
+            #endif
             %}
-            if ( flag ) { $b() = tmp; }
-            else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
+            #ifdef PDL_BAD_CODE
+            if ( !flag ) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else
+            #endif
+            \$b() = tmp;
+           },
 	   CopyBadStatusCode => '',
 	   Doc => projectdocs( $txt, $func,''), 
        BadDoc => 
@@ -325,27 +334,33 @@ sub make_average {
 	"${prefix}average",
 	HandleBad => 1,
 	Pars => "a(n); $outpar_type [o]b();",
-	Code => 
-	'$GENERIC(b) tmp = 0;
-	if($SIZE(n)) {
-	   loop(n) %{ tmp += $a(); %} ; 
-	   $b() = tmp / ($GENERIC(b)) $SIZE(n);
-        }
-          else { $GENERIC(b) foo = 0.25; 
-	         if(foo == 0) {  /* Cheesy check for floating-pointiness */
-	             $b() = 0;   /* Integer - set to 0 */
-	          } else {
-	             $b() = sqrt(-1);  /* Cheesy NaN -- CED */
-		 }
-	        }',
-	BadCode => 
-	'$GENERIC(b) tmp = 0;
-         PDL_Indx cnt = 0;
-	 loop(n) %{ 
-            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
-         %}
-         if ( cnt ) { $b() = tmp / cnt; }
-         else       { $SETBAD(b()); }',
+        Code => q{
+          $GENERIC(b) tmp = 0;
+          PDL_Indx cnt = 0;
+          loop(n) %{
+            #ifdef PDL_BAD_CODE
+            if ( $ISGOOD(a()) ) {
+            #endif
+              cnt++;
+              tmp += $a();
+            #ifdef PDL_BAD_CODE
+            }
+            #endif
+          %}
+          if ( !cnt ) {
+          #ifdef PDL_BAD_CODE
+            $SETBAD(b());
+          #else
+            $GENERIC(b) foo = 0.25;
+            if(foo == 0) {  /* Cheesy check for floating-pointiness */
+              $b() = 0;   /* Integer - set to 0 */
+            } else {
+              $b() = sqrt(-1);  /* Cheesy NaN -- CED */
+            }
+          #endif
+          } else
+            $b() = tmp / cnt;
+        },
 	Doc => projectdocs( 'average', "${prefix}average", $extra||'' ),
 	);
   synonym(map "$prefix$_", qw(average avgover));
