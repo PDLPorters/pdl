@@ -532,13 +532,18 @@ pp_def('norm',
        GenericTypes => [ppdefs_all],
        Doc => 'Normalises a vector to unit Euclidean length',
        Code =>
-       'double sum=0;
+       'long double sum=0;
         int flag = 0;
 	loop(n) %{
 #ifdef PDL_BAD_CODE
            if ( $ISGOOD(vec()) ) {
 #endif
-              sum += $vec()*$vec();
+              sum +=
+#ifdef PDL_GENTYPE_REAL
+                $vec()*$vec();
+#else
+                creall($vec())*creall($vec()) + cimagl($vec())*cimagl($vec());
+#endif
 #ifdef PDL_BAD_CODE
               flag = 1;
            }
