@@ -2110,6 +2110,19 @@ so that different things may be tried.
 your best bet will be to read the source code :-( or ask on the list
 (try the latter first) ]
 
+=head1 C PREPROCESSOR MACROS
+
+As well as the above-mentioned C<PDL_BAD_CODE>, there are also
+C<PDL_GENTYPE_REAL>, C<PDL_GENTYPE_UNSIGNED>, and
+C<PDL_GENTYPE_INTEGER>. These will be defined when the operation's
+generic type has those characteristic(s):
+
+  #ifdef PDL_GENTYPE_INTEGER
+    $b() = 0; /* Integer - set to 0 */
+  #else
+    $b() = NAN;
+  #endif
+
 =head1 Appendix A: Some keys recognised by PDL::PP
 
 Unless otherwise specified, the arguments are strings.

@@ -517,6 +517,7 @@ sub myprelude {
     qq[PDL_COMMENT("Start generic loop")\n\tswitch($this->[3]) {\n];
 }
 
+my @GENTYPE_ATTRS = qw(integer real unsigned);
 sub myitemstart {
     my ($this,$parent,$nth) = @_;
     my $item = $this->[0][$nth] || return "";
@@ -528,15 +529,22 @@ sub myitemstart {
       ? PDL::PP::pp_line_numbers(__LINE__-1, "\t\tPDL_DECLARE_PARAMS_$parent->{Name}(@{[join ',', @param_ctypes]})\n")
       : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
+    my @gentype_decls = map "#define PDL_GENTYPE_".uc($_)."\n", grep $item->$_,
+	@GENTYPE_ATTRS;
     join '',
 	PDL::PP::pp_line_numbers(__LINE__-1, "case @{[$item->sym]}: {\n"),
+	@gentype_decls,
 	$decls;
 }
 
 sub myitemend {
     my ($this,$parent,$nth) = @_;
     my $item = $this->[0][$nth] || return "";
-    PDL::PP::pp_line_numbers(__LINE__-1, "} break;\n");
+    join '',
+	"\n",
+	(map "#undef PDL_GENTYPE_".uc($_)."\n", grep $item->$_,
+	@GENTYPE_ATTRS),
+	PDL::PP::pp_line_numbers(__LINE__-1, "} break;\n");
 }
 
 sub mypostlude {

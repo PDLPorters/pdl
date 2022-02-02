@@ -350,13 +350,10 @@ sub make_average {
           if ( !cnt ) {
           #ifdef PDL_BAD_CODE
             $SETBAD(b());
+          #elif defined(PDL_GENTYPE_INTEGER)
+            $b() = 0; /* Integer - set to 0 */
           #else
-            $GENERIC(b) foo = 0.25;
-            if(foo == 0) {  /* Cheesy check for floating-pointiness */
-              $b() = 0;   /* Integer - set to 0 */
-            } else {
-              $b() = sqrt(-1);  /* Cheesy NaN -- CED */
-            }
+            $b() = NAN;
           #endif
           } else
             $b() = tmp / cnt;

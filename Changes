@@ -1,6 +1,7 @@
 - PDL::Complex no longer undefs PDL::i
 - passing null as input param now an error
 - can now unify Code and BadCode into Code, and use #ifdef PDL_BAD_CODE
+- add macros PDL_GENTYPE_{REAL,INTEGER,UNSIGNED} for #ifdef in Code
 
 2.072 2022-01-30
 - fix bug in qsortveci that broke PDL::VectorValued - thanks @zmughal for report
