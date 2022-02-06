@@ -7,8 +7,8 @@ sub tapprox ($$) {
     my ( $x, $y ) = @_;
     my $d = abs( $x - $y );
     my $check = ($d <= 0.0001);
-    diag "diff = [$d]\n" unless $check;
-    return $check;
+    diag "diff = [$d]\n" unless my $res = all $check;
+    return $res;
 }
 
 my $p = pdl([]); $p->setdims([1,0]); $p->qsortvec; # shouldn't segfault!

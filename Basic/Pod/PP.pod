@@ -557,7 +557,7 @@ can use output auto creation with temporary pdls even when you are using
 explicit threading which is forbidden for normal output pdls flagged with
 C<[o]> (see L<PDL::Indexing>).
 
-Here is an example where we use the [t] qualifier. We define the function
+Here is an example where we use the C<[t]> qualifier. We define the function
 C<callf> that calls a C routine C<f> which needs a temporary array of the
 same size and type as the array C<a> (sorry about the forward reference
 for C<$P>; it's a pointer access, see below) :
