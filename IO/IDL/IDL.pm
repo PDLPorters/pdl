@@ -511,7 +511,7 @@ sub r_var {
 	  }
 
 	  # Make a multi-dimensional list that contains the structs
-	  $hash->{$name} = multi_dimify($arrdesc,\@structs);
+	  $hash->{$name} = multi_dimify($arrdesc,\@structs,0);
 
       }
   }
@@ -640,7 +640,7 @@ sub r_structdesc {
 	}
 	
 	### Search for nested arrays & structures
-	my ($nstructs,$narrays);
+	my ($nstructs,$narrays) = (0,0);
 
 	for $i(0..$ntags-1) {
 	    my $x = $st->{descrip}->[$i*3+2];
@@ -678,7 +678,7 @@ sub r_struct {
     my($sname) = shift;
  
 
-    print ("_ "x$r_struct_recursion) . "Reading a structure...\n" if($PDL::IO::IDL::test);
+    print +("_ "x$r_struct_recursion) . "Reading a structure...\n" if($PDL::IO::IDL::test);
     my $zz=$r_struct_recursion;
     local($r_struct_recursion) = $zz++;
 
@@ -743,7 +743,7 @@ sub r_struct {
 			push(@structs,r_struct($tsname));
 		    }
 
-		    $struct->{$name} = multi_dimify($arrdesc,\@structs);
+		    $struct->{$name} = multi_dimify($arrdesc,\@structs,0);
 
 		}
 	    }
@@ -834,7 +834,7 @@ sub r_n_pdl {
     my $len = sysread(IDLSAV, $$dref, $hunksize - ($hunksize % -4) );
     $pdl->upd_data;
     print "bytes were ",join(",",unpack "C"x($hunksize-($hunksize%-4)),$$dref),"\n" if($PDL::debug);
-    $type->bswap($pdl) if $swab;
+    $type->bswap->($pdl) if $swab;
     $pdl;
 }
 
