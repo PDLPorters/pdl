@@ -142,17 +142,11 @@ foreach my $func ( sort keys %over ) {
             \$GENERIC(b) tmp = $init;
             int flag = 0;
             loop(n) %{
-            #ifdef PDL_BAD_CODE
-            if ( \$ISGOOD(a()) ) { flag = 1;
-            #endif
+            PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,)
               tmp $op \$a();
-            #ifdef PDL_BAD_CODE
-            }
-            #endif
+            PDL_IF_BAD(},)
             %}
-            #ifdef PDL_BAD_CODE
-            if ( !flag ) \$SETBAD(b()); else
-            #endif
+            PDL_IF_BAD(if ( !flag ) \$SETBAD(b()); else,)
             \$b() = tmp;
            },
 	   Doc => projectdocs( $name, $_->[0].$func, $_->[3] ),
@@ -176,14 +170,10 @@ precision."
            Code => qq{
             \$GENERIC(b) tmp = $init;
             loop(n) %{
-            #ifdef PDL_BAD_CODE
-              if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else {
-            #endif
+              PDL_IF_BAD(if ( \$ISBAD(a()) ) { \$SETBAD(b()); } else {,)
                 tmp $op \$a();
                 \$b() = tmp;
-            #ifdef PDL_BAD_CODE
-              }
-            #endif
+              PDL_IF_BAD(},)
             %}
            },
 	   Doc => cumuprojectdocs( $name, $_->[0].$cfunc, $_->[3] ),
@@ -233,18 +223,12 @@ foreach my $func ( sort keys %over ) {
 	    $def = $init;
             int flag = 0;
             loop(n) %{
-            #ifdef PDL_BAD_CODE
-            if ( \$ISGOOD(a()) ) { flag = 1;
-            #endif
+            PDL_IF_BAD(if ( \$ISGOOD(a()) ) { flag = 1;,)
               $op
               if ( $check ) break;
-            #ifdef PDL_BAD_CODE
-            }
-            #endif
+            PDL_IF_BAD(},)
             %}
-            #ifdef PDL_BAD_CODE
-            if ( !flag ) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else
-            #endif
+            PDL_IF_BAD(if ( !flag ) { \$SETBAD(b()); \$PDLSTATESETBAD(b); } else,)
             \$b() = tmp;
            },
 	   CopyBadStatusCode => '',
@@ -338,23 +322,13 @@ sub make_average {
           $GENERIC(b) tmp = 0;
           PDL_Indx cnt = 0;
           loop(n) %{
-            #ifdef PDL_BAD_CODE
-            if ( $ISGOOD(a()) ) {
-            #endif
+            PDL_IF_BAD(if ( $ISGOOD(a()) ) {,)
               cnt++;
               tmp += $a();
-            #ifdef PDL_BAD_CODE
-            }
-            #endif
+            PDL_IF_BAD(},)
           %}
           if ( !cnt ) {
-          #ifdef PDL_BAD_CODE
-            $SETBAD(b());
-          #elif defined(PDL_GENTYPE_INTEGER)
-            $b() = 0; /* Integer - set to 0 */
-          #else
-            $b() = NAN;
-          #endif
+            PDL_IF_BAD($SETBAD(b()), $b() = PDL_IF_GENTYPE_INTEGER(0,NAN));
           } else
             $b() = tmp / cnt;
         },

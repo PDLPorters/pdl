@@ -92,7 +92,7 @@ sub new {
     #
     # NOTE: amalgamate sizeprivs from good and bad code
     #
-    if ( $handlebad && ($code ne $badcode || $badcode =~ /PDL_BAD_CODE/) ) {
+    if ( $handlebad && ($code ne $badcode || $badcode =~ /PDL_BAD_CODE|PDL_IF_BAD/) ) {
 	print "Processing 'bad' code...\n" if $::PP_VERBOSE;
 	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) =
 	    $this->separate_code( "{\n$badcode\n}" );
@@ -416,10 +416,14 @@ sub get_str {
     my $str = PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 if ( \$PRIV(bvalflag) ) { PDL_COMMENT("** do 'bad' Code **")
 #define PDL_BAD_CODE
+#define PDL_IF_BAD(t,f) t
   @{[ $bad->get_str($parent,$context) ]}
 #undef PDL_BAD_CODE
+#undef PDL_IF_BAD
 } else { PDL_COMMENT("** else do 'good' Code **")
+#define PDL_IF_BAD(t,f) f
   @{[ $good->get_str($parent,$context) ]}
+#undef PDL_IF_BAD
 }
 EOF
 }
@@ -499,7 +503,8 @@ sub myitemstart {
       ? PDL::PP::pp_line_numbers(__LINE__-1, "\t\tPDL_DECLARE_PARAMS_$parent->{Name}(@{[join ',', @param_ctypes]})\n")
       : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
-    my @gentype_decls = map "#define PDL_GENTYPE_".uc($_)."\n", grep $item->$_,
+    my @gentype_decls = map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
+	($item->$_ ? 't' : 'f')."\n",
 	@GENTYPE_ATTRS;
     join '',
 	PDL::PP::pp_line_numbers(__LINE__-1, "case @{[$item->sym]}: {\n"),
@@ -512,8 +517,7 @@ sub myitemend {
     my $item = $this->[0][$nth] || return "";
     join '',
 	"\n",
-	(map "#undef PDL_GENTYPE_".uc($_)."\n", grep $item->$_,
-	@GENTYPE_ATTRS),
+	(map "#undef PDL_IF_GENTYPE_".uc($_)."\n", @GENTYPE_ATTRS),
 	PDL::PP::pp_line_numbers(__LINE__-1, "} break;\n");
 }
 

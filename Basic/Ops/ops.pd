@@ -139,9 +139,7 @@ EOH
 	   NoBadifNaN => 1,
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => pp_line_numbers(__LINE__-1, qq{
-		#ifdef PDL_BAD_CODE
-	        if ( $badcode ) \$SETBAD(c()); else
-		#endif
+	        PDL_IF_BAD(if ( $badcode ) \$SETBAD(c()); else,)
 	           \$c() = \$a() $op \$b();
 	   }),
 	   CopyBadStatusCode => pp_line_numbers(__LINE__,
@@ -252,13 +250,9 @@ ENDCODE
 	   OtherPars => 'int swap',
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => pp_line_numbers(__LINE__, qq{
-		#ifdef PDL_BAD_CODE
-	        if ( \$ISBAD(a()) || \$ISBAD(b()) ) \$SETBAD(c()); else {
-		#endif
+	        PDL_IF_BAD(if ( \$ISBAD(a()) || \$ISBAD(b()) ) \$SETBAD(c()); else {,)
 	           $codestr
-		#ifdef PDL_BAD_CODE
-		}
-		#endif
+		PDL_IF_BAD(},)
 	   }),
 	   CopyBadStatusCode =>
 	   pp_line_numbers(__LINE__, 'if ( $BADFLAGCACHE() ) {
@@ -328,13 +322,9 @@ sub ufunc {
 	   NoBadifNaN => 1,
 	   Inplace => 1,
 	   Code => pp_line_numbers(__LINE__, qq{
-		#ifdef PDL_BAD_CODE
-	        if ( $badcode ) \$SETBAD(b()); else {
-		#endif
+	        PDL_IF_BAD(if ( $badcode ) \$SETBAD(b()); else {,)
 	           $codestr
-		#ifdef PDL_BAD_CODE
-		}
-		#endif
+		PDL_IF_BAD(},)
 	   }),
 	   %extra,
 	   Doc => << "EOD");
@@ -440,9 +430,7 @@ pp_def ( '_rabs',
 	NoBadifNaN => 1,
 	    Inplace => 1,
 	Code => pp_line_numbers(__LINE__, qq{
-	  #ifdef PDL_BAD_CODE
-	  if ( \$ISBAD(a()) ) \$SETBAD(b()); else
-	  #endif
+	  PDL_IF_BAD(if ( \$ISBAD(a()) ) \$SETBAD(b()); else,)
 	     $rabs_code
 	}),
 	Doc=>undef,
@@ -483,9 +471,7 @@ pp_def(
        GenericTypes => $A,
        Pars => 'a(); [o]b();',
        Code => pp_line_numbers(__LINE__-1, q{
-	    #ifdef PDL_BAD_CODE
-	    if ( $ISBAD(a()) ) $SETBAD(b()); else
-	    #endif
+	    PDL_IF_BAD(if ( $ISBAD(a()) ) $SETBAD(b()); else,)
 	       $b() = $a();
        }),
        Doc =>
@@ -516,22 +502,16 @@ sub cfunc {
 	   NoBadifNaN => 1,
 	   Inplace => 1,
 	   Code => pp_line_numbers(__LINE__, qq{
-	      #ifdef PDL_BAD_CODE
-	      if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else
-	      #endif
+	      PDL_IF_BAD(if ( \$ISBAD(complexv()) ) \$SETBAD(b()); else,)
 		 $codestr
 	   }),
 	   !$backcode ? () : (
 	     DefaultFlow => 1,
 	     TwoWay => 1,
 	     BackCode => pp_line_numbers(__LINE__, qq{
-		#ifdef PDL_BAD_CODE
-		if ( \$ISBAD(b()) ) \$SETBAD(complexv()); else {
-		#endif
+		PDL_IF_BAD(if ( \$ISBAD(b()) ) \$SETBAD(complexv()); else {,)
 		   $backcode
-		#ifdef PDL_BAD_CODE
-		}
-		#endif
+		PDL_IF_BAD(},)
 	     }),
 	   ),
 	   %extra,

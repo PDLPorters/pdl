@@ -931,7 +931,7 @@ do not have a way of ignoring part of the data.
 This causes PDL::PP to write extra code that ensures the BadCode
 section is used, and that the C<$ISBAD()> macro (and its brethren)
 work. If no C<BadCode> is supplied, the C<Code> section will be used,
-on the assumption it will use C<#ifdef PDL_BAD_CODE> to handle bad values.
+on the assumption it will use C<PDL_IF_BAD> to handle bad values.
 
 =item HandleBad is not given
 
@@ -982,6 +982,7 @@ The C preprocessor symbol C<PDL_BAD_CODE> is defined when the bad code
 is compiled, so that you can reduce the amount of code you write.  The
 BadCode section can use the same macros and looping constructs as the
 Code section.
+As of 2.073, you can also use C<PDL_IF_BAD(iftrue,iffalse)>.
 
 =head2 Other bad-value macros
 
@@ -1078,6 +1079,14 @@ supplying only the C<Code> section:
        $SETBAD(c());
     }
     #endif PDL_BAD_CODE
+ ',
+
+As of 2.073, you can also use C<PDL_IF_BAD(iftrue,iffalse)>:
+
+ Code => '
+    PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) ) {,)
+       $c() = $a() + $b();
+    PDL_IF_BAD(} else $SETBAD(c());,)
  ',
 
 =head2 Interfacing your own/library functions using PP
@@ -2112,16 +2121,12 @@ your best bet will be to read the source code :-( or ask on the list
 
 =head1 C PREPROCESSOR MACROS
 
-As well as the above-mentioned C<PDL_BAD_CODE>, there are also
-C<PDL_GENTYPE_REAL>, C<PDL_GENTYPE_UNSIGNED>, and
-C<PDL_GENTYPE_INTEGER>. These will be defined when the operation's
-generic type has those characteristic(s):
+As well as the above-mentioned C<PDL_BAD_CODE> and
+C<PDL_IF_BAD(iftrue,iffalse)>, there are also
+C<PDL_IF_GENTYPE_REAL(iftrue,iffalse)>, C<PDL_IF_GENTYPE_UNSIGNED>, and
+C<PDL_IF_GENTYPE_INTEGER>:
 
-  #ifdef PDL_GENTYPE_INTEGER
-    $b() = 0; /* Integer - set to 0 */
-  #else
-    $b() = NAN;
-  #endif
+  $b() = PDL_IF_GENTYPE_INTEGER(0,NAN);
 
 =head1 Appendix A: Some keys recognised by PDL::PP
 
@@ -2158,6 +2163,7 @@ Only used if C<< HandleBad => 1 >>.
 If C<HandleBad> is true and C<BadCode> is not supplied, the C<Code>
 section will be reused, on the assumption it will use
 C<#ifdef PDL_BAD_CODE> to handle bad values.
+As of 2.073, you can also use C<PDL_IF_BAD(iftrue,iffalse)>.
 
 =head3 GenericTypes
 
