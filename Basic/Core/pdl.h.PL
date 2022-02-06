@@ -616,6 +616,44 @@ typedef struct pdl_slice_args {
         qsort_ ## ppsym(xx,i,b); \
   }
 
+#define PDL_EXPAND(...) __VA_ARGS__
+#define PDL_THREADLOOP_START(funcName, thr, vtable, ptrStep1, ptrStep2, ptrStep3) \
+  __thrloopval = PDL->startthreadloop(&(thr),(vtable)->funcName, __privtrans, &PDL_err); \
+  if (PDL_err.error) return PDL_err; \
+  if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error starting threadloop"); \
+  if ( __thrloopval ) return PDL_err; \
+  do { \
+    PDL_Indx *__tdims = PDL->get_threaddims(&(thr)); \
+    if (!__tdims) return PDL->make_error_simple(PDL_EFATAL, "Error in get_threaddims"); \
+    register PDL_Indx __tdims0 = __tdims[0]; \
+    register PDL_Indx __tdims1 = __tdims[1]; \
+    register PDL_Indx *__offsp = PDL->get_threadoffsp(&(thr)); \
+    if (!__offsp ) return PDL->make_error_simple(PDL_EFATAL, "Error in get_threadoffsp"); \
+    PDL_COMMENT("incs are each pdl's stride, declared at func start") \
+    PDL_COMMENT("offs are each pthread's starting offset into each pdl") \
+    ptrStep1 \
+    for( __tind1 = 0 ; \
+      __tind1 < __tdims1 ; \
+      __tind1++ \
+      PDL_COMMENT("step by tinc1, undoing inner-loop of tinc0*tdims0") \
+      PDL_EXPAND ptrStep2 \
+    ) \
+    { \
+      for( __tind0 = 0 ; \
+        __tind0 < __tdims0 ; \
+        __tind0++ \
+        PDL_EXPAND ptrStep3 \
+      ) { \
+        PDL_COMMENT("This is the tightest threadloop. Make sure inside is optimal.")
+#define PDL_THREADLOOP_END(thr, ptrStep1) \
+      } \
+    } \
+    PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset") \
+    ptrStep1 \
+    __thrloopval = PDL->iterthreadloop(&(thr),2); \
+    if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error in iterthreadloop"); \
+  } while(__thrloopval);
+
 /* __PDL_H */
 #endif
 
