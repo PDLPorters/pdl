@@ -1,3 +1,4 @@
+2.073 2022-02-07
 - PDL::Complex no longer undefs PDL::i
 - passing null as input param now an error
 - can now unify Code and BadCode into Code, and use PDL_IF_BAD() or #ifdef PDL_BAD_CODE
