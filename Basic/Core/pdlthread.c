@@ -277,9 +277,10 @@ pdl_error pdl_dim_checks(
   }
   for (i=0; i<vtable->npdls; i++) {
     PDL_Indx ninds = vtable->par_realdims[i];
+    short flags = vtable->par_flags[i];
+    if (!ninds || !(flags & PDL_PARAM_ISPHYS)) continue;
     pdl *pdl = pdls[i];
     PDL_Indx *dims = pdl->dims;
-    if (!ninds || !(vtable->par_flags[i] & PDL_PARAM_ISPHYS)) continue;
     for (j=0; j<ninds; j++) {
       ind_id = PDL_IND_ID(vtable, i, j);
       if (ind_sizes[ind_id] > 1 && ind_sizes[ind_id] != dims[j])
@@ -403,7 +404,7 @@ pdl_error pdl_initthreadstruct(int nobl,
 
 	/* populate the per_pdl_flags */
 	for (i=0;i<npdls; i++) {
-	  if (PDL_VAFFOK(pdls[i]) && VAFFINE_FLAG_OK(flags,i))
+	  if (pdls[i] && PDL_VAFFOK(pdls[i]) && VAFFINE_FLAG_OK(flags,i))
 	    thread->flags[i] |= PDL_THREAD_VAFFINE_OK;
 	}
 	flags = thread->flags; /* shortcut for the remainder */
@@ -521,6 +522,8 @@ pdl_error pdl_thread_create_parameter(pdl_thread *thread, PDL_Indx j,PDL_Indx *d
 			"Trying to create parameter while explicitly threading.\
 See the manual for why this is impossible");
 	}
+	if (!thread->pdls[j] && !(thread->pdls[j] = pdl_pdlnew()))
+	    return pdl_make_error_simple(PDL_EFATAL, "Error in pdlnew");
 	PDL_RETERROR(PDL_err, pdl_reallocdims(thread->pdls[j], thread->realdims[j] + td));
 	for(i=0; i<thread->realdims[j]; i++)
 		thread->pdls[j]->dims[i] = dims[i];
@@ -566,8 +569,9 @@ int pdl_startthreadloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 	}
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds, &dims);
 	if (!offsp) return -1;
-	for(j=0; j<npdls; j++)
+	for(j=0; j<npdls; j++) {
 	    offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
+	}
 	if (thr)
 	    for(j=0; j<npdls; j++) offsp[j] += PDL_THR_OFFSET(thr, thread) *
 		PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
