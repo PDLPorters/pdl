@@ -170,8 +170,8 @@ pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_I
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx j, nthrd;
 	PDL_Indx largest_nvals = 0;  /* The largest PDL size for all the pdls involved */
-	int maxPthreadPDL; /* PDL that has the max (or right at the target) num pthreads */
-	int maxPthreadDim; /* Threaded dim number that has the max num pthreads */
+	int maxPthreadPDL = -1; /* PDL that has the max (or right at the target) num pthreads */
+	int maxPthreadDim = -1; /* Threaded dim number that has the max num pthreads */
 	int maxPthread = 0;    /* Maximum achievable pthread */
 	int target_pthread = pdl_autopthread_targ;
 	pdl_autopthread_actual = 0; /* Initialize the global variable indicating actual number of pthreads */
