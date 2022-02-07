@@ -28,6 +28,12 @@ my $d_sort = $d->qsort;
 my $e = pdl([[1,2],[0,500],[2,3],[4,2],[3,4],[3,5]]);
 my $e_sort = $e->qsortvec;
 
+eval { sequence(3, 3)->medover(my $o = null, my $t = null); };
+isnt $@, '', 'a [t] Par cannot be passed';
+
+my $med_dim = 1000;
+ok tapprox(sequence(10,$med_dim,$med_dim)->medover, sequence($med_dim,$med_dim)*10+4.5), 'medover';
+
 # Test a range of values
 ok( tapprox($x->pctover(-0.5), $a_sort->at(0)), "pct below 0 for 25-elem pdl" );
 ok( tapprox($x->pctover( 0.0), $a_sort->at(0)), "pct equal 0 for 25-elem pdl" );

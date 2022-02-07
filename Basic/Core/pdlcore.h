@@ -2,6 +2,7 @@
 #define __PDLCORE_H
 
 /* version 20: memory-management changes */
+/* on 21, unify pdl_thread per_pdl_flags, par_flags */
 #define PDL_CORE_VERSION 20
 
 #include "EXTERN.h"   /* std perl include */

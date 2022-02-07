@@ -96,6 +96,10 @@ the copyright notice should be included in the file.
 
 sub names { $_[0]{Names} }
 sub names_sorted { $_[0]{NamesSorted} }
+sub names_sorted_tuples {
+  my ($count, @names) = (0, @{$_[0]{NamesSorted}});
+  map [$count++, $_[0]{Objects}{$_}{FlagTemp}, $_], @names;
+}
 
 sub objs { $_[0]{Objects} }
 sub names_in { my $o=$_[0]->objs; grep !$o->{$_}{FlagOut} && !$o->{$_}{FlagTemp}, @{$_[0]{Names}} }
@@ -131,7 +135,7 @@ sub otherobjs {
       @raw_names };
 }
 
-sub allnames { [@{$_[0]{Names}}, @{$_[0]->othernames($_[1])}] }
+sub allnames { [(grep !$_[0]{Objects}{$_}{FlagTemp}, @{$_[0]{Names}}), @{$_[0]->othernames($_[1])}] }
 sub allobjs {
   my $pdltype = PDL::PP::CType->new("pdl *__foo__");
   +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]->otherobjs($_[1])} };

@@ -238,9 +238,11 @@ pdl_error pdl_dim_checks(
     PDL_Indx ndims = pdl->ndims;
     PDLDEBUG_f(pdl_dump(pdl));
     if (creating[i]) {
-      PDL_Indx dims[PDLMAX(ninds, 1)]; /* Empty arrays not allowed in C99 */
+      PDL_Indx dims[PDLMAX(ninds+1, 1)];
       for (j=0; j<ninds; j++)
 	dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
+      if (vtable->par_flags[i] & PDL_PARAM_ISTEMP)
+	dims[ninds] = 1;
       PDL_RETERROR(PDL_err, pdl_thread_create_parameter(
 	pdlthread,i,dims,
 	vtable->par_flags[i] & PDL_PARAM_ISTEMP
@@ -406,6 +408,8 @@ pdl_error pdl_initthreadstruct(int nobl,
 	for (i=0;i<npdls; i++) {
 	  if (pdls[i] && PDL_VAFFOK(pdls[i]) && VAFFINE_FLAG_OK(flags,i))
 	    thread->flags[i] |= PDL_THREAD_VAFFINE_OK;
+	  if (vtable && vtable->par_flags[i] & PDL_PARAM_ISTEMP)
+	    thread->flags[i] |= PDL_THREAD_TEMP;
 	}
 	flags = thread->flags; /* shortcut for the remainder */
 
@@ -447,6 +451,9 @@ pdl_error pdl_initthreadstruct(int nobl,
 	for(nthid=0; nthid<nids; nthid++) {
 	for(i=0; i<nthreadids[nthid]; i++) {
 		for(j=0; j<npdls; j++) {
+			if (PDL_TISTEMP(flags[j]))
+			    PDL_THR_INC(thread->incs, npdls, j, nth) =
+				pdls[j]->dimincs[pdls[j]->ndims-1];
 			if(creating[j]) continue;
 			if(pdls[j]->nthreadids < nthid) continue;
 			if(pdls[j]->threadids[nthid+1]-
@@ -524,8 +531,8 @@ See the manual for why this is impossible");
 	}
 	if (!thread->pdls[j] && !(thread->pdls[j] = pdl_pdlnew()))
 	    return pdl_make_error_simple(PDL_EFATAL, "Error in pdlnew");
-	PDL_RETERROR(PDL_err, pdl_reallocdims(thread->pdls[j], thread->realdims[j] + td));
-	for(i=0; i<thread->realdims[j]; i++)
+	PDL_RETERROR(PDL_err, pdl_reallocdims(thread->pdls[j], thread->realdims[j] + td + (temp ? 1 : 0)));
+	for(i=0; i<thread->realdims[j] + (temp ? 1 : 0); i++)
 		thread->pdls[j]->dims[i] = dims[i];
 	if (!temp)
 	  for(i=0; i<thread->nimpl; i++)
@@ -557,6 +564,17 @@ int pdl_startthreadloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 		else{
 			thread->gflags |= PDL_THREAD_MAGICK_BUSY;
 			/* Do the threadloop magically (i.e. in parallel) */
+			for(j=0; j<npdls; j++) {
+			    if (!(t->vtable->par_flags[j] & PDL_PARAM_ISTEMP)) continue;
+			    pdl *it = thread->pdls[j];
+			    it->dims[it->ndims-1] = thread->mag_nthr;
+			    pdl_resize_defaultincs(it);
+			    pdl_error PDL_err = pdl_make_physical(it);
+			    if (PDL_err.error) {
+				*error_ret = PDL_err;
+				return 1;
+			    }
+			}
 			pdl_error PDL_err = pdl_magic_thread_cast(thread->pdls[thread->mag_nthpdl],
 				func,t, thread);
 			if (PDL_err.error) {
@@ -573,8 +591,11 @@ int pdl_startthreadloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 	    offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 	}
 	if (thr)
-	    for(j=0; j<npdls; j++) offsp[j] += PDL_THR_OFFSET(thr, thread) *
-		PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
+	    for(j=0; j<npdls; j++)
+		offsp[j] += PDL_TISTEMP(thread->flags[j])
+		    ? thr * thread->pdls[j]->dimincs[thread->pdls[j]->ndims-1]
+		    : PDL_THR_OFFSET(thr, thread) *
+			PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
 	return 0;
 }
 
@@ -598,8 +619,10 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	    for(j=0; j<thread->npdls; j++) {
 		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 		if (thr)
-		    offsp[j] += PDL_THR_OFFSET(thr, thread) *
-			PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
+		    offsp[j] += PDL_TISTEMP(thread->flags[j])
+			? thr * thread->pdls[j]->dimincs[thread->pdls[j]->ndims-1]
+			: PDL_THR_OFFSET(thr, thread) *
+			    PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
 		for(i=nth; i<thread->ndims; i++) {
 		    offsp[j] += PDL_THR_INC(thread->incs, thread->npdls, j, i) * inds[i];
 		}

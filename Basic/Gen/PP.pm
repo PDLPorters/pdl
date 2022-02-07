@@ -1836,18 +1836,18 @@ EOD
         my $ntmp   = grep $_, values %tmp;
         my $ntot   = @args;
         my $nmaxonstack = $ntot - $noutca;
-        my $nin    = $ntot - ($nout + $noutca + $ntmp);
+        my $nin    = $ntot - ($nout + $noutca);
         my $ninout = $nin + $nout;
         my $nallout = $nout + $noutca;
         my $ndefault = keys %$defaults;
-        my $usageargs = join ",", map exists $defaults->{$_} ? "$_=$defaults->{$_}" : $_, @args;
+        my $usageargs = join ",", map exists $defaults->{$_} ? "$_=$defaults->{$_}" : $_, grep !$tmp{$_}, @args;
         # Generate declarations for SV * variables corresponding to pdl * output variables.
-        # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
+        # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
-        my $svdecls = join "\n", map "${ci}SV *${_}_SV = NULL;", sort(keys %tmp), $sig->names_out;
+        my $svdecls = join "\n", map "${ci}SV *${_}_SV = NULL;", $sig->names_out;
         my $clause_inputs = ''; my %already_read; my $cnt = 0;
         foreach my $x (@args) {
-            last if $out{$x} || $tmp{$x} || $outca{$x} || $other{$x};
+            last if $out{$x} || $outca{$x} || $other{$x};
             $already_read{$x} = 1;
             $clause_inputs .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
             $cnt++;
@@ -1865,7 +1865,7 @@ EOD
                 push (@create, $x);
             } else {
                 $clause1 .= "$ci$x = PDL->SvPDLV(".
-		  (($out{$x}||$tmp{$x}) ? "${x}_SV = " : '').
+		  ($out{$x} ? "${x}_SV = " : '').
 		  "ST($cnt));\n" if !$already_read{$x};
                 $cnt++;
             }
@@ -1873,33 +1873,7 @@ EOD
         # Add code for creating output variables via call to 'initialize' perl routine
         $clause1 .= callPerlInit (\@create, $ci, $callcopy);
         @create = ();
-        # clause for reading in input and output vars and creating temps
-        my $clause2;
-        # skip this clause if there are no temps
-        if ($nmaxonstack == $ninout) {
-            $clause2 = '';
-        } else {
-            $clause2 = "\n  else if (items == $ninout) { PDL_COMMENT(\"all but temps on stack, read in output, create temps\")\n" .
-                "${ci}nreturn = $noutca;\n";
-            $cnt = 0;
-            foreach my $x (@args) {
-                if ($other{$x}) {
-                    $clause2 .= "$ci$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n";
-                    $cnt++;
-                } elsif ($tmp{$x} || $outca{$x}) {
-                    # a temporary or always create variable
-                    push (@create, $x);
-                } else { # an input or output variable
-                    $clause2 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n" if !$already_read{$x};
-                    $cnt++;
-                }
-            }
-            # Add code for creating output variables via call to 'initialize' perl routine
-            $clause2 .= callPerlInit (\@create, $ci, $callcopy);
-            $clause2 .= "}\n";
-            @create = ();
-        }
-        # clause for reading in input and creating output and temp vars
+        # clause for reading in input and creating output vars
         my $clause3 = '';
         my $defaults_rawcond = $ndefault ? "items == ($nin-$ndefault)" : '';
         $cnt = 0;
@@ -1910,7 +1884,7 @@ EOD
                   ? "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)"
                   : $setter) . ";\n";
                 $cnt++;
-            } elsif ($out{$x} || $tmp{$x} || $outca{$x}) {
+            } elsif ($out{$x} || $outca{$x}) {
                 push (@create, $x);
             } else {
                 $clause3 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n" if !$already_read{$x};
@@ -1921,7 +1895,7 @@ EOD
         $clause3 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
         my $defaults_cond = $ndefault ? " || $defaults_rawcond" : '';
         $clause3 = <<EOF . $clause3;
-  else if (items == $nin$defaults_cond) { PDL_COMMENT("only input variables on stack, create outputs and temps")
+  else if (items == $nin$defaults_cond) { PDL_COMMENT("only input variables on stack, create outputs")
     nreturn = $nallout;
 EOF
         $clause3 = '' if $nmaxonstack == $nin;
@@ -1936,14 +1910,13 @@ $svdecls
 $pars
  PPCODE:
   if (items != $nmaxonstack && !(items == $nin$defaults_cond) && items != $ninout)
-    croak (\"Usage:  PDL::$name($usageargs) (you may leave temporaries or output variables out of list)\");
+    croak (\"Usage:  PDL::$name($usageargs) (you may leave output variables out of list)\");
   PDL_XS_PACKAGEGET
 $clause_inputs
-  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output and temp vars")
+  if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")
     nreturn = $noutca;
 $clause1
   }
-$clause2
 $clause3$clause3_coda
 $hdrcode
 $inplacecode
@@ -2020,18 +1993,16 @@ EOF
 
    PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
-      my $no=0;
       join '',
-        map PDL::PP::pp_line_numbers(__LINE__, "$trans->pdls[".($no++)."] = $_;\n"),
-        @{ $sig->names_sorted };
+        map PDL::PP::pp_line_numbers(__LINE__, "$trans->pdls[$_->[0]] = $_->[2];\n"),
+        grep !$_->[1], $sig->names_sorted_tuples;
    }),
 
    PDL::PP::Rule->new("NewXSExtractTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
-      my $no=0;
       join '',
-        map PDL::PP::pp_line_numbers(__LINE__, "$_ = $trans->pdls[".($no++)."];\n"),
-        @{ $sig->names_sorted };
+        map PDL::PP::pp_line_numbers(__LINE__, "$_->[2] = $trans->pdls[$_->[0]];\n"),
+        grep !$_->[1], $sig->names_sorted_tuples;
    }),
 
    PDL::PP::Rule->new("NewXSRunTrans", ["StructName"], sub {

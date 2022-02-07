@@ -1128,6 +1128,9 @@ pdl_error pdl_trans_check_pdls(pdl_trans *trans) {
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
   for (i=0; i<vtable->npdls; i++) {
+    if (vtable->par_flags[i] & PDL_PARAM_ISTEMP)
+      if (!(pdls[i] = pdl_pdlnew()))
+	return pdl_make_error_simple(PDL_EFATAL, "Error in pdlnew");
     if (!pdls[i])
       return pdl_make_error(PDL_EFATAL, "%s got NULL pointer on param %s", vtable->name, vtable->par_names[i]);
   }

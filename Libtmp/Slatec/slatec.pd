@@ -435,10 +435,9 @@ use strict;
 sub PDL::eigsys {
 	my($h) = @_;
 	$h = float($h);
-	rs($h, 
+	rs($h,
 		my $eigval=PDL->null,
 		1,my $eigmat=PDL->null,
-		my $fvone = PDL->null,my $fvtwo = PDL->null,
 		my $errflag=PDL->null
 	);
 #	print $covar,$eigval,$eigmat,$fvone,$fvtwo,$errflag;

@@ -65,8 +65,10 @@ typedef struct pdl_thread {
 
 /* Thread per pdl flags */
 #define		PDL_THREAD_VAFFINE_OK	0x01
+#define		PDL_THREAD_TEMP 	0x02
 
 #define PDL_TVAFFOK(flag) (flag & PDL_THREAD_VAFFINE_OK)
+#define PDL_TISTEMP(flag) (flag & PDL_THREAD_TEMP)
 #define PDL_TREPRINC(pdl,flag,which) (PDL_TVAFFOK(flag) ? \
 		pdl->vafftrans->incs[which] : pdl->dimincs[which])
 #define PDL_TREPROFFS(pdl,flag) (PDL_TVAFFOK(flag) ? pdl->vafftrans->offs : 0)

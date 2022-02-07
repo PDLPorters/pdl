@@ -873,7 +873,7 @@ void pdl_hdr_childcopy(pdl_trans *trans) {
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
     short flags = vtable->par_flags[i];
-    if ((!(flags & PDL_PARAM_ISCREAT) ||
+    if (!(flags & PDL_PARAM_ISTEMP) && (!(flags & PDL_PARAM_ISCREAT) ||
          ((flags & PDL_PARAM_ISCREAT) && !PDL_DIMS_FROM_TRANS(trans,pdl))) &&
         pdl->hdrsv && (pdl->state & PDL_HDRCPY)
     ) {
