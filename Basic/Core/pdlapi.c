@@ -35,20 +35,21 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 	PDLDEBUG_f(printf("pdl__ensure_trans\n"));
 	PDL_TR_CHKMAGIC(trans);
 	PDL_Indx j, flag=what, par_pvaf=0;
+	pdl_transvtable *vtable = trans->vtable;
 /* Make parents physical */
-	for(j=0; j<trans->vtable->nparents; j++) {
-		if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
+	for(j=0; j<vtable->nparents; j++) {
+		if(VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
 			par_pvaf++;
 		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
 	}
-	for(; j<trans->vtable->npdls; j++) {
-		if(VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j))
+	for(; j<vtable->npdls; j++) {
+		if(VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
 			par_pvaf++;
 		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
 	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(trans);
-	for(j=0; j<trans->vtable->npdls; j++)
+	for(j=0; j<vtable->npdls; j++)
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
 	if(flag & (PDL_PARENTDATACHANGED | PDL_PARENTDIMSCHANGED)) {
@@ -61,12 +62,12 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 		} else
 			READDATA(trans);
 	}
-	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
+	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
 		child->state &= ~PDL_ANYCHANGED;
 		if (!wd) continue;
 		char isvaffine = (PDL_VAFFOK(child) &&
-		    VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,j));
+		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,j));
 		if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
 		    PDL_RETERROR(PDL_err, pdl_changed(child,wd[j],0));
 		if (isvaffine)
@@ -606,13 +607,14 @@ static inline pdl_error pdl_trans_flow_checks(pdl_trans *trans, int *ret) {
   pdl_error PDL_err = {0, NULL, 0};
   int pfflag=0;
   PDL_Indx i;
+  pdl_transvtable *vtable = trans->vtable;
 /* Then, set our children. This is: */
 /* First, determine whether any of our children already have
  * a parent, and whether they need to be updated. If this is
  * the case, we need to do some thinking. */
-  for(i=0; i<trans->vtable->nparents; i++)
+  for(i=0; i<vtable->nparents; i++)
     if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) pfflag++;
-  for(; i<trans->vtable->npdls; i++) {
+  for(; i<vtable->npdls; i++) {
 /* If children are flowing, croak. It's too difficult to handle properly */
     if(trans->pdls[i]->state & PDL_DATAFLOW_ANY)
 	return pdl_make_error_simple(PDL_EUSERERROR, "Sorry, cannot flowing families right now\n");
@@ -674,9 +676,11 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
   PDL_Indx creating[vtable->npdls];
   pdl **pdls = trans->pdls;
   PDL_Indx i;
-  for (i=0; i<vtable->npdls; i++)
-    creating[i] = (vtable->par_flags[i] & PDL_PARAM_ISCREAT) &&
+  for (i=0; i<vtable->npdls; i++) {
+    short flags = vtable->par_flags[i];
+    creating[i] = (flags & PDL_PARAM_ISCREAT) &&
       PDL_DIMS_FROM_TRANS(trans,pdls[i]);
+  }
   PDL_RETERROR(PDL_err, pdl_initthreadstruct(2, pdls,
     vtable->par_realdims, creating, vtable->npdls, vtable,
     &trans->pdlthread, trans->ind_sizes, trans->inc_sizes,
