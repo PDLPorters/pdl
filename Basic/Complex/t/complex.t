@@ -26,6 +26,9 @@ $y=$x->complex;
 is(ref $y, 'PDL::Complex', 'type of complex');
 is(ref $x, 'PDL::Complex', 'complex does modify original pdl');
 
+eval { my $string = PDL::Complex->null.'' };
+is $@, '', 'can stringify complex null';
+
 #Check r2C
 is(ref r2C(1), 'PDL::Complex', 'type of r2C');
 is(r2C(1)->re, 1, 'real part of r2C');

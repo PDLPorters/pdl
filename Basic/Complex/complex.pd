@@ -1120,7 +1120,7 @@ use overload
    (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt)),
    (map +($_ => sub { confess "Can't compare complex numbers" }), qw(< > <= >=)),
    "!=" => sub { !($_[0] == $_[1]) },
-   '""' => sub { $_[0]->as_native->string },
+   '""' => sub { $_[0]->isnull ? "PDL::Complex->null" : $_[0]->as_native->string },
 ;
 
 sub sum {

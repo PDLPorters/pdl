@@ -1,3 +1,5 @@
+- fix PDL::Complex->null stringify error
+
 2.073 2022-02-07
 - PDL::Complex no longer undefs PDL::i
 - passing null as input param now an error
