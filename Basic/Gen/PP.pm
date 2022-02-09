@@ -821,7 +821,7 @@ sub pp_addpm {
 	  $pos = 'Middle';
 	}
 	my @c = caller;
-	$::PDLPM{$pos} .= _pp_line_number_file(@c[1,2], $pm) . "\n\n";
+	$::PDLPM{$pos} .= _pp_line_number_file($c[1], $c[2]-1, "\n$pm")."\n\n";
 }
 
 sub pp_add_exported {
