@@ -290,6 +290,7 @@ sub pdlpp_mkgen {
     my $rv = system($^X, @in, $pp_call_arg, File::Spec::Functions::abs2rel(basename($pd)));
     die "pdlpp_mkgen: cannot convert '$pd'\n" unless $rv == 0 && -f $basefile;
     File::Copy::copy($basefile, $outfile) or die "$outfile: $!";
+    unlink $basefile; # Transform::Proj4.pm is wrong without GIS::Proj built
     chdir $old_cwd or die "chdir $old_cwd: $!";
     $added{"GENERATED/$prefix.pm"} = "mod=$mod pd=$pd (added by pdlpp_mkgen)";
   }
