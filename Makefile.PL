@@ -255,6 +255,7 @@ sub MY::postamble {
   my  $text =
 '
 doctest ::
+	cd Doc && make test
 	$(NOECHO) $(ECHO) "doctest: Building PDL documentation database in blib ..."
 	$(NOECHO) $(PERLRUNINST) Doc$(DFSEP)scantree.pl
 %HTML%	$(NOECHO) $(ECHO) "doctest: Building PDL documentation web pages in blib ..."
