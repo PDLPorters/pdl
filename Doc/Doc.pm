@@ -24,7 +24,7 @@ sub new {
   my $parser = $class->SUPER::new(@_);
   bless $parser,$class; # just in case
 
-  $parser->select("METHODS|OPERATORS|CONTRUCTORS|FUNCTIONS|NAME");
+  $parser->select("METHODS|OPERATORS|CONSTRUCTORS|FUNCTIONS|NAME");
   $parser->{CURFUNC} = undef;
   $parser->{SYMHASH} = {};
   $parser->{INBLOCK} = 0;
@@ -50,7 +50,7 @@ sub command {
     # so split at the commas
     my @funcs = split(',',$txt);
     # Remove parentheses (so myfunc and myfunc() both work)
-    my @names = map {$1 if m/\s*([^\s(]+)\s*/} @funcs;
+    my @names = map {$1 if m/\s*([^\s\(]+)\s*/} @funcs;
     barf "error parsing function list '$txt'"
       unless $#funcs == $#names;
     # check for signatures
