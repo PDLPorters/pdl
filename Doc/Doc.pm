@@ -45,6 +45,7 @@ sub command {
   } elsif ($this->{Mode} =~ /NAME/) {
     # do nothing (was 'last' but that was probably a mistake)
   } elsif ($cmd eq 'head2') {
+    return $this->SUPER::command($cmd,$txt,$line_num,$pod_para) if $txt =~ /^The\s/; # heuristic to deal with GSL::CDF descriptive =head2
     # A function can have multiple names (ex: zeros and zeroes),
     # so split at the commas
     my @funcs = split(',',$txt);
