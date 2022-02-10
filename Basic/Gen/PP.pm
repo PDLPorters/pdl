@@ -1057,7 +1057,7 @@ EOF
 	PDL::PP->pp_add_exported($name);
 	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
 	PDL::PP::pp_addpm($obj{PMCode}) if defined $obj{PMCode};
-	PDL::PP::pp_addpm($obj{PMFunc}."\n");
+	PDL::PP::pp_addpm($obj{PMFunc}."\n") if defined $obj{PMFunc};
 
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;
 }
