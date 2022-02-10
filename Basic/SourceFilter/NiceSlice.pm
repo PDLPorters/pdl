@@ -263,7 +263,7 @@ sub onearg ($) {
   print STDERR "processing arg '$arg'\n" if $PDL::NiceSlice::debug;
   return q|'X'| if $arg =~ /^\s*:??\s*$/;     # empty arg or just colon
   # recursively process args for slice syntax
-  $arg = findslice($arg,$PDL::debug) if $arg =~ $prefixpat;
+  $arg = findslice($arg,$PDL::NiceSlice::debug) if $arg =~ $prefixpat;
   # no doubles colon are matched to avoid confusion with Perl's C<::>
   if ($arg =~ /(?<!:):(?!:)/) { # a start:stop:delta range
     my @args = splitprotected '(?<!:):(?!:)', $arg;
@@ -311,9 +311,9 @@ sub procargs {
 # of $x(args) into $args->slice(processed_arglist)
 #
 sub findslice {
-  my ($src,$verb) = @_;
+  my ($src,$verbose) = @_;
   push @srcstr, \$src;
-  $verb = 0 unless defined $verb;
+  $verbose //= 0;
   my $processed = '';
   my $ct=0; # protect against infinite loop
   my ($found,$prefix,$dummy);
@@ -321,7 +321,7 @@ sub findslice {
 	   Text::Balanced::extract_bracketed($src,'()',$prefixpat))[0]
 	  && $ct++ < 1000) {
     print STDERR "pass $ct: found slice expr $found at line ".line()."\n"
-      if $verb;
+      if $verbose;
 
 #  Do final check for "for $var(LIST)" and "foreach $var(LIST)" syntax. 
 #  Process into an 'slice' call only if it's not that.
@@ -454,7 +454,7 @@ sub perldlpp {
  }
 
  ## Debugging to track exactly what is going on -- left in, in case it's needed again
- if($PDL::debug > 1) {
+ if($PDL::NiceSlice::debug > 1) {
      print "PDL::NiceSlice::perldlpp - got:\n$txt\n";
      my $i;
      for $i(0..5){
@@ -528,7 +528,7 @@ sub perldlpp {
                                                # we're stuffed
  }
 
- if($PDL::debug > 1) {
+ if($PDL::NiceSlice::debug > 1) {
      print "PDL::NiceSlice::perldlpp - returning:\n$new\n";
  }
  return $new;
