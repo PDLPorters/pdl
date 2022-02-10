@@ -122,10 +122,13 @@ translate_and_run 'my $t = ones 10; foreach my $type ( $t(0)->list ) { $pa .= $t
 is($pa, '1');
 
 # block method access translation
-
 $pa = pdl(5,3,2);
 $c = translate_and_run 'my $method = "dim"; $pa->$method(0)';
 is($c, $pa->dim(0));
+
+#$PDL::NiceSlice::debug_filter = 1;
+eval { require './t/bitshift.pm' };
+is $@, '', '<<= followed by >>= not blow up NiceSlice';
 
 #
 # todo ones
@@ -202,8 +205,10 @@ CHECK ( yr = $yr )
 };
 is $got, $expected, 'NiceSlice leaves strings along';
 
+if (!($::UC = $::UC)) {
 my $data = join '', <DATA>;
 like $data, qr/we've got data/, "we've got data";
+}
 }
 
 done_testing;

@@ -52,7 +52,7 @@ require PDL; # get PDL version number
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
 
-# this is purely for performance reasons - patch submitted to repo
+# this is purely for performance reasons - patch: https://github.com/steve-m-hay/Text-Balanced/pull/5
 my %ref_not_regex = map +($_=>1), qw(CODE Text::Balanced::Extractor);
 sub my_extract_multiple (;$$$$)	# ($text, $functions_ref, $max_fields, $ignoreunknown)
 {
@@ -153,6 +153,197 @@ sub my_extract_multiple (;$$$$)	# ($text, $functions_ref, $max_fields, $ignoreun
 	       pos $$textref = $firstpos };
 	return $fields[0];
 }
+# fixes false-positive heredoc - patch: https://github.com/steve-m-hay/Text-Balanced/pull/6
+my %mods   = (
+    'none' => '[cgimsox]*', 'm'=>'[cgimsox]*', 's'=>'[cegimsox]*',
+    'tr'=> '[cds]*', 'y'=> '[cds]*', 'qq'=> '', 'qx'=> '', 'qw'=> '',
+    'qr'=> '[imsx]*', 'q'=> '',
+);
+sub my_match_quotelike($$$$)      # ($textref, $prepat, $allow_raw_match)
+{
+    my ($textref, $pre, $rawmatch, $qmark) = @_;
+    my ($textlen,$startpos,
+        $oppos,
+        $preld1pos,$ld1pos,$str1pos,$rd1pos,
+        $preld2pos,$ld2pos,$str2pos,$rd2pos,
+        $modpos) = ( length($$textref), pos($$textref) = pos($$textref) || 0 );
+    unless ($$textref =~ m/\G($pre)/gc)
+    {
+        Text::Balanced::_failmsg qq{Did not find prefix /$pre/ at "} .
+                     substr($$textref, pos($$textref), 20) .
+                     q{..."},
+                 pos $$textref;
+        return;
+    }
+    $oppos = pos($$textref);
+    my $initial = substr($$textref,$oppos,1);
+    if ($initial && $initial =~ m|^[\"\'\`]|
+                 || $rawmatch && $initial =~ m|^/|
+                 || $qmark && $initial =~ m|^\?|)
+    {
+        unless ($$textref =~ m/ \Q$initial\E [^\\$initial]* (\\.[^\\$initial]*)* \Q$initial\E /gcsx)
+        {
+            Text::Balanced::_failmsg qq{Did not find closing delimiter to match '$initial' at "} .
+                         substr($$textref, $oppos, 20) .
+                         q{..."},
+                     pos $$textref;
+            pos $$textref = $startpos;
+            return;
+        }
+        $modpos= pos($$textref);
+        $rd1pos = $modpos-1;
+        if ($initial eq '/' || $initial eq '?')
+        {
+            $$textref =~ m/\G$mods{none}/gc
+        }
+        my $endpos = pos($$textref);
+        return (
+            $startpos,  $oppos-$startpos,       # PREFIX
+            $oppos,     0,                      # NO OPERATOR
+            $oppos,     1,                      # LEFT DEL
+            $oppos+1,   $rd1pos-$oppos-1,       # STR/PAT
+            $rd1pos,    1,                      # RIGHT DEL
+            $modpos,    0,                      # NO 2ND LDEL
+            $modpos,    0,                      # NO 2ND STR
+            $modpos,    0,                      # NO 2ND RDEL
+            $modpos,    $endpos-$modpos,        # MODIFIERS
+            $endpos,    $textlen-$endpos,       # REMAINDER
+        );
+    }
+    unless ($$textref =~ m{\G(\b(?:m|s|qq|qx|qw|q|qr|tr|y)\b(?=\s*\S)|<<(?!=))}gc)
+    {
+        Text::Balanced::_failmsg q{No quotelike operator found after prefix at "} .
+                     substr($$textref, pos($$textref), 20) .
+                     q{..."},
+                 pos $$textref;
+        pos $$textref = $startpos;
+        return;
+    }
+    my $op = $1;
+    $preld1pos = pos($$textref);
+    if ($op eq '<<') {
+        $ld1pos = pos($$textref);
+        my $label;
+        if ($$textref =~ m{\G([A-Za-z_]\w*)}gc) {
+            $label = $1;
+        }
+        elsif ($$textref =~ m{ \G ' ([^'\\]* (?:\\.[^'\\]*)*) '
+                             | \G " ([^"\\]* (?:\\.[^"\\]*)*) "
+                             | \G ` ([^`\\]* (?:\\.[^`\\]*)*) `
+                             }gcsx) {
+            $label = $+;
+        }
+        else {
+            $label = "";
+        }
+        my $extrapos = pos($$textref);
+        $$textref =~ m{.*\n}gc;
+        $str1pos = pos($$textref)--;
+        unless ($$textref =~ m{.*?\n(?=\Q$label\E\n)}gc) {
+            Text::Balanced::_failmsg qq{Missing here doc terminator ('$label') after "} .
+                         substr($$textref, $startpos, 20) .
+                         q{..."},
+                     pos $$textref;
+            pos $$textref = $startpos;
+            return;
+        }
+        $rd1pos = pos($$textref);
+        $$textref =~ m{\Q$label\E\n}gc;
+        $ld2pos = pos($$textref);
+        return (
+            $startpos,  $oppos-$startpos,       # PREFIX
+            $oppos,     length($op),            # OPERATOR
+            $ld1pos,    $extrapos-$ld1pos,      # LEFT DEL
+            $str1pos,   $rd1pos-$str1pos,       # STR/PAT
+            $rd1pos,    $ld2pos-$rd1pos,        # RIGHT DEL
+            $ld2pos,    0,                      # NO 2ND LDEL
+            $ld2pos,    0,                      # NO 2ND STR
+            $ld2pos,    0,                      # NO 2ND RDEL
+            $ld2pos,    0,                      # NO MODIFIERS
+            $ld2pos,    $textlen-$ld2pos,       # REMAINDER
+            $extrapos,  $str1pos-$extrapos,     # FILLETED BIT
+        );
+    }
+    $$textref =~ m/\G\s*/gc;
+    $ld1pos = pos($$textref);
+    $str1pos = $ld1pos+1;
+    unless ($$textref =~ m/\G(\S)/gc)   # SHOULD USE LOOKAHEAD
+    {
+        Text::Balanced::_failmsg "No block delimiter found after quotelike $op",
+                 pos $$textref;
+        pos $$textref = $startpos;
+        return;
+    }
+    pos($$textref) = $ld1pos;   # HAVE TO DO THIS BECAUSE LOOKAHEAD BROKEN
+    my ($ldel1, $rdel1) = ("\Q$1","\Q$1");
+    if ($ldel1 =~ /[[(<\{]/)
+    {
+        $rdel1 =~ tr/[({</])}>/;
+        defined(Text::Balanced::_match_bracketed($textref,"",$ldel1,"","",$rdel1))
+            || do { pos $$textref = $startpos; return };
+        $ld2pos = pos($$textref);
+        $rd1pos = $ld2pos-1;
+    }
+    else
+    {
+        $$textref =~ /\G$ldel1[^\\$ldel1]*(\\.[^\\$ldel1]*)*$ldel1/gcs
+            || do { pos $$textref = $startpos; return };
+        $ld2pos = $rd1pos = pos($$textref)-1;
+    }
+    my $second_arg = $op =~ /s|tr|y/ ? 1 : 0;
+    if ($second_arg)
+    {
+        my ($ldel2, $rdel2);
+        if ($ldel1 =~ /[[(<\{]/)
+        {
+            unless ($$textref =~ /\G\s*(\S)/gc) # SHOULD USE LOOKAHEAD
+            {
+                Text::Balanced::_failmsg "Missing second block for quotelike $op",
+                         pos $$textref;
+                pos $$textref = $startpos;
+                return;
+            }
+            $ldel2 = $rdel2 = "\Q$1";
+            $rdel2 =~ tr/[({</])}>/;
+        }
+        else
+        {
+            $ldel2 = $rdel2 = $ldel1;
+        }
+        $str2pos = $ld2pos+1;
+        if ($ldel2 =~ /[[(<\{]/)
+        {
+            pos($$textref)--;   # OVERCOME BROKEN LOOKAHEAD
+            defined(Text::Balanced::_match_bracketed($textref,"",$ldel2,"","",$rdel2))
+                || do { pos $$textref = $startpos; return };
+        }
+        else
+        {
+            $$textref =~ /[^\\$ldel2]*(\\.[^\\$ldel2]*)*$ldel2/gcs
+                || do { pos $$textref = $startpos; return };
+        }
+        $rd2pos = pos($$textref)-1;
+    }
+    else
+    {
+        $ld2pos = $str2pos = $rd2pos = $rd1pos;
+    }
+    $modpos = pos $$textref;
+    $$textref =~ m/\G($mods{$op})/gc;
+    my $endpos = pos $$textref;
+    return (
+        $startpos,      $oppos-$startpos,       # PREFIX
+        $oppos,         length($op),            # OPERATOR
+        $ld1pos,        1,                      # LEFT DEL
+        $str1pos,       $rd1pos-$str1pos,       # STR/PAT
+        $rd1pos,        1,                      # RIGHT DEL
+        $ld2pos,        $second_arg,            # 2ND LDEL (MAYBE)
+        $str2pos,       $rd2pos-$str2pos,       # 2ND STR (MAYBE)
+        $rd2pos,        $second_arg,            # 2ND RDEL (MAYBE)
+        $modpos,        $endpos-$modpos,        # MODIFIERS
+        $endpos,        $textlen-$endpos,       # REMAINDER
+    );
+}
 sub my_extract_quotelike (;$$)
 {
   my $textref = $_[0] ? \$_[0] : \$_;
@@ -174,6 +365,7 @@ BEGIN {
 # between Text::Balanced and Filter::Simple for our purpose.
 no warnings 'redefine';
 *Text::Balanced::extract_quotelike = \&my_extract_quotelike;
+*Text::Balanced::_match_quotelike = \&my_match_quotelike;
 *Text::Balanced::extract_multiple = \&my_extract_multiple;
 }
 
