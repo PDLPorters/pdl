@@ -113,25 +113,23 @@ sub px {
   my $package = $#_ > -1 ? shift : caller;
   my $classname = $arg;
   # find the correct package
+  $package .= "::" unless $package =~ /::$/;
   my $stab = \%main::;
-  $stab = $stab->{$1} for grep length, split /::/, $package;
+  $stab = $stab->{$_.'::'} for grep length, split /::/, $package;
   print "$classname variables in package $package\n\n";
   my $title = "Name         $PDL::Dbg::Title\n";
   print $title;
   print '-'x(length($title)+3)."\n";
-  my ($pdl,$npdls,$key,$val,$info) = ((),0,"","","");
-  # while (($key,$val) = each(%$stab)) {
-  foreach $key ( sort { lc($a) cmp lc($b) } keys(%$stab) ) {
-     $val = $stab->{$key};
-     $pdl = ${"$package$key"};
+  my $npdls = 0;
+  foreach my $key ( sort { lc($a) cmp lc($b) } keys %$stab ) {
+     my $pdl = do { no strict 'refs'; ${"$package$key"} };
+     next if !UNIVERSAL::isa($pdl,$classname);
      # print info for all objects derived from this class
-     if (UNIVERSAL::isa($pdl,$classname)) {
-        $npdls++;
-        $info = $pdl->info($PDL::Dbg::Infostr);
-        printf "\$%-11s %s %s\n",$key,$info,(ref($pdl) eq $classname ? '' :
-           ref($pdl));
-        # also print classname for derived classes
-     }
+     $npdls++;
+     my $info = $pdl->info($Infostr);
+     printf "\$%-11s %s %s\n",$key,$info,(ref $pdl eq $classname ? '' :
+        ref $pdl);
+     # also print classname for derived classes
   }
   print "no $classname objects in package $package\n"
        unless $npdls;
