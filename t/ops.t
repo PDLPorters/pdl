@@ -211,7 +211,7 @@ $data &= 0;
 ok(all($data == 0), 'and assign complex');
 }
 
-if ($Config{ivsize} >= 8) { # else the IVs below are NVs which aren't exact
+if ($Config{ivsize} >= 8 and $Config{intsize} >= 8) { # else the IVs below are NVs which aren't exact
 # check ipow routine
 my $xdata = longlong(0xeb * ones(8));
 my $n = sequence(longlong,8);
