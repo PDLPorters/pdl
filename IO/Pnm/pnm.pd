@@ -290,7 +290,7 @@ pp_def('pnminraw',
 		 if ((buf = (PDL_Byte*) malloc(llen*sizeof(PDL_Byte)))
 		      == NULL)
 			$CROAK("Error getting mem for line buffer");
-		 threadloop %{  /* with top to bottom inversion */
+		 broadcastloop %{  /* with top to bottom inversion */
 			for (i=ns-1; i>= 0; i--) {
 			   if (PerlIO_read($COMP(fp),buf,llen) != llen)
 				$CROAK("Error reading pnm file");
@@ -337,7 +337,7 @@ pp_def( 'pnminascii',
 
 		 switch ($COMP(format)) {
 		 case PBM:
-		   threadloop %{  /* with top to bottom inversion */
+		   broadcastloop %{  /* with top to bottom inversion */
 			for (i=ns-1; i>= 0; i--) {
 			loop(m) %{
 			    while ((s = PerlIO_getc($COMP(fp))) != EOF) {
@@ -370,7 +370,7 @@ pp_def( 'pnminascii',
 		  break;
 		case PGM:
 		case PPM:
-		   threadloop %{  /* with top to bottom inversion */
+		   broadcastloop %{  /* with top to bottom inversion */
 			PDL_Long j;
 			for (i=ns-1; i>= 0; i--) {
 			  loop(m) %{
@@ -402,7 +402,7 @@ pp_def(	'pnmout',
 	Code => '
 		 if ($COMP(israw)) {
 		    if ($COMP(isbin)) {
-		    	threadloop %{
+			broadcastloop %{
 			  int k=0, bit=0;
 			  loop(m) %{
 			    k = (k << 1) | ($a() < 1);
@@ -419,14 +419,14 @@ pp_def(	'pnmout',
 		       %}
 		    } else {
 		      int len = $SIZE(m) * sizeof($GENERIC());
-		      threadloop %{
+		      broadcastloop %{
 			if (PerlIO_write($COMP(fp),$P(a),len) != len)
 				$CROAK("Error writing pnm file");
 		      %}
 		    }
 		 } else {
 		    int len=0;
-		    threadloop %{
+		    broadcastloop %{
 			loop(m) %{
 				PerlIO_printf($COMP(fp),"%3d ",$COMP(isbin) ?
 					($a() < 1) :$a());

@@ -88,7 +88,7 @@ PJ *proj = proj_create( NULL, $COMP(params) ); /* Init the projection */
 if( proj == NULL )
     $CROAK("%s: Projection initialization failed: %s\n", func, proj_errno_string(proj_errno(proj)));
 /* Loop over the values converting as we go */
-threadloop %{
+broadcastloop %{
 EOF
 my $code_foot = <<'EOF';
 %}

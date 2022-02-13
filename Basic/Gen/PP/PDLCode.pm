@@ -12,7 +12,7 @@ use Carp;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
-my @code_args_always = qw(BadFlag SignatureObj GenericTypes ExtraGenericSwitches HaveThreading Name);
+my @code_args_always = qw(BadFlag SignatureObj GenericTypes ExtraGenericSwitches HaveBroadcasting Name);
 sub make_args {
   my ($which) = @_;
   ("Parsed$which", [$which,\"Bad$which",@code_args_always]);
@@ -82,7 +82,7 @@ sub new {
 	print "Adding broadcastloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
 	$coderef = $backcode
-	  ? PDL::PP::BackCodeThreadLoop->new() : PDL::PP::ThreadLoop->new();
+	  ? PDL::PP::BackCodeBroadcastLoop->new() : PDL::PP::BroadcastLoop->new();
 	push @{$coderef},$nc;
     }
 
@@ -101,10 +101,10 @@ sub new {
 	    print "Adding 'bad' broadcastloop...\n" if $::PP_VERBOSE;
 	    my $nc = $bad_coderef;
 	    if( !$backcode ){ # Normal readbackdata broadcastloop
-		    $bad_coderef = PDL::PP::ThreadLoop->new();
+		    $bad_coderef = PDL::PP::BroadcastLoop->new();
 	    }
 	    else{  # writebackcode broadcastloop
-		    $bad_coderef = PDL::PP::BackCodeThreadLoop->new();
+		    $bad_coderef = PDL::PP::BackCodeBroadcastLoop->new();
 	    }
 	    push @{$bad_coderef},$nc;
 	}
@@ -235,7 +235,7 @@ sub process {
 	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
 		|\bloop\s*\([^)]+\)\s*%\{   # loop(..) %{
 		|\btypes\s*\([^)]+\)\s*%\{  # types(..) %{
-		|\bthreadloop\s*%\{         # threadloop %{
+		|\b(?:thread|broadcast)loop\s*%\{         # broadcastloop %{
 		|%}                        # %}
 		|$)//xs
 		    or confess("Invalid program $code");
@@ -254,8 +254,8 @@ sub process {
 	    my $ob = PDL::PP::Types->new($1,$this);
 	    push @{$stack_ref->[-1]},$ob;
 	    push @$stack_ref,$ob;
-	} elsif($control =~ /^threadloop\s*%\{/) {
-	    my $ob = PDL::PP::ThreadLoop->new;
+	} elsif($control =~ /^(?:thread|broadcast)loop\s*%\{/) {
+	    my $ob = PDL::PP::BroadcastLoop->new;
 	    push @{$stack_ref->[-1]},$ob;
 	    push @$stack_ref,$ob;
 	    $$broadcastloops_ref++;
@@ -534,7 +534,7 @@ sub mypostlude {
 # This relies on PP.pm making sure that initthreadstruct always sets
 # up the two first dimensions even when they are not necessary.
 #
-package PDL::PP::ThreadLoop;
+package PDL::PP::BroadcastLoop;
 use Carp;
 our @ISA = "PDL::PP::Block";
 
@@ -553,12 +553,12 @@ sub mypostlude {my($this,$parent,$context) = @_;
     $parent->broadcastloop_end;
 }
 
-# Simple subclass of ThreadLoop to implement writeback code
+# Simple subclass of BroadcastLoop to implement writeback code
 #
 #
-package PDL::PP::BackCodeThreadLoop;
+package PDL::PP::BackCodeBroadcastLoop;
 use Carp;
-our @ISA = "PDL::PP::ThreadLoop";
+our @ISA = "PDL::PP::BroadcastLoop";
 
 sub myprelude {
     my($this,$parent,$context, $backcode) = @_;

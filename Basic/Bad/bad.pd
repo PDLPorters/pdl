@@ -834,7 +834,7 @@ bad flag set.
     },
     Code => q[
         int flag = 0;
-        threadloop %{
+        broadcastloop %{
             if ( PDL_ISNAN_$PPSYM()($a()) ) {
                 $SETBAD(b());
                 flag = 1;
@@ -888,7 +888,7 @@ bad flag set.
     },
     Code => q[
         int flag = 0;
-        threadloop %{
+        broadcastloop %{
             if ( !PDL_ISFINITE_$PPSYM()($a()) && !PDL_ISNAN_$PPSYM()($a()) ) {
                 $SETBAD(b());
                 flag = 1;
@@ -942,7 +942,7 @@ bad flag set.
     },
     Code => q[
         int flag = 0;
-        threadloop %{
+        broadcastloop %{
             if ( !PDL_ISFINITE_$PPSYM()($a()) ) {
                 $SETBAD(b());
                 flag = 1;
@@ -1039,7 +1039,7 @@ values are copied with no replacement.
     BadCode => q{
         $GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
         $GENERIC(b) a_val;
-        threadloop %{
+        broadcastloop %{
             a_val = $a();
             if ( $ISBADVAR(a_val,a) ) {
                 $b() = replace;

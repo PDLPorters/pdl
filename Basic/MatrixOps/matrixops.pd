@@ -1398,7 +1398,7 @@ pp_def("squaretotri",
 	    if($SIZE (m) != (ns * (ns+1))/2) {
 	       $CROAK("Wrong sized args for squaretotri");
 	    }
-            threadloop %{
+            broadcastloop %{
 		loop(m) %{
                       $b() = $a(n0 => mna, n1 => nb);
                       mna++; if(mna > nb) {mna = 0; nb ++;}

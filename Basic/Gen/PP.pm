@@ -1610,9 +1610,10 @@ EOD
    PDL::PP::Rule::Returns->new("StructName", "__privtrans"),
    PDL::PP::Rule::Returns->new("ParamStructName", "__params"),
 
+   PDL::PP::Rule->new("HaveBroadcasting","HaveThreading", sub {@_}), # compat
    PDL::PP::Rule::Croak->new([qw(P2Child GenericTypes)],
        'Cannot have both P2Child and GenericTypes defined'),
-   PDL::PP::Rule->new([qw(Pars HaveThreading CallCopy GenericTypes DefaultFlow AllFuncHeader RedoDimsFuncHeader)],
+   PDL::PP::Rule->new([qw(Pars HaveBroadcasting CallCopy GenericTypes DefaultFlow AllFuncHeader RedoDimsFuncHeader)],
 		      ["P2Child","Name","StructName"],
       sub {
         my (undef,$name,$sname) = @_;
@@ -1741,7 +1742,7 @@ EOD
 
    PDL::PP::Rule::InsertName->new("NewXSName", '_${name}_int'),
 
-   PDL::PP::Rule::Returns::One->new("HaveThreading"),
+   PDL::PP::Rule::Returns::One->new("HaveBroadcasting"),
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
@@ -2201,12 +2202,12 @@ EOF
    PDL::PP::Rule->new("VTableDef",
       ["VTableName","ParamStructType","RedoDimsFuncName","ReadDataFuncName",
        "WriteBackDataFuncName","FreeFuncName",
-       "SignatureObj","Affine_Ok","HaveThreading","NoPthread","Name",
+       "SignatureObj","Affine_Ok","HaveBroadcasting","NoPthread","Name",
        "GenericTypes","IsAffineFlag","TwoWayFlag","DefaultFlowFlag",
        "BadFlag"],
       sub {
         my($vname,$ptype,$rdname,$rfname,$wfname,$ffname,
-           $sig,$affine_ok,$havethreading, $noPthreadFlag, $name, $gentypes,
+           $sig,$affine_ok,$havebroadcasting, $noPthreadFlag, $name, $gentypes,
            $affflag, $revflag, $flowflag, $badflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
         my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
@@ -2215,7 +2216,7 @@ EOF
         my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1) || '0';
         my @op_flags;
-        push @op_flags, 'PDL_TRANS_DO_THREAD' if $havethreading;
+        push @op_flags, 'PDL_TRANS_DO_THREAD' if $havebroadcasting;
         push @op_flags, 'PDL_TRANS_BADPROCESS' if $badflag;
         push @op_flags, 'PDL_TRANS_BADIGNORE' if defined $badflag and !$badflag;
         push @op_flags, 'PDL_TRANS_NO_PARALLEL' if $noPthreadFlag;

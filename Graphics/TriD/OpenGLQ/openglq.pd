@@ -116,7 +116,7 @@ pp_def('gl_points',
 	Pars => 'coords(tri=3); colors(tri);',
 	Code => '
 		glBegin(GL_POINTS);
-		threadloop %{'.COLOR().VERTEX().'
+		broadcastloop %{'.COLOR().VERTEX().'
 		%}
 		glEnd();
 	',
@@ -222,7 +222,7 @@ pp_def(
 	Code => '
 		float tmp1[3]; float tmp2[3];
 		glBegin(GL_TRIANGLES);
-		threadloop %{'.
+		broadcastloop %{'.
 			($_->{NormalCode}//'')
 			.&{$m->{Func}}("a").VERTEX("a").
 			($_->{NormalCodeB}//'')
@@ -245,7 +245,7 @@ pp_def('gl_arrows',
 		float w = $COMP(width);
 		float tmp2[3]; tmp2[0] = 0.000001; tmp2[1] = -0.0001; tmp2[2] = 1;
  		glBegin(GL_LINES);
-		threadloop %{
+		broadcastloop %{
 			int a = $indsa();
 			int b = $indsb();
 			float tmp1[3]; 

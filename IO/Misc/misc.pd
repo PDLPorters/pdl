@@ -1318,7 +1318,7 @@ pp_def('_rasc',
        Code => q@ 
                  int ns, i, j;
                  ns = $SIZE(n);
-                 threadloop %{
+                 broadcastloop %{
                    for (i=0;i<ns; i++) {
                        if (($ierr(n=>i) =
                            $TFD(getfloat,getdouble)($COMP(fp), &($nums(n=>i)))) <= 0)

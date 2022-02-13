@@ -356,7 +356,7 @@ sub PDL::rebin {
       int i;
       double u, d;
       $GENERIC(a) av;
-         threadloop %{
+         broadcastloop %{
           i = 0;
           d = -1;
           loop (n) %{ $b() = 0; %}

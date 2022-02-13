@@ -492,7 +492,7 @@ pp_def('_iis',
    if (data==NULL)
       iis_error("iis_display: out of memory for buffer","");
 
-   threadloop %{
+   broadcastloop %{
 
       /* Send WCS info */
 
@@ -607,7 +607,7 @@ pp_def( '_iiscirc',
         (int)SvIV( perl_get_sv("fb_x", FALSE) ),
         (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
 
-   threadloop %{
+   broadcastloop %{
       iis_drawcirc( (float) $x(), (float) $y(), (float) $r(), (int) $colour(), frame);
    %}
 

@@ -57,7 +57,7 @@ pp_def('polyfill_pp',
     HandleBad => 0, # a marker
 	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
 	Code => 'int ierr = 0, nerr;
-	         threadloop %{
+	         broadcastloop %{
 		   polyfill($P(im), $SIZE(m), $SIZE(n), $P(ps), $SIZE(np), $col(), &nerr);
 		   ierr = ierr < nerr ? nerr : ierr;
 		 %}
@@ -85,7 +85,7 @@ for my $name (sort keys %pnpolyFields) {
 	        #define VERTX(q) $ps(k=>0,l=>q)
 	        #define VERTY(q) $ps(k=>1,l=>q)
 
-			threadloop %{
+			broadcastloop %{
 				loop(n) %{
 					loop(m) %{
 	                	c = 0;
@@ -272,7 +272,7 @@ sub PDL::conv2d {
            init_map("i") .
            init_map("j") .
 '
-           threadloop %{
+           broadcastloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
                  tmp = 0;
@@ -297,7 +297,7 @@ sub PDL::conv2d {
            init_map("i") .
            init_map("j") .
 '
-           threadloop %{
+           broadcastloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
                  tmp = 0;
@@ -391,7 +391,7 @@ sub PDL::med2d {
            init_map("i") .
            init_map("j") .
 '
-           threadloop %{
+           broadcastloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
                  count = 0;
@@ -424,7 +424,7 @@ sub PDL::med2d {
            init_map("j") .
 '
            PDL_Double tmp[p_size*q_size];
-           threadloop %{
+           broadcastloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
                  count = 0;
@@ -521,7 +521,7 @@ sub PDL::med2df {
            init_map("j") .
 '
            $GENERIC() tmp[p_size*q_size];
-           threadloop %{
+           broadcastloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
                  count = 0;
@@ -565,7 +565,7 @@ pp_def('box2d',
 
 		div = 1/((2.0*nx+1)*(2.0*ny+1));
 
-		threadloop %{
+		broadcastloop %{
 		  first = 1;
 		  for (y=0;y<ys;y++)
 		    for (xx=0; xx<nx; xx++) {
@@ -666,7 +666,7 @@ EOD
 
          m_size = $SIZE(m); n_size = $SIZE(n);
 
-      threadloop %{
+      broadcastloop %{
 
          for(j=0; j<n_size; j++) {
             for(i=0; i<m_size; i++) {
@@ -739,7 +739,7 @@ bad values, depending on the pattern of bad values in the input ndarray.',
          flag = 0;
          m_size = $SIZE(m); n_size = $SIZE(n);
 
-      threadloop %{
+      broadcastloop %{
 
          for(j=0; j<n_size; j++) {
             for(i=0; i<m_size; i++) {
@@ -1403,7 +1403,7 @@ EOD
   double x,y,dx,dy,y1,y2,y3,y4,t,u,sum;
 
   if ($SIZE(q)>=$SIZE(n) && $SIZE(p)>=$SIZE(m)) {
-    threadloop %{
+    broadcastloop %{
       dx = ((double) ($SIZE(n)-1)) / ($SIZE(q)-1);
       dy = ((double) ($SIZE(m)-1)) / ($SIZE(p)-1);
       for(i=0,x=0;i<$SIZE(q);i++,x+=dx) {
@@ -1460,7 +1460,7 @@ ox = $SIZE(p);
 oy = $SIZE(q);
 
 if(ox >= ix && oy >= iy) {
-  threadloop %{
+  broadcastloop %{
     kx = ((double) (ox)) / (ix);
     ky = ((double) (oy)) / (iy);
     lx = 0;
@@ -1481,7 +1481,7 @@ if(ox >= ix && oy >= iy) {
   %}
 }
 else if(ox < ix && oy < iy) {
-  threadloop %{
+  broadcastloop %{
     kx = ((double) (ix)) / (ox);
     ky = ((double) (iy)) / (oy);
     lx = 0;
@@ -1506,7 +1506,7 @@ else if(ox < ix && oy < iy) {
   %}
 }
 else if(ox >= ix && oy < iy) {
-  threadloop %{
+  broadcastloop %{
     kx = ((double) (ox)) / (ix);
     ky = ((double) (iy)) / (oy);
     lx = 0;
@@ -1533,7 +1533,7 @@ else if(ox >= ix && oy < iy) {
   %}
 }
 else if(ox < ix && oy >= iy) {
-  threadloop %{
+  broadcastloop %{
     kx = ((double) (ix)) / (ox);
     ky = ((double) (oy)) / (iy);
     lx = 0;
@@ -2222,7 +2222,7 @@ sub PDL::warp2d {
     poly[0] = 1.0;
 
     /* Loop over the output image */
-    threadloop %{
+    broadcastloop %{
 	loop(n) %{
 
 	    /* fill in poly array */
@@ -2379,7 +2379,7 @@ sub PDL::warp2d_kernel ($) {
 
     /* fill in ndarrays */
     xx = 0.0;
-    threadloop %{
+    broadcastloop %{
 	loop (n) %{
 	    $x() = xx;
 	    $k() = kernel[n];

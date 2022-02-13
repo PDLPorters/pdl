@@ -1460,10 +1460,10 @@ my $p1 = 'register int j;
 	register int maxj = $SIZE(m)-1;
 	register double min  = $COMP(min);
 	register double step = $COMP(step);
-	threadloop %{
+	broadcastloop %{
 	   loop(m) %{ $hist() = 0; %}
 	%}
-	threadloop %{
+	broadcastloop %{
 	   loop(n) %{';
 my $p2 = '
 	      j = (int) (($in()-min)/step);
@@ -1574,10 +1574,10 @@ for(
 	register double minb = $COMP(minb);
 	register double stepa = $COMP(stepa);
 	register double stepb = $COMP(stepb);
-	threadloop %{
+	broadcastloop %{
 	   loop(ma,mb) %{ $hist() = 0; %}
 	%}
-	threadloop %{
+	broadcastloop %{
 	   loop(n) %{';
        my $p2 = '
 	      ja = (int) (($ina()-mina)/stepa);
@@ -1671,7 +1671,7 @@ sub PDL::append {
 		',
 	Code => 'register PDL_Indx mnp;
 		 PDL_Indx ns = $SIZE(n);
-                 threadloop %{
+                 broadcastloop %{
                        loop(n) %{ $c(mn => n) = $a(); %}
 		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
 		 %}',
@@ -1813,7 +1813,7 @@ pp_def(
 pdl_srand(&pdl_rand_state, (uint64_t)$a(), PDL->online_cpus());
 EOF
 	NoPthread => 1,
-	HaveThreading => 0,
+	HaveBroadcasting => 0,
 	Doc=> <<'EOF',
 =for ref
 
@@ -1841,7 +1841,7 @@ pp_def(
 	Code => <<'EOF',
 PDL_MAYBE_SRAND
 int rand_offset = -1;
-threadloop %{
+broadcastloop %{
   PDL_RAND_SET_OFFSET(rand_offset, $PRIV(pdlthread), $PDL(a));
   $a() = pdl_drand(pdl_rand_state + 4*rand_offset);
 %}
@@ -1885,7 +1885,7 @@ pp_def(
 	Code => <<'EOF',
 PDL_MAYBE_SRAND
 int rand_offset = -1;
-threadloop %{
+broadcastloop %{
   PDL_RAND_SET_OFFSET(rand_offset, $PRIV(pdlthread), $PDL(a));
   double tmp;
   do tmp = pdl_drand(pdl_rand_state + 4*rand_offset); while (tmp == 0.0); /* 0 < tmp < 1 */
@@ -2583,7 +2583,7 @@ pp_def('interpolate',
                  PDL_Indx jl, jh, m;
                  int carp;
 
-                 threadloop %{
+                 broadcastloop %{
                    jl = -1;
                    jh = n;
                    carp = 0;

@@ -1,4 +1,5 @@
 - fix false-positive heredoc in bitshift (#383) - thanks @d-lamb for report
+- threading now called broadcasting (compat aliases created)
 
 2.074 2022-02-08
 - fix PDL::Complex->null stringify error

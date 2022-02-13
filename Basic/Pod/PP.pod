@@ -178,12 +178,12 @@ of PDL arrays in Perl (e.g. C<< $x->slice('0:10:2,:') >> or other things such
 as transposes) it is nice to be able to do this transparently and to
 be able to do this 'in-place' - i.e, not to have to make a memory copy
 of the section. PP handles all the necessary element and offset
-arithmetic for you. There are also the notions of threading (repeated
+arithmetic for you. There are also the notions of broadcasting (repeated
 calling of the same routine for multiple slices, see L<PDL::Indexing>)
 and dataflow (see L<PDL::Dataflow>, and L</DefaultFlow>) which use of PP allows.
 
 In much of what follows we will assume familiarity of the reader with
-the concepts of implicit and explicit threading and index manipulations
+the concepts of implicit and explicit broadcasting and index manipulations
 within PDL. If you have not yet heard of these concepts or are not very
 comfortable with them it is time to check L<PDL::Indexing>.
 
@@ -285,9 +285,9 @@ control of the loop and now you know how to do it ;).
 
 To revisit 'Why PP?' - the above code for sumit() will be
 generated for each data-type. It will operate on slices
-of arrays 'in-place'. It will thread automatically - e.g. if
+of arrays 'in-place'. It will broadcast automatically - e.g. if
 a 2D array is given it will be called repeatedly for each
-1D row (again check L<PDL::Indexing> for the details of threading).
+1D row (again check L<PDL::Indexing> for the details of broadcasting).
 And then b() will be a 1D array of sums of each row.
 We could call it with $x->transpose to sum the columns instead.
 And Dataflow tracing etc. will be available.
@@ -395,7 +395,7 @@ interface PDL to some external library
 =item *
 
 write some algorithm that would be slow if coded in Perl
-(this is not as often as you think; take a look at threading
+(this is not as often as you think; take a look at broadcasting
 and dataflow first).
 
 =item *
@@ -437,7 +437,7 @@ the 'data operation' and 'slice operation' prototypes.
 The 'data operation' is used to take some data, mangle it and
 output some other data; this includes for example the '+' operation,
 matrix inverse, sumover etc and all the examples we have talked about
-in this document so far. Implicit and explicit threading and the creation
+in this document so far. Implicit and explicit broadcasting and the creation
 of the result are taken care of automatically in those operations. You
 can even do dataflow with C<sumit>, C<sumover>, etc
 (don't be dismayed if you don't understand the concept of dataflow
@@ -474,7 +474,7 @@ line is easy: we're defining a routine with the name 'add'.
 The second line simply declares our parameters and the parentheses
 mean that they are scalars. We call the string that defines our parameters
 and their dimensionality the I<signature> of that function. For its
-relevance with regard to threading and index manipulations check the
+relevance with regard to broadcasting and index manipulations check the
 L<PDL::Indexing> man page.
 
 The third line is the actual operation. You need to use the
@@ -497,7 +497,7 @@ can do
 	add($x,$y,($c=null)); # Alternative form, useful if $c has been
 	                      # preset to something big, not useful here.
 
-and have threading work correctly (the result is $c == [7 8 9]).
+and have broadcasting work correctly (the result is $c == [7 8 9]).
 
 =head2 The Pars section: the signature of a PP function
 
@@ -545,16 +545,16 @@ used for temporary results in the course of the calculation and you are
 not interested in its value after the computation has been completed. But
 why should PDL::PP want to know about this in the first place?  The reason
 is closely related to the concepts of pdl auto creation (you heard
-about that above) and implicit threading. If you use implicit threading
+about that above) and implicit broadcasting. If you use implicit broadcasting
 the dimensionality of automatically created pdls is actually larger than
 that specified in the signature. With C<[o]> flagged pdls will be created
 so that they have the additional dimensions as required by the number
-of implicit thread dimensions. When creating a temporary pdl, however,
+of implicit broadcast dimensions. When creating a temporary pdl, however,
 it will always only be made big enough so that it can hold the result
-for one iteration in a thread loop, i.e. as large as required by the signature.
+for one iteration in a broadcast loop, i.e. as large as required by the signature.
 So less memory is wasted when you flag a pdl as temporary. Secondly, you
 can use output auto creation with temporary pdls even when you are using
-explicit threading which is forbidden for normal output pdls flagged with
+explicit broadcasting which is forbidden for normal output pdls flagged with
 C<[o]> (see L<PDL::Indexing>).
 
 As of 2.073, the user is unable to pass a C<[t]> parameter, and PDL will
@@ -622,7 +622,7 @@ syntax in the Pars section to specify the size of the dimension:
 
     ' [o] y(n=9); '
 
-As expected, extra dimensions required by threading will be
+As expected, extra dimensions required by broadcasting will be
 created if necessary. If you need to assign a named dimension according
 to a more complicated formula (than a constant) you must use the 
 C<RedoDimsCode> key described below.
@@ -814,14 +814,14 @@ arguments as output and temporary args and all dimensions that you can
 later refer to in the C<Code> section are defined by name.
 
 It is important that you understand the meaning of the signature since
-in the latest PDL versions you can use it to define threaded functions
-from within Perl, i.e. what we call I<Perl level threading>. Please check
+in the latest PDL versions you can use it to define broadcasting functions
+from within Perl, i.e. what we call I<Perl level broadcasting>. Please check
 L<PDL::Indexing> for details.
 
 =head2 The Code section
 
 The C<Code> section contains the actual XS code that will be in the
-innermost part of a thread loop (if you don't know what a thread loop is then
+innermost part of a broadcast loop (if you don't know what a broadcast loop is then
 you still haven't read L<PDL::Indexing>; do it now ;) after any PP macros
 (like C<$GENERIC>) and PP functions have been expanded (like the
 C<loop> function we are going to explain next).
@@ -1347,23 +1347,23 @@ The only PP function that we have used in the examples so far is C<loop>.
 Additionally, there are currently two other functions which are recognised
 in the C<Code> section:
 
-=head3 threadloop
+=head3 broadcastloop
 
 As we heard above the signature of a PP defined function defines the
 dimensions of all the pdl arguments involved in a I<primitive> operation.
 However, you often call the functions that you defined with PP with pdls
 that have more dimensions than those specified in the signature. In this
 case the primitive operation is performed on all subslices of appropriate
-dimensionality in what is called a I<thread loop> (see also overview above
+dimensionality in what is called a I<broadcast loop> (see also overview above
 and L<PDL::Indexing>). Assuming you have some notion of this concept you
 will probably appreciate that the operation specified in the code section
-should be optimised since this is the tightest loop inside a thread loop.
+should be optimised since this is the tightest loop inside a broadcast loop.
 However, if you revisit the example where we define the C<pnmout> function,
 you will quickly realise that looking up the C<IO> file descriptor
-in the inner thread loop is not very efficient when writing a pdl with
+in the inner broadcast loop is not very efficient when writing a pdl with
 many rows. A better approach would be to look up the C<IO> descriptor
-once outside the thread loop and use its value then inside the tightest
-thread loop. This is exactly where the C<threadloop> function comes in
+once outside the broadcast loop and use its value then inside the tightest
+broadcast loop. This is exactly where the C<broadcastloop> function comes in
 handy. Here is an improved definition of C<pnmout> which uses this
 function:
 
@@ -1374,20 +1374,20 @@ function:
 	Code => '
 		 int len;
 		 len = $SIZE(m) * sizeof($GENERIC());
-		 threadloop %{
+		 broadcastloop %{
 		    if (PerlIO_write($COMP(fp),$P(a),len) != len)
 				$CROAK("Error writing pnm file");
 		 %}
   ');
 
 This works as follows. Normally the C code you write inside the
-C<Code> section is placed inside a thread loop (i.e. PP generates the
-appropriate wrapping XS code around it). However, when you explicitly
-use the C<threadloop> function, PDL::PP recognises this and doesn't
-wrap your code with an additional thread loop. This has the effect that
-code you write outside the thread loop is only executed once per
+C<Code> section is placed inside a broadcast loop (i.e. PP generates the
+appropriate wrapping C code around it). However, when you explicitly
+use the C<broadcastloop> function, PDL::PP recognises this and doesn't
+wrap your code with an additional broadcast loop. This has the effect that
+code you write outside the broadcast loop is only executed once per
 transformation and just the code with in the surrounding C<%{ ... %}>
-pair is placed within the tightest thread loop. This also comes in
+pair is placed within the tightest broadcast loop. This also comes in
 handy when you want to perform a decision (or any other code,
 especially CPU intensive code) only once per thread, i.e.
 
@@ -1400,12 +1400,12 @@ especially CPU intensive code) only once per thread, i.e.
 	 OtherPars => 'int mode',
        Code => ' switch ($COMP(mode)) {
 		    case RAW:
-			threadloop %{
+			broadcastloop %{
                             /* do raw stuff */
                         %}
 		        break;
 		    case ASCII:
-			threadloop %{
+			broadcastloop %{
                             /* do ASCII stuff */
                         %}
 		        break;
@@ -1514,14 +1514,14 @@ value. Before the code in the Code section is executed PP
 will create the proper storage for C<work> if it does not
 exist. Note that you only took the first dimension of C<p>
 and C<x> because the user may have sent ndarrays with extra
-threading dimensions. Of course, the temporary ndarray C<work> (note the
-[t] flag) should not be given any thread dimensions anyway.
+broadcasting dimensions. Of course, the temporary ndarray C<work> (note the
+[t] flag) should not be given any broadcast dimensions anyway.
 
 You can also use C<RedoDimsCode> to set the dimension of a
 ndarray flagged with [o]. In this case you set the dimensions
 for the named dimension in the signature using $SIZE() as in
 the preceding example.  However, because the ndarray is
-flagged with [o] instead of [t], threading dimensions will
+flagged with [o] instead of [t], broadcasting dimensions will
 be added if required just as if the size of the dimension
 were computed from the signature according to the usual
 rules. Here is an example from PDL::Math
@@ -1535,9 +1535,9 @@ complex coefficients of a polynomial. The output ndarrays are
 real and imaginary parts of the roots. There are C<n> roots
 to an C<n>th order polynomial and such a polynomial has
 C<n+1> coefficients (the zero-th through the C<n>th). In
-this example, threading will work correctly. That is, the
+this example, broadcasting will work correctly. That is, the
 first dimension of the output ndarray with have its dimension
-adjusted, but other threading dimensions will be assigned
+adjusted, but other broadcasting dimensions will be assigned
 just as if there were no C<RedoDimsCode>.
 
 =head3 RedoDims passed directly
@@ -1799,7 +1799,7 @@ generated B<pm>-file. This is easily achieved with the C<pp_addpm> command:
    =head1 DESCRIPTION
 
    This package implements an interface to the Mylib package with full
-   threading and indexing support (see L<PDL::Indexing>).
+   broadcasting and indexing support (see L<PDL::Indexing>).
 
    =cut
 
@@ -1848,7 +1848,7 @@ omitted.
 =head3 pp_addxs
 
 Sometimes you want to add extra XS code of your own
-(that is generally not involved with any threading/indexing issues
+(that is generally not involved with any broadcasting/indexing issues
 but supplies some other functionality you want to access from the Perl
 side) to the generated XS file, for example
 
@@ -1878,7 +1878,7 @@ Especially C<pp_add_exported> and C<pp_addxs> should be used with care. PP uses
 PDL::Exporter, hence letting PP export your function means that they get added
 to the standard list of function exported by default (the list defined by the
 export tag ``:Func''). If you use C<pp_addxs> you shouldn't try to do anything
-that involves threading or indexing directly. PP is much better at generating
+that involves broadcasting or indexing directly. PP is much better at generating
 the appropriate code from your definitions.
 
 =head3 pp_add_boot
@@ -2308,7 +2308,7 @@ F<pdlaffine.c>.
 =head3 P2Child
 
 Forces C<Pars> to be C<PARENT> and C<CHILD>, the function's
-C<GenericTypes> to be all of them, no C<HaveThreading> or C<CallCopy>,
+C<GenericTypes> to be all of them, no C<HaveBroadcasting> or C<CallCopy>,
 and turns on C<DefaultFlow> (so do not supply any of those args).
 Intended for affine transformations with dataflow.
 
@@ -2318,9 +2318,9 @@ If true, sets in the C<pdl_transvtable> (see L<PDL::Internals>) the
 C<iflags> such that the trans will start with dataflow both forwards
 and backwards.
 
-=head3 HaveThreading
+=head3 HaveBroadcasting
 
-Default true. If so, generate code implementing threading (see
+Default true. If so, generate code implementing broadcasting (see
 L<PDL::Indexing>).
 
 =head3 CallCopy
@@ -2488,9 +2488,11 @@ See L<PDL::Indexing> for more.
 
 loop over named dimensions; limits are generated automatically by PP
 
-=head3 C<threadloop %{ ... %}>
+=head3 C<broadcastloop %{ ... %}>
 
-enclose following code in a thread loop
+enclose following code in a broadcast loop
+
+As of 2.075, C<threadloop> is a deprecated alias for this.
 
 =head3 C<types(TYPES) %{ ... %}>
 
@@ -2505,12 +2507,12 @@ symbol tables into which the code is created.
 
 =head2 Generating C and XS Code
 
-PDL::PP's main purpose is to make it easy for you to wrap the threading
+PDL::PP's main purpose is to make it easy for you to wrap the broadcasting
 engine around your own C code, but you can do some other things, too.
 
 =head3 pp_def
 
-Used to wrap the threading engine around your C code. Virtually all of this
+Used to wrap the broadcasting engine around your C code. Virtually all of this
 document discusses the use of pp_def.
 
 =head3 pp_done
@@ -2523,7 +2525,7 @@ This function takes no arguments.
 
 This lets you add XS code to your .xs file. This is useful if you want to
 create Perl-accessible functions that invoke C code but cannot or should not
-invoke the threading engine. XS is the standard means by which you wrap
+invoke the broadcasting engine. XS is the standard means by which you wrap
 Perl-accessible C code. You can learn more at L<perlxs>.
 
 =head3 pp_add_boot
@@ -2692,7 +2694,7 @@ programmers to use your functions as methods.
 
 =head1 SEE ALSO
 
-For the concepts of threading and slicing check L<PDL::Indexing>.
+For the concepts of broadcasting and slicing check L<PDL::Indexing>.
 
 L<PDL::Internals>
 

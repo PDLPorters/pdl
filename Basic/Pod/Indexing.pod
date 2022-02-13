@@ -5,14 +5,14 @@ PDL::Indexing - Introduction to indexing and slicing ndarrays.
 =head1 OVERVIEW
 
 This man page should serve as a first tutorial on the indexing and
-threading features of I<PDL>.
+broadcasting features of I<PDL>.
 
 Like all vectorized languages, PDL automates looping over multi-dimensional data structures ("ndarrays") using
 a variant of mathematical vector notation.  The automatic looping is called
-"threading", in part because ultimately PDL will implement parallel processing
-to speed up the loops.
+"broadcasting", similar to NumPy and Julia. PDL also automatically runs
+broadcasting computation in parallel - see L<PDL::ParallelCPU>.
 
-A lot of the flexibility and power of PDL relies on the indexing and threading
+A lot of the flexibility and power of PDL relies on the indexing and broadcasting
 features of the Perl extension.  Indexing allows access to the data of an ndarray
 in a very flexible way.  Threading provides efficient vectorization of simple
 operations.  
@@ -75,7 +75,7 @@ child and parent ndarray:
 Most PDL operations act on the first few dimensions of their ndarray arguments.  For
 example, C<sumover> sums all elements along the first dimension in the list (dimension 0).
 If you feed in a three-dimensional ndarray, then the first dimension is considered the 
-"active" dimension and the later dimensions are "thread" dimensions because they are simply
+"active" dimension and the later dimensions are "broadcast" dimensions because they are simply
 looped over.  There are several ways to transpose or re-order the dimension list of an ndarray.
 Those techniques are very fast since they don't touch the underlying data, only change the
 way that PDL accesses the data.  The main dimension ordering functions are:
@@ -107,7 +107,7 @@ way that PDL accesses the data.  The main dimension ordering functions are:
 
 =item *
 
-document Perl level threading
+document Perl level broadcasting
 
 =item *
 
@@ -123,11 +123,11 @@ new functions in slice.pd (affine, lag, splitdim)
 
 =item *
 
-reworking of paragraph on explicit threading
+reworking of paragraph on explicit broadcasting
 
 =back
 
-=head1 Indexing and threading with PDL
+=head1 Indexing and broadcasting with PDL
 
 A lot of the flexibility and power of PDL relies on the indexing and
 looping features of the Perl extension. Indexing allows access to the
@@ -548,7 +548,7 @@ Having talked extensively about the
 L<slice|PDL::Slices/slice> function it should be
 noted that this is not the only PDL indexing function. There
 are additional indexing functions which are also useful
-(especially in the context of threading which we will talk about
+(especially in the context of broadcasting which we will talk about
 later). Here are a list and some examples how to use them.
 
 =over 4
@@ -564,9 +564,9 @@ dimension was inserted.)
 
 This example calculates the x coordinate of the centroid of an
 image (later we will learn that we didn't actually need the dummy
-dimension thanks to the magic of implicit threading; but using dummy
-dimensions the code would also work in a thread-less world; though once
-you have worked with PDL threads you wouldn't want to live without
+dimension thanks to the magic of implicit broadcasting; but using dummy
+dimensions the code would also work in a broadcast-less world; though once
+you have worked with PDL broadcasting you wouldn't want to live without
 them again).
 
  # centroid
@@ -648,7 +648,7 @@ A straightforward example:
  $prod = $x x $x->xchg(0,1);
 
 C<$prod> should now be pretty close to the unity matrix if C<$x> is an
-orthogonal matrix. Often C<xchg> will be used in the context of threading
+orthogonal matrix. Often C<xchg> will be used in the context of broadcasting
 but more about that later.
 
 L<mv|PDL::Slices/mv> works in a similar fashion. It moves a dimension (specified by
@@ -684,7 +684,7 @@ sequences you say
 
 Unrealistic as it may seem, our confocal microscope software writes
 data (sometimes) this way. But more often you use clump to achieve a
-certain effect when using implicit or explicit threading.
+certain effect when using implicit or explicit broadcasting.
 
 =back
 
@@ -726,15 +726,15 @@ greater-size-than-one dummy dimensions is regarded as an irreversible
 transformation (similar to the terminology in thermodynamics) which
 precludes backward propagation of assignment to a parent (which you had
 explicitly requested using the C<.=> assignment). A similar problem to
-watch out for occurs in the context of threading where sometimes
-dummy dimensions are created implicitly during the thread loop (see below).
+watch out for occurs in the context of broadcasting where sometimes
+dummy dimensions are created implicitly during the broadcast loop (see below).
 
 =head2 Reasons for the parent/child (or "pointer") concept
 
 [ this will have to wait a bit ]
 
  XXXXX being memory efficient
- XXXXX in the context of threading
+ XXXXX in the context of broadcasting
  XXXXX very flexible and powerful way of accessing portions of ndarray data
        (in much more general way than sec, etc allow)
  XXXXX efficient implementation
@@ -753,25 +753,24 @@ dummy dimensions are created implicitly during the thread loop (see below).
 
 In the previous paragraph on indexing we have already mentioned the
 term occasionally but now its really time to talk explicitly about
-"threading" with ndarrays. The term threading has many different meanings in
-different fields of computing. Within the framework of PDL it could
+"broadcasting" with ndarrays: within the framework of PDL it could
 probably be loosely defined as an implicit looping
 facility. It is implicit because you don't specify anything like
 enclosing for-loops but rather the loops are automatically (or
 'magically') generated by PDL based on the dimensions of the ndarrays
 involved. This should give you a first idea why the index/dimension
 manipulating functions you have met in the previous paragraphs are
-especially important and useful in the context of threading.
-The other ingredient for threading (apart from the ndarrays involved) is
-a function that is threading aware (generally, these are 
-L<PDL::PP> compiled functions) and that the ndarrays are "threaded" over.
+especially important and useful in the context of broadcasting.
+The other ingredient for broadcasting (apart from the ndarrays involved) is
+a function that is broadcasting aware (generally, these are
+L<PDL::PP> compiled functions) and that the ndarrays are "broadcast" over.
 So much about the terminology and now let's try to shed some light on what it
 all means.
 
-=head2 Implicit threading - a first example
+=head2 Implicit broadcasting - a first example
 
-There are two slightly different variants of threading. We start
-with what we call "implicit threading". Let's pick a practical example
+There are two slightly different variants of broadcasting. We start
+with what we call "implicit broadcasting". Let's pick a practical example
 that involves looping of a function over many elements of a
 ndarray. Suppose we have an RGB image that we want to convert to
 grey-scale. The RGB image is represented by a 3-dim ndarray C<im(3,x,y)> where
@@ -805,7 +804,7 @@ following to process the whole image:
     }
  }
 
-Now we write the same using threading (noting that C<inner> is a threading
+Now we write the same using broadcasting (noting that C<inner> is a broadcasting
 aware function defined in the L<PDL::Primitive> package)
 
  $grey = inner($im,pdl([77,150,29]/256));
@@ -819,7 +818,7 @@ still owe you an explanation how this 'magic' is achieved.
 
 =head2 How does the example work ?
 
-The first thing to note is that every function that is threading aware
+The first thing to note is that every function that is broadcasting aware
 (these are without exception functions compiled from concise
 descriptions by L<PDL::PP>, later just called PP-functions) expects a
 defined (minimum) number of dimensions (we call them core dimensions)
@@ -837,10 +836,10 @@ example the dimensions of first and second argument don't have to
 agree but you see how they determine the size of the two dimensions of
 the output ndarray.
 
-Here is the point when threading finally enters the game. If you call
+Here is the point when broadcasting finally enters the game. If you call
 PP-functions with ndarrays that have I<more> than the required core
 dimensions the first dimensions of the ndarray arguments are used as the
-core dimensions and the additional extra dimensions are threaded
+core dimensions and the additional extra dimensions are broadcast
 over. Let us demonstrate this first with our example above
 
  $grey = inner($im,$w); # w is the weight vector from above
@@ -848,8 +847,8 @@ over. Let us demonstrate this first with our example above
 In this case $w is 1D and so supplied just the core dimension, C<$im> is
 3D, more specifically C<(3,x,y)>. The first dimension (of size 3) is the
 required core dimension that matches (as required by inner) the first
-(and only) dimension of C<$w>. The second dimension is the first thread
-dimension (of size C<x>) and the third is here the second thread
+(and only) dimension of C<$w>. The second dimension is the first broadcast
+dimension (of size C<x>) and the third is here the second broadcast
 dimension (of size C<y>). The output ndarray is automatically created (as
 requested by setting C<$grey> to "null" prior to invocation). The output
 dimensions are obtained by appending the I<loop dimensions> (here
@@ -877,23 +876,23 @@ the right dimensions and sets the elements indeed to the result of the
 computation for each pixel of the input image.
 
 When even more ndarrays and extra dimensions are involved things get a bit
-more complicated. We will first give the general rules how the thread
+more complicated. We will first give the general rules how the broadcast
 dimensions depend on the dimensions of input ndarrays enabling you to
 figure out the dimensionality of an auto-created output ndarray (for any
 given set of input ndarrays and core dimensions of the PP-function in
 question). The general rules will most likely appear a bit confusing
 on first sight so that we'll set out to illustrate the usage with a set
 of further examples (which will hopefully also demonstrate that there
-are indeed many practical situations where threading comes in extremely
+are indeed many practical situations where broadcasting comes in extremely
 handy).
 
 =head2 A call for coding discipline
 
-Before we point out the other technical details of threading, please
-note this call for programming discipline when using threading:
+Before we point out the other technical details of broadcasting, please
+note this call for programming discipline when using broadcasting:
 
 In order to preserve human readability, I<PLEASE> comment any nontrivial
-expression in your code involving threading.  Most importantly, for
+expression in your code involving broadcasting.  Most importantly, for
 any subroutine, include information at the beginning about what you
 expect the dimensions to represent (or ranges of dimensions).
 
@@ -917,7 +916,7 @@ dimensions, purpose of the routine, etc ?
 
 There are a couple of rules that allow you to figure out number and
 size of loop dimensions (and if the size of your input ndarrays comply
-with the threading rules). Dimensions of any ndarray argument are broken
+with the broadcasting rules). Dimensions of any ndarray argument are broken
 down into two groups in the following: Core dimensions (as defined by
 the PP-function, see B<Appendix B> for a list of PDL primitives) and
 extra dimensions which comprises all remaining dimensions of that
@@ -953,11 +952,11 @@ equal to the size of the loop dimension (as determined by the
 previous rule) or 1; otherwise you raise a runtime exception. If the
 size of the extra dimension in an ndarray is one it is implicitly treated
 as a dummy dimension of size equal to that loop dim size when
-performing the thread loop.
+performing the broadcast loop.
 
 =item R4
 
-If an ndarray doesn't have a loop dimension, in the thread loop this
+If an ndarray doesn't have a loop dimension, in the broadcast loop this
 ndarray is treated as if having a dummy dimension of size equal to the
 size of that loop dimension.
 
@@ -1002,29 +1001,29 @@ pseudo-code as
     with 0<=i<10, 0<=j<=11, 0<=k<12
 
 If we analyze the color to grey-scale conversion again with these rules
-in mind we note another great advantage of implicit threading.
+in mind we note another great advantage of implicit broadcasting.
 We can call the conversion with an ndarray representing a pixel (C<im(3)>),
 a line of rgb pixels (C<im(3,x)>), a proper color image (C<im(3,x,y)>) or a
 whole stack of RGB images (C<im(3,x,y,z)>). As long as C<$im> is of the form
 C<(3,...)> the automatically created output ndarray will contain the right
 number of dimensions and contain the intensity data as we expect it
 since the loops have been implicitly performed thanks to I<implicit
-threading>. You can easily convince yourself that calling with a color
+broadcasting>. You can easily convince yourself that calling with a color
 pixel C<$grey> is 0D, with a line it turns out 1D C<grey(x)>, with an image
 we get C<grey(x,y)> and finally we get a converted image stack C<grey(x,y,z)>.
 
 Let's fill these general rules with some more life by going through a
 couple of further examples. The reader may try to figure out equivalent
 formulations with explicit for-looping and compare the flexibility of
-those routines using implicit threading to the explicit
-formulation. Furthermore, especially when using several thread
+those routines using implicit broadcasting to the explicit
+formulation. Furthermore, especially when using several broadcast
 dimensions it is a useful exercise to check the relative speed
 by doing some benchmark tests (which we still have to do).
 
 First in the row is a slightly reworked centroid example, now coded
-with threading in mind.
+with broadcasting in mind.
 
- # threaded mult to calculate centroid coords, works for stacks as well
+ # broadcast mult to calculate centroid coords, works for stacks as well
  $xc = sumover(($im*xvals(($im->dims)[0]))->clump(2)) /
        sumover($im->clump(2));
 
@@ -1036,7 +1035,7 @@ This will actually work for C<$im> being one, two, three, and higher
 dimensional. If C<$im> is one-dimensional it's just an ordinary product
 (in the sense that every element of C<$im> is multiplied with the
 respective element of C<xvals(...)>), if C<$im> has more dimensions further
-threading is done by adding appropriate dummy dimensions to C<xvals(...)>
+broadcasting is done by adding appropriate dummy dimensions to C<xvals(...)>
 according to R4.  
 More importantly, the two L<sumover|PDL::Ufunc/sumover> operations show
 a first example of how to make use of the dimension manipulating
@@ -1070,9 +1069,9 @@ know how to do that
  maximum($stack,($ret=null));
 
 But what if you want to calculate maxima per column when implicit
-threading always applies the core functionality to the first dimension
-and threads over all others? How can we achieve that instead the
-core functionality is applied to the second dimension and threading is
+broadcasting always applies the core functionality to the first dimension
+and broadcasts over all others? How can we achieve that instead the
+core functionality is applied to the second dimension and broadcasting is
 done over the others. Can you guess it? Yes, we make a virtual ndarray
 that has the second dimension of the "parent ndarray" as its first
 dimension using the C<mv> command.
@@ -1096,13 +1095,13 @@ definition of C<sum> (summarised from F<Basic/Ufunc/ufunc.pd>):
    return $tmp; # return a 0D ndarray
  }
 
-We have already mentioned that all basic operations support threading
-and assignment is no exception. So here are a couple of threaded
+We have already mentioned that all basic operations support broadcasting
+and assignment is no exception. So here are a couple of broadcasted
 assignments
 
  pdl> $im = zeroes(byte, 10,20)
  pdl> $line = exp(-rvals(10)**2/9)
- # threaded assignment
+ # broadcasted assignment
  pdl> $im .= $line      # set every line of $im to $line
  pdl> $im2 .= 5         # set every element of $im2 to 5
 
@@ -1119,10 +1118,10 @@ C<index(pdl (0,2,4,5),2,($ret=null))> will return the element with index
 2 of the first input ndarray. In this case, C<$ret> will contain the value 4.
 So here is the example:
 
- # a threaded index lookup to generate an RGB, or RGBA or YMCK image
+ # a broadcasted index lookup to generate an RGB, or RGBA or YMCK image
  # from a palette image (represented by a lookup table $palette and
  # an color-index image $im)
- # you can say just dummy(0) since the rules of threading make it fit
+ # you can say just dummy(0) since the rules of broadcasting make it fit
  pdl> index($palette->xchg(0,1),
                $im->long->dummy(0,($palette->dim)[0]),
                ($res=null));
@@ -1147,17 +1146,17 @@ for the new red, green and
 blue components of the output image. Hopefully by now you have some
 sort of idea what the above piece of code is supposed to do (it is
 often actually quite complicated to describe in detail how a piece of
-threading code works; just go ahead and experiment a bit to get a
+broadcasting code works; just go ahead and experiment a bit to get a
 better feeling for it).
 
-If you have read the threading rules carefully, then you might have
+If you have read the broadcasting rules carefully, then you might have
 noticed that we didn't have to explicitly state the size of the dummy
 dimension that we created for C<$im>; when we create it with size 1 (the
-default) the rules of threading make it automatically fit to the
+default) the rules of broadcasting make it automatically fit to the
 desired size (by rule R3, in our example the size would be 3 assuming
 a palette of size C<(3,x)>). Since situations like this do occur often in
 practice this is actually why rule R3 has been introduced (the part
-that makes dimensions of size 1 fit to the thread loop dim size). So
+that makes dimensions of size 1 fit to the broadcast loop dim size). So
 we can just say
 
  pdl> index($palette->xchg(0,1),$im->long->dummy(0),($res=null));
@@ -1166,7 +1165,7 @@ Again, you can convince yourself that this routine will create the
 right output if called with a pixel (C<$im> is 0D), a line (C<$im> is 1D),
 an image (C<$im> is 2D), ..., an RGB lookup table (palette is C<(3,x)>) and
 RGBA lookup table (palette is C<(4,x)>, see e.g. OpenGL). This
-flexibility is achieved by the rules of threading which are made to do
+flexibility is achieved by the rules of broadcasting which are made to do
 the right thing in most situations.
 
 To wrap it all up once again, the general idea is as follows. If you
@@ -1190,15 +1189,15 @@ and
 
  func($x,$y,$result);
 
-If you are only using implicit threading then the output variable can
+If you are only using implicit broadcasting then the output variable can
 be automatically created by PDL. You flag that to the PP-function by
 setting the output argument to a special kind of ndarray that is returned
 from a call to the function C<PDL-E<gt>null> that returns an essentially
 "empty" ndarray (for those interested in details there is a flag
 in the C pdl structure for this). The dimensions
 of the created ndarray are determined by the rules of implicit
-threading: the first dimensions are the core output dimensions to
-which the threading dimensions are appended (which are in turn
+broadcasting: the first dimensions are the core output dimensions to
+which the broadcasting dimensions are appended (which are in turn
 determined by the dimensions of the input ndarrays as described above).
 So you can say
 
@@ -1211,8 +1210,8 @@ or
 which are B<exactly> equivalent.
 
 Be warned that you can I<not> use output auto-creation when using
-explicit threading (for reasons explained in the following section on
-B<explicit threading>, the second variant of threading).
+explicit broadcasting (for reasons explained in the following section on
+B<explicit broadcasting>, the second variant of broadcasting).
 
 In "tight" loops you probably want to avoid the implicit creation of a
 temporary ndarray in each step of the loop that comes along with the
@@ -1228,21 +1227,21 @@ temporary ndarray in each step of the loop that comes along with the
  }
 
 The take-home message of this section once more: be aware of the
-limitation on output creation when using B<explicit threading>.
+limitation on output creation when using B<explicit broadcasting>.
 
-=head2 Explicit threading
+=head2 Explicit broadcasting
 
-Having so far only talked about the first flavour of threading it is
+Having so far only talked about the first flavour of broadcasting it is
 now about time to introduce the second variant. Instead of shuffling
 around dimensions all the time and relying on the rules of implicit
-threading to get it all right you sometimes might want to specify in a
-more explicit way how to perform the thread loop. It is probably not
-too surprising that this variant of the game is called I<explicit threading>.
+broadcasting to get it all right you sometimes might want to specify in a
+more explicit way how to perform the broadcast loop. It is probably not
+too surprising that this variant of the game is called I<explicit broadcasting>.
 Now, before we create the wrong impression: it is not
 either I<implicit> or I<explicit>; the two flavours do mix. But more
 about that later.
 
-The two most used functions with explicit threading are 
+The two most used functions with explicit broadcasting are
 L<thread|PDL::Core/PDL::thread>
 and L<unthread|PDL::Slices/unthread>. 
 We start with an example that illustrates typical
@@ -1251,13 +1250,13 @@ usage of the former:
  [ # ** this is the worst possible example to start with ]
  #  but can be used to show that $mat += $line is different from
  #                               $mat->thread(0) += $line
- # explicit threading to add a vector to each column of a matrix
+ # explicit broadcasting to add a vector to each column of a matrix
  pdl> $mat  = zeroes(4,3)
  pdl> $line = pdl (3.1416,2,-2)
  pdl> ($tmp = $mat->thread(0)) += $line
 
 In this example, C<$mat-E<gt>thread(0)> tells PDL that you want the second
-dimension of this ndarray to be threaded over first leading to a thread
+dimension of this ndarray to be broadcast over first leading to a broadcast
 loop that can be expressed as
 
  for (j=0; j<3; j++) {
@@ -1267,10 +1266,10 @@ loop that can be expressed as
  }
 
 C<thread> takes a list of numbers as arguments which explicitly
-specify which dimensions to thread over first. With the introduction
-of explicit threading the dimensions of an ndarray are conceptually split into
+specify which dimensions to broadcast over first. With the introduction
+of explicit broadcasting the dimensions of an ndarray are conceptually split into
 three different groups the latter two of which we have already
-encountered: thread dimensions, core dimensions and extra dimensions.
+encountered: broadcast dimensions, core dimensions and extra dimensions.
 
 Conceptually, it is best to think of those dimensions of an ndarray that
 have been specified in a call to C<thread> as being taken away from
@@ -1280,15 +1279,15 @@ we have an ndarray C<x(4,7,2,8)> saying
  $y = $x->thread(2,1)
 
 creates a new virtual ndarray of dimension C<y(4,8)> (which we call the
-remaining dims) that also has 2 thread dimensions of size C<(2,7)>. For
+remaining dims) that also has 2 broadcast dimensions of size C<(2,7)>. For
 the purposes of this document we write that symbolically as
 C<y(4,8){2,7}>. An important difference to the previous examples where
-only implicit threading was used is the fact that the core dimensions
+only implicit broadcasting was used is the fact that the core dimensions
 are matched against the I<remaining dimensions> which are not
 necessarily the first dimensions of the ndarray. We will now specify how
-the presence of thread dimensions changes the rules R1-R5 for
-thread loops (which apply to the special case where none of the ndarray
-arguments has any thread dimensions).
+the presence of broadcast dimensions changes the rules R1-R5 for
+broadcast loops (which apply to the special case where none of the ndarray
+arguments has any broadcast dimensions).
 
 =over 4
 
@@ -1307,20 +1306,20 @@ number of extra dimensions taken over the set of ndarray arguments.
 =item T1b
 
 The number of I<explicit loop dimensions> is equal to the maximal
-number of thread dimensions taken over the set of ndarray arguments.
+number of broadcast dimensions taken over the set of ndarray arguments.
 
 =item T1c
 
 The total number of I<loop dimensions> is equal to the sum of
 I<explicit loop dimensions> and I<implicit loop dimensions>. In the
-thread loop, I<explicit loop dimensions> are threaded over first
+broadcast loop, I<explicit loop dimensions> are broadcasted over first
 followed by I<implicit loop dimensions>.
 
 =item T2
 
 The size of each of the I<loop dimensions> is derived from the size of
 the respective dimensions of the ndarray arguments. It is given by the
-maximal size found in any ndarrays having this thread dimension (for
+maximal size found in any ndarrays having this broadcast dimension (for
 I<explicit loop dimensions>) or extra dimension (for
 I<implicit loop dimensions>).
 
@@ -1328,34 +1327,34 @@ I<implicit loop dimensions>).
 
 This rule applies to any I<explicit loop dimension> as well as any
 I<implicit loop dimension>. For all ndarrays that have a given
-I<thread/extra dimension> the size must be equal to the size of the
+I<broadcast/extra dimension> the size must be equal to the size of the
 respective I<explicit/implicit loop dimension> or 1; otherwise you
-raise a runtime exception. If the size of a I<thread/extra dimension>
+raise a runtime exception. If the size of a I<broadcast/extra dimension>
 of an ndarray is one it is implicitly treated as a dummy
 dimension of size equal to the I<explicit/implicit loop dimension>.
 
 =item T4
 
-If an ndarray doesn't have a I<thread/extra dimension> that corresponds to
-an I<explicit/implicit loop dimension>, in the thread loop this
+If an ndarray doesn't have a I<broadcast/extra dimension> that corresponds to
+an I<explicit/implicit loop dimension>, in the broadcast loop this
 ndarray is treated as if having a dummy dimension of size equal to the
 size of that loop dimension.
 
 =item T4a
 
-All ndarrays that do have I<thread dimensions> must have the same number of
-thread dimensions.
+All ndarrays that do have I<broadcast dimensions> must have the same number of
+broadcast dimensions.
 
 =item T5
 
 Output auto-creation cannot be used if any of the ndarray arguments has any
-I<thread dimensions>. Otherwise R5 applies.
+I<broadcast dimensions>. Otherwise R5 applies.
 
 =back
 
 The same restrictions apply with regard to implicit dummy dimensions
 (created by application of T4) as already mentioned in the section
-on implicit threading: if any of the output ndarrays has an (explicit or
+on implicit broadcasting: if any of the output ndarrays has an (explicit or
 implicitly created) greater-than-one dummy dimension a runtime
 exception will be raised.
 
@@ -1372,13 +1371,13 @@ created) as
  func($x->thread(1,3),$y->thread(0,3),$c,$d->thread(0,1))
 
 From the signature of func and the above call the ndarrays split into
-the following groups of core, extra and thread dimensions (written in
-the form C<pdl(core dims){thread dims}[extra dims]>):
+the following groups of core, extra and broadcast dimensions (written in
+the form C<pdl(core dims){broadcast dims}[extra dims]>):
 
  a(5,10){3,11}[] b(5){3,1}[10,12] c(){}[10] d(5){3,11}[10,12]
 
 With this to help us along (it is in general helpful to write the
-arguments down like this when you start playing with threading and
+arguments down like this when you start playing with broadcasting and
 want to keep track of what is going on) we further deduce
 that the number of explicit loop dimensions is 2 (by T1b from C<$a> and C<$b>)
 with sizes C<(3,11)> (by T2); 2 implicit loop dimensions (by T1a from C<$b>
@@ -1394,7 +1393,7 @@ the input ndarrays in a way that can be expressed in pdl pseudo-code as
 Ugh, this example was really not easy in terms of bookkeeping. It
 serves mostly as an example how to figure out what's going on when you
 encounter a complicated looking expression. But now it is really time
-to show that threading is useful by giving some more of our so called
+to show that broadcasting is useful by giving some more of our so called
 "practical" examples.
 
 [ The following examples will need some additional explanations in the
@@ -1407,16 +1406,16 @@ Example 1:
  ** given a symmetrical matrix M = A^T x diag(lambda_i) x A
  **    =>  inverse M^-1 = A^T x diag(1/lambda_i) x A
  ** first $tmp = diag(1/lambda_i)*A
- ** then  A^T * $tmp by threaded inner product
+ ** then  A^T * $tmp by broadcasted inner product
  # index handling so that matrices print correct under pdl
  $inv .= $evecs*0;  # just copy to get appropriately sized output
  $tmp .= $evecs;    # initialise, no back-propagation
- ($tmp2 = $tmp->thread(0)) /= $evals;    #  threaded division
+ ($tmp2 = $tmp->thread(0)) /= $evals;    #  broadcasted division
  # and now a matrix multiplication in disguise
  PDL::Primitive::inner($evecs->xchg(0,1)->thread(-1,1),
                        $tmp->thread(0,-1),
                        $inv->thread(0,1));
- # alternative for matrix mult using implicit threading,
+ # alternative for matrix mult using implicit broadcasting,
  # first xchg only for transpose
  PDL::Primitive::inner($evecs->xchg(0,1)->dummy(1),
                        $tmp->xchg(0,1)->dummy(2),
@@ -1424,12 +1423,12 @@ Example 1:
 
 Example 2:
 
- # outer product by threaded multiplication
+ # outer product by broadcasted multiplication
  # stress that we need to do it with explicit call to my_biop1
- # when using explicit threading
+ # when using explicit broadcasting
  $res=zeroes(($x->dims)[0],($y->dims)[0]);
  my_biop1($x->thread(0,-1),$y->thread(-1,0),$res->(0,1),"*");
- # similar thing by implicit threading with auto-created ndarray
+ # similar thing by implicit broadcasting with auto-created ndarray
  $res = $x->dummy(1) * $y->dummy(0);
 
 
@@ -1456,23 +1455,23 @@ Example 4:
 Example 5:
 
  # calculate a self-rationed (i.e. self normalized) sequence of images
- # uses explicit threading and an implicitly threaded division
+ # uses explicit broadcasting and an implicitly broadcasted division
  $stack = read_image_stack();
  # calculate the average (per pixel average) of the first $n+1 images
  $aver = zeroes([stack->dims]->[0,1]);  # make the output ndarray
  sumover($stack->slice(":,:,0:$n")->thread(0,1),$aver);
  $aver /= ($n+1);
- $stack /= $aver;  # normalize the stack by doing a threaded division
+ $stack /= $aver;  # normalize the stack by doing a broadcasted division
  # implicit versus explicit
- # alternatively calculate $aver with implicit threading and auto-creation
+ # alternatively calculate $aver with implicit broadcasting and auto-creation
  sumover($stack->slice(":,:,0:$n")->mv(2,0),($aver=null));
  $aver /= ($n+1);
  #
 
-=head2 Implicit versus explicit threading
+=head2 Implicit versus explicit broadcasting
 
-In this paragraph we are going to illustrate when explicit threading
-is preferable over implicit threading and vice versa. But then again,
+In this paragraph we are going to illustrate when explicit broadcasting
+is preferable over implicit broadcasting and vice versa. But then again,
 this is probably not the best way of putting the case since you already
 know: the two flavours do mix. So, it's more about how to get the best
 of both worlds and, anyway, in the best of Perl traditions: TIMTOWTDI !
@@ -1481,36 +1480,36 @@ of both worlds and, anyway, in the best of Perl traditions: TIMTOWTDI !
 refer to above examples or choose some new ones ]
 
 Finally, this may be a good place to justify all the technical detail
-we have been going on about for a couple of pages: why threading ?
+we have been going on about for a couple of pages: why broadcasting ?
 
-Well, code that uses threading should be (considerably) faster than
+Well, code that uses broadcasting should be (considerably) faster than
 code that uses explicit for-loops (or similar Perl constructs) to achieve
 the same functionality. Especially on supercomputers (with vector
-computing facilities/parallel processing) PDL threading will be
+computing facilities/parallel processing) PDL broadcasting is
 implemented in a way that takes advantage of the additional facilities
 of these machines. Furthermore, it is a conceptually simple
 construct (though technical details might get involved at times) and
 can I<greatly> reduce the syntactical complexity of PDL code (but keep
 the admonition for documentation in mind). Once you
-are comfortable with the I<threading> way of thinking (and coding) it
+are comfortable with the I<broadcasting> way of thinking (and coding) it
 shouldn't be too difficult to understand code that somebody else
 has written than (provided he gave
 you an idea what expected input dimensions are, etc.). As a general tip to
 increase the performance of your code: if you have to introduce a loop
 into your code try to reformulate the problem so that you can use
-threading to perform the loop (as with anything there are exceptions
+broadcasting to perform the loop (as with anything there are exceptions
 to this rule of thumb; but the authors of this document tend to
 think that these are rare cases ;).
 
 =head1 PDL::PP
 
-=head2 An easy way to define functions that are aware of indexing and threading (and the universe and everything)
+=head2 An easy way to define functions that are aware of indexing and broadcasting (and the universe and everything)
 
 PDL:PP is part of the PDL distribution. It is used to generate
-functions that are aware of indexing and threading rules from very
+functions that are aware of indexing and broadcasting rules from very
 concise descriptions. It can be useful for you if you want to write
 your own functions or if you want to interface functions from an
-external library so  that they support indexing and threading (and
+external library so  that they support indexing and broadcasting (and
 maybe dataflow as well, see L<PDL::Dataflow>). For further details
 check L<PDL::PP>.
 
@@ -1528,7 +1527,7 @@ will reference another appropriate man page from here ]
 
 A selection of signatures of PDL primitives to show how many
 dimensions PP compiled functions gobble up (and therefore you can
-figure out what will be threaded over). Most of those functions are
+figure out what will be broadcasted over). Most of those functions are
 the basic ones defined in C<primitive.pd>
 
  # functions in primitive.pd

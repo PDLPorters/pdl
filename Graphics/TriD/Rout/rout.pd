@@ -219,7 +219,7 @@ pp_def('vrmlcoordsvert',
 		 char formatstr[25];
 		 sprintf(formatstr,"%s%%.3%cf %%.3%cf %%.3%cf,\n",spc,
 			formchar,formchar,formchar);
-		threadloop %{
+		broadcastloop %{
 			PerlIO_printf($COMP(fp),formatstr,@.trid('vertices','n').');
 		%}'
 );
