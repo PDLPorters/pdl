@@ -95,7 +95,7 @@ returns a native complex value.
 Use C<r2C(real-values)> to convert from real to complex, as in C<$r
 = Cpow $cplx, r2C 2>. The overloaded operators automatically do that for
 you, all the other functions, do not. So C<Croots 1, 5> will return all
-the fifths roots of 1+1*i (due to threading).
+the fifths roots of 1+1*i (due to broadcasting).
 
 =item *
 
@@ -1107,7 +1107,7 @@ sub initialize {
    bless PDL->null, ref($_[0]) || $_[0];
 }
 
-# so threading doesn't also assign the real value into the imaginary
+# so broadcasting doesn't also assign the real value into the imaginary
 sub Cassgn {
     my @args = !$_[2] ? @_[1,0] : @_[0,1];
     $args[1] = r2C($args[1]) if ref $args[1] ne __PACKAGE__;

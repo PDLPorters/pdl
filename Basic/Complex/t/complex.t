@@ -240,7 +240,7 @@ like $r->slice(':,(1),(0)'), qr/44.*3/ or diag "got:", $r->slice(':,(1),(0)');
 $r = r2C(-10);
 $r .= 2;
 ok(PDL::approx($r->at(0), 2) && PDL::approx($r->at(1), 0),
-  'check threading does not make assigning a real value affect imag part') or diag "got:$r";
+  'check broadcasting does not make assigning a real value affect imag part') or diag "got:$r";
 
 $r = r2C(2);
 $r++;

@@ -320,7 +320,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	}
 	FREETRANS(trans, 1);
 	if(trans->vtable->flags & PDL_TRANS_DO_THREAD)
-	  pdl_freethreadstruct(&trans->pdlthread);
+	  pdl_freebroadcaststruct(&trans->pdlthread);
 	trans->vtable = 0; /* Make sure no-one uses this */
 	PDLDEBUG_f(printf("call free\n"));
 	if (trans->params) free(trans->params);
@@ -681,7 +681,7 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
     creating[i] = (flags & PDL_PARAM_ISCREAT) &&
       PDL_DIMS_FROM_TRANS(trans,pdls[i]);
   }
-  PDL_RETERROR(PDL_err, pdl_initthreadstruct(2, pdls,
+  PDL_RETERROR(PDL_err, pdl_initbroadcaststruct(2, pdls,
     vtable->par_realdims, creating, vtable->npdls, vtable,
     &trans->pdlthread, trans->ind_sizes, trans->inc_sizes,
     vtable->per_pdl_flags, vtable->flags & PDL_TRANS_NO_PARALLEL));

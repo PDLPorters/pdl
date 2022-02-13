@@ -2,7 +2,7 @@
 #define __PDLCORE_H
 
 /* version 20: memory-management changes */
-/* on 21, unify pdl_thread per_pdl_flags, par_flags; switch threadloop #defines */
+/* on 21, unify pdl_thread per_pdl_flags, par_flags; remove threadloop #defines */
 #define PDL_CORE_VERSION 20
 #define startbroadcastloop startthreadloop
 #define pdl_startbroadcastloop pdl_startthreadloop
@@ -94,8 +94,8 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(reallocdims, pdl_error, ( pdl *it,PDL_Indx ndims )) \
   X(reallocthreadids, pdl_error, ( pdl *it,PDL_Indx ndims )) \
   X(resize_defaultincs, void, ( pdl *it )) /* Make incs out of dims */ \
-  X(clearthreadstruct, void, (pdl_thread *it)) \
-  X(initthreadstruct, pdl_error, (int nobl,pdl **pdls,PDL_Indx *realdims, \
+  X(clearbroadcaststruct, void, (pdl_thread *it)) \
+  X(initbroadcaststruct, pdl_error, (int nobl,pdl **pdls,PDL_Indx *realdims, \
     PDL_Indx *creating,PDL_Indx npdls,pdl_transvtable *transvtable, \
     pdl_thread *thread,PDL_Indx *ind_sizes,PDL_Indx *inc_sizes, \
     char *flags, int noPthreadFlag)) \
@@ -105,7 +105,7 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(get_threadoffsp, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(get_threaddims, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(iterbroadcastloop, int, (pdl_thread *thread, PDL_Indx which)) \
-  X(freethreadstruct, void, (pdl_thread *thread)) \
+  X(freebroadcaststruct, void, (pdl_thread *thread)) \
   X(thread_create_parameter, pdl_error, (pdl_thread *thread,PDL_Indx j, \
     PDL_Indx *dims, int temp)) \
   X(add_deletedata_magic, pdl_error,  (pdl *it,void (*func)(pdl *, Size_t param), \

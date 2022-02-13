@@ -531,7 +531,7 @@ sub mypostlude {
 
 ####
 #
-# This relies on PP.pm making sure that initthreadstruct always sets
+# This relies on PP.pm making sure that initbroadcaststruct always sets
 # up the two first dimensions even when they are not necessary.
 #
 package PDL::PP::BroadcastLoop;

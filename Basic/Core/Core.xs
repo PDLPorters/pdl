@@ -828,7 +828,7 @@ threadover_n(...)
 	realdims[i] = 0;
     }
     PDL_THR_CLRMAGIC(&pdl_thr);
-    pdl_barf_if_error(pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL,NULL,NULL, 1));
+    pdl_barf_if_error(pdl_initbroadcaststruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL,NULL,NULL, 1));
     pdl_error error_ret = {0, NULL, 0};
     if (pdl_startbroadcastloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
     pdl_barf_if_error(error_ret);
@@ -849,7 +849,7 @@ threadover_n(...)
 	sd = pdl_iterbroadcastloop(&pdl_thr,0);
 	if ( sd < 0 ) die("Error in iterbroadcastloop");
     } while( sd );
-    pdl_freethreadstruct(&pdl_thr);
+    pdl_freebroadcaststruct(&pdl_thr);
 
 void
 threadover(...)
@@ -892,7 +892,7 @@ threadover(...)
 	croak("Not enough dimension info to create pdls");
     PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %d ",i); pdl_dump(pdls[i]); });
     PDL_THR_CLRMAGIC(&pdl_thr);
-    pdl_barf_if_error(pdl_initthreadstruct(0,pdls,realdims,creating,npdls,
+    pdl_barf_if_error(pdl_initbroadcaststruct(0,pdls,realdims,creating,npdls,
 			NULL,&pdl_thr,NULL,NULL,NULL, 1));
     for(i=0, nc=npdls; i<npdls; i++)  /* create as necessary */
       if (creating[i]) {
@@ -946,4 +946,4 @@ threadover(...)
 	thrloopval = pdl_iterbroadcastloop(&pdl_thr,0);
 	if ( thrloopval < 0 ) die("Error in iterbroadcastloop");
     } while( thrloopval );
-    pdl_freethreadstruct(&pdl_thr);
+    pdl_freebroadcaststruct(&pdl_thr);

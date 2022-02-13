@@ -69,8 +69,8 @@ PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *pthr, PDL_Indx **inds
   return thread->offs;
 }
 
-void pdl_freethreadstruct(pdl_thread *thread) {
-	PDLDEBUG_f(printf("freethreadstruct(%p, %p %p %p %p %p %p)\n",
+void pdl_freebroadcaststruct(pdl_thread *thread) {
+	PDLDEBUG_f(printf("freebroadcaststruct(%p, %p %p %p %p %p %p)\n",
 		(void*)thread,
 		(void*)(thread->inds), (void*)(thread->dims), (void*)(thread->offs),
 		(void*)(thread->incs), (void*)(thread->flags), (void*)(thread->pdls)));
@@ -81,11 +81,11 @@ void pdl_freethreadstruct(pdl_thread *thread) {
 	Safefree(thread->incs);
 	Safefree(thread->flags);
 	Safefree(thread->pdls);
-	pdl_clearthreadstruct(thread);
+	pdl_clearbroadcaststruct(thread);
 }
 
-void pdl_clearthreadstruct(pdl_thread *it) {
-	PDLDEBUG_f(printf("clearthreadstruct(%p)\n", (void*)it));
+void pdl_clearbroadcaststruct(pdl_thread *it) {
+	PDLDEBUG_f(printf("clearbroadcaststruct(%p)\n", (void*)it));
 	it->transvtable = 0;it->inds = 0;it->dims = 0;
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
@@ -311,7 +311,7 @@ pdl_error pdl_dim_checks(
  *  noPthreadFlag is a flag to indicate the pdl thread is not pthreading safe
  *   (i.e. don't attempt to create multiple posix threads to execute)
  */
-pdl_error pdl_initthreadstruct(int nobl,
+pdl_error pdl_initbroadcaststruct(int nobl,
 	pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,PDL_Indx npdls,
 	pdl_transvtable *vtable,pdl_thread *thread,
 	PDL_Indx *ind_sizes, PDL_Indx *inc_sizes,
@@ -325,7 +325,7 @@ pdl_error pdl_initthreadstruct(int nobl,
 	PDL_Indx mydim;
 	PDL_Indx nthr = 0; PDL_Indx nthrd;
 
-	PDLDEBUG_f(printf("initthreadstruct(%p)\n", (void*)thread));
+	PDLDEBUG_f(printf("initbroadcaststruct(%p)\n", (void*)thread));
 	char already_alloced = (thread->magicno == PDL_THR_MAGICNO &&
 	    thread->gflags & PDL_THREAD_INITIALIZED);
 	PDL_Indx already_nthr = already_alloced ? thread->mag_nthr : -1;
