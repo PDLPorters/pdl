@@ -830,7 +830,7 @@ threadover_n(...)
     PDL_THR_CLRMAGIC(&pdl_thr);
     pdl_barf_if_error(pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL,NULL,NULL, 1));
     pdl_error error_ret = {0, NULL, 0};
-    if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
+    if (pdl_startbroadcastloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
     pdl_barf_if_error(error_ret);
     sd = pdl_thr.ndims;
     do {
@@ -846,8 +846,8 @@ threadover_n(...)
 	}
     	PUTBACK;
 	perl_call_sv(code,G_DISCARD);
-	sd = pdl_iterthreadloop(&pdl_thr,0);
-	if ( sd < 0 ) die("Error in iterthreadloop");
+	sd = pdl_iterbroadcastloop(&pdl_thr,0);
+	if ( sd < 0 ) die("Error in iterbroadcastloop");
     } while( sd );
     pdl_freethreadstruct(&pdl_thr);
 
@@ -906,7 +906,7 @@ threadover(...)
 	pdls[i]->state &= (~PDL_NOMYDIMS);
       }
     pdl_error error_ret = {0, NULL, 0};
-    if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
+    if (pdl_startbroadcastloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
     pdl_barf_if_error(error_ret);
     for(i=0; i<npdls; i++) {
 	PDL_Indx *thesedims = pdls[i]->dims, *theseincs = PDL_REPRINCS(pdls[i]);
@@ -943,7 +943,7 @@ threadover(...)
 	  PUSHs(others[i]);   /* pass the OtherArgs onto the stack */
     	PUTBACK;
 	perl_call_sv(code,G_DISCARD);
-	thrloopval = pdl_iterthreadloop(&pdl_thr,0);
-	if ( thrloopval < 0 ) die("Error in iterthreadloop");
+	thrloopval = pdl_iterbroadcastloop(&pdl_thr,0);
+	if ( thrloopval < 0 ) die("Error in iterbroadcastloop");
     } while( thrloopval );
     pdl_freethreadstruct(&pdl_thr);

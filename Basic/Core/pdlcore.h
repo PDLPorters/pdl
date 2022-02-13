@@ -2,8 +2,12 @@
 #define __PDLCORE_H
 
 /* version 20: memory-management changes */
-/* on 21, unify pdl_thread per_pdl_flags, par_flags */
+/* on 21, unify pdl_thread per_pdl_flags, par_flags; switch threadloop #defines */
 #define PDL_CORE_VERSION 20
+#define startbroadcastloop startthreadloop
+#define pdl_startbroadcastloop pdl_startthreadloop
+#define iterbroadcastloop iterthreadloop
+#define pdl_iterbroadcastloop pdl_iterthreadloop
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
@@ -96,11 +100,11 @@ void pdl_dump_anyval(PDL_Anyval v);
     pdl_thread *thread,PDL_Indx *ind_sizes,PDL_Indx *inc_sizes, \
     char *flags, int noPthreadFlag)) \
   X(redodims_default, pdl_error, (pdl_trans *)) \
-  X(startthreadloop, int, (pdl_thread *thread,pdl_error (*func)(pdl_trans *), \
+  X(startbroadcastloop, int, (pdl_thread *thread,pdl_error (*func)(pdl_trans *), \
     pdl_trans *, pdl_error *)) \
   X(get_threadoffsp, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
   X(get_threaddims, PDL_Indx*, (pdl_thread *thread)) /* For pthreading */ \
-  X(iterthreadloop, int, (pdl_thread *thread, PDL_Indx which)) \
+  X(iterbroadcastloop, int, (pdl_thread *thread, PDL_Indx which)) \
   X(freethreadstruct, void, (pdl_thread *thread)) \
   X(thread_create_parameter, pdl_error, (pdl_thread *thread,PDL_Indx j, \
     PDL_Indx *dims, int temp)) \

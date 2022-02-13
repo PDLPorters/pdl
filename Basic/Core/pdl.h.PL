@@ -618,7 +618,7 @@ typedef struct pdl_slice_args {
 
 #define PDL_EXPAND(...) __VA_ARGS__
 #define PDL_THREADLOOP_START(funcName, thr, vtable, ptrStep1, ptrStep2, ptrStep3) \
-  __thrloopval = PDL->startthreadloop(&(thr),(vtable)->funcName, __privtrans, &PDL_err); \
+  __thrloopval = PDL->startbroadcastloop(&(thr),(vtable)->funcName, __privtrans, &PDL_err); \
   if (PDL_err.error) return PDL_err; \
   if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error starting broadcastloop"); \
   if ( __thrloopval ) return PDL_err; \
@@ -650,8 +650,8 @@ typedef struct pdl_slice_args {
     } \
     PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset") \
     ptrStep1 \
-    __thrloopval = PDL->iterthreadloop(&(thr),2); \
-    if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error in iterthreadloop"); \
+    __thrloopval = PDL->iterbroadcastloop(&(thr),2); \
+    if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error in iterbroadcastloop"); \
   } while(__thrloopval);
 
 /* __PDL_H */

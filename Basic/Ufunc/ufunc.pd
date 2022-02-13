@@ -782,7 +782,7 @@ sub generic_qsortvec {
 # when copying the data over to the temporary array,
 # ignore the bad values and then only send the number
 # of good elements to the sort routines
-# should use threadloop ?
+# should use broadcastloop ?
 my $copy_to_temp_good = '
            PDL_Indx nn, nn1;
 	   loop(n) %{ $tmp() = $a(); %}

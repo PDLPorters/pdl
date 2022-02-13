@@ -550,7 +550,7 @@ See the manual for why this is impossible");
 	return PDL_err;
 }
 
-int pdl_startthreadloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
+int pdl_startbroadcastloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 			pdl_trans *t, pdl_error *error_ret) {
 	PDL_Indx j, npdls = thread->npdls;
 	PDL_Indx *offsp; int thr;
@@ -601,7 +601,7 @@ int pdl_startthreadloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 
 /* nth is how many dims are done inside the broadcastloop itself */
 /* inds is how far along each non-broadcastloop dim we are */
-int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
+int pdl_iterbroadcastloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx i,j;
 	int another_broadcastloop = 0;
 	PDL_Indx *offsp; int thr;

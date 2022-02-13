@@ -890,7 +890,7 @@ sub _pp_line_number_file {
 	$line++;
 	$filename =~ s/\\/\\\\/g; # Escape backslashes
 	my @to_return = "\nPDL_LINENO_START $line \"$filename\"\n";
-	# Look for threadloops and loops and add # line directives
+	# Look for broadcastloops and loops and add # line directives
 	foreach (split (/\n/, $string)) {
 		# Always add the current line.
 		push @to_return, "$_\n";
@@ -1697,7 +1697,7 @@ EOD
       #      else                   { good-EquivCPOffsCode }
       #
       #  Note: since EquivCPOffsCode doesn't (or I haven't seen any that
-      #  do) use 'loop %{' or 'threadloop %{', we can't rely on
+      #  do) use 'loop %{' or 'broadcastloop %{', we can't rely on
       #  PDLCode to automatically write code like above, hence the
       #  explicit definition here.
       #
