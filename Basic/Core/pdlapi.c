@@ -92,7 +92,7 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 	if (!it) return it;
 	pdl_error PDL_err = pdl_makescratchhash(it, anyval);
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }
-	it->threadids[0] = it->ndims = 0; /* 0 dims in a scalar */
+	it->broadcastids[0] = it->ndims = 0; /* 0 dims in a scalar */
 	it->state &= ~(PDL_ALLOCATED|PDL_NOMYDIMS); /* size changed, has dims */
 	it->nvals = 1;            /* 1 val  in a scalar */
 	return it;
@@ -149,9 +149,9 @@ pdl* pdl_pdlnew() {
      it->nbytes = it->nvals = it->dims[0] = 0;
      it->dimincs = it->def_dimincs;
      it->dimincs[0] = 1;
-     it->nthreadids = 1;
-     it->threadids = it->def_threadids;
-     it->threadids[0] = it->ndims = 1;
+     it->nbroadcastids = 1;
+     it->broadcastids = it->def_broadcastids;
+     it->broadcastids[0] = it->ndims = 1;
      PDL_Indx i;
      for(i=0; i<PDL_NCHILDREN; i++) {it->trans_children.trans[i]=NULL;}
      it->trans_children.next = NULL;
@@ -218,7 +218,7 @@ pdl_error pdl__free(pdl *it) {
     it->magicno = 0x42424245;
     if(it->dims       != it->def_dims)       free((void*)it->dims);
     if(it->dimincs    != it->def_dimincs)    free((void*)it->dimincs);
-    if(it->threadids  != it->def_threadids)  free((void*)it->threadids);
+    if(it->broadcastids  != it->def_broadcastids)  free((void*)it->broadcastids);
     if(it->vafftrans) {
 	pdl_vafftrans_free(it);
     }
@@ -441,10 +441,10 @@ pdl *pdl_hard_copy(pdl *src) {
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }
 	if(src->state & PDL_NOMYDIMS)
 		it->state |= PDL_NOMYDIMS;
-	PDL_err = pdl_reallocthreadids(it,src->nthreadids);
+	PDL_err = pdl_reallocbroadcastids(it,src->nbroadcastids);
 	if (PDL_err.error) { pdl_destroy(it); return NULL; }
-	for(i=0; i<src->nthreadids; i++) {
-		it->threadids[i] = src->threadids[i];
+	for(i=0; i<src->nbroadcastids; i++) {
+		it->broadcastids[i] = src->broadcastids[i];
 	}
 	memcpy(it->data,src->data, pdl_howbig(it->datatype) * (size_t)it->nvals);
 	return it;
@@ -473,31 +473,31 @@ pdl_error pdl_reallocdims(pdl *it, PDL_Indx ndims) {
    return PDL_err;
 }
 
-/* Reallocate n threadids. Set the new extra ones to the end */
-pdl_error pdl_reallocthreadids(pdl *it, PDL_Indx n) {
+/* Reallocate n broadcastids. Set the new extra ones to the end */
+pdl_error pdl_reallocbroadcastids(pdl *it, PDL_Indx n) {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
 	PDL_Indx *olds; PDL_Indx nold;
-	if(n <= it->nthreadids) {
-		it->nthreadids = n;
-		it->threadids[n-1] = it->ndims;
+	if(n <= it->nbroadcastids) {
+		it->nbroadcastids = n;
+		it->broadcastids[n-1] = it->ndims;
 		return PDL_err;
 	}
-	nold = it->nthreadids; olds = it->threadids;
-	if(n > PDL_NTHREADIDS) {
-		it->threadids = malloc(sizeof(*(it->threadids))*n);
-		if (!it->threadids) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
+	nold = it->nbroadcastids; olds = it->broadcastids;
+	if(n > PDL_NBROADCASTIDS) {
+		it->broadcastids = malloc(sizeof(*(it->broadcastids))*n);
+		if (!it->broadcastids) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
 	} else {
-		it->threadids = it->def_threadids;
+		it->broadcastids = it->def_broadcastids;
 	}
-	it->nthreadids = n;
-	if(it->threadids != olds) {
+	it->nbroadcastids = n;
+	if(it->broadcastids != olds) {
 		for(i=0; i<nold && i<n; i++)
-			it->threadids[i] = olds[i];
+			it->broadcastids[i] = olds[i];
 	}
-	if(olds != it->def_threadids) { free(olds); }
-	for(i=nold; i<it->nthreadids; i++) {
-		it->threadids[i] = it->ndims;
+	if(olds != it->def_broadcastids) { free(olds); }
+	for(i=nold; i<it->nbroadcastids; i++) {
+		it->broadcastids[i] = it->ndims;
 	}
 	return PDL_err;
 }
@@ -529,8 +529,8 @@ pdl_error pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
   PDL_RETERROR(PDL_err, pdl_reallocdims(it,ndims));
   for(i=0; i<ndims; i++) it->dims[i] = dims[i];
   pdl_resize_defaultincs(it);
-  PDL_RETERROR(PDL_err, pdl_reallocthreadids(it,1));
-  it->threadids[0] = ndims;
+  PDL_RETERROR(PDL_err, pdl_reallocbroadcastids(it,1));
+  it->broadcastids[0] = ndims;
   it->state &= ~PDL_NOMYDIMS;
   PDL_RETERROR(PDL_err, pdl_changed(it,what,0));
   return PDL_err;
@@ -541,7 +541,7 @@ pdl_error pdl_setdims_careful(pdl *it)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	pdl_resize_defaultincs(it);
-        PDL_err = pdl_reallocthreadids(it,1); /* XXX For now */
+        PDL_err = pdl_reallocbroadcastids(it,1); /* XXX For now */
 	return PDL_err;
 }
 

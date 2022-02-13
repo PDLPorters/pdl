@@ -86,14 +86,14 @@ of the file F<pdlcore.h>. So what does the structure look like:
 	   PDL_Indx   *dimincs;   /* Array of data default increments */
 	   short    ndims;     /* Number of data dimensions */
 
-	   unsigned char *threadids;  /* Starting index of the thread index set n */
-	   unsigned char nthreadids;
+	   unsigned char *broadcastids;  /* Starting index of the thread index set n */
+	   unsigned char nbroadcastids;
 
 	   pdl_trans_children trans_children;
 
 	   PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
 	   PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
-	   unsigned char def_threadids[PDL_NTHREADIDS];
+	   unsigned char def_broadcastids[PDL_NBROADCASTIDS];
 
 	   struct pdl_magic *magic;
 
@@ -185,9 +185,9 @@ inside the PDL struct.
 The C<dims> and C<dimincs> may be set to point to the beginning of these
 arrays if C<ndims> is smaller than or equal to the compile-time constant
 C<PDL_NDIMS>. This is important to note when freeing an ndarray struct.
-The same applies for the threadids:
+The same applies for the broadcastids:
 
-   	unsigned char def_threadids[PDL_NTHREADIDS];
+   	unsigned char def_broadcastids[PDL_NBROADCASTIDS];
 
 =head3 Magic
 

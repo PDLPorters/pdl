@@ -694,16 +694,16 @@ getdim(x,y)
 		RETVAL
 
 int
-getnthreadids(x)
+getnbroadcastids(x)
 	pdl *x
 	CODE:
 		pdl_barf_if_error(pdl_make_physdims(x));
-		RETVAL = x->nthreadids;
+		RETVAL = x->nbroadcastids;
 	OUTPUT:
 		RETVAL
 
 void
-threadids_c(x)
+broadcastids_c(x)
 	pdl *x
 	PREINIT:
 		PDL_Indx i;
@@ -711,19 +711,19 @@ threadids_c(x)
 	PPCODE:
 		pdl_barf_if_error(pdl_make_physdims(x));
 		if (gimme == G_ARRAY) {
-			EXTEND(sp, x->nthreadids);
-			for(i=0; i<x->nthreadids; i++) mPUSHi(x->threadids[i]);
+			EXTEND(sp, x->nbroadcastids);
+			for(i=0; i<x->nbroadcastids; i++) mPUSHi(x->broadcastids[i]);
 		}
 		else if (gimme == G_SCALAR) {
-			mXPUSHu(x->nthreadids);
+			mXPUSHu(x->nbroadcastids);
 		}
 
 int
-getthreadid(x,y)
+getbroadcastid(x,y)
 	pdl *x
 	int y
 	CODE:
-		RETVAL = x->threadids[y];
+		RETVAL = x->broadcastids[y];
 	OUTPUT:
 		RETVAL
 

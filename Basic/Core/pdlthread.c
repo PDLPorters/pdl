@@ -341,8 +341,8 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	nids=mx=0;
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
-		MAX2(nids,pdls[j]->nthreadids);
-		MAX2(mx,pdls[j]->threadids[0] - realdims[j]);
+		MAX2(nids,pdls[j]->nbroadcastids);
+		MAX2(mx,pdls[j]->broadcastids[0] - realdims[j]);
 	}
 	ndims += broadcast->nimpl = nimpl = mx;
 
@@ -351,7 +351,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	broadcast->mag_nth = -1;
 	broadcast->mag_nthpdl = -1;
 	broadcast->mag_nthr = -1;
-	PDL_Indx nthreadids[nids];
+	PDL_Indx nbroadcastids[nids];
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		/* Check for magical ndarrays (parallelized) */
@@ -366,10 +366,10 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 			}
 		}
 		for(i=0; i<nids; i++) {
-			ndims += nthreadids[i] =
-				PDLMAX(0, pdls[j]->nthreadids <= nids ?
-				     pdls[j]->threadids[i+1]
-				     - pdls[j]->threadids[i] : 0);
+			ndims += nbroadcastids[i] =
+				PDLMAX(0, pdls[j]->nbroadcastids <= nids ?
+				     pdls[j]->broadcastids[i+1]
+				     - pdls[j]->broadcastids[i] : 0);
 		}
 	}
 	if(nthr) {
@@ -418,7 +418,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	for(nth=0; nth<nimpl; nth++) {                // Loop over number of implicit broadcast dims
 	  for(j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
 	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
-	    if(pdls[j]->threadids[0]-         // If we're off the end of the current PDLs dimlist,
+	    if(pdls[j]->broadcastids[0]-         // If we're off the end of the current PDLs dimlist,
 	       realdims[j] <= nth)                    //    then just skip it.
 	      continue;
 	    if(pdls[j]->dims[nth+realdims[j]] != 1) { // If the current dim in the current PDL is not 1,
@@ -449,17 +449,17 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 /* Go through everything again and make the real things */
 
 	for(nthid=0; nthid<nids; nthid++) {
-	for(i=0; i<nthreadids[nthid]; i++) {
+	for(i=0; i<nbroadcastids[nthid]; i++) {
 		for(j=0; j<npdls; j++) {
 			if (PDL_BISTEMP(flags[j]))
 			    PDL_BRC_INC(broadcast->incs, npdls, j, nth) =
 				pdls[j]->dimincs[pdls[j]->ndims-1];
 			if(creating[j]) continue;
-			if(pdls[j]->nthreadids < nthid) continue;
-			if(pdls[j]->threadids[nthid+1]-
-			   pdls[j]->threadids[nthid]
+			if(pdls[j]->nbroadcastids < nthid) continue;
+			if(pdls[j]->broadcastids[nthid+1]-
+			   pdls[j]->broadcastids[nthid]
 					<= i) continue;
-			mydim = i+pdls[j]->threadids[nthid];
+			mydim = i+pdls[j]->broadcastids[nthid];
 			if(pdls[j]->dims[mydim]
 					!= 1) {
 				if(broadcast->dims[nth] != 1) {
@@ -540,7 +540,7 @@ See the manual for why this is impossible");
 		    (i == broadcast->mag_nth && broadcast->mag_nthr > 0)
 		     ? PDL_BRC_OFFSET(broadcast->mag_nthr, broadcast)
 		     : broadcast->dims[i];
-	broadcast->pdls[j]->threadids[0] = td + broadcast->realdims[j];
+	broadcast->pdls[j]->broadcastids[0] = td + broadcast->realdims[j];
 	pdl_resize_defaultincs(broadcast->pdls[j]);
 	for(i=0; i<broadcast->nimpl; i++) {
 		PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, i) =

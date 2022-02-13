@@ -1584,12 +1584,12 @@ C<EquivPDimExpr> and maybe a C<EquivDimCheck>:
     P2Child => 1,
     AffinePriv => 1,
     EquivDimCheck => '
-      if ($COMP(n1) <0) $COMP(n1) += $PARENT(threadids[0]);
-      if ($COMP(n2) <0) $COMP(n2) += $PARENT(threadids[0]);
+      if ($COMP(n1) <0) $COMP(n1) += $PARENT(broadcastids[0]);
+      if ($COMP(n2) <0) $COMP(n2) += $PARENT(broadcastids[0]);
       if (PDLMIN($COMP(n1),$COMP(n2)) <0 ||
-          PDLMAX($COMP(n1),$COMP(n2)) >= $PARENT(threadids[0]))
+          PDLMAX($COMP(n1),$COMP(n2)) >= $PARENT(broadcastids[0]))
             $CROAK("One of dims %d, %d out of range: should be 0<=dim<%d",
-                $COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
+                $COMP(n1),$COMP(n2),$PARENT(broadcastids[0]));',
     EquivPDimExpr => '
       (($CDIM == $COMP(n1)) ? $COMP(n2) :
        ($CDIM == $COMP(n2)) ? $COMP(n1) :
@@ -2472,13 +2472,13 @@ Similarly for affine transformations, after the above and then the actual
 dimension sizes are set, use this to resize the child ndarray to the
 right size.
 
-=head3 $SETDELTATHREADIDS()
+=head3 $SETDELTABROADCASTIDS()
 
-Similarly again, this sets the child's C<nthreadids> to the same as the
-parent's, allocates space for the C<threadids>, then sets the child's
+Similarly again, this sets the child's C<nbroadcastids> to the same as the
+parent's, allocates space for the C<broadcastids>, then sets the child's
 ones to the same as the parent's plus the given value.
 
-To get a flavour of what C<threadids> are for, in the normal way of things
+To get a flavour of what C<broadcastids> are for, in the normal way of things
 the first (0th) one in the parent is the highest dimension-number in it.
 See L<PDL::Indexing> for more.
 

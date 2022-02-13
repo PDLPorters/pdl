@@ -262,7 +262,7 @@ void pdl_dump_broadcasting_info(
     if(creating[j]) continue;
     printf("PDL %"IND_FLAG":\n", j);
     for( k=0; k < nbroadcastedDims[j]; k++){
-      printf("Thread dim %"IND_FLAG", Dim No %"IND_FLAG", Size %"IND_FLAG"\n",
+      printf("Broadcast dim %"IND_FLAG", Dim No %"IND_FLAG", Size %"IND_FLAG"\n",
         k, broadcastedDims[j][k], broadcastedDimSizes[j][k]);
     }
   }
@@ -451,8 +451,8 @@ void pdl_dump_fixspace(pdl *it,int nspac)
 			(void*)it->hdrsv, sv_reftype((SV*)it->hdrsv, TRUE));
 	printf("%s   Dims: %p ",spaces,(void*)it->dims);
 	pdl_print_iarr(it->dims, it->ndims);
-	printf("\n%s   ThreadIds: %p ",spaces,(void*)(it->threadids));
-	pdl_print_iarr(it->threadids, it->nthreadids);
+	printf("\n%s   BroadcastIds: %p ",spaces,(void*)(it->broadcastids));
+	pdl_print_iarr(it->broadcastids, it->nbroadcastids);
 	if(PDL_VAFFOK(it)) {
 		printf("\n%s   Vaffine ok: %p (parent), o:%"IND_FLAG", i:",
 			spaces,(void*)(it->vafftrans->from),it->vafftrans->offs);

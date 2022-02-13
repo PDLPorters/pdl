@@ -509,10 +509,10 @@ our @ISA = qw (PDL::PP::Rule);
 my @std_redodims = (
   SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->reallocdims(__it,$_[0]));")},
   SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->setdims_careful(__it));")},
-  SETDELTATHREADIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
-{int __ind; PDL_RETERROR(PDL_err, PDL->reallocthreadids(\$CHILD_PTR(), \$PARENT(nthreadids)));
-for(__ind=0; __ind<\$PARENT(nthreadids); __ind++)
-  \$CHILD(threadids[__ind]) = \$PARENT(threadids[__ind]) + ($_[0]);
+  SETDELTABROADCASTIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
+{int __ind; PDL_RETERROR(PDL_err, PDL->reallocbroadcastids(\$CHILD_PTR(), \$PARENT(nbroadcastids)));
+for(__ind=0; __ind<\$PARENT(nbroadcastids); __ind++)
+  \$CHILD(broadcastids[__ind]) = \$PARENT(broadcastids[__ind]) + ($_[0]);
 }
 EOF
 );
@@ -1399,7 +1399,7 @@ $PDL::PP::deftbl =
             $CHILD(dims[i]) = $PARENT(dims[i]);
           }
           $SETDIMS();
-          $SETDELTATHREADIDS(0);
+          $SETDELTABROADCASTIDS(0);
           $PRIV(dims_redone) = 1;
         '),
         # NOTE: we use the same bit of code for all-good and bad data -
@@ -1662,7 +1662,7 @@ EOD
             $PRIV(incs[i]) = $PARENT(dimincs[cor]);
           }
           $SETDIMS();
-          $SETDELTATHREADIDS(0);
+          $SETDELTABROADCASTIDS(0);
           $PRIV(dims_redone) = 1;
         ');
       }),

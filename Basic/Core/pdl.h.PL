@@ -232,7 +232,7 @@ PDL_TYPELIST_ALL(X)
 
 #define PDL_NDIMS      6 /* Number of dims[] to preallocate */
 #define PDL_NCHILDREN  8 /* Number of trans_children ptrs to preallocate */
-#define PDL_NTHREADIDS 4 /* Number of different threadids/pdl to preallocate */
+#define PDL_NBROADCASTIDS 4 /* Number of different broadcastids/pdl to preallocate */
 
 /* Constants for pdl.state - not all combinations make sense */
 
@@ -532,14 +532,14 @@ struct pdl {
    PDL_Indx   *dimincs;   /* Array of data default increments, aka strides through memory for each dim (0 for dummies) */
    PDL_Indx    ndims;     /* Number of data dimensions in dims and dimincs */
 
-   PDL_Indx *threadids;  /* Starting index of the thread index set n */
-   PDL_Indx nthreadids;
+   PDL_Indx *broadcastids;  /* Starting index of the thread index set n */
+   PDL_Indx nbroadcastids;
 
    pdl_trans_children trans_children;
 
    PDL_Indx   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
    PDL_Indx   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
-   PDL_Indx   def_threadids[PDL_NTHREADIDS];
+   PDL_Indx   def_broadcastids[PDL_NBROADCASTIDS];
 
    struct pdl_magic *magic;
 

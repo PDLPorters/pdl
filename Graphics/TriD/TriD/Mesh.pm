@@ -49,7 +49,7 @@ sub new {
 }
 
 sub printdims {print $_[0].": ".(join ', ',$_[1]->dims)," and ",
-		(join ', ',$_[1]->threadids),"\n"}
+		(join ', ',$_[1]->broadcastids),"\n"}
 
 sub get_boundingbox {
 	my ($this, $x, $y, $c) = @_;

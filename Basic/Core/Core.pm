@@ -24,7 +24,7 @@ our $CAN_PACK_D = !! eval { my $packed = pack "D", 0; 1 };
 
 our @EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
 my @convertfuncs = map $_->convertfunc, PDL::Types::types();
-my @exports_internal = qw(howbig threadids topdl);
+my @exports_internal = qw(howbig broadcastids topdl);
 my @exports_normal   = (@EXPORT,
   @convertfuncs,
   qw(nelem dims shape null
@@ -61,7 +61,7 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *howbig       = \&PDL::howbig;	  *unpdl	= \&PDL::unpdl;
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
 *dims	      = \&PDL::dims;	  *list 	= \&PDL::list;
-*threadids    = \&PDL::threadids; *listindices  = \&PDL::listindices;
+*broadcastids = \&PDL::broadcastids; *listindices  = \&PDL::listindices;
 *null	      = \&PDL::null;	  *set  	= \&PDL::set;
 *at		= \&PDL::at;	  *flows	= \&PDL::flows;
 *sclr           = \&PDL::sclr;    *shape        = \&PDL::shape;
@@ -770,13 +770,13 @@ sub PDL::howbig {
 	PDL::howbig_c($t);
 }
 
-=head2 threadids
+=head2 broadcastids
 
 =for ref
 
 Returns the ndarray broadcast IDs as a perl list
 
-Note that C<threadids()> is not exported by default (see example
+Note that C<broadcastids()> is not exported by default (see example
 below for usage).
 
 =for usage
@@ -784,12 +784,12 @@ below for usage).
  use PDL::Core ':Internal'; # use the internal routines of
                             # the Core module
 
- @ids = threadids $ndarray;
+ @ids = broadcastids $ndarray;
 
 =cut
 
-sub PDL::threadids {  # Return dimensions as @list
-   PDL->topdl(shift)->threadids_c;
+sub PDL::broadcastids {
+   PDL->topdl(shift)->broadcastids_c;
 }
 
 ################# Creation/copying functions #######################
@@ -1250,7 +1250,7 @@ copies to be made.
 sub PDL::copy {
     my $value = shift;
     barf("Argument is an ".ref($value)." not an object") unless blessed($value);
-    # threadI(-1,[]) is just an identity vafftrans with threadId copying ;)
+    # threadI(-1,[]) is just an identity vafftrans with broadcastid copying ;)
     $value->threadI(-1,[])->sever;
 }
 
@@ -1377,7 +1377,7 @@ sub PDL::_deep_hdr_copy {
 =for ref
 
 Return an ndarray which is the same as the argument except
-that all threadids have been removed.
+that all broadcastids have been removed.
 
 =for usage
 
@@ -1797,7 +1797,7 @@ sub dimstr {
   my $this = shift;
 
   my @dims = $this->dims;
-  my @ids  = $this->threadids;
+  my @ids  = $this->broadcastids;
   my ($nids,$i) = ($#ids - 1,0);
   my $dstr = 'D ['. join(',',@dims[0..($ids[0]-1)]) .']';
   if ($nids > 0) {

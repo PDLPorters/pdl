@@ -224,9 +224,9 @@ pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
   for (i=0; i<trans->pdls[1]->ndims; i++)
     trans->pdls[1]->dims[i] = trans->pdls[0]->dims[i];
   PDL_RETERROR(PDL_err, pdl_setdims_careful(__it));
-  pdl_reallocthreadids(trans->pdls[1], trans->pdls[0]->nthreadids);
-  for (i=0; i<trans->pdls[0]->nthreadids; i++)
-    trans->pdls[1]->threadids[i] = trans->pdls[0]->threadids[i];
+  pdl_reallocbroadcastids(trans->pdls[1], trans->pdls[0]->nbroadcastids);
+  for (i=0; i<trans->pdls[0]->nbroadcastids; i++)
+    trans->pdls[1]->broadcastids[i] = trans->pdls[0]->broadcastids[i];
   trans->dims_redone = 1;
   return PDL_err;
 }

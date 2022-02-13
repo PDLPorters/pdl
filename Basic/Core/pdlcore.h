@@ -93,7 +93,7 @@ void pdl_dump_anyval(PDL_Anyval v);
   X(setdims, pdl_error, ( pdl* it, PDL_Indx* dims, PDL_Indx ndims )) \
   X(at0, PDL_Anyval, ( pdl* x )) \
   X(reallocdims, pdl_error, ( pdl *it,PDL_Indx ndims )) \
-  X(reallocthreadids, pdl_error, ( pdl *it,PDL_Indx ndims )) \
+  X(reallocbroadcastids, pdl_error, ( pdl *it,PDL_Indx ndims )) \
   X(resize_defaultincs, void, ( pdl *it )) /* Make incs out of dims */ \
   X(clearbroadcaststruct, void, (pdl_broadcast *it)) \
   X(initbroadcaststruct, pdl_error, (int nobl,pdl **pdls,PDL_Indx *realdims, \

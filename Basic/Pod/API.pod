@@ -443,7 +443,7 @@ Put data at given offset.
   setdims_careful
 
 Despite the name, just calls C<resize_defaultincs> then
-C<reallocthreadids> with one.
+C<reallocbroadcastids> with one.
 
 =item *
 
@@ -460,9 +460,9 @@ previous ones.
 
 =item *
 
-  reallocthreadids
+  reallocbroadcastids
 
-Reallocate n threadids. Set the new extra ones to the end.
+Reallocate n broadcastids. Set the new extra ones to the end.
 
 =item *
 

@@ -111,7 +111,7 @@ document Perl level broadcasting
 
 =item *
 
-threadids
+broadcastids
 
 =item *
 
