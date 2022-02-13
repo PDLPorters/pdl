@@ -4953,7 +4953,7 @@ sub tline {
 }
 
 
-PDL::thread_define('_tline(a(n);b(n);ind()), NOtherPars => 2',
+PDL::broadcast_define('_tline(a(n);b(n);ind()), NOtherPars => 2',
   PDL::over {
     my ($x, $y, $ind, $self, $opt)=@_;
     # use Data::Dumper;
@@ -5022,7 +5022,7 @@ sub tpoints {
 }
 
 
-PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
+PDL::broadcast_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
   PDL::over {
     my ($x, $y, $ind, $self, $opt)=@_;
     $self->points($x, $y, $opt->[$ind->at(0)] || {});
@@ -6269,7 +6269,7 @@ sub tcircle {
     $self->release unless $tmp_hold;
 }
 
-PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2', sub {
+PDL::broadcast_define '_tcircle(a();b();c();ind()), NOtherPars => 2', sub {
      my ($x,$y,$r,$ind,$self,$opt)=@_;
      $self->circle($x,$y,$r,$opt->[$ind->at(0)] || {} );
  };

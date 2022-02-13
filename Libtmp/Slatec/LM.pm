@@ -288,7 +288,7 @@ some of the current limitations of perl level threading.
 =cut
 
 
-thread_define 'tlmfit(x(n);y(n);sigma(n);initp(m);iter();eps();[o] ym(n);[o] finalp(m)),
+broadcast_define 'tlmfit(x(n);y(n);sigma(n);initp(m);iter();eps();[o] ym(n);[o] finalp(m)),
                NOtherPars => 1',
   over {
     $_[7] .= $_[3]; # copy our parameter guess into the output

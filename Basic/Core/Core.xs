@@ -392,9 +392,9 @@ listref_c(x)
       stop = 1;
       for(ind = 0; ind < x->ndims; ind++) {
 	 if(++(inds[ind]) >= x->dims[ind]) {
-       	    inds[ind] = 0;
+	    inds[ind] = 0;
          } else {
-       	    stop = 0; break;
+	    stop = 0; break;
          }
       }
    }
@@ -808,14 +808,14 @@ gethdr(p)
 	 RETVAL
 
 void
-threadover_n(...)
+broadcastover_n(...)
    PREINIT:
    int npdls;
    SV *sv;
    CODE:
     npdls = items - 1;
     if(npdls <= 0)
-    	croak("Usage: threadover_n(pdl[,pdl...],sub)");
+	croak("Usage: broadcastover_n(pdl[,pdl...],sub)");
     int i,sd;
     pdl *pdls[npdls];
     PDL_Indx realdims[npdls];
@@ -834,7 +834,7 @@ threadover_n(...)
     pdl_barf_if_error(error_ret);
     sd = pdl_brc.ndims;
     do {
-    	dSP;
+	dSP;
 	PUSHMARK(sp);
 	EXTEND(sp,items);
 	PUSHs(sv_2mortal(newSViv((sd-1))));
@@ -844,7 +844,7 @@ threadover_n(...)
 		ANYVAL_TO_SV(sv, pdl_val);
 		PUSHs(sv_2mortal(sv));
 	}
-    	PUTBACK;
+	PUTBACK;
 	perl_call_sv(code,G_DISCARD);
 	sd = pdl_iterbroadcastloop(&pdl_brc,0);
 	if ( sd < 0 ) die("Error in iterbroadcastloop");
@@ -852,7 +852,7 @@ threadover_n(...)
     pdl_freebroadcaststruct(&pdl_brc);
 
 void
-threadover(...)
+broadcastover(...)
    PREINIT:
     int npdls;
     int targs;
@@ -861,7 +861,7 @@ threadover(...)
     targs = items - 4;
     if (items > 0) nothers = SvIV(ST(0));
     if(targs <= 0 || nothers < 0 || nothers >= targs)
-	croak("Usage: threadover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
+	croak("Usage: broadcastover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
     npdls = targs-nothers;
     int i,dtype=0;
     PDL_Indx nc=npdls,nd1,nd2;
@@ -875,8 +875,8 @@ threadover(...)
     if (!creating) croak("Failed to packdims for creating");
     PDL_Indx *realdims = pdl_packdims(rdimslist,&nd1);
     if (!realdims) croak("Failed to packdims for realdims");
-    if (nd1 != npdls) croak("threadover: need one realdim flag per pdl!");
-    if (nd2 != npdls) croak("threadover: need one creating flag per pdl!");
+    if (nd1 != npdls) croak("broadcastover: need one realdim flag per pdl!");
+    if (nd2 != npdls) croak("broadcastover: need one creating flag per pdl!");
     for(i=0; i<npdls; i++) {
 	pdls[i] = pdl_SvPDLV(ST(i+1));
 	if (creating[i])
@@ -927,7 +927,7 @@ threadover(...)
     int thrloopval;
     do {  /* the actual broadcastloop */
 	pdl_trans *traff;
-    	dSP;
+	dSP;
 	PUSHMARK(sp);
 	EXTEND(sp,npdls);
 	for(i=0; i<npdls; i++) {
@@ -941,7 +941,7 @@ threadover(...)
 	}
 	for (i=0; i<nothers; i++)
 	  PUSHs(others[i]);   /* pass the OtherArgs onto the stack */
-    	PUTBACK;
+	PUTBACK;
 	perl_call_sv(code,G_DISCARD);
 	thrloopval = pdl_iterbroadcastloop(&pdl_brc,0);
 	if ( thrloopval < 0 ) die("Error in iterbroadcastloop");

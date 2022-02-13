@@ -29,7 +29,7 @@ my @exports_normal   = (@EXPORT,
   @convertfuncs,
   qw(nelem dims shape null
       convert inplace zeroes zeros ones nan inf i list listindices unpdl
-      set at flows thread_define over reshape dog cat barf type
+      set at flows broadcast_define over reshape dog cat barf type
       dummy mslice approx flat sclr squeeze
       get_autopthread_targ set_autopthread_targ get_autopthread_actual
       get_autopthread_dim get_autopthread_size set_autopthread_size) );
@@ -76,7 +76,7 @@ for my $t (PDL::Types::types()) {
 }
 
 BEGIN {
-    *thread_define = \&PDL::thread_define;
+    *broadcast_define = \&PDL::broadcast_define;
     *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
     *dog          = \&PDL::dog;       *cat 	         = \&PDL::cat;
     *type         = \&PDL::type;      *approx        = \&PDL::approx;
@@ -1544,7 +1544,7 @@ sub PDL::clump {
   return $clumped;
 }
 
-=head2 thread_define
+=head2 broadcast_define
 
 =for ref
 
@@ -1552,18 +1552,18 @@ define functions that support broadcasting at the perl level
 
 =for example
 
- thread_define 'tline(a(n);b(n))', over {
+ broadcast_define 'tline(a(n);b(n))', over {
   line $_[0], $_[1]; # make line compliant with broadcasting
  };
 
 
-C<thread_define> provides some support for broadcasting (see
+C<broadcast_define> provides some support for broadcasting (see
 L<PDL::Indexing>) at the perl level. It allows you to do things for
 which you normally would have resorted to PDL::PP (see L<PDL::PP>);
 however, it is most useful to wrap existing perl functions so that the
 new routine supports PDL broadcasting.
 
-C<thread_define> is used to define new I<broadcasting aware>
+C<broadcast_define> is used to define new I<broadcasting aware>
 functions. Its first argument is a symbolic repesentation of the new
 function to be defined. The string is composed of the name of the new
 function followed by its signature (see L<PDL::Indexing> and L<PDL::PP>)
@@ -1574,7 +1574,7 @@ dimensions for all arguments will be checked (assuming the rules of
 PDL broadcasting, see L<PDL::Indexing>).
 
 The actual work is done by the C<signature> class which parses the signature
-string, does runtime dimension checks and the routine C<threadover> that
+string, does runtime dimension checks and the routine C<broadcastover> that
 generates the loop over all appropriate slices of pdl arguments and creates
 pdls as needed.
 
@@ -1583,9 +1583,9 @@ define the new function so that it accepts normal perl args as well as
 ndarrays. You do this by using the C<NOtherPars> parameter in the
 signature. The number of C<NOtherPars> specified will be passed
 unaltered into the subroutine given as the second argument of
-C<thread_define>. Let's illustrate this with an example:
+C<broadcast_define>. Let's illustrate this with an example:
 
- PDL::thread_define 'triangles(inda();indb();indc()), NOtherPars => 2',
+ PDL::broadcast_define 'triangles(inda();indb();indc()), NOtherPars => 2',
   PDL::over {
     ${$_[3]} .= $_[4].join(',',map {$_->at} @_[0..2]).",-1,\n";
   };
@@ -1619,7 +1619,7 @@ C<[t]> qualifier and all type qualifiers are ignored.
 =cut
 
 sub PDL::over (&) { $_[0] }
-sub PDL::thread_define ($$) {
+sub PDL::broadcast_define ($$) {
   require PDL::PP::Signature;
   my ($str,$sub) = @_;
   my $others = 0;
@@ -1639,7 +1639,7 @@ sub PDL::thread_define ($$) {
   *{"$package\::$name"} = sub {
     @_[0..$args] = map PDL::Core::topdl($_), @_[0..$args];
     $sig->checkdims(@_);
-    PDL::threadover($others,@_,$sig->realdims,$sig->creating,$sub);
+    PDL::broadcastover($others,@_,$sig->realdims,$sig->creating,$sub);
   };
 }
 

@@ -314,7 +314,7 @@ END
 }
 
 {
-# Then, the more difficult ways: explicit threading.
+# Then, the more difficult ways: explicit broadcasting.
 # Dims: 3,3,2
 my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
 my $pb = zeroes(3,3);
@@ -342,9 +342,9 @@ is(join(',',$pc->dims), "4,6,5", 'unthread dims');
 #### Now, test whether the Perl-accessible thread works:
 my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
 my $pb = pdl [2,3,4];
-PDL::threadover_n($pa,$pb,sub {print "ROUND: @_\n"});
+PDL::broadcastover_n($pa,$pb,sub {print "ROUND: @_\n"});
 # As well as with virtuals...
-PDL::threadover_n($pa->slice("-1:0,-1:0"),$pb,sub {print "ROUND: @_\n"});
+PDL::broadcastover_n($pa->slice("-1:0,-1:0"),$pb,sub {print "ROUND: @_\n"});
 }
 
 done_testing;

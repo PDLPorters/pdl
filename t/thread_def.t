@@ -13,21 +13,21 @@ my $pb = yvals(zeroes(4,3)) + sequence(4);
 my $pc = $pa->transpose->slice(':,-1:0');
 
 # not very useful examples but simple and test the essentials
-thread_define 'tline(a(n);b(n))', over {
+broadcast_define 'tline(a(n);b(n))', over {
     $_[0] .= $_[1];
 };
 
-thread_define 'tassgn(a(n,m);[o] b())', over {
+broadcast_define 'tassgn(a(n,m);[o] b())', over {
     # sumover($_[0],$_[1]);
     $_[1] .= $_[0]->sum;
 };
 
-thread_define 'ttext(a(n=3)), NOtherPars => 1', over {
+broadcast_define 'ttext(a(n=3)), NOtherPars => 1', over {
     ${$_[1]} .= sprintf("%.3f %.3f %.3f,\n",$_[0]->list);
   #join(' ',$_[0]->list) . ",\n";
 };
 
-thread_define 'tprint(a(n);b(n)), NOtherPars => 1', over {
+broadcast_define 'tprint(a(n);b(n)), NOtherPars => 1', over {
 	${$_[2]} .= "$_[1]";
 };
 

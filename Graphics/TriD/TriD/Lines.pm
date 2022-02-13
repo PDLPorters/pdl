@@ -35,7 +35,7 @@ sub togl {
 	glDisable(GL_LIGHTING);
 	glBegin(&GL_LINE_STRIP);
 	my $first = 1;
-	PDL::threadover_n($this->{X},$this->{Y},$this->{Z},$this->{Color},sub {
+	PDL::broadcastover_n($this->{X},$this->{Y},$this->{Z},$this->{Color},sub {
 		if(shift > 0) {
 			if(!$first) {
 			glEnd();

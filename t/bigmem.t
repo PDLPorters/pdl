@@ -47,7 +47,7 @@ ok( $bbb->sum == $bbb->nelem, "slices of slices of giant PDLs seem to work right
 # make_physical
 # dummy
 # clump
-# thread_define
+# broadcast_define
 # thread
 # diagonal
 # thread[123I]

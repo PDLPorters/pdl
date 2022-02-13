@@ -238,18 +238,18 @@ sub vpostfix {
   return tabs($level)."]\n";
 }
 
-PDL::thread_define 'coords(vertices(n=3); colors(n)) NOtherPars => 3',
+PDL::broadcast_define 'coords(vertices(n=3); colors(n)) NOtherPars => 3',
   PDL::over {
     ${$_[2]} .= $_[4] . sprintf("%.3f %.3f %.3f,\n",$_[0]->list);
     ${$_[3]} .= $_[4] . sprintf("%.3f %.3f %.3f,\n",$_[1]->list);
 };
 
-PDL::thread_define 'v3array(vecs(n=3)) NOtherPars => 2',
+PDL::broadcast_define 'v3array(vecs(n=3)) NOtherPars => 2',
   PDL::over {
     ${$_[1]} .= $_[2] . sprintf("%.3f %.3f %.3f,\n",$_[0]->list);
 };
 
-PDL::thread_define 'lines(vertices(n=3,m); colors(n,m); index(m))'.
+PDL::broadcast_define 'lines(vertices(n=3,m); colors(n,m); index(m))'.
   'NOtherPars => 4',
   PDL::over {
     my ($lines,$cols,$index,$vt,$ct,$it,$sp) = @_;
@@ -258,7 +258,7 @@ PDL::thread_define 'lines(vertices(n=3,m); colors(n,m); index(m))'.
     $$it .= $sp.join(',',$index->list).",-1,\n" if defined $it;
 };
 
-PDL::thread_define 'triangles(inda();indb();indc()), NOtherPars => 2',
+PDL::broadcast_define 'triangles(inda();indb();indc()), NOtherPars => 2',
   PDL::over {
     ${$_[3]} .= $_[4].join(',',map {$_->at} @_[0..2]).",-1,\n";
 };
