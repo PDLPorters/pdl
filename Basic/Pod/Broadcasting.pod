@@ -1,16 +1,16 @@
 =head1 NAME
 
-PDL::Threading - Tutorial for PDL's Threading feature
+PDL::Broadcasting - Tutorial for PDL's Broadcasting feature
 
 =head1 INTRODUCTION
 
-One of the most powerful features of PDL is B<threading>, which can
+One of the most powerful features of PDL is B<broadcasting>, which can
 produce very compact and very fast PDL code by avoiding multiple nested
 for loops that C and BASIC users may be familiar with. The trouble is
 that it can take some getting used to, and new users may not appreciate
-the benefits of threading.
+the benefits of broadcasting.
 
-Other vector based languages, such as MATLAB, use a subset of threading
+Other vector based languages, such as MATLAB, use a subset of broadcasting
 techniques, but PDL shines by completely generalizing them for all sorts
 of vector-based applications.
 
@@ -26,10 +26,10 @@ An I<ndarray> consists of a series of numbers organized as an N-dimensional
 data set. ndarrays provide efficient storage and fast computation of large
 N-dimensional matrices. They are highly optimized for numerical work.
 
-=head1 THINKING IN TERMS OF THREADING
+=head1 THINKING IN TERMS OF BROADCASTING
 
 If you have used PDL for a little while already, you may have been using
-threading without realising it. Start the PDL shell (type C<perldl> or
+broadcasting without realising it. Start the PDL shell (type C<perldl> or
 C<pdl2> on a terminal). Most examples in this tutorial use the PDL shell.
 Make sure that L<PDL::NiceSlice> and L<PDL::AutoLoader>
 are enabled. For example:
@@ -97,7 +97,7 @@ But with PDL, we can just write:
     [ 91  92  93  94  95  96  97  98  99 100 101]
   ]
 
-This is the simplest example of threading, and it is something that
+This is the simplest example of broadcasting, and it is something that
 all numerical software tools do. The C<+ 3> operation was automatically
 applied along two dimensions. Now suppose you want to to subtract a
 line from every row in C<$x>:
@@ -129,9 +129,9 @@ C<$line> and C<$c>:
   pdl> p $c->info     =>  PDL: Double D [11,9]
 
 So, both C<$x> and C<$line> have the same number of elements in the 0th
-dimension! What PDL then did was thread over the higher dimensions in C<$x>
+dimension! What PDL then did was broadcast over the higher dimensions in C<$x>
 and repeated the same operation 9 times to all the rows on C<$x>. This is
-PDL threading in action.
+PDL broadcasting in action.
 
 What if you want to subtract C<$line> from the first line in C<$x> only?
 You can do that by specifying the line explicitly:
@@ -153,7 +153,7 @@ You can do that by specifying the line explicitly:
 See L<PDL::Indexing> and L<PDL::NiceSlice> to
 learn more about specifying subsets from ndarrays.
 
-The true power of threading comes when you realise that the ndarray can
+The true power of broadcasting comes when you realise that the ndarray can
 have any number of dimensions! Let's make a 4 dimensional ndarray:
 
   pdl> $ndarray_4D = sequence(11,3,7,2)
@@ -164,7 +164,7 @@ Now C<$c> is an ndarray of the same dimension as C<$ndarray_4D>.
   pdl> p $ndarray_4D->info  =>  PDL: Double D [11,3,7,2]
   pdl> p $c->info          =>  PDL: Double D [11,3,7,2]
 
-This time PDL has threaded over three higher dimensions automatically,
+This time PDL has broadcasted over three higher dimensions automatically,
 subtracting C<$line> all the way.
 
 But, maybe you don't want to subtract from the rows (dimension 0), but from
@@ -179,7 +179,7 @@ Naturally, we can't just type C<$x - $cols>. The dimensions don't match:
 
   pdl> p $x - $cols
   PDL: PDL::Ops::minus(a,b,c): Parameter 'b'
-  PDL: Mismatched implicit thread dimension 0: should be 11, is 9
+  PDL: Mismatched implicit broadcast dimension 0: should be 11, is 9
 
 How do we tell PDL that we want to subtract from  dimension 1 instead?
 
@@ -365,7 +365,7 @@ The simplest way is to use the C<xchg> method and rely on PDL linking:
 =item General Strategy:
 
 Move the dimensions you want to operate on to the start of your ndarray's
-dimension list. Then let PDL thread over the higher dimensions.
+dimension list. Then let PDL broadcast over the higher dimensions.
 
 =back
 
@@ -459,9 +459,9 @@ addressing individual cells.
 If you run this, you will see a small glider crawl diagonally across the grid
 of zeroes. On my machine, it prints out a couple of generations per second.
 
-=head2 Threaded PDL implementation
+=head2 Broadcasting PDL implementation
 
-And here's the threaded version in PDL. Just four lines of PDL code, and
+And here's the broadcasted version in PDL. Just four lines of PDL code, and
 one of those is printing out the latest generation!
 
   #!/usr/bin/perl -w
@@ -487,16 +487,16 @@ one of those is printing out the latest generation!
     print $x;
   }
 
-The threaded PDL version is much faster:
+The broadcasted PDL version is much faster:
 
   Classical => 32.79 seconds.
-  Threaded  =>  0.41 seconds.
+  Broadcasting  =>  0.41 seconds.
 
 =head2 Explanation
 
-How does the threaded version work?
+How does the broadcasted version work?
 
-There are many PDL functions designed to help you carry out PDL threading.
+There are many PDL functions designed to help you carry out PDL broadcasting.
 In this example, the key functions are:
 
 =head3 Method: C<range>
@@ -942,13 +942,12 @@ changes:
 =head1 CONCLUSION: GENERAL STRATEGY
 
 The general strategy is: I<Move the dimensions you want to operate on to the
-start of your ndarray's dimension list. Then let PDL thread over the higher
+start of your ndarray's dimension list. Then let PDL broadcast over the higher
 dimensions.>
 
-Threading is a powerful tool that helps eliminate for-loops and can make your
+Broadcasting is a powerful tool that helps eliminate for-loops and can make your
 code more concise. Hopefully this tutorial has shown why it is worth getting
-to grips with threading in PDL.
-
+to grips with broadcasting in PDL.
 
 =head1 COPYRIGHT
 

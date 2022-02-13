@@ -557,7 +557,7 @@ int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans 
 	PDL_Indx *inds, *dims;
 	if(  (broadcast->gflags & (PDL_BROADCAST_MAGICKED | PDL_BROADCAST_MAGICK_BUSY))
 	     == PDL_BROADCAST_MAGICKED ) {
-		/* If no function supplied (i.e. being called from PDL::thread_over), don't run in parallel */
+		/* If no function supplied (i.e. being called from PDL::broadcast_over), don't run in parallel */
 		if(!func) {
 			broadcast->gflags &= ~PDL_BROADCAST_MAGICKED; /* Cancel thread_magicked */
 		}

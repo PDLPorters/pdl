@@ -1250,8 +1250,8 @@ copies to be made.
 sub PDL::copy {
     my $value = shift;
     barf("Argument is an ".ref($value)." not an object") unless blessed($value);
-    # threadI(-1,[]) is just an identity vafftrans with broadcastid copying ;)
-    $value->threadI(-1,[])->sever;
+    # broadcastI(-1,[]) is just an identity vafftrans with broadcastid copying ;)
+    $value->broadcastI(-1,[])->sever;
 }
 
 =head2 hdr_copy
@@ -1415,7 +1415,7 @@ need to physicalise them (though there are exceptions).
 sub PDL::unwind {
 	my $value = shift;
 	my $foo = $value->null();
-	$foo .= $value->unthread();
+	$foo .= $value->unbroadcast();
 	return $foo;
 }
 
@@ -1539,7 +1539,7 @@ sub PDL::clump {
     $targd = $dim if $targd > $dim;
     barf "duplicate dimension $dim" if $dimmark[$dim]++ > $dim;
   }
-  my $clumped = $this->thread(@dims)->unthread(0)->clump(scalar @dims);
+  my $clumped = $this->broadcast(@dims)->unbroadcast(0)->clump(scalar @dims);
   $clumped = $clumped->mv(0,$targd) if $targd > 0;
   return $clumped;
 }
@@ -1643,7 +1643,7 @@ sub PDL::broadcast_define ($$) {
   };
 }
 
-=head2 thread
+=head2 broadcast
 
 =for ref
 
@@ -1651,20 +1651,20 @@ Use explicit broadcasting over specified dimensions (see also L<PDL::Indexing>)
 
 =for usage
 
- $y = $x->thread($dim,[$dim1,...])
+ $y = $x->broadcast($dim,[$dim1,...])
 
 =for example
 
  $x = zeroes 3,4,5;
- $y = $x->thread(2,0);
+ $y = $x->broadcast(2,0);
 
-Same as L</thread1>, i.e. uses broadcast id 1.
+Same as L</broadcast1>, i.e. uses broadcast id 1.
 
 =cut
 
-sub PDL::thread {
+sub PDL::broadcast {
 	my $var = shift;
-	$var->threadI(1,\@_);
+	$var->broadcastI(1,\@_);
 }
 
 =head2 thread1
@@ -1682,13 +1682,13 @@ Explicit broadcasting over specified dims using broadcast id 1.
  Wibble
 
 Convenience function interfacing to
-L<PDL::Slices::threadI|PDL::Slices/threadI>.
+L<PDL::Slices::broadcastI|PDL::Slices/broadcastI>.
 
 =cut
 
-sub PDL::thread1 {
+sub PDL::broadcast1 {
 	my $var = shift;
-	$var->threadI(1,\@_);
+	$var->broadcastI(1,\@_);
 }
 
 =head2 thread2
@@ -1706,13 +1706,13 @@ Explicit broadcasting over specified dims using broadcast id 2.
  Wibble
 
 Convenience function interfacing to
-L<PDL::Slices::threadI|PDL::Slices/threadI>.
+L<PDL::Slices::broadcastI|PDL::Slices/broadcastI>.
 
 =cut
 
-sub PDL::thread2 {
+sub PDL::broadcast2 {
 	my $var = shift;
-	$var->threadI(2,\@_);
+	$var->broadcastI(2,\@_);
 }
 
 =head2 thread3
@@ -1730,13 +1730,13 @@ Explicit broadcasting over specified dims using broadcast id 3.
  Wibble
 
 Convenience function interfacing to
-L<PDL::Slices::threadI|PDL::Slices/threadI>.
+L<PDL::Slices::broadcastI|PDL::Slices/broadcastI>.
 
 =cut
 
-sub PDL::thread3 {
+sub PDL::broadcast3 {
 	my $var = shift;
-	$var->threadI(3,\@_);
+	$var->broadcastI(3,\@_);
 }
 
 my %info = (

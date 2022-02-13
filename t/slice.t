@@ -323,7 +323,7 @@ eval { $x = $source->indexND( $index ) };
 is $@, '';
 ok(eval { zcheck($x != pdl([23,45],[67,89])) }, "eval of zcheck 1");
 
-# Threaded indexND operation
+# Broadcast indexND operation
 $source = 100*xvals(10,10,2)+10*yvals(10,10,2)+zvals(10,10,2);
 $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 eval { $x = $source->indexND($index) };

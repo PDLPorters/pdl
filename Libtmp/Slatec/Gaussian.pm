@@ -212,12 +212,12 @@ sub _otrans {
 	my $tmp = PDL->null;
 	$tmp .= $this->{EigVec}; my $foo;
 	if($inv) {
-		($foo = $tmp->thread(0)) /= $this->{EigVal};
+		($foo = $tmp->broadcast(0)) /= $this->{EigVal};
 	} else {
-		($foo = $tmp->thread(0)) *= $this->{EigVal};
+		($foo = $tmp->broadcast(0)) *= $this->{EigVal};
 	}
-	PDL::Primitive::inner($this->{EigVec}->thread(0,-1),$tmp->thread(-1,0),
-		$this->{($inv?"ICV":"CV")}->thread(0,1));
+	PDL::Primitive::inner($this->{EigVec}->broadcast(0,-1),$tmp->broadcast(-1,0),
+		$this->{($inv?"ICV":"CV")}->broadcast(0,1));
 }
 
 # Calculate prefactor.
@@ -246,11 +246,11 @@ sub calc_lnvalue ($$$) {
 
 #	print "MUXED1: $muxed\n";
 
-	my $arg11 = $this->{Mu}->thread(1..$#{$this->{NFuncs}}+1);
-	my $arg12 = $muxed->thread(1..$#{$this->{NFuncs}}+1);
+	my $arg11 = $this->{Mu}->broadcast(1..$#{$this->{NFuncs}}+1);
+	my $arg12 = $muxed->broadcast(1..$#{$this->{NFuncs}}+1);
 
-#	my_biop1($x,$this->{Mu}->thread(1..$#{$this->{NFuncs}}+1),
-#		$muxed->thread(1..$#{$this->{NFuncs}}+1),"-");
+#	my_biop1($x,$this->{Mu}->broadcast(1..$#{$this->{NFuncs}}+1),
+#		$muxed->broadcast(1..$#{$this->{NFuncs}}+1),"-");
 
 	print "TOINNER1\n";
 	PDL::Ops::my_biop1($x, $arg11, $arg12, "-");
@@ -258,16 +258,16 @@ sub calc_lnvalue ($$$) {
 	print "TOINNER2\n";
 #	print "MUXED: $muxed\n";
 	print "TOINNER2\n";
-	my $arg1 = ($muxed->thread(1..$#{$this->{NFuncs}}+1));
+	my $arg1 = ($muxed->broadcast(1..$#{$this->{NFuncs}}+1));
 	print "TOINNER3\n";
-	my $arg2 = ($this->{ICV}->thread(2..$#{$this->{ICV}{Dims}}));
+	my $arg2 = ($this->{ICV}->broadcast(2..$#{$this->{ICV}{Dims}}));
 	print "TOINNER4\n";
-	my $arg3 = ($p->thread(0..$#{$this->{NFuncs}}));
+	my $arg3 = ($p->broadcast(0..$#{$this->{NFuncs}}));
 	print "TOINNER5\n";
-#	inner2(($muxed->thread(1..$#{$this->{NFuncs}}+1))
-#		,($this->{ICV}->thread(2..$#{$this->{ICV}{Dims}})),
-#		($muxed->thread(1..$#{$this->{NFuncs}}+1))
-#		   ($p->thread(0..$#{$this->{NFuncs}})));
+#	inner2(($muxed->broadcast(1..$#{$this->{NFuncs}}+1))
+#		,($this->{ICV}->broadcast(2..$#{$this->{ICV}{Dims}})),
+#		($muxed->broadcast(1..$#{$this->{NFuncs}}+1))
+#		   ($p->broadcast(0..$#{$this->{NFuncs}})));
 	PDL::Primitive::inner2($arg1,$arg2,$arg1,$arg3);
 	print "FROMINNER2\n";
 	$p /= -2;
@@ -280,22 +280,22 @@ sub calc_lnvalue ($$$) {
 sub calc_lccovariance {
 	my($this,$vec,$var) = @_;
 	my $tmp = PDL->null;
-	inner2t($vec->transpose->thread(3..$#{$this->{NFuncs}}+3),
-	    	 $this->{CV}->thread(2..$#{$this->{NFuncs}}+2),
-		$vec->thread(3..$#{$this->{NFuncs}}+3),
+	inner2t($vec->transpose->broadcast(3..$#{$this->{NFuncs}}+3),
+		$this->{CV}->broadcast(2..$#{$this->{NFuncs}}+2),
+		$vec->broadcast(3..$#{$this->{NFuncs}}+3),
 		$tmp,
-		$var->thread(3..$#{$this->{NFuncs}}+3));
+		$var->broadcast(3..$#{$this->{NFuncs}}+3));
 }
 
 # (nvars,newndims,foo) => (newndims,@gdims,foo)
-# (nvars,@xdims)->thread) -> (@gdims)
+# (nvars,@xdims)->broadcast) -> (@gdims)
 sub calc_lcavg {
 	my($this,$vec,$var) = @_;
 #	kill INT,$$;
 	PDL::Primitive::inner(
-		$vec->thread(3..$#{$this->{NFuncs}}+3),
-		$this->{Mu}->thread(1..$#{$this->{Mu}{Dims}}),
-		$var->thread(2..$#{$this->{NFuncs}}+2));
+		$vec->broadcast(3..$#{$this->{NFuncs}}+3),
+		$this->{Mu}->broadcast(1..$#{$this->{Mu}{Dims}}),
+		$var->broadcast(2..$#{$this->{NFuncs}}+2));
 }
 
 # Calculate the average of a second-degree term x^T M x
@@ -312,18 +312,18 @@ sub calc_qavg {
 		@cdims, @{$this->{NFuncs}});
 	PDL::Primitive::inner2t(
 			$this->{EigVec}->transpose,
-			$terms->thread(@cids),
+			$terms->broadcast(@cids),
 			$this->{EigVec},
 			$tmp1,
-			$tmp2->thread(@cids)
+			$tmp2->broadcast(@cids)
 	);
 	$tmp2->flush();
-# Now, pick the diagonal of $tmp2, threading over the unwanted dims..
-	my $diag = $tmp2->thread(@cids)->diagonal(0);
+# Now, pick the diagonal of $tmp2, broadcasting over the unwanted dims..
+	my $diag = $tmp2->broadcast(@cids)->diagonal(0);
 # And multiply it by the covariance eigenvalues.
 	$diag *= $this->{EigVal};
 # Return the sum
-	$diag = $diag->unthread(1);
+	$diag = $diag->unbroadcast(1);
 	$diag->sumover($res);
 }
 

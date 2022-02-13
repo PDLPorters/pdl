@@ -266,8 +266,8 @@ is( PDL::Core::string( isbad($y) ), "[0 1 0]", "bessj0()" );
 
 $x = pdl(double->badvalue,0.8);
 $x->badflag(1);
-$y = bessjn($x,3);  # thread over n()
-is( PDL::Core::string( isbad($y) ), "[1 0]", "thread over bessjn()" );
+$y = bessjn($x,3);  # broadcast over n()
+is( PDL::Core::string( isbad($y) ), "[1 0]", "broadcast over bessjn()" );
 ok( abs($y->at(1)-0.010) < 0.001 );
 
 $x = pdl( 0.01, 0.0 );

@@ -58,7 +58,7 @@ throws_ok {
 	ttext($pa, \my $text);
 } qr/conflicting/;
 
-# test if dim=1 -> threaddim
+# test if dim=1 -> broadcastdim
 note "testing tprint\n";
 $pa = sequence(3);
 $pb = pdl [1];

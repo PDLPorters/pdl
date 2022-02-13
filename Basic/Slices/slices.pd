@@ -96,17 +96,17 @@ C<index>, C<index1d>, and C<index2d> provide rudimentary index indirection.
  $c = index2d($source2,$ind1,$ind2);
 
 use the C<$ind> variables as indices to look up values in C<$source>.
-The three routines thread slightly differently.
+The three routines broadcast slightly differently.
 
 =over 3
 
 =item *
 
-C<index> uses direct threading for 1-D indexing across the 0 dim
-of C<$source>.  It can thread over source thread dims or index thread
+C<index> uses direct broadcasting for 1-D indexing across the 0 dim
+of C<$source>.  It can broadcast over source broadcast dims or index broadcast
 dims, but not (easily) both: If C<$source> has more than 1
 dimension and C<$ind> has more than 0 dimensions, they must agree in
-a threading sense.
+a broadcasting sense.
 
 =item * 
 
@@ -117,7 +117,7 @@ C<$source>'s 0 dimension.  The output has the same number of dims as
 C<$source>.  The 0 dim of the output has size 1 if C<$ind> is a
 scalar, and the same size as the 0 dim of C<$ind> if it is not. If
 C<$ind> and C<$source> both have more than 1 dim, then all dims higher
-than 0 must agree in a threading sense.
+than 0 must agree in a broadcasting sense.
 
 =item * 
 
@@ -135,7 +135,7 @@ These functions are two-way, i.e. after
 
 the changes in C<$c> will flow back to C<$x>.
 
-C<index> provids simple threading:  multiple-dimensioned arrays are treated
+C<index> provids simple broadcasting:  multiple-dimensioned arrays are treated
 as collections of 1-D arrays, so that
 
  $x = xvals(10,10)+10*yvals(10,10);
@@ -512,15 +512,15 @@ but as a single word-style specifier if they are not (e.g. 'forbid').
 
 B<OUTPUT>
 
-The output threads over both C<$index> and C<$source>.  Because implicit
-threading can happen in a couple of ways, a little thought is needed.  The
+The output broadcasts over both C<$index> and C<$source>.  Because implicit
+broadcasting can happen in a couple of ways, a little thought is needed.  The
 returned dimension list is stacked up like this:
 
-   (index thread dims), (index dims (size)), (source thread dims)
+   (index broadcast dims), (index dims (size)), (source broadcast dims)
 
 The first few dims of the output correspond to the extra dims of
 C<$index> (beyond the 0 dim). They allow you to pick out individual
-ranges from a large, threaded collection.
+ranges from a large, broadcasted collection.
 
 The middle few dims of the output correspond to the size dims
 specified in C<$size>, and contain the range of values that is extracted
@@ -530,8 +530,8 @@ the dimension list here, so that if you feed in (for example) C<$size
 
 The last few dims of the output correspond to extra dims of C<$source> beyond
 the number of dims indexed by C<$index>.  These dims act like ordinary
-thread dims, because adding more dims to C<$source> just tacks extra dims
-on the end of the output.  Each source thread dim ranges over the entire
+broadcast dims, because adding more dims to C<$source> just tacks extra dims
+on the end of the output.  Each source broadcast dim ranges over the entire
 corresponding dim of C<$source>.
 
 B<Dataflow>: Dataflow is bidirectional.
@@ -656,7 +656,7 @@ C<rangeb> is marginally faster but requires that you include all arguments.
 
 DEVEL NOTES
 
-* index thread dimensions are effectively clumped internally.  This
+* index broadcast dimensions are effectively clumped internally.  This
 makes it easier to loop over the index array but a little more brain-bending
 to tease out the algorithm.
 
@@ -676,8 +676,8 @@ EOD
 # corners: parent coordinates of each corner, running fastest over coord index.
 #       (indexed 0 .. (nitems-1)*(rdim)+rdim-1)
 # nitems: total number of list elements   (product of itdims)
-# itdim:  number of index thread dimensions
-# itdims: Size of each index thread dimension, indexed (0..itdim-1)
+# itdim:  number of index broadcast dimensions
+# itdims: Size of each index broadcast dimension, indexed (0..itdim-1)
 #
 # bsize: Number of independently specified boundary conditions
 # nsizes: Number of independently specified range dim sizes
@@ -778,7 +778,7 @@ switch(ind_pdl->datatype) {
   }
 }
 /***
- * Store the sizes of the index-thread dims
+ * Store the sizes of the index-broadcast dims
  */
 {
   PDL_Indx i;
@@ -868,7 +868,7 @@ switch(ind_pdl->datatype) {
  */
 
 PDL_Indx j,k,ioff, iter[$COMP(itdim)];
-/* initialize iterator to loop over index threads */
+/* initialize iterator to loop over index broadcasts */
 PDL_Indx *cptr = iter;
 for(k=0;k<$COMP(itdim);k++)
   *(cptr++) = 0;
@@ -916,13 +916,13 @@ PDL_Indx i,rdvalid;
     }
   }
 
-  /* Copy index thread dimensions to child */
+  /* Copy index broadcast dimensions to child */
   for(dim=0; dim<$COMP(itdim); dim++) {
     $CHILD(dimincs[dim]) = inc;
     inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
   }
 
-  /* Copy source thread dimensions to child */
+  /* Copy source broadcast dimensions to child */
   dim = $COMP(itdim) + rdvalid;
   for(i=0;i<stdim;i++) {
     $CHILD(dimincs[dim]) = inc;
@@ -952,7 +952,7 @@ PDL_Indx *sp; /* size vector including stdims */
 PDL_Indx *coords;     /* current coordinates */
 
 PDL_Indx k;           /* index */
-PDL_Indx item;        /* index thread iterator */
+PDL_Indx item;        /* index broadcast iterator */
 PDL_Indx pdim = $PDL(PARENT)->ndims;
 PDL_Indx rdim = $COMP(rdim);
 PDL_Indx prdim = PDLMIN(rdim,pdim);
@@ -1061,12 +1061,12 @@ for(item=0; item<$COMP(nitems); item++) {
         coff += iter2[k] * $PDL(CHILD)->dimincs[k2++];
     }
 
-    /* Loop the copy over all the source thread dims (above rdim). */
+    /* Loop the copy over all the source broadcast dims (above rdim). */
     do {
       PDL_Indx poff1 = poff;
       PDL_Indx coff1 = coff;
 
-      /* Accumulate the offset due to source threading */
+      /* Accumulate the offset due to source broadcasting */
       for(k2 = $COMP(itdim) + $COMP(ntsize), k = rdim;
           k < pdim;
           k++) {
@@ -1080,12 +1080,12 @@ for(item=0; item<$COMP(nitems); item++) {
        */
       $EQUIVCPTRUNC(coff1,poff1,trunc);
 
-      /* Increment the source thread iterator */
+      /* Increment the source broadcast iterator */
       for( k=$COMP(rdim);
            k < pdim && (++(iter2[k]) >= $PDL(PARENT)->dims[k]);
            k++)
         iter2[k] = 0;
-    } while(k < pdim); /* end of source-thread iteration */
+    } while(k < pdim); /* end of source-broadcast iteration */
 
     /* Increment the in-range iterator */
     for(k = 0;
@@ -1114,7 +1114,7 @@ sub PDL::rld {
   if ($#_ == 2) {
     $c = $_[2];
   } else {
-# XXX Need to improve emulation of threading in auto-generating c
+# XXX Need to improve emulation of broadcasting in auto-generating c
     my ($size) = $x->sumover->max->sclr;
     my (@dims) = $x->dims;
     shift @dims;
@@ -1201,7 +1201,7 @@ Given vector C<$c>, generate a vector C<$x> with the number of each
 element, and a vector C<$y> of the unique values.  New in PDL 2.017,
 only the elements up to the first instance of C<0> in C<$x> are
 returned, which makes the common use case of a 1-dimensional C<$c> simpler.
-For threaded operation, C<$x> and C<$y> will be large enough
+For broadcast operation, C<$x> and C<$y> will be large enough
 to hold the largest row of C<$y>, and only the elements up to the
 first instance of C<0> in each row of C<$x> should be considered.
 
@@ -1431,10 +1431,10 @@ sub PDL::reorder {
           }
         }
 
-        # Checking that they are all present and also not duplicated is done by thread() [I think]
+        # Checking that they are all present and also not duplicated is done by broadcast() [I think]
 
         # a quicker way to do the reorder
-        return $pdl->thread(@newDimOrder)->unthread(0);
+        return $pdl->broadcast(@newDimOrder)->unbroadcast(0);
 }
 
 EOD
@@ -1805,7 +1805,7 @@ EOD
 
 # This is a bit tricky. Hope I haven't missed any cases.
 pp_def(
-        'threadI',
+        'broadcastI',
         Doc => <<'EOD',
 =for ref
 
@@ -1815,7 +1815,7 @@ Put some dimensions to a broadcastid.
 
 =for example
 
- $y = $x->threadI(0,1,5); # thread over dims 1,5 in id 1
+ $y = $x->broadcastI(0,1,5); # broadcast over dims 1,5 in id 1
 
 =cut
 
@@ -1892,15 +1892,15 @@ EOD
 );
 
 
-=head2 unthread
+=head2 unbroadcast
 =cut
 
 pp_def(
-        'unthread',
+        'unbroadcast',
         Doc => <<'EOD',
 =for ref
 
-All threaded dimensions are made real again.
+All broadcasted dimensions are made real again.
 
 See [TBD Doc] for details and examples.
 =cut
@@ -2341,7 +2341,7 @@ SLICE-MC
 		  PDL_Indx PDIMS;
                   int o_ndims_extra = PDLMAX(0, $PARENT(ndims) - $COMP(idim_top));
 
-                  /* slurped dims from the arg parsing, plus any extra thread dims */
+                  /* slurped dims from the arg parsing, plus any extra broadcast dims */
                   $SETNDIMS( $COMP(odim_top) + o_ndims_extra );
                   $DOPRIVALLOC();
                   $PRIV(offs) = 0;  /* Offset vector to start of slice */
@@ -2410,7 +2410,7 @@ SLICE-MC
                       } /* end of non-dummy slice case */
                   } /* end of nargs loop */
 
-                  /* Now fill in thread dimensions as needed.  idim and odim persist from the parsing loop */
+                  /* Now fill in broadcast dimensions as needed.  idim and odim persist from the parsing loop */
                   /* up above. */
                   for(i=0; i<o_ndims_extra; i++) {
                     $CHILD(dims)[ $COMP(odim_top) + i ] = $PARENT(dims)[ $COMP(idim_top) + i ];

@@ -208,7 +208,7 @@ our $no_clone_skip_warning = 0;
 sub CLONE_SKIP {
     warn <<'EOF' if !$no_clone_skip_warning;
 * If you need to share PDL data across threads, use memory mapped data, or
-* check out PDL::Parallel::threads, available on CPAN.
+* check out PDL::ParallelCPU, available on CPAN.
 * You can silence this warning by saying `$PDL::no_clone_skip_warning = 1;'
 * before you create your first thread.
 EOF

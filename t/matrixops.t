@@ -77,7 +77,7 @@ ok(tapprox(matmult($inv_expected,$pa),identity(3),$tol),"matrix mult by its inve
 }
 
 {
-### Check inv() with added thread dims (simple check)
+### Check inv() with added broadcast dims (simple check)
 my $C22 = pdl([5,5],[5,7.5]);
 my $inv_expected = pdl([0.6, -0.4], [-0.4, 0.4]);
 check_inplace($C22, sub { $_[0]->inv }, $inv_expected, "inv 2x2");
@@ -85,7 +85,7 @@ check_inplace($C22->dummy(2,2), sub { $_[0]->inv }, $inv_expected->dummy(2,2), "
 }
 
 {
-### Check inv() for matrices with added thread dims (bug #3172882 on sf.net)
+### Check inv() for matrices with added broadcast dims (bug #3172882 on sf.net)
 my $a334 = pdl <<'EOF';
 [
  [
@@ -154,14 +154,14 @@ ok($m2->det($opt1) == -2, "correctly used wrong lu");
 }
 
 {
-### Check threaded determinant -- simultaneous recursive det of four 4x4's
+### Check broadcasted determinant -- simultaneous recursive det of four 4x4's
 my $pa = pdl([3,4,5,6],[6,7,8,9],[9,0,7,6],[4,3,2,0]); # det=48
 my $pb = pdl([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]); # det=1
 my $c = pdl([0,1,0,0],[1,0,0,0],[0,0,1,0],[0,0,0,1]); # det=-1
 my $d = pdl([1,2,3,4],[5,4,3,2],[0,0,3,0],[3,0,1,6]); # det=-216
 my $e = ($pa->cat($pb)) -> cat( $c->cat($d) );
 my $det = $e->determinant;
-ok(all($det == pdl([48,1],[-1,-216])), "threaded determinant");
+ok(all($det == pdl([48,1],[-1,-216])), "broadcasted determinant");
 }
 
 {

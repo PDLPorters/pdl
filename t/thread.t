@@ -318,28 +318,28 @@ END
 # Dims: 3,3,2
 my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
 my $pb = zeroes(3,3);
-my $pc = $pb->thread(0,1);
+my $pc = $pb->broadcast(0,1);
 $pb->make_physical();
 $pc->make_physical();
-maximum($pa->thread(0,1),$pc);
+maximum($pa->broadcast(0,1),$pc);
 cmp_ok($pb->at(0,0), '==', 10, 'at(0,0)');
 cmp_ok($pb->at(1,1), '==', 14, 'at(1,1)');
-minimum($pa->thread(0,1),$pb->thread(0,1));
+minimum($pa->broadcast(0,1),$pb->broadcast(0,1));
 cmp_ok($pb->at(0,0), '==', 0, 'at(0,0)');
 cmp_ok($pb->at(1,1), '==', 4, 'at(1,1)');
 }
 
 {
-# Now, test 'unthread'.
+# Now, test 'unbroadcast'.
 my $pa = zeroes(4,5,6);
-my $pb = $pa->thread(1);
-my $pc = $pb->unthread(2);
-is(join(',',$pc->dims), "4,6,5", 'unthread dims');
+my $pb = $pa->broadcast(1);
+my $pc = $pb->unbroadcast(2);
+is(join(',',$pc->dims), "4,6,5", 'unbroadcast dims');
 # $pb->jdump; $pc->jdump;
 }
 
 {
-#### Now, test whether the Perl-accessible thread works:
+#### Now, test whether the Perl-accessible broadcast works:
 my $pa = pdl [[0,1,2],[3,4,5],[6,7,8]],[[10,11,12],[13,14,15],[16,17,18]];
 my $pb = pdl [2,3,4];
 PDL::broadcastover_n($pa,$pb,sub {print "ROUND: @_\n"});

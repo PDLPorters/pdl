@@ -67,19 +67,19 @@ $ans = 2*$xi;
 $d   = abs( $ans - $gi );
 ok( all($d <= 0.04), 'gradient correct answer');
 
-# see how they cope with threading 
+# see how they cope with broadcasting
 #
 $y = cat( $x*$x+43.3, $x*$x*$x-23 );
 
 $obj->set( x => $x, y => $y );
-is( $obj->status , 1, 'threading: status==1 after set');
+is( $obj->status , 1, 'broadcasting: status==1 after set');
 
 $yi = $obj->interpolate( $xi );
-is( $obj->status, 1 ,'threading: status==1 after interpolate');
-ok( ( (dims($yi) == 2) & ($yi->getdim(0) == $xi->getdim(0))) & ($yi->getdim(1) == 2), 'threading dimension check' );
+is( $obj->status, 1 ,'broadcasting: status==1 after interpolate');
+ok( ( (dims($yi) == 2) & ($yi->getdim(0) == $xi->getdim(0))) & ($yi->getdim(1) == 2), 'broadcasting dimension check' );
 
 $ans = cat( $xi*$xi+43.3, $xi*$xi*$xi-23 );
 $d   = abs( $ans - $yi );
-ok( all($d <= 6), 'threading: correct answer' );
+ok( all($d <= 6), 'broadcasting: correct answer' );
 
 done_testing;

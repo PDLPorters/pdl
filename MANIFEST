@@ -87,6 +87,7 @@ Basic/Options.pm
 Basic/PDL.pm
 Basic/Pod/API.pod
 Basic/Pod/BadValues.pod
+Basic/Pod/Broadcasting.pod
 Basic/Pod/Course.pod
 Basic/Pod/Dataflow.pod
 Basic/Pod/Delta.pod
@@ -104,7 +105,6 @@ Basic/Pod/Philosophy.pod
 Basic/Pod/PP.pod
 Basic/Pod/QuickStart.pod
 Basic/Pod/Scilab.pod
-Basic/Pod/Threading.pod
 Basic/Pod/Tips.pod
 Basic/Pod/Tutorials.pod
 Basic/Primitive/Makefile.PL
