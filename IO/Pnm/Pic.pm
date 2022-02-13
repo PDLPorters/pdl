@@ -485,9 +485,9 @@ If the image is in one of the standard RGB formats, then you get back
 data in (<X>,<Y>,<RGB-index>) format -- that is to say, the third dim
 contains the color information.  That allows you to do simple indexing
 into the image without knowing whether it is color or not -- if present,
-the RGB information is silently threaded over.  (Contrast L</rpic>, which
+the RGB information is silently broadcasted over.  (Contrast L</rpic>, which
 munges the information by putting the RGB index in the 0th dim, screwing
-up subsequent threading operations).
+up subsequent broadcasting operations).
 
 If the image is in FITS format, then you get the data back in exactly
 the same order as in the file itself.

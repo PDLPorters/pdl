@@ -37,10 +37,7 @@ threads used if C<PDL_AUTOPTHREAD_TARG> is not set.
 
 =head1 Terminology
 
-The use of the term I<threading> can be confusing with PDL, because it can refer to I<PDL threading>,
-as defined in the L<PDL::Threading> docs, or to I<processor multi-threading>. 
-
-To reduce confusion with the existing PDL threading terminology, this document uses 
+To reduce the confusion that existed in PDL before 2.075, this document uses
 B<pthreading> to refer to I<processor multi-threading>, which is the use of multiple processor threads
 to split up numerical processing into parallel operations.
 
@@ -89,8 +86,8 @@ set to 10, then any pdl script will run as if the following lines were at the to
 
 =head1 How It Works
 
-The auto-pthreading process works by analyzing threaded array dimensions in PDL operations
-and splitting up processing based on the thread dimension sizes and desired number of 
+The auto-pthreading process works by analyzing broadcast array dimensions in PDL operations (those above the operation's "signature" dimensions)
+and splitting up processing according to those and the desired number of
 pthreads (i.e. the pthread target or pthread_targ). The offsets,
 increments, and dimension-sizes (in case the whole dimension does
 not divide neatly by the number of pthreads) that PDL uses to step
@@ -110,10 +107,10 @@ B<Example>
 
 For the above example, the I<maximum> function has a signature of C<(a(n); [o]c())>, which means that the first
 dimension of $x (size 20) is a I<Core> dimension of the I<maximum> function. The other dimensions of $x (size 4,3)
-are I<threaded> dimensions (i.e. will be threaded-over in the I<maximum> function.
+are I<broadcast> dimensions (i.e. will be broadcasted-over in the I<maximum> function.
 
-The auto-pthreading algorithm examines the threaded dims of size (4,3) and picks the 4 dimension, 
-since it is evenly divisible by the autopthread_targ of 2. The processing of the maximum function is then 
+The auto-pthreading algorithm examines the broadcasted dims of size (4,3) and picks the 4 dimension,
+since it is evenly divisible by the autopthread_targ of 2. The processing of the maximum function is then
 split into two pthreads on the size-4 dimension, with dim indexes 0,2 processed by one pthread
  and dim indexes 1,3 processed by the other pthread.
 
@@ -136,18 +133,18 @@ a function as I<not> being pthread-safe. See L<PDL::PP> docs for details.
 
 =head2 Size of PDL Dimensions and pthread Target
 
-As of PDL 2.058, the threaded dimension sizes do not need to divide
+As of PDL 2.058, the broadcasted dimension sizes do not need to divide
 exactly by the pthread target, although if one does, it will be
 used.
 
 If no dimension is as large as the pthread target, the number of
-pthreads will be the size of the largest threaded dimension.
+pthreads will be the size of the largest broadcasted dimension.
 
 In order to minimise idle CPUs on the last iteration at the end of
-the threaded dimension, the algorithm that picks the dimension to
+the broadcasted dimension, the algorithm that picks the dimension to
 pthread on aims for the largest remainder in dividing the pthread
-target into the sizes of the threaded dimensions. For example, if
-a PDL has threaded dimension sizes of (9,6,2) and the I<auto_pthread_targ>
+target into the sizes of the broadcasted dimensions. For example, if
+a PDL has broadcasted dimension sizes of (9,6,2) and the I<auto_pthread_targ>
 is 4, the algorithm will pick the 1-th (size 6), as that will leave
 a remainder of 2 (leaving 2 idle at the end) in preference to one
 with size 9, which would leave 3 idle.

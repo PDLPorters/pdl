@@ -633,7 +633,7 @@ Returns a list with minimum and maximum values of an ndarray.
 
  ($mn, $mx) = minmax($pdl);
 
-This routine does I<not> thread over the dimensions of C<$pdl>;
+This routine does I<not> broadcast over the dimensions of C<$pdl>;
 it returns the minimum and maximum values of the whole ndarray.
 See L</minmaximum> if this is not what is required.
 The two values are returned as Perl scalars similar to min/max,
@@ -1191,7 +1191,7 @@ pp_def(
 Sort a list of vectors lexicographically.
 
 The 0th dimension of the source ndarray is dimension in the vector;
-the 1st dimension is list order.  Higher dimensions are threaded over.
+the 1st dimension is list order.  Higher dimensions are broadcasted over.
 
 =for example
 
@@ -1266,7 +1266,7 @@ containing the M-indices of original array rows, in sorted order.
 As with C<qsortvec>, the zeroth element of the vectors runs slowest in the
 sorted list.  
 
-Additional dimensions are threaded over: each plane is sorted separately,
+Additional dimensions are broadcasted over: each plane is sorted separately,
 so qsortveci may be thought of as a collapse operator of sorts (groan).
 
 =cut

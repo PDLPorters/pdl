@@ -615,7 +615,7 @@ $c==4 the display is in GL_RGBA, for $c==3 the display is GL_RGB,
 for $c==2 the display is GL_LUMINANCE_ALPHA, and for $c==1 or for
 for dimensions ($M,$N) then the display is GL_LUMINANCE.
 
-This routine does not yet thread but multiple images may be
+This routine does not yet broadcast but multiple images may be
 viewed at the same time in separate windows by multiple
 calls to imag2d().  TriD graphics visualization windows and the
 imag2d() windows may be created and used independently.
@@ -916,7 +916,7 @@ sub twiddle {
 }
 
 #------------------------------------------------------------------------
-# Threaded image display as tiles (code from PDL::Graphics::TriD::Image)
+# Broadcasted image display as tiles (code from PDL::Graphics::TriD::Image)
 #------------------------------------------------------------------------
 
 # N-D ndarray -> 2-D

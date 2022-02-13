@@ -35,7 +35,7 @@ mapping R^N -> R^M with or without inverses.
 The simplest way to use a Transform object is to transform vector
 data between coordinate systems.  The L</apply> method
 accepts a PDL whose 0th dimension is coordinate index (all other
-dimensions are threaded over) and transforms the vectors into the new
+dimensions are broadcasted over) and transforms the vectors into the new
 coordinate system.
 
 Transform also includes image resampling, via the L</map> method.
@@ -142,7 +142,7 @@ inplace.  But C<func> should always return its result even when
 flagged to compute in-place.
 
 C<func> should treat the 0th dimension of its input as a dimensional
-index (running 0..N-1 for R^N operation) and thread over all other input
+index (running 0..N-1 for R^N operation) and broadcast over all other input
 dimensions.
 
 =item inv
@@ -623,9 +623,9 @@ pp_def('map',
  * Calls a common coordinate-transformation block (see following hdr)
  * that isn't dependent on the type of the input variable.
  *
- * The inputs are SVs to avoid hassling with broadcastloops; threading
- * is handled internally.  To simplify the threading business, any
- * thread dimensions should all be collapsed to a single one by the
+ * The inputs are SVs to avoid hassling with broadcastloops; broadcasting
+ * is handled internally.  To simplify the broadcasting business, any
+ * broadcast dimensions should all be collapsed to a single one by the
  * perl front-end.
  *
  */
@@ -641,9 +641,9 @@ pp_def('map',
  PDL_Indx ibvec[ndims];     /* input pixel base offset vector           */
  PDL_Double dvec[ndims];    /* Residual vector for linearization        */
  PDL_Double tvec[ndims];    /* Temporary floating-point vector          */
- PDL_Double acc[in->dims[ndims]]; /* Threaded accumulator */
- PDL_Double wgt[in->dims[ndims]]; /* Threaded weight accumulator */
- PDL_Double wgt2[in->dims[ndims]]; /* Threaded weight accumulator for badval finding */
+ PDL_Double acc[in->dims[ndims]]; /* Broadcasted accumulator */
+ PDL_Double wgt[in->dims[ndims]]; /* Broadcasted weight accumulator */
+ PDL_Double wgt2[in->dims[ndims]]; /* Broadcasted weight accumulator for badval finding */
  char bounds[ndims];        /* Boundary condition packed string */
  PDL_Indx  index_stash[ndims]; /* Stash to store the opening index of dim sample scans */
  char   method;             /* Method identifier (gets one of 'h','g')  */
@@ -1082,7 +1082,7 @@ pp_def('map',
 
          {  /* convenience block -- accumulate the current point into the weighted sum.  */
             /* This is more than simple assignment because we have our own explicit poor */
-            /* man's broadcastloop here, so we accumulate each threaded element separately. */
+            /* man's broadcastloop here, so we accumulate each broadcasted element separately. */
             $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
             PDL_Indx max = out->dims[ndims];
             for( i=0; i < max; i++ ) {
@@ -1505,7 +1505,7 @@ but don't affect reduced parts of the image.
 
 This is the largest allowable input spot size which may be mapped to a
 single output pixel by the hanning and gaussian methods, in units of
-the largest non-thread input dimension.  (i.e. the default won't let
+the largest non-broadcast input dimension.  (i.e. the default won't let
 you reduce the original image to less than 5 pixels across).  This places
 a limit on how long the processing can take for pathological transformations.
 Smaller numbers keep the code from hanging for a long time; larger numbers
@@ -1925,8 +1925,8 @@ sub map {
         if($in->ndims < $idx->ndims-1);
 
   ####################
-  ## Condition the threading -- pixelwise interpolator only threads
-  ## in 1 dimension, so squish all thread dimensions into 1, if necessary
+  ## Condition the broadcasting -- pixelwise interpolator only broadcasts
+  ## in 1 dimension, so squish all broadcast dimensions into 1, if necessary
   my @iddims = $idx->dims;
   my $in2 = $in->ndims == $#iddims
     ? $in->dummy(-1,1)
@@ -2358,7 +2358,7 @@ lookup pixel space, because the pixels (which are numbered from 0 to
 N-1) are centered on their locations.
 
 Lookup is done using L<interpND|PDL::Primitive/interpnd>, so the boundary conditions
-and threading behaviour follow from that.
+and broadcasting behaviour follow from that.
 
 The indexed-over dimensions come first in the table, followed by a
 single dimension containing the column vector to be output for each
@@ -2368,7 +2368,7 @@ that has dimension list (50,50,2).  For the identity lookup table
 you could use  C<cat(xvals(50,50),yvals(50,50))>.
 
 If you want to output a single value per input vector, you still need
-that last index threading dimension -- if necessary, use C<dummy(-1,1)>.
+that last index broadcasting dimension -- if necessary, use C<dummy(-1,1)>.
 
 The lookup index scaling is: out = lookup[ (scale * data) + offset ].
 
@@ -2486,7 +2486,7 @@ sub t_lookup {
              );
 
 
-    # Put the index dimension (and threaded indices) back at the front of
+    # Put the index dimension (and broadcasted indices) back at the front of
     # the dimension list.
     my($dnd) = $data->ndims - 1;
     return ($x -> ndims > $data->ndims - 1) ?

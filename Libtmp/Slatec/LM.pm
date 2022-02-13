@@ -110,7 +110,7 @@ sub PDL::lmfit {
   my ($ym,$al,$cov,$bet,$oldbet,$olda,$oldal,$ochisq,$di,$pivt,$info) =
     map {null} (0..10);
   my ($aldiag,$codiag);  # the diagonals for later updating
-  # this will break threading
+  # this will break broadcasting
   my $dyda = zeroes($x->type,$x->getdim(0),$c->getdim(0));
   my $alv = zeroes($x->type,$x->getdim(0),$c->getdim(0),$c->getdim(0));
   my ($iter,$lambda) = (0,0.001);
@@ -261,7 +261,7 @@ the F<Example/Fit> directory.
 
 =for ref
 
-threaded version of Levenberg-Marquardt fitting routine mfit
+broadcasted version of Levenberg-Marquardt fitting routine mfit
 
 =for example
 
@@ -274,16 +274,16 @@ threaded version of Levenberg-Marquardt fitting routine mfit
   Signature: tlmfit(x(n);y(n);sigma(n);initp(m);iter();eps();[o] ym(n);[o] finalp(m);
            OtherPar => subref)
 
-a threaded version of C<lmfit> by using perl threading. Direct
-threading in C<lmfit> seemed difficult since we have an if condition
+a broadcasted version of C<lmfit> by using perl broadcasting. Direct
+broadcasting in C<lmfit> seemed difficult since we have an if condition
 in the iteration. In principle that can be worked around by
-using C<where> but .... Send a threaded C<lmfit> version if
+using C<where> but .... Send a broadcasted C<lmfit> version if
 you work it out!
 
-Since we are using perl threading here speed is not really great
-but it is just convenient to have a threaded version for many
+Since we are using perl broadcasting here speed is not really great
+but it is just convenient to have a broadcasted version for many
 applications (no explicit for-loops required, etc). Suffers from
-some of the current limitations of perl level threading.
+some of the current limitations of perl level broadcasting.
 
 =cut
 

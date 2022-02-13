@@ -55,15 +55,15 @@ analysis with PDL.
 
 =over 5
 
-=item L<PDL::Threading>
+=item L<PDL::Broadcasting>
 
-B<Threading> is one of PDL's most powerful features. If you know MATLAB,
-you've heard of "vectorizing". Well, B<threading> is like "vectorizing on
+B<Broadcasting> is one of PDL's most powerful features. If you know MATLAB,
+you've heard of "vectorizing". Well, B<broadcasting> is like "vectorizing on
 steroids". It lets you make very fast and compact code by avoiding
 nested loops. All vector-based languages do this, but PDL generalizes
 the technique to all sorts of applications.
 
-This tutorial introduces PDL's threading feature, and it shows an example
+This tutorial introduces PDL's broadcasting feature, and it shows an example
 implementing Conway's Game of Life in 10 lines and 80 times faster than
 a classical implementation.
 

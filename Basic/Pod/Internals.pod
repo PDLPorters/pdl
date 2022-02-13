@@ -86,7 +86,7 @@ of the file F<pdlcore.h>. So what does the structure look like:
 	   PDL_Indx   *dimincs;   /* Array of data default increments */
 	   short    ndims;     /* Number of data dimensions */
 
-	   unsigned char *broadcastids;  /* Starting index of the thread index set n */
+	   unsigned char *broadcastids;  /* Starting index of the broadcast index set n */
 	   unsigned char nbroadcastids;
 
 	   pdl_trans_children trans_children;
@@ -455,8 +455,7 @@ Each operation on an ndarray sharing
 data with another one in this way is therefore automatically flowed
 from child to parent and back -- after all they are reading and writing
 the same block of memory. This is currently not Perl thread safe --
-no big loss since the whole PDL core is not reentrant
-(Perl threading C<!=> PDL threading!).
+no big loss since the whole PDL core is not reentrant.
 
 =head2 Callback functions
 
@@ -496,16 +495,16 @@ case if called before doing another C<redodims>.
 Again, functions built with L<PDL::PP> make sure that
 freeing via these callbacks happens at the right times.
 
-=head2 Signatures: threading over elementary operations
+=head2 Signatures: broadcasting over elementary operations
 
-Most of that functionality of PDL threading (automatic iteration
+Most of that functionality of PDL broadcasting (automatic iteration
 of elementary operations over multi-dim ndarrays) is implemented in the
 file F<pdlthread.c>.
 
 The L<PDL::PP> generated functions (in particular the
 C<readdata> and C<writebackdata> callbacks) use this infrastructure to 
 make sure that the fundamental operation implemented by the
-trans is performed in agreement with PDL's threading semantics.
+trans is performed in agreement with PDL's broadcasting semantics.
 
 =head2 Defining new PDL functions -- Glue code generation
 

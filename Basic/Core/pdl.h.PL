@@ -532,7 +532,7 @@ struct pdl {
    PDL_Indx   *dimincs;   /* Array of data default increments, aka strides through memory for each dim (0 for dummies) */
    PDL_Indx    ndims;     /* Number of data dimensions in dims and dimincs */
 
-   PDL_Indx *broadcastids;  /* Starting index of the thread index set n */
+   PDL_Indx *broadcastids;  /* Starting index of the broadcast index set n */
    PDL_Indx nbroadcastids;
 
    pdl_trans_children trans_children;

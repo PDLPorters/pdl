@@ -14,9 +14,9 @@ it highlights the key differences between MATLAB and PDL.
 
 =head1 Perl
 
-The key differences between MATLAB and PDL are threading, and B<Perl>.
+The key differences between MATLAB and PDL are broadcasting, and B<Perl>.
 
-Threading means you can get a reference to just a part of your data,
+Broadcasting means you can get a reference to just a part of your data,
 and operate on it in a way that makes sense for your application. Those
 operations will be reflected in the original data.
 
@@ -491,7 +491,7 @@ Never use for-loops for numerical work. Perl's for-loops are faster
 than MATLAB's, but they both pale against a "vectorized" operation.
 PDL has many tools that facilitate writing vectorized programs.
 These are beyond the scope of this guide. To learn more, see:
-L<PDL::Indexing>, L<PDL::Threading>,
+L<PDL::Indexing>, L<PDL::Broadcasting>,
 and L<PDL::PP>.
 
 Likewise, never use C<1..10> for numerical work, even outside a for-loop.
@@ -748,12 +748,12 @@ This beginner tutorial covers the standard "vectorization" feature that
 you already know from MATLAB. Use this page to learn how to avoid for-loops
 to make your program more efficient.
 
-=item L<PDL::Threading>
+=item L<PDL::Broadcasting>
 
 B<Level>: Intermediate
 
 PDL's "vectorization" feature goes beyond what most numerical software
-can do. In this tutorial you'll learn how to "thread" over higher dimensions,
+can do. In this tutorial you'll learn how to "broadcast" over higher dimensions,
 allowing you to vectorize your program further than is possible in MATLAB.
 
 =item Benchmarks
@@ -976,7 +976,7 @@ The path vertices-capturing as well:
     end
   end
 
-By comparison, the lack of "threading" means that to update the diagonal
+By comparison, the lack of "broadcasting" means that to update the diagonal
 requires a for-loop, which in the sphere of vectorised calculations is
 a bad thing. The calculations of coordinates are complicated by the
 1-based counting.

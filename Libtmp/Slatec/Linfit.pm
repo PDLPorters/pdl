@@ -73,8 +73,8 @@ squares/min chi^2 fit to data.
 
 Returns the fitted data and optionally the coefficients.
 
-One can thread over extra dimensions to do multiple fits (except
-the order can not be threaded over - i.e. it must be one fixed
+One can broadcast over extra dimensions to do multiple fits (except
+the order can not be broadcasted over - i.e. it must be one fixed
 set of fit functions C<fitFuncs>.
 
 The data is normalised internally to avoid overflows (using the

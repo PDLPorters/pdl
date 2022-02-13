@@ -44,13 +44,13 @@ High-level plotting commands:
  ctab_info  -  Get information about currently loaded colour table
  line       -  Plot vector as connected points
  tline      -  Plot a collection of vectors as lines
- lines      -  Plot a polyline, multicolor vector [threadable]
+ lines      -  Plot a polyline, multicolor vector [broadcastable]
  points     -  Plot vector as points
- tpoints    -  Plot a collection of vectors as points [threadable]
+ tpoints    -  Plot a collection of vectors as points [broadcastable]
  errb       -  Plot error bars
  bin        -  Plot vector as histogram (e.g. bin(hist($data)) )
  hi2d       -  Plot image as 2d histogram (not very good IMHO...)
- tcircle    -  Plot vectors as circles [threadable]
+ tcircle    -  Plot vectors as circles [broadcastable]
  label_axes -  Print axis titles
  legend     -  Create a legend with different texts, linestyles etc.
 
@@ -1985,13 +1985,13 @@ Example:
 
 =for ref
 
-Threaded line plotting
+Broadcasted line plotting
 
 =for usage
 
  $win->tline($x, $y, $options);
 
-This is a threaded interface to C<line>. This is convenient if you have
+This is a broadcasted interface to C<line>. This is convenient if you have
 a 2D array and want to plot out every line in one go. The routine will
 apply any options you apply in a "reasonable" way. In the sense that it
 will loop over the options wrapping over if there are less options than
@@ -2008,13 +2008,13 @@ Example:
 
 =for ref
 
-A threaded interface to points
+A broadcasted interface to points
 
 =for usage
 
  Usage: tpoints($x, $y, $options);
 
-This is a threaded interface to C<points>. This is convenient if you have
+This is a broadcasted interface to C<points>. This is convenient if you have
 a 2D array and want to plot out every line in one go. The routine will
 apply any options you apply in a "reasonable" way. In the sense that it
 will loop over the options wrapping over if there are less options than
@@ -2031,13 +2031,13 @@ Example:
 
 =for ref
 
-A threaded interface to circle
+A broadcasted interface to circle
 
 =for usage
 
  Usage: tcircle($x, $y, $r, $options);
 
-This is a threaded interface to C<circle>. This is convenient if you have
+This is a broadcasted interface to C<circle>. This is convenient if you have
 a list of circle centers and radii and want to draw every circle in one go.
 The routine will apply any options you apply in a "reasonable" way,
 in the sense that it will loop over the options wrapping over if there are less
@@ -2848,16 +2848,16 @@ sub _check_move_or_erase {
 }
 
 
-=head2 _thread_options
+=head2 _broadcast_options
 
 This function is a cludgy utility function that expands an options hash
 to an array of hashes looping over options. This is mainly of use for
-"threaded" interfaces to standard plotting routines.
+"broadcasted" interfaces to standard plotting routines.
 
 =cut
 
 
-sub _thread_options {
+sub _broadcast_options {
   my ($n, $h) = @_;
 
   # Loop over each option.
@@ -4890,8 +4890,8 @@ EOD
 }
 
 #
-# A "threaded" line - I cannot come up with a more elegant way of doing
-# this without re-coding bits of thread_over but it might very well be
+# A "broadcasted" line - I cannot come up with a more elegant way of doing
+# this without re-coding bits of broadcast_over but it might very well be
 # that you may :)
 #
 
@@ -4915,7 +4915,7 @@ sub tline {
 
   catch_signals {
     # This is very very kludgy, but it was the best way I could find..
-    my $o = _thread_options($y->getdim(1), $opt);
+    my $o = _broadcast_options($y->getdim(1), $opt);
     # We need to keep track of the current status of hold or not since
     # the tline function automatically enforces a hold to allow for overplots.
     my $tmp_hold = $self->held();
@@ -4945,7 +4945,7 @@ sub tline {
       # use Data::Dumper;
       # print "tline options: ", Dumper($opt), "\n";
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
-      $self->hold; # we hold for the duration of the threaded plot
+      $self->hold; # we hold for the duration of the broadcasted plot
     }
     _tline($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
     $self->release unless $tmp_hold;
@@ -4963,8 +4963,8 @@ PDL::broadcast_define('_tline(a(n);b(n);ind()), NOtherPars => 2',
 
 
 #
-# A "threaded" point - I cannot come up with a more elegant way of doing
-# this without re-coding bits of thread_over but it might very well be
+# A "broadcasted" point - I cannot come up with a more elegant way of doing
+# this without re-coding bits of broadcast_over but it might very well be
 # that you may :)
 #
 
@@ -4984,7 +4984,7 @@ sub tpoints {
   }
 
   # This is very very cludgy, but it was the best way I could find..
-  my $o = _thread_options($y->getdim(1), $opt);
+  my $o = _broadcast_options($y->getdim(1), $opt);
   # We need to keep track of the current status of hold or not since
   # the tline function automatically enforces a hold to allow for overplots.
   my $tmp_hold = $self->held();
@@ -5015,7 +5015,7 @@ sub tpoints {
     if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
     if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
     $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
-    $self->hold; # we hold for the duration of the threaded plot
+    $self->hold; # we hold for the duration of the broadcasted plot
   }
   _tpoints($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
   $self->release unless $tmp_hold;
@@ -5246,9 +5246,9 @@ PDL::broadcast_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       $is_1D = $self->_checkarg($y,1,undef,1);
       if (!$is_1D) {
 	$is_2D = $self->_checkarg($y,2,undef,1);
-	barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
+	barf '$y must be 1D (or 2D for broadcasting!)'."\n" if !$is_2D;
 
-	# Ok, let us use the threading possibility.
+	# Ok, let us use the broadcasting possibility.
 	$self->tline(@$in, $opt);
 
 	&release_signals;
@@ -5361,9 +5361,9 @@ sub arrow {
       $is_1D = $self->_checkarg($y,1,undef,1);
       if (!$is_1D) {
 	$is_2D = $self->_checkarg($y,2,undef,1);
-	barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
+	barf '$y must be 1D (or 2D for broadcasting!)'."\n" if !$is_2D;
 
-	# Ok, let us use the threading possibility.
+	# Ok, let us use the broadcasting possibility.
 	$self->tpoints(@$in, $opt);
 	return;
 
@@ -6238,7 +6238,7 @@ sub tcircle {
       $circle_options=$self->{PlotOptions}->extend({Missing => undef});
     }
 
-    my $o = _thread_options($x->nelem,$opt);
+    my $o = _broadcast_options($x->nelem,$opt);
     my $tmp_hold = $self->held();
 
     unless ( $self->held() ) {

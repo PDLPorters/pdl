@@ -939,7 +939,7 @@ How can you tell if you've gotten a module for one of your entries?
 The Ref entry will begin with 'Module:' if it's a module. In code:
 
  # Prints:
- #  Module: fundamental PDL functionality and vectorization/threading
+ #  Module: fundamental PDL functionality and vectorization/broadcasting
  print $pdldoc->gethash->{'PDL::Core'}->{'PDL::Core'}->{Ref}, "\n"
 
 =head1 BUGS

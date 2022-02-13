@@ -395,7 +395,7 @@ L<lines|PDL::Graphics::PGPLOT::Window/lines>
 method in the PGPLOT
 output library:  the first dimension is (X,Y,pen) with breaks having 
 a pen value of 0 and hairlines having negative pen values.  The second 
-dimension threads over all the points in the data set.  
+dimension broadcasts over all the points in the data set.
 
 The vector map includes lines that pass through the antipodean
 meridian, so if you want to plot it without reprojecting, you should

@@ -34,8 +34,8 @@ fit (two parameters).
 
 Returns the fitted data and optionally the coefficients.
 
-One can thread over extra dimensions to do multiple fits (except
-the order can not be threaded over - i.e. it must be one fixed
+One can broadcast over extra dimensions to do multiple fits (except
+the order can not be broadcasted over - i.e. it must be one fixed
 scalar number like "4").
 
 The data is normalised internally to avoid overflows (using the
@@ -88,7 +88,7 @@ sub PDL::fitpoly1d {
    # Internally normalise data
 
    # means for each 1D data set
-   my $xmean = (abs($x)->average)->dummy(0);  # dummy for correct threading
+   my $xmean = (abs($x)->average)->dummy(0);  # dummy for correct broadcasting
    my $ymean = (abs($y)->average)->dummy(0);
    (my $tmp = $ymean->where($ymean == 0)) .= 1 if any $ymean == 0;
    ($tmp = $xmean->where($xmean == 0)) .= 1 if any $xmean == 0;

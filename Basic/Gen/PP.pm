@@ -1745,7 +1745,7 @@ EOD
    PDL::PP::Rule::Returns::One->new("HaveBroadcasting"),
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
-# fixed nos of real, unthreaded-over dims.
+# fixed nos of real, unbroadcast-over dims.
 # Also "Other pars", the parameters which are usually not pdls.
    PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag","OtherPars"],
       sub { PDL::PP::Signature->new(@_) }),

@@ -83,7 +83,7 @@ along the specified dimension
  $y = $x->reduce('plus',1);
  $y = $x->reduce('+',1);     # three ways to do the same thing
 
-[ As an aside: if you are familiar with threading you will see that
+[ As an aside: if you are familiar with broadcasting you will see that
 this is actually the same as
 
  $y = $x->mv(1,0)->sumover

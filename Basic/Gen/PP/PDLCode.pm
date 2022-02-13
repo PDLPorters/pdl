@@ -21,7 +21,7 @@ sub make_args {
 # Do the appropriate substitutions in the code.
 sub new {
     my($class,$code,$badcode,
-       $handlebad, $sig,$generictypes,$extrageneric,$havethreading,$name,
+       $handlebad, $sig,$generictypes,$extrageneric,$havebroadcasting,$name,
        $dont_add_thrloop, $backcode ) = @_;
     my $parnames = $sig->names_sorted;
 
@@ -34,10 +34,10 @@ sub new {
 
     # last two arguments may not be supplied
     #
-    # "backcode" is a flag to the PDL::PP::Threadloop class indicating the broadcastloop
+    # "backcode" is a flag to the PDL::PP::Broadcastloop class indicating the broadcastloop
     #   is for writeback code (typically used for writeback of data from child to parent PDL
 
-    $dont_add_thrloop ||= !$havethreading; # two have identical (though inverted) meaning so only track one
+    $dont_add_thrloop ||= !$havebroadcasting; # two have identical (though inverted) meaning so only track one
 
     # C++ style comments
     #
@@ -548,7 +548,6 @@ sub myprelude {
     $parent->broadcastloop_start($parent->func_name($backcode));
 }
 
-# Should possibly fold out thread.dims[0] and [1].
 sub mypostlude {my($this,$parent,$context) = @_;
     $parent->broadcastloop_end;
 }

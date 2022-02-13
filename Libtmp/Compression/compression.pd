@@ -12,7 +12,7 @@ PDL::Compression - compression utilities
 
 These routines generally accept some data as a PDL and compress it
 into a smaller PDL.  Algorithms typically work on a single dimension
-and thread over other dimensions, producing a threaded table of
+and broadcast over other dimensions, producing a broadcasted table of
 compressed values if more than one dimension is fed in.
 
 The Rice algorithm, in particular, is designed to be identical to the
@@ -93,7 +93,7 @@ scalar context, you get back only the compressed PDL; in list context,
 you also get back ancillary information that is required to uncompress
 the data with rice_uncompress.  
 
-Multidimensional data are threaded over - each row is compressed
+Multidimensional data are broadcasted over - each row is compressed
 separately, and the returned PDL is squished to the maximum compressed
 size of any row.  If any of the streams could not be compressed (the
 algorithm produced longer output), the corresponding length is set to -1

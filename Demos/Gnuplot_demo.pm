@@ -136,7 +136,7 @@ system.  You might want to get it from CPAN and try again.
 |;
 
  act q|
-  # You can also generate multiline plots with threading.
+  # You can also generate multiline plots with broadcasting.
   # Here, $x is a 1000-element 1-D PDL, and $yy is a 1000x2 2-D PDL.
   
   $x       = xvals(1000)/1000;
@@ -146,7 +146,7 @@ system.  You might want to get it from CPAN and try again.
   # all options can be abbreviated to the smallest unique string. 
   # Here, "tit" stands for "title", and "le" for "legend".
 
-  $w->lines({tit=>"2-lines threaded"}, le=>["sin", "cos"], $x, $yy);
+  $w->lines({tit=>"2-lines broadcasted"}, le=>["sin", "cos"], $x, $yy);
 
 
 

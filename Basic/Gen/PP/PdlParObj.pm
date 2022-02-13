@@ -135,7 +135,7 @@ sub add_inds {
 }
 
 
-# do the dimension checking for perl level threading
+# do the dimension checking for perl level broadcasting
 # assumes that IndObjs have been created
 sub perldimcheck {
   my ($this,$pdl) = @_;

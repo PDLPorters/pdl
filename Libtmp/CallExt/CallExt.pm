@@ -73,7 +73,7 @@ pdlsimple.h defines a simple N-dimensional data structure which looks like this:
 (PDL_Indx is 32- or 64-bit depending on architecture and is defined in pdlsimple.h)
 
 This is a simplification of the internal representation of ndarrays in PDL which is
-more complicated because of threading, dataflow, etc. It will usually be found
+more complicated because of broadcasting, dataflow, etc. It will usually be found
 somewhere like /usr/local/lib/perl5/site_perl/PDL/pdlsimple.h
 
 Thus to actually use this to call real functions one would need to write a wrapper.

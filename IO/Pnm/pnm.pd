@@ -393,7 +393,7 @@ Read in an ascii pnm file.
 );
 
 
-# write a line of data supporting threading !
+# write a line of data supporting broadcasting !
 pp_def(	'pnmout',
 	Pars => 'a(m);',
 	'NoPthread' => 1, # Pthreading doesn't make sense for an IO function
@@ -442,7 +442,7 @@ pp_def(	'pnmout',
 
 Write a line of pnm data.
 
-This function is implemented this way so that threading works
+This function is implemented this way so that broadcasting works
 naturally.
 ');
 

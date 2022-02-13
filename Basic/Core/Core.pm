@@ -100,10 +100,10 @@ type conversion, broadcasting etc.
  use PDL::Core;             # Normal routines
  use PDL::Core ':Internal'; # Hairy routines
 
-=head1 VECTORIZATION/THREADING: METHOD AND NOMENCLATURE
+=head1 VECTORIZATION/BROADCASTING: METHOD AND NOMENCLATURE
 
 PDL provides vectorized operations via a built-in engine.
-Vectorization is called "broadcasting" (formerly, up to 2.075, "threading").
+Vectorization in PDL is called "broadcasting" (formerly, up to 2.075, "threading").
 The broadcasting engine implements simple rules for each operation.
 
 Each PDL object has a "shape" that is a generalized N-dimensional
@@ -183,7 +183,7 @@ no elements).
 Note that 0 dims are not adjustable via the broadcasting rules -- a dim
 with size 0 can only match a corresponding dim of size 0 or 1.
 
-=head2 Thread rules and assignments
+=head2 Broadcast rules and assignments
 
 Versions of PDL through 2.4.10 have some irregularity with broadcasting and
 assignments.  Currently the broadcasting engine performs a full expansion of
@@ -1667,7 +1667,7 @@ sub PDL::broadcast {
 	$var->broadcastI(1,\@_);
 }
 
-=head2 thread1
+=head2 broadcast1
 
 =for ref
 
@@ -1675,7 +1675,7 @@ Explicit broadcasting over specified dims using broadcast id 1.
 
 =for usage
 
- $xx = $x->thread1(3,1)
+ $xx = $x->broadcast1(3,1)
 
 =for example
 
@@ -1691,7 +1691,7 @@ sub PDL::broadcast1 {
 	$var->broadcastI(1,\@_);
 }
 
-=head2 thread2
+=head2 broadcast2
 
 =for ref
 
@@ -1699,7 +1699,7 @@ Explicit broadcasting over specified dims using broadcast id 2.
 
 =for usage
 
- $xx = $x->thread2(3,1)
+ $xx = $x->broadcast2(3,1)
 
 =for example
 
@@ -1715,7 +1715,7 @@ sub PDL::broadcast2 {
 	$var->broadcastI(2,\@_);
 }
 
-=head2 thread3
+=head2 broadcast3
 
 =for ref
 
@@ -1723,7 +1723,7 @@ Explicit broadcasting over specified dims using broadcast id 3.
 
 =for usage
 
- $xx = $x->thread3(3,1)
+ $xx = $x->broadcast3(3,1)
 
 =for example
 

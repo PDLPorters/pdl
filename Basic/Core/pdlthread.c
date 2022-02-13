@@ -1,5 +1,5 @@
 /* XXX NOTE THAT IT IS NOT SAFE TO USE ->pdls MEMBER OUTSIDE
-   INITTHREADSTRUCT! */
+   INITBROADCASTSTRUCT! */
 
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
@@ -582,7 +582,7 @@ int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans 
 			    return 1;
 			}
 			broadcast->gflags &= ~PDL_BROADCAST_MAGICK_BUSY;
-			return 1; /* DON'T DO THREADLOOP AGAIN */
+			return 1; /* DON'T DO BROADCASTLOOP AGAIN */
 		}
 	}
 	offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);

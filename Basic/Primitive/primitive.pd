@@ -113,7 +113,7 @@ pp_def(
 outer product over one dimension
 
 Naturally, it is possible to achieve the effects of outer
-product simply by threading over the "C<*>"
+product simply by broadcasting over the "C<*>"
 operator but this function is provided for convenience.
 '); # pp_def( outer )
 
@@ -139,7 +139,7 @@ represented as (1 x N) two-dimensional PDLs.
 
 Threading occurs in the usual way, but as both the 0 and 1 dimension
 (if present) are included in the operation, you must be sure that
-you don't try to thread over either of those dims.
+you don't try to broadcast over either of those dims.
 
 Of note, due to how Perl v5.14.0 and above implement operator overloading of
 the C<x> operator, the use of parentheses for the left operand creates a list
@@ -304,7 +304,7 @@ EOC
 Matrix multiplication
 
 Notionally, matrix multiplication $x x $y is equivalent to the
-threading expression
+broadcasting expression
 
     $x->dummy(1)->inner($y->xchg(0,1)->dummy(2),$c);
 
@@ -382,7 +382,7 @@ Inner product of two vectors and a matrix
 
  d = sum_ij a(i) b(i,j) c(j)
 
-Note that you should probably not thread over C<a> and C<c> since that would be
+Note that you should probably not broadcast over C<a> and C<c> since that would be
 very wasteful. Instead, you should use a temporary for C<b*c>.
 '
        );
@@ -476,11 +476,11 @@ pp_def(
 Efficient Triple matrix product C<a*b*c>
 
 Efficiency comes from by using the temporary C<tmp>. This operation only
-scales as C<N**3> whereas threading using L</inner2> would scale
+scales as C<N**3> whereas broadcasting using L</inner2> would scale
 as C<N**4>.
 
 The reason for having this routine is that you do not need to
-have the same thread-dimensions for C<tmp> as for the other arguments,
+have the same broadcast-dimensions for C<tmp> as for the other arguments,
 which in case of large numbers of matrices makes this much more
 memory-efficient.
 
@@ -639,7 +639,7 @@ Threaded Example:
 ');
 
 # 1D convolution
-# useful for threaded 1D filters
+# useful for broadcasted 1D filters
 pp_addhdr('
 /* Fast Modulus with proper negative behaviour */
 #define REALMOD(a,b) while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b);
@@ -685,7 +685,7 @@ another dimension use the slicing routines, e.g.
 
   $y = $x->mv(2,0)->conv1d($kernel)->mv(0,2); # along third dim
 
-This function is useful for threaded filtering of 1D signals.
+This function is useful for broadcasted filtering of 1D signals.
 
 Compare also L<conv2d|PDL::Image2D/conv2d>, L<convolve|PDL::ImageND/convolve>,
 L<fftconvolve|PDL::FFT/fftconvolve()>, L<fftwconv|PDL::FFTW/fftwconv>,
@@ -767,7 +767,7 @@ test if a is in the set of values b
   [1 0 0 0 1]
 
 C<in> is akin to the I<is an element of> of set theory. In principle,
-PDL threading could be used to achieve its functionality by using a
+PDL broadcasting could be used to achieve its functionality by using a
 construct like
 
    $msk = ($labels->dummy(0) == $goodlabels)->orover;
@@ -1361,7 +1361,7 @@ sub PDL::stats {
     barf('Usage: ($mean,[$rms]) = stats($data,[$weights])') if $#_>1;
     my ($data,$weights) = @_;
 
-    # Ensure that $weights is properly threaded over; this could be
+    # Ensure that $weights is properly broadcasted over; this could be
     # done rather more efficiently...
     if(defined $weights) {
 	$weights = pdl($weights) unless UNIVERSAL::isa($weights,'PDL');
@@ -1687,7 +1687,7 @@ append two ndarrays by concatenating along their first dimensions
  $c = $x->append($y);  # size of $c is now (7,4,7) (a jumbo-ndarray ;)
 
 C<append> appends two ndarrays along their first dimensions. The rest of the
-dimensions must be compatible in the threading sense. The resulting
+dimensions must be compatible in the broadcasting sense. The resulting
 size of the first dimension is the sum of the sizes of the first dimensions
 of the two argument ndarrays - i.e. C<n + m>.
 
@@ -1712,7 +1712,7 @@ Glue two or more PDLs together along an arbitrary dimension
 
 Sticks $x, $y, and all following arguments together along the
 specified dimension.  All other dimensions must be compatible in the
-threading sense.
+broadcasting sense.
 
 Glue is permissive, in the sense that every PDL is treated as having an
 infinite number of trivial dimensions of order 1 -- so C<< $x->glue(3,$y) >>
@@ -2800,7 +2800,7 @@ sub PDL::interpND {
   }
 
   elsif (($method eq 1) || $method =~ m/^l(in(ear)?)?/i) {
-    ## key: (ith = index thread; cth = cube thread; sth = source thread)
+    ## key: (ith = index broadcast; cth = cube broadcast; sth = source broadcast)
     my $d = $index->dim(0);
     my $di = $index->ndims - 1;
 
@@ -3161,7 +3161,7 @@ into a single operation.
 BUGS:
 
 While C<where> works OK for most N-dimensional cases, it does not
-thread properly over (for example) the (N+1)th dimension in data
+broadcast properly over (for example) the (N+1)th dimension in data
 that is compared to an N-dimensional mask.  Use C<whereND> for that.
 
 =for usage
@@ -3181,7 +3181,7 @@ Note: C<$i> is always 1-D, even if C<$x> is E<gt>1-D.
 WARNING: The first argument
 (the values) and the second argument (the mask) currently have to have
 the exact same dimensions (or horrible things happen). You *cannot*
-thread over a smaller mask, for example.
+broadcast over a smaller mask, for example.
 
 =cut
 
@@ -3214,7 +3214,7 @@ pp_addpm(<<'EOD');
 
 =for ref
 
-C<where> with support for ND masks and threading
+C<where> with support for ND masks and broadcasting
 
 C<whereND> accepts one or more data ndarrays and a
 mask ndarray.  It returns a list of output ndarrays,
@@ -3223,7 +3223,7 @@ are drawn from locations where the mask is nonzero.
 
 C<whereND> differs from C<where> in that the mask
 dimensionality is preserved which allows for
-proper threading of the selection operation over
+proper broadcasting of the selection operation over
 higher dimensions.
 
 As with C<where> the output PDLs are still connected
@@ -3239,7 +3239,7 @@ to the original data PDLs, for the purpose of dataflow.
     $data is M dimensional
     $mask is N < M dimensional
     dims($data) 1..N == dims($mask) 1..N
-    with threading over N+1 to M dimensions
+    with broadcasting over N+1 to M dimensions
 
 =for example
 
@@ -3323,7 +3323,7 @@ For example, if $mask has rank 4 and 100 matching elements, then $coords has
 dimension 4x100.
 
 If no such elements exist, then whichND returns a structured empty PDL:
-an Nx0 PDL that contains no values (but matches, threading-wise, with
+an Nx0 PDL that contains no values (but matches, broadcasting-wise, with
 the vectors that would be produced if such elements existed).
 
 DEPRECATED BEHAVIOR IN LIST CONTEXT:

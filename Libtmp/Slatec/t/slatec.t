@@ -61,7 +61,7 @@ $y = zeroes(9)->setbadif(1);
 ($ndeg, $r, $ierr, $a1) = polyfit($x, $y, $w, $maxdeg, $eps);
 ok(($ierr == 2));
 
-# Now test threading over a 2 by N matrix
+# Now test broadcasting over a 2 by N matrix
 # Set up tests x, y and weight
 $y = pdl ([1,4,9,16,25,36,49,64.35,32],
           [1,4,9,16,25,36,49,64.35,32],);

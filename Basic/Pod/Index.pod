@@ -22,6 +22,10 @@ L<PDL::BadValues> - Discussion of bad value support in PDL
 
 =item *
 
+L<PDL::Broadcasting> - Tutorial for PDL's Broadcasting feature
+
+=item *
+
 L<PDL::Course> - A journey through PDL's documentation, from beginner to advanced.
 
 =item *
@@ -66,7 +70,7 @@ L<PDL::PP> - Generate PDL routines from concise descriptions
 
 =item *
 
-L<PDL::ParallelCPU> - Parallel Processor MultiThreading Support in PDL (Experimental)
+L<PDL::ParallelCPU> - Parallel Processor MultiThreading Support in PDL
 
 =item *
 
@@ -79,10 +83,6 @@ L<PDL::QuickStart> - Quick introduction to PDL features.
 =item *
 
 L<PDL::Scilab> - A guide for Scilab users.
-
-=item *
-
-L<PDL::Threading> - Tutorial for PDL's Threading feature
 
 =item *
 
@@ -156,7 +156,7 @@ L<PDL::Constants> - basic compile time constants for PDL
 
 =item *
 
-L<PDL::Core> - fundamental PDL functionality and vectorization/threading
+L<PDL::Core> - fundamental PDL functionality and vectorization/broadcasting
 
 =item *
 

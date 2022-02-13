@@ -120,7 +120,7 @@ Separates supplied arguments and return values.
 =for ref
 
 Fit discrete data in a least squares sense by polynomials
-in one variable.  Handles threading correctly--one can pass in a 2D PDL (as C<$y>)
+in one variable.  Handles broadcasting correctly--one can pass in a 2D PDL (as C<$y>)
 and it will pass back a 2D PDL, the rows of which are the polynomial regression
 results (in C<$r> corresponding to the rows of $y.
 
@@ -155,7 +155,7 @@ rms error.  This usage is deprecated, and C<$eps> is an optional parameter now.
 It is still modified if present.
  
 C<$c> is a working array accessible to Slatec - you can feed it to several
-other Slatec routines to get nice things out.  It does not thread 
+other Slatec routines to get nice things out.  It does not broadcast
 correctly and should probably be fixed by someone.  If you are 
 reading this, that someone might be you.
 
@@ -222,7 +222,7 @@ Usage:
   Signature: detslatec(mat(n,m); [o] det())
 
 C<detslatec> computes the determinant of an invertible matrix and barfs if
-the matrix argument provided is non-invertible. The matrix threads as usual.
+the matrix argument provided is non-invertible. The matrix broadcasts as usual.
 
 This routine was previously known as C<det> which clashes now with
 L<det|PDL::MatrixOps/det> which is provided by L<PDL::MatrixOps>.
@@ -1498,7 +1498,7 @@ Error status returned by C<$ierr>:
 ##################################################################
 
 #
-# This version of polfit accepts bad values and also allows threading
+# This version of polfit accepts bad values and also allows broadcasting
 #
 
 #

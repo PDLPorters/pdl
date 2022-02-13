@@ -87,7 +87,7 @@ C<Code> option to C<pp_def()> is executed.
 If B<true/1>, then this says there I<MAY> be bad data in the ndarray, so use the
 code in the C<BadCode> option (assuming that the C<pp_def()> for this routine 
 has been updated to have a BadCode key). 
-You get all the advantages of threading, as with the C<Code> option, 
+You get all the advantages of broadcasting, as with the C<Code> option,
 but it will run slower since you are going to have to handle the presence of bad values.
 
 =back

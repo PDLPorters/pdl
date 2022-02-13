@@ -679,13 +679,12 @@ changes to the master branch!
 
 =head1 PDL JARGON
 
+=head2 Q: 5.1    What is broadcasting (is PDL a newsreader)?
 
-
-=head2 Q: 5.1    What is threading (is PDL a newsreader) ?  
-
-
-Unfortunately, in the context of PDL the term threading can have two
-different (but related) meanings:
+Until 2.075, "threading" was used to refer to two ideas,
+but that ambiguity has now been resolved by using the now (as of
+2022) industry-standard term "broadcasting" for the vectorisation /
+array-programming concept.
 
 =over 4
 
@@ -694,11 +693,12 @@ different (but related) meanings:
 When mentioned in the F<INSTALL> directions and possibly
 during the build process we have the usual computer science
 meaning of multi-threading in mind (useful mainly on
-multiprocessor machines or clusters)
+multiprocessor machines or clusters), currently (as of 2.074)
+POSIX threads (see L<PDL::ParallelCPU>).
 
 =item *
 
-PDL threading of operations on ndarrays (as mentioned in the
+PDL broadcasting of operations on ndarrays (as mentioned in the
 indexing docs) is the iteration of a basic operation over
 appropriate sub-slices of ndarrays, e.g. the inner product 
 C<inner $x, $y> of a (3) pdl C<$x> and a (3,5,4) pdl 
@@ -709,14 +709,10 @@ L<PDL::Indexing>
 
 =back
 
-PDL threading leads naturally to potentially parallel code
-which can make use of multi threading on multiprocessor
-machines/networks; there you have the connection between the
-two types of use of the term. 
-
+The connection is that broadcasting divides up independent operations
+that can be done in parallel.
 
 =head2 Q: 5.2    What is an ndarray?  
-
 
 Well, PDL scalar variables (which are instances of a particular class
 of Perl objects, i.e. blessed thingies (see C<perldoc perlobj> )) are
@@ -959,7 +955,7 @@ If this seems still a bit murky check
 L<PDL::Indexing> and 
 L<PDL::PP> for details about calling
 conventions, the I<signature> and 
-I<threading> (see also below).
+I<broadcasting> (see also below).
 
 
 =head2 Q: 6.13   What is the signature of a PDL function ?  
@@ -977,7 +973,7 @@ this says that C<maximum> takes two arguments, the first of which is
 an I<output> argument (flagged by the C<[o]> qualifier). If the function
 is called with ndarrays of higher dimension the function will be repeatedly
 called with slices of these ndarrays of appropriate dimension(this is called 
-I<threading> in PDL).
+I<broadcasting> in PDL).
 
 For details and further explanations consult 
 L<PDL::Indexing> and L<PDL::PP> .
@@ -1036,7 +1032,7 @@ functions.
 Slightly longer answer: PDL::PP is used to compile very
 concise definitions into XSUB routines implemented in C that
 can easily be called from PDL and which automatically support
-threading, dataflow and other things without you having to
+broadcasting, dataflow and other things without you having to
 worry about it. 
 
 For further details check L<PDL::PP> and the
@@ -1474,7 +1470,7 @@ files that end in C<.pd> which is the generally accepted
 suffix for PDL::PP files. But we also have a simple example here.
 
 The following example will show you how to write a simple
-function that automatically allows threading. To make this
+function that automatically allows broadcasting. To make this
 concise the example is of an almost trivial function, but
 the intention is to show the basics of writing a PDL::PP
 interface. 

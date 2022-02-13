@@ -61,7 +61,7 @@ $initsize is the size of $init (more...)
 $minsize is some sort of convergence criterion (more...)
 - e.g. $minsize = 1e-6
 
-The sub is assumed to understand more than 1 dimensions and threading.
+The sub is assumed to understand more than 1 dimensions and broadcasting.
 Its signature is 'inp(nparams); [ret]out()'. An example would be
 
 	sub evaluate_func_at {

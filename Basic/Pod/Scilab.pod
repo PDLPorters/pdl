@@ -469,7 +469,7 @@ Never use for-loops for numerical work. Perl's for-loops are faster
 than Scilab's, but they both pale against a "vectorized" operation.
 PDL has many tools that facilitate writing vectorized programs.
 These are beyond the scope of this guide. To learn more, see:
-L<PDL::Indexing>, L<PDL::Threading>,
+L<PDL::Indexing>, L<PDL::Broadcasting>,
 and L<PDL::PP>.
 
 Likewise, never use C<1..10> for numerical work, even outside a for-loop.
@@ -708,14 +708,13 @@ This beginner tutorial covers the standard "vectorization" feature that
 you already know from Scilab. Use this page to learn how to avoid for-loops
 to make your program more efficient.
 
-=item L<PDL::Threading>
+=item L<PDL::Broadcasting>
 
 B<Level>: Intermediate
 
 PDL's "vectorization" feature goes beyond what most numerical software
-can do. In this tutorial you'll learn how to "thread" over higher dimensions,
+can do. In this tutorial you'll learn how to "broadcast" over higher dimensions,
 allowing you to vectorize your program further than is possible in Scilab.
-
 
 =item Benchmarks
 

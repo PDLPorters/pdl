@@ -115,7 +115,7 @@ Displays an image on a IIS device (e.g. SAOimage/Ximtool)
  (image(m,n),[\%options]) or (image(m,n),[min(),max()])
 
 Displays image on a IIS device. If C<min()> or C<max()> are omitted they
-are autoscaled. A good demonstration of PDL threading can be had
+are autoscaled. A good demonstration of PDL broadcasting can be had
 by giving C<iis()> a data *cube* - C<iis()> will be repeatedly called
 for each plane of the cube resulting in a poor man's movie!
 
@@ -207,7 +207,7 @@ Draws a circle on a IIS device (e.g. SAOimage/Ximtool)
 
 Draws circles on the IIS device with specified points and colours. Because
 this module uses 
-L<PDL::PP> threading you can supply lists of points via
+L<PDL::PP> broadcasting you can supply lists of points via
 1D arrays, etc.
 
 An amusing PDL idiom is:

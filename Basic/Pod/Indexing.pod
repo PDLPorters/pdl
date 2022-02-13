@@ -14,7 +14,7 @@ broadcasting computation in parallel - see L<PDL::ParallelCPU>.
 
 A lot of the flexibility and power of PDL relies on the indexing and broadcasting
 features of the Perl extension.  Indexing allows access to the data of an ndarray
-in a very flexible way.  Threading provides efficient vectorization of simple
+in a very flexible way.  Broadcasting provides efficient vectorization of simple
 operations.  
 
 The values of an ndarray are stored compactly as typed values in a single block of memory, 
@@ -70,7 +70,7 @@ child and parent ndarray:
 
 =back
 
-=head2 Threading and Dimension Order
+=head2 Broadcasting and Dimension Order
 
 Most PDL operations act on the first few dimensions of their ndarray arguments.  For
 example, C<sumover> sums all elements along the first dimension in the list (dimension 0).
@@ -131,7 +131,7 @@ reworking of paragraph on explicit broadcasting
 
 A lot of the flexibility and power of PDL relies on the indexing and
 looping features of the Perl extension. Indexing allows access to the
-data of an ndarray in a very flexible way. Threading provides
+data of an ndarray in a very flexible way. Broadcasting provides
 efficient implicit looping functionality (since the loops are
 implemented as optimized C code).
 
@@ -749,7 +749,7 @@ dummy dimensions are created implicitly during the broadcast loop (see below).
  ** How to test (isphysical (explain how it works currently))
  ** ->copy and ->sever
 
-=head1 Threading
+=head1 Broadcasting
 
 In the previous paragraph on indexing we have already mentioned the
 term occasionally but now its really time to talk explicitly about

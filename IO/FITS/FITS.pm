@@ -222,7 +222,7 @@ Each element of the hash contains a PDL (for numerical values) or a
 perl list (for string values).  The PDL's 0th dimension runs across
 rows; the 1st dimension runs across the repeat index within the row
 (for rows with more than one value).  (Note that this is different from
-standard threading order - but it allows Least Surprise to work when
+standard broadcasting order - but it allows Least Surprise to work when
 adding more complicated objects such as collections of numbers (via
 the repeat count) or variable length arrays.)
 
@@ -1358,7 +1358,7 @@ sub _rfits_unpack_zimage($$$) {
     }
 
     ##########
-    # Slice up the output image plane into tiles, and use the threading engine
+    # Slice up the output image plane into tiles, and use the broadcasting engine
     # to assign everything to them.
     my $cutup = $pdl->range( $tiledex, [@tiledims], 't') # < ntiles, tilesize0..tilesizen >
 	->mv(0,-1)                                       # < tilesize0..tilesizen, ntiles >
@@ -1494,17 +1494,17 @@ dim of the PDL runs across rows, and higher dims are written as
 multi-value entries in the table (e.g. a 7x5 PDL will yield a single
 named column with 7 rows and 5 numerical entries per row, in a binary
 table).  Note that this is slightly different from the usual concept
-of threading, in which dimension 1 runs across rows.
+of broadcasting, in which dimension 1 runs across rows.
 
 ASCII tables only allow one entry per column in each row, so
 if you plan to write an ASCII table then all of the values of C<$hash>
 should have at most one dim.
 
-All of the columns' 0 dims must agree in the threading sense. That is to
+All of the columns' 0 dims must agree in the broadcasting sense. That is to
 say, the 0th dimension of all of the values of C<$hash> should be the
 same (indicating that all columns have the same number of rows).  As
 an exception, if the 0th dim of any of the values is 1, or if that
-value is a PDL scalar (with 0 dims), then that value is "threaded"
+value is a PDL scalar (with 0 dims), then that value is "broadcasted"
 over -- copied into all rows.
 
 Data dimensions higher than 2 are preserved in binary tables,
@@ -2413,7 +2413,7 @@ FOO
 	  $tmp = $$t;
 	} else {                                  # Only other case is ASCII just now...
 	  $tmp = ( ref $x eq 'ARRAY' ) ?          # Switch on array or string
-	    ( $#$x == 0 ? $x->[0] : $x->[$r] )    # Thread arrays as needed
+	    ( $#$x == 0 ? $x->[0] : $x->[$r] )    # broadcast arrays as needed
 	      : $x;
 	 
 	  $tmp .= " " x ($field_len[$c] - length($tmp));

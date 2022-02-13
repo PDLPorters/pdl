@@ -22,7 +22,7 @@ PDL::GSL::LINALG - PDL interface to linear algebra routines in GSL
   ];
   my $B = sequence(2,4); # column vectors
   LU_decomp(my $lu=$A->copy, my $p=null, my $signum=null);
-  # transpose so first dim means is vector, higher dims thread
+  # transpose so first dim means is vector, higher dims broadcast
   LU_solve($lu, $p, $B->transpose, my $x=null);
   $x = $x->inplace->transpose; # now can be matrix-multiplied
 

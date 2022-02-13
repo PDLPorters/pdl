@@ -582,7 +582,7 @@ how to mark loci in the original matrix (using dataflow).
   ]
  ]
  pdl> $src = xvals(5,3)*10+yvals(5,3)
- pdl> print $src->range(3,1)  # Thread over y dimension in $src
+ pdl> print $src->range(3,1)  # Broadcast over y dimension in $src
  [
   [30]
   [31]

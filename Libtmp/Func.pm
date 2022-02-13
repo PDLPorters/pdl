@@ -10,7 +10,7 @@ PDL::Func - interpolation, integration, & gradient estimation (differentiation) 
  use PDL::Math;
 
  # somewhat pointless way to estimate cos and sin,
- # but is shows that you can thread if you want to
+ # but is shows that you can broadcast if you want to
  # (and the library lets you)
  #
  my $obj = PDL::Func->init( Interpolate => "Hermite" );
@@ -374,7 +374,7 @@ sub _init_hermite {
     my ( $x, $y, $bc ) = $self->_get_value( qw( x y bc ) );
 
     # check 1st dimention of x and y are the same
-    #  ie allow the possibility of threading
+    #  ie allow the possibility of broadcasting
     my $xdim = $x->getdim( 0 );
     my $ydim = $y->getdim( 0 );
     croak "ERROR: x and y ndarrays must have the same first dimension.\n"

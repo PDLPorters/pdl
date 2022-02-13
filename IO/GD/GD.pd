@@ -1247,7 +1247,7 @@ sub apply_lut
     my $self = shift;
     my $lut = shift;
     
-    # Let the PDL threading engine sort this out:
+    # Let the PDL broadcasting engine sort this out:
     $self->ColorAllocates( $lut->slice("(0),:"), $lut->slice("(1),:"), $lut->slice("(2),:") );
 } # End of apply_lut()...
 

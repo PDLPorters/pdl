@@ -1,5 +1,5 @@
 # Old results: approx. 1.91_03: 34 secs (512, 10 iter)
-# With simply folded-out threading: 3.4 secs (10fold!)
+# With simply folded-out broadcasting: 3.4 secs (10fold!)
 
 # For 512,30iter:
 

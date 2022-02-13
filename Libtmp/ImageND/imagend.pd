@@ -9,9 +9,9 @@ PDL::ImageND - useful image processing in N dimensions
 
 =head1 DESCRIPTION
 
-These routines act on PDLs as N-dimensional objects, not as threaded 
+These routines act on PDLs as N-dimensional objects, not as broadcasted
 sets of 0-D or 1-D objects.  The file is sort of a catch-all for 
-broadly functional routines, most of which could legitimately 
+broadly functional routines, most of which could legitimately
 be filed elsewhere (and probably will, one day).  
 
 ImageND is not a part of the PDL core (v2.4) and hence must be explicitly
@@ -526,7 +526,7 @@ Speed-optimized convolution with selectable boundary conditions
 Conolve an array with a kernel, both of which are N-dimensional.
 
 If the kernel has fewer dimensions than the array, then the extra array
-dimensions are threaded over.  There are options that control the boundary 
+dimensions are broadcasted over.  There are options that control the boundary
 conditions and method used.
 
 The kernel's origin is taken to be at the kernel's center.  If your
@@ -586,10 +586,10 @@ based on the size of the input arrays.
 
 NOTES
 
-At the moment there's no way to thread over kernels.  That could/should
+At the moment there's no way to broadcast over kernels.  That could/should
 be fixed.
 
-The threading over input is cheesy and should probably be fixed:
+The broadcasting over input is cheesy and should probably be fixed:
 currently the kernel just gets dummy dimensions added to it to match
 the input dims.  That does the right thing tersely but probably runs slower
 than a dedicated broadcastloop.
@@ -647,7 +647,7 @@ sub PDL::convolveND {
   my $opt = $def->options(PDL::Options::ifhref($opt0));
 
   ### 
-  # If the kernel has too few dimensions, we thread over the other
+  # If the kernel has too few dimensions, we broadcast over the other
   # dims -- this is the same as supplying the kernel with dummy dims of
   # order 1, so, er, we do that.
   $k = $k->dummy($x->dims - 1, 1)
@@ -717,7 +717,7 @@ Code => <<'EOD'
  * Direct convolution 
  *
  * Because the kernel is usually the smaller of the two arrays to be convolved,
- * we thread kernel-first to keep it in the processor's cache.  The strategy:
+ * we broadcast kernel-first to keep it in the processor's cache.  The strategy:
  * work on a padded copy of the original image, so that (even with boundary 
  * conditions) the geometry of the kernel is linearly related to the input 
  * array.  Otherwise, follow the path blazed by Karl in convolve(): keep track

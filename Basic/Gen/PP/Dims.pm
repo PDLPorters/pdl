@@ -36,7 +36,7 @@ sub new {
 	bless {Name => $name},$type;
 }
 
-# set the value of an index, also used by perl level threading
+# set the value of an index, also used by perl level broadcasting
 sub add_value {
 	my($this,$val) = @_;
 	croak("index values for $this->{Name} must be positive")

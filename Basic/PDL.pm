@@ -23,7 +23,7 @@ images, spectra, etc to be stored efficiently and manipulated quickly.
 
 =head1 VECTORIZATION 
 
-For a description of the vectorization (also called "threading"), see
+For a description of the vectorization (also called "broadcasting"), see
 L<PDL::Core>.
 
 
