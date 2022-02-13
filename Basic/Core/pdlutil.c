@@ -114,18 +114,18 @@ void pdl_print_iarr(PDL_Indx *iarr, int n) {
   printf(")");
 }
 
-void pdl_dump_thread(pdl_thread *thread) {
+void pdl_dump_broadcast(pdl_broadcast *broadcast) {
   int i, j, found=0, sz=0;
   char spaces[] = "    ";
   int flagval[] = {
 #define X(f) f,
-PDL_LIST_FLAGS_PDLTHREAD(X)
+PDL_LIST_FLAGS_PDLBROADCAST(X)
 #undef X
     0
   };
   char *flagchar[] = {
 #define X(f) #f,
-PDL_LIST_FLAGS_PDLTHREAD(X)
+PDL_LIST_FLAGS_PDLBROADCAST(X)
 #undef X
     NULL
   };
@@ -153,9 +153,9 @@ PDL_TYPELIST_ALL(X)
 #undef X
     NULL
   };
-  printf("DUMPTHREAD %p\n",(void*)thread);
-  if (thread->transvtable) {
-    pdl_transvtable *vtable = thread->transvtable;
+  printf("DUMPBROADCAST %p\n",(void*)broadcast);
+  if (broadcast->transvtable) {
+    pdl_transvtable *vtable = broadcast->transvtable;
     psp; printf("Funcname: %s\n",vtable->name);
     psp; printf("Types: ");
     found=0; sz=0;
@@ -199,12 +199,12 @@ PDL_TYPELIST_ALL(X)
     for (i=0;i<vtable->ninds;i++)
       printf("%s ",vtable->ind_names[i]);
     printf("\n");
-    psp; printf("Realdims: "); pdl_print_iarr(vtable->par_realdims,thread->npdls); printf("\n");
+    psp; printf("Realdims: "); pdl_print_iarr(vtable->par_realdims,broadcast->npdls); printf("\n");
   }
   psp; printf("Flags: ");
   found=0; sz=0;
   for (i=0;flagval[i]!=0; i++)
-    if (thread->gflags & flagval[i]) {
+    if (broadcast->gflags & flagval[i]) {
       if (sz>PDL_MAXLIN) {sz=0; printf("\n");psp;}
       printf("%s%s",found ? "|":"",flagchar[i]);
       found = 1;
@@ -212,58 +212,58 @@ PDL_TYPELIST_ALL(X)
     }
   printf("\n");
   psp; printf("Ndims: %"IND_FLAG", Nimplicit: %"IND_FLAG", Npdls: %"IND_FLAG", Nextra: %"IND_FLAG"\n",
-	 thread->ndims,thread->nimpl,thread->npdls,thread->nextra);
+	 broadcast->ndims,broadcast->nimpl,broadcast->npdls,broadcast->nextra);
   psp; printf("Mag_nth: %"IND_FLAG", Mag_nthpdl: %"IND_FLAG", Mag_nthr: %"IND_FLAG", Mag_skip: %"IND_FLAG", Mag_stride: %"IND_FLAG"\n",
-	 thread->mag_nth,thread->mag_nthpdl,thread->mag_nthr,thread->mag_skip,thread->mag_stride);
-  if (thread->mag_nthr <= 0) {
-    psp; printf("Dims: "); pdl_print_iarr(thread->dims,thread->ndims); printf("\n");
-    psp; printf("Inds: "); pdl_print_iarr(thread->inds,thread->ndims); printf("\n");
-    psp; printf("Offs: "); pdl_print_iarr(thread->offs,thread->npdls); printf("\n");
+	 broadcast->mag_nth,broadcast->mag_nthpdl,broadcast->mag_nthr,broadcast->mag_skip,broadcast->mag_stride);
+  if (broadcast->mag_nthr <= 0) {
+    psp; printf("Dims: "); pdl_print_iarr(broadcast->dims,broadcast->ndims); printf("\n");
+    psp; printf("Inds: "); pdl_print_iarr(broadcast->inds,broadcast->ndims); printf("\n");
+    psp; printf("Offs: "); pdl_print_iarr(broadcast->offs,broadcast->npdls); printf("\n");
   } else {
     psp; printf("Dims (per thread):\n");
-    for (i=0;i<thread->mag_nthr;i++) {
-      psp; psp; pdl_print_iarr(thread->dims + i*thread->ndims,thread->ndims);
+    for (i=0;i<broadcast->mag_nthr;i++) {
+      psp; psp; pdl_print_iarr(broadcast->dims + i*broadcast->ndims,broadcast->ndims);
       printf("\n");
     }
     psp; printf("Inds (per thread):\n");
-    for (i=0;i<thread->mag_nthr;i++) {
-      psp; psp; pdl_print_iarr(thread->inds + i*thread->ndims,thread->ndims);
+    for (i=0;i<broadcast->mag_nthr;i++) {
+      psp; psp; pdl_print_iarr(broadcast->inds + i*broadcast->ndims,broadcast->ndims);
       printf("\n");
     }
     psp; printf("Offs (per thread):\n");
-    for (i=0;i<thread->mag_nthr;i++) {
-      psp; psp; pdl_print_iarr(thread->offs + i*thread->npdls,thread->npdls);
+    for (i=0;i<broadcast->mag_nthr;i++) {
+      psp; psp; pdl_print_iarr(broadcast->offs + i*broadcast->npdls,broadcast->npdls);
       printf("\n");
     }
   }
   psp; printf("Incs (per dim):\n");
-  for (i=0;i<thread->ndims;i++) {
-    psp; psp; pdl_print_iarr(&PDL_THR_INC(thread->incs, thread->npdls, 0, i),thread->npdls);
+  for (i=0;i<broadcast->ndims;i++) {
+    psp; psp; pdl_print_iarr(&PDL_BRC_INC(broadcast->incs, broadcast->npdls, 0, i),broadcast->npdls);
     printf("\n");
   }
-  psp; printf("Realdims: "); pdl_print_iarr(thread->realdims,thread->npdls); printf("\n");
+  psp; printf("Realdims: "); pdl_print_iarr(broadcast->realdims,broadcast->npdls); printf("\n");
   psp; printf("Pdls: (");
-  for (i=0;i<thread->npdls;i++)
-    printf("%s%p",(i?" ":""),(void*)(thread->pdls[i]));
+  for (i=0;i<broadcast->npdls;i++)
+    printf("%s%p",(i?" ":""),(void*)(broadcast->pdls[i]));
   printf(")\n");
   psp; printf("Per pdl flags: (");
-  for (i=0;i<thread->npdls;i++)
-    printf("%s%d",(i?" ":""),thread->flags[i]);
+  for (i=0;i<broadcast->npdls;i++)
+    printf("%s%d",(i?" ":""),broadcast->flags[i]);
   printf(")\n");
 }
 
-void pdl_dump_threading_info(
+void pdl_dump_broadcasting_info(
   int npdls, PDL_Indx* creating, int target_pthread,
-  PDL_Indx *nthreadedDims, PDL_Indx **threadedDims, PDL_Indx **threadedDimSizes,
+  PDL_Indx *nbroadcastedDims, PDL_Indx **broadcastedDims, PDL_Indx **broadcastedDimSizes,
   int maxPthreadPDL, int maxPthreadDim, int maxPthread
 ) {
   PDL_Indx j, k;
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
     printf("PDL %"IND_FLAG":\n", j);
-    for( k=0; k < nthreadedDims[j]; k++){
+    for( k=0; k < nbroadcastedDims[j]; k++){
       printf("Thread dim %"IND_FLAG", Dim No %"IND_FLAG", Size %"IND_FLAG"\n",
-        k, threadedDims[j][k], threadedDimSizes[j][k]);
+        k, broadcastedDims[j][k], broadcastedDimSizes[j][k]);
     }
   }
   printf("\nTarget Pthread = %d\n"
@@ -271,23 +271,23 @@ void pdl_dump_threading_info(
     target_pthread, maxPthread, maxPthreadPDL, maxPthreadDim);
 }
 
-void pdl_thread_mismatch_msg(
+void pdl_broadcast_mismatch_msg(
   char *s,
-  pdl **pdls, pdl_thread *thread,
+  pdl **pdls, pdl_broadcast *broadcast,
   PDL_Indx i, PDL_Indx j, PDL_Indx nimpl,
   PDL_Indx *realdims,PDL_Indx *creating
 ) {
   /* This probably uses a lot more lines than necessary */
   int ii,jj,maxrealdims;
   sprintf(s,
-    "  Mismatched implicit thread dimension %"IND_FLAG": size %"IND_FLAG" vs. %"IND_FLAG"\nThere are %"IND_FLAG" PDLs in the expression; %"IND_FLAG" thread dim%s.\n",
-    i,thread->dims[i],pdls[j]->dims[i+realdims[j]],
-    thread->npdls,nimpl,(nimpl==1)?"":"s"
+    "  Mismatched implicit broadcast dimension %"IND_FLAG": size %"IND_FLAG" vs. %"IND_FLAG"\nThere are %"IND_FLAG" PDLs in the expression; %"IND_FLAG" broadcast dim%s.\n",
+    i,broadcast->dims[i],pdls[j]->dims[i+realdims[j]],
+    broadcast->npdls,nimpl,(nimpl==1)?"":"s"
   );
   s += strlen(s);
-  for(ii=maxrealdims=0; ii<thread->npdls; ii++)
-    if(thread->realdims[ii]>maxrealdims)
-      maxrealdims=thread->realdims[ii];
+  for(ii=maxrealdims=0; ii<broadcast->npdls; ii++)
+    if(broadcast->realdims[ii]>maxrealdims)
+      maxrealdims=broadcast->realdims[ii];
   sprintf(s,  "   PDL IN EXPR.    "); s += strlen(s);
   if(maxrealdims > 0) {
     char format[80];
@@ -295,9 +295,9 @@ void pdl_thread_mismatch_msg(
     sprintf(s,format,"ACTIVE DIMS | ");
     s += strlen(s);
   }
-  sprintf(s,"THREAD DIMS\n");
+  sprintf(s,"BROADCAST DIMS\n");
   s += strlen(s);
-  for(ii=0; ii<thread->npdls; ii++) {
+  for(ii=0; ii<broadcast->npdls; ii++) {
     sprintf(s,"   #%3d (%s",ii,creating[ii]?"null)\n":"normal): ");
     s += strlen(s);
     if(creating[ii])
@@ -306,11 +306,11 @@ void pdl_thread_mismatch_msg(
       sprintf(s,"    ");
       s += strlen(s);
     }
-    for(jj=0; jj< maxrealdims - thread->realdims[ii]; jj++) {
+    for(jj=0; jj< maxrealdims - broadcast->realdims[ii]; jj++) {
       sprintf(s,"%8s"," ");
       s += strlen(s);
     }
-    for(jj=0; jj< thread->realdims[ii]; jj++) {
+    for(jj=0; jj< broadcast->realdims[ii]; jj++) {
       sprintf(s,"%8"IND_FLAG,pdls[ii]->dims[jj]);
       s += strlen(s);
     }
@@ -318,8 +318,8 @@ void pdl_thread_mismatch_msg(
       sprintf(s," | ");
       s += strlen(s);
     }
-    for(jj=0; jj<nimpl && jj + thread->realdims[ii] < pdls[ii]->ndims; jj++) {
-      sprintf(s,"%8"IND_FLAG,pdls[ii]->dims[jj+thread->realdims[ii]]);
+    for(jj=0; jj<nimpl && jj + broadcast->realdims[ii] < pdls[ii]->ndims; jj++) {
+      sprintf(s,"%8"IND_FLAG,pdls[ii]->dims[jj+broadcast->realdims[ii]]);
       s += strlen(s);
     }
     sprintf(s,"\n");

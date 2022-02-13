@@ -16,81 +16,81 @@ static pdl **copy_pdl_array (pdl **from, int size) {
 }
 
 /*******
- * pdl_get_threaddims - get the pthread-specific threading dims from a PDL
- *  Input: thread structure
+ * pdl_get_broadcastdims - get the pthread-specific broadcasting dims from a PDL
+ *  Input: broadcast structure
  *  Outputs: see above (returned by function)
  */
-PDL_Indx *pdl_get_threaddims(pdl_thread *thread)
+PDL_Indx *pdl_get_broadcastdims(pdl_broadcast *broadcast)
 {
   /* The non-multithreaded case: return just the usual value */
-  if (!(thread->gflags & PDL_THREAD_MAGICKED)) return thread->dims;
-  int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+  if (!(broadcast->gflags & PDL_BROADCAST_MAGICKED)) return broadcast->dims;
+  int thr = pdl_magic_get_thread(broadcast->pdls[broadcast->mag_nthpdl]);
   if (thr < 0) return NULL;
-  return thread->dims + thr * thread->ndims;
+  return broadcast->dims + thr * broadcast->ndims;
 }
 
 
 /*******
  * pdl_get_threadoffsp - get the pthread-specific offset arrays from a PDL
- *  Input: thread structure
+ *  Input: broadcast structure
  *  Outputs: Pointer to pthread-specific offset array (returned by function)
  */
-PDL_Indx *pdl_get_threadoffsp(pdl_thread *thread)
+PDL_Indx *pdl_get_threadoffsp(pdl_broadcast *broadcast)
 {
   /* The non-multithreaded case: return just the usual offsets */
-  if (!(thread->gflags & PDL_THREAD_MAGICKED)) return thread->offs;
-  int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+  if (!(broadcast->gflags & PDL_BROADCAST_MAGICKED)) return broadcast->offs;
+  int thr = pdl_magic_get_thread(broadcast->pdls[broadcast->mag_nthpdl]);
   if (thr < 0) return NULL;
-  return thread->offs + thr * thread->npdls;
+  return broadcast->offs + thr * broadcast->npdls;
 }
 
 
-/* Function to get the pthread-specific offset, indexes and pthread number for the supplied thread structure
-   Input: thread structure
+/* Function to get the pthread-specific offset, indexes and pthread number for the supplied broadcast structure
+   Input: broadcast structure
    Outputs: Pointer to pthread-specific offset array (returned by function)
             Pointer to pthread-specific index array (ind Pointer supplied and modified by function)
             Pointer to pthread-specific dims array (dims Pointer supplied and modified by function)
 	    Pthread index for the current pthread   ( thr supplied and modified by function)
 */
-PDL_Indx* pdl_get_threadoffsp_int(pdl_thread *thread, int *pthr, PDL_Indx **inds, PDL_Indx **dims)
+PDL_Indx* pdl_get_threadoffsp_int(pdl_broadcast *broadcast, int *pthr, PDL_Indx **inds, PDL_Indx **dims)
 {
-  if(thread->gflags & PDL_THREAD_MAGICKED) {
-	int thr = pdl_magic_get_thread(thread->pdls[thread->mag_nthpdl]);
+  if(broadcast->gflags & PDL_BROADCAST_MAGICKED) {
+	int thr = pdl_magic_get_thread(broadcast->pdls[broadcast->mag_nthpdl]);
 	if (thr < 0) return NULL;
 	*pthr = thr;
-	*inds = thread->inds  + thr * thread->ndims;
-	*dims = thread->dims  + thr * thread->ndims;
-	return  thread->offs  + thr * thread->npdls;
+	*inds = broadcast->inds  + thr * broadcast->ndims;
+	*dims = broadcast->dims  + thr * broadcast->ndims;
+	return  broadcast->offs  + thr * broadcast->npdls;
   }
   *pthr = 0;
 /* The non-multithreaded case: return just the usual offsets */
-  *dims = thread->dims;
-  *inds = thread->inds;
-  return thread->offs;
+  *dims = broadcast->dims;
+  *inds = broadcast->inds;
+  return broadcast->offs;
 }
 
-void pdl_freebroadcaststruct(pdl_thread *thread) {
+void pdl_freebroadcaststruct(pdl_broadcast *broadcast) {
 	PDLDEBUG_f(printf("freebroadcaststruct(%p, %p %p %p %p %p %p)\n",
-		(void*)thread,
-		(void*)(thread->inds), (void*)(thread->dims), (void*)(thread->offs),
-		(void*)(thread->incs), (void*)(thread->flags), (void*)(thread->pdls)));
-	if(!thread->inds) {return;}
-	Safefree(thread->inds);
-	Safefree(thread->dims);
-	Safefree(thread->offs);
-	Safefree(thread->incs);
-	Safefree(thread->flags);
-	Safefree(thread->pdls);
-	pdl_clearbroadcaststruct(thread);
+		(void*)broadcast,
+		(void*)(broadcast->inds), (void*)(broadcast->dims), (void*)(broadcast->offs),
+		(void*)(broadcast->incs), (void*)(broadcast->flags), (void*)(broadcast->pdls)));
+	if(!broadcast->inds) {return;}
+	Safefree(broadcast->inds);
+	Safefree(broadcast->dims);
+	Safefree(broadcast->offs);
+	Safefree(broadcast->incs);
+	Safefree(broadcast->flags);
+	Safefree(broadcast->pdls);
+	pdl_clearbroadcaststruct(broadcast);
 }
 
-void pdl_clearbroadcaststruct(pdl_thread *it) {
+void pdl_clearbroadcaststruct(pdl_broadcast *it) {
 	PDLDEBUG_f(printf("clearbroadcaststruct(%p)\n", (void*)it));
 	it->transvtable = 0;it->inds = 0;it->dims = 0;
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
-	it->gflags=0; /* unsets PDL_THREAD_INITIALIZED among others */
-	PDL_THR_CLRMAGIC(it);
+	it->gflags=0; /* unsets PDL_BROADCAST_INITIALIZED among others */
+	PDL_BRC_CLRMAGIC(it);
 }
 
 pdl_error pdl_find_max_pthread(
@@ -102,59 +102,59 @@ pdl_error pdl_find_max_pthread(
 ) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx j, k, t;
-  /* Build int arrays of threaded dim numbers and sizes for each pdl */
+  /* Build int arrays of broadcasted dim numbers and sizes for each pdl */
   PDL_Indx max_remainder = 0;
-  PDL_Indx nthreadedDims[npdls];
-  PDL_Indx *threadedDims[npdls];
-  PDL_Indx *threadedDimSizes[npdls];
+  PDL_Indx nbroadcastedDims[npdls];
+  PDL_Indx *broadcastedDims[npdls];
+  PDL_Indx *broadcastedDimSizes[npdls];
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
-    threadedDims[j]     = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
-    if (!threadedDims[j]) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
-    threadedDimSizes[j] = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
-    if (!threadedDimSizes[j]) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
+    broadcastedDims[j]     = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
+    if (!broadcastedDims[j]) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
+    broadcastedDimSizes[j] = (PDL_Indx*) malloc(sizeof(PDL_Indx) * pdls[j]->ndims);
+    if (!broadcastedDimSizes[j]) return pdl_make_error_simple(PDL_EFATAL, "Out of Memory\n");
   }
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
     for( k=0, t = realdims[j]; t < pdls[j]->ndims; t++, k++ ){
-      threadedDimSizes[j][k] = pdls[j]->dims[t];
-      threadedDims[j][k]      = t;
+      broadcastedDimSizes[j][k] = pdls[j]->dims[t];
+      broadcastedDims[j][k]      = t;
     }
-    nthreadedDims[j] = pdls[j]->ndims - realdims[j];
+    nbroadcastedDims[j] = pdls[j]->ndims - realdims[j];
   }
-  /* Go through each threaded dim and find best match */
+  /* Go through each broadcasted dim and find best match */
   *p_maxPthread = 0;
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
-    for( k=0; k < nthreadedDims[j]; k++){
-      PDL_Indx this_dim = threadedDimSizes[j][k];
+    for( k=0; k < nbroadcastedDims[j]; k++){
+      PDL_Indx this_dim = broadcastedDimSizes[j][k];
       PDL_Indx this_remainder = this_dim % target_pthread;
       if( this_remainder == 0 ){
         *p_maxPthread = target_pthread;
         *p_maxPthreadPDL = j;
-        *p_maxPthreadDim = threadedDims[j][k];
+        *p_maxPthreadDim = broadcastedDims[j][k];
         break;
       }
       if( this_dim > *p_maxPthread && this_remainder > max_remainder ){
         max_remainder = this_remainder;
         *p_maxPthread = PDLMIN(target_pthread, this_dim);
         *p_maxPthreadPDL = j;
-        *p_maxPthreadDim = threadedDims[j][k];
+        *p_maxPthreadDim = broadcastedDims[j][k];
       }
     }
     /* Don't go any further if target pthread achieved */
     if( *p_maxPthread == target_pthread ) break;
   }
-  PDLDEBUG_f(pdl_dump_threading_info(
+  PDLDEBUG_f(pdl_dump_broadcasting_info(
     npdls, creating, target_pthread,
-    nthreadedDims, threadedDims, threadedDimSizes,
+    nbroadcastedDims, broadcastedDims, broadcastedDimSizes,
     *p_maxPthreadPDL, *p_maxPthreadDim, *p_maxPthread
   ));
   /* Free the stuff we allocated */
   for(j=0; j<npdls; j++) {
     if(creating[j]) continue;
-    free(threadedDims[j]);
-    free(threadedDimSizes[j]);
+    free(broadcastedDims[j]);
+    free(broadcastedDimSizes[j]);
   }
   return PDL_err;
 }
@@ -201,7 +201,7 @@ pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_I
 		}
 	}
 
-	/* See if the largest nvals is above the auto_pthread threadshold */
+	/* See if the largest nvals is above the auto_pthread threshold */
 	largest_nvals = largest_nvals>>20; /* Convert to MBytes */
 
 	/* Don't do anything if we are lower than the threshold */
@@ -224,7 +224,7 @@ pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_I
 
 pdl_error pdl_dim_checks(
   pdl_transvtable *vtable, pdl **pdls,
-  pdl_thread *pdlthread, PDL_Indx *creating,
+  pdl_broadcast *broadcast, PDL_Indx *creating,
   PDL_Indx *ind_sizes
 ) {
   pdl_error PDL_err = {0, NULL, 0};
@@ -243,8 +243,8 @@ pdl_error pdl_dim_checks(
 	dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
       if (vtable->par_flags[i] & PDL_PARAM_ISTEMP)
 	dims[ninds] = 1;
-      PDL_RETERROR(PDL_err, pdl_thread_create_parameter(
-	pdlthread,i,dims,
+      PDL_RETERROR(PDL_err, pdl_broadcast_create_parameter(
+	broadcast,i,dims,
 	vtable->par_flags[i] & PDL_PARAM_ISTEMP
       ));
     } else {
@@ -308,12 +308,12 @@ pdl_error pdl_dim_checks(
  *
  * Only the first thread-magicked pdl is taken into account.
  *
- *  noPthreadFlag is a flag to indicate the pdl thread is not pthreading safe
+ *  noPthreadFlag is a flag to indicate the trans is not pthreading safe
  *   (i.e. don't attempt to create multiple posix threads to execute)
  */
 pdl_error pdl_initbroadcaststruct(int nobl,
 	pdl **pdls,PDL_Indx *realdims,PDL_Indx *creating,PDL_Indx npdls,
-	pdl_transvtable *vtable,pdl_thread *thread,
+	pdl_transvtable *vtable,pdl_broadcast *broadcast,
 	PDL_Indx *ind_sizes, PDL_Indx *inc_sizes,
 	char *flags, int noPthreadFlag
 ) {
@@ -325,32 +325,32 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	PDL_Indx mydim;
 	PDL_Indx nthr = 0; PDL_Indx nthrd;
 
-	PDLDEBUG_f(printf("initbroadcaststruct(%p)\n", (void*)thread));
-	char already_alloced = (thread->magicno == PDL_THR_MAGICNO &&
-	    thread->gflags & PDL_THREAD_INITIALIZED);
-	PDL_Indx already_nthr = already_alloced ? thread->mag_nthr : -1;
-	PDL_Indx already_ndims = already_alloced ? thread->ndims : -1;
-	PDL_THR_SETMAGIC(thread);
-	thread->gflags = 0;
+	PDLDEBUG_f(printf("initbroadcaststruct(%p)\n", (void*)broadcast));
+	char already_alloced = (broadcast->magicno == PDL_BRC_MAGICNO &&
+	    broadcast->gflags & PDL_BROADCAST_INITIALIZED);
+	PDL_Indx already_nthr = already_alloced ? broadcast->mag_nthr : -1;
+	PDL_Indx already_ndims = already_alloced ? broadcast->ndims : -1;
+	PDL_BRC_SETMAGIC(broadcast);
+	broadcast->gflags = 0;
 
-	thread->npdls = npdls;
-	thread->realdims = realdims;
-	thread->transvtable = vtable;
+	broadcast->npdls = npdls;
+	broadcast->realdims = realdims;
+	broadcast->transvtable = vtable;
 
-	/* Accumulate the maximum number of thread dims across the collection of PDLs */
+	/* Accumulate the maximum number of broadcast dims across the collection of PDLs */
 	nids=mx=0;
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
 		MAX2(nids,pdls[j]->nthreadids);
 		MAX2(mx,pdls[j]->threadids[0] - realdims[j]);
 	}
-	ndims += thread->nimpl = nimpl = mx;
+	ndims += broadcast->nimpl = nimpl = mx;
 
 	PDL_RETERROR(PDL_err, pdl_autopthreadmagic(pdls, npdls, realdims, creating, noPthreadFlag));
 
-	thread->mag_nth = -1;
-	thread->mag_nthpdl = -1;
-	thread->mag_nthr = -1;
+	broadcast->mag_nth = -1;
+	broadcast->mag_nthpdl = -1;
+	broadcast->mag_nthr = -1;
 	PDL_Indx nthreadids[nids];
 	for(j=0; j<npdls; j++) {
 		if(creating[j]) continue;
@@ -358,11 +358,11 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 		if((!nthr) &&
 		  pdls[j]->magic &&
 		  (nthr = pdl_magic_thread_nthreads(pdls[j],&nthrd))) {
-			thread->mag_nthpdl = j;
-			thread->mag_nth = nthrd - realdims[j];
-			thread->mag_nthr = nthr;
-			if(thread->mag_nth < 0) {
-				return pdl_croak_param(vtable,j,"Cannot magick non-threaded dims \n\t");
+			broadcast->mag_nthpdl = j;
+			broadcast->mag_nth = nthrd - realdims[j];
+			broadcast->mag_nthr = nthr;
+			if(broadcast->mag_nth < 0) {
+				return pdl_croak_param(vtable,j,"Cannot magick non-broadcasted dims \n\t");
 			}
 		}
 		for(i=0; i<nids; i++) {
@@ -373,62 +373,62 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 		}
 	}
 	if(nthr) {
-		thread->gflags |= PDL_THREAD_MAGICKED;
+		broadcast->gflags |= PDL_BROADCAST_MAGICKED;
 	}
-	ndims += thread->nextra = PDLMAX(0, nobl - ndims); /* If too few, add enough implicit dims */
+	ndims += broadcast->nextra = PDLMAX(0, nobl - ndims); /* If too few, add enough implicit dims */
 
-	thread->ndims = ndims;
-	thread->nimpl = nimpl;
+	broadcast->ndims = ndims;
+	broadcast->nimpl = nimpl;
 
 	PDL_Indx nthr1 = PDLMAX(nthr, 1);
 	if (!already_alloced || already_nthr != nthr1 || ndims != already_ndims) {
 	  if (already_alloced) {
-	    Safefree(thread->inds);
-	    Safefree(thread->dims);
-	    Safefree(thread->offs);
+	    Safefree(broadcast->inds);
+	    Safefree(broadcast->dims);
+	    Safefree(broadcast->offs);
 	  }
-	  Newxz(thread->inds, ndims * nthr1, PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
-	  if(thread->inds == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->inds in pdlthread.c");
-	  Newxz(thread->dims, ndims * nthr1, PDL_Indx);
-	  if(thread->dims == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->dims in pdlthread.c");
-	  Newxz(thread->offs, npdls * nthr1, PDL_Indx); /* Create space for pthread-specific offs */
-	  if(thread->offs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->offs in pdlthread.c");
+	  Newxz(broadcast->inds, ndims * nthr1, PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
+	  if(broadcast->inds == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->inds in pdlthread.c");
+	  Newxz(broadcast->dims, ndims * nthr1, PDL_Indx);
+	  if(broadcast->dims == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->dims in pdlthread.c");
+	  Newxz(broadcast->offs, npdls * nthr1, PDL_Indx); /* Create space for pthread-specific offs */
+	  if(broadcast->offs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->offs in pdlthread.c");
 	}
-	for(nth=0; nth<ndims; nth++) thread->dims[nth]=1; // all start size 1
+	for(nth=0; nth<ndims; nth++) broadcast->dims[nth]=1; // all start size 1
 
 	if (!already_alloced) {
-	  thread->pdls = copy_pdl_array(pdls,npdls);
-	  Newxz(thread->incs, ndims * npdls, PDL_Indx);
-	  if(thread->incs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->incs in pdlthread.c");
-	  Newxz(thread->flags, npdls, char);
-	  if(thread->flags == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for thread->flags in pdlthread.c");
+	  broadcast->pdls = copy_pdl_array(pdls,npdls);
+	  Newxz(broadcast->incs, ndims * npdls, PDL_Indx);
+	  if(broadcast->incs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->incs in pdlthread.c");
+	  Newxz(broadcast->flags, npdls, char);
+	  if(broadcast->flags == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->flags in pdlthread.c");
 	}
 
 	/* populate the per_pdl_flags */
 	for (i=0;i<npdls; i++) {
 	  if (pdls[i] && PDL_VAFFOK(pdls[i]) && VAFFINE_FLAG_OK(flags,i))
-	    thread->flags[i] |= PDL_THREAD_VAFFINE_OK;
+	    broadcast->flags[i] |= PDL_BROADCAST_VAFFINE_OK;
 	  if (vtable && vtable->par_flags[i] & PDL_PARAM_ISTEMP)
-	    thread->flags[i] |= PDL_THREAD_TEMP;
+	    broadcast->flags[i] |= PDL_BROADCAST_TEMP;
 	}
-	flags = thread->flags; /* shortcut for the remainder */
+	flags = broadcast->flags; /* shortcut for the remainder */
 
 /* Make implicit inds */
 
-	for(nth=0; nth<nimpl; nth++) {                // Loop over number of implicit threads
+	for(nth=0; nth<nimpl; nth++) {                // Loop over number of implicit broadcast dims
 	  for(j=0; j<npdls; j++) {                    // Now loop over the PDLs to be merged
 	    if(creating[j]) continue;                 // If jth PDL is null, don't bother trying to match
 	    if(pdls[j]->threadids[0]-         // If we're off the end of the current PDLs dimlist,
 	       realdims[j] <= nth)                    //    then just skip it.
 	      continue;
 	    if(pdls[j]->dims[nth+realdims[j]] != 1) { // If the current dim in the current PDL is not 1,
-	      if(thread->dims[nth] != 1) {            //   ... and the current planned size isn't 1,
-		if(thread->dims[nth] !=
+	      if(broadcast->dims[nth] != 1) {            //   ... and the current planned size isn't 1,
+		if(broadcast->dims[nth] !=
 		   pdls[j]->dims[nth+realdims[j]]) {  //   ... then check to make sure they're the same.
 		  char buf0[BUFSIZ];
 		  buf0[0] = '\0';
-		  pdl_thread_mismatch_msg(
-		    buf0, pdls, thread, nth, j, nimpl, realdims, creating
+		  pdl_broadcast_mismatch_msg(
+		    buf0, pdls, broadcast, nth, j, nimpl, realdims, creating
 		  );
 		  return pdl_croak_param(vtable,j,"%s\n..",buf0);
 		}
@@ -436,12 +436,12 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 		/* If we're still here, they're the same -- OK! */
 
 	      } else {                                // current planned size is 1 -- mod it to match this PDL
-		thread->dims[nth] =
+		broadcast->dims[nth] =
 		  pdls[j]->dims[nth+realdims[j]];
 	      }
 
-	      PDL_THR_INC(thread->incs, npdls, j, nth) =       // Update the corresponding data stride
-		PDL_TREPRINC(pdls[j],flags[j],nth+realdims[j]);//   from the PDL or from its vafftrans if relevant.
+	      PDL_BRC_INC(broadcast->incs, npdls, j, nth) =       // Update the corresponding data stride
+		PDL_BREPRINC(pdls[j],flags[j],nth+realdims[j]);//   from the PDL or from its vafftrans if relevant.
 	    }
 	  }
 	}
@@ -451,8 +451,8 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	for(nthid=0; nthid<nids; nthid++) {
 	for(i=0; i<nthreadids[nthid]; i++) {
 		for(j=0; j<npdls; j++) {
-			if (PDL_TISTEMP(flags[j]))
-			    PDL_THR_INC(thread->incs, npdls, j, nth) =
+			if (PDL_BISTEMP(flags[j]))
+			    PDL_BRC_INC(broadcast->incs, npdls, j, nth) =
 				pdls[j]->dimincs[pdls[j]->ndims-1];
 			if(creating[j]) continue;
 			if(pdls[j]->nthreadids < nthid) continue;
@@ -462,20 +462,20 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 			mydim = i+pdls[j]->threadids[nthid];
 			if(pdls[j]->dims[mydim]
 					!= 1) {
-				if(thread->dims[nth] != 1) {
-					if(thread->dims[nth] !=
+				if(broadcast->dims[nth] != 1) {
+					if(broadcast->dims[nth] !=
 						pdls[j]->dims[mydim]) {
-						return pdl_croak_param(vtable,j,"Mismatched Implicit thread dimension %d: should be %d, is %d",
+						return pdl_croak_param(vtable,j,"Mismatched Implicit broadcast dimension %d: should be %d, is %d",
 							i,
-							thread->dims[nth],
+							broadcast->dims[nth],
 							pdls[j]->dims[i+realdims[j]]);
 					}
 				} else {
-					thread->dims[nth] =
+					broadcast->dims[nth] =
 						pdls[j]->dims[mydim];
 				}
-				PDL_THR_INC(thread->incs, npdls, j, nth) =
-					PDL_TREPRINC(pdls[j],flags[j],mydim);
+				PDL_BRC_INC(broadcast->incs, npdls, j, nth) =
+					PDL_BREPRINC(pdls[j],flags[j],mydim);
 			}
 		}
 		nth++;
@@ -484,26 +484,26 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 
 /* If threading, make the true offsets and dims.. */
 
-	thread->mag_skip = 0;
-	thread->mag_stride = 0;
+	broadcast->mag_skip = 0;
+	broadcast->mag_stride = 0;
 	if(nthr > 0) {
-		int n1 = thread->dims[thread->mag_nth] / nthr;
-		int n2 = thread->dims[thread->mag_nth] % nthr;
-		thread->mag_stride = n1;
+		int n1 = broadcast->dims[broadcast->mag_nth] / nthr;
+		int n2 = broadcast->dims[broadcast->mag_nth] % nthr;
+		broadcast->mag_stride = n1;
 		if(n2) {
 		    n1++;
-		    thread->mag_skip = n2;
+		    broadcast->mag_skip = n2;
 		}
-		thread->dims[thread->mag_nth] = n1;
+		broadcast->dims[broadcast->mag_nth] = n1;
 		for(i=1; i<nthr; i++)
 		    for(j=0; j<ndims; j++)
-			thread->dims[j + i*ndims] = thread->dims[j];
+			broadcast->dims[j + i*ndims] = broadcast->dims[j];
 		if (n2)
 		    for(i=n2; i<nthr; i++)
-			thread->dims[thread->mag_nth + i*ndims]--;
+			broadcast->dims[broadcast->mag_nth + i*ndims]--;
 	}
 	if (ind_sizes)
-		PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, thread, creating, ind_sizes));
+		PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, broadcast, creating, ind_sizes));
 	if (inc_sizes)
 	  for (i=0; i<vtable->npdls; i++) {
 	    pdl *pdl = pdls[i];
@@ -513,61 +513,61 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 		(vtable->par_flags[i] & PDL_PARAM_ISPHYS) ? pdl->dimincs[j] :
 		PDL_REPRINC(pdl,j);
 	  }
-	thread->gflags |= PDL_THREAD_INITIALIZED;
-	PDLDEBUG_f(pdl_dump_thread(thread));
+	broadcast->gflags |= PDL_BROADCAST_INITIALIZED;
+	PDLDEBUG_f(pdl_dump_broadcast(broadcast));
 	return PDL_err;
 }
 
-pdl_error pdl_thread_create_parameter(pdl_thread *thread, PDL_Indx j,PDL_Indx *dims,
+pdl_error pdl_broadcast_create_parameter(pdl_broadcast *broadcast, PDL_Indx j,PDL_Indx *dims,
 				 int temp)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
-	PDL_Indx td = temp ? 0 : thread->nimpl;
-	if(!temp && thread->nimpl != thread->ndims - thread->nextra) {
-		return pdl_croak_param(thread->transvtable,j,
-			"Trying to create parameter while explicitly threading.\
+	PDL_Indx td = temp ? 0 : broadcast->nimpl;
+	if(!temp && broadcast->nimpl != broadcast->ndims - broadcast->nextra) {
+		return pdl_croak_param(broadcast->transvtable,j,
+			"Trying to create parameter while explicitly broadcasting.\
 See the manual for why this is impossible");
 	}
-	if (!thread->pdls[j] && !(thread->pdls[j] = pdl_pdlnew()))
+	if (!broadcast->pdls[j] && !(broadcast->pdls[j] = pdl_pdlnew()))
 	    return pdl_make_error_simple(PDL_EFATAL, "Error in pdlnew");
-	PDL_RETERROR(PDL_err, pdl_reallocdims(thread->pdls[j], thread->realdims[j] + td + (temp ? 1 : 0)));
-	for(i=0; i<thread->realdims[j] + (temp ? 1 : 0); i++)
-		thread->pdls[j]->dims[i] = dims[i];
+	PDL_RETERROR(PDL_err, pdl_reallocdims(broadcast->pdls[j], broadcast->realdims[j] + td + (temp ? 1 : 0)));
+	for(i=0; i<broadcast->realdims[j] + (temp ? 1 : 0); i++)
+		broadcast->pdls[j]->dims[i] = dims[i];
 	if (!temp)
-	  for(i=0; i<thread->nimpl; i++)
-		thread->pdls[j]->dims[i+thread->realdims[j]] =
-		    (i == thread->mag_nth && thread->mag_nthr > 0)
-		     ? PDL_THR_OFFSET(thread->mag_nthr, thread)
-		     : thread->dims[i];
-	thread->pdls[j]->threadids[0] = td + thread->realdims[j];
-	pdl_resize_defaultincs(thread->pdls[j]);
-	for(i=0; i<thread->nimpl; i++) {
-		PDL_THR_INC(thread->incs, thread->npdls, j, i) =
+	  for(i=0; i<broadcast->nimpl; i++)
+		broadcast->pdls[j]->dims[i+broadcast->realdims[j]] =
+		    (i == broadcast->mag_nth && broadcast->mag_nthr > 0)
+		     ? PDL_BRC_OFFSET(broadcast->mag_nthr, broadcast)
+		     : broadcast->dims[i];
+	broadcast->pdls[j]->threadids[0] = td + broadcast->realdims[j];
+	pdl_resize_defaultincs(broadcast->pdls[j]);
+	for(i=0; i<broadcast->nimpl; i++) {
+		PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, i) =
 		  temp ? 0 :
-		  PDL_REPRINC(thread->pdls[j],i+thread->realdims[j]);
+		  PDL_REPRINC(broadcast->pdls[j],i+broadcast->realdims[j]);
 	}
 	return PDL_err;
 }
 
-int pdl_startbroadcastloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
+int pdl_startbroadcastloop(pdl_broadcast *broadcast,pdl_error (*func)(pdl_trans *),
 			pdl_trans *t, pdl_error *error_ret) {
-	PDL_Indx j, npdls = thread->npdls;
+	PDL_Indx j, npdls = broadcast->npdls;
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds, *dims;
-	if(  (thread->gflags & (PDL_THREAD_MAGICKED | PDL_THREAD_MAGICK_BUSY))
-	     == PDL_THREAD_MAGICKED ) {
+	if(  (broadcast->gflags & (PDL_BROADCAST_MAGICKED | PDL_BROADCAST_MAGICK_BUSY))
+	     == PDL_BROADCAST_MAGICKED ) {
 		/* If no function supplied (i.e. being called from PDL::thread_over), don't run in parallel */
 		if(!func) {
-			thread->gflags &= ~PDL_THREAD_MAGICKED; /* Cancel thread_magicked */
+			broadcast->gflags &= ~PDL_BROADCAST_MAGICKED; /* Cancel thread_magicked */
 		}
 		else{
-			thread->gflags |= PDL_THREAD_MAGICK_BUSY;
+			broadcast->gflags |= PDL_BROADCAST_MAGICK_BUSY;
 			/* Do the broadcastloop magically (i.e. in parallel) */
 			for(j=0; j<npdls; j++) {
 			    if (!(t->vtable->par_flags[j] & PDL_PARAM_ISTEMP)) continue;
-			    pdl *it = thread->pdls[j];
-			    it->dims[it->ndims-1] = thread->mag_nthr;
+			    pdl *it = broadcast->pdls[j];
+			    it->dims[it->ndims-1] = broadcast->mag_nthr;
 			    pdl_resize_defaultincs(it);
 			    pdl_error PDL_err = pdl_make_physical(it);
 			    if (PDL_err.error) {
@@ -575,40 +575,40 @@ int pdl_startbroadcastloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 				return 1;
 			    }
 			}
-			pdl_error PDL_err = pdl_magic_thread_cast(thread->pdls[thread->mag_nthpdl],
-				func,t, thread);
+			pdl_error PDL_err = pdl_magic_thread_cast(broadcast->pdls[broadcast->mag_nthpdl],
+				func,t, broadcast);
 			if (PDL_err.error) {
 			    *error_ret = PDL_err;
 			    return 1;
 			}
-			thread->gflags &= ~PDL_THREAD_MAGICK_BUSY;
+			broadcast->gflags &= ~PDL_BROADCAST_MAGICK_BUSY;
 			return 1; /* DON'T DO THREADLOOP AGAIN */
 		}
 	}
-	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds, &dims);
+	offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
 	if (!offsp) return -1;
 	for(j=0; j<npdls; j++) {
-	    offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
+	    offsp[j] = PDL_BREPROFFS(broadcast->pdls[j],broadcast->flags[j]);
 	}
 	if (thr)
 	    for(j=0; j<npdls; j++)
-		offsp[j] += PDL_TISTEMP(thread->flags[j])
-		    ? thr * thread->pdls[j]->dimincs[thread->pdls[j]->ndims-1]
-		    : PDL_THR_OFFSET(thr, thread) *
-			PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
+		offsp[j] += PDL_BISTEMP(broadcast->flags[j])
+		    ? thr * broadcast->pdls[j]->dimincs[broadcast->pdls[j]->ndims-1]
+		    : PDL_BRC_OFFSET(thr, broadcast) *
+			PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, broadcast->mag_nth);
 	return 0;
 }
 
 /* nth is how many dims are done inside the broadcastloop itself */
 /* inds is how far along each non-broadcastloop dim we are */
-int pdl_iterbroadcastloop(pdl_thread *thread,PDL_Indx nth) {
+int pdl_iterbroadcastloop(pdl_broadcast *broadcast,PDL_Indx nth) {
 	PDL_Indx i,j;
 	int another_broadcastloop = 0;
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds, *dims;
-	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds, &dims);
+	offsp = pdl_get_threadoffsp_int(broadcast,&thr, &inds, &dims);
 	if (!offsp) return -1;
-	for(i=nth; i<thread->ndims; i++) {
+	for(i=nth; i<broadcast->ndims; i++) {
 		inds[i] ++;
 		if( inds[i] >= dims[i])
 			inds[i] = 0;
@@ -616,15 +616,15 @@ int pdl_iterbroadcastloop(pdl_thread *thread,PDL_Indx nth) {
 		{	another_broadcastloop = 1; break; }
 	}
 	if (another_broadcastloop)
-	    for(j=0; j<thread->npdls; j++) {
-		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
+	    for(j=0; j<broadcast->npdls; j++) {
+		offsp[j] = PDL_BREPROFFS(broadcast->pdls[j],broadcast->flags[j]);
 		if (thr)
-		    offsp[j] += PDL_TISTEMP(thread->flags[j])
-			? thr * thread->pdls[j]->dimincs[thread->pdls[j]->ndims-1]
-			: PDL_THR_OFFSET(thr, thread) *
-			    PDL_THR_INC(thread->incs, thread->npdls, j, thread->mag_nth);
-		for(i=nth; i<thread->ndims; i++) {
-		    offsp[j] += PDL_THR_INC(thread->incs, thread->npdls, j, i) * inds[i];
+		    offsp[j] += PDL_BISTEMP(broadcast->flags[j])
+			? thr * broadcast->pdls[j]->dimincs[broadcast->pdls[j]->ndims-1]
+			: PDL_BRC_OFFSET(thr, broadcast) *
+			    PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, broadcast->mag_nth);
+		for(i=nth; i<broadcast->ndims; i++) {
+		    offsp[j] += PDL_BRC_INC(broadcast->incs, broadcast->npdls, j, i) * inds[i];
 		}
 	    }
 	return another_broadcastloop;

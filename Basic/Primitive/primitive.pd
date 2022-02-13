@@ -1842,7 +1842,7 @@ pp_def(
 PDL_MAYBE_SRAND
 int rand_offset = -1;
 broadcastloop %{
-  PDL_RAND_SET_OFFSET(rand_offset, $PRIV(pdlthread), $PDL(a));
+  PDL_RAND_SET_OFFSET(rand_offset, $PRIV(broadcast), $PDL(a));
   $a() = pdl_drand(pdl_rand_state + 4*rand_offset);
 %}
 EOF
@@ -1886,7 +1886,7 @@ pp_def(
 PDL_MAYBE_SRAND
 int rand_offset = -1;
 broadcastloop %{
-  PDL_RAND_SET_OFFSET(rand_offset, $PRIV(pdlthread), $PDL(a));
+  PDL_RAND_SET_OFFSET(rand_offset, $PRIV(broadcast), $PDL(a));
   double tmp;
   do tmp = pdl_drand(pdl_rand_state + 4*rand_offset); while (tmp == 0.0); /* 0 < tmp < 1 */
   $a() = tmp;

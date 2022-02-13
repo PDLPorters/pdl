@@ -1,25 +1,25 @@
 #ifndef __PDLTHREAD_H
 #define __PDLTHREAD_H
 
-#define PDL_THREAD_MAGICKED 0x0001
-#define PDL_THREAD_MAGICK_BUSY 0x0002
-#define PDL_THREAD_INITIALIZED 0x0004
+#define PDL_BROADCAST_MAGICKED 0x0001
+#define PDL_BROADCAST_MAGICK_BUSY 0x0002
+#define PDL_BROADCAST_INITIALIZED 0x0004
 
-#define PDL_LIST_FLAGS_PDLTHREAD(X) \
- X(PDL_THREAD_MAGICKED) \
- X(PDL_THREAD_MAGICK_BUSY) \
- X(PDL_THREAD_INITIALIZED)
+#define PDL_LIST_FLAGS_PDLBROADCAST(X) \
+ X(PDL_BROADCAST_MAGICKED) \
+ X(PDL_BROADCAST_MAGICK_BUSY) \
+ X(PDL_BROADCAST_INITIALIZED)
 
-#define PDL_THR_MAGICNO 0x92314764
-#define PDL_THR_SETMAGIC(it) it->magicno = PDL_THR_MAGICNO
-#define PDL_THR_CLRMAGIC(it) (it)->magicno = PDL_CLEARED_MAGICNO
+#define PDL_BRC_MAGICNO 0x92314764
+#define PDL_BRC_SETMAGIC(it) it->magicno = PDL_BRC_MAGICNO
+#define PDL_BRC_CLRMAGIC(it) (it)->magicno = PDL_CLEARED_MAGICNO
 
 /* XXX To avoid mallocs, these should also have "default" values */
-typedef struct pdl_thread {
+typedef struct pdl_broadcast {
 	struct pdl_transvtable *transvtable;
         unsigned int magicno;
 	int gflags;	/* Flags about this struct */
-	PDL_Indx ndims;	/* Number of dimensions threaded over */
+	PDL_Indx ndims;	/* Number of dimensions broadcasted over */
 	PDL_Indx nimpl;	/* Number of these that are implicit */
 	PDL_Indx npdls;	/* Number of pdls involved */
 	PDL_Indx nextra;
@@ -56,22 +56,22 @@ typedef struct pdl_thread {
           k=0 (mag_skip)
           offsets=[0,3,6,9,12]
 
-          offset=thr*t + MIN(thr,k) // see macro PDL_THR_OFFSET
+          offset=thr*t + MIN(thr,k) // see macro PDL_BRC_OFFSET
         */
-} pdl_thread;
+} pdl_broadcast;
 
-#define PDL_THR_OFFSET(thr, thread) ((thr)*((thread)->mag_stride) + PDLMIN((thr),(thread)->mag_skip))
-#define PDL_THR_INC(incs, npdls, p, d) ((incs)[(d)*(npdls) + (p)])
+#define PDL_BRC_OFFSET(thr, broadcast) ((thr)*((broadcast)->mag_stride) + PDLMIN((thr),(broadcast)->mag_skip))
+#define PDL_BRC_INC(incs, npdls, p, d) ((incs)[(d)*(npdls) + (p)])
 
-/* Thread per pdl flags */
-#define		PDL_THREAD_VAFFINE_OK	0x01
-#define		PDL_THREAD_TEMP 	0x02
+/* Broadcast per pdl flags */
+#define		PDL_BROADCAST_VAFFINE_OK	0x01
+#define		PDL_BROADCAST_TEMP 	0x02
 
-#define PDL_TVAFFOK(flag) (flag & PDL_THREAD_VAFFINE_OK)
-#define PDL_TISTEMP(flag) (flag & PDL_THREAD_TEMP)
-#define PDL_TREPRINC(pdl,flag,which) (PDL_TVAFFOK(flag) ? \
+#define PDL_BVAFFOK(flag) (flag & PDL_BROADCAST_VAFFINE_OK)
+#define PDL_BISTEMP(flag) (flag & PDL_BROADCAST_TEMP)
+#define PDL_BREPRINC(pdl,flag,which) (PDL_BVAFFOK(flag) ? \
 		pdl->vafftrans->incs[which] : pdl->dimincs[which])
-#define PDL_TREPROFFS(pdl,flag) (PDL_TVAFFOK(flag) ? pdl->vafftrans->offs : 0)
+#define PDL_BREPROFFS(pdl,flag) (PDL_BVAFFOK(flag) ? pdl->vafftrans->offs : 0)
 
 /* __PDLTHREAD_H */
 #endif

@@ -304,13 +304,13 @@ PDL_TYPELIST_ALL(X)
  */
 
 /* Transformation flags */
-#define         PDL_TRANS_DO_THREAD        0x0001
+#define         PDL_TRANS_DO_BROADCAST     0x0001
 #define         PDL_TRANS_BADPROCESS       0x0002
 #define         PDL_TRANS_BADIGNORE        0x0004
 #define         PDL_TRANS_NO_PARALLEL      0x0008
 
 #define PDL_LIST_FLAGS_PDLVTABLE(X) \
-  X(PDL_TRANS_DO_THREAD) \
+  X(PDL_TRANS_DO_BROADCAST) \
   X(PDL_TRANS_BADPROCESS) \
   X(PDL_TRANS_BADIGNORE) \
   X(PDL_TRANS_NO_PARALLEL)
@@ -426,7 +426,7 @@ typedef struct pdl_transvtable {
   short flags;                                                          \
   pdl_transvtable *vtable;                                              \
   int bvalflag;                                                         \
-  pdl_thread pdlthread;                                                 \
+  pdl_broadcast broadcast;                                              \
   PDL_Indx *ind_sizes;                                                  \
   PDL_Indx *inc_sizes;                                                  \
   char dims_redone;                                                     \
@@ -617,14 +617,14 @@ typedef struct pdl_slice_args {
   }
 
 #define PDL_EXPAND(...) __VA_ARGS__
-#define PDL_THREADLOOP_START(funcName, thr, vtable, ptrStep1, ptrStep2, ptrStep3) \
+#define PDL_BROADCASTLOOP_START(funcName, thr, vtable, ptrStep1, ptrStep2, ptrStep3) \
   __thrloopval = PDL->startbroadcastloop(&(thr),(vtable)->funcName, __privtrans, &PDL_err); \
   if (PDL_err.error) return PDL_err; \
   if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error starting broadcastloop"); \
   if ( __thrloopval ) return PDL_err; \
   do { \
-    PDL_Indx *__tdims = PDL->get_threaddims(&(thr)); \
-    if (!__tdims) return PDL->make_error_simple(PDL_EFATAL, "Error in get_threaddims"); \
+    PDL_Indx *__tdims = PDL->get_broadcastdims(&(thr)); \
+    if (!__tdims) return PDL->make_error_simple(PDL_EFATAL, "Error in get_broadcastdims"); \
     register PDL_Indx __tdims0 = __tdims[0]; \
     register PDL_Indx __tdims1 = __tdims[1]; \
     register PDL_Indx *__offsp = PDL->get_threadoffsp(&(thr)); \
@@ -645,7 +645,7 @@ typedef struct pdl_slice_args {
         PDL_EXPAND ptrStep3 \
       ) { \
         PDL_COMMENT("This is the tightest loop. Make sure inside is optimal.")
-#define PDL_THREADLOOP_END(thr, ptrStep1) \
+#define PDL_BROADCASTLOOP_END(thr, ptrStep1) \
       } \
     } \
     PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset") \

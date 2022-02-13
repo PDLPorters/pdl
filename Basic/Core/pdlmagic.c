@@ -280,7 +280,7 @@ int pdl_magic_get_thread(pdl *it) {
 	return *p;
 }
 
-pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {
+pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_broadcast *broadcast) {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_Indx i;
 	int clearMagic = 0; /* Flag = 1 if we are temporarily creating pthreading magic in the
@@ -292,7 +292,7 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 			pdl lazy evaluation.
 		*/
 
-		PDL_RETERROR(PDL_err, pdl_add_threading_magic(it, thread->mag_nth, thread->mag_nthr));
+		PDL_RETERROR(PDL_err, pdl_add_threading_magic(it, broadcast->mag_nth, broadcast->mag_nthr));
 		clearMagic = 1; /* Set flag to delete magic later */
 
 		/* Try to get magic again */
@@ -302,8 +302,8 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 
 	}
 
-	pthread_t tp[thread->mag_nthr];
-	ptarg tparg[thread->mag_nthr];
+	pthread_t tp[broadcast->mag_nthr];
+	ptarg tparg[broadcast->mag_nthr];
 	pthread_key_create(&(ptr->key),NULL);
 	/* Get the pthread ID of this main thread we are in.
 	 *	Any barf, warn, etc calls in the spawned pthreads can use this
@@ -313,7 +313,7 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 	done_pdl_main_pthreadID_init = 1;
 
 	PDLDEBUG_f(printf("CREATING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
-	for(i=0; i<thread->mag_nthr; i++) {
+	for(i=0; i<broadcast->mag_nthr; i++) {
 	    tparg[i].mag = ptr;
 	    tparg[i].func = func;
 	    tparg[i].t = t;
@@ -325,7 +325,7 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 	}
 
 	PDLDEBUG_f(printf("JOINING THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
-	for(i=0; i<thread->mag_nthr; i++) {
+	for(i=0; i<broadcast->mag_nthr; i++) {
 		pthread_join(tp[i], NULL);
 	}
 	PDLDEBUG_f(printf("FINISHED THREADS, ME: TBD, key: %ld\n", (unsigned long)(ptr->key)));
@@ -351,7 +351,7 @@ pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans
 
 	handle_deferred_errors(warn, pdl_pdl_warn("%s", pdl_pthread_warn_msgs));
 	handle_deferred_errors(barf, PDL_err = pdl_error_accumulate(PDL_err, pdl_make_error(PDL_EFATAL, "%s", pdl_pthread_barf_msgs)));
-	for(i=0; i<thread->mag_nthr; i++) {
+	for(i=0; i<broadcast->mag_nthr; i++) {
 	    PDL_err = pdl_error_accumulate(PDL_err, tparg[i].error_return);
 	}
 	return PDL_err;
@@ -526,7 +526,7 @@ int pdl_online_cpus(void)
 pdl_error pdl_add_threading_magic(pdl *it,PDL_Indx nthdim,PDL_Indx nthreads) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
 char pdl_pthread_main_thread() { return 1; }
 int pdl_magic_get_thread(pdl *it) {return 0;}
-pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
+pdl_error pdl_magic_thread_cast(pdl *it,pdl_error (*func)(pdl_trans *),pdl_trans *t, pdl_broadcast *broadcast) {pdl_error PDL_err = {0,NULL,0}; return PDL_err;}
 int pdl_magic_thread_nthreads(pdl *it,PDL_Indx *nthdim) {return 0;}
 int pdl_pthreads_enabled() {return 0;}
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args){ return 0;}

@@ -319,8 +319,8 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	  }
 	}
 	FREETRANS(trans, 1);
-	if(trans->vtable->flags & PDL_TRANS_DO_THREAD)
-	  pdl_freebroadcaststruct(&trans->pdlthread);
+	if(trans->vtable->flags & PDL_TRANS_DO_BROADCAST)
+	  pdl_freebroadcaststruct(&trans->broadcast);
 	trans->vtable = 0; /* Make sure no-one uses this */
 	PDLDEBUG_f(printf("call free\n"));
 	if (trans->params) free(trans->params);
@@ -683,7 +683,7 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
   }
   PDL_RETERROR(PDL_err, pdl_initbroadcaststruct(2, pdls,
     vtable->par_realdims, creating, vtable->npdls, vtable,
-    &trans->pdlthread, trans->ind_sizes, trans->inc_sizes,
+    &trans->broadcast, trans->ind_sizes, trans->inc_sizes,
     vtable->per_pdl_flags, vtable->flags & PDL_TRANS_NO_PARALLEL));
   pdl_hdr_childcopy(trans);
   trans->dims_redone = 1;
@@ -1025,8 +1025,8 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     it->dims_redone = 0;
     it->bvalflag = 0;
     it->vtable = vtable;
-    PDL_THR_CLRMAGIC(&it->pdlthread);
-    it->pdlthread.inds = 0;
+    PDL_BRC_CLRMAGIC(&it->broadcast);
+    it->broadcast.inds = 0;
     it->ind_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->ninds);
     if (!it->ind_sizes) return NULL;
     int i; for (i=0; i<vtable->ninds; i++) it->ind_sizes[i] = -1;

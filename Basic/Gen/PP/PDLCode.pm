@@ -154,10 +154,10 @@ sub new {
         'PDL_COMMENT("broadcastloop declarations")',
         'int __thrloopval;',
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
-        'register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls;',
+        'register PDL_Indx __tnpdls = $PRIV(broadcast).npdls;',
         'PDL_COMMENT("dims here are how many steps along those dims")',
-        (map "register PDL_Indx __tinc0_$parnames->[$_] = PDL_THR_INC(\$PRIV(pdlthread).incs,__tnpdls,$_,0);", 0..$#$parnames),
-        (map "register PDL_Indx __tinc1_$parnames->[$_] = PDL_THR_INC(\$PRIV(pdlthread).incs,__tnpdls,$_,1);", 0..$#$parnames),
+        (map "register PDL_Indx __tinc0_$parnames->[$_] = PDL_BRC_INC(\$PRIV(broadcast).incs,__tnpdls,$_,0);", 0..$#$parnames),
+        (map "register PDL_Indx __tinc1_$parnames->[$_] = PDL_BRC_INC(\$PRIV(broadcast).incs,__tnpdls,$_,1);", 0..$#$parnames),
        ).
        $this->params_declare.
        join('',map $_->get_incregisters, @$pobjs{sort keys %$pobjs}).
@@ -185,9 +185,9 @@ sub broadcastloop_start {
     my ($this, $funcname) = @_;
     my ($ord,$pdls) = $this->get_pdls;
     <<EOF;
-PDL_THREADLOOP_START(
+PDL_BROADCASTLOOP_START(
 $funcname,
-\$PRIV(pdlthread),
+\$PRIV(broadcast),
 \$PRIV(vtable),
 @{[ join "", map "\t".$pdls->{$ord->[$_]}->do_pointeraccess." += __offsp[$_];\n", 0..$#$ord ]},
 (@{[ join "", map "\t,".$pdls->{$ord->[$_]}->do_pointeraccess." += __tinc1_$ord->[$_] - __tinc0_$ord->[$_] * __tdims0\n", 0..$#$ord ]}),
@@ -200,8 +200,8 @@ sub broadcastloop_end {
     my ($this) = @_;
     my ($ord,$pdls) = $this->get_pdls();
     <<EOF;
-PDL_THREADLOOP_END(
-\$PRIV(pdlthread),
+PDL_BROADCASTLOOP_END(
+\$PRIV(broadcast),
 @{[ join "", map $pdls->{$ord->[$_]}->do_pointeraccess." -= __tinc1_$ord->[$_] * __tdims1 + __offsp[$_];\n", 0..$#$ord ]}
 )
 EOF

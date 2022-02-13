@@ -2216,7 +2216,7 @@ EOF
         my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
                                           0 : $aff} 0..$npdls-1) || '0';
         my @op_flags;
-        push @op_flags, 'PDL_TRANS_DO_THREAD' if $havebroadcasting;
+        push @op_flags, 'PDL_TRANS_DO_BROADCAST' if $havebroadcasting;
         push @op_flags, 'PDL_TRANS_BADPROCESS' if $badflag;
         push @op_flags, 'PDL_TRANS_BADIGNORE' if defined $badflag and !$badflag;
         push @op_flags, 'PDL_TRANS_NO_PARALLEL' if $noPthreadFlag;
