@@ -623,7 +623,7 @@ pp_def('map',
  * Calls a common coordinate-transformation block (see following hdr)
  * that isn't dependent on the type of the input variable.
  *
- * The inputs are SVs to avoid hassling with threadloops; threading
+ * The inputs are SVs to avoid hassling with broadcastloops; threading
  * is handled internally.  To simplify the threading business, any
  * thread dimensions should all be collapsed to a single one by the
  * perl front-end.
@@ -1082,7 +1082,7 @@ pp_def('map',
 
          {  /* convenience block -- accumulate the current point into the weighted sum.  */
             /* This is more than simple assignment because we have our own explicit poor */
-            /* man's threadloop here, so we accumulate each threaded element separately. */
+            /* man's broadcastloop here, so we accumulate each threaded element separately. */
             $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
             PDL_Indx max = out->dims[ndims];
             for( i=0; i < max; i++ ) {

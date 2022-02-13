@@ -12,13 +12,13 @@ pp_def(test1 =>
   Code => pp_line_numbers (__LINE__,
     q{/* line 13, First line */
     threadloop %{
-      /* line 15, Line after threadloop */
+      /* line 15, Line after broadcastloop */
       loop (n) %{
         /* line 17, Line after loop */
       %}
       /* line 19, Line after close of loop */
     %}
-    /* line 21, Line after close of threadloop */
+    /* line 21, Line after close of broadcastloop */
   }),
   GenericTypes => [qw(F D)],
 );

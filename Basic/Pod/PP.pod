@@ -968,11 +968,11 @@ may be present, and PP uses both it and the C<Code> section to create
 something like:
 
  if ( bad_values_are_present ) {
-    fancy_threadloop_stuff {
+    fancy_broadcastloop_stuff {
        BadCode
     }
  } else {
-    fancy_threadloop_stuff {
+    fancy_broadcastloop_stuff {
        Code
     }
  }
@@ -1462,7 +1462,7 @@ is interpreted in the same way that the Code section is
 interpreted-- I<i.e.>, PP macros are expanded and the result
 is interpreted as C code. The purpose of the code is to set
 the size of some dimensions that appear in the
-signature. Storage allocation and threadloops and so forth
+signature. Storage allocation and broadcastloops and so forth
 will be set up as if the computed dimension had appeared in
 the signature. In your code, you first compute the desired
 size of a named dimension in the signature according to

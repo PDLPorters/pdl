@@ -700,7 +700,7 @@ EOD
 	    } /* for: i */
          } /* for: j */
 
-      %} /* threadloop */
+      %} /* broadcastloop */
 
          ', # Code
 );
@@ -782,7 +782,7 @@ bad values, depending on the pattern of bad values in the input ndarray.',
 	    } /* for: i */
          } /* for: j */
 
-      %} /* threadloop */
+      %} /* broadcastloop */
 
          /* handle bad flag */
          if ( flag ) $PDLSTATESETBAD(b);
@@ -2294,7 +2294,7 @@ sub PDL::warp2d {
 
 	    %}   /* loop(m) */
 	 %}   /* loop(n) */
-    %}        /* threadloop */
+    %}        /* broadcastloop */
 
     free(poly);
     kernel_free(kernel) ;

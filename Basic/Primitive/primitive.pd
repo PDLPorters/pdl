@@ -1396,7 +1396,7 @@ values in C<$data> that lie within the bin limits.
 Data below the lower limit is put in the first bin, and data above the
 upper limit is put in the last bin.
 
-The output is reset in a different threadloop so that you
+The output is reset in a different broadcastloop so that you
 can take a histogram of C<$a(10,12)> into C<$b(15)> and get the result
 you want.
 
@@ -1429,7 +1429,7 @@ that correspond to values in C<$data> that lie within the bin limits.
 Data below the lower limit is put in the first bin, and data above the
 upper limit is put in the last bin.
 
-The output is reset in a different threadloop so that you
+The output is reset in a different broadcastloop so that you
 can take a histogram of C<$a(10,12)> into C<$b(15)> and get the result
 you want.
 

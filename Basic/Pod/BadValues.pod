@@ -373,9 +373,9 @@ to
 leaving Code as it is. PP::PDLCode will then create a loop something like
 
    if ( __trans->bvalflag ) {
-        threadloop over BadCode
+        broadcastloop over BadCode
    } else { 
-        threadloop over Code
+        broadcastloop over Code
    }
 
 (it's probably easier to just look at the F<.xs> file to see what goes on).

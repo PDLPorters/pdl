@@ -830,7 +830,7 @@ threadover_n(...)
     PDL_THR_CLRMAGIC(&pdl_thr);
     pdl_barf_if_error(pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL,NULL,NULL, 1));
     pdl_error error_ret = {0, NULL, 0};
-    if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting threadloop");
+    if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
     pdl_barf_if_error(error_ret);
     sd = pdl_thr.ndims;
     do {
@@ -906,7 +906,7 @@ threadover(...)
 	pdls[i]->state &= (~PDL_NOMYDIMS);
       }
     pdl_error error_ret = {0, NULL, 0};
-    if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting threadloop");
+    if (pdl_startthreadloop(&pdl_thr,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
     pdl_barf_if_error(error_ret);
     for(i=0; i<npdls; i++) {
 	PDL_Indx *thesedims = pdls[i]->dims, *theseincs = PDL_REPRINCS(pdls[i]);
@@ -925,7 +925,7 @@ threadover(...)
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
     }
     int thrloopval;
-    do {  /* the actual threadloop */
+    do {  /* the actual broadcastloop */
 	pdl_trans *traff;
     	dSP;
 	PUSHMARK(sp);

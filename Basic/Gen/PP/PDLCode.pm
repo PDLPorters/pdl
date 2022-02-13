@@ -34,7 +34,7 @@ sub new {
 
     # last two arguments may not be supplied
     #
-    # "backcode" is a flag to the PDL::PP::Threadloop class indicating thre threadloop
+    # "backcode" is a flag to the PDL::PP::Threadloop class indicating the broadcastloop
     #   is for writeback code (typically used for writeback of data from child to parent PDL
 
     $dont_add_thrloop ||= !$havethreading; # two have identical (though inverted) meaning so only track one
@@ -73,13 +73,13 @@ sub new {
     # variable references (strings starting with $) and
     # loops (array references, 1. item = variable.
     #
-    my ( $threadloops, $coderef, $sizeprivs ) =
+    my ( $broadcastloops, $coderef, $sizeprivs ) =
 	$this->separate_code( "{\n$code\n}" );
 
-    # Now, if there is no explicit threadlooping in the code,
+    # Now, if there is no explicit broadcastlooping in the code,
     # enclose everything into it.
-    if(!$threadloops && !$dont_add_thrloop) {
-	print "Adding threadloop...\n" if $::PP_VERBOSE;
+    if(!$broadcastloops && !$dont_add_thrloop) {
+	print "Adding broadcastloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
 	$coderef = $backcode
 	  ? PDL::PP::BackCodeThreadLoop->new() : PDL::PP::ThreadLoop->new();
@@ -94,16 +94,16 @@ sub new {
     #
     if ( $handlebad && ($code ne $badcode || $badcode =~ /PDL_BAD_CODE|PDL_IF_BAD/) ) {
 	print "Processing 'bad' code...\n" if $::PP_VERBOSE;
-	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) =
+	my ( $bad_broadcastloops, $bad_coderef, $bad_sizeprivs ) =
 	    $this->separate_code( "{\n$badcode\n}" );
 
-	if(!$bad_threadloops && !$dont_add_thrloop) {
-	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;
+	if(!$bad_broadcastloops && !$dont_add_thrloop) {
+	    print "Adding 'bad' broadcastloop...\n" if $::PP_VERBOSE;
 	    my $nc = $bad_coderef;
-	    if( !$backcode ){ # Normal readbackdata threadloop
+	    if( !$backcode ){ # Normal readbackdata broadcastloop
 		    $bad_coderef = PDL::PP::ThreadLoop->new();
 	    }
-	    else{  # writebackcode threadloop
+	    else{  # writebackcode broadcastloop
 		    $bad_coderef = PDL::PP::BackCodeThreadLoop->new();
 	    }
 	    push @{$bad_coderef},$nc;
@@ -151,7 +151,7 @@ sub new {
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
     $this->{Code} = (join '',sort values %$sizeprivs).
        ($dont_add_thrloop?'':PDL::PP::pp_line_numbers __LINE__, join "\n",
-        'PDL_COMMENT("threadloop declarations")',
+        'PDL_COMMENT("broadcastloop declarations")',
         'int __thrloopval;',
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
         'register PDL_Indx __tnpdls = $PRIV(pdlthread).npdls;',
@@ -181,7 +181,7 @@ EOF
 
 sub func_name { $_[1] ? "writebackdata" : "readdata" }
 
-sub threadloop_start {
+sub broadcastloop_start {
     my ($this, $funcname) = @_;
     my ($ord,$pdls) = $this->get_pdls;
     <<EOF;
@@ -196,7 +196,7 @@ $funcname,
 EOF
 }
 
-sub threadloop_end {
+sub broadcastloop_end {
     my ($this) = @_;
     my ($ord,$pdls) = $this->get_pdls();
     <<EOF;
@@ -227,7 +227,7 @@ my %access2class = (
 );
 
 sub process {
-    my ($this, $code, $stack_ref, $threadloops_ref, $sizeprivs) = @_;
+    my ($this, $code, $stack_ref, $broadcastloops_ref, $sizeprivs) = @_;
     while($code) {
 	# Parse next statement
 	$code =~ s/^(.*?) # First, some noise is allowed. This may be bad.
@@ -258,7 +258,7 @@ sub process {
 	    my $ob = PDL::PP::ThreadLoop->new;
 	    push @{$stack_ref->[-1]},$ob;
 	    push @$stack_ref,$ob;
-	    $$threadloops_ref++;
+	    $$broadcastloops_ref++;
 	} elsif($control =~ /^%}/) {
 	    pop @$stack_ref;
 	} else {
@@ -269,7 +269,7 @@ sub process {
     } # while: $code
 }
 
-# my ( $threadloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
+# my ( $broadcastloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
 #
 # separates the code into an array of C fragments (strings),
 # variable references (strings starting with $) and
@@ -280,10 +280,10 @@ sub separate_code {
     # First check for standard code errors:
     catch_code_errors($code);
     my @stack = my $coderef = PDL::PP::Block->new;
-    my $threadloops = 0;
+    my $broadcastloops = 0;
     my $sizeprivs = {};
-    $this->process($code, \@stack, \$threadloops, $sizeprivs);
-    ( $threadloops, $coderef, $sizeprivs );
+    $this->process($code, \@stack, \$broadcastloops, $sizeprivs);
+    ( $broadcastloops, $coderef, $sizeprivs );
 } # sub: separate_code()
 
 sub expand {
@@ -545,12 +545,12 @@ sub new {
 sub myoffs { return 0; }
 sub myprelude {
     my($this,$parent,$context, $backcode) = @_;
-    $parent->threadloop_start($parent->func_name($backcode));
+    $parent->broadcastloop_start($parent->func_name($backcode));
 }
 
 # Should possibly fold out thread.dims[0] and [1].
 sub mypostlude {my($this,$parent,$context) = @_;
-    $parent->threadloop_end;
+    $parent->broadcastloop_end;
 }
 
 # Simple subclass of ThreadLoop to implement writeback code

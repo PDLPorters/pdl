@@ -592,10 +592,10 @@ be fixed.
 The threading over input is cheesy and should probably be fixed:
 currently the kernel just gets dummy dimensions added to it to match
 the input dims.  That does the right thing tersely but probably runs slower
-than a dedicated threadloop.  
+than a dedicated broadcastloop.
 
 The direct copying code uses PP primarily for the generic typing: it includes
-its own threadloops.
+its own broadcastloops.
 
 =cut
 

@@ -576,7 +576,7 @@ pdl_error pdl_set( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, PDL_Ind
  * pdls, copying values in as we go.  It differs from PP copy in that it operates
  * on only a portion of the output pdl.
  *
- * (If I were Lazier I would have popped up into the perl level and used threadloops to
+ * (If I were Lazier I would have popped up into the perl level and used broadcastloops to
  * assign to a slice of the output pdl -- but this is probably a little faster.)
  *
  * -CED 17-Jun-2004

@@ -620,7 +620,7 @@ typedef struct pdl_slice_args {
 #define PDL_THREADLOOP_START(funcName, thr, vtable, ptrStep1, ptrStep2, ptrStep3) \
   __thrloopval = PDL->startthreadloop(&(thr),(vtable)->funcName, __privtrans, &PDL_err); \
   if (PDL_err.error) return PDL_err; \
-  if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error starting threadloop"); \
+  if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error starting broadcastloop"); \
   if ( __thrloopval ) return PDL_err; \
   do { \
     PDL_Indx *__tdims = PDL->get_threaddims(&(thr)); \
@@ -644,7 +644,7 @@ typedef struct pdl_slice_args {
         __tind0++ \
         PDL_EXPAND ptrStep3 \
       ) { \
-        PDL_COMMENT("This is the tightest threadloop. Make sure inside is optimal.")
+        PDL_COMMENT("This is the tightest loop. Make sure inside is optimal.")
 #define PDL_THREADLOOP_END(thr, ptrStep1) \
       } \
     } \

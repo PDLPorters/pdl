@@ -563,7 +563,7 @@ int pdl_startthreadloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 		}
 		else{
 			thread->gflags |= PDL_THREAD_MAGICK_BUSY;
-			/* Do the threadloop magically (i.e. in parallel) */
+			/* Do the broadcastloop magically (i.e. in parallel) */
 			for(j=0; j<npdls; j++) {
 			    if (!(t->vtable->par_flags[j] & PDL_PARAM_ISTEMP)) continue;
 			    pdl *it = thread->pdls[j];
@@ -599,11 +599,11 @@ int pdl_startthreadloop(pdl_thread *thread,pdl_error (*func)(pdl_trans *),
 	return 0;
 }
 
-/* nth is how many dims are done inside the threadloop itself */
-/* inds is how far along each non-threadloop dim we are */
+/* nth is how many dims are done inside the broadcastloop itself */
+/* inds is how far along each non-broadcastloop dim we are */
 int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 	PDL_Indx i,j;
-	int another_threadloop = 0;
+	int another_broadcastloop = 0;
 	PDL_Indx *offsp; int thr;
 	PDL_Indx *inds, *dims;
 	offsp = pdl_get_threadoffsp_int(thread,&thr, &inds, &dims);
@@ -613,9 +613,9 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 		if( inds[i] >= dims[i])
 			inds[i] = 0;
 		else
-		{	another_threadloop = 1; break; }
+		{	another_broadcastloop = 1; break; }
 	}
-	if (another_threadloop)
+	if (another_broadcastloop)
 	    for(j=0; j<thread->npdls; j++) {
 		offsp[j] = PDL_TREPROFFS(thread->pdls[j],thread->flags[j]);
 		if (thr)
@@ -627,5 +627,5 @@ int pdl_iterthreadloop(pdl_thread *thread,PDL_Indx nth) {
 		    offsp[j] += PDL_THR_INC(thread->incs, thread->npdls, j, i) * inds[i];
 		}
 	    }
-	return another_threadloop;
+	return another_broadcastloop;
 }
