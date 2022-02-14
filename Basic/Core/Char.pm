@@ -36,11 +36,11 @@ PDL::Char -- PDL subclass which allows reading and writing of fixed-length chara
 This subclass of PDL allows one to manipulate PDLs of 'byte' type as if they were made of fixed
 length strings, not just numbers.
 
-This type of behavior is useful when you want to work with charactar grids.  The indexing is done
+This type of behavior is useful when you want to work with character grids.  The indexing is done
 on a string level and not a character level for the 'setstr' and 'atstr' commands.  
 
 This module is in particular useful for writing NetCDF files that include character data using the
-PDL::NetCDF module.
+L<PDL::NetCDF> module.
 
 =head1 FUNCTIONS
 
