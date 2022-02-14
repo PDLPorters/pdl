@@ -12,11 +12,12 @@ my $pa = sequence(3,4);
 my $pb = yvals(zeroes(4,3)) + sequence(4);
 my $pc = $pa->transpose->slice(':,-1:0');
 
-# not very useful examples but simple and test the essentials
-broadcast_define 'tline(a(n);b(n))', over {
+# make sure compat alias works
+thread_define 'tline(a(n);b(n))', over {
     $_[0] .= $_[1];
 };
 
+# not very useful examples but simple and test the essentials
 broadcast_define 'tassgn(a(n,m);[o] b())', over {
     # sumover($_[0],$_[1]);
     $_[1] .= $_[0]->sum;

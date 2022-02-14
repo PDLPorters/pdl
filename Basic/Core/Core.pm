@@ -30,7 +30,7 @@ my @exports_normal   = (@EXPORT,
   qw(nelem dims shape null
       convert inplace zeroes zeros ones nan inf i list listindices unpdl
       set at flows broadcast_define over reshape dog cat barf type
-      dummy mslice approx flat sclr squeeze
+      thread_define dummy mslice approx flat sclr squeeze
       get_autopthread_targ set_autopthread_targ get_autopthread_actual
       get_autopthread_dim get_autopthread_size set_autopthread_size) );
 our @EXPORT_OK = (@exports_internal, @exports_normal);
@@ -57,6 +57,8 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 ################ Exportable functions of the Core ######################
 
 *at_c = *at_bad_c; # back-compat alias
+*thread_define = *broadcast_define;
+*PDL::threadover_n = *PDL::broadcastover_n;
 
 *howbig       = \&PDL::howbig;	  *unpdl	= \&PDL::unpdl;
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
