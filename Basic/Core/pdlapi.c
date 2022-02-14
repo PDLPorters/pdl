@@ -23,7 +23,7 @@
 	PDLDEBUG_f(printf("call freetrans\n")); \
 	PDL_err = trans->vtable->freetrans(trans, destroy); \
 	    /* ignore error for now as need to still free rest */ \
-	if (destroy) PDL_TR_CLRMAGIC(trans); \
+	if (destroy) PDL_CLRMAGIC(trans); \
     }
 
 extern Core PDL;
@@ -1025,7 +1025,7 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     it->dims_redone = 0;
     it->bvalflag = 0;
     it->vtable = vtable;
-    PDL_BRC_CLRMAGIC(&it->broadcast);
+    PDL_CLRMAGIC(&it->broadcast);
     it->broadcast.inds = 0;
     it->ind_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->ninds);
     if (!it->ind_sizes) return NULL;

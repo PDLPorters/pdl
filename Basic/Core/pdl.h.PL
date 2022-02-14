@@ -92,6 +92,10 @@ typedef struct {
   PDL_Value value;
 } PDL_Anyval;
 
+#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) return pdl_make_error(PDL_EFATAL, "INVALID " type " MAGICNO, got hex=%p (%d)%s\n",it,(int)((it)->magicno), ((it)->magicno) == PDL_CLEARED_MAGICNO ? " (cleared)" : ""); else (void)0
+#define PDL_CLEARED_MAGICNO 0x99876134 /* value once "cleared" */
+#define PDL_CLRMAGIC(it) (it)->magicno = PDL_CLEARED_MAGICNO
+
 #include "pdlthread.h"
 
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
@@ -444,12 +448,9 @@ typedef struct pdl_transvtable {
   /* The pdls involved in the transformation */ \
   pdl *pdls[]
 
-#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) return pdl_make_error(PDL_EFATAL, "INVALID " #type "MAGIC NO 0x%p %d%s\n",it,(int)((it)->magicno), ((it)->magicno) == PDL_CLEARED_MAGICNO ? " (cleared)" : ""); else (void)0
-
 #define PDL_TR_MAGICNO      0x91827364
-#define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO
-#define PDL_TR_CLRMAGIC(it) it->magicno = PDL_CLEARED_MAGICNO
-#define PDL_TR_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it, PDL_TR_MAGICNO, "TRANS ")
+#define PDL_TR_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it, PDL_TR_MAGICNO, "TRANS")
+#define PDL_TR_SETMAGIC(it) (it)->magicno = PDL_TR_MAGICNO
 
 // This is a generic parent of all the trans structures. It is a flexible array
 // (can store an arbitrary number of pdl objects). Thus this can NOT be
@@ -500,8 +501,8 @@ struct pdl_magic;
  */
 
 #define PDL_MAGICNO 0x24645399
-#define PDL_CLEARED_MAGICNO 0x99876134 /* value once "cleared" */
-#define PDL_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it,PDL_MAGICNO,"")
+#define PDL_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it,PDL_MAGICNO,"PDL")
+#define PDL_SETMAGIC(it) (it)->magicno = PDL_MAGICNO
 
 struct pdl {
    unsigned long magicno; /* Always stores PDL_MAGICNO as a sanity check */

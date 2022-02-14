@@ -90,7 +90,7 @@ void pdl_clearbroadcaststruct(pdl_broadcast *it) {
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
 	it->gflags=0; /* unsets PDL_BROADCAST_INITIALIZED among others */
-	PDL_BRC_CLRMAGIC(it);
+	PDL_CLRMAGIC(it);
 }
 
 pdl_error pdl_find_max_pthread(

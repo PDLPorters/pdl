@@ -11,8 +11,8 @@
  X(PDL_BROADCAST_INITIALIZED)
 
 #define PDL_BRC_MAGICNO 0x92314764
-#define PDL_BRC_SETMAGIC(it) it->magicno = PDL_BRC_MAGICNO
-#define PDL_BRC_CLRMAGIC(it) (it)->magicno = PDL_CLEARED_MAGICNO
+#define PDL_BRC_CHKMAGIC(it) PDL_CHKMAGIC_GENERAL(it, PDL_BRC_MAGICNO, "BROADCAST")
+#define PDL_BRC_SETMAGIC(it) (it)->magicno = PDL_BRC_MAGICNO
 
 /* XXX To avoid mallocs, these should also have "default" values */
 typedef struct pdl_broadcast {

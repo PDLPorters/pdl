@@ -827,7 +827,7 @@ broadcastover_n(...)
 	pdl_barf_if_error(pdl_make_physical(pdls[i]));
 	realdims[i] = 0;
     }
-    PDL_BRC_CLRMAGIC(&pdl_brc);
+    PDL_CLRMAGIC(&pdl_brc);
     pdl_barf_if_error(pdl_initbroadcaststruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_brc,NULL,NULL,NULL, 1));
     pdl_error error_ret = {0, NULL, 0};
     if (pdl_startbroadcastloop(&pdl_brc,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
@@ -891,7 +891,7 @@ broadcastover(...)
     if (nd2 < nc)
 	croak("Not enough dimension info to create pdls");
     PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %d ",i); pdl_dump(pdls[i]); });
-    PDL_BRC_CLRMAGIC(&pdl_brc);
+    PDL_CLRMAGIC(&pdl_brc);
     pdl_barf_if_error(pdl_initbroadcaststruct(0,pdls,realdims,creating,npdls,
 			NULL,&pdl_brc,NULL,NULL,NULL, 1));
     for(i=0, nc=npdls; i<npdls; i++)  /* create as necessary */
