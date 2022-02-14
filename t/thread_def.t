@@ -1,4 +1,4 @@
-use Test::More tests => 5;
+use Test::More;
 use PDL::LiteF;
 use Test::Exception;
 
@@ -66,3 +66,21 @@ $pb = pdl [1];
 my $text = "";
 tprint($pa, $pb, \$text);
 is $text, '[1 1 1]';
+
+# cut down from PDL::Apply which got broken by 2.057_01
+thread_define '_apply_slice_ND(data(n);sl(2,m);[o]output(m)),NOtherPars=>2', over {
+  _apply_slice_1D($_[1], ones($_[0]->type), my $output = null, @_[0,3,4]);
+  $_[2] .= $output;
+};
+thread_define '_apply_slice_1D(slices(n);dummy();[o]output()),NOtherPars=>3', over {
+  my $func = $_[4];
+  my $args = $_[5];
+  my $data = slice($_[3], $_[0]->unpdl);
+  $_[2] .= PDL::Core::topdl($data->$func(@$args));
+};
+my $x = sequence(5,3,2);
+my $slices = indx([0,2], [1,3], [2,4]);
+my $y = null;
+lives_ok { _apply_slice_ND($x, $slices, $y, 'sum', []) };
+
+done_testing;

@@ -873,10 +873,10 @@ broadcastover(...)
     SV *csv[npdls], *others[nothers];
     PDL_Indx *creating = pdl_packdims(cdimslist,&nd2);
     if (!creating) croak("Failed to packdims for creating");
+    if (nd2 < npdls) croak("broadcastover: need at least one creating flag per pdl: %d pdls, %"IND_FLAG" flags", npdls, nd2);
     PDL_Indx *realdims = pdl_packdims(rdimslist,&nd1);
     if (!realdims) croak("Failed to packdims for realdims");
-    if (nd1 != npdls) croak("broadcastover: need one realdim flag per pdl!");
-    if (nd2 != npdls) croak("broadcastover: need one creating flag per pdl!");
+    if (nd1 != npdls) croak("broadcastover: need one realdim flag per pdl: %d pdls, %"IND_FLAG" flags", npdls, nd1);
     for(i=0; i<npdls; i++) {
 	pdls[i] = pdl_SvPDLV(ST(i+1));
 	if (creating[i])
