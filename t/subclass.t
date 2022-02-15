@@ -311,11 +311,8 @@ ok($main::OVERRIDEWORKED == 1, "over-ride of inner");
 $main::OVERRIDEWORKED = 0;
 # which ND test
 $a1= PDL::Derived4->sequence(10,10,3,4);
-# $PDL::whichND_no_warning = 1;
-# my ($x, $y, $z, $w)=whichND($a1 == 203);
-# ok($main::OVERRIDEWORKED == 2, "whichND test");
-($x, $y, $z, $w) = whichND($a1 == 203)->mv(0,-1)->dog;  # quiet deprecation warning
-ok($main::OVERRIDEWORKED == 1, "whichND worked");         # whitebox test condition, uugh!
+($x, $y, $z, $w) = whichND($a1 == 203)->mv(0,-1)->dog;
+ok($main::OVERRIDEWORKED == 1, "whichND worked"); # whitebox test condition, uugh!
 
 # Check to see if the clip functions return a derived object:
 ok(ref( $im->clip(5,7) ) eq "PDL::Derived4", "clip returns derived object");

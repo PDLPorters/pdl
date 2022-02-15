@@ -1659,7 +1659,7 @@ sub PDL::append {
     }
   }
   $o //= PDL->null;
-  PDL::_append_int($i1, $i2, $o);
+  PDL::_append_int($i1, $i2->convert($i1->type), $o);
   $o;
 }
         '),

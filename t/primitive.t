@@ -293,9 +293,7 @@ ok all(approx $got, czip(5, 4)), 'complex matmult' or diag $got;
 # which ND test
 my $a1 = PDL->sequence(10,10,3,4);  
 
-# $PDL::whichND_no_warning = 1;
-# ($x, $y, $z, $w)=whichND($a1 == 203);
-($x, $y, $z, my $w) = whichND($a1 == 203)->mv(0,-1)->dog;  # quiet deprecation warning
+($x, $y, $z, my $w) = whichND($a1 == 203)->mv(0,-1)->dog;
 ok($a1->at($x->list,$y->list,$z->list,$w->list) == 203, "whichND" );
 
 $a1 = pdl(1,2,3,4);
@@ -307,6 +305,11 @@ ok $b1->isempty, 'append(null, null) returns an empty';
 append(null, null, $b1);
 ok !$b1->isnull, 'append(null, null, b1) sets non-null';
 ok $b1->isempty, 'append(null, null, b1) sets an empty';
+$b1 = indx(1,2);
+is $b1->type, 'indx', '$indx_pdl is an indx pdl';
+$b1 = $b1->append(-1);
+is $b1->type, 'indx', 'append($indx_pdl, -1) returns an indx pdl';
+is $b1.'', '[1 2 -1]', 'append($indx_pdl, -1) correct content';
 
 # clip tests
 ok(tapprox($im->hclip(5)->sum,83), "hclip" );
