@@ -170,7 +170,7 @@ sub _postamble {
       File::Spec::Functions::catfile($core, qw(pm_to_blib)),
       ;
     $cdep .= join ' ', @objs, ':', map File::Spec::Functions::catfile($core, $_),
-      qw(pdl.h pdlcore.h pdlthread.h pdlmagic.h);
+      qw(pdl.h pdlcore.h pdlbroadcast.h pdlmagic.h);
   } else {
     my $oneliner = _oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(q{$mod}); }});
     $install = qq|\ninstall ::\n\t\@echo "Updating PDL documentation database...";\n\t$oneliner\n|;

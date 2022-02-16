@@ -499,7 +499,7 @@ freeing via these callbacks happens at the right times.
 
 Most of that functionality of PDL broadcasting (automatic iteration
 of elementary operations over multi-dim ndarrays) is implemented in the
-file F<pdlthread.c>.
+file F<pdlbroadcast.c>.
 
 The L<PDL::PP> generated functions (in particular the
 C<readdata> and C<writebackdata> callbacks) use this infrastructure to 

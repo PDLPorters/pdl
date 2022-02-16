@@ -388,20 +388,20 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 	    Safefree(broadcast->offs);
 	  }
 	  Newxz(broadcast->inds, ndims * nthr1, PDL_Indx); /* Create space for pthread-specific inds (i.e. copy for each pthread)*/
-	  if(broadcast->inds == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->inds in pdlthread.c");
+	  if(broadcast->inds == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->inds in pdlbroadcast.c");
 	  Newxz(broadcast->dims, ndims * nthr1, PDL_Indx);
-	  if(broadcast->dims == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->dims in pdlthread.c");
+	  if(broadcast->dims == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->dims in pdlbroadcast.c");
 	  Newxz(broadcast->offs, npdls * nthr1, PDL_Indx); /* Create space for pthread-specific offs */
-	  if(broadcast->offs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->offs in pdlthread.c");
+	  if(broadcast->offs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->offs in pdlbroadcast.c");
 	}
 	for(nth=0; nth<ndims; nth++) broadcast->dims[nth]=1; // all start size 1
 
 	if (!already_alloced) {
 	  broadcast->pdls = copy_pdl_array(pdls,npdls);
 	  Newxz(broadcast->incs, ndims * npdls, PDL_Indx);
-	  if(broadcast->incs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->incs in pdlthread.c");
+	  if(broadcast->incs == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->incs in pdlbroadcast.c");
 	  Newxz(broadcast->flags, npdls, char);
-	  if(broadcast->flags == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->flags in pdlthread.c");
+	  if(broadcast->flags == NULL) return pdl_make_error_simple(PDL_EFATAL, "Failed to allocate memory for broadcast->flags in pdlbroadcast.c");
 	}
 
 	/* populate the per_pdl_flags */

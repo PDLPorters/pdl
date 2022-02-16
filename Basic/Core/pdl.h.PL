@@ -103,7 +103,7 @@ typedef struct {
 #define PDL_CLEARED_MAGICNO 0x99876134 /* value once "cleared" */
 #define PDL_CLRMAGIC(it) (it)->magicno = PDL_CLEARED_MAGICNO
 
-#include "pdlthread.h"
+#include "pdlbroadcast.h"
 
 /* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
 /*  Target number of pthreads: Actual will be this number or less.
