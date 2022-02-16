@@ -119,6 +119,7 @@ freedata(it)
       pdl *it
       CODE:
 	if(it->datasv) {
+		PDLDEBUG_f(printf("pdl=%p SvREFCNT_dec datasv=%p\n",it,it->datasv);)
 		SvREFCNT_dec(it->datasv);
 		it->datasv=0;
 		it->data=0;

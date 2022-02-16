@@ -234,12 +234,14 @@ pdl_error pdl__free(pdl *it) {
 	pdl__magic_free(it);
     }
     if(it->datasv) {
+	    PDLDEBUG_f(printf("SvREFCNT_dec datasv=%p\n",it->datasv);)
 	    SvREFCNT_dec(it->datasv);
 	    it->data=0;
     } else if(it->data) {
 	    pdl_pdl_warn("Warning: special data without datasv is not freed currently!!");
     }
     if(it->hdrsv) {
+	PDLDEBUG_f(printf("SvREFCNT_dec hdrsv=%p\n",it->hdrsv);)
 	SvREFCNT_dec(it->hdrsv);
 	it->hdrsv = 0;
     }
