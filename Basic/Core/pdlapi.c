@@ -268,7 +268,7 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans)
 	/* this might be due to a croak when performing the trans; so
 	   warn only for now, otherwise we leave trans undestructed ! */
 	if(!flag)
-		pdl_pdl_warn("Child not found for pdl %d, %d\n",it, trans);
+		pdl_pdl_warn("Child not found for pdl %p, trans %p\n",it, trans);
 }
 
 void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
