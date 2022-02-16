@@ -92,7 +92,14 @@ typedef struct {
   PDL_Value value;
 } PDL_Anyval;
 
-#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) if((it)->magicno != this_magic) return pdl_make_error(PDL_EFATAL, "INVALID " type " MAGICNO, got hex=%p (%d)%s\n",it,(int)((it)->magicno), ((it)->magicno) == PDL_CLEARED_MAGICNO ? " (cleared)" : ""); else (void)0
+#define PDL_CHKMAGIC_GENERAL(it,this_magic,type) \
+  if((it)->magicno != this_magic) \
+    return pdl_make_error(PDL_EFATAL, \
+      "INVALID " type " MAGICNO, got hex=%p (%lu)%s\n", \
+      it,(unsigned long)((it)->magicno), \
+      ((it)->magicno) == PDL_CLEARED_MAGICNO ? " (cleared)" : "" \
+    ); \
+  else (void)0
 #define PDL_CLEARED_MAGICNO 0x99876134 /* value once "cleared" */
 #define PDL_CLRMAGIC(it) (it)->magicno = PDL_CLEARED_MAGICNO
 
