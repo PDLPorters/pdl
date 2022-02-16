@@ -32,7 +32,7 @@ extern Core PDL;
 pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	PDLDEBUG_f(printf("pdl__ensure_trans\n"));
+	PDLDEBUG_f(printf("pdl__ensure_trans %p what=%d\n", trans, what));
 	PDL_TR_CHKMAGIC(trans);
 	PDL_Indx j, flag=what, par_pvaf=0;
 	pdl_transvtable *vtable = trans->vtable;
