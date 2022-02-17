@@ -112,6 +112,8 @@ pdl_error pdl_allocdata(pdl *it) {
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("pdl_allocdata %p, %"IND_FLAG", %d\n",(void*)it, it->nvals,
 	  it->datatype));
+  if(it->nvals < 0)
+    return pdl_make_error(PDL_EUSERERROR, "Tried to allocdata with %"IND_FLAG" values", it->nvals);
   PDL_Indx nbytes = it->nvals * pdl_howbig(it->datatype);
   PDL_Indx ncurr  = it->nbytes;
   if (ncurr == nbytes)
