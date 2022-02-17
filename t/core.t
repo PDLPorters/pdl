@@ -258,7 +258,9 @@ ok(all($y==$x),"new_or_inplace returns the original thing if inplace is set");
 ok(!($y->is_inplace),"new_or_inplace clears the inplace flag");
 
 # check reshape and dims.  While we're at it, check null & empty creation too.
-my $empty = zeroes(0);
+my $empty = empty();
+is $empty->type->enum, 0, 'empty() gives lowest-numbered type';
+is empty(float)->type, 'float', 'empty(float) works';
 ok($empty->nelem==0,"you can make an empty PDL with zeroes(0)");
 ok("$empty" =~ m/Empty/, "an empty PDL prints 'Empty'");
 

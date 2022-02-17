@@ -2,6 +2,7 @@
 - threading now called broadcasting (compat aliases created)
 - fix 2.057_01 regression in {broadcast,thread}_define - thanks @eserte for report
 - fix regression of append allowing type upgrade to second argument's type
+- add empty() function
 
 2.074 2022-02-08
 - fix PDL::Complex->null stringify error

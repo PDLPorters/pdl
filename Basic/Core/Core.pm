@@ -28,6 +28,7 @@ my @exports_internal = qw(howbig broadcastids topdl);
 my @exports_normal   = (@EXPORT,
   @convertfuncs,
   qw(nelem dims shape null
+      empty
       convert inplace zeroes zeros ones nan inf i list listindices unpdl
       set at flows broadcast_define over reshape dog cat barf type
       thread_define dummy mslice approx flat sclr squeeze
@@ -459,6 +460,26 @@ The placeholder panes are completely padded out.  But if you feed in only
 a single Empty PDL, you get back the Empty PDL (no padding).
 
 =cut
+
+=head2 empty
+
+=for ref
+
+Returns an empty ndarray, with a single zero-length dimension.
+Only available as a function, not a method.
+
+=for usage
+
+ $x = empty; # defaults to lowest type so it can always be promoted up
+ $x = empty(float);
+
+=cut
+
+sub empty {
+  my ($type) = @_;
+  $type //= 0;
+  PDL->new_from_specification(PDL::Type->new($type), 0);
+}
 
 =head2 null
 
