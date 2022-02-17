@@ -392,15 +392,9 @@ $z .= 2; # should *not* segfault!
 ok all($x==5), 'empty range .= no mutate';   # should *not* change $x!
 
 ### Check slicing of a null PDL
-
 $x = PDL->null;
-
-eval { $y = $x->slice("")->nelem };
-is $@, '', 'null->slice no error';
-is $y, 0;
-
-eval { $y = $x->slice(0)->nelem };
-like $@, qr/out of bounds/;
+eval { $y = $x->slice("") };
+like $@, qr/is null/, 'null->slice exception';
 
 for my $start (0, 4, -4, 20, -20) {
 	for my $stop (0, 4, -4, 20, -20) {

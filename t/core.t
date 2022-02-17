@@ -118,8 +118,7 @@ $x = pdl(pdl(5));
 ok all( $x== pdl(5)), "pdl() can piddlify an ndarray";
 
 $x = pdl(null);
-is_deeply [$x->dims], [0], 'pdl(null) gives empty' or diag "x(", $x->info, ")";
-ok !$x->isnull, 'pdl(null) gives non-null' or diag "x(", $x->info, ")";
+ok $x->isnull, 'pdl(null) gives null' or diag "x(", $x->info, ")";
 
 $x = pdl(null, null);
 is_deeply [$x->dims], [0,2], 'pdl(null, null) gives empty' or diag "x(", $x->info, ")";

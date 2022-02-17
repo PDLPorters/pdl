@@ -798,7 +798,7 @@ sub PDL::broadcastids {
 
 sub piddle {PDL->pdl(@_)}
 sub pdl {PDL->pdl(@_)}
-sub PDL::pdl { my $x = shift; return $x->new(@_) }
+sub PDL::pdl { shift->new(@_) }
 
 =head2 doflow
 
@@ -1174,11 +1174,10 @@ sub _establish_type {
 }
 
 sub PDL::new {
-   # print "in PDL::new\n";
+   return $_[0]->copy if ref($_[0]);
    my $this = shift;
-   return $this->copy if ref($this);
    my $type = ref($_[0]) eq 'PDL::Type' ? shift->enum : undef;
-   my $value = (@_ >1 ? [@_] : shift);  # ref thyself
+   my $value = (@_ > 1 ? [@_] : shift);
    unless(defined $value) {
        if($PDL::debug) {
 	   print STDERR "Warning: PDL::new converted undef to \$PDL::undefval ($PDL::undefval)\n";
@@ -1188,7 +1187,7 @@ sub PDL::new {
    $type //= ref($value) ? _establish_type($value, $PDL_D) : $PDL_D;
 
    return pdl_avref($value,$this,$type) if ref($value) eq "ARRAY";
-   my $new = $this->initialize();
+   my $new = $this->initialize;
    $new->set_datatype($type);
 
    if (ref(\$value) eq "SCALAR") {
@@ -1252,6 +1251,7 @@ copies to be made.
 sub PDL::copy {
     my $value = shift;
     barf("Argument is an ".ref($value)." not an object") unless blessed($value);
+    return $value->nullcreate if $value->isnull;
     # broadcastI(-1,[]) is just an identity vafftrans with broadcastid copying ;)
     $value->broadcastI(-1,[])->sever;
 }

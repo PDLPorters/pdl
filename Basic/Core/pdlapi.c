@@ -607,7 +607,7 @@ pdl_error pdl_make_physdims(pdl *it) {
 	return PDL_err;
 }
 
-static inline pdl_error pdl_trans_flow_checks(pdl_trans *trans, int *ret) {
+static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, int *ret) {
   pdl_error PDL_err = {0, NULL, 0};
   int pfflag=0;
   PDL_Indx i;
@@ -616,8 +616,15 @@ static inline pdl_error pdl_trans_flow_checks(pdl_trans *trans, int *ret) {
 /* First, determine whether any of our children already have
  * a parent, and whether they need to be updated. If this is
  * the case, we need to do some thinking. */
-  for(i=0; i<vtable->nparents; i++)
-    if(trans->pdls[i]->state & PDL_DATAFLOW_ANY) pfflag++;
+  for(i=0; i<vtable->nparents; i++) {
+    int state = trans->pdls[i]->state;
+    if (state & PDL_NOMYDIMS)
+      return pdl_make_error(PDL_EUSERERROR,
+	"Error in %s: input parameter '%s' is null\n",
+	vtable->name, vtable->par_names[i]
+      );
+    if(state & PDL_DATAFLOW_ANY) pfflag++;
+  }
   for(; i<vtable->npdls; i++) {
 /* If children are flowing, croak. It's too difficult to handle properly */
     if(trans->pdls[i]->state & PDL_DATAFLOW_ANY)
@@ -644,7 +651,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
   PDL_TR_CHKMAGIC(trans);
   int pfflag=0;
-  PDL_RETERROR(PDL_err, pdl_trans_flow_checks(trans, &pfflag));
+  PDL_RETERROR(PDL_err, pdl_trans_flow_null_checks(trans, &pfflag));
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
   if (dataflow)
     for(i=0; i<nparents; i++) {

@@ -1651,7 +1651,7 @@ sub PDL::append {
   my ($i1, $i2, $o) = map PDL->topdl($_), @_;
   if (grep $_->isempty, $i1, $i2) {
     if (!defined $o) {
-      return $i2->copy if $i1->isempty;
+      return $i2->isnull ? PDL->zeroes(0) : $i2->copy if $i1->isempty;
       return $i1->isnull ? PDL->zeroes(0) : $i1->copy;
     } else {
       $o .= $i2->isnull ? PDL->zeroes(0) : $i2, return $o if $i1->isempty;
