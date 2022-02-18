@@ -3,8 +3,8 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#define VTABLE_OR_DEFAULT(trans, func, default_func) \
-  PDL_RETERROR(PDL_err, ((trans)->vtable->func \
+#define VTABLE_OR_DEFAULT(what, trans, func, default_func) \
+  what(PDL_err, ((trans)->vtable->func \
     ? (trans)->vtable->func \
     : pdl_ ## default_func)(trans))
 
@@ -14,10 +14,10 @@
 	if (PDL_err.error) return PDL_err; \
 	trans->dims_redone = 0; \
     } \
-    VTABLE_OR_DEFAULT(trans, redodims, redodims_default); \
+    VTABLE_OR_DEFAULT(PDL_RETERROR, trans, redodims, redodims_default); \
   } while (0)
-#define READDATA(trans) VTABLE_OR_DEFAULT(trans, readdata, readdata_affine)
-#define WRITEDATA(trans) VTABLE_OR_DEFAULT(trans, writebackdata, writebackdata_affine)
+#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_RETERROR, trans, readdata, readdata_affine)
+#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_RETERROR, trans, writebackdata, writebackdata_affine)
 #define FREETRANS(trans, destroy) \
     if(trans->vtable->freetrans) { \
 	PDLDEBUG_f(printf("call freetrans\n")); \
