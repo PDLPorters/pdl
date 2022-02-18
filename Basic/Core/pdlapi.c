@@ -666,7 +666,11 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
   PDL_TR_CHKMAGIC(trans);
   int pfflag=0;
-  PDL_RETERROR(PDL_err, pdl_trans_flow_null_checks(trans, &pfflag));
+  PDL_err = pdl_trans_flow_null_checks(trans, &pfflag);
+  if (PDL_err.error) {
+    PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
+    return PDL_err;
+  }
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
   if (dataflow)
     for(i=0; i<nparents; i++) {
