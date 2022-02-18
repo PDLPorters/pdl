@@ -25,6 +25,8 @@
 	    /* ignore error for now as need to still free rest */ \
 	if (destroy) PDL_CLRMAGIC(trans); \
     }
+#define CHANGED(...) \
+    PDL_RETERROR(PDL_err, pdl_changed(__VA_ARGS__))
 
 extern Core PDL;
 
@@ -69,9 +71,9 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 		char isvaffine = (PDL_VAFFOK(child) &&
 		    VAFFINE_FLAG_OK(vtable->per_pdl_flags,j));
 		if (!isvaffine || (wd[j] & PDL_PARENTDIMSCHANGED))
-		    PDL_RETERROR(PDL_err, pdl_changed(child,wd[j],0));
+		    CHANGED(child,wd[j],0);
 		if (isvaffine)
-		    PDL_RETERROR(PDL_err, pdl_changed(child->vafftrans->from,PDL_PARENTDATACHANGED,0));
+		    CHANGED(child->vafftrans->from,PDL_PARENTDATACHANGED,0);
 	}
 	return PDL_err;
 }
@@ -536,7 +538,7 @@ pdl_error pdl_setdims(pdl* it, PDL_Indx * dims, PDL_Indx ndims) {
   PDL_RETERROR(PDL_err, pdl_reallocbroadcastids(it,1));
   it->broadcastids[0] = ndims;
   it->state &= ~PDL_NOMYDIMS;
-  PDL_RETERROR(PDL_err, pdl_changed(it,what,0));
+  CHANGED(it,what,0);
   return PDL_err;
 }
 
@@ -778,20 +780,20 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
 	if((trans->flags & PDL_ITRANS_ISAFFINE) && (PDL_VAFFOK(it))) {
 	    PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
 	    PDL_RETERROR(PDL_err, pdl_writebackdata_vaffine(it));
-	    PDL_RETERROR(PDL_err, pdl_changed(it->vafftrans->from,what,0));
+	    CHANGED(it->vafftrans->from,what,0);
 	} else {
 	    PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));
 	    WRITEDATA(trans);
 	    for(i=0; i<trans->vtable->nparents; i++) {
 		pdl *pdl = trans->pdls[i];
-		PDL_RETERROR(PDL_err, pdl_changed(
+		CHANGED(
 		    (VAFFINE_FLAG_OK(trans->vtable->per_pdl_flags,i) &&
 		       pdl->trans_parent &&
 		       (pdl->trans_parent->flags & PDL_ITRANS_ISAFFINE) &&
 		       PDL_VAFFOK(pdl))
 		    ? pdl->vafftrans->from
 		    : pdl,
-		    what,0));
+		    what,0);
 	    }
 	}
     } else {
@@ -799,7 +801,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
 	PDL_START_CHILDLOOP(it)
 	    pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
 	    for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
-		PDL_RETERROR(PDL_err, pdl_changed(trans->pdls[j],what,1));
+		CHANGED(trans->pdls[j],what,1);
 	PDL_END_CHILDLOOP(it)
     }
     PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n",(void*)it));

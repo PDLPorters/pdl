@@ -320,8 +320,7 @@ ok( tapprox($x,sequence(10)) );
 eval { test__flatten_into(null, 2) };
 ok 1; #was also segfaulting
 
-# test the bug alluded to in the comments in
-# pdl_changed (pdlapi.c)
+# test the bug alluded to in the comments in pdl_changed (pdlapi.c)
 # used to segfault
 my $xx=ones(float,3,4);
 my $sl1 = $xx->slice('(0)');
