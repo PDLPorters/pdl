@@ -593,8 +593,9 @@ typedef struct pdl_slice_args {
 #define ABORT_RECURSE_GUARD __nrec=0;
 #define END_RECURSE_GUARD __nrec--;
 
-#define PDL_RETERROR(rv, expr) \
-  do { rv = expr; if (rv.error) return rv; } while (0)
+#define PDL_RETERROR2(rv, expr, iferr) \
+  do { rv = expr; if (rv.error) { iferr } } while (0)
+#define PDL_RETERROR(rv, expr) PDL_RETERROR2(rv, expr, return rv;)
 
 #define PDL_ENSURE_ALLOCATED(it) \
   if (!(it->state & PDL_ALLOCATED)) { \
