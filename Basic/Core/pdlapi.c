@@ -285,6 +285,22 @@ void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	it->trans_parent = 0;
 }
 
+pdl_error pdl_trans_finaldestroy(pdl_trans *trans)
+{
+  pdl_error PDL_err = {0, NULL, 0};
+  PDLDEBUG_f(printf("pdl_trans_finaldestroy %p\n", trans));
+  FREETRANS(trans, 1);
+  if(trans->vtable->flags & PDL_TRANS_DO_BROADCAST)
+    pdl_freebroadcaststruct(&trans->broadcast);
+  trans->vtable = 0; /* Make sure no-one uses this */
+  PDLDEBUG_f(printf("call free\n"));
+  if (trans->params) free(trans->params);
+  free(trans->ind_sizes);
+  free(trans->inc_sizes);
+  free(trans);
+  return PDL_err;
+}
+
 pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 {
 	pdl_error PDL_err = {0, NULL, 0};
@@ -329,15 +345,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	      destbuffer[ndest++] = child;
 	  }
 	}
-	FREETRANS(trans, 1);
-	if(trans->vtable->flags & PDL_TRANS_DO_BROADCAST)
-	  pdl_freebroadcaststruct(&trans->broadcast);
-	trans->vtable = 0; /* Make sure no-one uses this */
-	PDLDEBUG_f(printf("call free\n"));
-	if (trans->params) free(trans->params);
-	free(trans->ind_sizes);
-	free(trans->inc_sizes);
-	free(trans);
+	PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
 	for(j=0; j<ndest; j++)
 		PDL_ACCUMERROR(PDL_err, pdl_destroy(destbuffer[j]));
 	PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", (void*)trans));
