@@ -249,7 +249,7 @@ pdl_error pdl_dim_checks(
       ));
     } else {
       PDL_Indx *dims = pdl->dims;
-      if (ninds > 0 && ndims < ninds) {
+      if (ninds > PDLMAX(0,ndims)) {
 	/* Dimensional promotion when number of dims is less than required: */
 	for (j=0; j<ninds; j++) {
 	  ind_id = PDL_IND_ID(vtable, i, j);
