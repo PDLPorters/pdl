@@ -596,6 +596,7 @@ typedef struct pdl_slice_args {
 #define PDL_RETERROR2(rv, expr, iferr) \
   do { rv = expr; if (rv.error) { iferr } } while (0)
 #define PDL_RETERROR(rv, expr) PDL_RETERROR2(rv, expr, return rv;)
+#define PDL_ACCUMERROR(rv, expr) rv = pdl_error_accumulate(rv, expr)
 
 #define PDL_ENSURE_ALLOCATED(it) \
   if (!(it->state & PDL_ALLOCATED)) { \
