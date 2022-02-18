@@ -259,7 +259,7 @@ pdl_error pdl__free(pdl *it) {
 void pdl__removechildtrans(pdl *it,pdl_trans *trans)
 {
 	PDLDEBUG_f(printf("pdl__removechildtrans(%s=%p): %p\n",
-	  trans->vtable->name, (void*)trans, (void*)(it)));
+	  trans->vtable->name, trans, it));
 	PDL_Indx i; int flag = 0;
 	for(i=0; i<trans->vtable->nparents; i++)
 		if(trans->pdls[i] == it)
