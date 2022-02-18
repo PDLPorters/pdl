@@ -8,13 +8,13 @@
     ? (trans)->vtable->func \
     : pdl_ ## default_func)(trans))
 
-#define REDODIMS(trans) do { \
+#define REDODIMS(what, trans) do { \
     if (trans->dims_redone) { \
 	FREETRANS(trans, 0); \
 	if (PDL_err.error) return PDL_err; \
 	trans->dims_redone = 0; \
     } \
-    VTABLE_OR_DEFAULT(PDL_RETERROR, trans, redodims, redodims_default); \
+    VTABLE_OR_DEFAULT(what, trans, redodims, redodims_default); \
   } while (0)
 #define READDATA(trans) VTABLE_OR_DEFAULT(PDL_RETERROR, trans, readdata, readdata_affine)
 #define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_RETERROR, trans, writebackdata, writebackdata_affine)
@@ -50,7 +50,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
-	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(trans);
+	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(PDL_RETERROR, trans);
 	for(j=0; j<vtable->npdls; j++)
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
@@ -600,7 +600,7 @@ pdl_error pdl_make_physdims(pdl *it) {
 	   be reset? Otherwise redodims will be called for them again? */
 	PDLDEBUG_f(printf("make_physdims: calling redodims %p on %p\n",
 			  (void*)(it->trans_parent),(void*)it));
-	REDODIMS(it->trans_parent);
+	REDODIMS(PDL_RETERROR, it->trans_parent);
 	/* why this one? will the old allocated data be freed correctly? */
 	if((c & PDL_PARENTDIMSCHANGED) && (it->state & PDL_ALLOCATED)) {
 		it->state &= ~PDL_ALLOCATED;
@@ -748,7 +748,7 @@ pdl_error pdl_make_physical(pdl *it) {
          */
 	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
 	   it->state & PDL_PARENTDIMSCHANGED)
-		REDODIMS(it->trans_parent);
+		REDODIMS(PDL_RETERROR, it->trans_parent);
 	if(!(it->state & PDL_ALLOCATED)) {
 		PDL_RETERROR(PDL_err, pdl_allocdata(it));
 	}
