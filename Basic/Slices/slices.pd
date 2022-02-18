@@ -1168,8 +1168,7 @@ pp_def(
         'rle',
         GenericTypes => [ppdefs_all],
         Pars=>'c(n); indx [o]a(m); [o]b(m);',
-#this RedoDimsCode sets $SIZE(m)==$SIZE(n), but the slice in the PMCode below makes m<=n.
-        RedoDimsCode=>'$SIZE(m)=$PDL(c)->dims[0];',
+        RedoDimsCode=>'$SIZE(m)=$SIZE(n);',
         PMCode=><<'EOC',
 sub PDL::rle {
   my $c = shift;

@@ -1488,29 +1488,15 @@ in the signature. Instead you write
   pp_def(
       "myexternalfunc",
       Pars         => ' p(m);  x(n);  [o] y(); [t] work(wn); ',
-      RedoDimsCode => '
-	PDL_Indx im = $PDL(p)->dims[0];
-	PDL_Indx in = $PDL(x)->dims[0];
-	PDL_Indx min = in + im * im;
-	PDL_Indx inw = $PDL(work)->dims[0];
-	$SIZE(wn) = inw >= min ? inw : min;
-      ',
+      RedoDimsCode => '$SIZE(wn) = $SIZE(n) + $SIZE(m) * $SIZE(m);',
       Code => '
         externalfunc( $P(p), $P(x), $SIZE(m), $SIZE(n), $P(work) );
       '
   );
 
-This code works as follows: The macro $PDL(p) expands to a
-pointer to the pdl struct for the ndarray p.  You don't want
-a pointer to the data ( ie $P ) in this case, because you
-want to access the methods for the ndarray on the C
-level. You get the first dimension of each of the ndarrays
-and store them in integers. Then you compute the minimum
-length the work array can be. If the user sent an ndarray
-C<work> with sufficient storage, then leave it alone. If the
-user sent, say a null pdl, or no pdl at all, then the size
-of wn will be zero and you reset it to the minimum
-value. Before the code in the Code section is executed PP
+As of 2.075, you can use the dimensions of passed-in ndarrays as they
+are available when the C<RedoDimsCode> is run.
+Before the code in the Code section is executed PP
 will create the proper storage for C<work> if it does not
 exist. Note that you only took the first dimension of C<p>
 and C<x> because the user may have sent ndarrays with extra
@@ -1528,7 +1514,7 @@ rules. Here is an example from PDL::Math
 
  pp_def("polyroots",
       Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
-      RedoDimsCode => 'PDL_Indx sn = $PDL(cr)->dims[0]; $SIZE(m) = sn-1;',
+      RedoDimsCode => '$SIZE(m) = $SIZE(n)-1;',
 
 The input ndarrays are the real and imaginary parts of
 complex coefficients of a polynomial. The output ndarrays are

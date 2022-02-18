@@ -4,6 +4,7 @@
 - fix regression of append allowing type upgrade to second argument's type
 - add empty() function
 - fix when readdata functions return error (#356)
+- RedoDimsCode can now use $SIZE(other_index) (#386)
 
 2.074 2022-02-08
 - fix PDL::Complex->null stringify error

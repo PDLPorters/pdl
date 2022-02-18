@@ -2,7 +2,7 @@
 #define __PDLCORE_H
 
 /* version 20: memory-management changes */
-/* on 21, unify pdl_broadcast per_pdl_flags, par_flags; remove threadloop #defines */
+/* on 21, unify pdl_broadcast per_pdl_flags, par_flags; remove threadloop #defines; change creating to char */
 #define PDL_CORE_VERSION 20
 #define startbroadcastloop startthreadloop
 #define pdl_startbroadcastloop pdl_startthreadloop
@@ -53,6 +53,9 @@ PDL_Anyval pdl_at( void* x, int datatype, PDL_Indx* pos, PDL_Indx* dims, /* Valu
              PDL_Indx *incs, PDL_Indx offset, PDL_Indx ndims);
 pdl_error pdl_writebackdata_vaffine(pdl *it);
 pdl_error pdl_readdata_vaffine(pdl *it);
+pdl_error pdl_dim_checks(pdl_transvtable *vtable, pdl **pdls,
+  pdl_broadcast *broadcast, PDL_Indx *creating,
+  PDL_Indx *ind_sizes, char load_only);
 
 /* pdlutil.c */
 typedef enum {

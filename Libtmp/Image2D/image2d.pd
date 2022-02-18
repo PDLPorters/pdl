@@ -1302,7 +1302,7 @@ sub PDL::polyfillv :lvalue {
 EOPM
 
 pp_addhdr(<<'EOF');
-int getnewsize(int cols, int rows, float fangle, int *newcols, int *newrows);
+int getnewsize(PDL_Indx cols, PDL_Indx rows, float fangle, PDL_Indx *newcols, PDL_Indx *newrows);
 typedef unsigned char imT;    /* image type */
 int rotate(imT *im, imT *out, int cols, int rows, int nc, int nr,
            float fangle, imT bgval, int antialias);
@@ -1316,7 +1316,7 @@ rotnewsz(m,n,angle)
 	int n
 	float angle
 	PPCODE:
-	int newcols, newrows;
+	PDL_Indx newcols, newrows;
 
 	if (getnewsize(m,n,angle,&newcols,&newrows) != 0)
 		croak("wrong angle (should be between -90 and +90)");
@@ -1332,23 +1332,17 @@ pp_def('rot2d',
 		 if ((ierr = rotate($P(im),$P(om),$SIZE(m),$SIZE(n),$SIZE(p),
 			$SIZE(q),$angle(),$bg(),$aa())) != 0) {
 			if (ierr == -1)
-				croak("error during rotate, wrong angle");
+				$CROAK("error during rotate, wrong angle");
 			else
-				croak("wrong output dims, did you set them?");
+				$CROAK("wrong output dims, did you set them?");
 		}',
-	# ugly workaround since $SIZE(m) and $SIZE(n) are not initialized
-	# when the redodimscode is called
-	# need to fix this!
-	RedoDimsCode => 'int ncols, nrows;
-			if ($PDL(im)->ndims < 2)
-				croak("need > 2d ndarray");
-			if (getnewsize($PDL(im)->dims[0],$PDL(im)->dims[1],
-				$angle(), &ncols,
-				&nrows) != 0)
-			   croak("error during rotate, wrong angle");
+	RedoDimsCode => '
+			if (getnewsize($SIZE(m),$SIZE(n),
+				$angle(), &$SIZE(p),
+				&$SIZE(q)) != 0)
+			   $CROAK("error during rotate, wrong angle");
 			/* printf("o: %d, p: %d\n",ncols,nrows); */
-			$SIZE(p) = ncols;
-			$SIZE(q) = nrows;',
+			',
 	GenericTypes => ['B'],
 	Doc => << 'EOD',
 
@@ -2183,7 +2177,7 @@ sub PDL::warp2d {
     /* Generate default interpolation kernel */
     kernel = generate_interpolation_kernel( $COMP(kernel_type) ) ;
     if (kernel == NULL) {
-      croak( "Ran out of memory building kernel\n" );
+      $CROAK( "Ran out of memory building kernel\n" );
     }
 
     /* Compute sizes  */
@@ -2217,7 +2211,7 @@ sub PDL::warp2d {
     /* allocate memory for polynomial */
     poly = malloc( ncoeff * sizeof(double) );
     if ( poly == NULL ) {
-      croak( "Ran out of memory\n" );
+      $CROAK( "Ran out of memory\n" );
     }
     poly[0] = 1.0;
 
@@ -2369,12 +2363,12 @@ sub PDL::warp2d_kernel ($) {
     double     *kernel, xx;
 
     if ( $SIZE(n) != KERNEL_SAMPLES ) {
-	croak( "Internal error in warp2d_kernel - mismatch in kernel size\n" );
+	$CROAK( "Internal error in warp2d_kernel - mismatch in kernel size\n" );
     }
 
     kernel = generate_interpolation_kernel($COMP(name));
     if ( kernel == NULL ) {
-	croak( "unable to allocate memory for kernel" );
+	$CROAK( "unable to allocate memory for kernel" );
     }
 
     /* fill in ndarrays */

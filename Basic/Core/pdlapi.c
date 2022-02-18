@@ -14,7 +14,14 @@
 	if (PDL_err.error) return PDL_err; \
 	trans->dims_redone = 0; \
     } \
-    VTABLE_OR_DEFAULT(what, trans, redodims, redodims_default); \
+    if ((trans)->vtable->redodims) \
+      what(PDL_err, pdl_dim_checks( \
+	(trans)->vtable, (trans)->pdls, \
+	NULL, NULL, \
+	(trans)->ind_sizes, 1)); \
+    what(PDL_err, ((trans)->vtable->redodims \
+      ? (trans)->vtable->redodims \
+      : pdl_redodims_default)(trans)); \
   } while (0)
 #define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, readdata, readdata_affine)
 #define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, writebackdata, writebackdata_affine)

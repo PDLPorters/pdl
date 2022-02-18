@@ -225,11 +225,11 @@ pdl_error pdl_autopthreadmagic( pdl **pdls, int npdls, PDL_Indx* realdims, PDL_I
 pdl_error pdl_dim_checks(
   pdl_transvtable *vtable, pdl **pdls,
   pdl_broadcast *broadcast, PDL_Indx *creating,
-  PDL_Indx *ind_sizes
+  PDL_Indx *ind_sizes, char load_only
 ) {
   pdl_error PDL_err = {0, NULL, 0};
   PDL_Indx i, j, ind_id;
-  PDLDEBUG_f(printf("pdl_dim_checks %p:\n", ind_sizes);
+  PDLDEBUG_f(printf("pdl_dim_checks(%d) %p:\n", load_only, ind_sizes);
     printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n"));
   for (i=0; i<vtable->npdls; i++) {
     PDL_Indx ninds = vtable->par_realdims[i];
@@ -237,7 +237,7 @@ pdl_error pdl_dim_checks(
     pdl *pdl = pdls[i];
     PDL_Indx ndims = pdl->ndims;
     PDLDEBUG_f(pdl_dump(pdl));
-    if (creating[i]) {
+    if (!load_only && creating[i]) {
       PDL_Indx dims[PDLMAX(ninds+1, 1)];
       for (j=0; j<ninds; j++)
 	dims[j] = ind_sizes[PDL_IND_ID(vtable, i, j)];
@@ -249,7 +249,7 @@ pdl_error pdl_dim_checks(
       ));
     } else {
       PDL_Indx *dims = pdl->dims;
-      if (ninds > PDLMAX(0,ndims)) {
+      if ((load_only || !creating[i]) && ninds > PDLMAX(0,ndims)) {
 	/* Dimensional promotion when number of dims is less than required: */
 	for (j=0; j<ninds; j++) {
 	  ind_id = PDL_IND_ID(vtable, i, j);
@@ -259,35 +259,38 @@ pdl_error pdl_dim_checks(
       /* Now, the real check. */
       for (j=0; j<ninds; j++) {
 	ind_id = PDL_IND_ID(vtable, i, j);
-	if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
-	  ind_sizes[ind_id] = dims[j];
-	else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
-	  return pdl_make_error(PDL_EUSERERROR,
-	    "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
-	    vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
-	    ind_sizes[ind_id], dims[j]
-	  );
+	if (load_only || !creating[i]) {
+	  if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
+	    ind_sizes[ind_id] = dims[j];
+	  else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
+	    return pdl_make_error(PDL_EUSERERROR,
+	      "Error in %s: parameter '%s' index %s size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
+	      vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
+	      ind_sizes[ind_id], dims[j]
+	    );
+	}
       }
-      if (vtable->par_flags[i] & PDL_PARAM_ISPHYS)
+      if (!load_only && (vtable->par_flags[i] & PDL_PARAM_ISPHYS))
 	PDL_RETERROR(PDL_err, pdl_make_physical(pdl));
     }
   }
-  for (i=0; i<vtable->npdls; i++) {
-    PDL_Indx ninds = vtable->par_realdims[i];
-    short flags = vtable->par_flags[i];
-    if (!ninds || !(flags & PDL_PARAM_ISPHYS)) continue;
-    pdl *pdl = pdls[i];
-    PDL_Indx *dims = pdl->dims;
-    for (j=0; j<ninds; j++) {
-      ind_id = PDL_IND_ID(vtable, i, j);
-      if (ind_sizes[ind_id] > 1 && ind_sizes[ind_id] != dims[j])
-	return pdl_make_error(PDL_EUSERERROR,
-	  "Error in %s: [phys] parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
-	  vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
-	  ind_sizes[ind_id], dims[j]
-	);
+  if (!load_only)
+    for (i=0; i<vtable->npdls; i++) {
+      PDL_Indx ninds = vtable->par_realdims[i];
+      short flags = vtable->par_flags[i];
+      if (!ninds || !(flags & PDL_PARAM_ISPHYS)) continue;
+      pdl *pdl = pdls[i];
+      PDL_Indx *dims = pdl->dims;
+      for (j=0; j<ninds; j++) {
+        ind_id = PDL_IND_ID(vtable, i, j);
+        if (ind_sizes[ind_id] > 1 && ind_sizes[ind_id] != dims[j])
+          return pdl_make_error(PDL_EUSERERROR,
+            "Error in %s: [phys] parameter '%s' index '%s' size %"IND_FLAG", but ndarray dim has size %"IND_FLAG"\n",
+            vtable->name, vtable->par_names[i], vtable->ind_names[ind_id],
+            ind_sizes[ind_id], dims[j]
+          );
+      }
     }
-  }
   PDLDEBUG_f(printf("pdl_dim_checks after:\n");
     printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);
     printf("\n"));
@@ -498,7 +501,7 @@ pdl_error pdl_initbroadcaststruct(int nobl,
 			broadcast->dims[broadcast->mag_nth + i*ndims]--;
 	}
 	if (ind_sizes)
-		PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, broadcast, creating, ind_sizes));
+		PDL_RETERROR(PDL_err, pdl_dim_checks(vtable, pdls, broadcast, creating, ind_sizes, 0));
 	if (inc_sizes)
 	  for (i=0; i<vtable->npdls; i++) {
 	    pdl *pdl = pdls[i];

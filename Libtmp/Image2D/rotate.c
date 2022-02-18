@@ -18,6 +18,7 @@
 #include <math.h>
 #include "EXTERN.h"
 #include "perl.h"
+#include "pdl.h"
 
 #ifndef M_PI
 #define M_PI	3.14159265358979323846
@@ -36,10 +37,10 @@ static imT* my_allocarray(int cols, int rows)
   return arr;
 }
 
-int getnewsize(int cols, int rows, float fangle, int *newcols, int *newrows)
+int getnewsize(PDL_Indx cols, PDL_Indx rows, float fangle, PDL_Indx *newcols, PDL_Indx *newrows)
 {
     float xshearfac, yshearfac, new0;
-    int tempcols, yshearjunk, x2shearjunk;
+    PDL_Indx tempcols, yshearjunk, x2shearjunk;
 
     if ( fangle < -90.0 || fangle > 90.0 )
       /* error( "angle must be between -90 and 90 degrees" ); */

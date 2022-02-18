@@ -377,7 +377,7 @@ pp_def(
 
 pp_def("polyroots",
       Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
-      RedoDimsCode => '$SIZE(m) = $PDL(cr)->dims[0]-1;',
+      RedoDimsCode => '$SIZE(m) = $SIZE(n)-1;',
       GenericTypes => ['D'],
       Code => '
               extern int cpoly( double *cr, double *ci, int deg,

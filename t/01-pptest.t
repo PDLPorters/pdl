@@ -124,7 +124,8 @@ pp_deft('setdim',
 );
 
 pp_deft("gelsd",
-        Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(); int [o,phys]rank();int [o,phys]info()',
+        Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(r); int [o,phys]rank();int [o,phys]info()',
+        RedoDimsCode => '$SIZE(r) = PDLMIN($SIZE(m),$SIZE(n));',
         GenericTypes => ['F'],
         Code => '$CROAK("croaking");'
 );
