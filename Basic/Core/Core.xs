@@ -925,7 +925,7 @@ broadcastover(...)
 	csv[i] = sv_newmortal();
 	pdl_SetSV_PDL(csv[i], child[i]); /* pdl* into SV* */
     }
-    int thrloopval;
+    int brcloopval;
     do {  /* the actual broadcastloop */
 	pdl_trans *traff;
 	dSP;
@@ -944,7 +944,7 @@ broadcastover(...)
 	  PUSHs(others[i]);   /* pass the OtherArgs onto the stack */
 	PUTBACK;
 	perl_call_sv(code,G_DISCARD);
-	thrloopval = pdl_iterbroadcastloop(&pdl_brc,0);
-	if ( thrloopval < 0 ) die("Error in iterbroadcastloop");
-    } while( thrloopval );
+	brcloopval = pdl_iterbroadcastloop(&pdl_brc,0);
+	if ( brcloopval < 0 ) die("Error in iterbroadcastloop");
+    } while( brcloopval );
     pdl_freebroadcaststruct(&pdl_brc);

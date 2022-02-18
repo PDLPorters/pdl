@@ -627,17 +627,17 @@ typedef struct pdl_slice_args {
   }
 
 #define PDL_EXPAND(...) __VA_ARGS__
-#define PDL_BROADCASTLOOP_START(funcName, thr, vtable, ptrStep1, ptrStep2, ptrStep3) \
-  __thrloopval = PDL->startbroadcastloop(&(thr),(vtable)->funcName, __privtrans, &PDL_err); \
+#define PDL_BROADCASTLOOP_START(funcName, brc, vtable, ptrStep1, ptrStep2, ptrStep3) \
+  __brcloopval = PDL->startbroadcastloop(&(brc),(vtable)->funcName, __privtrans, &PDL_err); \
   if (PDL_err.error) return PDL_err; \
-  if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error starting broadcastloop"); \
-  if ( __thrloopval ) return PDL_err; \
+  if ( __brcloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error starting broadcastloop"); \
+  if ( __brcloopval ) return PDL_err; \
   do { \
-    PDL_Indx *__tdims = PDL->get_broadcastdims(&(thr)); \
+    PDL_Indx *__tdims = PDL->get_broadcastdims(&(brc)); \
     if (!__tdims) return PDL->make_error_simple(PDL_EFATAL, "Error in get_broadcastdims"); \
     register PDL_Indx __tdims0 = __tdims[0]; \
     register PDL_Indx __tdims1 = __tdims[1]; \
-    register PDL_Indx *__offsp = PDL->get_threadoffsp(&(thr)); \
+    register PDL_Indx *__offsp = PDL->get_threadoffsp(&(brc)); \
     if (!__offsp ) return PDL->make_error_simple(PDL_EFATAL, "Error in get_threadoffsp"); \
     PDL_COMMENT("incs are each pdl's stride, declared at func start") \
     PDL_COMMENT("offs are each pthread's starting offset into each pdl") \
@@ -655,14 +655,14 @@ typedef struct pdl_slice_args {
         PDL_EXPAND ptrStep3 \
       ) { \
         PDL_COMMENT("This is the tightest loop. Make sure inside is optimal.")
-#define PDL_BROADCASTLOOP_END(thr, ptrStep1) \
+#define PDL_BROADCASTLOOP_END(brc, ptrStep1) \
       } \
     } \
     PDL_COMMENT("undo outer-loop of tinc1*tdims1, and original per-pthread offset") \
     ptrStep1 \
-    __thrloopval = PDL->iterbroadcastloop(&(thr),2); \
-    if ( __thrloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error in iterbroadcastloop"); \
-  } while(__thrloopval);
+    __brcloopval = PDL->iterbroadcastloop(&(brc),2); \
+    if ( __brcloopval < 0 ) return PDL->make_error_simple(PDL_EFATAL, "Error in iterbroadcastloop"); \
+  } while(__brcloopval);
 
 /* __PDL_H */
 #endif

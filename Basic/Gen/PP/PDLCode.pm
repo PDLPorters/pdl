@@ -22,7 +22,7 @@ sub make_args {
 sub new {
     my($class,$code,$badcode,
        $handlebad, $sig,$generictypes,$extrageneric,$havebroadcasting,$name,
-       $dont_add_thrloop, $backcode ) = @_;
+       $dont_add_brcloop, $backcode ) = @_;
     my $parnames = $sig->names_sorted;
 
     die "Error: missing name argument to PDL::PP::Code->new call!\n"
@@ -37,7 +37,7 @@ sub new {
     # "backcode" is a flag to the PDL::PP::Broadcastloop class indicating the broadcastloop
     #   is for writeback code (typically used for writeback of data from child to parent PDL
 
-    $dont_add_thrloop ||= !$havebroadcasting; # two have identical (though inverted) meaning so only track one
+    $dont_add_brcloop ||= !$havebroadcasting; # two have identical (though inverted) meaning so only track one
 
     # C++ style comments
     #
@@ -48,7 +48,7 @@ sub new {
 
     if ($::PP_VERBOSE) {
 	print "Processing code for $name\n";
-	print "DONT_ADD_THRLOOP!\n" if $dont_add_thrloop;
+	print "DONT_ADD_BRCLOOP!\n" if $dont_add_brcloop;
 	print "EXTRAGEN: {" .
 	  join(" ",
 	       map "$_=>$$extrageneric{$_}", sort keys %$extrageneric)
@@ -78,7 +78,7 @@ sub new {
 
     # Now, if there is no explicit broadcastlooping in the code,
     # enclose everything into it.
-    if(!$broadcastloops && !$dont_add_thrloop) {
+    if(!$broadcastloops && !$dont_add_brcloop) {
 	print "Adding broadcastloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
 	$coderef = $backcode
@@ -97,7 +97,7 @@ sub new {
 	my ( $bad_broadcastloops, $bad_coderef, $bad_sizeprivs ) =
 	    $this->separate_code( "{\n$badcode\n}" );
 
-	if(!$bad_broadcastloops && !$dont_add_thrloop) {
+	if(!$bad_broadcastloops && !$dont_add_brcloop) {
 	    print "Adding 'bad' broadcastloop...\n" if $::PP_VERBOSE;
 	    my $nc = $bad_coderef;
 	    if( !$backcode ){ # Normal readbackdata broadcastloop
@@ -150,9 +150,9 @@ sub new {
     # Then, in this form, put it together what we want the code to actually do.
     print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
     $this->{Code} = (join '',sort values %$sizeprivs).
-       ($dont_add_thrloop?'':PDL::PP::pp_line_numbers __LINE__, join "\n",
+       ($dont_add_brcloop?'':PDL::PP::pp_line_numbers __LINE__, join "\n",
         'PDL_COMMENT("broadcastloop declarations")',
-        'int __thrloopval;',
+        'int __brcloopval;',
         'register PDL_Indx __tind0,__tind1; PDL_COMMENT("counters along dim")',
         'register PDL_Indx __tnpdls = $PRIV(broadcast).npdls;',
         'PDL_COMMENT("dims here are how many steps along those dims")',
