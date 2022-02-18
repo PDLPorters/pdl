@@ -316,7 +316,8 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	    PDL_CHKMAGIC(child);
 	    pdl__removeparenttrans(child,trans,j);
 	    if(child->vafftrans) pdl_vafftrans_remove(child);
-	    if(!(child->state & PDL_DESTROYING) && !child->sv)
+	    if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
+	        (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP))
 	      destbuffer[ndest++] = child;
 	  }
 	} else {
@@ -324,6 +325,8 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	    pdl *child = trans->pdls[j];
 	    if(child->trans_parent == trans)
 	      child->trans_parent = 0;
+	    if (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP)
+	      destbuffer[ndest++] = child;
 	  }
 	}
 	FREETRANS(trans, 1);
