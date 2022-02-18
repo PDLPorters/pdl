@@ -694,10 +694,13 @@ EOD
                  PDL_Indx itdims[$COMP(itdim)];
                  PDL_Indx corners[$COMP(rdim) * $COMP(nitems)];
                  char boundary[$COMP(rdim)];
+                 char size_pdl_destroy;
+                 char ind_pdl_destroy;
                  ',
         MakeComp => <<'EOD-MakeComp',
 pdl *size_pdl;
 PDL_RETERROR(PDL_err, PDL->make_physdims(ind_pdl));
+$COMP(size_pdl_destroy) = $COMP(ind_pdl_destroy) = 0;
 
 /* Generalized empties are ok, but not in the special 0 dim (the index vector) */
 if(ind_pdl->dims[0] == 0)
@@ -711,6 +714,7 @@ switch(ind_pdl->datatype) {
  default:                              /* Most types: */
    ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
    if (!ind_pdl) $CROAK("Error in hard_copy");
+   $COMP(ind_pdl_destroy) = 1;
  case PDL_SB: case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_UL: case PDL_LL: case PDL_ULL:
    PDL_RETERROR(PDL_err, PDL->converttype(ind_pdl,PDL_IND)); /* convert in place. */
    break;
@@ -817,6 +821,7 @@ switch(ind_pdl->datatype) {
       default:                              /* Most types: */
         size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
         if (!size_pdl) $CROAK("Error in hard_copy");
+        $COMP(size_pdl_destroy) = 1;
       case PDL_SB: case PDL_B: case PDL_S: case PDL_US: case PDL_L: case PDL_UL: case PDL_LL: case PDL_ULL:
         PDL_RETERROR(PDL_err, PDL->converttype(size_pdl,PDL_IND)); /* convert in place. */
         break;
@@ -886,6 +891,10 @@ do {
   for(k=0; k<$COMP(itdim) && (++(iter[k]))>=($COMP(itdims)[k]) ;k++)
     iter[k] = 0;
 } while(k<$COMP(itdim));
+if ($COMP(ind_pdl_destroy))
+  PDL->destroy(ind_pdl); /* finished with our copy */
+if ($COMP(size_pdl_destroy))
+  PDL->destroy(size_pdl); /* finished with our copy */
 EOD-MakeComp
 
         RedoDims => <<'EOD-RedoDims' ,
