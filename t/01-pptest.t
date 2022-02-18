@@ -123,6 +123,12 @@ pp_deft('setdim',
 	Code => 'loop(n) %{ $a() = n; %}',
 );
 
+pp_deft("gelsd",
+        Pars => '[io,phys]A(m,n); [io,phys]B(p,q); [phys]rcond(); [o,phys]s(); int [o,phys]rank();int [o,phys]info()',
+        GenericTypes => ['F'],
+        Code => '$CROAK("croaking");'
+);
+
 pp_deft('fooseg',
         Pars => 'a(n);  [o]b(n);',
         Code => '
@@ -306,6 +312,14 @@ for (byte,short,ushort,long,float,double) {
 test_setdim(($x=null),10);
 is( join(',',$x->dims), "10" );
 ok( tapprox($x,sequence(10)) );
+
+{
+my @msg;
+local $SIG{__WARN__} = sub { push @msg, @_ };
+eval { nan(2,2)->test_gelsd(nan(2,2), -3) };
+like $@, qr/croaking/, 'right error message';
+is_deeply \@msg, [], 'no warnings' or diag explain \@msg;
+}
 
 # this used to segv under solaris according to Karl
 {

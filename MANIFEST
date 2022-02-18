@@ -171,6 +171,7 @@ Doc/mkpdlfuncpod
 Doc/README
 Doc/scantree.pl
 Doc/TODO
+Example/address-pseudonymise
 Example/Benchmark/Bench.pm
 Example/Benchmark/Bench.xs
 Example/Benchmark/Makefile.PL

@@ -1,0 +1,13 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my (%addr2number, $i);
+while (<>) {
+  s:^==\d+==:==[PID]==:;
+  s:0x([0-9a-f]+):
+    '[ADDR'.($addr2number{$1} //= ++$i).']'
+  :gie;
+  print;
+}

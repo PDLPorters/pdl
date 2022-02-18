@@ -3,6 +3,7 @@
 - fix 2.057_01 regression in {broadcast,thread}_define - thanks @eserte for report
 - fix regression of append allowing type upgrade to second argument's type
 - add empty() function
+- fix when readdata functions return error (#356)
 
 2.074 2022-02-08
 - fix PDL::Complex->null stringify error

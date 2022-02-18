@@ -16,8 +16,8 @@
     } \
     VTABLE_OR_DEFAULT(what, trans, redodims, redodims_default); \
   } while (0)
-#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_RETERROR, trans, readdata, readdata_affine)
-#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_RETERROR, trans, writebackdata, writebackdata_affine)
+#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, readdata, readdata_affine)
+#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, writebackdata, writebackdata_affine)
 #define FREETRANS(trans, destroy) \
     if(trans->vtable->freetrans) { \
 	PDLDEBUG_f(printf("call freetrans\n")); \
@@ -26,7 +26,7 @@
 	if (destroy) PDL_CLRMAGIC(trans); \
     }
 #define CHANGED(...) \
-    PDL_RETERROR(PDL_err, pdl_changed(__VA_ARGS__))
+    PDL_ACCUMERROR(PDL_err, pdl_changed(__VA_ARGS__))
 
 extern Core PDL;
 
@@ -50,7 +50,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
-	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(PDL_RETERROR, trans);
+	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(PDL_ACCUMERROR, trans);
 	for(j=0; j<vtable->npdls; j++)
 		if(trans->pdls[j]->trans_parent == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
@@ -60,9 +60,11 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 		  /* need to signal that redodims has already been called */
 		        trans->pdls[1]->state &= ~PDL_PARENTDIMSCHANGED;
 			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[1]));
-			PDL_RETERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
+			PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
 		} else
+{
 			READDATA(trans);
+}
 	}
 	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
@@ -297,7 +299,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 			  trans->vtable ? trans->vtable->name : "NULL",
 			  (void*)trans,ensure,ismutual));
 	if(ensure)
-		PDL_RETERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
+		PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
 	pdl *destbuffer[trans->vtable->npdls];
 	int ndest = 0;
 	if (ismutual) {
@@ -334,7 +336,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	free(trans->inc_sizes);
 	free(trans);
 	for(j=0; j<ndest; j++)
-		PDL_RETERROR(PDL_err, pdl_destroy(destbuffer[j]));
+		PDL_ACCUMERROR(PDL_err, pdl_destroy(destbuffer[j]));
 	PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", (void*)trans));
 	return PDL_err;
 }
@@ -677,7 +679,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 	    child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
   if (!dataflow)
-	PDL_RETERROR(PDL_err, pdl_destroytransform(trans,1,wd));
+	PDL_ACCUMERROR(PDL_err, pdl_destroytransform(trans,1,wd));
   PDLDEBUG_f(printf("make_trans_mutual exit %p\n",(void*)trans));
   return PDL_err;
 } /* pdl_make_trans_mutual() */
@@ -779,7 +781,7 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
 	pdl_trans *trans = it->trans_parent;
 	if((trans->flags & PDL_ITRANS_ISAFFINE) && (PDL_VAFFOK(it))) {
 	    PDLDEBUG_f(printf("pdl_changed: calling writebackdata_vaffine (pdl %p)\n",(void*)it));
-	    PDL_RETERROR(PDL_err, pdl_writebackdata_vaffine(it));
+	    PDL_ACCUMERROR(PDL_err, pdl_writebackdata_vaffine(it));
 	    CHANGED(it->vafftrans->from,what,0);
 	} else {
 	    PDLDEBUG_f(printf("pdl_changed: calling writebackdata from vtable, triggered by pdl %p, using trans %p\n",(void*)it,(void*)(trans)));

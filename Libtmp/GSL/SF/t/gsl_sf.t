@@ -59,7 +59,7 @@ my @warning;
 local $SIG{__WARN__} = sub { push @warning, @_ };
 my $err_test = eval {gsl_sf_lngamma(pdl(0))};
 isnt $@, '', "Got an error for invalid input";
-ok @warning > 0, 'Got warnings Ok';
+ok !@warning, 'no warnings' or diag explain \@warning;
 }
 
 ($y, my $e) = gsl_sf_airy_Ai(sequence(4));
