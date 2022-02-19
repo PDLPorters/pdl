@@ -233,7 +233,7 @@ pdl_error pdl_dim_checks(
     printf("  ind_sizes: "); pdl_print_iarr(ind_sizes, vtable->ninds);printf("\n"));
   for (i=0; i<vtable->npdls; i++) {
     PDL_Indx ninds = vtable->par_realdims[i];
-    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG"): ", i, creating[i], ninds));
+    PDLDEBUG_f(printf("pdl_dim_checks pdl %"IND_FLAG" (creating=%"IND_FLAG" ninds=%"IND_FLAG"): ", i, creating ? creating[i] : -99, ninds));
     pdl *pdl = pdls[i];
     PDL_Indx ndims = pdl->ndims;
     PDLDEBUG_f(pdl_dump(pdl));

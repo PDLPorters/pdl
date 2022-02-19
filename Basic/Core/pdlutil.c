@@ -23,6 +23,7 @@ do {                                            \
 /* modified from glibc printf(3) */
 pdl_error pdl_make_error(pdl_error_type e, const char *fmt, ...) {
   pdl_error PDL_err = {PDL_EFATAL, "make_error problem", 0};
+  PDLDEBUG_f(printf("pdl_make_error called: "));
   va_list ap;
   /* Determine required size */
   va_start(ap, fmt);
@@ -49,6 +50,7 @@ pdl_error pdl_make_error(pdl_error_type e, const char *fmt, ...) {
     va_end(ap);
     needs_free = 2;
   }
+  PDLDEBUG_f(printf("%s\n", p));
   return (pdl_error){e, p, needs_free};
 }
 
