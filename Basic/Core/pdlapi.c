@@ -28,7 +28,7 @@
 #define FREETRANS(trans, destroy) \
     if(trans->vtable->freetrans) { \
 	PDLDEBUG_f(printf("call freetrans\n")); \
-	PDL_err = trans->vtable->freetrans(trans, destroy); \
+	PDL_ACCUMERROR(PDL_err, trans->vtable->freetrans(trans, destroy)); \
 	    /* ignore error for now as need to still free rest */ \
 	if (destroy) PDL_CLRMAGIC(trans); \
     }
