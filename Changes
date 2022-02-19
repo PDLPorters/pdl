@@ -1,3 +1,4 @@
+2.075 2022-02-19
 - fix false-positive heredoc in bitshift (#383) - thanks @d-lamb for report
 - threading now called broadcasting (compat aliases created)
 - fix 2.057_01 regression in {broadcast,thread}_define - thanks @eserte for report
