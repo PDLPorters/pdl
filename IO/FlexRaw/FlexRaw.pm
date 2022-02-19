@@ -345,17 +345,15 @@ our @ISA = qw/Exporter/;
 our @EXPORT = qw/writeflex writeflexhdr readflex mapflex/;
 
 # Cast type numbers in concrete, for external file's sake...
-my %flexnames = ( map {(typefld($_,'numval') => typefld($_,'ioname'))}
-	       typesrtkeys());
-my %flextypes = ( map {(typefld($_,'ioname') => typefld($_,'numval'),
-		     typefld($_,'numval') => typefld($_,'numval'),
-		     lc typefld($_,'ppsym') =>  typefld($_,'numval'),
-		    )}
-	       typesrtkeys());
-my %flexswap = ( map {my $val = typefld($_,'numval');
-		   my $nb = PDL::Core::howbig($val);
+my %flexnames = map +($_->enum => $_->ioname), types();
+my %flextypes = map +($_->ioname => $_->enum,
+		     $_->enum => $_->enum,
+		     $_->ppsym => $_->enum,
+		    ), types();
+my %flexswap = map {
+		   my $nb = PDL::Core::howbig(my $val = $_->enum);
 		   ($val =>  $nb > 1 ? "bswap$nb" : undef)}
-	      typesrtkeys());
+	      types();
 
 our $verbose = 0;
 our $writeflexhdr //= 0;

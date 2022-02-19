@@ -6,9 +6,7 @@ use PDL::IO::FlexRaw;
 use File::Temp;
 use Test::More;
 
-our @types = map { print "making type $_\n";
-		   new PDL::Type typefld($_,'numval') }
-                   grep { ! m/^PDL_IND$/ } typesrtkeys();
+our @types = grep $_ != indx(), types();
 
 my $data = File::Temp::tmpnam();
 
