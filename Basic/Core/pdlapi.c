@@ -9,16 +9,16 @@
     : pdl_ ## default_func)(trans))
 
 #define REDODIMS(what, trans) do { \
-    if (trans->dims_redone) { \
-	FREETRANS(trans, 0); \
-	if (PDL_err.error) return PDL_err; \
-	trans->dims_redone = 0; \
-    } \
     if ((trans)->vtable->redodims) \
       what(PDL_err, pdl_dim_checks( \
 	(trans)->vtable, (trans)->pdls, \
 	NULL, NULL, \
 	(trans)->ind_sizes, 1)); \
+    if (trans->dims_redone) { \
+	FREETRANS(trans, 0); \
+	if (PDL_err.error) return PDL_err; \
+	trans->dims_redone = 0; \
+    } \
     what(PDL_err, ((trans)->vtable->redodims \
       ? (trans)->vtable->redodims \
       : pdl_redodims_default)(trans)); \
