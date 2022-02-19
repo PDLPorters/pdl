@@ -452,7 +452,7 @@ PDL::Types - define fundamental PDL Datatypes
 
 Internal module - holds all the PDL Type info.  The type info can be
 accessed easily using the C<PDL::Type> object returned by
-the L<type|PDL::Core/type> method.
+the L<type|PDL::Core/type> method as shown in the synopsis.
 
 Skip to the end of this document to find out how to change
 the set of types supported by PDL.
@@ -530,24 +530,6 @@ Returns an array of pp symbols for all types including complex.
 my @PPDEFS_ALL = map $_->{ppsym}, @HASHES;
 sub ppdefs_all { @PPDEFS_ALL }
 
-=head2 typefld
-
-=for ref
-
-Returns specified field (C<$fld>) for specified type (C<$type>)
-by querying type hash
-
-=for usage
-
-PDL::Types::typefld($type,$fld);
-
-=for example
-
- pdl> print PDL::Types::typefld('PDL_IND',realctype)
- long
-
-=cut
-
 sub typefld {
   my ($type,$fld) = @_;
   croak "unknown type $type" unless exists $typehash{$type};
@@ -555,32 +537,6 @@ sub typefld {
      unless exists $typehash{$type}->{$fld};
   return $typehash{$type}->{$fld};
 }
-
-=head2 mapfld
-
-Map a given source field to the corresponding target field by
-querying the type hash. This gives you a way to say, "Find the type
-whose C<$in_key> is equal to C<$value>, and return that type's value
-for C<$out_key>. For example:
-
- # Does byte type use nan?
- $uses_nan = PDL::Types::mapfld(byte => 'ppforcetype', 'usenan');
- # Equivalent:
- $uses_nan = byte->usenan;
- 
- # What is the actual C type for the value that we call 'long'?
- $type_name = PDL::Types::mapfld(long => 'convertfunc', 'realctype');
- # Equivalent:
- $type_name = long->realctype;
-
-As you can see, the equivalent examples are much shorter and legible, so you
-should only use mapfld if you were given the type index (in which case the
-actual type is not immediately obvious):
-
- $type_index = 4;
- $type_name = PDL::Types::mapfld($type_index => numval, 'realctype');
-
-=cut
 
 sub mapfld {
 	my ($type,$src,$trg) = @_;
@@ -605,6 +561,76 @@ sub typesynonyms {
         grep {"PDL_".typefld($_,'ppsym') ne typefld($_,'sym')} typesrtkeys;
   return "$add\n";
 }
+
+=head1 PDL TYPES OVERVIEW
+
+As of 2.065, PDL supports these types:
+
+=over
+
+=item SByte
+
+Signed 8-bit value.
+
+=item Byte
+
+Unsigned 8-bit value.
+
+=item Short
+
+Signed 16-bit value.
+
+=item UShort
+
+Unsigned 16-bit value.
+
+=item Long
+
+Signed 32-bit value.
+
+=item ULong
+
+Unsigned 32-bit value.
+
+=item Indx
+
+Signed value, same size as a pointer on the system in use.
+
+=item LongLong
+
+Signed 64-bit value.
+
+=item ULongLong
+
+Unsigned 64-bit value.
+
+=item Float
+
+L<IEEE 754|https://en.wikipedia.org/wiki/IEEE_754> single-precision real
+floating-point value.
+
+=item Double
+
+IEEE 754 double-precision real value.
+
+=item LDouble
+
+A C99 "long double", defined as "at least as precise as a double",
+but often more precise.
+
+=item CFloat
+
+A C99 complex single-precision floating-point value.
+
+=item CDouble
+
+A C99 complex double-precision floating-point value.
+
+=item CLDouble
+
+A C99 complex "long double" - see above for description.
+
+=back
 
 =head1 PDL::Type OBJECTS
 
@@ -778,7 +804,7 @@ use overload (
 
 __END__
 
-=head1 Adding/removing types
+=head1 DEVELOPER NOTES ON ADDING/REMOVING TYPEs
 
 You can change the types that PDL knows about by editing entries in
 the definition of the variable C<@types> that appears close to the
@@ -833,14 +859,13 @@ onecharident
 
 I<Optional>. Only required if the C<identifier> has more than one character.
 This should be a unique uppercase character that will be used to reference
-this type in PP macro expressions of the C<TBSULFD> type. If you don't
-know what I am talking about read the PP manpage or ask on the mailing list.
+this type in PP macro expressions of the C<TBSULFD> type - see L<PDL::PP/$T>.
 
 =item *
 
 pdlctype
 
-I<Required>. The C<typedefed> name that will be used to access this type
+I<Required>. The C<typedef>ed name that will be used to access this type
 from C code.
 
 =item *
