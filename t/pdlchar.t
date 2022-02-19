@@ -55,4 +55,10 @@ is("$varstr", $comp2);
 
 is +PDL::Char->new( "" ).'', q{'' };
 
+{
+my $cp = PDL::Char->new(['aa'..'af'],['ba'..'bf']);
+my $got = $cp->dice('X',[0],[0]);
+is $got.'', "[\n [ 'aa'  ] \n] \n", 'can dice a P:C' or diag $got;
+}
+
 done_testing;

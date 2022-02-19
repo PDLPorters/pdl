@@ -2086,7 +2086,7 @@ slice will change the parent.
 
 sub PDL::dice_axis {
   my($self,$axis,$idx) = @_;
-  my $ix = ref($self)->topdl($idx);
+  my $ix = PDL->topdl($idx);
   barf("dice_axis: index must be <=1D") if $ix->getndims > 1;
   return $self->mv($axis,0)->index1d($ix)->mv(0,$axis);
 }
