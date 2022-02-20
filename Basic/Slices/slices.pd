@@ -1729,7 +1729,8 @@ pp_def(
 =for ref
 
 Splits a dimension in the parent ndarray (opposite of L<clump|PDL::Core/clump>).
-As of 2.076, throws exception if non-divisible C<nsp> given.
+As of 2.076, throws exception if non-divisible C<nsp> given, and can
+give negative C<nthdim> which then counts backwards.
 
 =for example
 
@@ -1752,14 +1753,14 @@ EOD
                 PDL_Indx i = $COMP(nthdim);
                 PDL_Indx nsp = $COMP(nsp);
                 if(nsp == 0) {$CROAK("Cannot split to 0\n");}
-                if(i <0 || i >= $PARENT(ndims)) {
-                        $CROAK("nthdim %"IND_FLAG" must not be negative or greater or equal to number of dims %"IND_FLAG"\n",
+                if (i < 0)
+                        i = $COMP(nthdim) += $PARENT(ndims);
+                if (i < 0 || i >= $PARENT(ndims))
+                        $CROAK("nthdim %"IND_FLAG" after adjusting for negative must not be negative or greater or equal to number of dims %"IND_FLAG"\n",
                                 i, $PARENT(ndims));
-                }
-                if(nsp > $PARENT(dims[i])) {
+                if (nsp > $PARENT(dims[i]))
                         $CROAK("nsp %"IND_FLAG" cannot be greater than dim %"IND_FLAG"\n",
                                 nsp, $PARENT(dims[i]));
-                }
                 if (($PARENT(dims)[i] % nsp) != 0)
                         $CROAK("nsp %"IND_FLAG" non-divisible into dim %"IND_FLAG"\n",
                                 nsp, $PARENT(dims[i]));

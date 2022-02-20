@@ -234,6 +234,8 @@ $x = zeroes(3,3);
 $y = $x->splitdim(3,3);
 eval { $y->make_physdims };
 like($@, qr/splitdim:nthdim/, "make_physdim: Splitdim");
+$y = $x->splitdim(-1,1);
+is_deeply [$y->dims], [3,1,3], 'splitdims negative nthdim works' or diag explain [$y->dims];
 $y = $x->splitdim(1,1);
 is_deeply [$y->dims], [3,1,3], 'splitdims works' or diag explain [$y->dims];
 $y = $x->splitdim(1,2);
