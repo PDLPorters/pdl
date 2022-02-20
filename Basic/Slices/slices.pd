@@ -1728,11 +1728,12 @@ pp_def(
         Doc => <<'EOD',
 =for ref
 
-Splits a dimension in the parent ndarray (opposite of L<clump|PDL::Core/clump>)
-
-After
+Splits a dimension in the parent ndarray (opposite of L<clump|PDL::Core/clump>).
+As of 2.076, throws exception if non-divisible C<nsp> given.
 
 =for example
+
+After
 
  $y = $x->splitdim(2,3);
 
@@ -1759,6 +1760,9 @@ EOD
                         $CROAK("nsp %"IND_FLAG" cannot be greater than dim %"IND_FLAG"\n",
                                 nsp, $PARENT(dims[i]));
                 }
+                if (($PARENT(dims)[i] % nsp) != 0)
+                        $CROAK("nsp %"IND_FLAG" non-divisible into dim %"IND_FLAG"\n",
+                                nsp, $PARENT(dims[i]));
                 $PRIV(offs) = 0;
                 $SETNDIMS($PARENT(ndims)+1);
                 $DOPRIVALLOC();
