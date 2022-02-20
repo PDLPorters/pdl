@@ -221,8 +221,8 @@ pp_def('matmult',
 sub PDL::matmult {
     my ($x,$y,$c) = @_;
 
-    $y = pdl($y) unless eval { $y->isa('PDL') };
-    $c = PDL->null unless eval { $c->isa('PDL') };
+    $y = PDL->topdl($y);
+    $c = PDL->null unless do { local $@; eval { $c->isa('PDL') } };
 
     while($x->getndims < 2) {$x = $x->dummy(-1)}
     while($y->getndims < 2) {$y = $y->dummy(-1)}
@@ -2883,6 +2883,7 @@ sub PDL::interpND {
 
   } elsif($method =~ m/^f(ft|ourier)?/i) {
 
+     local $@;
      eval "use PDL::FFT;";
      my $fftref = $opt->{fft};
      $fftref = [] unless(ref $fftref eq 'ARRAY');
