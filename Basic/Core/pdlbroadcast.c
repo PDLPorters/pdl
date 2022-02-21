@@ -249,7 +249,7 @@ pdl_error pdl_dim_checks(
       ));
     } else {
       PDL_Indx *dims = pdl->dims;
-      if ((load_only || !creating[i]) && ninds > PDLMAX(0,ndims)) {
+      if ((load_only || (creating && !creating[i])) && ninds > PDLMAX(0,ndims)) {
 	/* Dimensional promotion when number of dims is less than required: */
 	for (j=0; j<ninds; j++) {
 	  ind_id = PDL_IND_ID(vtable, i, j);
@@ -259,7 +259,7 @@ pdl_error pdl_dim_checks(
       /* Now, the real check. */
       for (j=0; j<ninds; j++) {
 	ind_id = PDL_IND_ID(vtable, i, j);
-	if (load_only || !creating[i]) {
+	if (load_only || (creating && !creating[i])) {
 	  if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
 	    ind_sizes[ind_id] = dims[j];
 	  else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
