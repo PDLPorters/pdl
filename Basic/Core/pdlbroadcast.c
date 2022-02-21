@@ -259,7 +259,10 @@ pdl_error pdl_dim_checks(
       /* Now, the real check. */
       for (j=0; j<ninds; j++) {
 	ind_id = PDL_IND_ID(vtable, i, j);
-	if (load_only || (creating && !creating[i])) {
+	if (
+	  (load_only && !((vtable->par_flags[i] & PDL_PARAM_ISCREAT) && (pdl->state & PDL_MYDIMS_TRANS))) ||
+	  (creating && !creating[i])
+	) {
 	  if (ind_sizes[ind_id] == -1 || (ndims > j && ind_sizes[ind_id] == 1))
 	    ind_sizes[ind_id] = dims[j];
 	  else if (ndims > j && ind_sizes[ind_id] != dims[j] && dims[j] != 1)
