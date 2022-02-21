@@ -387,6 +387,7 @@ pdl_error pdl_destroy(pdl *it) {
     it->state |= PDL_DESTROYING;
     /* Clear the sv field so that there will be no dangling ptrs */
     if(it->sv) {
+	    SvOBJECT_off((SV *)it->sv);
 	    sv_setiv(it->sv,0x4242);
 	    it->sv = NULL;
     }
