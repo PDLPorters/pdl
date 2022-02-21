@@ -275,7 +275,7 @@ ok($null->isempty, "a null ndarray is empty") or diag $null->info;
 ok(!$empty->isnull, "an empty ndarray is not null");
 ok($empty->isempty, "an empty ndarray is empty");
 eval { $null->long };
-isnt $@, '', 'null->long no segfault';
+like $@, qr/null/, 'null->long gives right error';
 
 $x = short pdl(3,4,5,6);
 eval { $x->reshape(2,2);};

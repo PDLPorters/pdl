@@ -2656,6 +2656,7 @@ sub PDL::convert {
   barf 'Usage: $y = convert($x, $newtype)'."\n" if @_ != 2;
   my ($pdl,$type)= @_;
   $pdl = topdl($pdl); # Allow normal numbers
+  barf "Tried to convert(null)" if $pdl->isnull;
   $type = $type->enum if ref($type) eq 'PDL::Type';
   barf 'Usage: $y = convert($x, $newtype)'."\n" unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
