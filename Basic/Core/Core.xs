@@ -48,12 +48,11 @@ DESTROY(sv)
   PREINIT:
     pdl *self;
   CODE:
-    if (  !(  (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVHV) )  ) {
-       self = pdl_SvPDLV(sv);
-       PDLDEBUG_f(printf("DESTROYING %p\n",(void*)self);)
-       if (self != NULL)
-          pdl_barf_if_error(pdl_destroy(self));
-    }
+    if (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVHV) return;
+    self = pdl_SvPDLV(sv);
+    PDLDEBUG_f(printf("DESTROYING %p\n",(void*)self);)
+    if (self != NULL)
+      pdl_barf_if_error(pdl_destroy(self));
 
 # Return the transformation object or an undef otherwise.
 pdl_trans *
