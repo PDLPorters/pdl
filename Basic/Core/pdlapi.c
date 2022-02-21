@@ -642,7 +642,7 @@ static inline pdl_error pdl_trans_flow_null_checks(pdl_trans *trans, int *ret) {
     int state = trans->pdls[i]->state;
     if (state & PDL_NOMYDIMS)
       return pdl_make_error(PDL_EUSERERROR,
-	"Error in %s: input parameter '%s' is null\n",
+	"Error in %s: input parameter '%s' is null",
 	vtable->name, vtable->par_names[i]
       );
     if(state & PDL_DATAFLOW_ANY) pfflag++;

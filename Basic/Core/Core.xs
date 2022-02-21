@@ -554,6 +554,7 @@ _convert_int(self, new_dtype)
 	int new_dtype;
 	CODE:
 		RETVAL = pdl_get_convertedpdl(self, new_dtype);
+		if (!RETVAL) barf("convert error");
 	OUTPUT:
 		RETVAL
 
