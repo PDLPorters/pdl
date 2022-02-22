@@ -61,4 +61,5 @@ jobs:
       - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
           target-build-status: true
+          build-status-source: 'downstream'
           needs: ${{ toJSON(needs) }}
