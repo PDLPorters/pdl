@@ -210,7 +210,6 @@ L</matmult> method.
 
 EOD
 
-pp_add_exported('', 'matmult');
 pp_def('matmult',
 	HandleBad=>0,
 	Pars => 'a(t,h); b(w,t); [o]c(w,h);',
@@ -232,29 +231,22 @@ sub PDL::matmult {
 EOPM
 	Code => <<'EOC',
 	PDL_Indx ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
-        $GENERIC() *ad, *bd;
-        PDL_Indx atdi, btdi;
-	PDL_Indx tsiz = 64;
+	PDL_Indx tsiz = 8 * sizeof(double) / sizeof($GENERIC());
+
+	// Cache the dimincs to avoid constant lookups
+	// These two lines are what I wanted, but they break sometimes (dimincs not set right despite calling physdims?)
+	// I deleted them in favor of explicit offset calculation, which appears more robust.
+	// PDL->make_physdims($PDL(a));
+	// PDL->make_physdims($PDL(b));
+	// atdi = $PDL(a)->dimincs[0];
+	// btdi = $PDL(b)->dimincs[1];
+	PDL_Indx atdi = &($a(t=>1, h=>0)) - &($a(t=>0,h=>0));
+	PDL_Indx btdi = &($b(t=>1, w=>0)) - &($b(t=>0,w=>0));
 
 	// Zero the output
 	loop(w) %{
-		loop(h) %{
-			$c() = 0;
-		%}
+		loop(h) %{ $c() = 0; %}
 	%}
-
-	// Make sure we're physical
-	// (Not needed if we don't need dimincs, see below)
-	// PDL->make_physdims($PDL(a));
-	// PDL->make_physdims($PDL(b));
-
-        // Cache the dimincs to avoid constant lookups
-	// These two lines are what I wanted, but they break sometimes (dimincs not set right despite calling physdims?)
-	// I deleted them in favor of explicit offset calculation, which appears more robust.
-	//	atdi = $PDL(a)->dimincs[0];
-	//	btdi = $PDL(b)->dimincs[1];
-	atdi = &($a(t=>1, h=>0)) - &($a(t=>0,h=>0));
-	btdi = &($b(t=>1, w=>0)) - &($b(t=>0,w=>0));
 
 	// Loop over tiles
 	for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
@@ -268,18 +260,16 @@ EOPM
 
 	         for(  ih=oh; ih<hlim; ih++  ) {
 		    for(  iw=ow; iw<wlim; iw++  ) {
-		       $GENERIC() cc;
+		       // Cache the accumulated value for the output
+		       $GENERIC() cc = $c(w=>iw, h=>ih);
 
 		       // Cache data pointers before 't' run through tile
-		       ad = &($a(t=>ot, h=>ih));
-		       bd = &($b(w=>iw, t=>ot));
-
-		       // Cache the accumulated value for the output
-		       cc = $c(w=>iw, h=>ih);
+		       $GENERIC() *ad = &($a(t=>ot, h=>ih));
+		       $GENERIC() *bd = &($b(w=>iw, t=>ot));
 
 		       // Hotspot - run the 't' summation
 		       for( it=ot; it<tlim; it++  ) {
-		       	    cc += *ad * *bd;
+			    cc += *ad * *bd;
 			    ad += atdi;
 			    bd += btdi;
 		       }
@@ -1017,7 +1007,6 @@ EOD
 } # for: my $opt
 
 pp_add_exported('', 'clip');
-
 pp_addpm(<<'EOD');
 =head2 clip
 
@@ -1908,6 +1897,7 @@ sub PDL::randsym {
 EOD
 );
 
+pp_add_exported('','grandom');
 pp_addpm(<<'EOD');
 =head2 grandom
 
@@ -1939,19 +1929,15 @@ sub PDL::grandom {
    $x .= ndtri(randsym($x));
    return $x;
 }
-
 EOD
-
-pp_add_exported('','grandom');
 
 ###############################################################
 # binary searches in an ndarray; various forms
 ###############################################################
 
-pp_add_exported('','vsearch');
-
 # generic front end; defaults to vsearch_sample for backwards compatibility
 
+pp_add_exported('','vsearch');
 pp_addpm(<<'EOD');
 =head2 vsearch
 
@@ -3125,6 +3111,7 @@ EOD
 	   );
 }
 
+pp_add_exported("", 'where');
 pp_addpm(<<'EOD');
 =head2 where
 
@@ -3193,8 +3180,7 @@ sub PDL::where {
 
 EOD
 
-pp_add_exported("", 'where');
-
+pp_add_exported("", 'whereND');
 pp_addpm(<<'EOD');
 =head2 whereND
 
@@ -3284,8 +3270,7 @@ sub PDL::whereND :lvalue {
 
 EOD
 
-pp_add_exported("", 'whereND');
-
+pp_add_exported("", 'whichND');
 pp_addpm(<<'EOD');
 =head2 whichND
 
@@ -3389,16 +3374,13 @@ sub PDL::whichND {
 
   return $ind;
 }
-
 EOD
-
-pp_add_exported("", 'whichND');
 
 #
 # Set operations suited for manipulation of the operations above.
 #
 
-
+pp_add_exported("", 'setops');
 pp_addpm(<<'EOD');
 =head2 setops
 
@@ -3581,8 +3563,7 @@ sub PDL::setops {
 }
 EOD
 
-pp_add_exported("", 'setops');
-
+pp_add_exported("", 'intersect');
 pp_addpm(<<'EOD');
 =head2 intersect
 
@@ -3617,10 +3598,7 @@ sub PDL::intersect {
    return setops($_[0], 'AND', $_[1]);
 
 }
-
 EOD
-
-pp_add_exported("", 'intersect');
 
 pp_addpm({At=>'Bot'},<<'EOD');
 

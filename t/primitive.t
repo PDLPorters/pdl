@@ -303,7 +303,19 @@ my $pc = pdl [[ 1, 11],
       [ 8, 10],
       [ 2,  2]];
 my $res = $pa x $pb;
-ok(all approx($pc,$res));
+ok(all approx($pc,$res)) or diag "got: $res";
+$res = null;
+matmult($pa, $pb, $res);
+ok(all(approx $pc,$res), 'res=null') or diag "got: $res";
+my $pa_sliced = $pa->dummy(0, 3)->dummy(-1, 3)->make_physical->slice('(1),,,(1)');
+$res = $pa_sliced x $pb;
+ok(all approx($pc,$res)) or diag "got: $res";
+$res = zeroes(2, 3);
+matmult($pa, $pb, $res);
+ok(all(approx $pc,$res), 'res=zeroes') or diag "got: $res";
+$res = ones(2, 3);
+matmult($pa, $pb, $res);
+ok(all(approx $pc,$res), 'res=ones') or diag "got: $res";
 my $eq = float [[1,1,1,1]];  # a 4,1-matrix ( 1 1 1 1 )
 # Check collapse: output should be a 1x2...
 ok(all approx($eq x $pb  , pdl([[2,6]]) )); # ([4x1] x [2x4] -> [1x2])

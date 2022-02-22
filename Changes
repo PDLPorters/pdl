@@ -1,6 +1,7 @@
 - fix long-standing bug in dice that broke with PDL subclasses (#363)
 - remove docs for {type,map}fld
 - splitdim throws exception if non-divisible nsp given, can give negative dim
+- changed matmult tilesize from 64 to 8*sizeof(double)/sizeof(gentype) - performance increases 50%, comparable to reference LAPACK
 
 2.075 2022-02-19
 - fix false-positive heredoc in bitshift (#383) - thanks @d-lamb for report
