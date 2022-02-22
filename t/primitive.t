@@ -285,10 +285,11 @@ ok(tapprox($statsRes[4],13), "stats: trivial weights max" );
 ok(tapprox($statsRes[6],4.462), "stats: trivial weights rms");
 
 # complex matmult
-my $cm1 = cdouble(1, czip(1, 1), 1);
-my $cm2 = cdouble(2, 3, i());
-my $got = $cm1 x $cm2->dummy(0);
-ok all(approx $got, czip(5, 4)), 'complex matmult' or diag $got;
+my $cm1 = pdl('1 1+i 1');
+my $cm2 = pdl('2 3 i')->transpose;
+my $got = $cm1 x $cm2;
+ok all(approx $got, pdl('5+4i')), 'complex matmult' or diag $got;
+throws_ok { scalar $cm1->transpose x $cm2 } qr/mismatch/, 'good error on mismatch matmult';
 
 {
 my $pa = pdl [[ 1,  2,  3,  0],

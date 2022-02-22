@@ -201,7 +201,6 @@ matrix-multiply them:
   [4 8]
  ]
 
-
 INTERNALS
 
 The mechanics of the multiplication are carried out by the
@@ -212,7 +211,6 @@ L</matmult> method.
 EOD
 
 pp_add_exported('', 'matmult');
-
 pp_def('matmult',
 	HandleBad=>0,
 	Pars => 'a(t,h); b(w,t); [o]c(w,h);',
@@ -220,18 +218,14 @@ pp_def('matmult',
 	PMCode => <<'EOPM',
 sub PDL::matmult {
     my ($x,$y,$c) = @_;
-
     $y = PDL->topdl($y);
     $c = PDL->null unless do { local $@; eval { $c->isa('PDL') } };
-
     while($x->getndims < 2) {$x = $x->dummy(-1)}
     while($y->getndims < 2) {$y = $y->dummy(-1)}
-
     return ($c .= $x * $y) if( ($x->dim(0)==1 && $x->dim(1)==1) ||
                                ($y->dim(0)==1 && $y->dim(1)==1) );
-    if($y->dim(1) != $x->dim(0)) {
-        barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$x->dim(0),$x->dim(1),$y->dim(0),$y->dim(1),$x->dim(0),$y->dim(1)));
-    }
+    barf sprintf 'Dim mismatch in matmult of [%1$dx%2$d] x [%3$dx%4$d]: %1$d != %4$d',$x->dim(0),$x->dim(1),$y->dim(0),$y->dim(1)
+      if $y->dim(1) != $x->dim(0);
     PDL::_matmult_int($x,$y,$c);
     $c;
 }
