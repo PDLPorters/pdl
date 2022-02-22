@@ -106,7 +106,7 @@ type conversion, broadcasting etc.
 =head1 VECTORIZATION/BROADCASTING: METHOD AND NOMENCLATURE
 
 PDL provides vectorized operations via a built-in engine.
-Vectorization in PDL is called "broadcasting" (formerly, up to 2.075, "threading").
+Vectorization in PDL is called "broadcasting" (formerly, up to 2.074, "threading").
 The broadcasting engine implements simple rules for each operation.
 
 Each PDL object has a "shape" that is a generalized N-dimensional

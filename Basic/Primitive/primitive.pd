@@ -137,7 +137,7 @@ Row vectors are represented as (N x 1) two-dimensional PDLs, or you
 may be sloppy and use a one-dimensional PDL.  Column vectors are
 represented as (1 x N) two-dimensional PDLs.
 
-Threading occurs in the usual way, but as both the 0 and 1 dimension
+Broadcasting occurs in the usual way, but as both the 0 and 1 dimension
 (if present) are included in the operation, you must be sure that
 you don't try to broadcast over either of those dims.
 
