@@ -234,14 +234,8 @@ EOPM
 	PDL_Indx tsiz = 8 * sizeof(double) / sizeof($GENERIC());
 
 	// Cache the dimincs to avoid constant lookups
-	// These two lines are what I wanted, but they break sometimes (dimincs not set right despite calling physdims?)
-	// I deleted them in favor of explicit offset calculation, which appears more robust.
-	// PDL->make_physdims($PDL(a));
-	// PDL->make_physdims($PDL(b));
-	// atdi = $PDL(a)->dimincs[0];
-	// btdi = $PDL(b)->dimincs[1];
-	PDL_Indx atdi = &($a(t=>1, h=>0)) - &($a(t=>0,h=>0));
-	PDL_Indx btdi = &($b(t=>1, w=>0)) - &($b(t=>0,w=>0));
+	PDL_Indx atdi = PDL_REPRINCS($PDL(a))[0];
+	PDL_Indx btdi = PDL_REPRINCS($PDL(b))[1];
 
 	// Zero the output
 	loop(w) %{
