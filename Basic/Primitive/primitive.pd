@@ -237,17 +237,17 @@ EOPM
 	PDL_Indx atdi = PDL_REPRINCS($PDL(a))[0];
 	PDL_Indx btdi = PDL_REPRINCS($PDL(b))[1];
 
-	// Zero the output
-	loop(w) %{
-		loop(h) %{ $c() = 0; %}
-	%}
-
 	// Loop over tiles
 	for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
 	   hlim = PDLMIN(oh + tsiz, $SIZE(h));
 
 	   for(   ow=0;   ow < $SIZE(w);   ow += tsiz   ) {
 	      wlim = PDLMIN(ow + tsiz, $SIZE(w));
+
+	      // Zero the output for this tile
+	      for(  ih=oh; ih<hlim; ih++  )
+		 for(  iw=ow; iw<wlim; iw++  )
+		    $c(w=>iw, h=>ih) = 0;
 
 	      for(   ot=0;   ot < $SIZE(t);  ot += tsiz   ) {
 	         tlim = PDLMIN(ot + tsiz, $SIZE(t));
