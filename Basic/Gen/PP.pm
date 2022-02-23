@@ -1558,9 +1558,9 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("PdlDoc", ["Name",\"Pars","OtherPars","Doc",\"BadDoc"],
       sub {
         my ($name,$pars,$otherpars,$doc,$baddoc) = @_;
-        return '' if !defined $doc # Allow explcit non-doc using Doc=>undef
+        return '' if !defined $doc # Allow explicit non-doc using Doc=>undef
             or $doc =~ /^\s*internal\s*$/i;
-        # If the doc string is one line let's have to for the
+        # If the doc string is one line let's have two for the
         # reference card information as well
         $doc = "=for ref\n\n".$doc if $doc !~ /\n/;
         $::DOCUMENTED++;
