@@ -137,9 +137,14 @@ $pa = pdl(5,3,2);
 $c = translate_and_run 'my $method = "dim"; $pa->$method(0)';
 is($c, $pa->dim(0));
 
-#$PDL::NiceSlice::debug_filter = 1;
-eval { require './t/bitshift.pm' };
-is $@, '', '<<= followed by >>= not blow up NiceSlice';
+translate_and_run <<'EOF';
+sub f {
+  my ($pa, $pb) = @_;
+  $pa <<= 2;
+  $pb >>= 1;
+}
+EOF
+pass '<<= followed by >>= not blow up NiceSlice';
 
 #
 # todo ones

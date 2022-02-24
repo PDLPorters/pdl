@@ -121,7 +121,6 @@ Basic/SourceFilter/local.perldlrc
 Basic/SourceFilter/Makefile.PL
 Basic/SourceFilter/ModuleCompile.pm
 Basic/SourceFilter/NiceSlice.pm
-Basic/SourceFilter/t/bitshift.pm
 Basic/SourceFilter/t/niceslice-utilcall.t
 Basic/SourceFilter/t/niceslice.t
 Basic/Ufunc/Makefile.PL
