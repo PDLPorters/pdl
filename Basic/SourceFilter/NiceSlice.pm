@@ -29,7 +29,7 @@ use warnings;
 our $VERSION = '1.001';
 $VERSION = eval $VERSION;
 
-$PDL::NiceSlice::debug = defined($PDL::NiceSlice::debug) ? $PDL::NiceSlice::debug : 0;
+$PDL::NiceSlice::debug //= 0;
 # replace all occurrences of the form
 #
 #   $pdl(args);
@@ -442,11 +442,11 @@ sub splitprotected ($$) {
 #  ->(
 #
 # used as the prefix pattern for findslice
+my $wspat = qr/(?:\s|$RE_cmt|\Q$;\E.{4}\Q$;\E)*/; # last bit Filter::Simple
 my $prefixpat = qr/.*?  # arbitrary leading stuff
                    ((?<!&)\$\w+  # $varname not preceded by '&'
                     |->)         # or just '->'
-                    (\s|$RE_cmt)* # ignore comments
-		    \s*          # more whitespace
+                   $wspat
                    (?=\()/smx;   # directly followed by open '(' (look ahead)
 
 # translates a single arg into corresponding slice format
@@ -516,9 +516,9 @@ sub findslice {
       if $verbose;
 
 #  Do final check for "for $var(LIST)" and "foreach $var(LIST)" syntax. 
-#  Process into an 'slice' call only if it's not that.
+#  Process into a 'slice' call only if it's not that.
 
-    if ($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+(\s|$RE_cmt)*$/s ||
+    if ($prefix =~ m/for(?:each)?\b(?:$wspat(?:my|our))?$wspat\$\w+$wspat$/s ||
       # foreach statement: Don't translate
 	$prefix =~ m/->\s*\$\w+$/s) # e.g. $x->$method(args)
       # method invocation via string, don't translate either
@@ -526,7 +526,7 @@ sub findslice {
 	# note: even though we reject this one we need to call
         #       findslice on $found in case
 	#       it contains slice expressions
-      $processed .= "$prefix".findslice($found);
+      $processed .= $prefix.findslice($found,$verbose);
     } else {      # statement is a real slice and not a foreach
 
       my ($call,$pre,$post,$arg);
@@ -556,7 +556,7 @@ sub findslice {
 	    if ($mod1 eq '?') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
 	      $call = 'where';
-	      $arg = "(" . findslice($slicearg) . ")";
+	      $arg = "(" . findslice($slicearg,$verbose) . ")";
 	      # $post = ''; # no post action required
 	    } elsif ($mod1 eq '_') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
@@ -597,7 +597,7 @@ sub findslice {
       # assumption here: sever should be last
       # and order of other modifiers doesn't matter
       $post = join '', sort @post; # need to ensure that sever is last
-      $processed .= "$prefix". ($prefix =~ /->(\s*$RE_cmt*)*$/ ? 
+      $processed .= $prefix. ($prefix =~ /->$wspat$/ ?
 				'' : '->').
 	$pre.$call.$arg.$post.$mypostfix;
     }
@@ -609,7 +609,7 @@ sub findslice {
   # append the remaining text portion
   #     use substr only if we have had at least one pass
   #     through above loop (otherwise pos is uninitialized)
-  $processed .= $ct > 0 ? substr $src, pos($src) : $src;
+  $processed . ($ct > 0 ? substr $src, pos($src) : $src);
 }
 
 ##############################
@@ -689,7 +689,7 @@ sub perldlpp {
 	     $_="";
 	 }
 	 $_ = $data;
-	 $_ = findslice $_ ;
+	 $_ = findslice $_, $PDL::NiceSlice::debug ;
 	 $_ .= "no $class;\n" if $off;
 	 $_ .= "$end\n" if $end;
 	 $new .= "$_";

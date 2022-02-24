@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use PDL::LiteF;
+#BEGIN { $PDL::NiceSlice::debug = $PDL::NiceSlice::debug_filter = 1 }
 require PDL::NiceSlice;
 
 # these are accessible inside sub
@@ -11,14 +12,24 @@ my $c = PDL->pdl(7,6);
 my $idx = pdl 1,4,5;
 my $rg = pdl(2,7,2);
 
+require Filter::Simple;
+require PDL::NiceSlice::FilterSimple;
+my $fs_like = Filter::Simple::gen_std_filter_for(code_no_comments => \&PDL::NiceSlice::FilterSimple::code_no_comments);
+$fs_like = sub { $_ = PDL::NiceSlice::findslice($_, $PDL::NiceSlice::debug_filter) } if $::UC;
+
 sub translate_and_run {
   local $Test::Builder::Level = $Test::Builder::Level + 1;
   my ($txt, $expected_error) = @_;
   $expected_error ||= qr/^$/;
   my $retval = eval {
-    my $etxt = PDL::NiceSlice::findslice($txt);
-    note "$txt -> \n\t$etxt\n";
-    eval $etxt;
+    local $_ = $txt;
+    $fs_like->('main');
+    my $etxt = $_;
+#    note "$txt -> \n\t$etxt\n";
+    $etxt =~ s/^\s*print\b/die/;
+    my $retval = eval $etxt;
+    die $@ if $@;
+    $retval;
   };
   like $@, $expected_error;
   $retval;
@@ -191,21 +202,24 @@ $pa = ones(10);
 my $ai = translate_and_run 'my $i = which $pa < 0; $pa($i);';
 ok(isempty $ai );
 
-{
-my $expected = q{
-CREATE TABLE $table (
-CHECK ( yr = $yr )
-) INHERITS ($schema.master_table)
-};
-use PDL::NiceSlice;
-my $got = q{
-CREATE TABLE $table (
-CHECK ( yr = $yr )
-) INHERITS ($schema.master_table)
-};
-is $got, $expected, 'NiceSlice leaves strings along';
+if (!$::UC) {
+  # this is broken in the FilterUtilCall module so don't test it
+  my $expected = q{
+  CREATE TABLE $table (
+  CHECK ( yr = $yr )
+  ) INHERITS ($schema.master_table)
+  };
+  my $got = translate_and_run 'q{
+  CREATE TABLE $table (
+  CHECK ( yr = $yr )
+  ) INHERITS ($schema.master_table)
+  }';
+  is $got, $expected, 'NiceSlice leaves strings along';
+}
 
-if (!($::UC = $::UC)) {
+{
+use PDL::NiceSlice;
+if (!$::UC) {
 my $data = join '', <DATA>;
 like $data, qr/we've got data/, "we've got data";
 }
