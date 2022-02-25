@@ -52,6 +52,7 @@ require PDL; # get PDL version number
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
 
+BEGIN {
 # this is purely for performance reasons - patch: https://github.com/steve-m-hay/Text-Balanced/pull/5
 my %ref_not_regex = map +($_=>1), qw(CODE Text::Balanced::Extractor);
 sub my_extract_multiple (;$$$$)	# ($text, $functions_ref, $max_fields, $ignoreunknown)
@@ -153,7 +154,7 @@ sub my_extract_multiple (;$$$$)	# ($text, $functions_ref, $max_fields, $ignoreun
 	       pos $$textref = $firstpos };
 	return $fields[0];
 }
-# fixes false-positive heredoc - patch: https://github.com/steve-m-hay/Text-Balanced/pull/6
+# fixes false-positive heredoc and false-match {y=>1} in 2.04 - patch: https://github.com/steve-m-hay/Text-Balanced/pull/6
 my %mods   = (
     'none' => '[cgimsox]*', 'm'=>'[cgimsox]*', 's'=>'[cegimsox]*',
     'tr'=> '[cds]*', 'y'=> '[cds]*', 'qq'=> '', 'qx'=> '', 'qw'=> '',
@@ -267,9 +268,16 @@ sub my_match_quotelike($$$$)      # ($textref, $prepat, $allow_raw_match)
     $$textref =~ m/\G\s*/gc;
     $ld1pos = pos($$textref);
     $str1pos = $ld1pos+1;
-    unless ($$textref =~ m/\G(\S)/gc)   # SHOULD USE LOOKAHEAD
+    if ($$textref !~ m/\G(\S)/gc)   # SHOULD USE LOOKAHEAD
     {
         Text::Balanced::_failmsg "No block delimiter found after quotelike $op",
+                 pos $$textref;
+        pos $$textref = $startpos;
+        return;
+    }
+    elsif (substr($$textref, $ld1pos, 2) eq '=>')
+    {
+        Text::Balanced::_failmsg "quotelike $op was actually quoted by '=>'",
                  pos $$textref;
         pos $$textref = $startpos;
         return;
@@ -359,7 +367,48 @@ sub my_extract_quotelike (;$$)
                   @match[20,21],                          # ANY FILLET?
                  );
 }
-BEGIN {
+# fix for problem identified by Ingo - no point in submitting patch to p5p until above Text-Balanced PR is merged and released
+my $ncws = qr/\s+/;
+my $comment = qr/(?<![\$\@%])#.*/;
+my $id = qr/\b(?!([ysm]|q[rqxw]?|tr)\b)\w+/;
+my $EOP = qr/\n\n|\Z/;
+my $CUT = qr/\n=cut.*$EOP/;
+my $pod_or_DATA = qr/
+              ^=(?:head[1-4]|item) .*? $CUT
+            | ^=pod .*? $CUT
+            | ^=for .*? $CUT
+            | ^=begin .*? $CUT
+            | ^__(DATA|END)__\r?\n.*
+            /smx;
+my %extractor_for = (
+    code_no_comments
+               => [ { DONT_MATCH => $comment },
+                    $ncws, { DONT_MATCH => $pod_or_DATA }, \&Text::Balanced::extract_variable,
+                    $id, { DONT_MATCH => \&my_extract_quotelike }   ],
+);
+use Filter::Simple ();
+my $orig_gen_std_filter_for = \&Filter::Simple::gen_std_filter_for;
+sub my_gen_std_filter_for {
+    my ($type, $transform) = @_;
+    goto &$orig_gen_std_filter_for if !$extractor_for{$type};
+    return sub {
+        my $instr;
+        my @components;
+        for (my_extract_multiple($_,$extractor_for{$type})) {
+            if (ref())     { push @components, $_; $instr=0 }
+            elsif ($instr) { $components[-1] .= $_ }
+            else           { push @components, $_; $instr=1 }
+        }
+        my $count = 0;
+        my $extractor =      qr/\Q$;\E(.{4})\Q$;\E/s;
+        $_ = join "",
+              map { ref $_ ? $;.pack('N',$count++).$; : $_ }
+                  @components;
+        @components = grep { ref $_ } @components;
+        $transform->(@_);
+        s/$extractor/${$components[unpack('N',$1)]}/g;
+    }
+}
 # override the current extract_quotelike() routine
 # needed before using Filter::Simple to work around a bug
 # between Text::Balanced and Filter::Simple for our purpose.
@@ -367,6 +416,7 @@ no warnings 'redefine';
 *Text::Balanced::extract_quotelike = \&my_extract_quotelike;
 *Text::Balanced::_match_quotelike = \&my_match_quotelike;
 *Text::Balanced::extract_multiple = \&my_extract_multiple;
+*Filter::Simple::gen_std_filter_for = \&my_gen_std_filter_for;
 }
 
 # a call stack for error processing

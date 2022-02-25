@@ -31,7 +31,7 @@ sub translate_and_run {
     die $@ if $@;
     $retval;
   };
-  like $@, $expected_error;
+  like $@, $expected_error, 'error as expected';
   $retval;
 }
 
@@ -177,13 +177,9 @@ is($c, $pa->at(0));
 
 $pa = ''; # foreach and whitespace + comments
 translate_and_run << 'EOT';
-
 foreach  my $pb # a random comment thrown in
-
 (1,2,3,4) {$pa .= $pb;}
-
 EOT
-
 is($pa, '1234');
 
 # test for correct header propagation
@@ -206,6 +202,12 @@ if ( !$@ ) {
 $pa = ones(10);
 my $ai = translate_and_run 'my $i = which $pa < 0; $pa($i);';
 ok(isempty $ai );
+
+translate_and_run <<'EOF';
+my $p = {y => 1};
+{ $pa=ones(3,3,3); my $f = do { my $i=1; my $v=$$p{y}-$i; $pb = $pa(,$i,) }; }
+EOF
+pass 'obscure bug where "y" treated as tr/// in 2-deep {}';
 
 if (!$::UC) {
   # this is broken in the FilterUtilCall module so don't test it
