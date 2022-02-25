@@ -1,3 +1,4 @@
+2.076 2022-02-25
 - fix long-standing bug in dice that broke with PDL subclasses (#363)
 - remove docs for {type,map}fld
 - splitdim throws exception if non-divisible nsp given, can give negative dim
