@@ -37,6 +37,9 @@ like $@, qr/multielement ndarray in 'sclr' call/, "sclr failed on multi-element 
 eval { $c_dbl->sclr };
 like $@, qr/multielement ndarray in 'sclr' call/, "sclr failed on multi-element ndarray (dbl)";
 
+eval { zeroes(0)->max ? 1 : 0 };
+like $@, qr/bad.*conditional/, 'badvalue as boolean is error';
+
 # test reshape barfing with negative args
 #
 eval 'my $d_long = $a_long->reshape(0,-3);';

@@ -194,11 +194,11 @@ $x=$x->setbadif($x==4);
 my $y = eval { pdl($x,5) };
 is $@, '', "a badvalue PDL works in the constructor";
 ok( $y->badflag, "bad value propagates from inner PDL to constructed PDL" );
-ok( $y->slice("(1),(0)") == $y->badvalue, "bad value was passed in" );
+is( $y->slice("(1),(0)").'', 'BAD', "bad value was passed in" );
 ok( $y->at(1,1) == 0, "padding was correct" );
-eval '$y = pdl(short, $x, 5);';
+eval { $y = pdl(short, $x, 5) };
 is $@, '', "constructed a short PDL";
-ok( $y->slice("(1),(0)") == $y->badvalue, "bad value was translated" );
+is( $y->slice("(1),(0)").'', 'BAD', "bad value was translated" );
 ok( $y->at(1,1) == 0, "padding was correct");
 
 {

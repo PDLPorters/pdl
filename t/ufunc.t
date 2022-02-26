@@ -118,24 +118,12 @@ EOF
 my $empty = which(ones(5)>5);
 $x = $empty->double->maximum;
 ok( $x->nelem==1, "maximum over an empty dim yields 1 value");
-ok(!($x*0==0), "max of empty nonbad float gives NaN");
-$x = $empty->byte->maximum;
-ok($x==0, "max of empty nonbad int type gives 0");
+is $x.'', 'BAD', "max of empty nonbad float gives BAD";
 
-# test bad value handling with pctover and max
-#
+# test bad value handling with max
 $empty->badflag(1);
 $x = $empty->maximum;
 ok( $x->isbad, "bad flag gets set on max over an empty dim");
-my $xbad = $x;
-$xbad->badflag(1);
-$xbad->inplace->setvaltobad(7);
-my $xgood = $xbad->where($xbad->isgood);
-my $allbad = $xbad->where($xbad->isbad);
-ok( $xbad->pctover(0.1) == $xgood->pctover(0.1), "pctover(0.1) badvals" );
-ok( $xbad->pctover(0.9) == $xgood->pctover(0.9), "pctover(0.9) badvals" );
-ok( $allbad->pctover(0.1)->isbad, "pctover(0.1) all badvals" );
-ok( $allbad->pctover(0.9)->isbad, "pctover(0.9) all badvals" );
 
 #Test subroutines directly.
 

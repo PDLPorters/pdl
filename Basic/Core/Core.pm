@@ -782,6 +782,8 @@ sub topdl {PDL->topdl(@_)}
       return 0 if $_[0]->isnull;
       confess("multielement ndarray in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
         unless $_[0]->nelem == 1;
+      confess("bad value ndarray in conditional expression")
+        if $_[0]->badflag and $_[0].'' eq 'BAD';
       $_[0]->clump(-1)->at(0);
     },
     ;

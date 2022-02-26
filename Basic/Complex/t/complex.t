@@ -12,6 +12,13 @@ sub tapprox {
 	$d < 0.0001;
 }
 
+# capture error in PDL::LinearAlgebra
+{
+my $info = bless pdl(1), 'PDL::Complex';
+eval { $info ? 1 : 0 };
+is $@, '', 'no error in comparison';
+}
+
 #Type of cplx and cmplx
 my $x=PDL->sequence(2);
 my $y=$x->cplx;
