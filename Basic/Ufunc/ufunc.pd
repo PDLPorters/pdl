@@ -361,20 +361,9 @@ for my $which (
 	    '$GENERIC() cur = 0;
 	     int flag = 0;
 	     loop(n) %{
-		if( !flag || ($a() '.$op.' cur ) || PDL_ISNAN_$PPSYM()(cur) ) { cur = $a(); flag = 1;}
-	     %}
-	     if(flag && !PDL_ISNAN_$PPSYM()(cur)) {
-		     $c() = cur;
-             } else {
-	             $SETBAD(c());
-		     $PDLSTATESETBAD(c);
-             }
-		     ',
-	    BadCode =>
-	    '$GENERIC() cur = 0;
-             int flag = 0;
-	     loop(n) %{
-		if( $ISGOOD(a()) && ($a()*0 == 0) && (!flag || $a() '.$op.' cur)) {cur = $a(); flag = 1;}
+		PDL_IF_BAD(if ($ISBAD(a())) continue;,)
+		if( !flag || ($a() '.$op.' cur ) || PDL_ISNAN_$PPSYM()(cur) )
+                  {cur = $a(); flag = 1;}
 	     %}
              if ( flag ) { $c() = cur; }
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
@@ -384,7 +373,7 @@ for my $which (
 'Output is set bad if no elements of the input are non-bad,
 otherwise the bad flag is cleared for the output ndarray.
 
-Note that C<NaNs> are considered to be valid values;
+Note that C<NaNs> are considered to be valid values and will "win" over non-C<NaN>;
 see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
 for ways of masking NaNs.
 ',
@@ -399,30 +388,22 @@ for ways of masking NaNs.
 	    '$GENERIC() cur = 0;
              PDL_Indx curind = -1;
 	     loop(n) %{
+		PDL_IF_BAD(if ($ISBAD(a())) continue;,)
 		if(curind == -1 || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur))
 		   {cur = $a(); curind = n;}
 	     %}
-	     if(curind != -1 && !PDL_ISNAN_$PPSYM()(cur)) {
-	       $c() = curind;
-	     } else {
-	          $SETBAD(c());
-                  $PDLSTATESETBAD(c);
-	     }
-	       ',
-	    BadCode =>
-	    '$GENERIC() cur = 0;
-             PDL_Indx curind = -1;
-	     loop(n) %{
-		if( $ISGOOD(a()) && (curind == -1 || $a() '.$op.' cur))
-                   {cur = $a(); curind = n;}
-	     %}
-             if ( curind != -1 && !PDL_ISNAN_$PPSYM()(cur) ) { $c() = curind; }
+             if ( curind != -1 ) { $c() = curind; }
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    CopyBadStatusCode => '',
 	    Doc => "Like $name but returns the index rather than the value",
 	    BadDoc =>
-'Output is set bad if all elements of the input are bad,
-otherwise the bad flag is cleared for the output ndarray.',
+'Output is set bad if no elements of the input are non-bad,
+otherwise the bad flag is cleared for the output ndarray.
+
+Note that C<NaNs> are considered to be valid values and will "win" over non-C<NaN>;
+see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
+for ways of masking NaNs.
+',
 	    );
     synonym("${name}_ind", "${synonym}_ind");
 
