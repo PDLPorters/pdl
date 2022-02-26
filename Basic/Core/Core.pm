@@ -774,7 +774,17 @@ sub topdl {PDL->topdl(@_)}
 ####################### Overloaded operators #######################
 
 { package PDL;
-  use overload '""'  =>  \&PDL::Core::string;
+  use Carp;
+  use overload
+    '""' => \&PDL::Core::string,
+    "=" => sub {$_[0]},          # Don't deep copy, just copy reference
+    bool => sub {
+      return 0 if $_[0]->isnull;
+      confess("multielement ndarray in conditional expression (see PDL::FAQ questions 6-10 and 6-11)")
+        unless $_[0]->nelem == 1;
+      $_[0]->clump(-1)->at(0);
+    },
+    ;
 }
 
 ##################### Data type/conversion stuff ########################
