@@ -381,7 +381,7 @@ for my $which (
 	    CopyBadStatusCode => '',
 	    Doc => projectdocs($name,$name,''),
 	    BadDoc =>
-'Output is set bad if all elements of the input are bad,
+'Output is set bad if no elements of the input are non-bad,
 otherwise the bad flag is cleared for the output ndarray.
 
 Note that C<NaNs> are considered to be valid values;
