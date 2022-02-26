@@ -1,4 +1,5 @@
 - Ufunc::{min,max}over{,_ind} behaviour for NaNs fixed to match docs
+- Ufunc::{min,max}over_n_ind can handle badvals
 
 2.076 2022-02-25
 - fix long-standing bug in dice that broke with PDL subclasses (#363)

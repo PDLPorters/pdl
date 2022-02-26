@@ -409,7 +409,7 @@ for ways of masking NaNs.
 
     pp_def(
 	    "${name}_n_ind",
-	    HandleBad => 0,   # just a marker
+	    HandleBad => 1,
 	    Pars => 'a(n); indx [o]c(m);',
 	    OtherPars => 'PDL_Indx m_size => m;',
 	    PMCode => PDL::PP::pp_line_numbers(__LINE__, <<EOF),
@@ -418,13 +418,15 @@ sub PDL::${name}_n_ind {
   \$m_size //= ref(\$c) ? \$c->dim(0) : \$c; # back-compat with pre-2.077
   my \$set_out = 1;
   \$set_out = 0, \$c = null if !ref \$c;
+  \$c = \$c->indx if !\$c->isnull;
   PDL::_${name}_n_ind_int(\$a, \$c, \$m_size);
   \$set_out ? \$_[1] = \$c : \$c;
 }
 EOF
 	    Code =>
 	    '$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
-	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
+	     if($SIZE(m) > $SIZE(n)) $CROAK("m_size > n_size");
+	     $PDLSTATESETGOOD(c);
 	     loop(m) %{
 		 curind = ns;
 		 loop(n) %{
@@ -433,26 +435,37 @@ EOF
 				if($c(m=>nm) == n) {flag=1; break;}
 			}
 			if(!flag &&
+			   PDL_IF_BAD($ISGOOD(a()) &&,)
 			   ((curind == ns) || $a() '.$op.' cur || PDL_ISNAN_$PPSYM()(cur)))
 				{cur = $a(); curind = n;}
 		 %}
-		 $c() = curind;
+		 if (curind != ns) { $c() = curind; }
+		 else              { $SETBAD(c()); $PDLSTATESETBAD(c); }
 	     %}',
+	    CopyBadStatusCode => '',
 	    Doc => <<EOF,
 =for ref
 
 Returns the index of C<m_size> $name elements. As of 2.077, you can
-specify how many by either passing in an ndarray of the given size,
-or just the size, or a null and the size.
+specify how many by either passing in an ndarray of the given size
+(DEPRECATED - will be converted to indx if needed and the input arg will
+be set to that), or just the size, or a null and the size.
 
 =for usage
 
-  ${name}_n_ind(\$pdl, \$out = zeroes(5));
+  ${name}_n_ind(\$pdl, \$out = zeroes(5)); # DEPRECATED
   \$out = ${name}_n_ind(\$pdl, 5);
   ${name}_n_ind(\$pdl, \$out = null, 5);
 
 EOF
-	    BadDoc => 'Not yet been converted to ignore bad values',
+	    BadDoc =>
+'Output bad flag is cleared for the output ndarray if sufficient non-bad elements found,
+else remaining slots in C<$c()> are set bad.
+
+Note that C<NaNs> are considered to be valid values and will "win" over non-C<NaN>;
+see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
+for ways of masking NaNs.
+',
 	    );
     synonym("${name}_n_ind", "${synonym}_n_ind");
 } # foreach: $which

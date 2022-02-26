@@ -52,6 +52,18 @@ $q = minimum_n_ind($p, 5);
 ok(tapprox($q, pdl(0, 6, 7, 1, 9)), "minimum_n_ind usage 2");
 minimum_n_ind($p, $q = null, 5);
 ok(tapprox($q, pdl(0, 6, 7, 1, 9)), "minimum_n_ind usage 3");
+$p = pdl '[1 BAD 3 4 7 9 1 1 6 2 5]';
+$q = zeroes 5;
+minimum_n_ind $p, $q;
+is $q.'', '[0 6 7 9 2]', "minimum_n_ind BAD";
+$p = pdl '[1 BAD 3 4 BAD BAD]';
+$q = zeroes 5;
+minimum_n_ind $p, $q;
+is $q.'', '[0 2 3 BAD BAD]', "minimum_n_ind insufficient good";
+$p = pdl '[1 BAD 3 4 BAD BAD 3 1 5 8 9]';
+$q = zeroes 5;
+minimum_n_ind $p, $q;
+is $q.'', '[0 7 2 6 3]', "minimum_n_ind some bad, sufficient good";
 
 ##############################
 # check that our random functions work with Perl's srand
