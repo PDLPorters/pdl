@@ -411,6 +411,17 @@ for ways of masking NaNs.
 	    "${name}_n_ind",
 	    HandleBad => 0,   # just a marker
 	    Pars => 'a(n); indx [o]c(m);',
+	    OtherPars => 'PDL_Indx m_size => m;',
+	    PMCode => PDL::PP::pp_line_numbers(__LINE__, <<EOF),
+sub PDL::${name}_n_ind {
+  my (\$a, \$c, \$m_size) = \@_;
+  \$m_size //= ref(\$c) ? \$c->dim(0) : \$c; # back-compat with pre-2.077
+  my \$set_out = 1;
+  \$set_out = 0, \$c = null if !ref \$c;
+  PDL::_${name}_n_ind_int(\$a, \$c, \$m_size);
+  \$set_out ? \$_[1] = \$c : \$c;
+}
+EOF
 	    Code =>
 	    '$GENERIC() cur = 0; PDL_Indx curind; register PDL_Indx ns = $SIZE(n);
 	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
@@ -427,7 +438,20 @@ for ways of masking NaNs.
 		 %}
 		 $c() = curind;
 	     %}',
-	    Doc => "Returns the index of C<m> $name elements",
+	    Doc => <<EOF,
+=for ref
+
+Returns the index of C<m_size> $name elements. As of 2.077, you can
+specify how many by either passing in an ndarray of the given size,
+or just the size, or a null and the size.
+
+=for usage
+
+  ${name}_n_ind(\$pdl, \$out = zeroes(5));
+  \$out = ${name}_n_ind(\$pdl, 5);
+  ${name}_n_ind(\$pdl, \$out = null, 5);
+
+EOF
 	    BadDoc => 'Not yet been converted to ignore bad values',
 	    );
     synonym("${name}_n_ind", "${synonym}_n_ind");
