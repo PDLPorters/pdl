@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use PDL;
+use PDL::LiteF;
 use File::Temp qw(tempdir);
 use File::Spec::Functions;
 use PDL::IO::FlexRaw;
@@ -28,6 +28,12 @@ my $name = catfile($tmpdir, "tmp0");
 my $x = pdl [2,3],[4,5],[6,7];
 my $header = eval { writeflex($name, $x) };
 ok((-f $name), "writeflex should create a file");
+
+my $header_bis = [ { %{$header->[0]}, Dims => [2, undef] } ];
+eval { readflex($name, [@$header_bis, @$header_bis]) };
+like $@, qr/>1 header/, 'readflex only allows undef dim when only one hash';
+my $x_bis = readflex($name, $header_bis);
+ok(all(approx($x_bis,$x)), "read back with undef highest dim correct");
 
 # **TEST 3** save a header to disk
 eval { writeflexhdr($name, $header) };

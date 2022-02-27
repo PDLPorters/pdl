@@ -104,6 +104,13 @@ give header information, rather than using a .hdr file.  For example,
 reads our example file again.  As a special case, when NDims is 1, Dims
 may be given as a scalar.
 
+The highest dimension can be given as C<undef>, which will read as many
+frames as possible of the given size (but only if only one hash-ref is given):
+
+  $video = readflex('frames.raw', [
+    { Type=>'byte', NDims=>4, Dims=>[4,640,480,undef] },
+  ]);
+
 Within PDL, readflex and writeflex can be used to write several pdls
 to a single file -- e.g.
 
@@ -537,9 +544,11 @@ sub readflex {
 	open $d, $data
 	    or barf "Couldn't open '$data' for reading: $!";
 	binmode $d;
-	$h = _read_flexhdr("$name.hdr")
-	    unless $h;
+	$h ||= _read_flexhdr("$name.hdr");
     }
+
+    barf "Last dim given as undef but >1 header-hash given"
+      if ref $h->[0]{Dims} and @{$h->[0]{Dims}} and !defined $h->[0]{Dims}[-1] and @$h > 1;
 
 # Go through headers which reconfigure
     foreach $hdr (@$h) {
@@ -576,16 +585,27 @@ READ:
 		if (!defined($flextypes{$type}));
 	    $type = $flextypes{$type};
 	}
-	$pdl = PDL->zeroes ((new PDL::Type($type)),
-			    ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
-	$len = length $ {$pdl->get_dataref};
-
-	$offset += readchunk($d,$pdl,$len,$name, $offset);
+	my @dims = ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims};
+	my @rdims = @dims[0..($#dims - (defined $dims[-1] ? 0 : 1))];
+	$len = pdl(PDL::Core::howbig($type), @rdims)->prodover->sclr;
+	if (@dims and !defined $dims[-1]) {
+	  my ($count, @pdls) = 0;
+	  while (!eof $d) {
+	    push @pdls, PDL->zeroes(PDL::Type->new($type), @rdims);
+	    $offset += readchunk($d,$pdls[-1],$len,$name, $offset);
+	    $count++;
+	  }
+	  $pdl = pdl(@pdls);
+	  $len *= $count;
+	} else {
+	  $pdl = PDL->zeroes(PDL::Type->new($type), @dims);
+	  $offset += readchunk($d,$pdl,$len,$name, $offset);
+	}
 	$chunkread += $len;
 	if ($swapbyte) {
 	  my $method = $flexswap{$type};
 	  $pdl->$method if $method;
-# 	    $pdl->type->bswap($pdl);
+# 	    $pdl->type->bswap->($pdl);
 	}
 	if ($newfile && $f77mode) {
 	    if ($zipt || $swapbyte) {
@@ -601,7 +621,7 @@ READ:
 		    $chunk = $pdl->copy;
 		    next SWAP if ! seek($d,$pdl->at,1);
 		    next SWAP if
-			read($d,$ {$chunk->get_dataref},$len) != $len;
+			read($d,${$chunk->get_dataref},$len) != $len;
 		    $chunk->upd_data;
 		    bswap4($chunk) if $swapbyte;
 		    next SWAP if ($pdl->at != $chunk->at);
