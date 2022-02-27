@@ -34,6 +34,18 @@ ok(tapprox($x,$y), "A ndarray and its saved copy should be about equal");
 undef $x; undef $y;
 cleanfiles();
 
+# save an ndarray to disk
+$x = startdata();
+writefraw($x,"$name.g");
+my $x1 = pdl [10,11];
+gluefraw($x1,"$name.g");
+$y = readfraw("$name.g");
+ok(tapprox($y, pdl([2,3],[4,5],[6,7],[10,11])), "glued data correct")
+  or diag "got:$y";
+unlink "$name.g", "$name.g.hdr";
+# Clean things up a bit
+undef $x; undef $y;
+
 # test the use of a custom header for writing
 $x = startdata();
 writefraw($x,$name,{Header => $header});

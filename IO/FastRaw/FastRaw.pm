@@ -2,10 +2,6 @@
 
 PDL::IO::FastRaw -- A simple, fast and convenient io format for PerlDL.
 
-=head1 VERSION
-
-This documentation refers to PDL::IO::FastRaw version 0.0.2, I guess.
-
 =head1 SYNOPSIS
 
  use PDL;
@@ -15,6 +11,9 @@ This documentation refers to PDL::IO::FastRaw version 0.0.2, I guess.
 
  $pdl2 = readfraw("fname");       # read a raw file
  $pdl2 = PDL->readfraw("fname");
+
+ gluefraw($pdlx, "fname");        # append to existing file
+ $pdlx->gluefraw("fname");
 
  $pdl3 = mapfraw("fname2",{ReadOnly => 1}); # mmap a file, don't read yet
 
@@ -173,8 +172,96 @@ C<mapfraw> to create the new ndarray for you by setting the
 C<Creat> option to a true value, not C<Create> (note the missing
 final 'e').
 
-
 =head1 FUNCTIONS
+
+=cut
+
+package PDL::IO::FastRaw;
+use strict;
+use warnings;
+
+our $VERSION = '0.000003';
+$VERSION = eval $VERSION;
+
+require Exporter;
+use PDL::Core '';
+use PDL::Exporter;
+
+our @ISA = qw/PDL::Exporter/;
+our @EXPORT_OK = qw/writefraw readfraw mapfraw maptextfraw gluefraw/;
+our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
+
+# Exported functions
+
+*writefraw = \&PDL::writefraw;
+*gluefraw = \&PDL::gluefraw;
+sub readfraw {PDL->readfraw(@_)}
+sub mapfraw  {PDL->mapfraw(@_)}
+sub maptextfraw  {PDL->maptextfraw(@_)}
+
+sub _read_frawhdr {
+	my($name,$opts) = @_;
+	my $hname = $opts->{Header} || "$name.hdr";
+	open my $h, '<', $hname
+	 or barf "Couldn't open '$hname' for reading: $!";
+	chomp(my $tid = <$h>);
+	chomp(my $ndims = <$h>);
+	chomp(my $str = <$h>); if(!defined $str) {barf("Format error in '$hname'");}
+	my @dims = split ' ',$str;
+	if($#dims != $ndims-1) {
+		barf("Format error reading fraw header file '$hname'");
+	}
+	return {
+		Type => $tid,
+		Dims => \@dims,
+		NDims => $ndims
+	};
+}
+
+sub _writefrawhdr {
+	my($pdl,$name,$opts) = @_;
+	my $hname = $opts->{Header} || "$name.hdr";
+	open my $h, '>', $hname
+	 or barf "Couldn't open '$hname' for writing: $!";
+	print $h map "$_\n", $pdl->get_datatype,
+		$opts->{NDims} // $pdl->getndims,
+		join(' ', $opts->{Dims} ? @{$opts->{Dims}} : $pdl->dims);
+}
+
+=head2 writefraw
+
+=for ref
+
+Write a raw format binary file
+
+=for usage
+
+ writefraw($pdl,"fname");
+ writefraw($pdl,"fname", {Header => 'headerfname'});
+
+=for options
+
+The C<writefraw> command
+supports the following option:
+
+=over 8
+
+=item Header
+
+Specify the header file name.
+
+=back
+
+=cut
+
+sub PDL::writefraw {
+	my($pdl,$name,$opts) = @_;
+	_writefrawhdr($pdl,$name,$opts);
+	open my $d, '>', $name
+	 or barf "Couldn't open '$name' for writing: $!";
+	binmode $d;
+	print $d ${$pdl->get_dataref};
+}
 
 =head2 readfraw
 
@@ -201,29 +288,62 @@ Specify the header file name.
 
 =back
 
-=head2 writefraw
+=cut
+
+sub PDL::readfraw {
+  my $class = shift;
+  my($name,$opts) = @_;
+  open my $d, '<', $name or barf "Couldn't open '$name' for reading: $!";
+  binmode $d;
+  my $hdr = _read_frawhdr($name,$opts);
+  my $pdl = $class->zeroes(PDL::Type->new($hdr->{Type}), @{$hdr->{Dims}});
+  my $len = length ${$pdl->get_dataref};
+  my $index = 0;
+  my $data;
+  my $retlen;
+  while (($retlen = sysread $d, $data, $len) != 0) {
+    substr(${$pdl->get_dataref},$index,$len) = $data;
+    $index += $retlen;
+    $len -= $retlen;
+  }
+  $pdl->upd_data();
+  return $pdl;
+}
+
+=head2 gluefraw
 
 =for ref
 
-Write a raw format binary file
+Append a single data item to an existing binary file written by
+L</writefraw>. Error if dims not compatible with existing data.
 
 =for usage
 
- writefraw($pdl,"fname");
- writefraw($pdl,"fname", {Header => 'headerfname'});
+  gluefraw($file, $pdl[, $opts]);
 
-=for options
+=cut
 
-The C<writefraw> command
-supports the following option:
-
-=over 8
-
-=item Header
-
-Specify the header file name.
-
-=back
+sub PDL::gluefraw {
+  my $usage = 'Usage: gluefraw($pdl,"filename"[,$opts])';
+  my ($pdl,$name,$opts) = @_;
+  barf $usage if @_ < 2 or @_ > 3 or !UNIVERSAL::isa($pdl, 'PDL') or ref $name;
+  barf "'$name' must be real filename: $!" if !-f $name;
+  $opts ||= {};
+  my $hdr = _read_frawhdr($name,$opts);
+  barf "gluefraw: ndarray has type '@{[$pdl->type]}' but file has type '$hdr->{Type}'"
+    if $pdl->type != PDL::Type->new($hdr->{Type});
+  my @dims = ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims};
+  barf "gluefraw: header dims needs at least 2 dims, got (@dims)" if @dims < 2;
+  my @ldims = @dims[0..$#dims-1];
+  barf "gluefraw: incompatible lower dims, ndarray (@{[$pdl->dims]}) vs header (@ldims)"
+    if !PDL::all($pdl->shape == pdl(@ldims));
+  open my $d, '>>', $name or barf "Couldn't open '$name' for appending: $!";
+  binmode $d;
+  print $d ${$pdl->get_dataref};
+  $dims[-1]++;
+  $hdr->{Dims} = \@dims;
+  _writefrawhdr($pdl, $name, { %$opts, %$hdr });
+}
 
 =head2 mapfraw
 
@@ -267,127 +387,7 @@ Specify the header file name.
 
 =back
 
-=head2 maptextfraw
-
-=for ref
-
-Memory map a text file (see the module docs also).
-
-Note that this function maps the raw format so if you are
-using an operating system which does strange things to e.g.
-line delimiters upon reading a text file, you get the raw (binary)
-representation.
-
-The file doesn't really need to be text but it is just mapped
-as one large binary chunk.
-
-This function is just a convenience wrapper which firsts C<stat>s
-the file and sets the dimensions and datatype.
-
-=for usage
-
- $pdl4 = maptextfraw("fname", {options}
-
-=for options
-
-The options other than Dims, Datatype of C<mapfraw> are
-supported.
-
-=head1 BUGS
-
-Should be documented better. C<writefraw> and C<readfraw> should
-also have options (the author nowadays only uses C<mapfraw> ;)
-
-=head1 AUTHOR
-
-Copyright (C) Tuomas J. Lukka 1997.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
 =cut
-
-package PDL::IO::FastRaw;
-use strict;
-use warnings;
-
-our $VERSION = '0.000003';
-$VERSION = eval $VERSION;
-
-require Exporter;
-use PDL::Core '';
-use PDL::Exporter;
-
-our @ISA = qw/PDL::Exporter/;
-our @EXPORT_OK = qw/writefraw readfraw mapfraw maptextfraw/;
-our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
-
-# Exported functions
-
-*writefraw = \&PDL::writefraw;
-sub readfraw {PDL->readfraw(@_)}
-sub mapfraw  {PDL->mapfraw(@_)}
-sub maptextfraw  {PDL->maptextfraw(@_)}
-
-sub _read_frawhdr {
-	my($name,$opts) = @_;
-	my $hname = $opts->{Header} || "$name.hdr";
-	open my $h, '<', $hname
-	 or barf "Couldn't open '$hname' for reading: $!";
-	chomp(my $tid = <$h>);
-	chomp(my $ndims = <$h>);
-	chomp(my $str = <$h>); if(!defined $str) {barf("Format error in '$hname'");}
-	my @dims = split ' ',$str;
-	if($#dims != $ndims-1) {
-		barf("Format error reading fraw header file '$hname'");
-	}
-	return {
-		Type => $tid,
-		Dims => \@dims,
-		NDims => $ndims
-	};
-}
-
-sub _writefrawhdr {
-	my($pdl,$name,$opts) = @_;
-	my $hname = $opts->{Header} || "$name.hdr";
-	open my $h, '>', $hname
-	 or barf "Couldn't open '$hname' for writing: $!";
-	print $h map {"$_\n"} ($pdl->get_datatype,
-		$pdl->getndims, (join ' ',$pdl->dims));
-}
-
-sub PDL::writefraw {
-	my($pdl,$name,$opts) = @_;
-	_writefrawhdr($pdl,$name,$opts);
-	open my $d, '>', $name
-	 or barf "Couldn't open '$name' for writing: $!";
-	binmode $d;
-	print $d ${$pdl->get_dataref};
-}
-
-sub PDL::readfraw {
-  my $class = shift;
-  my($name,$opts) = @_;
-  open my $d, '<', $name or barf "Couldn't open '$name' for reading: $!";
-  binmode $d;
-  my $hdr = _read_frawhdr($name,$opts);
-  my $pdl = $class->zeroes(PDL::Type->new($hdr->{Type}), @{$hdr->{Dims}});
-  my $len = length ${$pdl->get_dataref};
-  my $index = 0;
-  my $data;
-  my $retlen;
-  while (($retlen = sysread $d, $data, $len) != 0) {
-    substr(${$pdl->get_dataref},$index,$len) = $data;
-    $index += $retlen;
-    $len -= $retlen;
-  }
-  $pdl->upd_data();
-  return $pdl;
-}
 
 sub PDL::mapfraw {
         my $class = shift;
@@ -419,6 +419,34 @@ sub PDL::mapfraw {
 	$pdl;
 }
 
+=head2 maptextfraw
+
+=for ref
+
+Memory map a text file (see the module docs also).
+
+Note that this function maps the raw format so if you are
+using an operating system which does strange things to e.g.
+line delimiters upon reading a text file, you get the raw (binary)
+representation.
+
+The file doesn't really need to be text but it is just mapped
+as one large binary chunk.
+
+This function is just a convenience wrapper which firsts C<stat>s
+the file and sets the dimensions and datatype.
+
+=for usage
+
+ $pdl4 = maptextfraw("fname", {options}
+
+=for options
+
+The options other than Dims, Datatype of C<mapfraw> are
+supported.
+
+=cut
+
 sub PDL::maptextfraw {
 	my($class, $name, $opts) = @_;
 	$opts = {%$opts}; # Copy just in case
@@ -427,5 +455,21 @@ sub PDL::maptextfraw {
 	$opts->{Datatype} = &PDL::byte;
 	return PDL::mapfraw($class, $name, $opts);
 }
+
+=head1 BUGS
+
+Should be documented better. C<writefraw> and C<readfraw> should
+also have options (the author nowadays only uses C<mapfraw> ;)
+
+=head1 AUTHOR
+
+Copyright (C) Tuomas J. Lukka 1997.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
 
 1;
