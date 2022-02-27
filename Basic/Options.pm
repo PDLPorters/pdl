@@ -791,7 +791,7 @@ sub translate {
   # Now need to go through each of the keys
   # and if the corresponding key exists in the translation
   # hash we need to check that a valid translation exists
-  foreach my $key ( sort keys %opt ) {
+  foreach my $key ( sort grep defined $opt{$_}, keys %opt ) {
     if (exists $trans{$key}) {
       # Okay so a translation might exist
       # Now compare keys in the hash in the hash
@@ -848,6 +848,7 @@ sub compare_with_list {
 
     my $flag = shift;
     my $key = shift;
+    confess "Called with undefined key" if !defined $key;
     my @list = @_;
 
     my @result = ();

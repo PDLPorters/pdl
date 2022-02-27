@@ -131,8 +131,7 @@ sub apply_profile {
       demo transform   # Coordinate transformations (Req.: PGPLOT)
       demo cartography # Cartographic projections (Req.: PGPLOT)
 
-      demo bad         # Bad-value demo (Req.: bad value support)
-      demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
+      demo bad         # Bad-value demo (Optional: PGPLOT)
 EOD
       return;
       } # if: /^$/
@@ -145,7 +144,6 @@ EOD
          'pgplot' => 'PDL::Demos::PGPLOT_demo',
          'ooplot' => 'PDL::Demos::PGPLOT_OO_demo', # note: lowercase
          'bad' => 'PDL::Demos::BAD_demo',
-         'bad2' => 'PDL::Demos::BAD2_demo',
          'transform' => 'PDL::Demos::Transform_demo',
          'cartography' => 'PDL::Demos::Cartography_demo',
          'gnuplot' => 'PDL::Demos::Gnuplot_demo',

@@ -132,8 +132,7 @@ cygwin/drivers.list
 cygwin/g77_gcc.conf
 cygwin/INSTALL
 cygwin/README
-Demos/BAD2_demo.pm.PL
-Demos/BAD_demo.pm.PL
+Demos/BAD_demo.pm
 Demos/Cartography_demo.pm
 Demos/Demos.pm
 Demos/earth-interp.pl

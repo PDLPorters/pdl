@@ -16,13 +16,11 @@ WriteMakefile(
 		    'PGPLOT_demo.pm'	=> '$(INST_LIBDIR)/Demos/PGPLOT_demo.pm',
 		    'PGPLOT_OO_demo.pm'	=> '$(INST_LIBDIR)/Demos/PGPLOT_OO_demo.pm',
                     'BAD_demo.pm'       => '$(INST_LIBDIR)/Demos/BAD_demo.pm',
-                    'BAD2_demo.pm'      => '$(INST_LIBDIR)/Demos/BAD2_demo.pm',
                     'Transform_demo.pm' => '$(INST_LIBDIR)/Demos/Transform_demo.pm',
                     'Cartography_demo.pm' => '$(INST_LIBDIR)/Demos/Cartography_demo.pm',
 		    'Gnuplot_demo.pm'   =>  '$(INST_LIBDIR)/Demos/Gnuplot_demo.pm',
                     '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
                     'Prima.pm' => '$(INST_LIBDIR)/Demos/Prima.pm',
 		   },
-     'clean' => { 'FILES' => 'BAD_demo.pm BAD2_demo.pm' },
      NO_MYMETA => 1,
 );

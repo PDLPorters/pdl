@@ -111,8 +111,6 @@ Basic/Slices/Slices.xs
 Basic/Ufunc/Ufunc.c
 Basic/Ufunc/Ufunc.pm
 Basic/Ufunc/Ufunc.xs
-Demos/BAD2_demo.pm
-Demos/BAD_demo.pm
 Doc/Doc/Config.pm
 Graphics/IIS/IIS.c
 Graphics/IIS/IIS.pm

@@ -75,8 +75,6 @@ RCS
 ^Basic/Ufunc/Ufunc\.pm
 ^Basic/Ufunc/Ufunc\.xs
 ^CVS
-^Demos/BAD2_demo.pm$
-^Demos/BAD_demo.pm$
 ^Demos/TkTriD_demo.pm$
 ^Demos/TriD/test6.p$
 ^Doc/Doc/Config.pm$
