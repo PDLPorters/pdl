@@ -4,13 +4,8 @@ package PDL::Demos::Cartography_demo;
 use PDL;
 use PDL::Graphics::PGPLOT::Window;
 use PDL::Transform::Cartography;
-
 use File::Spec;
-
-PDL::Demos::Routines->import();
-sub comment($);
-sub act($);
-sub output;
+use PDL::Demos;
 
 sub run {
   local($PDL::debug) = 0;

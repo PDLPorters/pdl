@@ -7,15 +7,9 @@ package PDL::Demos::TriDGallery;
 use PDL;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Image;
-
-PDL::Demos::Routines->import();
-sub comment($);
-sub act($);
-sub actnw($);
-sub output;
+use PDL::Demos;
 
 sub run {
-
 
 comment q|
 	Welcome to the TriD Gallery
@@ -26,7 +20,6 @@ comment q|
 
 	These are the rules for scripts to be accepted for this
 	category:
-
 
         1) Must be legal Perl with a recent PDL version - may come with
            a patch to PDL if the patch is general enough to be included

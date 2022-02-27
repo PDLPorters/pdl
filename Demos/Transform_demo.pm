@@ -4,13 +4,8 @@ package PDL::Demos::Transform_demo;
 use PDL;
 use PDL::Graphics::PGPLOT::Window;
 use PDL::Transform;
-
+use PDL::Demos;
 use File::Spec;
-
-PDL::Demos::Routines->import();
-sub comment($);
-sub act($);
-sub output;
 
 sub run {
   local($PDL::debug) = 0;

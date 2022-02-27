@@ -153,7 +153,7 @@ EOD
       );
 
       if ( exists $demos{$_} ) {
-         require PDL::Demos::Screen; # Get the routines for screen demos.
+         require PDL::Demos; # Get the routines for screen demos.
          my $name = $demos{$_};
          eval "require $name;"; # see docs on require for need for eval
          $name .= "::run";

@@ -4,11 +4,7 @@
 
 package PDL::Demos::General;
 use PDL;
-
-PDL::Demos::Routines->import();
-sub comment($);
-sub act($);
-sub output;
+use PDL::Demos;
 
 sub run {
 

@@ -29,11 +29,7 @@ print OUT <<'!NO!SUBS!';
 #
 package PDL::Demos::BAD_demo;
 use PDL;
-
-PDL::Demos::Routines->import();
-sub comment($);
-sub act($);
-sub output;
+use PDL::Demos;
 
 sub run {
 

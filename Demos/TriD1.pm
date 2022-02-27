@@ -7,15 +7,9 @@ package PDL::Demos::TriD1;
 use PDL;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Image;
-
-PDL::Demos::Routines->import();
-sub comment($);
-sub act($);
-sub actnw($);
-sub output;
+use PDL::Demos;
 
 sub run {
-
 
 comment q|
 	Welcome to a short tour of the capabilities of

@@ -9,7 +9,7 @@ WriteMakefile(
      'NAME'	=> 'PDL::Demos',
      'VERSION_FROM' => '../Basic/PDL.pm',
      'PM'       => {'General.pm'     => '$(INST_LIBDIR)/Demos/General.pm',
-                    'Screen.pm'    => '$(INST_LIBDIR)/Demos/Screen.pm',
+                    'Demos.pm'    => '$(INST_LIBDIR)/Demos.pm',
                     'TriD1.pm'    => '$(INST_LIBDIR)/Demos/TriD1.pm',
                     'TriD2.pm'    => '$(INST_LIBDIR)/Demos/TriD2.pm',
                     'TriDGallery.pm'    => '$(INST_LIBDIR)/Demos/TriDGallery.pm',

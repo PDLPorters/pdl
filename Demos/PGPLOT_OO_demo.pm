@@ -4,11 +4,7 @@ package PDL::Demos::PGPLOT_OO_demo;
 
 use PDL;
 use PDL::Graphics::PGPLOT::Window;
-
-PDL::Demos::Routines->import();
-sub comment($);
-sub act($);
-sub output;
+use PDL::Demos;
 
 sub run {
 

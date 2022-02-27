@@ -1,6 +1,6 @@
 # Perform pdl demos on terminals
 
-package PDL::Demos::Routines;
+package PDL::Demos;
 
 # Copyright (C) 1998 Tuomas J. Lukka.
 # All rights reserved, except redistribution

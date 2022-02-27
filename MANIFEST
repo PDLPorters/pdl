@@ -135,6 +135,7 @@ cygwin/README
 Demos/BAD2_demo.pm.PL
 Demos/BAD_demo.pm.PL
 Demos/Cartography_demo.pm
+Demos/Demos.pm
 Demos/earth-interp.pl
 Demos/earth.txt
 Demos/General.pm
@@ -143,7 +144,6 @@ Demos/Makefile.PL
 Demos/PGPLOT_demo.pm
 Demos/PGPLOT_OO_demo.pm
 Demos/Prima.pm
-Demos/Screen.pm
 Demos/Transform_demo.pm
 Demos/TriD/mandel.pl
 Demos/TriD/test3.p

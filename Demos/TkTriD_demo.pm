@@ -7,9 +7,7 @@ use Tk;
 use PDL::Graphics::TriD::Tk;
 use strict;
 my $TriDW;      # declare the graph object in main, defined in initialize
-PDL::Demos::Routines->import();
-sub act($);
-sub comment($);
+use PDL::Demos;
 
 #BEGIN{
 #  if(defined $PDL::Graphics::TriD::cur){

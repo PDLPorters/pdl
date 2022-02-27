@@ -3,6 +3,7 @@
 - single badval as boolean is now an error (#388)
 - IO::FlexRaw::readflex can take last dim as undef (#322)
 - add IO::(Fast|Flex)Raw::glue\L\1 (#322)
+- PDL::Demos::Routines replaced with PDL::Demos (#42)
 
 2.076 2022-02-25
 - fix long-standing bug in dice that broke with PDL subclasses (#363)

@@ -31,13 +31,8 @@ package PDL::Demos::BAD2_demo;
 use PDL;
 use PDL::IO::Misc;
 use PDL::Graphics::PGPLOT;
-
 use File::Spec;
-
-PDL::Demos::Routines->import();
-sub comment($);
-sub act($);
-sub output;
+use PDL::Demos;
 
 sub run {
 
