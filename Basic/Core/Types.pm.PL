@@ -395,6 +395,7 @@ our \@EXPORT = qw( $typeexports
 	       \@pack \%typehash );
 };
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
 print OUT <<'!NO!SUBS!';
 
 our @EXPORT_OK = (@EXPORT,
@@ -410,6 +411,7 @@ our @ISA    = qw( Exporter );
 
 !NO!SUBS!
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
 print OUT qq{
 
 # Data types/sizes (bytes) [must be in order of complexity]
@@ -424,6 +426,7 @@ our \@names= qw/$typenames/;
 # generate the typehash output
 print OUT gentypehashcode @types;
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
 print OUT <<'!NO!SUBS!';
 
 # Cross-reference by common names
@@ -780,6 +783,7 @@ foreach my $name ( qw( ctype ppsym convertfunc shortctype
 EOS
 }
 
+print OUT sprintf qq{#line %d "%s"\n}, __LINE__ + 2,  'Basic/Core/Types.pm.PL';
 print OUT <<'!NO!SUBS!';
 sub badvalue {
   PDL::_badvalue_int( $_[1], $_[0][0] );
