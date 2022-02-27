@@ -10,6 +10,15 @@ $PERLDL::PROMPT = $PERLDL::PROMPT; # suppress warning
 
 with 'Devel::REPL::Profile';
 
+my %plugin2deps = (
+  'Completion' => [qw(PPI)],
+  'CompletionDriver::INC' => [qw(File::Next)],
+  'CompletionDriver::Keywords' => [qw(B::Keywords)],
+  'DDS' => [qw(Data::Dump::Streamer)],
+  'Interrupt' => [qw(Sys::SigAction)],
+  'LexEnv' => [qw(Lexical::Persistence)],
+  'MultiLine::PPI' => [qw(PPI)],
+);
 sub plugins {
    qw(
       CleanErrors
@@ -47,20 +56,10 @@ sub apply_profile {
    push @{$repl->_plugin_app_ns}, 'PDL::Perldl2';
 
    foreach my $plug ($self->plugins) {
-      if ($plug =~ 'CompletionDriver::INC') {
-         eval 'use File::Next';
-         next if $@;
-      }
-      if ($plug =~ 'CompletionDriver::Keywords') {
-         eval 'use B::Keywords';
-         next if $@;
-      }
-      $repl->load_plugin($plug);
-   }
-
-   # these plugins don't work on win32
-   unless ($^O =~ m/win32/i) {
-      $repl->load_plugin('Interrupt');
+     if (my $deps = $plugin2deps{$plug}) {
+       next if grep !eval "require $_; 1", @$deps;
+     }
+     $repl->load_plugin($plug);
    }
 
    # enable Term::ReadLine file expansion by default
