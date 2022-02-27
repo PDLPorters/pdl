@@ -44,7 +44,8 @@ my $y = eval { readflex($name) };
 ok(all(approx($x,$y)), "A ndarray and its saved copy should be about equal");
 
 # **TEST 5** save two ndarrays to disk
-my $c = pdl [[0,0,0,0],[0,0,0,0]];
+my ($c1, $c2) = ([0,0,0,0],[0,0,0,0]);
+my $c = pdl [$c1,$c2];
 my $d = pdl [1,1,1];
 my $cdname = $name . 'cd';
 $header = eval { writeflex($cdname, $c, $d) };
@@ -61,6 +62,21 @@ ok( (scalar(@cd)==2 and all(approx($cd[0],$c)) and all(approx($cd[1],$d)) ), 'sf
 
 # Clean up for another test
 unlink $cdname, $cdname . '.hdr';	# just to be absolutely sure
+
+{
+my $gname = $name.'g';
+local $PDL::IO::FlexRaw::writeflexhdr = 1;
+eval { writeflex($gname, $d, $c) }; # 2D last so can append
+my @dc = eval { readflex($gname) };
+ok all(approx $dc[0], $d);
+ok all(approx $dc[1], $c);
+my $e = pdl(2,2,2,2);
+eval { glueflex($gname, $e) };
+is $@, '', 'no error glueflex';
+@dc = eval { readflex($gname) };
+ok all(approx $dc[0], $d);
+ok all(approx $dc[1], pdl($c1,$c2,$e));
+}
 
 # some mapflex tests
 SKIP: {

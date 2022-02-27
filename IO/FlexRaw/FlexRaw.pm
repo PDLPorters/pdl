@@ -183,160 +183,7 @@ and return the PDLs mapped before the problem arose.  This can be
 dealt with either by reorganizing the data file (large types first
 helps, as a rule-of-thumb), or more simply by using C<readflex>.
 
-=head1 BUGS
-
-The test on two dimensional byte arrays fail using g77 2.7.2, but not
-Sun f77.  I hope this isn't my problem!
-
-Assumes gzip is on the PATH.
-
-Can't auto-swap compressed files, because it can't seek on them.
-
-The header format may not agree with that used elsewhere.
-
-Should it handle handles?
-
-Mapflex should warn and fallback to reading on SEGV?  Would have to
-make sure that the data was written back after it was `destroyed'.
-
 =head1 FUNCTIONS
-
-=head2 readflex
-
-=for ref
-
-Read a binary file with flexible format specification
-
-=for usage
-
-    Usage:
-
-    ($x,$y,...) = readflex("filename" [, $hdr])
-    ($x,$y,...) = readflex(FILEHANDLE [, $hdr])
-
-
-=head2 writeflex
-
-=for ref
-
-Write a binary file with flexible format specification
-
-=for usage
-
-    Usage:
-
-    $hdr = writeflex($file, $pdl1, $pdl2,...) # or
-    $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
-    # now you must call writeflexhdr()
-    writeflexhdr($file, $hdr)
-
-or
-
-    $PDL::IO::FlexRaw::writeflexhdr = 1;  # set so we don't have to call writeflexhdr
-
-    $hdr = writeflex($file, $pdl1, $pdl2,...)  # remember, $file must be filename
-    writeflex($file, $pdl1, $pdl2,...)         # remember, $file must be filename
-
-=head2 writeflexhdr
-
-=for ref
-
-Write the header file corresponding to a previous writeflex call
-
-=for usage
-
-    Usage:
-
-    writeflexhdr($file, $hdr)
-
-    $file or "filename" is the filename used in a previous writeflex
-    If $file is actually a "filename" then writeflexhdr() will be
-    called automatically if $PDL::IO::FlexRaw::writeflexhdr is true.
-    If writeflex() was to a FILEHANDLE, you will need to call
-    writeflexhdr() yourself since the filename cannot be determined
-    (at least easily).
-
-=head2 mapflex
-
-=for ref
-
-Memory map a binary file with flexible format specification
-
-=for usage
-
-    Usage:
-
-    ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
-
-=for options
-
-    All of these options default to false unless set true:
-
-    ReadOnly - Data should be readonly
-    Creat    - Create file if it doesn't exist
-    Trunc    - File should be truncated to a length that conforms
-               with the header
-
-=head2 _read_flexhdr
-
-Read a FlexRaw header file and return a header structure.
-
-=for usage
-
-    Usage:
-
-    $hdr = PDL::IO::FlexRaw::_read_flexhdr($file)
-
-Note that C<_read_flexhdr> is supposed to be an internal function.  It
-was not originally documented and it is not tested.  However, there
-appeared to be no other method for obtaining a header structure from
-a file, so I figured I would write a small bit of documentation on it.
-
-=head1 Bad Value Support
-
-As of PDL-2.4.8, L<PDL::IO::FlexRaw> has support for reading and writing
-pdls with L<bad|PDL::Bad> values in them.
-
-On C<writeflex>, an ndarray
-argument with C<< $pdl->badflag == 1 >> will have the keyword/token "badvalue"
-added to the header file after the dimension list and an additional token
-with the bad value for that pdl if C<< $pdl->badvalue != $pdl->orig_badvalue >>.
-
-On C<readflex>, a pdl with the "badvalue" token in the header will
-automatically have its L<badflag|PDL::Bad/#badflag> set and its
-L<badvalue|PDL::Bad/#badvalue> as well if it is not the standard default for that type.
-
-=for example
-
-The new badvalue support required some additions to the header
-structure.  However, the interface is still being finalized.  For
-reference the current C<$hdr> looks like this:
-
-    $hdr = {
-             Type => 'byte',    # data type
-             NDims => 2,        # number of dimensions
-             Dims => [640,480], # dims
-             BadFlag => 1,      # is set/set badflag
-             BadValue => undef, # undef==default
-           };
-
-    $badpdl = readflex('badpdl', [$hdr]);
-
-If you use bad values and try the new L<PDL::IO::FlexRaw> bad value
-support, please let us know via the perldl mailing list.
-Suggestions and feedback are also welcome.
-
-
-=head1 AUTHOR
-
-Copyright (C) Robin Williams <rjrw@ast.leeds.ac.uk> 1997.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-Documentation contributions copyright (C) David Mertens, 2010.
 
 =cut
 
@@ -349,7 +196,7 @@ use PDL::Types ':All';
 use PDL::IO::Misc qw(bswap4);
 
 our @ISA = qw/Exporter/;
-our @EXPORT = qw/writeflex writeflexhdr readflex mapflex/;
+our @EXPORT = qw/writeflex writeflexhdr readflex mapflex glueflex/;
 
 # Cast type numbers in concrete, for external file's sake...
 my %flexnames = map +($_->enum => $_->ioname), types();
@@ -490,6 +337,83 @@ sub mapchunk {
     $flexmapok;
 }
 
+=head2 glueflex
+
+=for ref
+
+Append a single data item to an existing binary file written by
+L</writeflex>.  Must be to the last data item in that file. Error if
+dims not compatible with existing data.
+
+=for usage
+
+    $hdr = glueflex($file, $pdl[, $hdr]); # or
+    $hdr = glueflex(FILEHANDLE, $pdl[, $hdr]);
+    # now you must call writeflexhdr()
+    writeflexhdr($file, $hdr);
+
+or
+
+    $PDL::IO::FlexRaw::writeflexhdr = 1; # set so we don't have to call writeflexhdr
+    $hdr = glueflex($file, $pdl[, $hdr])  # remember, $file must be filename
+    glueflex($file, $pdl[, $hdr])         # remember, $file must be filename
+
+=cut
+
+sub glueflex {
+  my $usage = 'Usage $hdr = glueflex("filename"|FILEHANDLE,$pdl[,$hdr])';
+  my ($name,$pdl,$hdr) = @_;
+  barf $usage if @_ < 2 or @_ > 3 or !UNIVERSAL::isa($pdl, 'PDL');
+  my $isname = 0;
+  my $d;
+  # Test if $name is a file handle
+  if (defined fileno($name)) {
+    $d = $name;
+  } else {
+    barf $usage if ref $name;
+    barf "'$name' must be real filename: $!" if !-f $name;
+    $isname = 1;
+    open $d, '>>', $name or barf "Couldn't open '$name' for appending: $!";
+  }
+  binmode $d;
+  $hdr ||= _read_flexhdr("$name.hdr");
+  my $hash = $hdr->[-1] || barf "glueflex: need valid header-hash";
+  barf "glueflex: ndarray has type '@{[$pdl->type]}' but last hash has type '$hash->{Type}'"
+    if $pdl->type != PDL::Type->new($hash->{Type});
+  my @dims = ref $hash->{Dims} ? @{$hash->{Dims}} : $hash->{Dims};
+  barf "glueflex: header dims needs at least 2 dims, got (@dims)" if @dims < 2;
+  my @ldims = @dims[0..$#dims-1];
+  barf "glueflex: incompatible lower dims, ndarray (@{[$pdl->dims]}) vs header (@ldims)"
+    if !all($pdl->shape == pdl(@ldims));
+  print $d ${$pdl->get_dataref};
+  $dims[-1]++;
+  $hash->{Dims} = \@dims;
+  if (defined wantarray) {
+    # list or scalar context
+    writeflexhdr($name, $hdr) if $isname and $writeflexhdr;
+    return $hdr;
+  } else {
+    # void context so write header file
+    writeflexhdr($name, $hdr) if $isname;
+    return;
+  }
+}
+
+=head2 readflex
+
+=for ref
+
+Read a binary file with flexible format specification
+
+=for usage
+
+    Usage:
+
+    ($x,$y,...) = readflex("filename" [, $hdr])
+    ($x,$y,...) = readflex(FILEHANDLE [, $hdr])
+
+=cut
+
 sub readflex {
     barf 'Usage ($x,$y,...) = readflex("filename"|FILEHANDLE [, \@hdr])'
 		if $#_ > 1;
@@ -502,7 +426,6 @@ sub readflex {
     # Test if $name is a file handle
     if (defined fileno($name)) {
 		$d = $name;
-		binmode($d);
     }
     else {
 	$name =~ s/\.(gz|Z)$//; # strip any trailing compression suffix
@@ -543,9 +466,9 @@ sub readflex {
 	my ($size) = (stat $name)[7];
 	open $d, $data
 	    or barf "Couldn't open '$data' for reading: $!";
-	binmode $d;
 	$h ||= _read_flexhdr("$name.hdr");
     }
+    binmode $d;
 
     barf "Last dim given as undef but >1 header-hash given"
       if ref $h->[0]{Dims} and @{$h->[0]{Dims}} and !defined $h->[0]{Dims}[-1] and @$h > 1;
@@ -659,6 +582,29 @@ READ:
     }
     wantarray ? @out : $out[0];
 }
+
+=head2 mapflex
+
+=for ref
+
+Memory map a binary file with flexible format specification
+
+=for usage
+
+    Usage:
+
+    ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
+
+=for options
+
+    All of these options default to false unless set true:
+
+    ReadOnly - Data should be readonly
+    Creat    - Create file if it doesn't exist
+    Trunc    - File should be truncated to a length that conforms
+               with the header
+
+=cut
 
 sub mapflex {
     my ($usage)
@@ -796,6 +742,30 @@ READ:
     wantarray ? @out : $out[0];
 }
 
+=head2 writeflex
+
+=for ref
+
+Write a binary file with flexible format specification
+
+=for usage
+
+    Usage:
+
+    $hdr = writeflex($file, $pdl1, $pdl2,...) # or
+    $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
+    # now you must call writeflexhdr()
+    writeflexhdr($file, $hdr)
+
+or
+
+    $PDL::IO::FlexRaw::writeflexhdr = 1;  # set so we don't have to call writeflexhdr
+
+    $hdr = writeflex($file, $pdl1, $pdl2,...)  # remember, $file must be filename
+    writeflex($file, $pdl1, $pdl2,...)         # remember, $file must be filename
+
+=cut
+
 sub writeflex {
    my $usage = 'Usage $hdr = writeflex("filename"|FILEHANDLE,$pdl,...)';
    barf $usage if $#_<0;
@@ -807,7 +777,6 @@ sub writeflex {
    # Test if $name is a file handle
    if (defined fileno($name)) {
       $d = $name;
-      binmode $d;
    }
    else {
       barf $usage if ref $name;
@@ -815,8 +784,8 @@ sub writeflex {
       my $modename = ($name =~ /^[+]?[><|]/) ? $name : ">$name";
       open $d, $modename
          or barf "Couldn't open '$name' for writing: $!";
-      binmode $d;
    }
+   binmode $d;
    foreach my $pdl (@_) {
       barf $usage if ! ref $pdl;
       # print join(' ',$pdl->getndims,$pdl->dims),"\n";
@@ -840,6 +809,27 @@ sub writeflex {
    }
 }
 
+=head2 writeflexhdr
+
+=for ref
+
+Write the header file corresponding to a previous writeflex call
+
+=for usage
+
+    Usage:
+
+    writeflexhdr($file, $hdr)
+
+    $file or "filename" is the filename used in a previous writeflex
+    If $file is actually a "filename" then writeflexhdr() will be
+    called automatically if $PDL::IO::FlexRaw::writeflexhdr is true.
+    If writeflex() was to a FILEHANDLE, you will need to call
+    writeflexhdr() yourself since the filename cannot be determined
+    (at least easily).
+
+=cut
+
 sub writeflexhdr {
     barf 'Usage writeflex("filename", $hdr)' if $#_!=1 || !ref $_[1];
     my($name) = shift; my ($hdr) = shift;
@@ -861,5 +851,68 @@ sub writeflexhdr {
 	"\n\n";
     }
 }
+
+=head1 BAD VALUE SUPPORT
+
+As of PDL-2.4.8, L<PDL::IO::FlexRaw> has support for reading and writing
+pdls with L<bad|PDL::Bad> values in them.
+
+On C<writeflex>, an ndarray
+argument with C<< $pdl->badflag == 1 >> will have the keyword/token "badvalue"
+added to the header file after the dimension list and an additional token
+with the bad value for that pdl if C<< $pdl->badvalue != $pdl->orig_badvalue >>.
+
+On C<readflex>, a pdl with the "badvalue" token in the header will
+automatically have its L<badflag|PDL::Bad/#badflag> set and its
+L<badvalue|PDL::Bad/#badvalue> as well if it is not the standard default for that type.
+
+=for example
+
+The new badvalue support required some additions to the header
+structure.  However, the interface is still being finalized.  For
+reference the current C<$hdr> looks like this:
+
+    $hdr = {
+             Type => 'byte',    # data type
+             NDims => 2,        # number of dimensions
+             Dims => [640,480], # dims
+             BadFlag => 1,      # is set/set badflag
+             BadValue => undef, # undef==default
+           };
+
+    $badpdl = readflex('badpdl', [$hdr]);
+
+If you use bad values and try the new L<PDL::IO::FlexRaw> bad value
+support, please let us know via the perldl mailing list.
+Suggestions and feedback are also welcome.
+
+=head1 BUGS
+
+The test on two dimensional byte arrays fail using g77 2.7.2, but not
+Sun f77.  I hope this isn't my problem!
+
+Assumes gzip is on the PATH.
+
+Can't auto-swap compressed files, because it can't seek on them.
+
+The header format may not agree with that used elsewhere.
+
+Should it handle handles?
+
+Mapflex should warn and fallback to reading on SEGV?  Would have to
+make sure that the data was written back after it was `destroyed'.
+
+=head1 AUTHOR
+
+Copyright (C) Robin Williams <rjrw@ast.leeds.ac.uk> 1997.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+Documentation contributions copyright (C) David Mertens, 2010.
+
+=cut
 
 1;
