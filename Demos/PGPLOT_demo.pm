@@ -1,14 +1,15 @@
 package PDL::Demos::PGPLOT_demo;
-use PDL;
 use PDL::Graphics::PGPLOT;
-use PDL::Demos;
 
-sub run {
+sub info {('pgplot', 'PGPLOT graphics output (Req.: PGPLOT)')}
 
+sub init {'
 $ENV{PGPLOT_XW_WIDTH}=0.3;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
-
-comment q|
+$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? "/GW" : "/XSERVE";
+use PDL::Graphics::PGPLOT;
+'}
+my @demo = (
+[comment => q|
     Welcome to this tour of the PDL's PGPLOT interface.
 
     This tour will introduce the PDL's PGPLOT plotting module and show
@@ -27,34 +28,32 @@ comment q|
     with the prompt:
 
         Graphics device/type (? to see list, default /NULL):
+|],
 
-
-|;
-
-act q|
+[act => q|
     # ensure the module is loaded (required for PDL versions >= 2.004)
     use PDL::Graphics::PGPLOT;
     # The size of the window can be specified
     $ENV{PGPLOT_XW_WIDTH}=0.3;
     # You can set your device explicitly
     $id=dev($^O =~ /MSWin32/ ? '/GW' : '/XSERVE');
-|;
+|],
 
-act q|
+[act => q|
     # First we define some variables to use for the rest of the demo.
     $x=sequence(10);
     $y=2*$x**2;
 
     # Now a simple plot with points
     points $x, $y;
-|;
+|],
 
-act q|
+[act => q|
     # Here is the same with lines
     line $x, $y;
-|;
+|],
 
-act q|
+[act => q|
     # If you want to overlay one plot you can use the command
     # 'hold' to put the graphics on hold and 'release' to
     # revert the effect
@@ -69,16 +68,16 @@ act q|
 
     # To revert to old behaviour, use release
     release;
-|;
+|],
 
-act q|
+[act => q|
     bin $x, $y;
 
     # This plots a binned histogram of the data and as you can
     # see it made a new plot.
-|;
+|],
 
-act q|
+[act => q|
     # 2D data can also easily be accommodated:
 
     # First make a simple image
@@ -91,9 +90,9 @@ act q|
     hold;
     cont $gradient;
     release;
-|;
+|],
 
-act q|
+[act => q|
   # PDL::Graphics::PGPLOT contains several colour tables,
   # a more extensive collection can be found in 
   # PDL::Graphics::LUT
@@ -108,10 +107,9 @@ act q|
   ctab( lut_data($names[0]) );
   use PGPLOT;
   pglabel "", "", "Colour table: $names[0]";
+|],
 
-|;
-
-act q|
+[act => q|
     # To change plot specifics you can either use the specific PGPLOT
     # commands - recommended if you need lots of control over your
     # plot.
@@ -122,10 +120,9 @@ act q|
     # and a thickness of 10 we can do:
 
     line $x, $y, {COLOR=>5, LINESTYLE=>'dashed', LINEWIDTH=>10};
+|],
 
-|;
-
-act q|
+[act => q|
 
   # Now for a more complicated example.
   # First create some data
@@ -146,9 +143,9 @@ act q|
 
   points $x->slice('0:-1:4')*180./3.1415;
   release;
-|;
+|],
 
-act q|
+[act => q|
   #
   # More examples of changing the plot defaults
   # 
@@ -156,9 +153,9 @@ act q|
   $y = $x*2;
   $bord_opt = { TYPE => 'RELATIVE', VALUE => 0.1 };
   line log10($x), $y, { AXIS => 'LOGX', BORDER => $bord_opt };
-|;
+|],
 
-act q|
+[act => q|
   #
   # We can also create vector maps of data
   # This requires one array for the horizontal component and
@@ -172,20 +169,18 @@ act q|
   hold;
   cont $vertical-$horizontal, {COLOR=>YELLOW};
   release;
+|],
 
-|;
-
-act q|
+[act => q|
   #
   # To draw [filled] polygons, the command poly is handy:
   #
 
   $x=sequence(10)/5;
   poly $x, $x**2, {FILL=>HATCHED, COLOR=>BLUE};
+|],
 
-|;
-
-act q|
+[act => q|
   #
   # the latest feature of PDL are complex numbers
   # so let's play with a simple example
@@ -197,10 +192,9 @@ act q|
   line sin($c)->im; hold;      # the imaginary part
   line sin($c)->re;            # real
   line abs sin $c; release;  # and the modulus
-  
-|;
+|],
 
-act q|
+[act => q|
   #
   # more complex numbers
   #
@@ -210,8 +204,9 @@ act q|
   line $sin->im, $sin->re;   # look at the result in the complex plane
   #close the window--we're done!
   close_window($id); 
-|;
+|],
+);
 
-}
+sub demo { @demo }
 
 1;

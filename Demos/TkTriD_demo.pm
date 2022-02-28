@@ -9,6 +9,12 @@ use strict;
 my $TriDW;      # declare the graph object in main, defined in initialize
 use PDL::Demos;
 
+sub info {('3dtk', 'Tk graphics (requires Tk)')}
+sub demo {[actnw => q|
+  # starting up the Tk GUI demo app
+  |.__PACKAGE__.q|::run();
+|]}
+
 #BEGIN{
 #  if(defined $PDL::Graphics::TriD::cur){
 #	 print "Configuration error in TkTriD demo\n";
@@ -67,7 +73,7 @@ my  $e_button = $bframe->Button(-text => "Exit",
 	  {Name=>'ViewPorts',
 		Type=>'command',
 		Options=>['Split Horizontal','Split Vertical',
-					 'Un-Split (Save This)','Un-Split (Save Others)'],
+			  'Un-Split (Save This)','Un-Split (Save Others)'],
 		Command=>\&setviewports},
 	  {Name=>'Focus',
 		Type=>'radio',
@@ -85,19 +91,19 @@ my  $e_button = $bframe->Button(-text => "Exit",
       foreach(@{$menu->{Options}}){
 	
 		  $mew->radiobutton(-label=> $_,
-								  -value=> $_,
-								  -variable=> \$menu->{Value},
-								  -command=> [$menu->{Command},$_] );
+				    -value=> $_,
+				    -variable=> \$menu->{Value},
+				    -command=> [$menu->{Command},$_] );
       }
     }elsif($menu->{Type} eq "command"){
       foreach(@{$menu->{Options}}){
         if(/^Un-Split/){
-			 $mew->AddItems(["command" => $_,
-								  -state => 'disabled',
-								  -command=> [$menu->{Command},$mew,$_] ]);
+		     $mew->AddItems(["command" => $_,
+				  -state => 'disabled',
+				  -command=> [$menu->{Command},$mew,$_] ]);
 		  }else{
-			 $mew->AddItems(["command" => $_,
-								  -command=> [$menu->{Command},$mew,$_] ]);
+		     $mew->AddItems(["command" => $_,
+				  -command=> [$menu->{Command},$mew,$_] ]);
 		  }
       }
     }
@@ -112,13 +118,11 @@ my  $e_button = $bframe->Button(-text => "Exit",
 #
 
   $e_button->bind("<Configure>",[ sub { my $but = shift; 
-													 Torusdemos(); 
-													 $but->bind("<Configure>",'') }]);
+				   Torusdemos();
+				   $but->bind("<Configure>",'') }]);
 
   $TriDW->MainLoop;
 }
-
-
 
 sub linedemos{
   my($bh,$demo) = @_;
@@ -333,11 +337,11 @@ sub setviewports{
   my $vp = $TriDW->current_viewport();
   my $nvp;  
   if($request eq 'Split Horizontal'){
-	 $nvp=$TriDW->new_viewport($vp->{X0}+$vp->{W}/2,$vp->{Y0},$vp->{W}/2,$vp->{H});
-	 $vp->resize($vp->{X0},$vp->{Y0},$vp->{W}/2,$vp->{H});
+    $nvp=$TriDW->new_viewport($vp->{X0}+$vp->{W}/2,$vp->{Y0},$vp->{W}/2,$vp->{H});
+    $vp->resize($vp->{X0},$vp->{Y0},$vp->{W}/2,$vp->{H});
   }elsif($request eq 'Split Vertical'){
-	 $nvp=$TriDW->new_viewport($vp->{X0},$vp->{Y0}+$vp->{H}/2,$vp->{W},$vp->{H}/2);
-	 $vp->resize($vp->{X0},$vp->{Y0},$vp->{W},$vp->{H}/2);
+    $nvp=$TriDW->new_viewport($vp->{X0},$vp->{Y0}+$vp->{H}/2,$vp->{W},$vp->{H}/2);
+    $vp->resize($vp->{X0},$vp->{Y0},$vp->{W},$vp->{H}/2);
   }elsif($request eq 'Un-Split (Save This)'){
 	 my $cnt=0;
 	 foreach (@{$TriDW->viewports()}){
@@ -349,14 +353,14 @@ sub setviewports{
 	 $vp->resize(0,0,$TriDW->{GLwin}{Width},$TriDW->{GLwin}{Height});
   }elsif($request eq 'Un-Split (Save Others)'){
 	 if($vp->{W} < $TriDW->{GLwin}{Width}){
-		my $x0 = $vp->{X0};
-		my $x1 = $vp->{X0}+$vp->{W};
-		foreach (@{$TriDW->viewports()}){
-		  if(($_->{X0} == $x1) || ($_->{X0}+$_->{W} == $x0)){
-			 $x0 = $_->{X0} if($x0>$_->{X0});
-			 $_->resize(min($x0,$_->{X0}),$_->{Y0},$_->{W}+$vp->{W},$_->{H});
-		  }
-		}
+	    my $x0 = $vp->{X0};
+	    my $x1 = $vp->{X0}+$vp->{W};
+	    foreach (@{$TriDW->viewports()}){
+	      if(($_->{X0} == $x1) || ($_->{X0}+$_->{W} == $x0)){
+	       $x0 = $_->{X0} if($x0>$_->{X0});
+	       $_->resize(min($x0,$_->{X0}),$_->{Y0},$_->{W}+$vp->{W},$_->{H});
+	      }
+	    }
 	 }
 
 	 $TriDW->clear_viewport($vp);
@@ -405,4 +409,12 @@ sub setfocus{
     $num++;
   }
 }
+
+# This way, it can be invoked as "perl -MPDL::Demos::Tk" or as
+# "perl path/to/Tk.pm"
+if ($0 eq '-' or $0 eq __FILE__) {
+        run;
+        exit;
+}
+
 1;

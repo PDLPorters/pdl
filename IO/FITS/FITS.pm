@@ -659,9 +659,9 @@ sub treat_bscale($$){
 
     my ($bscale, $bzero);
     $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
-    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
     $bscale = 1 if (!defined($bscale) || $bscale eq "");
     $bzero  = 0 if (!defined($bzero)  || $bzero  eq "");
+    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
     
     # Be clever and work out the final datatype before eating
     # memory

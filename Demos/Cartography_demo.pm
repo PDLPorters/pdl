@@ -1,23 +1,23 @@
-#
 package PDL::Demos::Cartography_demo;
 
-use PDL;
+sub init {'
 use PDL::Graphics::PGPLOT::Window;
 use PDL::Transform::Cartography;
-use File::Spec;
-use PDL::Demos;
+'}
+sub done {'
+$w->close;
+undef $w;
+'}
 
-sub run {
-  local($PDL::debug) = 0;
-  local($PDL::verbose) = 0;
+sub info {('cartography','Cartographic projections (Req.: PGPLOT)')}
 
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
 $ENV{PGPLOT_DEV} = $^O =~ /MSWin32/          ? '/GW'            :
                    defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XWIN";
 
-
-  unless( PDL->rpiccan('JPEG') ) {
-    comment q|
+my @demos = (
+PDL->rpiccan('JPEG') ? () :
+    [comment => q|
 This demo illustrates the PDL::Transform::Cartography module.  
 
 It requires PGPLOT and also the ability to read/write JPEG images.
@@ -28,10 +28,9 @@ because you do not have NetPBM installed.  See the man page for PDL::IO::Pic.
 I'll continue with the demo anyway, but it will likely crash on the 
 earth_image('day') call on the next screen.
 
-|
-}
+|],
 
-comment q|
+[comment => q|
 
  This demo illustrates the PDL::Transform::Cartography module.
  It also requires PGPLOT support: you must have PGPLOT installed to run it.
@@ -45,9 +44,9 @@ comment q|
  appear in greyscale.  (The vector data will appear in color
  regardless).
 
- |;
+ |],
 
-act q|
+[act => q|
   ### Load the necessary modules 
     use PDL::Graphics::PGPLOT::Window;
     use PDL::Transform::Cartography;
@@ -61,9 +60,9 @@ act q|
 
     $map = earth_image('day');
     print "Map data are RGB:   ",join("x",$map->dims),"\n\n";
-|;
+|],
 
-act q&
+[act => q&
   ### Map data are stored natively in Plate Caree format. 
   ### The image contains a FITS header that contains coordinate system info.
   print "FITS HEADER INFORMATION:\n";
@@ -78,9 +77,9 @@ act q&
          # $dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
   $w = pgwin(Dev=> $dev, size=>[8,6]);
   $w->fits_imag($map, {Title=>"NASA/MODIS Earth Map (Plate Caree)",J=>0});
-&;
+&],
 
-act q&
+[act => q&
   ### The map data are co-aligned with the vector data, which can be drawn
   ### on top of the window with the "->lines" PGPLOT method.  The 
   ### clean_lines method breaks lines that pass over the map's singularity 
@@ -90,9 +89,9 @@ act q&
   $w->lines( $coast -> clean_lines );
   $w->release;
 
-&;
+&],
 
-act q&
+[act => q&
 ### There are a large number of map projections -- to list them all, 
 ### say "??cartography" in the perldl or pdl2 shell.  Here are four
 ### of them:
@@ -116,11 +115,9 @@ draw( t_mercator,  "Mercator Projection",    [400,300] );
 draw( t_aitoff,    "Aitoff / Hammer",        [400,300] );
 draw( t_gnomonic,  "Gnomonic",               [400,300],{or=>[[-3,3],[-2,2]]} );
 draw( t_lambert,   "Lambert Conformal Conic",[400,300],{or=>[[-3,3],[-2,2]]} );
+&],
 
-
-&;
-
-act q|
+[act => q|
 ### You can create oblique projections by feeding in a different origin.
 ### Here, the origin is centered over North America.
 
@@ -129,9 +126,9 @@ draw( t_aitoff (   o=>[-90,40] ), "Aitoff / Hammer",        [400,300] );
 draw( t_gnomonic(  o=>[-90,40] ), "Gnomonic",[400,300],{or=>[[-3,3],[-2,2]]} );
 draw( t_lambert(   o=>[-90,40] ), "Lambert ",[400,300],{or=>[[-3,3],[-2,2]]} );
 
-|;
+|],
 
-act q|
+[act => q|
 ### There are three main perspective projections (in addition to special
 ### cases like stereographic and gnomonic projection): orthographic,
 ### vertical, and true perspective.  The true perspective has options for
@@ -152,9 +149,9 @@ draw( t_perspective( r0=> 1.1, o=>[-117,31], cam=>[-22,-45,0] ),
       "Aerial view of West Coast of USA", [400,300],
       {or=>[[-60,60],[-45,45]], method=>'linear'});
 
-|;
+|],
 
-comment q|
+[comment => q|
 
 That concludes the basic cartography demo.  Numerous other transforms
 are available.  
@@ -168,11 +165,9 @@ a map of the imaged body.
 Similarly, scanned images of map data can easily be converted into 
 lat/lon coordinates or reprojected to make other projections. 
 
-|;
+|],
+);
 
-$w->close;
-undef $w;
-
-}
+sub demo { @demos }
 
 1;

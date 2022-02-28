@@ -1,9 +1,14 @@
+package PDL::Demos::Prima;
+
 use strict;
 use warnings;
+use PDL::Graphics::Prima 0.13;
 
-############################################################################
-                         package PDL::Demos::Prima;
-############################################################################
+sub info {('prima', 'Prima graphics (requires PDL::Graphics::Prima)')}
+sub demo {[actnw => q|
+  # starting up the Prima GUI demo app
+  |.__PACKAGE__.q|::run();
+|]}
 
 use PDL;
 
@@ -31,51 +36,29 @@ read this, though it won't be quite so interactive. :-)
 =head1 DESCRIPTION
 
 The documentation in this module is meant to give a short, hands-on
-introduction to L<PDL::Graphics::Prima|PDL::Graphics::Prima/>, a plotting
-library written on top of the L<Prima|Prima/> GUI toolkit.
+introduction to L<PDL::Graphics::Prima>, a plotting
+library written on top of the L<Prima> GUI toolkit.
 
 =cut
 
-##############################
-# Check load status of Prima #
-##############################
-
-my $min_version = 0.13;
-my $loaded_prima = eval {
-	require PDL::Graphics::Prima;
-	return 0 if $PDL::Graphics::Prima::VERSION < $min_version;
-	require PDL::Graphics::Prima::Simple;
-	PDL::Graphics::Prima::Simple->import();
-	require Prima::Application;
-	Prima::Application->import();
-	1;
-};
-
-###########################################
-# Pull the demo pod into a data structure #
-###########################################
-
 # Pull the pod apart into the following sort of array structure
-# @demo = (
+# @demo_data = (
 #   'Introduction' => $first_paragraph => $first_code,
 #   'Introduction' => $second_paragraph => $second_code,
 #     ...
 #   'First steps'  => $first_paragraph => $first_code,
 #     ...
 # );
-
-my (@demo, $curr_section, $curr_par, $curr_code);
-my $curr_state = 'section_title';
+my (@demo_data, $curr_section, $curr_par, $curr_code);
 while(my $line = <DATA>) {
 	# Only =head2s in this documentation
 	last if $line =~ /=head1/;
 	if ($line =~ /^=head2 (.*)/) {
-		# Add the current section's name and an empty arrayref
 		$curr_section = $1;
 	}
 	elsif ($line =~ /^\n/) {
 		if (defined $curr_par and defined $curr_code) {
-			push @demo, $curr_section, $curr_par, $curr_code;
+			push @demo_data, [$curr_section, $curr_par, $curr_code];
 			$curr_par = $curr_code = undef;
 		}
 	}
@@ -93,76 +76,49 @@ while(my $line = <DATA>) {
 }
 
 # Add some extra content for Prima viewing only
-if ($loaded_prima) {
-	unshift @demo, 'Introduction',
-'This is the demo for L<PDL::Graphics::Prima|PDL::Graphics::Prima/>. Explanatory
-text will appear here; code samples will appear below. Tip: you can modify and 
+unshift @demo_data, ['Introduction',
+'This is the demo for L<PDL::Graphics::Prima>. Explanatory
+text will appear here; code samples will appear below. Tip: you can modify and
 re-run the code samples. When you are done, simply close the window.',
 '### HEY, EDIT ME! ###
 use Prima::MsgBox;
-Prima::MsgBox::message( "Hello, this is the PDL::Graphics::Prima demo.", mb::Ok);'
-}
+Prima::MsgBox::message( "Hello, this is the PDL::Graphics::Prima demo.", mb::Ok);'];
 
 ##################################
 # The command that runs the demo #
 ##################################
 
-# These are widgts I will need across multiple functions, so they are globals.
-my ($section_title_label, $text_pod, $code_eval, $prev_button, $next_button,
-	$run_button, $help_window, $window, $is_evaling);
+# These are widgets I will need across multiple functions, so they are globals.
+our %GUI;
 sub run {
-	
-	# Make sure they have it. Otherwise, bail out.
-	if (not $loaded_prima) {
-		my $reason =
-"I couldn't load the library, either because it's not installed on your
-machine or it's broken.";
-		$reason = 
-"your version of PDL::Graphics::Prima (v$PDL::Graphics::Prima::VERSION) is out of date. This demo
-requires at least v$min_version." if defined $loaded_prima;
-		print <<SORRY;
+	setup_gui(\%GUI);
+	$GUI{window}->bring_to_front;
+	setup_slide(@{$demo_data[0]}, 0, \%GUI);
+	# Run this sucker
+	local $@;
+	eval { $::application->go };
+	$GUI{help_window}->close if defined $GUI{help_window} and $GUI{help_window}->alive;
+}
 
-Thanks for trying to learn more about PDL::Graphics::Prima. Unfortunately,
-$reason
-
-If you really want to get this working, the fastest way to get help is to
-join the live chat on the PDL irc channel. If you have an IRC client, check
-out
-
-  irc.perl.org#pdl
-
-If you don't have an IRC client, you can join the discussion via mibbit:
-
-  http://www.mibbit.com/chat/?url=irc://irc.perl.org/pdl
-
-If you would rather, you can send an email to the mailing list:
-
-  http://pdl.perl.org/?page=mailing-lists
-
-For more information about PDL::Graphics::Prima, check out
-
-  http://p3rl.org/PDL::Graphics::Prima.
-
-
-Thanks, and keep trying! I promise it's worth it.
-
-SORRY
-		return;
-	}
-	
+sub setup_gui {
+	my ($gui) = @_;
 	# Note that by the time we reach here, $::application is defined.
+	require PDL::Graphics::Prima::Simple;
+	PDL::Graphics::Prima::Simple->import();
+	require Prima::Application;
+	Prima::Application->import();
 	require Prima::Label;
 	require Prima::PodView;
 	require Prima::Buttons;
 	require Prima::Utils;
 	require Prima::Edit;
-	
+
 	my $current_slide = 0;
-	
+
 	# ---( Build the Demo Window )--- #
-	
+
 																	# Window
-	$window = Prima::Window->create(
+	$gui->{window} = Prima::Window->create(
 		place => {
 			relx => 0.15, relwidth => 0.7, relheight => 0.7, rely => 0.15,
 			anchor => 'sw',
@@ -178,13 +134,13 @@ SORRY
 		},
 		onKeyUp => \&keypress_handler,
 	);
-	$window->font->size(12);
+	$gui->{window}->font->size(12);
 																		# Title
 	# ---( Build list of windows that we don't want to close )---
 	my @dont_touch = $::application->get_widgets;
-	
+
 	my $title_height = 50;
-	$section_title_label = $window->insert(Label =>
+	$gui->{section_title_label} = $gui->{window}->insert(Label =>
 		place => {
 			x => 0, relwidth => 1, anchor => 'sw',
 			y => -$title_height, rely => 1, height => $title_height,
@@ -201,7 +157,7 @@ SORRY
 	);
 																	# Buttons
 	my $button_height = 35;
-	$prev_button = $window->insert(Button =>
+	$gui->{prev_button} = $gui->{window}->insert(Button =>
 		place => {
 			x => 0, relwidth => 0.333, anchor => 'sw',
 			y => 0, height => $button_height,
@@ -211,10 +167,10 @@ SORRY
 		enabled => 0,
 		onClick => sub {
 			$current_slide-- unless $current_slide == 0;
-			setup_slide($current_slide);
+			setup_slide(@{$demo_data[$current_slide]}, _slide_posn($current_slide, scalar @demo_data), $gui);
 		},
 	);
-	$run_button = $window->insert(Button =>
+	$gui->{run_button} = $gui->{window}->insert(Button =>
 		place => {
 			relx => 0.333, relwidth => 0.333, anchor => 'sw',
 			y => 0, height => $button_height,
@@ -225,30 +181,30 @@ SORRY
 			# Clear out old windows
 			for my $curr_window ($::application->get_widgets) {
 				next if grep { $curr_window == $_ } @dont_touch
-					or defined $help_window and $curr_window == $help_window;
+					or defined $gui->{help_window} and $curr_window == $gui->{help_window};
 				$curr_window->destroy;
 			}
-			
+
 			# Disable the buttons
-			my $prev_state = $prev_button->enabled;
-			$prev_button->enabled(0);
-			$run_button->enabled(0);
-			my $next_state = $next_button->enabled;
-			$next_button->enabled(0);
-			
+			my $prev_state = $gui->{prev_button}->enabled;
+			$gui->{prev_button}->enabled(0);
+			$gui->{run_button}->enabled(0);
+			my $next_state = $gui->{next_button}->enabled;
+			$gui->{next_button}->enabled(0);
+
 			# Run the eval
-			eval 'no strict; no warnings; ' . $code_eval->text;
+			eval 'no strict; no warnings; ' . $gui->{code_eval}->text;
 			if ($@ and $@ !~ /time to exit the event loop/		) {
 				warn $@;
 				Prima::MsgBox::message($@);
 			}
-			
-			$prev_button->enabled($prev_state);
-			$run_button->enabled(1);
-			$next_button->enabled($next_state);
+
+			$gui->{prev_button}->enabled($prev_state);
+			$gui->{run_button}->enabled(1);
+			$gui->{next_button}->enabled($next_state);
 		},
 	);
-	$next_button = $window->insert(Button =>
+	$gui->{next_button} = $gui->{window}->insert(Button =>
 		place => {
 			relx => 0.666, relwidth => 0.333, anchor => 'sw',
 			y => 0, height => $button_height,
@@ -256,12 +212,12 @@ SORRY
 		height => $button_height,
 		text => 'Next',
 		onClick => sub {
-			$current_slide++ unless $current_slide == @demo/3;
-			setup_slide($current_slide);
+			$current_slide++ unless $current_slide == @demo_data;
+			setup_slide(@{$demo_data[$current_slide]}, _slide_posn($current_slide, scalar @demo_data), $gui);
 		},
 	);
 																	# Text
-	my $par_container = $window->insert(Widget =>
+	my $par_container = $gui->{window}->insert(Widget =>
 		place => {
 			x => 0, relwidth => 1, anchor => 'sw',
 			rely => 0.6, relheight => 0.4, height => -$title_height-1,
@@ -269,7 +225,7 @@ SORRY
 		backColor => cl::White(),
 	);
 	my $padding = 10;
-	$text_pod = $par_container->insert(PodView =>
+	$gui->{text_pod} = $par_container->insert(PodView =>
 		place => {
 			x => $padding, relwidth => 1, width => -2*$padding,
 			y => $padding, relheight => 1, height => -2*$padding - 15,
@@ -283,7 +239,7 @@ SORRY
 			# $link is a reference to the link that should be opened; deref
 			$::application->open_help($$link);
 			# Store the help window so we can close it on exit later
-			$help_window = $::application->get_active_window;
+			$gui->{help_window} = $::application->get_active_window;
 			# Bring the help window to the fore
 			$::application->get_active_window->bring_to_front
 				if $::application->get_active_window;
@@ -296,16 +252,16 @@ SORRY
 		autoVScroll => 1,
 		onKeyUp => \&keypress_handler,
 	);
-	
+
 																		# Code
-	my $code_container = $window->insert(Widget =>
+	my $code_container = $gui->{window}->insert(Widget =>
 		place => {
 			x => 0, relwidth => 1, anchor => 'sw',
 			y => $button_height+1, relheight => 0.6, height => -$button_height-2,
 		},
 		backColor => cl::White(),
 	);
-	$code_eval = $code_container->insert(Edit =>
+	$gui->{code_eval} = $code_container->insert(Edit =>
 		place => {
 			x => $padding, relwidth => 1, width => -2*$padding,
 			y => $padding, relheight => 1, height => -2*$padding,
@@ -322,26 +278,18 @@ SORRY
 		cursorWrap => 1,
 		font => { name => 'monospace', size => 12 },
 	);
-	
-	$window->bring_to_front;
-	setup_slide(0);
-	
-	# Run this sucker
-	local $@;
-	eval { $::application->go };
-	$help_window->close if defined $help_window and $help_window->alive;
 }
 
 sub keypress_handler {
 	my ($self, $code, $key, $mod) = @_;
 	if ($key == kb::Down() or $key == kb::Right() or $key == kb::PgDn()) {
-		$next_button->notify('Click');
+		$GUI{next_button}->notify('Click');
 	}
 	elsif ($key == kb::Up() or $key == kb::Left() or $key == kg::PgUp()) {
-		$prev_button->notify('Click');
+		$GUI{prev_button}->notify('Click');
 	}
 	else {
-		$code_eval->notify('KeyUp', $code, $key, $mod);
+		$GUI{code_eval}->notify('KeyUp', $code, $key, $mod);
 	}
 }
 
@@ -350,40 +298,44 @@ sub keypress_handler {
 # Function that transitions between paragraphs and sections #
 #############################################################
 
+# posn 0=first, 1=mid, 2=penultimate, 3=last
+sub _slide_posn {
+  my ($number, $total) = @_;
+  return 0 if ($number//0) <= 0;
+  return 2 if $number == $total - 1;
+  return 3 if $number >= $total;
+  1;
+}
 sub setup_slide {
-	my $number = shift;
-	if ($number == 0) {
-		$prev_button->enabled(0);
+	my ($section, $text, $code, $posn, $gui) = @_; # see above for posn
+	if ($posn == 0) {
+		$gui->{prev_button}->enabled(0);
 	}
 	else {
-		$prev_button->enabled(1);
+		$gui->{prev_button}->enabled(1);
 	}
-	if ($number == @demo/3 - 1) {
-		$next_button->enabled(1);
-		$next_button->text('Finish');
+	if ($posn == 2) {
+		$gui->{next_button}->enabled(1);
+		$gui->{next_button}->text('Finish');
 	}
-	elsif ($number == @demo/3) {
+	elsif ($posn == 3) {
 		# Close the window
-		$window->notify('Destroy');
+		$gui->{window}->notify('Destroy');
 		return;
 	}
 	else {
-		$next_button->enabled(1);
-		$next_button->text('Next');
+		$gui->{next_button}->enabled(1);
+		$gui->{next_button}->text('Next');
 	}
-	
-	$number *= 3;
 	# Set the section title and code
-	$section_title_label->text($demo[$number]);
-	$code_eval->text($demo[$number+2]);
-	
+	$gui->{section_title_label}->text($section);
+	$gui->{code_eval}->text($code);
 	# Load the pod
-	$text_pod->open_read;
-	$text_pod->read("=pod\n\n$demo[$number+1]\n\n=cut");
-	$text_pod->close_read;
-	
+	$gui->{text_pod}->open_read;
+	$gui->{text_pod}->read("=pod\n\n$text\n\n=cut");
+	$gui->{text_pod}->close_read;
 	# Run the demo
-	$run_button->notify('Click');
+	$gui->{run_button}->notify('Click');
 }
 
 # This way, it can be invoked as "perl -MPDL::Demos::Prima" or as
@@ -400,11 +352,11 @@ __DATA__
 =head2 use PDL::Graphics::Prima::Simple
 
 To get started, you will want to use
-L<PDL::Graphics::Prima::Simple|PDL::Graphics::Prima::Simple/>. This
+L<PDL::Graphics::Prima::Simple>. This
 module provides a set of friendly wrappers for simple, first-cut data
-visualization. L<PDL::Graphics::Prima|PDL::Graphics::Prima/>, the underlying
+visualization. L<PDL::Graphics::Prima>, the underlying
 library, is a general-purpose 2D plotting library built as a widget in the
-L<Prima GUI toolkit|Prima/>, but we don't need the full functionality for
+L<Prima GUI toolkit|Prima>, but we don't need the full functionality for
 the purposes of this demo.
 
  use PDL::Graphics::Prima::Simple;

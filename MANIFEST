@@ -158,6 +158,7 @@ Demos/TriD/tvrml2.p
 Demos/TriD1.pm
 Demos/TriD2.pm
 Demos/TriDGallery.pm
+Demos/t/demos.t
 DEPENDENCIES
 DEVELOPMENT
 Doc/Doc.pm

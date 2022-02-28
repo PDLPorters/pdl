@@ -2,16 +2,18 @@ package PDL::Demos::PGPLOT_OO_demo;
 
 # show how to use the new OO PGPLOT interface
 
-use PDL;
 use PDL::Graphics::PGPLOT::Window;
-use PDL::Demos;
-
-sub run {
 
 $ENV{PGPLOT_XW_WIDTH}=0.3;
 $ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
 
-comment q|
+sub info {('pgplotOO', 'PGPLOT OO interface    (Req.: PGPLOT)')}
+sub init {'
+use PDL::Graphics::PGPLOT::Window;
+'}
+
+my @demo = (
+[comment => q|
     The PGPLOT demo showed you how to use the old interface to PGPLOT.
     As this is perl, TIMTOWTDI, and this demo shows you how to use the
     new, object-orientated PGPLOT interface. For the simple examples
@@ -20,39 +22,35 @@ comment q|
     or windows.
 
     Enough prattle, on with the show...
+|],
 
-|;
-
-act q|
+[act => q|
     # we start with a different module to the traditional interface
     use PDL::Graphics::PGPLOT::Window;
 
     # create a window "object"
     $dev = $^O =~ /MSWin32/ ? '/GW' : '/XSERVE';
     $win = PDL::Graphics::PGPLOT::Window->new( { Dev => $dev } );
+|],
 
-|;
-
-act q|
+[act => q|
     # First we define some variables to use for the rest of the demo.
     $x=sequence(10);
     $y=2*$x**2;
 
     # Now a simple plot with points
     $win->points( $x, $y );
+|],
 
-|;
-
-act q|
+[act => q|
     # Here is the same with lines
     $win->line( $x, $y );
 
     # if you're beginning to think its the same as the old calls, 
     # just with "$win->" at the beginning then you're not far wrong!
+|],
 
-|;
-
-act q|
+[act => q|
     # You can do all the things you did before ...
 
     $win->points( $x, $y, {Symbol=>4} );
@@ -62,10 +60,9 @@ act q|
     $win->errb( $x, $y, $yerr );
 
     $win->release;
+|],
 
-|;
-
-act q|
+[act => q|
     # and it acts the same way
 
     $gradient=sequence(40,40);
@@ -76,10 +73,9 @@ act q|
 
     # add labels to the plot
     $win->label_axes( "An axis", "Another axis", "Title" );
-|;
+|],
 
-
-act q|
+[act => q|
   # let's try and read the cursor
 
   $c =  czip(zeroes(300)->xlinvals(0,12), zeroes(300)->xlinvals(2,10));
@@ -90,30 +86,27 @@ act q|
   ( $x, $y, $ch ) = $win->cursor( { Type=>'CrossHair' } );
   
   print "\nYou selected: $x + $y i  (key = $ch)\n";
-
-|;
+|],
 
 # should really do something related to the selected points...
 
-act q|
+[act => q|
   # how about another window?
 
   $win2 = PDL::Graphics::PGPLOT::Window->new( { Dev => $dev } );
   $win2->env( 0, 4, -2, 0, { Axis => 'logy' } );
   $x = sequence(101) / 25;
   $win2->points( $x, $x->sin->abs()->log10 );
+|],
 
-|;
-
-act q|
+[act => q|
   # switch back to the original window (we don't want to hurt
   # its feelings)
 
   $win->line( $x, { Border => 1 } );
+|],
 
-|;
-
-act q|
+[act => q|
   # free up the windows, after finding their names
 
   print "You've been watching " . $win->name();
@@ -121,9 +114,9 @@ act q|
 
   $win->close();
   $win2->close();
-    
-|;
+|],
+);
 
-}
+sub demo { @demo }
 
 1;
