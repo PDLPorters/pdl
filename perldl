@@ -268,6 +268,10 @@ if ( $readlines ){
 		warn("Sorry, cannot use Tk with this version of ReadLine\n");
 	}
     }
+    readhist();
+}
+
+sub readhist {
     if ( ( -e "$HOME/.perldl_hist" )
 	&& ( open HIST, "<$HOME/.perldl_hist" ) ) {
 	my @allhist = <HIST>;
@@ -277,23 +281,24 @@ if ( $readlines ){
 	    $PERLDL::TERM->addhistory($_);
 	}
     }
-    eval <<'EOEND';
-sub END {
-
+}
+sub savehist {
+    return if !$readlines;
     # Save History in $ENV{'HOME'}/.perldl_hist
     # GetHistory doesn't work on all versions...
-    my @a= $PERLDL::TERM->GetHistory() if $PERLDL::TERM->can('GetHistory');
-
-    $#a-- if $a[-1] =~ /^(q$|x$|\s*exit\b|\s*quit\b)/; # chop off the exit command
-    @a= @a[($#a-$PERLDL::HISTFILESIZE+1)..($#a)] if $#a > $PERLDL::HISTFILESIZE-1 ;
+    return if !$PERLDL::TERM->can('GetHistory');
+    my @a= grep $_ && /\S/, $PERLDL::TERM->GetHistory;
+    pop @a if $a[-1] =~ /^(q$|x$|\s*exit\b|\s*quit\b)/; # chop off the exit command
+    return if !@a; # nothing to do (and don't overwrite)
+    @a = map {s/^\s*(.*?)\s*$/$1/;$_} @a; # strip whitespace
+    my %seen; @a = reverse grep !$seen{$_}++, reverse @a; # dedup
+    @a= @a[(@a-$PERLDL::HISTFILESIZE)..($#a)] if @a > $PERLDL::HISTFILESIZE;
     if( open HIST, ">$HOME/.perldl_hist" ) {
 	print HIST join("\n",@a);
 	close HIST;
     } else {
 	print " Unable to open \"$HOME/.perldl_hist\"\n";
     }
-}
-EOEND
 }
 
 sub l {
@@ -566,6 +571,7 @@ sub process_input {
 		     print STDERR "EOF ignored. ('q' or 'exit' to quit.  \$PERLDL::NO_EOF = $PERLDL::NO_EOF)\n";
 		 } else {
 		     print STDERR "EOF detected, exiting shell.\n";
+		     savehist();
 		     exit 0;
 		 }
 	     }
@@ -592,7 +598,7 @@ sub process_input {
      $PERLDL::TERM->SetHistory(@hist);
   }
   
-  if(!defined $lines || lc $lines eq 'q' || lc $lines eq 'x' || lc $lines eq 'quit') {exit};
+  if(!defined $lines || lc $lines eq 'q' || lc $lines eq 'x' || lc $lines eq 'quit') {savehist(); exit;};
   next if $lines =~/^\s*$/; # Blank line - do nothing
   
   $lines =~ s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
