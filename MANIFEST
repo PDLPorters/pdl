@@ -138,7 +138,6 @@ Demos/Demos.pm
 Demos/earth-interp.pl
 Demos/earth.txt
 Demos/General.pm
-Demos/Gnuplot_demo.pm
 Demos/Makefile.PL
 Demos/PGPLOT_demo.pm
 Demos/PGPLOT_OO_demo.pm

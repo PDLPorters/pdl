@@ -18,7 +18,6 @@ WriteMakefile(
                     'BAD_demo.pm'       => '$(INST_LIBDIR)/Demos/BAD_demo.pm',
                     'Transform_demo.pm' => '$(INST_LIBDIR)/Demos/Transform_demo.pm',
                     'Cartography_demo.pm' => '$(INST_LIBDIR)/Demos/Cartography_demo.pm',
-		    'Gnuplot_demo.pm'   =>  '$(INST_LIBDIR)/Demos/Gnuplot_demo.pm',
                     '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
                     'Prima.pm' => '$(INST_LIBDIR)/Demos/Prima.pm',
 		   },
