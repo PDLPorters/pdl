@@ -829,6 +829,7 @@ broadcastover_n(...)
 	realdims[i] = 0;
     }
     PDL_CLRMAGIC(&pdl_brc);
+    pdl_brc.gflags = 0; /* avoid uninitialised value use below */
     pdl_barf_if_error(pdl_initbroadcaststruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_brc,NULL,NULL,NULL, 1));
     pdl_error error_ret = {0, NULL, 0};
     if (pdl_startbroadcastloop(&pdl_brc,NULL,NULL,&error_ret) < 0) croak("Error starting broadcastloop");
