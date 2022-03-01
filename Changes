@@ -4,6 +4,7 @@
 - IO::FlexRaw::readflex can take last dim as undef (#322)
 - add IO::(Fast|Flex)Raw::glue\L\1 (#322)
 - PDL::Demos::Routines replaced with PDL::Demos, update demos (#42)
+- switch pdl_destroy to use mg_free not SvOBJECT_off, needed by Perl ithreads (#385)
 
 2.076 2022-02-25
 - fix long-standing bug in dice that broke with PDL subclasses (#363)
