@@ -688,7 +688,7 @@ BEGIN {
 		(barf "Invalid PDL 3D device '$_' specified!");
 	}
 	my $mod = $dv;
-	$mod =~ s|::|//|g;
+	$mod =~ s|::|/|g;
 	print "dev = $dev mod=$mod\n" if($verbose);
  
 	require "$mod.pm";

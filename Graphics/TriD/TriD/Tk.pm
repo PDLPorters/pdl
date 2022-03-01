@@ -196,7 +196,7 @@ sub refresh{
 
 =for ref 
 
-Trys to find a subroutine in PDL::Graphics::TriD when it is 
+Tries to find a subroutine in PDL::Graphics::TriD when it is
 not found in this package.  
 
 =cut
