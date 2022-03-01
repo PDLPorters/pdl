@@ -231,8 +231,7 @@ sub DESTROY {
   OpenGL::GLUT::glutKeyboardFunc();
   OpenGL::GLUT::glutMouseFunc();
   OpenGL::GLUT::glutMotionFunc();
-  OpenGL::GLUT::glutDisplayFunc();
-  glutDestroyWindow($self->{glutwindow});
+  OpenGL::GLUT::glutDestroyWindow($self->{glutwindow});
   delete $self->{glutwindow};
 }
 
