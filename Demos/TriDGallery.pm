@@ -20,20 +20,18 @@ my @demo = (
 	The following selection of scripts demonstrates that you
 	can generate  interesting images with PDL (and the TriD
 	modules) with just a few lines of code.
-
-	These are the rules for scripts to be accepted for this
-	category:
+	Scripts accepted for this category:
 
         1) Must be legal Perl with a recent PDL version - may come with
            a patch to PDL if the patch is general enough to be included
            in the next release and usable outside the demo (e.g.
            $x=mandelbrot($c) is NOT), i.e. you can introduce new
            commands
-        2) The code must fit in 4 lines, 72 columns.
-        3) It must create an interesting image when fed to perl.
+        2) Must create an interesting image when fed to PDL
 
-        If you have an interesting new TriD M4LS (Maximal-4-lines-script)
+        If you have an interesting new TriD demo,
         submit it to the PDL mailing list (pdl-general@lists.sourceforge.net)
+        or on a GitHub issue (https://github.com/PDLPorters/pdl/issues)
         and there is a good chance it will soon be included in the gallery
 
 	Press 'q' in the graphics window for the next screen.
@@ -141,6 +139,28 @@ for(1..7) {
 }
 
 # [press 'q' in the graphics window to iterate (runs 7 times)]
+~],
+
+# act not actnw, and placed at end to work around keeptwiddling3d bug
+[act => q~
+# Electron simulation by Mark Baker: https://perlmonks.org/?node_id=963819
+use Time::HiRes "usleep";
+nokeeptwiddling3d;
+for $c(1..30) {
+  $n = 6.28*$c;
+  $x = $c*rvals((zeros(9000))*$c);
+  $cz = -1**$x*$c;
+  $cy = -1**$x*sin$x*$c;
+  $cx = -1**$c*rvals($x)*$c;
+  $w = $cz-$cy-$cx;
+  $g = sin($w);
+  $r = cos($cy+$c+$cz);
+  $b = cos($w);
+  $i = ($cz-$cx-$cy);
+  $q = $i*$n;
+  points3d [ $b*sin($q), $r*cos($q), $g*sin$q], [$g,$b,$r];
+  usleep 100_000; # 0.1s
+}
 ~],
 
 [comment => q|
