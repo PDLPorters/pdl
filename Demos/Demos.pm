@@ -106,9 +106,10 @@ PDL::Demos - PDL demo infrastructure
 
 =head1 SYNOPSIS
 
-  # in a demo
+  # in a demo, if text-orientated
   package PDL::Demos::Blah;
-  use PDL::Demos;
+  sub info { ('blah', 'Longer description of demo') }
+  sub init { 'use PDL::Graphics::PGPLOT;' }
   my @demo = (
     [comment => "Welcome to the Blah demo"],
     [act => <<'EOF'],
@@ -116,9 +117,23 @@ PDL::Demos - PDL demo infrastructure
   output $x = sequence(2,3);
   EOF
   );
-  sub info { ('blah', 'Longer description of demo') }
   sub demo { @demo }
-  sub init { 'use PDL::Graphics::PGPLOT;' }
+  sub done { "# return things to previous state\n" }
+
+  # a GUI-orientated one
+  package PDL::Demos::GUIBlah;
+  use GUIBlah; # so demo won't show up in list if GUIBlah not installed
+  sub info { ('blahgui', 'GUIBlah demo') }
+  sub demo {[actnw => q|
+    # starting up the GUI demo app
+    |.__PACKAGE__.q|::run();
+  |]}
+  sub run { # this is just a convention, but a good one
+    # ...
+  }
+
+  # iterate a demo of your own module - call it PDL::Demos::(something)
+  make && perl -Mblib -S perldl # run "demo" and it will see your demo
 
   # in a CLI or REPL
   use PDL::Demos;
