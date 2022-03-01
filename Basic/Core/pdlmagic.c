@@ -448,14 +448,13 @@ void pdl_pthread_realloc_vsnprintf(char **p, size_t *len, size_t extralen, const
 #ifdef WIN32
 #undef realloc
 #endif
-/* FIXME: Common realloc mistake: 'msgs' nulled but not freed upon failure */
   if (add_newline) extralen += 1;
-  *p = realloc(*p, *len + extralen + 1); /* +1 for '\0' at end */
-  vsnprintf(*p + *len, extralen + 1, pat, *args);
-  /* update the length-so-far. This does NOT include the trailing '\0' */
-  *len += extralen;
-  if (add_newline)(*p)[*len] = '\n';
-  (*p)[*len+1] = '\0';
+  extralen += 1; /* +1 for '\0' at end */
+  *p = realloc(*p, *len + extralen);
+  vsnprintf(*p + *len, extralen, pat, *args);
+  *len += extralen; /* update the length-so-far, includes '\0' */
+  if (add_newline) (*p)[*len-2] = '\n';
+  (*p)[*len-1] = '\0';
   pthread_mutex_unlock( &mutex );
 }
 
