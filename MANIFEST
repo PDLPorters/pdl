@@ -141,7 +141,6 @@ Demos/General.pm
 Demos/Makefile.PL
 Demos/PGPLOT_demo.pm
 Demos/PGPLOT_OO_demo.pm
-Demos/Prima.pm
 Demos/Transform_demo.pm
 Demos/TriD/mandel.pl
 Demos/TriD/test3.p
