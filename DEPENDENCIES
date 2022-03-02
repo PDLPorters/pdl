@@ -34,7 +34,6 @@ PDL (all)         perl >= 5.10.x          PDL requires at least this version
 
                   File::Spec  >= 0.6      perl5 core module.
                   File::Temp  >= 0        perl5 core module.
-                  Pod::Parser >= 0        perl5 core module.
                   Pod::Select >= 0        perl5 core module.
 
                   ExtUtils::MakeMaker >= 6.56

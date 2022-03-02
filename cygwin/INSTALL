@@ -68,7 +68,6 @@ in installs for the following dependencies:
   Data::Dumper
   File::Spec
   Filter::Util::Call
-  Pod::Parser
   Pod::Select
   Storable
   Text::Balanced

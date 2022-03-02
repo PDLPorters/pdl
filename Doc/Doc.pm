@@ -771,7 +771,7 @@ sub scantree {
 =head2 funcdocs
 
 extract the complete documentation about a function from its
-  source file using the PDL::Pod::Parser filter.
+source file using the PDL::PodParser filter.
 
 =cut
 
