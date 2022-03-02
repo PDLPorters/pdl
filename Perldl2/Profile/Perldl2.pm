@@ -14,6 +14,7 @@ my %plugin2deps = (
   'Completion' => [qw(PPI)],
   'CompletionDriver::INC' => [qw(File::Next)],
   'CompletionDriver::Keywords' => [qw(B::Keywords)],
+  'CompletionDriver::LexEnv' => [qw(Lexical::Persistence)],
   'DDS' => [qw(Data::Dump::Streamer)],
   'Interrupt' => [qw(Sys::SigAction)],
   'LexEnv' => [qw(Lexical::Persistence)],
@@ -30,6 +31,7 @@ sub plugins {
       CompletionDriver::Methods
       DDS
       History
+      Interrupt
       LexEnv
       MultiLine::PPI
       Packages

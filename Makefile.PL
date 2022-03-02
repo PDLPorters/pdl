@@ -220,6 +220,7 @@ my %makefile_hash = (
         runtime => {
            suggests => {
               'Astro::FITS::Header' => 0,
+              'Sys::SigAction' => 0, # Ctrl-C handling in shells
            },
            recommends => \%min_version,
            requires => { @cpan_deps },

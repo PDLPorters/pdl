@@ -212,7 +212,20 @@ unless ($@) {
 }
 
 use Text::Balanced;
-push @enabled,"MultiLines";
+push @enabled, "MultiLines";
+
+my $interrupt_handle = eval 'use Sys::SigAction qw(set_sig_handler); 1';
+my $interrupt_msg = "Ctrl-C detected";
+if ($interrupt_handle) {
+  push @enabled, "Interrupt";
+} else {
+  $SIG{'INT'} = sub { die "$interrupt_msg\n" }; # Ctrl-C handler
+}
+sub mksighandle {
+  $interrupt_handle ? set_sig_handler(INT => sub {
+    die "$interrupt_msg\n";
+  }) : undef;
+}
 
 print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
@@ -406,8 +419,6 @@ sub demo {
   PDL::Demos->done($_[0]);
 }
 
-$SIG{'INT'} = sub { die "Ctrl-C detected\n" }; # Ctrl-C handler
-
 my $preproc_warned = 0;
 sub preproc_oldwarn {
   warn << 'EOW';
@@ -515,13 +526,16 @@ sub process_input {
 	 my $prompt = $cont ? "..$cont".(" "x(5-length($cont)))."> " : 
 	     ((ref $PERLDL::PROMPT) ? &$PERLDL::PROMPT : $PERLDL::PROMPT);
 
-	 if ($readlines) {
-	     $_ = $PERLDL::TERM->readline($prompt);
-	 }else{
-	     print $prompt if(-t ARGV);  # Don't print prompt in pipes
-	     $_ = <>;
+	 {
+	   my $sig_action = mksighandle();
+	   if ($readlines) {
+	       $_ = $PERLDL::TERM->readline($prompt);
+	   }else{
+	       print $prompt if(-t ARGV);  # Don't print prompt in pipes
+	       $_ = <>;
+	   }
 	 }
-	 
+
 	 if(!defined $_) {
 	     if($cont) {
 		 if( $PERLDL::NO_EOF > 1 && -t STDIN ) {
@@ -617,8 +631,8 @@ $|=1;
 while(1) {
   eval {process_input()};
   if ($@) {
-    if ($@ =~ /Ctrl-C detected/) {
-      print "Ctrl-C detected\n";
+    if ($@ =~ /$interrupt_msg/) {
+      print "$interrupt_msg\n";
       next;
     } else {
       print "Unknown error: $@\n exiting...\n";
@@ -659,7 +673,7 @@ EOD
   %@ = (); # Workaround to prevent spurious loss of $@ in early (pre-5.14 anyway) versions of perl
 
   if( (!$@) and (ref $__coderef eq 'CODE')) { 
-      eval { &$__coderef(); die $@ if($@); };
+      eval { my $sig_action = mksighandle(); &$__coderef(); die $@ if($@); };
   }
 
   if ($@) {
@@ -854,9 +868,13 @@ command prompt:
 
   pdl> $result = start_lengthy_computation()
    <Ctrl-C>
- Ctrl-C detected
+  Ctrl-C detected
 
   pdl>
+
+As of 2.077, this requires L<Sys::SigAction> to be installed (without
+that, and before 2.077, for Perl >5.8 it didn't actually interrupt
+things).
 
 =head2 Shortcuts and aliases
 

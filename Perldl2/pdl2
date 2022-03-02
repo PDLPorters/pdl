@@ -71,6 +71,8 @@ whitespace stripped.  This allows for easy cut-and-paste
 from sample PDL shell sessions or other examples into another
 PDL shell session.
 
+For shell-like C<Ctrl-C> handling, you need L<Sys::SigAction> installed.
+
 =head1 FUNCTIONS
 
 =head2 do_print
