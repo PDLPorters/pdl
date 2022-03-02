@@ -1,4 +1,4 @@
-package PDL::Demos::PGPLOT_OO_demo;
+package PDL::Demos::PGPLOT_OO;
 
 # show how to use the new OO PGPLOT interface
 
@@ -7,7 +7,7 @@ use PDL::Graphics::PGPLOT::Window;
 $ENV{PGPLOT_XW_WIDTH}=0.3;
 $ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
 
-sub info {('pgplotOO', 'PGPLOT OO interface    (Req.: PGPLOT)')}
+sub info {('pgplotOO', 'PGPLOT OO interface')}
 sub init {'
 use PDL::Graphics::PGPLOT::Window;
 '}
@@ -120,3 +120,13 @@ my @demo = (
 sub demo { @demo }
 
 1;
+
+=head1 NAME
+
+PDL::Demos::PGPLOT_OO - demonstrate PDL::Graphics::PGPLOT OO capabilities
+
+=head1 SYNOPSIS
+
+  pdl> demo pgplotOO
+
+=cut

@@ -12,8 +12,13 @@ if ($@) {
 }
 
 WriteMakefile(
-	      'NAME'  	=> 'PDL::Graphics::PGPLOT',
-	      'VERSION_FROM' => '../../Basic/PDL.pm',
-	      'DIR' => ['Window'],
-	      NO_MYMETA => 1,
+  NAME  	=> 'PDL::Graphics::PGPLOT',
+  VERSION_FROM => '../../Basic/PDL.pm',
+  PM => {
+    'PGPLOT.pm' => '$(INST_LIBDIR)/PGPLOT.pm',
+    'PGPLOTOptions.pm' => '$(INST_LIBDIR)/PGPLOTOptions.pm',
+    'Demo.pm' => '$(INST_LIB)/PDL/Demos/PGPLOT.pm',
+  },
+  DIR => ['Window'],
+  NO_MYMETA => 1,
 );

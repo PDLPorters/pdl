@@ -1,7 +1,7 @@
-package PDL::Demos::PGPLOT_demo;
+package PDL::Demos::PGPLOT;
 use PDL::Graphics::PGPLOT;
 
-sub info {('pgplot', 'PGPLOT graphics output (Req.: PGPLOT)')}
+sub info {('pgplot', 'PGPLOT graphics output')}
 
 sub init {'
 $ENV{PGPLOT_XW_WIDTH}=0.3;
@@ -210,3 +210,13 @@ my @demo = (
 sub demo { @demo }
 
 1;
+
+=head1 NAME
+
+PDL::Demos::PGPLOT - demonstrate PDL::Graphics::PGPLOT capabilities
+
+=head1 SYNOPSIS
+
+  pdl> demo pgplot
+
+=cut

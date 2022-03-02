@@ -139,8 +139,7 @@ Demos/earth-interp.pl
 Demos/earth.txt
 Demos/General.pm
 Demos/Makefile.PL
-Demos/PGPLOT_demo.pm
-Demos/PGPLOT_OO_demo.pm
+Demos/t/demos.t
 Demos/Transform_demo.pm
 Demos/TriD/mandel.pl
 Demos/TriD/test3.p
@@ -156,7 +155,6 @@ Demos/TriD/tvrml2.p
 Demos/TriD1.pm
 Demos/TriD2.pm
 Demos/TriDGallery.pm
-Demos/t/demos.t
 DEPENDENCIES
 DEVELOPMENT
 Doc/Doc.pm
@@ -265,10 +263,12 @@ Graphics/LUT/tables/stairs8.fits
 Graphics/LUT/tables/stairs9.fits
 Graphics/LUT/tables/standard.fits
 Graphics/Makefile.PL
+Graphics/PGPLOT/Demo.pm
 Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
 Graphics/PGPLOT/PGPLOTOptions.pm
 Graphics/PGPLOT/t/pgplot.t
+Graphics/PGPLOT/Window/Demo.pm
 Graphics/PGPLOT/Window/Makefile.PL
 Graphics/PGPLOT/Window/typemap
 Graphics/PGPLOT/Window/Window.pm
