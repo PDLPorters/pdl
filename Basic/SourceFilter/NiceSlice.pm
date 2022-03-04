@@ -48,8 +48,6 @@ $PDL::NiceSlice::debug //= 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
 
-require PDL; # get PDL version number
-
 use Text::Balanced; # used to find parenthesis-delimited blocks 
 
 BEGIN {
