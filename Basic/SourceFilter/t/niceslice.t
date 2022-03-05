@@ -104,6 +104,14 @@ ok ($pb == $pa->at(0));
 # modifiers repeated
 $pb = translate_and_run '$pa(0;-||)', qr/twice or more/;
 
+$pa = sequence(3);
+translate_and_run 'my $x = 1 / 2; $pa = $pa((2)); $x =~ /\./;';
+is $pa.'', '2', '/ not treated as starting a regex';
+
+$pa = sequence(3);
+translate_and_run 'my $x = (0.5 + 0.5) / 2; $pa = $pa((2)); $x =~ /\./;';
+is $pa.'', '2', '/ not treated as starting a regex even after paren';
+
 # foreach/for blocking
 
 $pa = '';
