@@ -5,13 +5,17 @@ use ExtUtils::MakeMaker;
 my @subdirs = qw(PGPLOT LUT IIS Limits);
 
 if (eval {
-  require OpenGL; OpenGL->VERSION(0.70);
-  require OpenGL::GLUT; OpenGL::GLUT->VERSION(0.72);
-  1
-}) {
-  unshift @subdirs, "TriD";
+    require OpenGL; OpenGL->VERSION(0.70); 1;
+    }) {
+    if (eval {
+	require OpenGL::GLUT; OpenGL::GLUT->VERSION(0.72); 1;
+	}) {
+	unshift @subdirs, "TriD";
+    } else {
+	print "Will not build TriD graphics, need OpenGL::GLUT >=0.72\n";
+    }
 } else {
-  print "Will not build TriD graphics.\n";
+    print "Will not build TriD graphics, need OpenGL >=0.70 and OpenGL::GLUT >=0.72\n";
 }
 
 my @pm_names = qw (Graphics2D.pm State.pm);
