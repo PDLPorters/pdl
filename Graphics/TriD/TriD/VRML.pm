@@ -317,7 +317,7 @@ sub PDL::Graphics::TriD::Graph::tovrml {
 
 sub PDL::Graphics::TriD::EuclidAxes::tovrml_axis {
   my($this,$graph) = @_;
-  my $vrml = $PDL::Graphics::VRML::cur;
+  my $vrml = $PDL::Graphics::VRML::current_window;
   my $lset = vrn('Shape',
 		 'geometry' => vrn('IndexedLineSet',
 				   'coord',
@@ -559,7 +559,7 @@ sub totext {
 sub save { &{$_[0]->{Type}->{save}}(@_) }
 
 package PDL::Graphics::TriD::VRML;
-$PDL::Graphics::VRML::cur = undef;
+$PDL::Graphics::VRML::current_window = undef;
 $PDL::Graphics::TriD::create_window_sub =
 $PDL::Graphics::TriD::create_window_sub = sub {
 	return new PDL::Graphics::TriD::Window;
@@ -618,7 +618,7 @@ sub gdriver {
 				    'justify' => "\"MIDDLE\"");
   $PDL::Graphics::TriD::VRML::fontstyle = $fontstyle;
   $this->{VRMLTop}->add_proto(PDL::Graphics::TriD::SimpleController->new->tovrml);
-  $PDL::Graphics::VRML::cur = $this->{VRMLTop};
+  $PDL::Graphics::VRML::current_window = $this->{VRMLTop};
   $this->{VRMLTop}->register_proto(
 	    vrp('TriDGraphText',
 		[fv3f('position',"0 0 0"),

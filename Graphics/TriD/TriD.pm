@@ -634,7 +634,6 @@ $PDL::Graphics::TriD::verbose //= 0;
 # $PDL::Graphics::TriD::keeptwiddling
 # $PDL::Graphics::TriD::hold_on
 # $PDL::Graphics::TriD::curgraph
-# $PDL::Graphics::TriD::cur
 # $PDL::Graphics::TriD::create_window_sub
 # $PDL::Graphics::TriD::current_window
 # 
@@ -932,23 +931,20 @@ sub get_current_graph {
 }
 
 
-# $PDL::Graphics::TriD::cur = {};
 # $PDL::Graphics::TriD::create_window_sub = undef;
 sub get_current_window {
   my $opts = shift @_;
-  my $win = $PDL::Graphics::TriD::cur;
+  my $win = $PDL::Graphics::TriD::current_window;
 
   if(!defined $win) {
 	 if(!$PDL::Graphics::TriD::create_window_sub) {
 		barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
 	 }
 	 print "get_current_window - creating window...\n" if($PDL::Graphics::TriD::verbose);
-	 $win = new PDL::Graphics::TriD::Window($opts);
+	 $PDL::Graphics::TriD::current_window = $win = new PDL::Graphics::TriD::Window($opts);
 
 	 print "get_current_window - calling set_material...\n" if($PDL::Graphics::TriD::verbose);
 	 $win->set_material(new PDL::Graphics::TriD::Material);
-	 $PDL::Graphics::TriD::current_window = $win;
-	 $PDL::Graphics::TriD::cur = $win
   }
   return $PDL::Graphics::TriD::current_window;
 }

@@ -819,7 +819,7 @@ sub twiddle {
 		  $quit = 1;
 		  $hap=1;
 		  undef $this->{_GLObject};
-		  $PDL::Graphics::TriD::cur = $PDL::Graphics::TriD::current_window = undef;
+		  $PDL::Graphics::TriD::current_window = undef;
 		  last TWIDLOOP;
 		} elsif($e[0] == KeyPress) {
 		  print "KEYPRESS: '$e[1]'\n" if($PDL::Graphics::TriD::verbose);
@@ -920,7 +920,7 @@ sub display {
 #  $this->{Angle}+= 3;
 }
 
-# should this reallyt be in viewport?
+# should this really be in viewport?
 sub read_picture {
 	my($this) = @_;
 	my($w,$h) = @{$this}{qw/Width Height/};

@@ -73,7 +73,7 @@ Used for widget initialization by Tk, this function should never be called direc
 sub Populate {
   my($TriD, $args) = @_;
 
-  if(defined $PDL::Graphics::TriD::cur){
+  if(defined $PDL::Graphics::TriD::current_window){
 	 print "Current code limitations prevent TriD:Tk from being loaded after ";
     print "another TriD graphics window has been defined.  If you are running the ";
 	 print "PDL demo package, please start it again and run this demo first.\n";

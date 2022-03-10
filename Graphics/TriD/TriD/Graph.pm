@@ -247,7 +247,7 @@ sub finish_scale {
     } 
     push(@dist,$_->[1]-$_->[0]);
   }
-  # for the z coordiniate reverse the min and max values
+  # for the z coordinate reverse the min and max values
   my $max = $this->{Scale}[2][0];
   if($max < $this->{Scale}[2][1]){
     $this->{Scale}[2][0] = $this->{Scale}[2][1];
@@ -355,7 +355,7 @@ sub finish_scale {
     } 
     push(@dist,$_->[1]-$_->[0]);
   }
-  # for the z coordiniate reverse the min and max values
+  # for the z coordinate reverse the min and max values
   my $max = $this->{Scale}[2][0];
   if($max < $this->{Scale}[2][1]){
     $this->{Scale}[2][0] = $this->{Scale}[2][1];
