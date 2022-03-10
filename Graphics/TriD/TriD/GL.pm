@@ -200,7 +200,7 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
 sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	my($this,$graph) = @_;
 
-        print "togl_axis: got object type " . ref($this) . "\n" if $PDL::debug_trid;
+        print "togl_axis: got object type " . ref($this) . "\n" if $PDL::Graphics::TriD::verbose;
 #	print "TOGLAX\n";
 	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
 #	print "TOGL EUCLID\n";
@@ -648,7 +648,7 @@ use strict;
 sub gdriver {
   my($this, $options) = @_;
   
-  print "GL gdriver...\n" if($PDL::debug_trid);
+  print "GL gdriver...\n" if($PDL::Graphics::TriD::verbose);
 
   if(defined $this->{_GLObject}){
 	 print "WARNING: Graphics Driver already defined for this window \n";
@@ -674,12 +674,12 @@ sub gdriver {
 
   print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
 
-  print "gdriver: Calling OpengGL::OO($options)...\n" if ($PDL::debug_trid);
+  print "gdriver: Calling OpengGL::OO($options)...\n" if ($PDL::Graphics::TriD::verbose);
 
   $this->{_GLObject}= new PDL::Graphics::OpenGL::OO($options);
 
   if (exists $this->{_GLObject}->{glutwindow}) {
-     if ($PDL::debug_trid) {
+     if ($PDL::Graphics::TriD::verbose) {
         print "gdriver: Got OpenGL::OO object(GLUT window ID# " . $this->{_GLObject}->{glutwindow} . ")\n";
      }
      $this->{_GLObject}->{winobjects}->[$this->{_GLObject}->{glutwindow}] = $this;      # circular ref
@@ -687,12 +687,12 @@ sub gdriver {
 
 #glpOpenWindow(%$options);
   
-  print "gdriver: Calling glClearColor...\n" if ($PDL::debug_trid);
+  print "gdriver: Calling glClearColor...\n" if ($PDL::Graphics::TriD::verbose);
   glClearColor(0,0,0,1);
 
-  print "gdriver: Calling glpRasterFont...\n" if ($PDL::debug_trid);
+  print "gdriver: Calling glpRasterFont...\n" if ($PDL::Graphics::TriD::verbose);
   if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
-     print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n" if ($PDL::debug_trid);
+     print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n" if ($PDL::Graphics::TriD::verbose);
      eval '$PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13';
   } else {
      # NOTE: glpRasterFont() will die() if the requested font cannot be found

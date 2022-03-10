@@ -15,25 +15,25 @@ $PDL::Graphics::TriD::verbose //= 0;
 sub new {
   my($arg,$options) = @_;
 
-  print "PDL::Graphics::TriD::Window - calling SUPER::new...\n" if($PDL::debug_trid);
+  print "PDL::Graphics::TriD::Window - calling SUPER::new...\n" if($PDL::Graphics::TriD::verbose);
   my $this = $arg->SUPER::new();
 
-  print "PDL::Graphics::TriD::Window - got back $this\n" if($PDL::debug_trid);
+  print "PDL::Graphics::TriD::Window - got back $this\n" if($PDL::Graphics::TriD::verbose);
   # Make sure the Graphics has been initialized
   $options->{width} = 	300 unless defined $options->{width};
   $options->{height} = 	300 unless defined $options->{height};
   $this->{Width} = $options->{width};
   $this->{Height} = $options->{height};
 
-  print "PDL::Graphics::TriD::Window: calling gdriver....\n" if($PDL::debug_trid);
+  print "PDL::Graphics::TriD::Window: calling gdriver....\n" if($PDL::Graphics::TriD::verbose);
   $this->{Interactive} = $this->gdriver($options);
-  print "PDL::Graphics::TriD::Window: gdriver gave back $this->{Interactive}....\n" if($PDL::debug_trid);
+  print "PDL::Graphics::TriD::Window: gdriver gave back $this->{Interactive}....\n" if($PDL::Graphics::TriD::verbose);
 
   # set default values
   if($this->{Interactive}){
-      print "\tIt's interactive... calling ev_defaults...\n" if($PDL::debug_trid);
+      print "\tIt's interactive... calling ev_defaults...\n" if($PDL::Graphics::TriD::verbose);
 	 $this->{Ev} = $this->ev_defaults(); 
-      print "\tcalling new_viewport...\n" if($PDL::debug_trid);
+      print "\tcalling new_viewport...\n" if($PDL::Graphics::TriD::verbose);
 	 $this->new_viewport(0,0,$this->{Width},$this->{Height});  
   }else{
 	 $this->new_viewport(0,0,1,1);  
@@ -228,7 +228,7 @@ sub AUTOLOAD {
   print "AUTOLOAD: $sub at ",__FILE__," line ", __LINE__  ,".\n" 
 	 if($PDL::Graphics::TriD::verbose);
 
-  print "Window AUTOLOADing '$sub': self=$self, args='".join("','",@args),"'\n" if($PDL::debug_trid);
+  print "Window AUTOLOADing '$sub': self=$self, args='".join("','",@args),"'\n" if($PDL::Graphics::TriD::verbose);
 
   if($sub =~ /^gl/ && defined  $self->{_GLObject}){
 	 return  $self->{_GLObject}->$sub(@args);
