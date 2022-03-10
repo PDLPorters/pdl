@@ -226,12 +226,14 @@ sub _init_glut_window {
 
 sub DESTROY {
   my ($self) = @_;
+  print __PACKAGE__."::DESTROY called (win=$self->{glutwindow})\n" if $PDL::Graphics::TriD::verbose;
   OpenGL::GLUT::glutReshapeFunc();
   OpenGL::GLUT::glutCloseFunc();
   OpenGL::GLUT::glutKeyboardFunc();
   OpenGL::GLUT::glutMouseFunc();
   OpenGL::GLUT::glutMotionFunc();
   OpenGL::GLUT::glutDestroyWindow($self->{glutwindow});
+  OpenGL::GLUT::glutMainLoopEvent(); # pump so window gets actually closed
   delete $self->{glutwindow};
 }
 
