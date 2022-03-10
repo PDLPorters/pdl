@@ -41,6 +41,8 @@ my @demo = (
 |],
 
 [actnw => q|
+$|.__PACKAGE__.q|::we_opened = !defined $PDL::Graphics::TriD::current_window;
+
 # B/W Mandelbrot... [Tjl]
 
 use PDL; use PDL::Graphics::TriD; # NOTE all demos need this, only showing once
@@ -142,12 +144,12 @@ for(1..7) {
 ~],
 
 # act not actnw, and placed at end to work around keeptwiddling3d bug
-[act => q~
+[actnw => q~
 # Electron simulation by Mark Baker: https://perlmonks.org/?node_id=963819
-use Time::HiRes "usleep";
 nokeeptwiddling3d;
-for $c(1..30) {
-  $n = 6.28*$c;
+$c = 0;
+while (1) {
+  $n = 6.28 * ++$c;
   $x = $c*rvals((zeros(9000))*$c);
   $cz = -1**$x*$c;
   $cy = -1**$x*sin$x*$c;
@@ -159,15 +161,31 @@ for $c(1..30) {
   $i = ($cz-$cx-$cy);
   $q = $i*$n;
   points3d [ $b*sin($q), $r*cos($q), $g*sin$q], [$g,$b,$r];
-  usleep 100_000; # 0.1s
+  last if twiddle3d(); # exit from loop when 'q' pressed
 }
+keeptwiddling3d(); # restore waiting for user to press 'q'
 ~],
 
-[comment => q|
-	We hope you did like that and got a feeling of
-        the power of PDL.
+[actnw => q~
+# Game of life [Robin Williams (edited by Tjl)]
 
-        Now it's up to you to submit even better TriD M4LSs.
+use PDL::Image2D;
+$d=byte(random(zeroes(40,40))>0.85); $k=byte [[1,1,1],[1,0,1],[1,1,1]];
+nokeeptwiddling3d;
+do {
+  imagrgb [$d]; $s=conv2d($d,$k);
+  $d&=($s<4); $d&=($s>1); $d|=($s==3);
+} while (!twiddle3d);
+keeptwiddling3d();
+
+~],
+
+[actnw => q|
+# We hope you did like that and got a feeling of
+# the power of PDL.
+
+# Now it's up to you to submit even better TriD demos.
+close3d() if $|.__PACKAGE__.q|::we_opened;
 |],
 );
 
@@ -232,20 +250,6 @@ for(1..30) {
 }
 keeptwiddling3d();
 |],
-
-[actnw => q~
-# Game of life [Robin Williams (edited by Tjl)]
-
-use PDL::Image2D;
-$d=byte(random(zeroes(40,40))>0.85); $k=byte [[1,1,1],[1,0,1],[1,1,1]];
-nokeeptwiddling3d;
-do {
-  imagrgb [$d]; $s=conv2d($d,$k);
-  $d&=($s<4); $d&=($s>1); $d|=($s==3);
-} while (!twiddle3d);
-keeptwiddling3d();
-
-~],
 
 [actnw => q~
 # Dewdney's voters (parallelized) [Tjl, inspired by the above 'life']

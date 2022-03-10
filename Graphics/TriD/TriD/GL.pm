@@ -818,8 +818,7 @@ sub twiddle {
 		  print "DESTROYNOTIFE\n" if $PDL::Graphics::TriD::verbose;
 		  $quit = 1;
 		  $hap=1;
-		  undef $this->{_GLObject};
-		  $PDL::Graphics::TriD::current_window = undef;
+		  $this->close;
 		  last TWIDLOOP;
 		} elsif($e[0] == KeyPress) {
 		  print "KEYPRESS: '$e[1]'\n" if($PDL::Graphics::TriD::verbose);
@@ -854,6 +853,13 @@ sub twiddle {
   }
   print "STOPTWIDDLE\n" if($PDL::Graphics::TriD::verbose);
   return $quit;
+}
+
+sub close {
+  my ($this, $close_window) = @_;
+  print "CLOSE\n" if $PDL::Graphics::TriD::verbose;
+  undef $this->{_GLObject};
+  $PDL::Graphics::TriD::current_window = undef;
 }
 
 sub setlist { my($this,$list) = @_;

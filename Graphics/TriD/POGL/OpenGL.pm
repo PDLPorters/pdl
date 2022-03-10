@@ -233,7 +233,7 @@ sub DESTROY {
   OpenGL::GLUT::glutMouseFunc();
   OpenGL::GLUT::glutMotionFunc();
   OpenGL::GLUT::glutDestroyWindow($self->{glutwindow});
-  OpenGL::GLUT::glutMainLoopEvent(); # pump so window gets actually closed
+  OpenGL::GLUT::glutMainLoopEvent() for 1..2; # pump so window gets actually closed
   delete $self->{glutwindow};
 }
 

@@ -525,6 +525,12 @@ immediately and indicates that a 'q' event was received by
 returning 1. If the only events received were mouse events,
 returns 0.
 
+=head2 close3d
+
+=for ref
+
+Close the currently-open 3D window.
+
 =head1 CONCEPTS
 
 The key concepts (object types) of TriD are explained in the following:
@@ -648,7 +654,7 @@ use PDL::Core '';  # barf
 our @ISA = qw/PDL::Exporter/;
 our @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
   spheres3d describe3d imagrgb imagrgb3d hold3d release3d
-  keeptwiddling3d nokeeptwiddling3d
+  keeptwiddling3d nokeeptwiddling3d close3d
   twiddle3d grabpic3d tridsettings/;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
 our $verbose;
@@ -776,6 +782,13 @@ keeptwiddling3d();
 *twiddle3d = *twiddle3d = \&PDL::twiddle3d;
 sub PDL::twiddle3d {
 	twiddle_current();
+}
+
+*close3d = *close3d = \&PDL::close3d;
+sub PDL::close3d {
+  return if !ref $PDL::Graphics::TriD::current_window;
+  return if !$PDL::Graphics::TriD::current_window->can('close');
+  $PDL::Graphics::TriD::current_window->close;
 }
 
 sub graph_object {

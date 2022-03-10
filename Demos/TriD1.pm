@@ -32,6 +32,9 @@ my @demo = (
 |],
 
 [actnw => q|
+	# See if we had a 3D window open already
+	$|.__PACKAGE__.q|::we_opened = !defined $PDL::Graphics::TriD::current_window;
+
 	# Number of subdivisions for lines / surfaces.
 	$size = 25;
 
@@ -142,9 +145,12 @@ my @demo = (
 	# [press 'q' in the graphics window when done]
 |],
 
-[comment => q|
-	'3d2' contains some of the more special constructions available
-	in the PDL::Graphics::TriD modules.
+[actnw => q|
+	# '3d2' contains some of the more special constructions available
+	# in the PDL::Graphics::TriD modules.
+
+	# close 3D window if we opened it
+	close3d() if $|.__PACKAGE__.q|::we_opened;
 |],
 );
 

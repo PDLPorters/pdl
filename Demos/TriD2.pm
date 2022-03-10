@@ -32,6 +32,9 @@ my @demo = (
 |],
 
 [actnw => q|
+	# See if we had a 3D window open already
+	$|.__PACKAGE__.q|::we_opened = !defined $PDL::Graphics::TriD::current_window;
+
 	# Number of subdivisions for lines / surfaces.
 	$size = 25;
 
@@ -110,8 +113,9 @@ my @demo = (
 [actnw => q|
       # Finally, leave 3d in a sane state
       keeptwiddling3d(); # Don't wait for user while drawing
-        release3d();
-        # [press 'q' in the graphics window when done]
+      release3d();
+      # close 3D window if we opened it
+      close3d() if $|.__PACKAGE__.q|::we_opened;
 |],
 );
 
