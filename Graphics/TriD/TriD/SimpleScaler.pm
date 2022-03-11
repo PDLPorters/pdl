@@ -1,9 +1,9 @@
-######################################################################
-######################################################################
-## ScaleController -- this is the module that controls 3-D window scaling
-## when you drag the mouse in the display window.
+# a very simple unsophisticated scaler that
+# takes advantage of the nice infrastructure provided by TJL
+# controls 3-D window scaling
+# when you drag the mouse in the display window.
+package PDL::Graphics::TriD::SimpleScaler;
 
-package PDL::Graphics::TriD::ScaleController;
 use strict;
 use warnings;
 use base qw/PDL::Graphics::TriD::ButtonControl/;
@@ -32,21 +32,9 @@ sub xy2norm {
 
 sub mouse_moved {
 	my($this,$x0,$y0,$x1,$y1) = @_;
-#	$this->{Dist} *=
 	${$this->{Dist}} *=
 	  $this->xy2fac($this->xy2norm($x0,$y0),$this->xy2norm($x1,$y1));
 }
-
-##############################################################
-#
-# a very simple unsophisticated scaler that
-# takes advantage of the nice infrastructure provided by
-# TJL
-#
-##############################################################
-package PDL::Graphics::TriD::SimpleScaler;
-
-use base qw/PDL::Graphics::TriD::ScaleController/;
 
 # x,y to distance from center
 sub xy2fac {
@@ -54,8 +42,5 @@ sub xy2fac {
 	my $dy = $y0-$y1;
 	return $dy>0 ? 1+2*$dy : 1/(1-2*$dy);
 }
-
-
-
 
 1;
