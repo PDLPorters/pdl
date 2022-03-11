@@ -112,6 +112,15 @@ sub apply_profile {
       };');
 
    $repl->eval( q{
+    sub with_time (&) {
+      require Time::HiRes;
+      my @t = Time::HiRes::gettimeofday();
+      &{$_[0]}();
+      printf "%g ms\n", Time::HiRes::tv_interval(\@t) * 1000;
+    }
+   } );
+
+   $repl->eval( q{
     use PDL::Demos;
     sub demo {
       if (!$_[0]) {

@@ -323,6 +323,13 @@ sub l {
   }
 }
 
+sub with_time (&) {
+  require Time::HiRes;
+  my @t = Time::HiRes::gettimeofday();
+  &{$_[0]}();
+  printf "%g ms\n", Time::HiRes::tv_interval(\@t) * 1000;
+}
+
 sub page {
   $PERLDL::PAGE = (defined $_[0] ? $_[0] : 1);
 }
@@ -708,6 +715,8 @@ Use PDL interactively:
   bash$ pdl
   pdl> print "Hello, world!\n"; 
 
+  pdl> with_time { print +($A->matmult($B))->info, "\n" } for 1..5;
+
 Run a script:
 
   bash$ cat > pdlscript
@@ -928,6 +937,13 @@ by perl. So you can write, e.g.,
 instead of
 
   pdl> help 'help'
+
+=item *
+
+C<with_time> runs the following code-block, and tells you how long it
+took, in milliseconds. Requires L<Time::HiRes>.
+
+  pdl> with_time { print +($A->matmult($B))->info, "\n" } for 1..5;
 
 =back
 

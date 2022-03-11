@@ -6,6 +6,7 @@
 - PDL::Demos::Routines replaced with PDL::Demos, update demos (#42)
 - switch pdl_destroy to use mg_free not SvOBJECT_off, needed by Perl ithreads (#385)
 - implement Ctrl-C handling in perldl (#269)
+- add with_time command to shells
 
 2.076 2022-02-25
 - fix long-standing bug in dice that broke with PDL subclasses (#363)
