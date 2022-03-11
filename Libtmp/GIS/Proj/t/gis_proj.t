@@ -10,6 +10,11 @@ use strict;
 use warnings;
 use PDL::LiteF;
 use Test::More;
+BEGIN {
+diag "ENV $_ = ", explain $ENV{$_}
+  for qw(LD_LIBRARY_PATH DYLD_LIBRARY_PATH LDFLAGS CFLAGS CXXFLAGS LD_RUN_PATH
+    LC_RUN_PATH);
+}
 use PDL::GIS::Proj;
 
 sub tapprox
