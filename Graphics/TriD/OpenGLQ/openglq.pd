@@ -39,17 +39,9 @@ pp_addhdr('
 #include <GL/glu.h>
 #endif
 /* #include <GL/glx.h> */
-
-/* #include "../OpenGL/OpenGL.m" */
-/* D_OPENGL; */
 ');
 
-#pp_add_boot('
-#	I_OPENGL;
-#');
-
-
-my @internal = (Doc => 'internal');
+my @internal = (Doc => 'internal', NoPthreading => 1);
 
 pp_def(
 	'line_3x_3c',
@@ -74,80 +66,34 @@ pp_def(
 	@internal
 );
 
-sub TRI {my $s = join '', @_; return "$s(tri => 0),
-		 $s(tri => 1),
-		 $s(tri => 2)"}
-sub COLOR{ "
-			glColor3f(
-				".  TRI('$colors',@_)
-				."
-			);
-	" };
-sub ADCOLOR{ "
-			{
-			GLfloat ad[4];
-			".(join '',map {"ad[$_] = \$colors$_[0](tri => $_);"} 0..2).
-			"ad[3] = 1.0;
-			glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE,
-				ad);
-			}
-	" };
-sub VERTEX{ "
-			glVertex3f(
-				".  TRI('$coords',@_)
-				."
-			);
-" };
-sub NORMAL{ "
-			glNormal3f(
-				".  TRI('$norm',@_)
-				."
-			);
-	" };
-sub RPOS{ "
-			glRasterPos3f(
-				".  TRI('$coords',@_)
-				."
-			);
-	" };
+sub TRI { my $par = join '', @_; join ',', map "$par(tri => $_)", 0..2 }
+sub make_tri { shift."(".TRI(@_).");" }
+sub COLOR { make_tri("glColor3f",'$colors',@_) }
+sub VERTEX { make_tri("glVertex3f",'$coords',@_) }
+sub NORMAL { make_tri("glNormal3f",'$norm',@_) }
+sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
+sub ADCOLOR { "
+  {
+    GLfloat ad[] = { ".TRI('$colors'.$_[0]).",1.0 };
+    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, ad);
+  }
+" }
 
-pp_def('gl_points',
-	GenericTypes => $F,
-	Pars => 'coords(tri=3); colors(tri);',
-	Code => '
-		glBegin(GL_POINTS);
-		broadcastloop %{'.COLOR().VERTEX().'
-		%}
-		glEnd();
-	',
-	@internal
-);
+sub make_func {
+  my ($name) = @_;
+  pp_def(lc($name),
+    GenericTypes => $F,
+    Pars => 'coords(tri=3); colors(tri);',
+    Code => '
+      glBegin('.uc($name).');
+      broadcastloop %{'.COLOR().VERTEX().'%}
+      glEnd();
+    ',
+    @internal
+  );
+}
 
-pp_def(
-	'gl_lines',
-	GenericTypes => $F,
-	Pars => 'coords(tri,x);colors(tri,x);',
-	Code => '
-		glBegin(GL_LINES);
-		loop(x) %{ '.COLOR().VERTEX().'
-		%}
-		glEnd();
-	',
-	@internal
-);
-
-pp_def(
-	'gl_line_strip',
-	GenericTypes => $F,
-	Pars => 'coords(tri,x);colors(tri,x);',
-	Code => '
-		glBegin(GL_LINE_STRIP);
-		loop(x) %{ '.COLOR().VERTEX().'
-		%}
-		glEnd();
-	',
-	@internal
-);
+make_func($_) for qw(gl_line_strip gl_lines gl_points);
 
 pp_def(
  	'gl_texts',
@@ -321,5 +267,3 @@ pp_def('gl_arrows',
 );
 
 pp_done();
-
-
