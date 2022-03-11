@@ -1,8 +1,6 @@
-#
 # The PDL::Graphics::TriD::Window is already partially defined in
 # the appropriate gdriver (GL or VRML) items defined here are common
 # to both
-# 
 
 package PDL::Graphics::TriD::Window;
 use strict;
@@ -14,21 +12,17 @@ $PDL::Graphics::TriD::verbose //= 0;
 
 sub new {
   my($arg,$options) = @_;
-
   print "PDL::Graphics::TriD::Window - calling SUPER::new...\n" if($PDL::Graphics::TriD::verbose);
   my $this = $arg->SUPER::new();
-
   print "PDL::Graphics::TriD::Window - got back $this\n" if($PDL::Graphics::TriD::verbose);
   # Make sure the Graphics has been initialized
-  $options->{width} = 	300 unless defined $options->{width};
-  $options->{height} = 	300 unless defined $options->{height};
+  $options->{width} =	300 unless defined $options->{width};
+  $options->{height} =	300 unless defined $options->{height};
   $this->{Width} = $options->{width};
   $this->{Height} = $options->{height};
-
   print "PDL::Graphics::TriD::Window: calling gdriver....\n" if($PDL::Graphics::TriD::verbose);
   $this->{Interactive} = $this->gdriver($options);
   print "PDL::Graphics::TriD::Window: gdriver gave back $this->{Interactive}....\n" if($PDL::Graphics::TriD::verbose);
-
   # set default values
   if($this->{Interactive}){
       print "\tIt's interactive... calling ev_defaults...\n" if($PDL::Graphics::TriD::verbose);
@@ -38,9 +32,7 @@ sub new {
   }else{
 	 $this->new_viewport(0,0,1,1);  
   }
-
   $this->current_viewport(0);
-
   return($this);
 }
 
@@ -50,22 +42,16 @@ sub new {
 sub add_object {
   my($this,$object) = @_;
 #  print "add_object ",ref($this),"\n";
-
   for(@{$this->{_ViewPorts}}) {
 	 $_->add_object($object);
   }
 }
 
-
-
 sub new_viewport {
   my($this,$x0,$y0,$x1,$y1, $options) = @_;
   my $vp = PDL::Graphics::TriD::ViewPort->new($x0,$y0,$x1,$y1);
-#
   print "Adding viewport $x0,$y0,$x1,$y1\n" if($PDL::Graphics::TriD::verbose);
   push @{$this->{_ViewPorts}}, $vp;
-#
-
   if($this->{Interactive} ){
 	 # set a default controller
 	 use PDL::Graphics::TriD::ArcBall;
@@ -76,12 +62,10 @@ sub new_viewport {
          } else {
             eval "use PDL::Graphics::TriD::GL";  
          }
-
 	 my $ev = $options->{EHandler};
 	 $ev = PDL::Graphics::TriD::EventHandler->new($vp) unless defined($ev);
 	 my $cont = $options->{Transformer};
 	 $cont = PDL::Graphics::TriD::SimpleController->new unless defined($cont);
-
 	 $vp->transformer($cont);
     if(ref($ev)){
 		$ev->set_button(0,PDL::Graphics::TriD::ArcCone->new( $vp, 0, $cont->{WRotation}));
@@ -90,26 +74,21 @@ sub new_viewport {
 	 }
   }
   print "new_viewport: ",ref($vp)," ",$#{$this->{_ViewPorts}},"\n" if($PDL::Graphics::TriD::verbose);
-
   return $vp;
 }
 
 sub resize_viewport {
   my($this,$x0,$y0,$x1,$y1,$vpnum) = @_;
-  
   $vpnum = $this->{_CurrentViewPort} unless(defined $vpnum);
-
   my $vp;
   if(defined($this->{_ViewPorts}[$vpnum])){
 	 $vp = $this->{_ViewPorts}[$vpnum]->resize($x0,$y0,$x1,$y1);
   }
   return $vp;
-
 }
 
 sub current_viewport {
   my($this,$num) = @_;
-
   if(defined $num){
 	 if(ref($num)){
 		my $cnt=0;
@@ -134,7 +113,6 @@ sub current_viewport {
   return $this->{_ViewPorts}[$this->{_CurrentViewPort}];
 }
 
-
 sub viewports {
   my ($this) = shift;
   return $this->{_ViewPorts};
@@ -142,7 +120,6 @@ sub viewports {
 
 sub _vp_num_fromref {
   my ($this,$vp) = @_;
-
   if(! defined $vp){  
 	 $vp = $this->{_CurrentViewPort};
   }elsif(ref($vp)){
@@ -156,7 +133,6 @@ sub _vp_num_fromref {
   return $vp;
 }
 
-
 sub delete_viewport {
   my($this, $vp) = @_;
   my $cnt;
@@ -165,19 +141,12 @@ sub delete_viewport {
 	 return;
   }
   $vp = $this->_vp_num_fromref($vp);
-
   $this->{_ViewPorts}[$vp]->DESTROY();
-  
   splice(@{$this->{_ViewPorts}},$vp,1);
-  
   if($vp == $cnt){
 	 $this->current_viewport($vp-1);
   }
 }
-
-
-
-
 
 sub clear_viewports {
   my($this) = @_;
@@ -197,9 +166,7 @@ sub clear_viewport {
 
 sub set_eventhandler {
   my($this,$handler) = @_;
-
   $this->{EHandler} = $handler;
-
 #  for(@{$this->{_ViewPorts}}) {
 #	 $_->eventhandler($handler);
 #  }
@@ -213,28 +180,20 @@ sub set_eventhandler {
 #  }
 #}
 
-
 sub AUTOLOAD {
   my ($self,@args)=@_;
   use vars qw($AUTOLOAD);
   my $sub = $AUTOLOAD;
   return if $sub =~ /::DESTROY$/;
-  
 # If an unrecognized function is called for window it trys to apply it
 # to all of the defined ViewPorts
-
   $sub =~ s/.*:://;
-
   print "AUTOLOAD: $sub at ",__FILE__," line ", __LINE__  ,".\n" 
 	 if($PDL::Graphics::TriD::verbose);
-
   print "Window AUTOLOADing '$sub': self=$self, args='".join("','",@args),"'\n" if($PDL::Graphics::TriD::verbose);
-
   if($sub =~ /^gl/ && defined  $self->{_GLObject}){
 	 return  $self->{_GLObject}->$sub(@args);
   }
-
-
   for(@{$self->{_ViewPorts}}) {
     next unless defined $_;
 	 $_->$sub(@args);

@@ -13,6 +13,9 @@ package PDL::Graphics::TriD::Quaternion;
 use strict;
 use warnings;
 
+use overload
+  '""' => sub { ref($_[0])."->new(".join(',', @{$_[0]}).")" };
+
 sub new {
 	my($type,$c,$x,$y,$z) = @_;
 	my $this;
