@@ -177,12 +177,14 @@ EOP
 
 }
 
-my $readlines;
+my $readlines = 0;
 if(!$read_from_file  and  -t STDIN) {
   eval "use Term::ReadLine";
-  $readlines = ($@ eq "");
-} else {
-  $readlines=0;
+  if ( $readlines = !$@ ) {
+    $PERLDL::TERM = Term::ReadLine->new('perlDL', \*STDIN, \*STDOUT);
+    readhist();
+    $PERLDL::TERM->GetHistory if $PERLDL::TERM->can('GetHistory'); # if don't do this before loading OpenGL, it can load libedit via LLVM which has C symbol clashes with GNU readline
+  }
 }
 
 my @enabled = ();
@@ -230,8 +232,6 @@ sub mksighandle {
 print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
 if ( $readlines ){
-
-   $PERLDL::TERM = Term::ReadLine->new('perlDL', \*STDIN, \*STDOUT);
 
     if (defined &OpenGL::GLUT::done_glutInit ) {
        # Attempt to use with FreeGLUT
@@ -281,7 +281,6 @@ if ( $readlines ){
 		warn("Sorry, cannot use Tk with this version of ReadLine\n");
 	}
     }
-    readhist();
 }
 
 sub readhist {
