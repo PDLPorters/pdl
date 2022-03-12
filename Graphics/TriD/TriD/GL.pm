@@ -64,7 +64,7 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
 
 sub PDL::Graphics::TriD::Object::gl_call_list {
 	my($this) = @_;
-	print "CALLIST ",$this->{List},"!\n" if($PDL::Graphics::TriD::verbose);
+	print "CALLIST ",$this->{List}//'undef',"!\n" if($PDL::Graphics::TriD::verbose);
 	print "CHECKVALID $this\n" if($PDL::Graphics::TriD::verbose);
 
 	if(!$this->{ValidList}) {
@@ -1074,17 +1074,7 @@ sub do_perspective {
 	my($this) = @_;
 
 	print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if($PDL::Graphics::TriD::verbose);
-
-	if($PDL::Graphics::TriD::verbose>1){
-	  my ($i,$package,$filename,$line);
-          $i = 0;
-	  do { 
-	    ($package,$filename,$line) = caller($i++);
-	    print "$package ($filename, line $line)\n";
-	  } while($package);
-	  print "\n";
-	}
-	      
+	print Carp::longmess() if $PDL::Graphics::TriD::verbose>1;
 
         unless($this->{W}>0 and $this->{H}>0) {return;}
 #	if($this->{W}==0 or $this->{H}==0) {return;}
