@@ -226,7 +226,15 @@ sub _init_glut_window {
 
 sub DESTROY {
   my ($self) = @_;
-  print __PACKAGE__."::DESTROY called (win=$self->{glutwindow})\n" if $PDL::Graphics::TriD::verbose;
+  print __PACKAGE__."::DESTROY called (win=$self->{glutwindow}), GLUT says ", OpenGL::GLUT::glutGetWindow(), "\n" if $PDL::Graphics::TriD::verbose;
+  OpenGL::GLUT::glutMainLoopEvent(); # pump to deal with any clicking "X"
+  if (!OpenGL::GLUT::glutGetWindow()) {
+    # "X" was clicked, clear queue then stop
+    @{ $self->{xevents} } = ();
+    OpenGL::GLUT::glutMainLoopEvent(); # pump once
+    return;
+  }
+  OpenGL::GLUT::glutSetWindow($self->{glutwindow});
   OpenGL::GLUT::glutReshapeFunc();
   OpenGL::GLUT::glutCloseFunc();
   OpenGL::GLUT::glutKeyboardFunc();
