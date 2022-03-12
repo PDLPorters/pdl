@@ -90,6 +90,20 @@ my @demo = (
 |],
 
 [actnw => q|
+	# Draw a textured surface
+	imag3d [$x,$y,$z], [$x,$y,$z], {
+	  Material => PDL::Graphics::TriD::Material->new(
+	    Shine => 0.212766,
+	    Specular =>[0.753217,0.934416,1],
+	    Ambient =>[0,0,0],
+	    Diffuse =>[0.09855,0.153113,0.191489],
+	    Emissive =>[0, 0, 0]
+	  ),
+	};
+	# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
 	hold3d();	# Leave the previous object in..
 	imag3d_ns [$x,$y,$z+1], [$r,$g,$b];
 			# ...and draw a colored surface on top of it...
