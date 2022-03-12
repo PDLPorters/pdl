@@ -880,41 +880,24 @@ sub domotion {
 
 sub display {
   my($this) = @_;
-
   return unless defined($this);
-
-  # set GLUT context to current window (for multiwindow support
+  # set GLUT context to current window (for multiwindow support)
   if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
      glutSetWindow($this->{_GLObject}->{glutwindow});
   }
-
   print "display: calling glClear()\n" if ($PDL::Graphics::TriD::verbose);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
-
-
   for my $vp (@{$this->{_ViewPorts}}) {
-
 	 glPushMatrix();
-    
-
 	 $vp->do_perspective();
-
-
 	 if($vp->{Transformer}) {
 		print "display: transforming viewport!\n" if ($PDL::Graphics::TriD::verbose);
 		$vp->{Transformer}->togl();
 	 }
-
-	 glTranslatef(-1,-1,-1);
-	 glScalef(2,2,2);  # double the scale in each direction ?
-
 	 $vp->gl_call_list();
-
 	 glPopMatrix();
-
   }
-
   print "display: SwapBuffers() call on return\n" if ($PDL::Graphics::TriD::verbose);
   if ( $this->{_GLObject}->{window_type} eq 'glut' ) {  # need to make method call
     glutSwapBuffers();
@@ -923,7 +906,6 @@ sub display {
   } else {
     print "display: got object with inconsistent _GLObject info\n";
   }
-#  $this->{Angle}+= 3;
 }
 
 # should this really be in viewport?

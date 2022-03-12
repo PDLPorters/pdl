@@ -33,14 +33,10 @@ sub normalize { my($this) = @_;
 
 sub reset { 
   my($this) = @_;
-  $this->{WOrigin}   = [0,0,0];
-  $this->{WRotation} = PDL::Graphics::TriD::Quaternion->new(1,0,0,0);
-#	$this->{WRotation} = PDL::Graphics::TriD::Quaternion->new(
-#		0.847, -0.458, -0.161, -0.216);
-#	$this->{WRotation} = PDL::Graphics::TriD::Quaternion->new(
-#		0.347, -0.458, -0.161, -0.216);
-
-  $this->{CDistance} = 5;
+  $this->{WOrigin}   = [0.7,0.7,0.5];
+  $this->{WRotation} = PDL::Graphics::TriD::Quaternion->new(
+		0.718, -0.609, -0.193, -0.281); # isometric-ish like gnuplot
+  $this->{CDistance} = 3;
   $this->{CRotation} = PDL::Graphics::TriD::Quaternion->new(1,0,0,0);
 }
 
