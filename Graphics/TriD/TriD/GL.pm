@@ -105,12 +105,12 @@ sub PDL::Graphics::TriD::BoundingBox::togl {
   glBegin(GL_LINES);
   for([0,4,2],[0,1,2],[0,1,5],[0,4,5],[0,4,2],[3,4,2],
 		[3,1,2],[3,1,5],[3,4,5],[3,4,2]) {
-	 &glVertex3d(@{$this}[@$_]);
+	 glVertex3d(@{$this}[@$_]);
   }
   glEnd();
   glBegin(GL_LINE_STRIP);
   for([0,1,2],[3,1,2],[0,1,5],[3,1,5],[0,4,5],[3,4,5]) {
-	 &glVertex3d(@{$this}[@$_]);
+	 glVertex3d(@{$this}[@$_]);
   }
   glEnd();
   glEnable(GL_LIGHTING);
@@ -211,7 +211,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	my $dim;
 	for $dim (0..2) {
 		glVertex3f(0,0,0);
-		&glVertex3f(map {$_==$dim} 0..2);
+		glVertex3f(map {$_==$dim} 0..2);
 	}
 	glEnd();
 	for $dim (0..2) {
@@ -227,15 +227,15 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		my $nadd = ($s->[1]-$s->[0])/$ndiv;
 		my $nc = $s->[0];
 		for(0..$ndiv) {
-			&glRasterPos3f(@coords);
+			glRasterPos3f(@coords);
 			if ( done_glutInit() ) {
 			   glutBitmapString($fontbase, sprintf("%.3f",$nc));
 			} else {
 			   OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
 			}
 			glBegin(GL_LINES);
-			&glVertex3f(@coords0);
-			&glVertex3f(@coords);
+			glVertex3f(@coords0);
+			glVertex3f(@coords);
 			glEnd();
 #			print "PUT: $nc\n";
 			$coords[$dim] += $radd;
@@ -243,7 +243,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 			$nc += $nadd;
 		}
 		$coords0[$dim] = 1.1;
-		&glRasterPos3f(@coords0);
+		glRasterPos3f(@coords0);
 		if ( done_glutInit() ) {
 			glutBitmapString($fontbase, $this->{Names}[$dim]);
 		} else {
@@ -263,7 +263,7 @@ sub PDL::Graphics::TriD::Quaternion::togl {
     # die "Unnormalized Quaternion!\n";
     $this->normalize_this();
   } 
-  &glRotatef(2*POSIX::acos($this->[0])/3.14*180, @{$this}[1..3]);
+  glRotatef(2*POSIX::acos($this->[0])/3.14*180, @{$this}[1..3]);
 }
 
 ##################################
@@ -608,8 +608,8 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	);
 	if(!defined $vert) {$vert = $this->{Points}}
 	for(0..3) {
-		&glTexCoord2f(@{$texvert[$_]});
-		&glVertex3f($vert->slice(":,($_)")->list);
+		glTexCoord2f(@{$texvert[$_]});
+		glVertex3f($vert->slice(":,($_)")->list);
 	}
 	glEnd();
 	glEnable(GL_LIGHTING);
@@ -623,7 +623,7 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 	glTranslatef(0,0,-$this->{CDistance});
 
 	$this->{WRotation}->togl();
-	&glTranslatef(map {-$_} @{$this->{WOrigin}});
+	glTranslatef(map {-$_} @{$this->{WOrigin}});
 }
 
 
