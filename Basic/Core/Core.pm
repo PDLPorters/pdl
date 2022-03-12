@@ -176,8 +176,8 @@ product of all the sizes in the PDL's shape or dimlist).
 Scalar PDLs are zero-dimensional and have no entries in the dim list,
 so they cannot be empty.  1-D and higher PDLs can be empty.  Empty
 PDLs are useful for set operations, and are most commonly encountered
-in the output from selection operators such as L<which|PDL::Primitive>
-and L<whichND|PDL::Primitive>.  Not all empty PDLs have the same
+in the output from selection operators such as L<which|PDL::Primitive/which>
+and L<whichND|PDL::Primitive/whichND>.  Not all empty PDLs have the same
 broadcasting properties -- e.g. a 2x0-PDL represents a collection of
 2-vectors that happens to contain no elements, while a simple 0-PDL
 represents a collection of scalar values (that also happens to contain

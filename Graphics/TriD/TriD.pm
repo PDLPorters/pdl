@@ -899,7 +899,7 @@ sub PDL::spheres3d { &checkargs;
 *grabpic3d=*grabpic3d=\&PDL::grabpic3d;
 sub PDL::grabpic3d {
 	my $win = PDL::Graphics::TriD::get_current_window();
-	barf "backend doesn't support grabing the rendered scene"
+	barf "backend doesn't support grabbing the rendered scene"
 	  unless $win->can('read_picture');
 	my $pic = $win->read_picture();
 	return ($pic->float) / 255;
