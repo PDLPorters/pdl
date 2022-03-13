@@ -169,14 +169,9 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
 	glLineWidth(1); # ought to be user defined
 	glDisable(GL_LIGHTING);
-	glColor3d(1,1,1);
-	glBegin(GL_LINES);
+	my (@line_coord, @label);
 	for my $dim (0..2) {
-		glVertex3f(0,0,0);
-		glVertex3f(map {$_==$dim} 0..2);
-	}
-	glEnd();
-	for my $dim (0..2) {
+		push @line_coord, [0,0,0], [map $_==$dim ? 1 : 0, 0..2];
 		my @coords = map $_ == $dim ? 0 : -0.1, 0..2;
 		my @coords0 = (0,0,0);
 		my $s = $this->{Scale}[$dim];
@@ -185,28 +180,25 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		my $nadd = ($s->[1]-$s->[0])/$ndiv;
 		my $nc = $s->[0];
 		for(0..$ndiv) {
-			glRasterPos3f(@coords);
-			if ( done_glutInit() ) {
-			   glutBitmapString($fontbase, sprintf("%.3f",$nc));
-			} else {
-			   OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
-			}
-			glBegin(GL_LINES);
-			glVertex3f(@coords0);
-			glVertex3f(@coords);
-			glEnd();
+			push @label, [[@coords], sprintf("%.3f",$nc)];
+			push @line_coord, [@coords0], [@coords];
 			$coords[$dim] += $radd;
 			$coords0[$dim] += $radd;
 			$nc += $nadd;
 		}
 		$coords0[$dim] = 1.1;
-		glRasterPos3f(@coords0);
+		push @label, [[@coords0], $this->{Names}[$dim]];
+	}
+	glColor3d(1,1,1);
+	for (@label) {
+		glRasterPos3f(@{$_->[0]});
 		if ( done_glutInit() ) {
-			glutBitmapString($fontbase, $this->{Names}[$dim]);
+		   glutBitmapString($fontbase, $_->[1]);
 		} else {
-			OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
+		   OpenGL::glpPrintString($fontbase, $_->[1]);
 		}
 	}
+	PDL::gl_lines_nc(pdl(float, \@line_coord));
 	glEnable(GL_LIGHTING);
 }
 
@@ -236,7 +228,7 @@ sub PDL::Graphics::TriD::Points::gdraw {
 	my($this,$points) = @_;
 	$this->glOptions();
 	glDisable(GL_LIGHTING);
-	PDL::gl_points($points,$this->{Colors});
+	PDL::gl_points_col($points,$this->{Colors});
 	glEnable(GL_LIGHTING);
 }
 
@@ -262,8 +254,8 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
 	my($this,$points) = @_;
 	$this->glOptions();
 	glDisable(GL_LIGHTING);
-	PDL::gl_line_strip($points,$this->{Colors});
-	PDL::gl_line_strip($points->xchg(1,2),$this->{Colors}->xchg(1,2));
+	PDL::gl_line_strip_col($points,$this->{Colors});
+	PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
 	glEnable(GL_LIGHTING);
 }
 
@@ -271,7 +263,7 @@ sub PDL::Graphics::TriD::LineStrip::gdraw {
 	my($this,$points) = @_;
 	$this->glOptions();
 	glDisable(GL_LIGHTING);
-	PDL::gl_line_strip($points,$this->{Colors});
+	PDL::gl_line_strip_col($points,$this->{Colors});
 	glEnable(GL_LIGHTING);
 }
 
@@ -279,7 +271,7 @@ sub PDL::Graphics::TriD::Lines::gdraw {
 	my($this,$points) = @_;
 	$this->glOptions();
 	glDisable(GL_LIGHTING);
-	PDL::gl_lines($points,$this->{Colors});
+	PDL::gl_lines_col($points,$this->{Colors});
 	glEnable(GL_LIGHTING);
 }
 
@@ -298,7 +290,7 @@ sub PDL::Graphics::TriD::Contours::gdraw {
   foreach (grep defined, @{$this->{ContourSegCnt}}){
 	my $colors =  $this->{Colors};
 	$colors = $colors->slice(":,($i)") if $colors->getndims==2;
-	PDL::gl_lines($points->slice(":,$pcnt:$_"),$colors);
+	PDL::gl_lines_col($points->slice(":,$pcnt:$_"),$colors);
 	$i++;
 	$pcnt=$_+1;
   }
@@ -335,9 +327,9 @@ sub PDL::Graphics::TriD::SLattice::gdraw {
 		(map {$this->{Colors}->slice($_)} @sls2)
 	);
 	if ($this->{Options}{Lines}) {
-	  my $black = PDL->pdl(0,0,0)->dummy(1)->dummy(1);
-	  PDL::gl_line_strip($points,$black);
-	  PDL::gl_line_strip($points->xchg(1,2),$black);
+	  glColor3f(0,0,0);
+	  PDL::gl_line_strip_nc($points);
+	  PDL::gl_line_strip_nc($points->xchg(1,2));
 	}
 	glPopAttrib();
 }
@@ -365,9 +357,9 @@ sub PDL::Graphics::TriD::SCLattice::gdraw {
 		(map {$this->{Colors}} @sls2)
 	);
 	if ($this->{Options}{Lines}) {
-	  my $black = PDL->pdl(0,0,0)->dummy(1)->dummy(1);
-	  PDL::gl_line_strip($points,$black);
-	  PDL::gl_line_strip($points->xchg(1,2),$black);
+	  glColor3f(0,0,0);
+	  PDL::gl_line_strip_nc($points);
+	  PDL::gl_line_strip_nc($points->xchg(1,2));
 	}
 	glPopAttrib();
 }
@@ -417,9 +409,9 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	}
 	glDisable(GL_LIGHTING);
 	if ($this->{Options}{Lines}) {
-	  my $black = PDL->pdl(0,0,0)->dummy(1)->dummy(1);
-	  PDL::gl_line_strip($points,$black);
-	  PDL::gl_line_strip($points->xchg(1,2),$black);
+	  glColor3f(0,0,0);
+	  PDL::gl_line_strip_nc($points);
+	  PDL::gl_line_strip_nc($points->xchg(1,2));
 	}
 	glPopAttrib();
 }
@@ -450,8 +442,8 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
   }
   glDisable(GL_LIGHTING);
   if ($this->{Options}{Lines}) {
-    my $black = PDL->pdl(0,0,0)->dummy(1)->dummy(1);
-    PDL::gl_lines($this->{Faces}->dice_axis(1,$idx),$black);
+    glColor3f(0,0,0);
+    PDL::gl_lines_nc($this->{Faces}->dice_axis(1,$idx));
   }
   glPopAttrib();
 }
@@ -468,8 +460,8 @@ sub PDL::Graphics::TriD::STrigrid::gdraw {
     (map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
     (map {$this->{Colors}->slice($_)} @sls));
   if ($this->{Options}{Lines}) {
-    my $black = PDL->pdl(0,0,0)->dummy(1)->dummy(1);
-    PDL::gl_lines($this->{Faces}->dice_axis(1,$idx),$black);
+    glColor3f(0,0,0);
+    PDL::gl_lines_nc($this->{Faces}->dice_axis(1,$idx));
   }
   glPopAttrib();
 }
@@ -866,7 +858,6 @@ sub highlight {
 		      [$vp->{W},$vp->{H},0],
 		      [0,$vp->{H},0],
 		      [0,0,0]];
-  my $colors = PDL->ones(3,5);
   glDisable(GL_LIGHTING);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -874,7 +865,8 @@ sub highlight {
   glLoadIdentity();
   gluOrtho2D(0,$vp->{W},0,$vp->{H});
   glLineWidth(4);
-  gl_line_strip($pts,$colors);
+  glColor3f(1,1,1);
+  gl_line_strip_nc($pts);
   glLineWidth(1);
   glEnable(GL_LIGHTING);
 }

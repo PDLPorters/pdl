@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use PDL::Types qw(types ppdefs_all);
 
-my $F = [map $_->ppsym, grep $_->real && !$_->integer, types];
+my $F = ['F'];
 
 pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
@@ -67,7 +67,7 @@ pp_def(
 );
 
 sub TRI { my $par = join '', @_; join ',', map "$par(tri => $_)", 0..2 }
-sub make_tri { shift."(".TRI(@_).");" }
+sub make_tri { shift."(".TRI(@_).");\n" }
 sub COLOR { make_tri("glColor3f",'$colors',@_) }
 sub VERTEX { make_tri("glVertex3f",'$coords',@_) }
 sub NORMAL { make_tri("glNormal3f",'$norm',@_) }
@@ -81,12 +81,22 @@ sub ADCOLOR { "
 
 sub make_func {
   my ($name) = @_;
-  pp_def(lc($name),
+  pp_def(lc($name).'_col',
     GenericTypes => $F,
     Pars => 'coords(tri=3); colors(tri);',
     Code => '
       glBegin('.uc($name).');
       broadcastloop %{'.COLOR().VERTEX().'%}
+      glEnd();
+    ',
+    @internal
+  );
+  pp_def(lc($name).'_nc',
+    GenericTypes => $F,
+    Pars => 'coords(tri=3);',
+    Code => '
+      glBegin('.uc($name).');
+      broadcastloop %{'.VERTEX().'%}
       glEnd();
     ',
     @internal
