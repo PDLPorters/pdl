@@ -14,7 +14,7 @@ PDL::Graphics::TriD -- PDL 3D interface
  $colors = cat($red, $green, $blue)->transpose;
  
  # After each graph, let the user rotate and
- # wait for him to press 'q', then make new graph
+ # wait for them to press 'q', then make new graph
  line3d($coords);       # $coords = (3,n,...)
  line3d($coords,$colors);  # $colors = (3,n,...)
  line3d([$x,$y,$z]);
@@ -122,7 +122,7 @@ where C<CONTEXT> is a string describing in which context you wish these
 ndarrays to be interpreted. Each routine specifies a default context
 which is explained in the routines documentation.
 Context is usually used only to understand what the user wants
-when he/she specifies less than 3 ndarrays.
+when they specify less than 3 ndarrays.
 
 The following contexts are currently supported:
 
@@ -519,7 +519,7 @@ user explicitly presses 'q'.
 Wait for the user to rotate the image in 3D space.
 
 Let the user rotate the image in 3D space, either for one step
-or until (s)he presses 'q', depending on the 'keeptwiddling3d'
+or until they press 'q', depending on the 'keeptwiddling3d'
 setting. If 'keeptwiddling3d' is not set the routine returns
 immediately and indicates that a 'q' event was received by
 returning 1. If the only events received were mouse events,

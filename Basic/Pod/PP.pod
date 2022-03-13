@@ -1974,8 +1974,8 @@ and to prevent the function from being added to the symbol table, set
 in your pp_def declaration (see Image2D.pd for an example). This will
 effectively make your PP function "private." However, it is I<always>
 accessible via PDL::bar_pp due to Perl's module design. But making
-it private will cause the user to go very far out of his or her way
-to use it, so he or she shoulders the consequences!
+it private will cause the user to go very far out of their way
+to use it, so they shoulder the consequences!
 
 =head1 SLICE OPERATION
 

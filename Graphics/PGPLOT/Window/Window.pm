@@ -568,11 +568,11 @@ it will ``wither away'' when other compatible modules are available.
 Anyway, enough philosophizing, let us get down to Earth and give some
 examples of the use of OO PGPLOT. As an example we will take Odd (which
 happens to be a common Norwegian name) who is monitoring the birth of
-rabbits in O'Fib-o-nachy's farm (alternatively he can of course be
+rabbits in O'Fib-o-nachy's farm (alternatively they can of course be
 monitoring processes or do something entirely different). Odd wants the
 user to be able to monitor both the birth rates and accumulated number
 of rabbits and the spatial distribution of the births. Since these are
-logically different he chooses to have two windows open:
+logically different they chooses to have two windows open:
 
   $rate_win = PDL::Graphics::PGPLOT::Window->new(Device => '/xw',
               Aspect => 1, WindowWidth => 5, NXPanel => 2);
@@ -2898,7 +2898,7 @@ sub replay {
 
   if ($#list < 0) {
     # If there are no commands, then the user might have forgotten to
-    # turn on recording, let us remind him/her
+    # turn on recording, let us remind them
 
     warn "Replaying an empty state - did you turn on recording?\n";
     print "Hint: Put PDL::Graphics::PGPLOT::RECORDING=1 in your .perldlrc file\n"
@@ -4185,7 +4185,7 @@ sub label_axes {
 
   # Added 25/8/01 JB to check whether label_axes is called before env..
   # This is not fool-proof though... And it will give a warning if the
-  # user creates her/his env box outside of this package.
+  # user creates their env box outside of this package.
   warn "label_axes called before env - weird results might occur!\n" unless
     defined($self->{_env_options});
 
@@ -4444,7 +4444,7 @@ sub env {
 	}
 
 	# The user has to pass the dimensions of the image somehow, so this
-	# is a good point to check whether he/she/it has done so.
+	# is a good point to check whether they have done so.
 	unless (defined($x_pix) && defined($y_pix)) {
 	  barf "You must pass the image dimensions to the transform routine\n";
 	}

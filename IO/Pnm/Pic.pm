@@ -903,7 +903,7 @@ sub getconv {
     my ($pdl,$file,$hints) = @_;
 
     return ($$hints{CONVERTER},$$hints{FLAGS})
-	if defined($$hints{CONVERTER});   # somebody knows what he is doing
+	if defined($$hints{CONVERTER});   # somebody knows what they're doing
 
     my $type = "";
     if (defined($$hints{'FORMAT'})) {

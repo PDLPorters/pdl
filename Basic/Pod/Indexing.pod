@@ -1493,7 +1493,7 @@ can I<greatly> reduce the syntactical complexity of PDL code (but keep
 the admonition for documentation in mind). Once you
 are comfortable with the I<broadcasting> way of thinking (and coding) it
 shouldn't be too difficult to understand code that somebody else
-has written than (provided he gave
+has written than (provided they gave
 you an idea what expected input dimensions are, etc.). As a general tip to
 increase the performance of your code: if you have to introduce a loop
 into your code try to reformulate the problem so that you can use

@@ -101,7 +101,7 @@ to join in the ongoing efforts to improve PDL please join this list.
 
 
 There are actually several reasons and everyone should decide for
-himself which are the most important ones:
+themselves which are the most important ones:
 
 =over 4
 
@@ -131,7 +131,7 @@ similar scope as PDL.
 =item *
 
 Using Perl as the basis a PDL programmer has all the
-powerful features of Perl at his hand, right from the
+powerful features of Perl at their hand, right from the
 start. This includes regular expressions, associative arrays
 (hashes), well designed interfaces to the operating system,
 network, etc. Experience has shown that even in mainly

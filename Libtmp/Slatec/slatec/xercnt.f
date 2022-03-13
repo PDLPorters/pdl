@@ -15,7 +15,7 @@ C        Allows user control over handling of individual errors.
 C        Just after each message is recorded, but before it is
 C        processed any further (i.e., before it is printed or
 C        a decision to abort is made), a call is made to XERCNT.
-C        If the user has provided his own version of XERCNT, he
+C        If the user has provided their own version of XERCNT, they
 C        can then override the value of KONTROL used in processing
 C        this message by redefining its value.
 C        KONTRL may be set to any value from -2 to 2.

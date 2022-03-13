@@ -2119,7 +2119,7 @@ an array ref specifier, or a combination.
 
 C<slice> is the main method for extracting regions of PDLs and
 manipulating their dimensionality.  You can call it directly or
-via he L<NiceSlice|PDL::NiceSlice> source prefilter that extends
+via the L<NiceSlice|PDL::NiceSlice> source prefilter that extends
 Perl syntax to include array slicing.
 
 C<slice> can extract regions along each dimension of a source PDL,

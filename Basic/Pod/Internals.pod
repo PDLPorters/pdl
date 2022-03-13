@@ -236,7 +236,7 @@ reference to it in the member
 
 	void*    sv;
 
-in order to be able to return a reference to the user when he wants to 
+in order to be able to return a reference to the user when they want to
 inspect the transformation structure on the Perl side.
 
 Also, we store an opaque

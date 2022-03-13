@@ -183,9 +183,9 @@ follow the documentation conventions below.
 
 For a package like PDL that has I<a lot> of functions it
 is very desirable to have some form of online help to
-make it easy for the user to remind himself of names,
+make it easy for users to remind themselves of names,
 calling conventions and typical usage of the multitude
-of functions at his disposal. To make it straightforward
+of functions at their disposal. To make it straightforward
 to extract the relevant information from the POD documentation
 in source files that make up the PDL distribution
 certain conventions have been adopted in formatting this
@@ -356,7 +356,7 @@ which is translated by, e.g, the standard C<pod2text> converter into:
 
 It should be clear from the preceding example that readable output
 can be obtained from this format using the standard converters and
-the reader will hopefully get a feeling how he can easily intersperse
+the reader will hopefully get a feeling how they can easily intersperse
 the special C<=for> directives with the normal POD documentation.
 
 =head2 Which directives should be contained in the documentation
