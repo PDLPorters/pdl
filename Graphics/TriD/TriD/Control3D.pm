@@ -19,10 +19,8 @@ use fields qw/WOrigin WRotation CDistance CRotation/;
 
 sub new{
   my ($class) = @_;
-  
   my $self = fields::new($class);
   $self->reset();
-
   $self;
 }
 
@@ -33,16 +31,15 @@ sub normalize { my($this) = @_;
 
 sub reset { 
   my($this) = @_;
-  $this->{WOrigin}   = [0.7,0.7,0.5];
+  $this->{WOrigin}   = [0.5,0.5,0.5];
   $this->{WRotation} = PDL::Graphics::TriD::Quaternion->new(
-		0.718, -0.609, -0.193, -0.281); # isometric-ish like gnuplot
-  $this->{CDistance} = 3;
+		0.715, -0.613, -0.204, -0.272); # isometric-ish like gnuplot
+  $this->{CDistance} = 2.5;
   $this->{CRotation} = PDL::Graphics::TriD::Quaternion->new(1,0,0,0);
 }
 
 sub set {
   my($this,$options) = @_;
-
   foreach my $what (keys %$options){
 	 if($what =~ /Rotation/){
 		$this->{$what}[0] = $options->{$what}[0];

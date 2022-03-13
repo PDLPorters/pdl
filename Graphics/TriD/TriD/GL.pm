@@ -177,8 +177,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	}
 	glEnd();
 	for my $dim (0..2) {
-		my @coords = (0,0,0);
-		$coords[$_] -= 0.1 for grep $dim != $_, 0..2;
+		my @coords = map $_ == $dim ? 0 : -0.1, 0..2;
 		my @coords0 = (0,0,0);
 		my $s = $this->{Scale}[$dim];
 		my $ndiv = 3;
@@ -241,7 +240,7 @@ sub PDL::Graphics::TriD::Points::gdraw {
 	glEnable(GL_LIGHTING);
 }
 
-sub PDL::gl_spheres { 
+sub PDL::gl_spheres {
    my ($coords,$colors) = @_;   
    for (my $np=0; $np<$coords->dim(1); $np++) {
       glPushMatrix();

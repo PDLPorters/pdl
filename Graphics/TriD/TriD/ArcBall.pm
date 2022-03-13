@@ -37,11 +37,9 @@ sub xy2qua {
 
 sub mouse_moved {
 	my($this,$x0,$y0,$x1,$y1) = @_;
-
-	# Copy the size of the owning viewport to our size, in case it changed...
+	# Copy the size of the owning viewport to our size, in case it changed
 	$this->{H} = $this->{Win}->{H};
 	$this->{W} = $this->{Win}->{W};
-
 	if($PDL::Graphics::TriD::verbose) {
 	  print "QuaterController: mouse-moved: $this: $x0,$y0,$x1,$y1,$this->{W},$this->{H},$this->{SC}\n" if($PDL::Graphics::TriD::verbose);
 	  if($PDL::Graphics::TriD::verbose > 1) {
@@ -51,24 +49,13 @@ sub mouse_moved {
 	    }
 	  }
 	}
-
 # Convert both to quaternions.
-
 	my ($qua0,$qua1) = ($this->xy2qua($x0,$y0),$this->xy2qua($x1,$y1));
-
-#	print "ARCBALLQ: ",(join ', ',@$qua0),"     ",(join ', ',@$qua1),"\n";
-
 	my $arc = $qua1->multiply($qua0->invert());
-
-#	my $arc = $qua0->invert()->multiply($qua1);
-
 	if($this->{Inv}) {
 		$arc->invert_rotation_this();
 	}
 	$this->{Quat}->set($arc->multiply($this->{Quat}));
-
-	#	print "ARCBALLQ: ",(join ', ',@$arc),"     ",(join ', ',@{$this->{Quat}}),"\n";
-	#	$this->{Quat}->set($this->{Quat}->multiply($arc));
 	1;  # signals a refresh
 }
 
