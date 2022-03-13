@@ -83,20 +83,20 @@ sub make_func {
   my ($name) = @_;
   pp_def(lc($name).'_col',
     GenericTypes => $F,
-    Pars => 'coords(tri=3); colors(tri);',
+    Pars => 'coords(tri=3,n); colors(tri,n);',
     Code => '
       glBegin('.uc($name).');
-      broadcastloop %{'.COLOR().VERTEX().'%}
+      loop(n) %{'.COLOR().VERTEX().'%}
       glEnd();
     ',
     @internal
   );
   pp_def(lc($name).'_nc',
     GenericTypes => $F,
-    Pars => 'coords(tri=3);',
+    Pars => 'coords(tri=3,n);',
     Code => '
       glBegin('.uc($name).');
-      broadcastloop %{'.VERTEX().'%}
+      loop(n) %{'.VERTEX().'%}
       glEnd();
     ',
     @internal
