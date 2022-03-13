@@ -81,26 +81,18 @@ sub ADCOLOR { "
 
 sub make_func {
   my ($name) = @_;
-  pp_def(lc($name).'_col',
-    GenericTypes => $F,
-    Pars => 'coords(tri=3,n); colors(tri,n);',
-    Code => '
-      glBegin('.uc($name).');
-      loop(n) %{'.COLOR().VERTEX().'%}
-      glEnd();
-    ',
-    @internal
-  );
-  pp_def(lc($name).'_nc',
-    GenericTypes => $F,
-    Pars => 'coords(tri=3,n);',
-    Code => '
-      glBegin('.uc($name).');
-      loop(n) %{'.VERTEX().'%}
-      glEnd();
-    ',
-    @internal
-  );
+  for (['_col', ' colors(tri,n);', COLOR().VERTEX()], ['_nc', '', VERTEX()]) {
+    pp_def(lc($name).$_->[0],
+      GenericTypes => $F,
+      Pars => 'coords(tri=3,n);'.$_->[1],
+      Code => '
+        glBegin('.uc($name).');
+        loop(n) %{'.$_->[2].'%}
+        glEnd();
+      ',
+      @internal
+    );
+  }
 }
 
 make_func($_) for qw(gl_line_strip gl_lines gl_points);
