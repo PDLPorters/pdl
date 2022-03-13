@@ -54,7 +54,8 @@ sub new {
 =head2 mouse_moved
 
 =for ref
-  A do nothing function to prevent errors if not defined in a subclass
+
+A do-nothing function to prevent errors if not defined in a subclass
 
 =cut
 
@@ -65,7 +66,8 @@ sub mouse_moved{
 =head2 ButtonRelease
 
 =for ref
-  A do nothing function to prevent errors if not defined in a subclass
+
+A do nothing function to prevent errors if not defined in a subclass
 
 =cut
 
@@ -79,7 +81,7 @@ sub ButtonRelease{
 
 =for ref
 
-  Activates the viewport the mouse is inside when pressed
+Activates the viewport the mouse is inside when pressed
 
 =cut
 
@@ -105,7 +107,7 @@ sub ButtonPress{
 
 =for ref
 
-  Define the width and Height of the window for button control
+Define the width and Height of the window for button control
 
 =cut
 
@@ -122,6 +124,5 @@ sub set_wh {
 	 $this->{SC} = $w/2;
   }
 }
-
 
 1;

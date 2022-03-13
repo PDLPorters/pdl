@@ -654,7 +654,7 @@ Returns a list with minimum and maximum values of an ndarray.
 This routine does I<not> broadcast over the dimensions of C<$pdl>;
 it returns the minimum and maximum values of the whole ndarray.
 See L</minmaximum> if this is not what is required.
-The two values are returned as Perl scalars similar to min/max,
+The two values are returned as Perl scalars,
 and therefore ignore whether the values are bad.
 
 =for example

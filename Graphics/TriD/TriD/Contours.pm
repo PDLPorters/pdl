@@ -94,9 +94,7 @@ sub new{
   my $d0 = $dims[0]-1;
   my $d1 = $dims[1]-1;
 
-  
   my ($min,$max) = $data->minmax();
-
 
   my $fac=1;
 
@@ -143,8 +141,8 @@ sub new{
     $cvals = $cvals->xlinvals($this->{Options}{ContourMin},$this->{Options}{ContourMax});  
   }else{
     $cvals = $this->{Options}{ContourVals};
-    $this->{Options}{ContourMax}=$cvals->max;
-    $this->{Options}{ContourMin}=$cvals->min;
+    $this->{Options}{ContourMax}=$cvals->max->sclr;
+    $this->{Options}{ContourMin}=$cvals->min->sclr;
   }
   $this->{Options}{ContourVals} = $cvals;
 
@@ -157,8 +155,6 @@ sub new{
   return $this;
 }      
 
-
-
 sub get_valid_options{
   return{ ContourInt => undef, 
 			 ContourMin => undef, 
@@ -168,9 +164,6 @@ sub get_valid_options{
 	                 Labels=> undef,
 			 Font=>$PDL::Graphics::TriD::GL::fontbase}
 }
-
-
-
 
 =head2 addlabels()
 
@@ -190,7 +183,6 @@ $segint specifies the density of labels on a single contour
 level.  Each contour level consists of a number of connected 
 line segments, $segint defines how many of these segments get labels.
 $segint defaults to 5, that is every fifth line segment will be labeled.
-  
 
 =cut
 

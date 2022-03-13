@@ -22,8 +22,8 @@ sub get_boundingbox {
 	my ($this) = @_;
 	my (@mins,@maxs);
 	for (qw(X Y Z)) {
-		push @mins, $this->{$_}->min();
-		push @maxs, $this->{$_}->max();
+		push @mins, $this->{$_}->min->sclr;
+		push @maxs, $this->{$_}->max->sclr;
 	}
 	print "LineBound: ",(join ',',@mins,@maxs),"\n";
 	return PDL::Graphics::TriD::BoundingBox->new( @mins,@maxs );

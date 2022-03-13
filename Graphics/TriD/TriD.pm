@@ -799,12 +799,10 @@ sub graph_object {
 	print "graph_object: calling get_new_graph\n" if($PDL::Graphics::TriD::verbose);
 	my $g = get_new_graph();
 	print "graph_object: back from get_new_graph\n" if($PDL::Graphics::TriD::verbose);
-
 	my $name = $g->add_dataseries($obj);
 	$g->bind_default($name);
 	$g->scalethings();
 	print "ADDED TO GRAPH: '$name'\n" if $PDL::Graphics::TriD::verbose;
-
 	twiddle_current();
 	return $obj;
 }
