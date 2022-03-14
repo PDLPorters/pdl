@@ -2967,8 +2967,11 @@ Compare also L</where> for similar functionality.
 
 SEE ALSO:
 
-L</which_both> returns separately the indices of both
-zero and nonzero values in the mask.
+L</which_both> returns separately the indices of both nonzero and zero
+values in the mask.
+
+L</where_both> returns separately slices of both nonzero and zero
+values in the mask.
 
 L</where> returns associated values from a data PDL, rather than
 indices into the mask PDL.
@@ -3160,6 +3163,44 @@ sub PDL::where {
 }
 *where = \&PDL::where;
 
+EOD
+
+pp_add_exported("", 'where_both');
+pp_addpm(<<'EOD');
+=head2 where_both
+
+=for ref
+
+Returns slices (non-zero in mask, zero) of an ndarray according to a mask
+
+=for usage
+
+ ($match_vals, $non_match_vals) = where_both($pdl, $mask);
+
+This works like L</which_both>, but (flattened) data-flowing slices
+rather than index-sets are returned.
+
+=for example
+
+ pdl> p $x = sequence(10) + 2
+ [2 3 4 5 6 7 8 9 10 11]
+ pdl> ($big, $small) = where_both($x, $x > 5); p "$big\n$small"
+ [6 7 8 9 10 11]
+ [2 3 4 5]
+ pdl> p $big += 2, $small -= 1
+ [8 9 10 11 12 13] [1 2 3 4]
+ pdl> p $x
+ [1 2 3 4 8 9 10 11 12 13]
+
+=cut
+
+sub PDL::where_both {
+  barf "Usage: where_both(\$pdl, \$mask)\n" if @_ != 2;
+  my ($arr, $mask) = @_;  # $mask has 0==false, 1==true
+  my $arr_flat = $arr->clump(-1);
+  map $arr_flat->index1d($_), PDL::which_both($mask);
+}
+*where_both = \&PDL::where_both;
 EOD
 
 pp_add_exported("", 'whereND');
