@@ -22,7 +22,7 @@ sub make_args {
 sub new {
     my($class,$code,$badcode,
        $handlebad, $sig,$generictypes,$extrageneric,$havebroadcasting,$name,
-       $dont_add_brcloop, $backcode ) = @_;
+       $dont_add_brcloop, $backcode, $nulldatacheck) = @_;
     my $parnames = $sig->names_sorted;
 
     die "Error: missing name argument to PDL::PP::Code->new call!\n"
@@ -67,6 +67,7 @@ sub new {
 	ftypes_type => undef,
         Generictypes => $generictypes,   # so that MacroAccess can check it
         Name => $name,
+        NullDataCheck => $nulldatacheck,
     }, $class;
 
     # First, separate the code into an array of C fragments (strings),
@@ -170,12 +171,12 @@ sub new {
 sub params_declare {
     my ($this) = @_;
     my ($ord,$pdls) = $this->get_pdls;
-    my @decls = map $_->get_xsdatapdecl("PDL_PARAMTYPE_".$_->name),
+    my @decls = map $_->get_xsdatapdecl("PDL_PARAMTYPE_".$_->name, $this->{NullDataCheck}),
       map $pdls->{$_}, @$ord;
     my @param_names = map "PDL_PARAMTYPE_$_", @$ord;
     PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-#ifndef PDL_DECLARE_PARAMS_$this->{Name}
-#define PDL_DECLARE_PARAMS_$this->{Name}(@{[join ',', @param_names]}) \\
+#ifndef PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}
+#define PDL_DECLARE_PARAMS_$this->{Name}_$this->{NullDataCheck}(@{[join ',', @param_names]}) \\
   @{[join " \\\n", @decls]}
 #endif
 EOF
@@ -502,8 +503,8 @@ sub myitemstart {
     my ($ord,$pdls) = $parent->get_pdls;
     my @param_ctypes = map $pdls->{$_}->adjusted_type($item)->ctype, @$ord;
     my $decls = keys %{$this->[2]} == @$ord
-      ? PDL::PP::pp_line_numbers(__LINE__-1, "\t\tPDL_DECLARE_PARAMS_$parent->{Name}(@{[join ',', @param_ctypes]})\n")
-      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype),
+      ? PDL::PP::pp_line_numbers(__LINE__-1, "\t\tPDL_DECLARE_PARAMS_$parent->{Name}_$parent->{NullDataCheck}(@{[join ',', @param_ctypes]})\n")
+      : join '', map $_->get_xsdatapdecl($_->adjusted_type($item)->ctype, $parent->{NullDataCheck}),
           map $parent->{ParObjs}{$_}, sort keys %{$this->[2]};
     my @gentype_decls = map "#define PDL_IF_GENTYPE_".uc($_)."(t,f) ".
 	($item->$_ ? 't' : 'f')."\n",

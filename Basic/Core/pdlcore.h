@@ -184,14 +184,15 @@ struct Core {
 
 typedef struct Core Core;
 
-#define PDL_DECLARE_PARAMETER(type, flag, name, pdlname) \
+#define PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
   type *name ## _datap = ((type *)(PDL_REPRP_TRANS(pdlname, flag))); \
   type *name ## _physdatap = ((type *)(pdlname->data)); \
-  (void)name ## _datap; \
+  if ((nullcheck) && pdlname->nvals > 0 && !name ## _datap) \
+    return PDL_CORE_(make_error_simple)(PDL_EUSERERROR, "parameter " #name " got NULL data"); \
   (void)name ## _physdatap;
 
-#define PDL_DECLARE_PARAMETER_BADVAL(type, flag, name, pdlname) \
-  PDL_DECLARE_PARAMETER(type, flag, name, pdlname) \
+#define PDL_DECLARE_PARAMETER_BADVAL(type, flag, name, pdlname, nullcheck) \
+  PDL_DECLARE_PARAMETER(type, flag, name, pdlname, nullcheck) \
   type name ## _badval = 0; \
   PDL_Anyval name ## _anyval_badval = PDL_CORE_(get_pdl_badvalue)(pdlname); \
   (void)name ## _badval; \

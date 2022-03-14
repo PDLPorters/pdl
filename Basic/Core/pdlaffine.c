@@ -33,8 +33,8 @@ pp_def(
 */
 
 #define COPYDATA(ctype, from_id, to_id) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[to_id]), to_pdl, (trans->pdls[to_id])) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[from_id]), from_pdl, (trans->pdls[from_id])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[to_id]), to_pdl, (trans->pdls[to_id]), 1) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype, (trans->vtable->per_pdl_flags[from_id]), from_pdl, (trans->pdls[from_id]), 1) \
   PDL_Indx i, poffs=trans->offs, nd; \
   for (i=0; i<trans->pdls[to_id]->nvals ; i++) { \
     to_pdl_physdatap[i] = (trans->bvalflag && from_pdl_physdatap[poffs] == from_pdl_badval) \
@@ -246,10 +246,10 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
 #define X_OUTER(datatype_out, ctype_out, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1]), 1) \
   PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, trans->__datatype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
 #define X_INNER(datatype_in, ctype_in, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1) \
   COPYCONVERT(PARENT, CHILD)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, params->totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", params->totype))
 #undef X_INNER
@@ -260,7 +260,7 @@ pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
 #define X_INNER(datatype_in, ctype_in, ...) \
-  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0])) \
+  PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1) \
   COPYCONVERT(CHILD, PARENT)
   PDL_GENERICSWITCH(PDL_TYPELIST2_ALL, params->totype, X_OUTER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", params->totype))
 #undef X_INNER

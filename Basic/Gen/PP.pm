@@ -2013,9 +2013,9 @@ EOF
    }),
 
    PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
-		      sub { PDL::PP::Code->new(@_, undef, undef); }),
+		      sub { PDL::PP::Code->new(@_, undef, undef, 1); }),
    PDL::PP::Rule->new(PDL::PP::Code::make_args("BackCode"),
-		      sub { PDL::PP::Code->new(@_, undef, 1); }),
+		      sub { PDL::PP::Code->new(@_, undef, 1, 1); }),
 
 # Compiled representations i.e. what the RunFunc function leaves
 # in the params structure. By default, copies of the parameters
@@ -2064,7 +2064,7 @@ EOF
 			       ''),
    PDL::PP::Rule->new(PDL::PP::Code::make_args("RedoDimsCode"),
       'makes the parsed representation from the supplied RedoDimsCode',
-      sub { return '' if !$_[0]; PDL::PP::Code->new(@_, 1, undef); }),
+      sub { return '' if !$_[0]; PDL::PP::Code->new(@_, 1, undef, 0); }),
    PDL::PP::Rule->new("RedoDims",
       ["DimsSetters","ParsedRedoDimsCode","DefaultRedoDims"],
       'makes the redodims function from the various bits and pieces',
