@@ -174,11 +174,11 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		push @line_coord, [0,0,0], [map $_==$dim ? 1 : 0, 0..2];
 		my @coords = map $_ == $dim ? 0 : -0.1, 0..2;
 		my @coords0 = (0,0,0);
-		my $s = $this->{Scale}[$dim];
+		my ($min, $max) = @{ $this->{Scale}[$dim] };
 		my $ndiv = 3;
 		my $radd = 1.0/$ndiv;
-		my $nadd = ($s->[1]-$s->[0])/$ndiv;
-		my $nc = $s->[0];
+		my $nadd = ($max-$min)/$ndiv;
+		my $nc = $min;
 		for(0..$ndiv) {
 			push @label, [[@coords], sprintf("%.3f",$nc)];
 			push @line_coord, [@coords0], [@coords];

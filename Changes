@@ -8,6 +8,7 @@
 - implement Ctrl-C handling in perldl (#269)
 - add with_time command to shells
 - fix shell history getting lost if OpenGL loaded before listed (#337)
+- fix TriD objects being off-centre (#337)
 
 2.076 2022-02-25
 - fix long-standing bug in dice that broke with PDL subclasses (#363)
