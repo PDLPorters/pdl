@@ -174,8 +174,10 @@ sub params_declare {
       map $pdls->{$_}, @$ord;
     my @param_names = map "PDL_PARAMTYPE_$_", @$ord;
     PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+#ifndef PDL_DECLARE_PARAMS_$this->{Name}
 #define PDL_DECLARE_PARAMS_$this->{Name}(@{[join ',', @param_names]}) \\
   @{[join " \\\n", @decls]}
+#endif
 EOF
 }
 
