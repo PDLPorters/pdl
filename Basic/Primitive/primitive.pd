@@ -686,11 +686,11 @@ EOD
         PMCode => '
 
 sub PDL::conv1d {
-   my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+   my $opt = pop @_ if ref($_[-1]) eq \'HASH\';
    die \'Usage: conv1d( a(m), kern(p), [o]b(m), {Options} )\'
-      if $#_<1 || $#_>2;
+      if @_<2 || @_>3;
    my($x,$kern) = @_;
-   my $c = $#_ == 2 ? $_[2] : PDL->null;
+   my $c = @_ == 3 ? $_[2] : PDL->null;
    PDL::_conv1d_int($x,$kern,$c,
 		     !(defined $opt && exists $$opt{Boundary}) ? 0 :
 		     lc $$opt{Boundary} eq "reflect");
@@ -986,7 +986,7 @@ sub PDL::$name {
    my \$c;
    if (\$x->is_inplace) {
        \$x->set_inplace(0); \$c = \$x;
-   } elsif (\$#_ > 1) {\$c=\$_[2]} else {\$c=PDL->nullcreate(\$x)}
+   } elsif (\@_ > 2) {\$c=\$_[2]} else {\$c=PDL->nullcreate(\$x)}
    PDL::_${name}_int(\$x,\$y,\$c);
    return \$c;
 }
@@ -1047,7 +1047,7 @@ sub PDL::clip {
 
   if($x->is_inplace) {
       $x->set_inplace(0); $d = $x
-  } elsif ($#_ > 2) {
+  } elsif (@_ > 3) {
       $d=$_[3]
   } else {
       $d = PDL->nullcreate($x);
@@ -1214,7 +1214,7 @@ pp_def('statsover',
       PMCode => '
 
 sub PDL::statsover {
-   barf(\'Usage: ($mean,[$prms, $median, $min, $max, $adev, $rms]) = statsover($data,[$weights])\') if $#_>1;
+   barf(\'Usage: ($mean,[$prms, $median, $min, $max, $adev, $rms]) = statsover($data,[$weights])\') if @_>2;
    my ($data, $weights) = @_;
    $weights = $data->ones() if !defined($weights);
 
@@ -1330,7 +1330,7 @@ values are flagged bad.
 
 *stats	  = \&PDL::stats;
 sub PDL::stats {
-    barf('Usage: ($mean,[$rms]) = stats($data,[$weights])') if $#_>1;
+    barf('Usage: ($mean,[$rms]) = stats($data,[$weights])') if @_>2;
     my ($data,$weights) = @_;
 
     # Ensure that $weights is properly broadcasted over; this could be
@@ -2630,17 +2630,11 @@ sub interpol ($$$;$) {
     my $xi = shift;
     my $x  = shift;
     my $y  = shift;
-
-    my $yi;
-    if ( $#_ == 0 ) { $yi = $_[0]; }
-    else            { $yi = PDL->null; }
-
+    my $yi = @_ == 1 ? $_[0] : PDL->null;
     interpolate( $xi, $x, $y, $yi, my $err = PDL->null );
     print "some values had to be extrapolated\n"
 	if any $err;
-
-    return $yi if $#_ == -1;
-
+    return $yi if @_ == 0;
 } # sub: interpol()
 *PDL::interpol = \&interpol;
 
@@ -2932,7 +2926,7 @@ will not give the answer you expect.
 
 *one2nd = \&PDL::one2nd;
 sub PDL::one2nd {
-  barf "Usage: one2nd \$array \$indices\n" if $#_ != 1;
+  barf "Usage: one2nd \$array \$indices\n" if @_ != 2;
   my ($x, $ind)=@_;
   my @dimension=$x->dims;
   $ind = indx($ind);
@@ -2996,7 +2990,7 @@ my $doc_which_both = <<'EOD';
 
 =for ref
 
-Returns indices of zero and nonzero values in a mask PDL
+Returns indices of nonzero and zero values in a mask PDL
 
 =for usage
 
@@ -3007,9 +3001,9 @@ C<$c_i>.
 
 =for example
 
- pdl> $x = sequence(10); p $x
+ pdl> p $x = sequence(10)
  [0 1 2 3 4 5 6 7 8 9]
- pdl> ($small, $big) = which_both ($x >= 5); p "$small\n $big"
+ pdl> ($big, $small) = which_both($x >= 5); p "$big\n$small"
  [5 6 7 8 9]
  [0 1 2 3 4]
 
@@ -3027,7 +3021,7 @@ EOD
 	  PMCode=><<'EOD',
    sub which { my ($this,$out) = @_;
 		$this = $this->flat;
-		$out = $this->nullcreate unless defined $out;
+		$out //= $this->nullcreate;
 		PDL::_which_int($this,$out);
 		return $out;
    }
@@ -3043,8 +3037,8 @@ EOD
 	  PMCode=><<'EOD',
    sub which_both { my ($this,$outi,$outni) = @_;
 		$this = $this->flat;
-		$outi = $this->nullcreate unless defined $outi;
-		$outni = $this->nullcreate unless defined $outni;
+		$outi //= $this->nullcreate;
+		$outni //= $this->nullcreate;
 		PDL::_which_both_int($this,$outi,$outni);
 		return wantarray ? ($outi,$outni) : $outi;
    }
@@ -3148,9 +3142,8 @@ broadcast over a smaller mask, for example.
 =cut
 
 sub PDL::where {
-    barf "Usage: where( \$pdl1, ..., \$pdlN, \$mask )\n" if $#_ == 0;
-
-    if($#_ == 1) {
+    barf "Usage: where( \$pdl1, ..., \$pdlN, \$mask )\n" if @_ == 1;
+    if(@_ == 2) {
 	my($data,$mask) = @_;
 	$data = $_[0]->clump(-1) if $_[0]->getndims>1;
 	$mask = $_[1]->clump(-1) if $_[0]->getndims>1;
@@ -3226,33 +3219,24 @@ L</whichND> returns N-D indices into a multidimensional PDL, from a mask.
 =cut
 
 sub PDL::whereND :lvalue {
-   barf "Usage: whereND( \$pdl1, ..., \$pdlN, \$mask )\n" if $#_ == 0;
-
+   barf "Usage: whereND( \$pdl1, ..., \$pdlN, \$mask )\n" if @_ == 1;
    my $mask = pop @_;  # $mask has 0==false, 1==true
    my @to_return;
-
    my $n = PDL::sum($mask);
-
    foreach my $arr (@_) {
-
       my $sub_i = $mask * ones($arr);
       my $where_sub_i = PDL::where($arr, $sub_i);
-
       # count the number of dims in $mask and $arr
       # $mask = a b c d e f.....
       my @idims = dims($arr);
-
       # ...and pop off the number of dims in $mask
       foreach ( dims($mask) ) { shift(@idims) };
-
       my $ndim = 0;
       foreach my $id ($n, @idims[0..($#idims-1)]) {
          $where_sub_i = $where_sub_i->splitdim($ndim++,$id) if $n>0;
       }
-
       push @to_return, $where_sub_i;
    }
-
    return (@to_return == 1) ? $to_return[0] : @to_return;
 }
 *whereND = \&PDL::whereND;
