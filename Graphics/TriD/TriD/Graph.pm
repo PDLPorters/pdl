@@ -111,60 +111,42 @@ sub changed {}
 package PDL::Graphics::TriD::EuclidAxes;
 
 sub new {
-	my($type) = @_; bless {Names => [qw(X Y Z)]},$type;
+  my($type) = @_; bless {Names => [qw(X Y Z)]},$type;
 }
 
 sub init_scale {
-	my($this) = @_;
-	$this->{Scale} = [];
+  my($this) = @_;
+  $this->{Scale} = undef;
 }
 
 sub add_scale {
-	my($this,$data,$inds) = @_;
-	my $i = 0;
-	for(@$inds) {
-		my $d = $data->slice("($_)");
-		my $max = $d->max->sclr;
-		my $min = $d->min->sclr;
-		if(!defined $this->{Scale}[$i]) {
-			$this->{Scale}[$i] = [$min,$max];
-		} else {
-			if($min < $this->{Scale}[$i][0]) {
-				$this->{Scale}[$i][0] = $min;
-			}
-			if($max > $this->{Scale}[$i][1]) {
-				$this->{Scale}[$i][1] = $max;
-			}
-		}
-		$i++;
-	}
+  my($this,$data,$inds) = @_;
+  $data = $data->dice_axis(0, $inds);
+  my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
+  $to_minmax = $to_minmax->glue(1, $this->{Scale}); # include old min/max
+  my ($mins, $maxes) = $to_minmax->transpose->minmaxover; # each is xyz
+  $this->{Scale} = PDL->pdl($mins, $maxes); # xyz,minmax
 }
 
 sub finish_scale {
-	my($this) = @_;
+  my($this) = @_;
 # Normalize the smallest differences away.
-	for(@{$this->{Scale}}) {
-		if(abs($_->[0] - $_->[1]) < 0.000001) {
-			$_->[1] = $_->[0] + 1;
-		} else {
-			my $shift = ($_->[1]-$_->[0])*0.05;
-			$_->[0] -= $shift;
-			$_->[1] += $shift;
-		}
-	}
+  my ($min, $max) = $this->{Scale}->dog;
+  my $diff = $max - $min;
+  my ($got_smalldiff, $got_bigdiff) = PDL::which_both(abs($diff) < 1e-6);
+  $max->dice_axis(0, $got_smalldiff) .= $min->dice_axis(0, $got_smalldiff) + 1;
+  my ($min_big, $max_big, $shift) = map $_->dice_axis(0, $got_bigdiff), $min, $max, $diff;
+  $shift = $shift * 0.05; # don't mutate
+  $min_big -= $shift, $max_big += $shift;
 }
 
 # Add 0..1 to each axis.
 sub transform {
-	my($this,$point,$data,$inds) = @_;
-	my $i = 0;
-	for(@$inds) {
-		(my $tmp = $point->slice("($i)")) +=
-		  ($data->slice("($_)") - $this->{Scale}[$i][0]) /
-		  ($this->{Scale}[$i][1] - $this->{Scale}[$i][0]) ;
-		$i++;
-	}
-	return $point;
+  my($this,$point,$data,$inds) = @_;
+  my ($min, $max) = map $this->{Scale}->slice("0:$#$inds,$_"), 0, 1;
+  (my $tmp = $point->slice("0:$#$inds")) +=
+    ($data->dice_axis(0, $inds) - $min) / ($max - $min);
+  return $point;
 }
 
 # projects from the sphere to a cylinder
@@ -210,11 +192,7 @@ sub add_scale {
     }
     $i++;
   }
-#  $this->{Center} = [$this->{Scale}[0][0]+($this->{Scale}[0][1]-$this->{Scale}[0][0])/2,
-#		     $this->{Scale}[1][0]+($this->{Scale}[1][1]-$this->{Scale}[1][0])/2];
-#
 # Should make the projection center an option
-#
   $this->{Center} = [$this->{Scale}[0][0]+($this->{Scale}[0][1]-$this->{Scale}[0][0])/2,
 		     0];
 }
