@@ -137,9 +137,7 @@ sub get_valid_options {  # need to add radius
 
 # JNK 27nov00 new object type:
 package PDL::Graphics::TriD::GPObject;
-# @ISA=qw/PDL::Graphics::TriD::GObject/;
 use base qw/PDL::Graphics::TriD::GObject/;
-# use fields qw/.../;
 
 sub new {
   my($type,$points,$faceidx,$colors,$options) = @_;
@@ -163,12 +161,10 @@ sub get_valid_options {
 
 sub cdummies {
   return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
-  
+
 # JNK 13dec00 new object type:
 package PDL::Graphics::TriD::STrigrid_S;
-# @ISA=qw/PDL::Graphics::TriD::GPObject/;
 use base qw/PDL::Graphics::TriD::GPObject/;
-# use fields qw/.../;
 
 sub cdummies {
   return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
@@ -203,9 +199,7 @@ sub smoothn { my ($this,$ddd) = @_;
   return $vn; }
 # JNK 06dec00 new object type:
 package PDL::Graphics::TriD::STrigrid;
-# @ISA=qw/PDL::Graphics::TriD::GPObject/;
 use base qw/PDL::Graphics::TriD::GPObject/;
-# use fields qw/.../;
 
 sub cdummies { # copied from SLattice_S; not yet modified...
   # called with (type,colors,faces)
