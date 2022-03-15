@@ -28,7 +28,7 @@ my @exports_internal = qw(howbig broadcastids topdl);
 my @exports_normal   = (@EXPORT,
   @convertfuncs,
   qw(nelem dims shape null
-      empty
+      empty dup dupN
       convert inplace zeroes zeros ones nan inf i list listindices unpdl
       set at flows broadcast_define over reshape dog cat barf type
       thread_define dummy mslice approx flat sclr squeeze
@@ -61,6 +61,7 @@ $PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 *thread_define = *broadcast_define;
 *PDL::threadover_n = *PDL::broadcastover_n;
 
+*dup = \&PDL::dup; *dupN = \&PDL::dupN;
 *howbig       = \&PDL::howbig;	  *unpdl	= \&PDL::unpdl;
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
 *dims	      = \&PDL::dims;	  *list 	= \&PDL::list;
@@ -1520,6 +1521,48 @@ sub PDL::dummy($$;$) {
    $s .= '*1,'  x ( $dim_diff > 0 ? $dim_diff : 0 );
    $s .= "*$size";
    $pdl->slice($s);
+}
+
+=head2 dup
+
+=for ref
+
+Duplicates an ndarray along a dimension
+
+=for example
+
+ $x = sequence(3);
+ $y = $x->dup(0, 2); # doubles along first dimension
+ # $y now [0 1 2 0 1 2]
+
+=cut
+
+sub PDL::dup {
+  my ($this, $dim, $times) = @_;
+  return $this->copy if $times == 1;
+  $this->dummy($dim+1, $times)->clump($dim, $dim+1);
+}
+
+=head2 dupN
+
+=for ref
+
+Duplicates an ndarray along several dimensions
+
+=for example
+
+ $x = sequence(3,2);
+ $y = $x->dupN(2, 3); # doubles along first dimension, triples along second
+
+=cut
+
+sub PDL::dupN {
+  my ($this, @times) = @_;
+  return $this->copy if !grep $_ != 1, @times;
+  my $sl = join ',', map ":,*$_", @times; # insert right-size dummy after each real
+  $this = $this->slice($sl);
+  $this = $this->clump($_, $_+1) for 0..$#times;
+  $this;
 }
 
 =head2 clump

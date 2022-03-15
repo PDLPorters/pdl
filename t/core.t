@@ -16,6 +16,24 @@ for my $type (PDL::Types::types()) {
    ok defined pdl($type, 0), "constructing PDL of type $type";
 }
 
+is sequence(3,2)->dup(0, 2).'', '
+[
+ [0 1 2 0 1 2]
+ [3 4 5 3 4 5]
+]
+', 'dup';
+
+is sequence(3,2)->dupN(2, 3).'', '
+[
+ [0 1 2 0 1 2]
+ [3 4 5 3 4 5]
+ [0 1 2 0 1 2]
+ [3 4 5 3 4 5]
+ [0 1 2 0 1 2]
+ [3 4 5 3 4 5]
+]
+', 'dupN';
+
 my $a_long = sequence long, 10;
 my $a_dbl  = sequence 10;
 

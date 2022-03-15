@@ -12,6 +12,7 @@
 - fix Primitive::which_both docs to match behaviour
 - add Primitive::where_both
 - PP now checks data pointers for NULL if nvals > 0 except in RedoDimsCode
+- add Core::dup{,N}
 
 2.076 2022-02-25
 - fix long-standing bug in dice that broke with PDL subclasses (#363)

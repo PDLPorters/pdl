@@ -133,9 +133,8 @@ points3d[map $_+$_->float->random, whichND(($x!=0)&($x != 255))->transpose->dog]
 # Fractal mountain range [Tuomas Lukka]
 use PDL::Image2D;
 $k=ones(5,5) / 25; $x=5; $y=ones(1,1)/2;
-sub PDL::stretchX { $_[0]->dummy(0,2)->clump(2) }
 for(1..7) {
-  $c=$y->stretchX->transpose->stretchX->transpose->copy;
+  $c=$y->dupN(2)->transpose->dupN(2)->transpose->copy;
   $c+=$x*$c->random; $x/=3;
   $y=conv2d($c,$k); imag3d[$y],{Lines => 0};
 }
