@@ -3931,7 +3931,7 @@ sub t_spherical {
 
     $me->{params}->{deg} = _opt($o,['d','degrees','Degrees']);
 
-    my $unit = _opt($o,['u','unit','Unit']);
+    my $unit = _opt($o,['u','unit','Unit']) || 'd';
     $me->{params}->{angunit} = ($unit =~ m/^d/i) ?
         $PDL::Transform::DEG2RAD : undef;
 
@@ -3945,9 +3945,9 @@ sub t_spherical {
         my($out) =   ($d->is_inplace) ? $data : $data->copy;
 
         my $tmp; # work around perl -d "feature"
-        ($tmp = $out->slice("(0)")) .= atan2($d1, $d0);
-        ($tmp = $out->slice("(2)")) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
-        ($tmp = $out->slice("(1)")) .= asin($d2 / $out->slice("(2)"));
+        ($tmp = $out->slice("(0)")) .= PDL::atan2($d1, $d0);
+        ($tmp = $out->slice("(2)")) .= PDL::sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
+        ($tmp = $out->slice("(1)")) .= PDL::asin($d2 / $out->slice("(2)"));
 
         ($tmp = $out->slice("0:1")) /= $o->{angunit}
           if(defined $o->{angunit});
