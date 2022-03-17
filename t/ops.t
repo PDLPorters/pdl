@@ -140,6 +140,7 @@ ok(all( approx(pdl(1,0,1) | pdl(1,1,0), pdl(1,1,1))), 'elementwise or');
 {
 # atan2
 ok (all( approx(atan2(pdl(1,1), pdl(1,1)), ones(2) * atan2(1,1))), 'atan2');
+ok (all( approx(PDL::atan2(pdl(1,1), pdl(1,1)), ones(2) * PDL::atan2(1,1))), 'atan2');
 }
 
 {

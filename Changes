@@ -1,3 +1,5 @@
+- Ops::atan2 etc have default swap param
+
 2.077 2022-03-16
 - Ufunc::{min,max}over{,_ind} behaviour for NaNs fixed to match docs
 - Ufunc::{min,max}over_n_ind can handle badvals

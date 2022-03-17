@@ -248,6 +248,7 @@ ENDCODE
 	   NoBadifNaN => 1,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
+	   OtherParsDefaults => { swap => 0 },
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => pp_line_numbers(__LINE__, qq{
 	        PDL_IF_BAD(if ( \$ISBAD(a()) || \$ISBAD(b()) ) \$SETBAD(c()); else {,)
