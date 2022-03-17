@@ -18,7 +18,7 @@ $h->{NAXIS3}=3,             $h->{CRPIX3}=1;         $h->{CRVAL3}=0;
 $h->{CTYPE1}='Longitude';   $h->{CUNIT1}='degrees'; $h->{CDELT1}=180/1024.0;
 $h->{CTYPE2}='Latitude';    $h->{CUNIT2}='degrees'; $h->{CDELT2}=180/1024.0;
 $h->{CTYPE3}='RGB';         $h->{CUNIT3}='index';   $h->{CDELT3}=1.0;
-$h->{COMMENT}='Plate Caree Projection';
+$h->{COMMENT}='Plate Carree Projection';
 $h->{HISTORY}='PDL Distribution Image, derived from NASA/MODIS data',
 
 $im->hdrcpy(1);

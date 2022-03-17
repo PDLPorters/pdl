@@ -31,7 +31,7 @@ from (theta,phi) coordinates on the unit sphere (e.g. (lon,lat) on a
 planet or (RA,dec) on the celestial sphere) into some sort of
 projected coordinates, and have inverse transformations that convert
 back to (theta,phi).  This is equivalent to working from the
-equidistant cylindrical (or L<"plate caree"|/t_caree>) projection, if
+equidistant cylindrical (or L<"plate carree"|/t_carree>) projection, if
 you are a cartography wonk.
 
 The projected coordinates are generally in units of body radii
@@ -255,7 +255,7 @@ use Carp;
 our @ISA = ( 'Exporter','PDL::Transform' );
 our $VERSION = "0.6";
 $VERSION = eval $VERSION;
-our @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_utm t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
+our @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_carree t_mercator t_utm t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
 our @EXPORT = @EXPORT_OK;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
 
@@ -388,7 +388,7 @@ sub graticule {
 
 Returns a vector coastline map based on the 1987 CIA World Coastline
 database (see author information).  The vector coastline data are in
-plate caree format so they can be converted to other projections via
+plate carree format so they can be converted to other projections via
 the L<apply|PDL::Transform/apply> method and cartographic transforms,
 and are suitable for plotting with the
 L<lines|PDL::Graphics::PGPLOT::Window/lines>
@@ -402,7 +402,7 @@ meridian, so if you want to plot it without reprojecting, you should
 run it through L</clean_lines> first:
 
     $w = pgwin();
-    $w->lines(earth_coast->clean_lines);     # plot plate caree map of world
+    $w->lines(earth_coast->clean_lines);     # plot plate carree map of world
     $w->lines(earth_coast->apply(t_gnomonic))# plot gnomonic map of world
 
 C<earth_coast> is just a quick-and-dirty way of loading the file
@@ -434,7 +434,7 @@ sub earth_coast {
 Returns an RGB image of Earth based on data from the MODIS instrument
 on the NASA EOS/Terra satellite.  (You can get a full-resolution
 image from L<http://earthobservatory.nasa.gov/Newsroom/BlueMarble/>).
-The image is a plate caree map, so you can convert it to other
+The image is a plate carree map, so you can convert it to other
 projections via the L<map|PDL::Transform/map> method and cartographic
 transforms.
 
@@ -477,7 +477,7 @@ sub earth_image {
   $h->{CTYPE1}='Longitude';   $h->{CUNIT1}='degrees'; $h->{CDELT1}=180/1024.0;
   $h->{CTYPE2}='Latitude';    $h->{CUNIT2}='degrees'; $h->{CDELT2}=180/1024.0;
   $h->{CTYPE3}='RGB';         $h->{CUNIT3}='index';   $h->{CDELT3}=1.0;
-  $h->{COMMENT}='Plate Caree Projection';
+  $h->{COMMENT}='Plate Carree Projection';
   $h->{HISTORY}='PDL Distribution Image, derived from NASA/MODIS data',
   
   $im->hdrcpy(1);
@@ -856,7 +856,7 @@ projection and you get an oblique one.
 Most of the projections automagically compose themselves with t_rot_sphere
 if you feed in an origin or roll angle.
 
-t_rot_sphere converts the base plate caree projection (straight lon, straight
+t_rot_sphere converts the base plate carree projection (straight lon, straight
 lat) to a Cassini projection.
 
 OPTIONS
@@ -1042,17 +1042,17 @@ sub t_orthographic {
 
 ######################################################################
 
-=head2 t_caree
+=head2 t_carree
 
 =for usage
 
-    $t = t_caree(<options>);
+    $t = t_carree(<options>);
 
 =for ref
 
-(Cartography) Plate Caree projection (cylindrical; equidistant)
+(Cartography) Plate Carree projection (cylindrical; equidistant)
 
-This is the simple Plate Caree projection -- also called a "lat/lon plot".
+This is the simple Plate Carree projection -- also called a "lat/lon plot".
 The horizontal axis is theta; the vertical axis is phi.  This is a no-op
 if the angular unit is radians; it is a simple scale otherwise. 
 
@@ -1072,10 +1072,11 @@ vertical scale (which is correct everywhere).
 
 =cut
 
-@PDL::Transform::Cartography::Caree::ISA = ('PDL::Transform::Cartography');
+@PDL::Transform::Cartography::Carree::ISA = ('PDL::Transform::Cartography');
 
-sub t_caree {
-    my($me) = _new(@_,'Plate Caree Projection');
+*t_caree = *t_carree; # compat alias for poor spellers
+sub t_carree {
+    my($me) = _new(@_,'Plate Carree Projection');
     my $p = $me->{params};
 
     $me->{otype} = ['projected longitude','latitude'];
@@ -1548,7 +1549,7 @@ the surface of the sphere).  If you specify only one then the other is
 taken to be the nearest pole.  If you specify both of them to be one
 pole then you get an equidistant azimuthal map.  If you specify both
 of them to be opposite and equidistant from the equator you get a
-Plate Caree projection.
+Plate Carree projection.
 
 =back
 
@@ -1560,9 +1561,9 @@ sub t_conic {
     my($p) = $me->{params};
 
     if($p->{cylindrical}) {
-	print STDERR "Simple conic: degenerate case; using Plate Caree\n"
+	print STDERR "Simple conic: degenerate case; using Plate Carree\n"
 	    if($PDL::verbose);
-	return t_caree($me->{options});
+	return t_carree($me->{options});
     }
 
     $p->{n} = ((cos($p->{std}->slice("(0)")) - cos($p->{std}->slice("(1)")))

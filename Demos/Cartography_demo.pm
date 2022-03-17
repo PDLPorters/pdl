@@ -63,7 +63,7 @@ earth_image('day') call on the next screen.
 |],
 
 [act => q&
-  ### Map data are stored natively in Plate Caree format. 
+  ### Map data are stored natively in Plate Carree format.
   ### The image contains a FITS header that contains coordinate system info.
   print "FITS HEADER INFORMATION:\n";
   for $_(sort keys %{$map->hdr}){
@@ -76,7 +76,7 @@ earth_image('day') call on the next screen.
          defined($ENV{PGPLOT_DEV}) ? $ENV{PGPLOT_DEV} : "/XW";
          # $dev = $^O =~ /MSWin/i ? '/GW' : '/xw';
   $w = pgwin(Dev=> $dev, size=>[8,6]);
-  $w->fits_imag($map, {Title=>"NASA/MODIS Earth Map (Plate Caree)",J=>0});
+  $w->fits_imag($map, {Title=>"NASA/MODIS Earth Map (Plate Carree)",J=>0});
 &],
 
 [act => q&
