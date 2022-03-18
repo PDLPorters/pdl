@@ -37,9 +37,8 @@ SKIP: {
    $map->badflag(1);
    my $checksum = unpack "%16C*", ${$map->get_dataref};
    my $goodcheck = 56639;
-   if ($checksum != $goodcheck) {
-      skip "earth_image() map has bad checksum: $checksum (expected $goodcheck)", 22;
-   }
+   skip "earth_image() map has bad checksum: $checksum (expected $goodcheck)", 22
+     if $checksum != $goodcheck;
 
    my $map_size = [500,500];
 

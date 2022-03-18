@@ -255,7 +255,13 @@ use Carp;
 our @ISA = ( 'Exporter','PDL::Transform' );
 our $VERSION = "0.6";
 $VERSION = eval $VERSION;
-our @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_carree t_mercator t_utm t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
+our @EXPORT_OK = qw(
+  graticule earth_image earth_coast clean_lines t_unit_sphere
+  t_orthographic t_rot_sphere t_caree t_carree t_mercator t_utm t_sin_lat
+  t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic
+  t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff
+  t_raster2fits
+);
 our @EXPORT = @EXPORT_OK;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
 
@@ -449,7 +455,6 @@ sub earth_image {
   require PDL::IO::Pic;
   my $dir = "PDL/Transform/Cartography/earth_";
   $f = ($nd =~ m/^n/i) ? "${dir}night.jpg" : "${dir}day.jpg";
-  
   local $_;
   my $im;
   my $found = 0;
@@ -457,31 +462,15 @@ sub earth_image {
     my $file = "$_/$f";
     if(-e $file) {
       $found = 1;
-      $im = PDL::IO::Pic::rpic($file)->mv(0,-1);
+      $im = PDL::IO::Pic::rpic($file);
     }
     last if defined($im);
   }
-
   barf("earth_image: $f not found in \@INC\n")
     unless defined($found);
   barf("earth_image: couldn't load $f; you may need to install netpbm.\n")
     unless defined($im);
-
-  my $h = $im->fhdr;
-
-  $h->{SIMPLE} = 'T';
-  $h->{NAXIS} = 3;
-  $h->{NAXIS1}=2048;	      $h->{CRPIX1}=1024.5;    $h->{CRVAL1}=0;
-  $h->{NAXIS2}=1024;	      $h->{CRPIX2}=512.5;     $h->{CRVAL2}=0;
-  $h->{NAXIS3}=3,             $h->{CRPIX3}=1;         $h->{CRVAL3}=0;
-  $h->{CTYPE1}='Longitude';   $h->{CUNIT1}='degrees'; $h->{CDELT1}=180/1024.0;
-  $h->{CTYPE2}='Latitude';    $h->{CUNIT2}='degrees'; $h->{CDELT2}=180/1024.0;
-  $h->{CTYPE3}='RGB';         $h->{CUNIT3}='index';   $h->{CDELT3}=1.0;
-  $h->{COMMENT}='Plate Carree Projection';
-  $h->{HISTORY}='PDL Distribution Image, derived from NASA/MODIS data',
-  
-  $im->hdrcpy(1);
-  $im;
+  t_raster2fits()->apply($im);
 }
 
 =head2 clean_lines
@@ -712,6 +701,52 @@ sub PDL::Transform::Cartography::_finish {
   return $me;
 }
 
+=head2 t_raster2fits
+
+=for usage
+
+  $t = t_raster2fits();
+
+=for ref
+
+(Cartography) Convert a raster (3,x,y) to FITS plate carree (x,y,3)
+
+Adds suitable C<hdr>. Assumes degrees. Used by L</earth_image>.
+
+=cut
+
+sub t_raster2fits {
+  my ($me) = _new(@_, 'Raster to FITS plate carree conversion');
+  $me->{odim} = 3;
+  $me->{params}->{itype} = ['RGB','X','Y'];
+  $me->{params}->{iunit} = ['RGB','pixels','pixels'];
+  $me->{params}->{otype} = ['X','Y','RGB'];
+  $me->{params}->{ounit} = ['pixels','pixels','RGB'];
+  $me->{func} = sub {
+    my($d,$o) = @_;
+    my $out = $d->mv(0,2);
+    my $h = $out->fhdr;
+    $h->{SIMPLE} = 'T';
+    $h->{NAXIS} = $d->ndims;
+    local $_;
+    $h->{"NAXIS".($_+1)} = $out->dim($_) for 0..$out->ndims-1;
+    $h->{"CRVAL".($_+1)} = 0 for 0..$out->ndims-1;
+    $h->{"CRPIX".($_+1)} = $_<2 ? ($out->dim($_)+1)/2 : 1 for 0..$out->ndims-1;
+    my ($lon, $lat) = $out->dims;
+    $h->{CTYPE1}='Longitude';   $h->{CUNIT1}='degrees'; $h->{CDELT1}=360/$lon;
+    $h->{CTYPE2}='Latitude';    $h->{CUNIT2}='degrees'; $h->{CDELT2}=180/$lat;
+    $h->{CTYPE3}='RGB';         $h->{CUNIT3}='index';   $h->{CDELT3}=1.0;
+    $h->{COMMENT}='Plate Carree Projection';
+    $h->{HISTORY}='PDL conversion from raster image',
+    $out->hdrcpy(1);
+    $out;
+  };
+  $me->{inv} = sub {
+    my($d,$o) = @_;
+    $d->mv(2,0);
+  };
+  $me;
+}
 
 ######################################################################
 

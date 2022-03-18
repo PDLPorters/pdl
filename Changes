@@ -1,5 +1,6 @@
 - Ops::atan2 etc have default swap param
 - fix Transform::Cartography::t_carree spelling (compat alias created)
+- add Transform::Cartography::t_raster2fits
 
 2.077 2022-03-16
 - Ufunc::{min,max}over{,_ind} behaviour for NaNs fixed to match docs
