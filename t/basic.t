@@ -43,6 +43,9 @@ ok(all($x->shape==$z->shape), "zlinvals shape"); #9
 ok(tapprox($x->uniqvec->flat,pdl(50..150)/100),"xlinvals values"); #10
 ok(tapprox($y->mv(1,0)->uniqvec->flat,pdl(-100..-50)/50),"ylinvals values"); #11
 ok(tapprox($z->mv(2,0)->uniqvec->flat,pdl(0..25)/5-3),"zlinvals values"); #12
+$a1->inplace->xvals;
+my $got = $a1->slice('(10),(0),(0)');
+ok tapprox($got, 10), 'inplace xvals works' or diag "got:$got";
 }
 
 {
