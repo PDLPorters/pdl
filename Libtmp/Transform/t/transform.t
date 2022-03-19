@@ -193,6 +193,13 @@ use Test::Exception;
 }
 
 {
+use PDL::Transform::Cartography;
+my $pa = t_raster2fits()->apply(sequence(byte, 3, 10, 10));
+eval { $pa->match([100,100,3]) };
+is $@, '', 't_fits invertible';
+}
+
+{
 ##############################
 # Test boundary conditions
 my $pa = sequence(5,5);

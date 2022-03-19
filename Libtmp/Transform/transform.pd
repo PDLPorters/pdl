@@ -1872,7 +1872,6 @@ sub map {
   my $method = _opt($opt,['m','method','Method'],undef);
   my $bound = _opt($opt,['b','bound','boundary','Boundary'],'t');
 
-
   ##############################
   ## Rubber meets the road: calculate the inverse transformed points.
   my $ndc = PDL::Basic::ndcoords(@dd);
@@ -2654,45 +2653,42 @@ sub PDL::Transform::Linear::new {
 
   $me->{name} = "linear";
 
-  $me->{params}->{pre} = _opt($o,['pre','Pre','preoffset','offset',
+  $me->{params}{pre} = _opt($o,['pre','Pre','preoffset','offset',
                                   'Offset','PreOffset','Preoffset'],0);
-  $me->{params}->{pre} = pdl($me->{params}->{pre})
-    if(defined $me->{params}->{pre});
+  $me->{params}{pre} = pdl($me->{params}{pre})
+    if(defined $me->{params}{pre});
 
-  $me->{params}->{post} = _opt($o,['post','Post','postoffset','PostOffset',
+  $me->{params}{post} = _opt($o,['post','Post','postoffset','PostOffset',
                                    'shift','Shift'],0);
-  $me->{params}->{post} = pdl($me->{params}->{post})
-    if(defined $me->{params}->{post});
+  $me->{params}{post} = pdl($me->{params}{post})
+    if(defined $me->{params}{post});
 
-  $me->{params}->{matrix} = _opt($o,['m','matrix','Matrix','mat','Mat']);
-  $me->{params}->{matrix} = pdl($me->{params}->{matrix})
-    if(defined $me->{params}->{matrix});
+  $me->{params}{matrix} = _opt($o,['m','matrix','Matrix','mat','Mat']);
+  $me->{params}{matrix} = pdl($me->{params}{matrix})
+    if(defined $me->{params}{matrix});
 
-  $me->{params}->{rot} = _opt($o,['r','rot','rota','rotation','Rotation']);
-  $me->{params}->{rot} = 0 unless defined($me->{params}->{rot});
-  $me->{params}->{rot} = pdl($me->{params}->{rot});
+  $me->{params}{rot} = _opt($o,['r','rot','rota','rotation','Rotation'], 0);
+  $me->{params}{rot} = pdl($me->{params}{rot});
 
   my $o_dims = _opt($o,['d','dim','dims','Dims']);
-  $o_dims = pdl($o_dims)
-    if defined($o_dims);
+  $o_dims = pdl($o_dims) if defined($o_dims);
 
   my $scale  = _opt($o,['s','scale','Scale']);
-  $scale = pdl($scale)
-    if defined($scale);
+  $scale = pdl($scale) if defined($scale);
 
   # Figure out the number of dimensions to transform, and,
   # if necessary, generate a new matrix.
 
-  if(defined($me->{params}->{matrix})) {
-    my $mat = $me->{params}->{matrix} = $me->{params}->{matrix}->slice(":,:");
+  if(defined($me->{params}{matrix})) {
+    my $mat = $me->{params}{matrix} = $me->{params}{matrix}->slice(":,:");
     $me->{idim} = $mat->dim(0);
     $me->{odim} = $mat->dim(1);
 
   } else {
     if(defined($me->{params}->{rot}) &&
         UNIVERSAL::isa($me->{params}->{rot},'PDL')) {
-          $me->{idim} = $me->{odim} = 2 if($me->{params}->{rot}->nelem == 1);
-          $me->{idim} = $me->{odim} = 3 if($me->{params}->{rot}->nelem == 3);
+          $me->{idim} = $me->{odim} = 2 if($me->{params}{rot}->nelem == 1);
+          $me->{idim} = $me->{odim} = 3 if($me->{params}{rot}->nelem == 3);
     }
 
     if(defined($scale) &&
@@ -2701,15 +2697,15 @@ sub PDL::Transform::Linear::new {
       $me->{idim} = $me->{odim} = $scale->dim(0);
       $me->{odim} = $scale->dim(0);
 
-    } elsif(defined($me->{params}->{pre}) &&
-            UNIVERSAL::isa($me->{params}->{pre},'PDL') &&
-            $me->{params}->{pre}->getndims > 0) {
-      $me->{idim} = $me->{odim} = $me->{params}->{pre}->dim(0);
+    } elsif(defined($me->{params}{pre}) &&
+            UNIVERSAL::isa($me->{params}{pre},'PDL') &&
+            $me->{params}{pre}->getndims > 0) {
+      $me->{idim} = $me->{odim} = $me->{params}{pre}->dim(0);
 
-    } elsif(defined($me->{params}->{post}) &&
-            UNIVERSAL::isa($me->{params}->{post},'PDL') &&
-            $me->{params}->{post}->getndims > 0) {
-      $me->{idim} = $me->{odim} = $me->{params}->{post}->dim(0);
+    } elsif(defined($me->{params}{post}) &&
+            UNIVERSAL::isa($me->{params}{post},'PDL') &&
+            $me->{params}{post}->getndims > 0) {
+      $me->{idim} = $me->{odim} = $me->{params}{post}->dim(0);
     } elsif(defined($o_dims)) {
       $me->{idim} = $me->{odim} = $o_dims;
     } else {
@@ -2720,11 +2716,10 @@ sub PDL::Transform::Linear::new {
     $me->{params}->{matrix} = PDL->zeroes($me->{idim},$me->{odim});
     my $tmp; # work around perl -d "feature"
     ($tmp = $me->{params}->{matrix}->diagonal(0,1)) .= 1;
-
   }
 
   ### Handle rotation option
-  my $rot = $me->{params}->{rot};
+  my $rot = $me->{params}{rot};
   if(defined($rot)) {
     # Subrotation closure -- rotates from axis $d->(0) --> $d->(1).
     my $subrot = sub {
@@ -2742,7 +2737,7 @@ sub PDL::Transform::Linear::new {
 
     if(UNIVERSAL::isa($rot,'PDL') && $rot->nelem > 1) {
       if($rot->ndims == 2) {
-        $me->{params}->{matrix} x= $rot;
+        $me->{params}{matrix} x= $rot;
       } elsif($rot->nelem == 3) {
         my $rm = identity(3);
 
@@ -2752,33 +2747,33 @@ sub PDL::Transform::Linear::new {
         &$subrot(pdl(2,0),$rot->at(1),$rm);
         &$subrot(pdl(1,2),$rot->at(0),$rm);
 
-        $me->{params}->{matrix} .= $me->{params}->{matrix} x $rm;
+        $me->{params}{matrix} .= $me->{params}{matrix} x $rm;
       } else {
         barf("PDL::Transform::Linear: Got a strange rot option -- giving up.\n");
       }
     } else {
-        if($rot != 0  and  $me->{params}->{matrix}->dim(0)>1) {
-          &$subrot(pdl(0,1),$rot,$me->{params}->{matrix});
+        if($rot != 0  and  $me->{params}{matrix}->dim(0)>1) {
+          &$subrot(pdl(0,1),$rot,$me->{params}{matrix});
         }
     }
   }
 
   # Apply scaling
-  $me->{params}->{matrix} = $me->{params}->{matrix}->slice(":,:");
+  $me->{params}{matrix} = $me->{params}{matrix}->slice(":,:");
   my $tmp; # work around perl -d "feature"
-  ($tmp = $me->{params}->{matrix}->diagonal(0,1)) *= $scale
+  ($tmp = $me->{params}{matrix}->diagonal(0,1)) *= $scale
     if defined($scale);
 
   # Check for an inverse and apply it if possible
   my($o2);
-  if($me->{params}->{matrix}->det($o2 = {lu=>undef})) {
-    $me->{params}->{inverse} = $me->{params}->{matrix}->inv($o2);
+  if($me->{params}{matrix}->det($o2 = {lu=>undef})) {
+    $me->{params}{inverse} = $me->{params}{matrix}->inv($o2);
   } else {
-    delete $me->{params}->{inverse};
+    delete $me->{params}{inverse};
   }
 
-  $me->{params}->{idim} = $me->{idim};
-  $me->{params}->{odim} = $me->{odim};
+  $me->{params}{idim} = $me->{idim};
+  $me->{params}{odim} = $me->{odim};
 
   ##############################
   # The meat -- just shift, matrix-multiply, and shift again.
@@ -2787,10 +2782,9 @@ sub PDL::Transform::Linear::new {
     my($d) = $opt->{matrix}->dim(0)-1;
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
         if($in->dim(0) < $d);
-    my($x) = $in->slice("0:$d")->copy + $opt->{pre};
-    my($out) = $in->is_inplace ? $in : $in->copy;
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $out->slice("0:$d")) .= $x x $opt->{matrix} + $opt->{post};
+    my $x = $in->slice("0:$d")->copy + $opt->{pre};
+    my $out = $in->is_inplace ? $in : $in->copy;
+    $out->slice("0:$d") .= $x x $opt->{matrix} + $opt->{post};
     return $out;
   };
 
@@ -2974,7 +2968,6 @@ transformation.  That turns out to be handy for handling rgb images.
 =cut
 
 sub t_fits {
-  my($class) = 'PDL::Transform::Linear';
   my($hdr) = shift;
   my($opt) = shift;
 
@@ -2993,7 +2986,7 @@ sub t_fits {
   $n = 2
     if($opt->{ignore_rgb} && $n==3 && $hdr->{NAXIS3} == 3);
 
-  my($matrix) = PDL->zeroes($hdr->{NAXIS},$hdr->{NAXIS});
+  my($matrix) = PDL->zeroes($n,$n);
   my($pre) = PDL->zeroes($n);
   my($post) = PDL->zeroes($n);
 
@@ -3077,23 +3070,19 @@ sub t_fits {
     $i1++;
   }
 
-  my($me) = PDL::Transform::Linear::new($class,
-                                        {'pre'=>$pre,
-                                         'post'=>$post,
-                                         'matrix'=>$matrix
-                                         });
+  my $me = PDL::Transform::Linear->new({
+    pre=>$pre, post=>$post, matrix=>$matrix
+  });
   $me->{name} = 'FITS';
 
   my (@otype,@ounit,@itype,@iunit);
-  our (@names) = ('X','Y','Z') unless @names;
-
+  my @names = qw(X Y Z);
   for my $i(1..$hdr->{NAXIS}) {
     push(@otype,$hdr->{"CTYPE$i"});
     push(@ounit,$hdr->{"CUNIT$i"});
     push(@itype,"Image ". ( ($i-1<=$#names) ? $names[$i-1] : "${i}th dim" ));
     push(@iunit,"Pixels");
   }
-
   $me->{otype} = \@otype;
   $me->{itype} = \@itype;
   $me->{ounit} = \@ounit;
@@ -3315,26 +3304,26 @@ sub t_radial {
 
   my($me) = PDL::Transform::new($class);
 
-  $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
-  $me->{params}->{origin} = pdl(0,0)
-    unless defined($me->{params}->{origin});
-  $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
+  $me->{params}{origin} = _opt($o,['o','origin','Origin']);
+  $me->{params}{origin} = pdl(0,0)
+    unless defined($me->{params}{origin});
+  $me->{params}{origin} = PDL->pdl($me->{params}{origin});
 
 
-  $me->{params}->{r0} = _opt($o,['r0','R0','c','conformal','Conformal']);
-  $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
+  $me->{params}{r0} = _opt($o,['r0','R0','c','conformal','Conformal']);
+  $me->{params}{origin} = PDL->pdl($me->{params}{origin});
 
-  $me->{params}->{u} = _opt($o,['u','unit','Unit'],'radians');
+  $me->{params}{u} = _opt($o,['u','unit','Unit'],'radians');
   ### Replace this kludge with a units call
-  $me->{params}->{angunit} = ($me->{params}->{u} =~ m/^d/i) ? $PDL::Transform::RAD2DEG : 1.0;
-  print "radial: conversion is $me->{params}->{angunit}\n" if($PDL::Transform::debug);
+  $me->{params}{angunit} = ($me->{params}{u} =~ m/^d/i) ? $PDL::Transform::RAD2DEG : 1.0;
+  print "radial: conversion is $me->{params}{angunit}\n" if($PDL::Transform::debug);
 
   $me->{name} = "radial (direct)";
 
   $me->{idim} = 2;
   $me->{odim} = 2;
 
-  if($me->{params}->{r0}) {
+  if($me->{params}{r0}) {
     $me->{otype} = ["Azimuth", "Ln radius" . ($me->{params}->{r0} != 1.0 ? "/$me->{params}->{r0}" : "")];
     $me->{ounit} = [$me->{params}->{u},'']; # true-but-null prevents copying
   } else {

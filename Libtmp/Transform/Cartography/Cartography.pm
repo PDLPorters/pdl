@@ -454,7 +454,7 @@ sub earth_image {
   my $f;
   require PDL::IO::Pic;
   my $dir = "PDL/Transform/Cartography/earth_";
-  $f = ($nd =~ m/^n/i) ? "${dir}night.jpg" : "${dir}day.jpg";
+  $f = (($nd//'') =~ m/^n/i) ? "${dir}night.jpg" : "${dir}day.jpg";
   local $_;
   my $im;
   my $found = 0;

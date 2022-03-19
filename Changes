@@ -2,6 +2,7 @@
 - fix Transform::Cartography::t_carree spelling (compat alias created)
 - add Transform::Cartography::t_raster2fits
 - Transform::inverse on transform without an inverse now fatal error
+- fix Transform::t_fits bug which ignored ignore_rgb for making inverse
 
 2.077 2022-03-16
 - Ufunc::{min,max}over{,_ind} behaviour for NaNs fixed to match docs
