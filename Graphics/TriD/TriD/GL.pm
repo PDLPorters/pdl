@@ -313,6 +313,8 @@ sub _lattice_slice {
 
 sub PDL::Graphics::TriD::SLattice::gdraw {
 	my($this,$points) = @_;
+	barf "Need 3D points"
+	  if grep $_->ndims < 3, $points;
 	$this->glOptions();
 	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
 	glDisable(GL_LIGHTING);
@@ -332,6 +334,8 @@ sub PDL::Graphics::TriD::SLattice::gdraw {
 
 sub PDL::Graphics::TriD::SCLattice::gdraw {
 	my($this,$points) = @_;
+	barf "Need 3D points"
+	  if grep $_->ndims < 3, $points;
 	$this->glOptions();
 	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
 	glDisable(GL_LIGHTING);
