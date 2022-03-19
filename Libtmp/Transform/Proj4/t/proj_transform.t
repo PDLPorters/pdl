@@ -55,6 +55,25 @@ SKIP: {
 ]
 EOF
 
+   my $shape = earth_shape();
+   $got = t_raster2float()->apply($shape->mv(2,0));
+   my $lonlatradius = $got->slice('0:2'); # r g b all same
+   $lonlatradius->slice('(2)') *= float((6377.09863 - 6370.69873) / 6371);
+   $lonlatradius->slice('(2)') += float(6370.69873 / 6371);
+   $got = $lonlatradius->slice(':,500:501,200:201');
+   ok all(approx $got, pdl(float, <<'EOF'), 1e-5), 'earth_shape' or diag 'got: ', $got;
+[
+ [
+  [ -1.60686 -0.956604  0.999953]
+  [ -1.60379 -0.956604  0.999953]
+ ]
+ [
+  [ -1.60686 -0.953533  0.999953]
+  [ -1.60379 -0.953533  0.999953]
+ ]
+]
+EOF
+
    my $map_size = [500,500];
 
    my @slices = (

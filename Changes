@@ -4,6 +4,7 @@
 - Transform::inverse on transform without an inverse now fatal error
 - fix Transform::t_fits bug which ignored ignore_rgb for making inverse
 - TriD::GL now more resilient and exceptions don't leave GL broken
+- add Transform::Cartography::earth_shape
 
 2.077 2022-03-16
 - Ufunc::{min,max}over{,_ind} behaviour for NaNs fixed to match docs

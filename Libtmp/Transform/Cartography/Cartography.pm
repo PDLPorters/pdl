@@ -256,7 +256,7 @@ our @ISA = ( 'Exporter','PDL::Transform' );
 our $VERSION = "0.6";
 $VERSION = eval $VERSION;
 our @EXPORT_OK = qw(
-  graticule earth_image earth_coast clean_lines t_unit_sphere
+  graticule earth_image earth_coast earth_shape clean_lines t_unit_sphere
   t_orthographic t_rot_sphere t_caree t_carree t_mercator t_utm t_sin_lat
   t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic
   t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff
@@ -470,6 +470,70 @@ sub earth_image {
     unless defined($found);
   barf("earth_image: couldn't load $f; you may need to install netpbm.\n")
     unless defined($im);
+  t_raster2fits()->apply($im);
+}
+
+=head2 earth_shape
+
+=for usage
+
+ $fits_shape = earth_shape()
+
+=for ref
+
+(Cartography) PDL constructor - height map of Earth
+
+Returns a height map of Earth based on data from the General
+Bathymetric Chart of the Oceans (GEBCO) produced by the British
+Oceanographic Data Centre. (You can get a full-resolution image from
+L<http://visibleearth.nasa.gov/view.php?id=73934>).  The image is a
+plate carree map, so you can convert it to other projections via the
+L<map|PDL::Transform/map> method and cartographic transforms.
+The data is from 8-bit grayscale (so only 256 levels), but is returned
+in a similar format to L</earth_image>. The range represents a span of
+6400m, so Everest and the Marianas Trench are not accurately represented.
+
+To turn this into a C<float>, (C<lonlatradius,x,y>) with C<x>
+and C<y> in radians, and the radius as a C<float> as a proportion of the
+Earth's mean radius, use L</t_raster2float>.
+The Earth is treated here as a perfect sphere with sea
+level at radius 6,371km.
+
+  Value       Hex value   Float    From centre in km   Float as radius
+  Base        00          0.0      6370.69873km        0.99995
+  Sea level   0C          0.04705  6371km              1.0
+  Highest     FF          1.0      6377.09863km        1.00096
+
+Code:
+
+  $shape = earth_shape();
+  $floats = t_raster2float()->apply($shape->mv(2,0));
+  $lonlatradius = $floats->slice('0:2'); # r g b all same
+  $lonlatradius->slice('(2)') *= float((6377.09863 - 6370.69873) / 6371);
+  $lonlatradius->slice('(2)') += float(6370.69873 / 6371);
+
+=cut
+
+sub earth_shape {
+  my($nd) = shift;
+  require PDL::IO::Pic;
+  my $f = "PDL/Transform/Cartography/earth_height-2048x1024.jpg";
+  local $_;
+  my $im;
+  my $found = 0;
+  foreach (@INC) {
+    my $file = "$_/$f";
+    if(-e $file) {
+      $found = 1;
+      $im = PDL::IO::Pic::rpic($file);
+    }
+    last if defined($im);
+  }
+  barf("earth_shape: $f not found in \@INC\n")
+    unless defined($found);
+  barf("earth_shape: couldn't load $f; you may need to install netpbm.\n")
+    unless defined($im);
+  $im = $im->dummy(0,3); # fake RGB
   t_raster2fits()->apply($im);
 }
 

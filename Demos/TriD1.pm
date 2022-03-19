@@ -156,15 +156,31 @@ my @demo = (
 [actnw => q|
 	# Show the world!
 	use PDL::Transform::Cartography;
+	$shape = earth_shape();
+	$floats = t_raster2float()->apply($shape->mv(2,0));
+	$radius = $floats->slice('(2)'); # r g b all same
+	$radius *= float((6377.09863 - 6370.69873) / 6371);
+	$radius += float(6370.69873 / 6371);
 	$e_i = earth_image('day');
+	$earth = t_raster2float()->apply($e_i->mv(2,0));
+	$earth = $earth->append($radius->dummy(0));
 	$shrink = 2.5; # how much to shrink by
 	$new_x = int($e_i->dim(0) / $shrink);
-	$e_i2 = $e_i->match([$new_x,int($new_x/2),3]); # shrink
-	$e_i2->badflag(0); # else colours get artifacts
-	$earth = t_raster2float()->apply($e_i2->mv(2,0));
-	($lonlat, $rgb) = map $earth->slice($_), '0:1', '2:4';
-	$thphr = $lonlat->append(1);
-	$sph = t_spherical()->inverse()->apply($thphr);
+	$earth2 = $earth->mv(0,2)->match([$new_x,int($new_x/2),6])->mv(2,0); # shrink
+	($lonlatrad, $rgb) = map $earth2->slice($_), pdl(0,1,5), '2:4';
+	$sph = t_spherical()->inverse()->apply($lonlatrad);
+	imag3d_ns($sph, $rgb, {Lines=>0});
+	# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
+	# Show off the world!
+	# The Earth's radius doesn't proportionally vary much,
+	# but let's exaggerate it to prove we have height information!
+	$lonlatrad->slice('2') -= 1;
+	$lonlatrad->slice('2') *= 100;
+	$lonlatrad->slice('2') += 1;
+	$sph = t_spherical()->inverse()->apply($lonlatrad);
 	imag3d_ns($sph, $rgb, {Lines=>0});
 	# [press 'q' in the graphics window when done]
 |],
