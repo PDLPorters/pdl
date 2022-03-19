@@ -194,19 +194,12 @@ multiple bats, in which case C<$x>, C<$y>, and C<$z> would have
 multiple columns, but in general you wouldn't expect them to be
 coordinated.
 
-Finally, imagine that you have an air squadron flying in
-formation.  Your (x, y, z) data is not regularly gridded, but
-the (x, y, z) data for each plane should be coordinated and
-we can imagine that their flight path sweep out a surface.
-We could draw this data using C<line3d([$x, $y, $z])>, where
-each column in the variables corresponds to a different plane,
-but it would also make sense to draw this data using
-C<mesh3d([$x, $y, $z])>, since the planes' proximity to each
-other should be fairly consistent.  In other words, it makes
-sense to think of the planes as sweeping out a coordinated
-surface, which C<mesh3d> would draw for you, whereas you would
-not expect the trajectories of the various bats to describe a
-meaningful surface (unless you're into fractals, perhaps).
+More generally, each coordinate is expected to be arranged in a 3D
+fashion, similar to C<3,x,y>. The "3" is the actual 3D coordinates of
+each point. The "x,y" help with gridding, because each point at C<x,y>
+is expected to have as geographical neighbours C<x+1,y>, C<x-1,y>,
+C<x,y+1>, C<x,y-1>, and the grid polygon-building relies on that.
+This is how, and why, the 3D earth in C<demo 3d> arranges its data.
 
  #!/usr/bin/perl
 

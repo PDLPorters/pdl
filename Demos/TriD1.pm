@@ -154,8 +154,18 @@ my @demo = (
 |],
 
 [actnw => q|
-	# One last thing: you can plot a color image like this
-	imagrgb([$r,$g,$b]);
+	# Show the world!
+	use PDL::Transform::Cartography;
+	$e_i = earth_image('day');
+	$shrink = 2.5; # how much to shrink by
+	$new_x = int($e_i->dim(0) / $shrink);
+	$e_i2 = $e_i->match([$new_x,int($new_x/2),3]); # shrink
+	$e_i2->badflag(0); # else colours get artifacts
+	$earth = t_raster2float()->apply($e_i2->mv(2,0));
+	($lonlat, $rgb) = map $earth->slice($_), '0:1', '2:4';
+	$thphr = $lonlat->append(1);
+	$sph = t_spherical()->inverse()->apply($thphr);
+	imag3d_ns($sph, $rgb, {Lines=>0});
 	# [press 'q' in the graphics window when done]
 |],
 

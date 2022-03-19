@@ -709,7 +709,7 @@ sub PDL::Transform::Cartography::_finish {
 
 =for ref
 
-(Cartography) Convert a raster (3,x,y) to C<float> (lonlatrgb,x*y)
+(Cartography) Convert a raster (3,x,y) to C<float> (lonlatrgb,x,y)
 
 Assumes C<bytes> input, and radians and C<float> output, with the first
 2 coordinates suitable for use as plate carree.
@@ -722,30 +722,26 @@ sub t_raster2float {
   $me->{params}->{itype} = ['RGB','X','Y'];
   $me->{params}->{iunit} = ['index','pixels','pixels'];
   $me->{odim} = 2;
-  $me->{params}->{otype} = ['LonLatRGB','X*Y'];
-  $me->{params}->{ounit} = ['Float','index'];
+  $me->{params}->{otype} = ['LonLatRGB','X','Y'];
+  $me->{params}->{ounit} = ['Float','index','index'];
   $me->{func} = sub {
     my($d,$o) = @_;
     my (undef, $x, $y, @otherdims) = $d->dims;
     my $type = float;
     my $out_xy = zeroes(byte, $x, $y, @otherdims);
-    my $out = zeroes($type, 5, $x * $y, @otherdims);
-    $out->slice($_->[0])->flat .= $_->[1]
-      for [0, $out_xy->xlinvals(-$PI, $PI)->flat],
-        [1, $out_xy->ylinvals(-$PI/2, $PI/2)->flat],
-        ['2:4', $d->flat->convert($type) / 255];
+    my $out = zeroes($type, 5, $x, $y, @otherdims);
+    $out->slice($_->[0]) .= $_->[1]
+      for ['(0)', $out_xy->xlinvals(-$PI, $PI)],
+        ['(1)', $out_xy->ylinvals(-$PI/2, $PI/2)],
+        ['2:4', $d->convert($type) / 255];
     $out;
   };
   $me->{inv} = sub {
     my($d,$o) = @_;
     my $type = byte;
-    my $x_times_y = $d->dim(1);
-    my $y = $d->which(
-      $d->slice(join ',', '(0),:', ('(0)')x($d->ndims - 2)) == $PI
-    )->dim(0);
-    my $x = int(($x_times_y / $y) + 0.5);
-    my $out = zeroes($type, $x, $y);
-    $out->flat .= $d->slice('(1)')->flat * 255;
+    my (undef, $x, $y, @otherdims) = $d->dims;
+    my $out = zeroes($type, 3, $x, $y, @otherdims);
+    $out .= $d->slice('2:4') * 255;
     $out;
   };
   $me;
