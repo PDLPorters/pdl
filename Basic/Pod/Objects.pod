@@ -108,7 +108,8 @@ function's code.
 
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au), Tuomas J. Lukka,
 (lukka@husc.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz) 2000.
-Commercial reproduction of this documentation in a different format is forbidden.
+All rights reserved. There is no warranty. You are allowed to copy this
+on the same terms as Perl itself.
 
 =cut
 

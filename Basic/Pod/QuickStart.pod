@@ -48,7 +48,7 @@ For further information try either of:
  pdl> help help
  $ pdldoc
 
-HTML copies of the documentation should also be available. 
+HTML copies of the documentation should also be available.
 To find their location, try the following:
 
  pdl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
@@ -610,6 +610,7 @@ which do not care about internals.
 
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au), Tuomas J. Lukka,
 (lukka@husc.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz) 1997.
-Commercial reproduction of this documentation in a different format is forbidden.
+All rights reserved. There is no warranty. You are allowed to copy this
+on the same terms as Perl itself.
 
 =cut
