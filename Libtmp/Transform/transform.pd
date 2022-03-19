@@ -1569,13 +1569,11 @@ pixel gets marked bad.
 =cut
 
 +==EOD_map_doc==
-        PMCode => <<'+==EOD_map_perlcode=='
+        PMCode => pp_line_numbers(__LINE__, <<'+==EOD_map_perlcode=='),
 
 sub PDL::match {
   # Set default for rectification to 0 for simple matching...
-  if( ref($_[$#_]) ne 'HASH' ) {
-      push(@_,{})
-  }
+  push @_, {} if ref($_[-1]) ne 'HASH';
   my @k = grep(m/^r(e(c(t)?)?)?/,sort keys %{$_[-1]});
   unless(@k) {
       $_[-1]->{rectify} = 0;
@@ -1586,43 +1584,24 @@ sub PDL::match {
 
 *PDL::map = \&map;
 sub map {
-  my($me) = shift;
-  my($in) = shift;
-
-  if(UNIVERSAL::isa($me,'PDL') && UNIVERSAL::isa($in,'PDL::Transform')) {
-      my($x) = $in;
-      $in = $me;
-      $me = $x;
-  }
-
+  my ($me, $in, $tmp, $opt) = @_;
+  ($in, $me) = ($me, $in)
+    if UNIVERSAL::isa($me,'PDL') && UNIVERSAL::isa($in,'PDL::Transform');
   barf ("PDL::Transform::map: source is not defined or is not a PDL\n")
     unless(defined $in and  UNIVERSAL::isa($in,'PDL'));
-
   barf ("PDL::Transform::map: source is empty\n")
     unless($in->nelem);
-
-  my($tmp) = shift;
-  my($opt) = shift;
-
   # Check for options-but-no-template case
-  if(ref $tmp eq 'HASH' && !(defined $opt)) {
-    if(!defined($tmp->{NAXIS})) {  # FITS headers all have NAXIS.
-      $opt = $tmp;
-      $tmp = undef;
-    }
-  }
-
+  ($opt, $tmp) = ($tmp, undef)
+    if ref $tmp eq 'HASH' && !defined($opt)
+    && !defined($tmp->{NAXIS}); # FITS headers all have NAXIS.
   croak("PDL::Transform::map: Option 'p' was ambiguous and has been removed. You probably want 'pix' or 'phot'.") if exists($opt->{'p'});
-
-  $tmp = [$in->dims]  unless(defined($tmp));
+  $tmp = [$in->dims] unless defined $tmp; # no //= because of Devel::Cover bug
 
   # Generate an appropriate output ndarray for values to go in
-  my($out);
-  my(@odims);
-  my($ohdr);
+  my ($out, @odims, $ohdr);
   if(UNIVERSAL::isa($tmp,'PDL')) {
     @odims = $tmp->dims;
-
     my($x);
     if(defined ($x = $tmp->gethdr)) {
       my(%b) = %{$x};
@@ -1885,7 +1864,7 @@ sub map {
   ##############################
   # Sandwich the transform between the input and output plane FITS headers.
   unless($nofits) {
-      $me = !(t_fits($out,{ignore_rgb=>1})) x $me x $f_in;
+      $me = !t_fits($out,{ignore_rgb=>1}) x $me x $f_in;
   }
 
   ##############################
@@ -2069,33 +2048,16 @@ useful.
 
 sub inverse {
   my($me) = shift;
-
-  unless(defined($me->{inv})) {
-    Carp::cluck("PDL::Transform::inverse:  got a transform with no inverse.\n");
-    return undef;
-  }
-
-  my(%out) = %$me; # force explicit copy of top-level
-  my($out) = \%out;
-
-  $out->{inv}  = $me->{func};
-  $out->{func} = $me->{inv};
-
-  $out->{idim} = $me->{odim};
-  $out->{odim} = $me->{idim};
-
-  $out->{otype} = $me->{itype};
-  $out->{itype} = $me->{otype};
-
-  $out->{ounit} = $me->{iunit};
-  $out->{iunit} = $me->{ounit};
-
-  $out->{name} = "(inverse ".$me->{name}.")";
-
-  $out->{is_inverse} = !($out->{is_inverse});
-
-  bless $out,(ref $me);
-  return $out;
+  barf("PDL::Transform::inverse: got a transform with no inverse")
+    unless defined $me->{inv};
+  bless {
+    %$me, # force explicit copy of top-level
+    inv => $me->{func},
+    func => $me->{inv},
+    (map +("o$_"=>$me->{"i$_"}, "i$_"=>$me->{"o$_"}), qw(dim type unit)),
+    name => "(inverse ".$me->{name}.")",
+    is_inverse => !($me->{is_inverse}),
+  }, ref $me;
 }
 
 +======EOD_t_inverse======
@@ -2135,31 +2097,21 @@ if you like.
 @PDL::Transform::Composition::ISA = ('PDL::Transform');
 sub PDL::Transform::Composition::stringify {
   package PDL::Transform::Composition;
-  my($me) = shift;
-  my($out) = SUPER::stringify $me;
-  $out;
+  shift->SUPER::stringify;
 }
 
 *t_compose = \&compose;
-
 sub compose {
   local($_);
   my(@funcs) = @_;
   my($me) = PDL::Transform->new;
-
   # No inputs case: return the identity function
-  return $me
-    if(!@funcs);
-
+  return $me if !@funcs;
   $me->{name} = "";
-  my($f);
-  my(@clist);
-
-  for $f(@funcs) {
-
+  my @clist;
+  for my $f (@funcs) {
     $me->{idim} = $f->{idim} if($f->{idim} > $me->{idim});
     $me->{odim} = $f->{odim} if($f->{odim} > $me->{odim});
-
     if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
       if($f->{is_inverse}) {
         for(reverse(@{$f->{params}->{clist}})) {
@@ -2177,17 +2129,12 @@ sub compose {
       $me->{name} .= " o ".$f->{name};
     }
   }
-
   $me->{name}=~ s/^ o //; # Get rid of leading composition mark
-
   $me->{otype} = $funcs[0]->{otype};
   $me->{ounit} = $funcs[0]->{ounit};
-
   $me->{itype} = $funcs[-1]->{itype};
   $me->{iunit} = $funcs[-1]->{iunit};
-
   $me->{params}->{clist} = \@clist;
-
   $me->{func} = sub {
     my ($data,$p) = @_;
     my ($ip) = $data->is_inplace;
@@ -2199,7 +2146,6 @@ sub compose {
     $data->is_inplace(0); # clear inplace flag (avoid core bug with inplace)
     $data;
   };
-
   $me->{inv} = sub {
     my($data,$p) = @_;
     my($ip) = $data->is_inplace;
@@ -2210,10 +2156,8 @@ sub compose {
     }
     $data;
   };
-
   return bless($me,'PDL::Transform::Composition');
 }
-
 +======EOD_t_compose======
 
 
@@ -2819,18 +2763,13 @@ sub PDL::Transform::Linear::new {
     }
   }
 
-
-  #
   # Apply scaling
-  #
   $me->{params}->{matrix} = $me->{params}->{matrix}->slice(":,:");
   my $tmp; # work around perl -d "feature"
   ($tmp = $me->{params}->{matrix}->diagonal(0,1)) *= $scale
     if defined($scale);
 
-  #
   # Check for an inverse and apply it if possible
-  #
   my($o2);
   if($me->{params}->{matrix}->det($o2 = {lu=>undef})) {
     $me->{params}->{inverse} = $me->{params}->{matrix}->inv($o2);
@@ -2841,40 +2780,29 @@ sub PDL::Transform::Linear::new {
   $me->{params}->{idim} = $me->{idim};
   $me->{params}->{odim} = $me->{odim};
 
-
   ##############################
   # The meat -- just shift, matrix-multiply, and shift again.
   $me->{func} = sub {
     my($in,$opt) = @_;
-
     my($d) = $opt->{matrix}->dim(0)-1;
-
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
         if($in->dim(0) < $d);
-
     my($x) = $in->slice("0:$d")->copy + $opt->{pre};
     my($out) = $in->is_inplace ? $in : $in->copy;
-
     my $tmp; # work around perl -d "feature"
     ($tmp = $out->slice("0:$d")) .= $x x $opt->{matrix} + $opt->{post};
-
     return $out;
   };
 
-
-  $me->{inv} = (defined $me->{params}->{inverse}) ? sub {
+  $me->{inv} = (defined $me->{params}{inverse}) ? sub {
     my($in,$opt) = @_;
-
     my($d) = $opt->{inverse}->dim(0)-1;
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
         if($in->dim(0) < $d);
-
     my($x) = $in->slice("0:$d")->copy - $opt->{post};
     my($out) = $in->is_inplace ? $in : $in->copy;
-
     my $tmp; # work around perl -d "feature"
     ($tmp = $out->slice("0:$d")) .= $x x $opt->{inverse} - $opt->{pre};
-
     $out;
   } : undef;
 
@@ -3154,7 +3082,6 @@ sub t_fits {
                                          'post'=>$post,
                                          'matrix'=>$matrix
                                          });
-
   $me->{name} = 'FITS';
 
   my (@otype,@ounit,@itype,@iunit);
@@ -3178,8 +3105,6 @@ sub t_fits {
 #  }
 
   return $me;
-
-
 }
 
 +======EOD_t_fits======
@@ -3931,8 +3856,8 @@ sub t_spherical {
 
     $me->{params}->{deg} = _opt($o,['d','degrees','Degrees']);
 
-    my $unit = _opt($o,['u','unit','Unit']) || 'd';
-    $me->{params}->{angunit} = ($unit =~ m/^d/i) ?
+    my $unit = _opt($o,['u','unit','Unit']);
+    $me->{params}{angunit} = ($unit && $unit =~ m/^d/i) ?
         $PDL::Transform::DEG2RAD : undef;
 
     $me->{name} = "spherical";
