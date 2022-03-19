@@ -10,6 +10,7 @@ no warnings 'redefine';
 use OpenGL qw/ :glfunctions :glconstants gluPerspective gluOrtho2D /;
 use OpenGL::GLUT qw( :all );
 use PDL::Graphics::OpenGL::Perl::OpenGL;
+use PDL::Core qw(barf);
 
 $PDL::Graphics::TriD::create_window_sub = # warnings
 $PDL::Graphics::TriD::create_window_sub = sub {
@@ -44,20 +45,15 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
   $this->{List} = $lno;
   print "GENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
   glNewList($lno,GL_COMPILE);
-  if ($PDL::Graphics::TriD::any_cannots) {
-	 for(@{$this->{Objects}}) {
-		if(!$_->cannot_mklist()) {
-		  $_->togl();
-		}
-	 }
-  } else { 
-	 for (@{$this->{Objects}}) {
-		$_->togl()
-	 } 
-  }
-  print "EGENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
-  #	pdltotrianglemesh($pdl, 0, 1, 0, ($pdl->{Dims}[1]-1)*$mult);
+  eval {
+    my @objs = @{$this->{Objects}};
+    @objs = grep !$_->cannot_mklist(), @objs if $PDL::Graphics::TriD::any_cannots;
+    $_->togl() for @objs;
+    print "EGENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
+    #	pdltotrianglemesh($pdl, 0, 1, 0, ($pdl->{Dims}[1]-1)*$mult);
+  };
   glEndList();
+  die if $@;
   print "VALID1 $this\n" if($PDL::Graphics::TriD::verbose);
   $this->{ValidList} = 1;
 }
@@ -242,6 +238,8 @@ sub PDL::Graphics::TriD::Spheres::gdraw {
 
 sub PDL::Graphics::TriD::Lattice::gdraw {
 	my($this,$points) = @_;
+	barf "Need 3D points AND colours"
+	  if grep $_->ndims < 3, $points, $this->{Colors};
 	$this->glOptions();
 	glDisable(GL_LIGHTING);
 	PDL::gl_line_strip_col($points,$this->{Colors});
