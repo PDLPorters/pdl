@@ -1,6 +1,6 @@
 - Ops::atan2 etc have default swap param
 - fix Transform::Cartography::t_carree spelling (compat alias created)
-- add Transform::Cartography::t_raster2fits
+- add Transform::Cartography::t_raster2{fits,float}
 - Transform::inverse on transform without an inverse now fatal error
 - fix Transform::t_fits bug which ignored ignore_rgb for making inverse
 - TriD::GL now more resilient and exceptions don't leave GL broken

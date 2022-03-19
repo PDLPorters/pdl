@@ -40,6 +40,18 @@ SKIP: {
    skip "earth_image() map has bad checksum: $checksum (expected $goodcheck)", 22
      if $checksum != $goodcheck;
 
+   my $got = t_raster2float()->apply($map->mv(2,0));
+   $got = $got->slice(':,500000:500004');
+   ok all(approx $got, pdl(float, <<'EOF'), 1e-5), 't_raster2float' or diag 'got: ', $got;
+[
+ [ -2.25759 -0.821482 0.0196078 0.027451 0.25098]
+ [ -2.25452 -0.821482 0.0196078 0.027451 0.25098]
+ [ -2.25145 -0.821482 0.0196078 0.027451 0.25098]
+ [ -2.24838 -0.821482 0.0196078 0.027451 0.25098]
+ [ -2.24531 -0.821482 0.0196078 0.027451 0.25098]
+]
+EOF
+
    my $map_size = [500,500];
 
    my @slices = (

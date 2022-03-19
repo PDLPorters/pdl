@@ -260,7 +260,7 @@ our @EXPORT_OK = qw(
   t_orthographic t_rot_sphere t_caree t_carree t_mercator t_utm t_sin_lat
   t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic
   t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff
-  t_raster2fits
+  t_raster2fits t_raster2float
 );
 our @EXPORT = @EXPORT_OK;
 our %EXPORT_TAGS = (Func=>\@EXPORT_OK);
@@ -699,6 +699,56 @@ sub PDL::Transform::Cartography::_finish {
       return $out;
     } 
   return $me;
+}
+
+=head2 t_raster2float
+
+=for usage
+
+  $t = t_raster2float();
+
+=for ref
+
+(Cartography) Convert a raster (3,x,y) to C<float> (lonlatrgb,x*y)
+
+Assumes C<bytes> input, and radians and C<float> output, with the first
+2 coordinates suitable for use as plate carree.
+
+=cut
+
+sub t_raster2float {
+  my ($me) = _new(@_, 'Raster FITS plate carree to OpenGL-ready float conversion');
+  $me->{odim} = 3;
+  $me->{params}->{itype} = ['RGB','X','Y'];
+  $me->{params}->{iunit} = ['index','pixels','pixels'];
+  $me->{odim} = 2;
+  $me->{params}->{otype} = ['LonLatRGB','X*Y'];
+  $me->{params}->{ounit} = ['Float','index'];
+  $me->{func} = sub {
+    my($d,$o) = @_;
+    my (undef, $x, $y, @otherdims) = $d->dims;
+    my $type = float;
+    my $out_xy = zeroes(byte, $x, $y, @otherdims);
+    my $out = zeroes($type, 5, $x * $y, @otherdims);
+    $out->slice($_->[0])->flat .= $_->[1]
+      for [0, $out_xy->xlinvals(-$PI, $PI)->flat],
+        [1, $out_xy->ylinvals(-$PI/2, $PI/2)->flat],
+        ['2:4', $d->flat->convert($type) / 255];
+    $out;
+  };
+  $me->{inv} = sub {
+    my($d,$o) = @_;
+    my $type = byte;
+    my $x_times_y = $d->dim(1);
+    my $y = $d->which(
+      $d->slice(join ',', '(0),:', ('(0)')x($d->ndims - 2)) == $PI
+    )->dim(0);
+    my $x = int(($x_times_y / $y) + 0.5);
+    my $out = zeroes($type, $x, $y);
+    $out->flat .= $d->slice('(1)')->flat * 255;
+    $out;
+  };
+  $me;
 }
 
 =head2 t_raster2fits
