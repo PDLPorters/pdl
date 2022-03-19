@@ -238,8 +238,8 @@ meaningful surface (unless you're into fractals, perhaps).
 
  # Draw a mobius strip:
  $two_pi = 8 * atan2(1,1);
- $t = sequence(50) / 50 * $two_pi;
- # We want two paths:
+ $t = sequence(51) / 50 * $two_pi;
+ # We want three paths:
  $mobius1_x = cos($t) + 0.5 * sin($t/2);
  $mobius2_x = cos($t);
  $mobius3_x = cos($t) - 0.5 * sin($t/2);
@@ -264,7 +264,6 @@ meaningful surface (unless you're into fractals, perhaps).
  mesh3d $mobius_surface;
  print "The same mobius strip using imag3d\n";
  imag3d $mobius_surface, {Lines => 0};
-
 
 =head1 SIMPLE ROUTINES
 
@@ -506,11 +505,12 @@ user explicitly presses 'q'.
  imag3d(..);
  nokeeptwiddling3d();
  $o = imag3d($c);
- while(1) {
+ do {
  	$c .= nextfunc($c);
  	$o->data_changed();
- 	twiddle3d();		# animate one step, then return.
- }
+ } while(!twiddle3d()); # animate one step, then iterate
+ keeptwiddling3d();
+ twiddle3d(); # wait one last time
 
 =head2 twiddle3d
 
