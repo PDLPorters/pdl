@@ -596,7 +596,7 @@ your own risk.
 The syntax C<PDL::Graphics::TriD::Scale(x,y,z)> here means that you create
 an object like
 
-	$c = new PDL::Graphics::TriD::Scale($x,$y,$z);
+	$c = PDL::Graphics::TriD::Scale->new($x,$y,$z);
 
 =head2 PDL::Graphics::TriD::LineStrip
 
@@ -668,7 +668,6 @@ method.
 $PDL::Graphics::TriD::verbose //= 0;
 # $PDL::Graphics::TriD::keeptwiddling
 # $PDL::Graphics::TriD::hold_on
-# $PDL::Graphics::TriD::curgraph
 # $PDL::Graphics::TriD::create_window_sub
 # $PDL::Graphics::TriD::current_window
 # 
@@ -833,7 +832,7 @@ sub PDL::describe3d {
 	require PDL::Graphics::TriD::TextObjects;
 	my ($text) = @_;
 	my $win = PDL::Graphics::TriD::get_current_window();
-	my $imag = new PDL::Graphics::TriD::Description($text);
+	my $imag = PDL::Graphics::TriD::Description->new($text);
 	$win->add_object($imag);
 #	$win->twiddle();
 }
@@ -843,7 +842,7 @@ sub PDL::imagrgb {
 	require PDL::Graphics::TriD::Image;
 	my (@data) = @_; &checkargs;
 	my $win = PDL::Graphics::TriD::get_current_window();
-	my $imag = new PDL::Graphics::TriD::Image(@data);
+	my $imag = PDL::Graphics::TriD::Image->new(@data);
 	$win->clear_viewports();
 	$win->current_viewport()->add_object($imag);
 	$win->twiddle();
@@ -855,7 +854,7 @@ sub PDL::imagrgb {
 *line3d=*line3d=\&PDL::line3d;
 sub PDL::line3d { 
     &checkargs;
-    my $obj = new PDL::Graphics::TriD::LineStrip(@_);
+    my $obj = PDL::Graphics::TriD::LineStrip->new(@_);
     print "line3d: object is $obj\n" if($PDL::Graphics::TriD::verbose);
     graph_object($obj);
 }
@@ -864,35 +863,35 @@ sub PDL::line3d {
 sub PDL::contour3d { 
 #  &checkargs;
   require PDL::Graphics::TriD::Contours;
-  graph_object(new PDL::Graphics::TriD::Contours(@_));
+  graph_object(PDL::Graphics::TriD::Contours->new(@_));
 }
 
 # XXX Should enable different positioning...
 *imagrgb3d=*imagrgb3d=\&PDL::imagrgb3d;
 sub PDL::imagrgb3d { &checkargs;
 	require PDL::Graphics::TriD::Image;
-	graph_object(new PDL::Graphics::TriD::Image(@_));
+	graph_object(PDL::Graphics::TriD::Image->new(@_));
 }
 
 *imag3d_ns=*imag3d_ns=\&PDL::imag3d_ns;
 sub PDL::imag3d_ns {  &checkargs;
-	graph_object(new PDL::Graphics::TriD::SLattice(@_));
+	graph_object(PDL::Graphics::TriD::SLattice->new(@_));
 }
 
 *imag3d=*imag3d=\&PDL::imag3d;
 sub PDL::imag3d { &checkargs;
-	graph_object(new PDL::Graphics::TriD::SLattice_S(@_));
+	graph_object(PDL::Graphics::TriD::SLattice_S->new(@_));
 }
 
 ####################################################################
 ################ JNK 15mar11 added section start ###################
 *STrigrid_S_imag3d=*STrigrid_S_imag3d=\&PDL::STrigrid_S_imag3d;
 sub PDL::STrigrid_S_imag3d { &checkargs;
-  &graph_object(new PDL::Graphics::TriD::STrigrid_S(@_)); }
+  graph_object(PDL::Graphics::TriD::STrigrid_S->new(@_)); }
 
 *STrigrid_imag3d=*STrigrid_imag3d=\&PDL::STrigrid_imag3d;
 sub PDL::STrigrid_imag3d { &checkargs;
-  &graph_object(new PDL::Graphics::TriD::STrigrid(@_)); }
+  graph_object(PDL::Graphics::TriD::STrigrid->new(@_)); }
 ################ JNK 15mar11 added section finis ###################
 ####################################################################
 
@@ -900,17 +899,17 @@ sub PDL::STrigrid_imag3d { &checkargs;
 *lattice3d=*lattice3d=\&PDL::mesh3d;
 *PDL::lattice3d=*PDL::lattice3d=\&PDL::mesh3d;
 sub PDL::mesh3d { &checkargs;
-	&graph_object(new PDL::Graphics::TriD::Lattice(@_));
+	graph_object(PDL::Graphics::TriD::Lattice->new(@_));
 }
 
 *points3d=*points3d=\&PDL::points3d;
 sub PDL::points3d { &checkargs;
-	&graph_object(new PDL::Graphics::TriD::Points(@_));
+	graph_object(PDL::Graphics::TriD::Points->new(@_));
 }
 
 *spheres3d=*spheres3d=\&PDL::spheres3d;
 sub PDL::spheres3d { &checkargs;
-	&graph_object(new PDL::Graphics::TriD::Spheres(@_));
+	graph_object(PDL::Graphics::TriD::Spheres->new(@_));
 }
 
 *grabpic3d=*grabpic3d=\&PDL::grabpic3d;
@@ -933,17 +932,14 @@ sub PDL::release3d {$PDL::Graphics::TriD::hold_on = 0;}
 sub get_new_graph {
     print "get_new_graph: calling PDL::Graphics::TriD::get_current_window...\n" if($PDL::Graphics::TriD::verbose);
 	my $win = PDL::Graphics::TriD::get_current_window();
-
     print "get_new_graph: calling get_current_graph...\n" if($PDL::Graphics::TriD::verbose);
 	my $g = get_current_graph($win);
     print "get_new_graph: back get_current_graph returned $g...\n" if($PDL::Graphics::TriD::verbose);
-
 	if(!$PDL::Graphics::TriD::hold_on) {
 		$g->clear_data();
 		$win->clear_viewport();
 	}
 	$g->default_axes();
-
 	$win->add_object($g);
 	return $g;
 }
@@ -951,15 +947,13 @@ sub get_new_graph {
 sub get_current_graph {
    my $win = shift;
 	my $g = $win->current_viewport()->graph();
-
 	if(!defined $g) {
-		$g = new PDL::Graphics::TriD::Graph();
+		$g = PDL::Graphics::TriD::Graph->new;
 		$g->default_axes();
 		$win->current_viewport()->graph($g);
 	}
 	return $g;
 }
-
 
 # $PDL::Graphics::TriD::create_window_sub = undef;
 sub get_current_window {
@@ -971,24 +965,12 @@ sub get_current_window {
 		barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
 	 }
 	 print "get_current_window - creating window...\n" if($PDL::Graphics::TriD::verbose);
-	 $PDL::Graphics::TriD::current_window = $win = new PDL::Graphics::TriD::Window($opts);
+	 $PDL::Graphics::TriD::current_window = $win = PDL::Graphics::TriD::Window->new($opts);
 
 	 print "get_current_window - calling set_material...\n" if($PDL::Graphics::TriD::verbose);
-	 $win->set_material(new PDL::Graphics::TriD::Material);
+	 $win->set_material(PDL::Graphics::TriD::Material->new);
   }
   return $PDL::Graphics::TriD::current_window;
-}
-
-# Get the current graphbox
-sub get_current_graphbox {
-        die "get_current_graphbox: ERROR graphbox is not implemented! \n";
-	my $graph = $PDL::Graphics::TriD::curgraph;
-	if(!defined $graph) {
-		$graph = new PDL::Graphics::TriD::Graph();
-		$graph->default_axes();
-		$PDL::Graphics::TriD::curgraph = $graph;
-	}
-	return $graph;
 }
 
 sub twiddle_current {

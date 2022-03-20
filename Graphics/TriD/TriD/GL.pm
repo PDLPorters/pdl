@@ -532,22 +532,10 @@ sub gdriver {
      }
      $this->{_GLObject}->{winobjects}->[$this->{_GLObject}->{glutwindow}] = $this;      # circular ref
   }
-  print "gdriver: Calling glClearColor...\n" if ($PDL::Graphics::TriD::verbose);
+  print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
-  print "gdriver: Calling glpRasterFont...\n" if ($PDL::Graphics::TriD::verbose);
-  if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
-     print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n" if ($PDL::Graphics::TriD::verbose);
-     eval '$PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13';
-  } else {
-     # NOTE: glpRasterFont() will die() if the requested font cannot be found
-     #       The new POGL+GLUT TriD implementation uses the builtin GLUT defined
-     #       fonts and does not have this failure mode.
-     my $lb =  eval { $this->{_GLObject}->glpRasterFont( ($ENV{PDL_3D_FONT} or "5x8"), 0, 256 ) };
-     if ( $@ ) {
-        die "glpRasterFont: unable to load font '%s', please set PDL_3D_FONT to an existing X11 font.";
-     }
-     $PDL::Graphics::TriD::GL::fontbase = $lb
-  }
+  print "gdriver: Calling glpRasterFont...\n" if $PDL::Graphics::TriD::verbose;
+  $PDL::Graphics::TriD::GL::fontbase = $this->{_GLObject}->glpRasterFont($ENV{PDL_3D_FONT} || "5x8", 0, 256);
   glShadeModel(GL_FLAT);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_NORMALIZE);
@@ -557,7 +545,7 @@ sub gdriver {
   my $light = pack "f*",1.0,1.0,1.0,0.0;
   glLightfv_s(GL_LIGHT0,GL_POSITION,$light);
   glColor3f(1,1,1);
-  print "STARTED OPENGL!\n" if($PDL::Graphics::TriD::verbose);
+  print "STARTED OPENGL!\n" if $PDL::Graphics::TriD::verbose;
   if($PDL::Graphics::TriD::offline) {
     $this->doconfig($options->{width}, $options->{height});
   }

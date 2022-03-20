@@ -385,11 +385,22 @@ OO interface to the glpRasterFont function
 
 =cut
 
-sub glpRasterFont{
-   my($this,@args) = @_;
-   OpenGL::glpRasterFont($args[0],$args[1],$args[2],$this->{Display});
+sub glpRasterFont {
+  my($this,@args) = @_;
+  if ( $this->{window_type} eq 'glut' ) {
+     print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n" if $PDL::Graphics::TriD::verbose;
+     return eval { OpenGL::GLUT_BITMAP_8_BY_13() };
+  } else {
+     # NOTE: glpRasterFont() will die() if the requested font cannot be found
+     #       The new POGL+GLUT TriD implementation uses the builtin GLUT defined
+     #       fonts and does not have this failure mode.
+     my $lb =  eval { OpenGL::glpRasterFont(@args[0..2],$this->{Display}) };
+     if ( $@ ) {
+        die "glpRasterFont: unable to load font '%s', please set PDL_3D_FONT to an existing X11 font.";
+     }
+     return $lb;
+  }
 }
-
 
 =head2 AUTOLOAD
 
