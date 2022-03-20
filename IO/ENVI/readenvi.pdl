@@ -1,8 +1,9 @@
 #!/usr/bin/perl
-#
-# Created on: Wed 31 Mar 2010 02:30:20 PM 
-# Last saved: Mon 28 Nov 2011 01:35:30 PM 
-#
+
+# sample data: https://www.l3harrisgeospatial.com/Support/Self-Help-Tools/Tutorials
+# raster description: https://www.l3harrisgeospatial.com/docs/enviimagefiles.html
+# header description: https://www.l3harrisgeospatial.com/docs/enviheaderfiles.html
+
 # This file is the first step of an ENVI file IO module
 # to be named PDL::IO::ENVI.  We read the header file
 # corresponding to the input file, parse the keywords
