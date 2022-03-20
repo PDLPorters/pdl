@@ -186,6 +186,21 @@ my @demo = (
 |],
 
 [actnw => q|
+	# Now zoom in over Europe
+	($lats, $lons) = map $_ / 180, pdl(22, 72), pdl(-10, 40);
+	$lats = indx(($lats + 0.5) * $earth->dim(2));
+	$lons = indx((($lons + 1) / 2) * $earth->dim(1));
+	$earth3 = $earth->slice(':', map [$_->list], $lons, $lats)->sever; # zoom
+	($lonlatrad, $rgb) = map $earth3->slice($_), pdl(0,1,5), '2:4';
+	$lonlatrad->slice('2') -= 1;
+	$lonlatrad->slice('2') *= 50; # exaggerate terrain but less
+	$lonlatrad->slice('2') += 1;
+	$sph = t_spherical()->inverse()->apply($lonlatrad);
+	imag3d_ns($sph, $rgb, {Lines=>0});
+	# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
 	# '3d2' contains some of the more special constructions available
 	# in the PDL::Graphics::TriD modules.
 
