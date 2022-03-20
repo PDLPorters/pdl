@@ -67,29 +67,6 @@ pp_def(
   @internal
 );
 
-pp_def(
-	'line_3x_3c',
-	GenericTypes => $F,
-	Pars => 'coords(tri=3,n); colors(tri,n);',
-	Code => '
-		glBegin(GL_LINE_STRIP);
-		loop(n) %{
-			glColor3f(
-				$colors(tri => 0), 
-				$colors(tri => 1),
-				$colors(tri => 2)
-			);
-			glVertex3f(
-				$coords(tri => 0), 
-				$coords(tri => 1),
-				$coords(tri => 2)
-			);
-		%}
-		glEnd();
-	',
-	@internal
-);
-
 sub TRI { my $par = join '', @_; join ',', map "$par(tri => $_)", 0..2 }
 sub make_tri { shift."(".TRI(@_).");\n" }
 sub COLOR { make_tri("glColor3f",'$colors',@_) }
