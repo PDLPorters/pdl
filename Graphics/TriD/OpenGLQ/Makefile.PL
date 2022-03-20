@@ -6,7 +6,7 @@ use OpenGL::Config;
 my @pack = (["openglq.pd", qw(OpenGLQ PDL::Graphics::OpenGLQ)]);
 my %hash = pdlpp_stdargs_int(@pack);
 
-push @{$hash{LIBS}}, $OpenGL::Config->{LIBS} if $OpenGL::Config->{LIBS};
+$hash{LIBS}[0] = $OpenGL::Config->{LIBS} if $OpenGL::Config->{LIBS};
 $hash{DEFINE} .= ' '.$OpenGL::Config->{DEFINE} if $OpenGL::Config->{DEFINE};
 $hash{INC} .= ' '.$OpenGL::Config->{INC} if $OpenGL::Config->{INC};
 if($^O eq 'MSWin32') {

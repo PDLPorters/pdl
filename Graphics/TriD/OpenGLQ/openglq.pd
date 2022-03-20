@@ -34,14 +34,38 @@ pp_addhdr('
 #ifdef HAVE_AGL_GLUT
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#include <OpenGL/glut.h>
 #else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <GL/glut.h>
 #endif
 /* #include <GL/glx.h> */
 ');
 
 my @internal = (Doc => 'internal', NoPthreading => 1);
+
+pp_def(
+  'gl_spheres',
+  GenericTypes => $F,
+  Pars => 'coords(tri=3,n);',
+  OtherPars => 'double radius; int slices; int stacks;',
+  Code => '
+    float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
+    glPushMatrix();
+    loop(n) %{
+      glTranslatef(
+	$coords(tri=>0) - oldcoord0,
+	$coords(tri=>1) - oldcoord1,
+	$coords(tri=>2) - oldcoord2
+      );
+      glutSolidSphere($COMP(radius), $COMP(slices), $COMP(stacks));
+      oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
+    %}
+    glPopMatrix();
+  ',
+  @internal
+);
 
 pp_def(
 	'line_3x_3c',
