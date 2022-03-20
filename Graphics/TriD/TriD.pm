@@ -38,7 +38,6 @@ PDL::Graphics::TriD -- PDL 3D interface
 
  release3d(); # the next graph will again wipe out things.
 
-
 =head1 WARNING
 
 These modules are still in a somewhat unfocused state: don't use them yet
@@ -272,6 +271,8 @@ routines are supported:
 
 3D line plot, defined by a variety of contexts.
 
+Implemented by C<PDL::Graphics::TriD::LineStrip>.
+
 =for usage
 
  line3d ndarray(3,x), {OPTIONS}
@@ -300,6 +301,10 @@ contexts and options
 
 3D rendered image plot, defined by a variety of contexts
 
+Implemented by C<PDL::Graphics::TriD::SLattice_S>.
+
+The variant, C<imag3d_ns>, is implemented by C<PDL::Graphics::TriD::SLattice>.
+
 =for usage
 
  imag3d ndarray(3,x,y), {OPTIONS}
@@ -321,6 +326,8 @@ contexts and options
 =for ref
 
 3D mesh plot, defined by a variety of contexts
+
+Implemented by C<PDL::Graphics::TriD::Lattice>.
 
 =for usage
 
@@ -354,6 +361,8 @@ alias for mesh3d
 
 3D points plot, defined by a variety of contexts
 
+Implemented by C<PDL::Graphics::TriD::Points>.
+
 =for usage
 
  points3d ndarray(3), {OPTIONS}
@@ -375,6 +384,12 @@ contexts and options
 
 3D spheres plot (preliminary implementation)
 
+This is a preliminary implementation as a proof of
+concept.  It has fixed radii for the spheres being
+drawn and no control of color or transparency.
+
+Implemented by C<PDL::Graphics::TriD::Spheres>.
+
 =for usage
 
  spheres3d ndarray(3), {OPTIONS}
@@ -388,15 +403,13 @@ Example:
  
  - lattice of spheres at coordinates on 10x10x10 grid
 
-This is a preliminary implementation as a proof of
-concept.  It has fixed radii for the spheres being
-drawn and no control of color or transparency.
-
 =head2 imagrgb
 
 =for ref
 
 2D RGB image plot (see also imag2d)
+
+Implemented by C<PDL::Graphics::TriD::Image>.
 
 =for usage
 
@@ -420,6 +433,8 @@ e.g.
 =for ref
 
 2D RGB image plot as an object inside a 3D space
+
+Implemented by C<PDL::Graphics::TriD::Image>.
 
 =for usage
 
@@ -523,6 +538,27 @@ returns 0.
 =for ref
 
 Close the currently-open 3D window.
+
+=head1 NOT EXPORTED
+
+These functions are not exported, partly because they are not fully
+implemented.
+
+=over
+
+=item contour3d
+
+Implemented by C<PDL::Graphics::TriD::Contours>.
+
+=item STrigrid_S_imag3d
+
+Implemented by C<PDL::Graphics::TriD::STrigrid_S>.
+
+=item STrigrid_imag3d
+
+Implemented by C<PDL::Graphics::TriD::STrigrid>.
+
+=back
 
 =head1 CONCEPTS
 
@@ -664,10 +700,8 @@ use PDL::Graphics::TriD::Rout;
 
 $PDL::Graphics::TriD::device = $PDL::Graphics::TriD::device;
 BEGIN {
-	my $dev;
-	$dev ||= $::PDL::Graphics::TriD::device; # First, take it from this variable.
+	my $dev = $PDL::Graphics::TriD::device; # First, take it from this variable.
 	$dev ||= $::ENV{PDL_3D_DEVICE};
-
         if(!defined $dev) {
 #            warn "Default PDL 3D device is GL (OpenGL):
 # Set PDL_3D_DEVICE=GL in your environment in order not to see this warning.
@@ -688,12 +722,10 @@ BEGIN {
 	my $mod = $dv;
 	$mod =~ s|::|/|g;
 	print "dev = $dev mod=$mod\n" if($verbose);
- 
 	require "$mod.pm";
 	$dv->import;
         my $verbose;
 }
-
 
 # currently only used by VRML backend
 $PDL::Graphics::TriD::Settings = $PDL::Graphics::TriD::Settings;
@@ -742,12 +774,6 @@ sub realcoords {
 	&PDL::Graphics::TriD::Rout::combcoords(@$c,$g);
 	$g->dump if $PDL::Graphics::TriD::verbose;
 	return $g;
-}
-
-sub objplotcommand {
-	my($object) = @_;
-	my $win = PDL::Graphics::TriD::get_current_window();
-	my $world = $win->world();
 }
 
 sub checkargs {
@@ -831,31 +857,31 @@ sub PDL::line3d {
     &checkargs;
     my $obj = new PDL::Graphics::TriD::LineStrip(@_);
     print "line3d: object is $obj\n" if($PDL::Graphics::TriD::verbose);
-    &graph_object($obj);
+    graph_object($obj);
 }
 
 *contour3d=*contour3d=\&PDL::contour3d;
 sub PDL::contour3d { 
 #  &checkargs;
   require PDL::Graphics::TriD::Contours;
-  &graph_object(new PDL::Graphics::TriD::Contours(@_));
+  graph_object(new PDL::Graphics::TriD::Contours(@_));
 }
 
 # XXX Should enable different positioning...
 *imagrgb3d=*imagrgb3d=\&PDL::imagrgb3d;
 sub PDL::imagrgb3d { &checkargs;
 	require PDL::Graphics::TriD::Image;
-	&graph_object(new PDL::Graphics::TriD::Image(@_));
+	graph_object(new PDL::Graphics::TriD::Image(@_));
 }
 
 *imag3d_ns=*imag3d_ns=\&PDL::imag3d_ns;
 sub PDL::imag3d_ns {  &checkargs;
-	&graph_object(new PDL::Graphics::TriD::SLattice(@_));
+	graph_object(new PDL::Graphics::TriD::SLattice(@_));
 }
 
 *imag3d=*imag3d=\&PDL::imag3d;
 sub PDL::imag3d { &checkargs;
-	&graph_object(new PDL::Graphics::TriD::SLattice_S(@_));
+	graph_object(new PDL::Graphics::TriD::SLattice_S(@_));
 }
 
 ####################################################################
@@ -1018,19 +1044,13 @@ sub normalize {my($this,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
 	return $trans;
 }
 
-
-###################################
-#
-#
 package PDL::Graphics::TriD::OneTransformation;
 use fields qw/Args/;
 
 sub new {
   my($type,@args) = @_;
   my $this = fields::new($type);
-
   $this->{Args} = [@args];
-
   $this;
 }
 
@@ -1044,21 +1064,10 @@ use base qw/PDL::Graphics::TriD::OneTransformation/;
 package PDL::Graphics::TriD::Transformation;
 use base qw/PDL::Graphics::TriD::Object/;
 
-#sub new {
-#	my($type) = @_;
-#	bless {},$type;
-#}
-
 sub add_transformation {
 	my($this,$trans) = @_;
 	push @{$this->{Transforms}},$trans;
 }
-
-
-
-=head1 BUGS
-
-Not enough is there yet.
 
 =head1 AUTHOR
 
@@ -1070,5 +1079,6 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
-
 =cut
+
+1;

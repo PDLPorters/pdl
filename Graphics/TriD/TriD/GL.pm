@@ -350,6 +350,7 @@ sub PDL::Graphics::TriD::SCLattice::gdraw {
 	  }
 	};
 	{ local $@; glPopAttrib(); }
+	die if $@;
 }
 
 sub PDL::Graphics::TriD::SLattice_S::gdraw {
@@ -379,6 +380,7 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	  }
 	};
 	{ local $@; glPopAttrib(); }
+	die if $@;
 }
 
 sub PDL::Graphics::TriD::STrigrid_S::gdraw {
