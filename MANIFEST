@@ -141,7 +141,6 @@ Demos/General.pm
 Demos/Makefile.PL
 Demos/t/demos.t
 Demos/Transform_demo.pm
-Demos/TriD/mandel.pl
 Demos/TriD/test3.p
 Demos/TriD/test4.p
 Demos/TriD/test5.p

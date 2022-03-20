@@ -70,33 +70,60 @@ imagrgb[$x/30];
 |],
 
 [actnw => q|
-# Torus... (barrel) [Tjl]
+# Color Mandelbrot anim [Tjl]
+nokeeptwiddling3d();
+$x=zeroes 300,300;
+$t=$r=$x->xlinvals(-1.5,0.5);
+$u=$i=$x->ylinvals(-1,1);
+for(1..30) {
+  $q=$r**2-$i**2+$t; $h=2*$r*$i+$u; $d=$r**2+$i**2;
+  $x=lclip($x,$_*($d>2.0)*($x==0));
+  ($r,$i)=map $_->clip(-5,5), $q,$h;
+  imagrgb[($x==0)*($r/2+0.75),($x==0)*($i+1)/2,$x/30];
+}
+keeptwiddling3d();
+twiddle3d();
+# [press 'q' in the graphics window when done]
+|],
 
+[actnw => q|
+# Neat variation of color mandelbrot
+sub f {return abs(sin($_[0]*30))}
+$x=zeroes 300,300;
+$r=$x->xlinvals(-1.5, 0.5); $i=$x->ylinvals(-1,1); $t=$r; $u=$i;
+nokeeptwiddling3d();
+for(1..30) {
+  $q=$r**2-$i**2+$t;
+  $h=2*$r*$i+$u; $d=$r**2+$i**2; $x=lclip($x,$_*($d>2.0)*($x==0));
+  ($r,$i)=map $_->clip(-5,5), $q,$h;
+  imagrgb[f(($x==0)*($r/2+0.75)),f(($x==0)*($i+1)/2),$x/30];
+}
+keeptwiddling3d();
+twiddle3d();
+|],
+
+[actnw => q|
+# Torus... (barrel) [Tjl]
 $s=40;$x=zeroes $s,$s;$t=$x->xlinvals(0,6.284);
 $u=$x->ylinvals(0,6.284);$o=5;$i=1;$v=$o+$i*sin$u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos$u]);
-
 # [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
 # Ripply torus [Tjl]
-
 $s=40; $x=zeroes 2*$s,$s/2; $t=$x->xlinvals(0,6.284);
 $u=$x->ylinvals(0,6.284); $o=5; $i=1; $v=$o+$i*sin $u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
-
 # [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
 # Ripply torus distorted [Tjl]
-
 use PDL; use PDL::Graphics::TriD;
 $s=40;$x=zeroes 2*$s,$s/2;$t=$x->xlinvals(0,6.284);$u=$x->ylinvals(0,
 6.284); $o=5;$i=1;$v=$o-$o/2*sin(3*$t)+$i*sin$u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
-
 # [press 'q' in the graphics window when done]
 |],
 
@@ -108,7 +135,6 @@ foreach(1,2,4) {
   $t=($x->slice("0:-2")<<$_); $t+=$x->slice("1:-1"); $x = $t->mv(0,2);
 }
 points3d [whichND(($x != 0) & ($x != 255))->transpose->dog];
-
 # [press 'q' in the graphics window when done]
 |],
 
@@ -146,7 +172,7 @@ for(1..7) {
 # Electron simulation by Mark Baker: https://perlmonks.org/?node_id=963819
 nokeeptwiddling3d;
 $c = 0;
-while (1) {
+do {
   $n = 6.28 * ++$c;
   $x = $c*rvals((zeros(9000))*$c);
   $cz = -1**$x*$c;
@@ -159,14 +185,12 @@ while (1) {
   $i = ($cz-$cx-$cy);
   $q = $i*$n;
   points3d [ $b*sin($q), $r*cos($q), $g*sin$q], [$g,$b,$r];
-  last if twiddle3d(); # exit from loop when 'q' pressed
-}
+} while (!twiddle3d); # exit from loop when 'q' pressed
 keeptwiddling3d(); # restore waiting for user to press 'q'
 ~],
 
 [actnw => q~
 # Game of life [Robin Williams (edited by Tjl)]
-
 use PDL::Image2D;
 $d=byte(random(zeroes(40,40))>0.85); $k=byte [[1,1,1],[1,0,1],[1,1,1]];
 nokeeptwiddling3d;
@@ -191,67 +215,18 @@ sub demo { @demo }
 
 my @disabled = (
 [actnw => q|
-# Color Mandelbrot anim (nokeeptwiddling3d removed -> fits) [Tjl]
-
-use PDL; use PDL::Graphics::TriD;
-nokeeptwiddling3d();
-$x=zeroes 300,300;$r=$x->xlinvals(-1.5,
-0.5);$i=$x->ylinvals(-1,1);$t=$r;$u=$i;
-for(1..30) {
-  $q=$r**2-$i**2+$t; $h=2*$r*$i+$u; $d=$r**2+$i**2;
-  $x=lclip($x,$_*($d>2.0)*($x==0));
-  ($r,$i)=map $_->clip(-5,5), $q,$h;
-  imagrgb[($x==0)*($r/2+0.75),($x==0)*($i+1)/2,$x/30];
-}
-
-keeptwiddling3d();
-# [press 'q' in the graphics window when done]
-|],
-
-[act => q|
 # Lucy deconvolution (AJ 79, 745) [Robin Williams (=> TriD by Tjl)]
 nokeeptwiddling3d();
 sub smth {use PDL::Image2D; conv2d($_[0],exp(-(rvals ones(3,3))**2));}
 $x=rfits("m51.fits")->float; $c=$d=avg($x)+0*$x;
 while(max $c>1.1) {$c=smth($x/smth($d));$d*=$c;imagrgb[$d/850];}
 keeptwiddling3d();
-
+twiddle3d();
 # [press 'q' in the graphics window when done]
-|],
-
-[actnw => q|
-# spherical dynamics [Mark R Baker]
-nokeeptwiddling3d();
-for $c(1..99){
-  $n=6.28*$c; $g=$c*rvals(sin(zeros(5000))*$c);
-  $cz=-1**$g*$c; $cy=$g*cos$g*$c; $cx=$c*rvals($g)*$c;
-  $g=cos($w=$cz+$cy+$cx); $r=sin$cy+$c+$cz; $y=sin$w;
-  $i=$cz-$cx-$cy; $q=$i*$n;
-  points3d[$y*sin$q,$r*cos$q,$g*sin$q],[$r,$g,$y];
-}
-keeptwiddling3d();
-
-# [press 'q' in the graphics window when done]
-|],
-
-[actnw => q|
-# Neat, but too big variation of color mandelbrot
-sub f {return abs(sin($_[0]*30))}
-$x=zeroes 300,300;
-$r=$x->xlinvals(-1.5, 0.5); $i=$x->ylinvals(-1,1); $t=$r; $u=$i;
-nokeeptwiddling3d();
-for(1..30) {
-  $q=$r**2-$i**2+$t;
-  $h=2*$r*$i+$u; $d=$r**2+$i**2; $x=lclip($x,$_*($d>2.0)*($x==0));
-  ($r,$i)=map $_->clip(-5,5), $q,$h;
-  imagrgb[f(($x==0)*($r/2+0.75)),f(($x==0)*($i+1)/2),$x/30];
-}
-keeptwiddling3d();
 |],
 
 [actnw => q~
 # Dewdney's voters (parallelized) [Tjl, inspired by the above 'life']
-
 use PDL::Image2D;
 nokeeptwiddling3d;
 $d=byte(random(zeroes(100,100))>0.5);
@@ -264,6 +239,7 @@ do{
   $d .= $e;
 } while(!twiddle3d);
 keeptwiddling3d();
+twiddle3d();
 ~],
 );
 
