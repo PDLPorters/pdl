@@ -141,7 +141,6 @@ Demos/General.pm
 Demos/Makefile.PL
 Demos/t/demos.t
 Demos/Transform_demo.pm
-Demos/TriD/test3.p
 Demos/TriD/test4.p
 Demos/TriD/test5.p
 Demos/TriD/test7.p
@@ -289,7 +288,6 @@ Graphics/TriD/TriD/ButtonControl.pm
 Graphics/TriD/TriD/Contours.pm
 Graphics/TriD/TriD/Control3D.pm
 Graphics/TriD/TriD/GL.pm
-Graphics/TriD/TriD/GoBoard.pm
 Graphics/TriD/TriD/Graph.pm
 Graphics/TriD/TriD/Image.pm
 Graphics/TriD/TriD/Labels.pm

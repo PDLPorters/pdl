@@ -450,8 +450,8 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	my($this,$vert) = @_;
 	my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
 	if(!defined $vert) {$vert = $this->{Points}}
-	barf "Need x,4 vert"
-	  if grep $_->dim(1) < 4, $vert;
+	barf "Need 3,4 vert"
+	  if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
 	glColor3d(1,1,1);
          glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
 	 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );

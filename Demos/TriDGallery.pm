@@ -199,7 +199,6 @@ do {
   $d&=($s<4); $d&=($s>1); $d|=($s==3);
 } while (!twiddle3d);
 keeptwiddling3d();
-
 ~],
 
 [actnw => q|
@@ -229,9 +228,8 @@ twiddle3d();
 # Dewdney's voters (parallelized) [Tjl, inspired by the above 'life']
 use PDL::Image2D;
 nokeeptwiddling3d;
-$d=byte(random(zeroes(100,100))>0.5);
+$d=byte(random(zeroes(100,100))>0.5); $k=float [[1,1,1],[1,0,1],[1,1,1]];
 do{
-  $k=float [[1,1,1],[1,0,1],[1,1,1]];
   imagrgb[$d];
   $s=conv2d($d,$k)/8;
   $r = $s->float->random;
@@ -239,7 +237,6 @@ do{
   $d .= $e;
 } while(!twiddle3d);
 keeptwiddling3d();
-twiddle3d();
 ~],
 );
 
