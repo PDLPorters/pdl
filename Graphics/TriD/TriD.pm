@@ -753,7 +753,7 @@ sub realcoords {
 		@$c = ($r * sin($t), $r * cos($t), $c->[0]);
 	} elsif($#$c == 0 and $type eq "COLOR") {
 		# color -> 1 ndarray = grayscale
-		@$c = ($c->[0], $c->[0], $c->[0]);
+		@$c = @$c[0,0,0];
 	} elsif($#$c == 0 and $type eq "LINE") {
 		@$c = ($c->[0]->xvals, $c->[0], 0);
 	} elsif($#$c == 1 and $type eq "LINE") {
@@ -770,7 +770,7 @@ sub realcoords {
 	  }
 	}
 	my $g = PDL->null;
-	&PDL::Graphics::TriD::Rout::combcoords(@$c,$g);
+	PDL::Graphics::TriD::Rout::combcoords(@$c,$g);
 	$g->dump if $PDL::Graphics::TriD::verbose;
 	return $g;
 }
