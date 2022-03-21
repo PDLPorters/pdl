@@ -1067,6 +1067,7 @@ pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
     it->vtable = vtable;
     PDL_CLRMAGIC(&it->broadcast);
     it->broadcast.inds = 0;
+    it->broadcast.gflags = 0;
     it->ind_sizes = (PDL_Indx *)malloc(sizeof(PDL_Indx) * vtable->ninds);
     if (!it->ind_sizes) return NULL;
     int i; for (i=0; i<vtable->ninds; i++) it->ind_sizes[i] = -1;

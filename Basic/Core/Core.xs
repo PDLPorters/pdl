@@ -894,6 +894,7 @@ broadcastover(...)
 	croak("Not enough dimension info to create pdls");
     PDLDEBUG_f(for (i=0;i<npdls;i++) { printf("pdl %d ",i); pdl_dump(pdls[i]); });
     PDL_CLRMAGIC(&pdl_brc);
+    pdl_brc.gflags = 0; /* avoid uninitialised value use below */
     pdl_barf_if_error(pdl_initbroadcaststruct(0,pdls,realdims,creating,npdls,
 			NULL,&pdl_brc,NULL,NULL,NULL, 1));
     for(i=0, nc=npdls; i<npdls; i++)  /* create as necessary */
