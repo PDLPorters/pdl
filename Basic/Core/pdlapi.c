@@ -289,7 +289,7 @@ void pdl__removetrans_parent(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	PDLDEBUG_f(printf("pdl__removetrans_parent(%s=%p): %p %"IND_FLAG"\n",
 	  trans->vtable->name, (void*)trans, (void*)(it), nth));
 	trans->pdls[nth] = 0;
-	it->trans_parent = 0;
+	if (it->trans_parent == trans) it->trans_parent = 0;
 	it->state &= ~PDL_MYDIMS_TRANS;
 }
 
@@ -335,23 +335,15 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	    if(!(parent->state & PDL_DESTROYING) && !parent->sv)
 	      destbuffer[ndest++] = parent;
 	  }
-	  for(; j<trans->vtable->npdls; j++) {
-	    pdl *child = trans->pdls[j];
-	    PDL_CHKMAGIC(child);
-	    pdl__removetrans_parent(child,trans,j);
-	    if(child->vafftrans) pdl_vafftrans_remove(child);
-	    if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
-	        (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP))
-	      destbuffer[ndest++] = child;
-	  }
-	} else {
-	  for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
-	    pdl *child = trans->pdls[j];
-	    if(child->trans_parent == trans)
-	      child->trans_parent = 0;
-	    if (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP)
-	      destbuffer[ndest++] = child;
-	  }
+	}
+	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
+	  pdl *child = trans->pdls[j];
+	  PDL_CHKMAGIC(child);
+	  pdl__removetrans_parent(child,trans,j);
+	  if (ismutual && child->vafftrans) pdl_vafftrans_remove(child);
+	  if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
+	      (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP))
+	    destbuffer[ndest++] = child;
 	}
 	PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
 	for(j=0; j<ndest; j++)
