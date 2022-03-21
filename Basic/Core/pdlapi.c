@@ -332,8 +332,10 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	    if(!parent) continue;
 	    PDL_CHKMAGIC(parent);
 	    pdl__removetrans_children(parent,trans);
-	    if(!(parent->state & PDL_DESTROYING) && !parent->sv)
+	    if (!(parent->state & PDL_DESTROYING) && !parent->sv) {
+	      parent->state |= PDL_DESTROYING; /* so no mark twice */
 	      destbuffer[ndest++] = parent;
+	    }
 	  }
 	}
 	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
@@ -342,12 +344,16 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	  pdl__removetrans_parent(child,trans,j);
 	  if (ismutual && child->vafftrans) pdl_vafftrans_remove(child);
 	  if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
-	      (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP))
+	      (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP)) {
+	    child->state |= PDL_DESTROYING; /* so no mark twice */
 	    destbuffer[ndest++] = child;
+	  }
 	}
 	PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
-	for(j=0; j<ndest; j++)
+	for(j=0; j<ndest; j++) {
+		destbuffer[j]->state &= ~PDL_DESTROYING; /* safe, set by us */
 		PDL_ACCUMERROR(PDL_err, pdl_destroy(destbuffer[j]));
+	}
 	PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", (void*)trans));
 	return PDL_err;
 }
@@ -372,7 +378,7 @@ pdl_error pdl_destroy(pdl *it) {
     int nafn=0;
     PDL_DECL_CHILDLOOP(it);
     PDL_CHKMAGIC(it);
-    PDLDEBUG_f(printf("pdl_destroy %p\n",(void*)it));
+    PDLDEBUG_f(printf("pdl_destroy: ");pdl_dump(it));
     if(it->state & PDL_DESTROYING) {
         PDLDEBUG_f(printf("  already destroying, returning\n"));
 	return PDL_err;
