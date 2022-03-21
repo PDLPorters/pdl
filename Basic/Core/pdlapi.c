@@ -290,6 +290,7 @@ void pdl__removetrans_parent(pdl *it, pdl_trans *trans, PDL_Indx nth)
 	  trans->vtable->name, (void*)trans, (void*)(it), nth));
 	trans->pdls[nth] = 0;
 	it->trans_parent = 0;
+	it->state &= ~PDL_MYDIMS_TRANS;
 }
 
 pdl_error pdl_trans_finaldestroy(pdl_trans *trans)
