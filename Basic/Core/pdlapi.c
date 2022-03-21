@@ -263,9 +263,9 @@ pdl_error pdl__free(pdl *it) {
     return PDL_err;
 }
 
-void pdl__removechildtrans(pdl *it,pdl_trans *trans)
+void pdl__removetrans_children(pdl *it,pdl_trans *trans)
 {
-	PDLDEBUG_f(printf("pdl__removechildtrans(%s=%p): %p\n",
+	PDLDEBUG_f(printf("pdl__removetrans_children(%s=%p): %p\n",
 	  trans->vtable->name, trans, it));
 	PDL_Indx i; int flag = 0;
 	for(i=0; i<trans->vtable->nparents; i++)
@@ -284,9 +284,9 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans)
 		pdl_pdl_warn("Child not found for pdl %p, trans %p\n",it, trans);
 }
 
-void pdl__removeparenttrans(pdl *it, pdl_trans *trans, PDL_Indx nth)
+void pdl__removetrans_parent(pdl *it, pdl_trans *trans, PDL_Indx nth)
 {
-	PDLDEBUG_f(printf("pdl__removeparenttrans(%s=%p): %p %"IND_FLAG"\n",
+	PDLDEBUG_f(printf("pdl__removetrans_parent(%s=%p): %p %"IND_FLAG"\n",
 	  trans->vtable->name, (void*)trans, (void*)(it), nth));
 	trans->pdls[nth] = 0;
 	it->trans_parent = 0;
@@ -330,14 +330,14 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	    pdl *parent = trans->pdls[j];
 	    if(!parent) continue;
 	    PDL_CHKMAGIC(parent);
-	    pdl__removechildtrans(parent,trans);
+	    pdl__removetrans_children(parent,trans);
 	    if(!(parent->state & PDL_DESTROYING) && !parent->sv)
 	      destbuffer[ndest++] = parent;
 	  }
 	  for(; j<trans->vtable->npdls; j++) {
 	    pdl *child = trans->pdls[j];
 	    PDL_CHKMAGIC(child);
-	    pdl__removeparenttrans(child,trans,j);
+	    pdl__removetrans_parent(child,trans,j);
 	    if(child->vafftrans) pdl_vafftrans_remove(child);
 	    if ((!(child->state & PDL_DESTROYING) && !child->sv) ||
 	        (trans->vtable->par_flags[j] & PDL_PARAM_ISTEMP))
