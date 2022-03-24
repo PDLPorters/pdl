@@ -667,7 +667,7 @@ method.
 # $PDL::Graphics::TriD::Settings 
 $PDL::Graphics::TriD::verbose //= 0;
 # $PDL::Graphics::TriD::keeptwiddling
-# $PDL::Graphics::TriD::hold_on
+# $PDL::Graphics::TriD::only_one
 # $PDL::Graphics::TriD::create_window_sub
 # $PDL::Graphics::TriD::current_window
 # 
@@ -790,17 +790,14 @@ sub checkargs {
 
 *keeptwiddling3d=*keeptwiddling3d=\&PDL::keeptwiddling3d;
 sub PDL::keeptwiddling3d {
-	$PDL::Graphics::TriD::keeptwiddling = (defined $_[0] ? $_[0] : 1);
+	$PDL::Graphics::TriD::keeptwiddling = $_[0] // 1;
 }
 *nokeeptwiddling3d=*nokeeptwiddling3d=\&PDL::nokeeptwiddling3d;
 sub PDL::nokeeptwiddling3d {
 	$PDL::Graphics::TriD::keeptwiddling = 0 ;
 }
 keeptwiddling3d();
-*twiddle3d = *twiddle3d = \&PDL::twiddle3d;
-sub PDL::twiddle3d {
-	twiddle_current();
-}
+*twiddle3d = *twiddle3d = *PDL::twiddle3d = \&twiddle_current;
 
 *close3d = *close3d = \&PDL::close3d;
 sub PDL::close3d {
@@ -921,10 +918,9 @@ sub PDL::grabpic3d {
 	return ($pic->float) / 255;
 }
 
-$PDL::Graphics::TriD::hold_on = 0;
-
-sub PDL::hold3d {$PDL::Graphics::TriD::hold_on =(!defined $_[0] ? 1 : $_[0]);}
-sub PDL::release3d {$PDL::Graphics::TriD::hold_on = 0;}
+$PDL::Graphics::TriD::only_one = 1;
+sub PDL::hold3d {$PDL::Graphics::TriD::only_one = !($_[0] // 1);}
+sub PDL::release3d {$PDL::Graphics::TriD::only_one = 1;}
 
 *hold3d=*hold3d=\&PDL::hold3d;
 *release3d=*release3d=\&PDL::release3d;
@@ -935,11 +931,11 @@ sub get_new_graph {
     print "get_new_graph: calling get_current_graph...\n" if($PDL::Graphics::TriD::verbose);
 	my $g = get_current_graph($win);
     print "get_new_graph: back get_current_graph returned $g...\n" if($PDL::Graphics::TriD::verbose);
-	if(!$PDL::Graphics::TriD::hold_on) {
-		$g->clear_data();
-		$win->clear_viewport();
+	if ($PDL::Graphics::TriD::only_one) {
+		$g->clear_data;
+		$win->clear_viewport;
 	}
-	$g->default_axes();
+	$g->default_axes;
 	$win->add_object($g);
 	return $g;
 }
@@ -973,10 +969,7 @@ sub get_current_window {
   return $PDL::Graphics::TriD::current_window;
 }
 
-sub twiddle_current {
-	my $win = get_current_window();
-	$win->twiddle();
-}
+sub twiddle_current { get_current_window()->twiddle() }
 
 ###################################
 #
