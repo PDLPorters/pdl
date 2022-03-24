@@ -351,7 +351,7 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 # For some reason, we need to set this here as well.
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 # By-vertex doesn't make sense otherwise.
-	glShadeModel (GL_SMOOTH);
+	glShadeModel(GL_SMOOTH);
 	eval {
 	  my $f = $this->{Options}{Smooth}
 	    ? (!$this->{Options}{Material} ? \&PDL::gl_triangles_wn : \&PDL::gl_triangles_wn_mat)

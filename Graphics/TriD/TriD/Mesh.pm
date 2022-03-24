@@ -42,8 +42,8 @@ sub new {
 		OverDims => [@overdims],
 		Data => $data,
 	};
-	PDL::Primitive::axisvalues($this->{Vertices}->slice('(0),:,:'));
-	PDL::Primitive::axisvalues($this->{Vertices}->slice('(1),:,:')->transpose);
+	PDL::Primitive::axisvalues($this->{Vertices}->slice('(0),:,:')->inplace);
+	PDL::Primitive::axisvalues($this->{Vertices}->slice('(1),:,:')->transpose->inplace);
 	PDL::Ops::assgn($this->{Data},$this->{Vertices}->slice('(2),:,:'));
 	bless $this,$type;
 }
@@ -145,7 +145,6 @@ sub togl {
 }
 
 package PDL::Graphics::TriD;
-#use PDL::Graphics::OpenGL;
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Core '';
 
@@ -197,6 +196,5 @@ sub pdl2normalizedmeshlist {
 	glEndList();
 	return $lno;
 }
-
 
 1;

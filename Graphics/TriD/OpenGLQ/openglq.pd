@@ -162,12 +162,9 @@ for(
 pp_def(
 	$_->{Name}.$m->{Suf},
 	GenericTypes => $F,
-	Pars => 'coordsa(tri=3); coordsb(tri);
-		 coordsc(tri);'.
+	Pars => 'coordsa(tri=3); coordsb(tri); coordsc(tri);'.
 		 ($_->{NormalArgs}//'').
-		 'colorsa(tri); colorsb(tri);
-		 colorsc(tri);
-		 ',
+		'colorsa(tri); colorsb(tri); colorsc(tri);',
 	Code => '
 		float tmp1[3]; float tmp2[3];
 		glBegin(GL_TRIANGLES);
