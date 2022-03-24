@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Graphics::TriD -- PDL 3D interface
+PDL::Graphics::TriD - PDL 3D interface
 
 =head1 SYNOPSIS
 

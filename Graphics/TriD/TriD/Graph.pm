@@ -1,4 +1,27 @@
 package PDL::Graphics::TriD::Graph;
+
+=head1 NAME
+
+PDL::Graphics::TriD::Graph - PDL 3D graph object with axes
+
+=head1 SYNOPSIS
+
+  use PDL::Graphics::TriD;
+  use PDL::Graphics::TriD::Graph;
+  $g = PDL::Graphics::TriD::Graph->new;
+  $g->default_axes;
+  $g->add_dataseries(PDL::Graphics::TriD::Lattice->new($y,$c), "lat0");
+  $g->bind_default("lat0");
+  $g->add_dataseries(PDL::Graphics::TriD::LineStrip->new($y+pdl(0,0,1),$c), "lat1");
+  $g->bind_default("lat1");
+  $g->scalethings;
+  $win = PDL::Graphics::TriD::get_current_window();
+  $win->clear_objects;
+  $win->add_object($g);
+  $win->twiddle;
+
+=cut
+
 use strict;
 use warnings;
 use base qw/PDL::Graphics::TriD::Object/;
@@ -29,7 +52,7 @@ sub bind_data {
 
 sub bind_default {
 	my($this,$dser,$axes) = @_;
-	if(!defined $axes) {$axes = $this->{DefaultAxes}};
+	$axes //= $this->{DefaultAxes};
 	$this->{DataBind}{$dser} = [['Default',$axes]];
 	delete $this->{UnBound}{$dser};
 }
@@ -43,55 +66,40 @@ sub set_axis {
 # Bind all unbound things here...
 sub scalethings {
 	my($this) = @_;
-	for(sort keys %{$this->{UnBound}}) {
-		$this->bind_default($_);
-	}
-	for(values %{$this->{Axis}}) {
-	  $_->init_scale() ;
-	}
+	$this->bind_default($_) for keys %{$this->{UnBound}};
+	$_->init_scale() for values %{$this->{Axis}};
 	my ($k,$v);
 	while(($k,$v) = each %{$this->{DataBind}}) {
-		for(@$v) {
-			$this->{Axis}{$_->[0]}->add_scale(
-				$this->{Data}{$k}->get_points(), $_->[1]);
-		}
+		$this->{Axis}{$_->[0]}->add_scale($this->{Data}{$k}->get_points(), $_->[1]) for @$v;
 	}
-	for(values %{$this->{Axis}}) {
-		$_->finish_scale();
-	}
+	$_->finish_scale() for values %{$this->{Axis}};
 }
 
-# use Data::Dumper;
 sub get_points {
 	my($this,$name) = @_;
 # 	print Dumper($this->{Axis});
 	my $d = $this->{Data}{$name}->get_points();
 	my @ddims = $d->dims; shift @ddims;
-	my $p = PDL->zeroes(&PDL::float(),3,@ddims);
+	my $p = PDL->zeroes(PDL::float(),3,@ddims);
 	my $pnew;
 	for(@{$this->{DataBind}{$name}}) {
 		defined($this->{Axis}{$_->[0]}) or die("Axis not defined: $_->[0]");
 # Transform can return the same or a different ndarray.
-		$pnew = $this->{Axis}{$_->[0]}->transform($p,$d,$_->[1]);
-		$p = $pnew;
+		$p = $pnew = $this->{Axis}{$_->[0]}->transform($p,$d,$_->[1]);
 	}
 	return $pnew;
 }
 
 sub clear_data {
 	my($this) = @_;
-	$this->{Data} = {};
-	$this->{DataBind} = {};
-	$this->{UnBound} = {};
-	$this->changed();
+	$this->{$_} = {} for qw(Data DataBind UnBound);
+	$this->changed;
 }
 
 sub delete_data {
 	my($this,$name) = @_;
-	delete $this->{Data}{$name};
-	delete $this->{DataBind}{$name};
-	delete $this->{UnBound}{$name};
-	$this->changed();
+	delete $this->{$_}{$name} for qw(Data DataBind UnBound);
+	$this->changed;
 }
 
 sub default_axes {
@@ -162,7 +170,6 @@ sub init_scale {
 	my($this) = @_;
 	$this->{Scale} = [];
 }
-
 
 sub add_scale {
   my($this,$data,$inds) = @_;
