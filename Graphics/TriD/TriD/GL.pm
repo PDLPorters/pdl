@@ -64,44 +64,35 @@ sub PDL::Graphics::TriD::Object::gl_call_list {
 	print "CHECKVALID $this\n" if($PDL::Graphics::TriD::verbose);
 	$this->gl_update_list if !$this->{ValidList};
 	glCallList($this->{List});
-	if ($PDL::Graphics::TriD::any_cannots) {
-	  for(@{$this->{Objects}}) {
-		if($_->cannot_mklist()) {
-			print ref($_)," cannot mklist\n";
-			$_->togl();
-		}
-	  }
-        }
+	return if !$PDL::Graphics::TriD::any_cannots;
+	for (grep $_->cannot_mklist, @{$this->{Objects}}) {
+	  print ref($_)," cannot mklist\n";
+	  $_->togl();
+	}
 }
 
 sub PDL::Graphics::TriD::Object::delete_displist {
 	my($this) = @_;
-	if($this->{List}) {
-		glDeleteLists($this->{List},1);
-		undef $this->{List};
-	}
+	return if !$this->{List};
+	glDeleteLists($this->{List},1);
+	delete @$this{qw(List ValidList)};
 }
 
-sub PDL::Graphics::TriD::Object::togl {
-	my($this) = @_;
-	for(@{$this->{Objects}}) { $_->togl() }
-}
+sub PDL::Graphics::TriD::Object::togl { $_->togl for @{$_[0]->{Objects}} }
 
+my @bb1 = ([0,4,2],[0,1,2],[0,1,5],[0,4,5],[0,4,2],[3,4,2],
+	   [3,1,2],[3,1,5],[3,4,5],[3,4,2]);
+my @bb2 = ([0,1,2],[3,1,2],[0,1,5],[3,1,5],[0,4,5],[3,4,5]);
 sub PDL::Graphics::TriD::BoundingBox::togl { 
   my($this) = @_;
   $this = $this->{Box};
   glDisable(GL_LIGHTING);
   glColor3d(1,1,1);
   glBegin(GL_LINES);
-  for([0,4,2],[0,1,2],[0,1,5],[0,4,5],[0,4,2],[3,4,2],
-		[3,1,2],[3,1,5],[3,4,5],[3,4,2]) {
-	 glVertex3d(@{$this}[@$_]);
-  }
+  glVertex3d(@{$this}[@$_]) for @bb1;
   glEnd();
   glBegin(GL_LINE_STRIP);
-  for([0,1,2],[3,1,2],[0,1,5],[3,1,5],[0,4,5],[3,4,5]) {
-	 glVertex3d(@{$this}[@$_]);
-  }
+  glVertex3d(@{$this}[@$_]) for @bb2;
   glEnd();
   glEnable(GL_LIGHTING);
 }
@@ -387,7 +378,7 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
       my $f=(!$this->{Options}{Material}?\&PDL::gl_triangles_wn
 					:\&PDL::gl_triangles_wn_mat);
       my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->clump(-1))
-		      ->splitdim(1,($this->{Faceidx}->dims)[0]);
+		      ->splitdim(1,$this->{Faceidx}->dim(0));
       my @args=((map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
 		(map {$tmpn->slice($_)} @sls),
 		(map {$this->{Colors}->slice($_)} @sls) );&$f(@args);
@@ -573,10 +564,7 @@ sub reshape {
 	}
 }
 
-sub get_size {
-  my $this=shift;
-  return ($this->{Width},$this->{Height});
-}
+sub get_size { @{$_[0]}{qw(Width Height)} }
 
 sub twiddle {
   my($this,$getout,$dontshow) = @_;
