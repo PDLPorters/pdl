@@ -10,7 +10,7 @@ axisvalues($y->slice("(0)")->inplace);
 axisvalues($y->slice("(1)")->transpose->inplace);
 $y /= $size;
 random($y->slice("(2)")->inplace);
-(my $tmp = $y->slice("(2)")) /= 5; $tmp += 2;
+(my $tmp = $y->slice("(2)")) /= 5;
 my $c = PDL->zeroes(3,$size,$size);
 random($c->inplace);
 

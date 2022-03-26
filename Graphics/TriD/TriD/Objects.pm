@@ -57,15 +57,12 @@ sub new {
 
 sub check_options {
 	my($this) = @_;
-	my %newopts;
 	my $opts = $this->get_valid_options();
+	$this->{Options} = $opts, return if !$this->{Options};
 	print "FETCHOPT: $this ".(join ',',%$opts)."\n" if $PDL::Graphics::TriD::verbose;
-	for(keys %$opts) {
-		$newopts{$_} = !exists $this->{Options}{$_} ? $opts->{$_} : delete $this->{Options}{$_};
-	}
-	if(keys %{$this->{Options}}) {
-		die("Invalid options left: ".(join ',',%{$this->{Options}}));
-	}
+	my %newopts = (%$opts, %{$this->{Options}});
+	my @invalid = grep !exists $opts->{$_}, keys %newopts;
+	die "Invalid options left: @invalid" if @invalid;
 	$this->{Options} = \%newopts;
 }
 
