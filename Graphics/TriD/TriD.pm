@@ -740,37 +740,37 @@ sub realcoords {
 		}
 		return $c ;
 	}
-	if(!ref $c->[0]) {$type = shift @$c}
-	if($#$c < 0 || $#$c>2) {
+	my @c = @$c;
+	if(!ref $c[0]) {$type = shift @c}
+	if(!@c || @c>3) {
 		barf "Must have 1..3 array members for coordinates";
 	}
-	if($#$c == 0 and $type =~ /^SURF2D$/) {
+	if(@c == 1 and $type eq "SURF2D") {
 		# surf2d -> this is z axis
-		@$c = ($c->[0]->xvals,$c->[0]->yvals,$c->[0]);
-	} elsif($#$c == 0 and $type eq "POLAR2D") {
-		my $t = 6.283 * $c->[0]->xvals / ($c->[0]->getdim(0)-1);
-		my $r = $c->[0]->yvals / ($c->[0]->getdim(1)-1);
-		@$c = ($r * sin($t), $r * cos($t), $c->[0]);
-	} elsif($#$c == 0 and $type eq "COLOR") {
+		@c = ($c[0]->xvals,$c[0]->yvals,$c[0]);
+	} elsif(@c == 1 and $type eq "POLAR2D") {
+		my $t = 6.283 * $c[0]->xvals / ($c[0]->getdim(0)-1);
+		my $r = $c[0]->yvals / ($c[0]->getdim(1)-1);
+		@c = ($r * sin($t), $r * cos($t), $c[0]);
+	} elsif(@c == 1 and $type eq "COLOR") {
 		# color -> 1 ndarray = grayscale
-		@$c = @$c[0,0,0];
-	} elsif($#$c == 0 and $type eq "LINE") {
-		@$c = ($c->[0]->xvals, $c->[0], 0);
-	} elsif($#$c == 1 and $type eq "LINE") {
-		@$c = ($c->[0], $c->[1], $c->[0]->xvals);
+		@c = @c[0,0,0];
+	} elsif(@c == 1 and $type eq "LINE") {
+		@c = ($c[0]->xvals, $c[0], 0);
+	} elsif(@c == 2 and $type eq "LINE") {
+		@c = (@c[0,1], $c[0]->xvals);
 	}
 	# XXX
-	if($#$c != 2) {
+	if(@c != 3) {
 		barf("Must have 3 coordinates if no interpretation (here '$type')");
 	}
 	# allow a constant (either pdl or not) to be introduced in one dimension
-        foreach(0..2){  
-	  if(ref($c->[$_]) ne "PDL" or $c->[$_]->nelem==1){
-	    $c->[$_] = $c->[$_]*(PDL->ones($c->[($_+1)%3]->dims));
+	foreach(0..2) {
+	  if(ref($c[$_]) ne "PDL" or $c[$_]->nelem==1){
+	    $c[$_] = $c[$_]*(PDL->ones($c[($_+1)%3]->dims));
 	  }
 	}
-	my $g = PDL->null;
-	PDL::Graphics::TriD::Rout::combcoords(@$c,$g);
+	my $g = PDL::Graphics::TriD::Rout::combcoords(@c);
 	$g->dump if $PDL::Graphics::TriD::verbose;
 	return $g;
 }
