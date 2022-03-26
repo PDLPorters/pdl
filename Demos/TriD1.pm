@@ -90,16 +90,8 @@ my @demo = (
 |],
 
 [actnw => q|
-	# Draw a textured surface
-	imag3d [$x,$y,$z], [$x,$y,$z], {
-	  Material => PDL::Graphics::TriD::Material->new(
-	    Shine => 0.212766,
-	    Specular =>[0.753217,0.934416,1],
-	    Ambient =>[0,0,0],
-	    Diffuse =>[0.09855,0.153113,0.191489],
-	    Emissive =>[0, 0, 0]
-	  ),
-	};
+	# Draw a surface using OpenGL "material"
+	imag3d [$x,$y,$z], [$x,$y,$z], { Material => 1 };
 	# [press 'q' in the graphics window when done]
 |],
 
