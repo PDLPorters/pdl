@@ -220,10 +220,13 @@ sub cdummies { return $_[1]->dummy(1,$_[2]->getdim(2))
 package PDL::Graphics::TriD::SLattice_S;
 use base qw/PDL::Graphics::TriD::GObject_Lattice/;
 use fields qw/Normals/;
-sub cdummies { return $_[1]->dummy(1,$_[2]->getdim(2))
-			-> dummy(1,$_[2]->getdim(1)); }
-sub get_valid_options { return {UseDefcols => 0,Lines => 1, Smooth => 0,
-	Material => 0}; }
+sub cdummies {
+  $_[0]->{Options}{KeepLighting} = 1 if !$_[0]->{Options}{Material};
+  $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1));
+}
+sub get_valid_options {
+  {UseDefcols => 0,Lines => 1, Smooth => 0, Material => 0, KeepLighting => 0}
+}
 sub new {
   my ($class,$points,$colors,$options) = @_;
   my $this = $class->SUPER::new($points,$colors,$options);

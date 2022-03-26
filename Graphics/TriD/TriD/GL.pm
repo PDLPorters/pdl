@@ -369,6 +369,7 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 # By-vertex doesn't make sense otherwise.
 	glShadeModel(GL_SMOOTH);
+	glDisable(GL_LIGHTING) if !$this->{Options}{Material} && !$this->{Options}{KeepLighting};
 	eval {
 	  my $f = 'PDL::gl_triangles_';
 	  $f .= 'w' if $this->{Options}{Smooth};
