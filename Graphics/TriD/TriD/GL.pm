@@ -203,45 +203,66 @@ sub PDL::Graphics::TriD::GObject::togl_graph {
 
 sub PDL::Graphics::TriD::Points::gdraw {
 	my($this,$points) = @_;
-	$this->glOptions();
+	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+	$this->glOptions;
 	glDisable(GL_LIGHTING);
-	PDL::gl_points_col($points,$this->{Colors});
-	glEnable(GL_LIGHTING);
+	eval {
+	  PDL::gl_points_col($points,$this->{Colors});
+	};
+	{ local $@; glPopAttrib(); }
+	die if $@;
 }
 
 sub PDL::Graphics::TriD::Spheres::gdraw {
    my($this,$points) = @_;
-   $this->glOptions();
+   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+   $this->glOptions;
    glEnable(GL_LIGHTING);
    glShadeModel(GL_SMOOTH);
-   PDL::gl_spheres($points, 0.025, 15, 15);
+   eval {
+      PDL::gl_spheres($points, 0.025, 15, 15);
+   };
+   { local $@; glPopAttrib(); }
+   die if $@;
 }
 
 sub PDL::Graphics::TriD::Lattice::gdraw {
 	my($this,$points) = @_;
 	barf "Need 3D points AND colours"
 	  if grep $_->ndims < 3, $points, $this->{Colors};
-	$this->glOptions();
+	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+	$this->glOptions;
 	glDisable(GL_LIGHTING);
-	PDL::gl_line_strip_col($points,$this->{Colors});
-	PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
-	glEnable(GL_LIGHTING);
+	eval {
+	  PDL::gl_line_strip_col($points,$this->{Colors});
+	  PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
+	};
+	{ local $@; glPopAttrib(); }
+	die if $@;
 }
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {
 	my($this,$points) = @_;
-	$this->glOptions();
+	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+	$this->glOptions;
 	glDisable(GL_LIGHTING);
-	PDL::gl_line_strip_col($points,$this->{Colors});
-	glEnable(GL_LIGHTING);
+	eval {
+	  PDL::gl_line_strip_col($points,$this->{Colors});
+	};
+	{ local $@; glPopAttrib(); }
+	die if $@;
 }
 
 sub PDL::Graphics::TriD::Lines::gdraw {
 	my($this,$points) = @_;
-	$this->glOptions();
+	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+	$this->glOptions;
 	glDisable(GL_LIGHTING);
-	PDL::gl_lines_col($points,$this->{Colors});
-	glEnable(GL_LIGHTING);
+	eval {
+	  PDL::gl_lines_col($points,$this->{Colors});
+	};
+	{ local $@; glPopAttrib(); }
+	die if $@;
 }
 
 sub PDL::Graphics::TriD::GObject::glOptions {
@@ -256,30 +277,33 @@ sub PDL::Graphics::TriD::GObject::_lattice_lines {
   glColor3f(0,0,0);
   PDL::gl_line_strip_nc($points);
   PDL::gl_line_strip_nc($points->xchg(1,2));
-  glEnable(GL_LIGHTING);
 }
 
 sub PDL::Graphics::TriD::Contours::gdraw {
   my($this,$points) = @_;
-  $this->glOptions();
+  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  $this->glOptions;
   glDisable(GL_LIGHTING);
-  my $pcnt=0;
-  my $i=0;
-  foreach (grep defined, @{$this->{ContourSegCnt}}){
-	my $colors =  $this->{Colors};
-	$colors = $colors->slice(":,($i)") if $colors->getndims==2;
-	PDL::gl_lines_col($points->slice(":,$pcnt:$_"),$colors);
-	$i++;
-	$pcnt=$_+1;
-  }
-  if(defined $this->{Labels}){
-	 glColor3d(1,1,1);
-	 my $seg = sprintf(":,%d:%d",$this->{Labels}[0],$this->{Labels}[1]);
-	 PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
-		 $this->{Options}{Font}
-		 ,$this->{LabelStrings});
-  }
-  glEnable(GL_LIGHTING);
+  eval {
+    my $pcnt=0;
+    my $i=0;
+    foreach (grep defined, @{$this->{ContourSegCnt}}){
+	  my $colors =  $this->{Colors};
+	  $colors = $colors->slice(":,($i)") if $colors->getndims==2;
+	  PDL::gl_lines_col($points->slice(":,$pcnt:$_"),$colors);
+	  $i++;
+	  $pcnt=$_+1;
+    }
+    if(defined $this->{Labels}){
+	   glColor3d(1,1,1);
+	   my $seg = sprintf(":,%d:%d",$this->{Labels}[0],$this->{Labels}[1]);
+	   PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
+		   $this->{Options}{Font}
+		   ,$this->{LabelStrings});
+    }
+  };
+  { local $@; glPopAttrib(); }
+  die if $@;
 }
 
 my @sls1 = (
@@ -305,8 +329,8 @@ sub PDL::Graphics::TriD::SLattice::gdraw {
 	my($this,$points) = @_;
 	barf "Need 3D points"
 	  if grep $_->ndims < 3, $points;
-	$this->glOptions();
 	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+	$this->glOptions;
 	glDisable(GL_LIGHTING);
 # By-vertex doesn't make sense otherwise.
 	glShadeModel(GL_SMOOTH);
@@ -322,8 +346,8 @@ sub PDL::Graphics::TriD::SCLattice::gdraw {
 	my($this,$points) = @_;
 	barf "Need 3D points"
 	  if grep $_->ndims < 3, $points;
-	$this->glOptions();
 	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+	$this->glOptions;
 	glDisable(GL_LIGHTING);
 # By-vertex doesn't make sense otherwise.
 	glShadeModel(GL_FLAT);
@@ -339,8 +363,8 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	my($this,$points) = @_;
 	barf "Need 3D points"
 	  if grep $_->ndims < 3, $points;
-	$this->glOptions();
 	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+	$this->glOptions;
 # For some reason, we need to set this here as well.
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 # By-vertex doesn't make sense otherwise.
@@ -364,6 +388,7 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 sub PDL::Graphics::TriD::STrigrid_S::gdraw {
   my($this,$points) = @_;
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  $this->glOptions;
   eval {
     # For some reason, we need to set this here as well.
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -398,6 +423,7 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
 sub PDL::Graphics::TriD::STrigrid::gdraw {
   my($this,$points) = @_;
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  $this->glOptions;
   eval {
     glDisable(GL_LIGHTING);
 # By-vertex doesn't make sense otherwise.
@@ -465,7 +491,6 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	};
 	{ local $@; glEnd(); glPopAttrib(); }
 	die if $@;
-	glDisable(GL_TEXTURE_2D);
 }
 
 sub PDL::Graphics::TriD::SimpleController::togl {

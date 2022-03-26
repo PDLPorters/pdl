@@ -5,12 +5,10 @@
 package PDL::Demos::TriD1;
 
 use PDL::Graphics::TriD;
-use PDL::Graphics::TriD::Image;
 
 sub info {('3d', '3d demo (requires TriD with OpenGL or Mesa)')}
 sub init {'
 use PDL::Graphics::TriD;
-use PDL::Graphics::TriD::Image;
 '}
 
 my @demo = (
@@ -26,7 +24,6 @@ my @demo = (
 
 		use PDL;
 		use PDL::Graphics::TriD;
-		use PDL::Graphics::TriD::Image;
 
 	to work properly.
 |],
