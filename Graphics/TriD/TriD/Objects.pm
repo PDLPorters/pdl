@@ -40,17 +40,16 @@ sub new {
 		$options = $colors;
 		undef $colors;
 	}
+	$options = { $options ? %$options : () };
+	$options->{UseDefcols} = 1 if !defined $colors; # for VRML efficiency
+	$this->{Options} = $options;
+	$this->check_options;
 	print "GObject new - calling realcoords\n" if($PDL::Graphics::TriD::verbose);
-	$points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+	$this->{Points} = $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
 	print "GObject new - back from  realcoords\n" if($PDL::Graphics::TriD::verbose);
-	if(!defined $colors) {$colors = PDL->pdl(1,1,1);
-		$colors = $type->cdummies($colors,$points);
-	        $options->{UseDefcols} = 1;  # for VRML efficiency
-	} else {
-		$colors = PDL::Graphics::TriD::realcoords("COLOR",$colors);
-	}
-	@$this{qw(Points Colors Options)} = ($points, $colors, $options);
-	$this->check_options();
+	$this->{Colors} = defined $colors
+	  ? PDL::Graphics::TriD::realcoords("COLOR",$colors)
+	  : $this->cdummies(PDL->pdl(1,1,1),$points);
 	print "GObject new - returning\n" if($PDL::Graphics::TriD::verbose);
 	return $this;
 }
@@ -137,7 +136,8 @@ sub new {
   else { $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors); }
   my $this = bless { Points => $points, Faceidx => $faceidx, Faces => $faces,
                      Colors => $colors, Options => $options},$type;
-  $this->check_options();return $this;
+  $this->check_options;
+  $this;
 }
 sub get_valid_options {
   return { UseDefcols=>0, Lines=>0, Smooth=>1, Material=>0 }; }  
