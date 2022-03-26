@@ -250,6 +250,15 @@ sub PDL::Graphics::TriD::GObject::glOptions {
   glPointSize($this->{Options}{PointSize} || 1);
 }
 
+sub PDL::Graphics::TriD::GObject::_lattice_lines {
+  my ($this, $points) = @_;
+  glDisable(GL_LIGHTING);
+  glColor3f(0,0,0);
+  PDL::gl_line_strip_nc($points);
+  PDL::gl_line_strip_nc($points->xchg(1,2));
+  glEnable(GL_LIGHTING);
+}
+
 sub PDL::Graphics::TriD::Contours::gdraw {
   my($this,$points) = @_;
   $this->glOptions();
@@ -303,11 +312,7 @@ sub PDL::Graphics::TriD::SLattice::gdraw {
 	glShadeModel(GL_SMOOTH);
 	eval {
 	  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
-	  if ($this->{Options}{Lines}) {
-	    glColor3f(0,0,0);
-	    PDL::gl_line_strip_nc($points);
-	    PDL::gl_line_strip_nc($points->xchg(1,2));
-	  }
+	  $this->_lattice_lines($points) if $this->{Options}{Lines};
 	};
 	{ local $@; glPopAttrib(); }
 	die if $@;
@@ -324,11 +329,7 @@ sub PDL::Graphics::TriD::SCLattice::gdraw {
 	glShadeModel(GL_FLAT);
 	eval {
 	  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
-	  if ($this->{Options}{Lines}) {
-	    glColor3f(0,0,0);
-	    PDL::gl_line_strip_nc($points);
-	    PDL::gl_line_strip_nc($points->xchg(1,2));
-	  }
+	  $this->_lattice_lines($points) if $this->{Options}{Lines};
 	};
 	{ local $@; glPopAttrib(); }
 	die if $@;
@@ -345,20 +346,17 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 # By-vertex doesn't make sense otherwise.
 	glShadeModel(GL_SMOOTH);
 	eval {
-	  my $f = $this->{Options}{Smooth}
-	    ? (!$this->{Options}{Material} ? \&PDL::gl_triangles_wn : \&PDL::gl_triangles_wn_mat)
-	    : (!$this->{Options}{Material} ? \&PDL::gl_triangles_n : \&PDL::gl_triangles_n_mat);
+	  my $f = 'PDL::gl_triangles_';
+	  $f .= 'w' if $this->{Options}{Smooth};
+	  $f .= 'n';
+	  $f .= '_mat' if $this->{Options}{Material};
+	  { no strict 'refs'; $f = \&$f; }
 	  my @pdls = $points;
 	  push @pdls, $this->{Normals} // $this->smoothn($points)
 	    if $this->{Options}{Smooth};
 	  push @pdls, $this->{Colors};
 	  _lattice_slice($f, @pdls);
-	  if ($this->{Options}{Lines}) {
-	    glDisable(GL_LIGHTING);
-	    glColor3f(0,0,0);
-	    PDL::gl_line_strip_nc($points);
-	    PDL::gl_line_strip_nc($points->xchg(1,2));
-	  }
+	  $this->_lattice_lines($points) if $this->{Options}{Lines};
 	};
 	{ local $@; glPopAttrib(); }
 	die if $@;

@@ -4,13 +4,14 @@ use PDL;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Graph;
 
-my $y = PDL->zeroes(3,30,30);
+my $size = 30;
+my $y = PDL->zeroes(3,$size,$size);
 axisvalues($y->slice("(0)")->inplace);
 axisvalues($y->slice("(1)")->transpose->inplace);
-$y /= 30;
+$y /= $size;
 random($y->slice("(2)")->inplace);
 (my $tmp = $y->slice("(2)")) /= 5; $tmp += 2;
-my $c = PDL->zeroes(3,30,30);
+my $c = PDL->zeroes(3,$size,$size);
 random($c->inplace);
 
 my @objs = (
