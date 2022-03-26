@@ -352,8 +352,7 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	  $f .= '_mat' if $this->{Options}{Material};
 	  { no strict 'refs'; $f = \&$f; }
 	  my @pdls = $points;
-	  push @pdls, $this->{Normals} // $this->smoothn($points)
-	    if $this->{Options}{Smooth};
+	  push @pdls, $this->{Normals} if $this->{Options}{Smooth};
 	  push @pdls, $this->{Colors};
 	  _lattice_slice($f, @pdls);
 	  $this->_lattice_lines($points) if $this->{Options}{Lines};
@@ -373,7 +372,6 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
     my @sls = (":,(0)",":,(1)",":,(2)");
     my $idx = [0,1,2,0]; # for lines, below
     if ($this->{Options}{Smooth}) {
-      $this->{Normals} //= $this->smoothn($this->{Points});
       my $f=(!$this->{Options}{Material}?\&PDL::gl_triangles_wn
 					:\&PDL::gl_triangles_wn_mat);
       my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->clump(-1))

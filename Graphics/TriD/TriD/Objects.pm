@@ -151,6 +151,12 @@ sub cdummies {
   return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
 sub get_valid_options {
   return { UseDefcols=>0, Lines=>0, Smooth=>1, Material=>0 }; }
+sub new {
+  my ($class,$points,$faceidx,$colors,$options) = @_;
+  my $this = $class->SUPER::new($points,$faceidx,$colors,$options);
+  $this->{Normals} //= $this->smoothn($points) if $this->{Options}{Smooth};
+  $this;
+}
 # calculate smooth normals
 sub smoothn { my ($this,$ddd) = @_;
   my $v=$this->{Points};my $f=$this->{Faces};my $fvi=$this->{Faceidx};
@@ -218,7 +224,12 @@ sub cdummies { return $_[1]->dummy(1,$_[2]->getdim(2))
 			-> dummy(1,$_[2]->getdim(1)); }
 sub get_valid_options { return {UseDefcols => 0,Lines => 1, Smooth => 0,
 	Material => 0}; }
-
+sub new {
+  my ($class,$points,$colors,$options) = @_;
+  my $this = $class->SUPER::new($points,$colors,$options);
+  $this->{Normals} //= $this->smoothn($points) if $this->{Options}{Smooth};
+  $this;
+}
 # calculate smooth normals
 sub smoothn {
   my ($this,$p) = @_;

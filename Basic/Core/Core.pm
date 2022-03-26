@@ -3440,7 +3440,6 @@ sub str1D {
 
 sub str2D{
     my($self,$format,$level)=@_;
-#    print "STR2D:\n"; $self->printdims();
     my @dims = $self->dims();
     barf "Not 2D" if scalar(@dims)!=2;
     my $x = listref_c($self);
