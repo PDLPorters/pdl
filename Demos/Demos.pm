@@ -9,17 +9,8 @@ require File::Spec;
 our @ISA="Exporter";
 our @EXPORT = qw/comment act actnw output/;
 
-sub home() {
-   if (-e '/usr/bin/tput') {
-      system 'tput clear';
-   } elsif ( $^O eq 'MSWin32' ) {
-      system 'cls';
-   }
-}
-
 sub comment($) {
    local $SIG{__DIE__} = \&Carp::confess;
-   home();
    print "----\n";
    print $_[0];
    my $prompt = "---- (press enter)";
@@ -39,7 +30,6 @@ sub _eval_pkg {
 }
 sub actnw($) {
    local $SIG{__DIE__} = \&Carp::confess;
-   home();
    my ($script, $pack) = @_;
    $script =~ s/^(\s*)output/$1print/mg;
    print "---- Code:";
