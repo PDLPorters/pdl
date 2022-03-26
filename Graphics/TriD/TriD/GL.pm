@@ -212,6 +212,7 @@ sub PDL::Graphics::TriD::Points::gdraw {
 sub PDL::Graphics::TriD::Spheres::gdraw {
    my($this,$points) = @_;
    $this->glOptions();
+   glEnable(GL_LIGHTING);
    glShadeModel(GL_SMOOTH);
    PDL::gl_spheres($points, 0.025, 15, 15);
 }
@@ -352,8 +353,8 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	    if $this->{Options}{Smooth};
 	  push @pdls, $this->{Colors};
 	  _lattice_slice($f, @pdls);
-	  glDisable(GL_LIGHTING);
 	  if ($this->{Options}{Lines}) {
+	    glDisable(GL_LIGHTING);
 	    glColor3f(0,0,0);
 	    PDL::gl_line_strip_nc($points);
 	    PDL::gl_line_strip_nc($points->xchg(1,2));
@@ -388,8 +389,8 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
       &$f( (map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
 	   (map {$this->{Colors}->slice($_)} @sls) );
     }
-    glDisable(GL_LIGHTING);
     if ($this->{Options}{Lines}) {
+      glDisable(GL_LIGHTING);
       glColor3f(0,0,0);
       PDL::gl_lines_nc($this->{Faces}->dice_axis(1,$idx));
     }
@@ -443,6 +444,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	if(!defined $vert) {$vert = $this->{Points}}
 	barf "Need 3,4 vert"
 	  if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
+	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
 	glColor3d(1,1,1);
          glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
 	 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
@@ -465,9 +467,8 @@ sub PDL::Graphics::TriD::Image::gdraw {
 		  glVertex3f($vert->slice(":,($_)")->list);
 	  }
 	};
-	{ local $@; glEnd(); }
+	{ local $@; glEnd(); glPopAttrib(); }
 	die if $@;
-	glEnable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 }
 
