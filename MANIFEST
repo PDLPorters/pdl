@@ -656,6 +656,7 @@ Libtmp/Transform/Cartography/earth_coast.vec.fits
 Libtmp/Transform/Cartography/earth_day.jpg
 Libtmp/Transform/Cartography/earth_height-2048x1024.jpg
 Libtmp/Transform/Cartography/earth_night.jpg
+Libtmp/Transform/Cartography/earth_water-2048x1024.png
 Libtmp/Transform/Cartography/Makefile.PL
 Libtmp/Transform/Makefile.PL
 Libtmp/Transform/Proj4/Makefile.PL
