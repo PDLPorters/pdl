@@ -105,15 +105,12 @@ pp_def(
 	OtherPars => 'int base; SV *arr',
 	Code => '
 		SV *sv = $COMP(arr);
-		AV *arr;
 		if(!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV)) {
 			$CROAK("gl_texts requires an array ref");
 		}
-		arr = (AV *)SvRV(sv);
-
+		AV *arr = (AV *)SvRV(sv);
 		glPushAttrib(GL_LIST_BIT);
 		glListBase($COMP(base));
-
 		loop(x) %{
 			SV *elem = *(av_fetch(arr, x, 0));
 			if(elem) {
@@ -123,7 +120,6 @@ pp_def(
 					(GLubyte*)str);
 			}
 		%}
-
 		glPopAttrib();
 	',
 	@internal

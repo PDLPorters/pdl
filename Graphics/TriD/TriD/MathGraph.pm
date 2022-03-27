@@ -41,8 +41,8 @@ sub gdraw {
 	glDisable(&GL_LIGHTING);
 # 	print "Color: $this->{Color} @{$this->{Color}}\n";
 	glColor3d(@{$this->{Options}{Color}});
-	PDL::Graphics::OpenGLQ::gl_arrows($points,$this->{Options}{From},
-		$this->{Options}{To},$this->{ArrowLen},$this->{ArrowWidth});
+	PDL::Graphics::OpenGLQ::gl_arrows($points,@{$this->{Options}}{qw(From To
+		ArrowLen ArrowWidth)});
 	glEnable(&GL_LIGHTING);
 }
 
@@ -153,7 +153,7 @@ sub step {
 #	print "V: $velr $vela\n";
 
 	my $tst = 0.10;
-	$this->{Velo} += $tst * 0.02 * ($velr + $vela);
+	$this->{Velo} = ($this->{Velo}//0) + $tst * 0.02 * ($velr + $vela);
 	$this->{Velo} *=
 	  ((0.92*50/(50+sqrt(($this->{Velo}**2)->sumover->dummy(0)))))**$tst;
 	$c += $tst * 0.05 * $this->{Velo};

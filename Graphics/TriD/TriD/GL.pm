@@ -38,11 +38,8 @@ sub PDL::Graphics::TriD::Object::cannot_mklist {
 
 sub PDL::Graphics::TriD::Object::gl_update_list {
   my($this) = @_;
-  if($this->{List}) {
-	 glDeleteLists($this->{List},1);
-  }
-  my $lno = glGenLists(1);
-  $this->{List} = $lno;
+  glDeleteLists($this->{List},1) if $this->{List};
+  $this->{List} = my $lno = glGenLists(1);
   print "GENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
   glNewList($lno,GL_COMPILE);
   eval {
@@ -52,7 +49,7 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
     print "EGENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
     #	pdltotrianglemesh($pdl, 0, 1, 0, ($pdl->{Dims}[1]-1)*$mult);
   };
-  glEndList();
+  { local $@; glEndList(); }
   die if $@;
   print "VALID1 $this\n" if($PDL::Graphics::TriD::verbose);
   $this->{ValidList} = 1;

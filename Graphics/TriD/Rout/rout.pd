@@ -34,10 +34,6 @@ Combine three coordinates into a single ndarray.
 
 Combine x, y and z to a single ndarray the first dimension
 of which is 3. This routine does dataflow automatically.
-
-=cut
-
-
 EOT
 
 );
@@ -63,8 +59,7 @@ pp_def(
 		double b = $COMP(b);
 		double c = $COMP(c);
 		double d = $COMP(d);
-		int ind; int x,y,z; SV **svp; SV *sv;
-		int npv;
+		int ind; int x,y,z;
 		HV *hv = newHV();
 		double boxsize = $COMP(boxsize);
 		int dmult = $COMP(dmult);
@@ -82,7 +77,7 @@ pp_def(
 			for(z=-1; z<=1; z++) {
 				int ni = index + x + dmult * y +
 					dmult * dmult * z;
-				svp = hv_fetch(hv, (char *)&ni, sizeof(int),
+				SV **svp = hv_fetch(hv, (char *)&ni, sizeof(int),
 					0);
 				if(svp && *svp) {
 					ind = SvIV(*svp) - 1;
@@ -119,12 +114,12 @@ pp_def(
 			}
 			}
 			/* Store new */
-			svp = hv_fetch(hv, (char *)&index, sizeof(int), 1);
-			if(svp == NULL) {
-				die("Invalid sv from hvfetch");
-			}
-			sv = *svp;
-			if((npv = SvIV(sv))) {
+			SV **svp = hv_fetch(hv, (char *)&index, sizeof(int), 1);
+			if(!svp || !*svp)
+				$CROAK("Invalid sv from hvfetch");
+			SV *sv = *svp;
+			int npv;
+			if(SvOK(sv) && (npv = SvIV(sv))) {
 				npv --;
 				$links() = $links(np => npv);
 				$links(np => npv) = np;
@@ -143,10 +138,6 @@ C<repulse> uses a hash table of cubes to quickly calculate
 a repulsive force that vanishes at infinity for many
 objects. For use by the module L<PDL::Graphics::TriD::MathGraph>.
 For definition of the potential, see the actual function.
-
-=cut
-
-
 '
 );
 
@@ -196,10 +187,6 @@ objects, of which some attract each other (in a way
 like molecular bonds).
 For use by the module L<PDL::Graphics::TriD::MathGraph>.
 For definition of the potential, see the actual function.
-
-=cut
-
-
 '
 );
 
@@ -263,29 +250,20 @@ polygons.
 
 =cut
 
-use strict;
 sub PDL::Graphics::TriD::Contours::contour_segments {
 	my($this,$c,$data,$points) = @_;
 # pre compute space for output of pp routine
-
   my $segdim = ($data->getdim(0)-1)*($data->getdim(1)-1)*4;
-#  print "segdim = $segdim\n"; 
   my $segs = zeroes(3,$segdim,$c->nelem);
   my $cnt = zeroes($c->nelem);
   contour_segments_internal($c,$data,$points,$segs,$cnt);
-
-#  print "contour segments done ",$points->info,"\n";
-
   $this->{Points} = pdl->null;
-
   my $pcnt=0;
   my $ncnt;
   for(my $i=0; $i<$c->nelem; $i++){
 	   $ncnt = $cnt->slice("($i)");
       next if($ncnt==-1);
-
 		$pcnt = $pcnt+$ncnt;
-			      
 		$this->{ContourSegCnt}[$i] =  $pcnt;
 		$pcnt=$pcnt+1;    
 		$this->{Points} = $this->{Points}->append($segs->slice(":,0:$ncnt,($i)")->transpose);
@@ -294,7 +272,6 @@ sub PDL::Graphics::TriD::Contours::contour_segments {
 	
 }
 EOD
-
 
 pp_def('contour_segments_internal',
 	Pars => 'c(); 
@@ -314,7 +291,7 @@ pp_def('contour_segments_internal',
 		ns = $SIZE(n);
 
 		if(ds != 3){
-			croak("Bad first dimension in contour_segments");
+			$CROAK("Bad first dimension in contour_segments");
 		}	
 		p=0;
 		p1=1;
@@ -454,18 +431,8 @@ pp_def('contour_segments_internal',
 			$cnt()=p-1;'
 , 
        Doc => undef,
-#'
-#=for ref
-#
-#Internal support for contour_segments above.
-#
-#=cut
-#'
-
-
 );
 
-			
 pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
@@ -479,11 +446,6 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
-
-
 EOD
 
 pp_done();
-
-
-
