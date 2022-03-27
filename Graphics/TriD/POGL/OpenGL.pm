@@ -333,6 +333,7 @@ sub XPending {
    my($self) = @_;
    if ( $self->{window_type} eq 'glut' ) {
       # monitor state of @fakeXEvents, return number on queue
+      OpenGL::GLUT::glutMainLoopEvent() if !@{$self->{xevents}};
       print STDERR "OO::XPending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n" if $PDL::Graphics::TriD::verbose > 1;
       scalar( @{$self->{xevents}} );
    } else {
@@ -400,6 +401,36 @@ sub glpRasterFont {
      }
      return $lb;
   }
+}
+
+=head2 swap_buffers
+
+OO interface to swapping display buffers
+
+=cut
+
+sub swap_buffers {
+  my ($this) = @_;
+  if ( $this->{window_type} eq 'glut' ) {
+    OpenGL::GLUT::glutSwapBuffers();
+  } elsif ( $this->{window_type} eq 'x11' ) {
+    $this->glXSwapBuffers();
+  } else {
+    die "swap_buffers: got object with inconsistent _GLObject info\n";
+  }
+}
+
+=head2 set_window
+
+OO interface to setting the display window (if appropriate)
+
+=cut
+
+sub set_window {
+  my ($this) = @_;
+  return if $this->{window_type} ne 'glut';
+  # set GLUT context to current window (for multiwindow support)
+  OpenGL::GLUT::glutSetWindow($this->{glutwindow});
 }
 
 =head2 AUTOLOAD

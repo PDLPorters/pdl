@@ -600,11 +600,6 @@ sub twiddle {
    print "EVENT!\n" if($PDL::Graphics::TriD::verbose);
 	 my $hap = 0;
 	 my $gotev = 0;
-         # Run a MainLoop event if GLUT windows
-         # this pumps the system allowing callbacks to populate
-         # the fake XEvent queue.
-         #
-         glutMainLoopEvent() if $this->{_GLObject}->{window_type} eq 'glut' and not $this->{_GLObject}->XPending();
          if ($this->{_GLObject}->XPending() or !$getout) {
             @e = $this->{_GLObject}->glpXNextEvent();
             $gotev=1;
@@ -683,10 +678,7 @@ sub domotion {
 sub display {
   my($this) = @_;
   return unless defined($this);
-  # set GLUT context to current window (for multiwindow support)
-  if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
-     glutSetWindow($this->{_GLObject}->{glutwindow});
-  }
+  $this->{_GLObject}->set_window; # for multiwindow support
   print "display: calling glClear()\n" if ($PDL::Graphics::TriD::verbose);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
@@ -700,14 +692,8 @@ sub display {
 	 $vp->gl_call_list();
 	 glPopMatrix();
   }
-  print "display: SwapBuffers() call on return\n" if ($PDL::Graphics::TriD::verbose);
-  if ( $this->{_GLObject}->{window_type} eq 'glut' ) {  # need to make method call
-    glutSwapBuffers();
-  } elsif ( $this->{_GLObject}->{window_type} eq 'x11' ) {  # need to make method call
-    $this->{_GLObject}->glXSwapBuffers();
-  } else {
-    print "display: got object with inconsistent _GLObject info\n";
-  }
+  $this->{_GLObject}->swap_buffers;
+  print "display: after SwapBuffers\n" if $PDL::Graphics::TriD::verbose;
 }
 
 # should this really be in viewport?
