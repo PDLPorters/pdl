@@ -76,7 +76,7 @@ sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
 sub ADCOLOR { "
   {
     GLfloat ad[] = { ".TRI('$colors'.$_[0]).",1.0 };
-    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, ad);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE, ad);
   }
 " }
 

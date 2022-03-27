@@ -120,10 +120,20 @@ imag3d([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
 
 [actnw => q|
 # Ripply torus distorted [Tjl]
-use PDL; use PDL::Graphics::TriD;
 $s=40;$x=zeroes 2*$s,$s/2;$t=$x->xlinvals(0,6.284);$u=$x->ylinvals(0,
 6.284); $o=5;$i=1;$v=$o-$o/2*sin(3*$t)+$i*sin$u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
+# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
+# 3D cardioid [Tjl]
+use PDL::Graphics::TriD::Polygonize;
+imag3d PDL::Graphics::TriD::StupidPolygonize::stupidpolygonize(
+  float(0,0,0), 5, 50, 10, sub {
+    my($x,$y,$z) = $_[0]->mv(0,-1)->dog;
+    1 - ($x**2 + 1.5*$y**2 + 0.3 * $z**2 + 5*($x**2-$y)**2);
+  }), {Lines => 0};
 # [press 'q' in the graphics window when done]
 |],
 
@@ -162,7 +172,7 @@ $k=ones(5,5) / 25; $x=5; $y=ones(1,1)/2;
 for(1..7) {
   $c=$y->dupN(2,2)->copy;
   $c+=$x*$c->random; $x/=3;
-  $y=conv2d($c,$k); imag3d[$y],{Lines => 0};
+  $y=conv2d($c,$k); imag3d[$y],{Lines => 0, Smooth => 0};
 }
 
 # [press 'q' in the graphics window to iterate (runs 7 times)]
