@@ -514,8 +514,8 @@ user explicitly presses 'q'.
  nokeeptwiddling3d();
  $o = imag3d($c);
  do {
- 	$c .= nextfunc($c);
- 	$o->data_changed();
+	$c .= nextfunc($c);
+	$o->data_changed;
  } while(!twiddle3d()); # animate one step, then iterate
  keeptwiddling3d();
  twiddle3d(); # wait one last time

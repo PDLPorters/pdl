@@ -1,45 +1,40 @@
-use blib;
+use strict;
+use warnings;
 use PDL;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Graph;
 use PDL::Graphics::TriD::MathGraph;
 use PDL::Graphics::TriD::Labels;
 
-$g = PDL::Graphics::TriD::get_new_graph();
+my $g = PDL::Graphics::TriD::get_new_graph();
 $g->default_axes();
 
-$coords = [
+my @coords = (
  [ 0,-1,0 ],
  [ -1,-1,-2],
  [3,5,2],
  [2,1,-3],
  [1,3,1],
  [1,1,2],
-];
+);
 
+my $from = PDL->pdl([0,1,2,3,4,4,4,5,5,5]);
+my $to = PDL->pdl([1,2,3,1,0,2,3,0,1,2]);
 
-$from = PDL->pdl([0,1,2,3,4,4,4,5,5,5]);
-$to = PDL->pdl([1,2,3,1,0,2,3,0,1,2]);
+my @names = map join(",",@$_), @coords;
 
-for(@$coords) {
-	push @$names,join ",",@$_;
-}
-
-$e = new PDL::GraphEvolver(scalar @$coords);
+my $e = PDL::GraphEvolver->new(scalar @coords);
 $e->set_links($from,$to,PDL->ones(1));
-$c = $e->getcoords;
+my $c = $e->getcoords;
 
-$g->add_dataseries($lab = new PDL::Graphics::TriD::Labels($c,{Strings => $names}),
-	"foo1");
-$g->bind_default("foo1");
-
-$g->add_dataseries($lin = new PDL::Graphics::TriD::MathGraph(
-	$c, {From => $from, To => $to}),"foo2");
-$g->bind_default("foo2");
+$g->add_dataseries(my $lab = PDL::Graphics::TriD::Labels->new($c,{Strings => \@names}));
+$g->add_dataseries(my $lin = PDL::Graphics::TriD::MathGraph->new(
+	$c, {From => $from, To => $to}));
 
 $g->scalethings();
 
 nokeeptwiddling3d();
+my $ind = 0;
 twiddle3d();
 while(1) {
 	$e->step();
@@ -47,8 +42,6 @@ while(1) {
 		$lab->data_changed();
 		$lin->data_changed();
 		$g->scalethings() if (($ind % 200) == 0 or 1);
-		print "C: $c\n" if $verbose;
-		twiddle3d();
+		last if twiddle3d();
 	}
-
 }

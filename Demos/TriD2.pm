@@ -10,7 +10,6 @@ use PDL::Graphics::TriD::Image;
 sub info {('3d2', '3d demo, part 2. (Somewhat memory-intensive)')}
 sub init {'
 use PDL::Graphics::TriD;
-use PDL::Graphics::TriD::Image;
 '}
 
 my @demo = (
@@ -26,7 +25,6 @@ my @demo = (
 
 		use PDL;
 		use PDL::Graphics::TriD;
-		use PDL::Graphics::TriD::Image;
 
 	to work.
 |],
@@ -38,7 +36,6 @@ my @demo = (
 	# Number of subdivisions for lines / surfaces.
 	$size = 25;
 
-	# You remember this from the first 3d demo, right?
 	$r = (xvals zeroes $size+1,$size+1) / $size;
 	$g = (yvals zeroes $size+1,$size+1) / $size;
 	$b = ((sin($r*6.3) * sin($g*6.3)) ** 3)/2 + 0.5;   # Bumps
@@ -72,7 +69,8 @@ my @demo = (
 	# Lighten it up a bit so you see the background,
 	# black on black is confusing
 	$l = 0.3;
-	$pic = ($pic + $l) / (1 + $l);
+	sub lighten { $_[0] = ($_[0] + $l) / (1 + $l) }
+	lighten($pic);
 
 	# And plot it in the picture ;) ;)
 	hold3d(); 	# You remember, we leave the previous one in...
@@ -88,8 +86,7 @@ my @demo = (
 	# That was fun - let's do that again!
 	$pic1 = grabpic3d();
 
-	# Lighten it up
-	$pic1 = ($pic1 + $l) / (1 + $l);
+	lighten($pic1); # Lighten it up
 
 	# And plot it in the picture ;) ;)
 	hold3d(); 	# You remember, we leave the previous one in...
@@ -104,7 +101,7 @@ my @demo = (
 		$p = grabpic3d();
 		$p = ($p + $l) / (1 + $l);
 		$pic .= $p; $pic1 .= $p;
-		$o0->data_changed(); $o1->data_changed();
+		$_->data_changed for $o0, $o1;
 		last if twiddle3d(); # exit from loop when 'q' pressed
 	}
         # [press 'q' in the graphics window when done]

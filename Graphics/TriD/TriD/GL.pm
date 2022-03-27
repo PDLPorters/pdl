@@ -57,8 +57,8 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
 
 sub PDL::Graphics::TriD::Object::gl_call_list {
 	my($this) = @_;
-	print "CALLIST ",$this->{List}//'undef',"!\n" if($PDL::Graphics::TriD::verbose);
-	print "CHECKVALID $this\n" if($PDL::Graphics::TriD::verbose);
+	print "CALLIST ",$this->{List}//'undef',"!\n" if $PDL::Graphics::TriD::verbose;
+	print "CHECKVALID $this=$this->{ValidList}\n" if $PDL::Graphics::TriD::verbose;
 	$this->gl_update_list if !$this->{ValidList};
 	glCallList($this->{List});
 	return if !$PDL::Graphics::TriD::any_cannots;
@@ -507,9 +507,6 @@ use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Ev Width Height Interactive _GLObject
               _ViewPorts _CurrentViewPort /;
 
-sub i_keep_list {return 1} # For Object, so I will be notified of changes.
-use strict;
-
 sub gdriver {
   my($this, $options) = @_;
   print "GL gdriver...\n" if($PDL::Graphics::TriD::verbose);
@@ -720,17 +717,14 @@ use OpenGL qw(
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use fields qw/X Y Buttons VP/;
-use strict;
 sub new {
   my $class = shift;
   my $vp = shift;
-  no strict 'refs';
   my $self = fields::new($class);
   $self->{X} = -1;
   $self->{Y} = -1;
   $self->{Buttons} = [];
   $self->{VP} = $vp;
-
   $self;
 }
 
@@ -818,12 +812,12 @@ sub highlight {
 
 sub do_perspective {
 	my($this) = @_;
-	print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if($PDL::Graphics::TriD::verbose);
+	print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if $PDL::Graphics::TriD::verbose;
 	print Carp::longmess() if $PDL::Graphics::TriD::verbose>1;
         unless($this->{W}>0 and $this->{H}>0) {return;}
 	$this->{AspectRatio} = (1.0*$this->{W})/$this->{H};
 	glViewport($this->{X0},$this->{Y0},$this->{W},$this->{H});
-	$this->highlight() if($this->{Active});
+	$this->highlight if $this->{Active};
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(40.0, $this->{AspectRatio} , 0.1, 200000.0);

@@ -83,7 +83,7 @@ sub defcols { $_[0]{Options}{UseDefcols} }
 # In the future, have this happen automatically by the ndarrays.
 sub data_changed {
 	my($this) = @_;
-	$this->changed();
+	$this->changed;
 }
 
 package PDL::Graphics::TriD::Points;

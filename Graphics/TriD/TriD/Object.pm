@@ -43,15 +43,13 @@ sub add_object {
   for(@{$this->{ChangedSub}}) {
     $object->add_changedsub($_);
   }
-  if($this->i_keep_list) {
-    $object->add_changedsub(sub {$this->changed_from_above()});
-  }
+  $object->add_changedsub(sub {$this->changed_from_above()});
 }
 
 sub changed_from_above {
 	my($this) = @_;
 	print "CHANGED_FROM_ABOVE\n" if $PDL::Graphics::TriD::verbose;
-	$this->changed();
+	$this->changed;
 }
 
 sub add_changedsub {
@@ -78,15 +76,8 @@ sub changed {
 	my($this) = @_;
 	print "VALID0 $this\n" if $PDL::Graphics::TriD::verbose;
 	$this->{ValidList} = 0;
-	for(@{$this->{ChangedSub}}) {
-		&$_($this);
-	}
+	$_->($this) for @{$this->{ChangedSub}};
 }
-
-sub i_keep_list {
-	return 0;
-}
-
 
 sub vrml_update {
   my ($this) = @_;
