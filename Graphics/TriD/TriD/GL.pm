@@ -369,12 +369,10 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 # By-vertex doesn't make sense otherwise.
 	glShadeModel(GL_SMOOTH);
-	glDisable(GL_LIGHTING) if !$this->{Options}{Material} && !$this->{Options}{KeepLighting};
 	eval {
 	  my $f = 'PDL::gl_triangles_';
 	  $f .= 'w' if $this->{Options}{Smooth};
-	  $f .= 'n';
-	  $f .= '_mat' if $this->{Options}{Material};
+	  $f .= 'n_mat';
 	  { no strict 'refs'; $f = \&$f; }
 	  my @pdls = $points;
 	  push @pdls, $this->{Normals} if $this->{Options}{Smooth};
@@ -398,16 +396,14 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
     my @sls = (":,(0)",":,(1)",":,(2)");
     my $idx = [0,1,2,0]; # for lines, below
     if ($this->{Options}{Smooth}) {
-      my $f=(!$this->{Options}{Material}?\&PDL::gl_triangles_wn
-					:\&PDL::gl_triangles_wn_mat);
+      my $f=\&PDL::gl_triangles_wn_mat;
       my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->clump(-1))
 		      ->splitdim(1,$this->{Faceidx}->dim(0));
       my @args=((map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
 		(map {$tmpn->slice($_)} @sls),
 		(map {$this->{Colors}->slice($_)} @sls) );&$f(@args);
     } else {
-      my $f=(!$this->{Options}{Material}?\&PDL::gl_triangles_n
-					:\&PDL::gl_triangles_n_mat);
+      my $f=\&PDL::gl_triangles_n_mat;
       &$f( (map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
 	   (map {$this->{Colors}->slice($_)} @sls) );
     }

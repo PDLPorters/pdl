@@ -87,8 +87,14 @@ my @demo = (
 |],
 
 [actnw => q|
-	# Draw a surface using OpenGL "material"
-	imag3d [$x,$y,$z], [$x,$y,$z], { Material => 1 };
+	# Draw a shaded, coloured, unsmoothed (default is on) surface
+	imag3d [$x,$y,$z], [$x,$y,$z], { Smooth => 0 };
+	# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
+	# Draw a shaded, coloured, smoothed (the default) surface
+	imag3d [$x,$y,$z], [$x,$y,$z];
 	# [press 'q' in the graphics window when done]
 |],
 
@@ -158,7 +164,7 @@ my @demo = (
 	$earth2 = $earth->mv(0,2)->match([$new_x,int($new_x/2),6])->mv(2,0); # shrink
 	($lonlatrad, $rgb) = map $earth2->slice($_), pdl(0,1,5), '2:4';
 	$sph = t_spherical()->inverse()->apply($lonlatrad);
-	imag3d_ns($sph, $rgb, {Lines=>0});
+	imag3d($sph, $rgb, {Lines=>0});
 	# [press 'q' in the graphics window when done]
 |],
 
@@ -170,7 +176,7 @@ my @demo = (
 	$lonlatrad->slice('2') *= 100;
 	$lonlatrad->slice('2') += 1;
 	$sph = t_spherical()->inverse()->apply($lonlatrad);
-	imag3d_ns($sph, $rgb, {Lines=>0});
+	imag3d($sph, $rgb, {Lines=>0});
 	# [press 'q' in the graphics window when done]
 |],
 
@@ -185,7 +191,7 @@ my @demo = (
 	$lonlatrad->slice('2') *= 50; # exaggerate terrain but less
 	$lonlatrad->slice('2') += 1;
 	$sph = t_spherical()->inverse()->apply($lonlatrad);
-	imag3d_ns($sph, $rgb, {Lines=>0});
+	imag3d($sph, $rgb, {Lines=>0});
 	# [press 'q' in the graphics window when done]
 |],
 

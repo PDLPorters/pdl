@@ -139,8 +139,7 @@ sub new {
   $this->check_options;
   $this;
 }
-sub get_valid_options {
-  return { UseDefcols=>0, Lines=>0, Smooth=>1, Material=>0 }; }  
+sub get_valid_options { { UseDefcols=>0, Lines=>0, Smooth=>1 } }
 sub cdummies {
   return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
 
@@ -149,12 +148,10 @@ package PDL::Graphics::TriD::STrigrid_S;
 use base qw/PDL::Graphics::TriD::GPObject/;
 sub cdummies {
   return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
-sub get_valid_options {
-  return { UseDefcols=>0, Lines=>0, Smooth=>1, Material=>0 }; }
 sub new {
   my ($class,$points,$faceidx,$colors,$options) = @_;
   my $this = $class->SUPER::new($points,$faceidx,$colors,$options);
-  $this->{Normals} //= $this->smoothn($points) if $this->{Options}{Smooth};
+  $this->{Normals} //= $this->smoothn($this->{Points}) if $this->{Options}{Smooth};
   $this;
 }
 # calculate smooth normals
@@ -189,8 +186,7 @@ use base qw/PDL::Graphics::TriD::GPObject/;
 sub cdummies { # copied from SLattice_S; not yet modified...
   # called with (type,colors,faces)
   return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
-sub get_valid_options { # copied from SLattice_S; not yet modified...
-  return { UseDefcols => 0, Lines => 1, Smooth => 0, Material => 0 }; }
+sub get_valid_options { { UseDefcols => 0, Lines => 1, Smooth => 1 } }
 
 ################# JNK 15mar11 added section finis #########################
 ###########################################################################   
@@ -221,16 +217,15 @@ package PDL::Graphics::TriD::SLattice_S;
 use base qw/PDL::Graphics::TriD::GObject_Lattice/;
 use fields qw/Normals/;
 sub cdummies {
-  $_[0]->{Options}{KeepLighting} = 1 if !$_[0]->{Options}{Material};
-  $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1));
+  $_[1]->slice(":," . join ',', map "*$_", ($_[2]->dims)[1,2])
 }
 sub get_valid_options {
-  {UseDefcols => 0,Lines => 1, Smooth => 0, Material => 0, KeepLighting => 0}
+  {UseDefcols => 0,Lines => 1, Smooth => 1}
 }
 sub new {
   my ($class,$points,$colors,$options) = @_;
   my $this = $class->SUPER::new($points,$colors,$options);
-  $this->{Normals} //= $this->smoothn($points) if $this->{Options}{Smooth};
+  $this->{Normals} //= $this->smoothn($this->{Points}) if $this->{Options}{Smooth};
   $this;
 }
 # calculate smooth normals
