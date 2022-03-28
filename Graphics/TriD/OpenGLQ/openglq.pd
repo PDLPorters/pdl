@@ -192,7 +192,6 @@ pp_def('gl_arrows',
 		float hl = $COMP(headlen);
 		float w = $COMP(width);
 		float tmp2[3] = { 0.000001, -0.0001, 1 };
- 		glBegin(GL_LINES);
 		broadcastloop %{
 			PDL_Indx a = $indsa(), b = $indsb();
 			float tmp1[3]; 
@@ -205,6 +204,10 @@ pp_def('gl_arrows',
 				  $coords(tri => 1, n => b);
 			tmp1[2] = $coords(tri => 2, n => a) -
 				  $coords(tri => 2, n => b);
+			float partback[3];
+			partback[0] = $coords(tri => 0, n => b) + hl*tmp1[0];
+			partback[1] = $coords(tri => 1, n => b) + hl*tmp1[1];
+			partback[2] = $coords(tri => 2, n => b) + hl*tmp1[2];
 			norm[0] = tmp1[1]*tmp2[2] - tmp2[1]*tmp1[2];
 			norm[1] = -(tmp1[0]*tmp2[2] - tmp2[0]*tmp1[2]);
 			norm[2] = tmp1[0]*tmp2[1] - tmp2[0]*tmp1[1];
@@ -226,40 +229,55 @@ pp_def('gl_arrows',
 			tmp1[0] /= origlen;
 			tmp1[1] /= origlen;
 			tmp1[2] /= origlen;
+			glBegin(GL_LINES);
 			glVertex3d( $coords(tri => 0, n => a) ,
 				    $coords(tri => 1, n => a) ,
 				    $coords(tri => 2, n => a) );
 			glVertex3d( $coords(tri => 0, n => b) ,
 				    $coords(tri => 1, n => b) ,
 				    $coords(tri => 2, n => b) );
+			glEnd();
 			if(w!=0) {
+			glBegin(GL_TRIANGLES);
 			glVertex3d( $coords(tri => 0, n => b) ,
 				    $coords(tri => 1, n => b) ,
 				    $coords(tri => 2, n => b) );
-			glVertex3d( $coords(tri => 0, n => b) + hl*tmp1[0] + norm[0],
-				    $coords(tri => 1, n => b) + hl*tmp1[1] + norm[1],
-				    $coords(tri => 2, n => b) + hl*tmp1[2] + norm[2]);
+			glVertex3d( partback[0] + norm[0],
+				    partback[1] + norm[1],
+				    partback[2] + norm[2]);
+			glVertex3d( partback[0] + norm2[0],
+				    partback[1] + norm2[1],
+				    partback[2] + norm2[2]);
 			glVertex3d( $coords(tri => 0, n => b) ,
 				    $coords(tri => 1, n => b) ,
 				    $coords(tri => 2, n => b) );
-			glVertex3d( $coords(tri => 0, n => b) + hl*tmp1[0] - norm[0],
-				    $coords(tri => 1, n => b) + hl*tmp1[1] - norm[1],
-				    $coords(tri => 2, n => b) + hl*tmp1[2] - norm[2]);
+			glVertex3d( partback[0] - norm[0],
+				    partback[1] - norm[1],
+				    partback[2] - norm[2]);
+			glVertex3d( partback[0] - norm2[0],
+				    partback[1] - norm2[1],
+				    partback[2] - norm2[2]);
 			glVertex3d( $coords(tri => 0, n => b) ,
 				    $coords(tri => 1, n => b) ,
 				    $coords(tri => 2, n => b) );
-			glVertex3d( $coords(tri => 0, n => b) + hl*tmp1[0] + norm2[0],
-				    $coords(tri => 1, n => b) + hl*tmp1[1] + norm2[1],
-				    $coords(tri => 2, n => b) + hl*tmp1[2] + norm2[2]);
+			glVertex3d( partback[0] + norm2[0],
+				    partback[1] + norm2[1],
+				    partback[2] + norm2[2]);
+			glVertex3d( partback[0] - norm[0],
+				    partback[1] - norm[1],
+				    partback[2] - norm[2]);
 			glVertex3d( $coords(tri => 0, n => b) ,
 				    $coords(tri => 1, n => b) ,
 				    $coords(tri => 2, n => b) );
-			glVertex3d( $coords(tri => 0, n => b) + hl*tmp1[0] - norm2[0],
-				    $coords(tri => 1, n => b) + hl*tmp1[1] - norm2[1],
-				    $coords(tri => 2, n => b) + hl*tmp1[2] - norm2[2]);
+			glVertex3d( partback[0] - norm2[0],
+				    partback[1] - norm2[1],
+				    partback[2] - norm2[2]);
+			glVertex3d( partback[0] + norm[0],
+				    partback[1] + norm[1],
+				    partback[2] + norm[2]);
+			glEnd();
 			}
 		%}
-		glEnd();
 	',
 	@internal
 );

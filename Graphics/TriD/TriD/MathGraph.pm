@@ -46,7 +46,7 @@ sub gdraw {
 
 sub get_valid_options {
 	return {UseDefcols => 0,From => [],To => [],Color => [1,1,1],
-		ArrowWidth => 0.05, ArrowLen => 0.1}
+		ArrowWidth => 0.02, ArrowLen => 0.1}
 }
 
 package PDL::GraphEvolver;

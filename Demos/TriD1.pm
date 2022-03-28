@@ -149,6 +149,42 @@ my @demo = (
 |],
 
 [actnw => q|
+	# Show graph-evolver
+	use PDL::Graphics::TriD::MathGraph;
+	use PDL::Graphics::TriD::Labels;
+	my @coords = ([0,-1,0], [-1,-1,-2], [3,5,2],
+	    [2,1,-3], [1,3,1], [1,1,2]);
+	my $from = PDL->pdl(indx, [0,1,2,3,4,4,4,5,5,5]);
+	my $to =   PDL->pdl(indx, [1,2,3,1,0,2,3,0,1,2]);
+	my @names = map '  '.join(",",@$_), @coords;
+	my $e = PDL::GraphEvolver->new(pdl(@coords));
+	$e->set_links($from,$to,PDL->ones(1));
+	my $c = $e->getcoords;
+	my $graph = PDL::Graphics::TriD::get_new_graph(); # also clears
+	hold3d();
+	nokeeptwiddling3d();
+	PDL::Graphics::TriD::graph_object(
+	  my $lab = PDL::Graphics::TriD::Labels->new($c,{Strings => \@names}));
+	PDL::Graphics::TriD::graph_object(
+		my $lin = PDL::Graphics::TriD::MathGraph->new(
+		$c, {From => $from, To => $to}));
+	PDL::Graphics::TriD::graph_object(
+		my $sph = PDL::Graphics::TriD::Spheres->new($c));
+	my $ind = 0;
+	while(1) {
+		$e->step();
+		if(++$ind%2 == 0) {
+			$_->data_changed for $lab, $lin, $sph;
+			$graph->scalethings() if (($ind % 200) == 0 or 1);
+			last if twiddle3d();
+		}
+	}
+	keeptwiddling3d();
+	release3d();
+	# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
 	# Show the world!
 	use PDL::Transform::Cartography;
 	$shape = earth_shape();
