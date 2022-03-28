@@ -21,9 +21,9 @@ my @coords = (
 my $from = PDL->pdl(indx, [0,1,2,3,4,4,4,5,5,5]);
 my $to =   PDL->pdl(indx, [1,2,3,1,0,2,3,0,1,2]);
 
-my @names = map join(",",@$_), @coords;
+my @names = map '  '.join(",",@$_), @coords;
 
-my $e = PDL::GraphEvolver->new(scalar @coords);
+my $e = PDL::GraphEvolver->new(pdl(@coords));
 $e->set_links($from,$to,PDL->ones(1));
 my $c = $e->getcoords;
 

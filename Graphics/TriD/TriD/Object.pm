@@ -1,6 +1,3 @@
-###################################
-#
-#
 package PDL::Graphics::TriD::Object;
 
 use strict;

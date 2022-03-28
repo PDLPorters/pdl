@@ -54,8 +54,8 @@ use PDL::Lite;
 use PDL::Graphics::TriD::Rout ":Func";
 
 sub new {
-	my($type,$nnodes) = @_;
-       bless {NNodes => $nnodes,Coords => PDL::random(PDL->zeroes(3,$nnodes)),
+	my($type,$coords) = @_;
+	bless {Coords => $coords,
 		BoxSize => 3, DMult => 5000,
 		A => -100.0, B => -5, C => -0.1, D => 0.01,
 		M => 30, MS => 1,

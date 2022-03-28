@@ -42,7 +42,7 @@ $win->add_object(TOBJ->new);
 $win->twiddle();
 
 package TOBJ;
-our @ISA = qw/PDL::Graphics::TriD::Object/;
+our @ISA; BEGIN { @ISA = qw/PDL::Graphics::TriD::Object/ }
 use PDL::Graphics::OpenGLQ;
 
 sub new {
