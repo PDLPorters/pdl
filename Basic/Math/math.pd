@@ -135,6 +135,7 @@ EOD
 pp_addhdr('
 #include <tgmath.h>
 #include "protos.h"
+extern double ndtri(double);
 ');
 
 if ($^O =~ /MSWin/) {
@@ -297,9 +298,7 @@ pp_def(
        Inplace => [ 'a' ],
        HandleBad => 1,
        Code =>
-       '$c() = isfinite((double) $a()) ? $a() : $b();',
-       BadCode =>
-       '$c() = ( isfinite((double) $a()) && $ISGOOD(a()) ) ? $a() : $b();',
+       '$c() = ( isfinite((double) $a()) PDL_IF_BAD(&& $ISGOOD(a()),) ) ? $a() : $b();',
        CopyBadStatusCode =>
        'if ( a == c && $ISPDLSTATEBAD(a) )
            PDL->propagate_badflag( c, 0 );  /* propagate badflag if inplace AND its changed */
@@ -326,9 +325,7 @@ pp_def(
        Inplace => 1,
        HandleBad => 1,
        Code =>
-       '$mask() = isfinite((double) $a()) != 0;',
-       BadCode =>
-       '$mask() = isfinite((double) $a()) != 0 && $ISGOOD($a());',
+       '$mask() = isfinite((double) $a()) != 0 PDL_IF_BAD(&& $ISGOOD($a()),);',
        CopyBadStatusCode =>
        'if ( a == mask && $ISPDLSTATEBAD(a) )
            PDL->propagate_badflag( mask, 0 );  /* propagate badflag if inplace AND its changed */
@@ -350,12 +347,9 @@ pp_def(
        Inplace => 1,
        Doc => inplace_doc( "erfi" ),
        Code =>
-       'extern double ndtri(double), SQRTH;
-	$b() = SQRTH*ndtri((1+(double)$a())/2);',
-       BadCode =>
-       'extern double ndtri(double), SQRTH;
-        if ( $ISBAD(a()) ) { $SETBAD(b()); }
-        else { $b() = SQRTH*ndtri((1+(double)$a())/2); }',
+       'extern double SQRTH;
+        PDL_IF_BAD(if ( $ISBAD(a()) ) { $SETBAD(b()); }
+        else,) { $b() = SQRTH*ndtri((1+(double)$a())/2); }',
        );
 
 pp_def(
@@ -367,12 +361,8 @@ pp_def(
        Inplace => 1,
        Doc => inplace_doc( "ndtri" ),
        Code =>
-       'extern double ndtri(double);
-	$b() = ndtri((double)$a());',
-       BadCode =>
-       'extern double ndtri(double);
-        if ( $ISBAD(a()) ) { $SETBAD(b()); }
-	else { $b() = ndtri((double)$a()); }',
+       'PDL_IF_BAD(if ( $ISBAD(a()) ) { $SETBAD(b()); }
+	else,) { $b() = ndtri((double)$a()); }',
        );
 
 pp_def("polyroots",
