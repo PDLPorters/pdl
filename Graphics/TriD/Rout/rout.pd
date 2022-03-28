@@ -114,7 +114,7 @@ pp_def(
 			}
 			}
 			/* Store new */
-			SV **svp = hv_fetch(hv, (char *)&index, sizeof(int), 1);
+			SV **svp = hv_fetch(hv, (char *)&index, sizeof(index), 1);
 			if(!svp || !*svp)
 				$CROAK("Invalid sv from hvfetch");
 			SV *sv = *svp;

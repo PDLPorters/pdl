@@ -180,16 +180,15 @@ pp_def(
 }
 
 pp_def('gl_arrows',
-	Pars => 'coords(tri=3,n); int indsa(); int indsb();',
+	Pars => 'coords(tri=3,n); indx indsa(); indx indsb();',
 	OtherPars => 'float headlen; float width;',
 	Code => '
 		float hl = $COMP(headlen);
 		float w = $COMP(width);
-		float tmp2[3]; tmp2[0] = 0.000001; tmp2[1] = -0.0001; tmp2[2] = 1;
+		float tmp2[3] = { 0.000001, -0.0001, 1 };
  		glBegin(GL_LINES);
 		broadcastloop %{
-			int a = $indsa();
-			int b = $indsb();
+			PDL_Indx a = $indsa(), b = $indsb();
 			float tmp1[3]; 
 			float norm[3];
 			float norm2[3];
@@ -200,15 +199,12 @@ pp_def('gl_arrows',
 				  $coords(tri => 1, n => b);
 			tmp1[2] = $coords(tri => 2, n => a) -
 				  $coords(tri => 2, n => b);
-		
 			norm[0] = tmp1[1]*tmp2[2] - tmp2[1]*tmp1[2];
 			norm[1] = -(tmp1[0]*tmp2[2] - tmp2[0]*tmp1[2]);
 			norm[2] = tmp1[0]*tmp2[1] - tmp2[0]*tmp1[1];
-
 			norm2[0] = tmp1[1]*norm[2] - norm[1]*tmp1[2];
 			norm2[1] = -(tmp1[0]*norm[2] - norm[0]*tmp1[2]);
 			norm2[2] = tmp1[0]*norm[1] - norm[0]*tmp1[1];
-
 			normlen = sqrt(norm[0] * norm[0] +
 				norm[1] * norm[1] + norm[2] * norm[2]);
 			norm2len = sqrt(norm2[0] * norm2[0] +

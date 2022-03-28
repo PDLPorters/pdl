@@ -7,7 +7,7 @@ use PDL::Graphics::TriD::MathGraph;
 use PDL::Graphics::TriD::Labels;
 
 my $g = PDL::Graphics::TriD::get_new_graph();
-$g->default_axes();
+$g->default_axes;
 
 my @coords = (
  [ 0,-1,0 ],
@@ -18,8 +18,8 @@ my @coords = (
  [1,1,2],
 );
 
-my $from = PDL->pdl([0,1,2,3,4,4,4,5,5,5]);
-my $to = PDL->pdl([1,2,3,1,0,2,3,0,1,2]);
+my $from = PDL->pdl(indx, [0,1,2,3,4,4,4,5,5,5]);
+my $to =   PDL->pdl(indx, [1,2,3,1,0,2,3,0,1,2]);
 
 my @names = map join(",",@$_), @coords;
 
@@ -39,8 +39,7 @@ twiddle3d();
 while(1) {
 	$e->step();
 	if(++$ind%2 == 0) {
-		$lab->data_changed();
-		$lin->data_changed();
+		$_->data_changed for $lab, $lin;
 		$g->scalethings() if (($ind % 200) == 0 or 1);
 		last if twiddle3d();
 	}
