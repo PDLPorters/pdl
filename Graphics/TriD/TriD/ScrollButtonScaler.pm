@@ -1,19 +1,15 @@
-######################################################################
-######################################################################
-## ScrollButtonController -- this is the module that enables support
+## ScrollButtonScaler -- this is the module that enables support
 ## for middle button scrollwheels to zoom in and out of the display
 ## window.  Scrolling forward zooms in, while scrolling backwards zooms
 ## out.
 
-package PDL::Graphics::TriD::ScrollButtonController;
+package PDL::Graphics::TriD::ScrollButtonScaler;
 use base qw/PDL::Graphics::TriD::ButtonControl/;
 use fields qw/Dist Zoom/;
 
 sub new {
   my($type,$win,$dist,$zoom) = @_;
-
   my $this = $type->SUPER::new($win);
-
   $this->{Dist} = $dist;
   $this->{Zoom} = $zoom;  # multiplier for zooming
                           # >1 zooms out, <1 zooms in
@@ -22,8 +18,9 @@ sub new {
 
 sub ButtonRelease{
   my ($this,$x,$y) = @_;
-  $this->{Dist} *= $this->{Zoom};
   print "ButtonRelease @_\n"  if $PDL::Graphics::TriD::verbose;
+  ${$this->{Dist}} *= $this->{Zoom};
+  1;
 }
 
 sub ButtonPress{

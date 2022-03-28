@@ -1,7 +1,3 @@
-use Carp;
-
-$SIG{__DIE__} = \&Carp::longmess;
-
 use PDL;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Image;

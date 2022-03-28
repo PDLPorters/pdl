@@ -73,8 +73,8 @@ A do nothing function to prevent errors if not defined in a subclass
 
 sub ButtonRelease{
   my ($this,$x,$y) = @_;
-  $this->{Win}{Active} = 0;
   print "ButtonRelease @_\n"  if $PDL::Graphics::TriD::verbose;
+  $this->{Win}{Active} = 0;
 }
 
 =head2 ButtonPress
@@ -89,6 +89,7 @@ $PDL::Graphics::TriD::current_window = $PDL::Graphics::TriD::current_window; # w
 
 sub ButtonPress{
   my ($this,$x,$y) = @_;
+  print "ButtonPress @_ ",ref($this->{Win}),"\n" if $PDL::Graphics::TriD::verbose;
 #
 # GL (0,0) point is Lower left X and Tk is upper left.
 #
@@ -100,7 +101,6 @@ sub ButtonPress{
 	  && $this->{Win}{Y0} <= $y && $this->{Win}{Y0}+$this->{Win}{H}>=$y ){
 	 $this->{Win}{Active} = 1;
   }
-  print "ButtonPress @_ ",ref($this->{Win}),"\n" if $PDL::Graphics::TriD::verbose;
 }
 
 =head2 set_wh

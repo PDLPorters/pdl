@@ -706,7 +706,7 @@ package PDL::Graphics::TriD::EventHandler;
 
 use OpenGL qw(
   ConfigureNotify MotionNotify DestroyNotify
-  ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask
+  ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask Button4Mask
 );
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 
@@ -732,6 +732,7 @@ sub event {
 		$but = 0, last SWITCH if ($args[0] & (Button1Mask));
 		$but = 1, last SWITCH if ($args[0] & (Button2Mask));
 		$but = 2, last SWITCH if ($args[0] & (Button3Mask));
+		$but = 3, last SWITCH if ($args[0] & (Button4Mask));
 		print "No button pressed...\n" if($PDL::Graphics::TriD::verbose);
 		goto NOBUT;
 	 }
