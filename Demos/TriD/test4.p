@@ -53,12 +53,7 @@ sub togl {
 	OpenGL::glDisable(&OpenGL::GL_LIGHTING);
 	PDL::gl_line_strip_col($::nx,$::nc);
 	OpenGL::glColor3f(1,0,1);
-	OpenGL::glRasterPos3f(0,0,0.5);
-	my @args = ($::lb, "HELLO HELLO HELLO GLWORLD!!!");
-	if ( OpenGL::GLUT::done_glutInit() ) {
-	   OpenGL::GLUT::glutBitmapString(@args);
-	} else {
-	   OpenGL::glpPrintString(@args);
-	}
+	gl_texts(PDL->pdl(0,0,0.5), OpenGL::GLUT::done_glutInit(),
+	  $::lb, ["HELLO HELLO HELLO GLWORLD!!!"]);
 	OpenGL::glEnable(&OpenGL::GL_LIGHTING);
 }

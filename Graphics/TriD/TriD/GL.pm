@@ -161,17 +161,11 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	$_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;
 	$line_coord = $line_coord->glue(1, $starts->append($ends));
 	my $axisvals = zeroes(3,$ndiv+1)->ylinvals($this->{Scale}->dog)->transpose->flat->transpose;
-	my @label = map [@$_[0..2], sprintf "%.3f", $_->[3]], @{ $ends->append($axisvals)->unpdl };
-	my $dim = 0; push @label, map [@$_, $this->{Names}[$dim++]], @{ ($id3*1.1)->unpdl };
+	my @label = map sprintf("%.3f", $_), @{ $axisvals->flat->unpdl };
+	push @label, @{$this->{Names}};
 	glColor3d(1,1,1);
-	for (@label) {
-		glRasterPos3f(@$_[0..2]);
-		if ( done_glutInit() ) {
-		   glutBitmapString($fontbase, $_->[3]);
-		} else {
-		   OpenGL::glpPrintString($fontbase, $_->[3]);
-		}
-	}
+	PDL::Graphics::OpenGLQ::gl_texts($ends->glue(1, $id3), done_glutInit(),
+	    $fontbase, \@label);
 	PDL::gl_lines_nc($line_coord->splitdim(0,3)->clump(1,2));
 	glEnable(GL_LIGHTING);
 }
@@ -295,8 +289,8 @@ sub PDL::Graphics::TriD::Contours::gdraw {
 	   glColor3d(1,1,1);
 	   my $seg = sprintf(":,%d:%d",$this->{Labels}[0],$this->{Labels}[1]);
 	   PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
-		   $this->{Options}{Font}
-		   ,$this->{LabelStrings});
+		   done_glutInit(), $this->{Options}{Font},
+		   $this->{LabelStrings});
     }
   };
   { local $@; glPopAttrib(); }

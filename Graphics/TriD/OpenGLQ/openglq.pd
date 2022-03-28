@@ -39,6 +39,7 @@ pp_addhdr('
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#include <GL/freeglut.h>
 #endif
 /* #include <GL/glx.h> */
 ');
@@ -102,25 +103,30 @@ pp_def(
  	'gl_texts',
 	GenericTypes => $F,
  	Pars => 'coords(tri,x); ',
-	OtherPars => 'int base; SV *arr',
+	OtherPars => 'int in_glut; IV base; SV *arr',
 	Code => '
 		SV *sv = $COMP(arr);
 		if(!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV)) {
 			$CROAK("gl_texts requires an array ref");
 		}
 		AV *arr = (AV *)SvRV(sv);
-		glPushAttrib(GL_LIST_BIT);
-		glListBase($COMP(base));
+		if ( !$COMP(in_glut) ) {
+			glPushAttrib(GL_LIST_BIT);
+			glListBase($COMP(base));
+		}
 		loop(x) %{
 			SV *elem = *(av_fetch(arr, x, 0));
-			if(elem) {
-                               char *str = SvPV_nolen(elem);
-				'.RPOS().'
+			if (!elem) continue;
+                        char *str = SvPV_nolen(elem);
+			'.RPOS().'
+			if ( $COMP(in_glut) )
+				glutBitmapString((void *)$COMP(base), str);
+			else
 				glCallLists(strlen(str),GL_UNSIGNED_BYTE,
 					(GLubyte*)str);
-			}
 		%}
-		glPopAttrib();
+		if ( !$COMP(in_glut) )
+			glPopAttrib();
 	',
 	@internal
 );

@@ -30,6 +30,7 @@ my $c = $e->getcoords;
 $g->add_dataseries(my $lab = PDL::Graphics::TriD::Labels->new($c,{Strings => \@names}));
 $g->add_dataseries(my $lin = PDL::Graphics::TriD::MathGraph->new(
 	$c, {From => $from, To => $to}));
+$g->add_dataseries(my $sph = PDL::Graphics::TriD::Spheres->new($c));
 
 $g->scalethings();
 
@@ -39,7 +40,7 @@ twiddle3d();
 while(1) {
 	$e->step();
 	if(++$ind%2 == 0) {
-		$_->data_changed for $lab, $lin;
+		$_->data_changed for $lab, $lin, $sph;
 		$g->scalethings() if (($ind % 200) == 0 or 1);
 		last if twiddle3d();
 	}
