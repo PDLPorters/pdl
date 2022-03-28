@@ -221,7 +221,7 @@ $x = pdl([0,1,2,2,0,1]);
 $y = $x->uniqind;
 eval { $c = all($y==pdl([0,1,3])) };
 is $@, '';
-ok $c, "uniqind";
+ok $c, "uniqind" or diag "got: $y";
 is $y->ndims, 1, "uniqind";
 
 $y = pdl(1,1,1,1,1)->uniqind;         # SF bug 3076570

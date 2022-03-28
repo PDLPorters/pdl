@@ -474,28 +474,12 @@ pp_def(
 	'minmaximum',
 	HandleBad => 1,
 	Pars => 'a(n); [o]cmin(); [o] cmax(); indx [o]cmin_ind(); indx [o]cmax_ind();',
+	CopyBadStatusCode => '',
 	Code =>
 	'$GENERIC() curmin = 0, curmax = 0; /* Handle null ndarray --CED */
-         PDL_Indx curmin_ind = 0, curmax_ind = 0;
-
-	 loop(n) %{
-            if ( !n ) {
-               curmin = curmax = $a();
-               curmin_ind = curmax_ind = n;
-            } else {
-               if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
-	       if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
-            }
-	 %}
-	 $cmin() = curmin; $cmin_ind() = curmin_ind;
-         $cmax() = curmax; $cmax_ind() = curmax_ind;',
-	CopyBadStatusCode => '',
-	BadCode =>
-	'$GENERIC() curmin = 0, curmax = 0;
          PDL_Indx curmin_ind = 0, curmax_ind = 0; int flag = 0;
-
 	 loop(n) %{
-            if ( $ISGOOD(a()) ) {
+            PDL_IF_BAD(if ( $ISGOOD(a()) ),) {
                if ( !flag ) {
                   curmin = curmax = $a();
                   curmin_ind = curmax_ind = n;
@@ -506,14 +490,14 @@ pp_def(
                }
             } /* ISGOOD */
 	 %}
-         if ( flag ) { /* Handle null ndarray */
-            $cmin() = curmin; $cmin_ind() = curmin_ind;
-            $cmax() = curmax; $cmax_ind() = curmax_ind;
-         } else {
+         PDL_IF_BAD(if ( !flag ) { /* Handle null ndarray */
             $SETBAD(cmin()); $SETBAD(cmin_ind());
             $SETBAD(cmax()); $SETBAD(cmax_ind());
             $PDLSTATESETBAD(cmin); $PDLSTATESETBAD(cmin_ind);
             $PDLSTATESETBAD(cmax); $PDLSTATESETBAD(cmax_ind);
+         } else,) {
+            $cmin() = curmin; $cmin_ind() = curmin_ind;
+            $cmax() = curmax; $cmax_ind() = curmax_ind;
          }',
 	Doc =>
 '
@@ -801,50 +785,37 @@ sub generic_qsortvec {
 # ignore the bad values and then only send the number
 # of good elements to the sort routines
 # should use broadcastloop ?
-my $copy_to_temp_good = '
-           PDL_Indx nn, nn1;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $SIZE(n)-1; ' .
-       generic_qsort('tmp');
-my $copy_to_temp_bad = '
-        register PDL_Indx nn = 0;
+my $copy_to_temp = '
+        PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1);
 	loop(n) %{ 
-           if ( $ISGOOD(a()) ) { $tmp(n=>nn) = $a(); nn++; }
+           PDL_IF_BAD(if ( $ISGOOD(a()) ) { $tmp(n=>nn) = $a(); nn++; },
+	   $tmp() = $a();)
         %}
-        if ( nn == 0 ) {
+        PDL_IF_BAD(if ( nn == 0 ) {
            $SETBAD(b());
         } else {
-';
+           nn -= 1;,{)
+' . generic_qsort('tmp');
 
 my $find_median_average = '
-           nn1 = nn/2; nn2 = nn1+1;
+           PDL_Indx nn1 = nn/2, nn2 = nn1+1;
            if (nn%2==0) {
 	      $b() = $tmp(n => nn1);
            }
            else {
 	      $b() = 0.5*( $tmp(n => nn1) + $tmp(n => nn2)  );
            }';
-
-my $find_median_lower = '
-        nn1 = nn/2;
-	$b() = $tmp(n => nn1);';
-
 pp_def(
        'medover',
        HandleBad => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('median','medover',''),
-       Code => 
-       "PDL_Indx nn2;\n" . $copy_to_temp_good . $find_median_average,
-       BadCode =>
-       $copy_to_temp_bad . 
-       '   PDL_Indx nn1, nn2;
-           nn -= 1; ' .
-       generic_qsort('tmp') .
-       $find_median_average . '}',
-
+       Code => $copy_to_temp . $find_median_average . '}',
        ); # pp_def: medover
 
+my $find_median_lower = '
+        PDL_Indx nn1 = nn/2;
+	$b() = $tmp(n => nn1);';
 pp_def(
        'oddmedover',
        HandleBad => 1,
@@ -858,14 +829,7 @@ value. The lower-odd median is just the lower of these two values
 and so it ALWAYS sits on an actual data value which is useful in
 some circumstances.
 	'),
-       Code => 
-       $copy_to_temp_good . $find_median_lower,
-       BadCode =>
-       $copy_to_temp_bad . 
-       '   PDL_Indx nn1;
-           nn -= 1; '.
-       $find_median_lower . '}',
-
+       Code => $copy_to_temp . $find_median_lower . '}',
 ); # pp_def: oddmedover
 
 pp_def('modeover',
@@ -912,16 +876,10 @@ EOCODE
 
 
 my $find_pct_interpolate = '
+           double np, pp1, pp2;
            np = nn * $p();
-           nn1 = np;
-           nn2 = nn1+1;
-           
-           nn1 = (nn1 < 0) ? 0 : nn1;
-           nn2 = (nn2 < 0) ? 0 : nn2;
-           
-           nn1 = (nn1 > nn) ? nn : nn1;
-           nn2 = (nn2 > nn) ? nn : nn2;
-           
+           PDL_Indx nn1 = PDLMIN(nn,PDLMAX(0,np));
+           PDL_Indx nn2 = PDLMIN(nn,PDLMAX(0,np+1));
 	   if (nn == 0) {
 	      pp1 = 0;
 	      pp2 = 0;
@@ -929,7 +887,6 @@ my $find_pct_interpolate = '
 	      pp1 = (double)nn1/(double)(nn);
 	      pp2 = (double)nn2/(double)(nn);
 	   }
-           
            if ( np <= 0.0 ) {
               $b() = $tmp(n => 0);
            } else if ( np >= nn ) {
@@ -944,7 +901,6 @@ my $find_pct_interpolate = '
               $b() = (np - nn1)*($tmp(n => nn2) - $tmp(n => nn1)) + $tmp(n => nn1);
            }
 ';
-
 pp_def('pctover',
         HandleBad => 1,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
@@ -957,17 +913,7 @@ implemented here is based on the interpolation variant described at
 L<http://en.wikipedia.org/wiki/Percentile> as used by Microsoft Excel
 and recommended by NIST.
 '),
-       Code => '
-           double np, pp1, pp2;
-           PDL_Indx nn2;
-	   ' . $copy_to_temp_good .
-           $find_pct_interpolate,
-       BadCode =>
-       $copy_to_temp_bad .  '
-           PDL_Indx nn1, nn2;
-           double np, pp1, pp2;
-           nn -= 1; ' .  generic_qsort('tmp') .
-           $find_pct_interpolate . '}',
+       Code => $copy_to_temp . $find_pct_interpolate . '}',
 );
 
 pp_def('oddpctover',
@@ -980,74 +926,41 @@ falls between two values, the nearest data value is the result.
 The algorithm implemented is from the textbook version described
 first at L<http://en.wikipedia.org/wiki/Percentile>.
 '),
-       Code => '
-           PDL_Indx np;
-	   ' . $copy_to_temp_good . '
-           np = (nn+1)*$p();
-           if (np > nn) np = nn;
-           if (np < 0) np = 0;
+       Code =>
+	   $copy_to_temp . '
+           PDL_Indx np = PDLMAX(0,PDLMIN(nn,(nn+1)*$p()));
 	   $b() = $tmp(n => np);
-',
-       BadCode => 'PDL_Indx np;
-       ' . $copy_to_temp_bad . '
-           nn -= 1;
-           ' .  generic_qsort('tmp') . '
-           np = (nn+1)*$p();
-           if (np > nn) np = nn;
-           if (np < 0) np = 0;
-	   $b() = $tmp(n => np);
-        }',
+	   }',
 );
 
-pp_add_exported('', 'pct');
-pp_addpm(<<'EOD');
-=head2 pct
+for (
+['','result is interpolated'],
+['odd','nearest data value is the result'],
+) {
+pp_add_exported('', $_->[0].'pct');
+pp_addpm(<<EOD);
+=head2 $_->[0]pct
 
 =for ref
 
 Return the specified percentile of all elements in an ndarray. The
 specified percentile (p) must be between 0.0 and 1.0.  When the
-specified percentile falls between data points, the result is
-interpolated.
+specified percentile falls between data points, the $_->[1].
 
 =for usage
 
- $x = pct($data, $pct);
+ \$x = $_->[0]pct(\$data, \$pct);
 
 =cut
 
-*pct = \&PDL::pct;
-sub PDL::pct {
-	my($x, $p) = @_;
-	$x->clump(-1)->pctover($p, my $tmp=PDL->nullcreate($x));
-	$tmp;
+*$_->[0]pct = \\&PDL::$_->[0]pct;
+sub PDL::$_->[0]pct {
+	my(\$x, \$p) = \@_;
+	\$x->clump(-1)->$_->[0]pctover(\$p, my \$tmp=PDL->nullcreate(\$x));
+	\$tmp;
 }
 EOD
-
-pp_add_exported('', 'oddpct');
-pp_addpm(<<'EOD');
-=head2 oddpct
-
-=for ref
-
-Return the specified percentile of all elements in an ndarray. The
-specified percentile must be between 0.0 and 1.0.  When the specified
-percentile falls between two values, the nearest data value is the
-result.
-
-=for usage
-
- $x = oddpct($data, $pct);
-
-=cut
-
-*oddpct = \&PDL::oddpct;
-sub PDL::oddpct {
-	my($x, $p) = @_;
-	$x->clump(-1)->oddpctover($p, my $tmp=PDL->nullcreate($x));
-	$tmp;
 }
-EOD
 
 sub qsort_croak {
     my ($out, $insizedim, $outsizedim) = @_;
@@ -1059,24 +972,17 @@ sub qsort_croak {
 }
 
 # move all bad values to the end of the array
-#
 pp_def(
     'qsort',
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n); [o]b(n);',
-    Code => 
-    'PDL_Indx nn;
-     '.qsort_croak('b',0,0).'
-     loop(n) %{ $b() = $a(); %}
-     nn = $SIZE(n)-1;
-     '.generic_qsort('b'),
-    BadCode =>
+    Code =>
     'register PDL_Indx nn = 0, nb = $SIZE(n) - 1;
      '.qsort_croak('b',0,0).'
      loop(n) %{ 
-        if ( $ISGOOD(a()) ) { $b(n=>nn) = $a(); nn++; }
-        else                { $SETBAD(b(n=>nb)); nb--; }
+        PDL_IF_BAD(if (!$ISGOOD(a())) { $SETBAD(b(n=>nb)); nb--; }
+        else,)                        { $b(n=>nn) = $a(); nn++; }
      %}
      if ( nn != 0 ) {
         nn -= 1;
@@ -1091,7 +997,6 @@ Quicksort a vector into ascending order.
  print qsort random(10);
 
 =cut
-
 ',
     BadDoc =>
 '
@@ -1113,25 +1018,18 @@ pp_def(
        'qsorti',
        HandleBad => 1,
        Pars => 'a(n); indx [o]indx(n);',
-       Code => 
-       'PDL_Indx nn = $SIZE(n)-1;
+       Code =>
+       'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1), nb = $SIZE(n) - 1;
         if ($SIZE(n) == 0) return PDL_err;
         '.qsort_croak('indx',0,0).'
-        loop(n) %{ 
-           $indx() = n; 
+        loop(n) %{
+           PDL_IF_BAD(if (!$ISGOOD(a())) { $indx(n=>nb) = n; nb--; }
+           else                          { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */
+           ,$indx() = n;)
         %}
-        '.generic_qsort_ind(),
-       BadCode =>
-       'register PDL_Indx nn = 0, nb = $SIZE(n) - 1;
-        if ($SIZE(n) == 0) return PDL_err;
-        '.qsort_croak('indx',0,0).'
-        loop(n) %{ 
-           if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
-           else                { $indx(n=>nb) = n; nb--; }
-        %}
-        if ( nn != 0 ) {
-           nn -= 1;
-        ' . generic_qsort_ind() . ' }',
+        PDL_IF_BAD(if ( nn != 0 ) {
+           nn -= 1;,{)
+        ' . generic_qsort_ind() . '}',
        BadDoc => 
 'Bad elements are moved to the end of the array:
 
@@ -1161,18 +1059,12 @@ pp_def(
     HandleBad => 1,
     Inplace => 1,
     Pars => 'a(n,m); [o]b(n,m);',
-    Code => 
-    'PDL_Indx nn = ($SIZE(m))-1;
-     PDL_Indx nd = $SIZE(n);
-     '.qsort_croak('b',1,1).'
-     if ($P(a) != $P(b)) loop(n,m) %{ $b() = $a(); %}
-     '.generic_qsortvec('b','nd'),
-    BadCode =>
-    'register PDL_Indx nn = 0, nb = $SIZE(m) - 1;
+    Code =>
+    'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
      char is_inplace = ($P(a) == $P(b));
      PDL_Indx nd = $SIZE(n);
      '.qsort_croak('b',1,1).'
-     loop(m) %{
+     PDL_IF_BAD(loop(m) %{
        char allgood_a = 1;
        loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
        PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
@@ -1200,7 +1092,9 @@ pp_def(
        }
      %}
      if ( nn != 0 ) {
-       nn -= 1;' .
+       nn -= 1;,
+       if (!is_inplace) { loop(n,m) %{ $b() = $a(); %} }
+       {)' .
        generic_qsortvec('b','nd') .'
      }',
     Doc => '
@@ -1249,26 +1143,23 @@ pp_def(
     'qsortveci',
     HandleBad => 1,
     Pars => 'a(n,m); indx [o]indx(m);',
-    Code => 
-    'PDL_Indx nd = $SIZE(n);
-     PDL_Indx nn=$SIZE(m)-1;
-     '.qsort_croak('indx',1,0).'
-     loop(m) %{
-        $indx()=m;
-     %}
-     '.generic_qsortvec_ind('a','nd'),
-    BadCode =>
-    'register PDL_Indx nn = 0, nb = $SIZE(m) - 1;
+    Code =>
+    'register PDL_Indx nn = PDL_IF_BAD(0,$SIZE(m)-1), nb = $SIZE(m) - 1;
      PDL_Indx nd = $SIZE(n);
      '.qsort_croak('indx',1,0).'
      loop(m) %{
+       PDL_IF_BAD(
        char allgood_a = 1;
        loop(n) %{ if ( $ISBAD(a()) ) { allgood_a = 0; break; } %}
        PDL_Indx copy_dest = allgood_a ? nn++ : nb--;
        $indx(m=>copy_dest) = m;
+       ,
+       $indx()=m;
+       )
      %}
+     PDL_IF_BAD(
      if ( nn != 0 ) {
-       nn -= 1;' .
+       nn -= 1;,{)' .
        generic_qsortvec_ind('a','nd') .'
      }',
     Doc => '
