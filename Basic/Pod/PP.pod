@@ -1674,7 +1674,7 @@ If bad values are being used, care must be taken to ensure the
 propagation of the badflag when inplace is being used;
 consider this excerpt from F<Basic/Bad/bad.pd>:
 
-  pp_def('replacebad',HandleBad => 1,
+  pp_def('setbadtoval',HandleBad => 1,
     Pars => 'a(); [o]b();',
     OtherPars => 'double newval',
     Inplace => 1,
@@ -2184,7 +2184,7 @@ Mark a function as being able to work inplace.
 
 If bad values are being used, care must be taken to ensure the
 propagation of the badflag when inplace is being used;
-for instance see the code for C<replacebad> in F<Basic/Bad/bad.pd>. 
+for instance see the code for C<setbadtoval> in F<Basic/Bad/bad.pd>.
 
 =head3 Doc
 

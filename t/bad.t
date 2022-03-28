@@ -171,7 +171,8 @@ is( $s[3], 22, "setbadif/stats test 4" );
 is( $s[4], 98, "setbadif/stats test 5" );  
 ok( approx( $s[6], 26.7312, ABSTOL ), "setbadif/stats test 6" );
 
-# how about setbadtoval (was replacebad)
+# how about setbadtoval
+empty()->setbadtoval(20); # shouldn't segfault
 $x = $y->setbadtoval(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
 ok( all($x == 0), "setbadtoval() worked" );
 

@@ -408,9 +408,7 @@ same as the input ndarray's flag.
 
        HandleBad => 1,
        Code => 
-       '$b() = 0;',
-       BadCode => 
-       '$b() = $ISBAD(a());',
+       '$b() = PDL_IF_BAD($ISBAD(a()),0);',
        CopyBadStatusCode => '',
        GenericTypes => $A,
        );
@@ -449,9 +447,7 @@ same as the input ndarray's flag.
 
        HandleBad => 1,
        Code => 
-       '$b() = 1;',
-       BadCode => 
-       '$b() = $ISGOOD(a());',
+       '$b() = PDL_IF_BAD($ISGOOD(a()),1);',
        CopyBadStatusCode => '',
        GenericTypes => $A,
        );
@@ -494,12 +490,11 @@ flag set.
 =cut
 
     HandleBad => 1,
-    Code => '$b() = 0;',
-    BadCode => q{
+    Code => q{
         PDL_Indx cnt = 0;
-        loop(n) %{ 
+        PDL_IF_BAD(loop(n) %{
             if ( $ISBAD(a()) ) { cnt++; }
-        %}
+        %},)
         $b() = cnt;
     },
     GenericTypes => $A,
@@ -539,15 +534,12 @@ any bad values, but the bad flag will be set if the input ndarray had its bad
 flag set.
 
 =cut
-
        HandleBad => 1,
        Code => 
-       '$b() = (PDL_Indx) $SIZE(n);',
-       BadCode => 
-       'PDL_Indx cnt = 0;
-	loop(n) %{ 
+       'PDL_Indx cnt = PDL_IF_BAD(0,$SIZE(n));
+	PDL_IF_BAD(loop(n) %{
            if ( $ISGOOD(a()) ) { cnt++; }
-        %}
+        %},)
         $b() = cnt;',
        GenericTypes => $A,
        );
@@ -723,14 +715,8 @@ Also see L</setvaltobad> and L</setnantobad>.
     HandleBad => 1,
     %setbadif_extra,
     Code =>
-    'if ( $mask() ) {
-        $SETBAD(b());
-     } else {
-        $b() = $a();
-     }',
-    BadCode =>
     '/* if the bad value == 0 then all points are going to be selected ... */
-     if ( $ISBAD(mask()) || $mask() ) {
+     if ( PDL_IF_BAD($ISBAD(mask()) ||,) $mask() ) {
         $SETBAD(b());
      } else {
         $b() = $a();
@@ -740,9 +726,6 @@ Also see L</setvaltobad> and L</setnantobad>.
 
 # this is useful because $x->setbadif( $x == 23 )
 # is common and that can't be done inplace
-#
-# this doesn't need a BadCode section
-
 pp_def('setvaltobad' . <<'=cut',
 
 =head2 setvaltobad
@@ -1003,7 +986,6 @@ operation, it clears the bad flag.
     },
 ); # pp_def: setbadtonan
 
-# renamed replacebad by setbadtoval
 pp_def('setbadtoval' . <<'=cut',
 
 =head2 setbadtoval
@@ -1035,18 +1017,17 @@ values are copied with no replacement.
 
     HandleBad => 1,
     Inplace => 1,
-    Code => '$b() = $a();',
-    BadCode => q{
-        $GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
+    Code => q{
         $GENERIC(b) a_val;
+        $GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
         broadcastloop %{
             a_val = $a();
-            if ( $ISBADVAR(a_val,a) ) {
+            PDL_IF_BAD(if ( $ISBADVAR(a_val,a) ) {
                 $b() = replace;
-            } else {
+            } else,) {
                 $b() = a_val;
             }
-         %}
+        %}
     },
     CopyBadStatusCode => q{
         /* propagate badflag if inplace AND its changed */
@@ -1097,11 +1078,10 @@ its bad value flag set to true.
 
     HandleBad => 1,
     Inplace => [ 'a' ],
-    Code => '$b() = $a();',
-    BadCode => q{
-        if ( $ISBAD(mask()) ) {
+    Code => q{
+        PDL_IF_BAD(if ( $ISBAD(mask()) ) {
             $SETBAD(b());
-        } else {
+        } else,) {
             $b() = $a();
         }
     },
