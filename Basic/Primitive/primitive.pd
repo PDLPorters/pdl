@@ -55,16 +55,13 @@ pp_def(
        GenericTypes => [ppdefs_all],
        Code =>
        'double tmp = 0;
-        loop(n) %{ tmp += $a() * $b(); %}
-        $c() = tmp;',
-       BadCode =>
-       'double tmp = 0;
         int badflag = 0;
         loop(n) %{
-           if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); } else { badflag = 1; }
+           PDL_IF_BAD(if (!($ISGOOD(a()) && $ISGOOD(b()))) { badflag = 1; break; }
+           else,)                                          { tmp += $a() * $b(); }
         %}
-        if ( badflag ) { $SETBAD(c()); $PDLSTATESETBAD(c); }
-        else        { $c() = tmp;  }',
+        PDL_IF_BAD(if (badflag) { $SETBAD(c()); $PDLSTATESETBAD(c); }
+        else,)                  { $c() = tmp;  }',
        CopyBadStatusCode => '',
        Doc => '
 
@@ -97,13 +94,9 @@ pp_def(
        GenericTypes => [ppdefs_all],
        Code =>
        'loop(n,m) %{
-          $c() = $a() * $b();
-        %}',
-       BadCode =>
-       'loop(n,m) %{
-          if ( $ISBAD(a()) || $ISBAD(b()) ) {
+          PDL_IF_BAD(if ( $ISBAD(a()) || $ISBAD(b()) ) {
              $SETBAD(c());
-          } else {
+          } else,) {
              $c() = $a() * $b();
           }
         %}',
@@ -301,23 +294,16 @@ pp_def(
        Pars => 'a(n); b(n); c(n); [o]d();',
        GenericTypes => [ppdefs_all],
        Code =>
-       'double tmp = 0;
-	loop(n) %{
-           tmp += $a() * $b() * $c();
-        %}
-	$d() = tmp;',
-       BadCode =>
-       'double tmp = 0;
+       'long double tmp = 0;
         int flag = 0;
-
 	loop(n) %{
-           if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) {
+           PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ),) {
               tmp += $a() * $b() * $c();
               flag = 1;
            }
         %}
-        if ( flag ) { $d() = tmp; }
-        else        { $SETBAD(d()); }',
+        PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
+        else,)                { $d() = tmp; }',
        Doc => '
 
 =for ref
@@ -337,22 +323,16 @@ pp_def(
        Pars => 'a(n); b(n,m); c(m); [o]d();',
        GenericTypes => [ppdefs_all],
        Code =>
-       'double tmp=0;
-	loop(n,m) %{
-           tmp += $a() * $b() * $c();
-        %}
-	$d() = tmp;',
-       BadCode =>
-       'double tmp = 0;
+       'long double tmp = 0;
         int flag = 0;
 	loop(n,m) %{
-           if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) {
+           PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ),) {
               tmp += $a() * $b() * $c();
               flag = 1;
            }
         %}
-        if ( flag ) { $d() = tmp; }
-        else        { $SETBAD(d()); }',
+        PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
+        else,)                { $d() = tmp; }',
        Doc => '
 =for ref
 
@@ -371,22 +351,16 @@ pp_def(
        Pars => 'a(n,m); b(n,m); [o]c();',
        GenericTypes => [ppdefs_all],
        Code =>
-       'double tmp=0;
-	loop(n,m) %{
-           tmp += $a() * $b();
-        %}
-	$c() = tmp;',
-       BadCode =>
-       'double tmp = 0;
+       'long double tmp = 0;
         int flag = 0;
 	loop(n,m) %{
-           if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
+           PDL_IF_BAD(if ( $ISGOOD(a()) && $ISGOOD(b()) ),) {
               tmp += $a() * $b();
               flag = 1;
            }
         %}
-        if ( flag ) { $c() = tmp; }
-        else        { $SETBAD(c()); }',
+        PDL_IF_BAD(if (!flag) { $SETBAD(c()); }
+        else,)                { $c() = tmp; }',
        Doc => '
 
 =for ref
@@ -409,34 +383,19 @@ pp_def(
        GenericTypes => [ppdefs_all],
        Code =>
        'loop(n,k) %{
-           double tmp0 = 0;
-	   loop(m) %{
-              tmp0 += $b() * $c();
-           %}
-	   $tmp() = tmp0;
-	%}
-	loop(j,k) %{
-           double tmp1 = 0;
-	   loop(n) %{
-              tmp1 += $a() * $tmp();
-           %}
-           $d() = tmp1;
-	%}',
-       BadCode =>
-       'loop(n,k) %{
-           double tmp0 = 0;
+           long double tmp0 = 0;
            int flag = 0;
 	   loop(m) %{
-              if ( $ISGOOD(b()) && $ISGOOD(c()) ) {
+              PDL_IF_BAD(if ( $ISGOOD(b()) && $ISGOOD(c()) ),) {
                  tmp0 += $b() * $c();
                  flag = 1;
               }
            %}
-           if ( flag ) { $tmp() = tmp0; }
-           else        { $SETBAD(tmp()); }
+           PDL_IF_BAD(if (!flag) { $SETBAD(tmp()); }
+           else,)                { $tmp() = tmp0; }
 	%}
 	loop(j,k) %{
-           double tmp1 = 0;
+           long double tmp1 = 0;
            int flag = 0;
 	   loop(n) %{
               if ( $ISGOOD(a()) && $ISGOOD(tmp()) ) {
@@ -444,11 +403,10 @@ pp_def(
                  flag = 1;
               }
            %}
-           if ( flag ) { $d() = tmp1; }
-           else        { $SETBAD(d()); }
+           PDL_IF_BAD(if (!flag) { $SETBAD(d()); }
+           else,)                { $d() = tmp1; }
 	%}',
        Doc => '
-
 =for ref
 
 Efficient Triple matrix product C<a*b*c>
@@ -466,10 +424,8 @@ It is hoped that things like this could be taken care of as a kind of
 closures at some point.
 
 =cut
-
 '
        ); # pp_def inner2t()
-
 
 # a helper function for the cross product definition
 sub crassgn {
@@ -554,45 +510,34 @@ pp_def('norm',
 pp_def(
     'indadd',
     HandleBad => 1,
-    Pars => 'a(n); indx ind(n); [o] sum(m)',
+    Pars => 'input(n); indx ind(n); [o] sum(m)',
     GenericTypes => [ppdefs_all],
     Code =>
     'loop(n) %{
-        register PDL_Indx foo = $ind();
-        if ( foo<0 || foo>=$SIZE(m) ) {
-           $CROAK("PDL::indadd: invalid index");
-        }
-        $sum(m => foo) += $a();
+        register PDL_Indx this_ind = $ind();
+        if ( PDL_IF_BAD($ISBADVAR(this_ind,ind) ||,) this_ind<0 || this_ind>=$SIZE(m) )
+           $CROAK("invalid index");
+        PDL_IF_BAD(
+        if ( $ISBAD(input()) ) { $SETBAD(sum(m => this_ind)); }
+        else,)                 { $sum(m => this_ind) += $input(); }
     %}',
-    BadCode =>
-    'loop(n) %{
-        register PDL_Indx foo = $ind();
-        if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
-           $CROAK("PDL::indadd: invalid index");
-        }
-        if ( $ISBAD(a()) ) { $SETBAD(sum(m => foo)); }
-        else               { $sum(m => foo) += $a(); }
-     %}',
     BadDoc => '
-
 =for bad
 
-The routine barfs if any of the indices are bad.
+The routine barfs on bad indices, and bad inputs set target outputs bad.
 
 =cut
-
 ',
     Doc=>'
-
 =for ref
 
-Threaded Index Add: Add C<a> to the C<ind> element of C<sum>, i.e:
+Broadcasting index add: add C<input> to the C<ind> element of C<sum>, i.e:
 
- sum(ind) += a
+ sum(ind) += input
 
 =for example
 
-Simple Example:
+Simple example:
 
   $x = 2;
   $ind = 3;
@@ -602,7 +547,7 @@ Simple Example:
   #Result: ( 2 added to element 3 of $sum)
   # [0 0 0 2 0 0 0 0 0 0]
 
-Threaded Example:
+Broadcasting example:
 
   $x = pdl( 1,2,3);
   $ind = pdl( 1,4,6);
@@ -613,7 +558,6 @@ Threaded Example:
   # [0 1 0 0 2 0 3 0 0 0]
 
 =cut
-
 ');
 
 # 1D convolution
@@ -973,11 +917,10 @@ for my $opt (
 	   $name,
 	   HandleBad => 1,
 	   Pars => 'a(); b(); [o] c()',
-	   Code => $code,
-	   BadCode =>
-	   'if ( $ISBAD(a()) || $ISBAD(b()) ) {
+	   Code =>
+	   'PDL_IF_BAD(if ( $ISBAD(a()) || $ISBAD(b()) ) {
                $SETBAD(c());
-            } else { '.$code.' }',
+            } else,) { '.$code.' }',
 	   Doc =>  'clip (threshold) C<$a> by C<$b> (C<$b> is '.
 	   ($name eq 'hclip' ? 'upper' : 'lower').' bound)',
           PMCode=><<"EOD",
@@ -1021,12 +964,11 @@ pp_def(
 	'clip',
 	HandleBad => 1,
 	Pars => 'a(); l(); h(); [o] c()',
-	Code =>
-	'$c() = PDLMIN($h(), PDLMAX($l(), $a()));',
-	BadCode => <<'EOBC',
+	Code => <<'EOBC',
+         PDL_IF_BAD(
 	 if( $ISBAD(a()) || $ISBAD(l()) || $ISBAD(h()) ) {
 	   $SETBAD(c());
-         } else {
+         } else,) {
            $c() = PDLMIN($h(), PDLMAX($l(), $a()));
          }
 EOBC
@@ -1080,34 +1022,21 @@ pp_def(
        Code =>
        'double wtsum = 0;
 	double statsum = 0;
-	loop(n) %{
-	   register double tmp;
-           register int i;
-	   wtsum += $wt();
-	   tmp=1;
-           for(i=0; i<$COMP(deg); i++)
-              tmp *= $a();
-	   statsum += $wt() * (tmp - $avg());
-        %}
-	$b() = statsum / wtsum;',
-       BadCode =>
-       'double wtsum = 0;
-	double statsum = 0;
         int flag = 0;
-	loop(n) %{
-           if ( $ISGOOD(wt()) && $ISGOOD(a()) && $ISGOOD(avg()) ) {
-              register double tmp;
-              register int i;
-	      wtsum += $wt();
-	      tmp=1;
+        loop(n) %{
+           PDL_IF_BAD(if ($ISGOOD(wt()) && $ISGOOD(a()) && $ISGOOD(avg())),) {
+              long double tmp;
+              PDL_Indx i;
+              wtsum += $wt();
+              tmp=1;
               for(i=0; i<$COMP(deg); i++)
                  tmp *= $a();
-	      statsum += $wt() * (tmp - $avg());
+              statsum += $wt() * (tmp - $avg());
               flag = 1;
            }
         %}
-        if ( flag ) { $b() = statsum / wtsum; }
-        else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
+        PDL_IF_BAD(if (!flag) { $SETBAD(b()); $PDLSTATESETBAD(b); }
+        else,)                { $b() = statsum / wtsum; }',
        CopyBadStatusCode => '',
        Doc => '
 =for ref
@@ -1131,49 +1060,18 @@ pp_def('statsover',
 	HandleBad => 1,
 	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]median(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code =>
-	'$GENERIC(avg) tmp = 0;
+        '$GENERIC(avg) tmp = 0;
          $GENERIC(avg) tmp1 = 0;
          $GENERIC(avg) diff = 0;
          $GENERIC(min) curmin = 0, curmax = 0;
-	 $GENERIC(avg) norm = 0;
-	 loop(n) %{             /* Accumulate sum and summed weight. */
-            tmp += $a()*$w();
-            norm += ($GENERIC(avg)) $w();
-            if (!n) { curmin = $a(); curmax = $a();}
-            if ($a() < curmin) {
-                curmin = $a();
-             } else if ($a() > curmax) {
-                curmax = $a();
-             }
-         %}
-	 $avg() = tmp / norm;  /* Find mean */
-         $min() = curmin;
-         $max() = curmax;
-
-         /* Calculate the RMS and standard deviation. */
-         tmp = 0;
-	 loop(n) %{
-            diff = ($a() - $avg());
-            tmp += diff * diff * $w();
-            tmp1 += fabs(diff) * $w();
-         %}
-	 $rms()  = sqrt ( tmp/norm );
-	 $prms() = (norm>1) ? sqrt( tmp/(norm-1) ) : 0;
-         $adev() = tmp1/norm ;
-',
-	BadCode =>
-	'$GENERIC(avg) tmp = 0;
-         $GENERIC(avg) tmp1 = 0;
-         $GENERIC(avg) diff = 0;
-         $GENERIC(min) curmin = 0, curmax = 0;
-	 $GENERIC(w) norm = 0;
+         $GENERIC(w) norm = 0;
          int flag = 0;
-         loop(n) %{
-             /* perhaps should check w() for bad values too ? */
-             if ( $ISGOOD(a()) ) {
-	      tmp += $a()*$w();
-              norm += $w();
- 	      if (!flag) { curmin = $a(); curmax = $a(); flag=1; }
+         loop(n) %{             /* Accumulate sum and summed weight. */
+            /* perhaps should check w() for bad values too ? */
+            PDL_IF_BAD(if ( $ISGOOD(a()) ),) {
+              tmp += $a()*$w();
+              norm += ($GENERIC(avg)) $w();
+              if (!flag) { curmin = $a(); curmax = $a(); flag=1; }
               if ($a() < curmin) {
                 curmin = $a();
               } else if ($a() > curmax) {
@@ -1181,13 +1079,19 @@ pp_def('statsover',
               }
             }
          %}
-         /* have at least one valid point if flag == 1 */
-         if ( flag ) {
+         /* have at least one valid point if flag true */
+         PDL_IF_BAD(if ( !flag ) {
+           $SETBAD(avg());  $PDLSTATESETBAD(avg);
+           $SETBAD(rms());  $PDLSTATESETBAD(rms);
+           $SETBAD(adev()); $PDLSTATESETBAD(adev);
+           $SETBAD(min());  $PDLSTATESETBAD(min);
+           $SETBAD(max());  $PDLSTATESETBAD(max);
+           $SETBAD(prms()); $PDLSTATESETBAD(prms);
+         } else,) {
            $avg() = tmp / norm; /* Find mean */
            $min() = curmin;
            $max() = curmax;
-
-	   /* Calculate the RMS and standard deviation. */
+           /* Calculate the RMS and standard deviation. */
            tmp = 0;
            loop(n) %{
               if ($ISGOOD(a())) {
@@ -1196,28 +1100,19 @@ pp_def('statsover',
                  tmp1 += fabs(diff) * $w();
               }
            %}
-	   $rms() = sqrt( tmp/norm );
-	   if(norm>1)
-	   	   $prms() =  sqrt( tmp/(norm-1) );
-	   else
-	           $SETBAD(prms());
+           $rms() = sqrt( tmp/norm );
+           if(norm>1)
+                   $prms() =  sqrt( tmp/(norm-1) );
+           else
+                   PDL_IF_BAD($SETBAD(prms()),$prms() = 0);
            $adev() = tmp1 / norm ;
-         } else       {
-           $SETBAD(avg());  $PDLSTATESETBAD(avg);
-           $SETBAD(rms());  $PDLSTATESETBAD(rms);
-           $SETBAD(adev()); $PDLSTATESETBAD(adev);
-           $SETBAD(min());  $PDLSTATESETBAD(min);
-           $SETBAD(max());  $PDLSTATESETBAD(max);
-           $SETBAD(prms()); $PDLSTATESETBAD(prms);
          }',
       CopyBadStatusCode => '',
       PMCode => '
-
 sub PDL::statsover {
    barf(\'Usage: ($mean,[$prms, $median, $min, $max, $adev, $rms]) = statsover($data,[$weights])\') if @_>2;
    my ($data, $weights) = @_;
    $weights = $data->ones() if !defined($weights);
-
    my $median = $data->medover();
    my $mean = PDL->nullcreate($data);
    my $rms = PDL->nullcreate($data);
@@ -1226,14 +1121,10 @@ sub PDL::statsover {
    my $adev = PDL->nullcreate($data);
    my $prms = PDL->nullcreate($data);
    PDL::_statsover_int($data, $weights, $mean, $prms, $median, $min, $max, $adev, $rms);
-
-   return $mean unless wantarray;
-   return ($mean, $prms, $median, $min, $max, $adev, $rms);
+   wantarray ? ($mean, $prms, $median, $min, $max, $adev, $rms) : $mean;
 }
-
 ',
       Doc => '
-
 =for ref
 
 Calculate useful statistics over a dimension of an ndarray
@@ -1289,17 +1180,14 @@ to calculate the statistics for the entire ndarray either
 use C<clump(-1)> directly on the ndarray or call C<stats>.
 
 =cut
-
 ',
      BadDoc =>'
-
 =for bad
 
 Bad values are simply ignored in the calculation, effectively reducing
 the sample size.  If all data are bad then the output data are marked bad.
 
 =cut
-
 ',
 );
 
@@ -1428,7 +1316,7 @@ for(
      }
     )
 {
-my $p1 = 'register int j;
+my $code = 'register int j;
 	register int maxj = $SIZE(m)-1;
 	register double min  = $COMP(min);
 	register double step = $COMP(step);
@@ -1436,13 +1324,13 @@ my $p1 = 'register int j;
 	   loop(m) %{ $hist() = 0; %}
 	%}
 	broadcastloop %{
-	   loop(n) %{';
-my $p2 = '
+	   loop(n) %{
+	     PDL_IF_BAD(if ( $ISGOOD(in()) ),) {
 	      j = (int) (($in()-min)/step);
 	      if (j<0) j=0;
 	      if (j > maxj) j = maxj;
-	      ($hist(m => j))'.$_->{HistOp}.';';
-my $p3 = '
+	      ($hist(m => j))'.$_->{HistOp}.';
+             }
 	   %}
 	%}';
 pp_def($_->{Name},
@@ -1451,9 +1339,8 @@ pp_def($_->{Name},
        # set outdim by Par!
        OtherPars => 'double step; double min; int msize => m',
        HandleBad => 1,
-       Code => $p1.$p2.$p3,
-       BadCode => $p1.'if ( $ISGOOD(in()) ) {'.$p2.'}'.$p3,
-	Doc=>$_->{Doc});
+       Code => $code,
+       Doc=>$_->{Doc});
 }
 
 my $histogram2d_doc = <<'EOD';
@@ -1539,7 +1426,7 @@ for(
 	}
     )
 {
-       my $p1 = 'register int ja,jb;
+       my $code = 'register int ja,jb;
 	register int maxja = $SIZE(ma)-1;
 	register int maxjb = $SIZE(mb)-1;
 	register double mina = $COMP(mina);
@@ -1550,16 +1437,16 @@ for(
 	   loop(ma,mb) %{ $hist() = 0; %}
 	%}
 	broadcastloop %{
-	   loop(n) %{';
-       my $p2 = '
+	   loop(n) %{
+	     PDL_IF_BAD(if ( $ISGOOD(ina()) && $ISGOOD(inb()) ),) {
 	      ja = (int) (($ina()-mina)/stepa);
 	      jb = (int) (($inb()-minb)/stepb);
 	      if (ja<0) ja=0;
 	      if (ja > maxja) ja = maxja;
 	      if (jb<0) jb=0;
 	      if (jb > maxjb) jb = maxjb;
-	      ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';';
-       my $p3 = '
+	      ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
+	     }
 	   %}
 	%}';
 pp_def($_->{Name},
@@ -1569,9 +1456,8 @@ pp_def($_->{Name},
        OtherPars => 'double stepa; double mina; int masize => ma;
 	             double stepb; double minb; int mbsize => mb;',
        HandleBad => 1,
-       Code => $p1.$p2.$p3,
-       BadCode => $p1.'if ( $ISGOOD(ina()) && $ISGOOD(inb()) ) {'.$p2.'}'.$p3,
-	Doc=> $_->{Doc});
+       Code => $code,
+       Doc=> $_->{Doc});
 }
 
 
@@ -3050,23 +2936,20 @@ EOD
 	  }
 	 )
 {
-    my $p1 = $_->{Variables} .'
+    my $code = $_->{Variables} .'
                  loop(n) %{
-			if ( $mask() ';
-    my $p2 = '
-			) {
+			if ( $mask() PDL_IF_BAD(&& $ISGOOD($mask()),) ) {
 				$inds(m => dm) = n;
 				dm++;
-			}'.$_->{Elseclause} . "\n".
-		' %}';
+			}'.$_->{Elseclause}.'
+		 %}';
     pp_def($_->{Name},
 	   HandleBad => 1,
 	   Doc => $_->{Doc},
 	   Pars => $_->{Pars},
 	   GenericTypes => [ppdefs_all],
 	   PMCode => $_->{PMCode},
-	   Code => $p1.$p2,
-	   BadCode => $p1.' && $ISGOOD($mask())'.$p2,
+	   Code => $code,
 #		the next one is currently a dirty hack
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
