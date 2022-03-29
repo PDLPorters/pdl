@@ -140,29 +140,21 @@ for my $f (@func_defs) {
   (my $func_short = $function) =~ s/^([^_]+_[^_]+_[^_]+).*$/$1/;
   my $desc = delete $func_desc{$func_short};
   my @pars = @{$f->[2]};
-  my ($p, $code, $badcode) = print_ppdef($out_type, $function, @pars);
+  my ($p, $code) = print_ppdef($out_type, $function, @pars);
   pp_addpm(qq{\n=head2 $desc->[0] (${func_short}_*)\n\n$desc->[1]\n\n=cut\n\n}) if $desc;
   pp_def($function,
     HandleBad => 1,
     GenericTypes => ['D'],
     Pars => $p,
     Code => $code,
-    BadCode => $badcode,
     Doc  => '',
   );
 }
 
 sub print_ppdef {
   my ($out_type, $function, @pars) = @_;
-
-  my ($pars, $code, $badcode);
-
-  for (@pars) {
-    my ($type, $par) = @$_;
-    $pars .= "$type $par(); ";
-  }
-  $pars .= "$out_type [o]out()";
-  $code = pp_line_numbers(__LINE__, <<EOF);
+  my $pars = join ' ', map "@$_[0,1]();", @pars, [$out_type, '[o]out'];
+  my $code = pp_line_numbers(__LINE__, <<EOF);
 gsl_error_handler_t *current_handler;
 funcname = "$function";
 current_handler = gsl_set_error_handler(cdf_error_handler);
@@ -174,21 +166,11 @@ EOF
 gsl_set_error_handler(current_handler);
 ";
   $code =~ s/, \);/ );/;
-
-  $badcode
-    = "if ( " . join(' && ', map { "\$ISGOOD($_->[1]())" } @pars ) . " ) {\n";
-  $badcode .= '  ' . $code . "\n}\n";
-  $badcode .= "else {\n  \$SETBAD(out());\n}";
-
-#  print "pp_def('$function',\n";
-#  print "  HandleBad => 1,\n";
-#  print "  GenericTypes => [D],\n";
-#  print "  Pars => '$pars',\n";
-#  print "  Code => '\n$code\n',\n";
-#  print "  BadCode => '\n$badcode\n',\n";
-#  print "  Doc  => '',\n";
-#  print ");\n\n";
-  return ($pars, $code, $badcode);
+  $code =
+    "PDL_IF_BAD(if ( !(" . join(' && ', map { "\$ISGOOD($_->[1]())" } @pars ) . ") ) {" .
+    "\$SETBAD(out()); }" .
+    'else,) {' . $code . "}\n";
+  return ($pars, $code);
 }
 
 pp_addpm({At=>'Bot'},<<'EOD');
