@@ -154,6 +154,13 @@ sub f {
 EOF
 pass '<<= followed by >>= not blow up NiceSlice';
 
+translate_and_run <<'EOF';
+$pb = $pa << 1;
+$pb += $pa(0);
+
+EOF
+pass '<< followed by 1 then blank';
+
 #
 # todo ones
 #

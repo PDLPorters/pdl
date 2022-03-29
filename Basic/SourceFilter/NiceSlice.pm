@@ -397,7 +397,7 @@ sub my_match_quotelike($$$$)      # ($textref, $prepat, $allow_raw_match)
             $endpos,    $textlen-$endpos,       # REMAINDER
         );
     }
-    unless ($$textref =~ m{\G(\b(?:m|s|qq|qx|qw|q|qr|tr|y)\b(?=\s*\S)|<<(?!=))}gc)
+    unless ($$textref =~ m{\G(\b(?:m|s|qq|qx|qw|q|qr|tr|y)\b(?=\s*\S)|<<(?=[a-zA-Z]|\s*['"`;,]))}gc)
     {
         Text::Balanced::_failmsg q{No quotelike operator found after prefix at "} .
                      substr($$textref, pos($$textref), 20) .
