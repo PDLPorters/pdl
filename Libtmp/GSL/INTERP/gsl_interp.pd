@@ -191,17 +191,14 @@ sub eval {
 }
 EOF
 	HandleBad => 1,
-        BadCode => '
-        if ($ISBAD($x())) {
+        Code => '
+        PDL_IF_BAD(if ($ISBAD($x())) {
           $out() = $x();
-	} else {
+	} else,) {
 	  GSLERR(gsl_spline_eval_e,($COMP(spl), $x(), $COMP(acc), $P(out)));
         }
         ',
-
-        Code =>'
-GSLERR(gsl_spline_eval_e,($COMP(spl), $x(), $COMP(acc), $P(out)));
-');
+);
 
 pp_def('deriv',
         Pars => 'double x(); double [o] out();',
