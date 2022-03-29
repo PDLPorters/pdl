@@ -97,43 +97,36 @@ EOF
 
 sub wrap_code {
   my ($name, $in, $out, $is_fwd) = @_;
-  my $setup = <<EOF;
+  my $body = <<EOF;
+PDL_IF_BAD(
+if ( @{[ join '||', map "\$ISBAD($in(n=>$_))", 0,1 ]} )
+{
+@{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
+}
+else,)
+{
     in.uv.u = \$$in(n=>0) @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
     in.uv.v = \$$in(n=>1) @{[$is_fwd ? ' * DEG_TO_RAD' : '']};
     out = proj_trans(proj, PJ_@{[$is_fwd ? 'FWD' : 'INV']}, in);
     if (out.uv.u == HUGE_VAL)
     {
-EOF
-  my $save = <<EOF;
+PDL_IF_BAD(
+        @{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
+,
+        \$CROAK("%s: Projection conversion failed at (%f, %f): %s\\n",
+                func, \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
+)
     }
     \$$out(n=>0) = out.uv.u@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
     \$$out(n=>1) = out.uv.v@{[$is_fwd ? '' : ' * RAD_TO_DEG']};
+}
 EOF
-  my $body = $setup.<<EOF.$save;
-        \$CROAK("%s: Projection conversion failed at (%f, %f): %s\\n",
-                func, \$$in(n=>0), \$$in(n=>1), proj_errno_string(proj_errno(proj)));
-EOF
-  my $code = join '', qq{char* func = "$name()";},
+  my $code = join '', qq{char* func = "$name" PDL_IF_BAD("[BADCODE]",) "()";},
     $code_head,
     $body,
     $code_foot,
     ;
-  my $badbody = <<EOF;
-if ( @{[ join '||', map "\$ISBAD($in(n=>$_))", 0,1 ]} )
-{
-@{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}
-}
-else
-{
-$setup@{[ join "\n", map "\$SETBAD($out(n=>$_));", 0,1 ]}$save
-}
-EOF
-  my $badcode = join '', qq{char* func = "$name\[BADCODE]()";},
-    $code_head,
-    $badbody,
-    $code_foot,
-    ;
-  (Code => $code, BadCode => $badcode,
+  (Code => $code,
     GenericTypes => ['D'],
     OtherPars => 'char* params;',
     HandleBad => 1,
