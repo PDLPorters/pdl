@@ -510,7 +510,7 @@ pp_def('norm',
 pp_def(
     'indadd',
     HandleBad => 1,
-    Pars => 'input(n); indx ind(n); [o] sum(m)',
+    Pars => 'input(n); indx ind(n); [io] sum(m)',
     GenericTypes => [ppdefs_all],
     Code =>
     'loop(n) %{

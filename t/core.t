@@ -60,23 +60,26 @@ like $@, qr/bad.*conditional/, 'badvalue as boolean is error';
 
 # test reshape barfing with negative args
 #
-eval 'my $d_long = $a_long->reshape(0,-3);';
+eval { my $d_long = $a_long->reshape(0,-3) };
 like $@, qr/invalid dim size/, "reshape() failed with negative args (long)";
 
-eval 'my $d_dbl = $a_dbl->reshape(0,-3);';
+eval { my $d_dbl = $a_dbl->reshape(0,-3) };
 like $@, qr/invalid dim size/, "reshape() failed with negative args (dbl)";
 
-# test reshape with no args
-my ( $x, $y, $c );
+eval { my $y = zeroes(1,3); $y .= sequence(2,3); };
+isnt $@, '', 'scaling-up of output dim 1 throws error';
+eval { my $y = zeroes(1); $y .= zeroes(0) + 1; };
+isnt $@, '', 'scaling-down of output dim 1 throws error';
 
-$x = ones 3,1,4;
-$y = $x->reshape;
+# test reshape with no args
+my $x = ones 3,1,4;
+my $y = $x->reshape;
 ok eq_array( [ $y->dims ], [3,4] ), "reshape()";
 
 # test reshape(-1) and squeeze
 $x = ones 3,1,4;
 $y = $x->reshape(-1);
-$c = $x->squeeze;
+my $c = $x->squeeze;
 ok eq_array( [ $y->dims ], [3,4] ), "reshape(-1)";
 ok all( $y == $c ), "squeeze";
 
