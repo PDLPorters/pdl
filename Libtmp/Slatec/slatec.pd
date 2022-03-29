@@ -1497,102 +1497,78 @@ Error status returned by C<$ierr>:
 ##################################################################
 ##################################################################
 
-#
 # This version of polfit accepts bad values and also allows broadcasting
-#
 
-#
 # indices: 
 #  n   runs across input points; 
 #  foo runs across wacky Slatec buffer size;
 #  bar runs across polynomial coefficients.
-#
 pp_def('polfit',
   Pars => 'x(n); y(n); w(n); longlong maxdeg(); longlong [o]ndeg(); [o]eps(); [o]r(n); longlong [o]ierr(); [o]a(foo); [o]coeffs(bar);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
-  OtherPars => '',
-  Code => '
-           PDL_LongLong maxord, ord, k, ns = $SIZE(n);
-           $GENERIC() zero = 0;
-
-           PDL_FORTRAN($TFD(polfit,dpolft))(&ns,$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));
-	   maxord = ($P(a))[0]+0.5;
-	   ord = ($P(a))[maxord * 3  +  2];
-	   if(ord >= $maxdeg()) {
-	     ord = $maxdeg();
-	   }
-           PDL_FORTRAN($TFD(p,dp)coef)( &(ord), &(zero), $P(coeffs), $P(a));
-           for(k=ord+1; k<=$maxdeg(); k++)
-              ($P(coeffs))[k] = 0;
-',
   GenericTypes => ['F','D'],
-  HandleBad => 1, 
+  HandleBad => 1,
   NoBadifNaN => 1,
-  BadCode => 'PDL_LongLong ns = $SIZE(n), i, j = 0;
-              if(ns<$maxdeg())
+  Code => 'PDL_LongLong howmany = PDL_IF_BAD(0,$SIZE(n)), i;
+              if($SIZE(n)<$maxdeg())
                 $CROAK("Must have at least <n> points to fit <n> coefficients");
-
-              for (i=0;i<ns;i++) {   /* get rid of bad values.  Call polfit with [xyw]tmp instead of [xyz]. */
-                if ($ISGOOD(y(n=>i)) && $ISGOOD(x(n=>i)) && $ISGOOD(w(n=>i))) {
-                  $xtmp(n=>j) = $x(n=>i);
-                  $ytmp(n=>j) = $y(n=>i);
-                  $wtmp(n=>j) = $w(n=>i);
-                  j++;
+              PDL_IF_BAD(
+              loop(n) %{   /* get rid of bad values.  Call polfit with [xyw]tmp instead of [xyz]. */
+                if ($ISGOOD(y()) && $ISGOOD(x()) && $ISGOOD(w())) {
+                  $xtmp(n=>howmany) = $x();
+                  $ytmp(n=>howmany) = $y();
+                  $wtmp(n=>howmany) = $w();
+                  howmany++;
                 }
-              }
-	      if (j <= $maxdeg()) {
+              %}
+	      if (howmany <= $maxdeg()) {
 		/* Not enough good datapoints -- set this whole row to BAD. */
-                for (i=0;i<ns;i++) {
-                  $SETBAD(r(n=>i));
-                }
+                loop(n) %{ $SETBAD(r()); %}
                 $ierr() = 2;
-              } else {
+              } else,) {
                   /* Found enough good datapoints for a fit -- do the fit */
-		  PDL_LongLong k;
-		  PDL_LongLong ord;
-		  PDL_LongLong maxord;
                   $GENERIC() zero = 0;
-
                 /* Do the fit */
-                PDL_FORTRAN($TFD(polfit,dpolft))
-                    (&j,$P(xtmp),$P(ytmp),$P(wtmp),$P(maxdeg),$P(ndeg),$P(eps),$P(rtmp),$P(ierr),$P(a));
-
-		maxord = ($P(a))[0]+0.5;
-		ord = ($P(a))[maxord * 3  +  2];
-		if(ord >= $maxdeg()) {
-		  ord = $maxdeg();
-		}
+                PDL_FORTRAN($TFD(polfit,dpolft))(
+                  &howmany,
+                  PDL_IF_BAD($P(xtmp),$P(x)),
+                  PDL_IF_BAD($P(ytmp),$P(y)),
+                  PDL_IF_BAD($P(wtmp),$P(w)),
+                  $P(maxdeg),$P(ndeg),$P(eps),
+                  PDL_IF_BAD($P(rtmp),$P(r)),
+                  $P(ierr),$P(a)
+                );
+		PDL_LongLong maxord = $a(foo=>0)+0.5;
+		PDL_LongLong ord = PDLMIN($maxdeg(),$a(foo=>(maxord*3)+2));
 		/* Extract the polynomial coefficients into coeffs -- used for bad values */
                 PDL_FORTRAN($TFD(,d)pcoef)(&(ord), &(zero), $P(coeffs), $P(a));
-                for(k=ord+1; k<=$maxdeg(); k++)
-                   ($P(coeffs))[k] = 0;
-                j=0;
-                for (i=0;i<ns;i++) {  /* replace bad values */
-                  if ($ISGOOD(y(n=>i))) {
-                    $r(n=>i) = $rtmp(n=>j);
-                    j++;
-                  } else if($ISGOOD(x(n=>i))) {
+                for(i=ord+1; i<=$maxdeg(); i++)
+                   $coeffs(bar=>i) = 0;
+                PDL_IF_BAD(
+                howmany=0;
+                loop(n) %{  /* replace bad values */
+                  if ($ISGOOD(y())) {
+                    $r() = $rtmp(n=>howmany);
+                    howmany++;
+                  } else if($ISGOOD(x())) {
 		     /* Bad values are omitted from the call to polfit, so we must reconstitute them on return */
 	             /* (just because a value is bad in y, does not mean the fit itself is bad there) */
                      /* */
                      /* The number in ord is not the number of coefficients in the polynomial, it is the highest */
                      /* order coefficient -- so 3 for a cubic, which has 4 coefficients. */
-	             /* --CED */
 		     PDL_LongLong ii;
                      $GENERIC() acc = 0;
                      for( ii=ord; ii>0; ii-- ) {
                         acc += $coeffs(bar=>ii);
-                        acc *= $x(n=>i);
+                        acc *= $x();
                      }
-
                      acc += $coeffs(bar=>0);
-                     $r(n=>i) = acc;
+                     $r() = acc;
                   } else {
                     /* x and y are bad here... */
-		    $SETBAD(r(n=>i));
+		    $SETBAD(r());
                   }
-                }
+                %},)
               }',
-
   Doc => 'Fit discrete data in a least squares sense by polynomials
           in one variable. C<x()>, C<y()> and C<w()> must be of the same type.
 	  This version handles bad values appropriately',
@@ -1602,7 +1578,6 @@ pp_def('polfit',
 ##################################################################
 
 pp_addpm(<<'EOD');
-
 =head1 AUTHOR
 
 Copyright (C) 1997 Tuomas J. Lukka. 
@@ -1614,10 +1589,6 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
-
-
 EOD
 
 pp_done();
-
-

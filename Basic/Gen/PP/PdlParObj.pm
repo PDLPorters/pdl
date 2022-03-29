@@ -220,7 +220,7 @@ sub do_access {
 	my $pdl = $this->{Name};
 # Parse substitutions into hash
 	my %subst = map
-	 {/^\s*(\w+)\s*=>\s*(\S*)\s*$/ or confess "Invalid subst $_\n"; ($1,$2)}
+	 {/^\s*(\w+)\s*=>\s*(\S*)\s*$/ or confess "Invalid subst $_ (no spaces in => value)\n"; ($1,$2)}
 	 	splitprotected ',',$inds;
 # Generate the text
 	my $text;
