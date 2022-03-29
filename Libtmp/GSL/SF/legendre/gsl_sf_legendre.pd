@@ -84,63 +84,23 @@ if (defined($v) && version->parse($v)>=version->parse(2.0)){
 $SIZE(wn)=gsl_sf_legendre_array_n($COMP(lmax));
 $SIZE(n)=$COMP(lmax)*($COMP(lmax)+1)/2+$COMP(lmax)+1;
 ',
-	   Code => <<'EOC',
-           int i;
-           if($x()<-1||$x()>1) $CROAK("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f. Try normalizing your input.",$x());
-	   switch ($COMP(norm)){
-	       case 'P' :
-		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_NONE, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
-	       break;
-	       case 'S' :
-		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_SCHMIDT, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
-	       break;
-	       case 'Y' :
-		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_SPHARM, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
-	       break;
-	       case 'N' :
-		   GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_FULL, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
-	       break;
-               default :
-                ;
-           }
-           for(i=0; i<$SIZE(n); i++) {
-              $y(n=>i) = $work(wn=>i);
-           }
-
-EOC
-
 	   HandleBad => 1,
-	   BadCode => <<'EOBC',
-	   int i;
-	   if ( $ISBAD( x() ) ) {
+	   Code => <<'EOBC',
+	   PDL_IF_BAD(if ( $ISBAD( x() ) ) {
               loop(n) %{ $SETBAD ( y() ); %}
-	   } else {
+	   } else,) {
              if($x()<-1||$x()>1) $CROAK("The input to gsl_sf_legendre_array must be abs(x)<=1, and you input %f",$x());
+             gsl_sf_legendre_t norm;
 	     switch ($COMP(norm)) {
-		   case 'P' :
-		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_NONE, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
-		   break;
-		   case 'S' :
-		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_SCHMIDT, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
-		   break;
-		   case 'Y' :
-		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_SPHARM, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
-		   break;
-		   case 'N' :
-		       GSLERR(gsl_sf_legendre_array_e,(GSL_SF_LEGENDRE_FULL, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
-		   break;
-		   default :
-		       ;
-	       }
-             for(i=0; i<$SIZE(n); i++) {
-                $y(n=>i) = $work(wn=>i);
-             }
+		   case 'S': norm = GSL_SF_LEGENDRE_SCHMIDT; break;
+		   case 'Y': norm = GSL_SF_LEGENDRE_SPHARM; break;
+		   case 'N': norm = GSL_SF_LEGENDRE_FULL; break;
+		   default: norm = GSL_SF_LEGENDRE_NONE; break;
+	     }
+	     GSLERR(gsl_sf_legendre_array_e,(norm, $COMP(lmax), $x(), $COMP(csphase), $P(work)));
+             loop(n) %{ $y() = $work(wn=>n); %}
 	   }
-
 EOBC
-
-
-
 	   Doc => <<'EOD',
 =for ref
 
@@ -156,13 +116,13 @@ The parameter norm should be:
 
 =over 3
 
-=item 'P' for unnormalized associated Legendre polynomials P_l^m(x),
-
 =item 'S' for Schmidt semi-normalized associated Legendre polynomials S_l^m(x),
 
 =item 'Y' for spherical harmonic associated Legendre polynomials Y_l^m(x), or
 
 =item 'N' for fully normalized associated Legendre polynomials N_l^m(x).
+
+=item 'P' (or any other) for unnormalized associated Legendre polynomials P_l^m(x),
 
 =back
 
@@ -170,9 +130,7 @@ lmax is the maximum degree l.
 csphase should be (-1) to INCLUDE the Condon-Shortley phase factor (-1)^m, or (+1) to EXCLUDE it.
 
 See L</gsl_sf_legendre_array_index> to get the value of C<l> and C<m> in the returned vector.
-
 EOD
-
 	);
 
     pp_def('gsl_sf_legendre_array_index',
