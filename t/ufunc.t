@@ -15,6 +15,9 @@ my $p = pdl([]); $p->setdims([1,0]); $p->qsortvec; # shouldn't segfault!
 my $p2d  = pdl([[1,2],[3,4],[1,3],[1,2],[3,3]]);
 is $p2d->dice_axis(1,$p2d->qsortveci).'', $p2d->qsortvec.'', "qsortveci";
 
+eval { empty()->medover }; # shouldn't segfault
+isnt $@, '', 'exception for percentile on empty ndarray';
+
 # set up test arrays
 #
 my $x = pdl(0,0,6,3,5,0,7,14,94,5,5,8,7,7,1,6,7,13,10,2,101,19,7,7,5);  # sf.net bug #2019651

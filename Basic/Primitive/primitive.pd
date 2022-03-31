@@ -1112,8 +1112,8 @@ pp_def('statsover',
 sub PDL::statsover {
    barf(\'Usage: ($mean,[$prms, $median, $min, $max, $adev, $rms]) = statsover($data,[$weights])\') if @_>2;
    my ($data, $weights) = @_;
-   $weights = $data->ones() if !defined($weights);
-   my $median = $data->medover();
+   $weights //= $data->ones();
+   my $median = $data->medover;
    my $mean = PDL->nullcreate($data);
    my $rms = PDL->nullcreate($data);
    my $min = PDL->nullcreate($data);

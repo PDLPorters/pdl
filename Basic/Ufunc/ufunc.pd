@@ -786,6 +786,8 @@ sub generic_qsortvec {
 # of good elements to the sort routines
 # should use broadcastloop ?
 my $copy_to_temp = '
+        if ($PDL(a)->nvals == 0)
+          $CROAK("cannot process empty ndarray");
         PDL_Indx nn = PDL_IF_BAD(0,$SIZE(n)-1);
 	loop(n) %{ 
            PDL_IF_BAD(if ( $ISGOOD(a()) ) { $tmp(n=>nn) = $a(); nn++; },
