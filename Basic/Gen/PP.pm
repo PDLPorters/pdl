@@ -407,7 +407,7 @@ sub dosubst_private {
       PP => sub { $sig->objs->{$_[0]}->do_physpointeraccess },
       P => sub { (my $o = $sig->objs->{$_[0]})->{FlagPhys} = 1; $o->do_pointeraccess; },
       PDL => sub { $sig->objs->{$_[0]}->do_pdlaccess },
-      SIZE => sub { $sig->ind_obj($_[0])->get_size },
+      SIZE => sub { ($sig->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
       %PDL::PP::macros,
    );
     while (my ($before, $kw, $args, $other) = macro_extract($ret)) {
