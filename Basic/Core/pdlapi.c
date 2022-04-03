@@ -326,16 +326,14 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 		PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
 	pdl *destbuffer[trans->vtable->npdls];
 	int ndest = 0;
-	if (ismutual) {
-	  for(j=0; j<trans->vtable->nparents; j++) {
-	    pdl *parent = trans->pdls[j];
-	    if(!parent) continue;
-	    PDL_CHKMAGIC(parent);
-	    pdl__removetrans_children(parent,trans);
-	    if (!(parent->state & PDL_DESTROYING) && !parent->sv) {
-	      parent->state |= PDL_DESTROYING; /* so no mark twice */
-	      destbuffer[ndest++] = parent;
-	    }
+	for(j=0; j<trans->vtable->nparents; j++) {
+	  pdl *parent = trans->pdls[j];
+	  if(!parent) continue;
+	  PDL_CHKMAGIC(parent);
+	  pdl__removetrans_children(parent,trans);
+	  if (!(parent->state & PDL_DESTROYING) && !parent->sv) {
+	    parent->state |= PDL_DESTROYING; /* so no mark twice */
+	    destbuffer[ndest++] = parent;
 	  }
 	}
 	for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++) {
@@ -679,12 +677,11 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
     return PDL_err;
   }
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
-  if (dataflow)
-    for(i=0; i<nparents; i++) {
-      pdl *parent = trans->pdls[i];
-      PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
-      if (parent->state & PDL_DATAFLOW_F) trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
-    }
+  for(i=0; i<nparents; i++) {
+    pdl *parent = trans->pdls[i];
+    PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
+    if (parent->state & PDL_DATAFLOW_F) trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
+  }
   int wd[npdls];
   for(i=nparents; i<npdls; i++) {
 	pdl *child = trans->pdls[i];
@@ -826,7 +823,8 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
 	PDL_START_CHILDLOOP(it)
 	    pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
 	    for(j=trans->vtable->nparents; j<trans->vtable->npdls; j++)
-		CHANGED(trans->pdls[j],what,1);
+		if (trans->pdls[j] != it && (trans->pdls[j]->state & what) != what)
+		    CHANGED(trans->pdls[j],what,1);
 	PDL_END_CHILDLOOP(it)
     }
     PDLDEBUG_f(printf("pdl_changed: exiting for pdl %p\n",(void*)it));
@@ -997,11 +995,9 @@ pdl_error pdl_sever(pdl *src)
 void pdl_propagate_badflag( pdl *it, int newval ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
-    {
 	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i;
-	for( i = trans->vtable->nparents;
-	     i < trans->vtable->npdls; i++ ) {
+	PDL_Indx i;
+	for( i = trans->vtable->nparents; i < trans->vtable->npdls; i++ ) {
 	    pdl *child = trans->pdls[i];
 	    char need_recurse = (!!newval != !!(child->state & PDL_BADVAL));
 	    if ( newval ) {
@@ -1013,25 +1009,21 @@ void pdl_propagate_badflag( pdl *it, int newval ) {
 	    if (need_recurse)
 		pdl_propagate_badflag( child, newval );
         } /* for: i */
-    }
     PDL_END_CHILDLOOP(it)
 } /* pdl_propagate_badflag */
 
 void pdl_propagate_badvalue( pdl *it ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
-    {
 	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	int i;
-	for( i = trans->vtable->nparents;
-	     i < trans->vtable->npdls; i++ ) {
+	PDL_Indx i;
+	for( i = trans->vtable->nparents; i < trans->vtable->npdls; i++ ) {
 	    pdl *child = trans->pdls[i];
             child->has_badvalue = 1;
             child->badvalue = it->badvalue;
 	    /* make sure we propagate to grandchildren, etc */
 	    pdl_propagate_badvalue( child );
         } /* for: i */
-    }
     PDL_END_CHILDLOOP(it)
 } /* pdl_propagate_badvalue */
 
