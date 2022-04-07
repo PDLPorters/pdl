@@ -624,12 +624,17 @@ get_dataref(self)
 	CODE:
 	if(self->state & PDL_DONTTOUCHDATA)
 	  croak("Trying to get dataref to magical (mmaped?) pdl");
+	PDLDEBUG_f(printf("get_dataref %p\n", self));
 	pdl_barf_if_error(pdl_make_physical(self)); /* XXX IS THIS MEMLEAK WITHOUT MORTAL? */
 	if (!self->datasv) {
+	  PDLDEBUG_f(printf("get_dataref no datasv\n"));
 	  self->datasv = newSVpvn("", 0);
 	  (void)SvGROW((SV *)self->datasv, self->nbytes);
+	  SvCUR_set((SV *)self->datasv, self->nbytes);
+	  memmove(SvPV_nolen((SV*)self->datasv), self->data, self->nbytes);
 	}
 	RETVAL = newRV(self->datasv);
+	PDLDEBUG_f(printf("get_dataref end: "); pdl_dump(self));
 	OUTPUT:
 	RETVAL
 
@@ -639,7 +644,9 @@ upd_data(self)
 	CODE:
 	if(self->state & PDL_DONTTOUCHDATA)
 	  croak("Trying to touch dataref of magical (mmaped?) pdl");
+	PDLDEBUG_f(printf("upd_data %p\n", self));
        self->data = SvPV_nolen((SV*)self->datasv);
+	PDLDEBUG_f(printf("upd_data end: "); pdl_dump(self));
 
 void
 set_dataflow_f(self,value)
