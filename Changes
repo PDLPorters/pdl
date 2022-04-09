@@ -9,6 +9,7 @@
 - fix long-standing "harmful" scaling of output with dim 1 (#392)
 - fix segfault bug for Ufunc::{odd,}{pct,med}over with empty - thanks @nerdstrike for report
 - struct pdl add "value" field for data that fits there, avoiding separate memory-management (#358)
+- copy over the sensible method-name aliases for PDL::Complex from PDL::LinearAlgebra
 
 2.077 2022-03-16
 - Ufunc::{min,max}over{,_ind} behaviour for NaNs fixed to match docs

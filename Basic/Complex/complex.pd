@@ -23,12 +23,6 @@ our $VERSION = '2.009';
    use PDL::Types;
    use PDL::Bad;
 
-   use vars qw($sep $sep2);
-EOD
-
-
-pp_addpm {At => 'Top'}, <<'EOD';
-
 =encoding iso-8859-1
 
 =head1 NAME
@@ -102,12 +96,6 @@ the fifths roots of 1+1*i (due to broadcasting).
 use C<cplx(real-valued-ndarray)> to cast from normal ndarrays into the
 complex datatype. Use C<real(complex-valued-ndarray)> to cast back. This
 requires a copy, though.
-
-=item *
-
-This module has received some testing by Vanuxem Grégory
-(g.vanuxem at wanadoo dot fr). Please report any other errors you
-come across!
 
 =back
 
@@ -242,6 +230,25 @@ BEGIN { $i = bless pdl 0,1 }
 no warnings 'redefine';
 sub i { $i->copy + (@_ ? $_[0] : 0) };
 }
+
+# sensible aliases from PDL::LinearAlgebra
+*r2p = \&Cr2p;
+*p2r = \&Cp2r;
+*conj = \&Cconj;
+*abs = \&Cabs;
+*abs2 = \&Cabs2;
+*arg = \&Carg;
+*tan = \&Ctan;
+*proj = \&Cproj;
+*asin = \&Casin;
+*acos = \&Cacos;
+*atan = \&Catan;
+*sinh = \&Csinh;
+*cosh = \&Ccosh;
+*tanh = \&Ctanh;
+*asinh = \&Casinh;
+*acosh = \&Cacosh;
+*atanh = \&Catanh;
 EOD
 
 for (qw(Ctan Catan re im i cplx real)) {

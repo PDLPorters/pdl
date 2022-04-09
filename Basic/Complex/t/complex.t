@@ -126,6 +126,9 @@ ok(tapprox(Cscale($x,$pa)->real, $x->real*$pa), 'Value of Cscale with pdl');
 #	   Cscale(Cmul($x,$y->Cconj), 1/$y->Cabs2)->real), 'Value of Cdiv');
 # to test Cabs, Cabs2, Carg (ref PDL)
 
+ok(tapprox($x->Cconj->im, -2), 'Cconj works');
+ok(tapprox($x->conj->im, -2), 'conj works');
+
 $x = cplx($ref);
 my $cabs = sqrt($x->re**2+$x->im**2);
 
