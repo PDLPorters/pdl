@@ -53,11 +53,14 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 
     STRLEN nbytes = a->nvals * pdl_howbig(targtype); /* Size of converted data */
     STRLEN ncurr = a->nvals * pdl_howbig(intype);
-    char diffsize = ncurr != nbytes;
+    PDL_Value value;
+    char diffsize = ncurr != nbytes,
+      was_useheap = (ncurr > sizeof(value)),
+      will_useheap = (nbytes > sizeof(value));
 
     void *data_from_void = a->data, *data_to_void = a->data;
     if (diffsize)
-       data_to_void = pdl_smalloc(nbytes); /* Space for changed data */
+       data_to_void = will_useheap ? pdl_smalloc(nbytes) : &value;
 
 #define THIS_ISBAD(from_badval_isnan, from_badval, from_val) \
   ((from_badval_isnan) \
@@ -90,8 +93,21 @@ pdl_error pdl_converttype( pdl* a, int targtype ) {
 
     /* Store new data */
     if (diffsize) {
-      sv_setpvn((SV*) a->datasv, (char*) data_to_void, nbytes);
-      a->data = SvPV_nolen((SV*) a->datasv);
+      if (!was_useheap && !will_useheap) {
+        memmove(&a->value, data_to_void, nbytes);
+      } else if (!will_useheap) {
+        /* was heap, now not */
+        memmove(a->data = &a->value, data_to_void, nbytes);
+        SvREFCNT_dec((SV*)a->datasv);
+        a->datasv = NULL;
+      } else {
+        /* now change to be heap */
+        if (a->datasv == NULL)
+          a->datasv = newSVpvn("", 0);
+        (void)SvGROW((SV*)a->datasv, nbytes);
+        SvCUR_set((SV*)a->datasv, nbytes);
+        memmove(a->data = SvPV_nolen((SV*)a->datasv), data_to_void, nbytes);
+      }
     }
 
     a->datatype = targtype;

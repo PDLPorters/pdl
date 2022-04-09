@@ -639,13 +639,23 @@ get_dataref(self)
 	RETVAL
 
 void
-upd_data(self)
+upd_data(self, keep_datasv=0)
 	pdl *self
+	IV keep_datasv
 	CODE:
 	if(self->state & PDL_DONTTOUCHDATA)
 	  croak("Trying to touch dataref of magical (mmaped?) pdl");
-	PDLDEBUG_f(printf("upd_data %p\n", self));
-       self->data = SvPV_nolen((SV*)self->datasv);
+	PDLDEBUG_f(printf("upd_data: "); pdl_dump(self));
+	if (keep_datasv || !PDL_USESTRUCTVALUE(self)) {
+	  self->data = SvPV_nolen((SV*)self->datasv);
+	} else if (self->datasv) {
+	  PDLDEBUG_f(printf("upd_data zap datasv\n"));
+	  memmove(self->data, SvPV_nolen((SV*)self->datasv), self->nbytes);
+	  SvREFCNT_dec(self->datasv);
+	  self->datasv = NULL;
+	} else {
+	  PDLDEBUG_f(printf("upd_data datasv gone, maybe reshaped\n"));
+	}
 	PDLDEBUG_f(printf("upd_data end: "); pdl_dump(self));
 
 void

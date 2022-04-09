@@ -552,6 +552,7 @@ struct pdl {
    struct pdl_magic *magic;
 
    void *hdrsv; /* "header", settable from Perl */
+   PDL_Value value; /* to store at least one value */
 };
 
 typedef struct pdl_slice_args {
@@ -581,6 +582,8 @@ typedef struct pdl_slice_args {
                         p##__c=p##__c->next; \
                 } while(1);
 
+#define PDL_USESTRUCTVALUE(it) \
+        (it->nbytes <= sizeof(it->value))
 
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 #define PDLMIN(a,b) ((a) < (b) ? (a) : (b))

@@ -131,11 +131,26 @@ pdl_error pdl_allocdata(pdl *it) {
     return PDL_err;    /* Nothing to be done */
   if(it->state & PDL_DONTTOUCHDATA)
     return pdl_make_error_simple(PDL_EUSERERROR, "Trying to touch data of an untouchable (mmapped?) pdl");
-  if(it->datasv == NULL)
-    it->datasv = newSVpvn("", 0);
-  (void)SvGROW((SV*)it->datasv, nbytes);
-  SvCUR_set((SV*)it->datasv, nbytes);
-  it->data = SvPV_nolen((SV*)it->datasv);
+  char was_useheap = (ncurr > sizeof(it->value)),
+    will_useheap = (nbytes > sizeof(it->value));
+  if (!was_useheap && !will_useheap) {
+    it->data = &it->value;
+  } else if (!will_useheap) {
+    /* was heap, now not */
+    void *data_old = it->data;
+    memmove(it->data = &it->value, data_old, PDLMIN(ncurr, nbytes));
+    SvREFCNT_dec((SV*)it->datasv);
+    it->datasv = NULL;
+  } else {
+    /* now change to be heap */
+    if (it->datasv == NULL)
+      it->datasv = newSVpvn("", 0);
+    (void)SvGROW((SV*)it->datasv, nbytes);
+    SvCUR_set((SV*)it->datasv, nbytes);
+    if (it->data && !was_useheap)
+      memmove(SvPV_nolen((SV*)it->datasv), it->data, PDLMIN(ncurr, nbytes));
+    it->data = SvPV_nolen((SV*)it->datasv);
+  }
   if (nbytes > ncurr) memset(it->data + ncurr, 0, nbytes - ncurr);
   it->nbytes = nbytes;
   it->state |= PDL_ALLOCATED;
@@ -249,7 +264,7 @@ pdl_error pdl__free(pdl *it) {
 	    PDLDEBUG_f(printf("SvREFCNT_dec datasv=%p\n",it->datasv);)
 	    SvREFCNT_dec(it->datasv);
 	    it->data=0;
-    } else if(it->data) {
+    } else if(it->data && it->data != &it->value) {
 	    pdl_pdl_warn("Warning: special data without datasv is not freed currently!!");
     }
     if(it->hdrsv) {

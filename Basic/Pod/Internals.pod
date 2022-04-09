@@ -98,6 +98,7 @@ of the file F<pdlcore.h>. So what does the structure look like:
 	   struct pdl_magic *magic;
 
 	   void *hdrsv; /* "header", settable from outside */
+	   PDL_Value value; /* to store at least one value */
 	};
 
 This is quite a structure for just storing some data in - what is going on?
@@ -105,19 +106,28 @@ This is quite a structure for just storing some data in - what is going on?
 =head3 Data storage
 
 We are going to start with some of the simpler members: first of all,
-there is the member
+there are the members (as of 2.078)
 
 	void *datasv;
+	PDL_Value value; /* to store at least one value */
 
-which is really a pointer to a Perl SV structure (C<SV *>). The SV is
+which are a pointer to a Perl SV structure (C<SV *>), and a union value
+of all possible single PDL values. If the ndarray's whole data
+will fit in the C<value>, the C<datasv> will not be used except by
+L<PDL::Core/get_dataref> for temporary use by Perl code. It will then
+be destroyed by the call to L<PDL::Core/upd_data> method unless that
+is passed a true value to keep the C<datasv> around (largely used by the
+memory-mapping implementation).
+
+Otherwise, the SV is
 expected to be representing a string, in which the data of the ndarray
 is stored in a tightly packed form. This pointer counts as a reference
 to the SV so the reference count has been incremented when the C<SV *>
 was placed here (this reference count business has to do with Perl's
 garbage collection mechanism -- don't worry if this doesn't mean much
-to you). This pointer is allowed to have the value C<NULL> which 
-means that there is no actual Perl SV for this data - for instance, the data
-might be allocated by a C<mmap> operation. Note the use of an SV*
+to you). This pointer is allowed to have the value C<NULL> which
+means that there is no actual Perl SV for this data, as alluded above.
+Note the use of an SV*
 was purely for convenience, it allows easy transformation of
 packed data from files into ndarrays. Other implementations are not
 excluded.

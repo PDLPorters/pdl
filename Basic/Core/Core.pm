@@ -3950,7 +3950,7 @@ sub PDL::set_data_by_file_map {
          0
       );
 
-      $pdl->upd_data;
+      $pdl->upd_data(1);
 
       if ($PDL::debug) {
          printf STDERR "set_data_by_file_map: length \${\$pdl_dataref} is %d.\n", length ${$pdl_dataref};

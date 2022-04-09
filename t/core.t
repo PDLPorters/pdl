@@ -16,6 +16,13 @@ for my $type (PDL::Types::types()) {
    ok defined pdl($type, 0), "constructing PDL of type $type";
 }
 
+{
+my $p = sequence(100); # big enough to not fit in "value" field
+my $ref = $p->get_dataref;
+$p->reshape(3); # small enough now
+$p->upd_data;
+}
+
 is sequence(3,2)->dup(0, 2).'', '
 [
  [0 1 2 0 1 2]
