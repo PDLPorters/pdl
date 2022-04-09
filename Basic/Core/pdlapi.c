@@ -132,11 +132,10 @@ pdl_error pdl_allocdata(pdl *it) {
   if(it->state & PDL_DONTTOUCHDATA)
     return pdl_make_error_simple(PDL_EUSERERROR, "Trying to touch data of an untouchable (mmapped?) pdl");
   if(it->datasv == NULL)
-    it->datasv = newSVpv("",0);
-  SV* foo = it->datasv;
-  (void)SvGROW ( foo, nbytes );
-  SvCUR_set( foo, (STRLEN) nbytes );
-  it->data = (void *) SvPV_nolen( foo );
+    it->datasv = newSVpvn("", 0);
+  (void)SvGROW((SV*)it->datasv, nbytes);
+  SvCUR_set((SV*)it->datasv, nbytes);
+  it->data = SvPV_nolen((SV*)it->datasv);
   if (nbytes > ncurr) memset(it->data + ncurr, 0, nbytes - ncurr);
   it->nbytes = nbytes;
   it->state |= PDL_ALLOCATED;
