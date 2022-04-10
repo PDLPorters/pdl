@@ -101,11 +101,13 @@ pdl *pdl_scalar(PDL_Anyval anyval) {
 	PDLDEBUG_f(printf("pdl_scalar type=%d val=", anyval.type); pdl_dump_anyval(anyval); printf("\n"););
 	pdl *it = pdl_pdlnew();
 	if (!it) return it;
-	pdl_error PDL_err = pdl_makescratchhash(it, anyval);
-	if (PDL_err.error) { pdl_destroy(it); return NULL; }
+	it->datatype = anyval.type;
 	it->broadcastids[0] = it->ndims = 0; /* 0 dims in a scalar */
-	it->state &= ~(PDL_ALLOCATED|PDL_NOMYDIMS); /* size changed, has dims */
-	it->nvals = 1;            /* 1 val  in a scalar */
+	pdl_resize_defaultincs(it);
+	pdl_error PDL_err = pdl_allocdata(it);
+	if (PDL_err.error) { pdl_destroy(it); return NULL; }
+	it->value = anyval.value;
+	it->state &= ~(PDL_NOMYDIMS); /* has dims */
 	return it;
 }
 
