@@ -524,8 +524,5 @@ Copyright (C) Doug Burke (djburke@cpan.org), 2000, 2006.
 
 The per-ndarray bad value support is by Heiko Klein (2006).
 
-Commercial reproduction of this documentation in a different format
-is forbidden.
-
 =cut
 
