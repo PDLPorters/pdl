@@ -229,10 +229,10 @@ my @demo = (
     $win->fits_imag( $m51_fl->map( $t_untwist ),
 	{ Title => "M51 unspiraled (\\\\gp / r\\\\ds\\\\u)"} );
 
-    # Untwisted -- the jacobean method uses variable spatial filtering
+    # Untwisted -- the jacobian method uses variable spatial filtering
     # to eliminate spatial artifacts, at significant computational cost
     # (This may take some time to complete).
-    $win->fits_imag( $m51_fl->map( $t_untwist, {m=>jacobean}),
+    $win->fits_imag( $m51_fl->map( $t_untwist, {m=>"jacobian"}),
         { Title => "M51 unspiraled (\\\\gp / r\\\\ds\\\\u; antialiased)" } );
 |],
 
