@@ -1087,14 +1087,9 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
   trans->__datatype = -1;
-  char parent_has_badvalue = 0;
-  PDL_Anyval parent_badvalue = {PDL_INVALID, {0}};
-  if (vtable->npdls == 2 && pdls[0]->has_badvalue
-      && (vtable->par_flags[1] & PDL_PARAM_ISCREATEALWAYS)) {
-    /* P2Child case */
-    parent_has_badvalue = 1;
-    parent_badvalue = pdls[0]->badvalue;
-  }
+  char p2child_has_badvalue = (vtable->npdls == 2 && pdls[0]->has_badvalue
+      && (vtable->par_flags[1] & PDL_PARAM_ISCREATEALWAYS));
+  PDL_Anyval parent_badvalue = p2child_has_badvalue ? pdls[0]->badvalue : (PDL_Anyval){PDL_INVALID, {0}};
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
     short flags = vtable->par_flags[i];
@@ -1130,7 +1125,7 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
     }
     if ((pdl->state & PDL_NOMYDIMS) && (!pdl->trans_parent || pdl->trans_parent == trans)) {
       pdl->badvalue = parent_badvalue;
-      pdl->has_badvalue = parent_has_badvalue;
+      pdl->has_badvalue = p2child_has_badvalue;
       pdl->datatype = new_dtype;
     } else if (new_dtype != pdl->datatype) {
       PDLDEBUG_f(printf("pdl_type_coerce (%s) pdl=%"IND_FLAG" from %d to %d\n", vtable->name, i, pdl->datatype, new_dtype));
