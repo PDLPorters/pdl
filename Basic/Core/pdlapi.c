@@ -46,17 +46,13 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 	PDL_Indx j, flag=what, par_pvaf=0;
 	pdl_transvtable *vtable = trans->vtable;
 /* Make parents physical */
-	for(j=0; j<vtable->nparents; j++) {
+	for(j=0; j<vtable->npdls; j++) {
 		if(VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
 			par_pvaf++;
 		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
 	}
-	for(; j<vtable->npdls; j++) {
-		if(VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
-			par_pvaf++;
-		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
+	for(j=vtable->nparents; j<vtable->npdls; j++)
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
-	}
 	if (flag & PDL_PARENTDIMSCHANGED) REDODIMS(PDL_RETERROR, trans);
 	for(j=0; j<vtable->npdls; j++)
 		if(trans->pdls[j]->trans_parent == trans)
