@@ -593,7 +593,7 @@ PDL_Anyval pdl_get_offs(pdl *it, PDL_Indx offs) {
 pdl_error pdl__addchildtrans(pdl *it,pdl_trans *trans)
 {
 	pdl_error PDL_err = {0, NULL, 0};
-	PDLDEBUG_f(printf("pdl__addchildtrans\n"));
+	PDLDEBUG_f(printf("pdl__addchildtrans add to %p trans=%s\n", it, trans->vtable?trans->vtable->name:""));
 	int i; pdl_trans_children *c = &it->trans_children;
 	do {
 	    if (c->next) { c=c->next; continue; } else {
