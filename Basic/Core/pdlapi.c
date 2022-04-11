@@ -69,9 +69,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[1]));
 			PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
 		} else
-{
 			READDATA(trans);
-}
 	}
 	for(j=vtable->nparents; j<vtable->npdls; j++) {
 		pdl *child = trans->pdls[j];
@@ -302,8 +300,8 @@ void pdl__removetrans_children(pdl *it,pdl_trans *trans)
 
 void pdl__removetrans_parent(pdl *it, pdl_trans *trans, PDL_Indx nth)
 {
-	PDLDEBUG_f(printf("pdl__removetrans_parent(%s=%p): %p %"IND_FLAG"\n",
-	  trans->vtable->name, (void*)trans, (void*)(it), nth));
+	PDLDEBUG_f(printf("pdl__removetrans_parent from %p (%s=%p): %"IND_FLAG"\n",
+	  it, trans->vtable->name, trans, nth));
 	trans->pdls[nth] = 0;
 	if (it->trans_parent == trans) it->trans_parent = 0;
 	it->state &= ~PDL_MYDIMS_TRANS;
@@ -457,8 +455,8 @@ pdl_error pdl_destroy(pdl *it) {
    return PDL_err;
 
   soft_destroy:
-    PDLDEBUG_f(printf("pdl_destroy may have dependencies, not destroy %p, nba(%d, %d), nforw(%d), tra(%p), nafn(%d)\n",
-				(void*)it, nback, nback2, nforw, (void*)(it->trans_parent), nafn));
+    PDLDEBUG_f(printf("pdl_destroy may have dependencies, not destroy %p, nba(%d, %d), nforw(%d), tra(%p=%s), nafn(%d)\n",
+	it, nback, nback2, nforw, it->trans_parent, it->trans_parent?it->trans_parent->vtable->name:"", nafn));
     it->state &= ~PDL_DESTROYING;
     return PDL_err;
 }
@@ -624,17 +622,18 @@ pdl_error pdl_make_physdims(pdl *it) {
 	  return PDL_err;
 	}
 	it->state &= ~PDL_PARENTDIMSCHANGED;
-	PDLDEBUG_f(printf("make_physdims %p TRANS:\n",(void*)it);
-	    pdl_dump_trans_fixspace(it->trans_parent,3));
-	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
-		PDL_RETERROR(PDL_err, pdl_make_physdims(it->trans_parent->pdls[i]));
+	pdl_trans *trans = it->trans_parent;
+	PDLDEBUG_f(printf("make_physdims %p TRANS:\n",it);
+	    pdl_dump_trans_fixspace(trans,3));
+	for(i=0; i<trans->vtable->nparents; i++) {
+		PDL_RETERROR(PDL_err, pdl_make_physdims(trans->pdls[i]));
 	}
 	/* doesn't this mean that all children of this trans have
 	   now their dims set and accordingly all those flags should
 	   be reset? Otherwise redodims will be called for them again? */
 	PDLDEBUG_f(printf("make_physdims: calling redodims %p on %p\n",
-			  (void*)(it->trans_parent),(void*)it));
-	REDODIMS(PDL_RETERROR, it->trans_parent);
+			  trans,it));
+	REDODIMS(PDL_RETERROR, trans);
 	/* why this one? will the old allocated data be freed correctly? */
 	if((c & PDL_PARENTDIMSCHANGED) && (it->state & PDL_ALLOCATED)) {
 		it->state &= ~PDL_ALLOCATED;
