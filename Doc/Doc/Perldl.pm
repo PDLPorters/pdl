@@ -290,7 +290,7 @@ sub finddoc  {
        my $m = shift @match;
 
        my $Ref = $m->[2]{Ref};
-       if ( $Ref =~ /^(Module|Manual|Script): / ) {
+       if ( $Ref && $Ref =~ /^(Module|Manual|Script): / ) {
 	   # We've got a file name and we have to open it.  With the relocatable db, we have to reconstitute the absolute pathname.
 	   my $relfile = $m->[2]{File};
 	   my $absfile = undef;
@@ -577,7 +577,7 @@ sub whatis_r {
     return;
   }
 
-  if(ref $x eq 'SCALAR' | ref $x eq 'REF') {
+  if(ref $x eq 'SCALAR' || ref $x eq 'REF') {
     whatis_r($prefix." Ref -> ",$indent+8,$$x);
     return;
   }
