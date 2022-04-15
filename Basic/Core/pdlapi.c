@@ -679,6 +679,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   pdl_error PDL_err = {0, NULL, 0};
   PDLDEBUG_f(printf("make_trans_mutual %p\n",(void*)trans);pdl_dump_trans_fixspace(trans,3));
   pdl_transvtable *vtable = trans->vtable;
+  pdl **pdls = trans->pdls;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
   PDL_TR_CHKMAGIC(trans);
   int pfflag=0;
@@ -689,13 +690,13 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   }
   char dataflow = !!(pfflag || (trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY));
   for(i=0; i<nparents; i++) {
-    pdl *parent = trans->pdls[i];
+    pdl *parent = pdls[i];
     PDL_RETERROR(PDL_err, pdl__addchildtrans(parent,trans));
     if (parent->state & PDL_DATAFLOW_F) trans->flags |= PDL_ITRANS_DO_DATAFLOW_F;
   }
   int wd[npdls];
   for(i=nparents; i<npdls; i++) {
-	pdl *child = trans->pdls[i];
+	pdl *child = pdls[i];
 	char isnull = !!(child->state & PDL_NOMYDIMS);
 	wd[i]=(isnull ? PDL_PARENTDIMSCHANGED : PDL_PARENTDATACHANGED);
 	if (dataflow) {
