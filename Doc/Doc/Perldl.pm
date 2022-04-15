@@ -734,7 +734,7 @@ sub badinfo {
     my @match = search_docs("m/^(PDL::)?$func\$|\:\:$func\$/",['Name']);
     my $count = @match;
     if ( $count ) {
-	my ($pagerstr, $noinfostr);
+	my ($pagerstr, $noinfostr) = ('', '');
 	foreach my $m(@match) {
 	    my ($name,$module,$hash) = @{$m};
 	    my $info = $hash->{Bad};

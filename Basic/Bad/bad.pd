@@ -405,7 +405,6 @@ will never contain bad values, but its bad value flag will be the
 same as the input ndarray's flag.
 
 =cut
-
        HandleBad => 1,
        Code => 
        '$b() = PDL_IF_BAD($ISBAD(a()),0);',
