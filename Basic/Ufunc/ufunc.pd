@@ -374,7 +374,7 @@ for my $which (
 otherwise the bad flag is cleared for the output ndarray.
 
 Note that C<NaNs> are considered to be valid values and will "win" over non-C<NaN>;
-see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
+see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Bad/badmask>
 for ways of masking NaNs.
 ',
 	    );
@@ -401,7 +401,7 @@ for ways of masking NaNs.
 otherwise the bad flag is cleared for the output ndarray.
 
 Note that C<NaNs> are considered to be valid values and will "win" over non-C<NaN>;
-see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
+see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Bad/badmask>
 for ways of masking NaNs.
 ',
 	    );
@@ -463,7 +463,7 @@ EOF
 else remaining slots in C<$c()> are set bad.
 
 Note that C<NaNs> are considered to be valid values and will "win" over non-C<NaN>;
-see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
+see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Bad/badmask>
 for ways of masking NaNs.
 ',
 	    );

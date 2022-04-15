@@ -293,33 +293,6 @@ elsif ($Config{cc} =~ /\bgcc/i) {
 } # elsif: cc =~ /\bgcc/i
 
 pp_def(
-       'badmask',
-       Pars => 'a(); b(); [o]c();',
-       Inplace => [ 'a' ],
-       HandleBad => 1,
-       Code =>
-       '$c() = ( isfinite((double) $a()) PDL_IF_BAD(&& $ISGOOD(a()),) ) ? $a() : $b();',
-       CopyBadStatusCode =>
-       'if ( a == c && $ISPDLSTATEBAD(a) )
-           PDL->propagate_badflag( c, 0 );  /* propagate badflag if inplace AND its changed */
-        $SETPDLSTATEGOOD(c);          /* always make sure the output is "good" */
-       ',
-       Doc =>
-'=for ref
-
-Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>.
-
-badmask can be run with C<$x> inplace:
-
-  badmask($x->inplace,0);
-  $x->inplace->badmask(0);
-
-',
-       BadDoc =>
-       'If bad values are present, these are also cleared.',
-       );
-
-pp_def(
        'isfinite',
        Pars => 'a(); int [o]mask();',
        Inplace => 1,
