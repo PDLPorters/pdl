@@ -1025,16 +1025,13 @@ isn't bad.
 To copy the bad value for an ndarray into a c variable, use
 C<$SETBADVAR(foo,a)>.
 
-I<TODO:> mention the C<FindBadStatusCode> and
-C<CopyBadStatusCode> options to C<pp_def>, as well as the
-C<BadDoc> key.
-
 I<TODO:> mention C<$PPISBAD()> etc macros.
 
 =head2 PDL STATE macros
 
 If you want access to the value of the badflag for a given
-ndarray, you can use the PDL STATE macros:
+ndarray, you can use the PDL STATE macros,
+for use in L</CopyBadStatusCode> and L</FindBadStatusCode>.
 
 =over 4
 
@@ -1045,6 +1042,20 @@ ndarray, you can use the PDL STATE macros:
 =item $SETPDLSTATEBAD(pdl)
 
 =item $SETPDLSTATEGOOD(pdl)
+
+=back
+
+And for use in C<Code> sections:
+
+=over 4
+
+=item $PDLSTATEISBAD(pdl)
+
+=item $PDLSTATEISGOOD(pdl)
+
+=item $PDLSTATESETBAD(pdl)
+
+=item $PDLSTATESETGOOD(pdl)
 
 =back
 
@@ -2153,6 +2164,24 @@ If C<HandleBad> is true and C<BadCode> is not supplied, the C<Code>
 section will be reused, on the assumption it will use
 C<#ifdef PDL_BAD_CODE> to handle bad values.
 As of 2.073, you can also use C<PDL_IF_BAD(iftrue,iffalse)>.
+
+=head3 FindBadStatusCode
+
+By default, C<FindBadStatusCode> creates code which sets
+C<$PRIV(bvalflag)> depending on the state of the bad flag
+of the input ndarrays.
+User-defined code should also store the value of C<bvalflag>
+in the C<$BADFLAGCACHE()> variable.
+
+=head3 CopyBadStatusCode
+
+The default code here is a bit simpler than for C<FindBadStatusCode>:
+the bad flag of the output ndarrays are set if
+C<$BADFLAGCACHE()> is true after the code has been
+evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
+with the responsibility of setting the badflag of the output ndarray
+left to the C<BadCode> section (e.g. the C<xxxover> routines
+in F<Basic/Primitive/primitive.pd>).
 
 =head3 GenericTypes
 
