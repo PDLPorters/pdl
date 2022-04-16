@@ -62,28 +62,19 @@ pp_def(
         %}
         PDL_IF_BAD(if (badflag) { $SETBAD(c()); $PDLSTATESETBAD(c); }
         else,)                  { $c() = tmp;  }',
-       CopyBadStatusCode => '',
        Doc => '
-
 =for ref
 
 Inner product over one dimension
 
  c = sum_i a_i * b_i
-
-=cut
-
 ',
        BadDoc => '
-
 =for bad
 
 If C<a() * b()> contains only bad data,
 C<c()> is set bad. Otherwise C<c()> will have its bad flag cleared,
 as it will not contain any bad values.
-
-=cut
-
 ',
        ); # pp_def( inner )
 
@@ -1037,7 +1028,6 @@ pp_def(
         %}
         PDL_IF_BAD(if (!flag) { $SETBAD(b()); $PDLSTATESETBAD(b); }
         else,)                { $b() = statsum / wtsum; }',
-       CopyBadStatusCode => '',
        Doc => '
 =for ref
 
@@ -1107,7 +1097,6 @@ pp_def('statsover',
                    PDL_IF_BAD($SETBAD(prms()),$prms() = 0);
            $adev() = tmp1 / norm ;
          }',
-      CopyBadStatusCode => '',
       PMCode => '
 sub PDL::statsover {
    barf(\'Usage: ($mean,[$prms, $median, $min, $max, $adev, $rms]) = statsover($data,[$weights])\') if @_>2;

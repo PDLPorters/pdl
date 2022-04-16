@@ -393,7 +393,6 @@ same as the input ndarray's flag.
        HandleBad => 1,
        Code => 
        '$b() = PDL_IF_BAD($ISBAD(a()),0);',
-       CopyBadStatusCode => '',
        GenericTypes => $A,
        );
 
@@ -432,7 +431,6 @@ same as the input ndarray's flag.
        HandleBad => 1,
        Code => 
        '$b() = PDL_IF_BAD($ISGOOD(a()),1);',
-       CopyBadStatusCode => '',
        GenericTypes => $A,
        );
 
@@ -642,7 +640,6 @@ if ( 0 ) {
 } else {
 }
 # always make sure the output is "bad"
-$setbadif_extra{CopyBadStatusCode} = 'PDL->propagate_badflag( b, 1 );';
 
 # note: have made the mask be an integer
 pp_def('setbadif' . <<'=cut',
@@ -693,12 +690,17 @@ Also see L</setvaltobad> and L</setnantobad>.
     HandleBad => 1,
     %setbadif_extra,
     Code =>
-    '/* if the bad value == 0 then all points are going to be selected ... */
+    '
+broadcastloop %{
+    /* if the bad value == 0 then all points are going to be selected ... */
      if ( PDL_IF_BAD($ISBAD(mask()) ||,) $mask() ) {
         $SETBAD(b());
      } else {
         $b() = $a();
-     }',
+     }
+%}
+$PDLSTATESETBAD(b);
+     ',
      GenericTypes => $A,
 ); # pp_def: setbadif
 
@@ -738,15 +740,15 @@ Any bad values in the input ndarrays are copied across to the output ndarray.
 
     HandleBad => 1,
     Inplace => 1,
-    CopyBadStatusCode => q{
-        PDL->propagate_badflag( b, 1 ); /* always make sure the output is "bad" */
-    },
     Code => q[
+broadcastloop %{
         if ( $a() == ($GENERIC(a)) $COMP(value) ) {
             $SETBAD(b());
         } else {
             $b() = $a();
         }
+%}
+$PDLSTATESETBAD(b);
     ],
     GenericTypes => $A,
 ); # pp_def: setvaltobad
@@ -784,10 +786,6 @@ bad flag set.
     HandleBad => 1,
     GenericTypes => $AF,
     Inplace => 1,
-    CopyBadStatusCode => q{
-        if ( $ISPDLSTATEBAD(b) )
-            PDL->propagate_badflag( b, 1 );
-    },
     Code => q[
         int flag = 0;
         broadcastloop %{
@@ -835,10 +833,6 @@ bad flag set.
     HandleBad => 1,
     GenericTypes => $AF,
     Inplace => 1,
-    CopyBadStatusCode => q{
-        if ( $ISPDLSTATEBAD(b) )
-            PDL->propagate_badflag( b, 1 );
-    },
     Code => q[
         int flag = 0;
         broadcastloop %{
@@ -886,10 +880,6 @@ bad flag set.
     HandleBad => 1,
     GenericTypes => $AF,
     Inplace => 1,
-    CopyBadStatusCode => q{
-        if ( $ISPDLSTATEBAD(b) )
-            PDL->propagate_badflag( b, 1 );
-    },
     Code => q[
         int flag = 0;
         broadcastloop %{
@@ -937,16 +927,16 @@ operation, it clears the bad flag.
     HandleBad => 1,
     GenericTypes => $AF,
     Inplace => 1,
-    CopyBadStatusCode => q{
-        PDL->propagate_badflag( b, 0 ); /* always make sure the output is "good" */
-    },
     Code => q{
+broadcastloop %{
         if ( $ISBAD(a()) ) {
             $b() = $TFDEGCH(NAN,NAN,NAN,NAN+I*NAN,NAN+I*NAN,NAN+I*NAN);
         }
         else {
             $b() = $a();
         }
+%}
+$PDLSTATESETGOOD(b);
     },
 ); # pp_def: setbadtonan
 
@@ -1002,10 +992,11 @@ pp_def(
        Pars => 'a(); b(); [o]c();',
        Inplace => [ 'a' ],
        HandleBad => 1,
-       Code =>
-       '$c() = ( isfinite((double) $a()) PDL_IF_BAD(&& $ISGOOD(a()),) ) ? $a() : $b();',
-       CopyBadStatusCode =>
-       'PDL->propagate_badflag( c, 0 ); /* always make sure the output is "good" */
+       Code => '
+broadcastloop %{
+       $c() = ( isfinite((double) $a()) PDL_IF_BAD(&& $ISGOOD(a()),) ) ? $a() : $b();
+%}
+$PDLSTATESETGOOD(c);
        ',
        Doc =>
 '=for ref
@@ -1062,15 +1053,16 @@ its bad value flag set to true.
     HandleBad => 1,
     Inplace => [ 'a' ],
     Code => q{
+char anybad = 0;
+broadcastloop %{
         PDL_IF_BAD(if ( $ISBAD(mask()) ) {
             $SETBAD(b());
+            anybad = 1;
         } else,) {
             $b() = $a();
         }
-    },
-    CopyBadStatusCode => q{
-        if ( $BADFLAGCACHE() )
-            PDL->propagate_badflag( b, 1 );
+%}
+if (anybad) $PDLSTATESETBAD(b);
     },
     GenericTypes => $A,
 ); # pp_def: copybad

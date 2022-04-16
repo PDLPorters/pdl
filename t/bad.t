@@ -556,7 +556,7 @@ subtest "stats() badvalue behavior" => sub {
 			badvalue => 2,
 			string => "[1 BAD 3]",
 			mean => "2",
-			badflag => 0
+			badflag => 1,
 		},
 		{
 			name => "stats() should set the badflag for output with all badvalues and mean should be BAD" ,
@@ -601,7 +601,7 @@ EOF
 			},
 			badvalue => 1,
 			mean => "[2 2 2]",
-			badflag => 0,
+			badflag => 1,
 		}
 	];
 
@@ -618,7 +618,7 @@ EOF
 
 			note "\$m = $m";
 			is( "$m", $case->{mean}, "Mean of \$p" );
-			is( $m->badflag, $case->{badflag}, "Mean does @{[ (' not ')x!!( ! $case->{badflag} ) ]} have badflag set");
+			is( $m->badflag, $case->{badflag}, "Mean does @{[ ('not ')x!!( ! $case->{badflag} ) ]}have badflag set");
 		};
 	}
 

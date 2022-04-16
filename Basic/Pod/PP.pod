@@ -2153,9 +2153,14 @@ Only used if C<< HandleBad => 1 >>.
 If C<HandleBad> is true and C<BadCode> is not supplied, the C<Code>
 section will be reused, on the assumption it will use
 C<#ifdef PDL_BAD_CODE> to handle bad values.
-As of 2.073, you can also use C<PDL_IF_BAD(iftrue,iffalse)>.
+As of 2.073, you can, and are recommended to, use C<PDL_IF_BAD(iftrue,iffalse)>.
 
 =head3 CopyBadStatusCode
+
+As of 2.079, this is deprecated due to being largely unnecessary;
+instead, just use C<$PDLSTATESETBAD(pdlname)> in your C<Code> section
+and the badflag setting will be propagated to all its parents and
+children.
 
 The default code here sets the bad flag of the output ndarrays if
 C<$BADFLAGCACHE()> is true after the code has been

@@ -650,7 +650,6 @@ EOD
 bad values, depending on the pattern of bad values in the input ndarray.',
        HandleBad => 1,
         Pars => 'a(m,n); [o]b(m,n);',
-        CopyBadStatusCode => '', # handled by BadCode
         Code =>
         'int i1,j1, flag = 0;
          PDL_Indx m_size = $SIZE(m), n_size = $SIZE(n);

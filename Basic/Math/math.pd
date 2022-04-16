@@ -297,10 +297,12 @@ pp_def(
        Pars => 'a(); int [o]mask();',
        Inplace => 1,
        HandleBad => 1,
-       Code =>
-       '$mask() = isfinite((double) $a()) != 0 PDL_IF_BAD(&& $ISGOOD($a()),);',
-       CopyBadStatusCode =>
-       'PDL->propagate_badflag( mask, 0 ); /* always make sure the output is "good" */',
+       Code =>'
+broadcastloop %{
+       $mask() = isfinite((double) $a()) != 0 PDL_IF_BAD(&& $ISGOOD($a()),);
+%}
+$PDLSTATESETGOOD(mask);
+       ',
        Doc =>
 'Sets C<$mask> true if C<$a> is not a C<NaN> or C<inf> (either positive or negative). Works inplace.',
        BadDoc =>
