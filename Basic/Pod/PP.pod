@@ -1689,21 +1689,11 @@ consider this excerpt from F<Basic/Bad/bad.pd>:
     Pars => 'a(); [o]b();',
     OtherPars => 'double newval',
     Inplace => 1,
-    CopyBadStatusCode => 
-    '/* propagate badflag if inplace AND it has changed */
-     if ( a == b && $ISPDLSTATEBAD(a) )
-       PDL->propagate_badflag( b, 0 );
-
-     /* always make sure the output is "good" */
-     $SETPDLSTATEGOOD(b);
-    ',
+    CopyBadStatusCode => 'PDL->propagate_badflag( b, 0 );',
     ...
 
 Since this routine removes all bad values, the output ndarray had
-its bad flag cleared. If run inplace (so C<a == b>), then we have to
-tell all the children of C<a> that the bad flag has been cleared (to
-save time we make sure that we call C<< PDL->propagate_badflag >> only
-if the input ndarray had its bad flag set).
+its bad flag cleared. This is then propagated to both parents and children.
 
 NOTE: one idea is that the documentation for the routine could be 
 automatically flagged to indicate that it can be executed inplace,

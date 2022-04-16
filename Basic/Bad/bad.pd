@@ -205,12 +205,12 @@ with the original bad value for the associated type.
 
 =for ref
 
-Clear the bad-value flag of an ndarray if it does not
+Clear the badflag of an ndarray if it does not
 contain any bad values
 
 Given an ndarray whose bad flag is set, check whether it
 actually contains any bad values and, if not, clear the flag.
-It returns the final state of the bad-value flag.
+It returns the final state of the badflag.
 
 =for example
 
@@ -219,7 +219,7 @@ It returns the final state of the bad-value flag.
 =for bad
 
 This method accepts ndarrays with or without bad values. It
-returns an ndarray with the final bad-value.
+returns an ndarray with the final badflag.
 
 =cut
 
@@ -639,16 +639,10 @@ my %setbadif_extra = ( );
 if ( 0 ) {
     ## ie if fix inplace issues
     $setbadif_extra{Inplace} = [ 'a' ];
-    $setbadif_extra{CopyBadStatusCode} =
-    'if ( a == b && $ISPDLSTATEGOOD(a) )
-       PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
-     $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
-    ';
 } else {
-    # always make sure the output is "bad"
-    $setbadif_extra{CopyBadStatusCode} =
-    '$SETPDLSTATEBAD(b);';
 }
+# always make sure the output is "bad"
+$setbadif_extra{CopyBadStatusCode} = 'PDL->propagate_badflag( b, 1 );';
 
 # note: have made the mask be an integer
 pp_def('setbadif' . <<'=cut',
@@ -745,9 +739,7 @@ Any bad values in the input ndarrays are copied across to the output ndarray.
     HandleBad => 1,
     Inplace => 1,
     CopyBadStatusCode => q{
-        if ( a == b && $ISPDLSTATEGOOD(a) )
-            PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
-        $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
+        PDL->propagate_badflag( b, 1 ); /* always make sure the output is "bad" */
     },
     Code => q[
         if ( $a() == ($GENERIC(a)) $COMP(value) ) {
@@ -793,11 +785,8 @@ bad flag set.
     GenericTypes => $AF,
     Inplace => 1,
     CopyBadStatusCode => q{
-        /* note: not quite the normal check since set b bad within Code */
-        /* we propagate the bad flag even if a was originally bad since */
-        /* there is no easy way to pass this information around */
-        if ( a == b && $ISPDLSTATEBAD(b) )
-            PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
+        if ( $ISPDLSTATEBAD(b) )
+            PDL->propagate_badflag( b, 1 );
     },
     Code => q[
         int flag = 0;
@@ -847,11 +836,8 @@ bad flag set.
     GenericTypes => $AF,
     Inplace => 1,
     CopyBadStatusCode => q{
-        /* note: not quite the normal check since set b bad within Code */
-        /* we propagate the bad flag even if a was originally bad since */
-        /* there is no easy way to pass this information around */
-        if ( a == b && $ISPDLSTATEBAD(b) )
-            PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
+        if ( $ISPDLSTATEBAD(b) )
+            PDL->propagate_badflag( b, 1 );
     },
     Code => q[
         int flag = 0;
@@ -901,11 +887,8 @@ bad flag set.
     GenericTypes => $AF,
     Inplace => 1,
     CopyBadStatusCode => q{
-        /* note: not quite the normal check since set b bad within Code */
-        /* we propagate the bad flag even if a was originally bad since */
-        /* there is no easy way to pass this information around */
-        if ( a == b && $ISPDLSTATEBAD(b) )
-            PDL->propagate_badflag( b, 1 ); /* propagate badflag if inplace */
+        if ( $ISPDLSTATEBAD(b) )
+            PDL->propagate_badflag( b, 1 );
     },
     Code => q[
         int flag = 0;
@@ -955,10 +938,7 @@ operation, it clears the bad flag.
     GenericTypes => $AF,
     Inplace => 1,
     CopyBadStatusCode => q{
-        /* propagate cleared badflag if inplace */
-        if ( a == b ) PDL->propagate_badflag( b, 0 );
-        /* always make sure the output is "good" */
-        $SETPDLSTATEGOOD(b);
+        PDL->propagate_badflag( b, 0 ); /* always make sure the output is "good" */
     },
     Code => q{
         if ( $ISBAD(a()) ) {
@@ -1012,10 +992,7 @@ values are copied with no replacement.
         %}
     },
     CopyBadStatusCode => q{
-        /* propagate badflag if inplace AND its changed */
-        if ( a == b && $ISPDLSTATEBAD(a) ) PDL->propagate_badflag( b, 0 );
-        /* always make sure the output is "good" */
-        $SETPDLSTATEGOOD(b);
+        PDL->propagate_badflag( b, 0 ); /* always make sure the output is "good" */
     },
     GenericTypes => $A,
 ); # pp_def: setbadtoval
@@ -1028,9 +1005,7 @@ pp_def(
        Code =>
        '$c() = ( isfinite((double) $a()) PDL_IF_BAD(&& $ISGOOD(a()),) ) ? $a() : $b();',
        CopyBadStatusCode =>
-       'if ( a == c && $ISPDLSTATEBAD(a) )
-           PDL->propagate_badflag( c, 0 );  /* propagate badflag if inplace AND its changed */
-        $SETPDLSTATEGOOD(c);          /* always make sure the output is "good" */
+       'PDL->propagate_badflag( c, 0 ); /* always make sure the output is "good" */
        ',
        Doc =>
 '=for ref
@@ -1094,13 +1069,8 @@ its bad value flag set to true.
         }
     },
     CopyBadStatusCode => q{
-        if ( $BADFLAGCACHE() ) {
-            if ( a == b && $ISPDLSTATEGOOD(a) ) {
-                /* have inplace op AND badflag has changed */
-                PDL->propagate_badflag( b, 1 );
-            }
-            $SETPDLSTATEBAD(b);
-        }
+        if ( $BADFLAGCACHE() )
+            PDL->propagate_badflag( b, 1 );
     },
     GenericTypes => $A,
 ); # pp_def: copybad

@@ -144,10 +144,7 @@ EOH
 	   }),
 	   CopyBadStatusCode => pp_line_numbers(__LINE__,
 	   'if ( $BADFLAGCACHE() ) {
-               if ( a == c && $ISPDLSTATEGOOD(a) ) {
-                  PDL->propagate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
-               }
-               $SETPDLSTATEBAD(c);
+              PDL->propagate_badflag( c, 1 );
             }'),
 	   %extra,
 	   Doc => << "EOD");
@@ -257,11 +254,8 @@ ENDCODE
 	   }),
 	   CopyBadStatusCode =>
 	   pp_line_numbers(__LINE__, 'if ( $BADFLAGCACHE() ) {
-               if ( a == c && $ISPDLSTATEGOOD(a) ) {
-                  PDL->propagate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
-               }
-               $SETPDLSTATEBAD(c);
-            }'),
+              PDL->propagate_badflag( c, 1 );
+           }'),
 	   %extra,
 	   Doc => << "EOD");
 =for ref
