@@ -1,5 +1,6 @@
 - move Math::badmask to Bad
 - PDL.propagate_badflag propagates both to parents AND children, sets flag itself
+- Ops::assgn now propagates its badflag without needing to set output badflag
 
 2.078 2022-04-10
 - Ops::atan2 etc have default swap param

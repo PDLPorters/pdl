@@ -293,7 +293,6 @@ my $startgood = sequence(10);
 my $hasbad = sequence(5);
 $hasbad->inplace->setvaltobad(3);
 $startgood->slice('0:4') .= $hasbad;
-$startgood->badflag(1);
 ok $startgood->badflag, 'startgood badflag now true';
 ok $startgood->nbad == 1, 'badflag propagation with .=';
 }

@@ -466,24 +466,16 @@ pp_def(
        GenericTypes => $A,
        Pars => 'a(); [o]b();',
        Code => pp_line_numbers(__LINE__-1, q{
-	    PDL_IF_BAD(if ( $ISBAD(a()) ) $SETBAD(b()); else,)
+	  char anybad = 0;
+	  broadcastloop %{
+	    PDL_IF_BAD(if ( $ISBAD(a()) ) { anybad = 1; $SETBAD(b()); } else,)
 	       $b() = $a();
+	  %}
+	  PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(b);,)
        }),
        Doc =>
 'Plain numerical assignment. This is used to implement the ".=" operator',
-		BadDoc =>
-'If C<a> is a child ndarray (e.g., the result of a slice) and bad values are generated in C<b>,
-the bad value flag is set in C<b>, but it is B<NOT> automatically propagated back to the parent of C<a>.
-The following idiom ensures that the badflag is propagated back to the parent of C<a>:
-
- $pdl->slice(":,(1)") .= PDL::Bad_aware_func();
- $pdl->badflag(1);
- $pdl->check_badflag();
-
-This is unnecessary if $pdl->badflag is known to be 1 before the slice is performed.
-
-See http://pdl.perl.org/PDLdocs/BadValues.html#dataflow_of_the_badflag for details.'
-); # pp_def assgn
+);
 
 # special functions for complex data types that don't work well with
 # the ufunc/bifunc logic

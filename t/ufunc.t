@@ -118,8 +118,8 @@ EOF
  ok($x->min == $y->min, "min with NaNs");
  ok($x->max == $y->max, "max with NaNs");
 }
-my $empty = which(ones(5)>5);
-$x = $empty->double->maximum;
+my $empty = empty();
+$x = $empty->maximum;
 ok( $x->nelem==1, "maximum over an empty dim yields 1 value");
 is $x.'', 'BAD', "max of empty nonbad float gives BAD";
 

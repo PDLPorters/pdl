@@ -3,12 +3,17 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#define VTABLE_OR_DEFAULT(what, trans, func, default_func) \
+#define VTABLE_OR_DEFAULT(what, trans, is_fwd, func, default_func) \
   do { \
     PDLDEBUG_f(printf("VTOD call " #func "(%p=%s)\n", trans, trans->vtable->name)); \
     what(PDL_err, ((trans)->vtable->func \
       ? (trans)->vtable->func \
       : pdl_ ## default_func)(trans)); \
+    pdl **pdls = trans->pdls; \
+    PDL_Indx i, istart = is_fwd ? trans->vtable->nparents : 0, iend = is_fwd ? trans->vtable->npdls : trans->vtable->nparents; \
+    for (i = istart; i < iend; i++) \
+      if (pdls[i] && (pdls[i]->state & PDL_BADVAL)) \
+        pdl_propagate_badflag(pdls[i], !!(pdls[i]->state & PDL_BADVAL)); \
   } while (0)
 
 #define REDODIMS(what, trans) do { \
@@ -26,8 +31,8 @@
       ? (trans)->vtable->redodims \
       : pdl_redodims_default)(trans)); \
   } while (0)
-#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, readdata, readdata_affine)
-#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, writebackdata, writebackdata_affine)
+#define READDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 1, readdata, readdata_affine)
+#define WRITEDATA(trans) VTABLE_OR_DEFAULT(PDL_ACCUMERROR, trans, 0, writebackdata, writebackdata_affine)
 #define FREETRANS(trans, destroy) \
     if(trans->vtable->freetrans) { \
 	PDLDEBUG_f(printf("call freetrans\n")); \
