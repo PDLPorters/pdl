@@ -627,13 +627,11 @@ EOD
          } /* for: j */
 
       %} /* broadcastloop */
-
          ', # Code
 );
 
 pp_def('patchbad2d',
        Doc=><<'EOD',
-
 =for ref
 
 patch bad pixels out of 2D images containing bad values
@@ -646,9 +644,6 @@ Pixels are replaced by the average of their non-bad neighbours;
 if all neighbours are bad, the output is set bad.
 If the input ndarray contains I<no> bad values, then a straight copy
 is performed (see L</patch2d>).
-
-=cut
-
 EOD
        BadDoc =>
 'patchbad2d handles bad values. The output ndarray I<may> contain

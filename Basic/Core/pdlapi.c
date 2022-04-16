@@ -4,9 +4,12 @@
 #include "pdlcore.h"  /* Core declarations */
 
 #define VTABLE_OR_DEFAULT(what, trans, func, default_func) \
-  what(PDL_err, ((trans)->vtable->func \
-    ? (trans)->vtable->func \
-    : pdl_ ## default_func)(trans))
+  do { \
+    PDLDEBUG_f(printf("VTOD call " #func "(%p=%s)\n", trans, trans->vtable->name)); \
+    what(PDL_err, ((trans)->vtable->func \
+      ? (trans)->vtable->func \
+      : pdl_ ## default_func)(trans)); \
+  } while (0)
 
 #define REDODIMS(what, trans) do { \
     if ((trans)->vtable->redodims) \
