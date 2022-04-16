@@ -226,7 +226,8 @@ $x = sequence( byte, 2, 3 );
 $x = $x->setbadif( $x == 3 );
 $y = $x->slice("(1),:");
 $x->inplace->setbadtoval(3);
-is( $y->badflag, 0, "badflag cleared using inplace setbadtoval()" );
+is( $x->badflag, 0, "direct pdl badflag cleared using inplace setbadtoval()" );
+is( $y->badflag, 0, "child pdl badflag cleared using inplace setbadtoval()" );
 
 $x = sequence( byte, 2, 3 );
 $y = $x->slice("(1),:");

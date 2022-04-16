@@ -1021,6 +1021,7 @@ pdl_error pdl_sever(pdl *src)
 
 /* newval = 1 means set flag, 0 means clear it */
 void pdl_propagate_badflag( pdl *it, int newval ) {
+    PDLDEBUG_f(printf("pdl_propagate_badflag pdl=%p newval=%d\n", it, newval));
     PDL_Indx i;
     if (newval)
 	it->state |=  PDL_BADVAL;
