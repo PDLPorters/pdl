@@ -245,6 +245,7 @@ pdl_error pdl_converttypei_redodims(pdl_trans *trans) {
 pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
+  PDLDEBUG_f(printf("pdl_converttypei_readdata %s=%p from parent: ", trans->vtable->name, trans); pdl_dump(trans->pdls[0]));
 #define X_OUTER(datatype_out, ctype_out, ...) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_out, (trans->vtable->per_pdl_flags[1]), CHILD, (trans->pdls[1]), 1) \
   PDL_GENERICSWITCH2(PDL_TYPELIST2_ALL_, trans->__datatype, X_INNER, return pdl_make_error(PDL_EUSERERROR, "Not a known data type code=%d", trans->__datatype))
@@ -259,6 +260,7 @@ pdl_error pdl_converttypei_readdata(pdl_trans *trans) {
 pdl_error pdl_converttypei_writebackdata(pdl_trans *trans) {
   pdl_error PDL_err = {0, NULL, 0};
   pdl_params_converttypei *params = trans->params;
+  PDLDEBUG_f(printf("pdl_converttypei_writebackdata %s=%p from child: ", trans->vtable->name, trans); pdl_dump(trans->pdls[1]));
 #define X_INNER(datatype_in, ctype_in, ...) \
   PDL_DECLARE_PARAMETER_BADVAL(ctype_in, (trans->vtable->per_pdl_flags[0]), PARENT, (trans->pdls[0]), 1) \
   COPYCONVERT(CHILD, PARENT)

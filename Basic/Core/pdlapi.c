@@ -1032,6 +1032,7 @@ void pdl_propagate_badflag( pdl *it, int newval ) {
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
 	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	trans->bvalflag = !!newval;
 	PDL_MAYBE_PROPAGATE_BADFLAG(trans, newval)
     PDL_END_CHILDLOOP(it)
 }
