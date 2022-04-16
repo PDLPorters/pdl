@@ -1,4 +1,5 @@
 - move Math::badmask to Bad
+- PDL.propagate_badflag propagates both to parents AND children
 
 2.078 2022-04-10
 - Ops::atan2 etc have default swap param

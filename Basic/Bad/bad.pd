@@ -80,11 +80,6 @@ use PDL::Primitive;
 # we want the following to be in PDL, not PDL::Bad, hence
 my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
 
-#
-# we want badflag() to avoid unnecessary calls to PDL->propagate_badflag(),
-# since it has to recurse through all the children of an ndarray
-#
-
 pp_addxs( <<"!WITH!SUBS!");
 $xshdr
 
@@ -93,18 +88,8 @@ badflag(x,newval=0)
     pdl *x
     int newval
   CODE:
-    if (items>1) {
-	int oldval = ((x->state & PDL_BADVAL) > 0);
-        if ( !newval && oldval ) { 
-	    /* asked to unset, present value is set */
-	    x->state &= ~PDL_BADVAL;
-            PDL->propagate_badflag( x, 0 );
-        } else if ( newval && !oldval ) {
-	    /* asked to set, present value is unset */
-	    x->state |= PDL_BADVAL;
-            PDL->propagate_badflag( x, 1 );
-	}
-    }
+    if (items>1)
+	PDL->propagate_badflag( x, newval );
     RETVAL = ((x->state & PDL_BADVAL) > 0);
   OUTPUT:
     RETVAL

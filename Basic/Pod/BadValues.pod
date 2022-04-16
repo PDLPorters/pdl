@@ -35,8 +35,12 @@ For floating-point datatypes, C<NaN> and C<Inf> can be used to flag bad
 values, but by default
 special values are used (L<Default bad values|/Default bad values>).
 
-As of PDL 2.040, you can have different bad values for separate ndarrays of the
+There is one default bad value for each datatype, but
+as of PDL 2.040, you can have different bad values for separate ndarrays of the
 same type.
+
+You can use C<NaN> as the bad value for any floating-point type,
+including complex.
 
 =head2 A quick overview
 
@@ -71,11 +75,10 @@ at F<http://pdl.perl.org/demos/>.  See L<PDL::Bad> for useful routines for worki
 with bad values and F<t/bad.t> to see them in action.
 
 To find out if a routine supports bad values, use the C<badinfo> command in
-L<perldl|PDL::perldl> or L<pdl2|PDL::Perldl2> or the C<-b> option to
-L<pdldoc|PDL::pdldoc>.
+L<perldl> or L<pdl2> or the C<-b> option to L<pdldoc>.
 
 Each ndarray contains a flag - accessible via C<< $pdl->badflag >> - to say
-whether there's any bad data present: 
+whether there's any bad data present:
 
 =over 4
 
@@ -115,34 +118,15 @@ the I<children> of an ndarray, so
    pdl> print ">>c: ", $c->badflag, "\n";
    >>c: 1
 
-I<No> change is made to the parents of an ndarray, so
+This is also propagated to the parents of an ndarray, so
 
    pdl> print ">>a: ", $x->badflag, "\n";
    >>a: 1
    pdl> $c->badflag(0);
    pdl> print ">>a: ", $x->badflag, "\n";
-   >>a: 1
+   >>a: 0
 
-Thoughts:
-
-=over 4
-
-=item *
-
-the badflag can ONLY be cleared IF an ndarray has NO parents,
-and that this change will propagate to all the children of that
-ndarray. I am not so keen on this anymore (too awkward to code, for
-one).
-
-=item *
-
-C<< $x->badflag(1) >> should propagate the badflag to BOTH parents and
-children.
-
-=back
-
-This shouldn't be hard to implement (although an initial attempt failed!). 
-Does it make sense though? There's also
+There's also
 the issue of what happens if you change the badvalue of an ndarray - should
 these propagate to children/parents (yes) or whether you should only be
 able to change the badvalue at the 'top' level - i.e. those ndarrays which do
@@ -188,29 +172,20 @@ bad values are skipped over (see the documentation of these
 functions for the current handling of the case when
 all elements are bad).
 
-=head2 A bad value for each ndarray, and related issues
-
-There is one default bad value for each datatype, but
-you can have a separate bad value for each ndarray as of PDL 2.040.
-
 =head1 IMPLEMENTATION DETAILS
 
 A new flag has been added to the state of an ndarray - C<PDL_BADVAL>. If unset, then
 the ndarray does not contain bad values, and so all the support code can be 
 ignored. If set, it does not guarantee that bad values are present, just that
-they should be checked for. Thanks to Christian, L<PDL::Bad/badflag> - which
-sets/clears this flag - will update I<ALL> the
-children/grandchildren/etc of an ndarray if its state changes.
-It's not clear what to do with parents: I can see the reason for propagating a 
-'set badflag' request to parents, but I think a child should NOT be able to clear 
-the badflag of a parent. 
-There's also the issue of what happens when you change the bad value for an ndarray.
+they should be checked for.
 
 The C<pdl_trans> structure has been extended to include an integer value,
 C<bvalflag>, which acts as a switch to tell the code whether to handle bad values
 or not. This value is set if any of the input ndarrays have their C<PDL_BADVAL> 
 flag set (although this code can be replaced by setting C<FindBadStateCode> in 
 pp_def).
+
+=head2 Default bad values
 
 The default bad values
 are now stored in a structure within the Core PDL structure
@@ -219,8 +194,6 @@ C<typedef badvals> in F<Basic/Core/pdl.h.PL> and the
 BOOT code of F<Basic/Core/Core.xs.PL> where the values are initialised to 
 (hopefully) sensible values.
 See L<PDL::Bad/badvalue> and L<PDL::Bad/orig_badvalue> for read/write routines to the values.
-
-=head2 Default bad values
 
 The default/original bad values are set to the C type's maximum (unsigned
 integers) or the minimum (floating-point and signed integers).
@@ -236,9 +209,6 @@ bad flag is propagated to children using the C<xxxBadStatusCode> options.
 I decided not to automate this as rules would be a
 little complex, since not every in-place op will need to propagate the 
 badflag (eg unary functions).
-
-You can use C<NaN> as the bad value for any floating-point type,
-including complex.
 
 This all means that you can change
 
@@ -272,48 +242,6 @@ the Perl level - i.e. in a .pm file - use the C<=for bad> pod directive.
 This information will be available via man/pod2man/html documentation. It's also
 accessible from the C<perldl> or C<pdl2> shells - using the C<badinfo> command - and the C<pdldoc>
 shell command - using the C<-b> option.
-
-=head1 CURRENT ISSUES
-
-There are a number of areas that need work, user input, or both!  They are 
-mentioned elsewhere in this document, but this is just to make sure they don't get lost.
-
-=head2 Dataflow of the badflag
-
-Currently changes to the bad flag are propagated to the children of an ndarray,
-but perhaps they should also be passed on to the parents as well. With the
-advent of per-ndarray bad values we need to consider how to handle changes
-to the value used to represent bad items too.
-
-=head1 TODO/SUGGESTIONS
-
-=over 4
-
-=item *
-
-C<< $pdl->badflag() >> now updates all the children of this ndarray
-as well. However, not sure what to do with parents, since:
-
-  $y = $x->slice(); 
-  $y->badflag(0)
-
-doesn't mean that C<$x> shouldn't have its badflag cleared.
-however, after
-
-  $y->badflag(1)
-
-it's sensible to assume that the parents now get flagged as
-containing bad values.
-
-PERHAPS you can only clear the bad value flag if you are NOT
-a child of another ndarray, whereas if you set the flag then all
-children AND parents should be set as well?
-
-Similarly, if you change the bad value in an ndarray, should this
-be propagated to parent & children? Or should you only be able to do
-this on the 'top-level' ndarray?
-
-=back
 
 =head1 AUTHOR
 

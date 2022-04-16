@@ -1003,24 +1003,27 @@ pdl_error pdl_sever(pdl *src)
     return PDL_err;
 }
 
+#define PDL_MAYBE_PROPAGATE_BADFLAG(t, newval) \
+  for( i = 0; i < (t)->vtable->npdls; i++ ) { \
+    pdl *tpdl = (t)->pdls[i]; \
+    /* make sure we propagate if changed */ \
+    if (!!newval != !!(tpdl->state & PDL_BADVAL)) \
+      pdl_propagate_badflag( tpdl, newval ); \
+  }
+
 /* newval = 1 means set flag, 0 means clear it */
 void pdl_propagate_badflag( pdl *it, int newval ) {
+    PDL_Indx i;
+    if (newval)
+	it->state |=  PDL_BADVAL;
+    else
+	it->state &= ~PDL_BADVAL;
+    if (it->trans_parent)
+	PDL_MAYBE_PROPAGATE_BADFLAG(it->trans_parent, newval)
     PDL_DECL_CHILDLOOP(it)
     PDL_START_CHILDLOOP(it)
 	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
-	PDL_Indx i;
-	for( i = trans->vtable->nparents; i < trans->vtable->npdls; i++ ) {
-	    pdl *child = trans->pdls[i];
-	    char need_recurse = (!!newval != !!(child->state & PDL_BADVAL));
-	    if ( newval ) {
-		child->state |=  PDL_BADVAL;
-            } else {
-		child->state &= ~PDL_BADVAL;
-	    }
-	    /* make sure we propagate to grandchildren, etc if changed */
-	    if (need_recurse)
-		pdl_propagate_badflag( child, newval );
-        } /* for: i */
+	PDL_MAYBE_PROPAGATE_BADFLAG(trans, newval)
     PDL_END_CHILDLOOP(it)
 } /* pdl_propagate_badflag */
 

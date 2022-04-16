@@ -205,7 +205,7 @@ ok !$c->badflag, 'no badflag on slice-child of good';
 $x->badflag(1);
 ok $c->badflag, 'badflag on same slice-child of good set to bad';
 $c->badflag(0);
-ok $x->badflag, 'badflag still on for slice-parent of bad slice-child set to good';
+ok !$x->badflag, 'badflag now off for slice-parent of bad slice-child set to good';
 
 $x = pdl '1 BAD';
 ok any($x > 0), 'any with some badvals just omits them';
