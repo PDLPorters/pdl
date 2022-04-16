@@ -11,6 +11,18 @@ use Test::Warn;
 #
 use constant ABSTOL => 1.0e-4;
 
+{
+  my $a_bad = pdl double, '[1 BAD 3]';
+  my $b_double = zeroes double, 3;
+  $a_bad->assgn($b_double);
+  ok $b_double->badflag, 'b_double badflag set';
+  is $b_double.'', '[1 BAD 3]', 'b_double got badval';
+  my $b_float = zeroes float, 3;
+  $a_bad->assgn($b_float);
+  ok $b_float->badflag, 'b_float badflag set';
+  is $b_float.'', '[1 BAD 3]', 'b_float got badval';
+}
+
 # check default behaviour (ie no bad data)
 # - probably overkill
 #

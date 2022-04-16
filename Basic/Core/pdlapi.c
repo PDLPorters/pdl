@@ -689,6 +689,10 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
   pdl_transvtable *vtable = trans->vtable;
   pdl **pdls = trans->pdls;
   PDL_Indx i, npdls=vtable->npdls, nparents=vtable->nparents;
+  PDL_Indx nchildren = npdls - nparents;
+  /* copy the converted outputs from the end-area to use as actual
+    outputs - cf type_coerce */
+  for (i=vtable->nparents; i<vtable->npdls; i++) pdls[i] = pdls[i+nchildren];
   PDL_TR_CHKMAGIC(trans);
   int pfflag=0;
   PDL_err = pdl_trans_flow_null_checks(trans, &pfflag);
@@ -1066,7 +1070,9 @@ PDL_Anyval pdl_get_pdl_badvalue( pdl *it ) {
 }
 
 pdl_trans *pdl_create_trans(pdl_transvtable *vtable) {
-    size_t it_sz = sizeof(pdl_trans)+sizeof(pdl *)*vtable->npdls;
+    size_t it_sz = sizeof(pdl_trans)+sizeof(pdl *)*(
+      vtable->npdls + (vtable->npdls - vtable->nparents) /* outputs twice */
+    );
     pdl_trans *it = malloc(it_sz);
     if (!it) return it;
     memset(it, 0, it_sz);
@@ -1104,6 +1110,11 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
   char p2child_has_badvalue = (vtable->npdls == 2 && pdls[0]->has_badvalue
       && (vtable->par_flags[1] & PDL_PARAM_ISCREATEALWAYS));
   PDL_Anyval parent_badvalue = p2child_has_badvalue ? pdls[0]->badvalue : (PDL_Anyval){PDL_INVALID, {0}};
+  PDL_Indx nchildren = vtable->npdls - vtable->nparents;
+  /* copy the "real" (passed-in) outputs to the end-area to use as actual
+    outputs, possibly after being converted, leaving the passed-in ones
+    alone to be picked up for use in CopyBadStatusCode */
+  for (i=vtable->nparents; i<vtable->npdls; i++) pdls[i+nchildren] = pdls[i];
   for (i=0; i<vtable->npdls; i++) {
     pdl *pdl = pdls[i];
     short flags = vtable->par_flags[i];
@@ -1148,7 +1159,8 @@ pdl_error pdl_type_coerce(pdl_trans *trans) {
         return pdl_make_error(PDL_EFATAL, "%s got NULL pointer from get_convertedpdl on param %s", vtable->name, vtable->par_names[i]);
       if (pdl->datatype != new_dtype)
         return pdl_make_error_simple(PDL_EFATAL, "type not expected value after get_convertedpdl\n");
-      pdls[i] = pdl;
+      /* if type-convert output, put in end-area */
+      pdls[i + (i >= vtable->nparents ? nchildren : 0)] = pdl;
     }
   }
   return PDL_err;

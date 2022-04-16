@@ -15,6 +15,10 @@ my $p = pdl([]); $p->setdims([1,0]); $p->qsortvec; # shouldn't segfault!
 my $p2d  = pdl([[1,2],[3,4],[1,3],[1,2],[3,3]]);
 is $p2d->dice_axis(1,$p2d->qsortveci).'', $p2d->qsortvec.'', "qsortveci";
 
+my $ind_double = zeroes($p2d->dim(1));
+$p2d->qsortveci($ind_double); # shouldn't segfault!
+is $ind_double.'', '[3 0 2 4 1]';
+
 eval { empty()->medover }; # shouldn't segfault
 isnt $@, '', 'exception for percentile on empty ndarray';
 
