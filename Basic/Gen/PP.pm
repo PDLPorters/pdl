@@ -2088,7 +2088,6 @@ EOF
    PDL::PP::Rule::MakeComp->new("NewXSCoerceMustCompNS", "NewXSCoerceMustSubd", "FOO"),
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustCompNS"),
 
-   PDL::PP::Rule->new("NewXSFindBadStatusNS", "FindBadStatusCode", sub {@_}),
    PDL::PP::Rule->new("NewXSFindBadStatusNS", ["StructName"],
       "Rule to find the bad value status of the input ndarrays",
       sub {

@@ -2155,18 +2155,9 @@ section will be reused, on the assumption it will use
 C<#ifdef PDL_BAD_CODE> to handle bad values.
 As of 2.073, you can also use C<PDL_IF_BAD(iftrue,iffalse)>.
 
-=head3 FindBadStatusCode
-
-By default, C<FindBadStatusCode> creates code which sets
-C<$PRIV(bvalflag)> depending on the state of the bad flag
-of the input ndarrays.
-User-defined code should also store the value of C<bvalflag>
-in the C<$BADFLAGCACHE()> variable.
-
 =head3 CopyBadStatusCode
 
-The default code here is a bit simpler than for C<FindBadStatusCode>:
-the bad flag of the output ndarrays are set if
+The default code here sets the bad flag of the output ndarrays if
 C<$BADFLAGCACHE()> is true after the code has been
 evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
 with the responsibility of setting the badflag of the output ndarray
