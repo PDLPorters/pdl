@@ -138,7 +138,7 @@ sub vrml3v {
 package PDL::Graphics::VRMLPdlNode;
 our @ISA = qw/ PDL::Graphics::VRMLNode /;
 use PDL::Lite;
-use PDL::Core qw(barf);
+use PDL::Core qw(barf broadcast_define over);
 use PDL::Dbg;
 PDL::Graphics::VRMLNode->import(qw/tabs vrml3v postfix prefix/);
 
@@ -238,28 +238,28 @@ sub vpostfix {
   return tabs($level)."]\n";
 }
 
-PDL::broadcast_define 'coords(vertices(n=3); colors(n)) NOtherPars => 3',
-  PDL::over {
+broadcast_define 'coords(vertices(n=3); colors(n)) NOtherPars => 3',
+  over {
     ${$_[2]} .= $_[4] . sprintf("%.3f %.3f %.3f,\n",$_[0]->list);
     ${$_[3]} .= $_[4] . sprintf("%.3f %.3f %.3f,\n",$_[1]->list);
 };
 
-PDL::broadcast_define 'v3array(vecs(n=3)) NOtherPars => 2',
-  PDL::over {
+broadcast_define 'v3array(vecs(n=3)) NOtherPars => 2',
+  over {
     ${$_[1]} .= $_[2] . sprintf("%.3f %.3f %.3f,\n",$_[0]->list);
 };
 
-PDL::broadcast_define 'lines(vertices(n=3,m); colors(n,m); index(m))'.
+broadcast_define 'lines(vertices(n=3,m); colors(n,m); index(m))'.
   'NOtherPars => 4',
-  PDL::over {
+  over {
     my ($lines,$cols,$index,$vt,$ct,$it,$sp) = @_;
     v3array($lines,$vt,$sp."\t") if defined $vt;
     v3array($cols,$ct,$sp."\t") if defined $ct;
     $$it .= $sp.join(',',$index->list).",-1,\n" if defined $it;
 };
 
-PDL::broadcast_define 'triangles(inda();indb();indc()), NOtherPars => 2',
-  PDL::over {
+broadcast_define 'triangles(inda();indb();indc()), NOtherPars => 2',
+  over {
     ${$_[3]} .= $_[4].join(',',map {$_->at} @_[0..2]).",-1,\n";
 };
 
