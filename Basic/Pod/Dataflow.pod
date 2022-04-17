@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Dataflow -- description of the dataflow philosophy
+PDL::Dataflow -- description of the dataflow implementation and philosophy
 
 =head1 SYNOPSIS
 
@@ -10,79 +10,116 @@ PDL::Dataflow -- description of the dataflow philosophy
 	pdl> print $x;
 	[0 0 1 0 1 0 0 0 0 0]
 
-
-=head1 WARNING
-
-Dataflow is very experimental. Many features of it are disabled
-for 2.0, particularly families for one-directional
-dataflow. If you wish to use one-directional dataflow for
-something, please contact the author first and we'll work out
-how to make it functional again.
-
-Two-directional dataflow (which implements ->slice() etc.)
-is fully functional, however. Just about any function which
-returns some subset of the values in some ndarray will make a binding
-so that
-
-	$x = some ndarray
-	$y = $x->slice("some parts");
-	$y->set(3,3,10);
-
-also changes the corresponding element in $x. $y has become effectively
-a window to some sub-elements of $x. You can also define your own routines
-that do different types of subsets. If you don't want $y to be a window
-to $x, you must do
-
-	$y = $x->slice("some parts")->copy;
-
-The copying turns off all dataflow between the two ndarrays.
-
-The difficulties with one-directional
-dataflow are related to sequences like
-
-	$y = $x + 1;
-	$y ++;
-
-where there are several possible outcomes and the semantics get a little
-murky.
-
 =head1 DESCRIPTION
 
-Dataflow is new to PDL2.0. The basic philosophy
-behind dataflow is that
+As of 2.079, this is now a description of the current implementation,
+together with some design thoughts from its original author, Tuomas Lukka.
 
-	> $x = pdl 2,3,4;
-	> $y = $x * 2;
-	> print $y
-	[2 3 4]
-	> $x->set(0,5);
-	> print $y;
-	[10 3 4]
+Two-directional dataflow (which implements C<< ->slice() >> etc.)
+is fully functional, as shown in the SYNOPSIS. One-way is implemented,
+but with restrictions.
 
-should work. It doesn't. It was considered that doing this
-might be too confusing for novices and occasional users of the language.
-Therefore, you need to explicitly turn on dataflow, so
+=head1 TWO-WAY
 
-	> $x = pdl 2,3,4;
-	> $x->doflow();
-	> $y = $x * 2;
-	...
+Just about any function which returns some subset of the values in some
+ndarray will make a binding.  C<$y> has become effectively a window to
+some sub-elements of C<$x>. You can also define your own routines that
+do different types of subsets. If you don't want C<$y> to be a window
+to C<$x>, you must do
 
-produces the unexpected result. The rest of this documents
-explains various features and details of the dataflow implementation.
+	$y = $x->slice("some parts")->sever;
 
-=head1 Lazy evaluation
+The C<sever> destroys the C<slice> transform, thereby turning off all dataflow
+between the two ndarrays.
 
-When you calculate something like the above
+=head2 Type conversions
 
-	> $x = pdl 2,3,4;
-	> $x->doflow();
-	> $y = $x * 2;
+This works, thanks to a two-way flowing transform that implements
+type-conversions, particularly for supplied outputs of the "wrong"
+type for the given transform:
+
+  pdl> $a_bad = pdl double, '[1 BAD 3]';
+  pdl> $b_float = zeroes float, 3;
+  pdl> $a_bad->assgn($b_float); # could be written as $b_float .= $a_bad
+  pdl> p $b_float->badflag;
+  1
+  pdl> p $b_float;
+  [1 BAD 3]
+
+=head1 ONE-WAY
+
+You need to explicitly turn on one-way dataflow on an ndarray to activate
+it for non-flowing operations, so
+
+	pdl> $x = pdl 2,3,4;
+	pdl> $x->doflow;
+	pdl> $y = $x * 2;
+	pdl> print $y;
+	[4 6 8]
+	pdl> $x->set(0,5);
+	pdl> print $y;
+	[10 6 8]
+
+It is not possible to turn on backwards dataflow (such as is used by
+C<slice>-type operations), because there is no general way for PDL (or
+maths, in fact) to know how to reverse most operations - consider
+C<$z = $x * $y>, then adding one to C<$z>.
+
+Consider the following code:
+
+	$u = sequence(3,3); $u->doflow;
+	$v = ones(3,3); $v->doflow;
+	$w = $u + $v; $w->doflow; # must turn on for each
+	$y = $w + 1; $y->doflow;
+	$x = $w->diagonal(0,1);
+	$x += 50;
+	$z = $w + 2;
+
+What do $y and $z contain now?
+
+	pdl> p $y
+	[
+	 [52  3  4]
+	 [ 5 56  7]
+	 [ 8  9 60]
+	]
+	pdl> p $z
+	[
+	 [53  4  5]
+	 [ 6 57  8]
+	 [ 9 10 61]
+	]
+
+What about when $u is changed and a recalculation is triggered? A problem
+arises, in that PDL currently (as of 2.079) disallows (see F<pdlapi.c>),
+for normal transforms, output ndarrays with flow, or output ndarrays
+with any parent with dataflow. So C<$u++> throws an exception. But it
+is currently possible to use C<set>, which is a sort of micro-transform
+that calls (in the C API) C<PDL.set> to mutate the data, then
+C<PDL.changed> to trigger flow updates:
+
+	pdl> $u->set(1,1,90)
+	pdl> p $y
+	[
+	 [ 2  3  4]
+	 [ 5 92  7]
+	 [ 8  9 10]
+	]
+
+You'll notice that while the setting of C<1,1> (the middle) of $u updated
+$y, the changes to $y that resulted from adding 50 to the diagonal
+(via $x, and two-way flow) got lost. This is one-way flow.
+
+=head1 LAZY EVALUATION
+
+In one-way flow context like the above, with:
+
+	pdl> $y = $x * 2;
 
 nothing will have been calculated at this point. Even the memory for
 the contents of $y has not been allocated. Only the command
 
-	> print $y
+	pdl> print $y
 
 will actually cause $y to be calculated. This is important to bear
 in mind when doing performance measurements and benchmarks as well
@@ -91,13 +128,12 @@ as when tracking errors.
 There is an explanation for this behaviour: it may save cycles
 but more importantly, imagine the following:
 
-	> $x = pdl 2,3,4;
-	> $y = pdl 5,6,7;
-	> $c = $x + $y;
-	...
-	> $x->resize(4);
-	> $y->resize(4);
-	> print $c;
+	pdl> $x = pdl 2,3,4; $x->doflow;
+	pdl> $y = pdl 5,6,7; $y->doflow;
+	pdl> $c = $x + $y;
+	pdl> $x->setdims([4]);
+	pdl> $y->setdims([4]);
+	pdl> print $c;
 
 Now, if $c were evaluated between the two resizes, an error condition
 of incompatible sizes would occur.
@@ -109,153 +145,87 @@ that a recalculation is needed.
 
 Of course, lazy evaluation can sometimes make debugging more painful
 because errors may occur somewhere where you'd not expect them.
-A better stack trace for errors is in the works for PDL, probably
-so that you can toggle a switch $PDL::traceevals and get a good trace
-of where the error actually was.
 
-=head1 Families
+=head1 FAMILIES
 
-This is one of the more intricate concepts of one-directional dataflow.
-Consider the following code ($x and $y are pdls that have dataflow enabled):
-
-	$w = $u + $v;
-	$y = $w + 1;
-	$x = $w->diagonal();
-	$x++;
-	$z = $w + 1;
-
-What should $y and $z contain now? What about when $u is changed
-and a recalculation is triggered.
-
+This is one of the more intricate concepts of dataflow.
 In order to make dataflow work like you'd expect, a rather strange
-concept must be introduced: families. Let us make a diagram:
+concept must be introduced: families. Let us make a diagram of the one-way
+flow example - it uses a hypergraph because the transforms (with C<+>)
+are connectors between ndarrays (with C<*>):
 
-	u   v
-	 \ /
-	  w
-	 /|
-	/ |
-       y  x
+       u*   *v
+         \ /
+          +(plus)
+          |
+   1*     *w
+     \   /|\
+      \ / | \
+ (plus)+  |  +(diagonal)
+       |  |  |
+      y*  |  *x
+          |
+          | *1
+          |/
+          +(plus)
+          |
+         z*
 
 This is what PDL actually has in memory after the first three lines.
-When $x is changed, we want $w to change but we don't want $y to change
-because it already is on the graph. It may not be clear now why you don't
-want it to change but if there were 40 lines of code between the 2nd
-and 4th lines, you would. So we need to make a copy of $w and $x:
+When $x is changed, $w changes due to C<diagonal> being a two-way operation.
 
-	u   v
-	 \ /
-	  w' . . . w
-	 /|        |\
-	/ |        | \
-       y  x' . . . x  z
+If you want flow from $w, you opt in using C<< $w->doflow >> (as shown
+in this scenario). If you didn't, then don't enable it. If you have it
+but want to stop it, call C<< $ndarray->sever >>. That will destroy the
+ndarray's C<trans_parent> (here, a node marked with C<+>), and as you
+can visually tell, will stop changes flowing thereafter. If you want to
+leave the flow operating, but get a copy of the ndarray at that point,
+use C<< $ndarray->copy >> - it will have the same data at that moment,
+but have no flow relationships.
 
-Notice that we primed the original w and x, because they do not correspond
-to the objects in $w and $x any more. Also, notice the dotted lines
-between the two objects: when $u is changed and this diagram is re-evaluated,
-$w really does get the value of w' with the diagonal incremented.
+=head1 EVENTS
 
-To generalize on the above, whenever an ndarray is mutated i.e.
-when its actual *value* is forcibly changed (not just the reference):
+There is the start of a mechanism to bind events onto changed data,
+intended to allow this to work:
 
-	$x = $x + 1
-
-would produce a completely different result ($w and $x would not be bound
-any more whereas
-
-	$x .= $x + 1
-
-would yield the same as $x++), a "family" consisting of all other ndarrays
-joined to the mutated ndarray by a two-way transformation is created
-and all those are copied.
-
-All slices or transformations that simply select a subset of the original
-pdl are two-way. Matrix inverse should be. No arithmetic
-operators are.
-
-=head1 Sources
-
-What you were told in the previous section is not quite true:
-the behaviour described is not *always* what you want. Sometimes you
-would probably like to have a data "source":
-
-	$x = pdl 2,3,4; $y = pdl 5,6,7;
-	$c = $x + $y;
-	line($c);
-
-Now, if you know that $x is going to change and that you want
-its children to change with it, you can declare it into a data source
-(XXX unimplemented in current version):
-
-	$x->datasource(1);
-
-After this, $x++ or $x .= something will not create a new family
-but will alter $x and cut its relation with its previous parents.
-All its children will follow its current value.
-
-So if $c in the previous section had been declared as a source,
-$e and $f would remain equal.
-
-=head1 Binding
-
-A dataflow mechanism would not be very useful without the ability
-to bind events onto changed data. Therefore, we provide such a mechanism:
-
-	> $x = pdl 2,3,4
-	> $y = $x + 1;
-	> $c = $y * 2;
-	> $c->bind( sub { print "A now: $x, C now: $c\n" } )
-	> PDL::dowhenidle();
+	pdl> $x = pdl 2,3,4
+	pdl> $y = $x + 1;
+	pdl> $c = $y * 2;
+	pdl> $c->bind( sub { print "A now: $x, C now: $c\n" } )
+	pdl> PDL::dowhenidle();
 	A now: [2,3,4], C now: [6 8 10]
-	> $x->set(0,1);
-	> $x->set(1,1);
-	> PDL::dowhenidle();
+	pdl> $x->set(0,1);
+	pdl> $x->set(1,1);
+	pdl> PDL::dowhenidle();
 	A now: [1,1,4], C now: [4 4 10]
 
-Notice how the callbacks only get called during PDL::dowhenidle.
-An easy way to interface this to Perl event loop mechanisms
-(such as Tk) is being planned.
+This hooks into PDL's C<magic> which resembles Perl's, but does not
+currently operate.
 
-There are many kinds of uses for this feature: self-updating graphs,
-for instance.
+There would be many kinds of uses for this feature: self-updating charts,
+for instance. It is not yet fully clear whether it would be most useful
+to queue up changes (useful for doing asynchronously, e.g. when idle),
+or to activate things immediately.
 
-Blah blah blah XXX more explanation
+In the 2022 era of both GPUs and multiple cores, it is a pity that
+Perl's dominant model remains single-threaded on CPU, but PDL can use
+multi-cores for CPU processing (albeit controlled in a single-threaded
+style) - see L<PDL::ParallelCPU>. It is planned that PDL will gain the
+ability to use GPUs, and there might be a way to hook that up albeit
+probably with an event loop to "subscribe" to GPU events.
 
-=head1 Limitations
+=head1 TRANSFORMATIONS
 
-Dataflow as such is a fairly limited addition on top of Perl.
-To get a more refined addition, the internals of Perl need to be
-hacked a little. A true implementation would enable flow of everything,
-including
+PDL implements nearly everything (except for XS oddities like
+C<set>) using transforms which connect ndarrays. This includes data
+transformations like addition, "slicing" to access/operate on subsets,
+and data-type conversions (which have two-way dataflow, see
+L</Type conversions>).
 
-=over 12
-
-=item data
-
-=item data size
-
-=item datatype
-
-=item operations
-
-=back
-
-At the moment we only have the first two (hey, 50% in a couple of months
-is not bad ;) but even this is useful by itself. However, especially
-the last one is desirable since it would add the possibility
-of flowing closures from place to place and would make many things
-more flexible.
-
-To get the rest working, the internals of dataflow probably need to
-be changed to be a more general framework.
-
-Additionally, it would be nice to be able to flow data in time,
-lucid-like (so you could easily define all kinds of signal processing
-things).
+This does not currently include a resizing transformation, and C<setdims>
+mutates its input. This is intended to change.
 
 =head1 AUTHOR
 
 Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu).
-Redistribution in the same form is allowed provided that the copyright
-notice stays intact but reprinting requires
-a permission from the author.
+Same terms as the rest of PDL.

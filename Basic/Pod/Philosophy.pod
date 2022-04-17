@@ -51,7 +51,7 @@ write an extension to Perl where I could play with my data in a general
 way: for example using the maths operators manipulate whole images at
 once.
 
-Well one slow night at an observatory I just thought I would try a
+One slow night at an observatory I thought I would try a
 little experiment.  In a bored moment I fired up a text editor and
 started to create a file called `PDL.xs' - a Perl extension module to
 manipulate data vectors. A few hours later I actually had something half
@@ -63,7 +63,7 @@ infant: very little was there apart from the basic arithmetic operators.
 But encouraged I made it available on the Internet to see what people
 thought.
 
-Well people were fairly critical - among the most vocal were Tuomas
+People were fairly critical - among the most vocal were Tuomas
 Lukka and Christian Soeller. Unfortunately for them they were both Perl
 enthusiasts too and soon found themselves improving my code to implement
 all the features they thought PDL ought to have and I had heinously
@@ -138,11 +138,7 @@ Enjoy!
 
 =head1 AUTHOR
 
-Added Karl Glazebrook (2001) contributions by Matthew Kenworthy
-
 Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu).
+Same terms as the rest of PDL.
 
-Redistribution in the same form is allowed but reprinting requires
-a permission from the author.
-
-
+Added Karl Glazebrook (2001), contributions by Matthew Kenworthy
