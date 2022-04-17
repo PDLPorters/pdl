@@ -5,10 +5,7 @@ use PDL::Lite;
 
 our @ISA=qw/PDL::Graphics::TriD::Object/;
 
-sub new {
-  my ($type,$pos,$size) = @_;
-  my $this = bless {},$type;
-  $this->{Points} = PDL->pdl ([
+our $POINTS = PDL->pdl([
 			       [  0.843,  0.852,      0],
 			       [  0.843,  0.852,     -1],
 			       [  1.227,  0.891,      0],
@@ -161,7 +158,7 @@ sub new {
 			       [  4.809,   0.36,     -1],
 			       [  4.809,  1.797,      0],
 			       [  4.809,  1.797,     -1]]);
-  $this->{Index} = PDL->pdl([
+our $FACES = PDL->pdl([
 			     [  0,  1,  2],
 			     [  3,  2,  1],
 			     [  2,  3,  4],
@@ -462,15 +459,21 @@ sub new {
 			     [136,144,146],
 			     [124,120,122],
 			     [114,126,150]]);
-  $this->{Material} = new PDL::Graphics::TriD::Material(
-				  Shine => 0.212766,
-				   Specular =>[0.753217,0.934416,1],
-				   Ambient =>[0,0,0],
-				   Diffuse =>[0.09855,0.153113,0.191489],
-				   Emissive =>[0, 0, 0]);
-  $this->{Pos} = defined($pos) ? $pos : [0,1.2,0];
-  $this->{Size} = defined($size) ? $size : 0.1;
-  return $this;
+
+sub new {
+  my ($type,$pos,$size) = @_;
+  bless {
+    Points => $POINTS->copy,
+    Index => $FACES->copy,
+    Material => PDL::Graphics::TriD::Material->new(
+      Shine => 0.212766,
+      Specular =>[0.753217,0.934416,1],
+      Ambient =>[0,0,0],
+      Diffuse =>[0.09855,0.153113,0.191489],
+      Emissive =>[0, 0, 0]),
+    Pos => $pos // [0,1.2,0],
+    Size => $size // 0.1,
+  }, $type;
 }
 
 1;

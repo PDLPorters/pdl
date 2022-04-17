@@ -5,20 +5,20 @@ PDL::Graphics::TriD - PDL 3D interface
 =head1 SYNOPSIS
 
  use PDL::Graphics::TriD;
- 
+
  # Generate a somewhat interesting sequence of points:
  $t = sequence(100)/10;
  $x = sin($t); $y = cos($t), $z = $t;
  $coords = cat($x, $y, $z)->transpose;
  my $red = cos(2*$t); my $green = sin($t); my $blue = $t;
  $colors = cat($red, $green, $blue)->transpose;
- 
+
  # After each graph, let the user rotate and
  # wait for them to press 'q', then make new graph
  line3d($coords);       # $coords = (3,n,...)
  line3d($coords,$colors);  # $colors = (3,n,...)
  line3d([$x,$y,$z]);
- 
+
  # Generate a somewhat interesting sequence of surfaces
  $surf1 = (rvals(100, 100) / 50)**2 + sin(xvals(100, 100) / 10);
  $surf2 = sqrt(rvals(zeroes(50,50))/2);
@@ -187,7 +187,7 @@ C<mesh3d([$surface])>.
 Of course, your data is not required to be regularly gridded.
 You could, for example, be measuring the flight path of a bat
 flying after mosquitos, which could be wheeling and arching
-all over the space.  This is what you might plot using 
+all over the space.  This is what you might plot using
 C<line3d([$x, $y, $z])>.  You could plot the trajectories of
 multiple bats, in which case C<$x>, C<$y>, and C<$z> would have
 multiple columns, but in general you wouldn't expect them to be
@@ -399,8 +399,8 @@ Implemented by C<PDL::Graphics::TriD::Spheres>.
 
 Example:
 
- pdl> spheres3d ndcoords(10,10,10)->clump(1,2,3)  
- 
+ pdl> spheres3d ndcoords(10,10,10)->clump(1,2,3)
+
  - lattice of spheres at coordinates on 10x10x10 grid
 
 =head2 imagrgb
@@ -601,14 +601,14 @@ an object like
 =head2 PDL::Graphics::TriD::LineStrip
 
 This is just a line or a set of lines. The arguments are 3 1-or-more-D
-ndarrays which describe the vertices of a continuous line and an 
+ndarrays which describe the vertices of a continuous line and an
 optional color ndarray (which is 1-D also and simply
 defines the color between red and blue. This will probably change).
 
 =head2 PDL::Graphics::TriD::Lines
 
 This is just a line or a set of lines. The arguments are 3 1-or-more-D
-ndarrays where each contiguous pair of vertices describe a line segment 
+ndarrays where each contiguous pair of vertices describe a line segment
 and an optional color ndarray (which is 1-D also and simply
 defines the color between red and blue. This will probably change).
 
@@ -655,22 +655,22 @@ to the previous viewport in the (0,1) range.
 Every implementation-level window object should implement the new_viewport
 method.
 
-=head1 EXAMPLE SCRIPT FOR VARIOUS 
+=head1 EXAMPLE SCRIPT FOR VARIOUS
 
 =cut
 
 #KGB: NEEDS DOCS ON COMMON OPTIONS!!!!!
 
 # List of global variables
-# 
+#
 # $PDL::Graphics::TriD::offline
-# $PDL::Graphics::TriD::Settings 
+# $PDL::Graphics::TriD::Settings
 $PDL::Graphics::TriD::verbose //= 0;
 # $PDL::Graphics::TriD::keeptwiddling
 # $PDL::Graphics::TriD::only_one
 # $PDL::Graphics::TriD::create_window_sub
 # $PDL::Graphics::TriD::current_window
-# 
+#
 # '
 
 package PDL::Graphics::TriD;
@@ -849,7 +849,7 @@ sub PDL::imagrgb {
 
 # Call: line3d([$x,$y,$z],[$color]);
 *line3d=*line3d=\&PDL::line3d;
-sub PDL::line3d { 
+sub PDL::line3d {
     &checkargs;
     my $obj = PDL::Graphics::TriD::LineStrip->new(@_);
     print "line3d: object is $obj\n" if($PDL::Graphics::TriD::verbose);
@@ -857,7 +857,7 @@ sub PDL::line3d {
 }
 
 *contour3d=*contour3d=\&PDL::contour3d;
-sub PDL::contour3d { 
+sub PDL::contour3d {
 #  &checkargs;
   require PDL::Graphics::TriD::Contours;
   graph_object(PDL::Graphics::TriD::Contours->new(@_));
@@ -997,7 +997,7 @@ package PDL::Graphics::TriD::BoundingBox;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Box/;
 
-sub new { 
+sub new {
   my($type,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
   my $this = $type->SUPER::new();
   $this->{Box} = [$x0,$y0,$z0,$x1,$y1,$z1];
