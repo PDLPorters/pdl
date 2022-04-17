@@ -1580,11 +1580,8 @@ sub PDL::glue{
     my($x) = shift;
     my($dim) = shift;
 
-    if(defined $x && !(ref $x)) {
-	my $y = $dim;
-	$dim = $x;
-	$x = $y;
-    }
+    ($dim, $x) = ($x, $dim) if defined $x && !ref $x;
+    confess 'dimension must be Perl scalar' if ref $dim;
 
     if(!defined $x || $x->nelem==0) {
 	return $x unless(@_);
