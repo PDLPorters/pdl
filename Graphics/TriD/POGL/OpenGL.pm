@@ -39,6 +39,7 @@ BEGIN {
          eval "sub OpenGL::NoExpose            () { 14 }";
          eval "sub OpenGL::VisibilityNotify    () { 15 }";
          eval "sub OpenGL::ConfigureNotify     () { 22 }";
+         eval "sub OpenGL::DestroyNotify       () { 17 }";
       }
    }
 }
