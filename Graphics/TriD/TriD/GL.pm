@@ -377,6 +377,7 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 
 sub PDL::Graphics::TriD::STrigrid_S::gdraw {
   my($this,$points) = @_;
+  my $faces = $points->dice_axis(1,$this->{Faceidx}->clump(-1))->splitdim(1,3);
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   $this->glOptions;
   eval {
@@ -387,16 +388,11 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
     my @sls = (":,(0)",":,(1)",":,(2)");
     my $idx = [0,1,2,0]; # for lines, below
     if ($this->{Options}{Smooth}) {
-      my $f=\&PDL::gl_triangles_wn_mat;
       my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->clump(-1))
 		      ->splitdim(1,$this->{Faceidx}->dim(0));
-      my @args=((map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
-		(map {$tmpn->slice($_)} @sls),
-		(map {$this->{Colors}->slice($_)} @sls) );&$f(@args);
+      PDL::gl_triangles_wn_mat(map $_->mv(1,-1)->dog, $faces, $tmpn, $this->{Colors});
     } else {
-      my $f=\&PDL::gl_triangles_n_mat;
-      &$f( (map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
-	   (map {$this->{Colors}->slice($_)} @sls) );
+      PDL::gl_triangles_n_mat(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
     }
     if ($this->{Options}{Lines}) {
       glDisable(GL_LIGHTING);
@@ -410,21 +406,19 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
 
 sub PDL::Graphics::TriD::STrigrid::gdraw {
   my($this,$points) = @_;
+  my $faces = $points->dice_axis(1,$this->{Faceidx}->clump(-1))->splitdim(1,3);
+  # faces is 3D pdl slices of points, giving cart coords of face verts
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   $this->glOptions;
   eval {
     glDisable(GL_LIGHTING);
 # By-vertex doesn't make sense otherwise.
-    glShadeModel (GL_SMOOTH);
-    my @sls = (":,(0)",":,(1)",":,(2)");
-    my $idx = [0,1,2,0];
-    PDL::gl_triangles(
-      (map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
-      (map {$this->{Colors}->slice($_)} @sls));
+    glShadeModel(GL_SMOOTH);
+    PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
     if ($this->{Options}{Lines}) {
       glColor3f(0,0,0);
-      PDL::gl_lines_nc($this->{Faces}->dice_axis(1,$idx));
-  }
+      PDL::gl_lines_nc($faces->dice_axis(1, [0,1,2,0]));
+    }
   };
   { local $@; glPopAttrib(); }
   die if $@;
