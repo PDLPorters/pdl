@@ -43,8 +43,10 @@ my @demo = (
 	require PDL::Graphics::TriD::Logo;
 	$vertices = $PDL::Graphics::TriD::Logo::POINTS;
 	$faceidx = $PDL::Graphics::TriD::Logo::FACES;
-	$rotate_m = pdl [0,0,1],[1,0,0],[0,1,0];
-	$vertices = ($rotate_m x $vertices->transpose)->transpose;
+	$rotate_m = pdl [1,0,0],[0,0,-1],[0,1,0]; # top towards X axis
+	$c22 = cos(PI/8); $s22 = sin(PI/8);
+	$rot22 = pdl [$c22,-$s22,0],[$s22,$c22,0],[0,0,1]; # +22deg about vert
+	$vertices = ($rot22 x $rotate_m x $vertices->transpose)->transpose;
 	trigrid3d($vertices,$faceidx);
 	# [press 'q' in the graphics window when done]
 |],
