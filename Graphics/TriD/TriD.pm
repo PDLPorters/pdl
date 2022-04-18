@@ -355,6 +355,24 @@ contexts and options
 
 alias for mesh3d
 
+=item trigrid3d
+
+Show a triangular mesh, giving C<$vertices> and C<$faceidx> which is
+a series of triplets of indices into the vertices, each describing
+one triangle. The order of points matters for the shading - the normal
+vector points towards the clockface if the points go clockwise.
+
+Options: C<Smooth> (on by default), C<Lines> (off by default),
+C<ShowNormals> (off by default, useful for debugging).
+
+Implemented by C<PDL::Graphics::TriD::STrigrid_S>.
+
+=item trigrid3d_ns
+
+Like L</trigrid3d>, but without shading or normals.
+
+Implemented by C<PDL::Graphics::TriD::STrigrid>.
+
 =head2 points3d
 
 =for ref
@@ -550,14 +568,6 @@ implemented.
 
 Implemented by C<PDL::Graphics::TriD::Contours>.
 
-=item STrigrid_S_imag3d
-
-Implemented by C<PDL::Graphics::TriD::STrigrid_S>.
-
-=item STrigrid_imag3d
-
-Implemented by C<PDL::Graphics::TriD::STrigrid>.
-
 =back
 
 =head1 CONCEPTS
@@ -681,6 +691,7 @@ use PDL::Exporter;
 use PDL::Core '';  # barf
 our @ISA = qw/PDL::Exporter/;
 our @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
+  trigrid3d trigrid3d_ns
   spheres3d describe3d imagrgb imagrgb3d hold3d release3d
   keeptwiddling3d nokeeptwiddling3d close3d
   twiddle3d grabpic3d tridsettings/;
@@ -880,17 +891,13 @@ sub PDL::imag3d { &checkargs;
 	graph_object(PDL::Graphics::TriD::SLattice_S->new(@_));
 }
 
-####################################################################
-################ JNK 15mar11 added section start ###################
-*STrigrid_S_imag3d=*STrigrid_S_imag3d=\&PDL::STrigrid_S_imag3d;
-sub PDL::STrigrid_S_imag3d { &checkargs;
+*trigrid3d=*trigrid3d=\&PDL::trigrid3d;
+sub PDL::trigrid3d { &checkargs;
   graph_object(PDL::Graphics::TriD::STrigrid_S->new(@_)); }
 
-*STrigrid_imag3d=*STrigrid_imag3d=\&PDL::STrigrid_imag3d;
-sub PDL::STrigrid_imag3d { &checkargs;
+*trigrid3d_ns=*trigrid3d_ns=\&PDL::trigrid3d_ns;
+sub PDL::trigrid3d_ns { &checkargs;
   graph_object(PDL::Graphics::TriD::STrigrid->new(@_)); }
-################ JNK 15mar11 added section finis ###################
-####################################################################
 
 *mesh3d=*mesh3d=\&PDL::mesh3d;
 *lattice3d=*lattice3d=\&PDL::mesh3d;

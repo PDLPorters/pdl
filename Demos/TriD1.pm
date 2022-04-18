@@ -31,10 +31,27 @@ my @demo = (
 [actnw => q|
 	# See if we had a 3D window open already
 	$|.__PACKAGE__.q|::we_opened = !defined $PDL::Graphics::TriD::current_window;
+	$vertices = pdl([ [0,0,-1], [1,0,-1], [0.5,1,-1], [0.5,0.5,0] ]);
+	$faceidx = pdl([ [0,2,1], [0,1,3], [0,3,2], [1,2,3] ]);
+	# show the vertex and face normal vectors on a triangular grid
+	trigrid3d($vertices,$faceidx,{ShowNormals=>1});
+	# [press 'q' in the graphics window when done]
+|],
 
+[actnw => q|
+	# Show a PDL logo
+	require PDL::Graphics::TriD::Logo;
+	$vertices = $PDL::Graphics::TriD::Logo::POINTS;
+	$faceidx = $PDL::Graphics::TriD::Logo::FACES;
+	$rotate_m = pdl [0,0,1],[1,0,0],[0,1,0];
+	$vertices = ($rotate_m x $vertices->transpose)->transpose;
+	trigrid3d($vertices,$faceidx);
+	# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
 	# Number of subdivisions for lines / surfaces.
 	$size = 25;
-
 	$cz = (xvals zeroes $size+1) / $size;  # interval 0..1
 	$cx = sin($cz*12.6);	# Corkscrew
 	$cy = cos($cz*12.6);

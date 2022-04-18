@@ -121,7 +121,7 @@ sub new {
   $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
   my $faces = $points->dice_axis(1,$faceidx->clump(-1))->splitdim(1,3);
   # faces is 3D pdl slices of points, giving cart coords of face verts
-  if(!defined $colors) { $colors = PDL->pdl(1,1,1);
+  if(!defined $colors) { $colors = PDL->pdl(0.8,0.8,0.8);
     $colors = $type->cdummies($colors,$faces);
     $options->{ UseDefcols } = 1; } # for VRML efficiency
   else { $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors); }
