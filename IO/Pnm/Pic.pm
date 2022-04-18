@@ -268,11 +268,11 @@ sub PDL::rpic {
     }
 
     my $fh;
-    if ($converter{$type}->{'get'} =~ /^NONE/) {
+    if ($converter{$type}->{'get'} and $converter{$type}->{'get'} =~ /^NONE/) {
       open $fh, $file;
     } else {
-      my @cmd = $converter{$type}->{get};
-      push @cmd, shellwords $converter{$type}->{FLAGS} // $Dflags;
+      my @cmd = $converter{$type}{get} // barf "No converter for '$type'";
+      push @cmd, shellwords $converter{$type}{FLAGS} // $Dflags;
       push @cmd, shellwords $$hints{XTRAFLAGS} if defined($$hints{XTRAFLAGS});
       open $fh, '-|', @cmd, $file
         or barf "spawning '@cmd' failed: $? ($!)";
