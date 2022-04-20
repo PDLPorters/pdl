@@ -11,6 +11,7 @@ our @ISA = ('PDL::Exporter');
 use PDL::LiteF;
 use PDL::Options;
 use PDL::Exporter;
+use PDL::IO::Misc; # for little/big-endian
 
 =head1 NAME
 
@@ -26,7 +27,9 @@ PDL::IO::STL - read/write 3D stereolithography files
 
 =head1 DESCRIPTION
 
-Colour information is currently ignored.
+Normal-vector information is currently ignored.
+The "attribute byte count", used sometimes to store colour information,
+is currently ignored.
 
 If L<PDL::VectorValued> is installed, the vertices and face-indexes will
 have correct connectivity (in other words, identically-located vertices
@@ -37,8 +40,6 @@ opened filehandles and little-endian (i.e. network) order forced on the
 binary format.
 
 =head1 FUNCTIONS
-
-=cut
 
 =head2 rstl
 
@@ -143,13 +144,12 @@ sub _read_ascii {
     push @tri, \@this_tri;
   }
   barf "part '$part' was left open" if defined $part;
-  _as_ndarray(\@tri);
+  _as_ndarray(pdl PDL::float(), \@tri);
 }
 
 my $HAVE_VSEARCHVEC;
 sub _as_ndarray {
-  my ($tri) = @_;
-  my $pdl = pdl PDL::float(), $tri;
+  my ($pdl) = @_;
   $HAVE_VSEARCHVEC = eval { require PDL::VectorValued::Utils; 1 } || 0
     if !defined $HAVE_VSEARCHVEC;
   return ($pdl->clump(1..$pdl->ndims-1), PDL->sequence(PDL::indx(), 3, $pdl->nelem/9), undef) if !$HAVE_VSEARCHVEC;
@@ -163,20 +163,18 @@ sub _read_binary {
   # TODO try to read part name from header (up to \0)
   seek($fh, 80, 0);
   my $buf; read($fh, $buf, 4) or warn "EOF?"; my $triangles = unpack('L<', $buf);
-  my $count = 0;
-  my @tri;
-  while (1) {
-    read($fh, $buf, 50) or warn "EOF?"; # norm+3vertices * 3float + short with length of extra
-    my (undef, undef, undef, @float9) = unpack('f<12', $buf);
-    # TODO check that the unit normal is within a thousandth of a radian
-    # (0.001 rad is ~0.06deg)
-    push @tri, [[@float9[0..2]], [@float9[3..5]], [@float9[6..8]]];
-    $count++;
-    eof($fh) and last;
-  }
-  ($count == $triangles) or
-    barf "ERROR: got $count facets (expected $triangles)";
-  _as_ndarray(\@tri);
+  my $bytes = 50 * $triangles; # norm+3vertices * 3float + short with length of extra
+  my $bytespdl = zeroes PDL::byte(), 50, $triangles;
+  my $bytesread = read($fh, ${$bytespdl->get_dataref}, $bytes);
+  barf "Tried to read $bytes but only got $bytesread" if $bytesread != $bytes;
+  $bytespdl->upd_data;
+  my $floatpdl = zeroes PDL::float(), 3, 4, $triangles;
+  ${$floatpdl->get_dataref} = ${$bytespdl->slice('0:47')->get_dataref};
+  $floatpdl->upd_data;
+  $floatpdl->type->bswap->($floatpdl) if isbigendian();
+  # TODO check that the unit normal is within a thousandth of a radian
+  # (0.001 rad is ~0.06deg)
+  _as_ndarray($floatpdl->slice(':,1:3'));
 }
 
 =head2 wstl
