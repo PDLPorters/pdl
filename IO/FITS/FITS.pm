@@ -20,7 +20,7 @@ use Carp;
 
 =head1 NAME
 
-PDL::IO::FITS -- Simple FITS support for PDL
+PDL::IO::FITS - Simple FITS support for PDL
 
 =head1 SYNOPSIS
 
@@ -33,9 +33,9 @@ PDL::IO::FITS -- Simple FITS support for PDL
 =head1 DESCRIPTION
 
 This module provides basic FITS support for PDL, in the sense of
-reading and writing whole FITS files.  (For more complex operations,
+reading and writing whole FITS files. For more complex operations,
 such as prefiltering rows out of tables or performing operations on
-the FITS file in-place on disk), you can use the Astro::FITS::CFITSIO
+the FITS file in-place on disk, you can use the Astro::FITS::CFITSIO
 module that is available on CPAN.
 
 Basic FITS image files are supported, along with BINTABLE and IMAGE extensions.
