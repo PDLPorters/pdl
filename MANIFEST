@@ -369,6 +369,13 @@ IO/Pnm/pnm.pd
 IO/Pnm/t/pic_16bit.t
 IO/Pnm/t/pnm.t
 IO/Pnm/t/rim.t
+IO/STL/Makefile.PL
+IO/STL/owl.stl
+IO/STL/PDL
+IO/STL/STL.pm
+IO/STL/t/basic.t
+IO/STL/t/cube.stl
+IO/STL/t/cube_binary.stl
 IO/Storable/Makefile.PL
 IO/Storable/storable.pd
 IO/Storable/t/storable.t

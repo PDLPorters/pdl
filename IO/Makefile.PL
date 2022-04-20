@@ -2,7 +2,10 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my @dirs = qw(Browser Dicom FITS FastRaw FlexRaw GD HDF IDL Misc Pnm Storable);
+my @dirs = qw(
+  Browser Dicom FITS FastRaw FlexRaw GD HDF IDL Misc Pnm Storable
+  STL
+);
 
 WriteMakefile(
      'NAME'	=> 'PDL::IO',

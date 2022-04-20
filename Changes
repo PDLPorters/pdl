@@ -6,6 +6,7 @@
 - PDL.null deprecated, doesn't allocate pdl.sv now
 - PDL::Dataflow doc updated
 - add TriD::trigrid3d
+- add PDL::IO::STL
 
 2.078 2022-04-10
 - Ops::atan2 etc have default swap param

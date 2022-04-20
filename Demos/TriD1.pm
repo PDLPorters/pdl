@@ -5,6 +5,17 @@
 package PDL::Demos::TriD1;
 
 use PDL::Graphics::TriD;
+use Carp;
+require File::Spec;
+
+my @f = qw(PDL IO STL owl.stl);
+our $owlfile = undef;
+foreach my $path ( @INC ) {
+    my $file = File::Spec->catfile( $path, @f );
+    if ( -f $file ) { $owlfile = $file; last; }
+}
+confess "Unable to find owl.stl within the perl libraries.\n"
+  unless defined $owlfile;
 
 sub info {('3d', '3d demo (requires TriD with OpenGL or Mesa)')}
 sub init {'
@@ -47,6 +58,14 @@ my @demo = (
 	$c22 = cos(PI/8); $s22 = sin(PI/8);
 	$rot22 = pdl [$c22,-$s22,0],[$s22,$c22,0],[0,0,1]; # +22deg about vert
 	$vertices = ($rot22 x $rotate_m x $vertices->transpose)->transpose;
+	trigrid3d($vertices,$faceidx);
+	# [press 'q' in the graphics window when done]
+|],
+
+[actnw => q|
+	# Show an owl loaded from an STL file
+	use PDL::IO::STL;
+	($vertices, $faceidx) = rstl $|.__PACKAGE__.q|::owlfile;
 	trigrid3d($vertices,$faceidx);
 	# [press 'q' in the graphics window when done]
 |],
