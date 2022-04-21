@@ -44,7 +44,7 @@ pp_addhdr('
 /* #include <GL/glx.h> */
 ');
 
-my @internal = (Doc => 'internal', NoPthreading => 1);
+my @internal = (Doc => 'internal', NoPthread => 1);
 
 pp_def(
   'gl_spheres',
