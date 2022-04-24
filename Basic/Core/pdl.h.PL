@@ -588,14 +588,6 @@ typedef struct pdl_slice_args {
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 #define PDLMIN(a,b) ((a) < (b) ? (a) : (b))
 
-/***************
- * Some macros to guard against dataflow infinite recursion.
- */
-#define DECL_RECURSE_GUARD static int __nrec=0;
-#define START_RECURSE_GUARD __nrec++; if(__nrec > 1000) {__nrec=0; return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");}
-#define ABORT_RECURSE_GUARD __nrec=0;
-#define END_RECURSE_GUARD __nrec--;
-
 #define PDL_RETERROR2(rv, expr, iferr) \
   do { rv = expr; if (rv.error) { iferr } } while (0)
 #define PDL_RETERROR(rv, expr) PDL_RETERROR2(rv, expr, return rv;)

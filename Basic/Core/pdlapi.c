@@ -45,8 +45,9 @@
 
 extern Core PDL;
 
+pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count);
 /* Make sure transformation is done */
-pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
+pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd, int recurse_count)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDLDEBUG_f(printf("pdl__ensure_trans %p what=%d\n", trans, what));
@@ -57,7 +58,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 	for(j=0; j<vtable->npdls; j++) {
 		if(VAFFINE_FLAG_OK(vtable->per_pdl_flags,j))
 			par_pvaf++;
-		PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[j]));
+		PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[j], recurse_count+1));
 	}
 	for(j=vtable->nparents; j<vtable->npdls; j++)
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
@@ -70,7 +71,7 @@ pdl_error pdl__ensure_trans(pdl_trans *trans,int what,int *wd)
 		  /* Attention: this assumes affine = p2child */
 		  /* need to signal that redodims has already been called */
 		        trans->pdls[1]->state &= ~PDL_PARENTDIMSCHANGED;
-			PDL_RETERROR(PDL_err, pdl_make_physvaffine(trans->pdls[1]));
+			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(trans->pdls[1], recurse_count+1));
 			PDL_ACCUMERROR(PDL_err, pdl_readdata_vaffine(trans->pdls[1]));
 		} else
 			READDATA(trans);
@@ -322,7 +323,8 @@ pdl_error pdl_trans_finaldestroy(pdl_trans *trans)
   return PDL_err;
 }
 
-pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
+pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count);
+pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd, int recurse_count)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	PDL_TR_CHKMAGIC(trans);
@@ -336,7 +338,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 			  trans->vtable ? trans->vtable->name : "NULL",
 			  (void*)trans,ensure,ismutual));
 	if(ensure)
-		PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd));
+		PDL_ACCUMERROR(PDL_err, pdl__ensure_trans(trans,ismutual ? 0 : PDL_PARENTDIMSCHANGED,wd, recurse_count+1));
 	pdl *destbuffer[trans->vtable->npdls];
 	int ndest = 0;
 	for(j=0; j<trans->vtable->nparents; j++) {
@@ -363,7 +365,7 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
 	PDL_ACCUMERROR(PDL_err, pdl_trans_finaldestroy(trans));
 	for(j=0; j<ndest; j++) {
 		destbuffer[j]->state &= ~PDL_DESTROYING; /* safe, set by us */
-		PDL_ACCUMERROR(PDL_err, pdl_destroy(destbuffer[j]));
+		PDL_ACCUMERROR(PDL_err, pdl__destroy_recprotect(destbuffer[j], recurse_count+1));
 	}
 	PDLDEBUG_f(printf("pdl_destroytransform leaving %p\n", (void*)trans));
 	return PDL_err;
@@ -379,11 +381,10 @@ pdl_error pdl_destroytransform(pdl_trans *trans,int ensure,int *wd)
    - allowed to destroy if
       1. a parent with max. 1 backwards propagating transformation
       2. a child with no trans_children
-
   When an ndarray is destroyed, it must tell its trans_children and/or
   parent.
 */
-pdl_error pdl_destroy(pdl *it) {
+pdl_error pdl__destroy_recprotect(pdl *it, int recurse_count) {
     pdl_error PDL_err = {0, NULL, 0};
     int nback=0,nback2=0,nforw=0;
     int nafn=0;
@@ -401,7 +402,6 @@ pdl_error pdl_destroy(pdl *it) {
 	    sv_setiv(it->sv,0x4242);
 	    it->sv = NULL;
     }
-
     /* 1. count the trans_children that do flow */
     PDL_START_CHILDLOOP(it)
 	pdl_trans *curt = PDL_CHILDLOOP_THISCHILD(it);
@@ -414,18 +414,14 @@ pdl_error pdl_destroy(pdl *it) {
 		 * must always be soft-destroyed */
 		if(curt->vtable->npdls > 2) nback2++;
 	}
-
 	if ((curt->flags & PDL_ITRANS_ISAFFINE) && !(curt->pdls[1]->state & PDL_ALLOCATED))
 		nafn ++;
     PDL_END_CHILDLOOP(it)
-
 /* First case where we may not destroy */
     if(nback2 > 0) goto soft_destroy;
     if(nback > 1) goto soft_destroy;
-
 /* Also not here */
     if(it->trans_parent && nforw) goto soft_destroy;
-
 /* Also, we do not wish to destroy if the trans_children would be larger
  * than the parent and are currently not allocated (e.g. lags).
  * Because this is too much work to check, we refrain from destroying
@@ -436,23 +432,18 @@ pdl_error pdl_destroy(pdl *it) {
         PDLDEBUG_f(printf("pdl_destroy not destroying as magic %p\n",(void*)it));
 	goto soft_destroy;
     }
-
     PDL_START_CHILDLOOP(it)
-	PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it),1,NULL));
+	PDL_RETERROR(PDL_err, pdl_destroytransform(PDL_CHILDLOOP_THISCHILD(it),1,NULL, recurse_count+1));
     PDL_END_CHILDLOOP(it)
-
     pdl_trans *trans = it->trans_parent;
     if (trans)
         /* Ensure only if there are other children! */
       PDL_RETERROR(PDL_err, pdl_destroytransform(trans,trans->vtable->npdls
-				      - trans->vtable->nparents > 1,NULL));
-
+				      - trans->vtable->nparents > 1,NULL, recurse_count+1));
 /* Here, this is a child but has no children - fall through to hard_destroy */
-
    PDL_RETERROR(PDL_err, pdl__free(it));
    PDLDEBUG_f(printf("pdl_destroy end %p\n",(void*)it));
    return PDL_err;
-
   soft_destroy:
     PDLDEBUG_f(printf("pdl_destroy may have dependencies, not destroy %p, nba(%d, %d), nforw(%d), tra(%p=%s), nafn(%d)\n",
 	it, nback, nback2, nforw, it->trans_parent, it->trans_parent?it->trans_parent->vtable->name:"", nafn));
@@ -460,6 +451,9 @@ pdl_error pdl_destroy(pdl *it) {
     return PDL_err;
 }
 
+pdl_error pdl_destroy(pdl *it) {
+  return pdl__destroy_recprotect(it, 0);
+}
 
 /* Straight copy, no dataflow */
 pdl *pdl_hard_copy(pdl *src) {
@@ -717,7 +711,7 @@ pdl_error pdl_make_trans_mutual(pdl_trans *trans)
 	    child->state = (child->state & ~PDL_NOMYDIMS) | PDL_MYDIMS_TRANS;
   }
   if (!dataflow)
-	PDL_ACCUMERROR(PDL_err, pdl_destroytransform(trans,1,wd));
+	PDL_ACCUMERROR(PDL_err, pdl_destroytransform(trans,1,wd,0));
   PDLDEBUG_f(printf("make_trans_mutual exit %p\n",(void*)trans));
   return PDL_err;
 } /* pdl_make_trans_mutual() */
@@ -744,15 +738,13 @@ pdl_error pdl_redodims_default(pdl_trans *trans) {
   return PDL_err;
 }
 
-pdl_error pdl_make_physical(pdl *it) {
+pdl_error pdl__make_physical_recprotect(pdl *it, int recurse_count) {
 	pdl_error PDL_err = {0, NULL, 0};
 	int i, vaffinepar=0;
-	DECL_RECURSE_GUARD;
-
+	if(recurse_count > 1000)
+	  return pdl_make_error_simple(PDL_EUSERERROR, "PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");
 	PDLDEBUG_f(printf("make_physical %p\n",(void*)it));
         PDL_CHKMAGIC(it);
-
-	START_RECURSE_GUARD;
 	if(it->state & PDL_ALLOCATED && !(it->state & PDL_ANYCHANGED))  {
 		goto mkphys_end;
 	}
@@ -761,12 +753,11 @@ pdl_error pdl_make_physical(pdl *it) {
 		goto mkphys_end;
 	}
 	if(!it->trans_parent) {
-	        ABORT_RECURSE_GUARD;
 		return pdl_make_error_simple(PDL_EFATAL, "PDL Not physical but doesn't have parent");
 	}
 	if(it->trans_parent->flags & PDL_ITRANS_ISAFFINE) {
 		if(!PDL_VAFFOK(it))
-			PDL_RETERROR(PDL_err, pdl_make_physvaffine(it));
+			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it, recurse_count+1));
 	}
 	if(PDL_VAFFOK(it)) {
 		PDLDEBUG_f(printf("make_physical: VAFFOK\n"));
@@ -778,11 +769,11 @@ pdl_error pdl_make_physical(pdl *it) {
 	PDL_TR_CHKMAGIC(it->trans_parent);
 	for(i=0; i<it->trans_parent->vtable->nparents; i++) {
 		if(VAFFINE_FLAG_OK(it->trans_parent->vtable->per_pdl_flags,i)) {
-			PDL_RETERROR(PDL_err, pdl_make_physvaffine(it->trans_parent->pdls[i]));
+			PDL_RETERROR(PDL_err, pdl__make_physvaffine_recprotect(it->trans_parent->pdls[i], recurse_count+1));
                         /* check if any of the parents is a vaffine */
                         vaffinepar = vaffinepar || (it->trans_parent->pdls[i]->data != PDL_REPRP(it->trans_parent->pdls[i]));
                 }  else
-			PDL_RETERROR(PDL_err, pdl_make_physical(it->trans_parent->pdls[i]));
+			PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it->trans_parent->pdls[i], recurse_count+1));
 	}
         /* XXX The real question is: why do we need another call to
          * redodims if !(it->state & PDL_ALLOCATED)??????
@@ -795,11 +786,13 @@ pdl_error pdl_make_physical(pdl *it) {
 	}
 	READDATA(it->trans_parent);
 	it->state &= ~(PDL_ANYCHANGED | PDL_OPT_ANY_OK);
-
   mkphys_end:
 	PDLDEBUG_f(printf("make_physical exit %p\n",(void*)it));
-	END_RECURSE_GUARD;
 	return PDL_err;
+}
+
+pdl_error pdl_make_physical(pdl *it) {
+  return pdl__make_physical_recprotect(it, 0);
 }
 
 pdl_error pdl_changed(pdl *it, int what, int recursing)
@@ -861,12 +854,11 @@ pdl_error pdl_changed(pdl *it, int what, int recursing)
    this function is the right one to call in any case if you want to
    make only those physical (i.e. allocating their own data, etc) which
    have to be and leave those vaffine with updated dims, etc, that do
-   have an appropriate transformation of which they are a child
-
+   have an appropriate transformation of which they are a child.
    should probably have been called make_physcareful to point out what
    it really does
 */
-pdl_error pdl_make_physvaffine(pdl *it)
+pdl_error pdl__make_physvaffine_recprotect(pdl *it, int recurse_count)
 {
 	pdl_error PDL_err = {0, NULL, 0};
 	pdl_trans *t;
@@ -878,28 +870,22 @@ pdl_error pdl_make_physvaffine(pdl *it)
 	PDL_Indx ninced;
 	int flag;
 	int incsign;
-
 	PDLDEBUG_f(printf("make_physvaffine %p\n",(void*)it));
-
 	PDL_RETERROR(PDL_err, pdl_make_physdims(it));
-
 	PDL_Indx incsleft[it->ndims];
 	if(!it->trans_parent) {
-		PDL_RETERROR(PDL_err, pdl_make_physical(it));
+		PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it, recurse_count+1));
 		goto mkphys_vaff_end;
 	}
 	if(!(it->trans_parent->flags & PDL_ITRANS_ISAFFINE)) {
-		PDL_RETERROR(PDL_err, pdl_make_physical(it));
+		PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(it, recurse_count+1));
 		goto mkphys_vaff_end;
 	}
-
 	if (!it->vafftrans || it->vafftrans->ndims < it->ndims)
 	  PDL_RETERROR(PDL_err, pdl_vafftrans_alloc(it));
-
         for(i=0; i<it->ndims; i++) {
 		it->vafftrans->incs[i] = it->dimincs[i];
 	}
-
 	flag=0;
 	it->vafftrans->offs = 0;
 	t=it->trans_parent;
@@ -912,7 +898,6 @@ pdl_error pdl_make_physvaffine(pdl *it)
 		/* For all dimensions of the childest ndarray */
 		for(i=0; i<it->ndims; i++) {
 			PDL_Indx offset_left = it->vafftrans->offs;
-
 			/* inc = the increment at the current stage */
 			inc = it->vafftrans->incs[i];
 			incsign = (inc >= 0 ? 1:-1);
@@ -959,7 +944,6 @@ pdl_error pdl_make_physvaffine(pdl *it)
 			}
 			incsleft[i] = incsign*newinc;
 		}
-
 		if(flag) break;
 		for(i=0; i<it->ndims; i++) {
 			it->vafftrans->incs[i] = incsleft[i];
@@ -981,11 +965,15 @@ pdl_error pdl_make_physvaffine(pdl *it)
 	}
 	it->vafftrans->from = current;
 	it->state |= PDL_OPT_VAFFTRANSOK;
-	PDL_RETERROR(PDL_err, pdl_make_physical(current));
-
+	PDL_RETERROR(PDL_err, pdl__make_physical_recprotect(current, recurse_count+1));
   mkphys_vaff_end:
 	PDLDEBUG_f(printf("make_physvaffine exit %p\n",(void*)it));
 	return PDL_err;
+}
+
+pdl_error pdl_make_physvaffine(pdl *it)
+{
+  return pdl__make_physvaffine_recprotect(it, 0);
 }
 
 pdl_error pdl_set_datatype(pdl *a, int datatype)
@@ -993,7 +981,7 @@ pdl_error pdl_set_datatype(pdl *a, int datatype)
     pdl_error PDL_err = {0, NULL, 0};
     PDL_RETERROR(PDL_err, pdl_make_physical(a));
     if(a->trans_parent)
-	PDL_RETERROR(PDL_err, pdl_destroytransform(a->trans_parent,1,NULL));
+	PDL_RETERROR(PDL_err, pdl_destroytransform(a->trans_parent,1,NULL,0));
     if (a->state & PDL_NOMYDIMS)
 	a->datatype = datatype;
     else
@@ -1006,7 +994,7 @@ pdl_error pdl_sever(pdl *src)
     pdl_error PDL_err = {0, NULL, 0};
     if (!src->trans_parent) return PDL_err;
     PDL_RETERROR(PDL_err, pdl_make_physvaffine(src));
-    PDL_RETERROR(PDL_err, pdl_destroytransform(src->trans_parent,1,NULL));
+    PDL_RETERROR(PDL_err, pdl_destroytransform(src->trans_parent,1,NULL,0));
     return PDL_err;
 }
 
