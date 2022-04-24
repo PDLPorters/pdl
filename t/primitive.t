@@ -15,10 +15,21 @@ sub tapprox {
     }
     my $d = max( abs($x-$y) );
     if($d >= 0.01) {
-       diag "APPROX: $x $y\n";
+       diag "got=$x expected=$y\n";
     }
     $d < 0.01;
 }
+
+ok tapprox(pdl(1,2,3)->cmpvec(pdl(3,2,1)), -1), 'cmpvec less';
+ok tapprox(pdl(3,2,1)->cmpvec(pdl(1,2,3)), 1), 'cmpvec more';
+ok tapprox(pdl(3,2,1)->cmpvec(pdl(3,2,1)), 0), 'cmpvec same';
+is pdl('[1 BAD]')->cmpvec(pdl(3,2)).'', '-1', 'cmpvec bad before';
+is pdl('[BAD 1]')->cmpvec(pdl(3,2)).'', 'BAD', 'cmpvec bad';
+
+ok tapprox(pdl(3,2,1)->eqvec(pdl(1,2,3)), 0), 'eqvec diff';
+ok tapprox(pdl(3,2,1)->eqvec(pdl(3,2,1)), 1), 'eqvec same';
+is pdl('[2 1 BAD]')->eqvec(pdl(1,3,2)).'', 'BAD', 'eqvec bad before';
+is pdl('[2 BAD 1]')->eqvec(pdl(2,3,2)).'', 'BAD', 'eqvec bad';
 
 my $x = PDL->pdl([[5,4,3],[2,3,1.5]]);
 ok(tapprox($x->average(), PDL->pdl([4, 2.16666])), "average");

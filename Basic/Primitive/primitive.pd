@@ -1621,6 +1621,56 @@ pp_def( 'axisvalues',
 	Doc => undef,
        ); # pp_def: axisvalues
 
+pp_def(
+    'cmpvec',
+    HandleBad => 1,
+    Pars => 'a(n); b(n); sbyte [o]c();',
+    Code => '
+     char anybad = 0;
+     broadcastloop %{
+       $c() = 0;
+       loop(n) %{
+         PDL_IF_BAD(if ($ISBAD(a()) || $ISBAD(b())) { $SETBAD(c()); anybad = 1; break; }
+         else,) if ($a() != $b()) { $c() = $a() < $b() ? -1 : 1; break; }
+       %}
+     %}
+     PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(c);,)
+    ',
+    Doc => '
+=for ref
+
+Compare two vectors lexicographically, returning -1 if a is less, 1 if
+greater, 0 if equal.
+',
+    BadDoc => '
+The output is bad if any input values up to the point of inequality are
+bad - any after are ignored.
+',
+);
+
+pp_def(
+    'eqvec',
+    HandleBad => 1,
+    Pars => 'a(n); b(n); sbyte [o]c();',
+    Code => '
+     char anybad = 0;
+     broadcastloop %{
+       $c() = 1;
+       loop(n) %{
+         PDL_IF_BAD(if ($ISBAD(a()) || $ISBAD(b())) { $SETBAD(c()); anybad = 1; break; }
+         else,) if ($a() != $b()) { $c() = 0; PDL_IF_BAD(,break;) }
+       %}
+     %}
+     PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(c);,)
+    ',
+    Doc => '
+=for ref
+
+Compare two vectors, returning 1 if equal, 0 if equal.
+',
+    BadDoc => 'The output is bad if any input values are bad.',
+);
+
 pp_addhdr(<<'EOH');
 extern int pdl_srand_threads;
 extern uint64_t *pdl_rand_state;
