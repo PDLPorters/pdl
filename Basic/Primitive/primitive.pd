@@ -1666,7 +1666,7 @@ pp_def(
     Doc => '
 =for ref
 
-Compare two vectors, returning 1 if equal, 0 if equal.
+Compare two vectors, returning 1 if equal, 0 if not equal.
 ',
     BadDoc => 'The output is bad if any input values are bad.',
 );
