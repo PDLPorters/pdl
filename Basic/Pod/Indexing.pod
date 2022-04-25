@@ -1255,7 +1255,7 @@ usage of the former:
  pdl> $line = pdl (3.1416,2,-2)
  pdl> ($tmp = $mat->broadcast(0)) += $line
 
-In this example, C<$mat-E<gt>broadcast(0)> tells PDL that you want the second
+In this example, C<< $mat->broadcast(0) >> tells PDL that you want the second
 dimension of this ndarray to be broadcast over first leading to a broadcast
 loop that can be expressed as
 
