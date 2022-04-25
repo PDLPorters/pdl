@@ -41,6 +41,7 @@ my $c = ($y->xvals) + 10;
 ok(tapprox($y->where($y>4), PDL->pdl(5,6)), "where with >");
 ok(tapprox($y->which, PDL->pdl(0,1,2,7,8,10,11)), "which");
 ok(tapprox($c->where($y), PDL->pdl(10,11,12,17,18,20,21)), "where with mask");
+ok zeroes(3)->which->isempty, 'which on all-zero returns empty';
 
 $y = sequence(10) + 2;
 my ($big, $small) = where_both($y, $y > 5);

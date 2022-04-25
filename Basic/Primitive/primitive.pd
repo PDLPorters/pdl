@@ -2938,34 +2938,39 @@ EOD
 
     for (
 	 {Name=>'which',
-	  Pars => 'mask(n); indx [o] inds(m);',
+	  Pars => 'mask(n); indx [o] inds(n); indx [o]lastout()',
 	  Variables => 'PDL_Indx dm=0;',
 	  Elseclause => "",
-	  Autosize => '$SIZE(m) = sum;',
+	  Outclause => '$lastout() = dm;',
 	  Doc => $doc_which,
 	  PMCode=><<'EOD',
    sub which { my ($this,$out) = @_;
 		$this = $this->flat;
 		$out //= $this->nullcreate;
-		PDL::_which_int($this,$out);
-		$out;
+		PDL::_which_int($this,$out,my $lastout = $this->nullcreate);
+		my $lastoutmax = $lastout->max->sclr;
+		$lastoutmax ? $out->slice('0:'.($lastoutmax-1))->sever : empty(indx);
    }
    *PDL::which = \&which;
 EOD
 	  },
 	 {Name => 'which_both',
-	  Pars => 'mask(n); indx [o] inds(m); indx [o]notinds(q)',
+	  Pars => 'mask(n); indx [o] inds(n); indx [o]notinds(n); indx [o]lastout(); indx [o]lastoutn()',
 	  Variables => 'PDL_Indx dm=0; int dm2=0;',
-	  Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
-	  Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
+	  Elseclause => "else { \n          \$notinds(n => dm2)=n; \n           dm2++;\n     }",
+	  Outclause => '$lastout() = dm; $lastoutn() = dm2;',
 	  Doc => $doc_which_both,
 	  PMCode=><<'EOD',
    sub which_both { my ($this,$outi,$outni) = @_;
 		$this = $this->flat;
 		$outi //= $this->nullcreate;
 		$outni //= $this->nullcreate;
-		PDL::_which_both_int($this,$outi,$outni);
-		wantarray ? ($outi,$outni) : $outi;
+		PDL::_which_both_int($this,$outi,$outni,my $lastout = $this->nullcreate,my $lastoutn = $this->nullcreate);
+		my $lastoutmax = $lastout->max->sclr;
+		$outi = $lastoutmax ? $outi->slice('0:'.($lastoutmax-1))->sever : empty(indx);
+		return $outi if !wantarray;
+		my $lastoutnmax = $lastoutn->max->sclr;
+		($outi, $lastoutnmax ? $outni->slice('0:'.($lastoutnmax-1))->sever : empty(indx));
    }
    *PDL::which_both = \&which_both;
 EOD
@@ -2981,38 +2986,11 @@ EOD
 	   Code => $_->{Variables} .'
                  loop(n) %{
 			if ( $mask() PDL_IF_BAD(&& $ISGOOD($mask()),) ) {
-				$inds(m => dm) = n;
+				$inds(n => dm) = n;
 				dm++;
 			}'.$_->{Elseclause}.'
-		 %}',
-#		the next one is currently a dirty hack
-#               this will probably break once dataflow is enabled again
-#               *unless* we have made sure that mask is physical by now!!!
-	   RedoDimsCode => '
-		PDL_Indx sum = 0;
-		/* not sure if this is necessary */
-		pdl * dpdl = $PDL(mask);
-		$GENERIC() *m_datap = (($GENERIC() *)(PDL_REPRP(dpdl)));
-		PDL_Indx inc = PDL_REPRINC(dpdl,0);
-		PDL_Indx offs = PDL_REPROFFS(dpdl);
-		PDL_Indx i;
-
-		if (dpdl->ndims != 1)
-		  $CROAK("dimflag currently works only with 1D pdls");
-
-		if(dpdl->state & PDL_BADVAL)
-		  for (i=0; i<dpdl->dims[0]; i++) {
-	 	 	$GENERIC() foo = *(m_datap+inc*i+offs);
-	 	        if(foo && $ISGOODVAR(foo,mask) )sum++;
-		}
-	        else
-		for (i=0; i<dpdl->dims[0]; i++) {
- 	 		$GENERIC() foo = *(m_datap+inc*i+offs);
-	 	                if(foo) sum++;
-		}
-
-                '. $_->{Autosize}
-	   );
+		 %}'.$_->{Outclause},
+    );
 }
 
 pp_add_exported("", 'where');

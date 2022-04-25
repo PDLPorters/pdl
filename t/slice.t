@@ -474,7 +474,7 @@ $got = $pa->slice([$rg->slice(0),$rg->slice(1),$rg->slice(2)]);
 ok all($got == $cmp), 'slice did "at"' or diag "got:$got";
 
 $pa = zeroes(7, 7); $pa->set(3, 4, 1);
-$indices = $pa->flat->which->dummy(0,$pa->getndims)->make_physical;
+$indices = $pa->which->dummy(0,$pa->getndims)->make_physical;
 my $s = $indices->index(0);
 $s %= 7;
 is $indices.'', <<EOF, 'mutate indexed slice affects only right column';
