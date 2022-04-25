@@ -2939,7 +2939,7 @@ EOD
     for (
 	 {Name=>'which',
 	  Pars => 'mask(n); indx [o] inds(m);',
-	  Variables => 'int dm=0;',
+	  Variables => 'PDL_Indx dm=0;',
 	  Elseclause => "",
 	  Autosize => '$SIZE(m) = sum;',
 	  Doc => $doc_which,
@@ -2948,14 +2948,14 @@ EOD
 		$this = $this->flat;
 		$out //= $this->nullcreate;
 		PDL::_which_int($this,$out);
-		return $out;
+		$out;
    }
    *PDL::which = \&which;
 EOD
 	  },
 	 {Name => 'which_both',
 	  Pars => 'mask(n); indx [o] inds(m); indx [o]notinds(q)',
-	  Variables => 'int dm=0; int dm2=0;',
+	  Variables => 'PDL_Indx dm=0; int dm2=0;',
 	  Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
 	  Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
 	  Doc => $doc_which_both,
@@ -2965,27 +2965,26 @@ EOD
 		$outi //= $this->nullcreate;
 		$outni //= $this->nullcreate;
 		PDL::_which_both_int($this,$outi,$outni);
-		return wantarray ? ($outi,$outni) : $outi;
+		wantarray ? ($outi,$outni) : $outi;
    }
    *PDL::which_both = \&which_both;
 EOD
 	  }
 	 )
 {
-    my $code = $_->{Variables} .'
-                 loop(n) %{
-			if ( $mask() PDL_IF_BAD(&& $ISGOOD($mask()),) ) {
-				$inds(m => dm) = n;
-				dm++;
-			}'.$_->{Elseclause}.'
-		 %}';
     pp_def($_->{Name},
 	   HandleBad => 1,
 	   Doc => $_->{Doc},
 	   Pars => $_->{Pars},
 	   GenericTypes => [ppdefs_all],
 	   PMCode => $_->{PMCode},
-	   Code => $code,
+	   Code => $_->{Variables} .'
+                 loop(n) %{
+			if ( $mask() PDL_IF_BAD(&& $ISGOOD($mask()),) ) {
+				$inds(m => dm) = n;
+				dm++;
+			}'.$_->{Elseclause}.'
+		 %}',
 #		the next one is currently a dirty hack
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
