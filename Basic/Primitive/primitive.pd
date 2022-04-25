@@ -2941,7 +2941,7 @@ EOD
 	  Pars => 'mask(n); indx [o] inds(n); indx [o]lastout()',
 	  Variables => 'PDL_Indx dm=0;',
 	  Elseclause => "",
-	  Outclause => '$lastout() = dm;',
+	  Outclause => '$lastout() = dm; while (dm < $SIZE(n)) $inds(n=>dm++) = -1;',
 	  Doc => $doc_which,
 	  PMCode=><<'EOD',
    sub which { my ($this,$out) = @_;
@@ -2958,7 +2958,7 @@ EOD
 	  Pars => 'mask(n); indx [o] inds(n); indx [o]notinds(n); indx [o]lastout(); indx [o]lastoutn()',
 	  Variables => 'PDL_Indx dm=0; int dm2=0;',
 	  Elseclause => "else { \n          \$notinds(n => dm2)=n; \n           dm2++;\n     }",
-	  Outclause => '$lastout() = dm; $lastoutn() = dm2;',
+	  Outclause => '$lastout() = dm; $lastoutn() = dm2; while (dm < $SIZE(n)) $inds(n=>dm++) = -1; while (dm2 < $SIZE(n)) $notinds(n=>dm2++) = -1;',
 	  Doc => $doc_which_both,
 	  PMCode=><<'EOD',
    sub which_both { my ($this,$outi,$outni) = @_;
