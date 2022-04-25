@@ -793,6 +793,36 @@ pp_addhdr('
 void AddEquiv ( PDL_Long* equiv, PDL_Long i, PDL_Long j);
 ');
 
+pp_add_exported('', 'crop');
+pp_addpm(<<'EOPM');
+=head2 crop
+
+=for ref
+
+Return bounding box of given mask in an C<indx> ndarray, so it can broadcast.
+Use other operations (such as L<PDL::Bad/isgood>, or
+L<PDL::Primitive/eqvec> with a colour vector) to create a mask suitable
+for your application.
+
+=for example
+
+  $x1x2y1y2 = crop($image);
+
+=cut
+
+*crop = \&PDL::crop;
+sub PDL::crop {
+  my ($mask) = @_;
+  $mask->xchg(0,1)->orover->_which_int(my $out = null, null);
+  $out->badflag(1); $out->badvalue(-1);
+  my ($x1, $x2) = $out->minmaximum;
+  $mask->orover->_which_int($out = null, null);
+  $out->badflag(1); $out->badvalue(-1);
+  my ($y1, $y2) = $out->minmaximum;
+  $x1->cat($x2, $y1, $y2)->mv(-1,0);
+}
+EOPM
+
 pp_add_exported('', 'cc8compt','cc4compt');
 pp_addpm(<<'EOPM');
 

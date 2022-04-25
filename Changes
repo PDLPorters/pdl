@@ -9,6 +9,7 @@
 - add PDL::IO::STL
 - replace *_RECURSE_GUARD macros which use process-global variable, causing problems if multi-thread, with stack parameters - thanks @marioroy for report
 - add Primitive::{cmp,eq}vec
+- add Image2D::crop
 
 2.078 2022-04-10
 - Ops::atan2 etc have default swap param

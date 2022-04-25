@@ -5,6 +5,20 @@ use Test::Exception;
 use PDL;
 use PDL::Image2D;
 
+my $mask = pdl(
+  [[0,0,0,0,0],[0,0,1,1,0],[0,0,0,0,0],[0,0,1,1,0],[0,0,0,0,0]],
+  [[0,0,0,0,0],[0,1,0,1,0],[0,0,1,1,0],[0,0,0,0,0],[0,0,0,0,0]],
+);
+my $crops = pdl(indx,
+  [2,3,1,3],
+  [1,3,1,2],
+);
+my $got = crop($mask->slice(':,:,(1)'));
+diag $got;
+ok all($got == $crops->slice(':,(1)')), 'mask non-broadcast' or diag "got=$got";
+$got = crop($mask);
+ok all($got == $crops), 'mask broadcast' or diag "got=$got";
+
 my $ans = pdl(
  [ 3,  7, 11, 21, 27, 33, 39, 45, 51, 27],
  [ 3,  5, 13, 21, 27, 33, 39, 45, 51, 27],
