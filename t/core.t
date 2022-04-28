@@ -468,7 +468,7 @@ for my $type (@types) {
 }
 }
 
-for (['ones', 1], ['zeroes', 0], ['nan', 'NaN'], ['inf', 'Inf'], ['i', 'i', 'cdouble']) {
+for (['ones', 1], ['zeroes', 0], ['nan', '.*NaN'], ['inf', '.*Inf'], ['i', 'i', 'cdouble']) {
   my ($name, $val, $type) = @$_;
   no strict 'refs';
   my $g = eval { $name->() };

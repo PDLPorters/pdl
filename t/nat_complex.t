@@ -130,15 +130,16 @@ if (PDL::Core::Dev::got_complex_version('pow', 2)) {
 }
 
 my $asin_2 = PDL::asin(2)."";
-like $asin_2, qr/nan/i, 'perl scalar 2 treated as real';
+my $nan_re = qr/nan|ind/i;
+like $asin_2, $nan_re, 'perl scalar 2 treated as real';
 $asin_2 = PDL::asin(2.0)."";
-like $asin_2, qr/nan/i, 'perl scalar 2.0 treated as real';
+like $asin_2, $nan_re, 'perl scalar 2.0 treated as real';
 $asin_2 = PDL::asin(byte 2)."";
-like $asin_2, qr/nan/i, 'real byte treated as real';
+like $asin_2, $nan_re, 'real byte treated as real';
 $asin_2 = PDL::asin(double 2)."";
-like $asin_2, qr/nan/i, 'real double treated as real';
+like $asin_2, $nan_re, 'real double treated as real';
 $asin_2 = PDL::asin(pdl 2)."";
-like $asin_2, qr/nan/i, 'pdl(2) treated as real';
+like $asin_2, $nan_re, 'pdl(2) treated as real';
 if (PDL::Core::Dev::got_complex_version('asin', 1)) {
   my $c_asin_2 = PDL::asin(cdouble(2))."";
   unlike $c_asin_2, qr/nan/i, 'asin of complex gives complex result';

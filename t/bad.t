@@ -370,8 +370,8 @@ like( PDL::Core::string( $x->clump(-1) ),
     qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setvaltobad()" );
 
 $x->inplace->setbadtonan;
-like( PDL::Core::string( $x->clump(-1) ),
-    qr/^\[-?0 nan 2 3 -?0 nan 2 3 -?0 nan]$/i, "inplace setbadtonan()" );
+like PDL::Core::string( $x->clump(-1) ),
+    qr/^\[-?0 \S*nan 2 3 -?0 \S*nan 2 3 -?0 \S*nan]$/i, "inplace setbadtonan()";
 
 # check setvaltobad for non-double ndarrays
 my $fa = pdl( float,  1..4) / 3;
@@ -383,7 +383,7 @@ $inf2b->set(1, 'Inf');
 $inf2b->set(2, 'NaN');
 $inf2b->inplace->setinftobad;
 like( PDL::Core::string( $inf2b->clump(-1) ),
-    qr{^\[-?0 BAD nan]$}i, "inplace setinftobad()" );
+    qr{^\[-?0 BAD \S*nan]$}i, "inplace setinftobad()" );
 
 my $x_copy = $x->copy;
 $x_copy->set(1, 'Inf');
