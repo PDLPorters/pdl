@@ -167,8 +167,6 @@ Derive data limits for display purposes.
 
 =back
 
-
-
 =head1 IMAGE PROCESSING
 
 =over 5
@@ -179,19 +177,17 @@ Compression utilities.
 
 =item L<PDL::Image2D>
 
-2-dimmensional image processing.
+2-dimensional image processing.
 
 =item L<PDL::ImageND>
 
-N-dimmensional image processing.
+N-dimensional image processing.
 
 =item L<PDL::ImageRGB>
 
 RGB image data handling.
 
 =back
-
-
 
 =head1 NUMERICAL METHODS
 

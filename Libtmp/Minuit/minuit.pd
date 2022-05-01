@@ -31,6 +31,7 @@ and migrad minimization algorithms (see Minuit manual for more details).
 
 See the test file minuit.t in the test (t/) directory for a basic example.
 
+=cut
 EOD
 
 pp_addpm('
