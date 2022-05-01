@@ -76,12 +76,11 @@ pp_addhdr('
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
 ');
 
+my %char2escape = ('>'=>'E<gt>','<'=>'E<lt>');
+my $chars = '(['.join('', map quotemeta, sort keys %char2escape).'])';
 sub protect_chars {
   my ($txt) = @_;
-  $txt =~ s/>/E;gt#/g;
-  $txt =~ s/</E;lt#/g;
-  $txt =~ s/;/</g;
-  $txt =~ s/#/>/g;
+  $txt =~ s/$chars/$char2escape{$1}/g;
   return $txt;
 }
 
