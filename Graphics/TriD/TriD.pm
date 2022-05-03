@@ -355,7 +355,7 @@ contexts and options
 
 alias for mesh3d
 
-=item trigrid3d
+=head2 trigrid3d
 
 Show a triangular mesh, giving C<$vertices> and C<$faceidx> which is
 a series of triplets of indices into the vertices, each describing
@@ -367,7 +367,7 @@ C<ShowNormals> (off by default, useful for debugging).
 
 Implemented by C<PDL::Graphics::TriD::STrigrid_S>.
 
-=item trigrid3d_ns
+=head2 trigrid3d_ns
 
 Like L</trigrid3d>, but without shading or normals.
 
@@ -664,8 +664,6 @@ to the previous viewport in the (0,1) range.
 
 Every implementation-level window object should implement the new_viewport
 method.
-
-=head1 EXAMPLE SCRIPT FOR VARIOUS
 
 =cut
 
