@@ -1217,7 +1217,7 @@ sub typemap {
 	    $_rootdir.'typemap');
   # Note that the OUTPUT typemap is unlikely to be of use here, but I have kept
   # the source code from xsubpp for tidiness.
-  push @tm, &PDL::Core::Dev::PDL_TYPEMAP, 'typemap';
+  push @tm, &PDL::Core::Dev::PDL_TYPEMAP, '../../typemap', '../typemap', 'typemap';
   carp "**CRITICAL** PP found no typemap in $_rootdir/typemap; this will cause problems..."
       unless my @typemaps = grep -f $_ && -T _, @tm;
   foreach $typemap (@typemaps) {
