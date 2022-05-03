@@ -1,3 +1,4 @@
+2.079 2022-05-03
 - move Math::badmask to Bad
 - PDL.propagate_badflag propagates both to parents AND children, sets flag itself
 - Ops::assgn now propagates its badflag without needing to set output badflag
