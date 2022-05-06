@@ -234,9 +234,9 @@ sub PDL::wstl {
 sub _write_binary {
   my ($fh, $v, $f, $c, $name) = @_;
   print $fh $name, "\0" x (80 - do {use bytes; length($name)});
-  print $fh pack 'L', $f->dim(1);
+  print $fh pack 'L<', $f->dim(1);
   foreach my $facet (@{ $v->dice_axis(1, $f->flat)->splitdim(1,3)->unpdl }) {
-    print $fh map {map pack('f', $_), @$_} [0,0,0], @$facet;
+    print $fh map {map pack('f<', $_), @$_} [0,0,0], @$facet;
     print $fh "\0" x 2;
   }
 }
