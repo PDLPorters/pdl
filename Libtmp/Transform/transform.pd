@@ -2391,7 +2391,7 @@ sub t_lookup {
 
   $o = {} unless(ref $o eq 'HASH');
 
-  my($me) = PDL::Transform::new($class);
+  my($me) = $class->new;
 
   my($bound) = _opt($o,['b','bound','boundary','Boundary']);
   my($method)= _opt($o,['m','meth','method','Method']);
@@ -2634,11 +2634,13 @@ the type/unit fields are currently ignored by t_linear.
 
 =cut
 
-@PDL::Transform::Linear::ISA = ('PDL::Transform');
+{ package PDL::Transform::Linear;
+our @ISA = ('PDL::Transform');
+*_opt = \&PDL::Transform::_opt;
 
-sub t_linear { new PDL::Transform::Linear(@_); }
+sub PDL::Transform::t_linear { PDL::Transform::Linear->new(@_); }
 
-sub PDL::Transform::Linear::new {
+sub new {
   my($class) = shift;
   my($o) = $_[0];
   pop @_ if (($#_ % 2 ==0) && !defined($_[-1]));
@@ -2649,32 +2651,32 @@ sub PDL::Transform::Linear::new {
     $o = {@_};
   }
 
-  my($me) = PDL::Transform::new($class);
+  my($me) = __PACKAGE__->SUPER::new;
 
   $me->{name} = "linear";
 
   $me->{params}{pre} = _opt($o,['pre','Pre','preoffset','offset',
                                   'Offset','PreOffset','Preoffset'],0);
-  $me->{params}{pre} = pdl($me->{params}{pre})
+  $me->{params}{pre} = PDL->pdl($me->{params}{pre})
     if(defined $me->{params}{pre});
 
   $me->{params}{post} = _opt($o,['post','Post','postoffset','PostOffset',
                                    'shift','Shift'],0);
-  $me->{params}{post} = pdl($me->{params}{post})
+  $me->{params}{post} = PDL->pdl($me->{params}{post})
     if(defined $me->{params}{post});
 
   $me->{params}{matrix} = _opt($o,['m','matrix','Matrix','mat','Mat']);
-  $me->{params}{matrix} = pdl($me->{params}{matrix})
+  $me->{params}{matrix} = PDL->pdl($me->{params}{matrix})
     if(defined $me->{params}{matrix});
 
   $me->{params}{rot} = _opt($o,['r','rot','rota','rotation','Rotation'], 0);
-  $me->{params}{rot} = pdl($me->{params}{rot});
+  $me->{params}{rot} = PDL->pdl($me->{params}{rot});
 
   my $o_dims = _opt($o,['d','dim','dims','Dims']);
-  $o_dims = pdl($o_dims) if defined($o_dims);
+  $o_dims = PDL->pdl($o_dims) if defined($o_dims);
 
   my $scale  = _opt($o,['s','scale','Scale']);
-  $scale = pdl($scale) if defined($scale);
+  $scale = PDL->pdl($scale) if defined($scale);
 
   # Figure out the number of dimensions to transform, and,
   # if necessary, generate a new matrix.
@@ -2731,7 +2733,7 @@ sub PDL::Transform::Linear::new {
                          if(UNIVERSAL::isa($angle,'PDL'));
 
                        my($x) = $angle * $PDL::Transform::DEG2RAD;
-                       $subm .= $subm x pdl([cos($x),-sin($x)],[sin($x),cos($x)]);
+                       $subm .= $subm x PDL->pdl([cos($x),-sin($x)],[sin($x),cos($x)]);
                        $m .= $m x $i;
                      };
 
@@ -2743,9 +2745,9 @@ sub PDL::Transform::Linear::new {
 
         # Do these in reverse order to make it more like
         # function composition!
-        &$subrot(pdl(0,1),$rot->at(2),$rm);
-        &$subrot(pdl(2,0),$rot->at(1),$rm);
-        &$subrot(pdl(1,2),$rot->at(0),$rm);
+        &$subrot(PDL->pdl(0,1),$rot->at(2),$rm);
+        &$subrot(PDL->pdl(2,0),$rot->at(1),$rm);
+        &$subrot(PDL->pdl(1,2),$rot->at(0),$rm);
 
         $me->{params}{matrix} .= $me->{params}{matrix} x $rm;
       } else {
@@ -2753,7 +2755,7 @@ sub PDL::Transform::Linear::new {
       }
     } else {
         if($rot != 0  and  $me->{params}{matrix}->dim(0)>1) {
-          &$subrot(pdl(0,1),$rot,$me->{params}{matrix});
+          &$subrot(PDL->pdl(0,1),$rot,$me->{params}{matrix});
         }
     }
   }
@@ -2803,8 +2805,7 @@ sub PDL::Transform::Linear::new {
   return $me;
 }
 
-sub PDL::Transform::Linear::stringify {
-  package PDL::Transform::Linear;
+sub stringify {
   my($me) = shift;  my($out) = SUPER::stringify $me;
   my $mp = $me->{params};
 
@@ -2837,9 +2838,9 @@ sub PDL::Transform::Linear::stringify {
   $out =~ s/\n/\n  /go;
   $out;
 }
+}
 
 +======EOD_t_linear======
-
 
 pp_add_exported('t_scale');
 pp_addpm(<<'+======EOD_t_scale======');
@@ -3181,7 +3182,7 @@ sub t_code {
     $inv = undef;
   }
 
-  my($me) = PDL::Transform::new($class);
+  my($me) = $class->new;
   $me->{name} = _opt($o,['n','name','Name']) || "code";
   $me->{func} = $func;
   $me->{inv} = $inv;
@@ -3302,7 +3303,7 @@ sub t_radial {
     $o = { @_ };
   }
 
-  my($me) = PDL::Transform::new($class);
+  my($me) = $class->new;
 
   $me->{params}{origin} = _opt($o,['o','origin','Origin']);
   $me->{params}{origin} = pdl(0,0)
@@ -3454,7 +3455,7 @@ sub t_quadratic {
     if(ref $o ne 'HASH') {
         $o = {@_};
     }
-    my($me) = PDL::Transform::new($class);
+    my($me) = $class->new;
 
     $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
     $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
@@ -3556,7 +3557,7 @@ sub t_cubic {
     if(ref $o ne 'HASH') {
         $o = {@_};
     }
-    my($me) = PDL::Transform::new($class);
+    my($me) = $class->new;
 
     $me->{params}->{dim} = _opt($o,['d','dim','dims','Dims'],undef);
     $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
@@ -3723,7 +3724,7 @@ sub t_quartic {
     if(ref $o ne 'HASH') {
         $o = {@_};
     }
-    my($me) = PDL::Transform::new($class);
+    my($me) = $class->new;
 
     $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
     $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
@@ -3833,7 +3834,7 @@ sub t_spherical {
         $o = { @_ } ;
     }
 
-    my($me) = PDL::Transform::new($class);
+    my($me) = $class->new;
 
     $me->{idim}=3;
     $me->{odim}=3;
@@ -3978,7 +3979,7 @@ sub t_projective {
     $o = { @_ };
   }
 
-  my($me) = PDL::Transform::new($class);
+  my($me) = $class->new;
 
   $me->{name} = "projective";
 

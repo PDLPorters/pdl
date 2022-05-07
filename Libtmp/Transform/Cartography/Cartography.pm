@@ -677,7 +677,7 @@ sub _uconv{
 #
 
 
-sub _new { new('PDL::Transform::Cartography',@_); } # not exported
+sub _new { __PACKAGE__->new(@_); } # not exported
 sub new {
     my($class) = shift;
     my($name) = pop;
@@ -686,7 +686,7 @@ sub new {
     $o = {@_}
       unless(ref $o eq 'HASH');
 
-    my($me) = PDL::Transform::new($class);
+    my($me) = __PACKAGE__->SUPER::new;
     $me->{idim} = $me->{odim} = 2;
     $me->{name} = $name;
  
