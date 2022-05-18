@@ -1283,32 +1283,6 @@ sub typemap {
   return ($input);
 }
 
-sub wrap_vfn {
-  my (
-    $code,$rout,$func_header,
-    $all_func_header,$sname,$pname,$ptype,$extra_args,
-  ) = @_;
-  my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
-  my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
-  my $closing = 'return PDL_err;';
-  PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-pdl_error $rout(pdl_trans *$sname$extra_args) {
-$opening
-@{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
-$str$closing}
-EOF
-}
-my @vfn_args_always = (\"AllFuncHeader", qw(StructName ParamStructName ParamStructType));
-sub make_vfn_args {
-  my ($which, $extra_args) = @_;
-  ("${which}Func",
-    ["${which}CodeSubd","${which}FuncName",\"${which}FuncHeader",
-      @vfn_args_always
-    ],
-    sub {$_[1] eq 'NULL' ? '' : wrap_vfn(@_,$extra_args//'')}
-  );
-}
-
 sub make_xs_code {
   my($xscode_before,$xscode_after,$str,
     $xs_c_headers,
@@ -1646,6 +1620,10 @@ EOD
    PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
    PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
 
+   PDL::PP::Rule::Returns::EmptyString->new("Priv"),
+   PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
+      sub { PDL::PP::Signature->new('', @_) }),
+
    PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr",\"EquivDimCheck"],
       sub {
         my($pdimexpr,$dimcheck) = @_;
@@ -1975,15 +1953,6 @@ END
    }),
    PDL::PP::Rule::Returns->new("IgnoreTypesOf", {}),
 
-   PDL::PP::Rule->new("NewXSCoerceMustNS", "FTypes",
-      sub {
-        my($ftypes) = @_;
-        join '', map
-          PDL::PP::pp_line_numbers(__LINE__, "$_->datatype = $ftypes->{$_};"),
-          sort keys %$ftypes;
-      }),
-   PDL::PP::Rule::Substitute::Usual->new("NewXSCoerceMustSubd", "NewXSCoerceMustNS"),
-
    PDL::PP::Rule->new("NewXSTypeCoerceNS", ["StructName"],
       sub {
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
@@ -2012,11 +1981,6 @@ EOF
       "PDL_RETERROR(PDL_err, PDL->make_trans_mutual($trans));\n");
    }),
 
-   PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
-		      sub { PDL::PP::Code->new(@_, undef, undef, 1); }),
-   PDL::PP::Rule->new(PDL::PP::Code::make_args("BackCode"),
-		      sub { PDL::PP::Code->new(@_, undef, 1, 1); }),
-
 # Compiled representations i.e. what the RunFunc function leaves
 # in the params structure. By default, copies of the parameters
 # but in many cases (e.g. slice) a benefit can be obtained
@@ -2026,16 +1990,9 @@ EOF
    PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
       sub { PDL::PP::Signature->new('', @_) }),
    PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
-   PDL::PP::Rule->new("MakeCompOther", "SignatureObj", sub { $_[0]->getcopy }),
-   PDL::PP::Rule->new("MakeCompTotal", ["MakeCompOther", \"MakeComp"], sub { join "\n", grep $_, @_ }),
    PDL::PP::Rule->new("CompStructOther", "SignatureObj", sub {$_[0]->getcomp}),
    PDL::PP::Rule->new("CompStructComp", [qw(CompObj Comp)], sub {$_[0]->getcomp}),
    PDL::PP::Rule->new("CompStruct", ["CompStructOther", \"CompStructComp"], sub { join "\n", grep $_, @_ }),
-   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeCompTotal","CompObj"],
-				"COMP"),
-   PDL::PP::Rule->new("CompFreeCodeOther", "SignatureObj", sub {$_[0]->getfree("COMP")}),
-   PDL::PP::Rule->new("CompFreeCodeComp", [qw(CompObj Comp)], sub {$_[0]->getfree("COMP")}),
-   PDL::PP::Rule->new("CompFreeCode", ["CompFreeCodeOther", \"CompFreeCodeComp"], sub { join "\n", grep $_, @_ }),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
       ["CompStruct","Name"],
@@ -2047,16 +2004,60 @@ EOF
         $ptype);
       }),
 
+do {
+sub wrap_vfn {
+  my (
+    $code,$rout,$func_header,
+    $all_func_header,$sname,$pname,$ptype,$extra_args,
+  ) = @_;
+  my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
+  my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
+  my $closing = 'return PDL_err;';
+  PDL::PP::pp_line_numbers(__LINE__, <<EOF);
+pdl_error $rout(pdl_trans *$sname$extra_args) {
+$opening
+@{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
+$str$closing}
+EOF
+}
+sub make_vfn_args {
+  my ($which, $extra_args) = @_;
+  ("${which}Func",
+    ["${which}CodeSubd","${which}FuncName",\"${which}FuncHeader",
+      \"AllFuncHeader", qw(StructName ParamStructName ParamStructType),
+    ],
+    sub {$_[1] eq 'NULL' ? '' : wrap_vfn(@_,$extra_args//'')}
+  );
+}
+()},
+
+   PDL::PP::Rule->new("MakeCompOther", "SignatureObj", sub { $_[0]->getcopy }),
+   PDL::PP::Rule->new("MakeCompTotal", ["MakeCompOther", \"MakeComp"], sub { join "\n", grep $_, @_ }),
+   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeCompTotal","CompObj"],
+				"COMP"),
    PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
+
+   PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
+		      sub { PDL::PP::Code->new(@_, undef, undef, 1); }),
+   PDL::PP::Rule::MakeComp->new("ReadDataCodeNS", "ParsedCode", "FOO"),
+   PDL::PP::Rule::Substitute->new("ReadDataCodeSubd", "ReadDataCodeNS"),
+   PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
+   PDL::PP::Rule->new(make_vfn_args("ReadData")),
+
+   PDL::PP::Rule->new(PDL::PP::Code::make_args("BackCode"),
+		      sub { PDL::PP::Code->new(@_, undef, 1, 1); }),
+   PDL::PP::Rule::MakeComp->new("WriteBackDataCodeNS", "ParsedBackCode", "FOO"),
+   PDL::PP::Rule::Substitute->new("WriteBackDataCodeSubd", "WriteBackDataCodeNS"),
+   PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_${name}_writebackdata'),
+   PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
+   PDL::PP::Rule->new(make_vfn_args("WriteBackData")),
 
    PDL::PP::Rule->new("DefaultRedoDims",
       ["StructName"],
       sub { "PDL_RETERROR(PDL_err, PDL->redodims_default($_[0]));" }),
-
    PDL::PP::Rule->new("DimsSetters",
       ["SignatureObj"],
       sub { join "\n", sort map $_->get_initdim, $_[0]->dims_values }),
-
    PDL::PP::Rule->new("RedoDimsFuncName", ["Name", \"RedoDims", \"RedoDimsCode", "DimsSetters"],
       sub { (scalar grep $_ && /\S/, @_[1..$#_]) ? "pdl_$_[0]_redodims" : 'NULL'}),
    PDL::PP::Rule::Returns->new("RedoDimsCode", [],
@@ -2069,22 +2070,34 @@ EOF
       ["DimsSetters","ParsedRedoDimsCode","DefaultRedoDims"],
       'makes the redodims function from the various bits and pieces',
       sub { join "\n", grep $_ && /\S/, @_ }),
+   PDL::PP::Rule::MakeComp->new("RedoDimsCodeNS",
+      ["RedoDims", "PrivObj"], "PRIV"),
+   PDL::PP::Rule::Substitute->new("RedoDimsCodeSubd", "RedoDimsCodeNS"),
+   PDL::PP::Rule->new(make_vfn_args("RedoDims")),
 
-   PDL::PP::Rule::Returns::EmptyString->new("Priv"),
-
-   PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
-      sub { PDL::PP::Signature->new('', @_) }),
+   PDL::PP::Rule->new("CompFreeCodeOther", "SignatureObj", sub {$_[0]->getfree("COMP")}),
+   PDL::PP::Rule->new("CompFreeCodeComp", [qw(CompObj Comp)], sub {$_[0]->getfree("COMP")}),
+   PDL::PP::Rule->new("CompFreeCode", ["CompFreeCodeOther", \"CompFreeCodeComp"], sub { join "\n", grep $_, @_ }),
    PDL::PP::Rule->new("NTPrivFreeCode", "PrivObj", sub {$_[0]->getfree("PRIV")}),
-
    PDL::PP::Rule->new("FreeCodeNS",
       ["StructName","CompFreeCode","NTPrivFreeCode"],
       sub {
 	  (grep $_, @_[1..$#_]) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], destroy, $_[1], $_[2])"): ''}),
-
    PDL::PP::Rule::Substitute::Usual->new("FreeCodeSubd", "FreeCodeNS"),
+   PDL::PP::Rule->new("FreeFuncName",
+		      ["FreeCodeSubd","Name"],
+		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
+   PDL::PP::Rule->new(make_vfn_args("Free", ", char destroy")),
 
+   PDL::PP::Rule->new("NewXSCoerceMustNS", "FTypes",
+      sub {
+        my($ftypes) = @_;
+        join '', map
+          PDL::PP::pp_line_numbers(__LINE__, "$_->datatype = $ftypes->{$_};"),
+          sort keys %$ftypes;
+      }),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSCoerceMustSubd", "NewXSCoerceMustNS"),
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMustSubd"),
-
    PDL::PP::Rule::MakeComp->new("NewXSCoerceMustCompNS", "NewXSCoerceMustSubd", "FOO"),
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustCompNS"),
 
@@ -2173,29 +2186,6 @@ EOF
       [qw(VarArgsXSHdr), \"NewXSCHdrs", qw(RunFuncCall VarArgsXSReturn)],
       "Rule to print out XS code when variable argument list XS processing is enabled",
       sub {make_xs_code('','',@_)}),
-
-   PDL::PP::Rule::MakeComp->new("RedoDimsCodeNS",
-      ["RedoDims", "PrivObj"], "PRIV"),
-   PDL::PP::Rule::Substitute->new("RedoDimsCodeSubd", "RedoDimsCodeNS"),
-   PDL::PP::Rule->new(make_vfn_args("RedoDims")),
-
-   PDL::PP::Rule::MakeComp->new("ReadDataCodeNS", "ParsedCode", "FOO"),
-   PDL::PP::Rule::Substitute->new("ReadDataCodeSubd", "ReadDataCodeNS"),
-   PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
-   PDL::PP::Rule->new(make_vfn_args("ReadData")),
-
-   PDL::PP::Rule::MakeComp->new("WriteBackDataCodeNS", "ParsedBackCode", "FOO"),
-   PDL::PP::Rule::Substitute->new("WriteBackDataCodeSubd", "WriteBackDataCodeNS"),
-
-   PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_${name}_writebackdata'),
-   PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
-
-   PDL::PP::Rule->new(make_vfn_args("WriteBackData")),
-
-   PDL::PP::Rule->new("FreeFuncName",
-		      ["FreeCodeSubd","Name"],
-		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
-   PDL::PP::Rule->new(make_vfn_args("Free", ", char destroy")),
 
    PDL::PP::Rule::Returns::Zero->new("NoPthread"), # assume we can pthread, unless indicated otherwise
    PDL::PP::Rule->new("VTableDef",
