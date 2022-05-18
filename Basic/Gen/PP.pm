@@ -1950,14 +1950,14 @@ sub wrap_vfn {
     $code,$rout,$func_header,
     $all_func_header,$sname,$pname,$ptype,$extra_args,
   ) = @_;
-  my $str = join "\n", grep $_, $all_func_header, $func_header, $code;
-  my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
-  my $closing = 'return PDL_err;';
   PDL::PP::pp_line_numbers(__LINE__, <<EOF);
 pdl_error $rout(pdl_trans *$sname$extra_args) {
-$opening
-@{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
-$str$closing}
+  @{[join "\n  ",
+  'pdl_error PDL_err = {0, NULL, 0};',
+  $ptype ? "$ptype *$pname = $sname->params;" : (),
+  (grep $_, $all_func_header, $func_header, $code), 'return PDL_err;'
+]}
+}
 EOF
 }
 sub make_vfn_args {
