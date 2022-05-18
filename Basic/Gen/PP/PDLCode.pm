@@ -289,9 +289,10 @@ sub separate_code {
     ( $broadcastloops, $coderef, $sizeprivs );
 } # sub: separate_code()
 
+my $macro_pat = qr/\w+/;
 sub expand {
     my ($this, $text) = @_;
-    my (undef, $pdl, $inds, $rest) = PDL::PP::Rule::Substitute::macro_extract($text);
+    my (undef, $pdl, $inds, $rest) = PDL::PP::Rule::Substitute::macro_extract($text, $macro_pat);
     my @add;
     if($pdl =~ /^T/) {@add = PDL::PP::MacroAccess->new($pdl,$inds,
 			   $this->{Generictypes},$this->{Name});}

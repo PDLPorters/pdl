@@ -399,8 +399,9 @@ sub dosubst_private {
       PDL => sub { ($sig->objs->{$_[0]}//confess "Can't get PDL for unknown ndarray '$_[0]'")->do_pdlaccess },
       SIZE => sub { ($sig->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
       %PDL::PP::macros,
-   );
-    while (my ($before, $kw, $args, $other) = macro_extract($ret)) {
+    );
+    my $known_pat = join '|', map quotemeta, sort keys %syms;
+    while (my ($before, $kw, $args, $other) = macro_extract($ret, $known_pat)) {
       confess("$kw not defined in '$ret'!") if !$syms{$kw};
       $ret = join '', $before, $syms{$kw}->($args), $other;
     }
@@ -409,8 +410,8 @@ sub dosubst_private {
 
 sub macro_extract {
   require Text::Balanced;
-  my ($text) = @_;
-  return unless $text =~ /\$(\w+)\s*(?=\()/;
+  my ($text, $pat) = @_;
+  return unless $text =~ /\$($pat)\s*(?=\()/;
   my ($before, $kw, $other) = ($`, $1, $');
   (my $bracketed, $other) = Text::Balanced::extract_bracketed($other, '(")');
   $bracketed = substr $bracketed, 1, -1; # chop off brackets
