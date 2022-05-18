@@ -70,10 +70,6 @@ use Scalar::Util 'blessed';
 
 EOD
 
-=head1
-FUNCTIONS
-=cut
-
 # $::PP_VERBOSE=1;
 
 pp_addhdr(<<'EOH');
@@ -350,8 +346,6 @@ Engine for L</range>
 Same calling convention as L</range>, but you must supply all
 parameters.  C<rangeb> is marginally faster as it makes a direct PP call,
 avoiding the perl argument-parsing step.
-
-=cut
 
 =head2 range
 
@@ -1050,10 +1044,6 @@ for(item=0; item<$COMP(nitems); item++) {
 EOD-EquivCPOffsCode
 );
 
-
-=head2 rld
-=cut
-
 pp_def(
         'rld',
         GenericTypes => [ppdefs_all],
@@ -1102,9 +1092,6 @@ decode to C<$c>.
 
 EOD
 );
-
-=head2 rle
-=cut
 
 pp_def(
         'rle',
@@ -1222,11 +1209,6 @@ pp_def(
         TwoWay => 1,
         Doc => 'internal',
 );
-
-
-
-=head2 xchg
-=cut
 
 pp_def(
         'xchg',
@@ -1388,9 +1370,6 @@ sub PDL::reorder {
 }
 
 EOD
-
-=head2 mv
-=cut
 
 pp_addhdr(<<'EOF');
 #define EQUIVDIM(dima,dimb,cdim,inc) \
@@ -1586,9 +1565,6 @@ NOTE: diagonal doesn't handle broadcastids correctly. XXX FIX
 EOD
 );
 
-=head2 lags
-=cut
-
 pp_def(
         'lags',
         Doc => <<'EOD',
@@ -1661,9 +1637,6 @@ EOD
                 $SETDIMS();
         '
 );
-
-=head2 splitdim
-=cut
 
 pp_def(
         'splitdim',
@@ -1846,10 +1819,6 @@ EOD
                 ',
 );
 
-
-=head2 unbroadcast
-=cut
-
 pp_def(
         'unbroadcast',
         Doc => <<'EOD',
@@ -1981,7 +1950,6 @@ sub PDL::dice {
         return $outputPDL;
 }
 *dice = \&PDL::dice;
-
 
 =head2 dice_axis
 
