@@ -47,11 +47,6 @@
 #   PDL::PP::Rule::Substitute("NewXSCoerceMustSubs", "NewXSCoerceMustSub1")
 # PDL::PP::Rule::Substitute->new($target,$condition)
 #   $target and $condition must be scalars.
-#   Implicit conditions are NewXSSymTab and Name
-#
-# PDL::PP::Rule::Substitute::Usual->new($target, $condition)
-#   $target and $condition must be scalars.
-#   Implicit conditions are NewXSSymTab and Name
 #
 # The MakeComp rule creates the compiled representation accessed by $COMP()
 #  PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompObj"],
@@ -60,9 +55,7 @@
 #   $target and $symbol must be scalars.
 
 # Notes:
-#   Substitute, Substitute::Usual, MakeComp classes feel a bit
-#   ugly. See next point. Also the get_std_childparent method is
-#   a bit of a hack.
+#   Substitute, MakeComp classes feel a bit ugly.
 
 package PDL::PP::Rule;
 
@@ -365,14 +358,11 @@ sub apply {
     $pars->{$target} = eval "return \"" . $self->{"insertname.value"} . "\";";
 }
 
-#   PDL::PP::Rule->new("NewXSCoerceMustSubs", ["NewXSCoerceMustSub1","NewXSSymTab","Name"],
+#   PDL::PP::Rule->new("NewXSCoerceMustSubs", ["NewXSCoerceMustSub1","Name"],
 #	 	      \&dosubst),
 #
 # PDL::PP::Rule::Substitute->new($target,$condition)
 #   $target and $condition must be scalars.
-#
-#   Implicit conditions are NewXSSymTab and Name
-#
 package PDL::PP::Rule::Substitute;
 
 use strict;
@@ -444,56 +434,6 @@ sub new {
 				  \&dosubst_private);
 }
 
-#   PDL::PP::Rule->new("CacheBadFlagInit", ["CacheBadFlagInitNS","NewXSSymTab","Name"],
-#		      \&dousualsubsts),
-#
-# PDL::PP::Rule::Substitute::Usual->new($target, $condition)
-#   $target and $condition must be scalars.
-#
-#   Implicit conditions are NewXSSymTab and Name
-#
-# Need to think about @std_childparent as it is also used by
-# other bits of code. At the moment provide a class method
-# to access the array but there has to be better ways of
-# doing this.
-#
-package PDL::PP::Rule::Substitute::Usual;
-
-use strict;
-use Carp;
-
-our @ISA = qw (PDL::PP::Rule::Substitute);
-
-# This is a copy of the main one for now. Need a better solution.
-#
-my @std_childparent = (
-	CHILD => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1]->'.(join ',',@_).")")},
-	PARENT => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0]->'.(join ',',@_).")")},
-	CHILD_PTR => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[1])')},
-	PARENT_PTR => sub {PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls[0])')},
-);
-
-sub get_std_childparent { return @std_childparent; }
-
-# We modify the arguments from the conditions to include the
-# extra information
-#
-# We simplify the base-class version since we assume that all
-# conditions are required here.
-#
-sub extract_args {
-    my $self = shift;
-    my $pars = shift;
-
-    # The conditions are [<code>, NewXSSymTab, Name]
-    #
-    my $code   = $pars->{$self->{conditions}[0]};
-    my $sname = $pars->{$self->{conditions}[1]};
-    my $name   = $pars->{$self->{conditions}[2]};
-
-    return ([$code,{@std_childparent}],$sname,$name);
-}
-
 # PDL::PP::Rule::MakeComp->new($target,$conditions,$symbol)
 #   $target and $symbol must be scalars.
 #
@@ -510,9 +450,9 @@ my @std_redodims = (
   SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->reallocdims(__it,$_[0]));")},
   SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->setdims_careful(__it));")},
   SETDELTABROADCASTIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
-{int __ind; PDL_RETERROR(PDL_err, PDL->reallocbroadcastids(\$CHILD_PTR(), \$PARENT(nbroadcastids)));
-for(__ind=0; __ind<\$PARENT(nbroadcastids); __ind++)
-  \$CHILD(broadcastids[__ind]) = \$PARENT(broadcastids[__ind]) + ($_[0]);
+{int __ind; PDL_RETERROR(PDL_err, PDL->reallocbroadcastids(\$PDL(CHILD), \$PDL(PARENT)->nbroadcastids));
+for(__ind=0; __ind<\$PDL(PARENT)->nbroadcastids; __ind++)
+  \$PDL(CHILD)->broadcastids[__ind] = \$PDL(PARENT)->broadcastids[__ind] + ($_[0]);
 }
 EOF
 );
@@ -523,7 +463,6 @@ sub subst_makecomp_private {
 	my($which,$mc,$cobj) = @_;
 	my ($cn,$co) = !$cobj ? () : map $cobj->$_, qw(othernames otherobjs);
 	return [$mc,{
-		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
 		($cn ?
 			(('DO'.$which.'ALLOC') => sub {join('',
 				map $$co{$_}->get_malloc("\$$which($_)"),
@@ -1368,9 +1307,9 @@ $PDL::PP::deftbl =
       sub {
         (PDL::PP::pp_line_numbers(__LINE__-1, '
           int i;
-          $SETNDIMS($PARENT(ndims));
-          for(i=0; i<$CHILD(ndims); i++) {
-            $CHILD(dims[i]) = $PARENT(dims[i]);
+          $SETNDIMS($PDL(PARENT)->ndims);
+          for(i=0; i<$PDL(CHILD)->ndims; i++) {
+            $PDL(CHILD)->dims[i] = $PDL(PARENT)->dims[i];
           }
           $SETDIMS();
           $SETDELTABROADCASTIDS(0);
@@ -1577,7 +1516,7 @@ EOD
    # Notes
    # Suffix 'NS' means, "Needs Substitution". In other words, the string
    # associated with a key that has the suffix "NS" must be run through a
-   # Substitute or Substitute::Usual
+   # Substitute
    # The substituted version should then replace "NS" with "Subd"
    # So: FreeCodeNS -> FreeCodeSubd
 
@@ -1612,7 +1551,7 @@ EOD
 
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
 
-   PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$CHILD(ndims)];PDL_Indx offs; '),
+   PDL::PP::Rule::Returns->new("Priv", "AffinePriv", 'PDL_Indx incs[$PDL(CHILD)->ndims];PDL_Indx offs; '),
    PDL::PP::Rule::Returns->new("IsAffineFlag", "AffinePriv", "PDL_ITRANS_ISAFFINE"),
    PDL::PP::Rule::Returns::Zero->new("IsAffineFlag"),
    PDL::PP::Rule::Returns->new("TwoWayFlag", "TwoWay", "PDL_ITRANS_TWOWAY"),
@@ -1631,13 +1570,13 @@ EOD
         PDL::PP::pp_line_numbers(__LINE__-1, '
           int i,cor;
           '.$dimcheck.'
-          $SETNDIMS($PARENT(ndims));
+          $SETNDIMS($PDL(PARENT)->ndims);
           $DOPRIVALLOC();
           $PRIV(offs) = 0;
-          for(i=0; i<$CHILD(ndims); i++) {
+          for(i=0; i<$PDL(CHILD)->ndims; i++) {
             cor = '.$pdimexpr.';
-            $CHILD(dims[i]) = $PARENT(dims[cor]);
-            $PRIV(incs[i]) = $PARENT(dimincs[cor]);
+            $PDL(CHILD)->dims[i] = $PDL(PARENT)->dims[cor];
+            $PRIV(incs[i]) = $PDL(PARENT)->dimincs[cor];
           }
           $SETDIMS();
           $SETDELTABROADCASTIDS(0);
@@ -1959,7 +1898,7 @@ END
 PDL_RETERROR(PDL_err, PDL->type_coerce($_[0]));
 EOF
       }),
-   PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerceSubd", "NewXSTypeCoerceNS"),
+   PDL::PP::Rule::Substitute->new("NewXSTypeCoerceSubd", "NewXSTypeCoerceNS"),
 
    PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
@@ -2083,7 +2022,7 @@ sub make_vfn_args {
       ["StructName","CompFreeCode","NTPrivFreeCode"],
       sub {
 	  (grep $_, @_[1..$#_]) ? PDL::PP::pp_line_numbers(__LINE__-1, "PDL_FREE_CODE($_[0], destroy, $_[1], $_[2])"): ''}),
-   PDL::PP::Rule::Substitute::Usual->new("FreeCodeSubd", "FreeCodeNS"),
+   PDL::PP::Rule::Substitute->new("FreeCodeSubd", "FreeCodeNS"),
    PDL::PP::Rule->new("FreeFuncName",
 		      ["FreeCodeSubd","Name"],
 		      sub {$_[0] ? "pdl_$_[1]_free" : 'NULL'}),
@@ -2096,7 +2035,7 @@ sub make_vfn_args {
           PDL::PP::pp_line_numbers(__LINE__, "$_->datatype = $ftypes->{$_};"),
           sort keys %$ftypes;
       }),
-   PDL::PP::Rule::Substitute::Usual->new("NewXSCoerceMustSubd", "NewXSCoerceMustNS"),
+   PDL::PP::Rule::Substitute->new("NewXSCoerceMustSubd", "NewXSCoerceMustNS"),
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMustSubd"),
    PDL::PP::Rule::MakeComp->new("NewXSCoerceMustCompNS", "NewXSCoerceMustSubd", "FOO"),
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustCompNS"),
@@ -2136,8 +2075,8 @@ EOF
 
  # expand macros in ...BadStatusCode
  #
-   PDL::PP::Rule::Substitute::Usual->new("NewXSFindBadStatusSubd", "NewXSFindBadStatusNS"),
-   PDL::PP::Rule::Substitute::Usual->new("NewXSCopyBadStatusSubd", "NewXSCopyBadStatusNS"),
+   PDL::PP::Rule::Substitute->new("NewXSFindBadStatusSubd", "NewXSFindBadStatusNS"),
+   PDL::PP::Rule::Substitute->new("NewXSCopyBadStatusSubd", "NewXSCopyBadStatusNS"),
 
    PDL::PP::Rule->new("NewXSStructInit0",
 		      ["StructName","VTableName","ParamStructName","ParamStructType"],

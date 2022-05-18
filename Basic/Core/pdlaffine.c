@@ -95,9 +95,9 @@ pp_def( 'affine',
                 $SETNDIMS($COMP(nd));
                 $DOPRIVALLOC();
                 $PRIV(offs) = $COMP(offset);
-                for (i=0;i<$CHILD(ndims);i++) {
+                for (i=0;i<$PDL(CHILD)->ndims;i++) {
                         $PRIV(incs)[i] = $COMP(sincs)[i];
-                        $CHILD(dims)[i] = $COMP(sdims)[i];
+                        $PDL(CHILD)->dims[i] = $COMP(sdims)[i];
                 }
                 $SETDIMS();
                 ',

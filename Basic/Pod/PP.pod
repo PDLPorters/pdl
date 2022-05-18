@@ -1552,23 +1552,6 @@ the first parameter as C<PARENT> and the second as C<CHILD>, which is
 the case if you passed a true C<P2Child> value, which you will basically
 always want to do for this scenario.
 
-=over
-
-=item $CHILD_PTR()
-
-=item $PARENT_PTR()
-
-These expand to a C<pdl *> pointer, e.g. to pass to a PDL API function.
-
-=item $CHILD()
-
-=item $PARENT()
-
-These expand to a lookup into C<pdl> struct, e.g. C<$CHILD(ndims)>
-looks up the C<ndims> value for the child parameter.
-
-=back
-
 =head3 RedoDims generated from EquivPDimExpr and EquivDimCheck
 
 Another way to generate the C<RedoDims> code is to supply a
