@@ -1622,12 +1622,12 @@ pp_def( 'axisvalues',
 pp_add_macros(
   CMPVEC => sub {
     my ($a, $b, $dim, $ret, $anybad) = @_;
+    my $badbit = !defined $anybad ? '' : <<EOF;
+PDL_IF_BAD(if (\$ISBAD($a) || \$ISBAD($b)) { $anybad = 1; break; } else,)
+EOF
     <<EOF;
   $ret = 0;
-  loop($dim) %{
-    PDL_IF_BAD(if (\$ISBAD($a) || \$ISBAD($b)) { $anybad = 1; break; }
-    else,) if ($a != $b) { $ret = $a < $b ? -1 : 1; break; }
-  %}
+  loop($dim) %{ $badbit if ($a != $b) { $ret = $a < $b ? -1 : 1; break; } %}
 EOF
   },
 );
@@ -1675,6 +1675,501 @@ pp_def(
 Compare two vectors, returning 1 if equal, 0 if not equal.
 ',
     BadDoc => 'The output is bad if any input values are bad.',
+);
+
+pp_def('enumvec',
+       Pars => 'v(M,N); indx [o]k(N)',
+       Code =><<'EOC',
+  PDL_Indx vn, kn, sn=$SIZE(N), matches;
+  for (vn=0; vn<sn; vn=kn) {
+     for (kn=vn, matches=1; matches && kn<sn; ) {
+       $k(N=>kn) = kn-vn;
+       ++kn;
+       loop (M) %{
+         if ($v(N=>vn) != $v(N=>kn)) {
+           matches=0;
+           break;
+         }
+       %}
+     }
+   }
+EOC
+       Doc =><<'EOD',
+=for ref
+
+Enumerate a list of vectors with locally unique keys.
+
+Given a sorted list of vectors $v, generate a vector $k containing locally unique keys for the elements of $v
+(where an "element" is a vector of length $M ocurring in $v).
+
+Note that the keys returned in $k are only unique over a run of a single vector in $v,
+so that each unique vector in $v has at least one 0 (zero) index in $k associated with it.
+If you need global keys, see enumvecg().
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+
+);
+
+##------------------------------------------------------
+## enumvecg()
+pp_def('enumvecg',
+       Pars => 'v(M,N); indx [o]k(N)',
+       Code =><<'EOC',
+  PDL_Indx vn, vnprev, sn=$SIZE(N), ki;
+  if (sn > 0) {
+    $k(N=>0) = ki = 0;
+    for (vnprev=0, vn=1; vn<sn; vnprev=vn++) {
+       loop (M) %{
+         if ($v(N=>vnprev) != $v(N=>vn)) {
+           ++ki;
+           break;
+         }
+       %}
+       $k(N=>vn) = ki;
+     }
+   }
+EOC
+       Doc =><<'EOD',
+=for ref
+
+Enumerate a list of vectors with globally unique keys.
+
+Given a sorted list of vectors $v, generate a vector $k containing globally unique keys for the elements of $v
+(where an "element" is a vector of length $M ocurring in $v).
+Basically does the same thing as:
+
+ $k = $v->vsearchvec($v->uniqvec);
+
+... but somewhat more efficiently.
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_def('vsearchvec',
+   Pars => 'find(M); which(M,N); indx [o]found();',
+   Code => q(
+ int carp=0;
+broadcastloop %{
+ PDL_Indx sizeM=$SIZE(M), sizeN=$SIZE(N), n1=sizeN-1;
+ PDL_Indx nlo=-1, nhi=n1, nn;
+ int cmpval, is_asc_sorted;
+ //
+ //-- get sort direction
+ $CMPVEC($which(N=>n1),$which(N=>0),M,cmpval);
+ is_asc_sorted = (cmpval > 0);
+ //
+ //-- binary search
+ while (nhi-nlo > 1) {
+   nn = (nhi+nlo) >> 1;
+   $CMPVEC($find(),$which(N=>nn),M,cmpval);
+   if (cmpval > 0 == is_asc_sorted)
+     nlo=nn;
+   else
+     nhi=nn;
+ }
+ if (nlo==-1) {
+   nhi=0;
+ } else if (nlo==n1) {
+   $CMPVEC($find(),$which(N=>n1),M,cmpval);
+   if (cmpval != 0) carp = 1;
+   nhi = n1;
+ } else {
+   nhi = nlo+1;
+ }
+ $found() = nhi;
+%}
+ if (carp) warn("some values had to be extrapolated");
+),
+  Doc=><<'EOD'
+=for ref
+
+Routine for searching N-dimensional values - akin to vsearch() for vectors.
+
+=for usage
+
+ $found   = vsearchvec($find, $which);
+ $nearest = $which->dice_axis(1,$found);
+
+Returns for each row-vector in C<$find> the index along dimension N
+of the least row vector of C<$which>
+greater or equal to it.
+C<$which> should be sorted in increasing order.
+If the value of C<$find> is larger
+than any member of C<$which>, the index to the last element of C<$which> is
+returned.
+
+See also: L</vsearch>.
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_def('unionvec',
+   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC); indx [o]nc()',
+   RedoDimsCode => '$SIZE(NC) = $SIZE(NA) + $SIZE(NB);',
+   PMCode=> q(
+ sub PDL::unionvec {
+   my ($a,$b,$c,$nc) = @_;
+   $c = PDL->null if (!defined($nc));
+   $nc = PDL->null if (!defined($nc));
+   PDL::_unionvec_int($a,$b,$c,$nc);
+   return ($c,$nc) if (wantarray);
+   return $c->slice(",0:".($nc->max-1));
+ }
+),
+   Code => q(
+ PDL_Indx nai=0, nbi=0, nci=0, sizeNA=$SIZE(NA), sizeNB=$SIZE(NB), sizeNC=$SIZE(NC);
+ int cmpval;
+ for ( ; nci < sizeNC; nci++) {
+   if (nai < sizeNA && nbi < sizeNB) {
+     $CMPVEC($a(NA=>nai),$b(NB=>nbi),M,cmpval);
+   }
+   else if (nai < sizeNA) { cmpval = -1; }
+   else if (nbi < sizeNB) { cmpval =  1; }
+   else                   { break; }
+   //
+   if (cmpval < 0) {
+     //-- CASE: a < b
+     loop (M) %{ $c(NC=>nci) = $a(NA=>nai); %}
+     nai++;
+   }
+   else if (cmpval > 0) {
+     //-- CASE: a > b
+     loop (M) %{ $c(NC=>nci) = $b(NB=>nbi); %}
+     nbi++;
+   }
+   else {
+     //-- CASE: a == b
+     loop (M) %{ $c(NC=>nci) = $a(NA=>nai); %}
+     nai++;
+     nbi++;
+   }
+ }
+ $nc() = nci;
+ for ( ; nci < sizeNC; nci++) {
+  //-- zero unpopulated outputs
+  loop(M) %{ $c(NC=>nci) = 0; %}
+ }
+),
+   Doc=><<'EOD'
+=for ref
+
+Union of two vector-valued PDLs.
+
+Input PDLs $a() and $b() B<MUST> be sorted in lexicographic order.
+On return, $nc() holds the actual number of vector-values in the union.
+
+In scalar context, slices $c() to the actual number of elements in the union
+and returns the sliced PDL.
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_def('intersectvec',
+   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC); indx [o]nc()',
+   RedoDimsCode => '$SIZE(NC) = PDLMIN($SIZE(NA),$SIZE(NB));',
+   PMCode=> q(
+ sub PDL::intersectvec {
+   my ($a,$b,$c,$nc) = @_;
+   $c = PDL->null if (!defined($c));
+   $nc = PDL->null if (!defined($nc));
+   PDL::_intersectvec_int($a,$b,$c,$nc);
+   return ($c,$nc) if (wantarray);
+   my $nc_max = $nc->max;
+   return ($nc_max > 0
+	   ? $c->slice(",0:".($nc_max-1))
+	   : $c->reshape($c->dim(0), 0, ($c->dims)[2..($c->ndims-1)]));
+ }
+),
+   Code => q(
+ PDL_Indx nai=0, nbi=0, nci=0, sizeNA=$SIZE(NA), sizeNB=$SIZE(NB), sizeNC=$SIZE(NC);
+ int cmpval;
+ for ( ; nci < sizeNC && nai < sizeNA && nbi < sizeNB; ) {
+   $CMPVEC($a(NA=>nai),$b(NB=>nbi),M,cmpval);
+   //
+   if (cmpval < 0) {
+     //-- CASE: a < b
+     nai++;
+   }
+   else if (cmpval > 0) {
+     //-- CASE: a > b
+     nbi++;
+   }
+   else {
+     //-- CASE: a == b
+     loop (M) %{ $c(NC=>nci) = $a(NA=>nai); %}
+     nai++;
+     nbi++;
+     nci++;
+   }
+ }
+ $nc() = nci;
+ for ( ; nci < sizeNC; nci++) {
+  //-- zero unpopulated outputs
+  loop(M) %{ $c(NC=>nci) = 0; %}
+ }
+),
+   Doc=><<'EOD'
+=for ref
+
+Intersection of two vector-valued PDLs.
+Input PDLs $a() and $b() B<MUST> be sorted in lexicographic order.
+On return, $nc() holds the actual number of vector-values in the intersection.
+
+In scalar context, slices $c() to the actual number of elements in the intersection
+and returns the sliced PDL.
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_def('setdiffvec',
+   Pars => 'a(M,NA); b(M,NB); [o]c(M,NC); indx [o]nc()',
+   RedoDimsCode => '$SIZE(NC) = $SIZE(NA);',
+   PMCode=> q(
+ sub PDL::setdiffvec {
+  my ($a,$b,$c,$nc) = @_;
+  $c = PDL->null if (!defined($c));
+  $nc = PDL->null if (!defined($nc));
+  PDL::_setdiffvec_int($a,$b,$c,$nc);
+  return ($c,$nc) if (wantarray);
+  my $nc_max = $nc->max;
+  return ($nc_max > 0
+	  ? $c->slice(",0:".($nc_max-1))
+	  : $c->reshape($c->dim(0), 0, ($c->dims)[2..($c->ndims-1)]));
+ }
+),
+   Code => q(
+ PDL_Indx nai=0, nbi=0, nci=0, sizeNA=$SIZE(NA), sizeNB=$SIZE(NB), sizeNC=$SIZE(NC);
+ int cmpval;
+ for ( ; nci < sizeNC && nai < sizeNA && nbi < sizeNB ; ) {
+   $CMPVEC($a(NA=>nai),$b(NB=>nbi),M,cmpval);
+   //
+   if (cmpval < 0) {
+     //-- CASE: a < b
+     loop (M) %{ $c(NC=>nci) = $a(NA=>nai); %}
+     nai++;
+     nci++;
+   }
+   else if (cmpval > 0) {
+     //-- CASE: a > b
+     nbi++;
+   }
+   else {
+     //-- CASE: a == b
+     nai++;
+     nbi++;
+   }
+ }
+ for ( ; nci < sizeNC && nai < sizeNA ; nai++,nci++ ) {
+   loop (M) %{ $c(NC=>nci) = $a(NA=>nai); %}
+ }
+ $nc() = nci;
+ for ( ; nci < sizeNC; nci++) {
+  //-- zero unpopulated outputs
+  loop (M) %{ $c(NC=>nci) = 0; %}
+ }
+),
+   Doc=><<'EOD'
+=for ref
+
+Set-difference ($a() \ $b()) of two vector-valued PDLs.
+
+Input PDLs $a() and $b() B<MUST> be sorted in lexicographic order.
+On return, $nc() holds the actual number of vector-values in the computed vector set.
+
+In scalar context, slices $c() to the actual number of elements in the output vector set
+and returns the sliced PDL.
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_add_macros(
+  CMPVAL => sub {
+    my ($val1, $val2) = @_;
+    "(($val1) < ($val2) ? -1 : ($val1) > ($val2) ? 1 : 0)";
+  },
+);
+
+pp_def('union_sorted',
+   Pars => 'a(NA); b(NB); [o]c(NC); indx [o]nc()',
+   RedoDimsCode => '$SIZE(NC) = $SIZE(NA) + $SIZE(NB);',
+   PMCode=> q(
+ sub PDL::union_sorted {
+   my ($a,$b,$c,$nc) = @_;
+   $c = PDL->null if (!defined($c));
+   $nc = PDL->null if (!defined($nc));
+   PDL::_union_sorted_int($a,$b,$c,$nc);
+   return ($c,$nc) if (wantarray);
+   return $c->slice("0:".($nc->max-1));
+ }
+),
+   Code => q(
+ PDL_Indx nai=0, nbi=0, nci=0, sizeNA=$SIZE(NA), sizeNB=$SIZE(NB), sizeNC=$SIZE(NC);
+ int cmpval;
+ for ( ; nci < sizeNC; nci++) {
+   if (nai < sizeNA && nbi < sizeNB) {
+     cmpval = $CMPVAL($a(NA=>nai), $b(NB=>nbi));
+   }
+   else if (nai < sizeNA) { cmpval = -1; }
+   else if (nbi < sizeNB) { cmpval =  1; }
+   else                   { break; }
+   //
+   if (cmpval < 0) {
+     //-- CASE: a < b
+     $c(NC=>nci) = $a(NA=>nai);
+     nai++;
+   }
+   else if (cmpval > 0) {
+     //-- CASE: a > b
+     $c(NC=>nci) = $b(NB=>nbi);
+     nbi++;
+   }
+   else {
+     //-- CASE: a == b
+     $c(NC=>nci) = $a(NA=>nai);
+     nai++;
+     nbi++;
+   }
+ }
+ $nc() = nci;
+ for ( ; nci < sizeNC; nci++) {
+  //-- zero unpopulated outputs
+  $c(NC=>nci) = 0;
+ }
+),
+   Doc=><<'EOD'
+=for ref
+
+Union of two flat sorted unique-valued PDLs.
+Input PDLs $a() and $b() B<MUST> be sorted in lexicographic order and contain no duplicates.
+On return, $nc() holds the actual number of values in the union.
+
+In scalar context, reshapes $c() to the actual number of elements in the union and returns it.
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_def('intersect_sorted',
+   Pars => 'a(NA); b(NB); [o]c(NC); indx [o]nc()',
+   RedoDimsCode => '$SIZE(NC) = PDLMIN($SIZE(NA),$SIZE(NB));',
+   PMCode=> q(
+ sub PDL::intersect_sorted {
+   my ($a,$b,$c,$nc) = @_;
+   $c = PDL->null if (!defined($c));
+   $nc = PDL->null if (!defined($nc));
+   PDL::_intersect_sorted_int($a,$b,$c,$nc);
+   return ($c,$nc) if (wantarray);
+   my $nc_max = $nc->max;
+   return ($nc_max > 0
+	   ? $c->slice("0:".($nc_max-1))
+	   : $c->reshape(0, ($c->dims)[1..($c->ndims-1)]));
+ }
+),
+   Code => q(
+ PDL_Indx nai=0, nbi=0, nci=0, sizeNA=$SIZE(NA), sizeNB=$SIZE(NB), sizeNC=$SIZE(NC);
+ int cmpval;
+ for ( ; nci < sizeNC && nai < sizeNA && nbi < sizeNB; ) {
+   cmpval = $CMPVAL($a(NA=>nai),$b(NB=>nbi));
+   //
+   if (cmpval < 0) {
+     //-- CASE: a < b
+     nai++;
+   }
+   else if (cmpval > 0) {
+     //-- CASE: a > b
+     nbi++;
+   }
+   else {
+     //-- CASE: a == b
+     $c(NC=>nci) = $a(NA=>nai);
+     nai++;
+     nbi++;
+     nci++;
+   }
+ }
+ $nc() = nci;
+ for ( ; nci < sizeNC; nci++) {
+  //-- zero unpopulated outputs
+  $c(NC=>nci) = 0;
+ }
+),
+   Doc=><<'EOD'
+=for ref
+
+Intersection of two flat sorted unique-valued PDLs.
+Input PDLs $a() and $b() B<MUST> be sorted in lexicographic order and contain no duplicates.
+On return, $nc() holds the actual number of values in the intersection.
+
+In scalar context, reshapes $c() to the actual number of elements in the intersection and returns it.
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_def('setdiff_sorted',
+   Pars => 'a(NA); b(NB); [o]c(NC); indx [o]nc()',
+   RedoDimsCode => '$SIZE(NC) = $SIZE(NA);',
+   PMCode=> q(
+ sub PDL::setdiff_sorted {
+   my ($a,$b,$c,$nc) = @_;
+   $c = PDL->null if (!defined($c));
+   $nc = PDL->null if (!defined($nc));
+   PDL::_setdiff_sorted_int($a,$b,$c,$nc);
+   return ($c,$nc) if (wantarray);
+   my $nc_max = $nc->max;
+   return ($nc_max > 0
+	   ? $c->slice("0:".($nc_max-1))
+	   : $c->reshape(0, ($c->dims)[1..($c->ndims-1)]));
+ }
+),
+   Code => q(
+ PDL_Indx nai=0, nbi=0, nci=0, sizeNA=$SIZE(NA), sizeNB=$SIZE(NB), sizeNC=$SIZE(NC);
+ int cmpval;
+ for ( ; nci < sizeNC && nai < sizeNA && nbi < sizeNB ; ) {
+   cmpval = $CMPVAL($a(NA=>nai),$b(NB=>nbi));
+   //
+   if (cmpval < 0) {
+     //-- CASE: a < b
+     $c(NC=>nci) = $a(NA=>nai);
+     nai++;
+     nci++;
+   }
+   else if (cmpval > 0) {
+     //-- CASE: a > b
+     nbi++;
+   }
+   else {
+     //-- CASE: a == b
+     nai++;
+     nbi++;
+   }
+ }
+ for ( ; nci < sizeNC && nai < sizeNA ; nai++,nci++ ) {
+   $c(NC=>nci) = $a(NA=>nai);
+ }
+ $nc() = nci;
+ for ( ; nci < sizeNC; nci++) {
+  //-- zero unpopulated outputs
+  $c(NC=>nci) = 0;
+ }
+),
+   Doc=><<'EOD'
+=for ref
+
+Set-difference ($a() \ $b()) of two flat sorted unique-valued PDLs.
+
+Input PDLs $a() and $b() B<MUST> be sorted in lexicographic order and contain no duplicate values.
+On return, $nc() holds the actual number of values in the computed vector set.
+
+In scalar context, reshapes $c() to the actual number of elements in the difference set and returns it.
+
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
 );
 
 pp_addhdr(<<'EOH');

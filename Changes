@@ -1,5 +1,6 @@
 - make IO::STL work on big-endian systems (#394) - thanks @sebastic for report
 - pp_add_macros macros now receive list of args split like C preprocessor
+- most of PDL::VectorValued into Primitive/Slices - thanks @moocow-the-bovine
 
 2.079 2022-05-03
 - move Math::badmask to Bad

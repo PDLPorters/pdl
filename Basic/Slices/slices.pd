@@ -1172,6 +1172,257 @@ first instance of C<0> in each row of C<$x> should be considered.
 EOD
 );
 
+pp_def('rlevec',
+       Pars => "c(M,N); indx [o]a(N); [o]b(M,N)",
+       Code =><<'EOC',
+  PDL_Indx cn,bn=0, sn=$SIZE(N), matches;
+  loop (M) %{ $b(N=>0)=$c(N=>0); %}
+  $a(N=>0) = 1;
+  for (cn=1; cn<sn; cn++) {
+     matches=1;
+     loop (M) %{
+       if ($c(N=>cn) != $b(N=>bn)) {
+         matches=0;
+         break;
+       }
+     %}
+     if (matches) {
+       $a(N=>bn)++;
+     } else {
+       bn++;
+       loop (M) %{ $b(N=>bn) = $c(N=>cn); %}
+       $a(N=>bn) = 1;
+     }
+   }
+   for (bn++; bn<sn; bn++) {
+     $a(N=>bn) = 0;
+     loop (M) %{ $b(N=>bn) = 0; %}
+   }
+EOC
+       Doc =><<'EOD',
+=for ref
+
+Run-length encode a set of vectors.
+
+Higher-order rle(), for use with qsortvec().
+
+Given set of vectors $c, generate a vector $a with the number of occurrences of each element
+(where an "element" is a vector of length $M ocurring in $c),
+and a set of vectors $b containing the unique values.
+As for rle(), only the elements up to the first instance of 0 in $a should be considered.
+
+Can be used together with clump() to run-length encode "values" of arbitrary dimensions.
+Can be used together with rotate(), cat(), append(), and qsortvec() to count N-grams
+over a 1d PDL.
+
+See also: L</rle>, L<PDL::Ufunc/qsortvec>, L<PDL::Primitive/uniqvec>
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+
+EOD
+);
+
+pp_def('rldvec',
+       Pars => 'indx a(N); b(M,N); [o]c(M,N)',
+       PMCode=><<'EOC',
+sub PDL::rldvec {
+  my ($a,$b,$c) = @_;
+  if (!defined($c)) {
+# XXX Need to improve emulation of threading in auto-generating c
+    my ($rowlen) = $b->dim(0);
+    my ($size) = $a->sumover->max;
+    my (@dims) = $a->dims;
+    shift(@dims);
+    $c = $b->zeroes($b->type,$rowlen,$size,@dims);
+  }
+  &PDL::_rldvec_int($a,$b,$c);
+  return $c;
+}
+EOC
+       Code =><<'EOC',
+  PDL_Indx i,nrows,bn,cn=0, sn=$SIZE(N);
+  for (bn=0; bn<sn; bn++) {
+    nrows = $a(N=>bn);
+    for (i=0; i<nrows; i++) {
+      loop (M) %{ $c(N=>cn) = $b(N=>bn); %}
+      cn++;
+    }
+   }
+EOC
+       Doc =><<'EOD'
+=for ref
+
+Run-length decode a set of vectors, akin to a higher-order rld().
+
+Given a vector $a() of the number of occurrences of each row, and a set $c()
+of row-vectors each of length $M, run-length decode to $c().
+
+Can be used together with clump() to run-length decode "values" of arbitrary dimensions.
+
+See also: L</rld>.
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_def('rleseq',
+       Pars => "c(N); indx [o]a(N); [o]b(N)",
+       Code=><<'EOC',
+  PDL_Indx j=0, sizeN=$SIZE(N);
+  $GENERIC(c) coff;
+  coff     = $c(N=>0);
+  $b(N=>0) = coff;
+  $a(N=>0) = 0;
+  loop (N) %{
+    if ($c() == coff+$a(N=>j)) {
+      $a(N=>j)++;
+    } else {
+      j++;
+      $b(N=>j) = coff = $c();
+      $a(N=>j) = 1;
+    }
+  %}
+  for (j++; j<sizeN; j++) {
+    $a(N=>j) = 0;
+    $b(N=>j) = 0;
+  }
+EOC
+       Doc =><<'EOD',
+=for ref
+
+Run-length encode a vector of subsequences.
+
+Given a vector of $c() of concatenated variable-length, variable-offset subsequences,
+generate a vector $a containing the length of each subsequence
+and a vector $b containing the subsequence offsets.
+As for rle(), only the elements up to the first instance of 0 in $a should be considered.
+
+See also L</rle>.
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_def('rldseq',
+       Pars => 'indx a(N); b(N); [o]c(M)',
+       PMCode=><<'EOC',
+sub PDL::rldseq {
+  my ($a,$b,$c) = @_;
+  if (!defined($c)) {
+    my $size   = $a->sumover->max;
+    my (@dims) = $a->dims;
+    shift(@dims);
+    $c = $b->zeroes($b->type,$size,@dims);
+  }
+  &PDL::_rldseq_int($a,$b,$c);
+  return $c;
+}
+EOC
+       Code =><<'EOC',
+  size_t mi=0;
+  loop (N) %{
+    size_t     len = $a(), li;
+    for (li=0; li < len; ++li, ++mi) {
+      $c(M=>mi) = $b() + li;
+    }
+  %}
+EOC
+       Doc =><<'EOD'
+=for ref
+
+Run-length decode a subsequence vector.
+
+Given a vector $a() of sequence lengths
+and a vector $b() of corresponding offsets,
+decode concatenation of subsequences to $c(),
+as for:
+
+ $c = null;
+ $c = $c->append($b($_)+sequence($a->type,$a($_))) foreach (0..($N-1));
+
+See also: L</rld>.
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+EOD
+);
+
+pp_add_exported('','rleND rldND');
+pp_addpm(<<'EOF');
+=head2 rleND
+
+=for sig
+
+  Signature: (data(@vdims,N); int [o]counts(N); [o]elts(@vdims,N))
+
+=for ref
+
+Run-length encode a set of (sorted) n-dimensional values.
+
+Generalization of rle() and vv_rlevec():
+given set of values $data, generate a vector $counts with the number of occurrences of each element
+(where an "element" is a matrix of dimensions @vdims ocurring as a sequential run over the
+final dimension in $data), and a set of vectors $elts containing the elements which begin a run.
+Really just a wrapper for clump() and rlevec().
+
+See also: L</rle>, L</rlevec>.
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+
+=cut
+
+*PDL::rleND = \&rleND;
+sub rleND {
+  my $data   = shift;
+  my @vdimsN = $data->dims;
+
+  ##-- construct output pdls
+  my $counts = $#_ >= 0 ? $_[0] : zeroes(long, $vdimsN[$#vdimsN]);
+  my $elts   = $#_ >= 1 ? $_[1] : zeroes($data->type, @vdimsN);
+
+  ##-- guts: call rlevec()
+  rlevec($data->clump($#vdimsN), $counts, $elts->clump($#vdimsN));
+
+  return ($counts,$elts);
+}
+
+=head2 rldND
+
+=for sig
+
+  Signature: (int counts(N); elts(@vdims,N); [o]data(@vdims,N);)
+
+=for ref
+
+Run-length decode a set of (sorted) n-dimensional values.
+
+Generalization of rld() and rldvec():
+given a vector $counts() of the number of occurrences of each @vdims-dimensioned element,
+and a set $elts() of @vdims-dimensioned elements, run-length decode to $data().
+
+Really just a wrapper for clump() and rldvec().
+
+See also: L</rld>, L</rldvec>.
+Contributed by Bryan Jurish E<lt>moocow@cpan.orgE<gt>.
+
+=cut
+
+*PDL::rldND = \&rldND;
+sub rldND {
+  my ($counts,$elts) = (shift,shift);
+  my @vdimsN        = $elts->dims;
+
+  ##-- construct output pdl
+  my ($data);
+  if ($#_ >= 0) { $data = $_[0]; }
+  else {
+    my $size      = $counts->sumover->max; ##-- get maximum size for Nth-dimension for small encodings
+    my @countdims = $counts->dims;
+    shift(@countdims);
+    $data         = zeroes($elts->type, @vdimsN, @countdims);
+  }
+
+  ##-- guts: call rldvec()
+  rldvec($counts, $elts->clump($#vdimsN), $data->clump($#vdimsN));
+
+  return $data;
+}
+EOF
+
 # the perl wrapper clump is now defined in Core.pm
 # this is just the low level interface
 pp_def(

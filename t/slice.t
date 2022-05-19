@@ -481,4 +481,70 @@ is $indices.'', <<EOF, 'mutate indexed slice affects only right column';
 \n[\n [ 3 31]\n]
 EOF
 
+## rlevec(), rldvec(): 2d ONLY
+my $p = pdl([[1,2],[1,2],[1,2],[3,4],[3,4],[5,6]]);
+my ($pf,$pv)  = rlevec($p);
+my $pf_expect = pdl(long,[3,2,1,0,0,0]);
+my $pv_expect = pdl([[1,2],[3,4],[5,6],[0,0],[0,0],[0,0]]);
+ok all(approx($pf, $pf_expect)), "rlevec():counts";
+ok all(approx($pv, $pv_expect)), "rlevec():elts";
+
+my $pd = rldvec($pf,$pv);
+ok all(approx($pd, $p)), "rldvec()";
+
+my $pk = enumvec($p);
+ok all(approx($pk, pdl(long,[0,1,2,0,1,0]))), "enumvec()";
+
+$pk = enumvecg($p);
+ok all(approx($pk, pdl(long,[0,0,0,1,1,2]))), "enumvecg()";
+
+## 6..7: test rleND(): 2d
+($pf,$pv) = rleND($p);
+ok all(approx($pf, $pf_expect)), "rleND():2d:counts";
+ok all(approx($pv, $pv_expect)), "rleND():2d:elts";
+
+## 8..8: test rldND(): 2d
+$pd = rldND($pf,$pv);
+ok all(approx($pd, $p)), "rldND():2d";
+
+## rleND, rldND: Nd
+my $pnd1 = (1  *(sequence(long, 2,3  )+1))->slice(",,*3");
+my $pnd2 = (10 *(sequence(long, 2,3  )+1))->slice(",,*2");
+my $pnd3 = (100*(sequence(long, 2,3,2)+1));
+my $p_nd = $pnd1->mv(-1,0)->append($pnd2->mv(-1,0))->append($pnd3->mv(-1,0))->mv(0,-1);
+
+my $pf_expect_nd = pdl(long,[3,2,1,1,0,0,0]);
+my $pv_expect_nd = zeroes($p_nd->type, $p_nd->dims);
+(my $tmp=$pv_expect_nd->slice(",,0:3")) .= $p_nd->dice_axis(-1,[0,3,5,6]);
+
+## 9..10: test rleND(): Nd
+my ($pf_nd,$pv_nd) = rleND($p_nd);
+ok all(approx($pf_nd, $pf_expect_nd)), "rleND():Nd:counts";
+ok all(approx($pv_nd, $pv_expect_nd)), "rleND():Nd:elts";
+
+## 11..11: test rldND(): Nd
+my $pd_nd = rldND($pf_nd,$pv_nd);
+ok all(approx($pd_nd, $p_nd)), "rldND():Nd";
+
+## 12..12: test enumvec(): nd
+my $v_nd = $p_nd->clump(2);
+my $k_nd = $v_nd->enumvec();
+ok all(approx($k_nd, pdl(long,[0,1,2,0,1,0,0]))), "enumvec():Nd";
+
+## 13..17: test rldseq(), rleseq()
+my $lens = pdl(long,[qw(3 0 1 4 2)]);
+my $offs = (($lens->xvals+1)*100)->short;
+my $seqs = zeroes(short, 0);
+$seqs  = $seqs->append(sequence(short,$_)) foreach ($lens->list);
+$seqs += $lens->rld($offs);
+
+my $seqs_got = $lens->rldseq($offs);
+is $seqs_got->type, $seqs->type, "rldseq():type";
+ok all(approx($seqs_got, $seqs)), "rldseq():data";
+
+my ($len_got,$off_got) = $seqs->rleseq();
+is $off_got->type, $seqs->type, "rleseq():type";
+ok all(approx($len_got->where($len_got), $lens->where($lens))), "rleseq():lens";
+ok all(approx($off_got->where($len_got), $offs->where($lens))), "rleseq():offs";
+
 done_testing;

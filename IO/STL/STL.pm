@@ -31,10 +31,6 @@ Normal-vector information is currently ignored.
 The "attribute byte count", used sometimes to store colour information,
 is currently ignored.
 
-If L<PDL::VectorValued> is installed, the vertices and face-indexes will
-have correct connectivity (in other words, identically-located vertices
-will be actually identical).
-
 This module is based on L<CAD::Format::STL>, but with C<binmode> on
 opened filehandles and little-endian (i.e. network) order forced on the
 binary format.
@@ -147,14 +143,10 @@ sub _read_ascii {
   _as_ndarray(pdl PDL::float(), \@tri);
 }
 
-my $HAVE_VSEARCHVEC;
 sub _as_ndarray {
   my ($pdl) = @_;
-  $HAVE_VSEARCHVEC = eval { require PDL::VectorValued::Utils; 1 } || 0
-    if !defined $HAVE_VSEARCHVEC;
-  return ($pdl->clump(1..$pdl->ndims-1), PDL->sequence(PDL::indx(), 3, $pdl->nelem/9), undef) if !$HAVE_VSEARCHVEC;
   my $uniqv = $pdl->uniqvec;
-  ($uniqv, PDL::VectorValued::Utils::vsearchvec($pdl, $uniqv), undef);
+  ($uniqv, $pdl->vsearchvec($uniqv), undef);
 }
 
 sub _read_binary {
