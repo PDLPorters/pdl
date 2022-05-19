@@ -600,7 +600,7 @@ sub get_str {
 package PDL::PP::Access;
 use Carp;
 
-sub new { my($type,$pdl,$inds,$parent) = @_;
+sub new { my($type,$pdl,$inds) = @_;
     bless [$pdl,$inds],$type;
 }
 
@@ -666,7 +666,7 @@ sub new {
       or confess("Macroaccess wrong in $name (allowed types $types): was '$pdl'\n");
     my @ilst = split '', $1;
     my @lst = split ',', $inds, -1;
-    confess "Macroaccess: different nos of args $pdl $inds\n" if @lst != @ilst;
+    confess "Macroaccess: different nos of args $pdl (@{[scalar @lst]}=@lst) vs (@{[scalar @ilst]}=@ilst)\n" if @lst != @ilst;
     my %type2value; @type2value{@ilst} = @lst;
     confess "$name has no Macro for generic type $_ (has $pdl)\n"
 	for grep !exists $type2value{$_}, @$gentypes;
