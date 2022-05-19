@@ -1644,8 +1644,9 @@ pp_def(
     Doc => '
 =for ref
 
-Compare two vectors lexicographically, returning -1 if a is less, 1 if
-greater, 0 if equal.
+Compare two vectors lexicographically.
+
+Returns -1 if a is less, 1 if greater, 0 if equal.
 ',
     BadDoc => '
 The output is bad if any input values up to the point of inequality are
