@@ -374,7 +374,6 @@ sub badflag_isset {
 }
 
 # Probably want this directly in the apply routine but leave as is for now
-#
 sub dosubst_private {
     my ($src,$sname,$pname,$name,$sig) = @_;
     my $ret = (ref $src ? $src->[0] : $src);
@@ -420,17 +419,11 @@ sub macro_extract {
 }
 
 sub new {
-    my $class = shift;
-
     die "Usage: PDL::PP::Rule::Substitute->new(\$target,\$condition);"
-      unless $#_ == 1;
-
-    my $target = shift;
-    my $condition = shift;
-
+      unless @_ == 3;
+    my ($class, $target, $condition) = @_;
     die "\$target must be a scalar for PDL::PP::Rule::Substitute" if ref $target;
     die "\$condition must be a scalar for PDL::PP::Rule::Substitute" if ref $condition;
-
     $class->SUPER::new($target, [$condition, qw(StructName ParamStructName Name SignatureObj)],
 				  \&dosubst_private);
 }
@@ -441,12 +434,10 @@ sub new {
 package PDL::PP::Rule::MakeComp;
 
 use strict;
-use Carp;
 
 our @ISA = qw (PDL::PP::Rule);
 
 # This is a copy of the main one for now. Need a better solution.
-#
 my @std_redodims = (
   SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->reallocdims(__it,$_[0]));")},
   SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->setdims_careful(__it));")},
@@ -459,16 +450,14 @@ EOF
 );
 
 # Probably want this directly in the apply routine but leave as is for now
-#
 sub subst_makecomp_private {
 	my($which,$mc,$cobj) = @_;
 	my ($cn,$co) = !$cobj ? () : map $cobj->$_, qw(othernames otherobjs);
 	return [$mc,{
-		($cn ?
+		(!$cn ? () :
 			(('DO'.$which.'ALLOC') => sub {join('',
 				map $$co{$_}->get_malloc("\$$which($_)"),
-				    grep $$co{$_}->need_malloc, @$cn)}) :
-			()
+				    grep $$co{$_}->need_malloc, @$cn)})
 		),
 		($which eq "PRIV" ?
 			@std_redodims : ()),
@@ -477,23 +466,15 @@ sub subst_makecomp_private {
 }
 
 sub new {
-    my $class = shift;
-
     die "Usage: PDL::PP::Rule::MakeComp->new(\$target,\$conditions,\$symbol);"
-      unless $#_ == 2;
-
-    my $target = shift;
-    my $condition = shift;
-    my $symbol = shift;
-
-    die "\$target must be a scalar for PDL::PP::Rule->MakeComp" if ref $target;
-    die "\$symbol must be a scalar for PDL::PP::Rule->MakeComp" if ref $symbol;
-
+      unless @_ == 4;
+    my ($class, $target, $condition, $symbol) = @_;
+    die "\$target must be a scalar for PDL::PP::Rule::MakeComp" if ref $target;
+    die "\$symbol must be a scalar for PDL::PP::Rule::MakeComp" if ref $symbol;
     my $self = $class->SUPER::new($target, $condition,
 				  \&subst_makecomp_private);
     $self->{"makecomp.value"} = $symbol;
-
-    return $self;
+    $self;
 }
 
 # We modify the arguments from the conditions to include the
@@ -1560,10 +1541,6 @@ EOD
    PDL::PP::Rule::Returns->new("DefaultFlowFlag", "DefaultFlow", "PDL_ITRANS_DO_DATAFLOW_ANY"),
    PDL::PP::Rule::Returns::Zero->new("DefaultFlowFlag"),
 
-   PDL::PP::Rule::Returns::EmptyString->new("Priv"),
-   PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
-      sub { PDL::PP::Signature->new('', @_) }),
-
    PDL::PP::Rule->new("RedoDims", ["EquivPDimExpr",\"EquivDimCheck"],
       sub {
         my($pdimexpr,$dimcheck) = @_;
@@ -1662,11 +1639,28 @@ EOD
 
    PDL::PP::Rule::Returns::One->new("HaveBroadcasting"),
 
+   PDL::PP::Rule::Returns::EmptyString->new("Priv"),
+   PDL::PP::Rule->new("PrivObj", ["BadFlag","Priv"],
+      sub { PDL::PP::Signature->new('', @_) }),
+
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unbroadcast-over dims.
 # Also "Other pars", the parameters which are usually not pdls.
    PDL::PP::Rule->new("SignatureObj", ["Pars","BadFlag","OtherPars"],
       sub { PDL::PP::Signature->new(@_) }),
+
+# Compiled representations i.e. what the RunFunc function leaves
+# in the params structure. By default, copies of the parameters
+# but in many cases (e.g. slice) a benefit can be obtained
+# by parsing the string in that function.
+# If the user wishes to specify their own MakeComp code and Comp content,
+# The next definitions allow this.
+   PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
+      sub { PDL::PP::Signature->new('', @_) }),
+   PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
+   PDL::PP::Rule->new("CompStructOther", "SignatureObj", sub {$_[0]->getcomp}),
+   PDL::PP::Rule->new("CompStructComp", [qw(CompObj Comp)], sub {$_[0]->getcomp}),
+   PDL::PP::Rule->new("CompStruct", ["CompStructOther", \"CompStructComp"], sub { join "\n", grep $_, @_ }),
 
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
@@ -1920,19 +1914,6 @@ EOF
       PDL::PP::pp_line_numbers(__LINE__,
       "PDL_RETERROR(PDL_err, PDL->make_trans_mutual($trans));\n");
    }),
-
-# Compiled representations i.e. what the RunFunc function leaves
-# in the params structure. By default, copies of the parameters
-# but in many cases (e.g. slice) a benefit can be obtained
-# by parsing the string in that function.
-# If the user wishes to specify their own MakeComp code and Comp content,
-# The next definitions allow this.
-   PDL::PP::Rule->new("CompObj", ["BadFlag","Comp"],
-      sub { PDL::PP::Signature->new('', @_) }),
-   PDL::PP::Rule->new("CompObj", "SignatureObj", sub { @_ }), # provide default
-   PDL::PP::Rule->new("CompStructOther", "SignatureObj", sub {$_[0]->getcomp}),
-   PDL::PP::Rule->new("CompStructComp", [qw(CompObj Comp)], sub {$_[0]->getcomp}),
-   PDL::PP::Rule->new("CompStruct", ["CompStructOther", \"CompStructComp"], sub { join "\n", grep $_, @_ }),
 
    PDL::PP::Rule->new(["StructDecl","ParamStructType"],
       ["CompStruct","Name"],
