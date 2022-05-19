@@ -313,10 +313,7 @@ sub expand {
     }
     elsif($this->{ParObjs}{$pdl}) {@add = PDL::PP::Access->new($pdl,$inds)}
     else {
-	@add = "\$$pdl(";
-	# assumption: the only "control" that will happen in macro args is another macro
-	$this->process($inds, [\@add], undef, undef);
-	push @add, ")";
+	confess "unknown construct $pdl($inds)";
     }
     ($rest, @add);
 }
