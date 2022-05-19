@@ -1625,7 +1625,7 @@ pp_add_macros(
     <<EOF;
   $ret = 0;
   loop($dim) %{
-    PDL_IF_BAD(if (\$ISBAD($a) || \$ISBAD($b)) { \$SETBAD($ret); $anybad = 1; break; }
+    PDL_IF_BAD(if (\$ISBAD($a) || \$ISBAD($b)) { $anybad = 1; break; }
     else,) if ($a != $b) { $ret = $a < $b ? -1 : 1; break; }
   %}
 EOF
@@ -1639,7 +1639,7 @@ pp_def(
     Code => '
      char anybad = 0;
      broadcastloop %{ $CMPVEC($a(), $b(), n, $c(), anybad); %}
-     PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(c);,)
+     PDL_IF_BAD(if (anybad) { $SETBAD(c()); $PDLSTATESETBAD(c); },)
     ',
     Doc => '
 =for ref
