@@ -47,15 +47,6 @@
 #   PDL::PP::Rule::Substitute("NewXSCoerceMustSubs", "NewXSCoerceMustSub1")
 # PDL::PP::Rule::Substitute->new($target,$condition)
 #   $target and $condition must be scalars.
-#
-# The MakeComp rule creates the compiled representation accessed by $COMP()
-#  PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompObj"],
-#		      "COMP")
-# PDL::PP::Rule::MakeComp->new($target,$conditions,$symbol)
-#   $target and $symbol must be scalars.
-
-# Notes:
-#   Substitute, MakeComp classes feel a bit ugly.
 
 package PDL::PP::Rule;
 
@@ -375,9 +366,19 @@ sub badflag_isset {
 
 # Probably want this directly in the apply routine but leave as is for now
 sub dosubst_private {
-    my ($src,$sname,$pname,$name,$sig) = @_;
+    my ($src,$sname,$pname,$name,$sig,$compobj,$privobj) = @_;
     my $ret = (ref $src ? $src->[0] : $src);
+    my @pairs;
+    for ([$compobj,'COMP'], [$privobj,'PRIV']) {
+        my ($cobj, $which) = @$_;
+	my ($cn,$co) = map $cobj->$_, qw(othernames otherobjs);
+        push @pairs, 'DO'.$which.'ALLOC' => sub {
+          join '', map $$co{$_}->get_malloc("\$$which($_)"),
+            grep $$co{$_}->need_malloc, @$cn
+        };
+    }
     my %syms = (
+      @pairs,
       ((ref $src) ? %{$src->[1]} : ()),
       PRIV => sub {return "$sname->$_[0]"},
       COMP => sub {return "$pname->$_[0]"},
@@ -397,6 +398,14 @@ sub dosubst_private {
       P => sub { (my $o = ($sig->objs->{$_[0]}//confess "Can't get P for unknown ndarray '$_[0]'"))->{FlagPhys} = 1; $o->do_pointeraccess; },
       PDL => sub { ($sig->objs->{$_[0]}//confess "Can't get PDL for unknown ndarray '$_[0]'")->do_pdlaccess },
       SIZE => sub { ($sig->ind_obj($_[0])//confess "Can't get SIZE of unknown dim '$_[0]'")->get_size },
+      SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->reallocdims(__it,$_[0]));")},
+      SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->setdims_careful(__it));")},
+      SETDELTABROADCASTIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
+{int __ind; PDL_RETERROR(PDL_err, PDL->reallocbroadcastids(\$PDL(CHILD), \$PDL(PARENT)->nbroadcastids));
+for(__ind=0; __ind<\$PDL(PARENT)->nbroadcastids; __ind++)
+  \$PDL(CHILD)->broadcastids[__ind] = \$PDL(PARENT)->broadcastids[__ind] + ($_[0]);
+}
+EOF
       %PDL::PP::macros,
     );
     my $known_pat = join '|', map quotemeta, sort keys %syms;
@@ -424,69 +433,8 @@ sub new {
     my ($class, $target, $condition) = @_;
     die "\$target must be a scalar for PDL::PP::Rule::Substitute" if ref $target;
     die "\$condition must be a scalar for PDL::PP::Rule::Substitute" if ref $condition;
-    $class->SUPER::new($target, [$condition, qw(StructName ParamStructName Name SignatureObj)],
+    $class->SUPER::new($target, [$condition, qw(StructName ParamStructName Name SignatureObj CompObj PrivObj)],
 				  \&dosubst_private);
-}
-
-# PDL::PP::Rule::MakeComp->new($target,$conditions,$symbol)
-#   $target and $symbol must be scalars.
-#
-package PDL::PP::Rule::MakeComp;
-
-use strict;
-
-our @ISA = qw (PDL::PP::Rule);
-
-# This is a copy of the main one for now. Need a better solution.
-my @std_redodims = (
-  SETNDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->reallocdims(__it,$_[0]));")},
-  SETDIMS => sub {PDL::PP::pp_line_numbers(__LINE__-1, "PDL_RETERROR(PDL_err, PDL->setdims_careful(__it));")},
-  SETDELTABROADCASTIDS => sub {PDL::PP::pp_line_numbers(__LINE__, <<EOF)},
-{int __ind; PDL_RETERROR(PDL_err, PDL->reallocbroadcastids(\$PDL(CHILD), \$PDL(PARENT)->nbroadcastids));
-for(__ind=0; __ind<\$PDL(PARENT)->nbroadcastids; __ind++)
-  \$PDL(CHILD)->broadcastids[__ind] = \$PDL(PARENT)->broadcastids[__ind] + ($_[0]);
-}
-EOF
-);
-
-# Probably want this directly in the apply routine but leave as is for now
-sub subst_makecomp_private {
-	my($which,$mc,$cobj) = @_;
-	my ($cn,$co) = !$cobj ? () : map $cobj->$_, qw(othernames otherobjs);
-	return [$mc,{
-		(!$cn ? () :
-			(('DO'.$which.'ALLOC') => sub {join('',
-				map $$co{$_}->get_malloc("\$$which($_)"),
-				    grep $$co{$_}->need_malloc, @$cn)})
-		),
-		($which eq "PRIV" ?
-			@std_redodims : ()),
-		},
-	];
-}
-
-sub new {
-    die "Usage: PDL::PP::Rule::MakeComp->new(\$target,\$conditions,\$symbol);"
-      unless @_ == 4;
-    my ($class, $target, $condition, $symbol) = @_;
-    die "\$target must be a scalar for PDL::PP::Rule::MakeComp" if ref $target;
-    die "\$symbol must be a scalar for PDL::PP::Rule::MakeComp" if ref $symbol;
-    my $self = $class->SUPER::new($target, $condition,
-				  \&subst_makecomp_private);
-    $self->{"makecomp.value"} = $symbol;
-    $self;
-}
-
-# We modify the arguments from the conditions to include the
-# extra information
-#
-# We simplify the base-class version since we assume that all
-# conditions are required here.
-#
-sub extract_args {
-    my $self = shift;
-    my $pars = shift;
-    ($self->{"makecomp.value"}, @$pars{@{$self->{conditions}}});
 }
 
 package PDL::PP;
@@ -1954,21 +1902,17 @@ sub make_vfn_args {
 
    PDL::PP::Rule->new("MakeCompOther", "SignatureObj", sub { $_[0]->getcopy }),
    PDL::PP::Rule->new("MakeCompTotal", ["MakeCompOther", \"MakeComp"], sub { join "\n", grep $_, @_ }),
-   PDL::PP::Rule::MakeComp->new("MakeCompiledReprNS", ["MakeCompTotal","CompObj"],
-				"COMP"),
-   PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompiledReprNS"),
+   PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompTotal"),
 
    PDL::PP::Rule->new(PDL::PP::Code::make_args("Code"),
 		      sub { PDL::PP::Code->new(@_, undef, undef, 1); }),
-   PDL::PP::Rule::MakeComp->new("ReadDataCodeNS", "ParsedCode", "FOO"),
-   PDL::PP::Rule::Substitute->new("ReadDataCodeSubd", "ReadDataCodeNS"),
+   PDL::PP::Rule::Substitute->new("ReadDataCodeSubd", "ParsedCode"),
    PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
    PDL::PP::Rule->new(make_vfn_args("ReadData")),
 
    PDL::PP::Rule->new(PDL::PP::Code::make_args("BackCode"),
 		      sub { PDL::PP::Code->new(@_, undef, 1, 1); }),
-   PDL::PP::Rule::MakeComp->new("WriteBackDataCodeNS", "ParsedBackCode", "FOO"),
-   PDL::PP::Rule::Substitute->new("WriteBackDataCodeSubd", "WriteBackDataCodeNS"),
+   PDL::PP::Rule::Substitute->new("WriteBackDataCodeSubd", "ParsedBackCode"),
    PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_${name}_writebackdata'),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
    PDL::PP::Rule->new(make_vfn_args("WriteBackData")),
@@ -1991,9 +1935,7 @@ sub make_vfn_args {
       ["DimsSetters","ParsedRedoDimsCode","DefaultRedoDims"],
       'makes the redodims function from the various bits and pieces',
       sub { join "\n", grep $_ && /\S/, @_ }),
-   PDL::PP::Rule::MakeComp->new("RedoDimsCodeNS",
-      ["RedoDims", "PrivObj"], "PRIV"),
-   PDL::PP::Rule::Substitute->new("RedoDimsCodeSubd", "RedoDimsCodeNS"),
+   PDL::PP::Rule::Substitute->new("RedoDimsCodeSubd", "RedoDims"),
    PDL::PP::Rule->new(make_vfn_args("RedoDims")),
 
    PDL::PP::Rule->new("CompFreeCodeOther", "SignatureObj", sub {$_[0]->getfree("COMP")}),
@@ -2017,10 +1959,8 @@ sub make_vfn_args {
           PDL::PP::pp_line_numbers(__LINE__, "$_->datatype = $ftypes->{$_};"),
           sort keys %$ftypes;
       }),
-   PDL::PP::Rule::Substitute->new("NewXSCoerceMustSubd", "NewXSCoerceMustNS"),
-   PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMustSubd"),
-   PDL::PP::Rule::MakeComp->new("NewXSCoerceMustCompNS", "NewXSCoerceMustSubd", "FOO"),
-   PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustCompNS"),
+   PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMustNS"),
+   PDL::PP::Rule::Substitute->new("NewXSCoerceMustCompSubd", "NewXSCoerceMustNS"),
 
    PDL::PP::Rule->new("NewXSFindBadStatusNS", ["StructName"],
       "Rule to find the bad value status of the input ndarrays",
