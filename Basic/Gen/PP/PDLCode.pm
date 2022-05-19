@@ -305,9 +305,9 @@ sub expand {
 	    $name = $1;
 	    $inds = substr $inds, 1, -1; # chop off brackets
 	} elsif ($get eq 'PP') {
-	    ($name, $inds) = split /\s*,\s*/, $inds;
+	    ($name, $inds) = PDL::PP::Rule::Substitute::split_cpp($inds);
 	} else {
-	    ($inds, $name) = $inds =~ /(.*)\s*,\s*(\w+)/;
+	    ($inds, $name) = PDL::PP::Rule::Substitute::split_cpp($inds);
 	}
 	@add = PDL::PP::BadAccess->new($opcode,$get,$name,$inds,$this);
     }
@@ -617,8 +617,8 @@ use Carp;
 
 sub new {
     my ( $type, $opcode, $get, $name, $inds, $parent ) = @_;
-    die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
-	"  unknown ndarray <$name($inds)>\n"
+    die "\nIt looks like you have tried a $get \$${opcode}() macro on an" .
+	" unknown ndarray <$name($inds)>\n"
 	unless defined($parent->{ParObjs}{$name});
     bless [$opcode, $get, $name, $inds], $type;
 }
@@ -665,7 +665,7 @@ sub new {
     $pdl =~ /^\s*T([A-Z]+)\s*$/
       or confess("Macroaccess wrong in $name (allowed types $types): was '$pdl'\n");
     my @ilst = split '', $1;
-    my @lst = split ',', $inds, -1;
+    my @lst = PDL::PP::Rule::Substitute::split_cpp($inds);
     confess "Macroaccess: different nos of args $pdl (@{[scalar @lst]}=@lst) vs (@{[scalar @ilst]}=@ilst)\n" if @lst != @ilst;
     my %type2value; @type2value{@ilst} = @lst;
     confess "$name has no Macro for generic type $_ (has $pdl)\n"

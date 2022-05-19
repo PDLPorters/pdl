@@ -95,7 +95,10 @@ Add extra XS code to the generated XS file
 =for ref
 
 Add extra C<$MACRO()> definitions for these functions. Note these generate
-C code.
+C code. As of 2.080, they will be passed the list of arguments they were
+called with, rather than a single string, split like the C pre-processor
+on commas except if in C<""> or C<()>, with leading and trailing
+whitespace removed.
 
 =for example
 

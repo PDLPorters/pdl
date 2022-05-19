@@ -382,7 +382,7 @@ sub dosubst_private {
       ((ref $src) ? %{$src->[1]} : ()),
       PRIV => sub {return "$sname->$_[0]"},
       COMP => sub {return "$pname->$_[0]"},
-      CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "return PDL->make_error(PDL_EUSERERROR, \"Error in $name:\" $_[0])")},
+      CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "return PDL->make_error(PDL_EUSERERROR, \"Error in $name:\" @{[join ',', @_]})")},
       NAME => sub {return $name},
       MODULE => sub {return $::PDLMOD},
       SETPDLSTATEBAD  => sub { PDL::PP::pp_line_numbers(__LINE__-1, "$_[0]\->state |= PDL_BADVAL") },
@@ -411,7 +411,7 @@ EOF
     my $known_pat = join '|', map quotemeta, sort keys %syms;
     while (my ($before, $kw, $args, $other) = macro_extract($ret, $known_pat)) {
       confess("$kw not defined in '$ret'!") if !$syms{$kw};
-      $ret = join '', $before, $syms{$kw}->($args), $other;
+      $ret = join '', $before, $syms{$kw}->(split_cpp($args)), $other;
     }
     $ret;
 }
@@ -433,6 +433,7 @@ sub split_cpp {
     else { $thisstr = '' if !defined $thisstr; $thisstr .= $n; }
   }
   push @parts, $thisstr if defined $thisstr;
+  s/^\s+//, s/\s+$// for @parts;
   @parts;
 }
 
