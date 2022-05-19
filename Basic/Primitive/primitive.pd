@@ -1619,19 +1619,26 @@ pp_def( 'axisvalues',
 	Doc => undef,
        ); # pp_def: axisvalues
 
+pp_add_macros(
+  CMPVEC => sub {
+    my ($a, $b, $dim, $ret, $anybad) = @_;
+    <<EOF;
+  $ret = 0;
+  loop($dim) %{
+    PDL_IF_BAD(if (\$ISBAD($a) || \$ISBAD($b)) { \$SETBAD($ret); $anybad = 1; break; }
+    else,) if ($a != $b) { $ret = $a < $b ? -1 : 1; break; }
+  %}
+EOF
+  },
+);
+
 pp_def(
     'cmpvec',
     HandleBad => 1,
     Pars => 'a(n); b(n); sbyte [o]c();',
     Code => '
      char anybad = 0;
-     broadcastloop %{
-       $c() = 0;
-       loop(n) %{
-         PDL_IF_BAD(if ($ISBAD(a()) || $ISBAD(b())) { $SETBAD(c()); anybad = 1; break; }
-         else,) if ($a() != $b()) { $c() = $a() < $b() ? -1 : 1; break; }
-       %}
-     %}
+     broadcastloop %{ $CMPVEC($a(), $b(), n, $c(), anybad); %}
      PDL_IF_BAD(if (anybad) $PDLSTATESETBAD(c);,)
     ',
     Doc => '
