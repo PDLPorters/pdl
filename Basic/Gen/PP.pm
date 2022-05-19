@@ -416,6 +416,26 @@ EOF
     $ret;
 }
 
+# split like C pre-processor - on commas unless in "" or ()
+my $extract_spec = [
+  sub {Text::Balanced::extract_delimited($_[0], '"')},
+  sub {Text::Balanced::extract_bracketed($_[0], '()')},
+  qr/\s+/,
+  qr/[^",\(\s]+/,
+  { COMMA => qr/,/ },
+];
+sub split_cpp {
+  my ($text) = @_;
+  require Text::Balanced;
+  my ($thisstr, @parts);
+  while (defined(my $n = Text::Balanced::extract_multiple($text, $extract_spec, undef, 1))) {
+    if (ref $n) { push @parts, $thisstr // ''; $thisstr = ''; }
+    else { $thisstr = '' if !defined $thisstr; $thisstr .= $n; }
+  }
+  push @parts, $thisstr if defined $thisstr;
+  @parts;
+}
+
 sub macro_extract {
   require Text::Balanced;
   my ($text, $pat) = @_;

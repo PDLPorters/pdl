@@ -9,36 +9,6 @@ our %INVALID_PAR = map +($_=>1), qw(
   I
 );
 
-# split regex $re separated arglist
-# but ignore bracket-protected bits
-# (i.e. text that is within matched brackets)
-my $prebrackreg = qr/^([^\(\{\[]*)/;
-sub splitprotected ($$) {
-  require Text::Balanced;
-  my ($re,$txt) = @_;
-  return () if !defined $txt || $txt =~ /^\s*$/;
-  my ($got,$pre) = (1,'');
-  my @chunks = ('');
-  my $ct = 0; # infinite loop protection
-  while ($got && $txt =~ /[({\[]/ && $ct++ < 1000) {
-    # print "iteration $ct\n";
-    ($got,$txt,$pre) =
-      Text::Balanced::extract_bracketed($txt,'{}()[]',$prebrackreg);
-    my @partialargs = split $re, $pre, -1;
-    $chunks[-1] .= shift @partialargs if @partialargs;
-    push @chunks, @partialargs;
-    $chunks[-1] .= $got;
-  }
-  confess "possible infinite parse loop, splitting '$txt' "
-			   if $ct >= 1000;
-  my @partialargs = split $re, $txt, -1;
-  $chunks[-1] .= shift @partialargs if @partialargs;
-  push @chunks, @partialargs if @partialargs;
-  # print STDERR "args found: $#chunks\n";
-  # print STDERR "splitprotected $txt on $re: [",join('|',@chunks),"]\n";
-  return @chunks;
-}
-
 my $typeregex = join '|', map $_->ppforcetype, types;
 my $complex_regex = join '|', qw(real complex);
 our $pars_re = qr/^
@@ -221,7 +191,7 @@ sub do_access {
 # Parse substitutions into hash
 	my %subst = map
 	 {/^\s*(\w+)\s*=>\s*(\S*)\s*$/ or confess "Invalid subst $_ (no spaces in => value)\n"; ($1,$2)}
-	 	splitprotected ',',$inds;
+		PDL::PP::Rule::Substitute::split_cpp($inds);
 # Generate the text
 	my $text;
 	$text = "(${pdl}_datap)"."[";
