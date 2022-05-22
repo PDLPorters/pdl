@@ -131,7 +131,7 @@ my @cpan_deps = my @prereq = (
   'Pod::Select'         => 0,         # version TBD for PDL::Doc
   'Scalar::Util'        => 0,
   'Storable'            => 1.03,      # for PDL::IO::Storable
-  'Text::Balanced'      => 1.89,      # for PDL::NiceSlice
+  'Text::Balanced'      => '2.05',    # for PDL::NiceSlice
   'Math::Complex'       => 0,
 );
 my %min_version = (
