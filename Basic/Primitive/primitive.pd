@@ -1305,7 +1305,9 @@ for(
      }
     )
 {
-my $code = 'register int j;
+	my $code = pp_line_numbers __LINE__-1, '
+	if ($SIZE(m) == 0) $CROAK("called with m dim of 0");
+	register int j;
 	register int maxj = $SIZE(m)-1;
 	register double min  = $COMP(min);
 	register double step = $COMP(step);
@@ -1415,7 +1417,10 @@ for(
 	}
     )
 {
-       my $code = 'register int ja,jb;
+	my $code = pp_line_numbers __LINE__-1, '
+	if ($SIZE(ma) == 0) $CROAK("called with ma dim of 0");
+	if ($SIZE(mb) == 0) $CROAK("called with mb dim of 0");
+	register int ja,jb;
 	register int maxja = $SIZE(ma)-1;
 	register int maxjb = $SIZE(mb)-1;
 	register double mina = $COMP(mina);

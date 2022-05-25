@@ -2,6 +2,7 @@
 - pp_add_macros macros now receive list of args split like C preprocessor
 - most of PDL::VectorValued into Primitive/Slices - thanks @moocow-the-bovine
 - depend on Text::Balanced 2.05, removing monkeypatch (#396)
+- make {w,}histogram throw error not segfault when min == max (#397) - thanks @fantasma13 for report
 
 2.079 2022-05-03
 - move Math::badmask to Bad

@@ -66,6 +66,8 @@ ok(all($z==pdl(0..5)->dummy(0,5)->dummy(0,4)->dummy(0,3)),"4-dimensional axisval
 
 {
 my $x = pdl [15.4,15.8,16.01,16.9,16.1,15.2,15.4,16.2,15.4,16.2,16.4];
+eval { hist ($x,15,15,0.1) }; # shouldn't segfault!
+isnt $@, '', 'error thrown';
 my ($hx,$h) = hist ($x,15,17,0.1);
 ok( tapprox($hx, pdl(qw/15.05   15.15 15.25   15.35   15.45   15.55   15.65
    15.75   15.85   15.95   16.05   16.15 16.25   16.35   16.45   16.55   16.65
