@@ -236,7 +236,7 @@ if (!$::UC) {
   CHECK ( yr = $yr )
   ) INHERITS ($schema.master_table)
   }';
-  is $got, $expected, 'NiceSlice leaves strings along';
+  is $got, $expected, 'NiceSlice leaves strings alone';
 }
 
 {
