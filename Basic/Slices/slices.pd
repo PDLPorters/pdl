@@ -1207,7 +1207,7 @@ Run-length encode a set of vectors.
 Higher-order rle(), for use with qsortvec().
 
 Given set of vectors $c, generate a vector $a with the number of occurrences of each element
-(where an "element" is a vector of length $M ocurring in $c),
+(where an "element" is a vector of length $M occurring in $c),
 and a set of vectors $b containing the unique values.
 As for rle(), only the elements up to the first instance of 0 in $a should be considered.
 
@@ -1356,7 +1356,7 @@ Run-length encode a set of (sorted) n-dimensional values.
 
 Generalization of rle() and vv_rlevec():
 given set of values $data, generate a vector $counts with the number of occurrences of each element
-(where an "element" is a matrix of dimensions @vdims ocurring as a sequential run over the
+(where an "element" is a matrix of dimensions @vdims occurring as a sequential run over the
 final dimension in $data), and a set of vectors $elts containing the elements which begin a run.
 Really just a wrapper for clump() and rlevec().
 

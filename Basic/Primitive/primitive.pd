@@ -1705,7 +1705,7 @@ EOC
 Enumerate a list of vectors with locally unique keys.
 
 Given a sorted list of vectors $v, generate a vector $k containing locally unique keys for the elements of $v
-(where an "element" is a vector of length $M ocurring in $v).
+(where an "element" is a vector of length $M occurring in $v).
 
 Note that the keys returned in $k are only unique over a run of a single vector in $v,
 so that each unique vector in $v has at least one 0 (zero) index in $k associated with it.
@@ -1741,7 +1741,7 @@ EOC
 Enumerate a list of vectors with globally unique keys.
 
 Given a sorted list of vectors $v, generate a vector $k containing globally unique keys for the elements of $v
-(where an "element" is a vector of length $M ocurring in $v).
+(where an "element" is a vector of length $M occurring in $v).
 Basically does the same thing as:
 
  $k = $v->vsearchvec($v->uniqvec);
