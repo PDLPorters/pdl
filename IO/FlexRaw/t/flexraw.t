@@ -131,6 +131,23 @@ SKIP: {
    # **TEST 12** test the created type
    ok($y->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
 
+   undef $x; undef $y; # cleanup
+   # test for bug mentioned in https://perlmonks.org/?node_id=387256
+   my $p1 = sequence(5);
+   my $header1 = eval { writeflex($cdname, $p1) };
+   is $@, '', 'no error';
+   writeflexhdr($cdname, $header1);
+   my $p2 = sequence(5) + 8;
+   my $header2 = eval { writeflex($name, $p2) };
+   is $@, '', 'no error';
+   writeflexhdr($name, $header2);
+   $p1 = mapflex($cdname);
+   is $p1.'', '[0 1 2 3 4]', 'right value before second mapflex';
+   $p2 = mapflex($name);
+   is $p1.'', '[0 1 2 3 4]', 'still right value after second mapflex';
+   is $p2.'', '[8 9 10 11 12]', 'second ndarray values right';
+   undef $p1; undef $p2;
+   unlink $cdname, $cdname . '.hdr';
 }
 
 # Clean things up a bit
