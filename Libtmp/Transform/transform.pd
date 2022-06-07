@@ -2637,6 +2637,7 @@ the type/unit fields are currently ignored by t_linear.
 { package PDL::Transform::Linear;
 our @ISA = ('PDL::Transform');
 *_opt = \&PDL::Transform::_opt;
+*identity = \&PDL::MatrixOps::identity;
 
 sub PDL::Transform::t_linear { PDL::Transform::Linear->new(@_); }
 
@@ -2681,6 +2682,7 @@ sub new {
   # Figure out the number of dimensions to transform, and,
   # if necessary, generate a new matrix.
 
+  my $rot = $me->{params}{rot};
   if(defined($me->{params}{matrix})) {
     my $mat = $me->{params}{matrix} = $me->{params}{matrix}->slice(":,:");
     $me->{idim} = $mat->dim(0);
@@ -2710,6 +2712,8 @@ sub new {
       $me->{idim} = $me->{odim} = $me->{params}{post}->dim(0);
     } elsif(defined($o_dims)) {
       $me->{idim} = $me->{odim} = $o_dims;
+    } elsif (UNIVERSAL::isa($rot,'PDL') && (my $nrots = $rot->nelem) > 1) {
+      $me->{idim} = $me->{odim} = $nrots;
     } else {
       print "PDL::Transform::Linear: assuming 2-D transform (set dims option to change)\n" if($PDL::Transform::debug);
       $me->{idim} = $me->{odim} = 2;
@@ -2721,7 +2725,6 @@ sub new {
   }
 
   ### Handle rotation option
-  my $rot = $me->{params}{rot};
   if(defined($rot)) {
     # Subrotation closure -- rotates from axis $d->(0) --> $d->(1).
     my $subrot = sub {
@@ -2906,14 +2909,14 @@ pp_addpm(<<'+======EOD_t_rot======');
 
 =for usage
 
-  $f = t_rot(<rotation-in-degrees>)
+  $f = t_rot(\@rotation_in_degrees)
 
 =for ref
 
 Convenience interface to L</t_linear>.
 
 t_rot produces a rotation transform in 2-D (scalar), 3-D (3-vector), or
-N-D (matrix).  It acts exactly the same as C<t_linear(Rot=>\<shift\>)>.
+N-D (matrix).  It acts exactly the same as C<t_linear(rot=>shift)>.
 
 =cut
 

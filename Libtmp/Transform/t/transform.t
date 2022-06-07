@@ -27,6 +27,17 @@ use Test::Exception;
 
 	$pb = pdl(2,3)->invert($t2);
 	ok( all( approx($pb, 1) ), "invert works");
+
+	my $t3 = t_rot([45,45,45]);
+	$pa = PDL::MatrixOps::identity(3);
+	my $got = $pa->apply($t3);
+	ok all(approx $got, pdl(<<'EOF'), 1e-4), 't_rot works' or diag 'got=', $got;
+[
+  [        0.5 -0.14644661  0.85355339]
+  [        0.5  0.85355339 -0.14644661]
+  [-0.70710678         0.5         0.5]
+]
+EOF
 }
 
 
