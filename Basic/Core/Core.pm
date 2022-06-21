@@ -28,7 +28,7 @@ my @exports_internal = qw(howbig broadcastids topdl);
 my @exports_normal   = (@EXPORT,
   @convertfuncs,
   qw(nelem dims shape null
-      empty dup dupN
+      empty dup dupN inflateN
       convert inplace zeroes zeros ones nan inf i list listindices unpdl
       set at flows broadcast_define over reshape dog cat barf type
       thread_define dummy mslice approx flat sclr squeeze
@@ -1525,6 +1525,12 @@ Duplicates an ndarray along several dimensions
 
  $x = sequence(3,2);
  $y = $x->dupN(2, 3); # doubles along first dimension, triples along second
+ # [
+ #  [0 1 2 0 1 2]
+ #  [3 4 5 3 4 5]
+ #  [0 1 2 0 1 2]
+ #  [3 4 5 3 4 5]
+ # ]
 
 =cut
 
@@ -1532,6 +1538,36 @@ sub PDL::dupN {
   my ($this, @times) = @_;
   return $this->copy if !grep $_ != 1, @times;
   my $sl = join ',', map ":,*$_", @times; # insert right-size dummy after each real
+  $this = $this->slice($sl);
+  $this = $this->clump($_, $_+1) for 0..$#times;
+  $this;
+}
+
+=head2 inflateN
+
+=for ref
+
+Inflates an ndarray along several dimensions, useful for e.g. Kronecker products
+
+cf L</dupN>
+
+=for example
+
+ $x = sequence(3,2);
+ $y = $x->inflateN(2, 2); # doubles along first two dimensions
+ # [
+ #  [0 0 1 1 2 2]
+ #  [0 0 1 1 2 2]
+ #  [3 3 4 4 5 5]
+ #  [3 3 4 4 5 5]
+ # ]
+
+=cut
+
+sub PDL::inflateN {
+  my ($this, @times) = @_;
+  return $this->copy if !grep $_ != 1, @times;
+  my $sl = join ',', map "*$_,:", @times;
   $this = $this->slice($sl);
   $this = $this->clump($_, $_+1) for 0..$#times;
   $this;

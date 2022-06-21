@@ -41,6 +41,17 @@ is sequence(3,2)->dupN(2, 3).'', '
 ]
 ', 'dupN';
 
+is sequence(3,2)->inflateN(2, 3).'', '
+[
+ [0 0 1 1 2 2]
+ [0 0 1 1 2 2]
+ [0 0 1 1 2 2]
+ [3 3 4 4 5 5]
+ [3 3 4 4 5 5]
+ [3 3 4 4 5 5]
+]
+', 'inflateN';
+
 my $a_long = sequence long, 10;
 my $a_dbl  = sequence 10;
 

@@ -1,4 +1,5 @@
 - fix longstanding t_rot bug shown in https://perlmonks.org/?node_id=683514
+- add inflateN
 
 2.080 2022-05-28
 - make IO::STL work on big-endian systems (#394) - thanks @sebastic for report
