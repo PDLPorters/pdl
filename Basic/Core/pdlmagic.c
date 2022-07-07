@@ -1,6 +1,6 @@
 #include "pdlcore.h"
 
-/* Variable storing our the pthread ID for the main PDL thread.
+/* Variable storing the pthread ID for the main PDL thread.
  *  This is used to tell if we are in the main pthread, or in one of
  *  the pthreads spawned for PDL processing
  * This is only used when compiled with pthreads.
