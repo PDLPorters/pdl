@@ -930,7 +930,8 @@ sub lu_decomp {
    }
 
    # Some holding tanks
-   my($tmprow) = $out->slice('(0)')->double->zeroes;
+   my($tmprow) = $out->slice('(0)')->zeroes;
+   $tmprow = $tmprow->double if $tmprow->type < double;
    my($tmpval) = $tmprow->slice('(0)')->sever;
 
    my($col,$row);
@@ -972,9 +973,9 @@ sub lu_decomp {
             }
          }
 
-         # Sidestep near-singularity (NR does this; not sure if it is helpful)
+         # LAPACK cgetrf does not try fix singularity so nor do we, even though NR does
          my $notbig = $big->where(abs($big) < $TINY);
-         $notbig .= $TINY * (1.0 - 2.0*($notbig < 0));
+         return if !$notbig->isempty;
 
          # Divide by the diagonal element (which is now the largest element)
          my $tout;

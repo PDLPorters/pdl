@@ -121,6 +121,14 @@ is $idc->type, 'cdouble';
 }
 
 {
+# bug in inv for native-complex - GH#403
+my $p = pdl [[ 1+i(), 0], [0, 2+2*i() ] ];
+my $p_inv;
+lives_ok { $p_inv = $p->inv } "native-complex inv runs OK";
+ok(tapprox(matmult($p,$p_inv),identity(2)), "native-complex inv gave correct answer");
+}
+
+{
 ### Check LU backsubstitution (bug #2023711 on sf.net)
 my $pa = pdl([[1,2],[1,1]]); # asymmetric to see if need transpose
 my ($lu,$perm,$par);
