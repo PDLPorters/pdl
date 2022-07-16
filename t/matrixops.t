@@ -116,6 +116,11 @@ ok(tapprox(matmult($a334,$a334inv),identity(3)->dummy(2,4)), "3x3x4 inv gave cor
 }
 
 {
+my $idc = identity(zeroes(cdouble, 2, 2));
+is $idc->type, 'cdouble';
+}
+
+{
 ### Check LU backsubstitution (bug #2023711 on sf.net)
 my $pa = pdl([[1,2],[1,1]]); # asymmetric to see if need transpose
 my ($lu,$perm,$par);

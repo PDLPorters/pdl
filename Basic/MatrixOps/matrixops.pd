@@ -140,11 +140,11 @@ sub identity {
   my $n = shift;
   my $out =
     !UNIVERSAL::isa($n,'PDL') ? zeroes($n,$n) :
-    $n->getndims == 0 ? zeroes($n->at(0),$n->at(0)) :
+    $n->getndims == 0 ? zeroes($n->type, $n->at(0),$n->at(0)) :
     undef;
   if (!defined $out) {
     my @dims = $n->dims;
-    $out = zeroes(@dims[0, 0, 2..$#dims]);
+    $out = zeroes($n->type, @dims[0, 0, 2..$#dims]);
   }
   (my $tmp = $out->diagonal(0,1))++; # work around perl -d "feature"
   $out;
@@ -242,7 +242,6 @@ sub inv {
   my $x = shift;
   my $opt = shift;
   $opt = {} unless defined($opt);
-
 
   barf "inverse needs a square PDL as a matrix\n" 
     unless(UNIVERSAL::isa($x,'PDL') &&
@@ -905,7 +904,6 @@ sub lu_decomp {
    my($inplace) = $in->is_inplace;
    my($out) = ($inplace) ? $in : $in->copy;
 
-
    if(defined $permute) {
       barf('lu_decomp: permutation vector must match the matrix')
       if(!UNIVERSAL::isa($permute,'PDL') || 
@@ -975,7 +973,6 @@ sub lu_decomp {
          }
 
          # Sidestep near-singularity (NR does this; not sure if it is helpful)
-
          my $notbig = $big->where(abs($big) < $TINY);
          $notbig .= $TINY * (1.0 - 2.0*($notbig < 0));
 
@@ -985,10 +982,7 @@ sub lu_decomp {
       } # end of pivoting part
    } # end of column loop
 
-   if(wantarray) {
-      return ($out,$permute,$parity);
-   }
-   $out;
+   wantarray ? ($out,$permute,$parity) : $out;
 }
 
 EOD
@@ -1110,10 +1104,7 @@ sub lu_decomp2 {
 
   } # end of column loop
 
-  if(wantarray) {
-    return ($out,$perm,$par);
-  }
-  $out;
+  wantarray ? ($out,$perm,$par) : $out;
 }
 
 EOD
