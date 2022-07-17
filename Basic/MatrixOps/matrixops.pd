@@ -139,7 +139,7 @@ matrix, with higher dimensions preserved.
 sub identity {
   my $n = shift;
   my $out =
-    !UNIVERSAL::isa($n,'PDL') ? zeroes($n,$n) :
+    !(my $was_pdl = UNIVERSAL::isa($n,'PDL')) ? zeroes($n,$n) :
     $n->getndims == 0 ? zeroes($n->type, $n->at(0),$n->at(0)) :
     undef;
   if (!defined $out) {
@@ -147,7 +147,7 @@ sub identity {
     $out = zeroes($n->type, @dims[0, 0, 2..$#dims]);
   }
   (my $tmp = $out->diagonal(0,1))++; # work around perl -d "feature"
-  $out;
+  $was_pdl ? bless $out, ref($n) : $out;
 }
 EOD
 

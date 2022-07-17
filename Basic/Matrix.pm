@@ -204,16 +204,7 @@ EOE
   eval $code;
 }
 
-
-
-eval "use PDL::Slatec";
-
-my $has_slatec = ($@ ? 0 : 1);
-sub inv {
-  my $self = shift;
-  croak "inv: PDL::Slatec not available" unless $has_slatec;
-  return $self->matinv;
-}
+sub inv { shift->transpose->SUPER::inv->transpose }
 
 =head2 kroneckerproduct
 
