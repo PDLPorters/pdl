@@ -1080,24 +1080,12 @@ sub TidyType
 #
 # JB 06/05/05
 #
-sub typemap {
-  my $oname  = shift;
-  my $type   = shift;
-  my $arg    = shift;
-
-  # Modification to parse Perl's typemap here.
-  #
-  # The default search path for the typemap taken from xsubpp. It seems it is
-  # necessary to prepend the installprivlib/ExtUtils directory to find the typemap.
-  # It is not clear to me how this is to be done.
-  #
-  my ($typemap, $mode, $junk, $current, %input_expr,
-      %proto_letter, %output_expr, %type_kind);
-
+my ($typemap_obj, %input_expr, %output_expr, %type_kind);
+sub _load_typemap {
+  my ($current, %proto_letter, $junk, $mode);
   # according to MM_Unix 'privlibexp' is the right directory
   #     seems to work even on OS X (where installprivlib breaks things)
   my $_rootdir = $Config{privlibexp}.'/ExtUtils/';
-
   # First the system typemaps..
   my @tm = ($_rootdir.'../../../../lib/ExtUtils/typemap',
 	    $_rootdir.'../../../lib/ExtUtils/typemap',
@@ -1110,7 +1098,7 @@ sub typemap {
   push @tm, &PDL::Core::Dev::PDL_TYPEMAP, '../../typemap', '../typemap', 'typemap';
   carp "**CRITICAL** PP found no typemap in $_rootdir/typemap; this will cause problems..."
       unless my @typemaps = grep -f $_ && -T _, @tm;
-  foreach $typemap (@typemaps) {
+  foreach my $typemap (@typemaps) {
     open(my $fh, $typemap)
       or warn("Warning: could not open typemap file '$typemap': $!\n"), next;
     $mode = 'Typemap';
@@ -1155,10 +1143,11 @@ sub typemap {
     }
     close $fh;
   }
-
-  #
-  # Do checks...
-  #
+  1;
+}
+sub typemap {
+  my ($oname, $type, $arg) = @_;
+  $typemap_obj ||= _load_typemap();
   # First reconstruct the type declaration to look up in type_kind
   my $full_type=TidyType($type->get_decl('', {VarArrays2Ptrs=>1})); # Skip the variable name
   die "The type =$full_type= does not have a typemap entry!\n" unless exists($type_kind{$full_type});
