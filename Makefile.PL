@@ -173,16 +173,15 @@ my %makefile_hash = (
   PREREQ_PM => { @prereq },
   LICENSE => 'perl',
   CONFIGURE_REQUIRES => {
-    'Devel::CheckLib' => 1.01,
+    'Devel::CheckLib' => '1.01',
     'Carp'            => 1.20,    # EU::MM seems to need this not to crash
     'ExtUtils::MakeMaker' => '7.12', # working .g.c
     'File::Path'          => 0,
-    'ExtUtils::ParseXS'   => 3.01, # avoids 2.21, known broken
     'ExtUtils::Depends' => '0.402',
   },
   TEST_REQUIRES => {
     'CPAN::Meta' => '2.120900',
-    'IPC::Cmd' => 0.72,
+    'IPC::Cmd' => '0.72',
     'Test::Exception' => 0,
     'Test::Warn' => 0,  # for t/pptest.t
     'Test::Deep' => 0,
@@ -191,6 +190,7 @@ my %makefile_hash = (
     'ExtUtils::MakeMaker' => 0,
     'File::Path'          => 0,
     'Pod::Select'         => 0,
+    'ExtUtils::ParseXS'   => '3.21', # ExtUtils::Typemaps::tidy_type
   },
   MIN_PERL_VERSION => '5.010',
   NAME => 'PDL',

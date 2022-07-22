@@ -1001,88 +1001,14 @@ EOF
   pp_addpm {At => 'Top'}, <<EOF;
 warn \"$warning_main\n$warning_suppression_runtime\" unless \$ENV{$envvar};
 EOF
-
-
 }
 
 use Carp;
 $SIG{__DIE__} = \&Carp::confess if $::PP_VERBOSE;
 
-$|=1;
-
-#
-# This is ripped from xsubpp to ease the parsing of the typemap.
-#
-our $proto_re = "[" . quotemeta('\$%&*@;[]') . "]" ;
-
-sub ValidProtoString ($)
-{
-    my($string) = @_ ;
-
-    if ( $string =~ /^$proto_re+$/ ) {
-        return $string ;
-    }
-
-    return 0 ;
-}
-
-sub C_string ($)
-{
-    my($string) = @_ ;
-
-    $string =~ s[\\][\\\\]g ;
-    $string ;
-}
-
-sub TrimWhitespace
-{
-    $_[0] =~ s/^\s+|\s+$//go ;
-}
-sub TidyType
-{
-    local ($_) = @_ ;
-
-    # rationalise any '*' by joining them into bunches and removing whitespace
-    s#\s*(\*+)\s*#$1#g;
-    s#(\*+)# $1 #g ;
-
-    # change multiple whitespace into a single space
-    s/\s+/ /g ;
-
-    # trim leading & trailing whitespace
-    TrimWhitespace($_) ;
-
-    $_ ;
-}
-
-
-
-#------------------------------------------------------------------------------
-# Typemap handling in PP.
-#
-# This subroutine does limited input typemap conversion.
-# Given a variable name (to set), its type, and the source
-# for the variable, returns the correct input typemap entry.
-# Original version: D. Hunt 4/13/00  - Current version J. Brinchmann (06/05/05)
-#
-# The code loads the typemap from the Perl typemap using the loading logic of
-# xsubpp. Do note that I  made the assumption that
-# $Config{installprivlib}/ExtUtils was the right root directory for the search.
-# This could break on some systems?
-#
-# Also I do _not_ parse the Typemap argument from ExtUtils::MakeMaker because I don't
-# know how to catch it here! This would be good to fix! It does look for a file
-# called typemap in the current directory however.
-#
-# The parsing of the typemap is mechanical and taken straight from xsubpp and
-# the resulting hash lookup is then used to convert the input type to the
-# necessary outputs (as seen in the old code above)
-#
-# JB 06/05/05
-#
-my ($typemap_obj, %input_expr, %output_expr, %type_kind);
+my $typemap_obj;
 sub _load_typemap {
-  my ($current, %proto_letter, $junk, $mode);
+  require ExtUtils::Typemaps;
   # according to MM_Unix 'privlibexp' is the right directory
   #     seems to work even on OS X (where installprivlib breaks things)
   my $_rootdir = $Config{privlibexp}.'/ExtUtils/';
@@ -1093,68 +1019,23 @@ sub _load_typemap {
 	    $_rootdir.'../../../typemap',
 	    $_rootdir.'../../typemap', $_rootdir.'../typemap',
 	    $_rootdir.'typemap');
-  # Note that the OUTPUT typemap is unlikely to be of use here, but I have kept
-  # the source code from xsubpp for tidiness.
   push @tm, &PDL::Core::Dev::PDL_TYPEMAP, '../../typemap', '../typemap', 'typemap';
-  carp "**CRITICAL** PP found no typemap in $_rootdir/typemap; this will cause problems..."
+  carp "**CRITICAL** PP found no typemaps in (@tm)"
       unless my @typemaps = grep -f $_ && -T _, @tm;
-  foreach my $typemap (@typemaps) {
-    open(my $fh, $typemap)
-      or warn("Warning: could not open typemap file '$typemap': $!\n"), next;
-    $mode = 'Typemap';
-    $junk = "" ;
-    $current = \$junk;
-    local $_; # else get "Modification of a read-only value attempted"
-    while (<$fh>) {
-	next if /^\s*#/;
-        my $line_no = $. + 1;
-	if (/^INPUT\s*$/)   { $mode = 'Input';   $current = \$junk;  next; }
-	if (/^OUTPUT\s*$/)  { $mode = 'Output';  $current = \$junk;  next; }
-	if (/^TYPEMAP\s*$/) { $mode = 'Typemap'; $current = \$junk;  next; }
-	if ($mode eq 'Typemap') {
-	    chomp;
-	    my $line = $_ ;
-            TrimWhitespace($_) ;
-	    # skip blank lines and comment lines
-	    next if /^$/ or /^#/ ;
-	    my($t_type,$kind, $proto) = /^\s*(.*?\S)\s+(\S+)\s*($proto_re*)\s*$/ or
-		warn("Warning: File '$typemap' Line $. '$line' TYPEMAP entry needs 2 or 3 columns\n"), next;
-            $t_type = TidyType($t_type) ;
-	    $type_kind{$t_type} = $kind ;
-            # prototype defaults to '$'
-            $proto = "\$" unless $proto ;
-            warn("Warning: File '$typemap' Line $. '$line' Invalid prototype '$proto'\n")
-                unless ValidProtoString($proto) ;
-            $proto_letter{$t_type} = C_string($proto) ;
-	}
-	elsif (/^\s/) {
-	    $$current .= $_;
-	}
-	elsif ($mode eq 'Input') {
-	    s/\s+$//;
-	    $input_expr{$_} = '';
-	    $current = \$input_expr{$_};
-	}
-	else {
-	    s/\s+$//;
-	    $output_expr{$_} = '';
-	    $current = \$output_expr{$_};
-	}
-    }
-    close $fh;
-  }
-  1;
+  $typemap_obj = ExtUtils::Typemaps->new;
+  $typemap_obj->merge(file => $_, replace => 1) for @typemaps;
+  $typemap_obj;
 }
 sub typemap {
   my ($oname, $type, $arg) = @_;
   $typemap_obj ||= _load_typemap();
   # First reconstruct the type declaration to look up in type_kind
-  my $full_type=TidyType($type->get_decl('', {VarArrays2Ptrs=>1})); # Skip the variable name
-  die "The type =$full_type= does not have a typemap entry!\n" unless exists($type_kind{$full_type});
-  my $typemap_kind = $type_kind{$full_type};
+  my $full_type=ExtUtils::Typemaps::tidy_type($type->get_decl('', {VarArrays2Ptrs=>1})); # Skip the variable name
+  my $inputmap = $typemap_obj->get_inputmap(ctype => $full_type);
+  die "The type =$full_type= does not have a typemap entry!\n" unless $inputmap;
   # Look up the conversion from the INPUT typemap. Note that we need to do some
   # massaging of this.
-  my $input = $input_expr{$typemap_kind};
+  my $input = $inputmap->code;
   $input =~ s/^(.*?)=\s*//s; # Remove all before =
   $input =~ s/\$(var|\{var\})/$oname/g;
   $input =~ s/\$(arg|\{arg\})/$arg/g;
