@@ -1029,17 +1029,14 @@ sub _load_typemap {
 sub typemap {
   my ($oname, $type, $arg) = @_;
   $typemap_obj ||= _load_typemap();
-  # First reconstruct the type declaration to look up in type_kind
-  my $full_type=ExtUtils::Typemaps::tidy_type($type->get_decl('', {VarArrays2Ptrs=>1})); # Skip the variable name
-  my $inputmap = $typemap_obj->get_inputmap(ctype => $full_type);
-  die "The type =$full_type= does not have a typemap entry!\n" unless $inputmap;
-  # Look up the conversion from the INPUT typemap. Note that we need to do some
-  # massaging of this.
+  $type=ExtUtils::Typemaps::tidy_type($type);
+  my $inputmap = $typemap_obj->get_inputmap(ctype => $type);
+  die "The type =$type= does not have a typemap entry!\n" unless $inputmap;
   my $input = $inputmap->code;
   $input =~ s/^(.*?)=\s*//s; # Remove all before =
   $input =~ s/\$(var|\{var\})/$oname/g;
   $input =~ s/\$(arg|\{arg\})/$arg/g;
-  $input =~ s/\$(type|\{type\})/$full_type/g;
+  $input =~ s/\$(type|\{type\})/$type/g;
   return ($input);
 }
 
@@ -1602,11 +1599,11 @@ EOD
         # clause for reading in all variables
         my $clause1 = $inplacecheck; $cnt = 0;
         foreach my $x (@args) {
-            if ($other{$x}) {  # other par
-                $clause1 .= indent("$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n",$ci);
+            if ($outca{$x}) {
+                push @create, $x;
+            } elsif ($other{$x}) {  # other par
+                $clause1 .= indent("$x = " . typemap($x, $$optypes{$x}->get_decl('', {VarArrays2Ptrs=>1}), "ST($cnt)") . ";\n",$ci);
                 $cnt++;
-            } elsif ($outca{$x}) {
-                push (@create, $x);
             } else {
                 $clause1 .= indent("$x = PDL->SvPDLV(".
 		  ($out{$x} ? "${x}_SV = " : '').
@@ -1623,7 +1620,7 @@ EOD
         $cnt = 0;
         foreach my $x (@args) {
             if ($other{$x}) {
-                my $setter = typemap($x, $$optypes{$x}, "ST($cnt)");
+                my $setter = typemap($x, $$optypes{$x}->get_decl('', {VarArrays2Ptrs=>1}), "ST($cnt)");
                 $clause3 .= indent("$x = " . (exists $defaults->{$x}
                   ? "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)"
                   : $setter) . ";\n",$ci);
