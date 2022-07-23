@@ -1069,18 +1069,10 @@ sub indent($$) {
 # This subroutine generates the XS code needed to call the perl 'initialize'
 # routine in order to create new output PDLs
 sub callPerlInit {
-    my $names = shift; # names of variables to initialize
-    my $ci    = shift; # current indenting
-    my $callcopy = $#_ > -1 ? shift : 0;
-    my $ret = '';
-    foreach my $name (@$names) {
-	my ($to_push, $method) = $callcopy
-	    ? ('parent', 'copy')
-	    : ('sv_2mortal(newSVpv(objname, 0))', 'initialize');
-	$ret .= PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_PERLINIT($name, $to_push, $method)\n");
-    }
-    indent($ret,$ci);
-} #sub callPerlInit()
+    my ($names, $callcopy) = @_;
+    my $args = $callcopy ? 'parent, copy' : 'sv_2mortal(newSVpv(objname, 0)), initialize';
+    join '', map PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_PERLINIT($_, $args)\n"), @$names;
+}
 
 ###########################################################
 # Name       : extract_signature_from_fulldoc
@@ -1577,7 +1569,7 @@ EOD
           }
         }
         my $ci = '  ';  # current indenting
-        my $pars = join "\n",map "$ci$_ = 0;", $sig->alldecls(1, 0);
+        my $pars = join "\n",map indent("$_ = 0;",$ci), $sig->alldecls(1, 0);
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
         my %tmp = map +($_=>1), $sig->names_tmp;
@@ -1596,12 +1588,12 @@ EOD
         # Generate declarations for SV * variables corresponding to pdl * output variables.
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
-        my $svdecls = join "\n", map "${ci}SV *${_}_SV = NULL;", $sig->names_out;
+        my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out;
         my $clause_inputs = ''; my %already_read; my $cnt = 0;
         foreach my $x (@args) {
             last if $out{$x} || $outca{$x} || $other{$x};
             $already_read{$x} = 1;
-            $clause_inputs .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
+            $clause_inputs .= indent("$x = PDL->SvPDLV(ST($cnt));\n",$ci);
             $cnt++;
         }
         my @create = ();  # The names of variables which need to be created by calling
@@ -1611,19 +1603,19 @@ EOD
         my $clause1 = $inplacecheck; $cnt = 0;
         foreach my $x (@args) {
             if ($other{$x}) {  # other par
-                $clause1 .= "$ci$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n";
+                $clause1 .= indent("$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n",$ci);
                 $cnt++;
             } elsif ($outca{$x}) {
                 push (@create, $x);
             } else {
-                $clause1 .= "$ci$x = PDL->SvPDLV(".
+                $clause1 .= indent("$x = PDL->SvPDLV(".
 		  ($out{$x} ? "${x}_SV = " : '').
-		  "ST($cnt));\n" if !$already_read{$x};
+		  "ST($cnt));\n",$ci) if !$already_read{$x};
                 $cnt++;
             }
         }
         # Add code for creating output variables via call to 'initialize' perl routine
-        $clause1 .= callPerlInit (\@create, $ci, $callcopy);
+        $clause1 .= indent(callPerlInit(\@create, $callcopy),$ci);
         @create = ();
         # clause for reading in input and creating output vars
         my $clause3 = '';
@@ -1632,19 +1624,19 @@ EOD
         foreach my $x (@args) {
             if ($other{$x}) {
                 my $setter = typemap($x, $$optypes{$x}, "ST($cnt)");
-                $clause3 .= "$ci$x = " . (exists $defaults->{$x}
+                $clause3 .= indent("$x = " . (exists $defaults->{$x}
                   ? "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)"
-                  : $setter) . ";\n";
+                  : $setter) . ";\n",$ci);
                 $cnt++;
             } elsif ($out{$x} || $outca{$x}) {
                 push (@create, $x);
             } else {
-                $clause3 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n" if !$already_read{$x};
+                $clause3 .= indent("$x = PDL->SvPDLV(ST($cnt));\n",$ci) if !$already_read{$x};
                 $cnt++;
             }
         }
         # Add code for creating output variables via call to 'initialize' perl routine
-        $clause3 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
+        $clause3 .= indent(callPerlInit(\@create, $callcopy),$ci); @create = ();
         my $defaults_cond = $ndefault ? " || $defaults_rawcond" : '';
         $clause3 = <<EOF . $clause3;
   else if (items == $nin$defaults_cond) { PDL_COMMENT("only input variables on stack, create outputs")
