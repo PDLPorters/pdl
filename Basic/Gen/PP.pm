@@ -1037,7 +1037,7 @@ sub typemap {
   $input =~ s/\$(var|\{var\})/$oname/g;
   $input =~ s/\$(arg|\{arg\})/$arg/g;
   $input =~ s/\$(type|\{type\})/$type/g;
-  return ($input);
+  return $input;
 }
 
 sub make_xs_code {
@@ -1619,14 +1619,14 @@ EOD
         my $defaults_rawcond = $ndefault ? "items == ($nin-$ndefault)" : '';
         $cnt = 0;
         foreach my $x (@args) {
-            if ($other{$x}) {
+            if ($out{$x} || $outca{$x}) {
+                push @create, $x;
+            } elsif ($other{$x}) {
                 my $setter = typemap($x, $$optypes{$x}->get_decl('', {VarArrays2Ptrs=>1}), "ST($cnt)");
                 $clause3 .= indent("$x = " . (exists $defaults->{$x}
                   ? "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)"
                   : $setter) . ";\n",$ci);
                 $cnt++;
-            } elsif ($out{$x} || $outca{$x}) {
-                push (@create, $x);
             } else {
                 $clause3 .= indent("$x = PDL->SvPDLV(ST($cnt));\n",$ci) if !$already_read{$x};
                 $cnt++;

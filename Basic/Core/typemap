@@ -10,7 +10,7 @@ PDL_Indx * T_PDL_DIMLIST
 INPUT
 
 T_PDL
-	$var = PDL_CORE_(SvPDLV)($arg);
+	$var = PDL_CORE_(SvPDLV)($arg)
 
 T_PDL_ANYVAL
 	ANYVAL_FROM_SV($var, $arg, FALSE, -1)
@@ -22,7 +22,7 @@ T_PDLTRANS
 	        croak(\"$var is not of type PDL::Trans\");
 
 T_PDL_SLICEARGS
-	$var = PDL_CORE_(slice_args_parse_sv)($arg);
+	$var = PDL_CORE_(slice_args_parse_sv)($arg)
 
 T_PDL_DIMLIST
 	PDL_Indx ${var}_count;
