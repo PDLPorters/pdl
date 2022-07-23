@@ -1027,13 +1027,12 @@ sub _load_typemap {
   $typemap_obj;
 }
 sub typemap {
-  my ($oname, $type, $arg) = @_;
+  my ($oname, $type, $arg, $method) = @_;
   $typemap_obj ||= _load_typemap();
   $type=ExtUtils::Typemaps::tidy_type($type);
-  my $inputmap = $typemap_obj->get_inputmap(ctype => $type);
+  my $inputmap = $typemap_obj->$method(ctype => $type);
   die "The type =$type= does not have a typemap entry!\n" unless $inputmap;
   my $input = $inputmap->code;
-  $input =~ s/^(.*?)=\s*//s; # Remove all before =
   $input =~ s/\$(var|\{var\})/$oname/g;
   $input =~ s/\$(arg|\{arg\})/$arg/g;
   $input =~ s/\$(type|\{type\})/$type/g;
@@ -1603,10 +1602,9 @@ EOD
             if ($outca{$x}) {
                 push @create, $x;
             } else {
-                $clause1 .= indent("$x = " .
-                  typemap($x, $$ptypes{$x}, ($out{$x} ? "${x}_SV = " : '')."ST($cnt)")
-                  . ";\n",$ci
-                ) if !$already_read{$x};
+                my $setter = typemap($x, $$ptypes{$x}, ($out{$x} ? "${x}_SV = " : '')."ST($cnt)", 'get_inputmap');
+                $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
+                $clause1 .= indent("$setter;\n",$ci) if !$already_read{$x};
                 $cnt++;
             }
         }
@@ -1621,9 +1619,9 @@ EOD
             if ($out{$x} || $outca{$x}) {
                 push @create, $x;
             } else {
-                my $setter = typemap($x, $$ptypes{$x}, "ST($cnt)");
-                $setter = "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
-                $clause3 .= indent("$x = $setter;\n",$ci) if !$already_read{$x};
+                my $setter = typemap($x, $$ptypes{$x}, "ST($cnt)", 'get_inputmap');
+                $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
+                $clause3 .= indent("$setter;\n",$ci) if !$already_read{$x};
                 $cnt++;
             }
         }
