@@ -1567,7 +1567,7 @@ EOD
         }
         my $ci = '  ';  # current indenting
         my $pars = join "\n",map indent("$_ = 0;",$ci), $sig->alldecls(1, 0);
-        $optypes = { (map +($_=>$$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1})), keys %$optypes) };
+        my $ptypes = { map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args };
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
         my %tmp = map +($_=>1), $sig->names_tmp;
@@ -1602,13 +1602,11 @@ EOD
         foreach my $x (@args) {
             if ($outca{$x}) {
                 push @create, $x;
-            } elsif ($other{$x}) {  # other par
-                $clause1 .= indent("$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n",$ci);
-                $cnt++;
             } else {
-                $clause1 .= indent("$x = PDL->SvPDLV(".
-		  ($out{$x} ? "${x}_SV = " : '').
-		  "ST($cnt));\n",$ci) if !$already_read{$x};
+                $clause1 .= indent("$x = " .
+                  typemap($x, $$ptypes{$x}, ($out{$x} ? "${x}_SV = " : '')."ST($cnt)")
+                  . ";\n",$ci
+                ) if !$already_read{$x};
                 $cnt++;
             }
         }
@@ -1622,14 +1620,10 @@ EOD
         foreach my $x (@args) {
             if ($out{$x} || $outca{$x}) {
                 push @create, $x;
-            } elsif ($other{$x}) {
-                my $setter = typemap($x, $$optypes{$x}, "ST($cnt)");
-                $clause3 .= indent("$x = " . (exists $defaults->{$x}
-                  ? "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)"
-                  : $setter) . ";\n",$ci);
-                $cnt++;
             } else {
-                $clause3 .= indent("$x = PDL->SvPDLV(ST($cnt));\n",$ci) if !$already_read{$x};
+                my $setter = typemap($x, $$ptypes{$x}, "ST($cnt)");
+                $setter = "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
+                $clause3 .= indent("$x = $setter;\n",$ci) if !$already_read{$x};
                 $cnt++;
             }
         }
