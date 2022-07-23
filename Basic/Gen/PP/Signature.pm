@@ -141,10 +141,11 @@ sub allobjs {
   +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]->otherobjs($_[1])} };
 }
 sub alldecls {
-  my ($self, $long, $for_xs) = @_;
-  return @{$self->allnames($for_xs)} if !$long;
+  my ($self, $long, $for_xs, $except) = @_;
+  return @{$self->allnames($for_xs)} if !$long && !$except;
   my $objs = $self->allobjs($for_xs);
-  map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1}), @{$self->allnames($for_xs)};
+  $except ||= {};
+  map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1}), grep !$except->{$_}, @{$self->allnames($for_xs)};
 }
 sub getcomp {
   my ($self) = @_;

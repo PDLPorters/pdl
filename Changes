@@ -2,6 +2,7 @@
 - add inflateN
 - fix MatrixOps::inv failing on native-complex (#403) - thanks @KJ7LNW for report
 - fix MatrixOps::identity losing class of invocant if ndarray (#401) - thanks @pryrt for report
+- change PP-generated XS PROTOTYPES to DISABLE
 
 2.080 2022-05-28
 - make IO::STL work on big-endian systems (#394) - thanks @sebastic for report

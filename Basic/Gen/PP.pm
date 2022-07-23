@@ -574,7 +574,7 @@ Core* PDL = NULL; PDL_COMMENT("Structure hold core C functions")
 
 MODULE = %1$s PACKAGE = %1$s
 
-PROTOTYPES: ENABLE
+PROTOTYPES: DISABLE
 
 int
 set_boundscheck(i)
@@ -1565,7 +1565,6 @@ EOD
           }
         }
         my $ci = '  ';  # current indenting
-        my $pars = join "\n",map indent("$_ = 0;",$ci), $sig->alldecls(1, 0);
         my $ptypes = { map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args };
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
@@ -1586,18 +1585,18 @@ EOD
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
         my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out;
-        my $clause_inputs = ''; my %already_read; my $cnt = 0;
+        my ($xsargs, $xsdecls) = ('', ''); my %already_read;
         foreach my $x (@args) {
             last if $out{$x} || $outca{$x} || $other{$x};
             $already_read{$x} = 1;
-            $clause_inputs .= indent("$x = PDL->SvPDLV(ST($cnt));\n",$ci);
-            $cnt++;
+            $xsargs .= "$x, "; $xsdecls .= "\n\tpdl *$x";
         }
+        my $pars = join "\n",map indent("$_ = 0;",$ci), $sig->alldecls(1, 0, \%already_read);
         my @create = ();  # The names of variables which need to be created by calling
                           # the 'initialize' perl routine from the correct package.
         $ci = '    ';  # Current indenting
         # clause for reading in all variables
-        my $clause1 = $inplacecheck; $cnt = 0;
+        my $clause1 = $inplacecheck; my $cnt = 0;
         foreach my $x (@args) {
             if ($outca{$x}) {
                 push @create, $x;
@@ -1635,9 +1634,8 @@ EOF
         $clause3 = '' if $nmaxonstack == $nin;
         my $clause3_coda = $clause3 ? '  }' : '';
         PDL::PP::pp_line_numbers(__LINE__, <<END);
-
-void
-$name(...)
+\nvoid
+$name($xsargs...)$xsdecls
  PREINIT:
   PDL_XS_PREAMBLE
 $svdecls
@@ -1646,7 +1644,6 @@ $pars
   if (items != $nmaxonstack && !(items == $nin$defaults_cond) && items != $ninout)
     croak (\"Usage:  PDL::$name($usageargs) (you may leave output variables out of list)\");
   PDL_XS_PACKAGEGET
-$clause_inputs
   if (items == $nmaxonstack) { PDL_COMMENT("all variables on stack, read in output vars")
     nreturn = $noutca;
 $clause1
@@ -1674,8 +1671,7 @@ END
         my $shortpars = join ',', $sig->alldecls(0, 1);
         my $longpars = join "\n", map "\t$_", $sig->alldecls(1, 1);
         return<<END;
-
-void
+\nvoid
 $name($shortpars)
 $longpars
 END
