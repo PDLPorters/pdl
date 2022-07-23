@@ -1567,6 +1567,7 @@ EOD
         }
         my $ci = '  ';  # current indenting
         my $pars = join "\n",map indent("$_ = 0;",$ci), $sig->alldecls(1, 0);
+        $optypes = { (map +($_=>$$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1})), keys %$optypes) };
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
         my %tmp = map +($_=>1), $sig->names_tmp;
@@ -1602,7 +1603,7 @@ EOD
             if ($outca{$x}) {
                 push @create, $x;
             } elsif ($other{$x}) {  # other par
-                $clause1 .= indent("$x = " . typemap($x, $$optypes{$x}->get_decl('', {VarArrays2Ptrs=>1}), "ST($cnt)") . ";\n",$ci);
+                $clause1 .= indent("$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n",$ci);
                 $cnt++;
             } else {
                 $clause1 .= indent("$x = PDL->SvPDLV(".
@@ -1622,7 +1623,7 @@ EOD
             if ($out{$x} || $outca{$x}) {
                 push @create, $x;
             } elsif ($other{$x}) {
-                my $setter = typemap($x, $$optypes{$x}->get_decl('', {VarArrays2Ptrs=>1}), "ST($cnt)");
+                my $setter = typemap($x, $$optypes{$x}, "ST($cnt)");
                 $clause3 .= indent("$x = " . (exists $defaults->{$x}
                   ? "($defaults_rawcond) ? ($defaults->{$x}) : ($setter)"
                   : $setter) . ";\n",$ci);
