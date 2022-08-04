@@ -272,19 +272,15 @@ set_debugging(i)
 	RETVAL
 
 
-SV *
+PDL_Anyval
 sclr_c(it)
    pdl* it
-   PREINIT:
-	PDL_Anyval result = { PDL_INVALID, {0} };
    CODE:
         /* get the first element of an ndarray and return as
          * Perl scalar (autodetect suitable type IV or NV)
          */
-        result = pdl_at0(it);
-        if (result.type < 0) croak("Position out of range");
-        ANYVAL_TO_SV(RETVAL, result);
-
+        RETVAL = pdl_at0(it);
+        if (RETVAL.type < 0) croak("Position out of range");
     OUTPUT:
         RETVAL
 

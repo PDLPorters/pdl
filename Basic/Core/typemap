@@ -34,7 +34,7 @@ T_PDL
 	PDL_CORE_(SetSV_PDL)($arg,$var);
 
 T_PDL_ANYVAL
-	ANYVAL_TO_SV($arg, $var)
+	ANYVAL_TO_SV($arg, $var);
 
 T_PDLTRANS
 	sv_setref_pv($arg, \"PDL::Trans\", (void*)$var);
