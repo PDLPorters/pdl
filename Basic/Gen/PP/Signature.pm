@@ -55,19 +55,15 @@ sub _otherPars_nft {
     my ($sig,$otherpars) = @_;
     my $dimobjs = $sig && $sig->dims_obj;
     my(@names,%types,$type);
-    # support 'int ndim => n;' syntax
     for (nospacesplit(';',$otherpars)) {
-	if (/^\s*([^=]+)\s*=>\s*(\S+)\s*$/) {
+	if (/^\s*([^=]+?)\s*=>\s*(\S+)\s*$/) {
+	    # support 'int ndim => n;' syntax
 	    my ($ctype,$dim) = ($1,$2);
-	    $ctype =~ s/\s+$//; # get rid of trailing ws
 	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
-	    $type = PDL::PP::CType->new($ctype);
 	    croak "can't set unknown dimension '$dim' from '$otherpars'"
 		unless defined($dimobjs->{$dim});
+	    $type = PDL::PP::CType->new($ctype);
 	    $dimobjs->{$dim}->set_from($type);
-	} elsif(/^\s*\(\s*void\s*\)/) {
-	    # suppressing unused param warning - skip
-	    next;
 	} else {
 	    $type = PDL::PP::CType->new($_);
 	}
