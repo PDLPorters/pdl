@@ -11,13 +11,12 @@ our %INVALID_PAR = map +($_=>1), qw(
 
 my $typeregex = join '|', map $_->ppforcetype, types;
 my $complex_regex = join '|', qw(real complex);
+our $sqbr_re = qr/\[([^]]*)\]/x;
 our $pars_re = qr/^
 	\s*(?:($complex_regex|$typeregex)\b([+]*)|)\s*	# $1,2: first option then plus
-	(?:
-	\[([^]]*)\]	# $3: The initial [option] part
-	)?\s*
-	(\w+)	  	# $4: The name
-	\(([^)]*)\)	# $5: The indices
+	(?:$sqbr_re)?\s*	# $3: The initial [option] part
+	(\w+)			# $4: The name
+	\(([^)]*)\)		# $5: The indices
 /x;
 my %flag2info = (
   io => [[qw(FlagW)]],
@@ -51,14 +50,14 @@ sub new {
 	# originally defined here, but were moved to PDL::PP for FullDoc parsing.
 	$string =~ $pars_re
 		 or confess "Invalid pdl def $string (regex $pars_re)\n";
-	my($opt1,$opt_plus,$opt2,$name,$inds) = map $_ // '', ($1,$2,$3,$4,$5);
-	print "PDL: '$opt1$opt_plus', '$opt2', '$name', '$inds'\n"
+	my($opt1,$opt_plus,$sqbr_opt,$name,$inds) = map $_ // '', $1,$2,$3,$4,$5;
+	print "PDL: '$opt1$opt_plus', '$sqbr_opt', '$name', '$inds'\n"
 		  if $::PP_VERBOSE;
 	croak "Invalid Pars name: $name"
 	  if $INVALID_PAR{$name};
 # Set my internal variables
 	$this->{Name} = $name;
-	$this->{Flags} = [(split ',',$opt2),($opt1?$opt1:())];
+	$this->{Flags} = [(split ',',$sqbr_opt),($opt1?$opt1:())];
 	for(@{$this->{Flags}}) {
 		confess("Invalid flag $_ given for $string\n")
 			unless my ($set, $store) = @{ $flag2info{$_} || [] };
