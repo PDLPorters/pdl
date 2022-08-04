@@ -123,12 +123,9 @@ sub othernames {
 sub otherobjs {
   my ($self, $for_xs) = @_;
   return $self->{OtherObjs} if $for_xs;
-  my $objs = $self->{OtherObjs};
-  my @raw_names = @{$self->{OtherNames}};
-  +{ map $objs->{$_}->is_array
-      ? ($_=>$objs->{$_}, "${_}_count"=>PDL::PP::CType->new("PDL_Indx ${_}_count"))
-      : ($_=>$objs->{$_}),
-      @raw_names };
+  my %objs = %{ $self->{OtherObjs} };
+  $objs{"${_}_count"} = PDL::PP::CType->new("PDL_Indx ${_}_count") for grep $objs{$_}->is_array, @{$self->{OtherNames}};
+  \%objs;
 }
 
 sub allnames { [(grep !$_[0]{Objects}{$_}{FlagTemp}, @{$_[0]{Names}}), @{$_[0]->othernames($_[1])}] }
