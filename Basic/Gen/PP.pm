@@ -1027,16 +1027,20 @@ sub _load_typemap {
   $typemap_obj;
 }
 sub typemap {
-  my ($oname, $type, $arg, $method) = @_;
+  my ($type, $method) = @_;
   $typemap_obj ||= _load_typemap();
   $type=ExtUtils::Typemaps::tidy_type($type);
   my $inputmap = $typemap_obj->$method(ctype => $type);
   die "The type =$type= does not have a typemap entry!\n" unless $inputmap;
-  my $input = $inputmap->code;
-  $input =~ s/\$(var|\{var\})/$oname/g;
-  $input =~ s/\$(arg|\{arg\})/$arg/g;
-  $input =~ s/\$(type|\{type\})/$type/g;
-  return $input;
+  ($inputmap->code, $type);
+}
+sub typemap_eval { # lifted from ExtUtils::ParseXS::Eval, ignoring eg $ALIAS
+  my ($code, $varhash) = @_;
+  my ($var, $type, $num, $init, $printed_name, $arg, $ntype, $argoff, $subtype)
+    = @$varhash{qw(var type num init printed_name arg ntype argoff subtype)};
+  my $rv = eval qq("$code");
+  die $@ if $@;
+  $rv;
 }
 
 sub make_xs_code {
@@ -1601,7 +1605,8 @@ EOD
             if ($outca{$x}) {
                 push @create, $x;
             } else {
-                my $setter = typemap($x, $$ptypes{$x}, ($out{$x} ? "${x}_SV = " : '')."ST($cnt)", 'get_inputmap');
+                my ($setter, $type) = typemap($$ptypes{$x}, 'get_inputmap');
+                $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($out{$x} ? "${x}_SV = " : '')."ST($cnt)"});
                 $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
                 $clause1 .= indent("$setter;\n",$ci) if !$already_read{$x};
                 $cnt++;
@@ -1618,7 +1623,8 @@ EOD
             if ($out{$x} || $outca{$x}) {
                 push @create, $x;
             } else {
-                my $setter = typemap($x, $$ptypes{$x}, "ST($cnt)", 'get_inputmap');
+                my ($setter, $type) = typemap($$ptypes{$x}, 'get_inputmap');
+                $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"ST($cnt)"});
                 $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
                 $clause3 .= indent("$setter;\n",$ci) if !$already_read{$x};
                 $cnt++;

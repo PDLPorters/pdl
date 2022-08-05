@@ -76,8 +76,6 @@ sub _otherPars_nft {
     return (\@names,\%types);
 }
 
-*with = \&new;
-
 =head1 AUTHOR
 
 Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu) and by Christian
