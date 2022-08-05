@@ -112,31 +112,33 @@ sub ind_names_sorted { @{$_[0]{IndNamesSorted}} }
 sub ind_index { $_[0]{Ind2Index}{$_[1]} }
 
 sub othernames {
-  my ($self, $for_xs) = @_;
+  my ($self, $for_xs, $except) = @_;
   return $self->{OtherNames} if $for_xs;
-  my $objs = $self->otherobjs($for_xs);
+  $except ||= {};
+  my $objs = $self->otherobjs($for_xs, $except);
   my @raw_names = @{$self->{OtherNames}};
-  [ map $objs->{$_}->is_array ? ($_, "${_}_count") : $_, @raw_names ];
+  [ map $objs->{$_}->is_array && !$except->{$_} ? ($_, "${_}_count") : $_, @raw_names ];
 }
 sub otherobjs {
-  my ($self, $for_xs) = @_;
+  my ($self, $for_xs, $except) = @_;
   return $self->{OtherObjs} if $for_xs;
+  $except ||= {};
   my %objs = %{ $self->{OtherObjs} };
-  $objs{"${_}_count"} = PDL::PP::CType->new("PDL_Indx ${_}_count") for grep $objs{$_}->is_array, @{$self->{OtherNames}};
+  $objs{"${_}_count"} = PDL::PP::CType->new("PDL_Indx ${_}_count") for grep $objs{$_}->is_array && !$except->{$_}, @{$self->{OtherNames}};
   \%objs;
 }
 
-sub allnames { [(grep !$_[0]{Objects}{$_}{FlagTemp}, @{$_[0]{Names}}), @{$_[0]->othernames($_[1])}] }
+sub allnames { [(grep !$_[0]{Objects}{$_}{FlagTemp}, @{$_[0]{Names}}), @{$_[0]->othernames(@_[1,2])}] }
 sub allobjs {
   my $pdltype = PDL::PP::CType->new("pdl *__foo__");
-  +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]->otherobjs($_[1])} };
+  +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]->otherobjs(@_[1,2])} };
 }
 sub alldecls {
   my ($self, $long, $for_xs, $except) = @_;
   return @{$self->allnames($for_xs)} if !$long && !$except;
-  my $objs = $self->allobjs($for_xs);
   $except ||= {};
-  map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1}), grep !$except->{$_}, @{$self->allnames($for_xs)};
+  my $objs = $self->allobjs($for_xs, $except);
+  map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1}), grep !$except->{$_}, @{$self->allnames($for_xs, $except)};
 }
 sub getcomp {
   my ($self) = @_;

@@ -1570,7 +1570,7 @@ EOD
           }
         }
         my $ci = '  ';  # current indenting
-        my $ptypes = { map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args };
+        my %ptypes = map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args;
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
         my %tmp = map +($_=>1), $sig->names_tmp;
@@ -1592,9 +1592,10 @@ EOD
         my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out;
         my ($xsargs, $xsdecls) = ('', ''); my %already_read;
         foreach my $x (@args) {
-            last if $out{$x} || $outca{$x} || $other{$x};
+            next if $outca{$x};
+            last if $out{$x} || ($other{$x} && exists $defaults->{$x});
             $already_read{$x} = 1;
-            $xsargs .= "$x, "; $xsdecls .= "\n\tpdl *$x";
+            $xsargs .= "$x, "; $xsdecls .= "\n\t$ptypes{$x}$x";
         }
         my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(1, 0, \%already_read);
         my @create = ();  # The names of variables which need to be created by calling
@@ -1606,7 +1607,7 @@ EOD
             if ($outca{$x}) {
                 push @create, $x;
             } else {
-                my ($setter, $type) = typemap($$ptypes{$x}, 'get_inputmap');
+                my ($setter, $type) = typemap($ptypes{$x}, 'get_inputmap');
                 $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($out{$x} ? "${x}_SV = " : '')."ST($cnt)"});
                 $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
                 $clause1 .= indent("$setter;\n",$ci) if !$already_read{$x};
@@ -1624,7 +1625,7 @@ EOD
             if ($out{$x} || $outca{$x}) {
                 push @create, $x;
             } else {
-                my ($setter, $type) = typemap($$ptypes{$x}, 'get_inputmap');
+                my ($setter, $type) = typemap($ptypes{$x}, 'get_inputmap');
                 $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"ST($cnt)"});
                 $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
                 $clause3 .= indent("$setter;\n",$ci) if !$already_read{$x};
