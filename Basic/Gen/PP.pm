@@ -1887,9 +1887,10 @@ EOF
       sub {
         my( $sname, $vtable, $pname, $ptype ) = @_;
         PDL::PP::pp_line_numbers(__LINE__, <<EOF);
-if (!PDL) croak("PDL core struct is NULL, can't continue");
+if (!PDL) return (pdl_error){PDL_EFATAL, "PDL core struct is NULL, can't continue",0};
 pdl_trans *$sname = PDL->create_trans(&$vtable);
-@{[$ptype ? "  $ptype *$pname = $sname->params;" : ""]}
+if (!$sname) return PDL->make_error_simple(PDL_EFATAL, "Couldn't create trans");
+@{[$ptype ? "$ptype *$pname = $sname->params;" : ""]}
 EOF
       }),
 
