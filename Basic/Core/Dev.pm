@@ -59,7 +59,6 @@ sub PDL_AUTO_INCLUDE {
   return << "EOR";
 #include <pdlcore.h>
 static Core* $symname; /* Structure holds core C functions */
-static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
 EOR
 }
 
@@ -74,7 +73,8 @@ sub PDL_BOOT {
 #define aTHX_
 #endif
    if (SvTRUE (ERRSV)) Perl_croak(aTHX_ "%s",SvPV_nolen (ERRSV));
-   if (!(CoreSV = perl_get_sv("PDL::SHARE",FALSE))) /* SV* value */
+   SV* CoreSV = perl_get_sv("PDL::SHARE",FALSE); /* var with core structure */
+   if (!CoreSV)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
    if (!($symname = INT2PTR(Core*,SvIV( CoreSV )))) /* Core* value */
      Perl_croak(aTHX_ "Got NULL pointer for $symname");

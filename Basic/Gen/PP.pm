@@ -562,7 +562,6 @@ PDL_COMMENT("   /* Memory access */                                         ")
 #define PDL %s
 extern Core* PDL; PDL_COMMENT("Structure hold core C functions")
 static int __pdl_boundscheck = 0;
-static SV* CoreSV;       PDL_COMMENT("Gets pointer to perl var holding core structure")
 
 #if ! %s
 # define PP_INDTERM(max, at) at

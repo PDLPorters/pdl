@@ -10,7 +10,6 @@
 #include "pdlsimple.h"
 
 static Core* PDL; /* Structure hold core C functions */
-SV* CoreSV;       /* Get's pointer to perl var holding core structure */
 
 /*
  * Call an external C routine loaded dynamically - pass PDL args list
@@ -58,7 +57,8 @@ _callext_int(...)
 
 BOOT:
    /* Get pointer to structure of core shared C routines */
-   if (!(CoreSV = perl_get_sv("PDL::SHARE",FALSE))) /* SV* value */
+   SV* CoreSV = perl_get_sv("PDL::SHARE",FALSE); /* var with core structure */
+   if (!CoreSV)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
    if (!(PDL = INT2PTR(Core*,SvIV( CoreSV )))) /* Core* value */
      Perl_croak(aTHX_ "Got NULL pointer for PDL");
