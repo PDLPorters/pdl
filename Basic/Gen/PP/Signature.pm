@@ -54,7 +54,7 @@ sub new {
 sub _otherPars_nft {
     my ($sig,$otherpars) = @_;
     my $dimobjs = $sig && $sig->dims_obj;
-    my(@names,%types,$type);
+    my (@names,%types,$type);
     for (nospacesplit(';',$otherpars)) {
 	if (/^\s*([^=]+?)\s*=>\s*(\S+)\s*$/) {
 	    # support 'int ndim => n;' syntax

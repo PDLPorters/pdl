@@ -537,7 +537,7 @@ do_tests(\%BADOTHERPARSFILES, qr/Invalid OtherPars name/);
 do_tests(\%BADPARSFILES, qr/Invalid Pars name/);
 
 sub do_tests {
-    my ($hash, $error_re) = @_;
+    my ($hash, $error_re, $dir) = @_;
     in_dir(
         sub {
             hash2files(File::Spec->curdir, $hash);
@@ -545,6 +545,7 @@ sub do_tests {
             run_ok(qq{"$^X" Makefile.PL});
             run_ok(qq{"$Config{make}" test}, $error_re);
         },
+        $dir,
     );
 }
 

@@ -1597,7 +1597,7 @@ EOD
             $already_read{$x} = 1;
             $xsargs .= "$x, "; $xsdecls .= "\n\tpdl *$x";
         }
-        my $pars = join "\n",map indent("$_ = 0;",$ci), $sig->alldecls(1, 0, \%already_read);
+        my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(1, 0, \%already_read);
         my @create = ();  # The names of variables which need to be created by calling
                           # the 'initialize' perl routine from the correct package.
         $ci = '    ';  # Current indenting
