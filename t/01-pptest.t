@@ -235,7 +235,7 @@ pp_deft('polyfill_pp',
 );
 
 # test valid non-single-letter GenericTypes arg
-pp_def( "rice_compress",
+pp_deft("rice_compress",
         Pars => 'in(n); [o]out(m); int[o]len(); lbuf(n)',
         GenericTypes =>['B','S','US','L'],
         Code => ';', # do nothing

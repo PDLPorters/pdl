@@ -9,7 +9,6 @@ my $AF = [map $_->ppsym, grep !$_->integer, types()]; # all including complex
 
 pp_addhdr('
 #include <math.h>
-#include "pdlperl.h"
 ');
 
 pp_add_exported( '',

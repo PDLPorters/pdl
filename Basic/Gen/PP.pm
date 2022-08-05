@@ -466,6 +466,8 @@ our $VERSION = "2.3";
 $VERSION = eval $VERSION;
 
 our $macros_xs = <<'EOF';
+#include "pdlperl.h"
+
 #define PDL_XS_PREAMBLE \
   char *objname = "PDL"; /* XXX maybe that class should actually depend on the value set \
                             by pp_bless ? (CS) */ \
