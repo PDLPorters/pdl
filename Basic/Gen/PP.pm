@@ -1558,7 +1558,7 @@ EOD
       sub {
         my($name,$sig,
            $hdrcode,$inplacecode,$inplacecheck,$callcopy,$defaults) = @_;
-        my $optypes = $sig->otherobjs(1);
+        my $optypes = $sig->otherobjs;
         my @args = $sig->alldecls(0, 1);
         my %other  = map +($_ => exists($$optypes{$_})), @args;
         if (keys %{ $defaults ||= {} } < keys %other) {
