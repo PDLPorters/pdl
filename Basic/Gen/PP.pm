@@ -1668,9 +1668,11 @@ END
       ["SignatureObj"],
       "Generate XS trailer to return output variables or leave them as modified input variables",
       sub {
-        my @outs = $_[0]->names_out; # names of output variables (in calling order)
+        my ($sig) = @_;
+        my @outs = $sig->names_out; # names of output ndarrays in calling order
         my $clause1 = join ';', map "ST($_) = $outs[$_]_SV", 0 .. $#outs;
-        PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
+        $clause1 = PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
+        $clause1;
       }),
 
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
@@ -1723,7 +1725,7 @@ EOF
    PDL::PP::Rule->new("NewXSSetTransPDLs", ["SignatureObj","StructName"], sub {
       my($sig,$trans) = @_;
       join '',
-        map PDL::PP::pp_line_numbers(__LINE__, "$trans->pdls[$_->[0]] = $_->[2];\n"),
+        map PDL::PP::pp_line_numbers(__LINE__-1, "$trans->pdls[$_->[0]] = $_->[2];\n"),
         grep !$_->[1], $sig->names_sorted_tuples;
    }),
 
