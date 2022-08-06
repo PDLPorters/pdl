@@ -128,8 +128,7 @@ sub allobjs {
   +{ ( map +($_,$pdltype), @{$_[0]{Names}} ), %{$_[0]->otherobjs} };
 }
 sub alldecls {
-  my ($self, $long, $for_xs, $except) = @_;
-  return @{$self->allnames($for_xs)} if !$long && !$except;
+  my ($self, $for_xs, $except) = @_;
   $except ||= {};
   my $objs = $self->allobjs;
   map $objs->{$_}->get_decl($_, {VarArrays2Ptrs=>1}), grep !$except->{$_}, @{$self->allnames($for_xs, $except)};

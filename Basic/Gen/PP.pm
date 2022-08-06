@@ -1559,7 +1559,7 @@ EOD
         my($name,$sig,
            $hdrcode,$inplacecode,$inplacecheck,$callcopy,$defaults) = @_;
         my $optypes = $sig->otherobjs;
-        my @args = $sig->alldecls(0, 1);
+        my @args = @{ $sig->allnames(1) };
         my %other  = map +($_ => exists($$optypes{$_})), @args;
         if (keys %{ $defaults ||= {} } < keys %other) {
           my $default_seen = '';
@@ -1597,7 +1597,7 @@ EOD
             $already_read{$x} = 1;
             $xsargs .= "$x, "; $xsdecls .= "\n\t$ptypes{$x}$x";
         }
-        my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(1, 0, \%already_read);
+        my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, \%already_read);
         my @create = ();  # The names of variables which need to be created by calling
                           # the 'initialize' perl routine from the correct package.
         $ci = '    ';  # Current indenting
@@ -1678,8 +1678,8 @@ END
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
       sub {
         my($name,$sig) = @_;
-        my $shortpars = join ',', $sig->alldecls(0, 1);
-        my $longpars = join "\n", map "\t$_", $sig->alldecls(1, 1);
+        my $shortpars = join ',', @{ $sig->allnames(1) };
+        my $longpars = join "\n", map "\t$_", $sig->alldecls(1);
         return<<END;
 \nvoid
 $name($shortpars)
@@ -1690,7 +1690,7 @@ END
    PDL::PP::Rule->new("NewXSCHdrs", ["RunFuncName","SignatureObj","GlobalNew"],
       sub {
         my($name,$sig,$gname) = @_;
-        my $longpars = join ",", $sig->alldecls(1, 0);
+        my $longpars = join ",", $sig->alldecls(0);
         my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
         my $closing = 'return PDL_err;';
         return ["pdl_error $name($longpars) {$opening","$closing}",
@@ -1698,8 +1698,8 @@ END
       }),
    PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
         my ($func_name,$sig) = @_;
-        my $shortpars = join ',', $sig->alldecls(0, 0);
-        my $longpars = join ",", $sig->alldecls(1, 0);
+        my $shortpars = join ',', @{ $sig->allnames(0) };
+        my $longpars = join ",", $sig->alldecls(0);
         (PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error($func_name($shortpars));"),
           "pdl_error $func_name($longpars)");
       }),
