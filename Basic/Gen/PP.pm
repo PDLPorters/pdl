@@ -1779,7 +1779,7 @@ sub make_vfn_args {
 }
 ()},
 
-   PDL::PP::Rule->new("MakeCompOther", "SignatureObj", sub { $_[0]->getcopy }),
+   PDL::PP::Rule->new("MakeCompOther", [qw(SignatureObj ParamStructName)], sub { $_[0]->getcopy("$_[1]->%s") }),
    PDL::PP::Rule->new("MakeCompTotal", ["MakeCompOther", \"MakeComp"], sub { join "\n", grep $_, @_ }),
    PDL::PP::Rule::Substitute->new("MakeCompiledReprSubd", "MakeCompTotal"),
 

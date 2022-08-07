@@ -148,10 +148,10 @@ sub getfree {
     { VarArrays2Ptrs => 1 }), @{$self->othernames(0)};
 }
 sub getcopy {
-  my ($self) = @_;
+  my ($self, $to_pat) = @_;
   my $objs = $self->otherobjs;
   PDL::PP::pp_line_numbers(__LINE__,
-    join '', map $objs->{$_}->get_copy($_,"\$COMP($_)"), @{$self->othernames(0)}
+    join '', map $objs->{$_}->get_copy($_,sprintf $to_pat,$_), @{$self->othernames(0)}
   );
 }
 
