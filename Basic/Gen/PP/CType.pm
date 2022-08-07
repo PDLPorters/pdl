@@ -50,6 +50,7 @@ sub get_decl {
 			}
 		} else { confess("Invalid decl @$_") }
 	}
+	$name = "*$name" if $opts->{AddIndirect};
 	return "$this->{Base} $name";
 }
 

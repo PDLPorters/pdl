@@ -1626,6 +1626,36 @@ and use it in the code:
 where I have removed a macro wrapper call, but that would obscure the
 discussion.
 
+=head3 OtherPars as outputs
+
+As of 2.081, you can specify an C<OtherPar> as an output. This looks like:
+
+    pp_def('output_op',
+      Pars => 'in(n=2)',
+      OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
+      Code => '
+        pdl_datatypes dt = $PDL(in)->datatype;
+        ANYVAL_FROM_CTYPE($COMP(v0), dt, $in(n=>0));
+        ANYVAL_FROM_CTYPE($COMP(v1), dt, $in(n=>1));
+      ',
+    );
+
+The passed-in stack SV will be mutated in place, so this code will then work:
+
+    output_op([5,7], my $v0, my $v1);
+    is_deeply [$v0,$v1], [5,7], 'output OtherPars work';
+
+An operation with output C<OtherPars> cannot broadcast, since that would
+cause undefined results. A runtime check is generated that throws an
+exception if any C<Par> would cause broadcasting.
+
+Note the syntax for C<OtherPars> has C<[o]> go I<before> the type, while
+it goes I<after> the type in C<Pars>. It was felt this was the best way
+to avoid ambiguity given C types can have C<[]> in them.
+
+This relies on the relevant C<OtherPar> having an C<OUTPUT> entry in an
+XS typemap.
+
 =head2 Other useful PP keys in data operation definitions
 
 You have already heard about the C<OtherPars> key. Currently, there are not

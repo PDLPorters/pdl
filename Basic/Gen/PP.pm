@@ -381,7 +381,7 @@ sub dosubst_private {
       @pairs,
       ((ref $src) ? %{$src->[1]} : ()),
       PRIV => sub {return "$sname->$_[0]"},
-      COMP => sub {return "$pname->$_[0]"},
+      COMP => sub {my $r="$pname->$_[0]";$sig->other_is_out($_[0])?"(*($r))":$r},
       CROAK => sub {PDL::PP::pp_line_numbers(__LINE__-1, "return PDL->make_error(PDL_EUSERERROR, \"Error in $name:\" @{[join ',', @_]})")},
       NAME => sub {return $name},
       MODULE => sub {return $::PDLMOD},
@@ -1573,6 +1573,7 @@ EOD
         my %ptypes = map +($_=>$$optypes{$_} ? $$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1}) : 'pdl *'), @args;
         my %out = map +($_=>1), $sig->names_out_nca;
         my %outca = map +($_=>1), $sig->names_oca;
+        my %other_out = map +($_=>1), $sig->other_out;
         my %tmp = map +($_=>1), $sig->names_tmp;
         # remember, otherpars *are* input vars
         my $nout   = grep $_, values %out;
@@ -1590,25 +1591,28 @@ EOD
         # These are used in creating output variables.  One variable (ex: SV * outvar1_SV;)
         # is needed for each output and output create always argument
         my $svdecls = join "\n", map indent("SV *${_}_SV = NULL;",$ci), $sig->names_out;
-        my ($xsargs, $xsdecls) = ('', ''); my %already_read;
+        my ($xsargs, $xsdecls) = ('', ''); my %already_read; my $cnt = 0; my %outother2cnt;
         foreach my $x (@args) {
             next if $outca{$x};
             last if $out{$x} || ($other{$x} && exists $defaults->{$x});
             $already_read{$x} = 1;
             $xsargs .= "$x, "; $xsdecls .= "\n\t$ptypes{$x}$x";
+            $outother2cnt{$x} = $cnt if $other{$x} && $other_out{$x};
+            $cnt++;
         }
-        my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, \%already_read);
+        my $pars = join "\n",map indent("$_;",$ci), $sig->alldecls(0, 0, \%already_read);
+        $svdecls = join "\n", grep length, $svdecls, map indent(qq{SV *${_}_SV = @{[defined($outother2cnt{$_})?"ST($outother2cnt{$_})":'NULL']};},$ci), $sig->other_out;
         my @create = ();  # The names of variables which need to be created by calling
                           # the 'initialize' perl routine from the correct package.
         $ci = '    ';  # Current indenting
         # clause for reading in all variables
-        my $clause1 = $inplacecheck; my $cnt = 0;
+        my $clause1 = $inplacecheck; $cnt = 0;
         foreach my $x (@args) {
             if ($outca{$x}) {
                 push @create, $x;
             } else {
                 my ($setter, $type) = typemap($ptypes{$x}, 'get_inputmap');
-                $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($out{$x} ? "${x}_SV = " : '')."ST($cnt)"});
+                $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($out{$x}||$other_out{$x} ? "${x}_SV = " : '')."ST($cnt)"});
                 $setter =~ s/.*?(?=$x\s*=\s*)//s; # zap any declarations like whichdims_count
                 $clause1 .= indent("$setter;\n",$ci) if !$already_read{$x};
                 $cnt++;
@@ -1626,7 +1630,7 @@ EOD
                 push @create, $x;
             } else {
                 my ($setter, $type) = typemap($ptypes{$x}, 'get_inputmap');
-                $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"ST($cnt)"});
+                $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>($other_out{$x} ? "${x}_SV = " : '')."ST($cnt)"});
                 $setter =~ s/^(.*?)=\s*//s, $setter = "$x = ($defaults_rawcond) ? ($defaults->{$x}) : ($setter)" if exists $defaults->{$x};
                 $clause3 .= indent("$setter;\n",$ci) if !$already_read{$x};
                 $cnt++;
@@ -1672,6 +1676,18 @@ END
         my @outs = $sig->names_out; # names of output ndarrays in calling order
         my $clause1 = join ';', map "ST($_) = $outs[$_]_SV", 0 .. $#outs;
         $clause1 = PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
+        my @other_out = $sig->other_out;
+        my $optypes = $sig->otherobjs;
+        my %ptypes = map +($_=>$$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1})), @other_out;
+        for my $x (@other_out) {
+          my ($setter, $type) = typemap($ptypes{$x}, 'get_outputmap');
+          $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"tsv"});
+          $clause1 = <<EOF . $clause1;
+{ SV *tsv = NULL;
+$setter
+sv_setsv(${x}_SV, tsv); sv_2mortal(tsv); }
+EOF
+        }
         $clause1;
       }),
 
@@ -1679,7 +1695,7 @@ END
       sub {
         my($name,$sig) = @_;
         my $shortpars = join ',', @{ $sig->allnames(1) };
-        my $longpars = join "\n", map "\t$_", $sig->alldecls(1);
+        my $longpars = join "\n", map "\t$_", $sig->alldecls(1, 0);
         return<<END;
 \nvoid
 $name($shortpars)
@@ -1690,7 +1706,7 @@ END
    PDL::PP::Rule->new("NewXSCHdrs", ["RunFuncName","SignatureObj","GlobalNew"],
       sub {
         my($name,$sig,$gname) = @_;
-        my $longpars = join ",", $sig->alldecls(0);
+        my $longpars = join ",", $sig->alldecls(0, 1);
         my $opening = 'pdl_error PDL_err = {0, NULL, 0};';
         my $closing = 'return PDL_err;';
         return ["pdl_error $name($longpars) {$opening","$closing}",
@@ -1698,8 +1714,8 @@ END
       }),
    PDL::PP::Rule->new(["RunFuncCall","RunFuncHdr"],["RunFuncName","SignatureObj"], sub {
         my ($func_name,$sig) = @_;
-        my $shortpars = join ',', @{ $sig->allnames(0) };
-        my $longpars = join ",", $sig->alldecls(0);
+        my $shortpars = join ',', map $sig->other_is_out($_)?"&$_":$_, @{ $sig->allnames(0) };
+        my $longpars = join ",", $sig->alldecls(0, 1);
         (PDL::PP::pp_line_numbers(__LINE__-1, "PDL->barf_if_error($func_name($shortpars));"),
           "pdl_error $func_name($longpars)");
       }),
@@ -1954,6 +1970,7 @@ EOF
         push @op_flags, 'PDL_TRANS_BADPROCESS' if $badflag;
         push @op_flags, 'PDL_TRANS_BADIGNORE' if defined $badflag and !$badflag;
         push @op_flags, 'PDL_TRANS_NO_PARALLEL' if $noPthreadFlag;
+        push @op_flags, 'PDL_TRANS_OUTPUT_OTHERPAR' if $sig->other_any_out;
         my $op_flags = join('|', @op_flags) || '0';
         my $iflags = join('|', grep $_, $affflag, $revflag, $flowflag) || '0';
         my $gentypes_txt = join(", ", (map PDL::Type->new($_)->sym, @$gentypes), '-1');

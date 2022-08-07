@@ -241,6 +241,25 @@ pp_deft("rice_compress",
         Code => ';', # do nothing
 );
 
+pp_deft('output_op',
+  Pars => 'in(n=2)',
+  OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
+  Code => '
+    pdl_datatypes dt = $PDL(in)->datatype;
+    ANYVAL_FROM_CTYPE($COMP(v0), dt, $in(n=>0));
+    ANYVAL_FROM_CTYPE($COMP(v1), dt, $in(n=>1));
+  ',
+);
+pp_deft('output_op2',
+  Pars => 'in(n=2); [o] out()',
+  OtherPars => '[o] PDL_Anyval v0; [o] PDL_Anyval v1',
+  Code => '
+    pdl_datatypes dt = $PDL(in)->datatype;
+    ANYVAL_FROM_CTYPE($COMP(v0), dt, $in(n=>0));
+    ANYVAL_FROM_CTYPE($COMP(v1), dt, $in(n=>1));
+  ',
+);
+
 pp_done;
 
 # this tests the bug with a trailing comment and *no* newline
@@ -367,6 +386,16 @@ test_Cpow(sequence(2), 1);
 test_polyfill_pp(zeroes(5,5), ones(2,3), 1);
 
 is test_succ(2)."", 3, 'test pp_add_macros works';
+
+test_output_op([5,7], my $v0, my $v1);
+is_deeply [$v0,$v1], [5,7], 'output OtherPars work';
+eval { test_output_op(sequence(2,3), my $v0, my $v1) };
+isnt $@, '', 'broadcast with output OtherPars throws';
+
+test_output_op2([5,7], my $v0_2, my $v1_2);
+is_deeply [$v0_2,$v1_2], [5,7], 'output OtherPars work 2';
+eval { test_output_op2(sequence(2,3), my $v0_2, my $v1_2) };
+isnt $@, '', 'broadcast with output OtherPars throws 2';
 
 done_testing;
 EOF

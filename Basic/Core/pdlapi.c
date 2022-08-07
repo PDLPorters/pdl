@@ -1180,5 +1180,12 @@ pdl_error pdl_trans_check_pdls(pdl_trans *trans) {
     if (!pdls[i])
       return pdl_make_error(PDL_EFATAL, "%s got NULL pointer on param %s", vtable->name, vtable->par_names[i]);
   }
+  if (vtable->flags & PDL_TRANS_OUTPUT_OTHERPAR)
+    for (i = 0; i < vtable->npdls; i++)
+      if (!(trans->pdls[i]->state & PDL_NOMYDIMS) && trans->pdls[i]->ndims > vtable->par_realdims[i])
+        return pdl_make_error(PDL_EUSERERROR,
+          "Can't broadcast with output OtherPars but par '%s' has %"IND_FLAG" dims, > %"IND_FLAG"!",
+          vtable->par_names[i], trans->pdls[i]->ndims, vtable->par_realdims[i]
+        );
   return PDL_err;
 }
