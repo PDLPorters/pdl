@@ -94,6 +94,38 @@ ok all( approx( conv2d($pb,$pa,{Boundary => 'Truncate'}), $ans )), "conv2d trunc
 }
 
 {
+  my $realmask=ones(3,3)/9;
+  my $realseq=sequence(3,3);
+  my $imagmask=$realmask*i();
+  my $imagseq=$realseq*i();
+  my $real_exp = <<EOF;
+\n[
+ [4 4 4]
+ [4 4 4]
+ [4 4 4]
+]
+EOF
+  my $neg_exp = <<EOF;
+\n[
+ [-4 -4 -4]
+ [-4 -4 -4]
+ [-4 -4 -4]
+]
+EOF
+  my $imag_exp = <<EOF;
+\n[
+ [4i 4i 4i]
+ [4i 4i 4i]
+ [4i 4i 4i]
+]
+EOF
+  is $realseq->conv2d($realmask).'', $real_exp, "Real matrix real mask";
+  is $imagseq->conv2d($realmask).'', $imag_exp, "Imag matrix real mask";
+  is $realseq->conv2d($imagmask).'', $imag_exp, "Real matrix imag mask";
+  is $imagseq->conv2d($imagmask).'', $neg_exp, "Imag matrix imag mask";
+}
+
+{
 # max2d_ind
 my $pa = 100 / (1.0 + rvals(5,5));
 $pa = $pa * ( $pa < 90 );

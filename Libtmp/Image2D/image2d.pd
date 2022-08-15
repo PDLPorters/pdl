@@ -1,6 +1,7 @@
 use strict;
 use warnings;
-
+use PDL::Types qw(ppdefs_all);
+my $A = [ppdefs_all];
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
 use warnings;
@@ -263,8 +264,9 @@ sub PDL::conv2d {
    return $c;
 }
 ',
+        GenericTypes => $A,
         Code =>
-           init_vars( { vars => 'PDL_Double tmp; int flag;' } ) .
+           init_vars( { vars => 'PDL_CLDouble tmp; int flag;' } ) .
            init_map("i") .
            init_map("j") .
 '
@@ -330,7 +332,7 @@ EOD
 'Bad values are ignored in the calculation. If all elements within the
 kernel are bad, the output is set bad.',
        HandleBad => 1,
-        Pars => 'a(m,n); kern(p,q); [o]b(m,n); double [t]tmp(pq);',
+        Pars => 'a(m,n); kern(p,q); [o]b(m,n); double+ [t]tmp(pq);',
         OtherPars => 'int opt;',
         PMCode => <<'EOF',
 sub PDL::med2d {
@@ -351,10 +353,11 @@ sub PDL::med2d {
 EOF
         RedoDimsCode => '$SIZE(pq) = $SIZE(p)*$SIZE(q);',
         Code =>
-           init_vars( { vars => 'PDL_Double kk, aa; int flag;' } ) .
+           init_vars( { vars => 'int flag;' } ) .
            init_map("i") .
            init_map("j") .
 '
+           PDL_LDouble kk, aa;
            broadcastloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
@@ -480,13 +483,14 @@ EOH
 pp_def('box2d',
        Pars => 'a(n,m); [o] b(n,m)',
        OtherPars => 'int wx; int wy; int edgezero',
+       GenericTypes => $A,
        Code => '
                 register int nx = 0.5*$COMP(wx);
                 register int ny = 0.5*$COMP(wy);
                 register int xs = $SIZE(n);
                 register int ys = $SIZE(m);
 		register int ez = $COMP(edgezero);
-                double div, sum, lsum;
+                PDL_CLDouble div, sum, lsum;
                 int xx,yy,y,ind1,ind2,first;
 
 		div = 1/((2.0*nx+1)*(2.0*ny+1));
@@ -586,9 +590,10 @@ EOD
 'This routine does not handle bad values - use L</patchbad2d> instead',
        HandleBad => 0,
         Pars => 'a(m,n); int bad(m,n); [o]b(m,n);',
+        GenericTypes => $A,
         Code =>
-        'int m_size, n_size,  i,j, i1,j1, i2,j2, norm;
-         double tmp;
+        'PDL_Indx m_size, n_size,  i,j, i1,j1, i2,j2, norm;
+         PDL_CLDouble tmp;
 
          m_size = $SIZE(m); n_size = $SIZE(n);
 
@@ -650,6 +655,7 @@ EOD
 bad values, depending on the pattern of bad values in the input ndarray.',
        HandleBad => 1,
         Pars => 'a(m,n); [o]b(m,n);',
+        GenericTypes => $A,
         Code =>
         'int i1,j1, flag = 0;
          PDL_Indx m_size = $SIZE(m), n_size = $SIZE(n);
@@ -658,7 +664,7 @@ bad values, depending on the pattern of bad values in the input ndarray.',
             loop(m) %{
 	       $GENERIC(a) a_val = $a();
                PDL_IF_BAD(if ( !$ISGOODVAR(a_val,a) ) {
-                  double tmp = 0; PDL_Indx norm=0;
+                  PDL_CLDouble tmp = 0; PDL_Indx norm=0;
                   for(j1=-1; j1<=1; j1++) {
 		     PDL_Indx j2 = n+j1;
 		     if ( j2>=0 && j2<n_size ) {
@@ -718,7 +724,7 @@ EOD
        HandleBad => 1,
         Pars => 'a(m,n); [o]val(); int [o]x(); int[o]y();',
         Code => '
-        double cur = 0;
+        PDL_LDouble cur = 0;
         PDL_Indx curind1 = PDL_IF_BAD(-1,0), curind2 = PDL_IF_BAD(-1,0);
         loop(m) %{
            loop(n) %{
@@ -758,7 +764,7 @@ EOD
 	Pars => 'im(m,n); x(); y(); box(); [o]xcen(); [o]ycen();',
 	Code => '
    PDL_Indx i,j,i1,i2,j1,j2,m_size = $SIZE(m),n_size = $SIZE(n);
-   double sum,data,sumx,sumy;
+   PDL_LDouble sum,data,sumx,sumy;
    i1 = $x() - $box()/2; i1 = i1<0 ? 0 : i1;
    i2 = $x() + $box()/2; i2 = i2>=m_size ? m_size-1 : i2;
    j1 = $y() - $box()/2; j1 = j1<0 ? 0 : j1;
@@ -1215,6 +1221,7 @@ rotnewsz(m,n,angle)
 pp_def('rot2d',
        HandleBad => 0,
 	Pars => 'im(m,n); float angle(); bg(); int aa(); [o] om(p,q)',
+	GenericTypes => $A,
 	Code => 'int ierr;
 		 if ((ierr = rotate($P(im),$P(om),$SIZE(m),$SIZE(n),$SIZE(p),
 			$SIZE(q),$angle(),$bg(),$aa())) != 0) {
@@ -1279,9 +1286,10 @@ ndarray which is supposed to be larger than the first one.
 
 EOD
 ,
+    GenericTypes => $A,
     Code =>'
-  int i,j,ii,jj,ii1,jj1,num;
-  double x,y,dx,dy,y1,y2,y3,y4,t,u,sum;
+  PDL_Indx i,j,ii,jj,ii1,jj1,num;
+  PDL_CLDouble x,y,dx,dy,y1,y2,y3,y4,t,u,sum;
 
   if ($SIZE(q)>=$SIZE(n) && $SIZE(p)>=$SIZE(m)) {
     broadcastloop %{
@@ -1331,9 +1339,10 @@ rescale2d.
 
 EOD
 ,
+    GenericTypes => $A,
     Code =>'
-int ix,iy,ox,oy,i,j,lx,ly,cx,cy,xx,yy,num;
-double kx,ky,temp;
+PDL_Indx ix,iy,ox,oy,i,j,lx,ly,cx,cy,xx,yy,num;
+PDL_CLDouble kx,ky,temp;
 
 ix = $SIZE(m);
 iy = $SIZE(n);
@@ -2021,9 +2030,9 @@ pp_def(
     'warp2d',
     Doc=> undef,
     HandleBad => 0,
-    Pars => 'img(m,n); double px(np,np); double py(np,np); [o] warp(m,n);',
+    Pars => 'img(m,n); ldouble px(np,np); ldouble py(np,np); [o] warp(m,n);',
     OtherPars => 'char *kernel_type; double noval;',
-    GenericTypes => [ 'F', 'D' ],
+    GenericTypes => [ qw(F D E) ],
         PMCode => '
 
 sub PDL::warp2d {
@@ -2048,18 +2057,9 @@ sub PDL::warp2d {
 ',
     Code => '
 
-    int         	i, j, k ;
-    PDL_Indx         	ncoeff, lx_out, ly_out ;
-    PDL_Indx         	lx_3, ly_3 ;
-    double       	cur ;
-    double       	neighbors[16] ;
-    double       	rsc[8],
-					sumrs ;
-    double       	x, y ;
-    int     		px, py ;
-    int         	tabx, taby ;
-    double              *kernel, *poly ;
-    int		      	da[16], db[16] ;
+    PDL_Indx ncoeff, lx_out, ly_out, i, j, k, lx_3, ly_3, px, py, tabx, taby;
+    PDL_Indx da[16], db[16] ;
+    PDL_LDouble cur, neighbors[16], rsc[8], sumrs, x, y, *kernel, *poly ;
 
     /* Generate default interpolation kernel */
     kernel = generate_interpolation_kernel( $COMP(kernel_type) ) ;
@@ -2096,7 +2096,7 @@ sub PDL::warp2d {
     da[15] =  2;  db[15] =  2;
 
     /* allocate memory for polynomial */
-    poly = malloc( ncoeff * sizeof(double) );
+    poly = malloc( ncoeff * sizeof(PDL_LDouble) );
     if ( poly == NULL ) {
       $CROAK( "Ran out of memory\n" );
     }
@@ -2108,14 +2108,14 @@ sub PDL::warp2d {
 
 	    /* fill in poly array */
 	    for ( k = 1; k < ncoeff; k++ ) {
-		poly[k] = (double) n * poly[k-1];
+		poly[k] = (PDL_LDouble) n * poly[k-1];
             }
 
 	    loop(m) %{
 
 		/* Compute the original source for this pixel   */
-                x = poly2d_compute( ncoeff, $P(px), (double) m, poly );
-                y = poly2d_compute( ncoeff, $P(py), (double) m, poly );
+                x = poly2d_compute( ncoeff, $P(px), (PDL_LDouble) m, poly );
+                y = poly2d_compute( ncoeff, $P(py), (PDL_LDouble) m, poly );
 
 		/* Which is the closest integer positioned neighbor? */
 		px = (int)x ;
@@ -2128,12 +2128,12 @@ sub PDL::warp2d {
 		    /* Now feed the positions for the closest 16 neighbors  */
 		    for (k=0 ; k<16 ; k++) {
 			i = px + da[k]; j = py + db[k];
-			neighbors[k] = (double) $img( m => i, n => j );
+			neighbors[k] = (PDL_LDouble) $img( m => i, n => j );
 		    }
 
 		    /* Which tabulated value index shall we use?    */
-		    tabx = (x - (double)px) * (double)(TABSPERPIX) ;
-		    taby = (y - (double)py) * (double)(TABSPERPIX) ;
+		    tabx = (x - (PDL_LDouble)px) * (PDL_LDouble)(TABSPERPIX) ;
+		    taby = (y - (PDL_LDouble)py) * (PDL_LDouble)(TABSPERPIX) ;
 
 		    /* Compute resampling coefficients  */
 		    /* rsc[0..3] in x, rsc[4..7] in y   */
@@ -2244,10 +2244,10 @@ sub PDL::warp2d_kernel ($) {
 ',
      Pars => '[o] x(n); [o] k(n);',
      OtherPars => 'char *name;',
-     GenericTypes => [ 'D' ],
+     GenericTypes => [ qw(F D E) ],
      Code => '
 
-    double     *kernel, xx;
+    PDL_LDouble     *kernel, xx;
 
     if ( $SIZE(n) != KERNEL_SAMPLES ) {
 	$CROAK( "Internal error in warp2d_kernel - mismatch in kernel size\n" );
@@ -2271,6 +2271,6 @@ sub PDL::warp2d_kernel ($) {
     /* free the kernel */
     kernel_free( kernel );
 
-'); # pp_addpm
+');
 
 pp_done();

@@ -27,9 +27,9 @@
  */
 /*--------------------------------------------------------------------------*/
 
-double ipow(double x, int p)
+long double ipow(long double x, int p)
 {
-	double r, recip ;
+	long double r, recip ;
 
 	/* Get rid of trivial cases */
 	switch (p) {
@@ -68,9 +68,9 @@ double ipow(double x, int p)
  *   little point in pre-calculating ipow(u,i)
  */
 
-double
-poly2d_compute( int ncoeff, double *c, double u, double *vpow ) {
-  double out;
+long double
+poly2d_compute( int ncoeff, long double *c, long double u, long double *vpow ) {
+  long double out;
   int    i, j, k;
 
   out = 0.00;
@@ -120,20 +120,20 @@ sinc(double x)
 /*--------------------------------------------------------------------------*/
 
 #define KERNEL_SW(a,b) tempr=(a);(a)=(b);(b)=tempr
-static void reverse_tanh_kernel(double * data, int nn)
+static void reverse_tanh_kernel(long double * data, int nn)
 {
     unsigned long   n,
 					mmax,
 					m,
 					i, j,
 					istep ;
-    double  wtemp,
+    long double  wtemp,
             wr,
             wpr,
             wpi,
             wi,
             theta;
-    double  tempr,
+    long double  tempr,
             tempi;
 
     n = (unsigned long)nn << 1;
@@ -202,34 +202,34 @@ static void reverse_tanh_kernel(double * data, int nn)
 
 #define hk_gen(x,s) (((tanh(s*(x+0.5))+1)/2)*((tanh(s*(-x+0.5))+1)/2))
 
-double * generate_tanh_kernel(double steep)
+long double * generate_tanh_kernel(long double steep)
 {
-    double  *   kernel ;
-    double  *   x ;
-    double      width ;
-    double      inv_np ;
-    double      ind ;
+    long double  *   kernel ;
+    long double  *   x ;
+    long double      width ;
+    long double      inv_np ;
+    long double      ind ;
     int         i ;
     int         np ;
     int         samples ;
 
-    width   = (double)TABSPERPIX / 2.0 ; 
+    width   = (long double)TABSPERPIX / 2.0 ;
     samples = KERNEL_SAMPLES ;
     np      = 32768 ; /* Hardcoded: should never be changed */
-    inv_np  = 1.00 / (double)np ;
+    inv_np  = 1.00 / (long double)np ;
 
     /*
      * Generate the kernel expression in Fourier space
      * with a correct frequency ordering to allow standard FT
      */
-    x = (double *) malloc((2*np+1)*sizeof(double)) ;
+    x = (long double *) malloc((2*np+1)*sizeof(long double)) ;
     for (i=0 ; i<np/2 ; i++) {
-        ind      = (double)i * 2.0 * width * inv_np ;
+        ind      = (long double)i * 2.0 * width * inv_np ;
         x[2*i]   = hk_gen(ind, steep) ;
         x[2*i+1] = 0.00 ;
     }
     for (i=np/2 ; i<np ; i++) {
-        ind      = (double)(i-np) * 2.0 * width * inv_np ;
+        ind      = (long double)(i-np) * 2.0 * width * inv_np ;
         x[2*i]   = hk_gen(ind, steep) ;
         x[2*i+1] = 0.00 ;
     }
@@ -242,7 +242,7 @@ double * generate_tanh_kernel(double steep)
     /*
      * Allocate and fill in returned array
      */
-    kernel = (double *) malloc(samples * sizeof(double)) ;
+    kernel = (long double *) malloc(samples * sizeof(long double)) ;
     for (i=0 ; i<samples ; i++) {
         kernel[i] = 2.0 * width * x[2*i] * inv_np ;
     }
@@ -278,14 +278,14 @@ double * generate_tanh_kernel(double steep)
  */
 /*--------------------------------------------------------------------------*/
 
-double   *
+long double   *
 generate_interpolation_kernel(char * kernel_type)
 {
-    double  *	tab ;
+    long double  *	tab ;
     int     	i ;
-    double  	x ;
-	double		alpha ;
-	double		inv_norm ;
+    long double  	x ;
+	long double		alpha ;
+	long double		inv_norm ;
     int     	samples = KERNEL_SAMPLES ;
 
 	if (kernel_type==NULL) {
@@ -293,26 +293,26 @@ generate_interpolation_kernel(char * kernel_type)
 	} else if (!strcmp(kernel_type, "default")) {
 		tab = generate_interpolation_kernel("tanh") ;
 	} else if (!strcmp(kernel_type, "sinc")) {
-		tab = (double *) malloc(samples * sizeof(double)) ;
+		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		tab[0] = 1.0 ;
 		tab[samples-1] = 0.0 ;
 		for (i=1 ; i<samples ; i++) {
-			x = (double)KERNEL_WIDTH * (double)i/(double)(samples-1) ;
+			x = (long double)KERNEL_WIDTH * (long double)i/(long double)(samples-1) ;
 			tab[i] = sinc(x) ;
 		}
 	} else if (!strcmp(kernel_type, "sinc2")) {
-		tab = (double *) malloc(samples * sizeof(double)) ;
+		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		tab[0] = 1.0 ;
 		tab[samples-1] = 0.0 ;
 		for (i=1 ; i<samples ; i++) {
-			x = 2.0 * (double)i/(double)(samples-1) ;
+			x = 2.0 * (long double)i/(long double)(samples-1) ;
 			tab[i] = sinc(x) ;
 			tab[i] *= tab[i] ;
 		}
 	} else if (!strcmp(kernel_type, "lanczos")) {
-		tab = (double *) malloc(samples * sizeof(double)) ;
+		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		for (i=0 ; i<samples ; i++) {
-			x = (double)KERNEL_WIDTH * (double)i/(double)(samples-1) ;
+			x = (long double)KERNEL_WIDTH * (long double)i/(long double)(samples-1) ;
 			if (fabs(x)<2) {
 				tab[i] = sinc(x) * sinc(x/2) ;
 			} else {
@@ -320,11 +320,11 @@ generate_interpolation_kernel(char * kernel_type)
 			}
 		}
 	} else if (!strcmp(kernel_type, "hamming")) {
-		tab = (double *) malloc(samples * sizeof(double)) ;
+		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		alpha = 0.54 ;
-		inv_norm  = 1.00 / (double)(samples - 1) ;
+		inv_norm  = 1.00 / (long double)(samples - 1) ;
 		for (i=0 ; i<samples ; i++) {
-			x = (double)i ;
+			x = (long double)i ;
 			if (i<(samples-1)/2) {
 				tab[i] = alpha + (1-alpha) * cos(2.0*PI_NUMB*x*inv_norm) ;
 			} else {
@@ -332,11 +332,11 @@ generate_interpolation_kernel(char * kernel_type)
 			}
 		}
 	} else if (!strcmp(kernel_type, "hann")) {
-		tab = (double *) malloc(samples * sizeof(double)) ;
+		tab = (long double *) malloc(samples * sizeof(long double)) ;
 		alpha = 0.50 ;
-		inv_norm  = 1.00 / (double)(samples - 1) ;
+		inv_norm  = 1.00 / (long double)(samples - 1) ;
 		for (i=0 ; i<samples ; i++) {
-			x = (double)i ;
+			x = (long double)i ;
 			if (i<(samples-1)/2) {
 				tab[i] = alpha + (1-alpha) * cos(2.0*PI_NUMB*x*inv_norm) ;
 			} else {

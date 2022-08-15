@@ -33,10 +33,10 @@
 
 /* declare functions */
 
-double
-poly2d_compute( int ncoeff, double *c, double u, double *vpow );
+long double
+poly2d_compute( int ncoeff, long double *c, long double u, long double *vpow );
 
-double   *
+long double   *
 generate_interpolation_kernel(char * kernel_type);
 
 void
