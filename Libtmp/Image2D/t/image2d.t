@@ -14,7 +14,6 @@ my $crops = pdl(indx,
   [1,3,1,2],
 );
 my $got = crop($mask->slice(':,:,(1)'));
-diag $got;
 ok all($got == $crops->slice(':,(1)')), 'mask non-broadcast' or diag "got=$got";
 $got = crop($mask);
 ok all($got == $crops), 'mask broadcast' or diag "got=$got";
