@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use PDL::Types qw(ppdefs_all types);
 my $F = [map $_->ppsym, grep $_->real && !$_->integer, types()];
+my $AF = [map $_->ppsym, grep !$_->integer, types];
 
 pp_addpm({At=>'Top'},<<'EOD');
 use strict;
@@ -2962,8 +2963,17 @@ for my $func ( [
 pp_def('interpolate',
        HandleBad => 0,
        BadDoc => 'needs major (?) work to handles bad values',
-	Pars => 'xi(); x(n); y(n); [o] yi(); int [o] err()',
-	GenericTypes => $F, # too restrictive ?
+	Pars => 'real xi(); real x(n); y(n); [o] yi(); int [o] err()',
+	GenericTypes => $AF,
+	PMCode => 'sub PDL::interpolate {
+			my ($xi, $x, $y, $yi, $err) = @_;
+			croak "x must be real" if (ref($x) && ! $x->type->real);
+			croak "xi must be real" if (ref($xi) && ! $xi->type->real);
+			$yi //= PDL->null;
+			$err //= PDL->null;
+			PDL::_interpolate_int($xi, $x, $y, $yi, $err);
+			($yi, $err);
+		}',
 	Code => '
 		 $GENERIC() d;
 		 PDL_Indx n  = $SIZE(n);
@@ -3025,6 +3035,9 @@ which is otherwise 0.
 See also L</interpol>, which uses the same routine,
 differing only in the handling of extrapolation - an error message
 is printed rather than returning an error ndarray.
+
+Note that C<interpolate> can use complex values for C<$y> and C<$yi> but
+C<$x> and C<$xi> must be real.
 
 =cut
 
