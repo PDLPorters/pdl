@@ -423,7 +423,15 @@ ok(all( $z==pdl(0,0,0,0,1,4,4) ), "one2nd z");
 my $yvalues =  (new PDL( 0..5))   - 20;
 my $xvalues = -(new PDL (0..5))*.5;
 my $x = new PDL(-2);
-is( $x->interpol($xvalues,$yvalues), -16 );
+is( $x->interpol($xvalues,$yvalues), -16, "interpolate: real-valued" );
+}
+
+{
+my $yvalues =  ((new PDL( 0..5))   - 20) * (1+i()) ;
+my $xvalues = -(new PDL (0..5))*.5;
+my $x = new PDL(-2);
+is( $x->interpol($xvalues,$yvalues), -16 - 16*i, "interpolate: complex-valued" );
+ok( !eval { $x->interpol($xvalues*i(),$yvalues) } , "interpolate: x must be real" );
 }
 
 # Some of these tests are based upon those in Chapter 5 of Programming

@@ -5,6 +5,7 @@
 - change PP-generated XS PROTOTYPES to DISABLE
 - allow [o] on OtherPars (#362)
 - fix conv2d to allow complex arguments (#407) - thanks @wlmb
+- Add complex support to interpolate (#408) - thanks @KJ7LNW
 
 2.080 2022-05-28
 - make IO::STL work on big-endian systems (#394) - thanks @sebastic for report
