@@ -263,15 +263,15 @@ $doc
 
 =for example
 
-   \$c = \$x->$name(\$y,0); # explicit function call
+   \$c = \$x->$name(\$y);    # explicit call with default swap of 0
+   \$c = \$x->$name(\$y, 1); # explicit call with trailing 1 to swap args
    $ovcall
    \$x->inplace->$name(\$y,0);     # modify \$x inplace
 
 It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
 This function is used to overload the binary C<$funcovp> function.
-Note that when calling this function explicitly you need to supply
-a third argument that should generally be zero (see first example).
-This restriction is expected to go away in future releases.
+As of 2.065, when calling this function explicitly you can omit
+the third argument (see first example), or supply it (see second one).
 
 =cut
 
