@@ -525,14 +525,11 @@ raise ndarray C<\$a> to integer power C<\$b>
 
 =for example
 
-   \$c = \$x->ipow(\$y,0);     # explicit function call
+   \$c = \$x->ipow(\$y);     # as method
    \$c = ipow \$x, \$y;
-   \$x->inplace->ipow(\$y,0);  # modify \$x inplace
+   \$x->inplace->ipow(\$y);  # modify \$x inplace
 
 It can be made to work inplace with the C<\$x-E<gt>inplace> syntax.
-Note that when calling this function explicitly you need to supply
-a third argument that should generally be zero (see first example).
-This restriction is expected to go away in future releases.
 
 Algorithm from L<Wikipedia|http://en.wikipedia.org/wiki/Exponentiation_by_squaring>
 
