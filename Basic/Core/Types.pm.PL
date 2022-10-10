@@ -202,7 +202,7 @@ my @types = (
 	      },
 # the complex types need to be in the same order as their real
 # counterparts, because the "real" ppforcetype relies on a fixed interval
-# between real and complex versions
+# between each real and complex version
 # they also need to occur at the end of the types, as a < PDL_CF
 # comparison is done at C level to see if a type is real, analogous to
 # the < PDL_F above
@@ -666,6 +666,10 @@ Returns one of 'PDL_B', 'PDL_S', 'PDL_US', 'PDL_L', 'PDL_IND', 'PDL_LL',
 
 Returns the macro used to represent this type in C code (eg 'PDL_Long').
 
+=item convertfunc
+
+Synonym for C<ctype>.
+
 =item ppsym
 
 The letter used to represent this type in PP code (eg 'U' for L<ushort|PDL::Core/ushort>).
@@ -714,6 +718,22 @@ this type, including a no-op for types of size 1. Note this means a
 one-line construction means you must call the return value:
 
   $pdl->type->bswap->($pdl);
+
+=item real
+
+Returns whether the type is real-only (true) or can hold complex values
+(false).
+
+  die "Real data only!" if !$pdl->type->real;
+
+=item unsigned
+
+Returns whether the type can hold signed values (false) or not (true).
+
+=item integer
+
+Returns whether the type can hold non-integer, a.k.a. floating-point,
+values (false) or not (true).
 
 =back
 
@@ -808,7 +828,7 @@ use overload (
 
 __END__
 
-=head1 DEVELOPER NOTES ON ADDING/REMOVING TYPEs
+=head1 DEVELOPER NOTES ON ADDING/REMOVING TYPES
 
 You can change the types that PDL knows about by editing entries in
 the definition of the variable C<@types> that appears close to the
