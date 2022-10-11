@@ -7,6 +7,7 @@
 - fix conv2d to allow complex arguments (#407) - thanks @wlmb
 - Add complex support to interpolate (#408) - thanks @KJ7LNW
 - Refactor PDL::IO::Browser curses detection to additionally use ncurses*-config (#412)
+- Add File::Which as a configure dependency (previously runtime only) (#412)
 
 2.080 2022-05-28
 - make IO::STL work on big-endian systems (#394) - thanks @sebastic for report
