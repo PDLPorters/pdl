@@ -3,6 +3,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 use File::Spec;
 eval { require Devel::CheckLib; Devel::CheckLib->import; };
+eval { require File::Which; };
 
 my @pack = (["browser.pd", qw(Browser PDL::IO::Browser)]);
 
@@ -38,6 +39,9 @@ foreach my $incl (@possible_headers) {
 
 sub conf_via_ncurses_config {
    return () unless $found_header;
+   # NOTE the ncurses*-config executables are shell scripts so `sh` is
+   # required.
+   return () unless File::Which::which('sh');
 
    my @nc_configs = qw(
       ncurses6-config
@@ -47,6 +51,9 @@ sub conf_via_ncurses_config {
    );
    for my $nc_conf (@nc_configs) {
       local $ENV{NCURSES_CONFIG_PROG} = $nc_conf;
+      # NOTE which() can not find the script on Windows because it does have
+      # have a PATHEXT suffix. For now, just try to run it anyway.
+      next unless File::Which::which($nc_conf) || $^O eq 'MSWin32';
       if( eval { (my $version = _read_pipe(qw(sh -c), '$NCURSES_CONFIG_PROG --version')) =~ / \A [0-9.]+ \Z /x } ) {
          my $cflags = _read_pipe(qw(sh -c), '$NCURSES_CONFIG_PROG --cflags');
          my $libs   = _read_pipe(qw(sh -c), '$NCURSES_CONFIG_PROG --libs');
