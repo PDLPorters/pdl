@@ -172,7 +172,7 @@ C<[0 1 2 3 BAD 5 6 7 8 9]>.
 =for bad
 
 This method does not care if you call it on an input ndarray
-that has bad values. It always returns a Perl scalar
+that has bad values. It always returns an ndarray
 with the current or new bad value.
 
 =head2 orig_badvalue
@@ -197,7 +197,7 @@ It also has an I<awful> name.
 =for bad
 
 This method does not care if you call it on an input ndarray
-that has bad values. It always returns a Perl scalar
+that has bad values. It always returns an ndarray
 with the original bad value for the associated type.
 
 =head2 check_badflag
@@ -556,8 +556,8 @@ Returns the number of bad values in an ndarray
 
 =for bad
 
-Accepts good and bad input ndarrays; output is a Perl scalar
-and therefore is always good.
+Accepts good and bad input ndarrays; output is an ndarray
+and is always good.
 
 =head2 ngood
 
@@ -571,8 +571,8 @@ Returns the number of good values in an ndarray
 
 =for bad
 
-Accepts good and bad input ndarrays; output is a Perl scalar
-and therefore is always good.
+Accepts good and bad input ndarrays; output is an ndarray
+and is always good.
 
 =head2 setbadat
 
