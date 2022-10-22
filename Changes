@@ -1,3 +1,6 @@
+2.080_02 2022-10-22
+- fix t/matrix.t over-sensitive comparison test for uselongdouble
+
 2.080_01 2022-10-21
 - fix longstanding t_rot bug shown in https://perlmonks.org/?node_id=683514
 - add inflateN
