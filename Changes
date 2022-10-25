@@ -1,3 +1,6 @@
+2.081 2022-10-25
+- no changes from 2.080_02
+
 2.080_02 2022-10-22
 - fix t/matrix.t over-sensitive comparison test for uselongdouble
 
