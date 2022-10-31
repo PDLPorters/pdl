@@ -270,6 +270,37 @@ ndarrays.
 Check the L<PDL::IO::Storable documentation|PDL::IO::Storable> for more
 details.  See also PDL::IO::Dumper for an alternative stringifier.
 
+=head1 Out-of-tree Third-party Modules
+
+=head2 PDL::IO::CSV
+
+Load/save PDL from/to CSV file (optimized for speed and large data).
+
+See the L<PDL::IO::CSV documentation|PDL::IO::CSV>.
+
+=head2 PDL::IO::Touchstone
+
+A simple interface for reading and writing RF Touchstone files (also known as
+".sNp" files). Touchstone files contain complex-valued RF sample data for a
+device or RF component with some number of ports. The data is (typically)
+measured by a vector network analyzer under stringent test conditions.
+
+The resulting files are usually provided by manufacturers so RF design
+engineers can estimate signal behavior at various frequencies in their circuit
+designs. Examples of RF components include capacitors, inductors, resistors,
+filters, power splitters, etc.
+
+See the L<PDL::IO::Touchstone documentation|PDL::IO::Touchstone>.
+
+=head2 PDL::IO::MDIF
+
+A simple interface for reading and writing RF MDIF files (also known as MDF or
+.mdf files). MDIF files contain multiple Touchstone files in a text format for
+use in optimizing circuits. For example, a single MDIF file could contain the
+Touchstone RF data for each available value in a line of capacitors (ie, from
+10pF to 1000pF) provided by a particular manufacturer.
+
+See the L<PDL::IO::MDIF documentation|PDL::IO::MDIF>
 
 =head1 COPYRIGHT
 
