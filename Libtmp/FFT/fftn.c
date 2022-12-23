@@ -185,6 +185,10 @@ D__FILE__=\"fftn.c\" */
 # define M_PI	3.14159265358979323846264338327950288
 #endif
 
+#define FFT_STR(x) #x
+#define FFT_CONCAT(x, y) FFT_CONCAT_(x, y)
+#define FFT_CONCAT_(x, y) x ## y /* second call forces arg expansion */
+
 #ifndef SIN60
 # define SIN60	0.86602540378443865	/* sin(60 deg) */
 # define COS72	0.30901699437494742	/* cos(72 deg) */
@@ -265,15 +269,9 @@ factorize (int nPass, int * kt, int *factor)
 /*{{{ defines for re-including long double precision */
 #ifdef FFT_LDOUBLE
 # undef REAL
-# undef FFTN
-# undef FFTNS
-# undef FFTRADIX
-# undef FFTRADIXS
+# undef FFT_SUFFIX
+# define FFT_SUFFIX l
 # define REAL		long double
-# define FFTN		fftnl
-# define FFTNS		"fftnl"
-# define FFTRADIX	fftradixl
-# define FFTRADIXS	"fftradixl"
 # include __FILE__			/* include this file again */
 #endif
 /*}}}*/
@@ -281,15 +279,9 @@ factorize (int nPass, int * kt, int *factor)
 /*{{{ defines for re-including double precision */
 #ifdef FFT_DOUBLE
 # undef REAL
-# undef FFTN
-# undef FFTNS
-# undef FFTRADIX
-# undef FFTRADIXS
+# undef FFT_SUFFIX
+# define FFT_SUFFIX
 # define REAL		double
-# define FFTN		fftn
-# define FFTNS		"fftn"
-# define FFTRADIX	fftradix
-# define FFTRADIXS	"fftradix"
 # include __FILE__			/* include this file again */
 #endif
 /*}}}*/
@@ -297,19 +289,22 @@ factorize (int nPass, int * kt, int *factor)
 /*{{{ defines for re-including float precision */
 #ifdef FFT_FLOAT
 # undef REAL
-# undef FFTN
-# undef FFTNS
-# undef FFTRADIX
-# undef FFTRADIXS
+# undef FFT_SUFFIX
+# define FFT_SUFFIX f
 # define REAL		float
-# define FFTN		fftnf		/* trailing 'f' for float */
-# define FFTNS		"fftnf"		/* name for error message */
-# define FFTRADIX	fftradixf	/* trailing 'f' for float */
-# define FFTRADIXS	"fftradixf"	/* name for error message */
 # include __FILE__			/* include this file again */
 #endif
 /*}}}*/
 #else	/* _FFTN_C */
+
+# undef FFTN
+# undef FFTNS
+# undef FFTRADIX
+# undef FFTRADIXS
+# define FFTN		FFT_CONCAT(fftn, FFT_SUFFIX) /* maybe trailing [fl] */
+# define FFTNS		FFT_STR(FFTN)	/* name for error message */
+# define FFTRADIX	FFT_CONCAT(fftradix, FFT_SUFFIX) /* maybe trailing [fl] */
+# define FFTRADIXS	FFT_STR(FFTRADIX)	/* name for error message */
 
 /*----------------------------------------------------------------------*/
 /*
