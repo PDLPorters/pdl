@@ -707,7 +707,7 @@ sub get_str {my($this,$parent,$context) = @_;
     unless defined(my $type = $parent->{Gencurtype}[-1]);
   return $type->ppsym if !$this->[0];
   my $pobj = $parent->{ParObjs}{$this->[0]} // confess "not a defined parname";
-  $pobj->adjusted_type($type)->ctype;
+  $pobj->adjusted_type($type)->ppsym;
 }
 
 1;

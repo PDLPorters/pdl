@@ -383,7 +383,7 @@ EOF
 		 PDL_IF_BAD(if ( flag == 0 ) {
 		    $SETBAD(b(m=>i,n=>j));
                  } else,) {
-                    qsort_D( $P(tmp), 0, count-1 );
+                    qsort_$PPSYM(tmp)( $P(tmp), 0, count-1 );
                     $b(m=>i,n=>j) = $tmp(pq=>(count-1)/2);
 		 }
               } /* for: i */
