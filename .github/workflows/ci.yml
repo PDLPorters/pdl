@@ -142,7 +142,7 @@ jobs:
           uname -a
           yum -y install perl perl-App-cpanminus gcc bzip2 patch
       - run: perl -V
-      - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib File::Which && cpanm -n --installdeps . || cat ~/.cpanm/build.log
+      - run: cpanm -n ExtUtils::MakeMaker Devel::CheckLib File::Which && cpanm -n --installdeps . || ( cat ~/.cpanm/build.log && false )
       - name: Run tests
         env:
           HARNESS_OPTIONS: j4
@@ -209,7 +209,7 @@ jobs:
         run: |
           export PATH="/cygdrive/c/cx/bin:$PATH"
           cd $( cygpath -u $GITHUB_WORKSPACE )
-          cpanm -n Devel::CheckLib File::Which && cpanm -n --installdeps . || cat ~/.cpanm/build.log
+          cpanm -n Devel::CheckLib File::Which && cpanm -n --installdeps . || ( cat ~/.cpanm/build.log && false )
       - name: Run tests (no coverage)
         env:
           HARNESS_OPTIONS: j4
