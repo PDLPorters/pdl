@@ -465,7 +465,7 @@ BEGIN {
 
 PDL::NiceSlice - toward a nicer slicing syntax for PDL
 
-=head1 SYNOPSYS
+=head1 SYNOPSIS
 
   use PDL::NiceSlice;
 
