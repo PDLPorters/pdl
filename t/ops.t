@@ -163,6 +163,10 @@ my $warning_shutup = sqrt $pa->inplace;
 ok(all( approx( $pa, pdl($sq2))), 'inplace pdl sqrt vs perl scalar sqrt');
 my $pb = pdl 4;
 ok(all( approx( 2, sqrt($pb->inplace))),'perl scalar vs inplace pdl sqrt');
+$pa .= 1;
+eval {(my $tmp = $pa->inplace) += 1};
+is $@, '', 'inplace += worked';
+is $pa.'', 2, 'inplace += right value after';
 }
 
 {

@@ -1,4 +1,5 @@
 - drop erroneous Test::Deep dependency
+- fix `(my $tmp = $pa->inplace) += 1`
 
 2.081 2022-10-25
 - no changes from 2.080_02
