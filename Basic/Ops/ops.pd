@@ -501,7 +501,8 @@ sub cfunc {
 	     }),
 	   ),
 	   %extra,
-	   Doc => $doc);
+	   Doc => $doc . (!$backcode ? '' : ' Flows data back & forth.'),
+    );
 }
 
 cfunc('carg', 'carg', 1, 'Returns the polar angle of a complex number.', undef);
