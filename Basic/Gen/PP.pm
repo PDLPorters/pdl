@@ -1667,14 +1667,12 @@ END
 
    # globalnew implies internal usage, not XS
    PDL::PP::Rule::Returns->new("VarArgsXSReturn","GlobalNew",undef),
-   PDL::PP::Rule->new("VarArgsXSReturn",
+   PDL::PP::Rule->new("XSOtherOutSet",
       ["SignatureObj"],
-      "Generate XS trailer to return output variables or leave them as modified input variables",
+      "Generate XS to set SVs to output values for OtherPars",
       sub {
         my ($sig) = @_;
-        my @outs = $sig->names_out; # names of output ndarrays in calling order
-        my $clause1 = join ';', map "ST($_) = $outs[$_]_SV", 0 .. $#outs;
-        $clause1 = PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
+        my $clause1 = '';
         my @other_out = $sig->other_out;
         my $optypes = $sig->otherobjs;
         my %ptypes = map +($_=>$$optypes{$_}->get_decl('', {VarArrays2Ptrs=>1})), @other_out;
@@ -1688,6 +1686,15 @@ sv_setsv(${x}_SV, tsv); sv_2mortal(tsv); }
 EOF
         }
         $clause1;
+      }),
+   PDL::PP::Rule->new("VarArgsXSReturn",
+      ["SignatureObj","XSOtherOutSet"],
+      "Generate XS trailer to return output variables or leave them as modified input variables",
+      sub {
+        my ($sig,$other_out_set) = @_;
+        my @outs = $sig->names_out; # names of output ndarrays in calling order
+        my $clause1 = join ';', map "ST($_) = $outs[$_]_SV", 0 .. $#outs;
+        $other_out_set.PDL::PP::pp_line_numbers(__LINE__-1, "PDL_XS_RETURN($clause1)");
       }),
 
    PDL::PP::Rule->new("NewXSHdr", ["NewXSName","SignatureObj"],
