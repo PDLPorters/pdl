@@ -1559,7 +1559,7 @@ EOD
            $hdrcode,$inplacecode,$callcopy,$defaults) = @_;
         my $optypes = $sig->otherobjs;
         my @args = @{ $sig->allnames(1) };
-        my %other  = map +($_ => exists($$optypes{$_})), @args;
+        my %other = map +($_ => exists($$optypes{$_})), @args;
         if (keys %{ $defaults ||= {} } < keys %other) {
           my $default_seen = '';
           for (@args) {
@@ -1667,6 +1667,24 @@ END
 
    # globalnew implies internal usage, not XS
    PDL::PP::Rule::Returns->new("VarArgsXSReturn","GlobalNew",undef),
+   PDL::PP::Rule->new("FixArgsXSOtherOutDeclSV",
+      ["SignatureObj"],
+      "Generate XS to declare SVs for output OtherPars",
+      sub {
+        my ($sig) = @_;
+        my $optypes = $sig->otherobjs;
+        my @args = @{ $sig->allnames(1) };
+        my %other = map +($_ => exists($$optypes{$_})), @args;
+        my %outca = map +($_=>1), $sig->names_oca;
+        my %other_out = map +($_=>1), $sig->other_out;
+        my $ci = '  ';
+        my $cnt = 0; my %outother2cnt;
+        foreach my $x (grep !$outca{$_}, @args) {
+            $outother2cnt{$x} = $cnt if $other{$x} && $other_out{$x};
+            $cnt++;
+        }
+        join "\n", map indent(qq{SV *${_}_SV = ST($outother2cnt{$_});},$ci), $sig->other_out;
+      }),
    PDL::PP::Rule->new("XSOtherOutSet",
       ["SignatureObj"],
       "Generate XS to set SVs to output values for OtherPars",
@@ -1680,9 +1698,9 @@ END
           my ($setter, $type) = typemap($ptypes{$x}, 'get_outputmap');
           $setter = typemap_eval($setter, {var=>$x, type=>$type, arg=>"tsv"});
           $clause1 = <<EOF . $clause1;
-{ SV *tsv = NULL;
+{ SV *tsv = sv_2mortal(newSV(0));
 $setter
-sv_setsv(${x}_SV, tsv); sv_2mortal(tsv); }
+sv_setsv(${x}_SV, tsv); }
 EOF
         }
         $clause1;
@@ -1946,7 +1964,7 @@ EOF
       sub {(undef,(make_xs_code('CODE:',' XSRETURN(0);',@_))[1..2])}),
    # if PMCode supplied, no var-args stuff
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
-      ["PMCode","NewXSHdr", \"NewXSCHdrs", "RunFuncCall"],
+      ["PMCode","NewXSHdr", \"NewXSCHdrs", qw(FixArgsXSOtherOutDeclSV RunFuncCall XSOtherOutSet)],
       "Non-varargs XS code when PMCode given",
       sub {make_xs_code('CODE:',' XSRETURN(0);',@_[1..$#_])}),
    PDL::PP::Rule->new(["NewXSCode","BootSetNewXS","NewXSInPrelude"],
