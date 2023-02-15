@@ -178,6 +178,11 @@ ok(all($det == pdl([48,1],[-1,-216])), "broadcasted determinant");
 }
 
 {
+my $m2=pdl[[-2,-2,-2],[-1,-1,-2],[0,0,-2]];
+isa_ok $m2->det, 'PDL', 'det of singular always returns ndarray';
+}
+
+{
 ### Check identity and stretcher matrices...
 ok((identity(2)->flat == pdl(1,0,0,1))->all, "identity matrix");
 ok((identity(pdl 2)->flat == pdl(1,0,0,1))->all, "identity matrix with scalar ndarray");

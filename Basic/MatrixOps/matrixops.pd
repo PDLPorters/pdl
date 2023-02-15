@@ -325,20 +325,17 @@ the matrix will not be decomposed again.
 
 *PDL::det = \&det;
 sub det {
-  my($x) = shift;
-  my($opt) = shift;
+  my ($x, $opt) = @_;
   $opt = {} unless defined($opt);
-
   my($lu,$perm,$par);
   if(exists ($opt->{lu}) and (ref $opt->{lu} eq 'ARRAY')) {
-    ($lu,$perm,$par) =  @{$opt->{lu}};
+    ($lu,$perm,$par) = @{$opt->{lu}};
   } else {
     ($lu,$perm,$par) = lu_decomp($x);
     $opt->{lu} = [$lu,$perm,$par]
       if(exists($opt->{lu}));
   }
-   
-  ( (defined $lu) ? $lu->diagonal(0,1)->prodover * $par : 0 );
+  defined $lu ? $lu->diagonal(0,1)->prodover * $par : PDL->zeroes(sbyte,1);
 }
 
 EOD
