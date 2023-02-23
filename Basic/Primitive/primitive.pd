@@ -737,20 +737,19 @@ Bad values are not considered unique by uniq and are ignored.
 # find as jumps in the sorted array
 # flattens in the process
 sub PDL::uniq {
-   use PDL::Core 'barf';
    my ($arr) = @_;
    return $arr if($arr->nelem == 0); # The null list is unique (CED)
-   my $srt  = $arr->clump(-1)->where($arr==$arr)->qsort;  # no NaNs or BADs for qsort
-   my $nans = $arr->clump(-1)->where($arr!=$arr);
-   my $uniq = ($srt->nelem > 0) ? $srt->where($srt != $srt->rotate(-1)) : $srt;
+   return $arr->flat if($arr->nelem == 1); # singleton list is unique
+   my $aflat = $arr->flat;
+   my $srt  = $aflat->where($aflat==$aflat)->qsort; # no NaNs or BADs for qsort
+   my $nans = $aflat->where($aflat!=$aflat);
+   my $uniq = ($srt->nelem > 1) ? $srt->where($srt != $srt->rotate(-1)) : $srt;
    # make sure we return something if there is only one value
-   my $answ = $nans;  # NaN values always uniq
-   if ( $uniq->nelem > 0 ) {
-      $answ = $uniq->append($answ);
-   } else {
-      $answ = ( ($srt->nelem == 0) ?  $srt : PDL::pdl( ref($srt), [$srt->index(0)] ) )->append($answ);
-   }
-   return $answ;
+   (
+      $uniq->nelem > 0 ? $uniq :
+      $srt->nelem == 0 ? $srt :
+      PDL::pdl( ref($srt), [$srt->index(0)] )
+   )->append($nans);
 }
 EOPM
 

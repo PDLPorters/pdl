@@ -216,6 +216,7 @@ is($y->which->nelem,0, "which nelem w BAD");
 ok tapprox(sequence(4)->uniq, sequence(4)), 'sequence(4)->uniq';
 ok tapprox(ones(4)->uniq, ones(1)), 'ones(4)->uniq';
 ok tapprox(empty()->uniq, empty()), 'empty()->uniq';
+ok tapprox(pdl([[1]])->uniq, ones(1)), '2-deep uniq flattens'; # Data::Frame relies
 }
 
 ############################
