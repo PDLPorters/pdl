@@ -233,6 +233,16 @@ ok(tapprox($c, pdl([2,3,4,8,9])), "setops XOR");
 #Test intersect again
 my $intersect_test=intersect(pdl(1,-5,4,0), pdl(0,3,-5,2));
 ok (all($intersect_test==pdl(-5,0)), 'Intersect test values');
+{
+# based on cases supplied by @jo-37
+my @cases = (
+  [ pdl(1), empty(), empty() ],
+  [ ones(1), empty(), empty() ],
+  [ ones(4), empty(), empty() ],
+  [ sequence(4), empty(), empty() ],
+);
+ok tapprox(setops($_->[0], 'AND', $_->[1]), $_->[2]), "$_->[0] AND $_->[1]" for @cases;
+}
 
 ##############################
 # Test uniqind

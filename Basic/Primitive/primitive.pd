@@ -3978,10 +3978,10 @@ sub PDL::setops {
 
   } elsif ($op eq 'AND') {
     # The intersection of the arrays.
-
+    return $x if $x->isempty;
+    return $y if $y->isempty;
     # Make ordered list of set union.
     my $union = append($x, $y)->qsort;
-
     return $union->where($union == rotate($union, -1));
   } else {
     print "The operation $op is not known!";
