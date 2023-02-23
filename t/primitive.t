@@ -13,6 +13,7 @@ sub tapprox {
        diag "UNEQDIM\n";
        return 0;
     }
+    return 1 if $x->isempty and $y->isempty;
     my $d = max( abs($x-$y) );
     if($d >= 0.01) {
        diag "got=$x expected=$y\n";
@@ -210,6 +211,12 @@ ok(tapprox($y->which,PDL->pdl([2])), "which w BAD");
 setbadat $y, 0;
 setbadat $y, 2;
 is($y->which->nelem,0, "which nelem w BAD");
+
+{
+ok tapprox(sequence(4)->uniq, sequence(4)), 'sequence(4)->uniq';
+ok tapprox(ones(4)->uniq, ones(1)), 'ones(4)->uniq';
+ok tapprox(empty()->uniq, empty()), 'empty()->uniq';
+}
 
 ############################
 # Test intersect & setops
