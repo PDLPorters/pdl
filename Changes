@@ -2,6 +2,7 @@
 - fix `(my $tmp = $pa->inplace) += 1`
 - fix [o] OtherPars to work if PMCode
 - fix MatrixOps::det returning Perl 0 for some singular - thanks @wlmb for report
+- fix intersect bug (#419) - thanks @jo-37 for report
 
 2.081 2022-10-25
 - no changes from 2.080_02

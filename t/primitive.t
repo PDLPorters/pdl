@@ -240,6 +240,10 @@ my @cases = (
   [ ones(1), empty(), empty() ],
   [ ones(4), empty(), empty() ],
   [ sequence(4), empty(), empty() ],
+  [ pdl(1), ones(2), ones(1) ],
+  [ ones(1), ones(2), ones(1) ],
+  [ ones(4), ones(2), ones(1) ],
+  [ sequence(4), ones(2), ones(1) ],
 );
 ok tapprox(setops($_->[0], 'AND', $_->[1]), $_->[2]), "$_->[0] AND $_->[1]" for @cases;
 }
