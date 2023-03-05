@@ -192,18 +192,15 @@ sub do_access {
 	 {/^\s*(\w+)\s*=>\s*(\S*)\s*$/ or confess "Invalid subst $_ in ($inds) (no spaces in => value)\n"; ($1,$2)}
 		PDL::PP::Rule::Substitute::split_cpp($inds);
 # Generate the text
-	my $text;
-	$text = "(${pdl}_datap)"."[";
-	$text .= join '+','0',map {
-		$this->do_indterm($pdl,$_,\%subst,$context);
-	} (0..$#{$this->{IndObjs}});
-	$text .= "]";
+	my $text = "(${pdl}_datap)[" . join('+','0', map
+		$this->do_indterm($pdl,$_,\%subst,$context),
+	0..$#{$this->{IndObjs}}) . "]";
 # If not all substitutions made, the user probably made a spelling
 # error. Barf.
 	if(scalar(keys %subst) != 0) {
 		confess("Substitutions left: ".(join ',',sort keys %subst)."\n");
 	}
-       $text;
+	$text;
 }
 
 sub do_pdlaccess {
