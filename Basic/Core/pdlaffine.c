@@ -18,12 +18,12 @@ pp_def(
             for(i=0; i<$PDL(CHILD)->nvals; i++) {
               $EQUIVCPOFFS(i,poffs);
               for(nd=0; nd<$PDL(CHILD)->ndims; nd++) {
-                poffs += $PRIV(incs[nd]);
+                poffs += $PRIV(incs)[nd];
                 if( (nd<$PDL(CHILD)->ndims-1 &&
                      (i+1)%$PDL(CHILD)->dimincs[nd+1]) ||
                    nd == $PDL(CHILD)->ndims-1)
                         break;
-                poffs -= $PRIV(incs[nd]) *
+                poffs -= $PRIV(incs)[nd] *
                         $PDL(CHILD)->dims[nd];
               }
             }

@@ -156,11 +156,11 @@ sub adjusted_type {
 }
 
 sub get_nname{ my($this) = @_;
-	"(\$PRIV(pdls[$this->{Number}]))";
+	"(\$PRIV(pdls)[$this->{Number}])";
 }
 
 sub get_nnflag { my($this) = @_;
-	"(\$PRIV(vtable->per_pdl_flags[$this->{Number}]))";
+	"(\$PRIV(vtable)->per_pdl_flags[$this->{Number}])";
 }
 
 sub get_incname {
@@ -208,7 +208,7 @@ sub do_access {
 
 sub do_pdlaccess {
 	my($this) = @_;
-	PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls['.$this->{Number}.'])');
+	PDL::PP::pp_line_numbers(__LINE__-1, '$PRIV(pdls)['.$this->{Number}.']');
 }
 
 sub do_pointeraccess {

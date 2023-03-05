@@ -2038,7 +2038,7 @@ EOD
                                 continue;
                         }
                         $PDL(CHILD)->dims[nthc] = $PDL(PARENT)->dims[i];
-                        $PRIV(incs[nthc]) = $PDL(PARENT)->dimincs[i];
+                        $PRIV(incs)[nthc] = $PDL(PARENT)->dimincs[i];
                         nthc++;
                 }
                 for(i=0; i<$COMP(whichdims_count); i++) {
@@ -2050,10 +2050,10 @@ EOD
                         pdim = $COMP(whichdims[i]);
                         if(pdim == -1) {
                                 $PDL(CHILD)->dims[cdim] = 1;
-                                $PRIV(incs[cdim]) = 0;
+                                $PRIV(incs)[cdim] = 0;
                         } else {
                                 $PDL(CHILD)->dims[cdim] = $PDL(PARENT)->dims[pdim];
-                                $PRIV(incs[cdim]) = $PDL(PARENT)->dimincs[pdim];
+                                $PRIV(incs)[cdim] = $PDL(PARENT)->dimincs[pdim];
                         }
                 }
                 $SETDIMS();
@@ -2099,7 +2099,7 @@ EOD
                                 corc = i - $PDL(PARENT)->broadcastids[0] + $COMP(atind);
                         }
                         $PDL(CHILD)->dims[corc] = $PDL(PARENT)->dims[i];
-                        $PRIV(incs[corc]) = $PDL(PARENT)->dimincs[i];
+                        $PRIV(incs)[corc] = $PDL(PARENT)->dimincs[i];
                 }
                 $SETDIMS();
         ',
@@ -2530,7 +2530,7 @@ SLICE-MC
                       if( $COMP(idim[i]) < 0 ) {
                          /* dummy dim - offset or diminc. */
                          $PDL(CHILD)->dims[ $COMP(odim[i]) ] = $COMP(end[i]) - $COMP(start[i]) + 1;
-                         $PRIV( incs[ $COMP(odim[i]) ] ) = 0;
+                         $PRIV(incs)[ $COMP(odim[i]) ] = 0;
                       } else {
                         /** This is not a dummy dim -- deal with a regular slice along it.     **/
                         /** Get parent dim size for this idim, and/or allow permissive slicing **/

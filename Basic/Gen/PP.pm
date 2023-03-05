@@ -1387,7 +1387,7 @@ EOD
           for(i=0; i<$PDL(CHILD)->ndims; i++) {
             cor = '.$pdimexpr.';
             $PDL(CHILD)->dims[i] = $PDL(PARENT)->dims[cor];
-            $PRIV(incs[i]) = $PDL(PARENT)->dimincs[cor];
+            $PRIV(incs)[i] = $PDL(PARENT)->dimincs[cor];
           }
           $SETDIMS();
           $SETDELTABROADCASTIDS(0);
