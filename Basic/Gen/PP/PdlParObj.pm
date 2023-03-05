@@ -127,11 +127,11 @@ sub finalcheck {
   return [] if $pdl->isnull;
   my @corr = ();
   my @dims = $pdl->dims;
-  my ($i,$ind) = (0,undef);
-  for $ind (@{$this->{IndObjs}}) {
+  my $i = 0;
+  for my $ind (@{$this->{IndObjs}}) {
     push @corr,[$i-1,$ind->{Value},$dims[$i-1]] if $dims[$i++] != $ind->{Value};
   }
-  return [@corr];
+  return \@corr;
 }
 
 # get index sizes for a parameter that has to be created

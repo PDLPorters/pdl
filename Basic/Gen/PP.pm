@@ -1984,7 +1984,7 @@ EOF
            $sig,$affine_ok,$havebroadcasting, $noPthreadFlag, $name, $gentypes,
            $affflag, $revflag, $flowflag, $badflag) = @_;
         my ($pnames, $pobjs) = ($sig->names_sorted, $sig->objs);
-        my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
+        my $nparents = 0 + grep !$pobjs->{$_}->{FlagW}, @$pnames;
         my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
         my $npdls = scalar @$pnames;
         my $join_flags = join(", ",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
