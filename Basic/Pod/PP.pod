@@ -106,6 +106,33 @@ whitespace removed.
   # ...
     Code => '$a() = $SUCC($b());',
 
+=head2 pp_add_typemaps
+
+=for ref
+
+Available from 2.082. Add an XS typemap for use as C<OtherPars>. Takes
+one named argument, either C<typemap> (an L<ExtUtils::Typemaps> object),
+C<string>, or C<file>.
+
+=for example
+
+  pp_add_typemaps(string=><<'EOT');
+  TYPEMAP: <<END_OF_TYPEMAP
+  TYPEMAP
+  NV_ADD1 T_NV_ADD1
+
+  INPUT
+  T_NV_ADD1
+    $var = SvNV($arg) + 1;
+
+  OUTPUT
+  T_NV_ADD1
+    sv_setnv($arg, $var - 1);
+  END_OF_TYPEMAP
+  EOT
+  # ...
+    OtherPars => '[o] NV_ADD1 v1',
+
 =head2 pp_beginwrap
 
 =for ref

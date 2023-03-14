@@ -610,7 +610,8 @@ our @ISA = qw(Exporter);
 
 our @EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
-		      pp_core_importList pp_beginwrap pp_setversion
+                      pp_add_typemaps
+                      pp_core_importList pp_beginwrap pp_setversion
                       pp_addbegin pp_boundscheck pp_line_numbers
                       pp_deprecate_module pp_add_macros/;
 
@@ -1011,6 +1012,7 @@ $SIG{__DIE__} = \&Carp::confess if $::PP_VERBOSE;
 my $typemap_obj;
 sub _load_typemap {
   require ExtUtils::Typemaps;
+  require PDL::Core::Dev;
   # according to MM_Unix 'privlibexp' is the right directory
   #     seems to work even on OS X (where installprivlib breaks things)
   my $_rootdir = $Config{privlibexp}.'/ExtUtils/';
@@ -1043,6 +1045,14 @@ sub typemap_eval { # lifted from ExtUtils::ParseXS::Eval, ignoring eg $ALIAS
   my $rv = eval qq("$code");
   die $@ if $@;
   $rv;
+}
+
+sub pp_add_typemaps {
+  confess "Usage: pp_add_typemaps([string|file|typemap]=>\$arg)" if @_ != 2;
+  $typemap_obj ||= _load_typemap();
+  my $new_obj = $_[0] eq 'typemap' ? $_[1] : ExtUtils::Typemaps->new(@_);
+  pp_addxs($new_obj->as_embedded_typemap);
+  $typemap_obj->merge(typemap => $new_obj, replace => 1);
 }
 
 sub make_xs_code {

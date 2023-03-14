@@ -1,3 +1,5 @@
+- add pp_add_typemaps
+
 2.081_01 2023-02-27
 - drop erroneous Test::Deep dependency
 - fix `(my $tmp = $pa->inplace) += 1`
