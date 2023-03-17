@@ -710,7 +710,7 @@ sub PDL::convolveND {
 
 EOD
   Pars=>'k0()',
-  OtherPars=>'SV *k; SV *aa; SV *a;',
+  OtherPars=>'pdl *k; pdl *aa; pdl *a;',
 
 Code => <<'EOD'
 /*
@@ -731,20 +731,13 @@ Code => <<'EOD'
  *
  */
 
-  short ndims;
   PDL_Indx i,j;
-  pdl *k =     PDL->SvPDLV($COMP(k));
-  pdl *a =     PDL->SvPDLV($COMP(a));
-  pdl *aa =    PDL->SvPDLV($COMP(aa));
-
-  if(!k || !a || !aa) 
-    $CROAK("convolveND: Can't convert args to PDLs - should never happen\n");
-
+  pdl *k = $COMP(k), *a = $COMP(a), *aa = $COMP(aa);
   PDL_RETERROR(PDL_err, PDL->make_physical(aa));
   PDL_RETERROR(PDL_err, PDL->make_physical(a));
   PDL_RETERROR(PDL_err, PDL->make_physical(k));
 
-  ndims = aa->ndims;
+  PDL_Indx ndims = aa->ndims;
   if(ndims != k->ndims || ndims != aa->ndims)
      $CROAK("convolveND: dims don't agree - should never happen\n");
 
@@ -812,6 +805,4 @@ Code => <<'EOD'
 EOD
 );	  
 
-  
 pp_done();
-
