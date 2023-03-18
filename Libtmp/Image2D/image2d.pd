@@ -33,7 +33,7 @@ pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHORS
 
 Copyright (C) Karl Glazebrook 1997 with additions by Robin Williams
-(rjrw@ast.leeds.ac.uk), Tim Jeness (timj@jach.hawaii.edu),
+(rjrw@ast.leeds.ac.uk), Tim Jenness (timj@jach.hawaii.edu),
 and Doug Burke (burke@ifa.hawaii.edu).
 
 All rights reserved. There is no warranty. You are allowed
@@ -187,27 +187,16 @@ sub init_map {
 } # sub: init_map()
 
 sub init_vars {
-    my $href = shift || { };
     my $sizevars = shift || [qw(m n p q)];
     my $compvars = shift || [];
-    $href->{vars}   = '' unless defined $href->{vars};
-    $href->{malloc} = '' unless defined $href->{malloc};
-    $href->{check}  = '' unless defined $href->{check};
-
-    my $str = $href->{vars};
-    $str .= "int i,j, i1,j1, i2,j2, poff, qoff;";
+    my $str = "int i,j, i1,j1, i2,j2, poff, qoff;";
     $str .=
 	'int opt = $COMP(opt);
 	' . join("\n", map "int ${_}_size = \$SIZE(${_});", @$sizevars) . '
-	' . join("\n", map "int ${_}_size = \$COMP(__${_}_size);", @$compvars) . '
-         int *mapi, *mapj;
-
-         mapi = (int *) malloc((p_size+m_size)*sizeof(int));
-         mapj = (int *) malloc((q_size+n_size)*sizeof(int));
-	 ';
-    $str .= $href->{malloc} . "\n";
-    $str .= "if ($href->{check} (mapi==NULL) || (mapj==NULL))\n";
-    $str .= '  $CROAK("Out of Memory");
+	' . join("\n", map "int ${_}_size = \$COMP(${_}_size);", @$compvars) . '
+         int *mapi = (int *) malloc((p_size+m_size)*sizeof(int));
+         int *mapj = (int *) malloc((q_size+n_size)*sizeof(int));
+         if ((mapi==NULL) || (mapj==NULL)) $CROAK("Out of Memory");
 
          poff = p_size/2; mapi += p_size-1;
          qoff = q_size/2; mapj += q_size-1;
@@ -265,10 +254,11 @@ sub PDL::conv2d {
 ',
         GenericTypes => $A,
         Code =>
-           init_vars( { vars => 'PDL_CLDouble tmp; int flag;' } ) .
+           init_vars() .
            init_map("i") .
            init_map("j") .
 '
+           PDL_CLDouble tmp; int flag;
            broadcastloop %{
            loop(n) %{
               loop(m) %{
@@ -350,10 +340,11 @@ sub PDL::med2d {
 EOF
         RedoDimsCode => '$SIZE(pq) = $SIZE(p)*$SIZE(q);',
         Code =>
-           init_vars( { vars => 'int flag;' } ) .
+           init_vars() .
            init_map("i") .
            init_map("j") .
 '
+           int flag;
            PDL_LDouble kk, aa;
            broadcastloop %{
            for(j=0; j<n_size; j++) {
@@ -422,8 +413,7 @@ Note: this routine does the median over all points in a rectangular
 
 EOD
         Pars => 'a(m,n); [o]b(m,n);',
-	# funny parameter names to avoid special case in 'init_vars'
-        OtherPars => 'int __p_size; int __q_size; int opt;',
+        OtherPars => 'int p_size; int q_size; int opt;',
         PMCode => <<'EOF',
 sub PDL::med2df {
    my $opt; $opt = pop @_ if ref($_[$#_]) eq 'HASH';
@@ -440,11 +430,12 @@ sub PDL::med2df {
 }
 EOF
         Code =>
-           init_vars( { vars => '$GENERIC() kk; int count;' }, [qw(m n)], [qw(p q)] ) .
+           init_vars( [qw(m n)], [qw(p q)] ) .
            init_map("i") .
            init_map("j") .
 '
-           $GENERIC() tmp[p_size*q_size];
+           int count;
+           $GENERIC() kk, tmp[p_size*q_size];
            broadcastloop %{
            for(j=0; j<n_size; j++) {
               for(i=0; i<m_size; i++) {
@@ -703,7 +694,7 @@ pp_def('max2d_ind',
 
 Return value/position of maximum value in 2D image
 
-Contributed by Tim Jeness
+Contributed by Tim Jenness
 
 =cut
 
