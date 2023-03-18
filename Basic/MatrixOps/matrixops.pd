@@ -718,38 +718,36 @@ numbers.  It might be useful to be able to return complex eigenvalues.
 pp_def(
        "svd",
        HandleBad => 0,
-       Pars => 'a(n,m); [o]u(n,m); [o,phys]z(n); [o]v(n,n);',
+       Pars => 'a(n,m); [t]w(wsize); [o]u(n,m); [o,phys]z(n); [o]v(n,n);',
        GenericTypes => ['D'],
+       RedoDimsCode => '
+        if ($SIZE(m)<$SIZE(n))
+            $CROAK("svd requires input ndarrays to have m >= n; you have m=%td and n=%td. Try inputting the transpose.  See the docs for svd.",$SIZE(m),$SIZE(n));
+        $SIZE(wsize) = $SIZE(n) * ($SIZE(m) + $SIZE(n));
+       ',
        Code => '
               extern void SVD( double *W, double *Z, int nRow, int nCol );
-              int sm = $SIZE (m), sn = $SIZE (n), i;
-              if (sm<sn) {
-		  $CROAK("svd requires input ndarrays to have m >= n; you have m=%d and n=%d. Try inputting the transpose.  See the docs for svd.",sm,sn);
-              }
-              double *w, *t, zv;
-              t = w = (double *) malloc(sn*(sm+sn)*sizeof(double));
+              double *t = $P(w);
               loop (m) %{
                 loop(n) %{
-                  *t++ = $a ();
+                  *t++ = $a();
                 %}
               %}
-              SVD(w, $P (z), sm, sn);
-              t = w;
+              SVD($P(w), $P(z), $SIZE(m), $SIZE(n));
               loop (n) %{
-                zv = sqrt($z ());
-                $z () = zv;
+                $z() = sqrt($z());
               %}
+              t = $P(w);
               loop (m) %{
                 loop (n) %{
-                  $u () = *t++/$z ();
+                  $u() = *t++/$z();
                 %}
               %}
-              loop (n) %{
-                for (i=0;i<sn;i++) {
-                  $v (n0=>i, n1=>n) = *t++;
-                }
+              loop (n1) %{
+                loop (n0) %{
+                  $v(n0=>n0, n1=>n1) = *t++;
+                %}
               %}
-              free(w);
 ',
       , Doc => q{
 =for usage
